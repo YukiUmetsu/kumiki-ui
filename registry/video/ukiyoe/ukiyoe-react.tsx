@@ -203,6 +203,16 @@ function renderPrims(prims: readonly Prim[], ctx: Ctx, key: string): ReactNode[]
         break;
       }
       case "group": out.push(<g key={k} transform={p.transform} opacity={p.opacity}>{renderPrims(p.prims, ctx, k)}</g>); break;
+      case "sandwich": {
+        const id = `${ctx.pre}s${ctx.clip++}`;
+        ctx.defs.set(id, <path key={id} id={id} d={p.d} />);
+        const lv = ctx.imp?.[0] ?? 1;
+        if (lv > 0) out.push(<use key={k + "l"} href={`#${id}`} fill="none" stroke={paintOf(ctx, p.line)} strokeWidth={p.lineWidth * ctx.lineScale} strokeLinejoin="round"
+          mask={lv < 1 ? sweepMask(ctx, lv, "k") : undefined} />);
+        out.push(...renderPrims(p.between, ctx, k));
+        out.push(<use key={k + "f"} href={`#${id}`} fill={paintOf(ctx, p.fill)} />);
+        break;
+      }
       case "clip": {
         const id = `${ctx.pre}c${ctx.clip++}`;
         ctx.defs.set(id, <clipPath key={id} id={id}><path d={p.d} /></clipPath>);

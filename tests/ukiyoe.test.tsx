@@ -68,6 +68,15 @@ describe("UKIYO1 frame purity", () => {
     expect(extent(1, 0)).toBeGreaterThan(extent(.2, 0) * 2.5);
     expect(extent(1, 140)).toBeLessThan(extent(1, 0) * .7);
   });
+  it("draws the wave's foam as one connected shape with a single outline, never as separately outlined claws", () => {
+    for (const frame of [0, 120, 150]) {
+      const prims = drawMotif("wave", { breakAt: 100 }, { frame, wind: 0, seed: 1, progress: 1 });
+      const foam = prims.filter(p => p.t === "sandwich");
+      expect(foam, "frame " + frame).toHaveLength(1);
+      // No other white fill in the wave carries its own outline (spray and flecks are droplets, drawn without one).
+      expect(prims.filter(p => p.t === "fill" && p.outline), "frame " + frame).toEqual([]);
+    }
+  });
   it("animates particles in closed form", () => {
     const rain = (f: number) => drawParticles({ type: "rain", count: 40 }, f, 0, 9);
     expect(rain(12)).toEqual(rain(12));

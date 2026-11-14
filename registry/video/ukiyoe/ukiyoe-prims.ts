@@ -24,6 +24,12 @@ export type Prim =
   | { t: "glow"; cx: number; cy: number; r: number; color: UkiyoePaint; opacity?: number }
   /** Transformed group. */
   | { t: "group"; transform?: string; opacity?: number; prims: Prim[] }
+  /**
+   * One shape painted as a sandwich: its outline, then `between` (what the outline should disappear under), then its
+   * fill. The path is emitted once and referenced twice. Used for foam whose lines must vanish where it meets other
+   * white, without duplicating a large path.
+   */
+  | { t: "sandwich"; d: string; fill: UkiyoePaint; line: UkiyoePaint; lineWidth: number; between: Prim[]; key: string }
   /** Group clipped to a path (stripes inside a wave, pattern inside a robe). */
   | { t: "clip"; d: string; prims: Prim[]; key: string };
 

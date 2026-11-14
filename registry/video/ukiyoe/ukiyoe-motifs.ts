@@ -274,26 +274,35 @@ export function waveSurface(params: Readonly<Record<string, unknown>>, c: MotifC
 
 /** A foam talon: a hook tapering to a point along a circular arc (constant curvature, so the ribbon never folds). */
 function talon(base: Pt, angle: number, len: number, sweep: number, width: number): string {
-  const n = 7, pts: Pt[] = [base];
+  const n = 8, pts: Pt[] = [base];
   let at = base;
   for (let j = 1; j <= n; j++) { at = polar(at, angle + sweep * (j - .5) / n, len / n); pts.push(at); }
-  return carvedLine(pts, width, { taper: "point", minRatio: .05, wobble: 0 });
+  return carvedLine(pts, width, { taper: "point", minRatio: .05, wobble: 0, smooth: true });
 }
 /**
- * A foam "hand": a small palm with two to four talons fanned from it, all hooking the same way — the unit the great
- * wave's lace is built from. Returned as one path whose parts share a winding, so it fills as their union.
+ * A foam "hand": a small palm with two to four talons fanned from it, all hooking the same way. This is the unit the
+ * great wave's lace is built from. `d` is the white shape (its parts share a winding, so it fills as their union);
+ * `accent` holds pale strokes tucked inside each talon's curl, where the print lays a light-blue impression.
  */
-function foamHand(at: Pt, angle: number, size: number, fingers: number, seed: number): string {
-  // Palm: a rounded blob set back from the fingers (wound the same way as the talon ribbons).
+function foamHand(at: Pt, angle: number, size: number, fingers: number, seed: number): { d: string; accent: string } {
   const c0 = polar(at, angle + 180, size * .22), palm: Pt[] = [];
   for (let i = 0; i < 10; i++) { const a = -i * 36; palm.push(polar(polar(c0, angle, Math.cos(a * DEG) * size * .46), angle + 90, Math.sin(a * DEG) * size * .34)); }
-  const parts: string[] = [polyD(palm)];
+  const parts: string[] = [smoothD(palm, true, .5)], accents: string[] = [];
+  let longestLen = 0;
   for (let i = 0; i < fingers; i++) {
     const f = fingers === 1 ? 0 : i / (fingers - 1) - .5;
-    const a0 = angle + f * (40 + fingers * 12), len = size * (1.35 - Math.abs(f) * .4) * (.8 + .35 * hash01(seed, i, 31));
-    parts.push(talon(polar(at, a0 + 180, size * .12), a0 + 26, len, -(140 + 60 * hash01(seed, i, 32)), len * .3));
+    const a0 = angle + f * (62 + fingers * 14), len = size * (1.4 - Math.abs(f) * .35) * (.8 + .35 * hash01(seed, i, 31));
+    const sweep = -(140 + 60 * hash01(seed, i, 32)), base = polar(at, a0 + 180, size * .12);
+    parts.push(talon(base, a0 + 26, len, sweep, len * .3));
+    // The pale stroke runs along the inner (concave) edge of the longest finger: the same arc, shifted a quarter of
+    // the finger's width toward the curl, shorter and thinner, so it always lies inside the white without clipping.
+    if (len > longestLen) {
+      longestLen = len;
+      const r0 = a0 + 26, start = polar(base, r0 + Math.sign(sweep) * 90, len * .3 * .25);
+      accents[0] = talon(polar(start, r0, len * .12), r0 + sweep * .12, len * .55, sweep * .62, len * .09);
+    }
   }
-  return parts.join("");
+  return { d: parts.join(""), accent: accents.join("") };
 }
 
 /**
@@ -321,12 +330,17 @@ function wave(p: P, c: MotifContext): Prim[] {
   const X = (q: Pt): Pt => [q[0] * W, q[1] * H];
   const shape: Pt[] = [...WAVE_BACK, ...lipPts, ...WAVE_FRONT.map(q => [q[0], q[1] * (1 - crash * .3)] as Pt), [-.5, 0]];
   const bodyD = smoothD(shape.map(X), true, .32);
-  const out: Prim[] = [{ t: "fill", d: bodyD, fill: foamC, outline: 2, outlineColor: lineC }];
+  // Painting order makes the foam read as one connected mass, as carved: (1) the indigo contour of the whole body,
+  // (2) the blue inner face, (3) the indigo contour of all the foam, (4) the white back, (5) the white foam. Each
+  // white fill covers the inner half of every line beneath it, so a claw's root melts into the white it grows from;
+  // indigo survives only where white meets blue or sky. Nothing in the white is outlined on its own.
+  const out: Prim[] = [{ t: "stroke", d: bodyD, color: lineC, width: 4 }];
 
-  // The deep inner face: everything forward of the ridge, clipped to the body.
+  // The deep inner face: everything forward of the ridge.
   const ridge = smoothPts(WAVE_RIDGE.map(q => [lerp(-.3, q[0], .4 + .6 * curl), q[1]] as Pt).map(X), 5);
   const faceD = polyD([...ridge, [-.8 * W, 0], [-.8 * W, -1.3 * H], [ridge[0][0], -1.3 * H]]);
-  const inner: Prim[] = [{ t: "fill", d: faceD, fill: deep, grain: .6 }];
+  const backD = polyD([...ridge, [.8 * W, H * .05], [.8 * W, -1.3 * H], [ridge[0][0], -1.3 * H]]);
+  const face: Prim[] = [{ t: "fill", d: faceD, fill: deep, grain: .6 }];
   // Lighter bands following the ridge, curving round under the lip; snow flecks on the blue.
   const offset = (line: Pt[], off: number) => line.map((q, i) => {
     const a = line[Math.max(0, i - 1)], b = line[Math.min(line.length - 1, i + 1)], tx = b[0] - a[0], ty = b[1] - a[1], len = Math.hypot(tx, ty) || 1;
@@ -337,14 +351,14 @@ function wave(p: P, c: MotifContext): Prim[] {
     const line = offset(ridge, -W * (.035 + .055 * s)).map((q, i, all) => [q[0] - Math.sin(i / all.length * Math.PI) * W * .02 * s, q[1]] as Pt);
     const from = Math.round(line.length * (.04 + .06 * s)), to = line.length - Math.round(line.length * (.06 + .03 * s));
     if (to - from < 3) continue;
-    inner.push({ t: "line", d: carvedLine(line.slice(from, to), W * (.026 - .002 * s), { taper: "both", seed: seed + s, wobble: .25 }), color: mid, opacity: .5 });
+    face.push({ t: "line", d: carvedLine(line.slice(from, to), W * (.026 - .002 * s), { taper: "both", seed: seed + s, wobble: .25 }), color: mid, opacity: .5 });
     bandLines.push(line.slice(from, to));
   }
-  // The crest itself is white foam: a rim band inside the outer edge of the back's top and the whole lip.
+  // The crest's foam band: inside the outer edge of the back's top and the whole lip.
   const rimEdge = smoothPts([...WAVE_BACK.slice(-4), ...lipPts.slice(0, WAVE_LIP.length)].map(X), 6);
   const rimIn = rimEdge.map((q, i) => {
     const a = rimEdge[Math.max(0, i - 1)], b = rimEdge[Math.min(rimEdge.length - 1, i + 1)], tx = b[0] - a[0], ty = b[1] - a[1], len = Math.hypot(tx, ty) || 1;
-    const u = i / (rimEdge.length - 1), depth = H * (.035 + .085 * Math.sin(Math.PI * Math.min(1, u * 1.05)) ** .7 + .05 * u * u) * (1 + .38 * Math.sin(i * .9 + seed));
+    const u = i / (rimEdge.length - 1), depth = H * (.022 + .045 * Math.sin(Math.PI * Math.min(1, u * 1.05)) ** .7 + .03 * u * u) * (1 + .3 * Math.sin(i * .9 + seed));
     return [q[0] + ty / len * depth, q[1] - tx / len * depth] as Pt;
   });
   const rimD = smoothD([...rimEdge, ...rimIn.slice().reverse()], true, .35);
@@ -359,26 +373,20 @@ function wave(p: P, c: MotifContext): Prim[] {
     for (let v = 0; v < k; v++) pts.push(polar([x, y], v * 360 / k + hash01(seed, i, v + 6) * 50, r * (.7 + .6 * hash01(seed, i, v + 9))));
     flecks.push(polyD(pts));
   }
-  if (flecks.length) inner.push({ t: "fill", d: flecks.join(""), fill: foamC, noPrint: true });
-  // On the white back: a pale-blue wash along the ridge and a few fine indigo contour lines.
-  inner.unshift({ t: "line", d: carvedLine(offset(ridge, W * .045), W * .07, { taper: "both", seed: seed + 41 }), color: pale, opacity: .55 });
-  for (let s = 1; s <= 3; s++) inner.unshift({ t: "line", d: carvedLine(offset(ridge, W * (.08 + .07 * s)).slice(2 + s, -2 - s), 1.6, { taper: "both", seed: seed + 50 + s }), color: lineC, opacity: .45 });
-  inner.push({ t: "group", transform: `translate(${(W * .006).toFixed(1)} ${(H * .02).toFixed(1)})`, prims: [{ t: "fill", d: rimD, fill: pale, opacity: .75, noPrint: true }] });
-  inner.push({ t: "fill", d: rimD, fill: foamC });
-  out.push({ t: "clip", d: bodyD, prims: inner, key: "wave-face" });
+  if (flecks.length) face.push({ t: "fill", d: flecks.join(""), fill: foamC, noPrint: true });
 
-  // Foam lace: tiers of small hooked hands. Behind the crest edge, along it, hanging from the foam's underside over
-  // the blue, cascading from the lip's tip, and spilling down the ridge. Each tier is outlined as one union, so
-  // hands in different tiers overlap with their indigo lines showing, as carved.
-  const tiers: { d: string[]; shadow: string[] }[] = [0, 1, 2, 3, 4, 5, 6, 7].map(() => ({ d: [], shadow: [] }));
+  // Foam lace: small hooked hands behind the crest edge, along it, hanging from the foam's underside over the blue,
+  // spilling down the ridge and cascading from the lip. All of them, the crest band and (when breaking) the boiling
+  // trough form ONE shape. Every hand overlaps the band, the white back or its neighbour, so none is isolated.
+  const foam: string[] = [rimD], accents: string[] = [], shadows: string[] = [];
   let hk = 0;
   const grow = (.45 + .55 * curl) * (1 + crash * .35);
-  const hand = (tier: number, at: Pt, angle: number, size: number) => {
-    // Neighbours alternate between two layers of the tier, so each hand keeps its own outline where they overlap.
-    const id = hk++, sway = Math.sin(c.frame / 7 + id * 1.3) * 4 * (1 + crash), layer = tiers[tier * 2 + (id % 2)];
+  const hand = (at: Pt, angle: number, size: number) => {
+    const id = hk++, sway = Math.sin(c.frame / 7 + id * 1.3) * 4 * (1 + crash);
     const sz = size * grow * (.8 + .45 * hash01(seed, id, 23));
-    layer.d.push(foamHand(at, angle + sway + hashSigned(seed, id, 22) * 14, sz, 2 + Math.floor(hash01(seed, id, 21) * 2.9), seed + id));
-    layer.shadow.push(ellipseD(at[0] + sz * .12, at[1] + sz * .34, sz * .7, sz * .5));
+    const h = foamHand(at, angle + sway + hashSigned(seed, id, 22) * 14, sz, 2 + Math.floor(hash01(seed, id, 21) * 2.9), seed + id);
+    foam.push(h.d); accents.push(h.accent);
+    shadows.push(ellipseD(at[0] + sz * .12, at[1] + sz * .34, sz * .7, sz * .5));
   };
   const walk = (line: readonly Pt[], spacing: number, from: number, to: number, fn: (q: Pt, n: Pt, u: number, i: number) => void) => {
     const pts = resample(line, spacing / (.5 + .5 * curl));
@@ -391,32 +399,38 @@ function wave(p: P, c: MotifContext): Prim[] {
   };
   const deg = (y: number, x: number) => Math.atan2(y, x) / DEG;
   const big = (u: number) => H * (.05 + .045 * Math.sin(Math.PI * Math.min(1, u * 1.05)) ** .7);
-  // Behind the edge: a staggered inner row that reads as depth in the foam.
-  walk(rimEdge, H * .085, .1, 1, (q, n, u, i) => hand(0, [q[0] - n[0] * H * .035 + (i % 2 ? H * .02 : 0), q[1] - n[1] * H * .035], deg(n[1] + .25, n[0] - .75), big(u) * 1.05));
-  // Along the crest and lip: hands reaching out and forward, hooking over.
-  walk(rimEdge, H * .07, .14, 1, (q, n, u) => hand(1, q, deg(n[1] + .12, n[0] - .7), big(u)));
-  // Under the foam: claws hanging over the deep blue of the face.
-  walk(rimIn, H * .075, .22, .97, (q, n, u) => hand(2, q, deg(-n[1] + .35, -n[0] - .55), big(u) * .9));
-  // Spilling down the ridge, reaching over the face.
+  // Along the crest and lip: hands reaching out and forward into the sky, hooking over.
+  walk(rimEdge, H * .1, .12, 1, (q, n, u) => hand(q, deg(n[1] + .12, n[0] - .7), big(u) * 1.25));
+  // From the band's underside: hands hanging down over the deep blue, with blue showing between them.
+  walk(rimIn, H * .11, .2, .97, (q, n, u, i) => hand(q, deg(-n[1] + .35, -n[0] - .55) + (i % 2 ? 12 : -8), big(u) * 1.05));
   const ridgeRows = Math.round(num(p, "ridgeClaws", 7) * curl);
   for (let i = 0; i < ridgeRows; i++) {
     const u = .08 + .6 * i / Math.max(1, ridgeRows - 1), q = ridge[Math.floor(u * (ridge.length - 1))];
-    hand(2, [q[0] + W * .008, q[1]], 162 + hashSigned(seed, i, 9) * 16, H * (.075 - .03 * u));
+    hand([q[0] + W * .008, q[1]], 162 + hashSigned(seed, i, 9) * 16, H * (.075 - .03 * u));
   }
-  // The cascade from the lip's tip: hands tumbling down and back under the curl.
-  const tip = rimEdge[rimEdge.length - 1], cascade = Math.round(8 * curl);
+  // The cascade from the lip's tip: a chain of hands close enough that each overlaps the one above it.
+  const tip = rimEdge[rimEdge.length - 1], cascade = Math.round(9 * curl);
   for (let k = 0; k < cascade; k++) {
-    const at = polar(tip, 96 - k * 7, H * .04 * (k + .6));
-    hand(3, [at[0] + hashSigned(seed, k, 41) * H * .018, at[1]], 150 - k * 9, H * (.085 - .006 * k));
-    if (k % 2 === 0) hand(3, [at[0] + H * .05, at[1] - H * .012], 128 - k * 8, H * (.07 - .005 * k));
+    const at = polar(tip, 96 - k * 7, H * .03 * (k + .5));
+    hand([at[0] + hashSigned(seed, k, 41) * H * .012, at[1]], 150 - k * 9, H * (.085 - .006 * k));
+    if (k % 2 === 0) hand([at[0] + H * .035, at[1] - H * .01], 128 - k * 8, H * (.07 - .005 * k));
   }
-  const shadowD = tiers.map(t => t.shadow.join("")).join("");
-  if (shadowD) out.push({ t: "fill", d: shadowD, fill: pale, opacity: .62, noPrint: true });
-  for (const tier of tiers) {
-    if (!tier.d.length) continue;
-    const d = tier.d.join("");
-    out.push({ t: "fill", d, fill: foamC, outline: 1.3, outlineColor: lineC, union: true, noPrint: true });
+  if (crash > 0) {
+    const boil: Pt[] = [];
+    for (let i = 0; i <= 18; i++) { const x = lerp(-.62 * W, .05 * W, i / 18); boil.push([x, -H * .3 * crash * (.5 + .5 * Math.abs(Math.sin(i * 1.7 + c.frame / 5)))]); }
+    foam.push(smoothD([[boil[0][0], 0], ...boil, [boil[18][0], 0]], true, .6));
   }
+  const foamD = foam.join("");
+  // Pale-blue shadow where foam lies over the deep blue (on the face only: never a halo against the sky).
+  face.push({ t: "fill", d: shadows.join(""), fill: pale, opacity: .62, noPrint: true });
+  out.push({ t: "clip", d: bodyD, prims: face, key: "wave-face" });
+  out.push({ t: "sandwich", d: foamD, fill: foamC, line: lineC, lineWidth: 2.8, key: "wave-foam", between: [{ t: "clip", d: bodyD, key: "wave-back", prims: [
+    { t: "fill", d: backD, fill: foamC, noPrint: true },
+    // On the white back: a pale-blue wash along the ridge and a few fine indigo contour lines.
+    { t: "line", d: carvedLine(offset(ridge, W * .045), W * .07, { taper: "both", seed: seed + 41 }), color: pale, opacity: .55 },
+    ...[1, 2, 3].map((s): Prim => ({ t: "line", d: carvedLine(offset(ridge, W * (.08 + .07 * s)).slice(2 + s, -2 - s), 1.6, { taper: "both", seed: seed + 50 + s }), color: lineC, opacity: .45 })),
+  ] }] });
+  out.push({ t: "fill", d: accents.join(""), fill: pale, opacity: .7, noPrint: true });
 
   // Spray: snow-like droplets flung from the lip; a burst when it breaks.
   const sprayAmt = clamp01(num(p, "spray", .8)), dots: string[] = [];
@@ -429,11 +443,6 @@ function wave(p: P, c: MotifContext): Prim[] {
     dots.push(circleD(base[0] + vx * life, base[1] + vy * life + 150 * life * life, r));
   }
   if (dots.length) out.push({ t: "dots", d: dots.join(""), color: foamC });
-  if (crash > 0) {
-    const boil: Pt[] = [];
-    for (let i = 0; i <= 18; i++) { const x = lerp(-.62 * W, .05 * W, i / 18); boil.push([x, -H * .3 * crash * (.5 + .5 * Math.abs(Math.sin(i * 1.7 + c.frame / 5)))]); }
-    out.push({ t: "fill", d: smoothD([[boil[0][0], 0], ...boil, [boil[18][0], 0]], true, .6), fill: foamC, outline: 1.2, outlineColor: lineC, opacity: clamp01(crash * 2) });
-  }
   return out;
 }
 /** Densify a polyline through a Catmull-Rom spline so offsets curve smoothly. */
