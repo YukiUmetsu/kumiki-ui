@@ -120,7 +120,7 @@ RISO3 planted the courier's feet but still drew every limb as a single rigid SVG
 />
 ```
 
-The original courier and bird now use **fully opaque base color masses**. Light facial/cheek tones come from actual halftone dot fills over the already cleared paper, not a transparent face over the city. Additional details include cobalt facial keyline, red boot construction and sole marks, vermilion coat seam/pocket ink, and contrasting satchel hardware.
+The original courier and bird now use **fully opaque base color masses**. The entire face contour is paper-only (`knockoutOnly: true`); the face is never printed with translucent blue dots. Strong solid facial linework gives expression contrast, while small cheek and pocket accents may use actual halftone dot fills. Additional details include cobalt facial keyline, red boot construction and sole marks, vermilion coat seam/pocket ink, and contrasting satchel hardware.
 
 The foreground API intentionally refuses duplicate IDs, invalid/missing plate callbacks and paper knockouts in `transparentPaper` mode. One-ink isolation still shows the paper-clearance silhouette, and plate registration remains independent.
 
