@@ -32,7 +32,7 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
   for (let layer = 0; layer < passes; layer++) {
     for (let row = 0; row < rows; row++) {
       const index = layer * rows + row;
-      const shift = (crayonHash(options.seed, index, 4) - .5) * spacing * .75;
+      const shift = (crayonHash(options.seed, index, 4) - .5) * spacing * 1.8;
       const y = bounds.y - spacing + row * spacing + shift + layer * spacing * .45;
       const slant = (layer ? -1 : 1) * (4 + crayonHash(options.seed, index, 5) * 9);
       const left = bounds.x - 18;
@@ -41,15 +41,15 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
       // Tiny side-rubbings: many short, uneven strokes deposited into the same tooth.
       // A full-width regular ribbon reads as digital stripes, so a hand lifts between
       // patches and changes pressure, direction and coverage at every short passage.
-      const segments = Math.max(2, Math.min(96, Math.ceil(bounds.width / 57)));
+      const segments = Math.max(2, Math.min(96, Math.ceil(bounds.width / 39)));
       const segmentWidth = (right-left) / segments;
       const d = Array.from({length:segments}, (_,part) => {
         const skew = (crayonHash(options.seed,index,100+part)-.5)*Math.min(12,segmentWidth*.22);
-        const gap = (2+crayonHash(options.seed,index,230+part)*Math.min(15,segmentWidth*.18));
+        const gap = (1.5+crayonHash(options.seed,index,230+part)*Math.min(8,segmentWidth*.14));
         const startX = left + segmentWidth*part + skew;
         const endX = left + segmentWidth*(part+1) - gap;
-        const jitter=(crayonHash(options.seed,index,400+part)-.5)*Math.min(19,spacing*2.5);
-        const angle=(crayonHash(options.seed,index,560+part)-.5)*Math.min(26,segmentWidth*.4);
+        const jitter=(crayonHash(options.seed,index,400+part)-.5)*Math.min(24,spacing*3.5);
+        const angle=(crayonHash(options.seed,index,560+part)-.5)*Math.min(42,segmentWidth*.95);
         const sy = y + slant * (1-2*part/segments) + jitter - angle*.48;
         const ey = y + slant * (1-2*(part+1)/segments) + jitter + angle*.48;
         const midY=(sy+ey)/2+(crayonHash(options.seed,index,700+part)-.5)*5;
@@ -67,8 +67,8 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
         " l" + (grainLen * .43).toFixed(2) + " " + (-wobble * .08).toFixed(2);
       const p = Math.min(1, Math.max(.16, options.pressure * (.77 + crayonHash(options.seed, index, 7) * .36)));
       marks.push({
-        d, scumble, scrape, index, pressure: p, tone: Math.floor(crayonHash(options.seed, index, 8) * 3),
-        width: 6.5 + p * 7.8 + crayonHash(options.seed, index, 9) * 2,
+        d, scumble, scrape, index, pressure: p, tone: crayonHash(options.seed,index,8) < .73 ? 0 : crayonHash(options.seed,index,8) < .92 ? 1 : 2,
+        width: 4.5 + p * 5.6 + crayonHash(options.seed, index, 9) * 1.9,
       });
     }
   }
