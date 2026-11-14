@@ -148,14 +148,16 @@ export function evaluateWetPaper(spec: WetPaperSpec, frame: number, reducedMotio
     }
   };
 
-  const neighbors=(i:number):number[]=>{
+  // Precompute boundary topology once per query; recomputing arrays inside
+  // every physics step inflated GC cost during interactive 30 fps playback.
+  const neighbors=Array.from({length:n},(_,i)=>{
     const x=i%cols,y=Math.floor(i/cols),out:number[]=[];
     if(x>0)out.push(i-1);
     if(x<cols-1)out.push(i+1);
     if(y>0)out.push(i-cols);
     if(y<rows-1)out.push(i+cols);
     return out;
-  };
+  });
   let previous=first-1;
   // 4-frame physics cadence: the image interpolates by film frame through
   // deposition events and wetness, but never integrates from an earlier seek.
@@ -167,9 +169,9 @@ export function evaluateWetPaper(spec: WetPaperSpec, frame: number, reducedMotio
     const newWater=new Float64Array(n);
     const moving=Array.from({length:4},()=>new Float64Array(n));
     for(let i=0;i<n;i++){
-      const nbr=neighbors(i),w=water[i];
+      const nbr=neighbors[i],w=water[i];
       const waterFraction=.22*spec.flow;
-      const mobility=(.035+.2*spec.flow)*clamp(w);
+      const mobility=.235*spec.flow*clamp(w);
       // Neighbor flux is conservative, including at the paper boundary.
       newWater[i]+=w*(1-waterFraction)*.95;
       for(let k=0;k<4;k++){
