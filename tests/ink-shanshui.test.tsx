@@ -112,8 +112,13 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(ridges.map(x=>x[1])).toEqual(["0","1","2"]);
       for(const band of ["0","1","2"])
         expect(svg).toContain('data-km-shanshui-ridge-contour="'+band+'"');
+      const kinds=[...svg.matchAll(/data-km-cunfa-kind="(axe|hemp)"/g)]
+        .map(match=>match[1]);
+      expect(kinds.filter(kind=>kind==="hemp").length).toBeGreaterThan(70);
+      expect(kinds.filter(kind=>kind==="axe").length).toBeGreaterThan(0);
       const roots=[...svg.matchAll(/data-km-cunfa-crest-y="([^"]+)" data-km-cunfa-root-y="([^"]+)"/g)];
       expect(roots.length).toBeGreaterThan(100);
+      expect(kinds).toHaveLength(roots.length);
       for(const [,crest,root] of roots){
         const offset=Number(root)-Number(crest);
         expect(Number.isFinite(offset)).toBe(true);
