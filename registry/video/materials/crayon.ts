@@ -2,6 +2,35 @@
 export interface CrayonBounds { x: number; y: number; width: number; height: number }
 export interface CrayonMark { d: string; scumble: string; scrape: string; width: number; tone: number; pressure: number; index: number }
 export interface CrayonOptions { seed: number; pressure: number; spacing?: number; passes?: number }
+/**
+ * Physically motivated, authored order of outlining and hand-hatching.
+ * Unlike a digital mask wipe, each native wax mark is deposited progressively.
+ * This is an optional construction mode; older scenes retain their original look.
+ */
+export interface CrayonWaxConstruction {
+  order: "outline-first" | "fill-first";
+  /** Portion of the drawing duration dedicated to tracing the silhouette. */
+  outlineFraction: number;
+  /** Thin residual flat wax binder; 0 leaves only the textured deposited strokes. */
+  glaze: number;
+}
+export function crayonConstructionWindows(
+  first:number,last:number,build:CrayonWaxConstruction,
+):{outlineStart:number;outlineEnd:number;fillStart:number;fillEnd:number}{
+  if(![first,last,build?.outlineFraction,build?.glaze].every(Number.isFinite) ||
+    !Number.isSafeInteger(first)||!Number.isSafeInteger(last)||
+    first<0||last-first<3||!["outline-first","fill-first"].includes(build.order)||
+    build.outlineFraction<.1||build.outlineFraction>.75||
+    build.glaze<0||build.glaze>.45)
+    throw new RangeError("Invalid CRAYON1 wax construction windows");
+  const outlineFrames=Math.min(last-first-1,Math.max(1,
+    Math.round((last-first)*build.outlineFraction)));
+  return build.order==="outline-first"
+    ?{outlineStart:first,outlineEnd:first+outlineFrames,
+      fillStart:first+outlineFrames,fillEnd:last}
+    :{fillStart:first,fillEnd:last-outlineFrames,
+      outlineStart:last-outlineFrames,outlineEnd:last};
+}
 
 export function crayonHash(seed: number, a: number, b = 0): number {
   // Integer mixing keeps renders identical across seeks and JavaScript runtimes.

@@ -1,5 +1,5 @@
-import { assertCrayonOptions } from "./crayon";
-import type { CrayonBounds } from "./crayon";
+import { assertCrayonOptions, crayonConstructionWindows } from "./crayon";
+import type { CrayonBounds, CrayonWaxConstruction } from "./crayon";
 
 /**
  * Serializable, medium-native authored scene contract.
@@ -28,6 +28,8 @@ export interface CrayonContact {
 export interface CrayonBase {
   id: string;
   timing: CrayonTiming;
+  /** Rendered light construction lines may retire after the finished drawing replaces them. */
+  exitFade?: CrayonTiming;
   placement?: CrayonPlacement;
   screenSpace?: boolean;
   /** Optional articulated parent. Order of artwork stays independent of the rig hierarchy. */
@@ -57,6 +59,8 @@ export interface CrayonWaxElement extends CrayonBase {
   spacing?: number;
   /** Authored wax-rubbing direction in degrees. */
   angle?: number;
+  /** Explicit silhouette-outline versus pigment-deposition sequence. */
+  construction?: CrayonWaxConstruction;
 }
 export interface CrayonContourElement extends CrayonBase {
   kind: "contour";
@@ -166,6 +170,11 @@ export function inspectCrayonScene(input: unknown): string[] {
       if (typeof node.id !== "string" || !/^[a-z][a-z0-9-]{1,63}$/.test(node.id) || seen.has(node.id)) errors.push(p + ".id must be a unique slug");
       else seen.add(node.id);
       checkTime(node.timing, v.durationFrames ?? 0, p, errors);
+      if (node.exitFade !== undefined) {
+        checkTime(node.exitFade,v.durationFrames ?? 0,p+".exitFade",errors);
+        if (!node.exitFade || node.exitFade.start < node.timing?.end)
+          errors.push(p+".exitFade must begin after construction is drawn");
+      }
       if (node.parentId !== undefined && (typeof node.parentId !== "string" || !/^[a-z][a-z0-9-]{1,63}$/.test(node.parentId)))
         errors.push(p + ".parentId must be an element slug");
       if (node.pivot !== undefined && (!node.pivot || ![node.pivot.x,node.pivot.y].every(finite) ||
@@ -257,6 +266,10 @@ export function inspectCrayonScene(input: unknown): string[] {
         else node.colors.forEach((color: string,i: number)=>checkColor(String(color),p + ".colors["+i+"]",errors));
         if (node.angle !== undefined && (!finite(node.angle) || node.angle < -89 || node.angle > 89))
           errors.push(p + ".angle must be in [-89,89]");
+        if (node.construction !== undefined) {
+          try{crayonConstructionWindows(node.timing.start,node.timing.end,node.construction);}
+          catch{errors.push(p+".construction must have a valid outline order, fraction and wax glaze");}
+        }
         try { assertCrayonOptions({seed:0,pressure:node.pressure ?? .84,spacing:node.spacing ?? 9}); }
         catch {errors.push(p + ".pressure/spacing is out of bounds");}
       } else if (node.kind === "contour") {

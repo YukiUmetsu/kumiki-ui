@@ -376,6 +376,60 @@ This does not guarantee that every individual frame paints in a slow browser
 or that rendered narration/audio are synchronized inside Storybook. For
 production, use the film export pipeline and review the encoded result.
 
+### Crayon drawing as an authored process (CRAYON1 construction)
+
+A handmade-looking scene must reveal **how marks are made**, not simply
+apply a paper texture after a full silhouette fades in. The optional
+`construction` field on any `wax` element now provides a validated,
+deterministic drawing order:
+
+```json
+{
+  "kind": "wax", "id": "original-character-body",
+  "timing": {"start": 138, "end": 276},
+  "construction": {
+    "order": "outline-first",
+    "outlineFraction": 0.31,
+    "glaze": 0.17
+  }
+}
+```
+
+This illustrative partial fragment belongs inside a full valid
+`CrayonWaxElement` with a path, colors and bounds. The native wax contour
+is genuinely traced along its SVG path first, then directional crayon
+patches accumulate in two seeded passes. `glaze` is limited to 0–0.45
+so the drawing does not begin as a solid-colored cutout. `fill-first`
+reverses the explicit sequence and is useful for broader background
+wash/colored studies. Without `construction`, the pre-existing
+`WaxRegion` render contract and scenes remain unchanged.
+
+The optional `exitFade` on a scene element defines a validated
+post-drawing interval to retire temporary sketch guides. It has
+discrete testable states (`visible`, `fading`, `finished`) and does
+not alter the paper substrate or erase real deposited wax.
+
+`src/video/crayon-character-draw-fixtures.ts` authors an original
+450-frame short: **blank paper → light construction axes → tail/ears/body
+contours → directional wax fill → detailed face → soft scenery fill →
+animated character payoff**. Two Film Looks Storybook stories are interactive:
+
+- **Character Draw In** (16:9)
+- **Character Draw In Portrait** (9:16)
+
+Storybook Controls expose outline/fill ordering, outline duration,
+binder/glaze, seed, paper tooth, play speed and loop. The film still uses
+CRAYON1 and FilmDocument: no new renderer or second timeline. For
+verified-making-of comparisons and a prioritized craft backlog, see
+[Crayon drawing and animated characters — research](../research/crayon-drawing-and-character-animation-study.md).
+
+**Limitations:** The guide fade is illustrative, not a simulated physical
+eraser. Character parts still use fixed seeded marks when animated, whereas
+high-end crayon frame-by-frame films redraw and rescan texture on each
+exposure. Hand/tool tracking, per-stroke pressure kinetics, multistroke
+semantic sequencing inside *one* complex outline and whole-video
+normal-speed independent art signoff remain open.
+
 ### Production proof
 
 The 420-frame (14 s at 30 fps), three-shot FilmDocument uses the existing `slot` scene type in `FilmStage`, not another timeline or an unbounded playback loop. Its shot frames are 0…119, 120…269 and 270…419. The slot adapter adds each scene's `offsetFrame` to its local frame. The second original scene, the flower garden, is available as a separate interactive Storybook story.

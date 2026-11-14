@@ -12,6 +12,8 @@ const samples=[
   {name:"walk portrait",id:"video-crayon-scene-engine--character-walk-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
   {name:"two-bone gait landscape",id:"video-crayon-scene-engine--character-two-bone-ik",attr:"data-km-crayon-scene",aspect:"landscape"},
   {name:"two-bone gait portrait",id:"video-crayon-scene-engine--character-two-bone-ik-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
+  {name:"character draw in landscape",id:"video-crayon-scene-engine--character-draw-in",attr:"data-km-crayon-scene",aspect:"landscape"},
+  {name:"character draw in portrait",id:"video-crayon-scene-engine--character-draw-in-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
 ] as const;
 for(const sample of samples) {
   test("crayon real-browser smoke: "+sample.name,async({page},info)=>{
@@ -111,4 +113,43 @@ test("crayon Storybook wall-clock playback advances, pauses, and restarts",async
   await expect(scene).toHaveAttribute("data-km-crayon-frame",paused!);
   await page.getByRole("button",{name:"Restart"}).click();
   await expect(scene).toHaveAttribute("data-km-crayon-frame","0");
+});
+
+
+test("drawn-character film builds wax after outlines and clears transient guides",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-crayon-scene-engine--character-draw-in&viewMode=story");
+  const svg=page.locator("svg[data-km-crayon-scene]");
+  const body=svg.locator('[data-km-crayon-element="body"] [data-km-crayon-build]');
+  const guide=svg.locator('[data-km-crayon-element="construction-head"]');
+  await page.getByRole("button",{name:"Sketch guides"}).click();
+  await expect(svg).toHaveAttribute("data-km-crayon-frame","48");
+  await expect(guide).toHaveAttribute("data-km-crayon-exit","visible");
+  await svg.screenshot({path:info.outputPath("draw-in-guides-48.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"First outlines"}).click();
+  await expect(body).toHaveAttribute("data-km-crayon-build","outlining");
+  await svg.screenshot({path:info.outputPath("draw-in-outlines-146.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Wax colour"}).click();
+  await expect(body).toHaveAttribute("data-km-crayon-build","pigment");
+  await expect(guide).toHaveAttribute("data-km-crayon-exit","fading");
+  await svg.screenshot({path:info.outputPath("draw-in-wax-190.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Complete"}).click();
+  await expect(svg).toHaveAttribute("data-km-crayon-frame","449");
+  await expect(body).toHaveAttribute("data-km-crayon-build","finished");
+  await expect(guide).toHaveAttribute("data-km-crayon-exit","finished");
+  await svg.screenshot({path:info.outputPath("draw-in-finished-449.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"First outlines"}).click();
+  await expect(body).toHaveAttribute("data-km-crayon-build","outlining");
+});
+
+test("drawn-character portrait retains separate guide, pigment and acting frames",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-crayon-scene-engine--character-draw-in-portrait&viewMode=story");
+  const svg=page.locator("svg[data-km-crayon-scene]");
+  const body=svg.locator('[data-km-crayon-element="body"] [data-km-crayon-build]');
+  await expect(svg).toHaveAttribute("viewBox","0 0 540 960");
+  await page.getByRole("button",{name:"Layered shading"}).click();
+  await expect(body).toHaveAttribute("data-km-crayon-build","finished");
+  await svg.screenshot({path:info.outputPath("draw-in-portrait-280.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Drawing moves"}).click();
+  await expect(svg).toHaveAttribute("data-km-crayon-frame","400");
+  await svg.screenshot({path:info.outputPath("draw-in-portrait-400.png"),animations:"disabled"});
 });
