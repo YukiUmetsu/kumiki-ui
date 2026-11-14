@@ -202,7 +202,7 @@ function LayeredCity({ aspect, paint, ink }: {
         return <g key={i} opacity={.28 + i % 2 * .10}>
           <rect x={x} y={base - h} width={portrait ? 91 : 140} height={h}
             fill={paint.dots}/>
-          <path d={\`M\${x} \${base-h}v\${h}h\${portrait?91:140}\`}
+          <path d={`M${x} ${base-h}v${h}h${portrait?91:140}`}
             stroke={paint.solid} strokeWidth="1.4" fill="none"/>
         </g>;
       })}
@@ -210,7 +210,7 @@ function LayeredCity({ aspect, paint, ink }: {
         "M20 460 Q220 430 480 460 T940 450"} stroke={paint.solid} strokeWidth="2.5"
         strokeDasharray="21 17" opacity=".54" fill="none"/>
     </> : <>
-      {[0,1,2,3,4].map(i=> <g key={i} transform={\`translate(\${portrait?i*119:110+i*188} \${portrait?635:284})\`}>
+      {[0,1,2,3,4].map(i=> <g key={i} transform={`translate(${portrait?i*119:110+i*188} ${portrait?635:284})`}>
         <path d="M0 68 Q-18 31 0 10 Q20 -9 36 10 Q61 39 41 68 Z" fill={paint.dots} opacity=".68"/>
         <rect x={16} y={65} width={4} height={20}/>
       </g>)}
