@@ -79,7 +79,6 @@ export function RisoCharacterModelSheet({
   const uid=useId().replace(/[^a-z0-9]/gi,"");
   const report=evaluateRisoCharacterMesh(spec,sheet,frame);
   const region=report.regions.find(r=>r.id===selectedRegion)??report.regions[0];
-  const head=report.regions.find(r=>r.id===sheet.headRegion)!;
   const poseReports=sheet.poses.map(p=>({label:p.label,frame:p.frame,report:evaluateRisoCharacterMesh(spec,sheet,p.frame)}));
   const allPlates=[...new Set(spec.parts.filter(p=>!p.knockoutOnly).map(p=>p.plate))];
   const section=(x:number,y:number,w:number,h:number,title:string,index:string)=><g>
@@ -124,9 +123,16 @@ export function RisoCharacterModelSheet({
     // Reuse the authoritative evaluator, never derive a second skeleton.
     return evaluateRisoCharacter(spec,sample);
   }
+  // Include the cap and all hair outlines in the enlarged head crop.
+  // A face-only crop would silently chop off the actor's distinctive fringe.
+  const headRegions=report.regions.filter(r=>
+    r.id===sheet.headRegion || ["face","hair","headwear"].includes(r.category));
+  const headX=Math.min(...headRegions.map(r=>r.bounds.x));
+  const headY=Math.min(...headRegions.map(r=>r.bounds.y));
+  const headRight=Math.max(...headRegions.map(r=>r.bounds.x+r.bounds.width));
+  const headBottom=Math.max(...headRegions.map(r=>r.bounds.y+r.bounds.height));
   const headBounds: RisoMeshBounds = {
-    x:head.bounds.x-10,y:head.bounds.y-12,
-    width:head.bounds.width+20,height:head.bounds.height+24,
+    x:headX-11,y:headY-11,width:headRight-headX+22,height:headBottom-headY+22,
   };
   const detail=sheet.regions.find(r=>r.id===region.id)!;
   const poseFrames=poseReports.map(p=>p.report);
