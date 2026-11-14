@@ -66,8 +66,33 @@ export function shanshuiGarmentCraft(
     [-.17,-.41,.72],[-.06,.03,.48],[.16,.29,.92],
     [.27,.15,.64],[.44,.51,.93],[.68,.78,.54],
   ] as const;
-  const count=detail>.74?folds.length:detail>.33?6:3;
-  for(let i=0;i<count;i++){
+  // Painted silk needs broad shadow volumes FIRST. Flat, equidistant
+  // striations were making the robe look like a pleated paper lamp.
+  // The dark side of each volume catches pooled ink while the edge keeps
+  // open paper; use fewer long lines, then concentrate many small creases
+  // where weight and tension physically accumulate.
+  if(medium){
+    const volumes=[
+      [-.39,-.23,.15],[-.1,.16,.10],[.33,.5,.13],
+      [.59,.7,.08],
+    ] as const;
+    for(let i=0;i<(high?volumes.length:2);i++){
+      const [root,tail,opacity]=volumes[i];
+      const x0=waist.x+root*fit.sourceWaistRatio*291*.35;
+      const x1=hem.x+tail*fit.sourceHemRatio*291*.37;
+      const p0=v(x0,waist.y+17+(i%2)*6);
+      const p1=v(x1,hem.y-12-(i%2)*8);
+      const breadth=6+(i%3)*3;
+      robe.push(closed(
+        curve(p0,v(x0-4,hip.y+13),v(x1-13,hem.y-40),p1)+
+        " C"+st(v(x1+breadth,hem.y-30))+
+        " "+st(v(x0+breadth*.4,hip.y+13))+
+        " "+st(p0)+" Z",
+        i%2===0?"$wash":"$deep",opacity));
+    }
+  }
+  const mainIndices=high?[0,2,3,4,6,7,8]:medium?[0,2,4,6,8]:[0,4,8];
+  for(const i of mainIndices){
     const [root,end,pressure]=folds[i];
     const start=v(waist.x+root*fit.sourceWaistRatio*291*.36,
       waist.y+11+(i%3)*1.8);
@@ -128,7 +153,8 @@ export function shanshuiGarmentCraft(
     );
     const pin=v(shoulder.x+sign*3,shoulder.y+10);
     const lengths=[.74,.55,.93,.66,.81,.39,.62];
-    for(let i=0;i<(high?lengths.length:medium?5:3);i++){
+    const used=high?[0,2,4,5,6]:medium?[0,2,5,6]:[0,4,6];
+    for(const i of used){
       const f=lengths[i],t=(i+.5)/lengths.length;
       const target=v(mix(outer,inside,t)+sign*(i%3)*3,
         mix(shoulder.y+48,bottom-13,f));
@@ -139,6 +165,23 @@ export function shanshuiGarmentCraft(
         v(target.x+sign*(6+i%2*3),
           target.y-32),
         target,.48+.19*(i%3),251+i));
+    }
+    if(medium){
+      // The soft tonal wedge between shoulder, elbow and lower cuff is the
+      // wash-under-dry-line sequence, not parallel stripes.
+      const x0=shoulder.x+sign*12,y0=shoulder.y+19;
+      ink.unshift(closed(
+        curve(v(x0,y0),v(x0+sign*14,y0+25),
+          v(outer-sign*8,bottom-40),v(outer+sign*1,bottom-17))+
+        " C"+st(v(outer-sign*13,bottom-12))+
+        " "+st(v(shoulder.x+sign*8,shoulder.y+51))+
+        " "+st(v(x0,y0))+" Z",
+        "$wash",.20));
+      const creaseBase=v(outer-sign*4,bottom-16);
+      ink.push(...inkHatching(
+        v(creaseBase.x-sign*9,creaseBase.y-7),
+        Math.max(8,box.width*.45),high?9:5,side==="left"?312:313,
+        "$shadow"));
     }
     // Compression creases wrap the wrist rather than floating as texture.
     for(let i=0;i<(high?5:3);i++){
