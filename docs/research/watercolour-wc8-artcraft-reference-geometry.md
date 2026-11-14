@@ -43,7 +43,7 @@ The full 12-skill local bundle is designed for user's local agents under \`~/.ag
 ## Static hero / release checklist
 
 - Every botanical hero floret has 13 attached petal loops, variable petal lengths and a physically layered disc/sepals.
-- Boat has closed hull and sails, two roof… **boat** stays tied to mast/deck roots, attached seated figure, multiple body parts, and a shared wake origin.
+- Boat has closed hull and sails, the **boat** stays tied to mast/deck roots, attached seated figure, multiple body parts, and a shared wake origin.
 - Six courtyard windows have aperture groups; mortar strokes do not cross a pane, and facade has four roof courses.
 - Render all 3 scenes in landscape 960×540 and portrait 540×960 at source film frames 355, 775 and 1195; capture 100% + enlarged hero crops.
 - At least one true film MP4 export must play; avoid treating static Storybook screenshots as proof of motion.
@@ -56,3 +56,10 @@ The full 12-skill local bundle is designed for user's local agents under \`~/.ag
 3. Roof-course geometry is now coherent, but actual field-perspective masonry and authentic worn stucco require image-level comparison and photographic/architectural source construction, not random texture.
 4. Water currents, wet paper grain, soft light and 1080p/4K playback are still qualitative and need future physical pigment, capillarity and performance work.
 5. Finish complete 42s dual-aspect motion review, human artistic approval, and source-matched five-axis semantically masked audits; do not mark WC8 “museum quality.”
+
+
+## First rendered visual critique (actual native Storybook and FilmStage)
+
+[WC8 proof run 43647506571](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43647506571) passed technical browser and real film export in both ratios; **the initial candidate is artistically rejected as-is** because the flower florets were visibly too small and muddy at 960x540, although the boat's constructed silhouette and explicit stays/sailor were materially more legible. This came from miscalibrated petal length and value/gradient opacity, not missing global texture. A follow-up correction expands 13 attached floret lengths to the 17–24px range, gives stronger bright translucent interiors, and keeps thin root shadows/midribs. New snapshots must be inspected before promoting the change.
+
+The comparison remains **style_guided**, not pixel-matched. Existing WM7 film frames are a valid *before* control, but are not a substitute for annotated reference-source masks and ArtCraft's five-axis source-relative baseline.

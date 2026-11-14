@@ -15,6 +15,7 @@ describe("ArtCraft reference structure and construction, not global image noise"
     expect(petals).not.toEqual(referenceDaisyPetals(84,2));
     expect(new Set(petals.map(x=>x.path)).size).toBe(13);
     expect(new Set(petals.map(x=>x.length.toFixed(2))).size).toBeGreaterThan(9);
+    expect(petals.every(x=>x.length>=17&&x.length<=24)).toBe(true);
     expect(petals.every(x=>x.path.startsWith("M0 -3.7 C")&&
       x.path.endsWith("0 -3.7 Z")&&x.fold.startsWith("M"))).toBe(true);
     expect(petals.every(x=>!x.path.includes("NaN"))).toBe(true);
