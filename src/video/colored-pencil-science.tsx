@@ -19,9 +19,9 @@ const leaf: readonly PencilRegion[] = [
     underpaint: "#99A67E",
     contour: draw("M204 351 C161 296 99 229 110 155 C119 89 198 43 287 23 C342 71 377 138 353 204 C330 267 265 321 204 351 Z", GRAPHITE, 2.05, 10, 72),
     layers: [
-      { color: "#94A985", angle: -32, spacing: 3.6, pressure: .83, tipWidth: 1.7, seed: 3, startFrame: 52, durationFrames: 126 },
-      { color: MOSS, angle: 39, spacing: 4.6, pressure: .65, tipWidth: 1.35, seed: 17, startFrame: 78, durationFrames: 143 },
-      { color: OCHRE, angle: -74, spacing: 7, pressure: .49, tipWidth: 1.25, seed: 41, startFrame: 121, durationFrames: 113 },
+      { color: "#94A985", angle: -32, spacing: 3.6, pressure: .83, tipWidth: 1.7, seed: 3, flow: 24, tone: "core", startFrame: 52, durationFrames: 126 },
+      { color: MOSS, angle: 39, spacing: 4.6, pressure: .65, tipWidth: 1.35, seed: 17, flow: -13, tone: "rim", startFrame: 78, durationFrames: 143 },
+      { color: OCHRE, angle: -74, spacing: 7, pressure: .49, tipWidth: 1.25, seed: 41, flow: 16, tone: "core", startFrame: 121, durationFrames: 113 },
       { color: "#405E4F", angle: 81, spacing: 9.4, pressure: .51, tipWidth: .78, seed: 53, startFrame: 151, durationFrames: 96 },
     ],
     details: [
@@ -33,6 +33,10 @@ const leaf: readonly PencilRegion[] = [
       draw("M194 333 Q175 365 161 395", "#675F48", 3.4, 31, 77),
       draw("M187 349 Q173 371 163 396", "#A68B5D", 1.25, 80, 80),
       draw("M135 257 Q158 255 188 272 M118 219 Q142 203 178 223 M124 173 Q155 152 197 181", "#AAB497", .8, 163, 47, .68),
+      // Veinlets branch irregularly, taper in weight and stop short of the leaf margin.
+      draw("M186 278 Q178 268 164 268 M177 255 Q168 246 154 246 M162 232 Q151 227 142 229 M146 207 Q136 199 124 202 M162 184 Q148 177 136 178", "#7B9375", .65, 169, 44, .61),
+      draw("M236 276 Q261 267 279 273 M249 236 Q277 227 297 234 M265 183 Q281 169 304 175 M277 125 Q290 116 312 124", "#6C855E", .72, 166, 48, .66),
+      draw("M204 351 Q210 347 219 339 M110 155 Q111 145 114 140 M351 202 Q357 196 357 183", "#B4A17A", .55, 193, 35, .51),
     ],
   },
   {
@@ -42,7 +46,7 @@ const leaf: readonly PencilRegion[] = [
     underpaint: "#A7B693",
     contour: draw("M175 286 C125 271 70 243 47 181 C99 163 155 191 178 241 Z", GRAPHITE, 1.55, 28, 72),
     layers: [
-      { color: "#90A47E", angle: 26, spacing: 4.1, pressure: .7, tipWidth: 1.1, seed: 92, startFrame: 88, durationFrames: 126 },
+      { color: "#90A47E", angle: 26, spacing: 4.1, pressure: .7, tipWidth: 1.1, seed: 92, flow: -20, tone: "core", startFrame: 88, durationFrames: 126 },
       { color: "#6B8667", angle: -57, spacing: 6.2, pressure: .58, tipWidth: 1, seed: 93, startFrame: 132, durationFrames: 100 },
     ],
     details: [
@@ -60,7 +64,7 @@ const crystal: readonly PencilRegion[] = [
     underpaint: "#BCC7CA",
     contour: draw("M112 334 L71 212 L153 128 L191 34 L225 144 L194 355 Z", GRAPHITE, 1.85, 10, 71),
     layers: [
-      { color: "#849EAE", angle: -51, spacing: 3.6, pressure: .8, tipWidth: 1.4, seed: 102, startFrame: 55, durationFrames: 125 },
+      { color: "#849EAE", angle: -51, spacing: 3.6, pressure: .8, tipWidth: 1.4, seed: 102, tone: "rim", startFrame: 55, durationFrames: 125 },
       { color: BLUE, angle: 39, spacing: 6.4, pressure: .52, tipWidth: 1.1, seed: 103, startFrame: 102, durationFrames: 111 },
     ],
     details: [draw("M71 212 L194 355 M153 128 L194 355", "#6B8291", 1.15, 134, 67)],
@@ -72,7 +76,7 @@ const crystal: readonly PencilRegion[] = [
     underpaint: "#C2B7CB",
     contour: draw("M194 355 L191 34 L267 12 L309 133 L280 358 Z", GRAPHITE, 2.05, 16, 70),
     layers: [
-      { color: "#ABB1C4", angle: 24, spacing: 3.6, pressure: .8, tipWidth: 1.3, seed: 111, startFrame: 63, durationFrames: 136 },
+      { color: "#ABB1C4", angle: 24, spacing: 3.6, pressure: .8, tipWidth: 1.3, seed: 111, tone: "core", startFrame: 63, durationFrames: 136 },
       { color: VIOLET, angle: -58, spacing: 5, pressure: .65, tipWidth: 1.1, seed: 112, startFrame: 101, durationFrames: 129 },
       { color: "#6B738E", angle: 83, spacing: 8.5, pressure: .56, tipWidth: .85, seed: 113, startFrame: 155, durationFrames: 85 },
     ],
@@ -88,7 +92,7 @@ const crystal: readonly PencilRegion[] = [
     underpaint: "#D3C0AB",
     contour: draw("M280 358 L309 133 L358 154 L390 255 L346 340 Z", GRAPHITE, 1.85, 25, 66),
     layers: [
-      { color: "#B69A87", angle: -36, spacing: 3.7, pressure: .75, tipWidth: 1.5, seed: 122, startFrame: 91, durationFrames: 132 },
+      { color: "#B69A87", angle: -36, spacing: 3.7, pressure: .75, tipWidth: 1.5, seed: 122, tone: "rim", startFrame: 91, durationFrames: 132 },
       { color: "#897F91", angle: 49, spacing: 6, pressure: .57, tipWidth: 1.15, seed: 123, startFrame: 119, durationFrames: 115 },
     ],
     details: [draw("M309 133 L346 340 M358 154 L346 340", "#897D80", 1.15, 152, 74)],
@@ -100,7 +104,7 @@ const crystal: readonly PencilRegion[] = [
     underpaint: "#9D8990",
     contour: draw("M112 334 L194 355 L280 358 L346 340 L302 391 L172 393 Z", GRAPHITE, 1.7, 42, 71),
     layers: [
-      { color: "#817F97", angle: 8, spacing: 3.9, pressure: .78, tipWidth: 1.6, seed: 131, startFrame: 134, durationFrames: 112 },
+      { color: "#817F97", angle: 8, spacing: 3.9, pressure: .78, tipWidth: 1.6, seed: 131, tone: "core", startFrame: 134, durationFrames: 112 },
       { color: "#6C7D8F", angle: -65, spacing: 6.7, pressure: .57, tipWidth: .95, seed: 132, startFrame: 164, durationFrames: 91 },
     ],
     details: [draw("M172 393 L194 355 M302 391 L280 358", "#595D65", 1.3, 178, 59)],
