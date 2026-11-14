@@ -289,7 +289,11 @@ function waveState(p: P, c: MotifContext) {
   const H = Hmax * (.12 + .88 * rise) * (1 - .4 * sink) * (1 - (1 - settleTo / .6) * settle) * (1 + breathe * (1 - settle));
   // Forward travel (negative x: the wave curls left): half while rising, the rest through the break and the roll-on.
   const dx = -num(p, "travel", 0) * W * (.5 * rise + .3 * smooth(b) + .2 * settle);
-  return { W, Hmax, H, seed, rise, crash, toss, fall, sink, impact, settle, dx, lean: .1 * toss, b, breakAt, breakDur, settleDur,
+  // As the lip falls the whole water mass pitches forward and down after it (the column leans toward the impact, more
+  // the higher it is), rather than sinking in place. It holds through the settle (water never slides back) while the
+  // height goes to nothing.
+  const pitch = .16 * fall;
+  return { W, Hmax, H, seed, rise, crash, toss, fall, sink, impact, settle, dx, lean: .1 * toss, pitch, b, breakAt, breakDur, settleDur,
     steep: smooth(span(rise, .1, .8)), curl: smooth(span(rise, .3, 1)) };
 }
 type WaveState = ReturnType<typeof waveState>;
@@ -326,8 +330,13 @@ export function waveSurface(params: Readonly<Record<string, unknown>>, c: MotifC
   // Each piece meets its neighbours at the same height, including while the face sinks during the break. A young swell's
   // front slopes as drawn (see `steepen`).
   const sunk = 1 - st.sink * .3;
-  const front = [...SURF_FRONT.map(q => [q[0], q[1] * sunk] as Pt), [-.15, .95] as Pt].map(q => [lerp(youngFrontX(q[1]), q[0], st.steep), q[1]] as Pt);
-  const surf = (u: number) => u <= -.15 ? at(front, u) : u <= .5 ? at(SURF_BACK, u) : 0;
+  // The fall's forward pitch moves the water forward by height up to the top of the ridable face (26% of the height);
+  // above it the shift is held, so the steep crest slides rather than steepening (nothing rides there). Riders feel half
+  // the drawn pitch: a boat in front of the face covers the difference, and is not tipped hard as the wave settles.
+  const pitched = (q: Pt): Pt => [q[0] - st.pitch * .5 * Math.min(.26, Math.max(0, q[1])) ** 1.2, q[1]];
+  const front = [...SURF_FRONT.map(q => [q[0], q[1] * sunk] as Pt), [-.15, .95] as Pt].map(q => pitched([lerp(youngFrontX(q[1]), q[0], st.steep), q[1]]));
+  const back = SURF_BACK.map(pitched), split = back[0][0];
+  const surf = (u: number) => u <= split ? at(front, u) : u <= back[back.length - 1][0] ? at(back, u) : 0;
   // The crest's forward lean is left out: it is weighted by height cubed, so on the lower face where anything rides it
   // moves the water by under 0.3% of the width, while near the crest it would only steepen a face nothing climbs.
   let px = surf(u0) * st.H;
@@ -450,8 +459,8 @@ function wave(p: P, c: MotifContext): Prim[] {
     return [lerp(curtain[0], TUBE_CLOSED[k][0], st.settle), lerp(curtain[1], TUBE_CLOSED[k][1], st.settle)] as Pt;
   });
   // Travel moves everything forward; the lean pushes the crest forward (steeply weighted by height, so the column keeps
-  // its concave front), so the crest outruns the base.
-  const X = (q: Pt): Pt => [q[0] * W + st.dx - st.lean * W * Math.max(0, -q[1]) ** 3, q[1] * H];
+  // its concave front), so the crest outruns the base; the pitch then tips the whole mass forward and down as the lip falls.
+  const X = (q: Pt): Pt => { const h = Math.max(0, -q[1]); return [q[0] * W + st.dx - st.lean * W * h ** 3 - st.pitch * W * h ** 1.2, q[1] * H]; };
   // The back's top rolls in soft, uneven bumps (none near the base): displaced along its normal by smooth noise.
   const backPts = smoothPts(WAVE_BACK.map(X), 6), backN = backPts.length;
   const bumpy = backPts.map((q, i) => {
