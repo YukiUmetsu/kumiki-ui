@@ -23,11 +23,13 @@ export function crayonConstructionWindows(
     build.outlineFraction<.1||build.outlineFraction>.75||
     build.glaze<0||build.glaze>.45)
     throw new RangeError("Invalid CRAYON1 wax construction windows");
-  const boundary=Math.min(last-1,Math.max(first+1,
+  const outlineFrames=Math.min(last-first-1,Math.max(1,
     Math.round((last-first)*build.outlineFraction)));
   return build.order==="outline-first"
-    ?{outlineStart:first,outlineEnd:first+boundary-first,fillStart:boundary,fillEnd:last}
-    :{fillStart:first,fillEnd:last-(boundary-first),outlineStart:last-(boundary-first),outlineEnd:last};
+    ?{outlineStart:first,outlineEnd:first+outlineFrames,
+      fillStart:first+outlineFrames,fillEnd:last}
+    :{fillStart:first,fillEnd:last-outlineFrames,
+      outlineStart:last-outlineFrames,outlineEnd:last};
 }
 
 export function crayonHash(seed: number, a: number, b = 0): number {
