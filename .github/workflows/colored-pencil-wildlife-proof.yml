@@ -1,14 +1,7 @@
 name: Colour-pencil wildlife visual proof
+# Visual proof runs are opt-in only. Shared film slots are edited by many
+# styles; automatic browser+FFmpeg runs here wasted CI on unrelated PRs.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/colored-pencil-wildlife-proof.yml"
-      - "src/video/colored-pencil-wildlife*"
-      - "registry/video/colored-pencil*"
-      - "src/film/film-slots.tsx"
-      - "tests/e2e-storybook/colored-pencil-wildlife.spec.ts"
-      - "examples/film/colored-pencil-wildlife.film.json"
-      - "examples/film/colored-pencil-wildlife-motion-proof.film.json"
   workflow_dispatch:
 permissions:
   contents: read
