@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { RisoOverprintTransition, evaluateRisoOverprint } from "../registry/video/riso-overprint";
 import { RisoPrint } from "../registry/video/print-plates-react";
