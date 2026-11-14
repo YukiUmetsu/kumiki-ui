@@ -284,3 +284,53 @@ test("opaque wax optical regression: background cannot bleed through finished ch
   expect(difference(blue.open,coral.open)).toBeGreaterThan(65);
   expect(difference(blue.opaque,coral.opaque)).toBeLessThan(9);
 });
+
+
+test("dragon held wax exposures redraw at authored intervals without silhouette jitter",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-crayon-scene-engine--dragon-hand-redraw&viewMode=story");
+  const scene=page.locator("svg[data-km-crayon-scene]");
+  await expect(scene).toBeVisible();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","221");
+  const body=scene.locator('[data-km-crayon-element="dragon-body"]');
+  const region=body.locator('[data-km-crayon-region]');
+  const layer=body.locator('[data-km-crayon-repaint]');
+  const pigment=body.locator('[data-km-crayon-underpaint]');
+  await expect(region).toHaveAttribute("data-km-crayon-exposure","20");
+  await expect(layer).toHaveCount(1);
+  await expect(pigment).toHaveCount(1);
+  const d=await pigment.getAttribute("d");
+  const sample=async()=>layer.locator("path").first().getAttribute("d");
+  const first=await sample();
+  const seek=page.getByRole("slider",{name:"Film frame"});
+  await seek.press("ArrowRight");
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","222");
+  await expect(region).toHaveAttribute("data-km-crayon-exposure","21");
+  const second=await sample();
+  expect(second).not.toEqual(first);
+  expect(await pigment.getAttribute("d")).toEqual(d);
+  await seek.press("ArrowRight");
+  await expect(region).toHaveAttribute("data-km-crayon-exposure","21");
+  expect(await sample()).toEqual(second);
+  await scene.screenshot({animations:"disabled",path:info.outputPath("wax-redraw-223.png")});
+  await page.getByRole("button",{name:"Dragon reacts"}).click();
+  await expect(region).toHaveAttribute("data-km-crayon-exposure","13");
+  await page.getByRole("button",{name:"Friends answer"}).click();
+  await expect(region).toHaveAttribute("data-km-crayon-exposure","40");
+});
+
+test("wing silhouettes and bone accents change together while keeping wax opaque",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-crayon-scene-engine--dragon-wing-morph&viewMode=story");
+  const scene=page.locator("svg[data-km-crayon-scene]");
+  const wing=scene.locator('[data-km-crayon-element="dragon-wing-near"]');
+  const ribs=scene.locator('[data-km-crayon-element="dragon-wing-near-ribs"]');
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","182");
+  await expect(wing).toHaveAttribute("data-km-crayon-drawing","2");
+  await expect(ribs).toHaveAttribute("data-km-crayon-drawing","2");
+  await expect(wing.locator('[data-km-crayon-underpaint]')).toHaveCount(1);
+  await expect(wing.locator('[data-km-crayon-frayed-rim]')).toHaveCount(1);
+  await scene.screenshot({animations:"disabled",path:info.outputPath("wing-morph-flexed-182.png")});
+  await page.getByRole("button",{name:"Wings unfurl"}).click();
+  await expect(wing).toHaveAttribute("data-km-crayon-drawing","1");
+  await expect(ribs).toHaveAttribute("data-km-crayon-drawing","1");
+  await scene.screenshot({animations:"disabled",path:info.outputPath("wing-morph-stretched-155.png")});
+});

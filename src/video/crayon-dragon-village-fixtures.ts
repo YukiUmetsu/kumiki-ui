@@ -5,6 +5,8 @@ import { crayonScaleField, crayonMasonryCourses, crayonRoofCourses } from "./cra
 /** Original crayon cast: a rigged dragon, forest friend and owl in a detailed village. */
 export interface CrayonDragonVillageOptions {
   wingPower:number; detail:number; followThrough:number;
+  /** Pigment reworking after each held exposure, 0..1. */
+  redrawStrength:number; exposureFrames:2|3|4|5|6;
   cast:"duo"|"trio"; palette:"teal"|"copper"|"plum";
   /** Alternate camera compositions that expose handcrafted anatomy and masonry. */
   shot:"wide"|"dragon"|"architecture";
@@ -45,12 +47,15 @@ export function crayonDragonVillageScene(
 ):CrayonSceneSpec {
   const wingPower=options.wingPower??1,detail=options.detail??.85,
     followThrough=options.followThrough??7,cast=options.cast??"trio",
-    palette=options.palette??"teal",shot=options.shot??"wide";
+    palette=options.palette??"teal",shot=options.shot??"wide",
+    redrawStrength=options.redrawStrength??.68,exposureFrames=options.exposureFrames??3;
   if(!Number.isFinite(wingPower)||wingPower<.5||wingPower>1.6 ||
     !Number.isFinite(detail)||detail<.25||detail>1 ||
     !Number.isSafeInteger(followThrough)||followThrough<0||followThrough>18 ||
     !["duo","trio"].includes(cast)||!(palette in palettes)||
-    !["wide","dragon","architecture"].includes(shot))
+    !["wide","dragon","architecture"].includes(shot)||
+    !Number.isFinite(redrawStrength)||redrawStrength<0||redrawStrength>1||
+    ![2,3,4,5,6].includes(exposureFrames))
     throw new RangeError("Invalid CRAYON1 dragon village settings");
   const portrait=aspect==="portrait",W=portrait?540:960,H=portrait?960:540,D=330;
   const dragon=palettes[palette];
@@ -61,6 +66,10 @@ export function crayonDragonVillageScene(
       pressure:.77,spacing:7,construction:build,
       coverage:/^(sky-paper|hills|village-moon|left-sky-cloud|right-sky-cloud)$/.test(id)
         ? "open" : "opaque",
+      redraw:/^(dragon|owl|friend)-/.test(id) ?
+        {holdFrames:exposureFrames,strength:redrawStrength,beginFrame:180}:undefined,
+      edgeRoughness:/^(dragon|owl|friend)-/.test(id) ? .72 :
+        /^(castle|western-shop|eastern-shop)/.test(id) ? .34 : 0,
       angle:id.includes("wing-")?(id.includes("far")?-21:23):
         id.includes("tail")?-16:id.includes("neck")?-27:
         id.includes("horn")?30:id.includes("leg")?16:
@@ -332,6 +341,15 @@ export function crayonDragonVillageScene(
     {x:-163,y:-198,width:130,height:192},dragon.wing,
     {parentId:root,pivot:{x:-43,y:-17},motion:wing(false),
       motionLagFrames:Math.min(24,followThrough+3),
+      drawings:[
+        {frame:138,d:"M-47 -16Q-97 -167 -169 -196Q-146 -177 -121 -158Q-106 -174 -81 -134Q-57 -153 -54 -94L-40 -34Z",
+          bounds:{x:-175,y:-204,width:142,height:200}},
+        {frame:181,d:"M-47 -16Q-78 -145 -151 -177Q-134 -158 -115 -143Q-97 -153 -75 -119Q-54 -128 -52 -86L-40 -34Z",
+          bounds:{x:-160,y:-186,width:128,height:181}},
+        {frame:225,d:"M-47 -16Q-94 -160 -163 -190Q-140 -172 -119 -153Q-99 -165 -80 -129Q-56 -142 -54 -90L-40 -34Z",
+          bounds:{x:-171,y:-200,width:140,height:196}},
+        {frame:278,d:"M-47 -16Q-89 -153 -159 -192Q-137 -175 -118 -153Q-99 -164 -81 -126Q-58 -141 -54 -91L-40 -34Z",bounds:{x:-163,y:-198,width:130,height:192}},
+      ],
       timing:{start:50,end:151},spacing:6});
   line("dragon-wing-far-ribs","M-43 -23Q-87 -139 -158 -191M-85 -109L-118 -152M-65 -77L-81 -125",
     "#667b8a",3,{parentId:"dragon-wing-far",timing:{start:92,end:174}});
@@ -345,9 +363,29 @@ export function crayonDragonVillageScene(
     "M-14 -24Q-23 -167 49 -218Q42 -181 76 -168Q39 -158 36 -123Q3 -137 -1 -87L-15 -38Z",
     {x:-26,y:-224,width:108,height:206},dragon.wing,
     {parentId:root,pivot:{x:-14,y:-24},motion:wing(true),
-      motionLagFrames:followThrough,timing:{start:53,end:155},spacing:6});
+      motionLagFrames:followThrough,
+      drawings:[
+        {frame:138,d:"M-14 -24Q-34 -172 46 -229Q50 -192 80 -175Q49 -163 30 -131Q0 -138 -3 -88L-15 -38Z",
+          bounds:{x:-36,y:-235,width:121,height:217}},
+        {frame:182,d:"M-14 -24Q-14 -151 58 -203Q48 -169 79 -155Q40 -151 41 -115Q9 -130 1 -84L-15 -38Z",
+          bounds:{x:-26,y:-209,width:111,height:194}},
+        {frame:227,d:"M-14 -24Q-27 -163 51 -221Q48 -181 79 -169Q42 -155 33 -125Q4 -138 -1 -85L-15 -38Z",
+          bounds:{x:-32,y:-227,width:114,height:211}},
+        {frame:272,d:"M-14 -24Q-30 -126 41 -192Q32 -163 69 -145Q38 -146 23 -103Q0 -115 -4 -79L-15 -38Z",
+          bounds:{x:-33,y:-199,width:105,height:182}},
+        {frame:312,d:"M-14 -24Q-23 -167 49 -218Q42 -181 76 -168Q39 -158 36 -123Q3 -137 -1 -87L-15 -38Z",
+          bounds:{x:-26,y:-224,width:108,height:206}},
+      ],
+      timing:{start:53,end:155},spacing:6});
   line("dragon-wing-near-ribs","M-14 -27Q-1 -159 49 -216M-10 -85Q14 -145 75 -168M-10 -88L36 -124",
-    "#647989",3.2,{parentId:"dragon-wing-near",timing:{start:91,end:177}});
+    "#647989",3.2,{parentId:"dragon-wing-near",timing:{start:91,end:177},
+      drawings:[
+        {frame:138,d:"M-14 -27Q-8 -167 46 -227M-10 -85Q11 -158 78 -174M-10 -88L31 -132"},
+        {frame:182,d:"M-14 -27Q4 -149 58 -201M-10 -85Q19 -140 76 -155M-10 -88L41 -117"},
+        {frame:227,d:"M-14 -27Q-2 -157 51 -220M-10 -85Q15 -148 79 -168M-10 -88L34 -126"},
+        {frame:272,d:"M-14 -27Q-5 -129 41 -190M-10 -85Q4 -130 68 -144M-10 -88L23 -103"},
+        {frame:312,d:"M-14 -27Q-1 -159 49 -216M-10 -85Q14 -145 75 -168M-10 -88L36 -124"},
+      ]});
   line("dragon-wing-near-membrane-veins",
     "M-4 -177Q9 -153 13 -125M18 -182Q22 -151 26 -137"+
     "M39 -170Q27 -142 31 -117M-5 -132Q3 -115 -1 -91"+
@@ -430,7 +468,16 @@ export function crayonDragonVillageScene(
     {x:27,y:-92,width:94,height:109},dragon.skin,
     {parentId:root,pivot:{x:47,y:-16},motion:[
       move(0,-3),move(121,-3),move(174,-13),move(220,11),move(276,-4),move(329,-3)],
-      motionLagFrames:followThrough,timing:{start:72,end:170}});
+      motionLagFrames:followThrough,
+      drawings:[
+        {frame:168,d:"M35 -14Q30 -77 95 -88L118 -57Q83 -42 69 10Z",
+          bounds:{x:24,y:-96,width:100,height:114}},
+        {frame:221,d:"M35 -14Q52 -75 90 -81L111 -55Q89 -39 69 10Z",
+          bounds:{x:29,y:-89,width:90,height:108}},
+        {frame:280,d:"M35 -14Q42 -76 91 -84L115 -54Q84 -42 69 10Z",
+          bounds:{x:27,y:-92,width:94,height:109}},
+      ],
+      timing:{start:72,end:170}});
   line("dragon-neck-overlapping-scutes",
     crayonScaleField({x:48,y:-66,rows:4,columns:3,
       stepX:11,stepY:13,width:8,depth:4.5,seed:604,taper:3.1}),

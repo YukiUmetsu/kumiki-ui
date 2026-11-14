@@ -2,6 +2,8 @@ import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
 import { crayonConstructionWindows, crayonHash, crayonMarks, crayonProgress } from "./crayon";
 import type { CrayonBounds, CrayonWaxConstruction } from "./crayon";
+import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
+import type { CrayonRedrawOptions } from "./crayon-exposure";
 
 export type CrayonStory = "lantern" | "garden";
 export type CrayonAspect = "landscape" | "portrait";
@@ -22,12 +24,19 @@ export type WaxProps = {
   construction?: CrayonWaxConstruction;
   /** Open scumble for skies/atmosphere; opaque buildup for tangible subjects. */
   coverage?: "open" | "opaque";
+  /** After the drawing completes, repaint small wax daubs on discrete held exposures. */
+  redraw?: CrayonRedrawOptions;
+  /** Fragmented wax nib trace around the visible outline, 0..1. */
+  edgeRoughness?: number;
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open" }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0 }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
+  if (!Number.isFinite(edgeRoughness) || edgeRoughness<0 || edgeRoughness>1)
+    throw new RangeError("crayon edge roughness out of bounds");
+  if (redraw) assertCrayonRedrawOptions(redraw);
   const windows=construction ? crayonConstructionWindows(first,last,construction) : null;
   const fillFirst=windows?.fillStart ?? first,fillLast=windows?.fillEnd ?? last;
   const outlineFirst=windows?.outlineStart ?? first,outlineLast=windows?.outlineEnd ?? last;
@@ -44,8 +53,17 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const deposit = clip + "-deposit";
   const marks = useMemo(() => crayonMarks(drawBounds, { seed, pressure, spacing, passes: 2 }),
     [drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, seed, pressure, spacing]);
+  // Stable painted paper / silhouette; the small reworked pigment strokes are
+  // the only parts that redraw on held exposures. No mutable frame history.
+  const exposure=redraw ? crayonExposureAt(frame,last,redraw,reduced) : 0;
+  const exposureStrength=redraw && (reduced||frame>=(redraw.beginFrame??last)) ? redraw.strength : 0;
+  const redrawStrokes=useMemo(()=>crayonExposureStrokes(bounds,seed,exposure,exposureStrength),
+    [bounds.x,bounds.y,bounds.width,bounds.height,seed,exposure,exposureStrength]);
+  const rimDashes=useMemo(()=>edgeRoughness>0 ? crayonWaxEdgeDashes(seed,edgeRoughness) : "",
+    [seed,edgeRoughness]);
   return <g data-km-crayon-region="" data-km-crayon-seed={seed} data-km-crayon-build={phase}
-    data-km-crayon-coverage={coverage}>
+    data-km-crayon-coverage={coverage}
+    data-km-crayon-exposure={redraw ? exposure : undefined}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
       {coverage==="opaque" && <clipPath id={deposit}>
@@ -85,7 +103,24 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         </g>;
       })}
       </g>
+      {redrawStrokes.length>0 && <g
+        transform={angle ? "rotate("+angle+" "+cx+" "+cy+")" : undefined}
+        fill="none" strokeLinecap="round" data-km-crayon-repaint="">
+        {redrawStrokes.map((stroke,i)=><path key={i} d={stroke.d}
+          stroke={colors[i%3===0?1:2]} strokeWidth={stroke.width}
+          opacity={stroke.opacity}/>)}
+      </g>}
     </g>
+    {coverage==="opaque" && edgeRoughness>0 && fillProgress>=1 &&
+      <g pointerEvents="none" fill="none" strokeLinejoin="round"
+        strokeLinecap="round" data-km-crayon-frayed-rim="">
+        <path d={d} stroke={colors[1]} strokeWidth={.65+edgeRoughness*.65}
+          strokeDasharray={rimDashes} opacity={.26+edgeRoughness*.33}
+          transform="translate(.7 -.5)"/>
+        <path d={d} stroke={colors[2]} strokeWidth={.45+edgeRoughness*.65}
+          strokeDasharray={rimDashes} strokeDashoffset="13"
+          opacity={.22+edgeRoughness*.32} transform="translate(-.65 .7)"/>
+      </g>}
     {construction ? <WaxLine d={d} color={colors[1]} width={2.5+pressure*1.5}
       seed={seed+919} opacity={.65} frame={frame} first={outlineFirst} last={outlineLast}
       reduced={reduced} /> :
@@ -164,7 +199,8 @@ function Fox({ x, y, scale, seed, frame, tooth, reduced }: { x: number; y: numbe
   const pale: [string,string,string] = ["#f6d1a0", "#fff1d0", "#dbb690"];
   const dark: [string,string,string] = ["#445361", "#344456", "#68748a"];
   const part = (d: string, bounds: CrayonBounds, colors: [string,string,string], id: number, first: number, last: number, spacing = 8.5) =>
-    <WaxRegion coverage="opaque" key={id} d={d} bounds={bounds} colors={colors} seed={seed + id * 11} pressure={.87} tooth={tooth} frame={frame} first={first} last={last} reduced={reduced} spacing={spacing}/>;
+    <WaxRegion coverage="opaque" key={id} d={d} bounds={bounds} colors={colors} seed={seed + id * 11} pressure={.87} tooth={tooth} frame={frame} first={first} last={last} reduced={reduced} spacing={spacing}
+      redraw={{holdFrames:3,strength:.56,beginFrame:265}} edgeRoughness={.57}/>;
   return <g transform={"translate(" + x + " " + y + ") scale(" + scale + ")"} data-km-crayon-fox="">
     {/* The tail is laid down first, under the body. Every painted region is real wax strokes. */}
     {part("M-81 -4 C-138 -83 -224 -66 -216 -12 C-213 53 -160 73 -109 38 Q-118 15 -81 -4Z", {x:-224,y:-87,width:158,height:164}, orange, 1, 178, 260)}
