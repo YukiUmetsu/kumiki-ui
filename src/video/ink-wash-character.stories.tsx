@@ -9,8 +9,8 @@ import { InkCharacter } from "../../registry/video/ink-wash-character-react";
 import { inkActorAt } from "../../registry/video/ink-wash-character";
 import type { InkActorTrack } from "../../registry/video/ink-wash-character";
 import { inkExampleSpec } from "./ink-wash-demo";
-import { configureInkCamera, configureInkSpec } from "./ink-film-config";
-import type { InkMaterialControls, InkCameraControls } from "./ink-film-config";
+import { configureInkCamera, configureInkSpec, configureInkLayer } from "./ink-film-config";
+import type { InkMaterialControls, InkCameraControls, InkRevealControls } from "./ink-film-config";
 import { INK_TRAVELLER, TRAVELLER_CUES, TRAVELLER_INSTANCE, TRAVELLER_TRACK } from "./ink-wash-performer";
 
 /** Wet-on-paper cloth, dry hair and crisp face are independently art-directed. */
@@ -73,10 +73,10 @@ export const DEFAULT_INK_ACTOR: InkActorFilmControls = {
   x:0,y:0,scale:1,clothBleed:1,faceBleed:0,
 };
 export function InkPerformanceFilm({
-  frame,aspect="landscape",mineral=false,reducedMotion=false,material,camera,actor,
+  frame,aspect="landscape",mineral=false,reducedMotion=false,material,camera,actor,reveal,
 }:{
   frame:number;aspect?:Aspect;mineral?:boolean;reducedMotion?:boolean;
-  material?:InkMaterialControls; camera?:InkCameraControls;
+  material?:InkMaterialControls; camera?:InkCameraControls; reveal?:InkRevealControls;
   actor?:InkActorFilmControls;
 }) {
   // Keep animated actors readable: bamboo stalks frame the performer rather than
@@ -115,9 +115,11 @@ export function InkPerformanceFilm({
     mouth:{bleed:actor.faceBleed,dryContour:actor.faceBleed<.15},
     head:{bleed:Math.min(1,.15+actor.faceBleed),dryContour:actor.faceBleed<.15},
   }:PAPER_FINISH,[actor]);
-  const directedShot=useMemo(()=>camera?{
-    ...SHOT,camera:configureInkCamera(SHOT.camera,camera)
-  }:SHOT,[camera]);
+  const directedShot=useMemo(()=>camera||reveal?{
+    ...SHOT,
+    ...(camera?{camera:configureInkCamera(SHOT.camera,camera)}:{}),
+    ...(reveal?{layers:SHOT.layers.map(layer=>configureInkLayer(layer,reveal,SHOT.durationFrames))}:{}),
+  }:SHOT,[camera,reveal]);
   const placement=inkActorAt(actorTrack,frame,reducedMotion);
   const performer=useMemo(()=>({...TRAVELLER_INSTANCE,
     skin:mineral?"mineral":undefined,
