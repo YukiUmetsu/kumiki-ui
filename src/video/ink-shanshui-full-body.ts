@@ -225,12 +225,11 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
       "none","$shadow",width,.68);
   };
   const robeOverlay=art(
-    strokeFold(-57,-5,.65),strokeFold(-48,-3,.85),
-    strokeFold(-42,-3,1.05),strokeFold(-31,1,.62),
-    strokeFold(-19,3,1.22),strokeFold(-8,-2,.73),
-    strokeFold(9,-2,.82),strokeFold(18,2,.65),
-    strokeFold(33,2,1.14),strokeFold(45,-1,.82),
-    strokeFold(55,3,.58),pathDummy(),
+    // Long defining folds deliberately spaced around the broad wash planes.
+    // Shallow local folds and dry-fibre marks live in shanshuiGarmentCraft.
+    strokeFold(-57,-5,.65),strokeFold(-42,-3,.89),
+    strokeFold(-19,3,1.11),strokeFold(9,-2,.67),
+    strokeFold(33,2,1.03),strokeFold(55,3,.53),pathDummy(),
     p(path(at(waist.x-19,waist.y+15))+
       cubic(at(waist.x-25,hip.y+6),
         at(hem.x-42,hem.y-51),at(hem.x-38,hem.y-10)),
@@ -368,29 +367,29 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
     art(
       p(path(rp(491,506))+
         cubic(rp(448,578),rp(391,610),rp(317,625))+
-        cubic(rp(310,633),rp(310,643),rp(320,652))+
-        cubic(rp(376,633),rp(458,602),rp(505,534))+" Z",
-        "$wash","$shadow",1,.62),
-      p(path(rp(320,648))+
-        cubic(rp(376,613),rp(453,600),rp(503,532)),
-        "none","$paper",1.5,.71),
+        cubic(rp(315,629),rp(315,637),rp(325,638))+
+        cubic(rp(388,623),rp(459,578),rp(505,525))+" Z",
+        "$wash","$shadow",.8,.63),
+      p(path(rp(324,633))+
+        cubic(rp(394,611),rp(453,579),rp(503,522)),
+        "none","$paper",1.15,.65),
       p(path(rp(477,524))+
         cubic(rp(445,633),rp(393,674),rp(354,693))+
-        cubic(rp(366,706),rp(386,703),rp(399,697))+
-        cubic(rp(459,629),rp(487,568),rp(507,520))+" Z",
-        "$linen","$shadow",.9,.84),
+        cubic(rp(358,705),rp(370,705),rp(377,695))+
+        cubic(rp(452,626),rp(476,572),rp(504,519))+" Z",
+        "$linen","$shadow",.85,.9),
     ):
     scene==="mountain-trail"?
     art(
       p(path(rp(1005,542))+
         cubic(rp(1046,604),rp(1093,640),rp(1165,651))+
-        cubic(rp(1173,665),rp(1162,673),rp(1154,679))+
-        cubic(rp(1104,656),rp(1068,655),rp(1025,573))+" Z",
+        cubic(rp(1166,659),rp(1160,667),rp(1157,669))+
+        cubic(rp(1113,658),rp(1068,636),rp(1025,560))+" Z",
         "$deep","$shadow",.95,.48),
       p(path(rp(1012,549))+
         cubic(rp(1050,631),rp(1095,687),rp(1161,694))+
-        cubic(rp(1168,706),rp(1151,715),rp(1141,720))+
-        cubic(rp(1091,680),rp(1053,646),rp(1008,564))+" Z",
+        cubic(rp(1162,696),rp(1150,708),rp(1145,710))+
+        cubic(rp(1097,684),rp(1053,631),rp(1008,560))+" Z",
         "$linen","$shadow",.95,.81),
       p(path(rp(1046,604))+
         cubic(rp(1085,645),rp(1126,669),rp(1161,661)),
