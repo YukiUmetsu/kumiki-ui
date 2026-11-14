@@ -199,7 +199,8 @@ function Fox({ x, y, scale, seed, frame, tooth, reduced }: { x: number; y: numbe
   const pale: [string,string,string] = ["#f6d1a0", "#fff1d0", "#dbb690"];
   const dark: [string,string,string] = ["#445361", "#344456", "#68748a"];
   const part = (d: string, bounds: CrayonBounds, colors: [string,string,string], id: number, first: number, last: number, spacing = 8.5) =>
-    <WaxRegion coverage="opaque" key={id} d={d} bounds={bounds} colors={colors} seed={seed + id * 11} pressure={.87} tooth={tooth} frame={frame} first={first} last={last} reduced={reduced} spacing={spacing}/>;
+    <WaxRegion coverage="opaque" key={id} d={d} bounds={bounds} colors={colors} seed={seed + id * 11} pressure={.87} tooth={tooth} frame={frame} first={first} last={last} reduced={reduced} spacing={spacing}
+      redraw={{holdFrames:3,strength:.56,beginFrame:265}} edgeRoughness={.57}/>;
   return <g transform={"translate(" + x + " " + y + ") scale(" + scale + ")"} data-km-crayon-fox="">
     {/* The tail is laid down first, under the body. Every painted region is real wax strokes. */}
     {part("M-81 -4 C-138 -83 -224 -66 -216 -12 C-213 53 -160 73 -109 38 Q-118 15 -81 -4Z", {x:-224,y:-87,width:158,height:164}, orange, 1, 178, 260)}
