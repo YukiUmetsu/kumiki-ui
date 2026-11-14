@@ -3325,6 +3325,28 @@
       ]
     },
     {
+      "name": "riso-character",
+      "type": "registry:ui",
+      "title": "Risograph Character Rig (RISO2)",
+      "description": "Anatomy-agnostic animated character rigs built from independent Risograph spot-ink shapes, parent-linked joints, keyed motion, blink/viseme redraws, held-frame cadence, exact seeking and FilmStage integration.",
+      "dependencies": [],
+      "registryDependencies": [
+        "riso-print"
+      ],
+      "files": [
+        {
+          "path": "registry/video/riso-character.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-character.ts"
+        },
+        {
+          "path": "registry/video/riso-character-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-character-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "watercolour-brush",
       "type": "registry:ui",
       "title": "Watercolour & Pressure Brush",
