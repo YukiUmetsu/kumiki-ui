@@ -36,8 +36,11 @@ perfect horizontal rows, resembling a printer more than a hand.
    The first wax coating always precedes the second.
    This is an authored **efficient local traversal**, not a simulated
    tracked hand/nib or pose.
-4. Reuse all existing `crayonProgress(frame,...)` logic so random seeking,
-   reduced-motion, reference timing, opacity masks, and export remain stable.
+4. Use a dedicated absolute-frame `crayonStrokeProgress` schedule for
+   sequential hand contacts. At most one short nib path is partially drawn
+   at once, while completed paths remain pinned and the source film clock
+   stays unchanged. Scanline mode retains the older overlapping reveal;
+   generic `crayonProgress` remains unchanged for titles and transitions.
 5. Interactive Storybook controls and focused deterministic tests compare
    the two orders and prove **exact final mark identity**.
 
