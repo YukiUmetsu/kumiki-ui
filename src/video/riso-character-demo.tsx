@@ -284,7 +284,9 @@ export const PAPER_BIRD: RisoCharacterSpec = {
       { frame: 150, rotate: -20, easing: "ease" }, { frame: 180, rotate: 30, easing: "ease" },
       { frame: 214, rotate: -26, easing: "ease" }, { frame: 239, rotate: 20 },
     ] },
-    { id: "right-wing", parent: "root", x: 17, y: -10, keys: [
+    // Shoulder pivot remains in the torso silhouette: at x=17 the blue wing crossed
+    // up to 20% of the red face on alternate flap keys, producing a dark diagonal.
+    { id: "right-wing", parent: "root", x: -4, y: -18, keys: [
       { frame: 0, rotate: 27, easing: "ease" }, { frame: 16, rotate: -25, easing: "ease" },
       { frame: 36, rotate: 23, easing: "ease" }, { frame: 58, rotate: -30, easing: "ease" },
       { frame: 84, rotate: 23, easing: "ease" }, { frame: 112, rotate: -25, easing: "ease" },

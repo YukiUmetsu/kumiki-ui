@@ -87,6 +87,41 @@ describe("RISO9 reference-led hand-authored character detail",()=>{
     }
     expect(risoContourSignedArea(selectRisoSourceContour(PAPER_BIRD.parts.find(p=>p.id==="beak")!.d))).not.toBe(0);
   });
+  it("Paper Bird: articulated wing stays rooted in the torso and out of the face",()=>{
+    const wingJoint=PAPER_BIRD.joints.find(j=>j.id==="right-wing")!;
+    const body=selectRisoSourceContour(PAPER_BIRD.parts.find(p=>p.id==="body")!.d);
+    const face=selectRisoSourceContour(PAPER_BIRD.parts.find(p=>p.id==="head")!.d);
+    const wing=selectRisoSourceContour(PAPER_BIRD.parts.find(p=>p.id==="wing-right")!.d);
+    expect(risoPointInContour([wingJoint.x,wingJoint.y],body)).toBe(true);
+    // Sample the actual evaluated FK matrices, rather than just drawing a
+    // static unposed source shape. Both spots remain fully opaque.
+    const asMatrix=(s:string):number[]=>{
+      expect(s.startsWith("matrix(")).toBe(true);
+      const v=s.slice(7,-1).trim().split(/[,\s]+/).map(Number);
+      expect(v).toHaveLength(6);
+      expect(v.every(Number.isFinite)).toBe(true);
+      return v;
+    };
+    for(const frame of [0,16,36,58,84,112,150,180,214,239]){
+      const parts=frameParts(PAPER_BIRD,frame);
+      const [ha,hb,hc,hd,he,hf]=asMatrix(parts.get("head")!.transform);
+      const [a,b,c,d,e,f]=asMatrix(parts.get("wing-right")!.transform);
+      const det=a*d-b*c;
+      expect(Math.abs(det)).toBeGreaterThan(.01);
+      let facePixels=0,overprint=0;
+      for(let x=8;x<=54;x+=1.2)for(let y=-36;y<=26;y+=1.2){
+        if(!risoPointInContour([x,y],face))continue;
+        facePixels++;
+        const wx=ha*x+hc*y+he,wy=hb*x+hd*y+hf;
+        const lx=(d*(wx-e)-c*(wy-f))/det;
+        const ly=(-b*(wx-e)+a*(wy-f))/det;
+        if(risoPointInContour([lx,ly],wing))overprint++;
+      }
+      expect(facePixels).toBeGreaterThan(250);
+      expect(overprint/facePixels, "wing/head overprint at frame "+frame).toBeLessThan(.085);
+    }
+  });
+
   it("Paper Bird: head is not obscured by a giant dark second-ink body overlap",()=>{
     const body=selectRisoSourceContour(PAPER_BIRD.parts.find(p=>p.id==="body")!.d);
     const head=selectRisoSourceContour(PAPER_BIRD.parts.find(p=>p.id==="head")!.d);
