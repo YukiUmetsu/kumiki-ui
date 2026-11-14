@@ -182,3 +182,58 @@ export function hatchPencilRegion(region: PencilRegion, layer: PencilPigmentLaye
     };
   });
 }
+
+
+/** Reusable authoring helper: turn any *authored vector silhouette* into independently
+ * printable pencil passes. Identity, path, local bounds and palette are supplied by callers.
+ * This does not invent image contours from source photos or footage.
+ */
+export interface PencilObjectInput {
+  id: string;
+  path: string;
+  bounds: readonly [number, number, number, number];
+  palette: readonly [string, string, string];
+  seed: number;
+  startFrame: number;
+  durationFrames: number;
+  /** Shading direction follows the authored object's dominant form. */
+  direction?: number;
+  material?: "soft" | "layered" | "dense";
+  contourColor?: string;
+  transform?: string;
+  details?: readonly PencilTrace[];
+}
+export function createPencilRegion(input: PencilObjectInput): PencilRegion {
+  const { id, path, bounds, palette, seed, startFrame, durationFrames, direction = -28,
+    material = "layered", contourColor = "#444A45", transform, details } = input;
+  if (!Number.isSafeInteger(startFrame) || startFrame < 0 ||
+      !Number.isSafeInteger(durationFrames) || durationFrames < 30 ||
+      !Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647 ||
+      !Number.isFinite(direction) || Math.abs(direction) > 180 ||
+      palette.length !== 3 || palette.some(c => !HEX.test(c)) || !HEX.test(contourColor) ||
+      !["soft", "layered", "dense"].includes(material))
+    throw new RangeError("Invalid pencil object palette, material, direction or drawing frames.");
+  const presets = {
+    soft: { spacing: [4.9, 7.2, 12], pressure: [.46, .38, .30], tip: [1.3, 1.1, .9] },
+    layered: { spacing: [3.9, 5.8, 9.1], pressure: [.70, .56, .44], tip: [1.6, 1.24, 1.05] },
+    dense: { spacing: [3.2, 4.7, 7], pressure: [.84, .70, .58], tip: [1.8, 1.45, 1.2] },
+  } as const;
+  const style = presets[material];
+  const layers: PencilPigmentLayer[] = palette.map((color, i) => ({
+    color, angle: Math.max(-180, Math.min(180, direction + [0, 73, -44][i])),
+    spacing: style.spacing[i], pressure: style.pressure[i], tipWidth: style.tip[i],
+    seed: seed + i * 307, startFrame: startFrame + Math.floor(i * durationFrames * .23),
+    durationFrames: Math.max(8, Math.floor(durationFrames * .7)),
+  }));
+  const region: PencilRegion = {
+    id, path, bounds, transform, details,
+    contour: { path, color: contourColor, width: 1.55, opacity: .74,
+      startFrame, durationFrames: Math.floor(durationFrames * .38) },
+    layers,
+  };
+  const issues = inspectPencilDrawing({
+    version: 1, width: 960, height: 960, seed, paper: "#FFFDF9", paperTooth: .5, regions: [region],
+  });
+  if (issues.length) throw new RangeError("Invalid vector pencil object: " + issues.join("; "));
+  return region;
+}
