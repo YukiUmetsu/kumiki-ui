@@ -10,6 +10,7 @@ on:
       - "src/video/ink-film-*"
       - "docs/36-chinese-ink-wash-craft-and-film-system.md"
       - "src/video/film-looks.stories.tsx"
+      - "src/video/ink-*.stories.tsx"
       - "tests/ink-wash*.test.tsx"
       - "tests/ink-film-config.test.ts"
       - "tests/ink-stroke-controls.test.ts"
@@ -44,7 +45,7 @@ jobs:
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Capture four aspect/subject combinations and seek regressions
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-wash.spec.ts tests/e2e-storybook/ink-wash-story.spec.ts tests/e2e-storybook/ink-wash-character.spec.ts tests/e2e-storybook/ink-wash-film-looks.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-wash.spec.ts tests/e2e-storybook/ink-wash-story.spec.ts tests/e2e-storybook/ink-wash-character.spec.ts tests/e2e-storybook/ink-wash-film-looks.spec.ts tests/e2e-storybook/ink-storybook-navigation.spec.ts
       - name: Install FFmpeg for production video proof
         run: |
           sudo apt-get update -qq
