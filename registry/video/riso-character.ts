@@ -175,6 +175,7 @@ export function inspectRisoCharacter(input: unknown, allowedPlates?: readonly st
     else {
       const ids = new Set<string>(), used = new Set<string>();
       const byId = new Map(s.joints!.filter(Boolean).map(j => [j.id, j]));
+      const ikRoots = new Set(s.ik.filter(Boolean).map(item => item.root));
       for (const [i, constraint] of s.ik.entries()) {
         const p = "/ik/" + i;
         if (!constraint || typeof constraint.id !== "string" || !SLUG.test(constraint.id) || ids.has(constraint.id))
@@ -235,8 +236,8 @@ export function inspectRisoCharacter(input: unknown, allowedPlates?: readonly st
               chainAncestors.add(ancestor);
               ancestor = byId.get(ancestor)?.parent;
             }
-            if (chainAncestors.has(constraint.root))
-              err(p + "/target", "follow target cannot be inside the constrained joint subtree");
+            if ([...ikRoots].some(root => chainAncestors.has(root)))
+              err(p + "/target", "follow target cannot be inside any IK-constrained joint subtree");
           }
         } else err(p + "/target", "IK target must be a keyed position, walk cycle or joint follower");
       }
