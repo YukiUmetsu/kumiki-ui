@@ -3,6 +3,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { WatercolourWetPaper } from "../registry/video/watercolour-wet-paper-react";
 import { evaluateWetPaper, inspectWetPaper } from "../registry/video/watercolour-wet-paper";
 import { wetPaperDemo } from "../src/video/watercolour-wet-paper-demo";
+import { WATERCOLOUR_WET_PAPER_FILM } from "../src/video/watercolour-wet-paper-film";
+import { compileFilm } from "../registry/video/film-document";
+import { loadFilmSlots } from "../src/film/film-slots";
+import portable from "../examples/film/watercolour-wet-paper.film.json";
 
 describe("WM4 conservative watercolor pigment field", () => {
   const scene=wetPaperDemo("landscape");
@@ -81,6 +85,24 @@ describe("WM4 conservative watercolor pigment field", () => {
       const dry=renderToStaticMarkup(
         <WatercolourWetPaper spec={spec} frame={0} reducedMotion/>);
       expect(dry).toContain('data-km-wet-paper-phase="dry"');
+    }
+  });
+
+  it("exports a portable, two-aspect FilmStage production slot at exact frame", async () => {
+    expect(portable).toEqual(WATERCOLOUR_WET_PAPER_FILM);
+    for(const outputId of ["landscape","portrait"] as const) {
+      const compiled=compileFilm(portable,{outputId});
+      expect(compiled.ok).toBe(true);
+      if(!compiled.ok)continue;
+      expect(compiled.film.durationFrames).toBe(420);
+      const render=await loadFilmSlots(compiled.film);
+      const html=renderToStaticMarkup(<>{render(
+        {slot:"watercolour-wet-paper",label:"Wet paper"},
+        {frame:210,fps:{num:30,den:1},durationFrames:420,
+          width:compiled.film.width,height:compiled.film.height,reducedMotion:false},
+      )}</>);
+      expect(html).toContain("data-km-wet-paper");
+      expect(html).toContain("Water carries colour");
     }
   });
 
