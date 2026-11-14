@@ -17,7 +17,7 @@ function CharacterSheetStudio({spec,sheet}:{
   const [focus,setFocus]=useState(sheet.headRegion);
   const [mesh,setMesh]=useState(true);
   const [labels,setLabels]=useState(false);
-  const [skeleton,setSkeleton]=useState(true);
+  const [skeleton,setSkeleton]=useState(false);
   const [category,setCategory]=useState("all");
   const svgHost=useRef<HTMLDivElement>(null);
   const report=useMemo(()=>evaluateRisoCharacterMesh(spec,sheet,frame),[spec,sheet,frame]);
