@@ -65,7 +65,7 @@ describe("RISO3 two-bone rigging and planted-foot animation", () => {
     }
     const normal = evalAt(42);
     const fk = evalAt(42,true);
-    expect(normal.ik).toHaveLength(2);
+    expect(normal.ik).toHaveLength(3);
     expect(fk.ik).toHaveLength(0);
     const knee = (frame: typeof normal) => frame.joints.find(j=>j.id==="left-knee")!;
     expect(Math.hypot(knee(normal).x-knee(fk).x,knee(normal).y-knee(fk).y)).toBeGreaterThan(3);
@@ -80,6 +80,37 @@ describe("RISO3 two-bone rigging and planted-foot animation", () => {
     expect(sampleRisoFootRoll(left,198)).toBe(0);
     expect(sampleRisoFootRoll(left,239)).toBe(0);
     expect(sampleRisoFootRoll({...left,kind:"walk",footRoll:0} as typeof left,45)).toBe(0);
+  });
+  it("follows a swinging satchel grip without breaking elbow topology or paper frame seeking", () => {
+    const grip = COURIER.ik!.find(c => c.id === "satchel-handhold")!;
+    expect(grip.target.kind).toBe("follow");
+    for (const frame of [0, 22, 46, 79, 112, 142, 166, 198, 238]) {
+      const pose = evalAt(frame), hold = pose.ik.find(c=>c.id==="satchel-handhold")!;
+      const satchel=pose.joints.find(j=>j.id==="satchel")!;
+      const radians=satchel.angle*Math.PI/180;
+      const local=grip.target as {kind:"follow";joint:string;x:number;y:number};
+      const at={x:satchel.x+Math.cos(radians)*local.x-Math.sin(radians)*local.y,
+        y:satchel.y+Math.sin(radians)*local.x+Math.cos(radians)*local.y};
+      expect(hold.requested.x).toBeCloseTo(at.x,3);
+      expect(hold.requested.y).toBeCloseTo(at.y,3);
+      expect(hold.reachable).toBe(true);
+      expect(hold.error).toBeLessThan(.001);
+      const wrist=pose.joints.find(j=>j.id==="right-hand")!;
+      expect(Math.hypot(wrist.x-hold.requested.x,wrist.y-hold.requested.y)).toBeLessThan(.001);
+    }
+    const sample=evalAt(142);
+    evalAt(0);evalAt(190);evalAt(17);
+    expect(evalAt(142)).toEqual(sample);
+  });
+  it("rejects circular prop-follow targets and nonexistent attachment joints", () => {
+    const replacement=(target:{kind:"follow";joint:string;x:number;y:number}) =>
+      ({...COURIER,ik:COURIER.ik!.map(c=>c.id==="satchel-handhold"?{...c,target}:c)});
+    expect(inspectRisoCharacter(replacement({kind:"follow",joint:"right-hand",x:1,y:2}))
+      .some(x=>x.path.endsWith("/target"))).toBe(true);
+    expect(inspectRisoCharacter(replacement({kind:"follow",joint:"no-such-prop",x:1,y:2}))
+      .some(x=>x.path.endsWith("/target"))).toBe(true);
+    expect(inspectRisoCharacter(replacement({kind:"follow",joint:"satchel",x:Infinity,y:2}))
+      .some(x=>x.path.endsWith("/target"))).toBe(true);
   });
   it("returns identical frames after a shuffled seek and reduced-motion is the final held cel", () => {
     const a=evalAt(96);
