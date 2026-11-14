@@ -57,7 +57,7 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
   </div>;
 }
 const meta={
-  title:"Video production/Film Art Styles/Crayon Scene Engine",
+  title:"Video production/Film Looks/Crayon Scene Engine",
   id:"video-crayon-scene-engine",
   component:CrayonPlayground,
   args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239},
