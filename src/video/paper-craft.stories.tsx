@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PaperCraftStage } from "../../registry/video/paper-craft-react";
 import type { PaperStyle } from "../../registry/video/paper-craft";
@@ -40,9 +41,9 @@ function PaperCraftLab({ medium, aspect, frame, tooth, shadow, reducedMotion }: 
   }, [playing, selected, aspect, reducedMotion]);
   const spec = paperCraftExampleSpec(selected, aspect);
   const current = reducedMotion ? spec.durationFrames : liveFrame;
-  const text: React.CSSProperties = { fontFamily: "'Newsreader',Georgia,serif", color: "#f3eddf" };
-  const small: React.CSSProperties = { font: "11px/1.5 Arial,sans-serif", letterSpacing: "2px", textTransform: "uppercase", color: "#bfb6a8" };
-  const button: React.CSSProperties = { background: "#ead4ab", border: "1px solid #ead4ab", borderRadius: 3,
+  const text: CSSProperties = { fontFamily: "'Newsreader',Georgia,serif", color: "#f3eddf" };
+  const small: CSSProperties = { font: "11px/1.5 Arial,sans-serif", letterSpacing: "2px", textTransform: "uppercase", color: "#bfb6a8" };
+  const button: CSSProperties = { background: "#ead4ab", border: "1px solid #ead4ab", borderRadius: 3,
     color: "#2d292a", padding: "9px 20px", fontWeight: 700, cursor: "pointer" };
   return <main style={{ minHeight: "100vh", padding: "28px clamp(18px,4vw,70px) 40px",
     background: "radial-gradient(circle at 70% 5%,#2a3034,#17191e 65%)", color:"#f3eddf" }}>
