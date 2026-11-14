@@ -62,3 +62,19 @@ is invertible and covered in both facing directions and non-zero rotations.
 a complete frame-by-frame reproduction study or full-speed independent artistic
 approval has not been performed. No frames or soundtrack from the films were
 copied.
+
+### Full-sleeve crop defect found by inspecting encoded video
+
+A full-resolution inspection of the existing 16:9/9:16 MP4 at the middle
+interaction beat found that the teacher's upraised sleeve and hand terminated
+at a **perfectly vertical rectangle**, a raster/SVG viewport cut, rather than
+an intentional brush edge. The canonical CharacterPresenter clipped its root
+and child SVG to the 260×340 rig design rectangle, even while permitted
+rotations moved the arm outside that boundary.
+
+The fix makes `allowOverflow` opt-in on CharacterPresenter and enables it
+only from InkCharacter. The scene/film stage retains its own output framing
+and clip, and non-ink characters retain the old clipping behavior. Unit tests
+and Chromium assert the actual overflow contracts. Follow-up film review must
+check the raised sleeve and hand in both formats; it must not confuse
+unclipping with improved anatomy or natural hand contact.
