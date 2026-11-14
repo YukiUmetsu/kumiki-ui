@@ -42,13 +42,13 @@ export function InkEnsemble({ plan, cast, frame, width, height,
   assertInkEnsemble(plan);
   if (!Number.isSafeInteger(width) || width < 100 || width > 4096 ||
       !Number.isSafeInteger(height) || height < 100 || height > 4096)
-    throw new RangeError("INK4 stage dimensions must be integer paper units from 100 to 4096.");
+    throw new RangeError("INK5 stage dimensions must be integer paper units from 100 to 4096.");
   if (![absorption, grain].every(x => Number.isFinite(x) && x >= 0 && x <= 1))
-    throw new RangeError("INK4 paper properties must lie in 0..1.");
+    throw new RangeError("INK5 paper properties must lie in 0..1.");
   const castById = new Map(cast.map(item => [item.trackId, item]));
   if (castById.size !== cast.length || castById.size !== plan.actors.length ||
       plan.actors.some(a => !castById.has(a.track.id)))
-    throw new RangeError("INK4 needs exactly one distinct approved cast member per staging track.");
+    throw new RangeError("INK5 needs exactly one distinct approved cast member per staging track.");
   const at = inkEnsembleAt(plan, frame, reducedMotion);
   return <div className={className} role="group" aria-label={label}
     data-km-ink-ensemble="" data-km-ink-ensemble-frame={frame}
@@ -57,7 +57,7 @@ export function InkEnsemble({ plan, cast, frame, width, height,
     {at.actors.map(({ id, instanceId, pose, attentionTargetId, activity }) => {
       const castMember = castById.get(id)!;
       if (castMember.instance.instanceId !== instanceId)
-        throw new RangeError("INK4 actor instance IDs must match their canonical staging track.");
+        throw new RangeError("INK5 actor instance IDs must match their canonical staging track.");
       const track = plan.actors.find(actor => actor.track.id === id)!.track;
       const partner = attentionTargetId ? at.actors.find(a => a.id === attentionTargetId) : undefined;
       const partnerCast = attentionTargetId ? castById.get(attentionTargetId) : undefined;
