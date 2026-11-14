@@ -22,7 +22,8 @@ describe("ArtCraft anatomical hare source construction",()=>{
     for(const id of [
       "far-ear-crease-shadow","near-ear-outer-lip","near-ear-canal-shadow",
       "orbital-structure","eye-brow-bone","nasal-bridge-plane",
-      "malar-ridge-shadow","muzzle-underside","nasal-wax-luster",
+      "malar-ridge-shadow","maxillary-junction",
+      "muzzle-underside","nasal-wax-luster",
     ]){
       const el=part(id);
       expect(el.kind).toBe("wax");
@@ -44,6 +45,31 @@ describe("ArtCraft anatomical hare source construction",()=>{
     expect(part("far-ear-crease-shadow").parentId).toBe("far-ear");
     expect(part("nasal-bridge-plane").parentId).toBe("head");
     expect(part("muzzle-underside").parentId).toBe("head");
+    expect(part("maxillary-junction").parentId).toBe("head");
+    // The hidden jaw/bridge underpaint must overlap both adjacent wax
+    // masses, or paper could show through as a floating triangular gap.
+    const join=part("maxillary-junction");
+    const muzzle=part("muzzle-projection");
+    const under=part("muzzle-underside");
+    if(join.kind!=="wax"||muzzle.kind!=="wax"||under.kind!=="wax")
+      throw new Error("Missing maxillary paint mass");
+    const overlap=(a:typeof join,b:typeof join)=>{
+      const x0=Math.max(a.bounds.x,b.bounds.x),y0=Math.max(a.bounds.y,b.bounds.y);
+      const x1=Math.min(a.bounds.x+a.bounds.width,b.bounds.x+b.bounds.width);
+      const y1=Math.min(a.bounds.y+a.bounds.height,b.bounds.y+b.bounds.height);
+      return Math.max(0,x1-x0)*Math.max(0,y1-y0);
+    };
+    expect(overlap(join,muzzle)).toBeGreaterThan(4000);
+    expect(overlap(join,under)).toBeGreaterThan(1000);
+    for(const id of ["orbital-transition-fur","nasal-bridge-fur",
+      "maxillary-connected-fur","whisker-pad-underfur","near-ear-root-fur"]){
+      const ink=part(id);
+      expect(ink.kind).toBe("contour");
+      if(ink.kind==="contour"){
+        expect(ink.clipToParent).toBe(true);
+        expect((ink.d.match(/M/g)??[]).length).toBeGreaterThan(25);
+      }
+    }
     expect(part("eye-brow-bone").parentId).toBe("head");
     expect(part("whisker-follicles").parentId).toBe("head");
     expect(part("near-ear-inner").parentId).toBe("near-ear");
@@ -85,7 +111,7 @@ describe("ArtCraft anatomical hare source construction",()=>{
    const scene=crayonWildlifePortraitScene("landscape");
    const out=renderToStaticMarkup(<CrayonScene spec={scene} frame={237}/>);
    for(const name of ["orbital-structure","nasal-bridge-plane","near-ear-canal-shadow",
-     "muzzle-underside","whisker-follicles"]){
+     "muzzle-underside","maxillary-junction","whisker-follicles"]){
      expect(out).toContain('data-km-crayon-element="'+name+'"');
    }
    expect(out).toContain('data-km-crayon-underpaint="opaque"');
