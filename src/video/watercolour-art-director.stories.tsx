@@ -35,12 +35,21 @@ function IllustrationDirector() {
         paper: { ...source.wetPaper.paper, tooth } } : undefined };
   }, [output, seed, tooth]);
   const artwork = custom ?? authored;
-  const painting = useMemo<WatercolourArtwork>(() => details ? artwork :
-    { ...artwork, parts: artwork.parts.map(part => ({
-      ...part, children: part.kind === "group" ? part.children.filter(child =>
-        !child.id.endsWith("plumage") && !child.id.includes("current-")) : undefined,
-    })) as WatercolourArtwork["parts"] },
-    [artwork, details]);
+  const painting = useMemo<WatercolourArtwork>(() => {
+    if (details) return artwork;
+    const simplify = (part: WatercolourArtwork["parts"][number]):
+      WatercolourArtwork["parts"][number] | null => {
+      // Compare the real underlying silhouette with/without fine craftsmanship.
+      if (/^(current-|back-plumage-|feather-barb-)|-seed-|toe-knuckles/.test(part.id))
+        return null;
+      if (part.kind === "path") return part;
+      const children = part.children.map(simplify).filter(
+        (child): child is NonNullable<typeof child> => child !== null);
+      return { ...part, children };
+    };
+    return { ...artwork, parts: artwork.parts.map(simplify).filter(
+      (part): part is NonNullable<typeof part> => part !== null) };
+  }, [artwork, details]);
 
   useEffect(() => {
     if (!playing) return;
