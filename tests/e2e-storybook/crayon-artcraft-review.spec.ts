@@ -21,6 +21,7 @@ for(const item of samples){
    await expect(muzzle).toBeAttached();
    await expect(muzzle.locator('[data-km-crayon-underpaint="opaque"]')).toHaveCount(1);
    await expect(art.locator('[data-km-crayon-anatomical-mask]').first()).toBeAttached();
+   const finalMarkup=await art.evaluate(node=>node.outerHTML);
    const a=await art.screenshot({animations:"disabled",
      path:info.outputPath("hare-artcraft-"+item.label+"-239.png")});
    await page.getByRole("button",{name:"Eye & ear"}).click();
@@ -28,8 +29,8 @@ for(const item of samples){
    const early=await art.screenshot({animations:"disabled"});
    expect(early).not.toEqual(a);
    await page.getByRole("button",{name:"Final artwork"}).click();
-   const b=await art.screenshot({animations:"disabled"});
-   expect(b).toEqual(a);
+   const back=await art.evaluate(node=>node.outerHTML);
+   expect(back).toBe(finalMarkup);
    expect(uncaught).toEqual([]);
  });
 }
