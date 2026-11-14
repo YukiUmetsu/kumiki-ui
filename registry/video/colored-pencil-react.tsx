@@ -49,18 +49,18 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
   // Reject before laying out hundreds of brush marks.
   evaluatePencilMark(frame, { startFrame: 0, durationFrames: 1 }, reducedMotion);
   const uid = "km-cp-" + useId().replace(/[^a-zA-Z0-9_-]/g, "");
-  const pores = Array.from({ length: 850 }, (_, i) => ({
+  const pores = useMemo(() => Array.from({ length: 850 }, (_, i) => ({
     x: pencilHash(drawing.seed, i, 11) * 1024,
     y: pencilHash(drawing.seed, i, 13) * 1024,
     radius: .28 + pencilHash(drawing.seed, i, 15) * 1.3,
     opacity: .2 + pencilHash(drawing.seed, i, 17) * .48,
-  }));
-  const fibers = Array.from({ length: 180 }, (_, i) => ({
+  })), [drawing.seed]);
+  const fibers = useMemo(() => Array.from({ length: 180 }, (_, i) => ({
     x: pencilHash(drawing.seed, i, 21) * 1024,
     y: pencilHash(drawing.seed, i, 22) * 1024,
     len: 3 + pencilHash(drawing.seed, i, 23) * 23,
     vertical: pencilHash(drawing.seed, i, 24) < .18,
-  }));
+  })), [drawing.seed]);
   return <svg xmlns="http://www.w3.org/2000/svg" viewBox={"0 0 " + drawing.width + " " + drawing.height}
     role="img" aria-label={label} className={className}
     data-km-colored-pencil="" data-km-pencil-frame={frame}
