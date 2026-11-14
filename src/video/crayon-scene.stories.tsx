@@ -23,7 +23,7 @@ interface PlaygroundProps {
   strokeOrder:"patches"|"scanline";
   markLength:"long"|"short";
   editorialDetail:number;
-  wildlifeDetail:number; wildlifeEarMotion:number; wildlifeCrop:"composition"|"eye"|"fur";
+  wildlifeDetail:number; wildlifeEarMotion:number; wildlifeCrop:"composition"|"eye"|"fur"|"muzzle"|"ear";
 }
 function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion,wildlifeCrop}:PlaygroundProps){
   const spec=useMemo(()=>{
@@ -37,16 +37,26 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
     // inspect authentic rendered eye and fur strokes at 2.3-3x enlargement.
     // The same absolute-frame rig, pigment and geometry are used in export.
     const close = subject==="wildlife-portrait" && wildlifeCrop!=="composition";
-    const ox=aspect==="portrait"?340:666,oy=aspect==="portrait"?555:327;
-    const focusX=ox+(wildlifeCrop==="eye"?-56:-43);
-    const focusY=oy+(wildlifeCrop==="eye"?-57:55);
-    const zoom=wildlifeCrop==="eye"?3.1:2.35;
+    const ox=aspect==="portrait"?340:676,oy=aspect==="portrait"?599:357;
+    const rootScale=.98;
+    const target=wildlifeCrop==="eye"?{x:-56,y:-57,zoom:3.35}:
+      wildlifeCrop==="muzzle"?{x:-179,y:-2,zoom:3.0}:
+      wildlifeCrop==="ear"?{x:109,y:-222,zoom:2.15}:
+      {x:-58,y:27,zoom:2.55};
+    const focusX=ox+rootScale*target.x;
+    const focusY=oy+rootScale*target.y;
+    const zoom=target.zoom;
     const camera=close ? [
       {frame:0,focusX,focusY,zoom},
       {frame:base.durationFrames-1,focusX,focusY,zoom},
     ] : base.camera;
-    return {...base,seed,paperTooth,camera,elements:base.elements.map(node=>
-      node.kind==="wax"?{...node,nibStyle,strokeOrder,markLength}:node)};
+    // Macro inspections should not hide the artwork under editorial title
+    // overlays. Filtering screen-space copy is preview-only: film export
+    // preserves the complete authored source illustration.
+    const elements=(close?base.elements.filter(node=>!node.screenSpace):
+      base.elements).map(node=>
+      node.kind==="wax"?{...node,nibStyle,strokeOrder,markLength}:node);
+    return {...base,seed,paperTooth,camera,elements};
   },[subject,aspect,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion,wildlifeCrop]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,subject+":"+aspect,playbackRate,loop);
@@ -107,7 +117,7 @@ const meta={
     editorialDetail:{control:{type:"range",min:0,max:1,step:.1}},
     wildlifeDetail:{control:{type:"range",min:0,max:1,step:.1}},
     wildlifeEarMotion:{control:{type:"range",min:0,max:2,step:.1}},
-    wildlifeCrop:{control:"inline-radio",options:["composition","eye","fur"]},
+    wildlifeCrop:{control:"inline-radio",options:["composition","eye","fur","muzzle","ear"]},
     stride:{control:{type:"range",min:.6,max:1.6,step:.1}},
     stepLift:{control:{type:"range",min:.6,max:1.8,step:.1}},
     rig:{control:"inline-radio",options:["drawn","ik"]},
@@ -172,4 +182,14 @@ export const WildlifeHareFurMacro:Story={
   args:{subject:"wildlife-portrait",aspect:"landscape",
     startFrame:224,wildlifeCrop:"fur",wildlifeDetail:1,
     wildlifeEarMotion:1,paperTooth:.69},
+};
+
+/** ArtCraft anatomy gates at the final native SVG renderer: no image swaps. */
+export const WildlifeHareMuzzleMacro:Story={
+  args:{subject:"wildlife-portrait",aspect:"landscape",startFrame:224,
+    wildlifeCrop:"muzzle",wildlifeDetail:1,wildlifeEarMotion:1,paperTooth:.69},
+};
+export const WildlifeHareEarMacro:Story={
+  args:{subject:"wildlife-portrait",aspect:"landscape",startFrame:224,
+    wildlifeCrop:"ear",wildlifeDetail:1,wildlifeEarMotion:1,paperTooth:.69},
 };
