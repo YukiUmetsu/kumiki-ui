@@ -42,7 +42,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
       </mask>
     </defs>
     <g clipPath={"url(#" + clip + ")"} mask={"url(#" + pores + ")"} data-km-crayon-wax="">
-      <path d={d} fill={colors[0]} opacity={crayonProgress(frame, first, last, 0, 1, reduced) * .12} />
+      <path d={d} fill={colors[0]} opacity={crayonProgress(frame, first, last, 0, 1, reduced) * .36} />
       <g transform={angle ? "rotate(" + angle + " " + cx + " " + cy + ")" : undefined}>
       {marks.map((mark, i) => {
         const progress = crayonProgress(frame, first, last, i, marks.length, reduced);
@@ -50,7 +50,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         return <g key={i} fill="none" strokeLinecap="round">
           <path d={mark.d} pathLength={100} stroke={colors[mark.tone]} strokeWidth={mark.width}
             strokeDasharray={100} strokeDashoffset={100 * (1 - progress)}
-            opacity={.56 + mark.pressure * .29} />
+            opacity={.44 + mark.pressure * .26} />
           {progress > .8 && <path d={mark.scumble} stroke={colors[(mark.tone + 1) % 3]}
             strokeWidth={1.3 + mark.pressure * 2.3} opacity={.52} />}
           {progress >= 1 && <path d={mark.scrape} stroke="#faefd6"
