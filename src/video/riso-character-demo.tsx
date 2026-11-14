@@ -99,7 +99,7 @@ export const COURIER: RisoCharacterSpec = {
       bend: -1, endRotation: 0,
       target: { kind: "walk", startFrame: 0, endFrame: 198, initialX: 65,
         groundY: 0, stride: 46, cycleFrames: 66, stanceFrames: 38,
-        phaseFrames: 33, lift: 17 } },
+        phaseFrames: 33, lift: 17, footRoll: 12 } },
   ],
   expressions: [
     { frame: 0, name: "neutral" }, { frame: 76, name: "blink" },
