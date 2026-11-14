@@ -26,6 +26,7 @@ describe("CRAYON1 pressure-sensitive nib contact",()=>{
     expect(complete).not.toContain("NaN");
     expect(complete).not.toContain("Infinity");
     expect(crayonNibPath(mark)).toBe(complete);
+    expect(mark.nibD).toBe(complete);
     expect(crayonNibPath(mark,0)).toBe("");
     expect(crayonNibPath(mark,.32).length).toBeLessThan(complete.length);
     expect(crayonNibPath(mark,1)).toBe(complete);
