@@ -133,6 +133,29 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("keeps calligraphic bamboo stems tapered and leaves attached at any art detail",()=>{
+    for(const scene of SHANSHUI_SCENES){
+      const controls={...DEFAULT_SHANSHUI,scene,detail:1};
+      const markup=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:153,controls,
+      }));
+      const stems=[...markup.matchAll(/data-km-shanshui-bamboo-stem="([0-2])"/g)];
+      expect(stems.map(m=>m[1])).toEqual(["0","1","2"]);
+      const leaves=[...markup.matchAll(/data-km-shanshui-bamboo-leaf="" d="([^"]+)"/g)]
+        .map(m=>m[1]);
+      expect(leaves.length).toBeGreaterThanOrEqual(90);
+      for(const leaf of leaves){
+        expect(leaf.endsWith(" Z")).toBe(true);
+        expect(leaf).not.toMatch(/NaN|undefined|Infinity/);
+      }
+      const empty=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:153,controls:{...controls,detail:0},
+      }));
+      expect(empty).toContain('data-km-shanshui-bamboo-stem="0"');
+      expect(empty).not.toContain('data-km-shanshui-bamboo-leaf');
+    }
+  });
+
   it("preserves articulated knee, hair, face and garment ancestry with warm original costume art",()=>{
     const scholar=makeShanshuiScholar();
     const issues=validateCharacterDefinition(scholar);
