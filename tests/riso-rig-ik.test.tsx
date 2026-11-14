@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
-import { sampleRisoIKTarget, solveRisoTwoBone } from "../registry/video/riso-rig-ik";
+import { sampleRisoIKTarget, sampleRisoFootRoll, solveRisoTwoBone } from "../registry/video/riso-rig-ik";
 import { inspectRisoCharacter, evaluateRisoCharacter } from "../registry/video/riso-character";
 import { RisoCharacterInk } from "../registry/video/riso-character-react";
 import { COURIER, PAPER_BIRD, risoPerformanceSpec } from "../src/video/riso-character-demo";
@@ -58,9 +58,10 @@ describe("RISO3 two-bone rigging and planted-foot animation", () => {
       const leg = frame.ik.find(c=>c.id==="left-foot-lock")!;
       expect(leg.ankle.y).toBeLessThanOrEqual(.001);
       const ankle = frame.joints.find(j=>j.id==="left-ankle")!;
-      expect(Math.abs(ankle.angle)).toBeLessThan(.001);
+      const printFrame=Math.floor(n/(COURIER.cadence??1))*(COURIER.cadence??1);
+      expect(ankle.angle).toBeCloseTo(sampleRisoFootRoll(COURIER.ik![0].target,printFrame),3);
       const right = frame.joints.find(j=>j.id==="right-ankle")!;
-      expect(Math.abs(right.angle)).toBeLessThan(.001);
+      expect(right.angle).toBeCloseTo(sampleRisoFootRoll(COURIER.ik![1].target,printFrame),3);
     }
     const normal = evalAt(42);
     const fk = evalAt(42,true);
@@ -69,6 +70,16 @@ describe("RISO3 two-bone rigging and planted-foot animation", () => {
     const knee = (frame: typeof normal) => frame.joints.find(j=>j.id==="left-knee")!;
     expect(Math.hypot(knee(normal).x-knee(fk).x,knee(normal).y-knee(fk).y)).toBeGreaterThan(3);
     expect(normal.parts.find(p=>p.id==="left-boot")!.transform).not.toBe(fk.parts.find(p=>p.id==="left-boot")!.transform);
+  });
+  it("rolls a raised shoe toe-down then toe-up, but has zero pitch during foot contact", () => {
+    const left=COURIER.ik![0].target;
+    expect(sampleRisoFootRoll(left,10)).toBe(0);
+    expect(sampleRisoFootRoll(left,45)).toBeGreaterThan(9);
+    expect(sampleRisoFootRoll(left,59)).toBeLessThan(-9);
+    expect(sampleRisoFootRoll(left,66)).toBe(0);
+    expect(sampleRisoFootRoll(left,198)).toBe(0);
+    expect(sampleRisoFootRoll(left,239)).toBe(0);
+    expect(sampleRisoFootRoll({...left,kind:"walk",footRoll:0} as typeof left,45)).toBe(0);
   });
   it("returns identical frames after a shuffled seek and reduced-motion is the final held cel", () => {
     const a=evalAt(96);
