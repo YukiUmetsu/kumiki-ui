@@ -113,7 +113,7 @@ export function inspectCrayonScene(input: unknown): string[] {
       else seen.add(node.id);
       checkTime(node.timing, v.durationFrames ?? 0, p, errors);
       const place = node.placement;
-      if (place && (!["x","y","scale","rotate"].every(k => (place as Record<string,number>)[k] === undefined || finite((place as Record<string,number>)[k])) ||
+      if (place && ([place.x,place.y,place.scale,place.rotate].some(v => v !== undefined && !finite(v)) ||
         (place.scale !== undefined && (place.scale < .05 || place.scale > 15)) ||
         (place.rotate !== undefined && Math.abs(place.rotate) > 360)))
         errors.push(p + ".placement is out of bounds");
