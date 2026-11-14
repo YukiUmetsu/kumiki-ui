@@ -41,7 +41,10 @@ export function crayonWildlifePortraitScene(
     !Number.isFinite(earMotion)||earMotion<0||earMotion>2)
     throw new RangeError("Invalid crayon wildlife portrait settings");
   const portrait=aspect==="portrait",W=portrait?540:960,H=portrait?960:540;
-  const ox=portrait?340:666,oy=portrait?555:327,D=240;
+  // Reference-led composition: prevent tall folded ears from clipping in 16:9.
+  // One root scale preserves the anatomy/pivots in both aspect ratios.
+  const ox=portrait?340:676,oy=portrait?599:357,D=240;
+  const characterScale=.94;
   const elements:CrayonElement[]=[];
   const wax=(id:string,d:string,bounds:{x:number;y:number;width:number;height:number},
     colors:readonly [CrayonColor,CrayonColor,CrayonColor],
@@ -87,7 +90,7 @@ export function crayonWildlifePortraitScene(
     "M-96 91C-159 90 -182 169 -184 278L-193 448L185 448"+
     "Q164 318 163 195C152 125 106 83 53 92Q-14 120 -96 91Z",
     {x:-199,y:82,width:390,height:370},C.chest,
-    {placement:{x:ox,y:oy},motion:bodyMotion,spacing:13,
+    {placement:{x:ox,y:oy,scale:characterScale},motion:bodyMotion,spacing:13,
       outlineOpacity:.48,edgeRoughness:.35});
   wax("shoulder-cool-shadow",
     "M88 103C147 133 153 220 144 345L110 436L179 448"+
@@ -119,9 +122,17 @@ export function crayonWildlifePortraitScene(
         {frame:181,x:0,y:0,rotate:2*earMotion},
         {frame:239,x:0,y:0,rotate:0}],poseCadence:2});
   wax("far-ear-inner",
-    "M9 -137Q-10 -205 -15 -316Q14 -277 26 -216Q36 -176 30 -128Z",
-    {x:-20,y:-321,width:62,height:201},C.earInner,
-    {parentId:"far-ear",spacing:8});
+    "M-10 -140Q-27 -244 -16 -322Q10 -276 25 -203Q29 -163 24 -124Z",
+    {x:-29,y:-328,width:61,height:211},C.earInner,
+    {parentId:"far-ear",spacing:8,outlineOpacity:.1});
+  wax("far-ear-crease-shadow",
+    "M-21 -135Q-31 -208 -17 -318Q-18 -244 4 -188L18 -135Z",
+    {x:-33,y:-324,width:57,height:199},C.shadow,
+    {parentId:"far-ear",spacing:6.5,pressure:.91,outlineOpacity:0});
+  line("far-ear-rim-fold","M-14 -306Q-16 -247 7 -183Q20 -151 22 -126"+
+    "M-9 -312Q-2 -253 12 -216",
+    "#e5c29d",1.27,{parentId:"far-ear",opacity:.77,
+      timing:{start:95,end:188}});
   wax("near-ear",
     "M68 -115C74 -182 99 -283 133 -317Q161 -307 151 -265"+
     "C137 -211 114 -158 109 -102Z",
@@ -134,12 +145,27 @@ export function crayonWildlifePortraitScene(
         {frame:184,x:0,y:0,rotate:-3*earMotion},
         {frame:239,x:0,y:0,rotate:0}],poseCadence:2});
   wax("near-ear-inner",
-    "M87 -127Q99 -235 137 -303Q141 -264 120 -208Q104 -166 96 -121Z",
-    {x:82,y:-309,width:68,height:195},C.earInner,
+    "M85 -132C92 -230 119 -288 139 -309"+
+    "Q147 -274 132 -226Q115 -170 101 -117Z",
+    {x:79,y:-318,width:76,height:206},C.earInner,
     {parentId:"near-ear",spacing:8,
       sgraffito:{d:"M99 -149Q112 -188 125 -249"+
         "M107 -167Q118 -217 137 -278M97 -176Q110 -206 130 -262",
         width:1.35,first:179,last:224}});
+  wax("near-ear-outer-lip",
+    "M137 -307Q160 -277 146 -238L123 -184"+
+    "Q110 -157 107 -118Q107 -194 129 -258Z",
+    {x:103,y:-317,width:63,height:211},C.warm,
+    {parentId:"near-ear",outlineOpacity:.05,spacing:7.3,pressure:.88});
+  wax("near-ear-canal-shadow",
+    "M91 -132Q95 -158 105 -165Q120 -143 111 -111Z",
+    {x:84,y:-171,width:39,height:66},C.shadow,
+    {parentId:"near-ear",outlineOpacity:0,spacing:5.8,pressure:.94});
+  line("near-ear-rim-fold",
+    "M137 -302Q138 -242 118 -185Q109 -159 104 -128"+
+    "M124 -285Q106 -241 102 -193",
+    "#eed3af",1.32,{parentId:"near-ear",opacity:.81,
+      timing:{start:92,end:195}});
   wax("throat-occlusion",
     "M-91 86Q-130 116 -117 148Q-90 186 -57 191L8 172Q50 142 53 104Z",
     {x:-135,y:81,width:200,height:118},C.shadow,
