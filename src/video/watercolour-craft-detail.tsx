@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { paintHash } from "../../registry/video/watercolour-brush";
 
 export type WatercolourCraftSubject="botanical"|"estuary"|"courtyard";
-export type CraftMarkKind="vein"|"seed"|"flower"|"grass"|"current"|"reflection"|"dry-brush"|"slate"|"masonry"|"wood"|"shadow";
+export type CraftMarkKind="vein"|"leaf-edge"|"seed"|"flower"|"grass"|"current"|"reflection"|"foam"|"boat"|"dry-brush"|"slate"|"masonry"|"wood"|"shadow";
 export type CraftMark={
   path:string;kind:CraftMarkKind;stroke:string;strokeWidth:number;opacity:number;
   firstFrame:number;transform?:string;plantIndex?:number;plantX?:number;
@@ -59,6 +59,15 @@ export function watercolourCraftMarks(subject:WatercolourCraftSubject,seed:numbe
           marks.push(mark(curved(mx,my,s,-(2.2+2*t),-1.4),
             "vein",k%3===0?delicate:main,.28+.12*hash(seed,i*50+j*7+k,23),
             .25+.15*hash(seed,i*99+j*11+k,29),start+6+k*2,transform));
+        }
+        if(i<13 && j<3){
+          // Selective shadow along the actual upper leaf Bézier, sharing
+          // its start, control and tip rather than decorating outside it.
+          const upper="M"+num(root)+" "+num(-up)+" Q"+num(dx*.85)+" "+
+            num(-up-13)+" "+num(dx)+" "+num(-up-30);
+          marks.push(mark(upper,"leaf-edge",j%2===0?"#506E58":"#7C856B",
+            .38+.13*hash(seed,i*11+j,34),.20+.13*hash(seed,i*3+j,38),
+            start+9,transform));
         }
         // A shadow close to the leaf attachment creates actual structure.
         marks.push(mark(curved(root,-up,dx*.28,-8,-4),
@@ -162,6 +171,39 @@ export function watercolourCraftMarks(subject:WatercolourCraftSubject,seed:numbe
       marks.push(mark(curved(x,y,dx,2.2,6+hash(seed,i,277)*4),
         "reflection",i%4===0?"#FDF4DA":"#8FA9A7",
         .55+(i%3)*.2,.27+i%4*.08,155+i*2));
+    }
+    // Vessel construction follows the authored sail/hull/figure coordinates.
+    // Sparse rope, sail seams, keel accents and human-scale contact strokes
+    // carry more useful visual information than more generic water specks.
+    const vessel:readonly [string,CraftMarkKind,string,number,number,number][]=[
+      ["M760 344 Q754 360 741 386","boat","#8FA7A9",.68,.47,171],
+      ["M759 353 Q763 368 765 387","boat","#A8A8A1",.54,.42,173],
+      ["M760 345 Q743 365 717 395","boat","#586A73",.46,.56,174],
+      ["M762 344 Q777 364 782 393","boat","#5E727A",.44,.48,176],
+      ["M741 385 Q756 388 763 384","boat","#C9C8B6",.5,.58,182],
+      ["M707 399 Q747 405 797 400","boat","#4B5F67",1.06,.57,184],
+      ["M714 403 Q754 409 790 405","boat","#587782",.81,.42,189],
+      ["M732 410 Q757 413 784 409","boat","#AAB4B0",.74,.55,194],
+      ["M776 392 Q777 395 780 397","boat","#584F4B",.63,.58,196],
+      ["M773 390 Q777 389 779 392","boat","#695C52",.55,.45,199],
+      ["M765 401 Q772 403 780 401","boat","#626F6C",.63,.48,201],
+      ["M706 394 Q726 390 740 391","boat","#D2C4A2",.45,.36,183],
+    ];
+    for(const [d,kind,ink,weight,opacity,onset] of vessel)
+      marks.push(mark(d,kind,ink,weight,opacity,onset));
+    // Origin-matched wakes. Branches begin at coordinates on their own
+    // main curve, creating connected, nonrectangular reflected filaments.
+    for(let i=0;i<11;i++){
+      const x=729+(i-5)*6.1+hash(seed,i,603)*2.2;
+      const y=411+i*2.4+hash(seed,i,607)*2.1;
+      const dx=(i%2===0?-1:1)*(17+hash(seed,i,611)*20);
+      const bend=(hash(seed,i,613)-.5)*7;
+      const main="M"+num(x)+" "+num(y)+" q"+num(dx*.53)+" "+num(bend)+
+        " "+num(dx)+" "+num(1+hash(seed,i,617)*3);
+      marks.push(mark(main,"foam",i%3===0?"#F8F1DA":"#668E92",
+        .65+.4*hash(seed,i,619),.33+.15*hash(seed,i,623),192+i*2));
+      if(i%2===0)marks.push(mark(curved(x,y,dx*.25,-3.8,-2.5),
+        "foam","#EDE6D4",.45,.42,194+i*2));
     }
   }else if(subject==="courtyard"){
     // Rooftiles are projected onto the same four-point roof plane as the

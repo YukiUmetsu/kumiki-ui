@@ -27,6 +27,7 @@ describe("WM6 observational watercolor detail, not random surface noise",()=>{
   it("puts botanical venation on real, jointly animated stems and complex seedheads",()=>{
     const marks=watercolourCraftMarks("botanical",83);
     expect(marks.filter(x=>x.kind==="vein").length).toBeGreaterThan(160);
+    expect(marks.filter(x=>x.kind==="leaf-edge").length).toBeGreaterThan(20);
     expect(marks.filter(x=>x.kind==="seed").length).toBeGreaterThan(50);
     expect(marks.filter(x=>x.kind==="flower").length).toBeGreaterThan(40);
     expect(marks.filter(x=>x.kind==="grass").length).toBeGreaterThan(20);
@@ -43,6 +44,8 @@ describe("WM6 observational watercolor detail, not random surface noise",()=>{
   it("uses attached secondary light filaments and curved nonparallel surface current",()=>{
     const marks=watercolourCraftMarks("estuary",83,1);
     expect(marks.filter(x=>x.kind==="reflection").length).toBeGreaterThan(30);
+    expect(marks.filter(x=>x.kind==="boat").length).toBeGreaterThanOrEqual(12);
+    expect(marks.filter(x=>x.kind==="foam").length).toBeGreaterThan(15);
     expect(marks.filter(x=>x.kind==="current").length).toBeGreaterThan(50);
     expect(marks.some(x=>x.path.includes(" q")&&x.stroke==="#FDF6DD")).toBe(true);
     const d=marks.filter(x=>x.kind==="current").map(x=>x.path);
