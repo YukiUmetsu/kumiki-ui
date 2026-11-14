@@ -285,3 +285,42 @@ Do not infer visual approval from code review or pre-change screenshots. The
 next illustration pass should prioritize convincing planted feet, hand-scroll
 grip, sleeve negative-space anatomy and controlled wet/dry line transitions
 rather than simply increasing contour density.
+
+
+## Structural craft iteration — shared ridge geometry and scroll grip (2026-11-14)
+
+The previous contact sheet showed many tapered cliff lines that felt
+detached from the mountain silhouette. Root cause: the filled ridges sampled
+a fractured Catmull–Rom-style crest while `ridgeHeight` attached cunfa and
+moss to straight interpolation between original coarse landmarks. That means
+a line could originate in open sky or miss the crest entirely. The new
+`ridgeStations` supplies **one ordered set of rounded sampled coordinates**
+to the fill path and its pigment marks. Exact data, seed, and frame sampling
+remain deterministic; artwork still uses authored geometry and no source
+image texture.
+
+The young scroll reader's hands looked like small round beads on the
+parchment. This pass keeps both source-measured wrist anchors, but replaces
+each former two-path oval with an opaque seven-shape grip: continuous thumb/
+palm silhouette, bent thumb, differentiated finger creases, a warm turning
+plane and a cuff contact. The right/left grips are deliberately mirrored and
+remain on their original character joints. The far hand stays behind the
+scroll; the near hand retains foreground occlusion. No arbitrary anatomical
+joints have been inferred beneath the sleeves.
+
+### Verification gate
+
+- Unit checks: generated ridge groups and sampled cunfa root offsets,
+  deterministic render, both mirrored reader hand plates, opaque silhouettes
+  and the validated character hierarchy.
+- Browser proof: every Shanshui scene at multiple frames and the reader
+  proportion panel. Inspect mountain contour junctions for floating strokes
+  and finger/scroll contacts at native 960×540, plus motion across frames.
+- Film proof: an encoded reader film after the code changes. This new
+  screenshot and MP4 review has **not yet been completed** at the time of
+  writing; the older contact sheets do not certify the current changes.
+
+Do not inflate tiny fingertip outlines into dark beads, turn the folds into
+uniform lines, or weaken checks simply to claim aesthetic parity. A later
+reference-led art pass should tune ink deposition on rocks, open paper reserve,
+and changing hand anatomy in actual grasp/reading poses.
