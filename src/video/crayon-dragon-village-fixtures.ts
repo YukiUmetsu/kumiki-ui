@@ -93,13 +93,16 @@ export function crayonDragonVillageScene(
   };
   cloud("left-sky-cloud",W*(portrait?.22:.28),H*(portrait?.25:.28),portrait?.64:.86);
   cloud("right-sky-cloud",W*(portrait?.66:.91),H*(portrait?.30:.33),portrait?.56:.56);
-  for(let i=0;i<11;i++){
-    const sx=W*(.08+((i*23)%83)/100);
-    const sy=H*(portrait?.11:.19)+((i*17)%41);
-    line("sky-wax-spark-"+i,
-      `M${sx-3} ${sy}h6M${sx} ${sy-3}v6`,
-      i%3?"#d8bda2":"#acb8b1",1.5,
-      {timing:{start:18+i,end:86+i},opacity:.26});
+  // Group nearby small strokes to preserve performance as complexity grows.
+  for(let i=0;i<11;i+=3){
+    const sparkPath=Array.from({length:Math.min(3,11-i)},(_,k)=>{
+      const n=i+k,sx=W*(.08+((n*23)%83)/100);
+      const sy=H*(portrait?.11:.19)+((n*17)%41);
+      return `M${sx-3} ${sy}h6M${sx} ${sy-3}v6`;
+    }).join(" ");
+    line("sky-wax-spark-"+i,sparkPath,
+      i%2?"#d8bda2":"#acb8b1",1.5,
+      {timing:{start:18+i,end:89+i},opacity:.26});
   }
   wax("hills",`M0 ${H*.75}Q${W*.2} ${H*.60} ${W*.45} ${H*.77}Q${W*.74} ${H*.59} ${W} ${H*.75}V${H}H0Z`,
     {x:0,y:H*.56,width:W,height:H*.44},
@@ -190,11 +193,13 @@ export function crayonDragonVillageScene(
       `M${at-x*17} -44h${x*5}M${at} -59v-5`,
       "#edc58c",1.7,{parentId:tower,timing:{start:137,end:196},opacity:.57});
   }
-  for(let i=0;i<12;i++){
-    const x=-48+(i%4)*29,y=-191+Math.floor(i/4)*10;
-    line("castle-roof-shingle-"+i,
-      `M${x} ${y}q9 3 17 0`,
-      "#c6c0c5",1.6,{parentId:tower,timing:{start:103+i,end:166+i},opacity:.52});
+  for(let i=0;i<12;i+=3){
+    const shinglePaths=Array.from({length:3},(_,k)=>{
+      const n=i+k,x=-48+(n%4)*29,y=-191+Math.floor(n/4)*10;
+      return `M${x} ${y}q9 3 17 0`;
+    }).join(" ");
+    line("castle-roof-shingle-"+i,shinglePaths,
+      "#c6c0c5",1.6,{parentId:tower,timing:{start:103+i,end:168+i},opacity:.52});
   }
   wax("castle-terrace","M-81 -35H83V-17H-81Z",
     {x:-85,y:-40,width:172,height:28},shade,
@@ -204,11 +209,16 @@ export function crayonDragonVillageScene(
     line("castle-railing-"+i,`M${x} -32V-5M${x-3} -9H${x+4}`,
       "#887d86",2.3,{parentId:tower,timing:{start:72,end:155}});
   }
-  for(let i=0;i<Math.round(12+detail*24);i++){
-    const x=-117+(i%7)*34+(Math.floor(i/7)%2)*8;
-    const y=-154+Math.floor(i/7)*24;
-    if(Math.abs(x)<58 && y>-92)continue;
-    line("castle-masonry-"+i,`M${x} ${y}h${15+(i%3)*3}`,
+  const masonryCount=Math.round(12+detail*24);
+  for(let i=0;i<masonryCount;i+=4){
+    const marks:string[]=[];
+    for(let k=i;k<Math.min(i+4,masonryCount);k++){
+      const x=-117+(k%7)*34+(Math.floor(k/7)%2)*8;
+      const y=-154+Math.floor(k/7)*24;
+      if(Math.abs(x)<58 && y>-92)continue;
+      marks.push(`M${x} ${y}h${15+(k%3)*3}`);
+    }
+    if(marks.length)line("castle-masonry-"+i,marks.join(" "),
       "#9b8786",1.6,{parentId:tower,opacity:.36,timing:{start:73,end:162}});
   }
   line("castle-roof-engrave","M-45 -188L0 -249L46 -188M-26 -190L0 -228L26 -190",
