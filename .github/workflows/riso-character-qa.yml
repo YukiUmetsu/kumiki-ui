@@ -9,9 +9,14 @@ on:
       - "registry/video/riso-rig-ik.ts"
       - "registry/video/riso-character.ts"
       - "registry/video/riso-character-react.tsx"
+      - "registry/video/riso-proportion-mesh.ts"
+      - "registry/video/riso-character-sheet-react.tsx"
       - "src/video/riso-rig-lab.stories.tsx"
+      - "src/video/riso-character-model-sheets.stories.tsx"
+      - "src/video/riso-character-mesh-sheets.ts"
+      - "tests/e2e-storybook/riso-character-model-sheets.spec.ts"
       - "tests/e2e-storybook/riso-rig-ik.spec.ts"
-      - "tests/e2e-storybook/riso-opaque-print.spec.ts"
+      - "tests/e2e-storybook/riso-opaque-print.spec.ts tests/e2e-storybook/riso-character-model-sheets.spec.ts"
       - "src/video/riso-opaque-print.stories.tsx"
       - "registry/video/print-plates-react.tsx"
       - ".github/workflows/riso-character-qa.yml"
@@ -38,7 +43,7 @@ jobs:
       - name: Strict typecheck and focused motion contracts
         run: |
           npm run typecheck
-          npm run test -- tests/riso-character.test.tsx tests/riso-rig-ik.test.tsx tests/riso-nested-ik.test.ts tests/riso-joint-skin.test.ts tests/riso-opaque-characters.test.tsx
+          npm run test -- tests/riso-character.test.tsx tests/riso-rig-ik.test.tsx tests/riso-nested-ik.test.ts tests/riso-joint-skin.test.ts tests/riso-opaque-characters.test.tsx tests/riso-character-model-sheets.test.tsx
       - name: Clean independent registry consumer install
         run: node scripts/registry-fixture.js --item=riso-character
       - name: Chromium
