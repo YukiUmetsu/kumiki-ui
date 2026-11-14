@@ -50,3 +50,45 @@ test("optional teacher image stays local and its overlay is cleared when switchi
     await expect(page.locator('svg[data-testid="shanshui-teacher-mesh"] image[href^="blob:"]'))
       .toHaveCount(0);
   });
+
+test("the new 260×340 fitted figure shows real source-specific geometry for all body regions",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-scholar-proportions--three-teacher-figure-studies&viewMode=story");
+    const choice=page.getByRole("combobox",{name:"Teacher figure"});
+    for(const scene of ["misty-hermit","river-scholar","mountain-trail"] as const){
+      await choice.selectOption(scene);
+      const drawing=page.getByTestId("shanshui-fitted-figure");
+      await expect(drawing).toBeVisible();
+      await expect(page.getByRole("img",{
+        name:"Full-figure fitted construction for "+scene,
+      })).toBeVisible();
+      for(const label of ["robe","folds","sleeve-near","sleeve-far",
+        "shoe-left","shoe-right","collar","waist","hair","face"]){
+        await expect(drawing.locator('[data-km-figure-fit-region="'+label+'"]'))
+          .toHaveCount(1);
+      }
+      await expect(drawing.locator('[data-km-figure-fit-region="robe"] path'))
+        .not.toHaveCount(0);
+      const name=scene==="river-scholar"?"scroll":"beard";
+      await expect(drawing.locator('[data-km-figure-fit-region="'+name+'"]'))
+        .toHaveCount(1);
+      await drawing.screenshot({path:info.outputPath("source-fitted-body-"+scene+".png"),
+        animations:"disabled"});
+    }
+  });
+test("all three cinematic scenes render two independently placed shoe parts instead of old shin sprites",
+  async({page})=>{
+    await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
+    const select=page.getByRole("combobox",{name:"Shanshui composition"});
+    for(const scene of ["misty-hermit","river-scholar","mountain-trail"] as const){
+      await select.selectOption(scene);
+      await expect(page.locator('[data-km-ink-character-part="shoe-left"]').first())
+        .toBeVisible();
+      await expect(page.locator('[data-km-ink-character-part="shoe-right"]').first())
+        .toBeVisible();
+      await expect(page.locator('[data-km-ink-character-part="near-lower"]'))
+        .toHaveCount(0);
+      await expect(page.locator('[data-km-ink-character-part="far-lower"]'))
+        .toHaveCount(0);
+    }
+  });
