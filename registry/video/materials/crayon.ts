@@ -48,8 +48,8 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
         const gap = (1.5+crayonHash(options.seed,index,230+part)*Math.min(8,segmentWidth*.14));
         const startX = left + segmentWidth*part + skew;
         const endX = left + segmentWidth*(part+1) - gap;
-        const jitter=(crayonHash(options.seed,index,400+part)-.5)*Math.min(24,spacing*3.5);
-        const angle=(crayonHash(options.seed,index,560+part)-.5)*Math.min(42,segmentWidth*.95);
+        const jitter=(crayonHash(options.seed,index,400+part)-.5)*Math.min(14,spacing*1.9);
+        const angle=(crayonHash(options.seed,index,560+part)-.5)*Math.min(24,segmentWidth*.52);
         const sy = y + slant * (1-2*part/segments) + jitter - angle*.48;
         const ey = y + slant * (1-2*(part+1)/segments) + jitter + angle*.48;
         const midY=(sy+ey)/2+(crayonHash(options.seed,index,700+part)-.5)*5;
