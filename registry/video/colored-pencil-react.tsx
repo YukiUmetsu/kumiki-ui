@@ -113,7 +113,10 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
         </g>
         <g data-km-graphite="">
           <Trace trace={region.contour} frame={frame} reducedMotion={reducedMotion}/>
-          {region.details?.map((trace, i) => <Trace key={i} trace={trace} frame={frame} reducedMotion={reducedMotion}/>)}
+          <g data-km-pencil-details="" clipPath={region.clipDetails ?
+            "url(#" + uid + "-region-" + index + ")" : undefined}>
+            {region.details?.map((trace, i) => <Trace key={i} trace={trace} frame={frame} reducedMotion={reducedMotion}/>)}
+          </g>
         </g>
       </g>;
     })}
