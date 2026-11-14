@@ -624,18 +624,27 @@ export function crayonDragonVillageScene(
         node.id==="front-arm"?[move(0,-9),move(166,-9),move(211,-37),
           move(244,-15),move(280,-48),move(329,-9)]:
         node.id==="back-arm"?[move(0,4),move(167,4),move(216,27),move(275,-10),move(329,4)]:
+        node.id==="left-ear"?[move(0),move(163),move(198,8),move(239,-7),move(279,5),move(329)]:
+        node.id==="right-ear"?[move(0),move(168),move(206,-7),move(235,6),move(286,-5),move(329)]:
+        node.id==="scarf-tail"?[move(0),move(163),move(214,14),move(253,-11),move(289,7),move(329)]:
         node.motion?[move(0),move(172),move(225,4),move(285,-4),move(329)]:undefined;
       wax(id,node.d,node.bounds,node.colors,{
         ...node,id,parentId,timing,construction:build,
         placement:node.id==="body"?{x:fx,y:fy,scale:fs}:node.placement,
         ...(motion?{motion,motionLagFrames:node.id==="tail"?
-          Math.min(24,followThrough+6):node.id==="head"?followThrough:0}:{}),
+          Math.min(24,followThrough+6):node.id==="head"?followThrough:
+          node.id==="left-ear"?3:node.id==="right-ear"?5:
+          node.id==="scarf-tail"?7:0}:{}),
       });
     }else if(node.kind==="contour"){
       const cues=node.id==="mouth"?[
         {frame:0,pose:"base"},{frame:191,pose:"oh"},
         {frame:211,pose:"base"},{frame:258,pose:"smile"}]:
-        node.id==="left-eye"||node.id==="right-eye"?[
+        node.id==="brow-left"||node.id==="brow-right"?[
+          {frame:0,pose:"base"},{frame:179,pose:"wonder"},
+          {frame:220,pose:"base"},{frame:267,pose:"smile"}]:
+        ["left-eye","right-eye","near-eye-iris","near-eye-pupil",
+          "near-eye-catchlight"].includes(node.id)?[
           {frame:0,pose:"base"},{frame:199,pose:"blink"},
           {frame:204,pose:"base"},{frame:269,pose:"smile"}]:undefined;
       line(id,node.d,node.color,node.width,{
