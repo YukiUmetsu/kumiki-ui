@@ -4,6 +4,9 @@ import { evaluatePencilActorRegions, evaluatePencilPose, inspectPencilActors } f
 import { inspectPencilScene } from "../registry/video/colored-pencil-scene";
 import { PencilScene } from "../registry/video/colored-pencil-scene-react";
 import { pencilCharacterScene } from "../src/video/colored-pencil-character-scenes";
+import { compileFilm } from "../registry/video/film-document";
+import { COLOR_PENCIL_CHARACTER_FILM } from "../src/video/colored-pencil-character-film";
+import portableFilm from "../examples/film/colored-pencil-character.film.json";
 
 describe("CP3 authored coloured-pencil ensemble", () => {
   it("validates independently constructed anatomy in both outputs", () => {
@@ -46,6 +49,17 @@ describe("CP3 authored coloured-pencil ensemble", () => {
     expect(html(240)).toBe(html(240));
     expect(html(0, true)).toContain('data-km-pencil-region="fox-eyes"');
     expect(html(0, true)).toBe(html(320, true));
+  });
+
+  it("compiles a complete portable actor performance in both film formats", () => {
+    expect(portableFilm).toEqual(COLOR_PENCIL_CHARACTER_FILM);
+    for (const outputId of ["landscape", "portrait"]) {
+      const compiled = compileFilm(portableFilm, { outputId });
+      expect(compiled.ok).toBe(true);
+      if (!compiled.ok) continue;
+      expect(compiled.film.durationFrames).toBe(320);
+      expect(compiled.film.scenes).toHaveLength(3);
+    }
   });
 
   it("rejects invalid parent order and nonmonotonic pose frames", () => {
