@@ -1,6 +1,7 @@
 import {describe,expect,it} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
-import {CrayonPlayground, crayonSceneDefaultArgs} from "../src/video/crayon-scene-playground";
+import {CrayonPlayground} from "../src/video/crayon-scene-playground";
+import {crayonSceneDefaultArgs} from "../src/video/crayon-scene-story-config";
 import sceneMeta,{WaterCycle,WaterCyclePortrait,StorybookTown,IllustratedData} from "../src/video/crayon-scene.stories";
 import wildlifeMeta,{WildlifeHarePortrait,WildlifeHarePortraitVertical,WildlifeHareEyeMacro,WildlifeHareFurMacro,WildlifeHareMuzzleMacro,WildlifeHareEarMacro} from "../src/video/crayon-wildlife.stories";
 import actingMeta,{CharacterPerformance,CharacterPerformancePortrait} from "../src/video/crayon-acting.stories";
