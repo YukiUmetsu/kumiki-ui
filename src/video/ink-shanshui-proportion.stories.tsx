@@ -9,6 +9,7 @@ import {SHANSHUI_TEACHER_MESHES,SHANSHUI_LEGACY_PUPPET_MESH} from
 import type {ShanshuiScene} from "../../registry/video/ink-shanshui";
 import {shanshuiBodyFit,shanshuiBodyAssets} from "./ink-shanshui-full-body";
 import {shanshuiFaceAssets} from "./ink-shanshui-face-plates";
+import {shanshuiGarmentCraft} from "./ink-shanshui-garment-craft";
 const views=[
   {id:"face" as const,label:"Face, hair and features",
     regions:["hair","skull","face","brow-screen-left","brow-screen-right",
@@ -89,9 +90,10 @@ function SourcePanel({scene,group,image}:{scene:ShanshuiScene;group:Group;image?
  * overlay). This shows the actual fill and contour geometry fed to the
  * production character rig, with anatomical anchor markers on the same grid.
  */
-function FullBodyPanel({scene}:{scene:ShanshuiScene}){
+function FullBodyPanel({scene,detail}:{scene:ShanshuiScene;detail:number}){
   const fit=shanshuiBodyFit(scene),a=shanshuiBodyAssets(scene),
-    face=shanshuiFaceAssets(scene);
+    fine=shanshuiGarmentCraft(scene,fit,detail),
+    face=shanshuiFaceAssets(scene,detail);
   const ink:Record<string,string>={
     "$ink":"#403329","$linen":"#d9c0a0","$shadow":"#66513e",
     "$mist":"#dfcaad","$wash":"#bd9d7b","$deep":"#937251",
@@ -100,7 +102,7 @@ function FullBodyPanel({scene}:{scene:ShanshuiScene}){
   };
   const color=(s:string|undefined)=>s?.startsWith("$")?ink[s]??"#473525":s??"none";
   const sprite=(key:string,label:string)=>{
-    const asset=a[key]??face[key];
+    const asset=a[key]??fine[key]??face[key];
     if(!asset||asset.kind!=="shapes")return null;
     return <g key={key} data-km-figure-fit-region={label}>
       {asset.shapes.map((shape,i)=>shape.type==="path"?
@@ -143,17 +145,29 @@ function FullBodyPanel({scene}:{scene:ShanshuiScene}){
       style={{width:300,height:392,border:"1px solid #cab69a",
         background:"#f6ecd9",borderRadius:5}}>
       {sprite("shoe-left","shoe-left")}
+      {sprite("shoe-fine-left","shoe-fine-left")}
       {sprite("shoe-right","shoe-right")}
+      {sprite("shoe-fine-right","shoe-fine-right")}
       {sprite("sleeve-far","sleeve-far")}
+      {sprite("sleeve-fine-far","sleeve-fine-far")}
+      {sprite("scholar-opaque-ground","under-robe")}
       {sprite("robe","robe")}
       {sprite("scholar-robe-overlay","folds")}
+      {sprite("robe-fine","robe-fine")}
+      {sprite("hem-fine","hem-fine")}
       {sprite("sleeve-near","sleeve-near")}
+      {sprite("sleeve-fine-near","sleeve-fine-near")}
       {sprite("collar","collar")}
+      {sprite("collar-fine","collar-fine")}
       {sprite("belt","waist")}
+      {sprite("belt-fine","belt-fine")}
       {sprite("scholar-sash","sash")}
       {sprite("scroll","scroll")}
+      {sprite("scroll-fine","scroll-fine")}
       {sprite("hand-far","hand-far")}
+      {sprite("hand-fine-far","hand-fine-far")}
       {sprite("hand-near","hand-near")}
+      {sprite("hand-fine-near","hand-fine-near")}
       <g transform={transform}>
         {sprite("face","face")}
         <g transform={faceTransform("hair",140,74)}>{sprite("hair","hair")}</g>
@@ -228,6 +242,7 @@ function StudentPanel({scene}:{scene:ShanshuiScene}){
 function FigureInspector(){
   const [scene,setScene]=useState<ShanshuiScene>("river-scholar");
   const [group,setGroup]=useState<Group>("all");
+  const [craftDetail,setCraftDetail]=useState(1);
   const [image,setImage]=useState<string|undefined>();
   const [error,setError]=useState<string|undefined>();
   const m=SHANSHUI_TEACHER_MESHES[scene];
@@ -276,6 +291,12 @@ function FigureInspector(){
           {views.map(v=><option key={v.id} value={v.id}>{v.label}</option>)}
         </select>
       </label>
+      <label style={{display:"grid",gap:5}}>Art detail ({Math.round(craftDetail*100)}%)
+        <input aria-label="Figure brush craftsmanship" type="range"
+          min={0} max={1} step={.05} value={craftDetail}
+          onChange={e=>setCraftDetail(Number(e.target.value))}
+          style={{width:210,accentColor:"#71533f"}}/>
+      </label>
       <label style={{display:"grid",gap:5}}>Optional image (stays local)
         <input aria-label="Load matching teacher image" type="file" accept="image/*"
           onChange={choose} style={{fontSize:12,maxWidth:250}}/>
@@ -287,7 +308,7 @@ function FigureInspector(){
         <SourcePanel scene={scene} group={group} image={image}/>
       </div>
       <div style={{display:"grid",gap:19,minWidth:350,flex:"1 1 420px"}}>
-        <FullBodyPanel scene={scene}/>
+        <FullBodyPanel scene={scene} detail={craftDetail}/>
         <StudentPanel scene={scene}/>
       </div>
     </div>
