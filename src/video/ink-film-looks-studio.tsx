@@ -14,6 +14,8 @@ import {
   configureInkLayer,
 } from "./ink-film-config";
 import type { InkMaterialControls, InkCameraControls, InkRevealControls } from "./ink-film-config";
+import { DEFAULT_INK_STROKE_TUNING, configureInkStrokes, assertInkStrokeOverrides } from "./ink-stroke-controls";
+import type { InkStrokeOverrides, InkStrokeTuning } from "./ink-stroke-controls";
 
 /** Reusable control surface for the SAME renderers used by production Storybook exports.
  * Never replay prerecorded mp4 or fake animation through CSS filters.
@@ -99,6 +101,8 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
     character:{...DEFAULT_INK_REVEAL},
   });
   const [actor,setActor]=useState<InkActorFilmControls>({...DEFAULT_INK_ACTOR});
+  const [strokeId,setStrokeId]=useState("");
+  const [strokeOverrides,setStrokeOverrides]=useState<InkStrokeOverrides>({});
   const [jsonDraft,setJsonDraft]=useState("");
   const [jsonError,setJsonError]=useState("");
   const [exportVisible,setExportVisible]=useState(false);
@@ -127,8 +131,17 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
     setLook(next);
     updateMaterial({paper:p.paper,ink:p.ink,accent:p.accent,grain:p.grain,absorption:p.absorption});
   };
-  const painting=useMemo(()=>configureInkSpec(inkExampleSpec(subject,aspect,47),materials.painting),
+  const paintingBase=useMemo(()=>configureInkSpec(inkExampleSpec(subject,aspect,47),materials.painting),
     [subject,aspect,materials.painting]);
+  const painting=useMemo(()=>configureInkStrokes(paintingBase,strokeOverrides),
+    [paintingBase,strokeOverrides]);
+  const chosenStroke=paintingBase.strokes.find(s=>s.id===strokeId) ?? paintingBase.strokes[0];
+  const tuning=chosenStroke ? (strokeOverrides[chosenStroke.id] ?? DEFAULT_INK_STROKE_TUNING) : DEFAULT_INK_STROKE_TUNING;
+  const tuneStroke=(patch:Partial<InkStrokeTuning>)=>{
+    if(!chosenStroke)return;
+    setPlaying(false);
+    setStrokeOverrides(old=>({...old,[chosenStroke.id]:{...(old[chosenStroke.id]??DEFAULT_INK_STROKE_TUNING),...patch}}));
+  };
   // Use the host's single clock and exact integer film frames: preview speed
   // alters frame sampling, never pigment diffusion equations or actor cues.
   useEffect(()=>{
@@ -159,8 +172,9 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
     {width:540,height:960,scale:.57};
   const {width,height,scale}=dimensions;
   const activeConfig=useMemo(()=>({material,camera,reveal,actor,
+    strokeOverrides:mode==="painting"?strokeOverrides:{},
     style:look,subject,aspect,playbackRate,loop,mineral,reducedMotion}),
-    [material,camera,reveal,actor,look,subject,aspect,playbackRate,loop,mineral,reducedMotion]);
+    [material,camera,reveal,actor,strokeOverrides,mode,look,subject,aspect,playbackRate,loop,mineral,reducedMotion]);
   const openJSON=()=>{setJsonDraft(JSON.stringify(activeConfig,null,2));setJsonError("");setExportVisible(true);};
   const applyJSON=()=>{
     try {
@@ -168,6 +182,9 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
       if(!next||typeof next!=="object"||Array.isArray(next))throw new Error("Expected a JSON configuration object.");
       const data=next as Record<string,unknown>;
       const candidate={...material,...((data.material??{}) as object)} as InkMaterialControls;
+      const proposedOverrides=data.strokeOverrides===undefined?strokeOverrides:data.strokeOverrides as InkStrokeOverrides;
+      // Validate against the selected subject, not a previously edited/filtered mark set.
+      assertInkStrokeOverrides(paintingBase,proposedOverrides);
       const cam={...camera,...((data.camera??{}) as object)} as InkCameraControls;
       const rev={...reveal,...((data.reveal??{}) as object)} as InkRevealControls;
       const act={...actor,...((data.actor??{}) as object)} as InkActorFilmControls;
@@ -199,6 +216,7 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
       setCameras(old=>({...old,[mode]:cam}));
       setReveals(old=>({...old,[mode]:rev}));
       setActor(act);setLook(validatedLook);setAspect(validatedAspect);
+      if(data.strokeOverrides!==undefined)setStrokeOverrides(proposedOverrides);
       setSubject(validatedSubject);setPlaybackRate(validatedSpeed);
       if(data.loop!==undefined)setLoop(data.loop as boolean);
       if(data.mineral!==undefined)setMineral(data.mineral as boolean);
@@ -344,6 +362,43 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
         {numericMaterialControls.map(c=>materialNumber(c.id,c.label,c.min,c.max,c.step))}
       </div>
     </details>
+    {mode==="painting"&&chosenStroke&&<details style={{background:"#f5f3eb",padding:"13px 17px",
+      border:"1px solid #c2c3b8",borderRadius:8,maxWidth:1100}}>
+      <summary style={{cursor:"pointer",font:"600 16px Georgia,serif"}}>Individual brushstroke · Ink, shape and timing</summary>
+      <p style={small}>Edit one original brush mark without changing any other stroke. Offsets are in paper pixels and remain stable while scrubbing.</p>
+      <label style={{...label,maxWidth:520,marginBottom:18}}>Selected original mark
+        <select aria-label="Selected ink brushstroke" value={chosenStroke.id}
+          onChange={e=>{setPlaying(false);setStrokeId(e.target.value);}} style={{minHeight:42}}>
+          {paintingBase.strokes.map(s=><option key={s.id} value={s.id}>{s.id}</option>)}
+        </select></label>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(185px,1fr))",gap:"14px 18px"}}>
+        {([
+          ["width","Individual width",.2,3,.05],
+          ["tone","Individual ink tone",0,2,.05],
+          ["water","Individual moisture",0,2,.05],
+          ["load","Individual pigment load",0,2,.05],
+          ["drag","Individual dry-bristle drag",0,1,.05],
+          ["offsetX","Mark offset X",-100,100,1],
+          ["offsetY","Mark offset Y",-100,100,1],
+          ["startOffset","Draw-frame offset",-60,60,1],
+        ] as const).map(([key,name,min,max,step])=>
+          <label key={key} style={label}>{name} <output>{tuning[key]}</output>
+            <input aria-label={name} style={rangeStyle} type="range"
+              min={min} max={max} step={step} value={tuning[key]}
+              onChange={e=>tuneStroke({[key]:Number(e.target.value)})}/>
+          </label>)}
+      </div>
+      <div style={{display:"flex",gap:10,marginTop:16}}>
+        <button type="button" style={button} onClick={()=>{
+          if(!chosenStroke)return;
+          setPlaying(false);
+          setStrokeOverrides(old=>{const copy={...old};delete copy[chosenStroke.id];return copy;});
+        }}>Reset selected brushstroke</button>
+        <button type="button" style={button} onClick={()=>{setPlaying(false);setStrokeOverrides({});}}>
+          Reset all brushstrokes
+        </button>
+      </div>
+    </details>}
     {mode!=="painting"&&<details style={{background:"#f5f3eb",padding:"13px 17px",
       border:"1px solid #c2c3b8",borderRadius:8,maxWidth:1100}}>
       <summary style={{cursor:"pointer",font:"600 16px Georgia,serif"}}>Cinematography · Camera, reveal, parallax</summary>
@@ -394,6 +449,7 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
         setCameras(old=>({...old,[mode]:{...DEFAULT_INK_CAMERA}}));
         setReveals(old=>({...old,[mode]:{...DEFAULT_INK_REVEAL}}));
         if(mode==="character")setActor({...DEFAULT_INK_ACTOR});
+        if(mode==="painting"){setStrokeOverrides({});setStrokeId("");}
         if(mode==="documentary")setLook("literati");
         setJsonError("");
       }}>Reset style parameters</button>
