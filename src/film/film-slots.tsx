@@ -15,6 +15,7 @@ import { RisoPrint } from "../../registry/video/print-plates-react";
 import { ColoredPencilSciencePlate } from "../video/colored-pencil-science";
 import { PencilScene } from "../../registry/video/colored-pencil-scene-react";
 import { pencilCharacterScene } from "../video/colored-pencil-character-scenes";
+import { pencilWildlifeScene } from "../video/colored-pencil-wildlife";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
 import { RisoSheetFeed, completedRisoFrame } from "../../registry/video/riso-sheet-feed";
@@ -678,6 +679,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
   }
   const watercolorSheets = new Map<string, ReturnType<typeof paintExampleSpec>>();
   const pencilCharacterSheets = new Map<"landscape" | "portrait", ReturnType<typeof pencilCharacterScene>>();
+  const pencilWildlifeSheets = new Map<"landscape" | "portrait", ReturnType<typeof pencilWildlifeScene>>();
   const paintedWorlds = new Map<string, ReturnType<typeof paintedDemoSpec>>();
   return (content, context) => {
     const props = content.props ?? {};
@@ -789,6 +791,19 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         return <PencilScene scene={scene} frame={rawOffset + context.frame}
           reducedMotion={context.reducedMotion} label="Original two-character pencil animation"/>;
       }
+      case "colored-pencil-wildlife": {
+        const offset = props.offsetFrame ?? 0;
+        if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0)
+          throw new RangeError("colored-pencil-wildlife offsetFrame must be a nonnegative integer.");
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        let scene = pencilWildlifeSheets.get(aspect);
+        if (!scene) {
+          scene = pencilWildlifeScene({ aspect });
+          pencilWildlifeSheets.set(aspect, scene);
+        }
+        return <PencilScene scene={scene} frame={offset + context.frame}
+          reducedMotion={context.reducedMotion} label="Original fine-feathered songbird pencil illustration"/>;
+      }
       case "riso-character-performance": {
         const rawOffset = props.offsetFrame ?? 0;
         if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
@@ -831,7 +846,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           reducedMotion={context.reducedMotion}/>;
       }
 
-      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
+      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
     }
   };
 }

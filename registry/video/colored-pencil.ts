@@ -40,6 +40,11 @@ export interface PencilRegion {
   underpaint?: string;
   /** Paper-bound opaque base for layered foreground drawings, 0..1. Default preserves CP1 light tint. */
   underpaintOpacity?: number;
+  /** A solid paper-coloured understructure keeps overlapping actor parts fully opaque.
+   * The matte is deposited only when this region begins drawing; tooth affects pigment,
+   * not the occlusion matte. Disabled by default to preserve earlier illustration looks.
+   */
+  opaqueSupport?: boolean;
   layers: readonly PencilPigmentLayer[];
   contour: PencilTrace;
   details?: readonly PencilTrace[];
@@ -117,6 +122,8 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
         (!Number.isFinite(region.underpaintOpacity) || region.underpaintOpacity < 0 ||
          region.underpaintOpacity > 1 || region.underpaint === undefined))
       issues.push(at + ".underpaintOpacity: needs a base pigment and value in 0..1.");
+    if (region.opaqueSupport !== undefined && typeof region.opaqueSupport !== "boolean")
+      issues.push(at + ".opaqueSupport: expected a boolean.");
     if (!validTrace(region.contour)) issues.push(at + ".contour: invalid graphite stroke.");
     if (!Array.isArray(region.layers) || region.layers.length < 1 || region.layers.length > 6) {
       issues.push(at + ".layers: require 1–6 pigment passes.");
@@ -129,7 +136,6 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
           !Number.isFinite(layer.tipWidth) || layer.tipWidth < .3 || layer.tipWidth > 4 ||
           (layer.flow !== undefined && (!Number.isFinite(layer.flow) || Math.abs(layer.flow) > 60)) ||
           (layer.tone !== undefined && !["even", "core", "rim"].includes(layer.tone)) ||
-    (layer.texture !== undefined && !["hatch", "fiber", "stipple"].includes(layer.texture)) ||
           (layer.texture !== undefined && !["hatch", "fiber", "stipple"].includes(layer.texture)) ||
           !Number.isSafeInteger(layer.seed) || layer.seed < 0 ||
           !Number.isSafeInteger(layer.startFrame) || layer.startFrame < 0 ||
@@ -246,6 +252,8 @@ export interface PencilObjectInput {
   material?: "soft" | "layered" | "dense";
   /** Original foreground fill holds out background strokes underneath articulated parts. */
   underpaintOpacity?: number;
+  /** Keep a separately shaded anatomical part opaque over scenery or another character. */
+  opaqueSupport?: boolean;
   /** A curved object needs directional stroke fan, independent of camera movement. */
   flow?: number;
   /** Value emphasis for cylindrical, convex or rim-lit forms. */
@@ -259,7 +267,7 @@ export interface PencilObjectInput {
 export function createPencilRegion(input: PencilObjectInput): PencilRegion {
   const { id, path, bounds, palette, seed, startFrame, durationFrames, direction = -28,
     material = "layered", contourColor = "#444A45", transform, details,
-    flow = 0, tone = "even", texture = "hatch", underpaintOpacity } = input;
+    flow = 0, tone = "even", texture = "hatch", underpaintOpacity, opaqueSupport = false } = input;
   if (!Number.isSafeInteger(startFrame) || startFrame < 0 ||
       !Number.isSafeInteger(durationFrames) || durationFrames < 30 ||
       !Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647 ||
@@ -267,6 +275,7 @@ export function createPencilRegion(input: PencilObjectInput): PencilRegion {
       !Number.isFinite(flow) || Math.abs(flow) > 60 ||
       !["even", "core", "rim"].includes(tone) ||
       !["hatch", "fiber", "stipple"].includes(texture) ||
+      typeof opaqueSupport !== "boolean" ||
       (underpaintOpacity !== undefined && (!Number.isFinite(underpaintOpacity) ||
         underpaintOpacity < 0 || underpaintOpacity > 1)) ||
       palette.length !== 3 || palette.some(c => !HEX.test(c)) || !HEX.test(contourColor) ||
@@ -286,7 +295,7 @@ export function createPencilRegion(input: PencilObjectInput): PencilRegion {
     durationFrames: Math.max(8, Math.floor(durationFrames * .7)),
   }));
   const region: PencilRegion = {
-    id, path, bounds, transform, details,
+    id, path, bounds, transform, details, opaqueSupport,
     underpaint: underpaintOpacity === undefined ? undefined : palette[0], underpaintOpacity,
     contour: { path, color: contourColor, width: 1.55, opacity: .74,
       startFrame, durationFrames: Math.floor(durationFrames * .38) },
