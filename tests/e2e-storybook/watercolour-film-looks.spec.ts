@@ -18,14 +18,14 @@ test.describe("watercolour Film Looks interactive showcases",()=>{
     original.strokes[0].color="#526A83";
     await input.fill(JSON.stringify(original));
     await page.getByRole("button",{name:"Apply validated JSON"}).click();
-    await expect(page.locator('[data-km-watercolour-surface]')).toBeVisible();
+    await expect(page.locator('[data-km-watercolour]')).toBeVisible();
   });
 
   test("painted film switches independent chapters and validates washes",async({page})=>{
     await page.goto("/iframe.html?id=film-art-watercolour-worlds--any-subject-painted-film&viewMode=story");
     await expect(page.getByRole("heading",{name:/Any-Subject Film Atelier/})).toBeVisible();
     await page.getByRole("button",{name:"Science / explainers"}).click();
-    await expect(page.getByText("Current chapter:")).toContainText("Science / explainers");
+    await expect(page.getByText(/Current chapter:/)).toContainText("Science / explainers");
     await page.getByText(/Science \/ explainers layered composition.*advanced JSON editor/).click();
     const input=page.getByRole("textbox",{name:"Scene configuration (JSON)"});
     const spec=JSON.parse(await input.inputValue());
