@@ -89,3 +89,20 @@ Rights: user-provided reference images are not published as project assets or in
 **Structural QA acceptance:** the attached highlight and base share a single curved path and must stay attached under child/parent transforms; no regular V-stamp tiling; details must respect silhouette and remain opaque; low-detail mode must reduce the mark load. These are code- and SVG-structure checks until actual browser captures are examined. Neither reference-pixel fidelity nor real-life species accuracy is claimed.
 
 **Remaining:** direct source/render side-by-side crops and five-axis source-relative metrics; natural-history body/wing silhouette corrections; eyelid occlusion review; planted toe microanatomy; normal-speed 16:9 + 9:16 playback; frame-time/4K profiling and independent aesthetic acceptance.
+
+## Perching-foot ArtCraft pass — four slender digits (2026-11-14)
+
+**Reference:** the perched small-bird coloured-pencil work credited to [Claire Milligan](https://www.pinterest.com/pin/awesome-works-by-claire-milligan-pet-portrait-wildlife-artist-instagramcomclairemilliganartist-with-valen--446419381813888299/) offers a visible toe/branch contact problem to study: narrow scaled tarsi, distinct front digits and rear gripping mass, dark nail accents and contact shadows. This was used for anatomical observation, **not pixel matching, tracing or redistribution**.
+
+**Prototype iteration and rejection:** a locally rendered SVG sketch with one wide palmate foot and four bulging finger shapes visibly resembled a mitten. It failed the ArtCraft shape/topology gate despite having more curves. A second local source-only proof changed the construction to narrow tarsi and four distinctly separated curved digit silhouettes per foot, with thin keratin tips and scale highlights. These local SVG proofs are **not final rendered FilmStage evidence**, and a source-to-finished-frame comparison remains missing.
+
+| Old problem | Revised construction | Remaining uncertainty |
+| --- | --- | --- |
+| Two broad Y-like toes per foot | Five enclosed component silhouettes per foot: tarsus + four overlapping, slim toes | True three-forward/one-back perspective and occlusion not verified against a natural-history specimen |
+| Smooth cylinder-like leg | Short offset ankle/tarsus highlight rings, multiple pigment values | Scales and interphalangeal joints remain simplified |
+| Straight toe tips and weak grip | Curved digits with opposing left/rear grip and dark pointed tips; toes extend to the branch's far edge | No modeled force/contact IK; clips and cast shadows unverified in the exported still |
+| Reused identical near/far feet | Far/near authored geometry, widths, tint and ankle transforms differ | Some perspective foreshortening still missing |
+
+**Implementation:** original local foot curves on the existing 20-part actor, not added region count. Each foot's five subpaths provide separate negative spaces and a fully occluding paper support. They share a local coordinate system attached at different authored ankle placements (\`translate(147 275)\` far, \`translate(190 274)\` near), keep stable torso-parent transforms, and add four clipped detail traces each. Existing Storybook **Wildlife** control adds **Foot and perch contact** at 4.2× in both aspect ratios; no new folder, no change to 420-frame film schema.
+
+**Gate:** focused unit tests require bounded toe geometry, opaque support, separate closed paths, no toe drift at active poses, two-aspect inspector validity and deterministic frame seeking. The local isolated foot sketch is a development critique only: no actual Chromium or normal-speed movie acceptance. Further improvement requires visual inspection of real scene contact at full resolution (skin/branch intersections, grip direction, scales and talon sharpness) and a natural-history bird reference calibrated for this original design.
