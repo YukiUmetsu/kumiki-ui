@@ -1,10 +1,13 @@
 import type { CrayonColor, CrayonElement, CrayonMotionKey, CrayonSceneSpec } from "../../registry/video/materials/crayon-scene";
 import { crayonPerformanceScene } from "./crayon-performance-fixtures";
+import { crayonScaleField, crayonMasonryCourses, crayonRoofCourses } from "./crayon-craft-detail-patterns";
 
 /** Original crayon cast: a rigged dragon, forest friend and owl in a detailed village. */
 export interface CrayonDragonVillageOptions {
   wingPower:number; detail:number; followThrough:number;
   cast:"duo"|"trio"; palette:"teal"|"copper"|"plum";
+  /** Alternate camera compositions that expose handcrafted anatomy and masonry. */
+  shot:"wide"|"dragon"|"architecture";
 }
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
 type Contour=Extract<CrayonElement,{kind:"contour"}>;
@@ -42,11 +45,12 @@ export function crayonDragonVillageScene(
 ):CrayonSceneSpec {
   const wingPower=options.wingPower??1,detail=options.detail??.85,
     followThrough=options.followThrough??7,cast=options.cast??"trio",
-    palette=options.palette??"teal";
+    palette=options.palette??"teal",shot=options.shot??"wide";
   if(!Number.isFinite(wingPower)||wingPower<.5||wingPower>1.6 ||
     !Number.isFinite(detail)||detail<.25||detail>1 ||
     !Number.isSafeInteger(followThrough)||followThrough<0||followThrough>18 ||
-    !["duo","trio"].includes(cast)||!(palette in palettes))
+    !["duo","trio"].includes(cast)||!(palette in palettes)||
+    !["wide","dragon","architecture"].includes(shot))
     throw new RangeError("Invalid CRAYON1 dragon village settings");
   const portrait=aspect==="portrait",W=portrait?540:960,H=portrait?960:540,D=330;
   const dragon=palettes[palette];
@@ -122,6 +126,11 @@ export function crayonDragonVillageScene(
       "M-100 -142L0 -215L99 -142L78 -132L0 -184L-78 -132Z",
       {x:-105,y:-220,width:212,height:151},roof,
       {parentId,timing:{start:16,end:87}});
+    line(id+"-hand-laid-roof-tiles",
+      crayonRoofCourses({apexX:0,apexY:style==="gable"?-168:-215,
+        halfWidth:style==="gable"?101:99,height:style==="gable"?82:73,
+        rows:Math.round(4+detail*4),seed:style==="gable"?109:137}),
+      "#d9c6bd",1.6,{parentId:id+"-roof",opacity:.68,timing:{start:94,end:158}});
     wax(id+"-door","M-23 55V-6Q0 -39 23 -6V55Z",
       {x:-26,y:-42,width:52,height:99},timber,
       {parentId,timing:{start:45,end:119},spacing:5});
@@ -132,11 +141,15 @@ export function crayonDragonVillageScene(
       line(id+"-windowbars-"+side,`M${v} -81V-29M${v-14} -55H${v+14}`,
         "#6f7484",2.5,{parentId,timing:{start:77,end:139}});
     }
-    for(let i=0;i<Math.round(detail*6);i++){
-      const x=-68+(i%3)*44,y=-14+Math.floor(i/3)*21;
-      line(id+"-brick-"+i,`M${x} ${y}h25`,"#947f84",2.2,
-        {parentId,opacity:.4,timing:{start:72,end:136}});
-    }
+    const mortar=crayonMasonryCourses({x:-76,y:-12,
+      rows:Math.round(2+detail*4),columns:1,courseWidth:42,courseHeight:13,seed:84})+" "+
+      crayonMasonryCourses({x:38,y:-12,
+        rows:Math.round(2+detail*4),columns:1,courseWidth:38,courseHeight:13,seed:86});
+    line(id+"-cut-stone-courses",mortar,"#8b7b86",1.45,
+      {parentId,opacity:.52,timing:{start:75,end:153}});
+    line(id+"-door-rivets",
+      "M-13 7h2M13 7h2M-13 26h2M13 26h2M-13 43h2M13 43h2",
+      "#eac095",2.1,{parentId,opacity:.70,timing:{start:99,end:163}});
   };
   cottage("western-shop",W*(portrait?.19:.14),H*(portrait?.60:.84),portrait?.42:.60,"gable");
   cottage("eastern-shop",W*(portrait?.83:.89),H*(portrait?.61:.84),portrait?.45:.53,"turret");
@@ -152,10 +165,19 @@ export function crayonDragonVillageScene(
     {x:73,y:-161,width:77,height:221},shade,{parentId:tower,timing:{start:24,end:109}});
   wax("castle-center-roof","M-67 -183L0 -267L67 -183L53 -166H-54Z",
     {x:-73,y:-275,width:148,height:114},roof,{parentId:tower,timing:{start:8,end:87}});
+  line("castle-center-roof-tiles",
+    crayonRoofCourses({apexX:0,apexY:-267,halfWidth:63,height:82,
+      rows:Math.round(5+detail*5),seed:531}),
+    "#d8d2db",1.7,{parentId:"castle-center-roof",opacity:.7,timing:{start:91,end:166}});
   for(const [side,x] of [["left",-112],["right",112]] as const){
     wax("castle-"+side+"-spire",`M${x-43} -149L${x} -258L${x+43} -149Z`,
       {x:x-48,y:-261,width:96,height:116},roof,
       {parentId:tower,timing:{start:9,end:96},spacing:5});
+    line("castle-"+side+"-hand-laid-tiles",
+      crayonRoofCourses({apexX:x,apexY:-258,halfWidth:42,height:106,
+        rows:Math.round(5+detail*4),seed:side==="left"?401:402}),
+      "#d2c4c7",1.65,{parentId:"castle-"+side+"-spire",
+        opacity:.67,timing:{start:96,end:162}});
     wax("castle-"+side+"-glass",
       `M${x-17} -117Q${x} -151 ${x+17} -117V-62H${x-17}Z`,
       {x:x-19,y:-155,width:38,height:96},glass,
@@ -163,6 +185,11 @@ export function crayonDragonVillageScene(
     line("castle-"+side+"-mullions",
       `M${x} -137V-61M${x-17} -97H${x+17}`,
       "#5d6b7d",2.7,{parentId:tower,timing:{start:74,end:144}});
+    line("castle-"+side+"-lancet-quatrefoil",
+      "M"+(x-13)+" -112Q"+x+" -139 "+(x+13)+" -112"+
+        "M"+(x-8)+" -117Q"+x+" -127 "+(x+8)+" -117"+
+        "M"+(x-16)+" -76Q"+x+" -69 "+(x+16)+" -76",
+      "#d2c7ba",1.9,{parentId:tower,opacity:.77,timing:{start:108,end:188}});
     line("castle-"+side+"-cap",`M${x-31} -150H${x+31}`,
       "#e7d4c3",3,{parentId:tower,timing:{start:72,end:135}});
   }
@@ -171,6 +198,18 @@ export function crayonDragonVillageScene(
     {parentId:tower,timing:{start:58,end:148},spacing:5});
   line("castle-door-stone","M-50 55V-20Q-50 -91 0 -94Q51 -91 51 -20V55",
     "#7b7787",4,{parentId:tower,timing:{start:76,end:151}});
+  const voussoirs:string[]=[];
+  for(let i=0;i<=10;i++){
+    const a=Math.PI-(i/10)*Math.PI;
+    const x=Math.cos(a)*48,y=-20-Math.sin(a)*69;
+    const xo=Math.cos(a)*58,yo=-20-Math.sin(a)*78;
+    voussoirs.push("M"+x.toFixed(1)+" "+y.toFixed(1)+
+      "L"+xo.toFixed(1)+" "+yo.toFixed(1));
+  }
+  line("castle-carved-voussoir-arch",voussoirs.join(" "),
+    "#9d8990",2.15,{parentId:tower,opacity:.72,timing:{start:104,end:189}});
+  line("castle-keystone","M-9 -89L0 -103L9 -89L0 -81Z",
+    "#c2a18a",2.25,{parentId:tower,timing:{start:116,end:193}});
   line("castle-door-planks","M0 -66V53M-27 0H26M-26 31H27",
     "#d3aa84",2.8,{parentId:tower,timing:{start:91,end:169}});
   wax("castle-clock",egg(0,-124,31,31),
@@ -178,6 +217,14 @@ export function crayonDragonVillageScene(
     {parentId:tower,timing:{start:47,end:129},spacing:5});
   line("castle-clock-rim",egg(0,-124,32,32),
     "#667087",4,{parentId:tower,timing:{start:77,end:148}});
+  const clockTicks:string[]=[];
+  for(let i=0;i<12;i++){
+    const a=(i/12)*Math.PI*2-Math.PI/2;
+    clockTicks.push("M"+(Math.cos(a)*23).toFixed(1)+" "+(-124+Math.sin(a)*23).toFixed(1)+
+      "L"+(Math.cos(a)*27).toFixed(1)+" "+(-124+Math.sin(a)*27).toFixed(1));
+  }
+  line("castle-clock-engraved-ticks",clockTicks.join(" "),
+    "#84778b",1.9,{parentId:tower,timing:{start:107,end:169},opacity:.76});
   line("castle-clock-hands","M0 -124V-144M0 -124L14 -114",
     "#5b5e77",3.4,{parentId:tower,timing:{start:86,end:154}});
   // Rosette arches and the lit entry add an architectural "lived in" layer.
@@ -221,6 +268,13 @@ export function crayonDragonVillageScene(
     if(marks.length)line("castle-masonry-"+i,marks.join(" "),
       "#9b8786",1.6,{parentId:tower,opacity:.36,timing:{start:73,end:162}});
   }
+  for(const side of [-1,1] as const){
+    const x=side===-1?-138:79;
+    line("castle-"+(side===-1?"west":"east")+"-fine-mortar",
+      crayonMasonryCourses({x,y:-138,rows:Math.round(7+detail*5),
+        columns:2,courseWidth:26,courseHeight:15,seed:side===-1?338:339}),
+      "#8c8390",1.3,{parentId:tower,opacity:.33,timing:{start:120,end:191}});
+  }
   line("castle-roof-engrave","M-45 -188L0 -249L46 -188M-26 -190L0 -228L26 -190",
     "#c3c4d1",2.3,{parentId:tower,timing:{start:72,end:157}});
   line("castle-cobble-path",
@@ -257,6 +311,14 @@ export function crayonDragonVillageScene(
     {parentId:"dragon-tail-mid",pivot:{x:-196,y:-85},
       motion:tail(21,-16),motionLagFrames:Math.min(24,followThrough+9),
       timing:{start:63,end:160},spacing:5});
+  line("dragon-tail-scutes",
+    crayonScaleField({x:-187,y:-77,rows:3,columns:3,
+      stepX:13,stepY:12,width:10,depth:4,seed:68,taper:2.5}),
+    "#567486",1.9,{parentId:"dragon-tail-mid",opacity:.56,
+      timing:{start:132,end:205}});
+  line("dragon-tail-engrave","M-209 -111L-218 -118M-214 -102L-227 -111",
+    "#d9b17f",2.25,{parentId:"dragon-tail-tip",opacity:.76,
+      timing:{start:148,end:205}});
   wax("dragon-wing-far",
     "M-47 -16Q-89 -153 -159 -192Q-137 -175 -118 -153Q-99 -164 -81 -126Q-58 -141 -54 -91L-40 -34Z",
     {x:-163,y:-198,width:130,height:192},dragon.wing,
@@ -265,6 +327,12 @@ export function crayonDragonVillageScene(
       timing:{start:50,end:151},spacing:6});
   line("dragon-wing-far-ribs","M-43 -23Q-87 -139 -158 -191M-85 -109L-118 -152M-65 -77L-81 -125",
     "#667b8a",3,{parentId:"dragon-wing-far",timing:{start:92,end:174}});
+  line("dragon-wing-far-laced-membrane",
+    "M-141 -175Q-114 -154 -99 -143M-127 -153Q-104 -128 -88 -120"+
+    "M-111 -132Q-94 -108 -72 -101M-98 -107Q-81 -87 -64 -76"+
+    "M-82 -74Q-65 -63 -54 -52",
+    "#576d85",1.55,{parentId:"dragon-wing-far",opacity:.55,
+      timing:{start:113,end:202}});
   wax("dragon-wing-near",
     "M-14 -24Q-23 -167 49 -218Q42 -181 76 -168Q39 -158 36 -123Q3 -137 -1 -87L-15 -38Z",
     {x:-26,y:-224,width:108,height:206},dragon.wing,
@@ -272,6 +340,17 @@ export function crayonDragonVillageScene(
       motionLagFrames:followThrough,timing:{start:53,end:155},spacing:6});
   line("dragon-wing-near-ribs","M-14 -27Q-1 -159 49 -216M-10 -85Q14 -145 75 -168M-10 -88L36 -124",
     "#647989",3.2,{parentId:"dragon-wing-near",timing:{start:91,end:177}});
+  line("dragon-wing-near-membrane-veins",
+    "M-4 -177Q9 -153 13 -125M18 -182Q22 -151 26 -137"+
+    "M39 -170Q27 -142 31 -117M-5 -132Q3 -115 -1 -91"+
+    "M-6 -106Q-11 -78 -13 -58",
+    "#576b80",1.9,{parentId:"dragon-wing-near",opacity:.72,
+      timing:{start:120,end:218}});
+  line("dragon-wing-near-crosswax",
+    "M-11 -112l13 10M-9 -97l12 8M-4 -154l17 9"+
+    "M16 -145l17 7M24 -170l12 8M40 -154l13 9",
+    "#eee0c7",1.5,{parentId:"dragon-wing-near",opacity:.42,
+      timing:{start:142,end:226}});
   wax(root,
     "M-75 -9Q-69 -55 -13 -60Q45 -63 73 -10Q89 35 44 61Q2 81 -46 53Q-82 37 -75 -9Z",
     {x:-88,y:-66,width:181,height:154},dragon.skin,
@@ -280,6 +359,24 @@ export function crayonDragonVillageScene(
         move(140,2,0,3,1.07,.95),move(187,-2,0,0,.98,1.04),
         move(230,3,0,7,1.08,.94),move(277,0),move(329,0)],
       timing:{start:40,end:145},spacing:6});
+  // Instead of flat teal torso fill, hand-engraved interlocking scutes
+  // follow the ribcage. Two levels of pigment read as anatomy, not noise.
+  line("dragon-flank-scale-field",
+    crayonScaleField({x:-59,y:-34,rows:Math.round(3+detail*3),columns:Math.round(4+detail*4),
+      stepX:14,stepY:14,width:10,depth:5.8,seed:417,taper:1}),
+    "#3f6273",1.9,{parentId:root,opacity:.58,
+      timing:{start:128,end:238}});
+  line("dragon-flank-highlight-scales",
+    crayonScaleField({x:-52,y:-30,rows:Math.round(2+detail*3),columns:Math.round(3+detail*4),
+      stepX:14,stepY:14,width:7,depth:3,seed:914,taper:1}),
+    "#d6d3b9",1.25,{parentId:root,opacity:.43,
+      timing:{start:153,end:254}});
+  line("dragon-shoulder-and-haunch-muscles",
+    "M29 -36Q58 -25 62 5M37 -16Q57 4 48 27"+
+    "M-53 -15Q-70 10 -49 31M-34 -37Q-11 -50 6 -43"+
+    "M17 48Q29 54 44 46",
+    "#315e6f",2.7,{parentId:root,opacity:.56,
+      timing:{start:151,end:231}});
   for(const [side,x,far] of [
     ["back-far",-49,true],["front-far",48,true],
     ["back-near",-30,false],["front-near",61,false],
@@ -295,6 +392,11 @@ export function crayonDragonVillageScene(
         timing:{start:67,end:175},spacing:5});
     line("dragon-claws-"+side,`M${x-19} 84l-4 10M${x-6} 90l-3 8M${x+7} 90l2 7`,
       "#f3d4a1",2.4,{parentId:"dragon-leg-"+side,timing:{start:117,end:181}});
+    line("dragon-leg-folds-"+side,
+      "M"+(x-17)+" "+(y+29)+"q12 7 24 -1"+
+      "M"+(x-18)+" "+(y+45)+"q10 7 22 0",
+      far?"#a3aab2":"#42777c",1.7,{parentId:"dragon-leg-"+side,
+        opacity:.54,timing:{start:143,end:225}});
   }
   wax("dragon-belly","M-13 -22Q33 -30 62 4Q69 40 43 54Q10 65 -9 46Q15 17 -13 -22Z",
     {x:-21,y:-34,width:97,height:102},gold,
@@ -306,17 +408,28 @@ export function crayonDragonVillageScene(
       {x:x-9,y:y-23,width:22,height:38},dragon.dark,
       {parentId:root,timing:{start:90+i*2,end:170+i*2},spacing:4.2});
   }
-  for(let i=0;i<9;i++){
-    const x=-1+i*6.8,y=5+i*5.1;
-    line("dragon-belly-scale-"+i,
-      `M${x-7} ${y}Q${x} ${y+8} ${x+9} ${y+1}`,
-      "#a97a62",2.1,{parentId:root,opacity:.58,timing:{start:113+i*3,end:212+i*2}});
-  }
+  const bellyScutes=Array.from({length:12},(_,i)=>{
+    const x=-3+i*5.8,y=3+i*4.4;
+    return "M"+(x-7).toFixed(1)+" "+y.toFixed(1)+
+      "q7 9 16 1";
+  }).join(" ");
+  line("dragon-belly-scutes",bellyScutes,
+    "#9e725b",2.15,{parentId:root,opacity:.66,timing:{start:127,end:232}});
+  line("dragon-belly-wax-reflections",
+    "M20 -16Q40 -4 46 8M14 3Q32 23 40 30M4 22Q14 42 28 45",
+    "#fff1ce",1.7,{parentId:root,opacity:.57,timing:{start:168,end:246}});
   wax("dragon-neck","M35 -14Q43 -75 91 -84L115 -54Q84 -42 69 10Z",
     {x:27,y:-92,width:94,height:109},dragon.skin,
     {parentId:root,pivot:{x:47,y:-16},motion:[
       move(0,-3),move(121,-3),move(174,-13),move(220,11),move(276,-4),move(329,-3)],
       motionLagFrames:followThrough,timing:{start:72,end:170}});
+  line("dragon-neck-overlapping-scutes",
+    crayonScaleField({x:48,y:-66,rows:4,columns:3,
+      stepX:11,stepY:13,width:8,depth:4.5,seed:604,taper:3.1}),
+    "#2f6775",1.95,{parentId:"dragon-neck",opacity:.56,timing:{start:143,end:222}});
+  line("dragon-neck-belly-folds",
+    "M62 -12Q80 -27 84 -51M55 -21Q73 -35 78 -56M53 -33Q65 -49 68 -62",
+    "#f0c9a4",2.3,{parentId:"dragon-neck",opacity:.73,timing:{start:161,end:231}});
   wax("dragon-head",
     "M76 -75Q76 -110 113 -114Q152 -122 168 -99L192 -91Q205 -78 195 -61Q176 -40 145 -50Q108 -31 87 -48Z",
     {x:70,y:-128,width:139,height:105},dragon.skin,
@@ -324,6 +437,15 @@ export function crayonDragonVillageScene(
       move(0),move(135),move(189,-12),move(230,9),move(284,-6),move(329)],
       motionLagFrames:Math.min(24,followThrough+4),
       timing:{start:80,end:182}});
+  line("dragon-cheek-small-scutes",
+    crayonScaleField({x:109,y:-86,rows:3,columns:4,
+      stepX:11,stepY:10,width:7,depth:4.5,seed:724,taper:2}),
+    "#417784",1.7,{parentId:"dragon-head",opacity:.55,timing:{start:164,end:238}});
+  line("dragon-muzzle-volume",
+    "M167 -96Q191 -105 195 -86M160 -51Q179 -47 190 -59"+
+    "M109 -54Q124 -47 137 -50",
+    "#e2c59e",2.5,{parentId:"dragon-head",opacity:.72,
+      timing:{start:169,end:249}});
   wax("dragon-jaw",
     "M128 -56Q159 -38 197 -60Q191 -39 175 -30Q148 -28 128 -41Z",
     {x:124,y:-65,width:80,height:47},gold,
@@ -336,9 +458,14 @@ export function crayonDragonVillageScene(
   wax("dragon-horn-right","M140 -107Q148 -141 176 -153Q169 -121 160 -93Z",
     {x:135,y:-158,width:45,height:68},gold,
     {parentId:"dragon-head",timing:{start:100,end:186},spacing:4.9});
+  line("dragon-horn-growth-rings",
+    "M86 -135l11 5M92 -128l12 6M150 -130l12 3M148 -119l14 4",
+    "#a6806d",1.75,{parentId:"dragon-head",opacity:.67,timing:{start:136,end:222}});
   wax("dragon-eye",egg(151,-86,9,7),
     {x:139,y:-96,width:24,height:20},dragon.dark,
     {parentId:"dragon-head",timing:{start:121,end:204},spacing:4});
+  line("dragon-eye-catchlight","M149 -88q3 -3 5 0",
+    "#fdf2d2",2.8,{parentId:"dragon-head",opacity:.9,timing:{start:165,end:219}});
   line("dragon-eyelid","M137 -92Q151 -102 163 -91",
     "#48566c",3.5,{parentId:"dragon-head",timing:{start:133,end:204},
       poses:[{id:"blink",d:"M138 -87Q150 -81 162 -88"},
@@ -444,6 +571,19 @@ export function crayonDragonVillageScene(
       {parentId:owl,pivot:{x:0,y:-49},
         motion:[move(0),move(160),move(198,12),move(246,-12),move(289,9),move(329)],
         motionLagFrames:followThrough,timing:{start:81,end:173}});
+    line("owl-forehead-feather-vines",
+      "M-40 -94Q-26 -113 -14 -98M-13 -101Q0 -118 14 -100"+
+      "M15 -99Q26 -112 41 -92M-40 -49Q-34 -36 -20 -29"+
+      "M39 -49Q34 -35 20 -29",
+      "#d5bca1",2.1,{parentId:"owl-head",opacity:.68,timing:{start:136,end:216}});
+    line("owl-wing-far-feather-groups",
+      "M-78 -27Q-70 -9 -54 4M-86 -7Q-71 10 -52 17"+
+      "M-81 12Q-62 23 -44 27",
+      "#d1c1b6",2.4,{parentId:"owl-wing-far",opacity:.61,timing:{start:138,end:219}});
+    line("owl-wing-near-feather-groups",
+      "M54 -26Q78 -14 83 4M56 -4Q71 13 87 16"+
+      "M51 13Q65 26 79 29",
+      "#e6d5ba",2.4,{parentId:"owl-wing-near",opacity:.63,timing:{start:140,end:221}});
     for(const [side,sign] of [["left",-1],["right",1]] as const){
       const x=sign*23;
       wax("owl-ear-"+side,
@@ -456,6 +596,9 @@ export function crayonDragonVillageScene(
       wax("owl-pupil-"+side,egg(x-sign*2,-66,7,10),
         {x:x-13,y:-81,width:27,height:28},dragon.dark,
         {parentId:"owl-head",timing:{start:141,end:207},spacing:4});
+      line("owl-eye-glint-"+side,
+        "M"+(x-sign*2-1)+" -70l2 -2",
+        "#fff6e6",2.9,{parentId:"owl-head",opacity:.92,timing:{start:166,end:229}});
       line("owl-lid-"+side,`M${x-17} -85Q${x} -95 ${x+17} -85`,
         "#675e71",3.2,{parentId:"owl-head",timing:{start:133,end:211},
           poses:[{id:"blink",d:`M${x-17} -66Q${x} -60 ${x+17} -66`},
@@ -472,12 +615,18 @@ export function crayonDragonVillageScene(
     wax("owl-beak","M-10 -57L0 -35L12 -57Q0 -64 -10 -57Z",
       {x:-13,y:-67,width:28,height:36},gold,
       {parentId:"owl-head",timing:{start:144,end:205}});
-    for(let i=0;i<8;i++){
-      const x=-30+i*8;
-      line("owl-feather-"+i,`M${x} 8q5 12 0 22`,
-        "#bdafaa",2,{parentId:"owl-breast",
-          timing:{start:149+i*2,end:232+i*2}});
-    }
+    const breastFeathers=Array.from({length:18},(_,i)=>{
+      const row=Math.floor(i/6),col=i%6;
+      const x=-27+col*10+(row%2)*4,y=-9+row*17;
+      return "M"+x+" "+y+"q4 10 0 18";
+    }).join(" ");
+    line("owl-layered-breast-feathers",breastFeathers,
+      "#b89c91",1.8,{parentId:"owl-breast",opacity:.65,
+        timing:{start:148,end:241}});
+    line("owl-tail-feather-partings",
+      "M-38 34Q-48 50 -47 60M-31 37Q-36 51 -37 66",
+      "#d2ac94",2,{parentId:"owl-tail",opacity:.68,
+        timing:{start:145,end:225}});
   }
   // Landscape and portrait have independent editorial composition.
   elements.push({kind:"lettering",id:"dragon-village-title",screenSpace:true,
@@ -493,10 +642,24 @@ export function crayonDragonVillageScene(
     lines:["ORIGINAL WAX ART  /  FRAME BY FRAME"],
     x:portrait?30:44,y:portrait?H-30:131,fontSize:portrait?12:14,
     timing:{start:183,end:283},family:"serif",weight:700,color:"#697783"});
+  const focus=shot==="dragon" ? {
+    x:dx+(portrait?74:-5),y:dy-(portrait?25:53),
+    zoom:portrait?1.64:1.75,
+  } : shot==="architecture" ? {
+    x:tx,y:ty-(portrait?100:135)*tscale,zoom:portrait?1.7:1.9,
+  } : {x:W/2,y:H/2,zoom:1};
+  // Detail studies are uncluttered production views, not alternate story cuts:
+  // hide screen-space titles; the architecture view isolates the environment.
+  // The wide shot retains every original actor, caption and story beat.
+  const visibleElements=shot==="wide" ? elements : elements.filter(node=>
+    node.kind!=="lettering" && (shot==="architecture"
+      ? !/^(dragon|owl|friend)-/.test(node.id)
+      : !/^(castle|western-shop|eastern-shop|owl|friend)-/.test(node.id)));
   return {version:1,id:"crayon-dragon-village-"+aspect,
     width:W,height:H,durationFrames:D,
-    paper:"#f7f0e2",paperTooth:.69,seed:7264,elements,
-    camera:[{frame:0,focusX:W/2,focusY:H/2,zoom:1},
-      {frame:170,focusX:W/2,focusY:H/2+4,zoom:1.017},
-      {frame:329,focusX:W/2,focusY:H/2,zoom:1}]};
+    paper:"#f7f0e2",paperTooth:.69,seed:7264,elements:visibleElements,
+    camera:[{frame:0,focusX:focus.x,focusY:focus.y,zoom:focus.zoom},
+      {frame:170,focusX:focus.x,focusY:focus.y+4,
+        zoom:focus.zoom+(shot==="wide"?.017:.025)},
+      {frame:329,focusX:focus.x,focusY:focus.y,zoom:focus.zoom}]};
 }
