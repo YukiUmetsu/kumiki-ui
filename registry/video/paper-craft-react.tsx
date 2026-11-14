@@ -62,6 +62,15 @@ export function PaperCraftStage({
     <rect width={spec.width} height={spec.height} fill={isLamp ? `url(#${uid}-lamp)` : spec.backing}/>
     {/* The substrate retains visible deckled tooth independently of all moving parts. */}
     {grain > 0 && <rect width={spec.width} height={spec.height} fill={`url(#${uid}-fibre)`} opacity={grain * .48} />}
+    {/* Folded cardstock opens into a shallow standing stage; a creased floor remains visible. */}
+    {spec.style === "pop-up" && <g aria-hidden="true">
+      <path d={`M0 ${(spec.height * .80).toFixed(2)} L${spec.width / 2} ${(spec.height * .72).toFixed(2)} L${spec.width} ${(spec.height * .80).toFixed(2)} V${spec.height} H0 Z`}
+        fill={spec.light} opacity=".18"/>
+      <path d={`M0 ${(spec.height * .80).toFixed(2)} L${spec.width / 2} ${(spec.height * .72).toFixed(2)} L${spec.width} ${(spec.height * .80).toFixed(2)}`}
+        fill="none" stroke="#473e3b" strokeWidth="2" strokeOpacity=".24"/>
+      <path d={`M${spec.width / 2} ${(spec.height * .72).toFixed(2)} V${spec.height}`}
+        stroke="#fff0db" strokeWidth="2" strokeOpacity=".33"/>
+    </g>}
     {prepared.map(({ layer, i }) => {
       const q = state.layers[i];
       const pivot = layer.pivot ?? [spec.width / 2, spec.height / 2];
@@ -70,7 +79,7 @@ export function PaperCraftStage({
       const clip = `url(#${uid}-cut-${layer.id})`;
       const cut = [layer.path, ...(layer.holes ?? [])].join(" ");
       return <g key={layer.id} data-km-paper-layer={layer.id} data-km-paper-progress={q.progress.toFixed(4)}
-        transform={transform} opacity={q.opacity} style={{ filter: shadow }}>
+        transform={transform} opacity={q.opacity} style={{ filter: layer.id === "die-cut-border" ? "none" : shadow }}>
         <g clipPath={clip}>
           <path d={cut} fill={layer.color} fillRule="evenodd"
             stroke={puppet ? "#422c28" : "#695447"} strokeWidth={puppet ? 1.55 : .7}
@@ -78,6 +87,10 @@ export function PaperCraftStage({
             opacity={puppet ? .83 : 1} />
           {grain > 0 && <rect width={spec.width} height={spec.height}
             fill={`url(#${uid}-fibre)`} opacity={grain * (puppet ? .48 : .8)}/>}
+          {/* A scored hinge remains legible after folding, unlike an animated scale alone. */}
+          {spec.style === "kirigami" && layer.motion === "unfold" && <path
+            d={`M${pivot[0]} ${pivot[1] - 48} v96`}
+            stroke="#5a3441" strokeWidth="1.35" strokeDasharray="4 4" opacity=".22" fill="none"/>}
         </g>
         {spec.style === "kirigami" && q.progress > 0 && q.progress < 1 &&
           <line x1={pivot[0]} y1={0} x2={pivot[0]} y2={spec.height}
