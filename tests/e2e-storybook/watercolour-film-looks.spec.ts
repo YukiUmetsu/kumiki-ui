@@ -7,7 +7,7 @@ test.describe("watercolour Film Looks interactive showcases",()=>{
   test("brush film plays, seeks and accepts individual stroke edits",async({page})=>{
     await page.goto("/iframe.html?id=film-art-watercolour-brush--painted-film&viewMode=story");
     await expect(page.getByRole("heading",{name:"Watercolour & brush atelier"})).toBeVisible();
-    await page.getByRole("slider",{name:"Absolute film frame"}).fill("690");
+    await page.getByRole("button",{name:"Coast 280"}).click();
     await expect(page.getByText("Absolute film frame: 690 / 819")).toBeVisible();
     await page.getByRole("spinbutton",{name:"Paper seed"}).fill("93");
     await page.getByText(/Coast brush strokes.*advanced JSON editor/).click();
