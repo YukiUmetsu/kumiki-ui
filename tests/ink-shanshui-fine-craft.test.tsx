@@ -37,6 +37,18 @@ describe("Chinese ink painting figure craftsmanship",()=>{
     expect(()=>inkPressureStroke({...sample,width:NaN})).toThrow(RangeError);
     expect(()=>inkPressureStroke({...sample,width:26})).toThrow(RangeError);
     expect(()=>inkPressureStroke({...sample,samples:3})).toThrow(RangeError);
+    // Invalid optional values previously produced "NaN" inside SVG path data.
+    for(const bad of [
+      {...sample,opacity:NaN},
+      {...sample,opacity:Infinity},
+      {...sample,startWeight:NaN},
+      {...sample,startWeight:-Infinity},
+      {...sample,seed:NaN},
+      {...sample,seed:Infinity},
+      {...sample,seed:.5},
+    ])expect(()=>inkPressureStroke(bad)).toThrow(RangeError);
+    expect(()=>inkPressureStroke({...sample,seed:0,opacity:0,startWeight:0}))
+      .not.toThrow();
     expect(()=>inkHatching({x:3,y:5},-1,3,1)).toThrow(RangeError);
   });
   it("keeps the expressive face/body marks attached to each character's real animated parts",()=>{
