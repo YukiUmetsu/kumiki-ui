@@ -61,6 +61,8 @@ export function crayonWalkScene(aspect:"landscape"|"portrait"):CrayonSceneSpec {
       {frame:124,x:0,y:0,rotate:-13},{frame:188,x:0,y:0,rotate:19},
       {frame:250,x:0,y:0,rotate:-8},{frame:269,x:0,y:0,rotate:-8},
     ],poseCadence:2};
+    if(node.kind==="lettering"&&node.id==="eyebrow")
+      return {...node,lines:["CRAYON WALK / ORIGINAL CHARACTER"]};
     if(node.kind==="lettering"&&node.id==="headline")
       return {...node,lines:aspect==="portrait"?["A LITTLE","JOURNEY"]:["A LITTLE JOURNEY"]};
     if(node.kind==="lettering"&&node.id==="caption")
@@ -83,7 +85,7 @@ export function crayonWalkScene(aspect:"landscape"|"portrait"):CrayonSceneSpec {
   // Ink-tracked footprints stay in the world, not under the traveling rig.
   const center=W*.51;
   for(const [i,offset] of [-88,-37,17,78].entries()){
-    const x=center+offset+(i%2?25:-29),y=(aspect==="portrait"?H*.65:H*.63)+111;
+    const x=center+offset+(i%2?25:-29),y=(aspect==="portrait"?H*.65:H*.63)+131;
     elements.splice(4+i,0,{
       kind:"contour",id:"footprint-"+i,timing:{start:38+i*40,end:130+i*35},
       d:"M"+(x-10)+" "+y+" Q"+x+" "+(y+6)+" "+(x+10)+" "+y,
