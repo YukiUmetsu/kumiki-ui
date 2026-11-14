@@ -5,7 +5,7 @@
  */
 import type { InkWashSpec } from "../../registry/video/ink-wash";
 import { assertInkWash } from "../../registry/video/ink-wash";
-import type { InkCameraPlan } from "../../registry/video/ink-wash-story";
+import type { InkCameraPlan, InkLayerPlan } from "../../registry/video/ink-wash-story";
 
 export interface InkMaterialControls {
   /** Exact authored paper colors; six-digit hex to avoid unsafe SVG paints. */
@@ -84,4 +84,25 @@ export function configureInkCamera(base:InkCameraPlan|undefined,c:InkCameraContr
   assertInkCameraControls(c);
   return {keyframes:(base?.keyframes?.length?base.keyframes:[{frame:0,x:0,y:0,zoom:1}])
     .map(k=>({...k,x:k.x+c.panX,y:k.y+c.panY,zoom:clamp(k.zoom*c.zoom,.2,6)}))};
+}
+
+export interface InkRevealControls {
+  /** Relative reveal length; all footage and art remain on the existing shot clock. */
+  duration: number;
+  parallax: number;
+  kind: "authored" | "brush" | "bloom" | "instant";
+}
+export const DEFAULT_INK_REVEAL: InkRevealControls = {
+  duration:1,parallax:1,kind:"authored",
+};
+export function configureInkLayer(base:InkLayerPlan,c:InkRevealControls,shotFrames:number):InkLayerPlan {
+  if (!c || !bounded(c.duration,.25,3) || !bounded(c.parallax,0,2) ||
+      !["authored","brush","bloom","instant"].includes(c.kind))
+    throw new RangeError("Ink reveal controls must specify a valid duration, parallax and reveal.");
+  const max=Math.max(1,shotFrames-base.startFrame);
+  return {...base,
+    durationFrames:Math.min(max,Math.max(1,Math.round(base.durationFrames*c.duration))),
+    parallax:clamp((base.parallax??1)*c.parallax,0,2),
+    reveal:c.kind==="authored"?base.reveal:c.kind,
+  };
 }
