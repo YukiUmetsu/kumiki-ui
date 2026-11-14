@@ -1,0 +1,64 @@
+/** Pure, frame-addressable wax-crayon deposition. No randomness, timers, filters or canvas state. */
+export interface CrayonBounds { x: number; y: number; width: number; height: number }
+export interface CrayonMark { d: string; width: number; tone: number; pressure: number; index: number }
+export interface CrayonOptions { seed: number; pressure: number; spacing?: number; passes?: number }
+
+export function crayonHash(seed: number, a: number, b = 0): number {
+  // Integer mixing keeps renders identical across seeks and JavaScript runtimes.
+  let n = (seed | 0) ^ Math.imul(a + 1, 0x9e3779b1) ^ Math.imul(b + 1, 0x85ebca6b);
+  n = Math.imul(n ^ (n >>> 16), 0x7feb352d);
+  n = Math.imul(n ^ (n >>> 15), 0x846ca68b);
+  return ((n ^ (n >>> 16)) >>> 0) / 0x100000000;
+}
+export function assertCrayonOptions(options: CrayonOptions): void {
+  if (!Number.isSafeInteger(options.seed)) throw new RangeError("crayon seed must be a safe integer");
+  if (!Number.isFinite(options.pressure) || options.pressure < 0 || options.pressure > 1)
+    throw new RangeError("crayon pressure must be between 0 and 1");
+  if (options.spacing !== undefined && (!Number.isFinite(options.spacing) || options.spacing < 4 || options.spacing > 32))
+    throw new RangeError("crayon spacing must be between 4 and 32");
+  if (options.passes !== undefined && (!Number.isSafeInteger(options.passes) || options.passes < 1 || options.passes > 3))
+    throw new RangeError("crayon passes must be between 1 and 3");
+}
+export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): CrayonMark[] {
+  assertCrayonOptions(options);
+  if (![bounds.x, bounds.y, bounds.width, bounds.height].every(Number.isFinite) ||
+      bounds.width <= 0 || bounds.height <= 0 || bounds.width > 4096 || bounds.height > 4096)
+    throw new RangeError("crayon bounds must be finite, positive and no larger than 4096");
+  const spacing = options.spacing ?? 10.5;
+  const passes = options.passes ?? 2;
+  const rows = Math.ceil(bounds.height / spacing) + 2;
+  if (rows * passes > 1200) throw new RangeError("crayon surface would exceed the stroke budget");
+  const marks: CrayonMark[] = [];
+  for (let layer = 0; layer < passes; layer++) {
+    for (let row = 0; row < rows; row++) {
+      const index = layer * rows + row;
+      const shift = (crayonHash(options.seed, index, 4) - .5) * spacing * .75;
+      const y = bounds.y - spacing + row * spacing + shift + layer * spacing * .45;
+      const slant = (layer ? -1 : 1) * (4 + crayonHash(options.seed, index, 5) * 9);
+      const left = bounds.x - 18;
+      const right = bounds.x + bounds.width + 18;
+      const wobble = (crayonHash(options.seed, index, 6) - .5) * 8;
+      // Separate marks, rather than a filled polygon with noisy opacity: wax follows a hand.
+      const d = "M " + left.toFixed(2) + " " + (y + slant).toFixed(2) +
+        " C " + (left + bounds.width * .33).toFixed(2) + " " + (y + wobble).toFixed(2) +
+        " " + (left + bounds.width * .66).toFixed(2) + " " + (y - wobble).toFixed(2) +
+        " " + right.toFixed(2) + " " + (y - slant).toFixed(2);
+      const p = Math.min(1, Math.max(.16, options.pressure * (.77 + crayonHash(options.seed, index, 7) * .36)));
+      marks.push({
+        d, index, pressure: p, tone: Math.floor(crayonHash(options.seed, index, 8) * 3),
+        width: 6.5 + p * 7.8 + crayonHash(options.seed, index, 9) * 2,
+      });
+    }
+  }
+  return marks;
+}
+export function crayonProgress(frame: number, first: number, last: number, index = 0, count = 1, reducedMotion = false): number {
+  if (![frame, first, last, index, count].every(Number.isFinite) || first < 0 || last <= first ||
+      index < 0 || count < 1 || index >= count)
+    throw new RangeError("invalid frame range or stroke index for crayon");
+  if (reducedMotion) return 1;
+  const time = Math.min(1, Math.max(0, (frame - first) / (last - first)));
+  const stagger = count === 1 ? 0 : index / (count - 1) * .78;
+  const t = Math.min(1, Math.max(0, (time - stagger) / .22));
+  return t * t * (3 - 2 * t);
+}
