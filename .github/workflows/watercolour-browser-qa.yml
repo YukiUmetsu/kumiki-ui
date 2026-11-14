@@ -11,7 +11,9 @@ on:
       - "src/video/watercolour-brush*"
       - "src/video/watercolour-actor*"
       - "src/video/painted-composition*"
+      - "src/video/watercolour-film-parameters.tsx"
       - "tests/e2e-storybook/watercolour-actor.spec.ts"
+      - "tests/e2e-storybook/watercolour-film-looks.spec.ts"
       - "examples/film/watercolour-character.film.json"
       - "src/film/film-slots.tsx"
       - "examples/film/watercolour-brush-study.film.json"
@@ -40,7 +42,7 @@ jobs:
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Browser paint and paper checks
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-brush.spec.ts tests/e2e-storybook/watercolour-actor.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-brush.spec.ts tests/e2e-storybook/watercolour-actor.spec.ts tests/e2e-storybook/watercolour-film-looks.spec.ts
       - name: Validate portable film
         run: |
           npm run film:check -- examples/film/watercolour-brush-study.film.json

@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import type { CharacterAsset, CharacterCue, CharacterDefinition, CharacterInstance, CharacterShape } from "../../registry/character/definition";
 import { PaintedComposition } from "../../registry/video/painted-composition-react";
+import type { PaintedCompositionSpec } from "../../registry/video/painted-composition";
+import type { CharacterWatercolourMaterial } from "../../registry/character/character-presenter-react";
 import { WatercolourActor } from "../../registry/video/watercolour-actor-react";
 import type { WatercolourActorTrack } from "../../registry/video/watercolour-actor";
 import { paintedDemoSpec } from "./painted-composition-demo";
@@ -136,8 +138,8 @@ export const TRAVELLER:CharacterDefinition={
     "scarf":{property:"y",amplitude:1.8,periodFrames:88}}},
   capabilities:["walk","wave","blink","gaze","speech","expressions"],
 };
-const material={seed:97,granulation:.72,tooth:.81,bleed:.42} as const;
-const instance:CharacterInstance={
+export const TRAVELLER_MATERIAL:CharacterWatercolourMaterial={seed:97,granulation:.72,tooth:.81,bleed:.42};
+export const TRAVELLER_INSTANCE:CharacterInstance={
   instanceId:"traveller",characterId:TRAVELLER.characterId,revision:TRAVELLER.revision,seed:83,
   targets:{viewer:{x:180,y:117}},
 };
@@ -168,35 +170,59 @@ export function travellerTrack(output:PaintedOutput):WatercolourActorTrack{
     ]};
 }
 
-/** Reusable complete illustrated film shot; independent character and environment layers. */
-export function PaintedTravellerPage({output,frame,reducedMotion=false}:{
-  output:PaintedOutput;frame:number;reducedMotion?:boolean;
+export interface TravellerFilmCustomization {
+  track?: WatercolourActorTrack;
+  definition?: CharacterDefinition;
+  instance?: CharacterInstance;
+  cues?: readonly CharacterCue[];
+  material?: CharacterWatercolourMaterial;
+  background?: PaintedCompositionSpec;
+  showShadow?: boolean;
+  showActor?: boolean;
+  showTypography?: boolean;
+  paperColor?: string;
+  text?: { kicker:string; line1:string; line2:string; subtitle:string };
+}
+/** Production and Storybook render the same original film; optional overrides never add a clock. */
+export function PaintedTravellerPage({output,frame,reducedMotion=false,options}:{
+  output:PaintedOutput;frame:number;reducedMotion?:boolean;options?:TravellerFilmCustomization;
 }){
-  const background=useMemo(()=>paintedDemoSpec("nature",output,103),[output]);
-  const track=useMemo(()=>travellerTrack(output),[output]);
+  const defaultBackground=useMemo(()=>paintedDemoSpec("nature",output,103),[output]);
+  const defaultTrack=useMemo(()=>travellerTrack(output),[output]);
+  const background=options?.background??defaultBackground;
+  const track=options?.track??defaultTrack;
+  const definition=options?.definition??TRAVELLER;
+  const characterInstance=options?.instance??TRAVELLER_INSTANCE;
+  const characterCues=options?.cues??TRAVELLER_CUES;
+  const characterMaterial=options?.material??TRAVELLER_MATERIAL;
+  const words=options?.text??{
+    kicker:"PAINTED CHARACTERS / 01",line1:"Every journey",line2:"begins in colour.",
+    subtitle:"A character walks through a world made of layered washes.",
+  };
   const portrait=output==="portrait";
   const environmentFade=portrait
     ? "radial-gradient(ellipse 57% 40% at 50% 65%, #000 35%, #000 50%, transparent 100%)"
     : "radial-gradient(ellipse 44% 62% at 73% 56%, #000 34%, #000 53%, transparent 100%)";
   return <div style={{width:background.width,height:background.height,position:"relative",
-    overflow:"hidden",background:"#F5EFE5"}}>
+    overflow:"hidden",background:options?.paperColor??"#F5EFE5"}}>
     <PaintedComposition spec={background} frame={frame} reducedMotion={reducedMotion}
       label="A luminous painted coastal landscape"
       style={{maskImage:environmentFade,WebkitMaskImage:environmentFade}}/>
-    <WatercolourActor track={track} definition={TRAVELLER} instance={instance}
-      cues={TRAVELLER_CUES} frame={frame} watercolourMaterial={material}
-      reducedMotion={reducedMotion} label="Illustrated traveller walking, waving and speaking"/>
-    <div style={{position:"absolute",left:portrait?37:48,top:portrait?69:58,
+    {options?.showActor!==false && <WatercolourActor track={track} definition={definition} instance={characterInstance}
+      cues={characterCues} frame={frame} watercolourMaterial={characterMaterial}
+      showShadow={options?.showShadow!==false}
+      reducedMotion={reducedMotion} label="Illustrated traveller walking, waving and speaking"/>}
+    {options?.showTypography!==false && <div style={{position:"absolute",left:portrait?37:48,top:portrait?69:58,
       pointerEvents:"none",maxWidth:portrait?462:390,color:"#384A50"}}>
       <div style={{font:"700 14px/1.4 system-ui,sans-serif",letterSpacing:2.1,marginBottom:14}}>
-        PAINTED CHARACTERS / 01
+        {words.kicker}
       </div>
       <div style={{font:"italic 53px/1.06 Georgia,serif",letterSpacing:-1.3}}>
-        Every journey<br/>begins in colour.
+        {words.line1}<br/>{words.line2}
       </div>
       <div style={{font:"17px/1.5 Georgia,serif",maxWidth:335,marginTop:18}}>
-        A character walks through a world made of layered washes.
+        {words.subtitle}
       </div>
-    </div>
+    </div>}
   </div>;
 }
