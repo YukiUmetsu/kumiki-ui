@@ -11,7 +11,7 @@ interface MaterialStudyProps {
   pressureSplit:boolean;
   /** A/B comparison: left uses historic scanline, right uses local hand strokes. */
   compareStrokeOrder:boolean;
-  sgraffitoComparison:boolean;
+  sgraffitoComparison?:boolean;
   leftLength:"long"|"short";rightLength:"long"|"short";
 }
 const headD="M-94 20Q-113 -49 -67 -89L-78 -145Q-41 -143 -13 -120L23 -151Q66 -132 70 -92Q132 -71 111 24Q85 99 -2 105Q-85 101 -94 20Z";
