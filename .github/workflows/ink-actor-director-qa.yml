@@ -7,12 +7,11 @@ on:
       - ".github/workflows/ink-actor-director-qa.yml"
       - "registry/video/ink-actor-director.ts"
       - "registry/video/ink-figure-craft.ts"
-      - "registry/video/ink-figure-motion.ts"
       - "registry/video/ink-wash-character.ts"
       - "src/video/ink-actor-director*"
+      - "src/video/ink-figure-classical-art.ts"
       - "tests/ink-actor-director*"
       - "tests/ink-figure-craft.test.ts"
-      - "tests/ink-figure-motion.test.ts"
       - "tests/e2e-storybook/ink-actor-director.spec.ts"
   workflow_dispatch:
 
@@ -37,7 +36,7 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
       - name: Pure C1 spline, inverse kinematics and per-part acting tests
-        run: npx vitest run --project unit tests/ink-actor-director.test.ts tests/ink-actor-director-demo.test.tsx tests/ink-figure-craft.test.ts tests/ink-figure-motion.test.ts
+        run: npx vitest run --project unit tests/ink-actor-director.test.ts tests/ink-actor-director-demo.test.tsx tests/ink-figure-craft.test.ts
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Actual original ink character, contact poses and deterministic seek screenshots
