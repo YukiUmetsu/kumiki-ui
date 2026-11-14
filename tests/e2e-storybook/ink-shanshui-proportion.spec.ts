@@ -92,3 +92,27 @@ test("all three cinematic scenes render two independently placed shoe parts inst
         .toHaveCount(0);
     }
   });
+
+test("craftsmanship control increases actual SVG pressure-brush shapes without changing figure anatomy",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-scholar-proportions--three-teacher-figure-studies&viewMode=story");
+    await page.getByRole("combobox",{name:"Teacher figure"}).selectOption("river-scholar");
+    const slider=page.getByRole("slider",{name:"Figure brush craftsmanship"});
+    const figure=page.getByTestId("shanshui-fitted-figure");
+    const strokes=figure.locator('[data-km-figure-fit-region="robe-fine"] path');
+    await expect(slider).toBeVisible();
+    await slider.focus();
+    await slider.press("Home");
+    await expect(slider).toHaveValue("0");
+    const low=await strokes.count();
+    await slider.press("End");
+    await expect(slider).toHaveValue("1");
+    await expect.poll(()=>strokes.count()).toBeGreaterThan(low);
+    for(const id of ["sleeve-fine-near","sleeve-fine-far","hand-fine-near",
+      "collar-fine","belt-fine","scroll-fine","shoe-fine-right"]){
+      await expect(figure.locator('[data-km-figure-fit-region="'+id+'"]'))
+        .toHaveCount(1);
+    }
+    await figure.screenshot({path:info.outputPath("rich-scholar-brush-detail.png"),
+      animations:"disabled"});
+  });
