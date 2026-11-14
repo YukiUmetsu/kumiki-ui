@@ -48,6 +48,10 @@ export interface PencilRegion {
   layers: readonly PencilPigmentLayer[];
   contour: PencilTrace;
   details?: readonly PencilTrace[];
+  /** Clip fine interior accents to the source silhouette; the enclosing contour stays uncut.
+   * Opt-in, preserving exterior construction and guide marks in legacy drawings.
+   */
+  clipDetails?: boolean;
 }
 export interface PencilDrawingSpec {
   version: 1;
@@ -125,6 +129,8 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
       issues.push(at + ".underpaintOpacity: needs a base pigment and value in 0..1.");
     if (region.opaqueSupport !== undefined && typeof region.opaqueSupport !== "boolean")
       issues.push(at + ".opaqueSupport: expected a boolean.");
+    if (region.clipDetails !== undefined && typeof region.clipDetails !== "boolean")
+      issues.push(at + ".clipDetails: expected a boolean.");
     if (!validTrace(region.contour)) issues.push(at + ".contour: invalid graphite stroke.");
     if (!Array.isArray(region.layers) || region.layers.length < 1 || region.layers.length > 6) {
       issues.push(at + ".layers: require 1–6 pigment passes.");
@@ -255,6 +261,8 @@ export interface PencilObjectInput {
   underpaintOpacity?: number;
   /** Keep a separately shaded anatomical part opaque over scenery or another character. */
   opaqueSupport?: boolean;
+  /** Restrict fine interior accents to this region without clipping its perimeter line. */
+  clipDetails?: boolean;
   /** A curved object needs directional stroke fan, independent of camera movement. */
   flow?: number;
   /** Value emphasis for cylindrical, convex or rim-lit forms. */
@@ -268,7 +276,8 @@ export interface PencilObjectInput {
 export function createPencilRegion(input: PencilObjectInput): PencilRegion {
   const { id, path, bounds, palette, seed, startFrame, durationFrames, direction = -28,
     material = "layered", contourColor = "#444A45", transform, details,
-    flow = 0, tone = "even", texture = "hatch", underpaintOpacity, opaqueSupport = false } = input;
+    flow = 0, tone = "even", texture = "hatch", underpaintOpacity, opaqueSupport = false,
+    clipDetails = false } = input;
   if (!Number.isSafeInteger(startFrame) || startFrame < 0 ||
       !Number.isSafeInteger(durationFrames) || durationFrames < 30 ||
       !Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647 ||
@@ -276,7 +285,7 @@ export function createPencilRegion(input: PencilObjectInput): PencilRegion {
       !Number.isFinite(flow) || Math.abs(flow) > 60 ||
       !["even", "core", "rim"].includes(tone) ||
       !["hatch", "fiber", "stipple"].includes(texture) ||
-      typeof opaqueSupport !== "boolean" ||
+      typeof opaqueSupport !== "boolean" || typeof clipDetails !== "boolean" ||
       (underpaintOpacity !== undefined && (!Number.isFinite(underpaintOpacity) ||
         underpaintOpacity < 0 || underpaintOpacity > 1)) ||
       palette.length !== 3 || palette.some(c => !HEX.test(c)) || !HEX.test(contourColor) ||
@@ -296,7 +305,7 @@ export function createPencilRegion(input: PencilObjectInput): PencilRegion {
     durationFrames: Math.max(8, Math.floor(durationFrames * .7)),
   }));
   const region: PencilRegion = {
-    id, path, bounds, transform, details, opaqueSupport,
+    id, path, bounds, transform, details, opaqueSupport, clipDetails,
     underpaint: underpaintOpacity === undefined ? undefined : palette[0], underpaintOpacity,
     contour: { path, color: contourColor, width: 1.55, opacity: .74,
       startFrame, durationFrames: Math.floor(durationFrames * .38) },
