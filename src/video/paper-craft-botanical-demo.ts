@@ -218,7 +218,7 @@ export function paperBotanicalSpec(
     [-315,-8],[-300,79],[-105,-312],[107,-305],
     [299,-29],[312,72],[-122,302],[116,304],
   ];
-  const bloomCount=4+Math.round(detail*4);
+  const bloomCount=4+Math.round(detail*3);
   for(let i=0;i<bloomCount;i++){
     const [x,y]=satellites[i],r=16+paperHash(seed,i,55)*7;
     add("aster-"+i+"-corolla",i%2===0?c.petalHigh:c.petalLow,11,
@@ -231,10 +231,10 @@ export function paperBotanicalSpec(
   // Fine paper curls and seed pods around the perimeter.
   for(let i=0;i<8;i++){
     const angle=i*45-23,[x0,y0]=at(0,0,angle,266),[x1,y1]=at(0,0,angle+10,316);
-    add("seed-stem-"+i,c.stem,8,taperedStroke(p,x0,y0,x1,y1,2.7),{
-      enterFrame:40+i*9,durationFrames:33,motion:"still"});
-    add("seed-pod-"+i,c.center,13,p.circle(x1,y1,5.2+paperHash(seed,i,48)*2),{
-      enterFrame:58+i*9,durationFrames:22,motion:"rise"});
+    // Connected gilded seed-stalk: the head is the same cut sheet as its rachis.
+    add("seed-spray-"+i,c.center,8,
+      taperedStroke(p,x0,y0,x1,y1,2.7)+" "+p.circle(x1,y1,5.2+paperHash(seed,i,48)*2),{
+        enterFrame:40+i*9,durationFrames:33,motion:"still"});
   }
   // Symmetrical wings share a genuine thorax hinge. Perforations are empty paper.
   for(const side of [-1,1] as const){
@@ -293,6 +293,8 @@ export function paperBotanicalSpec(
         " H"+inset+" Z"],
       enterFrame:130,durationFrames:28,motion:"still",
     });
+  // PAPER1 material evaluator is intentionally bounded at 80 physical sheet layers.
+  if (layers.length > 80) throw new RangeError("Botanical scene exceeded 80 cardstock layers.");
   return {
     version:1,id:"paper-botanical-"+style+"-"+aspect+"-"+palette,
     style,width:w,height:h,fps:30,durationFrames:240,seed,
