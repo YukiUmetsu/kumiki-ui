@@ -8,11 +8,11 @@ import type { CrayonDemoAspect, CrayonDemoSubject } from "./crayon-scene-fixture
 
 interface PlaygroundProps {
   subject:CrayonDemoSubject | "performance" | "walk"; aspect:CrayonDemoAspect; seed:number; paperTooth:number;
-  reducedMotion:boolean; startFrame:number;
+  reducedMotion:boolean; startFrame:number; stride:number; stepLift:number; rig:"drawn"|"ik";
 }
-function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame}:PlaygroundProps){
+function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig}:PlaygroundProps){
   const [frame,setFrame]=useState(startFrame),[playing,setPlaying]=useState(false);
-  const spec=useMemo(()=>({...(subject==="performance"?crayonPerformanceScene(aspect):subject==="walk"?crayonWalkScene(aspect):crayonDemoScene(subject,aspect)),seed,paperTooth}),[subject,aspect,seed,paperTooth]);
+  const spec=useMemo(()=>({...(subject==="performance"?crayonPerformanceScene(aspect):subject==="walk"?crayonWalkScene(aspect,{stride,lift:stepLift,rig}):crayonDemoScene(subject,aspect)),seed,paperTooth}),[subject,aspect,seed,paperTooth,stride,stepLift,rig]);
   useEffect(()=>{setPlaying(false);setFrame(startFrame)},[subject,aspect,startFrame]);
   useEffect(()=>{
     if(!playing)return;
@@ -28,8 +28,8 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
   return <div style={{maxWidth:1050,margin:"auto",padding:22,background:"#e9e3d5",color:"#344e60",fontFamily:"system-ui"}}>
     <div style={{display:"flex",gap:12,justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",marginBottom:12}}>
       <div><div style={{fontSize:12,letterSpacing:2.8,fontWeight:700,textTransform:"uppercase"}}>Crayon scene engine · JSON-native</div>
-        <div style={{font:"700 28px Georgia,serif",marginTop:8}}>{subject==="walk"?"A Little Journey":subject==="performance"?"The Little Flower":subject==="water-cycle"?"Where Rain Begins":subject==="city"?"Our Little Town":"How Things Grow"}</div></div>
-      <div style={{fontSize:13,color:"#586b72"}}>{subject==="performance"?"Acting exposure sheet · 30 fps · 9 seconds":subject==="walk"?"Contact-locked walk cycle · 30 fps · 9 seconds":"Story-independent drawing · 30 fps · 8 seconds"}</div>
+        <div style={{font:"700 28px Georgia,serif",marginTop:8}}>{subject==="walk"?(rig==="ik"?"The Knee & The Step":"A Little Journey"):subject==="performance"?"The Little Flower":subject==="water-cycle"?"Where Rain Begins":subject==="city"?"Our Little Town":"How Things Grow"}</div></div>
+      <div style={{fontSize:13,color:"#586b72"}}>{subject==="performance"?"Acting exposure sheet · 30 fps · 9 seconds":subject==="walk"?(rig==="ik"?"Two-bone IK · rolling feet · 30 fps":"Contact-locked walk cycle · 30 fps · 9 seconds"):"Story-independent drawing · 30 fps · 8 seconds"}</div>
     </div>
     <div style={{width:aspect==="portrait"?"min(100%,440px)":"100%",aspectRatio:aspect==="portrait"?"540/960":"960/540",
       margin:"0 auto",border:"10px solid #fff7e8",background:"#fff7e8",boxSizing:"border-box",boxShadow:"0 12px 28px #3e4d5c26"}}>
@@ -53,7 +53,7 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
           {label}</button>)}
     </nav>
     <p style={{fontSize:13,color:"#5f6f75",lineHeight:1.5,marginBottom:0,marginTop:15}}>
-      Original subjects share one source-distributed renderer. Walk Cycle demonstrates world-contact planting with art-directed swings, held poses and a hand-held flower. Character Performance demonstrates expression cues. Scrub forward or backward.
+      Original subjects share one source-distributed renderer. Walk Cycle demonstrates pinned steps with foot-roll and smooth release; change stride, lift and rig to compare drawn knees against analytical two-bone joints. Character Performance demonstrates expression cues. Scrub in either direction.
       Original subjects, paths, captions, contact/acting cues and camera are supplied as scene data, not built into the renderer.
     </p>
   </div>;
@@ -62,12 +62,15 @@ const meta={
   title:"Video production/Film Looks/Crayon Scene Engine",
   id:"video-crayon-scene-engine",
   component:CrayonPlayground,
-  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239},
+  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn"},
   argTypes:{
     subject:{control:"inline-radio",options:["water-cycle","city","numbers","performance","walk"]},
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
     seed:{control:{type:"number",min:0,max:10000,step:1}},
     paperTooth:{control:{type:"range",min:0,max:1,step:.05}},
+    stride:{control:{type:"range",min:.6,max:1.6,step:.1}},
+    stepLift:{control:{type:"range",min:.6,max:1.8,step:.1}},
+    rig:{control:"inline-radio",options:["drawn","ik"]},
     reducedMotion:{control:"boolean"},
     startFrame:{control:{type:"range",min:0,max:269,step:1}},
   }
@@ -82,3 +85,5 @@ export const CharacterPerformance:Story={args:{subject:"performance",startFrame:
 export const CharacterPerformancePortrait:Story={args:{subject:"performance",aspect:"portrait",startFrame:176}};
 export const CharacterWalkCycle:Story={args:{subject:"walk",startFrame:156}};
 export const CharacterWalkPortrait:Story={args:{subject:"walk",aspect:"portrait",startFrame:156}};
+export const CharacterTwoBoneIK:Story={args:{subject:"walk",rig:"ik",stride:1.15,stepLift:1.35,startFrame:124}};
+export const CharacterTwoBoneIKPortrait:Story={args:{subject:"walk",rig:"ik",aspect:"portrait",stride:1.1,stepLift:1.35,startFrame:124}};
