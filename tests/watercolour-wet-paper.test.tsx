@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { WatercolourWetPaper } from "../registry/video/watercolour-wet-paper-react";
 import { evaluateWetPaper, inspectWetPaper } from "../registry/video/watercolour-wet-paper";
-import { wetPaperDemo } from "../src/video/watercolour-wet-paper.stories";
+import { wetPaperDemo } from "../src/video/watercolour-wet-paper-demo";
 
 describe("WM4 conservative watercolor pigment field", () => {
   const scene=wetPaperDemo("landscape");
