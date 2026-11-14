@@ -4,9 +4,12 @@ on:
   pull_request:
     paths:
       - "registry/video/ink-shanshui*"
+      - "registry/character/figure-proportion-study.ts"
       - "src/video/ink-shanshui*"
       - "tests/ink-shanshui.test.tsx"
+      - "tests/ink-shanshui-proportion.test.tsx"
       - "tests/e2e-storybook/ink-shanshui.spec.ts"
+      - "tests/e2e-storybook/ink-shanshui-proportion.spec.ts"
       - "docs/research/shanshui-reference-to-code-2026.md"
       - "registry.json"
       - ".github/workflows/ink-shanshui-qa.yml"
@@ -33,7 +36,7 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
       - name: Deterministic painting, actor and composition tests
-        run: npx vitest run --project unit tests/ink-shanshui.test.tsx
+        run: npx vitest run --project unit tests/ink-shanshui.test.tsx tests/ink-shanshui-proportion.test.tsx
       - name: Registry and catalog installation contracts
         run: |
           npm run registry:validate
@@ -41,7 +44,7 @@ jobs:
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: All three films in the actual Storybook browser
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-shanshui.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-shanshui.spec.ts tests/e2e-storybook/ink-shanshui-proportion.spec.ts
       - name: FFmpeg
         run: |
           sudo apt-get update -qq
