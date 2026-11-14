@@ -75,7 +75,7 @@ test("original ink duet uses real independent rigs, ordered scenes and frame-add
     // legitimately fail despite passing coarse actor-root reach.
     const hand = page.locator("[data-km-ink-hand-contact]");
     await expect(hand).toHaveCount(1);
-    await expect(hand).toHaveAttribute("data-km-ink-hand-gap",/^\\d+\\.\\d{2}$/);
+    await expect(hand).toHaveAttribute("data-km-ink-hand-gap",/^\d+\.\d{2}$/);
     const accurate = await hand.getAttribute("data-km-ink-hand-contact");
     expect(["pass","fail"]).toContain(accurate);
     const first=await scene.screenshot({animations:"disabled"});
