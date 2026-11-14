@@ -203,7 +203,11 @@ export function RisoCharacterModelSheet({
           <svg x={x+7} y={566} width={194} height={145}
             viewBox={risoSheetViewBox(wing.bounds,194,145,14)}
             overflow="hidden">
-            <Actor sample={report.frame} parts={report.regions} view="pose"/>
+            {reportFor(report.frame).parts.filter(p=>
+              wing.parts.includes(p.id) && !p.knockoutOnly).map(p=>
+              <path key={p.id} data-km-riso-wing-isolated-ink={p.id}
+                d={p.d} transform={p.transform} fill={inks[p.plate]??"#315B86"}
+                opacity={p.opacity}/>)}
             <g stroke="#247A8F" strokeWidth={.75} opacity={.75} fill="none"
               data-km-riso-wing-cage={id}>
               {wing.triangles.map((triangle,n)=>
@@ -228,7 +232,7 @@ export function RisoCharacterModelSheet({
           stroke={r.id===region.id?"#D84D39":"#267C88"}
           strokeWidth={r.id===region.id?1.9:.5} opacity={r.id===region.id?1:.38} fill="none"/>)}
     </svg>
-    {section(502,459,345,313,"Actual source-part geometry / measurements","C")}
+    {section(502,459,345,313,"Source contour + proportions","C")}
     <g fill="#29445A" fontFamily="system-ui,sans-serif">
       <text x={517} y={501} fontSize={15} fontWeight={800}>{region.label}</text>
       <text x={517} y={522} fontSize={11} fill="#65717D">{region.category.toUpperCase()} · source joint {detail.joint}</text>
