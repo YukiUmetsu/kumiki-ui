@@ -65,7 +65,7 @@ const meta = {
   title:"Video production/Film Looks/Crayon Storybook",
   id:"video-crayon-storybook",
   component:CrayonPlayer,
-  args:{story:"lantern",aspect:"landscape",seed:23,pressure:.87,paperTooth:.58,reducedMotion:false,startFrame:320,playbackRate:1,loop:false},
+  args:{story:"lantern",aspect:"landscape",seed:23,pressure:.87,paperTooth:.58,reducedMotion:false,startFrame:320,playbackRate:1.2,loop:false},
   argTypes:{
     story:{control:"inline-radio",options:["lantern","garden"]},
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
