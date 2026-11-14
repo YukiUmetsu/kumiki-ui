@@ -83,6 +83,7 @@ describe("Crayon Storybook organization",()=>{
    for(const {meta,shown,hidden} of groups){
      for(const name of shown){
        expect(control(meta,name)?.table?.disable).not.toBe(true);
+       expect(control(meta,name)?.table?.category).toBe(name==="paperTooth"?"Wax & Paper":"Subject & Acting");
      }
      for(const name of hidden){
        expect(control(meta,name)).toEqual({control:false,table:{disable:true}});

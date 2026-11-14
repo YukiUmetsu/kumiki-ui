@@ -8,12 +8,7 @@ const meta={
   id:"video-crayon-draw-in",
   component:CrayonPlayground,
   args:{...crayonSceneDefaultArgs,subject:"draw-in",startFrame:190},
-  argTypes:{...crayonDirectorArgTypes("draw-in",449),
-    startFrame:{control:{type:"range",min:0,max:449,step:1}},
-    drawOrder:{control:"inline-radio",options:["outline-first","fill-first"]},
-    outlineFraction:{control:{type:"range",min:.1,max:.75,step:.05}},
-    waxGlaze:{control:{type:"range",min:0,max:.45,step:.03}},
-  },
+  argTypes:crayonDirectorArgTypes("draw-in",449),
 } satisfies Meta<typeof CrayonPlayground>;
 export default meta;
 type Story=StoryObj<typeof meta>;

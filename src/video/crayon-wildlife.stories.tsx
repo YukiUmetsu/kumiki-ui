@@ -8,12 +8,7 @@ const meta={
   id:"video-crayon-wildlife",
   component:CrayonPlayground,
   args:{...crayonSceneDefaultArgs,subject:"wildlife-portrait",startFrame:198},
-  argTypes:{...crayonDirectorArgTypes("wildlife",239),
-    startFrame:{control:{type:"range",min:0,max:239,step:1}},
-    wildlifeDetail:{control:{type:"range",min:0,max:1,step:.05}},
-    wildlifeEarMotion:{control:{type:"range",min:0,max:2,step:.1}},
-    wildlifeCrop:{control:"inline-radio",options:["composition","eye","fur","muzzle","ear"]},
-  },
+  argTypes:crayonDirectorArgTypes("wildlife",239),
 } satisfies Meta<typeof CrayonPlayground>;
 export default meta;
 type Story=StoryObj<typeof meta>;

@@ -8,17 +8,7 @@ const meta={
   id:"video-crayon-dragon",
   component:CrayonPlayground,
   args:{...crayonSceneDefaultArgs,subject:"dragon-village",startFrame:155},
-  argTypes:{...crayonDirectorArgTypes("dragon",329),
-    startFrame:{control:{type:"range",min:0,max:329,step:1}},
-    wingPower:{control:{type:"range",min:.5,max:1.6,step:.05}},
-    villageDetail:{control:{type:"range",min:.25,max:1,step:.05}},
-    followThrough:{control:{type:"range",min:0,max:18,step:1}},
-    cast:{control:"inline-radio",options:["duo","trio"]},
-    dragonPalette:{control:"inline-radio",options:["teal","copper","plum"]},
-    shot:{control:"inline-radio",options:["wide","dragon","architecture"]},
-    redrawStrength:{control:{type:"range",min:0,max:1,step:.05}},
-    exposureFrames:{control:"inline-radio",options:[2,3,4,5,6]},
-  },
+  argTypes:crayonDirectorArgTypes("dragon",329),
 } satisfies Meta<typeof CrayonPlayground>;
 export default meta;
 type Story=StoryObj<typeof meta>;

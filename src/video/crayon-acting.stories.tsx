@@ -8,10 +8,7 @@ const meta={
   id:"video-crayon-acting",
   component:CrayonPlayground,
   args:{...crayonSceneDefaultArgs,subject:"performance",startFrame:176},
-  argTypes:{...crayonDirectorArgTypes("acting",269),
-    startFrame:{control:{type:"range",min:0,max:269,step:1}},
-    editorialDetail:{control:{type:"range",min:0,max:1,step:.05}},
-  },
+  argTypes:crayonDirectorArgTypes("acting",269),
 } satisfies Meta<typeof CrayonPlayground>;
 export default meta;
 type Story=StoryObj<typeof meta>;

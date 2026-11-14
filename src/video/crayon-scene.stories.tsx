@@ -8,11 +8,7 @@ const meta={
   id:"video-crayon-scene-engine",
   component:CrayonPlayground,
   args:crayonSceneDefaultArgs,
-  argTypes:{
-    ...crayonDirectorArgTypes("scenes",239),
-    subject:{control:"inline-radio",options:["water-cycle","city","numbers"]},
-    startFrame:{control:{type:"range",min:0,max:239,step:1}},
-  },
+  argTypes:crayonDirectorArgTypes("scenes",239),
 } satisfies Meta<typeof CrayonPlayground>;
 export default meta;
 type Story=StoryObj<typeof meta>;
