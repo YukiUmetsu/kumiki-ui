@@ -95,6 +95,8 @@ export function pencilDemoScene(subject: PencilDemoSubject, aspect: PencilAspect
     id: item.id, path: item.path, bounds: item.bounds, palette: item.palette, seed: item.seed,
     startFrame: 30 + i * 15, durationFrames: 202, direction: item.direction,
     material: item.material, transform: shift,
+    flow: subject === "terrain" ? (i === 0 ? 25 : -14) : subject === "orbit" ? 16 : 0,
+    tone: subject === "circuit" ? "even" : i % 2 === 0 ? "core" : "rim",
     details: ("details" in item ? item.details : undefined) as readonly PencilTrace[] | undefined,
   }));
   const top = portrait ? 168 : 163;
@@ -114,7 +116,7 @@ export function pencilDemoScene(subject: PencilDemoSubject, aspect: PencilAspect
     startFrame: 0, durationFrames: 12 };
   const graphLines = model.accents.map((item, i): PencilAnnotation =>
     ({ type: "stroke", id: "guide-" + i, path: item.path, color: item.color, width: item.width,
-      startFrame: 160 + i * 19, durationFrames: 86, space: "paper" }));
+      startFrame: 160 + i * 19, durationFrames: 86, space: "paper", transform: shift }));
   const accents = [...graphLines];
   // A paper-coordinate group preserves author geometry with the same transform as the subjects.
   // Set the transform through SVG authoring for graphics; screen labels remain in their own safe zone.
