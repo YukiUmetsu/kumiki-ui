@@ -67,6 +67,18 @@ describe("topic-neutral coloured-pencil scene", () => {
     expect(render(0)).not.toEqual(end);
     expect(pencilSceneProgress(250, 170, 25)).toBe(1);
   });
+  it("aligns original world guides to paper-space object placement", () => {
+    for (const aspect of ["landscape", "portrait"] as const) {
+      const scene = pencilDemoScene("orbit", aspect);
+      expect(inspectPencilScene(scene)).toEqual([]);
+      const html = renderToStaticMarkup(<PencilScene scene={scene} frame={275}/>);
+      expect(html).toContain('data-km-pencil-annotation="guide-0"');
+      expect(html).toContain(aspect === "landscape" ?
+        'transform="translate(470 69) scale(1.02)"' :
+        'transform="translate(42 345) scale(1.02)"');
+    }
+  });
+
   for (const subject of ["orbit", "circuit", "terrain"] as const) {
     for (const aspect of ["landscape", "portrait"] as const) {
       it("supports arbitrary " + subject + " graphics, labels and aspect " + aspect, () => {
