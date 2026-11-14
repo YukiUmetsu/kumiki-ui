@@ -263,8 +263,16 @@ export function crayonWildlifePortraitScene(
   line("eye-limbal-light","M-73 -59Q-72 -75 -61 -77M-40 -48Q-48 -36 -62 -37",
     "#d3b595",1.15,{parentId:"head",opacity:.66});
   line("eye-orbit-structure",
-    "M-94 -64Q-59 -92 -24 -61M-88 -38Q-61 -28 -35 -43",
-    "#382e32",2.15,{parentId:"head"});
+    "M-109 -76Q-79 -108 -46 -97Q-26 -92 -16 -72"+
+    "M-102 -47Q-75 -27 -37 -46",
+    "#382e32",1.8,{parentId:"head",opacity:.81});
+  line("eye-tear-duct","M-100 -64Q-94 -61 -88 -58",
+    "#ba9474",1.5,{parentId:"head",opacity:.89});
+  line("eye-brow-feathering",
+    "M-108 -94Q-91 -107 -75 -108M-97 -91Q-83 -97 -64 -101"+
+    "M-82 -86Q-66 -93 -50 -90",
+    "#e4c49c",1.15,{parentId:"head",opacity:.73,
+      timing:{start:110,end:185}});
   // True held-frame repaint of the eyelid. The underlying iris, pupil and
   // catchlight are occluded by opaque face pigment for the blink exposure;
   // switching only the contour would leave the eye visible through a line.
@@ -317,6 +325,28 @@ export function crayonWildlifePortraitScene(
     "M-205 26Q-202 33 -197 35Q-182 40 -170 37"+
     "M-178 41Q-162 55 -138 44",
     "#4b3d3c",1.9,{parentId:"head",opacity:.78});
+  line("whisker-follicles",
+    "M-180 9q2 -1 3 1M-174 14q2 -1 3 1M-166 19q2 -1 3 1"+
+    "M-158 24q2 -1 3 1M-182 28q2 -1 3 1M-169 32q2 -1 3 1"+
+    "M-192 20q2 -1 3 1M-153 35q2 -1 3 1",
+    "#69554b",.91,{parentId:"head",opacity:.7,
+      timing:{start:115,end:195}});
+  line("malar-form-creases",
+    "M-125 -12Q-99 -35 -71 -25"+
+    "M-109 23Q-78 44 -56 50"+
+    "M-65 55Q-44 74 -18 63",
+    "#7d5d50",1.08,{parentId:"head",opacity:.64,
+      timing:{start:88,end:179}});
+  // External cheek tufts are connected to the very same anatomical
+  // silhouette, unlike random paper particles. They mark edge rhythm
+  // but never substitute for the true underlying skull/jaw shapes.
+  line("contour-rooted-cheek-tufts",
+    "M-146 -63Q-158 -67 -163 -77"+
+    "M-141 -13Q-154 -18 -159 -25"+
+    "M-99 39Q-107 52 -120 54"+
+    "M-76 60Q-84 75 -91 78",
+    "#d7ae87",1.25,{parentId:"head",opacity:.7,
+      timing:{start:105,end:196}});
   wax("cheek-cool-shadow",
     "M-14 4Q31 27 67 17Q52 55 22 76Q-10 95 -48 65Z",
     {x:-56,y:-2,width:128,height:103},C.shadow,
