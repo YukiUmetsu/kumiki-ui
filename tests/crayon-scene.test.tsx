@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { inspectCrayonScene, crayonCamera, crayonContactOffset, crayonWorldPoint, crayonVisiblePoint, crayonConnectorPath, crayonDrawingAt, crayonElementPlacement, crayonElementTransform } from "../registry/video/materials/crayon-scene";
+import { inspectCrayonScene, crayonCamera, crayonContactOffset, crayonWorldPoint, crayonVisiblePoint, crayonConnectorPath, crayonConnectorBendAt, crayonDrawingAt, crayonElementPlacement, crayonElementTransform } from "../registry/video/materials/crayon-scene";
 import { CrayonScene } from "../registry/video/materials/crayon-scene-react";
 import { crayonDemoScene } from "../src/video/crayon-scene-fixtures";
 import { crayonPerformanceScene } from "../src/video/crayon-performance-fixtures";
@@ -346,6 +346,9 @@ describe("CRAYON1 data-driven scene grammar",()=>{
       const planted=point(156);
       expect(planted.x).toBeCloseTo(fixed.x,5);
       expect(planted.y).toBeCloseTo(fixed.y,5);
+      expect(crayonConnectorBendAt(leg,65)).toBeCloseTo(-28,5);
+      expect(crayonConnectorBendAt(leg,95)).toBeCloseTo(crayonConnectorBendAt(leg,94),5);
+      expect(crayonConnectorBendAt(leg,0,true,270)).toBeCloseTo(-5,5);
       const d=crayonConnectorPath(scene,leg,124);
       const start=crayonVisiblePoint(scene,hip,124,leg.from.anchor);
       const end=point(124);
@@ -377,6 +380,9 @@ describe("CRAYON1 data-driven scene grammar",()=>{
     expect(invalid({to:{elementId:"javascript:bad",anchor:{x:0,y:0}}})).toMatch(/bounded drawing anchor/);
     expect(invalid({width:-1})).toMatch(/width out of bounds/);
     expect(invalid({bend:Infinity})).toMatch(/bend/);
+    expect(invalid({bendKeys:[{frame:10,bend:3},{frame:9,bend:8}]})).toMatch(/bendKeys/);
+    expect(invalid({bendKeys:[{frame:270,bend:3}]})).toMatch(/bendKeys/);
+    expect(invalid({bendKeys:[{frame:12,bend:Infinity}]})).toMatch(/bendKeys/);
     expect(invalid({screenSpace:true})).toMatch(/world-space/);
     expect(invalid({parentId:"body"})).toMatch(/cannot inherit/);
   });
