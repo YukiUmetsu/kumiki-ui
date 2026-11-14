@@ -87,7 +87,20 @@ export function risoMeshBounds(points: readonly RisoMeshPoint[]): RisoMeshBounds
 }
 const mapPoint = (m: RisoMatrix, p: RisoMeshPoint): RisoMeshPoint =>
   [m.a*p[0]+m.c*p[1]+m.e,m.b*p[0]+m.d*p[1]+m.f];
-const centroid=(b:RisoMeshBounds):RisoMeshPoint=>[b.x+b.width/2,b.y+b.height/2];
+/** Area-weighted source contour centroid, not the center of an invented box. */
+export function risoMeshContourCentroid(points:readonly RisoMeshPoint[]):RisoMeshPoint {
+  let twiceArea=0,x=0,y=0;
+  for(let i=0;i<points.length;i++){
+    const a=points[i],b=points[(i+1)%points.length];
+    const cross=a[0]*b[1]-b[0]*a[1];
+    twiceArea+=cross;x+=(a[0]+b[0])*cross;y+=(a[1]+b[1])*cross;
+  }
+  if(Math.abs(twiceArea)<1e-8){
+    return [points.reduce((a,p)=>a+p[0],0)/points.length,
+      points.reduce((a,p)=>a+p[1],0)/points.length];
+  }
+  return [x/(3*twiceArea),y/(3*twiceArea)];
+}
 const area=(p:readonly RisoMeshPoint[])=>Math.abs(p.reduce((sum,a,i)=>{
   const b=p[(i+1)%p.length];
   return sum+a[0]*b[1]-b[0]*a[1];
@@ -176,13 +189,15 @@ export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoChara
     // should attach to the solved joint, not to the identity ink-path transform.
     const joint=pose.joints.find(j=>j.id===r.joint)!;
     const guideMatrix=sourceParts.get(r.parts[0])!.skin?joint.matrix:m;
-    const [cx,cy]=centroid(bounds);
+    const center=risoMeshContourCentroid(outline);
+    const byY=[...outline].sort((a,b)=>a[1]-b[1]);
+    const byX=[...outline].sort((a,b)=>a[0]-b[0]);
     const landmarks=[
-      {id:"source-center",at:[cx,cy] as RisoMeshPoint},
-      {id:"source-top",at:[cx,bounds.y] as RisoMeshPoint},
-      {id:"source-bottom",at:[cx,bounds.y+bounds.height] as RisoMeshPoint},
-      {id:"source-left",at:[bounds.x,cy] as RisoMeshPoint},
-      {id:"source-right",at:[bounds.x+bounds.width,cy] as RisoMeshPoint},
+      {id:"source-center",at:center},
+      {id:"source-top",at:byY[0]},
+      {id:"source-bottom",at:byY[byY.length-1]},
+      {id:"source-left",at:byX[0]},
+      {id:"source-right",at:byX[byX.length-1]},
       ...(r.landmarks??[]).filter(p=>p.id!=="center").map(p=>({id:p.id,at:mapPoint(guideMatrix,p.at)})),
     ];
     const contourArea=area(outline),triangleArea=triangles.reduce((a,t)=>a+triArea(t),0);
@@ -196,7 +211,8 @@ export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoChara
   });
   const byId=new Map(regions.map(r=>[r.id,r]));
   const measurements=(sheet.measurements??[]).map(m=>{
-    const from=centroid(byId.get(m.from)!.bounds),to=centroid(byId.get(m.to)!.bounds);
+    const from=risoMeshContourCentroid(byId.get(m.from)!.outline);
+    const to=risoMeshContourCentroid(byId.get(m.to)!.outline);
     const dx=to[0]-from[0],dy=to[1]-from[1],distance=Math.hypot(dx,dy);
     return {id:m.id,label:m.label,distance,dx,dy,distanceInHeads:distance/headUnit};
   });
