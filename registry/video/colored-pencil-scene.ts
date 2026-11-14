@@ -1,5 +1,7 @@
 import { evaluatePencilMark, inspectPencilDrawing } from "./colored-pencil";
 import type { PencilDrawingSpec, PencilTiming } from "./colored-pencil";
+import { inspectPencilActors } from "./colored-pencil-actor";
+import type { PencilActorSpec } from "./colored-pencil-actor";
 
 /** Frame-addressable camera for an authored paper scene, NOT an independent film timebase. */
 export interface PencilCamera extends PencilTiming {
@@ -46,6 +48,8 @@ export interface PencilSceneSpec {
   drawing: PencilDrawingSpec;
   camera?: PencilCamera;
   annotations?: readonly PencilAnnotation[];
+  /** Multi-part illustrated actors use the same absolute scene frame. */
+  actors?: readonly PencilActorSpec[];
 }
 export type EvaluatedPencilCamera = Readonly<{ x: number; y: number; zoom: number }>;
 const HEX = /^#[\da-f]{6}$/i;
@@ -87,6 +91,24 @@ export function inspectPencilScene(value: unknown): string[] {
     if (!camera || !timing(camera) ||
         !cameraPose(camera.from, width, height) || !cameraPose(camera.to, width, height))
       issues.push("camera: finite zoom .7–2.6, bounded translation and valid timing required.");
+  }
+  if (scene.actors !== undefined) {
+    issues.push(...inspectPencilActors(scene.actors as PencilActorSpec[]));
+    if (Array.isArray(scene.actors) && Array.isArray(drawing.regions)) {
+      const parts = scene.actors.reduce((total: number, actor: PencilActorSpec) =>
+        total + (Array.isArray(actor?.parts) ? actor.parts.length : 0), 0);
+      if (drawing.regions.length + parts > 24)
+        issues.push("actors: CP1 page is limited to 24 total regions including scenery.");
+      const used = new Set(drawing.regions.map((region: {id: string}) => region.id));
+      for (const actor of scene.actors as PencilActorSpec[]) {
+        if (!actor?.parts) continue;
+        for (const part of actor.parts) {
+          const id = actor.id + "-" + part.id;
+          if (used.has(id)) issues.push("actors: composed region IDs must be unique.");
+          used.add(id);
+        }
+      }
+    }
   }
   if (scene.annotations === undefined) return issues;
   if (!Array.isArray(scene.annotations) || scene.annotations.length > 48)
