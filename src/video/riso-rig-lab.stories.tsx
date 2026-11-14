@@ -15,6 +15,7 @@ function RisoRiggingLab() {
   const [frame,setFrame] = useState(38), [playing,setPlaying] = useState(false);
   const [enabled,setEnabled] = useState(true), [showRig,setShowRig] = useState(true);
   const [cadence,setCadence] = useState<1|2|3|4>(2);
+  const [footRoll,setFootRoll] = useState(12);
   const [plate,setPlate] = useState("both"), [grain,setGrain] = useState(.45);
   const [misregistration,setMisregistration] = useState(.3);
   useEffect(()=>{
@@ -32,7 +33,9 @@ function RisoRiggingLab() {
     // The UI playhead is sampled only on a Play event; FilmStage has one absolute clock.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[playing]);
-  const actor={...COURIER,cadence};
+  const actor={...COURIER,cadence,ik:COURIER.ik?.map(constraint =>
+    constraint.target.kind === "walk"
+      ? {...constraint,target:{...constraint.target,footRoll}} : constraint)};
   const pose=evaluateRisoCharacter(actor,frame,{disableIK:!enabled});
   const spec=risoPerformanceSpec("landscape",97);
   const artwork=(ink:"blue"|"red"):RisoArtwork=>(paint:RisoPaint)=>
@@ -108,6 +111,10 @@ function RisoRiggingLab() {
         <label style={{display:"flex",alignItems:"center",gap:7,fontWeight:700,fontSize:13}}>
           <input type="checkbox" checked={showRig} aria-label="Show joints and IK foot targets"
             onChange={e=>setShowRig(e.target.checked)}/>Show bones and targets
+        </label>
+        <label style={field}>Swing toe-roll · {footRoll}°
+          <input type="range" min={0} max={35} step={1} value={footRoll}
+            aria-label="Rig microscope toe roll" onChange={e=>setFootRoll(Number(e.target.value))}/>
         </label>
         <label style={field}>Printed cadence · {cadence}
           <input type="range" min={1} max={4} value={cadence} step={1}
