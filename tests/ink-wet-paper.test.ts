@@ -36,6 +36,17 @@ describe("paper-native brush deposition (INK1 wet medium)", () => {
     expect(touched.depositedMass).toBeGreaterThan(0);
   });
 
+  it("keeps a visibly ink-loaded contact rather than a translucent airbrush haze", () => {
+    const settled = sampleWetInk(spec, 100, { scale: .5, bleed: .7 });
+    const center = [];
+    for (let y = 62; y <= 74; y++) for (let x = 60; x <= 135; x++)
+      center.push(settled.rgba[(y * settled.width + x) * 4 + 3]);
+    expect(Math.max(...center)).toBeGreaterThan(205);
+    expect(center.filter(alpha => alpha >= 150).length).toBeGreaterThan(75);
+    // Outside the stroke the paper stays transparent, even after capillary spread.
+    expect(settled.rgba[(8 * settled.width + 80) * 4 + 3]).toBe(0);
+  });
+
   it("spreads on fibres after contact, absorbs pigment and loses water before drying", () => {
     const justFinished = sampleWetInk(spec, 36, { scale: .5, bleed: .85 });
     const absorbed = sampleWetInk(spec, 53, { scale: .5, bleed: .85 });
