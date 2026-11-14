@@ -32,11 +32,19 @@ describe("material-native colour-pencil science art", () => {
       .toEqual(first);
   });
 
+  it("never reveals an unpainted specimen silhouette before the pencil arrives", () => {
+    const blank = renderToStaticMarkup(<ColoredPencilSciencePlate aspect="landscape" subject="leaf" frame={0}/>);
+    const painted = renderToStaticMarkup(<ColoredPencilSciencePlate aspect="landscape" subject="leaf" frame={260}/>);
+    expect(blank).not.toContain("data-km-pencil-underpaint");
+    expect(painted).toContain("data-km-pencil-underpaint");
+  });
+
   it("rejects bad frames, geometry, missing regions and unbounded paint density", () => {
     const drawing = coloredPencilExample("leaf", "landscape");
     expect(inspectPencilDrawing(drawing)).toEqual([]);
     expect(inspectPencilDrawing({ ...drawing, regions: [] })).not.toEqual([]);
     expect(inspectPencilDrawing({ ...drawing, regions: [{ ...drawing.regions[0], bounds: [0, 0, -1, 100] }] })).not.toEqual([]);
+    expect(inspectPencilDrawing({ ...drawing, regions: [{ ...drawing.regions[0], bounds: [0, 0, 4000, 4000] }] })).not.toEqual([]);
     expect(inspectPencilDrawing({ ...drawing, regions: [{ ...drawing.regions[0],
       layers: [{ ...drawing.regions[0].layers[0], spacing: .001 }] }] })).not.toEqual([]);
     expect(() => evaluatePencilMark(-1, { startFrame: 0, durationFrames: 10 })).toThrow(RangeError);
