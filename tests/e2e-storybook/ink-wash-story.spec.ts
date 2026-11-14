@@ -52,6 +52,8 @@ test("INK2 source media and live captions are valid without forcing monochrome",
   await setFrame(slider,56);
   await expect(page.locator("[data-km-ink-scene]")).toBeVisible();
   await expect(page.locator("[data-km-ink-media] img")).toHaveCount(1);
+  await expect(page.locator("[data-km-ink-reveal=bloom] mask")).toHaveCount(1);
+  await expect(page.locator("[data-km-ink-reveal=bloom] feGaussianBlur")).toHaveCount(1);
   await page.getByRole("combobox",{name:"Visual direction"}).selectOption("meticulous");
   await expect(page.locator("[data-km-ink-scene]")).toBeVisible();
 });
