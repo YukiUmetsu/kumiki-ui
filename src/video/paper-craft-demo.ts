@@ -107,8 +107,6 @@ export function paperCraftExampleSpec(style: PaperStyle, aspect: PaperAspect = "
       path:circle(w*.12,h*.79,w*.017), holes:[circle(w*.12,h*.79,w*.007)] },
     { id:"leaf-vein-inlays", color:p[5], depth:15, enterFrame:90, durationFrames:28,
       path:`M${w*.291} ${branchY-h*.008} q${w*.014} ${-h*.046} ${w*.045} ${-h*.058} q${-w*.020} ${h*.03} ${-w*.045} ${h*.058} Z M${w*.301} ${branchY+h*.007} q${w*.027} ${h*.006} ${w*.045} ${h*.042} q${-w*.026} ${-h*.020} ${-w*.045} ${-h*.042} Z` },
-    { id:"bird-beak", color:p[8], depth:18, enterFrame:120, durationFrames:24,
-      path:`M${birdX+w*.058} ${birdY-h*.018} L${birdX+w*.12} ${birdY-h*.028} Q${birdX+w*.091} ${birdY+h*.002} ${birdX+w*.058} ${birdY-h*.004} Z` },
     { id: "die-cut-border", color:p[0], depth:24,
       path:`M0 0 H${w} V${h} H0 Z`,
       holes:[`M${w*.035} ${h*.05} H${w*.965} V${h*.95} H${w*.035} Z`],
