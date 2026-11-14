@@ -78,7 +78,7 @@ describe("ArtCraft anatomical hare source construction",()=>{
   });
   it("holds anatomical root, ear tips and muzzle entirely inside the rendered page in "+aspect,()=>{
     const body=part("shoulder-silhouette");
-    expect(body.placement?.scale).toBe(.94);
+    expect(body.placement?.scale).toBe(.98);
     for(const frame of [0,85,135,181,239]){
       for(const [id,coordinate] of [
         ["far-ear",{x:-21,y:-328}],["near-ear",{x:139,y:-308}],
