@@ -12,6 +12,13 @@ async function seek(page:import("@playwright/test").Page,frame:number){
     el.dispatchEvent(new Event("change",{bubbles:true}));
   },frame);
   await expect(slider).toHaveValue(String(frame));
+  await expect(page.locator('[data-km-watercolour-actor="traveller"]'))
+    .toHaveAttribute("data-km-watercolour-actor-frame",String(frame));
+  // Wait for React commit and both browser paint/compositor frames. A controlled
+  // slider can update before its heavyweight SVG character paint is committed.
+  await page.evaluate(() => new Promise<void>(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
 }
 
 for(const aspect of ["landscape","portrait"] as const){
