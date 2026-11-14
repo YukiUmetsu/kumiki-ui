@@ -86,6 +86,10 @@ export function crayonDemoScene(subject:CrayonDemoSubject, aspect:CrayonDemoAspe
     elements.push(wax("bird-wing","M-15 -2 Q-38 -30 -25 -43 Q2 -35 19 -4 Q-8 14 -15 -2Z",
       {x:-40,y:-46,width:65,height:65},palette.mauve,85,175,{
         parentId:"bird-body",pivot:{x:-12,y:0},
+        drawings:[{frame:110,d:"M-15 -2 Q-47 -45 -19 -65 Q10 -52 21 -5 Q-9 15 -15 -2Z",
+          bounds:{x:-49,y:-68,width:74,height:86}},
+          {frame:156,d:"M-15 -2 Q-38 -30 -25 -43 Q2 -35 19 -4 Q-8 14 -15 -2Z",
+          bounds:{x:-40,y:-46,width:65,height:65}}],
         motion:[{frame:0,x:0,y:0,rotate:0},{frame:110,x:0,y:0,rotate:-24},
           {frame:154,x:0,y:0,rotate:5},{frame:220,x:0,y:0,rotate:0}],poseCadence:2
       }));
