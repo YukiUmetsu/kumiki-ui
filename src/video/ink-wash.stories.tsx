@@ -163,7 +163,9 @@ function InkWashStudio() {
 }
 
 const meta = { title: "Video production/Film Looks/Chinese Ink/Ink Wash Film Stage", id: "video-ink-wash",
-  component: InkWashStudio, parameters: { layout: "fullscreen" } } satisfies Meta<typeof InkWashStudio>;
+  component: InkWashStudio, parameters: { layout: "fullscreen" },
+  // Shared material surface, not a story: exporting it without this exclusion renders it with no spec.
+  excludeStories: ["Painting"] } satisfies Meta<typeof InkWashStudio>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const ChineseInkWash: Story = { name: "Chinese ink wash · Film Stage" };

@@ -3,6 +3,22 @@ export interface CrayonBounds { x: number; y: number; width: number; height: num
 export type CrayonNibStyle = "rounded" | "tapered";
 /** Long overlapping rubbing or legacy small fragmented strokes. */
 export type CrayonMarkLength = "long" | "short";
+/** A sharp tool removes only the upper wax pigment. The solid first pigment
+ * layer remains fully opaque, as it does in physical sgraffito.
+ * The scratch line is revealed between first and last absolute film frames. */
+export interface CrayonSgraffito {
+  d:string; width:number; first:number; last:number;
+}
+export function assertCrayonSgraffito(value:CrayonSgraffito):void {
+  if(!value || typeof value.d!=="string" || value.d.length<2 ||
+    value.d.length>25000 || !/^[0-9.,+\-\sMmLlHhVvCcSsQqTtAaZzEe]+$/.test(value.d) ||
+    !/[Mm]/.test(value.d) ||
+    !Number.isFinite(value.width)||value.width<.2||value.width>12||
+    !Number.isSafeInteger(value.first)||!Number.isSafeInteger(value.last)||
+    value.first<0||value.last<=value.first)
+    throw new RangeError("Invalid wax-crayon sgraffito engraving");
+}
+
 /** Order of actual colored wax deposits, independent of the mark's shape. */
 export type CrayonStrokeOrder = "scanline" | "patches";
 /** A quadratic centerline retained alongside the older SVG stroke contract. */

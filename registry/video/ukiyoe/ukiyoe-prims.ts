@@ -11,7 +11,9 @@ export interface UkiyoePattern { type: UkiyoePatternType; color: UkiyoePaint; sc
 
 export type Prim =
   /** A colour block. `outline` adds a key-block stroke of that width on top. `grain` shows wood grain in the impression. */
-  | { t: "fill"; d: string; fill: UkiyoeFill; outline?: number; outlineColor?: UkiyoePaint; grain?: number; pattern?: UkiyoePattern; opacity?: number; emboss?: boolean; noPrint?: boolean }
+  | { t: "fill"; d: string; fill: UkiyoeFill; outline?: number; outlineColor?: UkiyoePaint; grain?: number; pattern?: UkiyoePattern; opacity?: number; emboss?: boolean; noPrint?: boolean;
+      /** Draw the outline under the fill in one pass: overlapping sub-shapes of `d` read as one outlined union. */
+      union?: boolean }
   /** A carved key line: an already-widened ribbon path filled with ink. */
   | { t: "line"; d: string; color?: UkiyoePaint; opacity?: number }
   /** A thin uniform stroke (rain, ribs, rigging, hatching). */
@@ -22,6 +24,12 @@ export type Prim =
   | { t: "glow"; cx: number; cy: number; r: number; color: UkiyoePaint; opacity?: number }
   /** Transformed group. */
   | { t: "group"; transform?: string; opacity?: number; prims: Prim[] }
+  /**
+   * One shape painted as a sandwich: its outline, then `between` (what the outline should disappear under), then its
+   * fill. The path is emitted once and referenced twice. Used for foam whose lines must vanish where it meets other
+   * white, without duplicating a large path.
+   */
+  | { t: "sandwich"; d: string; fill: UkiyoePaint; line: UkiyoePaint; lineWidth: number; between: Prim[]; key: string }
   /** Group clipped to a path (stripes inside a wave, pattern inside a robe). */
   | { t: "clip"; d: string; prims: Prim[]; key: string };
 

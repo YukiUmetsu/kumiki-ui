@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { cameraAt, carvedLine, scrollPan, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
+import { cameraAt, carvedLine, ease, loopOffsets, scrollPan, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
 import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES } from "../registry/video/ukiyoe/ukiyoe-creatures";
 import { drawFigure, facingAt, figurePose, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
-import { drawMotif, UKIYOE_MOTIFS } from "../registry/video/ukiyoe/ukiyoe-motifs";
+import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
 import { palette, resolvePaint } from "../registry/video/ukiyoe/ukiyoe-pigments";
 import { nodeState, UkiyoeScene } from "../registry/video/ukiyoe/ukiyoe-react";
@@ -67,6 +67,40 @@ describe("UKIYO1 frame purity", () => {
     };
     expect(extent(1, 0)).toBeGreaterThan(extent(.2, 0) * 2.5);
     expect(extent(1, 140)).toBeLessThan(extent(1, 0) * .7);
+  });
+  it("draws the wave's foam as one connected shape with a single outline, never as separately outlined claws", () => {
+    for (const frame of [0, 120, 150]) {
+      const prims = drawMotif("wave", { breakAt: 100 }, { frame, wind: 0, seed: 1, progress: 1 });
+      const foam = prims.filter(p => p.t === "sandwich");
+      expect(foam, "frame " + frame).toHaveLength(1);
+      // No other white fill in the wave carries its own outline (spray and flecks are droplets, drawn without one).
+      expect(prims.filter(p => p.t === "fill" && p.outline), "frame " + frame).toEqual([]);
+    }
+  });
+  it("meets the great-wave checklist: forward-down branching claws, spread out, curved stripes filling the column on thicker navy", () => {
+    const prims = drawMotif("wave", { width: 1300, height: 760 }, { frame: 20, wind: 0, seed: 21, progress: 1 });
+    const S = WAVE_STATS, med = (a: number[]) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
+    expect(prims.filter(q => q.t === "sandwich")).toHaveLength(1);
+    // Claws reach forward and down with the wave's travel, never up.
+    expect(S.claws.every(k => { const a = ((k.angle % 360) + 360) % 360; return a >= 120 && a <= 215; })).toBe(true);
+    // Most claws branch into 2–3 hooks.
+    expect(S.claws.filter(k => k.hooks >= 2).length / S.claws.length).toBeGreaterThanOrEqual(.6);
+    // Spread out: one claw at a time (median nearest-neighbour gap relative to claw size).
+    const nn = S.claws.map((k, i) => Math.min(...S.claws.filter((_, j) => j !== i).map(o => Math.hypot(o.at[0] - k.at[0], o.at[1] - k.at[1]))));
+    const ratio = med(nn) / med(S.claws.map(k => k.size));
+    expect(ratio).toBeGreaterThanOrEqual(.55); expect(ratio).toBeLessThanOrEqual(1.2);
+    // The dome's rounded top carries no claws (it rolls in smooth bumps): none sit high on the back of the wave.
+    expect(S.claws.filter(k => k.at[0] > .05 * S.W && k.at[1] < -.6 * S.H)).toEqual([]);
+    // Stripes: curved (bow ≥ 8% of length), near the column's own lean (≤ 35° from vertical), thick navy between.
+    for (const st of S.stripes) {
+      const a = st.line[0], b = st.line[st.line.length - 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const bow = Math.max(...st.line.map(q => Math.abs((b[0] - a[0]) * (a[1] - q[1]) - (a[0] - q[0]) * (b[1] - a[1])) / L)) / L;
+      expect(bow).toBeGreaterThanOrEqual(.08);
+      expect(Math.abs(Math.atan2(b[0] - a[0], b[1] - a[1]) * 180 / Math.PI)).toBeLessThanOrEqual(35);
+    }
+    const gaps = S.stripes.slice(1).map((st, i) => { const A = S.stripes[i].line, m = A[Math.floor(A.length / 2)]; return Math.min(...st.line.map(q => Math.hypot(q[0] - m[0], q[1] - m[1]))) - st.width; });
+    // Owner asked for thicker light stripes (and more of them) after asking for thick navy: dark stays ≥ 1.5× light.
+    expect(med(gaps) / S.stripes[0].width).toBeGreaterThanOrEqual(1.5);
   });
   it("animates particles in closed form", () => {
     const rain = (f: number) => drawParticles({ type: "rain", count: 40 }, f, 0, 9);
@@ -183,5 +217,69 @@ describe("UKIYO1 folktale creatures", () => {
     for (const shot of FOLKTALE_SHOTS) for (const aspect of ["landscape", "portrait"] as const) expect(inspectUkiyoeScene(shot.build(aspect)), shot.id).toEqual([]);
     const doc = ukiyoeFilm(FOLKTALE_SHOTS, {}, { id: "folk", kasumi: FOLKTALE_KASUMI });
     for (const outputId of ["landscape", "portrait"]) expect(compileFilm(doc, { outputId }).ok).toBe(true);
+  });
+});
+
+describe("UKIYO1 boats, boarding and riding a wave", () => {
+  const shot = (id: string) => NIGHT_FERRY_SHOTS.find(s => s.id === id)!.build("landscape");
+  const node = (spec: UkiyoeSceneSpec, id: string) => spec.nodes.find(n => n.id === id)!;
+  const boatX = (spec: UkiyoeSceneSpec, f: number) => nodeState(node(spec, "boat"), f, 2).pose.x;
+
+  it("moves the ferry whenever the ferryman is poling, and never while he is not working at a pier", () => {
+    for (const id of ["boarding", "squall", "fireworks", "arrival"]) {
+      const spec = shot(id), man = node(spec, "ferryman") as Extract<UkiyoeSceneSpec["nodes"][number], { kind: "figure" }>;
+      for (const a of man.actions!.filter(a => a.type === "pole")) {
+        // From a standing start the hull gathers way within the first push; after that it must always be advancing.
+        for (let f = a.start + 12; f + 8 <= Math.min(a.end, spec.durationFrames - 1); f += 4)
+          expect(Math.abs(boatX(spec, f + 8) - boatX(spec, f)), `${id} frame ${f}`).toBeGreaterThan(4);
+      }
+    }
+    const boarding = shot("boarding");
+    for (let f = 0; f < 190; f += 10) expect(boatX(boarding, f), "docked while boarding").toBe(boatX(boarding, 0));
+  });
+  it("walks passengers along the pier and down into a boat that is alongside, never through the air", () => {
+    for (const id of ["boarding", "arrival"]) {
+      const spec = shot(id);
+      for (const who of ["traveller", "mother", "child"]) {
+        const fig = node(spec, who) as Extract<UkiyoeSceneSpec["nodes"][number], { kind: "figure" }>;
+        const walks = fig.actions!.filter(a => a.type === "walk" || a.type === "run");
+        expect(walks[0].via?.length, `${id}/${who} steps via the pier edge`).toBe(1);
+        for (let f = walks[0].start; f <= walks[0].end; f++) {
+          // Feet stay between the pier top and the deck (34 px apart), and the hull is at rest for every step.
+          const y = (fig.y ?? 0) + travelAt(fig.actions!, f).y;
+          expect(y, `${id}/${who} frame ${f}`).toBeGreaterThanOrEqual(-52.01);
+          expect(y, `${id}/${who} frame ${f}`).toBeLessThanOrEqual(-17.99);
+          expect(Math.abs(boatX(spec, f + 1) - boatX(spec, f)), `${id} hull still at ${f}`).toBeLessThan(.01);
+        }
+      }
+    }
+  });
+  it("follows via waypoints at an even pace and keeps the walk cycle tied to the distance covered", () => {
+    const actions = [{ type: "walk" as const, start: 0, end: 100, to: 100, toY: 40, via: [[100, 0]] as const }];
+    expect(travelAt(actions, 50).y).toBeLessThan(1);
+    expect(travelAt(actions, 100)).toMatchObject({ x: 100, y: 40 });
+    expect(travelAt(actions, 100).dist).toBeCloseTo(140, 3);
+  });
+  it("keeps the wave surface continuous and lifts a rider smoothly as the wave rises and breaks", () => {
+    for (const frame of [0, 110, 125, 140]) {
+      const c = { frame, wind: 0, seed: 3, progress: 1 };
+      let prev = waveSurface({ breakAt: 100, breakDuration: 40 }, c, -900);
+      for (let x = -899; x <= 900; x++) { const h = waveSurface({ breakAt: 100, breakDuration: 40 }, c, x); expect(Math.abs(h - prev), `x ${x} frame ${frame}`).toBeLessThan(10); prev = h; }   // steep but seamless
+    }
+    const spec = shot("squall"), ys: number[] = [], rots: number[] = [];
+    for (let f = 150; f < 360; f++) {
+      const html = renderToStaticMarkup(<UkiyoeScene spec={spec} frame={f} />), i = html.indexOf('data-node="boat"');
+      const m = /translate\(([-\d.]+) ([-\d.]+)\)(?: rotate\(([-\d.]+)\))?/.exec(html.slice(html.lastIndexOf("<g ", i), i))!;
+      ys.push(Number(m[2])); rots.push(Number(m[3] ?? 0));
+    }
+    expect(Math.min(...ys)).toBeLessThan(ys[0] - 100);                       // carried well up the face
+    for (let i = 1; i < ys.length; i++) { expect(Math.abs(ys[i] - ys[i - 1]), `y step at ${150 + i}`).toBeLessThan(12); expect(Math.abs(rots[i] - rots[i - 1]), `pitch step at ${150 + i}`).toBeLessThan(2.5); }
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "b", kind: "group", ride: { on: "nope" } }] })).map(i => i.path)).toContain("$.nodes[0].ride.on");
+  });
+  it("surges a poled hull on each stroke and fades loops in and out", () => {
+    expect(loopOffsets({ kind: "surge", period: 44, amplitude: 1 }, 11, 0).x).toBeCloseTo(10, 3);
+    expect(loopOffsets({ kind: "rock", period: 40, start: 100, fade: 20 }, 100, 0).y).toBeCloseTo(0, 6);
+    expect(ease("inQuad", .5)).toBe(.25);
+    expect(ease("outQuad", .5)).toBe(.75);
   });
 });
