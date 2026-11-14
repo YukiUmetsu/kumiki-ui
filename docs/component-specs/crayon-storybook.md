@@ -354,6 +354,28 @@ states, corrupt authored data, the foot-release tail, deterministic out-of-
 order seeking and real Chromium story controls. Normal-speed exported films
 and independent artistic acceptance still require separate review.
 
+### Real-time Storybook playhead (presentation only)
+
+Both interactive Crayon Storybook and the generic Crayon Scene Engine now use
+the same `src/video/crayon-story-playback.ts` clock. The playhead derives
+each absolute source frame from monotonic elapsed time and the authored FPS,
+rather than advancing one frame per `setInterval` callback. Slower browsers
+may drop presented intermediate frames, but **story time does not drift**.
+Scrubbing, pause, restart and switching subject/aspect reset the timebase
+safely, including when the prior scene was longer.
+
+Storybook Controls provide a **0.25×–2× speed slider** and **loop toggle**.
+The pure frame sampler has deterministic unit coverage for irregular browser
+paints, accelerated and slowed playback, repeat boundaries, invalid clocks,
+and end-frame clamping. Chromium tests exercise start/pause/restart in the
+actual Storybook iframe. This playhead lives only in the preview UI: the
+CRAYON1 renderer and FilmDocument export always evaluate absolute frames
+from the film's own timeline, so export timing is unaffected.
+
+This does not guarantee that every individual frame paints in a slow browser
+or that rendered narration/audio are synchronized inside Storybook. For
+production, use the film export pipeline and review the encoded result.
+
 ### Production proof
 
 The 420-frame (14 s at 30 fps), three-shot FilmDocument uses the existing `slot` scene type in `FilmStage`, not another timeline or an unbounded playback loop. Its shot frames are 0…119, 120…269 and 270…419. The slot adapter adds each scene's `offsetFrame` to its local frame. The second original scene, the flower garden, is available as a separate interactive Storybook story.
