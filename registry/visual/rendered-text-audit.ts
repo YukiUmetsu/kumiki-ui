@@ -116,10 +116,10 @@ export function collectRenderedText(root: Element, scale = 1): RenderedTextBox[]
       // CSS clip-path: inset() is common on reveal stages, but getClientRects()
       // still reports the underlying whole text. Resolve the visible rectangle
       // in actual viewport pixels and intersect with other ancestor clips.
-      const match = /^inset\\(\\s*([^)]*?)\\s*\\)(?:\\s|$)/i.exec(style.clipPath || "");
+      const match = /^inset\(\s*([^)]*?)\s*\)(?:\s|$)/i.exec(style.clipPath || "");
       if (match) {
-        const parts = match[1].split(/\\s+/).filter(Boolean);
-        if (parts.length >= 1 && parts.length <= 4 && parts.every(v => /^-?\\d+(?:\\.\\d+)?(?:px|%)?$/.test(v))) {
+        const parts = match[1].split(/\s+/).filter(Boolean);
+        if (parts.length >= 1 && parts.length <= 4 && parts.every(v => /^-?\d+(?:\.\d+)?(?:px|%)?$/.test(v))) {
           const quad = parts.length === 1 ? [parts[0], parts[0], parts[0], parts[0]]
             : parts.length === 2 ? [parts[0], parts[1], parts[0], parts[1]]
             : parts.length === 3 ? [parts[0], parts[1], parts[2], parts[1]] : parts;
