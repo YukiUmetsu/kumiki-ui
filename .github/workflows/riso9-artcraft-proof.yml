@@ -1,0 +1,46 @@
+name: One-time RISO9 ArtCraft illustration and Storybook proof
+# Delete after visual qualification. Routine CI remains changed-tests-only.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/video/riso-character-demo.tsx"
+      - "src/video/riso-character-mesh-sheets.ts"
+      - "src/video/riso-artcraft-studies.stories.tsx"
+      - "tests/riso-artcraft-characters.test.tsx"
+      - "tests/e2e-storybook/riso-artcraft-studies.spec.ts"
+      - ".github/workflows/riso9-artcraft-proof.yml"
+permissions:
+  contents: read
+concurrency:
+  group: riso9-artcraft-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  artcraft-real-render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Source type safety and affected Riso character tests
+        run: |
+          npm run typecheck
+          npx vitest run --project unit tests/riso-artcraft-characters.test.tsx tests/riso-character-model-sheets.test.tsx tests/riso-fine-mesh.test.ts tests/riso-character.test.tsx tests/riso-opaque-characters.test.tsx tests/riso-source-contour.test.ts
+      - name: Production Storybook build
+        run: npm run build-storybook
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: ArtCraft reference-led closeups and original character sheets
+        run: npx playwright test -c playwright.storybook.config.ts --timeout=90000 tests/e2e-storybook/riso-artcraft-studies.spec.ts tests/e2e-storybook/riso-character-model-sheets.spec.ts tests/e2e-storybook/riso-storybook-smoke.spec.ts
+      - name: Preserve actual rendered previews and SVG exports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso9-artcraft-visual-craft-evidence
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
