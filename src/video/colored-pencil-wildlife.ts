@@ -1,0 +1,314 @@
+import { createPencilRegion } from "../../registry/video/colored-pencil";
+import type { PencilAspect, PencilRegion, PencilTrace } from "../../registry/video/colored-pencil";
+import type { PencilActorPart, PencilActorSpec, PencilPoseKey } from "../../registry/video/colored-pencil-actor";
+import type { PencilSceneSpec } from "../../registry/video/colored-pencil-scene";
+
+/**
+ * Original copper-and-blue songbird illustration. The design is not traced from any user
+ * reference; it applies observed craftsmanship principles: distinguishable feather groups,
+ * pigment following surface curvature, proper opaque occlusion, toe-to-branch contact,
+ * dark eyes with separate catchlights and independently articulated head / wing / tail.
+ *
+ * All authoring coordinates are local to one 420x360 pencil sheet; FD1 owns film time.
+ */
+const key = (frame: number, x = 0, y = 0, rotate = 0, sx = 1, sy = 1): PencilPoseKey =>
+  ({ frame, translate: [x, y], rotation: rotate, scale: [sx, sy] });
+const still = [key(0), key(419)];
+const blue: readonly [string, string, string] = ["#8EABB6", "#3C7189", "#B3CFD0"];
+const cobalt: readonly [string, string, string] = ["#557F9F", "#284E78", "#7FACC1"];
+const night: readonly [string, string, string] = ["#34465B", "#192D42", "#53687B"];
+const copper: readonly [string, string, string] = ["#DCA37F", "#C86A65", "#F1BD8D"];
+const amber: readonly [string, string, string] = ["#E9BA80", "#C8795F", "#F6D3A3"];
+const cream: readonly [string, string, string] = ["#F5DDA7", "#DCA884", "#FFF0C7"];
+const bark: readonly [string, string, string] = ["#9D806C", "#614A48", "#C2A18B"];
+const leaf: readonly [string, string, string] = ["#B0B784", "#6C9275", "#D2C798"];
+
+function detail(path: string, color = "#504A55", width = 1, startFrame = 168,
+  opacity = .79): PencilTrace {
+  return { path, color, width, startFrame, durationFrames: 52, opacity };
+}
+
+interface RegionOptions {
+  color: readonly [string, string, string];
+  start?: number;
+  direction?: number;
+  flow?: number;
+  tone?: "core" | "rim" | "even";
+  texture?: "hatch" | "fiber" | "stipple";
+  base?: number;
+  details?: readonly PencilTrace[];
+  material?: "soft" | "layered" | "dense";
+  contour?: string;
+}
+function coloredRegion(id: string, shape: string,
+  bounds: readonly [number, number, number, number], seed: number,
+  opts: RegionOptions): PencilRegion {
+  const region = createPencilRegion({
+    id, path: shape, bounds, palette: opts.color, seed,
+    startFrame: opts.start ?? 32, durationFrames: 178,
+    direction: opts.direction ?? -25, flow: opts.flow ?? 17,
+    tone: opts.tone ?? "core", texture: opts.texture ?? "fiber",
+    material: opts.material ?? "dense", underpaintOpacity: opts.base ?? .82,
+    contourColor: opts.contour ?? "#4D4C54", opaqueSupport: true,
+    details: opts.details,
+  });
+  return { ...region, layers: region.layers.map((pigment, index) => ({
+    ...pigment,
+    // A light long-hatch groundwork is followed by directional fibre or granular marks.
+    // Distinct layers create overlapping optical colours instead of a single solid fill.
+    texture: index === 0 ? "hatch" as const : (opts.texture ?? "fiber"),
+  })) };
+}
+function anatomy(id: string, shape: string,
+  bounds: readonly [number, number, number, number], seed: number, opts: RegionOptions,
+  parent?: string, pivot: readonly [number, number] = [0, 0],
+  poses: readonly PencilPoseKey[] = still): PencilActorPart {
+  return { id, parent, pivot, keys: poses, region: coloredRegion(id, shape, bounds, seed, opts) };
+}
+
+export const COPPERBIRD_PART_ORDER = [
+  "tail-far", "tail-near", "wing-far", "torso", "flank", "breast", "throat",
+  "wing-main", "wing-coverts", "head", "mask", "cheek", "eye-ring", "eye",
+  "catchlight", "beak-upper", "beak-lower", "foot-far", "foot-near",
+] as const;
+
+function copperbird(): PencilActorSpec {
+  const head = [key(0), key(194), key(225, -1, 0, -6),
+    key(265, 1, 1, 3), key(295), key(348, -1, 1, -3), key(419)];
+  const wing = [key(0), key(220), key(251, 0, -2, -7),
+    key(286, 0, 1, 3), key(328, 0, 0, -2), key(419)];
+  const tail = [key(0), key(224), key(257, 0, 1, 5),
+    key(307, 0, 0, -4), key(355), key(419)];
+  const blink = [key(0), key(285), key(291, 0, 0, 0, 1, .12),
+    key(297), key(352), key(358, 0, 0, 0, 1, .1), key(364), key(419)];
+  const beak = [key(0), key(237), key(256, 0, 1, 7), key(285), key(419)];
+  const parts: PencilActorPart[] = [
+    anatomy("tail-far",
+      "M115 211 Q100 265 31 354 Q72 344 124 283 L145 222 Z",
+      [29, 208, 118, 150], 1001, {color:night, direction:57, flow:-14, start:46,
+        details:[
+          detail("M110 241 Q79 307 42 347 M123 256 Q100 311 60 346", "#294B67", 1.75),
+          detail("M108 266 Q82 317 52 337 M94 282 Q68 328 39 350", "#AEC6CA", .85),
+          detail("M120 272 L88 333 M109 286 L75 338 M100 299 L62 346", "#536B85", .72),
+        ]}, undefined, [127, 228], tail),
+    anatomy("tail-near",
+      "M121 212 Q108 286 55 350 Q89 345 144 275 L158 225 Z",
+      [53, 209, 107, 144], 1027, {color:cobalt, direction:64, flow:19,
+        details:[
+          detail("M122 243 Q101 304 64 342 M136 249 Q122 307 84 336", "#C3DBD5", .95),
+          detail("M123 280 Q100 328 77 342 M143 270 Q123 314 98 334", "#153954", 1.15),
+        ]}, undefined, [141, 230], tail),
+    anatomy("wing-far",
+      "M111 153 Q83 131 91 112 Q124 106 149 141 L160 209 Q141 214 116 190 Z",
+      [88, 108, 73, 109], 1053, {color:night, direction:51, flow:22,
+        details:[
+          detail("M112 144 Q132 165 142 204 M101 130 Q119 146 126 178", "#8FB3C1", 1.35),
+          detail("M111 170 L129 196 M121 169 L147 208", "#B3D4D3", .85),
+        ]}, undefined, [117, 168]),
+    anatomy("torso",
+      "M108 119 C136 97 176 96 203 125 Q231 154 233 208 C234 251 214 281 168 292 Q119 296 103 262 C91 228 91 158 108 119 Z",
+      [92, 96, 144, 200], 1081, {color:blue, direction:-28, flow:23, start:57,
+        details:[
+          detail("M107 175 Q102 210 110 236 M109 249 Q130 278 166 284", "#496C79", 1.3),
+          detail("M113 154 Q127 132 153 124 M185 270 Q213 256 223 231", "#D0D8C9", 1),
+        ]}, undefined, [162, 215]),
+    anatomy("flank",
+      "M101 205 Q116 229 161 247 Q160 269 142 287 Q103 264 100 232 Z",
+      [97, 202, 67, 87], 1109, {color:night, direction:59, flow:17, start:75,
+        details:[
+          detail("M104 230 Q120 253 150 264 M111 245 Q123 263 144 275", "#ADC5C1", .9),
+          detail("M108 222 L134 256 M105 237 L127 269", "#6C8D95", .8),
+        ]}, "torso", [119, 244]),
+    anatomy("breast",
+      "M159 125 Q206 125 226 161 Q240 220 215 260 Q199 286 160 281 Q131 278 121 231 Q117 169 159 125 Z",
+      [117, 124, 122, 162], 1137, {color:copper, direction:30, flow:-28, start:74,
+        details:[
+          detail("M146 170 Q161 184 169 211 M156 170 Q175 188 182 220", "#FAE2B5", 1.25),
+          detail("M172 178 Q194 202 200 237 M184 164 Q211 193 215 216", "#F5D0AD", .82),
+          detail("M143 208 Q155 241 169 258 M157 223 Q176 264 193 272", "#AD646C", 1.15),
+          detail("M134 225 Q146 263 164 278 M178 266 Q199 267 209 247", "#F8D8B1", 1.05),
+          detail("M132 189 Q142 202 147 215 M146 244 Q154 258 165 268", "#F0B39A", .8),
+        ]}, "torso", [159, 190]),
+    anatomy("throat",
+      "M160 127 Q180 109 204 124 Q228 140 228 166 Q220 186 195 193 Q162 181 160 127 Z",
+      [157, 111, 73, 85], 1169, {color:cream, direction:43, flow:-13, start:92,
+        details:[
+          detail("M164 139 Q181 158 190 177 M175 132 Q194 154 203 179", "#FCF4D8", 1.1),
+          detail("M180 148 Q198 169 211 183 M171 162 L191 182", "#CA988B", .8),
+        ]}, "torso", [179, 142]),
+    anatomy("wing-main",
+      "M106 160 C124 146 156 153 169 174 Q173 218 136 255 Q108 262 101 228 Q95 186 106 160 Z",
+      [96, 146, 77, 115], 1201, {color:cobalt, direction:54, flow:31, start:89,
+        details:[
+          detail("M112 188 Q130 201 151 193 M107 205 Q128 220 158 210", "#AFD1D5", 1.4),
+          detail("M103 222 Q127 241 148 234 M114 239 Q130 247 139 249", "#BDD8D6", 1.1),
+          detail("M110 173 Q135 185 161 177 M113 197 Q139 210 163 201", "#183C5E", 1.15),
+          detail("M116 225 Q129 227 141 221 M117 235 Q125 239 131 239", "#456F9B", .9),
+          detail("M106 217 Q112 242 128 254 M122 196 Q143 204 154 199", "#1E5074", .85),
+        ]}, "torso", [119, 169], wing),
+    anatomy("wing-coverts",
+      "M109 165 Q126 150 157 170 Q165 183 158 204 Q134 216 106 201 Z",
+      [103, 149, 64, 69], 1237, {color:blue, direction:-42, flow:37, start:101,
+        details:[
+          detail("M114 169 Q128 180 145 184 M112 179 Q128 193 155 193", "#D4E1D8", 1.15),
+          detail("M109 189 Q126 203 150 201 M117 164 Q133 166 148 174", "#254A72", .95),
+          detail("M120 175 L135 189 M132 173 L149 191", "#7EA7BA", .75),
+        ]}, "wing-main", [128, 184], wing),
+    anatomy("head",
+      "M148 127 C137 100 141 76 161 62 Q192 41 223 59 Q246 69 249 95 C253 126 236 142 204 151 Q166 159 148 127 Z",
+      [137, 47, 115, 110], 1261, {color:blue, direction:-54, flow:29, start:100,
+        details:[
+          detail("M157 79 Q177 57 204 62 M156 88 Q171 71 194 72", "#D0E6E4", 1.1),
+          detail("M168 70 Q188 62 214 69 M151 109 Q165 131 182 140", "#254B69", .9),
+          detail("M148 96 L162 112 M153 87 L169 103 M163 73 L179 83", "#B5D4D8", .65),
+        ]}, "torso", [182, 118], head),
+    anatomy("mask",
+      "M184 80 Q210 66 240 84 Q249 101 238 119 Q219 132 193 119 Q179 101 184 80 Z",
+      [178, 70, 72, 64], 1291, {color:night, direction:14, flow:-18, start:115,
+        details:[
+          detail("M190 85 Q211 77 235 90 M190 115 Q209 123 231 115", "#6B8692", .8),
+          detail("M198 81 L216 79 M208 123 L229 117", "#B1C9C5", .65),
+        ]}, "head", [211, 99]),
+    anatomy("cheek",
+      "M178 121 Q206 114 239 127 Q234 151 208 167 Q185 158 174 141 Z",
+      [172, 114, 70, 56], 1327, {color:amber, direction:56, flow:23, start:129,
+        details:[
+          detail("M182 135 Q203 146 222 144 M188 151 Q202 160 214 155", "#FCDEBB", 1.1),
+          detail("M197 128 Q212 132 226 132", "#BB8579", .7),
+        ]}, "head", [202, 136]),
+    anatomy("eye-ring",
+      "M209 95 C211 85 224 81 231 89 Q238 99 231 111 Q218 119 210 108 Q206 102 209 95 Z",
+      [205, 82, 33, 36], 1351, {color:cream, direction:18, flow:10, start:144,
+        details:[detail("M208 95 Q216 84 229 89", "#FDF2D9", 1.2)]}, "head", [219, 100]),
+    anatomy("eye",
+      "M216 95 C219 90 228 91 231 97 Q233 105 226 109 Q217 111 215 103 Q214 98 216 95 Z",
+      [212, 90, 22, 22], 1381, {color:night, direction:27, flow:13, start:155, base:1,
+        details:[detail("M217 102 Q224 109 230 102", "#364E65", .72)]},
+      "head", [223, 101], blink),
+    anatomy("catchlight",
+      "M221 94 Q226 93 228 97 Q228 101 223 101 Q220 99 221 94 Z",
+      [219, 92, 11, 11], 1409, {color:["#FFF8E8", "#FFFFFF", "#E4F1F1"], direction:12,
+        material:"soft", base:1, start:166, flow:0, contour:"#FCFAF5"}, "eye", [225, 97], blink),
+    anatomy("beak-upper",
+      "M239 104 Q258 102 288 110 Q279 118 260 122 L243 121 Z",
+      [237, 101, 53, 25], 1439, {color:["#8D8F8B","#565966","#B1A299"], direction:0,
+        material:"dense", start:152, base:.94, contour:"#4A4852",
+        details:[detail("M248 109 Q262 109 278 111", "#D7C0A3", .8)]},
+      "head", [242, 113]),
+    anatomy("beak-lower",
+      "M244 122 Q264 124 282 116 Q268 132 248 132 Z",
+      [242, 114, 43, 21], 1463, {color:["#B99D8C","#736571","#D7B8A6"],direction:18,
+        material:"layered",start:163,base:.94,contour:"#635560"},
+      "head", [247, 123], beak),
+    anatomy("foot-far",
+      "M144 270 Q151 266 156 275 L150 309 Q158 313 166 319 L165 324 Q151 321 145 315 L135 328 L130 326 L143 309 Z",
+      [126, 264, 45, 68], 1499, {color:["#8D777A","#584953","#BDA196"], direction:59, flow:5,
+        material:"dense",start:151,base:.95,
+        details:[
+          detail("M145 311 Q137 318 130 326 M148 311 Q157 319 166 319", "#4A4650", 1.65),
+          detail("M147 299 L150 300 M144 291 L152 293", "#D2B5A0", .7),
+        ]}, "torso", [147, 275]),
+    anatomy("foot-near",
+      "M187 266 Q194 263 199 277 L193 311 Q206 313 212 323 L207 328 Q196 325 190 319 L179 331 L173 330 L184 313 Z",
+      [171, 262, 45, 72], 1531, {color:["#8D777A","#584953","#BDA196"],direction:57,flow:5,
+        material:"dense",start:157,base:.95,
+        details:[
+          detail("M190 314 Q179 326 174 329 M192 313 Q204 319 211 323", "#48434C", 1.5),
+          detail("M190 284 L196 285 M187 297 L193 298", "#CBB1A3", .68),
+        ]}, "torso", [189, 274]),
+  ];
+  return { id:"copperbird", parts };
+}
+
+function scenery(transform: string): PencilRegion[] {
+  const source = [
+    coloredRegion("perch-bark",
+      "M6 309 Q67 301 123 313 C190 325 261 309 310 302 Q357 298 404 286 L409 298 Q360 314 312 319 C260 324 195 343 122 331 Q49 321 8 332 Z",
+      [4, 283, 409, 64], 1777, {color:bark, start:47, direction:11, flow:12,
+        material:"dense",texture:"fiber",base:.74,
+        details:[
+          detail("M17 317 Q72 312 136 324 Q212 337 294 310", "#473B3F", 1.7),
+          detail("M38 312 Q86 316 119 325 M160 329 Q203 331 249 317", "#DCC2A8", 1.1),
+          detail("M275 311 Q320 304 387 295 M299 320 Q352 306 402 295", "#715750", 1.35),
+        ]}),
+    coloredRegion("branch-twig",
+      "M296 314 Q328 276 356 218 Q372 181 401 157 Q386 204 383 230 Q365 287 326 315 Z",
+      [293, 154, 111, 165], 1801, {color:bark, start:70, direction:-61, flow:14,
+        material:"layered",base:.72,
+        details:[
+          detail("M317 304 Q352 254 371 208 M362 235 Q376 196 392 172", "#604B49", 1.05),
+        ]}),
+    coloredRegion("leaf-cluster-a",
+      "M356 216 Q328 184 342 155 Q373 168 381 203 Q379 216 356 216 Z M386 190 Q382 156 407 139 Q416 170 404 193 Z",
+      [327, 137, 93, 83], 1837, {color:leaf,start:89,direction:38,flow:29,
+        material:"soft",texture:"fiber",base:.60,
+        details:[
+          detail("M358 210 Q354 183 344 160 M398 185 Q405 163 408 147", "#648A6E", .8),
+        ]}),
+    coloredRegion("leaf-cluster-b",
+      "M319 261 Q294 247 295 223 Q321 228 330 249 Q334 263 319 261 Z M385 246 Q391 215 414 210 Q407 240 389 250 Z",
+      [292, 208, 126, 58], 1867, {color:leaf,start:103,direction:-44,flow:21,
+        material:"soft",texture:"fiber",base:.60,
+        details:[
+          detail("M315 252 Q304 231 299 226 M391 240 Q402 223 410 215", "#6A9373", .8),
+        ]}),
+  ];
+  return source.map(region => ({...region, transform}));
+}
+
+export interface PencilWildlifeOptions {
+  /** Distinct authored landscape / portrait staging; same design proportions and anatomy. */
+  aspect: PencilAspect;
+  /** Bounded physical paper tooth; optical pigment remains paper-anchored. */
+  paperTooth?: number;
+  /** Sparse drawing vs complete field-study colour layers. */
+  detail?: "study" | "full";
+}
+
+export function pencilWildlifeScene({aspect, paperTooth = .68,
+  detail: detailMode = "full"}: PencilWildlifeOptions): PencilSceneSpec {
+  if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid page aspect");
+  if (!Number.isFinite(paperTooth) || paperTooth < 0 || paperTooth > 1)
+    throw new RangeError("paperTooth must be between 0 and 1");
+  if (detailMode !== "full" && detailMode !== "study")
+    throw new RangeError("Invalid wildlife detail profile");
+  const portrait = aspect === "portrait";
+  const transform = portrait ? "translate(42 284) scale(1.06)" : "translate(482 99) scale(1.04)";
+  const original = copperbird();
+  const actors = [{...original, transform, parts: original.parts.map(part => ({
+    ...part, region: detailMode === "full" ? part.region :
+      {...part.region, details: part.region.details?.filter((_, index) => index % 2 === 0)},
+  }))}];
+  const width = portrait ? 540 : 960, height = portrait ? 960 : 540;
+  const x = portrait ? 42 : 46;
+  const annotations: NonNullable<PencilSceneSpec["annotations"]> = [
+    {id:"category",type:"text",text:"FIELD NOTES  /  ORIGINAL WILDLIFE STUDY",
+      at:[x, portrait ? 75 : 62],color:"#637B79",size:12,startFrame:0,durationFrames:12,
+      font:"sans"},
+    {id:"headline",type:"text",text:["THE COPPER", "SONGBIRD"],
+      at:[x, portrait ? 126 : 125],color:"#344954",size:portrait ? 51 : 55,
+      startFrame:0,durationFrames:18,font:"serif"},
+    {id:"caption",type:"text",text:portrait ?
+      ["A living feather study.", "Graphite, copper, cobalt."] :
+      ["Feather groups, glassy eyes, deliberate", "movement and a firmly planted perch."],
+      at:[x, portrait ? 758 : 280],color:"#657776",size:portrait ? 17 : 16,
+      startFrame:194,durationFrames:42,font:"serif"},
+    {id:"footer",type:"text",text:portrait ?
+      "STUDY 04  /  MATERIAL-NATIVE COLOUR PENCIL" :
+      "STUDY 04  /  MATERIAL-NATIVE COLOUR PENCIL",
+      at:[x, portrait ? 914 : 505],color:"#78837B",size:12,
+      startFrame:0,durationFrames:15,font:"sans"},
+    {id:"underline",type:"stroke",path:portrait ?
+      "M42 230 L496 230" : "M46 324 L397 324",color:"#B88D78",
+      width:1.1,startFrame:30,durationFrames:50,space:"screen"},
+  ];
+  return {
+    version:1,
+    drawing:{version:1,width,height,seed:619,paper:"#FAF5EC",paperTooth,
+      regions:scenery(transform)},
+    actors,
+    annotations,
+    camera:{from:[0,0,1],to:portrait ? [-5,-2,1.015] : [-7,-2,1.02],
+      startFrame:270,durationFrames:150},
+  };
+}
