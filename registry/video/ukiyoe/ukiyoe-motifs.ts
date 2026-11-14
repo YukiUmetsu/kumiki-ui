@@ -408,8 +408,9 @@ function willow(p: P, c: MotifContext): Prim[] {
   const crown = trunk[trunk.length - 1];
   const out: Prim[] = [{ t: "fill", d: taperedBody(trunk, h * .055, h * .025), fill: trunkC, outline: 1.5, grain: .6 }];
   for (let i = 0; i < 4; i++) {
-    const side = i % 2 ? 1 : -1, at = trunk[trunk.length - 2 - (i >> 1)], tip: Pt = [crown[0] + side * h * (.18 + .1 * hash01(seed, i, 7)), crown[1] - h * (.02 + .05 * hash01(seed, i, 8))];
-    out.push({ t: "fill", d: taperedBody(quad(at, [lerp(at[0], tip[0], .5), tip[1] - h * .06], tip, 8), h * .025, h * .008), fill: trunkC, outline: 1.1 });
+    // Limbs arch up and over, then droop: the strands hang from the falling ends.
+    const side = i % 2 ? 1 : -1, at = trunk[trunk.length - 2 - (i >> 1)], tip: Pt = [crown[0] + side * h * (.2 + .1 * hash01(seed, i, 7)), crown[1] + h * (.03 + .05 * hash01(seed, i, 8))];
+    out.push({ t: "fill", d: taperedBody(quad(at, [lerp(at[0], tip[0], .45), crown[1] - h * (.12 + .05 * hash01(seed, i, 6))], tip, 10), h * .022, h * .006), fill: trunkC, outline: 1.1 });
   }
   const lines: string[] = [];
   for (let i = 0; i < strands; i++) {
