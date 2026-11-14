@@ -34,7 +34,7 @@ export function makeShanshuiScholar(
   return {
     ...base,characterId:"shanshui-scholar",
     revision:(scene==="river-scholar"
-      ?"shanshui-scholar-reader-portrait-river-scholar-v6"
+      ?"shanshui-scholar-reader-portrait-river-scholar-v7"
       :"shanshui-scholar-fine-figure-"+scene+"-v5"),
     palette:{
       ...base.palette,ink:"#403329",shadow:"#66513e",wash:"#bd9d7b",
@@ -158,7 +158,7 @@ export function shanshuiScholarInstance(
   return {
     instanceId:route.instanceId,characterId:"shanshui-scholar",
     revision:(scene==="river-scholar"
-      ?"shanshui-scholar-reader-portrait-river-scholar-v6"
+      ?"shanshui-scholar-reader-portrait-river-scholar-v7"
       :"shanshui-scholar-fine-figure-"+scene+"-v5"),seed:113,
     targets:{landscape:{x:16,y:77},viewer:{x:176,y:90}},
     corrections:{...correctionTracks,...shoeCorrections,...cloth,
