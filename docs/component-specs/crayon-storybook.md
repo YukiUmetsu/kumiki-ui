@@ -63,3 +63,78 @@ npm run film:render -- examples/film/crayon-storybook.film.json --only=landscape
 **QA still required:** export real 16:9 and 9:16 films; inspect frames before and after each drawing event, then watch the complete encoded films at normal speed. Evaluate whether density, grain, strokes and outlines read as actual wax at thumbnail size, whether the landscape title overlaps the pines/fox, and whether the portrait illustration respects the lower caption zone. Compare static-sample re-seek pixels and performance on Chromium, check CJK captions separately when integrated into a generic caption system, and record an independent human reviewer/date/result. No screenshot or CI pass alone authorizes the visual state `accepted`.
 
 **Limitations:** no pigment melting, calibrated light scattering, watercolour wash/wax resist, user-provided character rig, actual page-turn physics, original recorded foley, or generic cross-media transition in this experimental extension.
+
+
+## Generic CRAYON1 engine — author any subject without changing renderer code
+
+The two original storybook illustrations remain examples, **not the public scene grammar**. New work should use `CrayonScene` with a validated `CrayonSceneSpec`, then assemble those scenes into the existing FilmDocument. This allows science diagrams, maps, product sketches, hand-drawn charts, children's stories and educational explainers, provided that the author supplies their own original vector shapes and accurate data.
+
+**Source modules:** `crayon-scene.ts`, `crayon-scene-react.tsx` (included in the same `crayon-storybook` registry item). They depend only on local wax primitives, SVG and React; no runtime model, image generator, WebGL, remote font or new package is needed.
+
+The data grammar supports:
+
+- **`wax`**: authored `d` path, subject bounds, three wax tones, 0–1 pressure, 4–32 pixel spacing, optional `angle` for directional rubbing. Pigment arrives as multiple lifted and overlapping strokes clipped to the author's actual geometry.
+- **`contour`**: dry, double-edged drawing path, adjustable width/opacity, frame-addressed reveal.
+- **`lettering`**: up to six explicit lines, readable serif/sans/mono choices with CJK fallbacks, font-size, line height and optional high-contrast backing. `screenSpace: true` keeps captions independent of camera moves.
+- **`placement` and `motion`**: per-element translation, scale, rotation, keyframe easing and 1–4-frame held actor poses. The same semantic element ID and wax texture remain stable across frame seeks.
+- **`camera`**: scene-coordinate focus/zoom keys with pure interpolated sampling; paper and all world elements share the transform, while screen-space type does not.
+- **`paper`, `paperTooth`, `seed`**: explicit paper stock, pore density and seeded fiber/wax imperfection. Material parameters are bounded and validated.
+- **`reducedMotion`**: static completed illustration, including final camera and object poses, rather than removing the content.
+- **`inspectCrayonScene(unknown)`**: runtime contract validation for IDs, color roles, SVG commands, dimensions, timing, camera keys, bounds, text and author parameters. Unsupported types fail explicitly.
+
+Example of a neutral new subject (the object could instead be a leaf, animal, building, planet, molecule or diagram component):
+
+```tsx
+import { CrayonScene } from "./components/video/materials/crayon-scene-react";
+import type { CrayonSceneSpec } from "./components/video/materials/crayon-scene";
+
+const scene: CrayonSceneSpec = {
+  version: 1, id: "my-illustrated-scene",
+  width: 960, height: 540, durationFrames: 180,
+  seed: 41, paper: "#FAF0DD", paperTooth: .6,
+  elements: [
+    {
+      id: "illustrated-leaf", kind: "wax", timing: { start: 10, end: 110 },
+      d: "M480 115 Q645 190 502 404 Q360 310 480 115Z",
+      bounds: { x: 355, y: 110, width: 300, height: 300 },
+      colors: ["#709F77", "#507E67", "#B6C99B"],
+      spacing: 7, pressure: .88, angle: -18,
+      motion: [{frame:0,x:0,y:0}, {frame:179,x:12,y:0}],
+      poseCadence: 2
+    },
+    {
+      id: "leaf-contour", kind: "contour", timing: { start: 110, end: 160 },
+      d: "M479 128 Q488 266 494 394",
+      color: "#3C675A", width: 4.2
+    },
+    {
+      id: "caption", kind: "lettering", timing: { start: 115, end: 165 },
+      screenSpace: true, x: 45, y: 470, fontSize: 27,
+      lines: ["The leaf stores energy."],
+      color: "#30485C",
+      backing: {color:"#FAF0DD",padding:12,width:540,height:44,radius:8}
+    }
+  ],
+  camera: [
+    {frame:0,focusX:480,focusY:270,zoom:1},
+    {frame:179,focusX:490,focusY:260,zoom:1.06}
+  ]
+};
+export const LeafFrame = ({frame}:{frame:number}) =>
+  <CrayonScene spec={scene} frame={frame} />;
+```
+
+**Production without hand-coded slot implementations:** use the existing FD1 `recipeId: "slot"`, `content.slot: "crayon-scene"`, and `content.props.scenes: { landscape: CrayonSceneSpec, portrait: CrayonSceneSpec }`. The slot validates the selected scene's dimensions and frame count. The same slot accepts `content.props.scene` for one output shape.
+
+See `examples/film/crayon-scene-three-subjects.film.json` for a complete three-subject production film (water, illustrated numbers, village) with independent 16:9 and 9:16 compositions. It uses the same native FilmStage timing, export, sound integration and existing cuts as any other FilmDocument. `src/video/crayon-scene-fixtures.ts` demonstrates three more source-authored subjects. Storybook contains **Crayon Scene Engine** with interactive subject, output, seed, paper and frame controls.
+
+```bash
+npm run test -- tests/crayon-storybook.test.tsx tests/crayon-scene.test.tsx
+npm run film:check -- examples/film/crayon-scene-three-subjects.film.json
+npm run film:render -- examples/film/crayon-scene-three-subjects.film.json --only=landscape --out=dist/crayon-general
+npm run film:render -- examples/film/crayon-scene-three-subjects.film.json --only=portrait --out=dist/crayon-general
+```
+
+**What this does not automate:** interpreting arbitrary raster photos into credible wax strokes; inventing or reliably rigging a new character from text; typography line-breaking for arbitrary-length Japanese copy; exact physical wax optics; arbitrary path morphing; and subject-specific story planning. Authors or upstream generation tools must supply original SVG paths/characters, text, values, narrative timing and two aspect-aware layouts. This boundary prevents a generic SVG filter from masquerading as a physically crafted crayon illustration.
+
+**Updated qualification gates:** `tests/crayon-scene.test.tsx` exercises six independent 16:9/9:16 subjects, schema-negative cases, pose/camera seeking and FilmStage integration. The portable film has both outputs. `tests/e2e-storybook/crayon-scene.spec.ts` exercises four actual browser compositions; `.github/workflows/crayon-browser-qa.yml` runs inexpensive on-PR Chromium checks and reserves full encoded-film exports for manual `workflow_dispatch`. The full normal-speed video and independent human art review are still mandatory before marking `accepted`.
