@@ -8,7 +8,7 @@ import { PaintedWorldPage } from "./painted-composition-page";
 import { PAINTED_WORLDS_FILM } from "./painted-composition-film";
 import type { PaintedCompositionSpec } from "../../registry/video/painted-composition";
 
-const LENGTH = 1280;
+const LENGTH = 1600;
 const control = { font: "600 13px system-ui", background: "#FFF9F0", color: "#425254",
   border: "1px solid #C2B5A8", borderRadius: 8, minHeight: 39, padding: "8px 12px" } as const;
 const titles: Record<PaintedGenre, string> = {
@@ -57,7 +57,7 @@ function PaintedWorldsLab() {
   if (!compiled.ok) return <pre role="alert">{compiled.diagnostics.map(e => e.path + ": " + e.message).join("\n")}</pre>;
   const film = compiled.film;
   const scale = output === "landscape" ? .88 : .65;
-  const currentGenre = PAINTED_GENRES[Math.min(3, Math.floor(frame / 320))];
+  const currentGenre = PAINTED_GENRES[Math.min(3, Math.floor(frame / 400))];
   return <main style={{ fontFamily: "system-ui, sans-serif", background: "#E9E3D9",
     color: "#374748", minHeight: "100vh", padding: 22, display: "grid", gap: 15, alignContent: "start" }}>
     <header style={{ maxWidth: 950 }}>
@@ -73,7 +73,7 @@ function PaintedWorldsLab() {
     <nav aria-label="Painted subject chapters" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
       {PAINTED_GENRES.map((genre, i) => <button key={genre} type="button"
         aria-pressed={currentGenre === genre}
-        onClick={() => { setPlaying(false); setFrame(i * 320 + 245); }}
+        onClick={() => { setPlaying(false); setFrame(i * 400 + 360); }}
         style={{ ...control, background: currentGenre === genre ? "#354B49" : "#FFF9F0",
           color: currentGenre === genre ? "#FFFFFF" : "#425254" }}>
         {titles[genre]}</button>)}
