@@ -10,6 +10,7 @@ on:
       - "src/video/crayon-story-playback*"
       - "src/video/crayon-scene*"
       - "src/video/crayon-walk*"
+      - "src/video/crayon-character-draw*"
       - "src/video/crayon-performance*"
       - "tests/crayon-scene.test.tsx"
       - "tests/crayon-story-playback.test.ts"
