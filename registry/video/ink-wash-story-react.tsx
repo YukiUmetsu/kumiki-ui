@@ -45,8 +45,21 @@ export function InkMediaReveal({
     style={{ position: "absolute", inset: 0, width, height, display: "block", overflow: "hidden" }}>
     <defs>
       <clipPath id={id} clipPathUnits="userSpaceOnUse"><path d={path}/></clipPath>
+      {/* Diluted ink bleeds into unsized paper. Only a bloom's edge receives
+          this blur; authored brush lines and arbitrary media interiors remain sharp. */}
+      {layer.reveal === "bloom" && <>
+        <filter id={id+"-fringe"} x="-35%" y="-35%" width="170%" height="170%"
+          colorInterpolationFilters="sRGB">
+          <feGaussianBlur stdDeviation={Math.max(3,Math.min(width,height)*.017)}/>
+        </filter>
+        <mask id={id+"-wet"} maskUnits="userSpaceOnUse" x={0} y={0} width={width} height={height}>
+          <path d={path} fill="#fff" filter={"url(#"+id+"-fringe)"}/>
+        </mask>
+      </>}
     </defs>
-    <foreignObject x={0} y={0} width={width} height={height} clipPath={"url(#" + id + ")"}>
+    <foreignObject x={0} y={0} width={width} height={height}
+      clipPath={layer.reveal === "bloom" ? undefined : "url(#" + id + ")"}
+      mask={layer.reveal === "bloom" ? "url(#" + id + "-wet)" : undefined}>
       <div style={{ width, height }} data-km-ink-media="">{content}</div>
     </foreignObject>
   </svg>;
