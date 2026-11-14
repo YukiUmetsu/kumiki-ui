@@ -82,7 +82,7 @@ function createSubject(subject: InkSubject, aspect: InkAspect): InkStroke[] {
       add("water-trace-" + i, [[x,y,.02],[x+.06,y-.004,.33],[x+.15+i%3*.018,y+.004,.015]],
         1.5+i%3, i%4===0?INK_TONES.middle:INK_TONES.pale,.24, 220+i*2, 9);
     }
-    add("accent-seal", arc(.82,.22,.041,portrait?.028:.064), 5.6, INK_TONES.dark, .16, 245, 22, true);
+    add("accent-seal", arc(.82,.22,.041,portrait ? .028 : .064), 5.6, INK_TONES.dark, .16, 245, 22, true);
   } else {
     // A woodland is not five repeated symbols. Each culm has its own stance,
     // taper, ink density, height and internode spacing; clusters are asymmetrical.
