@@ -24,11 +24,11 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     const face=paths(art,"face");
     expect(face.length).toBeGreaterThan(18);
     expect(face[0].type).toBe("path");
-    expect(face[1].type).toBe("path");
-    if(face[1].type!=="path")throw Error("Expected jaw silhouette");
-    expect(face[1].fill).toBe("$skin");
-    expect(face[1].opacity).toBe(1);
-    expect(face[1].d).toContain("141.6 140.5");
+    expect(face[2].type).toBe("path");
+    if(face[2].type!=="path")throw Error("Expected jaw silhouette");
+    expect(face[2].fill).toBe("$skin");
+    expect(face[2].opacity).toBe(1);
+    expect(face[2].d).toContain("141.6 140.5");
     expect(face[0].type==="path"&&face[0].d.includes("117.2 94.9")).toBe(true);
     expect(face.some(x=>x.type==="path"&&x.d.includes("153.8 112.6")))
       .toBe(true);
