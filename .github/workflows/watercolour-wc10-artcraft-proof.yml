@@ -1,12 +1,8 @@
 name: WC10 watercolor glazing and naturalist film proof
-# One visual proof on the feature branch; after review, keep workflow_dispatch only.
+# Manual-only browser/FFmpeg proof: avoid recurring GitHub Action credits.
+# Routine pull requests run only changed-unit tests and TypeScript checks.
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feat/watercolour-wc10-glazing-naturalist-craft
-    paths:
-      - docs/research/wc10-proof-trigger.md
 permissions:
   contents: read
 concurrency:
