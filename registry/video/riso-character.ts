@@ -68,7 +68,7 @@ export interface RisoPartFrame {
   d: string;
   transform: string;
 }
-export interface RisoJointFrame { id: string; parent?: string; x: number; y: number; angle: number }
+export interface RisoJointFrame { id: string; parent?: string; x: number; y: number; angle: number; /** Exact IK-solved world transform for geometry studies. */ matrix: RisoMatrix }
 export interface RisoCharacterFrame {
   expression: string;
   parts: readonly RisoPartFrame[];
@@ -326,7 +326,7 @@ export function evaluateRisoCharacter(
     joints: spec.joints.map(j => {
       const m = world.get(j.id)!;
       return { id: j.id, parent: j.parent, x: m.e, y: m.f,
-        angle: Math.atan2(m.b, m.a) * 180 / Math.PI };
+        angle: Math.atan2(m.b, m.a) * 180 / Math.PI, matrix: { ...m } };
     }),
     parts: spec.parts.map(p => {
       const m = resolve(p.joint);
