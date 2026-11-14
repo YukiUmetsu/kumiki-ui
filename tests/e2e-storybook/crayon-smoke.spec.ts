@@ -16,6 +16,9 @@ const samples=[
   {name:"character draw in portrait",id:"video-crayon-scene-engine--character-draw-in-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
   {name:"dragon village three actors",id:"video-crayon-scene-engine--dragon-village",attr:"data-km-crayon-scene",aspect:"landscape"},
   {name:"dragon village portrait",id:"video-crayon-scene-engine--dragon-village-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
+  {name:"dragon anatomy detail",id:"video-crayon-scene-engine--dragon-anatomy-detail",attr:"data-km-crayon-scene",aspect:"landscape"},
+  {name:"castle masonry detail",id:"video-crayon-scene-engine--castle-masonry-detail",attr:"data-km-crayon-scene",aspect:"landscape"},
+  {name:"dragon anatomy portrait detail",id:"video-crayon-scene-engine--dragon-anatomy-detail-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
 ] as const;
 for(const sample of samples) {
   test("crayon real-browser smoke: "+sample.name,async({page},info)=>{
@@ -200,4 +203,27 @@ test("dragon village portrait composition and independent cast variant",async({p
   await expect(duo.locator('[data-km-crayon-element="owl-body"]')).toHaveCount(0);
   await expect(duo.locator('[data-km-crayon-element="friend-body"]')).toBeAttached();
   await expect(duo.locator('[data-km-crayon-element="dragon-body"]')).toBeAttached();
+});
+
+
+test("dragon and architecture close-ups expose actual craft geometry and distinct stable cameras",async({page},info)=>{
+  const frames=[
+    {id:"dragon-anatomy-detail",name:"dragon-close",kind:"dragon-flank-scale-field"},
+    {id:"castle-masonry-detail",name:"castle-close",kind:"castle-carved-voussoir-arch"},
+    {id:"dragon-anatomy-detail-portrait",name:"dragon-portrait-close",kind:"dragon-neck-overlapping-scutes"},
+  ];
+  for(const item of frames){
+    await page.goto("/iframe.html?id=video-crayon-scene-engine--"+item.id+"&viewMode=story");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    const target=svg.locator('[data-km-crayon-element="'+item.kind+'"]');
+    await expect(target).toBeAttached();
+    await page.getByRole("button",{name:"Friends answer"}).click();
+    await expect(svg).toHaveAttribute("data-km-crayon-frame","260");
+    await expect(svg.locator('[data-km-crayon-camera]')).toHaveCount(1);
+    const transform=await svg.locator('[data-km-crayon-camera]').getAttribute("transform");
+    expect(transform).toContain("scale(");
+    const d=await target.locator("path").first().getAttribute("d");
+    expect(d?.length).toBeGreaterThan(80);
+    await svg.screenshot({path:info.outputPath(item.name+"-260.png"),animations:"disabled"});
+  }
 });
