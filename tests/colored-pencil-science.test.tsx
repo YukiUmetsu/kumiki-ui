@@ -56,6 +56,27 @@ describe("material-native colour-pencil science art", () => {
     }] })).not.toEqual([]);
   });
 
+  it("supports deterministic paper-native fibre and stipple marks, not just parallel hatch strokes", () => {
+    const drawing = coloredPencilExample("leaf", "landscape");
+    const region = drawing.regions[0], base = region.layers[0];
+    const results = (["hatch", "fiber", "stipple"] as const).map(texture => {
+      const layer = { ...base, texture };
+      expect(inspectPencilDrawing({ ...drawing, regions: [{ ...region, layers: [layer] }] })).toEqual([]);
+      const marks = hatchPencilRegion(region, layer);
+      expect(marks).toEqual(hatchPencilRegion(region, layer));
+      expect(marks.length).toBeGreaterThan(10);
+      expect(marks.every(mark => mark.path.length < 5500 &&
+        !/NaN|Infinity/.test(mark.path) && mark.startFrame >= 0)).toBe(true);
+      return marks;
+    });
+    expect(results[0][0].path).not.toBe(results[1][0].path);
+    expect(results[1][0].path).not.toBe(results[2][0].path);
+    expect(results[2][0].path).toContain(" l");
+    expect(inspectPencilDrawing({ ...drawing, regions: [{ ...region,
+      layers: [{ ...base, texture: "spray" as "hatch" }],
+    }] })).not.toEqual([]);
+  });
+
   it("never reveals an unpainted specimen silhouette before the pencil arrives", () => {
     const blank = renderToStaticMarkup(<ColoredPencilSciencePlate aspect="landscape" subject="leaf" frame={0}/>);
     const painted = renderToStaticMarkup(<ColoredPencilSciencePlate aspect="landscape" subject="leaf" frame={260}/>);
