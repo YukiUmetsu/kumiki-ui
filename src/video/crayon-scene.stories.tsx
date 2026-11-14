@@ -23,9 +23,9 @@ interface PlaygroundProps {
   strokeOrder:"patches"|"scanline";
   markLength:"long"|"short";
   editorialDetail:number;
-  wildlifeDetail:number; wildlifeEarMotion:number;
+  wildlifeDetail:number; wildlifeEarMotion:number; wildlifeCrop:"composition"|"eye"|"fur";
 }
-function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion}:PlaygroundProps){
+function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion,wildlifeCrop}:PlaygroundProps){
   const spec=useMemo(()=>{
     const base=subject==="performance"?crayonPerformanceScene(aspect,{editorialDetail}):
       subject==="walk"?crayonWalkScene(aspect,{stride,lift:stepLift,rig}):
@@ -33,11 +33,21 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
       subject==="dragon-village"?crayonDragonVillageScene(aspect,{wingPower,detail:villageDetail,followThrough,cast,palette:dragonPalette,shot,redrawStrength,exposureFrames}):
       subject==="wildlife-portrait"?crayonWildlifePortraitScene(aspect,{detail:wildlifeDetail,earMotion:wildlifeEarMotion}):
       crayonDemoScene(subject,aspect);
-    // Pure editor override: users can inspect old and new nib profiles without
-    // changing authored subject geometry or the film's absolute-frame clock.
-    return {...base,seed,paperTooth,elements:base.elements.map(node=>
+    // Production source remains unmodified. Optional Storybook macro shots
+    // inspect authentic rendered eye and fur strokes at 2.3-3x enlargement.
+    // The same absolute-frame rig, pigment and geometry are used in export.
+    const close = subject==="wildlife-portrait" && wildlifeCrop!=="composition";
+    const ox=aspect==="portrait"?340:666,oy=aspect==="portrait"?555:327;
+    const focusX=ox+(wildlifeCrop==="eye"?-56:-43);
+    const focusY=oy+(wildlifeCrop==="eye"?-57:55);
+    const zoom=wildlifeCrop==="eye"?3.1:2.35;
+    const camera=close ? [
+      {frame:0,focusX,focusY,zoom},
+      {frame:base.durationFrames-1,focusX,focusY,zoom},
+    ] : base.camera;
+    return {...base,seed,paperTooth,camera,elements:base.elements.map(node=>
       node.kind==="wax"?{...node,nibStyle,strokeOrder,markLength}:node)};
-  },[subject,aspect,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion]);
+  },[subject,aspect,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion,wildlifeCrop]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,subject+":"+aspect,playbackRate,loop);
   const duration=spec.durationFrames-1;
@@ -85,7 +95,7 @@ const meta={
   title:"Video production/Film Looks/Crayon/Scene Engine",
   id:"video-crayon-scene-engine",
   component:CrayonPlayground,
-  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1.2,loop:false,drawOrder:"outline-first",outlineFraction:.31,waxGlaze:.17,wingPower:1,villageDetail:.85,followThrough:7,cast:"trio",dragonPalette:"teal",shot:"wide",redrawStrength:.68,exposureFrames:3,nibStyle:"tapered",strokeOrder:"patches",markLength:"long",editorialDetail:1,wildlifeDetail:1,wildlifeEarMotion:1},
+  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1.2,loop:false,drawOrder:"outline-first",outlineFraction:.31,waxGlaze:.17,wingPower:1,villageDetail:.85,followThrough:7,cast:"trio",dragonPalette:"teal",shot:"wide",redrawStrength:.68,exposureFrames:3,nibStyle:"tapered",strokeOrder:"patches",markLength:"long",editorialDetail:1,wildlifeDetail:1,wildlifeEarMotion:1,wildlifeCrop:"composition"},
   argTypes:{
     subject:{control:"inline-radio",options:["water-cycle","city","numbers","performance","walk","draw-in","dragon-village","wildlife-portrait"]},
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
@@ -97,6 +107,7 @@ const meta={
     editorialDetail:{control:{type:"range",min:0,max:1,step:.1}},
     wildlifeDetail:{control:{type:"range",min:0,max:1,step:.1}},
     wildlifeEarMotion:{control:{type:"range",min:0,max:2,step:.1}},
+    wildlifeCrop:{control:"inline-radio",options:["composition","eye","fur"]},
     stride:{control:{type:"range",min:.6,max:1.6,step:.1}},
     stepLift:{control:{type:"range",min:.6,max:1.8,step:.1}},
     rig:{control:"inline-radio",options:["drawn","ik"]},
@@ -149,4 +160,16 @@ export const WildlifeHarePortrait:Story={
 export const WildlifeHarePortraitVertical:Story={
   args:{subject:"wildlife-portrait",aspect:"portrait",startFrame:198,
     wildlifeDetail:1,wildlifeEarMotion:1,paperTooth:.69},
+};
+
+/** True engine-magnified shots: no separate raster illustrations. */
+export const WildlifeHareEyeMacro:Story={
+  args:{subject:"wildlife-portrait",aspect:"landscape",
+    startFrame:224,wildlifeCrop:"eye",wildlifeDetail:1,
+    wildlifeEarMotion:1,paperTooth:.69},
+};
+export const WildlifeHareFurMacro:Story={
+  args:{subject:"wildlife-portrait",aspect:"landscape",
+    startFrame:224,wildlifeCrop:"fur",wildlifeDetail:1,
+    wildlifeEarMotion:1,paperTooth:.69},
 };

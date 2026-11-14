@@ -1,13 +1,7 @@
 name: Watercolour WM7 masterwork material proof
-# Scoped one-time PR qualification. After this run, return to dispatch-only.
+# Full review was qualified in https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43644599942
+# After proof, expensive Chromium and FFmpeg work must be manual-only.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/watercolour-wm7-proof.yml"
-      - "src/video/watercolour-masterwork-material.tsx"
-      - "src/video/watercolour-master-studies.tsx"
-      - "src/video/watercolour-master-studies.stories.tsx"
-      - "tests/e2e-storybook/watercolour-wm7-material.spec.ts"
   workflow_dispatch:
 permissions:
   contents: read

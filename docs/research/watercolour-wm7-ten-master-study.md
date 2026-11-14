@@ -65,3 +65,22 @@ The chief priority is **not more procedural flecks**. Several painters achieve c
 ## 5. Source and licensing policy
 
 All external artwork and web screenshots here are **research-only links**. Do not fetch and commit copyrighted source images; no tracing or direct image reconstruction. New material geometry and compositions are authored specifically for Kumiki. Avoid claiming authentic reproduction of living artists' individual signatures or a transfer of their exact works.
+
+
+## 6. Actual WM7 visual regression, correction, and evidence (2026-11-14)
+
+The *first* artist-material render [proof 43643690458](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43643690458) passed mechanical checks but **visually regressed** the estuary. A wide beige atmospheric band was too geometric, near-water pigment ended in a flat opaque rectangular block and three filled boat reflections resembled elongated triangles. The style did not meet the reference observations despite stronger numerical contrast.
+
+The correction replaced the straight-edged upper glazes with full-width cloud/water gestures, added **local** atmospheric feather filters, turned the foreground into a vertically fading glaze that reaches zero before the source-frame edge, broke one long horizon stripe into shorter strokes, and replaced filled reflected sleeves with narrow, curved directional light. [Final proof 43644599942](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43644599942) passed actual Storybook Chromium checks and FilmStage export in both aspect ratios, with six encoded/still production scene frames and a 45-frame landscape MP4.
+
+**Measured comparison, from actual final Storybook RGB screenshots** (p10-to-p90 percentile *luminance*, descriptive quality metric only):
+
+| Scene | 16:9 before → after | 9:16 before → after |
+| --- | --- | --- |
+| Botanical | 54.0 → 67.6 | 27.7 → 49.8 |
+| Estuary | 76.5 → 83.2 | 28.7 → 41.6 |
+| Courtyard | 104.6 → 122.3 | 60.1 → 86.8 |
+
+The compared images are captured at the same seed, frame, camera and ratio; only material strength was set to 0 versus 1. This establishes that tonal separation changes in the intended direction, **not** that individual flowers, boats or figures match the ten reference artworks. All art and paper controls remain configurable and deterministic.
+
+**Explicit art critique:** underwater texture is still too regular and wind-dependent horizon shape is simplified; botanical flowers need individual petal translucence, venation, attachment and varied morphology; windows/stone are overly geometric; the tiny sailor lacks meaningful facial and bodily construction. Latest work is a technically reviewable feature milestone, **not** final museum-level artistic acceptance. The original full 42-second film has not been reviewed at normal speed in both output ratios, and 1080p/4K throughput is unprofiled. WM7's lifting mask only removes **new WM7 glaze**; it does not retroactively lift WM4/WM5 sediment.
