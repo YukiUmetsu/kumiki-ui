@@ -1,14 +1,7 @@
 name: Ink Brush Storybook QA
 
-# One-time focused browser + playable film evidence for the new INK1 pack.
-# Restore manual-only after proof artifacts have been reviewed.
+# Manual-only browser and production film qualification. Cheap PR tests remain in visual-contracts.yml.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "tests/e2e-storybook/ink-brush.spec.ts"
-      - "registry/video/ink-brush.ts"
-      - "registry/video/ink-brush-react.tsx"
   workflow_dispatch:
 
 permissions:
