@@ -447,7 +447,7 @@ geometry density, not just procedural paper noise.
 The **Dragon Anatomy Detail**, **Dragon Anatomy Detail Portrait** and
 **Castle Masonry Detail** stories provide original close-up films in
 `Video production / Film Looks / Crayon Scene Engine`. The new
-`shot` option is `wide | dragon | architecture`. The wide shot retains all actors and copy. Both close-ups hide screen-space story lettering; the architecture-only inspection view also hides the cast to avoid occlusion. The source rig keys and wax artwork are not modified. Camera framing is
+`shot` option is `wide | dragon | architecture`. The wide shot retains all actors and copy. Both close-ups hide story lettering. The dragon inspection view isolates the creature against the paper landscape, while the architecture inspection view hides the cast; this avoids visual occlusion. The source rig keys and wax artwork are not modified. Camera framing is
 validated in both native 960×540 and 540×960 sizes, with exact-frame
 seek tests and real Chromium screenshots.
 
