@@ -12,6 +12,7 @@ on:
       - "src/video/crayon-walk*"
       - "src/video/crayon-character-draw*"
       - "src/video/crayon-dragon-village*"
+      - "src/video/crayon-craft-detail*"
       - "src/video/crayon-performance*"
       - "tests/crayon-scene.test.tsx"
       - "tests/crayon-dragon-village.test.tsx"
