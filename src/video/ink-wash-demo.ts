@@ -35,64 +35,116 @@ function createSubject(subject: InkSubject, aspect: InkAspect): InkStroke[] {
     });
 
   if (subject === "landscape") {
-    // Distant layered mountains (淡墨). The quiet white between them is part of the picture.
-    add("far-peak-a", [[-.05,.63,.08],[.08,.48,.34],[.19,.30,.56],[.30,.45,.36],[.40,.47,.12]], 29, INK_TONES.whisper, .92, 18, 34);
-    add("far-peak-b", [[.27,.56,.12],[.41,.43,.26],[.55,.27,.55],[.66,.44,.34],[.78,.53,.13]], 38, INK_TONES.pale, .96, 42, 35);
-    add("far-peak-c", [[.59,.58,.14],[.74,.40,.42],[.90,.32,.60],[1.06,.51,.10]], 30, INK_TONES.whisper, 1, 62, 33);
-    add("distant-ridge", [[-.03,.71,.09],[.18,.60,.36],[.39,.67,.30],[.63,.60,.34],[.84,.65,.22],[1.04,.62,.08]], 27, INK_TONES.whisper, .95, 78, 34);
-    // Foreground rocky crest is stronger, with a broad side-brush and internal dry cracks.
-    add("near-crest", [[-.05,.87,.11],[.09,.78,.72],[.21,.68,.98],[.29,.74,.60],[.37,.70,.32]], 47, INK_TONES.dark, .29, 99, 34);
-    add("crest-shadow", [[-.07,.93,.16],[.09,.87,.51],[.18,.84,.72],[.31,.78,.28]], 31, INK_TONES.middle, .71, 114, 25);
-    add("granite-grain", [[.09,.81,.24],[.15,.78,.88],[.19,.79,.09]], 7, INK_TONES.black, .15, 130, 12);
-    add("granite-edge", [[.19,.71,.2],[.23,.64,.92],[.30,.67,.17]], 9, INK_TONES.black, .19, 135, 11);
-    // A single pine climbs from rock, changes pressure and forks, then catches fine needles.
-    add("pine-trunk", [[.20,.79,.91],[.22,.67,.80],[.235,.57,.55],[.27,.48,.78],[.265,.40,.22]], 20, INK_TONES.black, .22, 145, 36);
-    add("pine-branch-right", [[.244,.57,.84],[.33,.52,.58],[.42,.49,.19]], 12, INK_TONES.dark, .27, 164, 22);
-    add("pine-branch-left", [[.244,.62,.82],[.16,.55,.47],[.12,.48,.14]], 8, INK_TONES.dark, .2, 170, 19);
-    add("pine-high-branch", [[.27,.47,.85],[.32,.40,.34],[.38,.38,.09]], 7, INK_TONES.black, .26, 176, 17);
-    const clumps: Array<[number, number, number]> = [[.37,.48,.06],[.16,.51,.052],[.36,.39,.046],[.26,.43,.048]];
-    clumps.forEach(([x,y,r], a) => {
-      for (let j = 0; j < 12; j++) {
-        const theta = j * 2.4 + a;
-        const dx = Math.cos(theta) * r, dy = Math.sin(theta) * r * .38;
-        add("pine-needle-" + a + "-" + j, [[x - dx, y - dy,.05],[x + dx*.25,y+dy*.22,.77],[x+dx,y+dy,.03]],
-          3.7, j%3===0 ? INK_TONES.middle : INK_TONES.black, .16, 190 + a*7 + j%4*2, 7);
+    // Atmospheric washes are layered from the distance forward. Each slope is a
+    // side-brush gesture, not a row of equal-weight vector triangles.
+    add("remote-spine-a", [[-.08,.55,.08],[.045,.52,.21],[.14,.38,.48],[.195,.35,.46],[.29,.48,.16],[.39,.47,.06]], 55, INK_TONES.whisper, .98, 17, 37);
+    add("remote-spine-b", [[.22,.56,.07],[.35,.44,.29],[.47,.28,.58],[.56,.41,.36],[.69,.50,.07]], 71, INK_TONES.whisper, 1, 36, 41);
+    add("remote-spine-c", [[.61,.57,.07],[.73,.45,.25],[.84,.36,.50],[.92,.44,.29],[1.08,.52,.06]], 54, INK_TONES.whisper, .97, 54, 41);
+    add("remote-veil-a", [[.18,.41,.18],[.22,.50,.29],[.31,.57,.08]], 61, INK_TONES.whisper, 1, 72, 25);
+    add("remote-veil-b", [[.47,.36,.18],[.52,.46,.3],[.59,.56,.07]], 66, INK_TONES.whisper, .98, 78, 27);
+    add("remote-veil-c", [[.81,.40,.15],[.86,.51,.36],[.95,.58,.06]], 46, INK_TONES.whisper, 1, 87, 22);
+    // A shadowed mountain edge, fine ridges and mist are deliberately uneven.
+    add("middle-ridge", [[-.07,.73,.08],[.12,.65,.28],[.27,.69,.41],[.37,.58,.18],[.52,.65,.14],[.72,.61,.29],[.91,.67,.22],[1.06,.63,.04]], 29, INK_TONES.pale, .95, 96, 35);
+    add("middle-ridge-shadow", [[.33,.65,.07],[.45,.62,.42],[.54,.68,.35],[.68,.66,.06]], 25, INK_TONES.pale, .9, 105, 31);
+    for (let i = 0; i < 13; i++) {
+      const x = .11 + i * .068;
+      const rise = .047 + (i % 4) * .012;
+      add("mist-fold-" + i, [[x,.70,.03],[x+.018,.70-rise,.19],[x+.038,.695,.03]],
+        10 + i%3*5, INK_TONES.whisper, .96, 107+i%4*3, 16);
+    }
+    // Dry-brush granite occupies the near lower-left; nested facets leave paper lights intact.
+    add("near-ledge", [[-.09,.89,.08],[.02,.83,.38],[.12,.72,.93],[.22,.68,.76],[.29,.74,.18],[.35,.76,.04]],
+      43, INK_TONES.dark, .22, 131, 36);
+    add("ledge-bottom", [[-.09,.96,.14],[.05,.88,.44],[.18,.83,.62],[.27,.80,.12]],
+      49, INK_TONES.middle, .63, 143, 30);
+    add("ledge-face", [[.10,.74,.07],[.16,.81,.63],[.22,.84,.03]], 19, INK_TONES.dark, .18, 150, 16);
+    add("ledge-crack", [[.20,.69,.08],[.23,.76,.75],[.25,.80,.1]], 7, INK_TONES.black, .16, 154, 11);
+    add("ledge-fissure", [[.015,.84,.06],[.082,.80,.62],[.12,.79,.04]], 9, INK_TONES.black, .12, 160, 12);
+    // Twisted pine, asymmetrical boughs and many pressure-tapered needle gestures.
+    add("pine-trunk", [[.18,.83,.82],[.205,.72,.93],[.217,.63,.64],[.255,.53,.86],[.248,.42,.23]], 21, INK_TONES.black, .19, 159, 38);
+    add("pine-trunk-shade", [[.197,.79,.1],[.215,.67,.57],[.24,.56,.08]], 6, INK_TONES.dark, .11, 169, 17);
+    add("pine-branch-right", [[.235,.61,.76],[.29,.55,.52],[.42,.52,.13]], 10, INK_TONES.dark, .23, 178, 18);
+    add("pine-branch-left", [[.22,.68,.68],[.163,.61,.41],[.11,.58,.12]], 8, INK_TONES.black, .24, 183, 17);
+    add("pine-branch-crown", [[.252,.51,.68],[.30,.45,.51],[.345,.43,.08]], 8, INK_TONES.black, .16, 188, 16);
+    add("pine-crown-left", [[.249,.46,.37],[.19,.45,.11],[.15,.44,.04]], 5, INK_TONES.dark, .18, 190, 15);
+    const clumps: Array<[number,number,number,number]> = [[.39,.518,.054,.027],[.125,.58,.055,.024],[.343,.428,.049,.023],[.176,.445,.047,.018],[.286,.50,.034,.017]];
+    clumps.forEach(([x,y,rx,ry], ci) => {
+      for (let j = 0; j < 11; j++) {
+        const theta = j * 2.399963 + ci * .76, dx = Math.cos(theta) * rx, dy = Math.sin(theta) * ry;
+        add("pine-needle-" + ci + "-" + j, [
+          [x - dx*.69,y - dy*.62,.06],[x+dx*.17,y+dy*.15,.82],[x+dx,y+dy,.025],
+        ], 3.5 + j%3, j%4===1?INK_TONES.middle:INK_TONES.black,.13, 195+ci*4+j%3*2, 6);
       }
     });
-    // Horizontal broken strokes suggest a river without tracing every ripple.
+    // Sparse near-shore water, with broken horizontal ink pulled by a fast wrist.
     for (let i = 0; i < 11; i++) {
-      const y = .78 + (i % 6) * .033;
-      const x = .37 + (i * 13 % 23) / 100;
-      add("river-" + i, [[x,y,.07],[x + .11,y-.014,.25],[x + .23,y+.005,.08]],
-        2.1 + i % 3, INK_TONES.pale, .22, 205 + i * 3, 13);
+      const y = .78 + (i%6)*.029, x = .39+(i*13%26)*.012;
+      add("water-trace-" + i, [[x,y,.02],[x+.06,y-.004,.33],[x+.15+i%3*.018,y+.004,.015]],
+        1.5+i%3, i%4===0?INK_TONES.middle:INK_TONES.pale,.24, 220+i*2, 9);
     }
-    add("seal-ring", arc(.81,.22,.047, portrait ? .029 : .07), 6, INK_TONES.dark, .25, 240, 26, true);
+    add("accent-seal", arc(.82,.22,.041,portrait?.028:.064), 5.6, INK_TONES.dark, .16, 245, 22, true);
   } else {
-    add("mist-hill-left", [[-.05,.78,.1],[.10,.64,.42],[.25,.67,.32],[.45,.62,.1]], 41, INK_TONES.whisper, .94, 18, 30);
-    add("mist-hill-right", [[.49,.70,.11],[.66,.58,.27],[.86,.64,.37],[1.04,.55,.05]], 37, INK_TONES.pale, .91, 34, 29);
-    const stemX = [.23,.34,.45,.56,.67];
-    stemX.forEach((x, i) => {
-      const lean = (i - 2) * .013;
-      add("culm-" + i, [[x,.94,.57],[x+lean*.3,.74,.73],[x+lean*.7,.48,.63],[x+lean,.21,.24]],
-        9 + i%2*2, INK_TONES.dark, .24, 65 + i*12, 36);
-      for (let n=0;n<5;n++) {
-        const y = .77 - n*.13, xp = x+lean*(.94-y)/.73;
-        add("node-" + i + "-" + n, [[xp-.013,y,.5],[xp,y+.005,.94],[xp+.014,y-.005,.34]],
-          3.5, INK_TONES.black, .12, 112+i*10+n*5, 8);
+    // A woodland is not five repeated symbols. Each culm has its own stance,
+    // taper, ink density, height and internode spacing; clusters are asymmetrical.
+    add("distance-mist", [[-.05,.79,.07],[.13,.72,.19],[.29,.75,.11],[.47,.70,.24],[.65,.74,.08]], 42, INK_TONES.whisper, .98, 16, 38);
+    add("distance-hill", [[.43,.82,.06],[.59,.70,.22],[.76,.73,.29],[.91,.66,.18],[1.07,.67,.06]], 39, INK_TONES.whisper, .97, 34, 40);
+    const culms: Array<{ x:number; bottom:number; top:number; lean:number; w:number; tone:number; wet:number }> = [
+      {x:.12,bottom:1.02,top:.30,lean:.07,w:9,tone:INK_TONES.pale,wet:.69},
+      {x:.29,bottom:1.04,top:.095,lean:-.045,w:15,tone:INK_TONES.black,wet:.19},
+      {x:.50,bottom:1.03,top:.25,lean:.07,w:9,tone:INK_TONES.middle,wet:.57},
+      {x:.66,bottom:1.03,top:.035,lean:.105,w:14,tone:INK_TONES.black,wet:.24},
+      {x:.87,bottom:1.01,top:.33,lean:-.058,w:7,tone:INK_TONES.pale,wet:.66},
+    ];
+    culms.forEach((c, i) => {
+      const at = (y: number) => c.x + c.lean * (c.bottom-y)/(c.bottom-c.top);
+      add("culm-" + i, [[c.x,c.bottom,.74],[at(.75),.75,.92],[at(.53),.53,.72],[at(c.top),c.top,.16]],
+        c.w,c.tone,c.wet,56+i*11,36);
+      const totalNodes = i%2===0?4:6;
+      for(let n=0;n<totalNodes;n++){
+        const y=c.bottom-.15-n*(i%2===0?.15:.126);
+        if(y<c.top+.04)continue;
+        const x=at(y);
+        add("node-" + i + "-" + n, [[x-.009,y+.003,.08],[x,y,.71],[x+.012,y-.006,.04]],
+          2.7,c.tone,.19,96+i*8+n*5,6);
       }
     });
-    // Each leaf is an individual tapering stroke radiating from the joint.
-    for (let i = 0; i < 5; i++) for (let n = 0; n < 5; n++) for (let side of [-1,1]) {
-      const x = stemX[i] + (i - 2)*.012*(.22+n*.13), y = .73 - n*.125;
-      const spread = side * (.065 + (n%3)*.019);
-      add("leaf-" + i + "-" + n + "-" + (side<0?"l":"r"),
-        [[x,y,.12],[x+spread*.63,y-.038-n*.003,.98],[x+spread*1.15,y-.096,.02]],
-        12 + n%3*2, n%2===0?INK_TONES.black:INK_TONES.dark, .19,
-        126 + i*12 + n*9 + (side===1?3:0), 11);
-    }
-    add("bamboo-ground", [[.03,.96,.1],[.26,.95,.34],[.51,.94,.47],[.79,.96,.25],[1.02,.94,.07]],
-      14, INK_TONES.pale, .80, 231, 24);
-    add("seal-ring", arc(.79,.29,.054,.04), 6, INK_TONES.dark, .23, 248, 25, true);
+    // Branches hold distinct, hand-composed sprays, no bilateral X-shapes.
+    const sprays: Array<{x:number;y:number;dir:number;span:number;count:number;at:number;shade:number}>=[
+      {x:.31,y:.67,dir:-1,span:.155,count:5,at:135,shade:INK_TONES.dark},
+      {x:.29,y:.47,dir:1,span:.21,count:6,at:150,shade:INK_TONES.black},
+      {x:.27,y:.26,dir:-1,span:.16,count:4,at:166,shade:INK_TONES.dark},
+      {x:.72,y:.62,dir:1,span:.20,count:5,at:149,shade:INK_TONES.black},
+      {x:.74,y:.38,dir:-1,span:.23,count:6,at:169,shade:INK_TONES.black},
+      {x:.765,y:.17,dir:1,span:.15,count:5,at:187,shade:INK_TONES.dark},
+      {x:.55,y:.52,dir:1,span:.12,count:4,at:165,shade:INK_TONES.middle},
+      {x:.17,y:.44,dir:-1,span:.13,count:3,at:175,shade:INK_TONES.pale},
+      {x:.84,y:.44,dir:1,span:.14,count:4,at:188,shade:INK_TONES.pale},
+      {x:.52,y:.31,dir:-1,span:.09,count:3,at:196,shade:INK_TONES.middle},
+    ];
+    sprays.forEach((spray, i) => {
+      const bx=spray.x+spray.dir*spray.span*.65, by=spray.y-.037;
+      add("twig-"+i, [[spray.x,spray.y,.35],[spray.x+spray.dir*spray.span*.43,spray.y-.03,.73],
+        [bx,by,.03]], 3.2,spray.shade,.13,spray.at,13);
+      for(let j=0;j<spray.count;j++){
+        const fraction=j/Math.max(1,spray.count-1);
+        const originX=spray.x+spray.dir*(.025+fraction*spray.span*.57);
+        const originY=spray.y-.018-fraction*.025;
+        const fan=((j%2===0)?-1:1)*(0.045+(j%3)*.02);
+        const length=.055+(i*3+j*7)%6*.011;
+        const tipX=originX+spray.dir*(length+fraction*.021);
+        const tipY=originY+fan-(j%3)*.013;
+        add("leaf-"+i+"-"+j, [
+          [originX,originY,.04],
+          [originX+(tipX-originX)*.46,originY+(tipY-originY)*.36,.97],
+          [tipX,tipY,.012],
+        ], 9+(j%4)*2, j%5===0?INK_TONES.middle:spray.shade,
+        j%3===0?.43:.16, spray.at+8+j*3, 10);
+      }
+    });
+    // Fine root traces and a single ember-red seal give the gaze a place to rest.
+    add("ground-wash", [[-.07,.97,.05],[.15,.94,.19],[.39,.96,.31],[.61,.95,.12]], 21, INK_TONES.whisper,.90,226,24);
+    add("ground-mark", [[.26,.965,.1],[.34,.95,.35],[.40,.958,.07]], 3, INK_TONES.pale,.25,240,12);
+    add("accent-seal", arc(.84,.20,.039,.031), 5.5, INK_TONES.dark,.17,255,22,true);
   }
   return strokes;
 }
