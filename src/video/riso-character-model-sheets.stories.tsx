@@ -17,13 +17,16 @@ function CharacterSheetStudio({spec,sheet}:{
   const [focus,setFocus]=useState(sheet.headRegion);
   const [mesh,setMesh]=useState(true);
   const [edgeSize,setEdgeSize]=useState(5);
+  // Spend additional triangles only when close-up craftsmanship needs them.
+  // The preview and unrelated anatomy keep their inexpensive coarse geometry.
+  const focusedBudget=edgeSize<=3?5000:edgeSize<=5?3600:1800;
   const [labels,setLabels]=useState(false);
   const [skeleton,setSkeleton]=useState(false);
   const [category,setCategory]=useState("all");
   const svgHost=useRef<HTMLDivElement>(null);
   const report=useMemo(()=>evaluateRisoCharacterMesh(spec,sheet,frame,{
-    maxEdgeLength:edgeSize,focusRegionId:focus,maxTrianglesPerRegion:1800,
-  }),[spec,sheet,frame,edgeSize,focus]);
+    maxEdgeLength:edgeSize,focusRegionId:focus,maxTrianglesPerRegion:focusedBudget,
+  }),[spec,sheet,frame,edgeSize,focus,focusedBudget]);
   const selected=report.regions.find(r=>r.id===focus)!;
   const categories=[...new Set(sheet.regions.map(r=>r.category))].sort();
   const visible=report.regions.filter(r=>category==="all"||r.category===category);
@@ -58,7 +61,7 @@ function CharacterSheetStudio({spec,sheet}:{
       <div ref={svgHost} style={{minWidth:0,boxShadow:"0 18px 38px #31455723"}}>
         <RisoCharacterModelSheet spec={spec} sheet={sheet} frame={frame}
           selectedRegion={focus} showMesh={mesh} meshEdgeLength={edgeSize}
-          meshTriangleBudget={1800} showLabels={labels}
+          meshTriangleBudget={focusedBudget} showLabels={labels}
           showJoints={skeleton}/>
       </div>
       <aside style={{display:"grid",gap:17,maxHeight:800,overflowY:"auto",
@@ -119,7 +122,7 @@ function CharacterSheetStudio({spec,sheet}:{
           <span data-km-riso-achieved-edge={selected.maxTriangleEdgeLength.toFixed(2)}
             style={{font:"12px ui-monospace,monospace",color:selected.refinementTargetMet?"#285C55":"#A45632"}}>
             Actual largest edge {selected.maxTriangleEdgeLength.toFixed(2)} u
-            {selected.refinementTargetMet?" · target met":" · bounded at 1800 cells"}
+            {selected.refinementTargetMet?" · target met":" · bounded at "+focusedBudget+" cells"}
           </span>
         </div>
         <div style={{borderTop:"1px solid #CBBFAD",paddingTop:12,display:"grid",gap:8}}
