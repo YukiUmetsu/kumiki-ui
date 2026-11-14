@@ -64,6 +64,9 @@ export interface CrayonWaxElement extends CrayonBase {
   spacing?: number;
   /** Authored wax-rubbing direction in degrees. */
   angle?: number;
+  /** Opaque, silhouette-blocking wax underpaint for characters and solid props;
+   * default open retains translucent scenery and older CRAYON1 documents. */
+  coverage?: "open" | "opaque";
   /** Explicit silhouette-outline versus pigment-deposition sequence. */
   construction?: CrayonWaxConstruction;
 }
@@ -279,6 +282,8 @@ export function inspectCrayonScene(input: unknown): string[] {
         else node.colors.forEach((color: string,i: number)=>checkColor(String(color),p + ".colors["+i+"]",errors));
         if (node.angle !== undefined && (!finite(node.angle) || node.angle < -89 || node.angle > 89))
           errors.push(p + ".angle must be in [-89,89]");
+        if (node.coverage !== undefined && node.coverage !== "open" && node.coverage !== "opaque")
+          errors.push(p + ".coverage must be open or opaque");
         if (node.construction !== undefined) {
           try{crayonConstructionWindows(node.timing.start,node.timing.end,node.construction);}
           catch{errors.push(p+".construction must have a valid outline order, fraction and wax glaze");}

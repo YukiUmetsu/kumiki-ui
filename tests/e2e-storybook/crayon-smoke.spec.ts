@@ -227,3 +227,60 @@ test("dragon and architecture close-ups expose actual craft geometry and distinc
     await svg.screenshot({path:info.outputPath(item.name+"-260.png"),animations:"disabled"});
   }
 });
+
+
+test("all crayon Storybook pages appear under one Film Looks / Crayon folder",async({page})=>{
+  const response=await page.request.get("/index.json");
+  expect(response.ok()).toBe(true);
+  const index=await response.json() as {
+    entries: Record<string,{id:string;title:string;type:string}>;
+  };
+  const all=Object.values(index.entries).filter(entry=>entry.type==="story");
+  for(const metaId of ["video-crayon-scene-engine",
+    "video-crayon-storybook","video-crayon-material-studies"]){
+    const stories=all.filter(entry=>entry.id.startsWith(metaId+"--"));
+    expect(stories.length).toBeGreaterThan(0);
+    for(const entry of stories)
+      expect(entry.title).toMatch(/^Video production\/Film Looks\/Crayon\//);
+  }
+});
+
+test("opaque wax optical regression: background cannot bleed through finished character",async({page},info)=>{
+  async function inspect(id:string,shot:string){
+    await page.goto("/iframe.html?id=video-crayon-material-studies--"+id+"&viewMode=story");
+    const svg=page.locator("svg[data-km-crayon-optics]");
+    await expect(svg).toBeVisible();
+    await expect(svg.locator('[data-km-crayon-coverage="open"]')).toHaveCount(1);
+    await expect(svg.locator('[data-km-crayon-coverage="opaque"]')).toHaveCount(1);
+    await expect(svg.locator('[data-km-crayon-underpaint="opaque"]')).toHaveCount(1);
+    const pixels=await page.evaluate(async()=>{
+      const svg=document.querySelector('svg[data-km-crayon-optics]');
+      if(!svg)throw new Error("Missing optical proof SVG");
+      const serialized=new XMLSerializer().serializeToString(svg);
+      const url=URL.createObjectURL(new Blob([serialized],
+        {type:"image/svg+xml;charset=utf-8"}));
+      try {
+        const image=new Image();
+        image.src=url;
+        await image.decode();
+        const canvas=document.createElement("canvas");
+        canvas.width=960;canvas.height=540;
+        const context=canvas.getContext("2d");
+        if(!context)throw new Error("Canvas is unavailable");
+        context.drawImage(image,0,0,960,540);
+        const rgb=(x:number,y:number)=>
+          Array.from(context.getImageData(x,y,1,1).data).slice(0,3);
+        // Matching interior cheek positions, not outlines or blinking eyes.
+        return {open:rgb(285,340),opaque:rgb(656,340)};
+      } finally {URL.revokeObjectURL(url);}
+    });
+    await svg.screenshot({path:info.outputPath(shot+".png"),animations:"disabled"});
+    return pixels;
+  }
+  const blue=await inspect("layer-coverage-comparison","wax-coverage-cobalt");
+  const coral=await inspect("layer-coverage-coral","wax-coverage-coral");
+  const difference=(a:number[],b:number[])=>
+    a.reduce((sum,channel,i)=>sum+Math.abs(channel-b[i]),0);
+  expect(difference(blue.open,coral.open)).toBeGreaterThan(65);
+  expect(difference(blue.opaque,coral.opaque)).toBeLessThan(9);
+});
