@@ -9,6 +9,7 @@ import type {ShanshuiControls,ShanshuiScene} from "../../registry/video/ink-shan
 import {makeInkWalkingTraveller,inkDirectorGait} from "./ink-actor-director-demo";
 import type {InkFigureCraftControls} from "../../registry/video/ink-figure-craft";
 import {shanshuiFaceAssets} from "./ink-shanshui-face-plates";
+import {shanshuiGarmentCraft} from "./ink-shanshui-garment-craft";
 import {
   shanshuiBodyFit,shanshuiBodyAssets,applyShanshuiBodyFit,
   shanshuiFittedRoute,bakeShanshuiGroundedShoes,
@@ -25,13 +26,14 @@ export function makeShanshuiScholar(
   const base=makeInkWalkingTraveller(craft);
   // A single image-to-rig projection calibrates head, shoulder, elbow/cuff,
   // hands, torso, belt, hips, robe, hem and shoes in one coordinated pass.
-  const artwork=shanshuiFaceAssets(scene);
+  const artwork=shanshuiFaceAssets(scene,detail);
   const completeBody=shanshuiBodyAssets(scene);
   const fit=shanshuiBodyFit(scene);
+  const fineCraft=shanshuiGarmentCraft(scene,fit,detail);
   const fittedParts=applyShanshuiBodyFit(scene,base.parts);
   return {
     ...base,characterId:"shanshui-scholar",
-    revision:"shanshui-scholar-complete-figure-"+scene+"-v4",
+    revision:"shanshui-scholar-fine-figure-"+scene+"-v5",
     palette:{
       ...base.palette,ink:"#403329",shadow:"#66513e",wash:"#bd9d7b",
       mist:"#dfcaad",deep:"#937251",paper:"#f6ead4",
@@ -42,6 +44,7 @@ export function makeShanshuiScholar(
       ...base.assets,
       ...artwork,
       ...completeBody,
+      ...fineCraft,
     },
     anchors:{
       ...base.anchors,
@@ -70,10 +73,35 @@ export function makeShanshuiScholar(
         channel:"head",pivot:{x:137,y:56},z:19},
       {id:"sleeve-paint",asset:"scholar-sleeve-contour",parent:"near-sleeve",
         channel:"arms",pivot:{x:190,y:211},z:18},
+      // Fine brush lines remain bound to the correct body/sleeve/hand/scroll
+      // pivot. They are not a floating unanimated SVG overlay.
+      {id:"robe-fine",asset:"robe-fine",parent:"body",
+        channel:"body",pivot:{x:133,y:210},z:12},
+      {id:"sleeve-fine-far",asset:"sleeve-fine-far",parent:"far-sleeve",
+        channel:"arms",pivot:fit.anchors.farShoulder,z:8},
+      {id:"sleeve-fine-near",asset:"sleeve-fine-near",parent:"near-sleeve",
+        channel:"arms",pivot:fit.anchors.nearShoulder,z:18},
+      {id:"collar-fine",asset:"collar-fine",parent:"collar",
+        channel:"body",pivot:fit.anchors.neckLeft,z:13},
+      {id:"belt-fine",asset:"belt-fine",parent:"sash",
+        channel:"body",pivot:fit.anchors.leftWaist,z:15},
+      {id:"hand-fine-far",asset:"hand-fine-far",parent:"far-hand",
+        channel:"arms",pivot:fit.anchors.farHand,z:18},
+      {id:"hand-fine-near",asset:"hand-fine-near",parent:"near-hand",
+        channel:"arms",pivot:fit.anchors.nearHand,z:22},
+      {id:"shoe-fine-left",asset:"shoe-fine-left",parent:"shoe-left",
+        channel:"walk",pivot:fit.anchors.leftFoot,z:6},
+      {id:"shoe-fine-right",asset:"shoe-fine-right",parent:"shoe-right",
+        channel:"walk",pivot:fit.anchors.rightFoot,z:7},
+      {id:"hem-fine",asset:"hem-fine",parent:"body",
+        channel:"body",pivot:fit.anchors.leftHem,z:12},
+      {id:"scroll-fine",asset:"scroll-fine",parent:"scroll",
+        channel:"prop",pivot:{x:132,y:188},z:20},
     ],
     capabilities:[...base.capabilities,"sepia-figure","outer-robe",
       "cloth-ribbon","teacher-measured-proportions",
-      "full-figure-source-fit","world-planted-shoes","distinct-face-profiles"],
+      "full-figure-source-fit","world-planted-shoes","distinct-face-profiles",
+      "pressure-brush-linecraft","part-native-figure-fine-detail"],
   };
 }
 export interface ShanshuiFilmProps {
@@ -123,7 +151,7 @@ export function shanshuiScholarInstance(
   });
   return {
     instanceId:route.instanceId,characterId:"shanshui-scholar",
-    revision:"shanshui-scholar-complete-figure-"+scene+"-v4",seed:113,
+    revision:"shanshui-scholar-fine-figure-"+scene+"-v5",seed:113,
     targets:{landscape:{x:16,y:77},viewer:{x:176,y:90}},
     corrections:{...correctionTracks,...shoeCorrections,...cloth,
       "sash-tail":trailing,"hem-flow":trailing},
@@ -170,6 +198,17 @@ export function InkShanshuiFilm({frame,controls=DEFAULT_SHANSHUI,
         "near-hand":{bleed:.06,dryContour:true},"far-hand":{bleed:.06,dryContour:true},
         "shoe-left":{bleed:.08,dryContour:true},"shoe-right":{bleed:.08,dryContour:true},
         scroll:{bleed:.19,dryContour:true},
+        "robe-fine":{bleed:.04,dryContour:true},
+        "sleeve-fine-far":{bleed:.03,dryContour:true},
+        "sleeve-fine-near":{bleed:.03,dryContour:true},
+        "collar-fine":{bleed:0,dryContour:true},
+        "belt-fine":{bleed:.02,dryContour:true},
+        "hand-fine-far":{bleed:0,dryContour:true},
+        "hand-fine-near":{bleed:0,dryContour:true},
+        "shoe-fine-left":{bleed:0,dryContour:true},
+        "shoe-fine-right":{bleed:0,dryContour:true},
+        "hem-fine":{bleed:.04,dryContour:true},
+        "scroll-fine":{bleed:.04,dryContour:true},
       }}/>}
   </InkShanshuiStage>;
 }
