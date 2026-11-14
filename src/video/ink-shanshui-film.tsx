@@ -160,14 +160,20 @@ export function shanshuiScholarInstance(
     revision:(scene==="river-scholar"
       ?"shanshui-scholar-reader-portrait-river-scholar-v7"
       :"shanshui-scholar-fine-figure-"+scene+"-v5"),seed:113,
-    targets:{landscape:{x:16,y:77},viewer:{x:176,y:90}},
+    targets:{landscape:{x:16,y:77},viewer:{x:176,y:90},
+      ...(scene==="river-scholar"?{"scroll-page":{
+        x:(fit.anchors.nearHand.x+fit.anchors.farHand.x)/2,
+        y:(fit.anchors.nearHand.y+fit.anchors.farHand.y)/2-13,
+      }}:{}),
+    },
     corrections:{...correctionTracks,...shoeCorrections,...cloth,
       "sash-tail":trailing,"hem-flow":trailing},
   };
 }
 const clamp01=(n:number)=>Math.max(0,Math.min(1,n));
-const cues=(scene:ShanshuiScene):CharacterCue[]=>[
-  {id:scene+"-look",kind:"gaze",target:"landscape",startFrame:43,
+export const shanshuiPerformanceCues=(scene:ShanshuiScene):CharacterCue[]=>[
+  {id:scene+"-look",kind:"gaze",
+    target:scene==="river-scholar"?"scroll-page":"landscape",startFrame:43,
     endFrame:240,instanceId:"shanshui-scholar"},
   {id:scene+"-contemplate",kind:"action",name:"ponder",startFrame:148,
     instanceId:"shanshui-scholar"},
@@ -187,7 +193,7 @@ export function InkShanshuiFilm({frame,controls=DEFAULT_SHANSHUI,
     [controls.scene,clothAmount]);
   const route=useMemo(()=>shanshuiFittedRoute(controls.scene),[controls.scene]);
   const track=useMemo(()=>bakeInkActorTrack(route),[route]);
-  const performance=useMemo(()=>cues(controls.scene),[controls.scene]);
+  const performance=useMemo(()=>shanshuiPerformanceCues(controls.scene),[controls.scene]);
   // A still frame must freeze BOTH the environment and the actor. Otherwise
   // the camera/foliage are at their final pose while hands/robe stay mid-walk.
   const actorFrame=reducedMotion?SHANSHUI_FRAMES-1:frame;
