@@ -31,7 +31,9 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(jaw?.fill).toBe("$skin");
     expect(jaw?.opacity).toBe(1);
     expect(face[0].type==="path"&&face[0].d.includes("117.2 94.9")).toBe(true);
-    expect(face.some(x=>x.type==="path"&&x.d.includes("153.8 112.6")))
+    // The ink-pressure sampler expands the nose bridge into a closed
+    // contour, while this fine nostril accent remains a direct path.
+    expect(face.some(x=>x.type==="path"&&x.d.includes("M149.4 116.7")))
       .toBe(true);
     const labels=READER_FACE_LANDMARKS.map(v=>v.name);
     expect(labels).toContain("exposed-ear");
