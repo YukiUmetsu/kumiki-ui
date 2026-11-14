@@ -30,7 +30,7 @@ export const INK_TRAVELER_CUES: readonly InkActorCue[] = [
   { id:"looking-at-viewer",kind:"gaze",startFrame:97,durationFrames:55,target:[.72,-.25] },
   { id:"presenting",kind:"gesture",startFrame:111,durationFrames:70,arm:"right-arm",gesture:"point",degrees:53 },
   { id:"speaking",kind:"speech",startFrame:111,durationFrames:76,visemes:[
-    {frame:0,shape:"closed"},{frame:5,shape:"open"},{frame:12,shape:"wide"},{frame:20,shape:"closed"},
+    {frame:0,shape:"closed"},{frame:5,shape:"open"},{frame:12,shape:"wide"},{frame:20,shape:"open"},
     {frame:29,shape:"round"},{frame:38,shape:"open"},{frame:50,shape:"closed"},
     {frame:58,shape:"wide"},{frame:68,shape:"closed"}
   ]},
