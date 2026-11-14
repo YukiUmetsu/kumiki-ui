@@ -102,6 +102,21 @@ for(const [scene,story] of [
 }
 
 
+test("one Shanshui Storybook folder also exposes the real three-phase garment study",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--garment-motion-studio&viewMode=story");
+  await expect(page.getByTestId("shanshui-garment-studio")).toBeVisible();
+  await expect(page.locator("[data-gait-study-frame]")).toHaveCount(3);
+  await expect(page.locator('[data-gait-study-frame="60"]')).toHaveCount(1);
+  await expect(page.locator('[data-gait-study-frame="73"]')).toHaveCount(1);
+  await expect(page.locator('[data-gait-study-frame="86"]')).toHaveCount(1);
+  await expect(page.locator('[data-km-ink-character-frame="60"]')).toHaveCount(1);
+  await expect(page.locator('[data-km-ink-character-frame="73"]')).toHaveCount(1);
+  await expect(page.locator('[data-km-ink-character-frame="86"]')).toHaveCount(1);
+  await page.getByTestId("shanshui-garment-studio").screenshot({
+    animations:"disabled",path:info.outputPath("shanshui-garment-three-phases.png"),
+  });
+});
+
 test("opaque hem panels remain attached to the walking scholar through two gait poses",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
   const stage=page.getByTestId("shanshui-preview");
