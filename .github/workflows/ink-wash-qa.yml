@@ -39,6 +39,20 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Capture four aspect/subject combinations and seek regressions
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-wash.spec.ts
+      - name: Install FFmpeg for production video proof
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Encode ten seconds through production frame exporter
+        run: npm run video:export -- --story=video-ink-wash--chinese-ink-wash-export --startFrame=60 --frames=300 --output=dist/ink-wash-proof.mp4
+      - name: Preserve encoded video for real-time artistic review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ink-wash-motion-evidence
+          path: dist/ink-wash-proof.mp4
+          retention-days: 10
+          if-no-files-found: warn
       - name: Preserve real Chromium screenshots and traces
         if: always()
         uses: actions/upload-artifact@v4
