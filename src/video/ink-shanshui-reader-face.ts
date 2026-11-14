@@ -53,7 +53,7 @@ export const READER_FACE_LANDMARKS:readonly ReaderFaceLandmark[]=[
   {name:"far-eye-outer",x:163.5,y:101.1},
   {name:"nose-tip",x:152.4,y:115.5},
   {name:"mouth-corner",x:148.8,y:124},
-  {name:"chin",x:141.8,y:140.2},
+  {name:"chin",x:143.3,y:143.7},
   {name:"hairline",x:149,y:83.5},
   {name:"cap-peak",x:147,y:29.7},
 ] as const;
