@@ -1,3 +1,4 @@
+import { InkBrushPoster } from "../video/ink-brush-demo";
 import { CrayonStorybook } from "../../registry/video/materials/crayon-react";
 import { CrayonScene } from "../../registry/video/materials/crayon-scene-react";
 import { assertCrayonScene } from "../../registry/video/materials/crayon-scene";
@@ -700,6 +701,17 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           aspect={context.width > context.height ? "landscape" : "portrait"}
           reducedMotion={context.reducedMotion} seed={23} pressure={.87} paperTooth={.58} />;
       }
+      case "ink-brush-study": {
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const subject = props.subject;
+        if (subject !== "delta" && subject !== "branch")
+          throw new RangeError("ink-brush-study props.subject must be 'delta' or 'branch'.");
+        const offset = props.offsetFrame ?? 0;
+        if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0)
+          throw new RangeError("ink-brush-study offsetFrame must be a nonnegative integer.");
+        return <InkBrushPoster subject={subject} aspect={aspect} frame={offset + context.frame}
+          paperTooth={.48} reducedMotion={context.reducedMotion}/>;
+      }
       case "riso-print-study": {
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const rawOffset = props.offsetFrame ?? 0;
@@ -734,7 +746,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           reducedMotion={context.reducedMotion}/>;
       }
 
-      default: throw new Error(`No slot "${content.slot}". Available: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print.`);
+      default: throw new Error(`No slot "${content.slot}". Available: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study.`);
     }
   };
 }
