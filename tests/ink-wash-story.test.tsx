@@ -164,6 +164,8 @@ describe("INK2 reusable material-native film grammar", () => {
     }));
     expect(image).toContain("Source footage");
     expect(image).toContain("foreignObject");
+    expect(image).toContain("<mask");
+    expect(image).toContain("feGaussianBlur");
     expect(image).not.toContain("grayscale(1)");
     const wash=renderToStaticMarkup(createElement(InkMediaReveal,{
       layer:videoLayer,width:960,height:540,frame:64,
