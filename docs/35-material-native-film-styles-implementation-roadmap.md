@@ -8,6 +8,20 @@
 
 **Visual source board:** [35A — Material-native style reference gallery](35a-material-native-style-reference-gallery.md) (verified playable films, stills, shot checkpoints, independent craft references and visual-QA rubric). Every style requires a reference-evidence packet before its implementation PR is approved.
 
+## Risograph expansion — character animation and printable film grammar (2026-11-14)
+
+**Reference evidence and missing capability map:** [RISO2 production study](research/riso-character-animation-video-study.md) reviews four-color printed animation, print-and-rescan frame workflows, historical drum/master techniques, 6/8/12 FPS pose cadence and the 40-second city-film reference. Source footage was not copied or locally decoded frame-by-frame.
+
+**First new slice, PR in progress:** Installable `riso-character` pack with arbitrary joint hierarchies, separate character paths per ink plate, explicit blink/viseme/pose redraws, 1–4 frame animation holds and deterministic frame seeking. Original courier-and-bird actors with independent anatomy share a 30fps eight-second FilmStage film in 16:9 and 9:16; Storybook supports playback, actor frames, ink isolation, registration, grain and print seed. [Component contract](component-specs/riso-character.md).
+
+**Next missing pieces, prioritized:**
+1. Action clip library and constrained animation: turnarounds, grounded walks/runs, reach/carry, body deformation, reusable mouth/phoneme and secondary motion.
+2. Film scene director: paper-space animated environment, independently staged depth layers, transitions, camera choreography, prop handoffs, multi-actor interactions and authored overlays.
+3. True 3–4 ink print timing and edition variation: stable master texture vs per-sheet scan/registration, density and halftone, feed wear and optional printed-frame recomposition.
+4. Performance QA: actual normal-speed two-aspect movies, user-customizable FilmStage authoring, benchmarks/caching for 1080p/4K, visual reference fidelity.
+
+Do not interpret source correctness as proof of sophisticated feature-film character performance. Film quality acceptance remains separate from browser/CI.
+
 ## Progress ledger (2026-11-14)
 
 This ledger records **code availability**, not automatic artistic approval. Keep future entries pinned to actual PRs and observed CI artifacts.
