@@ -3,6 +3,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
 import { InkWash } from "../../registry/video/ink-wash-react";
+import { VideoExportStage } from "../../registry/video/video-export-stage";
+import type { VideoExportManifest } from "../../registry/video/video-export-stage";
 import type { InkWashSpec } from "../../registry/video/ink-wash";
 import { inkExampleSpec } from "./ink-wash-demo";
 import type { InkAspect, InkSubject } from "./ink-wash-demo";
@@ -165,3 +167,30 @@ const meta = { title: "Video production/Material-native film", id: "video-ink-wa
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const ChineseInkWash: Story = { name: "Chinese ink wash · Film Stage" };
+
+/** Production proof uses the same FilmStage and original material as the interactive preview.
+ * The standard VideoExportStage owns seek readiness and the capture contract.
+ */
+const INK_EXPORT: VideoExportManifest = {
+  schemaVersion: 1, id: "ink-wash-landscape-proof", durationFrames: 420,
+  width: 960, height: 540, fps: { num: 30, den: 1 },
+};
+function InkWashExport() {
+  const [frame, setFrame] = useState(0);
+  const spec = useMemo(() => inkExampleSpec("landscape", "landscape"), []);
+  const compiled = useMemo(() => compileFilm(INK_WASH_FILM, { outputId: "landscape" }), []);
+  if (!compiled.ok) return <pre role="alert">{compiled.diagnostics.map(d => d.message).join("\n")}</pre>;
+  return <VideoExportStage manifest={INK_EXPORT} frame={frame} onSeek={setFrame}>
+    <FilmStage film={compiled.film} frame={frame} renderObject={() => null} reducedMotion={false}
+      renderSlot={(content, context) => {
+        if (content.slot !== "ink-wash-study") throw new Error("Unsupported INK1 export slot: " + content.slot);
+        const offset = Number(content.props?.offsetFrame ?? 0);
+        return <Painting spec={spec} frame={context.frame + offset} grain={spec.grain}
+          absorption={spec.absorption} subject="landscape" reducedMotion={false}/>;
+      }}/>
+  </VideoExportStage>;
+}
+export const ChineseInkWashExport: StoryObj<typeof InkWashExport> = {
+  name: "Chinese ink wash · Production video export",
+  render: () => <InkWashExport />,
+};
