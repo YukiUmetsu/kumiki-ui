@@ -59,7 +59,7 @@ function WaxLine({ d, color, width, frame, first, last, reduced, seed, opacity =
       strokeDasharray={100} strokeDashoffset={100 * (1 - reveal)} opacity={.14 + wiggle * .08} />
   </g>;
 }
-function Paper({ width, height, seed, tooth }: { width: number; height: number; seed: number; tooth: string }) {
+function Paper({ width, height, seed, tooth, strength }: { width: number; height: number; seed: number; tooth: string; strength: number }) {
   const fibers = useMemo(() => Array.from({ length: 480 }, (_, i) => ({
     x: crayonHash(seed, i, 1) * width, y: crayonHash(seed, i, 2) * height,
     dx: 1 + crayonHash(seed, i, 3) * 14, dy: (crayonHash(seed, i, 4) - .5) * 4,
@@ -67,12 +67,16 @@ function Paper({ width, height, seed, tooth }: { width: number; height: number; 
   })), [seed, width, height]);
   return <>
     <defs>
-      <mask id={tooth} maskUnits="userSpaceOnUse" x={0} y={0} width={width} height={height}>
-        <rect width={width} height={height} fill="#fff" />
-        {fibers.map((f, i) => <g key={i} fill="#000" stroke="#000" strokeLinecap="round">
-          <path d={"M" + f.x + " " + f.y + " l" + f.dx + " " + f.dy} strokeWidth={f.r} />
-          <circle cx={(f.x + 59) % width} cy={(f.y + 43) % height} r={f.r * .68} />
+      <pattern id={tooth + "-texture"} width={144} height={144} patternUnits="userSpaceOnUse">
+        <rect width={144} height={144} fill="#fff"/>
+        {fibers.slice(0, Math.round(strength * 130)).map((f,i) => <g key={i} stroke="#000" fill="#000" strokeLinecap="round">
+          <path d={"M" + (f.x % 144) + " " + (f.y % 144) + " l" + (f.dx * .35) + " " + f.dy}
+            strokeWidth={f.r * (.5 + strength)} />
+          <circle cx={(f.x + 59) % 144} cy={(f.y + 43) % 144} r={f.r * strength} />
         </g>)}
+      </pattern>
+      <mask id={tooth} maskUnits="userSpaceOnUse" x={-4096} y={-4096} width={8192} height={8192}>
+        <rect x={-4096} y={-4096} width={8192} height={8192} fill={"url(#" + tooth + "-texture)"} />
       </mask>
     </defs>
     <rect width={width} height={height} fill="#faf1da" />
@@ -211,13 +215,12 @@ export function CrayonStorybook({frame, story = "lantern", aspect = "landscape",
   const yellow = day ? ["#f7d27a","#e9a865","#fff0ad"] as const : ["#f7e2a0","#efc778","#fff4c5"] as const;
   const skyBounds = {x:0,y:0,width:W,height:H*.77};
   const totalFrame = Math.min(frame, 419);
-  const toothSeed = seed + Math.round(paperTooth * 470);
   return <svg {...props} role={props["aria-hidden"] ? undefined : "img"} aria-label={props["aria-hidden"] ? undefined :
     (day ? "Wax-crayon storybook scene: flowers grow from a little seed" : "Wax-crayon storybook scene: a fox carries a lantern home")}
     data-km-crayon-storybook="" data-km-crayon-frame={frame} data-km-crayon-story={story}
     viewBox={"0 0 " + W + " " + H} xmlns="http://www.w3.org/2000/svg"
     style={{display:"block",width:"100%",height:"100%",isolation:"isolate",...style}}>
-    <Paper width={W} height={H} seed={toothSeed} tooth={tooth}/>
+    <Paper width={W} height={H} seed={seed} tooth={tooth} strength={paperTooth}/>
     <WaxRegion d={skyD} bounds={skyBounds} colors={sky} seed={seed+1} pressure={pressure} tooth={tooth} frame={totalFrame} first={0} last={121} reduced={reducedMotion} spacing={11}/>
     <WaxRegion d={circle} bounds={{x:moonX-sunR-4,y:moonY-sunR-4,width:2*sunR+8,height:2*sunR+8}} colors={yellow} seed={seed+2}
       pressure={pressure} tooth={tooth} frame={totalFrame} first={47} last={138} reduced={reducedMotion} spacing={7}/>
