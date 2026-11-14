@@ -2,6 +2,8 @@
 
 **Status:** Implementation PR #156; separate material QA from artistic approval.
 
+**Expanded system:** [36 — ink wash craft and any-content film grammar](../36-chinese-ink-wash-craft-and-film-system.md). Two source-distributed registry entries: `ink-wash-core` and optional `ink-wash-film`.
+
 **Roadmap:** [35 — Material-native film styles](../35-material-native-film-styles-implementation-roadmap.md), Phase 3 (PRs 4–5).  
 **Public code:** [ink-wash.ts](../../registry/video/ink-wash.ts) and [ink-wash-react.tsx](../../registry/video/ink-wash-react.tsx).  
 **Production study:** [ink-wash-film.ts](../../src/video/ink-wash-film.ts) and [Storybook](../../src/video/ink-wash.stories.tsx).
