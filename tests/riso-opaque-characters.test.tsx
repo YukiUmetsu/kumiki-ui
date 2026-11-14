@@ -43,7 +43,9 @@ describe("Opaque RISO actor compositing", () => {
     for (const actor of [COURIER, PAPER_BIRD]) {
       expect(actor.parts.every(part => (part.opacity ?? 1) === 1)).toBe(true);
     }
-    expect(COURIER.parts.find(p => p.id === "face")?.paint).toBe("screen");
+    expect(COURIER.parts.find(p => p.id === "face")?.knockoutOnly).toBe(true);
+    expect(COURIER.parts.find(p => p.id === "face")?.paint).toBe("solid");
+    expect(COURIER.parts.find(p => p.id === "face-outline")?.paint).toBe("solid");
     expect(PAPER_BIRD.parts.find(p => p.id === "body")?.paint).toBe("solid");
     expect(COURIER.parts.filter(p => p.id.includes("boot-detail"))).toHaveLength(2);
   });
@@ -57,9 +59,17 @@ describe("Opaque RISO actor compositing", () => {
     expect(first).not.toMatch(/fill-opacity|opacity="0\./);
     expect(first).toContain('data-km-riso-knockout-frame="46"');
     expect(first).toContain('data-km-riso-knockout-part="left-thigh"');
+    expect(first).toContain('data-km-riso-knockout-part="face"');
     expect(() => renderToStaticMarkup(createElement(RisoCharacterKnockout, {
       spec: COURIER, frame: 10, spread: -1,
     }))).toThrow(/spread/);
+  });
+  it("prints uninked paper faces only as matte geometry, not as translucent blue freckles", () => {
+    const rendered = html("landscape", 46);
+    expect(rendered).toContain('data-km-riso-knockout-part="face"');
+    expect(rendered).not.toContain('data-km-riso-part="face"');
+    expect(rendered).toContain('data-km-riso-part="face-outline"');
+    expect(rendered).toContain('data-km-riso-part="cheek"');
   });
   it("validates layered paper knockouts and protects transparent film output", () => {
     const spec = risoPerformanceSpec("landscape");
