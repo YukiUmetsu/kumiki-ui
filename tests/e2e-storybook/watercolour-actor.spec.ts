@@ -51,7 +51,7 @@ for(const aspect of ["landscape","portrait"] as const){
     // requiring byte-identical PNG encoding from the browser GPU compositor.
     expect(after).toEqual(before);
     await actor.screenshot({animations:"disabled",path:info.outputPath("wm3-"+aspect+"-seek-after.png")});
-    await page.getByRole("checkbox",{name:"Reduce character motion"}).check();
+    await page.getByRole("checkbox",{name:"Reduced motion"}).check();
     await seek(page,0);
     await expect(actor).toHaveAttribute("data-km-watercolour-contact","grounded");
   });
