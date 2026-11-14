@@ -10,8 +10,8 @@ import { createInkFilmDocument, INK_LOOKS } from "../../registry/video/ink-wash-
 import type { InkFilmPlan, InkLayerPlan, InkLookId } from "../../registry/video/ink-wash-story";
 import type { InkWashSpec, InkStroke } from "../../registry/video/ink-wash";
 import mountainsDusk from "../../assets/photos/look-plates/mountains-dusk.jpg?url";
-import { configureInkCamera, configureInkSpec } from "./ink-film-config";
-import type { InkCameraControls, InkMaterialControls } from "./ink-film-config";
+import { configureInkCamera, configureInkSpec, configureInkLayer } from "./ink-film-config";
+import type { InkCameraControls, InkMaterialControls, InkRevealControls } from "./ink-film-config";
 
 /** A general education/documentary/title film from original drawings plus a repository CC0 photograph.
  * A consumer replaces the semantic renderLayer callback with their own footage, UI, actors, or 3D.
@@ -144,18 +144,22 @@ function renderMedia(layer:InkLayerPlan,shotId:string,width:number,height:number
     default:throw new Error("Unknown ink shot "+shotId+" visual layer: "+layer.id);
   }
 }
-export function InkFilm({frame,output,look,reducedMotion=false,material,camera}:{
+export function InkFilm({frame,output,look,reducedMotion=false,material,camera,reveal}:{
   frame:number;output:Output;look:InkLookId;reducedMotion?:boolean;
   /** Advanced native source-brush controls (not a screen-space filter). */
   material?:InkMaterialControls;
   /** Authorable camera offset/zoom on the film's true keyframes. */
   camera?:InkCameraControls;
+  reveal?:InkRevealControls;
 }) {
-  const plan=useMemo<InkFilmPlan>(()=>camera?{...FILM,
-    shots:FILM.shots.map(shot=>({...shot,camera:configureInkCamera(shot.camera,camera)}))
-  }:FILM,[camera]);
+  const plan=useMemo<InkFilmPlan>(()=>camera||reveal?{...FILM,
+    shots:FILM.shots.map(shot=>({...shot,
+      ...(camera?{camera:configureInkCamera(shot.camera,camera)}:{}),
+      ...(reveal?{layers:shot.layers.map(layer=>configureInkLayer(layer,reveal,shot.durationFrames))}:{}),
+    }))
+  }:FILM,[camera,reveal]);
   const compiled=useMemo(()=>compileFilm(
-    camera?createInkFilmDocument(plan):DOCUMENT,{outputId:output}),[output,plan,camera]);
+    camera||reveal?createInkFilmDocument(plan):DOCUMENT,{outputId:output}),[output,plan,camera,reveal]);
   const specMap=useMemo(()=>{
     const dimensions=OUTPUTS.find(o=>o.id===output)!;
     return Object.fromEntries(FILM.shots.map(shot=>{
