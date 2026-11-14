@@ -33,6 +33,9 @@ function PaintedWorldsLab() {
   const [opacity, setOpacity] = useState(1);
   const [backrun, setBackrun] = useState(1);
   const [paperColor, setPaperColor] = useState("#F7F0E4");
+  const [cameraX,setCameraX]=useState(0);
+  const [cameraY,setCameraY]=useState(0);
+  const [cameraZoom,setCameraZoom]=useState(1);
   const [custom, setCustom] = useState<Partial<Record<PaintedGenre,PaintedCompositionSpec>>>({});
   const [reduced, setReduced] = useState(false);
   const compiled = useMemo(() => compileFilm(PAINTED_WORLDS_FILM, { outputId: output }), [output]);
@@ -114,6 +117,12 @@ function PaintedWorldsLab() {
         <input aria-label="Painted paper colour" type="color" value={paperColor}
           onChange={e=>{clearGenreOverride();setPaperColor(e.target.value);}} style={{height:41,width:80}}/>
       </label>
+      <WatercolourSlider label="Camera pan X" value={cameraX} min={-80} max={80} step={2}
+        onChange={setCameraX} format={v=>v+" px"}/>
+      <WatercolourSlider label="Camera pan Y" value={cameraY} min={-80} max={80} step={2}
+        onChange={setCameraY} format={v=>v+" px"}/>
+      <WatercolourSlider label="Camera zoom" value={cameraZoom} min={.75} max={1.25} step={.01}
+        onChange={setCameraZoom} format={v=>v.toFixed(2)+"×"}/>
       <label style={{ display: "grid", gap: 4, fontWeight: 650 }}>Paper seed
         <input aria-label="Paper seed" style={{...control, width:105}} type="number" min={0} max={2147483647}
           value={seed} onChange={e => {clearGenreOverride();setSeed(Math.max(0, Math.min(2147483647, Math.floor(Number(e.target.value) || 0))));}}/>
@@ -146,7 +155,8 @@ function PaintedWorldsLab() {
           if (!PAINTED_GENRES.includes(genre)) throw new RangeError("Painted film needs a valid genre.");
           return <PaintedWorldPage genre={genre} spec={materials[genre]}
             frame={context.frame} reducedMotion={context.reducedMotion}
-            camera={paintedCameraAt(context.frame, context.reducedMotion)}/>;
+            camera={(()=>{const base=paintedCameraAt(context.frame,context.reducedMotion);
+              return {x:base.x+cameraX,y:base.y+cameraY,zoom:base.zoom*cameraZoom};})()}/>;
         }}
         style={{ transform: "scale(" + scale + ")", transformOrigin: "top left" }}/>}
     </WatercolourFilmViewport>
