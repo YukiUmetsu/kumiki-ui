@@ -25,7 +25,7 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
   const [aspect, setAspect] = useState<PencilAspect>("landscape");
   const [paperTooth, setTooth] = useState(.68);
   const [detail, setDetail] = useState<"full" | "study">("full");
-  const [inspection, setInspection] = useState<"composition" | "wing" | "eye" | "breast">("composition");
+  const [inspection, setInspection] = useState<"composition" | "wing" | "eye" | "breast" | "foot">("composition");
   const [frame, setFrame] = useState(285);
   const [speed, setSpeed] = useState(1);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -52,11 +52,13 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
   // Inspection zoom is Storybook-only; FilmStage/export always sees the same art.
   // World coordinates are derived from the existing authored actor placement.
   const point = inspection === "wing" ? [128, 205] :
-    inspection === "breast" ? [179, 215] : [222, 101];
+    inspection === "breast" ? [179, 215] :
+    inspection === "foot" ? [190, 314] : [222, 101];
   const placement = aspect === "landscape" ?
     {x:426 + 1.33 * point[0], y:42 + 1.33 * point[1], w:960, h:540} :
     {x:-14 + 1.42 * point[0], y:171 + 1.42 * point[1], w:540, h:960};
-  const zoom = inspection === "wing" ? 2.5 : inspection === "breast" ? 3.1 : 3.4;
+  const zoom = inspection === "wing" ? 2.5 : inspection === "breast" ? 3.1 :
+    inspection === "foot" ? 4.2 : 3.4;
   const artworkStyle = inspection === "composition" || filmView ? undefined : {
     transform:"translate(" + (50 - 100 * zoom * placement.x / placement.w).toFixed(3) +
       "%, " + (50 - 100 * zoom * placement.y / placement.h).toFixed(3) +
@@ -110,6 +112,7 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
           <option value="composition">Whole composition</option>
           <option value="wing">Wing microstructure</option>
           <option value="breast">Breast plumage and paper tooth</option>
+          <option value="foot">Foot and perch contact</option>
           <option value="eye">Eye and eyelid</option>
         </select>
       </label>}
@@ -166,7 +169,7 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
     </div>
     <p style={{maxWidth:790,margin:0,fontSize:13,color:"#6D7872"}}>
       Original hand-authored vector specimen with connected feather shafts/barbs,
-      not a copied reference bird. Inspect Wing, Breast and Eye at close range
+      not a copied reference bird. Inspect Wing, Breast, Foot and Eye at close range
       without altering exports.
       Posed features and pencil deposition are deterministic. Technical tests do not certify
       feature-film illustration quality; review actual exports at full resolution.
