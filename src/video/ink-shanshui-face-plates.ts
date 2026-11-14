@@ -9,6 +9,7 @@
 import type {CharacterShapeAsset,CharacterPathShape} from
   "../../registry/character/definition";
 import type {ShanshuiScene} from "../../registry/video/ink-shanshui";
+import {shanshuiFacialCraft} from "./ink-shanshui-fine-craft";
 const p=(d:string,fill="none",stroke="$ink",strokeWidth=1,
   opacity=1):CharacterPathShape=>({type:"path",d,fill,stroke,strokeWidth,opacity});
 const art=(...shapes:CharacterPathShape[]):CharacterShapeAsset=>({
@@ -168,10 +169,12 @@ const walker={
 };
 const parts={ "misty-hermit":hermit,"river-scholar":reader,
   "mountain-trail":walker} as const;
-export function shanshuiFaceAssets(scene:ShanshuiScene):Record<string,CharacterShapeAsset>{
+export function shanshuiFaceAssets(
+  scene:ShanshuiScene,detail=1,
+):Record<string,CharacterShapeAsset>{
   const a=parts[scene];
   if(!a)throw new RangeError("Unknown shanshui figure face.");
-  return {
+  const original:Record<string,CharacterShapeAsset>={
     face:a.face,hair:a.hair,brow:a.brow,
     "eyes-open":a.eyesOpen,"eyes-soft":a.eyesSoft,
     "eyes-closed":a.eyesClosed,
@@ -181,4 +184,11 @@ export function shanshuiFaceAssets(scene:ShanshuiScene):Record<string,CharacterS
     "pupil-left":a.pupilLeft,"pupil-right":a.pupilRight,
     beard:a.beard,
   };
+  // The same fitted child pivots and animation channels are retained. Lines
+  // belong to their respective facial pieces, so blink/speech stays coherent.
+  const strokes=shanshuiFacialCraft(scene,detail);
+  return Object.fromEntries(Object.entries(original).map(([key,asset])=>{
+    if(asset.kind!=="shapes")return [key,asset];
+    return [key,{...asset,shapes:[...asset.shapes,...(strokes[key]??[])]}];
+  }));
 }
