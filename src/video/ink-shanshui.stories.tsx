@@ -30,7 +30,12 @@ function Gallery(){
     const start=performance.now(),initial=playStart;
     let id=0;
     const tick=(now:number)=>{
-      const next=Math.min(SHANSHUI_FRAMES-1,initial+Math.floor((now-start)*.03));
+      // RAF timestamps are the *start* of a display frame and may precede
+      // performance.now() sampled inside the effect. Clamp the first delta:
+      // floor(-0.1) would otherwise yield frame -1 and crash Storybook.
+      const elapsed=Math.max(0,now-start);
+      const next=Math.min(SHANSHUI_FRAMES-1,
+        Math.max(0,initial+Math.floor(elapsed*.03)));
       setFrame(next);
       if(next<SHANSHUI_FRAMES-1)id=requestAnimationFrame(tick);
       else setPlaying(false);
