@@ -228,9 +228,9 @@ function LayeredCity({ aspect, paint, ink }: {
         <path d="M0 68 Q-18 31 0 10 Q20 -9 36 10 Q61 39 41 68 Z" fill={paint.dots} opacity=".24"/>
         <rect x={16} y={65} width={4} height={20}/>
       </g>)}
-      <circle cx={portrait ? 395 : 810} cy={portrait ? 185 : 112} r={portrait?84:65}
+      <circle cx={portrait ? 395 : 810} cy={portrait ? 165 : 112} r={portrait?70:65}
         fill={paint.dots} opacity=".23"/>
-      <circle cx={portrait ? 395 : 810} cy={portrait ? 185 : 112} r={portrait?70:52}
+      <circle cx={portrait ? 395 : 810} cy={portrait ? 165 : 112} r={portrait?59:52}
         stroke={paint.solid} strokeWidth="3" fill="none"/>
     </>}
   </g>;
@@ -244,8 +244,8 @@ export function RisoCharacterPerformance({
   const courier = { ...COURIER, cadence }, bird = { ...PAPER_BIRD, cadence };
   const sample = reducedMotion ? 239 : Math.min(239, frame);
   const titleX = portrait ? 32 : 45, headlineY = portrait ? 160 : 93;
-  const stage = portrait ? { x: 270, y: 744, scale: 1.42, birdX: 355, birdY: 514 } :
-    { x: 465, y: 381, scale: 1.16, birdX: 660, birdY: 191 };
+  const stage = portrait ? { x: 115, y: 744, scale: 1.42, birdX: 405, birdY: 455 } :
+    { x: 465, y: 381, scale: 1.16, birdX: 730, birdY: 108 };
   const artwork = (plateId: "blue" | "red"): RisoArtwork => (paint: RisoPaint) =>
     <g data-km-riso-performance-plate={plateId}>
       <LayeredCity aspect={aspect} paint={paint} ink={plateId}/>
