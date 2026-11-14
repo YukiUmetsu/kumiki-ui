@@ -35,7 +35,7 @@ jobs:
       - name: Strict typecheck and focused motion contracts
         run: |
           npm run typecheck
-          npm run test -- tests/riso-character.test.tsx tests/riso-rig-ik.test.tsx tests/riso-nested-ik.test.ts tests/riso-joint-skin.test.ts
+          npm run test -- tests/riso-character.test.tsx tests/riso-rig-ik.test.tsx tests/riso-nested-ik.test.ts tests/riso-joint-skin.test.ts tests/riso-opaque-characters.test.tsx
       - name: Clean independent registry consumer install
         run: node scripts/registry-fixture.js --item=riso-character
       - name: Chromium
