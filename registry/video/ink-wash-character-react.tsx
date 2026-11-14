@@ -54,6 +54,7 @@ export function InkCharacter({
       transformOrigin:"50% 100%", ...style }}>
     <CharacterPresenter definition={definition} instance={instance} cues={cues} frame={frame}
       label={label} assetUrls={assetUrls} onDiagnostics={onDiagnostics} reducedMotion={reducedMotion}
+      allowOverflow
       inkMaterial={{absorption,grain,seed:instance.seed,partFinish}} />
   </div>;
 }
