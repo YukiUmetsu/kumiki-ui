@@ -29,12 +29,14 @@ for (const aspect of ["landscape", "portrait"] as const) {
       const name = "wm1-" + aspect + "-" + String(frame).padStart(3, "0") + ".png";
       await paper.screenshot({ animations: "disabled", path: info.outputPath(name) });
     }
-    await seek(slider, 350);
+    await seek(slider, 390);
     const dry = await paper.screenshot({ animations: "disabled", path: info.outputPath("wm1-" + aspect + "-dry-reference.png") });
     await seek(slider, 80);
-    await seek(slider, 388);
+    await seek(slider, 409);
     const dryLater = await paper.screenshot({ animations: "disabled", path: info.outputPath("wm1-" + aspect + "-dry-later.png") });
-    // WM1 has no time-dependent material after absorption and evaporation finish.
+    // The iris's last detail starts at frame 257 and dries by frame 363.
+    // Comparing 350 against 388 was invalid: 350 still contains wet pigment.
+    // At 390 and 409 every deposited layer is fully settled.
     expect(dryLater).toEqual(dry);
     await page.getByRole("checkbox", { name: "Reduced motion" }).check();
     await seek(slider, 0);
