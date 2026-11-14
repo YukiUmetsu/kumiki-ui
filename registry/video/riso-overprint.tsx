@@ -77,7 +77,7 @@ export function evaluateRisoOverprint(
 
 export function RisoOverprintTransition({
   outgoing, incoming, imprintPath, imprintOrigin, frame, startFrame, durationFrames,
-  imprintPlateId, imprintScale = 2.1, misregistration = 0, paperGrain = .5,
+  imprintPlateId, imprintScale = 1.85, misregistration = 0, paperGrain = .5,
   reducedMotion = false, label = "An incoming spot ink overprints a poster, then resolves into a second print",
   className, style,
 }: RisoOverprintProps) {
