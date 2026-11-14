@@ -2,6 +2,7 @@ import { Fragment, useId, useMemo } from "react";
 import type { ReactNode, SVGProps } from "react";
 import { evaluateInkBrush, inkHash } from "./ink-brush";
 import type { InkBrushSpec } from "./ink-brush";
+import { sampleWetInk, wetInkPngDataUri } from "./ink-wet-paper";
 
 export interface InkBrushCanvasProps
   extends Omit<SVGProps<SVGSVGElement>, "children" | "viewBox" | "width" | "height"> {
@@ -10,6 +11,11 @@ export interface InkBrushCanvasProps
   frame: number;
   /** 0..1 density of anchored paper fibres, not screen-space film grain. */
   paperTooth?: number;
+  /** The raster pigment-paper medium is the default; legacy SVG is available for comparison. */
+  renderMode?: "wet" | "vector";
+  /** Static fibre-directed bleeding. Zero disables spread, 1 maximizes it. */
+  bleed?: number;
+  rasterScale?: number;
   /** Draw completed ink geometry, keeping semantic labels accessible. */
   reducedMotion?: boolean;
   label?: string;
@@ -20,11 +26,16 @@ export interface InkBrushCanvasProps
 /** Pure, frame-addressed SVG mark compositor. No <canvas> effects or timers. */
 export function InkBrushCanvas({
   spec, frame, paperTooth = .45, reducedMotion = false,
+  renderMode = "wet", bleed = .65, rasterScale = .5,
   label = "Original ink-brush illustration", children, style, ...props
 }: InkBrushCanvasProps) {
   if (!Number.isFinite(paperTooth) || paperTooth < 0 || paperTooth > 1)
     throw new RangeError("paperTooth must be within 0..1.");
+  if (renderMode !== "wet" && renderMode !== "vector") throw new RangeError("Unknown ink render mode.");
   const marks = evaluateInkBrush(spec, frame, reducedMotion);
+  const wetImage = useMemo(() => renderMode === "wet" ?
+    wetInkPngDataUri(sampleWetInk(spec, frame, { scale: rasterScale, bleed, reducedMotion })) : null,
+    [renderMode, spec, frame, rasterScale, bleed, reducedMotion]);
   const rawId = useId(), uid = "km-ink-" + rawId.replace(/[^a-zA-Z0-9_-]/g, "");
   const fibres = useMemo(() => Array.from({ length: 400 }, (_, i) => ({
     x: inkHash(spec.seed, i, 7) * spec.width,
@@ -36,11 +47,12 @@ export function InkBrushCanvas({
   return <svg {...props} xmlns="http://www.w3.org/2000/svg"
     role={props["aria-hidden"] ? undefined : "img"}
     aria-label={props["aria-hidden"] ? undefined : label}
-    data-km-ink-brush="" data-km-ink-material="graded-bristle-contact" data-km-ink-frame={frame}
+    data-km-ink-brush="" data-km-ink-material={renderMode === "wet" ? "paper-pigment" : "graded-bristle-contact"} data-km-ink-frame={frame}
     viewBox={"0 0 " + spec.width + " " + spec.height}
     style={{ width: "100%", height: "100%", display: "block", overflow: "hidden",
       isolation: "isolate", ...style }}>
     <defs>
+      {renderMode === "vector" && <>
       <filter id={uid + "-edge-soft"} x="-8%" y="-8%" width="116%" height="116%"
         colorInterpolationFilters="sRGB">
         <feGaussianBlur stdDeviation="1.25"/>
@@ -79,6 +91,7 @@ export function InkBrushCanvas({
             <stop offset="100%" stopColor={mark.color} stopOpacity=".36"/>
           </linearGradient>
         </Fragment>)}
+      </>}
     </defs>
     <rect width={spec.width} height={spec.height} fill={spec.paper} />
     {paperTooth > 0 && <g aria-hidden="true" pointerEvents="none" stroke="#746D61" strokeWidth=".6">
@@ -87,7 +100,10 @@ export function InkBrushCanvas({
            "l" + f.dx.toFixed(2) + " " + f.dy.toFixed(2)}
         opacity={f.opacity * paperTooth}/>)}
     </g>}
-    {marks.filter(mark => mark.outline.length > 0).map((mark, i) =>
+    {renderMode === "wet" ?
+      <image data-km-ink-raster="" data-km-ink-stroke-count={marks.filter(mark => mark.outline.length > 0).length}
+        width={spec.width} height={spec.height} href={wetImage ?? undefined} imageRendering="auto" /> :
+      marks.filter(mark => mark.outline.length > 0).map((mark, i) =>
       <Fragment key={mark.id}>
         {/* A soft capillary-contact fringe behind the real marked silhouette. This is
             stroke-local, not a Gaussian blur of an entire image or a simulation of diffusion. */}
