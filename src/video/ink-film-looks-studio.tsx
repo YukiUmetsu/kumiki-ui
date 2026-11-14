@@ -386,6 +386,7 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
         setCameras(old=>({...old,[mode]:{...DEFAULT_INK_CAMERA}}));
         setReveals(old=>({...old,[mode]:{...DEFAULT_INK_REVEAL}}));
         if(mode==="character")setActor({...DEFAULT_INK_ACTOR});
+        if(mode==="documentary")setLook("literati");
         setJsonError("");
       }}>Reset style parameters</button>
     </div>
