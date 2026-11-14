@@ -77,6 +77,23 @@ describe("material-native colour-pencil science art", () => {
     }] })).not.toEqual([]);
   });
 
+  it("clips fine graphite to opted-in silhouette without clipping the outer contour", () => {
+    const drawing = coloredPencilExample("leaf", "landscape");
+    const region = drawing.regions[0];
+    const clipped = { ...drawing, regions: [{ ...region, clipDetails: true }] };
+    expect(inspectPencilDrawing(clipped)).toEqual([]);
+    expect(inspectPencilDrawing({
+      ...drawing, regions: [{ ...region, clipDetails: "yes" as unknown as boolean }],
+    })).toContain("regions[0].clipDetails: expected a boolean.");
+    const originalMarkup = renderToStaticMarkup(<PencilDrawing drawing={drawing} frame={350}/>);
+    const clippedMarkup = renderToStaticMarkup(<PencilDrawing drawing={clipped} frame={350}/>);
+    expect(clippedMarkup).toMatch(/data-km-pencil-details="" clip-path="url\(#km-cp-[^"]+-region-0\)"/);
+    expect(originalMarkup).not.toMatch(/data-km-pencil-details="" clip-path=/);
+    expect(clippedMarkup).toContain("data-km-graphite");
+    // Earlier drawings preserve intentionally un-clipped construction marks.
+    expect(region.clipDetails).toBeUndefined();
+  });
+
   it("never reveals an unpainted specimen silhouette before the pencil arrives", () => {
     const blank = renderToStaticMarkup(<ColoredPencilSciencePlate aspect="landscape" subject="leaf" frame={0}/>);
     const painted = renderToStaticMarkup(<ColoredPencilSciencePlate aspect="landscape" subject="leaf" frame={260}/>);
