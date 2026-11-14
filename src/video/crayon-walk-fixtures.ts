@@ -40,9 +40,11 @@ export function crayonWalkScene(
       {frame:0,x:-88,y:0},{frame:36,x:-88,y:0},{frame:94,x:-37,y:0},
       {frame:156,x:17,y:0},{frame:214,x:78,y:0},{frame:269,x:78,y:0},
     ])};
-    if(node.id==="body")return {...node,motion:scaleWalk(move),poseCadence:2};
+    // Raise the torso but keep the feet on their original ground baseline.
+    // This reveals the shins instead of burying them under the body silhouette.
+    if(node.id==="body")return {...node,placement:{...(node.placement??{}),y:(node.placement?.y??0)-34},motion:scaleWalk(move),poseCadence:2};
     if(node.id==="foot-back")return {
-      ...node,placement:{...(node.placement??{}),y:22},
+      ...node,placement:{...(node.placement??{}),y:56},
       pivot:{x:-29,y:107},poseCadence:2,
       motion:scaleWalk([
         {frame:0,x:0,y:0,rotate:-4},{frame:28,x:0,y:0,rotate:7},
@@ -57,7 +59,7 @@ export function crayonWalkScene(
         {start:214,end:269,anchor:{x:-29,y:107}}],
     };
     if(node.id==="foot-front")return {
-      ...node,placement:{...(node.placement??{}),y:22},
+      ...node,placement:{...(node.placement??{}),y:56},
       pivot:{x:31,y:107},poseCadence:2,
       motion:scaleWalk([
         {frame:0,x:0,y:0,rotate:-4},{frame:80,x:0,y:0,rotate:6},
@@ -94,7 +96,9 @@ export function crayonWalkScene(
     if(node.kind==="lettering"&&node.id==="headline")
       return {...node,lines:aspect==="portrait"?["A LITTLE","JOURNEY"]:["A LITTLE JOURNEY"]};
     if(node.kind==="lettering"&&node.id==="caption")
-      return {...node,lines:["ONE STEP AT A TIME"],timing:{start:112,end:169}};
+      return {...node,lines:["ONE STEP AT A TIME"],timing:{start:112,end:169},
+        x:aspect==="portrait"?32:44,y:H-28,fontSize:aspect==="portrait"?15:17,
+        anchor:"start",backing:{color:"#f6ebd5",padding:8,width:240,height:39,radius:5}};
     if(node.kind==="lettering"&&node.id==="footer")
       return {...node,lines:["CRAYON LOCOMOTION  /  PINNED FOOT CONTACT"]};
     return node;
