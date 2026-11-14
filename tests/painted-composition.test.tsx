@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PaintedComposition } from "../registry/video/painted-composition-react";
-import { inspectPaintedComposition, evaluatePaintWash, samplePigmentGrains,
+import { inspectPaintedComposition, evaluatePaintWash, samplePigmentGrains, paintBackrunAt, paintBackrunPath,
   PAINTED_PALETTES } from "../registry/video/painted-composition";
 import type { PaintWash, PaintedCompositionSpec } from "../registry/video/painted-composition";
 import { paintedCameraAt, paintedDemoSpec, PAINTED_GENRES } from "../src/video/painted-composition-demo";
@@ -47,6 +47,42 @@ describe("WM2 independently authored painterly compositions", () => {
     expect(evaluatePaintWash(layer, layer.startFrame + layer.paintFrames + 999)).toEqual(dry);
     expect(evaluatePaintWash(layer, 0, true)).toEqual(dry);
     expect(() => evaluatePaintWash(layer, -1)).toThrow(RangeError);
+  });
+  it("models watercolor rewet backruns as local, irreversible pigment displacement", () => {
+    const spec = paintedDemoSpec("nature","landscape");
+    const wash = spec.layers.find(l => l.kind === "wash" && (l.backruns?.length ?? 0) > 0) as PaintWash;
+    expect(wash.backruns?.length).toBe(2);
+    const run = wash.backruns![0];
+    expect(inspectPaintedComposition(spec)).toEqual([]);
+    const before = paintBackrunAt(run, run.startFrame - 1);
+    const halfway = paintBackrunAt(run, run.startFrame + Math.floor(run.spreadFrames/2));
+    const final = paintBackrunAt(run, run.startFrame + run.spreadFrames);
+    expect(before).toEqual({progress:0,radius:0,settled:false});
+    expect(halfway.radius).toBeGreaterThan(0);
+    expect(halfway.radius).toBeLessThan(run.radius);
+    expect(final).toEqual({progress:1,radius:run.radius,settled:true});
+    expect(paintBackrunAt(run, run.startFrame+1000)).toEqual(final);
+    const rim = paintBackrunPath(run, spec.seed, halfway.progress);
+    expect(rim).toMatch(/^M/);
+    expect(rim).not.toMatch(/NaN|Infinity/);
+    expect(paintBackrunPath(run, spec.seed, halfway.progress)).toBe(rim);
+    expect(paintBackrunPath(run, spec.seed, 0)).toBe("");
+    const render = (frame:number) => renderToStaticMarkup(<PaintedComposition spec={spec} frame={frame}/>);
+    const wet = render(run.startFrame+20);
+    const dry = render(run.startFrame+run.spreadFrames+15);
+    const later = render(run.startFrame+run.spreadFrames+200);
+    expect(wet).toContain('data-km-watercolour-backrun=""');
+    expect(wet).toContain('data-km-backrun-phase="wet"');
+    expect(dry).toContain('data-km-backrun-phase="dry"');
+    expect(later).toContain('data-km-backrun-phase="dry"');
+    // Renderer can include other still-drying layers, but the backrun edge geometry remains identical.
+    expect(paintBackrunPath(run, spec.seed, 1)).toBe(paintBackrunPath(run, spec.seed, 1));
+    const reduced = renderToStaticMarkup(<PaintedComposition spec={spec} frame={0} reducedMotion/>);
+    expect(reduced).toContain('data-km-backrun-phase="dry"');
+    const broken: PaintedCompositionSpec = {...spec, layers:[{...wash,
+      backruns:[{...run,radius:-4,strength:3,x:9000,spreadFrames:0}]}]};
+    expect(inspectPaintedComposition(broken).map(x=>x.path)).toContain("/layers/0/backruns");
+    expect(()=>paintBackrunAt(run,-1)).toThrow(RangeError);
   });
   it("has paper-locked pigment sampling and fixed-seed deterministic result", () => {
     const spec = paintedDemoSpec("science", "portrait");
