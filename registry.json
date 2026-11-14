@@ -3325,6 +3325,28 @@
       ]
     },
     {
+      "name": "riso-character",
+      "type": "registry:ui",
+      "title": "Risograph Character & Narrative Stage",
+      "description": "Data-driven hierarchical 2D rigs with pose keys, expressive mouth/eye redraws, held-cel cadence, multi-actor animation, layered spot-ink scenery, camera parallax, 16:9/9:16 FilmStage fixtures and real RISO1 printing material. No second timeline or renderer.",
+      "dependencies": [],
+      "registryDependencies": [
+        "riso-print"
+      ],
+      "files": [
+        {
+          "path": "registry/video/riso-performance.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-performance.ts"
+        },
+        {
+          "path": "registry/video/riso-performance-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-performance-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "ink-brush",
       "type": "registry:ui",
       "title": "Material-Native Ink Brush (INK1)",
