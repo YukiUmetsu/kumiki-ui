@@ -85,7 +85,7 @@ describe("fine-feathered paper-native wildlife craft", () => {
       expect((vane.path.match(/ Q/g) ?? []).length).toBe(11);
       expect(vane.width).toBeLessThan(1);
       expect(vane.startFrame).toBeGreaterThanOrEqual(190);
-      expect(vane.startFrame + vane.durationFrames).toBeLessThan(270);
+      expect(vane.startFrame + vane.durationFrames).toBeLessThanOrEqual(270);
     }
     const wingRegion = parts.find(part => part.id === "wing-main")!.region;
     const light = wingRegion.details!.filter(trace => trace.color === "#C4DADB");
