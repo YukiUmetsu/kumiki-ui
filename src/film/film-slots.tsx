@@ -1,3 +1,4 @@
+import { PaintedTravellerPage } from "../video/watercolour-actor-demo";
 import { PaintedWorldPage } from "../video/painted-composition-page";
 import { paintedDemoSpec, paintedCameraAt } from "../video/painted-composition-demo";
 import type { PaintedGenre } from "../video/painted-composition-demo";
@@ -682,6 +683,11 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
 
       // Original art-style fixtures run through the same production renderer as Storybook.
       // The Film Document still owns all scene timing; these slots draw only frame samples.
+      case "watercolour-actor": {
+        const output = context.width > context.height ? "landscape" : "portrait";
+        return <PaintedTravellerPage output={output} frame={context.frame}
+          reducedMotion={context.reducedMotion}/>;
+      }
       case "painted-composition": {
         const genre = props.genre;
         if (genre !== "nature" && genre !== "architecture" && genre !== "science" && genre !== "product")
