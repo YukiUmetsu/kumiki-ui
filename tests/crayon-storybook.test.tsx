@@ -27,7 +27,7 @@ describe("material-native wax-crayon storybook", () => {
       {seed:913,pressure:.85,spacing:10});
     // The first cubic in each compound mark has an independently sampled tangent.
     const slopes=marks.map(m=>{
-      const result=m.d.match(/M (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?) Q (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/);
+      const result=m.d.match(/M (-?[0-9]+(?:[.][0-9]+)?) (-?[0-9]+(?:[.][0-9]+)?) Q (-?[0-9]+(?:[.][0-9]+)?) (-?[0-9]+(?:[.][0-9]+)?) (-?[0-9]+(?:[.][0-9]+)?) (-?[0-9]+(?:[.][0-9]+)?)/);
       if(!result)throw new Error("invalid short wax stroke");
       return (Number(result[6])-Number(result[2]))/(Number(result[5])-Number(result[1]));
     });
