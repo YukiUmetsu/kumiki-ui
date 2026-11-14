@@ -52,6 +52,9 @@ test("original ink duet uses real independent rigs, ordered scenes and frame-add
   await page.goto("/iframe.html?id=video-ink-ensemble--ink-ensemble-story&viewMode=story");
   const scene=page.locator('[data-km-ink-scene]');
   await expect(scene).toBeVisible();
+  // The authored paper reveal begins at frame 3. The initial frame intentionally
+  // contains no mounted actor media, preserving a completely empty sheet.
+  await seek(page,10);
   const actor=page.locator("[data-km-ink-ensemble-actor]");
   await expect(actor).toHaveCount(2);
   for(const aspect of ["landscape","portrait"] as const){
