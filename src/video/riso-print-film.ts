@@ -31,3 +31,26 @@ export const RISO_PRINT_FILM: FilmDocument = {
     },
   ],
 };
+
+
+/**
+ * The next editorial proof does not invent another cut engine. The fourth FD1 scene is a
+ * transition bridge, driven by FilmStage's existing local frame; the fifth holds the new sheet.
+ */
+export const RISO_SHEET_FEED_FILM: FilmDocument = {
+  ...RISO_PRINT_FILM,
+  id: "riso-paper-feed-study",
+  scenes: [
+    ...RISO_PRINT_FILM.scenes,
+    {
+      id: "paper-feed", recipeId: "slot", durationFrames: 180,
+      transition: { kind: "cut" },
+      content: { slot: "riso-sheet-feed", label: "Physical paper feed and two ink passes" },
+    },
+    {
+      id: "second-poster", recipeId: "slot", durationFrames: 120,
+      transition: { kind: "cut" },
+      content: { slot: "riso-next-print", label: "Second print resolves and holds" },
+    },
+  ],
+};
