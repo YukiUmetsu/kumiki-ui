@@ -64,6 +64,18 @@ The owner pointed at a crop of the crest: **the foam is not layered**. Each smal
 
 Fix: the crest band, every claw, and the boiling trough are one shape. The painting order (outline, blue face, foam outline, white back, foam white) lets each white cover the lines beneath it, so claws melt into the band and into the white back with no seam. Claws are spaced so blue and sky show between the fingers, which is what makes each claw legible in the print. Fingers are smooth tapering arcs, and one pale stroke sits inside each claw's curl.
 
+## Wave detail pass (owner feedback, 2026-11-14)
+
+The owner compared crops of the scan with our render and named the differences. Each was checked against the 3840 px scan before changing anything:
+
+| Owner note | What the scan shows | Change |
+| --- | --- | --- |
+| The blue stripes are not straight; they curve with the wave | Thin medium-blue stripes run parallel to the column's front edge, bow back at mid-height and fan toward the trough; the dark bands between them are wider than the stripes | Stripes are offsets of the measured front edge with a fan and a bow; five thin stripes and thick navy between |
+| The top of the wave has no small wave parts; it rolls in smooth, uneven bumps | The dome's top contour carries no claws, only soft irregular undulation | The dome's top is displaced by low-frequency noise; claws start only where the crest tips forward |
+| Claws branch, and surfaces are bumpy, not smooth | Claw arms are irregular; some split into a second hook | Claw spines carry seeded turning irregularity; about a quarter branch at the claw's own scale |
+| The overall shape and curve angle differ | Broad dome far back, crest overhanging into a long lip, near-vertical column | The silhouette was re-measured from the scan by overlaying our control points on it |
+| Claws stretch forward and down, not upward; one claw at a time, spread out | Each claw is one arm rising forward, arcing over, hooking down and back; claws are staggered with pale between them | Claws point along the wave's travel, single arms on pale-blue ground, wider spacing |
+
 ## Folktale creatures (owner request, 2026-11-14)
 
 Motifs common to Japanese folktales and their prints: kitsune and the fox wedding (*kitsune no yomeiri*, foxes under a sun-shower with foxfire, *kitsunebi*), tanuki (the drumming, sake-carrying folk tanuki), shape-shifting (*henge*), oni (red and blue, horns, tiger-skin loincloth, iron club), Momotarō's peach and companions (dog, pheasant), cranes, dragons chasing the flaming pearl, and rice paddies. All are public-domain folklore. The rigs and the "Peach and the Oni" story are original work.

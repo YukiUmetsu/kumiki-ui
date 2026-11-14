@@ -7,7 +7,7 @@
  * the scene wind and the node's `progress`; static ones are cached by the renderer.
  */
 import type { Pt } from "./ukiyoe-core";
-import { carvedLine, clamp, clamp01, DEG, ease, fbm1, hash01, hashSigned, lerp, noise1, polar, polyD, quad, resample, rotatePt, smooth, smoothD, span } from "./ukiyoe-core";
+import { alongPath, carvedLine, clamp, clamp01, DEG, ease, fbm1, hash01, hashSigned, lerp, noise1, polar, polyD, quad, resample, rotatePt, smooth, smoothD, span } from "./ukiyoe-core";
 import type { Prim } from "./ukiyoe-prims";
 import { circleD, ellipseD, rectD, tf } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
@@ -231,13 +231,22 @@ function sea(p: P, c: MotifContext): Prim[] {
 
 // ---- Great wave -----------------------------------------------------------------------------------------------------------------------
 
-// Normalised silhouette of a towering wave curling left (x in widths from the centre, y in heights, up negative).
-const WAVE_BACK: readonly Pt[] = [[.5, 0], [.43, -.08], [.35, -.2], [.26, -.37], [.17, -.56], [.08, -.75], [-.02, -.89], [-.11, -.97], [-.21, -1]];
-const WAVE_LIP: readonly Pt[] = [[-.3, -.995], [-.38, -.95], [-.44, -.86], [-.47, -.75], [-.46, -.64]];
-const WAVE_UNDER: readonly Pt[] = [[-.42, -.62], [-.4, -.71], [-.36, -.78], [-.3, -.81], [-.24, -.78], [-.2, -.7]];
-const WAVE_FRONT: readonly Pt[] = [[-.19, -.55], [-.21, -.38], [-.27, -.22], [-.36, -.1], [-.5, -.03]];
-/** Where the white back of the wave meets its deep-blue inner face, from the crest down to the trough. */
-const WAVE_RIDGE: readonly Pt[] = [[-.19, -.97], [-.12, -.88], [-.07, -.72], [-.03, -.54], [.01, -.35], [.04, -.17], [.06, 0]];
+// Normalised silhouette of the great wave, measured from the print and mirrored to curl left (x in widths from the
+// centre, y in heights, up negative). A broad white back rises from far behind; the crest overhangs into a long lace
+// lip; the blue column under it falls almost vertically before flaring out into the trough.
+const WAVE_BACK: readonly Pt[] = [[.5, 0], [.385, -.333], [.301, -.577], [.217, -.66], [.126, -.746], [.042, -.846], [-.035, -.923], [-.119, -.977], [-.189, -1.003], [-.252, -.997]];
+const WAVE_LIP: readonly Pt[] = [[-.308, -.936], [-.364, -.878], [-.427, -.782], [-.476, -.679], [-.497, -.59], [-.493, -.487]];
+const WAVE_UNDER: readonly Pt[] = [[-.472, -.429], [-.42, -.436], [-.364, -.481], [-.304, -.558]];
+const WAVE_FRONT: readonly Pt[] = [[-.278, -.603], [-.262, -.436], [-.253, -.269], [-.262, -.141], [-.294, -.064], [-.332, -.019], [-.399, -.003], [-.5, 0]];
+/**
+ * The lower edge of the white dome that caps the wave: down from the crest beside the blue column, then back along a
+ * row of claws to the rear slope. Everything below it is blue (in the print the white is only the wave's top).
+ */
+const WAVE_RIDGE: readonly Pt[] = [[-.027, -.779], [-.008, -.692], [-.007, -.59], [.017, -.513], [.077, -.481], [.147, -.436], [.217, -.385], [.301, -.314], [.406, -.179], [.5, -.006]];
+/** The top of the blue column, where the crest foam ends: from the dome edge forward to the lip's underside. */
+const WAVE_CREST_UNDER: readonly Pt[] = [[-.027, -.779], [-.07, -.797], [-.126, -.81], [-.182, -.8], [-.234, -.772], [-.271, -.728], [-.285, -.641], [-.301, -.562]];
+/** The column's forward guide for the stripes: from under the crest, down the front face, into the trough. */
+const WAVE_STRIPE_FRONT: readonly Pt[] = [[-.252, -.769], [-.277, -.615], [-.263, -.436], [-.253, -.269], [-.262, -.141], [-.294, -.064], [-.332, -.013]];
 
 /** Height and break state of a wave at a frame — shared by the drawing and by anything floating on it. */
 function waveState(p: P, c: MotifContext) {
@@ -249,8 +258,11 @@ function waveState(p: P, c: MotifContext) {
   const H = Hmax * (.12 + .88 * rise) * (1 - crash * .5) * (1 + breathe);
   return { W, Hmax, H, seed, rise, crash, curl: smooth(span(rise, .3, 1)) };
 }
-const SURF_FRONT: readonly Pt[] = [[-.5, .03], [-.36, .1], [-.27, .22], [-.21, .38], [-.19, .55]];
-const SURF_BACK: readonly Pt[] = [[.08, .75], [.17, .56], [.26, .37], [.35, .2], [.43, .08], [.5, 0]];
+// Water height (fraction of H) along the wave, following its silhouette: the front face in the trough rising up the
+// near-vertical column, the dome, and the long back. The front stops short of vertical so a rider is lifted steeply
+// but smoothly (a boat never climbs an overhang).
+const SURF_FRONT: readonly Pt[] = [[-.5, 0], [-.42, .005], [-.36, .02], [-.32, .05], [-.29, .1], [-.265, .19], [-.25, .3], [-.235, .44], [-.22, .56]];
+const SURF_BACK: readonly Pt[] = [[-.15, .95], [-.035, .92], [.042, .85], [.126, .75], [.217, .66], [.301, .58], [.385, .33], [.44, .15], [.5, 0]];
 /**
  * Water height (px, positive up) of a wave motif at local x, for the same params/frame/progress the motif is drawn
  * with: the concave face in front of the curl, the long back behind it, flat water beyond both feet.
@@ -264,132 +276,201 @@ export function waveSurface(params: Readonly<Record<string, unknown>>, c: MotifC
   let h: number;
   // Each piece meets its neighbours at the same height, including while the face sinks during the break.
   const sink = 1 - st.crash * .3;
-  if (u < -.5) h = .03 * sink * Math.exp((u + .5) * 9);
-  else if (u <= -.19) h = at(SURF_FRONT) * sink;
-  else if (u < .08) h = lerp(.55 * sink, .75, (u + .19) / .27);
+  if (u < -.5) h = 0;
+  else if (u <= -.22) h = at(SURF_FRONT) * sink;
+  else if (u < -.15) h = lerp(.56 * sink, .95, smooth((u + .22) / .07));
   else if (u <= .5) h = at(SURF_BACK);
   else h = 0;
   return h * st.H;
 }
 
-/** A foam talon: a hook tapering to a point along a circular arc (constant curvature, so the ribbon never folds). */
-function talon(base: Pt, angle: number, len: number, sweep: number, width: number): string {
-  const n = 8, pts: Pt[] = [base];
+/**
+ * A foam finger's spine: an arc that hooks over at the tip, with small seeded irregularities in its turning so no two
+ * fingers are the same smooth curve (the carver's knife never was).
+ */
+function talonSpine(base: Pt, angle: number, len: number, sweep: number, seed: number, hook = 1.25): Pt[] {
+  const n = 7, pts: Pt[] = [base];
   let at = base;
-  for (let j = 1; j <= n; j++) { at = polar(at, angle + sweep * (j - .5) / n, len / n); pts.push(at); }
-  return carvedLine(pts, width, { taper: "point", minRatio: .05, wobble: 0, smooth: true });
+  for (let j = 1; j <= n; j++) {
+    const t = (j - .5) / n, jitter = hashSigned(seed, j, 71) * 9 + Math.sin(j * 1.9 + seed) * 4;
+    at = polar(at, angle + sweep * t ** hook + jitter, len / n * (1 + hashSigned(seed, j, 72) * .18));
+    pts.push(at);
+  }
+  return pts;
+}
+/** The finger's outer (convex) edge from `from` to the tip, as an open line: the carved stroke that defines a claw. */
+function outerEdge(spine: readonly Pt[], width: number, sweep: number, from: number): Pt[] {
+  const side = -Math.sign(sweep) || 1, out: Pt[] = [];
+  spine.forEach((q, i) => {
+    const t = i / (spine.length - 1);
+    if (t < from) return;
+    const a = spine[Math.max(0, i - 1)], b = spine[Math.min(spine.length - 1, i + 1)], h = Math.atan2(b[1] - a[1], b[0] - a[0]) / DEG;
+    out.push(polar(q, h + side * 90, width / 2 * (.05 + .95 * (1 - t) ** .7)));
+  });
+  return out;
 }
 /**
- * A foam "hand": a small palm with two to four talons fanned from it, all hooking the same way. This is the unit the
- * great wave's lace is built from. `d` is the white shape (its parts share a winding, so it fills as their union);
- * `accent` holds pale strokes tucked inside each talon's curl, where the print lays a light-blue impression.
+ * A foam claw, the unit the great wave's lace is built from. As carved in the print it is one thick arm that rises
+ * forward from the foam, arcs over and drops into a hook whose tip points back and down. Most claws branch: a second
+ * hook (sometimes a third) splits off the arm's upper side at the scale of the claw itself. Returns separate layers
+ * so the wave can paint them as the print does: `d` is the white arm and branches; `pale` the light-blue tongue
+ * inside the curl; `line` the bold open stroke along the arm's outer side and round each hook. The underside carries no
+ * line, so the claw stays open to the white it grows from. `angle` is the direction the wave travels (forward).
+ * `fingers` is the number of hooks (1 arm + branches).
  */
-function foamHand(at: Pt, angle: number, size: number, fingers: number, seed: number): { d: string; accent: string } {
-  const c0 = polar(at, angle + 180, size * .22), palm: Pt[] = [];
-  for (let i = 0; i < 10; i++) { const a = -i * 36; palm.push(polar(polar(c0, angle, Math.cos(a * DEG) * size * .46), angle + 90, Math.sin(a * DEG) * size * .34)); }
-  const parts: string[] = [smoothD(palm, true, .5)], accents: string[] = [];
-  let longestLen = 0;
-  for (let i = 0; i < fingers; i++) {
-    const f = fingers === 1 ? 0 : i / (fingers - 1) - .5;
-    const a0 = angle + f * (62 + fingers * 14), len = size * (1.4 - Math.abs(f) * .35) * (.8 + .35 * hash01(seed, i, 31));
-    const sweep = -(140 + 60 * hash01(seed, i, 32)), base = polar(at, a0 + 180, size * .12);
-    parts.push(talon(base, a0 + 26, len, sweep, len * .3));
-    // The pale stroke runs along the inner (concave) edge of the longest finger: the same arc, shifted a quarter of
-    // the finger's width toward the curl, shorter and thinner, so it always lies inside the white without clipping.
-    if (len > longestLen) {
-      longestLen = len;
-      const r0 = a0 + 26, start = polar(base, r0 + Math.sign(sweep) * 90, len * .3 * .25);
-      accents[0] = talon(polar(start, r0, len * .12), r0 + sweep * .12, len * .55, sweep * .62, len * .09);
-    }
+function foamHand(at: Pt, angle: number, size: number, fingers: number, seed: number): { d: string; pale: string; line: string } {
+  const side = 1, up = angle + 90 * side;
+  const lineW = Math.max(1.2, size * .07);
+  const parts: string[] = [], lines: string[] = [];
+  // The arm: leaves the foam heading forward and up, arcs over, hooks back and down.
+  const len = size * (1.5 + .3 * hash01(seed, 0, 31)), sweep = -(185 + 35 * hash01(seed, 0, 32));
+  const arm = talonSpine(at, angle + side * (38 + hashSigned(seed, 0, 37) * 10), len, sweep, seed * 31, 1.55);
+  const armW = len * .34;
+  parts.push(carvedLine(arm, armW, { taper: "point", minRatio: .04, wobble: .3, smooth: true, coarse: true, seed: seed * 31 }));
+  lines.push(carvedLine(outerEdge(arm, armW, sweep, .12), lineW, { taper: "both", minRatio: .3, wobble: .35, smooth: true, coarse: true, seed: seed + 7 }));
+  // Branches: hooks splitting off the arm's upper (outer) side partway along it, each nearly the claw's own scale.
+  for (let b = 1; b < fingers; b++) {
+    const k = Math.min(arm.length - 3, 2 + b + Math.floor(hash01(seed, b, 34) * 2)), q = arm[k], nx = arm[k + 1];
+    const h = Math.atan2(nx[1] - q[1], nx[0] - q[0]) / DEG;
+    const bl = len * (.6 - .12 * (b - 1)) * (.85 + .3 * hash01(seed, b, 36)), bs = sweep * (1.02 + hashSigned(seed, b, 38) * .08);
+    const br = talonSpine(q, h + side * (48 + hashSigned(seed, b, 39) * 10), bl, bs, seed * 31 + b * 97, 1.55), bw = bl * .32;
+    parts.push(carvedLine(br, bw, { taper: "point", minRatio: .04, wobble: .3, smooth: true, coarse: true, seed: seed * 31 + b }));
+    lines.push(carvedLine(outerEdge(br, bw, bs, .2), lineW * .85, { taper: "both", minRatio: .3, wobble: .35, smooth: true, coarse: true, seed: seed + 9 + b }));
   }
-  return { d: parts.join(""), accent: accents.join("") };
+  // The pale-blue tongue inside the arm's curl.
+  const mid = arm[Math.floor(arm.length * .55)], tipQ = arm[arm.length - 1], hc: Pt = [lerp(mid[0], tipQ[0], .3), lerp(mid[1], tipQ[1], .3)], hollow: Pt[] = [];
+  const hcc = polar(hc, up + 180, size * .3);
+  for (let i = 0; i < 10; i++) { const a = i * 36, r = size * (.6 + .1 * hashSigned(seed, i, 63)); hollow.push(polar(hcc, angle + a, r * (i % 2 ? .75 : 1))); }
+  return { d: parts.join(""), pale: smoothD(hollow, true, .5, true), line: lines.join("") };
 }
 
 /**
- * A breaking wave in the manner of the great-wave prints, curling left (flip the node for right). The back is white
- * foam edged with a fine indigo line; the inner face is Prussian blue with lighter bands and snow-like flecks; rows of
- * hooked claws (each sprouting smaller claws) run down the ridge and hang from the lip over pale-blue shadow.
- * `progress` 0 → 1 raises a swell into the curled crest; `breakAt` (frame) collapses it with boiling foam and spray.
+ * A breaking wave in the manner of the great-wave prints, curling left (flip the node for right). Its parts follow the
+ * print: a broad white back whose top rolls in soft, uneven bumps; a deep-navy column under the crest carrying curved
+ * medium-blue stripes that bend with the face and converge toward the trough, scattered with snow-like flecks; and one
+ * connected white foam of branching hooked claws with pale-blue hollows and open carved strokes. `progress` 0 → 1
+ * raises a swell into the curled crest; `breakAt` (frame) collapses it with boiling foam and spray.
  */
 function wave(p: P, c: MotifContext): Prim[] {
-  const W = num(p, "width", 1100), Hmax = num(p, "height", 560), seed = c.seed + num(p, "variant", 0) * 17;
-  const deep = paint(p, "color", "bero"), mid = paint(p, "light", "sora"), pale = paint(p, "pale", "sora"), foamC = paint(p, "foam", "gofun"), lineC = paint(p, "line", "ai");
-  const rise = ease("inOut", clamp01(c.progress));
-  const breakAt = typeof p.breakAt === "number" ? p.breakAt as number : undefined, breakDur = num(p, "breakDuration", 36);
-  const crash = breakAt === undefined ? 0 : ease("in", span(c.frame, breakAt, breakAt + breakDur));
-  const breathe = Math.sin(c.frame / 11 + seed) * .012 + Math.sin(c.frame / 4.3) * .004;
-  const H = Hmax * (.12 + .88 * rise) * (1 - crash * .5) * (1 + breathe);
-  const curl = smooth(span(rise, .3, 1));
-  const crest = WAVE_BACK[WAVE_BACK.length - 1];
-  const mound = (i: number, n: number): Pt => [lerp(crest[0], -.3, i / n), lerp(crest[1], -.55, i / n)];
+  const W = num(p, "width", 1100), seed = c.seed + num(p, "variant", 0) * 17;
+  const deep = paint(p, "color", "bero"), mid = paint(p, "light", "hanada"), pale = paint(p, "pale", "sora"), foamC = paint(p, "foam", "gofun"), lineC = paint(p, "line", "ai");
+  const st = waveState(p, c), H = st.H, crash = st.crash, curl = st.curl;
+  const crest = WAVE_BACK[WAVE_BACK.length - 1], swell = WAVE_FRONT[0];
+  const mound = (i: number, n: number): Pt => [lerp(crest[0], swell[0], i / n), lerp(crest[1], swell[1], i / n)];
   const lipN = WAVE_LIP.length + WAVE_UNDER.length;
   const lipPts = [...WAVE_LIP, ...WAVE_UNDER].map((q, i) => {
     const m = mound(i + 1, lipN + 1), t = i / (lipN - 1), fall = crash * (.35 + .25 * t);
     return [lerp(m[0], q[0], curl) - crash * .04, lerp(m[1], q[1], curl) + fall] as Pt;
   });
   const X = (q: Pt): Pt => [q[0] * W, q[1] * H];
-  const shape: Pt[] = [...WAVE_BACK, ...lipPts, ...WAVE_FRONT.map(q => [q[0], q[1] * (1 - crash * .3)] as Pt), [-.5, 0]];
-  const bodyD = smoothD(shape.map(X), true, .32);
+  // The back's top rolls in soft, uneven bumps (none near the base): displaced along its normal by smooth noise.
+  const backPts = smoothPts(WAVE_BACK.map(X), 6), backN = backPts.length;
+  const bumpy = backPts.map((q, i) => {
+    const a = backPts[Math.max(0, i - 1)], b = backPts[Math.min(backN - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    const t = i / (backN - 1), amp = H * .02 * smooth(span(t, .2, .45)) * (1 - smooth(span(t, .94, 1)));
+    const bump = (noise1(seed + 91, t * 7) * .75 + noise1(seed + 97, t * 13) * .25) * amp;
+    return [q[0] + (b[1] - a[1]) / l * bump, q[1] - (b[0] - a[0]) / l * bump] as Pt;
+  });
+  // The body (outlined, blue below, white dome above) stops at the crest: the lip that overhangs it is foam only, so
+  // its silhouette is made by its claws, with sky between them, never by a smooth contour.
+  const shape: Pt[] = [...bumpy, ...WAVE_FRONT.map(q => [q[0], q[1] * (1 - crash * .3)] as Pt).map(X)];
+  const bodyD = smoothD(shape, true, .32);
   // Painting order makes the foam read as one connected mass, as carved: (1) the indigo contour of the whole body,
-  // (2) the blue inner face, (3) the indigo contour of all the foam, (4) the white back, (5) the white foam. Each
-  // white fill covers the inner half of every line beneath it, so a claw's root melts into the white it grows from;
-  // indigo survives only where white meets blue or sky. Nothing in the white is outlined on its own.
+  // (2) the blue column, (3) the indigo contour of all the foam, (4) the white back, (5) the white foam, (6) the pale
+  // hollows, the fingers repainted white over them, and the open strokes. Each white covers the inner half of every
+  // contour beneath it, so indigo survives only where white meets blue or sky.
   const out: Prim[] = [{ t: "stroke", d: bodyD, color: lineC, width: 4 }];
 
-  // The deep inner face: everything forward of the ridge.
-  const ridge = smoothPts(WAVE_RIDGE.map(q => [lerp(-.3, q[0], .4 + .6 * curl), q[1]] as Pt).map(X), 5);
-  const faceD = polyD([...ridge, [-.8 * W, 0], [-.8 * W, -1.3 * H], [ridge[0][0], -1.3 * H]]);
-  const backD = polyD([...ridge, [.8 * W, H * .05], [.8 * W, -1.3 * H], [ridge[0][0], -1.3 * H]]);
-  const face: Prim[] = [{ t: "fill", d: faceD, fill: deep, grain: .6 }];
-  // Lighter bands following the ridge, curving round under the lip; snow flecks on the blue.
-  const offset = (line: Pt[], off: number) => line.map((q, i) => {
-    const a = line[Math.max(0, i - 1)], b = line[Math.min(line.length - 1, i + 1)], tx = b[0] - a[0], ty = b[1] - a[1], len = Math.hypot(tx, ty) || 1;
-    return [q[0] + ty / len * off, q[1] - tx / len * off] as Pt;
+  // The blue column: everything forward of the ridge.
+  const ridgeRaw = WAVE_RIDGE.map(q => [lerp(swell[0] + .02, q[0], .4 + .6 * curl), q[1]] as Pt);
+  const ridge = smoothPts(ridgeRaw.map(X), 5);
+  const last = ridge[ridge.length - 1];
+  const backD = polyD([...ridge, [.8 * W, last[1]], [.8 * W, -1.3 * H], [ridge[0][0], -1.3 * H]]);
+  const face: Prim[] = [{ t: "fill", d: bodyD, fill: deep, grain: .6 }];
+  // Stripes, as carved in the print: they run parallel to the column's front edge (the curve against the sky), each
+  // one a copy of that edge shifted back into the column by a nearly constant amount (a touch wider under the crest),
+  // so they lean and bend exactly as the column does and keep an even rhythm from crest to trough. Their tops run up under the white, which
+  // covers them, exactly as the blue block sits under the foam block in the print.
+  const front = resampleCount(smoothPts([[WAVE_STRIPE_FRONT[0][0] + .02, -1.05] as Pt, ...WAVE_STRIPE_FRONT].map(q => [lerp(swell[0], q[0], .4 + .6 * curl), q[1]] as Pt).map(X), 5), 44);
+  const fn = front.map((_q, i) => {   // unit normal pointing back into the column
+    const a = front[Math.max(0, i - 1)], b = front[Math.min(front.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    return [-(b[1] - a[1]) / l, (b[0] - a[0]) / l] as Pt;
   });
-  const bands = Math.round(num(p, "stripes", 5)), bandLines: Pt[][] = [];
-  for (let s = 0; s < bands; s++) {
-    const line = offset(ridge, -W * (.035 + .055 * s)).map((q, i, all) => [q[0] - Math.sin(i / all.length * Math.PI) * W * .02 * s, q[1]] as Pt);
-    const from = Math.round(line.length * (.04 + .06 * s)), to = line.length - Math.round(line.length * (.06 + .03 * s));
-    if (to - from < 3) continue;
-    face.push({ t: "line", d: carvedLine(line.slice(from, to), W * (.026 - .002 * s), { taper: "both", seed: seed + s, wobble: .25 }), color: mid, opacity: .5 });
+  const back0 = fn[Math.floor(fn.length / 2)][0] > 0 ? 1 : -1;   // make "back" point away from the sky side
+  const arc = (k: number, wob: number): Pt[] => front.map((q, i) => {
+    // Fan: wide under the crest, narrowing toward the trough (back stripes lean forward as they fall), plus a bow back
+    // at mid-height so each stripe curves like the column itself.
+    const t = i / (front.length - 1), bow = W * .085 * Math.sin(Math.PI * Math.min(1, t * 1.05)) ** 1.2 * (.4 + .6 * k);
+    const shift = (W * (.016 + k * .34 * (.42 + .58 * (1 - t) ** .9)) + bow) * back0;
+    return [q[0] + fn[i][0] * shift + noise1(seed + Math.round(k * 100), t * 5) * W * .005 * wob, q[1] + fn[i][1] * shift] as Pt;
+  });
+  // A broad medium-blue band hugs the front edge itself.
+  face.push({ t: "line", d: carvedLine(arc(0, 0).slice(3, -1), W * .036, { taper: "both", minRatio: .35, seed: seed + 3, wobble: .2, smooth: true }), color: mid, opacity: .95 });
+  const bandLines: Pt[][] = [];
+  const nStripes = Math.round(num(p, "stripes", 5));
+  for (let s = 0; s < nStripes; s++) {
+    const k = (s + 1) / (nStripes + .4) + hashSigned(seed, s, 81) * .02, line = arc(k, 1);
+    const from = 1 + Math.floor(hash01(seed, s, 82) * 3), to = line.length - 2 - Math.floor(hash01(seed, s, 83) * 5);
+    face.push({ t: "line", d: carvedLine(line.slice(from, to), W * .015 * (.85 + .3 * hash01(seed, s, 84)), { taper: "both", minRatio: .2, seed: seed + s, wobble: .3, smooth: true }), color: mid, opacity: .95 });
     bandLines.push(line.slice(from, to));
   }
-  // The crest's foam band: inside the outer edge of the back's top and the whole lip.
-  const rimEdge = smoothPts([...WAVE_BACK.slice(-4), ...lipPts.slice(0, WAVE_LIP.length)].map(X), 6);
-  const rimIn = rimEdge.map((q, i) => {
-    const a = rimEdge[Math.max(0, i - 1)], b = rimEdge[Math.min(rimEdge.length - 1, i + 1)], tx = b[0] - a[0], ty = b[1] - a[1], len = Math.hypot(tx, ty) || 1;
-    const u = i / (rimEdge.length - 1), depth = H * (.022 + .045 * Math.sin(Math.PI * Math.min(1, u * 1.05)) ** .7 + .03 * u * u) * (1 + .3 * Math.sin(i * .9 + seed));
-    return [q[0] + ty / len * depth, q[1] - tx / len * depth] as Pt;
+  // The crest foam: deep over the column, from the top contour and the lip's outer edge down to the column's top and
+  // the lip's underside. (Before the wave curls, the inner edge closes up toward the front of the swell.)
+  const crestUnder = WAVE_CREST_UNDER.map((q, i, all) => {
+    const t = i / (all.length - 1), flat: Pt = [lerp(all[0][0], swell[0], t), lerp(all[0][1], swell[1], t)];
+    return [lerp(flat[0], q[0], curl), lerp(flat[1], q[1], curl)] as Pt;
   });
-  const rimD = smoothD([...rimEdge, ...rimIn.slice().reverse()], true, .35);
+  const innerPts = [...crestUnder, ...lipPts.slice(WAVE_LIP.length).slice().reverse()];
+  // The band's outer edge is the body's own bumpy top contour, then the lip: one edge, so nothing pokes out.
+  const backFrom = (WAVE_BACK.length - 5) * 6;
+  const rimEdge = [...bumpy.slice(backFrom, -1), ...smoothPts([WAVE_BACK[WAVE_BACK.length - 1], ...lipPts.slice(0, WAVE_LIP.length)].map(X), 6)], rimIn = smoothPts(innerPts.map(X), 6);
+  // Along the lip, the solid band sits well inside the outer contour; the claws rooted on it reach out to the contour.
+  const lipStart = (bumpy.length - 1 - backFrom) / (rimEdge.length - 1), fringe = H * .14;
+  const inward = (line: readonly Pt[], amount: (u: number) => number, sign: number) => line.map((q, i) => {
+    const a = line[Math.max(0, i - 1)], b = line[Math.min(line.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, d = amount(i / (line.length - 1)) * sign;
+    return [q[0] + (b[1] - a[1]) / l * d, q[1] - (b[0] - a[0]) / l * d] as Pt;
+  });
+  const coreOut = inward(rimEdge, u => fringe * smooth(span(u, lipStart - .05, lipStart + .1)), -1);
+  const lipUnderStart = crestUnder.length / innerPts.length;
+  const coreIn = inward(rimIn, u => fringe * .8 * smooth(span(u, lipUnderStart - .05, lipUnderStart + .1)), 1);
+  const rimD = smoothD([...coreOut, ...coreIn.slice().reverse()], true, .35);
   const flecks: string[] = [];
-  const nFleck = Math.round(170 * curl);
+  const nFleck = Math.round(190 * curl);
   for (let i = 0; i < nFleck; i++) {
-    // Most flecks sit on the lighter bands (as in the print); the rest are scattered over the deep blue.
-    const u = hash01(seed, i, 1), onBand = bandLines.length > 0 && hash01(seed, i, 12) < .7;
-    const src = onBand ? bandLines[i % bandLines.length] : ridge, q = src[Math.floor(u * (src.length - 1))];
-    const x = onBand ? q[0] + hashSigned(seed, i, 2) * W * .012 : q[0] - W * (.02 + .3 * hash01(seed, i, 2) ** 1.4), y = q[1] + hashSigned(seed, i, 3) * H * (onBand ? .02 : .04);
-    const r = W * (.0022 + .0055 * hash01(seed, i, 4) ** 2), k = 3 + Math.floor(hash01(seed, i, 5) * 3), pts: Pt[] = [];
-    for (let v = 0; v < k; v++) pts.push(polar([x, y], v * 360 / k + hash01(seed, i, v + 6) * 50, r * (.7 + .6 * hash01(seed, i, v + 9))));
-    flecks.push(polyD(pts));
+    // Most flecks sit along the medium stripes (as in the print); the rest are scattered over the deep blue.
+    const u = hash01(seed, i, 1), onBand = bandLines.length > 0 && hash01(seed, i, 12) < .72;
+    const src = onBand ? bandLines[i % bandLines.length] : arc(hash01(seed, i, 13), 1), q = src[Math.floor(u * (src.length - 1))];
+    const x = q[0] + hashSigned(seed, i, 2) * W * (onBand ? .014 : .03), y = q[1] + hashSigned(seed, i, 3) * H * .02;
+    const r = W * (.0022 + .0055 * hash01(seed, i, 4) ** 2), k = 4 + Math.floor(hash01(seed, i, 5) * 3), pts: Pt[] = [];
+    for (let v = 0; v < k; v++) pts.push(polar([x, y], v * 360 / k + hash01(seed, i, v + 6) * 40, r * (.7 + .6 * hash01(seed, i, v + 9))));
+    flecks.push(smoothD(pts, true, .3));
   }
   if (flecks.length) face.push({ t: "fill", d: flecks.join(""), fill: foamC, noPrint: true });
 
-  // Foam lace: small hooked hands behind the crest edge, along it, hanging from the foam's underside over the blue,
-  // spilling down the ridge and cascading from the lip. All of them, the crest band and (when breaking) the boiling
-  // trough form ONE shape. Every hand overlaps the band, the white back or its neighbour, so none is isolated.
-  const foam: string[] = [rimD], accents: string[] = [], shadows: string[] = [];
-  let hk = 0;
+  // Foam lace: hooked hands along the crest and lip reaching into the sky, hanging from the band's underside over the
+  // blue, spilling down the ridge and cascading from the lip. With the band and the breaking trough they are ONE
+  // shape; every hand overlaps the band, the white back or its neighbour, so none is isolated.
+  // Hands are grouped in ranks. Each rank is painted pale, then white, then its strokes, from the outer fringe inward,
+  // so each row of hands lies over the pale tongues under the row above it, like the print's overlapping lace. All of
+  // them also join the one foam silhouette, so nothing reads as a separate cut-out.
+  const foam: string[] = [rimD], shadows: string[] = [];
+  const ranks = new Map<number, { white: string[]; pale: string[]; line: string[] }>();
+  let hk = 0, rank = 0;
+  // Claw scale relative to the wave: each claw is about a tenth of the lace's width, packed densely, as in the print.
+  const CLAW = num(p, "clawScale", .9), GAP = .78;
   const grow = (.45 + .55 * curl) * (1 + crash * .35);
   const hand = (at: Pt, angle: number, size: number) => {
     const id = hk++, sway = Math.sin(c.frame / 7 + id * 1.3) * 4 * (1 + crash);
-    const sz = size * grow * (.8 + .45 * hash01(seed, id, 23));
-    const h = foamHand(at, angle + sway + hashSigned(seed, id, 22) * 14, sz, 2 + Math.floor(hash01(seed, id, 21) * 2.9), seed + id);
-    foam.push(h.d); accents.push(h.accent);
+    const sz = size * CLAW * grow * (.8 + .45 * hash01(seed, id, 23));
+    const h = foamHand(at, angle + sway + hashSigned(seed, id, 22) * 8, sz, hash01(seed, id, 21) < .28 ? 2 : 1, seed + id);
+    const r = ranks.get(rank) ?? { white: [], pale: [], line: [] };
+    r.white.push(h.d); r.pale.push(h.pale); r.line.push(h.line); ranks.set(rank, r);
+    // Only hands on the foam's edges (against sky or blue) need to join the outlined silhouette.
+    if (rank === 0 || rank === 5) foam.push(h.d);
     shadows.push(ellipseD(at[0] + sz * .12, at[1] + sz * .34, sz * .7, sz * .5));
   };
   const walk = (line: readonly Pt[], spacing: number, from: number, to: number, fn: (q: Pt, n: Pt, u: number, i: number) => void) => {
-    const pts = resample(line, spacing / (.5 + .5 * curl));
+    const pts = resample(line, spacing * GAP / (.5 + .5 * curl));
     pts.forEach((q, i) => {
       const u = i / Math.max(1, pts.length - 1);
       if (u < from || u > to) return;
@@ -397,19 +478,36 @@ function wave(p: P, c: MotifContext): Prim[] {
       fn(q, [-(b[1] - a[1]) / l, (b[0] - a[0]) / l], u, i);   // n: outward normal
     });
   };
-  const deg = (y: number, x: number) => Math.atan2(y, x) / DEG;
-  const big = (u: number) => H * (.05 + .045 * Math.sin(Math.PI * Math.min(1, u * 1.05)) ** .7);
-  // Along the crest and lip: hands reaching out and forward into the sky, hooking over.
-  walk(rimEdge, H * .1, .12, 1, (q, n, u) => hand(q, deg(n[1] + .12, n[0] - .7), big(u) * 1.25));
-  // From the band's underside: hands hanging down over the deep blue, with blue showing between them.
-  walk(rimIn, H * .11, .2, .97, (q, n, u, i) => hand(q, deg(-n[1] + .35, -n[0] - .55) + (i % 2 ? 12 : -8), big(u) * 1.05));
-  const ridgeRows = Math.round(num(p, "ridgeClaws", 7) * curl);
-  for (let i = 0; i < ridgeRows; i++) {
-    const u = .08 + .6 * i / Math.max(1, ridgeRows - 1), q = ridge[Math.floor(u * (ridge.length - 1))];
-    hand([q[0] + W * .008, q[1]], 162 + hashSigned(seed, i, 9) * 16, H * (.075 - .03 * u));
+  // Along the crest and lip: hands reaching out and forward into the sky, hooking over. (The rounded top of the back
+  // carries none: the lace starts where the crest tips forward.)
+  rank = 0;
+  walk(coreOut, H * .085, lipStart - .02, 1, (q, n, u, i) => { const r = seed * 13 + i, out2 = H * (-.012 + .02 * hash01(r, 6)); hand([q[0] + n[0] * out2, q[1] + n[1] * out2], lerp(196, 146, span(u, lipStart, 1)) + hashSigned(r, 7) * 8, H * .085 * (.85 + .3 * hash01(r, 8))); });
+  // Under the lip: claws hanging from the band's underside, reaching down and forward over the hollow.
+  rank = 5;
+  walk(coreIn, H * .095, lipUnderStart, 1, (q, _n, _u, i) => hand(q, 140 + (i % 2 ? 8 : -6), H * .08));
+  // From the crest foam's underside: hands hanging over the top of the blue column and, under the lip, over the hollow.
+  rank = 5;
+  walk(rimIn, H * .095, .02, lipUnderStart, (q, _n, u, i) => hand(q, 152 + (i % 2 ? 8 : -6), H * (.075 - .01 * u)));
+  // Inside the foam mass: ranks of claws so the crest and lip read as lace, not a solid white block.
+  const outer40 = resampleCount(coreOut, 48), inner40 = resampleCount(coreIn, 48);
+  // Placed loosely, never in tidy rows: each hand drifts along and across its rank, some are skipped, sizes vary.
+  for (const k of [.25, .55, .85]) {
+    rank = 1 + Math.round(k * 3);
+    const mid = outer40.map((q, i) => [lerp(q[0], inner40[i][0], k), lerp(q[1], inner40[i][1], k)] as Pt);
+    walk(mid, H * .095, .22, 1, (q, n, u, i) => {
+      const r = seed * 7 + i + Math.round(k * 100);
+      if (hash01(r, 1) < .08) return;
+      const along = hashSigned(r, 2) * H * .03, across = hashSigned(r, 3) * H * .035;
+      hand([q[0] + n[1] * along + n[0] * across, q[1] - n[0] * along + n[1] * across], lerp(194, 146, span(u, lipStart, 1)) + hashSigned(r, 4) * 10, H * .085 * (.8 + .4 * hash01(r, 5)));
+    });
   }
+  // Along the dome's lower edge (down beside the column, then back along the wave's body): claws hanging over the
+  // blue, reaching forward and down.
+  rank = 5;
+  walk(ridge, H * .1, .03, .86, (q, n, u, i) => hand([q[0] - n[0] * H * .01, q[1] - n[1] * H * .01], 156 + (i % 2 ? 8 : -6), H * (.085 - .02 * u)));
+  rank = 0;
   // The cascade from the lip's tip: a chain of hands close enough that each overlaps the one above it.
-  const tip = rimEdge[rimEdge.length - 1], cascade = Math.round(9 * curl);
+  const tip = rimEdge[rimEdge.length - 1], cascade = Math.round(3 * curl);
   for (let k = 0; k < cascade; k++) {
     const at = polar(tip, 96 - k * 7, H * .03 * (k + .5));
     hand([at[0] + hashSigned(seed, k, 41) * H * .012, at[1]], 150 - k * 9, H * (.085 - .006 * k));
@@ -420,17 +518,27 @@ function wave(p: P, c: MotifContext): Prim[] {
     for (let i = 0; i <= 18; i++) { const x = lerp(-.62 * W, .05 * W, i / 18); boil.push([x, -H * .3 * crash * (.5 + .5 * Math.abs(Math.sin(i * 1.7 + c.frame / 5)))]); }
     foam.push(smoothD([[boil[0][0], 0], ...boil, [boil[18][0], 0]], true, .6));
   }
-  const foamD = foam.join("");
   // Pale-blue shadow where foam lies over the deep blue (on the face only: never a halo against the sky).
   face.push({ t: "fill", d: shadows.join(""), fill: pale, opacity: .62, noPrint: true });
   out.push({ t: "clip", d: bodyD, prims: face, key: "wave-face" });
-  out.push({ t: "sandwich", d: foamD, fill: foamC, line: lineC, lineWidth: 2.8, key: "wave-foam", between: [{ t: "clip", d: bodyD, key: "wave-back", prims: [
+  out.push({ t: "sandwich", d: foam.join(""), fill: foamC, line: lineC, lineWidth: 2.6, key: "wave-foam", between: [{ t: "clip", d: bodyD, key: "wave-back", prims: [
     { t: "fill", d: backD, fill: foamC, noPrint: true },
-    // On the white back: a pale-blue wash along the ridge and a few fine indigo contour lines.
-    { t: "line", d: carvedLine(offset(ridge, W * .045), W * .07, { taper: "both", seed: seed + 41 }), color: pale, opacity: .55 },
-    ...[1, 2, 3].map((s): Prim => ({ t: "line", d: carvedLine(offset(ridge, W * (.08 + .07 * s)).slice(2 + s, -2 - s), 1.6, { taper: "both", seed: seed + 50 + s }), color: lineC, opacity: .45 })),
+    // On the white back: a pale-blue wash along the ridge.
+    { t: "line", d: carvedLine(smoothPts(ridgeRaw.map(q => [q[0] + .04, q[1]] as Pt).map(X), 4), W * .06, { taper: "both", seed: seed + 41 }), color: pale, opacity: .5 },
   ] }] });
-  out.push({ t: "fill", d: accents.join(""), fill: pale, opacity: .7, noPrint: true });
+  // Under the lace the foam carries the pale-blue impression, so each white claw stands out whole against pale, as in
+  // the print. (The dome's rounded top stays white: the pale starts where the lace does.)
+  const laceFrom = Math.max(0, Math.floor((lipStart - .08) * (coreOut.length - 1)));
+  const laceOut = inward(coreOut.slice(laceFrom), () => H * .004, 1);
+  out.push({ t: "fill", d: smoothD([...laceOut, ...coreIn.slice(Math.floor(coreIn.length * .3)).reverse()], true, .35, true), fill: pale, opacity: .55, noPrint: true });
+  // Pale tongues stay inside the foam's own area (never a halo against the sky beyond the claws).
+  const foamArea = smoothD([...rimEdge, ...rimIn.slice().reverse()], true, .35);
+  for (const key of [...ranks.keys()].sort((x, y) => x - y)) {
+    const r = ranks.get(key)!;
+    out.push({ t: "clip", d: foamArea, key: "wave-pale-" + key, prims: [{ t: "fill", d: r.pale.join(""), fill: pale, noPrint: true }] });
+    out.push({ t: "fill", d: r.white.join(""), fill: foamC, noPrint: true });
+    out.push({ t: "line", d: r.line.join(""), color: lineC });
+  }
 
   // Spray: snow-like droplets flung from the lip; a burst when it breaks.
   const sprayAmt = clamp01(num(p, "spray", .8)), dots: string[] = [];
@@ -439,11 +547,17 @@ function wave(p: P, c: MotifContext): Prim[] {
     const base = rimEdge[Math.floor((.35 + .65 * hash01(seed, i, 1)) * (rimEdge.length - 1))];
     const life = (c.frame * (.4 + .6 * hash01(seed, i, 4)) / 50 + hash01(seed, i, 2)) % 1;
     const vx = -(30 + 170 * hash01(seed, i, 3)) * (1 + crash), vy = -(10 + 70 * hash01(seed, i, 5)) * (1 + crash * 1.6);
-    const r = (1.6 + 3.6 * hash01(seed, i, 6) ** 2) * (1 - life * .5) * (H / Hmax + .4);
+    const r = (1.6 + 3.6 * hash01(seed, i, 6) ** 2) * (1 - life * .5) * (H / st.Hmax + .4);
     dots.push(circleD(base[0] + vx * life, base[1] + vy * life + 150 * life * life, r));
   }
   if (dots.length) out.push({ t: "dots", d: dots.join(""), color: foamC });
   return out;
+}
+/** Resample a polyline to exactly `n` points evenly spaced by arc length. */
+function resampleCount(points: readonly Pt[], n: number): Pt[] {
+  let total = 0;
+  for (let i = 1; i < points.length; i++) total += Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1]);
+  return Array.from({ length: n }, (_, i) => alongPath(points, total * i / (n - 1)));
 }
 /** Densify a polyline through a Catmull-Rom spline so offsets curve smoothly. */
 function smoothPts(points: readonly Pt[], per = 6): Pt[] {
