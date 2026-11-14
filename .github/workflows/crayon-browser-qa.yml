@@ -13,6 +13,7 @@ on:
         options:
           - storybook
           - characters
+          - wildlife
 
 permissions:
   contents: read
@@ -72,6 +73,21 @@ jobs:
         run: |
           npm run film:render -- examples/film/crayon-character-performances.film.json --frames=600 --only=landscape --out=dist/crayon-film-proof
           npm run film:render -- examples/film/crayon-character-performances.film.json --frames=600 --only=portrait --out=dist/crayon-film-proof
+      - name: Validate naturalistic wildlife portrait film
+        if: github.event_name == 'workflow_dispatch' && inputs.film == 'wildlife'
+        run: npm run film:check -- examples/film/crayon-wildlife-portrait.film.json
+      - name: Capture wildlife art and motion beats in both aspects
+        if: github.event_name == 'workflow_dispatch' && inputs.film == 'wildlife'
+        run: |
+          for frame in 0 42 86 96 142 168 207 239; do
+            npm run film:frame -- examples/film/crayon-wildlife-portrait.film.json --frame=$frame --only=landscape --out=dist/crayon-film-proof
+            npm run film:frame -- examples/film/crayon-wildlife-portrait.film.json --frame=$frame --only=portrait --out=dist/crayon-film-proof
+          done
+      - name: Render full 8-second original wildlife film
+        if: github.event_name == 'workflow_dispatch' && inputs.film == 'wildlife'
+        run: |
+          npm run film:render -- examples/film/crayon-wildlife-portrait.film.json --frames=240 --only=landscape --out=dist/crayon-film-proof
+          npm run film:render -- examples/film/crayon-wildlife-portrait.film.json --frames=240 --only=portrait --out=dist/crayon-film-proof
       - name: Preserve encoded video and frame proof
         if: always()
         uses: actions/upload-artifact@v4

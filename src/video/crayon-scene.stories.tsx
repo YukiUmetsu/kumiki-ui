@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CrayonScene } from "../../registry/video/materials/crayon-scene-react";
 import { crayonDemoScene } from "./crayon-scene-fixtures";
 import { crayonPerformanceScene } from "./crayon-performance-fixtures";
+import { crayonWildlifePortraitScene } from "./crayon-wildlife-portrait-fixtures";
 import { crayonWalkScene } from "./crayon-walk-fixtures";
 import { crayonCharacterDrawScene } from "./crayon-character-draw-fixtures";
 import { crayonDragonVillageScene } from "./crayon-dragon-village-fixtures";
@@ -10,7 +11,7 @@ import { useCrayonStoryPlayback } from "./crayon-story-playback";
 import type { CrayonDemoAspect, CrayonDemoSubject } from "./crayon-scene-fixtures";
 
 interface PlaygroundProps {
-  subject:CrayonDemoSubject | "performance" | "walk" | "draw-in" | "dragon-village"; aspect:CrayonDemoAspect; seed:number; paperTooth:number;
+  subject:CrayonDemoSubject | "performance" | "walk" | "draw-in" | "dragon-village" | "wildlife-portrait"; aspect:CrayonDemoAspect; seed:number; paperTooth:number;
   reducedMotion:boolean; startFrame:number; stride:number; stepLift:number; rig:"drawn"|"ik";
   playbackRate:number; loop:boolean;
   drawOrder:"outline-first"|"fill-first"; outlineFraction:number; waxGlaze:number;
@@ -22,23 +23,26 @@ interface PlaygroundProps {
   strokeOrder:"patches"|"scanline";
   markLength:"long"|"short";
   editorialDetail:number;
+  wildlifeDetail:number; wildlifeEarMotion:number;
 }
-function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail}:PlaygroundProps){
+function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion}:PlaygroundProps){
   const spec=useMemo(()=>{
     const base=subject==="performance"?crayonPerformanceScene(aspect,{editorialDetail}):
       subject==="walk"?crayonWalkScene(aspect,{stride,lift:stepLift,rig}):
       subject==="draw-in"?crayonCharacterDrawScene(aspect,{order:drawOrder,outlineFraction,glaze:waxGlaze}):
       subject==="dragon-village"?crayonDragonVillageScene(aspect,{wingPower,detail:villageDetail,followThrough,cast,palette:dragonPalette,shot,redrawStrength,exposureFrames}):
+      subject==="wildlife-portrait"?crayonWildlifePortraitScene(aspect,{detail:wildlifeDetail,earMotion:wildlifeEarMotion}):
       crayonDemoScene(subject,aspect);
     // Pure editor override: users can inspect old and new nib profiles without
     // changing authored subject geometry or the film's absolute-frame clock.
     return {...base,seed,paperTooth,elements:base.elements.map(node=>
       node.kind==="wax"?{...node,nibStyle,strokeOrder,markLength}:node)};
-  },[subject,aspect,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail]);
+  },[subject,aspect,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,subject+":"+aspect,playbackRate,loop);
   const duration=spec.durationFrames-1;
-  const beats:readonly (readonly [number,string])[]=subject==="dragon-village" ?
+  const beats:readonly (readonly [number,string])[]=subject==="wildlife-portrait" ?
+    [[0,"Paper"],[32,"First mass"],[82,"Eye & ear"],[137,"Fur grain"],[197,"Portrait"],[239,"Final artwork"]] : subject==="dragon-village" ?
     [[0,"Paper"],[58,"Towers rise"],[112,"Dragon arrives"],[155,"Wings unfurl"],[207,"Dragon reacts"],[260,"Friends answer"],[329,"Final pose"]] : subject==="draw-in" ?
     [[0,"Blank paper"],[48,"Sketch guides"],[146,"First outlines"],[190,"Wax colour"],[280,"Layered shading"],[343,"Face details"],[400,"Drawing moves"],[449,"Complete"]] : subject==="walk" ?
     [[0,"Ready"],[38,"Back-foot lift"],[44,"Contact release"],[94,"Back-foot plant"],[124,"Front-foot swing"],[156,"Front-foot plant"],[214,"Final plant"],[269,"Rest"]] : subject==="performance" ?
@@ -47,8 +51,8 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
   return <div style={{maxWidth:1050,margin:"auto",padding:22,background:"#e9e3d5",color:"#344e60",fontFamily:"system-ui"}}>
     <div style={{display:"flex",gap:12,justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",marginBottom:12}}>
       <div><div style={{fontSize:12,letterSpacing:2.8,fontWeight:700,textTransform:"uppercase"}}>Crayon scene engine · JSON-native</div>
-        <div style={{font:"700 28px Georgia,serif",marginTop:8}}>{subject==="dragon-village"?"The Dragon & The Village":subject==="draw-in"?"First a Line, Then a Life":subject==="walk"?(rig==="ik"?"The Knee & The Step":"A Little Journey"):subject==="performance"?"After the Rain":subject==="water-cycle"?"Where Rain Begins":subject==="city"?"Our Little Town":"How Things Grow"}</div></div>
-      <div style={{fontSize:13,color:"#586b72"}}>{subject==="dragon-village"?"Three character rigs · castle & village · 30 fps · 11 seconds":subject==="draw-in"?"Guides → contours → wax → acting · 30 fps · 15 seconds":subject==="performance"?"Acting exposure sheet · 30 fps · 9 seconds":subject==="walk"?(rig==="ik"?"Two-bone IK · rolling feet · 30 fps":"Contact-locked walk cycle · 30 fps · 9 seconds"):"Story-independent drawing · 30 fps · 8 seconds"}</div>
+        <div style={{font:"700 28px Georgia,serif",marginTop:8}}>{subject==="wildlife-portrait"?"The Wild Hare / Field Biology":subject==="dragon-village"?"The Dragon & The Village":subject==="draw-in"?"First a Line, Then a Life":subject==="walk"?(rig==="ik"?"The Knee & The Step":"A Little Journey"):subject==="performance"?"After the Rain":subject==="water-cycle"?"Where Rain Begins":subject==="city"?"Our Little Town":"How Things Grow"}</div></div>
+      <div style={{fontSize:13,color:"#586b72"}}>{subject==="wildlife-portrait"?"Naturalistic wildlife anatomy · 30 fps · 8 seconds":subject==="dragon-village"?"Three character rigs · castle & village · 30 fps · 11 seconds":subject==="draw-in"?"Guides → contours → wax → acting · 30 fps · 15 seconds":subject==="performance"?"Acting exposure sheet · 30 fps · 9 seconds":subject==="walk"?(rig==="ik"?"Two-bone IK · rolling feet · 30 fps":"Contact-locked walk cycle · 30 fps · 9 seconds"):"Story-independent drawing · 30 fps · 8 seconds"}</div>
     </div>
     <div style={{width:aspect==="portrait"?"min(100%,440px)":"100%",aspectRatio:aspect==="portrait"?"540/960":"960/540",
       margin:"0 auto",border:"10px solid #fff7e8",background:"#fff7e8",boxSizing:"border-box",boxShadow:"0 12px 28px #3e4d5c26"}}>
@@ -81,9 +85,9 @@ const meta={
   title:"Video production/Film Looks/Crayon/Scene Engine",
   id:"video-crayon-scene-engine",
   component:CrayonPlayground,
-  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1.2,loop:false,drawOrder:"outline-first",outlineFraction:.31,waxGlaze:.17,wingPower:1,villageDetail:.85,followThrough:7,cast:"trio",dragonPalette:"teal",shot:"wide",redrawStrength:.68,exposureFrames:3,nibStyle:"tapered",strokeOrder:"patches",markLength:"long",editorialDetail:1},
+  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1.2,loop:false,drawOrder:"outline-first",outlineFraction:.31,waxGlaze:.17,wingPower:1,villageDetail:.85,followThrough:7,cast:"trio",dragonPalette:"teal",shot:"wide",redrawStrength:.68,exposureFrames:3,nibStyle:"tapered",strokeOrder:"patches",markLength:"long",editorialDetail:1,wildlifeDetail:1,wildlifeEarMotion:1},
   argTypes:{
-    subject:{control:"inline-radio",options:["water-cycle","city","numbers","performance","walk","draw-in","dragon-village"]},
+    subject:{control:"inline-radio",options:["water-cycle","city","numbers","performance","walk","draw-in","dragon-village","wildlife-portrait"]},
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
     seed:{control:{type:"number",min:0,max:10000,step:1}},
     paperTooth:{control:{type:"range",min:0,max:1,step:.05}},
@@ -91,6 +95,8 @@ const meta={
     strokeOrder:{control:"inline-radio",options:["patches","scanline"]},
     markLength:{control:"inline-radio",options:["long","short"]},
     editorialDetail:{control:{type:"range",min:0,max:1,step:.1}},
+    wildlifeDetail:{control:{type:"range",min:0,max:1,step:.1}},
+    wildlifeEarMotion:{control:{type:"range",min:0,max:2,step:.1}},
     stride:{control:{type:"range",min:.6,max:1.6,step:.1}},
     stepLift:{control:{type:"range",min:.6,max:1.8,step:.1}},
     rig:{control:"inline-radio",options:["drawn","ik"]},
@@ -134,3 +140,13 @@ export const DragonAnatomyDetailPortrait:Story={args:{subject:"dragon-village",s
 export const CastleMasonryDetail:Story={args:{subject:"dragon-village",shot:"architecture",villageDetail:1,startFrame:241}};
 export const DragonHandRedraw:Story={args:{subject:"dragon-village",shot:"dragon",redrawStrength:1,exposureFrames:2,startFrame:221}};
 export const DragonWingMorph:Story={args:{subject:"dragon-village",shot:"dragon",wingPower:1.3,redrawStrength:.82,exposureFrames:3,startFrame:182}};
+
+/** Non-mascot, mature wildlife acting with authored proportional masses. */
+export const WildlifeHarePortrait:Story={
+  args:{subject:"wildlife-portrait",aspect:"landscape",startFrame:198,
+    wildlifeDetail:1,wildlifeEarMotion:1,paperTooth:.69},
+};
+export const WildlifeHarePortraitVertical:Story={
+  args:{subject:"wildlife-portrait",aspect:"portrait",startFrame:198,
+    wildlifeDetail:1,wildlifeEarMotion:1,paperTooth:.69},
+};
