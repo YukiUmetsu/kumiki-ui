@@ -3511,6 +3511,71 @@
       ]
     },
     {
+      "name": "ukiyoe-handscroll",
+      "type": "registry:ui",
+      "title": "Ukiyo-e Woodblock & Handscroll (UKIYO1)",
+      "description": "Data-driven ukiyo-e woodblock-print and emaki handscroll film engine: colour blocks assigned to impressions light-to-dark with kento misregistration, bokashi gradients, wood-grain (itame) and baren-mottle textures, carved key-block lines and a washi skin; a print-pass reveal (key block, then colours); generated motifs (sky incl. great-wave horizon bokashi, great-wave Fuji, sea, great-wave crest with Prussian face, flecks and hooked claw rows, pine, cherry, willow, reeds, rock, suyari-gasumi clouds, sun, moon, townhouse incl. fukinuki-yatai cutaway, pagoda, torii, bridge, boats, lanterns, pier, fields, folktale peach that splits open, terraced rice paddies young/ripe/flooded); weather and particles (Hiroshige rain, snow, petals, leaves, fireflies, birds, ripples, fireworks, spray); articulated Edo figures with costumes, patterns, props and 20 layered actions, including oni (horns, fangs, wild mane, tiger loincloth, kanabo); folktale creature rigs: fox and nine-tailed kitsune with foxfire, tanuki (upright drumming), dog, cat, rabbit, crane, heron, crow, pheasant, sparrow and a serpentine dragon with pearl, with henge transform puffs; one scene-wide wind field; handscroll camera with parallax; cartouche, seal and caption text; gold mist-band (kasumi) transition. Pure absolute-frame evaluation; JSON scenes validated with path-specific errors.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-core.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-core.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-pigments.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-pigments.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-prims.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-prims.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-texture.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-texture.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-motifs.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-motifs.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-particles.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-particles.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-figure.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-figure.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-creatures.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-scene.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-scene.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-react.tsx"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-transitions.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-transitions.tsx"
+        }
+      ]
+    },
+    {
       "name": "film-look",
       "type": "registry:ui",
       "title": "Film Look",
@@ -3633,6 +3698,45 @@
           "path": "registry/video/ink-actor-director.ts",
           "type": "registry:ui",
           "target": "components/video/ink-actor-director.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-figure-motion",
+      "type": "registry:ui",
+      "title": "Chinese Ink Figure Cloth Motion",
+      "description": "Reusable frame-pure cloth follow-through. Bakes subtly moving independent hem and cuff corrections on top of an approved INK4 route; deterministic absolute-frame sampling, bounded intensity, no replacement clock.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-actor-director"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-figure-motion.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-figure-motion.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-wash-ensemble",
+      "type": "registry:ui",
+      "title": "Chinese Ink Character Ensemble",
+      "description": "Deterministic, identity-preserving multi-character Chinese ink acting: independently staged canonical ink rigs, attention/interaction beats, gaze targeting, ordered depth and explicit foot-separation/reach audits on the existing film timeline. Compose with ink-actor-director for continuous paths and IK.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-wash-character"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-wash-ensemble.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-ensemble.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-ensemble-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-ensemble-react.tsx"
         }
       ]
     },

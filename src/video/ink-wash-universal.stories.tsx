@@ -253,7 +253,7 @@ function ExportDemo(){
     <InkFilm frame={frame} output="landscape" look="literati"/>
   </VideoExportStage>;
 }
-const meta={title:"Video production/Chinese Ink Wash Universal",
+const meta={title:"Video production/Film Looks/Chinese Ink/Multi-Genre Film",
   id:"video-ink-any-topic",component:Studio,parameters:{layout:"fullscreen"}} satisfies Meta<typeof Studio>;
 export default meta;
 export const Interactive:StoryObj<typeof meta>={name:"Ink style · Documentary, diagram and titles"};

@@ -150,7 +150,7 @@ function BrushStudio() {
 }
 
 const meta = {
-  title: "Video production/Film Looks/Ink Brush", id: "video-ink-brush",
+  title: "Video production/Film Looks/Chinese Ink/Ink Brush", id: "video-ink-brush",
   component: BrushStudio, parameters: { layout: "fullscreen" },
 } satisfies Meta<typeof BrushStudio>;
 export default meta;

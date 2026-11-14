@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import type { Locator } from "@playwright/test";
 
-const base = "/iframe.html?id=video-film-looks--";
+const base = "/iframe.html?id=video-chinese-ink-looks--";
 async function seek(slider: Locator, frame: number) {
   await slider.evaluate((node, value) => {
     const input = node as HTMLInputElement;

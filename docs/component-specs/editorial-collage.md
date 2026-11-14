@@ -61,6 +61,9 @@ region `hatch`ing. Text highlights come as `marker` (translucent highlighter), `
 
 ### Photo & editorial kit (`collage-kit-photo.ts`)
 
+`photoRig` (a photo taken apart: a plate plus part layers placed back in source-pixel boxes, each turning on its real
+axle, one shared print screen, an `explode` control that lifts the layers off as a stack), `clockHandKeys` /
+`tickingSecondKeys` / `mergeKeys` (clock times → rotations relative to the photographed pose; once-a-second ticks),
 `photoCutout` (cut-out + sticker + treatment + colour disc), `cutLetters` (ransom-note chips, one per drawing), `scraps`
 (starbursts, zigzags, triangles, dots, half discs, bars), `archivalPrint` (cream border, Ken Burns, red caption tag),
 `documentScan` (highlights and spotlight placed in the scan's own pixel coordinates — feed it OCR word boxes),
@@ -155,6 +158,14 @@ npm run film:check -- examples/film/editorial-collage-archive.film.json
 npx vitest run --project unit tests/collage-photo.test.tsx
 ```
 
+### Animating parts of a photograph
+
+`src/video/collage-watch-rig.ts` takes the Met pocket watch apart (`scripts/collage/watch-parts.py`): hour and minute
+hands on the main arbor under the cap, the seconds hand on the subdial, and the bow tipping on its hinge. The Photo
+treatment lab can wind it to noon, let the hours fly, tick in real time or pull the layers apart; the archive film's
+hook and payoff use the same rig. Reassembled at rest, the layers match the source photo to a mean difference of
+0.9/255. The plate under the hands is a restoration (see ASSETS.md).
+
 ## Limits
 
 - Paper fibre and grain are generated textures, not scanned stock; halftone print of photos is an SVG filter whose
@@ -163,6 +174,8 @@ npx vitest run --project unit tests/collage-photo.test.tsx
   to narration). Walks keep stance feet close to planted but do not solve IK.
 - Maps are equirectangular and use 1:110m coastlines; no borders, no other projections.
 - The film has no soundtrack yet; foley/VO cues are the next step.
+- Photo parts need per-photo preparation (outlines, axles, plate restoration); the engine animates prepared layers, it
+  does not segment or inpaint at runtime.
 - Subject cut-outs must be prepared (transparent PNG/WebP); the engine does not segment photos. Halftone, sticker and
   relief are SVG filters/patterns; heavy photo scenes cost more per frame than paper ones.
 - Donut/line charts, beat grids and footage (host or b-roll) are not built.

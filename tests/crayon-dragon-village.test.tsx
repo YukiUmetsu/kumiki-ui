@@ -1,12 +1,49 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { crayonDragonVillageScene } from "../src/video/crayon-dragon-village-fixtures";
+import { crayonScaleField, crayonMasonryCourses, crayonRoofCourses } from "../src/video/crayon-craft-detail-patterns";
 import {
   crayonElementPlacement,crayonElementTransform,crayonDrawingAt,
   crayonWorldPoint,inspectCrayonScene,
 } from "../registry/video/materials/crayon-scene";
 import { CrayonScene } from "../registry/video/materials/crayon-scene-react";
 
+describe("material-native grouped craft detail",()=>{
+  it("repeats a deterministic, staggered field of anatomical wax scales",()=>{
+    const opts={x:-55,y:-40,rows:5,columns:7,stepX:13,stepY:12,width:9,depth:5,seed:99};
+    const a=crayonScaleField(opts);
+    crayonScaleField({...opts,seed:101});
+    expect(crayonScaleField(opts)).toEqual(a);
+    expect(a.match(/M-?\d/g)?.length).toBe(35);
+    expect(a).toMatch(/q/);
+    expect(crayonScaleField({...opts,seed:101})).not.toEqual(a);
+    expect(()=>crayonScaleField({...opts,rows:30})).toThrow(/bounded/);
+    expect(()=>crayonScaleField({...opts,width:Infinity})).toThrow(/bounded/);
+    expect(()=>crayonScaleField({...opts,seed:1.4})).toThrow(/bounded/);
+    expect(()=>crayonScaleField({...opts,rows:18,columns:22})).toThrow(/bounded/);
+  });
+  it("constructs finite staggered masonry and triangular roof tiles",()=>{
+    const mortar={x:-100,y:-150,rows:7,columns:2,courseWidth:28,courseHeight:16,seed:18};
+    const a=crayonMasonryCourses(mortar);
+    expect(a).toEqual(crayonMasonryCourses(mortar));
+    expect(a.match(/M-?\d/g)?.length).toBeGreaterThanOrEqual(14);
+    expect(()=>crayonMasonryCourses({...mortar,rows:23})).toThrow(/bounded/);
+    const roof={apexX:0,apexY:-267,halfWidth:65,height:85,rows:9,seed:55};
+    const d=crayonRoofCourses(roof);
+    expect(d).toEqual(crayonRoofCourses(roof));
+    expect(d.match(/M-?\d/g)?.length).toBeGreaterThan(30);
+    expect(()=>crayonRoofCourses({...roof,halfWidth:-10})).toThrow(/bounded/);
+    // The tile endpoints stay within the triangle, including the 9th row.
+    for(const m of d.matchAll(/M(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)q(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g)){
+      const x=Number(m[1]),y=Number(m[2]),endX=x+Number(m[5]);
+      const endY=y+Number(m[6]);
+      const half=roof.halfWidth*(y-roof.apexY)/roof.height;
+      expect(Math.abs(x-roof.apexX)).toBeLessThan(half);
+      expect(Math.abs(endX-roof.apexX)).toBeLessThan(half+2);
+      expect(endY).toBeGreaterThan(y);
+    }
+  });
+});
 describe("multi-actor crayon dragon village",()=>{
   for(const aspect of ["landscape","portrait"] as const){
     it("validates a detailed three-actor original scene in "+aspect,()=>{
@@ -23,6 +60,17 @@ describe("multi-actor crayon dragon village",()=>{
       expect(scene.elements.some(n=>n.id==="friend-head")).toBe(true);
       expect(scene.elements.some(n=>n.id==="castle-clock")).toBe(true);
       expect(scene.elements.some(n=>n.id==="castle-railing-0")).toBe(true);
+      expect(scene.elements.some(n=>n.id==="dragon-flank-scale-field")).toBe(true);
+      expect(scene.elements.some(n=>n.id==="dragon-neck-overlapping-scutes")).toBe(true);
+      expect(scene.elements.some(n=>n.id==="dragon-wing-near-membrane-veins")).toBe(true);
+      expect(scene.elements.some(n=>n.id==="owl-layered-breast-feathers")).toBe(true);
+      expect(scene.elements.some(n=>n.id==="castle-center-roof-tiles")).toBe(true);
+      expect(scene.elements.some(n=>n.id==="castle-carved-voussoir-arch")).toBe(true);
+      expect(scene.elements.some(n=>n.id==="castle-clock-engraved-ticks")).toBe(true);
+      const bodyScale=scene.elements.find(n=>n.id==="dragon-flank-scale-field");
+      if(!bodyScale||bodyScale.kind!=="contour")throw Error("missing scales");
+      expect(bodyScale.d.match(/M-?\d/g)?.length).toBeGreaterThan(35);
+
       const ids=new Set(scene.elements.map(n=>n.id));
       expect(ids.size).toBe(scene.elements.length);
       for(const node of scene.elements){
@@ -63,6 +111,41 @@ describe("multi-actor crayon dragon village",()=>{
       .toBeGreaterThan(30);
     expect(scene.elements.some(e=>e.id==="village-moon")).toBe(true);
     expect(scene.elements.some(e=>e.id==="castle-door-lamp-left")).toBe(true);
+    const highField=scene.elements.find(e=>e.id==="dragon-flank-scale-field");
+    const lowScene=crayonDragonVillageScene("landscape",{detail:.25});
+    const lowField=lowScene.elements.find(e=>e.id==="dragon-flank-scale-field");
+    if(!highField||highField.kind!=="contour"||!lowField||lowField.kind!=="contour")
+      throw new Error("scale density missing");
+    expect((highField.d.match(/M-?\d/g)??[]).length)
+      .toBeGreaterThan((lowField.d.match(/M-?\d/g)??[]).length);
+
+  });
+  it("authors inspectable close-up shots without changing actor rigs or render timing",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const base=crayonDragonVillageScene(aspect,{detail:1});
+      const dragon=crayonDragonVillageScene(aspect,{detail:1,shot:"dragon"});
+      const castle=crayonDragonVillageScene(aspect,{detail:1,shot:"architecture"});
+      expect(inspectCrayonScene(dragon)).toEqual([]);
+      expect(inspectCrayonScene(castle)).toEqual([]);
+      expect(dragon.camera?.[0].zoom).toBeGreaterThan(1.5);
+      expect(castle.camera?.[0].zoom).toBeGreaterThan(1.5);
+      expect(dragon.camera?.[0].focusX).not.toEqual(castle.camera?.[0].focusX);
+      expect(dragon.elements).toEqual(base.elements.filter(e=>
+        e.kind!=="lettering" &&
+        !/^(castle|western-shop|eastern-shop|owl|friend)-/.test(e.id)));
+      expect(castle.elements).toEqual(base.elements.filter(e=>
+        e.kind!=="lettering" && !/^(dragon|owl|friend)-/.test(e.id)));
+      expect(castle.elements.some(e=>e.id==="castle-main")).toBe(true);
+      expect(castle.elements.some(e=>e.id==="dragon-body")).toBe(false);
+      expect(dragon.elements.some(e=>e.id==="dragon-body")).toBe(true);
+      expect(dragon.elements.some(e=>e.id==="castle-main")).toBe(false);
+      expect(base.elements.some(e=>e.id==="dragon-village-title")).toBe(true);
+      expect(dragon.elements.some(e=>e.id==="dragon-village-title")).toBe(false);
+      expect(dragon.durationFrames).toBe(330);
+      expect(dragon.camera?.[0].zoom).toBe(dragon.camera?.[2].zoom);
+    }
+    expect(()=>crayonDragonVillageScene("landscape",
+      {shot:"unknown" as "wide"})).toThrow(/settings/);
   });
   it("turns off an entire actor safely and supports alternate creature palettes",()=>{
     const scene=crayonDragonVillageScene("landscape",

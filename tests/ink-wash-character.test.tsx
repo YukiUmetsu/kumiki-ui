@@ -62,6 +62,9 @@ describe("INK3 character-first, authored-pigment performance",()=>{
     expect(ink).toContain("feGaussianBlur");
     expect(flat).toContain('data-km-character-presenter=""');
     expect(ink).toContain('data-km-character-presenter=""');
+    // All non-opted-in character styles retain the original clipping contract.
+    expect(flat).toMatch(/data-km-character-presenter=""[^>]*overflow:hidden/);
+    expect(ink).toMatch(/data-km-character-presenter=""[^>]*overflow:hidden/);
     expect(()=>renderToStaticMarkup(createElement(CharacterPresenter,
       {...props,inkMaterial:{seed:-1,grain:.8,absorption:.5}}))).toThrow(RangeError);
   });
@@ -110,6 +113,9 @@ describe("INK3 character-first, authored-pigment performance",()=>{
     expect(html).toContain('data-km-ink-character="scholar-staging"');
     expect(html).toContain('data-km-ink-character-frame="188"');
     expect(html).toContain('data-km-character-presenter=""');
+    // InkCharacter alone opts into expanded sleeve/pigment bounds.
+    expect(html).toMatch(/data-km-character-presenter=""[^>]*overflow:visible/);
+    expect(html).toMatch(/<svg[^>]*overflow:visible/);
     expect(html).toBe(renderToStaticMarkup(createElement(InkCharacter,props)));
     expect(()=>renderToStaticMarkup(createElement(InkCharacter,
       {...props,track:{...TRAVELLER_TRACK,instanceId:"different"}}))).toThrow(RangeError);

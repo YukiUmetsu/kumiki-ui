@@ -40,6 +40,30 @@ describe("INK4 authored character and cinematic stage",()=>{
       expect(rich).toContain('data-km-ink-character-part="body"');
     }
   });
+  it("attaches distinct hem and cuff drawings and places painted fingers above the brush",()=>{
+    const byId=new Map(INK_WALKING_TRAVELLER.parts.map(part=>[part.id,part]));
+    expect(byId.get("hem-drape")).toMatchObject({parent:"body",asset:"hem-drape-art"});
+    expect(byId.get("far-cuff")).toMatchObject({parent:"far-sleeve"});
+    expect(byId.get("near-cuff")).toMatchObject({parent:"near-sleeve"});
+    expect(byId.get("brush-grip")).toMatchObject({parent:"near-hand",channel:"prop"});
+    expect(byId.get("brush-grip")!.z).toBeGreaterThan(byId.get("brush")!.z);
+    expect(INK_WALKING_TRAVELLER.assets["near-brush-grip-art"]).toMatchObject({kind:"shapes"});
+    expect(INK_WALKING_TRAVELLER.capabilities).toContain("cloth-follow-through");
+    expect(validateCharacterDefinition(INK_WALKING_TRAVELLER).filter(x=>x.severity==="error")).toEqual([]);
+    for(const aspect of ["landscape","portrait"] as const) {
+      const withFlow=inkDirectorInstance(aspect,1);
+      const neutral=inkDirectorInstance(aspect,0);
+      const moving=samplePoseCorrection(withFlow.corrections??{},"hem-drape",110);
+      const still=samplePoseCorrection(neutral.corrections??{},"hem-drape",110);
+      expect(moving).not.toEqual(still);
+      expect(still.rotation).toBe(0);
+      expect(samplePoseCorrection(withFlow.corrections??{},"hem-drape",419).rotation).toBe(0);
+      const markup=renderToStaticMarkup(createElement(InkDirectorFilm,{frame:110,aspect,clothAmount:1}));
+      expect(markup).toContain('data-part="hem-drape"');
+      expect(markup).toContain('data-part="near-cuff"');
+      expect(markup).toContain('data-part="brush-grip"');
+    }
+  });
   it("uses 218 absolute-frame correction keys per part then eases back to the source rest rig",()=>{
     const instance=inkDirectorInstance("landscape");
     const keys=instance.corrections?.["far-thigh"]??[];
