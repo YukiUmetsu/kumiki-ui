@@ -9,6 +9,8 @@ import { InkCharacter } from "../../registry/video/ink-wash-character-react";
 import { inkActorAt } from "../../registry/video/ink-wash-character";
 import type { InkActorTrack } from "../../registry/video/ink-wash-character";
 import { inkExampleSpec } from "./ink-wash-demo";
+import { configureInkCamera, configureInkSpec } from "./ink-film-config";
+import type { InkMaterialControls, InkCameraControls } from "./ink-film-config";
 import { INK_TRAVELLER, TRAVELLER_CUES, TRAVELLER_INSTANCE, TRAVELLER_TRACK } from "./ink-wash-performer";
 
 /** Wet-on-paper cloth, dry hair and crisp face are independently art-directed. */
@@ -62,13 +64,26 @@ function Captions({frame,aspect}:{frame:number;aspect:Aspect}) {
   </div>;
 }
 /** Same absolute frame, rig, audio cues and native per-part pigment for preview and production. */
-export function InkPerformanceFilm({frame,aspect="landscape",mineral=false,reducedMotion=false}:{
+export interface InkActorFilmControls {
+  x: number; y: number; scale: number;
+  /** Separate controls for wet cloth and crisp expressive facial contours. */
+  clothBleed: number; faceBleed: number;
+}
+export const DEFAULT_INK_ACTOR: InkActorFilmControls = {
+  x:0,y:0,scale:1,clothBleed:1,faceBleed:0,
+};
+export function InkPerformanceFilm({
+  frame,aspect="landscape",mineral=false,reducedMotion=false,material,camera,actor,
+}:{
   frame:number;aspect?:Aspect;mineral?:boolean;reducedMotion?:boolean;
+  material?:InkMaterialControls; camera?:InkCameraControls;
+  actor?:InkActorFilmControls;
 }) {
   // Keep animated actors readable: bamboo stalks frame the performer rather than
   // crossing eyes, gestures or mouth. A separately composed portrait has more air.
   const spec=useMemo(()=>{
-    const original=inkExampleSpec("bamboo",aspect,77);
+    const untouched=inkExampleSpec("bamboo",aspect,77);
+    const original=material?configureInkSpec(untouched,material):untouched;
     const culms=aspect==="portrait"?new Set([0,4]):new Set([0,1,4]);
     const sprays=aspect==="portrait"?new Set([0,7,8]):new Set([0,1,2,5,7,8]);
     return {...original,strokes:original.strokes.filter(stroke=>{
@@ -78,14 +93,37 @@ export function InkPerformanceFilm({frame,aspect="landscape",mineral=false,reduc
       if(spray)return sprays.has(Number(spray[1]));
       return true;
     })};
-  },[aspect]);
-  const actorTrack=useMemo(()=>placeActor(aspect),[aspect]);
+  },[aspect,material]);
+  const actorTrack=useMemo(()=>{
+    const base=placeActor(aspect);
+    if(!actor)return base;
+    if(![actor.x,actor.y,actor.scale,actor.clothBleed,actor.faceBleed].every(Number.isFinite) ||
+      actor.x < -250 || actor.x > 250 || actor.y < -250 || actor.y > 250 ||
+      actor.scale < .5 || actor.scale > 1.5 ||
+      actor.clothBleed < 0 || actor.clothBleed > 1 ||
+      actor.faceBleed < 0 || actor.faceBleed > 1)
+      throw new RangeError("Ink actor settings must be finite and within the stage/material limits.");
+    return {...base,keys:base.keys.map(k=>({...k,
+      x:k.x+actor.x,y:k.y+actor.y,scale:k.scale*actor.scale}))};
+  },[aspect,actor]);
+  const finish=useMemo(()=>actor?{
+    ...PAPER_FINISH,
+    body:{bleed:actor.clothBleed},
+    "near-sleeve":{bleed:actor.clothBleed*.9},
+    "far-sleeve":{bleed:actor.clothBleed*.94},
+    eyes:{bleed:actor.faceBleed,dryContour:actor.faceBleed<.15},
+    mouth:{bleed:actor.faceBleed,dryContour:actor.faceBleed<.15},
+    head:{bleed:Math.min(1,.15+actor.faceBleed),dryContour:actor.faceBleed<.15},
+  }:PAPER_FINISH,[actor]);
+  const directedShot=useMemo(()=>camera?{
+    ...SHOT,camera:configureInkCamera(SHOT.camera,camera)
+  }:SHOT,[camera]);
   const placement=inkActorAt(actorTrack,frame,reducedMotion);
   const performer=useMemo(()=>({...TRAVELLER_INSTANCE,
     skin:mineral?"mineral":undefined,
   }),[mineral]);
   const width=formats[aspect].width,height=formats[aspect].height;
-  return <InkWashScene spec={spec} shot={SHOT} frame={frame} label="Scholar performing amid an ink bamboo grove"
+  return <InkWashScene spec={spec} shot={directedShot} frame={frame} label="Scholar performing amid an ink bamboo grove"
     reducedMotion={reducedMotion} paintOrder="under"
     renderLayer={layer=>layer.id==="scholar"?<div style={{width,height,position:"relative"}}>
       {/* Paper-space ground contact stays with the character as its stance changes. */}
@@ -99,7 +137,7 @@ export function InkPerformanceFilm({frame,aspect="landscape",mineral=false,reduc
       </svg>
       <InkCharacter definition={INK_TRAVELLER} instance={performer} cues={TRAVELLER_CUES}
         frame={frame} track={actorTrack} reducedMotion={reducedMotion}
-        absorption={spec.absorption} grain={spec.grain} partFinish={PAPER_FINISH}
+        absorption={spec.absorption} grain={spec.grain} partFinish={finish}
         label="A robed traveller holding a bamboo brush walks, greets and bows"/>
     </div>:null}>
     <Captions frame={frame} aspect={aspect}/>
