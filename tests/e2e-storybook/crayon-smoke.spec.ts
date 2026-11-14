@@ -28,12 +28,12 @@ test("crayon acting mouth and eyes switch named poses at exact exposure frames",
   const eye=scene.locator('[data-km-crayon-element="left-eye"]');
   await page.getByRole("button",{name:"Speech begins"}).click();
   await expect(scene).toHaveAttribute("data-km-crayon-frame","90");
-  await expect(mouth).toHaveAttribute("data-km-crayon-drawing","4");
+  await expect(mouth).toHaveAttribute("data-km-crayon-pose","ee");
   await scene.screenshot({path:info.outputPath("acting-90.png"),animations:"disabled"});
   await page.getByRole("button",{name:"Smile"}).click();
   await expect(scene).toHaveAttribute("data-km-crayon-frame","176");
-  await expect(eye).toHaveAttribute("data-km-crayon-drawing","6");
+  await expect(eye).toHaveAttribute("data-km-crayon-pose","smile");
   await scene.screenshot({path:info.outputPath("acting-176.png"),animations:"disabled"});
   await page.getByRole("button",{name:"Speech begins"}).click();
-  await expect(mouth).toHaveAttribute("data-km-crayon-drawing","4");
+  await expect(mouth).toHaveAttribute("data-km-crayon-pose","ee");
 });
