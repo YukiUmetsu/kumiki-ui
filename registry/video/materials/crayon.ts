@@ -39,10 +39,19 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
       const right = bounds.x + bounds.width + 18;
       const wobble = (crayonHash(options.seed, index, 6) - .5) * 8;
       // Separate marks, rather than a filled polygon with noisy opacity: wax follows a hand.
-      const d = "M " + left.toFixed(2) + " " + (y + slant).toFixed(2) +
-        " C " + (left + bounds.width * .33).toFixed(2) + " " + (y + wobble).toFixed(2) +
-        " " + (left + bounds.width * .66).toFixed(2) + " " + (y - wobble).toFixed(2) +
-        " " + right.toFixed(2) + " " + (y - slant).toFixed(2);
+      // A hand lifts and overlaps the crayon: no one-meter perfect digital ribbon.
+      const segments = Math.min(6, Math.max(1, Math.ceil(bounds.width / 200)));
+      const d = Array.from({length:segments}, (_,part) => {
+        const start = left + (right-left) * part / segments;
+        const end = left + (right-left) * (part+1) / segments;
+        const jitter = (crayonHash(options.seed, index, 20+part) - .5) * 6;
+        const lift = (4 + crayonHash(options.seed,index,40+part) * 12) * (part === segments-1 ? 0 : 1);
+        const sy = y + slant * (1 - 2 * part / segments) + jitter;
+        const ey = y + slant * (1 - 2 * (part+1) / segments) - jitter;
+        return "M " + (start-3).toFixed(2) + " " + sy.toFixed(2) +
+          " Q " + ((start+end)/2).toFixed(2) + " " + (y+wobble+jitter).toFixed(2) +
+          " " + (end-lift).toFixed(2) + " " + ey.toFixed(2);
+      }).join(" ");
       const grainX = left + bounds.width * (.18 + crayonHash(options.seed, index, 10) * .61);
       const grainY = y + slant * (1 - 2 * ((grainX - left) / (right - left)));
       const grainLen = 15 + crayonHash(options.seed, index, 11) * 66;
