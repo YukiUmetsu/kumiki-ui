@@ -42,7 +42,7 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect,options:Cr
   if(!Number.isFinite(detail)||detail<0||detail>1)
     throw new RangeError("Crayon editorial detail must be 0..1");
   const portrait=aspect==="portrait", W=portrait?540:960,H=portrait?960:540;
-  const ox=W*.51, oy=portrait?H*.65:H*.63;
+  const ox=W*(portrait?.56:.73), oy=portrait?H*.65:H*.63;
   // Opaque torso is a soft volume: weight compresses on anticipation and
   // releases on the lifted gesture. Neither axis ever collapses the shape.
   const bodyMotion=[
@@ -203,25 +203,28 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect,options:Cr
       {parentId:"body",color:"#d5d9df",opacity:.75}),
     contour("scarf-tail-stitch","M38 16 L50 14",2.2,
       {parentId:"scarf-tail",color:"#d5d9df",opacity:.75}),
-    wax("head","M-48 -127 Q-54 -144 -25 -157 C4 -175 42 -157 52 -133 Q64 -109 51 -85 L41 -59 Q14 -27 -11 -46 Q-41 -48 -51 -83 Q-59 -106 -48 -127Z",
-      {x:-65,y:-177,width:126,height:157},berries,{
+    wax("head","M-52 -117Q-54 -146 -24 -159C11 -172 46 -158 53 -128"+
+      "Q64 -110 58 -85Q59 -74 51 -63Q38 -54 21 -48"+
+      "Q-4 -35 -27 -56Q-54 -72 -55 -97Z",
+      {x:-65,y:-177,width:132,height:150},berries,{
         parentId:"body",pivot:{x:0,y:-71},motion:headMotion,poseCadence:2}),
     wax("face-temple-shadow","M25 -146Q56 -129 51 -93L39 -70L28 -89Z",
       {x:22,y:-152,width:40,height:89},furShadow,{parentId:"head",spacing:4.5}),
     wax("face-cheek-light","M-47 -124Q-29 -148 6 -146Q-29 -125 -31 -102"+
       "Q-39 -80 -29 -63Q-56 -80 -47 -124Z",
       {x:-56,y:-152,width:69,height:98},honey,{parentId:"head",spacing:5.5,pressure:.46}),
-    wax("muzzle","M-25 -89Q-6 -107 9 -92Q27 -99 38 -76Q28 -47 5 -43 Q-16 -41 -31 -65Z",
-      {x:-38,y:-110,width:81,height:75},honey,
+    wax("muzzle","M-14 -95Q9 -105 29 -92Q50 -92 56 -78"+
+      "Q53 -67 34 -57Q17 -47 2 -54Q-18 -59 -23 -78Z",
+      {x:-28,y:-111,width:90,height:65},honey,
       {parentId:"head",pressure:.68,spacing:5}),
-    wax("muzzle-jowl-shadow","M9 -56Q27 -63 36 -78Q32 -53 14 -43L-1 -48Z",
-      {x:-4,y:-82,width:47,height:45},furShadow,
+    wax("muzzle-jowl-shadow","M22 -56Q45 -70 50 -80Q59 -65 34 -52L5 -48Z",
+      {x:0,y:-83,width:62,height:40},furShadow,
       {parentId:"head",pressure:.65,spacing:4.7}),
-    contour("nose-bridge-anatomy","M7 -121Q13 -105 9 -91M-8 -72Q-2 -77 5 -77"+
-      "M12 -77Q24 -74 29 -68",1.8,
+    contour("nose-bridge-anatomy","M24 -121Q38 -105 44 -85M17 -81Q30 -87 43 -82"+
+      "M24 -61Q36 -65 45 -71",1.8,
       {parentId:"head",color:"#775c56",opacity:.77}),
-    contour("cheek-whiskers","M-22 -69Q-41 -73 -57 -67M-21 -64Q-43 -61 -55 -51"+
-      "M27 -67Q45 -77 60 -70M28 -61Q49 -59 62 -51",1.35,
+    contour("cheek-whiskers","M-11 -70Q-32 -75 -52 -66M-11 -65Q-37 -57 -53 -47"+
+      "M35 -67Q58 -78 77 -67M35 -61Q61 -54 81 -40",1.35,
       {parentId:"head",color:"#6c5b59",opacity:.64}),
     contour("ear-left-fold","M-42 -119Q-54 -163 -54 -199M-35 -123Q-45 -160 -49 -188",
       1.8,{parentId:"left-ear",color:"#dfbb9d",opacity:.75}),
@@ -239,34 +242,59 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect,options:Cr
         {id:"wonder",d:"M14 -123 Q24 -131 33 -123"},
         {id:"smile",d:"M14 -113 Q24 -117 33 -115"}],
       poseCues:browCues}),
-    contour("left-eye","M-32 -109 Q-24 -116 -16 -108 Q-23 -102 -32 -109Z",2.3,{
+    contour("left-eye","M-31 -110Q-25 -113 -19 -108Q-25 -106 -31 -110Z",2,{
       parentId:"head",poseCadence:2,
       poses:[{id:"blink",d:"M-33 -109Q-24 -105 -15 -110"},
         {id:"soft",d:"M-32 -110Q-23 -112 -16 -109"},
         {id:"smile",d:"M-32 -110Q-24 -117 -16 -110"}],
       poseCues:blinkCues}),
-    contour("right-eye","M15 -107 Q24 -115 33 -107 Q24 -102 15 -107Z",2.3,{
+    contour("right-eye","M13 -110Q23 -121 36 -109Q27 -99 13 -110Z",2.8,{
       parentId:"head",poseCadence:2,
       poses:[{id:"blink",d:"M15 -108Q24 -104 34 -108"},
         {id:"soft",d:"M15 -109Q25 -113 33 -109"},
         {id:"smile",d:"M15 -109Q24 -116 34 -109"}],
       poseCues:blinkCues}),
+    // Warm iris, dark pupil and paper-white catchlight share the eyelid's
+    // held exposure sheet. They disappear on a blink instead of floating
+    // visibly over a closed eye.
+    contour("near-eye-iris","M21 -110a5 6 0 1 0 10 0a5 6 0 1 0 -10 0",
+      3.6,{parentId:"head",color:"#c7a26b",poseCadence:2,
+        poses:[{id:"blink",d:"M21 -109L21.1 -109"},
+          {id:"soft",d:"M22 -110Q26 -113 31 -110"},
+          {id:"smile",d:"M22 -111Q26 -114 31 -110"}],
+        poseCues:blinkCues}),
+    contour("near-eye-pupil","M24 -110a2 4 0 1 0 4 0a2 4 0 1 0 -4 0",
+      3.2,{parentId:"head",color:"#343d43",poseCadence:2,
+        poses:[{id:"blink",d:"M24 -110L24.1 -110"},
+          {id:"soft",d:"M24 -110L28 -109"},
+          {id:"smile",d:"M24 -111L28 -110"}],
+        poseCues:blinkCues}),
+    contour("near-eye-catchlight","M25 -113L27 -114",1.9,
+      {parentId:"head",color:"#fff1cc",opacity:.96,poseCadence:2,
+        poses:[{id:"blink",d:"M25 -113L25.1 -113"},
+          {id:"soft",d:"M25 -113L25.5 -113"},
+          {id:"smile",d:"M25 -113L25.5 -113"}],
+        poseCues:blinkCues}),
+    contour("orbital-bone","M11 -115Q24 -124 38 -113M16 -102Q25 -99 35 -103",
+      1.6,{parentId:"head",color:"#604a4a",opacity:.79}),
+    contour("lower-jaw-volume","M-24 -68Q-7 -42 20 -47M10 -50Q28 -45 40 -58",
+      1.35,{parentId:"head",color:"#b18c70",opacity:.68}),
     contour("freckles-left","M-45 -81 l5 1 M-44 -75 l4 2 M-38 -79 l4 1",2,
       {parentId:"head",color:"#c16f65",opacity:.74}),
     contour("freckles-right","M40 -81 l5 1 M40 -75 l4 2 M34 -79 l4 1",2,
       {parentId:"head",color:"#c16f65",opacity:.74}),
-    wax("nose","M0 -85Q7 -88 12 -83L7 -76Q2 -73 -2 -79Z",
-      {x:-5,y:-91,width:21,height:22},plum,
+    wax("nose","M42 -84Q49 -90 58 -84Q58 -80 50 -76Q44 -77 42 -84Z",
+      {x:39,y:-92,width:23,height:19},plum,
       {parentId:"head",spacing:4,pressure:.8}),
-    contour("mouth","M-10 -60 Q4 -55 15 -64",2.8,{
+    contour("mouth","M27 -61Q38 -53 50 -65",2.8,{
       parentId:"head",poseCadence:2,
       poses:[
-        {id:"mbp",d:"M-10 -60 Q3 -58 15 -63"},
-        {id:"ah",d:"M-6 -62Q3 -47 13 -63Q2 -55 -6 -62Z"},
-        {id:"ee",d:"M-13 -60Q4 -52 18 -62"},
-        {id:"oh",d:"M2 -63a5 7 0 1 0 10 0a5 7 0 1 0 -10 0"},
-        {id:"fv",d:"M-9 -61Q4 -58 16 -62M-4 -57H12"},
-        {id:"smile",d:"M-13 -61Q4 -49 19 -64"},
+        {id:"mbp",d:"M27 -61Q38 -57 50 -65"},
+        {id:"ah",d:"M29 -64Q37 -47 47 -65Q39 -55 29 -64Z"},
+        {id:"ee",d:"M24 -61Q40 -53 51 -65"},
+        {id:"oh",d:"M35 -65a5 6 0 1 0 10 0a5 6 0 1 0 -10 0"},
+        {id:"fv",d:"M28 -63Q39 -59 50 -65M33 -59H46"},
+        {id:"smile",d:"M23 -62Q39 -49 53 -66"},
       ],poseCues:mouthCues}),
     wax("front-arm","M43 -9Q68 -5 76 21Q83 49 59 61L42 47L55 24Z",
       {x:36,y:-17,width:52,height:83},fieldCoat,{parentId:"body",pivot:{x:49,y:10},
