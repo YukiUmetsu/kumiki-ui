@@ -112,7 +112,6 @@ export interface RisoEvaluatedScene {
   actors: readonly RisoEvaluatedActor[];
 }
 const SLUG = /^[a-z][a-z0-9-]{0,63}$/;
-const HEX = /^#[0-9a-f]{6}$/i;
 const SAFE_PATH = /^[0-9.eE,\s+\-MmLlHhVvCcSsQqTtAaZz]+$/;
 const validPath = (d: unknown): d is string => typeof d === "string" &&
   d.length > 0 && d.length <= 20000 && SAFE_PATH.test(d) && /[Mm]/.test(d);
@@ -278,7 +277,10 @@ export function inspectRisoCharacterScene(value: unknown): RisoSceneIssue[] {
     const layerIds = new Set<string>();
     scene.layers.forEach((layer, i) => {
       const p = "/layers/" + i;
-      if (!layer || typeof layer.id !== "string" || !SLUG.test(layer.id) || layerIds.has(layer.id))
+      if (!layer || typeof layer !== "object") {
+        fail("layer", p, "Layer must be an object."); return;
+      }
+      if (typeof layer.id !== "string" || !SLUG.test(layer.id) || layerIds.has(layer.id))
         fail("layer-id", p + "/id", "Layer ID must be a unique slug.");
       else layerIds.add(layer.id);
       if (!plateIds.has(layer.plate)) fail("layer-plate", p + "/plate", "Layer plate must exist in RISO1 print.");
