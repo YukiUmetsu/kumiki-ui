@@ -9,8 +9,9 @@ import type { Point } from "./collage-geometry";
 import type { CollageEase, CollageKey, CollageMove } from "./collage-motion";
 import type { CollageBase, CollageCutoutNode, CollageNode, CollagePaint, CollageTextNode } from "./collage-scene";
 
-type Place = Pick<CollageBase, "x" | "y" | "rotate" | "scale" | "parent" | "depth" | "from" | "to" | "enter" | "exit" | "keys" | "loops" | "geo" | "follow">;
+export type CollagePlace = Pick<CollageBase, "x" | "y" | "rotate" | "scale" | "parent" | "depth" | "from" | "to" | "enter" | "exit" | "keys" | "loops" | "geo" | "follow">;
 const f2 = (v: number) => Math.round(v * 100) / 100;
+type Place = CollagePlace;
 const PLACE_KEYS = ["x", "y", "rotate", "scale", "parent", "depth", "from", "to", "enter", "exit", "keys", "loops", "geo", "follow"] as const;
 /** Only the placement fields of an options object, so builder-only options never leak into nodes. */
 export function place(o: Place): Place {
