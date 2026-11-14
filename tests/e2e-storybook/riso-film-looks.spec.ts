@@ -1,4 +1,17 @@
 import { expect, test } from "@playwright/test";
+import type { Locator } from "@playwright/test";
+/** Range inputs cannot use Playwright fill(); update native value and dispatch React events. */
+async function seek(slider: Locator, frame: number) {
+  await slider.evaluate((node, value) => {
+    const input = node as HTMLInputElement;
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+    if (!setter) throw new Error("Native input value setter unavailable");
+    setter.call(input, String(value));
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }, frame);
+}
+
 
 const story = "/iframe.html?id=video-film-looks--risograph-two-ink&viewMode=story";
 const filmStory = "/iframe.html?id=video-film-looks--risograph-film&viewMode=story";
@@ -59,7 +72,7 @@ for (const aspect of ["landscape", "portrait"] as const) {
     const slider = page.getByRole("slider", { name: "Printing sequence" });
     const snapshots: Buffer[] = [];
     for (const frame of frames) {
-      await slider.fill(String(frame));
+      await seek(slider, frame);
       await expect(slider).toHaveValue(String(frame));
       const filename = "riso-" + aspect + "-" + String(frame).padStart(3, "0") + ".png";
       snapshots.push(await stage.screenshot({ animations: "disabled", path: info.outputPath(filename) }));
@@ -68,7 +81,7 @@ for (const aspect of ["landscape", "portrait"] as const) {
     expect(snapshots[1]).not.toEqual(snapshots[2]);
     expect(snapshots[2]).not.toEqual(snapshots[3]);
     // Scene frame determinism: revisiting a prior absolute frame returns the same pixels.
-    await slider.fill("135");
+    await seek(slider, 135);
     const seekBack = await stage.screenshot({ animations: "disabled" });
     expect(seekBack).toEqual(snapshots[2]);
     await page.getByRole("button", { name: "Cobalt only" }).click();
@@ -77,7 +90,7 @@ for (const aspect of ["landscape", "portrait"] as const) {
     await page.getByRole("button", { name: "Vermilion only" }).click();
     await stage.screenshot({ path: info.outputPath("riso-" + aspect + "-red-only.png") });
     await page.getByRole("checkbox", { name: "Reduced motion" }).check();
-    await slider.fill("0");
+    await seek(slider, 0);
     // Reduced-motion state resolves all plates even when the author seeks to the initial frame.
     const count = await stage.locator('clipPath path').count();
     expect(count).toBe(2);
@@ -89,13 +102,13 @@ test("Riso films reuse the existing three-shot FilmStage for both aspect ratios"
   await expect(page.locator("svg[data-km-riso-print]")).toBeVisible();
   const slider = page.getByRole("slider", { name: /Film frame/i });
   for (const f of [0, 110, 220, 389]) {
-    await slider.fill(String(f));
+    await seek(slider, f);
     const svg = page.locator("svg[data-km-riso-print]");
     await svg.screenshot({ animations: "disabled", path: info.outputPath("riso-film-landscape-" + f + ".png") });
   }
   await page.getByRole("combobox", { name: "Output" }).selectOption("portrait");
   await expect(page.locator("svg[data-km-riso-print]")).toHaveAttribute("viewBox", "0 0 540 960");
-  await slider.fill("389");
+  await seek(slider, 389);
   await page.locator("svg[data-km-riso-print]").screenshot({ animations: "disabled",
     path: info.outputPath("riso-film-portrait-final.png") });
 });
