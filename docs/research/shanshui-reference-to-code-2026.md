@@ -96,3 +96,63 @@ lab and the rendered film. **Passing these checks is not artistic approval.**
 The current puppet still needs real 3/4 turnarounds, a correct anatomical
 shoulder/sleeve/hand hierarchy, actual visible scroll grasp, true cloth-fold
 deformation and improved original hand-painted face contours.
+
+
+## Whole-figure recalibration (v4/v5 — reference student reconstruction)
+
+The **head-only correction was insufficient**. The previous long-headed, wide-torso
+puppet remained visually recognizable under new ink textures. This iteration
+replaces the *actual rig art*, using one teacher-image-to-design projection for
+**every visible body region**, rather than individual arbitrary scale modifiers.
+
+### Architecture
+
+- \`src/video/ink-shanshui-full-body.ts\`: \`shanshuiBodyFit(scene)\` solves
+  body design coordinates and the 960×540 stage placement from the *same*
+  projected source crop and landmarks. It includes full figure aspect, stage
+  scale/ground position, shoulders, waist, hips, skirt/hem, sleeves, hands,
+  exposed feet, and independently fitted head, scalp, brows, eyes, pupils,
+  mouth and beard. Three profiles are separate identities.
+- \`shanshuiBodyAssets(scene)\`: source-informed, **new original** curved sleeve
+  silhouettes, continuous opaque robe, gathered belt and collar, 11
+  overlapping fold lines, under-robe, paired visible hands, a reader's
+  full-width scroll, and distinct wind ribbons/fabric trains for walker/reader.
+  No external bitmap or proprietary artwork is embedded.
+- \`applyShanshuiBodyFit\`: resets actual joint pivots for shoulder, sleeves,
+  wrists, collar, belt, hem, face and hair. The canonical character hierarchy
+  remains executable, including expression, blink and foot IK.
+- **Head is anisotropic**, not globally shrunk. The face region supplies
+  independent horizontal and vertical fit to the 260×340 design art.
+  Eyebrows, eyes/pupils, mouth and hairline receive additional Y offsets
+  from their own visible teacher landmarks. This is a projected image fit,
+  not a facial likeness/identity guarantee.
+- **Feet no longer depend on hidden shin art:** independent \`shoe-left\`
+  and \`shoe-right\` vector parts track the authoritative
+  \`inkWalkAt\` world-space foot targets through per-frame correction tracks.
+  Concealed knees and ankles are not invented. A long under-robe plane now
+  reaches down to the visible shoes, replacing the first pass's leg gap.
+- \`shanshuiFittedRoute\` keeps every original film cue but computes figure
+  size and final ground center directly from the original teacher image crop.
+  Contact, composition and face size move together.
+
+### Rig diagnostics & visual acceptance
+
+The first whole-body render exposed severe problems: triangular sleeve hems,
+flat robe contours, detached dark shoes, and an overlong, badly positioned
+reader face that overlapped his scroll. Iterations changed sleeve Béziers,
+added denser silk fold lines, grounded shoe targets and a lower undergarment,
+and separately corrected face width/height and facial component placements.
+All of these were made by reviewing actual rendered Storybook frames,
+not by assuming TypeScript tests establish visual parity.
+
+A Storybook **full-body figure panel** renders the actual original 260×340
+SVG character assets and rest transforms beside the teacher-image region
+overlay. Focused Vitest tests check complete source fit and grounded feet;
+browser tests inspect each of the three full figures and films.
+
+**Remaining:** the reference art depicts sophisticated historical costumes,
+fabric folds, authentic 3/4 drafting, natural hands and expressive classical
+ink lines. Current code vectors are a *controlled starting point*, not
+painting-quality equivalence. Even an exact 2D contour fit cannot recover
+unseen arm/leg 3D anatomy or achieve realistic walking without a custom
+articulated garment rig. Review all three MP4s at native size before merging.
