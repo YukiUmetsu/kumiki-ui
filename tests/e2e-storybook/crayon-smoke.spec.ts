@@ -10,6 +10,8 @@ const samples=[
   {name:"acting portrait",id:"video-crayon-scene-engine--character-performance-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
   {name:"walk landscape",id:"video-crayon-scene-engine--character-walk-cycle",attr:"data-km-crayon-scene",aspect:"landscape"},
   {name:"walk portrait",id:"video-crayon-scene-engine--character-walk-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
+  {name:"two-bone gait landscape",id:"video-crayon-scene-engine--character-two-bone-ik",attr:"data-km-crayon-scene",aspect:"landscape"},
+  {name:"two-bone gait portrait",id:"video-crayon-scene-engine--character-two-bone-ik-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
 ] as const;
 for(const sample of samples) {
   test("crayon real-browser smoke: "+sample.name,async({page},info)=>{
@@ -65,4 +67,30 @@ test("walk animation plants, releases, and replants the correct foot on keyed st
   await scene.screenshot({path:info.outputPath("walk-156.png"),animations:"disabled"});
   await page.getByRole("button",{name:"Back-foot plant"}).click();
   await expect(back).toHaveAttribute("data-km-crayon-contact","planted");
+});
+
+
+test("two-bone walk uses analytic knees and eases a releasing planted foot",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-crayon-scene-engine--character-two-bone-ik&viewMode=story");
+  const scene=page.locator("svg[data-km-crayon-scene]");
+  const back=scene.locator('[data-km-crayon-element="foot-back"]');
+  const front=scene.locator('[data-km-crayon-element="foot-front"]');
+  const leg=scene.locator('[data-km-crayon-element="leg-front"]');
+  await expect(leg).toHaveAttribute("data-km-crayon-rig","two-bone");
+  const shapeAtStart=await leg.locator("path").first().getAttribute("d");
+  expect(shapeAtStart).toMatch(/^M.* L.* L/);
+  await page.getByRole("button",{name:"Contact release"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","44");
+  await expect(back).toHaveAttribute("data-km-crayon-contact","releasing");
+  await page.getByRole("button",{name:"Front-foot swing"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","124");
+  await expect(front).not.toHaveAttribute("data-km-crayon-contact","planted");
+  const shapeAtSwing=await leg.locator("path").first().getAttribute("d");
+  expect(shapeAtSwing).not.toEqual(shapeAtStart);
+  await scene.screenshot({path:info.outputPath("two-bone-gait-swing.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Front-foot plant"}).click();
+  await expect(front).toHaveAttribute("data-km-crayon-contact","planted");
+  await scene.screenshot({path:info.outputPath("two-bone-gait-plant.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Front-foot swing"}).click();
+  expect(await leg.locator("path").first().getAttribute("d")).toEqual(shapeAtSwing);
 });
