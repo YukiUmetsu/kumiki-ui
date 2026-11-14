@@ -239,3 +239,20 @@ export function risoPerformanceScene(subject:RisoPerformanceSubject,
     print:risoSpec(aspect,subject==="postcard"?41:91),actors,layers,camera,
   };
 }
+
+/** Stable references avoid rehashing paper grain on every FilmStage frame. */
+const SCENES: Record<RisoPerformanceSubject,Record<RisoPerformanceAspect,RisoCharacterSceneSpec>> = {
+  postcard:{
+    landscape:risoPerformanceScene("postcard","landscape"),
+    portrait:risoPerformanceScene("postcard","portrait"),
+  },
+  "night-garden":{
+    landscape:risoPerformanceScene("night-garden","landscape"),
+    portrait:risoPerformanceScene("night-garden","portrait"),
+  },
+};
+export function risoPerformanceSceneStable(
+  subject:RisoPerformanceSubject,aspect:RisoPerformanceAspect,
+):RisoCharacterSceneSpec {
+  return SCENES[subject][aspect];
+}
