@@ -1,5 +1,6 @@
 import { useId, useMemo } from "react";
 import { WatercolourCraftDetails } from "./watercolour-craft-detail";
+import { WatercolourReferenceFlower, WatercolourReferenceBoat, WatercolourReferenceCourtyard } from "./watercolour-reference-construction";
 import { WatercolourMasterworkMaterial } from "./watercolour-masterwork-material";
 import { WatercolourWetPaper } from "../../registry/video/watercolour-wet-paper-react";
 import { paintHash } from "../../registry/video/watercolour-brush";
@@ -292,23 +293,8 @@ function Stem({i,seed,frame}: {i:number;seed:number;frame:number}) {
         rx={1.4} ry={2.2} fill={n%5===0?"#AFB38A":"#6F7F65"}
         opacity={.6+.25*paintHash(seed,i*13+n,89)}/>;
     })}
-  </g>:kind===2?<g>
-    {/* Daisylike flower: ray florets attach around a dense disc. */}
-    {Array.from({length:13},(_,n)=>{
-      const a=n*Math.PI*2/13;
-      const x=tipX+Math.cos(a)*10,y=-height-5+Math.sin(a)*9;
-      return <ellipse key={n} cx={x} cy={y} rx={3.3} ry={8.7}
-        transform={"rotate("+(a*180/Math.PI+90)+" "+x+" "+y+")"}
-        fill={n%3===0?"#DFD2AE":"#E3DFC4"} stroke="#B2AC8E"
-        strokeWidth=".5" opacity=".8"/>;
-    })}
-    <circle cx={tipX} cy={-height-5} r={5.6} fill="#AC9861" opacity=".86"/>
-    {Array.from({length:14},(_,n)=>{
-      const a=n*2.399,r=Math.sqrt(n)*1.16;
-      return <circle key={n} cx={tipX+Math.cos(a)*r} cy={-height-5+Math.sin(a)*r}
-        r=".55" fill="#766F4A" opacity=".8"/>;
-    })}
-  </g>:kind===3?<g>
+  </g>:kind===2?<WatercolourReferenceFlower cx={tipX} cy={-height-5}
+    seed={seed} index={i} frame={frame}/>:kind===3?<g>
     {Array.from({length:7},(_,n)=>{
       const a=(n-3)*.32;
       const x=tipX+Math.sin(a)*20,y=-height-14-Math.cos(a)*13;
@@ -378,7 +364,7 @@ function BotanicalArt({seed,frame,washFilter}:{seed:number;frame:number;washFilt
   </g>;
 }
 
-function EstuaryArt({frame,washFilter}:{frame:number;washFilter:string}) {
+function EstuaryArt({seed,frame,washFilter}:{seed:number;frame:number;washFilter:string}) {
   const fade=clamp((frame-92)/74);
   const sheen=clamp((frame-135)/98);
   return <g>
@@ -438,27 +424,9 @@ function EstuaryArt({frame,washFilter}:{frame:number;washFilter:string}) {
         strokeWidth={sunny?1.5:.7+i%3*.25} strokeLinecap="round" fill="none"
         opacity={(sunny?.58:.15+.28*paintHash(78,i,59))*sheen}/>;
     })}
-    <g opacity={clamp((frame-169)/50)}>
-      <path d="M705 398 Q756 391 801 397 Q783 411 737 412 Z"
-        fill="#5C6A6B" opacity=".52"/>
-      <path d="M734 390 L760 342 L765 390 Z" fill="#F8F2E7" opacity=".97"/>
-      <path d="M766 394 L776 358 L779 395 Z" fill="#9DA4A2" opacity=".44"/>
-      <path d="M761 343 V396 M709 397 Q767 409 807 398"
-        stroke="#536D77" strokeWidth="1.1" fill="none"/>
-      <path d="M731 412 Q766 422 795 416 M732 423 Q765 437 803 428"
-        stroke="#D1D4C7" strokeWidth="1.5" fill="none" opacity=".7"/>
-      {/* Tiny figure is a deliberate anatomy and storytelling scale mark,
-           not a flat featureless blob: head, shirt, bent arm and seated legs. */}
-      <g opacity=".81">
-        <ellipse cx="778" cy="387" rx="3.4" ry="4.4" fill="#B68D74"/>
-        <path d="M777 389 Q772 394 769 398 L779 402 L784 395 Q782 392 777 389 Z"
-          fill="#8B9283"/>
-        <path d="M773 396 Q771 399 767 399 M779 402 l7 0"
-          stroke="#657476" strokeWidth="2" fill="none" strokeLinecap="round"/>
-        <path d="M773 391 Q778 389 781 392"
-          stroke="#5E686D" strokeWidth="1.3" fill="none"/>
-      </g>
-    </g>
+    {/* Vessel rebuild: contours, interlocked sail cloth, connected cables,
+        anatomically separated sailor and shape-led wake. */}
+    <WatercolourReferenceBoat frame={frame} seed={seed}/>
     {Array.from({length:14},(_,i)=>{
       const x=376+i*17+paintHash(22,i,17)*9;
       const h=20+paintHash(22,i,23)*29;
@@ -470,7 +438,7 @@ function EstuaryArt({frame,washFilter}:{frame:number;washFilter:string}) {
   </g>;
 }
 
-function CourtyardArt({frame,washFilter}:{frame:number;washFilter:string}) {
+function CourtyardArt({seed,frame,washFilter}:{seed:number;frame:number;washFilter:string}) {
   const fade=clamp((frame-100)/68);
   const ink=clamp((frame-180)/80);
   const windows=Array.from({length:6},(_,i)=>{
@@ -540,6 +508,7 @@ function CourtyardArt({frame,washFilter}:{frame:number;washFilter:string}) {
       <path d="M891 313 Q895 356 892 406 L900 465"
         stroke="#6E7980" strokeWidth="1.2" fill="none" opacity=".38"/>
       {windows}
+      <WatercolourReferenceCourtyard seed={seed} frame={frame}/>
       <path d="M639 469 v-76 q0 -27 31 -27 t31 27 v76"
         fill="#526F77" opacity=".25"/>
       <path d="M640 469 v-78 q0 -25 30 -25 t31 25 v78"
@@ -639,8 +608,8 @@ export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false
         <g mask={study==="estuary"&&!artOnly?`url(#${washId}-editorial-shore)`:undefined}>
         {study==="botanical"?<BotanicalArt seed={spec.seed} frame={reducedMotion?420:frame}
           washFilter={washFilter}/>:
-          study==="estuary"?<EstuaryArt frame={reducedMotion?420:frame} washFilter={washFilter}/>:
-            <CourtyardArt frame={reducedMotion?420:frame} washFilter={washFilter}/>}
+          study==="estuary"?<EstuaryArt seed={spec.seed} frame={reducedMotion?420:frame} washFilter={washFilter}/>:
+            <CourtyardArt seed={spec.seed} frame={reducedMotion?420:frame} washFilter={washFilter}/>}
         {/* Real water transport and sedimentation restricted to the painted
             botanical/landscape/architecture silhouettes. This glaze shares
             the absolute film frame and follows art-transform in portrait. */}
