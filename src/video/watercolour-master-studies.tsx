@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { WatercolourWetPaper } from "../../registry/video/watercolour-wet-paper-react";
 import { paintHash } from "../../registry/video/watercolour-brush";
 import type { WetPaperSpec, WetPigmentDrop } from "../../registry/video/watercolour-wet-paper";
@@ -112,21 +113,23 @@ export function watercolourStudySpec(study:WatercolourStudy,output:WatercolourOu
 
 function Stem({i,seed,frame}: {i:number;seed:number;frame:number}) {
   const h=paintHash(seed,i,13),q=paintHash(seed,i,19);
-  const x=378+i*19+(h-.5)*27;
+  const x=[383,497,614,751,841][i%5]+Math.floor(i/5)*13+(h-.5)*48;
   const height=86+paintHash(seed,i,23)*242;
   const y=478+(q-.5)*19;
   const bend=(h-.5)*54;
-  const sway=Math.sin(frame*.025+i*.57)*2.3;
+  // Root-anchored moving wind: each whole specimen, including all leaves and
+  // seed heads, moves as one connected plant rather than disjoint limbs.
+  const sway=.95*Math.sin(frame*.025+x*.008)+.65*Math.sin(frame*.017+i*.51);
   const kind=i%5;
   const green=["#587E68","#53766A","#859775","#A2A784","#5D777B"][kind];
   const dark=["#405E50","#4D5E52","#6C7656","#827B57","#53656A"][kind];
-  const tipX=bend+sway;
+  const tipX=bend;
   const stem=`M0 0 Q${(bend*.15).toFixed(1)} ${(-height*.53).toFixed(1)} ${tipX.toFixed(1)} ${(-height).toFixed(1)}`;
-  const appear=clamp((frame-80-i*3)/55);
+  const appear=clamp((frame-65-i*3)/79);
   const leaves=Array.from({length:kind===4?5:3},(_,n)=>{
     const side=n%2?1:-1;
     const up=height*(.26+n*.13);
-    const len=(13+(1-h)*11)*(1-n*.13);
+    const len=(17+(1-h)*12)*(1-n*.13);
     const dx=side*len;
     return <g key={n}>
       <path d={`M${(bend*.1).toFixed(1)} ${(-up).toFixed(1)}
@@ -206,23 +209,39 @@ function Stem({i,seed,frame}: {i:number;seed:number;frame:number}) {
         opacity=".4" fill="none"/>;
     })}
   </g>;
-  return <g transform={`translate(${x.toFixed(2)} ${y.toFixed(2)})`}
+  return <g transform={`translate(${x.toFixed(2)} ${y.toFixed(2)}) rotate(${sway.toFixed(2)})`}
     opacity={appear}>
     <path d={stem} stroke="#F6F2D8" strokeWidth="3.9" opacity=".4" fill="none"/>
-    <path d={stem} stroke={green} strokeWidth={1.4+q*.75} opacity=".77" fill="none"/>
+    <path d={stem} stroke={green} strokeWidth={1.4+q*.75} opacity=".77"
+      fill="none" pathLength={1} strokeDasharray="1" strokeDashoffset={1-appear}/>
     <path d={stem} stroke={dark} strokeWidth=".48" opacity=".62" fill="none"/>
     {leaves}
     <g>{head}</g>
   </g>;
 }
 
-function BotanicalArt({seed,frame}:{seed:number;frame:number}) {
+function BotanicalArt({seed,frame,washFilter}:{seed:number;frame:number;washFilter:string}) {
   const fade=clamp((frame-118)/64);
   return <g>
-    <path d="M336 455 Q440 424 515 456 T690 451 T925 461 L936 500 L337 500 Z"
-      fill="#7B8C6A" opacity={.16*fade}/>
-    <path d="M336 473 C473 483 545 453 674 476 S826 469 930 469"
-      stroke="#715F54" strokeWidth="1.3" fill="none" opacity={.43*fade}/>
+    <g filter={washFilter}>
+      <path d="M336 463 C372 439 416 442 455 451 Q493 437 537 454
+        C573 432 614 443 661 450 Q709 437 752 451
+        Q804 439 848 455 Q901 439 932 458 L932 495
+        Q850 487 797 497 C736 484 690 500 627 494
+        Q548 484 488 496 Q412 488 337 501 Z"
+        fill="#84936A" opacity={.17*fade}/>
+      <path d="M355 476 C407 465 466 481 519 468
+        Q578 458 641 470 Q706 477 759 463
+        Q843 463 925 476 L923 490 Q863 481 796 495
+        C705 482 643 497 562 485 Q431 493 355 491 Z"
+        fill="#B7AB81" opacity={.16*fade}/>
+      <path d="M361 455 C447 441 483 451 547 449
+        S688 454 773 446 T923 456"
+        stroke="#586E64" strokeWidth="5" fill="none" opacity={.09*fade}/>
+    </g>
+    <path d="M337 478 C420 485 481 462 566 475
+      Q625 480 700 468 C789 481 874 468 929 475"
+      stroke="#75695D" strokeWidth="1.1" fill="none" opacity={.37*fade}/>
     {Array.from({length:29},(_,i)=><Stem key={i} i={i} seed={seed} frame={frame}/>)}
     {Array.from({length:36},(_,i)=>{
       const x=363+paintHash(seed,i,71)*552;
@@ -234,16 +253,55 @@ function BotanicalArt({seed,frame}:{seed:number;frame:number}) {
   </g>;
 }
 
-function EstuaryArt({frame}:{frame:number}) {
+function EstuaryArt({frame,washFilter}:{frame:number;washFilter:string}) {
   const fade=clamp((frame-92)/74);
   const sheen=clamp((frame-135)/98);
   return <g>
-    <path d="M354 309 Q435 287 478 295 Q556 269 632 290 Q699 260 773 284 Q844 270 939 290
-      L942 337 L354 341 Z" fill="#8496A8" opacity={.17*fade}/>
-    <path d="M354 351 Q487 337 586 342 Q691 325 782 341 Q863 337 941 345
-      L941 371 L354 365 Z" fill="#678C94" opacity={.13*fade}/>
-    <path d="M351 369 C477 370 536 362 650 371 S839 371 940 368"
-      stroke="#507D89" opacity={.27*fade} strokeWidth="1.3" fill="none"/>
+    <g filter={washFilter} opacity={fade}>
+      {/* Four atmospheric depth planes: irregular geology, lost edges and
+          negative spaces, not machine-cut rectangular mountain bands. */}
+      <path d="M354 318 C387 310 420 299 458 298
+        Q478 291 493 296 Q525 275 554 284
+        C579 279 604 292 635 289 Q654 271 682 279
+        Q711 268 743 281 Q770 271 796 287
+        Q832 272 856 282 C890 280 914 289 939 290
+        L943 338 Q885 334 839 342 Q790 336 748 342
+        Q698 334 652 347 C593 339 545 350 497 344
+        Q428 352 354 348 Z" fill="#859AA8" opacity=".21"/>
+      <path d="M354 328 Q390 323 410 328 Q448 314 486 327
+        Q526 312 566 333 Q604 310 630 320
+        C669 300 707 310 733 324 Q773 309 816 317
+        Q873 308 942 324 L942 357 Q872 352 820 362
+        Q741 350 677 366 Q598 358 533 363
+        Q437 350 354 364 Z" fill="#7C919D" opacity=".18"/>
+      <path d="M354 360 C407 356 447 349 497 357
+        C541 352 582 362 629 356 Q664 346 706 358
+        Q761 350 800 361 Q862 349 941 357
+        L941 382 Q876 382 839 391 C776 381 737 388 680 390
+        Q606 384 547 390 Q439 381 354 391 Z" fill="#6D959E" opacity=".15"/>
+      <path d="M380 305 Q457 289 511 297 M599 308 Q662 283 713 295"
+        stroke="#A4ABB0" strokeWidth="7" opacity=".12" fill="none"/>
+    </g>
+    <path d="M352 374 Q424 371 486 376 Q541 374 591 380
+      Q643 370 703 378 Q768 375 821 381 T939 374"
+      stroke="#597E89" opacity={.22*fade} strokeWidth="1.2" fill="none"/>
+    {/* Long wet glazes keep the sky and horizon connected without repeating
+        hard vector bands. Fine lost-edge wisps and tiny bird strokes bring scale. */}
+    <g filter={washFilter} opacity={.22*fade}>
+      <path d="M405 254 C452 243 489 260 530 248 Q589 244 629 257
+        T732 249 Q765 241 807 256" fill="none"
+        stroke="#98ADB6" strokeWidth="8" strokeLinecap="round"/>
+      <path d="M511 302 Q570 297 611 304 T722 298 Q786 301 854 305"
+        stroke="#F3F2E6" strokeWidth="8" opacity=".37" fill="none"/>
+      <path d="M368 415 Q457 405 537 426 Q583 411 650 422
+        Q703 409 781 430 Q853 419 927 434"
+        stroke="#91A9A1" strokeWidth="20" opacity=".16" fill="none"/>
+    </g>
+    <g stroke="#627F86" strokeWidth=".9" opacity={.3*fade} fill="none">
+      <path d="M596 290 q5 -3 11 1 q4 -4 8 -2"/>
+      <path d="M622 277 q4 -2 8 1 q5 -3 9 -1"/>
+      <path d="M546 305 q3 -2 7 0 q3 -2 7 -1"/>
+    </g>
     {Array.from({length:77},(_,i)=>{
       const x=361+paintHash(78,i,41)*565;
       const y=369+paintHash(78,i,43)*111;
@@ -287,7 +345,7 @@ function EstuaryArt({frame}:{frame:number}) {
   </g>;
 }
 
-function CourtyardArt({frame}:{frame:number}) {
+function CourtyardArt({frame,washFilter}:{frame:number;washFilter:string}) {
   const fade=clamp((frame-100)/68);
   const ink=clamp((frame-180)/80);
   const windows=Array.from({length:6},(_,i)=>{
@@ -303,9 +361,23 @@ function CourtyardArt({frame}:{frame:number}) {
         stroke="#655D57" strokeWidth="1.7" opacity=".65"/>
       <path d={`M${x+46} ${y-3} l8 6 v37 l-8 -4 Z`}
         fill="#566D7C" opacity=".15"/>
+      {/* Unequal watercolor panes, soft reflected light and timber wear. */}
+      <path d={`M${x+3} ${y+4} Q${x+12} ${y+6} ${x+18} ${y+3}
+        L${x+18} ${y+33} Q${x+12} ${y+30} ${x+3} ${y+34} Z`}
+        fill="#E5E4CE" opacity={.14+.07*(i%3)}/>
+      {i%3===1 && <g>
+        <path d={`M${x-11} ${y-3} l9 2 v42 l-9 3 Z
+          M${x+45} ${y-2} l10 -3 v41 l-10 4 Z`}
+          fill="#6F8C80" opacity=".33"/>
+        <path d={`M${x-7} ${y+4} v31 M${x+49} ${y+2} v32`}
+          stroke="#5E756E" strokeWidth=".85" opacity=".6"/>
+      </g>}
+      <path d={`M${x+4} ${y+37} q20 3 35 -1`}
+        stroke="#AFA28A" strokeWidth="2.3" fill="none" opacity=".4"/>
     </g>;
   });
   return <g opacity={fade}>
+    <g filter={washFilter}>
     <path d="M434 276 L582 201 L781 219 L889 298 L881 469 L464 470 Z"
       fill="#BAA991" opacity=".30"/>
     <path d="M426 294 L567 202 L769 205 L901 291
@@ -316,8 +388,33 @@ function CourtyardArt({frame}:{frame:number}) {
     <path d="M465 318 L574 255 L773 254 L882 318 V472 H465 Z"
       fill="#D9C7A5" opacity=".25"/>
     <path d="M772 255 L884 317 V472 H772 Z" fill="#4D7082" opacity=".18"/>
+    </g>
     <path d="M470 461 L881 461" stroke="#847B6E" strokeWidth="2" opacity=".46"/>
-    <g opacity={ink}>{windows}
+    <g opacity={ink}>
+      {/* Art-directed roof strata. Broken, uneven marks suggest slate and
+          the painter's wrist; avoid perfectly repeated architectural hatches. */}
+      {Array.from({length:46},(_,i)=>{
+        const x=475+paintHash(61,i,47)*385;
+        const y=245+paintHash(61,i,53)*35;
+        const width=4+paintHash(61,i,59)*23;
+        return <path key={i} d={`M${x.toFixed(2)} ${y.toFixed(2)}
+          l${width.toFixed(2)} ${(1.3+paintHash(61,i,67)*2).toFixed(2)}`}
+          stroke={i%4===0?"#E8DBC6":"#716E78"} strokeWidth={i%4===0?1.2:.65}
+          opacity={.09+.2*paintHash(61,i,71)} fill="none"/>;
+      })}
+      {/* Plaster sediment, an understated roof drain and masonry joints. */}
+      {Array.from({length:55},(_,i)=>{
+        const x=480+paintHash(113,i,29)*390;
+        const y=327+paintHash(113,i,31)*135;
+        const dx=(paintHash(113,i,41)-.5)*32;
+        return <path key={i} d={`M${x.toFixed(2)} ${y.toFixed(2)}
+          q${(dx*.2).toFixed(2)} -1.6 ${dx.toFixed(2)} 0`}
+          stroke={i%5===0?"#8B7564":"#B9AA8E"} strokeWidth=".6"
+          opacity={.08+paintHash(113,i,47)*.19} fill="none"/>;
+      })}
+      <path d="M891 313 Q895 356 892 406 L900 465"
+        stroke="#6E7980" strokeWidth="1.2" fill="none" opacity=".38"/>
+      {windows}
       <path d="M639 469 v-76 q0 -27 31 -27 t31 27 v76"
         fill="#526F77" opacity=".25"/>
       <path d="M640 469 v-78 q0 -25 30 -25 t31 25 v78"
@@ -350,16 +447,30 @@ export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false
   const portrait=spec.height>spec.width;
   const artTransform=portrait?"translate(-280 275) scale(.85)":undefined;
   const word=story[study];
+  const washId="wm4-subject-"+useId().replace(/[^a-zA-Z0-9_-]/g,"");
+  const washFilter="url(#"+washId+")";
   return <div style={{width:spec.width,height:spec.height,position:"relative",
     overflow:"hidden",background:spec.paper.color}}>
     <WatercolourWetPaper spec={spec} frame={frame} reducedMotion={reducedMotion}/>
     <svg role="img" aria-label={word.title.join(" ")+": original watercolor illustration"}
       viewBox={`0 0 ${spec.width} ${spec.height}`}
       style={{position:"absolute",inset:0,width:"100%",height:"100%",pointerEvents:"none"}}>
+      <defs>
+        {/* Only painted subject masses are affected. Text, structural
+            drawing lines and accessibility labels remain crisp. */}
+        <filter id={washId} x="-8%" y="-8%" width="116%" height="116%"
+          colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency=".035 .027"
+            numOctaves={3} seed={1+spec.seed%989} result="rag"/>
+          <feDisplacementMap in="SourceGraphic" in2="rag"
+            scale={2.9*spec.paper.tooth} xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+      </defs>
       <g transform={artTransform}>
-        {study==="botanical"?<BotanicalArt seed={spec.seed} frame={reducedMotion?420:frame}/>:
-          study==="estuary"?<EstuaryArt frame={reducedMotion?420:frame}/>:
-            <CourtyardArt frame={reducedMotion?420:frame}/>}
+        {study==="botanical"?<BotanicalArt seed={spec.seed} frame={reducedMotion?420:frame}
+          washFilter={washFilter}/>:
+          study==="estuary"?<EstuaryArt frame={reducedMotion?420:frame} washFilter={washFilter}/>:
+            <CourtyardArt frame={reducedMotion?420:frame} washFilter={washFilter}/>}
       </g>
       <g fill="#46585A">
         <path d={portrait?"M35 65 H505":"M40 58 H919"} stroke="#A19F90"

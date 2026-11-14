@@ -20,7 +20,7 @@ for(const output of ["landscape","portrait"] as const){
       expect(await page.locator('[data-km-wet-pigment-field] > rect').count()).toBe(0);
       await surface.locator("..").screenshot({
         animations:"disabled",
-        path:info.outputPath("wm4-"+output+"-"+labels[i].toLowerCase().replaceAll(" ","-")+".png"),
+        path:info.outputPath("wm4-"+output+"-"+labels[i].toLowerCase().replace(/ /g,"-")+".png"),
       });
     }
     await page.getByRole("button",{name:"Botanical observation"}).click();
