@@ -7,6 +7,8 @@ import {compareFigureRatios,figureRatios,validateFigureReference} from
 import {SHANSHUI_TEACHER_MESHES,SHANSHUI_LEGACY_PUPPET_MESH} from
   "./ink-shanshui-teacher-mesh";
 import type {ShanshuiScene} from "../../registry/video/ink-shanshui";
+import {shanshuiBodyFit,shanshuiBodyAssets} from "./ink-shanshui-full-body";
+import {shanshuiFaceAssets} from "./ink-shanshui-face-plates";
 const views=[
   {id:"face" as const,label:"Face, hair and features",
     regions:["hair","skull","face","brow-screen-left","brow-screen-right",
@@ -82,6 +84,100 @@ function SourcePanel({scene,group,image}:{scene:ShanshuiScene;group:Group;image?
       Image coordinates · confidence and occlusion preserved · no hidden knees invented
     </div>
   </div>;
+}
+/** The SOURCE-FITTED authored artwork (not the old rectangular region
+ * overlay). This shows the actual fill and contour geometry fed to the
+ * production character rig, with anatomical anchor markers on the same grid.
+ */
+function FullBodyPanel({scene}:{scene:ShanshuiScene}){
+  const fit=shanshuiBodyFit(scene),a=shanshuiBodyAssets(scene),
+    face=shanshuiFaceAssets(scene);
+  const ink:Record<string,string>={
+    "$ink":"#403329","$linen":"#d9c0a0","$shadow":"#66513e",
+    "$mist":"#dfcaad","$wash":"#bd9d7b","$deep":"#937251",
+    "$paper":"#f6ead4","$twine":"#9e7955","$skin":"#ddc3a5",
+    "$skinshade":"#ad8d70",
+  };
+  const color=(s:string|undefined)=>s?.startsWith("$")?ink[s]??"#473525":s??"none";
+  const sprite=(key:string,label:string)=>{
+    const asset=a[key]??face[key];
+    if(!asset||asset.kind!=="shapes")return null;
+    return <g key={key} data-km-figure-fit-region={label}>
+      {asset.shapes.map((shape,i)=>shape.type==="path"?
+        <path key={i} d={shape.d} fill={color(shape.fill)}
+          stroke={color(shape.stroke)} strokeWidth={shape.strokeWidth??1}
+          opacity={shape.opacity??1} strokeLinejoin="round" strokeLinecap="round"/>:
+        shape.type==="ellipse"?
+        <ellipse key={i} cx={shape.cx} cy={shape.cy}
+          rx={shape.rx} ry={shape.ry}
+          fill={color(shape.fill)} stroke={color(shape.stroke)}
+          strokeWidth={shape.strokeWidth??1} opacity={shape.opacity??1}/>:
+        <rect key={i} x={shape.x} y={shape.y} width={shape.width}
+          height={shape.height} rx={shape.rx??0}
+          fill={color(shape.fill)} stroke={color(shape.stroke)}
+          strokeWidth={shape.strokeWidth??1} opacity={shape.opacity??1}/>)}
+    </g>;
+  };
+  const head=fit.headRest;
+  const transform="translate("+(head.x??0)+" "+(head.y??0)+") "+
+    "translate(139 124) rotate("+(head.rotation??0)+") "+
+    "scale("+(head.scaleX??1)+" "+(head.scaleY??1)+") translate(-139 -124)";
+  const landmarks=Object.entries(fit.anchors);
+  return <section style={{display:"grid",gap:8}}>
+    <h3 style={{font:"500 21px Georgia,serif",margin:0}}>
+      Rebuilt body · authored 260 × 340 figure
+    </h3>
+    <p style={{fontSize:12,color:muted,margin:0}}>
+      A single coordinate projection drives face placement, shoulder pivots,
+      both cuff envelopes, hands, waist, robe and planted shoe positions.
+      Facial art is attached to the scaled head pivot. Source image is not needed.
+    </p>
+    <svg role="img" aria-label={"Full-figure fitted construction for "+scene}
+      data-testid="shanshui-fitted-figure" viewBox="0 0 260 340"
+      style={{width:300,height:392,border:"1px solid #cab69a",
+        background:"#f6ecd9",borderRadius:5}}>
+      {sprite("shoe-left","shoe-left")}
+      {sprite("shoe-right","shoe-right")}
+      {sprite("sleeve-far","sleeve-far")}
+      {sprite("robe","robe")}
+      {sprite("scholar-robe-overlay","folds")}
+      {sprite("sleeve-near","sleeve-near")}
+      {sprite("collar","collar")}
+      {sprite("belt","waist")}
+      {sprite("scholar-sash","sash")}
+      {sprite("scroll","scroll")}
+      {sprite("hand-far","hand-far")}
+      {sprite("hand-near","hand-near")}
+      <g transform={transform}>
+        {sprite("face","face")}
+        {sprite("hair","hair")}
+        {sprite("brow","brow")}
+        {sprite("eyes-open","eyes")}
+        {sprite("mouth-rest","mouth")}
+        {sprite("beard","beard")}
+      </g>
+      {landmarks.map(([name,pt])=><g key={name}>
+        <circle cx={pt.x} cy={pt.y} r="1.5"
+          fill="#c5482d" opacity=".8"/>
+        <title>{name}: {pt.x.toFixed(1)}, {pt.y.toFixed(1)}</title>
+      </g>)}
+    </svg>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",
+      gap:7,font:"12px system-ui"}}>
+      {([
+        ["Figure width/height",fit.sourceFigureRatio],
+        ["Head/height",fit.sourceHeadRatio],
+        ["Shoulders/height",fit.sourceShoulderRatio],
+        ["Waist/height",fit.sourceWaistRatio],
+        ["Hem/height",fit.sourceHemRatio],
+        ["Sleeve length/height",fit.sourceSleeveRatio],
+      ] as const).map(([key,v])=>
+        <div key={key} style={{padding:"5px 8px",background:"#e9dcc5"}}>
+          <span style={{color:muted}}>{key} </span>
+          <b>{v.toFixed(3)}</b>
+        </div>)}
+    </div>
+  </section>;
 }
 function StudentPanel({scene}:{scene:ShanshuiScene}){
   const m=SHANSHUI_LEGACY_PUPPET_MESH;
@@ -184,7 +280,10 @@ function FigureInspector(){
       <div style={{flex:"1 1 410px",minWidth:330}}>
         <SourcePanel scene={scene} group={group} image={image}/>
       </div>
-      <StudentPanel scene={scene}/>
+      <div style={{display:"grid",gap:19,minWidth:350,flex:"1 1 420px"}}>
+        <FullBodyPanel scene={scene}/>
+        <StudentPanel scene={scene}/>
+      </div>
     </div>
     <section style={{maxWidth:950}}>
       <h2 style={{font:"500 21px Georgia,serif",margin:"0 0 8px"}}>
