@@ -2,7 +2,7 @@
 
 **Registry ID:** `crayon-storybook`  
 **Source:** `registry/video/materials/crayon.ts`, `crayon-react.tsx`  
-**Storybook:** Video production → Film Looks → Crayon → Storybook  
+**Storybook:** Video production → Film Looks → Crayon → Classics → Lantern & Garden (and grouped subject studios)  
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
 
