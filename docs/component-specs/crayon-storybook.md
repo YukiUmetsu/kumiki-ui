@@ -430,6 +430,46 @@ exposure. Hand/tool tracking, per-stroke pressure kinetics, multistroke
 semantic sequencing inside *one* complex outline and whole-video
 normal-speed independent art signoff remain open.
 
+### Multi-character creature rigging and sophisticated architecture
+
+**Dragon & The Village** is a 330-frame (11 second), three-actor
+example in the native `Video production / Film Looks / Crayon Scene
+Engine` gallery. The hand-authored scene combines a complex castle-like
+observatory and two different village buildings with a separately
+animated dragon, forest friend and owl. A portrait layout does not
+simply crop the landscape composition.
+
+The new optional CRAYON1 per-element rig fields are:
+
+- `motionLagFrames: 0..24` for deterministic delayed evaluation of
+  independently keyed appendage poses, which makes tail, whisker and
+  feather follow-through visible without frame-order-dependent simulation;
+- `placement.scaleX` / `placement.scaleY` and
+  `motion[].scaleX` / `motion[].scaleY` (0.4..2) for nonuniform,
+  pivot-relative 2D squash-and-stretch, consistently applied to SVG
+  rendering and world-space attachment math.
+
+The scene exposes **dragon wing power (0.5–1.6)**,
+**architecture detail (0.25–1)**, **follow-through (0–18 frames)**,
+**cast (two or three actors)** and **dragon palette (teal/copper/plum)**
+in Storybook Controls. Existing material controls, exact frame seeking,
+video speed and looping remain active. Both this Storybook and the
+original Crayon Storybook default to **1.2× presentation playback**, an
+intentionally modest increase. Native film export still runs at the
+authored frame rate.
+
+The dragon is assembled from independently animated membrane wings,
+vein paths, torso, three tail segments, neck and head, jaw, horn spikes,
+whiskers, scales, four feet and claws; the owl and forest friend have
+their own independent acting cues. The reusable machinery works for
+other fantasy creatures, but this is not a universal automatic
+quadruped-rig generator. Physical flight, advanced foot-ground contact,
+deforming wing skin, procedural building construction, and complete
+normal-speed production approval remain **future work**.
+
+Reference comparisons and visual acceptance notes are in
+[Dragon / creature and architecture study](../research/crayon-dragon-creature-and-architecture-study.md).
+
 ### Production proof
 
 The 420-frame (14 s at 30 fps), three-shot FilmDocument uses the existing `slot` scene type in `FilmStage`, not another timeline or an unbounded playback loop. Its shot frames are 0…119, 120…269 and 270…419. The slot adapter adds each scene's `offsetFrame` to its local frame. The second original scene, the flower garden, is available as a separate interactive Storybook story.
