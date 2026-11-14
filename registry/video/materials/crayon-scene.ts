@@ -168,10 +168,11 @@ export function inspectCrayonScene(input: unknown): string[] {
               previous=drawing?.frame ?? previous;
               if (!drawing || typeof drawing.d !== "string" || !pathSafe(drawing.d))
                 errors.push(q+".d must contain a bounded SVG path");
-              if (node.kind === "wax" && (!drawing || !drawing.bounds ||
-                ![drawing.bounds.x,drawing.bounds.y,drawing.bounds.width,drawing.bounds.height].every(finite) ||
-                drawing.bounds.width <= 0 || drawing.bounds.height <= 0 ||
-                drawing.bounds.width > 4096 || drawing.bounds.height > 4096))
+              const bounds=drawing && "bounds" in drawing ? drawing.bounds : undefined;
+              if (node.kind === "wax" && (!bounds ||
+                ![bounds.x,bounds.y,bounds.width,bounds.height].every(finite) ||
+                bounds.width <= 0 || bounds.height <= 0 ||
+                bounds.width > 4096 || bounds.height > 4096))
                 errors.push(q+".bounds must be finite and positive");
             }
           }
