@@ -4,6 +4,9 @@ import { renderCollageSlot } from "../video/collage-slot";
 import { CrayonStorybook } from "../../registry/video/materials/crayon-react";
 import { CrayonScene } from "../../registry/video/materials/crayon-scene-react";
 import { assertCrayonScene } from "../../registry/video/materials/crayon-scene";
+import { crayonPerformanceScene } from "../video/crayon-performance-fixtures";
+import { crayonDragonVillageScene } from "../video/crayon-dragon-village-fixtures";
+import type { CrayonDragonVillageOptions } from "../video/crayon-dragon-village-fixtures";
 import { PaintedTravellerPage } from "../video/watercolour-actor-demo";
 import { PaintedWorldPage } from "../video/painted-composition-page";
 import { paintedDemoSpec, paintedCameraAt } from "../video/painted-composition-demo";
@@ -707,6 +710,31 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           throw new RangeError("crayon-scene durationFrames must match its film shot duration");
         return <CrayonScene spec={scene} frame={context.frame} reducedMotion={context.reducedMotion}/>;
       }
+      // Compact, source-authored export proof for the exact original Storybook
+      // character rigs. Avoid copying hundreds of wax nodes into two large
+      // static JSON blobs just to verify film output in both aspect ratios.
+      case "crayon-character-film": {
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const subject = props.subject;
+        if (subject !== "performance" && subject !== "dragon-village")
+          throw new RangeError("crayon-character-film subject must be performance or dragon-village");
+        const rawOptions = props.options;
+        if (rawOptions !== undefined && (
+          subject !== "dragon-village" || !rawOptions || Array.isArray(rawOptions) ||
+          typeof rawOptions !== "object"))
+          throw new RangeError("crayon-character-film options apply only to dragon-village as an object");
+        const allowed = ["wingPower","detail","followThrough","redrawStrength",
+          "exposureFrames","cast","palette","shot"];
+        if (rawOptions && Object.keys(rawOptions).some(key=>!allowed.includes(key)))
+          throw new RangeError("crayon-character-film options contain an unknown field");
+        const scene = subject === "performance" ? crayonPerformanceScene(aspect) :
+          crayonDragonVillageScene(aspect, rawOptions as Partial<CrayonDragonVillageOptions> | undefined);
+        if (scene.width !== context.width || scene.height !== context.height ||
+          scene.durationFrames !== context.durationFrames)
+          throw new RangeError("crayon-character-film dimensions and duration must match the FilmStage shot");
+        return <CrayonScene spec={scene} frame={context.frame}
+          reducedMotion={context.reducedMotion}/>;
+      }
       case "crayon-storybook": {
         const rawOffset = props.offsetFrame ?? 0;
         if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
@@ -846,7 +874,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           reducedMotion={context.reducedMotion}/>;
       }
 
-      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
+      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-character-film, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
     }
   };
 }
