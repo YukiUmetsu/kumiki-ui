@@ -748,8 +748,9 @@ human visual approval are still necessary.
 
 The WaxRegion / CRAYON1 wax scene element now accepts
 `strokeOrder: "patches" | "scanline"`. The new default, `patches`,
-fills small neighboring areas in a serpentine nib path before moving to the
-next region. This is a spatially coherent simulated hand coloring order,
+fills small neighboring areas in a serpentine nib path, following a
+two-dimensional locality-preserving tile traversal rather than top-to-bottom
+bands. This is a spatially coherent simulated hand coloring order,
 not a claim of measured human hand movements. `scanline` restores the
 legacy row-major reveal when a particular shot needs it.
 
