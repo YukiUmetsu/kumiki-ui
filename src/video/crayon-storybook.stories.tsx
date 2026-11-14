@@ -62,7 +62,7 @@ function CrayonPlayer({story,aspect,seed,pressure,paperTooth,reducedMotion,start
   </div>;
 }
 const meta = {
-  title:"Video production/Film Looks/Crayon/Storybook",
+  title:"Video production/Film Looks/Crayon/Classics/Lantern & Garden",
   id:"video-crayon-storybook",
   component:CrayonPlayer,
   args:{story:"lantern",aspect:"landscape",seed:23,pressure:.87,paperTooth:.58,reducedMotion:false,startFrame:320,playbackRate:1.2,loop:false},
