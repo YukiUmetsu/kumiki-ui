@@ -31,6 +31,12 @@ describe("INK4 authored character and cinematic stage",()=>{
     const track=bakeInkActorTrack(inkDirectorRoute("landscape"));
     expect(track.instanceId).toBe(instance.instanceId);
     expect(inkRouteAt(inkDirectorRoute("landscape"),110).vx).toBeGreaterThan(0);
+    const stop=inkRouteAt(inkDirectorRoute("landscape"),230);
+    const hold=inkRouteAt(inkDirectorRoute("landscape"),320);
+    expect(stop.x).toBe(hold.x);
+    expect(stop.y).toBe(hold.y);
+    expect(stop.vx).toBe(0);
+    expect(stop.vy).toBe(0);
   });
   for(const aspect of ["landscape","portrait"] as const){
     it("renders a natural film stage and independent character performance in "+aspect,()=>{
