@@ -16,6 +16,38 @@ const originalArt=(...shapes:ReturnType<typeof p>[]):CharacterShapeAsset=>({
   kind:"shapes",width:260,height:340,shapes,
   provenance:{license:"CC0-1.0",source:"Original Kumiki code-drawn shanshui scholar costume"},
 });
+/** Full coverage first: opaque original rice-paper and cloth primer prevents
+ * any mountains or rock hatching showing through the figure's torso/garment.
+ * Loose dry/wet brush overlays come AFTER this well-defined body silhouette.
+ */
+const opaqueRobe=originalArt(
+  p("M101 137 Q83 153 81 188 Q83 236 78 273 Q68 292 79 301 Q121 314 170 309 Q198 307 202 298 Q197 260 182 194 Q185 152 165 136 Q139 131 101 137 Z",
+    "$linen","none",0,1),
+  p("M101 139 Q87 184 87 227 Q80 262 75 292 Q82 308 121 314
+    L153 305 Q135 273 136 228 Q135 181 151 144 Z".replace(/\s+/g," "),
+    "$mist","none",0,.92),
+);
+const scholarFace=originalArt(
+  p("M116 72 Q132 61 149 67 Q162 75 164 91 Q166 113 154 132
+    Q146 143 132 141 Q115 132 111 115 Q106 88 116 72 Z".replace(/\s+/g," "),
+    "$skin","$shadow",1.1,1),
+  p("M112 97 Q112 118 126 132 Q131 138 138 138",
+    "none","$skinshade",2,.24),
+  p("M145 93 Q151 104 144 111 Q140 113 137 110",
+    "none","$shadow",.83,.7),
+  p("M118 117 Q121 126 132 129","none","$skinshade",.8,.54),
+  p("M135 133 Q143 137 150 130","none","$shadow",.62,.4),
+);
+const scholarEyes=originalArt(
+  p("M120 101 Q127 99 135 102 M148 101 Q155 99 161 102",
+    "none","$ink",1.18,.79),
+  p("M121 103 Q127 105 134 103 M149 103 Q154 105 160 103",
+    "none","$shadow",.65,.36),
+);
+const scholarBrow=originalArt(
+  p("M118 94 Q127 92 135 94 M147 94 Q155 91 163 94",
+    "none","$ink",1.15,.67),
+);
 const robeDecor=originalArt(
   p("M105 166 Q91 199 83 233 Q69 271 56 296 Q76 295 91 287 Q101 308 117 321 Q142 331 163 318 Q190 326 211 306 Q186 273 181 245 Q179 207 160 172 Z",
     "$wash","$shadow",1.25,.74),
@@ -78,6 +110,10 @@ export function makeShanshuiScholar(
     },
     assets:{
       ...base.assets,
+      "scholar-opaque-ground":opaqueRobe,
+      face:scholarFace,
+      "eyes-open":scholarEyes,
+      brow:scholarBrow,
       "scholar-robe-overlay":robeDecor,
       "scholar-flowing-hem":flowingHem,
       "scholar-sash":floatingSash,
@@ -86,6 +122,8 @@ export function makeShanshuiScholar(
     },
     parts:[
       ...base.parts,
+      {id:"robe-opaque",asset:"scholar-opaque-ground",parent:"body",
+        channel:"body",pivot:{x:133,y:188},z:9},
       {id:"robe-outer",asset:"scholar-robe-overlay",parent:"body",
         channel:"body",pivot:{x:136,y:204},z:11},
       {id:"hem-flow",asset:"scholar-flowing-hem",parent:"body",
