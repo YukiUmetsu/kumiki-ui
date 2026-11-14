@@ -1,7 +1,14 @@
 name: Crayon Storybook browser and film qualification
 
-# Chromium and full 14-second MP4 export are deliberately manual, to conserve CI minutes.
+# Only crayon changes run the small browser gate; full MP4 qualification remains manual.
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "registry/video/materials/crayon*"
+      - "src/video/crayon-storybook*"
+      - "tests/e2e-storybook/crayon-storybook.spec.ts"
+      - ".github/workflows/crayon-browser-qa.yml"
   workflow_dispatch:
 
 permissions:
@@ -25,16 +32,19 @@ jobs:
       - name: Validate exported film document
         run: npm run film:check -- examples/film/crayon-storybook.film.json
       - name: Install FFmpeg
+        if: github.event_name == 'workflow_dispatch'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Capture material beats in both aspects
+        if: github.event_name == 'workflow_dispatch'
         run: |
           for frame in 0 90 156 270 360 419; do
             npm run film:frame -- examples/film/crayon-storybook.film.json --frame=$frame --only=landscape --out=dist/crayon-film-proof
             npm run film:frame -- examples/film/crayon-storybook.film.json --frame=$frame --only=portrait --out=dist/crayon-film-proof
           done
       - name: Render full 14-second encoded film
+        if: github.event_name == 'workflow_dispatch'
         run: |
           npm run film:render -- examples/film/crayon-storybook.film.json --frames=420 --only=landscape --out=dist/crayon-film-proof
           npm run film:render -- examples/film/crayon-storybook.film.json --frames=420 --only=portrait --out=dist/crayon-film-proof
