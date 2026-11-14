@@ -383,7 +383,7 @@ export function inspectCrayonScene(input: unknown): string[] {
         if (visited.has(cursor.id)) { errors.push("elements["+index+"].parentId creates a cycle"); break; }
         visited.add(cursor.id);
         if (Array.isArray(node.contacts)&&Array.isArray(cursor.contacts) &&
-          node.contacts.some((c:CrayonContact)=>c&&cursor!.contacts!.some((p:CrayonContact)=>p&&c.start<=p.end&&p.start<=c.end)))
+          node.contacts.some((c:CrayonContact)=>c&&cursor!.contacts!.some((p:CrayonContact)=>p&&c.start<=p.end+(p.releaseFrames??0)&&p.start<=c.end+(c.releaseFrames??0))))
           errors.push("elements["+index+"].contacts overlap ancestor contacts");
         if (visited.size > 240) break;
         cursor=cursor.parentId ? byId.get(cursor.parentId) : undefined;
