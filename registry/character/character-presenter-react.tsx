@@ -7,6 +7,12 @@ import { evaluateCharacter, partAssetKey, partLocalMatrix, resolveCharacterAppea
 /** Optional dry-brush paper rendering for characters with approved ink-oriented artwork.
  * This treats each rigged shape separately; it is not a filter over a completed video.
  */
+export interface CharacterInkPartFinish {
+  /** 0–1 strength of the soft capillary fringe on this precise rig part. */
+  bleed?: number;
+  /** Reserve a crisp un-displaced edge (eyes, pupils, mouth, props, fine lines). */
+  dryContour?: boolean;
+}
 export interface CharacterInkMaterial {
   /** 0..1, controls paper-edge spread on each separate shape. */
   absorption: number;
@@ -14,6 +20,8 @@ export interface CharacterInkMaterial {
   grain: number;
   /** Static seeded fiber map, independent from blink and action frame. */
   seed: number;
+  /** Optional per-part wet/dry treatment without replacing approved rig geometry. */
+  partFinish?: Readonly<Record<string, CharacterInkPartFinish>>;
 }
 export interface CharacterPresenterProps extends Omit<ComponentPropsWithoutRef<"div">, "children"> {
   definition: CharacterDefinition;
@@ -80,7 +88,7 @@ function paint(value: string | undefined, palette: Record<string, string>): stri
   return HEX.test(value) ? value : "none";
 }
 
-function shapeNode(shape: CharacterShape, index: number, scene: Scene): ReactNode {
+function shapeNode(shape: CharacterShape, index: number, partId: string, scene: Scene): ReactNode {
   const palette = scene.model.palette;
   const paintProps = { fill: paint(shape.fill, palette), stroke: paint(shape.stroke, palette), strokeWidth: shape.strokeWidth, opacity: shape.opacity };
   const base = shape.type === "path"
@@ -89,21 +97,24 @@ function shapeNode(shape: CharacterShape, index: number, scene: Scene): ReactNod
       ? <ellipse cx={shape.cx} cy={shape.cy} rx={shape.rx} ry={shape.ry} {...paintProps} />
       : <rect x={shape.x} y={shape.y} width={shape.width} height={shape.height} rx={shape.rx} {...paintProps} />;
   if (!scene.ink) return <g key={index}>{base}</g>;
+  const finish = scene.ink.partFinish?.[partId];
+  const fringe = finish?.bleed ?? 1;
   // Like 筆墨分解 (separated brush / ink values), the character's original
   // articulated shapes own the fringe, dark core and paper-grain displacement.
   // This makes eyes and mouth deform with the face, not with a shot-wide wash.
-  return <g key={index} data-km-ink-character-shape="">
-    <g opacity={.15 + scene.ink.absorption * .24}
-      filter={"url(#" + scene.inkId + "-bleed)"}>{base}</g>
-    <g filter={"url(#" + scene.inkId + "-edge)"}>{base}</g>
+  return <g key={index} data-km-ink-character-shape="" data-km-ink-character-part={partId}
+    data-km-ink-part-bleed={fringe.toFixed(2)} data-km-ink-part-dry={finish?.dryContour ? "" : undefined}>
+    {fringe > 0 && <g opacity={( .15 + scene.ink.absorption * .24) * fringe}
+      filter={"url(#" + scene.inkId + "-bleed)"}>{base}</g>}
+    <g filter={finish?.dryContour ? undefined : "url(#" + scene.inkId + "-edge)"}>{base}</g>
   </g>;
 }
 
-function assetNode(layer: Layer, index: number, scene: Scene): ReactNode {
+function assetNode(layer: Layer, index: number, partId: string, scene: Scene): ReactNode {
   const asset = scene.model.assets[layer.key];
   if (!asset) return null;
   let body: ReactNode = null;
-  if (asset.kind === "shapes") body = asset.shapes.map((shape, i) => shapeNode(shape, i, scene));
+  if (asset.kind === "shapes") body = asset.shapes.map((shape, i) => shapeNode(shape, i, partId, scene));
   // A missing URL draws nothing; the warning is raised with the other diagnostics.
   else if (scene.urls?.[asset.uri]) body = <image href={scene.urls[asset.uri]} x={0} y={0} width={asset.width} height={asset.height} />;
   return body === null ? null : <g key={index} data-asset={layer.key} opacity={layer.opacity}>{body}</g>;
@@ -117,7 +128,7 @@ function partNode(part: CharacterPart, scene: Scene): ReactNode {
   const m: AffineMatrix = partLocalMatrix(part, state);
   return <g key={part.id} data-part={part.id} transform={`matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`}>
     {kids.filter(child => child.z < part.z).map(child => partNode(child, scene))}
-    {(scene.model.layers[part.id] ?? []).map((layer, i) => assetNode(layer, i, scene))}
+    {(scene.model.layers[part.id] ?? []).map((layer, i) => assetNode(layer, i, part.id, scene))}
     {kids.filter(child => child.z >= part.z).map(child => partNode(child, scene))}
   </g>;
 }
@@ -131,6 +142,15 @@ export const CharacterPresenter = forwardRef<HTMLDivElement, CharacterPresenterP
       inkMaterial.absorption < 0 || inkMaterial.absorption > 1 || !Number.isFinite(inkMaterial.grain) ||
       inkMaterial.grain < 0 || inkMaterial.grain > 1))
     throw new RangeError("Ink character seed, absorption or grain is outside its valid range.");
+  if (inkMaterial?.partFinish) {
+    const known = new Set(definition.parts.map(p => p.id));
+    for (const [id, finish] of Object.entries(inkMaterial.partFinish)) {
+      if (!known.has(id) || !finish ||
+          (finish.bleed !== undefined && (!Number.isFinite(finish.bleed) || finish.bleed < 0 || finish.bleed > 1)) ||
+          (finish.dryContour !== undefined && typeof finish.dryContour !== "boolean"))
+        throw new RangeError("Ink part finish must name an existing rig part and contain bounded wet/dry values.");
+    }
+  }
   const rawInkId = useId();
   const inkId = "kmcharink" + rawInkId.replace(/[^a-zA-Z0-9_-]/g, "");
   const reduce = reducedMotion === "auto" ? typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches : reducedMotion;
