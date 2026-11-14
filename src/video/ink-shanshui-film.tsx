@@ -57,6 +57,10 @@ export function makeShanshuiScholar(
     },
     parts:[
       ...fittedParts,
+      ...(scene==="river-scholar"?[{
+        id:"reader-ear",asset:"reader-ear",parent:"head",
+        channel:"face",pivot:{x:115,y:107},z:19,
+      }]:[]),
       // Shoes are independent planted parts driven by exact projected foot
       // contact, not illustrations welded to the old short puppet shins.
       {id:"shoe-left",asset:"shoe-left",channel:"walk",
