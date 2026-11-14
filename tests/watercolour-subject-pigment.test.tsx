@@ -82,4 +82,17 @@ describe("WM5 artist-built subject masks and real drying-front transport",()=>{
       if(output==="portrait")expect(html).toContain("translate(-280 275) scale(.85)");
     }
   });
+  it("offers an art-only, high-coverage composition for two video aspect ratios",()=>{
+    for(const output of ["landscape","portrait"] as const){
+      const spec=watercolourStudySpec("estuary",output);
+      const html=renderToStaticMarkup(<WatercolourMasterStudyPage
+        study="estuary" spec={spec} frame={360} artOnly/>);
+      expect(html).toContain("data-km-subject-pigment");
+      expect((html.match(/data-km-wet-paper=""/g)??[]).length).toBe(2);
+      expect(html).not.toContain("WATERCOLOUR / ORIGINAL STUDIES");
+      expect(html).toContain(output==="portrait"?
+        "translate(-415 164) scale(1.12)":"translate(-447 -159) scale(1.46)");
+    }
+  });
+
 });

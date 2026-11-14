@@ -564,20 +564,29 @@ function CourtyardArt({frame,washFilter}:{frame:number;washFilter:string}) {
   </g>;
 }
 
-export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false}:{
+export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false,artOnly=false}:{
   study:WatercolourStudy;spec:WetPaperSpec;frame:number;reducedMotion?:boolean;
+  /** Full-frame painting instead of the editorial study with titles. */
+  artOnly?:boolean;
 }) {
   const portrait=spec.height>spec.width;
-  const artTransform=portrait?"translate(-280 275) scale(.85)":undefined;
+  const artTransform=artOnly
+    ?(portrait?"translate(-415 164) scale(1.12)":"translate(-447 -159) scale(1.46)")
+    :(portrait?"translate(-280 275) scale(.85)":undefined);
   const word=story[study];
   const washId="wm4-subject-"+useId().replace(/[^a-zA-Z0-9_-]/g,"");
   const washFilter="url(#"+washId+")";
   const subject=useMemo(()=>watercolourSubjectSpec(study,spec.seed,{
     flow:spec.flow,granulation:spec.granulation,tooth:spec.paper.tooth,
   }),[study,spec.seed,spec.flow,spec.granulation,spec.paper.tooth]);
+  const canonical=useMemo(()=>{
+    const base=watercolourStudySpec(study,"landscape",spec.seed);
+    return {...base,flow:spec.flow,granulation:spec.granulation,
+      paper:{...base.paper,tooth:spec.paper.tooth}};
+  },[study,spec.seed,spec.flow,spec.granulation,spec.paper.tooth]);
   return <div style={{width:spec.width,height:spec.height,position:"relative",
     overflow:"hidden",background:spec.paper.color}}>
-    <WatercolourWetPaper spec={spec} frame={frame} reducedMotion={reducedMotion}/>
+    {!artOnly && <WatercolourWetPaper spec={spec} frame={frame} reducedMotion={reducedMotion}/>}
     <svg role="img" aria-label={word.title.join(" ")+": original watercolor illustration"}
       viewBox={`0 0 ${spec.width} ${spec.height}`}
       style={{position:"absolute",inset:0,width:"100%",height:"100%",pointerEvents:"none"}}>
@@ -593,6 +602,9 @@ export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false
         </filter>
       </defs>
       <g transform={artTransform}>
+        {artOnly && <WatercolourWetPaper spec={canonical} frame={frame}
+          reducedMotion={reducedMotion} transparentPaper aria-hidden="true"
+          style={{width:960,height:540}}/>}
         {study==="botanical"?<BotanicalArt seed={spec.seed} frame={reducedMotion?420:frame}
           washFilter={washFilter}/>:
           study==="estuary"?<EstuaryArt frame={reducedMotion?420:frame} washFilter={washFilter}/>:
@@ -607,7 +619,7 @@ export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false
             style={{width:960,height:540}}/>
         </g>
       </g>
-      <g fill="#46585A">
+      {!artOnly && <g fill="#46585A">
         <path d={portrait?"M35 65 H505":"M40 58 H919"} stroke="#A19F90"
           strokeWidth="1" opacity=".65"/>
         <text x={portrait?37:44} y={portrait?96:88} letterSpacing="2.3" fontWeight="700"
@@ -629,7 +641,7 @@ export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false
           fontFamily="Georgia,serif" fontSize="14" fontStyle="italic">
           {study==="botanical"?"I":study==="estuary"?"II":"III"}
         </text>
-      </g>
+      </g>}
     </svg>
   </div>;
 }

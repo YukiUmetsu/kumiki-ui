@@ -49,6 +49,20 @@ for(const output of ["landscape","portrait"] as const){
         path:info.outputPath("wm4-"+output+"-botanical-frame-"+frame+".png"),
       });
     }
+    // Independent production-minded art-only composition, not a poster
+    // with half the frame occupied by large editorial typography.
+    await page.getByRole("checkbox",{name:"Full-canvas watercolor artwork"}).check();
+    await expect(page.getByText("WATERCOLOUR / ORIGINAL STUDIES")).toHaveCount(0);
+    for(const [i,label] of labels.entries()){
+      await page.getByRole("button",{name:label}).click();
+      const canvas=page.getByRole("img",{name:/original watercolor illustration/});
+      await expect(canvas).toBeVisible();
+      await expect(subject).toHaveAttribute("data-km-wet-paper-region-count",/^[1-9][0-9]*$/);
+      await canvas.screenshot({animations:"disabled",
+        path:info.outputPath("wm5-full-canvas-"+output+"-"+i+".png")});
+    }
+    await page.getByRole("checkbox",{name:"Full-canvas watercolor artwork"}).uncheck();
+    await page.getByRole("button",{name:"Botanical observation"}).click();
     await page.getByRole("checkbox",{name:"Master studies reduced motion"}).check();
     await setFrame(0);
     await expect(surface).toHaveAttribute("data-km-wet-paper-phase","dry");

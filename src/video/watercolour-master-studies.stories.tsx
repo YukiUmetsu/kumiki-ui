@@ -28,6 +28,7 @@ function MasterStudies() {
   const [grain,setGrain]=useState(.8);
   const [seed,setSeed]=useState(83);
   const [reduced,setReduced]=useState(false);
+  const [artOnly,setArtOnly]=useState(false);
   const [custom,setCustom]=useState<Partial<Record<WatercolourStudy,WetPaperSpec>>>({});
   const compiled=useMemo(()=>compileFilm(WATERCOLOUR_MASTER_STUDIES_FILM,{outputId:output}),[output]);
   const specs=useMemo(()=>Object.fromEntries(WATERCOLOUR_STUDIES.map(study=>{
@@ -97,6 +98,11 @@ function MasterStudies() {
           onChange={e=>{clear();setSeed(Math.max(0,Math.min(2147483647,Math.floor(Number(e.target.value)||0))));}}/>
       </label>
       <label style={{display:"flex",gap:7,alignItems:"center",fontSize:13,fontWeight:650,minHeight:40}}>
+        <input aria-label="Full-canvas watercolor artwork" type="checkbox"
+          checked={artOnly} onChange={e=>{setPlaying(false);setArtOnly(e.target.checked);}}/>
+        Full-canvas painting (no editorial type)
+      </label>
+      <label style={{display:"flex",gap:7,alignItems:"center",fontSize:13,fontWeight:650,minHeight:40}}>
         <input aria-label="Master studies reduced motion" type="checkbox" checked={reduced}
           onChange={e=>{setPlaying(false);setReduced(e.target.checked);}}/>
         Reduced motion
@@ -126,7 +132,8 @@ function MasterStudies() {
           const study=content.props?.study as WatercolourStudy;
           if(!WATERCOLOUR_STUDIES.includes(study))throw new RangeError("Invalid study");
           return <WatercolourMasterStudyPage study={study} spec={specs[study]}
-            frame={context.frame} reducedMotion={context.reducedMotion}/>;
+            frame={context.frame} reducedMotion={context.reducedMotion}
+            artOnly={artOnly}/>;
         }} style={{transform:"scale("+scale+")",transformOrigin:"top left"}}/>}
     </WatercolourFilmViewport>
     <WatercolourParameterEditor title={cards[current]} value={specs[current]}
