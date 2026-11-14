@@ -7,6 +7,7 @@ import type { PencilSubject } from "./colored-pencil-science";
 import type { PencilAspect } from "../../registry/video/colored-pencil";
 import { COLOR_PENCIL_FILM } from "./colored-pencil-film";
 import { pencilDemoScene } from "./colored-pencil-demo-scenes";
+import { pencilCharacterScene } from "./colored-pencil-character-scenes";
 import type { PencilDemoSubject } from "./colored-pencil-demo-scenes";
 import { PencilScene } from "../../registry/video/colored-pencil-scene-react";
 
@@ -164,8 +165,8 @@ function FilmStudio() {
 /** Real scenes share the same page-space material and FilmStage-compatible frame addressing.
  * Presets are original illustrated examples, not scientific measurement or orbital simulation.
  */
-function WorldStudio() {
-  const [subject, setSubject] = useState<PencilDemoSubject>("terrain");
+function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDemoSubject | "characters" }) {
+  const [subject, setSubject] = useState<PencilDemoSubject | "characters">(initialSubject);
   const [aspect, setAspect] = useState<PencilAspect>("landscape");
   const [frame, setFrame] = useState(285);
   const [playing, setPlaying] = useState(false);
@@ -174,10 +175,19 @@ function WorldStudio() {
   const [flow, setFlow] = useState(0);
   const [cameraEnabled, setCameraEnabled] = useState(true);
   const scene = useMemo(() => {
-    const authored = pencilDemoScene(subject, aspect);
+    const authored = subject === "characters" ? pencilCharacterScene(aspect) : pencilDemoScene(subject, aspect);
     return {
       ...authored,
       camera: cameraEnabled ? authored.camera : undefined,
+      actors: authored.actors?.map(actor => ({
+        ...actor, parts: actor.parts.map(part => ({
+          ...part, region: {
+            ...part.region, layers: part.region.layers.map(layer => ({
+              ...layer, pressure: Math.min(1, layer.pressure * pressure), flow: (layer.flow ?? 0) + flow,
+            })),
+          },
+        })),
+      })),
       drawing: {
         ...authored.drawing, paperTooth,
         regions: authored.drawing.regions.map(region => ({
@@ -214,7 +224,7 @@ function WorldStudio() {
         Colour-pencil · Illustrated worlds
       </h1>
       <p style={{ margin: 0, maxWidth: 850 }}>
-        Three original authored subjects share pressure-sensitive pigment, local stroke fans,
+        Original illustrated worlds and two independently animated characters share pressure-sensitive pigment, local stroke fans,
         layered paper, a frame-addressable camera and screen-safe annotations.
         Nothing is inferred as a real measurement.
       </p>
@@ -222,8 +232,9 @@ function WorldStudio() {
     <div style={{ display: "flex", alignItems: "end", flexWrap: "wrap", gap: 15, maxWidth: 1080 }}>
       <label style={label}>World
         <select aria-label="Pencil world" value={subject}
-          onChange={e => {setPlaying(false); setSubject(e.target.value as PencilDemoSubject);}} style={{ minHeight: 40 }}>
+          onChange={e => {setPlaying(false); setSubject(e.target.value as PencilDemoSubject | "characters");}} style={{ minHeight: 40 }}>
           <option value="terrain">Landscape · Layered terrain</option>
+          <option value="characters">Narrative · Fox & bird performance</option>
           <option value="orbit">Astronomy · Illustrated orbit</option>
           <option value="circuit">Engineering · Signal pathway</option>
         </select>
@@ -291,4 +302,10 @@ export const IllustratedWorlds: StoryObj<typeof meta> = {
   name: "Illustrated worlds · Scene studio",
   args: { aspect: "landscape", subject: "leaf", frame: 285 },
   render: () => <WorldStudio/>,
+};
+
+export const CharacterPerformance: StoryObj<typeof meta> = {
+  name: "Character performance · Two-actor animation",
+  args: { aspect: "landscape", subject: "leaf", frame: 285 },
+  render: () => <WorldStudio initialSubject="characters"/>,
 };
