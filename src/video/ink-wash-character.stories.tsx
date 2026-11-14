@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import type { CharacterInkPartFinish } from "../../registry/character/character-presenter-react";
 import { VideoExportStage } from "../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../registry/video/video-export-stage";
 import { InkWashScene } from "../../registry/video/ink-wash-story-react";
@@ -9,6 +10,16 @@ import type { InkActorTrack } from "../../registry/video/ink-wash-character";
 import { inkExampleSpec } from "./ink-wash-demo";
 import { INK_TRAVELLER, TRAVELLER_CUES, TRAVELLER_INSTANCE, TRAVELLER_TRACK } from "./ink-wash-performer";
 
+/** Wet-on-paper cloth, dry hair and crisp face are independently art-directed. */
+const PAPER_FINISH: Readonly<Record<string, CharacterInkPartFinish>> = {
+  "body":{bleed:1}, "far-sleeve":{bleed:.94}, "near-sleeve":{bleed:.90},
+  "collar":{bleed:.48}, "sash":{bleed:.35},
+  "head":{bleed:.19,dryContour:true}, "hair":{bleed:.05,dryContour:true},
+  "eyes":{bleed:0,dryContour:true}, "brows":{bleed:0,dryContour:true},
+  "pupil-left":{bleed:0,dryContour:true}, "pupil-right":{bleed:0,dryContour:true},
+  "mouth":{bleed:0,dryContour:true}, "beard":{bleed:.16,dryContour:true},
+  "brush":{bleed:0,dryContour:true},
+};
 const TOTAL=330, FPS=30;
 const SHOT:InkShot={
   id:"the-traveller",label:"A painted scholar walks through bamboo, observes and speaks",
@@ -64,7 +75,7 @@ export function InkPerformanceFilm({frame,aspect="landscape",mineral=false,reduc
     renderLayer={layer=>layer.id==="scholar"?<InkCharacter
       definition={INK_TRAVELLER} instance={performer} cues={TRAVELLER_CUES}
       frame={frame} track={actorTrack} reducedMotion={reducedMotion}
-      absorption={spec.absorption} grain={spec.grain}
+      absorption={spec.absorption} grain={spec.grain} partFinish={PAPER_FINISH}
       label="A robed traveller holding a bamboo brush walks, greets and bows"/>:null}>
     <Captions frame={frame} aspect={aspect}/>
     {/* A small cinnabar seal is original art, not a reused historic emblem. */}
