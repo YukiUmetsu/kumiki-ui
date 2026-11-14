@@ -41,6 +41,11 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const fillFirst=windows?.fillStart ?? first,fillLast=windows?.fillEnd ?? last;
   const outlineFirst=windows?.outlineStart ?? first,outlineLast=windows?.outlineEnd ?? last;
   const fillProgress = crayonProgress(frame,fillFirst,fillLast,0,1,reduced);
+  // The one-stroke curve above completes after only 22% of the interval.
+  // Dense subjects must instead follow the entire sequence of deposited wax
+  // marks. Keep the historical open-scumble progression unchanged.
+  const pigmentProgress = reduced ? 1 : Math.min(1,Math.max(0,
+    (frame-fillFirst)/(fillLast-fillFirst)));
   const phase=!construction ? undefined : reduced || frame>=last ? "finished" :
     frame<first ? "pending" :
     construction.order==="outline-first" ? (frame < fillFirst ? "outlining":"pigment") :
@@ -61,8 +66,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const depositMarks = useMemo(() => marks.slice(0, Math.ceil(marks.length / 2)), [marks]);
   // The final very thin leveling pass closes tooth gaps gradually; the completed
   // silhouette is solid and never permits background objects to ghost through.
-  const settlingCoat = fillProgress > .94 && fillProgress < 1
-    ? (fillProgress - .94) / .06 : 0;
+  const settlingCoat = pigmentProgress > .82 && pigmentProgress < 1
+    ? (pigmentProgress - .82) / .18 : 0;
   const exposure=redraw ? crayonExposureAt(frame,last,redraw,reduced) : 0;
   const exposureStrength=redraw && (reduced||frame>=(redraw.beginFrame??last)) ? redraw.strength : 0;
   const redrawStrokes=useMemo(()=>crayonExposureStrokes(bounds,seed,exposure,exposureStrength),
@@ -74,7 +79,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     data-km-crayon-exposure={redraw ? exposure : undefined}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
-      {coverage==="opaque" && fillProgress>0 && fillProgress<1 && <mask id={deposit}
+      {coverage==="opaque" && pigmentProgress>0 && pigmentProgress<1 && <mask id={deposit}
         data-km-crayon-deposit-mask="" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
         x={bounds.x-25} y={bounds.y-25} width={bounds.width+50} height={bounds.height+50}>
         <rect x={bounds.x-25} y={bounds.y-25}
@@ -99,9 +104,9 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     {/* Solid underpainting is deposited BEFORE rough wax layers but OUTSIDE the
         tooth mask. Paper/tooth breaks the pigmented highlights, never punches
         transparent holes through a finished character or foreground prop. */}
-    {coverage==="opaque" && fillProgress>0 && <>
+    {coverage==="opaque" && pigmentProgress>0 && <>
       <path d={d} fill={colors[0]} clipPath={"url(#"+clip+")"}
-        mask={fillProgress<1 ? "url(#"+deposit+")" : undefined}
+        mask={pigmentProgress<1 ? "url(#"+deposit+")" : undefined}
         data-km-crayon-underpaint="opaque" />
       {settlingCoat>0 && <path d={d} fill={colors[0]}
         opacity={settlingCoat} clipPath={"url(#"+clip+")"}
@@ -111,7 +116,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
       {coverage==="open" && <path d={d} fill={colors[0]}
         opacity={fillProgress*(construction?.glaze??.58)} />}
       {coverage==="opaque" && <path d={d} fill={colors[2]}
-        opacity={fillProgress*.09}/>}
+        opacity={pigmentProgress*.09}/>}
 
       <g transform={angle ? "rotate(" + angle + " " + cx + " " + cy + ")" : undefined}>
       {marks.map((mark, i) => {
@@ -136,7 +141,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
           opacity={stroke.opacity}/>)}
       </g>}
     </g>
-    {coverage==="opaque" && edgeRoughness>0 && fillProgress>=1 &&
+    {coverage==="opaque" && edgeRoughness>0 && pigmentProgress>=1 &&
       <g pointerEvents="none" fill="none" strokeLinejoin="round"
         strokeLinecap="round" data-km-crayon-frayed-rim="">
         <path d={d} stroke={colors[1]} strokeWidth={.65+edgeRoughness*.65}
