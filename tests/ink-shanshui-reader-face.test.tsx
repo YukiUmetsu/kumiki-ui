@@ -26,7 +26,7 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(face[0].type).toBe("path");
     // Anatomy, not drawing order: ear contours are separate foreground
     // or background lines and may legitimately gain extra strokes.
-    const jaw=face.find(x=>x.type==="path"&&x.d.includes("141.6 140.5"));
+    const jaw=face.find(x=>x.type==="path"&&x.d.includes("143.3 143.7"));
     expect(jaw).toBeDefined();
     expect(jaw?.fill).toBe("$skin");
     expect(jaw?.opacity).toBe(1);
