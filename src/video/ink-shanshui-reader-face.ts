@@ -91,7 +91,7 @@ export function scrollReaderFacePortrait(detail=1):
     pressure([148.6,96],[150.2,102.3],[150.1,110.3],[153.8,112.6],
       .7,53,"$shadow",.54),
     pressure([153.8,112.6],[155.3,115.1],[153.6,117.2],[150.6,117.3],
-      .85,54,"$shadow",.67),
+      .86,54,"$shadow",.83),
     p("M149.4 116.7 Q152 118.1 153.6 116.7",
       "none","$skinshade",.54,.43),
     // Orbital shadows sit below the eyelids, not as symmetrical smile arcs.
@@ -103,7 +103,7 @@ export function scrollReaderFacePortrait(detail=1):
     p("M144.5 119.6 Q144.9 121.4 145.3 122.1",
       "none","$skinshade",.35,.37),
     p("M139.9 129.6 Q143.6 131.7 147.2 128.6",
-      "none","$skinshade",.54,.42),
+      "none","$skinshade",.66,.57),
   ];
   if(medium)face.push(
     pressure([116.3,108.5],[116.3,114.1],[117.1,118.4],[120.3,122.8],
@@ -182,9 +182,9 @@ export function scrollReaderFacePortrait(detail=1):
     // Asymmetry is essential: the near brow is long and the far one is
     // short with a visible gap at the frontal turn.
     pressure([117.8,94.4],[124.1,91.3],[130.4,92.5],[135.8,96.3],
-      1.75,81,"$ink",.92),
+      2.55,81,"$ink",.98),
     pressure([149.2,95.5],[154.4,92.6],[159.4,92.9],[162.9,95.1],
-      1.31,82,"$ink",.79),
+      2.03,82,"$ink",.91),
     p("M118.4 93.2 Q126.6 89.8 135 94.8",
       "none","$shadow",.65,.45),
   ];
@@ -196,9 +196,9 @@ export function scrollReaderFacePortrait(detail=1):
     // Gentle downward reading gaze: one long tapered eyelid and a smaller
     // foreshortened eyelid, separated by the bridge of the nose.
     pressure([118.2,103],[125,103.2],[130.4,107],[135.2,104.4],
-      1.45,91,"$ink",.96),
+      1.86,91,"$ink",.96),
     pressure([149.2,103.7],[154.3,103.5],[160.3,104.2],[163.2,102.1],
-      1.28,92,"$ink",.94),
+      1.65,92,"$ink",.96),
     p("M119 105.4 Q126.6 108.7 134.3 107",
       "none","$shadow",.69,.57),
     p("M150.2 105.6 Q157.1 107.8 163.3 103.9",
@@ -229,7 +229,7 @@ export function scrollReaderFacePortrait(detail=1):
   ];
   const mouthAsset=(state:keyof typeof mouth)=>asset("mouth-"+state,[
     p(mouth[state],state==="aa"||state==="oh"?"$shadow":"none",
-      "$shadow",state==="mm"?.9:.78,state==="aa"?.82:.85),
+      "$shadow",state==="mm"?1.14:.99,state==="aa"?.85:.94),
     p(state==="aa"?"M139.2 130.8 Q143.4 132.4 146 129.9":
       "M138.2 128.9 Q143.6 129.5 147 127.6",
       "none","$skinshade",.55,.43),
