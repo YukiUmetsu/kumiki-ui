@@ -109,6 +109,10 @@ describe("RISO3 two-bone rigging and planted-foot animation", () => {
       .some(x=>x.path.endsWith("/target"))).toBe(true);
     expect(inspectRisoCharacter(replacement({kind:"follow",joint:"no-such-prop",x:1,y:2}))
       .some(x=>x.path.endsWith("/target"))).toBe(true);
+    // Following the other leg's IK-controlled ankle would make output depend
+    // on the order in which constraints were evaluated.
+    expect(inspectRisoCharacter(replacement({kind:"follow",joint:"left-ankle",x:0,y:0}))
+      .some(x=>x.path.endsWith("/target"))).toBe(true);
     expect(inspectRisoCharacter(replacement({kind:"follow",joint:"satchel",x:Infinity,y:2}))
       .some(x=>x.path.endsWith("/target"))).toBe(true);
   });
