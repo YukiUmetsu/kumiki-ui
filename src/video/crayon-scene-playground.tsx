@@ -8,7 +8,7 @@ import { crayonCharacterDrawScene } from "./crayon-character-draw-fixtures";
 import { crayonDragonVillageScene } from "./crayon-dragon-village-fixtures";
 import { useCrayonStoryPlayback } from "./crayon-story-playback";
 import type { CrayonDemoAspect, CrayonDemoSubject } from "./crayon-scene-fixtures";
-import type { CrayonElement } from "../../registry/video/materials/crayon-scene";
+import type { CrayonElement, CrayonSceneSpec } from "../../registry/video/materials/crayon-scene";
 
 export interface PlaygroundProps {
   subject:CrayonDemoSubject | "performance" | "walk" | "draw-in" | "dragon-village" | "wildlife-portrait"; aspect:CrayonDemoAspect;
