@@ -3697,6 +3697,23 @@
       ]
     },
     {
+      "name": "ink-figure-motion",
+      "type": "registry:ui",
+      "title": "Chinese Ink Figure Cloth Motion",
+      "description": "Reusable frame-pure cloth follow-through. Bakes subtly moving independent hem and cuff corrections on top of an approved INK4 route; deterministic absolute-frame sampling, bounded intensity, no replacement clock.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-actor-director"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-figure-motion.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-figure-motion.ts"
+        }
+      ]
+    },
+    {
       "name": "ink-wash-ensemble",
       "type": "registry:ui",
       "title": "Chinese Ink Character Ensemble",

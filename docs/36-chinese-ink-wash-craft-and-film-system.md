@@ -108,9 +108,9 @@ The larger reference audit and remaining priorities are recorded in [Chinese ink
 
 All three original working films are interactive in the existing **Video production / Film Looks** group:
 
-- `video-film-looks--chinese-ink-painting`: original landscape or bamboo, wet brush deposition, stroke pressure, tone, orientation, load and drying
-- `video-film-looks--chinese-ink-documentary`: complete documentary, explanatory diagram and closing title with editable `InkFilm` paper/camera/reveal controls
-- `video-film-looks--chinese-ink-character`: rigged 19-part traveller with adjustable cloth/face ink, blink cadence, gestures, speech, stage placement and acting time-remap
+- `video-chinese-ink-looks--chinese-ink-painting`: original landscape or bamboo, wet brush deposition, stroke pressure, tone, orientation, load and drying
+- `video-chinese-ink-looks--chinese-ink-documentary`: complete documentary, explanatory diagram and closing title with editable `InkFilm` paper/camera/reveal controls
+- `video-chinese-ink-looks--chinese-ink-character`: rigged 19-part traveller with adjustable cloth/face ink, blink cadence, gestures, speech, stage placement and acting time-remap
 
 The component `src/video/ink-film-looks-studio.tsx` exposes **play, pause, restart, frame seeking, 0.25–2× speed, loop, 16:9/9:16, reduced motion, independent art presets** and collapsible live art-direction panels. Every numerical input is bounded; hex pigments and the deterministic random seed are validated. Each mode retains its own settings when switching. The configuration JSON pane can be copied, edited and reapplied, with inline errors instead of crashes.
 
@@ -155,3 +155,25 @@ The INK4 traveler demonstration now authors robe radial pleats, hip folds, hem, 
 **Craft provenance:** Asian Art Museum, [Linear techniques for figure painting](https://education.asianart.org/wp-content/uploads/sites/6/2019/09/Brushstrokes.pdf) describes garment line languages; [brush-painting techniques](https://education.asianart.org/resources/an-introduction-to-chinese-brushpainting-techniques/) explains pressure, moisture and flying-white. The research on [layered cel brushwork](https://journals.library.columbia.edu/index.php/cja/article/download/9275/4850/22666) explains why isolated value/contour marks should move with the figure instead of being a whole-frame postprocess. No reference illustration was traced or redistributed.
 
 **Limit:** Fine figure lines do not, by themselves, make physically calibrated xuan-paper ink. Hands remain stylized source shapes, and their precise grip and walking toe contacts must be judged at actual output scale during normal-speed review; IK reach is only a kinematic check.
+
+## 10. Consolidated Storybook folder (2026-11-14)
+
+The Chinese ink demos now live together in the single case-sensitive Storybook folder **Video production / Film Looks / Chinese Ink**:
+
+- **Studio** — painting, documentary and character variations with the existing editable art-direction controls.
+- **Ink Brush** — film and brush-material microscope.
+- **Ink Wash Film Stage** — original film and production export.
+- **Multi-Genre Film** — documentary/diagram/title examples and export.
+- **Character Performance** — expressive acting, speech, walk, and 16:9/9:16 exports.
+- **Character Director** — continuous IK walk, pose directing, garment brushwork, and both output exports.
+- **Ensemble** — two independently rigged, painted characters with contact-aware group blocking, shared scene and both export aspect ratios.
+
+This is Storybook navigation only; no core paint or rig code was removed. The first three Studio stories moved from `video-film-looks--chinese-ink-*` to `video-chinese-ink-looks--chinese-ink-*`; all other export IDs remain unchanged. The e2e suite validates Storybook's generated index in addition to the actual source renderer. New Chinese ink Storybook files must use this exact navigation prefix (including capitalization) to avoid parallel folders.
+
+## 11. INK6: secondary cloth motion and brush grip (2026-11-14)
+
+The `ink-figure-motion` registry pack adds a deterministic, artist-bounded motion layer for **independently authored hem and cuff parts**. Instead of displacing the whole character or filtering the finished frame, it derives modest local rotation/translation from the approved continuous INK4 route, absolute film frame, and walking cadence. It bakes corrections for the existing `CharacterPresenter` contract, with zero motion at rest; seeking out of order yields the same rig pose. The public intensity is 0..1, and the correction interval is validated against the 512-key budget.
+
+The original traveler also has newly authored near/far cuff and hem shadow/contour assets, and a near-hand brush grip whose two fingers are **drawn above the brush shaft** in the 2.5D hierarchy. These are deliberately restrained figure-painting details, not a new IK solver or physical cloth simulation. The ink-dry character eyes, visemes and brush marks retain independent material finishes.
+
+In **Video production / Film Looks / Chinese Ink / Character Director**, the live `Cloth follow-through` control modulates these real rig corrections without changing the approved route or stance targets. Both output exports inherit the production default. Unit tests check bounds, zero-at-rest, key stability and prop depth; browser tests verify the actual hem transforms in landscape and portrait. Remaining needs: art-director close-up acceptance, richer illustrated hands for varied props, better silhouette deformation, believable turnarounds and final toe/ground review.

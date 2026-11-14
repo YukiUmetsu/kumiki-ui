@@ -22,6 +22,7 @@ function Laboratory(){
   const [reduce,setReduce]=useState(false);
   const [foldDetail,setFoldDetail]=useState(1);
   const [foldContrast,setFoldContrast]=useState(.85);
+  const [clothAmount,setClothAmount]=useState(.75);
   const compiled=useMemo(()=>compileFilm(document,{outputId:aspect}),[aspect]);
   useEffect(()=>{
     if(!playing||reduce)return;
@@ -77,6 +78,11 @@ function Laboratory(){
         <input aria-label="Fold pigment density" type="range" min="0" max="2" step=".05"
           value={foldContrast} onChange={e=>{setPlaying(false);setFoldContrast(Number(e.target.value))}}/>
       </label>
+      <label style={{display:"grid",gap:4,fontWeight:600,fontSize:13}}>
+        Cloth follow-through: {Math.round(clothAmount*100)}%
+        <input aria-label="Cloth follow-through" type="range" min="0" max="1" step=".05"
+          value={clothAmount} onChange={e=>{setPlaying(false);setClothAmount(Number(e.target.value))}}/>
+      </label>
       <span style={{fontSize:12,color:"#526056",maxWidth:330}}>
         Original pressure-shaped fabric contours follow the articulated robe and sleeves;
         facial expressions stay on the sharp, dry drawing layer.
@@ -88,7 +94,8 @@ function Laboratory(){
         renderSlot={(content,context)=>{
           if(content.slot!=="ink4-traveler")throw new Error("Unexpected ink director scene: "+content.slot);
           return <InkDirectorFilm aspect={aspect} frame={context.frame}
-            reducedMotion={context.reducedMotion} foldDetail={foldDetail} foldContrast={foldContrast}/>;
+            reducedMotion={context.reducedMotion} foldDetail={foldDetail} foldContrast={foldContrast}
+            clothAmount={clothAmount}/>
         }} style={{transform:"scale("+scale+")",transformOrigin:"top left"}}/>
     </div>
     <div style={{maxWidth:960,display:"grid",gap:9}}>

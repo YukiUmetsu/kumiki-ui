@@ -158,7 +158,7 @@ function Studio(){
     </nav>
   </main>;
 }
-const meta={title:"Video production/Film Looks",id:"video-ink-ensemble",
+const meta={title:"Video production/Film Looks/Chinese Ink/Ensemble",id:"video-ink-ensemble",
   component:Studio,parameters:{layout:"fullscreen"}} satisfies Meta<typeof Studio>;
 export default meta;
 export const InkEnsembleStory:StoryObj<typeof meta>={
