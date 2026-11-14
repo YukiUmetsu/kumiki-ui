@@ -183,3 +183,12 @@ export function paintedDemoSpec(genre: PaintedGenre, output: PaintedOutput, seed
   return { version: 1, width:b.width, height:b.height, seed,
     paper: {color:"#F5EFE5", tooth:.79}, layers };
 }
+
+/** A restrained camera push is derived only from the film scene's absolute frame. */
+export function paintedCameraAt(frame: number, reducedMotion = false): { x: number; y: number; zoom: number } {
+  if (!Number.isSafeInteger(frame) || frame < 0) throw new RangeError("Camera frame must be a nonnegative integer.");
+  if (reducedMotion) return { x: 0, y: 0, zoom: 1 };
+  const p = Math.min(1, frame / 319);
+  const eased = p * p * (3 - 2 * p);
+  return { x: -2.1 * eased, y: 1.1 * eased, zoom: 1 + .017 * eased };
+}
