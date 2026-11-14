@@ -63,7 +63,7 @@ export function inspectInkWash(spec: InkWashSpec): InkIssue[] {
       add("dimension", "/" + dim, "Artwork dimensions must be integers from 200 to 8192.");
   }
   for (const color of ["paper", "ink", "accent"] as const) {
-    if (spec[color] !== undefined && !HEX.test(spec[color] ?? "")) add("color", "/" + color, "Expected a six-digit hex color.");
+    if ((color !== "accent" || spec.accent !== undefined) && !HEX.test(spec[color] ?? "")) add("color", "/" + color, "Expected a six-digit hex color.");
   }
   if (!Number.isSafeInteger(spec.seed) || spec.seed < 0 || spec.seed > 2147483647) add("seed", "/seed", "Seed must be an integer in 0..2147483647.");
   if (!validNumber(spec.absorption, 0, 1)) add("absorption", "/absorption", "Absorption must be 0..1.");
@@ -78,7 +78,7 @@ export function inspectInkWash(spec: InkWashSpec): InkIssue[] {
     else seen.add(stroke.id);
     if (!Array.isArray(stroke?.points) || stroke.points.length < 2 || stroke.points.length > 96) {
       add("points", at + "/points", "Each stroke needs 2..96 control points.");
-    } else stroke.points.forEach((point, j) => {
+    } else stroke.points.forEach((point: InkPoint, j: number) => {
       if (!point || !validNumber(point.x, -8192, 16384) || !validNumber(point.y, -8192, 16384) || !validNumber(point.pressure, 0, 1))
         add("point", at + "/points/" + j, "Point coordinates and pressure must be finite and pressure 0..1.");
     });
