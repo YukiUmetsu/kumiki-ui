@@ -643,7 +643,7 @@ export function crayonDragonVillageScene(
     x:portrait?30:44,y:portrait?H-30:131,fontSize:portrait?12:14,
     timing:{start:183,end:283},family:"serif",weight:700,color:"#697783"});
   const focus=shot==="dragon" ? {
-    x:dx+(portrait?74:-5),y:dy-(portrait?85:53),
+    x:dx+(portrait?74:-5),y:dy-(portrait?25:53),
     zoom:portrait?1.64:1.75,
   } : shot==="architecture" ? {
     x:tx,y:ty-(portrait?100:135)*tscale,zoom:portrait?1.7:1.9,
