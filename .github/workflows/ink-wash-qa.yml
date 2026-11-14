@@ -12,6 +12,7 @@ on:
       - "src/video/film-looks.stories.tsx"
       - "tests/ink-wash*.test.tsx"
       - "tests/ink-film-config.test.ts"
+      - "tests/ink-stroke-controls.test.ts"
       - "tests/e2e-storybook/ink-wash*.spec.ts"
       - ".github/workflows/ink-wash-qa.yml"
   workflow_dispatch:
@@ -37,7 +38,7 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
       - name: Deterministic pigment and film tests
-        run: npx vitest run --project unit tests/ink-wash.test.tsx tests/ink-wash-story.test.tsx tests/ink-wash-character.test.tsx tests/ink-film-config.test.ts
+        run: npx vitest run --project unit tests/ink-wash.test.tsx tests/ink-wash-story.test.tsx tests/ink-wash-character.test.tsx tests/ink-film-config.test.ts tests/ink-stroke-controls.test.ts
       - name: Core registry checks
         run: npm run registry:validate
       - name: Chromium
