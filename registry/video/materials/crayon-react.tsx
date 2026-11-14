@@ -1,6 +1,6 @@
 import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
-import { crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonProgress } from "./crayon";
+import { crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
 import type { CrayonBounds, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction } from "./crayon";
 import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
@@ -96,7 +96,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         <g fill="none" stroke="#fff" strokeLinecap="round"
           transform={angle ? "rotate(" + angle + " " + cx + " " + cy + ")" : undefined}>
           {depositMarks.map((mark,i)=>{
-            const progress=crayonProgress(frame,fillFirst,fillLast,i,depositMarks.length,reduced);
+            const progress=crayonStrokeProgress(frame,fillFirst,fillLast,i,depositMarks.length,strokeOrder,reduced);
             return progress<=0 ? null : <path key={i} d={mark.d} pathLength={100}
               strokeWidth={Math.max(spacing*1.15, mark.width*1.7)}
               strokeDasharray={100} strokeDashoffset={100*(1-progress)}/>;
@@ -129,7 +129,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
 
       <g transform={angle ? "rotate(" + angle + " " + cx + " " + cy + ")" : undefined}>
       {marks.map((mark, i) => {
-        const progress = crayonProgress(frame, fillFirst, fillLast, i, marks.length, reduced);
+        const progress = crayonStrokeProgress(frame, fillFirst, fillLast, i, marks.length, strokeOrder, reduced);
         if (progress <= 0) return null;
         return <g key={i} fill="none" strokeLinecap="round">
           {nibStyle==="tapered" ?
