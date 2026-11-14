@@ -42,7 +42,7 @@ describe("RISC1 generic print-native character rigs and authored cinema", () => 
         expect(html).toContain('data-km-riso-plate="blue"');
         expect(html).toContain('data-km-riso-plate="red"');
         expect(html).toContain("patternUnits=\"userSpaceOnUse\"");
-        expect(html).toContain("THE ");
+        expect(html).toContain(subject === "postcard" ? "UNEXPECTED" : "MIDNIGHT");
         expect(html).toContain("viewBox=\"0 0 "+s.print.width+" "+s.print.height+"\"");
       });
     }
@@ -102,7 +102,7 @@ describe("RISC1 generic print-native character rigs and authored cinema", () => 
     const changed=(mutator:(a:RisoJointSpec[])=>RisoJointSpec[]):RisoCharacterSceneSpec=>({
       ...s,actors:[{...first,joints:mutator([...first.joints])},...s.actors.slice(1)],
     });
-    const cycle=changed(parts=>parts.map((j,i)=>i===0?{...j,parent:"body"}:j));
+    const cycle=changed(parts=>parts.map((j,i)=>i===0?{...j,parent:"rear-leg"}:i===1?{...j,parent:"back-legs"}:j));
     expect(inspectRisoCharacterScene(cycle).some(e=>e.code==="cycle")).toBe(true);
     const missing=changed(parts=>parts.map((j,i)=>i===0?{...j,parent:"absent"}:j));
     expect(inspectRisoCharacterScene(missing).some(e=>e.code==="parent")).toBe(true);
