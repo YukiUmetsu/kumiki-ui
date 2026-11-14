@@ -2,6 +2,7 @@ import type { CharacterCue, CharacterInstance } from "../../registry/character/d
 import type { InkEnsemblePlan } from "../../registry/video/ink-wash-ensemble";
 import type { InkEnsembleCastMember } from "../../registry/video/ink-wash-ensemble-react";
 import { INK_TRAVELLER } from "./ink-wash-performer";
+import { INK_APPRENTICE } from "./ink-wash-apprentice";
 
 /** Original two-actor study. Source-specific acting/costume assets stay in this demo,
  * not inside the registry. Separate instance seeds/skins keep both rigs independent. */
@@ -19,8 +20,8 @@ export function inkDuet(aspect: InkDuetAspect): {
     targets: { viewer: { x: 210, y: 110 }, "ink-partner": { x: 244, y: 102 } },
   };
   const second: CharacterInstance = {
-    instanceId: "ink-learner", characterId: INK_TRAVELLER.characterId,
-    revision: INK_TRAVELLER.revision, skin: "mineral", seed: 293,
+    instanceId: "ink-learner", characterId: INK_APPRENTICE.characterId,
+    revision: INK_APPRENTICE.revision, skin: "slate", seed: 293,
     targets: { viewer: { x: 56, y: 112 }, "ink-partner": { x: 25, y: 102 } },
   };
   const cuesA: CharacterCue[] = [
@@ -88,7 +89,7 @@ export function inkDuet(aspect: InkDuetAspect): {
   const cast: InkEnsembleCastMember[] = [
     { trackId: "master", definition: INK_TRAVELLER, instance: first, cues: cuesA,
       label: "An ink-painted teacher, gesturing and speaking" },
-    { trackId: "learner", definition: INK_TRAVELLER, instance: second, cues: cuesB,
+    { trackId: "learner", definition: INK_APPRENTICE, instance: second, cues: cuesB,
       label: "An ink-painted apprentice, listening and answering",
       partFinish: { eyes: { bleed: 0, dryContour: true },
         mouth: { bleed: 0, dryContour: true },
