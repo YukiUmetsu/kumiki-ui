@@ -54,11 +54,10 @@ export function PaperCraftStage({
             stroke="#3b3028" strokeWidth=".32" />
         </g>)}
       </pattern>
-      {prepared.map(({ layer }) => <mask key={layer.id} id={uid + "-cut-" + layer.id}
-        maskUnits="userSpaceOnUse" x={0} y={0} width={spec.width} height={spec.height}>
-        <path d={layer.path} fill="white"/>
-        {layer.holes?.map((hole, i) => <path key={i} d={hole} fill="black"/>)}
-      </mask>)}
+      {prepared.map(({ layer }) => <clipPath key={layer.id} id={uid + "-cut-" + layer.id}
+        clipPathUnits="userSpaceOnUse">
+        <path d={[layer.path, ...(layer.holes ?? [])].join(" ")} clipRule="evenodd"/>
+      </clipPath>)}
     </defs>
     <rect width={spec.width} height={spec.height} fill={isLamp ? `url(#${uid}-lamp)` : spec.backing}/>
     {/* The substrate retains visible deckled tooth independently of all moving parts. */}
@@ -68,11 +67,12 @@ export function PaperCraftStage({
       const pivot = layer.pivot ?? [spec.width / 2, spec.height / 2];
       const transform = `translate(${q.translateX.toFixed(3)} ${q.translateY.toFixed(3)}) translate(${pivot[0]} ${pivot[1]}) rotate(${q.rotation.toFixed(3)}) scale(${q.scaleX.toFixed(4)} ${q.scaleY.toFixed(4)}) translate(${-pivot[0]} ${-pivot[1]})`;
       const shadow = `drop-shadow(${q.shadowX.toFixed(2)}px ${q.shadowY.toFixed(2)}px ${q.shadowBlur.toFixed(2)}px rgba(33,24,22,${(strength * (puppet ? .44 : .23)).toFixed(3)}))`;
-      const mask = `url(#${uid}-cut-${layer.id})`;
+      const clip = `url(#${uid}-cut-${layer.id})`;
+      const cut = [layer.path, ...(layer.holes ?? [])].join(" ");
       return <g key={layer.id} data-km-paper-layer={layer.id} data-km-paper-progress={q.progress.toFixed(4)}
         transform={transform} opacity={q.opacity} style={{ filter: shadow }}>
-        <g mask={mask}>
-          <path d={layer.path} fill={layer.color} fillRule="evenodd"
+        <g clipPath={clip}>
+          <path d={cut} fill={layer.color} fillRule="evenodd"
             stroke={puppet ? "#422c28" : "#695447"} strokeWidth={puppet ? 1.55 : .7}
             strokeLinejoin="round" strokeOpacity={puppet ? .6 : .22}
             opacity={puppet ? .83 : 1} />
