@@ -9,7 +9,7 @@ on:
       - "tests/ink-shanshui.test.tsx"
       - "tests/ink-shanshui-proportion.test.tsx"
       - "tests/ink-shanshui-full-body.test.tsx"
-      - "tests/ink-shanshui-fine-craft.test.tsx tests/ink-shanshui-reader-face.test.tsx"
+      - "tests/ink-shanshui-fine-craft.test.tsx"
       - "tests/ink-shanshui-reader-face.test.tsx"
       - "tests/e2e-storybook/ink-shanshui.spec.ts"
       - "tests/e2e-storybook/ink-shanshui-proportion.spec.ts"
