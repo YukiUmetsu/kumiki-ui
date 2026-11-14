@@ -34,6 +34,28 @@ describe("material-native colour-pencil science art", () => {
       .toEqual(first);
   });
 
+  it("renders physically bounded curvature and tonal value independent of seek order", () => {
+    const drawing = coloredPencilExample("leaf", "landscape");
+    const region = drawing.regions[0], layer = {...region.layers[0], flow: 32, tone: "core" as const};
+    expect(inspectPencilDrawing({ ...drawing, regions: [{
+      ...region, layers: [layer],
+    }] })).toEqual([]);
+    const marks = hatchPencilRegion(region, layer);
+    expect(marks[0].angleOffset).toBeCloseTo(-32);
+    expect(marks[marks.length - 1].angleOffset).toBeCloseTo(32);
+    const edge = marks.slice(0, 10).reduce((sum, mark) => sum + mark.opacity, 0) / 10;
+    const midpoint = Math.floor(marks.length / 2);
+    const core = marks.slice(midpoint - 5, midpoint + 5).reduce((sum, mark) => sum + mark.opacity, 0) / 10;
+    expect(core).toBeGreaterThan(edge);
+    expect(marks).toEqual(hatchPencilRegion(region, layer));
+    expect(inspectPencilDrawing({ ...drawing, regions: [{
+      ...region, layers: [{ ...layer, flow: 61 }],
+    }] })).not.toEqual([]);
+    expect(inspectPencilDrawing({ ...drawing, regions: [{
+      ...region, layers: [{ ...layer, tone: "unbounded" as "core" }],
+    }] })).not.toEqual([]);
+  });
+
   it("never reveals an unpainted specimen silhouette before the pencil arrives", () => {
     const blank = renderToStaticMarkup(<ColoredPencilSciencePlate aspect="landscape" subject="leaf" frame={0}/>);
     const painted = renderToStaticMarkup(<ColoredPencilSciencePlate aspect="landscape" subject="leaf" frame={260}/>);
