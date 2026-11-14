@@ -204,7 +204,8 @@ export function inspectRisoCharacter(input: unknown, allowedPlates?: readonly st
               !integer(target.stanceFrames) || target.stanceFrames < 2 || target.stanceFrames >= target.cycleFrames - 1 ||
               !integer(target.phaseFrames ?? 0) || !safeNumber(target.phaseFrames ?? 0, 0, target.cycleFrames - 1) ||
               !safeNumber(target.initialX, -8192, 8192) || !safeNumber(target.groundY, -8192, 8192) ||
-              !safeNumber(target.stride, -300, 300) || !safeNumber(target.lift, 0, 150))
+              !safeNumber(target.stride, -300, 300) || !safeNumber(target.lift, 0, 150) ||
+              !safeNumber(target.footRoll ?? 0, 0, 45))
             err(p + "/target", "walk target requires finite bounds, a valid stance/swing cycle and film interval");
         } else if (target?.kind === "keys") {
           if (!Array.isArray(target.keys) || target.keys.length < 1 || target.keys.length > 240)
