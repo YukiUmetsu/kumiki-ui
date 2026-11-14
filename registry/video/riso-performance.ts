@@ -194,13 +194,13 @@ export function inspectRisoCharacterScene(value: unknown): RisoSceneIssue[] {
     fail("actors", "/actors", "Supply 0..24 actors.");
   else {
     const ids = new Set<string>();
-    scene.actors.forEach((actor, i) => {
+    (scene.actors as RisoActorSpec[]).forEach((actor, i) => {
       const at = "/actors/" + i;
       if (!actor || typeof actor.id !== "string" || !SLUG.test(actor.id) || ids.has(actor.id))
         fail("actor-id", at + "/id", "Actor IDs must be unique slugs.");
       else ids.add(actor.id);
       if (!actor || !Array.isArray(actor.origin) || actor.origin.length !== 2 ||
-          !actor.origin.every(n => between(n, -8192, 8192)))
+          !actor.origin.every((n: number) => between(n, -8192, 8192)))
         fail("actor-origin", at + "/origin", "Origin needs two finite scene-space coordinates.");
       if (actor?.cadence !== undefined && ![1,2,3,4].includes(actor.cadence))
         fail("cadence", at + "/cadence", "Cadence must be 1..4 held frames.");
@@ -209,13 +209,14 @@ export function inspectRisoCharacterScene(value: unknown): RisoSceneIssue[] {
         fail("joints", at + "/joints", "Rig requires 1..72 joint layers."); return;
       }
       const jointIds = new Set<string>();
-      for (const [j, joint] of actor.joints.entries()) {
+      const joints = actor.joints as RisoJointSpec[];
+      for (const [j, joint] of joints.entries()) {
         const p = at + "/joints/" + j;
         if (!joint || typeof joint.id !== "string" || !SLUG.test(joint.id) || jointIds.has(joint.id))
           fail("joint-id", p + "/id", "Each joint requires a unique slug.");
         else jointIds.add(joint.id);
         if (!joint || !Array.isArray(joint.pivot) || joint.pivot.length !== 2 ||
-            !joint.pivot.every(n => between(n, -8192, 8192)))
+            !joint.pivot.every((n: number) => between(n, -8192, 8192)))
           fail("pivot", p + "/pivot", "Pivot must be a finite [x,y] attachment.");
         if (joint?.z !== undefined && (!Number.isSafeInteger(joint.z) || Math.abs(joint.z) > 100))
           fail("z", p + "/z", "Layer z must be an integer within -100..100.");
@@ -232,7 +233,7 @@ export function inspectRisoCharacterScene(value: unknown): RisoSceneIssue[] {
             fail("variants", p + "/variants", "Use 1..24 named expression variants.");
           else Object.entries(joint.variants).forEach(([name, marks]) => {
             if (!SLUG.test(name)) fail("variant-id", p + "/variants/" + name, "Variant IDs must be slugs.");
-            marksOk(marks, p + "/variants/" + name, plateIds, fail);
+            marksOk(marks as RisoMarkSet, p + "/variants/" + name, plateIds, fail);
           });
         }
         if (joint?.variantKeys !== undefined) {
@@ -241,7 +242,7 @@ export function inspectRisoCharacterScene(value: unknown): RisoSceneIssue[] {
             fail("variant-keys", p + "/variantKeys", "Expression keys require 1..96 entries.");
           else {
             let prev = -1;
-            joint.variantKeys.forEach((k, n) => {
+            (joint.variantKeys as RisoVariantKey[]).forEach((k, n) => {
               if (!k || !inScene(k.frame, duration) || k.frame <= prev ||
                   typeof k.name !== "string" || !joint.variants ||
                   !(k.name in joint.variants))
@@ -252,8 +253,8 @@ export function inspectRisoCharacterScene(value: unknown): RisoSceneIssue[] {
         }
       }
       // Parent links may be unordered but must be present and acyclic.
-      const byId = new Map(actor.joints.filter(j => j && typeof j.id === "string").map(j => [j.id, j]));
-      for (const [j, joint] of actor.joints.entries()) {
+      const byId = new Map<string,RisoJointSpec>(joints.filter(j => !!j && typeof j.id === "string").map(j => [j.id, j]));
+      for (const [j, joint] of joints.entries()) {
         const atJoint = at + "/joints/" + j;
         if (!joint) continue;
         if (joint.parent && !byId.has(joint.parent)) fail("parent", atJoint + "/parent", "Missing parent joint.");
@@ -275,7 +276,7 @@ export function inspectRisoCharacterScene(value: unknown): RisoSceneIssue[] {
     fail("layers", "/layers", "Supply 0..160 original scene layers.");
   else {
     const layerIds = new Set<string>();
-    scene.layers.forEach((layer, i) => {
+    (scene.layers as RisoSceneLayer[]).forEach((layer, i) => {
       const p = "/layers/" + i;
       if (!layer || typeof layer !== "object") {
         fail("layer", p, "Layer must be an object."); return;
@@ -296,7 +297,7 @@ export function inspectRisoCharacterScene(value: unknown): RisoSceneIssue[] {
           fail("parallax", p + "/parallax", "Parallax must be within 0..2.");
       } else if (layer.kind === "text") {
         if (!Array.isArray(layer.lines) || layer.lines.length < 1 || layer.lines.length > 6 ||
-            layer.lines.some(s => typeof s !== "string" || s.length === 0 || s.length > 160))
+            layer.lines.some((s: string) => typeof s !== "string" || s.length === 0 || s.length > 160))
           fail("text", p + "/lines", "Supply 1..6 readable text lines (max 160 characters each).");
         if (!between(layer.x, -8192, 8192) || !between(layer.y, -8192, 8192) ||
             !between(layer.fontSize, 8, 240))
@@ -315,7 +316,7 @@ export function inspectRisoCharacterScene(value: unknown): RisoSceneIssue[] {
       fail("camera", "/camera", "Camera needs 1..60 sorted keys.");
     else {
       let previous = -1;
-      scene.camera.forEach((k, i) => {
+      (scene.camera as RisoCameraKey[]).forEach((k, i) => {
         if (!k || !inScene(k.frame, duration) || k.frame <= previous ||
             !between(k.focusX, -8192, 8192) || !between(k.focusY, -8192, 8192) ||
             !between(k.zoom, .35, 5) ||
@@ -374,7 +375,7 @@ export function evaluateRisoCharacterScene(
         for (const key of joint.variantKeys??[]) if (key.frame<=poseFrame) variant=key.name;
         return {id:joint.id,parent:joint.parent,pivot:joint.pivot,
           pose:sampleRisoMotion(joint.motion,poseFrame,joint.cycleFrames),
-          marks:(variant && joint.variants?.[variant]) ?? joint.marks ??
+          marks:(variant ? joint.variants?.[variant] : undefined) ?? joint.marks ??
             joint.variants?.[Object.keys(joint.variants)[0]] ?? {},
           z:joint.z??0};
       })};
