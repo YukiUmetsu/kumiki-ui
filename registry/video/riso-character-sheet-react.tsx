@@ -78,6 +78,7 @@ export function RisoCharacterModelSheet({
 }:RisoModelSheetProps) {
   const uid=useId().replace(/[^a-z0-9]/gi,"");
   const report=evaluateRisoCharacterMesh(spec,sheet,frame);
+  const avian=spec.id==="paper-bird";
   const region=report.regions.find(r=>r.id===selectedRegion)??report.regions[0];
   const poseReports=sheet.poses.map(p=>({label:p.label,frame:p.frame,report:evaluateRisoCharacterMesh(spec,sheet,p.frame)}));
   const allPlates=[...new Set(spec.parts.filter(p=>!p.knockoutOnly).map(p=>p.plate))];
@@ -181,12 +182,42 @@ export function RisoCharacterModelSheet({
       fontSize={12} fontWeight={700} fill="#D4513D">RISO / MODEL SHEET 01</text>
     <text x={1200} y={53} textAnchor="end" fontFamily="system-ui,sans-serif"
       fontSize={12} fill="#4D6272">24 FPS not assumed · frame {report.frame} · source {spec.id}</text>
-    {section(20,107,464,665,"Full silhouette + construction","A")}
-    <svg x={25} y={140} width={454} height={625}
-      viewBox={risoSheetViewBox(report.overallBounds,454,625,22)}
+    {section(20,107,464,665,avian?"Flight silhouette + wing construction":"Full silhouette + construction","A")}
+    <svg x={25} y={140} width={454} height={avian?360:625}
+      viewBox={risoSheetViewBox(report.overallBounds,454,avian?360:625,22)}
       data-km-riso-sheet-full-view="" overflow="hidden">
       <Actor sample={report.frame} parts={report.regions}/>
     </svg>
+    {avian && <g data-km-riso-avian-wing-studies="">
+      <path d="M32 511 H472" stroke="#BDB5A6" strokeWidth={1}/>
+      <text x={33} y={531} fontFamily="system-ui,sans-serif" fontSize={12}
+        fontWeight={800} fill="#29465E">WING ARTICULATION / FEATHER CAGES</text>
+      {(["left-wing","right-wing"] as const).map((id,i)=>{
+        const wing=report.regions.find(r=>r.id===id)!;
+        const x=32+i*220;
+        return <g key={id} data-km-riso-wing-detail={id}>
+          <rect x={x} y={542} width={208} height={203} rx={4}
+            fill="#FBF6EC" stroke="#D0C4B6"/>
+          <text x={x+9} y={559} fontFamily="system-ui,sans-serif"
+            fontWeight={700} fontSize={11} fill="#31546A">{wing.label}</text>
+          <svg x={x+7} y={566} width={194} height={145}
+            viewBox={risoSheetViewBox(wing.bounds,194,145,14)}
+            overflow="hidden">
+            <Actor sample={report.frame} parts={report.regions} view="pose"/>
+            <g stroke="#247A8F" strokeWidth={.75} opacity={.75} fill="none"
+              data-km-riso-wing-cage={id}>
+              {wing.triangles.map((triangle,n)=>
+                <path key={n} d={path(triangle)}/>)}
+              <path d={path(wing.outline)} strokeWidth={1.3}/>
+            </g>
+          </svg>
+          <text x={x+10} y={730} fontFamily="ui-monospace,monospace"
+            fontSize={10.5} fill="#40586B">
+            Cage: {short(wing.widthInHeads)} H wide / {wing.triangles.length} triangles
+          </text>
+        </g>;
+      })}
+    </g>}
     {section(502,107,345,338,"Face / head enlargement","B")}
     <svg x={510} y={139} width={329} height={300}
       viewBox={risoSheetViewBox(headBounds,329,300,8)}
