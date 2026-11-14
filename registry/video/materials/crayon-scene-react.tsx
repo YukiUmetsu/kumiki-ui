@@ -44,8 +44,10 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
   const transform = crayonElementTransform(spec, node, frame, reducedMotion);
   const drawing = node.kind === "wax" || node.kind === "contour"
     ? crayonDrawingAt(node, frame, reducedMotion, spec.durationFrames) : null;
+  const pinned = node.contacts?.some(c=>c.start<=frame && frame<=c.end) ?? false;
   return <g data-km-crayon-element={node.id} data-km-crayon-kind={node.kind}
-    data-km-crayon-drawing={drawing?.index} data-km-crayon-pose={drawing?.poseId} transform={transform}>
+    data-km-crayon-drawing={drawing?.index} data-km-crayon-pose={drawing?.poseId}
+    data-km-crayon-contact={pinned ? "planted" : undefined} transform={transform}>
     {node.kind === "wax" ? <WaxRegion d={drawing!.d} bounds={drawing!.bounds!} colors={node.colors}
       seed={seed} pressure={node.pressure ?? .84} spacing={node.spacing ?? 9} angle={node.angle ?? 0}
       tooth={tooth} frame={frame} first={node.timing.start} last={node.timing.end}

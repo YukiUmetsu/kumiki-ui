@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { inspectCrayonScene, crayonCamera, crayonDrawingAt, crayonElementPlacement, crayonElementTransform } from "../registry/video/materials/crayon-scene";
+import { inspectCrayonScene, crayonCamera, crayonContactOffset, crayonWorldPoint, crayonDrawingAt, crayonElementPlacement, crayonElementTransform } from "../registry/video/materials/crayon-scene";
 import { CrayonScene } from "../registry/video/materials/crayon-scene-react";
 import { crayonDemoScene } from "../src/video/crayon-scene-fixtures";
 import { crayonPerformanceScene } from "../src/video/crayon-performance-fixtures";
+import { crayonWalkScene } from "../src/video/crayon-walk-fixtures";
 import { compileFilm, type FilmDocument } from "../registry/video/film-document";
 import { loadFilmSlots } from "../src/film/film-slots";
 import portable from "../examples/film/crayon-scene-three-subjects.film.json";
@@ -234,6 +235,100 @@ describe("CRAYON1 data-driven scene grammar",()=>{
     expect(invalid({poseCues:[{frame:270,pose:"mbp"}]})).toMatch(/within scene/);
     expect(invalid({poseCues:[{frame:14,pose:"not-drawn"}]})).toMatch(/not a declared pose/);
     expect(invalid({drawings:[{frame:18,d:"M0 0L1 1"}]})).toMatch(/cannot be combined/);
+  });
+
+
+  it("maps local points exactly through ancestor translation, scale, rotation, and pivots",()=>{
+    const base=crayonDemoScene("city","landscape");
+    const root={...base.elements[0],id:"rig-root",screenSpace:false,parentId:undefined,
+      placement:{x:100,y:50,rotate:90}};
+    const child={...base.elements[1],id:"rig-foot",screenSpace:false,parentId:"rig-root",
+      placement:{x:5,y:0,scale:2,rotate:90}};
+    const scene={...base,elements:[child,root]};
+    expect(inspectCrayonScene(scene)).toEqual([]);
+    const point=crayonWorldPoint(scene,child,0,{x:10,y:0});
+    expect(point.x).toBeCloseTo(80,7);
+    expect(point.y).toBeCloseTo(55,7);
+  });
+
+  for(const aspect of ["landscape","portrait"] as const){
+    it("locks alternating grounded feet while the character walks in "+aspect,async()=>{
+      const scene=crayonWalkScene(aspect);
+      expect(inspectCrayonScene(scene)).toEqual([]);
+      const back=scene.elements.find(e=>e.id==="foot-back");
+      const front=scene.elements.find(e=>e.id==="foot-front");
+      if(!back||!front)throw new Error("missing walking feet");
+      for(const [node,starts] of [[back,[0,94,214]],[front,[0,156]]] as const){
+        for(const start of starts){
+          const contact=node.contacts!.find(x=>x.start===start)!;
+          const expected=crayonWorldPoint(scene,node,contact.start,contact.anchor);
+          for(const frame of [start,Math.floor((start+contact.end)/2),contact.end]){
+            const actual=crayonWorldPoint(scene,node,frame,contact.anchor);
+            const correction=crayonContactOffset(scene,node,frame);
+            if(!correction)throw new Error("missing contact correction");
+            expect(actual.x+correction.x).toBeCloseTo(expected.x,6);
+            expect(actual.y+correction.y).toBeCloseTo(expected.y,6);
+          }
+        }
+      }
+      expect(crayonContactOffset(scene,back,65)).toBeNull();
+      expect(crayonContactOffset(scene,front,124)).toBeNull();
+      expect(crayonContactOffset(scene,back,215,true))
+        .toEqual(crayonContactOffset(scene,back,269,true));
+      const mid=renderToStaticMarkup(<CrayonScene spec={scene} frame={156}/>);
+      renderToStaticMarkup(<CrayonScene spec={scene} frame={269}/>);
+      renderToStaticMarkup(<CrayonScene spec={scene} frame={0}/>);
+      expect(renderToStaticMarkup(<CrayonScene spec={scene} frame={156}/>)).toEqual(mid);
+      expect(mid).toContain('data-km-crayon-contact="planted"');
+      expect(mid).toContain('data-km-crayon-element="flower-petals"');
+      const film:FilmDocument={schemaVersion:1,id:"crayon-walk-"+aspect,fps:{num:30,den:1},
+        drift:0,outputs:[{id:aspect,width:scene.width,height:scene.height}],
+        scenes:[{id:"walk",recipeId:"slot",durationFrames:270,
+          content:{slot:"crayon-scene",label:"Walk",props:{scene}}}]};
+      const compiled=compileFilm(film,{outputId:aspect});
+      expect(compiled.ok).toBe(true);
+      if(!compiled.ok)return;
+      const slots=await loadFilmSlots(compiled.film);
+      const html=renderToStaticMarkup(<>{slots(
+        {slot:"crayon-scene",label:"Walk",props:{scene}},
+        {frame:156,fps:{num:30,den:1},durationFrames:270,
+          width:scene.width,height:scene.height,reducedMotion:false},
+      )}</>);
+      expect(html).toContain('data-km-crayon-element="foot-back"');
+    });
+  }
+
+  it("rejects invalid foot contacts, overlapping stances and illegal anchors",()=>{
+    const scene=crayonWalkScene("landscape");
+    const foot=scene.elements.find(e=>e.id==="foot-back");
+    if(!foot)throw new Error("missing foot");
+    const invalid=(contacts:unknown,screenSpace=false)=>
+      inspectCrayonScene({...scene,elements:[{...foot,parentId:undefined,screenSpace,contacts}]}).join(" ");
+    expect(invalid([{start:7,end:12,anchor:{x:0,y:0}},{start:12,end:30,anchor:{x:0,y:0}}])).toMatch(/non-overlapping/);
+    expect(invalid([{start:0,end:270,anchor:{x:0,y:0}}])).toMatch(/within duration/);
+    expect(invalid([{start:0,end:12,anchor:{x:Infinity,y:0}}])).toMatch(/finite/);
+    expect(invalid([{start:0,end:12,anchor:{x:0,y:0}}],true)).toMatch(/world-space/);
+    expect(invalid([])).toMatch(/1..16/);
+    expect(invalid([{start:15,end:4,anchor:{x:0,y:0}}])).toMatch(/sorted/);
+    const parent={...foot,id:"contact-root",parentId:undefined,contacts:[
+      {start:0,end:30,anchor:{x:0,y:0}}]};
+    const child={...foot,id:"contact-child",parentId:"contact-root",contacts:[
+      {start:20,end:50,anchor:{x:0,y:0}}]};
+    expect(inspectCrayonScene({...scene,elements:[parent,child]}).join(" "))
+      .toMatch(/overlap ancestor/);
+  });
+
+  it("inherits a single planted parent contact through a held child",()=>{
+    const base=crayonWalkScene("landscape");
+    const parent=base.elements.find(n=>n.id==="foot-back");
+    if(!parent)throw new Error("missing foot");
+    const child={...parent,id:"held-ribbon",parentId:"foot-back",contacts:undefined};
+    const scene={...base,elements:[...base.elements,child]};
+    expect(inspectCrayonScene(scene)).toEqual([]);
+    expect(crayonContactOffset(scene,child,105)).toEqual(crayonContactOffset(scene,parent,105));
+    expect(crayonContactOffset(scene,child,185)).toBeNull();
+    expect(crayonElementTransform(scene,child,105))
+      .toMatch(/^translate\(/);
   });
 
   it("fails on wrong FilmStage output dimensions",async()=>{
