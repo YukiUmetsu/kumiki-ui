@@ -27,6 +27,8 @@ function BrushStudio() {
   const [drynessScale, setDrynessScale] = useState(1);
   const [loadScale, setLoadScale] = useState(1);
   const [paperTooth, setPaperTooth] = useState(.48);
+  const [bleed, setBleed] = useState(.65);
+  const [renderMode, setRenderMode] = useState<"wet" | "vector">("wet");
   const [seed, setSeed] = useState(17);
   const [reducedMotion, setReducedMotion] = useState(false);
   const compiled = useMemo(() => compileFilm(INK_BRUSH_FILM, { outputId: aspect }), [aspect]);
@@ -57,7 +59,8 @@ function BrushStudio() {
       <h1 style={{ margin: "7px 0", font: "600 clamp(26px,3vw,38px)/1.1 Georgia,serif" }}>Brush Deposition Lab</h1>
       <p style={{ maxWidth: 760, margin: 0 }}>The mark is drawn by a pressure-sensitive tip: controlled pace, load,
         tapered edges, and paper-visible dry-brush splits. Two independently authored subjects, one FilmStage.
-        Wet diffusion is deliberately reserved for the next phase.</p>
+        Compare the native pigment/paper model with the previous SVG material; both share the
+        identical brush trajectories and FilmStage timing.</p>
     </header>
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
       {([["River delta", 190], ["Botanical branch", 512]] as const).map(([name, at], i) =>
@@ -79,6 +82,7 @@ function BrushStudio() {
           return <InkBrushPoster aspect={aspect} subject={id} frame={offset + context.frame}
             seed={seed} widthScale={widthScale} drynessScale={drynessScale}
             loadScale={loadScale} paperTooth={paperTooth}
+            bleed={bleed} renderMode={renderMode}
             reducedMotion={context.reducedMotion}/>;
         }} style={{ transform: "scale(" + scale + ")", transformOrigin: "top left" }}/>
     </div>
@@ -101,6 +105,17 @@ function BrushStudio() {
           onChange={e => { setPlaying(false); setAspect(e.target.value as InkAspect); }}>
           <option value="landscape">16:9 Landscape</option><option value="portrait">9:16 Portrait</option>
         </select>
+      </label>
+      <label style={control}>Material
+        <select aria-label="Ink render mode" value={renderMode}
+          onChange={e => setRenderMode(e.target.value as "wet" | "vector")}
+          style={{ minHeight: 40, font: "inherit" }}>
+          <option value="wet">Paper pigment</option><option value="vector">Earlier SVG</option>
+        </select>
+      </label>
+      <label style={control}>Wet spread · {Math.round(bleed * 100)}%
+        <input aria-label="Ink wet spread" type="range" min={0} max={1} step={.05} value={bleed}
+          onChange={e => setBleed(Number(e.target.value))}/>
       </label>
       <label style={control}>Brush width · {widthScale.toFixed(2)}×
         <input aria-label="Brush width" type="range" min={.5} max={1.5} step={.05} value={widthScale}
@@ -128,8 +143,9 @@ function BrushStudio() {
         Reduced motion
       </label>
     </div>
-    <p style={{ fontSize: 12, opacity: .78, maxWidth: 960 }}>Each visible brush mark is a variable-width piece of authored
-      geometry, not a noise-masked photograph. No new dependencies, film renderer, clocks or packaged assets.</p>
+    <p style={{ fontSize: 12, opacity: .78, maxWidth: 960 }}>The paper pigment medium deposits coloured ink and water
+      in fixed paper space; pigment spreads and dries after the brush passes. The earlier vector mode remains available
+      for comparison. No bundled footage or new runtime dependency.</p>
   </div>;
 }
 
@@ -149,6 +165,8 @@ function BrushMaterialMicroscope() {
   const [frame, setFrame] = useState(220);
   const [dryness, setDryness] = useState(.65);
   const [load, setLoad] = useState(.82);
+  const [bleed, setBleed] = useState(.65);
+  const [renderMode, setRenderMode] = useState<"wet" | "vector">("wet");
   const [zoom, setZoom] = useState(1);
   const [seed, setSeed] = useState(31);
   const marks: InkBrushStroke[] = [
@@ -197,12 +215,24 @@ function BrushMaterialMicroscope() {
     <div style={{ width: 960, height: 540, overflow: "hidden", maxWidth: "100%",
       boxShadow: "0 12px 42px rgba(40,30,20,.12)" }}>
       <InkBrushCanvas spec={spec} frame={frame} data-km-ink-microscope=""
+        renderMode={renderMode} bleed={bleed} rasterScale={.75}
         style={{ transform: "scale(" + zoom + ")", transformOrigin: "50% 50%" }}/>
     </div>
     <div style={{ maxWidth: 960, display: "flex", flexWrap: "wrap", gap: 14 }}>
       <label style={{ ...control, flex: 1 }}>Frame / {frame}
         <input aria-label="Brush material frame" type="range" min={0} max={220} value={frame}
           onChange={e => setFrame(Number(e.target.value))}/>
+      </label>
+      <label style={control}>Material
+        <select aria-label="Microscope render mode" value={renderMode}
+          onChange={e => setRenderMode(e.target.value as "wet" | "vector")}
+          style={{ minHeight: 40, font: "inherit" }}>
+          <option value="wet">Paper pigment</option><option value="vector">Earlier SVG</option>
+        </select>
+      </label>
+      <label style={control}>Capillary spread / {bleed.toFixed(2)}
+        <input aria-label="Microscope wet spread" type="range" min={0} max={1} step={.05} value={bleed}
+          onChange={e => setBleed(Number(e.target.value))}/>
       </label>
       <label style={control}>Dryness / {dryness.toFixed(2)}
         <input aria-label="Material dryness" type="range" min={0} max={1} step={.05} value={dryness}
@@ -222,8 +252,9 @@ function BrushMaterialMicroscope() {
       </label>
     </div>
     <p style={{ maxWidth: 890, fontSize: 13, margin: 0 }}>
-      Physical approximation of brush contact, not a measured ink-and-water transport simulation;
-      true capillary spread and absorption remain the next implementation milestone.
+      Deterministic pigment and water deposition on a seeded absorbent paper model.
+      Compare the raster pigment mode with the earlier SVG renderer. This is still a bounded
+      visual approximation, not a laboratory-validated Xuan-paper fluid simulation.
     </p>
   </div>;
 }
