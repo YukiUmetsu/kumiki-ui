@@ -1,4 +1,5 @@
 import { INK_TONES } from "../../registry/video/ink-wash";
+import { makeInkRockTexture } from "../../registry/video/ink-wash-marks";
 import type { InkPoint, InkStroke, InkWashSpec } from "../../registry/video/ink-wash";
 
 export type InkSubject = "landscape" | "bamboo";
@@ -82,6 +83,21 @@ function createSubject(subject: InkSubject, aspect: InkAspect): InkStroke[] {
     add("ledge-face", [[.10,.74,.07],[.16,.81,.63],[.22,.84,.03]], 19, INK_TONES.dark, .18, 150, 16);
     add("ledge-crack", [[.20,.69,.08],[.23,.76,.75],[.25,.80,.1]], 7, INK_TONES.black, .16, 154, 11);
     add("ledge-fissure", [[.015,.84,.06],[.082,.80,.62],[.12,.79,.04]], 9, INK_TONES.black, .12, 160, 12);
+    // Axe-cut gou/cun marks add rock grain; curving hemp lines and clustered dark
+    // moss dents give the foreground a believable surface instead of one flat ribbon.
+    strokes.push(...makeInkRockTexture({
+      idPrefix:"rock-cun",seed:53,kind:"axe-cut",count:23,startFrame:151,angle:54,tone:.76,
+      x:region.x+region.width*.045,y:region.y+region.height*.72,
+      width:region.width*.19,height:region.height*.15,
+    }),...makeInkRockTexture({
+      idPrefix:"rock-hemp",seed:89,kind:"hemp-fiber",count:11,startFrame:164,angle:76,tone:.42,
+      x:region.x+region.width*.06,y:region.y+region.height*.76,
+      width:region.width*.16,height:region.height*.14,
+    }),...makeInkRockTexture({
+      idPrefix:"rock-moss",seed:101,kind:"moss-dot",count:15,startFrame:169,angle:34,tone:.92,
+      x:region.x+region.width*.045,y:region.y+region.height*.69,
+      width:region.width*.21,height:region.height*.12,
+    }));
     // Twisted pine, asymmetrical boughs and many pressure-tapered needle gestures.
     add("pine-trunk", [[.18,.83,.82],[.205,.72,.93],[.217,.63,.64],[.255,.53,.86],[.248,.42,.23]], 21, INK_TONES.black, .19, 159, 38);
     add("pine-trunk-shade", [[.197,.79,.1],[.215,.67,.57],[.24,.56,.08]], 6, INK_TONES.dark, .11, 169, 17);
