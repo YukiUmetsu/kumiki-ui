@@ -103,11 +103,12 @@ export function RisoCharacterModelSheet({
           const evaluated=reportFor(sample).parts.filter(p=>headParts.has(p.id));
           return <>
             <g fill={paper} stroke={paper} strokeWidth={1}>
-              {evaluated.map(p=><path key={p.id} d={p.d} transform={p.transform}/>)}
+              {evaluated.map(p=><path key={p.id} data-km-riso-face-knockout={p.id}
+                d={p.d} transform={p.transform}/>)}
             </g>
             {allPlates.map((plate,i)=><g key={plate} style={{mixBlendMode:"multiply"}}>
               {evaluated.filter(p=>p.plate===plate&&!p.knockoutOnly).map(p=>
-                <path key={p.id} d={p.d} transform={p.transform}
+                <path key={p.id} data-km-riso-face-ink={p.id} d={p.d} transform={p.transform}
                   fill={p.paint==="screen"?inkPattern(plate,i):(inks[plate]??"#315B86")}
                   opacity={p.opacity}/>)}
             </g>)}
