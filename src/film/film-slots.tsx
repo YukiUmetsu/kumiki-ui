@@ -4,6 +4,7 @@ import { renderCollageSlot } from "../video/collage-slot";
 import { CrayonStorybook } from "../../registry/video/materials/crayon-react";
 import { CrayonScene } from "../../registry/video/materials/crayon-scene-react";
 import { assertCrayonScene } from "../../registry/video/materials/crayon-scene";
+import { WetStudyPage, wetPaperDemo } from "../video/watercolour-wet-paper-demo";
 import { PaintedTravellerPage } from "../video/watercolour-actor-demo";
 import { PaintedWorldPage } from "../video/painted-composition-page";
 import { paintedDemoSpec, paintedCameraAt } from "../video/painted-composition-demo";
@@ -750,6 +751,11 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           frame={context.frame} reducedMotion={context.reducedMotion}
           camera={paintedCameraAt(context.frame, context.reducedMotion)}/>;
       }
+      case "watercolour-wet-paper": {
+        const output = context.width > context.height ? "landscape" : "portrait";
+        return <WetStudyPage spec={wetPaperDemo(output)}
+          frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
       case "watercolour-brush": {
         const subject = props.subject;
         if (subject !== "wild-iris" && subject !== "coastal-dawn")
@@ -831,7 +837,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           reducedMotion={context.reducedMotion}/>;
       }
 
-      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
+      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, watercolour-wet-paper, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
     }
   };
 }
