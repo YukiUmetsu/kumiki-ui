@@ -64,6 +64,7 @@ describe("RISO8 small, conforming construction mesh",()=>{
       .toEqual(refined);
     expect(()=>refineRisoContourMesh(original,{maxEdgeLength:0})).toThrow(RangeError);
     expect(()=>refineRisoContourMesh(original,{maxEdgeLength:7,maxTriangles:0})).toThrow(RangeError);
+    expect(()=>refineRisoContourMesh(original,{maxEdgeLength:7,maxTriangles:1})).toThrow(RangeError);
   });
   it("preserves actual Courier eyes, moving sleeves and Bird feather silhouettes under refinement",()=>{
     for(const {spec,sheet,frame,parts} of [
@@ -81,6 +82,10 @@ describe("RISO8 small, conforming construction mesh",()=>{
         expect(a.outline).toEqual(b.outline);
         expect(b.triangles.length).toBeGreaterThanOrEqual(a.triangles.length);
         expect(b.triangles.length).toBeLessThanOrEqual(950);
+        expect(Number.isFinite(b.maxTriangleEdgeLength)).toBe(true);
+        expect(b.maxTriangleEdgeLength).toBeGreaterThan(0);
+        expect(b.maxTriangleEdgeLength).toBeLessThanOrEqual(a.maxTriangleEdgeLength+1e-6);
+        if(b.refinementTargetMet)expect(b.maxTriangleEdgeLength).toBeLessThanOrEqual(4.000001);
         expect(Math.abs(a.triangleArea-b.triangleArea)).toBeLessThan(.0001);
         expect(b.landmarks).toEqual(a.landmarks);
       }
