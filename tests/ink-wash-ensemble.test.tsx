@@ -4,6 +4,9 @@ import { createElement } from "react";
 import { assertInkEnsemble, inkEnsembleAt, inkPartnerLookTarget } from "../registry/video/ink-wash-ensemble";
 import { InkEnsemble } from "../registry/video/ink-wash-ensemble-react";
 import { inkDuet } from "../src/video/ink-wash-ensemble-demo";
+import { INK_TRAVELLER } from "../src/video/ink-wash-performer";
+import { INK_APPRENTICE } from "../src/video/ink-wash-apprentice";
+import { validateCharacterDefinition } from "../registry/character/validate";
 
 describe("INK4 authored ink-painting multi-actor staging", () => {
   for (const aspect of ["landscape", "portrait"] as const) {
@@ -35,6 +38,18 @@ describe("INK4 authored ink-painting multi-actor staging", () => {
       expect(render(30, true)).toContain('data-km-ink-ensemble-frame="30"');
     });
   }
+  it("validates a separately authored apprentice character identity and its distinct physical features", () => {
+    const errors = validateCharacterDefinition(INK_APPRENTICE)
+      .filter(item => item.severity === "error");
+    expect(errors).toEqual([]);
+    expect(INK_APPRENTICE.characterId).not.toBe(INK_TRAVELLER.characterId);
+    expect(INK_APPRENTICE.assets.hair).not.toEqual(INK_TRAVELLER.assets.hair);
+    expect(INK_APPRENTICE.assets.face).not.toEqual(INK_TRAVELLER.assets.face);
+    expect(INK_APPRENTICE.assets.robe).not.toEqual(INK_TRAVELLER.assets.robe);
+    expect(INK_APPRENTICE.assets.brush).not.toEqual(INK_TRAVELLER.assets.brush);
+    expect(INK_APPRENTICE.parts.some(part => part.id === "chin-trace")).toBe(true);
+    expect(INK_APPRENTICE.parts.some(part => part.id === "beard")).toBe(false);
+  });
   it("rejects actor ID aliasing, duplicate instances, invalid time and unsafe contacts", () => {
     const original = inkDuet("landscape").plan;
     const second = original.actors[1];
