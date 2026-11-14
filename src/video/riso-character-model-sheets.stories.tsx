@@ -16,11 +16,12 @@ function CharacterSheetStudio({spec,sheet}:{
   const [frame,setFrame]=useState(sheet.poses[0].frame);
   const [focus,setFocus]=useState(sheet.headRegion);
   const [mesh,setMesh]=useState(true);
+  const [edgeSize,setEdgeSize]=useState(7);
   const [labels,setLabels]=useState(false);
   const [skeleton,setSkeleton]=useState(false);
   const [category,setCategory]=useState("all");
   const svgHost=useRef<HTMLDivElement>(null);
-  const report=useMemo(()=>evaluateRisoCharacterMesh(spec,sheet,frame),[spec,sheet,frame]);
+  const report=useMemo(()=>evaluateRisoCharacterMesh(spec,sheet,frame,{maxEdgeLength:edgeSize}),[spec,sheet,frame,edgeSize]);
   const selected=report.regions.find(r=>r.id===focus)!;
   const categories=[...new Set(sheet.regions.map(r=>r.category))].sort();
   const visible=report.regions.filter(r=>category==="all"||r.category===category);
@@ -54,7 +55,7 @@ function CharacterSheetStudio({spec,sheet}:{
       gap:18,alignItems:"start"}}>
       <div ref={svgHost} style={{minWidth:0,boxShadow:"0 18px 38px #31455723"}}>
         <RisoCharacterModelSheet spec={spec} sheet={sheet} frame={frame}
-          selectedRegion={focus} showMesh={mesh} showLabels={labels}
+          selectedRegion={focus} showMesh={mesh} meshEdgeLength={edgeSize} showLabels={labels}
           showJoints={skeleton}/>
       </div>
       <aside style={{display:"grid",gap:17,maxHeight:800,overflowY:"auto",
@@ -68,6 +69,10 @@ function CharacterSheetStudio({spec,sheet}:{
           {sheet.poses.map(p=><button type="button" key={p.frame} style={btn}
             onClick={()=>setFrame(p.frame)}>{p.label}</button>)}
         </div>
+        <label style={fields}>Mesh cell size · {edgeSize} drawing units (smaller = finer)
+          <input aria-label="Character sheet mesh cell size" type="range" min={3}
+            max={18} step={1} value={edgeSize} onChange={e=>setEdgeSize(Number(e.target.value))}/>
+        </label>
         <div style={{display:"grid",gap:9}}>
           {([
             ["mesh",mesh,setMesh,"Mesh triangles"],
@@ -103,10 +108,10 @@ function CharacterSheetStudio({spec,sheet}:{
             {selected.widthInHeads.toFixed(3)} × {selected.heightInHeads.toFixed(3)} head units
           </span>
           <span style={{font:"12px ui-monospace,monospace"}}>
-            {selected.sourceContourPoints} sampled source vertices · {selected.triangles.length} inside triangles
+            {selected.sourceContourPoints} source contour points · {selected.triangles.length} fine mesh cells
           </span>
           <span style={{font:"12px ui-monospace,monospace"}}>
-            Triangle area residual {Math.abs(selected.triangleArea-selected.contourArea).toFixed(2)} u²
+            Triangle area residual {Math.abs(selected.triangleArea-selected.contourArea).toFixed(2)} u² · target edge ≤{edgeSize} u
           </span>
         </div>
         <div style={{borderTop:"1px solid #CBBFAD",paddingTop:12,display:"grid",gap:8}}
