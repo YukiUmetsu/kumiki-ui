@@ -11,6 +11,10 @@ for(const actor of [
     await expect(svg).toBeVisible();
     await expect(svg.locator("[data-km-riso-sheet-full-view]")).toHaveCount(1);
     await expect(svg.locator("[data-km-riso-sheet-head-view]")).toHaveCount(1);
+    const faceView=svg.locator("[data-km-riso-sheet-head-view]");
+    await expect(faceView.locator(`[data-km-riso-face-ink="${actor.slug==="courier"?"nose":"eye"}"]`)).toHaveCount(1);
+    await expect(faceView.locator('[data-km-riso-face-ink="wing-left"]')).toHaveCount(0);
+    await expect(faceView.locator('[data-km-riso-face-ink="left-upper-sleeve"]')).toHaveCount(0);
     await expect(svg.locator("[data-km-riso-sheet-pose]")).toHaveCount(3);
     await expect(svg.locator("[data-km-riso-mesh-region]").first()).toBeVisible();
     await page.getByRole("combobox",{name:"Character sheet selected region"})
