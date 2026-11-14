@@ -22,6 +22,21 @@ describe("material-native wax-crayon storybook", () => {
     expect(crayonHash(32,1,2)).toBe(crayonHash(32,1,2));
   });
 
+  it("uses nonuniform cross-grain hand rubs instead of repeated horizontal strips",()=>{
+    const marks=crayonMarks({x:0,y:0,width:500,height:280},
+      {seed:913,pressure:.85,spacing:10});
+    // The first cubic in each compound mark has an independently sampled tangent.
+    const slopes=marks.map(m=>{
+      const result=m.d.match(/M (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?) Q (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/);
+      if(!result)throw new Error("invalid short wax stroke");
+      return (Number(result[6])-Number(result[2]))/(Number(result[5])-Number(result[1]));
+    });
+    expect(slopes.filter(x=>x>.25).length).toBeGreaterThan(20);
+    expect(slopes.filter(x=>x<-.25).length).toBeGreaterThan(20);
+    expect(new Set(slopes.map(x=>x.toFixed(2))).size).toBeGreaterThan(90);
+    expect(marks).toEqual(crayonMarks({x:0,y:0,width:500,height:280},
+      {seed:913,pressure:.85,spacing:10}));
+  });
   it("evaluates a wax gesture by absolute frame, stable under reversed seeks and reduced motion", () => {
     expect(crayonProgress(0,0,100)).toBe(0);
     expect(crayonProgress(100,0,100)).toBe(1);

@@ -67,21 +67,30 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
       for (let group = 0; group < groups; group++) {
         const index = layer * rows * groups + row * groups + group;
         const rand = (channel: number) => crayonHash(options.seed, index, channel);
-        const patchX = bounds.x - 16 + group * groupWidth + (rand(4) - .5) * 13;
-        const patchY = bounds.y - spacing + row * spacing + layer * spacing * .36 + (rand(5) - .5) * spacing * 1.4;
-        const segmentCount = Math.max(2, Math.ceil(groupWidth / 42));
+        // A repeated rectilinear grid reads as digital horizontal noise.
+        // The two rubbing passes use independent contact jitters and partial
+        // cross-grain gestures, as real hand pressure changes on paper tooth.
+        const patchX = bounds.x - 16 + group * groupWidth +
+          (rand(4) - .5) * Math.min(31,groupWidth*.27);
+        const patchY = bounds.y - spacing + row * spacing + layer * spacing * .36 +
+          (rand(5) - .5) * spacing * 1.95;
+        const segmentCount = Math.max(2,Math.ceil(groupWidth / (32 + rand(16)*19)));
         const segmentWidth = groupWidth / segmentCount;
-        const lean = (rand(6) - .5) * 19;
+        const lean = (rand(6) - .5) * 35 + (layer % 2 ? (rand(17) < .5 ? -11 : 11) : 0);
         const d = Array.from({length:segmentCount}, (_,part) => {
-          const shortfall = 2 + crayonHash(options.seed,index,120+part)*segmentWidth*.23;
-          const x = patchX + segmentWidth*part + (crayonHash(options.seed,index,150+part)-.5)*6;
-          const endX = x + segmentWidth - shortfall;
-          const y = patchY + (crayonHash(options.seed,index,190+part)-.5)*spacing*1.25;
+          const taper = .16 + crayonHash(options.seed,index,120+part)*.32;
+          const shortfall = 2 + segmentWidth*taper;
+          const x = patchX + segmentWidth*part +
+            (crayonHash(options.seed,index,150+part)-.5)*segmentWidth*.19;
+          const endX = x + Math.max(3,segmentWidth - shortfall);
+          const y = patchY + (crayonHash(options.seed,index,190+part)-.5)*spacing*1.55;
           const startY = y - lean*.5;
-          const endY = y + lean*.5;
-          const curvature = (crayonHash(options.seed,index,230+part)-.5)*7;
+          const endY = y + lean*.5 + (crayonHash(options.seed,index,240+part)-.5)*5;
+          const curvature = (crayonHash(options.seed,index,230+part)-.5)*9;
+          const controlX = (x+endX)/2 +
+            (crayonHash(options.seed,index,250+part)-.5)*segmentWidth*.14;
           return "M "+x.toFixed(2)+" "+startY.toFixed(2)+" Q "+
-            ((x+endX)/2).toFixed(2)+" "+(y+curvature).toFixed(2)+" "+
+            controlX.toFixed(2)+" "+(y+curvature).toFixed(2)+" "+
             endX.toFixed(2)+" "+endY.toFixed(2);
         }).join(" ");
         const grainX = patchX + groupWidth * (.22 + rand(8) * .52);
