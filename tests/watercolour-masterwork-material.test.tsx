@@ -55,7 +55,7 @@ describe("WM7 ten-master watercolor material grammar",()=>{
     const html=renderToStaticMarkup(<WatercolourMasterworkMaterial
       study="estuary" seed={83} frame={300}/>);
     expect(html).toContain("<mask");
-    expect(html).toContain('fill="#000"');
+    expect(html).toContain('stroke="#000"');
     expect(html).toContain('mask="url(#');
     // Lifting is a black-on-white alpha mask, not white foreground decals.
     expect(plan.marks.every(x=>!["#FFFFFF","#FFF","#F8F3E8"].includes(x.color))).toBe(true);
