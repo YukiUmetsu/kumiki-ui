@@ -32,9 +32,11 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Native-paper and draw-on browser captures
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/crayon-storybook.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/crayon-storybook.spec.ts tests/e2e-storybook/crayon-scene.spec.ts
       - name: Validate exported film document
-        run: npm run film:check -- examples/film/crayon-storybook.film.json
+        run: |
+          npm run film:check -- examples/film/crayon-storybook.film.json
+          npm run film:check -- examples/film/crayon-scene-three-subjects.film.json
       - name: Install FFmpeg
         if: github.event_name == 'workflow_dispatch'
         run: |
