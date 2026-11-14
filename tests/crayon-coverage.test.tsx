@@ -52,6 +52,21 @@ describe("opaque medium-native character coatings",()=>{
     expect(sample(23,"opaque",true)).toContain('data-km-crayon-underpaint="opaque"');
     expect(()=>sample(120,"invalid" as "open")).toThrow(/coverage/);
   });
+  it("deposits the opaque undercoat along wax strokes instead of revealing a rectangular strip",()=>{
+    const painting=sample(82,"opaque");
+    expect(painting).toContain('data-km-crayon-deposit-mask=""');
+    const tag=painting.slice(painting.lastIndexOf("<path",painting.indexOf('data-km-crayon-underpaint="opaque"')),
+      painting.indexOf(">",painting.indexOf('data-km-crayon-underpaint="opaque"'))+1);
+    expect(tag).toContain('mask="url(#');
+    expect(tag).toContain('clip-path="url(#');
+    expect(painting).toContain('stroke-dashoffset="');
+    expect(painting).toEqual(sample(82,"opaque"));
+    expect(sample(82,"open")).not.toContain('data-km-crayon-deposit-mask=""');
+    const finished=sample(120,"opaque");
+    expect(finished).not.toContain('data-km-crayon-deposit-mask=""');
+    expect(finished).not.toContain('data-km-crayon-settling-coat=""');
+    expect(sample(120,"opaque",true)).toEqual(sample(120,"opaque",true));
+  });
   it("marks actor and foreground mass opaque across original films, preserves scenery",()=>{
     for(const aspect of ["portrait","landscape"] as const){
       const scenes=[

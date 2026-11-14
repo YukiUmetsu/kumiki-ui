@@ -41,6 +41,11 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const fillFirst=windows?.fillStart ?? first,fillLast=windows?.fillEnd ?? last;
   const outlineFirst=windows?.outlineStart ?? first,outlineLast=windows?.outlineEnd ?? last;
   const fillProgress = crayonProgress(frame,fillFirst,fillLast,0,1,reduced);
+  // The one-stroke curve above completes after only 22% of the interval.
+  // Dense subjects must instead follow the entire sequence of deposited wax
+  // marks. Keep the historical open-scumble progression unchanged.
+  const pigmentProgress = reduced ? 1 : Math.min(1,Math.max(0,
+    (frame-fillFirst)/(fillLast-fillFirst)));
   const phase=!construction ? undefined : reduced || frame>=last ? "finished" :
     frame<first ? "pending" :
     construction.order==="outline-first" ? (frame < fillFirst ? "outlining":"pigment") :
@@ -55,6 +60,14 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     [drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, seed, pressure, spacing]);
   // Stable painted paper / silhouette; the small reworked pigment strokes are
   // the only parts that redraw on held exposures. No mutable frame history.
+  // Only the first layer of authored wax strokes drives the dense undercoat
+  // while the drawing is still in progress. Do not reveal it with a vertical
+  // rectangle: pigment arrives where the crayon nib actually traveled.
+  const depositMarks = useMemo(() => marks.slice(0, Math.ceil(marks.length / 2)), [marks]);
+  // The final very thin leveling pass closes tooth gaps gradually; the completed
+  // silhouette is solid and never permits background objects to ghost through.
+  const settlingCoat = pigmentProgress > .82 && pigmentProgress < 1
+    ? (pigmentProgress - .82) / .18 : 0;
   const exposure=redraw ? crayonExposureAt(frame,last,redraw,reduced) : 0;
   const exposureStrength=redraw && (reduced||frame>=(redraw.beginFrame??last)) ? redraw.strength : 0;
   const redrawStrokes=useMemo(()=>crayonExposureStrokes(bounds,seed,exposure,exposureStrength),
@@ -66,10 +79,21 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     data-km-crayon-exposure={redraw ? exposure : undefined}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
-      {coverage==="opaque" && <clipPath id={deposit}>
-        <rect x={bounds.x-2} y={bounds.y-2}
-          width={bounds.width+4} height={(bounds.height+4)*fillProgress}/>
-      </clipPath>}
+      {coverage==="opaque" && pigmentProgress>0 && pigmentProgress<1 && <mask id={deposit}
+        data-km-crayon-deposit-mask="" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
+        x={bounds.x-25} y={bounds.y-25} width={bounds.width+50} height={bounds.height+50}>
+        <rect x={bounds.x-25} y={bounds.y-25}
+          width={bounds.width+50} height={bounds.height+50} fill="#000"/>
+        <g fill="none" stroke="#fff" strokeLinecap="round"
+          transform={angle ? "rotate(" + angle + " " + cx + " " + cy + ")" : undefined}>
+          {depositMarks.map((mark,i)=>{
+            const progress=crayonProgress(frame,fillFirst,fillLast,i,depositMarks.length,reduced);
+            return progress<=0 ? null : <path key={i} d={mark.d} pathLength={100}
+              strokeWidth={Math.max(spacing*1.15, mark.width*1.7)}
+              strokeDasharray={100} strokeDashoffset={100*(1-progress)}/>;
+          })}
+        </g>
+      </mask>}
       <mask id={pores} maskUnits="userSpaceOnUse"
         x={bounds.x - 25} y={bounds.y - 25} width={bounds.width + 50} height={bounds.height + 50}>
         <rect x={bounds.x - 25} y={bounds.y - 25}
@@ -80,13 +104,19 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     {/* Solid underpainting is deposited BEFORE rough wax layers but OUTSIDE the
         tooth mask. Paper/tooth breaks the pigmented highlights, never punches
         transparent holes through a finished character or foreground prop. */}
-    {coverage==="opaque" && fillProgress>0 && <path d={d} fill={colors[0]}
-      clipPath={"url(#"+deposit+")"} data-km-crayon-underpaint="opaque" />}
+    {coverage==="opaque" && pigmentProgress>0 && <>
+      <path d={d} fill={colors[0]} clipPath={"url(#"+clip+")"}
+        mask={pigmentProgress<1 ? "url(#"+deposit+")" : undefined}
+        data-km-crayon-underpaint="opaque" />
+      {settlingCoat>0 && <path d={d} fill={colors[0]}
+        opacity={settlingCoat} clipPath={"url(#"+clip+")"}
+        data-km-crayon-settling-coat="" />}
+    </>}
     <g clipPath={"url(#" + clip + ")"} mask={"url(#" + pores + ")"} data-km-crayon-wax="">
       {coverage==="open" && <path d={d} fill={colors[0]}
         opacity={fillProgress*(construction?.glaze??.58)} />}
       {coverage==="opaque" && <path d={d} fill={colors[2]}
-        opacity={fillProgress*.09}/>}
+        opacity={pigmentProgress*.09}/>}
 
       <g transform={angle ? "rotate(" + angle + " " + cx + " " + cy + ")" : undefined}>
       {marks.map((mark, i) => {
@@ -111,7 +141,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
           opacity={stroke.opacity}/>)}
       </g>}
     </g>
-    {coverage==="opaque" && edgeRoughness>0 && fillProgress>=1 &&
+    {coverage==="opaque" && edgeRoughness>0 && pigmentProgress>=1 &&
       <g pointerEvents="none" fill="none" strokeLinejoin="round"
         strokeLinecap="round" data-km-crayon-frayed-rim="">
         <path d={d} stroke={colors[1]} strokeWidth={.65+edgeRoughness*.65}
