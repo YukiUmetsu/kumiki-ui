@@ -1,4 +1,3 @@
-import { InkLooksStudio } from "./ink-film-looks-studio";
 import { RisoSheetFeed, completedRisoFrame } from "../../registry/video/riso-sheet-feed";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { risoSecondSheetArtworks, risoSecondSheetImprintArt } from "./riso-print-demo-alt";
@@ -72,7 +71,7 @@ function Card({ preset, mood, frame = 30, width = 960, height = 540 }: { preset:
   </div>;
 }
 
-const meta = { title: "Video Production/Film Looks", id: "video-film-looks", component: Card, parameters: { layout: "fullscreen" },
+const meta = { title: "Video production/Film Looks", id: "video-film-looks", component: Card, parameters: { layout: "fullscreen" },
   argTypes: { preset: { control: "select", options: LOOK_PRESET_IDS }, mood: { control: "check", options: LOOK_MOODS }, frame: { control: { type: "range", min: 0, max: 120 } } } } satisfies Meta<typeof Card>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -429,18 +428,4 @@ function RisoOverprintLab() {
 export const RisographOverprint: StoryObj<typeof RisoOverprintLab> = {
   name: "Risograph · Native Overprint Transition",
   render: () => <RisoOverprintLab />,
-};
-
-
-export const ChineseInkPainting: StoryObj<typeof InkLooksStudio> = {
-  name: "Chinese Ink · Brush Painting Animation",
-  render: () => <InkLooksStudio initialMode="painting"/>,
-};
-export const ChineseInkDocumentary: StoryObj<typeof InkLooksStudio> = {
-  name: "Chinese Ink · Documentary and Explainer Animation",
-  render: () => <InkLooksStudio initialMode="documentary"/>,
-};
-export const ChineseInkCharacter: StoryObj<typeof InkLooksStudio> = {
-  name: "Chinese Ink · Character Animation",
-  render: () => <InkLooksStudio initialMode="character"/>,
 };
