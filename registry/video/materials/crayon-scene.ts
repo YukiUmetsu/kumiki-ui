@@ -186,8 +186,11 @@ export function inspectCrayonScene(input: unknown): string[] {
         Math.abs(node.pivot.x) > 8192 || Math.abs(node.pivot.y) > 8192))
         errors.push(p + ".pivot must be bounded finite coordinates");
       const place = node.placement;
-      if (place && ([place.x,place.y,place.scale,place.rotate].some(v => v !== undefined && !finite(v)) ||
+      if (place && ([place.x,place.y,place.scale,place.rotate,place.scaleX,place.scaleY]
+        .some(v => v !== undefined && !finite(v)) ||
         (place.scale !== undefined && (place.scale < .05 || place.scale > 15)) ||
+        (place.scaleX !== undefined && (place.scaleX < .4 || place.scaleX > 2)) ||
+        (place.scaleY !== undefined && (place.scaleY < .4 || place.scaleY > 2)) ||
         (place.rotate !== undefined && Math.abs(place.rotate) > 360)))
         errors.push(p + ".placement is out of bounds");
       if (node.contacts !== undefined) {
