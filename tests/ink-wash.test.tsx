@@ -77,7 +77,7 @@ describe("INK1 pressure-shaped paper pigment engine", () => {
   });
   it("produces flying-white split in dry brush, not in water-loaded strokes", () => {
     const dry = spec.strokes.find(stroke => stroke.id === "pine-trunk")!;
-    const wet = spec.strokes.find(stroke => stroke.id === "far-peak-c")!;
+    const wet = spec.strokes.find(stroke => stroke.id === "remote-spine-c")!;
     expect(flyingWhite(dry, 47, 1).length).toBeGreaterThan(0);
     expect(flyingWhite(wet, 47, 1)).toEqual([]);
   });
