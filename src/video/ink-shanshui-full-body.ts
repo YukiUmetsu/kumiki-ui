@@ -330,6 +330,48 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
   const hand=(which:"near"|"far")=>{
     if(scene==="mountain-trail"&&which==="far")return empty();
     const h=which==="near"?a.nearHand:a.farHand;
+    if(scene==="river-scholar"){
+      // Distinct left/right pinch silhouettes hold the LOWER scroll lip.
+      // Previously each hand was a round two-stroke bead on the paper.
+      // Both grips use the measured visible knuckles and remain attached to
+      // their original wrist/hand joints through all film frames.
+      const sign=which==="near"?1:-1;
+      const q=(dx:number,dy:number)=>at(h.x+sign*dx,h.y+dy);
+      return art(
+        // Contiguous opaque skin silhouette. Tucked wrist emerges from
+        // the hanging cuff and turns into a thumb against the rolled paper.
+        p(path(q(-8,8))+
+          cubic(q(-9,3),q(-8,-5),q(-3,-8))+
+          cubic(q(0,-10),q(3,-9),q(5,-5))+
+          quad(q(9,-2),q(7,2))+
+          cubic(q(5,6),q(3,10),q(-1,9))+
+          quad(q(-6,11),q(-8,8))+" Z",
+          "$skin","$shadow",1.05,1),
+        // Thumb turns visibly around the lower paper edge, rather than
+        // stopping as an unrelated dark circle on the page.
+        p(path(q(2,-7))+
+          cubic(q(6,-7),q(9,-4),q(7,-1)),
+          "none","$shadow",.92,.85),
+        p(path(q(4,-3))+
+          quad(q(7,-1),q(5,3)),
+          "none","$skinshade",.68,.72),
+        // Three non-parallel finger creases taper toward the parchment.
+        p(path(q(-4,-5))+
+          cubic(q(-3,-2),q(-2,3),q(0,5)),
+          "none","$shadow",.69,.72),
+        p(path(q(-1,-6))+
+          cubic(q(0,-2),q(1,2),q(2,5)),
+          "none","$shadow",.55,.63),
+        p(path(q(-6,3))+
+          quad(q(-4,6),q(-1,7)),
+          "none","$skinshade",.7,.57),
+        // The soft cuff contact ends at the same measured wrist; no
+        // isolated finger dots or floating highlight strokes.
+        p(path(q(-9,6))+
+          quad(q(-7,9),q(-4,9)),
+          "none","$linen",.87,.77),
+      );
+    }
     return art(
       p(path(at(h.x-6,h.y-3))+
         quad(at(h.x+1,h.y-9),at(h.x+6,h.y-4))+
