@@ -33,6 +33,8 @@ export interface CrayonWaxElement extends CrayonBase {
   colors: readonly [CrayonColor, CrayonColor, CrayonColor];
   pressure?: number;
   spacing?: number;
+  /** Authored wax-rubbing direction in degrees. */
+  angle?: number;
 }
 export interface CrayonContourElement extends CrayonBase {
   kind: "contour";
@@ -142,6 +144,8 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".bounds are invalid");
         if (!Array.isArray(node.colors) || node.colors.length !== 3) errors.push(p + ".colors must have 3 wax colors");
         else node.colors.forEach((color,i)=>checkColor(String(color),p + ".colors["+i+"]",errors));
+        if (node.angle !== undefined && (!finite(node.angle) || node.angle < -89 || node.angle > 89))
+          errors.push(p + ".angle must be in [-89,89]");
         try { assertCrayonOptions({seed:0,pressure:node.pressure ?? .84,spacing:node.spacing ?? 9}); }
         catch {errors.push(p + ".pressure/spacing is out of bounds");}
       } else if (node.kind === "contour") {
