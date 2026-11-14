@@ -11,6 +11,8 @@ export interface PencilAnnotationBase extends PencilTiming {
   id: string;
   /** screen: stays in the reading zone; paper: moves with the illustration. */
   space?: "screen" | "paper";
+  /** Optional authored placement in the relevant space, shared with subject layers. */
+  transform?: string;
 }
 export type PencilAnnotation =
   | (PencilAnnotationBase & {
@@ -99,6 +101,9 @@ export function inspectPencilScene(value: unknown): string[] {
     if (!timing(a)) issues.push(at + ".timing: requires nonnegative startFrame and positive durationFrames.");
     if (a.space !== undefined && a.space !== "screen" && a.space !== "paper")
       issues.push(at + ".space: expected paper or screen.");
+    if (a.transform !== undefined && (typeof a.transform !== "string" ||
+        a.transform.length > 160 || !/^(?:[ \\w.,()\\-+])+$/.test(a.transform)))
+      issues.push(at + ".transform: invalid bounded SVG placement.");
     if (!HEX.test(String(a.color ?? ""))) issues.push(at + ".color: six-digit RGB hexadecimal colour required.");
     if (a.type === "stroke") {
       if (!safePath(a.path) || typeof a.width !== "number" ||
