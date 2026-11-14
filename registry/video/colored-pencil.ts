@@ -117,6 +117,11 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
           !Number.isSafeInteger(layer.startFrame) || layer.startFrame < 0 ||
           !Number.isSafeInteger(layer.durationFrames) || layer.durationFrames < 8)
         issues.push(at + ".layers[" + j + "]: invalid colour, pressure, pitch, frame timing or tip.");
+      if (Number.isFinite(region.bounds[2]) && Number.isFinite(region.bounds[3]) &&
+          region.bounds[2] > 0 && region.bounds[3] > 0 &&
+          Number.isFinite(layer.spacing) && layer.spacing > 0 &&
+          Math.ceil(Math.hypot(region.bounds[2], region.bounds[3]) * 1.6 / layer.spacing) > 320)
+        issues.push(at + ".layers[" + j + "]: hatch exceeds the 320-stroke per-pass budget.");
     }
     if ((region.details?.length ?? 0) > 80 || region.details?.some((trace: PencilTrace) => !validTrace(trace)))
       issues.push(at + ".details: up to 80 bounded graphite details allowed.");
