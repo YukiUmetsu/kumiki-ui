@@ -142,7 +142,7 @@ function renderMedia(layer:InkLayerPlan,shotId:string,width:number,height:number
     default:throw new Error("Unknown ink shot "+shotId+" visual layer: "+layer.id);
   }
 }
-function InkFilm({frame,output,look}:{frame:number;output:Output;look:InkLookId}) {
+export function InkFilm({frame,output,look,reducedMotion=false}:{frame:number;output:Output;look:InkLookId;reducedMotion?:boolean}) {
   const compiled=useMemo(()=>compileFilm(DOCUMENT,{outputId:output}),[output]);
   const specMap=useMemo(()=>{
     const dimensions=OUTPUTS.find(o=>o.id===output)!;
@@ -150,12 +150,12 @@ function InkFilm({frame,output,look}:{frame:number;output:Output;look:InkLookId}
       subjectSpec(dimensions.width,dimensions.height,look,shot.id)]));
   },[look,output]);
   if(!compiled.ok)return <pre role="alert">{compiled.diagnostics.map(i=>i.message).join("\n")}</pre>;
-  return <FilmStage film={compiled.film} frame={frame} renderObject={()=>null} reducedMotion={false}
+  return <FilmStage film={compiled.film} frame={frame} renderObject={()=>null} reducedMotion={reducedMotion}
     renderSlot={(slot,context)=>{
       const shot=FILM.shots.find(s=>s.id===slot.props?.shotId);
       if(slot.slot!=="ink-story"||!shot)throw new Error("Unrecognized INK2 shot.");
       const spec=specMap[shot.id];
-      return <InkWashScene spec={spec} shot={shot} frame={context.frame}
+      return <InkWashScene spec={spec} shot={shot} frame={context.frame} reducedMotion={context.reducedMotion}
         renderLayer={layer=>renderMedia(layer,shot.id,spec.width,spec.height)}
         label={shot.label}>
         <div style={{position:"absolute",left:"9%",bottom:"5%",right:"9%",
