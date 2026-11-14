@@ -245,7 +245,21 @@ export function scrollReaderFacePortrait(detail=1):
   const pupilRight=asset("far-pupil",[
     p("M156.3 104.3 l.2 1.1","none","$ink",.66,.64),
   ]);
+  // The near ear needs its own OVER-HAIR plane. In the source painting
+  // the ear is outlined *in front of* the sideburn; putting both marks
+  // inside the base face asset hid it beneath the cap and read as a wedge.
+  const visibleEar=asset("near-ear-front-plane",[
+    p("M117.2 95.2 C112.3 92.5 107.8 95.7 108.1 103.3 C107.9 111.6 112.1 119.4 117.3 119.7 C121.7 116.7 122.2 106.1 117.2 95.2 Z",
+      "$skin","$shadow",1.21,1),
+    p("M115.5 99.7 Q111.7 100.1 112.6 105.7 Q114.1 111.6 118 109.5",
+      "none","$skinshade",1,.59),
+    p("M116.7 103.1 Q114.1 104.6 115.5 108 Q119.6 109.6 116.2 114",
+      "none","$shadow",.86,.71),
+    p("M111.1 102.4 Q110.6 109.2 114 114.4",
+      "none","$paper",.54,.55),
+  ]);
   return {
+    "reader-ear":visibleEar,
     face:asset("face-and-ear",face),
     hair:asset("wrapped-crown",hair),
     brow:asset("asymmetric-brows",brow),
