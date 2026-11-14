@@ -48,8 +48,11 @@ export function RisoCharacterInk({
       {evaluated.joints.map(j => <circle key={j.id} data-km-riso-joint={j.id}
         cx={j.x} cy={j.y} r={j.id.includes("ankle") ? 4 : 2.7}
         strokeWidth={1.8} fill="#FAE7BF"/>)}
-      {evaluated.ik.map(leg => <g key={leg.id} data-km-riso-foot-target={leg.id}
-        data-km-riso-foot-error={leg.error.toFixed(4)}>
+      {evaluated.ik.map(leg => <g key={leg.id}
+        data-km-riso-foot-target={leg.id.includes("foot") ? leg.id : undefined}
+        data-km-riso-grip-target={leg.id.includes("handhold") ? leg.id : undefined}
+        data-km-riso-foot-error={leg.id.includes("foot") ? leg.error.toFixed(4) : undefined}
+        data-km-riso-ik-error={leg.error.toFixed(4)}>
         <circle cx={leg.requested.x} cy={leg.requested.y} r={6}
           stroke={leg.reachable ? "#098A66" : "#C22A25"} strokeWidth={2}/>
         <path d={`M${leg.requested.x-8} ${leg.requested.y}
