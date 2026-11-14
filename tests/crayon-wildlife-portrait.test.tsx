@@ -43,6 +43,14 @@ describe("CRAYON1 mature naturalistic wildlife portrait",()=>{
      expect(fur.reduce((n,node)=>n+node.d.split("M").length-1,0)).toBeGreaterThan(600);
    });
    it("animates blink, ear overlap and head in exact held frames in "+aspect,()=>{
+     const lid=find("eyelid-painted-occlusion");
+     if(lid.kind!=="wax")throw new Error("eyelid expected painted wax");
+     const closed=crayonDrawingAt(lid,89),opened=crayonDrawingAt(lid,95);
+     expect(closed.d).not.toBe(opened.d);
+     expect(closed.bounds!.width).toBeGreaterThan(opened.bounds!.width*5);
+     expect(crayonDrawingAt(lid,203).d).toBe(closed.d);
+     expect(crayonDrawingAt(lid,208).d).toBe(opened.d);
+     expect(lid.coverage).toBe("opaque");
      const blink=find("eyelid-blink");
      if(blink.kind!=="contour")throw new Error("eyelid expected contour");
      expect(crayonDrawingAt(blink,89).poseId).toBe("blink");
