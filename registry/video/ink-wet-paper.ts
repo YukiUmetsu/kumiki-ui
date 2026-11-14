@@ -147,14 +147,16 @@ export function sampleWetInk(
             // contact gaps remain in place under arbitrary frame seeking.
             const strokeArc = lerp(before.arc, after.arc, t) +
               along * longitudinal / scale;
-            const lane = Math.max(0, Math.min(23, Math.floor((across + 1) * 12)));
-            const hairNoise = inkHash(paperSeed + 71, lane, Math.floor(strokeArc / 13));
-            const fibreNoise = fibre(paperSeed + 73, strokeArc / 27, lane / 3.5);
+            const hairNoise = fibre(paperSeed + 71, strokeArc / 21,
+              across * 7.2 + 3.4);
+            const fineFibre = fibre(paperSeed + 73, strokeArc / 5.1,
+              across * 15 + 6);
             const broken = clamp(
-              (.43 + .14 * Math.abs(across) - (.65 * hairNoise + .35 * fibreNoise)) / .19,
+              (.48 + .12 * Math.abs(across) -
+                (.75 * hairNoise + .25 * fineFibre)) / .21,
               0, 1,
             );
-            const split = 1 - Math.min(.98, stroke.dryness * 1.18 * broken);
+            const split = 1 - Math.min(.99, stroke.dryness * 1.30 * broken);
             const granulation = (.90 + micro * .16) * (.92 + macro * .16);
             const loadedEdge = 1 + water * absorbed * .14 *
               Math.exp(-Math.pow((Math.sqrt(q) - 1.02) / .1, 2));
