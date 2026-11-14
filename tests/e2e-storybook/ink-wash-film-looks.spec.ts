@@ -30,14 +30,31 @@ for (const [story, startingMode, expected, key] of [
     const still = async (frame: number, suffix: string) => {
       await seek(slider, frame);
       await expect(slider).toHaveValue(String(frame));
+      if (startingMode === "painting")
+        await expect(preview.locator("[data-km-ink-wash]").first())
+          .toHaveAttribute("data-km-ink-frame", String(frame));
+      if (startingMode === "character")
+        await expect(preview.locator("[data-km-ink-character]").first())
+          .toHaveAttribute("data-km-ink-character-frame", String(frame));
+      if (startingMode === "documentary") {
+        const local = frame < 140 ? frame : frame < 320 ? frame - 140 : frame - 320;
+        await expect(preview.locator("[data-km-ink-scene]").first())
+          .toHaveAttribute("data-km-ink-scene-frame", String(local));
+      }
       return preview.screenshot({ animations: "disabled",
         path: info.outputPath("film-looks-" + startingMode + "-" + suffix + "-" + frame + ".png") });
     };
     const a = await still(key, "wide");
+    const root = preview.locator(expected).first();
+    const snapshot = await root.evaluate(el => el.outerHTML);
     const b = await still(12, "wide");
     expect(a).not.toEqual(b);
     await still(key, "wide-again");
     await expect(slider).toHaveValue(String(key));
+    // SVG turbulence may rasterize slightly differently across two Chromium
+    // screenshots even when source geometry is identical. The real invariant
+    // is exact evaluated markup, including paths, data frames and transforms.
+    expect(await root.evaluate(el => el.outerHTML)).toEqual(snapshot);
     if (startingMode === "character")
       await expect(preview.locator("[data-km-ink-character]"))
         .toHaveAttribute("data-km-ink-character-frame", String(key));
