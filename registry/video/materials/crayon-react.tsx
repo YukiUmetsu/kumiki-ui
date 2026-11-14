@@ -33,10 +33,15 @@ function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, las
       {marks.map((mark, i) => {
         const progress = crayonProgress(frame, first, last, i, marks.length, reduced);
         if (progress <= 0) return null;
-        return <path key={i} d={mark.d} fill="none" pathLength={100}
-          stroke={colors[mark.tone]} strokeWidth={mark.width} strokeLinecap="round"
-          strokeDasharray={100} strokeDashoffset={100 * (1 - progress)}
-          opacity={.56 + mark.pressure * .29} />;
+        return <g key={i} fill="none" strokeLinecap="round">
+          <path d={mark.d} pathLength={100} stroke={colors[mark.tone]} strokeWidth={mark.width}
+            strokeDasharray={100} strokeDashoffset={100 * (1 - progress)}
+            opacity={.56 + mark.pressure * .29} />
+          {progress > .8 && <path d={mark.scumble} stroke={colors[(mark.tone + 1) % 3]}
+            strokeWidth={1.3 + mark.pressure * 2.3} opacity={.52} />}
+          {progress >= 1 && <path d={mark.scrape} stroke="#faefd6"
+            strokeWidth={.6 + (1 - mark.pressure) * 1.4} opacity={.29} />}
+        </g>;
       })}
     </g>
     <path d={d} fill="none" stroke={colors[1]} strokeWidth={2.5 + pressure * 1.5}
@@ -175,7 +180,7 @@ function StoryTitle({ width, height, portrait, day, frame, reduced }: { width:nu
   const y = portrait ? 112 : 118;
   const ink = day ? "#34455b" : "#fbefcd";
   const titleSize = portrait ? 64 : 74;
-  return <g fill={ink} opacity={.92 + .08 * crayonProgress(frame,20,70,0,1,reduced)} data-km-crayon-title="">
+  return <g fill={ink} opacity={crayonProgress(frame,60,110,0,1,reduced)} data-km-crayon-title="">
     <text x={x} y={portrait ? 51 : 50} fontFamily="Georgia, 'Times New Roman', serif" fontSize={portrait ? 14 : 15}
       fontWeight="700" letterSpacing={3}>TINY TALES   /   {day ? "02" : "01"}</text>
     <path d={"M" + x + " " + (portrait ? 65 : 64) + " H" + (portrait ? 255 : 404)}
