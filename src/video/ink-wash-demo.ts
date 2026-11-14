@@ -28,11 +28,16 @@ function createSubject(subject: InkSubject, aspect: InkAspect): InkStroke[] {
       startFrame: start, drawFrames: duration, spreadFrames: 28, dryFrames: 44, accent,
     });
   };
-  const arc = (cx: number, cy: number, rx: number, ry: number, from = 0, to = Math.PI * 2): Point[] =>
-    Array.from({ length: 17 }, (_, i) => {
-      const t = from + (to - from) * i / 16;
-      return [cx + Math.cos(t) * rx, cy + Math.sin(t) * ry, .45] as const;
-    });
+  /** A handmade cinnabar seal: a small imperfect square impression, not a decorative ring. */
+  const addSeal = (cx: number, cy: number, start: number) => {
+    const rx = portrait ? .036 : .022, ry = portrait ? .032 : .05;
+    add("seal-border", [[cx-rx,cy-ry,.36],[cx+rx,cy-ry,.64],[cx+rx,cy+ry,.35],
+      [cx-rx,cy+ry,.68],[cx-rx,cy-ry,.37]],4.2,INK_TONES.dark,.14,start,24,true);
+    add("seal-mark-a", [[cx-rx*.48,cy-ry*.58,.07],[cx-rx*.48,cy+ry*.52,.56]],
+      4,INK_TONES.black,.17,start+6,9,true);
+    add("seal-mark-b", [[cx-rx*.25,cy-ry*.13,.08],[cx+rx*.54,cy-ry*.13,.85],
+      [cx+rx*.30,cy+ry*.48,.09]],3.3,INK_TONES.black,.16,start+9,12,true);
+  };
 
   if (subject === "landscape") {
     // Atmospheric washes are layered from the distance forward. Each slope is a
@@ -82,7 +87,7 @@ function createSubject(subject: InkSubject, aspect: InkAspect): InkStroke[] {
       add("water-trace-" + i, [[x,y,.02],[x+.06,y-.004,.33],[x+.15+i%3*.018,y+.004,.015]],
         1.5+i%3, i%4===0?INK_TONES.middle:INK_TONES.pale,.24, 220+i*2, 9);
     }
-    add("accent-seal", arc(.82,.22,.041,portrait ? .028 : .064), 5.6, INK_TONES.dark, .16, 245, 22, true);
+    addSeal(.82,.22,245);
   } else {
     // A woodland is not five repeated symbols. Each culm has its own stance,
     // taper, ink density, height and internode spacing; clusters are asymmetrical.
@@ -144,7 +149,7 @@ function createSubject(subject: InkSubject, aspect: InkAspect): InkStroke[] {
     // Fine root traces and a single ember-red seal give the gaze a place to rest.
     add("ground-wash", [[-.07,.97,.05],[.15,.94,.19],[.39,.96,.31],[.61,.95,.12]], 21, INK_TONES.whisper,.90,226,24);
     add("ground-mark", [[.26,.965,.1],[.34,.95,.35],[.40,.958,.07]], 3, INK_TONES.pale,.25,240,12);
-    add("accent-seal", arc(.84,.20,.039,.031), 5.5, INK_TONES.dark,.17,255,22,true);
+    addSeal(.84,.20,255);
   }
   return strokes;
 }
