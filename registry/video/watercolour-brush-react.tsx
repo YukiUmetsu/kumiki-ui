@@ -65,7 +65,7 @@ function bristleMarks(spec: PaintSurfaceSpec, stroke: PaintStroke, index: number
   });
 }
 
-function blooms(spec: PaintSurfaceSpec, stroke: PaintStroke, index: number, samples: readonly BrushSample[]): Bloom[] {
+function blooms(spec: PaintSurfaceSpec, index: number, samples: readonly BrushSample[]): Bloom[] {
   const count = Math.max(1, Math.min(12, Math.floor(samples.length / 27)));
   return Array.from({ length: count }, (_, i) => {
     const s = samples[Math.floor((i + .5) * samples.length / count)];
@@ -99,7 +99,7 @@ export function WatercolourSurface({
   const prepared = useMemo<PreparedStroke[]>(() => spec.strokes.map((stroke, index) => {
     const samples = sampleBrushCenterline(stroke);
     return { samples, flecks: pigmentMarks(spec, stroke, index, samples),
-      bristles: bristleMarks(spec, stroke, index, samples), blooms: blooms(spec, stroke, index, samples) };
+      bristles: bristleMarks(spec, stroke, index, samples), blooms: blooms(spec, index, samples) };
   }), [spec]);
   const toneLevels = [0, .23, .38, .55, .72, .91] as const;
 
