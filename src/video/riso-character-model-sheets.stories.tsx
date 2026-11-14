@@ -5,7 +5,7 @@ import {evaluateRisoCharacterMesh} from "../../registry/video/riso-proportion-me
 import {COURIER,PAPER_BIRD} from "./riso-character-demo";
 import {RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET} from "./riso-character-mesh-sheets";
 import type {RisoCharacterSpec} from "../../registry/video/riso-character";
-import type {RisoCharacterMeshSheet,RisoMeshCategory} from "../../registry/video/riso-proportion-mesh";
+import type {RisoCharacterMeshSheet} from "../../registry/video/riso-proportion-mesh";
 
 const fields={font:"700 12px system-ui",display:"grid",gap:6,color:"#2A465A"} as const;
 const btn={border:"1px solid #BDB2A4",borderRadius:5,background:"#FFFBF2",
