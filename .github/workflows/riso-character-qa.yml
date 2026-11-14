@@ -2,24 +2,9 @@ name: Risograph character film browser QA
 
 # Temporarily qualifies this rigging change with real Chromium and MP4 on PR; restore manual-only after review.
 # Lightweight unit, typecheck and registry tests remain automatic in visual-contracts.yml.
+# Full browser and encoded-film qualification is local-first and opt-in.
+# No expensive renderer/Playwright/FFmpeg job runs for routine PRs or main pushes.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "registry/video/riso-rig-ik.ts"
-      - "registry/video/riso-character.ts"
-      - "registry/video/riso-character-react.tsx"
-      - "registry/video/riso-proportion-mesh.ts"
-      - "registry/video/riso-character-sheet-react.tsx"
-      - "src/video/riso-rig-lab.stories.tsx"
-      - "src/video/riso-character-model-sheets.stories.tsx"
-      - "src/video/riso-character-mesh-sheets.ts"
-      - "tests/e2e-storybook/riso-character-model-sheets.spec.ts"
-      - "tests/e2e-storybook/riso-rig-ik.spec.ts"
-      - "tests/e2e-storybook/riso-opaque-print.spec.ts tests/e2e-storybook/riso-character-model-sheets.spec.ts"
-      - "src/video/riso-opaque-print.stories.tsx"
-      - "registry/video/print-plates-react.tsx"
-      - ".github/workflows/riso-character-qa.yml"
   workflow_dispatch:
 
 permissions:
@@ -49,7 +34,7 @@ jobs:
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Actual 16:9 and 9:16 Storybook actor/browser screenshots
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-characters.spec.ts tests/e2e-storybook/riso-rig-ik.spec.ts tests/e2e-storybook/riso-opaque-print.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-characters.spec.ts tests/e2e-storybook/riso-rig-ik.spec.ts tests/e2e-storybook/riso-opaque-print.spec.ts tests/e2e-storybook/riso-character-model-sheets.spec.ts
       - name: Validate source-portable Film Document
         run: npm run film:check -- examples/film/riso-character-performance.film.json
       - name: Install FFmpeg for true production MP4
