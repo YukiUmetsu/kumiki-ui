@@ -670,9 +670,11 @@ export function bakeShanshuiWalkingHem(
       const sweep=Math.max(-3.6,Math.min(3.6,relative*.19));
       const lift=Math.max(0,delayed);
       tracks["hem-panel-"+side].push({frame,pose:{
-        x:n(moving*(sweep+delayed*1.35)),
-        y:n(-moving*lift*1.2),
-        rotation:n(moving*(sweep*.66+delayed*1.75)),
+        // Explicit positive zeros avoid stale signed-zero poses when the
+        // performer has finished walking or the cloth control is disabled.
+        x:moving===0?0:n(moving*(sweep+delayed*1.35)),
+        y:moving===0?0:n(-moving*lift*1.2),
+        rotation:moving===0?0:n(moving*(sweep*.66+delayed*1.75)),
       }});
     }
   }
