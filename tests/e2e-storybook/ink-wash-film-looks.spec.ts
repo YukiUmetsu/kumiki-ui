@@ -90,3 +90,50 @@ test("Film Looks lets viewers switch all three materials without changing the pa
   await page.getByRole("checkbox", { name: "Reduced motion" }).check();
   await expect(page.getByRole("button", { name: "Play animation" })).toBeDisabled();
 });
+
+test("Film Looks exposes live pigment, camera, actor and editable-JSON controls",async({page})=>{
+  await page.goto(base+"chinese-ink-painting&viewMode=story");
+  await page.getByText("Art direction · Full native material controls").click();
+  const preview=page.locator("[data-km-film-looks-ink-preview]");
+  const brush=page.getByRole("slider",{name:"Brush width"});
+  const first=preview.locator("[data-km-ink-stroke]").first();
+  const before=await first.locator("path").first().getAttribute("d");
+  await seek(brush,2);
+  await expect(brush).toHaveValue("2");
+  await expect.poll(()=>first.locator("path").first().getAttribute("d"))
+    .not.toBe(before);
+  await expect(page.getByRole("slider",{name:"Xuan paper absorbency"})).toHaveValue("0.69");
+  await page.getByRole("combobox",{name:"Brush orientation"}).selectOption("oblique");
+
+  await page.getByRole("combobox",{name:"Ink animation"}).selectOption("documentary");
+  await page.getByText("Cinematography · Camera, reveal, parallax").click();
+  const camera=page.getByRole("slider",{name:"Camera zoom"});
+  await seek(camera,1.5);
+  await expect(camera).toHaveValue("1.5");
+  await page.getByRole("combobox",{name:"Ink reveal kind"}).selectOption("instant");
+  await expect(preview.locator("[data-km-ink-scene]")).toBeVisible();
+
+  await page.getByRole("combobox",{name:"Ink animation"}).selectOption("character");
+  await page.getByText("Character · Stage transforms and per-part ink").click();
+  const person=preview.locator("[data-km-ink-character]").first();
+  const initial=await person.getAttribute("style");
+  await seek(page.getByRole("slider",{name:"Character X"}),25);
+  await expect.poll(()=>person.getAttribute("style")).not.toEqual(initial);
+  await seek(page.getByRole("slider",{name:"Robe/sleeve wet edge"}),.4);
+  await expect(preview.locator('[data-km-ink-part-bleed="0.40"]').first()).toBeVisible();
+
+  await page.getByRole("button",{name:"View / edit configuration JSON"}).click();
+  const input=page.getByRole("textbox",{name:"Ink configuration JSON"});
+  const value=JSON.parse(await input.inputValue()) as {
+    material:Record<string,unknown>;camera:Record<string,unknown>;
+  };
+  value.material.strokeWidth=1.5;
+  await input.fill(JSON.stringify(value));
+  await page.getByRole("button",{name:"Apply configuration"}).click();
+  await expect(page.getByRole("slider",{name:"Brush width"})).toHaveValue("1.5");
+  await input.fill('{"material":{"paper":"javascript:evil"}}');
+  await page.getByRole("button",{name:"Apply configuration"}).click();
+  await expect(page.getByRole("alert")).toBeVisible();
+  await page.getByRole("button",{name:"Reset style parameters"}).click();
+  await expect(page.getByRole("slider",{name:"Brush width"})).toHaveValue("1");
+});
