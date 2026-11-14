@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
+import { inspectPaintSurface } from "../../registry/video/watercolour-brush";
 import type { PaintSurfaceSpec } from "../../registry/video/watercolour-brush";
+import { WatercolourFilmViewport, WatercolourParameterEditor, WatercolourSlider, inspectJsonObject } from "./watercolour-film-parameters";
 import { paintExampleSpec } from "./watercolour-brush-demo";
 import type { PaintedAspect, PaintedSubject } from "./watercolour-brush-demo";
 import { WATERCOLOUR_BRUSH_FILM } from "./watercolour-brush-film";
@@ -20,17 +22,24 @@ function WatercolourLab() {
   const [seed, setSeed] = useState(31);
   const [tooth, setTooth] = useState(.82);
   const [water, setWater] = useState(1);
+  const [load, setLoad] = useState(1);
+  const [dryBrush, setDryBrush] = useState(1);
+  const [brushScale, setBrushScale] = useState(1);
+  const [paperColor, setPaperColor] = useState("#F7F0E4");
+  const [custom, setCustom] = useState<Partial<Record<PaintedSubject, PaintSurfaceSpec>>>({});
   const [reducedMotion, setReducedMotion] = useState(false);
   const compiled = useMemo(() => compileFilm(WATERCOLOUR_BRUSH_FILM, { outputId: aspect }), [aspect]);
   // Controls rebuild authored material once; absolute frame seeks reuse the sampled surface.
   const surfaces = useMemo<Record<PaintedSubject, PaintSurfaceSpec>>(() => {
     const make = (subject: PaintedSubject): PaintSurfaceSpec => {
       const source = paintExampleSpec(aspect, subject, seed);
-      return { ...source, paper: { ...source.paper, tooth },
-        strokes: source.strokes.map(s => ({ ...s, water: s.water * water })) };
+      return custom[subject] ?? { ...source, paper: { ...source.paper, tooth, color:paperColor },
+        strokes: source.strokes.map(s => ({ ...s, water: Math.min(1,s.water * water),
+          load: Math.min(1,s.load*load), dryBrush: Math.min(1,s.dryBrush*dryBrush),
+          width: s.width*brushScale })) };
     };
     return { "wild-iris": make("wild-iris"), "coastal-dawn": make("coastal-dawn") };
-  }, [aspect, seed, tooth, water]);
+  }, [aspect, seed, tooth, water, load, dryBrush, brushScale, paperColor, custom]);
 
   useEffect(() => {
     if (!playing) return;
@@ -49,7 +58,7 @@ function WatercolourLab() {
   }, [playing]);
   if (!compiled.ok) return <pre role="alert">{compiled.diagnostics.map(d => d.path + ": " + d.message).join("\n")}</pre>;
   const film = compiled.film;
-  const scale = aspect === "landscape" ? .85 : .65;
+  const currentSubject:PaintedSubject=frame<410?"wild-iris":"coastal-dawn";
   return <main style={{ padding: 24, minHeight: "100vh", display: "grid", alignContent: "start", gap: 16,
     background: "#EAE5DC", color: "#343D3E", fontFamily: "system-ui,sans-serif" }}>
     <header style={{ maxWidth: 960 }}>
@@ -62,7 +71,7 @@ function WatercolourLab() {
     </header>
     <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "end", maxWidth: 1000 }}>
       <label style={{ display: "grid", gap: 5, fontWeight: 650 }}>Output
-        <select style={controls} aria-label="Output" value={aspect} onChange={e => { setPlaying(false); setAspect(e.target.value as PaintedAspect); }}>
+        <select style={controls} aria-label="Output" value={aspect} onChange={e => { setPlaying(false); setAspect(e.target.value as PaintedAspect);setCustom({}); }}>
           <option value="landscape">16:9 landscape</option><option value="portrait">9:16 portrait</option>
         </select>
       </label>
@@ -73,6 +82,14 @@ function WatercolourLab() {
       <label style={{ display: "grid", gap: 5, fontWeight: 650 }}>Water load: {Math.round(water * 100)}%
         <input type="range" aria-label="Water load" min={0} max={1} step={.05} value={water}
           onChange={e => setWater(Number(e.target.value))}/>
+      </label>
+      <WatercolourSlider label="Pigment load" value={load} onChange={setLoad}/>
+      <WatercolourSlider label="Dry brush" value={dryBrush} onChange={setDryBrush}/>
+      <WatercolourSlider label="Brush width" value={brushScale} min={.25} max={2} step={.05}
+        onChange={setBrushScale} format={v=>v.toFixed(2)+"×"}/>
+      <label style={{display:"grid",gap:5,fontWeight:650,fontSize:13}}>Paper colour
+        <input aria-label="Paper colour" type="color" value={paperColor}
+          onChange={e=>setPaperColor(e.target.value)} style={{height:41,width:80}}/>
       </label>
       <label style={{ display: "grid", gap: 5, fontWeight: 650 }}>Paper seed
         <input style={{ ...controls, width: 95 }} aria-label="Paper seed" type="number" min={0} max={2147483647}
@@ -97,17 +114,32 @@ function WatercolourLab() {
       <input aria-label="Absolute film frame" type="range" min={0} max={TOTAL - 1}
         value={frame} onChange={e => { setPlaying(false); setFrame(Number(e.target.value)); }}/>
     </label>
-    <div style={{ width: film.width * scale, height: film.height * scale, overflow: "hidden",
-      boxShadow: "0 15px 55px #36363222", maxWidth: "100%" }}>
-      <FilmStage film={film} frame={frame} renderObject={() => null} reducedMotion={reducedMotion}
+    <WatercolourFilmViewport width={film.width} height={film.height}>
+      {scale=><FilmStage film={film} frame={frame} renderObject={() => null} reducedMotion={reducedMotion}
         renderSlot={(content, context) => {
           if (content.slot !== "watercolour-brush") throw new Error("Unknown watercolor film slot: " + content.slot);
           const subject = content.props?.subject as PaintedSubject;
           if (subject !== "wild-iris" && subject !== "coastal-dawn") throw new Error("Invalid watercolor subject.");
           return <PaintedPage spec={surfaces[subject]} subject={subject} frame={context.frame}
             reducedMotion={context.reducedMotion}/>;
-        }} style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}/>
-    </div>
+        }} style={{ transform: "scale("+scale+")", transformOrigin: "top left" }}/>}
+    </WatercolourFilmViewport>
+    <WatercolourParameterEditor key={aspect+":"+currentSubject}
+      title={currentSubject==="wild-iris"?"Iris brush strokes":"Coast brush strokes"}
+      value={surfaces[currentSubject]}
+      validate={candidate=>{
+        const errors=inspectJsonObject(candidate);if(errors.length)return errors;
+        try{
+          const spec=candidate as PaintSurfaceSpec;
+          const invalid=inspectPaintSurface(spec).map(x=>x.path+": "+x.message);
+          if(spec.width!==film.width||spec.height!==film.height)
+            invalid.push("Paper dimensions must match the selected output format.");
+          return invalid;
+        }catch(e){return ["Invalid brush configuration: "+String(e)];}
+      }}
+      onApply={spec=>{setPlaying(false);setCustom(previous=>({...previous,[currentSubject]:spec}));}}
+      onReset={()=>{setPlaying(false);setCustom(previous=>({...previous,[currentSubject]:undefined}));}}
+      notes="Each scene has an independent preset. Change output format to regenerate appropriately sized art."/>
     <p style={{ maxWidth: 900, fontSize: 13, lineHeight: 1.6, color: "#5D6966", margin: 0 }}>
       Frame-addressed and seek-safe. The preview uses the existing FilmStage slot clock; film rendering does not
       depend on the order in which you scrub, and reduced motion resolves to the dry finished illustration.
@@ -115,7 +147,7 @@ function WatercolourLab() {
   </main>;
 }
 
-const meta = { title: "Film Art Styles/Watercolour & Brush", id: "film-art-watercolour-brush",
+const meta = { title: "Video Production/Film Looks/Watercolour & Brush", id: "film-art-watercolour-brush",
   component: WatercolourLab, parameters: { layout: "fullscreen" } } satisfies Meta<typeof WatercolourLab>;
 export default meta;
 type Story = StoryObj<typeof meta>;
