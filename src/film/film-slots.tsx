@@ -10,6 +10,7 @@ import { paintedDemoSpec, paintedCameraAt } from "../video/painted-composition-d
 import type { PaintedGenre } from "../video/painted-composition-demo";
 import { PaintedPage } from "../video/watercolour-brush-page";
 import { paintExampleSpec } from "../video/watercolour-brush-demo";
+import { RisoCharacterPerformance } from "../video/riso-character-demo";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
@@ -758,6 +759,14 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         }
         return <PaintedPage spec={surface}
           subject={subject} frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
+      case "riso-character-performance": {
+        const rawOffset = props.offsetFrame ?? 0;
+        if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
+          throw new RangeError("riso-character-performance offsetFrame must be a nonnegative integer.");
+        return <RisoCharacterPerformance
+          aspect={context.width > context.height ? "landscape" : "portrait"}
+          frame={rawOffset + context.frame} reducedMotion={context.reducedMotion}/>;
       }
       case "riso-print-study": {
         const aspect = context.width > context.height ? "landscape" : "portrait";
