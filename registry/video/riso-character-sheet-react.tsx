@@ -14,7 +14,7 @@ export interface RisoModelSheetProps {
   showMesh?: boolean;
   /** Maximum edge of diagnostic triangles (stage units); smaller = finer mesh. */
   meshEdgeLength?: number;
-  /** Bounded triangle count for the selected detail, default 1800 (all other regions stay coarse). */
+  /** Bounded triangle count for focused detail; other regions stay coarse. */
   meshTriangleBudget?: number;
   showLabels?: boolean;
   showJoints?: boolean;
@@ -43,8 +43,8 @@ function Wireframe({regions, selected, showMesh, showLabels}:{
     {showMesh && regions.filter(region=>region.id===selected).map(region=><g key={region.id}
       data-km-riso-mesh-region={region.id} fill="none"
       stroke={region.id===selected?"#EE5639":"#226B86"}
-      strokeWidth={.27} strokeLinejoin="round"
-      opacity={.68}>
+      strokeWidth={.16} strokeLinejoin="round"
+      opacity={.45}>
       {region.triangles.map((triangle,i)=><path key={i}
         data-km-riso-mesh-triangle={region.id} d={path(triangle)} />)}
       <path d={path(region.outline)} strokeWidth={.78}/>
@@ -77,7 +77,7 @@ function GuideGrid({x,y,w,h}: {x:number;y:number;w:number;h:number}) {
 }
 /** One source-faithful, printable SVG model sheet; not a fabricated multi-angle turnaround. */
 export function RisoCharacterModelSheet({
-  spec,sheet,frame=0,selectedRegion,showMesh=true,meshEdgeLength=5,meshTriangleBudget=1800,showLabels=false,showJoints=true,
+  spec,sheet,frame=0,selectedRegion,showMesh=true,meshEdgeLength=5,meshTriangleBudget=3600,showLabels=false,showJoints=true,
   inks={blue:"#245F9A",red:"#DD593D"},paper="#FBF2DE",
 }:RisoModelSheetProps) {
   const uid=useId().replace(/[^a-z0-9]/gi,"");
@@ -266,7 +266,7 @@ export function RisoCharacterModelSheet({
         strokeWidth={1.2} strokeLinejoin="round"/>
       {showMesh && region.triangles.map((t,i)=><path key={i} d={path(t)}
         data-km-riso-selected-source-triangle=""
-        stroke="#2C7A86" opacity={.57} strokeWidth={.25} fill="none"/>)}
+        stroke="#2C7A86" opacity={.48} strokeWidth={.16} fill="none"/>)}
       {showMesh && region.landmarks.filter(p=>p.id==="source-center").map(p=>
         <circle key={p.id} cx={p.at[0]} cy={p.at[1]} r={1.25}
           fill="#DE5C42" stroke="#FAF2E4" strokeWidth={.65}/>)}
