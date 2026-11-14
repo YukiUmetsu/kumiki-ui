@@ -128,6 +128,44 @@ The foreground API intentionally refuses duplicate IDs, invalid/missing plate ca
 
 **Further limitations:** The character limbs still use simplified ribbon contours; actual joint mass, fabric folds, constrained shadow lines, secondary acting, intentional plate-scoped distress and variation between physical sheets remain in the craft roadmap. See [printmaking reference audit](../research/risograph-character-opaque-print-craft-2026.md). Crucially, adding more transparent ink texture is not a fix for weak shape design.
 
+## RISO7 — Measured source-contour meshes, not rectangular proxies
+
+**Important current implementation:** [30-work visual atlas and geometric critique](../research/riso7-visual-atlas-and-source-contour-mesh.md). Study references are linked, not bundled; do not trace or redistribute published artwork.
+
+RISO6 originally used manual axis-aligned rectangular polygons and an independently calculated four-span limb approximation. These were *guides*, not the actual source shape; their dimensions and triangles were too coarse to support precise eyes, eyebrows, lips, hair, clothing folds or feathers. **RISO7 completely replaces those defaults with original character SVG contour sampling.** The RISO6 section below records the historical motivation and should not be used as the geometry API authority.
+
+### Source geometry pipeline
+
+`registry/video/riso-path-geometry.ts` provides independent, deterministic SVG-path geometry:
+- `flattenRisoSvgPath(d, flatness?)`: M/L/H/V/C/S/Q/T/A/Z (relative and absolute), adaptive cubic/quadratic Bezier error control, elliptical arc conversion. Separate contours for disconnected islands, including left/right eyes and two coat buttons.
+- `selectRisoSourceContour(d, sourceSubpathIndex?, flatness?)`: exact authored source island, or largest principal silhouette when not specified.
+- `triangulateRisoContour(outline)`: ear clipping of a concave/simple closed contour. Triangle edges follow actual sampled source curves rather than spilling across hair/fringe, sleeve folds or wing notches.
+- `risoContourSignedArea` and `risoPointInContour`: mathematical geometry inspection and area contracts, not bitmap tests.
+
+`evaluateRisoCharacterMesh(spec, sheet, frame)` first evaluates **the same** `evaluateRisoCharacter` absolute frame as production ink/knockout. The renderer's resolved SVG part `d` and `matrix(...)` are sampled and transformed to stage space. A skin's dynamically painted SVG curve, cap and overlap are measured directly; **there is no duplicate joint ribbon construction**. The part's original rest path gives a canonical (local) `referenceBounds`, normalized to the **actual source-face SVG height H**. The old rectangle vertices in fixtures are removed; `contour?` remains only as optional legacy metadata for external consumers.
+
+Every report supplies original-source `outline`, `triangles`, `sourceContourPoints`, `contourArea`, `triangleArea`, `referenceBounds`, head-normalized dimensions and named source-derived extrema/center landmarks. `sheet.measurements` connects two real feature regions into measured posed-frame `dx`, `dy`, `distance` and `distanceInHeads`.
+
+For the Courier: two eye islands, two eyebrows, nose, mouth, hair, separate cap crown and brim, sleeve/forearm/glove, hips/knees/boots, two buttons, stitching and bag flap all get inspectable source regions. Interocular spacing, brow-to-eye separation, nose-mouth spacing and garment/limb relationships can be compared in actual H. For the Paper Bird: eye-beak, head-body, wing span and tail-body measures follow the original wing and head paths. Unlike RISO6, the selected detail panel **draws the sampled feature** and its interior triangles, not merely a rectangle width/height.
+
+```tsx
+const mesh = evaluateRisoCharacterMesh(COURIER, RISO_COURIER_SHEET, 46);
+const left = mesh.regions.find(r => r.id === "eye-left");
+const right = mesh.regions.find(r => r.id === "eye-right");
+const spacing = mesh.measurements.find(m => m.id === "interocular");
+// left.outline and right.outline are different source SVG islands.
+// spacing.distanceInHeads is from the evaluated, IK-accurate frame.
+```
+
+### Explicit geometry limits
+
+- **2D only:** Measurements describe the original ink silhouette. No depth, UVs, weight-stable topology, perspective reconstruction, rear-view or real 3D volume is implied.
+- **Simple closed exterior:** Ear clipping handles concavity, but hollow/donut cutouts and multishape boolean unions require a separate winding-rule, hole-aware mesh extension. A multi-subpath region currently selects its specifically authored subpath or the largest principal shape.
+- **Source frame sampling:** Adaptive Bezier flattening can return a different number of vertices as a curve deforms. This is suitable for **frame-precise proportion QA**, not yet a persistent vertex-correspondence deformable skin mesh.
+- **Print aesthetic separation:** Screens, ink grain, registration/trapping and intentional paper knockouts remain in RisoPrint and are not inserted into the construction mesh. This preserves the solid RISO5 characters.
+
+Validation gates: independent SVG curve/arc/concave-notch tests, real source outlines for every part, distinct eye paths, current-frame IK parity, area conservation, invalid topology/schema guards, and interactive Storybook/sheet proof. Technical design can be further evolved for complex holes and dense feather networks without adding a dependency or reintroducing rectangular proxies.
+
 ## RISO6 — Source-faithful character sheets and proportion meshes
 
 A **character sheet is authored per character**, not synthesized from a generic human anatomy template. The production fixtures are:

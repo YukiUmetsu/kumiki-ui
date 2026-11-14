@@ -3327,8 +3327,8 @@
     {
       "name": "riso-character",
       "type": "registry:ui",
-      "title": "Risograph Articulated Character Rig (RISO3)",
-      "description": "Source-faithful two-ink character rigs with FK/IK, opaque paper knockouts, deforming limb skins, expression keys, authorable proportion meshes and printable construction sheets.",
+      "title": "Risograph Character Rigs & Source-Contour Model Sheets (RISO7)",
+      "description": "Art-directed 2D print character rigs with paper knockouts, authored facial expressions, FK/IK, SVG curve-accurate proportion meshes, concave triangulation and printable per-character reference sheets.",
       "dependencies": [],
       "registryDependencies": [
         "riso-print"
@@ -3363,6 +3363,11 @@
           "path": "registry/video/riso-character-sheet-react.tsx",
           "type": "registry:ui",
           "target": "components/video/riso-character-sheet-react.tsx"
+        },
+        {
+          "path": "registry/video/riso-path-geometry.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-path-geometry.ts"
         }
       ]
     },

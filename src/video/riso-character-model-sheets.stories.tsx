@@ -103,8 +103,24 @@ function CharacterSheetStudio({spec,sheet}:{
             {selected.widthInHeads.toFixed(3)} × {selected.heightInHeads.toFixed(3)} head units
           </span>
           <span style={{font:"12px ui-monospace,monospace"}}>
-            {selected.triangles.length} triangles · {selected.parts.length} source parts
+            {selected.sourceContourPoints} sampled source vertices · {selected.triangles.length} inside triangles
           </span>
+          <span style={{font:"12px ui-monospace,monospace"}}>
+            Triangle area residual {Math.abs(selected.triangleArea-selected.contourArea).toFixed(2)} u²
+          </span>
+        </div>
+        <div style={{borderTop:"1px solid #CBBFAD",paddingTop:12,display:"grid",gap:8}}
+          data-km-riso-feature-measurements="">
+          <div style={{fontWeight:800,fontSize:13}}>Authored feature distances · head-height H</div>
+          {report.measurements.map(m=><div key={m.id}
+            data-km-riso-measurement={m.id}
+            style={{display:"flex",justifyContent:"space-between",gap:8,
+              borderBottom:"1px solid #DED4C6",paddingBottom:5,fontSize:12}}>
+            <span>{m.label}</span>
+            <strong style={{font:"700 12px ui-monospace,monospace",whiteSpace:"nowrap"}}>
+              {m.distanceInHeads.toFixed(3)} H
+            </strong>
+          </div>)}
         </div>
         <div style={{borderTop:"1px solid #CBBFAD",paddingTop:12,display:"grid",gap:5}}>
           <div style={{fontWeight:800,fontSize:13}}>Mapped parts ({visible.length})</div>
@@ -120,9 +136,9 @@ function CharacterSheetStudio({spec,sheet}:{
       </aside>
     </div>
     <p style={{margin:0,maxWidth:1200,fontSize:12,color:"#5E6A73"}}>
-      Mesh cages are human-authored guides against the RISO5 source SVG, not exact outline
-      measurements or 3D depth. No approved back, side, or three-quarter artwork exists yet.
-      Preserve real character proportions when those views are commissioned.
+      RISO7 triangulates the original authored SVG curves and evaluated IK contours—no
+      bounding-rectangle proxies. Part dimensions and facial distances are measured in actual 2D
+      drawing coordinates, not 3D depth. Side, back and three-quarter turnarounds remain unauthored.
     </p>
   </main>;
 }

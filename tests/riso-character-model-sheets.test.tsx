@@ -4,14 +4,15 @@ import {describe,expect,it} from "vitest";
 import {RisoCharacterModelSheet,risoSheetViewBox} from "../registry/video/riso-character-sheet-react";
 import {evaluateRisoCharacterMesh,inspectRisoCharacterMesh} from "../registry/video/riso-proportion-mesh";
 import {COURIER,PAPER_BIRD} from "../src/video/riso-character-demo";
+import {evaluateRisoCharacter} from "../registry/video/riso-character";
 import {RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET} from "../src/video/riso-character-mesh-sheets";
 
 const cases=[
-  {spec:COURIER,sheet:RISO_COURIER_SHEET,head:89},
-  {spec:PAPER_BIRD,sheet:RISO_PAPER_BIRD_SHEET,head:63},
+  {spec:COURIER,sheet:RISO_COURIER_SHEET},
+  {spec:PAPER_BIRD,sheet:RISO_PAPER_BIRD_SHEET},
 ] as const;
 describe("Source-anchored Riso character proportional construction sheets",()=>{
-  for(const {spec,sheet,head} of cases){
+  for(const {spec,sheet} of cases){
     it(`${spec.id}: every authored component is mapped into a named 2D mesh`,()=>{
       expect(inspectRisoCharacterMesh(spec,sheet)).toEqual([]);
       const mapped=new Set(sheet.regions.flatMap(r=>r.parts));
@@ -21,10 +22,14 @@ describe("Source-anchored Riso character proportional construction sheets",()=>{
       expect(sheet.missingViews).toContain("back");
       expect(sheet.missingViews).toContain("true-side");
       const mesh=evaluateRisoCharacterMesh(spec,sheet,sheet.poses[0].frame);
-      expect(mesh.headUnit).toBe(head);
+      expect(mesh.headUnit).toBeGreaterThan(40);
+      expect(mesh.headUnit).toBeLessThan(110);
       expect(mesh.regions).toHaveLength(sheet.regions.length);
       for(const r of mesh.regions){
-        expect(r.triangles.length).toBeGreaterThanOrEqual(2);
+        expect(r.triangles.length).toBeGreaterThanOrEqual(1);
+        expect(r.sourceContourPoints).toBeGreaterThan(2);
+        expect(r.contourArea).toBeGreaterThan(0);
+        expect(r.triangleArea).toBeGreaterThan(0);
         expect(r.widthInHeads).toBeGreaterThan(0);
         expect(r.heightInHeads).toBeGreaterThan(0);
         expect(r.outline.every(p=>p.every(Number.isFinite))).toBe(true);
@@ -57,6 +62,9 @@ describe("Source-anchored Riso character proportional construction sheets",()=>{
       expect(markup).toContain("UNAUTHORED VIEWS");
       expect(markup).toContain("data-km-riso-sheet-pose");
       expect(markup).toContain("data-km-riso-mesh-triangle");
+      expect(markup).toContain('data-km-riso-selected-source-detail=""');
+      expect(markup).toContain('data-km-riso-selected-source-triangle=""');
+      expect(markup).toContain("Actual source outline");
       if(spec.id==="paper-bird"){
         expect(markup).toContain('data-km-riso-wing-detail="left-wing"');
         expect(markup).toContain('data-km-riso-wing-detail="right-wing"');
@@ -91,10 +99,52 @@ describe("Source-anchored Riso character proportional construction sheets",()=>{
     for(const id of ["thigh-left","shin-left","sleeve-left","forearm-right"]){
       const r=start.regions.find(r=>r.id===id)!;
       const moved=swing.regions.find(r=>r.id===id)!;
-      expect(r.triangles.length).toBe(8);
-      expect(moved.triangles.length).toBe(8);
+      expect(r.triangles.length).toBeGreaterThan(6);
+      expect(moved.triangles.length).toBeGreaterThan(6);
+      expect(r.sourceContourPoints).toBeGreaterThan(8);
+      expect(moved.sourceContourPoints).toBeGreaterThan(8);
       expect(r.outline).not.toEqual(moved.outline);
+      // The inspector must now follow the exact ink-skin contour, not a cage
+      // interpolated separately from the final printed source.
+      const print=evaluateRisoCharacter(COURIER,46).parts.find(p=>p.id===r.parts[0])!;
+      expect(print.transform).toBe("matrix(1 0 0 1 0 0)");
     }
+  });
+  it("RISO7 source contours are not the former rectangles",()=>{
+    for(const {spec,sheet} of cases){
+      expect(sheet.regions.every(r=>r.contour===undefined)).toBe(true);
+      const report=evaluateRisoCharacterMesh(spec,sheet,sheet.poses[1].frame);
+      const characters=spec.id==="courier"?
+        ["head-shape","hair-mass","cap","eye-left","eye-right","mouth","coat-shell","sleeve-left","thigh-right","satchel"]:
+        ["head","eye","beak","body","left-wing","right-wing","tail"];
+      for(const id of characters){
+        const r=report.regions.find(p=>p.id===id)!;
+        expect(r.sourceContourPoints,id).toBeGreaterThanOrEqual(3);
+        expect(r.referenceBounds.width,id).toBeGreaterThan(0);
+        expect(r.triangleArea,id).toBeGreaterThan(.8*r.contourArea);
+        expect(r.triangleArea,id).toBeLessThan(1.2*r.contourArea);
+      }
+    }
+  });
+  it("calculates real Riso facial landmarks and proportions, including separate eye islands",()=>{
+    const report=evaluateRisoCharacterMesh(COURIER,RISO_COURIER_SHEET,198);
+    const left=report.regions.find(r=>r.id==="eye-left")!;
+    const right=report.regions.find(r=>r.id==="eye-right")!;
+    expect(left.bounds.x+left.bounds.width).toBeLessThan(right.bounds.x);
+    expect(left.referenceBounds.width).toBeLessThan(20);
+    expect(right.referenceBounds.width).toBeLessThan(20);
+    expect(report.measurements.find(m=>m.id==="interocular")!.distanceInHeads).toBeGreaterThan(.15);
+    expect(report.measurements.find(m=>m.id==="nose-mouth")!.distance).toBeGreaterThan(5);
+    expect(report.measurements.find(m=>m.id==="brow-eye-left")!.distanceInHeads).toBeGreaterThan(0);
+    expect(report.measurements.every(m=>Number.isFinite(m.distanceInHeads))).toBe(true);
+    for(const region of report.regions) {
+      const positions=region.landmarks.filter(p=>["source-top","source-bottom","source-left","source-right"].includes(p.id));
+      expect(positions).toHaveLength(4);
+      for(const point of positions)expect(region.outline).toContainEqual(point.at);
+    }
+    const bird=evaluateRisoCharacterMesh(PAPER_BIRD,RISO_PAPER_BIRD_SHEET,84);
+    expect(bird.measurements.map(m=>m.id)).toContain("wing-span");
+    expect(bird.regions.find(r=>r.id==="right-wing")!.sourceContourPoints).toBeGreaterThan(10);
   });
   it("guards fabricated mesh coordinates, wrong attachment and missing head anchors",()=>{
     const copy=RISO_COURIER_SHEET;

@@ -19,6 +19,8 @@ for(const actor of [
     if(actor.slug==="paper-bird"){
       await expect(svg.locator("[data-km-riso-wing-detail]")).toHaveCount(2);
       await expect(svg.locator('[data-km-riso-wing-cage="left-wing"]')).toHaveCount(1);
+      await expect(svg.locator('[data-km-riso-wing-isolated-ink="wing-left"]')).toHaveCount(1);
+      await expect(svg.locator('[data-km-riso-wing-isolated-ink="wing-right"]')).toHaveCount(1);
     } else {
       await expect(svg.locator("[data-km-riso-wing-detail]")).toHaveCount(0);
     }
@@ -26,6 +28,10 @@ for(const actor of [
     await page.getByRole("combobox",{name:"Character sheet selected region"})
       .selectOption(actor.part);
     await expect(svg).toHaveAttribute("data-km-riso-sheet-feature",actor.part);
+    await expect(svg.locator("[data-km-riso-selected-source-detail]")).toHaveCount(1);
+    await expect(svg.locator("[data-km-riso-selected-source-triangle]").first()).toBeVisible();
+    const measure=actor.slug==="courier"?"interocular":"eye-to-beak";
+    await expect(page.locator('[data-km-riso-measurement="'+measure+'"]')).toHaveCount(1);
     await expect(svg.locator(`[data-km-riso-focused-region="${actor.part}"]`)).toHaveCount(1);
     const slider=page.getByRole("slider",{name:"Character sheet frame"});
     await slider.evaluate((node,frame)=>{

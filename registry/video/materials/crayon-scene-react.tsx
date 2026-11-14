@@ -58,6 +58,7 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
       seed={seed} pressure={node.pressure ?? .84} spacing={node.spacing ?? 9} angle={node.angle ?? 0}
       tooth={tooth} frame={frame} first={node.timing.start} last={node.timing.end}
       construction={node.construction} coverage={node.coverage} nibStyle={node.nibStyle}
+      strokeOrder={node.strokeOrder} markLength={node.markLength}
       redraw={node.redraw} edgeRoughness={node.edgeRoughness} reduced={reducedMotion} /> :
       node.kind === "contour" ? <WaxLine d={drawing!.d} color={node.color} width={node.width}
         opacity={node.opacity ?? 1} seed={seed}

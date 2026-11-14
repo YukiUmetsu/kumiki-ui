@@ -41,10 +41,10 @@ function Wireframe({regions, selected, showMesh, showLabels}:{
       stroke={region.id===selected?"#EE5639":"#226B86"}
       strokeWidth={region.id===selected?1.1:.38} strokeLinejoin="round"
       opacity={region.id===selected?1:.3}>
-      {region.triangles.map((triangle,i)=><path key={i}
+      {region.id===selected && region.triangles.map((triangle,i)=><path key={i}
         data-km-riso-mesh-triangle={region.id} d={path(triangle)} />)}
       <path d={path(region.outline)} strokeWidth={region.id===selected?1.8:.8}/>
-      {region.landmarks.map(point=><circle key={point.id}
+      {region.id===selected && region.landmarks.map(point=><circle key={point.id}
         cx={point.at[0]} cy={point.at[1]} r={1.1}
         fill={region.id===selected?"#EE5639":"#226B86"} stroke="none"/>)}
     </g>)}
@@ -179,7 +179,7 @@ export function RisoCharacterModelSheet({
     <text x={25} y={56} fontFamily="system-ui,sans-serif" fontSize={12} letterSpacing={1.5}
       fill="#65707A">CHARACTER CONSTRUCTION / 2D SOURCE-BOUND PROPORTION MESH</text>
     <text x={1200} y={30} textAnchor="end" fontFamily="system-ui,sans-serif"
-      fontSize={12} fontWeight={700} fill="#D4513D">RISO / MODEL SHEET 01</text>
+      fontSize={12} fontWeight={700} fill="#D4513D">RISO / SOURCE CONTOUR 07</text>
     <text x={1200} y={53} textAnchor="end" fontFamily="system-ui,sans-serif"
       fontSize={12} fill="#4D6272">24 FPS not assumed · frame {report.frame} · source {spec.id}</text>
     {section(20,107,464,665,avian?"Flight silhouette + wing construction":"Full silhouette + construction","A")}
@@ -203,7 +203,11 @@ export function RisoCharacterModelSheet({
           <svg x={x+7} y={566} width={194} height={145}
             viewBox={risoSheetViewBox(wing.bounds,194,145,14)}
             overflow="hidden">
-            <Actor sample={report.frame} parts={report.regions} view="pose"/>
+            {reportFor(report.frame).parts.filter(p=>
+              wing.parts.includes(p.id) && !p.knockoutOnly).map(p=>
+              <path key={p.id} data-km-riso-wing-isolated-ink={p.id}
+                d={p.d} transform={p.transform} fill={inks[p.plate]??"#315B86"}
+                opacity={p.opacity}/>)}
             <g stroke="#247A8F" strokeWidth={.75} opacity={.75} fill="none"
               data-km-riso-wing-cage={id}>
               {wing.triangles.map((triangle,n)=>
@@ -228,31 +232,48 @@ export function RisoCharacterModelSheet({
           stroke={r.id===region.id?"#D84D39":"#267C88"}
           strokeWidth={r.id===region.id?1.9:.5} opacity={r.id===region.id?1:.38} fill="none"/>)}
     </svg>
-    {section(502,459,345,313,"Selected component / proportions","C")}
+    {section(502,459,345,313,"Source contour + proportions","C")}
     <g fill="#29445A" fontFamily="system-ui,sans-serif">
-      <text x={517} y={511} fontSize={19} fontWeight={800}>{region.label}</text>
-      <text x={517} y={535} fontSize={12} fill="#65717D">{region.category.toUpperCase()} · linked to {detail.joint}</text>
-      <path d="M517 551 H827" stroke="#C7BFB4"/>
-      <text x={517} y={575} fontSize={12}>Reference width</text>
-      <text x={827} y={575} fontSize={16} fontWeight={700} textAnchor="end">
-        {short(region.referenceBounds.width)} u
+      <text x={517} y={501} fontSize={15} fontWeight={800}>{region.label}</text>
+      <text x={517} y={522} fontSize={11} fill="#65717D">{region.category.toUpperCase()} · source joint {detail.joint}</text>
+    </g>
+    <rect x={517} y={537} width={145} height={141} rx={4} fill="#F6F1E7" stroke="#D8CFC1"/>
+    <svg x={520} y={540} width={139} height={135}
+      viewBox={risoSheetViewBox(region.bounds,139,135,5)}
+      data-km-riso-selected-source-detail="" overflow="hidden">
+      <path d={path(region.outline)} fill="#DDE9E6" stroke="#D95C42"
+        strokeWidth={1.2} strokeLinejoin="round"/>
+      {region.triangles.map((t,i)=><path key={i} d={path(t)}
+        data-km-riso-selected-source-triangle=""
+        stroke="#2C7A86" opacity={.65} strokeWidth={.58} fill="none"/>)}
+      {region.landmarks.filter(p=>p.id==="source-center").map(p=>
+        <circle key={p.id} cx={p.at[0]} cy={p.at[1]} r={1.25}
+          fill="#DE5C42" stroke="#FAF2E4" strokeWidth={.65}/>)}
+    </svg>
+    <g fill="#29445A" fontFamily="system-ui,sans-serif">
+      <text x={674} y={549} fontSize={10}>SOURCE WIDTH</text>
+      <text x={674} y={570} fontSize={15} fontWeight={800}>{short(region.referenceBounds.width)} u</text>
+      <text x={674} y={591} fontSize={10}>SOURCE HEIGHT</text>
+      <text x={674} y={612} fontSize={15} fontWeight={800}>{short(region.referenceBounds.height)} u</text>
+      <text x={674} y={634} fontSize={10}>HEAD RATIOS (W × H)</text>
+      <text x={674} y={655} fontSize={15} fontWeight={800}>
+        {short(region.widthInHeads)} × {short(region.heightInHeads)}
       </text>
-      <text x={517} y={603} fontSize={12}>Reference height</text>
-      <text x={827} y={603} fontSize={16} fontWeight={700} textAnchor="end">
-        {short(region.referenceBounds.height)} u
+    </g>
+    <path d="M517 688 H827" stroke="#C7BFB4"/>
+    <g fill="#486175" fontFamily="ui-monospace,monospace" fontSize={11}>
+      <text x={517} y={705}>
+        {region.sourceContourPoints} source vertices · {region.triangles.length} inside triangles
       </text>
-      <text x={517} y={631} fontSize={12}>Width / head-height</text>
-      <text x={827} y={631} fontSize={16} fontWeight={700} textAnchor="end">
-        {short(region.widthInHeads)} H
+      <text x={517} y={723}>
+        Surface area error {short(Math.abs(region.contourArea-region.triangleArea))} u²
       </text>
-      <text x={517} y={659} fontSize={12}>Height / head-height</text>
-      <text x={827} y={659} fontSize={16} fontWeight={700} textAnchor="end">
-        {short(region.heightInHeads)} H
+      <text x={517} y={741}>
+        SVG source: {region.parts.slice(0,2).join(" + ")}
       </text>
-      <path d="M517 674 H827" stroke="#C7BFB4"/>
-      <text x={517} y={696} fontSize={11}>Authored source parts:</text>
-      {region.parts.slice(0,3).map((p,i)=><text key={p} x={517} y={715+i*16}
-        fontSize={11} fontFamily="monospace" fill="#28657C">{p}</text>)}
+      <text x={517} y={760} fill="#9A614E">
+        Actual source outline · no rectangular proxy
+      </text>
     </g>
     {section(864,107,336,665,"Source-animation pose studies","D")}
     {poseReports.map((p,i)=>{
@@ -277,13 +298,13 @@ export function RisoCharacterModelSheet({
         1 H = {short(report.headUnit)} local drawing units · {sheet.regions.length} independently mapped construction regions
       </text>
       <text x={34} y={851} fontSize={12}>
-        Source: {spec.id} · current pose f{report.frame} · 2D artist-authored cages, NOT inferred 3D depth
+        {report.measurements.slice(0,3).map(m=>m.label+": "+short(m.distanceInHeads)+" H").join("    /    ")}
       </text>
       <text x={34} y={872} fontSize={12} fontWeight={700} fill="#B74430">
         UNAUTHORED VIEWS: {sheet.missingViews.join(" · ").toUpperCase()}
       </text>
       <text x={34} y={892} fontSize={11}>
-        Dimensions describe local guide polygons; moving limb wireframes follow IK. Do not treat pose silhouettes as true orthographic turns.
+        Measured source SVG curves follow rig keys and IK. Animation poses are NOT approved orthographic turnarounds.
       </text>
     </g>
   </svg>;

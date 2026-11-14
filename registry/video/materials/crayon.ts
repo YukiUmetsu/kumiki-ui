@@ -1,6 +1,10 @@
 /** Pure, frame-addressable wax-crayon deposition. No randomness, timers, filters or canvas state. */
 export interface CrayonBounds { x: number; y: number; width: number; height: number }
 export type CrayonNibStyle = "rounded" | "tapered";
+/** Long overlapping rubbing or legacy small fragmented strokes. */
+export type CrayonMarkLength = "long" | "short";
+/** Order of actual colored wax deposits, independent of the mark's shape. */
+export type CrayonStrokeOrder = "scanline" | "patches";
 /** A quadratic centerline retained alongside the older SVG stroke contract. */
 export type CrayonNibArc = readonly [number, number, number, number, number, number];
 export interface CrayonMark {
@@ -11,7 +15,13 @@ export interface CrayonMark {
   /** Cached full-contact geometry for repeated film frames. */
   nibD: string;
 }
-export interface CrayonOptions { seed: number; pressure: number; spacing?: number; passes?: number }
+export interface CrayonOptions {
+  seed: number; pressure: number; spacing?: number; passes?: number;
+  /** Hand-guided local coloring blocks (default) or legacy row-major wipe. */
+  strokeOrder?: CrayonStrokeOrder;
+  /** Longer coherent rubbing strokes reduce confetti-like wax flecks. */
+  markLength?: CrayonMarkLength;
+}
 /**
  * Physically motivated, authored order of outlining and hand-hatching.
  * Unlike a digital mask wipe, each native wax mark is deposited progressively.
@@ -57,6 +67,10 @@ export function assertCrayonOptions(options: CrayonOptions): void {
     throw new RangeError("crayon spacing must be between 4 and 32");
   if (options.passes !== undefined && (!Number.isSafeInteger(options.passes) || options.passes < 1 || options.passes > 3))
     throw new RangeError("crayon passes must be between 1 and 3");
+  if (options.strokeOrder !== undefined && options.strokeOrder !== "scanline" && options.strokeOrder !== "patches")
+    throw new RangeError("crayon stroke order must be scanline or patches");
+  if (options.markLength !== undefined && options.markLength !== "long" && options.markLength !== "short")
+    throw new RangeError("crayon mark length must be long or short");
 }
 export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): CrayonMark[] {
   assertCrayonOptions(options);
@@ -84,7 +98,14 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
           (rand(4) - .5) * Math.min(31,groupWidth*.27);
         const patchY = bounds.y - spacing + row * spacing + layer * spacing * .36 +
           (rand(5) - .5) * spacing * 1.95;
-        const segmentCount = Math.max(2,Math.ceil(groupWidth / (32 + rand(16)*19)));
+        // Real rubbing gestures traverse a significant local paper area,
+        // rather than painting many equally short confetti flecks. A small
+        // minority of lifts retain irregular short scumble / hatching.
+        // Explicit "short" preserves the legacy treatment for foliage or
+        // authored fine detail that benefits from small broken pieces.
+        const segmentCount = options.markLength==="short"
+          ? Math.max(2,Math.ceil(groupWidth / (32 + rand(16)*19)))
+          : rand(16)<.15 ? 4 : 2;
         const segmentWidth = groupWidth / segmentCount;
         // A human maintains one rubbing direction for several strokes before
         // rotating the crayon. Low-frequency gesture fields prevent the noisy,
@@ -95,7 +116,9 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
           (rand(6)-.5)*12;
         const nibArcs: CrayonNibArc[] = [];
         const d = Array.from({length:segmentCount}, (_,part) => {
-          const taper = .16 + crayonHash(options.seed,index,120+part)*.32;
+          const taper = options.markLength==="short"
+            ? .16 + crayonHash(options.seed,index,120+part)*.32
+            : .10 + crayonHash(options.seed,index,120+part)*.27;
           const shortfall = 2 + segmentWidth*taper;
           const x = patchX + segmentWidth*part +
             (crayonHash(options.seed,index,150+part)-.5)*segmentWidth*.19;
@@ -130,6 +153,31 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
         marks.push(mark);
       }
     }
+  }
+  if (options.strokeOrder !== "scanline") {
+    // Human drawing is organized into nearby rubbing blocks rather than a
+    // left-to-right raster scan. A Morton (Z-curve) tile order visits nearby
+    // patches before distant ones, and the nib travels back and forth inside
+    // each tile. It never synthesizes new strokes or advances the film clock.
+    // Sorting only changes reveal order: each mark retains its original
+    // geometry, seed, pressure, ID and complete nib path.
+    const rank = (index: number): number => {
+      const layer = Math.floor(index / (rows * groups));
+      const remainder = index % (rows * groups);
+      const row = Math.floor(remainder / groups), group = remainder % groups;
+      const block = Math.floor(row / 5), local = row % 5;
+      const height = Math.min(5, rows - block * 5);
+      let tile = 0;
+      // Bounds <=4096, spacing>=4 => at most 206 five-row blocks and 32
+      // columns, so eight interleaved coordinate bits are sufficient.
+      for (let bit=0; bit<8; bit++) {
+        tile += ((group >>> bit) & 1) * 2**(2*bit);
+        tile += ((block >>> bit) & 1) * 2**(2*bit+1);
+      }
+      const line = (group + block) % 2 === 0 ? local : height - 1 - local;
+      return layer * 1_000_000 + tile * 5 + line;
+    };
+    marks.sort((a,b) => rank(a.index) - rank(b.index));
   }
   return marks;
 }
@@ -192,4 +240,23 @@ export function crayonProgress(frame: number, first: number, last: number, index
   const stagger = count === 1 ? 0 : index / (count - 1) * .78;
   const t = Math.min(1, Math.max(0, (time - stagger) / .22));
   return t * t * (3 - 2 * t);
+}
+
+/**
+ * Material-native hand-coloring exposure schedule. Unlike a cinematic
+ * simultaneous reveal, at most one nib mark is partially deposited at a
+ * given instant. Finished marks remain fully stable under absolute seeks.
+ * Legacy scanline scenes retain their original overlapping write-on.
+ */
+export function crayonStrokeProgress(
+  frame:number, first:number, last:number, index:number, count:number,
+  order:CrayonStrokeOrder, reducedMotion=false,
+):number{
+  const legacy=crayonProgress(frame,first,last,index,count,reducedMotion);
+  if(order!=="scanline" && order!=="patches")
+    throw new RangeError("crayon stroke order must be scanline or patches");
+  if(order==="scanline" || reducedMotion)return legacy;
+  const position=Math.min(1,Math.max(0,(frame-first)/(last-first)))*count-index;
+  const t=Math.min(1,Math.max(0,position));
+  return t*t*(3-2*t);
 }
