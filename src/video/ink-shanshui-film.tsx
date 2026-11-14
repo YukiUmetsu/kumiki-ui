@@ -27,6 +27,7 @@ export function makeShanshuiScholar(
   // hands, torso, belt, hips, robe, hem and shoes in one coordinated pass.
   const artwork=shanshuiFaceAssets(scene);
   const completeBody=shanshuiBodyAssets(scene);
+  const fit=shanshuiBodyFit(scene);
   const fittedParts=applyShanshuiBodyFit(scene,base.parts);
   return {
     ...base,characterId:"shanshui-scholar",
@@ -42,14 +43,21 @@ export function makeShanshuiScholar(
       ...artwork,
       ...completeBody,
     },
+    anchors:{
+      ...base.anchors,
+      hand:{part:"near-hand",at:fit.anchors.nearHand},
+      "far-hand":{part:"far-hand",at:fit.anchors.farHand},
+      "shoe-left":{part:"shoe-left",at:fit.anchors.leftFoot},
+      "shoe-right":{part:"shoe-right",at:fit.anchors.rightFoot},
+    },
     parts:[
       ...fittedParts,
       // Shoes are independent planted parts driven by exact projected foot
       // contact, not illustrations welded to the old short puppet shins.
       {id:"shoe-left",asset:"shoe-left",channel:"walk",
-        pivot:shanshuiBodyFit(scene).anchors.leftFoot,z:4},
+        pivot:fit.anchors.leftFoot,z:4},
       {id:"shoe-right",asset:"shoe-right",channel:"walk",
-        pivot:shanshuiBodyFit(scene).anchors.rightFoot,z:5},
+        pivot:fit.anchors.rightFoot,z:5},
       {id:"robe-opaque",asset:"scholar-opaque-ground",parent:"body",
         channel:"body",pivot:{x:133,y:188},z:9},
       {id:"robe-outer",asset:"scholar-robe-overlay",parent:"body",
