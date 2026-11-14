@@ -410,9 +410,9 @@ discrete testable states (`visible`, `fading`, `finished`) and does
 not alter the paper substrate or erase real deposited wax.
 
 `src/video/crayon-character-draw-fixtures.ts` authors an original
-450-frame short: **paper → light construction axes → tail/ears/body
-contours → directional wax fill → detailed face → animated character
-payoff**. Two Film Looks Storybook stories are interactive:
+450-frame short: **blank paper → light construction axes → tail/ears/body
+contours → directional wax fill → detailed face → soft scenery fill →
+animated character payoff**. Two Film Looks Storybook stories are interactive:
 
 - **Character Draw In** (16:9)
 - **Character Draw In Portrait** (9:16)
