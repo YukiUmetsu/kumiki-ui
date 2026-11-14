@@ -12,6 +12,10 @@ async function setFrame(page: Page, value: number) {
     element.dispatchEvent(new Event("change",{bubbles:true}));
   },value);
   await expect(slider).toHaveValue(String(value));
+  // React's controlled range value can update before the SVG has committed.
+  // Wait for the *rendered paper frame*, not just the input's DOM value.
+  await expect(page.locator("svg[data-km-riso-rig-lab]"))
+    .toHaveAttribute("data-km-riso-rig-frame",String(value));
 }
 test("RISO3 magnified rig: real stance foot planting, gait close-ups, FK comparison and seeking",async({page},info)=>{
   await page.goto("/iframe.html?id=video-riso-rig-lab--rigging-microscope&viewMode=story");
@@ -47,7 +51,9 @@ test("RISO3 magnified rig: real stance foot planting, gait close-ups, FK compari
   const fk=await stage.screenshot({animations:"disabled",path:info.outputPath("riso3-fk-original.png")});
   expect(ik.equals(fk)).toBe(false);
   await page.getByRole("checkbox",{name:"Enable IK in microscope"}).check();
-  const renewed=await stage.screenshot({animations:"disabled"});
+  await expect(stage.locator("[data-km-riso-foot-target]")).toHaveCount(2);
+  const renewed=await stage.screenshot({animations:"disabled",
+    path:info.outputPath("riso3-ik-restored.png")});
   expect(ik.equals(renewed)).toBe(true);
   await page.getByRole("checkbox",{name:"Show joints and IK foot targets"}).uncheck();
   await expect(stage.locator("[data-km-riso-rig-diagnostics]")).toHaveCount(0);
