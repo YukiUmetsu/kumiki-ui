@@ -133,6 +133,79 @@ decoded and frame-by-frame compared during this implementation.
 transition staging between redraws, two-handed prop constraints, IK/foot
 contact, and normal-speed encoded dual-aspect proof with human signoff.
 
+### Authored character acting and dialogue exposure sheets
+
+The `CrayonContourElement` API supports **named performance drawings** on top
+of replacement drawing keys. Supply `poses` (stable reusable SVG outlines) and
+`poseCues` (strictly ordered absolute-frame selections), without a second
+animation clock or duplicating a path for every phoneme. The original `d` is
+the reserved `base` pose. This is suitable for mouth visemes, blinks, eye
+expressions, brows, hands, costume folds and other hand-drawn contour acting.
+
+```json
+{
+  "kind": "contour", "id": "mouth", "parentId": "head",
+  "d": "M-9 -64 Q0 -58 9 -64", "color": "#4e4b64", "width": 4,
+  "timing": {"start": 0, "end": 269}, "poseCadence": 2,
+  "poses": [
+    {"id": "mbp", "d": "M-12 -64 Q0 -61 12 -64"},
+    {"id": "ah", "d": "M-11 -65 C-12 -46 12 -45 11 -65Z"},
+    {"id": "oh", "d": "M-7 -63 a7 10 0 1 0 14 0 a7 10 0 1 0 -14 0"}
+  ],
+  "poseCues": [
+    {"frame": 0, "pose": "base"},
+    {"frame": 76, "pose": "mbp"},
+    {"frame": 82, "pose": "ah"},
+    {"frame": 106, "pose": "oh"},
+    {"frame": 138, "pose": "base"}
+  ]
+}
+```
+
+An editor or speech-alignment pipeline must produce `poseCues` from actual
+audio/phoneme timing. **Kumiki does not synthesize voice, infer phonemes from
+written text, analyze a soundtrack, or claim automatic lip-sync.** Every cue
+uses frame positions in the film's existing FPS timeline, which ContentGen
+should derive from its narration/audio metadata. Exposures hold according to
+`poseCadence`, permitting on-twos animation, while camera animation remains
+frame-accurate. Scenes are seek-stable, including out-of-order exports and
+reduced-motion end-state rendering.
+
+`drawings` (sequential anonymous redraws) and `poses` / `poseCues`
+(named reusable redraws) are mutually exclusive on a single contour. Strict
+validation enforces bounded SVG path data, unique pose IDs, defined cue
+references, sorted frame keys, and practical track limits.
+
+**Live example:** Storybook **Video production / Film Art Styles / Crayon
+Scene Engine / Character Performance** and **Character Performance Portrait**.
+The original little woodland character waves a flower, gives a short performed
+greeting (authored without a soundtrack), blinks, smiles, tilts its head and
+lets its tail follow through. Both aspects use the same semantic
+`src/video/crayon-performance-fixtures.ts` scene factory, with native
+compositions. The performance cue list is a timing study, **not a claim of
+speech synchronization to a real vocal recording**.
+
+**Research and craft targets:**
+- [Walt Disney Animation Studios — Animation process](https://www.disneyanimation.com/process/animation/):
+  anticipation, weight, follow-through and secondary action should drive
+  acting, not independent random wiggling of elements.
+- [Toon Boom — 12 Principles of Animation](https://helpcentre.toonboom.com/hc/en-ca/articles/57087608774931-About-the-12-Principles-of-Animation):
+  structured posing and meaningful overlapping motion.
+- [Figma — Lip Sync Animation](https://www.figma.com/resource-library/lip-sync-animation/):
+  phoneme groups mapped to a small reusable set of visual mouth shapes.
+- [Timing for Animation, lip-sync preview](https://www.oreilly.com/library/view/timing-for-animation/9781000338225/xhtml/80_Chapter70.xhtml):
+  dialogue acting and phonetic exposure timing are related but distinct jobs.
+
+These sources informed the authored craft decisions. Their media were not
+fully frame-decoded and no outside copyrighted artwork or narration is
+bundled with the examples.
+
+**Remaining gates:** true voice-aligned cue import, gesture-directed
+performance authoring, higher-density replacement drawings, foot contact
+and gait control, full encoded 16:9 + 9:16 visual/audio review and independent
+human visual approval. Automated passing tests do not confer artistic
+approval.
+
 ### Production proof
 
 The 420-frame (14 s at 30 fps), three-shot FilmDocument uses the existing `slot` scene type in `FilmStage`, not another timeline or an unbounded playback loop. Its shot frames are 0…119, 120…269 and 270…419. The slot adapter adds each scene's `offsetFrame` to its local frame. The second original scene, the flower garden, is available as a separate interactive Storybook story.
