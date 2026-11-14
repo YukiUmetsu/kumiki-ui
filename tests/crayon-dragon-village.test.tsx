@@ -54,6 +54,16 @@ describe("multi-actor crayon dragon village",()=>{
       expect(crayonDrawingAt(lid,278).poseId).toBe("smile");
     });
   }
+  it("keeps maximum architecture detail within bounded renderer budgets",()=>{
+    const scene=crayonDragonVillageScene("landscape",
+      {detail:1,wingPower:1.6,followThrough:18,palette:"plum"});
+    expect(inspectCrayonScene(scene)).toEqual([]);
+    expect(scene.elements.length).toBeLessThanOrEqual(240);
+    expect(scene.elements.filter(e=>e.id.startsWith("castle-")).length)
+      .toBeGreaterThan(30);
+    expect(scene.elements.some(e=>e.id==="village-moon")).toBe(true);
+    expect(scene.elements.some(e=>e.id==="castle-door-lamp-left")).toBe(true);
+  });
   it("turns off an entire actor safely and supports alternate creature palettes",()=>{
     const scene=crayonDragonVillageScene("landscape",
       {cast:"duo",detail:.25,wingPower:.5,palette:"copper",followThrough:0});
