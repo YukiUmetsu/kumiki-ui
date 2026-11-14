@@ -29,6 +29,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const fillFirst=windows?.fillStart ?? first,fillLast=windows?.fillEnd ?? last;
   const outlineFirst=windows?.outlineStart ?? first,outlineLast=windows?.outlineEnd ?? last;
   const phase=!construction ? undefined : reduced || frame>=last ? "finished" :
+    frame<first ? "pending" :
     construction.order==="outline-first" ? (frame < fillFirst ? "outlining":"pigment") :
       (frame < outlineFirst ? "pigment":"outlining");
   const cx = bounds.x + bounds.width / 2, cy = bounds.y + bounds.height / 2;
