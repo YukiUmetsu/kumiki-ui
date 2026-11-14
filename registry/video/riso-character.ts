@@ -221,7 +221,24 @@ export function inspectRisoCharacter(input: unknown, allowedPlates?: readonly st
               previous = key?.frame ?? previous;
             }
           }
-        } else err(p + "/target", "IK target must be a keyed position or walk cycle");
+        } else if (target?.kind === "follow") {
+          if (!byId.has(target.joint) || !safeNumber(target.x, -8192, 8192) ||
+              !safeNumber(target.y, -8192, 8192))
+            err(p + "/target", "follow target needs an existing joint and finite local attachment coordinates");
+          else {
+            // Prevent the target from being moved by the very IK chain following it.
+            // A prop attached to a sibling/body joint is fine; a descendant of
+            // the constrained root creates a feedback loop.
+            const chainAncestors = new Set<string>();
+            let ancestor: string | undefined = target.joint;
+            while (ancestor && !chainAncestors.has(ancestor)) {
+              chainAncestors.add(ancestor);
+              ancestor = byId.get(ancestor)?.parent;
+            }
+            if (chainAncestors.has(constraint.root))
+              err(p + "/target", "follow target cannot be inside the constrained joint subtree");
+          }
+        } else err(p + "/target", "IK target must be a keyed position, walk cycle or joint follower");
       }
     }
   }
