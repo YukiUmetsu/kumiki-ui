@@ -22,6 +22,15 @@ function WatercolourLab() {
   const [water, setWater] = useState(1);
   const [reducedMotion, setReducedMotion] = useState(false);
   const compiled = useMemo(() => compileFilm(WATERCOLOUR_BRUSH_FILM, { outputId: aspect }), [aspect]);
+  // Controls rebuild authored material once; absolute frame seeks reuse the sampled surface.
+  const surfaces = useMemo<Record<PaintedSubject, PaintSurfaceSpec>>(() => {
+    const make = (subject: PaintedSubject): PaintSurfaceSpec => {
+      const source = paintExampleSpec(aspect, subject, seed);
+      return { ...source, paper: { ...source.paper, tooth },
+        strokes: source.strokes.map(s => ({ ...s, water: s.water * water })) };
+    };
+    return { "wild-iris": make("wild-iris"), "coastal-dawn": make("coastal-dawn") };
+  }, [aspect, seed, tooth, water]);
 
   useEffect(() => {
     if (!playing) return;
@@ -95,10 +104,7 @@ function WatercolourLab() {
           if (content.slot !== "watercolour-brush") throw new Error("Unknown watercolor film slot: " + content.slot);
           const subject = content.props?.subject as PaintedSubject;
           if (subject !== "wild-iris" && subject !== "coastal-dawn") throw new Error("Invalid watercolor subject.");
-          const source = paintExampleSpec(aspect, subject, seed);
-          const spec: PaintSurfaceSpec = { ...source, paper: { ...source.paper, tooth },
-            strokes: source.strokes.map(s => ({ ...s, water: s.water * water })) };
-          return <PaintedPage spec={spec} subject={subject} frame={context.frame}
+          return <PaintedPage spec={surfaces[subject]} subject={subject} frame={context.frame}
             reducedMotion={context.reducedMotion}/>;
         }} style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}/>
     </div>
