@@ -62,7 +62,7 @@ const PaintedWashLayer = memo(function PaintedWashLayer({ spec, wash, frameState
         {wash.reservePaths?.map((p, i) => <path key={i} d={p} fill="#000"/>)}
       </mask>}
     </defs>
-    <g mask={animated ? `url(#${brushId})` : undefined}>
+    <g mask={animated && state.deposit < 1 ? `url(#${brushId})` : undefined}>
       <g mask={hasReserve ? `url(#${reserveId})` : undefined}>
         {/* Wash extends gently beyond the line only during drying; this is not an RGB-wide film filter. */}
         {state.spread > 0 && <path d={wash.path} fill={wash.pigment} opacity={wetFringe}
