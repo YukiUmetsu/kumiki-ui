@@ -56,10 +56,13 @@ const numericCameraControls:readonly {id:keyof InkCameraControls;label:string;mi
   {id:"panX",label:"Camera pan X",min:-250,max:250,step:1},
   {id:"panY",label:"Camera pan Y",min:-250,max:250,step:1},
 ];
-const numericActorControls:readonly {id:keyof InkActorFilmControls;label:string;min:number;max:number;step:number}[]=[
+type ActorNumber="x"|"y"|"scale"|"clothBleed"|"faceBleed"|"actingRate"|"blinkRate";
+const numericActorControls:readonly {id:ActorNumber;label:string;min:number;max:number;step:number}[]=[
   {id:"x",label:"Character X",min:-250,max:250,step:1},
   {id:"y",label:"Character Y",min:-250,max:250,step:1},
   {id:"scale",label:"Character scale",min:.5,max:1.5,step:.05},
+  {id:"actingRate",label:"Acting pace",min:.5,max:2,step:.05},
+  {id:"blinkRate",label:"Blink frequency",min:.5,max:2,step:.05},
   {id:"clothBleed",label:"Robe/sleeve wet edge",min:0,max:1,step:.05},
   {id:"faceBleed",label:"Face ink wet edge",min:0,max:1,step:.05},
 ];
@@ -130,20 +133,21 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
   // alters frame sampling, never pigment diffusion equations or actor cues.
   useEffect(()=>{
     if(!playing||reducedMotion)return;
-    // Rendering a dense SVG brush frame may take longer than a whole film
-    // in software Chromium. Bound catch-up to avoid a preview jumping from
-    // frame zero straight to the final hold on its first delayed animation tick.
-    // Production exports still sample the requested absolute frame, unchanged.
-    let last=performance.now(),position=frame;
-    let raf=0;
+    const start=performance.now(),origin=frame;
+    // Heavy SVG ink frames may render slowly on CI/low-power devices. Never
+    // skip the entire artwork merely because a frame was expensive to paint:
+    // the visual preview advances at most a few authored frames per RAF.
+    let advanced=origin,raf=0;
     const tick=(now:number)=>{
-      const elapsed=Math.min(125,Math.max(0,now-last));
-      last=now;
-      position+=elapsed*30/1000*playbackRate;
-      const next=loop?Math.floor(position)%(maxFrame+1):
-        Math.min(maxFrame,Math.floor(position));
+      // requestAnimationFrame's frame timestamp may predate performance.now()
+      // from the click handler. Never sample frame -1 on a first callback.
+      const elapsed=Math.max(0,now-start);
+      const target=origin+Math.floor(elapsed*30/1000*playbackRate);
+      const step=Math.max(1,Math.round(3*playbackRate));
+      advanced=Math.min(target,advanced+step);
+      const next=loop?advanced%(maxFrame+1):Math.min(maxFrame,advanced);
       setFrame(next);
-      if(!loop&&position>=maxFrame)setPlaying(false);
+      if(!loop&&next===maxFrame)setPlaying(false);
       else raf=requestAnimationFrame(tick);
     };
     raf=requestAnimationFrame(tick);
@@ -170,10 +174,13 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
       assertInkMaterialControls(candidate);
       assertInkCameraControls(cam);
       configureInkLayer({id:"proof",startFrame:0,durationFrames:50,reveal:"brush"},rev,100);
-      if(![act.x,act.y,act.scale,act.clothBleed,act.faceBleed].every(Number.isFinite) ||
+      if(![act.x,act.y,act.scale,act.actingRate,act.blinkRate,act.clothBleed,act.faceBleed].every(Number.isFinite) ||
         act.x < -250||act.x > 250||act.y < -250||act.y > 250||
-        act.scale < .5||act.scale > 1.5||act.clothBleed < 0||act.clothBleed > 1||
-        act.faceBleed < 0||act.faceBleed > 1)throw new Error("Invalid actor transform or wet/dry finish.");
+        act.scale < .5||act.scale > 1.5||act.actingRate < .5||act.actingRate > 2||
+        act.blinkRate < .5||act.blinkRate > 2||
+        ["speech","gaze","greet","bow","blink"].some(k=>typeof act[k as keyof InkActorFilmControls]!=="boolean")||
+        act.clothBleed < 0||act.clothBleed > 1||act.faceBleed < 0||act.faceBleed > 1)
+        throw new Error("Invalid actor performance or wet/dry finish.");
       const validatedLook=data.style===undefined?look:data.style as InkLookId;
       if(!Object.prototype.hasOwnProperty.call(INK_LOOKS,validatedLook))
         throw new Error("Unknown ink direction.");
@@ -211,7 +218,7 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
         min={min} max={max} step={step} value={camera[id]}
         onChange={e=>updateCamera({[id]:Number(e.target.value)})}/>
     </label>;
-  const actorNumber=(id:keyof InkActorFilmControls,title:string,min:number,max:number,step:number)=>
+  const actorNumber=(id:ActorNumber,title:string,min:number,max:number,step:number)=>
     <label key={id} style={label}>{title} <span style={small}>{actor[id]}</span>
       <input aria-label={title} style={rangeStyle} type="range"
         min={min} max={max} step={step} value={actor[id]}
@@ -366,7 +373,17 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(185px,1fr))",
         gap:"14px 18px",paddingTop:16}}>
         {numericActorControls.map(c=>actorNumber(c.id,c.label,c.min,c.max,c.step))}
-      </div><p style={small}>Existing gesture, blink, gaze and viseme tracks remain tied to their approved character revision and one absolute film clock.</p>
+      </div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:20,paddingTop:17}}>
+        {(["speech","gaze","greet","bow","blink"] as const).map(k=>
+          <label key={k} style={{display:"flex",alignItems:"center",gap:7,font:"600 13px system-ui"}}>
+            <input type="checkbox" aria-label={"Enable "+k} checked={actor[k]}
+              onChange={e=>updateActor({[k]:e.target.checked})}/>
+            {k==="greet"?"Hand greeting":k==="gaze"?"Eye tracking":k==="bow"?"Bow gesture":
+              k==="speech"?"Speech visemes":"Natural blinks"}
+          </label>)}
+      </div>
+      <p style={small}>All performance channels sample the same absolute film frame. Acting pace is an explicit deterministic time remap; actual speech phoneme alignment must be supplied by the production pipeline.</p>
     </details>}
     <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
       <button type="button" style={button} aria-expanded={exportVisible} onClick={()=>{
@@ -377,6 +394,7 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
         setCameras(old=>({...old,[mode]:{...DEFAULT_INK_CAMERA}}));
         setReveals(old=>({...old,[mode]:{...DEFAULT_INK_REVEAL}}));
         if(mode==="character")setActor({...DEFAULT_INK_ACTOR});
+        if(mode==="documentary")setLook("literati");
         setJsonError("");
       }}>Reset style parameters</button>
     </div>

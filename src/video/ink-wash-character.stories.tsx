@@ -66,11 +66,18 @@ function Captions({frame,aspect}:{frame:number;aspect:Aspect}) {
 /** Same absolute frame, rig, audio cues and native per-part pigment for preview and production. */
 export interface InkActorFilmControls {
   x: number; y: number; scale: number;
+  /** Explicit time remap of both authored gait and acting cues, not a second clock. */
+  actingRate: number;
+  /** Relative blink cadence applied to the existing deterministic eye controller. */
+  blinkRate: number;
+  speech: boolean; gaze: boolean; greet: boolean; bow: boolean; blink: boolean;
   /** Separate controls for wet cloth and crisp expressive facial contours. */
   clothBleed: number; faceBleed: number;
 }
 export const DEFAULT_INK_ACTOR: InkActorFilmControls = {
-  x:0,y:0,scale:1,clothBleed:1,faceBleed:0,
+  x:0,y:0,scale:1,actingRate:1,blinkRate:1,
+  speech:true,gaze:true,greet:true,bow:true,blink:true,
+  clothBleed:1,faceBleed:0,
 };
 export function InkPerformanceFilm({
   frame,aspect="landscape",mineral=false,reducedMotion=false,material,camera,actor,reveal,
@@ -97,9 +104,12 @@ export function InkPerformanceFilm({
   const actorTrack=useMemo(()=>{
     const base=placeActor(aspect);
     if(!actor)return base;
-    if(![actor.x,actor.y,actor.scale,actor.clothBleed,actor.faceBleed].every(Number.isFinite) ||
+    if(![actor.x,actor.y,actor.scale,actor.actingRate,actor.blinkRate,actor.clothBleed,actor.faceBleed].every(Number.isFinite) ||
       actor.x < -250 || actor.x > 250 || actor.y < -250 || actor.y > 250 ||
       actor.scale < .5 || actor.scale > 1.5 ||
+      actor.actingRate < .5 || actor.actingRate > 2 ||
+      actor.blinkRate < .5 || actor.blinkRate > 2 ||
+      ["speech","gaze","greet","bow","blink"].some(k=>typeof actor[k as keyof InkActorFilmControls]!=="boolean") ||
       actor.clothBleed < 0 || actor.clothBleed > 1 ||
       actor.faceBleed < 0 || actor.faceBleed > 1)
       throw new RangeError("Ink actor settings must be finite and within the stage/material limits.");
@@ -120,7 +130,27 @@ export function InkPerformanceFilm({
     ...(camera?{camera:configureInkCamera(SHOT.camera,camera)}:{}),
     ...(reveal?{layers:SHOT.layers.map(layer=>configureInkLayer(layer,reveal,SHOT.durationFrames))}:{}),
   }:SHOT,[camera,reveal]);
-  const placement=inkActorAt(actorTrack,frame,reducedMotion);
+  const performanceFrame=Math.min(TOTAL-1,Math.round(frame*(actor?.actingRate??1)));
+  const placement=inkActorAt(actorTrack,performanceFrame,reducedMotion);
+  const performerCues=useMemo(()=>TRAVELLER_CUES.filter(c=>{
+    if(c.kind==="speech")return actor?.speech??true;
+    if(c.kind==="gaze")return actor?.gaze??true;
+    if(c.kind==="action"&&c.name==="greet")return actor?.greet??true;
+    if(c.kind==="action"&&c.name==="bow")return actor?.bow??true;
+    return true;
+  }),[actor?.speech,actor?.gaze,actor?.greet,actor?.bow]);
+  const actorDefinition=useMemo(()=>{
+    if(!actor)return INK_TRAVELLER;
+    if(!actor.blink)return {...INK_TRAVELLER,blink:undefined};
+    const b=INK_TRAVELLER.blink;
+    if(!b)return INK_TRAVELLER;
+    return {...INK_TRAVELLER,blink:{...b,
+      intervalFrames:{
+        min:Math.max(1,Math.round(b.intervalFrames.min/actor.blinkRate)),
+        max:Math.max(1,Math.round(b.intervalFrames.max/actor.blinkRate)),
+      },
+    }};
+  },[actor?.blink,actor?.blinkRate]);
   const performer=useMemo(()=>({...TRAVELLER_INSTANCE,
     skin:mineral?"mineral":undefined,
   }),[mineral]);
@@ -137,8 +167,8 @@ export function InkPerformanceFilm({
           Q${placement.x} ${placement.y-3} ${placement.x+46*placement.scale} ${placement.y+1}`}
           stroke="#26362d" strokeWidth=".65" opacity=".3" fill="none"/>
       </svg>
-      <InkCharacter definition={INK_TRAVELLER} instance={performer} cues={TRAVELLER_CUES}
-        frame={frame} track={actorTrack} reducedMotion={reducedMotion}
+      <InkCharacter definition={actorDefinition} instance={performer} cues={performerCues}
+        frame={performanceFrame} track={actorTrack} reducedMotion={reducedMotion}
         absorption={spec.absorption} grain={spec.grain} partFinish={finish}
         label="A robed traveller holding a bamboo brush walks, greets and bows"/>
     </div>:null}>
