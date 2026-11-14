@@ -91,9 +91,9 @@ export function InkWash({
       return <g key={stroke.id} data-km-ink-stroke={stroke.id} data-km-ink-spread={state.spread.toFixed(3)}
         pointerEvents="none" style={{ mixBlendMode: "multiply" }}>
         {/* Capillary fringe is geometry grown outward from the authored stroke, not a blurred scene. */}
-        {state.spread > 0 && bleedWidth > 0 && <path d={halo} fill={color} filter={"url(#" + uid + "-fringe)"}
+        {state.spread > 0 && bleedWidth > 1 && <path d={halo} fill={color} filter={"url(#" + uid + "-fringe)"}
           opacity={Math.min(.28, baseAlpha * .17 * state.spread * (1 - .18 * state.dry))}/>}
-        {state.spread > 0 && bleedWidth > 0 && <path d={wash} fill={color} filter={"url(#" + uid + "-wash)"}
+        {state.spread > 0 && bleedWidth > 1 && <path d={wash} fill={color} filter={"url(#" + uid + "-wash)"}
           opacity={Math.min(.47, baseAlpha * .24 * state.spread)}/>}
         <g mask={"url(#" + uid + "-tooth)"}>
           <path d={core} fill={color} opacity={baseAlpha * (.86 + .14 * state.absorbed)}
