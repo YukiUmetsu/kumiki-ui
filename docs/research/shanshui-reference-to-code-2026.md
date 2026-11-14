@@ -416,3 +416,62 @@ foot checks alone do not demonstrate natural garment/leg acting. Future
 work needs a proper split-hem acting rig with meaningful alternating cloth
 silhouette drawings, plus filmed foot-contact evidence. Do not call this
 finished character motion based only on the current pass.
+
+
+## Gait-driven opaque robe panels — craft and acceptance (2026-11-14)
+
+### Image-to-rig art decision
+
+The last five-frame river-reader MP4 crop showed the single fixed garment
+silhouette sitting over moving shoe dots. This is a structural animation
+failure, not a problem solved by adding more hatching. Historical Chinese
+figure painting uses distinct **flowing-cloud/silk-thread garment contours**
+to describe directional drape and fold weight, not rows of unmodulated
+parallel lines. Compare the line examples in the
+[Asian Art Museum's figure-painting brush reference](https://education.asianart.org/wp-content/uploads/sites/6/2019/09/Brushstrokes.pdf),
+especially flowing-cloud and willow-leaf contours, and the historical
+garments in the [Metropolitan Museum Chinese painting exhibition](https://www.metmuseum.org/exhibitions/listings/2020/chinese-painting-calligraphy).
+Those are references to understand the construction language, *not*
+source artwork copied into the repo.
+
+### Code implementation
+
+- The lower garment now comprises **two original opaque SVG panels**,
+  independently sculpted from the established waist, hip and hem landmarks.
+  Both belong to the body hierarchy and overlap a solid underlying robe.
+  Neither panel is an animated translucent mask or a detached image layer.
+- `bakeShanshuiWalkingHem(plan,fit,amount,lastFrame)` samples the same
+  **world-locked foot targets** that place the two shoes, converting each
+  target back to figure-design coordinates. Contralateral sway and a small
+  delayed phase create alternating hem arcs while keeping both hip pivots
+  in place. Exact frame seeking is deterministic; speed gates suppress
+  movement after the walking route settles.
+- A 0% cloth value yields exact zero panel corrections. Offsets and angles
+  remain deliberately bounded; the face, hand–scroll grip and existing foot
+  IK are not replaced. Revision IDs increment for modified character assets.
+- The existing **Film Gallery** retains its adjustable cloth intensity.
+  The new **Garment motion · three gait phases** Storybook story is under the
+  SAME Chinese Ink / Shanshui / Film Gallery sidebar hierarchy. It renders
+  real adjacent film samples with controls for scene, stride phase and detail.
+- Unit tests validate the connected opaque geometry, motion bounds,
+  deterministic tracks, complete settling and distinct left/right timing.
+  Chromium captures frames 60/73/86 and the three-phase design studio.
+
+### Release criteria
+
+**Technical:** typecheck; Shanshui unit + Playwright quality jobs;
+no SVG/React invalid-frame errors when playing/replaying; deterministic
+paper-frame seek; one complete H.264 proof.
+
+**Artistic:** actually compare frames 60/73/86 and film playback. Look for
+real weight transfer at the hem, changing negative space above shoe tops,
+no doubled hems or unwanted transparent paper holes, continuous painted
+folds, and preserved planted-foot contact. If these cannot be observed at
+native 960×540, revise the silhouette/cels; do not market the panel
+correction as natural cloth physics. The current solver is **2.5D controlled
+animation**, not a 3D cloth simulation or an independently validated
+historical costume reconstruction.
+
+**Still open:** natural hand-and-sleeve deformation during grasp; visible
+toe-to-heel acting, varied scenic/character shot direction and close-up
+expression timing. Green software tests alone cannot approve the art.
