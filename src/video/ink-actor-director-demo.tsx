@@ -60,7 +60,7 @@ const WALKING_TRAVELLER_BASE: CharacterDefinition={
   capabilities:[...INK_TRAVELLER.capabilities,"world-foot-contact","two-bone-ik"],
 };
 /**
- * Part-attached, original costume drawings. The eighteenth-century figure-painting
+ * Part-attached, original costume drawings. Traditional Chinese figure-painting
  * line languages suggest flowing silk-thread contours, iron-wire folds and dry,
  * interrupted bristle marks. The paths are authored in the EXISTING art's
  * 260 × 340 design coordinates and therefore move with parent limb joints.
