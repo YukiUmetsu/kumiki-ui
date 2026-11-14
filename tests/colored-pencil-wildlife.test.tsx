@@ -43,6 +43,13 @@ describe("fine-feathered paper-native wildlife craft", () => {
     expect(before["copperbird-foot-far"]).toBe(tilted["copperbird-foot-far"]);
     expect(before["copperbird-foot-near"]).toBe(blink["copperbird-foot-near"]);
     expect(at(255)).toEqual(tilted);
+    // Covert/primary detail moves once with the main wing, not twice at its joint.
+    const posed = evaluatePencilActorRegions(actor, 255);
+    const main = posed.find(region => region.id === "copperbird-wing-main")!;
+    const covert = posed.find(region => region.id === "copperbird-wing-coverts")!;
+    const primary = posed.find(region => region.id === "copperbird-wing-primaries")!;
+    expect(covert.transform).toContain(main.transform + " translate(0 0) rotate(0");
+    expect(primary.transform).toContain(main.transform + " translate(0 0) rotate(0");
   });
 
   it("places solid paper support behind finished pigment, not at frame zero", () => {
@@ -96,7 +103,9 @@ describe("fine-feathered paper-native wildlife craft", () => {
     expect(portrait.actors![0].parts.find(part => part.id === "wing-main")!.region.details)
       .toEqual(wingRegion.details);
     const stage = (frame: number) => renderToStaticMarkup(<PencilScene scene={scene} frame={frame}/>);
-    expect(stage(350)).toEqual(stage(350));
+    const finished = stage(350);
+    stage(120);
+    expect(stage(350)).toBe(finished);
     expect(stage(350)).toContain("M106.00 181.00");
     expect(stage(120)).not.toBe(stage(350));
   });
