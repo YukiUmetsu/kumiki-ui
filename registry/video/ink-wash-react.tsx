@@ -88,15 +88,30 @@ export function InkWash({
       const wash = inkOutline(stroke, seed + 7, state.deposit, bleedWidth * state.spread * .37);
       const core = inkOutline(stroke, seed, state.deposit);
       const samples = inkSamples(stroke, state.deposit);
+      const oriented = stroke.brush === "oblique" || stroke.tipInk !== undefined;
+      const m = samples[Math.floor(samples.length * .45)] ?? samples[0];
+      const gradientId = uid + "-load-" + i;
+      const tipInk = stroke.tipInk ?? .65;
+      const gx = m ? stroke.width * m.nx : 0, gy = m ? stroke.width * m.ny : 0;
       return <g key={stroke.id} data-km-ink-stroke={stroke.id} data-km-ink-spread={state.spread.toFixed(3)}
         pointerEvents="none" style={{ mixBlendMode: "multiply" }}>
+        {/* The tip is darker on one side of a loaded, oblique brush. Geometry,
+             not a filter over the completed shot, carries that variation. */}
+        {oriented && m && <defs>
+          <linearGradient id={gradientId} gradientUnits="userSpaceOnUse"
+            x1={m.x - gx} y1={m.y - gy} x2={m.x + gx} y2={m.y + gy}>
+            <stop offset="0%" stopColor={color} stopOpacity={.2 + (1 - tipInk) * .6}/>
+            <stop offset="41%" stopColor={color} stopOpacity={.52 + (1 - tipInk) * .27}/>
+            <stop offset="100%" stopColor={color} stopOpacity={1}/>
+          </linearGradient>
+        </defs>}
         {/* Capillary fringe is geometry grown outward from the authored stroke, not a blurred scene. */}
         {state.spread > 0 && bleedWidth > 1 && <path d={halo} fill={color} filter={"url(#" + uid + "-fringe)"}
           opacity={Math.min(.28, baseAlpha * .17 * state.spread * (1 - .18 * state.dry))}/>}
         {state.spread > 0 && bleedWidth > 1 && <path d={wash} fill={color} filter={"url(#" + uid + "-wash)"}
           opacity={Math.min(.47, baseAlpha * .24 * state.spread)}/>}
         <g mask={"url(#" + uid + "-tooth)"}>
-          <path d={core} fill={color} opacity={baseAlpha * (.86 + .14 * state.absorbed)}
+          <path d={core} fill={oriented ? "url(#" + gradientId + ")" : color} opacity={baseAlpha * (.86 + .14 * state.absorbed)}
             filter={stroke.water > .75 ? "url(#" + uid + "-wash)" : undefined}
             mask={"url(#" + uid + "-dry-" + i + ")"}/>
         </g>
