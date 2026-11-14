@@ -186,6 +186,11 @@ export function crayonWildlifePortraitScene(
     "Q96 19 59 49Q71 -23 35 -97Z",
     {x:-21,y:-168,width:159,height:224},C.shadow,
     {parentId:"head",spacing:11,outlineOpacity:.05});
+  wax("forehead-sun-plane",
+    "M-119 -99Q-85 -152 -26 -147Q20 -134 39 -104"+
+    "Q-38 -109 -69 -53Q-100 -61 -119 -99Z",
+    {x:-126,y:-156,width:170,height:110},C.warm,
+    {parentId:"head",spacing:9,pressure:.89});
   // The orbital ridge, high nasal bridge and sloped zygomatic planes
   // are distinct connected structures, not a large circular face mask.
   wax("orbital-structure",
@@ -203,11 +208,6 @@ export function crayonWildlifePortraitScene(
     "Q-188 -5 -164 -7Q-125 -13 -99 -34Z",
     {x:-217,y:-85,width:127,height:95},C.cream,
     {parentId:"head",spacing:8.1,pressure:.78,outlineOpacity:0});
-  wax("forehead-sun-plane",
-    "M-119 -99Q-85 -152 -26 -147Q20 -134 39 -104"+
-    "Q-38 -109 -69 -53Q-100 -61 -119 -99Z",
-    {x:-126,y:-156,width:170,height:110},C.warm,
-    {parentId:"head",spacing:9,pressure:.89});
   wax("cheek-warm-plane",
     "M-112 -45Q-67 -70 -28 -42Q8 -15 -9 26"+
     "Q-38 67 -80 59Q-122 38 -138 -3Z",
