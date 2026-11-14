@@ -57,6 +57,13 @@ for(const output of ["landscape","portrait"] as const){
       await page.getByRole("button",{name:label}).click();
       const canvas=page.getByRole("img",{name:/original watercolor illustration/});
       await expect(canvas).toBeVisible();
+      const portraitCameras=[
+        "translate(-1040 -148) scale(2)",
+        "translate(-1410 -293) scale(2.22)",
+        "translate(-1280 -243) scale(2.2)",
+      ];
+      await expect(canvas.locator("g[transform]").first()).toHaveAttribute(
+        "transform",output==="portrait"?portraitCameras[i]:"translate(-447 -159) scale(1.46)");
       await expect(subject).toHaveAttribute("data-km-wet-paper-region-count",/^[1-9][0-9]*$/);
       await canvas.screenshot({animations:"disabled",
         path:info.outputPath("wm5-full-canvas-"+output+"-"+i+".png")});

@@ -167,21 +167,21 @@ export function watercolourSubjectSpec(study:WatercolourStudy,seed=83,
     }
   }else if(study==="estuary"){
     const hills:PaintPoint[]=[
-      {x:354,y:318},{x:387,y:311},{x:420,y:301},{x:458,y:299},
+      {x:0,y:331},{x:195,y:322},{x:354,y:318},{x:387,y:311},{x:420,y:301},{x:458,y:299},
       {x:490,y:296},{x:525,y:282},{x:555,y:285},{x:605,y:293},
       {x:634,y:289},{x:675,y:277},{x:716,y:280},{x:744,y:282},
-      {x:781,y:282},{x:835,y:277},{x:883,y:284},{x:941,y:290},
-      {x:941,y:357},{x:354,y:354},
+      {x:781,y:282},{x:835,y:277},{x:883,y:284},{x:960,y:290},
+      {x:960,y:358},{x:354,y:354},{x:0,y:359},
     ];
     const distant:PaintPoint[]=[
-      {x:354,y:350},{x:403,y:340},{x:468,y:345},{x:540,y:339},
+      {x:0,y:358},{x:209,y:348},{x:354,y:350},{x:403,y:340},{x:468,y:345},{x:540,y:339},
       {x:610,y:336},{x:682,y:341},{x:747,y:330},{x:807,y:337},
-      {x:880,y:333},{x:941,y:341},{x:941,y:377},{x:354,y:377},
+      {x:880,y:333},{x:960,y:341},{x:960,y:380},{x:354,y:377},{x:0,y:380},
     ];
     const sea:PaintPoint[]=[
-      {x:353,y:373},{x:450,y:367},{x:515,y:370},{x:600,y:365},
-      {x:682,y:369},{x:754,y:365},{x:840,y:374},{x:941,y:368},
-      {x:941,y:493},{x:353,y:493},
+      {x:0,y:384},{x:230,y:376},{x:353,y:373},{x:450,y:367},{x:515,y:370},{x:600,y:365},
+      {x:682,y:369},{x:754,y:365},{x:840,y:374},{x:960,y:368},
+      {x:960,y:540},{x:0,y:540},
     ];
     add(hills,"distant-blue",610,313,115,"#6A8393",.62,29);
     add(hills,"distant-cool",785,314,106,"#77949A",.38,53);
@@ -227,7 +227,7 @@ export function watercolourSubjectSpec(study:WatercolourStudy,seed=83,
     add(garden,"garden-ochre",872,432,44,"#B1A36A",.32,155);
   }
   return {
-    version:1,width:960,height:540,seed:seed+101,
+    version:1,width:960,height:540,seed:(seed+101)%2147483648,
     paper:{color:"#F8F3E8",tooth:material.tooth},cellSize:16,
     flow:material.flow,granulation:material.granulation,
     edgePooling:.9,dryFrames:170,paintAreas,drops,
@@ -383,25 +383,25 @@ function EstuaryArt({frame,washFilter}:{frame:number;washFilter:string}) {
     <g filter={washFilter} opacity={fade}>
       {/* Four atmospheric depth planes: irregular geology, lost edges and
           negative spaces, not machine-cut rectangular mountain bands. */}
-      <path d="M354 318 C387 310 420 299 458 298
+      <path d="M0 329 Q184 321 354 318 C387 310 420 299 458 298
         Q478 291 493 296 Q525 275 554 284
         C579 279 604 292 635 289 Q654 271 682 279
         Q711 268 743 281 Q770 271 796 287
         Q832 272 856 282 C890 280 914 289 939 290
-        L943 338 Q885 334 839 342 Q790 336 748 342
+        L960 338 Q885 334 839 342 Q790 336 748 342
         Q698 334 652 347 C593 339 545 350 497 344
-        Q428 352 354 348 Z" fill="#859AA8" opacity=".21"/>
-      <path d="M354 328 Q390 323 410 328 Q448 314 486 327
+        Q428 352 354 348 Q169 351 0 358 Z" fill="#859AA8" opacity=".21"/>
+      <path d="M0 344 Q179 339 354 328 Q390 323 410 328 Q448 314 486 327
         Q526 312 566 333 Q604 310 630 320
         C669 300 707 310 733 324 Q773 309 816 317
-        Q873 308 942 324 L942 357 Q872 352 820 362
+        Q873 308 960 324 L960 357 Q872 352 820 362
         Q741 350 677 366 Q598 358 533 363
-        Q437 350 354 364 Z" fill="#7C919D" opacity=".18"/>
-      <path d="M354 360 C407 356 447 349 497 357
+        Q437 350 354 364 Q173 365 0 373 Z" fill="#7C919D" opacity=".18"/>
+      <path d="M0 371 Q187 369 354 360 C407 356 447 349 497 357
         C541 352 582 362 629 356 Q664 346 706 358
-        Q761 350 800 361 Q862 349 941 357
-        L941 382 Q876 382 839 391 C776 381 737 388 680 390
-        Q606 384 547 390 Q439 381 354 391 Z" fill="#6D959E" opacity=".15"/>
+        Q761 350 800 361 Q862 349 960 357
+        L960 382 Q876 382 839 391 C776 381 737 388 680 390
+        Q606 384 547 390 Q439 381 354 391 Q185 385 0 398 Z" fill="#6D959E" opacity=".15"/>
       <path d="M380 305 Q457 289 511 297 M599 308 Q662 283 713 295"
         stroke="#A4ABB0" strokeWidth="7" opacity=".12" fill="none"/>
     </g>
@@ -570,8 +570,16 @@ export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false
   artOnly?:boolean;
 }) {
   const portrait=spec.height>spec.width;
+  const artOnlyPortraitCameras:Record<WatercolourStudy,string>={
+    // Crop by a subject-specific camera without distorting its proportions.
+    // Wildlife/botany, water/boat and the architectural facade need
+    // different focal heights to fill a true 9:16 film frame.
+    botanical:"translate(-1040 -148) scale(2)",
+    estuary:"translate(-1410 -293) scale(2.22)",
+    courtyard:"translate(-1280 -243) scale(2.2)",
+  };
   const artTransform=artOnly
-    ?(portrait?"translate(-415 164) scale(1.12)":"translate(-447 -159) scale(1.46)")
+    ?(portrait?artOnlyPortraitCameras[study]:"translate(-447 -159) scale(1.46)")
     :(portrait?"translate(-280 275) scale(.85)":undefined);
   const word=story[study];
   const washId="wm4-subject-"+useId().replace(/[^a-zA-Z0-9_-]/g,"");

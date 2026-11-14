@@ -91,7 +91,7 @@ describe("WM5 artist-built subject masks and real drying-front transport",()=>{
       expect((html.match(/data-km-wet-paper=""/g)??[]).length).toBe(2);
       expect(html).not.toContain("WATERCOLOUR / ORIGINAL STUDIES");
       expect(html).toContain(output==="portrait"?
-        "translate(-415 164) scale(1.12)":"translate(-447 -159) scale(1.46)");
+        "translate(-1410 -293) scale(2.22)":"translate(-447 -159) scale(1.46)");
     }
   });
 
