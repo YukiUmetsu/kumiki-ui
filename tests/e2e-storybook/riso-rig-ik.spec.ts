@@ -55,12 +55,17 @@ test("RISO3 magnified rig: real stance foot planting, gait close-ups, FK compari
   await setFrame(page,10);
   const left=stage.locator('[data-km-riso-foot-target="left-foot-lock"]');
   await expect(left).toHaveCount(1);
+  await expect(stage.locator('[data-km-riso-grip-target="satchel-handhold"]')).toHaveCount(1);
   const targetX=await left.locator("circle").getAttribute("cx");
   const targetY=await left.locator("circle").getAttribute("cy");
   const hip=stage.locator('[data-km-riso-joint="left-leg"]');
   const initialHip=Number(await hip.getAttribute("cx"));
   await stage.screenshot({path:info.outputPath("riso3-stance-planted.png"),animations:"disabled"});
   await setFrame(page,36);
+  await expect(stage.locator('[data-km-riso-grip-target="satchel-handhold"]')).toHaveCount(1);
+  const gripError = Number(await stage.locator('[data-km-riso-grip-target="satchel-handhold"]')
+    .getAttribute("data-km-riso-ik-error"));
+  expect(gripError).toBeLessThan(.001);
   await expect(left.locator("circle")).toHaveAttribute("cx",targetX!);
   await expect(left.locator("circle")).toHaveAttribute("cy",targetY!);
   expect(Math.abs(Number(await hip.getAttribute("cx"))-initialHip)).toBeGreaterThan(10);
