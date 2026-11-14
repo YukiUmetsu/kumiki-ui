@@ -30,6 +30,16 @@ for(const actor of [
     await expect(svg).toHaveAttribute("data-km-riso-sheet-feature",actor.part);
     await expect(svg.locator("[data-km-riso-selected-source-detail]")).toHaveCount(1);
     await expect(svg.locator("[data-km-riso-selected-source-triangle]").first()).toBeVisible();
+    const detail=page.getByRole("combobox",{name:"Character sheet mesh density"});
+    await expect(detail).toHaveValue("fine");
+    await expect(svg).toHaveAttribute("data-km-riso-mesh-detail","fine");
+    const fineTriangles=await svg.locator("[data-km-riso-selected-source-triangle]").count();
+    await detail.selectOption("coarse");
+    await expect(svg).toHaveAttribute("data-km-riso-mesh-detail","coarse");
+    const coarseTriangles=await svg.locator("[data-km-riso-selected-source-triangle]").count();
+    expect(fineTriangles).toBeGreaterThanOrEqual(coarseTriangles);
+    await detail.selectOption("fine");
+    await expect(svg).toHaveAttribute("data-km-riso-mesh-detail","fine");
     const measure=actor.slug==="courier"?"interocular":"eye-to-beak";
     await expect(page.locator('[data-km-riso-measurement="'+measure+'"]')).toHaveCount(1);
     await expect(svg.locator(`[data-km-riso-focused-region="${actor.part}"]`)).toHaveCount(1);
