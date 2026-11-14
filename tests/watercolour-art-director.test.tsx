@@ -35,6 +35,37 @@ describe("WC9 ArtCraft-inspired reusable watercolour illustration scene", () => 
     });
   }
 
+  it("supports bounded optical pigments with real shape-level glazing and pooling", () => {
+    const spec = watercolorWetlandSpec("landscape");
+    expect(inspectWatercolourArtwork(spec)).toEqual([]);
+    const html = renderToStaticMarkup(<WatercolourIllustration spec={spec}
+      frame={265}/>);
+    expect(html).toContain('data-km-watercolour-optical-glaze="heron-body"');
+    expect(html).toContain('data-km-watercolour-optical-glaze="upper-scapular"');
+    expect(html).toContain('data-km-watercolour-edge-pooling="heron-body"');
+    expect(html).toContain("linearGradient");
+
+    const plain: WatercolourArtPart = {
+      kind:"path", id:"test-pigment", path:"M1 1 L10 1 L10 10 Z",
+      technique:"wash", fill:"#526C7A",
+      wash:{highlight:"#F1ECDD",shadow:"#314B61",
+        glaze:{pigment:"#BCA38F",opacity:.18},edgePooling:.36},
+    };
+    expect(inspectWatercolourArtwork({...spec,parts:[plain]})).toEqual([]);
+    const broken = {...plain,wash:{...plain.wash,edgePooling:2}};
+    expect(inspectWatercolourArtwork({...spec,parts:[broken as WatercolourArtPart]}))
+      .toContain("/parts/0/wash/edgePooling");
+    const invalidColor = {...plain,wash:{...plain.wash,highlight:"url(javascript:alert(1))"}};
+    expect(inspectWatercolourArtwork({...spec,parts:[invalidColor as WatercolourArtPart]}))
+      .toContain("/parts/0/wash/highlight");
+    const invalidGlaze = {...plain,wash:{glaze:{pigment:"#123456",opacity:-.1}}};
+    expect(inspectWatercolourArtwork({...spec,parts:[invalidGlaze as WatercolourArtPart]}))
+      .toContain("/parts/0/wash/glaze");
+    const dryBrush = {...plain,technique:"drybrush" as const};
+    expect(inspectWatercolourArtwork({...spec,parts:[dryBrush]}))
+      .toContain("/parts/0/wash");
+  });
+
   it("animates source geometry from absolute frames, preserving grounded pivots", () => {
     const spec = watercolorWetlandSpec("landscape");
     const root = spec.parts[0];
