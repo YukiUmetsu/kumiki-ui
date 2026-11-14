@@ -109,7 +109,7 @@ export function readerCrownRegions(detail=1):
   ];
   if(mid)rearTopknot.push(
     brush([173,48.2],[177.2,56.1],[173.7,62.5],[170.2,66.7],
-      .72,712,"$paper",.52),
+      .7,712,"$wash",.42),
   );
   const frontTopknot:CharacterPathShape[]=[
     // Two distinct turning planes (upper bulb and folded throat), not a
@@ -128,7 +128,7 @@ export function readerCrownRegions(detail=1):
   ];
   if(mid)frontTopknot.push(
     brush([157.7,36.4],[162.8,45.2],[160.1,55.2],[157,60.1],
-      .81,723,"$paper",.53),
+      .78,723,"$shadow",.45),
     p("M138.7 55 Q139.1 46.1 142.6 40.2",
       "none","$wash",.82,.63),
   );
@@ -139,6 +139,12 @@ export function readerCrownRegions(detail=1):
     // Pigment gathers behind the seam at the far forehead turn.
     p("M146 63.6 C156 64.1 166.9 70.8 169.9 81.2 C160.9 76.3 151.7 72.9 140.5 72.5 C141.2 69.4 143.2 66.7 146 63.6 Z",
       "$deep","none",0,.25),
+    // Broken, pooled side-wash is a large pigment plane, not a brighter
+    // pencil-like highlight. Preserve open paper between ink bands.
+    p("M117.3 77.8 C125.9 68.5 137.8 65.2 147.1 65.7 C139.6 68.3 129.4 73.8 123 81.1 C119.9 82.5 117.4 83.2 115.9 84.5 Z",
+      "$ink","none",0,.16),
+    p("M156.1 69.5 C164.2 71.5 169.2 77.4 170.1 83.1 C165.3 77.9 160.7 75.2 154.1 74.2 Z",
+      "$ink","none",0,.13),
   ];
   const foreheadBand:CharacterPathShape[]=[
     // IMPORTANT: source's front band falls DOWN to the right. Old band
@@ -149,7 +155,7 @@ export function readerCrownRegions(detail=1):
       "none","$ink",1.18,.8),
     // Silk edging is a broken fine contour, not a second uniform stripe.
     brush([116.4,85.5],[130.7,82.2],[141.5,82.6],[155.5,86.3],
-      .92,731,"$paper",.54),
+      .72,731,"$wash",.42),
   ];
   const foldLines:CharacterPathShape[]=[
     // Three distinctive fan-like dry brushes originate near the lower-left
@@ -165,15 +171,24 @@ export function readerCrownRegions(detail=1):
     brush([117.1,79.9],[123.4,72.2],[128.2,71.2],[135.3,70.6],
       1.08,744,"$ink",.66),
     brush([132.1,64.2],[143.6,62],[155.9,66.8],[162.2,72.7],
-      .74,745,"$paper",.54),
+      .68,745,"$shadow",.47),
   );
+  // Three observed structural zones get irregular, fine dark-fibre grain:
+  // (i) gathered band root, (ii) vertical folds of the tall front lobe,
+  // (iii) lower right cap turn. No uniform decorative noise elsewhere.
   const dryGrain:CharacterPathShape[]=[];
-  if(mid)for(let i=0;i<(high?11:5);i++){
-    const x=124+(i*4.2)%36,y=71+((i*7)%12);
-    const dx=(i%3===0?-2.5:2)+i*.14;
-    dryGrain.push(brush([x,y],[x+dx*.3,y-2.7],
-      [x+dx*.83,y-4.1],[x+dx,y-4.6],.18+(i%3)*.14,
-      801+i,i%4===0?"$paper":"$ink",i%4===0?.4:.27));
+  if(mid)for(let i=0;i<(high?24:9);i++){
+    const cluster=i%3,order=Math.floor(i/3);
+    const x=cluster===0?118+(order*3.7)%27:
+      cluster===1?140+(order*2.4)%17:151+(order*2.3)%18;
+    const y=cluster===0?74-(x-118)*.16+(order%2)*1.1:
+      cluster===1?38+(order*4.1)%19:72+(order*2.5)%11;
+    const dx=cluster===0?3.6:cluster===1?-1.2:2.4;
+    const dy=cluster===1?5.1:-2.9;
+    dryGrain.push(brush([x,y],[x+dx*.23,y+dy*.22],
+      [x+dx*.66,y+dy*.7],[x+dx,y+dy],
+      .25+(order%3)*.13,801+i,
+      order%4===0?"$deep":"$ink",.2+(order%3)*.085));
   }
   const map:Record<ReaderCrownRegion,CharacterPathShape[]>={
     "trailing-silk":trailingSilk,
