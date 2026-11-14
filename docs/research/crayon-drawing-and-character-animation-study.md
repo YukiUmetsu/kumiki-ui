@@ -57,8 +57,8 @@ a softly drawn background → flower details and a small acting payoff. Moving p
 mouth/eye cues begin only after drawing construction has completed.
 
 Interactive previews:
-- **Video production / Film Looks / Crayon Scene Engine / Character Draw In**
-- **Video production / Film Looks / Crayon Scene Engine / Character Draw In Portrait**
+- **Video production / Film Looks / Crayon / Scene Engine / Character Draw In**
+- **Video production / Film Looks / Crayon / Scene Engine / Character Draw In Portrait**
 
 Storybook controls compare outline-first and fill-first, outline duration,
 wax glaze, paper tooth, speed, loop and exact frame. Core CRAYON1 remains
