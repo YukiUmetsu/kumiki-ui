@@ -9,6 +9,8 @@ import type {CharacterPart,CharacterShapeAsset,CharacterPoseDelta,CharacterVec2}
 import type {ShanshuiScene} from "../../registry/video/ink-shanshui";
 import {SHANSHUI_TEACHER_MESHES,SHANSHUI_LEGACY_PUPPET_MESH} from
   "./ink-shanshui-teacher-mesh";
+import {shanshuiRoute} from "../../registry/video/ink-shanshui";
+import type {InkRoutePlan} from "../../registry/video/ink-actor-director";
 
 type P=CharacterVec2;
 const n=(v:number)=>Number(v.toFixed(2));
@@ -76,7 +78,7 @@ export function shanshuiBodyFit(scene:ShanshuiScene):ShanshuiBodyFit{
   const nearSide=scene==="river-scholar"?"right":"left";
   const skull=s.box("skull"),face=s.box("face");
   const old=SHANSHUI_LEGACY_PUPPET_MESH.regions.skull!;
-  const headScale=n(skull.height/old.height);
+  const headScale=Math.max(.49,Math.min(1,skull.height/old.height));
   const headPivot={x:139,y:124};
   const faceTopInArt=65,faceCenterInArt=139.5;
   const headRest:CharacterPoseDelta={
@@ -323,4 +325,19 @@ export function applyShanshuiBodyFit(
       default:return part;
     }
   });
+}
+
+/** Reblock the complete figure at the teacher's 16:9 scale and ground point.
+ * All four original walk keys move together and retain smooth film pacing.
+ */
+export function shanshuiFittedRoute(scene:ShanshuiScene):InkRoutePlan{
+  const route=shanshuiRoute(scene),fit=shanshuiBodyFit(scene);
+  const final=route.waypoints[route.waypoints.length-1];
+  const offsetX=fit.stageCenterX-final.x;
+  const offsetY=fit.stageFootY-final.y;
+  const baseScale=final.scale??1;
+  return {...route,waypoints:route.waypoints.map(k=>({
+    ...k,x:n(k.x+offsetX),y:n(k.y+offsetY),
+    scale:n((k.scale??1)/baseScale*fit.stageScale),
+  }))};
 }
