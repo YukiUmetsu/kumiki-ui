@@ -52,10 +52,14 @@ test("walk animation plants, releases, and replants the correct foot on keyed st
   await expect(scene).toHaveAttribute("data-km-crayon-frame","94");
   await expect(back).toHaveAttribute("data-km-crayon-contact","planted");
   await expect(front).toHaveAttribute("data-km-crayon-contact","planted");
+  const leg=scene.locator('[data-km-crayon-element="leg-front"]');
+  await expect(leg).toHaveAttribute("data-km-crayon-kind","connector");
+  const legAtPlant=await leg.locator("path").first().getAttribute("d");
   await scene.screenshot({path:info.outputPath("walk-94.png"),animations:"disabled"});
   await page.getByRole("button",{name:"Front-foot swing"}).click();
   await expect(scene).toHaveAttribute("data-km-crayon-frame","124");
   await expect(front).not.toHaveAttribute("data-km-crayon-contact","planted");
+  expect(await leg.locator("path").first().getAttribute("d")).not.toEqual(legAtPlant);
   await page.getByRole("button",{name:"Front-foot plant"}).click();
   await expect(front).toHaveAttribute("data-km-crayon-contact","planted");
   await scene.screenshot({path:info.outputPath("walk-156.png"),animations:"disabled"});
