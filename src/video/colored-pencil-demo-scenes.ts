@@ -86,7 +86,7 @@ const SECOND_TEXT = "#637568";
  * any licensed SVG contour and its paper-local bounds. The material library stays topic-neutral.
  */
 export function pencilDemoScene(subject: PencilDemoSubject, aspect: PencilAspect): PencilSceneSpec {
-  if (!Object.hasOwn(TOPICS, subject)) throw new RangeError("Unknown pencil demo subject");
+  if (!Object.prototype.hasOwnProperty.call(TOPICS, subject)) throw new RangeError("Unknown pencil demo subject");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Unknown paper aspect");
   const model = TOPICS[subject], portrait = aspect === "portrait";
   const width = portrait ? 540 : 960, height = portrait ? 960 : 540;

@@ -1,0 +1,68 @@
+name: Ink Character Director Proof
+
+# Visual and test cost is scoped to INK4 changes, not every Kumiki-UI PR.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/ink-actor-director-qa.yml"
+      - "registry/video/ink-actor-director.ts"
+      - "registry/video/ink-figure-craft.ts"
+      - "registry/video/ink-figure-motion.ts"
+      - "registry/video/ink-wash-character.ts"
+      - "src/video/ink-actor-director*"
+      - "tests/ink-actor-director*"
+      - "tests/ink-figure-craft.test.ts"
+      - "tests/ink-figure-motion.test.ts"
+      - "tests/e2e-storybook/ink-actor-director.spec.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ink4-director-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  directed-actor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Pure C1 spline, inverse kinematics and per-part acting tests
+        run: npx vitest run --project unit tests/ink-actor-director.test.ts tests/ink-actor-director-demo.test.tsx tests/ink-figure-craft.test.ts tests/ink-figure-motion.test.ts
+      - name: Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Actual original ink character, contact poses and deterministic seek screenshots
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-actor-director.spec.ts
+      - name: FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Encode original character performance using production Storybook exporter
+        run: npm run video:export -- --story=video-ink-character-director--production-export --startFrame=10 --frames=100 --output=dist/ink-director-landscape.mp4
+      - name: Encode 9:16 ink-character motion using frame-seek production exporter
+        run: npm run video:export -- --story=video-ink-character-director--portrait-export --startFrame=10 --frames=100 --output=dist/ink-director-portrait.mp4
+      - name: Preserve actual actor screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ink4-character-browser-evidence
+          path: test-results/
+          retention-days: 10
+          if-no-files-found: warn
+      - name: Preserve playable moving-actor video
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ink4-character-encoded-proof
+          path: dist/ink-director-*.mp4
+          retention-days: 10
+          if-no-files-found: warn

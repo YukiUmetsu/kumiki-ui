@@ -93,6 +93,64 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "editorial-collage": (specifier) => {
+    const at = name => specifier.replace(/collage-geometry$/, name);
+    return {
+      imports: [`import { CollageScene } from "${at("collage-react")}";`, `import { CollageTear } from "${at("collage-tear")}";`,
+        `import { clock, mapPin, speechBubble } from "${at("collage-kit")}";`, `import { inspectCollageScene, type CollageSceneSpec } from "${at("collage-scene")}";`,
+        `import { archivalPrint, documentScan, photoCutout, sourceLine } from "${at("collage-kit-photo")}";`],
+      componentName: "EditorialCollageConsumerExample",
+      component: `const scene: CollageSceneSpec = { version: 1, id: "consumer", width: 1280, height: 720, durationFrames: 90, seed: 4,
+  board: { material: "kraft" }, palette: { accent: "#cf3b2a" }, nodes: [
+    { id: "sheet", kind: "cutout", x: 640, y: 360, shape: { type: "rect", width: 900, height: 520 }, fill: "#f2e9d6", edge: "torn", enter: { preset: "drop", frame: 0, duration: 12 } },
+    { id: "title", kind: "text", parent: "sheet", x: -380, y: -120, text: "HEADLINE", role: "headline", size: 96, color: "#1d1b19", slip: { fill: "#ffffff", perWord: true } },
+    ...clock("clock", { x: 1000, y: 200, radius: 80, time: [{ frame: 0, hours: 9 }, { frame: 80, hours: 12 }] }),
+    ...mapPin("pin", { x: 300, y: 600, dropAt: 20 }),
+    ...speechBubble("bubble", { x: 900, y: 560, width: 260, height: 100, tail: [-40, 70], text: "HELLO", from: 30 }),
+    { id: "host", kind: "puppet", x: 200, y: 700, height: 300, look: { skin: "#c98d6a", hair: "#1d1b19", top: "accent", bottom: "#2d3142", shoes: "#1d1b19" }, actions: [{ type: "wave", start: 10, end: 80 }] },
+    ...photoCutout("subject", { x: 400, y: 300, width: 200, height: 260, href: "/subject.webp", treatment: { mode: "halftone" }, disc: { radius: 140, fill: "accent" } }),
+    ...archivalPrint("print", { x: 900, y: 300, width: 300, height: 200, href: "/print.jpg", kenBurns: { start: 0, end: 89, to: 1.1 }, tag: { text: "Place · 1900" } }),
+    ...documentScan("doc", { x: 640, y: 500, width: 300, height: 300, href: "/page.jpg", sourceWidth: 1000, sourceHeight: 1000, highlights: [{ rect: [100, 100, 600, 130], frame: 20 }] }),
+    sourceLine("credit", { text: "Source · Archive", x: 40, y: 700 }),
+  ] };
+export function EditorialCollageConsumerExample() {
+  return <div data-errors={inspectCollageScene(scene).length}>
+    <CollageScene spec={scene} frame={45} />
+    <CollageTear outgoing={scene} incoming={scene} outgoingFrame={89} incomingFrame={0} progress={.5} />
+  </div>;
+}`,
+    };
+  },
+  "ukiyoe-handscroll": (specifier) => {
+    const at = name => specifier.replace(/ukiyoe-core$/, name);
+    return {
+      imports: [`import { UkiyoeScene } from "${at("ukiyoe-react")}";`, `import { UkiyoeKasumi } from "${at("ukiyoe-transitions")}";`,
+        `import { scrollPan } from "${at("ukiyoe-core")}";`, `import { inspectUkiyoeScene, type UkiyoeSceneSpec } from "${at("ukiyoe-scene")}";`],
+      componentName: "UkiyoeConsumerExample",
+      component: `const scene: UkiyoeSceneSpec = { version: 1, id: "consumer", width: 1280, height: 720, durationFrames: 120, seed: 4,
+  palette: { preset: "twilight" }, mount: { kind: "scroll" }, printIn: { frame: 0, duration: 40 }, wind: { base: .3, gusts: [{ frame: 60, duration: 40, strength: 1.2 }] },
+  camera: { keys: scrollPan({ from: 1600, to: 640, y: 360, start: 0, end: 119 }) },
+  nodes: [
+    { id: "sky", kind: "motif", motif: "sky", depth: .3, x: -400, y: -200, params: { width: 3000, height: 800, horizon: "beni" } },
+    { id: "fuji", kind: "motif", motif: "mountain", depth: .35, x: 900, y: 460, params: { width: 600, height: 260 } },
+    { id: "sea", kind: "motif", motif: "sea", depth: .8, x: -400, y: 460, params: { width: 3000, height: 400 } },
+    { id: "wave", kind: "motif", motif: "wave", x: 700, y: 760, params: { width: 700, height: 360, breakAt: 90 }, keys: [{ frame: 0, progress: 0 }, { frame: 80, progress: 1 }] },
+    { id: "rain", kind: "particles", type: "rain", area: [0, 0, 2400, 900], count: 120 },
+    { id: "walker", kind: "figure", x: 1500, y: 680, look: { robe: "ai", hat: "kasa", prop: "umbrella" }, actions: [{ type: "walk", start: 0, end: 119, to: -600 }] },
+    { id: "oni", kind: "figure", x: 1200, y: 680, look: { build: "brute", skin: "shu", upper: "bare", lower: "loincloth", hair: "wild", face: "oni", horns: 2, prop: "kanabo" }, actions: [{ type: "talk", start: 0, end: 119 }] },
+    { id: "fox", kind: "creature", species: "fox", x: 900, y: 690, look: { tails: 9, foxfire: true }, actions: [{ type: "walk", start: 0, end: 119, to: -300 }] },
+    { id: "dragon", kind: "creature", species: "dragon", x: 1100, y: 200, look: { size: 700, pearl: true }, actions: [{ type: "fly", start: 0, end: 119, to: -400 }] },
+    { id: "peach", kind: "motif", motif: "peach", x: 400, y: 640, params: { size: 60, openAt: 80 } },
+    { id: "title", kind: "text", style: "cartouche", depth: 0, x: 1180, y: 60, align: "end", text: "波", sub: "Wave" },
+  ] };
+export function UkiyoeConsumerExample() {
+  return <div data-errors={inspectUkiyoeScene(scene).length}>
+    <UkiyoeScene spec={scene} frame={60} />
+    <UkiyoeKasumi outgoing={scene} incoming={scene} outgoingFrame={119} incomingFrame={0} progress={.5} />
+  </div>;
+}`,
+    };
+  },
   "ray-world": (specifier) => ({
     imports: [`import { RayWorldStage } from "${specifier.replace(/ray-world$/, "ray-world-react")}";`, `import type { RayWorld } from "${specifier}";`],
     componentName: "RayWorldConsumerExample",

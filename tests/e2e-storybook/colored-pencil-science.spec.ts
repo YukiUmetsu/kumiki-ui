@@ -14,12 +14,17 @@ async function seek(page: import("@playwright/test").Page, frame: number) {
     input.dispatchEvent(new Event("change", { bubbles: true }));
   }, frame);
   await expect(slider).toHaveValue(String(frame));
+  // Allow the browser to paint the new SVG filter/mask tree before capture.
+  await page.evaluate(() => new Promise<void>(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
 }
 
 test("coloured pencil remains paper-anchored at nonsequential frames in both compositions", async ({ page }, info) => {
   await page.goto("/iframe.html?id=video-colored-pencil-science--studio&viewMode=story");
   const svg = page.locator("svg[data-km-colored-pencil]");
   await expect(svg).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
   for (const aspect of ["landscape", "portrait"] as const) {
     await page.getByRole("combobox", { name: "Aspect ratio" }).selectOption(aspect);
     await expect(svg).toHaveAttribute("viewBox", aspect === "landscape" ? "0 0 960 540" : "0 0 540 960");

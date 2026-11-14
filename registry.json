@@ -3265,6 +3265,36 @@
       ]
     },
     {
+      "name": "crayon-storybook",
+      "type": "registry:ui",
+      "title": "Material-native Crayon Storybook & Scene Engine",
+      "description": "Reusable deterministic wax deposition and textured paper for JSON-authored illustrated film scenes. Original storybook art plus generic paths, contours, multi-line readable captions, authored camera motion, held-pose object animation, seeded pressure variation, and frame-addressed FilmStage slots in multiple ratios.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/materials/crayon.ts",
+          "type": "registry:ui",
+          "target": "components/video/materials/crayon.ts"
+        },
+        {
+          "path": "registry/video/materials/crayon-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/materials/crayon-react.tsx"
+        },
+        {
+          "path": "registry/video/materials/crayon-scene.ts",
+          "type": "registry:ui",
+          "target": "components/video/materials/crayon-scene.ts"
+        },
+        {
+          "path": "registry/video/materials/crayon-scene-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/materials/crayon-scene-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "riso-print",
       "type": "registry:ui",
       "title": "Risograph Spot-Ink Printing",
@@ -3295,6 +3325,252 @@
       ]
     },
     {
+      "name": "riso-character",
+      "type": "registry:ui",
+      "title": "Risograph Character Rig (RISO2)",
+      "description": "Anatomy-agnostic animated character rigs built from independent Risograph spot-ink shapes, parent-linked joints, keyed motion, blink/viseme redraws, held-frame cadence, exact seeking and FilmStage integration.",
+      "dependencies": [],
+      "registryDependencies": [
+        "riso-print"
+      ],
+      "files": [
+        {
+          "path": "registry/video/riso-character.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-character.ts"
+        },
+        {
+          "path": "registry/video/riso-character-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-character-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "watercolour-brush",
+      "type": "registry:ui",
+      "title": "Watercolour & Pressure Brush",
+      "description": "WM1 authored brush geometry and watercolor/ink deposition: pressure-width ribbons, tapered tips, stable bristle splitting, fixed-paper pigment granulation, separate diffusion/absorption/dry phases, reduced motion and exact absolute-frame seeking. SVG material renderer binds through existing FilmStage slots; no alternate clock or heavyweight dependency.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/watercolour-brush.ts",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-brush.ts"
+        },
+        {
+          "path": "registry/video/watercolour-brush-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-brush-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "watercolour-actor",
+      "type": "registry:ui",
+      "title": "Watercolour Character Staging",
+      "description": "WM3 reusable frame-addressed animated character actor stage: feet-anchored gait and shadow, paper-space watercolour part material, on-twos cadence, actual existing character rig/cues for gestures, gaze, blinking and speech; portrait and landscape compatible.",
+      "dependencies": [],
+      "registryDependencies": [
+        "character-presenter"
+      ],
+      "files": [
+        {
+          "path": "registry/video/watercolour-actor.ts",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-actor.ts"
+        },
+        {
+          "path": "registry/video/watercolour-actor-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-actor-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "painted-composition",
+      "type": "registry:ui",
+      "title": "Painted Composition / Arbitrary Watercolour Art",
+      "description": "WM2 material-native watercolor scene composer. Original arbitrary SVG silhouette washes with authored paint gestures, stable granulation, wet spread, pigment-edge pooling, reserved paper highlights, optional secondary pigment and detail lines; ordered WM1 brush strokes and masked source image layers. Frame-seek deterministic, portable 16:9/9:16 FilmStage integration; original demo scenes for nature, architecture, scientific and product illustration.",
+      "dependencies": [],
+      "registryDependencies": [
+        "watercolour-brush"
+      ],
+      "files": [
+        {
+          "path": "registry/video/painted-composition.ts",
+          "type": "registry:ui",
+          "target": "components/video/painted-composition.ts"
+        },
+        {
+          "path": "registry/video/painted-composition-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/painted-composition-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ink-brush",
+      "type": "registry:ui",
+      "title": "Material-Native Ink Brush (INK1)",
+      "description": "Frame-addressed brush marks with pressure, pace, bristle splits, and native paper-space pigment/water deposition with adjustable bleed, absorption, dry-down and stable seek. Includes a legacy SVG comparison renderer.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/ink-brush.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-brush.ts"
+        },
+        {
+          "path": "registry/video/ink-brush-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-brush-react.tsx"
+        },
+        {
+          "path": "registry/video/ink-wet-paper.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wet-paper.ts"
+        }
+      ]
+    },
+    {
+      "name": "editorial-collage",
+      "type": "registry:ui",
+      "title": "Editorial Paper Collage (COLLAGE1)",
+      "description": "Data-driven newsroom-explainer paper collage: torn and cut paper with white fibre cores and lift shadows, amplitude-modulated halftone shading and archival-print filter, tape, boiling marker and highlighter strokes, condensed headlines on pasted-up slips with measured word layout, paper maps (Natural Earth land) with routes and pins, red string, jointed paper-puppet characters with walk/run/talk/gesture actions, stop-motion cadence and boil, parallax rostrum camera, object kit, real-photo registers (cut-outs with alpha-following torn sticker borders, halftone/duotone print, Ken Burns archival prints, document scans with OCR-placed highlights and spotlight, flat-colour and dark slate boards, shaded-relief maps, label/year boxes, chapter captions) and a paper-tear transition. Pure absolute-frame evaluation; JSON scenes validated with path-specific errors.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/collage/collage-geometry.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-geometry.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-motion.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-motion.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-type.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-type.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-scene.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-scene.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-puppet.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-puppet.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-texture.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-texture.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-build.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-build.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-kit.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-kit.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-kit-photo.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-kit-photo.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-react.tsx"
+        },
+        {
+          "path": "registry/video/collage/collage-tear.tsx",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-tear.tsx"
+        },
+        {
+          "path": "registry/video/land-outline-110m.ts",
+          "type": "registry:ui",
+          "target": "components/video/land-outline-110m.ts"
+        }
+      ]
+    },
+    {
+      "name": "ukiyoe-handscroll",
+      "type": "registry:ui",
+      "title": "Ukiyo-e Woodblock & Handscroll (UKIYO1)",
+      "description": "Data-driven ukiyo-e woodblock-print and emaki handscroll film engine: colour blocks assigned to impressions light-to-dark with kento misregistration, bokashi gradients, wood-grain (itame) and baren-mottle textures, carved key-block lines and a washi skin; a print-pass reveal (key block, then colours); generated motifs (sky incl. great-wave horizon bokashi, great-wave Fuji, sea, great-wave crest with Prussian face, flecks and hooked claw rows, pine, cherry, willow, reeds, rock, suyari-gasumi clouds, sun, moon, townhouse incl. fukinuki-yatai cutaway, pagoda, torii, bridge, boats, lanterns, pier, fields, folktale peach that splits open, terraced rice paddies young/ripe/flooded); weather and particles (Hiroshige rain, snow, petals, leaves, fireflies, birds, ripples, fireworks, spray); articulated Edo figures with costumes, patterns, props and 20 layered actions, including oni (horns, fangs, wild mane, tiger loincloth, kanabo); folktale creature rigs: fox and nine-tailed kitsune with foxfire, tanuki (upright drumming), dog, cat, rabbit, crane, heron, crow, pheasant, sparrow and a serpentine dragon with pearl, with henge transform puffs; one scene-wide wind field; handscroll camera with parallax; cartouche, seal and caption text; gold mist-band (kasumi) transition. Pure absolute-frame evaluation; JSON scenes validated with path-specific errors.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-core.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-core.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-pigments.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-pigments.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-prims.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-prims.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-texture.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-texture.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-motifs.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-motifs.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-particles.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-particles.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-figure.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-figure.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-creatures.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-scene.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-scene.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-react.tsx"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-transitions.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-transitions.tsx"
+        }
+      ]
+    },
+    {
       "name": "film-look",
       "type": "registry:ui",
       "title": "Film Look",
@@ -3311,6 +3587,151 @@
           "path": "registry/video/film-look-react.tsx",
           "type": "registry:ui",
           "target": "components/video/film-look-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ink-wash-core",
+      "type": "registry:ui",
+      "title": "Chinese Ink Wash Brush and Paper",
+      "description": "Standalone material-native ink brush renderer with pressure-shaped silhouettes, ink-loaded side-brush gradient, dry-brush splits, wet paper spread, procedural rock texture and reduced-motion final holds; frame addressed and no WebGL dependencies.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/ink-wash.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-react.tsx"
+        },
+        {
+          "path": "registry/video/ink-wash-marks.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-marks.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-wash-film",
+      "type": "registry:ui",
+      "title": "Chinese Ink Wash Film Composition",
+      "description": "Composable ink-wash directing grammar for any authored footage, illustrations, diagrams, titles, and actor layers: five looks, ink bloom/brush entrances, parallax handscroll camera and FilmDocument shot adapter.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-wash-core",
+        "film-document"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-wash-story.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-story.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-story-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-story-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ink-wash-character",
+      "type": "registry:ui",
+      "title": "Chinese Ink Character Performance",
+      "description": "Paper-native, independently articulated 2D/2.5D ink-wash actor rendering over the existing validated character rig: per-part capillary fringe and paper-tooth edges, deterministic acting tracks, visemes, blink, gaze, gestures, props and optional tints, no new timeline or WebGL.",
+      "dependencies": [],
+      "registryDependencies": [
+        "character-presenter",
+        "ink-wash-core"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-wash-character.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-character.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-character-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-character-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ink-figure-craft",
+      "type": "registry:ui",
+      "title": "Chinese Ink Figure Brushwork",
+      "description": "Validated authored Chinese ink figure folds (floating silk-thread, layered wash, dry flying-white), pressure-native SVG geometry attached to existing CharacterPresenter part rigs; stable seed, detail and pigment controls.",
+      "dependencies": [],
+      "registryDependencies": [
+        "character-performance",
+        "ink-wash-core"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-figure-craft.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-figure-craft.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-actor-director",
+      "type": "registry:ui",
+      "title": "Chinese Ink Character Motion Director",
+      "description": "Deterministic C1 continuous route blocking, planted-foot gait, 2-bone character IK, and independent cloth/arm/head correction tracks on the existing character timeline.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-wash-character"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-actor-director.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-actor-director.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-figure-motion",
+      "type": "registry:ui",
+      "title": "Chinese Ink Figure Cloth Motion",
+      "description": "Reusable frame-pure cloth follow-through. Bakes subtly moving independent hem and cuff corrections on top of an approved INK4 route; deterministic absolute-frame sampling, bounded intensity, no replacement clock.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-actor-director"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-figure-motion.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-figure-motion.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-wash-ensemble",
+      "type": "registry:ui",
+      "title": "Chinese Ink Character Ensemble",
+      "description": "Deterministic, identity-preserving multi-character Chinese ink acting: independently staged canonical ink rigs, attention/interaction beats, gaze targeting, ordered depth and explicit foot-separation/reach audits on the existing film timeline. Compose with ink-actor-director for continuous paths and IK.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-wash-character"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-wash-ensemble.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-ensemble.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-ensemble-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-ensemble-react.tsx"
         }
       ]
     },

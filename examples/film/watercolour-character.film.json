@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "watercolour-character-performance-study",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "watercolour-traveller",
+      "recipeId": "slot",
+      "durationFrames": 430,
+      "content": {
+        "slot": "watercolour-actor",
+        "label": "Original traveler walks, waves and speaks on watercolor paper"
+      }
+    }
+  ]
+}

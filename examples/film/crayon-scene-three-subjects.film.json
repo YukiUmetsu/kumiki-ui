@@ -1,0 +1,1548 @@
+{
+  "schemaVersion": 1,
+  "id": "crayon-scene-three-subjects",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "water-study",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "content": {
+        "slot": "crayon-scene",
+        "label": "Original crayon water study",
+        "props": {
+          "scenes": {
+            "landscape": {
+              "version": 1,
+              "id": "crayon-water-landscape-showcase",
+              "width": 960,
+              "height": 540,
+              "durationFrames": 180,
+              "seed": 65,
+              "paper": "#f8f0de",
+              "paperTooth": 0.64,
+              "elements": [
+                {
+                  "kind": "lettering",
+                  "id": "heading",
+                  "lines": [
+                    "A DROP'S JOURNEY"
+                  ],
+                  "x": 40,
+                  "y": 87,
+                  "fontSize": 55,
+                  "color": "#344a61",
+                  "timing": {
+                    "start": 0,
+                    "end": 28
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "lettering",
+                  "id": "subheading",
+                  "lines": [
+                    "Sunlight • Cloud • Rain"
+                  ],
+                  "x": 42,
+                  "y": 130,
+                  "fontSize": 21,
+                  "color": "#627484",
+                  "timing": {
+                    "start": 2,
+                    "end": 34
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "lettering",
+                  "id": "footer",
+                  "lines": [
+                    "CRAYON STUDIES    /    ORIGINAL ART"
+                  ],
+                  "x": 40,
+                  "y": 515,
+                  "fontSize": 13,
+                  "color": "#394e61",
+                  "timing": {
+                    "start": 100,
+                    "end": 167
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "wax",
+                  "id": "sun",
+                  "d": "M597 215a75 75 0 1 0 150 0 a75 75 0 1 0 -150 0Z",
+                  "bounds": {
+                    "x": 592,
+                    "y": 135,
+                    "width": 160,
+                    "height": 160
+                  },
+                  "colors": [
+                    "#e7bd75",
+                    "#f0d18c",
+                    "#dfaa65"
+                  ],
+                  "timing": {
+                    "start": 20,
+                    "end": 98
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "wax",
+                  "id": "pond",
+                  "d": "M0 415Q288 350 480 410Q748.8000000000001 460 960 400V540H0Z",
+                  "bounds": {
+                    "x": 0,
+                    "y": 340,
+                    "width": 960,
+                    "height": 200
+                  },
+                  "colors": [
+                    "#4e85ae",
+                    "#6eabc7",
+                    "#9dc3c5"
+                  ],
+                  "timing": {
+                    "start": 47,
+                    "end": 136
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "wax",
+                  "id": "cloud",
+                  "d": "M-110 0 C-140 -40 -100 -78 -64 -58 C-56 -101 16 -98 26 -60 C77 -77 118 -32 100 7 Q28 50 -110 0Z",
+                  "bounds": {
+                    "x": -145,
+                    "y": -105,
+                    "width": 260,
+                    "height": 155
+                  },
+                  "colors": [
+                    "#b0b0bc",
+                    "#c6c3ca",
+                    "#999aaa"
+                  ],
+                  "timing": {
+                    "start": 60,
+                    "end": 135
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9,
+                  "placement": {
+                    "x": 364.8,
+                    "y": 218
+                  },
+                  "motion": [
+                    {
+                      "frame": 0,
+                      "x": -16,
+                      "y": 0
+                    },
+                    {
+                      "frame": 179,
+                      "x": 21,
+                      "y": -7
+                    }
+                  ]
+                },
+                {
+                  "kind": "contour",
+                  "id": "rain-0",
+                  "d": "M326.40000000000003 270l-13 41",
+                  "color": "#4b88ae",
+                  "width": 4,
+                  "timing": {
+                    "start": 112,
+                    "end": 173
+                  }
+                },
+                {
+                  "kind": "contour",
+                  "id": "rain-1",
+                  "d": "M341.40000000000003 270l-13 41",
+                  "color": "#4b88ae",
+                  "width": 4,
+                  "timing": {
+                    "start": 115,
+                    "end": 173
+                  }
+                },
+                {
+                  "kind": "contour",
+                  "id": "rain-2",
+                  "d": "M356.40000000000003 270l-13 41",
+                  "color": "#4b88ae",
+                  "width": 4,
+                  "timing": {
+                    "start": 118,
+                    "end": 173
+                  }
+                },
+                {
+                  "kind": "contour",
+                  "id": "rain-3",
+                  "d": "M371.40000000000003 270l-13 41",
+                  "color": "#4b88ae",
+                  "width": 4,
+                  "timing": {
+                    "start": 121,
+                    "end": 173
+                  }
+                },
+                {
+                  "kind": "contour",
+                  "id": "rain-4",
+                  "d": "M386.40000000000003 270l-13 41",
+                  "color": "#4b88ae",
+                  "width": 4,
+                  "timing": {
+                    "start": 124,
+                    "end": 173
+                  }
+                }
+              ],
+              "camera": [
+                {
+                  "frame": 0,
+                  "focusX": 480,
+                  "focusY": 270,
+                  "zoom": 1
+                },
+                {
+                  "frame": 90,
+                  "focusX": 495,
+                  "focusY": 262,
+                  "zoom": 1.028
+                },
+                {
+                  "frame": 179,
+                  "focusX": 480,
+                  "focusY": 270,
+                  "zoom": 1
+                }
+              ]
+            },
+            "portrait": {
+              "version": 1,
+              "id": "crayon-water-portrait-showcase",
+              "width": 540,
+              "height": 960,
+              "durationFrames": 180,
+              "seed": 65,
+              "paper": "#f8f0de",
+              "paperTooth": 0.64,
+              "elements": [
+                {
+                  "kind": "lettering",
+                  "id": "heading",
+                  "lines": [
+                    "A DROP'S JOURNEY"
+                  ],
+                  "x": 40,
+                  "y": 98,
+                  "fontSize": 42,
+                  "color": "#344a61",
+                  "timing": {
+                    "start": 0,
+                    "end": 28
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "lettering",
+                  "id": "subheading",
+                  "lines": [
+                    "Sunlight • Cloud • Rain"
+                  ],
+                  "x": 42,
+                  "y": 157,
+                  "fontSize": 19,
+                  "color": "#627484",
+                  "timing": {
+                    "start": 2,
+                    "end": 34
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "lettering",
+                  "id": "footer",
+                  "lines": [
+                    "CRAYON STUDIES    /    ORIGINAL ART"
+                  ],
+                  "x": 40,
+                  "y": 935,
+                  "fontSize": 13,
+                  "color": "#394e61",
+                  "timing": {
+                    "start": 100,
+                    "end": 167
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "wax",
+                  "id": "sun",
+                  "d": "M303 525a75 75 0 1 0 150 0 a75 75 0 1 0 -150 0Z",
+                  "bounds": {
+                    "x": 298,
+                    "y": 445,
+                    "width": 160,
+                    "height": 160
+                  },
+                  "colors": [
+                    "#e7bd75",
+                    "#f0d18c",
+                    "#dfaa65"
+                  ],
+                  "timing": {
+                    "start": 20,
+                    "end": 98
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "wax",
+                  "id": "pond",
+                  "d": "M0 725Q162 660 270 720Q421.2 770 540 710V960H0Z",
+                  "bounds": {
+                    "x": 0,
+                    "y": 650,
+                    "width": 540,
+                    "height": 310
+                  },
+                  "colors": [
+                    "#4e85ae",
+                    "#6eabc7",
+                    "#9dc3c5"
+                  ],
+                  "timing": {
+                    "start": 47,
+                    "end": 136
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "wax",
+                  "id": "cloud",
+                  "d": "M-110 0 C-140 -40 -100 -78 -64 -58 C-56 -101 16 -98 26 -60 C77 -77 118 -32 100 7 Q28 50 -110 0Z",
+                  "bounds": {
+                    "x": -145,
+                    "y": -105,
+                    "width": 260,
+                    "height": 155
+                  },
+                  "colors": [
+                    "#b0b0bc",
+                    "#c6c3ca",
+                    "#999aaa"
+                  ],
+                  "timing": {
+                    "start": 60,
+                    "end": 135
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9,
+                  "placement": {
+                    "x": 205.2,
+                    "y": 528
+                  },
+                  "motion": [
+                    {
+                      "frame": 0,
+                      "x": -16,
+                      "y": 0
+                    },
+                    {
+                      "frame": 179,
+                      "x": 21,
+                      "y": -7
+                    }
+                  ]
+                },
+                {
+                  "kind": "contour",
+                  "id": "rain-0",
+                  "d": "M183.60000000000002 580l-13 41",
+                  "color": "#4b88ae",
+                  "width": 4,
+                  "timing": {
+                    "start": 112,
+                    "end": 173
+                  }
+                },
+                {
+                  "kind": "contour",
+                  "id": "rain-1",
+                  "d": "M198.60000000000002 580l-13 41",
+                  "color": "#4b88ae",
+                  "width": 4,
+                  "timing": {
+                    "start": 115,
+                    "end": 173
+                  }
+                },
+                {
+                  "kind": "contour",
+                  "id": "rain-2",
+                  "d": "M213.60000000000002 580l-13 41",
+                  "color": "#4b88ae",
+                  "width": 4,
+                  "timing": {
+                    "start": 118,
+                    "end": 173
+                  }
+                },
+                {
+                  "kind": "contour",
+                  "id": "rain-3",
+                  "d": "M228.60000000000002 580l-13 41",
+                  "color": "#4b88ae",
+                  "width": 4,
+                  "timing": {
+                    "start": 121,
+                    "end": 173
+                  }
+                },
+                {
+                  "kind": "contour",
+                  "id": "rain-4",
+                  "d": "M243.60000000000002 580l-13 41",
+                  "color": "#4b88ae",
+                  "width": 4,
+                  "timing": {
+                    "start": 124,
+                    "end": 173
+                  }
+                }
+              ],
+              "camera": [
+                {
+                  "frame": 0,
+                  "focusX": 270,
+                  "focusY": 480,
+                  "zoom": 1
+                },
+                {
+                  "frame": 90,
+                  "focusX": 285,
+                  "focusY": 472,
+                  "zoom": 1.028
+                },
+                {
+                  "frame": 179,
+                  "focusX": 270,
+                  "focusY": 480,
+                  "zoom": 1
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "chart-study",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "crayon-scene",
+        "label": "Original crayon chart study",
+        "props": {
+          "scenes": {
+            "landscape": {
+              "version": 1,
+              "id": "crayon-chart-landscape-showcase",
+              "width": 960,
+              "height": 540,
+              "durationFrames": 180,
+              "seed": 65,
+              "paper": "#f8f0de",
+              "paperTooth": 0.64,
+              "elements": [
+                {
+                  "kind": "lettering",
+                  "id": "heading",
+                  "lines": [
+                    "A GENTLE RISE"
+                  ],
+                  "x": 40,
+                  "y": 87,
+                  "fontSize": 55,
+                  "color": "#344a61",
+                  "timing": {
+                    "start": 0,
+                    "end": 28
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "lettering",
+                  "id": "subheading",
+                  "lines": [
+                    "Illustrative data, not live statistics"
+                  ],
+                  "x": 42,
+                  "y": 130,
+                  "fontSize": 21,
+                  "color": "#627484",
+                  "timing": {
+                    "start": 2,
+                    "end": 34
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "lettering",
+                  "id": "footer",
+                  "lines": [
+                    "CRAYON STUDIES    /    ORIGINAL ART"
+                  ],
+                  "x": 40,
+                  "y": 515,
+                  "fontSize": 13,
+                  "color": "#394e61",
+                  "timing": {
+                    "start": 100,
+                    "end": 167
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "wax",
+                  "id": "value-0",
+                  "d": "M145 337.52H255V425H145Z",
+                  "bounds": {
+                    "x": 145,
+                    "y": 337.52,
+                    "width": 110,
+                    "height": 87.48
+                  },
+                  "colors": [
+                    "#8c9eb6",
+                    "#637f9e",
+                    "#b5bcd0"
+                  ],
+                  "timing": {
+                    "start": 45,
+                    "end": 145
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "lettering",
+                  "id": "label-0",
+                  "lines": [
+                    "01"
+                  ],
+                  "x": 200,
+                  "y": 462,
+                  "fontSize": 18,
+                  "color": "#334b62",
+                  "timing": {
+                    "start": 130,
+                    "end": 173
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "wax",
+                  "id": "value-1",
+                  "d": "M311 290.53999999999996H421V425H311Z",
+                  "bounds": {
+                    "x": 311,
+                    "y": 290.53999999999996,
+                    "width": 110,
+                    "height": 134.46
+                  },
+                  "colors": [
+                    "#79a495",
+                    "#498d7e",
+                    "#b4c9ae"
+                  ],
+                  "timing": {
+                    "start": 57,
+                    "end": 152
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "lettering",
+                  "id": "label-1",
+                  "lines": [
+                    "02"
+                  ],
+                  "x": 366,
+                  "y": 462,
+                  "fontSize": 18,
+                  "color": "#334b62",
+                  "timing": {
+                    "start": 130,
+                    "end": 173
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "wax",
+                  "id": "value-2",
+                  "d": "M477 250.04H587V425H477Z",
+                  "bounds": {
+                    "x": 477,
+                    "y": 250.04,
+                    "width": 110,
+                    "height": 174.96
+                  },
+                  "colors": [
+                    "#dbab7d",
+                    "#bd8468",
+                    "#f0c298"
+                  ],
+                  "timing": {
+                    "start": 69,
+                    "end": 159
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "lettering",
+                  "id": "label-2",
+                  "lines": [
+                    "03"
+                  ],
+                  "x": 532,
+                  "y": 462,
+                  "fontSize": 18,
+                  "color": "#334b62",
+                  "timing": {
+                    "start": 130,
+                    "end": 173
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "wax",
+                  "id": "value-3",
+                  "d": "M643 219.26H753V425H643Z",
+                  "bounds": {
+                    "x": 643,
+                    "y": 219.26,
+                    "width": 110,
+                    "height": 205.74
+                  },
+                  "colors": [
+                    "#ba899e",
+                    "#9f788e",
+                    "#d6b5c6"
+                  ],
+                  "timing": {
+                    "start": 81,
+                    "end": 166
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "lettering",
+                  "id": "label-3",
+                  "lines": [
+                    "04"
+                  ],
+                  "x": 698,
+                  "y": 462,
+                  "fontSize": 18,
+                  "color": "#334b62",
+                  "timing": {
+                    "start": 130,
+                    "end": 173
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "contour",
+                  "id": "axis",
+                  "d": "M130 430H809",
+                  "color": "#556d72",
+                  "width": 3,
+                  "timing": {
+                    "start": 48,
+                    "end": 120
+                  }
+                }
+              ],
+              "camera": [
+                {
+                  "frame": 0,
+                  "focusX": 480,
+                  "focusY": 270,
+                  "zoom": 1
+                },
+                {
+                  "frame": 90,
+                  "focusX": 495,
+                  "focusY": 262,
+                  "zoom": 1.028
+                },
+                {
+                  "frame": 179,
+                  "focusX": 480,
+                  "focusY": 270,
+                  "zoom": 1
+                }
+              ]
+            },
+            "portrait": {
+              "version": 1,
+              "id": "crayon-chart-portrait-showcase",
+              "width": 540,
+              "height": 960,
+              "durationFrames": 180,
+              "seed": 65,
+              "paper": "#f8f0de",
+              "paperTooth": 0.64,
+              "elements": [
+                {
+                  "kind": "lettering",
+                  "id": "heading",
+                  "lines": [
+                    "A GENTLE RISE"
+                  ],
+                  "x": 40,
+                  "y": 98,
+                  "fontSize": 42,
+                  "color": "#344a61",
+                  "timing": {
+                    "start": 0,
+                    "end": 28
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "lettering",
+                  "id": "subheading",
+                  "lines": [
+                    "Illustrative data, not live statistics"
+                  ],
+                  "x": 42,
+                  "y": 157,
+                  "fontSize": 19,
+                  "color": "#627484",
+                  "timing": {
+                    "start": 2,
+                    "end": 34
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "lettering",
+                  "id": "footer",
+                  "lines": [
+                    "CRAYON STUDIES    /    ORIGINAL ART"
+                  ],
+                  "x": 40,
+                  "y": 935,
+                  "fontSize": 13,
+                  "color": "#394e61",
+                  "timing": {
+                    "start": 100,
+                    "end": 167
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "wax",
+                  "id": "value-0",
+                  "d": "M64 569.2H138V715H64Z",
+                  "bounds": {
+                    "x": 64,
+                    "y": 569.2,
+                    "width": 74,
+                    "height": 145.8
+                  },
+                  "colors": [
+                    "#8c9eb6",
+                    "#637f9e",
+                    "#b5bcd0"
+                  ],
+                  "timing": {
+                    "start": 45,
+                    "end": 145
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "lettering",
+                  "id": "label-0",
+                  "lines": [
+                    "01"
+                  ],
+                  "x": 101,
+                  "y": 752,
+                  "fontSize": 18,
+                  "color": "#334b62",
+                  "timing": {
+                    "start": 130,
+                    "end": 173
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "wax",
+                  "id": "value-1",
+                  "d": "M168 490.9H242V715H168Z",
+                  "bounds": {
+                    "x": 168,
+                    "y": 490.9,
+                    "width": 74,
+                    "height": 224.10000000000002
+                  },
+                  "colors": [
+                    "#79a495",
+                    "#498d7e",
+                    "#b4c9ae"
+                  ],
+                  "timing": {
+                    "start": 57,
+                    "end": 152
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "lettering",
+                  "id": "label-1",
+                  "lines": [
+                    "02"
+                  ],
+                  "x": 205,
+                  "y": 752,
+                  "fontSize": 18,
+                  "color": "#334b62",
+                  "timing": {
+                    "start": 130,
+                    "end": 173
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "wax",
+                  "id": "value-2",
+                  "d": "M272 423.4H346V715H272Z",
+                  "bounds": {
+                    "x": 272,
+                    "y": 423.4,
+                    "width": 74,
+                    "height": 291.6
+                  },
+                  "colors": [
+                    "#dbab7d",
+                    "#bd8468",
+                    "#f0c298"
+                  ],
+                  "timing": {
+                    "start": 69,
+                    "end": 159
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "lettering",
+                  "id": "label-2",
+                  "lines": [
+                    "03"
+                  ],
+                  "x": 309,
+                  "y": 752,
+                  "fontSize": 18,
+                  "color": "#334b62",
+                  "timing": {
+                    "start": 130,
+                    "end": 173
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "wax",
+                  "id": "value-3",
+                  "d": "M376 372.09999999999997H450V715H376Z",
+                  "bounds": {
+                    "x": 376,
+                    "y": 372.09999999999997,
+                    "width": 74,
+                    "height": 342.90000000000003
+                  },
+                  "colors": [
+                    "#ba899e",
+                    "#9f788e",
+                    "#d6b5c6"
+                  ],
+                  "timing": {
+                    "start": 81,
+                    "end": 166
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "lettering",
+                  "id": "label-3",
+                  "lines": [
+                    "04"
+                  ],
+                  "x": 413,
+                  "y": 752,
+                  "fontSize": 18,
+                  "color": "#334b62",
+                  "timing": {
+                    "start": 130,
+                    "end": 173
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "contour",
+                  "id": "axis",
+                  "d": "M49 720H480",
+                  "color": "#556d72",
+                  "width": 3,
+                  "timing": {
+                    "start": 48,
+                    "end": 120
+                  }
+                }
+              ],
+              "camera": [
+                {
+                  "frame": 0,
+                  "focusX": 270,
+                  "focusY": 480,
+                  "zoom": 1
+                },
+                {
+                  "frame": 90,
+                  "focusX": 285,
+                  "focusY": 472,
+                  "zoom": 1.028
+                },
+                {
+                  "frame": 179,
+                  "focusX": 270,
+                  "focusY": 480,
+                  "zoom": 1
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "town-study",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "crayon-scene",
+        "label": "Original crayon town study",
+        "props": {
+          "scenes": {
+            "landscape": {
+              "version": 1,
+              "id": "crayon-town-landscape-showcase",
+              "width": 960,
+              "height": 540,
+              "durationFrames": 180,
+              "seed": 65,
+              "paper": "#f8f0de",
+              "paperTooth": 0.64,
+              "elements": [
+                {
+                  "kind": "lettering",
+                  "id": "heading",
+                  "lines": [
+                    "HOME, TOGETHER"
+                  ],
+                  "x": 40,
+                  "y": 87,
+                  "fontSize": 55,
+                  "color": "#344a61",
+                  "timing": {
+                    "start": 0,
+                    "end": 28
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "lettering",
+                  "id": "subheading",
+                  "lines": [
+                    "A town appears one mark at a time"
+                  ],
+                  "x": 42,
+                  "y": 130,
+                  "fontSize": 21,
+                  "color": "#627484",
+                  "timing": {
+                    "start": 2,
+                    "end": 34
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "lettering",
+                  "id": "footer",
+                  "lines": [
+                    "CRAYON STUDIES    /    ORIGINAL ART"
+                  ],
+                  "x": 40,
+                  "y": 515,
+                  "fontSize": 13,
+                  "color": "#394e61",
+                  "timing": {
+                    "start": 100,
+                    "end": 167
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "wax",
+                  "id": "hills",
+                  "d": "M0 365Q288 295 528 354Q806.4 305 960 354V540H0Z",
+                  "bounds": {
+                    "x": 0,
+                    "y": 290,
+                    "width": 960,
+                    "height": 250
+                  },
+                  "colors": [
+                    "#6e9f89",
+                    "#82b09b",
+                    "#497a71"
+                  ],
+                  "timing": {
+                    "start": 42,
+                    "end": 137
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "wax",
+                  "id": "house-0",
+                  "d": "M183 310H287V425H183Z",
+                  "bounds": {
+                    "x": 180,
+                    "y": 306,
+                    "width": 110,
+                    "height": 123
+                  },
+                  "colors": [
+                    "#ddaa80",
+                    "#bd806a",
+                    "#f0c59b"
+                  ],
+                  "timing": {
+                    "start": 55,
+                    "end": 150
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "wax",
+                  "id": "roof-0",
+                  "d": "M165 310L235 245L305 310Z",
+                  "bounds": {
+                    "x": 163,
+                    "y": 243,
+                    "width": 144,
+                    "height": 71
+                  },
+                  "colors": [
+                    "#6686a1",
+                    "#446781",
+                    "#8aaab7"
+                  ],
+                  "timing": {
+                    "start": 72,
+                    "end": 160
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "contour",
+                  "id": "door-0",
+                  "d": "M222 425V370H252V425",
+                  "color": "#4e5865",
+                  "width": 5,
+                  "timing": {
+                    "start": 108,
+                    "end": 171
+                  }
+                },
+                {
+                  "kind": "wax",
+                  "id": "house-1",
+                  "d": "M423 334H527V449H423Z",
+                  "bounds": {
+                    "x": 420,
+                    "y": 330,
+                    "width": 110,
+                    "height": 123
+                  },
+                  "colors": [
+                    "#ddaa80",
+                    "#bd806a",
+                    "#f0c59b"
+                  ],
+                  "timing": {
+                    "start": 68,
+                    "end": 157
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "wax",
+                  "id": "roof-1",
+                  "d": "M405 334L475 269L545 334Z",
+                  "bounds": {
+                    "x": 403,
+                    "y": 267,
+                    "width": 144,
+                    "height": 71
+                  },
+                  "colors": [
+                    "#6686a1",
+                    "#446781",
+                    "#8aaab7"
+                  ],
+                  "timing": {
+                    "start": 86,
+                    "end": 165
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "contour",
+                  "id": "door-1",
+                  "d": "M462 449V394H492V449",
+                  "color": "#4e5865",
+                  "width": 5,
+                  "timing": {
+                    "start": 119,
+                    "end": 171
+                  }
+                },
+                {
+                  "kind": "wax",
+                  "id": "house-2",
+                  "d": "M663 310H767V425H663Z",
+                  "bounds": {
+                    "x": 660,
+                    "y": 306,
+                    "width": 110,
+                    "height": 123
+                  },
+                  "colors": [
+                    "#ddaa80",
+                    "#bd806a",
+                    "#f0c59b"
+                  ],
+                  "timing": {
+                    "start": 81,
+                    "end": 164
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "wax",
+                  "id": "roof-2",
+                  "d": "M645 310L715 245L785 310Z",
+                  "bounds": {
+                    "x": 643,
+                    "y": 243,
+                    "width": 144,
+                    "height": 71
+                  },
+                  "colors": [
+                    "#6686a1",
+                    "#446781",
+                    "#8aaab7"
+                  ],
+                  "timing": {
+                    "start": 100,
+                    "end": 170
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "contour",
+                  "id": "door-2",
+                  "d": "M702 425V370H732V425",
+                  "color": "#4e5865",
+                  "width": 5,
+                  "timing": {
+                    "start": 130,
+                    "end": 171
+                  }
+                }
+              ],
+              "camera": [
+                {
+                  "frame": 0,
+                  "focusX": 480,
+                  "focusY": 270,
+                  "zoom": 1
+                },
+                {
+                  "frame": 90,
+                  "focusX": 495,
+                  "focusY": 262,
+                  "zoom": 1.028
+                },
+                {
+                  "frame": 179,
+                  "focusX": 480,
+                  "focusY": 270,
+                  "zoom": 1
+                }
+              ]
+            },
+            "portrait": {
+              "version": 1,
+              "id": "crayon-town-portrait-showcase",
+              "width": 540,
+              "height": 960,
+              "durationFrames": 180,
+              "seed": 65,
+              "paper": "#f8f0de",
+              "paperTooth": 0.64,
+              "elements": [
+                {
+                  "kind": "lettering",
+                  "id": "heading",
+                  "lines": [
+                    "HOME, TOGETHER"
+                  ],
+                  "x": 40,
+                  "y": 98,
+                  "fontSize": 42,
+                  "color": "#344a61",
+                  "timing": {
+                    "start": 0,
+                    "end": 28
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "lettering",
+                  "id": "subheading",
+                  "lines": [
+                    "A town appears one mark at a time"
+                  ],
+                  "x": 42,
+                  "y": 157,
+                  "fontSize": 19,
+                  "color": "#627484",
+                  "timing": {
+                    "start": 2,
+                    "end": 34
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "lettering",
+                  "id": "footer",
+                  "lines": [
+                    "CRAYON STUDIES    /    ORIGINAL ART"
+                  ],
+                  "x": 40,
+                  "y": 935,
+                  "fontSize": 13,
+                  "color": "#394e61",
+                  "timing": {
+                    "start": 100,
+                    "end": 167
+                  },
+                  "screenSpace": true,
+                  "weight": 700
+                },
+                {
+                  "kind": "wax",
+                  "id": "hills",
+                  "d": "M0 670Q162 600 297 659Q453.59999999999997 610 540 659V960H0Z",
+                  "bounds": {
+                    "x": 0,
+                    "y": 595,
+                    "width": 540,
+                    "height": 365
+                  },
+                  "colors": [
+                    "#6e9f89",
+                    "#82b09b",
+                    "#497a71"
+                  ],
+                  "timing": {
+                    "start": 42,
+                    "end": 137
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "wax",
+                  "id": "house-0",
+                  "d": "M48 615H152V730H48Z",
+                  "bounds": {
+                    "x": 45,
+                    "y": 611,
+                    "width": 110,
+                    "height": 123
+                  },
+                  "colors": [
+                    "#ddaa80",
+                    "#bd806a",
+                    "#f0c59b"
+                  ],
+                  "timing": {
+                    "start": 55,
+                    "end": 150
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "wax",
+                  "id": "roof-0",
+                  "d": "M30 615L100 550L170 615Z",
+                  "bounds": {
+                    "x": 28,
+                    "y": 548,
+                    "width": 144,
+                    "height": 71
+                  },
+                  "colors": [
+                    "#6686a1",
+                    "#446781",
+                    "#8aaab7"
+                  ],
+                  "timing": {
+                    "start": 72,
+                    "end": 160
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "contour",
+                  "id": "door-0",
+                  "d": "M87 730V675H117V730",
+                  "color": "#4e5865",
+                  "width": 5,
+                  "timing": {
+                    "start": 108,
+                    "end": 171
+                  }
+                },
+                {
+                  "kind": "wax",
+                  "id": "house-1",
+                  "d": "M203 639H307V754H203Z",
+                  "bounds": {
+                    "x": 200,
+                    "y": 635,
+                    "width": 110,
+                    "height": 123
+                  },
+                  "colors": [
+                    "#ddaa80",
+                    "#bd806a",
+                    "#f0c59b"
+                  ],
+                  "timing": {
+                    "start": 68,
+                    "end": 157
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "wax",
+                  "id": "roof-1",
+                  "d": "M185 639L255 574L325 639Z",
+                  "bounds": {
+                    "x": 183,
+                    "y": 572,
+                    "width": 144,
+                    "height": 71
+                  },
+                  "colors": [
+                    "#6686a1",
+                    "#446781",
+                    "#8aaab7"
+                  ],
+                  "timing": {
+                    "start": 86,
+                    "end": 165
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "contour",
+                  "id": "door-1",
+                  "d": "M242 754V699H272V754",
+                  "color": "#4e5865",
+                  "width": 5,
+                  "timing": {
+                    "start": 119,
+                    "end": 171
+                  }
+                },
+                {
+                  "kind": "wax",
+                  "id": "house-2",
+                  "d": "M358 615H462V730H358Z",
+                  "bounds": {
+                    "x": 355,
+                    "y": 611,
+                    "width": 110,
+                    "height": 123
+                  },
+                  "colors": [
+                    "#ddaa80",
+                    "#bd806a",
+                    "#f0c59b"
+                  ],
+                  "timing": {
+                    "start": 81,
+                    "end": 164
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "wax",
+                  "id": "roof-2",
+                  "d": "M340 615L410 550L480 615Z",
+                  "bounds": {
+                    "x": 338,
+                    "y": 548,
+                    "width": 144,
+                    "height": 71
+                  },
+                  "colors": [
+                    "#6686a1",
+                    "#446781",
+                    "#8aaab7"
+                  ],
+                  "timing": {
+                    "start": 100,
+                    "end": 170
+                  },
+                  "pressure": 0.82,
+                  "spacing": 9
+                },
+                {
+                  "kind": "contour",
+                  "id": "door-2",
+                  "d": "M397 730V675H427V730",
+                  "color": "#4e5865",
+                  "width": 5,
+                  "timing": {
+                    "start": 130,
+                    "end": 171
+                  }
+                }
+              ],
+              "camera": [
+                {
+                  "frame": 0,
+                  "focusX": 270,
+                  "focusY": 480,
+                  "zoom": 1
+                },
+                {
+                  "frame": 90,
+                  "focusX": 285,
+                  "focusY": 472,
+                  "zoom": 1.028
+                },
+                {
+                  "frame": 179,
+                  "focusX": 270,
+                  "focusY": 480,
+                  "zoom": 1
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -110,13 +110,14 @@ export function inspectPencilScene(value: unknown): string[] {
       issues.push(at + ".at: must be a point inside the sheet.");
       continue;
     }
+    const anchor = a.at;
     if (a.type === "callout") {
       if (!safePath(a.path) || typeof a.label !== "string" || a.label.length < 1 || a.label.length > 70)
         issues.push(at + ": callout requires bounded path and label.");
       if (a.size !== undefined && (typeof a.size !== "number" || a.size < 12 || a.size > 64))
         issues.push(at + ".size: outside 12..64.");
       if (typeof a.label === "string" &&
-          a.at[0] + estimatedLineWidth(a.label, typeof a.size === "number" ? a.size : 16) > width - 12)
+          anchor[0] + estimatedLineWidth(a.label, typeof a.size === "number" ? a.size : 16) > width - 12)
         issues.push(at + ".label: would extend outside page.");
       continue;
     }
@@ -126,8 +127,8 @@ export function inspectPencilScene(value: unknown): string[] {
         issues.push(at + ".text: 1–3 short nonempty lines required.");
       if (typeof a.size !== "number" || !Number.isFinite(a.size) || a.size < 12 || a.size > 64)
         issues.push(at + ".size: outside 12..64.");
-      else if (textLines.some(t => a.at[0] + estimatedLineWidth(t, a.size as number) > width - 12) ||
-        a.at[1] + (textLines.length - 1) * a.size * 1.33 > height - 12)
+      else if (textLines.some(t => anchor[0] + estimatedLineWidth(t, a.size as number) > width - 12) ||
+        anchor[1] + (textLines.length - 1) * a.size * 1.33 > height - 12)
         issues.push(at + ".text: would extend outside the reserved page.");
       if (a.font !== undefined && a.font !== "sans" && a.font !== "serif" && a.font !== "mono")
         issues.push(at + ".font: expected sans, serif or mono.");

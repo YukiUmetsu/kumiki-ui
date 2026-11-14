@@ -8,7 +8,7 @@ import type { PencilAspect } from "../../registry/video/colored-pencil";
 import { COLOR_PENCIL_FILM } from "./colored-pencil-film";
 
 const meta = {
-  title: "Video production/Film Art Styles/Coloured Pencil",
+  title: "Video Production/Film Looks/Colour-pencil",
   id: "video-colored-pencil-science",
   component: ColoredPencilSciencePlate,
   parameters: { layout: "fullscreen" },

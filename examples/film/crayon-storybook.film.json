@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "id": "crayon-storybook-study",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "sky-and-paper",
+      "recipeId": "slot",
+      "durationFrames": 120,
+      "content": {
+        "slot": "crayon-storybook",
+        "label": "Night sky pressed into toothy paper",
+        "props": {
+          "offsetFrame": 0
+        }
+      }
+    },
+    {
+      "id": "the-trail",
+      "recipeId": "slot",
+      "durationFrames": 150,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "crayon-storybook",
+        "label": "Crayon landscapes and little fox",
+        "props": {
+          "offsetFrame": 120
+        }
+      }
+    },
+    {
+      "id": "the-lantern",
+      "recipeId": "slot",
+      "durationFrames": 150,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "crayon-storybook",
+        "label": "Lantern glows in hand-drawn wax",
+        "props": {
+          "offsetFrame": 270
+        }
+      }
+    }
+  ]
+}
