@@ -200,7 +200,7 @@ function ReaderFaceStudio(){
     </p>
   </main>;
 }
-const meta={title:"Video production/Film Looks/Chinese Ink/Reader Face Studio",
+const meta={title:"Video production/Film Looks/Chinese Ink/Shanshui/Reader Face Studio",
   id:"video-ink-reader-face",component:ReaderFaceStudio,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof ReaderFaceStudio>;
 export default meta;
