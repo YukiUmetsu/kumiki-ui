@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
-import { assertInkEnsemble, inkEnsembleAt } from "../registry/video/ink-wash-ensemble";
+import { assertInkEnsemble, inkEnsembleAt, inkPartnerLookTarget } from "../registry/video/ink-wash-ensemble";
 import { InkEnsemble } from "../registry/video/ink-wash-ensemble-react";
 import { inkDuet } from "../src/video/ink-wash-ensemble-demo";
 
@@ -29,6 +29,7 @@ describe("INK4 authored ink-painting multi-actor staging", () => {
       expect(final).toContain('data-km-ink-ensemble-actor="learner"');
       expect(final.match(/data-km-character-presenter=""/g)).toHaveLength(2);
       expect(final).toContain('data-km-ink-reach="pass"');
+      expect(final).toContain('data-km-ink-partner-gaze="tracked"');
       expect(render(188)).toBe(final);
       expect(render(30)).not.toBe(final);
       expect(render(30, true)).toContain('data-km-ink-ensemble-frame="30"');
@@ -49,6 +50,25 @@ describe("INK4 authored ink-painting multi-actor staging", () => {
     expect(() => assertInkEnsemble({ ...original, actors: original.actors.map(a => ({ ...a, radius: Infinity })) }))
       .toThrow(RangeError);
     expect(() => inkEnsembleAt(original, -1)).toThrow(RangeError);
+  });
+  it("targets the moving partner through the existing pupil target, including left-facing mirrors", () => {
+    const plan = inkDuet("landscape").plan;
+    const early = inkEnsembleAt(plan, 118).actors;
+    const later = inkEnsembleAt(plan, 188).actors;
+    const masterEarly = early.find(a => a.id === "master")!;
+    const learnerEarly = early.find(a => a.id === "learner")!;
+    const masterLater = later.find(a => a.id === "master")!;
+    const learnerLater = later.find(a => a.id === "learner")!;
+    const design = { width: 260, height: 340 };
+    const first = inkPartnerLookTarget(masterEarly.pose, learnerEarly.pose, design, design);
+    const second = inkPartnerLookTarget(masterLater.pose, learnerLater.pose, design, design);
+    expect(first.x).toBeGreaterThan(design.width / 2);
+    expect(first.x).toBeCloseTo(second.x);
+    const opposite = inkPartnerLookTarget(learnerLater.pose, masterLater.pose, design, design);
+    expect(opposite.x).toBeGreaterThan(design.width / 2);
+    expect(Number.isFinite(opposite.y)).toBe(true);
+    expect(() => inkPartnerLookTarget(masterLater.pose, learnerLater.pose,
+      { width: 0, height: 340 }, design)).toThrow(RangeError);
   });
   it("does not claim impossible prop handoff as a successful contact", () => {
     const example = inkDuet("landscape").plan;
