@@ -131,7 +131,9 @@ character movement or camera push-ins.
 Added Film Looks stories for **Dragon Anatomy Detail** (landscape and
 portrait) and **Castle Masonry Detail**. These select deterministic
 close-up camera compositions, without creating separate source art or
-changing the 330-frame film duration. Storybook Controls expose
+changing the 330-frame film duration. Close-ups remove in-frame story
+lettering to keep the artwork legible, while the architecture detail view
+hides character actors (the wide-film version is unchanged). Storybook Controls expose
 `shot: wide | dragon | architecture`; the close-up shots are important
 because tiny markings that look impressive at 100% browser zoom can
 reduce to unreadable specks in a 960×540 export.
