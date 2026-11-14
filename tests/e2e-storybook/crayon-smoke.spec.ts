@@ -77,6 +77,8 @@ test("two-bone walk uses analytic knees and eases a releasing planted foot",asyn
   const front=scene.locator('[data-km-crayon-element="foot-front"]');
   const leg=scene.locator('[data-km-crayon-element="leg-front"]');
   await expect(leg).toHaveAttribute("data-km-crayon-rig","two-bone");
+  await page.getByRole("button",{name:"Back-foot plant"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","94");
   const shapeAtStart=await leg.locator("path").first().getAttribute("d");
   expect(shapeAtStart).toMatch(/^M.* L.* L/);
   await page.getByRole("button",{name:"Contact release"}).click();
