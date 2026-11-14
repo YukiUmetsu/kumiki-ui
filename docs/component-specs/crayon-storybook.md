@@ -636,3 +636,59 @@ npm run film:render -- examples/film/crayon-scene-three-subjects.film.json --onl
 **What this does not automate:** interpreting arbitrary raster photos into credible wax strokes; inventing or reliably rigging a new character from text; typography line-breaking for arbitrary-length Japanese copy; exact physical wax optics; arbitrary path morphing; and subject-specific story planning. Authors or upstream generation tools must supply original SVG paths/characters, text, values, narrative timing and two aspect-aware layouts. This boundary prevents a generic SVG filter from masquerading as a physically crafted crayon illustration.
 
 **Updated qualification gates:** `tests/crayon-scene.test.tsx` exercises six independent 16:9/9:16 subjects, schema-negative cases, pose/camera seeking and FilmStage integration. The portable film has both outputs. `tests/e2e-storybook/crayon-scene.spec.ts` exercises four actual browser compositions; `.github/workflows/crayon-browser-qa.yml` runs inexpensive on-PR Chromium checks and reserves full encoded-film exports for manual `workflow_dispatch`. The full normal-speed video and independent human art review are still mandatory before marking `accepted`.
+
+
+## Held crayon exposures, anatomical redraws and encoded-film QA (2026-11-14)
+
+**Research:** [crayon-animation-film-technique-study.md](../research/crayon-animation-film-technique-study.md)
+compares seven hand-drawn films and their documented production methods.
+The technical goal is credible handmade imperfection, not arbitrary image
+noise. Materials and animation require three independent channels:
+solid silhouettes and stable paper; held, repainted local marks; and
+independently animated acting / camera.
+
+The optional `CrayonWaxElement.redraw` field is
+`{holdFrames:2|3|4|5|6,strength:0..1,beginFrame?:number}`.
+A 3-frame hold produces approximately 10 distinct wax-pigment
+exposures per second on a 30-fps film. The surface is *not re-randomized
+per frame*: at each exposure transition only 14 scattered local wax
+dabs change, with correlated locations and bounded displacement.
+The silhouette remains opaque and completely unchanged by the material
+redraw. The seed, actor, fixed paper tooth and original fills are
+deterministic in either seek direction. `beginFrame` enables an acting
+figure to start reworking pigment before its complete construction
+timeline ends. For a drawing-in sequence it should start after the
+permanent figure has emerged; the character-draw demo uses frame 408.
+
+`CrayonWaxElement.edgeRoughness` (0..1) introduces staggered,
+fragmented wax deposits that follow the opaque silhouette's rim.
+These accents increase surface irregularity without cutting holes
+through body mass. `coverage:"open"` and old scenes retain their
+original translucent behavior; new metadata is optional.
+
+The Dragon Village scene now supplies explicit hand-redrawn SVG
+silhouettes for the near and far wing membranes, synchronized near-wing
+rib redraws, and re-arched neck contour exposures. The wing still
+inherits the original motion hierarchy; this is **authored shape
+substitution**, not continuous soft-body physics. Storybook
+`Dragon Hand Redraw` and `Dragon Wing Morph` in
+**Video production → Film Looks → Crayon → Scene Engine** expose
+`redrawStrength` and `exposureFrames` Controls. The baseline
+`Dragon Village` keeps its existing URL and 330-frame duration.
+
+**Encoding proof:** `examples/film/crayon-painted-exposure-preview.film.json`
+has a 48-frame, 30-fps original fox excerpt with an offset to the active
+character paint. On crayon PRs the browser workflow encodes an MP4,
+probes its stream, and extracts actual source frames into an artifact.
+The existing on-demand workflow can render the complete 420-frame
+14-second film in landscape and portrait; those full runs are not
+substituted by the brief automated excerpt. After an actual normal-speed
+viewing, record whether frame boil, wing silhouette pops and edge
+flicker pass or fail. Unit and browser CI are structural evidence,
+not independent human artistic acceptance.
+
+**Known remaining work:** true four-legged IK grounding, deformable
+membrane skinning, pigment accumulation/erasure model, calibrated
+physical crayon nib scans with safe rights, and real-time full-film
+normal-speed acceptance. Do not claim those capabilities from a
+short encoded smoke alone.
