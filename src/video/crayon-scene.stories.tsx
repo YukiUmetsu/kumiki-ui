@@ -21,10 +21,11 @@ interface PlaygroundProps {
   nibStyle:"tapered"|"rounded";
   strokeOrder:"patches"|"scanline";
   markLength:"long"|"short";
+  editorialDetail:number;
 }
-function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength}:PlaygroundProps){
+function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail}:PlaygroundProps){
   const spec=useMemo(()=>{
-    const base=subject==="performance"?crayonPerformanceScene(aspect):
+    const base=subject==="performance"?crayonPerformanceScene(aspect,{editorialDetail}):
       subject==="walk"?crayonWalkScene(aspect,{stride,lift:stepLift,rig}):
       subject==="draw-in"?crayonCharacterDrawScene(aspect,{order:drawOrder,outlineFraction,glaze:waxGlaze}):
       subject==="dragon-village"?crayonDragonVillageScene(aspect,{wingPower,detail:villageDetail,followThrough,cast,palette:dragonPalette,shot,redrawStrength,exposureFrames}):
@@ -33,7 +34,7 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
     // changing authored subject geometry or the film's absolute-frame clock.
     return {...base,seed,paperTooth,elements:base.elements.map(node=>
       node.kind==="wax"?{...node,nibStyle,strokeOrder,markLength}:node)};
-  },[subject,aspect,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength]);
+  },[subject,aspect,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,subject+":"+aspect,playbackRate,loop);
   const duration=spec.durationFrames-1;
@@ -46,7 +47,7 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
   return <div style={{maxWidth:1050,margin:"auto",padding:22,background:"#e9e3d5",color:"#344e60",fontFamily:"system-ui"}}>
     <div style={{display:"flex",gap:12,justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",marginBottom:12}}>
       <div><div style={{fontSize:12,letterSpacing:2.8,fontWeight:700,textTransform:"uppercase"}}>Crayon scene engine · JSON-native</div>
-        <div style={{font:"700 28px Georgia,serif",marginTop:8}}>{subject==="dragon-village"?"The Dragon & The Village":subject==="draw-in"?"First a Line, Then a Life":subject==="walk"?(rig==="ik"?"The Knee & The Step":"A Little Journey"):subject==="performance"?"The Little Flower":subject==="water-cycle"?"Where Rain Begins":subject==="city"?"Our Little Town":"How Things Grow"}</div></div>
+        <div style={{font:"700 28px Georgia,serif",marginTop:8}}>{subject==="dragon-village"?"The Dragon & The Village":subject==="draw-in"?"First a Line, Then a Life":subject==="walk"?(rig==="ik"?"The Knee & The Step":"A Little Journey"):subject==="performance"?"After the Rain":subject==="water-cycle"?"Where Rain Begins":subject==="city"?"Our Little Town":"How Things Grow"}</div></div>
       <div style={{fontSize:13,color:"#586b72"}}>{subject==="dragon-village"?"Three character rigs · castle & village · 30 fps · 11 seconds":subject==="draw-in"?"Guides → contours → wax → acting · 30 fps · 15 seconds":subject==="performance"?"Acting exposure sheet · 30 fps · 9 seconds":subject==="walk"?(rig==="ik"?"Two-bone IK · rolling feet · 30 fps":"Contact-locked walk cycle · 30 fps · 9 seconds"):"Story-independent drawing · 30 fps · 8 seconds"}</div>
     </div>
     <div style={{width:aspect==="portrait"?"min(100%,440px)":"100%",aspectRatio:aspect==="portrait"?"540/960":"960/540",
@@ -80,7 +81,7 @@ const meta={
   title:"Video production/Film Looks/Crayon/Scene Engine",
   id:"video-crayon-scene-engine",
   component:CrayonPlayground,
-  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1.2,loop:false,drawOrder:"outline-first",outlineFraction:.31,waxGlaze:.17,wingPower:1,villageDetail:.85,followThrough:7,cast:"trio",dragonPalette:"teal",shot:"wide",redrawStrength:.68,exposureFrames:3,nibStyle:"tapered",strokeOrder:"patches",markLength:"long"},
+  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1.2,loop:false,drawOrder:"outline-first",outlineFraction:.31,waxGlaze:.17,wingPower:1,villageDetail:.85,followThrough:7,cast:"trio",dragonPalette:"teal",shot:"wide",redrawStrength:.68,exposureFrames:3,nibStyle:"tapered",strokeOrder:"patches",markLength:"long",editorialDetail:1},
   argTypes:{
     subject:{control:"inline-radio",options:["water-cycle","city","numbers","performance","walk","draw-in","dragon-village"]},
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
@@ -89,6 +90,7 @@ const meta={
     nibStyle:{control:"inline-radio",options:["tapered","rounded"]},
     strokeOrder:{control:"inline-radio",options:["patches","scanline"]},
     markLength:{control:"inline-radio",options:["long","short"]},
+    editorialDetail:{control:{type:"range",min:0,max:1,step:.1}},
     stride:{control:{type:"range",min:.6,max:1.6,step:.1}},
     stepLift:{control:{type:"range",min:.6,max:1.8,step:.1}},
     rig:{control:"inline-radio",options:["drawn","ik"]},
