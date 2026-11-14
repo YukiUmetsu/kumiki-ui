@@ -10,6 +10,15 @@ import {RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET} from "../src/video/riso-charac
 const area=(p:readonly (readonly number[])[])=>Math.abs(risoContourSignedArea(p as readonly (readonly [number,number])[]));
 const triangleArea=(t:readonly (readonly number[])[])=>area(t);
 describe("RISO7 exact source-path topology",()=>{
+  it("measures an area-weighted source centroid instead of a guessed bounding-box midpoint",()=>{
+    const triangle:[[number,number],[number,number],[number,number]]=[[0,0],[6,0],[0,3]];
+    const centroid=risoMeshContourCentroid(triangle);
+    expect(centroid[0]).toBeCloseTo(2,6);
+    expect(centroid[1]).toBeCloseTo(1,6);
+    const winding=risoMeshContourCentroid([...triangle].reverse());
+    expect(winding[0]).toBeCloseTo(2,6);
+    expect(winding[1]).toBeCloseTo(1,6);
+  });
   it("adapts Bezier curves to detail without replacing curved source with rectangles",()=>{
     const path="M0 0 C0 60 80 60 80 0 Q100 -20 120 0 L120 40 L0 40 Z";
     const loose=flattenRisoSvgPath(path,2)[0],fine=flattenRisoSvgPath(path,.2)[0];
