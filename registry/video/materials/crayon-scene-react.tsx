@@ -45,15 +45,18 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
   const drawing = node.kind === "wax" || node.kind === "contour"
     ? crayonDrawingAt(node, frame, reducedMotion, spec.durationFrames) : null;
   const contactPhase = node.contacts ? crayonContactPhase(node,frame,spec.durationFrames,reducedMotion) : null;
+  const at=reducedMotion?spec.durationFrames-1:frame;
+  const fading=node.exitFade ? 1-crayonProgress(at,node.exitFade.start,node.exitFade.end) : 1;
   return <g data-km-crayon-element={node.id} data-km-crayon-kind={node.kind}
     data-km-crayon-drawing={drawing?.index} data-km-crayon-pose={drawing?.poseId}
     data-km-crayon-contact={contactPhase ?? undefined}
     data-km-crayon-rig={node.kind==="connector" && node.ik ? "two-bone" : undefined}
-    transform={transform}>
+    data-km-crayon-exit={node.exitFade ? (fading<=0 ? "finished" : "fading") : undefined}
+    opacity={node.exitFade ? fading : undefined} transform={transform}>
     {node.kind === "wax" ? <WaxRegion d={drawing!.d} bounds={drawing!.bounds!} colors={node.colors}
       seed={seed} pressure={node.pressure ?? .84} spacing={node.spacing ?? 9} angle={node.angle ?? 0}
       tooth={tooth} frame={frame} first={node.timing.start} last={node.timing.end}
-      reduced={reducedMotion} /> :
+      construction={node.construction} reduced={reducedMotion} /> :
       node.kind === "contour" ? <WaxLine d={drawing!.d} color={node.color} width={node.width}
         opacity={node.opacity ?? 1} seed={seed}
         frame={frame} first={node.timing.start} last={node.timing.end}
