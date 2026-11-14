@@ -14,7 +14,7 @@ const views=[
   {id:"costume" as const,label:"Shoulders, arms and sleeves",
     regions:["torso","arm-screen-left","arm-screen-right","hand-screen-left",
       "hand-screen-right","sleeve-screen-left","sleeve-screen-right",
-      "waist","hip","ornament"] as FigureRegion[]},
+      "waist","hip","ornament","scroll"] as FigureRegion[]},
   {id:"legs" as const,label:"Robe, legs and feet",
     regions:["robe","leg-screen-left","leg-screen-right",
       "foot-screen-left","foot-screen-right"] as FigureRegion[]},
