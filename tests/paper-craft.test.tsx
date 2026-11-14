@@ -40,6 +40,20 @@ describe("PAPER1 native paper cut, fold, light and puppet", () => {
       });
     }
   }
+  it("keeps detailed anatomy and attached branch topology in both film outputs", () => {
+    for (const format of ["landscape", "portrait"] as const) {
+      const scene=paperCraftExampleSpec("layered",format);
+      const ids=scene.layers.map(layer=>layer.id);
+      expect(new Set(ids).size).toBe(ids.length);
+      for (const id of ["perch-bridge","bird-body","bird-tail","bird-wing",
+        "bird-crest","bird-head","bird-beak","bird-feet"]) expect(ids).toContain(id);
+      expect(scene.layers.find(layer=>layer.id==="bird-head")?.holes).toHaveLength(1);
+      expect(scene.layers.find(layer=>layer.id==="bird-wing")?.holes).toHaveLength(3);
+      expect(scene.layers.find(layer=>layer.id==="perch-bridge")!.depth)
+        .toBeLessThan(scene.layers.find(layer=>layer.id==="bird-feet")!.depth);
+      expect(inspectPaperCraft(scene)).toEqual([]);
+    }
+  });
   it("is pure under shuffled seeking and repeats a final dry paper hold exactly", () => {
     const s = paperCraftExampleSpec("lightbox");
     const final = evaluatePaperCraft(s, 172);
