@@ -16,12 +16,12 @@
       "landscape": {
         "x": 676,
         "y": 357,
-        "scale": 0.94
+        "scale": 0.98
       },
       "portrait": {
         "x": 340,
         "y": 599,
-        "scale": 0.94
+        "scale": 0.98
       }
     }
   },
@@ -505,9 +505,9 @@
       "parent": "head",
       "representation": "vector-2d",
       "bbox": [
-        0.0561,
+        0.0976,
         0.3333,
-        0.3659,
+        0.3732,
         0.4506
       ],
       "pivot": [
@@ -541,10 +541,10 @@
       "parent": "head",
       "representation": "vector-2d",
       "bbox": [
-        0.0366,
+        0.0902,
         0.3444,
         0.3512,
-        0.4741
+        0.4778
       ],
       "pivot": [
         0.55,
@@ -580,9 +580,9 @@
       "parent": "head",
       "representation": "vector-2d",
       "bbox": [
-        0.0415,
+        0.078,
         0.4432,
-        0.3317,
+        0.3439,
         0.5099
       ],
       "pivot": [
@@ -616,9 +616,9 @@
       "parent": "head",
       "representation": "vector-2d",
       "bbox": [
-        0.0756,
+        0.0951,
         0.4235,
-        0.2488,
+        0.2512,
         0.4975
       ],
       "pivot": [
@@ -654,9 +654,9 @@
       "parent": "head",
       "representation": "vector-2d",
       "bbox": [
-        0.0415,
+        0.0878,
         0.4395,
-        0.1244,
+        0.1707,
         0.4864
       ],
       "pivot": [
@@ -726,10 +726,10 @@
       "parent": "head",
       "representation": "vector-2d",
       "bbox": [
-        0.088,
-        0.357,
-        0.447,
-        0.543
+        0.0878,
+        0.3568,
+        0.4463,
+        0.5432
       ],
       "pivot": [
         0.52,
@@ -760,6 +760,6 @@
     }
   ],
   "negative_control": "Exposed paper between whisker pad and head is a failed connected-component/topology gate even when total wax stroke count is high.",
-  "render_evidence_state": "Prototype PNG and before/after comparison inspected locally; no final browser-backed CRAYON1 screenshot or licensed source image crops yet",
+  "render_evidence_state": "ArtCraft isolated static preview inspected/rejected twice: disconnected muzzle paper hole repaired with maxillary-junction; excessively long fox-like nose shortened to hare-appropriate proportions. Latest CRAYON1 native export still uninspected.",
   "release_verdict": "BLOCKED — ArtCraft v6 strict source-image, five-axis and normal-speed film acceptance not available in this execution."
 }
