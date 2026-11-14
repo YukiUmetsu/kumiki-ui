@@ -17,6 +17,34 @@ async function setFrame(page: Page, value: number) {
   await expect(page.locator("svg[data-km-riso-rig-lab]"))
     .toHaveAttribute("data-km-riso-rig-frame",String(value));
 }
+/** Chromium's SVG antialiasing may change a few edge pixels after DOM remounts.
+ * Compare decoded pixels with a strict bounded tolerance, not encoded PNG bytes.
+ */
+async function pixelDelta(page: Page, a: Buffer, b: Buffer) {
+  return page.evaluate(async ([base64A,base64B])=>{
+    const read=async (raw:string)=>{
+      const bytes=Uint8Array.from(atob(raw),ch=>ch.charCodeAt(0));
+      const bitmap=await createImageBitmap(new Blob([bytes],{type:"image/png"}));
+      const canvas=document.createElement("canvas");
+      canvas.width=bitmap.width; canvas.height=bitmap.height;
+      const context=canvas.getContext("2d");
+      if(!context)throw new Error("Canvas 2D is unavailable");
+      context.drawImage(bitmap,0,0);bitmap.close();
+      return {bytes:context.getImageData(0,0,canvas.width,canvas.height).data,
+        width:canvas.width,height:canvas.height};
+    };
+    const x=await read(base64A),y=await read(base64B);
+    if(x.width!==y.width||x.height!==y.height)return {changed:Infinity,peak:255,total:1};
+    let changed=0,peak=0;
+    for(let i=0;i<x.bytes.length;i+=4){
+      let d=0;
+      for(let k=0;k<4;k++)d=Math.max(d,Math.abs(x.bytes[i+k]-y.bytes[i+k]));
+      if(d>0)changed++;
+      peak=Math.max(peak,d);
+    }
+    return {changed,peak,total:x.width*x.height};
+  },[a.toString("base64"),b.toString("base64")] as [string,string]);
+}
 test("RISO3 magnified rig: real stance foot planting, gait close-ups, FK comparison and seeking",async({page},info)=>{
   await page.goto("/iframe.html?id=video-riso-rig-lab--rigging-microscope&viewMode=story");
   await page.evaluate(()=>document.fonts.ready);
@@ -54,7 +82,11 @@ test("RISO3 magnified rig: real stance foot planting, gait close-ups, FK compari
   await expect(stage.locator("[data-km-riso-foot-target]")).toHaveCount(2);
   const renewed=await stage.screenshot({animations:"disabled",
     path:info.outputPath("riso3-ik-restored.png")});
-  expect(ik.equals(renewed)).toBe(true);
+  const delta=await pixelDelta(page,ik,renewed);
+  // The decoded art must be visually identical, allowing only subpixel edge
+  // antialias noise after React swaps the SVG tree.
+  expect(delta.changed).toBeLessThan(delta.total*.005);
+  expect(delta.peak).toBeLessThan(48);
   await page.getByRole("checkbox",{name:"Show joints and IK foot targets"}).uncheck();
   await expect(stage.locator("[data-km-riso-rig-diagnostics]")).toHaveCount(0);
   await stage.screenshot({path:info.outputPath("riso3-clean-animation-frame.png"),animations:"disabled"});
