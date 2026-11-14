@@ -213,7 +213,7 @@ function RisoFilmLab() {
   const artworks = useMemo(() => risoExampleArtworks(aspect), [aspect]);
   if (!compiled.ok) return <pre>{compiled.diagnostics.map(item => item.path + ": " + item.message).join("\n")}</pre>;
   const film = compiled.film;
-  const scale = aspect === "landscape" ? 1 : .48;
+  const scale = aspect === "landscape" ? 1 : .65;
   return <div style={risoUi.page}>
     <h1 style={{ margin: 0, font: "600 28px Georgia,serif" }}>Risograph · Film Stage (3 Shots)</h1>
     <p style={{ maxWidth: 850, margin: 0 }}>Blue plate → red plate → finished overprint. All three shots

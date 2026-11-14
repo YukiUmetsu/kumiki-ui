@@ -120,7 +120,7 @@ function RedInk({ portrait, solid, dots }: { portrait: boolean; solid: string; d
       stroke={solid} fill="none" strokeWidth="2.5">
       <rect x={0} y={0} width={stamp.width} height={stamp.height}/>
       <text x={stamp.textLeft} y={stamp.textTop} fill={solid} stroke="none" fontFamily="Arial, Helvetica, sans-serif"
-        fontWeight={800} fontSize={21} letterSpacing=".75">RISO / 02</text>
+        fontWeight={800} fontSize={21} letterSpacing=".75" textLength={stamp.textMaxWidth} lengthAdjust="spacingAndGlyphs">RISO / 02</text>
     </g>
     <g transform={portrait ? "translate(35 844)" : "translate(43 432)"}
       fill="none" stroke={solid} strokeLinecap="round">

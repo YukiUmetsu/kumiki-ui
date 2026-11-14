@@ -35,8 +35,9 @@ describe("Riso spot-ink printing", () => {
     expect(plateRegistration(spec, 1, .75)).toEqual(plateRegistration(spec, 1, .75));
     expect(printHash(77, 100, 20)).toBe(printHash(77, 100, 20));
     expect(printHash(77, 100, 20)).not.toBe(printHash(77, 101, 20));
-    expect(printDot(0, 0, 9, 24, 1)).toBe(true);
-    expect(printDot(0, 0, 9, 24, 0)).toBe(false);
+    expect(printDot(4.5, 4.5, 9, 0, 1)).toBe(true);
+    expect(printDot(4.5, 4.5, 9, 0, 0)).toBe(false);
+    expect(printDot(0, 0, 9, 0, 1)).toBe(false);
   });
   it("refuses invalid frames and malformed paper colors rather than silently substituting", () => {
     expect(() => evaluateRisoPrint(spec, -1)).toThrow(RangeError);
