@@ -2,7 +2,7 @@
 /* global window, document, HTMLCanvasElement */
 /** Automated film path: one JSON file in, checked and reviewable video out.
  *   npm run film:check  -- <file.film.json> [--format=json]        No browser. Reports every problem with a JSON path.
- *   npm run film:render -- <file> [--only=<output id>] [--out=<dir>] [--browser=chrome] [--frames=<n>] [--audio-only]
+ *   npm run film:render -- <file> [--only=<output id>] [--out=<dir>] [--browser=chrome] [--startFrame=<first>] [--frames=<n>] [--audio-only]
  *   npm run film:review -- <file> [--only=<output id>] [--out=<dir>]   Contact sheets and a rendered-text report.
  *   npm run film:frame  -- <file> --frame=<n> [--only=<output id>] [--out=<dir>]  One audited PNG, no encoding.
  *   Any command takes --look=<preset> and --mood=<a,b> to try the film in another look without editing it.
@@ -31,7 +31,7 @@ const [command, ...rest] = process.argv.slice(2);
 if (!COMMANDS.has(command)) throw Error("Usage: scripts/film.mjs check|render|review|frame|seek|example ...");
 const flags = {}, files = [];
 for (const arg of rest) {
-  const match = /^--(format|only|out|browser|frames|frame|recipe|gl|look|mood)=(.+)$/.exec(arg);
+  const match = /^--(format|only|out|browser|startFrame|frames|frame|recipe|gl|look|mood)=(.+)$/.exec(arg);
   if (match) flags[match[1]] = match[2];
   else if (arg === "--list") flags.list = true;
   else if (arg === "--audio-only") flags["audio-only"] = true;
@@ -244,6 +244,7 @@ async function render() {
         const output = join(dir, outputId + ".mp4");
         await run(process.execPath, [join(ROOT, "scripts/export-video.mjs"), "--url=" + server.pageUrl(outputId), "--output=" + output,
           ...(state.manifest.preset ? ["--preset=" + state.manifest.preset] : []), ...(audioPath ? ["--audio=" + audioPath] : []),
+          ...(flags.startFrame !== undefined ? ["--startFrame=" + flags.startFrame] : []),
           ...(flags.frames ? ["--frames=" + flags.frames] : []), ...(flags.browser ? ["--browser=" + flags.browser] : []), ...(flags.gl ? ["--gl=" + flags.gl] : [])]);
       }
     } finally { await browser.close(); }
