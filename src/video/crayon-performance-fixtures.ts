@@ -6,12 +6,15 @@ import type { CrayonColor, CrayonElement, CrayonSceneSpec } from "../../registry
  * from aligned voice recordings. No borrowed characters, fonts or audio.
  */
 export type CrayonPerformanceAspect = "landscape" | "portrait";
-const berries = ["#cc896e","#b56765","#eeb19b"] as const;
-const plum = ["#77748c","#5f5b79","#a9a1b0"] as const;
-const sage = ["#779d80","#4e7a71","#a5b994"] as const;
-const honey = ["#ecc180","#ca9867","#ffe1a1"] as const;
-const cloud = ["#e9d5bd","#d8c7b9","#fff1dd"] as const;
-const indigo = ["#67788f","#515e7e","#a2afbe"] as const;
+const berries = ["#ae7f6c","#7f5d58","#d0a489"] as const;
+const plum = ["#656f78","#444f5b","#a3a4a5"] as const;
+const sage = ["#7e9480","#526e6b","#b1bd9e"] as const;
+const honey = ["#d8bc93","#ad9378","#f0d8b0"] as const;
+const cloud = ["#ded4bf","#b6b6ad","#f5ecdc"] as const;
+const indigo = ["#627d7e","#3b5962","#a4b9af"] as const;
+const fieldCoat = ["#697d75","#394f54","#a8afa2"] as const;
+const furShadow = ["#855f58","#58464a","#b88e75"] as const;
+const boot = ["#555e60","#343c45","#92908b"] as const;
 const ink:CrayonColor="#4e4b64";
 const egg = (cx:number,cy:number,rx:number,ry:number)=>
   `M${cx-rx} ${cy} a${rx} ${ry} 0 1 0 ${rx*2} 0 a${rx} ${ry} 0 1 0 -${rx*2} 0 Z`;
@@ -113,38 +116,41 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
       plum,{timing:{start:34,end:155},pressure:.28,spacing:12}),
     // Tail and ear backs intentionally precede the torso in painter order,
     // despite inheriting its transforms through the articulated DAG.
-    wax("tail","M-46 39 C-107 66 -129 8 -100 -9 C-85 -29 -66 -12 -46 5Z",
-      {x:-135,y:-32,width:95,height:105},plum,{parentId:"body",pivot:{x:-46,y:24},
+     wax("tail","M-42 36 C-81 58 -139 33 -133 -13 C-133 -46 -96 -51 -75 -25 Q-59 -10 -42 7Z",
+      {x:-145,y:-57,width:109,height:124},berries,{parentId:"body",pivot:{x:-46,y:24},
         motion:[{frame:0,x:0,y:0,rotate:-14},{frame:80,x:0,y:0,rotate:16},
           {frame:130,x:0,y:0,rotate:-9},{frame:190,x:0,y:0,rotate:21},
           {frame:269,x:0,y:0,rotate:-14}],poseCadence:2}),
-    wax("left-ear",egg(-37,-126,20,43),{x:-59,y:-170,width:44,height:88},
+    wax("left-ear","M-44 -102 C-65 -130 -79 -182 -57 -232 Q-30 -203 -27 -153 L-29 -101Z",
+      {x:-80,y:-236,width:58,height:138},
       berries,{parentId:"head",pivot:{x:-37,y:-97},
         motion:leftEarMotion,motionLagFrames:3,poseCadence:2}),
-    wax("right-ear",egg(37,-126,20,43),{x:15,y:-170,width:44,height:88},
+    wax("right-ear","M25 -105 C17 -152 24 -202 51 -224 Q72 -179 55 -137 L47 -101Z",
+      {x:15,y:-230,width:62,height:134},
       berries,{parentId:"head",pivot:{x:37,y:-97},
         motion:rightEarMotion,motionLagFrames:5,poseCadence:2}),
     // Inner ear pigment must follow the moving outer ear, not remain stuck
     // directly to the head; the local artwork is still the same original.
-    wax("left-ear-inner",egg(-37,-127,9,27),{x:-48,y:-155,width:22,height:56},
-      honey,{parentId:"left-ear",spacing:4.5,pressure:.45}),
-    wax("right-ear-inner",egg(37,-127,9,27),{x:26,y:-155,width:22,height:56},
-      honey,{parentId:"right-ear",spacing:4.5,pressure:.45}),
-    wax("back-arm","M-48 15 Q-78 34 -73 69 Q-51 83 -36 45Z",
-      {x:-82,y:10,width:50,height:81},berries,{parentId:"body",pivot:{x:-49,y:18},
+    wax("left-ear-inner","M-44 -113 Q-64 -155 -55 -209 Q-38 -183 -35 -146Z",
+      {x:-64,y:-214,width:33,height:105},furShadow,{parentId:"left-ear",spacing:4.5,pressure:.45}),
+    wax("right-ear-inner","M35 -117 Q30 -161 49 -207 Q60 -174 45 -132Z",
+      {x:28,y:-213,width:34,height:103},furShadow,{parentId:"right-ear",spacing:4.5,pressure:.45}),
+    wax("back-arm","M-52 -12 Q-83 7 -76 48 Q-70 73 -50 68 L-37 24Z",
+      {x:-89,y:-20,width:62,height:97},fieldCoat,{parentId:"body",pivot:{x:-49,y:18},
         motion:[{frame:0,x:0,y:0,rotate:10},{frame:90,x:0,y:0,rotate:-12},
           {frame:180,x:0,y:0,rotate:12},{frame:269,x:0,y:0,rotate:10}]}),
-    wax("body","M-61 3 C-75 -29 -54 -57 0 -63 C58 -63 77 -25 66 27 L62 78 Q0 113 -61 76Z",
-      {x:-80,y:-70,width:160,height:188},berries,{
+    wax("body","M-41 -58 Q-67 -53 -71 -22 C-77 12 -55 73 -42 94 Q-5 113 46 93 C60 69 76 5 59 -30 Q40 -63 8 -64 Q-20 -68 -41 -58Z",
+      {x:-81,y:-72,width:161,height:191},berries,{
         placement:{x:ox,y:oy},motion:bodyMotion,poseCadence:2}),
-    wax("foot-back",egg(-29,94,24,13),{x:-55,y:79,width:52,height:31},
-      plum,{parentId:"body",pressure:.68,spacing:4.5,
-        contacts:[{start:0,end:269,anchor:{x:-29,y:103}}]}),
-    wax("foot-front",egg(31,94,24,13),{x:4,y:79,width:54,height:31},
-      plum,{parentId:"body",pressure:.68,spacing:4.5,
-        contacts:[{start:0,end:269,anchor:{x:31,y:103}}]}),
-    wax("belly",egg(0,30,37,53),{x:-40,y:-25,width:80,height:110},honey,
-      {parentId:"body",pressure:.58,spacing:8}),
+    wax("foot-back","M-48 144 Q-29 138 -16 146 L-9 160 Q-24 175 -52 169Z",
+      {x:-55,y:137,width:51,height:39},boot,{parentId:"body",pressure:.84,spacing:4.5,
+        contacts:[{start:0,end:269,anchor:{x:-29,y:166}}]}),
+    wax("foot-front","M15 143 Q34 137 49 147 L58 161 Q40 176 15 169Z",
+      {x:9,y:136,width:53,height:42},boot,{parentId:"body",pressure:.84,spacing:4.5,
+        contacts:[{start:0,end:269,anchor:{x:31,y:166}}]}),
+    wax("belly","M-14 -25Q0 -9 14 -24 L10 76 Q0 91 -8 76Z",
+      {x:-18,y:-29,width:37,height:124},honey,
+      {parentId:"body",pressure:.58,spacing:5}),
     wax("scarf-wrap","M-37 -38 Q0 -18 39 -38 L34 -20 Q0 1 -33 -22Z",
       {x:-42,y:-42,width:86,height:46},indigo,{parentId:"body",pressure:.82,spacing:5.5}),
     wax("scarf-tail","M21 -24 Q35 -18 46 -6 L56 25 L37 29 L24 0Z",
@@ -161,10 +167,11 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
       {parentId:"body",color:"#d5d9df",opacity:.75}),
     contour("scarf-tail-stitch","M38 16 L50 14",2.2,
       {parentId:"scarf-tail",color:"#d5d9df",opacity:.75}),
-    wax("head","M-63 -83 Q-69 -130 -29 -149 Q2 -161 38 -144 Q66 -126 64 -83 Q54 -47 4 -45 Q-47 -45 -63 -83Z",
-      {x:-70,y:-164,width:140,height:124},berries,{
+    wax("head","M-48 -127 Q-54 -144 -25 -157 C4 -175 42 -157 52 -133 Q64 -109 51 -85 L41 -59 Q14 -27 -11 -46 Q-41 -48 -51 -83 Q-59 -106 -48 -127Z",
+      {x:-65,y:-177,width:126,height:157},berries,{
         parentId:"body",pivot:{x:0,y:-71},motion:headMotion,poseCadence:2}),
-    wax("muzzle",egg(0,-77,38,27),{x:-40,y:-106,width:80,height:59},honey,
+    wax("muzzle","M-25 -89Q-6 -107 9 -92Q27 -99 38 -76Q28 -47 5 -43 Q-16 -41 -31 -65Z",
+      {x:-38,y:-110,width:81,height:75},honey,
       {parentId:"head",pressure:.62,spacing:5}),
     contour("brow-left","M-32 -115 Q-23 -122 -14 -117",2.8,{
       parentId:"head",poseCadence:2,opacity:.82,
@@ -194,7 +201,8 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
       {parentId:"head",color:"#c16f65",opacity:.74}),
     contour("freckles-right","M40 -81 l5 1 M40 -75 l4 2 M34 -79 l4 1",2,
       {parentId:"head",color:"#c16f65",opacity:.74}),
-    wax("nose",egg(0,-85,8,6),{x:-9,y:-93,width:18,height:14},plum,
+    wax("nose","M0 -85Q7 -88 12 -83L7 -76Q2 -73 -2 -79Z",
+      {x:-5,y:-91,width:21,height:22},plum,
       {parentId:"head",spacing:4,pressure:.8}),
     contour("mouth","M-9 -64 Q0 -58 9 -64",4.4,{
       parentId:"head",poseCadence:2,
@@ -206,8 +214,8 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
         {id:"fv",d:"M-13 -67 Q0 -61 13 -67 M-10 -62 H10"},
         {id:"smile",d:"M-17 -65 Q0 -41 17 -65"},
       ],poseCues:mouthCues}),
-    wax("front-arm","M46 1 Q74 12 66 41 Q56 58 40 40Z",
-      {x:36,y:-3,width:47,height:66},berries,{parentId:"body",pivot:{x:49,y:10},
+    wax("front-arm","M43 -9Q68 -5 76 21Q83 49 59 61L42 47L55 24Z",
+      {x:36,y:-17,width:52,height:83},fieldCoat,{parentId:"body",pivot:{x:49,y:10},
         motion:[{frame:0,x:0,y:0,rotate:-9},{frame:60,x:0,y:0,rotate:-27},
           {frame:96,x:0,y:0,rotate:-67},{frame:145,x:0,y:0,rotate:-50},
           {frame:210,x:0,y:0,rotate:-6},{frame:269,x:0,y:0,rotate:-9}],poseCadence:2}),
@@ -244,7 +252,7 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
       x:portrait?32:52,y:H-31,fontSize:portrait?10:13,family:"sans",weight:600,color:"#586675"},
   ];
   return {version:1,id:"crayon-performance-"+aspect,width:W,height:H,durationFrames:270,
-    seed:237,paper:"#f6edda",paperTooth:.68,elements,
+    seed:237,paper:"#f4eedf",paperTooth:.73,elements,
     camera:[{frame:0,focusX:W/2,focusY:H/2,zoom:1},
       {frame:145,focusX:W/2,focusY:H/2+6,zoom:1.035},
       {frame:269,focusX:W/2,focusY:H/2,zoom:1}]};
