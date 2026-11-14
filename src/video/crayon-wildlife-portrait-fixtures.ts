@@ -98,7 +98,10 @@ export function crayonWildlifePortraitScene(
     "M-121 85Q-139 130 -110 191Q-70 263 -23 321"+
     "Q38 286 49 222Q69 153 30 94Z",
     {x:-145,y:75,width:220,height:258},C.warm,
-    {parentId:"shoulder-silhouette",spacing:10});
+    {parentId:"shoulder-silhouette",spacing:10,
+      sgraffito:{d:"M-110 149Q-84 225 -38 290"+
+        "M-103 163Q-73 233 -27 298M-119 135Q-109 181 -89 219",
+        width:1.38,first:191,last:230}});
   wax("neck-chest-light",
     "M-83 118Q-121 184 -77 238Q-48 279 -18 310"+
     "Q13 265 7 201Q-9 143 -41 111Z",
@@ -133,7 +136,10 @@ export function crayonWildlifePortraitScene(
   wax("near-ear-inner",
     "M87 -127Q99 -235 137 -303Q141 -264 120 -208Q104 -166 96 -121Z",
     {x:82,y:-309,width:68,height:195},C.earInner,
-    {parentId:"near-ear",spacing:8});
+    {parentId:"near-ear",spacing:8,
+      sgraffito:{d:"M99 -149Q112 -188 125 -249"+
+        "M107 -167Q118 -217 137 -278M97 -176Q110 -206 130 -262",
+        width:1.35,first:179,last:224}});
   wax("throat-occlusion",
     "M-91 86Q-130 116 -117 148Q-90 186 -57 191L8 172Q50 142 53 104Z",
     {x:-135,y:81,width:200,height:118},C.shadow,
@@ -164,7 +170,10 @@ export function crayonWildlifePortraitScene(
     "M-105 -31Q-40 -52 -11 -12Q35 44 -35 80"+
     "Q-94 73 -134 25Z",
     {x:-140,y:-59,width:185,height:155},C.cheek,
-    {parentId:"head",spacing:9});
+    {parentId:"head",spacing:9,
+      sgraffito:{d:"M-111 -14Q-79 9 -47 62"+
+        "M-103 2Q-68 26 -35 66M-122 14Q-89 45 -53 66",
+        width:1.16,first:186,last:230}});
   wax("cheek-light-reflection",
     "M-81 0Q-17 -6 2 41Q-30 82 -89 48Z",
     {x:-97,y:-13,width:110,height:105},C.cream,
