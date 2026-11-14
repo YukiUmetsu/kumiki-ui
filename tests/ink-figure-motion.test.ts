@@ -31,7 +31,7 @@ describe("INK6 painted cloth is frame-pure and physically restrained",()=>{
     expect(Object.keys(tracks).sort()).toEqual(["far-cuff","hem-drape","near-cuff"]);
     expect(Object.values(tracks).every(keys=>isValidCorrectionKeys(keys))).toBe(true);
     expect(tracks["hem-drape"][0].frame).toBe(0);
-    expect(tracks["hem-drape"].at(-1)?.frame).toBe(180);
+    expect(tracks["hem-drape"][tracks["hem-drape"].length-1].frame).toBe(180);
     expect(samplePoseCorrection(tracks,"hem-drape",36)).toEqual(inkClothAt(plan,36).hem);
     const zero=bakeInkClothCorrections({...plan,amount:0});
     expect(samplePoseCorrection(zero,"hem-drape",36).rotation).toBe(0);
