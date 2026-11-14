@@ -34,9 +34,6 @@ function ellipse(b: Artboard, cx: number, cy: number, rx: number, ry: number): s
   return "M" + (x - rxx) + " " + y + " A" + rxx + " " + ryy + " 0 1 0 " + (x + rxx) + " " + y +
     " A" + rxx + " " + ryy + " 0 1 0 " + (x - rxx) + " " + y + " Z";
 }
-function ribbon(b: Artboard, coords: readonly (readonly [number,number])[]): string {
-  return "M" + coords.map(([u,v]) => b.P(u,v)).join(" L");
-}
 function defaultGesture(box: readonly [number,number,number,number]): string {
   const [x,y,w,h] = box;
   // A serpentine gesture reveals the actual painted shape; completed passes render its full silhouette.
