@@ -608,11 +608,25 @@ export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false
           <feDisplacementMap in="SourceGraphic" in2="rag"
             scale={2.9*spec.paper.tooth} xChannelSelector="R" yChannelSelector="G"/>
         </filter>
+        {/* Long coastal glazes must not end as a straight vertical
+            rectangle across the editorial title's negative space.
+            Full-canvas paintings retain the physical full-bleed coast. */}
+        <linearGradient id={washId+"-coast-fade"} gradientUnits="userSpaceOnUse"
+          x1="240" y1="0" x2="398" y2="0">
+          <stop offset="0" stopColor="#000"/>
+          <stop offset="1" stopColor="#fff"/>
+        </linearGradient>
+        <mask id={washId+"-editorial-shore"} maskUnits="userSpaceOnUse"
+          x="0" y="0" width="960" height="540">
+          <rect width="960" height="540"
+            fill={`url(#${washId}-coast-fade)`}/>
+        </mask>
       </defs>
       <g transform={artTransform}>
         {artOnly && <WatercolourWetPaper spec={canonical} frame={frame}
           reducedMotion={reducedMotion} transparentPaper aria-hidden="true"
           style={{width:960,height:540}}/>}
+        <g mask={study==="estuary"&&!artOnly?`url(#${washId}-editorial-shore)`:undefined}>
         {study==="botanical"?<BotanicalArt seed={spec.seed} frame={reducedMotion?420:frame}
           washFilter={washFilter}/>:
           study==="estuary"?<EstuaryArt frame={reducedMotion?420:frame} washFilter={washFilter}/>:
@@ -625,6 +639,7 @@ export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false
           <WatercolourWetPaper spec={subject} frame={reducedMotion?420:frame}
             reducedMotion={reducedMotion} transparentPaper aria-hidden="true"
             style={{width:960,height:540}}/>
+        </g>
         </g>
       </g>
       {!artOnly && <g fill="#46585A">

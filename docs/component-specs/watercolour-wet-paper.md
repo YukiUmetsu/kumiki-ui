@@ -149,6 +149,17 @@ confident material edges, complicated anatomical/architectural construction
 and controlled watercolor contrast of the reference paintings.
 Do **not** treat this as final artistic approval.
 
+**WM5 recorded technical evidence:** [pass 1](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43636895406) and
+[pass 2](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43637467535)
+completed real Chromium visual verification for 16:9 and 9:16 in
+both editorial/full-canvas modes. FilmStage exported twelve representative
+full-color production frames and a 48-frame encoded landscape MP4.
+The agent inspected the exported 12-frame comparison: more coherent leaf,
+coastal and building glazes; substantial improvement to subject framing
+in portrait; still limited realism, particularly small botanical structures,
+mechanical facades, distant wave anatomy and weak surface contrast.
+These passes do **not** imply full 42-second dual-format or 4K acceptance.
+
 **Still required before artistic acceptance:** full-length normal-speed
 16:9 and 9:16 MP4 playback, reference-grade subject-level pigment/glaze
 interaction, anatomically faithful drawing, organic directional

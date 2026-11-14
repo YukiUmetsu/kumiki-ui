@@ -95,4 +95,15 @@ describe("WM5 artist-built subject masks and real drying-front transport",()=>{
     }
   });
 
+  it("softly dissolves the editorial coast into paper while full-bleed art remains uninterrupted",()=>{
+    const paper=watercolourStudySpec("estuary","landscape");
+    const editorial=renderToStaticMarkup(<WatercolourMasterStudyPage
+      study="estuary" spec={paper} frame={335}/>);
+    const full=renderToStaticMarkup(<WatercolourMasterStudyPage
+      study="estuary" spec={paper} frame={335} artOnly/>);
+    expect(editorial).toContain("-editorial-shore)");
+    expect(full).not.toContain("-editorial-shore)");
+    expect(full).toContain('data-km-subject-pigment=""');
+  });
+
 });

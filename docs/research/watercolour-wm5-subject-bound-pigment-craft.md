@@ -64,3 +64,15 @@ Each region is a *transport obstacle* and an SVG **final pigment** boundary. The
 ## 4. Work priority
 
 **Next highest ROI:** masked curved **WM3 character rigs** and localized hand-painted brush contour emission, followed by measured 4K optimization and full-film acceptance. Avoid adding dozens of low-impact random texture marks; source construction, coherent material color and silhouette integrity dominate perceived quality.
+
+
+## 5. WM5 rendered-result audit — 2026-11-14
+
+- [First scoped full-browser/film run](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43636895406) and [portrait-camera correction run](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43637467535) both succeeded.
+- Actual exported comparison has **12 original stills**: three subjects × two native ratios × (editorial, art-only). The 48-frame encoded art-only preview is a real FFmpeg export, not a mock or CSS animation.
+- The initially uniform portrait camera left the image small in a blank column. Three independent **undistorted** subject focal cameras now enlarge botanical, boat/water and building areas.
+- The coastal region's straight cutout was corrected by authoring full-width physical water regions. In the editorial study, those would spill into the title's negative space; a controlled watercolor reveal mask now tapers the distant coast back into unpainted paper. This last editorial mask was checked by source/SSR assertion but not followed by a third complete film export.
+
+**Art evaluation:** Better full-screen use and coherent pigment registration, but still a premium *diagrammatic* ink/watercolor art direction rather than a painter's detailed documentary. The landscape needs richer controlled tonal mass and shore geology; 9:16 botanical closeups need actual venation, petal construction and varied clumps; the facade needs atmospheric perspective, mortar/weathering, roof tiles and human-scale context. No source-painting quality claim.
+
+**Next technical gates:** polygon resolution independence (thin leaf occupancy), wet-layer reactivation and dry-brush fiber breakup, real actor-part rig masking, long-film temporal visual QA and 1080p/4K performance profiling.

@@ -1,13 +1,7 @@
 name: Watercolour WM5 subject-glaze proof
-# One scoped PR proof before reverting to manual-only; no broad workflow
-# triggers, no scheduled work, no routine CI expansions.
+# Full browser + FFmpeg checks are explicit opt-in after
+# successful WM5 proof https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43637467535.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/watercolour-wm4-proof.yml"
-      - "registry/video/watercolour-wet-paper*"
-      - "src/video/watercolour-master-studies*"
-      - "tests/e2e-storybook/watercolour-wm4.spec.ts"
   workflow_dispatch:
 permissions:
   contents: read
