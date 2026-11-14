@@ -100,6 +100,9 @@ export const COURIER: RisoCharacterSpec = {
       target: { kind: "walk", startFrame: 0, endFrame: 198, initialX: 65,
         groundY: 0, stride: 46, cycleFrames: 66, stanceFrames: 38,
         phaseFrames: 33, lift: 17, footRoll: 12 } },
+    { id: "satchel-handhold", root: "right-arm", mid: "right-elbow",
+      end: "right-hand", bend: -1, endRotation: -12,
+      target: { kind: "follow", joint: "satchel", x: 7, y: 4 } },
   ],
   expressions: [
     { frame: 0, name: "neutral" }, { frame: 76, name: "blink" },
