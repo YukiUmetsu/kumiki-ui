@@ -57,6 +57,30 @@ test("ink character director: both aspects, IK legs, frame-exact reverse seek an
       await expect(actor.locator('[data-part="far-shin"]')).toHaveCount(1);
       await expect(actor.locator('[data-part="near-thigh"]')).toHaveCount(1);
       await expect(actor.locator('[data-part="near-shin"]')).toHaveCount(1);
+      // INK5 costume-density controls must change real part-local geometry,
+      // not merely a frame-wide color filter or decorative UI slider.
+      const foldSlider=page.getByRole("slider",{name:"Garment brush detail"});
+      await expect(foldSlider).toHaveValue("1");
+      const brushShapes=actor.locator("[data-km-ink-character-shape]");
+      const fullCount=await brushShapes.count();
+      await foldSlider.evaluate(node=>{
+        const input=node as HTMLInputElement;
+        const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+        setter?.call(input,"0");
+        input.dispatchEvent(new Event("input",{bubbles:true}));
+        input.dispatchEvent(new Event("change",{bubbles:true}));
+      });
+      await expect(foldSlider).toHaveValue("0");
+      await expect.poll(()=>brushShapes.count()).toBeLessThan(fullCount);
+      await foldSlider.evaluate(node=>{
+        const input=node as HTMLInputElement;
+        const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+        setter?.call(input,"1");
+        input.dispatchEvent(new Event("input",{bubbles:true}));
+        input.dispatchEvent(new Event("change",{bubbles:true}));
+      });
+      await expect(foldSlider).toHaveValue("1");
+      await expect.poll(()=>brushShapes.count()).toBe(fullCount);
       const shots:Record<number,Buffer>={};
       for(const frame of [0,85,135,235,310,419]){
         await seek(page,frame);

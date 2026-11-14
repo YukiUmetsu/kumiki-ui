@@ -51,6 +51,7 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
     data-km-crayon-drawing={drawing?.index} data-km-crayon-pose={drawing?.poseId}
     data-km-crayon-contact={contactPhase ?? undefined}
     data-km-crayon-rig={node.kind==="connector" && node.ik ? "two-bone" : undefined}
+    data-km-crayon-motion-lag={node.motionLagFrames ?? undefined}
     data-km-crayon-exit={node.exitFade ? (at<node.exitFade.start ? "visible" : fading<=0 ? "finished" : "fading") : undefined}
     opacity={node.exitFade ? fading : undefined} transform={transform}>
     {node.kind === "wax" ? <WaxRegion d={drawing!.d} bounds={drawing!.bounds!} colors={node.colors}

@@ -3602,6 +3602,24 @@
       ]
     },
     {
+      "name": "ink-figure-craft",
+      "type": "registry:ui",
+      "title": "Chinese Ink Figure Brushwork",
+      "description": "Validated authored Chinese ink figure folds (floating silk-thread, layered wash, dry flying-white), pressure-native SVG geometry attached to existing CharacterPresenter part rigs; stable seed, detail and pigment controls.",
+      "dependencies": [],
+      "registryDependencies": [
+        "character-performance",
+        "ink-wash-core"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-figure-craft.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-figure-craft.ts"
+        }
+      ]
+    },
+    {
       "name": "ink-actor-director",
       "type": "registry:ui",
       "title": "Chinese Ink Character Motion Director",
