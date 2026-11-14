@@ -26,11 +26,11 @@ test("wildlife animation preserves opaque bird parts under seek and aspect switc
     // Macros inspect real animated pencil geometry, never a replacement raster thumbnail.
     await page.getByRole("combobox", { name: "Wildlife inspection" }).selectOption("wing");
     await expect(stage).toHaveAttribute("style", /scale\(2\.5\)/);
-    await stage.screenshot({ animations: "disabled",
+    await stage.locator("xpath=..").screenshot({ animations: "disabled",
       path: info.outputPath("pencil-wing-macro-" + aspect + ".png") });
     await page.getByRole("combobox", { name: "Wildlife inspection" }).selectOption("eye");
     await expect(stage).toHaveAttribute("style", /scale\(3\.4\)/);
-    await stage.screenshot({ animations: "disabled",
+    await stage.locator("xpath=..").screenshot({ animations: "disabled",
       path: info.outputPath("pencil-eye-macro-" + aspect + ".png") });
     await page.getByRole("combobox", { name: "Wildlife inspection" }).selectOption("composition");
     const body = stage.locator('[data-km-pencil-region="copperbird-torso"]');
