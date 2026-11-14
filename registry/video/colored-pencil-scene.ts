@@ -103,6 +103,7 @@ export function inspectPencilScene(value: unknown): string[] {
       for (const actor of scene.actors as PencilActorSpec[]) {
         if (!actor?.parts) continue;
         for (const part of actor.parts) {
+          if (!part || typeof part.id !== "string") continue;
           const id = actor.id + "-" + part.id;
           if (used.has(id)) issues.push("actors: composed region IDs must be unique.");
           used.add(id);
