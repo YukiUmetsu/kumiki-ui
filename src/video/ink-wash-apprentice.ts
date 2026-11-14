@@ -1,5 +1,5 @@
 /**
- * Original INK4 apprentice design. The silhouette, face, robe, hair and held
+ * Original INK5 apprentice design. The silhouette, face, robe, hair and held
  * paper scroll are authored independently of the elder's artwork.
  * The established layered-rig protocol remains unchanged.
  */
