@@ -139,6 +139,8 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:film-document":{storyId:"video-film-stage--example-film"},
   "pack:ad-formats":{storyId:"video-production-ad-formats--formats"},
   "pack:film-cards":{storyId:"video-production-ad-formats--cards"},
+  "pack:ink-brush":{storyId:"video-ink-brush--brush-studio-film"},
+  "pack:crayon-storybook":{storyId:"video-crayon-storybook--lantern-trail"},
   "pack:screen-demo":{storyId:"video-production-screen-demo--live-ui"},
   "pack:motion-chart":{storyId:"video-production-motion-chart--guided"},
   "pack:chart-morph":{storyId:"video-production-chart-morph--staged"},

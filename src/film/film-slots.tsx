@@ -1,3 +1,13 @@
+import { InkBrushPoster } from "../video/ink-brush-demo";
+import { CrayonStorybook } from "../../registry/video/materials/crayon-react";
+import { CrayonScene } from "../../registry/video/materials/crayon-scene-react";
+import { assertCrayonScene } from "../../registry/video/materials/crayon-scene";
+import { PaintedTravellerPage } from "../video/watercolour-actor-demo";
+import { PaintedWorldPage } from "../video/painted-composition-page";
+import { paintedDemoSpec, paintedCameraAt } from "../video/painted-composition-demo";
+import type { PaintedGenre } from "../video/painted-composition-demo";
+import { PaintedPage } from "../video/watercolour-brush-page";
+import { paintExampleSpec } from "../video/watercolour-brush-demo";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
@@ -660,6 +670,8 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
     if (c.slot === "finale") { const props = (c.props as unknown as FinaleProps).tiny, key = JSON.stringify(props.models);
       if (!tinies.has(key)) tinies.set(key, { models: Object.fromEntries(await Promise.all(Object.entries(props.models).map(async ([id, src]) => [id, (await loader.loadAsync(src)).scene] as const))) }); }
   }
+  const watercolorSheets = new Map<string, ReturnType<typeof paintExampleSpec>>();
+  const paintedWorlds = new Map<string, ReturnType<typeof paintedDemoSpec>>();
   return (content, context) => {
     const props = content.props ?? {};
     switch (content.slot) {
@@ -673,6 +685,75 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
 
       // Original art-style fixtures run through the same production renderer as Storybook.
       // The Film Document still owns all scene timing; these slots draw only frame samples.
+      // Generic JSON-authored, portable crayon scene: no code changes needed for new subjects.
+      case "crayon-scene": {
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const variants: unknown = props.scenes;
+        const scene: unknown = variants && typeof variants === "object" && !Array.isArray(variants)
+          ? (variants as Record<string,unknown>)[aspect] : props.scene;
+        assertCrayonScene(scene);
+        if (scene.width !== context.width || scene.height !== context.height)
+          throw new RangeError("crayon-scene dimensions must match the FilmStage output");
+        if (scene.durationFrames !== context.durationFrames)
+          throw new RangeError("crayon-scene durationFrames must match its film shot duration");
+        return <CrayonScene spec={scene} frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
+      case "crayon-storybook": {
+        const rawOffset = props.offsetFrame ?? 0;
+        if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
+          throw new RangeError("crayon-storybook offsetFrame must be a nonnegative integer.");
+        const story = props.story ?? "lantern";
+        if (story !== "lantern" && story !== "garden")
+          throw new RangeError("crayon-storybook story must be lantern or garden.");
+        return <CrayonStorybook frame={rawOffset + context.frame} story={story}
+          aspect={context.width > context.height ? "landscape" : "portrait"}
+          reducedMotion={context.reducedMotion} seed={23} pressure={.87} paperTooth={.58} />;
+      }
+      case "ink-brush-study": {
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const subject = props.subject;
+        if (subject !== "delta" && subject !== "branch")
+          throw new RangeError("ink-brush-study props.subject must be 'delta' or 'branch'.");
+        const offset = props.offsetFrame ?? 0;
+        if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0)
+          throw new RangeError("ink-brush-study offsetFrame must be a nonnegative integer.");
+        return <InkBrushPoster subject={subject} aspect={aspect} frame={offset + context.frame}
+          paperTooth={.48} reducedMotion={context.reducedMotion}/>;
+      }
+      case "watercolour-actor": {
+        const output = context.width > context.height ? "landscape" : "portrait";
+        return <PaintedTravellerPage output={output} frame={context.frame}
+          reducedMotion={context.reducedMotion}/>;
+      }
+      case "painted-composition": {
+        const genre = props.genre;
+        if (genre !== "nature" && genre !== "architecture" && genre !== "science" && genre !== "product")
+          throw new RangeError("painted-composition requires a supported genre.");
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const key = aspect + "/" + genre;
+        let material = paintedWorlds.get(key);
+        if (!material) {
+          material = paintedDemoSpec(genre as PaintedGenre, aspect);
+          paintedWorlds.set(key, material);
+        }
+        return <PaintedWorldPage spec={material} genre={genre}
+          frame={context.frame} reducedMotion={context.reducedMotion}
+          camera={paintedCameraAt(context.frame, context.reducedMotion)}/>;
+      }
+      case "watercolour-brush": {
+        const subject = props.subject;
+        if (subject !== "wild-iris" && subject !== "coastal-dawn")
+          throw new RangeError("watercolour-brush requires props.subject = wild-iris or coastal-dawn.");
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const key = aspect + "/" + subject;
+        let surface = watercolorSheets.get(key);
+        if (!surface) {
+          surface = paintExampleSpec(aspect, subject);
+          watercolorSheets.set(key, surface);
+        }
+        return <PaintedPage spec={surface}
+          subject={subject} frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
       case "riso-print-study": {
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const rawOffset = props.offsetFrame ?? 0;
@@ -707,7 +788,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           reducedMotion={context.reducedMotion}/>;
       }
 
-      default: throw new Error(`No slot "${content.slot}". Slots: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off.`);
+      default: throw new Error(`No slot "${content.slot}". Available: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, painted-composition, watercolour-actor.`);
     }
   };
 }

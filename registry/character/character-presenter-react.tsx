@@ -4,6 +4,20 @@ import type { AffineMatrix } from "../motion/types";
 import type { CharacterAsset, CharacterCue, CharacterDefinition, CharacterDiagnostic, CharacterFrameState, CharacterInstance, CharacterPart, CharacterPartState, CharacterShape } from "./definition";
 import { evaluateCharacter, partAssetKey, partLocalMatrix, resolveCharacterAppearance } from "./evaluate";
 
+/** Original-part watercolor texture: the material follows animated vector assets,
+ * never applies a global frame-wide posterization to the completed character.
+ * Values are stylized controls, not measured pigment properties.
+ */
+export interface CharacterWatercolourMaterial {
+  /** Stable paper-fibre granulation, 0..1. */
+  granulation: number;
+  /** Edge capillary softness, 0..1. */
+  bleed: number;
+  /** Cotton-paper surface relief, 0..1. */
+  tooth: number;
+  /** Same seed + part + pose always renders the same material. */
+  seed: number;
+}
 /** Optional dry-brush paper rendering for characters with approved ink-oriented artwork.
  * This treats each rigged shape separately; it is not a filter over a completed video.
  */
@@ -31,6 +45,8 @@ export interface CharacterPresenterProps extends Omit<ComponentPropsWithoutRef<"
   frame: number;
   /** Host-resolved URLs for `kind: "image"` assets, keyed by `asset.uri`. Missing URLs are reported, never fetched. */
   assetUrls?: Record<string, string>;
+  /** Material treatment for watercolor rigs. */
+  watercolourMaterial?: CharacterWatercolourMaterial;
   /** Opt-in shape-native ink wash. Flat renderer is unchanged when absent. */
   inkMaterial?: CharacterInkMaterial;
   /** Required accessible name. The SVG art is hidden from assistive technology. */
@@ -55,6 +71,8 @@ interface Scene {
   urls: Record<string, string> | undefined;
   ink: CharacterInkMaterial | undefined;
   inkId: string;
+  watercolour?: CharacterWatercolourMaterial;
+  materialId: string;
 }
 
 const HEX = /^#[0-9a-fA-F]{3,8}$/;
@@ -96,7 +114,14 @@ function shapeNode(shape: CharacterShape, index: number, partId: string, scene: 
     : shape.type === "ellipse"
       ? <ellipse cx={shape.cx} cy={shape.cy} rx={shape.rx} ry={shape.ry} {...paintProps} />
       : <rect x={shape.x} y={shape.y} width={shape.width} height={shape.height} rx={shape.rx} {...paintProps} />;
-  if (!scene.ink) return <g key={index}>{base}</g>;
+  if (!scene.ink) {
+    if (!scene.watercolour) return <g key={index}>{base}</g>;
+    return <g key={index} data-km-watercolour-character-part="">
+      <g filter={"url(#" + scene.materialId + "-edge)"}>{base}</g>
+      <g opacity={.045 + scene.watercolour.bleed * .11}
+        filter={"url(#" + scene.materialId + "-bleed)"}>{base}</g>
+    </g>;
+  }
   const finish = scene.ink.partFinish?.[partId];
   const fringe = finish?.bleed ?? 1;
   // Like 筆墨分解 (separated brush / ink values), the character's original
@@ -135,8 +160,16 @@ function partNode(part: CharacterPart, scene: Scene): ReactNode {
 
 /** Evaluates one performer at one absolute frame and draws the resulting pose. Pure: no state, timers or frame loops. */
 export const CharacterPresenter = forwardRef<HTMLDivElement, CharacterPresenterProps>(function CharacterPresenter({
-  definition, instance, cues, frame, assetUrls, label, reducedMotion = "auto", onDiagnostics, inkMaterial, style, ...props
+  definition, instance, cues, frame, assetUrls, label, reducedMotion = "auto", watercolourMaterial, onDiagnostics, inkMaterial, style, ...props
 }, ref) {
+  if (watercolourMaterial && (
+    !Number.isSafeInteger(watercolourMaterial.seed) || watercolourMaterial.seed < 0 ||
+    watercolourMaterial.seed > 2147483647 ||
+    ![watercolourMaterial.tooth, watercolourMaterial.bleed, watercolourMaterial.granulation]
+      .every(v => Number.isFinite(v) && v >= 0 && v <= 1)
+  )) throw new RangeError("Watercolour character material needs bounded tooth/bleed/granulation and seed.");
+  if (watercolourMaterial && inkMaterial)
+    throw new RangeError("Choose one native character material treatment at a time.");
   if (inkMaterial && (!Number.isSafeInteger(inkMaterial.seed) || inkMaterial.seed < 0 ||
       inkMaterial.seed > 2147483647 || !Number.isFinite(inkMaterial.absorption) ||
       inkMaterial.absorption < 0 || inkMaterial.absorption > 1 || !Number.isFinite(inkMaterial.grain) ||
@@ -153,6 +186,7 @@ export const CharacterPresenter = forwardRef<HTMLDivElement, CharacterPresenterP
   }
   const rawInkId = useId();
   const inkId = "kmcharink" + rawInkId.replace(/[^a-zA-Z0-9_-]/g, "");
+  const materialId = "kmwc" + rawInkId.replace(/[^a-zA-Z0-9_-]/g, "");
   const reduce = reducedMotion === "auto" ? typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches : reducedMotion;
   const hierarchy = useMemo(() => buildHierarchy(definition.parts), [definition.parts]);
   const model = useMemo<PresenterModel>(() => {
@@ -183,13 +217,31 @@ export const CharacterPresenter = forwardRef<HTMLDivElement, CharacterPresenterP
   const signature = JSON.stringify(model.diagnostics);
   useEffect(() => { notify.current?.(latest.current); }, [signature]);
 
-  const scene: Scene = { model, children: hierarchy.children, urls: assetUrls, ink: inkMaterial, inkId };
+  const scene: Scene = { model, children: hierarchy.children, urls: assetUrls, ink: inkMaterial, inkId,
+    watercolour: watercolourMaterial, materialId };
   const { width, height } = definition.design;
   return <div {...props} ref={ref} role="img" aria-label={label} data-km-character-presenter=""
     data-reduced-motion={reduce ? "" : undefined} data-blinking={model.state.blinking ? "" : undefined} data-diagnostics={model.diagnostics.length}
     style={{ display: "block", position: "relative", width: "100%", aspectRatio: `${width} / ${height}`, overflow: "hidden", ...style }}>
     <svg aria-hidden="true" focusable="false" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet"
       strokeLinejoin="round" strokeLinecap="round" style={{ display: "block", width: "100%", height: "100%", overflow: "hidden" }}>
+      {watercolourMaterial && <defs>
+        {/* Spatial texture is fixed to the character's local SVG coordinate system.
+            It follows arms, eyes, mouth and clothes through their rig transforms. */}
+        <filter id={materialId + "-edge"} x="-15%" y="-15%" width="130%" height="130%"
+          colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise"
+            baseFrequency={.025 + watercolourMaterial.tooth * .055}
+            numOctaves={3} seed={1 + watercolourMaterial.seed % 997} result="paper"/>
+          <feDisplacementMap in="SourceGraphic" in2="paper"
+            scale={.1 + watercolourMaterial.granulation * 1.75}
+            xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <filter id={materialId + "-bleed"} x="-25%" y="-25%" width="150%" height="150%"
+          colorInterpolationFilters="sRGB">
+          <feGaussianBlur stdDeviation={.15 + watercolourMaterial.bleed * 1.55}/>
+        </filter>
+      </defs>}
       {inkMaterial && <defs>
         <filter id={inkId + "-bleed"} x="-25%" y="-25%" width="150%" height="150%"
           colorInterpolationFilters="sRGB">
