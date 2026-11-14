@@ -125,7 +125,7 @@ describe("CRAYON1 data-driven scene grammar",()=>{
     expect(inspectCrayonScene({...base,elements:[a,b]}).join(" ")).toMatch(/cycle/);
     expect(inspectCrayonScene({...base,elements:[{...a,parentId:"not-here"}]}).join(" ")).toMatch(/does not exist/);
     expect(inspectCrayonScene({...base,elements:[{...a,parentId:undefined,pivot:{x:Infinity,y:0}}]}).join(" ")).toMatch(/pivot/);
-    expect(inspectCrayonScene({...base,elements:[{...a,parentId:undefined,screenSpace:true},b]}).join(" ")).toMatch(/screenSpace/);
+    expect(inspectCrayonScene({...base,elements:[{...a,parentId:undefined,screenSpace:true},{...b,screenSpace:false}]}).join(" ")).toMatch(/screenSpace/);
   });
 
   it("fails on wrong FilmStage output dimensions",async()=>{
