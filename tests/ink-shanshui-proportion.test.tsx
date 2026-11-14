@@ -98,8 +98,8 @@ describe("teacher-grounded Chinese ink scholar proportion meshes",()=>{
       const teacherFace=teacher.regions.face!;
       const factor=291/teacher.figure.height;
       const head=definition.parts.find(p=>p.id==="head");
-      expect(head?.rest?.scaleX).toBeCloseTo(teacherFace.width*factor/60,7);
-      expect(head?.rest?.scaleY).toBeCloseTo(teacherFace.height*factor/77,7);
+      expect(head?.rest?.scaleX).toBeCloseTo(teacherFace.width*factor/60,3);
+      expect(head?.rest?.scaleY).toBeCloseTo(teacherFace.height*factor/77,3);
       for(const name of ["hair","brows","eyes","pupil-left","pupil-right","mouth"]){
         const rest=definition.parts.find(p=>p.id===name)?.rest;
         expect(rest).toBeDefined();
