@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { inspectCrayonScene, crayonCamera, crayonContactOffset, crayonWorldPoint, crayonDrawingAt, crayonElementPlacement, crayonElementTransform } from "../registry/video/materials/crayon-scene";
+import { inspectCrayonScene, crayonCamera, crayonContactOffset, crayonWorldPoint, crayonVisiblePoint, crayonConnectorPath, crayonDrawingAt, crayonElementPlacement, crayonElementTransform } from "../registry/video/materials/crayon-scene";
 import { CrayonScene } from "../registry/video/materials/crayon-scene-react";
 import { crayonDemoScene } from "../src/video/crayon-scene-fixtures";
 import { crayonPerformanceScene } from "../src/video/crayon-performance-fixtures";
@@ -329,6 +329,56 @@ describe("CRAYON1 data-driven scene grammar",()=>{
     expect(crayonContactOffset(scene,child,185)).toBeNull();
     expect(crayonElementTransform(scene,child,105))
       .toMatch(/^translate\(/);
+  });
+
+
+  for(const aspect of ["landscape","portrait"] as const){
+    it("links planted and swinging legs to the correct visible anchors in "+aspect,()=>{
+      const scene=crayonWalkScene(aspect);
+      expect(inspectCrayonScene(scene)).toEqual([]);
+      const leg=scene.elements.find(n=>n.id==="leg-back");
+      const foot=scene.elements.find(n=>n.id==="foot-back");
+      const hip=scene.elements.find(n=>n.id==="body");
+      if(!leg||leg.kind!=="connector"||!foot||!hip)
+        throw new Error("missing connector rig");
+      const point=(frame:number)=>crayonVisiblePoint(scene,foot,frame,leg.to.anchor);
+      const fixed=point(94);
+      const planted=point(156);
+      expect(planted.x).toBeCloseTo(fixed.x,5);
+      expect(planted.y).toBeCloseTo(fixed.y,5);
+      const d=crayonConnectorPath(scene,leg,124);
+      const start=crayonVisiblePoint(scene,hip,124,leg.from.anchor);
+      const end=point(124);
+      expect(d).toBe("M"+start.x+" "+start.y+
+        " Q"+d.split(" Q")[1].split(" ").slice(0,2).join(" ")+
+        " "+end.x+" "+end.y);
+      expect(crayonConnectorPath(scene,leg,124)).toBe(d);
+      expect(crayonConnectorPath(scene,leg,70)).not.toEqual(d);
+      crayonConnectorPath(scene,leg,269);
+      crayonConnectorPath(scene,leg,0);
+      expect(crayonConnectorPath(scene,leg,124)).toBe(d);
+      expect(crayonConnectorPath(scene,leg,0,true)).toBe(crayonConnectorPath(scene,leg,269,true));
+      const markup=renderToStaticMarkup(<CrayonScene spec={scene} frame={124}/>);
+      expect(markup).toContain('data-km-crayon-element="leg-back"');
+      expect(markup).toContain('data-km-crayon-kind="connector"');
+      expect(markup).toContain('data-km-crayon-line=""');
+    });
+  }
+
+  it("rejects unsafe connector references and incompatible local transforms",()=>{
+    const scene=crayonWalkScene("landscape");
+    const joint=scene.elements.find(n=>n.id==="leg-back");
+    if(!joint || joint.kind!=="connector")throw new Error("missing joint");
+    const invalid=(patch:Partial<typeof joint>)=>
+      inspectCrayonScene({...scene,elements:scene.elements.map(n=>n.id===joint.id?{...joint,...patch}:n)}).join(" ");
+    expect(invalid({from:{elementId:"does-not-exist",anchor:{x:0,y:0}}})).toMatch(/world-space non-connector/);
+    expect(invalid({from:{elementId:"leg-front",anchor:{x:0,y:0}}})).toMatch(/world-space non-connector/);
+    expect(invalid({to:{elementId:"head",anchor:{x:Infinity,y:0}}})).toMatch(/bounded drawing anchor/);
+    expect(invalid({to:{elementId:"javascript:bad",anchor:{x:0,y:0}}})).toMatch(/bounded drawing anchor/);
+    expect(invalid({width:-1})).toMatch(/width out of bounds/);
+    expect(invalid({bend:Infinity})).toMatch(/bend/);
+    expect(invalid({screenSpace:true})).toMatch(/world-space/);
+    expect(invalid({parentId:"body"})).toMatch(/cannot inherit/);
   });
 
   it("fails on wrong FilmStage output dimensions",async()=>{
