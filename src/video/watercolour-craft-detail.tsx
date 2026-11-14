@@ -31,7 +31,7 @@ export function watercolourCraftMarks(subject:WatercolourCraftSubject,seed:numbe
   if(detail===0)return [];
   const marks:CraftMark[]=[];
   if(subject==="botanical"){
-    const plants=Math.max(5,Math.round(9+20*detail));
+    const plants=Math.max(5,Math.round(8+13*detail));
     for(let i=0;i<plants;i++){
       const h=hash(seed,i,13),q=hash(seed,i,19);
       const x=[383,497,614,751,841][i%5]+Math.floor(i/5)*13+(h-.5)*48;
@@ -50,7 +50,7 @@ export function watercolourCraftMarks(subject:WatercolourCraftSubject,seed:numbe
         const start=70+i*3+j*7;
         const spine=curved(root,-up,dx,-30,-16+hash(seed,i*9+j,6)*8);
         marks.push(mark(spine,"vein",main,.55+.25*hash(seed,i*9+j,2),.44,start,transform));
-        const veinCount=Math.max(2,Math.round(2+3*detail));
+        const veinCount=Math.max(2,Math.round(1+3*detail));
         for(let k=1;k<=veinCount;k++){
           const t=k/(veinCount+1);
           const mx=root+dx*t*.83;
