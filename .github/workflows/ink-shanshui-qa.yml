@@ -8,6 +8,7 @@ on:
       - "src/video/ink-shanshui*"
       - "tests/ink-shanshui.test.tsx"
       - "tests/ink-shanshui-proportion.test.tsx"
+      - "tests/ink-shanshui-full-body.test.tsx"
       - "tests/e2e-storybook/ink-shanshui.spec.ts"
       - "tests/e2e-storybook/ink-shanshui-proportion.spec.ts"
       - "docs/research/shanshui-reference-to-code-2026.md"
@@ -36,7 +37,7 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
       - name: Deterministic painting, actor and composition tests
-        run: npx vitest run --project unit tests/ink-shanshui.test.tsx tests/ink-shanshui-proportion.test.tsx
+        run: npx vitest run --project unit tests/ink-shanshui.test.tsx tests/ink-shanshui-proportion.test.tsx tests/ink-shanshui-full-body.test.tsx
       - name: Registry and catalog installation contracts
         run: |
           npm run registry:validate
