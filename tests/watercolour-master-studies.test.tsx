@@ -6,6 +6,7 @@ import { WATERCOLOUR_MASTER_STUDIES_FILM } from "../src/video/watercolour-master
 import { compileFilm } from "../registry/video/film-document";
 import { loadFilmSlots } from "../src/film/film-slots";
 import fixture from "../examples/film/watercolour-master-studies.film.json";
+import fullCanvasFilm from "../examples/film/watercolour-master-studies-art-only.film.json";
 
 describe("reference-informed original watercolor craftsmanship studies",()=>{
   for(const output of ["landscape","portrait"] as const){
@@ -62,4 +63,23 @@ describe("reference-informed original watercolor craftsmanship studies",()=>{
       }
     }
   });
+  it("exports full-canvas films from portable 3-chapter slot props in both aspects",async()=>{
+    expect(fullCanvasFilm.scenes).toHaveLength(3);
+    for(const outputId of ["landscape","portrait"] as const){
+      const result=compileFilm(fullCanvasFilm,{outputId});
+      expect(result.ok).toBe(true);
+      if(!result.ok)continue;
+      expect(result.film.durationFrames).toBe(1260);
+      const slots=await loadFilmSlots(result.film);
+      const html=renderToStaticMarkup(<>{slots({
+        slot:"watercolour-master-study",label:"full-painting",props:{
+          study:"courtyard",artOnly:true,
+        },
+      },{frame:340,fps:{num:30,den:1},durationFrames:420,
+        width:result.film.width,height:result.film.height,reducedMotion:false})}</>);
+      expect(html).toContain("data-km-subject-pigment");
+      expect(html).not.toContain("WATERCOLOUR / ORIGINAL STUDIES");
+    }
+  });
+
 });

@@ -80,6 +80,49 @@ and all captions in **separate undistorted layers**.
   **not** a physically calibrated multi-pigment absorption model. Mass
   conservation and watercolor colorimetric accuracy are separate concepts.
 
+## WM5 — source-aware subject pigment (2026-11-14)
+
+WM5 extends the same public `WetPaperSpec` without a schema-version break:
+
+- `paintAreas?: {x:number; y:number}[][]` defines 1–48 nondegenerate,
+  paper-space subject polygons (3–64 vertices each). **The simulator**
+  constrains deposited pigment, water and four-neighbor transport to
+  occupied cells, so pigment cannot flow from a painted leaf through
+  untouched paper into a disconnected roof. The SVG renderer clips the
+  final diffused layer to the same polygon geometry. Edge geometry and
+  numerical cell occupancy are separate; this is an intentionally
+  bounded qualitative approximation, not an SVG-exact fluid solver.
+- `edgePooling?: number` sets 0–1 conservative wet-to-dry pigment
+  advection, followed by existing dry-front sedimentation. Values of
+  0 preserve the original material behavior; no mass is added.
+- `watercolourSubjectSpec(study,seed,material)` in
+  `src/video/watercolour-master-studies.tsx` creates original, distinct
+  color regions for **24 individually constructed botanical leaves**,
+  irregular layered coastlines, or roof/wall/shadow/garden architecture.
+  They respond to the same absolute frame and palette controls as the
+  underlying wet-paper field, with an independent pigment glaze pass.
+- `WatercolourMasterStudyPage artOnly` produces a larger artwork-only
+  composition with no editorial typography; the Storybook
+  **Full-canvas watercolor artwork** checkbox provides the comparison.
+  The production slot accepts `props.artOnly: true`.
+  The portable film at
+  `examples/film/watercolour-master-studies-art-only.film.json`
+  supplies three 14-second scenes in both output ratios.
+
+A constrained subject surface needs deliberate authored geometry:
+polygon bounds should cover the *painted region*, not the entire figure
+bounding box. It must have meaningful cell coverage at the chosen
+`cellSize`. Very thin strokes still need WM1/WM2 brush drawing;
+the 16-pixel reference mask is not a contour-level 4K micropaint renderer.
+
+The source design follows the documented differences between *wet-on-dry
+edge darkening*, *wet-on-wet flow*, *granulation*, and *thin translucent
+glazes*. See [Curtis et al., Computer-Generated Watercolor
+(1997)](https://grail.cs.washington.edu/projects/watercolor/paper_small.pdf)
+and [Utah Division of Arts & Museums watercolor technique
+guide](https://artsandmuseums.utah.gov/wp-content/uploads/2019/01/Watercolor-Society.pdf).
+The scenes reproduce **techniques**, not any museum images.
+
 ## Evidence and limits
 
 Test with:
@@ -107,7 +150,7 @@ and controlled watercolor contrast of the reference paintings.
 Do **not** treat this as final artistic approval.
 
 **Still required before artistic acceptance:** full-length normal-speed
-16:9 and 9:16 MP4 playback, more compelling subject-level pigment/glaze
+16:9 and 9:16 MP4 playback, reference-grade subject-level pigment/glaze
 interaction, anatomically faithful drawing, organic directional
 brush boundaries, calibrated wet/dry color ratios, clean film-safe
 typography, 1080p/4K performance profiling, and human art acceptance.
@@ -135,12 +178,14 @@ Reference images, animation frames and audio are not copied or redistributed.
 
 1. Replace rect-cell feathering with resolution-independent textured pigment
    coverage, measured against real scanned paint at close-up.
-2. Introduce **pigment-obstacle boundaries** and wet brush gestures in
-   the painterly scene authoring UI, so WM4 can be combined seamlessly with
-   WM1 and WM2. Pressure-guided path deposition is implemented; geometry-aware
-   wet barriers and full SVG brush-mask diffusion are not.
+2. Extend the newly implemented **polygon-restricted** wet medium to
+   curved SVG silhouettes, authored multi-polygon overlap and WM3 actor
+   parts; preserve conservation at every water-contact boundary. Pressure
+   paths, conservative wet-front edge pooling and region barriers now exist,
+   but contour-fidelity and physically calibrated evaporation do not.
 3. Improve wet-layer pigment reactivation, granule clustering, salt lifting,
-   cauliflowers and edge pooling through **bounded** actual pigment motion.
+   cauliflowers and backruns; contrast numerical edge pooling against scanned
+   watercolor *without* manufacturing pigment.
 4. Use the field on WM3 character part surfaces with hand-redrawn contour
    cadence, multiple actors, gestures, grounded props and authored camera work.
 5. Review a narrated 20–40 second original film at **normal playback speed** in

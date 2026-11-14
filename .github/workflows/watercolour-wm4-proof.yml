@@ -1,7 +1,13 @@
-name: Watercolour WM4 craftsmanship proof
-# Manual-only: keep full Chromium/FFmpeg qualification out of routine CI.
-# Artifacts from the scoped PR proof remain at Actions run 43634979447.
+name: Watercolour WM5 subject-glaze proof
+# One scoped PR proof before reverting to manual-only; no broad workflow
+# triggers, no scheduled work, no routine CI expansions.
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/watercolour-wm4-proof.yml"
+      - "registry/video/watercolour-wet-paper*"
+      - "src/video/watercolour-master-studies*"
+      - "tests/e2e-storybook/watercolour-wm4.spec.ts"
   workflow_dispatch:
 permissions:
   contents: read
@@ -23,6 +29,7 @@ jobs:
         run: |
           npm run film:check -- examples/film/watercolour-wet-paper.film.json
           npm run film:check -- examples/film/watercolour-master-studies.film.json
+          npm run film:check -- examples/film/watercolour-master-studies-art-only.film.json
       - name: Install Chromium for real frames
         run: npx playwright install --with-deps chromium
       - name: Inspect Storybook art, geometry, and deterministic seek in both aspect ratios
@@ -39,9 +46,17 @@ jobs:
           npm run film:frame -- examples/film/watercolour-master-studies.film.json --frame=355 --only=portrait --out=dist/wm4-proof
           npm run film:frame -- examples/film/watercolour-master-studies.film.json --frame=775 --only=portrait --out=dist/wm4-proof
           npm run film:frame -- examples/film/watercolour-master-studies.film.json --frame=1195 --only=portrait --out=dist/wm4-proof
-      - name: Encode a real short preview
+      - name: Capture full-canvas film in both aspects
         run: |
-          npm run film:render -- examples/film/watercolour-master-studies.film.json --frames=70 --only=landscape --out=dist/wm4-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=355 --only=landscape --out=dist/wm4-proof/full-canvas
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=775 --only=landscape --out=dist/wm4-proof/full-canvas
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=1195 --only=landscape --out=dist/wm4-proof/full-canvas
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=355 --only=portrait --out=dist/wm4-proof/full-canvas
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=775 --only=portrait --out=dist/wm4-proof/full-canvas
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=1195 --only=portrait --out=dist/wm4-proof/full-canvas
+      - name: Encode a real short original-art-only film
+        run: |
+          npm run film:render -- examples/film/watercolour-master-studies-art-only.film.json --frames=48 --only=landscape --out=dist/wm4-proof/full-canvas
       - name: Save real browser art frames
         if: always()
         uses: actions/upload-artifact@v4
