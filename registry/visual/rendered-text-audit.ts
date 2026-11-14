@@ -6,6 +6,8 @@ import type { Rect } from "../motion/types";
 
 /** One line of text. `owner` is its block, and `text` is the whole text of that block. */
 export interface RenderedTextBox { text: string; rect: Rect; fontPx: number; owner: number; opacity: number; clippedBy?: Rect;
+  /** Deliberately masked print media: hidden glyph portions are not a text-clipping defect. */
+  intentionalClip?: boolean;
   /** Text that deliberately follows a moving subject (a label on an object), marked `data-km-text-tracks`. */
   tracks?: boolean;
   /** Styled text colour, for a contrast measure against the drawn pixels. */
@@ -48,6 +50,10 @@ export function findTextProblems(boxes: readonly RenderedTextBox[], options: Tex
   const { frame, safeInset, minFontFraction = .023, minOpacity = .5 } = options;
   // Text wholly outside its clip cannot be seen, such as the waiting digits of a rolling counter.
   const visible = boxes.filter(box => box.opacity >= minOpacity && (!box.clippedBy || overlap(inked(box.rect), box.clippedBy))), problems: TextProblem[] = [];
+  // Collision geometry is the *visible* ink, not the full unclipped glyph box:
+  // when a print sheet feeds over another, their names may occupy the same world coords
+  // while their actually painted regions are disjoint.
+  const shownInk = (box: RenderedTextBox): Rect => box.clippedBy ? intersect(inked(box.rect), box.clippedBy) : inked(box.rect);
   const area: Rect = { x: 0, y: 0, ...frame };
   const safe = safeInset && { x: frame.width * safeInset.left, y: frame.height * safeInset.top,
     width: frame.width * (1 - safeInset.left - safeInset.right), height: frame.height * (1 - safeInset.top - safeInset.bottom) };
@@ -56,14 +62,14 @@ export function findTextProblems(boxes: readonly RenderedTextBox[], options: Tex
   const seen = new Set<string>();
   const add = (problem: TextProblem, key: string) => { if (!seen.has(key)) { seen.add(key); problems.push(problem); } };
   visible.forEach((box, index) => {
-    const body = inked(box.rect), base = { text: box.text, rect: box.rect };
+    const body = shownInk(box), base = { text: box.text, rect: box.rect };
     const once = (severity: TextProblem["severity"], code: TextProblem["code"]) => add({ severity, code, ...base }, code + box.owner);
     if (outside(body, area)) once("error", "text-outside-frame");
     else if (safe && outside(body, safe)) once("warning", "text-outside-safe-area");
-    if (box.clippedBy && outside(body, box.clippedBy)) once("error", "text-clipped");
+    if (box.clippedBy && !box.intentionalClip && outside(inked(box.rect), box.clippedBy)) once("error", "text-clipped");
     if (box.fontPx < smallest) once("warning", "text-too-small");
     for (const other of visible.slice(index + 1)) {
-      if (other.owner !== box.owner && overlap(body, inked(other.rect)))
+      if (other.owner !== box.owner && overlap(body, shownInk(other)))
         add({ severity: "error", code: "text-collision", ...base, other: other.text }, `collision${box.owner}-${other.owner}`);
     }
   });
@@ -101,12 +107,37 @@ export function collectRenderedText(root: Element, scale = 1): RenderedTextBox[]
     // A line drawn through the glyphs (a strike-through) reads to the pixel measure as the hardest background, so struck text is
     // not given a colour to measure; its legibility is judged on the contact sheet.
     const struck = Boolean(parent.closest("[data-km-text-struck]"));
-    let opacity = 1, clip: Rect | undefined, hidden = false;
+    let opacity = 1, clip: Rect | undefined, hidden = false, intentionalClip = false;
     for (let item: Element | null = parent; item && item !== root; item = item.parentElement) {
       const style = getComputedStyle(item);
       opacity *= Number(style.opacity);
       if (style.visibility === "hidden" || style.display === "none") hidden = true;
       if (/hidden|clip/.test(style.overflow)) clip = intersect(clip, toOutput(item.getBoundingClientRect()));
+      // CSS clip-path: inset() is common on reveal stages, but getClientRects()
+      // still reports the underlying whole text. Resolve the visible rectangle
+      // in actual viewport pixels and intersect with other ancestor clips.
+      const match = /^inset\\(\\s*([^)]*?)\\s*\\)(?:\\s|$)/i.exec(style.clipPath || "");
+      if (match) {
+        const parts = match[1].split(/\\s+/).filter(Boolean);
+        if (parts.length >= 1 && parts.length <= 4 && parts.every(v => /^-?\\d+(?:\\.\\d+)?(?:px|%)?$/.test(v))) {
+          const quad = parts.length === 1 ? [parts[0], parts[0], parts[0], parts[0]]
+            : parts.length === 2 ? [parts[0], parts[1], parts[0], parts[1]]
+            : parts.length === 3 ? [parts[0], parts[1], parts[2], parts[1]] : parts;
+          const bounds = item.getBoundingClientRect();
+          const amount = (value: string, dimension: number) => value.endsWith("%")
+            ? parseFloat(value) / 100 * dimension : parseFloat(value);
+          const [top, right, bottom, left] = [
+            amount(quad[0], bounds.height), amount(quad[1], bounds.width),
+            amount(quad[2], bounds.height), amount(quad[3], bounds.width),
+          ];
+          clip = intersect(clip, toOutput({
+            x: bounds.x + left, y: bounds.y + top,
+            width: Math.max(0, bounds.width - left - right),
+            height: Math.max(0, bounds.height - top - bottom),
+          }));
+          if (item.hasAttribute("data-km-intentional-text-clip")) intentionalClip = true;
+        }
+      }
     }
     if (hidden || opacity === 0) continue;
     const range = document.createRange();
@@ -118,7 +149,7 @@ export function collectRenderedText(root: Element, scale = 1): RenderedTextBox[]
     if (!owners.has(block)) owners.set(block, owners.size);
     for (const rect of rects) {
       const output = toOutput(rect);
-      boxes.push({ text: blockText(block).slice(0, 120), rect: output, fontPx: output.height * .83, owner: owners.get(block)!, opacity, clippedBy: clip, color: struck ? undefined : rgb(getComputedStyle(parent).color), ...tracks ? { tracks } : {} });
+      boxes.push({ text: blockText(block).slice(0, 120), rect: output, fontPx: output.height * .83, owner: owners.get(block)!, opacity, clippedBy: clip, intentionalClip, color: struck ? undefined : rgb(getComputedStyle(parent).color), ...tracks ? { tracks } : {} });
     }
   }
   return boxes;

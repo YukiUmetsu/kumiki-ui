@@ -61,11 +61,12 @@ export function RisoSheetFeed({
   return <div className={className} data-km-riso-sheet-feed="" role="img" aria-label={label}
     data-km-riso-sheet-frame={frame} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden",
       background: outgoing.spec.paper, isolation: "isolate", ...style }}>
-    <div aria-hidden="true" style={full}>
+    <div aria-hidden="true" data-km-intentional-text-clip=""
+      style={{ ...full, clipPath: state.reveal > 0 ? "inset(0 0 0 " + sweep + "%)" : undefined }}>
       <RisoPrint spec={outgoing.spec} artworks={outgoing.artworks} frame={state.holdFrame}
         reducedMotion paperGrain={paperGrain} misregistration={misregistration} aria-hidden="true"/>
     </div>
-    {state.reveal > 0 && <div aria-hidden="true" data-km-riso-sheet-incoming=""
+    {state.reveal > 0 && <div aria-hidden="true" data-km-riso-sheet-incoming="" data-km-intentional-text-clip=""
       style={{ ...full, clipPath: "inset(0 " + (100 - sweep) + "% 0 0)" }}>
       <RisoPrint spec={incoming.spec} artworks={incoming.artworks} frame={state.printFrame}
         reducedMotion={reducedMotion} paperGrain={paperGrain} misregistration={misregistration} aria-hidden="true"/>
