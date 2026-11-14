@@ -1,0 +1,67 @@
+name: Watercolour WM4 craftsmanship proof
+# Temporary PR-scoped art review; after visual evidence is inspected,
+# return this workflow to manual-only, preserving the low-cost CI policy.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/watercolour-wm4-proof.yml"
+      - "registry/video/watercolour-wet-paper*"
+      - "src/video/watercolour-master-studies*"
+      - "src/video/watercolour-wet-paper*"
+      - "tests/e2e-storybook/watercolour-wm4.spec.ts"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: watercolour-wm4-proof
+  cancel-in-progress: true
+jobs:
+  wm4-art-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Validate both reusable production film fixtures
+        run: |
+          npm run film:check -- examples/film/watercolour-wet-paper.film.json
+          npm run film:check -- examples/film/watercolour-master-studies.film.json
+      - name: Install Chromium for real frames
+        run: npx playwright install --with-deps chromium
+      - name: Inspect Storybook art, geometry, and deterministic seek in both aspect ratios
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-wm4.spec.ts
+      - name: FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Capture actual three-chapter film frames
+        run: |
+          npm run film:frame -- examples/film/watercolour-master-studies.film.json --frame=355 --only=landscape --out=dist/wm4-proof
+          npm run film:frame -- examples/film/watercolour-master-studies.film.json --frame=775 --only=landscape --out=dist/wm4-proof
+          npm run film:frame -- examples/film/watercolour-master-studies.film.json --frame=1195 --only=landscape --out=dist/wm4-proof
+          npm run film:frame -- examples/film/watercolour-master-studies.film.json --frame=355 --only=portrait --out=dist/wm4-proof
+          npm run film:frame -- examples/film/watercolour-master-studies.film.json --frame=775 --only=portrait --out=dist/wm4-proof
+          npm run film:frame -- examples/film/watercolour-master-studies.film.json --frame=1195 --only=portrait --out=dist/wm4-proof
+      - name: Encode a real short preview
+        run: |
+          npm run film:render -- examples/film/watercolour-master-studies.film.json --frames=70 --only=landscape --out=dist/wm4-proof
+      - name: Save real browser art frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wm4-storybook-art-frames
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Save actual exported proof images and film
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wm4-film-frames
+          path: dist/wm4-proof/
+          retention-days: 14
+          if-no-files-found: warn
