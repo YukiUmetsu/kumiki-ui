@@ -25,3 +25,29 @@ test("every Chinese ink story is grouped under one Film Looks folder",async({pag
   for(const kind of ["painting","documentary","character"])
     expect(index.entries["video-chinese-ink-looks--chinese-ink-"+kind]?.title).toBe(root+"Studio");
 });
+
+
+test("shanshui film and ArtCraft study studios share one Chinese Ink subfolder",async({page})=>{
+  const response=await page.request.get("/index.json");
+  expect(response.ok()).toBe(true);
+  const index=await response.json() as {
+    entries:Record<string,{id:string;title:string;type:string}>,
+  };
+  const root="Video production/Film Looks/Chinese Ink/Shanshui/";
+  const expected=new Map([
+    ["video-ink-shanshui","Film Gallery"],
+    ["video-ink-scholar-proportions","Proportion Studio"],
+    ["video-ink-reader-face","Reader Face Studio"],
+  ]);
+  for(const [id,folder] of expected){
+    const matches=Object.values(index.entries).filter(entry=>
+      entry.type==="story"&&entry.id.startsWith(id+"--"));
+    expect(matches.length,id).toBeGreaterThan(0);
+    for(const entry of matches)expect(entry.title,entry.id).toBe(root+folder);
+  }
+  // Prevent scattered Shanshui studies from spawning duplicate sidebar groups.
+  for(const entry of Object.values(index.entries).filter(entry=>entry.type==="story")){
+    if(/shanshui|scholar-proportions|reader-face/i.test(entry.id))
+      expect(entry.title.startsWith(root),entry.id).toBe(true);
+  }
+});
