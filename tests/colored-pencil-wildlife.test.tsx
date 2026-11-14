@@ -71,6 +71,36 @@ describe("fine-feathered paper-native wildlife craft", () => {
     })).toThrow(RangeError);
   });
 
+  it("keeps ArtCraft feather shafts and opposing barbs attached to articulated wing regions", () => {
+    const scene = pencilWildlifeScene({ aspect: "landscape", detail: "full" });
+    const parts = scene.actors![0].parts;
+    const wingParts = ["wing-main", "wing-primaries", "wing-coverts"];
+    const vanes = parts.filter(part => wingParts.includes(part.id))
+      .flatMap(part => part.region.details ?? [])
+      .filter(trace => (trace.path.match(/M/g) ?? []).length === 11);
+    // One hand-authored curved rachis plus ten barbs per vane; no random disconnected dots.
+    expect(vanes).toHaveLength(12);
+    expect(new Set(vanes.map(trace => trace.path)).size).toBe(12);
+    for (const vane of vanes) {
+      expect((vane.path.match(/ Q/g) ?? []).length).toBe(11);
+      expect(vane.width).toBeLessThan(1);
+      expect(vane.startFrame).toBeGreaterThanOrEqual(190);
+      expect(vane.startFrame + vane.durationFrames).toBeLessThan(270);
+    }
+    const wingRegion = parts.find(part => part.id === "wing-main")!.region;
+    const light = wingRegion.details!.filter(trace => trace.color === "#C4DADB");
+    expect(light).toHaveLength(5);
+    expect(wingRegion.details!.length).toBeLessThanOrEqual(80);
+
+    const portrait = pencilWildlifeScene({ aspect: "portrait", detail: "full" });
+    expect(portrait.actors![0].parts.find(part => part.id === "wing-main")!.region.details)
+      .toEqual(wingRegion.details);
+    const stage = (frame: number) => renderToStaticMarkup(<PencilScene scene={scene} frame={frame}/>);
+    expect(stage(350)).toEqual(stage(350));
+    expect(stage(350)).toContain("M106.00 181.00");
+    expect(stage(120)).not.toBe(stage(350));
+  });
+
   it("provides a portable 420-frame three-shot video for both formats", () => {
     expect(portableFilm).toEqual(COLOR_PENCIL_WILDLIFE_FILM);
     for (const outputId of ["landscape", "portrait"]) {
