@@ -17,6 +17,12 @@ export interface CrayonMotionKey {
   x: number; y: number;
   scale?: number; rotate?: number;
 }
+/** World-space grip/foot plant: lock a point of the original drawing at its position on start. */
+export interface CrayonContact {
+  start: number; end: number;
+  /** Anchor expressed in the element's original local drawing coordinates. */
+  anchor: {x:number; y:number};
+}
 export interface CrayonBase {
   id: string;
   timing: CrayonTiming;
@@ -27,6 +33,8 @@ export interface CrayonBase {
   /** Local rotation/scale pivot in authored drawing coordinates. */
   pivot?: { x: number; y: number };
   motion?: readonly CrayonMotionKey[];
+  /** Authored, non-overlapping stance/hold ranges; leaves the camera and draw order unchanged. */
+  contacts?: readonly CrayonContact[];
   /** Number of held source frames per drawing pose. Camera and brush remain frame-accurate. */
   poseCadence?: 1 | 2 | 3 | 4;
 }
@@ -142,6 +150,26 @@ export function inspectCrayonScene(input: unknown): string[] {
         (place.scale !== undefined && (place.scale < .05 || place.scale > 15)) ||
         (place.rotate !== undefined && Math.abs(place.rotate) > 360)))
         errors.push(p + ".placement is out of bounds");
+      if (node.contacts !== undefined) {
+        if (node.screenSpace) errors.push(p + ".contacts require a world-space drawing");
+        if (!Array.isArray(node.contacts) || node.contacts.length < 1 || node.contacts.length > 16)
+          errors.push(p + ".contacts must contain 1..16 non-overlapping ranges");
+        else {
+          let previous=-1;
+          for(const [j,contact] of node.contacts.entries()) {
+            const q=p+".contacts["+j+"]";
+            if (!contact || !int(contact.start) || !int(contact.end) ||
+              contact.start < 0 || contact.end < contact.start ||
+              contact.start <= previous || contact.end >= (v.durationFrames ?? 0))
+              errors.push(q+".range must be sorted, non-overlapping and within duration");
+            previous=contact?.end ?? previous;
+            if (!contact || !contact.anchor ||
+              ![contact.anchor.x,contact.anchor.y].every(finite) ||
+              Math.abs(contact.anchor.x)>8192 || Math.abs(contact.anchor.y)>8192)
+              errors.push(q+".anchor must be bounded finite drawing coordinates");
+          }
+        }
+      }
       if (node.poseCadence !== undefined && ![1,2,3,4].includes(node.poseCadence))
         errors.push(p + ".poseCadence must be 1..4");
       if (node.motion !== undefined) {
@@ -334,28 +362,77 @@ export function crayonElementPlacement(node: CrayonElement, frame: number, reduc
  * DOM paint order remains authored element order, so accessories may appear behind limbs.
  * No incremental physics, mutable animation state or drawing-seed changes on a seek.
  */
-export function crayonElementTransform(
-  spec: CrayonSceneSpec, node: CrayonElement, frame: number, reducedMotion = false,
-): string {
-  const index = new Map(spec.elements.map(e=>[e.id,e]));
+/** Find the root-to-leaf rig path without depending on DOM/painter order. */
+function crayonRigChain(spec: CrayonSceneSpec,node: CrayonElement): CrayonElement[] {
+  const index=new Map(spec.elements.map(e=>[e.id,e]));
   const chain:CrayonElement[]=[];
   const visited=new Set<string>();
-  let cursor:CrayonElement | undefined=node;
+  let cursor:CrayonElement|undefined=node;
   while(cursor) {
-    if(visited.has(cursor.id) || chain.length>=spec.elements.length)
+    if(visited.has(cursor.id)||chain.length>=spec.elements.length)
       throw new RangeError("Invalid CRAYON1 rig: cyclic parentId");
     visited.add(cursor.id);
     chain.unshift(cursor);
-    if(cursor.parentId && !index.has(cursor.parentId))
+    if(cursor.parentId&&!index.has(cursor.parentId))
       throw new RangeError("Invalid CRAYON1 rig: missing parentId");
-    cursor=cursor.parentId ? index.get(cursor.parentId) : undefined;
+    cursor=cursor.parentId?index.get(cursor.parentId):undefined;
   }
-  return chain.map(part=>{
+  return chain;
+}
+
+/**
+ * Resolve a local anchor to camera-independent world coordinates.
+ * Reverse-apply the same translate / pivot / rotate / scale operations as SVG.
+ * Absolute evaluation means backward seeks and browser/film exports agree.
+ */
+export function crayonWorldPoint(
+  spec:CrayonSceneSpec,node:CrayonElement,frame:number,
+  point:Readonly<{x:number;y:number}>,reducedMotion=false,
+): {x:number;y:number} {
+  if(!Number.isFinite(point.x)||!Number.isFinite(point.y))
+    throw new RangeError("Crayon world point must be finite");
+  let x=point.x,y=point.y;
+  const chain=crayonRigChain(spec,node);
+  for(let i=chain.length-1;i>=0;i--) {
+    const part=chain[i],placement=crayonElementPlacement(part,frame,reducedMotion);
+    const cx=part.pivot?.x??0,cy=part.pivot?.y??0;
+    const a=placement.rotate*Math.PI/180,co=Math.cos(a),si=Math.sin(a);
+    const localX=(x-cx)*placement.scale,localY=(y-cy)*placement.scale;
+    x=placement.x+cx+localX*co-localY*si;
+    y=placement.y+cy+localX*si+localY*co;
+  }
+  return {x,y};
+}
+
+/** Offset a pinned local anchor back to its world position at contact start. */
+export function crayonContactOffset(
+  spec:CrayonSceneSpec,node:CrayonElement,frame:number,reducedMotion=false,
+): {x:number;y:number}|null {
+  const at=reducedMotion?spec.durationFrames-1:frame;
+  const contact=node.contacts?.find(c=>c.start<=at&&at<=c.end);
+  if(!contact)return null;
+  const fixed=crayonWorldPoint(spec,node,contact.start,contact.anchor);
+  const moving=crayonWorldPoint(spec,node,at,contact.anchor,reducedMotion);
+  return {x:fixed.x-moving.x,y:fixed.y-moving.y};
+}
+
+/**
+ * World-space contact correction precedes the articulated transform chain,
+ * so local toe/hand detail and ordinary parent rotation are still applied.
+ * Contact is a single pinned anchor, not full IK or a multi-point sole solver.
+ */
+export function crayonElementTransform(
+  spec: CrayonSceneSpec, node: CrayonElement, frame: number, reducedMotion = false,
+): string {
+  const chain=crayonRigChain(spec,node);
+  const transforms=chain.map(part=>{
     const p=crayonElementPlacement(part,frame,reducedMotion);
-    const cx=part.pivot?.x ?? 0, cy=part.pivot?.y ?? 0;
+    const cx=part.pivot?.x??0,cy=part.pivot?.y??0;
     return "translate("+p.x+" "+p.y+") translate("+cx+" "+cy+") rotate("+p.rotate+
       ") scale("+p.scale+") translate("+(-cx)+" "+(-cy)+")";
   }).join(" ");
+  const delta=crayonContactOffset(spec,node,frame,reducedMotion);
+  return delta ? "translate("+delta.x+" "+delta.y+") "+transforms : transforms;
 }
 
 /**
