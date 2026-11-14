@@ -6,6 +6,7 @@ import type { CharacterAsset, CharacterDefinition, CharacterInstance } from "../
 import { InkCharacter } from "../../registry/video/ink-wash-character-react";
 import { InkWashScene } from "../../registry/video/ink-wash-story-react";
 import type { InkShot } from "../../registry/video/ink-wash-story";
+import type { InkWashSpec, InkStroke } from "../../registry/video/ink-wash";
 import { inkExampleSpec } from "./ink-wash-demo";
 import { INK_TRAVELLER, TRAVELLER_INSTANCE, TRAVELLER_CUES } from "./ink-wash-performer";
 import {
@@ -82,6 +83,36 @@ export function inkDirectorGait(aspect:DirectorAspect):InkWalkPlan {
     },
   };
 }
+/**
+ * Story-specific, original dry-brush footpath. Character movement is sampled
+ * independently of the settled backdrop, as in traditional multiplane acting.
+ * Its three pigment passes trace the EXACT authored ground route rather than
+ * painting a floating decorative wave beneath a walking figure.
+ */
+export function inkDirectorBackdrop(aspect:DirectorAspect):InkWashSpec {
+  const base=inkExampleSpec("landscape",aspect);
+  const portrait=aspect==="portrait";
+  const path=portrait
+    ? [[55,813,.06],[135,810,.29],[220,801,.46],[288,795,.30],[432,794,.04]]
+    : [[60,484,.05],[150,484,.33],[360,481,.49],[572,472,.32],[795,473,.04]];
+  const add=(id:string,width:number,tone:number,water:number,load:number,
+    offset:number,brush:"upright"|"oblique"):InkStroke=>({
+    id,points:path.map(([x,y,pressure])=>({x,y:y+offset,pressure})),
+    width,tone,water,load,brush,tipInk:brush==="oblique"?.42:.7,
+    drag:brush==="oblique"?.24:.86,startFrame:0,
+    drawFrames:2,spreadFrames:18,dryFrames:35,
+  });
+  return {
+    ...base,
+    strokes:[
+      ...base.strokes,
+      add("traveler-ground-dilute",30,.20,.94,.66,9,"oblique"),
+      add("traveler-ground-edge",5,.60,.19,.83,6,"upright"),
+      add("traveler-ground-fibers",2.3,.37,.12,.73,13,"upright"),
+    ],
+  };
+}
+
 export function inkDirectorInstance(aspect:DirectorAspect):CharacterInstance {
   return {
     ...TRAVELLER_INSTANCE,revision:INK_WALKING_TRAVELLER.revision,
@@ -99,18 +130,30 @@ export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false}:{
 }) {
   const route=inkDirectorRoute(aspect);
   const track=bakeInkActorTrack(route);
-  const spec=inkExampleSpec("landscape",aspect);
+  const spec=inkDirectorBackdrop(aspect);
   const instance=inkDirectorInstance(aspect);
   const fpsFrame=Math.max(0,Math.min(419,Math.floor(frame)));
   // The source's old step action is disabled so new IK motion is not overlaid on
   // a simultaneous conflicting original gait; all other face/gesture cues survive.
   const cues=TRAVELLER_CUES.filter(c=>!(c.kind==="action"&&c.name==="step"));
   return <InkWashScene spec={spec} shot={INK_DIRECTOR_SHOT} frame={fpsFrame}
+    paintFrame={419}
     reducedMotion={reducedMotion} label="Painted landscape with a walking articulated ink character"
     renderLayer={()=> <InkCharacter definition={INK_WALKING_TRAVELLER} instance={instance}
       track={track} cues={cues} frame={reducedMotion?419:fpsFrame}
       reducedMotion={reducedMotion} label="Ink traveler with planted feet, separate knees and expressive face"
-      absorption={.67} grain={.59}
+      absorption={.73} grain={.70}
+      partFinish={{
+        body:{bleed:.91}, "far-sleeve":{bleed:1}, "near-sleeve":{bleed:1},
+        "far-thigh":{bleed:.45}, "near-thigh":{bleed:.45},
+        head:{bleed:.12,dryContour:true},hair:{bleed:.25,dryContour:true},
+        eyes:{bleed:0,dryContour:true},brows:{bleed:0,dryContour:true},
+        mouth:{bleed:0,dryContour:true},
+        brush:{bleed:0,dryContour:true},
+      }}
+      /** Approved traveller artwork reserves 10 px below boot soles; offset
+       * only its visual rig baseline, not the IK ground or stage world. */
+      style={{marginTop:10}}
       />}>
     <div data-km-ink-directed-caption="" style={{position:"absolute",
       left:aspect==="portrait"?33:42,top:aspect==="portrait"?76:50,

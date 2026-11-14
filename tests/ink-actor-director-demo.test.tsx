@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { validateCharacterDefinition } from "../registry/character/validate";
 import { samplePoseCorrection } from "../registry/character/authoring";
 import { InkDirectorFilm, INK_WALKING_TRAVELLER, inkDirectorGait,
-  inkDirectorInstance, inkDirectorRoute } from "../src/video/ink-actor-director-demo";
+  inkDirectorInstance, inkDirectorRoute, inkDirectorBackdrop } from "../src/video/ink-actor-director-demo";
 import { inkWalkAt, inkRouteAt, bakeInkActorTrack, auditInkWalkContacts } from "../registry/video/ink-actor-director";
 
 describe("INK4 authored character and cinematic stage",()=>{
@@ -37,6 +37,19 @@ describe("INK4 authored character and cinematic stage",()=>{
     expect(stop.y).toBeCloseTo(hold.y,8);
     expect(stop.vx).toBe(0);
     expect(stop.vy).toBe(0);
+  });
+  it("establishes a fully painted, stage-grounded world before the first walk frame",()=>{
+    for(const aspect of ["landscape","portrait"] as const) {
+      const spec=inkDirectorBackdrop(aspect);
+      const ground=spec.strokes.filter(s=>s.id.startsWith("traveler-ground-"));
+      expect(ground).toHaveLength(3);
+      expect(ground.every(s=>s.points.length>=3)).toBe(true);
+      const markup=renderToStaticMarkup(createElement(InkDirectorFilm,{frame:0,aspect}));
+      expect(markup).toContain('data-km-ink-scene-frame="0"');
+      expect(markup).toContain('data-km-ink-paint-frame="419"');
+      expect(markup).toContain('data-km-ink-stroke="traveler-ground-edge"');
+      expect(markup).toContain('data-km-ink-part-bleed="0.00"');
+    }
   });
   it("keeps original traveler stance contacts inside inverse-kinematic reach in both aspects",()=>{
     for(const aspect of ["landscape","portrait"] as const){

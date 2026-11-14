@@ -146,6 +146,19 @@ describe("INK2 reusable material-native film grammar", () => {
       spec:paper,shot,frame:100,renderLayer:()=>null,
     }))).toThrow(RangeError);
   });
+  it("lets finished painted scenery hold while a character layer keeps playing",()=>{
+    const shot=plan.shots[0];
+    const mk=(paintFrame:number)=>renderToStaticMarkup(createElement(InkWashScene,{
+      spec:paper,shot,frame:12,paintFrame,renderLayer:()=>createElement("b",null,"traveller"),
+    }));
+    expect(mk(350)).toContain('data-km-ink-scene-frame="12"');
+    expect(mk(350)).toContain('data-km-ink-frame="350"');
+    expect(mk(350)).toContain('data-km-ink-paint-frame="350"');
+    expect(mk(350)).toContain("traveller");
+    expect(mk(350)).toBe(mk(350));
+    expect(()=>mk(-1)).toThrow(RangeError);
+    expect(()=>mk(1.2)).toThrow(RangeError);
+  });
   it("supports interactive quiz and video controls only when explicitly opted in",()=>{
     const clickable:InkLayerPlan={...textLayer,id:"quiz-controls",interactive:true};
     const shot={id:"quiz",label:"A controlled interaction",durationFrames:60,layers:[clickable]};
