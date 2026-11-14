@@ -5,6 +5,7 @@ import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
 import type {CrayonSceneSpec} from "../registry/video/materials/crayon-scene";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {crayonWildlifePortraitScene} from "../src/video/crayon-wildlife-portrait-fixtures";
+import {MaterialStudy} from "../src/video/crayon-material-studies.stories";
 
 const scrape={d:"M21 30Q39 48 77 66M29 46Q58 59 90 70",width:1.4,first:15,last:23};
 const scene:CrayonSceneSpec={
@@ -67,6 +68,23 @@ describe("CRAYON1 actual subtractive wax sgraffito",()=>{
    expect(html).not.toContain('data-km-crayon-sgraffito="subtractive"');
    expect(html).toContain('data-km-crayon-underpaint="opaque"');
    expect(html).not.toBe(render(25));
+ });
+ it("shows an honest before/after at the same wax seed in Storybook",()=>{
+   const options={
+     frame:117,pressure:.9,paperTooth:.83,left:"opaque" as const,
+     right:"opaque" as const,underlay:"cobalt" as const,
+     leftNib:"tapered" as const,rightNib:"tapered" as const,
+     strokeOrder:"patches" as const,pressureSplit:false,
+     compareStrokeOrder:false,sgraffitoComparison:true,
+     leftLength:"long" as const,rightLength:"long" as const,
+   };
+   const html=renderToStaticMarkup(<MaterialStudy {...options}/>);
+   expect(html).toContain("CARVED / BURIED COLOR");
+   expect(html).toContain("INTACT TOP WAX");
+   expect((html.match(/data-km-crayon-sgraffito="subtractive"/g)??[]))
+     .toHaveLength(1);
+   const before=renderToStaticMarkup(<MaterialStudy {...options} frame={93}/>);
+   expect(before).not.toContain('data-km-crayon-sgraffito="subtractive"');
  });
  for(const aspect of ["landscape","portrait"] as const){
    it("scrapes real eye-adjacent, ear and cervical wax without transparency in "+aspect,()=>{
