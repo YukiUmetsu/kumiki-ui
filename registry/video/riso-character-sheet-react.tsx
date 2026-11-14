@@ -1,5 +1,6 @@
 import { useId } from "react";
 import { RisoCharacterKnockout, RisoCharacterInk } from "./riso-character-react";
+import { evaluateRisoCharacter } from "./riso-character";
 import { evaluateRisoCharacterMesh } from "./riso-proportion-mesh";
 import type { RisoCharacterMeshSheet, RisoMeshBounds, RisoMeshFrameRegion, RisoMeshPoint } from "./riso-proportion-mesh";
 import type { RisoCharacterSpec } from "./riso-character";
@@ -121,8 +122,7 @@ export function RisoCharacterModelSheet({
   }
   function reportFor(sample:number) {
     // Reuse the authoritative evaluator, never derive a second skeleton.
-    return evaluateRisoCharacterMesh(spec,sheet,sample).frame===sample
-      ? null : null;
+    return evaluateRisoCharacter(spec,sample);
   }
   const headBounds: RisoMeshBounds = {
     x:head.bounds.x-10,y:head.bounds.y-12,
