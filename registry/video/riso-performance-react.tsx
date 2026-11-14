@@ -54,8 +54,8 @@ function ActorPlate({ actor, plate, paint }: {
     {(children.get("") ?? []).map(joint => renderJoint(joint, 0))}
   </g>;
 }
-function SceneLayer({layer, plate, paint, frame, reducedMotion, camera, size}: {
-  layer: RisoSceneLayer; plate: string; paint: RisoPaint; frame: number; reducedMotion: boolean;
+function SceneLayer({layer, plate, paint, frame, camera, size}: {
+  layer: RisoSceneLayer; plate: string; paint: RisoPaint; frame: number;
   camera:{x:number;y:number;zoom:number}; size:{width:number;height:number};
 }) {
   if (layer.plate !== plate) return null;
@@ -96,7 +96,7 @@ export function RisoCharacterStage({
         const above = scenery.filter(l => (l.z??0)>=0).sort((a,b) => (a.z??0)-(b.z??0));
         const renderLayer = (layer:RisoSceneLayer) => <SceneLayer key={layer.id}
           layer={layer} plate={plate.id} paint={paint} frame={state.frame}
-          reducedMotion={reducedMotion} camera={camera} size={size}/>;
+          camera={camera} size={size}/>;
         return <>
           {below.map(renderLayer)}
           <g data-km-riso-actor-camera=""
