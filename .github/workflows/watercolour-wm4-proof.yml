@@ -1,14 +1,7 @@
 name: Watercolour WM4 craftsmanship proof
-# Temporary PR-scoped art review; after visual evidence is inspected,
-# return this workflow to manual-only, preserving the low-cost CI policy.
+# Manual-only: keep full Chromium/FFmpeg qualification out of routine CI.
+# Artifacts from the scoped PR proof remain at Actions run 43634979447.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/watercolour-wm4-proof.yml"
-      - "registry/video/watercolour-wet-paper*"
-      - "src/video/watercolour-master-studies*"
-      - "src/video/watercolour-wet-paper*"
-      - "tests/e2e-storybook/watercolour-wm4.spec.ts"
   workflow_dispatch:
 permissions:
   contents: read

@@ -96,10 +96,23 @@ The reference film contains 420 frames at 30 fps, with both 960×540
 and 540×960 output declarations. The Storybook atelier controls pigment flow,
 paper tooth, sediment granulation, seed, output, and each JSON deposit.
 
-**Still required before artistic acceptance:** real Chromium close-up captures,
-normal-speed 16:9/9:16 MP4 playback, no visible rectangular grid artifacts,
-consistent saturated/diluted pigment behavior, authored edge topology,
-clean film-safe typography, 1080p/4K profiling and visual review by a human.
+**Recorded proof:** [PR WM4 workflow run 43634979447](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43634979447)
+passed real Chromium Storybook checks in both aspect ratios,
+six real FilmStage frame exports, and a 70-frame encoded 960×540 preview.
+The exported artwork was **inspected by an agent**: watercolor deposition
+is coherent and paper reserves hold, but the illustrations still read as
+light vector artwork with a diffuse underpainting, rather than the
+confident material edges, complicated anatomical/architectural construction
+and controlled watercolor contrast of the reference paintings.
+Do **not** treat this as final artistic approval.
+
+**Still required before artistic acceptance:** full-length normal-speed
+16:9 and 9:16 MP4 playback, more compelling subject-level pigment/glaze
+interaction, anatomically faithful drawing, organic directional
+brush boundaries, calibrated wet/dry color ratios, clean film-safe
+typography, 1080p/4K performance profiling, and human art acceptance.
+Routine CI remains typecheck + changed tests; the full WM4 proof workflow
+is available manually without running automatically on every PR.
 
 ## References (research only; no third-party artwork in the pack)
 
