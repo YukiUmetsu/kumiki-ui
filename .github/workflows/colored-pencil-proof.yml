@@ -33,7 +33,8 @@ jobs:
       - name: Focused deterministic pencil material tests
         run: npx vitest run --project unit tests/colored-pencil-science.test.tsx tests/colored-pencil-scene.test.tsx tests/colored-pencil-actor.test.tsx
       - name: Verify portable film schema
-        run: npm run film:check -- examples/film/colored-pencil-science.film.json
+        run: |
+          npm run film:check -- examples/film/colored-pencil-science.film.json
           npm run film:check -- examples/film/colored-pencil-character.film.json
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
