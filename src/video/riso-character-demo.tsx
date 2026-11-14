@@ -264,6 +264,8 @@ export interface RisoPerformanceProps {
   reducedMotion?: boolean;
   /** Compare physically constrained planted feet against the earlier FK-only artwork. */
   useIK?: boolean;
+  /** Toggle joint-following continuous ink contours vs rigid authored SVG limbs. */
+  useSkin?: boolean;
   /** Optional animator overlay showing joints, bones and targets. */
   showRig?: boolean;
   /** Boot toe-roll amplitude during swing, in degrees (0..45). */
@@ -308,7 +310,7 @@ function LayeredCity({ aspect, paint, ink }: {
 }
 export function RisoCharacterPerformance({
   aspect, frame, seed = 89, cadence = 2, misregistration = .3, grain = .55,
-  reducedMotion = false, visiblePlateIds, useIK = true, showRig = false,
+  reducedMotion = false, visiblePlateIds, useIK = true, useSkin = true, showRig = false,
   footRoll = 12,
 }: RisoPerformanceProps) {
   const portrait = aspect === "portrait";
@@ -316,6 +318,7 @@ export function RisoCharacterPerformance({
     throw new RangeError("Risograph footRoll must be within 0..45 degrees.");
   const spec = risoPerformanceSpec(aspect, seed);
   const courier = { ...COURIER, cadence,
+    parts: useSkin ? COURIER.parts : COURIER.parts.map(part => ({ ...part, skin: undefined })),
     ik: COURIER.ik?.map(constraint => constraint.target.kind === "walk"
       ? { ...constraint, target: { ...constraint.target, footRoll } } : constraint),
   }, bird = { ...PAPER_BIRD, cadence };
