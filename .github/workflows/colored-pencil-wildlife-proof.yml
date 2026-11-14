@@ -8,6 +8,7 @@ on:
       - "src/film/film-slots.tsx"
       - "tests/e2e-storybook/colored-pencil-wildlife.spec.ts"
       - "examples/film/colored-pencil-wildlife.film.json"
+      - "examples/film/colored-pencil-wildlife-motion-proof.film.json"
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,6 +28,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Verify portable wildlife film
         run: npm run film:check -- examples/film/colored-pencil-wildlife.film.json
+      - name: Verify completed-art motion reel
+        run: npm run film:check -- examples/film/colored-pencil-wildlife-motion-proof.film.json
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Inspect both aspect ratio drawings, pose and opaque support
@@ -39,7 +42,7 @@ jobs:
         run: |
           npm run film:frame -- examples/film/colored-pencil-wildlife.film.json --frame=350 --only=landscape --out=dist/pencil-wildlife-proof
           npm run film:frame -- examples/film/colored-pencil-wildlife.film.json --frame=350 --only=portrait --out=dist/pencil-wildlife-proof
-          npm run film:render -- examples/film/colored-pencil-wildlife.film.json --frames=70 --only=landscape --out=dist/pencil-wildlife-proof
+          npm run film:render -- examples/film/colored-pencil-wildlife-motion-proof.film.json --only=landscape --out=dist/pencil-wildlife-proof
       - name: Save rendered scene comparisons and trace
         uses: actions/upload-artifact@v4
         if: always()
