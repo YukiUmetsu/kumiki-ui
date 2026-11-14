@@ -6,6 +6,7 @@ import { ColoredPencilSciencePlate } from "./colored-pencil-science";
 import type { PencilSubject } from "./colored-pencil-science";
 import type { PencilAspect } from "../../registry/video/colored-pencil";
 import { COLOR_PENCIL_FILM } from "./colored-pencil-film";
+import { COLOR_PENCIL_CHARACTER_FILM } from "./colored-pencil-character-film";
 import { pencilDemoScene } from "./colored-pencil-demo-scenes";
 import { pencilCharacterScene } from "./colored-pencil-character-scenes";
 import type { PencilDemoSubject } from "./colored-pencil-demo-scenes";
@@ -287,6 +288,69 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
   </main>;
 }
 
+
+/** Three FD1 shots with separate portrait composition and real rig pose evaluation. */
+function CharacterFilmStudio() {
+  const [aspect, setAspect] = useState<PencilAspect>("landscape");
+  const [frame, setFrame] = useState(220);
+  const [playing, setPlaying] = useState(false);
+  const compiled = useMemo(() => compileFilm(COLOR_PENCIL_CHARACTER_FILM, { outputId: aspect }), [aspect]);
+  const scene = useMemo(() => pencilCharacterScene(aspect), [aspect]);
+  useEffect(() => {
+    if (!playing) return;
+    const start = performance.now(), offset = frame;
+    let raf = 0;
+    const update = (now: number) => {
+      const next = Math.min(319, offset + Math.floor((now - start) * .03));
+      setFrame(next);
+      if (next < 319) raf = requestAnimationFrame(update);
+      else setPlaying(false);
+    };
+    raf = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing]);
+  if (!compiled.ok) return <pre role="alert">{compiled.diagnostics.map(x => x.message).join("\n")}</pre>;
+  const film = compiled.film, scale = aspect === "landscape" ? 1 : .7;
+  return <main style={page}>
+    <h1 style={{ font: "600 32px Georgia,serif", margin: 0 }}>
+      Coloured Pencil · Original Character Film
+    </h1>
+    <p style={{ maxWidth: 840, margin: 0 }}>
+      Graphite construction → the fox walks and greets → the bird blinks and flaps.
+      All keyframes are authored in paper coordinates and sampled by FilmStage, not an independent clock.
+    </p>
+    <div style={{ display: "flex", alignItems: "end", gap: 14, flexWrap: "wrap" }}>
+      <label style={label}>Character film output
+        <select aria-label="Character film aspect" value={aspect}
+          onChange={e => {setPlaying(false); setAspect(e.target.value as PencilAspect);}}
+          style={{ minHeight: 40 }}>
+          <option value="landscape">16:9</option><option value="portrait">9:16</option>
+        </select>
+      </label>
+      <label style={{ ...label, flex: "1 1 280px" }}>Frame {frame} / {film.durationFrames - 1}
+        <input aria-label="Character film frame" type="range" min="0" max={film.durationFrames - 1}
+          value={frame} onChange={e => {setPlaying(false); setFrame(Number(e.target.value));}}/>
+      </label>
+      <button type="button" style={button} onClick={() => {
+        if (frame >= 319) setFrame(0);
+        setPlaying(v => !v);
+      }}>{playing ? "Pause" : frame >= 319 ? "Replay" : "Play character film"}</button>
+    </div>
+    <div style={{ width: film.width * scale, height: film.height * scale,
+      maxWidth: "100%", overflow: "hidden", boxShadow: "0 16px 44px #514d3d26" }}>
+      <FilmStage film={film} frame={frame} renderObject={() => null}
+        renderSlot={(content, context) => {
+          if (content.slot !== "colored-pencil-character")
+            throw new RangeError("Unexpected actor slot");
+          return <PencilScene scene={scene}
+            frame={Number(content.props?.offsetFrame ?? 0) + context.frame}
+            reducedMotion={context.reducedMotion}/>;
+        }} style={{ transform: "scale(" + scale + ")", transformOrigin: "top left" }}/>
+    </div>
+  </main>;
+}
+
 export const Studio: StoryObj<typeof meta> = {
   name: "Drawing studio · Interactive",
   args: { aspect: "landscape", subject: "leaf", frame: 280 },
@@ -308,4 +372,10 @@ export const CharacterPerformance: StoryObj<typeof meta> = {
   name: "Character performance · Two-actor animation",
   args: { aspect: "landscape", subject: "leaf", frame: 285 },
   render: () => <WorldStudio initialSubject="characters"/>,
+};
+
+export const CharacterFilm: StoryObj<typeof meta> = {
+  name: "Character film · Three-shot FilmStage",
+  args: { aspect: "landscape", subject: "leaf", frame: 220 },
+  render: () => <CharacterFilmStudio/>,
 };
