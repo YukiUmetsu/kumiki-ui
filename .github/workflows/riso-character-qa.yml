@@ -52,6 +52,10 @@ jobs:
         run: |
           npm run film:frame -- examples/film/riso-character-performance.film.json --frame=157 --only=landscape --out=dist/riso-character-proof
           npm run film:frame -- examples/film/riso-character-performance.film.json --frame=157 --only=portrait --out=dist/riso-character-proof
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=46 --only=landscape --out=dist/riso-character-proof
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=46 --only=portrait --out=dist/riso-character-proof
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=198 --only=landscape --out=dist/riso-character-proof
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=198 --only=portrait --out=dist/riso-character-proof
           npm run film:render -- examples/film/riso-character-performance.film.json --frames=240 --only=landscape --out=dist/riso-character-proof
       - name: Preserve real animation MP4 and production frames
         if: always()
