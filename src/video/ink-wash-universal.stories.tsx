@@ -31,7 +31,7 @@ function filmPlan(): InkFilmPlan {
       camera:{keyframes:[{frame:0,x:0,y:0,zoom:1},{frame:179,x:-11,y:0,zoom:1.04}]},
       layers:[
         {id:"diagram",reveal:"brush",direction:"right",seed:25,startFrame:10,durationFrames:73,parallax:.88},
-        {id:"diagram-labels",reveal:"bloom",origin:[.48,.45],seed:31,startFrame:48,durationFrames:60,parallax:0},
+        {id:"diagram-labels",reveal:"brush",direction:"right",seed:31,startFrame:42,durationFrames:30,parallax:0},
       ]},
     {id:"finale",label:"An ink thought resolves on paper",durationFrames:durations[2],
       layers:[
