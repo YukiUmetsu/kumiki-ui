@@ -1,0 +1,64 @@
+import {expect,test} from "@playwright/test";
+
+test("reader's only reworked part is a complete asymmetric face with independent eyelid/viseme art",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
+    const drawing=page.getByTestId("reader-coded-face");
+    await expect(drawing).toBeVisible();
+    for(const key of ["face","hair","brows","eyes","mouth","pupil-left","pupil-right"]){
+      await expect(drawing.locator('[data-ink-reader-part="'+key+'"]'))
+        .toHaveCount(1);
+    }
+    await expect(drawing.locator('[data-ink-reader-part="face"] path'))
+      .not.toHaveCount(0);
+    await drawing.screenshot({path:info.outputPath("reader-face-three-quarter-rest.png"),
+      animations:"disabled"});
+
+    const eyes=page.getByRole("combobox",{name:"Face eyelids"});
+    const pupil=drawing.locator('[data-ink-reader-part="pupil-left"]');
+    await eyes.selectOption("closed");
+    await expect(pupil).toHaveCount(0);
+    await drawing.screenshot({path:info.outputPath("reader-face-blink-closed.png"),
+      animations:"disabled"});
+    await eyes.selectOption("soft");
+    await expect(pupil).toHaveCount(1);
+
+    const mouth=page.getByRole("combobox",{name:"Face mouth"});
+    await mouth.selectOption("oh");
+    const after=await drawing.locator('[data-ink-reader-part="mouth"] path').first()
+      .getAttribute("d");
+    await mouth.selectOption("rest");
+    const before=await drawing.locator('[data-ink-reader-part="mouth"] path').first()
+      .getAttribute("d");
+    expect(before).not.toEqual(after);
+
+    await page.getByLabel("Show portrait landmarks").check();
+    await expect(drawing.locator('[data-ink-reader-landmark="exposed-ear"]'))
+      .toHaveCount(1);
+    await expect(drawing.locator('[data-ink-reader-landmark="chin"]'))
+      .toHaveCount(1);
+
+    const slider=page.getByRole("slider",{name:"Face craftsmanship"});
+    await slider.focus();await slider.press("Home");
+    await expect(slider).toHaveValue("0");
+    const low=await drawing.locator('[data-ink-reader-part="hair"] path').count();
+    await slider.press("End");await expect(slider).toHaveValue("1");
+    await expect.poll(()=>drawing.locator('[data-ink-reader-part="hair"] path').count())
+      .toBeGreaterThan(low);
+    await drawing.screenshot({path:info.outputPath("reader-face-high-detail-with-points.png"),
+      animations:"disabled"});
+  });
+
+test("source teacher reference image overlays locally without committing image pixels",
+  async({page})=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
+    const reference=page.getByTestId("reader-reference-face");
+    await expect(reference).toBeVisible();
+    // Synthetic test image only. The user's original teacher art is not copied.
+    await page.getByLabel("Load scroll reader teacher image").setInputFiles({
+      name:"original-test.png",mimeType:"image/png",
+      buffer:Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==","base64"),
+    });
+    await expect(reference.locator('image[href^="blob:"]')).toHaveCount(1);
+    await expect(page.getByTestId("reader-coded-face")).toBeVisible();
+  });
