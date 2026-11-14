@@ -7,7 +7,7 @@ import { CharacterPresenter } from "../registry/character/character-presenter-re
 import { assertInkActorTrack, inkActorAt } from "../registry/video/ink-wash-character";
 import { InkCharacter } from "../registry/video/ink-wash-character-react";
 import { INK_TRAVELLER, TRAVELLER_CUES, TRAVELLER_INSTANCE, TRAVELLER_TRACK } from "../src/video/ink-wash-performer";
-import { InkPerformanceFilm } from "../src/video/ink-wash-character.stories";
+import { InkPerformanceFilm, placeActor } from "../src/video/ink-wash-character.stories";
 
 describe("INK3 character-first, authored-pigment performance",()=>{
   it("uses the canonical approved character rig with all part references and original art valid",()=>{
@@ -90,6 +90,16 @@ describe("INK3 character-first, authored-pigment performance",()=>{
     ]) {
       expect(()=>renderToStaticMarkup(createElement(CharacterPresenter,{...p,
         inkMaterial:{seed:91,grain:.7,absorption:.75,partFinish:partFinish as never}}))).toThrow(RangeError);
+    }
+  });
+  it("keeps independently posed portrait hands within conservative side margins",()=>{
+    const track=placeActor("portrait");
+    for (const frame of [0,24,82,139,195,255,288,329]) {
+      const f=inkActorAt(track,frame);
+      const half=INK_TRAVELLER.design.width*f.scale/2;
+      expect(f.x-half).toBeGreaterThanOrEqual(35);
+      expect(f.x+half).toBeLessThanOrEqual(490);
+      expect(f.y).toBeLessThanOrEqual(950);
     }
   });
   it("renders a figure with the same absolute frame across placement and expression",()=>{
