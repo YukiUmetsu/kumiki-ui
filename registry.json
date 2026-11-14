@@ -3295,6 +3295,26 @@
       ]
     },
     {
+      "name": "watercolour-brush",
+      "type": "registry:ui",
+      "title": "Watercolour & Pressure Brush",
+      "description": "WM1 authored brush geometry and watercolor/ink deposition: pressure-width ribbons, tapered tips, stable bristle splitting, fixed-paper pigment granulation, separate diffusion/absorption/dry phases, reduced motion and exact absolute-frame seeking. SVG material renderer binds through existing FilmStage slots; no alternate clock or heavyweight dependency.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/watercolour-brush.ts",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-brush.ts"
+        },
+        {
+          "path": "registry/video/watercolour-brush-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-brush-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "film-look",
       "type": "registry:ui",
       "title": "Film Look",
