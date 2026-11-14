@@ -22,7 +22,7 @@
     {
       "id": "nature-painting",
       "recipeId": "slot",
-      "durationFrames": 320,
+      "durationFrames": 400,
       "content": {
         "slot": "painted-composition",
         "label": "Original material study: nature",
@@ -34,7 +34,7 @@
     {
       "id": "architecture-painting",
       "recipeId": "slot",
-      "durationFrames": 320,
+      "durationFrames": 400,
       "transition": {
         "kind": "cut"
       },
@@ -49,7 +49,7 @@
     {
       "id": "science-painting",
       "recipeId": "slot",
-      "durationFrames": 320,
+      "durationFrames": 400,
       "transition": {
         "kind": "cut"
       },
@@ -64,7 +64,7 @@
     {
       "id": "product-painting",
       "recipeId": "slot",
-      "durationFrames": 320,
+      "durationFrames": 400,
       "transition": {
         "kind": "cut"
       },
