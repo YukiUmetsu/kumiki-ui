@@ -5,6 +5,9 @@ import type { CrayonBounds } from "./crayon";
 export interface CrayonRedrawOptions {
   /** Film frames per hand-painted exposure. Typically 3 at 30 fps ~= 10 drawings/s. */
   holdFrames: 2 | 3 | 4 | 5 | 6;
+  /** Optional actor-scene exposure onset; defaults to the end of fill.
+   * Use when the body is already recognizable but detail layers keep drawing. */
+  beginFrame?: number;
   /** Magnitude of pigment exchange, 0 is perfectly stable. Not full-frame jitter. */
   strength: number;
 }
@@ -17,7 +20,9 @@ const fix=(x:number)=>Number(x.toFixed(2));
 export function assertCrayonRedrawOptions(o:CrayonRedrawOptions):void{
   if(!o || ![2,3,4,5,6].includes(o.holdFrames)||
     !Number.isSafeInteger(o.holdFrames)||!Number.isFinite(o.strength)||
-    o.strength<0||o.strength>1)throw new RangeError("CRAYON1 redraw exposure settings out of bounds");
+    o.strength<0||o.strength>1||
+    (o.beginFrame!==undefined && (!Number.isSafeInteger(o.beginFrame)||
+      o.beginFrame<0||o.beginFrame>36000)))throw new RangeError("CRAYON1 redraw exposure settings out of bounds");
 }
 /** Absolute-frame sampling: seeks never accumulate previous-frame state. */
 export function crayonExposureAt(frame:number,completedFrame:number,options:CrayonRedrawOptions,reduced=false):number{
@@ -27,8 +32,9 @@ export function crayonExposureAt(frame:number,completedFrame:number,options:Cray
     throw new RangeError("CRAYON1 redraw frame must be nonnegative safe integer");
   // Keep the physical artwork still until first completion; never add ghost
   // pigment to the middle of drawing-in. Reduced-motion has a fixed exposure.
-  if(reduced||frame<=completedFrame)return 0;
-  return Math.floor((frame-completedFrame)/options.holdFrames);
+  const onset=options.beginFrame??completedFrame;
+  if(reduced||frame<=onset)return 0;
+  return Math.floor((frame-onset)/options.holdFrames);
 }
 /**
  * 14 spatially distributed short daubs. Positions and colors are correlated
