@@ -105,6 +105,9 @@ function measure(
   id:string,label:string,mesh:FigureReferenceMesh,
   compute:()=>number|null,estimated=false,note="Projected image-space ratio",
 ):ProportionMetric {
+  // Every measurement closure already captures the source mesh. Retain this
+  // argument for a uniform call contract while documenting that relationship.
+  void mesh;
   const value=compute();
   return {id,label,value:value===null?null:norm(value),
     support:value===null?"unobservable":estimated?"estimated":"measured",
