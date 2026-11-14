@@ -15,6 +15,7 @@ on:
       - "tests/e2e-storybook/ink-shanshui.spec.ts"
       - "tests/e2e-storybook/ink-shanshui-proportion.spec.ts"
       - "tests/e2e-storybook/ink-shanshui-reader-face.spec.ts"
+      - "tests/e2e-storybook/ink-storybook-navigation.spec.ts"
       - "docs/research/shanshui-reference-to-code-2026.md"
       - "registry.json"
       - ".github/workflows/ink-shanshui-qa.yml"
@@ -48,8 +49,8 @@ jobs:
           npm run catalog:find -- --id=pack:ink-shanshui-landscape --format=json
       - name: Chromium
         run: npx playwright install --with-deps chromium
-      - name: All three films in the actual Storybook browser
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-shanshui.spec.ts tests/e2e-storybook/ink-shanshui-proportion.spec.ts tests/e2e-storybook/ink-shanshui-reader-face.spec.ts
+      - name: Original Shanshui films and consolidated Chinese Ink Storybook navigation
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-shanshui.spec.ts tests/e2e-storybook/ink-shanshui-proportion.spec.ts tests/e2e-storybook/ink-shanshui-reader-face.spec.ts tests/e2e-storybook/ink-storybook-navigation.spec.ts
       - name: FFmpeg
         run: |
           sudo apt-get update -qq
