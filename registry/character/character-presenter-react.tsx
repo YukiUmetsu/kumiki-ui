@@ -53,6 +53,8 @@ export interface CharacterPresenterProps extends Omit<ComponentPropsWithoutRef<"
   label: string;
   /** `auto` follows prefers-reduced-motion. `true` suppresses blink and idle motion for this performer. */
   reducedMotion?: boolean | "auto";
+  /** Allow rigged limbs and pigment beyond the character's design rectangle. The outer FilmStage still clips the shot. Default false for backward compatibility. */
+  allowOverflow?: boolean;
   /** Called from an effect whenever the evaluated diagnostics change. */
   onDiagnostics?: (diagnostics: CharacterDiagnostic[]) => void;
 }
@@ -160,7 +162,7 @@ function partNode(part: CharacterPart, scene: Scene): ReactNode {
 
 /** Evaluates one performer at one absolute frame and draws the resulting pose. Pure: no state, timers or frame loops. */
 export const CharacterPresenter = forwardRef<HTMLDivElement, CharacterPresenterProps>(function CharacterPresenter({
-  definition, instance, cues, frame, assetUrls, label, reducedMotion = "auto", watercolourMaterial, onDiagnostics, inkMaterial, style, ...props
+  definition, instance, cues, frame, assetUrls, label, reducedMotion = "auto", watercolourMaterial, onDiagnostics, inkMaterial, allowOverflow = false, style, ...props
 }, ref) {
   if (watercolourMaterial && (
     !Number.isSafeInteger(watercolourMaterial.seed) || watercolourMaterial.seed < 0 ||
@@ -222,9 +224,9 @@ export const CharacterPresenter = forwardRef<HTMLDivElement, CharacterPresenterP
   const { width, height } = definition.design;
   return <div {...props} ref={ref} role="img" aria-label={label} data-km-character-presenter=""
     data-reduced-motion={reduce ? "" : undefined} data-blinking={model.state.blinking ? "" : undefined} data-diagnostics={model.diagnostics.length}
-    style={{ display: "block", position: "relative", width: "100%", aspectRatio: `${width} / ${height}`, overflow: "hidden", ...style }}>
+    style={{ display: "block", position: "relative", width: "100%", aspectRatio: `${width} / ${height}`, overflow: allowOverflow ? "visible" : "hidden", ...style }}>
     <svg aria-hidden="true" focusable="false" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet"
-      strokeLinejoin="round" strokeLinecap="round" style={{ display: "block", width: "100%", height: "100%", overflow: "hidden" }}>
+      strokeLinejoin="round" strokeLinecap="round" style={{ display: "block", width: "100%", height: "100%", overflow: allowOverflow ? "visible" : "hidden" }}>
       {watercolourMaterial && <defs>
         {/* Spatial texture is fixed to the character's local SVG coordinate system.
             It follows arms, eyes, mouth and clothes through their rig transforms. */}
