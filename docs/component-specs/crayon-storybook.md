@@ -206,6 +206,54 @@ and gait control, full encoded 16:9 + 9:16 visual/audio review and independent
 human visual approval. Automated passing tests do not confer artistic
 approval.
 
+### Grounded walking and contact-pinned attachment
+
+The CRAYON1 scene grammar now supports optional **contacts** on a wax, contour,
+or other world-space element. Each contact defines a non-overlapping, inclusive
+frame range and an anchor in that element's *local drawing coordinates*.
+The anchor's world position at the start of the range becomes the fixed contact
+point for its duration. A world-space translation cancels inherited body and
+joint travel at each absolute frame. The rest of the rig, its original drawing,
+paper texture, paint ordering, and camera remain unchanged.
+
+\`\`\`json
+{
+  "kind": "wax", "id": "left-foot", "parentId": "body",
+  "d": "M-44 90 Q-20 75 -8 90Z",
+  "bounds": {"x": -47, "y": 70, "width": 43, "height": 27},
+  "colors": ["#77748c", "#5f5b79", "#a9a1b0"],
+  "timing": {"start": 0, "end": 269}, "poseCadence": 2,
+  "contacts": [
+    {"start": 0, "end": 38, "anchor": {"x": -29, "y": 93}},
+    {"start": 94, "end": 156, "anchor": {"x": -29, "y": 93}}
+  ]
+}
+\`\`\`
+
+This is a **single-point stance constraint**, not inverse kinematics or a
+full-sole physics solver. An artist still supplies anticipation, center-of-mass
+travel, step heights, foot rotation, limb drawing changes and the timing of
+lift/plant events. Because there is no mutable simulation, direct seeks to
+frame 156 after frame 0 and after frame 269 give identical planted positions.
+Contacts are expressed in world geometry *before* the film camera; camera
+moves therefore do not break contact. The contact list must be ordered,
+non-overlapping, within the scene duration, have bounded finite anchors, and
+must not apply to screen-space caption overlays.
+
+Storybook now exposes **Video production / Film Looks / Crayon Scene Engine /
+Character Walk Cycle** and **Character Walk Portrait**. The original "A Little
+Journey" walk places alternating feet on the painted meadow, carries the
+flower as a hand-child prop, and gives the tail/scarf/arms/head coordinated
+follow-through. Its original artwork is derived from the reusable character
+performance scene; these are **two distinct authored performances**, not
+a universal generated gait engine.
+
+**Still required:** multi-point foot-sole deformation, leg-chain IK, floor
+height sampling for arbitrary geometry, automatic gait authoring from
+locomotion velocity, collision/contact timing derived from geometry, smooth
+contact hand-off at every speed, genuine hand-to-hand prop transfer and
+normal-speed 16:9/9:16 encoded visual approval.
+
 ### Production proof
 
 The 420-frame (14 s at 30 fps), three-shot FilmDocument uses the existing `slot` scene type in `FilmStage`, not another timeline or an unbounded playback loop. Its shot frames are 0…119, 120…269 and 270…419. The slot adapter adds each scene's `offsetFrame` to its local frame. The second original scene, the flower garden, is available as a separate interactive Storybook story.
