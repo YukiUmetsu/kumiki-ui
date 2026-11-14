@@ -5,7 +5,7 @@ export type WatercolourCraftSubject="botanical"|"estuary"|"courtyard";
 export type CraftMarkKind="vein"|"seed"|"flower"|"grass"|"current"|"reflection"|"dry-brush"|"slate"|"masonry"|"wood"|"shadow";
 export type CraftMark={
   path:string;kind:CraftMarkKind;stroke:string;strokeWidth:number;opacity:number;
-  firstFrame:number;transform?:string;
+  firstFrame:number;transform?:string;plantIndex?:number;plantX?:number;
 };
 const num=(n:number)=>n.toFixed(2);
 const clamp=(n:number)=>Math.max(0,Math.min(1,n));
@@ -37,11 +37,8 @@ export function watercolourCraftMarks(subject:WatercolourCraftSubject,seed:numbe
       const x=[383,497,614,751,841][i%5]+Math.floor(i/5)*13+(h-.5)*48;
       const height=86+hash(seed,i,23)*242;
       const y=478+(q-.5)*19,bend=(h-.5)*54;
-      const sway=.95*Math.sin(355*.025+x*.008)+.65*Math.sin(355*.017+i*.51);
-      // The detail layer keeps botanical shapes paper-locked at the dry pose.
-      // Source Stem is still animated; later actor/plant-driven animation must
-      // share a proper transform API rather than duplicating it.
-      const transform="translate("+num(x)+" "+num(y)+") rotate("+num(sway)+")";
+      const transform="translate("+num(x)+" "+num(y)+")";
+      const plantStart=marks.length;
       const main=["#456753","#667E65","#81875C","#617B69","#587C7A"][i%5];
       const delicate=["#D7D9A9","#C8CBA4","#D5C3A1","#E2D8AD","#AFCEB1"][i%5];
       const count=Math.max(2,Math.round(2+3*detail));
@@ -121,6 +118,10 @@ export function watercolourCraftMarks(subject:WatercolourCraftSubject,seed:numbe
             .28+.2*hash(seed,i*31+k,73),135+i+k,transform));
         }
       }
+      // Keep the detail stems attached to the exact animated botanical rig.
+      for(let j=plantStart;j<marks.length;j++){
+        marks[j].plantIndex=i;marks[j].plantX=x;
+      }
     }
   }else if(subject==="estuary"){
     const n=Math.round(28+110*detail);
@@ -136,7 +137,7 @@ export function watercolourCraftMarks(subject:WatercolourCraftSubject,seed:numbe
         (x>700&&x<840?"#FDF5D5":"#E5DCD1"):
         (i%4===0?"#3F7282":i%3===0?"#4D8F96":"#6A8892");
       const opacity=kind==="reflection"?.44+.22*hash(seed,i,241):.15+.26*hash(seed,i,243);
-      marks.push(mark(curved(x,y,length,dy,arch),kind,kind==="reflection"?1.1:.38+depth*.9,
+      marks.push(mark(curved(x,y,length,dy,arch),kind,ink,kind==="reflection"?1.1:.38+depth*.9,
         opacity,112+i%64));
       // Every bright bifurcation joins the root highlight. Unlike random
       // isolated white specks, foam and sparkle read as connected filaments.
@@ -229,10 +230,13 @@ export function WatercolourCraftDetails({study,seed,frame,detail=1}:{
     fill="none" strokeLinecap="round" strokeLinejoin="round">
     {marks.map((m,i)=>{
       const alpha=clamp((frame-m.firstFrame)/24)*m.opacity*detail;
+      const sway=m.plantIndex===undefined?0:
+        .95*Math.sin(frame*.025+(m.plantX??0)*.008)+
+        .65*Math.sin(frame*.017+m.plantIndex*.51);
+      const transform=m.transform?m.transform+" rotate("+num(sway)+")":undefined;
       return <path key={i} data-km-craft-kind={m.kind}
-        d={m.path} transform={m.transform} stroke={m.stroke}
-        strokeWidth={m.strokeWidth} opacity={alpha}
-        vectorEffect="non-scaling-stroke"/>;
+        d={m.path} transform={transform} stroke={m.stroke}
+        strokeWidth={m.strokeWidth} opacity={alpha}/>;
     })}
   </g>;
 }
