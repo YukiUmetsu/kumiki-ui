@@ -32,7 +32,8 @@ describe("PAPER1 native paper cut, fold, light and puppet", () => {
           spec, frame:182, "aria-label": "Paper garden scene" }));
         expect(html).toContain('data-km-paper-style="' + medium + '"');
         expect(html).toContain('data-km-paper-layer="bird-wing"');
-        expect(html).toContain("<mask");
+        expect(html).toContain("<clipPath");
+        expect(html).toContain('clip-rule="evenodd"');
         expect(html).toContain("<path");
         expect(html).toContain("Paper garden scene");
         expect((html.match(/data-km-paper-layer=/g) || []).length).toBe(spec.layers.length);
