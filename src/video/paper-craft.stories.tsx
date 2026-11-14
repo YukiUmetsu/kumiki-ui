@@ -4,9 +4,14 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PaperCraftStage } from "../../registry/video/paper-craft-react";
 import type { PaperStyle } from "../../registry/video/paper-craft";
 import { paperCraftExampleSpec } from "./paper-craft-demo";
+import { paperBotanicalSpec } from "../../registry/video/paper-botanical-kit";
+import type { PaperBotanicalPalette } from "../../registry/video/paper-botanical-kit";
 import type { PaperAspect } from "./paper-craft-demo";
 
 type Controls = {
+  artwork: "garden" | "botanical";
+  palette: PaperBotanicalPalette;
+  detail: number;
   medium: PaperStyle;
   aspect: PaperAspect;
   frame: number;
@@ -23,12 +28,12 @@ const labels: Record<PaperStyle, string> = {
   lightbox: "04 · Backlit lightbox",
   "shadow-puppet": "05 · Shadow puppetry",
 };
-function PaperCraftLab({ medium, aspect, frame, tooth, shadow, edge, seed, reducedMotion }: Controls) {
+function PaperCraftLab({ artwork, palette, detail, medium, aspect, frame, tooth, shadow, edge, seed, reducedMotion }: Controls) {
   const [liveFrame, setLiveFrame] = useState(frame), [playing, setPlaying] = useState(false);
   const [selected, setSelected] = useState<PaperStyle>(medium);
   useEffect(() => setSelected(medium), [medium]);
   const anchor = useRef<{ time: number; frame: number } | null>(null);
-  useEffect(() => { setLiveFrame(frame); anchor.current = null; }, [frame, selected, aspect]);
+  useEffect(() => { setLiveFrame(frame); anchor.current = null; }, [frame, selected, aspect, artwork, palette, detail, seed]);
   useEffect(() => {
     if (!playing || reducedMotion) return;
     let raf = 0;
@@ -41,7 +46,9 @@ function PaperCraftLab({ medium, aspect, frame, tooth, shadow, edge, seed, reduc
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [playing, selected, aspect, reducedMotion]);
-  const spec = paperCraftExampleSpec(selected, aspect, seed);
+  const spec = artwork === "botanical"
+    ? paperBotanicalSpec(selected, aspect, {palette, detail, seed})
+    : paperCraftExampleSpec(selected, aspect, seed);
   const current = reducedMotion ? spec.durationFrames : liveFrame;
   const text: CSSProperties = { fontFamily: "'Newsreader',Georgia,serif", color: "#f3eddf" };
   const small: CSSProperties = { font: "11px/1.5 Arial,sans-serif", letterSpacing: "2px", textTransform: "uppercase", color: "#bfb6a8" };
@@ -55,11 +62,12 @@ function PaperCraftLab({ medium, aspect, frame, tooth, shadow, edge, seed, reduc
         <p style={small}>CUT · FOLD · LIGHT · PERFORM</p>
       </div>
       <h1 style={{...text, fontSize:"clamp(32px,4.7vw,62px)", fontWeight:400, lineHeight:1.09, margin:"16px 0 7px"}}>
-        The garden, made of paper.
+        {artwork === "botanical" ? "A butterfly in a paper garden." : "The garden, made of paper."}
       </h1>
       <p style={{font:"14px/1.65 Arial,sans-serif",maxWidth:650,color:"#bbb7ae",marginBottom:24}}>
-        One illustrated world, five physical paper techniques. Separate cut cards, open apertures,
-        anchored fibres, hinged motion and transmitted light. Scrub every frame.
+        {artwork === "botanical"
+          ? "Original filigree informed by cut-paper sculpture: layered flower corollas, curled ferns, pierced butterfly wings and deep cardstock shadows. Scrub every assembled sheet."
+          : "One illustrated world, five physical paper techniques. Separate cut cards, open apertures, anchored fibres, hinged motion and transmitted light. Scrub every frame."}
       </p>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(245px,1fr))",gap:"clamp(20px,3vw,46px)",alignItems:"start"}}>
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
@@ -95,7 +103,7 @@ function PaperCraftLab({ medium, aspect, frame, tooth, shadow, edge, seed, reduc
           <div style={{width:"100%", maxWidth:aspect==="portrait"?400:950,aspectRatio:aspect==="portrait"?"9 / 16":"16 / 9",
             border:"10px solid #353137",boxShadow:"0 22px 68px #0009",background:spec.backing}}>
             <PaperCraftStage spec={spec} frame={current} reducedMotion={reducedMotion} tooth={tooth}
-              shadowStrength={shadow} edgeStrength={edge} label={"Paper garden, "+labels[selected]}
+              shadowStrength={shadow} edgeStrength={edge} label={(artwork==="botanical"?"Butterfly botanical relief, ":"Paper garden, ")+labels[selected]}
               data-testid="paper-craft-stage"/>
           </div>
           <p style={small}>{labels[selected].toUpperCase()} / {aspect==="portrait"?"9:16":"16:9"} / 30 FPS / FRAME-EXACT</p>
@@ -108,8 +116,11 @@ const meta = {
   // Use existing Film Looks sidebar group, never create a separate paper folder.
   title: "Video production/Film Looks",
   component: PaperCraftLab,
-  args: { medium:"layered", aspect:"landscape", frame:182, tooth:.55, shadow:.7, edge:.55, seed:27, reducedMotion:false },
+  args: { artwork:"garden", palette:"nocturne", detail:.82, medium:"layered", aspect:"landscape", frame:182, tooth:.55, shadow:.7, edge:.55, seed:27, reducedMotion:false },
   argTypes: {
+    artwork:{control:"select",options:["garden","botanical"]},
+    palette:{control:"select",options:["nocturne","ivory"]},
+    detail:{control:{type:"range",min:0,max:1,step:.05}},
     medium:{control:"select",options:["layered","kirigami","pop-up","lightbox","shadow-puppet"]},
     aspect:{control:"radio",options:["landscape","portrait"]},
     frame:{control:{type:"range",min:0,max:239,step:1}},
@@ -128,3 +139,16 @@ export const PaperCraftPopUp: Story = { name:"Paper Craft · Pop-up", args:{medi
 export const PaperCraftLightbox: Story = { name:"Paper Craft · Lightbox", args:{medium:"lightbox"} };
 export const PaperCraftShadowPuppet: Story = { name:"Paper Craft · Shadow Puppet", args:{medium:"shadow-puppet"} };
 export const PaperCraftPortrait: Story = { name:"Paper Craft · Portrait", args:{aspect:"portrait"} };
+
+export const PaperCraftBotanicalNocturne: Story = {
+  name:"Paper Craft · Botanical Nocturne",
+  args:{artwork:"botanical",palette:"nocturne",medium:"layered",detail:1,frame:198,seed:37},
+};
+export const PaperCraftBotanicalIvory: Story = {
+  name:"Paper Craft · Ivory Botanical Relief",
+  args:{artwork:"botanical",palette:"ivory",medium:"layered",detail:1,frame:198,seed:37,shadow:1,edge:.8},
+};
+export const PaperCraftBotanicalPortrait: Story = {
+  name:"Paper Craft · Botanical Portrait",
+  args:{artwork:"botanical",palette:"nocturne",medium:"layered",aspect:"portrait",detail:1,frame:198,seed:37},
+};

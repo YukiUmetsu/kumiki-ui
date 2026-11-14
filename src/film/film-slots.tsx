@@ -2,6 +2,8 @@ import { PaperCraftStage } from "../../registry/video/paper-craft-react";
 import { PAPER_STYLES } from "../../registry/video/paper-craft";
 import type { PaperStyle } from "../../registry/video/paper-craft";
 import { paperCraftExampleSpec } from "../video/paper-craft-demo";
+import { paperBotanicalSpec } from "../../registry/video/paper-botanical-kit";
+import type { PaperBotanicalPalette } from "../../registry/video/paper-botanical-kit";
 import { InkBrushPoster } from "../video/ink-brush-demo";
 import "../styles/collage-fonts.css";
 import { renderCollageSlot } from "../video/collage-slot";
@@ -932,9 +934,27 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0)
           throw new RangeError("paper-craft-study offsetFrame must be a nonnegative integer.");
         const aspect = context.width > context.height ? "landscape" : "portrait";
-        return <PaperCraftStage spec={paperCraftExampleSpec(raw as PaperStyle, aspect)}
-          frame={offset + context.frame} reducedMotion={context.reducedMotion}
-          tooth={.58} shadowStrength={.8} edgeStrength={.55}/>;
+        const artwork = props.artwork ?? "garden";
+        if (artwork !== "garden" && artwork !== "botanical")
+          throw new RangeError("paper-craft-study artwork must be garden or botanical.");
+        const palette = props.palette ?? "nocturne";
+        if (palette !== "nocturne" && palette !== "ivory")
+          throw new RangeError("paper-craft-study palette must be nocturne or ivory.");
+        const detail = props.detail ?? .82;
+        if (typeof detail !== "number" || !Number.isFinite(detail) || detail < 0 || detail > 1)
+          throw new RangeError("paper-craft-study detail must be finite between 0 and 1.");
+        const seed = props.seed ?? 37;
+        if (typeof seed !== "number" || !Number.isSafeInteger(seed))
+          throw new RangeError("paper-craft-study seed must be a safe integer.");
+        const paper = artwork === "botanical"
+          ? paperBotanicalSpec(raw as PaperStyle, aspect, {
+            palette: palette as PaperBotanicalPalette, detail, seed })
+          : paperCraftExampleSpec(raw as PaperStyle, aspect, seed);
+        const absoluteFrame = offset + context.frame;
+        if (!Number.isSafeInteger(absoluteFrame)) throw new RangeError("Invalid paper frame.");
+        return <PaperCraftStage spec={paper}
+          frame={absoluteFrame} reducedMotion={context.reducedMotion}
+          tooth={.62} shadowStrength={.92} edgeStrength={.68}/>;
       }
 
       default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-character-film, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, watercolour-wet-paper, watercolour-master-study, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
