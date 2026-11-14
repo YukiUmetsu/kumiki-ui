@@ -273,7 +273,21 @@ export function watercolorWetlandSpec(output: WetlandOutput, seed = 83): Waterco
       highlight: "#CBD4BC", shadow: "#6A8379",
       glaze: { pigment: "#839C94", opacity: .11 }, edgePooling: .09,
     }),
-    line("horizon-break", "M21 355 Q149 348 261 359 M439 357 Q603 351 795 356 M821 352 Q900 350 946 354", "#687F83", 1.05, .37),
+    // Independent value masses are deliberately broken; the horizon is not
+    // a vector-flat strip. The lightest distant marsh recedes into wet mist.
+    wash("distant-ochre-grasses",
+      "M0 359 Q87 344 165 354 Q231 340 310 357 Q370 344 421 356 Q542 347 609 361 Q691 348 755 359 Q875 338 960 356 L960 379 Q821 371 719 378 Q587 372 470 385 Q325 374 201 385 Q110 372 0 384 Z",
+      "#B7B2A1", .29, {highlight:"#D9D3BC",shadow:"#9FAE9A",edgePooling:.1}),
+    line("horizon-break", "M21 355 Q149 348 261 359 M439 357 Q603 351 795 356 M821 352 Q900 350 946 354", "#687F83", .73, .29, "drybrush"),
+    ...Array.from({length:13},(_,i)=>{
+      const x=54+i*69+Math.sin(i*3.1)*12, y=360+i%4*2;
+      const h=7+i%5*4, side=i%2?1:-1;
+      return line("distant-marsh-grass-"+i,
+        "M"+x.toFixed(1)+" "+y+" q"+(side*3)+" -"+(h*.6).toFixed(1)+
+        " "+(side*7)+" -"+h+" M"+(x+2).toFixed(1)+" "+y+
+        " q"+(-side*5)+" -"+(h*.45).toFixed(1)+" "+(-side*10)+" -"+(h*.74).toFixed(1),
+        i%3===0?"#748A81":"#8B9C8C",.69,.24,"drybrush");
+    }),
     ...Array.from({ length: 13 }, (_, i) => {
       const x = 140 + i * 59;
       const y = 424 + (i % 4) * 8;
@@ -290,7 +304,26 @@ export function watercolorWetlandSpec(output: WetlandOutput, seed = 83): Waterco
       reed("right-reed-" + i, 797 + i * 20, 487 + (i % 3) * 4,
         139 + (i % 4) * 27, -18 - i * 2,
         i % 3 ? "#789080" : "#A39C78")),
+    // Soft puddled reflection lives in actual water-space. Each mark is
+    // discontinuous as an artist would lift and re-contact the dry paper.
+    wash("heron-contact-pool",
+      "M580 474 Q604 469 642 474 C664 471 700 469 735 475 Q712 483 687 484 Q649 480 616 484 Q591 482 580 474 Z",
+      "#718E92", .28, {highlight:"#B7C7BF",shadow:"#597F87",edgePooling:.32}),
+    ...Array.from({length:7},(_,i)=>{
+      const x=597+i*24+(i%3)*7,y=485+i%4*5;
+      return line("heron-reflection-"+i,
+        "M"+x+" "+y+" q"+(13+i%3*8)+" -3 "+(31+i%4*7)+" -1"+
+        " M"+(x+9)+" "+(y+7)+" q"+(8+i%4*2)+" 2 "+(17+i%3*6)+" 0",
+        i%3===0?"#5C8790":"#93B0AB",.7+i%3*.22,.22+i%4*.045,"drybrush");
+    }),
     group("heron-placement", [bird()], [pose(0, 426, 19), pose(359, 426, 19)]),
+    // Contact shadows follow the toes; avoid a disconnected floating animal.
+    wash("toe-silt-left",
+      "M595 470 Q606 464 621 470 Q630 476 611 479 Q594 477 595 470 Z",
+      "#988C76", .2, {highlight:"#C4C0AB",shadow:"#617B75",edgePooling:.21}),
+    wash("toe-silt-right",
+      "M620 473 Q632 469 644 472 Q651 476 634 480 Q619 479 620 473 Z",
+      "#87999A", .22, {highlight:"#D0D0BB",shadow:"#5A777D",edgePooling:.18}),
     ...Array.from({ length: 8 }, (_, i) => line("foot-ripple-" + i,
       "M" + (602 + i * 11) + " " + (474 + i % 2 * 3) +
       " q" + (7 + i % 3 * 3) + " -3 " + (17 + i % 3 * 4) + " 0",
