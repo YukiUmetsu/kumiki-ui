@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { PencilDrawing } from "./colored-pencil-react";
+import { evaluatePencilActorRegions } from "./colored-pencil-actor";
 import {
   evaluatePencilCamera, inspectPencilScene, pencilSceneProgress,
 } from "./colored-pencil-scene";
@@ -59,6 +60,8 @@ export function PencilScene({ scene, frame, reducedMotion = false,
   const issues = inspectPencilScene(scene);
   if (issues.length) throw new RangeError("Invalid CP2 pencil scene: " + issues.join("; "));
   const { drawing, annotations = [] } = scene;
+  const posedRegions = scene.actors?.flatMap(actor => evaluatePencilActorRegions(actor, frame, reducedMotion)) ?? [];
+  const posedDrawing = posedRegions.length ? { ...drawing, regions: [...drawing.regions, ...posedRegions] } : drawing;
   const camera = evaluatePencilCamera(scene.camera, frame, reducedMotion);
   const transform = "translate(" + camera.x.toFixed(3) + " " + camera.y.toFixed(3) +
     ") scale(" + camera.zoom.toFixed(5) + ")";
@@ -71,7 +74,7 @@ export function PencilScene({ scene, frame, reducedMotion = false,
     style={{ width: "100%", height: "100%", display: "block", overflow: "hidden", isolation: "isolate", ...style }}>
     <rect width={drawing.width} height={drawing.height} fill={drawing.paper}/>
     <g data-km-pencil-camera="" transform={transform}>
-      <PencilDrawing drawing={drawing} frame={frame} reducedMotion={reducedMotion}
+      <PencilDrawing drawing={posedDrawing} frame={frame} reducedMotion={reducedMotion}
         label={label + " — paper artwork"}/>
       {renderIn("paper")}
     </g>
