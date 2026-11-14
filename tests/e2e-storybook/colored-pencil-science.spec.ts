@@ -1,4 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { createHash } from "node:crypto";
+
+const screenshotHash = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
 
 async function seek(page: import("@playwright/test").Page, frame: number) {
   const slider = page.getByRole("slider", { name: "Drawing frame" });
@@ -30,11 +33,11 @@ test("coloured pencil remains paper-anchored at nonsequential frames in both com
           animations: "disabled", path: info.outputPath("pencil-" + subject + "-" + aspect + "-" + frame + ".png"),
         }));
       }
-      expect(captures[0]).not.toEqual(captures[1]);
-      expect(captures[1]).not.toEqual(captures[2]);
+      expect(screenshotHash(captures[0])).not.toBe(screenshotHash(captures[1]));
+      expect(screenshotHash(captures[1])).not.toBe(screenshotHash(captures[2]));
       await seek(page, 135);
       const replay = await svg.screenshot({ animations: "disabled" });
-      expect(replay).toEqual(captures[1]);
+      expect(screenshotHash(replay), "Revisiting a frame must reproduce an identical drawing").toBe(screenshotHash(captures[1]));
       await seek(page, 275);
       await expect(svg.locator("[data-km-graphite]")).toHaveCount(subject === "leaf" ? 2 : 4);
       await expect(svg.locator("[data-km-pigment-layer]")).toHaveCount(subject === "leaf" ? 6 : 9);
