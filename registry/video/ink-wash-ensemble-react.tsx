@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import type { CharacterCue, CharacterDefinition, CharacterInstance } from "../character/definition";
 import type { CharacterInkPartFinish } from "../character/character-presenter-react";
 import { InkCharacter } from "./ink-wash-character-react";
-import { inkEnsembleAt, assertInkEnsemble } from "./ink-wash-ensemble";
+import { inkEnsembleAt, assertInkEnsemble, inkPartnerLookTarget } from "./ink-wash-ensemble";
 import type { InkEnsemblePlan } from "./ink-wash-ensemble";
 
 /** Input is approved independent character instances. No generated variants or actor replacement. */
@@ -59,6 +59,17 @@ export function InkEnsemble({ plan, cast, frame, width, height,
       if (castMember.instance.instanceId !== instanceId)
         throw new RangeError("INK4 actor instance IDs must match their canonical staging track.");
       const track = plan.actors.find(actor => actor.track.id === id)!.track;
+      const partner = attentionTargetId ? at.actors.find(a => a.id === attentionTargetId) : undefined;
+      const partnerCast = attentionTargetId ? castById.get(attentionTargetId) : undefined;
+      const dynamicTarget = partner && partnerCast
+        ? inkPartnerLookTarget(pose, partner.pose,
+            castMember.definition.design, partnerCast.definition.design)
+        : undefined;
+      const performer = dynamicTarget
+        ? { ...castMember.instance, targets: {
+            ...castMember.instance.targets, "ink-partner": dynamicTarget,
+          } }
+        : castMember.instance;
       // Feed a sampled transform into the existing InkCharacter adapter using a
       // one-key snapshot. CharacterPresenter still owns actual skeletal animation.
       const snapshot = { ...track, keys: [{
@@ -67,8 +78,9 @@ export function InkEnsemble({ plan, cast, frame, width, height,
       }] };
       return <div key={id} data-km-ink-ensemble-actor={id}
         data-km-ink-attends={attentionTargetId} data-km-ink-activity={activity}
+        data-km-ink-partner-gaze={dynamicTarget ? "tracked" : undefined}
         style={{ position: "absolute", inset: 0 }}>
-        <InkCharacter definition={castMember.definition} instance={castMember.instance}
+        <InkCharacter definition={castMember.definition} instance={performer}
           cues={castMember.cues} track={snapshot} frame={frame} reducedMotion={reducedMotion}
           label={castMember.label} assetUrls={castMember.assetUrls}
           absorption={absorption} grain={grain} partFinish={castMember.partFinish}/>
