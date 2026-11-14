@@ -254,7 +254,9 @@ function ExportDemo(){
   </VideoExportStage>;
 }
 const meta={title:"Video production/Film Looks/Chinese Ink/Multi-Genre Film",
-  id:"video-ink-any-topic",component:Studio,parameters:{layout:"fullscreen"}} satisfies Meta<typeof Studio>;
+  id:"video-ink-any-topic",component:Studio,parameters:{layout:"fullscreen"},
+  // Reused by the film-looks studio; not a story (it needs frame/output/look from its host).
+  excludeStories:["InkFilm"]} satisfies Meta<typeof Studio>;
 export default meta;
 export const Interactive:StoryObj<typeof meta>={name:"Ink style · Documentary, diagram and titles"};
 export const ProductionExport:StoryObj<typeof ExportDemo>={
