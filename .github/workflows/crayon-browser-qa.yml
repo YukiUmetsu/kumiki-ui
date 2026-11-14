@@ -1,31 +1,9 @@
 name: Crayon Storybook browser and film qualification
 
 # Only crayon changes run the small browser gate; full MP4 qualification remains manual.
+# Full browser and encoded-film qualification is local-first and opt-in.
+# No expensive renderer/Playwright/FFmpeg job runs for routine PRs or main pushes.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "registry/video/materials/crayon*"
-      - "src/video/crayon-storybook*"
-      - "src/video/crayon-story-playback*"
-      - "src/video/crayon-scene*"
-      - "src/video/crayon-walk*"
-      - "src/video/crayon-character-draw*"
-      - "src/video/crayon-dragon-village*"
-      - "src/video/crayon-material-studies*"
-      - "src/video/crayon-craft-detail*"
-      - "src/video/crayon-performance*"
-      - "tests/crayon-scene.test.tsx"
-      - "tests/crayon-coverage.test.tsx"
-      - "tests/crayon-exposure.test.tsx"
-      - "tests/crayon-dragon-village.test.tsx"
-      - "tests/crayon-story-playback.test.ts"
-      - "tests/e2e-storybook/crayon-scene.spec.ts"
-      - "tests/e2e-storybook/crayon-smoke.spec.ts"
-      - "examples/film/crayon-scene-three-subjects.film.json"
-      - "examples/film/crayon-painted-exposure-preview.film.json"
-      - "tests/e2e-storybook/crayon-storybook.spec.ts"
-      - ".github/workflows/crayon-browser-qa.yml"
   workflow_dispatch:
 
 permissions:

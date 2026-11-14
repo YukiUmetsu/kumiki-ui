@@ -1,15 +1,9 @@
 name: Colored Pencil Film Proof
 
 # Focused browser and production evidence only on pencil-style PR changes.
+# Full browser and encoded-film qualification is local-first and opt-in.
+# No expensive renderer/Playwright/FFmpeg job runs for routine PRs or main pushes.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/colored-pencil-proof.yml"
-      - "registry/video/colored-pencil*"
-      - "src/video/colored-pencil*"
-      - "tests/colored-pencil*"
-      - "tests/e2e-storybook/colored-pencil*"
-      - "examples/film/colored-pencil*"
   workflow_dispatch:
 
 permissions:
