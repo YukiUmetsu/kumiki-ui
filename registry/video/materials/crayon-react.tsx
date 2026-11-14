@@ -106,13 +106,13 @@ export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" 
   </>;
 }
 function Starfield({ width, height, seed, frame, reduced, day }: { width: number; height: number; seed: number; frame: number; reduced: boolean; day: boolean }) {
-  const stars = useMemo(() => Array.from({ length: day ? 13 : 31 }, (_, i) => ({
+  const stars = useMemo(() => Array.from({ length: day ? 6 : 26 }, (_, i) => ({
     x: 26 + crayonHash(seed + 30, i, 1) * (width - 52),
     y: 25 + crayonHash(seed + 30, i, 2) * height * .53,
     r: 1.8 + crayonHash(seed + 30, i, 3) * 4.3,
   })), [width, height, seed, day]);
   return <g aria-hidden="true">
-    {stars.map((p, i) => <g key={i} opacity={crayonProgress(frame, 55, 148, i, stars.length, reduced) * (day ? .4 : .8)}
+    {stars.map((p, i) => <g key={i} opacity={crayonProgress(frame, 55, 148, i, stars.length, reduced) * (day ? .20 : .7)}
       stroke={day ? "#fff3d4" : "#fff1b9"} strokeLinecap="round" fill="none">
       <path d={"M" + (p.x - p.r) + " " + p.y + " l" + (p.r * 2) + " 0 M" + p.x + " " + (p.y - p.r) + " v" + (p.r * 2)} strokeWidth={i % 3 === 0 ? 2 : 1.2}/>
       {i % 5 === 0 && <circle cx={p.x} cy={p.y} r={p.r * 1.8} strokeWidth=".8" strokeDasharray="4 6" />}
@@ -182,11 +182,11 @@ function Bloom({ x,y,scale,seed,frame,tooth,reduced }: { x:number;y:number;scale
       colors={["#609979","#3d8076","#a1bf83"]} seed={seed+2} pressure={.81} tooth={tooth} frame={frame} first={183} last={280} reduced={reduced}/>
     <WaxRegion d="M4 95 Q62 28 96 71 Q48 119 7 110Z" bounds={{x:0,y:27,width:104,height:104}}
       colors={["#609979","#3d8076","#a1bf83"]} seed={seed+3} pressure={.81} tooth={tooth} frame={frame} first={192} last={283} reduced={reduced}/>
-    {petals.map((i) => <g key={i} transform={"rotate(" + i*40 + ")"}>
+    {petals.map((i) => <g key={i} transform={"rotate(" + (i*40 + (crayonHash(seed,i,88)-.5)*12).toFixed(2) + ") scale(" + (0.87+crayonHash(seed,i,89)*.23).toFixed(3) + " " + (0.88+crayonHash(seed,i,90)*.26).toFixed(3) + ")"}>
       <WaxRegion d={blossom} bounds={{x:-29,y:-111,width:58,height:103}} colors={petalsColor}
         seed={seed+10+i*3} pressure={.76} tooth={tooth} frame={frame} first={205+i*2} last={319} reduced={reduced} spacing={6}/>
     </g>)}
-    {petals.map(i=><g key={"vein-"+i} transform={"rotate("+(i*40)+")"}>
+    {petals.map(i=><g key={"vein-"+i} transform={"rotate("+(i*40+(crayonHash(seed,i,88)-.5)*12).toFixed(2)+") scale("+(0.87+crayonHash(seed,i,89)*.23).toFixed(3)+" "+(0.88+crayonHash(seed,i,90)*.26).toFixed(3)+")"}>
       <WaxLine d="M0 -31 Q-4 -58 0 -88 M-5 -52 L-14 -62 M5 -66 L13 -75"
         color="#fff0ca" width={1.7} seed={seed+i+62}
         frame={frame} first={295+i*2} last={382} reduced={reduced} opacity={.6}/>
