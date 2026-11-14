@@ -109,7 +109,7 @@ describe("CRAYON1 data-driven scene grammar",()=>{
     crayonElementTransform(scene,prop,100);
     crayonElementTransform(scene,prop,0);
     expect(crayonElementTransform(scene,prop,50)).toBe(a);
-    expect(a.match(/rotate\\(/g)).toHaveLength(3);
+    expect(a.split("rotate(")).toHaveLength(4);
     expect(a).toContain("translate(8 12)");
     const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={50}/>);
     expect(html.indexOf('data-km-crayon-element="held-prop"'))
