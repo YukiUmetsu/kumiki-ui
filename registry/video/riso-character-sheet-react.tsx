@@ -39,8 +39,8 @@ function Wireframe({regions, selected, showMesh, showLabels}:{
     {showMesh && regions.map(region=><g key={region.id}
       data-km-riso-mesh-region={region.id} fill="none"
       stroke={region.id===selected?"#EE5639":"#226B86"}
-      strokeWidth={region.id===selected?1.1:.47} strokeLinejoin="round"
-      opacity={region.id===selected?1:.72}>
+      strokeWidth={region.id===selected?1.1:.38} strokeLinejoin="round"
+      opacity={region.id===selected?1:.3}>
       {region.triangles.map((triangle,i)=><path key={i}
         data-km-riso-mesh-triangle={region.id} d={path(triangle)} />)}
       <path d={path(region.outline)} strokeWidth={region.id===selected?1.8:.8}/>
@@ -90,18 +90,40 @@ export function RisoCharacterModelSheet({
   </g>;
   const inkPattern=(_plate:string,i:number)=>`url(#${uid}-screen-${i})`;
   function Actor({sample,parts,view="full"}:{
-    sample:number;parts:readonly RisoMeshFrameRegion[];view?:"full"|"close";
+    sample:number;parts:readonly RisoMeshFrameRegion[];view?:"full"|"face"|"pose";
   }) {
     return <g data-km-riso-sheet-actor={view} data-km-riso-sheet-actor-frame={sample}>
-      <g fill={paper} stroke={paper}>
-        <RisoCharacterKnockout spec={spec} frame={sample} spread={1.6}/>
-      </g>
-      {allPlates.map((plate,i)=><g key={plate} style={{mixBlendMode:"multiply"}}>
-        <RisoCharacterInk spec={spec} frame={sample} plateId={plate}
-          paint={{solid:inks[plate]??"#315B86",dots:inkPattern(plate,i)}}/>
-      </g>)}
-      <Wireframe regions={parts} selected={view==="full"?selectedRegion:undefined}
-        showMesh={showMesh} showLabels={showLabels&&view==="full"}/>
+      {view==="face" ? <>
+        {/** Only true head/face/hair authored paths belong in an orthographic
+             facial detail. Drawing the whole actor here let wings and sleeves
+             obscure the beak and eye in the Bird sheet. */}
+        {(() => {
+          const headParts=new Set(sheet.regions.filter(r=>
+            ["face","hair","headwear"].includes(r.category)).flatMap(r=>r.parts));
+          const evaluated=reportFor(sample).parts.filter(p=>headParts.has(p.id));
+          return <>
+            <g fill={paper} stroke={paper} strokeWidth={1}>
+              {evaluated.map(p=><path key={p.id} d={p.d} transform={p.transform}/>)}
+            </g>
+            {allPlates.map((plate,i)=><g key={plate} style={{mixBlendMode:"multiply"}}>
+              {evaluated.filter(p=>p.plate===plate&&!p.knockoutOnly).map(p=>
+                <path key={p.id} d={p.d} transform={p.transform}
+                  fill={p.paint==="screen"?inkPattern(plate,i):(inks[plate]??"#315B86")}
+                  opacity={p.opacity}/>)}
+            </g>)}
+          </>;
+        })()}
+      </> : <>
+        <g fill={paper} stroke={paper}>
+          <RisoCharacterKnockout spec={spec} frame={sample} spread={1.6}/>
+        </g>
+        {allPlates.map((plate,i)=><g key={plate} style={{mixBlendMode:"multiply"}}>
+          <RisoCharacterInk spec={spec} frame={sample} plateId={plate}
+            paint={{solid:inks[plate]??"#315B86",dots:inkPattern(plate,i)}}/>
+        </g>)}
+        <Wireframe regions={parts} selected={view==="full"?selectedRegion:undefined}
+          showMesh={showMesh&&view==="full"} showLabels={showLabels&&view==="full"}/>
+      </>}
       {showJoints && view==="full" && <g data-km-riso-sheet-skeleton="" pointerEvents="none">
         {/** Skeleton points are returned by the exact same solver as ink and mesh. */}
         {(() => {
@@ -168,11 +190,11 @@ export function RisoCharacterModelSheet({
     <svg x={510} y={139} width={329} height={300}
       viewBox={risoSheetViewBox(headBounds,329,300,8)}
       data-km-riso-sheet-head-view="" overflow="hidden">
-      <Actor sample={report.frame} parts={report.regions} view="close"/>
-      {report.regions.filter(r=>["face","hair","headwear"].includes(r.category)).map(r=>
+      <Actor sample={report.frame} parts={report.regions} view="face"/>
+      {showMesh && report.regions.filter(r=>["face","hair","headwear"].includes(r.category)).map(r=>
         <path key={r.id} data-km-riso-head-cage={r.id} d={path(r.outline)}
           stroke={r.id===region.id?"#D84D39":"#267C88"}
-          strokeWidth={r.id===region.id?1.9:.5} fill="none"/>)}
+          strokeWidth={r.id===region.id?1.9:.5} opacity={r.id===region.id?1:.38} fill="none"/>)}
     </svg>
     {section(502,459,345,313,"Selected component / proportions","C")}
     <g fill="#29445A" fontFamily="system-ui,sans-serif">
@@ -210,7 +232,7 @@ export function RisoCharacterModelSheet({
         </text>
         <svg x={876} y={top+13} width={307} height={170}
           viewBox={risoSheetViewBox(mb.overallBounds,307,170,15)} overflow="hidden">
-          <Actor sample={p.frame} parts={mb.regions} view="close"/>
+          <Actor sample={p.frame} parts={mb.regions} view="pose"/>
         </svg>
         <path d={`M876 ${top+195}H1186`} stroke="#D5CABC" strokeWidth={1}/>
       </g>;
