@@ -41,8 +41,11 @@ describe("RISO2 ink-separated, expressive rig performance", () => {
     const mouth=(frame:number)=>at(frame).parts.find(p=>p.id==="mouth")!.d;
     expect(mouth(160)).not.toBe(mouth(100));
     expect(mouth(210)).not.toBe(mouth(160));
-    const arm=(frame:number)=>at(frame).parts.find(p=>p.id==="left-forearm")!.transform;
-    expect(arm(20)).not.toBe(arm(60));
+    const arm=(frame:number)=>at(frame).parts.find(p=>p.id==="left-forearm")!;
+    // Deforming stage-space ribbons intentionally use an identity transform;
+    // their resolved outline changes as the rig moves instead.
+    expect(arm(20).transform).toBe("matrix(1 0 0 1 0 0)");
+    expect(arm(20).d).not.toBe(arm(60).d);
   });
   it("rejects parent cycles, unknown plate, injection and out-of-order animation",()=>{
     const invalid={...COURIER,joints:COURIER.joints.map(j=>j.id==="root"?{...j,parent:"head"}:j)};
