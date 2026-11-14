@@ -36,7 +36,7 @@ const formats={landscape:{width:960,height:540},portrait:{width:540,height:960}}
 function placeActor(aspect:Aspect):InkActorTrack {
   if(aspect==="landscape")return TRAVELLER_TRACK;
   return {...TRAVELLER_TRACK,keys:TRAVELLER_TRACK.keys.map(k=>({
-    ...k,x:k.x*540/960,y:k.y*960/540,scale:k.scale*1.17,
+    ...k,x:k.x*540/960-20,y:k.y*960/540,scale:k.scale*.98,
   }))};
 }
 function Captions({frame,aspect}:{frame:number;aspect:Aspect}) {
