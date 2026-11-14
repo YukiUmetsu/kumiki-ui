@@ -1,0 +1,161 @@
+import { useEffect, useMemo, useState } from "react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { compileFilm } from "../../registry/video/film-document";
+import { FilmStage } from "../../registry/video/film-stage";
+import { PencilScene } from "../../registry/video/colored-pencil-scene-react";
+import { pencilWildlifeScene } from "./colored-pencil-wildlife";
+import type { PencilAspect } from "../../registry/video/colored-pencil";
+import { COLOR_PENCIL_WILDLIFE_FILM } from "./colored-pencil-wildlife-film";
+
+const meta = {
+  title: "Video Production/Film Looks/Colour-pencil/Wildlife",
+  id: "video-colored-pencil-wildlife",
+  component: PencilScene,
+  parameters: { layout: "fullscreen" },
+} satisfies Meta<typeof PencilScene>;
+export default meta;
+
+const label = { display:"grid", gap:5, font:"600 13px system-ui", minWidth:147 } as const;
+const button = {padding:"9px 14px", minHeight:42, border:"1px solid #B6B1A7",
+  borderRadius:7, background:"#FAF4E8", cursor:"pointer",
+  color:"#384951", font:"600 13px system-ui"} as const;
+
+/** Transport belongs only to Storybook. The drawing remains a pure function of absolute frames. */
+function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
+  const [aspect, setAspect] = useState<PencilAspect>("landscape");
+  const [paperTooth, setTooth] = useState(.68);
+  const [detail, setDetail] = useState<"full" | "study">("full");
+  const [frame, setFrame] = useState(285);
+  const [speed, setSpeed] = useState(1);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const scene = useMemo(() => pencilWildlifeScene({aspect, paperTooth, detail}),
+    [aspect, paperTooth, detail]);
+  const compiled = useMemo(() => compileFilm(COLOR_PENCIL_WILDLIFE_FILM, {outputId:aspect}),
+    [aspect]);
+  useEffect(() => {
+    if (!playing || reducedMotion) return;
+    const start = performance.now(), offset = frame;
+    let raf = 0;
+    const next = (now: number) => {
+      const at = Math.min(419, offset + Math.floor((now - start) * .03 * speed));
+      setFrame(at);
+      if (at < 419) raf = requestAnimationFrame(next);
+      else setPlaying(false);
+    };
+    raf = requestAnimationFrame(next);
+    return () => cancelAnimationFrame(raf);
+    // Transport resumes at the selected checkpoint after Play, not during seek.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing, reducedMotion, speed]);
+  const step = frame < 70 ? "Graphite construction" :
+    frame < 188 ? "Progressive feather and copper pigment" :
+    frame < 255 ? "Fine feather engraving" :
+    "Subtle head, eye, beak and tail performance";
+  const scale = aspect === "landscape" ? 1 : .73;
+  return <main style={{ minHeight:"100vh", padding:24,
+    display:"grid", alignContent:"start", gap:16, background:"#EAE5D9",
+    color:"#344750", font:"15px/1.5 system-ui" }}>
+    <header style={{maxWidth:920}}>
+      <div style={{letterSpacing:1.8, fontSize:12, fontWeight:700, color:"#69847E"}}>
+        MATERIAL-NATIVE COLOUR PENCIL / ORIGINAL WILDLIFE ART
+      </div>
+      <h1 style={{font:"600 34px Georgia, serif", margin:"8px 0"}}>
+        A Copper Songbird — Fine Feather Craft
+      </h1>
+      <p style={{margin:0,maxWidth:820}}>
+        Nineteen anatomical parts: separate feathers, throat, wing coverts, glossy eye,
+        two beak sections, tail and branch-gripping toes. The opaque paper support prevents
+        background strokes from appearing through a solid subject. All pigment remains
+        fixed in paper coordinates during frame seeking.
+      </p>
+    </header>
+    <section aria-label="Pencil wildlife controls"
+      style={{display:"flex", flexWrap:"wrap", alignItems:"end", gap:14}}>
+      <label style={label}>Aspect ratio
+        <select aria-label="Wildlife aspect" value={aspect}
+          onChange={e => {setPlaying(false);setAspect(e.target.value as PencilAspect);}}>
+          <option value="landscape">16:9 landscape</option>
+          <option value="portrait">9:16 portrait</option>
+        </select>
+      </label>
+      <label style={label}>Illustration details
+        <select aria-label="Feather detail" value={detail}
+          onChange={e=>setDetail(e.target.value as typeof detail)}>
+          <option value="full">Full feather study</option>
+          <option value="study">Construction study</option>
+        </select>
+      </label>
+      <label style={label}>Paper tooth · {Math.round(paperTooth*100)}%
+        <input aria-label="Wildlife paper tooth" type="range" min="0" max="1" step=".05"
+          value={paperTooth} onChange={e=>setTooth(Number(e.target.value))}/>
+      </label>
+      <label style={label}>Playback speed
+        <select aria-label="Wildlife playback speed" value={speed}
+          onChange={e=>setSpeed(Number(e.target.value))}>
+          <option value={.5}>0.5×</option><option value={1}>1×</option>
+          <option value={1.5}>1.5×</option><option value={2}>2×</option>
+        </select>
+      </label>
+      <label style={{display:"flex",alignItems:"center",gap:8,minHeight:42,fontSize:14}}>
+        <input type="checkbox" checked={reducedMotion}
+          onChange={e=>{setReducedMotion(e.target.checked);setPlaying(false);}}/>
+        Reduced motion
+      </label>
+    </section>
+    <div style={{display:"grid",gap:9,maxWidth:960}}>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
+        <button type="button" style={button} onClick={()=>{
+          if(frame>=419)setFrame(0);
+          setPlaying(previous=>!previous);
+        }}>{playing?"Pause":frame>=419?"Replay":"Play the film"}</button>
+        {([["Construction",55],["Colour",172],["Detail",250],["Blink",294],
+          ["Hold",419]] as const).map(([text,at])=>
+          <button type="button" key={text} style={button} onClick={()=>{
+            setPlaying(false);setFrame(at);
+          }}>{text}</button>)}
+      </div>
+      <label style={{display:"grid",gap:6,font:"600 13px system-ui"}}>
+        Frame {frame}/419 · {step}
+        <input aria-label="Wildlife frame" type="range" min={0} max={419}
+          value={frame} onChange={e=>{setPlaying(false);setFrame(Number(e.target.value));}}/>
+      </label>
+    </div>
+    <div style={{width:aspect==="landscape"?960:540,
+      height:aspect==="landscape"?540:960, maxWidth:"100%",
+      overflow:"hidden", position:"relative", background:"#FAF5EC",
+      boxShadow:"0 18px 46px #554E4730"}}>
+      {filmView ? compiled.ok ?
+        <FilmStage film={compiled.film} frame={frame}
+          renderObject={()=>null} reducedMotion={reducedMotion}
+          renderSlot={(content,context)=>{
+            if (content.slot!=="colored-pencil-wildlife")
+              throw new RangeError("Unexpected wildlife film slot");
+            const offset=content.props?.offsetFrame;
+            if(typeof offset!=="number" || !Number.isSafeInteger(offset))
+              throw new RangeError("Invalid wildlife film offset");
+            return <PencilScene scene={scene} frame={offset+context.frame}
+              reducedMotion={context.reducedMotion}/>;
+          }}/> :
+        <pre role="alert">{compiled.diagnostics.map(x=>x.message).join("\n")}</pre> :
+        <PencilScene scene={scene} frame={frame} reducedMotion={reducedMotion}/>}
+    </div>
+    <p style={{maxWidth:790,margin:0,fontSize:13,color:"#6D7872"}}>
+      Original hand-authored vector specimen, not a copied reference bird.
+      Posed features and pencil deposition are deterministic. Technical tests do not certify
+      feature-film illustration quality; review actual exports at full resolution.
+    </p>
+    <span style={{display:"none"}} data-scale={scale}/>
+  </main>;
+}
+
+export const IllustratedWildlife: StoryObj<typeof meta> = {
+  name:"Original songbird · Interactive drawing and performance",
+  args:{scene:pencilWildlifeScene({aspect:"landscape"}),frame:285},
+  render:()=> <WildlifeStudio/>,
+};
+export const FilmStageProof: StoryObj<typeof meta> = {
+  name:"Songbird · FD1 three-shot film proof",
+  args:{scene:pencilWildlifeScene({aspect:"landscape"}),frame:285},
+  render:()=> <WildlifeStudio filmView/>,
+};
