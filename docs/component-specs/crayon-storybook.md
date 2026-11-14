@@ -36,6 +36,56 @@ Install `crayon-storybook` and render `<CrayonStorybook frame={...} aspect="land
 
 The illustrative neutral character is part of the **demo**; the core `crayonMarks` / `WaxRegion` material process can be reused with other authored SVG silhouettes. Subject asset ingestion and full media-to-media transitions are not shipped in this slice.
 
+### Articulated character performance (CRAYON1 scenes)
+
+A character can now be assembled from independently authored wax or contour pieces without
+baking all poses into a single image. Each element retains its stable `id` and its place
+in the authored painter's order. Optional `parentId` references another element; optional
+`pivot: { x, y }` sets the local rotation/scale hinge. Existing `motion` keys,
+`poseCadence` (drawing on twos/threes), `timing`, and reduced-motion handling
+continue to work. The renderer evaluates the root-to-leaf transform chain at the requested
+absolute frame. A child can inherit a torso, shoulder and hand transform while its wax
+pattern remains pinned. A prop may be listed before its parent in painter's order.
+
+```json
+{
+  "id": "left-hand", "kind": "contour", "parentId": "left-arm",
+  "pivot": {"x": 12, "y": 20},
+  "d": "M 0 0 L 20 10", "color": "#684630", "width": 5,
+  "timing": {"start": 0, "end": 239},
+  "poseCadence": 2,
+  "motion": [
+    {"frame": 0, "x": 0, "y": 0, "rotate": -15},
+    {"frame": 60, "x": 0, "y": 0, "rotate": 35}
+  ]
+}
+```
+
+Hierarchy validation rejects missing parents, cycles, non-finite/out-of-range pivots,
+and screen-space/world-space mismatches. This is an authored **2D articulated transform
+system**, not skeletal mesh skinning, inverse kinematics, automatic lip-sync or fully
+redrawn hand-drawn shape interpolation. For convincing performances, animate the body
+gesture first, then head/limb anticipation, overlapping tails/hair, blink/mouth poses,
+and consistent contact points; unique replacement drawings remain separately authored.
+
+**New reference research** (techniques and observations from published source
+descriptions, not claimed frame-by-frame viewing):
+- [Kristi Sword's wax-crayon application process](https://vimeo.com/113245451) describes
+  heated wax dots applied individually to paper: dense and sparse deposition should have
+  local material character rather than uniform noise.
+- [Carla Veldman's animation reel](https://vimeo.com/151267555) labels several traditionally
+  drawn pencil-crayon character segments, useful as motion/reference targets.
+- [Crayon stop-motion short](https://www.youtube.com/watch?v=E5L0PWptozc) is a published
+  crayon animation reference; use its material/acting principles without copying frames.
+- [Wunderkammer process](https://vimeo.com/300069833) documents replacement paper drawings
+  for movements beyond simple puppet articulation, a useful complementary technique.
+
+**Remaining craft gaps:** morphing between authored replacement shapes, independent
+mouth/eye phonemes, inverse kinematics, foot lock and contact-aware locomotion, wax
+smear/erase/redraw transitions, independent depth parallax, and fully reviewed encoded
+proofs with normal-speed human approval. A rig alone does not qualify a shot as visually
+beautiful or production-approved.
+
 ### Production proof
 
 The 420-frame (14 s at 30 fps), three-shot FilmDocument uses the existing `slot` scene type in `FilmStage`, not another timeline or an unbounded playback loop. Its shot frames are 0…119, 120…269 and 270…419. The slot adapter adds each scene's `offsetFrame` to its local frame. The second original scene, the flower garden, is available as a separate interactive Storybook story.
