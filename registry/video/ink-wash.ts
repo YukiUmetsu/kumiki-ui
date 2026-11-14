@@ -15,6 +15,12 @@ export interface InkStroke {
   water: number;
   /** Brush pigment load, 0..1. */
   load: number;
+  /** Brush angle: upright produces symmetric lines; oblique lays down a broad side-brush plane. */
+  brush?: "upright" | "oblique";
+  /** 0..1 contrast of the ink-loaded tip against the paler brush body. */
+  tipInk?: number;
+  /** 0..1 contact drag, increasing directional bristle texture. */
+  drag?: number;
   /** Absolute stroke onset. */
   startFrame: number;
   /** Frames to lay down the complete centerline. */
@@ -68,8 +74,8 @@ export function inspectInkWash(spec: InkWashSpec): InkIssue[] {
   if (!Number.isSafeInteger(spec.seed) || spec.seed < 0 || spec.seed > 2147483647) add("seed", "/seed", "Seed must be an integer in 0..2147483647.");
   if (!validNumber(spec.absorption, 0, 1)) add("absorption", "/absorption", "Absorption must be 0..1.");
   if (!validNumber(spec.grain, 0, 1)) add("grain", "/grain", "Grain must be 0..1.");
-  if (!Array.isArray(spec.strokes) || spec.strokes.length < 1 || spec.strokes.length > 500)
-    return [...problems, { code: "strokes", path: "/strokes", message: "Provide 1..500 authored brushstrokes." }];
+  if (!Array.isArray(spec.strokes) || spec.strokes.length > 500)
+    return [...problems, { code: "strokes", path: "/strokes", message: "Provide up to 500 authored brushstrokes (zero for media-only compositions)." }];
   const seen = new Set<string>();
   spec.strokes.forEach((stroke, i) => {
     const at = "/strokes/" + i;
@@ -91,6 +97,12 @@ export function inspectInkWash(spec: InkWashSpec): InkIssue[] {
       const min = key === "startFrame" || key === "spreadFrames" ? 0 : 1;
       if (!Number.isSafeInteger(stroke?.[key]) || stroke[key] < min || stroke[key] > 36000)
         add("timing", at + "/" + key, key + " must be an integer from " + min + " to 36000.");
+    }
+    if (stroke?.brush !== undefined && stroke.brush !== "upright" && stroke.brush !== "oblique")
+      add("brush-orientation", at + "/brush", "Brush orientation must be upright or oblique.");
+    for (const key of ["tipInk", "drag"] as const) {
+      if (stroke?.[key] !== undefined && !validNumber(stroke[key]!, 0, 1))
+        add("brush-"+key, at+"/"+key, key+" must be 0..1.");
     }
     if (stroke?.accent && !spec.accent) add("accent", at + "/accent", "Provide /accent before using accent pigment.");
   });
@@ -166,10 +178,15 @@ export function inkOutline(stroke: InkStroke, seed: number, progress: number, ex
     const total = Math.max(1, samples.length - 1);
     const across = i / total;
     const tip = Math.min(1, .16 + across * 10, .13 + (1 - across) * 12);
-    const jitter = (inkHash(seed, i, 11) - .5) * (.05 + stroke.water * .10);
+    // Slow variation follows paper grain, rather than a different random edge every sample.
+    const slow = Math.sin(i * .19 + seed * .001) * .044;
+    const jitter = slow + (inkHash(seed, Math.floor(i / 3), 11) - .5) * (.022 + stroke.water * .08);
     const r = Math.max(.1, stroke.width * (.15 + .85 * s.pressure) * tip * .5);
     const extra = expansion * (0.63 + inkHash(seed, i, 19) * .72);
-    const a = r * (1 + jitter) + extra, b = r * (1 - jitter) + extra * (.7 + inkHash(seed, i, 23) * .6);
+    const bias = stroke.brush === "oblique" ? .52 : 0;
+    const drag = stroke.drag ?? 0;
+    const a = r * (1 + jitter + bias + .09 * drag) + extra;
+    const b = r * (1 - jitter - bias * .74) + extra * (.78 + inkHash(seed, Math.floor(i / 4), 23) * .42);
     left.push(fmt(s.x + s.nx * a) + " " + fmt(s.y + s.ny * a));
     right.push(fmt(s.x - s.nx * b) + " " + fmt(s.y - s.ny * b));
   });
@@ -181,17 +198,25 @@ export function flyingWhite(stroke: InkStroke, seed: number, progress: number): 
   const samples = inkSamples(stroke, progress);
   const output: string[] = [];
   const dryness = (1 - stroke.water) * (1 - .35 * stroke.load);
-  const skip = Math.max(2, Math.round(7 - dryness * 5));
-  for (let i = 3; i + 2 < samples.length; i += skip) {
-    if (inkHash(seed + 83, i, 5) > dryness) continue;
-    const s = samples[i], next = samples[Math.min(samples.length - 1, i + 2)];
-    const offset = (inkHash(seed + 11, i, 7) - .5) * stroke.width * .45;
-    const x = s.x + s.nx * offset, y = s.y + s.ny * offset;
-    output.push("M" + fmt(x) + " " + fmt(y) + " L" + fmt(next.x + next.nx * offset) + " " + fmt(next.y + next.ny * offset));
+  // Real flying white follows the bristle direction for a coherent segment:
+  // disconnected white flecks read as digital noise rather than dragged pigment.
+  const count = Math.max(1,Math.round(2 + (stroke.drag ?? .5) * 4));
+  for (let strand = 0; strand < count; strand++) {
+    const begin = Math.round(inkHash(seed, strand, 17) * Math.max(0,samples.length - 8));
+    const length = 5 + Math.round(inkHash(seed, strand, 23) * (8 + dryness * 12));
+    if (inkHash(seed, strand, 51) > dryness * .96 || begin + 3 >= samples.length) continue;
+    const offset = (strand / Math.max(1,count-1) - .5) * stroke.width * .42;
+    const points: string[] = [];
+    for (let i=begin; i<Math.min(samples.length,begin+length); i+=2) {
+      const sample = samples[i], wiggle = (inkHash(seed, i>>2, strand+61)-.5)*stroke.width*.027;
+      points.push(fmt(sample.x + sample.nx*(offset+wiggle))+" "+fmt(sample.y + sample.ny*(offset+wiggle)));
+    }
+    if (points.length >= 2) output.push("M"+points.join(" L"));
   }
   return output;
 }
+
 /** Full hold frame is max of authored timelines; no mutable simulation state is needed. */
 export function inkHoldFrame(spec: InkWashSpec): number {
-  return Math.max(...spec.strokes.map(s => s.startFrame + s.drawFrames + s.spreadFrames + s.dryFrames));
+  return spec.strokes.length ? Math.max(...spec.strokes.map(s => s.startFrame + s.drawFrames + s.spreadFrames + s.dryFrames)) : 0;
 }
