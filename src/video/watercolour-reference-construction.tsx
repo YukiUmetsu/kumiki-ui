@@ -25,7 +25,7 @@ export function referenceDaisyPetals(seed:number,index:number):ReferencePetal[]{
     throw new RangeError("Invalid flower index.");
   return Array.from({length:13},(_,i)=>{
     const twist=h(seed,index*37+i,307),asym=h(seed,index*17+i,311);
-    const length=12.5+5.5*twist,wide=2.3+1.2*asym;
+    const length=17+7*twist,wide=3.5+1.5*asym;
     const angle=i*360/13+(twist-.5)*8;
     const path="M0 -3.7 C"+fixed(-wide*.65)+" "+fixed(-length*.35)+
       " "+fixed(-wide*1.35)+" "+fixed(-length*.73)+" "+
@@ -57,10 +57,10 @@ export function WatercolourReferenceFlower({cx,cy,seed,index,frame}:{
     transform={"translate("+fixed(cx)+" "+fixed(cy)+")"} opacity={appear}>
     <defs>
       <linearGradient id={id+"-petal"} x1="0" y1="0" x2=".7" y2="1">
-        <stop offset="0" stopColor="#B3A67D" stopOpacity=".8"/>
-        <stop offset=".34" stopColor="#F4E8C9" stopOpacity=".9"/>
-        <stop offset=".72" stopColor="#EFE2C5" stopOpacity=".75"/>
-        <stop offset="1" stopColor="#CEC092" stopOpacity=".77"/>
+        <stop offset="0" stopColor="#D3C79E" stopOpacity=".72"/>
+        <stop offset=".34" stopColor="#FFF6DF" stopOpacity=".95"/>
+        <stop offset=".72" stopColor="#F5EBD1" stopOpacity=".95"/>
+        <stop offset="1" stopColor="#C5B489" stopOpacity=".85"/>
       </linearGradient>
       <radialGradient id={id+"-disc"}>
         <stop offset="0" stopColor="#C7AB5F"/>
@@ -74,9 +74,9 @@ export function WatercolourReferenceFlower({cx,cy,seed,index,frame}:{
       d="M-1 -2 Q-3 -7 0 -11 Q3 -6 1 -2Z" fill="#6D8462" opacity=".62"/>)}
     {petals.map((p,i)=><g key={i} transform={"rotate("+fixed(p.angle)+")"}
       data-km-petal-root="0,-3.7">
-      <path d={p.path} fill={"url(#"+id+"-petal)"} opacity={.68+.06*(i%3)}
-        stroke={i%4===0?"#B1A27E":"#B7AA8C"} strokeWidth=".35"/>
-      <path d={p.fold} stroke={i%2?"#A6A280":"#CABD95"} strokeWidth=".42"
+      <path d={p.path} fill={"url(#"+id+"-petal)"} opacity={.87+.035*(i%3)}
+        stroke={i%4===0?"#B1A27E":"#C4B58E"} strokeWidth=".38"/>
+      <path d={p.fold} stroke={i%2?"#9B9671":"#C3B58D"} strokeWidth=".49"
         opacity=".55" fill="none" strokeLinecap="round"/>
       {i%4===1&&<path d="M.7 -6.6 Q2.5 -10.2 1.2 -13.9"
         stroke="#FFF6DF" strokeWidth=".35" opacity=".3" fill="none"/>}
