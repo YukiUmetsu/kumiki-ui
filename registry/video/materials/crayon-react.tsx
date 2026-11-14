@@ -58,6 +58,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   if (redraw) assertCrayonRedrawOptions(redraw);
   if (sgraffito) {
     assertCrayonSgraffito(sgraffito);
+    if (coverage!=="opaque")
+      throw new RangeError("Crayon sgraffito requires opaque buried pigment");
     if (sgraffito.first < last)
       throw new RangeError("Crayon sgraffito must follow wax deposition");
   }
