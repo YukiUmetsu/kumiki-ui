@@ -2,7 +2,10 @@
  * All art is independently authored for Kumiki; the native 2.5D presenter
  * retains expressions, gaze, mouth articulation and painterly part materials.
  */
+import { useMemo } from "react";
 import type { CharacterAsset, CharacterDefinition, CharacterInstance } from "../../registry/character/definition";
+import { inkCraftAsset, DEFAULT_INK_FIGURE_CRAFT } from "../../registry/video/ink-figure-craft";
+import type { InkFigureCraftControls, InkFigureStroke } from "../../registry/video/ink-figure-craft";
 import { InkCharacter } from "../../registry/video/ink-wash-character-react";
 import { InkWashScene } from "../../registry/video/ink-wash-story-react";
 import type { InkShot } from "../../registry/video/ink-wash-story";
@@ -24,7 +27,7 @@ const poly=(d:string,fill:string,stroke="#29302B",strokeWidth=1.6)=>({
 });
 /** The only difference from INK3's approved original traveler: add four anatomical leg
  * joint parts so world-locked inverse kinematics has actual knees to animate. */
-export const INK_WALKING_TRAVELLER: CharacterDefinition={
+const WALKING_TRAVELLER_BASE: CharacterDefinition={
   ...INK_TRAVELLER,
   revision:"ink-actor-ink4-walk-v1",
   assets:{
@@ -56,6 +59,88 @@ export const INK_WALKING_TRAVELLER: CharacterDefinition={
   ],
   capabilities:[...INK_TRAVELLER.capabilities,"world-foot-contact","two-bone-ik"],
 };
+/**
+ * Part-attached, original costume drawings. The eighteenth-century figure-painting
+ * line languages suggest flowing silk-thread contours, iron-wire folds and dry,
+ * interrupted bristle marks. The paths are authored in the EXISTING art's
+ * 260 × 340 design coordinates and therefore move with parent limb joints.
+ */
+const fold=(id:string,kind:InkFigureStroke["kind"],points:readonly (readonly[number,number,number])[],
+  width:number,tone:number,water:number,detailMin=0,pigment?:string):InkFigureStroke=>({
+  id,kind,points:points.map(([x,y,pressure])=>({x,y,pressure})),
+  width,tone,water,detailMin,...(pigment?{pigment}:{}),
+});
+export const INK_TRAVELLER_FOLDS: Readonly<Record<string,readonly InkFigureStroke[]>>={
+  robe:[
+    fold("outer-shoulder","silk-thread",[[102,145,.05],[93,178,.31],[90,221,.54],[88,271,.39],[82,293,.03]],3.2,.64,.16,.15),
+    fold("left-crease","fold",[[116,166,.05],[119,196,.24],[111,237,.67],[114,276,.32],[106,301,.02]],5.8,.60,.45,.35),
+    fold("front-column","silk-thread",[[138,170,.03],[131,202,.22],[135,239,.53],[129,286,.35],[126,306,.01]],2.4,.55,.20,.18),
+    fold("right-fall","fold",[[160,164,.04],[153,191,.26],[161,237,.65],[171,280,.48],[181,300,.02]],7,.53,.39,.2),
+    fold("right-inset","silk-thread",[[178,179,.07],[172,215,.22],[179,261,.56],[194,291,.03]],2.2,.49,.19,.42),
+    fold("gathered-center","silk-thread",[[134,231,.02],[137,248,.45],[139,275,.26],[146,302,.02]],1.7,.46,.10,.67),
+    fold("left-hem","dry-brush",[[81,295,.04],[105,301,.37],[145,307,.50],[183,301,.32],[199,295,.02]],3.4,.64,.10,.44),
+    fold("hem-inner","silk-thread",[[89,289,.04],[118,294,.35],[159,296,.32],[187,287,.03]],1.8,.39,.10,.80),
+    fold("under-arm-shadow","fold",[[98,174,.04],[109,185,.42],[113,207,.06]],4.8,.58,.43,.54),
+    fold("belt-radial","silk-thread",[[138,228,.04],[146,251,.30],[147,271,.09]],1.9,.42,.14,.82),
+  ],
+  "sleeve-far":[
+    fold("sleeve-far-fold","fold",[[89,161,.02],[79,183,.27],[67,216,.66],[47,238,.05]],5.5,.63,.37,.2),
+    fold("sleeve-far-edge","silk-thread",[[63,178,.03],[56,203,.51],[44,230,.22],[41,242,.02]],2.0,.67,.12,.48),
+    fold("sleeve-far-crease","silk-thread",[[84,202,.04],[78,227,.43],[69,246,.03]],2.2,.53,.10,.65),
+    fold("sleeve-far-cuff","dry-brush",[[43,242,.05],[59,247,.33],[76,244,.38],[87,238,.02]],2.4,.52,.09,.7),
+  ],
+  "sleeve-near":[
+    fold("near-sleeve-volume","fold",[[174,157,.02],[183,180,.43],[202,216,.65],[220,237,.04]],6,.63,.45,.2),
+    fold("near-sleeve-inside","silk-thread",[[190,167,.03],[192,190,.31],[202,218,.65],[205,239,.04]],2.2,.57,.12,.50),
+    fold("near-sleeve-left","silk-thread",[[167,185,.02],[180,212,.38],[191,247,.07]],1.9,.42,.12,.66),
+    fold("near-sleeve-cuff","dry-brush",[[190,243,.02],[207,250,.40],[224,244,.28],[231,237,.02]],2.7,.63,.13,.78),
+  ],
+  "hand-far":[
+    fold("far-thumb","silk-thread",[[42,238,.10],[46,235,.55],[52,238,.23]],1.4,.42,.07,.4,"$shadow"),
+    fold("far-knuckles","silk-thread",[[45,245,.04],[50,246,.43],[56,242,.04]],.8,.44,.05,.73,"$skinshade"),
+  ],
+  "hand-near":[
+    fold("near-thumb","silk-thread",[[218,242,.03],[221,238,.56],[226,236,.04]],1.3,.6,.07,.38),
+    fold("near-knuckles","silk-thread",[[224,247,.06],[229,248,.39],[234,245,.04]],.9,.58,.06,.61),
+    fold("near-fingers","silk-thread",[[224,239,.07],[229,241,.44],[233,239,.08]],.85,.49,.06,.80),
+  ],
+  hair:[
+    fold("temple-ink","silk-thread",[[112,76,.01],[124,64,.57],[145,60,.24],[165,69,.01]],2.4,.41,.12,.35,"$wash"),
+    fold("hair-bun-bristles","dry-brush",[[137,29,.06],[143,32,.43],[147,46,.10]],2,.38,.10,.73,"$wash"),
+  ],
+  beard:[
+    fold("beard-flow","silk-thread",[[135,141,.04],[141,153,.55],[142,169,.03]],1.55,.46,.11,.4,"$ink"),
+    fold("beard-split","silk-thread",[[147,146,.04],[146,156,.47],[143,168,.02]],.9,.43,.06,.77,"$wash"),
+  ],
+  "far-upper":[
+    fold("far-knee-shadow","fold",[[110,266,.03],[106,281,.55],[106,292,.07]],2.5,.49,.3,.46),
+  ],
+  "near-upper":[
+    fold("near-knee-shadow","fold",[[144,265,.04],[149,279,.53],[152,288,.03]],3,.53,.25,.43),
+  ],
+  "far-lower":[
+    fold("far-boot-crease","dry-brush",[[93,324,.02],[102,320,.32],[114,324,.02]],1.7,.41,.12,.66),
+  ],
+  "near-lower":[
+    fold("near-boot-crease","dry-brush",[[146,325,.03],[158,322,.49],[168,327,.02]],2.1,.52,.12,.63),
+  ],
+};
+export function makeInkWalkingTraveller(
+  controls:InkFigureCraftControls=DEFAULT_INK_FIGURE_CRAFT,
+):CharacterDefinition {
+  // Only original SVG shapes are augmented. Pivot, channels, facial layers,
+  // acting cues, asset rights and all authored rig limits remain untouched.
+  const assets={...WALKING_TRAVELLER_BASE.assets};
+  for(const [key,folds] of Object.entries(INK_TRAVELLER_FOLDS)){
+    const asset=assets[key];
+    if(!asset||asset.kind!=="shapes")
+      throw new RangeError("INK5 expected the approved vector costume asset "+key);
+    assets[key]=inkCraftAsset(asset,folds,controls);
+  }
+  return {...WALKING_TRAVELLER_BASE,assets};
+}
+export const INK_WALKING_TRAVELLER:CharacterDefinition=makeInkWalkingTraveller();
+
 export function inkDirectorRoute(aspect:DirectorAspect):InkRoutePlan {
   const portrait=aspect==="portrait", y=portrait?810:484;
   return {
@@ -125,9 +210,14 @@ export const INK_DIRECTOR_SHOT:InkShot={
   durationFrames:420,
   layers:[{id:"traveler",startFrame:0,durationFrames:1,reveal:"instant",interactive:false}],
 };
-export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false}:{
+export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false,
+  foldDetail=1,foldContrast=.85}:{
   frame:number;aspect?:DirectorAspect;reducedMotion?:boolean;
+  foldDetail?:number;foldContrast?:number;
 }) {
+  const definition=useMemo(()=>makeInkWalkingTraveller({
+    ...DEFAULT_INK_FIGURE_CRAFT,detail:foldDetail,contrast:foldContrast,
+  }),[foldDetail,foldContrast]);
   const route=inkDirectorRoute(aspect);
   const track=bakeInkActorTrack(route);
   const spec=inkDirectorBackdrop(aspect);
@@ -139,7 +229,7 @@ export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false}:{
   return <InkWashScene spec={spec} shot={INK_DIRECTOR_SHOT} frame={fpsFrame}
     paintFrame={419}
     reducedMotion={reducedMotion} label="Painted landscape with a walking articulated ink character"
-    renderLayer={()=> <InkCharacter definition={INK_WALKING_TRAVELLER} instance={instance}
+    renderLayer={()=> <InkCharacter definition={definition} instance={instance}
       track={track} cues={cues} frame={reducedMotion?419:fpsFrame}
       reducedMotion={reducedMotion} label="Ink traveler with planted feet, separate knees and expressive face"
       absorption={.73} grain={.70}

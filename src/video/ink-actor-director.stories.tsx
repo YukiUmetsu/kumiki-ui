@@ -20,6 +20,8 @@ function Laboratory(){
   const [frame,setFrame]=useState(244);
   const [playing,setPlaying]=useState(false);
   const [reduce,setReduce]=useState(false);
+  const [foldDetail,setFoldDetail]=useState(1);
+  const [foldContrast,setFoldContrast]=useState(.85);
   const compiled=useMemo(()=>compileFilm(document,{outputId:aspect}),[aspect]);
   useEffect(()=>{
     if(!playing||reduce)return;
@@ -64,13 +66,29 @@ function Laboratory(){
         Reduced motion
       </label>
     </div>
+    <div style={{display:"flex",gap:15,flexWrap:"wrap",alignItems:"center",maxWidth:890}}>
+      <label style={{display:"grid",gap:4,fontWeight:600,fontSize:13}}>
+        Garment brush detail: {Math.round(foldDetail*100)}%
+        <input aria-label="Garment brush detail" type="range" min="0" max="1" step=".05"
+          value={foldDetail} onChange={e=>{setPlaying(false);setFoldDetail(Number(e.target.value))}}/>
+      </label>
+      <label style={{display:"grid",gap:4,fontWeight:600,fontSize:13}}>
+        Fold pigment density: {Math.round(foldContrast*100)}%
+        <input aria-label="Fold pigment density" type="range" min="0" max="2" step=".05"
+          value={foldContrast} onChange={e=>{setPlaying(false);setFoldContrast(Number(e.target.value))}}/>
+      </label>
+      <span style={{fontSize:12,color:"#526056",maxWidth:330}}>
+        Original pressure-shaped fabric contours follow the articulated robe and sleeves;
+        facial expressions stay on the sharp, dry drawing layer.
+      </span>
+    </div>
     <div style={{width:film.width*scale,height:film.height*scale,maxWidth:"100%",overflow:"hidden",
       background:"#F3EFE3",boxShadow:"0 16px 34px #403a2d25"}}>
       <FilmStage film={film} frame={frame} renderObject={()=>null} reducedMotion={reduce}
         renderSlot={(content,context)=>{
           if(content.slot!=="ink4-traveler")throw new Error("Unexpected ink director scene: "+content.slot);
           return <InkDirectorFilm aspect={aspect} frame={context.frame}
-            reducedMotion={context.reducedMotion}/>;
+            reducedMotion={context.reducedMotion} foldDetail={foldDetail} foldContrast={foldContrast}/>;
         }} style={{transform:"scale("+scale+")",transformOrigin:"top left"}}/>
     </div>
     <div style={{maxWidth:960,display:"grid",gap:9}}>

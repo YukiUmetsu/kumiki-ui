@@ -41,7 +41,6 @@ const PALETTE=/^\$[a-z][a-z0-9_-]{0,63}$/i;
 const HEX=/^#[a-f0-9]{3}(?:[a-f0-9]{3})?(?:[a-f0-9]{2})?$/i;
 const color=(v:string)=>PALETTE.test(v)||HEX.test(v);
 const id=(v:string)=>typeof v==="string"&&/^[a-z][a-z0-9_-]{0,63}$/i.test(v);
-const numeric=(n:number)=>String(Math.round(n*1000)/1000);
 
 export function assertInkFigureCraft(folds:readonly InkFigureStroke[],controls:InkFigureCraftControls):void {
   if(!controls||!finite(controls.detail,0,1)||!finite(controls.contrast,0,2)||
