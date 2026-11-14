@@ -71,7 +71,7 @@ function Card({ preset, mood, frame = 30, width = 960, height = 540 }: { preset:
   </div>;
 }
 
-const meta = { title: "Video production/Film Looks", id: "video-film-looks", component: Card, parameters: { layout: "fullscreen" },
+const meta = { title: "Video Production/Film Looks", id: "video-film-looks", component: Card, parameters: { layout: "fullscreen" },
   argTypes: { preset: { control: "select", options: LOOK_PRESET_IDS }, mood: { control: "check", options: LOOK_MOODS }, frame: { control: { type: "range", min: 0, max: 120 } } } } satisfies Meta<typeof Card>;
 export default meta;
 type Story = StoryObj<typeof meta>;
