@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { WatercolourWetPaper } from "../registry/video/watercolour-wet-paper-react";
+import { WatercolourWetPaper, watercolourPigmentFootprint } from "../registry/video/watercolour-wet-paper-react";
 import { evaluateWetPaper, inspectWetPaper } from "../registry/video/watercolour-wet-paper";
 import { wetPaperDemo } from "../src/video/watercolour-wet-paper-demo";
 import { WATERCOLOUR_WET_PAPER_FILM } from "../src/video/watercolour-wet-paper-film";
@@ -104,6 +104,59 @@ describe("WM4 conservative watercolor pigment field", () => {
       expect(html).toContain("data-km-wet-paper");
       expect(html).toContain("Water carries colour");
     }
+  });
+
+  it("keeps optical paint strength comparable across coarse and fine paper grids",()=>{
+    // Numerical transport uses different lattices; optical mass must nevertheless
+    // be normalized to physical paper area rather than number of cells.
+    const drop={...scene.drops[0],startFrame:0};
+    const base={...scene,flow:0,drops:[drop]};
+    const centerOpacity=(cellSize:number)=>{
+      const state=evaluateWetPaper({...base,cellSize},70);
+      let near=state.cells[0],best=Infinity;
+      for(const c of state.cells){
+        const d=Math.hypot(c.x+c.width/2-drop.x,c.y+c.height/2-drop.y);
+        if(d<best){near=c;best=d;}
+      }
+      return near.opacity;
+    };
+    const coarse=centerOpacity(32),fine=centerOpacity(16);
+    expect(coarse).toBeGreaterThan(0.05);
+    expect(fine).toBeGreaterThan(0.05);
+    expect(fine/coarse).toBeGreaterThan(.6);
+    expect(fine/coarse).toBeLessThan(1.6);
+  });
+
+  it("deposits a pressure-guided brush wash without changing total pigment mass",()=>{
+    const drop={...scene.drops[0],startFrame:0,
+      path:[{x:380,y:280,pressure:.15},{x:510,y:300,pressure:.9},
+        {x:690,y:310,pressure:.34}]};
+    const brush={...scene,drops:[drop]};
+    expect(inspectWetPaper(brush)).toEqual([]);
+    const result=evaluateWetPaper(brush,125);
+    expect(result.totalPigment).toBeCloseTo(65*drop.load,5);
+    expect(result.cells.length).toBeGreaterThan(10);
+    expect(result.cells).not.toEqual(evaluateWetPaper({...brush,
+      drops:[{...drop,path:undefined}]},125).cells);
+    expect(inspectWetPaper({...brush,drops:[{...drop,path:[
+      {x:-1,y:0,pressure:1},{x:4,y:5,pressure:0},
+    ]}]}).map(x=>x.path)).toContain("/drops/0/path");
+  });
+
+  it("breaks rectangular wet-cell tiling into deterministic interlocking curves",()=>{
+    const spec={...scene,cellSize:20};
+    const state=evaluateWetPaper(spec,190);
+    const first=state.cells[0];
+    const shape=watercolourPigmentFootprint(first,spec.seed);
+    expect(shape).toMatch(/^M/);
+    expect(shape).toContain(" Q");
+    expect(shape.endsWith("Z")).toBe(true);
+    expect(watercolourPigmentFootprint(first,spec.seed)).toBe(shape);
+    expect(watercolourPigmentFootprint(first,spec.seed+1)).not.toBe(shape);
+    expect(shape).not.toMatch(/NaN|Infinity/);
+    const html=renderToStaticMarkup(<WatercolourWetPaper spec={spec} frame={190}/>);
+    expect(html).toContain('data-km-edge-density=');
+    expect(html).toContain('data-km-pigment-cell="" d="M');
   });
 
   it("flow is a material parameter rather than a global overlay filter", () => {

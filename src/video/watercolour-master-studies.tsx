@@ -57,8 +57,28 @@ export function watercolourStudySpec(study:WatercolourStudy,output:WatercolourOu
       ["courtyard-ochre",679,475,95,"#D2AC78",.49,.79,140],
     ],
   };
+  // Brush-guided primary washes put pigment on an authored gesture rather
+  // than a succession of identical Gaussian circles. Secondary transparent
+  // passages share the wet sheet and blend with those broad moving strokes.
+  type GesturePoint=[number,number,number];
+  const brushPasses:Partial<Record<WatercolourStudy,Record<string,GesturePoint[]>>>={
+    botanical:{
+      "meadow-olive":[[478,423,.25],[538,381,.9],[641,351,.72],[747,365,.22]],
+      "meadow-sage":[[608,398,.19],[684,344,.88],[764,329,.63],[828,354,.11]],
+    },
+    estuary:{
+      "morning-gold":[[518,177,.11],[637,198,.84],[778,186,.69],[889,224,.09]],
+      "morning-blue":[[474,286,.06],[560,260,.64],[683,269,.85],[839,309,.13]],
+      "sea-green":[[491,398,.13],[639,383,.87],[757,401,.74],[896,411,.08]],
+    },
+    courtyard:{
+      "sky-linen":[[487,199,.09],[602,185,.71],[762,200,.59],[877,219,.1]],
+      "wall-chalk":[[522,375,.13],[646,346,.91],[752,370,.73],[858,405,.13]],
+    },
+  };
   const drops:WetPigmentDrop[]=sources[study].map(([id,x,y,r,pigment,load,water,startFrame])=>({
     id,...pos(x,y),radius:radius(r),pigment,load,water,startFrame,
+    path:brushPasses[study]?.[id]?.map(([gx,gy,pressure])=>({...pos(gx,gy),pressure})),
   }));
   const reserves:string[]=[];
   const circle=(x:number,y:number,r:number)=>{

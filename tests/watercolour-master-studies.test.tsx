@@ -14,6 +14,8 @@ describe("reference-informed original watercolor craftsmanship studies",()=>{
         const spec=watercolourStudySpec(study,output);
         expect(inspectWetPaper(spec)).toEqual([]);
         expect(spec.reservePaths?.length).toBeGreaterThan(0);
+        expect(spec.drops.some(d=>d.path?.length && d.path.length>=2)).toBe(true);
+        expect(spec.drops.flatMap(d=>d.path??[]).every(q=>q.pressure>0 && q.pressure<=1)).toBe(true);
         const html=renderToStaticMarkup(
           <WatercolourMasterStudyPage study={study} spec={spec} frame={320}/>);
         expect(html).toContain('data-km-wet-paper=""');

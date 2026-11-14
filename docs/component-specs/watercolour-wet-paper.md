@@ -57,8 +57,16 @@ and all captions in **separate undistorted layers**.
   Author 12–64 px pitch; 20–32 px is a practical proof range.
 - Up to 24 drops spanning no more than 720 film frames; maximum 360 drying
   frames after the last drop. Inputs are checked for bounds and finiteness.
-- One radial paint deposit distributes a fixed amount of pigment mass across
-  cells, independent of grid density. Water injection is local to that deposit.
+- One radial deposit, or an optional *pressure-guided polyline wash*,
+  distributes a fixed amount of pigment mass across the paper cells.
+  Brush-path points expose `x`, `y`, and `pressure` in paper coordinates.
+  Local water injection follows the actual gesture, not a canvas-wide filter.
+  The source validates 2–64 distinct, bounded, pressure-bearing points.
+- Optical coverage uses **pigment mass per physical paper area**: grid pitch
+  changes numerical precision, not the nominal tone of the same painting.
+- The SVG adapter reconstructs a continuous irregular feathered pigment
+  field from overlapping, paper-locked curved footprints rather than
+  grid-aligned rectangle edges. Reserved highlights are masked after wicking.
 - Four-neighbor conservative transport moves mobile pigment and water. Water
   evaporates; pigment becomes fixed sediment as the paper dries. No pigment
   is manufactured or silently erased by transport.
@@ -114,8 +122,10 @@ Reference images, animation frames and audio are not copied or redistributed.
 
 1. Replace rect-cell feathering with resolution-independent textured pigment
    coverage, measured against real scanned paint at close-up.
-2. Introduce masks/obstacle boundaries and brush-path water deposition,
-   so WM4 can be combined seamlessly with WM1 and WM2.
+2. Introduce **pigment-obstacle boundaries** and wet brush gestures in
+   the painterly scene authoring UI, so WM4 can be combined seamlessly with
+   WM1 and WM2. Pressure-guided path deposition is implemented; geometry-aware
+   wet barriers and full SVG brush-mask diffusion are not.
 3. Improve wet-layer pigment reactivation, granule clustering, salt lifting,
    cauliflowers and edge pooling through **bounded** actual pigment motion.
 4. Use the field on WM3 character part surfaces with hand-redrawn contour

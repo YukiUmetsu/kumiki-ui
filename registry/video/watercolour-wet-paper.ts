@@ -21,6 +21,8 @@ export interface WetPigmentDrop {
   water: number;
   /** Absolute film frame of this painted deposit. */
   startFrame: number;
+  /** Optional pressure-guided wet brush path in paper coordinates. */
+  path?: readonly { x: number; y: number; pressure: number }[];
 }
 export interface WetPaperSpec {
   version: 1;
@@ -101,6 +103,10 @@ export function inspectWetPaper(spec: WetPaperSpec): WetPaperIssue[] {
     if (!d || !finite(d.load,0,1)) add("load",p+"/load","Load must be 0..1.");
     if (!d || !finite(d.water,0,1)) add("water",p+"/water","Water must be 0..1.");
     if (!d || !integer(d.startFrame,0,10000000)) add("startFrame",p+"/startFrame","Frame must be a nonnegative integer.");
+    if (d?.path !== undefined && (!Array.isArray(d.path) || d.path.length < 2 || d.path.length > 64 ||
+        d.path.some(q => !q || !finite(q.x,0,spec.width) || !finite(q.y,0,spec.height) || !finite(q.pressure,.03,1)) ||
+        d.path.every(q => q.x === d.path![0].x && q.y === d.path![0].y)))
+      add("path",p+"/path","Wet brush needs 2..64 distinct in-bounds pressure points.");
     if (d && Number.isSafeInteger(d.startFrame)) {
       first=Math.min(first,d.startFrame); last=Math.max(last,d.startFrame);
     }
@@ -140,7 +146,20 @@ export function evaluateWetPaper(spec: WetPaperSpec, frame: number, reducedMotio
     let sum=0;
     for(let i=0;i<n;i++){
       const x=(i%cols+.5)*dx,y=(Math.floor(i/cols)+.5)*dy;
-      const norm=((x-d.x)**2+(y-d.y)**2)/(d.radius*d.radius);
+      let norm=((x-d.x)**2+(y-d.y)**2)/(d.radius*d.radius);
+      if (d.path) {
+        norm=Infinity;
+        for (let j=0;j<d.path.length-1;j++) {
+          const a=d.path[j],b=d.path[j+1];
+          const vx=b.x-a.x,vy=b.y-a.y;
+          const lengthSquared=vx*vx+vy*vy;
+          const t=lengthSquared>0?clamp(((x-a.x)*vx+(y-a.y)*vy)/lengthSquared):0;
+          const cx=a.x+vx*t,cy=a.y+vy*t;
+          const pressure=a.pressure+(b.pressure-a.pressure)*t;
+          const breadth=Math.max(1,d.radius*(.18+.82*pressure));
+          norm=Math.min(norm,((x-cx)**2+(y-cy)**2)/(breadth*breadth));
+        }
+      }
       const w=norm>9?0:Math.exp(-norm*1.6);
       weights.push(w);sum+=w;
     }
@@ -230,7 +249,11 @@ export function evaluateWetPaper(spec: WetPaperSpec, frame: number, reducedMotio
     const near=neighbors[i];
     const neighborMass=near.reduce((sum,j)=>sum+fixed[0][j]+m[0][j],0)/Math.max(1,near.length);
     const edgeDensity=clamp((mass-neighborMass)/Math.max(.001,mass));
-    const opacity=clamp((1-Math.exp(-mass*.8))*tooth*(.76+.14*edgeDensity));
+    // Pigment mass belongs to an AREA. Without the reference-area correction,
+    // simply increasing grid resolution faded the same painting dramatically.
+    const referenceArea=24*24;
+    const arealMass=mass*referenceArea/(dx*dy);
+    const opacity=clamp((1-Math.exp(-arealMass*.8))*tooth*(.76+.14*edgeDensity));
     cells.push({
       x:(i%cols)*dx,y:Math.floor(i/cols)*dy,width:dx,height:dy,
       pigment,opacity,wetness:clamp(water[i]),sediment:fixed[0][i]/mass,edgeDensity,
