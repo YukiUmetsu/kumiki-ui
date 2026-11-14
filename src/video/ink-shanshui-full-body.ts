@@ -16,6 +16,7 @@ import type {InkRoutePlan,InkWalkPlan} from "../../registry/video/ink-actor-dire
 
 type P=CharacterVec2;
 const n=(v:number)=>Number(v.toFixed(2));
+const mix=(a:number,b:number,t:number)=>a+(b-a)*t;
 const mid=(a:P,b:P):P=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
 const at=(x:number,y:number):P=>({x:n(x),y:n(y)});
 const path=(a:P)=>"M"+n(a.x)+" "+n(a.y);
