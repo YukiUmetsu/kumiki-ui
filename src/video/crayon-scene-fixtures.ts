@@ -58,8 +58,8 @@ export function crayonDemoScene(subject:CrayonDemoSubject, aspect:CrayonDemoAspe
       "#cd8959",6,178,215));
     elements.push(contour("breeze","M"+W*.1+" "+(stageY+25)+" Q"+W*.22+" "+(stageY-10)+" "+W*.33+" "+(stageY+25),
       "#fff2cf",3,151,204));
-    elements.push(text("label-rain",["PRECIPITATION"],portrait?75:130,stageY+130,16,"#304d60",185,219,{family:"sans",weight:700}));
-    elements.push(text("label-vapor",["EVAPORATION"],portrait?270:W*.72,stageY+145,16,"#304d60",185,219,{family:"sans",weight:700}));
+    elements.push(text("label-rain",["PRECIPITATION"],portrait?75:130,stageY+130,16,"#304d60",185,219,{family:"sans",weight:700,backing:{color:"#f7eedc",padding:9,width:198,height:35,radius:4}}));
+    elements.push(text("label-vapor",["EVAPORATION"],portrait?270:W*.72,stageY+145,16,"#304d60",185,219,{family:"sans",weight:700,backing:{color:"#f7eedc",padding:9,width:183,height:35,radius:4}}));
   } else if(subject==="city") {
     const hill="M0 "+H*.76+" Q"+W*.3+" "+H*.67+" "+W*.55+" "+H*.76+" Q"+W*.78+" "+H*.65+" "+W+" "+H*.73+" V"+H+"H0Z";
     elements.push(wax("city-hill",hill,{x:0,y:H*.58,width:W,height:H*.42},palette.green,48,143));
