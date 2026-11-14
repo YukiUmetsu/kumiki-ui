@@ -52,7 +52,6 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
     frame < 188 ? "Progressive feather and copper pigment" :
     frame < 255 ? "Fine feather engraving" :
     "Subtle head, eye, beak and tail performance";
-  const scale = aspect === "landscape" ? 1 : .73;
   return <main style={{ minHeight:"100vh", padding:24,
     display:"grid", alignContent:"start", gap:16, background:"#EAE5D9",
     color:"#344750", font:"15px/1.5 system-ui" }}>
@@ -64,7 +63,7 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
         A Copper Songbird — Fine Feather Craft
       </h1>
       <p style={{margin:0,maxWidth:820}}>
-        Nineteen anatomical parts: separate feathers, throat, wing coverts, glossy eye,
+        Twenty anatomical parts: separate feathers, throat, wing coverts, glossy eye,
         two beak sections, tail and branch-gripping toes. The opaque paper support prevents
         background strokes from appearing through a solid subject. All pigment remains
         fixed in paper coordinates during frame seeking.
@@ -145,7 +144,6 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
       Posed features and pencil deposition are deterministic. Technical tests do not certify
       feature-film illustration quality; review actual exports at full resolution.
     </p>
-    <span style={{display:"none"}} data-scale={scale}/>
   </main>;
 }
 
