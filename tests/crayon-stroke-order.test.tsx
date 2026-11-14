@@ -16,6 +16,8 @@ describe("CRAYON1 localized hand-coloring order",()=>{
     expect(ids(scan).slice(0,5)).toEqual([0,1,2,3,4]);
     expect(ids(hand).slice(0,5)).toEqual([0,3,6,9,12]);
     expect(ids(hand).slice(5,10)).toEqual([13,10,7,4,1]);
+    // Visit the nearby vertical patch before moving across the whole row.
+    expect(ids(hand).slice(10,15)).toEqual([27,24,21,18,15]);
     expect(hand).toEqual(crayonMarks(bounds,{...common,strokeOrder:"patches"}));
     const byIndex=(marks:typeof hand)=>[...marks].sort((a,b)=>a.index-b.index);
     expect(byIndex(scan)).toEqual(byIndex(hand));
