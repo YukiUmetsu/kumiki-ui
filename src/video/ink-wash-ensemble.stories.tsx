@@ -5,7 +5,7 @@ import { VideoExportStage } from "../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../registry/video/video-export-stage";
 import type { InkShot } from "../../registry/video/ink-wash-story";
 import { InkEnsemble } from "../../registry/video/ink-wash-ensemble-react";
-import { inkEnsembleAt } from "../../registry/video/ink-wash-ensemble";
+import { inkEnsembleAt, auditInkEnsembleHands } from "../../registry/video/ink-wash-ensemble";
 import { inkEnsembleBackdrop } from "./ink-wash-ensemble-backdrop";
 import { inkDuet } from "./ink-wash-ensemble-demo";
 import type { InkDuetAspect } from "./ink-wash-ensemble-demo";
@@ -34,6 +34,9 @@ export function InkEnsembleFilm({frame,aspect="landscape",reducedMotion=false,
   const duet=useMemo(()=>inkDuet(aspect),[aspect]);
   const spec=useMemo(()=>inkEnsembleBackdrop(aspect,absorption,grain),[aspect,absorption,grain]);
   const state=inkEnsembleAt(duet.plan,frame,reducedMotion);
+  const handAudit=showGrounding ? auditInkEnsembleHands(
+    duet.plan,duet.cast,frame,reducedMotion) : [];
+  const handReview=handAudit[0];
   const portrait=aspect==="portrait";
   const headline=frame<95?"An unexpected encounter":frame<260?
     "A quiet exchange":"The parting bow";
@@ -60,9 +63,16 @@ export function InkEnsembleFilm({frame,aspect="landscape",reducedMotion=false,
     </div>
     {showGrounding && <div style={{position:"absolute",bottom:portrait?82:52,left:portrait?36:58,
       background:"#fffdf4",padding:"6px 9px",font:"12px system-ui",color:"#2B4936"}}>
-      {state.contacts.length?state.contacts.every(c=>c.withinReach&&!c.intersectingFeet)?
-        "Foot spacing valid; hand-to-hand pose review still required":
-        "Contact review required":"No handoff audit active"}
+      {state.contacts.length ? (
+        !state.contacts.every(c=>c.withinReach && !c.intersectingFeet)
+          ? "Actor spacing failed; fix blocking before handoff"
+          : handReview?.missingAnchor
+            ? "Hand anchor missing; contact cannot be verified"
+            : handReview?.handContact
+              ? "Posed hands meet within "+handReview.maxHandGap+" px (review silhouette)"
+              : "Root reach is approximate; hand gap "+
+                (handReview?.handGap?.toFixed(1) ?? "?")+" px"
+      ) : "No handoff audit active"}
     </div>}
   </InkWashScene>;
 }
