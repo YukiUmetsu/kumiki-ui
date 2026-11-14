@@ -188,10 +188,13 @@ export function InkShanshuiFilm({frame,controls=DEFAULT_SHANSHUI,
   const route=useMemo(()=>shanshuiFittedRoute(controls.scene),[controls.scene]);
   const track=useMemo(()=>bakeInkActorTrack(route),[route]);
   const performance=useMemo(()=>cues(controls.scene),[controls.scene]);
+  // A still frame must freeze BOTH the environment and the actor. Otherwise
+  // the camera/foliage are at their final pose while hands/robe stay mid-walk.
+  const actorFrame=reducedMotion?SHANSHUI_FRAMES-1:frame;
   return <InkShanshuiStage frame={frame} controls={controls}
     reducedMotion={reducedMotion}>
     {showScholar&&<InkCharacter definition={definition} instance={instance}
-      cues={performance} frame={frame} track={track}
+      cues={performance} frame={actorFrame} track={track}
       label="An original sepia ink scholar with planted feet and layered flowing robes"
       reducedMotion={reducedMotion} absorption={.72} grain={.63}
       partFinish={{
