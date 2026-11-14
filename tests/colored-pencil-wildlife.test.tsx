@@ -159,6 +159,35 @@ describe("fine-feathered paper-native wildlife craft", () => {
     expect(final).toContain("data-km-pencil-region=\"copperbird-breast\"");
   });
 
+  it("keeps independently drawn four-toe feet opaque, grounded and posed with the perch", () => {
+    for (const aspect of ["landscape", "portrait"] as const) {
+      const scene = pencilWildlifeScene({ aspect });
+      const actor = scene.actors![0];
+      expect(inspectPencilScene(scene)).toEqual([]);
+      for (const id of ["foot-near", "foot-far"]) {
+        const foot = actor.parts.find(p => p.id === id)!;
+        const region = foot.region;
+        expect(region.clipDetails).toBe(true);
+        expect(region.opaqueSupport).toBe(true);
+        expect((region.path.match(/\bM/g) ?? []).length).toBe(5);
+        expect((region.path.match(/\bZ/g) ?? []).length).toBe(5);
+        expect(region.transform).toMatch(/^translate\(\d+ \d+\)$/);
+        expect(region.bounds[2]).toBeGreaterThan(50);
+        expect(region.details).toHaveLength(4);
+        expect(region.details!.some(d => d.color === "#332E38" || d.color === "#3A3540"))
+          .toBe(true);
+        const at = (frame: number) => evaluatePencilActorRegions(actor, frame)
+          .find(r => r.id === "copperbird-" + id)!.transform;
+        expect(at(180)).toEqual(at(350));
+        expect(at(350)).toContain(region.transform!);
+      }
+    }
+    const original = pencilWildlifeScene({aspect:"landscape"});
+    const finished = renderToStaticMarkup(<PencilScene scene={original} frame={350}/>);
+    expect(finished).toContain('data-km-pencil-support="copperbird-foot-near"');
+    expect(finished).toContain('data-km-pencil-support="copperbird-foot-far"');
+  });
+
   it("provides a portable 420-frame three-shot video for both formats", () => {
     expect(portableFilm).toEqual(COLOR_PENCIL_WILDLIFE_FILM);
     for (const outputId of ["landscape", "portrait"]) {
