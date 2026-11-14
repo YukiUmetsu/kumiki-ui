@@ -1,4 +1,6 @@
 import { applyRisoIK } from "./riso-rig-ik";
+import { risoJointSkinPath } from "./riso-joint-skin";
+import type { RisoJointSkin } from "./riso-joint-skin";
 import type { RisoIKDiagnostic, RisoTwoBoneIK } from "./riso-rig-ik";
 
 /**
@@ -37,6 +39,8 @@ export interface RisoCharacterPart {
   expressions?: Readonly<Record<string, string>>;
   paint: RisoInkLayer;
   opacity?: number;
+  /** Optional rounded, deforming contour from this joint to its child. */
+  skin?: RisoJointSkin;
 }
 export interface RisoCharacterSpec {
   version: 1;
@@ -150,6 +154,7 @@ export function inspectRisoCharacter(input: unknown, allowedPlates?: readonly st
     };
     if (visit(id)) { err("/joints", "parent hierarchy contains a cycle"); break; }
   }
+  const byJoint = new Map(s.joints!.filter(Boolean).map(j => [j.id, j]));
   for (const [i, part] of s.parts!.entries()) {
     const p = "/parts/" + i;
     if (!part || typeof part.id !== "string" || !SLUG.test(part.id) || parts.has(part.id))
@@ -162,6 +167,14 @@ export function inspectRisoCharacter(input: unknown, allowedPlates?: readonly st
     if (part?.paint !== "solid" && part?.paint !== "screen") err(p + "/paint", "paint must be solid or screen");
     if (part?.opacity !== undefined && !safeNumber(part.opacity, 0, 1))
       err(p + "/opacity", "opacity must be 0..1");
+    if (part?.skin !== undefined) {
+      const skin = part.skin;
+      const tip = byJoint.get(skin?.tipJoint);
+      if (!skin || !tip || tip.parent !== part.joint ||
+          !safeNumber(skin.baseWidth, .5, 120) || !safeNumber(skin.tipWidth, .5, 120) ||
+          !safeNumber(skin.overlap ?? 2, 0, 16) || !safeNumber(skin.bow ?? 0, -30, 30))
+        err(p + "/skin", "skin requires a direct child joint and bounded positive contour dimensions");
+    }
     if (part?.expressions !== undefined) {
       if (!part.expressions || typeof part.expressions !== "object" || Array.isArray(part.expressions) ||
           Object.keys(part.expressions).length > 32) err(p + "/expressions", "invalid expression variants");
@@ -314,8 +327,12 @@ export function evaluateRisoCharacter(
       const m = resolve(p.joint);
       return {
         id: p.id, plate: p.plate, paint: p.paint, opacity: p.opacity ?? 1,
-        d: p.expressions?.[expression] ?? p.d,
-        transform: "matrix(" + [m.a, m.b, m.c, m.d, m.e, m.f].map(number).join(" ") + ")",
+        // The skin already resolves into world-stage coordinates; a second
+        // joint transform would incorrectly rotate or translate it twice.
+        d: p.skin ? risoJointSkinPath(m, resolve(p.skin.tipJoint), p.skin)
+          : (p.expressions?.[expression] ?? p.d),
+        transform: p.skin ? "matrix(1 0 0 1 0 0)"
+          : "matrix(" + [m.a, m.b, m.c, m.d, m.e, m.f].map(number).join(" ") + ")",
       };
     }),
   };

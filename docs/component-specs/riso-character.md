@@ -73,6 +73,28 @@ npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-r
 
 The original 16:9 and 9:16 FilmStage fixture remains unchanged; only the authored courier rig and renderer are updated. Production QA must inspect knees, foot contacts, wrists, face, artwork registration and both aspect ratios in an **actual encoded video**; correct joints or green CI alone are insufficient.
 
+## RISO4 — deformable ink contours and joint seam continuity
+
+RISO3 planted the courier's feet but still drew every limb as a single rigid SVG shape at its owning joint. In RISO4, an *optional* `skin` object on an ink part draws one rounded, tapered silhouette between its joint and a **direct child**. The contour follows the final evaluated IK/FK world coordinates on **every sampled cel**, without introducing a new timeline or duplicating the Risograph material renderer.
+
+```ts
+{
+  id: "left-thigh", joint: "left-leg", plate: "blue", paint: "solid",
+  // d is a backwards-compatible fallback for FK/raw paint consumers
+  d: "M-11 -4 Q1 -12 11 -4 L10 33 Q7 42 -7 43 Z",
+  skin: {
+    tipJoint: "left-knee", baseWidth: 22, tipWidth: 17,
+    overlap: 3.4, bow: -1.1,
+  },
+}
+```
+
+- `baseWidth` and `tipWidth` are **full widths**, not radii. They scale with the evaluated joint transforms. `overlap` extends coverage past the bone endpoints to conceal subpixel cracks. `bow` gently displaces the contour's centerline, useful for sleeve shapes, soft fabric and stylized anatomy.
+- Skins render as a closed, cubic SVG silhouette in character-stage coordinates with an identity local transform, rather than double-transforming against the joint. Existing static paths, expressions, boots, hands, props and independent bird wings continue to work unchanged.
+- The courier demonstration uses connected, fully opaque blue-plate ink contours for both thighs, shins, upper sleeves and forearms. Each can be toggled **Soft joint contours** on/off in both the FilmStage character Storybook and the magnified rigging microscope.
+- The validator rejects nonexistent or nondescendant endpoint joints, nonpositive/nonfinite widths, and unsafe bow/overlap ranges. `tests/riso-joint-skin.test.ts` covers finite folded joints, direct-parent constraints, walking and arm poses, deterministic back-seeks and non-skinned legacy drawings.
+- Deforming a tapered contour improves seam continuity but is **not** a substitute for fully hand-redrawn muscle masses, cloth wrinkles, segmented bone topology, elbow volume preservation, occlusion masks or production character design. Human visual review of overlaps, passing limbs, hem silhouette and the 16:9/9:16 film is still required.
+
 ## Original film
 
 **Paper Courier** is an original short editorial example, not copied from any published Riso animation. The courier walks into town with separately rotating legs and arms, a swinging satchel, blinking, opening their mouth and smiling; a bird has independent moving wings and tail. Cobalt and vermilion art print as separate physical plates, with a screened backdrop, fixed misregistration, paper grain and 16:9/9:16 layouts.

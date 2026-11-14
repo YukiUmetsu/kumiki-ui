@@ -3328,7 +3328,7 @@
       "name": "riso-character",
       "type": "registry:ui",
       "title": "Risograph Articulated Character Rig (RISO3)",
-      "description": "Ink-separated characters with hierarchical FK, per-frame two-bone IK, planted walk feet, keyed expressions, bent elbows, stable printed-frame cadence, rig diagnostics and production FilmStage.",
+      "description": "Ink-separated character rigs with FK, planted two-bone IK, dynamic joint-bound limb contours, authored expressions, stable printed-frame cadence, and rig diagnostics.",
       "dependencies": [],
       "registryDependencies": [
         "riso-print"
@@ -3348,6 +3348,11 @@
           "path": "registry/video/riso-rig-ik.ts",
           "type": "registry:ui",
           "target": "components/video/riso-rig-ik.ts"
+        },
+        {
+          "path": "registry/video/riso-joint-skin.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-joint-skin.ts"
         }
       ]
     },
