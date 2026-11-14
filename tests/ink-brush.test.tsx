@@ -26,7 +26,7 @@ describe("INK1 authored material-native brush deposition", () => {
           { aspect, subject, frame: 180, paperTooth: .48 }));
         expect(html).toContain('data-km-ink-brush=""');
         expect(html).toContain("data-km-ink-poster-text");
-        expect(html).toContain("data-km-ink-stroke=");
+        expect(html).toContain('data-km-ink-raster=""');
         expect(html).toContain(subject === "delta" ? "DELTA" : "BRANCH");
       });
     }
@@ -86,7 +86,7 @@ describe("INK1 authored material-native brush deposition", () => {
     expect(marks[0].pores.length).toBeGreaterThan(0);
     expect(marks[0].hairs.length).toBeGreaterThan(0);
     const html = renderToStaticMarkup(createElement(InkBrushCanvas,
-      { spec, frame: 250, paperTooth: .6 }));
+      { spec, frame: 250, paperTooth: .6, renderMode: "vector" }));
     expect(html).toContain('data-km-ink-material="graded-bristle-contact"');
     expect(html).toContain('data-km-ink-core="');
     expect(html).toContain("linearGradient");
@@ -100,6 +100,18 @@ describe("INK1 authored material-native brush deposition", () => {
     evaluateInkBrush(spec, 0); evaluateInkBrush(spec, 250); evaluateInkBrush(spec, 80);
     expect(evaluateInkBrush(spec, 100)[0]).toEqual(seek);
     expect(evaluateInkBrush(spec, 360)[0]).toEqual(marks[0]);
+  });
+
+  it("uses real transparent pigment pixels by default, rather than a full-frame SVG blur", () => {
+    const spec = inkPosterSpec("landscape", "branch");
+    const html = renderToStaticMarkup(createElement(InkBrushCanvas, {
+      spec, frame: 120, paperTooth: .35, bleed: .75, rasterScale: .25,
+    }));
+    expect(html).toContain('data-km-ink-material="paper-pigment"');
+    expect(html).toContain('data-km-ink-raster=""');
+    expect(html).toContain("data:image/png;base64,");
+    expect(html).not.toContain("linearGradient");
+    expect(html).not.toContain("feGaussianBlur");
   });
 
   it("rejects malformed strokes with field paths, invalid frames, and unsupported output settings", () => {
