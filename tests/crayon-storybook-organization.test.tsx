@@ -131,7 +131,7 @@ describe("Crayon Storybook organization",()=>{
    const vertical=crayonWildlifePortraitScene("portrait");
    const source={paperRecipe:"authored" as const,seed:54,paperTooth:.64};
    for(const base of [original,vertical]){
-     const override=crayonPreviewPaperOverrides(base,source);
+     const override=crayonPreviewPaperOverrides(source);
      expect(override).toEqual({});
      expect({...base,...override}).toEqual(base);
      expect(base.seed).toBe(8642);
@@ -144,14 +144,14 @@ describe("Crayon Storybook organization",()=>{
  it("allows explicit seed and tooth experiments without changing original film specs",()=>{
    const base=crayonWildlifePortraitScene("landscape");
    const custom={paperRecipe:"custom" as const,seed:771,paperTooth:.3};
-   const override=crayonPreviewPaperOverrides(base,custom);
+   const override=crayonPreviewPaperOverrides(custom);
    expect(override).toEqual({seed:771,paperTooth:.3});
    expect({...base,...override}).toMatchObject(override);
    expect(base.seed).toBe(8642);
    expect(base.paperTooth).toBe(.69);
-   expect(()=>crayonPreviewPaperOverrides(base,{...custom,seed:NaN})).toThrow(/paper recipe/);
-   expect(()=>crayonPreviewPaperOverrides(base,{...custom,paperTooth:-.1})).toThrow(/paper recipe/);
-   expect(()=>crayonPreviewPaperOverrides(base,{...custom,paperTooth:1.1})).toThrow(/paper recipe/);
+   expect(()=>crayonPreviewPaperOverrides({...custom,seed:NaN})).toThrow(/paper recipe/);
+   expect(()=>crayonPreviewPaperOverrides({...custom,paperTooth:-.1})).toThrow(/paper recipe/);
+   expect(()=>crayonPreviewPaperOverrides({...custom,paperTooth:1.1})).toThrow(/paper recipe/);
    for(const page of [sceneMeta,wildlifeMeta,actingMeta,walkMeta,drawMeta,dragonMeta]){
      const args=page.argTypes as Record<string,{options?:string[];if?:{arg:string;eq:string};table?:{category?:string}}>;
      expect(args.paperRecipe.options).toEqual(["authored","custom"]);

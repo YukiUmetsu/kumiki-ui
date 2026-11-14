@@ -33,7 +33,6 @@ export interface PlaygroundProps {
  * experiment may replace them; the production scene is never mutated.
  */
 export function crayonPreviewPaperOverrides(
-  base:Pick<CrayonSceneSpec,"seed"|"paperTooth">,
   controls:Pick<PlaygroundProps,"paperRecipe"|"seed"|"paperTooth">,
 ):Partial<Pick<CrayonSceneSpec,"seed"|"paperTooth">> {
   if(controls.paperRecipe==="authored") return {};
@@ -90,7 +89,7 @@ export function CrayonPlayground({subject,aspect,paperRecipe,seed,paperTooth,red
     const elements=(close?base.elements.filter(node=>!node.screenSpace):
       base.elements).map(node=>applyCrayonStudyWaxSettings(
         node,{nibStyle,strokeOrder,markLength}));
-    return {...base,...crayonPreviewPaperOverrides(base,{paperRecipe,seed,paperTooth}),camera,elements};
+    return {...base,...crayonPreviewPaperOverrides({paperRecipe,seed,paperTooth}),camera,elements};
   },[subject,aspect,paperRecipe,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion,wildlifeCrop]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,subject+":"+aspect,playbackRate,loop);
