@@ -371,7 +371,7 @@ function RisoOverprintLab() {
         Risograph · Overprint Into New Scene
       </h1>
       <p style={{ margin: 0 }}>The incoming vermilion ink first stamps over the fully printed first sheet.
-        The two layers multiply optically, then the second original sheet resolves on the same film timeline.</p>
+        The two layers multiply optically; the second paper replaces the first through an expanding ink-contour knockout, not ghosted crossfade.</p>
     </div>
     <div style={risoUi.toolbar}>
       <label style={risoUi.label}>Output
