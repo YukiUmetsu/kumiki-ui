@@ -45,8 +45,11 @@ export function inkPressureStroke(c:InkStrokeDesign):CharacterPathShape {
   const props=[...Object.values(c.from),...Object.values(c.c1),
     ...Object.values(c.c2),...Object.values(c.to),c.width];
   if(props.some(v=>!Number.isFinite(v))||c.width<=0||c.width>24||
-    (c.opacity!==undefined&&(c.opacity<0||c.opacity>1))||
-    (c.startWeight!==undefined&&(c.startWeight<0||c.startWeight>1))||
+    (c.opacity!==undefined&&(!Number.isFinite(c.opacity)||
+      c.opacity<0||c.opacity>1))||
+    (c.startWeight!==undefined&&(!Number.isFinite(c.startWeight)||
+      c.startWeight<0||c.startWeight>1))||
+    (c.seed!==undefined&&!Number.isSafeInteger(c.seed))||
     (c.samples!==undefined&&(!Number.isSafeInteger(c.samples)||
       c.samples<8||c.samples>48)))
     throw new RangeError("Ink line geometry must have finite points, 0<width<=24 and valid pressure.");
