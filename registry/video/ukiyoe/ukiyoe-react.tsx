@@ -215,7 +215,8 @@ function renderPrims(prims: readonly Prim[], ctx: Ctx, key: string): ReactNode[]
       }
       case "clip": {
         const id = `${ctx.pre}c${ctx.clip++}`;
-        ctx.defs.set(id, <clipPath key={id} id={id}><path d={p.d} /></clipPath>);
+        const parts = p.union ? p.d.split(/(?=M)/).filter(Boolean) : [p.d];
+        ctx.defs.set(id, <clipPath key={id} id={id}>{parts.map((d, i) => <path key={i} d={d} />)}</clipPath>);
         out.push(<g key={k} clipPath={`url(#${id})`}>{renderPrims(p.prims, ctx, k)}</g>);
         break;
       }
