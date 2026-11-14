@@ -195,3 +195,47 @@ export function triangulateRisoContour(input:readonly RisoContourPoint[]):readon
   if(remaining.length===3)tris.push([poly[remaining[0]],poly[remaining[1]],poly[remaining[2]]]);
   return tris;
 }
+
+/**
+ * Replaces oversized diagnostic triangles with bounded, area-controlled microfacets.
+ * Each triangle splits around its own centroid. This leaves the original perimeter
+ * unchanged (no T-junctions along independent regions or the authored ink edge).
+ * The area of the refined faces exactly equals the original triangulation area.
+ * This is a per-frame analytical mesh, not stable UV topology across cels.
+ */
+export function refineRisoContourTriangles(
+  input: readonly RisoContourTriangle[],
+  maximumArea: number,
+  maximumTriangles = 384,
+  maximumDepth = 6,
+): readonly RisoContourTriangle[] {
+  if(!Number.isFinite(maximumArea)||maximumArea<=0||
+    !Number.isSafeInteger(maximumTriangles)||maximumTriangles<3||maximumTriangles>4096||
+    !Number.isSafeInteger(maximumDepth)||maximumDepth<0||maximumDepth>10)
+    throw new RangeError("Invalid Risograph microfacet mesh resolution");
+  if(input.length>maximumTriangles)
+    throw new RangeError("Source triangulation exceeds microfacet triangle budget");
+  const tris=[...input];
+  const depth=tris.map(()=>0);
+  const triangleArea=(t:RisoContourTriangle)=>{
+    const [a,b,c]=t;
+    return Math.abs((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]))*.5;
+  };
+  // Prioritize the largest *eligible* face so the budget is spent on large
+  // geometric gaps rather than dense eyelids that were already sampled finely.
+  while(tris.length+2<=maximumTriangles){
+    let selected=-1,biggest=maximumArea;
+    for(let i=0;i<tris.length;i++){
+      if(depth[i]>=maximumDepth)continue;
+      const currentArea=triangleArea(tris[i]);
+      if(currentArea>biggest){biggest=currentArea;selected=i;}
+    }
+    if(selected<0)break;
+    const [a,b,c]=tris[selected];
+    const center:RisoContourPoint=[(a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3];
+    const nextDepth=depth[selected]+1;
+    tris.splice(selected,1,[a,b,center],[b,c,center],[c,a,center]);
+    depth.splice(selected,1,nextDepth,nextDepth,nextDepth);
+  }
+  return tris;
+}
