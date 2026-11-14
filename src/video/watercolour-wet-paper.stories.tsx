@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { compileFilm } from "../../registry/video/film-document";
+import { FilmStage } from "../../registry/video/film-stage";
+import { WATERCOLOUR_WET_PAPER_FILM } from "./watercolour-wet-paper-film";
 import { inspectWetPaper } from "../../registry/video/watercolour-wet-paper";
 import type { WetPaperSpec } from "../../registry/video/watercolour-wet-paper";
 import { wetPaperDemo, WetStudyPage } from "./watercolour-wet-paper-demo";
@@ -23,6 +26,7 @@ function WetPaperLab() {
   const spec=useMemo(()=>custom??({...wetPaperDemo(output,seed),flow,
     granulation:grain,paper:{color:"#F8F2E8",tooth}}),
     [output,seed,flow,grain,tooth,custom]);
+  const compiled=useMemo(()=>compileFilm(WATERCOLOUR_WET_PAPER_FILM,{outputId:output}),[output]);
   useEffect(()=>{
     if(!playing)return;
     const t0=performance.now(),f0=frame;
@@ -38,6 +42,8 @@ function WetPaperLab() {
     // Only the preview transport owns wall time. Pigment is pure frame input.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[playing]);
+  if(!compiled.ok)return <pre role="alert">{compiled.diagnostics.map(x=>x.path+": "+x.message).join("\n")}</pre>;
+  const film=compiled.film;
   return <main style={{fontFamily:"system-ui,sans-serif",background:"#E9E4DC",
     padding:22,minHeight:"100vh",color:"#344546",display:"grid",alignContent:"start",gap:14}}>
     <header style={{maxWidth:900}}>
@@ -89,11 +95,13 @@ function WetPaperLab() {
       <input type="range" min={0} max={TOTAL-1} aria-label="Wet paper frame"
         value={frame} onChange={e=>{setPlaying(false);setFrame(Number(e.target.value));}}/>
     </label>
-    <WatercolourFilmViewport width={spec.width} height={spec.height}>
-      {scale=><div style={{width:spec.width,height:spec.height,
-        transform:`scale(${scale})`,transformOrigin:"top left"}}>
-        <WetStudyPage spec={spec} frame={frame} reducedMotion={reduced}/>
-      </div>}
+    <WatercolourFilmViewport width={film.width} height={film.height}>
+      {scale=><FilmStage film={film} frame={frame} renderObject={()=>null}
+        reducedMotion={reduced} renderSlot={(content,context)=>{
+          if(content.slot!=="watercolour-wet-paper")throw new Error("Unknown wet paper film slot");
+          return <WetStudyPage spec={spec} frame={context.frame}
+            reducedMotion={context.reducedMotion}/>;
+        }} style={{transform:"scale("+scale+")",transformOrigin:"top left"}}/>}
     </WatercolourFilmViewport>
     <WatercolourParameterEditor title="Wet-pigment field" value={spec}
       validate={candidate=>{
