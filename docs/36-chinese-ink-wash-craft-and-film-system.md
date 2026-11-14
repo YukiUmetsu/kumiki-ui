@@ -168,3 +168,11 @@ The Chinese ink demos now live together in the single case-sensitive Storybook f
 - **Character Director** — continuous IK walk, pose directing, garment brushwork, and both output exports.
 
 This is Storybook navigation only; no core paint or rig code was removed. The first three Studio stories moved from `video-film-looks--chinese-ink-*` to `video-chinese-ink-looks--chinese-ink-*`; all other export IDs remain unchanged. The e2e suite validates Storybook's generated index in addition to the actual source renderer. New Chinese ink Storybook files must use this exact navigation prefix (including capitalization) to avoid parallel folders.
+
+## 11. INK6: secondary cloth motion and brush grip (2026-11-14)
+
+The `ink-figure-motion` registry pack adds a deterministic, artist-bounded motion layer for **independently authored hem and cuff parts**. Instead of displacing the whole character or filtering the finished frame, it derives modest local rotation/translation from the approved continuous INK4 route, absolute film frame, and walking cadence. It bakes corrections for the existing `CharacterPresenter` contract, with zero motion at rest; seeking out of order yields the same rig pose. The public intensity is 0..1, and the correction interval is validated against the 512-key budget.
+
+The original traveler also has newly authored near/far cuff and hem shadow/contour assets, and a near-hand brush grip whose two fingers are **drawn above the brush shaft** in the 2.5D hierarchy. These are deliberately restrained figure-painting details, not a new IK solver or physical cloth simulation. The ink-dry character eyes, visemes and brush marks retain independent material finishes.
+
+In **Video production / Film Looks / Chinese Ink / Character Director**, the live `Cloth follow-through` control modulates these real rig corrections without changing the approved route or stance targets. Both output exports inherit the production default. Unit tests check bounds, zero-at-rest, key stability and prop depth; browser tests verify the actual hem transforms in landscape and portrait. Remaining needs: art-director close-up acceptance, richer illustrated hands for varied props, better silhouette deformation, believable turnarounds and final toe/ground review.
