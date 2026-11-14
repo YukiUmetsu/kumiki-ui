@@ -63,7 +63,7 @@ CRAYON1 source:
 - Far and near ear have independently painted membrane, recessed crease,
   root canal, raised outer lip and narrow contour fold. All remain correctly
   parented to existing independent source ear rigs.
-- Source character root now uses scale .94 in both formats; landscape
+- Source character root now uses scale .98 in both formats; landscape
   origin is (676,357), portrait (340,599). This removes the cropped-ear
   framing problem without independently rescaling child parts.
 - Existing 21 anatomically guided fur regions and two-layer wax sgraffito
