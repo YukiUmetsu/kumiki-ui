@@ -71,7 +71,7 @@ export function inkDirectorRoute(aspect:DirectorAspect):InkRoutePlan {
 export function inkDirectorGait(aspect:DirectorAspect):InkWalkPlan {
   return {
     route:inkDirectorRoute(aspect),startFrame:0,endFrame:218,
-    cycleFrames:45,stanceFraction:.61,hipHeight:70,
+    cycleFrames:24,stanceFraction:.58,hipHeight:70,
     upperLength:38,lowerLength:36,footLift:11,footSeparation:3,bodyBob:1.7,
     parts:{
       leftUpper:"far-thigh",leftLower:"far-shin",

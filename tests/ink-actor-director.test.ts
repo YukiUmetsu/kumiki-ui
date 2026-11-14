@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   assertInkRoute, assertInkWalk, bakeInkActorTrack, bakeInkWalkCorrections,
-  inkRouteAt, inkWalkAt, solveInkLimb,
+  inkRouteAt, inkWalkAt, solveInkLimb, auditInkWalkContacts,
 } from "../registry/video/ink-actor-director";
 import type { InkRoutePlan, InkWalkPlan } from "../registry/video/ink-actor-director";
 import { inkActorAt } from "../registry/video/ink-wash-character";
@@ -76,6 +76,16 @@ describe("INK4 continuous character directing",()=>{
     const far=solveInkLimb(200,0,27,27,-1);
     expect(Math.hypot(...far.reached)).toBeLessThan(54);
     expect(()=>solveInkLimb(0,0,-1,2)).toThrow(RangeError);
+  });
+  it("measures kinematic reach instead of trusting planted flags",()=>{
+    const result=auditInkWalkContacts(gait,.5,1);
+    expect(Number.isFinite(result.maxError)).toBe(true);
+    expect(result.violations.every(v=>v.error>.5)).toBe(true);
+    const impossible:InkWalkPlan={...gait,cycleFrames:90,hipHeight:53};
+    const bad=auditInkWalkContacts(impossible,.5,1);
+    expect(bad.maxError).toBeGreaterThan(.5);
+    expect(bad.violations.length).toBeGreaterThan(0);
+    expect(()=>auditInkWalkContacts(gait,-1)).toThrow(RangeError);
   });
   it("locks a supporting foot in stage space while the actor advances",()=>{
     expect(()=>assertInkWalk(gait)).not.toThrow();

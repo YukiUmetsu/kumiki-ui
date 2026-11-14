@@ -5,7 +5,7 @@ import { validateCharacterDefinition } from "../registry/character/validate";
 import { samplePoseCorrection } from "../registry/character/authoring";
 import { InkDirectorFilm, INK_WALKING_TRAVELLER, inkDirectorGait,
   inkDirectorInstance, inkDirectorRoute } from "../src/video/ink-actor-director-demo";
-import { inkWalkAt, inkRouteAt, bakeInkActorTrack } from "../registry/video/ink-actor-director";
+import { inkWalkAt, inkRouteAt, bakeInkActorTrack, auditInkWalkContacts } from "../registry/video/ink-actor-director";
 
 describe("INK4 authored character and cinematic stage",()=>{
   it("preserves approved facial identity, expression variants, audio cues, props and real knee joints",()=>{
@@ -37,6 +37,13 @@ describe("INK4 authored character and cinematic stage",()=>{
     expect(stop.y).toBe(hold.y);
     expect(stop.vx).toBe(0);
     expect(stop.vy).toBe(0);
+  });
+  it("keeps original traveler stance contacts inside inverse-kinematic reach in both aspects",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const audit=auditInkWalkContacts(inkDirectorGait(aspect),.5);
+      expect(audit.maxError).toBeLessThanOrEqual(.5);
+      expect(audit.violations).toEqual([]);
+    }
   });
   for(const aspect of ["landscape","portrait"] as const){
     it("renders a natural film stage and independent character performance in "+aspect,()=>{
