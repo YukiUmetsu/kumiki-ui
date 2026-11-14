@@ -46,13 +46,15 @@ function Mountain({m,id,seed,detail,ink,frame}:{
   const clip=id+"-"+m.id+"-mountain";
   // A mountain is a multi-peak *mass*, then directional rock-fibre texture,
   // then moss dots. These are not evenly distributed noise.
-  const shape=`M-278 137 Q-251 103 -225 58 L-185 1 Q-164 -12 -144 -59
-    Q-126 -105 -94 -145 Q-70 -157 -55 -198 L-26 -247
-    Q-11 -261 4 -249 L37 -203 Q55 -162 69 -142 Q88 -136 99 -101
-    L128 -54 Q148 -41 163 -12 L201 42 Q235 74 276 121 L287 163
-    L-285 163 Z`;
-  const fade=m.depth===0?.43:.71,geo=seed+m.x*7+m.y*13;
-  const strokes=Math.max(8,Math.round((m.depth===0?20:40)*detail));
+  const shape=`M-297 151 Q-273 110 -231 73 Q-213 42 -192 14 L-166 -12
+    Q-144 -29 -132 -68 Q-116 -80 -93 -121 Q-77 -141 -69 -163
+    Q-47 -172 -37 -202 L-18 -244 Q-11 -262 4 -255
+    Q14 -254 18 -238 L42 -215 Q48 -189 73 -170
+    Q84 -159 92 -139 L118 -112 Q137 -83 151 -51
+    Q170 -39 180 -12 Q212 14 228 48 Q253 70 300 132
+    L305 165 L-305 165Z`;
+  const fade=m.depth===0?.57:.73,geo=seed+m.x*7+m.y*13;
+  const strokes=Math.max(8,Math.round((m.depth===0?50:87)*detail));
   const mirror=m.flipped?-1:1;
   const offset=frame.cameraX*(m.depth===0?.19:.43);
   return <g data-km-ink-cinema-motif={m.id} data-km-ink-cinema-kind="mountain"
@@ -63,24 +65,35 @@ function Mountain({m,id,seed,detail,ink,frame}:{
       opacity={.50*ink*fade}/>
     <g clipPath={"url(#"+clip+")"}>
       {/* Structural strata flow down the face, unlike generic fleck overlays. */}
-      <path d="M-23 -247 Q-15 -203 -44 -150 Q-71 -89 -86 -42 M9 -236
-        Q-13 -184 12 -139 Q31 -88 12 -41 M41 -193 Q21 -141 57 -92
-        M-61 -169 Q-123 -105 -135 -37 M84 -122 Q98 -77 143 -12"
-        fill="none" stroke="#776755" strokeWidth={3.7} opacity={.26*ink}/>
-      <path d="M-24 -244 Q-18 -215 -29 -196 M-65 -168 Q-88 -134 -97 -110
-        M5 -206 Q18 -168 7 -135 M43 -164 Q60 -134 65 -105
-        M-103 -91 Q-129 -57 -143 -19"
-        fill="none" stroke="#6f5c48" strokeWidth={1.8} opacity={.46*ink}/>
+      <path d="M-18 -245 Q-36 -211 -56 -184 Q-74 -157 -79 -126
+        Q-102 -92 -113 -52 M4 -252 Q-14 -203 0 -173 Q10 -131 -5 -90
+        M40 -215 Q54 -173 80 -142 Q102 -112 105 -79
+        M-95 -121 Q-151 -87 -168 -17 M119 -112 Q147 -69 165 -13"
+        fill="none" stroke="#756048" strokeWidth={4.4} opacity={.37*ink}/>
+      {/* Diluted wash planes follow geological faces and preserve the untouched valley. */}
+      <path d="M-29 -231 Q-53 -169 -106 -92 Q-128 -50 -149 22
+        L-115 51 Q-90 -48 -44 -145Z" fill="#9b8263" opacity={.14*ink}/>
+      <path d="M25 -224 Q43 -176 72 -158 Q104 -111 137 -27
+        L171 28 Q141 -95 88 -156Z" fill="#75634d" opacity={.15*ink}/>
+      <path d="M-69 -161 Q-94 -123 -113 -89 M-54 -178 Q-68 -140 -70 -118
+        M-23 -231 Q-39 -193 -50 -171 M6 -219 Q1 -188 9 -161
+        M30 -202 Q43 -178 52 -158 M72 -150 Q86 -124 94 -102
+        M-117 -62 Q-151 -16 -161 21"
+        stroke="#51483b" strokeWidth={1.7} opacity={.40*ink} fill="none"/>
+      <path d="M-35 -204 Q-41 -164 -61 -136 M-63 -162 Q-88 -124 -95 -97
+        M-14 -222 Q-4 -183 -26 -151 M25 -214 Q24 -166 41 -145
+        M58 -166 Q74 -127 69 -94 M-107 -84 Q-134 -41 -139 -12"
+        fill="none" stroke="#6f5c48" strokeWidth={2.4} opacity={.56*ink}/>
       {Array.from({length:strokes},(_,i)=>{
         const x=-176+rand(geo,i,9)*333;
         const y=-205+rand(geo,i,13)*292;
         // Fibre follows slope and falls vertically from the mountain ridge.
         const len=11+rand(geo,i,23)*(m.depth===0?30:49);
         const hook=(rand(geo,i,51)-.5)*12;
-        const tone=.13+.27*rand(geo,i,29);
+        const tone=.20+.43*rand(geo,i,29);
         return <path key={i} d={`M${F(x)} ${F(y)} q${F(-7+hook)} ${F(len*.4)} ${F(-16+hook)} ${F(len)}`}
           stroke={i%5===0?"#5f5242":"#806b55"}
-          strokeWidth={i%6===0?2.2:.8+rand(geo,i,39)*1.2}
+          strokeWidth={i%6===0?2.6:1+rand(geo,i,39)*1.5}
           {...pathProps} fill="none" opacity={tone*ink*fade}/>;
       })}
       {detail>.55&&Array.from({length:Math.round(detail*20)},(_,i)=>{
@@ -94,8 +107,8 @@ function Mountain({m,id,seed,detail,ink,frame}:{
       width={7} seed={geo} water={.18} color="#685746" tone={.36*ink*fade} broken/>
     {/* Pine silhouettes on upper ridgeline establish natural scale. */}
     {detail>.48&&[[-111,-111],[-62,-171],[48,-173],[85,-115]].map(([x,y],i)=><g key={i}
-      transform={`translate(${x} ${y}) scale(${.33+(i%2)*.1})`}
-      fill="none" stroke="#615543" strokeWidth={1.5} opacity={.38*ink*fade}>
+      transform={`translate(${x} ${y}) scale(${.42+(i%2)*.15})`}
+      fill="none" stroke="#615543" strokeWidth={1.5} opacity={.65*ink*fade}>
       <path d="M0 0 L0 -29 M0 -18 L-22 -25 M0 -24 L20 -31"/>
       <path d="M-25 -27 Q-9 -43 -1 -31 M-8 -35 Q5 -48 19 -32" strokeWidth={4} {...pathProps}/>
     </g>)}
