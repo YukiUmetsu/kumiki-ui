@@ -23,6 +23,9 @@ for(const output of ["portrait","landscape"] as const){
     for(const id of ["opaque-face-volume","nose-tip","upper-lip",
       "near-iris","far-pupil","hair-opaque-back","rooted-shoulders-and-clothing"])
       await expect(page.locator('[data-km-watercolour-part="'+id+'"]')).toHaveCount(1);
+    // The face MUST obscure the previously painted dark rear hair.
+    await expect(page.locator('[data-km-watercolour-part="opaque-face-volume"] > path[data-km-watercolour-composite="normal"]')).toHaveCount(1);
+    await expect(page.locator('[data-km-watercolour-part="near-sclera"] > path[data-km-watercolour-composite="normal"]')).toHaveCount(1);
     const before=await svg.screenshot({animations:"disabled"});
     await page.getByRole("checkbox",{name:"Optical portrait glazing"}).uncheck();
     await expect(page.locator('[data-km-watercolour-optical-glaze="opaque-face-volume"]'))
