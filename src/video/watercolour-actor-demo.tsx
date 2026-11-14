@@ -175,16 +175,20 @@ export function PaintedTravellerPage({output,frame,reducedMotion=false}:{
   const background=useMemo(()=>paintedDemoSpec("nature",output,103),[output]);
   const track=useMemo(()=>travellerTrack(output),[output]);
   const portrait=output==="portrait";
+  const environmentFade=portrait
+    ? "radial-gradient(ellipse 57% 40% at 50% 65%, #000 35%, #000 50%, transparent 100%)"
+    : "radial-gradient(ellipse 44% 62% at 73% 56%, #000 34%, #000 53%, transparent 100%)";
   return <div style={{width:background.width,height:background.height,position:"relative",
     overflow:"hidden",background:"#F5EFE5"}}>
     <PaintedComposition spec={background} frame={frame} reducedMotion={reducedMotion}
-      label="A luminous painted coastal landscape"/>
+      label="A luminous painted coastal landscape"
+      style={{maskImage:environmentFade,WebkitMaskImage:environmentFade}}/>
     <WatercolourActor track={track} definition={TRAVELLER} instance={instance}
       cues={TRAVELLER_CUES} frame={frame} watercolourMaterial={material}
       reducedMotion={reducedMotion} label="Illustrated traveller walking, waving and speaking"/>
     <div style={{position:"absolute",left:portrait?37:48,top:portrait?69:58,
       pointerEvents:"none",maxWidth:portrait?462:390,color:"#384A50"}}>
-      <div style={{font:"700 12px/1.4 system-ui,sans-serif",letterSpacing:2.1,marginBottom:14}}>
+      <div style={{font:"700 14px/1.4 system-ui,sans-serif",letterSpacing:2.1,marginBottom:14}}>
         PAINTED CHARACTERS / 01
       </div>
       <div style={{font:"italic 53px/1.06 Georgia,serif",letterSpacing:-1.3}}>
