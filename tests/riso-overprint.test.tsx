@@ -5,7 +5,7 @@ import { RisoPrint } from "../registry/video/print-plates-react";
 import { compileFilm } from "../registry/video/film-document";
 import { loadFilmSlots } from "../src/film/film-slots";
 import { risoExampleArtworks, risoExampleSpec } from "../src/video/riso-print-demo";
-import { risoSecondSheetArtworks } from "../src/video/riso-print-demo-alt";
+import { risoSecondSheetArtworks, risoSecondSheetImprintArt } from "../src/video/riso-print-demo-alt";
 import { RISO_OVERPRINT_FILM, RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../src/video/riso-print-film";
 import portable from "../examples/film/riso-native-overprint.film.json";
 
@@ -17,7 +17,7 @@ const frame = (at: number, aspect: "landscape" | "portrait" = "landscape") => {
   const { outgoing, incoming } = sheets(aspect);
   return renderToStaticMarkup(<RisoOverprintTransition outgoing={outgoing} incoming={incoming}
     imprintPath={RISO_OVERPRINT_MOTIF} imprintOrigin={risoOverprintOrigin(aspect)}
-    imprintPlateId="red" frame={at} startFrame={0} durationFrames={179} />);
+    imprintPlateId="red" imprintArtwork={risoSecondSheetImprintArt(aspect)} frame={at} startFrame={0} durationFrames={179} />);
 };
 
 describe("Riso native overprint scene bridge", () => {
@@ -47,7 +47,7 @@ describe("Riso native overprint scene bridge", () => {
       expect(start).toContain("HIDDEN");
       expect(middle).toContain("data-km-riso-imprint-ink");
       expect(middle).toContain("data-km-riso-outgoing");
-      expect(middle).toContain("PRINT / 03");
+      expect(middle).not.toContain("PRINT / 03");
       expect(middle).toContain("mix-blend-mode:multiply");
       expect(middle).toContain("data-km-riso-plate=\"red\"");
       const knockout = frame(150, aspect);
@@ -81,10 +81,10 @@ describe("Riso native overprint scene bridge", () => {
     expect(() => evaluateRisoOverprint(outgoing.spec, incoming.spec, "missing", 10, 0, 179)).toThrow(/imprintPlateId/);
     expect(() => evaluateRisoOverprint(outgoing.spec, incoming.spec, "red", -1, 0, 179)).toThrow(RangeError);
     expect(() => renderToStaticMarkup(<RisoOverprintTransition outgoing={outgoing} incoming={incoming}
-      imprintPath="invalid" imprintOrigin={[690, 270]} imprintPlateId="red"
+      imprintPath="invalid" imprintOrigin={[690, 270]} imprintPlateId="red" imprintArtwork={risoSecondSheetImprintArt("landscape")}
       frame={20} startFrame={0} durationFrames={179} />)).toThrow(/imprintPath/);
     expect(() => renderToStaticMarkup(<RisoOverprintTransition outgoing={outgoing} incoming={incoming}
-      imprintPath={RISO_OVERPRINT_MOTIF} imprintOrigin={[690, 270]} imprintPlateId="red"
+      imprintPath={RISO_OVERPRINT_MOTIF} imprintOrigin={[690, 270]} imprintPlateId="red" imprintArtwork={risoSecondSheetImprintArt("landscape")}
       frame={20} startFrame={0} durationFrames={179} misregistration={2} />)).toThrow(/misregistration/);
   });
 
