@@ -54,9 +54,9 @@ export function InkEnsemble({ plan, cast, frame, width, height,
     data-km-ink-ensemble="" data-km-ink-ensemble-frame={frame}
     style={{ width, height, position: "relative", overflow: "hidden",
       isolation: "isolate", pointerEvents: "none", ...style }}>
-    {at.actors.map(({ id, pose, attentionTargetId, activity }) => {
+    {at.actors.map(({ id, instanceId, pose, attentionTargetId, activity }) => {
       const castMember = castById.get(id)!;
-      if (castMember.instance.instanceId !== pose.instanceId)
+      if (castMember.instance.instanceId !== instanceId)
         throw new RangeError("INK4 actor instance IDs must match their canonical staging track.");
       const track = plan.actors.find(actor => actor.track.id === id)!.track;
       // Feed a sampled transform into the existing InkCharacter adapter using a
