@@ -3315,6 +3315,28 @@
       ]
     },
     {
+      "name": "watercolour-actor",
+      "type": "registry:ui",
+      "title": "Watercolour Character Staging",
+      "description": "WM3 reusable frame-addressed animated character actor stage: feet-anchored gait and shadow, paper-space watercolour part material, on-twos cadence, actual existing character rig/cues for gestures, gaze, blinking and speech; portrait and landscape compatible.",
+      "dependencies": [],
+      "registryDependencies": [
+        "character-presenter"
+      ],
+      "files": [
+        {
+          "path": "registry/video/watercolour-actor.ts",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-actor.ts"
+        },
+        {
+          "path": "registry/video/watercolour-actor-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-actor-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "painted-composition",
       "type": "registry:ui",
       "title": "Painted Composition / Arbitrary Watercolour Art",
