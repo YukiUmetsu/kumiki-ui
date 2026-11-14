@@ -171,6 +171,15 @@ export function shanshuiFacialCraft(scene:ShanshuiScene,detail=1):
       c2:vec(160,89.5),to:vec(165,92.5),
       width:.82,ink:"$deep",opacity:.73,seed:62}),
   ];
+  if(fine)brows.push(
+    line("M119 91 Q126 88.5 135 92","$wash",.38,.53),
+    line("M147 91 Q154 87.5 164 90","$wash",.38,.54),
+  );
+  if(more)brows.push(
+    inkPressureStroke({from:vec(120,92),c1:vec(124,90),
+      c2:vec(130,89.5),to:vec(133,92),width:.35,
+      ink:"$ink",opacity:.71,seed:69}),
+  );
   const eyes:CharacterPathShape[]=[
     line("M118 106.2 Q126 110 135 106.5","$skinshade",.54,.62),
     line("M147 104.8 Q155 108.3 163 104.5","$skinshade",.52,.61),
@@ -181,10 +190,28 @@ export function shanshuiFacialCraft(scene:ShanshuiScene,detail=1):
       c2:vec(160,101.2),to:vec(163.5,102),
       width:.76,opacity:.83,ink:"$ink",seed:27}),
   ];
+  if(fine)eyes.push(
+    line("M117 107 Q121 110 125 110","$paper",.36,.57),
+    line("M150 106.4 Q157 107.3 164 104.8","$paper",.34,.58),
+    line("M119 102 Q121 101.7 123 102.7","$shadow",.37,.63),
+  );
+  if(more)eyes.push(
+    line("M132 102.7 Q134.5 104.3 136 105","$ink",.36,.71),
+    line("M159.2 102 Q162 103.6 164 104","$ink",.4,.72),
+  );
   const mouth:CharacterPathShape[]=[
     line("M136 129.3 Q143 131.6 149 126.7","$skinshade",.6,.49),
     line("M138 132 Q142 133 145 130","$paper",.43,.41),
   ];
+  if(fine)mouth.push(
+    line("M135 126 Q140 125 144 125.5","$shadow",.38,.54),
+    line("M137 130.7 Q143 131.9 146 129.7","$skinshade",.43,.62),
+  );
+  if(more)mouth.push(
+    inkPressureStroke({from:vec(135.7,126.3),c1:vec(138,125.9),
+      c2:vec(143.3,125.7),to:vec(147.5,126.6),
+      width:.36,ink:"$ink",opacity:.58,seed:88}),
+  );
   const beard:CharacterPathShape[]=[];
   if(scene==="misty-hermit"){
     for(let i=0;i<(fine?11:6);i++){
