@@ -134,10 +134,15 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
   useEffect(()=>{
     if(!playing||reducedMotion)return;
     const start=performance.now(),origin=frame;
-    let raf=0;
+    // Heavy SVG ink frames may render slowly on CI/low-power devices. Never
+    // skip the entire artwork merely because a frame was expensive to paint:
+    // the visual preview advances at most a few authored frames per RAF.
+    let advanced=origin,raf=0;
     const tick=(now:number)=>{
-      const moved=Math.floor((now-start)*30/1000*playbackRate);
-      const next=loop?(origin+moved)%(maxFrame+1):Math.min(maxFrame,origin+moved);
+      const target=origin+Math.floor((now-start)*30/1000*playbackRate);
+      const step=Math.max(1,Math.round(3*playbackRate));
+      advanced=Math.min(target,advanced+step);
+      const next=loop?advanced%(maxFrame+1):Math.min(maxFrame,advanced);
       setFrame(next);
       if(!loop&&next===maxFrame)setPlaying(false);
       else raf=requestAnimationFrame(tick);
