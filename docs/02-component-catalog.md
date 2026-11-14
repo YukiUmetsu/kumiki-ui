@@ -333,7 +333,7 @@ Shaping, timing, captioning and exporting short-form and explainer video.
 | Shot List Editor | `shot-list-editor` | Reorder shots and edit their type and purpose, with keyboard moves and per-shot diagnostics. | [spec](component-specs/shot-list-editor.md) |
 | Film Document | `film-document` | One JSON file for a whole film: ordered scenes, transitions, captions, audio lanes and outputs. Reports every problem with a JSON path and a fix hint. `npm run film:check`, `film:review`, `film:render` |
 | Film Look | `film-look` | Film-wide color grades, camera cadence, lens, light and sound mood with 12 curated presets. |
-| Risograph Spot-Ink Printing | `riso-print` | Separate 2–3 ink plates, transparent overprint, dot screens, fixed registration and paper-fiber texture with deterministic film-frame printing. [spec](component-specs/riso-print.md) |
+| Risograph Spot-Ink Printing | `riso-print` | Separate 2–3 ink plates, overprint, dot screens, fixed registration, paper grain and deterministic sheet-feed transitions within FilmStage. [spec](component-specs/riso-print.md) |
 | Sound Catalog | `sound-catalog` | Sound files whose rights travel with them: licence, source, hash and the exact peak time. `npm run sound:check`, `film:sound-kit -- <folder> --preset=neutral` |
 | Shader FX | `shader-fx`, `shader-fx-model` | Frame-addressable mesh gradient, liquid metal, god rays, grain gradient, water and halftone dots. Add them to a film scene with `fx`. Seek-exact in export |
 | Scene Recipe Examples | `scene-template-examples` | One valid, renderable spec for each original recipe and for `object-story`. `npm run film:example` |

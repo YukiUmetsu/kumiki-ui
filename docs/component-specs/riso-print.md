@@ -1,8 +1,8 @@
 # Risograph spot-ink printing (RISO1)
 
 **Registry item:** `riso-print`  
-**Source:** `registry/video/print-plates.ts`, `print-plates-react.tsx`  
-**Storybook:** **Video production → Film Looks → Risograph · Two-Ink Printing** and **Video production → Film Looks → Risograph · 3-Shot Film Stage**. The Storybook group already existed; no new section has been added.
+**Source:** `registry/video/print-plates.ts`, `print-plates-react.tsx`, `riso-sheet-feed.tsx`  
+**Storybook:** **Video production → Film Looks**, with the three stories **Risograph · Two-Ink Printing**, **Risograph · 3-Shot Film Stage** and **Risograph · Paper Feed Transition**. No new Storybook section.
 
 ## Purpose
 
@@ -26,7 +26,7 @@ Install `riso-print`. `RisoPrint` props:
 
 `evaluateRisoPrint(spec, frame)` resolves independent print progress on the same absolute clock, including nonsequential seek and reduced motion. `overprintColor` provides a CPU reference sample for multiplicative color mixing; real browser compositing uses SVG `mix-blend-mode: multiply` and the plate's opacity.
 
-## Storybook artwork and three-shot film
+## Storybook artwork and production film
 
 The demo is an original editorial poster, **THE HIDDEN CURRENT**, drawn as two separate SVG spot-ink layers in `src/video/riso-print-demo.tsx` with true landscape and portrait compositions. The previously overlapping **RISO / 02** stamp is larger and isolated below the subtitle. `RISO_STAMP` and `RISO_TEXT_ZONES` declare measured safe regions for both ratios; unit tests check their intersections with rotation considered.
 
@@ -34,10 +34,22 @@ The interactive story lets viewers scrub the printing timeline, play/replay, iso
 
 A separate story within **the same existing Film Looks group** compiles a 13-second three-scene FD1 film through `compileFilm` and `FilmStage`. It uses FilmStage's existing `renderSlot` callback to pass the scene's frame to `RisoPrint`—there is no independent film renderer or duplicate animation clock. The authored film is in `src/video/riso-print-film.ts`.
 
+A third story in the same Film Looks group uses **`RisoSheetFeed`**, a paper-feed bridge between **THE HIDDEN CURRENT** and the independently drawn **FOLLOW THE FLOW**. Both incoming spot-ink plates are printed in sequence as the new sheet arrives, without adding a second timeline or a Film Document transition kind. The five-shot film is `RISO_SHEET_FEED_FILM` in `src/video/riso-print-film.ts`.
+
+The production `film:render` path now resolves these three print slots in `src/film/film-slots.tsx`. A portable film file lives at `examples/film/riso-paper-feed.film.json`:
+
+```bash
+npm run film:check -- examples/film/riso-paper-feed.film.json
+npm run film:render -- examples/film/riso-paper-feed.film.json
+```
+
+These commands are the intended production workflow; successful MP4 export is not implied by compilation or Storybook tests alone.
+
 ## Evidence and limitations
 
-- Source and tests: `tests/print-plates.test.ts` and `tests/riso-print-demo.test.tsx`.
+- Source and tests: `tests/print-plates.test.ts`, `tests/riso-print-demo.test.tsx`, `tests/riso-sheet-feed.test.tsx`, and the actual-browser `tests/e2e-storybook/riso-film-looks.spec.ts`.
 - Physical technique reference: [Risograph demo film / stills](../35a-material-native-style-reference-gallery.md) and its independent printing-process sources.
 - No external video, source artwork, images, fonts or sound are bundled. No added production dependencies.
-- **Unverified until actual browser QA:** contact sheet captures at 0%, 25%, 50%, 75%, 100% for both ratios; normal-speed three-shot playback; actual SVG glyph bounds and paper/ink antialiasing at 1080p. Tests and Storybook presence do not alone imply visual approval.
-- Future material extensions: auto-separation from supplied imagery, measured ink absorption, richer paper physics and authored stamp/print transitions between different scenes.
+- **Verified in captured Chromium stills:** both aspects and all ink passes render; the RISO / 02 text fits inside its border without collision in either layout. Printed sheets and transitional frames were inspected from captured browser PNGs. The browser test tolerates no more than 2/255 per color channel across at most 0.01% of pixels, based on measured 1–2-level Chromium SVG subpixel rounding seen after nonsequential seeks.
+- **Still to qualify:** a passing final browser run, clean consumer install, actual normal-speed encoded film playback/export, and independent final release approval. Screenshots and code tests do not imply video-level visual acceptance.
+- Future material extensions: auto-separation from supplied imagery, measured ink absorption, richer paper physics and physically calibrated ink mixing. The current sheet-feed bridge is authored as an existing FilmStage slot, not a universal FD1 transition kind.
