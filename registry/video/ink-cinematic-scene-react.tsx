@@ -371,7 +371,6 @@ export function InkCinematicScene({
  const viewBox=portrait?"378 -172 524 932":"0 0 1280 720";
  // A stable, initially established, layered painted environment; ink motion
  // happens in the chosen subjects and wet atmospheric planes, not every pixel.
- const layers=[0,1,2] as const;
  const tree=(m:InkCinematicMotif)=>{
    const common={m,ink:art.ink,frame:pose};
    switch(m.kind){

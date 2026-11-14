@@ -179,7 +179,7 @@ export function makeInkCinematicSpec(
     art:{...INK_CINEMATIC_ART,...options?.art},
     actor:{
       id:"scholar",x:river?(output==="portrait"?610:400):645,
-      y:river?652:654,scale:river?1.33:1.04,
+      y:river?652:654,scale:river?1.33:.83,
       travel:river?94:-86,gesture:river?"read-scroll":"contemplate",
       startFrame:6,stopFrame:146,...options?.actor,
     },
