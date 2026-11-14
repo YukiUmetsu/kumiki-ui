@@ -6,6 +6,24 @@
 import { inspectPaintSurface, paintClamp, paintHash } from "./watercolour-brush";
 import type { PaintStroke, PaintSurfaceSpec, PaintIssue } from "./watercolour-brush";
 
+/** A timed droplet of clean water entering pigment that is still damp.
+ * All coordinates are paper-space; not a blur over the entire scene.
+ */
+export interface PaintBackrun {
+  x: number;
+  y: number;
+  radius: number;
+  /** Absolute film frame of renewed water contact. */
+  startFrame: number;
+  spreadFrames: number;
+  /** 0..1 optical lifting strength. */
+  strength: number;
+}
+export interface PaintBackrunFrame {
+  progress: number;
+  radius: number;
+  settled: boolean;
+}
 export interface PaintWash {
   kind: "wash";
   id: string;
@@ -23,6 +41,8 @@ export interface PaintWash {
   edgePooling: number;
   /** Color reserved as untouched white paper inside paths. */
   reservePaths?: readonly string[];
+  /** Localized water droplets create irregular pigment-displacing backruns, not flat gradient spots. */
+  backruns?: readonly PaintBackrun[];
   /** Optional thin secondary pigment veins/drawn highlights remain distinct authored paths. */
   details?: readonly { path: string; color: string; width: number; opacity: number }[];
   startFrame: number;
@@ -130,6 +150,12 @@ export function inspectPaintedComposition(spec: PaintedCompositionSpec): PaintIs
       add("paint-path", p + "/brushPath", "Animated washes require a valid brushPath and brushWidth (1..2048).");
     if (layer.reservePaths && (layer.reservePaths.length > 64 || layer.reservePaths.some((v: string) => !pathValid(v))))
       add("reserves", p + "/reservePaths", "Reserve paths must be authored SVG paths (max 64).");
+    if (layer.backruns && (!Array.isArray(layer.backruns) || layer.backruns.length > 24 ||
+      layer.backruns.some((run: PaintBackrun) => !run || !valid(run.x, 0, spec.width) ||
+        !valid(run.y, 0, spec.height) || !valid(run.radius, 1, 420) ||
+        !int(run.startFrame, layer.startFrame, 10000000) ||
+        !int(run.spreadFrames, 1, 720) || !valid(run.strength, 0, 1))))
+      add("backruns", p + "/backruns", "Water drops require bounded x/y, radius, frame, duration and strength.");
     if (layer.details && (layer.details.length > 128 || layer.details.some((d: NonNullable<PaintWash["details"]>[number]) =>
       !pathValid(d.path) || !HEX.test(d.color) || !valid(d.width, .1, 96) || !valid(d.opacity, 0, 1))))
       add("details", p + "/details", "Detail paths require SVG geometry, color, width and opacity.");
@@ -161,6 +187,35 @@ export function samplePigmentGrains(w: PaintWash, seed: number): PigmentGrain[] 
       strength: .04 + .2 * paintHash(seed + 73, i, 31),
       accent: paintHash(seed + 79, i, 37) > .78 };
   });
+}
+
+/** Deterministic watercolor droplet: the edge expands as clear water pushes
+ * suspended pigment, then remains perfectly fixed after settling.
+ */
+export function paintBackrunAt(run: PaintBackrun, frame: number, reducedMotion = false): PaintBackrunFrame {
+  if (!int(frame, 0, 10000000)) throw new RangeError("Watercolour frame must be a nonnegative integer.");
+  const progress = reducedMotion ? 1 : smooth((frame - run.startFrame) / run.spreadFrames);
+  return { progress, radius: run.radius * progress, settled: progress === 1 };
+}
+
+/** A bounded, locally scalloped water front. Spatial phase is stationary across
+ * time and independent of seek direction; no frame-seeded random jitter.
+ */
+export function paintBackrunPath(run: PaintBackrun, seed: number, progress: number): string {
+  const t = paintClamp(progress);
+  if (t <= 0) return "";
+  const points: string[] = [];
+  const segments = 64;
+  for (let i = 0; i < segments; i++) {
+    const a = i * 2 * Math.PI / segments;
+    const coarse = Math.sin(a * 5 + seed * .17) * .09 +
+      Math.cos(a * 9 + seed * .037) * .036;
+    const paper = (paintHash(seed + 31, Math.floor((i % segments) / 4), 73) - .5) * .065;
+    const r = run.radius * t * Math.max(.72, 1 + coarse + paper);
+    points.push((run.x + Math.cos(a) * r).toFixed(2) + " " +
+      (run.y + Math.sin(a) * r).toFixed(2));
+  }
+  return "M" + points.join(" L") + " Z";
 }
 
 /** Author-facing presets are just defaults, not a second timeline or a paint API tied to demo artwork. */
