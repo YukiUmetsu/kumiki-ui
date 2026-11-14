@@ -167,6 +167,12 @@ function partialSamples(samples: Sample[], progress: number): Sample[] {
   }
   return out;
 }
+/** Interpolated noise prevents the saw-tooth outlines caused by hashing each curve sample. */
+function inkSmoothNoise(seed: number, distance: number, scale: number, channel: number): number {
+  const x = distance / scale, cell = Math.floor(x), fraction = x - cell;
+  const t = fraction * fraction * (3 - 2 * fraction);
+  return lerp(inkHash(seed, cell, channel), inkHash(seed, cell + 1, channel), t);
+}
 interface OffsetSample extends Sample { nx: number; ny: number; radius: number }
 function offsets(samples: Sample[], totalArc: number, s: InkBrushStroke, seed: number): OffsetSample[] {
   return samples.map((p, i) => {
@@ -175,9 +181,8 @@ function offsets(samples: Sample[], totalArc: number, s: InkBrushStroke, seed: n
     const tipIn = Math.pow(clamp(p.arc / Math.max(.1, s.width * .8), .018, 1), .55);
     const tipOut = Math.pow(clamp((totalArc - p.arc) / Math.max(.1, s.width * .85), .018, 1), .68);
     // A piece of paper has fixed tooth: don't sample any jitter from frame or active sample count.
-    const cell = Math.floor(p.arc / 3.5);
-    const fibre = lerp(inkHash(seed, cell, 17), inkHash(seed, cell + 1, 17), p.arc / 3.5 - cell);
-    const edge = .88 + (fibre - .5) * (.16 + .25 * s.dryness);
+    const fibre = inkSmoothNoise(seed, p.arc, 11, 17);
+    const edge = .97 + (fibre - .5) * (.10 + .21 * s.dryness);
     const paceDepletion = 1 - .085 * clamp((p.pace - 1) / 3, 0, 1);
     const radius = s.width * (.06 + .94 * p.pressure) * (.72 + .28 * s.load)
       * Math.min(tipIn, tipOut) * edge * paceDepletion / 2;
@@ -201,26 +206,26 @@ function geometry(
     "M" + vertices.map((p, i) => (i ? "L" : "") + fmt(p[0]) + " " + fmt(p[1])).join(" ") + " Z";
 
   // Off-centre wet/dry tip contact: no symmetric, uniform fill that reads as a vector ribbon.
-  const left = pts.map((p, i) => point(p, .96 + (inkHash(seed, Math.floor(p.arc / 5), 41) - .5) * .24, .03 * Math.sin(i * .63)));
-  const right = pts.map((p, i) => point(p, -.90 + (inkHash(seed, Math.floor(p.arc / 5), 43) - .5) * .22, -.03 * Math.sin(i * .71))).reverse();
+  const left = pts.map(p => point(p, 1.02 + (inkSmoothNoise(seed, p.arc, 8, 41) - .5) * .22, 0));
+  const right = pts.map(p => point(p, -1.0 + (inkSmoothNoise(seed, p.arc, 9, 43) - .5) * .21, 0)).reverse();
   const hull = [...left, ...right], outline = asPath(hull);
   // Ink-rich bristle edge naturally tracks the geometry in one movement, with lighter wash beside it.
-  const coreLeft = pts.map((p, i) => point(p, .43 + .07 * (inkHash(seed, i, 47) - .5), 0));
-  const coreRight = pts.map((p, i) => point(p, -.34 + .06 * (inkHash(seed, i, 53) - .5), 0)).reverse();
+  const coreLeft = pts.map(p => point(p, .44 + .08 * (inkSmoothNoise(seed, p.arc, 13, 47) - .5), 0));
+  const coreRight = pts.map(p => point(p, -.32 + .07 * (inkSmoothNoise(seed, p.arc, 15, 53) - .5), 0)).reverse();
   const core = asPath([...coreLeft, ...coreRight]);
 
   // Fine, discontinuous flying-white cuts; density depends on dryness and speed. A wet
   // loaded stroke keeps most of its contact, while fast nearly dry work breaks apart.
   const gaps: { d: string; width: number }[] = [];
-  const lanes = Math.min(10, Math.max(0, Math.round(s.dryness * 10)));
+  const lanes = Math.min(24, Math.max(0, Math.round(s.dryness * 24)));
   for (let lane = 0; lane < lanes; lane++) {
-    const across = (lane - (lanes - 1) / 2) / Math.max(1, lanes) * 1.65;
+    const across = (lane - (lanes - 1) / 2 + (inkHash(seed, lane, 73) - .5) * .34) / Math.max(1, lanes) * 1.8;
     const paths: string[] = [];
     for (let i = 0; i < pts.length - 1; i++) {
       const a = pts[i], b = pts[i + 1];
       // Hair contact varies in space; don't produce straight, equally spaced stripes.
-      const phase = Math.floor(a.arc / (8 + lane * 1.7));
-      const gapChance = s.dryness * (.25 + .25 * a.pace) * (.65 + .35 * (1 - s.load));
+      const phase = Math.floor(a.arc / (6.5 + lane % 7));
+      const gapChance = s.dryness * (.25 + .30 * a.pace) * (.66 + .34 * (1 - s.load));
       if (inkHash(seed + lane * 131, phase, 71) > gapChance) continue;
       if (a.radius < .65 || b.radius < .65) continue;
       const nudgeA = (inkHash(seed + lane, phase, 89) - .5) * .14;
@@ -230,27 +235,27 @@ function geometry(
     }
     if (paths.length) gaps.push({
       d: paths.join(" "),
-      width: Math.max(.36, s.width * (.006 + .027 * s.dryness) * (.7 + .3 * s.load)),
+      width: Math.max(.22, s.width * (.003 + .014 * s.dryness) * (.65 + .35 * s.load)),
     });
   }
 
   // Very small, spatially pinned paper apertures remove pigment, not paint cream over it.
   // Independent of current frame: an existing dry mark doesn't change when another grows.
   const pores: { x: number; y: number; rx: number; ry: number }[] = [];
-  const holes = Math.min(230, Math.ceil(totalArc / 2.8));
+  const holes = Math.min(380, Math.ceil(totalArc * .95));
   const complete = offsets(fullSamples, totalArc, s, seed);
   for (let j = 0; j < holes; j++) {
     const index = Math.min(complete.length - 1, Math.floor(inkHash(seed, j, 103) * complete.length));
     const p = complete[index];
     const lateral = (inkHash(seed, j, 107) * 1.76 - .88);
     const hash = inkHash(seed, j, 109);
-    const likelihood = (.07 + .27 * s.dryness + .16 * (1 - s.load)) * (.6 + .4 * p.pace / 4);
+    const likelihood = (.10 + .31 * s.dryness + .15 * (1 - s.load)) * (.75 + .25 * p.pace / 4);
     if (hash > likelihood || p.radius < .65) continue;
     const xy = point(p, lateral, 0);
     pores.push({
       x: xy[0], y: xy[1],
-      rx: Math.max(.35, s.width * (.007 + .008 * inkHash(seed, j, 113))),
-      ry: Math.max(.25, s.width * (.004 + .008 * inkHash(seed, j, 117))),
+      rx: Math.max(.22, s.width * (.004 + .011 * inkHash(seed, j, 113))),
+      ry: Math.max(.16, s.width * (.003 + .007 * inkHash(seed, j, 117))),
     });
   }
 
