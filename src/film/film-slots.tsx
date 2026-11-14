@@ -1,3 +1,5 @@
+import { PaintedPage } from "../video/watercolour-brush-page";
+import { paintExampleSpec } from "../video/watercolour-brush-demo";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
@@ -673,6 +675,14 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
 
       // Original art-style fixtures run through the same production renderer as Storybook.
       // The Film Document still owns all scene timing; these slots draw only frame samples.
+      case "watercolour-brush": {
+        const subject = props.subject;
+        if (subject !== "wild-iris" && subject !== "coastal-dawn")
+          throw new RangeError("watercolour-brush requires props.subject = wild-iris or coastal-dawn.");
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        return <PaintedPage spec={paintExampleSpec(aspect, subject)}
+          subject={subject} frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
       case "riso-print-study": {
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const rawOffset = props.offsetFrame ?? 0;
