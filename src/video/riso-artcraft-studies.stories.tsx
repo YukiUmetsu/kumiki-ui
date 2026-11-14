@@ -1,6 +1,6 @@
 import {useId,useMemo,useState} from "react";
 import type {Meta,StoryObj} from "@storybook/react";
-import {RisoCharacterInk,RisoCharacterKnockout} from "../../registry/video/riso-character-react";
+import {evaluateRisoCharacter} from "../../registry/video/riso-character";
 import {evaluateRisoCharacterMesh,risoMeshBounds} from "../../registry/video/riso-proportion-mesh";
 import {risoSheetViewBox} from "../../registry/video/riso-character-sheet-react";
 import type {RisoCharacterSpec} from "../../registry/video/riso-character";
@@ -47,10 +47,32 @@ function ArtcraftStudio({actor}:ArtcraftProps){
   const [zoom,setZoom]=useState(1);
   const uid=useId().replace(/[^a-z0-9]/gi,"");
   const model=useMemo(()=>evaluateRisoCharacterMesh(spec,sheet,frame,{maxEdgeLength:8}),[spec,sheet,frame]);
+  const drawn=useMemo(()=>evaluateRisoCharacter(spec,frame),[spec,frame]);
   const definitions=panelDefinitions[actor];
   const paint={
     blue:{solid:blue,dots:`url(#${uid}-screen-blue)`},
     red:{solid:red,dots:`url(#${uid}-screen-red)`},
+  };
+  // Diagnostic panels show ONLY their relevant structural part hierarchy.
+  // Rendering the entire actor inside a facial crop made the courier's
+  // black coat/collar occupy the nose/mouth and let the bird's wing cross its eye.
+  const isolatedParts=(i:number):ReadonlySet<string>=>{
+    if(bird){
+      if(i===0)return new Set(spec.parts.map(p=>p.id));
+      if(i===1)return new Set(["head","head-nape","eye","eye-ring","eye-brow",
+        "beak","beak-divider","beak-nostril"]);
+      return new Set(["body","breast-plumage","body-feather-hatching",
+        "tail-feathers","tail-feather-shaft"]);
+    }
+    if(i===0)return new Set(spec.parts.filter(p=>p.joint==="head").map(p=>p.id));
+    if(i===1)return new Set(spec.parts.filter(p=>[
+      "body","left-arm","left-elbow","left-hand",
+      "right-arm","right-elbow","right-hand","satchel",
+    ].includes(p.joint)).map(p=>p.id));
+    return new Set(spec.parts.filter(p=>[
+      "left-leg","left-knee","left-ankle",
+      "right-leg","right-knee","right-ankle",
+    ].includes(p.joint)||["coat","coat-hem-welt"].includes(p.id)).map(p=>p.id));
   };
   function panel(i:number,x:number,y:number,w:number,h:number){
     const def=definitions[i],bounds=sourceBounds(model.regions,def.regions);
@@ -59,18 +81,26 @@ function ArtcraftStudio({actor}:ArtcraftProps){
     const scaledW=vw/zoom,scaledH=vh/zoom;
     const box=[vx+vw/2-scaledW/2,vy+vh/2-scaledH/2,scaledW,scaledH].map(n=>n.toFixed(3)).join(" ");
     const primary=model.regions.find(r=>r.id===def.focus)!;
+    const ids=isolatedParts(i);
+    const inkParts=drawn.parts.filter(part=>ids.has(part.id));
     return <g key={i} data-km-riso-artcraft-panel={def.focus}>
       <rect x={x} y={y} width={w} height={h} rx={5} fill="#FFF8EC" stroke="#CEBFAD"/>
       <text x={x+14} y={y+22} fontFamily="system-ui,sans-serif" fontSize={13}
         fontWeight={800} fill="#244760">{def.title}</text>
       <svg x={x+9} y={y+32} width={w-18} height={h-40} viewBox={box} overflow="hidden"
         data-km-riso-artcraft-crop={def.focus}>
-        <g fill={paper} stroke={paper} strokeWidth={1.5}>
-          <RisoCharacterKnockout spec={spec} frame={frame} spread={1.5}/>
+        <g fill={paper} stroke={paper} strokeWidth={1.5} data-km-riso-artcraft-isolated-paper="">
+          {inkParts.map(part=><path key={part.id} d={part.d}
+            transform={part.transform} data-km-riso-artcraft-paper-part={part.id}/>)}
         </g>
         {(["blue","red"] as const).filter(p=>plates==="both"||plates===p).map(p=>
-          <g key={p} style={{mixBlendMode:"multiply"}}>
-            <RisoCharacterInk spec={spec} frame={frame} plateId={p} paint={paint[p]}/>
+          <g key={p} style={{mixBlendMode:"multiply"}}
+            data-km-riso-character={spec.id} data-km-riso-study-plate={p}>
+            {inkParts.filter(part=>part.plate===p&&!part.knockoutOnly).map(part=>
+              <path key={part.id} data-km-riso-part={part.id} d={part.d}
+                transform={part.transform}
+                fill={part.paint==="screen"?paint[p].dots:paint[p].solid}
+                opacity={part.opacity}/>)}
           </g>)}
         {mesh && <g fill="none" stroke="#24A6A8" strokeWidth={.47}
           data-km-riso-artcraft-mesh={def.focus} pointerEvents="none">
