@@ -94,7 +94,7 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
     if (typeof region.path !== "string" || !/^[Mm]/.test(region.path) || region.path.length > 12000)
       issues.push(at + ".path: expected bounded authored SVG contour.");
     if (!Array.isArray(region.bounds) || region.bounds.length !== 4 ||
-      !region.bounds.every(n => Number.isFinite(n) && Math.abs(n) <= 4096) ||
+      !region.bounds.every((n: number) => Number.isFinite(n) && Math.abs(n) <= 4096) ||
       region.bounds[2] <= 0 || region.bounds[3] <= 0)
       issues.push(at + ".bounds: finite local rectangle with positive extent required.");
     if (region.transform !== undefined &&
@@ -118,7 +118,7 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
           !Number.isSafeInteger(layer.durationFrames) || layer.durationFrames < 8)
         issues.push(at + ".layers[" + j + "]: invalid colour, pressure, pitch, frame timing or tip.");
     }
-    if ((region.details?.length ?? 0) > 80 || region.details?.some(trace => !validTrace(trace)))
+    if ((region.details?.length ?? 0) > 80 || region.details?.some((trace: PencilTrace) => !validTrace(trace)))
       issues.push(at + ".details: up to 80 bounded graphite details allowed.");
   }
   return issues;
