@@ -9,9 +9,19 @@ import type { WetPaperSpec, WetPigmentDrop } from "../../registry/video/watercol
 export type PortraitOutput = "landscape" | "portrait";
 const pose = (frame:number,x=0,y=0,rotation=0,scale=1,opacity=1):WatercolourArtKey =>
   ({frame,x,y,rotation,scale,opacity});
+// Opaque watercolor first washes cover their construction underlayers.
+ // Local glazing passes remain multiply; optical color still has real depth.
+const NORMAL_UNDERPAINTINGS = new Set([
+  "opaque-face-volume","neck-volume","opaque-coat","hair-opaque-back",
+  "near-ear","far-ear","near-sclera","far-sclera","near-glint","far-glint",
+  "forehead-reserve","nose-bridge-light","shirt-negative-space",
+  "collar-ochre","left-lapel","right-lapel",
+]);
 const wash = (id:string,path:string,fill:string,opacity=1,
   treatment?:WatercolourWashTreatment,begin=0,fade=0):WatercolourArtPart =>
-  ({kind:"path",id,path,fill,opacity,technique:"wash",...(treatment?{wash:treatment}:{}),
+  ({kind:"path",id,path,fill,opacity,technique:"wash",
+    composite:NORMAL_UNDERPAINTINGS.has(id)?"normal":"multiply",
+    ...(treatment?{wash:treatment}:{}),
     startFrame:begin,fadeFrames:fade});
 const line = (id:string,path:string,stroke:string,width=1,opacity=1,
   begin=0):WatercolourArtPart =>
@@ -115,7 +125,7 @@ const portraitFigure = ():WatercolourArtPart => {
         "M"+(a-8)+" "+(cy-2)+" Q"+(cx-9)+" "+(cy-24)+" "+
         (cx+7)+" "+(cy-19)+" Q"+(b+11)+" "+(cy-12)+" "+
         (b+6)+" "+(cy+14)+" Q"+cx+" "+(cy+21)+" "+(a-8)+" "+(cy-2)+" Z",
-        "#A9878C",.24,{highlight:"#E7BCAF",shadow:"#7F7885"},112,55),
+        "#A9878C",.18,{highlight:"#E7BCAF",shadow:"#7F7885"},112,55),
       group(side+"-open-eyelids",[
         wash(side+"-sclera",
           "M"+a+" "+cy+" Q"+cx+" "+(cy-19)+" "+b+" "+(cy-1)+
@@ -165,16 +175,16 @@ const portraitFigure = ():WatercolourArtPart => {
       "#F5DDC2",.47,{highlight:"#FFEDD0",shadow:"#D9AE9B"},107,75),
     wash("temple-cool-plane",
       "M213 136 Q185 169 190 248 Q184 297 216 359 Q229 321 219 265 Q206 190 239 147 Z",
-      "#A47F8B",.30,{highlight:"#D3ACA3",shadow:"#777385"},108,73),
+      "#A47F8B",.22,{highlight:"#D3ACA3",shadow:"#777385"},108,73),
     wash("far-side-face-plane",
       "M345 130 Q387 157 398 218 Q403 293 366 380 Q379 318 361 276 Q371 212 345 130 Z",
-      "#817A8C",.28,{highlight:"#C9ABA8",shadow:"#626A7C"},118,83),
+      "#817A8C",.20,{highlight:"#C9ABA8",shadow:"#626A7C"},118,83),
     wash("warm-near-cheek",
       "M198 272 Q228 261 253 285 Q268 319 244 351 Q210 343 198 299 Z",
-      "#D8A18E",.37,{highlight:"#EBC6A8",shadow:"#AB797D"},122,67),
+      "#D8A18E",.26,{highlight:"#EBC6A8",shadow:"#AB797D"},122,67),
     wash("far-cheek-reflected",
       "M328 276 Q360 265 379 289 Q387 318 359 360 Q331 348 323 324 Z",
-      "#AE8D93",.28,{highlight:"#D8B4AC",shadow:"#77798F"},129,71),
+      "#AE8D93",.19,{highlight:"#D8B4AC",shadow:"#77798F"},129,71),
     wash("jaw-soft-edge",
       "M207 347 Q231 395 285 423 Q315 438 353 397 Q336 435 295 436 Q243 420 220 386 Z",
       "#997E85",.29,{highlight:"#D6A8A0",shadow:"#7F7288"},128,86),
