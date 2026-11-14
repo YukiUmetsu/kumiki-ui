@@ -15,7 +15,7 @@ export type FigureRegion=
   |"hand-screen-left"|"hand-screen-right"
   |"sleeve-screen-left"|"sleeve-screen-right"
   |"waist"|"hip"|"robe"|"leg-screen-left"|"leg-screen-right"
-  |"foot-screen-left"|"foot-screen-right"|"ornament";
+  |"foot-screen-left"|"foot-screen-right"|"ornament"|"scroll";
 export type FigureLandmark=
   |"head-top"|"chin"|"face-left"|"face-right"
   |"hairline"|"bun-top"|"bun-center"|"ribbon-tip"
