@@ -66,6 +66,11 @@ describe("material-native colour-pencil science art", () => {
   it("rejects bad frames, geometry, missing regions and unbounded paint density", () => {
     const drawing = coloredPencilExample("leaf", "landscape");
     expect(inspectPencilDrawing(drawing)).toEqual([]);
+    const shade = drawing.regions[0];
+    expect(shade.underpaintOpacity).toBeGreaterThan(.2);
+    expect(inspectPencilDrawing({...drawing, regions: [{
+      ...shade, underpaintOpacity: 1.3,
+    }]})).not.toEqual([]);
     expect(inspectPencilDrawing({ ...drawing, regions: [] })).not.toEqual([]);
     expect(inspectPencilDrawing({ ...drawing, regions: [{ ...drawing.regions[0], bounds: [0, 0, -1, 100] }] })).not.toEqual([]);
     expect(inspectPencilDrawing({ ...drawing, regions: [{ ...drawing.regions[0], bounds: [0, 0, 4000, 4000] }] })).not.toEqual([]);
