@@ -19,8 +19,9 @@ function PigmentPass({ region, layer, index, frame, reducedMotion }: {
   region: PencilRegion; layer: PencilPigmentLayer; index: number;
   frame: number; reducedMotion: boolean;
 }) {
-  const strokes = useMemo(() => hatchPencilRegion(region, layer), [region, layer]);
   const [x, y, w, h] = region.bounds;
+  const strokes = useMemo(() => hatchPencilRegion({ bounds: [x, y, w, h] }, layer),
+    [x, y, w, h, layer]);
   const cx = x + w / 2, cy = y + h / 2;
   return <g data-km-pigment-layer={index} stroke={layer.color} fill="none"
     transform={`rotate(${layer.angle} ${cx} ${cy})`}>
