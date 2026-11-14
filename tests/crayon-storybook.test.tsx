@@ -17,6 +17,8 @@ describe("material-native wax-crayon storybook", () => {
     expect(marks).not.toEqual(crayonMarks(bounds, {...options, seed:42}));
     expect(marks.every(mark=>mark.width>0 && mark.d.startsWith("M ") && mark.tone>=0 && mark.tone<3)).toBe(true);
     expect(new Set(marks.map(mark=>mark.width.toFixed(2))).size).toBeGreaterThan(10);
+    expect(marks.some(mark => (mark.d.match(/ M /g) ?? []).length >= 3)).toBe(true); // short hand-lifted rubbings
+
     expect(crayonHash(32,1,2)).toBe(crayonHash(32,1,2));
   });
 
