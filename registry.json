@@ -4,6 +4,54 @@
   "homepage": "https://github.com/YukiUmetsu/kumiki-ui",
   "items": [
     {
+      "name": "ink-wash-core",
+      "type": "registry:ui",
+      "title": "Chinese Ink Wash Brush and Paper",
+      "description": "Standalone material-native ink brush renderer with pressure-shaped silhouettes, ink-loaded side-brush gradient, dry-brush splits, wet paper spread, procedural rock texture and reduced-motion final holds; frame addressed and no WebGL dependencies.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/ink-wash.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-react.tsx"
+        },
+        {
+          "path": "registry/video/ink-wash-marks.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-marks.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-wash-film",
+      "type": "registry:ui",
+      "title": "Chinese Ink Wash Film Composition",
+      "description": "Composable ink-wash directing grammar for any authored footage, illustrations, diagrams, titles, and actor layers: five looks, ink bloom/brush entrances, parallax handscroll camera and FilmDocument shot adapter.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-wash-core",
+        "film-document"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-wash-story.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-story.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-story-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-story-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "interactive-branching-player",
       "type": "registry:ui",
       "title": "Interactive Branching Player",
