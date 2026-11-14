@@ -228,7 +228,7 @@ function WatercolourCharacterLab(){
     </p>
   </main>;
 }
-const meta={title:"Video Production/Film Looks/Watercolour & Brush",id:"film-art-watercolour-character",
+const meta={title:"Video Production/Film Looks/Watercolour & Brush/02 Painted Characters",id:"film-art-watercolour-character",
   component:WatercolourCharacterLab,parameters:{layout:"fullscreen"}} satisfies Meta<typeof WatercolourCharacterLab>;
 export default meta;
 type Story=StoryObj<typeof meta>;
