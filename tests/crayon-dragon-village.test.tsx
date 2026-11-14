@@ -120,6 +120,24 @@ describe("multi-actor crayon dragon village",()=>{
       .toBeGreaterThan((lowField.d.match(/M-?\d/g)??[]).length);
 
   });
+  it("authors inspectable close-up shots without changing actor rigs or render timing",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const base=crayonDragonVillageScene(aspect,{detail:1});
+      const dragon=crayonDragonVillageScene(aspect,{detail:1,shot:"dragon"});
+      const castle=crayonDragonVillageScene(aspect,{detail:1,shot:"architecture"});
+      expect(inspectCrayonScene(dragon)).toEqual([]);
+      expect(inspectCrayonScene(castle)).toEqual([]);
+      expect(dragon.camera?.[0].zoom).toBeGreaterThan(1.5);
+      expect(castle.camera?.[0].zoom).toBeGreaterThan(1.5);
+      expect(dragon.camera?.[0].focusX).not.toEqual(castle.camera?.[0].focusX);
+      expect(dragon.elements).toEqual(base.elements);
+      expect(castle.elements).toEqual(base.elements);
+      expect(dragon.durationFrames).toBe(330);
+      expect(dragon.camera?.[0].zoom).toBe(dragon.camera?.[2].zoom);
+    }
+    expect(()=>crayonDragonVillageScene("landscape",
+      {shot:"unknown" as "wide"})).toThrow(/settings/);
+  });
   it("turns off an entire actor safely and supports alternate creature palettes",()=>{
     const scene=crayonDragonVillageScene("landscape",
       {cast:"duo",detail:.25,wingPower:.5,palette:"copper",followThrough:0});
