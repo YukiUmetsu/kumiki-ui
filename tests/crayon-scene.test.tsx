@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { inspectCrayonScene, crayonCamera, crayonElementPlacement } from "../registry/video/materials/crayon-scene";
+import { inspectCrayonScene, crayonCamera, crayonElementPlacement, crayonElementTransform } from "../registry/video/materials/crayon-scene";
 import { CrayonScene } from "../registry/video/materials/crayon-scene-react";
 import { crayonDemoScene } from "../src/video/crayon-scene-fixtures";
 import { compileFilm, type FilmDocument } from "../registry/video/film-document";
@@ -92,6 +92,40 @@ describe("CRAYON1 data-driven scene grammar",()=>{
         expect(html).toContain('data-km-crayon-wax=""');
       }
     }
+  });
+
+
+  it("supports deterministic articulated chains, pivot rotation and preserved draw order",()=>{
+    const base=crayonDemoScene("city","landscape");
+    const root={...base.elements[0],id:"actor-root",placement:{x:20,y:40},
+      motion:[{frame:0,x:0,y:0,rotate:0},{frame:100,x:80,y:0,rotate:30}],pivot:{x:8,y:12}};
+    const arm={...base.elements[1],id:"actor-arm",parentId:"actor-root",
+      placement:{x:12,y:14},pivot:{x:4,y:5},
+      motion:[{frame:0,x:0,y:0,rotate:0},{frame:100,x:0,y:0,rotate:-60}]};
+    const prop={...base.elements[2],id:"held-prop",parentId:"actor-arm",placement:{x:6,y:8}};
+    const scene={...base,elements:[prop,root,arm]};
+    expect(inspectCrayonScene(scene)).toEqual([]);
+    const a=crayonElementTransform(scene,prop,50);
+    crayonElementTransform(scene,prop,100);
+    crayonElementTransform(scene,prop,0);
+    expect(crayonElementTransform(scene,prop,50)).toBe(a);
+    expect(a.match(/rotate\\(/g)).toHaveLength(3);
+    expect(a).toContain("translate(8 12)");
+    const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={50}/>);
+    expect(html.indexOf('data-km-crayon-element="held-prop"'))
+      .toBeLessThan(html.indexOf('data-km-crayon-element="actor-root"'));
+    expect(crayonElementTransform(scene,prop,0,true))
+      .toBe(crayonElementTransform(scene,prop,239,true));
+  });
+
+  it("rejects missing/cyclic parent links, screen boundary crossing and bad pivots",()=>{
+    const base=crayonDemoScene("city","landscape");
+    const a={...base.elements[0],id:"rig-a",parentId:"rig-b"};
+    const b={...base.elements[1],id:"rig-b",parentId:"rig-a"};
+    expect(inspectCrayonScene({...base,elements:[a,b]}).join(" ")).toMatch(/cycle/);
+    expect(inspectCrayonScene({...base,elements:[{...a,parentId:"not-here"}]}).join(" ")).toMatch(/does not exist/);
+    expect(inspectCrayonScene({...base,elements:[{...a,parentId:undefined,pivot:{x:Infinity,y:0}}]}).join(" ")).toMatch(/pivot/);
+    expect(inspectCrayonScene({...base,elements:[{...a,parentId:undefined,screenSpace:true},b]}).join(" ")).toMatch(/screenSpace/);
   });
 
   it("fails on wrong FilmStage output dimensions",async()=>{
