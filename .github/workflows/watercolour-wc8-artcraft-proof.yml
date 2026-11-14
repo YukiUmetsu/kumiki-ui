@@ -1,12 +1,6 @@
 name: Watercolour WC8 ArtCraft reference proof
-# Temporary scoped PR proof: restore to manual-only after art inspection.
+# Native Chromium and FFmpeg are deliberately manual-only after WC8 scoped proof.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/watercolour-wc8-artcraft-proof.yml"
-      - "src/video/watercolour-reference-construction.tsx"
-      - "src/video/watercolour-master-studies.tsx"
-      - "tests/e2e-storybook/watercolour-wc8-artcraft.spec.ts"
   workflow_dispatch:
 permissions:
   contents: read

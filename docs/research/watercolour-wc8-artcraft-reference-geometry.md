@@ -63,3 +63,17 @@ The full 12-skill local bundle is designed for user's local agents under \`~/.ag
 [WC8 proof run 43647506571](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43647506571) passed technical browser and real film export in both ratios; **the initial candidate is artistically rejected as-is** because the flower florets were visibly too small and muddy at 960x540, although the boat's constructed silhouette and explicit stays/sailor were materially more legible. This came from miscalibrated petal length and value/gradient opacity, not missing global texture. A follow-up correction expands 13 attached floret lengths to the 17–24px range, gives stronger bright translucent interiors, and keeps thin root shadows/midribs. New snapshots must be inspected before promoting the change.
 
 The comparison remains **style_guided**, not pixel-matched. Existing WM7 film frames are a valid *before* control, but are not a substitute for annotated reference-source masks and ArtCraft's five-axis source-relative baseline.
+
+## WC8 final native render comparison and technical verdict
+
+The corrected [ArtCraft source construction proof 43647920941](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43647920941) passed Chromium Storybook and six real FilmStage production-frame exports (960×540 and 540×960), plus a 40-frame encoded landscape MP4. [Changed-tests/typecheck 43647920888](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43647920888) passed. The native storyboard comparison used unchanged seed, scene frame, camera and background/pigment layers from WM7.
+
+**Observed and visually reviewed:**
+
+1. **Botanical:** the first attempt made the daisy rays too small/dark (a visible regression). A second candidate increased length to **17–24 original SVG units**, broadened variable tapered petals, raised paper-colored translucent values and preserved the 13 shared root attachments. Petals are now visibly distinct at landscape output size. They remain stylistically simplified relative to botanical references; no full scientific species approval.
+2. **Boat:** the original triangle-sail/dot figure was replaced with a coherent closed hull, layered cloth and mast/boom/stays. The 14 nonuniform wakes originate from the boat rather than isolated white glints. A recognizable seated torso/head/arm/leg structure is legible at the final 540px portrait output. Sailcloth and human anatomy are still much simpler than high-quality reference watercolors.
+3. **Architecture:** four connected courses on roof pitches, six intact window surrounds and interrupted wall marks are visible in the final scene. The facade still looks like a simplified illustration; full masonry perspective and aging are unresolved.
+
+The ArtCraft source-relative mathematical-audit scripts are **not installed here**. We ran the source topology/attachment and rendered browser checks, but did not fabricate mask overlays, segmentation scores or five-axis source-matched metrics. The professional artistic gate remains **open** even though this source-construction milestone is technically qualified.
+
+**Release intent:** merge this as a reversible, source-backed improvement to the existing three scene studies; do not mistake the merged code for final watercolor master parity. Future WC9 should work on species morphology, realistic human facial/hand/fabric details, masonry volume, wet-edge microtexture and full 42-second dual-format motion.
