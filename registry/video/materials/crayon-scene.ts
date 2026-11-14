@@ -20,6 +20,8 @@ export interface CrayonMotionKey {
 /** World-space grip/foot plant: lock a point of the original drawing at its position on start. */
 export interface CrayonContact {
   start: number; end: number;
+  /** Ease the outgoing plant correction after end, avoiding a discontinuous foot jump. */
+  releaseFrames?: number;
   /** Anchor expressed in the element's original local drawing coordinates. */
   anchor: {x:number; y:number};
 }
@@ -72,6 +74,13 @@ export interface CrayonContourElement extends CrayonBase {
 /** Authored drawing anchor on a moving element, prior to camera framing. */
 export interface CrayonAnchorRef { elementId: string; anchor: {x:number; y:number} }
 /** A wax-outline connector follows two independently animated anchors. */
+/** Optional, preferred-length analytic two-bone limb. Unreachable targets stay connected. */
+export interface CrayonTwoBoneIK {
+  upperLength: number;
+  lowerLength: number;
+  /** Anatomical bend side relative to the line from hip to ankle. */
+  bendSide: "left" | "right";
+}
 export interface CrayonConnectorElement extends CrayonBase {
   kind: "connector";
   from: CrayonAnchorRef;
@@ -83,6 +92,8 @@ export interface CrayonConnectorElement extends CrayonBase {
   bend?: number;
   /** Optional authored knee/elbow bend exposures independent of endpoint motion. */
   bendKeys?: readonly {frame:number; bend:number}[];
+  /** Alternative to bend/bendKeys: two straight articulated segments with a solved knee. */
+  ik?: CrayonTwoBoneIK;
 }
 export interface CrayonLetteringElement extends CrayonBase {
   kind: "lettering";
@@ -171,13 +182,22 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".contacts must contain 1..16 non-overlapping ranges");
         else {
           let previous=-1;
+          let previousReleaseEnd=-1;
           for(const [j,contact] of node.contacts.entries()) {
             const q=p+".contacts["+j+"]";
             if (!contact || !int(contact.start) || !int(contact.end) ||
               contact.start < 0 || contact.end < contact.start ||
               contact.start <= previous || contact.end >= (v.durationFrames ?? 0))
               errors.push(q+".range must be sorted, non-overlapping and within duration");
+            if(contact && contact.start<=previousReleaseEnd)
+              errors.push(q+".releaseFrames overlap the following plant");
+            if(contact && contact.releaseFrames !== undefined &&
+              (!int(contact.releaseFrames) || contact.releaseFrames<0 ||
+                contact.releaseFrames>24 ||
+                contact.end+contact.releaseFrames >= (v.durationFrames??0)))
+              errors.push(q+".releaseFrames must be 0..24 and within scene duration");
             previous=contact?.end ?? previous;
+            previousReleaseEnd=(contact?.end??previous)+(contact?.releaseFrames??0);
             if (!contact || !contact.anchor ||
               ![contact.anchor.x,contact.anchor.y].every(finite) ||
               Math.abs(contact.anchor.x)>8192 || Math.abs(contact.anchor.y)>8192)
@@ -286,6 +306,15 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".opacity out of bounds");
         if (node.bend !== undefined && (!finite(node.bend) || Math.abs(node.bend)>500))
           errors.push(p + ".bend must be a bounded finite offset");
+        if (node.ik !== undefined) {
+          if (!node.ik || !finite(node.ik.upperLength) || !finite(node.ik.lowerLength) ||
+            node.ik.upperLength < 1 || node.ik.upperLength > 512 ||
+            node.ik.lowerLength < 1 || node.ik.lowerLength > 512 ||
+            !["left","right"].includes(node.ik.bendSide))
+            errors.push(p + ".ik must define bounded upper/lower lengths and a bend side");
+          if (node.bend !== undefined || node.bendKeys !== undefined)
+            errors.push(p + ".ik is mutually exclusive with bend/bendKeys");
+        }
         if (node.bendKeys !== undefined) {
           if(!Array.isArray(node.bendKeys)||node.bendKeys.length<1||node.bendKeys.length>40)
             errors.push(p + ".bendKeys must contain 1..40 authored bend frames");
@@ -464,21 +493,37 @@ export function crayonWorldPoint(
   return {x,y};
 }
 
-/** Offset a pinned local anchor back to its world position at contact start. */
+/** Stable phase report; contact release is visually distinct from an active sole plant. */
+export function crayonContactPhase(
+  node:CrayonElement,frame:number,durationFrames?:number,reducedMotion=false,
+):"planted"|"releasing"|null {
+  if(!int(frame)||frame<0)throw new RangeError("Crayon contact frame must be nonnegative integer");
+  const at=reducedMotion?(durationFrames??0)-1:frame;
+  if(!int(at)||at<0)throw new RangeError("Reduced-motion contact requires scene duration");
+  if(node.contacts?.some(c=>c.start<=at&&at<=c.end))return "planted";
+  if(node.contacts?.some(c=>c.end<at&&at<=c.end+(c.releaseFrames??0)))return "releasing";
+  return null;
+}
+
+/** Absolute world-space correction for a planted foot or its smooth release tail. */
 export function crayonContactOffset(
   spec:CrayonSceneSpec,node:CrayonElement,frame:number,reducedMotion=false,
-): {x:number;y:number}|null {
+):{x:number;y:number}|null {
+  if(!int(frame)||frame<0)throw new RangeError("Contact frame must be nonnegative integer");
   const at=reducedMotion?spec.durationFrames-1:frame;
-  // Parent contact corrections are inherited by all descendants, including
-  // held props. Two concurrent contacts on one branch are deliberately invalid.
   let correction:{x:number;y:number}|null=null;
-  for(const part of crayonRigChain(spec,node)) {
-    const contact=part.contacts?.find(c=>c.start<=at&&at<=c.end);
+  for(const part of crayonRigChain(spec,node)){
+    const plant=part.contacts?.find(c=>c.start<=at&&at<=c.end);
+    const release=plant?undefined:part.contacts?.find(c=>c.end<at&&at<=c.end+(c.releaseFrames??0));
+    const contact=plant??release;
     if(!contact)continue;
     if(correction)throw new RangeError("Invalid CRAYON1 rig: overlapping nested contacts");
     const fixed=crayonWorldPoint(spec,part,contact.start,contact.anchor);
-    const moving=crayonWorldPoint(spec,part,at,contact.anchor,reducedMotion);
-    correction={x:fixed.x-moving.x,y:fixed.y-moving.y};
+    const sampled=plant?at:contact.end;
+    const moving=crayonWorldPoint(spec,part,sampled,contact.anchor,reducedMotion);
+    const t=release?(at-contact.end)/(release.releaseFrames??1):0;
+    const fade=release?1-t*t*(3-2*t):1;
+    correction={x:(fixed.x-moving.x)*fade,y:(fixed.y-moving.y)*fade};
   }
   return correction;
 }
@@ -567,6 +612,31 @@ export function crayonConnectorBendAt(
   return prev.bend+(next.bend-prev.bend)*smooth;
 }
 
+/** Pure two-bone IK solution with exact endpoint attachment and preferred bone lengths.
+ * Unreachable targets straighten/compress gracefully and are reported, not discarded.
+ */
+export function crayonTwoBoneSolve(
+  from:Readonly<{x:number;y:number}>,to:Readonly<{x:number;y:number}>,
+  ik:CrayonTwoBoneIK,
+):{knee:{x:number;y:number};reach:"inside"|"extended"|"compressed"} {
+  if(![from.x,from.y,to.x,to.y,ik.upperLength,ik.lowerLength].every(Number.isFinite) ||
+    ik.upperLength<=0 || ik.lowerLength<=0 || !["left","right"].includes(ik.bendSide))
+    throw new RangeError("Invalid CRAYON1 two-bone IK inputs");
+  const dx=to.x-from.x,dy=to.y-from.y,dist=Math.hypot(dx,dy);
+  const upper=ik.upperLength,lower=ik.lowerLength;
+  const max=upper+lower,min=Math.abs(upper-lower);
+  const reach=dist>max?"extended":dist<min?"compressed":"inside";
+  const effective=Math.max(min+1e-8,Math.min(max-1e-8,dist));
+  const along=(upper*upper-lower*lower+effective*effective)/(2*effective);
+  const rise=Math.sqrt(Math.max(0,upper*upper-along*along));
+  const ux=dist>1e-9?dx/dist:0,uy=dist>1e-9?dy/dist:1;
+  const side=ik.bendSide==="left"?1:-1;
+  return {knee:{
+    x:from.x+ux*along-uy*rise*side,
+    y:from.y+uy*along+ux*rise*side,
+  },reach};
+}
+
 /**
  * Material-native connecting contour between any two authored character parts.
  * Curvature is a signed, fixed-size perpendicular offset; no implicit IK solver,
@@ -584,6 +654,10 @@ export function crayonConnectorPath(
     Math.floor(frame/(node.poseCadence??1))*(node.poseCadence??1);
   const from=crayonVisiblePoint(spec,a,at,node.from.anchor,reducedMotion);
   const to=crayonVisiblePoint(spec,b,at,node.to.anchor,reducedMotion);
+  if(node.ik){
+    const {knee}=crayonTwoBoneSolve(from,to,node.ik);
+    return "M"+from.x+" "+from.y+" L"+knee.x+" "+knee.y+" L"+to.x+" "+to.y;
+  }
   const dx=to.x-from.x,dy=to.y-from.y,dist=Math.hypot(dx,dy);
   const bend=crayonConnectorBendAt(node,at,reducedMotion,spec.durationFrames);
   const midX=(from.x+to.x)/2+(dist>0?-dy/dist*bend:0);
