@@ -63,6 +63,28 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(pngIndependent.length).toBeGreaterThan(sparse.length+1500);
     });
   }
+
+  it("renders the completed ink wash for reduced motion and scopes gradients per mounted film",()=>{
+    const staticWash=renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:0,controls:DEFAULT_SHANSHUI,reducedMotion:true,
+    }));
+    expect(staticWash).toContain('data-km-shanshui-frame="0"');
+    // The effective frozen frame is 299, so the first displayed image must
+    // not inherit an early-frame partial-wash opacity.
+    expect(staticWash).toMatch(/data-km-shanshui-world=""[^>]*><g opacity="1">/);
+    const together=renderToStaticMarkup(createElement("section",null,
+      createElement(InkShanshuiStage,{frame:50,controls:DEFAULT_SHANSHUI}),
+      createElement(InkShanshuiStage,{frame:50,controls:{
+        ...DEFAULT_SHANSHUI,scene:"river-scholar",
+      }}),
+    ));
+    const pathIds=[...together.matchAll(/<linearGradient id="(kmshan[^"]+path)"/g)]
+      .map(match=>match[1]);
+    expect(pathIds).toHaveLength(2);
+    expect(new Set(pathIds).size).toBe(2);
+    for(const id of pathIds)expect(together).toContain('fill="url(#'+id+')"');
+  });
+
   it("preserves articulated knee, hair, face and garment ancestry with warm original costume art",()=>{
     const scholar=makeShanshuiScholar();
     const issues=validateCharacterDefinition(scholar);
