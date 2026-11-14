@@ -175,7 +175,7 @@ export function risoPerformanceScene(subject:RisoPerformanceSubject,
   const width=portrait?540:960, height=portrait?960:540;
   const header=portrait?95:87, footer=portrait?885:493;
   const sceneTop=portrait?500:200;
-  const originGround=portrait?690:412;
+  const originGround=portrait?650:370;
   const titleX=portrait?44:55;
   const title=subject==="postcard"?
     (portrait?["AN UNEXPECTED","POSTCARD"]:["AN UNEXPECTED POSTCARD"]) :
@@ -184,31 +184,34 @@ export function risoPerformanceScene(subject:RisoPerformanceSubject,
     ["SOME STORIES GROW","AFTER THE LIGHT FADES"];
   const layers=all(
     {id:"back-sky",kind:"path",plate:"blue",ink:"dots",
-      d:"M0 "+(portrait?430:156)+" Q"+(width*.37)+" "+(portrait?315:104)+" "+width+" "+(portrait?438:182)+" L"+width+" "+(portrait?810:488)+" H0 Z",
+      d:"M0 "+(originGround-118)+" Q"+(width*.37)+" "+(originGround-203)+" "+width+" "+(originGround-120)+
+        " L"+width+" "+(originGround+30)+" Q"+(width*.43)+" "+(originGround+9)+" 0 "+(originGround+35)+" Z",
       z:-80,parallax:.35},
     {id:"sun",kind:"path",plate:"red",ink:"dots",z:-76,
       d:"M"+(width*.79)+" "+(sceneTop-35)+" m-69 0 a69 69 0 1 0 138 0 a69 69 0 1 0 -138 0 Z",parallax:.30},
     {id:"distant-ridge",kind:"path",plate:"blue",ink:"dots",opacity:.69,z:-60,parallax:.56,
       d:"M0 "+(originGround-93)+" Q"+(width*.18)+" "+(originGround-210)+" "+(width*.40)+" "+(originGround-118)+
-      " Q"+(width*.64)+" "+(originGround-250)+" "+width+" "+(originGround-130)+" V"+height+" H0 Z"},
+      " Q"+(width*.64)+" "+(originGround-250)+" "+width+" "+(originGround-130)+
+      " L"+width+" "+(originGround+28)+" Q"+(width*.4)+" "+(originGround+21)+" 0 "+(originGround+32)+" Z"},
     {id:"ground",kind:"path",plate:"blue",ink:"solid",opacity:.88,z:-30,
-      d:"M0 "+(originGround+69)+" Q"+(width*.46)+" "+(originGround+50)+" "+width+" "+(originGround+60)+" V"+height+" H0 Z"},
+      d:"M0 "+(originGround+80)+" Q"+(width*.46)+" "+(originGround+74)+" "+width+" "+(originGround+79)+
+      " V"+(originGround+95)+" Q"+(width*.46)+" "+(originGround+90)+" 0 "+(originGround+96)+" Z"},
     {id:"ground-line",kind:"path",plate:"red",ink:"solid",opacity:.8,z:30,
-      d:"M0 "+(originGround+58)+" Q"+(width*.5)+" "+(originGround+47)+" "+width+" "+(originGround+53)+" V"+(originGround+57)+
-      " Q"+(width*.5)+" "+(originGround+52)+" 0 "+(originGround+62)+" Z"},
+      d:"M0 "+(originGround+81)+" Q"+(width*.5)+" "+(originGround+73)+" "+width+" "+(originGround+76)+
+      " V"+(originGround+81)+" Q"+(width*.5)+" "+(originGround+78)+" 0 "+(originGround+85)+" Z"},
     {id:"top-rule",kind:"path",plate:"blue",ink:"solid",z:90,screenSpace:true,
       d:"M"+titleX+" "+(header-36)+" H"+(width-titleX)+" V"+(header-33)+" H"+titleX+" Z"},
     {id:"foot-rule",kind:"path",plate:"blue",ink:"solid",z:90,screenSpace:true,
       d:"M"+titleX+" "+(footer-22)+" H"+(width-titleX)+" V"+(footer-20)+" H"+titleX+" Z"},
-    {id:"brand",kind:"text",plate:"blue",z:95,screenSpace:true,lines:["PRINTED TALES  /  No. 02"],
-      x:titleX,y:header-48,fontSize:11,fontFamily:"sans",weight:700},
+    {id:"brand",kind:"text",plate:"blue",z:95,screenSpace:true,lines:["PRINTED TALES  /  Vol. 02"],
+      x:titleX,y:header-48,fontSize:13,fontFamily:"sans",weight:700},
     {id:"headline",kind:"text",plate:"blue",z:95,screenSpace:true,lines:title,
       x:titleX,y:header+30,fontSize:portrait?43:51,fontFamily:"serif",weight:700,lineHeight:1.06},
     {id:"subheading",kind:"text",plate:"red",z:95,screenSpace:true,lines:labels,
-      x:titleX,y:header+(portrait?150:66),fontSize:portrait?12:11.5,fontFamily:"sans",weight:700,lineHeight:1.4},
+      x:titleX,y:header+(portrait?150:66),fontSize:portrait?15:15,fontFamily:"sans",weight:700,lineHeight:1.5},
     {id:"footer",kind:"text",plate:"blue",z:95,screenSpace:true,
       lines:[subject==="postcard"?"A KIND WORD TRAVELS FAR":"LIGHT MOVES, STORIES REMAIN"],
-      x:titleX,y:footer,fontSize:portrait?12:13,fontFamily:"sans",weight:700},
+      x:titleX,y:footer,fontSize:portrait?15:15,fontFamily:"sans",weight:700},
   ) as RisoSceneLayer[];
   if(subject==="postcard"){
     layers.push(
