@@ -6,8 +6,29 @@ import { compileFilm } from "../registry/video/film-document";
 import { risoExampleArtworks, risoExampleSpec } from "../src/video/riso-print-demo";
 import { risoSecondSheetArtworks } from "../src/video/riso-print-demo-alt";
 import { RISO_SHEET_FEED_FILM } from "../src/video/riso-print-film";
+import portableFilm from "../examples/film/riso-paper-feed.film.json";
+import { loadFilmSlots } from "../src/film/film-slots";
 
 describe("Risograph sheet feed between film scenes", () => {
+
+  it("exports exactly the authored portable Film Document, not a separately invented runtime format", () => {
+    expect(portableFilm).toEqual(RISO_SHEET_FEED_FILM);
+  });
+  it("resolves all production Riso slots through the same loader used by film:render", async () => {
+    const compiled = compileFilm(portableFilm, { outputId: "landscape" });
+    expect(compiled.ok).toBe(true);
+    if (!compiled.ok) return;
+    const renderSlot = await loadFilmSlots(compiled.film);
+    const context = { frame: 90, fps: { num: 30, den: 1 }, durationFrames: 180,
+      width: 960, height: 540, reducedMotion: false };
+    for (const slot of ["riso-print-study", "riso-sheet-feed", "riso-next-print"]) {
+      const element = renderSlot({ slot, label: slot }, context);
+      const html = renderToStaticMarkup(React.createElement(React.Fragment, null, element));
+      expect(html).toContain("data-km-riso-print");
+      if (slot === "riso-sheet-feed") expect(html).toContain("data-km-riso-sheet-feed");
+    }
+  });
+
   for (const aspect of ["landscape", "portrait"] as const) {
     it("compiles five shot scene handoff to " + aspect + " using the existing FD1 slots", () => {
       const result = compileFilm(RISO_SHEET_FEED_FILM, { outputId: aspect });
