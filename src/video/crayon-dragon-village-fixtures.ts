@@ -308,6 +308,14 @@ export function crayonDragonVillageScene(
     {parentId:"dragon-tail-mid",pivot:{x:-196,y:-85},
       motion:tail(21,-16),motionLagFrames:Math.min(24,followThrough+9),
       timing:{start:63,end:160},spacing:5});
+  line("dragon-tail-scutes",
+    crayonScaleField({x:-187,y:-77,rows:3,columns:3,
+      stepX:13,stepY:12,width:10,depth:4,seed:68,taper:2.5}),
+    "#567486",1.9,{parentId:"dragon-tail-mid",opacity:.56,
+      timing:{start:132,end:205}});
+  line("dragon-tail-engrave","M-209 -111L-218 -118M-214 -102L-227 -111",
+    "#d9b17f",2.25,{parentId:"dragon-tail-tip",opacity:.76,
+      timing:{start:148,end:205}});
   wax("dragon-wing-far",
     "M-47 -16Q-89 -153 -159 -192Q-137 -175 -118 -153Q-99 -164 -81 -126Q-58 -141 -54 -91L-40 -34Z",
     {x:-163,y:-198,width:130,height:192},dragon.wing,
@@ -316,6 +324,12 @@ export function crayonDragonVillageScene(
       timing:{start:50,end:151},spacing:6});
   line("dragon-wing-far-ribs","M-43 -23Q-87 -139 -158 -191M-85 -109L-118 -152M-65 -77L-81 -125",
     "#667b8a",3,{parentId:"dragon-wing-far",timing:{start:92,end:174}});
+  line("dragon-wing-far-laced-membrane",
+    "M-141 -175Q-114 -154 -99 -143M-127 -153Q-104 -128 -88 -120"+
+    "M-111 -132Q-94 -108 -72 -101M-98 -107Q-81 -87 -64 -76"+
+    "M-82 -74Q-65 -63 -54 -52",
+    "#576d85",1.55,{parentId:"dragon-wing-far",opacity:.55,
+      timing:{start:113,end:202}});
   wax("dragon-wing-near",
     "M-14 -24Q-23 -167 49 -218Q42 -181 76 -168Q39 -158 36 -123Q3 -137 -1 -87L-15 -38Z",
     {x:-26,y:-224,width:108,height:206},dragon.wing,
@@ -323,6 +337,17 @@ export function crayonDragonVillageScene(
       motionLagFrames:followThrough,timing:{start:53,end:155},spacing:6});
   line("dragon-wing-near-ribs","M-14 -27Q-1 -159 49 -216M-10 -85Q14 -145 75 -168M-10 -88L36 -124",
     "#647989",3.2,{parentId:"dragon-wing-near",timing:{start:91,end:177}});
+  line("dragon-wing-near-membrane-veins",
+    "M-4 -177Q9 -153 13 -125M18 -182Q22 -151 26 -137"+
+    "M39 -170Q27 -142 31 -117M-5 -132Q3 -115 -1 -91"+
+    "M-6 -106Q-11 -78 -13 -58",
+    "#576b80",1.9,{parentId:"dragon-wing-near",opacity:.72,
+      timing:{start:120,end:218}});
+  line("dragon-wing-near-crosswax",
+    "M-11 -112l13 10M-9 -97l12 8M-4 -154l17 9"+
+    "M16 -145l17 7M24 -170l12 8M40 -154l13 9",
+    "#eee0c7",1.5,{parentId:"dragon-wing-near",opacity:.42,
+      timing:{start:142,end:226}});
   wax(root,
     "M-75 -9Q-69 -55 -13 -60Q45 -63 73 -10Q89 35 44 61Q2 81 -46 53Q-82 37 -75 -9Z",
     {x:-88,y:-66,width:181,height:154},dragon.skin,
@@ -331,6 +356,24 @@ export function crayonDragonVillageScene(
         move(140,2,0,3,1.07,.95),move(187,-2,0,0,.98,1.04),
         move(230,3,0,7,1.08,.94),move(277,0),move(329,0)],
       timing:{start:40,end:145},spacing:6});
+  // Instead of flat teal torso fill, hand-engraved interlocking scutes
+  // follow the ribcage. Two levels of pigment read as anatomy, not noise.
+  line("dragon-flank-scale-field",
+    crayonScaleField({x:-59,y:-34,rows:5,columns:7,
+      stepX:14,stepY:14,width:10,depth:5.8,seed:417,taper:1}),
+    "#3f6273",1.9,{parentId:root,opacity:.58,
+      timing:{start:128,end:238}});
+  line("dragon-flank-highlight-scales",
+    crayonScaleField({x:-52,y:-30,rows:4,columns:6,
+      stepX:14,stepY:14,width:7,depth:3,seed:914,taper:1}),
+    "#d6d3b9",1.25,{parentId:root,opacity:.43,
+      timing:{start:153,end:254}});
+  line("dragon-shoulder-and-haunch-muscles",
+    "M29 -36Q58 -25 62 5M37 -16Q57 4 48 27"+
+    "M-53 -15Q-70 10 -49 31M-34 -37Q-11 -50 6 -43"+
+    "M17 48Q29 54 44 46",
+    "#315e6f",2.7,{parentId:root,opacity:.56,
+      timing:{start:151,end:231}});
   for(const [side,x,far] of [
     ["back-far",-49,true],["front-far",48,true],
     ["back-near",-30,false],["front-near",61,false],
@@ -346,6 +389,11 @@ export function crayonDragonVillageScene(
         timing:{start:67,end:175},spacing:5});
     line("dragon-claws-"+side,`M${x-19} 84l-4 10M${x-6} 90l-3 8M${x+7} 90l2 7`,
       "#f3d4a1",2.4,{parentId:"dragon-leg-"+side,timing:{start:117,end:181}});
+    line("dragon-leg-folds-"+side,
+      "M"+(x-17)+" "+(y+29)+"q12 7 24 -1"+
+      "M"+(x-18)+" "+(y+45)+"q10 7 22 0",
+      far?"#a3aab2":"#42777c",1.7,{parentId:"dragon-leg-"+side,
+        opacity:.54,timing:{start:143,end:225}});
   }
   wax("dragon-belly","M-13 -22Q33 -30 62 4Q69 40 43 54Q10 65 -9 46Q15 17 -13 -22Z",
     {x:-21,y:-34,width:97,height:102},gold,
@@ -357,17 +405,28 @@ export function crayonDragonVillageScene(
       {x:x-9,y:y-23,width:22,height:38},dragon.dark,
       {parentId:root,timing:{start:90+i*2,end:170+i*2},spacing:4.2});
   }
-  for(let i=0;i<9;i++){
-    const x=-1+i*6.8,y=5+i*5.1;
-    line("dragon-belly-scale-"+i,
-      `M${x-7} ${y}Q${x} ${y+8} ${x+9} ${y+1}`,
-      "#a97a62",2.1,{parentId:root,opacity:.58,timing:{start:113+i*3,end:212+i*2}});
-  }
+  const bellyScutes=Array.from({length:12},(_,i)=>{
+    const x=-3+i*5.8,y=3+i*4.4;
+    return "M"+(x-7).toFixed(1)+" "+y.toFixed(1)+
+      "q7 9 16 1";
+  }).join(" ");
+  line("dragon-belly-scutes",bellyScutes,
+    "#9e725b",2.15,{parentId:root,opacity:.66,timing:{start:127,end:232}});
+  line("dragon-belly-wax-reflections",
+    "M20 -16Q40 -4 46 8M14 3Q32 23 40 30M4 22Q14 42 28 45",
+    "#fff1ce",1.7,{parentId:root,opacity:.57,timing:{start:168,end:246}});
   wax("dragon-neck","M35 -14Q43 -75 91 -84L115 -54Q84 -42 69 10Z",
     {x:27,y:-92,width:94,height:109},dragon.skin,
     {parentId:root,pivot:{x:47,y:-16},motion:[
       move(0,-3),move(121,-3),move(174,-13),move(220,11),move(276,-4),move(329,-3)],
       motionLagFrames:followThrough,timing:{start:72,end:170}});
+  line("dragon-neck-overlapping-scutes",
+    crayonScaleField({x:48,y:-66,rows:4,columns:3,
+      stepX:11,stepY:13,width:8,depth:4.5,seed:604,taper:3.1}),
+    "#2f6775",1.95,{parentId:"dragon-neck",opacity:.56,timing:{start:143,end:222}});
+  line("dragon-neck-belly-folds",
+    "M62 -12Q80 -27 84 -51M55 -21Q73 -35 78 -56M53 -33Q65 -49 68 -62",
+    "#f0c9a4",2.3,{parentId:"dragon-neck",opacity:.73,timing:{start:161,end:231}});
   wax("dragon-head",
     "M76 -75Q76 -110 113 -114Q152 -122 168 -99L192 -91Q205 -78 195 -61Q176 -40 145 -50Q108 -31 87 -48Z",
     {x:70,y:-128,width:139,height:105},dragon.skin,
@@ -375,6 +434,15 @@ export function crayonDragonVillageScene(
       move(0),move(135),move(189,-12),move(230,9),move(284,-6),move(329)],
       motionLagFrames:Math.min(24,followThrough+4),
       timing:{start:80,end:182}});
+  line("dragon-cheek-small-scutes",
+    crayonScaleField({x:109,y:-86,rows:3,columns:4,
+      stepX:11,stepY:10,width:7,depth:4.5,seed:724,taper:2}),
+    "#417784",1.7,{parentId:"dragon-head",opacity:.55,timing:{start:164,end:238}});
+  line("dragon-muzzle-volume",
+    "M167 -96Q191 -105 195 -86M160 -51Q179 -47 190 -59"+
+    "M109 -54Q124 -47 137 -50",
+    "#e2c59e",2.5,{parentId:"dragon-head",opacity:.72,
+      timing:{start:169,end:249}});
   wax("dragon-jaw",
     "M128 -56Q159 -38 197 -60Q191 -39 175 -30Q148 -28 128 -41Z",
     {x:124,y:-65,width:80,height:47},gold,
@@ -387,9 +455,14 @@ export function crayonDragonVillageScene(
   wax("dragon-horn-right","M140 -107Q148 -141 176 -153Q169 -121 160 -93Z",
     {x:135,y:-158,width:45,height:68},gold,
     {parentId:"dragon-head",timing:{start:100,end:186},spacing:4.9});
+  line("dragon-horn-growth-rings",
+    "M86 -135l11 5M92 -128l12 6M150 -130l12 3M148 -119l14 4",
+    "#a6806d",1.75,{parentId:"dragon-head",opacity:.67,timing:{start:136,end:222}});
   wax("dragon-eye",egg(151,-86,9,7),
     {x:139,y:-96,width:24,height:20},dragon.dark,
     {parentId:"dragon-head",timing:{start:121,end:204},spacing:4});
+  line("dragon-eye-catchlight","M149 -88q3 -3 5 0",
+    "#fdf2d2",2.8,{parentId:"dragon-head",opacity:.9,timing:{start:165,end:219}});
   line("dragon-eyelid","M137 -92Q151 -102 163 -91",
     "#48566c",3.5,{parentId:"dragon-head",timing:{start:133,end:204},
       poses:[{id:"blink",d:"M138 -87Q150 -81 162 -88"},
