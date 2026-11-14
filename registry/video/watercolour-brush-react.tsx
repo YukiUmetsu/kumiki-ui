@@ -19,7 +19,7 @@ interface BristleMark { d: string; width: number; opacity: number }
 interface Bloom { x: number; y: number; r: number; alpha: number }
 
 function paperMarks(spec: PaintSurfaceSpec): PaperMark[] {
-  return Array.from({ length: 570 }, (_, i) => ({
+  return Array.from({ length: 340 }, (_, i) => ({
     x: paintHash(spec.seed, i, 11) * spec.width,
     y: paintHash(spec.seed, i, 17) * spec.height,
     length: 1 + paintHash(spec.seed, i, 23) * 10,
@@ -30,7 +30,7 @@ function paperMarks(spec: PaintSurfaceSpec): PaperMark[] {
 
 /** These holes and flecks are on the PAPER, not attached to the moving brush tip or the viewport. */
 function pigmentMarks(spec: PaintSurfaceSpec, stroke: PaintStroke, index: number, samples: readonly BrushSample[]): PigmentMark[] {
-  const count = Math.min(210, Math.max(48, Math.ceil(samples.length * .75)));
+  const count = Math.min(96, Math.max(24, Math.ceil(samples.length * .36)));
   return Array.from({ length: count }, (_, i) => {
     const j = Math.min(samples.length - 1, Math.floor(paintHash(spec.seed + index * 43, i, 5) * samples.length));
     const s = samples[j], a = paintHash(spec.seed + index * 89, i, 7) * Math.PI * 2;
@@ -46,7 +46,7 @@ function pigmentMarks(spec: PaintSurfaceSpec, stroke: PaintStroke, index: number
 /** Sparse lifted fibres running WITH brush direction; never a set of equal-width vector stripes. */
 function bristleMarks(spec: PaintSurfaceSpec, stroke: PaintStroke, index: number, samples: readonly BrushSample[]): BristleMark[] {
   if (!stroke.dryBrush || samples.length < 4) return [];
-  const count = Math.min(65, Math.round((8 + samples.length * .19) * stroke.dryBrush));
+  const count = Math.min(36, Math.round((5 + samples.length * .11) * stroke.dryBrush));
   return Array.from({ length: count }, (_, i) => {
     const s = Math.min(samples.length - 3, Math.floor(paintHash(spec.seed + index * 13, i, 29) * (samples.length - 3)));
     const e = Math.min(samples.length - 1, s + 2 + Math.floor(paintHash(spec.seed + index * 17, i, 31) * 12));
@@ -66,7 +66,7 @@ function bristleMarks(spec: PaintSurfaceSpec, stroke: PaintStroke, index: number
 }
 
 function blooms(spec: PaintSurfaceSpec, index: number, samples: readonly BrushSample[]): Bloom[] {
-  const count = Math.max(1, Math.min(12, Math.floor(samples.length / 27)));
+  const count = Math.max(1, Math.min(8, Math.floor(samples.length / 38)));
   return Array.from({ length: count }, (_, i) => {
     const s = samples[Math.floor((i + .5) * samples.length / count)];
     return { x: s.x, y: s.y, r: s.radius * (1.15 + paintHash(spec.seed, index * 37 + i, 61) * 1.7),
@@ -122,7 +122,11 @@ export function WatercolourSurface({
         <stop offset="100%" stopColor="#000000" stopOpacity="0" />
       </radialGradient>
       {spec.strokes.map((stroke, i) => {
+        // Saturated wet washes have no directional dry-brush gaps. Skip their
+        // offscreen masks entirely; this matters for 30 fps SVG capture.
+        if (stroke.dryBrush < .15) return null;
         const phase = evaluatePaintStroke(stroke, frame, reducedMotion);
+        if (phase.deposit === 0) return null;
         const ribbon = buildBrushRibbon(stroke, phase.deposit, 0, spec.seed + i);
         return <mask key={stroke.id} id={uid + "-bristles-" + i} maskUnits="userSpaceOnUse"
           x={0} y={0} width={spec.width} height={spec.height}>
@@ -159,7 +163,7 @@ export function WatercolourSurface({
         {phase.spread > 0 && <path data-km-wet-spread="" d={spread.path} fill={stroke.color}
           opacity={edgeOpacity} filter={`url(#${uid}-edge)`}/>}
         <path data-km-deposition="" d={main.path} fill={stroke.color} opacity={coreOpacity}
-          mask={`url(#${uid}-bristles-${i})`}/>
+          mask={stroke.dryBrush >= .15 ? `url(#${uid}-bristles-${i})` : undefined}/>
         <g clipPath={`url(#${clip})`}>
           {/* Concentrations settle into paper valleys; a different distribution is fixed for every stroke. */}
           {prepared[i].flecks.map((p, j) => <circle key={j} cx={p.x} cy={p.y} r={p.radius}
