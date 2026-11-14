@@ -4,8 +4,15 @@ on:
     branches: [main]
     paths:
       - "registry/video/watercolour-brush.ts"
+      - "registry/video/watercolour-actor*"
+      - "registry/video/painted-composition*"
+      - "registry/character/character-presenter-react.tsx"
       - "registry/video/watercolour-brush-react.tsx"
       - "src/video/watercolour-brush*"
+      - "src/video/watercolour-actor*"
+      - "src/video/painted-composition*"
+      - "tests/e2e-storybook/watercolour-actor.spec.ts"
+      - "examples/film/watercolour-character.film.json"
       - "src/film/film-slots.tsx"
       - "examples/film/watercolour-brush-study.film.json"
       - "tests/e2e-storybook/watercolour-brush.spec.ts"
@@ -33,9 +40,10 @@ jobs:
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Browser paint and paper checks
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-brush.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-brush.spec.ts tests/e2e-storybook/watercolour-actor.spec.ts
       - name: Validate portable film
         run: npm run film:check -- examples/film/watercolour-brush-study.film.json
+          npm run film:check -- examples/film/watercolour-character.film.json
       - name: Install FFmpeg
         run: |
           sudo apt-get update -qq
@@ -46,6 +54,9 @@ jobs:
           npm run film:frame -- examples/film/watercolour-brush-study.film.json --frame=350 --only=landscape --out=dist/watercolour-proof
           npm run film:frame -- examples/film/watercolour-brush-study.film.json --frame=760 --only=portrait --out=dist/watercolour-proof
           npm run film:render -- examples/film/watercolour-brush-study.film.json --frames=48 --only=landscape --out=dist/watercolour-proof
+          npm run film:frame -- examples/film/watercolour-character.film.json --frame=336 --only=landscape --out=dist/watercolour-proof/actor
+          npm run film:frame -- examples/film/watercolour-character.film.json --frame=336 --only=portrait --out=dist/watercolour-proof/actor
+          npm run film:render -- examples/film/watercolour-character.film.json --frames=40 --only=landscape --out=dist/watercolour-proof/actor
       - name: Preserve captured browser comparisons
         if: always()
         uses: actions/upload-artifact@v4
