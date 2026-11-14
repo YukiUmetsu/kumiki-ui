@@ -54,7 +54,7 @@ export const READER_FACE_LANDMARKS:readonly ReaderFaceLandmark[]=[
   {name:"nose-tip",x:152.4,y:115.5},
   {name:"mouth-corner",x:148.8,y:124},
   {name:"chin",x:141.8,y:140.2},
-  {name:"hairline",x:149,y:75.5},
+  {name:"hairline",x:149,y:83.5},
   {name:"cap-peak",x:147,y:29.7},
 ] as const;
 /** Deliberate asymmetry at full size; no neutral front-facing sticker face. */
@@ -74,7 +74,7 @@ export function scrollReaderFacePortrait(detail=1):
       "none","$shadow",.83,.67),
     // Three-quarter temple -> tapered cheek -> defined chin. The right
     // cheek reaches forwards; jaw narrows rapidly below the visible ear.
-    p("M119 77.6 C129.2 68.6 147.4 66.8 157.7 73.3 C165.2 79.1 167.4 87.7 166.4 101.5 C165.3 109.8 163.4 117.1 156.6 125.6 C150.4 133.3 145.7 139 141.6 140.5 C134 141.5 126.1 137 120.4 130.1 C115.9 124.1 114.9 116.8 114.2 106.2 C113.7 93.4 115.2 84.7 119 77.6 Z",
+    p("M119 77.6 C129.2 68.6 147.4 66.8 157.7 73.3 C165.2 79.1 167.4 87.7 166.4 101.5 C165.3 109.8 163.4 117.1 156.6 125.6 C151.8 130.7 147.4 138.5 143.3 143.7 C139.5 145.1 135.2 142.6 130.6 139.4 C124.6 135.8 120.1 130.8 118.8 126.2 C115.5 120.2 114.9 116.8 114.2 106.2 C113.7 93.4 115.2 84.7 119 77.6 Z",
       "$skin","$shadow",1.48),
     // Soft anatomical planes are placed along the jaw and nose and never
     // replace the opaque skin silhouette (no see-through heads).
@@ -132,11 +132,11 @@ export function scrollReaderFacePortrait(detail=1):
     // Wrapped crescent over the top-knot, with independent fold valleys.
     p("M161.2 34.2 C172.2 37.7 178.4 45.8 176 58.1 C172.4 62.7 168.3 64.4 162.2 61.7 C165.8 50.8 165.4 41 161.2 34.2 Z",
       "$wash","$shadow",.87,.66),
-    p("M138.2 57.8 Q123.5 58.7 114.3 64.2 Q107.9 73.6 109.7 80.5 C126.3 73.2 134.4 70.5 146.8 68.5 C156.8 67.9 167.3 69.1 172.9 75.9 C176.3 65.2 169.9 60.3 160.8 57.8 C152.8 54.1 145.6 55.2 138.2 57.8 Z",
+    p("M138.2 57.8 Q123.5 58.7 114.3 64.2 Q107.9 77.6 109.7 88.5 C126.3 81.2 134.4 78.5 146.8 76.5 C156.8 75.9 167.3 77.1 172.9 83.9 C176.3 68.2 169.9 60.3 160.8 57.8 C152.8 54.1 145.6 55.2 138.2 57.8 Z",
       "$shadow","$ink",1.2),
     // Actual hairline follows the brow plane with a side part and exposes
     // a readable ear rather than covering the entire left face.
-    p("M111.3 80.4 C118.3 73.2 128.9 72.1 138.9 68.2 C150.2 64.1 162.1 68.3 172 74.1 C163.5 71.2 154.2 70.8 144.7 74.5 C134.2 77 126 81.4 118.7 86.2 L113.5 86 Z",
+    p("M111.3 88.4 C118.3 81.2 128.9 80.1 138.9 76.2 C150.2 72.1 162.1 76.3 172 82.1 C163.5 79.2 154.2 78.8 144.7 82.5 C134.2 85 126 89.4 118.7 94.2 L113.5 94 Z",
       "$deep","$ink",.82),
     p("M111.3 79.4 Q106.2 89.4 110.5 106.2 Q112.7 107.4 114.2 103.2 Q113.2 92.4 119.2 85 Z",
       "$ink","none",0,.48),
@@ -156,7 +156,7 @@ export function scrollReaderFacePortrait(detail=1):
       "none","$wash",1.3,.66),
     p("M112 70.7 Q125.2 62 141.2 61.5",
       "none","$wash",1.12,.67),
-    p("M123.6 73.7 Q139.9 64.4 154.1 65.7",
+    p("M123.6 81.7 Q139.9 72.4 154.1 73.7",
       "none","$paper",.84,.48),
   ];
   if(medium)hair.push(
@@ -166,7 +166,7 @@ export function scrollReaderFacePortrait(detail=1):
       .75,72,"$ink",.61),
     pressure([146.1,36.8],[142.9,46.9],[141,54.9],[140.7,60.6],
       .58,73,"$ink",.68),
-    p("M116.8 79 Q125.5 71.5 138.5 68.4",
+    p("M116.8 87 Q125.5 79.5 138.5 76.4",
       "none","$paper",.66,.62),
   );
   if(high)hair.push(
