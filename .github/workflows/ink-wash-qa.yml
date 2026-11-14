@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - "registry/video/ink-wash*"
+      - "registry/character/character-presenter-react.tsx"
       - "src/video/ink-wash*"
       - "tests/ink-wash*.test.tsx"
       - "tests/e2e-storybook/ink-wash*.spec.ts"
@@ -32,13 +33,13 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
       - name: Deterministic pigment and film tests
-        run: npx vitest run --project unit tests/ink-wash.test.tsx tests/ink-wash-story.test.tsx
+        run: npx vitest run --project unit tests/ink-wash.test.tsx tests/ink-wash-story.test.tsx tests/ink-wash-character.test.tsx
       - name: Core registry checks
         run: npm run registry:validate
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Capture four aspect/subject combinations and seek regressions
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-wash.spec.ts tests/e2e-storybook/ink-wash-story.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-wash.spec.ts tests/e2e-storybook/ink-wash-story.spec.ts tests/e2e-storybook/ink-wash-character.spec.ts
       - name: Install FFmpeg for production video proof
         run: |
           sudo apt-get update -qq
@@ -47,6 +48,8 @@ jobs:
         run: npm run video:export -- --story=video-ink-wash--chinese-ink-wash-export --startFrame=60 --frames=300 --output=dist/ink-wash-proof.mp4
       - name: Encode reusable multi-genre film
         run: npm run video:export -- --story=video-ink-any-topic--production-export --startFrame=190 --frames=240 --output=dist/ink-any-topic-proof.mp4
+      - name: Encode ink character acting film
+        run: npm run video:export -- --story=video-ink-character--production-export --startFrame=42 --frames=270 --output=dist/ink-character-performance.mp4
       - name: Preserve encoded video for real-time artistic review
         if: always()
         uses: actions/upload-artifact@v4
@@ -55,6 +58,7 @@ jobs:
           path: |
             dist/ink-wash-proof.mp4
             dist/ink-any-topic-proof.mp4
+            dist/ink-character-performance.mp4
           retention-days: 10
           if-no-files-found: warn
       - name: Preserve real Chromium screenshots and traces
