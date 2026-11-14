@@ -217,7 +217,7 @@ export function refineRisoContourMesh(
      !Number.isSafeInteger(maxTriangles)||maxTriangles<1||maxTriangles>10000||
      !Number.isSafeInteger(maxPasses)||maxPasses<0||maxPasses>10)
     throw new RangeError("Riso mesh refinement options are out of bounds");
-  if(source.length>maxTriangles) return source; // never delete source contour fidelity
+  if(source.length>maxTriangles)throw new RangeError("Source contour already exceeds the triangle budget");
   const key=(p:RisoContourPoint)=>`${p[0]},${p[1]}`;
   const edgeKey=(a:RisoContourPoint,b:RisoContourPoint)=>{
     const ka=key(a),kb=key(b);
