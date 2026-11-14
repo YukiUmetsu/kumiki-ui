@@ -191,7 +191,7 @@ function StoryTitle({ width, height, portrait, day, frame, reduced }: { width:nu
     <text x={x+3} y={y + title.length * (portrait ? 72 : 79) + 16} fontFamily="Georgia,serif"
       fontSize={portrait ? 18 : 18} fontStyle="italic" opacity=".88">{day ? "A pocketful of beginnings." : "A little light for the long way home."}</text>
     {!portrait && <text x={width-53} y={height-27} textAnchor="end" fontFamily="Georgia,serif"
-      fontSize="15" letterSpacing={1.3} fill="#f8eccd">WAX CRAYON   /   001</text>}
+      fontSize="15" letterSpacing={1.3} fill={day ? "#304d54" : "#f8eccd"}>WAX CRAYON   /   001</text>}
   </g>;
 }
 export function CrayonStorybook({frame, story = "lantern", aspect = "landscape", seed = 23,
