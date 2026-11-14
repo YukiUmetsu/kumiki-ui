@@ -44,6 +44,14 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
   const transform = node.kind==="connector" ? undefined : crayonElementTransform(spec, node, frame, reducedMotion);
   const drawing = node.kind === "wax" || node.kind === "contour"
     ? crayonDrawingAt(node, frame, reducedMotion, spec.durationFrames) : null;
+  // Fur and other detail contours can be clipped to the true moving outline
+  // of their wax parent. Unlike a static rectangle mask, this remains correct
+  // after a hand-redrawn silhouette changes on a held source frame.
+  const clipParent = node.kind==="contour" && node.clipToParent
+    ? spec.elements.find(candidate=>candidate.id===node.parentId) : undefined;
+  if (node.kind==="contour" && node.clipToParent && clipParent?.kind!=="wax")
+    throw new RangeError("clipped crayon contour must have a wax parent");
+  const clipId = clipParent?.kind==="wax" ? tooth+"-anatomy-"+node.id : undefined;
   const contactPhase = node.contacts ? crayonContactPhase(node,frame,spec.durationFrames,reducedMotion) : null;
   const at=reducedMotion?spec.durationFrames-1:frame;
   const fading=node.exitFade ? 1-crayonProgress(at,node.exitFade.start,node.exitFade.end) : 1;
@@ -59,11 +67,23 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
       tooth={tooth} frame={frame} first={node.timing.start} last={node.timing.end}
       construction={node.construction} coverage={node.coverage} nibStyle={node.nibStyle}
       strokeOrder={node.strokeOrder} markLength={node.markLength}
-      redraw={node.redraw} edgeRoughness={node.edgeRoughness} reduced={reducedMotion} /> :
-      node.kind === "contour" ? <WaxLine d={drawing!.d} color={node.color} width={node.width}
-        opacity={node.opacity ?? 1} seed={seed}
-        frame={frame} first={node.timing.start} last={node.timing.end}
-        reduced={reducedMotion} /> :
+      redraw={node.redraw} edgeRoughness={node.edgeRoughness}
+      outlineOpacity={node.outlineOpacity} reduced={reducedMotion} /> :
+      node.kind === "contour" ? <>
+        {clipParent?.kind==="wax" && <defs>
+          <clipPath id={clipId} clipPathUnits="userSpaceOnUse"
+            data-km-crayon-anatomical-mask={clipParent.id}>
+            <path d={crayonDrawingAt(clipParent,frame,reducedMotion,spec.durationFrames).d}/>
+          </clipPath>
+        </defs>}
+        <g clipPath={clipId ? "url(#"+clipId+")" : undefined}
+          data-km-crayon-clipped-to={clipParent?.id}>
+          <WaxLine d={drawing!.d} color={node.color} width={node.width}
+            opacity={node.opacity ?? 1} seed={seed}
+            frame={frame} first={node.timing.start} last={node.timing.end}
+            reduced={reducedMotion} />
+        </g>
+      </> :
       node.kind === "connector" ? <WaxLine d={crayonConnectorPath(spec,node,frame,reducedMotion)}
         color={node.color} width={node.width} opacity={node.opacity ?? 1} seed={seed}
         frame={frame} first={node.timing.start} last={node.timing.end}
