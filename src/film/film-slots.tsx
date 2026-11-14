@@ -1,3 +1,4 @@
+import { CrayonStorybook } from "../../registry/video/materials/crayon-react";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
@@ -673,6 +674,17 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
 
       // Original art-style fixtures run through the same production renderer as Storybook.
       // The Film Document still owns all scene timing; these slots draw only frame samples.
+      case "crayon-storybook": {
+        const rawOffset = props.offsetFrame ?? 0;
+        if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
+          throw new RangeError("crayon-storybook offsetFrame must be a nonnegative integer.");
+        const story = props.story ?? "lantern";
+        if (story !== "lantern" && story !== "garden")
+          throw new RangeError("crayon-storybook story must be lantern or garden.");
+        return <CrayonStorybook frame={rawOffset + context.frame} story={story}
+          aspect={context.width > context.height ? "landscape" : "portrait"}
+          reducedMotion={context.reducedMotion} seed={23} pressure={.87} paperTooth={.58} />;
+      }
       case "riso-print-study": {
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const rawOffset = props.offsetFrame ?? 0;
