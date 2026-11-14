@@ -90,8 +90,10 @@ describe("Source-anchored Riso character proportional construction sheets",()=>{
   });
   it("Bird is not assigned invented human eyebrows, sleeves or legs",()=>{
     const ids=RISO_PAPER_BIRD_SHEET.regions.map(r=>r.id);
-    expect(ids).toEqual(["head","eye","beak","body","breast-plumage",
-      "left-wing","left-wing-feather-division","right-wing","right-wing-feather-division",
+    expect(ids).toEqual(["head","head-nape","eye-ring","eye-brow","eye","beak",
+      "beak-divider","beak-nostril","body","breast-plumage","body-feather-hatching",
+      "left-wing","left-wing-feather-division","wing-left-coverts","wing-left-quills",
+      "right-wing","right-wing-feather-division","wing-right-coverts","wing-right-quills",
       "tail","tail-feather-shaft"]);
     expect(RISO_PAPER_BIRD_SHEET.regions.some(r=>r.category==="sleeve")).toBe(false);
   });
