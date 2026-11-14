@@ -324,3 +324,41 @@ Do not inflate tiny fingertip outlines into dark beads, turn the folds into
 uniform lines, or weaken checks simply to claim aesthetic parity. A later
 reference-led art pass should tune ink deposition on rocks, open paper reserve,
 and changing hand anatomy in actual grasp/reading poses.
+
+
+## Browser and MP4 review — original Shanshui film proof
+
+GitHub Actions run `43652622403` passed scoped TypeScript, unit,
+Storybook/Playwright, registry and 960×540 H.264 export checks. I directly
+inspected the three 125/210-frame landscape screenshots and five evenly
+spaced frames of its 3.2-second, 30 fps river-reader MP4 (frames 115–210).
+
+**Observed:** The improved willow bough-to-frond attachment is visible, and
+each film frame differs visibly from the next. However, the figures still
+move like cutouts at playback size: the scrolling scholar's feet read as
+one small dark oval beneath a mostly unarticulated skirt. The lower-body
+acting needs true drawn gait exposure, not just world-space anchor math.
+The distant mountain surfaces still showed too many thin, parallel,
+near-vertical strokes. The reader grip was more coherent in close-up but
+remained small at 960×540. This is a technically valid **prototype**, not
+final classical figure animation.
+
+### Traditional rock texture study (following the frame review)
+
+- [Huang Gongwang, *Dwelling in the Fuchun Mountains* — Smarthistory](https://smarthistory.org/huang-gongwang-dwelling-in-the-fuchun-mountains/):
+  the labelled close-up separates natural, winding hemp-fibre textural
+  marks from heavy alum-head features and vegetation.
+- [National Palace Museum — Hemp-fibre texture](https://digitalarchive.npm.gov.tw/opendata/Pub/Detail?dep=P&id=795&mode=full):
+  describes round-tip hemp-fibre strokes for stone alongside washes and
+  deliberately reserved light paper.
+- [Way & Shih (2001), *The synthesis of rock textures in Chinese landscape painting*](https://scholar.nycu.edu.tw/en/publications/the-synthesis-of-rock-textures-in-chinese-landscape-painting/):
+  differentiates softly sinuous hemp-fibre strokes from axe-cut marks
+  on harder, steep surfaces.
+
+A subsequent *code-only* painting change now selects two brush families
+from local sampled ridge slope: broken thin hemp-fibre curves for rounded
+flanks and short variable angled side-brush filled wedges for steep rocks.
+All marks retain the same actual silhouette roots and respect depth/mist
+controls. Tests assert both modes and attachment bounds. The new two-family
+render must be visually re-reviewed; the cited run is **before** that
+specific stroke-family change.
