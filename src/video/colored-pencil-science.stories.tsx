@@ -6,6 +6,9 @@ import { ColoredPencilSciencePlate } from "./colored-pencil-science";
 import type { PencilSubject } from "./colored-pencil-science";
 import type { PencilAspect } from "../../registry/video/colored-pencil";
 import { COLOR_PENCIL_FILM } from "./colored-pencil-film";
+import { pencilDemoScene } from "./colored-pencil-demo-scenes";
+import type { PencilDemoSubject } from "./colored-pencil-demo-scenes";
+import { PencilScene } from "../../registry/video/colored-pencil-scene-react";
 
 const meta = {
   title: "Video Production/Film Looks/Colour-pencil",
@@ -158,6 +161,121 @@ function FilmStudio() {
   </main>;
 }
 
+/** Real scenes share the same page-space material and FilmStage-compatible frame addressing.
+ * Presets are original illustrated examples, not scientific measurement or orbital simulation.
+ */
+function WorldStudio() {
+  const [subject, setSubject] = useState<PencilDemoSubject>("terrain");
+  const [aspect, setAspect] = useState<PencilAspect>("landscape");
+  const [frame, setFrame] = useState(285);
+  const [playing, setPlaying] = useState(false);
+  const [paperTooth, setPaperTooth] = useState(.68);
+  const [pressure, setPressure] = useState(1);
+  const [flow, setFlow] = useState(0);
+  const [cameraEnabled, setCameraEnabled] = useState(true);
+  const scene = useMemo(() => {
+    const authored = pencilDemoScene(subject, aspect);
+    return {
+      ...authored,
+      camera: cameraEnabled ? authored.camera : undefined,
+      drawing: {
+        ...authored.drawing, paperTooth,
+        regions: authored.drawing.regions.map(region => ({
+          ...region, layers: region.layers.map(layer => ({
+            ...layer,
+            pressure: Math.min(1, layer.pressure * pressure),
+            flow: (layer.flow ?? 0) + flow,
+          })),
+        })),
+      },
+    };
+  }, [subject, aspect, paperTooth, pressure, flow, cameraEnabled]);
+  useEffect(() => {
+    if (!playing) return;
+    const origin = performance.now(), offset = frame;
+    let raf = 0;
+    const tick = (now: number) => {
+      const next = Math.min(320, offset + Math.floor((now - origin) * .03));
+      setFrame(next);
+      if (next < 320) raf = requestAnimationFrame(tick);
+      else setPlaying(false);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // Playback adopts the frame on play, not on every RAF update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing]);
+  return <main style={page}>
+    <header style={{ maxWidth: 930 }}>
+      <div style={{ fontSize: 12, letterSpacing: 2, fontWeight: 700, color: "#6c795c" }}>
+        MATERIAL-NATIVE / SCENE COMPOSITOR
+      </div>
+      <h1 style={{ font: "600 34px Georgia,serif", margin: "5px 0" }}>
+        Colour-pencil · Illustrated worlds
+      </h1>
+      <p style={{ margin: 0, maxWidth: 850 }}>
+        Three original authored subjects share pressure-sensitive pigment, local stroke fans,
+        layered paper, a frame-addressable camera and screen-safe annotations.
+        Nothing is inferred as a real measurement.
+      </p>
+    </header>
+    <div style={{ display: "flex", alignItems: "end", flexWrap: "wrap", gap: 15, maxWidth: 1080 }}>
+      <label style={label}>World
+        <select aria-label="Pencil world" value={subject}
+          onChange={e => {setPlaying(false); setSubject(e.target.value as PencilDemoSubject);}} style={{ minHeight: 40 }}>
+          <option value="terrain">Landscape · Layered terrain</option>
+          <option value="orbit">Astronomy · Illustrated orbit</option>
+          <option value="circuit">Engineering · Signal pathway</option>
+        </select>
+      </label>
+      <label style={label}>Output
+        <select aria-label="World aspect" value={aspect}
+          onChange={e => {setPlaying(false); setAspect(e.target.value as PencilAspect);}} style={{ minHeight: 40 }}>
+          <option value="landscape">16:9</option><option value="portrait">9:16</option>
+        </select>
+      </label>
+      <label style={label}>Pigment pressure · {Math.round(pressure * 100)}%
+        <input aria-label="World pressure" type="range" min=".2" max="1.3" step=".05"
+          value={pressure} onChange={e => setPressure(Number(e.target.value))}/>
+      </label>
+      <label style={label}>Form-following fan · {flow}°
+        <input aria-label="World stroke fan" type="range" min="-20" max="20" step="1"
+          value={flow} onChange={e => setFlow(Number(e.target.value))}/>
+      </label>
+      <label style={label}>Paper tooth · {Math.round(paperTooth * 100)}%
+        <input aria-label="World paper tooth" type="range" min="0" max="1" step=".05"
+          value={paperTooth} onChange={e => setPaperTooth(Number(e.target.value))}/>
+      </label>
+      <label style={{ display: "flex", alignItems: "center", minHeight: 40, gap: 8 }}>
+        <input aria-label="World camera" type="checkbox" checked={cameraEnabled}
+          onChange={e => setCameraEnabled(e.target.checked)}/> Gentle camera move
+      </label>
+    </div>
+    <div style={{ width: "100%", maxWidth: aspect === "landscape" ? 960 : 510, background: "#F8F2E6",
+      aspectRatio: aspect === "landscape" ? "16/9" : "9/16",
+      boxShadow: "0 16px 44px #514d3d26" }}>
+      <PencilScene scene={scene} frame={frame} label={"Original illustrated " + subject + " story"}/>
+    </div>
+    <div style={{ display: "grid", maxWidth: 960, gap: 8 }}>
+      <label style={{ ...label, width: "100%" }}>World frame · {frame} / 320
+        <input aria-label="World frame" type="range" min="0" max="320"
+          value={frame} onChange={e => {setPlaying(false); setFrame(Number(e.target.value));}}/>
+      </label>
+      <nav aria-label="Pencil world playback" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <button style={button} type="button" onClick={() => {
+          if (frame >= 320) setFrame(0); setPlaying(v => !v);
+        }}>{playing ? "Pause" : frame >= 320 ? "Replay" : "Play scene"}</button>
+        {([["Construction", 20], ["Pigment", 110], ["Detail", 220], ["Final hold", 310]] as const)
+          .map(([name, f]) => <button key={name} type="button" style={button}
+            onClick={() => {setPlaying(false); setFrame(f);}}>{name}</button>)}
+      </nav>
+    </div>
+    <p style={{ color: "#536455", margin: 0, fontSize: 13 }}>
+      All illustrations are fictional demonstration compositions, not evidence-based diagrams.
+    </p>
+  </main>;
+}
+
 export const Studio: StoryObj<typeof meta> = {
   name: "Drawing studio · Interactive",
   args: { aspect: "landscape", subject: "leaf", frame: 280 },
@@ -167,4 +285,10 @@ export const FilmStageStory: StoryObj<typeof meta> = {
   name: "FilmStage · Three-shot proof",
   args: { aspect: "landscape", subject: "leaf", frame: 242 },
   render: () => <FilmStudio/>,
+};
+
+export const IllustratedWorlds: StoryObj<typeof meta> = {
+  name: "Illustrated worlds · Scene studio",
+  args: { aspect: "landscape", subject: "leaf", frame: 285 },
+  render: () => <WorldStudio/>,
 };
