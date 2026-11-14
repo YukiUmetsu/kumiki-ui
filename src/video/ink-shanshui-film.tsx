@@ -12,7 +12,7 @@ import {shanshuiFaceAssets} from "./ink-shanshui-face-plates";
 import {shanshuiGarmentCraft} from "./ink-shanshui-garment-craft";
 import {
   shanshuiBodyFit,shanshuiBodyAssets,applyShanshuiBodyFit,
-  shanshuiFittedRoute,bakeShanshuiGroundedShoes,
+  shanshuiFittedRoute,bakeShanshuiGroundedShoes,bakeShanshuiWalkingHem,
 } from "./ink-shanshui-full-body";
 
 /** A scene-specific portrait, not a replacement for the canonical walking rig.
@@ -34,8 +34,8 @@ export function makeShanshuiScholar(
   return {
     ...base,characterId:"shanshui-scholar",
     revision:(scene==="river-scholar"
-      ?"shanshui-scholar-reader-portrait-river-scholar-v7"
-      :"shanshui-scholar-fine-figure-"+scene+"-v5"),
+      ?"shanshui-scholar-reader-portrait-river-scholar-v8"
+      :"shanshui-scholar-fine-figure-"+scene+"-v6"),
     palette:{
       ...base.palette,ink:"#403329",shadow:"#66513e",wash:"#bd9d7b",
       mist:"#dfcaad",deep:"#937251",paper:"#f6ead4",
@@ -71,6 +71,12 @@ export function makeShanshuiScholar(
         channel:"body",pivot:{x:133,y:188},z:9},
       {id:"robe-outer",asset:"scholar-robe-overlay",parent:"body",
         channel:"body",pivot:{x:136,y:204},z:11},
+      // Actual source-fitted lower robe art has two independently moving,
+      // opaque layers. Their waist/hip pivots follow the existing torso rig.
+      {id:"hem-panel-left",asset:"hem-panel-left",parent:"body",
+        channel:"body",pivot:fit.anchors.leftHip,z:11},
+      {id:"hem-panel-right",asset:"hem-panel-right",parent:"body",
+        channel:"body",pivot:fit.anchors.rightHip,z:11},
       {id:"hem-flow",asset:"scholar-flowing-hem",parent:"body",
         channel:"body",pivot:{x:141,y:270},z:11},
       {id:"sash-tail",asset:"scholar-sash",parent:"body",
@@ -107,7 +113,8 @@ export function makeShanshuiScholar(
     capabilities:[...base.capabilities,"sepia-figure","outer-robe",
       "cloth-ribbon","teacher-measured-proportions",
       "full-figure-source-fit","world-planted-shoes","distinct-face-profiles",
-      "pressure-brush-linecraft","part-native-figure-fine-detail"],
+      "pressure-brush-linecraft","part-native-figure-fine-detail",
+      "independent-opaque-walking-hem"],
   };
 }
 export interface ShanshuiFilmProps {
@@ -146,6 +153,7 @@ export function shanshuiScholarInstance(
     cycleFrames:26,amount:clothAmount,
     parts:{hem:"hem-drape",nearCuff:"near-cuff",farCuff:"far-cuff"},
   },3);
+  const splitHem=bakeShanshuiWalkingHem(plan,fit,clothAmount,SHANSHUI_FRAMES-1);
   const trailing=Array.from({length:76},(_,i)=>{
     const frame=Math.min(299,i*4);
     const vel=inkRouteAt(route,frame).vx;
@@ -158,15 +166,15 @@ export function shanshuiScholarInstance(
   return {
     instanceId:route.instanceId,characterId:"shanshui-scholar",
     revision:(scene==="river-scholar"
-      ?"shanshui-scholar-reader-portrait-river-scholar-v7"
-      :"shanshui-scholar-fine-figure-"+scene+"-v5"),seed:113,
+      ?"shanshui-scholar-reader-portrait-river-scholar-v8"
+      :"shanshui-scholar-fine-figure-"+scene+"-v6"),seed:113,
     targets:{landscape:{x:16,y:77},viewer:{x:176,y:90},
       ...(scene==="river-scholar"?{"scroll-page":{
         x:(fit.anchors.nearHand.x+fit.anchors.farHand.x)/2,
         y:(fit.anchors.nearHand.y+fit.anchors.farHand.y)/2-13,
       }}:{}),
     },
-    corrections:{...correctionTracks,...shoeCorrections,...cloth,
+    corrections:{...correctionTracks,...shoeCorrections,...cloth,...splitHem,
       "sash-tail":trailing,"hem-flow":trailing},
   };
 }
@@ -205,6 +213,8 @@ export function InkShanshuiFilm({frame,controls=DEFAULT_SHANSHUI,
       reducedMotion={reducedMotion} absorption={.72} grain={.63}
       partFinish={{
         body:{bleed:.76},"robe-outer":{bleed:.88},"hem-flow":{bleed:.72},
+        "hem-panel-left":{bleed:.36,dryContour:true},
+        "hem-panel-right":{bleed:.36,dryContour:true},
         "sash-tail":{bleed:.67},"sleeve-paint":{bleed:.32},
         "far-sleeve":{bleed:.7},"near-sleeve":{bleed:.65},
         head:{bleed:.09,dryContour:true},hair:{bleed:.18,dryContour:true},
