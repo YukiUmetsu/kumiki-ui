@@ -797,10 +797,14 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         const output = context.width > context.height ? "landscape" : "portrait";
         if (props.artOnly!==undefined && typeof props.artOnly!=="boolean")
           throw new RangeError("watercolour-master-study artOnly must be boolean.");
+        if(props.craftDetail!==undefined && (typeof props.craftDetail!=="number" ||
+          !Number.isFinite(props.craftDetail) || props.craftDetail<0 || props.craftDetail>1))
+          throw new RangeError("watercolour-master-study craftDetail must be 0..1.");
         return <WatercolourMasterStudyPage study={study}
           spec={watercolourStudySpec(study,output)}
           frame={context.frame} reducedMotion={context.reducedMotion}
-          artOnly={props.artOnly===true}/>;
+          artOnly={props.artOnly===true}
+          craftDetail={typeof props.craftDetail==="number"?props.craftDetail:1}/>;
       }
       case "watercolour-wet-paper": {
         const output = context.width > context.height ? "landscape" : "portrait";

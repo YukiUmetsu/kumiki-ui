@@ -1,4 +1,5 @@
 import { useId, useMemo } from "react";
+import { WatercolourCraftDetails } from "./watercolour-craft-detail";
 import { WatercolourWetPaper } from "../../registry/video/watercolour-wet-paper-react";
 import { paintHash } from "../../registry/video/watercolour-brush";
 import type { WetPaperSpec, WetPigmentDrop } from "../../registry/video/watercolour-wet-paper";
@@ -564,11 +565,15 @@ function CourtyardArt({frame,washFilter}:{frame:number;washFilter:string}) {
   </g>;
 }
 
-export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false,artOnly=false}:{
+export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false,artOnly=false,craftDetail=1}:{
   study:WatercolourStudy;spec:WetPaperSpec;frame:number;reducedMotion?:boolean;
   /** Full-frame painting instead of the editorial study with titles. */
   artOnly?:boolean;
+  /** Bounded 0..1 anatomical, reflected-water, and perspective detail. */
+  craftDetail?:number;
 }) {
+  if(!Number.isFinite(craftDetail)||craftDetail<0||craftDetail>1)
+    throw new RangeError("Watercolour detail must be 0..1.");
   const portrait=spec.height>spec.width;
   const artOnlyPortraitCameras:Record<WatercolourStudy,string>={
     // Crop by a subject-specific camera without distorting its proportions.
@@ -640,6 +645,11 @@ export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false
             reducedMotion={reducedMotion} transparentPaper aria-hidden="true"
             style={{width:960,height:540}}/>
         </g>
+        {/* Observational structure is a separate film-frame pure paint pass.
+            Its botanical marks inherit source rig motion, while water marks
+            follow the current and masonry respects the window openings. */}
+        <WatercolourCraftDetails study={study} seed={spec.seed}
+          frame={reducedMotion?420:frame} detail={craftDetail}/>
         </g>
       </g>
       {!artOnly && <g fill="#46585A">
