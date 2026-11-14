@@ -65,6 +65,33 @@ describe("INK3 character-first, authored-pigment performance",()=>{
     expect(()=>renderToStaticMarkup(createElement(CharacterPresenter,
       {...props,inkMaterial:{seed:-1,grain:.8,absorption:.5}}))).toThrow(RangeError);
   });
+  it("separates wet garment washes from crisp facial details with declared part-level finishes",()=>{
+    const p={definition:INK_TRAVELLER,instance:TRAVELLER_INSTANCE,cues:TRAVELLER_CUES,
+      frame:185,label:"Material-specific paper puppet"};
+    const profiled=renderToStaticMarkup(createElement(CharacterPresenter,{
+      ...p,inkMaterial:{seed:91,grain:.7,absorption:.75,partFinish:{
+        body:{bleed:1},head:{bleed:.18,dryContour:true},
+        hair:{bleed:.05,dryContour:true},eyes:{bleed:0,dryContour:true},
+        mouth:{bleed:0,dryContour:true},
+      }},
+    }));
+    expect(profiled).toContain('data-km-ink-character-part="body"');
+    expect(profiled).toContain('data-km-ink-character-part="eyes"');
+    expect(profiled).toContain('data-km-ink-part-bleed="0.00"');
+    expect(profiled).toContain('data-km-ink-part-dry=""');
+    expect(profiled).toContain('data-km-ink-part-bleed="1.00"');
+    const a=renderToStaticMarkup(createElement(CharacterPresenter,{...p,
+      inkMaterial:{seed:91,grain:.7,absorption:.75,partFinish:{eyes:{bleed:0,dryContour:true}}}}));
+    expect(a).toBe(renderToStaticMarkup(createElement(CharacterPresenter,{...p,
+      inkMaterial:{seed:91,grain:.7,absorption:.75,partFinish:{eyes:{bleed:0,dryContour:true}}}})));
+    for (const partFinish of [
+      {unknown:{bleed:1}}, {eyes:{bleed:Infinity}}, {eyes:{bleed:-.1}},
+      {eyes:{bleed:1.01}}, {eyes:{dryContour:"yes"}},
+    ]) {
+      expect(()=>renderToStaticMarkup(createElement(CharacterPresenter,{...p,
+        inkMaterial:{seed:91,grain:.7,absorption:.75,partFinish:partFinish as never}}))).toThrow(RangeError);
+    }
+  });
   it("renders a figure with the same absolute frame across placement and expression",()=>{
     const props={definition:INK_TRAVELLER,instance:TRAVELLER_INSTANCE,
       cues:TRAVELLER_CUES,track:TRAVELLER_TRACK,frame:188,
