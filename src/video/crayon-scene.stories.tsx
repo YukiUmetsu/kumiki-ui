@@ -38,7 +38,7 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
     // The same absolute-frame rig, pigment and geometry are used in export.
     const close = subject==="wildlife-portrait" && wildlifeCrop!=="composition";
     const ox=aspect==="portrait"?340:676,oy=aspect==="portrait"?599:357;
-    const rootScale=.94;
+    const rootScale=.98;
     const target=wildlifeCrop==="eye"?{x:-56,y:-57,zoom:3.35}:
       wildlifeCrop==="muzzle"?{x:-179,y:-2,zoom:3.0}:
       wildlifeCrop==="ear"?{x:109,y:-222,zoom:2.15}:
