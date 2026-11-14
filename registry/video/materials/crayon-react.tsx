@@ -1,7 +1,7 @@
 import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
 import { crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonProgress } from "./crayon";
-import type { CrayonBounds, CrayonNibStyle, CrayonWaxConstruction } from "./crayon";
+import type { CrayonBounds, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction } from "./crayon";
 import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
 
@@ -30,14 +30,18 @@ export type WaxProps = {
   edgeRoughness?: number;
   /** Wax-contact profile. Rounded retains the old constant-width line. */
   nibStyle?: CrayonNibStyle;
+  /** Authored stroke sequence; changes draw-in choreography, not pigment. */
+  strokeOrder?: CrayonStrokeOrder;
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0, nibStyle = "tapered" }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0, nibStyle = "tapered", strokeOrder = "patches" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
   if (nibStyle !== "rounded" && nibStyle !== "tapered")
     throw new RangeError("crayon nib style must be rounded or tapered");
+  if (strokeOrder !== "scanline" && strokeOrder !== "patches")
+    throw new RangeError("crayon stroke order must be scanline or patches");
   if (!Number.isFinite(edgeRoughness) || edgeRoughness<0 || edgeRoughness>1)
     throw new RangeError("crayon edge roughness out of bounds");
   if (redraw) assertCrayonRedrawOptions(redraw);
@@ -60,8 +64,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const raw = useId(), clip = "waxclip-" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
   const pores = clip + "-tooth";
   const deposit = clip + "-deposit";
-  const marks = useMemo(() => crayonMarks(drawBounds, { seed, pressure, spacing, passes: 2 }),
-    [drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, seed, pressure, spacing]);
+  const marks = useMemo(() => crayonMarks(drawBounds, { seed, pressure, spacing, passes: 2, strokeOrder }),
+    [drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, seed, pressure, spacing, strokeOrder]);
   // Stable painted paper / silhouette; the small reworked pigment strokes are
   // the only parts that redraw on held exposures. No mutable frame history.
   // Only the first layer of authored wax strokes drives the dense undercoat
@@ -80,7 +84,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     [seed,edgeRoughness]);
   return <g data-km-crayon-region="" data-km-crayon-seed={seed} data-km-crayon-build={phase}
     data-km-crayon-coverage={coverage}
-    data-km-crayon-exposure={redraw ? exposure : undefined}>
+    data-km-crayon-exposure={redraw ? exposure : undefined}
+    data-km-crayon-stroke-order={strokeOrder}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
       {coverage==="opaque" && pigmentProgress>0 && pigmentProgress<1 && <mask id={deposit}

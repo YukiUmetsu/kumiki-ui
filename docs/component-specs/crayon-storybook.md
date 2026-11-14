@@ -743,3 +743,22 @@ The ribbon is an economical **contact model**, not wax height-field physics.
 It does not reproduce bidirectional pigment pickup, multi-layer optical
 mixing, or measured real-paper calibration. Actual full-film playback and
 human visual approval are still necessary.
+
+## Hand-guided local coloring order (2026-11-14)
+
+The WaxRegion / CRAYON1 wax scene element now accepts
+`strokeOrder: "patches" | "scanline"`. The new default, `patches`,
+fills small neighboring areas in a serpentine nib path before moving to the
+next region. This is a spatially coherent simulated hand coloring order,
+not a claim of measured human hand movements. `scanline` restores the
+legacy row-major reveal when a particular shot needs it.
+
+The underlying precomputed wax shapes, pressure, colors, masks, pigment
+coverage, and IDs do not change between orders. Only absolute-frame
+**deposit sequencing** changes. The second coating pass follows the same
+order after the first. No editable scene data needs migration.
+
+Both options are exposed in **Video production / Film Looks / Crayon /
+Scene Engine** and in Material Studies. The comparison can be watched
+with the same seed and material settings. Changing this control never
+resets the underlying film or invents a new timeline.

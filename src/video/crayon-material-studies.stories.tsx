@@ -7,10 +7,11 @@ interface MaterialStudyProps {
   frame:number; pressure:number; paperTooth:number; left:"open"|"opaque";
   right:"open"|"opaque"; underlay:"cobalt"|"coral";
   leftNib:"rounded"|"tapered"; rightNib:"rounded"|"tapered";
+  strokeOrder:"scanline"|"patches";
 }
 const headD="M-94 20Q-113 -49 -67 -89L-78 -145Q-41 -143 -13 -120L23 -151Q66 -132 70 -92Q132 -71 111 24Q85 99 -2 105Q-85 101 -94 20Z";
 const ink="#48576b";
-function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,leftNib,rightNib}:MaterialStudyProps){
+function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,leftNib,rightNib,strokeOrder}:MaterialStudyProps){
   const id=useId().replace(/[^a-zA-Z0-9_-]/g,"");
   const tooth="crayon-optics-"+id;
   const base=underlay==="cobalt" ? "#365f9b" : "#b65a69";
@@ -19,7 +20,8 @@ function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,leftNib,ri
     <g key={cx} transform={"translate("+cx+" 295)"} data-km-crayon-optics-actor={coverage}>
       <WaxRegion d={headD} bounds={{x:-120,y:-158,width:250,height:266}}
         colors={["#e4a271","#a76f72","#f7cf97"]}
-        coverage={coverage} nibStyle={nibStyle} seed={seed} pressure={pressure} spacing={7}
+        coverage={coverage} nibStyle={nibStyle} strokeOrder={strokeOrder}
+        seed={seed} pressure={pressure} spacing={7}
         tooth={tooth} frame={frame} first={0} last={100} reduced={false}
         construction={{order:"outline-first",outlineFraction:.17,glaze:.19}} />
       <WaxLine d="M-62 -60Q-29 -79 -6 -58M29 -60Q50 -76 67 -54"
@@ -62,7 +64,7 @@ const meta={
   id:"video-crayon-material-studies",
   component:MaterialStudy,
   args:{frame:115,pressure:.84,paperTooth:.72,left:"open",right:"opaque",
-    leftNib:"rounded",rightNib:"tapered",underlay:"cobalt"},
+    leftNib:"rounded",rightNib:"tapered",strokeOrder:"patches",underlay:"cobalt"},
   argTypes:{
     frame:{control:{type:"range",min:0,max:120,step:1}},
     pressure:{control:{type:"range",min:.25,max:1,step:.05}},
@@ -71,6 +73,7 @@ const meta={
     right:{control:"inline-radio",options:["open","opaque"]},
     leftNib:{control:"inline-radio",options:["rounded","tapered"]},
     rightNib:{control:"inline-radio",options:["rounded","tapered"]},
+    strokeOrder:{control:"inline-radio",options:["patches","scanline"]},
     underlay:{control:"inline-radio",options:["cobalt","coral"]},
   },
 } satisfies Meta<typeof MaterialStudy>;
@@ -89,4 +92,10 @@ export const StrokePathUnderpainting:Story={
 export const NibContactComparison:Story={
   args:{frame:115,left:"opaque",right:"opaque",leftNib:"rounded",rightNib:"tapered",
     pressure:.93,paperTooth:.84,underlay:"cobalt"},
+};
+
+/** Same wax marks; only the movement/order of colored hand strokes changes. */
+export const LocalColoringVsScanline:Story={
+  args:{frame:44,left:"opaque",right:"opaque",leftNib:"tapered",rightNib:"tapered",
+    strokeOrder:"patches",pressure:.87,paperTooth:.78},
 };

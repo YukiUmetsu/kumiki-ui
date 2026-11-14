@@ -1,6 +1,8 @@
 /** Pure, frame-addressable wax-crayon deposition. No randomness, timers, filters or canvas state. */
 export interface CrayonBounds { x: number; y: number; width: number; height: number }
 export type CrayonNibStyle = "rounded" | "tapered";
+/** Order of actual colored wax deposits, independent of the mark's shape. */
+export type CrayonStrokeOrder = "scanline" | "patches";
 /** A quadratic centerline retained alongside the older SVG stroke contract. */
 export type CrayonNibArc = readonly [number, number, number, number, number, number];
 export interface CrayonMark {
@@ -11,7 +13,11 @@ export interface CrayonMark {
   /** Cached full-contact geometry for repeated film frames. */
   nibD: string;
 }
-export interface CrayonOptions { seed: number; pressure: number; spacing?: number; passes?: number }
+export interface CrayonOptions {
+  seed: number; pressure: number; spacing?: number; passes?: number;
+  /** Hand-guided local coloring blocks (default) or legacy row-major wipe. */
+  strokeOrder?: CrayonStrokeOrder;
+}
 /**
  * Physically motivated, authored order of outlining and hand-hatching.
  * Unlike a digital mask wipe, each native wax mark is deposited progressively.
@@ -57,6 +63,8 @@ export function assertCrayonOptions(options: CrayonOptions): void {
     throw new RangeError("crayon spacing must be between 4 and 32");
   if (options.passes !== undefined && (!Number.isSafeInteger(options.passes) || options.passes < 1 || options.passes > 3))
     throw new RangeError("crayon passes must be between 1 and 3");
+  if (options.strokeOrder !== undefined && options.strokeOrder !== "scanline" && options.strokeOrder !== "patches")
+    throw new RangeError("crayon stroke order must be scanline or patches");
 }
 export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): CrayonMark[] {
   assertCrayonOptions(options);
@@ -130,6 +138,24 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
         marks.push(mark);
       }
     }
+  }
+  if (options.strokeOrder !== "scanline") {
+    // Human drawing is organized into nearby rubbing blocks rather than a
+    // left-to-right raster scan. Fill one ~5-row tile before moving the hand;
+    // alternate direction inside adjacent tiles to limit pen-up travel.
+    // Sorting only changes reveal order: each mark retains its original
+    // geometry, seed, pressure, ID and complete nib path.
+    const rank = (index: number): number => {
+      const layer = Math.floor(index / (rows * groups));
+      const remainder = index % (rows * groups);
+      const row = Math.floor(remainder / groups), group = remainder % groups;
+      const block = Math.floor(row / 5), local = row % 5;
+      const height = Math.min(5, rows - block * 5);
+      const column = block % 2 === 0 ? group : groups - 1 - group;
+      const line = (column + block) % 2 === 0 ? local : height - 1 - local;
+      return layer * rows * groups + block * groups * 5 + column * 5 + line;
+    };
+    marks.sort((a,b) => rank(a.index) - rank(b.index));
   }
   return marks;
 }

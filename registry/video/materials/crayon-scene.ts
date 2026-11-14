@@ -1,5 +1,5 @@
 import { assertCrayonOptions, crayonConstructionWindows } from "./crayon";
-import type { CrayonBounds, CrayonNibStyle, CrayonWaxConstruction } from "./crayon";
+import type { CrayonBounds, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction } from "./crayon";
 import { assertCrayonRedrawOptions } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
 
@@ -68,6 +68,8 @@ export interface CrayonWaxElement extends CrayonBase {
   angle?: number;
   /** Pressure-shaped contact (default) or legacy rounded line renderer. */
   nibStyle?: CrayonNibStyle;
+  /** Physically localized hand-coloring progress or historic scanline order. */
+  strokeOrder?: CrayonStrokeOrder;
   /** Opaque, silhouette-blocking wax underpaint for characters and solid props;
    * default open retains translucent scenery and older CRAYON1 documents. */
   coverage?: "open" | "opaque";
@@ -294,6 +296,8 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".coverage must be open or opaque");
         if (node.nibStyle !== undefined && node.nibStyle !== "rounded" && node.nibStyle !== "tapered")
           errors.push(p + ".nibStyle must be rounded or tapered");
+        if (node.strokeOrder !== undefined && node.strokeOrder !== "scanline" && node.strokeOrder !== "patches")
+          errors.push(p + ".strokeOrder must be scanline or patches");
         if(node.edgeRoughness!==undefined && (!finite(node.edgeRoughness)||
           node.edgeRoughness<0||node.edgeRoughness>1))
           errors.push(p+".edgeRoughness must be in [0,1]");
