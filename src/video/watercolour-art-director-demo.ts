@@ -155,14 +155,18 @@ const bird = (): WatercolourArtPart => {
       highlight: "#AFBEBD", shadow: "#425D70", edgePooling: .21,
     }),
     hindLeg, nearLeg, neck, wing,
-    ...Array.from({ length: 15 }, (_, i) => {
-      const x = 164 + i * 8;
-      return line("back-plumage-" + i,
-        "M" + x + " " + (196 - Math.sin(i * .28) * 10).toFixed(1) +
-        " Q" + (x + 9) + " " + (188 + i % 3 * 5) +
-        " " + (x + 16) + " " + (214 + i % 4 * 7),
-        i % 4 === 0 ? "#F0EDE0" : "#4A7280", .65, .43, "drybrush");
-    }),
+    // One compound contour per watercolor value instead of fifteen SVG
+    // sibling nodes: every authored individual feather arc is still retained.
+    ...(["light", "shadow"] as const).map(tone =>
+      line("back-plumage-" + tone,
+        Array.from({ length: 15 }, (_, i) => {
+          if ((i % 4 === 0) !== (tone === "light")) return "";
+          const x = 164 + i * 8;
+          return "M" + x + " " + (196 - Math.sin(i * .28) * 10).toFixed(1) +
+            " Q" + (x + 9) + " " + (188 + i % 3 * 5) +
+            " " + (x + 16) + " " + (214 + i % 4 * 7);
+        }).filter(Boolean).join(" "),
+        tone === "light" ? "#F0EDE0" : "#4A7280", .65, .43, "drybrush")),
   ], [pose(0, 0, 0), pose(140, 0, -2), pose(245, 0, 0),
     pose(359, 0, 0)]);
 };
@@ -309,13 +313,16 @@ export function watercolorWetlandSpec(output: WetlandOutput, seed = 83): Waterco
     wash("heron-contact-pool",
       "M580 474 Q604 469 642 474 C664 471 700 469 735 475 Q712 483 687 484 Q649 480 616 484 Q591 482 580 474 Z",
       "#718E92", .28, {highlight:"#B7C7BF",shadow:"#597F87",edgePooling:.32}),
-    ...Array.from({length:7},(_,i)=>{
-      const x=597+i*24+(i%3)*7,y=485+i%4*5;
-      return line("heron-reflection-"+i,
-        "M"+x+" "+y+" q"+(13+i%3*8)+" -3 "+(31+i%4*7)+" -1"+
-        " M"+(x+9)+" "+(y+7)+" q"+(8+i%4*2)+" 2 "+(17+i%3*6)+" 0",
-        i%3===0?"#5C8790":"#93B0AB",.7+i%3*.22,.22+i%4*.045,"drybrush");
-    }),
+    // Preserve every broken water contact but group same-pigment brush marks.
+    ...(["deep","light"] as const).map(tone =>
+      line("heron-reflection-"+tone,
+        Array.from({length:7},(_,i)=>{
+          if ((i%3===0)!==(tone==="deep"))return "";
+          const x=597+i*24+(i%3)*7,y=485+i%4*5;
+          return "M"+x+" "+y+" q"+(13+i%3*8)+" -3 "+(31+i%4*7)+" -1"+
+            " M"+(x+9)+" "+(y+7)+" q"+(8+i%4*2)+" 2 "+(17+i%3*6)+" 0";
+        }).filter(Boolean).join(" "),
+        tone==="deep"?"#5C8790":"#93B0AB",.86,.28,"drybrush")),
     group("heron-placement", [bird()], [pose(0, 426, 19), pose(359, 426, 19)]),
     // Contact shadows follow the toes; avoid a disconnected floating animal.
     wash("toe-silt-left",
@@ -324,10 +331,13 @@ export function watercolorWetlandSpec(output: WetlandOutput, seed = 83): Waterco
     wash("toe-silt-right",
       "M620 473 Q632 469 644 472 Q651 476 634 480 Q619 479 620 473 Z",
       "#87999A", .22, {highlight:"#D0D0BB",shadow:"#5A777D",edgePooling:.18}),
-    ...Array.from({ length: 8 }, (_, i) => line("foot-ripple-" + i,
-      "M" + (602 + i * 11) + " " + (474 + i % 2 * 3) +
-      " q" + (7 + i % 3 * 3) + " -3 " + (17 + i % 3 * 4) + " 0",
-      i % 2 ? "#72949A" : "#A7B6AD", .8, .56)),
+    ...(["cool","warm"] as const).map(tone => line("foot-ripple-"+tone,
+      Array.from({length:8},(_,i)=>{
+        if ((i%2===0)!==(tone==="warm"))return "";
+        return "M" + (602 + i * 11) + " " + (474 + i % 2 * 3) +
+          " q" + (7 + i % 3 * 3) + " -3 " + (17 + i % 3 * 4) + " 0";
+      }).filter(Boolean).join(" "),
+      tone==="cool"?"#72949A":"#A7B6AD",.8,.56)),
   ];
   return {
     version: 1, width, height, seed, paper,
