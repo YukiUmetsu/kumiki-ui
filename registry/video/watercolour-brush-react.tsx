@@ -1,7 +1,7 @@
-import { useId, useMemo } from "react";
+import { memo, useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
 import { buildBrushRibbon, evaluatePaintStroke, inspectPaintSurface, paintHash, sampleBrushCenterline } from "./watercolour-brush";
-import type { PaintStroke, PaintSurfaceSpec, BrushSample } from "./watercolour-brush";
+import type { PaintStroke, PaintSurfaceSpec, BrushSample, StrokePhase } from "./watercolour-brush";
 
 export interface WatercolourSurfaceProps extends Omit<SVGProps<SVGSVGElement>, "children" | "width" | "height" | "viewBox"> {
   spec: PaintSurfaceSpec;
@@ -86,6 +86,61 @@ interface PreparedStroke {
  * holes and directional bristle splitting. Filters act ONLY on pigmented edges.
  * No simulated clock, canvas context or random input is needed during capture.
  */
+/** Dried strokes do not spend another React reconciliation or SVG filter pass
+ * when only a later, still-wet stroke changes. A vital contract for long films.
+ */
+interface PaintStrokeLayerProps {
+  spec: PaintSurfaceSpec;
+  stroke: PaintStroke;
+  prepared: PreparedStroke;
+  phase: StrokePhase;
+  i: number;
+  uid: string;
+}
+const TONE_LEVELS = [0, .23, .38, .55, .72, .91] as const;
+const PaintStrokeLayer = memo(function PaintStrokeLayer({ spec, stroke, prepared, phase, i, uid }: PaintStrokeLayerProps) {
+  if (phase.deposit === 0) return null;
+  const main = buildBrushRibbon(stroke, phase.deposit, 0, spec.seed + i);
+  const spread = buildBrushRibbon(stroke, phase.deposit, .26 * stroke.water * phase.spread, spec.seed + i);
+  const density = TONE_LEVELS[stroke.tone] * stroke.load;
+  const coreOpacity = Math.min(.98, density * (.85 - stroke.dryBrush * .11));
+  const edgeOpacity = Math.min(.4, density * (.12 + stroke.water * .21) * phase.spread);
+  const tint = Math.min(.22, density * .24 * phase.spread);
+  const clip = uid + "-clip-" + i, maskId = uid + "-bristles-" + i;
+  const dryFibers = stroke.dryBrush >= .15 && prepared.bristles.length > 0;
+  return <g data-km-brush-stroke={stroke.id} data-km-paint-phase={phase.settled ? "dry" : "wet"}
+    style={{ mixBlendMode: "multiply" }} pointerEvents="none">
+    <defs>
+      <clipPath id={clip} clipPathUnits="userSpaceOnUse"><path d={main.path}/></clipPath>
+      {dryFibers && <mask id={maskId} maskUnits="userSpaceOnUse"
+        x={0} y={0} width={spec.width} height={spec.height}>
+        <rect width={spec.width} height={spec.height} fill="white"/>
+        {prepared.bristles.map((mark, j) =>
+          <path key={j} d={mark.d} stroke="#000" opacity={stroke.dryBrush * mark.opacity}
+            strokeWidth={mark.width} fill="none" strokeLinecap="round"/>)}
+      </mask>}
+    </defs>
+    {phase.spread > 0 && <path data-km-wet-spread="" d={spread.path} fill={stroke.color}
+      opacity={edgeOpacity} filter={stroke.width > 20 ? `url(#${uid}-edge)` : undefined}/>}
+    <path data-km-deposition="" d={main.path} fill={stroke.color} opacity={coreOpacity}
+      mask={dryFibers ? `url(#${maskId})` : undefined}/>
+    <g clipPath={`url(#${clip})`}>
+      {prepared.flecks.map((p, j) => <circle key={j} cx={p.x} cy={p.y} r={p.radius}
+        fill={j % 4 === 0 ? spec.paper.color : stroke.color}
+        opacity={(j % 4 === 0 ? .48 : .29) * p.alpha * (stroke.dryBrush + spec.paper.tooth * .7)}/>)}
+      {stroke.water > .15 && phase.spread > 0 && prepared.blooms.map((b, j) =>
+        <circle key={j} cx={b.x} cy={b.y} r={b.r * (.65 + phase.spread * .35)}
+          fill={`url(#${uid}-bloom)`} opacity={b.alpha * stroke.water * phase.spread}/>)}
+      {tint > 0 && <path d={main.path} fill={stroke.color} opacity={tint * (1 - .25 * phase.absorption)}/>}
+    </g>
+  </g>;
+}, (a, b) =>
+  a.spec === b.spec && a.stroke === b.stroke && a.prepared === b.prepared &&
+  a.i === b.i && a.uid === b.uid && a.phase.deposit === b.phase.deposit &&
+  a.phase.spread === b.phase.spread && a.phase.absorption === b.phase.absorption &&
+  a.phase.settled === b.phase.settled
+);
+
 export function WatercolourSurface({
   spec, frame, reducedMotion = false, transparentPaper = false,
   label = "Brush-painted watercolor illustration", style, ...props
@@ -101,7 +156,6 @@ export function WatercolourSurface({
     return { samples, flecks: pigmentMarks(spec, stroke, index, samples),
       bristles: bristleMarks(spec, stroke, index, samples), blooms: blooms(spec, index, samples) };
   }), [spec]);
-  const toneLevels = [0, .23, .38, .55, .72, .91] as const;
 
   return <svg {...props} role={props["aria-hidden"] ? undefined : "img"}
     aria-label={props["aria-hidden"] ? undefined : label}
@@ -121,21 +175,6 @@ export function WatercolourSurface({
         <stop offset="94%" stopColor="#000000" stopOpacity=".25" />
         <stop offset="100%" stopColor="#000000" stopOpacity="0" />
       </radialGradient>
-      {spec.strokes.map((stroke, i) => {
-        // Saturated wet washes have no directional dry-brush gaps. Skip their
-        // offscreen masks entirely; this matters for 30 fps SVG capture.
-        if (stroke.dryBrush < .15) return null;
-        const phase = evaluatePaintStroke(stroke, frame, reducedMotion);
-        if (phase.deposit === 0) return null;
-        const ribbon = buildBrushRibbon(stroke, phase.deposit, 0, spec.seed + i);
-        return <mask key={stroke.id} id={uid + "-bristles-" + i} maskUnits="userSpaceOnUse"
-          x={0} y={0} width={spec.width} height={spec.height}>
-          <rect width={spec.width} height={spec.height} fill="white"/>
-          {ribbon.path && prepared[i].bristles.map((mark, j) =>
-            <path key={j} d={mark.d} stroke="#000" opacity={stroke.dryBrush * mark.opacity}
-              strokeWidth={mark.width} fill="none" strokeLinecap="round"/>)}
-        </mask>;
-      })}
     </defs>
     {!transparentPaper && <>
       <rect width={spec.width} height={spec.height} fill={spec.paper.color}/>
@@ -145,38 +184,8 @@ export function WatercolourSurface({
           transform={`rotate(${p.angle.toFixed(2)} ${p.x.toFixed(1)} ${p.y.toFixed(1)})`}/>)}
       </g>
     </>}
-    {spec.strokes.map((stroke, i) => {
-      const phase = evaluatePaintStroke(stroke, frame, reducedMotion);
-      if (phase.deposit === 0) return null;
-      const main = buildBrushRibbon(stroke, phase.deposit, 0, spec.seed + i);
-      const spread = buildBrushRibbon(stroke, phase.deposit,
-        .26 * stroke.water * phase.spread, spec.seed + i);
-      const density = toneLevels[stroke.tone] * stroke.load;
-      const coreOpacity = Math.min(.98, density * (.85 - stroke.dryBrush * .11));
-      const edgeOpacity = Math.min(.4, density * (.12 + stroke.water * .21) * phase.spread);
-      const tint = Math.min(.22, density * .24 * phase.spread);
-      const clip = uid + "-clip-" + i;
-      return <g key={stroke.id} data-km-brush-stroke={stroke.id} data-km-paint-phase={phase.settled ? "dry" : "wet"}
-        style={{ mixBlendMode: "multiply" }} pointerEvents="none">
-        <defs><clipPath id={clip} clipPathUnits="userSpaceOnUse"><path d={main.path}/></clipPath></defs>
-        {/* Wet seepage extends beyond the dry footprint; this is an actual second ribbon, not an entire-scene blur. */}
-        {phase.spread > 0 && <path data-km-wet-spread="" d={spread.path} fill={stroke.color}
-          opacity={edgeOpacity} filter={`url(#${uid}-edge)`}/>}
-        <path data-km-deposition="" d={main.path} fill={stroke.color} opacity={coreOpacity}
-          mask={stroke.dryBrush >= .15 ? `url(#${uid}-bristles-${i})` : undefined}/>
-        <g clipPath={`url(#${clip})`}>
-          {/* Concentrations settle into paper valleys; a different distribution is fixed for every stroke. */}
-          {prepared[i].flecks.map((p, j) => <circle key={j} cx={p.x} cy={p.y} r={p.radius}
-            fill={j % 4 === 0 ? spec.paper.color : stroke.color}
-            opacity={(j % 4 === 0 ? .48 : .29) * p.alpha * (stroke.dryBrush + spec.paper.tooth * .7)}
-          />)}
-          {stroke.water > .15 && phase.spread > 0 && prepared[i].blooms.map((b, j) =>
-            <circle key={j} cx={b.x} cy={b.y} r={b.r * (.65 + phase.spread * .35)}
-              fill={`url(#${uid}-bloom)`} opacity={b.alpha * stroke.water * phase.spread}/>)}
-          {/* Shallow transparent glazing: overlaid marks multiply optically instead of hiding the paper. */}
-          {tint > 0 && <path d={main.path} fill={stroke.color} opacity={tint * (1 - .25 * phase.absorption)}/>}
-        </g>
-      </g>;
-    })}
+    {spec.strokes.map((stroke, i) => <PaintStrokeLayer key={stroke.id}
+      spec={spec} stroke={stroke} i={i} uid={uid} prepared={prepared[i]}
+      phase={evaluatePaintStroke(stroke, frame, reducedMotion)}/>)}
   </svg>;
 }
