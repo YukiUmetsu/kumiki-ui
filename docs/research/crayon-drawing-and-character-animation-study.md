@@ -51,9 +51,9 @@ This is an *illustrative fade*, **not** physical erasing of deposited wax.
 
 The original 450-frame `crayonCharacterDrawScene(aspect, options)` produces
 the same character identity in both landscape and portrait from explicit
-phase timing: paper/background → pale sketch axes and silhouette guides →
+phase timing: blank paper → pale sketch axes and silhouette guides →
 tail/body/ears contour construction → directional wax hatching → face/muzzle →
-flower details → a small emotional acting payoff. Moving parent joints and
+a softly drawn background → flower details and a small acting payoff. Moving parent joints and
 mouth/eye cues begin only after drawing construction has completed.
 
 Interactive previews:
