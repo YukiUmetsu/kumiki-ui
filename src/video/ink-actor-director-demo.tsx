@@ -151,8 +151,6 @@ export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false}:{
         mouth:{bleed:0,dryContour:true},
         brush:{bleed:0,dryContour:true},
       }}
-      /** Approved traveller artwork reserves 10 px below boot soles; offset
-       * only its visual rig baseline, not the IK ground or stage world. */
       style={{marginTop:10}}
       />}>
     <div data-km-ink-directed-caption="" style={{position:"absolute",
