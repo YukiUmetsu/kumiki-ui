@@ -36,6 +36,8 @@ export interface PencilRegion {
   transform?: string;
   /** Optional exceedingly light base tone; hatching remains the actual visible pigment. */
   underpaint?: string;
+  /** Paper-bound opaque base for layered foreground drawings, 0..1. Default preserves CP1 light tint. */
+  underpaintOpacity?: number;
   layers: readonly PencilPigmentLayer[];
   contour: PencilTrace;
   details?: readonly PencilTrace[];
@@ -109,6 +111,10 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
       issues.push(at + ".transform: unsupported SVG transform.");
     if (region.underpaint !== undefined && !HEX.test(region.underpaint))
       issues.push(at + ".underpaint: invalid hex colour.");
+    if (region.underpaintOpacity !== undefined &&
+        (!Number.isFinite(region.underpaintOpacity) || region.underpaintOpacity < 0 ||
+         region.underpaintOpacity > 1 || region.underpaint === undefined))
+      issues.push(at + ".underpaintOpacity: needs a base pigment and value in 0..1.");
     if (!validTrace(region.contour)) issues.push(at + ".contour: invalid graphite stroke.");
     if (!Array.isArray(region.layers) || region.layers.length < 1 || region.layers.length > 6) {
       issues.push(at + ".layers: require 1–6 pigment passes.");
@@ -216,6 +222,8 @@ export interface PencilObjectInput {
   /** Shading direction follows the authored object's dominant form. */
   direction?: number;
   material?: "soft" | "layered" | "dense";
+  /** Original foreground fill holds out background strokes underneath articulated parts. */
+  underpaintOpacity?: number;
   /** A curved object needs directional stroke fan, independent of camera movement. */
   flow?: number;
   /** Value emphasis for cylindrical, convex or rim-lit forms. */
@@ -227,13 +235,15 @@ export interface PencilObjectInput {
 export function createPencilRegion(input: PencilObjectInput): PencilRegion {
   const { id, path, bounds, palette, seed, startFrame, durationFrames, direction = -28,
     material = "layered", contourColor = "#444A45", transform, details,
-    flow = 0, tone = "even" } = input;
+    flow = 0, tone = "even", underpaintOpacity } = input;
   if (!Number.isSafeInteger(startFrame) || startFrame < 0 ||
       !Number.isSafeInteger(durationFrames) || durationFrames < 30 ||
       !Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647 ||
       !Number.isFinite(direction) || Math.abs(direction) > 180 ||
       !Number.isFinite(flow) || Math.abs(flow) > 60 ||
       !["even", "core", "rim"].includes(tone) ||
+      (underpaintOpacity !== undefined && (!Number.isFinite(underpaintOpacity) ||
+        underpaintOpacity < 0 || underpaintOpacity > 1)) ||
       palette.length !== 3 || palette.some(c => !HEX.test(c)) || !HEX.test(contourColor) ||
       !["soft", "layered", "dense"].includes(material))
     throw new RangeError("Invalid pencil object palette, material, direction or drawing frames.");
@@ -252,6 +262,7 @@ export function createPencilRegion(input: PencilObjectInput): PencilRegion {
   }));
   const region: PencilRegion = {
     id, path, bounds, transform, details,
+    underpaint: underpaintOpacity === undefined ? undefined : palette[0], underpaintOpacity,
     contour: { path, color: contourColor, width: 1.55, opacity: .74,
       startFrame, durationFrames: Math.floor(durationFrames * .38) },
     layers,
