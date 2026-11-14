@@ -106,8 +106,8 @@ describe("CRAYON1 actual subtractive wax sgraffito",()=>{
        expect(node.sgraffito?.d).toContain("Q");
      }
      const orig=spec.elements.find(x=>x.id==="head");
-     expect(orig?.kind).toBe("wax");
-     expect(orig?.sgraffito).toBeUndefined();
+     if(orig?.kind!=="wax")throw new Error("Expected fully painted head");
+     expect(orig.sgraffito).toBeUndefined();
    });
  }
 });
