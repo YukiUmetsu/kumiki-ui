@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "id": "painted-worlds-watercolour-study",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "nature-painting",
+      "recipeId": "slot",
+      "durationFrames": 400,
+      "content": {
+        "slot": "painted-composition",
+        "label": "Original material study: nature",
+        "props": {
+          "genre": "nature"
+        }
+      }
+    },
+    {
+      "id": "architecture-painting",
+      "recipeId": "slot",
+      "durationFrames": 400,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "painted-composition",
+        "label": "Original material study: architecture",
+        "props": {
+          "genre": "architecture"
+        }
+      }
+    },
+    {
+      "id": "science-painting",
+      "recipeId": "slot",
+      "durationFrames": 400,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "painted-composition",
+        "label": "Original material study: science",
+        "props": {
+          "genre": "science"
+        }
+      }
+    },
+    {
+      "id": "product-painting",
+      "recipeId": "slot",
+      "durationFrames": 400,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "painted-composition",
+        "label": "Original material study: product",
+        "props": {
+          "genre": "product"
+        }
+      }
+    }
+  ]
+}
