@@ -1,7 +1,7 @@
 import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
-import { crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonProgress } from "./crayon";
-import type { CrayonBounds, CrayonNibStyle, CrayonWaxConstruction } from "./crayon";
+import { crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
+import type { CrayonBounds, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction } from "./crayon";
 import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
 
@@ -30,14 +30,18 @@ export type WaxProps = {
   edgeRoughness?: number;
   /** Wax-contact profile. Rounded retains the old constant-width line. */
   nibStyle?: CrayonNibStyle;
+  /** Authored stroke sequence; changes draw-in choreography, not pigment. */
+  strokeOrder?: CrayonStrokeOrder;
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0, nibStyle = "tapered" }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0, nibStyle = "tapered", strokeOrder = "patches" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
   if (nibStyle !== "rounded" && nibStyle !== "tapered")
     throw new RangeError("crayon nib style must be rounded or tapered");
+  if (strokeOrder !== "scanline" && strokeOrder !== "patches")
+    throw new RangeError("crayon stroke order must be scanline or patches");
   if (!Number.isFinite(edgeRoughness) || edgeRoughness<0 || edgeRoughness>1)
     throw new RangeError("crayon edge roughness out of bounds");
   if (redraw) assertCrayonRedrawOptions(redraw);
@@ -60,8 +64,11 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const raw = useId(), clip = "waxclip-" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
   const pores = clip + "-tooth";
   const deposit = clip + "-deposit";
-  const marks = useMemo(() => crayonMarks(drawBounds, { seed, pressure, spacing, passes: 2 }),
-    [drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, seed, pressure, spacing]);
+  // Contact pressure changes the opacity of raised paper-grain interruptions.
+  // This remains a detail mask for the wax layer, never for opaque underpaint.
+  const reliefContact = Number((.26 + (1-pressure)*.67).toFixed(4));
+  const marks = useMemo(() => crayonMarks(drawBounds, { seed, pressure, spacing, passes: 2, strokeOrder }),
+    [drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, seed, pressure, spacing, strokeOrder]);
   // Stable painted paper / silhouette; the small reworked pigment strokes are
   // the only parts that redraw on held exposures. No mutable frame history.
   // Only the first layer of authored wax strokes drives the dense undercoat
@@ -80,7 +87,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     [seed,edgeRoughness]);
   return <g data-km-crayon-region="" data-km-crayon-seed={seed} data-km-crayon-build={phase}
     data-km-crayon-coverage={coverage}
-    data-km-crayon-exposure={redraw ? exposure : undefined}>
+    data-km-crayon-exposure={redraw ? exposure : undefined}
+    data-km-crayon-stroke-order={strokeOrder}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
       {coverage==="opaque" && pigmentProgress>0 && pigmentProgress<1 && <mask id={deposit}
@@ -91,7 +99,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         <g fill="none" stroke="#fff" strokeLinecap="round"
           transform={angle ? "rotate(" + angle + " " + cx + " " + cy + ")" : undefined}>
           {depositMarks.map((mark,i)=>{
-            const progress=crayonProgress(frame,fillFirst,fillLast,i,depositMarks.length,reduced);
+            const progress=crayonStrokeProgress(frame,fillFirst,fillLast,i,depositMarks.length,strokeOrder,reduced);
             return progress<=0 ? null : <path key={i} d={mark.d} pathLength={100}
               strokeWidth={Math.max(spacing*1.15, mark.width*1.7)}
               strokeDasharray={100} strokeDashoffset={100*(1-progress)}/>;
@@ -103,6 +111,12 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         <rect x={bounds.x - 25} y={bounds.y - 25}
           width={bounds.width + 50} height={bounds.height + 50}
           fill={"url(#" + tooth + "-texture)"} />
+        {/* Same paper coordinates for every overlapping wax layer. Dark ridges
+            interrupt light contact more strongly; heavy wax fills the tooth. */}
+        <rect x={bounds.x - 25} y={bounds.y - 25}
+          width={bounds.width + 50} height={bounds.height + 50}
+          fill={"url(#" + tooth + "-relief)"} opacity={reliefContact}
+          data-km-crayon-paper-contact={reliefContact} />
       </mask>
     </defs>
     {/* Solid underpainting is deposited BEFORE rough wax layers but OUTSIDE the
@@ -124,7 +138,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
 
       <g transform={angle ? "rotate(" + angle + " " + cx + " " + cy + ")" : undefined}>
       {marks.map((mark, i) => {
-        const progress = crayonProgress(frame, fillFirst, fillLast, i, marks.length, reduced);
+        const progress = crayonStrokeProgress(frame, fillFirst, fillLast, i, marks.length, strokeOrder, reduced);
         if (progress <= 0) return null;
         return <g key={i} fill="none" strokeLinecap="round">
           {nibStyle==="tapered" ?
@@ -190,8 +204,30 @@ export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" 
     dx: 1 + crayonHash(seed, i, 3) * 14, dy: (crayonHash(seed, i, 4) - .5) * 4,
     r: .4 + crayonHash(seed, i, 5) * 1.4,
   })), [seed, width, height]);
+  // A finite repeat tile shared by all strokes and surfaces. These asymmetric
+  // ridge fragments are seeded on the paper, not on the moving actor. Sampling
+  // is invariant to frame, camera, aspect and to the number of wax elements.
+  const relief = useMemo(() => Array.from({length:164},(_,i)=>({
+    x:crayonHash(seed, i, 101)*144,
+    y:crayonHash(seed, i, 102)*144,
+    dx:1.1+crayonHash(seed, i, 103)*5.7,
+    dy:(crayonHash(seed, i, 104)-.5)*3.4,
+    width:.45+crayonHash(seed, i, 105)*1.55,
+    depth:.55+crayonHash(seed, i, 106)*.45,
+  })),[seed]);
   return <>
     <defs>
+      <pattern id={tooth + "-relief"} width={144} height={144}
+        patternUnits="userSpaceOnUse" data-km-crayon-paper-relief="">
+        {/* Transparent outside dark contact-resistant ridges. No bright dots
+            are painted on top of a finished character or scene. */}
+        <g stroke="#151619" fill="none" strokeLinecap="round">
+          {relief.slice(0,Math.round(strength*164)).map((f,i)=>
+            <path key={i} d={"M"+f.x.toFixed(2)+" "+f.y.toFixed(2)+
+              "l"+f.dx.toFixed(2)+" "+f.dy.toFixed(2)}
+              opacity={f.depth} strokeWidth={f.width} />)}
+        </g>
+      </pattern>
       <pattern id={tooth + "-texture"} width={144} height={144} patternUnits="userSpaceOnUse">
         <rect width={144} height={144} fill="#fff"/>
         {/* Small, translucent tooth interruptions, not bright white digital confetti. */}

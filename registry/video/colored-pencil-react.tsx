@@ -91,6 +91,12 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
     {drawing.paperTooth > 0 && <rect width={drawing.width} height={drawing.height} fill={"url(#" + uid + "-paper)"} />}
     {drawing.regions.map((region, index) => {
       return <g key={region.id} data-km-pencil-region={region.id} transform={region.transform}>
+        {region.opaqueSupport && (reducedMotion || frame > region.layers[0].startFrame) &&
+          <path data-km-pencil-support={region.id} d={region.path} fill={drawing.paper}
+            opacity={evaluatePencilMark(frame, {
+              startFrame: region.layers[0].startFrame,
+              durationFrames: 16,
+            }, reducedMotion)}/>}
         {/* An unfinished sheet stays blank until a real pencil stroke starts. Underpaint only
             softens voids beneath deposited pigment; it must never reveal the subject early. */}
         {region.underpaint && (reducedMotion || frame > region.layers[0].startFrame) &&

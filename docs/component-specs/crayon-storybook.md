@@ -743,3 +743,51 @@ The ribbon is an economical **contact model**, not wax height-field physics.
 It does not reproduce bidirectional pigment pickup, multi-layer optical
 mixing, or measured real-paper calibration. Actual full-film playback and
 human visual approval are still necessary.
+
+## Hand-guided local coloring order (2026-11-14)
+
+The WaxRegion / CRAYON1 wax scene element now accepts
+`strokeOrder: "patches" | "scanline"`. The new default, `patches`,
+fills small neighboring areas in a serpentine nib path, following a
+two-dimensional locality-preserving tile traversal rather than top-to-bottom
+bands. This is a spatially coherent simulated hand coloring order,
+not a claim of measured human hand movements. `scanline` restores the
+legacy row-major reveal when a particular shot needs it.
+
+The underlying precomputed wax shapes, pressure, colors, masks, pigment
+coverage, and IDs do not change between orders. Only absolute-frame
+**deposit sequencing** changes. In `patches` mode, one nib mark at a time
+has partial progress (a stylized time-lapse exposure); legacy `scanline`
+retains overlapping mark reveals. Generic transition fades are unaffected. The second coating pass follows the same
+order after the first. No editable scene data needs migration.
+
+Both options are exposed in **Video production / Film Looks / Crayon /
+Scene Engine** and in Material Studies. The comparison can be watched
+with the same seed and material settings. Changing this control never
+resets the underlying film or invents a new timeline.
+
+## Paper relief and wax contact (2026-11-14)
+
+The Paper primitive now defines a **world-anchored 144 × 144, transparent,
+seeded relief tile** in addition to its existing fiber texture. Every wax
+region on the page samples the same relief coordinates. Pressing a crayon
+softly creates stronger grain interruptions; pressing firmly deposits wax
+through more of the substrate's valleys. The contact response is derived
+continuously from existing `pressure`, not from a new discrete rendering mode.
+
+Only the **textured wax layer** uses this new relief mask. The opaque
+silhouette's finished underlying color remains unmasked and fully blocking.
+The paper-tooth slider scales the number of relief fragments, including zero
+for a perfectly smooth paper. World anchoring is stable under frame seeking;
+no canvas state, image assets, non-commercial third-party textures, browser
+noise filters or shader dependencies were added.
+
+Storybook: **Video production / Film Looks / Crayon / Material Studies /
+Pressure Against Paper Tooth**, with linked pressure, surface and frame
+controls. The example uses the same original character on both sides, with
+soft and firm contact selected by `pressureSplit`.
+
+**Limits:** this is an efficient optical approximation of pressure and
+raised fiber interactions, not a physical 3D paper height field. Wax erasure,
+directional smearing, layer thickness, specular gloss and true wet transfer
+remain separate research and craftsmanship priorities.
