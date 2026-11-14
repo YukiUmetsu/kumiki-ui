@@ -78,7 +78,15 @@ export interface RisoMeshReport {
 }
 export interface RisoMeshIssue {path: string; message: string}
 /** Inspection-only control. Smaller edge targets produce smaller coherent triangles. */
-export interface RisoMeshEvaluationOptions { maxEdgeLength?: number; maxTrianglesPerRegion?: number }
+export interface RisoMeshEvaluationOptions {
+  maxEdgeLength?: number;
+  maxTrianglesPerRegion?: number;
+  /** Only subdivide this selected actor region at full resolution.
+   * Other source outlines remain exactly measured with coarse, fast interior faces.
+   * Omit to request fine triangles for the entire character.
+   */
+  focusRegionId?: string;
+}
 const slug = /^[a-z][a-z0-9-]{0,47}$/;
 const finite = (p: RisoMeshPoint): boolean =>
   Array.isArray(p) && p.length === 2 && p.every(n => Number.isFinite(n) && Math.abs(n) <= 4096);
@@ -185,13 +193,17 @@ export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoChara
   if(headUnit<=0)throw new RangeError("head-region source must have positive height");
   const maxEdgeLength=options.maxEdgeLength??Math.max(4,Math.min(9,headUnit/11));
   const maxTriangles=options.maxTrianglesPerRegion??950;
+  if(options.focusRegionId && !sheet.regions.some(r=>r.id===options.focusRegionId))
+    throw new RangeError("Focused Riso mesh region must be in the character sheet");
   const regions=sheet.regions.map(r=>{
     const ink=frameParts.get(r.parts[0])!;
     const localOutline=getLocal(r);
     const outline=selectRisoSourceContour(ink.d,r.sourceSubpathIndex).map(p=>
       mapPoint(parseFrameMatrix(ink.transform),p));
+    const actualEdgeLength=options.focusRegionId && r.id!==options.focusRegionId
+      ? 200 : maxEdgeLength;
     const triangles=refineRisoContourMesh(triangulateRisoContour(outline),{
-      maxEdgeLength,maxTriangles,
+      maxEdgeLength:actualEdgeLength,maxTriangles,
     });
     const bounds=risoMeshBounds(outline),referenceBounds=risoMeshBounds(localOutline);
     const m=parseFrameMatrix(ink.transform);
@@ -221,7 +233,7 @@ export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoChara
       widthInHeads:referenceBounds.width/headUnit,
       heightInHeads:referenceBounds.height/headUnit,
       sourceContourPoints:outline.length,contourArea,triangleArea,
-      maxTriangleEdgeLength,refinementTargetMet:maxTriangleEdgeLength<=maxEdgeLength+1e-6,
+      maxTriangleEdgeLength,refinementTargetMet:maxTriangleEdgeLength<=actualEdgeLength+1e-6,
     };
   });
   const byId=new Map(regions.map(r=>[r.id,r]));
