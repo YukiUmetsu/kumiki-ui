@@ -294,6 +294,15 @@ export function crayonWildlifePortraitScene(
       poses:[{id:"blink",d:"M-91 -58Q-57 -37 -25 -58"},
         {id:"soft",d:"M-90 -57Q-57 -71 -25 -58"}],
       poseCues:blink});
+  // A hidden, fully opaque maxillary junction joins the projected nose
+  // bridge to the cheek and jaw. The ArtCraft silhouette review caught
+  // background paper showing as a triangular hole through this area.
+  // Treat this as an *attached anatomical mass*, not a floating sticker.
+  wax("maxillary-junction",
+    "M-193 -40C-155 -55 -107 -41 -86 -12"+
+    "Q-67 27 -97 61Q-132 80 -171 37Q-187 8 -193 -40Z",
+    {x:-204,y:-66,width:147,height:151},C.cheek,
+    {parentId:"head",spacing:8.5,outlineOpacity:0});
   wax("muzzle-projection",
     // One tapering attached bridge, two unequal whisker pads and a
     // separated underside. Avoid the earlier round "peanut" muzzle.
@@ -372,6 +381,25 @@ export function crayonWildlifePortraitScene(
     seed:192,guide:[{x:-119,y:-119},{x:-82,y:-154},{x:-25,y:-148},{x:14,y:-121}],
     spread:9,length:11,forkRate:.025},49,"#f5dfbf",.79,"head",.79,129);
 
+  hatch("orbital-transition-fur",{
+    seed:616,guide:[{x:-115,y:-85},{x:-84,y:-108},
+      {x:-45,y:-99},{x:-14,y:-72}],
+    spread:8,length:8,forkRate:.06},86,"#e1bb90",.88,"head",.74,93);
+  hatch("nasal-bridge-fur",{
+    seed:617,guide:[{x:-123,y:-70},{x:-142,y:-52},
+      {x:-181,y:-17},{x:-204,y:6}],
+    spread:10,length:9,forkRate:.08},90,"#d9b99a",.88,
+    "nasal-bridge-plane",.78,108);
+  hatch("maxillary-connected-fur",{
+    seed:618,guide:[{x:-177,y:-31},{x:-144,y:-11},
+      {x:-112,y:19},{x:-94,y:41}],
+    spread:13,length:11,forkRate:.09},91,"#bd9374",.94,
+    "maxillary-junction",.67,103);
+  hatch("whisker-pad-underfur",{
+    seed:619,guide:[{x:-193,y:15},{x:-177,y:17},
+      {x:-162,y:29},{x:-153,y:30}],
+    spread:6,length:6,forkRate:.035},65,"#8d735e",.64,
+    "muzzle-light",.64,115);
   hatch("face-underfur",{
     seed:91,guide:[{x:-124,y:-24},{x:-102,y:3},{x:-51,y:69},{x:-4,y:77}],
     spread:24,length:18,forkRate:.13},142,"#61433e",1.35,"head",.71,60);
@@ -428,6 +456,11 @@ export function crayonWildlifePortraitScene(
   hatch("far-ear-tip-luster",{
     seed:123,guide:[{x:-15,y:-306},{x:5,y:-250},{x:24,y:-196},{x:25,y:-130}],
     spread:5,length:11,forkRate:.02},34,"#f5d2ac",.85,"far-ear",.88,150);
+  hatch("near-ear-root-fur",{
+    seed:620,guide:[{x:98,y:-121},{x:115,y:-149},
+      {x:124,y:-183},{x:128,y:-221}],
+    spread:10,length:10,forkRate:.09},73,"#d7ad8d",.94,
+    "near-ear",.77,119);
   hatch("near-ear-fibers",{
     seed:24,guide:[{x:135,y:-306},{x:118,y:-244},{x:102,y:-187},{x:97,y:-126}],
     spread:11,length:14,forkRate:.08},74,"#e2aa8e",.96,"near-ear",.75,108);
