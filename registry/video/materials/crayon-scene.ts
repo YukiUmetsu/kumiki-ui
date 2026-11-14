@@ -10,12 +10,15 @@ export type CrayonColor = `#${string}`;
 export interface CrayonTiming { start: number; end: number }
 export interface CrayonPlacement {
   x?: number; y?: number; scale?: number; rotate?: number;
+  /** Local nonuniform deformation for soft breathing, wings or landing compression. */
+  scaleX?: number; scaleY?: number;
 }
 /** Animate semantic elements independently while preserving a stable wax stroke seed. */
 export interface CrayonMotionKey {
   frame: number;
   x: number; y: number;
   scale?: number; rotate?: number;
+  scaleX?: number; scaleY?: number;
 }
 /** World-space grip/foot plant: lock a point of the original drawing at its position on start. */
 export interface CrayonContact {
@@ -37,6 +40,8 @@ export interface CrayonBase {
   /** Local rotation/scale pivot in authored drawing coordinates. */
   pivot?: { x: number; y: number };
   motion?: readonly CrayonMotionKey[];
+  /** Delay an appendage’s own pose keys to produce authored overlap; not simulation. */
+  motionLagFrames?: number;
   /** Authored, non-overlapping stance/hold ranges; leaves the camera and draw order unchanged. */
   contacts?: readonly CrayonContact[];
   /** Number of held source frames per drawing pose. Camera and brush remain frame-accurate. */
@@ -216,6 +221,9 @@ export function inspectCrayonScene(input: unknown): string[] {
       }
       if (node.poseCadence !== undefined && ![1,2,3,4].includes(node.poseCadence))
         errors.push(p + ".poseCadence must be 1..4");
+      if (node.motionLagFrames !== undefined && (!int(node.motionLagFrames)||
+        node.motionLagFrames<0||node.motionLagFrames>24||!node.motion))
+        errors.push(p+".motionLagFrames must be 0..24 and needs authored motion keys");
       if (node.motion !== undefined) {
         if (!Array.isArray(node.motion) || node.motion.length === 0 || node.motion.length > 40)
           errors.push(p + ".motion must have 1..40 keys");
@@ -226,7 +234,9 @@ export function inspectCrayonScene(input: unknown): string[] {
               key.frame <= previous || ![key.x,key.y].every(finite) ||
               Math.abs(key.x)>8192 || Math.abs(key.y)>8192 ||
               (key.rotate!==undefined && (!finite(key.rotate)||Math.abs(key.rotate)>360)) ||
-              (key.scale!==undefined && (!finite(key.scale)|| (key.scale)<.05 || key.scale>15)))
+              (key.scale!==undefined && (!finite(key.scale)|| (key.scale)<.05 || key.scale>15))||
+              (key.scaleX!==undefined && (!finite(key.scaleX)||key.scaleX<.4||key.scaleX>2))||
+              (key.scaleY!==undefined && (!finite(key.scaleY)||key.scaleY<.4||key.scaleY>2)))
               errors.push(p + ".motion["+keyIndex+"] is invalid or unsorted");
             previous=key?.frame ?? previous;
           }
@@ -442,11 +452,13 @@ export function crayonCamera(spec: CrayonSceneSpec, frame: number, reducedMotion
 export function crayonElementPlacement(node: CrayonElement, frame: number, reducedMotion = false): Required<CrayonPlacement> {
   if (!int(frame) || frame < 0) throw new RangeError("element frame must be nonnegative safe integer");
   const base = {x:node.placement?.x ?? 0,y:node.placement?.y ?? 0,
-    scale:node.placement?.scale ?? 1,rotate:node.placement?.rotate ?? 0};
+    scale:node.placement?.scale ?? 1,rotate:node.placement?.rotate ?? 0,
+    scaleX:node.placement?.scaleX??1,scaleY:node.placement?.scaleY??1};
   const keys=node.motion;
   if (!keys?.length) return base;
   const sampled = reducedMotion ? keys[keys.length-1].frame :
-    Math.floor(frame/(node.poseCadence ?? 1))*(node.poseCadence ?? 1);
+    Math.max(0,Math.floor(frame/(node.poseCadence ?? 1))*(node.poseCadence ?? 1)-
+      (node.motionLagFrames??0));
   const previous=[...keys].reverse().find(k=>k.frame<=sampled) ?? keys[0];
   const next=keys.find(k=>k.frame>=sampled) ?? keys[keys.length-1];
   const t=previous.frame===next.frame?0:Math.max(0,Math.min(1,(sampled-previous.frame)/(next.frame-previous.frame)));
@@ -455,6 +467,8 @@ export function crayonElementPlacement(node: CrayonElement, frame: number, reduc
     x:base.x+mix(previous.x,next.x),
     y:base.y+mix(previous.y,next.y),
     scale:base.scale*mix(previous.scale ?? 1,next.scale ?? 1),
+    scaleX:base.scaleX*mix(previous.scaleX??1,next.scaleX??1),
+    scaleY:base.scaleY*mix(previous.scaleY??1,next.scaleY??1),
     rotate:base.rotate+mix(previous.rotate ?? 0,next.rotate ?? 0),
   };
 }
@@ -499,7 +513,8 @@ export function crayonWorldPoint(
     const part=chain[i],placement=crayonElementPlacement(part,frame,reducedMotion);
     const cx=part.pivot?.x??0,cy=part.pivot?.y??0;
     const a=placement.rotate*Math.PI/180,co=Math.cos(a),si=Math.sin(a);
-    const localX=(x-cx)*placement.scale,localY=(y-cy)*placement.scale;
+    const localX=(x-cx)*placement.scale*placement.scaleX;
+    const localY=(y-cy)*placement.scale*placement.scaleY;
     x=placement.x+cx+localX*co-localY*si;
     y=placement.y+cy+localX*si+localY*co;
   }
@@ -553,8 +568,10 @@ export function crayonElementTransform(
   const transforms=chain.map(part=>{
     const p=crayonElementPlacement(part,frame,reducedMotion);
     const cx=part.pivot?.x??0,cy=part.pivot?.y??0;
+    const sx=p.scale*p.scaleX, sy=p.scale*p.scaleY;
+    const scale=sx===sy ? String(sx) : sx+" "+sy;
     return "translate("+p.x+" "+p.y+") translate("+cx+" "+cy+") rotate("+p.rotate+
-      ") scale("+p.scale+") translate("+(-cx)+" "+(-cy)+")";
+      ") scale("+scale+") translate("+(-cx)+" "+(-cy)+")";
   }).join(" ");
   const delta=crayonContactOffset(spec,node,frame,reducedMotion);
   return delta ? "translate("+delta.x+" "+delta.y+") "+transforms : transforms;
