@@ -20,14 +20,18 @@ export type WaxProps = {
   seed: number; pressure: number; tooth: string; frame: number;
   first: number; last: number; reduced: boolean; spacing?: number; angle?: number;
   construction?: CrayonWaxConstruction;
+  /** Open scumble for skies/atmosphere; opaque buildup for tangible subjects. */
+  coverage?: "open" | "opaque";
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
+  if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
   const windows=construction ? crayonConstructionWindows(first,last,construction) : null;
   const fillFirst=windows?.fillStart ?? first,fillLast=windows?.fillEnd ?? last;
   const outlineFirst=windows?.outlineStart ?? first,outlineLast=windows?.outlineEnd ?? last;
+  const fillProgress = crayonProgress(frame,fillFirst,fillLast,0,1,reduced);
   const phase=!construction ? undefined : reduced || frame>=last ? "finished" :
     frame<first ? "pending" :
     construction.order==="outline-first" ? (frame < fillFirst ? "outlining":"pigment") :
@@ -37,11 +41,17 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const drawBounds = angle === 0 ? bounds : {x:cx-size/2,y:cy-size/2,width:size,height:size};
   const raw = useId(), clip = "waxclip-" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
   const pores = clip + "-tooth";
+  const deposit = clip + "-deposit";
   const marks = useMemo(() => crayonMarks(drawBounds, { seed, pressure, spacing, passes: 2 }),
     [drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, seed, pressure, spacing]);
-  return <g data-km-crayon-region="" data-km-crayon-seed={seed} data-km-crayon-build={phase}>
+  return <g data-km-crayon-region="" data-km-crayon-seed={seed} data-km-crayon-build={phase}
+    data-km-crayon-coverage={coverage}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
+      {coverage==="opaque" && <clipPath id={deposit}>
+        <rect x={bounds.x-2} y={bounds.y-2}
+          width={bounds.width+4} height={(bounds.height+4)*fillProgress}/>
+      </clipPath>}
       <mask id={pores} maskUnits="userSpaceOnUse"
         x={bounds.x - 25} y={bounds.y - 25} width={bounds.width + 50} height={bounds.height + 50}>
         <rect x={bounds.x - 25} y={bounds.y - 25}
@@ -49,9 +59,17 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
           fill={"url(#" + tooth + "-texture)"} />
       </mask>
     </defs>
+    {/* Solid underpainting is deposited BEFORE rough wax layers but OUTSIDE the
+        tooth mask. Paper/tooth breaks the pigmented highlights, never punches
+        transparent holes through a finished character or foreground prop. */}
+    {coverage==="opaque" && fillProgress>0 && <path d={d} fill={colors[0]}
+      clipPath={"url(#"+deposit+")"} data-km-crayon-underpaint="opaque" />}
     <g clipPath={"url(#" + clip + ")"} mask={"url(#" + pores + ")"} data-km-crayon-wax="">
-      <path d={d} fill={colors[0]}
-        opacity={crayonProgress(frame,fillFirst,fillLast,0,1,reduced)*(construction?.glaze??.58)} />
+      {coverage==="open" && <path d={d} fill={colors[0]}
+        opacity={fillProgress*(construction?.glaze??.58)} />}
+      {coverage==="opaque" && <path d={d} fill={colors[2]}
+        opacity={fillProgress*.09}/>}
+
       <g transform={angle ? "rotate(" + angle + " " + cx + " " + cy + ")" : undefined}>
       {marks.map((mark, i) => {
         const progress = crayonProgress(frame, fillFirst, fillLast, i, marks.length, reduced);
@@ -59,9 +77,9 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         return <g key={i} fill="none" strokeLinecap="round">
           <path d={mark.d} pathLength={100} stroke={colors[mark.tone]} strokeWidth={mark.width}
             strokeDasharray={100} strokeDashoffset={100 * (1 - progress)}
-            opacity={.2 + mark.pressure * .24} />
+            opacity={coverage==="opaque" ? .32+mark.pressure*.34 : .2+mark.pressure*.24} />
           {progress > .8 && <path d={mark.scumble} stroke={colors[(mark.tone + 1) % 3]}
-            strokeWidth={1.3 + mark.pressure * 2.3} opacity={.31} />}
+            strokeWidth={1.3 + mark.pressure * 2.3} opacity={coverage==="opaque"?.41:.31} />}
           {progress >= 1 && <path d={mark.scrape} stroke="#faefd6"
             strokeWidth={.6 + (1 - mark.pressure) * 1.4} opacity={.29} />}
         </g>;
@@ -135,8 +153,8 @@ function Starfield({ width, height, seed, frame, reduced, day }: { width: number
 function Pine({ x, y, scale, seed, frame, tooth, reduced }: { x: number; y: number; scale: number; seed: number; frame: number; tooth: string; reduced: boolean }) {
   const crown = "M0 -150 C-20 -113 -36 -90 -54 -59 L-37 -62 C-54 -29 -69 -4 -81 17 L-46 6 C-66 31 -74 47 -81 64 Q-1 46 74 63 L43 11 L66 17 L29 -61 L43 -56 Z";
   return <g transform={"translate(" + x + " " + y + ") scale(" + scale + ")"}>
-    <WaxRegion d="M-12 20H12V98H-12Z" bounds={{ x: -12, y: 20, width: 24, height: 80 }} colors={["#795b59", "#4b445d", "#a16f61"]} seed={seed+30} pressure={.76} tooth={tooth} frame={frame} first={130} last={230} reduced={reduced} spacing={6}/>
-    <WaxRegion d={crown} bounds={{ x: -85, y: -155, width: 170, height: 223 }} colors={["#264d5b", "#213f4f", "#4f7470"]} seed={seed+31} pressure={.85} tooth={tooth} frame={frame} first={105} last={231} reduced={reduced} />
+    <WaxRegion coverage="opaque" d="M-12 20H12V98H-12Z" bounds={{ x: -12, y: 20, width: 24, height: 80 }} colors={["#795b59", "#4b445d", "#a16f61"]} seed={seed+30} pressure={.76} tooth={tooth} frame={frame} first={130} last={230} reduced={reduced} spacing={6}/>
+    <WaxRegion coverage="opaque" d={crown} bounds={{ x: -85, y: -155, width: 170, height: 223 }} colors={["#264d5b", "#213f4f", "#4f7470"]} seed={seed+31} pressure={.85} tooth={tooth} frame={frame} first={105} last={231} reduced={reduced} />
     <WaxLine d="M-22 -80 Q-45 -35 -54 12 M18 -113 Q34 -55 43 5" color="#8ab3a0"
       width={3} seed={seed} frame={frame} first={200} last={243} reduced={reduced} opacity={.58}/>
   </g>;
@@ -146,7 +164,7 @@ function Fox({ x, y, scale, seed, frame, tooth, reduced }: { x: number; y: numbe
   const pale: [string,string,string] = ["#f6d1a0", "#fff1d0", "#dbb690"];
   const dark: [string,string,string] = ["#445361", "#344456", "#68748a"];
   const part = (d: string, bounds: CrayonBounds, colors: [string,string,string], id: number, first: number, last: number, spacing = 8.5) =>
-    <WaxRegion key={id} d={d} bounds={bounds} colors={colors} seed={seed + id * 11} pressure={.87} tooth={tooth} frame={frame} first={first} last={last} reduced={reduced} spacing={spacing}/>;
+    <WaxRegion coverage="opaque" key={id} d={d} bounds={bounds} colors={colors} seed={seed + id * 11} pressure={.87} tooth={tooth} frame={frame} first={first} last={last} reduced={reduced} spacing={spacing}/>;
   return <g transform={"translate(" + x + " " + y + ") scale(" + scale + ")"} data-km-crayon-fox="">
     {/* The tail is laid down first, under the body. Every painted region is real wax strokes. */}
     {part("M-81 -4 C-138 -83 -224 -66 -216 -12 C-213 53 -160 73 -109 38 Q-118 15 -81 -4Z", {x:-224,y:-87,width:158,height:164}, orange, 1, 178, 260)}
@@ -191,12 +209,12 @@ function Bloom({ x,y,scale,seed,frame,tooth,reduced }: { x:number;y:number;scale
   const petalsColor: [string,string,string] = ["#f0a6a8", "#d77594", "#fbd3a8"];
   return <g transform={"translate(" + x + " " + y + ") scale(" + scale + ")"} data-km-crayon-bloom="">
     <WaxLine d="M0 -2 Q-17 66 10 140" color="#37776e" width={8} seed={seed} frame={frame} first={166} last={250} reduced={reduced}/>
-    <WaxRegion d="M-9 76 Q-76 20 -94 64 Q-45 119 -9 95Z" bounds={{x:-98,y:16,width:96,height:106}}
+    <WaxRegion coverage="opaque" d="M-9 76 Q-76 20 -94 64 Q-45 119 -9 95Z" bounds={{x:-98,y:16,width:96,height:106}}
       colors={["#609979","#3d8076","#a1bf83"]} seed={seed+2} pressure={.81} tooth={tooth} frame={frame} first={183} last={280} reduced={reduced}/>
-    <WaxRegion d="M4 95 Q62 28 96 71 Q48 119 7 110Z" bounds={{x:0,y:27,width:104,height:104}}
+    <WaxRegion coverage="opaque" d="M4 95 Q62 28 96 71 Q48 119 7 110Z" bounds={{x:0,y:27,width:104,height:104}}
       colors={["#609979","#3d8076","#a1bf83"]} seed={seed+3} pressure={.81} tooth={tooth} frame={frame} first={192} last={283} reduced={reduced}/>
     {petals.map((i) => <g key={i} transform={"rotate(" + (i*40 + (crayonHash(seed,i,88)-.5)*12).toFixed(2) + ") scale(" + (0.87+crayonHash(seed,i,89)*.23).toFixed(3) + " " + (0.88+crayonHash(seed,i,90)*.26).toFixed(3) + ")"}>
-      <WaxRegion d={blossom} bounds={{x:-29,y:-111,width:58,height:103}} colors={petalsColor}
+      <WaxRegion coverage="opaque" d={blossom} bounds={{x:-29,y:-111,width:58,height:103}} colors={petalsColor}
         seed={seed+10+i*3} pressure={.76} tooth={tooth} frame={frame} first={205+i*2} last={319} reduced={reduced} spacing={6}/>
     </g>)}
     {petals.map(i=><g key={"vein-"+i} transform={"rotate("+(i*40+(crayonHash(seed,i,88)-.5)*12).toFixed(2)+") scale("+(0.87+crayonHash(seed,i,89)*.23).toFixed(3)+" "+(0.88+crayonHash(seed,i,90)*.26).toFixed(3)+")"}>
@@ -204,7 +222,7 @@ function Bloom({ x,y,scale,seed,frame,tooth,reduced }: { x:number;y:number;scale
         color="#fff0ca" width={1.7} seed={seed+i+62}
         frame={frame} first={295+i*2} last={382} reduced={reduced} opacity={.6}/>
     </g>)}
-    <WaxRegion d="M-28 0 A28 28 0 1 0 28 0 A28 28 0 1 0 -28 0Z"
+    <WaxRegion coverage="opaque" d="M-28 0 A28 28 0 1 0 28 0 A28 28 0 1 0 -28 0Z"
       bounds={{x:-30,y:-29,width:60,height:60}} colors={["#9f7159","#6e555b","#d7a36d"]}
       seed={seed+40} pressure={.93} tooth={tooth} frame={frame} first={266} last={354} reduced={reduced} spacing={5}/>
     {Array.from({length:11},(_,i)=> {
