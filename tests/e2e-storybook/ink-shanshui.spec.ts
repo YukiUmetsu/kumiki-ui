@@ -28,7 +28,10 @@ test("reference-inspired code-driven mountain, river and hermit compositions are
     await expect(page.locator("[data-km-shanshui-birds]")).toHaveCount(1);
     await expect(page.locator("[data-km-shanshui-foreground]")).toHaveCount(1);
     await expect(actor).toHaveCount(1);
-    await expect(page.locator('[data-km-ink-character-part="body"]')).toHaveCount(1);
+    // Ink material renders a set of individual named paths inside the same
+    // canonical body part; one actor is not one DOM path.
+    await expect.poll(()=>page.locator('[data-km-ink-character-part="body"]').count())
+      .toBeGreaterThan(1);
     if(scene==="river-scholar"){
       await expect(page.locator("[data-km-shanshui-willow]")).toHaveCount(1);
       await expect(page.locator("[data-km-shanshui-bridge]")).toHaveCount(1);
