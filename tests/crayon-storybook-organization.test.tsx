@@ -17,7 +17,7 @@ describe("Crayon Storybook organization",()=>{
    expect(new Set(ids).size).toBe(metas.length);
    expect(ids).toContain("video-crayon-scene-engine");
    expect(metas.every(m=>m.title.startsWith("Video production/Film Looks/Crayon/"))).toBe(true);
-   const folders=metas.map(m=>m.title.split("/").slice(4,-1).join("/"));
+   const folders=metas.map(m=>m.title.split("/").slice(3,-1).join("/"));
    expect(folders.filter(Boolean).length).toBe(metas.length);
    expect(folders.some(name=>name.includes("Wildlife"))).toBe(true);
    expect(folders.some(name=>name.includes("Characters"))).toBe(true);
