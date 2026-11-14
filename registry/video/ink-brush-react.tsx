@@ -56,7 +56,9 @@ export function InkBrushCanvas({
         <feColorMatrix in="fibre-noise" type="matrix"
           values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1.0 0 0 0 .31"
           result="fibre-absorption"/>
-        <feComposite in="SourceGraphic" in2="fibre-absorption" operator="in"/>
+        <feDisplacementMap in="SourceGraphic" in2="fibre-noise" scale="1.75"
+          xChannelSelector="R" yChannelSelector="G" result="irregular-contact"/>
+        <feComposite in="irregular-contact" in2="fibre-absorption" operator="in"/>
       </filter>
       {marks.filter(mark => mark.outline.length > 0).map((mark, i) =>
         <Fragment key={mark.id}>
