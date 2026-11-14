@@ -3295,6 +3295,31 @@
       ]
     },
     {
+      "name": "ink-brush",
+      "type": "registry:ui",
+      "title": "Material-Native Ink Brush (INK1)",
+      "description": "Frame-addressed brush marks with pressure, pace, bristle splits, and native paper-space pigment/water deposition with adjustable bleed, absorption, dry-down and stable seek. Includes a legacy SVG comparison renderer.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/ink-brush.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-brush.ts"
+        },
+        {
+          "path": "registry/video/ink-brush-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-brush-react.tsx"
+        },
+        {
+          "path": "registry/video/ink-wet-paper.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wet-paper.ts"
+        }
+      ]
+    },
+    {
       "name": "film-look",
       "type": "registry:ui",
       "title": "Film Look",

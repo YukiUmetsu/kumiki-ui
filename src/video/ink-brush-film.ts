@@ -1,0 +1,119 @@
+import type { FilmDocument } from "../../registry/video/film-document";
+
+/** Original, neutral material-native brush studies through existing FilmStage slots. */
+export const INK_BRUSH_FILM: FilmDocument = {
+  "schemaVersion": 1,
+  "id": "ink-brush-field-studies",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "delta-first-gesture",
+      "recipeId": "slot",
+      "durationFrames": 95,
+      "content": {
+        "slot": "ink-brush-study",
+        "label": "First brush contact: a river line",
+        "props": {
+          "subject": "delta",
+          "offsetFrame": 0
+        }
+      }
+    },
+    {
+      "id": "delta-branches",
+      "recipeId": "slot",
+      "durationFrames": 115,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "ink-brush-study",
+        "label": "Tributaries form a river delta",
+        "props": {
+          "subject": "delta",
+          "offsetFrame": 95
+        }
+      }
+    },
+    {
+      "id": "delta-hold",
+      "recipeId": "slot",
+      "durationFrames": 70,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "ink-brush-study",
+        "label": "Completed river delta, static paper texture",
+        "props": {
+          "subject": "delta",
+          "offsetFrame": 210
+        }
+      }
+    },
+    {
+      "id": "branch-first-gesture",
+      "recipeId": "slot",
+      "durationFrames": 95,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "ink-brush-study",
+        "label": "The tree trunk is deposited",
+        "props": {
+          "subject": "branch",
+          "offsetFrame": 0
+        }
+      }
+    },
+    {
+      "id": "branch-canopy",
+      "recipeId": "slot",
+      "durationFrames": 155,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "ink-brush-study",
+        "label": "Leaves and branches form with dry marks",
+        "props": {
+          "subject": "branch",
+          "offsetFrame": 95
+        }
+      }
+    },
+    {
+      "id": "branch-hold",
+      "recipeId": "slot",
+      "durationFrames": 70,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "ink-brush-study",
+        "label": "Completed tree holds without grain crawl",
+        "props": {
+          "subject": "branch",
+          "offsetFrame": 250
+        }
+      }
+    }
+  ]
+};

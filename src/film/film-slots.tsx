@@ -1,3 +1,4 @@
+import { InkBrushPoster } from "../video/ink-brush-demo";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
@@ -673,6 +674,17 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
 
       // Original art-style fixtures run through the same production renderer as Storybook.
       // The Film Document still owns all scene timing; these slots draw only frame samples.
+      case "ink-brush-study": {
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const subject = props.subject;
+        if (subject !== "delta" && subject !== "branch")
+          throw new RangeError("ink-brush-study props.subject must be 'delta' or 'branch'.");
+        const offset = props.offsetFrame ?? 0;
+        if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0)
+          throw new RangeError("ink-brush-study offsetFrame must be a nonnegative integer.");
+        return <InkBrushPoster subject={subject} aspect={aspect} frame={offset + context.frame}
+          paperTooth={.48} reducedMotion={context.reducedMotion}/>;
+      }
       case "riso-print-study": {
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const rawOffset = props.offsetFrame ?? 0;
