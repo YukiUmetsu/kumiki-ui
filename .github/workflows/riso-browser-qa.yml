@@ -32,6 +32,22 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Browser geometry, ink passes, nonsequential seeking and frame screenshots
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-film-looks.spec.ts
+      - name: Validate portable Film Document
+        run: npm run film:check -- examples/film/riso-paper-feed.film.json
+      - name: Export original Risograph film using the production slots
+        run: |
+          command -v ffmpeg && command -v ffprobe
+          npm run film:frame -- examples/film/riso-paper-feed.film.json --frame=480 --only=landscape --out=dist/riso-film-proof
+          npm run film:frame -- examples/film/riso-paper-feed.film.json --frame=680 --only=landscape --out=dist/riso-film-proof
+          npm run film:render -- examples/film/riso-paper-feed.film.json --frames=180 --only=landscape --out=dist/riso-film-proof
+      - name: Keep the actual encoded video and transition proof frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso-production-render-evidence
+          path: dist/riso-film-proof/
+          retention-days: 10
+          if-no-files-found: warn
       - name: Preserve actual screenshots and traces
         if: always()
         uses: actions/upload-artifact@v4
