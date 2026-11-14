@@ -128,6 +128,57 @@ The foreground API intentionally refuses duplicate IDs, invalid/missing plate ca
 
 **Further limitations:** The character limbs still use simplified ribbon contours; actual joint mass, fabric folds, constrained shadow lines, secondary acting, intentional plate-scoped distress and variation between physical sheets remain in the craft roadmap. See [printmaking reference audit](../research/risograph-character-opaque-print-craft-2026.md). Crucially, adding more transparent ink texture is not a fix for weak shape design.
 
+## RISO6 — Source-faithful character sheets and proportion meshes
+
+A **character sheet is authored per character**, not synthesized from a generic human anatomy template. The production fixtures are:
+
+- **Paper Courier**: `Video production / Film Looks / Risograph Characters / Courier · Construction & Proportion Sheet`.
+- **Paper Bird**: `Video production / Film Looks / Risograph Characters / Paper Bird · Construction & Proportion Sheet`.
+
+Both stories use **the original RISO5 actor spec and ink art**, not detached lookalikes. Each prints an exportable SVG with a complete figure, detailed head enlargement, three genuine existing animation poses, named component cages, joint markers and a selected-part measurement panel. Controls expose the source frame, region selector, category, mesh visibility, labels, skeleton and **Export SVG sheet**.
+
+### Proportion measurement rules
+
+The new reusable `registry/video/riso-proportion-mesh.ts` defines `RisoCharacterMeshSheet` and `RisoMeshRegion`. Each region declares:
+
+- `id`, anatomical/category `label`, owning rig `joint`, and one or more source `parts`.
+- A **finite convex construction polygon** in that joint's authored local drawing units.
+- Optional `tipJoint` for a connected skin segment. A four-span, eight-triangle ribbon is recomputed from the **actual final IK/FK matrices** of that parent and child on the selected film frame.
+- Named local landmarks, transformed to stage coordinates on each sampled cel.
+
+The `headRegion` establishes a **character-specific head-height unit H**, with no generic anatomical ratios imposed. Every part gets local width/height (drawing units), width/H, height/H and an independently evaluated pose-space cage. The Courier's authored head construction height is 89 units; the Paper Bird's is 63. These are **design guides**, not an estimate of centimeters, depth or path-exact pixel bounds. The mesh intentionally does not replace the drawing or alter render poses.
+
+Source-file fixtures are `src/video/riso-character-mesh-sheets.ts`. The Courier covers the separately drawn eyes and eyebrows, nose, mouth, cheek, head silhouette, hair, cap, coat, seams, pocket, buttons, neck, sleeves, forearms, gloves, thighs, shins, boots, satchel and hardware. The Bird covers head, eye/blink, beak, body, feathered wings and tail, and is **not** assigned invented eyebrows, sleeves, arms or legs.
+
+`RisoCharacterModelSheet` in `registry/video/riso-character-sheet-react.tsx` renders the same exact source vectors and the paper-knockout face. The construction mesh uses thin overlay strokes but **does not fade the character** or modify its opaque Risograph spot-ink pass. It exports one SVG that remains crisp when inspected closely.
+
+### Honest source limitations
+
+The original actor assets are primarily one **authored 2D projection** with animated poses. The sheet's three figure views show different animation frames; they are **not front/side/back orthographic views**. Accurate side, back, three-quarter and rear wing constructions **remain unapproved and explicitly marked missing**. Never mirror a flat vector character to claim an authentic back or side turnaround. Before turning either subject into a source-faithful 3D character, draw and approve the missing views independently.
+
+The mesh is an **artist-authored 2D triangle cage**, not a volumetric mesh with real topology, depth, bone weights or hidden anatomy. Its usefulness is consistency checking: eye separation, eyebrow alignment, limb and sleeve dimensions, costume proportion, and frame-to-frame changes without losing the original silhouette.
+
+### Integration and tests
+
+```tsx
+const report = evaluateRisoCharacterMesh(COURIER, RISO_COURIER_SHEET, 46);
+const mouth = report.regions.find(region => region.id === "mouth");
+console.log(report.headUnit, mouth?.widthInHeads, mouth?.triangles.length);
+
+<RisoCharacterModelSheet
+  spec={COURIER}
+  sheet={RISO_COURIER_SHEET}
+  frame={46}
+  selectedRegion="eye-left"
+  showMesh
+  showJoints
+/>
+```
+
+The inspector rejects missing region IDs, unrecognized source parts/joints, degenerate or unbounded polygons, invalid anchors and nondescendant segment connections. Regression coverage audits **all** authored parts for both characters, checks 8-triangle IK limb deformation, reproducible seeks, proportional metrics and full SVG markup. Browser checks save real sheets, select individual features, toggle mesh visibility and exercise SVG export.
+
+Design reference: Toon Boom's [character sheet production guidance](https://helpcentre.toonboom.com/hc/en-ca/articles/57134612631955-Character-Design-03-Finalizing-the-character-sheets) distinguishes lineup, model turnaround, action poses and expression sheets. The IIT Bombay [animation character model-sheet course](https://www.dsource.in/course/character-design-animation/model-sheet) requires consistent scale and approved views. Here the available authored poses and construction cages are labeled accurately rather than silently promoted to unapproved orthographic art.
+
 ## Original film
 
 **Paper Courier** is an original short editorial example, not copied from any published Riso animation. The courier walks into town with separately rotating legs and arms, a swinging satchel, blinking, opening their mouth and smiling; a bird has independent moving wings and tail. Cobalt and vermilion art print as separate physical plates, with a screened backdrop, fixed misregistration, paper grain and 16:9/9:16 layouts.
