@@ -1,6 +1,6 @@
 /** Pure, frame-addressable wax-crayon deposition. No randomness, timers, filters or canvas state. */
 export interface CrayonBounds { x: number; y: number; width: number; height: number }
-export interface CrayonMark { d: string; width: number; tone: number; pressure: number; index: number }
+export interface CrayonMark { d: string; scumble: string; scrape: string; width: number; tone: number; pressure: number; index: number }
 export interface CrayonOptions { seed: number; pressure: number; spacing?: number; passes?: number }
 
 export function crayonHash(seed: number, a: number, b = 0): number {
@@ -43,9 +43,17 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
         " C " + (left + bounds.width * .33).toFixed(2) + " " + (y + wobble).toFixed(2) +
         " " + (left + bounds.width * .66).toFixed(2) + " " + (y - wobble).toFixed(2) +
         " " + right.toFixed(2) + " " + (y - slant).toFixed(2);
+      const grainX = left + bounds.width * (.18 + crayonHash(options.seed, index, 10) * .61);
+      const grainY = y + slant * (1 - 2 * ((grainX - left) / (right - left)));
+      const grainLen = 15 + crayonHash(options.seed, index, 11) * 66;
+      const scumble = "M" + grainX.toFixed(2) + " " + (grainY + 2).toFixed(2) +
+        " q" + (grainLen * .48).toFixed(2) + " " + (wobble * .8).toFixed(2) +
+        " " + grainLen.toFixed(2) + " " + (wobble * .17).toFixed(2);
+      const scrape = "M" + (grainX + 6).toFixed(2) + " " + (grainY - 1.7).toFixed(2) +
+        " l" + (grainLen * .43).toFixed(2) + " " + (-wobble * .08).toFixed(2);
       const p = Math.min(1, Math.max(.16, options.pressure * (.77 + crayonHash(options.seed, index, 7) * .36)));
       marks.push({
-        d, index, pressure: p, tone: Math.floor(crayonHash(options.seed, index, 8) * 3),
+        d, scumble, scrape, index, pressure: p, tone: Math.floor(crayonHash(options.seed, index, 8) * 3),
         width: 6.5 + p * 7.8 + crayonHash(options.seed, index, 9) * 2,
       });
     }
