@@ -298,6 +298,62 @@ leg but does not implement physical two-bone IK, heel/toe rolling, leg volume
 or limb self-occlusion. Full 16:9/9:16 encoded normal-speed artistic signoff
 remains a separate gate.
 
+### Two-bone walking poses and eased contact release
+
+Use the optional analytic `ik` mode on an existing CRAYON1 `connector`
+to draw **two articulated bone segments** between a world-space hip and
+a planted or swinging ankle, rather than an arbitrary quadratic bend. The
+solver uses two preferred bone lengths and an explicit left/right bend
+direction. It produces the same pose from the same absolute frame even after
+backward seeking, while honoring the already-authored world-space contact
+constraints.
+
+```json
+{
+  "kind": "connector",
+  "id": "leg-back",
+  "timing": {"start": 0, "end": 26},
+  "poseCadence": 2,
+  "from": {"elementId": "body", "anchor": {"x": -25, "y": 76}},
+  "to": {"elementId": "foot-back", "anchor": {"x": -29, "y": 103}},
+  "color": "#8b6c80",
+  "width": 12,
+  "ik": {"upperLength": 45, "lowerLength": 43, "bendSide": "left"}
+}
+```
+
+`ik` cannot be combined with the former hand-drawn `bend` or
+`bendKeys` mode on the same connector. Artists can choose either in Storybook,
+without altering their geometry. For reachable targets, preferred upper/lower
+segment lengths are exact; unreachable or overly compressed targets keep
+the stroke connected while the solver reports `extended` or `compressed`.
+This is **2D analytic posing**, not dynamic physics, skeletal skinning or
+collision prevention.
+
+The `contacts` entries also accept optional `releaseFrames` (0–24) to
+fade out the outgoing positional correction after a planted stance ends,
+avoiding the previous sudden jump at takeoff. Transitions remain frame-stable.
+Runtime scene validation rejects a release tail that overlaps the next stance,
+a release beyond the film duration, and conflicting ancestor/descendant
+contact windows. A rendered foot receives
+`data-km-crayon-contact="planted"` or `"releasing"` for browser QA.
+
+The original **A Little Journey** walk now also contains authored shoe/foot
+pitch keys around each sole pivot, and the **Video production / Film Looks /
+Crayon Scene Engine** stories include new **Character Two Bone IK** and
+**Character Two Bone IK Portrait** examples. The Storybook Controls panel
+lets the artist switch between hand-drawn knees and the IK solver and adjust
+walk **stride (0.6–1.6×)** and **lift (0.6–1.8×)**. This is a controllable
+study using hand-authored root and swing timings—not an automatic locomotion
+planner; real heel-to-toe support-pivot switching, uneven-terrain grounding,
+full-sole distortion, smooth gait retiming and contact-aware arm IK remain
+open.
+
+Automated qualification covers two aspect ratios, IK geometry, unreachable
+states, corrupt authored data, the foot-release tail, deterministic out-of-
+order seeking and real Chromium story controls. Normal-speed exported films
+and independent artistic acceptance still require separate review.
+
 ### Production proof
 
 The 420-frame (14 s at 30 fps), three-shot FilmDocument uses the existing `slot` scene type in `FilmStage`, not another timeline or an unbounded playback loop. Its shot frames are 0…119, 120…269 and 270…419. The slot adapter adds each scene's `offsetFrame` to its local frame. The second original scene, the flower garden, is available as a separate interactive Storybook story.
