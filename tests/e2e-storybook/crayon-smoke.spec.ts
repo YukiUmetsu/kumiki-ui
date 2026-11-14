@@ -14,6 +14,8 @@ const samples=[
   {name:"two-bone gait portrait",id:"video-crayon-scene-engine--character-two-bone-ik-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
   {name:"character draw in landscape",id:"video-crayon-scene-engine--character-draw-in",attr:"data-km-crayon-scene",aspect:"landscape"},
   {name:"character draw in portrait",id:"video-crayon-scene-engine--character-draw-in-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
+  {name:"dragon village three actors",id:"video-crayon-scene-engine--dragon-village",attr:"data-km-crayon-scene",aspect:"landscape"},
+  {name:"dragon village portrait",id:"video-crayon-scene-engine--dragon-village-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
 ] as const;
 for(const sample of samples) {
   test("crayon real-browser smoke: "+sample.name,async({page},info)=>{
@@ -152,4 +154,50 @@ test("drawn-character portrait retains separate guide, pigment and acting frames
   await page.getByRole("button",{name:"Drawing moves"}).click();
   await expect(svg).toHaveAttribute("data-km-crayon-frame","400");
   await svg.screenshot({path:info.outputPath("draw-in-portrait-400.png"),animations:"disabled"});
+});
+
+
+test("dragon village choreography: late wing flap, blinking dragon and responsive owl",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-crayon-scene-engine--dragon-village&viewMode=story");
+  const scene=page.locator('svg[data-km-crayon-scene]');
+  const dragon=scene.locator('[data-km-crayon-element="dragon-body"]');
+  const wing=scene.locator('[data-km-crayon-element="dragon-wing-near"]');
+  const owl=scene.locator('[data-km-crayon-element="owl-body"]');
+  const friend=scene.locator('[data-km-crayon-element="friend-body"]');
+  await expect(dragon).toBeAttached();
+  await expect(owl).toBeAttached();
+  await expect(friend).toBeAttached();
+  await expect(wing).toHaveAttribute("data-km-crayon-motion-lag","7");
+  await page.getByRole("button",{name:"Towers rise"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","58");
+  await expect(scene.locator('[data-km-crayon-element="castle-clock"]')).toBeAttached();
+  await page.getByRole("button",{name:"Wings unfurl"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","155");
+  const openWing=await wing.getAttribute("transform");
+  await scene.screenshot({path:info.outputPath("dragon-village-wing-open.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Dragon reacts"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","207");
+  await expect(scene.locator('[data-km-crayon-element="dragon-eyelid"]')).toHaveAttribute("data-km-crayon-pose","blink");
+  expect(await wing.getAttribute("transform")).not.toEqual(openWing);
+  await scene.screenshot({path:info.outputPath("dragon-village-dragon-reacts.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Friends answer"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","260");
+  await scene.screenshot({path:info.outputPath("dragon-village-friends-answer.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Wings unfurl"}).click();
+  expect(await wing.getAttribute("transform")).toBe(openWing);
+});
+test("dragon village portrait composition and independent cast variant",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-crayon-scene-engine--dragon-village-portrait&viewMode=story");
+  const scene=page.locator("svg[data-km-crayon-scene]");
+  await expect(scene).toHaveAttribute("viewBox","0 0 540 960");
+  await page.getByRole("button",{name:"Friends answer"}).click();
+  await scene.screenshot({path:info.outputPath("dragon-village-portrait-friends.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Final pose"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","329");
+  await scene.screenshot({path:info.outputPath("dragon-village-portrait-final.png"),animations:"disabled"});
+  await page.goto("/iframe.html?id=video-crayon-scene-engine--dragon-village-duo&viewMode=story");
+  const duo=page.locator("svg[data-km-crayon-scene]");
+  await expect(duo.locator('[data-km-crayon-element="owl-body"]')).toHaveCount(0);
+  await expect(duo.locator('[data-km-crayon-element="friend-body"]')).toBeAttached();
+  await expect(duo.locator('[data-km-crayon-element="dragon-body"]')).toBeAttached();
 });
