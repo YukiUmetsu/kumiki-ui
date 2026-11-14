@@ -205,8 +205,8 @@ export function inkCinematicAt(
   const wind=reducedMotion?0:spec.art.wind;
   return {
     frame:f,actorX:a.x+a.travel*u,actorY:a.y,
-    actorBob:gaitWeight*Math.sin(phase*2)*1.9,
-    actorStep:gaitWeight*Math.sin(phase)*8.5,
+    actorBob:gaitWeight?gaitWeight*Math.sin(phase*2)*1.9:0,
+    actorStep:gaitWeight?gaitWeight*Math.sin(phase)*8.5:0,
     robeSway:wind*(Math.sin(f*.085-.7)*3.2+gaitWeight*Math.sin(phase-1.0)*5),
     armSway:wind*(Math.sin(f*.064+.7)*1.65+gaitWeight*Math.sin(phase+.7)*2),
     scrollTilt:wind*Math.sin(f*.055)*.92,
