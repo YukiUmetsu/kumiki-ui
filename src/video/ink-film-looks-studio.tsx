@@ -130,13 +130,20 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
   // alters frame sampling, never pigment diffusion equations or actor cues.
   useEffect(()=>{
     if(!playing||reducedMotion)return;
-    const start=performance.now(),origin=frame;
+    // Rendering a dense SVG brush frame may take longer than a whole film
+    // in software Chromium. Bound catch-up to avoid a preview jumping from
+    // frame zero straight to the final hold on its first delayed animation tick.
+    // Production exports still sample the requested absolute frame, unchanged.
+    let last=performance.now(),position=frame;
     let raf=0;
     const tick=(now:number)=>{
-      const moved=Math.floor((now-start)*30/1000*playbackRate);
-      const next=loop?(origin+moved)%(maxFrame+1):Math.min(maxFrame,origin+moved);
+      const elapsed=Math.min(125,Math.max(0,now-last));
+      last=now;
+      position+=elapsed*30/1000*playbackRate;
+      const next=loop?Math.floor(position)%(maxFrame+1):
+        Math.min(maxFrame,Math.floor(position));
       setFrame(next);
-      if(!loop&&next===maxFrame)setPlaying(false);
+      if(!loop&&position>=maxFrame)setPlaying(false);
       else raf=requestAnimationFrame(tick);
     };
     raf=requestAnimationFrame(tick);
