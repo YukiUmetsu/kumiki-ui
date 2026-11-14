@@ -1,5 +1,6 @@
 import type { CrayonColor, CrayonElement, CrayonMotionKey, CrayonSceneSpec } from "../../registry/video/materials/crayon-scene";
 import { crayonPerformanceScene } from "./crayon-performance-fixtures";
+import { crayonScaleField, crayonMasonryCourses, crayonRoofCourses } from "./crayon-craft-detail-patterns";
 
 /** Original crayon cast: a rigged dragon, forest friend and owl in a detailed village. */
 export interface CrayonDragonVillageOptions {
@@ -122,6 +123,11 @@ export function crayonDragonVillageScene(
       "M-100 -142L0 -215L99 -142L78 -132L0 -184L-78 -132Z",
       {x:-105,y:-220,width:212,height:151},roof,
       {parentId,timing:{start:16,end:87}});
+    line(id+"-hand-laid-roof-tiles",
+      crayonRoofCourses({apexX:0,apexY:style==="gable"?-168:-215,
+        halfWidth:style==="gable"?101:99,height:style==="gable"?82:73,
+        rows:Math.round(4+detail*4),seed:style==="gable"?109:137}),
+      "#d9c6bd",1.6,{parentId:id+"-roof",opacity:.68,timing:{start:94,end:158}});
     wax(id+"-door","M-23 55V-6Q0 -39 23 -6V55Z",
       {x:-26,y:-42,width:52,height:99},timber,
       {parentId,timing:{start:45,end:119},spacing:5});
@@ -132,11 +138,15 @@ export function crayonDragonVillageScene(
       line(id+"-windowbars-"+side,`M${v} -81V-29M${v-14} -55H${v+14}`,
         "#6f7484",2.5,{parentId,timing:{start:77,end:139}});
     }
-    for(let i=0;i<Math.round(detail*6);i++){
-      const x=-68+(i%3)*44,y=-14+Math.floor(i/3)*21;
-      line(id+"-brick-"+i,`M${x} ${y}h25`,"#947f84",2.2,
-        {parentId,opacity:.4,timing:{start:72,end:136}});
-    }
+    const mortar=crayonMasonryCourses({x:-76,y:-12,
+      rows:Math.round(2+detail*4),columns:1,courseWidth:42,courseHeight:13,seed:84})+" "+
+      crayonMasonryCourses({x:38,y:-12,
+        rows:Math.round(2+detail*4),columns:1,courseWidth:38,courseHeight:13,seed:86});
+    line(id+"-cut-stone-courses",mortar,"#8b7b86",1.45,
+      {parentId,opacity:.52,timing:{start:75,end:153}});
+    line(id+"-door-rivets",
+      "M-13 7h2M13 7h2M-13 26h2M13 26h2M-13 43h2M13 43h2",
+      "#eac095",2.1,{parentId,opacity:.70,timing:{start:99,end:163}});
   };
   cottage("western-shop",W*(portrait?.19:.14),H*(portrait?.60:.84),portrait?.42:.60,"gable");
   cottage("eastern-shop",W*(portrait?.83:.89),H*(portrait?.61:.84),portrait?.45:.53,"turret");
@@ -152,10 +162,19 @@ export function crayonDragonVillageScene(
     {x:73,y:-161,width:77,height:221},shade,{parentId:tower,timing:{start:24,end:109}});
   wax("castle-center-roof","M-67 -183L0 -267L67 -183L53 -166H-54Z",
     {x:-73,y:-275,width:148,height:114},roof,{parentId:tower,timing:{start:8,end:87}});
+  line("castle-center-roof-tiles",
+    crayonRoofCourses({apexX:0,apexY:-267,halfWidth:63,height:82,
+      rows:Math.round(5+detail*5),seed:531}),
+    "#d8d2db",1.7,{parentId:"castle-center-roof",opacity:.7,timing:{start:91,end:166}});
   for(const [side,x] of [["left",-112],["right",112]] as const){
     wax("castle-"+side+"-spire",`M${x-43} -149L${x} -258L${x+43} -149Z`,
       {x:x-48,y:-261,width:96,height:116},roof,
       {parentId:tower,timing:{start:9,end:96},spacing:5});
+    line("castle-"+side+"-hand-laid-tiles",
+      crayonRoofCourses({apexX:x,apexY:-258,halfWidth:42,height:106,
+        rows:Math.round(5+detail*4),seed:side==="left"?401:402}),
+      "#d2c4c7",1.65,{parentId:"castle-"+side+"-spire",
+        opacity:.67,timing:{start:96,end:162}});
     wax("castle-"+side+"-glass",
       `M${x-17} -117Q${x} -151 ${x+17} -117V-62H${x-17}Z`,
       {x:x-19,y:-155,width:38,height:96},glass,
@@ -163,6 +182,11 @@ export function crayonDragonVillageScene(
     line("castle-"+side+"-mullions",
       `M${x} -137V-61M${x-17} -97H${x+17}`,
       "#5d6b7d",2.7,{parentId:tower,timing:{start:74,end:144}});
+    line("castle-"+side+"-lancet-quatrefoil",
+      "M"+(x-13)+" -112Q"+x+" -139 "+(x+13)+" -112"+
+        "M"+(x-8)+" -117Q"+x+" -127 "+(x+8)+" -117"+
+        "M"+(x-16)+" -76Q"+x+" -69 "+(x+16)+" -76",
+      "#d2c7ba",1.9,{parentId:tower,opacity:.77,timing:{start:108,end:188}});
     line("castle-"+side+"-cap",`M${x-31} -150H${x+31}`,
       "#e7d4c3",3,{parentId:tower,timing:{start:72,end:135}});
   }
@@ -171,6 +195,18 @@ export function crayonDragonVillageScene(
     {parentId:tower,timing:{start:58,end:148},spacing:5});
   line("castle-door-stone","M-50 55V-20Q-50 -91 0 -94Q51 -91 51 -20V55",
     "#7b7787",4,{parentId:tower,timing:{start:76,end:151}});
+  const voussoirs:string[]=[];
+  for(let i=0;i<=10;i++){
+    const a=Math.PI-(i/10)*Math.PI;
+    const x=Math.cos(a)*48,y=-20-Math.sin(a)*69;
+    const xo=Math.cos(a)*58,yo=-20-Math.sin(a)*78;
+    voussoirs.push("M"+x.toFixed(1)+" "+y.toFixed(1)+
+      "L"+xo.toFixed(1)+" "+yo.toFixed(1));
+  }
+  line("castle-carved-voussoir-arch",voussoirs.join(" "),
+    "#9d8990",2.15,{parentId:tower,opacity:.72,timing:{start:104,end:189}});
+  line("castle-keystone","M-9 -89L0 -103L9 -89L0 -81Z",
+    "#c2a18a",2.25,{parentId:tower,timing:{start:116,end:193}});
   line("castle-door-planks","M0 -66V53M-27 0H26M-26 31H27",
     "#d3aa84",2.8,{parentId:tower,timing:{start:91,end:169}});
   wax("castle-clock",egg(0,-124,31,31),
@@ -178,6 +214,14 @@ export function crayonDragonVillageScene(
     {parentId:tower,timing:{start:47,end:129},spacing:5});
   line("castle-clock-rim",egg(0,-124,32,32),
     "#667087",4,{parentId:tower,timing:{start:77,end:148}});
+  const clockTicks:string[]=[];
+  for(let i=0;i<12;i++){
+    const a=(i/12)*Math.PI*2-Math.PI/2;
+    clockTicks.push("M"+(Math.cos(a)*23).toFixed(1)+" "+(-124+Math.sin(a)*23).toFixed(1)+
+      "L"+(Math.cos(a)*27).toFixed(1)+" "+(-124+Math.sin(a)*27).toFixed(1));
+  }
+  line("castle-clock-engraved-ticks",clockTicks.join(" "),
+    "#84778b",1.9,{parentId:tower,timing:{start:107,end:169},opacity:.76});
   line("castle-clock-hands","M0 -124V-144M0 -124L14 -114",
     "#5b5e77",3.4,{parentId:tower,timing:{start:86,end:154}});
   // Rosette arches and the lit entry add an architectural "lived in" layer.
@@ -220,6 +264,13 @@ export function crayonDragonVillageScene(
     }
     if(marks.length)line("castle-masonry-"+i,marks.join(" "),
       "#9b8786",1.6,{parentId:tower,opacity:.36,timing:{start:73,end:162}});
+  }
+  for(const side of [-1,1] as const){
+    const x=side===-1?-138:79;
+    line("castle-"+(side===-1?"west":"east")+"-fine-mortar",
+      crayonMasonryCourses({x,y:-138,rows:Math.round(7+detail*5),
+        columns:2,courseWidth:26,courseHeight:15,seed:side===-1?338:339}),
+      "#8c8390",1.3,{parentId:tower,opacity:.33,timing:{start:120,end:191}});
   }
   line("castle-roof-engrave","M-45 -188L0 -249L46 -188M-26 -190L0 -228L26 -190",
     "#c3c4d1",2.3,{parentId:tower,timing:{start:72,end:157}});
