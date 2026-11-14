@@ -68,6 +68,10 @@ export interface RisoMeshReport {
     contourArea: number;
     /** Area of emitted triangles, used to detect escaped or incomplete ear clipping. */
     triangleArea: number;
+    /** Measured longest edge after refinement, not a claimed target. */
+    maxTriangleEdgeLength: number;
+    /** False when the hard mesh budget prevents reaching the requested size. */
+    refinementTargetMet: boolean;
   })[];
   measurements: readonly {id: string;label: string;distance: number;
     dx: number;dy: number;distanceInHeads: number}[];
@@ -207,12 +211,17 @@ export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoChara
       ...(r.landmarks??[]).filter(p=>p.id!=="center").map(p=>({id:p.id,at:mapPoint(guideMatrix,p.at)})),
     ];
     const contourArea=area(outline),triangleArea=triangles.reduce((a,t)=>a+triArea(t),0);
+    const maxTriangleEdgeLength=triangles.reduce((maximum,t)=>Math.max(maximum,
+      Math.hypot(t[0][0]-t[1][0],t[0][1]-t[1][1]),
+      Math.hypot(t[1][0]-t[2][0],t[1][1]-t[2][1]),
+      Math.hypot(t[2][0]-t[0][0],t[2][1]-t[0][1])),0);
     return {
       id:r.id,label:r.label,category:r.category,parts:r.parts,
       outline,triangles,landmarks,bounds,referenceBounds,
       widthInHeads:referenceBounds.width/headUnit,
       heightInHeads:referenceBounds.height/headUnit,
       sourceContourPoints:outline.length,contourArea,triangleArea,
+      maxTriangleEdgeLength,refinementTargetMet:maxTriangleEdgeLength<=maxEdgeLength+1e-6,
     };
   });
   const byId=new Map(regions.map(r=>[r.id,r]));
