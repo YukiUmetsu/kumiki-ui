@@ -35,6 +35,11 @@ describe("CRAYON1 actual subtractive wax sgraffito",()=>{
      .toContain("follow wax deposition");
    expect(inspectCrayonScene(bad({...scrape,last:35})).join(" "))
      .toContain("fit duration");
+   const open={...scene,elements:scene.elements.map(n=>n.kind==="wax"
+     ? {...n,coverage:"open" as const}:n)};
+   expect(inspectCrayonScene(open).join(" "))
+     .toContain("opaque buried pigment");
+   expect(()=>render(25,open)).toThrow(/opaque buried pigment/);
  });
  it("cuts the top tooth-layer MASK, leaving the opaque body as buried pigment",()=>{
    const before=render(14);
