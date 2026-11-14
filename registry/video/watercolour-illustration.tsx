@@ -26,10 +26,25 @@ interface ArtPartBase {
   startFrame?: number;
   fadeFrames?: number;
 }
+/** Artist-directed optical glazing. These are pigments painted on the SUBJECT,
+ * not a screen-wide SVG filter or a replacement for WM4 water transport.
+ * Thin glazes intentionally let the underlying local paint show through.
+ */
+export interface WatercolourWashTreatment {
+  /** Pigment at the light-facing end of the shape's paper-locked gradient. */
+  highlight?: string;
+  /** Denser pigment at the lower/right side of the shape. */
+  shadow?: string;
+  /** Transparent pigment added after the first wash, within exactly its silhouette. */
+  glaze?: { pigment: string; opacity: number };
+  /** 0..1 pooled pigment along the actual original contour. */
+  edgePooling?: number;
+}
 export type WatercolourArtPart =
   | (ArtPartBase & { kind: "group"; children: readonly WatercolourArtPart[] })
   | (ArtPartBase & { kind: "path"; path: string; technique: WatercolourTechnique;
-      fill?: string; stroke?: string; strokeWidth?: number; opacity?: number });
+      fill?: string; stroke?: string; strokeWidth?: number; opacity?: number;
+      wash?: WatercolourWashTreatment });
 export interface WatercolourArtwork {
   version: 1;
   width: number;
@@ -127,6 +142,22 @@ export function inspectWatercolourArtwork(spec: WatercolourArtwork): string[] {
       problems.push(at + "/strokeWidth");
     if (part.opacity !== undefined && !bounded(part.opacity, 0, 1))
       problems.push(at + "/opacity");
+    if (part.wash !== undefined) {
+      const w = part.wash;
+      if (!w || typeof w !== "object" || Array.isArray(w) ||
+        part.technique !== "wash" || !part.fill || part.fill === "none") {
+        problems.push(at + "/wash");
+      } else {
+        for (const [key, pigment] of [["highlight", w.highlight], ["shadow", w.shadow]] as const)
+          if (pigment !== undefined && (typeof pigment !== "string" || !hex.test(pigment)))
+            problems.push(at + "/wash/" + key);
+        if (w.edgePooling !== undefined && !bounded(w.edgePooling, 0, 1))
+          problems.push(at + "/wash/edgePooling");
+        if (w.glaze !== undefined && (!w.glaze || !hex.test(w.glaze.pigment) ||
+          !bounded(w.glaze.opacity, 0, 1)))
+          problems.push(at + "/wash/glaze");
+      }
+    }
   };
   spec.parts.forEach((part, i) => inspect(part, "/parts/" + i, 0));
   return problems;
@@ -153,9 +184,9 @@ export function watercolourArtPoseAt(part: WatercolourArtPart, frame: number,
   return neutral;
 }
 
-function ArtPart({ part, frame, reducedMotion, washFilter, dryFilter }: {
+function ArtPart({ part, frame, reducedMotion, washFilter, dryFilter, uid }: {
   part: WatercolourArtPart; frame: number; reducedMotion: boolean;
-  washFilter: string; dryFilter: string;
+  washFilter: string; dryFilter: string; uid: string;
 }) {
   const pose = watercolourArtPoseAt(part, frame, reducedMotion);
   const start = part.startFrame ?? 0;
@@ -164,19 +195,45 @@ function ArtPart({ part, frame, reducedMotion, washFilter, dryFilter }: {
   if (visible <= 0 || pose.opacity <= 0) return null;
   const pivot = part.pivot ?? { x: 0, y: 0 };
   const transform = `translate(${pose.x} ${pose.y}) translate(${pivot.x} ${pivot.y}) rotate(${pose.rotation}) scale(${pose.scale}) translate(${-pivot.x} ${-pivot.y})`;
+  const material = part.kind === "path" ? part.wash : undefined;
+  const pigmentId = uid + "-pigment-" + part.id;
+  const opacity = part.kind === "path" ? (part.opacity ?? 1) : 1;
+  const hasGradient = Boolean(material?.highlight || material?.shadow);
   return <g data-km-watercolour-part={part.id} transform={transform}
     opacity={pose.opacity * visible}>
     {part.kind === "group"
       ? part.children.map(child => <ArtPart key={child.id} part={child} frame={frame}
-          reducedMotion={reducedMotion} washFilter={washFilter} dryFilter={dryFilter}/>)
-      : <path d={part.path} fill={part.fill ?? "none"}
+          reducedMotion={reducedMotion} washFilter={washFilter} dryFilter={dryFilter}
+          uid={uid}/>)
+      : <>
+        {hasGradient && <defs>
+          <linearGradient id={pigmentId} x1="9%" y1="3%" x2="85%" y2="96%">
+            <stop offset="0" stopColor={material?.highlight ?? part.fill}/>
+            <stop offset=".54" stopColor={part.fill}/>
+            <stop offset="1" stopColor={material?.shadow ?? part.fill}/>
+          </linearGradient>
+        </defs>}
+        <path d={part.path} fill={hasGradient ? `url(#${pigmentId})` : (part.fill ?? "none")}
           stroke={part.stroke ?? "none"} strokeWidth={part.strokeWidth ?? 1}
-          strokeLinecap="round" strokeLinejoin="round"
-          opacity={part.opacity ?? 1}
+          strokeLinecap="round" strokeLinejoin="round" opacity={opacity}
           filter={part.technique === "wash" ? washFilter
             : part.technique === "drybrush" ? dryFilter : undefined}
           style={{ mixBlendMode: part.technique === "line" ? "normal" : "multiply" }}
-          data-km-watercolour-technique={part.technique}/>}
+          data-km-watercolour-technique={part.technique}/>
+        {material?.glaze && material.glaze.opacity > 0 && <path
+          d={part.path} fill={material.glaze.pigment}
+          opacity={opacity * material.glaze.opacity}
+          filter={washFilter} style={{ mixBlendMode: "multiply" }}
+          data-km-watercolour-optical-glaze={part.id}/>}
+        {material?.edgePooling && material.edgePooling > 0 && <path
+          d={part.path} fill="none"
+          stroke={material.shadow ?? part.fill}
+          strokeWidth={.7 + 2.2 * material.edgePooling}
+          strokeLinejoin="round" strokeLinecap="round"
+          opacity={opacity * material.edgePooling * .29}
+          filter={washFilter} style={{ mixBlendMode: "multiply" }}
+          data-km-watercolour-edge-pooling={part.id}/>}
+      </>}
   </g>;
 }
 
@@ -220,6 +277,6 @@ export function WatercolourIllustration({ spec, frame, reducedMotion = false, ..
       transparentPaper/>}
     {spec.parts.map(part => <ArtPart key={part.id} part={part} frame={frame}
       reducedMotion={reducedMotion} washFilter={`url(#${id}-wash)`}
-      dryFilter={`url(#${id}-dry)`}/>)}
+      dryFilter={`url(#${id}-dry)`} uid={id}/>)}
   </svg>;
 }
