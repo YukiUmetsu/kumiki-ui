@@ -2,6 +2,10 @@
 
 **Study date:** 2026-11-14. **Status:** research-backed design directions, not visual acceptance. Search results and source descriptions were inspected, plus our *own* actual Chromium frames from PR #155. External videos were not systematically decoded or frame-inspected. Do not claim timed shot analysis until it has been done.
 
+## Direct user artwork reference study
+
+See [the twelve user-supplied artwork study](research/colour-pencil-user-art-reference-study-2026-11-14.md) for observed mark techniques, character and scene requirements, limitations and engineering acceptance criteria. The images themselves are not redistributed.
+
 ## Selected playable references and technique anchors
 
 | Source (open video/page) | Scope and useful production observation | Kumiki implication |

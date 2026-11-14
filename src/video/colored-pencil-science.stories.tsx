@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
-import { ColoredPencilSciencePlate } from "./colored-pencil-science";
+import { ColoredPencilSciencePlate, coloredPencilExample } from "./colored-pencil-science";
+import { PencilDrawing } from "../../registry/video/colored-pencil-react";
+import type { PencilDrawingSpec, PencilPigmentLayer } from "../../registry/video/colored-pencil";
 import type { PencilSubject } from "./colored-pencil-science";
 import type { PencilAspect } from "../../registry/video/colored-pencil";
 import { COLOR_PENCIL_FILM } from "./colored-pencil-film";
@@ -378,4 +380,64 @@ export const CharacterFilm: StoryObj<typeof meta> = {
   name: "Character film · Three-shot FilmStage",
   args: { aspect: "landscape", subject: "leaf", frame: 220 },
   render: () => <CharacterFilmStudio/>,
+};
+
+/** Study the physical pencil marks visible in the supplied references, using only original demo art. */
+function PencilMarkLaboratory() {
+  const [texture, setTexture] = useState<NonNullable<PencilPigmentLayer["texture"]>>("fiber");
+  const [subject, setSubject] = useState<PencilSubject>("leaf");
+  const [aspect, setAspect] = useState<PencilAspect>("landscape");
+  const [frame, setFrame] = useState(275);
+  const drawing = useMemo<PencilDrawingSpec>(() => {
+    const original = coloredPencilExample(subject, aspect);
+    return { ...original, regions: original.regions.map(region => ({
+      ...region, layers: region.layers.map((layer, index) => ({
+        ...layer, texture: index === 1 ? "hatch" as const : texture,
+      })),
+    })) };
+  }, [subject, aspect, texture]);
+  return <main style={page}>
+    <h1 style={{ font: "600 30px Georgia,serif", margin: 0 }}>Colour-pencil · Mark-making laboratory</h1>
+    <p style={{ maxWidth: 780, margin: 0 }}>Compare long hatches, short directional feather fibres,
+      and fine graphite-like stippling. The second pigment pass retains long hatches for colour
+      blending. Every mark belongs to the paper and stays stable during seeking.</p>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "end" }}>
+      <label style={label}>Mark family
+        <select aria-label="Pencil mark family" value={texture}
+          onChange={e => setTexture(e.target.value as typeof texture)}>
+          <option value="hatch">Long hatch strokes</option>
+          <option value="fiber">Short fibres (feathers / grass / hair)</option>
+          <option value="stipple">Stipple taps (stone / bark / grain)</option>
+        </select>
+      </label>
+      <label style={label}>Original subject
+        <select aria-label="Mark lab specimen" value={subject}
+          onChange={e => setSubject(e.target.value as PencilSubject)}>
+          <option value="leaf">Leaf</option><option value="crystal">Crystal</option>
+        </select>
+      </label>
+      <label style={label}>Aspect
+        <select aria-label="Mark lab aspect" value={aspect}
+          onChange={e => setAspect(e.target.value as PencilAspect)}>
+          <option value="landscape">16:9</option><option value="portrait">9:16</option>
+        </select>
+      </label>
+      <label style={label}>Frame · {frame}
+        <input aria-label="Mark lab drawing frame" type="range" min={0} max={352}
+          value={frame} onChange={e => setFrame(Number(e.target.value))}/>
+      </label>
+    </div>
+    <div style={{ maxWidth: aspect === "landscape" ? 960 : 500, width: "100%",
+      boxShadow: "0 16px 44px #514d3d26" }}>
+      <PencilDrawing drawing={drawing} frame={frame}/>
+    </div>
+    <p style={{ maxWidth: 780, fontSize: 13, color: "#536455" }}>
+      Material technique preview only. Portraits, architecture, wildlife and landscapes need
+      individually authored shapes, anatomy and composition before artistic approval.</p>
+  </main>;
+}
+export const MarkMakingLaboratory: StoryObj<typeof meta> = {
+  name: "Mark-making · Hatches, fibres and stipples",
+  args: { aspect: "landscape", subject: "leaf", frame: 275 },
+  render: () => <PencilMarkLaboratory/>,
 };

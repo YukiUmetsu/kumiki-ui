@@ -20,6 +20,8 @@ export interface PencilPigmentLayer extends PencilTiming {
   flow?: number;
   /** Optical value distribution across a form. Defaults to an even deposit. */
   tone?: "even" | "core" | "rim";
+  /** Original pencil geometry: broad hatching, short aligned fibres or fine stipple taps. */
+  texture?: "hatch" | "fiber" | "stipple";
 }
 export interface PencilTrace extends PencilTiming {
   path: string;
@@ -127,6 +129,8 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
           !Number.isFinite(layer.tipWidth) || layer.tipWidth < .3 || layer.tipWidth > 4 ||
           (layer.flow !== undefined && (!Number.isFinite(layer.flow) || Math.abs(layer.flow) > 60)) ||
           (layer.tone !== undefined && !["even", "core", "rim"].includes(layer.tone)) ||
+    (layer.texture !== undefined && !["hatch", "fiber", "stipple"].includes(layer.texture)) ||
+          (layer.texture !== undefined && !["hatch", "fiber", "stipple"].includes(layer.texture)) ||
           !Number.isSafeInteger(layer.seed) || layer.seed < 0 ||
           !Number.isSafeInteger(layer.startFrame) || layer.startFrame < 0 ||
           !Number.isSafeInteger(layer.durationFrames) || layer.durationFrames < 8)
@@ -183,17 +187,35 @@ export function hatchPencilRegion(region: Pick<PencilRegion, "bounds">, layer: P
     let cursor = startX + pencilHash(layer.seed, i, 6) * 8;
     for (let segment = 0; cursor < endX && segment < 160; segment++) {
       const key = i * 163 + segment;
-      const length = 11 + pencilHash(layer.seed, key, 7) * 30;
-      const tip = Math.min(endX, cursor + length);
-      const variation = (pencilHash(layer.seed, key, 8) - .5) * 1.9;
-      const y0 = yy + variation;
-      const mid = (cursor + tip) / 2;
-      const midY = yy + bow + (pencilHash(layer.seed, key, 9) - .5) * 2.5;
-      const y1 = yy + (pencilHash(layer.seed, key, 10) - .5) * 2.3;
-      pieces.push("M" + cursor.toFixed(2) + " " + y0.toFixed(2) +
-        " Q" + mid.toFixed(2) + " " + midY.toFixed(2) +
-        " " + tip.toFixed(2) + " " + y1.toFixed(2));
-      cursor = tip + 3 + pencilHash(layer.seed, key, 12) * 12;
+      const texture = layer.texture ?? "hatch";
+      const grain = pencilHash(layer.seed, key, 8);
+      if (texture === "stipple") {
+        // Deliberate pencil taps in local paper coordinates, not a screen-space spray.
+        const px = cursor + grain * 2.2;
+        const py = yy + (pencilHash(layer.seed, key, 9) - .5) * layer.spacing * .72;
+        const dot = .12 + pencilHash(layer.seed, key, 10) * .34;
+        pieces.push("M" + px.toFixed(2) + " " + py.toFixed(2) +
+          " l" + dot.toFixed(2) + " " + (dot * .23).toFixed(2));
+        cursor += 4 + pencilHash(layer.seed, key, 12) * 10;
+      } else {
+        // Short curved fibres describe hair, feathers, grass and bark; long hatches
+        // build broad colour. Both remain seeded and stable when seeking frames.
+        const length = texture === "fiber" ? 4.5 + pencilHash(layer.seed, key, 7) * 13 :
+          11 + pencilHash(layer.seed, key, 7) * 30;
+        const tip = Math.min(endX, cursor + length);
+        const variation = (grain - .5) * (texture === "fiber" ? 4.2 : 1.9);
+        const y0 = yy + variation;
+        const mid = (cursor + tip) / 2;
+        const midY = yy + bow * (texture === "fiber" ? .55 : 1) +
+          (pencilHash(layer.seed, key, 9) - .5) * (texture === "fiber" ? 4.4 : 2.5);
+        const y1 = yy + (pencilHash(layer.seed, key, 10) - .5) *
+          (texture === "fiber" ? 4.2 : 2.3);
+        pieces.push("M" + cursor.toFixed(2) + " " + y0.toFixed(2) +
+          " Q" + mid.toFixed(2) + " " + midY.toFixed(2) +
+          " " + tip.toFixed(2) + " " + y1.toFixed(2));
+        cursor = tip + (texture === "fiber" ? 2 : 3) + pencilHash(layer.seed, key, 12) *
+          (texture === "fiber" ? 7 : 12);
+      }
     }
     return {
       path: pieces.join(" "),
@@ -228,6 +250,8 @@ export interface PencilObjectInput {
   flow?: number;
   /** Value emphasis for cylindrical, convex or rim-lit forms. */
   tone?: "even" | "core" | "rim";
+  /** Surface-specific mark vocabulary, optional for existing callers. */
+  texture?: "hatch" | "fiber" | "stipple";
   contourColor?: string;
   transform?: string;
   details?: readonly PencilTrace[];
@@ -235,13 +259,14 @@ export interface PencilObjectInput {
 export function createPencilRegion(input: PencilObjectInput): PencilRegion {
   const { id, path, bounds, palette, seed, startFrame, durationFrames, direction = -28,
     material = "layered", contourColor = "#444A45", transform, details,
-    flow = 0, tone = "even", underpaintOpacity } = input;
+    flow = 0, tone = "even", texture = "hatch", underpaintOpacity } = input;
   if (!Number.isSafeInteger(startFrame) || startFrame < 0 ||
       !Number.isSafeInteger(durationFrames) || durationFrames < 30 ||
       !Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647 ||
       !Number.isFinite(direction) || Math.abs(direction) > 180 ||
       !Number.isFinite(flow) || Math.abs(flow) > 60 ||
       !["even", "core", "rim"].includes(tone) ||
+      !["hatch", "fiber", "stipple"].includes(texture) ||
       (underpaintOpacity !== undefined && (!Number.isFinite(underpaintOpacity) ||
         underpaintOpacity < 0 || underpaintOpacity > 1)) ||
       palette.length !== 3 || palette.some(c => !HEX.test(c)) || !HEX.test(contourColor) ||
@@ -255,7 +280,7 @@ export function createPencilRegion(input: PencilObjectInput): PencilRegion {
   const style = presets[material];
   const layers: PencilPigmentLayer[] = palette.map((color, i) => ({
     color, angle: Math.max(-180, Math.min(180, direction + [0, 73, -44][i])),
-    flow: flow * [1, -.42, .64][i], tone,
+    flow: flow * [1, -.42, .64][i], tone, texture,
     spacing: style.spacing[i], pressure: style.pressure[i], tipWidth: style.tip[i],
     seed: seed + i * 307, startFrame: startFrame + Math.floor(i * durationFrames * .23),
     durationFrames: Math.max(8, Math.floor(durationFrames * .7)),
