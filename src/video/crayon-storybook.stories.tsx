@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCrayonStoryPlayback } from "./crayon-story-playback";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CrayonStorybook } from "../../registry/video/materials/crayon-react";
 import type { CrayonAspect, CrayonStory } from "../../registry/video/materials/crayon-react";
@@ -11,18 +11,13 @@ interface PlayerProps {
   paperTooth: number;
   reducedMotion: boolean;
   startFrame: number;
+  playbackRate: number;
+  loop: boolean;
 }
 /** Player clocks live only here. The library renderer always evaluates a pinned absolute frame. */
-function CrayonPlayer({story,aspect,seed,pressure,paperTooth,reducedMotion,startFrame}:PlayerProps) {
-  const [frame,setFrame] = useState(startFrame);
-  const [playing,setPlaying] = useState(false);
-  useEffect(()=>{setFrame(startFrame);setPlaying(false);},[startFrame]);
-  useEffect(()=>{
-    if(!playing) return;
-    const timer = window.setInterval(()=>setFrame(old=>Math.min(419,old+1)),1000/30);
-    return ()=>window.clearInterval(timer);
-  },[playing]);
-  useEffect(()=>{if(frame>=419 && playing)setPlaying(false);},[frame,playing]);
+function CrayonPlayer({story,aspect,seed,pressure,paperTooth,reducedMotion,startFrame,playbackRate,loop}:PlayerProps) {
+  const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
+    startFrame,420,story+":"+aspect,playbackRate,loop);
   const chapters = [
     {name:"1 · Paper & sky",frame:25},
     {name:"2 · Scene emerges",frame:156},
@@ -42,27 +37,27 @@ function CrayonPlayer({story,aspect,seed,pressure,paperTooth,reducedMotion,start
         paperTooth={paperTooth} reducedMotion={reducedMotion} />
     </div>
     <div style={{display:"flex",gap:10,alignItems:"center",marginTop:18,flexWrap:"wrap"}}>
-      <button type="button" onClick={()=>{if(frame>=419)setFrame(0);setPlaying(p=>!p);}}
+      <button type="button" onClick={toggle}
         aria-label={playing?"Pause animation":"Play animation"} style={{font:"600 15px system-ui",padding:"10px 20px",borderRadius:10,border:"none",background:"#33475e",color:"white",cursor:"pointer"}}>
         {playing?"Pause":"Play film"}
       </button>
-      <button type="button" onClick={()=>{setPlaying(false);setFrame(0);}} style={{font:"600 14px system-ui",padding:"10px 15px",borderRadius:10,border:"1px solid #b2ac9d",background:"#fff9ed",cursor:"pointer"}}>
+      <button type="button" onClick={restart} style={{font:"600 14px system-ui",padding:"10px 15px",borderRadius:10,border:"1px solid #b2ac9d",background:"#fff9ed",cursor:"pointer"}}>
         Restart
       </button>
       <label style={{flex:"1 1 245px",display:"flex",alignItems:"center",gap:10,fontSize:14}}>
         Frame
         <input type="range" aria-label="Film frame" min="0" max="419" value={frame}
-          onChange={e=>{setPlaying(false);setFrame(Number(e.target.value));}} style={{width:"100%",accentColor:"#ae6d61"}}/>
+          onChange={e=>seek(Number(e.target.value))} style={{width:"100%",accentColor:"#ae6d61"}}/>
         <output style={{minWidth:36,fontVariantNumeric:"tabular-nums"}}>{frame}</output>
       </label>
     </div>
     <nav aria-label="Film chapters" style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}>
-      {chapters.map(chapter=><button key={chapter.frame} type="button" onClick={()=>{setPlaying(false);setFrame(chapter.frame);}}
+      {chapters.map(chapter=><button key={chapter.frame} type="button" onClick={()=>seek(chapter.frame)}
         style={{border:"1px solid #c8c0af",borderRadius:30,padding:"8px 12px",background:frame===chapter.frame?"#33475e":"#faf5e8",
           color:frame===chapter.frame?"white":"#33475e",font:"13px system-ui",cursor:"pointer"}}>{chapter.name}</button>)}
     </nav>
     <div style={{fontSize:12,lineHeight:1.5,color:"#6b706f",marginTop:15}}>
-      Artist controls live in the Storybook Controls panel. Scrub backward and forward: each mark and paper pore is frame-stable. Full-motion acceptance still requires an encoded-film review.
+      Artist controls live in the Storybook Controls panel, including playback speed and loop. Playback seeks by elapsed time rather than one-frame timer ticks. Scrub backward and forward: each mark and paper pore is frame-stable. Full-motion acceptance still requires an encoded-film review.
     </div>
   </div>;
 }
@@ -70,7 +65,7 @@ const meta = {
   title:"Video production/Film Looks/Crayon Storybook",
   id:"video-crayon-storybook",
   component:CrayonPlayer,
-  args:{story:"lantern",aspect:"landscape",seed:23,pressure:.87,paperTooth:.58,reducedMotion:false,startFrame:320},
+  args:{story:"lantern",aspect:"landscape",seed:23,pressure:.87,paperTooth:.58,reducedMotion:false,startFrame:320,playbackRate:1,loop:false},
   argTypes:{
     story:{control:"inline-radio",options:["lantern","garden"]},
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
@@ -78,6 +73,8 @@ const meta = {
     pressure:{control:{type:"range",min:0,max:1,step:.05}},
     paperTooth:{control:{type:"range",min:0,max:1,step:.05}},
     reducedMotion:{control:"boolean"},
+    playbackRate:{control:{type:"range",min:.25,max:2,step:.25}},
+    loop:{control:"boolean"},
     startFrame:{control:{type:"range",min:0,max:419,step:1}},
   },
 } satisfies Meta<typeof CrayonPlayer>;

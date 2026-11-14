@@ -7,10 +7,12 @@ on:
     paths:
       - "registry/video/materials/crayon*"
       - "src/video/crayon-storybook*"
+      - "src/video/crayon-story-playback*"
       - "src/video/crayon-scene*"
       - "src/video/crayon-walk*"
       - "src/video/crayon-performance*"
       - "tests/crayon-scene.test.tsx"
+      - "tests/crayon-story-playback.test.ts"
       - "tests/e2e-storybook/crayon-scene.spec.ts"
       - "tests/e2e-storybook/crayon-smoke.spec.ts"
       - "examples/film/crayon-scene-three-subjects.film.json"

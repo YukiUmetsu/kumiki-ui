@@ -96,3 +96,19 @@ test("two-bone walk uses analytic knees and eases a releasing planted foot",asyn
   await page.getByRole("button",{name:"Front-foot swing"}).click();
   expect(await leg.locator("path").first().getAttribute("d")).toEqual(shapeAtSwing);
 });
+
+
+test("crayon Storybook wall-clock playback advances, pauses, and restarts",async({page})=>{
+  await page.goto("/iframe.html?id=video-crayon-scene-engine--water-cycle&viewMode=story");
+  const scene=page.locator("svg[data-km-crayon-scene]");
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","239");
+  await page.getByRole("button",{name:"Play animation"}).click();
+  await expect.poll(async()=>Number(await scene.getAttribute("data-km-crayon-frame")),
+    {timeout:8000}).toBeGreaterThan(3);
+  await page.getByRole("button",{name:"Pause animation"}).click();
+  const paused=await scene.getAttribute("data-km-crayon-frame");
+  await page.waitForTimeout(160);
+  await expect(scene).toHaveAttribute("data-km-crayon-frame",paused!);
+  await page.getByRole("button",{name:"Restart"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","0");
+});

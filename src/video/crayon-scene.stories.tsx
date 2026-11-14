@@ -1,25 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CrayonScene } from "../../registry/video/materials/crayon-scene-react";
 import { crayonDemoScene } from "./crayon-scene-fixtures";
 import { crayonPerformanceScene } from "./crayon-performance-fixtures";
 import { crayonWalkScene } from "./crayon-walk-fixtures";
+import { useCrayonStoryPlayback } from "./crayon-story-playback";
 import type { CrayonDemoAspect, CrayonDemoSubject } from "./crayon-scene-fixtures";
 
 interface PlaygroundProps {
   subject:CrayonDemoSubject | "performance" | "walk"; aspect:CrayonDemoAspect; seed:number; paperTooth:number;
   reducedMotion:boolean; startFrame:number; stride:number; stepLift:number; rig:"drawn"|"ik";
+  playbackRate:number; loop:boolean;
 }
-function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig}:PlaygroundProps){
-  const [frame,setFrame]=useState(startFrame),[playing,setPlaying]=useState(false);
+function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop}:PlaygroundProps){
   const spec=useMemo(()=>({...(subject==="performance"?crayonPerformanceScene(aspect):subject==="walk"?crayonWalkScene(aspect,{stride,lift:stepLift,rig}):crayonDemoScene(subject,aspect)),seed,paperTooth}),[subject,aspect,seed,paperTooth,stride,stepLift,rig]);
-  useEffect(()=>{setPlaying(false);setFrame(startFrame)},[subject,aspect,startFrame]);
-  useEffect(()=>{
-    if(!playing)return;
-    const timer=window.setInterval(()=>setFrame(previous=>Math.min(spec.durationFrames-1,previous+1)),1000/30);
-    return ()=>window.clearInterval(timer);
-  },[playing,spec.durationFrames]);
-  useEffect(()=>{if(playing&&frame>=spec.durationFrames-1)setPlaying(false)},[playing,frame,spec.durationFrames]);
+  const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
+    startFrame,spec.durationFrames,subject+":"+aspect,playbackRate,loop);
   const duration=spec.durationFrames-1;
   const beats:readonly (readonly [number,string])[]=subject==="walk" ?
     [[0,"Ready"],[38,"Back-foot lift"],[44,"Contact release"],[94,"Back-foot plant"],[124,"Front-foot swing"],[156,"Front-foot plant"],[214,"Final plant"],[269,"Rest"]] : subject==="performance" ?
@@ -36,24 +32,24 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
       <CrayonScene frame={frame} spec={spec} reducedMotion={reducedMotion}/>
     </div>
     <div style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:10,marginTop:20}}>
-      <button type="button" aria-label={playing?"Pause animation":"Play animation"} onClick={()=>{if(frame>=duration)setFrame(0);setPlaying(v=>!v)}}
+      <button type="button" aria-label={playing?"Pause animation":"Play animation"} onClick={toggle}
         style={{cursor:"pointer",background:"#3c5872",border:0,color:"#fff",padding:"12px 21px",borderRadius:8,fontWeight:700}}>{playing?"Pause":"Play film"}</button>
-      <button type="button" onClick={()=>{setPlaying(false);setFrame(0)}} style={{cursor:"pointer",
+      <button type="button" onClick={restart} style={{cursor:"pointer",
         background:"#fff9ef",padding:"12px 17px",border:"1px solid #bdb3a4",borderRadius:8}}>Restart</button>
       <label style={{display:"flex",flex:"1 1 200px",alignItems:"center",gap:10}}>
         Frame <input type="range" aria-label="Film frame" style={{width:"100%",accentColor:"#b86e59"}}
-          min={0} max={duration} value={frame} onChange={e=>{setPlaying(false);setFrame(Number(e.target.value))}}/>
+          min={0} max={duration} value={frame} onChange={e=>seek(Number(e.target.value))}/>
         <output style={{fontVariantNumeric:"tabular-nums",minWidth:35}}>{frame}</output>
       </label>
     </div>
     <nav aria-label="Drawing beats" style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:14}}>
       {beats.map(([at,label])=>
-        <button key={at} onClick={()=>{setPlaying(false);setFrame(Number(at))}} type="button"
+        <button key={at} onClick={()=>seek(Number(at))} type="button"
           style={{cursor:"pointer",padding:"8px 13px",background:"#fff9ef",border:"1px solid #c1b9a9",borderRadius:24}}>
           {label}</button>)}
     </nav>
     <p style={{fontSize:13,color:"#5f6f75",lineHeight:1.5,marginBottom:0,marginTop:15}}>
-      Original subjects share one source-distributed renderer. Walk Cycle demonstrates pinned steps with foot-roll and smooth release; change stride, lift and rig to compare drawn knees against analytical two-bone joints. Character Performance demonstrates expression cues. Scrub in either direction.
+      Original subjects share one source-distributed renderer. Walk Cycle demonstrates pinned steps with foot-roll and smooth release; change stride, lift and rig to compare drawn knees against analytical two-bone joints. Playback is wall-clock synchronized with speed and looping controls. Character Performance demonstrates expression cues. Scrub in either direction.
       Original subjects, paths, captions, contact/acting cues and camera are supplied as scene data, not built into the renderer.
     </p>
   </div>;
@@ -62,7 +58,7 @@ const meta={
   title:"Video production/Film Looks/Crayon Scene Engine",
   id:"video-crayon-scene-engine",
   component:CrayonPlayground,
-  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn"},
+  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1,loop:false},
   argTypes:{
     subject:{control:"inline-radio",options:["water-cycle","city","numbers","performance","walk"]},
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
@@ -71,6 +67,8 @@ const meta={
     stride:{control:{type:"range",min:.6,max:1.6,step:.1}},
     stepLift:{control:{type:"range",min:.6,max:1.8,step:.1}},
     rig:{control:"inline-radio",options:["drawn","ik"]},
+    playbackRate:{control:{type:"range",min:.25,max:2,step:.25}},
+    loop:{control:"boolean"},
     reducedMotion:{control:"boolean"},
     startFrame:{control:{type:"range",min:0,max:269,step:1}},
   }
