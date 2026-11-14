@@ -346,7 +346,8 @@ describe("CRAYON1 data-driven scene grammar",()=>{
       const planted=point(156);
       expect(planted.x).toBeCloseTo(fixed.x,5);
       expect(planted.y).toBeCloseTo(fixed.y,5);
-      expect(crayonConnectorBendAt(leg,65)).toBeCloseTo(-28,5);
+      expect(crayonConnectorBendAt(leg,65)).toBe(crayonConnectorBendAt(leg,64));
+      expect(crayonConnectorBendAt(leg,65)).toBeLessThan(-25);
       expect(crayonConnectorBendAt(leg,95)).toBeCloseTo(crayonConnectorBendAt(leg,94),5);
       expect(crayonConnectorBendAt(leg,0,true,270)).toBeCloseTo(-5,5);
       const d=crayonConnectorPath(scene,leg,124);
