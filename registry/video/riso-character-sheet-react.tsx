@@ -14,6 +14,8 @@ export interface RisoModelSheetProps {
   showMesh?: boolean;
   /** Maximum edge of diagnostic triangles (stage units); smaller = finer mesh. */
   meshEdgeLength?: number;
+  /** Bounded triangle count for the selected detail, default 1800 (all other regions stay coarse). */
+  meshTriangleBudget?: number;
   showLabels?: boolean;
   showJoints?: boolean;
   /** Mapping from actor spot-ink ID to its print color. */
@@ -75,16 +77,17 @@ function GuideGrid({x,y,w,h}: {x:number;y:number;w:number;h:number}) {
 }
 /** One source-faithful, printable SVG model sheet; not a fabricated multi-angle turnaround. */
 export function RisoCharacterModelSheet({
-  spec,sheet,frame=0,selectedRegion,showMesh=true,meshEdgeLength=5,showLabels=false,showJoints=true,
+  spec,sheet,frame=0,selectedRegion,showMesh=true,meshEdgeLength=5,meshTriangleBudget=1800,showLabels=false,showJoints=true,
   inks={blue:"#245F9A",red:"#DD593D"},paper="#FBF2DE",
 }:RisoModelSheetProps) {
   const uid=useId().replace(/[^a-z0-9]/gi,"");
   const report=useMemo(
     ()=>evaluateRisoCharacterMesh(spec,sheet,frame,{
       maxEdgeLength:meshEdgeLength,
+      maxTrianglesPerRegion:meshTriangleBudget,
       focusRegionId:selectedRegion??sheet.headRegion,
     }),
-    [spec,sheet,frame,meshEdgeLength,selectedRegion],
+    [spec,sheet,frame,meshEdgeLength,meshTriangleBudget,selectedRegion],
   );
   const avian=spec.id==="paper-bird";
   const region=report.regions.find(r=>r.id===selectedRegion)??report.regions[0];
