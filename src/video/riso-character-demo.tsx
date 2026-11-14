@@ -23,10 +23,10 @@ export const COURIER: RisoCharacterSpec = {
   version: 1, id: "courier", durationFrames: 240, cadence: 2,
   joints: [
     { id: "root", x: 0, y: 0, keys: [
-      { frame: 0, x: -225, y: 0, easing: "ease" },
-      { frame: 105, x: -40, y: -7, easing: "ease" },
-      { frame: 205, x: 106, y: 0, easing: "ease" },
-      { frame: 239, x: 106, y: 0 },
+      { frame: 0, x: 50, y: 0, easing: "ease" },
+      { frame: 105, x: 125, y: -7, easing: "ease" },
+      { frame: 205, x: 192, y: 0, easing: "ease" },
+      { frame: 239, x: 192, y: 0 },
     ] },
     { id: "body", parent: "root", x: 0, y: -72, keys: [
       { frame: 0, y: 0, easing: "ease" }, { frame: 11, y: -5, easing: "ease" },
@@ -72,13 +72,13 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-9 0 C-14 22 -14 42 -5 45 L9 45 C11 28 12 12 9 0 Z" },
     { id: "front-leg", joint: "left-leg", plate: "blue", paint: "solid",
       d: "M-9 0 C-12 18 -16 37 -8 47 L12 47 C12 33 8 14 9 0 Z" },
-    { id: "coat", joint: "body", plate: "blue", paint: "screen",
+    { id: "coat", joint: "body", plate: "blue", paint: "solid", opacity: .82,
       d: "M-27 -58 Q0 -75 28 -58 L35 20 Q0 34 -34 20 Z" },
     { id: "coat-seam", joint: "body", plate: "blue", paint: "solid",
       d: "M-4 -61 L3 21 L8 19 L1 -61 Z" },
     { id: "neck", joint: "body", plate: "blue", paint: "solid",
       d: "M-10 -83 H9 V-56 H-10 Z" },
-    { id: "face", joint: "head", plate: "blue", paint: "screen",
+    { id: "face", joint: "head", plate: "blue", paint: "solid", opacity: .29,
       d: "M-35 -15 Q-35 -49 -15 -54 Q22 -61 35 -30 Q38 5 20 24 Q-7 40 -29 15 Z" },
     { id: "hair", joint: "head", plate: "blue", paint: "solid",
       d: "M-40 -18 Q-44 -57 -16 -69 Q14 -78 38 -48 L43 -8 Q26 -25 11 -30 Q-7 -14 -35 -15 Z" },
@@ -95,7 +95,7 @@ export const COURIER: RisoCharacterSpec = {
         smile: "M-10 10 Q0 24 11 9 Q0 28 -10 10 Z",
       },
     },
-    { id: "cap", joint: "head", plate: "red", paint: "screen",
+    { id: "cap", joint: "head", plate: "red", paint: "solid", opacity: .88,
       d: "M-40 -40 Q-24 -78 11 -77 Q45 -68 45 -35 L-40 -35 Z" },
     { id: "cap-brim", joint: "head", plate: "red", paint: "solid",
       d: "M-47 -37 Q-14 -44 38 -37 L55 -31 Q1 -26 -46 -31 Z" },
@@ -103,7 +103,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-6 0 Q-16 25 -10 51 L5 56 Q8 40 7 6 Z" },
     { id: "right-arm-ink", joint: "right-arm", plate: "blue", paint: "solid",
       d: "M-7 0 Q1 15 8 40 L-5 55 Q-18 34 -12 4 Z" },
-    { id: "satchel-ink", joint: "satchel", plate: "red", paint: "screen",
+    { id: "satchel-ink", joint: "satchel", plate: "red", paint: "solid", opacity: .76,
       d: "M-6 0 Q25 -15 36 5 L35 56 Q9 70 -9 51 Z" },
     { id: "satchel-strap", joint: "body", plate: "red", paint: "solid",
       d: "M-26 -56 Q11 -36 34 11 L28 15 Q7 -29 -30 -48 Z" },
@@ -146,13 +146,13 @@ export const PAPER_BIRD: RisoCharacterSpec = {
   parts: [
     { id: "tail-feathers", joint: "tail", plate: "blue", paint: "solid",
       d: "M0 0 L-32 -17 L-24 0 L-35 14 L0 9 Z" },
-    { id: "body", joint: "root", plate: "blue", paint: "screen",
+    { id: "body", joint: "root", plate: "blue", paint: "solid", opacity: .4,
       d: "M-28 -8 Q-22 -29 0 -27 Q30 -27 35 -3 Q21 29 -9 25 Q-30 19 -28 -8 Z" },
     { id: "wing-left", joint: "left-wing", plate: "blue", paint: "solid",
       d: "M0 0 Q-36 -25 -53 -65 Q-35 -45 -18 -42 Q-33 -56 -31 -70 Q-1 -47 5 -5 Z" },
     { id: "wing-right", joint: "right-wing", plate: "blue", paint: "solid",
       d: "M0 0 Q29 -31 35 -59 Q22 -48 19 -44 Q35 -58 32 -67 Q5 -50 -7 -8 Z" },
-    { id: "head", joint: "root", plate: "red", paint: "screen",
+    { id: "head", joint: "root", plate: "red", paint: "solid", opacity: .54,
       d: "M10 -21 Q40 -39 50 -8 Q50 20 23 20 Q6 7 10 -21 Z" },
     { id: "beak", joint: "root", plate: "red", paint: "solid",
       d: "M47 -5 L64 2 L47 11 Z" },
@@ -192,14 +192,14 @@ function LayeredCity({ aspect, paint, ink }: {
   return <g data-km-riso-city={ink} fill={paint.solid}>
     {ink === "blue" ? <>
       <path d={portrait ? "M0 745 H540 V960 H0 Z" : "M0 382 H960 V540 H0 Z"}
-        fill={paint.dots} opacity=".55"/>
+        fill={paint.dots} opacity=".12"/>
       <path d={portrait ? "M0 725 H540" : "M0 378 H960"} fill="none"
         stroke={paint.solid} strokeWidth="4"/>
       {[0,1,2,3,4,5].map((i) => {
         const x = portrait ? i * 120 - 25 : i * 190 - 25;
         const h = 80 + (i * 41) % 80;
         const base = portrait ? 725 : 378;
-        return <g key={i} opacity={.28 + i % 2 * .10}>
+        return <g key={i} opacity={.11 + i % 2 * .08}>
           <rect x={x} y={base - h} width={portrait ? 91 : 140} height={h}
             fill={paint.dots}/>
           <path d={`M${x} ${base-h}v${h}h${portrait?91:140}`}
@@ -211,11 +211,11 @@ function LayeredCity({ aspect, paint, ink }: {
         strokeDasharray="21 17" opacity=".54" fill="none"/>
     </> : <>
       {[0,1,2,3,4].map(i=> <g key={i} transform={`translate(${portrait?i*119:110+i*188} ${portrait?635:284})`}>
-        <path d="M0 68 Q-18 31 0 10 Q20 -9 36 10 Q61 39 41 68 Z" fill={paint.dots} opacity=".68"/>
+        <path d="M0 68 Q-18 31 0 10 Q20 -9 36 10 Q61 39 41 68 Z" fill={paint.dots} opacity=".24"/>
         <rect x={16} y={65} width={4} height={20}/>
       </g>)}
       <circle cx={portrait ? 395 : 810} cy={portrait ? 185 : 112} r={portrait?84:65}
-        fill={paint.dots} opacity=".62"/>
+        fill={paint.dots} opacity=".23"/>
       <circle cx={portrait ? 395 : 810} cy={portrait ? 185 : 112} r={portrait?70:52}
         stroke={paint.solid} strokeWidth="3" fill="none"/>
     </>}
