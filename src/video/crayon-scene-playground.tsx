@@ -8,6 +8,7 @@ import { crayonCharacterDrawScene } from "./crayon-character-draw-fixtures";
 import { crayonDragonVillageScene } from "./crayon-dragon-village-fixtures";
 import { useCrayonStoryPlayback } from "./crayon-story-playback";
 import type { CrayonDemoAspect, CrayonDemoSubject } from "./crayon-scene-fixtures";
+import type { CrayonElement } from "../../registry/video/materials/crayon-scene";
 
 export interface PlaygroundProps {
   subject:CrayonDemoSubject | "performance" | "walk" | "draw-in" | "dragon-village" | "wildlife-portrait"; aspect:CrayonDemoAspect; seed:number; paperTooth:number;
@@ -18,11 +19,26 @@ export interface PlaygroundProps {
   redrawStrength:number; exposureFrames:2|3|4|5|6;
   cast:"duo"|"trio"; dragonPalette:"teal"|"copper"|"plum";
   shot:"wide"|"dragon"|"architecture";
-  nibStyle:"tapered"|"rounded";
-  strokeOrder:"patches"|"scanline";
-  markLength:"long"|"short";
+  /** "authored" preserves each wax region\'s original material recipe. */
+  nibStyle:"authored"|"tapered"|"rounded";
+  strokeOrder:"authored"|"patches"|"scanline";
+  markLength:"authored"|"long"|"short";
   editorialDetail:number;
   wildlifeDetail:number; wildlifeEarMotion:number; wildlifeCrop:"composition"|"eye"|"fur"|"muzzle"|"ear";
+}
+/** Storybook-only material overrides. Unchanged authoring wins by default. */
+export function applyCrayonStudyWaxSettings(
+  node:CrayonElement,
+  controls:Pick<PlaygroundProps,"nibStyle"|"strokeOrder"|"markLength">,
+):CrayonElement {
+  if(node.kind!=="wax") return node;
+  const {nibStyle,strokeOrder,markLength}=controls;
+  if(nibStyle==="authored"&&strokeOrder==="authored"&&markLength==="authored") return node;
+  return {...node,
+    ...(nibStyle==="authored"?{}:{nibStyle}),
+    ...(strokeOrder==="authored"?{}:{strokeOrder}),
+    ...(markLength==="authored"?{}:{markLength}),
+  };
 }
 export function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion,wildlifeCrop}:PlaygroundProps){
   const spec=useMemo(()=>{
@@ -53,8 +69,8 @@ export function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,s
     // overlays. Filtering screen-space copy is preview-only: film export
     // preserves the complete authored source illustration.
     const elements=(close?base.elements.filter(node=>!node.screenSpace):
-      base.elements).map(node=>
-      node.kind==="wax"?{...node,nibStyle,strokeOrder,markLength}:node);
+      base.elements).map(node=>applyCrayonStudyWaxSettings(
+        node,{nibStyle,strokeOrder,markLength}));
     return {...base,seed,paperTooth,camera,elements};
   },[subject,aspect,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion,wildlifeCrop]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
@@ -95,8 +111,18 @@ export function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,s
           {label}</button>)}
     </nav>
     <p style={{fontSize:13,color:"#5f6f75",lineHeight:1.5,marginBottom:0,marginTop:15}}>
-      The Crayon folder keeps all Film Looks showcases together. Character and foreground pigment uses opaque wax underpainting; skies stay an airy, open scumble. Opaque buildup is drawn progressively and retains its directional wax texture. Dragon Village shows a three-actor rigged dragon and two forest animals, with expressive wing, tail, jaw, eye and squash-and-stretch motion plus detailed modular architecture. Draw-In shows original character construction with penciled guides, individually traced wax contours, staged hatching and final acting. Walk Cycle demonstrates pinned steps with foot-roll and smooth release; change stride, lift and rig to compare drawn knees against analytical two-bone joints. Playback is wall-clock synchronized with speed and looping controls. Character Performance demonstrates expression cues. Scrub in either direction.
-      Original subjects, paths, captions, contact/acting cues and camera are supplied as scene data, not built into the renderer.
+      {subject==="wildlife-portrait"?
+        "ArtCraft wildlife study: inspect the connected muzzle, orbital planes, ear cartilage and directional wax fur at full composition or in a real-renderer macro crop. Scrub through blink and ear poses to check continuity and opaque pigment.":
+        subject==="dragon-village"?
+        "ArtCraft creature and architecture study: inspect silhouettes, wing articulation, overlapping characters and coherent masonry. Compare wide and detail shots before approving a full film.":
+        subject==="draw-in"?
+        "Study the authentic drawing sequence: guidelines, outlines, wax coverage and animation must arrive in authored order. Scrub backward to verify that later marks do not leak into earlier frames.":
+        subject==="walk"?
+        "Inspect weight, ground contacts and silhouette deformation. Compare contact-locked drawn poses with two-bone IK and review foot plants on every beat.":
+        subject==="performance"?
+        "Inspect eyebrow, eye, hand and mouth acting cues as held source drawings. Compare expression transitions and meaningful follow-through.":
+        "Inspect the authored illustration's hierarchy, wax-material deposits, paper grain and absolute-frame construction rather than substituting a uniform digital filter."}
+      {" Wax, paper, and playback remain configurable. Choose 'authored' to retain the original region-by-region recipe; choose another setting only to run a controlled material experiment. The underlying source scene and film clock remain unchanged."}
     </p>
   </div>;
 }

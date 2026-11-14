@@ -53,7 +53,8 @@ export function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,lef
         first={72} last={113} reduced={false}/>
       <WaxLine d="M-7 21Q26 38 58 11" color="#855b5b" width={4}
         seed={seed+2} frame={frame} first={86} last={113} reduced={false}/>
-      <path d="M15 -13l9 5-10 8Z" fill="#664e58"/>
+      {frame>=86 && <path data-km-crayon-optics-nose=""
+        d="M15 -13l9 5-10 8Z" fill="#664e58"/>}
     </g>
   );
   return <div style={{padding:22,background:"#eee7d9",color:"#3d4b5e",fontFamily:"system-ui",maxWidth:1020}}>

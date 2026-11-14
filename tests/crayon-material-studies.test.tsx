@@ -22,6 +22,14 @@ describe("crayon craft A/B studies truthfully compare different mechanisms",()=>
    expect(same).not.toContain('data-km-crayon-stroke-order="scanline"');
    expect(same).not.toEqual(html);
  });
+ it("does not show a finished nose before the wax portrait reaches the detail stage",()=>{
+   const blank=renderToStaticMarkup(<MaterialStudy {...common} frame={0}/>);
+   const mid=renderToStaticMarkup(<MaterialStudy {...common} frame={85}/>);
+   const late=renderToStaticMarkup(<MaterialStudy {...common} frame={86}/>);
+   expect(blank).not.toContain('data-km-crayon-optics-nose=""');
+   expect(mid).not.toContain('data-km-crayon-optics-nose=""');
+   expect(late.match(/data-km-crayon-optics-nose=""/g)).toHaveLength(2);
+ });
  it("labels left/right wax length controls according to the actual choice",()=>{
    const html=renderToStaticMarkup(<MaterialStudy {...common}
      leftLength="long" rightLength="short"/>);

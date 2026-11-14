@@ -3,16 +3,16 @@ import { CrayonPlayground } from "./crayon-scene-playground";
 import type { PlaygroundProps } from "./crayon-scene-playground";
 
 /** Single typed defaults and control contract shared by the curated Crayon directors. */
-export const crayonSceneDefaultArgs:PlaygroundProps = {subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1.2,loop:false,drawOrder:"outline-first",outlineFraction:.31,waxGlaze:.17,wingPower:1,villageDetail:.85,followThrough:7,cast:"trio",dragonPalette:"teal",shot:"wide",redrawStrength:.68,exposureFrames:3,nibStyle:"tapered",strokeOrder:"patches",markLength:"long",editorialDetail:1,wildlifeDetail:1,wildlifeEarMotion:1,wildlifeCrop:"composition"};
+export const crayonSceneDefaultArgs:PlaygroundProps = {subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1.2,loop:false,drawOrder:"outline-first",outlineFraction:.31,waxGlaze:.17,wingPower:1,villageDetail:.85,followThrough:7,cast:"trio",dragonPalette:"teal",shot:"wide",redrawStrength:.68,exposureFrames:3,nibStyle:"authored",strokeOrder:"authored",markLength:"authored",editorialDetail:1,wildlifeDetail:1,wildlifeEarMotion:1,wildlifeCrop:"composition"};
 
 export const crayonSceneArgTypes:NonNullable<Meta<typeof CrayonPlayground>["argTypes"]> = {
     subject:{control:"inline-radio",options:["water-cycle","city","numbers","performance","walk","draw-in","dragon-village","wildlife-portrait"]},
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
     seed:{control:{type:"number",min:0,max:10000,step:1}},
     paperTooth:{control:{type:"range",min:0,max:1,step:.05}},
-    nibStyle:{control:"inline-radio",options:["tapered","rounded"]},
-    strokeOrder:{control:"inline-radio",options:["patches","scanline"]},
-    markLength:{control:"inline-radio",options:["long","short"]},
+    nibStyle:{control:"inline-radio",options:["authored","tapered","rounded"]},
+    strokeOrder:{control:"inline-radio",options:["authored","patches","scanline"]},
+    markLength:{control:"inline-radio",options:["authored","long","short"]},
     editorialDetail:{control:{type:"range",min:0,max:1,step:.05}},
     wildlifeDetail:{control:{type:"range",min:0,max:1,step:.05}},
     wildlifeEarMotion:{control:{type:"range",min:0,max:2,step:.1}},
