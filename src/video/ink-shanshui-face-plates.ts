@@ -10,6 +10,7 @@ import type {CharacterShapeAsset,CharacterPathShape} from
   "../../registry/character/definition";
 import type {ShanshuiScene} from "../../registry/video/ink-shanshui";
 import {shanshuiFacialCraft} from "./ink-shanshui-fine-craft";
+import {scrollReaderFacePortrait} from "./ink-shanshui-reader-face";
 const p=(d:string,fill="none",stroke="$ink",strokeWidth=1,
   opacity=1):CharacterPathShape=>({type:"path",d,fill,stroke,strokeWidth,opacity});
 const art=(...shapes:CharacterPathShape[]):CharacterShapeAsset=>({
@@ -172,6 +173,10 @@ const parts={ "misty-hermit":hermit,"river-scholar":reader,
 export function shanshuiFaceAssets(
   scene:ShanshuiScene,detail=1,
 ):Record<string,CharacterShapeAsset>{
+  // One anatomical region at a time: replace the young READER portrait
+  // as a complete designed face, not a stack of fine decoration over the
+  // generic front-facing oval. Elder/walker art is deliberately untouched.
+  if(scene==="river-scholar")return scrollReaderFacePortrait(detail);
   const a=parts[scene];
   if(!a)throw new RangeError("Unknown shanshui figure face.");
   const original:Record<string,CharacterShapeAsset>={
