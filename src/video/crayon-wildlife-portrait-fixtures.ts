@@ -180,6 +180,21 @@ export function crayonWildlifePortraitScene(
   line("eye-orbit-structure",
     "M-94 -64Q-59 -92 -24 -61M-88 -38Q-61 -28 -35 -43",
     "#382e32",2.15,{parentId:"head"});
+  // True held-frame repaint of the eyelid. The underlying iris, pupil and
+  // catchlight are occluded by opaque face pigment for the blink exposure;
+  // switching only the contour would leave the eye visible through a line.
+  const eyelidOpen="M-90 -58h2v1h-2Z";
+  const eyelidClosed="M-95 -64Q-63 -91 -25 -64"+
+    "Q-38 -42 -84 -46Z";
+  const lidBase={x:-94,y:-62,width:7,height:7};
+  const lidClosed={x:-100,y:-94,width:84,height:62};
+  wax("eyelid-painted-occlusion",eyelidOpen,lidBase,C.umber,
+    {parentId:"head",timing:{start:0,end:56},spacing:4.5,
+      edgeRoughness:0,pressure:.97,
+      drawings:[{frame:88,d:eyelidClosed,bounds:lidClosed},
+        {frame:94,d:eyelidOpen,bounds:lidBase},
+        {frame:202,d:eyelidClosed,bounds:lidClosed},
+        {frame:208,d:eyelidOpen,bounds:lidBase}]});
   line("eyelid-blink",
     "M-90 -59Q-55 -81 -26 -59",
     "#332e32",2.8,{parentId:"head",poseCadence:2,
