@@ -33,15 +33,15 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
   // Reject before laying out hundreds of brush marks.
   evaluatePencilMark(frame, { startFrame: 0, durationFrames: 1 }, reducedMotion);
   const uid = "km-cp-" + useId().replace(/[^a-zA-Z0-9_-]/g, "");
-  const pores = Array.from({ length: 155 }, (_, i) => ({
-    x: pencilHash(drawing.seed, i, 11) * 140,
-    y: pencilHash(drawing.seed, i, 13) * 140,
+  const pores = Array.from({ length: 850 }, (_, i) => ({
+    x: pencilHash(drawing.seed, i, 11) * 1024,
+    y: pencilHash(drawing.seed, i, 13) * 1024,
     radius: .28 + pencilHash(drawing.seed, i, 15) * 1.3,
     opacity: .2 + pencilHash(drawing.seed, i, 17) * .48,
   }));
-  const fibers = Array.from({ length: 38 }, (_, i) => ({
-    x: pencilHash(drawing.seed, i, 21) * 140,
-    y: pencilHash(drawing.seed, i, 22) * 140,
+  const fibers = Array.from({ length: 180 }, (_, i) => ({
+    x: pencilHash(drawing.seed, i, 21) * 1024,
+    y: pencilHash(drawing.seed, i, 22) * 1024,
     len: 3 + pencilHash(drawing.seed, i, 23) * 23,
     vertical: pencilHash(drawing.seed, i, 24) < .18,
   }));
@@ -50,7 +50,7 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
     data-km-colored-pencil="" data-km-pencil-frame={frame}
     style={{ width: "100%", height: "100%", display: "block", overflow: "hidden", isolation: "isolate", ...style }}>
     <defs>
-      <pattern id={uid + "-paper"} width={140} height={140} patternUnits="userSpaceOnUse">
+      <pattern id={uid + "-paper"} width={1024} height={1024} patternUnits="userSpaceOnUse">
         {pores.map((dot, i) => <circle key={i} cx={dot.x} cy={dot.y} r={dot.radius}
           fill="#917f6c" opacity={dot.opacity * drawing.paperTooth * .14} />)}
         {fibers.map((fiber, i) => <path key={i}
@@ -58,7 +58,7 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
             (fiber.vertical ? ".6 " + fiber.len.toFixed(1) : fiber.len.toFixed(1) + " .6")}
           stroke="#8d755b" strokeWidth={.45} opacity={drawing.paperTooth * .16} />)}
       </pattern>
-      <pattern id={uid + "-tooth"} width={140} height={140} patternUnits="userSpaceOnUse">
+      <pattern id={uid + "-tooth"} width={1024} height={1024} patternUnits="userSpaceOnUse">
         {pores.map((dot, i) => <circle key={i} cx={dot.x} cy={dot.y}
           r={dot.radius * (.45 + drawing.paperTooth * .45)} fill="#000"
           opacity={.25 + dot.opacity * .65}/>)}
