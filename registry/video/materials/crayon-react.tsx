@@ -89,10 +89,11 @@ export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" 
     <defs>
       <pattern id={tooth + "-texture"} width={144} height={144} patternUnits="userSpaceOnUse">
         <rect width={144} height={144} fill="#fff"/>
-        {fibers.slice(0, Math.round(strength * 130)).map((f,i) => <g key={i} stroke="#000" fill="#000" strokeLinecap="round">
-          <path d={"M" + (f.x % 144) + " " + (f.y % 144) + " l" + (f.dx * .35) + " " + f.dy}
-            strokeWidth={f.r * (.5 + strength)} />
-          <circle cx={(f.x + 59) % 144} cy={(f.y + 43) % 144} r={f.r * strength} />
+        {/* Small, translucent tooth interruptions, not bright white digital confetti. */}
+        {fibers.slice(0, Math.round(strength * 54)).map((f,i) => <g key={i} stroke="#757575" fill="#858585" strokeLinecap="round">
+          <path d={"M" + (f.x % 144) + " " + (f.y % 144) + " l" + (f.dx * .29) + " " + (f.dy * .45)}
+            strokeWidth={f.r * (.22 + strength*.33)} />
+          <circle cx={(f.x + 59) % 144} cy={(f.y + 43) % 144} r={f.r * strength * .44} />
         </g>)}
       </pattern>
 
