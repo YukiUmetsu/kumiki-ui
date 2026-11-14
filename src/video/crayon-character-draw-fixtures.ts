@@ -26,8 +26,8 @@ export function crayonCharacterDrawScene(
   const ink:CrayonColor="#726d70";
   const construction={order,outlineFraction,glaze};
   const sceneTimes:Record<string,readonly [number,number]>={
-    "distant-meadow":[15,105],"paper-cloud-left":[28,98],"dusk-hill":[32,116],
-    "sun-disc":[50,114],"rolling-grass":[53,151],"shadow":[148,230],
+    "distant-meadow":[248,374],"paper-cloud-left":[278,394],"dusk-hill":[282,412],
+    "sun-disc":[300,412],"rolling-grass":[324,435],"shadow":[204,310],
     "tail":[112,214],"left-ear":[114,208],"right-ear":[126,218],
     "left-ear-inner":[188,265],"right-ear-inner":[198,270],
     "back-arm":[171,269],"body":[138,276],
@@ -40,8 +40,8 @@ export function crayonCharacterDrawScene(
     "flower-stem":[284,358],"flower-leaf":[295,381],
     "flower-petals":[301,393],"petal-etching":[342,411],
     "flower-center":[348,410],
-    "meadow-sprig-0":[84,140],"meadow-sprig-1":[92,152],
-    "meadow-sprig-2":[104,158],"meadow-sprig-3":[115,169],
+    "meadow-sprig-0":[329,402],"meadow-sprig-1":[338,410],
+    "meadow-sprig-2":[348,420],"meadow-sprig-3":[356,432],
   };
   const bodyMotion:readonly CrayonMotionKey[]=[
     {frame:0,x:0,y:0},{frame:347,x:0,y:0},
@@ -64,6 +64,14 @@ export function crayonCharacterDrawScene(
     {frame:421,x:0,y:0,rotate:-33},{frame:449,x:0,y:0,rotate:-6},
   ];
   const background=new Set(["distant-meadow","paper-cloud-left","dusk-hill","sun-disc","shadow"]);
+  // The paper environment is drawn AFTER the character appears; its gentle,
+  // two-layer wax remains subordinate to the illustrated subject.
+  const scenicColors:Record<string,readonly [CrayonColor,CrayonColor,CrayonColor]>={
+    "distant-meadow":["#b7b4c4","#9e9ab0","#ded6d8"],
+    "dusk-hill":["#a6bda9","#88a694","#d1dcbf"],
+    "paper-cloud-left":["#e8dac4","#d7cbb8","#fff1dc"],
+    "sun-disc":["#e9bb79","#d1a66e","#f9db9e"],
+  };
   const elements:CrayonElement[]=base.elements.map((node):CrayonElement=>{
     if(node.kind==="lettering"){
       if(node.id==="eyebrow")return {...node,
@@ -85,7 +93,13 @@ export function crayonCharacterDrawScene(
     const timing={start:range[0],end:range[1]};
     if(node.kind==="wax")return {
       ...node,timing,
-      ...(background.has(node.id)?{}:{construction}),
+      ...(background.has(node.id) ?
+        (node.id==="shadow" ? {} : {
+          colors:scenicColors[node.id]??node.colors,
+          pressure:Math.min(node.pressure??.76,.57),
+          spacing:Math.max(node.spacing??9,12),
+          construction:{order:"fill-first" as const,outlineFraction:.14,glaze:.13},
+        }) : {construction}),
       ...(node.id==="body"?{motion:bodyMotion}:
         node.id==="head"?{motion:headMotion}:
         node.id==="tail"?{motion:tailMotion}:
