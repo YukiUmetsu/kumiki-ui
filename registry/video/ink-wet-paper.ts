@@ -102,13 +102,15 @@ export function sampleWetInk(
           (length / count) * .9);
         const absorbed = 1 - Math.exp(-age / (7 + 12 * water));
 
-        const growth = bleed * water * .53 * (1 - Math.exp(-age / 10));
+        // Brush contact is a concentrated patch; the wet halo advances beyond
+        // it later. Expanding a Gaussian kernel for both creates airbrush haze.
+        const growth = bleed * water * .34 * (1 - Math.exp(-age / 10));
         const contact = stroke.width * (.075 + .925 * pressure) * scale / 2;
-        const transverse = Math.max(.8, contact * (.76 + growth));
-        const longitudinal = Math.max(.9, contact * (1.0 + growth * .66));
+        const transverse = Math.max(.8, contact * .92);
+        const longitudinal = Math.max(.9, contact * 1.10);
         const centerX = lerp(before.x, after.x, t) * scale,
           centerY = lerp(before.y, after.y, t) * scale;
-        const bound = Math.ceil(2 * Math.max(transverse, longitudinal) + 2);
+        const bound = Math.ceil((1.65 + growth) * Math.max(transverse, longitudinal) + 3);
         const left = Math.max(0, Math.floor(centerX - bound)), right = Math.min(width - 1, Math.ceil(centerX + bound));
         const top = Math.max(0, Math.floor(centerY - bound)), bottom = Math.min(height - 1, Math.ceil(centerY + bound));
         const norm = 2 / (Math.PI * transverse * longitudinal);
@@ -127,16 +129,24 @@ export function sampleWetInk(
             // Fibres are in *paper coordinates* and never regenerate with frame.
             const macro = fibre(paperSeed, px / 7.5, py / 11.5);
             const micro = inkHash(paperSeed + 17, px, py);
-            const boundary = 1.83 + (macro - .5) * .42 * bleed;
-            if (q > boundary) continue;
+            // A fairly solid hair-bundle print, with an irregular fibre edge.
+            // Only the narrower *outer* moisture halo is diffuse.
+            const boundary = 1.08 + (macro - .5) * .21 + (micro - .5) * .07;
+            const solidT = clamp((boundary - q) / .17, 0, 1);
+            const solidContact = solidT * solidT * (3 - 2 * solidT);
+            const haloLimit = 1.13 + growth * 1.4 + (macro - .5) * .26;
+            const haloT = clamp((haloLimit - q) / .43, 0, 1);
+            const halo = (1 - solidContact) * haloT * haloT *
+              (.36 * growth / .34);
+            if (solidContact + halo <= 0) continue;
+            // Dry-brush channels run along the travel direction. Slow, loaded
+            // strokes stay cohesive; fast depleted strokes break up visibly.
             const contactPattern = Math.sin((across * 4.4 + macro * 2.9) * Math.PI);
-            const split = 1 - stroke.dryness * .71 * Math.pow(Math.abs(contactPattern), 11);
-            const granulation = (.73 + micro * .36) * (.78 + macro * .40);
-            const edge = clamp((boundary - q) / .38, 0, 1);
-            const edgeEase = edge * edge * (3 - 2 * edge);
-            const loadedEdge = 1 + water * absorbed * .17 *
-              Math.exp(-Math.pow((Math.sqrt(q) - 1.06) / .17, 2));
-            const pigment = norm * Math.exp(-2.05 * q) * edgeEase *
+            const split = 1 - stroke.dryness * .94 * Math.pow(Math.abs(contactPattern), 9);
+            const granulation = (.90 + micro * .16) * (.92 + macro * .16);
+            const loadedEdge = 1 + water * absorbed * .14 *
+              Math.exp(-Math.pow((Math.sqrt(q) - 1.02) / .1, 2));
+            const pigment = norm * (solidContact + halo) *
               split * granulation * loadedEdge;
             if (pigment <= 0) continue;
             pixelIndices.push(k);
@@ -171,7 +181,7 @@ export function sampleWetInk(
     rgba[o] = clamp(Math.round(red[k] * inv), 0, 255);
     rgba[o + 1] = clamp(Math.round(green[k] * inv), 0, 255);
     rgba[o + 2] = clamp(Math.round(blue[k] * inv), 0, 255);
-    rgba[o + 3] = clamp(Math.round(255 * (1 - Math.exp(-pigment * .18))), 0, 255);
+    rgba[o + 3] = clamp(Math.round(255 * (1 - Math.exp(-pigment * 2.15))), 0, 255);
   }
   return {
     width, height, rgba, depositedMass,
