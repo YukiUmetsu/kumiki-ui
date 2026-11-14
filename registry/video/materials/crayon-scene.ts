@@ -81,6 +81,8 @@ export interface CrayonConnectorElement extends CrayonBase {
   opacity?: number;
   /** Signed knee/elbow curvature normal to the line between the endpoints. */
   bend?: number;
+  /** Optional authored knee/elbow bend exposures independent of endpoint motion. */
+  bendKeys?: readonly {frame:number; bend:number}[];
 }
 export interface CrayonLetteringElement extends CrayonBase {
   kind: "lettering";
@@ -284,6 +286,19 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".opacity out of bounds");
         if (node.bend !== undefined && (!finite(node.bend) || Math.abs(node.bend)>500))
           errors.push(p + ".bend must be a bounded finite offset");
+        if (node.bendKeys !== undefined) {
+          if(!Array.isArray(node.bendKeys)||node.bendKeys.length<1||node.bendKeys.length>40)
+            errors.push(p + ".bendKeys must contain 1..40 authored bend frames");
+          else {
+            let previous=-1;
+            for(const [j,key] of node.bendKeys.entries()){
+              if(!key||!int(key.frame)||key.frame<=previous||
+                key.frame>=(v.durationFrames??0)||!finite(key.bend)||Math.abs(key.bend)>500)
+                errors.push(p + ".bendKeys["+j+"] must be sorted, finite and within scene");
+              previous=key?.frame??previous;
+            }
+          }
+        }
         for(const end of ["from","to"] as const){
           const ref=node[end];
           if(!ref || typeof ref.elementId !== "string" ||
@@ -535,6 +550,23 @@ export function crayonVisiblePoint(
   return {x:raw.x+(delta?.x??0),y:raw.y+(delta?.y??0)};
 }
 
+/** Smooth authored knee/elbow curvature without frame-order dependent state. */
+export function crayonConnectorBendAt(
+  node:CrayonConnectorElement,frame:number,reducedMotion=false,durationFrames?:number,
+):number{
+  if(!int(frame)||frame<0)throw new RangeError("Connector bend frame must be nonnegative integer");
+  const keys=node.bendKeys;
+  if(!keys?.length)return node.bend??0;
+  const source=reducedMotion ? (durationFrames??0)-1 : frame;
+  if(!int(source)||source<0)throw new RangeError("Reduced connector bend requires duration");
+  const t=Math.floor(source/(node.poseCadence??1))*(node.poseCadence??1);
+  const prev=[...keys].reverse().find(k=>k.frame<=t)??keys[0];
+  const next=keys.find(k=>k.frame>=t)??keys[keys.length-1];
+  const fraction=prev.frame===next.frame?0:Math.max(0,Math.min(1,(t-prev.frame)/(next.frame-prev.frame)));
+  const smooth=fraction*fraction*(3-2*fraction);
+  return prev.bend+(next.bend-prev.bend)*smooth;
+}
+
 /**
  * Material-native connecting contour between any two authored character parts.
  * Curvature is a signed, fixed-size perpendicular offset; no implicit IK solver,
@@ -553,7 +585,7 @@ export function crayonConnectorPath(
   const from=crayonVisiblePoint(spec,a,at,node.from.anchor,reducedMotion);
   const to=crayonVisiblePoint(spec,b,at,node.to.anchor,reducedMotion);
   const dx=to.x-from.x,dy=to.y-from.y,dist=Math.hypot(dx,dy);
-  const bend=node.bend??0;
+  const bend=crayonConnectorBendAt(node,at,reducedMotion,spec.durationFrames);
   const midX=(from.x+to.x)/2+(dist>0?-dy/dist*bend:0);
   const midY=(from.y+to.y)/2+(dist>0?dx/dist*bend:0);
   return "M"+from.x+" "+from.y+" Q"+midX+" "+midY+" "+to.x+" "+to.y;
