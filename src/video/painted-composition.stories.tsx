@@ -36,7 +36,7 @@ function PaintedWorldsLab() {
         ? { ...layer, water: layer.water * water, edgePooling: layer.edgePooling * edge,
           granulation: layer.granulation * grain } : layer),
     }];
-  })) as Record<PaintedGenre, PaintedCompositionSpec>, [output, seed, water, edge, grain]);
+  })) as unknown as Record<PaintedGenre, PaintedCompositionSpec>, [output, seed, water, edge, grain]);
 
   useEffect(() => {
     if (!playing) return;
