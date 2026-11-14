@@ -1,6 +1,6 @@
 import { evaluateRisoCharacter, inspectRisoCharacter } from "./riso-character";
 import type { RisoCharacterSpec, RisoMatrix } from "./riso-character";
-import { selectRisoSourceContour, triangulateRisoContour } from "./riso-path-geometry";
+import { selectRisoSourceContour, triangulateRisoContour, refineRisoContourMesh } from "./riso-path-geometry";
 import type { RisoContourPoint, RisoContourTriangle } from "./riso-path-geometry";
 
 /**
@@ -68,11 +68,17 @@ export interface RisoMeshReport {
     contourArea: number;
     /** Area of emitted triangles, used to detect escaped or incomplete ear clipping. */
     triangleArea: number;
+    /** Measured longest edge after refinement, not a claimed target. */
+    maxTriangleEdgeLength: number;
+    /** False when the hard mesh budget prevents reaching the requested size. */
+    refinementTargetMet: boolean;
   })[];
   measurements: readonly {id: string;label: string;distance: number;
     dx: number;dy: number;distanceInHeads: number}[];
 }
 export interface RisoMeshIssue {path: string; message: string}
+/** Inspection-only control. Smaller edge targets produce smaller coherent triangles. */
+export interface RisoMeshEvaluationOptions { maxEdgeLength?: number; maxTrianglesPerRegion?: number }
 const slug = /^[a-z][a-z0-9-]{0,47}$/;
 const finite = (p: RisoMeshPoint): boolean =>
   Array.isArray(p) && p.length === 2 && p.every(n => Number.isFinite(n) && Math.abs(n) <= 4096);
@@ -160,7 +166,7 @@ export function inspectRisoCharacterMesh(spec: RisoCharacterSpec, sheet: RisoCha
 }
 /** Deterministic IK-aware source-path contour sampling, with real source-relative measurements. */
 export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoCharacterMeshSheet,
-                                          frame:number):RisoMeshReport {
+                                          frame:number,options:RisoMeshEvaluationOptions={}):RisoMeshReport {
   const errors=inspectRisoCharacterMesh(spec,sheet);
   if(errors.length)throw new RangeError(errors.map(x=>x.path+": "+x.message).join("; "));
   const pose=evaluateRisoCharacter(spec,frame);
@@ -177,12 +183,16 @@ export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoChara
   const anchor=sheet.regions.find(r=>r.id===sheet.headRegion)!;
   const headUnit=risoMeshBounds(getLocal(anchor)).height;
   if(headUnit<=0)throw new RangeError("head-region source must have positive height");
+  const maxEdgeLength=options.maxEdgeLength??Math.max(4,Math.min(9,headUnit/11));
+  const maxTriangles=options.maxTrianglesPerRegion??950;
   const regions=sheet.regions.map(r=>{
     const ink=frameParts.get(r.parts[0])!;
     const localOutline=getLocal(r);
     const outline=selectRisoSourceContour(ink.d,r.sourceSubpathIndex).map(p=>
       mapPoint(parseFrameMatrix(ink.transform),p));
-    const triangles=triangulateRisoContour(outline);
+    const triangles=refineRisoContourMesh(triangulateRisoContour(outline),{
+      maxEdgeLength,maxTriangles,
+    });
     const bounds=risoMeshBounds(outline),referenceBounds=risoMeshBounds(localOutline);
     const m=parseFrameMatrix(ink.transform);
     // For skin paths, ink already lives in stage/world coordinates; source landmarks
@@ -201,12 +211,17 @@ export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoChara
       ...(r.landmarks??[]).filter(p=>p.id!=="center").map(p=>({id:p.id,at:mapPoint(guideMatrix,p.at)})),
     ];
     const contourArea=area(outline),triangleArea=triangles.reduce((a,t)=>a+triArea(t),0);
+    const maxTriangleEdgeLength=triangles.reduce((maximum,t)=>Math.max(maximum,
+      Math.hypot(t[0][0]-t[1][0],t[0][1]-t[1][1]),
+      Math.hypot(t[1][0]-t[2][0],t[1][1]-t[2][1]),
+      Math.hypot(t[2][0]-t[0][0],t[2][1]-t[0][1])),0);
     return {
       id:r.id,label:r.label,category:r.category,parts:r.parts,
       outline,triangles,landmarks,bounds,referenceBounds,
       widthInHeads:referenceBounds.width/headUnit,
       heightInHeads:referenceBounds.height/headUnit,
       sourceContourPoints:outline.length,contourArea,triangleArea,
+      maxTriangleEdgeLength,refinementTargetMet:maxTriangleEdgeLength<=maxEdgeLength+1e-6,
     };
   });
   const byId=new Map(regions.map(r=>[r.id,r]));

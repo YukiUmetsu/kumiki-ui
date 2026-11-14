@@ -195,3 +195,81 @@ export function triangulateRisoContour(input:readonly RisoContourPoint[]):readon
   if(remaining.length===3)tris.push([poly[remaining[0]],poly[remaining[1]],poly[remaining[2]]]);
   return tris;
 }
+
+
+/** Maximum-length, conforming refinement of an already concave-safe triangle mesh.
+ * Adjacent triangles share the SAME split-edge midpoint, so no T-junctions appear.
+ * This is inspection topology only: the original source SVG remains untouched.
+ */
+export interface RisoMeshRefineOptions {
+  /** Target longest triangle edge in the original stage/drawing coordinates. */
+  maxEdgeLength: number;
+  /** Hard safety budget for dense SVG/Storybook overlays. */
+  maxTriangles?: number;
+  /** Bounded refinement iterations, each at most 4x the previous triangle count. */
+  maxPasses?: number;
+}
+export function refineRisoContourMesh(
+  source: readonly RisoContourTriangle[], options: RisoMeshRefineOptions,
+): readonly RisoContourTriangle[] {
+  const {maxEdgeLength,maxTriangles=1800,maxPasses=6}=options;
+  if(!Number.isFinite(maxEdgeLength)||maxEdgeLength<.25||maxEdgeLength>200||
+     !Number.isSafeInteger(maxTriangles)||maxTriangles<1||maxTriangles>10000||
+     !Number.isSafeInteger(maxPasses)||maxPasses<0||maxPasses>10)
+    throw new RangeError("Riso mesh refinement options are out of bounds");
+  if(source.length>maxTriangles)throw new RangeError("Source contour already exceeds the triangle budget");
+  const key=(p:RisoContourPoint)=>`${p[0]},${p[1]}`;
+  const edgeKey=(a:RisoContourPoint,b:RisoContourPoint)=>{
+    const ka=key(a),kb=key(b);
+    return ka<kb?`${ka}|${kb}`:`${kb}|${ka}`;
+  };
+  const len=(a:RisoContourPoint,b:RisoContourPoint)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+  let triangles=[...source];
+  const threshold=maxEdgeLength+1e-8;
+  for(let pass=0;pass<maxPasses;pass++){
+    const edges=new Map<string,{a:RisoContourPoint;b:RisoContourPoint;length:number;uses:number}>();
+    for(const [a,b,c] of triangles){
+      for(const [u,v] of [[a,b],[b,c],[c,a]] as const){
+        const id=edgeKey(u,v),known=edges.get(id);
+        if(known)known.uses++;
+        else edges.set(id,{a:u,b:v,length:len(u,v),uses:1});
+      }
+    }
+    const candidates=[...edges.entries()].filter(([,e])=>e.length>threshold)
+      .sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0]));
+    if(!candidates.length)break;
+    const split=new Map<string,RisoContourPoint>();
+    let count=triangles.length;
+    // Splitting a shared edge adds one triangle PER incident face.
+    // Respect the global cap rather than exploding on densely feathered edges.
+    for(const [id,e] of candidates){
+      if(count+e.uses>maxTriangles)continue;
+      split.set(id,mid(e.a,e.b));count+=e.uses;
+    }
+    if(!split.size)break;
+    const next:RisoContourTriangle[]=[];
+    for(const [a,b,c] of triangles){
+      const ab=split.get(edgeKey(a,b));
+      const bc=split.get(edgeKey(b,c));
+      const ca=split.get(edgeKey(c,a));
+      if(ab&&bc&&ca){
+        next.push([a,ab,ca],[ab,b,bc],[ca,bc,c],[ab,bc,ca]);
+      }else if(ab&&bc){
+        next.push([a,ab,c],[ab,bc,c],[ab,b,bc]);
+      }else if(ab&&ca){
+        next.push([a,ab,ca],[ab,b,c],[ab,c,ca]);
+      }else if(bc&&ca){
+        next.push([a,b,ca],[b,bc,ca],[bc,c,ca]);
+      }else if(ab){
+        next.push([a,ab,c],[ab,b,c]);
+      }else if(bc){
+        next.push([a,b,bc],[a,bc,c]);
+      }else if(ca){
+        next.push([a,b,ca],[b,c,ca]);
+      }else next.push([a,b,c]);
+    }
+    if(next.length!==count)throw new RangeError("Conforming Riso refinement topology mismatch");
+    triangles=next;
+  }
+  return triangles;
+}
