@@ -1,0 +1,47 @@
+name: One-time RISO8 character art and mesh browser proof
+# Targeted qualification only; remove before merge.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "registry/video/riso-path-geometry.ts"
+      - "registry/video/riso-proportion-mesh.ts"
+      - "registry/video/riso-character-sheet-react.tsx"
+      - "src/video/riso-character-demo.tsx"
+      - "src/video/riso-character-mesh-sheets.ts"
+      - "src/video/riso-character-model-sheets.stories.tsx"
+      - "tests/e2e-storybook/riso-character-model-sheets.spec.ts"
+      - ".github/workflows/riso8-visual-proof.yml"
+permissions:
+  contents: read
+concurrency:
+  group: riso8-browser-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate-riso8:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Existing rigs and opaque-print contracts, plus new microfacets
+        run: npm run test -- tests/riso-character.test.tsx tests/riso-rig-ik.test.tsx tests/riso-nested-ik.test.ts tests/riso-joint-skin.test.ts tests/riso-opaque-characters.test.tsx tests/riso-character-model-sheets.test.tsx tests/riso-source-contour.test.ts tests/riso-fine-microfacets.test.tsx
+      - name: Registry validation
+        run: npm run registry:validate
+      - name: Independent clean Riso character consumer
+        run: node scripts/registry-fixture.js --item=riso-character
+      - run: npx playwright install --with-deps chromium
+      - name: Chromium exported SVG and screenshots at fine and coarse density
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-character-model-sheets.spec.ts
+      - name: Preserve artwork and browser traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso8-fine-grained-character-sheets
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
