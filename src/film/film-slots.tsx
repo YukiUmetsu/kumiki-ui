@@ -678,7 +678,10 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
       // The Film Document still owns all scene timing; these slots draw only frame samples.
       // Generic JSON-authored, portable crayon scene: no code changes needed for new subjects.
       case "crayon-scene": {
-        const scene: unknown = props.scene;
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const variants: unknown = props.scenes;
+        const scene: unknown = variants && typeof variants === "object" && !Array.isArray(variants)
+          ? (variants as Record<string,unknown>)[aspect] : props.scene;
         assertCrayonScene(scene);
         if (scene.width !== context.width || scene.height !== context.height)
           throw new RangeError("crayon-scene dimensions must match the FilmStage output");
