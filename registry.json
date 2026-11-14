@@ -3697,6 +3697,28 @@
       ]
     },
     {
+      "name": "ink-wash-ensemble",
+      "type": "registry:ui",
+      "title": "Chinese Ink Character Ensemble",
+      "description": "Deterministic, identity-preserving multi-character Chinese ink acting: independently staged canonical ink rigs, attention/interaction beats, gaze targeting, ordered depth and explicit foot-separation/reach audits on the existing film timeline. Compose with ink-actor-director for continuous paths and IK.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-wash-character"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-wash-ensemble.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-ensemble.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-ensemble-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-ensemble-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "film-cards",
       "type": "registry:ui",
       "title": "Film Cards",
