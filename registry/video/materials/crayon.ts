@@ -141,8 +141,9 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
   }
   if (options.strokeOrder !== "scanline") {
     // Human drawing is organized into nearby rubbing blocks rather than a
-    // left-to-right raster scan. Fill one ~5-row tile before moving the hand;
-    // alternate direction inside adjacent tiles to limit pen-up travel.
+    // left-to-right raster scan. A Morton (Z-curve) tile order visits nearby
+    // patches before distant ones, and the nib travels back and forth inside
+    // each tile. It never synthesizes new strokes or advances the film clock.
     // Sorting only changes reveal order: each mark retains its original
     // geometry, seed, pressure, ID and complete nib path.
     const rank = (index: number): number => {
@@ -151,9 +152,15 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
       const row = Math.floor(remainder / groups), group = remainder % groups;
       const block = Math.floor(row / 5), local = row % 5;
       const height = Math.min(5, rows - block * 5);
-      const column = block % 2 === 0 ? group : groups - 1 - group;
-      const line = (column + block) % 2 === 0 ? local : height - 1 - local;
-      return layer * rows * groups + block * groups * 5 + column * 5 + line;
+      let tile = 0;
+      // Bounds <=4096, spacing>=4 => at most 206 five-row blocks and 32
+      // columns, so eight interleaved coordinate bits are sufficient.
+      for (let bit=0; bit<8; bit++) {
+        tile += ((group >>> bit) & 1) * 2**(2*bit);
+        tile += ((block >>> bit) & 1) * 2**(2*bit+1);
+      }
+      const line = (group + block) % 2 === 0 ? local : height - 1 - local;
+      return layer * 1_000_000 + tile * 5 + line;
     };
     marks.sort((a,b) => rank(a.index) - rank(b.index));
   }
