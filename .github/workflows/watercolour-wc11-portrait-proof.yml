@@ -38,10 +38,10 @@ jobs:
           npm run film:frame -- examples/film/watercolour-portrait.film.json --frame=255 --only=landscape --out=dist/wc11-proof
           npm run film:frame -- examples/film/watercolour-portrait.film.json --frame=140 --only=portrait --out=dist/wc11-proof
           npm run film:frame -- examples/film/watercolour-portrait.film.json --frame=255 --only=portrait --out=dist/wc11-proof
-      - name: Encode source-authored 36-frame animation excerpt in both ratios
+      - name: Encode frames 210–245 of actual articulated portrait in both ratios
         run: |
-          npm run film:render -- examples/film/watercolour-portrait.film.json --frames=36 --only=landscape --out=dist/wc11-proof
-          npm run film:render -- examples/film/watercolour-portrait.film.json --frames=36 --only=portrait --out=dist/wc11-proof
+          npm run film:render -- examples/film/watercolour-portrait.film.json --startFrame=210 --frames=36 --only=landscape --out=dist/wc11-proof
+          npm run film:render -- examples/film/watercolour-portrait.film.json --startFrame=210 --frames=36 --only=portrait --out=dist/wc11-proof
       - uses: actions/upload-artifact@v4
         if: always()
         with:
