@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { CharacterInkPartFinish } from "../character/character-presenter-react";
+import type { CharacterInkPartFinish, CharacterPresenterProps } from "../character/character-presenter-react";
 import { CharacterPresenter } from "../character/character-presenter-react";
 import type { CharacterCue, CharacterDefinition, CharacterInstance } from "../character/definition";
 import type { InkActorTrack } from "./ink-wash-character";
@@ -13,6 +13,10 @@ export interface InkCharacterProps {
   frame: number;
   track: InkActorTrack;
   label: string;
+  /** Host-mapped URLs for approved raster character parts; never fetch artwork in the library. */
+  assetUrls?: Record<string, string>;
+  /** Forward missing-asset and rig diagnostics instead of displaying an unexplained empty figure. */
+  onDiagnostics?: CharacterPresenterProps["onDiagnostics"];
   reducedMotion?: boolean;
   /** Paper-specific per-part grain and capillary spread; neutral if omitted. */
   absorption?: number;
@@ -31,7 +35,7 @@ export interface InkCharacterProps {
  * - feet are fixed in scene-space along a separately authored spatial acting track
  */
 export function InkCharacter({
-  definition, instance, cues, frame, track, label,
+  definition, instance, cues, frame, track, label, assetUrls, onDiagnostics,
   reducedMotion = false, absorption = .68, grain = .65, partFinish, className, style,
 }: InkCharacterProps) {
   if (instance.instanceId !== track.instanceId)
@@ -49,7 +53,7 @@ export function InkCharacter({
       transform:`rotate(${placement.rotation}deg) scaleX(${placement.facing === "left" ? -1 : 1})`,
       transformOrigin:"50% 100%", ...style }}>
     <CharacterPresenter definition={definition} instance={instance} cues={cues} frame={frame}
-      label={label} reducedMotion={reducedMotion}
+      label={label} assetUrls={assetUrls} onDiagnostics={onDiagnostics} reducedMotion={reducedMotion}
       inkMaterial={{absorption,grain,seed:instance.seed,partFinish}} />
   </div>;
 }
