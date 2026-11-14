@@ -126,7 +126,7 @@ function Export({scene}:{scene:ShanshuiScene}){
     <InkShanshuiFilm frame={frame} controls={{...DEFAULT_SHANSHUI,scene}}/>
   </VideoExportStage>;
 }
-const meta={title:"Video production/Film Looks/Chinese Ink/Shanshui Landscapes",
+const meta={title:"Video production/Film Looks/Chinese Ink/Shanshui/Film Gallery",
   id:"video-ink-shanshui",component:Gallery,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof Gallery>;
 export default meta;
