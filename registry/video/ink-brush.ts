@@ -274,6 +274,33 @@ function geometry(
       opacity: .16 + s.load * .30,
     });
   }
+  // Distinct hairs inside the wet footprint are deposited as fine ink threads, not
+  // a generic texture projected across the picture. Each lane follows the changing
+  // tangent and pressure, with slightly different ink retention and intermittent contact.
+  const bristles = Math.max(7, Math.min(68, Math.round(s.width * (.56 + .34 * s.dryness))));
+  for (let lane = 0; lane < bristles; lane++) {
+    const across = ((lane + .5 + (inkHash(seed, lane, 193) - .5) * .45) / bristles * 2 - 1) * .93;
+    const segments: string[] = [];
+    let active = false;
+    for (let j = 0; j < pts.length; j++) {
+      const p = pts[j];
+      if (p.radius < .35 || inkHash(seed + lane * 19, Math.floor(p.arc / 9), 197) <
+        s.dryness * (.12 + .22 * p.pace / 4)) {
+        active = false;
+        continue;
+      }
+      const jitter = (inkSmoothNoise(seed + lane * 43, p.arc, 13, 199) - .5) * .17;
+      const xy = point(p, across + jitter, 0);
+      segments.push((active ? "L" : "M") + fmt(xy[0]) + " " + fmt(xy[1]));
+      active = true;
+    }
+    if (!segments.length) continue;
+    hairs.push({
+      d: segments.join(" "),
+      width: .25 + Math.min(1.25, s.width / 64) * (.3 + inkHash(seed, lane, 211)),
+      opacity: .055 + .23 * s.load * (.5 + .5 * inkHash(seed, lane, 213)),
+    });
+  }
   // At the lift, separated bristles continue beyond the wet core and fade independently.
   // They grow only during the final brush travel, never ahead of the contact tip.
   const drawnArc = pts[pts.length - 1].arc;
