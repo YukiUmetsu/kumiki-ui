@@ -30,6 +30,9 @@ describe("RISO9 reference-led hand-authored character detail",()=>{
     for(const id of ["hair-forelock","hair-temple","hair-strand-ink","eye-lower-lids",
       "iris-left","iris-right","nostril","cheek-plane","lip-shadow"])
       expect(ids.has(id),id).toBe(true);
+    // Intentional ink linework, not random halftone-dot blemishes over cheeks.
+    for(const id of ["cheek","cheek-plane"])
+      expect(COURIER.parts.find(p=>p.id===id)?.paint).toBe("solid");
     const a=frameParts(COURIER,46),blink=frameParts(COURIER,78),
       speak=frameParts(COURIER,160),smile=frameParts(COURIER,198);
     expect(a.get("iris-left")!.d).not.toEqual(blink.get("iris-left")!.d);
@@ -68,6 +71,9 @@ describe("RISO9 reference-led hand-authored character detail",()=>{
     for(const id of ["wing-left-coverts","wing-right-coverts","wing-left-quills",
       "wing-right-quills","head-nape","body-feather-hatching","eye-ring",
       "eye-brow","beak-divider","beak-nostril"])expect(ids.has(id),id).toBe(true);
+    for(const id of ["wing-left-quills","wing-right-quills",
+      "wing-left-feather-division","wing-right-feather-division","tail-feather-shaft"])
+      expect(PAPER_BIRD.parts.find(p=>p.id===id)?.paint).toBe("solid");
     const calm=frameParts(PAPER_BIRD,0),flap=frameParts(PAPER_BIRD,84);
     for(const side of ["left","right"]){
       const wing=side==="left"?"wing-left":"wing-right";
