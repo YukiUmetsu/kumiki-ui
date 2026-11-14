@@ -17,7 +17,14 @@ const egg = (cx:number,cy:number,rx:number,ry:number)=>
   `M${cx-rx} ${cy} a${rx} ${ry} 0 1 0 ${rx*2} 0 a${rx} ${ry} 0 1 0 -${rx*2} 0 Z`;
 const wax=(id:string,d:string,bounds:{x:number;y:number;width:number;height:number},
   colors:readonly [CrayonColor,CrayonColor,CrayonColor],props:Partial<Extract<CrayonElement,{kind:"wax"}>>={}):CrayonElement=>
-    ({kind:"wax",id,d,bounds,colors,timing:{start:0,end:269},spacing:6.5,pressure:.78,...props});
+    ({kind:"wax",id,d,bounds,colors,timing:{start:0,end:269},spacing:6.5,pressure:.78,
+      // A sky/landscape rub is intentionally open. Living subjects must stop
+      // the scenery completely, while retaining textured colour on top.
+      coverage: /^(distant-meadow|paper-cloud-left|dusk-hill|sun-disc|shadow)$/.test(id)
+        ? "open" : "opaque",
+      angle: id==="tail"?-18:id.includes("ear")?15:
+        id==="body"?7:id==="head"?-7:id.includes("arm")?18:0,
+      ...props});
 const contour=(id:string,d:string,width:number,props:Partial<Extract<CrayonElement,{kind:"contour"}>>={}):CrayonElement=>
   ({kind:"contour",id,d,color:ink,width,timing:{start:0,end:269},...props});
 

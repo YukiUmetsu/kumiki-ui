@@ -2,9 +2,46 @@
 
 **Registry ID:** `crayon-storybook`  
 **Source:** `registry/video/materials/crayon.ts`, `crayon-react.tsx`  
-**Storybook:** Video production → Film Looks → Crayon Storybook  
+**Storybook:** Video production → Film Looks → Crayon → Storybook  
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
+
+## Opaque pigment and Storybook organization (2026-11-14)
+
+All crayon videos and material demos now live under one **Video production →
+Film Looks → Crayon** folder. Child Storybook pages are **Scene Engine**,
+**Storybook**, and **Material Studies**. Explicit story `id` fields are
+unchanged, so existing deep links retain their IDs.
+
+The prior wax region's semi-transparent base could make completed animated
+characters ghostlike, showing the buildings, sky and other characters
+behind their bodies. It is **not physically plausible** for a dense
+wax-crayon subject. CRAYON1 now supports an optional `coverage` property:
+
+| Coverage | Underpaint | Paper grain / wax strokes | Use |
+| --- | --- | --- | --- |
+| `"open"` (default) | Legacy transparent colored glaze | Scumble and strokes break over the paper tooth | Atmosphere, skies, distant hills |
+| `"opaque"` | 100%-opacity silhouette, progressively revealed while depositing color | Textured wax, hatches, scrapes and highlights remain on top; tooth only masks the surface strokes | Animals, people, architecture, props, flowers and solid subject regions |
+
+Opaque underpainting does **not** fade after the subject finishes
+construction. The solid silhouette is never masked by the porosity
+filter. Color buildup is animated through the existing fill window,
+including both outline-first and fill-first authoring and reduced motion.
+This is not a new clock or a new independent renderer; the same
+portable scene and FilmStage use the option.
+
+The original fox, the multi-character dragon/forest friend/owl,
+character performance, character construction, walk tests, animals in
+illustrative scenes, town buildings, and chart bars explicitly use
+opaque underpaint; their skies and atmospheres intentionally remain
+open. Wax hatching has also gained original per-part orientation
+matching anatomy and rooftops rather than uniform horizontal bands.
+
+See [material-opacity and craft study](../research/crayon-material-opacity-and-craft-study.md),
+and the Storybook **Material Studies / Layer Coverage Comparison**.
+The browser optics test compares rendered interior pixels across two
+contrasting background palettes, rather than trusting SVG attributes
+alone. Independent human review of full encoded films is not implied.
 
 ## Original visual direction
 
@@ -240,7 +277,7 @@ moves therefore do not break contact. The contact list must be ordered,
 non-overlapping, within the scene duration, have bounded finite anchors, and
 must not apply to screen-space caption overlays.
 
-Storybook now exposes **Video production / Film Looks / Crayon Scene Engine /
+Storybook now exposes **Video production / Film Looks / Crayon / Scene Engine /
 Character Walk Cycle** and **Character Walk Portrait**. The original "A Little
 Journey" walk places alternating feet on the painted meadow, carries the
 flower as a hand-child prop, and gives the tail/scarf/arms/head coordinated
@@ -288,7 +325,7 @@ references, connector-to-connector references, invalid anchors, unsorted or
 nonfinite bend keys, and local transforms that would double-transform the
 world-space path.
 
-The walk examples in **Video production / Film Looks / Crayon Scene Engine**
+The walk examples in **Video production / Film Looks / Crayon / Scene Engine**
 now show two articulated crayon legs joining the original body to alternating
 planted feet, with stronger knee curvature during the swing phase. There are
 landscape and portrait versions and browser evidence for both.
@@ -446,7 +483,7 @@ geometry density, not just procedural paper noise.
 
 The **Dragon Anatomy Detail**, **Dragon Anatomy Detail Portrait** and
 **Castle Masonry Detail** stories provide original close-up films in
-`Video production / Film Looks / Crayon Scene Engine`. The new
+`Video production / Film Looks / Crayon / Scene Engine`. The new
 `shot` option is `wide | dragon | architecture`. The wide shot retains all actors and copy. Both close-ups hide story lettering. The dragon inspection view isolates the creature against the paper landscape, while the architecture inspection view hides the cast; this avoids visual occlusion. The source rig keys and wax artwork are not modified. Camera framing is
 validated in both native 960×540 and 540×960 sizes, with exact-frame
 seek tests and real Chromium screenshots.
