@@ -365,7 +365,7 @@ export function crayonElementTransform(
  */
 export function crayonDrawingAt<T extends CrayonWaxElement | CrayonContourElement>(
   node: T, frame: number, reducedMotion = false, durationFrames?: number,
-): { d: string; bounds?: CrayonBounds; index: number } {
+): { d: string; bounds?: CrayonBounds; index: number; poseId?: string } {
   if (!int(frame) || frame < 0) throw new RangeError("Drawing frame must be a nonnegative safe integer");
   if (reducedMotion && (!durationFrames || !int(durationFrames) || durationFrames < 2))
     throw new RangeError("Reduced motion drawing requires a valid scene duration");
@@ -379,10 +379,10 @@ export function crayonDrawingAt<T extends CrayonWaxElement | CrayonContourElemen
       selected=cue;
       cueIndex++;
     }
-    if (!selected || selected.pose === "base") return {d:node.d,index:cueIndex};
+    if (!selected || selected.pose === "base") return {d:node.d,index:cueIndex,poseId:"base"};
     const pose=node.poses.find(value=>value.id===selected.pose);
     if(!pose) throw new RangeError("Unknown CRAYON1 performance pose: "+selected.pose);
-    return {d:pose.d,index:cueIndex};
+    return {d:pose.d,index:cueIndex,poseId:selected.pose};
   }
   const drawings=node.drawings ?? [];
   let index=0;
