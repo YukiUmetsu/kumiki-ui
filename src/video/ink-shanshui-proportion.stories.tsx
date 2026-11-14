@@ -329,7 +329,7 @@ function FigureInspector(){
     </section>
   </main>;
 }
-const meta={title:"Video production/Film Looks/Chinese Ink/Scholar Proportion Study",
+const meta={title:"Video production/Film Looks/Chinese Ink/Shanshui/Proportion Studio",
   id:"video-ink-scholar-proportions",
   component:FigureInspector,parameters:{layout:"fullscreen"}} satisfies Meta<typeof FigureInspector>;
 export default meta;
