@@ -8,7 +8,7 @@ import type {CharacterPart,CharacterShapeAsset,CharacterPoseDelta,CharacterVec2,
   CharacterPoseCorrectionTracks} from
   "../../registry/character/definition";
 import type {ShanshuiScene} from "../../registry/video/ink-shanshui";
-import {SHANSHUI_TEACHER_MESHES,SHANSHUI_LEGACY_PUPPET_MESH} from
+import {SHANSHUI_TEACHER_MESHES} from
   "./ink-shanshui-teacher-mesh";
 import {shanshuiRoute} from "../../registry/video/ink-shanshui";
 import {inkWalkAt,inkRouteAt} from "../../registry/video/ink-actor-director";
@@ -180,6 +180,42 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
       quad(at(a.rightHem.x+2,hem.y),a.rightHem)+
       quad(at(a.rightHip.x+11,hip.y+12),a.rightWaist)+" Z",
       "$wash","none",0,.37),
+  );
+  // The outer robe is NOT the full skirt. Long overlapping under-robes extend
+  // to the shoe tops in each reference; without this plane the isolated shoes
+  // visibly float 20–35 px below the robe silhouette.
+  const underBottom=Math.min(337,Math.max(331,
+    a.leftFoot.y+13,a.rightFoot.y+13));
+  const underHem=art(
+    p(path(at(a.leftWaist.x+2,a.leftWaist.y+8))+
+      cubic(at(a.leftHip.x-13,hip.y+27),
+        at(a.leftHem.x-14,hem.y+11),
+        at(a.leftHem.x-17,underBottom-10))+
+      cubic(at(a.leftHem.x-17,underBottom+5),
+        at(hem.x-21,underBottom+5),
+        at(hem.x-7,underBottom+2))+
+      cubic(at(hem.x+14,underBottom+10),
+        at(a.rightHem.x+7,underBottom+2),
+        at(a.rightHem.x+5,underBottom-7))+
+      cubic(at(a.rightHip.x+9,hip.y+31),
+        at(a.rightWaist.x+3,waist.y+23),a.rightWaist)+
+      quad(at(waist.x,waist.y+17),a.leftWaist)+" Z",
+      "$mist","$shadow",1.25,1),
+    p(path(at(waist.x-15,waist.y+16))+
+      cubic(at(waist.x-29,hip.y+32),
+        at(hem.x-35,underBottom-19),
+        at(hem.x-25,underBottom-1)),
+      "none","$wash",2.6,.61),
+    p(path(at(waist.x+3,waist.y+16))+
+      cubic(at(waist.x+8,hip.y+30),
+        at(hem.x+2,underBottom-24),
+        at(hem.x+11,underBottom+1)),
+      "none","$shadow",1.05,.66),
+    p(path(at(a.leftHem.x-14,underBottom-7))+
+      cubic(at(hem.x-23,underBottom+10),
+        at(hem.x+22,underBottom+10),
+        at(a.rightHem.x+5,underBottom-7)),
+      "none","$ink",1.05,.71),
   );
   const strokeFold=(dx:number,dy:number,width:number)=>{
     const begin=at(waist.x+dx*.3,waist.y+6);
@@ -411,7 +447,7 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
     "sleeve-far":sleeve(fit.nearSide==="left"?"right":"left"),
     "hand-near":hand("near"),"hand-far":hand("far"),
     scroll,brush:empty(),
-    "scholar-opaque-ground":empty(),
+    "scholar-opaque-ground":underHem,
     "scholar-robe-overlay":robeOverlay,
     "scholar-flowing-hem":hemFabric,
     "scholar-sash":sash,"scholar-hair-band":empty(),
