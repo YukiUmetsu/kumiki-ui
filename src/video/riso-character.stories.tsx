@@ -21,6 +21,7 @@ function RisoCharacterStudio() {
   const [reducedMotion,setReducedMotion] = useState(false);
   const [plate,setPlate] = useState("both");
   const [useIK,setUseIK] = useState(true);
+  const [useSkin,setUseSkin] = useState(true);
   const [showRig,setShowRig] = useState(false);
   const [footRoll,setFootRoll] = useState(12);
   const compiled = useMemo(()=>compileFilm(RISO_CHARACTER_FILM,{outputId:aspect}),[aspect]);
@@ -68,7 +69,7 @@ function RisoCharacterStudio() {
             aspect={aspect} frame={offset+context.frame} cadence={cadence}
             seed={seed} misregistration={registration} grain={grain}
             reducedMotion={context.reducedMotion} visiblePlateIds={visiblePlateIds}
-            useIK={useIK} showRig={showRig} footRoll={footRoll}/>;
+            useIK={useIK} useSkin={useSkin} showRig={showRig} footRoll={footRoll}/>;
         }} style={{transform:"scale("+scale+")",transformOrigin:"top left"}}/>
     </div>
     <div style={{width:Math.min(film.width*scale,950),maxWidth:"100%",display:"grid",gap:11}}>
@@ -96,6 +97,10 @@ function RisoCharacterStudio() {
         <label style={{display:"flex",alignItems:"center",gap:6,fontSize:13,fontWeight:700}}>
           <input type="checkbox" checked={showRig} aria-label="Show rigging and targets"
             onChange={e=>{setPlaying(false);setShowRig(e.target.checked)}}/>Show rig / targets
+        </label>
+        <label style={{display:"flex",alignItems:"center",gap:6,fontSize:13,fontWeight:700}}>
+          <input type="checkbox" checked={useSkin} aria-label="Enable flowing joint contours"
+            onChange={e=>{setPlaying(false);setUseSkin(e.target.checked)}}/>Soft joint contours
         </label>
         <label style={label}>Output
           <select aria-label="Riso performance output" value={aspect} onChange={e=>{
