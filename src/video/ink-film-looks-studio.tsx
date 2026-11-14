@@ -183,8 +183,12 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
       const data=next as Record<string,unknown>;
       const candidate={...material,...((data.material??{}) as object)} as InkMaterialControls;
       const proposedOverrides=data.strokeOverrides===undefined?strokeOverrides:data.strokeOverrides as InkStrokeOverrides;
-      // Validate against the selected subject, not a previously edited/filtered mark set.
-      assertInkStrokeOverrides(paintingBase,proposedOverrides);
+      // Preserve validation even if imported JSON changes the authored subject.
+      const subjectForValidation=data.subject===undefined?subject:data.subject;
+      if(subjectForValidation!=="landscape"&&subjectForValidation!=="bamboo")
+        throw new Error("Invalid painting subject.");
+      const nextBase=configureInkSpec(inkExampleSpec(subjectForValidation,aspect,47),candidate);
+      assertInkStrokeOverrides(nextBase,proposedOverrides);
       const cam={...camera,...((data.camera??{}) as object)} as InkCameraControls;
       const rev={...reveal,...((data.reveal??{}) as object)} as InkRevealControls;
       const act={...actor,...((data.actor??{}) as object)} as InkActorFilmControls;
@@ -270,7 +274,7 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
         <option value="landscape">16:9 landscape</option><option value="portrait">9:16 portrait</option></select></label>
       {mode==="painting"&&<label style={label}>Painting subject
         <select aria-label="Ink painting subject" value={subject} onChange={e=>{
-          setPlaying(false);setSubject(e.target.value as InkSubject);}}
+          setPlaying(false);setSubject(e.target.value as InkSubject);setStrokeId("");setStrokeOverrides({});}}
           style={{minHeight:42,background:"#fffdf5",border:"1px solid #a5aa9f"}}>
           <option value="landscape">Pine and mountains</option><option value="bamboo">Bamboo grove</option>
         </select></label>}
