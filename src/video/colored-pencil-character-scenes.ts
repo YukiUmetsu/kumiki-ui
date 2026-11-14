@@ -15,16 +15,17 @@ const foxCream: Palette = ["#F0D9AE", "#C99D76", "#EEDFC2"];
 const amber: Palette = ["#C9A178", "#916D50", "#E9C7A0"];
 const feather: Palette = ["#8FAAB0", "#667E93", "#B4C7C6"];
 const featherLight: Palette = ["#C7D6D1", "#8FA8AE", "#DFE7DD"];
-let seedIndex = 0;
+
 function part(id: string, path: string, bounds: readonly [number, number, number, number],
   palette: Palette, pivot: readonly [number, number], keys: readonly PencilPoseKey[],
   parent?: string, detail?: string): PencilActorPart {
-  const seed = 900 + ++seedIndex * 13;
+  const seed = 900 + [...(id + palette[0])].reduce((sum, char) => sum * 31 + char.charCodeAt(0), 7) >>> 0;
+  const boundedSeed = seed % 2000000000;
   return {
     id, parent, pivot, keys,
     region: createPencilRegion({
-      id, path, bounds, palette, seed, startFrame: 8, durationFrames: 148,
-      material: "layered", direction: -28 + (seed % 33), flow: id.includes("wing") ? 25 : 14,
+      id, path, bounds, palette, seed: boundedSeed, startFrame: 8, durationFrames: 148,
+      material: "layered", direction: -28 + (boundedSeed % 33), flow: id.includes("wing") ? 25 : 14,
       tone: "core",
       details: detail ? [{
         path: detail, color: "#6B6157", width: 1.15,
@@ -34,7 +35,6 @@ function part(id: string, path: string, bounds: readonly [number, number, number
   };
 }
 function fox(): PencilActorSpec {
-  seedIndex = 0;
   const body = [
     key(0), key(140), key(180, 12, -4, -2), key(210, 23, 0, 1),
     key(245, 23, -3), key(275, 23, 0), key(320, 23),
@@ -78,7 +78,6 @@ function fox(): PencilActorSpec {
   ]};
 }
 function bird(): PencilActorSpec {
-  seedIndex = 100;
   return { id: "bird", parts: [
     part("torso", "M46 114 Q45 79 80 70 Q112 66 130 98 Q143 133 115 160 Q83 173 58 149 Z",
       [43, 67, 103, 106], feather, [89, 119], [
