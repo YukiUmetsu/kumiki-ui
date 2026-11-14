@@ -66,6 +66,18 @@ describe("WC9 ArtCraft-inspired reusable watercolour illustration scene", () => 
       .toContain("/parts/0/wash");
   });
 
+  it("rejects excessive scene graphs once without walking every oversized node", () => {
+    const spec = watercolorWetlandSpec("landscape");
+    const crowded: WatercolourArtPart[] = Array.from({length:128},(_,i)=>({
+      kind:"group",id:"patch-"+i,
+      children:Array.from({length:4},(_,j):WatercolourArtPart=>({
+        kind:"path",id:"stroke-"+i+"-"+j,
+        path:"M1 1 L10 2 L11 11 Z",technique:"wash",fill:"#778F9B",
+      })),
+    }));
+    expect(inspectWatercolourArtwork({...spec,parts:crowded})).toEqual(["/parts/budget"]);
+  });
+
   it("animates source geometry from absolute frames, preserving grounded pivots", () => {
     const spec = watercolorWetlandSpec("landscape");
     const root = spec.parts[0];
