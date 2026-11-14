@@ -81,7 +81,8 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
   if (!hex.test(spec.backing) || !hex.test(spec.light)) bad("paper", "paper colours must be opaque six-digit hex");
   if (!Array.isArray(spec.layers) || spec.layers.length < 1 || spec.layers.length > 80) bad("layers", "provide 1–80 separate cut-outs");
   const seen = new Set<string>();
-  for (const [i, layer] of (Array.isArray(spec.layers) ? spec.layers : []).entries()) {
+  const layers: readonly PaperCutLayer[] = Array.isArray(spec.layers) ? spec.layers : [];
+  for (const [i, layer] of layers.entries()) {
     const base = `layers[${i}]`;
     if (!layer.id || !/^[a-zA-Z0-9_-]+$/.test(layer.id) || seen.has(layer.id)) bad(base + ".id", "unique stable id required");
     seen.add(layer.id);
@@ -89,9 +90,9 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
       bad(base + ".path", "provide a bounded SVG cut contour");
     if (!hex.test(layer.color)) bad(base + ".color", "colour must be opaque hex");
     if (!Number.isInteger(layer.depth) || layer.depth < 0 || layer.depth > 32) bad(base + ".depth", "depth must be 0–32");
-    if (layer.holes && (layer.holes.length > 32 || layer.holes.some(h => !/^[Mm]/.test(h.trim()) || h.length > 10000)))
+    if (layer.holes && (layer.holes.length > 32 || layer.holes.some((h: string) => !/^[Mm]/.test(h.trim()) || h.length > 10000)))
       bad(base + ".holes", "each hole must be an SVG contour; maximum 32 holes");
-    if (layer.pivot && (layer.pivot.length !== 2 || layer.pivot.some(n => !finite(n) || n < -4096 || n > 8192)))
+    if (layer.pivot && (layer.pivot.length !== 2 || layer.pivot.some((n: number) => !finite(n) || n < -4096 || n > 8192)))
       bad(base + ".pivot", "finite sheet-coordinate hinge required");
     if (layer.motion && !["rise", "swing", "unfold", "still"].includes(layer.motion)) bad(base + ".motion", "unknown material motion");
     if (layer.swingDegrees !== undefined && (!finite(layer.swingDegrees) || Math.abs(layer.swingDegrees) > 30))
@@ -111,7 +112,6 @@ export function evaluatePaperCraft(spec: PaperCraftSpec, frame: number, reducedM
     const start = layer.enterFrame ?? (8 + i * 11);
     const duration = layer.durationFrames ?? 38;
     const progress = reducedMotion ? 1 : paperEase((frame - start) / duration);
-    const pivot = layer.pivot ?? [spec.width / 2, spec.height / 2];
     const motion = layer.motion ?? (spec.style === "kirigami" ? "unfold" : spec.style === "pop-up" ? "rise" : "still");
     const age = Math.max(0, (frame - start) / spec.fps);
     const swing = reducedMotion || progress <= 0 ? 0 : (layer.swingDegrees ?? 8) *
