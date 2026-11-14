@@ -223,7 +223,7 @@ export function risoPerformanceScene(subject:RisoPerformanceSubject,
   const title=subject==="postcard"?
     (portrait?["AN UNEXPECTED","POSTCARD"]:["AN UNEXPECTED POSTCARD"]) :
     (portrait?["THE MIDNIGHT","GARDEN"]:["THE MIDNIGHT GARDEN"]);
-  const labels=subject==="postcard"?["SOME WORDS ARRIVE","WITHOUT AN ENVELOPE"]:
+  const labels=subject==="postcard"?["SOME WORDS ARRIVE","FROM SOMEONE FAR AWAY"]:
     ["SOME STORIES GROW","AFTER THE LIGHT FADES"];
   const layers=all(
     {id:"back-sky",kind:"path",plate:"blue",ink:"dots",
@@ -257,20 +257,86 @@ export function risoPerformanceScene(subject:RisoPerformanceSubject,
       x:titleX,y:footer,fontSize:portrait?15:15,fontFamily:"sans",weight:700},
   ) as RisoSceneLayer[];
   if(subject==="postcard"){
+    // A proper postcard: printed outer border, address side, cancellation arcs
+    // and stamp. All separate native blue/vermilion plates, not a red box.
+    const px=portrait?312:642, py=originGround-42;
+    const fly=[key(0,0,66,8,.78),key(100,0,0,0,1),
+      key(190,0,-14,-8,1),key(299,6,-8,-4,1)];
     layers.push(
-      {id:"letter",kind:"path",plate:"red",ink:"solid",z:12,
-        d:"M"+(portrait?300:620)+" "+(originGround-33)+
-        " l94 -20 l17 63 l-94 20 Z M"+(portrait?302:623)+" "+(originGround-27)+
-        " l55 22 l39 -37 l-40 48 Z",
-        motion:[key(0,0,60,7,.7),key(100,0,0,0,1),key(190,0,-10,-8,1),key(299,5,-8,-4,1)]});
+      {id:"postcard-body",kind:"path",plate:"red",ink:"dots",z:12,
+        d:"M"+px+" "+py+" L"+(px+104)+" "+(py-11)+" L"+(px+115)+" "+(py+57)+
+          " L"+(px+11)+" "+(py+69)+" Z",motion:fly},
+      {id:"postcard-outline",kind:"path",plate:"blue",ink:"solid",z:13,
+        d:"M"+(px-3)+" "+(py-2)+" L"+(px+104)+" "+(py-14)+
+          " L"+(px+118)+" "+(py+56)+" L"+(px+10)+" "+(py+72)+
+          " L"+(px+7)+" "+(py+67)+" L"+(px+112)+" "+(py+53)+
+          " L"+(px+100)+" "+(py-8)+" L"+(px+2)+" "+(py+3)+" Z"+
+          " M"+(px+48)+" "+(py-6)+" L"+(px+51)+" "+(py+65)+
+          " L"+(px+54)+" "+(py+64)+" L"+(px+51)+" "+(py-6)+" Z",
+        motion:fly},
+      {id:"postcard-address",kind:"path",plate:"blue",ink:"solid",z:14,
+        d:"M"+(px+60)+" "+(py+17)+" L"+(px+96)+" "+(py+14)+
+          " L"+(px+96)+" "+(py+17)+" L"+(px+60)+" "+(py+20)+" Z"+
+          " M"+(px+59)+" "+(py+30)+" L"+(px+101)+" "+(py+25)+
+          " L"+(px+101)+" "+(py+28)+" L"+(px+59)+" "+(py+33)+" Z"+
+          " M"+(px+58)+" "+(py+42)+" L"+(px+86)+" "+(py+39)+
+          " L"+(px+86)+" "+(py+42)+" L"+(px+58)+" "+(py+45)+" Z",
+        motion:fly},
+      {id:"postage-stamp",kind:"path",plate:"red",ink:"solid",z:15,
+        d:"M"+(px+15)+" "+(py+5)+" L"+(px+40)+" "+(py+3)+
+          " L"+(px+43)+" "+(py+29)+" L"+(px+17)+" "+(py+32)+" Z"+
+          " M"+(px+25)+" "+(py+10)+" L"+(px+32)+" "+(py+7)+
+          " L"+(px+37)+" "+(py+20)+" L"+(px+29)+" "+(py+24)+" Z",
+        motion:fly},
+      {id:"postal-cancellation",kind:"path",plate:"blue",ink:"solid",z:16,
+        d:"M"+(px+8)+" "+(py+40)+" Q"+(px+38)+" "+(py+29)+" "+(px+58)+" "+(py+40)+
+          " L"+(px+57)+" "+(py+43)+" Q"+(px+34)+" "+(py+33)+" "+(px+9)+" "+(py+43)+" Z"+
+          " M"+(px+9)+" "+(py+49)+" Q"+(px+34)+" "+(py+39)+" "+(px+56)+" "+(py+50)+
+          " L"+(px+55)+" "+(py+53)+" Q"+(px+33)+" "+(py+43)+" "+(px+10)+" "+(py+52)+" Z",
+        motion:fly},
+    );
   } else {
+    // Multiple botanical depths, native two-ink leaves and seed pods.
+    // Scene-space strokes are fixed to their physical plates as the camera moves.
+    const stems=Array.from({length:7},(_,i)=>{
+      const baseX=width*(.07+i*.145);
+      const baseY=originGround+70;
+      const topY=originGround-(i%3===0?122:i%3===1?94:71);
+      const bend=(i%2?-1:1)*(16+4*(i%3));
+      const stem="M"+baseX+" "+baseY+
+        " Q"+(baseX+bend)+" "+(topY+41)+" "+(baseX+bend*.72)+" "+topY+
+        " L"+(baseX+bend*.72+3)+" "+(topY+2)+
+        " Q"+(baseX+bend+4)+" "+(topY+46)+" "+(baseX+4)+" "+baseY+" Z";
+      const leaf=(x:number,y:number,dir:number,size:number)=>
+        "M"+x+" "+y+
+        " Q"+(x+dir*size*.55)+" "+(y-size*.73)+" "+(x+dir*size)+" "+(y-size*.46)+
+        " Q"+(x+dir*size*.85)+" "+(y+size*.16)+" "+x+" "+y+" Z";
+      return {stem, leaves:
+        leaf(baseX+bend*.4,topY+25,i%2?1:-1,24)+
+        " "+leaf(baseX+bend*.7,topY+53,i%2?-1:1,34)+
+        " "+leaf(baseX+bend*.44,topY+75,i%2?1:-1,19)};
+    });
+    const stemD=stems.map(s=>s.stem).join(" ");
+    const leafD=stems.map(s=>s.leaves).join(" ");
     layers.push(
+      {id:"garden-stems",kind:"path",plate:"blue",ink:"solid",z:-24,
+        d:stemD,parallax:.92},
+      {id:"garden-leaves",kind:"path",plate:"red",ink:"dots",z:-22,
+        d:leafD,parallax:.92},
+      {id:"garden-seedheads",kind:"path",plate:"blue",ink:"solid",z:-20,
+        d:Array.from({length:7},(_,i)=>{
+          const x=width*(.07+i*.145)+(i%2?-1:1)*(16+4*(i%3))*.72;
+          const y=originGround-(i%3===0?122:i%3===1?94:71);
+          return "M"+x+" "+y+" a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0";
+        }).join(" "),parallax:.92},
       {id:"moon-stars",kind:"path",plate:"red",ink:"solid",z:-55,
         d:Array.from({length:9},(_,i)=>{
           const x=width*(.11+(i%5)*.18),y=originGround-245-(i%3)*38;
-          return "M"+x+" "+(y-8)+" L"+(x+3)+" "+(y-2)+" L"+(x+9)+" "+y+" L"+(x+3)+" "+(y+2)+
-            " L"+x+" "+(y+9)+" L"+(x-3)+" "+(y+2)+" L"+(x-9)+" "+y+" L"+(x-3)+" "+(y-2)+" Z";
-        }).join(" "),parallax:.55});
+          return "M"+x+" "+(y-8)+" L"+(x+3)+" "+(y-2)+" L"+(x+9)+" "+y+
+            " L"+(x+3)+" "+(y+2)+" L"+x+" "+(y+9)+" L"+(x-3)+" "+(y+2)+
+            " L"+(x-9)+" "+y+" L"+(x-3)+" "+(y-2)+" Z";
+        }).join(" "),parallax:.55},
+    );
   }
   const actors:RisoActorSpec[]=subject==="postcard"?
     [courier(portrait?207:326,originGround),bird(portrait?365:727,originGround-142)]:
