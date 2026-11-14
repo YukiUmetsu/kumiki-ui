@@ -1,4 +1,4 @@
-import { createPencilRegion } from "../../registry/video/colored-pencil";
+import { createPencilRegion, pencilHash } from "../../registry/video/colored-pencil";
 import type { PencilAspect, PencilRegion, PencilTrace } from "../../registry/video/colored-pencil";
 import type { PencilActorPart, PencilActorSpec, PencilPoseKey } from "../../registry/video/colored-pencil-actor";
 import type { PencilSceneSpec } from "../../registry/video/colored-pencil-scene";
@@ -69,6 +69,49 @@ function featherVanes(axes: readonly FeatherAxis[], color: string,
   });
 }
 
+/**
+ * ArtCraft contour-feather construction. Each authored guide is a feather tract,
+ * not a rectangular texture grid: its points follow a particular anatomical plane.
+ * Shadow shafts and their pale burnished tips share the *same quadratic curve*,
+ * avoiding detached highlight stickers. Seed varies placement only within the guide.
+ *
+ * Guide = [start x/y, end x/y, feather count, down-flow x/y, arch].
+ */
+type PlumageGuide = readonly [number, number, number, number, number, number, number, number];
+function plumageTracts(guides: readonly PlumageGuide[],
+  shadow: string, light: string, seed: number, startFrame = 205): PencilTrace[] {
+  const fmt = (n: number) => n.toFixed(2);
+  return guides.flatMap(([x0, y0, x1, y1, count, fallX, fallY, arch], tract) => {
+    if (!Number.isSafeInteger(count) || count < 2 || count > 18 ||
+      ![x0, y0, x1, y1, fallX, fallY, arch].every(Number.isFinite))
+      throw new RangeError("Invalid bounded plumage guide");
+    const shafts: string[] = [], tips: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const t = (i + .5) / count;
+      const j = tract * 29 + i;
+      const x = x0 + (x1 - x0) * t + (pencilHash(seed, j, 5) - .5) * 2.2;
+      const y = y0 + (y1 - y0) * t + (pencilHash(seed, j, 7) - .5) * 1.8;
+      const length = .77 + .42 * pencilHash(seed, j, 11);
+      const tipX = x + fallX * length, tipY = y + fallY * length;
+      const cx = x + fallX * length * .5 + arch;
+      const cy = y + fallY * length * .43 - arch * .35;
+      shafts.push("M" + fmt(x) + " " + fmt(y) + " Q" +
+        fmt(cx) + " " + fmt(cy) + " " + fmt(tipX) + " " + fmt(tipY));
+      // De Casteljau subcurve: highlight begins on the exact shadow shaft.
+      const u = .43, v = 1 - u;
+      const lightX = v*v*x + 2*v*u*cx + u*u*tipX;
+      const lightY = v*v*y + 2*v*u*cy + u*u*tipY;
+      tips.push("M" + fmt(lightX) + " " + fmt(lightY) + " Q" +
+        fmt(cx * v + tipX * u) + " " + fmt(cy * v + tipY * u) +
+        " " + fmt(tipX) + " " + fmt(tipY));
+    }
+    return [
+      detail(shafts.join(" "), shadow, .87, startFrame + tract * 8, .79),
+      detail(tips.join(" "), light, .59, startFrame + tract * 8 + 9, .84),
+    ];
+  });
+}
+
 interface RegionOptions {
   color: readonly [string, string, string];
   start?: number;
@@ -80,6 +123,7 @@ interface RegionOptions {
   details?: readonly PencilTrace[];
   material?: "soft" | "layered" | "dense";
   contour?: string;
+  clipDetails?: boolean;
 }
 function coloredRegion(id: string, shape: string,
   bounds: readonly [number, number, number, number], seed: number,
@@ -90,6 +134,7 @@ function coloredRegion(id: string, shape: string,
     direction: opts.direction ?? -25, flow: opts.flow ?? 17,
     tone: opts.tone ?? "core", texture: opts.texture ?? "fiber",
     material: opts.material ?? "dense", underpaintOpacity: opts.base ?? .63,
+    clipDetails: opts.clipDetails ?? false,
     contourColor: opts.contour ?? "#4D4C54", opaqueSupport: true,
     details: opts.details,
   });
@@ -157,14 +202,21 @@ function copperbird(): PencilActorSpec {
         details:[
           detail("M107 175 Q102 210 110 236 M109 249 Q130 278 166 284", "#496C79", 1.3),
           detail("M113 154 Q127 132 153 124 M185 270 Q213 256 223 231", "#D0D8C9", 1),
-        ]}, undefined, [162, 215]),
+          ...plumageTracts([
+            [120, 255, 159, 275, 10, 4, 8, -2.2],
+            [171, 243, 212, 266, 8, -3, 8, 1.4],
+          ], "#415F71", "#D3DBCF", 3011),
+        ], clipDetails:true}, undefined, [162, 215]),
     anatomy("flank",
       "M101 205 Q116 229 161 247 Q160 269 142 287 Q103 264 100 232 Z",
       [97, 202, 67, 87], 1109, {color:night, direction:59, flow:17, start:75,
         details:[
           detail("M104 230 Q120 253 150 264 M111 245 Q123 263 144 275", "#ADC5C1", .9),
           detail("M108 222 L134 256 M105 237 L127 269", "#6C8D95", .8),
-        ]}, "torso", [119, 244]),
+          ...plumageTracts([
+            [110, 225, 137, 264, 8, 5, 7, -2.1],
+          ], "#334A64", "#A6C3C1", 3067),
+        ], clipDetails:true}, "torso", [119, 244]),
     anatomy("breast",
       "M159 125 Q206 125 226 161 Q240 220 215 260 Q199 286 160 281 Q131 278 121 231 Q117 169 159 125 Z",
       [117, 124, 122, 162], 1137, {color:copper, direction:30, flow:-28, start:74,
@@ -174,14 +226,22 @@ function copperbird(): PencilActorSpec {
           detail("M143 208 Q155 241 169 258 M157 223 Q176 264 193 272", "#AD646C", 1.15),
           detail("M134 225 Q146 263 164 278 M178 266 Q199 267 209 247", "#F8D8B1", 1.05),
           detail("M132 189 Q142 202 147 215 M146 244 Q154 258 165 268", "#F0B39A", .8),
-        ]}, "torso", [159, 190]),
+          ...plumageTracts([
+            [143, 176, 155, 229, 9, 5, 11, -2.6],
+            [168, 166, 191, 247, 13, 7, 10, -3],
+            [192, 178, 214, 235, 10, 3, 9, -1.6],
+          ], "#985862", "#F9D9B2", 3133),
+        ], clipDetails:true}, "torso", [159, 190]),
     anatomy("throat",
       "M167 140 Q180 125 196 137 Q214 145 216 164 Q213 182 195 188 Q171 175 167 140 Z",
       [165, 125, 54, 65], 1169, {color:cream, direction:43, flow:-13, start:92,
         details:[
           detail("M164 139 Q181 158 190 177 M175 132 Q194 154 203 179", "#FCF4D8", 1.1),
           detail("M180 148 Q198 169 211 183 M171 162 L191 182", "#CA988B", .8),
-        ]}, "torso", [179, 142]),
+          ...plumageTracts([
+            [174, 146, 205, 166, 8, 2, 6, -1.7],
+          ], "#AC8680", "#FFF2CF", 3187),
+        ], clipDetails:true}, "torso", [179, 142]),
     anatomy("wing-main",
       "M111 148 Q142 145 173 169 Q164 211 135 254 Q117 272 108 280 Q86 246 96 190 Q99 162 111 148 Z",
       [92, 144, 84, 141], 1201, {color:cobalt, direction:54, flow:31, start:89,
@@ -240,7 +300,11 @@ function copperbird(): PencilActorSpec {
           detail("M157 79 Q177 57 204 62 M156 88 Q171 71 194 72", "#D0E6E4", 1.1),
           detail("M168 70 Q188 62 214 69 M151 109 Q165 131 182 140", "#254B69", .9),
           detail("M148 96 L162 112 M153 87 L169 103 M163 73 L179 83", "#B5D4D8", .65),
-        ]}, "torso", [182, 118], head),
+          ...plumageTracts([
+            [160, 79, 213, 75, 11, 5, -1.5, -.8],
+            [157, 106, 179, 127, 7, 4, 5, -1.2],
+          ], "#456B85", "#CEDFDC", 3229),
+        ], clipDetails:true}, "torso", [182, 118], head),
     anatomy("mask",
       "M179 94 Q192 80 216 81 Q237 83 243 99 Q242 116 229 126 Q207 130 190 116 Q179 107 179 94 Z",
       [177, 79, 69, 51], 1291, {color:night, direction:14, flow:-18, start:115,
@@ -254,7 +318,10 @@ function copperbird(): PencilActorSpec {
         details:[
           detail("M182 135 Q203 146 222 144 M188 151 Q202 160 214 155", "#FCDEBB", 1.1),
           detail("M197 128 Q212 132 226 132", "#BB8579", .7),
-        ]}, "head", [202, 136]),
+          ...plumageTracts([
+            [193, 130, 221, 149, 10, -1, 5, -1],
+          ], "#A96867", "#F7D9BA", 3277),
+        ], clipDetails:true}, "head", [202, 136]),
     anatomy("eye-ring",
       "M213 97 Q218 88 230 93 Q235 99 232 108 Q224 114 217 110 Q211 104 213 97 Z",
       [209, 88, 27, 27], 1351, {color:cream, direction:18, flow:10, start:144,
