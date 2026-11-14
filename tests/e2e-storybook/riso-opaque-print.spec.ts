@@ -34,7 +34,14 @@ test("RISO5: opaque paper knockout preserves two subject silhouettes against den
     });
   }
   const trapping=page.getByRole("slider",{name:"RISO5 paper trapping"});
-  await trapping.fill("4");
+  await trapping.evaluate(node=>{
+    const input=node as HTMLInputElement;
+    const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    if(!setter)throw new Error("No native value setter");
+    setter.call(input,"4");
+    input.dispatchEvent(new Event("input",{bubbles:true}));
+    input.dispatchEvent(new Event("change",{bubbles:true}));
+  });
   await expect(courier.locator("g[data-km-riso-character-knockout]")).toHaveAttribute("stroke-width","4");
   await page.getByRole("combobox",{name:"RISO5 ink plate"}).selectOption("blue");
   await expect(stage.locator('[data-km-riso-foreground-plate="red"]')).toHaveCount(0);
