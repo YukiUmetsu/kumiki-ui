@@ -1,4 +1,6 @@
 import { CrayonStorybook } from "../../registry/video/materials/crayon-react";
+import { CrayonScene } from "../../registry/video/materials/crayon-scene-react";
+import { assertCrayonScene } from "../../registry/video/materials/crayon-scene";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
@@ -674,6 +676,16 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
 
       // Original art-style fixtures run through the same production renderer as Storybook.
       // The Film Document still owns all scene timing; these slots draw only frame samples.
+      // Generic JSON-authored, portable crayon scene: no code changes needed for new subjects.
+      case "crayon-scene": {
+        const scene: unknown = props.scene;
+        assertCrayonScene(scene);
+        if (scene.width !== context.width || scene.height !== context.height)
+          throw new RangeError("crayon-scene dimensions must match the FilmStage output");
+        if (scene.durationFrames !== context.durationFrames)
+          throw new RangeError("crayon-scene durationFrames must match its film shot duration");
+        return <CrayonScene spec={scene} frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
       case "crayon-storybook": {
         const rawOffset = props.offsetFrame ?? 0;
         if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
