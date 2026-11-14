@@ -22,7 +22,7 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
   useEffect(()=>{if(playing&&frame>=spec.durationFrames-1)setPlaying(false)},[playing,frame,spec.durationFrames]);
   const duration=spec.durationFrames-1;
   const beats:readonly (readonly [number,string])[]=subject==="walk" ?
-    [[0,"Ready"],[38,"Back-foot lift"],[94,"Back-foot plant"],[124,"Front-foot swing"],[156,"Front-foot plant"],[214,"Final plant"],[269,"Rest"]] : subject==="performance" ?
+    [[0,"Ready"],[38,"Back-foot lift"],[44,"Contact release"],[94,"Back-foot plant"],[124,"Front-foot swing"],[156,"Front-foot plant"],[214,"Final plant"],[269,"Rest"]] : subject==="performance" ?
     [[0,"Paper"],[70,"Anticipation"],[90,"Speech begins"],[118,"Viseme change"],[176,"Smile"],[269,"Final pose"]] :
     [[0,"Blank paper"],[72,"First wax"],[145,"Illustration builds"],[239,"Finished page"]];
   return <div style={{maxWidth:1050,margin:"auto",padding:22,background:"#e9e3d5",color:"#344e60",fontFamily:"system-ui"}}>
