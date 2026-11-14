@@ -2,13 +2,6 @@ name: Ink Brush Storybook QA
 
 # Manual-only browser and production film qualification. Cheap PR tests remain in visual-contracts.yml.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "tests/e2e-storybook/ink-brush.spec.ts"
-      - "registry/video/ink-brush.ts"
-      - "registry/video/ink-brush-react.tsx"
-      - "src/video/ink-brush.stories.tsx"
   workflow_dispatch:
 
 permissions:
