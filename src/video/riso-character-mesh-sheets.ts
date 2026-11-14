@@ -23,6 +23,7 @@ export const RISO_COURIER_SHEET: RisoCharacterMeshSheet={
   regions:[
     source("head-shape","Head / face silhouette","face","head",["face","face-outline"]),
     source("hair-mass","Hair crown and fringe","hair","head",["hair"]),
+    source("hair-engraving","Fine hair striations","hair","head",["hair-strand-engraving"]),
     source("cap","Cap crown","headwear","head",["cap"]),
     source("cap-brim","Cap brim","headwear","head",["cap-brim"]),
     source("brow-left","Left eyebrow","face","head",["left-eyebrow"]),
@@ -35,6 +36,7 @@ export const RISO_COURIER_SHEET: RisoCharacterMeshSheet={
     source("neck","Neck segment","torso","body",["neck"]),
     source("coat-shell","Coat silhouette","torso","body",["coat"]),
     source("coat-seam","Coat center seam","torso","body",["coat-seam"]),
+    source("coat-folds","Tapered coat folding","torso","body",["coat-fold-engraving"]),
     source("pocket","Coat pocket","accessory","body",["coat-pocket"]),
     {...source("coat-button-upper","Upper coat button","accessory","body",["coat-buttons"]),sourceSubpathIndex:0},
     {...source("coat-button-lower","Lower coat button","accessory","body",["coat-buttons"]),sourceSubpathIndex:1},
@@ -74,8 +76,11 @@ export const RISO_PAPER_BIRD_SHEET: RisoCharacterMeshSheet={
     source("eye","Eye / blink","face","root",["eye"]),
     source("beak","Beak contour","face","root",["beak"]),
     source("body","Body / chest","torso","root",["body"]),
+    source("breast-feathers","Feather chest engravings","torso","root",["breast-feather-engraving"]),
     source("left-wing","Left wing / primary feathers","wing","left-wing",["wing-left"]),
+    source("left-wing-feathers","Left wing feather engravings","wing","left-wing",["wing-left-feather-engraving"]),
     source("right-wing","Right wing / ink accent","wing","right-wing",["wing-right","wing-ink-accent"]),
+    source("right-wing-feathers","Right wing feather engravings","wing","right-wing",["wing-right-feather-engraving"]),
     source("tail","Tail feathers","tail","tail",["tail-feathers"]),
   ],
 };
