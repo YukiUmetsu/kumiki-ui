@@ -7,7 +7,7 @@
  * the scene wind and the node's `progress`; static ones are cached by the renderer.
  */
 import type { Pt } from "./ukiyoe-core";
-import { alongPath, carvedLine, clamp, clamp01, DEG, ease, fbm1, hash01, hashSigned, lerp, noise1, polar, polyD, quad, resample, rotatePt, smooth, smoothD, span } from "./ukiyoe-core";
+import { alongPath, carvedLine, clamp, clamp01, DEG, ease, fbm1, hash01, hashSigned, lerp, noise1, polar, polyD, polylineLength, quad, rotatePt, smooth, smoothD, span } from "./ukiyoe-core";
 import type { Prim } from "./ukiyoe-prims";
 import { circleD, ellipseD, rectD, tf } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
@@ -237,7 +237,7 @@ function sea(p: P, c: MotifContext): Prim[] {
 const WAVE_BACK: readonly Pt[] = [[.5, 0], [.385, -.333], [.301, -.577], [.217, -.66], [.126, -.746], [.042, -.846], [-.035, -.923], [-.119, -.977], [-.189, -1.003], [-.252, -.997]];
 const WAVE_LIP: readonly Pt[] = [[-.308, -.936], [-.364, -.878], [-.427, -.782], [-.476, -.679], [-.497, -.59], [-.493, -.487]];
 const WAVE_UNDER: readonly Pt[] = [[-.472, -.429], [-.42, -.436], [-.364, -.481], [-.304, -.558]];
-const WAVE_FRONT: readonly Pt[] = [[-.278, -.603], [-.262, -.436], [-.253, -.269], [-.262, -.141], [-.294, -.064], [-.332, -.019], [-.399, -.003], [-.5, 0]];
+const WAVE_FRONT: readonly Pt[] = [[-.278, -.603], [-.24, -.47], [-.214, -.34], [-.21, -.22], [-.232, -.12], [-.278, -.05], [-.34, -.014], [-.42, -.002], [-.5, 0]];
 /**
  * The lower edge of the white dome that caps the wave: down from the crest beside the blue column, then back along a
  * row of claws to the rear slope. Everything below it is blue (in the print the white is only the wave's top).
@@ -246,14 +246,16 @@ const WAVE_RIDGE: readonly Pt[] = [[-.027, -.779], [-.008, -.692], [-.007, -.59]
 /** The top of the blue column, where the crest foam ends: from the dome edge forward to the lip's underside. */
 const WAVE_CREST_UNDER: readonly Pt[] = [[-.027, -.779], [-.07, -.797], [-.126, -.81], [-.182, -.8], [-.234, -.772], [-.271, -.728], [-.285, -.641], [-.301, -.562]];
 /** The column's forward guide for the stripes: from under the crest, down the front face, into the trough. */
-const WAVE_STRIPE_FRONT: readonly Pt[] = [[-.252, -.769], [-.277, -.615], [-.263, -.436], [-.253, -.269], [-.262, -.141], [-.294, -.064], [-.332, -.013]];
+const WAVE_STRIPE_FRONT: readonly Pt[] = [[-.252, -.769], [-.277, -.615], [-.24, -.47], [-.214, -.34], [-.21, -.22], [-.232, -.12], [-.278, -.05], [-.34, -.012]];
 
 /** Height and break state of a wave at a frame — shared by the drawing and by anything floating on it. */
 function waveState(p: P, c: MotifContext) {
   const W = num(p, "width", 1100), Hmax = num(p, "height", 560), seed = c.seed + num(p, "variant", 0) * 17;
-  const rise = ease("inOut", clamp01(c.progress));
+  // `progress` is already shaped by the node's keyframe eases; easing it again here made the wave snap from small to big
+  // in the middle of its rise. The collapse eases in and out too, so the crest never lurches.
+  const rise = clamp01(c.progress);
   const breakAt = typeof p.breakAt === "number" ? p.breakAt as number : undefined, breakDur = num(p, "breakDuration", 36);
-  const crash = breakAt === undefined ? 0 : ease("in", span(c.frame, breakAt, breakAt + breakDur));
+  const crash = breakAt === undefined ? 0 : ease("sine", span(c.frame, breakAt, breakAt + breakDur));
   const breathe = Math.sin(c.frame / 11 + seed) * .012 + Math.sin(c.frame / 4.3) * .004;
   const H = Hmax * (.12 + .88 * rise) * (1 - crash * .5) * (1 + breathe);
   return { W, Hmax, H, seed, rise, crash, curl: smooth(span(rise, .3, 1)) };
@@ -261,7 +263,7 @@ function waveState(p: P, c: MotifContext) {
 // Water height (fraction of H) along the wave, following its silhouette: the front face in the trough rising up the
 // near-vertical column, the dome, and the long back. The front stops short of vertical so a rider is lifted steeply
 // but smoothly (a boat never climbs an overhang).
-const SURF_FRONT: readonly Pt[] = [[-.5, 0], [-.42, .005], [-.36, .02], [-.32, .05], [-.29, .1], [-.265, .19], [-.25, .3], [-.235, .44], [-.22, .56]];
+const SURF_FRONT: readonly Pt[] = [[-.5, 0], [-.42, .002], [-.36, .012], [-.31, .035], [-.27, .075], [-.245, .13], [-.23, .19], [-.22, .26]];
 const SURF_BACK: readonly Pt[] = [[-.15, .95], [-.035, .92], [.042, .85], [.126, .75], [.217, .66], [.301, .58], [.385, .33], [.44, .15], [.5, 0]];
 /**
  * Water height (px, positive up) of a wave motif at local x, for the same params/frame/progress the motif is drawn
@@ -278,7 +280,7 @@ export function waveSurface(params: Readonly<Record<string, unknown>>, c: MotifC
   const sink = 1 - st.crash * .3;
   if (u < -.5) h = 0;
   else if (u <= -.22) h = at(SURF_FRONT) * sink;
-  else if (u < -.15) h = lerp(.56 * sink, .95, smooth((u + .22) / .07));
+  else if (u < -.15) h = lerp(.26 * sink, .95, smooth((u + .22) / .07));
   else if (u <= .5) h = at(SURF_BACK);
   else h = 0;
   return h * st.H;
@@ -351,9 +353,19 @@ function foamHand(at: Pt, angle: number, size: number, fingers: number, seed: nu
  * connected white foam of branching hooked claws with pale-blue hollows and open carved strokes. `progress` 0 → 1
  * raises a swell into the curled crest; `breakAt` (frame) collapses it with boiling foam and spray.
  */
+/** Claw counts per row, measured once per parameter set on the fully risen wave (see `walk` in `wave`). */
+const CLAW_COUNTS = new Map<string, number[]>();
+let counting: number[] | undefined;
 /** Facts about the last wave drawn (claw placements, stripe centrelines), for measurement and tests. */
 export const WAVE_STATS: { claws: { at: Pt; angle: number; size: number; hooks: number }[]; stripes: { line: Pt[]; width: number }[]; H: number; W: number } = { claws: [], stripes: [], H: 0, W: 0 };
 function wave(p: P, c: MotifContext): Prim[] {
+  const countKey = JSON.stringify(p) + "|" + c.seed;
+  let counts = CLAW_COUNTS.get(countKey);
+  if (!counts && !counting) {
+    counting = [];
+    try { wave(p, { frame: 0, wind: 0, seed: c.seed, progress: 1 }); CLAW_COUNTS.set(countKey, counting); } finally { counting = undefined; }
+    counts = CLAW_COUNTS.get(countKey);
+  }
   WAVE_STATS.claws = []; WAVE_STATS.stripes = [];
   const W = num(p, "width", 1100), seed = c.seed + num(p, "variant", 0) * 17;
   const deep = paint(p, "color", "bero"), mid = paint(p, "light", "hanada"), pale = paint(p, "pale", "sora"), foamC = paint(p, "foam", "gofun"), lineC = paint(p, "line", "ai");
@@ -377,7 +389,11 @@ function wave(p: P, c: MotifContext): Prim[] {
   });
   // The body (outlined, blue below, white dome above) stops at the crest: the lip that overhangs it is foam only, so
   // its silhouette is made by its claws, with sky between them, never by a smooth contour.
-  const shape: Pt[] = [...bumpy, ...WAVE_FRONT.map(q => [q[0], q[1] * (1 - crash * .3)] as Pt).map(X)];
+  // From the crest the outline turns sharply down to the top of the column (under the lip); points along that turn keep
+  // the smooth curve from overshooting into a lobe above the crest.
+  const front0 = [WAVE_FRONT[0][0], WAVE_FRONT[0][1] * (1 - crash * .3)] as Pt;
+  const turn = [.08, .2, .4, .65].map(t => [lerp(crest[0], front0[0], t) + .012 * Math.sin(Math.PI * t), lerp(crest[1], front0[1], t)] as Pt);
+  const shape: Pt[] = [...bumpy, ...turn.map(X), ...WAVE_FRONT.map(q => [q[0], q[1] * (1 - crash * .3)] as Pt).map(X)];
   const bodyD = smoothD(shape, true, .32);
   // Painting order makes the foam read as one connected mass, as carved: (1) the indigo contour of the whole body,
   // (2) the blue column, (3) the indigo contour of all the foam, (4) the white back, (5) the white foam, (6) the pale
@@ -404,20 +420,25 @@ function wave(p: P, c: MotifContext): Prim[] {
   const arc = (k: number, wob: number): Pt[] => front.map((q, i) => {
     // Fan: wide under the crest, narrowing toward the trough (back stripes lean forward as they fall), plus a bow back
     // at mid-height so each stripe curves like the column itself.
-    const t = i / (front.length - 1), bow = W * .15 * Math.sin(Math.PI * Math.min(1, t * 1.05)) ** 1.1 * (.45 + .55 * k);
-    const shift = (W * (.016 + k * .34 * (.42 + .58 * (1 - t) ** .9)) + bow) * back0;
-    return [q[0] + fn[i][0] * shift + noise1(seed + Math.round(k * 100), t * 5) * W * .005 * wob, q[1] + fn[i][1] * shift] as Pt;
+    // Spread: the stripes fan out toward the trough so they fill the whole lower body, and bow back at mid-height so
+    // each one curves with the column.
+    // The bow scales with the wave's current height, so a small or collapsing wave keeps the same curve, never a zigzag.
+    const t = i / (front.length - 1), bow = W * .2 * (H / st.Hmax) * Math.sin(Math.PI * Math.min(1, t * 1.05)) ** 1.1 * (.45 + .55 * k);
+    const shift = (W * (.016 + k * (.3 + .28 * t)) + bow) * back0;
+    // Shifted horizontally (back into the wave), not along the edge's normal: a normal offset larger than the curve's
+    // radius folds into loops at the flare; a horizontal copy of the edge never does.
+    return [q[0] + Math.abs(shift) + noise1(seed + Math.round(k * 100), t * 5) * W * .005 * wob, q[1]] as Pt;
   });
   // A broad medium-blue band hugs the front edge itself.
-  face.push({ t: "line", d: carvedLine(arc(0, 0).slice(3, -1), W * .036, { taper: "both", minRatio: .35, seed: seed + 3, wobble: .2, smooth: true }), color: mid, opacity: .95 });
+  face.push({ t: "line", d: carvedLine(arc(0, 0).slice(3, -1), W * .046, { taper: "both", minRatio: .35, seed: seed + 3, wobble: .2, smooth: true }), color: mid, opacity: .95 });
   const bandLines: Pt[][] = [];
-  const nStripes = Math.round(num(p, "stripes", 5));
+  const nStripes = Math.round(num(p, "stripes", 8));
   for (let s = 0; s < nStripes; s++) {
-    const k = (s + 1) / (nStripes + .4) + hashSigned(seed, s, 81) * .02, line = arc(k, 1);
+    const k = (s + 1) / (nStripes + .3) + hashSigned(seed, s, 81) * .015, line = arc(k, 1);
     const from = 1 + Math.floor(hash01(seed, s, 82) * 3), to = line.length - 2 - Math.floor(hash01(seed, s, 83) * 5);
-    face.push({ t: "line", d: carvedLine(line.slice(from, to), W * .015 * (.85 + .3 * hash01(seed, s, 84)), { taper: "both", minRatio: .2, seed: seed + s, wobble: .3, smooth: true }), color: mid, opacity: .95 });
+    face.push({ t: "line", d: carvedLine(line.slice(from, to), W * .019 * (.85 + .3 * hash01(seed, s, 84)), { taper: "both", minRatio: .2, seed: seed + s, wobble: .3, smooth: true }), color: mid, opacity: .95 });
     bandLines.push(line.slice(from, to));
-    WAVE_STATS.stripes.push({ line: line.slice(from, to), width: W * .015 });
+    WAVE_STATS.stripes.push({ line: line.slice(from, to), width: W * .019 });
   }
   // The crest foam: deep over the column, from the top contour and the lip's outer edge down to the column's top and
   // the lip's underside. (Before the wave curls, the inner edge closes up toward the front of the swell.)
@@ -479,14 +500,21 @@ function wave(p: P, c: MotifContext): Prim[] {
     if (rank === 0 || rank === 5) foam.push(h.d);
     shadows.push(ellipseD(at[0] + sz * .12, at[1] + sz * .34, sz * .7, sz * .5));
   };
+  // Every claw keeps its identity for the whole life of the wave: each row has a fixed number of claws (taken from the
+  // fully risen wave with these params) at fixed fractions of its line. As the wave rises and breaks the lines stretch
+  // and bend, and each claw rides its point and grows; nothing is re-spaced, added or dropped between frames.
+  let walkIdx = 0;
   const walk = (line: readonly Pt[], spacing: number, from: number, to: number, fn: (q: Pt, n: Pt, u: number, i: number) => void) => {
-    const pts = resample(line, spacing * GAP / (.5 + .5 * curl));
-    pts.forEach((q, i) => {
-      const u = i / Math.max(1, pts.length - 1);
-      if (u < from || u > to) return;
-      const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    const L = polylineLength(line), call = walkIdx++;
+    if (counting) { counting.push(Math.max(1, Math.round((to - from) * L / (spacing * GAP)))); return; }
+    const n = counts![call] ?? 0;
+    // Placement is by parameter along the line's fixed points (not arc length), so a claw moves only as its own stretch
+    // of line moves; a fold elsewhere on the line can never shove it sideways.
+    for (let i = 0; i < n; i++) {
+      const u = from + (to - from) * (i + .5) / n, q = atU(line, u);
+      const a = atU(line, Math.max(0, u - .01)), b = atU(line, Math.min(1, u + .01)), l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
       fn(q, [-(b[1] - a[1]) / l, (b[0] - a[0]) / l], u, i);   // n: outward normal
-    });
+    }
   };
   // Along the crest and lip: hands reaching out and forward into the sky, hooking over. (The rounded top of the back
   // carries none: the lace starts where the crest tips forward.)
@@ -499,7 +527,7 @@ function wave(p: P, c: MotifContext): Prim[] {
   rank = 5;
   walk(rimIn, H * .095, .02, lipUnderStart, (q, _n, u, i) => hand(q, 152 + (i % 2 ? 8 : -6), H * (.075 - .01 * u)));
   // Inside the foam mass: ranks of claws so the crest and lip read as lace, not a solid white block.
-  const outer40 = resampleCount(coreOut, 48), inner40 = resampleCount(coreIn, 48);
+  const outer40 = Array.from({ length: 48 }, (_, i) => atU(coreOut, i / 47)), inner40 = Array.from({ length: 48 }, (_, i) => atU(coreIn, i / 47));
   // Placed loosely, never in tidy rows: each hand drifts along and across its rank, some are skipped, sizes vary.
   for (const k of [.38, .78]) {
     rank = 1 + Math.round(k * 3);
@@ -517,7 +545,7 @@ function wave(p: P, c: MotifContext): Prim[] {
   walk(ridge, H * .1, .03, .86, (q, n, u, i) => hand([q[0] - n[0] * H * .01, q[1] - n[1] * H * .01], 156 + (i % 2 ? 8 : -6), H * (.085 - .02 * u)));
   rank = 0;
   // The cascade from the lip's tip: a chain of hands close enough that each overlaps the one above it.
-  const tip = rimEdge[rimEdge.length - 1], cascade = Math.round(1 * curl);
+  const tip = rimEdge[rimEdge.length - 1], cascade = 1;
   for (let k = 0; k < cascade; k++) {
     const at = polar(tip, 96 - k * 7, H * .03 * (k + .5));
     hand([at[0] + hashSigned(seed, k, 41) * H * .012, at[1]], 150 - k * 9, H * (.085 - .006 * k));
@@ -533,6 +561,9 @@ function wave(p: P, c: MotifContext): Prim[] {
   out.push({ t: "clip", d: bodyD, prims: face, key: "wave-face" });
   out.push({ t: "sandwich", d: foam.join(""), fill: foamC, line: lineC, lineWidth: 2.6, key: "wave-foam", between: [{ t: "clip", d: bodyD, key: "wave-back", prims: [
     { t: "fill", d: backD, fill: foamC, noPrint: true },
+    // The crest band's full area inside the body is white too: where the lace is inset from the top contour, white (not
+    // the blue face) shows between the claws.
+    { t: "fill", d: smoothD([...rimEdge, ...rimIn.slice().reverse()], true, .35, true), fill: foamC, noPrint: true },
     // On the white back: a pale-blue wash along the ridge.
     { t: "line", d: carvedLine(smoothPts(ridgeRaw.map(q => [q[0] + .04, q[1]] as Pt).map(X), 4), W * .06, { taper: "both", seed: seed + 41 }), color: pale, opacity: .5 },
   ] }] });
@@ -550,18 +581,29 @@ function wave(p: P, c: MotifContext): Prim[] {
     out.push({ t: "line", d: r.line.join(""), color: lineC });
   }
 
-  // Spray: snow-like droplets flung from the lip; a burst when it breaks.
+  // Spray: a few snow-like droplets thrown forward and down from the front of the lip, never above the crest. The set
+  // is fixed (a droplet fades in as the curl reaches it), so none pop in or out between frames.
   const sprayAmt = clamp01(num(p, "spray", .8)), dots: string[] = [];
-  const count = Math.round(70 * sprayAmt * curl + 160 * crash);
-  for (let i = 0; i < count; i++) {
-    const base = rimEdge[Math.floor((.35 + .65 * hash01(seed, i, 1)) * (rimEdge.length - 1))];
-    const life = (c.frame * (.4 + .6 * hash01(seed, i, 4)) / 50 + hash01(seed, i, 2)) % 1;
-    const vx = -(30 + 170 * hash01(seed, i, 3)) * (1 + crash), vy = -(10 + 70 * hash01(seed, i, 5)) * (1 + crash * 1.6);
-    const r = (1.6 + 3.6 * hash01(seed, i, 6) ** 2) * (1 - life * .5) * (H / st.Hmax + .4);
-    dots.push(circleD(base[0] + vx * life, base[1] + vy * life + 150 * life * life, r));
+  const crestTop = Math.min(...rimEdge.map(q => q[1]));
+  const pool = Math.round(18 * sprayAmt), burst = Math.round(22 * sprayAmt);
+  for (let i = 0; i < pool + burst; i++) {
+    const isBurst = i >= pool, gate = isBurst ? crash : curl;
+    if (hash01(seed, i, 7) >= gate) continue;
+    const base = atU(rimEdge, .72 + .28 * hash01(seed, i, 1));
+    const life = (c.frame * (.4 + .5 * hash01(seed, i, 4)) / 46 + hash01(seed, i, 2)) % 1;
+    const vx = -(40 + 110 * hash01(seed, i, 3)) * (1 + crash * .6), vy = -(4 + 22 * hash01(seed, i, 5)) * (isBurst ? 1.4 : 1);
+    const x = base[0] + vx * life, y = base[1] + vy * life + 210 * life * life;
+    if (y < crestTop + H * .02) continue;
+    const r = (1.6 + 3 * hash01(seed, i, 6) ** 2) * (1 - life * .5) * (H / st.Hmax + .4);
+    dots.push(circleD(x, y, r));
   }
   if (dots.length) out.push({ t: "dots", d: dots.join(""), color: foamC });
   return out;
+}
+/** Point at parameter u (0..1) along a polyline's vertices, interpolating between neighbours. */
+function atU(points: readonly Pt[], u: number): Pt {
+  const k = clamp01(u) * (points.length - 1), i = Math.min(points.length - 2, Math.floor(k)), f = k - i;
+  return [lerp(points[i][0], points[i + 1][0], f), lerp(points[i][1], points[i + 1][1], f)];
 }
 /** Resample a polyline to exactly `n` points evenly spaced by arc length. */
 function resampleCount(points: readonly Pt[], n: number): Pt[] {
