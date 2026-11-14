@@ -1,3 +1,6 @@
+import { CrayonStorybook } from "../../registry/video/materials/crayon-react";
+import { CrayonScene } from "../../registry/video/materials/crayon-scene-react";
+import { assertCrayonScene } from "../../registry/video/materials/crayon-scene";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
@@ -673,6 +676,30 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
 
       // Original art-style fixtures run through the same production renderer as Storybook.
       // The Film Document still owns all scene timing; these slots draw only frame samples.
+      // Generic JSON-authored, portable crayon scene: no code changes needed for new subjects.
+      case "crayon-scene": {
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const variants: unknown = props.scenes;
+        const scene: unknown = variants && typeof variants === "object" && !Array.isArray(variants)
+          ? (variants as Record<string,unknown>)[aspect] : props.scene;
+        assertCrayonScene(scene);
+        if (scene.width !== context.width || scene.height !== context.height)
+          throw new RangeError("crayon-scene dimensions must match the FilmStage output");
+        if (scene.durationFrames !== context.durationFrames)
+          throw new RangeError("crayon-scene durationFrames must match its film shot duration");
+        return <CrayonScene spec={scene} frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
+      case "crayon-storybook": {
+        const rawOffset = props.offsetFrame ?? 0;
+        if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
+          throw new RangeError("crayon-storybook offsetFrame must be a nonnegative integer.");
+        const story = props.story ?? "lantern";
+        if (story !== "lantern" && story !== "garden")
+          throw new RangeError("crayon-storybook story must be lantern or garden.");
+        return <CrayonStorybook frame={rawOffset + context.frame} story={story}
+          aspect={context.width > context.height ? "landscape" : "portrait"}
+          reducedMotion={context.reducedMotion} seed={23} pressure={.87} paperTooth={.58} />;
+      }
       case "riso-print-study": {
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const rawOffset = props.offsetFrame ?? 0;
@@ -707,7 +734,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           reducedMotion={context.reducedMotion}/>;
       }
 
-      default: throw new Error(`No slot "${content.slot}". Slots: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off.`);
+      default: throw new Error(`No slot "${content.slot}". Available: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print.`);
     }
   };
 }

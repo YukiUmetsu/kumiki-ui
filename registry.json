@@ -3265,6 +3265,36 @@
       ]
     },
     {
+      "name": "crayon-storybook",
+      "type": "registry:ui",
+      "title": "Material-native Crayon Storybook & Scene Engine",
+      "description": "Reusable deterministic wax deposition and textured paper for JSON-authored illustrated film scenes. Original storybook art plus generic paths, contours, multi-line readable captions, authored camera motion, held-pose object animation, seeded pressure variation, and frame-addressed FilmStage slots in multiple ratios.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/materials/crayon.ts",
+          "type": "registry:ui",
+          "target": "components/video/materials/crayon.ts"
+        },
+        {
+          "path": "registry/video/materials/crayon-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/materials/crayon-react.tsx"
+        },
+        {
+          "path": "registry/video/materials/crayon-scene.ts",
+          "type": "registry:ui",
+          "target": "components/video/materials/crayon-scene.ts"
+        },
+        {
+          "path": "registry/video/materials/crayon-scene-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/materials/crayon-scene-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "riso-print",
       "type": "registry:ui",
       "title": "Risograph Spot-Ink Printing",
