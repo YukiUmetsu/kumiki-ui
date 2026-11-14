@@ -52,11 +52,20 @@ describe("WM7 ten-master watercolor material grammar",()=>{
     expect(plan.marks.some(x=>x.id==="boat-contact"&&x.kind==="focal-shadow")).toBe(true);
     expect(plan.marks.filter(x=>x.kind==="directional-drybrush").length).toBeGreaterThan(40);
     expect(plan.reserves.some(x=>x.path.includes(" q"))).toBe(true);
+    const depth=plan.marks.find(x=>x.id==="near-water-depth");
+    // Fade this glaze out beyond the source frame: no visible bottom cut.
+    expect(depth?.path).toContain("L960 960 H0 Z");
+    const reflected=plan.marks.filter(x=>x.id.startsWith("boat-reflected-light-"));
+    expect(reflected).toHaveLength(10);
+    expect(reflected.every(x=>x.kind==="directional-drybrush"&&x.strokeWidth!==undefined)).toBe(true);
+    expect(reflected.every(x=>!x.path.includes("Z"))).toBe(true);
     const html=renderToStaticMarkup(<WatercolourMasterworkMaterial
       study="estuary" seed={83} frame={300}/>);
     expect(html).toContain("<mask");
     expect(html).toContain('stroke="#000"');
     expect(html).toContain('mask="url(#');
+    expect(html).toContain("km-masterwork-water-");
+    expect(html).toContain("feGaussianBlur");
     // Lifting is a black-on-white alpha mask, not white foreground decals.
     expect(plan.marks.every(x=>!["#FFFFFF","#FFF","#F8F3E8"].includes(x.color))).toBe(true);
   });

@@ -108,20 +108,20 @@ export function watercolourMasterworkMaterialPlan(study:MasterworkStudy,
     // Atmospheric geometry: overlapping shaped veils rather than horizontal
     // rectangles. Bright paper reserves are holes in these actual washes.
     add(marks,"warm-air","transparent-glaze",
-      "M356 226 C441 208 497 242 548 228 Q612 204 684 225 Q751 239 814 222 Q873 215 929 248 L929 286 Q851 266 799 282 Q715 259 659 278 Q577 263 516 277 Q424 250 356 275 Z",
-      "#CEAF91",.125,46);
+      "M0 246 Q172 240 320 231 C441 208 497 242 548 228 Q612 204 684 225 Q751 239 814 222 Q873 215 960 248 L960 295 Q851 269 799 282 Q715 259 659 278 Q577 263 516 277 Q424 250 320 279 Q170 271 0 285 Z",
+      "#CEAF91",.075,46);
     add(marks,"cool-mist","transparent-glaze",
-      "M356 291 Q437 267 497 290 Q560 265 625 290 Q686 267 761 293 Q838 272 941 297 L941 345 Q865 316 803 340 Q709 316 650 345 Q545 313 467 339 Q402 321 356 343 Z",
-      "#506F89",.16,79);
+      "M0 313 Q177 303 354 297 Q437 267 497 290 Q560 265 625 290 Q686 267 761 293 Q838 272 960 297 L960 359 Q865 316 803 340 Q709 316 650 345 Q545 313 467 339 Q402 321 354 343 Q177 348 0 351 Z",
+      "#506F89",.12,79);
     add(marks,"near-water-depth","tonal-mass",
-      "M355 407 C404 393 461 416 518 404 Q604 398 660 413 Q716 398 779 413 Q848 402 941 421 L941 535 H355 Z",
-      "#34677A",.19,103);
+      "M0 421 Q180 401 355 407 C404 393 461 416 518 404 Q604 398 660 413 Q716 398 779 413 Q848 402 960 421 L960 960 H0 Z",
+      "#34677A",.28,103);
     add(marks,"boat-contact","focal-shadow",
       "M698 407 Q747 410 803 407 Q817 412 830 415 Q767 422 723 417 Q708 414 698 407 Z",
       "#395867",.34,194);
     add(marks,"horizon-lost-edge","wet-edge",
-      "M352 350 Q427 340 495 347 Q555 339 616 349 Q675 335 730 347 Q809 337 949 351",
-      "#4F8494",.3,134,8);
+      "M385 347 Q427 340 495 347 Q555 339 616 349 M692 345 Q734 336 782 347 Q837 342 896 350",
+      "#4F8494",.18,134,5);
     for(let i=0;i<78;i++){
       const x=359+seedRand(seed,i,311)*557;
       const y=367+seedRand(seed,i,313)*119;
@@ -141,12 +141,17 @@ export function watercolourMasterworkMaterialPlan(study:MasterworkStudy,
           width:.65+distance*.75});
       }
     }
-    // Three shaped reflective sleeves actually begin at the boat bottom.
-    for(let i=0;i<3;i++){
-      const x=732+i*17;
-      add(marks,"boat-reflected-light-"+i,"transparent-glaze",
-        "M"+n(x)+" 412 q8 17 -4 49 q13 16 9 35 q-10 -7 -11 -25 q-12 -20 -6 -43 Z",
-        i===1?"#C6B18F":"#7C9C9A",.11+.04*i,190+i*6);
+    // Thin, laterally interrupted vessel reflections stay close to the
+    // water surface: no long filled sleeves or vertical triangle shadows.
+    for(let i=0;i<10;i++){
+      const x=712+seedRand(seed,i,557)*94;
+      const y=419+i*3.8+seedRand(seed,i,563)*2.2;
+      const dx=(i%2?-1:1)*(9+seedRand(seed,i,569)*21);
+      add(marks,"boat-reflected-light-"+i,"directional-drybrush",
+        "M"+n(x)+" "+n(y)+" q"+n(dx*.42)+" "+n(1.4+seedRand(seed,i,571)*2.2)+
+        " "+n(dx)+" "+n((seedRand(seed,i,573)-.5)*3),
+        i%3===0?"#D3C1A3":"#6E9798",.27,190+i*3,
+        .45+seedRand(seed,i,577)*.4);
     }
   }else{
     // A simple flat facade fails at full-size. These transparent focal
@@ -220,6 +225,20 @@ export function WatercolourMasterworkMaterial({study,seed,frame,intensity=1}:{
         <feDisplacementMap in="SourceGraphic" in2="paper"
           scale="1.4" xChannelSelector="R" yChannelSelector="G"/>
       </filter>
+      <filter id={"km-masterwork-atmosphere-"+id} x="-20%" y="-30%"
+        width="140%" height="160%">
+        <feGaussianBlur stdDeviation="10"/>
+      </filter>
+      <filter id={"km-masterwork-soft-"+id} x="-8%" y="-8%"
+        width="116%" height="116%">
+        <feGaussianBlur stdDeviation="3.8"/>
+      </filter>
+      <linearGradient id={"km-masterwork-water-"+id}
+        gradientUnits="userSpaceOnUse" x1="0" y1="390" x2="0" y2="565">
+        <stop offset="0" stopColor="#34677A" stopOpacity=".88"/>
+        <stop offset=".55" stopColor="#34677A" stopOpacity=".52"/>
+        <stop offset="1" stopColor="#34677A" stopOpacity="0"/>
+      </linearGradient>
       <mask id={"km-masterwork-lift-"+id} maskUnits="userSpaceOnUse"
         x="0" y="0" width="960" height="540">
         <rect x="0" y="0" width="960" height="540" fill="#fff"/>
@@ -239,11 +258,16 @@ export function WatercolourMasterworkMaterial({study,seed,frame,intensity=1}:{
             478+(seedRand(seed,m.plantIndex,19)-.5)*19
           )+") rotate("+n(sway)+")";
         return <path key={m.id} data-km-masterwork-kind={m.kind}
-          d={m.path} fill={m.strokeWidth?"none":m.color}
+          d={m.path} fill={m.strokeWidth?"none":
+            m.id==="near-water-depth"?"url(#km-masterwork-water-"+id+")":m.color}
           stroke={m.strokeWidth?m.color:"none"} strokeWidth={m.strokeWidth}
           strokeLinecap="round" strokeLinejoin="round"
           opacity={m.opacity*presence*intensity}
           transform={plant} filter={m.kind==="directional-drybrush"?undefined:
+            m.id==="warm-air"||m.id==="cool-mist"?
+            "url(#km-masterwork-atmosphere-"+id+")":
+            m.id==="near-water-depth"||m.id==="wall-cool-half"||m.id==="wall-warm-half"?
+            "url(#km-masterwork-soft-"+id+")":
             "url(#km-masterwork-paper-"+id+")"}/>;
       })}
     </g>}
