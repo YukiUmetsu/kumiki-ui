@@ -1,7 +1,7 @@
-import { useId } from "react";
+import { useId, useMemo } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { evaluatePencilMark, hatchPencilRegion, inspectPencilDrawing, pencilHash } from "./colored-pencil";
-import type { PencilDrawingSpec, PencilTrace } from "./colored-pencil";
+import type { PencilDrawingSpec, PencilTrace, PencilRegion, PencilPigmentLayer } from "./colored-pencil";
 
 export interface PencilDrawingProps {
   drawing: PencilDrawingSpec;
@@ -13,6 +13,22 @@ export interface PencilDrawingProps {
   style?: CSSProperties;
   /** Annotations, legend and other explanatory artwork owned by the scene. */
   children?: ReactNode;
+}
+/** Stroke geometry is static while frames are sought; memoise only the pure material pass. */
+function PigmentPass({ region, layer, index, frame, reducedMotion }: {
+  region: PencilRegion; layer: PencilPigmentLayer; index: number;
+  frame: number; reducedMotion: boolean;
+}) {
+  const strokes = useMemo(() => hatchPencilRegion(region, layer), [region, layer]);
+  const [x, y, w, h] = region.bounds;
+  const cx = x + w / 2, cy = y + h / 2;
+  return <g data-km-pigment-layer={index} stroke={layer.color} fill="none"
+    transform={`rotate(${layer.angle} ${cx} ${cy})`}>
+    {strokes.map((mark, i) => <path key={i} d={mark.path} strokeWidth={mark.width}
+      strokeLinecap="round" opacity={mark.opacity} pathLength={1}
+      transform={mark.angleOffset ? `rotate(${mark.angleOffset.toFixed(3)} ${cx} ${cy})` : undefined}
+      strokeDasharray={evaluatePencilMark(frame, mark, reducedMotion).toFixed(5) + " 1"}/>)}
+  </g>;
 }
 function Trace({ trace, frame, reducedMotion = false }: { trace: PencilTrace; frame: number; reducedMotion?: boolean }) {
   const progress = evaluatePencilMark(frame, trace, reducedMotion);
@@ -73,7 +89,6 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
     <rect width={drawing.width} height={drawing.height} fill={drawing.paper} />
     {drawing.paperTooth > 0 && <rect width={drawing.width} height={drawing.height} fill={"url(#" + uid + "-paper)"} />}
     {drawing.regions.map((region, index) => {
-      const [x, y, w, h] = region.bounds;
       return <g key={region.id} data-km-pencil-region={region.id} transform={region.transform}>
         {/* An unfinished sheet stays blank until a real pencil stroke starts. Underpaint only
             softens voids beneath deposited pigment; it must never reveal the subject early. */}
@@ -84,15 +99,9 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
               durationFrames: region.layers[0].durationFrames,
             }, reducedMotion)} />}
         <g clipPath={"url(#" + uid + "-region-" + index + ")"} mask={"url(#" + uid + "-pigment-mask)"}>
-          {region.layers.map((layer, layerIndex) => {
-            const strokes = hatchPencilRegion(region, layer);
-            return <g key={layerIndex} data-km-pigment-layer={layerIndex} stroke={layer.color} fill="none"
-              transform={"rotate(" + layer.angle + " " + (x + w / 2) + " " + (y + h / 2) + ")"}>
-              {strokes.map((mark, i) => <path key={i} d={mark.path} strokeWidth={mark.width}
-                strokeLinecap="round" opacity={mark.opacity} pathLength={1}
-                strokeDasharray={evaluatePencilMark(frame, mark, reducedMotion).toFixed(5) + " 1"} />)}
-            </g>;
-          })}
+          {region.layers.map((layer, layerIndex) => <PigmentPass key={layerIndex}
+            region={region} layer={layer} index={layerIndex} frame={frame}
+            reducedMotion={reducedMotion}/> )}
         </g>
         <g data-km-graphite="">
           <Trace trace={region.contour} frame={frame} reducedMotion={reducedMotion}/>
