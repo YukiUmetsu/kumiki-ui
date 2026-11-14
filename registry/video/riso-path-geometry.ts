@@ -59,7 +59,7 @@ function flattenArc(from:RisoContourPoint,to:RisoContourPoint,rx0:number,ry0:num
   let delta=Math.atan2(vx*ey-vy*ex,vx*ex+vy*ey);
   if(!sweep&&delta>0)delta-=2*Math.PI;
   if(sweep&&delta<0)delta+=2*Math.PI;
-  const steps=Math.max(2,Math.min(120,Math.ceil(Math.abs(delta)*Math.max(rx,ry)/(Math.max(.25,flat)*4))));
+  const steps=Math.max(2,Math.min(120,Math.ceil(Math.abs(delta)*Math.max(rx,ry)/(Math.max(.25,flat)*2))));
   for(let i=1;i<=steps;i++){
     if(i===steps){add(to);continue;}
     const t=theta+delta*i/steps,ct=Math.cos(t),st=Math.sin(t);
