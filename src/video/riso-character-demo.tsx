@@ -337,12 +337,6 @@ export function RisoCharacterPerformance({
   const artwork = (plateId: "blue" | "red"): RisoArtwork => (paint: RisoPaint) =>
     <g data-km-riso-performance-plate={plateId}>
       <LayeredCity aspect={aspect} paint={paint} ink={plateId}/>
-      <RisoCharacterInk spec={courier} frame={sample} plateId={plateId} paint={paint}
-        x={stage.x} y={stage.y} scale={stage.scale} reducedMotion={reducedMotion}
-        disableIK={!useIK} showRig={showRig}/>
-      <RisoCharacterInk spec={bird} frame={sample} plateId={plateId} paint={paint}
-        x={stage.birdX} y={stage.birdY} scale={portrait?1.1:1.0}
-        reducedMotion={reducedMotion} showRig={showRig}/>
       {plateId === "blue" ? <g fill={paint.solid} fontFamily="Georgia,serif">
         <text x={titleX} y={headlineY} fontSize={portrait?59:66}
           fontWeight={700} letterSpacing="-1.8">PAPER</text>
@@ -368,8 +362,28 @@ export function RisoCharacterPerformance({
           fontSize="13" fontWeight={700}>RISO / 02</text>
       </g>}
     </g>;
+  // The illustrated poster and background print first. Each foreground actor
+  // then gets an opaque paper clearance followed by its own two spot-ink passes.
+  // This is essential: multiplying character ink directly over background ink
+  // creates the illusion of seeing through the character's body.
+  const subjectArtwork = (actor: RisoCharacterSpec, plateId: "blue" | "red",
+    x: number, y: number, scale: number): RisoArtwork => paint =>
+    <RisoCharacterInk spec={actor} frame={sample} plateId={plateId} paint={paint}
+      x={x} y={y} scale={scale} reducedMotion={reducedMotion}
+      disableIK={!useIK} showRig={showRig}/>;
+  const subjectLayer = (actor: RisoCharacterSpec, id: string,
+    x: number, y: number, scale: number) => ({
+    id, knockout: <RisoCharacterKnockout spec={actor} frame={sample}
+      x={x} y={y} scale={scale} reducedMotion={reducedMotion} disableIK={!useIK}/> ,
+    artworks: {blue: subjectArtwork(actor, "blue", x, y, scale),
+      red: subjectArtwork(actor, "red", x, y, scale)},
+  });
   return <RisoPrint spec={spec} frame={3} artworks={{blue:artwork("blue"),red:artwork("red")}}
+    foregroundLayers={[
+      subjectLayer(courier, "courier", stage.x, stage.y, stage.scale),
+      subjectLayer(bird, "paper-bird", stage.birdX, stage.birdY, portrait?1.1:1),
+    ]}
     misregistration={misregistration} paperGrain={grain}
-    visiblePlateIds={visiblePlateIds} label="Animated Risograph print with independently rigged courier and bird"
+    visiblePlateIds={visiblePlateIds} label="Opaque paper-knockout Risograph print with two articulated characters"
     data-km-riso-performance="" data-km-riso-performance-frame={frame} />;
 }
