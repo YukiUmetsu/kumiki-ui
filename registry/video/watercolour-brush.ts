@@ -97,14 +97,14 @@ export function inspectPaintSurface(spec: PaintSurfaceSpec): PaintIssue[] {
       add("points", p + "/points", "A stroke needs 2..64 authored control points.");
       return;
     }
-    stroke.points.forEach((pt, j) => {
+    stroke.points.forEach((pt: BrushPoint, j: number) => {
       if (!pt || !valid(pt.x, 0, spec.width) || !valid(pt.y, 0, spec.height))
         add("point-bounds", p + "/points/" + j, "Each point must be inside the paper.");
       if (!pt || !valid(pt.pressure, 0, 1)) add("pressure", p + "/points/" + j + "/pressure", "Pressure must be 0..1.");
       if (pt && pt.speed !== undefined && !valid(pt.speed, 0, 1))
         add("speed", p + "/points/" + j + "/speed", "Speed must be 0..1.");
     });
-    if (stroke.points.every((v, j) => j === 0 || v.x === stroke.points[0].x && v.y === stroke.points[0].y))
+    if (stroke.points.every((v: BrushPoint, j: number) => j === 0 || (v?.x === stroke.points[0]?.x && v?.y === stroke.points[0]?.y)))
       add("collapsed", p + "/points", "At least two control points must have different coordinates.");
   });
   return issues;
