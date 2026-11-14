@@ -255,7 +255,7 @@ function Export({aspect}:{aspect:Aspect}){
     <InkPerformanceFilm aspect={aspect} frame={frame}/>
   </VideoExportStage>;
 }
-const meta={title:"Video production/Chinese Ink Character",
+const meta={title:"Video production/Film Looks/Chinese Ink/Character Performance",
   id:"video-ink-character",component:Studio,parameters:{layout:"fullscreen"}} satisfies Meta<typeof Studio>;
 export default meta;
 export const Interactive:StoryObj<typeof meta>={
