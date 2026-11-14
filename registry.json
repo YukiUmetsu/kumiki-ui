@@ -1513,8 +1513,13 @@
       "type": "registry:ui",
       "title": "Three Camera and Lighting Adapter",
       "description": "Optional scoped Three.js camera/light controller with managed-studio replacement, light reconciliation, environment policy and lifecycle cleanup.",
-      "dependencies": ["three", "@types/three"],
-      "registryDependencies": ["camera-lighting-preset"],
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "camera-lighting-preset"
+      ],
       "files": [
         {
           "path": "registry/craft/camera-lighting-three.ts",
@@ -1529,7 +1534,9 @@
       "title": "Scoped Camera and Lighting Preview",
       "description": "Optional React context override for renderer-neutral, non-destructive interactive camera/lighting QA, with authored-shot fallback bounds.",
       "dependencies": [],
-      "registryDependencies": ["camera-lighting-preset"],
+      "registryDependencies": [
+        "camera-lighting-preset"
+      ],
       "files": [
         {
           "path": "registry/motion/camera-lighting-preview.tsx",
@@ -1544,7 +1551,9 @@
       "title": "Camera and Lighting Inspector",
       "description": "Installable, controlled React inspector for reusable camera, lens, brightness, physical light settings and portable JSON import/export; no Storybook runtime dependency.",
       "dependencies": [],
-      "registryDependencies": ["camera-lighting-preset"],
+      "registryDependencies": [
+        "camera-lighting-preset"
+      ],
       "files": [
         {
           "path": "registry/motion/camera-lighting-inspector.tsx",
@@ -2108,10 +2117,16 @@
       "type": "registry:ui",
       "title": "Physical Glass Surface Finishes",
       "description": "Six physically transmitting glass finishes (clear, smoked, amber, frosted, ribbed and rain-streaked) using native Three.js MeshPhysicalMaterial, IOR and color attenuation. Seeded UV normal/roughness maps for textured glass, no external shader or texture downloads.",
-      "dependencies": ["three", "@types/three"],
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
       "files": [
-        { "path": "registry/craft/glass-materials.ts", "type": "registry:ui",
-          "target": "components/craft/glass-materials.ts" }
+        {
+          "path": "registry/craft/glass-materials.ts",
+          "type": "registry:ui",
+          "target": "components/craft/glass-materials.ts"
+        }
       ]
     },
     {
@@ -2119,11 +2134,19 @@
       "type": "registry:ui",
       "title": "Instanced Sand Grains and Rock Chips",
       "description": "Seeded, physically modeled coarse sand grains and fractured rock chips batched into one native Three.js InstancedMesh per family, accepting existing surface/path/volume placements with bounded detail budgets.",
-      "dependencies": ["three", "@types/three"],
-      "registryDependencies": ["craft-scatter-placement"],
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "craft-scatter-placement"
+      ],
       "files": [
-        { "path": "registry/craft/mineral-debris.ts", "type": "registry:ui",
-          "target": "components/craft/mineral-debris.ts" }
+        {
+          "path": "registry/craft/mineral-debris.ts",
+          "type": "registry:ui",
+          "target": "components/craft/mineral-debris.ts"
+        }
       ]
     },
     {
@@ -2244,7 +2267,10 @@
         "three",
         "@types/three"
       ],
-      "registryDependencies": ["camera-lighting-three", "camera-lighting-preview"],
+      "registryDependencies": [
+        "camera-lighting-three",
+        "camera-lighting-preview"
+      ],
       "files": [
         {
           "path": "registry/craft/sdf-sculpt.ts",
@@ -2309,7 +2335,9 @@
       "title": "Analytic Physically Grounded Motion",
       "description": "Frame-exact PM1 gravity/contact/restitution, mass-spring damping, small-angle pendulums, angular drag, validated portable action plans and timed impact/SFX events. No simulation clock or renderer.",
       "dependencies": [],
-      "registryDependencies": ["motion-track"],
+      "registryDependencies": [
+        "motion-track"
+      ],
       "files": [
         {
           "path": "registry/motion/physical-motion.ts",
@@ -2323,8 +2351,14 @@
       "type": "registry:ui",
       "title": "Three.js Physical Hero Motion",
       "description": "Retained-hierarchy Three adapter that applies PM1 animation and shared world-space hinge pivots to HeroAssets while preserving imported glTF clips and random-frame seeking.",
-      "dependencies": ["three", "@types/three"],
-      "registryDependencies": ["physical-motion", "crafted-3d-hero"],
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "physical-motion",
+        "crafted-3d-hero"
+      ],
       "files": [
         {
           "path": "registry/craft/physical-motion-three.ts",
@@ -2353,8 +2387,14 @@
       "type": "registry:ui",
       "title": "Three.js Offline Physics Playback",
       "description": "Bind simulation-baked local transforms to canonical HeroAsset parts, preserve imported clips and scene hierarchy, and replay arbitrary frames without integrating rigid-body physics in the renderer.",
-      "dependencies": ["three", "@types/three"],
-      "registryDependencies": ["baked-physical-motion", "crafted-3d-hero"],
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "baked-physical-motion",
+        "crafted-3d-hero"
+      ],
       "files": [
         {
           "path": "registry/craft/baked-physical-motion-three.ts",
@@ -2368,8 +2408,15 @@
       "type": "registry:ui",
       "title": "Blender Asset Bridge",
       "description": "One-manifest-URL import of audited kumiki-blender GLB and automatic PM2 physics sidecar, with semantic inspectable parts, glTF clips, PM1 actions, collision/constraint bakes, timed impact cues and strict size validation. No Blender runtime needed.",
-      "dependencies": ["three", "@types/three"],
-      "registryDependencies": ["inspectable-asset-three", "physical-motion-three", "baked-physical-motion-three"],
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "inspectable-asset-three",
+        "physical-motion-three",
+        "baked-physical-motion-three"
+      ],
       "files": [
         {
           "path": "registry/craft/blender-asset-bridge.ts",
@@ -2680,7 +2727,11 @@
         "crafted-3d-hero"
       ],
       "files": [
-        { "path": "registry/craft/auto-rig.ts", "type": "registry:ui", "target": "components/craft/auto-rig.ts" },
+        {
+          "path": "registry/craft/auto-rig.ts",
+          "type": "registry:ui",
+          "target": "components/craft/auto-rig.ts"
+        },
         {
           "path": "registry/domains/finance-hero-3d.ts",
           "type": "registry:ui",
@@ -3166,7 +3217,9 @@
       "title": "Interaction Choreography",
       "description": "Pure frame-addressable choreography for actors handling shared objects: gaze, reach, grasp, carry, place and release, with contact events, reach checks and named timing presets. Renderer-neutral and free of Three.js.",
       "dependencies": [],
-      "registryDependencies": ["motion-track"],
+      "registryDependencies": [
+        "motion-track"
+      ],
       "files": [
         {
           "path": "registry/motion/interaction-choreography.ts",
@@ -3181,7 +3234,11 @@
       "title": "Shot Bake",
       "description": "Resolves interaction choreography, character state and a CC1 camera into one per-frame JSON document for an offline renderer. Run it offline: CC1 uses Three.js math.",
       "dependencies": [],
-      "registryDependencies": ["interaction-choreography", "character-performance", "cinematic-camera-director"],
+      "registryDependencies": [
+        "interaction-choreography",
+        "character-performance",
+        "cinematic-camera-director"
+      ],
       "files": [
         {
           "path": "registry/motion/shot-bake.ts",
@@ -3196,7 +3253,9 @@
       "title": "Shot List Editor",
       "description": "Reorder shots and edit their type and purpose, with keyboard moves, per-shot diagnostics and translatable labels. Owns no timing and no renderer knowledge.",
       "dependencies": [],
-      "registryDependencies": ["button"],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/video/shot-list-editor.tsx",
@@ -3209,13 +3268,30 @@
       "name": "riso-print",
       "type": "registry:ui",
       "title": "Risograph Spot-Ink Printing",
-      "description": "Two- or three-plate spot-ink compositor with deterministic absolute-frame printing, multiply overprint, fixed registration misalignment, halftone screens, paper-grain masks, and a print-native sheet-feed transition for FilmStage slot scenes. RisoPrint accepts original SVG artwork functions per plate and works as an existing FilmStage slot; no new clock, photographic color separation, or film renderer.",
+      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, fixed registration, halftone screens, paper grain, a sheet-feed transition, and a native incoming spot-ink overprint scene bridge. Authored original SVG plates render through existing FilmStage slots; no alternate renderer or clock.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
-        { "path": "registry/video/print-plates.ts", "type": "registry:ui", "target": "components/video/print-plates.ts" },
-        { "path": "registry/video/print-plates-react.tsx", "type": "registry:ui", "target": "components/video/print-plates-react.tsx" },
-        { "path": "registry/video/riso-sheet-feed.tsx", "type": "registry:ui", "target": "components/video/riso-sheet-feed.tsx" }
+        {
+          "path": "registry/video/print-plates.ts",
+          "type": "registry:ui",
+          "target": "components/video/print-plates.ts"
+        },
+        {
+          "path": "registry/video/print-plates-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/print-plates-react.tsx"
+        },
+        {
+          "path": "registry/video/riso-sheet-feed.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-sheet-feed.tsx"
+        },
+        {
+          "path": "registry/video/riso-overprint.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-overprint.tsx"
+        }
       ]
     },
     {
@@ -3226,8 +3302,16 @@
       "dependencies": [],
       "registryDependencies": [],
       "files": [
-        { "path": "registry/video/film-look.ts", "type": "registry:ui", "target": "components/video/film-look.ts" },
-        { "path": "registry/video/film-look-react.tsx", "type": "registry:ui", "target": "components/video/film-look-react.tsx" }
+        {
+          "path": "registry/video/film-look.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-look.ts"
+        },
+        {
+          "path": "registry/video/film-look-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-look-react.tsx"
+        }
       ]
     },
     {
@@ -3236,13 +3320,35 @@
       "title": "Film Cards",
       "description": "The typographic scenes of ads and short explainers, for a film document's `card` scenes: a hook headline with one word in the brand colour, a numbered list that arrives point by point with progress, a before-and-after or myth-and-fact versus with a per-line strike, a quote with a star rating, and the end card with the brand's mark, a line and one call to action; plus the brand's corner bug. Each enters fast and then holds still while it is read, keeps inside the output's safe area, lightens the brand colour until it reads as text and picks a readable ink for brand fills. Timing comes from reading speed, and `inspectCard` reports cards too short to read.",
       "dependencies": [],
-      "registryDependencies": ["scene-template-foundation"],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
       "files": [
-        { "path": "registry/video/film-cards.ts", "type": "registry:ui", "target": "components/video/film-cards.ts" },
-        { "path": "registry/video/film-cards-react.tsx", "type": "registry:ui", "target": "components/video/film-cards-react.tsx" },
-        { "path": "registry/video/film-card-reveals.ts", "type": "registry:ui", "target": "components/video/film-card-reveals.ts" },
-        { "path": "registry/video/film-card-reveals-react.tsx", "type": "registry:ui", "target": "components/video/film-card-reveals-react.tsx" },
-        { "path": "registry/video/film-flash.ts", "type": "registry:ui", "target": "components/video/film-flash.ts" }
+        {
+          "path": "registry/video/film-cards.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-cards.ts"
+        },
+        {
+          "path": "registry/video/film-cards-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-cards-react.tsx"
+        },
+        {
+          "path": "registry/video/film-card-reveals.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-card-reveals.ts"
+        },
+        {
+          "path": "registry/video/film-card-reveals-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-card-reveals-react.tsx"
+        },
+        {
+          "path": "registry/video/film-flash.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-flash.ts"
+        }
       ]
     },
     {
@@ -3251,24 +3357,112 @@
       "title": "Film Document",
       "description": "One JSON file for a whole film: ordered scene recipes, object stories, ray worlds and React Three Fiber 3D shots, transitions, captions, audio lanes and output sizes. Compiles through the existing compilers, with every problem reported as a JSON Pointer and a fix hint, and a generated JSON Schema.",
       "dependencies": [],
-      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "film-cards", "screen-demo", "motion-chart", "chart-morph", "annotate", "draw-on", "title-sequence", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
+      "registryDependencies": [
+        "scene-template-foundation",
+        "object-story",
+        "ray-world",
+        "studio-shot-model",
+        "film-look",
+        "film-cards",
+        "screen-demo",
+        "motion-chart",
+        "chart-morph",
+        "annotate",
+        "draw-on",
+        "title-sequence",
+        "cut-director",
+        "caption-performer",
+        "sound-design",
+        "sound-mastering",
+        "audio-visual-cue",
+        "video-export-stage",
+        "video-platform-presets",
+        "motion-track",
+        "motion-react",
+        "media-document",
+        "shader-fx-model"
+      ],
       "files": [
-        { "path": "registry/video/film-document.ts", "type": "registry:ui", "target": "components/video/film-document.ts" },
-        { "path": "registry/video/film-schema-check.ts", "type": "registry:ui", "target": "components/video/film-schema-check.ts" },
-        { "path": "registry/video/film-document.schema.json", "type": "registry:ui", "target": "components/video/film-document.schema.json" },
-        { "path": "registry/video/film-stage.tsx", "type": "registry:ui", "target": "components/video/film-stage.tsx" },
-        { "path": "registry/video/film-3d.ts", "type": "registry:ui", "target": "components/video/film-3d.ts" },
-        { "path": "registry/video/film-speed.ts", "type": "registry:ui", "target": "components/video/film-speed.ts" },
-        { "path": "registry/video/film-split-edits.ts", "type": "registry:ui", "target": "components/video/film-split-edits.ts" },
-        { "path": "registry/video/film-dip.ts", "type": "registry:ui", "target": "components/video/film-dip.ts" },
-        { "path": "registry/video/film-shape-wipe.ts", "type": "registry:ui", "target": "components/video/film-shape-wipe.ts" },
-        { "path": "registry/video/film-panels.ts", "type": "registry:ui", "target": "components/video/film-panels.ts" },
-        { "path": "registry/video/film-stutter.ts", "type": "registry:ui", "target": "components/video/film-stutter.ts" },
-        { "path": "registry/video/film-matte.ts", "type": "registry:ui", "target": "components/video/film-matte.ts" },
-        { "path": "registry/video/film-lens.ts", "type": "registry:ui", "target": "components/video/film-lens.ts" },
-        { "path": "registry/video/sound-timewarp.ts", "type": "registry:ui", "target": "components/video/sound-timewarp.ts" },
-        { "path": "registry/video/film-sonic.ts", "type": "registry:ui", "target": "components/video/film-sonic.ts" },
-        { "path": "registry/video/film-drive.ts", "type": "registry:ui", "target": "components/video/film-drive.ts" }
+        {
+          "path": "registry/video/film-document.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-document.ts"
+        },
+        {
+          "path": "registry/video/film-schema-check.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-schema-check.ts"
+        },
+        {
+          "path": "registry/video/film-document.schema.json",
+          "type": "registry:ui",
+          "target": "components/video/film-document.schema.json"
+        },
+        {
+          "path": "registry/video/film-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-stage.tsx"
+        },
+        {
+          "path": "registry/video/film-3d.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-3d.ts"
+        },
+        {
+          "path": "registry/video/film-speed.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-speed.ts"
+        },
+        {
+          "path": "registry/video/film-split-edits.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-split-edits.ts"
+        },
+        {
+          "path": "registry/video/film-dip.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-dip.ts"
+        },
+        {
+          "path": "registry/video/film-shape-wipe.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-shape-wipe.ts"
+        },
+        {
+          "path": "registry/video/film-panels.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-panels.ts"
+        },
+        {
+          "path": "registry/video/film-stutter.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-stutter.ts"
+        },
+        {
+          "path": "registry/video/film-matte.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-matte.ts"
+        },
+        {
+          "path": "registry/video/film-lens.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-lens.ts"
+        },
+        {
+          "path": "registry/video/sound-timewarp.ts",
+          "type": "registry:ui",
+          "target": "components/video/sound-timewarp.ts"
+        },
+        {
+          "path": "registry/video/film-sonic.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-sonic.ts"
+        },
+        {
+          "path": "registry/video/film-drive.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-drive.ts"
+        }
       ]
     },
     {
@@ -3277,9 +3471,16 @@
       "title": "Ad Formats",
       "description": "A short ad brief becomes a complete, checked film document in one of six structures: hook-body-close, problem-solution, before-after, three-reasons, myth-vs-fact and social-proof. The hook opens the film, the brand is seen from the first frame and closes it with one call to action, an optional 3D product hero turn sits after the body, scene lengths come from reading time, and the story fields (the question the hook opens, the turn that answers it, how each scene follows the last) are filled in so the film's story, pacing and ad checks pass. Outputs map to vertical, landscape and square presets.",
       "dependencies": [],
-      "registryDependencies": ["film-document", "film-cards"],
+      "registryDependencies": [
+        "film-document",
+        "film-cards"
+      ],
       "files": [
-        { "path": "registry/video/ad-formats.ts", "type": "registry:ui", "target": "components/video/ad-formats.ts" }
+        {
+          "path": "registry/video/ad-formats.ts",
+          "type": "registry:ui",
+          "target": "components/video/ad-formats.ts"
+        }
       ]
     },
     {
@@ -3288,10 +3489,22 @@
       "title": "Race Recipes",
       "description": "A car at speed on a track, in React Three Fiber. Track Pass: a low trackside camera on a long lens pans with the car as it approaches, passes level with the lens and races away; or a camera rides alongside while the track streams past. Photographed asphalt with kerbs and edge lines, grass verges and guardrails whose posts show speed, lit by a daylight sky whose brightest point places the sun, with a ring of hazy mountains kilometres away (generated, or any glTF terrain tile) as a far horizon for pans and chases. Any glTF car with named wheels: they turn by distance over radius and smear into a shutter blur that follows the film's playback rate, so they sharpen inside a speed ramp's hold. Pure functions of the frame.",
       "dependencies": [],
-      "registryDependencies": ["studio-shot-model", "studio-recipes", "fiber-stage"],
+      "registryDependencies": [
+        "studio-shot-model",
+        "studio-recipes",
+        "fiber-stage"
+      ],
       "files": [
-        { "path": "registry/visual/race-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/race-recipes-react.tsx" },
-        { "path": "registry/visual/race-scenery.ts", "type": "registry:ui", "target": "components/visual/race-scenery.ts" }
+        {
+          "path": "registry/visual/race-recipes-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/race-recipes-react.tsx"
+        },
+        {
+          "path": "registry/visual/race-scenery.ts",
+          "type": "registry:ui",
+          "target": "components/visual/race-scenery.ts"
+        }
       ]
     },
     {
@@ -3300,10 +3513,20 @@
       "title": "Screen Demo",
       "description": "Real UI, as screenshots or as live React, operated by a choreographed cursor: moves timed by Fitts' law on a minimum-jerk path, clicks with a dwell, press and ripple, typing with a human rhythm and a caret, and scrolling. A camera frames the active region a moment before each action, holds one framing for nearby controls, crops in to follow the work in a portrait output, cuts instead of gliding under reduced motion, and steps back at the end; callouts ring the target and name the change in a lower-third band. Live UI is shown inert with its transitions off, so every frame is exact. Checks report unknown targets and states, unlicensed or wrongly shaped screenshots, screenshots enlarged past their pixels, rushed actions and results not held long enough to see.",
       "dependencies": [],
-      "registryDependencies": ["scene-template-foundation"],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
       "files": [
-        { "path": "registry/video/screen-demo.ts", "type": "registry:ui", "target": "components/video/screen-demo.ts" },
-        { "path": "registry/video/screen-demo-react.tsx", "type": "registry:ui", "target": "components/video/screen-demo-react.tsx" }
+        {
+          "path": "registry/video/screen-demo.ts",
+          "type": "registry:ui",
+          "target": "components/video/screen-demo.ts"
+        },
+        {
+          "path": "registry/video/screen-demo-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/screen-demo-react.tsx"
+        }
       ]
     },
     {
@@ -3314,8 +3537,16 @@
       "dependencies": [],
       "registryDependencies": [],
       "files": [
-        { "path": "registry/video/motion-chart.ts", "type": "registry:ui", "target": "components/video/motion-chart.ts" },
-        { "path": "registry/video/motion-chart-react.tsx", "type": "registry:ui", "target": "components/video/motion-chart-react.tsx" }
+        {
+          "path": "registry/video/motion-chart.ts",
+          "type": "registry:ui",
+          "target": "components/video/motion-chart.ts"
+        },
+        {
+          "path": "registry/video/motion-chart-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/motion-chart-react.tsx"
+        }
       ]
     },
     {
@@ -3324,10 +3555,21 @@
       "title": "Annotated Picture",
       "description": "The video-essay move on a picture: it drifts while it registers, then for each mark the camera stops, pushes in on a detail (or stays wide, aimed at it), and a pen draws on it, a circle, an arrow, an underline or a measuring bracket, with a few words beside it while the rest of the frame dims. Strokes are hand-drawn and seeded, so each is irregular in its own way and the same on every render; notes take the side with room at the output size, and a vertical frame aims at the marks. Checks refuse marks outside the picture, out of order or without notes, and scenes too short to read the last note; they warn on more than four marks, long notes, notes left before they can be read, a picture marked before it registers and a picture with no rights record.",
       "dependencies": [],
-      "registryDependencies": ["film-cards", "scene-template-foundation"],
+      "registryDependencies": [
+        "film-cards",
+        "scene-template-foundation"
+      ],
       "files": [
-        { "path": "registry/video/annotate.ts", "type": "registry:ui", "target": "components/video/annotate.ts" },
-        { "path": "registry/video/annotate-react.tsx", "type": "registry:ui", "target": "components/video/annotate-react.tsx" }
+        {
+          "path": "registry/video/annotate.ts",
+          "type": "registry:ui",
+          "target": "components/video/annotate.ts"
+        },
+        {
+          "path": "registry/video/annotate-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/annotate-react.tsx"
+        }
       ]
     },
     {
@@ -3336,10 +3578,20 @@
       "title": "Draw-On",
       "description": "Line art that draws itself stroke by stroke with the pen's tip on the end of the line: ink on warm paper or chalk on a board, a faint bleed round each line, a watercolour wash that blooms in each closed outline once it is drawn, and a label that lands when its stroke is done. Strokes are points smoothed through (or kept as corners), so the pen's place is plain arithmetic; the pen lifts and travels between strokes and casts its shadow. Checks refuse strokes off the canvas or out of order and scenes that end mid-stroke or before the last label is read; they warn on a pen faster than a hand, overlapping strokes, open outlines with a wash, long labels, labels left before they are read, and labels that collide or leave the safe area in an output's shape.",
       "dependencies": [],
-      "registryDependencies": ["film-cards"],
+      "registryDependencies": [
+        "film-cards"
+      ],
       "files": [
-        { "path": "registry/video/draw-on.ts", "type": "registry:ui", "target": "components/video/draw-on.ts" },
-        { "path": "registry/video/draw-on-react.tsx", "type": "registry:ui", "target": "components/video/draw-on-react.tsx" }
+        {
+          "path": "registry/video/draw-on.ts",
+          "type": "registry:ui",
+          "target": "components/video/draw-on.ts"
+        },
+        {
+          "path": "registry/video/draw-on-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/draw-on-react.tsx"
+        }
       ]
     },
     {
@@ -3348,10 +3600,20 @@
       "title": "Title Sequence",
       "description": "A film's opening built on one symbol for its story, in cut paper: pieces with scissor-cut edges slide in or are set down one at a time and settle, each with a paper shadow that lengthens while it is in the air, animated on twos as stop motion is, over a grained paper ground; then the title is laid in word by word, with no fade, into a box set into the symbol, and the credits after it. Checks hold it to one symbol of up to a dozen pieces, built before the title arrives, and give the title and each credit their reading time; they project each line into each output and warn when it overflows its box or leaves the safe area.",
       "dependencies": [],
-      "registryDependencies": ["film-cards"],
+      "registryDependencies": [
+        "film-cards"
+      ],
       "files": [
-        { "path": "registry/video/title-sequence.ts", "type": "registry:ui", "target": "components/video/title-sequence.ts" },
-        { "path": "registry/video/title-sequence-react.tsx", "type": "registry:ui", "target": "components/video/title-sequence-react.tsx" }
+        {
+          "path": "registry/video/title-sequence.ts",
+          "type": "registry:ui",
+          "target": "components/video/title-sequence.ts"
+        },
+        {
+          "path": "registry/video/title-sequence-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/title-sequence-react.tsx"
+        }
       ]
     },
     {
@@ -3362,8 +3624,16 @@
       "dependencies": [],
       "registryDependencies": [],
       "files": [
-        { "path": "registry/video/chart-morph.ts", "type": "registry:ui", "target": "components/video/chart-morph.ts" },
-        { "path": "registry/video/chart-morph-react.tsx", "type": "registry:ui", "target": "components/video/chart-morph-react.tsx" }
+        {
+          "path": "registry/video/chart-morph.ts",
+          "type": "registry:ui",
+          "target": "components/video/chart-morph.ts"
+        },
+        {
+          "path": "registry/video/chart-morph-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/chart-morph-react.tsx"
+        }
       ]
     },
     {
@@ -3374,9 +3644,21 @@
       "dependencies": [],
       "registryDependencies": [],
       "files": [
-        { "path": "registry/learning/quiz-card.ts", "type": "registry:ui", "target": "components/learning/quiz-card.ts" },
-        { "path": "registry/learning/quiz-card-react.tsx", "type": "registry:ui", "target": "components/learning/quiz-card-react.tsx" },
-        { "path": "registry/learning/quiz.tsx", "type": "registry:ui", "target": "components/learning/quiz.tsx" }
+        {
+          "path": "registry/learning/quiz-card.ts",
+          "type": "registry:ui",
+          "target": "components/learning/quiz-card.ts"
+        },
+        {
+          "path": "registry/learning/quiz-card-react.tsx",
+          "type": "registry:ui",
+          "target": "components/learning/quiz-card-react.tsx"
+        },
+        {
+          "path": "registry/learning/quiz.tsx",
+          "type": "registry:ui",
+          "target": "components/learning/quiz.tsx"
+        }
       ]
     },
     {
@@ -3385,9 +3667,19 @@
       "title": "Screen Demo Example",
       "description": "A worked screen demo: a small task list built from Kumiki's Button, Input, Checkbox and Badge, drawn as a pure function of the demo's state, with measured targets and the same flow as a live-UI demo and as a four-screenshot demo. A starting point for demos of your own interface.",
       "dependencies": [],
-      "registryDependencies": ["screen-demo", "button", "badge", "checkbox", "field-input"],
+      "registryDependencies": [
+        "screen-demo",
+        "button",
+        "badge",
+        "checkbox",
+        "field-input"
+      ],
       "files": [
-        { "path": "registry/video/screen-demo-examples.tsx", "type": "registry:ui", "target": "components/video/screen-demo-examples.tsx" }
+        {
+          "path": "registry/video/screen-demo-examples.tsx",
+          "type": "registry:ui",
+          "target": "components/video/screen-demo-examples.tsx"
+        }
       ]
     },
     {
@@ -3396,16 +3688,59 @@
       "title": "Story Scenes 3D",
       "description": "Scenes that tell a story with real objects, light and physics, each a pure function of the frame. Shadow Reveal: coins hanging in the dark cast one clear shape, and line up into it as the camera nears the light. Chain Reaction: a cause-and-effect chain printed on growing dominoes, read and then tipped, from a deterministic bake. Physical Data: values as stacks of coins or blocks. Tabletop Story: object-story with catalog objects on a walnut table. Scale Journey: a coin to a bank in a log-space camera move, with a scale figure. Inside Out: a cut across a phone's back shows its battery, board and coil, with leader-line labels. Diorama Journey: a traveller crosses a miniature world on a plinth, station by station, under a tilt-shift blur.",
       "dependencies": [],
-      "registryDependencies": ["studio-shot-model", "studio-recipes", "fiber-stage", "crafted-3d-hero", "everyday-3d-scenes", "domain-finance-hero-3d", "baked-physical-motion", "craft-procedural-environments", "craft-ground-vegetation", "craft-scatter-placement"],
+      "registryDependencies": [
+        "studio-shot-model",
+        "studio-recipes",
+        "fiber-stage",
+        "crafted-3d-hero",
+        "everyday-3d-scenes",
+        "domain-finance-hero-3d",
+        "baked-physical-motion",
+        "craft-procedural-environments",
+        "craft-ground-vegetation",
+        "craft-scatter-placement"
+      ],
       "files": [
-        { "path": "registry/visual/shadow-reveal-react.tsx", "type": "registry:ui", "target": "components/visual/shadow-reveal-react.tsx" },
-        { "path": "registry/visual/chain-reaction-react.tsx", "type": "registry:ui", "target": "components/visual/chain-reaction-react.tsx" },
-        { "path": "registry/visual/physical-data-react.tsx", "type": "registry:ui", "target": "components/visual/physical-data-react.tsx" },
-        { "path": "registry/visual/tabletop-story-react.tsx", "type": "registry:ui", "target": "components/visual/tabletop-story-react.tsx" },
-        { "path": "registry/visual/scale-journey-react.tsx", "type": "registry:ui", "target": "components/visual/scale-journey-react.tsx" },
-        { "path": "registry/visual/inside-out-react.tsx", "type": "registry:ui", "target": "components/visual/inside-out-react.tsx" },
-        { "path": "registry/visual/diorama-journey-react.tsx", "type": "registry:ui", "target": "components/visual/diorama-journey-react.tsx" },
-        { "path": "registry/domains/privacy-3d.ts", "type": "registry:ui", "target": "components/domains/privacy-3d.ts" }
+        {
+          "path": "registry/visual/shadow-reveal-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/shadow-reveal-react.tsx"
+        },
+        {
+          "path": "registry/visual/chain-reaction-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/chain-reaction-react.tsx"
+        },
+        {
+          "path": "registry/visual/physical-data-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/physical-data-react.tsx"
+        },
+        {
+          "path": "registry/visual/tabletop-story-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/tabletop-story-react.tsx"
+        },
+        {
+          "path": "registry/visual/scale-journey-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/scale-journey-react.tsx"
+        },
+        {
+          "path": "registry/visual/inside-out-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/inside-out-react.tsx"
+        },
+        {
+          "path": "registry/visual/diorama-journey-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/diorama-journey-react.tsx"
+        },
+        {
+          "path": "registry/domains/privacy-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/privacy-3d.ts"
+        }
       ]
     },
     {
@@ -3414,9 +3749,22 @@
       "title": "Film 3D Stage",
       "description": "Draws the `shot-3d` scenes of a film document with the React Three Fiber recipes: the crafted phone and laptop in Kumiki's product studio (hero turn, part spotlight, exploded view, finish comparison, two-angle proof, a screen that performs, a step through the screen into a world, particles gathering into the subject), light through water, a baked flythrough, a captured place and baked physics. Pass `createShot3dRenderer(assets)` to `FilmStage` as `renderShot3d`. Asset files and the optional splat renderer are given by the app, so a film loads only what it uses.",
       "dependencies": [],
-      "registryDependencies": ["film-document", "studio-recipes", "light-recipes", "story-scenes-3d", "race-recipes", "fiber-stage", "everyday-3d-scenes", "domain-finance-hero-3d"],
+      "registryDependencies": [
+        "film-document",
+        "studio-recipes",
+        "light-recipes",
+        "story-scenes-3d",
+        "race-recipes",
+        "fiber-stage",
+        "everyday-3d-scenes",
+        "domain-finance-hero-3d"
+      ],
       "files": [
-        { "path": "registry/video/film-3d-react.tsx", "type": "registry:ui", "target": "components/video/film-3d-react.tsx" }
+        {
+          "path": "registry/video/film-3d-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-3d-react.tsx"
+        }
       ]
     },
     {
@@ -3425,9 +3773,16 @@
       "title": "Scene Recipe Examples",
       "description": "One valid, renderable example spec for each original scene recipe and for object-story, with original generated SVG assets. A starting point for authored or generated films.",
       "dependencies": [],
-      "registryDependencies": ["scene-template-foundation", "object-story"],
+      "registryDependencies": [
+        "scene-template-foundation",
+        "object-story"
+      ],
       "files": [
-        { "path": "registry/video/scene-template-examples.ts", "type": "registry:ui", "target": "components/video/scene-template-examples.ts" }
+        {
+          "path": "registry/video/scene-template-examples.ts",
+          "type": "registry:ui",
+          "target": "components/video/scene-template-examples.ts"
+        }
       ]
     },
     {
@@ -3436,10 +3791,20 @@
       "title": "Rendered Text Audit",
       "description": "Read the laid-out text boxes of one rendered frame and report collisions, clipping, text outside the frame or platform safe area, and small type. Measure its pixels for text contrast, an empty frame and where a squinting eye lands. No model.",
       "dependencies": [],
-      "registryDependencies": ["motion-track"],
+      "registryDependencies": [
+        "motion-track"
+      ],
       "files": [
-        { "path": "registry/visual/rendered-text-audit.ts", "type": "registry:ui", "target": "components/visual/rendered-text-audit.ts" },
-        { "path": "registry/visual/rendered-frame-measures.ts", "type": "registry:ui", "target": "components/visual/rendered-frame-measures.ts" }
+        {
+          "path": "registry/visual/rendered-text-audit.ts",
+          "type": "registry:ui",
+          "target": "components/visual/rendered-text-audit.ts"
+        },
+        {
+          "path": "registry/visual/rendered-frame-measures.ts",
+          "type": "registry:ui",
+          "target": "components/visual/rendered-frame-measures.ts"
+        }
       ]
     },
     {
@@ -3450,7 +3815,11 @@
       "dependencies": [],
       "registryDependencies": [],
       "files": [
-        { "path": "registry/video/sound-catalog.ts", "type": "registry:ui", "target": "components/video/sound-catalog.ts" }
+        {
+          "path": "registry/video/sound-catalog.ts",
+          "type": "registry:ui",
+          "target": "components/video/sound-catalog.ts"
+        }
       ]
     },
     {
@@ -3459,10 +3828,21 @@
       "title": "Ray World Stage",
       "description": "A seek-exact stage for ray-traced GLSL worlds, with true motion blur, depth of field and antialiasing from averaged sub-samples. WebGL2, with no library.",
       "dependencies": [],
-      "registryDependencies": ["motion-track", "scene-template-foundation"],
+      "registryDependencies": [
+        "motion-track",
+        "scene-template-foundation"
+      ],
       "files": [
-        { "path": "registry/video/ray-world.ts", "type": "registry:ui", "target": "components/video/ray-world.ts" },
-        { "path": "registry/video/ray-world-react.tsx", "type": "registry:ui", "target": "components/video/ray-world-react.tsx" }
+        {
+          "path": "registry/video/ray-world.ts",
+          "type": "registry:ui",
+          "target": "components/video/ray-world.ts"
+        },
+        {
+          "path": "registry/video/ray-world-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ray-world-react.tsx"
+        }
       ]
     },
     {
@@ -3471,9 +3851,15 @@
       "title": "Water Drop World",
       "description": "A hanging water drop with a landscape inside it. Real refraction shows your photographs upside down, the camera dives through each drop into the next place, and focus pulls back to a new drop in your last one.",
       "dependencies": [],
-      "registryDependencies": ["ray-world"],
+      "registryDependencies": [
+        "ray-world"
+      ],
       "files": [
-        { "path": "registry/video/ray-world-water-drop.ts", "type": "registry:ui", "target": "components/video/ray-world-water-drop.ts" }
+        {
+          "path": "registry/video/ray-world-water-drop.ts",
+          "type": "registry:ui",
+          "target": "components/video/ray-world-water-drop.ts"
+        }
       ]
     },
     {
@@ -3482,9 +3868,15 @@
       "title": "Terraced Relief World",
       "description": "A terraced plaster island on a terracotta table, lit like a product. A river steps down its layers, and blue ice sweeps over it and retreats.",
       "dependencies": [],
-      "registryDependencies": ["ray-world"],
+      "registryDependencies": [
+        "ray-world"
+      ],
       "files": [
-        { "path": "registry/video/ray-world-terraced-relief.ts", "type": "registry:ui", "target": "components/video/ray-world-terraced-relief.ts" }
+        {
+          "path": "registry/video/ray-world-terraced-relief.ts",
+          "type": "registry:ui",
+          "target": "components/video/ray-world-terraced-relief.ts"
+        }
       ]
     },
     {
@@ -3493,9 +3885,15 @@
       "title": "River Flight World",
       "description": "One unbroken flight up a procedural valley into a glacier tunnel, then a rewind at speed. One photograph gives it a real sky.",
       "dependencies": [],
-      "registryDependencies": ["ray-world"],
+      "registryDependencies": [
+        "ray-world"
+      ],
       "files": [
-        { "path": "registry/video/ray-world-river-flight.ts", "type": "registry:ui", "target": "components/video/ray-world-river-flight.ts" }
+        {
+          "path": "registry/video/ray-world-river-flight.ts",
+          "type": "registry:ui",
+          "target": "components/video/ray-world-river-flight.ts"
+        }
       ]
     },
     {
@@ -3506,7 +3904,11 @@
       "dependencies": [],
       "registryDependencies": [],
       "files": [
-        { "path": "registry/video/film-gallery.tsx", "type": "registry:ui", "target": "components/video/film-gallery.tsx" }
+        {
+          "path": "registry/video/film-gallery.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-gallery.tsx"
+        }
       ]
     },
     {
@@ -3515,9 +3917,16 @@
       "title": "Sound Design",
       "description": "Sound recipes as data: local catalog search, deterministic takes, material contacts, rooms and positions, compiled to one FFmpeg graph and an ordinary SoundEvent.",
       "dependencies": [],
-      "registryDependencies": ["sound-catalog", "audio-visual-cue"],
+      "registryDependencies": [
+        "sound-catalog",
+        "audio-visual-cue"
+      ],
       "files": [
-        { "path": "registry/video/sound-design.ts", "type": "registry:ui", "target": "components/video/sound-design.ts" }
+        {
+          "path": "registry/video/sound-design.ts",
+          "type": "registry:ui",
+          "target": "components/video/sound-design.ts"
+        }
       ]
     },
     {
@@ -3528,7 +3937,11 @@
       "dependencies": [],
       "registryDependencies": [],
       "files": [
-        { "path": "registry/video/sound-mastering.ts", "type": "registry:ui", "target": "components/video/sound-mastering.ts" }
+        {
+          "path": "registry/video/sound-mastering.ts",
+          "type": "registry:ui",
+          "target": "components/video/sound-mastering.ts"
+        }
       ]
     },
     {
@@ -3537,10 +3950,21 @@
       "title": "Shader FX Model",
       "description": "Validated, data-only specs for six cinematic shader effects: bounded parameters, restrained treatments, and time as a pure function of the frame. No GPU code, so a film can carry effects without the renderer.",
       "dependencies": [],
-      "registryDependencies": ["motion-track", "scene-template-foundation"],
+      "registryDependencies": [
+        "motion-track",
+        "scene-template-foundation"
+      ],
       "files": [
-        { "path": "registry/video/shader-fx.ts", "type": "registry:ui", "target": "components/video/shader-fx.ts" },
-        { "path": "registry/video/shader-fx-guide.ts", "type": "registry:ui", "target": "components/video/shader-fx-guide.ts" }
+        {
+          "path": "registry/video/shader-fx.ts",
+          "type": "registry:ui",
+          "target": "components/video/shader-fx.ts"
+        },
+        {
+          "path": "registry/video/shader-fx-guide.ts",
+          "type": "registry:ui",
+          "target": "components/video/shader-fx-guide.ts"
+        }
       ]
     },
     {
@@ -3548,10 +3972,18 @@
       "type": "registry:ui",
       "title": "Shader FX",
       "description": "Frame-addressable cinematic shaders: mesh gradient, liquid metal, god rays, grain gradient, water and halftone dots. Seek-exact in export, with named failures and released WebGL contexts. Built on Paper Shaders (Apache-2.0).",
-      "dependencies": ["@paper-design/shaders"],
-      "registryDependencies": ["shader-fx-model"],
+      "dependencies": [
+        "@paper-design/shaders"
+      ],
+      "registryDependencies": [
+        "shader-fx-model"
+      ],
       "files": [
-        { "path": "registry/video/shader-fx-react.tsx", "type": "registry:ui", "target": "components/video/shader-fx-react.tsx" }
+        {
+          "path": "registry/video/shader-fx-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/shader-fx-react.tsx"
+        }
       ]
     },
     {
@@ -3560,10 +3992,20 @@
       "title": "Shader FX Moments",
       "description": "Ready-made effect moments, each one job done the way studio work does it: dots that resolve into a picture, light that gathers into a mark, a chrome sting, a living still, a signature gradient and rays placed on the real light in a photograph. Each comes with its text timing and sound cues.",
       "dependencies": [],
-      "registryDependencies": ["shader-fx"],
+      "registryDependencies": [
+        "shader-fx"
+      ],
       "files": [
-        { "path": "registry/video/shader-fx-moments.ts", "type": "registry:ui", "target": "components/video/shader-fx-moments.ts" },
-        { "path": "registry/video/shader-fx-moments-react.tsx", "type": "registry:ui", "target": "components/video/shader-fx-moments-react.tsx" }
+        {
+          "path": "registry/video/shader-fx-moments.ts",
+          "type": "registry:ui",
+          "target": "components/video/shader-fx-moments.ts"
+        },
+        {
+          "path": "registry/video/shader-fx-moments-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/shader-fx-moments-react.tsx"
+        }
       ]
     },
     {
@@ -3572,7 +4014,11 @@
       "title": "Object Story",
       "description": "Narrated scene told by persistent objects: every beat must visibly change something. Compiles arrangements, value counts, links, transfers, measured gaps, marks, a measured caption position and a stillness report; evaluates any frame purely.",
       "dependencies": [],
-      "registryDependencies": ["motion-track", "animated-metric", "explainer-stage"],
+      "registryDependencies": [
+        "motion-track",
+        "animated-metric",
+        "explainer-stage"
+      ],
       "files": [
         {
           "path": "registry/video/object-story.ts",
@@ -4370,10 +4816,20 @@
       "type": "registry:ui",
       "title": "Fiber Stage",
       "description": "A React Three Fiber canvas driven by a frame number, for video. It never runs its own loop: each frame renders exactly once after every child has applied it, so any frame in any seek order looks the same, and it marks each frame drawn for the exporter. Children read the frame with useStageFrame; CameraMove adds a slow parallax move.",
-      "dependencies": ["@react-three/fiber", "three", "@types/three"],
-      "registryDependencies": ["motion-track"],
+      "dependencies": [
+        "@react-three/fiber",
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "motion-track"
+      ],
       "files": [
-        { "path": "registry/visual/fiber-stage.tsx", "type": "registry:ui", "target": "components/visual/fiber-stage.tsx" }
+        {
+          "path": "registry/visual/fiber-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/fiber-stage.tsx"
+        }
       ]
     },
     {
@@ -4382,9 +4838,16 @@
       "title": "Environmental Effects for Fiber",
       "description": "Rain, snow, dust and the cinematic particles (embers, sparks, bokeh, motes in a light beam, fireflies) as React Three Fiber children of a FiberStage. Every particle is a closed-form function of its seed and the frame, so it seeks exactly with no simulation or bake.",
       "dependencies": [],
-      "registryDependencies": ["fiber-stage", "environmental-effects-three"],
+      "registryDependencies": [
+        "fiber-stage",
+        "environmental-effects-three"
+      ],
       "files": [
-        { "path": "registry/visual/environmental-effects-fiber.tsx", "type": "registry:ui", "target": "components/visual/environmental-effects-fiber.tsx" }
+        {
+          "path": "registry/visual/environmental-effects-fiber.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/environmental-effects-fiber.tsx"
+        }
       ]
     },
     {
@@ -4393,10 +4856,20 @@
       "title": "Particle Moments",
       "description": "Ready-made particle moments, each one job done the way film and studio work does it: dust in a shaft of light, rising embers, sparks on an impact frame, lens bokeh, fireflies at dusk, many particles assembling into a mark, and a labelled flow from source to destination. Each comes with its camera move, text timing and sound cues.",
       "dependencies": [],
-      "registryDependencies": ["environmental-effects-fiber"],
+      "registryDependencies": [
+        "environmental-effects-fiber"
+      ],
       "files": [
-        { "path": "registry/visual/particle-moments.ts", "type": "registry:ui", "target": "components/visual/particle-moments.ts" },
-        { "path": "registry/visual/particle-moments-react.tsx", "type": "registry:ui", "target": "components/visual/particle-moments-react.tsx" }
+        {
+          "path": "registry/visual/particle-moments.ts",
+          "type": "registry:ui",
+          "target": "components/visual/particle-moments.ts"
+        },
+        {
+          "path": "registry/visual/particle-moments-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/particle-moments-react.tsx"
+        }
       ]
     },
     {
@@ -4407,13 +4880,41 @@
       "dependencies": [],
       "registryDependencies": [],
       "files": [
-        { "path": "registry/visual/studio-shots.ts", "type": "registry:ui", "target": "components/visual/studio-shots.ts" },
-        { "path": "registry/visual/light-shots.ts", "type": "registry:ui", "target": "components/visual/light-shots.ts" },
-        { "path": "registry/visual/physics-shots.ts", "type": "registry:ui", "target": "components/visual/physics-shots.ts" },
-        { "path": "registry/visual/place-shots.ts", "type": "registry:ui", "target": "components/visual/place-shots.ts" },
-        { "path": "registry/visual/story-3d-shots.ts", "type": "registry:ui", "target": "components/visual/story-3d-shots.ts" },
-        { "path": "registry/visual/becomes-shot.ts", "type": "registry:ui", "target": "components/visual/becomes-shot.ts" },
-        { "path": "registry/visual/race-shots.ts", "type": "registry:ui", "target": "components/visual/race-shots.ts" }
+        {
+          "path": "registry/visual/studio-shots.ts",
+          "type": "registry:ui",
+          "target": "components/visual/studio-shots.ts"
+        },
+        {
+          "path": "registry/visual/light-shots.ts",
+          "type": "registry:ui",
+          "target": "components/visual/light-shots.ts"
+        },
+        {
+          "path": "registry/visual/physics-shots.ts",
+          "type": "registry:ui",
+          "target": "components/visual/physics-shots.ts"
+        },
+        {
+          "path": "registry/visual/place-shots.ts",
+          "type": "registry:ui",
+          "target": "components/visual/place-shots.ts"
+        },
+        {
+          "path": "registry/visual/story-3d-shots.ts",
+          "type": "registry:ui",
+          "target": "components/visual/story-3d-shots.ts"
+        },
+        {
+          "path": "registry/visual/becomes-shot.ts",
+          "type": "registry:ui",
+          "target": "components/visual/becomes-shot.ts"
+        },
+        {
+          "path": "registry/visual/race-shots.ts",
+          "type": "registry:ui",
+          "target": "components/visual/race-shots.ts"
+        }
       ]
     },
     {
@@ -4422,20 +4923,78 @@
       "title": "Studio Recipes",
       "description": "Finished product shots for explainer video in React Three Fiber, each a pure function of the frame: a hero turn that lands on the best angle, a part spotlight with an outline and a measured leader-line label, an exploded view along the assembly axis, a finish comparison and a two-angle proof on one canvas, a push into a screen whose interface performs, a step through a screen into the world it shows, with true parallax and a seamless crossing, and points made with physics (dominoes, stacks) played back from an offline deterministic bake, and particles that gather onto a subject's real surface while it builds in. The subject turns on a turntable inside Kumiki's product studio, with strip, rim, softbox and high-key looks. `inspectStudioShot` checks timing and text against the craft rules.",
       "dependencies": [],
-      "registryDependencies": ["studio-shot-model", "fiber-stage", "crafted-3d-hero", "screen-surface", "craft-procedural-environments", "baked-physical-motion", "environmental-effects-fiber", "craft-ground-vegetation", "craft-scatter-placement"],
+      "registryDependencies": [
+        "studio-shot-model",
+        "fiber-stage",
+        "crafted-3d-hero",
+        "screen-surface",
+        "craft-procedural-environments",
+        "baked-physical-motion",
+        "environmental-effects-fiber",
+        "craft-ground-vegetation",
+        "craft-scatter-placement"
+      ],
       "files": [
-        { "path": "registry/visual/studio-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/studio-recipes-react.tsx" },
-        { "path": "registry/visual/studio-fiber.tsx", "type": "registry:ui", "target": "components/visual/studio-fiber.tsx" },
-        { "path": "registry/visual/part-highlight-three.ts", "type": "registry:ui", "target": "components/visual/part-highlight-three.ts" },
-        { "path": "registry/visual/strip-light.ts", "type": "registry:ui", "target": "components/visual/strip-light.ts" },
-        { "path": "registry/visual/studio-guide.ts", "type": "registry:ui", "target": "components/visual/studio-guide.ts" },
-        { "path": "registry/visual/portal-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/portal-recipes-react.tsx" },
-        { "path": "registry/visual/portal-three.ts", "type": "registry:ui", "target": "components/visual/portal-three.ts" },
-        { "path": "registry/visual/portal-worlds.ts", "type": "registry:ui", "target": "components/visual/portal-worlds.ts" },
-        { "path": "registry/visual/physics-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/physics-recipes-react.tsx" },
-        { "path": "registry/visual/screen-paints.ts", "type": "registry:ui", "target": "components/visual/screen-paints.ts" },
-        { "path": "registry/visual/assemble-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/assemble-recipes-react.tsx" },
-        { "path": "registry/visual/becomes-recipe-react.tsx", "type": "registry:ui", "target": "components/visual/becomes-recipe-react.tsx" }
+        {
+          "path": "registry/visual/studio-recipes-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/studio-recipes-react.tsx"
+        },
+        {
+          "path": "registry/visual/studio-fiber.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/studio-fiber.tsx"
+        },
+        {
+          "path": "registry/visual/part-highlight-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/part-highlight-three.ts"
+        },
+        {
+          "path": "registry/visual/strip-light.ts",
+          "type": "registry:ui",
+          "target": "components/visual/strip-light.ts"
+        },
+        {
+          "path": "registry/visual/studio-guide.ts",
+          "type": "registry:ui",
+          "target": "components/visual/studio-guide.ts"
+        },
+        {
+          "path": "registry/visual/portal-recipes-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/portal-recipes-react.tsx"
+        },
+        {
+          "path": "registry/visual/portal-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/portal-three.ts"
+        },
+        {
+          "path": "registry/visual/portal-worlds.ts",
+          "type": "registry:ui",
+          "target": "components/visual/portal-worlds.ts"
+        },
+        {
+          "path": "registry/visual/physics-recipes-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/physics-recipes-react.tsx"
+        },
+        {
+          "path": "registry/visual/screen-paints.ts",
+          "type": "registry:ui",
+          "target": "components/visual/screen-paints.ts"
+        },
+        {
+          "path": "registry/visual/assemble-recipes-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/assemble-recipes-react.tsx"
+        },
+        {
+          "path": "registry/visual/becomes-recipe-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/becomes-recipe-react.tsx"
+        }
       ]
     },
     {
@@ -4443,10 +5002,20 @@
       "type": "registry:ui",
       "title": "Splat Stage (Captured Place)",
       "description": "Gaussian-splat captures of real places inside a FiberStage, rendered by Spark (MIT, pinned 2.4.0), exact frame by frame: every frame is held until the capture has loaded and Spark's worker depth sort for that camera has settled, so any frame in any order is identical. CapturedPlace is recipe 12: a slow forward move through the capture, with the licence credit on screen. Optional: the only item that pulls in Spark.",
-      "dependencies": ["@sparkjsdev/spark"],
-      "registryDependencies": ["studio-shot-model", "fiber-stage", "studio-recipes"],
+      "dependencies": [
+        "@sparkjsdev/spark"
+      ],
+      "registryDependencies": [
+        "studio-shot-model",
+        "fiber-stage",
+        "studio-recipes"
+      ],
       "files": [
-        { "path": "registry/visual/splat-stage-react.tsx", "type": "registry:ui", "target": "components/visual/splat-stage-react.tsx" }
+        {
+          "path": "registry/visual/splat-stage-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/splat-stage-react.tsx"
+        }
       ]
     },
     {
@@ -4455,11 +5024,28 @@
       "title": "Light Recipes",
       "description": "Light doing something physical, traced rather than painted, as a pure function of the frame. Light Through It: sun on a pool, where a drop's rings focus the light into moving caustics on the floor. `createCaustics` refracts a dense grid of rays through any light-bending mesh (water, glass) onto a floor, with brightness from the change in area and a faint spectral split. `applyCaustics` puts that light inside a floor's own material, so it shows through transmissive water. Real-Light Flythrough: forward through a set whose light was path-traced in Blender Cycles and baked into its textures (`scripts/light-bake.py`), shown unlit.",
       "dependencies": [],
-      "registryDependencies": ["studio-shot-model", "studio-recipes", "fiber-stage", "crafted-3d-hero"],
+      "registryDependencies": [
+        "studio-shot-model",
+        "studio-recipes",
+        "fiber-stage",
+        "crafted-3d-hero"
+      ],
       "files": [
-        { "path": "registry/visual/light-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/light-recipes-react.tsx" },
-        { "path": "registry/visual/caustics-three.ts", "type": "registry:ui", "target": "components/visual/caustics-three.ts" },
-        { "path": "registry/visual/baked-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/baked-recipes-react.tsx" }
+        {
+          "path": "registry/visual/light-recipes-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/light-recipes-react.tsx"
+        },
+        {
+          "path": "registry/visual/caustics-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/caustics-three.ts"
+        },
+        {
+          "path": "registry/visual/baked-recipes-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/baked-recipes-react.tsx"
+        }
       ]
     },
     {
@@ -5330,17 +5916,55 @@
       "type": "registry:ui",
       "title": "Everyday 3D Objects & Cinematic Desk Scenes",
       "description": "Crafted paper, invoice, folder, pen, physical technology, walnut and heritage desks, articulated brass lamp, leather chair, accurate antique maps and spinning globes, mounted travel prints, bound books and clock. Five deterministic cinematic recipes with real-scale placement and frame-addressed motion.",
-      "dependencies": ["three", "@types/three"],
-      "registryDependencies": ["crafted-3d-hero", "scene-template-foundation"],
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "crafted-3d-hero",
+        "scene-template-foundation"
+      ],
       "files": [
-        { "path": "registry/video/everyday-scenes-3d.ts", "type": "registry:ui", "target": "components/video/everyday-scenes-3d.ts" },
-        { "path": "registry/craft/shapes.ts", "type": "registry:ui", "target": "components/craft/shapes.ts" },
-        { "path": "registry/craft/hero-stage-set.ts", "type": "registry:ui", "target": "components/craft/hero-stage-set.ts" },
-        { "path": "registry/craft/everyday-interactions.ts", "type": "registry:ui", "target": "components/craft/everyday-interactions.ts" },
-        { "path": "registry/craft/everyday-objects-3d.ts", "type": "registry:ui", "target": "components/craft/everyday-objects-3d.ts" },
-        { "path": "registry/craft/travel-geography.ts", "type": "registry:ui", "target": "components/craft/travel-geography.ts" },
-        { "path": "registry/craft/travel-study-3d.ts", "type": "registry:ui", "target": "components/craft/travel-study-3d.ts" },
-        { "path": "registry/domains/technology-3d.ts", "type": "registry:ui", "target": "components/domains/technology-3d.ts" }
+        {
+          "path": "registry/video/everyday-scenes-3d.ts",
+          "type": "registry:ui",
+          "target": "components/video/everyday-scenes-3d.ts"
+        },
+        {
+          "path": "registry/craft/shapes.ts",
+          "type": "registry:ui",
+          "target": "components/craft/shapes.ts"
+        },
+        {
+          "path": "registry/craft/hero-stage-set.ts",
+          "type": "registry:ui",
+          "target": "components/craft/hero-stage-set.ts"
+        },
+        {
+          "path": "registry/craft/everyday-interactions.ts",
+          "type": "registry:ui",
+          "target": "components/craft/everyday-interactions.ts"
+        },
+        {
+          "path": "registry/craft/everyday-objects-3d.ts",
+          "type": "registry:ui",
+          "target": "components/craft/everyday-objects-3d.ts"
+        },
+        {
+          "path": "registry/craft/travel-geography.ts",
+          "type": "registry:ui",
+          "target": "components/craft/travel-geography.ts"
+        },
+        {
+          "path": "registry/craft/travel-study-3d.ts",
+          "type": "registry:ui",
+          "target": "components/craft/travel-study-3d.ts"
+        },
+        {
+          "path": "registry/domains/technology-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/technology-3d.ts"
+        }
       ]
     },
     {
@@ -5349,10 +5973,20 @@
       "title": "Two-Lane Swap Choreography",
       "description": "Authorable two-subject cinematic lane exchange with curved paths, stagger, anticipation, settle, per-frame viewport and clearance checks, accessible SVG art slots and reduced-motion fallback. Pure integer-frame evaluator; original artwork and shot timing required.",
       "dependencies": [],
-      "registryDependencies": ["motion-track"],
+      "registryDependencies": [
+        "motion-track"
+      ],
       "files": [
-        { "path": "registry/motion/two-lane-swap.ts", "type": "registry:ui", "target": "components/motion/two-lane-swap.ts" },
-        { "path": "registry/motion/two-lane-swap-react.tsx", "type": "registry:ui", "target": "components/motion/two-lane-swap-react.tsx" }
+        {
+          "path": "registry/motion/two-lane-swap.ts",
+          "type": "registry:ui",
+          "target": "components/motion/two-lane-swap.ts"
+        },
+        {
+          "path": "registry/motion/two-lane-swap-react.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/two-lane-swap-react.tsx"
+        }
       ]
     },
     {
@@ -5361,10 +5995,20 @@
       "title": "Paired Focus Convergence and Divergence",
       "description": "Original two-subject focus choreography with authored converge, diverge and focus-hold-release modes, deterministic integer frames, scaled-circle clearance, safe viewport checks, original SVG art slots and reduced-motion support.",
       "dependencies": [],
-      "registryDependencies": ["motion-track"],
+      "registryDependencies": [
+        "motion-track"
+      ],
       "files": [
-        { "path": "registry/motion/paired-focus.ts", "type": "registry:ui", "target": "components/motion/paired-focus.ts" },
-        { "path": "registry/motion/paired-focus-react.tsx", "type": "registry:ui", "target": "components/motion/paired-focus-react.tsx" }
+        {
+          "path": "registry/motion/paired-focus.ts",
+          "type": "registry:ui",
+          "target": "components/motion/paired-focus.ts"
+        },
+        {
+          "path": "registry/motion/paired-focus-react.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/paired-focus-react.tsx"
+        }
       ]
     }
   ]
