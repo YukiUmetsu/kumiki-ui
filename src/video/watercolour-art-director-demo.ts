@@ -209,12 +209,34 @@ export function watercolorWetlandSpec(output: WetlandOutput, seed = 83): Waterco
     ["marsh-sage", 395, 532, 184, "#9EAF9B", .66, .92, 49],
     ["pool-slate", 215, 646, 185, "#7695A0", .71, .92, 74],
     ["paper-ochre", 357, 724, 165, "#D5BB8D", .45, .72, 96],
+    // Separate wet-on-wet deposits build luminous *area density* rather than
+    // one almost invisible broad circular stroke stretched over hundreds of cells.
+    ["dawn-cloud-p1", 90, 186, 111, "#DDBCAD", .85, .9, 7],
+    ["dawn-cloud-p2", 271, 135, 139, "#F0D3B4", .89, .9, 17],
+    ["dawn-cloud-p3", 397, 224, 105, "#C4B6B8", .84, .88, 27],
+    ["dawn-cloud-p4", 123, 382, 123, "#C2C9C6", .85, .9, 39],
+    ["dawn-cloud-p5", 413, 416, 133, "#9EBCBF", .9, .92, 54],
+    ["marsh-pool-p1", 101, 569, 120, "#8BABA7", .89, .96, 69],
+    ["marsh-pool-p2", 333, 636, 104, "#779AA3", .98, .95, 84],
+    ["marsh-pool-p3", 461, 681, 106, "#819E9E", .88, .95, 96],
+    ["marsh-earth-p1", 106, 760, 124, "#B8B09A", .76, .78, 110],
+    ["marsh-earth-p2", 441, 772, 117, "#D9B98D", .77, .79, 127],
   ] : [
     ["sky-apricot", 640, 123, 225, "#E0BE9B", .72, .89, 0],
     ["sky-mist", 445, 162, 180, "#A7BCC0", .46, .93, 21],
     ["marsh-sage", 550, 341, 175, "#95AE9E", .59, .87, 42],
     ["pool-slate", 700, 431, 172, "#7999A3", .81, .96, 69],
     ["paper-ochre", 326, 447, 162, "#D6C099", .53, .83, 90],
+    ["dawn-cloud-l1", 139, 99, 120, "#E6C4AC", .85, .92, 7],
+    ["dawn-cloud-l2", 317, 130, 123, "#C0CBC6", .86, .91, 17],
+    ["dawn-cloud-l3", 518, 96, 107, "#D7BDB4", .86, .91, 27],
+    ["dawn-cloud-l4", 827, 135, 126, "#E7C3A4", .91, .91, 37],
+    ["dawn-cloud-l5", 723, 251, 131, "#ACB8C4", .88, .91, 47],
+    ["dawn-cloud-l6", 375, 286, 123, "#A4C0C0", .92, .94, 57],
+    ["marsh-pool-l1", 196, 391, 116, "#B3B8AA", .79, .91, 69],
+    ["marsh-pool-l2", 400, 447, 127, "#7DA8A4", .9, .95, 80],
+    ["marsh-pool-l3", 587, 455, 114, "#6F9AAB", .99, .96, 91],
+    ["marsh-pool-l4", 867, 458, 111, "#8BA3A3", .87, .93, 101],
   ]).map((item) => {
     const [id, x, y, radius, pigment, load, water, startFrame] = item as
       [string, number, number, number, string, number, number, number];
