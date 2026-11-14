@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { InkWashScene } from "../../registry/video/ink-wash-story-react";
+import { VideoExportStage } from "../../registry/video/video-export-stage";
+import type { VideoExportManifest } from "../../registry/video/video-export-stage";
 import type { InkShot } from "../../registry/video/ink-wash-story";
 import { InkEnsemble } from "../../registry/video/ink-wash-ensemble-react";
 import { inkEnsembleAt } from "../../registry/video/ink-wash-ensemble";
@@ -161,4 +163,26 @@ const meta={title:"Video production/Film Looks",id:"video-ink-ensemble",
 export default meta;
 export const InkEnsembleStory:StoryObj<typeof meta>={
   name:"Chinese Ink · Ensemble Character Acting",
+};
+
+
+/** Same source scene and timing as the interactive preview: no substitute render pipeline. */
+function Export({aspect}:{aspect:InkDuetAspect}){
+  const [frame,setFrame]=useState(0);
+  const width=aspect==="portrait"?540:960,height=aspect==="portrait"?960:540;
+  const manifest:VideoExportManifest={
+    schemaVersion:1,id:"ink-ensemble-"+aspect,width,height,
+    fps:{num:30,den:1},durationFrames:LENGTH,
+  };
+  return <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
+    <InkEnsembleFilm aspect={aspect} frame={frame}/>
+  </VideoExportStage>;
+}
+export const EnsembleExport:StoryObj<typeof Export>={
+  name:"Chinese Ink Ensemble · 16:9 MP4",
+  render:()=> <Export aspect="landscape"/>,
+};
+export const EnsemblePortraitExport:StoryObj<typeof Export>={
+  name:"Chinese Ink Ensemble · 9:16 MP4",
+  render:()=> <Export aspect="portrait"/>,
 };
