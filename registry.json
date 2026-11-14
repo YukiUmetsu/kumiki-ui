@@ -52,6 +52,29 @@
       ]
     },
     {
+      "name": "ink-wash-character",
+      "type": "registry:ui",
+      "title": "Chinese Ink Character Performance",
+      "description": "Paper-native, independently articulated 2D/2.5D ink-wash actor rendering over the existing validated character rig: per-part capillary fringe and paper-tooth edges, deterministic acting tracks, visemes, blink, gaze, gestures, props and optional tints, no new timeline or WebGL.",
+      "dependencies": [],
+      "registryDependencies": [
+        "character-presenter",
+        "ink-wash-core"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-wash-character.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-character.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-character-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-character-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "interactive-branching-player",
       "type": "registry:ui",
       "title": "Interactive Branching Player",
