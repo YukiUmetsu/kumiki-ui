@@ -1,4 +1,5 @@
 import type { CrayonColor, CrayonElement, CrayonSceneSpec } from "../../registry/video/materials/crayon-scene";
+import {crayonFormHatching} from "./crayon-editorial-character-craft";
 
 /**
  * Original CRAYON1 performance study. All dialogue timing is authored rather
@@ -6,6 +7,7 @@ import type { CrayonColor, CrayonElement, CrayonSceneSpec } from "../../registry
  * from aligned voice recordings. No borrowed characters, fonts or audio.
  */
 export type CrayonPerformanceAspect = "landscape" | "portrait";
+export interface CrayonPerformanceOptions { editorialDetail?: number }
 const berries = ["#ae7f6c","#7f5d58","#d0a489"] as const;
 const plum = ["#656f78","#444f5b","#a3a4a5"] as const;
 const sage = ["#7e9480","#526e6b","#b1bd9e"] as const;
@@ -35,7 +37,10 @@ const wax=(id:string,d:string,bounds:{x:number;y:number;width:number;height:numb
 const contour=(id:string,d:string,width:number,props:Partial<Extract<CrayonElement,{kind:"contour"}>>={}):CrayonElement=>
   ({kind:"contour",id,d,color:ink,width,timing:{start:0,end:269},...props});
 
-export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSceneSpec {
+export function crayonPerformanceScene(aspect:CrayonPerformanceAspect,options:CrayonPerformanceOptions={}):CrayonSceneSpec {
+  const detail=options.editorialDetail??1;
+  if(!Number.isFinite(detail)||detail<0||detail>1)
+    throw new RangeError("Crayon editorial detail must be 0..1");
   const portrait=aspect==="portrait", W=portrait?540:960,H=portrait?960:540;
   const ox=W*.51, oy=portrait?H*.65:H*.63;
   // Opaque torso is a soft volume: weight compresses on anticipation and
@@ -139,9 +144,37 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
       {x:-89,y:-20,width:62,height:97},fieldCoat,{parentId:"body",pivot:{x:-49,y:18},
         motion:[{frame:0,x:0,y:0,rotate:10},{frame:90,x:0,y:0,rotate:-12},
           {frame:180,x:0,y:0,rotate:12},{frame:269,x:0,y:0,rotate:10}]}),
+    // Long limb volumes sit below the tailored coat and behind the body.
+    wax("shin-back","M-49 67Q-52 109 -47 153L-22 155Q-18 118 -18 80Z",
+      {x:-56,y:60,width:44,height:101},plum,{parentId:"body",spacing:5.5}),
+    wax("shin-front","M17 75Q15 118 20 152L49 150Q53 115 45 74Z",
+      {x:10,y:68,width:49,height:91},plum,{parentId:"body",spacing:5.5}),
     wax("body","M-41 -58 Q-67 -53 -71 -22 C-77 12 -55 73 -42 94 Q-5 113 46 93 C60 69 76 5 59 -30 Q40 -63 8 -64 Q-20 -68 -41 -58Z",
       {x:-81,y:-72,width:161,height:191},berries,{
         placement:{x:ox,y:oy},motion:bodyMotion,poseCadence:2}),
+    wax("coat-shadow","M23 -49Q63 -55 64 -13L48 80Q31 90 23 84L30 7Z",
+      {x:18,y:-58,width:52,height:154},furShadow,
+      {parentId:"body",pressure:.82,spacing:6}),
+    wax("coat-left-panel","M-44 -51Q-61 -33 -55 5L-36 91Q-11 104 -3 95L-17 -18Z",
+      {x:-64,y:-57,width:67,height:165},fieldCoat,{parentId:"body",spacing:5.6}),
+    wax("coat-right-panel","M30 -49Q58 -34 60 -10L43 82Q22 98 6 96L17 -17Z",
+      {x:2,y:-56,width:62,height:160},fieldCoat,{parentId:"body",spacing:5.6}),
+    wax("coat-lapel-left","M-43 -49L-11 -31L-24 -8L-2 16L-28 4Z",
+      {x:-49,y:-56,width:51,height:75},indigo,{parentId:"body",spacing:4.7}),
+    wax("coat-lapel-right","M27 -48L5 -28L21 -9L4 15L31 2Z",
+      {x:0,y:-55,width:38,height:76},indigo,{parentId:"body",spacing:4.7}),
+    contour("coat-seam-architecture",
+      "M-44 -37Q-56 -7 -45 26L-33 81M44 -35Q60 5 45 50L38 80"+
+      "M-18 -17L-12 30Q-9 61 -14 91M21 -20L17 25Q16 66 18 86"+
+      "M-48 75Q-26 89 -13 83M20 84Q36 89 47 70",
+      1.75,{parentId:"body",color:"#314e53",opacity:.75}),
+    contour("coat-pocket-structure","M-44 47Q-32 53 -17 49L-19 68Q-33 73 -44 65Z"+
+      "M25 51Q39 56 49 49L47 68Q34 75 24 68Z",1.8,
+      {parentId:"body",color:"#d4d1ba",opacity:.75}),
+    wax("coat-brass-button-one",egg(5,24,3.9,4.3),
+      {x:0,y:19,width:10,height:11},honey,{parentId:"body",spacing:4}),
+    wax("coat-brass-button-two",egg(5,48,3.8,4),
+      {x:0,y:43,width:10,height:11},honey,{parentId:"body",spacing:4}),
     wax("foot-back","M-48 144 Q-29 138 -16 146 L-9 160 Q-24 175 -52 169Z",
       {x:-55,y:137,width:51,height:39},boot,{parentId:"body",pressure:.84,spacing:4.5,
         contacts:[{start:0,end:269,anchor:{x:-29,y:166}}]}),
@@ -151,6 +184,9 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
     wax("belly","M-14 -25Q0 -9 14 -24 L10 76 Q0 91 -8 76Z",
       {x:-18,y:-29,width:37,height:124},honey,
       {parentId:"body",pressure:.58,spacing:5}),
+    contour("boot-lacing","M-29 145L-31 158M-40 151L-22 151M-39 156L-23 156"+
+      "M32 145L31 159M24 151L44 151M24 157L45 157",1.65,
+      {parentId:"body",color:"#d3c6aa",opacity:.83}),
     wax("scarf-wrap","M-37 -38 Q0 -18 39 -38 L34 -20 Q0 1 -33 -22Z",
       {x:-42,y:-42,width:86,height:46},indigo,{parentId:"body",pressure:.82,spacing:5.5}),
     wax("scarf-tail","M21 -24 Q35 -18 46 -6 L56 25 L37 29 L24 0Z",
@@ -170,9 +206,27 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
     wax("head","M-48 -127 Q-54 -144 -25 -157 C4 -175 42 -157 52 -133 Q64 -109 51 -85 L41 -59 Q14 -27 -11 -46 Q-41 -48 -51 -83 Q-59 -106 -48 -127Z",
       {x:-65,y:-177,width:126,height:157},berries,{
         parentId:"body",pivot:{x:0,y:-71},motion:headMotion,poseCadence:2}),
+    wax("face-temple-shadow","M25 -146Q56 -129 51 -93L39 -70L28 -89Z",
+      {x:22,y:-152,width:40,height:89},furShadow,{parentId:"head",spacing:4.5}),
+    wax("face-cheek-light","M-47 -124Q-29 -148 6 -146Q-29 -125 -31 -102"+
+      "Q-39 -80 -29 -63Q-56 -80 -47 -124Z",
+      {x:-56,y:-152,width:69,height:98},honey,{parentId:"head",spacing:5.5,pressure:.46}),
     wax("muzzle","M-25 -89Q-6 -107 9 -92Q27 -99 38 -76Q28 -47 5 -43 Q-16 -41 -31 -65Z",
       {x:-38,y:-110,width:81,height:75},honey,
-      {parentId:"head",pressure:.62,spacing:5}),
+      {parentId:"head",pressure:.68,spacing:5}),
+    wax("muzzle-jowl-shadow","M9 -56Q27 -63 36 -78Q32 -53 14 -43L-1 -48Z",
+      {x:-4,y:-82,width:47,height:45},furShadow,
+      {parentId:"head",pressure:.65,spacing:4.7}),
+    contour("nose-bridge-anatomy","M7 -121Q13 -105 9 -91M-8 -72Q-2 -77 5 -77"+
+      "M12 -77Q24 -74 29 -68",1.8,
+      {parentId:"head",color:"#775c56",opacity:.77}),
+    contour("cheek-whiskers","M-22 -69Q-41 -73 -57 -67M-21 -64Q-43 -61 -55 -51"+
+      "M27 -67Q45 -77 60 -70M28 -61Q49 -59 62 -51",1.35,
+      {parentId:"head",color:"#6c5b59",opacity:.64}),
+    contour("ear-left-fold","M-42 -119Q-54 -163 -54 -199M-35 -123Q-45 -160 -49 -188",
+      1.8,{parentId:"left-ear",color:"#dfbb9d",opacity:.75}),
+    contour("ear-right-fold","M39 -120Q48 -155 51 -195M31 -129Q34 -163 43 -185",
+      1.8,{parentId:"right-ear",color:"#dfbb9d",opacity:.75}),
     contour("brow-left","M-32 -115 Q-23 -122 -14 -117",2.8,{
       parentId:"head",poseCadence:2,opacity:.82,
       poses:[{id:"concern",d:"M-34 -114 Q-23 -127 -13 -120"},
@@ -185,17 +239,17 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
         {id:"wonder",d:"M14 -123 Q24 -131 33 -123"},
         {id:"smile",d:"M14 -113 Q24 -117 33 -115"}],
       poseCues:browCues}),
-    contour("left-eye","M-27 -101 a5 6 0 1 0 10 0 a5 6 0 1 0 -10 0",3.4,{
+    contour("left-eye","M-32 -109 Q-24 -116 -16 -108 Q-23 -102 -32 -109Z",2.3,{
       parentId:"head",poseCadence:2,
-      poses:[{id:"blink",d:"M-29 -103 Q-22 -95 -15 -103"},
-        {id:"soft",d:"M-29 -104 Q-22 -109 -15 -103"},
-        {id:"smile",d:"M-30 -105 Q-22 -115 -14 -103"}],
+      poses:[{id:"blink",d:"M-33 -109Q-24 -105 -15 -110"},
+        {id:"soft",d:"M-32 -110Q-23 -112 -16 -109"},
+        {id:"smile",d:"M-32 -110Q-24 -117 -16 -110"}],
       poseCues:blinkCues}),
-    contour("right-eye","M17 -101 a5 6 0 1 0 10 0 a5 6 0 1 0 -10 0",3.4,{
+    contour("right-eye","M15 -107 Q24 -115 33 -107 Q24 -102 15 -107Z",2.3,{
       parentId:"head",poseCadence:2,
-      poses:[{id:"blink",d:"M15 -103 Q22 -95 29 -103"},
-        {id:"soft",d:"M15 -104 Q22 -109 29 -103"},
-        {id:"smile",d:"M14 -103 Q22 -115 30 -105"}],
+      poses:[{id:"blink",d:"M15 -108Q24 -104 34 -108"},
+        {id:"soft",d:"M15 -109Q25 -113 33 -109"},
+        {id:"smile",d:"M15 -109Q24 -116 34 -109"}],
       poseCues:blinkCues}),
     contour("freckles-left","M-45 -81 l5 1 M-44 -75 l4 2 M-38 -79 l4 1",2,
       {parentId:"head",color:"#c16f65",opacity:.74}),
@@ -204,30 +258,39 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
     wax("nose","M0 -85Q7 -88 12 -83L7 -76Q2 -73 -2 -79Z",
       {x:-5,y:-91,width:21,height:22},plum,
       {parentId:"head",spacing:4,pressure:.8}),
-    contour("mouth","M-9 -64 Q0 -58 9 -64",4.4,{
+    contour("mouth","M-10 -60 Q4 -55 15 -64",2.8,{
       parentId:"head",poseCadence:2,
       poses:[
-        {id:"mbp",d:"M-12 -64 Q0 -61 12 -64"},
-        {id:"ah",d:"M-11 -65 C-12 -46 12 -45 11 -65Z"},
-        {id:"ee",d:"M-17 -66 Q0 -49 17 -66"},
-        {id:"oh",d:"M-7 -63 a7 10 0 1 0 14 0 a7 10 0 1 0 -14 0"},
-        {id:"fv",d:"M-13 -67 Q0 -61 13 -67 M-10 -62 H10"},
-        {id:"smile",d:"M-17 -65 Q0 -41 17 -65"},
+        {id:"mbp",d:"M-10 -60 Q3 -58 15 -63"},
+        {id:"ah",d:"M-6 -62Q3 -47 13 -63Q2 -55 -6 -62Z"},
+        {id:"ee",d:"M-13 -60Q4 -52 18 -62"},
+        {id:"oh",d:"M2 -63a5 7 0 1 0 10 0a5 7 0 1 0 -10 0"},
+        {id:"fv",d:"M-9 -61Q4 -58 16 -62M-4 -57H12"},
+        {id:"smile",d:"M-13 -61Q4 -49 19 -64"},
       ],poseCues:mouthCues}),
     wax("front-arm","M43 -9Q68 -5 76 21Q83 49 59 61L42 47L55 24Z",
       {x:36,y:-17,width:52,height:83},fieldCoat,{parentId:"body",pivot:{x:49,y:10},
         motion:[{frame:0,x:0,y:0,rotate:-9},{frame:60,x:0,y:0,rotate:-27},
           {frame:96,x:0,y:0,rotate:-67},{frame:145,x:0,y:0,rotate:-50},
           {frame:210,x:0,y:0,rotate:-6},{frame:269,x:0,y:0,rotate:-9}],poseCadence:2}),
-    contour("flower-stem","M66 29 Q83 -8 87 -38",4,{color:"#648568",
+    wax("hand-glove","M59 44Q66 31 78 35L80 48Q73 61 61 58Z",
+      {x:56,y:31,width:29,height:34},boot,{parentId:"front-arm",spacing:4.5}),
+    contour("sleeve-rib","M51 13Q65 18 72 30M48 25Q60 28 69 35",
+      1.8,{parentId:"front-arm",color:"#bbc1b1",opacity:.82}),
+    contour("flower-stem","M68 34 Q84 -12 88 -44",2.9,{color:"#648568",
       parentId:"front-arm",timing:{start:38,end:98}}),
-    wax("flower-leaf","M77 -14 Q56 -28 53 -14 Q63 3 77 -14Z M83 -24 Q93 -42 104 -30 Q101 -16 83 -24Z",
-      {x:50,y:-44,width:58,height:49},sage,{parentId:"front-arm",timing:{start:38,end:105},spacing:5}),
-    wax("flower-petals","M86 -59 C77 -80 60 -71 65 -55 C46 -59 49 -37 69 -35 C69 -17 90 -16 95 -35 C115 -26 123 -47 105 -53 C113 -67 98 -77 86 -59Z",
-      {x:45,y:-82,width:81,height:69},honey,{parentId:"front-arm",timing:{start:40,end:106},spacing:4}),
-    contour("petal-etching","M86 -53 L74 -66 M85 -48 L60 -48 M91 -45 L105 -42 M88 -42 L83 -27",2,
+    wax("flower-leaf","M78 -14Q58 -31 52 -19Q63 -4 78 -14Z"+
+      "M84 -26Q89 -48 111 -40Q105 -22 84 -26Z",
+      {x:48,y:-53,width:69,height:52},sage,{parentId:"front-arm",timing:{start:38,end:105},spacing:5}),
+    wax("flower-petals","M86 -60Q73 -84 62 -69Q57 -60 72 -51"+
+      "Q48 -50 56 -32Q66 -27 80 -42Q80 -19 95 -28Q105 -34 102 -43"+
+      "Q121 -35 122 -51Q119 -63 102 -58Q112 -82 96 -79Q87 -76 86 -60Z",
+      {x:43,y:-89,width:84,height:72},honey,{parentId:"front-arm",timing:{start:40,end:106},spacing:4}),
+    contour("petal-etching","M86 -53Q75 -65 68 -69M85 -49Q64 -46 58 -38"+
+      "M91 -48Q106 -55 115 -53M89 -43Q89 -35 91 -29",1.5,
       {parentId:"front-arm",color:"#c38a68",opacity:.68,timing:{start:48,end:123}}),
-    wax("flower-center",egg(86,-45,6,7),{x:79,y:-53,width:14,height:16},plum,
+    wax("flower-center","M84 -53Q94 -58 99 -49Q99 -40 90 -37Q83 -39 84 -53Z",
+      {x:80,y:-58,width:23,height:23},plum,
       {parentId:"front-arm",timing:{start:45,end:116},spacing:4}),
     // The edge-of-frame flora provides scale and a grounded visual baseline.
     ...[.15,.32,.69,.89].map((ratio,i):CrayonElement=>{
