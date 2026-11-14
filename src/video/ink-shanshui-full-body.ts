@@ -159,9 +159,20 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
       "none","$shadow",width,.68);
   };
   const robeOverlay=art(
-    strokeFold(-42,-3,1.05),strokeFold(-19,3,1.22),
-    strokeFold(9,-2,.82),strokeFold(33,2,1.14),
-    pathDummy(),
+    strokeFold(-57,-5,.65),strokeFold(-48,-3,.85),
+    strokeFold(-42,-3,1.05),strokeFold(-31,1,.62),
+    strokeFold(-19,3,1.22),strokeFold(-8,-2,.73),
+    strokeFold(9,-2,.82),strokeFold(18,2,.65),
+    strokeFold(33,2,1.14),strokeFold(45,-1,.82),
+    strokeFold(55,3,.58),pathDummy(),
+    p(path(at(waist.x-19,waist.y+15))+
+      cubic(at(waist.x-25,hip.y+6),
+        at(hem.x-42,hem.y-51),at(hem.x-38,hem.y-10)),
+      "none","$paper",3,.56),
+    p(path(at(waist.x+15,waist.y+16))+
+      cubic(at(waist.x+23,hip.y+30),
+        at(hem.x+44,hem.y-51),at(hem.x+52,hem.y-10)),
+      "none","$paper",2.3,.4),
   );
   function pathDummy(){return p(path(at(a.leftHem.x,a.leftHem.y))+
       quad(at(hem.x-26,hem.y+13),at(hem.x,hem.y+6))+
@@ -284,25 +295,74 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
       quad(at(hem.x-38,hem.y+13),at(hem.x-12,hem.y+3)),
       "none","$ink",1.0,.61),
   );
+  // Separate observed flying cloth masses make these three references
+  // distinct. Source positions become ordinary 260×340 authoring geometry.
+  const rp=(x:number,y:number)=>s.project({x,y});
+  const ribbon=scene==="river-scholar"?
+    art(
+      p(path(rp(491,506))+
+        cubic(rp(448,578),rp(391,610),rp(317,625))+
+        cubic(rp(310,633),rp(310,643),rp(320,652))+
+        cubic(rp(376,633),rp(458,602),rp(505,534))+" Z",
+        "$wash","$shadow",1,.62),
+      p(path(rp(320,648))+
+        cubic(rp(376,613),rp(453,600),rp(503,532)),
+        "none","$paper",1.5,.71),
+      p(path(rp(477,524))+
+        cubic(rp(445,633),rp(393,674),rp(354,693))+
+        cubic(rp(366,706),rp(386,703),rp(399,697))+
+        cubic(rp(459,629),rp(487,568),rp(507,520))+" Z",
+        "$linen","$shadow",.9,.84),
+    ):
+    scene==="mountain-trail"?
+    art(
+      p(path(rp(1005,542))+
+        cubic(rp(1046,604),rp(1093,640),rp(1165,651))+
+        cubic(rp(1173,665),rp(1162,673),rp(1154,679))+
+        cubic(rp(1104,656),rp(1068,655),rp(1025,573))+" Z",
+        "$deep","$shadow",.95,.48),
+      p(path(rp(1012,549))+
+        cubic(rp(1050,631),rp(1095,687),rp(1161,694))+
+        cubic(rp(1168,706),rp(1151,715),rp(1141,720))+
+        cubic(rp(1091,680),rp(1053,646),rp(1008,564))+" Z",
+        "$linen","$shadow",.95,.81),
+      p(path(rp(1046,604))+
+        cubic(rp(1085,645),rp(1126,669),rp(1161,661)),
+        "none","$paper",1.5,.7),
+    ):
+    art(
+      p(path(rp(691,483))+
+        cubic(rp(701,529),rp(732,571),rp(752,587))+
+        cubic(rp(754,597),rp(743,602),rp(736,598))+
+        cubic(rp(709,573),rp(684,540),rp(683,493))+" Z",
+        "$linen","$shadow",1,.83),
+      p(path(rp(698,503))+
+        cubic(rp(712,555),rp(735,583),rp(749,590)),
+        "none","$wash",1.6,.66),
+    );
   const sash=art(
     p(path(at(waist.x+5,waist.y+6))+
       quad(at(waist.x+16,hip.y+12),at(waist.x+31,hem.y-30))+
       quad(at(waist.x+15,hem.y-37),at(waist.x+10,hem.y-64))+
       quad(at(waist.x+8,hip.y+15),at(waist.x+5,waist.y+6))+" Z",
-      "$deep","$shadow",.85,.57),
+      "$deep","$shadow",.85,.51),
     p(path(at(waist.x+8,waist.y+16))+
       quad(at(waist.x+16,hip.y+24),at(waist.x+23,hem.y-41)),
       "none","$paper",1.2,.55),
+    ...ribbon.shapes.filter((v):v is ReturnType<typeof p>=>v.type==="path"),
   );
   const reading=scene==="river-scholar";
-  const lx=Math.min(a.nearHand.x,a.farHand.x)-12;
-  const rx=Math.max(a.nearHand.x,a.farHand.x)+17;
-  const paperY=Math.min(a.nearHand.y,a.farHand.y)-18;
+  const scrollBox=reading?s.box("scroll"):null;
+  const lx=scrollBox?scrollBox.origin.x:0;
+  const rx=scrollBox?scrollBox.origin.x+scrollBox.width:0;
+  const paperY=scrollBox?scrollBox.origin.y:0;
+  const paperH=scrollBox?scrollBox.height:36;
   const scroll=reading?art(
     p(path(at(lx,paperY))+
       quad(at((lx+rx)*.5,paperY-4),at(rx,paperY))+
-      line(at(rx-2,paperY+36))+
-      quad(at((lx+rx)*.5,paperY+44),at(lx+1,paperY+36))+" Z",
+      line(at(rx-2,paperY+paperH*.85))+
+      quad(at((lx+rx)*.5,paperY+paperH*1.06),
+        at(lx+1,paperY+paperH*.88))+" Z",
       "$paper","$shadow",1.1,1),
     p(path(at(lx+13,paperY+11))+
       quad(at((lx+rx)*.5,paperY+13),at(rx-12,paperY+10))+
@@ -326,7 +386,9 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
     "scholar-flowing-hem":hemFabric,
     "scholar-sash":sash,"scholar-hair-band":empty(),
     "scholar-sleeve-contour":empty(),
-    "hem-drape-art":hemFabric,
+    "hem-drape-art":art(p(path(at(a.leftHem.x+6,a.leftHem.y-5))+
+      quad(at(hem.x-23,hem.y+7),at(hem.x+9,hem.y+1)),
+      "none","$shadow",1.05,.72)),
     "near-cuff-art":cuff("near"),"far-cuff-art":cuff("far"),
     "near-upper":empty(),"far-upper":empty(),
     // The animated shoe parts are separate root children. The former two-bone
