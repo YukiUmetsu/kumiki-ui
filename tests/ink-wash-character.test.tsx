@@ -104,6 +104,23 @@ describe("INK3 character-first, authored-pigment performance",()=>{
     expect(()=>renderToStaticMarkup(createElement(InkCharacter,
       {...props,track:{...TRAVELLER_TRACK,instanceId:"different"}}))).toThrow(RangeError);
   });
+  it("passes host-resolved raster parts through the ink wrapper without blanking approved artwork",()=>{
+    const logicalUri = "ink-test/approved-eyes";
+    const rasterDefinition = {...INK_TRAVELLER,assets:{
+      ...INK_TRAVELLER.assets,
+      "eyes-open":{kind:"image" as const,uri:logicalUri,mediaType:"image/png" as const,
+        width:260,height:340,provenance:{license:"original test fixture",source:"tests/ink-wash-character.test.tsx"}},
+    }};
+    const props={definition:rasterDefinition,instance:TRAVELLER_INSTANCE,cues:[] as const,
+      track:TRAVELLER_TRACK,frame:0,label:"Mapped character"};
+    const absent=renderToStaticMarkup(createElement(InkCharacter,props));
+    const mapped=renderToStaticMarkup(createElement(InkCharacter,{
+      ...props,assetUrls:{[logicalUri]:"/fixtures/approved-eyes.png"},
+    }));
+    expect(absent).not.toContain("/fixtures/approved-eyes.png");
+    expect(mapped).toContain('href="/fixtures/approved-eyes.png"');
+    expect(mapped).toContain('data-km-ink-character=');
+  });
   it("composes approved articulated character with painted ground, fixed text and a matte in both formats",()=>{
     for(const aspect of ["landscape","portrait"] as const) {
       const film=renderToStaticMarkup(createElement(InkPerformanceFilm,{frame:188,aspect}));
