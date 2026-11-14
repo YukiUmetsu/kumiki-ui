@@ -1,0 +1,41 @@
+name: One-time RISO7 curved-contour visual proof
+# Temporary deliberate qualification for actual source geometry; deleted before merge.
+# Full renderer, video export and broad browser suites stay local/manual-only.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "registry/video/riso-proportion-mesh.ts"
+      - "registry/video/riso-path-geometry.ts"
+      - "registry/video/riso-character-sheet-react.tsx"
+      - "src/video/riso-character-mesh-sheets.ts"
+      - "src/video/riso-character-model-sheets.stories.tsx"
+      - "tests/e2e-storybook/riso-character-model-sheets.spec.ts"
+      - ".github/workflows/riso7-visual-proof.yml"
+permissions:
+  contents: read
+concurrency:
+  group: riso7-visual-proof-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  riso7-source-art:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Export source-accurate Courier and Paper Bird proportion sheets
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-character-model-sheets.spec.ts
+      - name: Preserve vector proofs and Chromium screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso7-curved-source-character-sheets
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
