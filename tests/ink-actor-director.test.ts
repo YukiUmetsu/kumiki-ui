@@ -60,6 +60,8 @@ describe("INK4 continuous character directing",()=>{
     expect(()=>inkRouteAt(route,Number.NaN)).toThrow(RangeError);
     expect(()=>assertInkWalk({...gait,upperLength:0})).toThrow(RangeError);
     expect(()=>assertInkWalk({...gait,parts:{...gait.parts,rightLower:"left-shin"}})).toThrow(RangeError);
+    expect(()=>assertInkWalk({...gait,parts:{...gait.parts,rightLower:"__proto__"}})).toThrow(RangeError);
+    expect(()=>assertInkWalk({} as never)).toThrow(RangeError);
   });
   it("solves 2-bone leg IK to correct forward kinematic endpoint",()=>{
     for(const target of [[12,43],[-12,43],[0,52]] as const){
