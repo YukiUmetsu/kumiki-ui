@@ -5,6 +5,7 @@ import { CrayonScene } from "../registry/video/materials/crayon-scene-react";
 import { crayonDemoScene } from "../src/video/crayon-scene-fixtures";
 import { compileFilm, type FilmDocument } from "../registry/video/film-document";
 import { loadFilmSlots } from "../src/film/film-slots";
+import portable from "../examples/film/crayon-scene-three-subjects.film.json";
 
 describe("CRAYON1 data-driven scene grammar",()=>{
   for(const subject of ["water-cycle","city","numbers"] as const) {
@@ -73,6 +74,26 @@ describe("CRAYON1 data-driven scene grammar",()=>{
     expect(crayonElementPlacement(hold,80)).toEqual(crayonElementPlacement(hold,81));
     expect(crayonElementPlacement(cloud,0,true)).toEqual(crayonElementPlacement(cloud,239));
   });
+  it("renders three unrelated serialized proof subjects from one FilmDocument in both aspects", async()=>{
+    for(const aspect of ["landscape","portrait"] as const) {
+      const compiled=compileFilm(portable,{outputId:aspect});
+      expect(compiled.ok).toBe(true);
+      if(!compiled.ok) continue;
+      expect(compiled.film.durationFrames).toBe(540);
+      expect(compiled.film.scenes).toHaveLength(3);
+      const slot=await loadFilmSlots(compiled.film);
+      for(const part of portable.scenes) {
+        const html=renderToStaticMarkup(<>{slot(
+          {slot:"crayon-scene",label:"Generic film",props:part.content.props},
+          {frame:179,fps:{num:30,den:1},durationFrames:180,
+            width:aspect==="landscape"?960:540,height:aspect==="landscape"?540:960,reducedMotion:false},
+        )}</>);
+        expect(html).toContain('data-km-crayon-scene="');
+        expect(html).toContain('data-km-crayon-wax=""');
+      }
+    }
+  });
+
   it("fails on wrong FilmStage output dimensions",async()=>{
     const scene=crayonDemoScene("city","landscape");
     const slots=await loadFilmSlots({scenes:[]});
