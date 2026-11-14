@@ -61,6 +61,21 @@ npm run film:render -- examples/film/ink-brush-studies.film.json --frames=180 --
 
 **Reference-review limitations:** This PR independently implements brush pressure/cadence and split bristles only. Wet spreads and physical media fidelity cannot be declared complete from stills. Compare actual normal-speed 16:9 and 9:16 exports with process references before artistic approval.
 
+## Material fidelity iteration — after initial visual review
+
+The original prototype rendered as solid vector ribbons. Chromium captures from the first material pass also exposed sharp, stepped edges and large, digitally mottled fills. The current iteration changes the **stroke renderer**, not the film's color grade:
+
+- Smoothly interpolated seed-stable perturbation replaces stepwise hash jumps on stroke edges.
+- An asymmetric ink-rich contact core is laid over a lighter, translucent stroke body.
+- A paper-coordinate pigment-absorption filter provides fine granulation without time-varying grain.
+- Subpixel displacement and a subtle soft-edge contact fringe break up perfectly clean vector silhouettes.
+- Contact hairs follow the sampled stroke tangent, with paper-visible split channels and tip hairs extending through the brush lift.
+- A new **INK1 · Brush Material Microscope** Storybook story examines four strokes with dryness, ink load, zoom, seed and frame controls.
+
+**Evidence:** [Passing deterministic CI](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43570456116), [passing Chromium and production MP4 QA](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43570456123). The existing film uses original authored geometry, not scanned brush assets.
+
+**Visual decision: still review-required.** The revised marks are more materially varied than the initial vector ribbons, but the silhouette, paper response and pigment transport remain an illustrative approximation. The encoded six-second proof and the separate 16:9/9:16 browser captures do **not** establish real ink-wash fidelity. The next engineering step must be a **raster-native pigment/water deposition model**, with absorption and dry-down advancing on a fixed timestep and sampled deterministically by absolute frame. It should be verified against original physical brushwork footage, including slow and fast loaded strokes, dry kasure and multi-tone bokashi. No unreviewed art acceptance or full-film sign-off is claimed.
+
 ## Verification and follow-up
 
 \`tests/ink-brush.test.tsx\` covers type/data validation, 5 tones, point/sheet bounds, pace/pressure/load/dryness sensitivity, deterministic shuffled seek, exact static holds, reduced-motion, full Film Document compilation and production slot resolution. Browser screenshots and an actual playable MP4 are required as additional visual evidence; no CI success alone certifies art quality.
