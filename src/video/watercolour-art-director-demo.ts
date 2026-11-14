@@ -39,31 +39,53 @@ const bird = (): WatercolourArtPart => {
     line("toe-knuckles", "M176 459 Q181 455 187 456 M212 458 Q216 455 220 457", "#8F968A", .72),
   ]);
   const wing = group("folded-wing", [
-    wash("upper-scapular", "M161 190 Q199 165 253 185 Q283 197 302 217 Q282 235 245 250 Q205 266 172 246 Q157 219 161 190 Z", "#7E9BA3", .88),
-    wash("wing-cool-shadow", "M185 210 Q233 201 282 220 Q267 250 228 259 Q193 260 180 243 Z", "#567987", .53),
-    wash("shoulder-light", "M164 193 Q196 178 220 183 Q237 189 247 202 Q218 204 186 224 Q170 216 164 193 Z", "#D9DAD0", .85),
-    ...Array.from({ length: 9 }, (_, i) => {
-      const x = 183 + i * 12;
-      const tip = 251 + (i % 3) * 4 + Math.floor(i / 4) * 3;
+    // The original blocky nine-feather row read as hard triangular scales.
+    // Instead layer long, directionally connected scapular and covert planes,
+    // then paint small irregular warm/cool accents across their actual flow.
+    wash("upper-scapular", "M163 191 C191 176 216 177 245 184 C272 190 299 210 305 222 C291 239 267 251 245 254 C213 259 187 249 168 230 Z", "#9AAEB0", .79),
+    wash("wing-cool-shadow", "M185 217 C211 199 253 202 278 221 Q291 234 279 245 C251 262 216 258 189 243 Z", "#607E87", .36),
+    wash("shoulder-light", "M165 195 Q195 177 219 185 Q236 191 251 204 C225 200 200 210 187 226 Q174 221 165 195 Z", "#E8E6DB", .89),
+    wash("covert-warm-bloom", "M185 207 C210 201 233 211 246 221 Q231 239 211 239 Q188 238 185 207 Z", "#C5C5B7", .32),
+    ...Array.from({ length: 15 }, (_, i) => {
+      const row = Math.floor(i / 5), column = i % 5;
+      const x = 182 + column * 20 + row * 6;
+      const y = 207 + row * 11 + column % 3 * 3;
+      const length = 24 + (column * 7 + row * 3) % 13;
+      const tipX = x + length;
       return wash("primary-feather-" + i,
-        "M" + x + " 215 Q" + (x + 11) + " 223 " + (x + 17) + " 241 Q" +
-          (x + 14) + " " + tip + " " + (x + 6) + " " + (tip + 6) +
-          " Q" + (x - 3) + " " + (tip - 1) + " " + x + " 215 Z",
-        i % 3 === 0 ? "#627E8B" : i % 3 === 1 ? "#93B1B5" : "#708D96", .68);
+        "M" + x + " " + y +
+        " C" + (x + 10) + " " + (y - 5) + " " + (x + 21) + " " + (y + 1) +
+        " " + tipX + " " + (y + 10) +
+        " Q" + (tipX - 4) + " " + (y + 15) + " " + (tipX - 16) + " " + (y + 17) +
+        " C" + (x + 16) + " " + (y + 19) + " " + (x + 6) + " " + (y + 13) +
+        " " + x + " " + y + " Z",
+        i % 5 === 0 ? "#BAC6C4" : i % 3 === 0 ? "#77939C" :
+          i % 3 === 1 ? "#A5B8B8" : "#87A2A9", .34 + (i % 4) * .055);
     }),
     ...Array.from({ length: 13 }, (_, i) => {
-      const x = 173 + i * 9.4;
-      const y = 195 + Math.sin(i * .42) * 7;
+      const x = 177 + i * 9;
+      const y = 195 + Math.sin(i * .34) * 4;
+      const bend = 12 + i % 4 * 3;
       return line("feather-barb-" + i,
         "M" + x.toFixed(1) + " " + y.toFixed(1) +
-          " Q" + (x + 11).toFixed(1) + " " + (y + 19).toFixed(1) +
-          " " + (x + 10).toFixed(1) + " " + (y + 38).toFixed(1),
-        i % 4 === 0 ? "#EBE7DA" : "#46697A", .64, .57, "drybrush");
+          " C" + (x + 12).toFixed(1) + " " + (y + 3).toFixed(1) +
+          " " + (x + bend).toFixed(1) + " " + (y + 18).toFixed(1) +
+          " " + (x + bend + 6).toFixed(1) + " " + (y + 27).toFixed(1),
+        i % 4 === 0 ? "#EAECE2" : "#4D7480", .52 + i % 3 * .09, .37, "drybrush");
     }),
-    line("wing-leading-edge", "M158 192 Q194 173 223 183 Q260 188 291 210", "#526E7A", 1.2, .66),
-    line("wing-fold-shadow", "M180 243 Q215 266 244 252 Q266 245 286 229", "#3D6679", 1.1, .52),
+    ...Array.from({ length: 11 }, (_, i) => {
+      const x = 193 + i * 8;
+      const y = 229 + (i % 3) * 3;
+      return line("lower-feather-fray-" + i,
+        "M" + x + " " + y + " q" + (7 + i % 3) +
+          " " + (14 + i % 3 * 2) + " " + (15 + i % 4) + " " + (24 - i % 5),
+        i % 5 === 0 ? "#ECF0E7" : "#6C8E9A", .4, .3, "drybrush");
+    }),
+    line("wing-leading-edge", "M165 195 C198 178 246 186 285 210", "#557481", 1.08, .46, "drybrush"),
+    line("wing-fold-shadow", "M184 243 Q222 259 252 253 Q278 246 293 231", "#52737E", .87, .36, "drybrush"),
   ], [pose(0, 0, 0, -1), pose(135, 0, 0, 2.5), pose(270, 0, 0, -.7),
     pose(359, 0, 0, -1)], HERON_ANCHORS.wing);
+
   const neck = group("neck-and-head", [
     wash("s-curved-neck", "M158 220 Q135 216 124 191 Q108 161 110 139 Q112 114 128 100 Q135 88 121 79 Q105 83 107 97 Q97 127 100 145 Q95 175 111 199 Q124 222 154 230 Z", "#C8CDCA", .97),
     wash("neck-shade", "M128 99 Q122 120 116 143 Q111 173 134 209 L154 227 Q129 219 112 199 Q92 173 102 141 Q99 119 112 91 Z", "#7D989C", .69),
@@ -110,28 +132,54 @@ const bird = (): WatercolourArtPart => {
 
 function reed(id: string, x: number, y: number, height: number, lean: number,
   pigment: string): WatercolourArtPart {
-  const top = y - height;
+  const top = y - height, tipX = x + lean;
   const leaves: WatercolourArtPart[] = [
-    line(id + "-stem", "M" + x + " " + y + " Q" + (x + lean * .26) + " " +
-      (y - height * .52) + " " + (x + lean) + " " + top, pigment, 1.65, .81, "drybrush"),
+    line(id + "-stem", "M" + x + " " + y + " C" + (x + lean * .13) + " " +
+      (y - height * .21) + " " + (x + lean * .59) + " " +
+      (y - height * .72) + " " + tipX + " " + top,
+      pigment, 1.4, .72, "drybrush"),
+    line(id + "-stem-light", "M" + (x + 1.3) + " " + (y - 4) +
+      " Q" + (x + lean * .4 + 1.4) + " " + (y - height * .58) +
+      " " + (tipX + .7) + " " + (top + 5), "#DBCFB5", .5, .52),
   ];
-  for (let i = 0; i < 5; i++) {
-    const py = y - height * (.19 + i * .135);
-    const px = x + lean * (.19 + i * .135);
+  // Each blade shares a stem attachment, but the contour/width/curvature vary.
+  // Prevent equally spaced symmetric darts and disconnected seed blobs.
+  for (let i = 0; i < 4; i++) {
+    const f = .16 + i * .167;
+    const px = x + lean * f, py = y - height * f;
     const side = i % 2 ? 1 : -1;
+    const reach = 24 + (i * 11 + Math.round(x)) % 22;
+    const lift = 26 + (i * 7 + Math.round(height)) % 25;
+    const edgeX = px + side * reach;
     leaves.push(wash(id + "-blade-" + i,
       "M" + px.toFixed(1) + " " + py.toFixed(1) +
-      " Q" + (px + side * (16 + i * 2)).toFixed(1) + " " + (py - 19).toFixed(1) +
-      " " + (px + side * (25 + i * 3)).toFixed(1) + " " + (py - 32).toFixed(1) +
-      " Q" + (px + side * 6).toFixed(1) + " " + (py - 23).toFixed(1) +
-      " " + px.toFixed(1) + " " + py.toFixed(1) + " Z", pigment, .68));
-  }
-  for (let i = 0; i < 7; i++) {
-    const py = top - i * 2.5;
-    const px = x + lean + Math.sin(i * .7) * 5;
-    leaves.push(wash(id + "-seed-" + i,
+      " C" + (px + side * (reach * .19)).toFixed(1) + " " + (py - lift * .63).toFixed(1) +
+      " " + (px + side * (reach * .61)).toFixed(1) + " " + (py - lift * .83).toFixed(1) +
+      " " + edgeX.toFixed(1) + " " + (py - lift).toFixed(1) +
+      " C" + (px + side * (reach * .73)).toFixed(1) + " " + (py - lift * .61).toFixed(1) +
+      " " + (px + side * (reach * .24)).toFixed(1) + " " + (py - lift * .14).toFixed(1) +
+      " " + px.toFixed(1) + " " + py.toFixed(1) + " Z", pigment, .37 + i % 3 * .09));
+    leaves.push(line(id + "-vein-" + i,
       "M" + px.toFixed(1) + " " + py.toFixed(1) +
-      " q-5 -6 -2 -9 q7 -2 6 5 q-1 4 -4 4 Z", "#AD9275", .59));
+      " Q" + (px + side * reach * .55).toFixed(1) + " " + (py - lift * .67).toFixed(1) +
+      " " + edgeX.toFixed(1) + " " + (py - lift).toFixed(1),
+      "#CDCBB5", .38, .54, "drybrush"));
+  }
+  // A connected, tapering seed-head on the stalk, not seven floating polka dots.
+  const seedLength = 14 + (Math.round(height) % 9), seedWidth = 3.8 + Math.round(x) % 3;
+  leaves.push(wash(id + "-seed-head",
+    "M" + tipX + " " + (top + 3) +
+    " Q" + (tipX - seedWidth) + " " + (top - seedLength * .42) +
+    " " + tipX + " " + (top - seedLength) +
+    " Q" + (tipX + seedWidth * 1.1) + " " + (top - seedLength * .4) +
+    " " + tipX + " " + (top + 3) + " Z", "#AB967A", .56));
+  for (let i = 0; i < 6; i++) {
+    const py = top - 2 - i * seedLength / 7;
+    const dx = Math.sin(i * 2.31 + x * .06) * seedWidth * .65;
+    leaves.push(line(id + "-seed-fibril-" + i,
+      "M" + (tipX + dx).toFixed(1) + " " + py.toFixed(1) +
+      " q" + (i % 2 ? 2.1 : -2.3) + " -2 " + (i % 2 ? 3.3 : -3.1) + " -4",
+      "#B4A08C", .65, .45, "drybrush"));
   }
   return group(id, leaves, [pose(0, 0, 0, -1), pose(130, 0, 0, 1.7),
     pose(260, 0, 0, -1.3), pose(359, 0, 0, -1)], { x, y });
