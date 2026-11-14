@@ -40,6 +40,17 @@ story beats.
 All implementation uses existing scene-grammar widgets, exact-frame keys
 and original procedural wax code; no external artist assets are copied.
 
+## Element-budget discipline
+
+The expanded high-quality cast initially exceeded the CRAYON1 hard
+240-element scene limit. Rather than weakening the validator or deleting
+the anatomical art, roof shingles, castle railings, adjacent dragon-spine
+points, jaw tooth glints and spark motifs now share bounded SVG groups.
+The source paths and their individual marks remain present, while
+unnecessary per-scratch actor lifecycles are consolidated. Group reveal
+timing remains authored at the motif level. Fine face and limb joints
+are still individually controllable.
+
 ## Acceptance limits
 
 This is a source-art/actor-integration improvement, **not** a certified
