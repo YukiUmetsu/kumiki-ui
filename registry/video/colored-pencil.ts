@@ -75,7 +75,8 @@ export function evaluatePencilMark(frame: number, timing: PencilTiming, reducedM
   if (!Number.isSafeInteger(frame) || frame < 0 ||
       !Number.isSafeInteger(timing.startFrame) || timing.startFrame < 0 ||
       !Number.isSafeInteger(timing.durationFrames) || timing.durationFrames < 1)
-    throw new RangeError("Pencil marks require nonnegative integer frame/startFrame and positive durationFrames.");
+    throw new RangeError("Pencil marks require nonnegative integer frame/startFrame and positive durationFrames" +
+      " (frame=" + frame + ", startFrame=" + timing.startFrame + ", durationFrames=" + timing.durationFrames + ").");
   return reducedMotion ? 1 : Math.max(0, Math.min(1, (frame - timing.startFrame) / timing.durationFrames));
 }
 const HEX = /^#[0-9a-f]{6}$/i;
