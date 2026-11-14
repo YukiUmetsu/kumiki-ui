@@ -16,7 +16,7 @@ Research: November 14, 2026. PR #176. Video pages, documentary descriptions and 
 
 All linked works are technique references only. No film frames, proprietary characters, dialogue or audio were imported. Hosting does not imply reuse permission.
 
-## INK4 contribution
+## INK5 contribution
 
 Reusable multi-character scene blocking that keeps existing INK1 material strokes, INK2 film layers and INK3 approved CharacterPresenter rigs intact. Per-character seed, identity, art/cues, independent stage track, front/back order, semantic attention beat, face orientation and explicit exchange-distance/feet-overlap audit. Reference Storybook example: Video production / Film Looks / Chinese Ink Ensemble Character Acting. The example is original generic art, not a reconstruction of a specific reference film.
 
@@ -30,7 +30,7 @@ Reusable multi-character scene blocking that keeps existing INK1 material stroke
 
 ## Next work order
 
-P0: joint-space contact and stance constraints using existing evaluated pose / authored part anchors. P0: normal-speed dual-aspect video review and changes based on frames. P1: cross-character gaze and reactions plus cloth settle. P1: three or more original reusable character rigs with coherent eyes/face/speech/limbs, including animals. P2: subject-independent long film recipes and optional 3D-to-ink material projection.
+P0: integrate existing INK4 grounded gait/IK correction tracks with multi-character hand-to-hand prop contact. The grounded gait solver already exists; do not duplicate it. P0: normal-speed dual-aspect video review and changes based on frames. P1: cross-character gaze and reactions plus cloth settle. P1: three or more original reusable character rigs with coherent eyes/face/speech/limbs, including animals. P2: subject-independent long film recipes and optional 3D-to-ink material projection.
 
 ## Verification
 
