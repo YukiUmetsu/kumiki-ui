@@ -1,6 +1,6 @@
 import type { Meta,StoryObj } from "@storybook/react-vite";
 import {CrayonPlayground} from "./crayon-scene-playground";
-import {crayonSceneDefaultArgs,crayonSceneArgTypes} from "./crayon-scene-story-config";
+import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-story-config";
 
 /** Original SVG-native CRAYON1 artwork; stories share one animation player. */
 const meta={
@@ -8,13 +8,7 @@ const meta={
   id:"video-crayon-walk",
   component:CrayonPlayground,
   args:{...crayonSceneDefaultArgs,subject:"walk",startFrame:156},
-  argTypes:{...crayonSceneArgTypes,
-    subject:{table:{disable:true}},
-    startFrame:{control:{type:"range",min:0,max:269,step:1}},
-    rig:{control:"inline-radio",options:["drawn","ik"]},
-    stride:{control:{type:"range",min:.6,max:1.6,step:.05}},
-    stepLift:{control:{type:"range",min:.6,max:1.8,step:.05}},
-  },
+  argTypes:crayonDirectorArgTypes("walk",269),
 } satisfies Meta<typeof CrayonPlayground>;
 export default meta;
 type Story=StoryObj<typeof meta>;

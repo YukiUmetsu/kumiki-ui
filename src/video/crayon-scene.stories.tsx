@@ -1,6 +1,6 @@
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {CrayonPlayground} from "./crayon-scene-playground";
-import {crayonSceneDefaultArgs,crayonSceneArgTypes} from "./crayon-scene-story-config";
+import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-story-config";
 
 /** General-purpose authoring playground; themed films live in dedicated folders. */
 const meta={
@@ -8,10 +8,7 @@ const meta={
   id:"video-crayon-scene-engine",
   component:CrayonPlayground,
   args:crayonSceneDefaultArgs,
-  argTypes:{
-    ...crayonSceneArgTypes,
-    startFrame:{control:{type:"range",min:0,max:239,step:1}},
-  },
+  argTypes:crayonDirectorArgTypes("scenes",239),
 } satisfies Meta<typeof CrayonPlayground>;
 export default meta;
 type Story=StoryObj<typeof meta>;

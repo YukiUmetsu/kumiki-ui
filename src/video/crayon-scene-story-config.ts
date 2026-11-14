@@ -13,17 +13,17 @@ export const crayonSceneArgTypes:NonNullable<Meta<typeof CrayonPlayground>["argT
     nibStyle:{control:"inline-radio",options:["tapered","rounded"]},
     strokeOrder:{control:"inline-radio",options:["patches","scanline"]},
     markLength:{control:"inline-radio",options:["long","short"]},
-    editorialDetail:{control:{type:"range",min:0,max:1,step:.1}},
-    wildlifeDetail:{control:{type:"range",min:0,max:1,step:.1}},
+    editorialDetail:{control:{type:"range",min:0,max:1,step:.05}},
+    wildlifeDetail:{control:{type:"range",min:0,max:1,step:.05}},
     wildlifeEarMotion:{control:{type:"range",min:0,max:2,step:.1}},
     wildlifeCrop:{control:"inline-radio",options:["composition","eye","fur","muzzle","ear"]},
-    stride:{control:{type:"range",min:.6,max:1.6,step:.1}},
-    stepLift:{control:{type:"range",min:.6,max:1.8,step:.1}},
+    stride:{control:{type:"range",min:.6,max:1.6,step:.05}},
+    stepLift:{control:{type:"range",min:.6,max:1.8,step:.05}},
     rig:{control:"inline-radio",options:["drawn","ik"]},
     drawOrder:{control:"inline-radio",options:["outline-first","fill-first"]},
     outlineFraction:{control:{type:"range",min:.1,max:.75,step:.05}},
     waxGlaze:{control:{type:"range",min:0,max:.45,step:.03}},
-    wingPower:{control:{type:"range",min:.5,max:1.6,step:.1}},
+    wingPower:{control:{type:"range",min:.5,max:1.6,step:.05}},
     villageDetail:{control:{type:"range",min:.25,max:1,step:.05}},
     followThrough:{control:{type:"range",min:0,max:18,step:1}},
     redrawStrength:{control:{type:"range",min:0,max:1,step:.05}},
@@ -36,3 +36,46 @@ export const crayonSceneArgTypes:NonNullable<Meta<typeof CrayonPlayground>["argT
     reducedMotion:{control:"boolean"},
     startFrame:{control:{type:"range",min:0,max:449,step:1}},
   };
+
+
+/** Keep Storybook's Controls panel focused on the actual subject being reviewed.
+ * Unrelated rig/art controls are hidden, not removed from the reusable renderer.
+ * All directors remain inside Video production / Film Looks / Crayon.
+ */
+export type CrayonDirector="scenes"|"wildlife"|"acting"|"walk"|"draw-in"|"dragon";
+const crayonSharedControls:readonly (keyof PlaygroundProps)[]=[
+  "aspect","seed","paperTooth","nibStyle","strokeOrder","markLength",
+  "startFrame","playbackRate","loop","reducedMotion",
+];
+const crayonFocusedControls:Record<CrayonDirector,readonly (keyof PlaygroundProps)[]>={
+  scenes:["subject"],
+  wildlife:["wildlifeDetail","wildlifeEarMotion","wildlifeCrop"],
+  acting:["editorialDetail"],
+  walk:["rig","stride","stepLift"],
+  "draw-in":["drawOrder","outlineFraction","waxGlaze"],
+  dragon:["cast","dragonPalette","shot","wingPower","villageDetail",
+    "followThrough","redrawStrength","exposureFrames"],
+};
+const crayonPlaybackKeys=new Set(["startFrame","playbackRate","loop","reducedMotion"]);
+const crayonMaterialKeys=new Set(["seed","paperTooth","nibStyle","strokeOrder","markLength"]);
+
+/** Preserve the underlying playable scene API while reducing irrelevant knobs. */
+export function crayonDirectorArgTypes(director:CrayonDirector,finalFrame:number):
+  NonNullable<Meta<typeof CrayonPlayground>["argTypes"]> {
+  if(!Number.isSafeInteger(finalFrame)||finalFrame<1) {
+    throw new RangeError("Crayon director needs a positive final frame");
+  }
+  const visible=new Set<string>([...crayonSharedControls,...crayonFocusedControls[director]]);
+  return Object.fromEntries(Object.entries(crayonSceneArgTypes).map(([name,config])=>{
+    if(!visible.has(name)) return [name,{control:false,table:{disable:true}}];
+    const category=crayonPlaybackKeys.has(name)?"Playback":
+      crayonMaterialKeys.has(name)?"Wax & Paper":
+      name==="aspect"?"Canvas":"Subject & Acting";
+    return [name,{
+      ...config,
+      ...(name==="startFrame"?{control:{type:"range",min:0,max:finalFrame,step:1}}:{}),
+      ...(name==="subject"&&director==="scenes"?{control:"inline-radio",options:["water-cycle","city","numbers"]}:{}),
+      table:{category},
+    }];
+  })) as NonNullable<Meta<typeof CrayonPlayground>["argTypes"]>;
+}
