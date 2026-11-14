@@ -72,6 +72,15 @@ export function InkCinematicScholar({actor,pose,ink,detail}:ScholarProps){
         fill="none" stroke="#fff7e7" strokeWidth={3.6} opacity={.38}/>
       {detail>.62&&<path d="M-50 -16 Q-21 -9 15 -11 Q43 -7 61 -17 M-8 -24 Q17 -20 37 -23"
         fill="none" stroke="#7f6c55" strokeWidth={.6} strokeDasharray="11 4 24 7" opacity={.5*ink}/>}
+      {detail>.62&&<>
+        <path d="M-46 -149 Q-52 -113 -50 -79 M-34 -134 Q-39 -97 -32 -62
+          M16 -148 Q11 -121 14 -87 M24 -74 Q25 -47 20 -23
+          M47 -131 Q44 -92 53 -41"
+          fill="none" stroke="#65513f" strokeWidth={.95} opacity={.40*ink}/>
+        <path d="M-49 -36 Q-38 -47 -28 -57 M-20 -28 Q-13 -35 -5 -43
+          M31 -39 Q40 -46 49 -54" fill="none" stroke="#fdf0d7"
+          strokeWidth={2.3} opacity={.36}/>
+      </>}
     </g>
     {/* Outer wide sleeves are not alpha ghost sprites; solid silk is behind hands. */}
     <g data-km-ink-actor-part="far-sleeve" transform={`rotate(${(-arm*.8).toFixed(3)} -53 -204)`}>
@@ -112,6 +121,10 @@ export function InkCinematicScholar({actor,pose,ink,detail}:ScholarProps){
         fill="#8b795f" opacity={.26*ink}/>
       <path d="M45 -226 Q62 -198 79 -149 M55 -238 Q69 -213 81 -172"
         stroke="#655746" strokeWidth={1.65} opacity={.61*ink} fill="none"/>
+      <path d="M56 -221 Q71 -188 83 -151 M48 -223 Q61 -193 66 -176"
+        stroke="#9b866b" strokeWidth={3.2} opacity={.27*ink} fill="none"/>
+      <path d="M42 -229 Q52 -208 58 -194"
+        stroke="#f6e9d0" strokeWidth={2.4} opacity={.56} fill="none"/>
       <path d="M76 -139 Q86 -136 94 -144" fill="none" stroke="#f7ead3" strokeWidth={2.7}/>
     </g>
     {/* Fingers/props must be in front of solid sleeves, never translucent. */}
@@ -158,17 +171,26 @@ export function InkCinematicScholar({actor,pose,ink,detail}:ScholarProps){
       transform={`translate(0 -282) rotate(${(pose.armSway*.17).toFixed(3)} 0 0)`}>
       <path d="M-10 12 L-8 -11 L20 -16 L24 10 L13 24Z"
         fill="#dfc9aa" stroke="#665748" strokeWidth={1.1}/>
-      <path d="M-23 -47 Q-27 -21 -20 -3 Q-11 14 4 17
-        Q22 12 32 -4 Q42 -27 28 -50 Q4 -65 -23 -47Z"
+      <path d="M-20 -49 Q-27 -32 -24 -17 Q-18 2 -4 14
+        Q8 21 21 6 Q33 -12 32 -29 Q28 -48 19 -53
+        Q-3 -63 -20 -49Z"
         fill={palette.skin} stroke={palette.dark} strokeWidth={1.65}/>
       <path d="M-21 -27 Q-16 -5 -9 4" fill="none" stroke="#c8b296" strokeWidth={3} opacity={.4}/>
       {/* Soft lateral nose profile, two deliberately asymmetrical eyes. */}
       <path d="M-14 -21 Q-8 -25 -3 -22 M10 -26 Q16 -29 22 -28"
         fill="none" stroke="#554a3e" strokeWidth={1.8}/>
-      <path d="M-13 -18 Q-8 -14 -3 -17 M11 -22 Q16 -18 20 -21"
+      <path d="M-13 -18 Q-9 -15 -3 -18 M10 -22 Q16 -19 22 -23"
         stroke="#51483d" strokeWidth={1} fill="none"/>
+      <path d="M-12 -17 L-9 -16 M12 -21 L15 -20"
+        stroke="#3f362e" strokeWidth={1.15} fill="none"/>
+      <path d="M-14 -25 Q-8 -29 -1 -27 M9 -30 Q16 -33 22 -30"
+        stroke="#94806a" strokeWidth={.8} fill="none" opacity={.52}/>
       <path d="M1 -21 Q-1 -10 5 -8 L10 -10" stroke="#8f7965" strokeWidth={.9} fill="none"/>
-      <path d="M3 0 Q11 3 18 -2" stroke="#735b4e" strokeWidth={1.1} fill="none"/>
+      <path d="M4 1 Q11 2 17 -1" stroke="#735b4e" strokeWidth={1.1} fill="none"/>
+      {!reading&&<g opacity={.73*ink} fill="none" stroke="#5d5042" strokeLinecap="round">
+        <path d="M-2 1 Q7 -1 13 1 M15 1 Q21 4 23 -1" strokeWidth={1.1}/>
+        <path d="M4 9 Q8 20 13 27 M17 6 Q18 19 11 30" strokeWidth={.94}/>
+      </g>}
       <path d="M-21 -52 Q-14 -65 -4 -70 Q22 -79 33 -56
         L31 -45 Q6 -53 -22 -42Z"
         fill="#473d32" stroke="#342f29" strokeWidth={1.7}/>
