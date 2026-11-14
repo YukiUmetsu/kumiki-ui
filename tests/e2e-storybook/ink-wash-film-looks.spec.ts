@@ -145,3 +145,28 @@ test("Film Looks exposes live pigment, camera, actor and editable-JSON controls"
   await page.getByRole("button",{name:"Reset style parameters"}).click();
   await expect(page.getByRole("slider",{name:"Brush width"})).toHaveValue("1");
 });
+
+test("Film Looks edits an individual brushstroke without changing unrelated art",async({page})=>{
+  await page.goto(base+"chinese-ink-painting&viewMode=story");
+  await page.getByText("Individual brushstroke · Ink, shape and timing").click();
+  const preview=page.locator("[data-km-film-looks-ink-preview]");
+  const strokes=preview.locator("[data-km-ink-stroke]");
+  const first=strokes.nth(0),second=strokes.nth(1);
+  const firstBefore=await first.locator("path").first().getAttribute("d");
+  const secondBefore=await second.locator("path").first().getAttribute("d");
+  await seek(page.getByRole("slider",{name:"Individual width"}),2);
+  await expect.poll(()=>first.locator("path").first().getAttribute("d")).not.toBe(firstBefore);
+  expect(await second.locator("path").first().getAttribute("d")).toBe(secondBefore);
+  await seek(page.getByRole("slider",{name:"Mark offset X"}),35);
+  await expect(page.getByRole("slider",{name:"Mark offset X"})).toHaveValue("35");
+  await page.getByRole("button",{name:"View / edit configuration JSON"}).click();
+  const json=page.getByRole("textbox",{name:"Ink configuration JSON"});
+  const config=JSON.parse(await json.inputValue()) as {strokeOverrides:Record<string,{offsetX:number}>};
+  expect(Object.keys(config.strokeOverrides).length).toBe(1);
+  expect(Object.values(config.strokeOverrides)[0].offsetX).toBe(35);
+  await page.getByRole("button",{name:"Reset selected brushstroke"}).click();
+  await expect(page.getByRole("slider",{name:"Individual width"})).toHaveValue("1");
+  await expect.poll(()=>first.locator("path").first().getAttribute("d")).toBe(firstBefore);
+  await page.getByRole("combobox",{name:"Painting subject"}).selectOption("bamboo");
+  await expect(page.getByRole("slider",{name:"Individual width"})).toHaveValue("1");
+});
