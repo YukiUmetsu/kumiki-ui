@@ -1,6 +1,6 @@
 import { RisoSheetFeed, completedRisoFrame } from "../../registry/video/riso-sheet-feed";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
-import { risoSecondSheetArtworks } from "./riso-print-demo-alt";
+import { risoSecondSheetArtworks, risoSecondSheetImprintArt } from "./riso-print-demo-alt";
 import { RISO_SHEET_FEED_FILM, RISO_OVERPRINT_FILM, RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "./riso-print-film";
 import { useEffect, useMemo, useState } from "react";
 import { RisoPrint } from "../../registry/video/print-plates-react";
@@ -410,7 +410,7 @@ function RisoOverprintLab() {
           if (content.slot === "riso-overprint") return <RisoOverprintTransition
             outgoing={{ spec: specA, artworks: artA }} incoming={{ spec: specB, artworks: artB }}
             imprintPath={RISO_OVERPRINT_MOTIF} imprintOrigin={risoOverprintOrigin(aspect)}
-            imprintPlateId="red" frame={context.frame} startFrame={0} durationFrames={179}
+            imprintPlateId="red" imprintArtwork={risoSecondSheetImprintArt(aspect)} frame={context.frame} startFrame={0} durationFrames={179}
             paperGrain={paperGrain} misregistration={registration / 12} reducedMotion={context.reducedMotion}/>;
           if (content.slot === "riso-next-print") return <RisoPrint spec={specB} artworks={artB}
             frame={completedRisoFrame(specB)} misregistration={registration / 12}
