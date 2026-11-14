@@ -225,7 +225,7 @@ export function inkWalkAt(plan:InkWalkPlan,frame:number):InkWalkState {
     const plantedAt=(which:number)=>{
       const contactFrame=clamp(plan.startFrame+(which-offset+stance*.48)*cycle,plan.startFrame,plan.endFrame);
       const pos=inkRouteAt(plan.route,contactFrame);
-      return {x:pos.x+side*(plan.footSeparation??4),y:pos.y};
+      return {x:pos.x+side*(plan.footSeparation??4)*pos.scale,y:pos.y};
     };
     const ground=plantedAt(index),next=plantedAt(index+1);
     let x=ground.x,y=ground.y;
@@ -235,7 +235,10 @@ export function inkWalkAt(plan:InkWalkPlan,frame:number):InkWalkState {
       x=mix(ground.x,next.x,smooth);
       y=mix(ground.y,next.y,smooth)-Math.sin(Math.PI*q)*(plan.footLift??12);
     }
-    const targetX=x-current.x,targetY=y-(current.y-plan.hipHeight);
+    // IK solves in the rig's unscaled design coordinates; contact positions
+    // are authored in world/paper space. Inverse scale before solving.
+    const targetX=(x-current.x)/current.scale;
+    const targetY=(y-current.y)/current.scale+plan.hipHeight;
     const solved=solveInkLimb(targetX,targetY,plan.upperLength,plan.lowerLength,bend);
     return {x,y,planted:phase<stance,hipAngle:solved.upper,kneeAngle:solved.lower};
   };
