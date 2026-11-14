@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { inspectCrayonScene, crayonCamera, crayonContactOffset, crayonWorldPoint, crayonVisiblePoint, crayonConnectorPath, crayonConnectorBendAt, crayonDrawingAt, crayonElementPlacement, crayonElementTransform } from "../registry/video/materials/crayon-scene";
+import { inspectCrayonScene, crayonCamera, crayonContactOffset, crayonContactPhase, crayonTwoBoneSolve, crayonWorldPoint, crayonVisiblePoint, crayonConnectorPath, crayonConnectorBendAt, crayonDrawingAt, crayonElementPlacement, crayonElementTransform } from "../registry/video/materials/crayon-scene";
 import { CrayonScene } from "../registry/video/materials/crayon-scene-react";
 import { crayonDemoScene } from "../src/video/crayon-scene-fixtures";
 import { crayonPerformanceScene } from "../src/video/crayon-performance-fixtures";
@@ -341,11 +341,16 @@ describe("CRAYON1 data-driven scene grammar",()=>{
       const hip=scene.elements.find(n=>n.id==="body");
       if(!leg||leg.kind!=="connector"||!foot||!hip)
         throw new Error("missing connector rig");
-      const point=(frame:number)=>crayonVisiblePoint(scene,foot,frame,leg.to.anchor);
-      const fixed=point(94);
-      const planted=point(156);
+      // The sole pivot stays fixed while the ankle can move as the foot rocks.
+      const contact=foot.contacts?.find(c=>c.start===94);
+      if(!contact)throw new Error("no planted sole contact");
+      const sole=(frame:number)=>crayonVisiblePoint(scene,foot,frame,contact.anchor);
+      const ankle=(frame:number)=>crayonVisiblePoint(scene,foot,frame,leg.to.anchor);
+      const fixed=sole(94),planted=sole(156);
       expect(planted.x).toBeCloseTo(fixed.x,5);
       expect(planted.y).toBeCloseTo(fixed.y,5);
+      expect(ankle(94).x).not.toBeCloseTo(ankle(156).x,5);
+      const point=ankle;
       expect(crayonConnectorBendAt(leg,65)).toBe(crayonConnectorBendAt(leg,64));
       expect(crayonConnectorBendAt(leg,65)).toBeLessThan(-25);
       expect(crayonConnectorBendAt(leg,95)).toBeCloseTo(crayonConnectorBendAt(leg,94),5);
@@ -386,6 +391,113 @@ describe("CRAYON1 data-driven scene grammar",()=>{
     expect(invalid({bendKeys:[{frame:12,bend:Infinity}]})).toMatch(/bendKeys/);
     expect(invalid({screenSpace:true})).toMatch(/world-space/);
     expect(invalid({parentId:"body"})).toMatch(/cannot inherit/);
+  });
+
+
+  it("solves two-bone joints with fixed preferred lengths and explicit unreachable states",()=>{
+    const limbs={upperLength:40,lowerLength:40,bendSide:"left" as const};
+    const from={x:0,y:0},target={x:60,y:0};
+    const solved=crayonTwoBoneSolve(from,target,limbs);
+    expect(solved.reach).toBe("inside");
+    expect(Math.hypot(solved.knee.x,solved.knee.y)).toBeCloseTo(40,7);
+    expect(Math.hypot(solved.knee.x-60,solved.knee.y)).toBeCloseTo(40,7);
+    const mirrored=crayonTwoBoneSolve(from,target,{...limbs,bendSide:"right"});
+    expect(mirrored.knee.x).toBeCloseTo(solved.knee.x,7);
+    expect(mirrored.knee.y).toBeCloseTo(-solved.knee.y,7);
+    const extended=crayonTwoBoneSolve(from,{x:150,y:0},limbs);
+    expect(extended.reach).toBe("extended");
+    expect([extended.knee.x,extended.knee.y].every(Number.isFinite)).toBe(true);
+    const compressed=crayonTwoBoneSolve(from,{x:1,y:0},
+      {upperLength:60,lowerLength:25,bendSide:"left"});
+    expect(compressed.reach).toBe("compressed");
+    expect([compressed.knee.x,compressed.knee.y].every(Number.isFinite)).toBe(true);
+    const coincident=crayonTwoBoneSolve(from,from,limbs);
+    expect([coincident.knee.x,coincident.knee.y].every(Number.isFinite)).toBe(true);
+    expect(()=>crayonTwoBoneSolve(from,target,{...limbs,upperLength:Infinity})).toThrow(/two-bone/);
+  });
+
+  it("smoothly releases a planted sole correction instead of teleporting on lift",()=>{
+    const base=crayonDemoScene("city","landscape");
+    const original=base.elements.find(n=>n.kind==="wax");
+    if(!original)throw new Error("missing wax art");
+    const foot={...original,id:"contact-demo",parentId:undefined,placement:undefined,
+      motion:[{frame:0,x:0,y:0},{frame:20,x:100,y:0},{frame:30,x:120,y:0}],
+      contacts:[{start:0,end:20,anchor:{x:0,y:0},releaseFrames:10}]};
+    const scene={...base,elements:[foot]};
+    expect(inspectCrayonScene(scene)).toEqual([]);
+    const at=(frame:number)=>crayonContactOffset(scene,foot,frame)?.x;
+    expect(crayonContactPhase(foot,20)).toBe("planted");
+    expect(crayonContactPhase(foot,25)).toBe("releasing");
+    expect(crayonContactPhase(foot,31)).toBeNull();
+    expect(at(20)).toBeCloseTo(-100,8);
+    expect(at(25)).toBeCloseTo(-50,8);
+    expect(at(29)).toBeLessThan(0);
+    expect(at(30)).toBeCloseTo(0,8);
+    expect(at(31)).toBeUndefined();
+    expect(at(25)).toBe(at(25));
+    expect(crayonContactOffset(scene,foot,0,true)).toBeNull();
+    const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={25}/>);
+    expect(html).toContain('data-km-crayon-contact="releasing"');
+    const invalid=(contacts:unknown)=>inspectCrayonScene({
+      ...base,elements:[{...foot,contacts}],
+    }).join(" ");
+    expect(invalid([{start:0,end:20,anchor:{x:0,y:0},releaseFrames:25}])).toMatch(/releaseFrames/);
+    expect(invalid([{start:0,end:20,anchor:{x:0,y:0},releaseFrames:-3}])).toMatch(/releaseFrames/);
+    expect(invalid([
+      {start:0,end:20,anchor:{x:0,y:0},releaseFrames:12},
+      {start:26,end:60,anchor:{x:0,y:0}},
+    ])).toMatch(/releaseFrames overlap/);
+    expect(invalid([{start:220,end:239,anchor:{x:0,y:0},releaseFrames:6}])).toMatch(/releaseFrames/);
+  });
+
+  for(const aspect of ["landscape","portrait"] as const){
+    it("stably renders the two-bone gait with user-adjustable stride and lift in "+aspect,()=>{
+      for(const settings of [
+        {rig:"ik" as const,stride:1, lift:1},
+        {rig:"ik" as const,stride:1.15,lift:1.35},
+        {rig:"ik" as const,stride:.6,lift:1.8},
+      ]){
+        const scene=crayonWalkScene(aspect,settings);
+        expect(inspectCrayonScene(scene)).toEqual([]);
+        const leg=scene.elements.find(e=>e.id==="leg-back");
+        const front=scene.elements.find(e=>e.id==="leg-front");
+        if(!leg||leg.kind!=="connector"||!front||front.kind!=="connector")
+          throw new Error("missing two-bone connector");
+        expect(leg.ik).toMatchObject({upperLength:45,lowerLength:43,bendSide:"left"});
+        expect(front.ik?.bendSide).toBe("right");
+        expect(leg.bendKeys).toBeUndefined();
+        const path=crayonConnectorPath(scene,leg,124);
+        expect(path).toMatch(/^M.* L.* L/);
+        for(const frame of [0,36,70,94,124,156,214,269]){
+          const d=crayonConnectorPath(scene,leg,frame);
+          expect(d).not.toContain("NaN");
+          expect(d).not.toContain("Infinity");
+        }
+        crayonConnectorPath(scene,leg,269);
+        crayonConnectorPath(scene,leg,0);
+        expect(crayonConnectorPath(scene,leg,124)).toBe(path);
+        expect(crayonConnectorPath(scene,leg,0,true))
+          .toBe(crayonConnectorPath(scene,leg,269,true));
+        const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={124}/>);
+        expect(html).toContain('data-km-crayon-rig="two-bone"');
+        expect(html).toContain(aspect==="portrait"?'viewBox="0 0 540 960"':'viewBox="0 0 960 540"');
+      }
+    });
+  }
+
+  it("rejects invalid two-bone configuration and contradictory bend tracks",()=>{
+    const scene=crayonWalkScene("landscape",{rig:"ik"});
+    const joint=scene.elements.find(n=>n.id==="leg-back");
+    if(!joint||joint.kind!=="connector")throw new Error("no IK leg");
+    const invalid=(patch:Partial<typeof joint>)=>
+      inspectCrayonScene({...scene,elements:scene.elements.map(n=>n.id===joint.id?{...joint,...patch}:n)}).join(" ");
+    expect(invalid({ik:{upperLength:0,lowerLength:43,bendSide:"left"}})).toMatch(/ik must define/);
+    expect(invalid({ik:{upperLength:1024,lowerLength:43,bendSide:"left"}})).toMatch(/ik must define/);
+    expect(invalid({ik:{upperLength:43,lowerLength:43,bendSide:"invalid" as "left"}})).toMatch(/ik must define/);
+    expect(invalid({bend:10})).toMatch(/mutually exclusive/);
+    expect(invalid({bendKeys:[{frame:0,bend:10}]})).toMatch(/mutually exclusive/);
+    expect(()=>crayonWalkScene("landscape",{stride:Infinity})).toThrow(/walk settings/);
+    expect(()=>crayonWalkScene("portrait",{lift:0})).toThrow(/walk settings/);
   });
 
   it("fails on wrong FilmStage output dimensions",async()=>{
