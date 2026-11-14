@@ -69,6 +69,19 @@ export interface CrayonContourElement extends CrayonBase {
   width: number;
   opacity?: number;
 }
+/** Authored drawing anchor on a moving element, prior to camera framing. */
+export interface CrayonAnchorRef { elementId: string; anchor: {x:number; y:number} }
+/** A wax-outline connector follows two independently animated anchors. */
+export interface CrayonConnectorElement extends CrayonBase {
+  kind: "connector";
+  from: CrayonAnchorRef;
+  to: CrayonAnchorRef;
+  color: CrayonColor;
+  width: number;
+  opacity?: number;
+  /** Signed knee/elbow curvature normal to the line between the endpoints. */
+  bend?: number;
+}
 export interface CrayonLetteringElement extends CrayonBase {
   kind: "lettering";
   lines: readonly string[];
@@ -81,7 +94,7 @@ export interface CrayonLetteringElement extends CrayonBase {
   /** Contrast backing for captions against visually complex wax. */
   backing?: { color: CrayonColor; padding: number; width: number; height: number; radius?: number };
 }
-export type CrayonElement = CrayonWaxElement | CrayonContourElement | CrayonLetteringElement;
+export type CrayonElement = CrayonWaxElement | CrayonContourElement | CrayonLetteringElement | CrayonConnectorElement;
 
 export interface CrayonCameraKey {
   frame: number;
@@ -259,6 +272,26 @@ export function inspectCrayonScene(input: unknown): string[] {
             }
           }
         }
+      } else if (node.kind === "connector") {
+        if (node.parentId !== undefined || node.placement !== undefined ||
+          node.motion !== undefined || node.pivot !== undefined || node.contacts !== undefined ||
+          node.screenSpace)
+          errors.push(p + ".connector is evaluated in world-space and cannot inherit local transforms");
+        checkColor(String(node.color),"color for "+p,errors);
+        if (!finite(node.width) || node.width <= 0 || node.width > 64)
+          errors.push(p + ".width out of bounds");
+        if (node.opacity !== undefined && (!finite(node.opacity) || node.opacity < 0 || node.opacity > 1))
+          errors.push(p + ".opacity out of bounds");
+        if (node.bend !== undefined && (!finite(node.bend) || Math.abs(node.bend)>500))
+          errors.push(p + ".bend must be a bounded finite offset");
+        for(const end of ["from","to"] as const){
+          const ref=node[end];
+          if(!ref || typeof ref.elementId !== "string" ||
+            !/^[a-z][a-z0-9-]{1,63}$/.test(ref.elementId) ||
+            !ref.anchor || ![ref.anchor.x,ref.anchor.y].every(finite) ||
+            Math.abs(ref.anchor.x)>8192 || Math.abs(ref.anchor.y)>8192)
+            errors.push(p+"."+end+" must reference a bounded drawing anchor");
+        }
       } else if (node.kind === "lettering") {
         if (!Array.isArray(node.lines) || node.lines.length === 0 || node.lines.length > 6 ||
           node.lines.some((line: string) => typeof line !== "string" || line.length < 1 || line.length > 160))
@@ -286,7 +319,16 @@ export function inspectCrayonScene(input: unknown): string[] {
   if (Array.isArray(v.elements)) {
     const byId = new Map(v.elements.filter((e): e is CrayonElement => !!e && typeof e.id === "string").map(e => [e.id,e]));
     for (const [index,node] of v.elements.entries()) {
-      if (!node || typeof node !== "object" || !node.parentId) continue;
+      if (!node || typeof node !== "object") continue;
+      if (node.kind === "connector") {
+        for(const end of ["from","to"] as const){
+          const ref=node[end];
+          const target=ref && typeof ref.elementId==="string" ? byId.get(ref.elementId) : undefined;
+          if (!target || target.kind==="connector" || !!target.screenSpace)
+            errors.push("elements["+index+"]."+end+" must target a world-space non-connector element");
+        }
+      }
+      if (!node.parentId) continue;
       const parent=byId.get(node.parentId);
       if (!parent) { errors.push("elements["+index+"].parentId does not exist"); continue; }
       if (!!parent.screenSpace !== !!node.screenSpace)
@@ -480,4 +522,39 @@ export function crayonDrawingAt<T extends CrayonWaxElement | CrayonContourElemen
   const selected=index ? drawings[index-1] : node;
   return {d:selected.d, bounds:node.kind==="wax" ?
     (index ? (selected as CrayonWaxDrawing).bounds : node.bounds) : undefined, index};
+}
+
+
+/** Camera-independent anchor position including inherited planted-parent offsets. */
+export function crayonVisiblePoint(
+  spec:CrayonSceneSpec,node:CrayonElement,frame:number,anchor:Readonly<{x:number;y:number}>,
+  reducedMotion=false,
+):{x:number;y:number}{
+  const raw=crayonWorldPoint(spec,node,frame,anchor,reducedMotion);
+  const delta=crayonContactOffset(spec,node,frame,reducedMotion);
+  return {x:raw.x+(delta?.x??0),y:raw.y+(delta?.y??0)};
+}
+
+/**
+ * Material-native connecting contour between any two authored character parts.
+ * Curvature is a signed, fixed-size perpendicular offset; no implicit IK solver,
+ * mutable physics integration or SVG injection from source data.
+ */
+export function crayonConnectorPath(
+  spec:CrayonSceneSpec,node:CrayonConnectorElement,frame:number,reducedMotion=false,
+):string{
+  if(!int(frame)||frame<0)throw new RangeError("Connector frame must be nonnegative integer");
+  const byId=new Map(spec.elements.map(x=>[x.id,x]));
+  const a=byId.get(node.from.elementId),b=byId.get(node.to.elementId);
+  if(!a||!b||a.kind==="connector"||b.kind==="connector")
+    throw new RangeError("Crayon connector requires two valid source anchors");
+  const at=reducedMotion?spec.durationFrames-1:
+    Math.floor(frame/(node.poseCadence??1))*(node.poseCadence??1);
+  const from=crayonVisiblePoint(spec,a,at,node.from.anchor,reducedMotion);
+  const to=crayonVisiblePoint(spec,b,at,node.to.anchor,reducedMotion);
+  const dx=to.x-from.x,dy=to.y-from.y,dist=Math.hypot(dx,dy);
+  const bend=node.bend??0;
+  const midX=(from.x+to.x)/2+(dist>0?-dy/dist*bend:0);
+  const midY=(from.y+to.y)/2+(dist>0?dx/dist*bend:0);
+  return "M"+from.x+" "+from.y+" Q"+midX+" "+midY+" "+to.x+" "+to.y;
 }
