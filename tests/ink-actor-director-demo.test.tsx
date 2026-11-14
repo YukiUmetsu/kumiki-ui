@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { validateCharacterDefinition } from "../registry/character/validate";
 import { samplePoseCorrection } from "../registry/character/authoring";
 import { InkDirectorFilm, INK_WALKING_TRAVELLER, inkDirectorGait,
-  inkDirectorInstance, inkDirectorRoute, inkDirectorBackdrop } from "../src/video/ink-actor-director-demo";
+  inkDirectorInstance, inkDirectorRoute, inkDirectorBackdrop, makeInkWalkingTraveller, INK_TRAVELLER_FOLDS } from "../src/video/ink-actor-director-demo";
 import { inkWalkAt, inkRouteAt, bakeInkActorTrack, auditInkWalkContacts } from "../registry/video/ink-actor-director";
 
 describe("INK4 authored character and cinematic stage",()=>{
@@ -17,6 +17,28 @@ describe("INK4 authored character and cinematic stage",()=>{
     expect(INK_WALKING_TRAVELLER.parts.some(p=>p.id==="eyes")).toBe(true);
     expect(INK_WALKING_TRAVELLER.speech?.visemes).toBeDefined();
     expect(INK_WALKING_TRAVELLER.actions.step).toBeUndefined();
+  });
+  it("adds artist-authored part-local pressure folds while preserving the approved rig",()=>{
+    const bare=makeInkWalkingTraveller({detail:0,contrast:.85,seed:83});
+    const crafted=makeInkWalkingTraveller({detail:1,contrast:1.25,seed:83});
+    expect(Object.keys(crafted.assets).sort()).toEqual(Object.keys(bare.assets).sort());
+    expect(crafted.parts).toEqual(bare.parts);
+    expect(crafted.actions).toEqual(bare.actions);
+    expect(Object.keys(INK_TRAVELLER_FOLDS)).toContain("robe");
+    const source=bare.assets.robe,costume=crafted.assets.robe;
+    expect(source.kind).toBe("shapes");
+    expect(costume.kind).toBe("shapes");
+    if(source.kind==="shapes"&&costume.kind==="shapes"){
+      expect(costume.shapes.length).toBeGreaterThan(source.shapes.length+8);
+      expect(costume.shapes.some(s=>s.type==="path"&&s.opacity!==undefined&&s.opacity<1)).toBe(true);
+    }
+    expect(validateCharacterDefinition(crafted).filter(x=>x.severity==="error")).toEqual([]);
+    for(const aspect of ["landscape","portrait"] as const) {
+      const sparse=renderToStaticMarkup(createElement(InkDirectorFilm,{frame:135,aspect,foldDetail:0}));
+      const rich=renderToStaticMarkup(createElement(InkDirectorFilm,{frame:135,aspect,foldDetail:1,foldContrast:1.2}));
+      expect(rich.length).toBeGreaterThan(sparse.length);
+      expect(rich).toContain('data-km-ink-character-part="body"');
+    }
   });
   it("uses 218 absolute-frame correction keys per part then eases back to the source rest rig",()=>{
     const instance=inkDirectorInstance("landscape");
