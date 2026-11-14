@@ -198,7 +198,9 @@ export function evaluateRisoCharacter(
   if (issues.length) throw new RangeError(issues.map(p => p.path + ": " + p.message).join("; "));
   if (!integer(frame) || frame < 0) throw new RangeError("character frame must be a nonnegative integer");
   const raw = options.reducedMotion ? spec.durationFrames - 1 : Math.min(frame, spec.durationFrames - 1);
-  const sampledFrame = options.reducedMotion ? raw : Math.floor(raw / (spec.cadence ?? 1)) * (spec.cadence ?? 1);
+  // Reduced motion resolves the same final *printed cel* as ordinary playback.
+  // Sampling an unheld final subframe makes the supposedly stable poster change.
+  const sampledFrame = Math.floor(raw / (spec.cadence ?? 1)) * (spec.cadence ?? 1);
   let expression = "neutral";
   for (const key of spec.expressions ?? []) {
     if (key.frame <= sampledFrame) expression = key.name;
