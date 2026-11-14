@@ -16,6 +16,12 @@ for(const actor of [
     await expect(faceView.locator('[data-km-riso-face-ink="wing-left"]')).toHaveCount(0);
     await expect(faceView.locator('[data-km-riso-face-ink="left-upper-sleeve"]')).toHaveCount(0);
     await expect(svg.locator("[data-km-riso-sheet-pose]")).toHaveCount(3);
+    if(actor.slug==="paper-bird"){
+      await expect(svg.locator("[data-km-riso-wing-detail]")).toHaveCount(2);
+      await expect(svg.locator('[data-km-riso-wing-cage="left-wing"]')).toHaveCount(1);
+    } else {
+      await expect(svg.locator("[data-km-riso-wing-detail]")).toHaveCount(0);
+    }
     await expect(svg.locator("[data-km-riso-mesh-region]").first()).toBeVisible();
     await page.getByRole("combobox",{name:"Character sheet selected region"})
       .selectOption(actor.part);
