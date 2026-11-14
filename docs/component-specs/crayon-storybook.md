@@ -765,3 +765,29 @@ Both options are exposed in **Video production / Film Looks / Crayon /
 Scene Engine** and in Material Studies. The comparison can be watched
 with the same seed and material settings. Changing this control never
 resets the underlying film or invents a new timeline.
+
+## Paper relief and wax contact (2026-11-14)
+
+The Paper primitive now defines a **world-anchored 144 × 144, transparent,
+seeded relief tile** in addition to its existing fiber texture. Every wax
+region on the page samples the same relief coordinates. Pressing a crayon
+softly creates stronger grain interruptions; pressing firmly deposits wax
+through more of the substrate's valleys. The contact response is derived
+continuously from existing `pressure`, not from a new discrete rendering mode.
+
+Only the **textured wax layer** uses this new relief mask. The opaque
+silhouette's finished underlying color remains unmasked and fully blocking.
+The paper-tooth slider scales the number of relief fragments, including zero
+for a perfectly smooth paper. World anchoring is stable under frame seeking;
+no canvas state, image assets, non-commercial third-party textures, browser
+noise filters or shader dependencies were added.
+
+Storybook: **Video production / Film Looks / Crayon / Material Studies /
+Pressure Against Paper Tooth**, with linked pressure, surface and frame
+controls. The example uses the same original character on both sides, with
+soft and firm contact selected by `pressureSplit`.
+
+**Limits:** this is an efficient optical approximation of pressure and
+raised fiber interactions, not a physical 3D paper height field. Wax erasure,
+directional smearing, layer thickness, specular gloss and true wet transfer
+remain separate research and craftsmanship priorities.

@@ -64,6 +64,9 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const raw = useId(), clip = "waxclip-" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
   const pores = clip + "-tooth";
   const deposit = clip + "-deposit";
+  // Contact pressure changes the opacity of raised paper-grain interruptions.
+  // This remains a detail mask for the wax layer, never for opaque underpaint.
+  const reliefContact = Number((.26 + (1-pressure)*.67).toFixed(4));
   const marks = useMemo(() => crayonMarks(drawBounds, { seed, pressure, spacing, passes: 2, strokeOrder }),
     [drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, seed, pressure, spacing, strokeOrder]);
   // Stable painted paper / silhouette; the small reworked pigment strokes are
@@ -108,6 +111,12 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         <rect x={bounds.x - 25} y={bounds.y - 25}
           width={bounds.width + 50} height={bounds.height + 50}
           fill={"url(#" + tooth + "-texture)"} />
+        {/* Same paper coordinates for every overlapping wax layer. Dark ridges
+            interrupt light contact more strongly; heavy wax fills the tooth. */}
+        <rect x={bounds.x - 25} y={bounds.y - 25}
+          width={bounds.width + 50} height={bounds.height + 50}
+          fill={"url(#" + tooth + "-relief)"} opacity={reliefContact}
+          data-km-crayon-paper-contact={reliefContact} />
       </mask>
     </defs>
     {/* Solid underpainting is deposited BEFORE rough wax layers but OUTSIDE the
@@ -195,8 +204,30 @@ export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" 
     dx: 1 + crayonHash(seed, i, 3) * 14, dy: (crayonHash(seed, i, 4) - .5) * 4,
     r: .4 + crayonHash(seed, i, 5) * 1.4,
   })), [seed, width, height]);
+  // A finite repeat tile shared by all strokes and surfaces. These asymmetric
+  // ridge fragments are seeded on the paper, not on the moving actor. Sampling
+  // is invariant to frame, camera, aspect and to the number of wax elements.
+  const relief = useMemo(() => Array.from({length:164},(_,i)=>({
+    x:crayonHash(seed, i, 101)*144,
+    y:crayonHash(seed, i, 102)*144,
+    dx:1.1+crayonHash(seed, i, 103)*5.7,
+    dy:(crayonHash(seed, i, 104)-.5)*3.4,
+    width:.45+crayonHash(seed, i, 105)*1.55,
+    depth:.55+crayonHash(seed, i, 106)*.45,
+  })),[seed]);
   return <>
     <defs>
+      <pattern id={tooth + "-relief"} width={144} height={144}
+        patternUnits="userSpaceOnUse" data-km-crayon-paper-relief="">
+        {/* Transparent outside dark contact-resistant ridges. No bright dots
+            are painted on top of a finished character or scene. */}
+        <g stroke="#151619" fill="none" strokeLinecap="round">
+          {relief.slice(0,Math.round(strength*164)).map((f,i)=>
+            <path key={i} d={"M"+f.x.toFixed(2)+" "+f.y.toFixed(2)+
+              "l"+f.dx.toFixed(2)+" "+f.dy.toFixed(2)}
+              opacity={f.depth} strokeWidth={f.width} />)}
+        </g>
+      </pattern>
       <pattern id={tooth + "-texture"} width={144} height={144} patternUnits="userSpaceOnUse">
         <rect width={144} height={144} fill="#fff"/>
         {/* Small, translucent tooth interruptions, not bright white digital confetti. */}
