@@ -13,6 +13,8 @@ export interface InkPosterProps {
   loadScale?: number;
   reducedMotion?: boolean;
   paperTooth?: number;
+  bleed?: number;
+  renderMode?: "wet" | "vector";
 }
 type ControlPoint = readonly [number, number, number, number?];
 interface AuthoredMark {
@@ -102,7 +104,7 @@ export function inkPosterSpec(
 const TONE = "#303B3C";
 export function InkBrushPoster({
   aspect, subject, frame, seed = 17, widthScale = 1, drynessScale = 1,
-  loadScale = 1, reducedMotion = false, paperTooth = .45,
+  loadScale = 1, reducedMotion = false, paperTooth = .45, bleed = .65, renderMode = "wet",
 }: InkPosterProps) {
   const spec = inkPosterSpec(aspect, subject, seed, widthScale, drynessScale, loadScale);
   const portrait = aspect === "portrait";
@@ -112,7 +114,7 @@ export function InkBrushPoster({
   const x = portrait ? 43 : 55, header = portrait ? 48 : 46;
   const ys = portrait ? [132,207,282] : [148,225,302];
   return <InkBrushCanvas spec={spec} frame={frame} reducedMotion={reducedMotion}
-      paperTooth={paperTooth} label={"Ink brush study: " + title.join(" ")}>
+      paperTooth={paperTooth} bleed={bleed} renderMode={renderMode} label={"Ink brush study: " + title.join(" ")}>
     <g data-km-ink-poster-text="" fill={TONE} fontFamily="Arial,Helvetica,sans-serif">
       <rect x={x} y={header - 9} width={27} height={3} />
       <text x={x + 40} y={header} fontSize={12} letterSpacing={2.2} fontWeight={700}>INK FIELD NOTES   /   VOL. 01</text>
@@ -128,7 +130,7 @@ export function InkBrushPoster({
       <path d={"M" + x + " " + (portrait ? 887 : 475) + "H" + (portrait ? 493 : 915)}
         stroke={TONE} strokeWidth={.8} opacity={.6} />
       <text x={x} y={portrait ? 913 : 501} fontSize={11} letterSpacing={1.4}>DEPOSIT / PRESSURE / PAPER</text>
-      <text x={x} y={portrait ? 938 : 522} fontSize={10.5} letterSpacing={1.1}>ORIGINAL VECTOR INK · NO IMAGE FILTER</text>
+      <text x={x} y={portrait ? 938 : 522} fontSize={10.5} letterSpacing={1.1}>ORIGINAL BRUSH STUDY · PAPER PIGMENT</text>
       <text x={portrait ? 441 : 860} y={portrait ? 938 : 522} fontSize={10.5} letterSpacing={1.2}>{subject === "delta" ? "01 / 02" : "02 / 02"}</text>
     </g>
   </InkBrushCanvas>;
