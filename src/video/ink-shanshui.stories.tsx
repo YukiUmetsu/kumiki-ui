@@ -16,9 +16,10 @@ const style={
 };
 function Gallery(){
   const [controls,setControls]=useState<ShanshuiControls>(DEFAULT_SHANSHUI);
-  const [frame,setFrame]=useState(150);
+  // Start inside the walking performance, after the first wash reveal.
+  const [frame,setFrame]=useState(84);
   const [playing,setPlaying]=useState(false);
-  const [playStart,setPlayStart]=useState(150);
+  const [playStart,setPlayStart]=useState(84);
   const [reduced,setReduced]=useState(false);
   const [scholar,setScholar]=useState(true);
   const [cloth,setCloth]=useState(.72);
