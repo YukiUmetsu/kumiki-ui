@@ -19,12 +19,10 @@ function CrayonPlayer({story,aspect,seed,pressure,paperTooth,reducedMotion,start
   useEffect(()=>{setFrame(startFrame);setPlaying(false);},[startFrame]);
   useEffect(()=>{
     if(!playing) return;
-    const timer = window.setInterval(()=>setFrame(old=>{
-      if(old >= 419) {setPlaying(false);return 419;}
-      return old+1;
-    }),1000/30);
+    const timer = window.setInterval(()=>setFrame(old=>Math.min(419,old+1)),1000/30);
     return ()=>window.clearInterval(timer);
   },[playing]);
+  useEffect(()=>{if(frame>=419 && playing)setPlaying(false);},[frame,playing]);
   const chapters = [
     {name:"1 · Paper & sky",frame:25},
     {name:"2 · Scene emerges",frame:156},
