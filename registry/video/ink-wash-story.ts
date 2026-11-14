@@ -57,6 +57,8 @@ export interface InkLayerPlan {
   parallax?: number;
   /** "wash" produces a graphic monochrome treatment; "original" preserves live source color. */
   treatment?: "wash" | "original";
+  /** Opt-in pointer events for quiz controls, video transport and interactive overlays. */
+  interactive?: boolean;
 }
 export interface InkCameraKeyframe {
   frame: number;
@@ -141,6 +143,8 @@ export function inspectInkFilm(plan: InkFilmPlan): InkPlanIssue[] {
           error(loc+"/origin","Bloom origin must have two normalized coordinates.");
         if(layer?.parallax !== undefined && !numeric(layer.parallax,0,2))
           error(loc+"/parallax","Parallax must be 0..2.");
+        if(layer?.interactive !== undefined && typeof layer.interactive !== "boolean")
+          error(loc+"/interactive","Interactive must be a boolean.");
         if(layer?.treatment !== undefined && layer.treatment!=="original" && layer.treatment!=="wash")
           error(loc+"/treatment","Treatment must be original or wash.");
       });
