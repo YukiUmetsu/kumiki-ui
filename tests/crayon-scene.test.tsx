@@ -341,11 +341,16 @@ describe("CRAYON1 data-driven scene grammar",()=>{
       const hip=scene.elements.find(n=>n.id==="body");
       if(!leg||leg.kind!=="connector"||!foot||!hip)
         throw new Error("missing connector rig");
-      const point=(frame:number)=>crayonVisiblePoint(scene,foot,frame,leg.to.anchor);
-      const fixed=point(94);
-      const planted=point(156);
+      // The sole pivot stays fixed while the ankle can move as the foot rocks.
+      const contact=foot.contacts?.find(c=>c.start===94);
+      if(!contact)throw new Error("no planted sole contact");
+      const sole=(frame:number)=>crayonVisiblePoint(scene,foot,frame,contact.anchor);
+      const ankle=(frame:number)=>crayonVisiblePoint(scene,foot,frame,leg.to.anchor);
+      const fixed=sole(94),planted=sole(156);
       expect(planted.x).toBeCloseTo(fixed.x,5);
       expect(planted.y).toBeCloseTo(fixed.y,5);
+      expect(ankle(94).x).not.toBeCloseTo(ankle(156).x,5);
+      const point=ankle;
       expect(crayonConnectorBendAt(leg,65)).toBe(crayonConnectorBendAt(leg,64));
       expect(crayonConnectorBendAt(leg,65)).toBeLessThan(-25);
       expect(crayonConnectorBendAt(leg,95)).toBeCloseTo(crayonConnectorBendAt(leg,94),5);
