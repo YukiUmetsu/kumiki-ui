@@ -130,8 +130,14 @@ describe("multi-actor crayon dragon village",()=>{
       expect(dragon.camera?.[0].zoom).toBeGreaterThan(1.5);
       expect(castle.camera?.[0].zoom).toBeGreaterThan(1.5);
       expect(dragon.camera?.[0].focusX).not.toEqual(castle.camera?.[0].focusX);
-      expect(dragon.elements).toEqual(base.elements);
-      expect(castle.elements).toEqual(base.elements);
+      expect(dragon.elements).toEqual(base.elements.filter(e=>e.kind!=="lettering"));
+      expect(castle.elements).toEqual(base.elements.filter(e=>
+        e.kind!=="lettering" && !/^(dragon|owl|friend)-/.test(e.id)));
+      expect(castle.elements.some(e=>e.id==="castle-main")).toBe(true);
+      expect(castle.elements.some(e=>e.id==="dragon-body")).toBe(false);
+      expect(dragon.elements.some(e=>e.id==="dragon-body")).toBe(true);
+      expect(base.elements.some(e=>e.id==="dragon-village-title")).toBe(true);
+      expect(dragon.elements.some(e=>e.id==="dragon-village-title")).toBe(false);
       expect(dragon.durationFrames).toBe(330);
       expect(dragon.camera?.[0].zoom).toBe(dragon.camera?.[2].zoom);
     }
