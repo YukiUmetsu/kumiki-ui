@@ -5,7 +5,7 @@ test("reader's only reworked part is a complete asymmetric face with independent
     await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
     const drawing=page.getByTestId("reader-coded-face");
     await expect(drawing).toBeVisible();
-    for(const key of ["face","hair","brows","eyes","mouth","pupil-left","pupil-right"]){
+    for(const key of ["face","hair","reader-ear","brows","eyes","mouth","pupil-left","pupil-right"]){
       await expect(drawing.locator('[data-ink-reader-part="'+key+'"]'))
         .toHaveCount(1);
     }
