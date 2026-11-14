@@ -103,7 +103,7 @@ export function InkWashScene({
       // All content keeps its original complete dimensions so camera scale cannot crop its own matte.
       return <div key={layer.id} data-km-ink-layer-host={layer.id} style={{
         width: spec.width, height: spec.height, position: "absolute", inset: 0,
-        transform, transformOrigin: "50% 50%", pointerEvents: "none",
+        transform, transformOrigin: "50% 50%", pointerEvents: layer.interactive ? "auto" : "none",
       }}>
         <InkMediaReveal width={spec.width} height={spec.height} layer={layer} frame={frame}
           reducedMotion={reducedMotion}>
