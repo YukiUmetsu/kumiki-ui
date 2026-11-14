@@ -16,6 +16,8 @@ import { COLLAGE_CHANNELS, COLLAGE_EASES } from "./collage-motion";
 import type { CollageFontRole, CollageFonts } from "./collage-type";
 import type { CollagePuppetAction, CollagePuppetLook } from "./collage-puppet";
 import { inspectPuppet } from "./collage-puppet";
+import type { RigSpec } from "../../rig/rig-spec";
+import { inspectRig } from "../../rig/rig-spec";
 
 export type CollageColor = `#${string}`;
 /** A literal colour or a palette role name such as `"accent"`. */
@@ -237,6 +239,15 @@ export interface CollageStringNode extends CollageBase {
   sag?: number;
 }
 
+/** Any RIG1 rig (person, animal, dragon, vehicle, machine…) drawn in a film look. Its root keys are node-local. */
+export interface CollageRigNode extends CollageBase {
+  kind: "rig";
+  rig: RigSpec;
+  /** Film look the rig is painted in; defaults to paper collage. */
+  look?: "flat" | "collage" | "crayon" | "riso" | "ink" | "blueprint";
+  showBones?: boolean;
+}
+
 export interface CollagePuppetNode extends CollageBase {
   kind: "puppet";
   look: CollagePuppetLook;
@@ -248,7 +259,7 @@ export interface CollagePuppetNode extends CollageBase {
 
 export type CollageNode =
   | CollageCutoutNode | CollageTextNode | CollageMarkerNode | CollageTapeNode | CollageImageNode
-  | CollageGroupNode | CollageMapNode | CollageRouteNode | CollageStringNode | CollagePuppetNode | CollageSpotlightNode;
+  | CollageGroupNode | CollageMapNode | CollageRouteNode | CollageStringNode | CollagePuppetNode | CollageSpotlightNode | CollageRigNode;
 export type CollageNodeKind = CollageNode["kind"];
 
 export interface CollageSceneSpec {
@@ -290,7 +301,7 @@ const HEX = /^#[0-9a-fA-F]{6}$/;
 const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const int = (v: unknown): v is number => Number.isSafeInteger(v);
 const inRange = (v: unknown, lo: number, hi: number) => finite(v) && v >= lo && v <= hi;
-const KINDS: readonly CollageNodeKind[] = ["cutout", "text", "marker", "tape", "image", "group", "map", "route", "string", "puppet", "spotlight"];
+const KINDS: readonly CollageNodeKind[] = ["cutout", "text", "marker", "tape", "image", "group", "map", "route", "string", "puppet", "spotlight", "rig"];
 const MOVES = ["slide", "drop", "pop", "flip", "unfold", "grow", "fade", "stamp", "swing", "draw", "peel", "none"];
 const EDGES: readonly EdgeStyle[] = ["torn", "cut", "deckle", "clean"];
 const BOARDS: readonly CollageBoardMaterial[] = ["kraft", "cream", "newsprint", "cork", "card", "graph", "blackboard", "flat", "slate"];
@@ -566,6 +577,10 @@ export function inspectCollageScene(input: unknown): string[] {
       case "string":
         if (!Array.isArray(node.ends) || node.ends.length !== 2) errors.push(p + ".ends must be two points or node ids");
         if (node.color !== undefined) checkPaint(node.color, palette, p + ".color", errors);
+        break;
+      case "rig":
+        for (const e of inspectRig(node.rig)) errors.push(p + ".rig." + e);
+        if (node.look !== undefined && !["flat", "collage", "crayon", "riso", "ink", "blueprint"].includes(node.look)) errors.push(p + ".look is not a rig look");
         break;
       case "puppet":
         if (node.height !== undefined && !inRange(node.height, 20, 4000)) errors.push(p + ".height must be 20..4000");
