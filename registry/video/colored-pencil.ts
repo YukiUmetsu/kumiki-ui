@@ -16,6 +16,10 @@ export interface PencilPigmentLayer extends PencilTiming {
   tipWidth: number;
   /** Controls seeded waviness, not frame jitter. */
   seed: number;
+  /** Form-following fan: per-row direction changes smoothly across the region, -60..60 degrees. */
+  flow?: number;
+  /** Optical value distribution across a form. Defaults to an even deposit. */
+  tone?: "even" | "core" | "rim";
 }
 export interface PencilTrace extends PencilTiming {
   path: string;
@@ -49,6 +53,8 @@ export interface PencilMark extends PencilTiming {
   path: string;
   width: number;
   opacity: number;
+  /** Paper-stable local rotation used for form-following strokes. */
+  angleOffset?: number;
 }
 /** Stable integer hash; deterministic across server, Chromium and out-of-order seeks. */
 export function pencilHash(seed: number, index: number, salt: number): number {
@@ -113,6 +119,8 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
           !Number.isFinite(layer.spacing) || layer.spacing < 3 || layer.spacing > 32 ||
           !Number.isFinite(layer.pressure) || layer.pressure < 0 || layer.pressure > 1 ||
           !Number.isFinite(layer.tipWidth) || layer.tipWidth < .3 || layer.tipWidth > 4 ||
+          (layer.flow !== undefined && (!Number.isFinite(layer.flow) || Math.abs(layer.flow) > 60)) ||
+          (layer.tone !== undefined && !["even", "core", "rim"].includes(layer.tone)) ||
           !Number.isSafeInteger(layer.seed) || layer.seed < 0 ||
           !Number.isSafeInteger(layer.startFrame) || layer.startFrame < 0 ||
           !Number.isSafeInteger(layer.durationFrames) || layer.durationFrames < 8)
@@ -139,6 +147,8 @@ export function hatchPencilRegion(region: PencilRegion, layer: PencilPigmentLaye
     layer.pressure < 0 || layer.pressure > 1 ||
     layer.tipWidth < .3 || layer.tipWidth > 4 ||
     Math.abs(layer.angle) > 180 ||
+    (layer.flow !== undefined && (!Number.isFinite(layer.flow) || Math.abs(layer.flow) > 60)) ||
+    (layer.tone !== undefined && !["even", "core", "rim"].includes(layer.tone)) ||
     !Number.isSafeInteger(layer.seed) || !Number.isSafeInteger(layer.startFrame) ||
     !Number.isSafeInteger(layer.durationFrames) || layer.durationFrames < 8)
     throw new RangeError("Invalid pencil hatch geometry or timing.");
@@ -154,6 +164,12 @@ export function hatchPencilRegion(region: PencilRegion, layer: PencilPigmentLaye
     const start = layer.startFrame + Math.floor(i * Math.max(0, layer.durationFrames - 14) / Math.max(1, rows - 1));
     const pressure = .48 + pencilHash(layer.seed, i, 3) * .52;
     const widthHere = layer.tipWidth * (.36 + .64 * layer.pressure) * pressure;
+    const across = rows <= 1 ? .5 : i / (rows - 1);
+    // Gradually fanning the hatch follows a convex surface rather than creating a CAD grid.
+    // The angles depend on authored paper coordinates only, never playback order.
+    const angleOffset = (layer.flow ?? 0) * (across * 2 - 1);
+    const tone = layer.tone === "core" ? .47 + .53 * Math.sin(Math.PI * across) :
+      layer.tone === "rim" ? .56 + .44 * Math.abs(2 * across - 1) : 1;
     // A pencil moves in broken gestures as its point lifts off toothy paper. Earlier
     // full-width quadratic curves made a perfectly regular CAD hatch; these seeded,
     // bounded short segments retain an authored direction without forming a digital grid.
@@ -176,7 +192,8 @@ export function hatchPencilRegion(region: PencilRegion, layer: PencilPigmentLaye
     return {
       path: pieces.join(" "),
       width: widthHere,
-      opacity: (.19 + layer.pressure * .48) * (.65 + pencilHash(layer.seed, i, 5) * .35),
+      opacity: (.19 + layer.pressure * .48) * (.65 + pencilHash(layer.seed, i, 5) * .35) * tone,
+      angleOffset,
       startFrame: start,
       durationFrames: 14,
     };
@@ -199,17 +216,24 @@ export interface PencilObjectInput {
   /** Shading direction follows the authored object's dominant form. */
   direction?: number;
   material?: "soft" | "layered" | "dense";
+  /** A curved object needs directional stroke fan, independent of camera movement. */
+  flow?: number;
+  /** Value emphasis for cylindrical, convex or rim-lit forms. */
+  tone?: "even" | "core" | "rim";
   contourColor?: string;
   transform?: string;
   details?: readonly PencilTrace[];
 }
 export function createPencilRegion(input: PencilObjectInput): PencilRegion {
   const { id, path, bounds, palette, seed, startFrame, durationFrames, direction = -28,
-    material = "layered", contourColor = "#444A45", transform, details } = input;
+    material = "layered", contourColor = "#444A45", transform, details,
+    flow = 0, tone = "even" } = input;
   if (!Number.isSafeInteger(startFrame) || startFrame < 0 ||
       !Number.isSafeInteger(durationFrames) || durationFrames < 30 ||
       !Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647 ||
       !Number.isFinite(direction) || Math.abs(direction) > 180 ||
+      !Number.isFinite(flow) || Math.abs(flow) > 60 ||
+      !["even", "core", "rim"].includes(tone) ||
       palette.length !== 3 || palette.some(c => !HEX.test(c)) || !HEX.test(contourColor) ||
       !["soft", "layered", "dense"].includes(material))
     throw new RangeError("Invalid pencil object palette, material, direction or drawing frames.");
@@ -221,6 +245,7 @@ export function createPencilRegion(input: PencilObjectInput): PencilRegion {
   const style = presets[material];
   const layers: PencilPigmentLayer[] = palette.map((color, i) => ({
     color, angle: Math.max(-180, Math.min(180, direction + [0, 73, -44][i])),
+    flow: flow * [1, -.42, .64][i], tone,
     spacing: style.spacing[i], pressure: style.pressure[i], tipWidth: style.tip[i],
     seed: seed + i * 307, startFrame: startFrame + Math.floor(i * durationFrames * .23),
     durationFrames: Math.max(8, Math.floor(durationFrames * .7)),
