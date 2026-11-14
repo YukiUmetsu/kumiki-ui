@@ -648,9 +648,15 @@ export function crayonDragonVillageScene(
   } : shot==="architecture" ? {
     x:tx,y:ty-(portrait?100:135)*tscale,zoom:portrait?1.7:1.9,
   } : {x:W/2,y:H/2,zoom:1};
+  // Detail studies are uncluttered production views, not alternate story cuts:
+  // hide screen-space titles; the architecture view isolates the environment.
+  // The wide shot retains every original actor, caption and story beat.
+  const visibleElements=shot==="wide" ? elements : elements.filter(node=>
+    node.kind!=="lettering" && (shot!=="architecture" ||
+      !/^(dragon|owl|friend)-/.test(node.id)));
   return {version:1,id:"crayon-dragon-village-"+aspect,
     width:W,height:H,durationFrames:D,
-    paper:"#f7f0e2",paperTooth:.69,seed:7264,elements,
+    paper:"#f7f0e2",paperTooth:.69,seed:7264,elements:visibleElements,
     camera:[{frame:0,focusX:focus.x,focusY:focus.y,zoom:focus.zoom},
       {frame:170,focusX:focus.x,focusY:focus.y+4,
         zoom:focus.zoom+(shot==="wide"?.017:.025)},
