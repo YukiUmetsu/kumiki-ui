@@ -70,6 +70,7 @@ function PaintedWorldsLab() {
   const film = compiled.film;
 
   const currentGenre = PAINTED_GENRES[Math.min(3, Math.floor(frame / 400))];
+  const clearGenreOverride=()=>setCustom(previous=>({...previous,[currentGenre]:undefined}));
   return <main style={{ fontFamily: "system-ui, sans-serif", background: "#E9E3D9",
     color: "#374748", minHeight: "100vh", padding: 22, display: "grid", gap: 15, alignContent: "start" }}>
     <header style={{ maxWidth: 950 }}>
@@ -104,18 +105,18 @@ function PaintedWorldsLab() {
       ] as const).map(field => <label key={field.label} style={{ display: "grid", gap: 4, fontWeight: 650 }}>
         {field.label}: {Math.round(field.value * 100)}%
         <input aria-label={field.label} type="range" min={0} max={1} step={.05}
-          value={field.value} onChange={e => field.set(Number(e.target.value))}/>
+          value={field.value} onChange={e => {clearGenreOverride();field.set(Number(e.target.value));}}/>
       </label>)}
-      <WatercolourSlider label="Paper tooth" value={tooth} onChange={setTooth}/>
-      <WatercolourSlider label="Wash opacity" value={opacity} onChange={setOpacity}/>
-      <WatercolourSlider label="Backrun strength" value={backrun} onChange={setBackrun}/>
+      <WatercolourSlider label="Paper tooth" value={tooth} onChange={v=>{clearGenreOverride();setTooth(v);}}/>
+      <WatercolourSlider label="Wash opacity" value={opacity} onChange={v=>{clearGenreOverride();setOpacity(v);}}/>
+      <WatercolourSlider label="Backrun strength" value={backrun} onChange={v=>{clearGenreOverride();setBackrun(v);}}/>
       <label style={{display:"grid",gap:5,fontWeight:650,fontSize:13}}>Paper colour
         <input aria-label="Painted paper colour" type="color" value={paperColor}
-          onChange={e=>setPaperColor(e.target.value)} style={{height:41,width:80}}/>
+          onChange={e=>{clearGenreOverride();setPaperColor(e.target.value);}} style={{height:41,width:80}}/>
       </label>
       <label style={{ display: "grid", gap: 4, fontWeight: 650 }}>Paper seed
         <input aria-label="Paper seed" style={{...control, width:105}} type="number" min={0} max={2147483647}
-          value={seed} onChange={e => setSeed(Math.max(0, Math.min(2147483647, Math.floor(Number(e.target.value) || 0))))}/>
+          value={seed} onChange={e => {clearGenreOverride();setSeed(Math.max(0, Math.min(2147483647, Math.floor(Number(e.target.value) || 0))));}}/>
       </label>
       <label style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 40, fontWeight: 650 }}>
         <input aria-label="Reduced motion" type="checkbox" checked={reduced}
