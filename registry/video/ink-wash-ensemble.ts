@@ -1,5 +1,5 @@
 /**
- * INK4 ensemble blocking. FilmStage owns time; existing CharacterPresenter owns pose,
+ * INK5 ensemble blocking. FilmStage owns time; existing CharacterPresenter owns pose,
  * speech and expression. This module coordinates multiple approved 2.5D instances
  * and material-native interaction beats without creating a second animation engine.
  */
@@ -57,14 +57,14 @@ const finite = (v: number) => Number.isFinite(v);
 export function assertInkEnsemble(plan: InkEnsemblePlan): void {
   if (!plan || !Array.isArray(plan.actors) || plan.actors.length < 2 || plan.actors.length > 20 ||
       !Array.isArray(plan.beats) || plan.beats.length > 100)
-    throw new RangeError("INK4 requires 2–20 approved actors and 0–100 interaction beats.");
+    throw new RangeError("INK5 requires 2–20 approved actors and 0–100 interaction beats.");
   const ids = new Set<string>(), instances = new Set<string>(), beatIds = new Set<string>();
   for (const actor of plan.actors) {
     assertInkActorTrack(actor.track);
     if (ids.has(actor.track.id) || instances.has(actor.track.instanceId) ||
         !Number.isSafeInteger(actor.depth) || actor.depth < -1000 || actor.depth > 1000 ||
         !finite(actor.radius) || actor.radius <= 0 || actor.radius > 500)
-      throw new RangeError("INK4 requires unique actor/instance IDs, finite depth and positive footprint.");
+      throw new RangeError("INK5 requires unique actor/instance IDs, finite depth and positive footprint.");
     ids.add(actor.track.id);
     instances.add(actor.track.instanceId);
   }
@@ -78,7 +78,7 @@ export function assertInkEnsemble(plan: InkEnsemblePlan): void {
         beat.endFrame > 360000 ||
         (beat.contactDistance !== undefined && (!finite(beat.contactDistance) || beat.contactDistance <= 0 || beat.contactDistance > 4000)) ||
         (beat.minimumSeparation !== undefined && (!finite(beat.minimumSeparation) || beat.minimumSeparation < 0 || beat.minimumSeparation > 4000)))
-      throw new RangeError("INK4 interaction needs unique IDs, known distinct actors and valid timing/distances.");
+      throw new RangeError("INK5 interaction needs unique IDs, known distinct actors and valid timing/distances.");
     beatIds.add(beat.id);
   }
 }
@@ -91,7 +91,7 @@ export function assertInkEnsemble(plan: InkEnsemblePlan): void {
 export function inkEnsembleAt(plan: InkEnsemblePlan, frame: number, reducedMotion = false): InkEnsembleFrame {
   assertInkEnsemble(plan);
   if (!Number.isSafeInteger(frame) || frame < 0 || frame > 360000)
-    throw new RangeError("INK4 needs an absolute nonnegative frame.");
+    throw new RangeError("INK5 needs an absolute nonnegative frame.");
   const sampled = plan.actors.map(actor => ({
     id: actor.track.id, instanceId: actor.track.instanceId,
     depth: actor.depth, radius: actor.radius,
@@ -146,7 +146,7 @@ export function inkPartnerLookTarget(
     .every(finite) || source.scale <= 0 || target.scale <= 0 ||
     sourceDesign.width <= 0 || sourceDesign.height <= 0 ||
     targetDesign.width <= 0 || targetDesign.height <= 0)
-    throw new RangeError("INK4 look target requires finite positive character dimensions and poses.");
+    throw new RangeError("INK5 look target requires finite positive character dimensions and poses.");
   // Visual estimate of another figure's eyes at 30% down from its head-top.
   // Consumers needing exact eye/hand contact should supply tracked part anchors.
   const faceWorldY = target.y - targetDesign.height * target.scale * .70;
