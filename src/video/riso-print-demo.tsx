@@ -116,7 +116,7 @@ function RedInk({ portrait, solid, dots }: { portrait: boolean; solid: string; d
       <path d="M879 161 l-12 -24 27 9z M459 387 l-20 14 26 -1z"/>
       <circle cx={513} cy={142} r={4}/><circle cx={855} cy={383} r={5}/>
     </g>
-    <g transform={"translate(" + stamp.x + " " + stamp.y + ") rotate(-5)"}
+    <g data-km-riso-stamp="" transform={"translate(" + stamp.x + " " + stamp.y + ") rotate(-5)"}
       stroke={solid} fill="none" strokeWidth="2.5">
       <rect x={0} y={0} width={stamp.width} height={stamp.height}/>
       <text x={stamp.textLeft} y={stamp.textTop} fill={solid} stroke="none" fontFamily="Arial, Helvetica, sans-serif"
