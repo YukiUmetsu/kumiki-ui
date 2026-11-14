@@ -320,6 +320,8 @@ export function inspectCrayonScene(input: unknown): string[] {
         if(node.sgraffito!==undefined){
           try {
             assertCrayonSgraffito(node.sgraffito);
+            if(node.coverage!=="opaque")
+              errors.push(p+".sgraffito requires opaque buried pigment");
             if(node.sgraffito.first<node.timing.end||
               node.sgraffito.last>=(v.durationFrames??0))
               errors.push(p+".sgraffito must follow wax deposition and fit duration");
