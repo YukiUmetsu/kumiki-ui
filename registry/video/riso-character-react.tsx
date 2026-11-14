@@ -73,7 +73,7 @@ export function RisoCharacterInk({
   return <g data-km-riso-character={spec.id} data-km-riso-expression={evaluated.expression}
       data-km-riso-sampled-frame={evaluated.sampledFrame}
       transform={`translate(${x} ${y}) scale(${scale})`}>
-    {evaluated.parts.filter(part => part.plate === plateId).map(part =>
+    {evaluated.parts.filter(part => part.plate === plateId && !part.knockoutOnly).map(part =>
       <path key={part.id} data-km-riso-part={part.id} d={part.d}
         transform={part.transform} fill={part.paint === "screen" ? paint.dots : paint.solid}
         opacity={part.opacity} />)}
