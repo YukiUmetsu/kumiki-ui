@@ -57,9 +57,9 @@ jobs:
           sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Encode source-informed reader-face motion proof
         run: |
-          # This PR iteration edits ONLY the young reader's face. Export that
-          # specific film; keep structural regression tests for all three.
-          npm run video:export -- --story=video-ink-shanshui--river-scholar-export --startFrame=115 --frames=96 --output=dist/shanshui-river-scholar.mp4
+          # Include multiple planted-foot stride cycles before the still
+          # contemplation hold. The former late 115–210 window obscured gait QA.
+          npm run video:export -- --story=video-ink-shanshui--river-scholar-export --startFrame=44 --frames=96 --output=dist/shanshui-river-scholar.mp4
       - name: Preserve moving-film evidence
         if: always()
         uses: actions/upload-artifact@v4
