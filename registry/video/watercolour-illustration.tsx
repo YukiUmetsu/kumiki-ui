@@ -95,12 +95,16 @@ export function inspectWatercolourArtwork(spec: WatercolourArtwork): string[] {
   const ids = new Set<string>();
   const visited = new WeakSet<object>();
   let count = 0;
+  let budgetExceeded = false;
   const inspect = (part: WatercolourArtPart, at: string, depth: number) => {
+    if (budgetExceeded) return;
     if (!part || typeof part !== "object" || visited.has(part) || depth > 8) {
       problems.push(at); return;
     }
     visited.add(part);
-    if (++count > 384) { problems.push("/parts/budget"); return; }
+    if (++count > 384) {
+      problems.push("/parts/budget"); budgetExceeded = true; return;
+    }
     if (typeof part.id !== "string" || !/^[a-z][a-z0-9-]{0,47}$/.test(part.id) || ids.has(part.id))
       problems.push(at + "/id");
     else ids.add(part.id);
@@ -127,7 +131,8 @@ export function inspectWatercolourArtwork(spec: WatercolourArtwork): string[] {
     if (part.kind === "group") {
       if (!Array.isArray(part.children) || !part.children.length || part.children.length > 128)
         problems.push(at + "/children");
-      else part.children.forEach((child, j) => inspect(child, at + "/children/" + j, depth + 1));
+      else for (let j = 0; j < part.children.length && !budgetExceeded; j++)
+        inspect(part.children[j], at + "/children/" + j, depth + 1);
       return;
     }
     if (part.kind !== "path") { problems.push(at + "/kind"); return; }
