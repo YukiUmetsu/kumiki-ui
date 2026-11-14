@@ -59,11 +59,13 @@ export function inkDirectorRoute(aspect:DirectorAspect):InkRoutePlan {
   const portrait=aspect==="portrait", y=portrait?810:484;
   return {
     id:"ink-traveler-continuous",instanceId:TRAVELLER_INSTANCE.instanceId,
+    // At 218 the feet settle and the root STOPS; the subsequent expression,
+    // speech recovery and bow act in place instead of gliding on neutral legs.
     stopAtEnds:true,waypoints:portrait
       ?[{frame:0,x:135,y},{frame:110,x:220,y:y-9},
-        {frame:210,x:288,y:y-15},{frame:340,x:305,y:y-15}]
+        {frame:195,x:276,y:y-15},{frame:218,x:288,y:y-15},{frame:340,x:288,y:y-15}]
       :[{frame:0,x:150,y},{frame:110,x:360,y:y-3},
-        {frame:210,x:572,y:y-12},{frame:340,x:638,y:y-12}],
+        {frame:195,x:560,y:y-12},{frame:218,x:572,y:y-12},{frame:340,x:572,y:y-12}],
   };
 }
 export function inkDirectorGait(aspect:DirectorAspect):InkWalkPlan {
