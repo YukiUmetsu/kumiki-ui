@@ -1,0 +1,65 @@
+name: Colored Pencil Film Proof
+
+# Focused browser and production evidence only on pencil-style PR changes.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/colored-pencil-proof.yml"
+      - "registry/video/colored-pencil*"
+      - "src/video/colored-pencil*"
+      - "tests/colored-pencil*"
+      - "tests/e2e-storybook/colored-pencil*"
+      - "examples/film/colored-pencil*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: colored-pencil-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  art-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Focused deterministic pencil material tests
+        run: npx vitest run --project unit tests/colored-pencil-science.test.tsx
+      - name: Verify portable film schema
+        run: npm run film:check -- examples/film/colored-pencil-science.film.json
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Frame-level browser layout, pencil geometry and out-of-order seek
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-science.spec.ts
+      - name: Install FFmpeg for actual film capture
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Encode film and export final illustration in both aspects
+        run: |
+          npm run film:frame -- examples/film/colored-pencil-science.film.json --frame=275 --only=landscape --out=dist/colored-pencil-proof
+          npm run film:frame -- examples/film/colored-pencil-science.film.json --frame=352 --only=portrait --out=dist/colored-pencil-proof
+          npm run film:render -- examples/film/colored-pencil-science.film.json --frames=150 --only=landscape --out=dist/colored-pencil-proof
+      - name: Preserve browser screenshots and pixel diffs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: colored-pencil-browser-evidence
+          path: test-results/
+          retention-days: 10
+          if-no-files-found: warn
+      - name: Preserve actual production film and frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: colored-pencil-production-evidence
+          path: dist/colored-pencil-proof/
+          retention-days: 10
+          if-no-files-found: warn
