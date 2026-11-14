@@ -97,6 +97,12 @@ const result = compileFilm(document, { outputId: "landscape" });
 // from renderSlot: the host must supply its authored InkWashSpec and renderLayer.
 \`\`\`
 
+### Character animation / INK3
+
+Use the existing `CharacterDefinition` + `evaluateCharacter` + `CharacterPresenter` rig, not a second skeleton or animation clock. The `ink-wash-character` pack positions an approved rig in paper/film coordinates; `CharacterPresenter.inkMaterial` adds subtle paper-space displacement and controlled wet edges to each separately animated shape. Optional `partFinish` lets artists keep mouth, eyes and hair dry/crisp while allowing robe or sleeve pigment to bleed. Unknown part IDs and out-of-range values are errors. The example uses one original 19-part traveler with coordinated blink, gesture, speech and expression cues in both output aspects.
+
+The larger reference audit and remaining priorities are recorded in [Chinese ink animation: acting, brushcraft and production reference expansion](research/ink-animation-acting-and-visual-language.md). External film pages and published technique studies were analyzed for visual principles; **no frame-by-frame video playback or film-quality artistic certification is claimed**.
+
 ## 6. Visual quality rubric and remaining gaps
 
 Use the [interactive original ink study](../component-specs/chinese-ink-wash.md) and the **new reusable [multi-genre Storybook story](../../src/video/ink-wash-universal.stories.tsx)**. Compare 16:9 and 9:16 on the final five prescribed stages: blank/onset, opening wash, thick gesture, capillary settle, resolved still. Check a nonsequential seek for raster flicker.
