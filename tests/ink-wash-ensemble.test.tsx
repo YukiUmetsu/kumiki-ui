@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
-import { assertInkEnsemble, inkEnsembleAt, inkPartnerLookTarget } from "../registry/video/ink-wash-ensemble";
+import { assertInkEnsemble, inkEnsembleAt, inkPartnerLookTarget, inkDesignToPaper,
+  inkPaperToDesign, auditInkEnsembleHands } from "../registry/video/ink-wash-ensemble";
+import { evaluateCharacter } from "../registry/character/evaluate";
 import { InkEnsemble } from "../registry/video/ink-wash-ensemble-react";
 import { inkDuet } from "../src/video/ink-wash-ensemble-demo";
 import { inkEnsembleBackdrop } from "../src/video/ink-wash-ensemble-backdrop";
@@ -35,6 +37,12 @@ describe("INK4 authored ink-painting multi-actor staging", () => {
       expect(final.match(/data-km-character-presenter=""/g)).toHaveLength(2);
       expect(final).toContain('data-km-ink-reach="pass"');
       expect(final).toContain('data-km-ink-partner-gaze="tracked"');
+      // Root distance alone is never a physical handoff success.
+      const hand = auditInkEnsembleHands(duet.plan, duet.cast, 188);
+      expect(hand).toHaveLength(1);
+      expect(final).toContain('data-km-ink-hand-contact="' +
+        (hand[0].handContact ? "pass" : "fail") + '"');
+      expect(hand[0].handGap).not.toBeNull();
       expect(render(188)).toBe(final);
       expect(render(30)).not.toBe(final);
       expect(render(30, true)).toContain('data-km-ink-ensemble-frame="30"');
@@ -111,6 +119,61 @@ describe("INK4 authored ink-painting multi-actor staging", () => {
       ...a, track: { ...a.track, keys: a.track.keys.map(k => ({ ...k, x: 400 })) },
     })) };
     expect(inkEnsembleAt(close, 188).contacts[0].intersectingFeet).toBe(true);
+  });
+  it("converts design anchors to paper and back across mirroring, scaling and rotation", () => {
+    const design = { width: 260, height: 340 }, anchor = { x: 226, y: 244 };
+    for (const facing of ["left", "right"] as const) {
+      for (const rotation of [-75, 0, 32]) {
+        const pose = { x: 403, y: 485, scale: .73, rotation, facing };
+        const paper = inkDesignToPaper(pose, design, anchor);
+        const restored = inkPaperToDesign(pose, design, paper);
+        expect(restored.x).toBeCloseTo(anchor.x, 9);
+        expect(restored.y).toBeCloseTo(anchor.y, 9);
+      }
+    }
+    const pose = { x: 400, y: 450, scale: .8, rotation: 0, facing: "left" as const };
+    const original = inkDesignToPaper(pose, design, anchor);
+    expect(original.x).toBeLessThan(pose.x);
+    expect(() => inkPaperToDesign({ ...pose, scale: 0 }, design, original)).toThrow(RangeError);
+  });
+  it("aims at the partner's actual animated eye anchor after head acting", () => {
+    const duet = inkDuet("landscape"), state = inkEnsembleAt(duet.plan, 202);
+    const source = state.actors.find(actor => actor.id === "master")!;
+    const partner = state.actors.find(actor => actor.id === "learner")!;
+    const performer = duet.cast.find(member => member.trackId === "learner")!;
+    const eye = evaluateCharacter(performer.definition, performer.instance,
+      performer.cues, 202).anchors.eyes;
+    expect(eye).toBeDefined();
+    const precise = inkPartnerLookTarget(source.pose, partner.pose,
+      duet.cast[0].definition.design, performer.definition.design, eye);
+    const expectedWorld = inkDesignToPaper(partner.pose, performer.definition.design, eye);
+    const back = inkDesignToPaper(source.pose, duet.cast[0].definition.design, precise);
+    expect(back.x).toBeCloseTo(expectedWorld.x, 6);
+    expect(back.y).toBeCloseTo(expectedWorld.y, 6);
+    const approximate = inkPartnerLookTarget(source.pose, partner.pose,
+      duet.cast[0].definition.design, performer.definition.design);
+    expect(Math.hypot(precise.x - approximate.x, precise.y - approximate.y))
+      .toBeGreaterThan(.01);
+  });
+  it("does not turn approximate root reach into a verified hand-to-hand contact", () => {
+    const duet = inkDuet("landscape");
+    const root = inkEnsembleAt(duet.plan, 188).contacts[0];
+    expect(root.withinReach).toBe(true);
+    const actual = auditInkEnsembleHands(duet.plan, duet.cast, 188);
+    expect(actual).toHaveLength(1);
+    expect(actual[0].missingAnchor).toBe(false);
+    expect(actual[0].handGap).not.toBeNull();
+    expect(actual[0].maxHandGap).toBe(12);
+    // A 0-pixel contact requirement must never pass unless anchors actually coincide.
+    expect(auditInkEnsembleHands(duet.plan, duet.cast, 188, false, 0)[0].handContact)
+      .toBe(false);
+    const missing = duet.cast.map(member => member.trackId === "learner"
+      ? { ...member, definition: { ...member.definition, anchors: {} } } : member);
+    expect(auditInkEnsembleHands(duet.plan, missing, 188)[0]).toMatchObject({
+      missingAnchor: true, handGap: null, handContact: false,
+    });
+    expect(() => auditInkEnsembleHands(duet.plan, duet.cast, 188, false, Infinity))
+      .toThrow(RangeError);
   });
   it("revisiting a previously evaluated absolute frame returns identical poses", () => {
     const plan = inkDuet("landscape").plan;
