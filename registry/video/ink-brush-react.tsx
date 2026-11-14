@@ -41,9 +41,22 @@ export function InkBrushCanvas({
     style={{ width: "100%", height: "100%", display: "block", overflow: "hidden",
       isolation: "isolate", ...style }}>
     <defs>
-      <filter id={uid + "-edge-soft"} x="-5%" y="-5%" width="110%" height="110%"
+      <filter id={uid + "-edge-soft"} x="-8%" y="-8%" width="116%" height="116%"
         colorInterpolationFilters="sRGB">
-        <feGaussianBlur stdDeviation=".75"/>
+        <feGaussianBlur stdDeviation="1.25"/>
+      </filter>
+      {/* Pigment physically absorbs unevenly into paper fibres. The noise is sampled in
+          fixed page coordinates, NEVER a per-frame / path-bounding-box texture. This
+          is static deposition texture, not a fake temporal wet diffusion effect. */}
+      <filter id={uid + "-pigment-tooth"} x={0} y={0} width={spec.width} height={spec.height}
+        filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse"
+        colorInterpolationFilters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency=".105 .16" numOctaves={3}
+          seed={spec.seed % 997} stitchTiles="noStitch" result="fibre-noise"/>
+        <feColorMatrix in="fibre-noise" type="matrix"
+          values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.7 0 0 0 -.63"
+          result="fibre-absorption"/>
+        <feComposite in="SourceGraphic" in2="fibre-absorption" operator="in"/>
       </filter>
       {marks.filter(mark => mark.outline.length > 0).map((mark, i) =>
         <Fragment key={mark.id}>
@@ -77,16 +90,17 @@ export function InkBrushCanvas({
         {/* A soft capillary-contact fringe behind the real marked silhouette. This is
             stroke-local, not a Gaussian blur of an entire image or a simulation of diffusion. */}
         <path data-km-ink-edge={mark.id} d={mark.outline} fill={mark.color}
-          opacity={mark.opacity * .12} filter={"url(#" + uid + "-edge-soft)"}
-          mask={"url(#" + uid + "-brush-" + i + ")"}/>
+          opacity={mark.opacity * .17} filter={"url(#" + uid + "-edge-soft)"}/>
         {/* The brush deposits a graded wash across its paper contact area. */}
         <path data-km-ink-stroke={mark.id} data-km-ink-progress={mark.progress}
           d={mark.outline} fill={"url(#" + uid + "-pigment-" + i + ")"}
-          opacity={mark.opacity * .90} mask={"url(#" + uid + "-brush-" + i + ")"}/>
+          opacity={mark.opacity * .95} mask={"url(#" + uid + "-brush-" + i + ")"}
+          filter={"url(#" + uid + "-pigment-tooth)"}/>
         {/* A narrower saturated stripe represents the ink-rich side of the oblique nib.
             It is another pigment deposit, not a black outline. */}
         <path data-km-ink-core={mark.id} d={mark.core} fill={mark.color}
-          opacity={mark.opacity * .28} mask={"url(#" + uid + "-brush-" + i + ")"}/>
+          opacity={mark.opacity * .23} mask={"url(#" + uid + "-brush-" + i + ")"}
+          filter={"url(#" + uid + "-pigment-tooth)"}/>
         <g data-km-ink-fibres={mark.id} fill="none" stroke={mark.color} strokeLinecap="round">
           {mark.hairs.map((hair, j) =>
             <path key={j} d={hair.d} strokeWidth={hair.width}
