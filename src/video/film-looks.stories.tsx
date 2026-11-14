@@ -1,3 +1,10 @@
+import { InkWash } from "../../registry/video/ink-wash-react";
+import { inkExampleSpec } from "./ink-wash-demo";
+import type { InkSubject } from "./ink-wash-demo";
+import { InkFilm } from "./ink-wash-universal.stories";
+import { InkPerformanceFilm } from "./ink-wash-character.stories";
+import { INK_LOOKS } from "../../registry/video/ink-wash-story";
+import type { InkLookId } from "../../registry/video/ink-wash-story";
 import { RisoSheetFeed, completedRisoFrame } from "../../registry/video/riso-sheet-feed";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { risoSecondSheetArtworks, risoSecondSheetImprintArt } from "./riso-print-demo-alt";
@@ -428,4 +435,219 @@ function RisoOverprintLab() {
 export const RisographOverprint: StoryObj<typeof RisoOverprintLab> = {
   name: "Risograph · Native Overprint Transition",
   render: () => <RisoOverprintLab />,
+};
+
+
+/**
+ * INK1 / INK2 / INK3 are grouped with the other MATERIAL looks, rather than
+ * appearing only in their own technical Storybook sections. The rendered frames
+ * are the actual original ink painting, FilmStage composition and animated rig.
+ * This shell owns UI playback only: all material and acting math is frame-addressed.
+ */
+type InkLookMode = "painting" | "documentary" | "character";
+type InkLookAspect = "landscape" | "portrait";
+const INK_LOOK_MODES: Record<InkLookMode, {
+  title: string; description: string; totalFrames: number; previewFrame: number;
+}> = {
+  painting: {
+    title: "Brush painting", description: "Pressure-shaped strokes, capillary bloom, dry bristles and Xuan paper.",
+    totalFrames: 420, previewFrame: 190,
+  },
+  documentary: {
+    title: "Documentary and diagrams", description: "Live media, a water-cycle explanation and composed titles revealed on paper.",
+    totalFrames: 480, previewFrame: 219,
+  },
+  character: {
+    title: "Articulated character", description: "One original ink traveler walks, looks, speaks, blinks, greets and bows.",
+    totalFrames: 330, previewFrame: 195,
+  },
+};
+function InkLooksStudio({ initialMode = "painting" }: { initialMode?: InkLookMode }) {
+  const [mode, setMode] = useState<InkLookMode>(initialMode);
+  const [aspect, setAspect] = useState<InkLookAspect>("landscape");
+  const [frame, setFrame] = useState(INK_LOOK_MODES[initialMode].previewFrame);
+  const [playing, setPlaying] = useState(false);
+  const [subject, setSubject] = useState<InkSubject>("landscape");
+  const [look, setLook] = useState<InkLookId>("literati");
+  const [mineral, setMineral] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [absorption, setAbsorption] = useState(.69);
+  const [grain, setGrain] = useState(.6);
+  const spec = useMemo(() => inkExampleSpec(subject, aspect, 47), [subject, aspect]);
+  const totalFrames = INK_LOOK_MODES[mode].totalFrames;
+  const maxFrame = totalFrames - 1;
+  useEffect(() => {
+    if (!playing || reducedMotion) return;
+    const started = performance.now(), startFrame = frame;
+    let request = 0;
+    const tick = (now: number) => {
+      const next = Math.min(maxFrame, startFrame + Math.floor((now - started) * 30 / 1000));
+      setFrame(next);
+      if (next < maxFrame) request = requestAnimationFrame(tick);
+      else setPlaying(false);
+    };
+    request = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(request);
+    // Playback starts at the chosen frame; the source modules evaluate absolute time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing, mode, reducedMotion]);
+  const changeMode = (next: InkLookMode) => {
+    setPlaying(false);
+    setMode(next);
+    setFrame(INK_LOOK_MODES[next].previewFrame);
+  };
+  const dimensions = aspect === "landscape" ? { width: 960, height: 540, scale: .82 } :
+    { width: 540, height: 960, scale: .57 };
+  const controlStyle = { display: "grid", gap: 5, font: "600 13px system-ui", minWidth: 175 } as const;
+  const btn = { border: "1px solid #ADB0A5", borderRadius: 6, background: "#FFFEF8",
+    color: "#2E3A31", padding: "9px 15px", minHeight: 42, cursor: "pointer",
+    font: "600 13px system-ui" } as const;
+  const { width, height, scale } = dimensions;
+  return <main data-km-ink-film-looks="" style={{
+    minHeight: "100vh", background: "#EAE9E2", padding: "clamp(15px,2.5vw,28px)",
+    color: "#29332B", font: "15px/1.5 system-ui", display: "grid", gap: 16, alignContent: "start",
+  }}>
+    <header style={{ maxWidth: 910, display: "grid", gap: 5 }}>
+      <div style={{ font: "700 11px system-ui", letterSpacing: 3, color: "#8D5345" }}>
+        VIDEO PRODUCTION / FILM LOOKS / MATERIAL-NATIVE
+      </div>
+      <h1 style={{ font: "500 clamp(28px,4vw,41px)/1.12 Georgia,serif", margin: 0 }}>
+        Chinese ink wash · In motion
+      </h1>
+      <p style={{ margin: 0, maxWidth: 800, color: "#556057" }}>
+        Three working animation studies. These paint original marks, compose other media or
+        perform a rigged character—rather than applying one grayscale filter to video.
+      </p>
+    </header>
+    <div role="group" aria-label="Chinese ink animation studies"
+      style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      {([
+        ["painting", "Brush painting"], ["documentary", "Documentary / explainer"],
+        ["character", "Character performance"],
+      ] as const).map(([id, name]) =>
+        <button key={id} type="button" onClick={() => changeMode(id)}
+          aria-pressed={mode === id}
+          style={{ ...btn, background: mode === id ? "#35483C" : "#FFFEF8",
+            color: mode === id ? "#FFFFFF" : "#2E3A31" }}>{name}</button>)}
+    </div>
+    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "end", gap: 14, maxWidth: 960 }}>
+      <label style={controlStyle}>Ink animation
+        <select aria-label="Ink animation" value={mode}
+          onChange={e => changeMode(e.target.value as InkLookMode)}
+          style={{ minHeight: 40, font: "inherit", background: "#FFFEF8" }}>
+          <option value="painting">Brush painting</option>
+          <option value="documentary">Documentary / explainer</option>
+          <option value="character">Character performance</option>
+        </select>
+      </label>
+      <label style={controlStyle}>Ink aspect
+        <select aria-label="Ink aspect" value={aspect}
+          onChange={e => { setPlaying(false); setAspect(e.target.value as InkLookAspect); }}
+          style={{ minHeight: 40, font: "inherit", background: "#FFFEF8" }}>
+          <option value="landscape">16:9 landscape</option>
+          <option value="portrait">9:16 portrait</option>
+        </select>
+      </label>
+      {mode === "painting" && <label style={controlStyle}>Painting subject
+        <select aria-label="Ink painting subject" value={subject}
+          onChange={e => { setPlaying(false); setSubject(e.target.value as InkSubject); }}
+          style={{ minHeight: 40, font: "inherit", background: "#FFFEF8" }}>
+          <option value="landscape">Pine and mountains</option><option value="bamboo">Bamboo grove</option>
+        </select>
+      </label>}
+      {mode === "documentary" && <label style={controlStyle}>Paper and ink direction
+        <select aria-label="Paper and ink direction" value={look}
+          onChange={e => { setPlaying(false); setLook(e.target.value as InkLookId); }}
+          style={{ minHeight: 40, font: "inherit", background: "#FFFEF8" }}>
+          {Object.keys(INK_LOOKS).map(id => <option key={id} value={id}>{id}</option>)}
+        </select>
+      </label>}
+      {mode === "character" && <label style={{ ...controlStyle, display: "flex", alignItems: "center", minHeight: 40 }}>
+        <input type="checkbox" checked={mineral}
+          onChange={e => { setPlaying(false); setMineral(e.target.checked); }}/> Mineral-tint costume
+      </label>}
+      <label style={{ ...controlStyle, display: "flex", alignItems: "center", minHeight: 40 }}>
+        <input type="checkbox" checked={reducedMotion}
+          onChange={e => { setPlaying(false); setReducedMotion(e.target.checked); }}/> Reduced motion
+      </label>
+    </div>
+    <div style={{ display: "grid", gap: 6 }}>
+      <strong style={{ font: "600 19px Georgia,serif" }}>{INK_LOOK_MODES[mode].title}</strong>
+      <span style={{ color: "#586259" }}>{INK_LOOK_MODES[mode].description}</span>
+    </div>
+    <div data-km-film-looks-ink-preview="" style={{ width: width * scale,
+      height: height * scale, maxWidth: "100%", background: "#F4F0E5",
+      overflow: "hidden", boxShadow: "0 16px 48px rgba(34,41,32,.16)" }}>
+      <div style={{ width, height, transform: "scale(" + scale + ")", transformOrigin: "top left" }}>
+        {mode === "painting" ? <div style={{ width, height, position: "relative" }}>
+          <InkWash spec={spec} frame={frame} absorption={absorption} grain={grain}
+            reducedMotion={reducedMotion} label={subject === "landscape" ?
+              "Animated Chinese ink-wash mountain and pine" : "Animated Chinese ink-wash bamboo grove"} />
+          <div style={{ position: "absolute", left: "8%", top: "8%", pointerEvents: "none" }}>
+            <span style={{ color: "#985343", letterSpacing: 3, font: "700 12px system-ui" }}>KUMIKI INK STUDY  /  01</span>
+            <div style={{ font: "500 39px Georgia,serif", marginTop: 8, color: "#30362F" }}>
+              {subject === "landscape" ? "Among the pines" : "Quiet bamboo"}
+            </div>
+          </div>
+        </div> :
+        mode === "documentary" ? <InkFilm frame={frame} output={aspect} look={look}
+          reducedMotion={reducedMotion}/> :
+          <InkPerformanceFilm frame={frame} aspect={aspect} mineral={mineral}
+            reducedMotion={reducedMotion}/>}
+      </div>
+    </div>
+    {mode === "painting" && <div style={{ display: "flex", flexWrap: "wrap", gap: 20, maxWidth: 900 }}>
+      <label style={controlStyle}>Paper absorbency · {Math.round(absorption * 100)}%
+        <input type="range" min={0} max={1} step={.05} value={absorption}
+          onChange={e => { setPlaying(false); setAbsorption(Number(e.target.value)); }}/>
+      </label>
+      <label style={controlStyle}>Paper tooth · {Math.round(grain * 100)}%
+        <input type="range" min={0} max={1} step={.05} value={grain}
+          onChange={e => { setPlaying(false); setGrain(Number(e.target.value)); }}/>
+      </label>
+    </div>}
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", maxWidth: 960 }}>
+      <button type="button" disabled={reducedMotion} style={{
+        ...btn, background: reducedMotion ? "#C2C4B9" : "#35483C",
+        color: reducedMotion ? "#434B42" : "#FFFFFF",
+      }} onClick={() => {
+        if (frame >= maxFrame) setFrame(0);
+        setPlaying(v => !v);
+      }}>{playing ? "Pause" : "Play animation"}</button>
+      <button type="button" style={btn}
+        onClick={() => { setPlaying(false); setFrame(0); }}>Restart</button>
+      <label style={{ ...controlStyle, minWidth: 260, flex: 1 }}>
+        Ink film frame · <output aria-label="Current ink frame">{frame}</output> / {maxFrame}
+        <input aria-label="Ink film frame" type="range" min={0} max={maxFrame}
+          value={frame} onChange={e => { setPlaying(false); setFrame(Number(e.target.value)); }}
+          style={{ width: "100%" }}/>
+      </label>
+    </div>
+    <nav aria-label="Ink animation keyframes" style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+      {(mode === "painting" ?
+        [["Initial paper", 0], ["Mountain wash", 85], ["Brush marks", 190], ["Settled painting", 375]] :
+        mode === "documentary" ?
+          [["Opening", 57], ["Explainer", 226], ["Closing", 415]] :
+          [["Walk", 80], ["Greet", 160], ["Speak", 192], ["Bow", 285], ["Hold", 324]]
+      ).map(([name, at]) => <button key={String(name)} type="button" style={btn}
+        onClick={() => { setPlaying(false); setFrame(Number(at)); }}>{name}</button>)}
+    </nav>
+    <p style={{ margin: 0, fontSize: 12, maxWidth: 900, color: "#596259" }}>
+      Frame-accurate preview · 30 fps · original authored artwork. These are material studies;
+      not evidence that arbitrary live-action media has been hand-painted.
+    </p>
+  </main>;
+}
+
+export const ChineseInkPainting: StoryObj<typeof InkLooksStudio> = {
+  name: "Chinese Ink · Brush Painting Animation",
+  render: () => <InkLooksStudio initialMode="painting"/>,
+};
+export const ChineseInkDocumentary: StoryObj<typeof InkLooksStudio> = {
+  name: "Chinese Ink · Documentary and Explainer Animation",
+  render: () => <InkLooksStudio initialMode="documentary"/>,
+};
+export const ChineseInkCharacter: StoryObj<typeof InkLooksStudio> = {
+  name: "Chinese Ink · Character Animation",
+  render: () => <InkLooksStudio initialMode="character"/>,
 };
