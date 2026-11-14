@@ -43,7 +43,8 @@
     "muzzle-underside",
     "muzzle-light",
     "nose",
-    "whisker-follicles"
+    "whisker-follicles",
+    "maxillary-junction"
   ],
   "parts": [
     {
@@ -719,9 +720,46 @@
         "late-portrait-237"
       ],
       "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "maxillary-junction",
+      "parent": "head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.088,
+        0.357,
+        0.447,
+        0.543
+      ],
+      "pivot": [
+        0.52,
+        0.5
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Hidden opaque maxillary/zygomatic connective tissue bridges cheek, nasal ridge and lower jaw; prevents paper-colored triangular negative hole",
+      "details": {
+        "primary": "continuous attached head-to-muzzle silhouette",
+        "secondary": "curved cheek-to-whisker-pad direction",
+        "tertiary": "fine local fur root and soft edge"
+      },
+      "topology": "Single asymmetric closed cubic/quadratic wax region overlapping muzzle-projection and muzzle-underside; shared head-parent transforms",
+      "contour_plan": "M-193 -40 C-155 -55 -107 -41 -86 -12 Q-67 27 -97 61 Q-132 80 -171 37 Q-187 8 -193 -40 Z",
+      "layering_plan": "Paint after head/eyelid, immediately before forward muzzle; no visible dark cartoon outline",
+      "semantic_children": [
+        "maxillary-connected-fur"
+      ],
+      "required_source_poses": [
+        "rest",
+        "extreme head-tilt 172",
+        "late-portrait 237"
+      ],
+      "source_rights": "New original geometric connective study informed by observed hare anatomy; not traced image"
     }
   ],
-  "negative_control": "Single oval skull, circular eye, round muzzle and duplicate ear capsules without ridge, canine smile or paper-noise substitution",
+  "negative_control": "Exposed paper between whisker pad and head is a failed connected-component/topology gate even when total wax stroke count is high.",
   "render_evidence_state": "Prototype PNG and before/after comparison inspected locally; no final browser-backed CRAYON1 screenshot or licensed source image crops yet",
   "release_verdict": "BLOCKED — ArtCraft v6 strict source-image, five-axis and normal-speed film acceptance not available in this execution."
 }
