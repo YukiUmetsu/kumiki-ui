@@ -1,7 +1,8 @@
 import {describe,expect,it} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
-import {CrayonPlayground} from "../src/video/crayon-scene-playground";
-import {crayonSceneDefaultArgs} from "../src/video/crayon-scene-story-config";
+import {CrayonPlayground,applyCrayonStudyWaxSettings} from "../src/video/crayon-scene-playground";
+import {crayonSceneDefaultArgs,crayonSceneArgTypes} from "../src/video/crayon-scene-story-config";
+import {crayonWildlifePortraitScene} from "../src/video/crayon-wildlife-portrait-fixtures";
 import sceneMeta,{WaterCycle,WaterCyclePortrait,StorybookTown,IllustratedData} from "../src/video/crayon-scene.stories";
 import wildlifeMeta,{WildlifeHarePortrait,WildlifeHarePortraitVertical,WildlifeHareEyeMacro,WildlifeHareFurMacro,WildlifeHareMuzzleMacro,WildlifeHareEarMacro} from "../src/video/crayon-wildlife.stories";
 import actingMeta,{CharacterPerformance,CharacterPerformancePortrait} from "../src/video/crayon-acting.stories";
@@ -97,6 +98,30 @@ describe("Crayon Storybook organization",()=>{
    expect(control(sceneMeta,"subject")?.options).toEqual(["water-cycle","city","numbers"]);
    for(const meta of [wildlifeMeta,actingMeta,walkMeta,drawMeta,dragonMeta]){
      expect(control(meta,"subject")).toEqual({control:false,table:{disable:true}});
+   }
+ });
+
+ it("preserves each ArtCraft wax region's native nib/order/mark length unless deliberately overridden",()=>{
+   const scene=crayonWildlifePortraitScene("landscape");
+   const wax=scene.elements.find(node=>node.kind==="wax"&&node.id==="shoulder-silhouette");
+   const contour=scene.elements.find(node=>node.kind==="contour");
+   expect(wax).toBeDefined();
+   expect(contour).toBeDefined();
+   const authored={nibStyle:"authored" as const,strokeOrder:"authored" as const,markLength:"authored" as const};
+   expect(applyCrayonStudyWaxSettings(wax!,authored)).toBe(wax);
+   expect(applyCrayonStudyWaxSettings(contour!,{nibStyle:"rounded",strokeOrder:"scanline",markLength:"short"})).toBe(contour);
+   const experiment=applyCrayonStudyWaxSettings(wax!,{
+     nibStyle:"rounded",strokeOrder:"scanline",markLength:"short",
+   });
+   expect(experiment).toEqual({...wax,nibStyle:"rounded",strokeOrder:"scanline",markLength:"short"});
+   expect(wax).toMatchObject({nibStyle:"tapered",strokeOrder:"patches",markLength:"long"});
+   const partial=applyCrayonStudyWaxSettings(wax!,{
+     nibStyle:"authored",strokeOrder:"authored",markLength:"short",
+   });
+   expect(partial).toEqual({...wax,markLength:"short"});
+   expect(crayonSceneDefaultArgs).toMatchObject(authored);
+   for(const key of ["nibStyle","strokeOrder","markLength"]){
+     expect((crayonSceneArgTypes[key as keyof typeof crayonSceneArgTypes] as {options?:string[]}).options).toContain("authored");
    }
  });
 });

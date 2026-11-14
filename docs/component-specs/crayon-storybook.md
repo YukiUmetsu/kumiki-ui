@@ -23,6 +23,31 @@ production disciplines rather than one 26-story sidebar:
 | **Materials** | Wax & Pigment | Pressure, nib, paper tooth, deposition, sgraffito | `video-crayon-material-studies--` |
 | **Classics** | Lantern & Garden | Original self-contained narrative films | `video-crayon-storybook--` |
 
+### ArtCraft medium recipe and construction timing (2026-11-14)
+
+Storybook's Scene Engine previously overwrote **every** source wax patch with
+one global nib, stroke order and mark length, even when the original scene had
+purposefully authored region-specific settings. All three controls now default
+to `authored`, preserving each wax patch (including its own omission/default).
+An explicitly selected alternative acts as a non-destructive A/B preview override.
+No `authored` value is written into CRAYON1's portable JSON schema, which
+still accepts only real nib, stroke-order and mark-length values.
+
+The **Wax & Pigment** A/B scene also no longer reveals its nose detail on
+an otherwise blank frame; the nose begins at frame 86 alongside the
+authored detail contour. The default artist preview descriptions now focus
+on the active subject instead of reciting all unrelated scenes.
+
+**Craft basis:** Faber-Castell's wax-crayon process guidance on layered
+pigment, frottage and scraped upper coats; the Philadelphia Museum of Art's
+conservation terminology on uneven, cohesive wax deposits; and the existing
+ArtCraft hare reference ledger. These guide construction and controls, not
+claims of visual equivalence. A full reference-aligned crop comparison and
+normal-speed film acceptance are still outstanding.
+
+- https://prod-media.coolaustralia.org/wp-content/uploads/2017/09/06163457/Faber-Castell-Product-Knowledge-Manual-V1.pdf
+- https://legacyweb.philamuseum.org/doc_downloads/conservation/DescriptiveTerminologyforArtonPaper.pdf
+
 ### Focused director controls (2026-11-14)
 
 Each specialized Crayon director now hides unrelated Storybook Controls entries:
