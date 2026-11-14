@@ -94,7 +94,7 @@ export const COURIER: RisoCharacterSpec = {
       bend: 1, endRotation: 0,
       target: { kind: "walk", startFrame: 0, endFrame: 198, initialX: 35,
         groundY: 0, stride: 46, cycleFrames: 66, stanceFrames: 38,
-        phaseFrames: 0, lift: 17 } },
+        phaseFrames: 0, lift: 17, footRoll: 12 } },
     { id: "right-foot-lock", root: "right-leg", mid: "right-knee", end: "right-ankle",
       bend: -1, endRotation: 0,
       target: { kind: "walk", startFrame: 0, endFrame: 198, initialX: 65,
