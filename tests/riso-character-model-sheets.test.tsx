@@ -137,6 +137,11 @@ describe("Source-anchored Riso character proportional construction sheets",()=>{
     expect(report.measurements.find(m=>m.id==="nose-mouth")!.distance).toBeGreaterThan(5);
     expect(report.measurements.find(m=>m.id==="brow-eye-left")!.distanceInHeads).toBeGreaterThan(0);
     expect(report.measurements.every(m=>Number.isFinite(m.distanceInHeads))).toBe(true);
+    for(const region of report.regions) {
+      const positions=region.landmarks.filter(p=>["source-top","source-bottom","source-left","source-right"].includes(p.id));
+      expect(positions).toHaveLength(4);
+      for(const point of positions)expect(region.outline).toContainEqual(point.at);
+    }
     const bird=evaluateRisoCharacterMesh(PAPER_BIRD,RISO_PAPER_BIRD_SHEET,84);
     expect(bird.measurements.map(m=>m.id)).toContain("wing-span");
     expect(bird.regions.find(r=>r.id==="right-wing")!.sourceContourPoints).toBeGreaterThan(10);
