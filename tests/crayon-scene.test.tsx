@@ -143,6 +143,13 @@ describe("CRAYON1 data-driven scene grammar",()=>{
     crayonDrawingAt(eye,0);
     expect(crayonDrawingAt(eye,202).index).toBe(3);
     expect(crayonDrawingAt(eye,0,true,scene.durationFrames).index).toBe(4);
+    const wing=scene.elements.find(n=>n.id==="bird-wing");
+    if(!wing || wing.kind!=="wax")throw new Error("missing wing redraw");
+    expect(crayonDrawingAt(wing,109).index).toBe(0);
+    expect(crayonDrawingAt(wing,110)).toMatchObject({index:1,bounds:{x:-49,y:-68,width:74,height:86}});
+    expect(crayonDrawingAt(wing,156).index).toBe(2);
+    const wingOpen=renderToStaticMarkup(<CrayonScene spec={scene} frame={110}/>);
+    expect(wingOpen).toContain('data-km-crayon-drawing="1"');
     const before=renderToStaticMarkup(<CrayonScene spec={scene} frame={139}/>);
     const closed=renderToStaticMarkup(<CrayonScene spec={scene} frame={140}/>);
     const reopened=renderToStaticMarkup(<CrayonScene spec={scene} frame={146}/>);
