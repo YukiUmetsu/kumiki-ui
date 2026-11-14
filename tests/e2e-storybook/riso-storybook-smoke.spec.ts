@@ -22,7 +22,11 @@ for(const [name,id] of stories){
     expect(response?.status()).toBe(200);
     await page.evaluate(()=>document.fonts.ready);
     await expect(page.locator("#storybook-root svg").first()).toBeVisible();
-    await expect(page.getByText(/No Preview|Couldn't find story|Error rendering story/i)).toHaveCount(0);
+    // Storybook keeps its fallback error templates mounted but hidden in the
+    // iframe DOM. Absence from the DOM is not the rendering contract: VISIBLE
+    // error overlays and page/console exceptions are.
+    await expect(page.getByText(/No Preview|Couldn't find story|Error rendering story/i).first())
+      .toBeHidden({timeout:5000});
     await page.locator("#storybook-root").screenshot({
       path:info.outputPath(`${id}-storybook.png`),animations:"disabled",
     });
