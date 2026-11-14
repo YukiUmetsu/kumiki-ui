@@ -15,20 +15,29 @@ export interface CrayonStorybookProps extends Omit<SVGProps<SVGSVGElement>, "wid
   reducedMotion?: boolean;
   style?: CSSProperties;
 }
-type WaxProps = {
+export type WaxProps = {
   d: string; bounds: CrayonBounds; colors: readonly [string, string, string];
   seed: number; pressure: number; tooth: string; frame: number;
   first: number; last: number; reduced: boolean; spacing?: number;
 };
-type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
+export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5 }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5 }: WaxProps) {
   const raw = useId(), clip = "waxclip-" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
+  const pores = clip + "-tooth";
   const marks = useMemo(() => crayonMarks(bounds, { seed, pressure, spacing, passes: 2 }),
     [bounds.x, bounds.y, bounds.width, bounds.height, seed, pressure, spacing]);
   return <g data-km-crayon-region="" data-km-crayon-seed={seed}>
-    <defs><clipPath id={clip}><path d={d}/></clipPath></defs>
-    <g clipPath={"url(#" + clip + ")"} mask={"url(#" + tooth + ")"} data-km-crayon-wax="">
+    <defs>
+      <clipPath id={clip}><path d={d}/></clipPath>
+      <mask id={pores} maskUnits="userSpaceOnUse"
+        x={bounds.x - 25} y={bounds.y - 25} width={bounds.width + 50} height={bounds.height + 50}>
+        <rect x={bounds.x - 25} y={bounds.y - 25}
+          width={bounds.width + 50} height={bounds.height + 50}
+          fill={"url(#" + tooth + "-texture)"} />
+      </mask>
+    </defs>
+    <g clipPath={"url(#" + clip + ")"} mask={"url(#" + pores + ")"} data-km-crayon-wax="">
       <path d={d} fill={colors[0]} opacity={crayonProgress(frame, first, last, 0, 1, reduced) * .12} />
       {marks.map((mark, i) => {
         const progress = crayonProgress(frame, first, last, i, marks.length, reduced);
@@ -51,7 +60,7 @@ function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, las
 }
 
 /** Dry double-edged wax lines, not a generic smooth SVG path. */
-function WaxLine({ d, color, width, frame, first, last, reduced, seed, opacity = 1 }: LineProps) {
+export function WaxLine({ d, color, width, frame, first, last, reduced, seed, opacity = 1 }: LineProps) {
   const reveal = crayonProgress(frame, first, last, 0, 1, reduced);
   if (reveal <= 0) return null;
   const wiggle = (crayonHash(seed, 9) - .5) * 2;
@@ -64,7 +73,7 @@ function WaxLine({ d, color, width, frame, first, last, reduced, seed, opacity =
       strokeDasharray={100} strokeDashoffset={100 * (1 - reveal)} opacity={.14 + wiggle * .08} />
   </g>;
 }
-function Paper({ width, height, seed, tooth, strength }: { width: number; height: number; seed: number; tooth: string; strength: number }) {
+export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" }: { width: number; height: number; seed: number; tooth: string; strength: number; color?: string }) {
   const fibers = useMemo(() => Array.from({ length: 480 }, (_, i) => ({
     x: crayonHash(seed, i, 1) * width, y: crayonHash(seed, i, 2) * height,
     dx: 1 + crayonHash(seed, i, 3) * 14, dy: (crayonHash(seed, i, 4) - .5) * 4,
@@ -80,11 +89,9 @@ function Paper({ width, height, seed, tooth, strength }: { width: number; height
           <circle cx={(f.x + 59) % 144} cy={(f.y + 43) % 144} r={f.r * strength} />
         </g>)}
       </pattern>
-      <mask id={tooth} maskUnits="userSpaceOnUse" x={-320} y={-320} width={width + 640} height={height + 640}>
-        <rect x={-320} y={-320} width={width + 640} height={height + 640} fill={"url(#" + tooth + "-texture)"} />
-      </mask>
+
     </defs>
-    <rect width={width} height={height} fill="#faf1da" />
+    <rect width={width} height={height} fill={color} />
     <g stroke="#b99572" strokeWidth=".6" pointerEvents="none" opacity=".42" data-km-crayon-paper="">
       {fibers.map((f, i) => <path key={i} opacity={.2 + crayonHash(seed, i, 6) * .42}
         d={"M" + f.x + " " + f.y + " l" + f.dx + " " + f.dy} />)}
