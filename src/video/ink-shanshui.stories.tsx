@@ -93,13 +93,16 @@ function Gallery(){
         reducedMotion={reduced} showScholar={scholar} clothAmount={cloth}/>
     </div>
     <div style={{display:"grid",gap:9,width:960,maxWidth:"100%"}}>
-      <label style={{...style.field,width:"100%"}}>Frame {frame} / 299
-        <input aria-label="Shanshui frame" type="range" min="0" max="299" step="1"
+      <label style={{...style.field,width:"100%"}}>Frame {frame} / {SHANSHUI_FRAMES-1}
+        <input aria-label="Shanshui frame" type="range" min="0" max={SHANSHUI_FRAMES-1} step="1"
           value={frame} onChange={e=>{setFrame(Number(e.target.value));setPlaying(false)}}
           style={{width:"100%"}}/>
       </label>
       <div style={{display:"flex",gap:9,flexWrap:"wrap"}}>
-        <button type="button" style={style.button} onClick={()=>{
+        <button type="button" disabled={reduced}
+          title={reduced?"Turn off Reduced motion to play the film":undefined}
+          style={{...style.button,opacity:reduced?.55:1,
+            cursor:reduced?"not-allowed":"pointer"}} onClick={()=>{
           if(!playing){
             const start=frame>=SHANSHUI_FRAMES-1?0:frame;
             setPlayStart(start);
