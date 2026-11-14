@@ -130,3 +130,29 @@ export function inkEnsembleAt(plan: InkEnsemblePlan, frame: number, reducedMotio
     contacts,
   };
 }
+
+
+/** Map the actual partner's head target into the source actor's own approved
+ * design coordinates. CharacterPresenter applies its existing gaze easing and
+ * eyelid/eye-part geometry; this does not invent an independent pupil solver.
+ */
+export function inkPartnerLookTarget(
+  source: InkActorTransform, target: InkActorTransform,
+  sourceDesign: { width: number; height: number },
+  targetDesign: { width: number; height: number },
+): Readonly<{ x: number; y: number }> {
+  if (![source.x, source.y, source.scale, target.x, target.y, target.scale,
+    sourceDesign.width, sourceDesign.height, targetDesign.width, targetDesign.height]
+    .every(finite) || source.scale <= 0 || target.scale <= 0 ||
+    sourceDesign.width <= 0 || sourceDesign.height <= 0 ||
+    targetDesign.width <= 0 || targetDesign.height <= 0)
+    throw new RangeError("INK4 look target requires finite positive character dimensions and poses.");
+  // Visual estimate of another figure's eyes at 30% down from its head-top.
+  // Consumers needing exact eye/hand contact should supply tracked part anchors.
+  const faceWorldY = target.y - targetDesign.height * target.scale * .70;
+  const mirrored = source.facing === "left" ? -1 : 1;
+  return {
+    x: sourceDesign.width / 2 + (target.x - source.x) * mirrored / source.scale,
+    y: sourceDesign.height + (faceWorldY - source.y) / source.scale,
+  };
+}
