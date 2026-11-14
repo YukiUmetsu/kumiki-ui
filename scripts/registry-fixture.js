@@ -97,7 +97,8 @@ const USAGE = {
     const at = name => specifier.replace(/collage-geometry$/, name);
     return {
       imports: [`import { CollageScene } from "${at("collage-react")}";`, `import { CollageTear } from "${at("collage-tear")}";`,
-        `import { clock, mapPin, speechBubble } from "${at("collage-kit")}";`, `import { inspectCollageScene, type CollageSceneSpec } from "${at("collage-scene")}";`],
+        `import { clock, mapPin, speechBubble } from "${at("collage-kit")}";`, `import { inspectCollageScene, type CollageSceneSpec } from "${at("collage-scene")}";`,
+        `import { archivalPrint, documentScan, photoCutout, sourceLine } from "${at("collage-kit-photo")}";`],
       componentName: "EditorialCollageConsumerExample",
       component: `const scene: CollageSceneSpec = { version: 1, id: "consumer", width: 1280, height: 720, durationFrames: 90, seed: 4,
   board: { material: "kraft" }, palette: { accent: "#cf3b2a" }, nodes: [
@@ -107,6 +108,10 @@ const USAGE = {
     ...mapPin("pin", { x: 300, y: 600, dropAt: 20 }),
     ...speechBubble("bubble", { x: 900, y: 560, width: 260, height: 100, tail: [-40, 70], text: "HELLO", from: 30 }),
     { id: "host", kind: "puppet", x: 200, y: 700, height: 300, look: { skin: "#c98d6a", hair: "#1d1b19", top: "accent", bottom: "#2d3142", shoes: "#1d1b19" }, actions: [{ type: "wave", start: 10, end: 80 }] },
+    ...photoCutout("subject", { x: 400, y: 300, width: 200, height: 260, href: "/subject.webp", treatment: { mode: "halftone" }, disc: { radius: 140, fill: "accent" } }),
+    ...archivalPrint("print", { x: 900, y: 300, width: 300, height: 200, href: "/print.jpg", kenBurns: { start: 0, end: 89, to: 1.1 }, tag: { text: "Place · 1900" } }),
+    ...documentScan("doc", { x: 640, y: 500, width: 300, height: 300, href: "/page.jpg", sourceWidth: 1000, sourceHeight: 1000, highlights: [{ rect: [100, 100, 600, 130], frame: 20 }] }),
+    sourceLine("credit", { text: "Source · Archive", x: 40, y: 700 }),
   ] };
 export function EditorialCollageConsumerExample() {
   return <div data-errors={inspectCollageScene(scene).length}>

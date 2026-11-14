@@ -73,6 +73,7 @@ const hexRgb = (hex: string): [number, number, number] => {
 
 export const BOARD_COLORS: Readonly<Record<CollageBoardMaterial, string>> = {
   kraft: "#b48b5e", cream: "#eee5d1", newsprint: "#e6e1d4", cork: "#b98a57", card: "#c4beb2", graph: "#efeadb", blackboard: "#2a2f30",
+  flat: "#f2c230", slate: "#262b31",
 };
 
 /**
@@ -109,6 +110,10 @@ export function boardTexture(material: CollageBoardMaterial, color: string, seed
       case "newsprint": m = 1 + mottle * .035 + tooth * .05 + (hash01(seed, x, y) > .9985 ? -.25 : 0); break;
       case "card": m = 1 + mottle * .06 + tooth * .07 + (hash01(seed, x, y) > .996 ? -.22 : hash01(seed + 1, x, y) > .997 ? .14 : 0); break;
       case "blackboard": m = 1 + mottle * .22 + tooth * .1 + (hash01(seed, x, y) > .997 ? .5 : 0); break;
+      // A printed flat colour: only paper tooth and faint fibres, so the colour stays bold.
+      case "flat": m = 1 + mottle * .012 + tooth * .028 + tileFbm(seed + 3, x, (y * 2 + x) % size, size, 24, 2) * .018; break;
+      // Dark editorial stage: a slightly uneven matte charcoal.
+      case "slate": m = 1 + mottle * .09 + tooth * .05; break;
       default: {
         const fibre = tileFbm(seed + 3, x, (y * 2 + x) % size, size, 24, 2);
         m = 1 + mottle * .018 + tooth * .03 + fibre * .022 + (hash01(seed, x, y) > .9988 ? -.16 : 0);
@@ -145,6 +150,32 @@ export function fiberTexture(seed: number, size = 256): string {
     const i = (y * size + x) * 4;
     const c = Math.max(0, Math.min(255, v));
     rgba[i] = c; rgba[i + 1] = c; rgba[i + 2] = c; rgba[i + 3] = 255;
+  }
+  const uri = toDataUri(size, size, rgba);
+  cache.set(key, uri);
+  return uri;
+}
+
+/**
+ * Illustrative shaded relief: fractal "terrain" lit from the north-west, as a grey multiply texture.
+ * It reads as mountains on a paper map; it is not elevation data and must not be presented as such.
+ */
+export function reliefTexture(seed: number, size = 384): string {
+  const key = "relief:" + seed + ":" + size;
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const height = new Float32Array(size * size);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const ridge = 1 - Math.abs(tileFbm(seed, x, y, size, 4, 5));
+    height[y * size + x] = ridge * ridge * .8 + tileFbm(seed + 9, x, y, size, 12, 3) * .2;
+  }
+  const rgba = new Uint8Array(size * size * 4), lx = -.6, ly = -.6, lz = .53;
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const at = (xx: number, yy: number) => height[((yy + size) % size) * size + ((xx + size) % size)];
+    const dx = (at(x + 1, y) - at(x - 1, y)) * 24, dy = (at(x, y + 1) - at(x, y - 1)) * 24;
+    const len = Math.hypot(dx, dy, 1), shade = Math.max(0, (-dx * lx - dy * ly + lz) / len);
+    const v = Math.round(Math.min(255, 150 + shade * 130)), i = (y * size + x) * 4;
+    rgba[i] = v; rgba[i + 1] = v; rgba[i + 2] = v; rgba[i + 3] = 255;
   }
   const uri = toDataUri(size, size, rgba);
   cache.set(key, uri);

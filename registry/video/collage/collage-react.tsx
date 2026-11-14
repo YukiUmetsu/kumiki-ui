@@ -12,15 +12,15 @@ import { seedOf, toPathD, trimPolyline } from "./collage-geometry";
 import { cameraAt, cameraTransform, ease } from "./collage-motion";
 import type { CollagePose } from "./collage-motion";
 import {
-  cutoutGeometry, formatCount, mapGeometry, textWeight, markerStrokes, nodeState, poseTransform, projectGeo, routePolyline, slipGeometry, textLayout,
+  cutoutGeometry, formatCount, halftoneDots, mapGeometry, textWeight, markerStrokes, nodeState, poseTransform, projectGeo, routePolyline, slipGeometry, textLayout,
   toSmoothPathD, wobbleStroke,
 } from "./collage-build";
 import type {
   CollageCutoutNode, CollageImageNode, CollageMapNode, CollageMarkerNode, CollageNode, CollagePaperMaterial, CollagePuppetNode,
-  CollageRouteNode, CollageSceneSpec, CollageStringNode, CollageTapeNode, CollageTextNode,
+  CollageRouteNode, CollageSceneSpec, CollageSpotlightNode, CollageStringNode, CollageTapeNode, CollageTextNode,
 } from "./collage-scene";
 import { assertCollageScene, paint } from "./collage-scene";
-import { BOARD_COLORS, boardTexture, fiberTexture, grainTexture, halftoneDotTile } from "./collage-texture";
+import { BOARD_COLORS, boardTexture, fiberTexture, grainTexture, halftoneDotTile, reliefTexture } from "./collage-texture";
 import { fontStack } from "./collage-type";
 import type { PuppetPoint } from "./collage-puppet";
 import { PUPPET_RIG, ellipseOutline, hairOutline, headOutline, limbOutline, puppetPose, shadeHex, shoeOutline, torsoOutline } from "./collage-puppet";
@@ -64,6 +64,12 @@ function shadowFor(ctx: Ctx, lift: number, strength: number) {
     opacity: strength * Math.max(.1, .36 - Math.max(0, lift) * .1),
     filter: `url(#${ctx.uid}-blur-${level})`,
   };
+}
+
+/** Numeric shadow parameters, for filters that cast a shadow from an image's alpha. */
+function shadowParams(ctx: Ctx, lift: number, strength: number) {
+  const s = shadowFor(ctx, lift, strength);
+  return { dx: s.dx, dy: s.dy, opacity: s.opacity, blur: BLUR_LEVELS[Math.min(BLUR_LEVELS.length - 1, Math.round(Math.max(0, lift) * 5))] };
 }
 
 function ShadowPath({ ctx, d, lift, strength }: { ctx: Ctx; d: string; lift: number; strength: number }) {
@@ -179,8 +185,24 @@ function TextPiece({ ctx, node, state }: { ctx: Ctx; node: CollageTextNode; stat
       consumed += len;
       if (show <= 0) return;
       const x0 = s.x0 - size * .15, h = layout.ascent * (role === "headline" ? .74 : .82), y0 = s.y - layout.ascent * (role === "headline" ? .72 : .7);
+      const style = node.highlight!.style ?? "marker", fill = paint(ctx.spec, node.highlight!.color);
+      if (style === "box") {
+        // A solid label box: covers the full line height with a little padding.
+        const pad = size * .14, top = s.y - layout.ascent - pad * .6, height = layout.ascent + layout.descent + pad * 1.2;
+        content.push(<rect key={"hl" + i} x={r2(s.x0 - pad)} y={r2(top)} width={r2(Math.max(0, show + pad * .4))} height={r2(height)} fill={fill} />);
+        return;
+      }
+      if (style === "brush") {
+        // A rough, opaque brush block: jagged top and bottom edges, dry tail at the end of the stroke.
+        const pad = size * .2, top = s.y - layout.ascent * .92, bottom = s.y + layout.descent + pad * .5, seed = seedOf(node.id + i, ctx.spec.seed);
+        const pts: Point[] = [], steps = Math.max(4, Math.round(show / 18));
+        for (let k = 0; k <= steps; k++) pts.push([s.x0 - pad + show * k / steps, top + Math.sin(seed + k * 1.7) * size * .05]);
+        for (let k = steps; k >= 0; k--) pts.push([s.x0 - pad + show * k / steps - (k === steps ? size * .1 : 0), bottom + Math.sin(seed * 2 + k * 2.3) * size * .05]);
+        content.push(<path key={"hl" + i} d={toPathD(pts, true)} fill={fill} />);
+        return;
+      }
       const ragged = `M${r2(x0)} ${r2(y0 + 2)}L${r2(x0 + show)} ${r2(y0 - 1)}L${r2(x0 + show - 3)} ${r2(y0 + h + 1)}L${r2(x0 + 2)} ${r2(y0 + h + 3)}Z`;
-      content.push(<path key={"hl" + i} d={ragged} fill={paint(ctx.spec, node.highlight!.color)} opacity={.82} style={{ mixBlendMode: "multiply" }} />);
+      content.push(<path key={"hl" + i} d={ragged} fill={fill} opacity={.82} style={{ mixBlendMode: "multiply" }} />);
     });
   }
   layout.lines.forEach(line => {
@@ -287,17 +309,76 @@ function Tape({ ctx, node, lift }: { ctx: Ctx; node: CollageTapeNode; lift: numb
   </>;
 }
 
+/** Ken Burns: a linear push (never eased, never stopping) inside the photo's frame, on the absolute frame. */
+function kenBurnsTransform(node: CollageImageNode, frame: number): string | undefined {
+  const k = node.kenBurns;
+  if (!k) return undefined;
+  const t = Math.min(1, Math.max(0, (frame - k.start) / (k.end - k.start)));
+  const z = (k.from ?? 1) + (k.to - (k.from ?? 1)) * t;
+  const [px, py] = k.pan ?? [0, 0];
+  return `translate(${r2(-px * node.width * (z - 1) / 2)} ${r2(-py * node.height * (z - 1) / 2)}) scale(${r2(z * 10000) / 10000})`;
+}
+
+/**
+ * White sticker border that follows a cut-out's alpha (dilated silhouette, optionally torn), with a cast
+ * shadow from the same silhouette. Works for any transparent image, not just authored shapes.
+ */
+function StickerFilter({ id, width, color, torn, seed, shadow }: { id: string; width: number; color: string; torn: boolean; seed: number; shadow: { dx: number; dy: number; opacity: number; blur: number } }) {
+  return <filter id={id} x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
+    <feMorphology in="SourceAlpha" operator="dilate" radius={r2(Math.max(0, width))} result="grow0" />
+    {torn && <feTurbulence type="fractalNoise" baseFrequency={.05} numOctaves={3} seed={seed % 1000} result="noise" />}
+    {torn && <feDisplacementMap in="grow0" in2="noise" scale={r2(Math.max(2, width * 1.4))} xChannelSelector="R" yChannelSelector="G" result="grow" />}
+    <feFlood floodColor={color} result="ink" />
+    <feComposite in="ink" in2={torn ? "grow" : "grow0"} operator="in" result="paper" />
+    <feGaussianBlur in={torn ? "grow" : "grow0"} stdDeviation={r2(shadow.blur)} result="soft" />
+    <feOffset in="soft" dx={r2(shadow.dx)} dy={r2(shadow.dy)} result="moved" />
+    <feFlood floodColor="#1c1208" floodOpacity={r2(shadow.opacity)} result="shade" />
+    <feComposite in="shade" in2="moved" operator="in" result="shadow" />
+    <feMerge><feMergeNode in="shadow" /><feMergeNode in="paper" /><feMergeNode in="SourceGraphic" /></feMerge>
+  </filter>;
+}
+
 function ImagePiece({ ctx, node, lift }: { ctx: Ctx; node: CollageImageNode; lift: number }) {
-  const shape = node.mask ?? { type: "rect" as const, width: node.width, height: node.height };
+  const w = node.width, h = node.height;
+  const treat = node.treatment && node.treatment.mode !== "natural" ? node.treatment : undefined;
+  const treatId = treat ? `${ctx.uid}-treat-${node.id}` : undefined;
+  const treatFilter = treat && <PrintFilter id={treatId!} spec={ctx.spec} print={{ mode: treat.mode as "halftone" | "duotone" | "mono", ink: treat.ink, paper: treat.paper, cell: treat.cell, contrast: treat.contrast }} />;
+  const image = <image href={node.href} x={-w / 2} y={-h / 2} width={w} height={h} preserveAspectRatio="xMidYMid slice"
+    transform={kenBurnsTransform(node, ctx.frame)} filter={treatId ? `url(#${treatId})` : undefined} />;
+  if (node.cutout) {
+    const stickerId = `${ctx.uid}-stk-${node.id}`;
+    return <>
+      {treatFilter}
+      <StickerFilter id={stickerId} width={node.sticker?.width ?? 0} color={paint(ctx.spec, node.sticker?.color, "#f8f5ee")} torn={!!node.sticker?.torn}
+        seed={seedOf(node.id, ctx.spec.seed)} shadow={shadowParams(ctx, lift, node.shadow ?? 1)} />
+      <g filter={`url(#${stickerId})`}>{image}</g>
+    </>;
+  }
+  const shape = node.mask ?? { type: "rect" as const, width: w, height: h };
   const g = cutoutGeometry({ id: node.id, shape, edge: node.edge ?? "cut", backing: node.backing }, ctx.spec.seed);
   const clip = `${ctx.uid}-img-${node.id}`;
   return <>
+    {treatFilter}
     <ShadowPath ctx={ctx} d={g.silhouette} lift={lift} strength={node.shadow ?? 1} />
     {g.core && <path d={g.core} fill={paint(ctx.spec, node.backing?.color, "#f6f1e6")} />}
     <clipPath id={clip}><path d={g.face} /></clipPath>
-    <image href={node.href} x={-node.width / 2} y={-node.height / 2} width={node.width} height={node.height} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${clip})`} />
+    <g clipPath={`url(#${clip})`}>{image}</g>
     <FibreOverlay ctx={ctx} d={g.face} material="glossy" />
   </>;
+}
+
+/** Dim everything around a window. A few stepped rings give a soft edge without a full-frame blur filter. */
+function Spotlight({ ctx, node }: { ctx: Ctx; node: CollageSpotlightNode }) {
+  const color = paint(ctx.spec, node.color, "#0d0b09"), dim = node.dim ?? .62, feather = node.feather ?? 24, rings = feather > 0 ? 6 : 1;
+  const hole = (grow: number) => {
+    const w = node.width / 2 + grow, h = node.height / 2 + grow;
+    return node.shape === "ellipse"
+      ? `M${r2(-w)} 0A${r2(w)} ${r2(h)} 0 1 0 ${r2(w)} 0A${r2(w)} ${r2(h)} 0 1 0 ${r2(-w)} 0Z`
+      : `M${r2(-w)} ${r2(-h)}H${r2(w)}V${r2(h)}H${r2(-w)}Z`;
+  };
+  const outer = "M-20000 -20000H20000V20000H-20000Z";
+  return <g pointerEvents="none">{Array.from({ length: rings }, (_, k) =>
+    <path key={k} d={outer + hole(feather * (k / rings - .5))} fillRule="evenodd" fill={color} opacity={r2(dim / rings)} />)}</g>;
 }
 
 // ---- Map, route, string ----------------------------------------------------------------------------------------------------------
@@ -321,14 +402,25 @@ function MapPiece({ ctx, node, lift }: { ctx: Ctx; node: CollageMapNode; lift: n
     <g clipPath={`url(#${clip})`}>
       {land && <>
         <ShadowPath ctx={ctx} d={g.core.join("")} lift={lift} strength={node.shadow ?? .8} />
-        <path d={g.core.join("")} fill="#f6f1e6" />
+        <path d={g.core.join("")} fill={paint(ctx.spec, node.coast, "#f6f1e6")} />
         <path d={g.land.join("")} fill={land} />
+        {node.relief && !ctx.plain && <>
+          <clipPath id={`${clip}-land`}><path d={g.land.join("")} /></clipPath>
+          <rect x={-node.width / 2} y={-node.height / 2} width={node.width} height={node.height} fill={`url(#${ctx.uid}-relief)`} clipPath={`url(#${clip}-land)`}
+            opacity={node.relief.opacity ?? .55} style={{ mixBlendMode: "multiply" }} />
+        </>}
         <FibreOverlay ctx={ctx} d={g.land.join("")} material="paper" />
       </>}
       {g.regions.map(r => <Fragment key={r.id}>
         <ShadowPath ctx={ctx} d={r.core} lift={lift + .25} strength={.9} />
         <path d={r.core} fill="#f6f1e6" />
         <path d={r.face} fill={paint(ctx.spec, r.fill)} />
+        {node.regions?.find(q => q.id === r.id)?.hatch && <>
+          <clipPath id={`${clip}-h-${r.id}`}><path d={r.face} /></clipPath>
+          <g clipPath={`url(#${clip}-h-${r.id})`} opacity={.7}>
+            <PatternRules box={{ x: -node.width / 2, y: -node.height / 2, width: node.width, height: node.height }} type="lines" color={paint(ctx.spec, node.regions!.find(q => q.id === r.id)!.hatch)} spacing={9} angle={45} />
+          </g>
+        </>}
         <FibreOverlay ctx={ctx} d={r.face} material="paper" />
       </Fragment>)}
       {node.graticule && g.graticule && <path d={g.graticule} stroke={paint(ctx.spec, node.graticule.color)} strokeWidth={1.2} strokeDasharray="2 5" opacity={node.graticule.opacity ?? .3} fill="none" />}
@@ -532,6 +624,7 @@ function renderNode(ctx: Ctx, node: CollageNode, attachments: Map<string, Collag
       return [s.pose.x, s.pose.y];
     }} />; break;
     case "puppet": body = <Puppet ctx={childCtx} node={node} frame={state.sampled} attach={attach} />; break;
+    case "spotlight": body = <Spotlight ctx={childCtx} node={node} />; break;
     case "group": break;
   }
   const printId = node.print ? `${ctx.uid}-print-${node.id}` : undefined;
@@ -613,10 +706,13 @@ export function CollageScene({ spec, frame, reducedMotion = false, plain = false
         patternTransform={`translate(${Math.floor(((grainStep * 73) % 192))} ${Math.floor(((grainStep * 131) % 192))})`}><image href={grainUri} width={192} height={192} /></pattern>}
       <linearGradient id={`${uid}-sheen`} x1="0" y1="0" x2="1" y2="1"><stop offset=".2" stopColor="#ffffff" stopOpacity="0" /><stop offset=".45" stopColor="#ffffff" stopOpacity=".55" /><stop offset=".6" stopColor="#ffffff" stopOpacity="0" /></linearGradient>
       <radialGradient id={`${uid}-vignette`} cx=".5" cy=".5" r=".75"><stop offset=".55" stopColor="#1a0f05" stopOpacity="0" /><stop offset="1" stopColor="#1a0f05" stopOpacity={r2(.5 * vignette)} /></radialGradient>
+      {spec.nodes.some(n => n.kind === "map" && n.relief) && !plain &&
+        <pattern id={`${uid}-relief`} patternUnits="userSpaceOnUse" width={384} height={384}><image href={reliefTexture(spec.seed + 11)} width={384} height={384} /></pattern>}
       <filter id={`${uid}-graphite`}><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves={1} seed={3} result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale={1.4} /></filter>
     </defs>
     <rect width={spec.width} height={spec.height} fill={plain ? boardColor : `url(#${uid}-board)`} />
-    {board.material === "graph" && <GraphRules ctx={ctx} camera={cameraTransform(camera, spec.width, spec.height, .985)} />}
+    {board.halftone && <CornerHalftone spec={spec} camera={cameraTransform(camera, spec.width, spec.height, .985)} />}
+    {(board.material === "graph" || board.grid) && <GraphRules ctx={ctx} camera={cameraTransform(camera, spec.width, spec.height, .985)} />}
     {layers}
     {!plain && <rect width={spec.width} height={spec.height} fill={`url(#${uid}-vignette)`} pointerEvents="none" />}
     {grainUri && <rect width={spec.width} height={spec.height} fill={`url(#${uid}-grain)`} opacity={r2((spec.grain ?? .35) * .55)} style={{ mixBlendMode: "overlay" }} pointerEvents="none" />}
@@ -624,10 +720,24 @@ export function CollageScene({ spec, frame, reducedMotion = false, plain = false
 }
 
 function GraphRules({ ctx, camera }: { ctx: Ctx; camera: string }) {
-  const { width, height } = ctx.spec, parts: string[] = [], step = 32;
+  const { width, height } = ctx.spec, grid = ctx.spec.board.grid, parts: string[] = [], step = grid?.spacing ?? 32;
   for (let x = -width; x <= width * 2; x += step) parts.push(`M${x} ${-height}V${height * 2}`);
   for (let y = -height; y <= height * 2; y += step) parts.push(`M${-width} ${y}H${width * 2}`);
-  return <path d={parts.join("")} transform={camera} stroke="#5b8bb0" strokeWidth={.8} opacity={.28} fill="none" />;
+  return <path d={parts.join("")} transform={camera} stroke={paint(ctx.spec, grid?.color, ctx.spec.board.material === "slate" ? "#9aa5b1" : "#5b8bb0")} strokeWidth={.8}
+    opacity={grid?.opacity ?? (ctx.spec.board.material === "slate" ? .1 : .28)} fill="none" />;
+}
+
+const cornerCache = new WeakMap<object, string>();
+/** Printed dot gradient from one corner across the board (cached per scene). */
+function CornerHalftone({ spec, camera }: { spec: CollageSceneSpec; camera: string }) {
+  const h = spec.board.halftone!;
+  let d = cornerCache.get(spec);
+  if (!d) {
+    const toward = { tl: 225, tr: 315, bl: 135, br: 45 }[h.corner ?? "br"];
+    d = halftoneDots({ x: -spec.width * .1, y: -spec.height * .1, width: spec.width * 1.2, height: spec.height * 1.2 }, { color: h.color, toward, from: 0, to: .55, cell: h.cell ?? 22, angle: 45 });
+    cornerCache.set(spec, d);
+  }
+  return <path d={d} transform={camera} fill={paint(spec, h.color)} opacity={h.opacity ?? .35} />;
 }
 
 export { projectGeo };

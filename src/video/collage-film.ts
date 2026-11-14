@@ -18,11 +18,13 @@ export const TEAR_INTO: Readonly<Record<string, number>> = { "two-noons": 22, pa
  * a `collage-tear` slot rips the previous shot's last frame open over the start of the next. The incoming
  * shot then resumes from where the tear left it, so no frame of the new shot repeats.
  */
-export function collageFilm(shots: readonly CollageShot[] = STANDARD_TIME_SHOTS, tweaks: CollageFilmTweaks = {}): FilmDocument {
+export function collageFilm(shots: readonly CollageShot[] = STANDARD_TIME_SHOTS, tweaks: CollageFilmTweaks = {},
+  options: { id?: string; tears?: Readonly<Record<string, number>> } = {}): FilmDocument {
+  const tears = options.tears ?? TEAR_INTO;
   const built = shots.map(shot => ({ shot, landscape: tweakScene(shot.build("landscape"), tweaks), portrait: tweakScene(shot.build("portrait"), tweaks) }));
   const scenes: unknown[] = [];
   built.forEach(({ shot, landscape, portrait }, i) => {
-    const tear = i > 0 ? TEAR_INTO[shot.id] ?? 0 : 0;
+    const tear = i > 0 ? tears[shot.id] ?? 0 : 0;
     if (tear) {
       const prev = built[i - 1];
       scenes.push({
@@ -40,7 +42,7 @@ export function collageFilm(shots: readonly CollageShot[] = STANDARD_TIME_SHOTS,
   });
   return {
     schemaVersion: 1,
-    id: "editorial-collage-standard-time",
+    id: options.id ?? "editorial-collage-standard-time",
     fps: { num: 30, den: 1 },
     drift: 0,
     outputs: [{ id: "landscape", width: 1920, height: 1080 }, { id: "portrait", width: 1080, height: 1920 }],

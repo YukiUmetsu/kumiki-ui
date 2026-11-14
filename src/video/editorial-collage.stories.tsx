@@ -7,8 +7,37 @@ import { renderCollageSlot } from "./collage-slot";
 import { collageFilm, shotStarts } from "./collage-film";
 import type { CollageFilmTweaks } from "./collage-film";
 import { STANDARD_TIME_SHOTS } from "./collage-standard-time";
-import type { CollageAspect } from "./collage-standard-time";
-import { CastLab, PaperLab } from "./editorial-collage-labs";
+import type { CollageAspect, CollageShot } from "./collage-standard-time";
+import { CastLab, PaperLab, PhotoLab } from "./editorial-collage-labs";
+import { PHOTO_REGISTER_SHOTS, PHOTO_REGISTER_TEARS } from "./collage-photo-registers";
+import type { ReactNode } from "react";
+
+interface FilmCopy { kicker: string; title: string; intro: ReactNode; notes: ReactNode }
+const PAPER_COPY: FilmCopy = {
+  kicker: "Editorial paper collage · COLLAGE1",
+  title: "Why every clock agrees",
+  intro: <>The newsroom-explainer collage look as a data-driven engine: torn and cut paper with white fibre
+    cores, halftone print shading, tape, highlighter sweeps and boiling marker lines, condensed headlines on pasted-up slips, paper
+    maps with routes and pins, and jointed paper-puppet characters — all moved on twos like stop-motion under a smooth rostrum camera.
+    Six original shots, one FD1 film, 16:9 and 9:16.</>,
+  notes: <>Every frame is a pure function of the frame number: scrub, seek backward or jump between shots and
+    the paper lands in the same place. Facts shown: towns kept local solar time; North American railroads adopted standard time on
+    18 November 1883; the 1884 International Meridian Conference chose Greenwich. The newspaper is fictional. No footage, photos or
+    third-party artwork; map coastlines are Natural Earth (public domain).</>,
+};
+const PHOTO_COPY: FilmCopy = {
+  kicker: "Editorial collage with real archives · COLLAGE1",
+  title: "Why every clock agrees — from the archive",
+  intro: <>The same story in the explainer registers built on real images: printed photo cut-outs (halftone or
+    duotone, torn sticker border, colour disc, cut-out lettering, paper scraps on a flat colour field), a real 1883 newspaper page with
+    highlighter marks placed on its OCR word boxes and a spotlight on the passage, a dark map board with shaded relief, a giant
+    label, an outlined year box and a red-bar chapter caption, and an archival print under a slow Ken Burns push that the marker
+    ring follows.</>,
+  notes: <>All images are public domain or CC0, captioned with what they are and when they were made: a pocket
+    watch (The Met, CC0), Pennsylvania Railroad locomotive no. 421 (1873), The Sun of 19 November 1883, a 1904 stereograph of the
+    Royal Observatory and Union Station, Indianapolis (about 1900) — the last four from the Library of Congress. The relief on the map
+    is an illustrative texture, not elevation data.</>,
+};
 
 const page = { display: "grid", gap: 16, padding: 24, minHeight: "100vh", background: "#f4f1ea", color: "#26231f", font: "15px/1.45 system-ui, sans-serif" } as const;
 const label = { display: "grid", gap: 5, font: "600 13px system-ui", minWidth: 150 } as const;
@@ -39,16 +68,17 @@ function useFilmClock(max: number, initial: number) {
   };
 }
 
-function CollageFilmPlayer({ initialFrame = 96 }: { initialFrame?: number }) {
+function CollageFilmPlayer({ initialFrame = 96, shots = STANDARD_TIME_SHOTS, tears, filmId, copy = PAPER_COPY }:
+  { initialFrame?: number; shots?: readonly CollageShot[]; tears?: Readonly<Record<string, number>>; filmId?: string; copy?: FilmCopy }) {
   const [aspect, setAspect] = useState<CollageAspect>("landscape");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [cadence, setCadence] = useState<1 | 2 | 3>(2);
   const [boil, setBoil] = useState(.5);
   const [grain, setGrain] = useState(.38);
   const tweaks: CollageFilmTweaks = useMemo(() => ({ cadence, boil, grain }), [cadence, boil, grain]);
-  const doc = useMemo(() => collageFilm(STANDARD_TIME_SHOTS, tweaks), [tweaks]);
+  const doc = useMemo(() => collageFilm(shots, tweaks, { id: filmId, tears }), [shots, tweaks, filmId, tears]);
   const compiled = useMemo(() => compileFilm(doc, { outputId: aspect }), [doc, aspect]);
-  const starts = useMemo(() => shotStarts(), []);
+  const starts = useMemo(() => shotStarts(shots), [shots]);
   const total = compiled.ok ? compiled.film.durationFrames : 1;
   const clock = useFilmClock(total - 1, initialFrame);
   if (!compiled.ok) return <pre role="alert">{compiled.diagnostics.map(d => d.path + ": " + d.message).join("\n")}</pre>;
@@ -57,15 +87,12 @@ function CollageFilmPlayer({ initialFrame = 96 }: { initialFrame?: number }) {
   const scale = aspect === "landscape" ? .5 : .38;
   return <div style={page}>
     <header style={{ maxWidth: 980 }}>
-      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2.5, color: "#8a3b28", textTransform: "uppercase" }}>Editorial paper collage · COLLAGE1</div>
-      <h1 style={{ margin: "6px 0", font: "700 clamp(26px,3vw,38px)/1.1 Georgia, serif" }}>Why every clock agrees</h1>
-      <p style={{ margin: 0, maxWidth: 820 }}>The newsroom-explainer collage look as a data-driven engine: torn and cut paper with white fibre
-        cores, halftone print shading, tape, highlighter sweeps and boiling marker lines, condensed headlines on pasted-up slips, paper
-        maps with routes and pins, and jointed paper-puppet characters — all moved on twos like stop-motion under a smooth rostrum camera.
-        Six original shots, one FD1 film, 16:9 and 9:16.</p>
+      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2.5, color: "#8a3b28", textTransform: "uppercase" }}>{copy.kicker}</div>
+      <h1 style={{ margin: "6px 0", font: "700 clamp(26px,3vw,38px)/1.1 Georgia, serif" }}>{copy.title}</h1>
+      <p style={{ margin: 0, maxWidth: 820 }}>{copy.intro}</p>
     </header>
     <nav aria-label="Shots" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-      {STANDARD_TIME_SHOTS.map((shot, i) => <button type="button" key={shot.id} style={i === shotIndex ? active : button} aria-pressed={i === shotIndex}
+      {shots.map((shot, i) => <button type="button" key={shot.id} style={i === shotIndex ? active : button} aria-pressed={i === shotIndex}
         onClick={() => clock.seek(starts[i] + 24)}>{i + 1}. {shot.title}</button>)}
     </nav>
     <div style={{ width: film.width * scale, height: film.height * scale, maxWidth: "100%", overflow: "hidden", boxShadow: "0 14px 44px rgba(40,30,20,.22)", background: "#1d1b19" }}>
@@ -104,10 +131,7 @@ function CollageFilmPlayer({ initialFrame = 96 }: { initialFrame?: number }) {
         <input type="checkbox" checked={reducedMotion} onChange={e => setReducedMotion(e.target.checked)} /> Reduced motion (settled frames)
       </label>
     </div>
-    <p style={{ fontSize: 13, maxWidth: 900, margin: 0, opacity: .8 }}>Every frame is a pure function of the frame number: scrub, seek backward or jump between shots and
-      the paper lands in the same place. Facts shown: towns kept local solar time; North American railroads adopted standard time on
-      18 November 1883; the 1884 International Meridian Conference chose Greenwich. The newspaper is fictional. No footage, photos or
-      third-party artwork; map coastlines are Natural Earth (public domain).</p>
+    <p style={{ fontSize: 13, maxWidth: 900, margin: 0, opacity: .8 }}>{copy.notes}</p>
   </div>;
 }
 
@@ -122,6 +146,14 @@ export default meta;
 export const CollageFilm: StoryObj<typeof CollageFilmPlayer> = {
   name: "COLLAGE1 · Why every clock agrees",
   render: () => <CollageFilmPlayer />,
+};
+export const PhotoRegistersFilm: StoryObj<typeof CollageFilmPlayer> = {
+  name: "COLLAGE1 · From the archive (real photos)",
+  render: () => <CollageFilmPlayer shots={PHOTO_REGISTER_SHOTS} tears={PHOTO_REGISTER_TEARS} filmId="editorial-collage-archive" copy={PHOTO_COPY} initialFrame={60} />,
+};
+export const PhotoTreatmentLab: StoryObj<typeof CollageFilmPlayer> = {
+  name: "COLLAGE1 · Photo treatment lab",
+  render: () => <PhotoLab />,
 };
 export const PaperAndPrintLab: StoryObj<typeof CollageFilmPlayer> = {
   name: "COLLAGE1 · Paper & print lab",

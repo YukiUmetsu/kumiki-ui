@@ -4,7 +4,13 @@ import type { CollageNode, CollageSceneSpec } from "../../registry/video/collage
 import type { EdgeStyle } from "../../registry/video/collage/collage-geometry";
 import type { CollagePuppetActionType, CollagePuppetLook } from "../../registry/video/collage/collage-puppet";
 import { clock, mapPin, stamp } from "../../registry/video/collage/collage-kit";
-import { CAST, PALETTE } from "./collage-standard-time";
+import { photoCutout, scraps, sourceLine } from "../../registry/video/collage/collage-kit-photo";
+import watchUrl from "./assets/collage/pocket-watch-cutout.webp";
+import locoUrl from "./assets/collage/locomotive-1873-cutout.webp";
+import { CAST, PALETTE as PAPER_PALETTE } from "./collage-standard-time";
+import { PHOTO_PALETTE } from "./collage-photo-registers";
+
+const PALETTE = { ...PAPER_PALETTE, ...PHOTO_PALETTE };
 
 const page = { display: "grid", gap: 16, padding: 24, minHeight: "100vh", background: "#f4f1ea", color: "#26231f", font: "15px/1.45 system-ui, sans-serif" } as const;
 const label = { display: "grid", gap: 5, font: "600 13px system-ui", minWidth: 150 } as const;
@@ -125,6 +131,66 @@ export function CastLab() {
       <label style={label}>Cadence<select aria-label="Puppet cadence" value={cadence} style={{ minHeight: 40, font: "inherit" }} onChange={e => setCadence(Number(e.target.value) as 1 | 2 | 3)}>
         <option value={1}>On ones</option><option value={2}>On twos</option><option value={3}>On threes</option></select></label>
       <label style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px system-ui" }}><input type="checkbox" checked={brads} onChange={e => setBrads(e.target.checked)} /> Paper fasteners</label>
+    </div>
+  </div>;
+}
+
+const PHOTO_SUBJECTS = {
+  watch: { label: "Pocket watch, about 1900 · The Met (CC0)", href: watchUrl, w: 743, h: 1040 },
+  locomotive: { label: "Locomotive no. 421, 1873 · Library of Congress", href: locoUrl, w: 924, h: 261 },
+} as const;
+const BOARD_SWATCHES = { yellow: "#f4d21f", blue: "#2b6a99", red: "#c62f26", pink: "#e8536b", paper: "#efe6d2", slate: "#262b31" } as const;
+
+/** A real photo through the cut-out print pipeline: treatment, sticker border, colour disc, board, lift. */
+export function PhotoLab() {
+  const [subject, setSubject] = useState<keyof typeof PHOTO_SUBJECTS>("watch");
+  const [mode, setMode] = useState<"natural" | "mono" | "duotone" | "halftone">("halftone");
+  const [cell, setCell] = useState(6);
+  const [contrast, setContrast] = useState(1.3);
+  const [sticker, setSticker] = useState(13);
+  const [torn, setTorn] = useState(true);
+  const [disc, setDisc] = useState(true);
+  const [board, setBoard] = useState<keyof typeof BOARD_SWATCHES>("yellow");
+  const [lift, setLift] = useState(0);
+  const loop = useLoop(89, 89);
+  const spec = useMemo<CollageSceneSpec>(() => {
+    const s = PHOTO_SUBJECTS[subject], tall = s.h > s.w, h = tall ? 820 : 1500 * s.h / s.w, w = tall ? 820 * s.w / s.h : 1500;
+    const dark = board === "slate";
+    return {
+      version: 1, id: "photo-lab", width: 1920, height: 1080, durationFrames: 90, seed: 9, palette: PALETTE, cadence: 2, grain: .4,
+      board: dark ? { material: "slate", grid: { spacing: 40, opacity: .1 } } : { material: "flat", color: BOARD_SWATCHES[board], halftone: { color: "#1d1b19", corner: "br", opacity: .18, cell: 24 } },
+      nodes: [
+        ...scraps("scrap", { box: { x: 200, y: 90, width: 1500, height: 880 }, count: 5, colors: ["paper", "ink", "red"], frame: 12, size: 60 }),
+        ...photoCutout("subject", { x: 960, y: 540, rotate: tall ? 5 : -2, width: w, height: h, href: s.href, sticker, torn,
+          treatment: { mode, ink: "ink", paper: "paper", cell, contrast },
+          disc: disc ? { radius: tall ? 380 : 330, fill: board === "red" ? "yellow" : "red", halftone: "ink", offset: [-30, 60] } : undefined,
+          keys: [{ frame: 0, lift }], enter: { preset: "drop", frame: 0, duration: 12 } }),
+        sourceLine("credit", { text: s.label, x: 80, y: 1036, color: dark ? "paper" : "ink" }),
+      ],
+    };
+  }, [subject, mode, cell, contrast, sticker, torn, disc, board, lift]);
+  return <div style={page}>
+    <header><h1 style={{ margin: 0, font: "700 32px/1.15 Georgia, serif" }}>Photo treatment lab</h1>
+      <p style={{ margin: "6px 0 0", maxWidth: 820 }}>Real photographs through the printed cut-out pipeline: the subject's own transparency drives a torn
+        white sticker border and a lift-aware shadow; the photo prints as natural, mono, duotone or a true halftone dot screen.</p></header>
+    <div style={stage}><CollageScene spec={spec} frame={loop.frame} /></div>
+    <div style={{ display: "flex", gap: 12, alignItems: "end", maxWidth: 960 }}>
+      <button type="button" style={button} onClick={loop.toggle}>{loop.playing ? "Pause" : "Play entrance"}</button>
+      <label style={{ ...label, flex: 1 }}>Frame · {loop.frame}<input type="range" aria-label="Photo lab frame" min={0} max={89} value={loop.frame} onChange={e => loop.setFrame(Number(e.target.value))} /></label>
+    </div>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 16, maxWidth: 980 }}>
+      <label style={label}>Photo<select aria-label="Photo" value={subject} style={{ minHeight: 40, font: "inherit" }} onChange={e => setSubject(e.target.value as keyof typeof PHOTO_SUBJECTS)}>
+        {Object.entries(PHOTO_SUBJECTS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></label>
+      <label style={label}>Treatment<select aria-label="Treatment" value={mode} style={{ minHeight: 40, font: "inherit" }} onChange={e => setMode(e.target.value as typeof mode)}>
+        <option value="natural">Natural (evidence)</option><option value="mono">Mono</option><option value="duotone">Duotone</option><option value="halftone">Halftone print</option></select></label>
+      <label style={label}>Board<select aria-label="Board" value={board} style={{ minHeight: 40, font: "inherit" }} onChange={e => setBoard(e.target.value as keyof typeof BOARD_SWATCHES)}>
+        {Object.keys(BOARD_SWATCHES).map(k => <option key={k} value={k}>{k}</option>)}</select></label>
+      <label style={label}>Dot pitch · {cell}px<input type="range" aria-label="Dot pitch" min={3} max={14} step={1} value={cell} onChange={e => setCell(Number(e.target.value))} /></label>
+      <label style={label}>Contrast · {contrast.toFixed(2)}<input type="range" aria-label="Contrast" min={.6} max={2} step={.05} value={contrast} onChange={e => setContrast(Number(e.target.value))} /></label>
+      <label style={label}>Sticker border · {sticker}px<input type="range" aria-label="Sticker border" min={0} max={30} step={1} value={sticker} onChange={e => setSticker(Number(e.target.value))} /></label>
+      <label style={label}>Lift · {lift.toFixed(2)}<input type="range" aria-label="Photo lift" min={0} max={2} step={.05} value={lift} onChange={e => setLift(Number(e.target.value))} /></label>
+      <label style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px system-ui" }}><input type="checkbox" checked={torn} onChange={e => setTorn(e.target.checked)} /> Torn edge</label>
+      <label style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px system-ui" }}><input type="checkbox" checked={disc} onChange={e => setDisc(e.target.checked)} /> Colour disc</label>
     </div>
   </div>;
 }
