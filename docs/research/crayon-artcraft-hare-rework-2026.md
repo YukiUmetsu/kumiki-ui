@@ -98,6 +98,31 @@ Negative controls: standalone oval face, identical triangle ears,
 circular glued-on eyes, separate peanut muzzle, random stipple that
 doesn't follow the face, cartoon uniform dark contour, detached tufts.
 
+## ArtCraft reject-and-repair: negative-space anatomy
+
+The first source-art still was inspected at normal film size and at a
+3× muzzle crop. It showed an unintended **dark paper-colored triangle**
+between the whisker pad and cheek. The first version added face planes
+without a sufficiently connected maxilla. This was not a wax-material
+defect and could not be corrected by increasing fur noise or strokes.
+
+The second pass added `maxillary-junction`, an opaque hidden mass
+between the upper nasal bridge, muzzle projection and lower-jaw wax.
+Its bounding area intentionally overlaps both adjacent masses and it
+inherits `head` motion. Five new narrow directional fur bands now
+follow the brow, nasal slope, connected cheek, whisker pad and ear root,
+and clip to their respective painted anatomical parents.
+
+A locally rendered source-art image was re-inspected at full frame;
+pixels at the previously exposed opening changed from bare paper
+(#23353d) to the expected connected cheek pigment (#956f59).
+This is useful **isolated-shape evidence**, not a browser-backed
+renderer claim: the final CRAYON1 film remains a separate acceptance gate.
+The negative-control guardrail in the new unit test enforces overlap
+of the three painted masses, but polygon bounds overlap alone cannot
+prove every surface pixel is continuous, so actual visual review remains
+mandatory.
+
 ## Testing and verification
 
 New `tests/crayon-artcraft-hare-anatomy.test.tsx` verifies scene
