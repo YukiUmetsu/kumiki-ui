@@ -20,6 +20,8 @@ export interface InkActorTrack {
   /** Existing character instance id, never an implicit generated rig. */
   instanceId: string;
   keys: readonly InkActorKey[];
+  /** Linear spacing preserves velocity in a pre-sampled C1 spline. Default smooth for authored sparse tracks. */
+  interpolation?: "smooth" | "linear";
 }
 export interface InkActorTransform {
   x: number;
@@ -33,6 +35,7 @@ const smooth = (n: number) => { const t = Math.max(0, Math.min(1, n)); return t*
 export function assertInkActorTrack(track: InkActorTrack): void {
   if (!track || !/^[a-z][a-z0-9_-]{0,63}$/i.test(track.id) ||
       !/^[a-z][a-z0-9._-]{0,63}$/i.test(track.instanceId) ||
+      (!["smooth","linear",undefined].includes(track.interpolation)) ||
       !Array.isArray(track.keys) || !track.keys.length || track.keys.length > 512)
     throw new RangeError("INK3 needs safe track/instance IDs and 1..512 location keys.");
   let prev = -1;
@@ -58,7 +61,8 @@ export function inkActorAt(track: InkActorTrack, frame: number, reducedMotion = 
   for (let i=1;i<keys.length;i++) {
     const b=keys[i],a=keys[i-1];
     if (f > b.frame) continue;
-    const t=smooth((f-a.frame)/(b.frame-a.frame));
+    const ratio=(f-a.frame)/(b.frame-a.frame);
+    const t=track.interpolation==="linear" ? ratio : smooth(ratio);
     const mix=(x:number,y:number)=>x+(y-x)*t;
     return {x:mix(a.x,b.x),y:mix(a.y,b.y),
       scale:Math.exp(mix(Math.log(a.scale),Math.log(b.scale))),

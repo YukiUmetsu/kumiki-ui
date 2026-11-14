@@ -3570,6 +3570,23 @@
       ]
     },
     {
+      "name": "ink-actor-director",
+      "type": "registry:ui",
+      "title": "Chinese Ink Character Motion Director",
+      "description": "Deterministic C1 continuous route blocking, planted-foot gait, 2-bone character IK, and independent cloth/arm/head correction tracks on the existing character timeline.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-wash-character"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-actor-director.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-actor-director.ts"
+        }
+      ]
+    },
+    {
       "name": "film-cards",
       "type": "registry:ui",
       "title": "Film Cards",
