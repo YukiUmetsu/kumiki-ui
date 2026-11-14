@@ -66,7 +66,7 @@ export function crayonDemoScene(subject:CrayonDemoSubject, aspect:CrayonDemoAspe
     const houses=portrait?[[120,H*.60,.94],[350,H*.77,1.13],[220,H*.91,.68]]:
       [[325,H*.70,1.2],[622,H*.77,1],[790,H*.67,.72]];
     houses.forEach(([x,y,s],i)=>{
-      const baseY=0, house="M-65 -24 H65V82H-65Z",roof="M-84 -23 L0 -94 L84 -23 Z";
+      const house="M-65 -24 H65V82H-65Z",roof="M-84 -23 L0 -94 L84 -23 Z";
       const place={x,y,scale:s};
       elements.push(wax("house-"+i,house,{x:-70,y:-29,width:140,height:116},
         i%2?palette.yellow:palette.coral,74+i*15,160+i*12,{placement:place}));
