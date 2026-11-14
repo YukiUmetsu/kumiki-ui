@@ -32,7 +32,12 @@ export function InkBrushCanvas({
   if (!Number.isFinite(paperTooth) || paperTooth < 0 || paperTooth > 1)
     throw new RangeError("paperTooth must be within 0..1.");
   if (renderMode !== "wet" && renderMode !== "vector") throw new RangeError("Unknown ink render mode.");
-  const marks = evaluateInkBrush(spec, frame, reducedMotion);
+  // The raster path must not also tessellate every vector outline, mask and hair.
+  // Only the comparison mode needs the expensive SVG stroke geometry.
+  const marks = renderMode === "vector" ? evaluateInkBrush(spec, frame, reducedMotion) : [];
+  const visibleStrokes = renderMode === "wet"
+    ? spec.strokes.filter(s => reducedMotion || frame > s.startFrame).length
+    : marks.filter(mark => mark.outline.length > 0).length;
   const wetImage = useMemo(() => renderMode === "wet" ?
     wetInkPngDataUri(sampleWetInk(spec, frame, { scale: rasterScale, bleed, reducedMotion })) : null,
     [renderMode, spec, frame, rasterScale, bleed, reducedMotion]);
@@ -101,7 +106,7 @@ export function InkBrushCanvas({
         opacity={f.opacity * paperTooth}/>)}
     </g>}
     {renderMode === "wet" ?
-      <image data-km-ink-raster="" data-km-ink-stroke-count={marks.filter(mark => mark.outline.length > 0).length}
+      <image data-km-ink-raster="" data-km-ink-stroke-count={visibleStrokes}
         width={spec.width} height={spec.height} href={wetImage ?? undefined} imageRendering="auto" /> :
       marks.filter(mark => mark.outline.length > 0).map((mark, i) =>
       <Fragment key={mark.id}>
