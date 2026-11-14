@@ -29,11 +29,22 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 239, x: 192, y: 0 },
     ] },
     { id: "body", parent: "root", x: 0, y: -72, keys: [
-      { frame: 0, y: 0, easing: "ease" }, { frame: 11, y: -5, easing: "ease" },
-      { frame: 24, y: 0, easing: "ease" }, { frame: 37, y: -5, easing: "ease" },
-      { frame: 50, y: 0, easing: "ease" }, { frame: 63, y: -5, easing: "ease" },
-      { frame: 76, y: 0, easing: "ease" }, { frame: 89, y: -5, easing: "ease" },
-      { frame: 105, y: 0 }, { frame: 239, y: 0 },
+      // Four rising/falling weight changes per 66-frame gait cycle, synchronized
+      // with alternating foot contacts. Motion settles when locomotion ends.
+      { frame: 0, y: 0, rotate: 0, easing: "ease" },
+      { frame: 16, y: -4.5, rotate: 1.3, easing: "ease" },
+      { frame: 33, y: 0, rotate: -1, easing: "ease" },
+      { frame: 49, y: -4.5, rotate: .9, easing: "ease" },
+      { frame: 66, y: 0, rotate: 0, easing: "ease" },
+      { frame: 82, y: -4.5, rotate: 1.3, easing: "ease" },
+      { frame: 99, y: 0, rotate: -1, easing: "ease" },
+      { frame: 115, y: -4.5, rotate: .9, easing: "ease" },
+      { frame: 132, y: 0, rotate: 0, easing: "ease" },
+      { frame: 148, y: -4.5, rotate: 1.3, easing: "ease" },
+      { frame: 165, y: 0, rotate: -1, easing: "ease" },
+      { frame: 181, y: -4.5, rotate: .9, easing: "ease" },
+      { frame: 198, y: 0, rotate: 0, easing: "ease" },
+      { frame: 239, y: 0, rotate: 0 },
     ] },
     { id: "head", parent: "body", x: 0, y: -68, keys: [
       { frame: 0, rotate: -3, easing: "ease" },
