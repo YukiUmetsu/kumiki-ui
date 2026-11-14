@@ -73,3 +73,17 @@ test("INK1 preserves typography safe zones and pure paper-stage dimensions", asy
     expect(bounds.stage.height / bounds.stage.width).toBeCloseTo(aspect === "portrait" ? 16 / 9 : 9 / 16, 2);
   }
 });
+
+test("INK1 production export obeys the existing absolute-frame handshake", async ({ page }) => {
+  await page.goto("/iframe.html?id=video-ink-wash--chinese-ink-wash-export&viewMode=story");
+  await page.waitForFunction(() => Boolean(window.__kmVideoExport?.seek));
+  const capture = page.locator("[data-km-video-capture]");
+  await expect(capture).toHaveCount(1);
+  await expect(capture).toHaveAttribute("data-output-width", "960");
+  await expect(capture).toHaveAttribute("data-output-height", "540");
+  await page.evaluate(() => window.__kmVideoExport!.seek(255));
+  await expect(capture).toHaveAttribute("data-frame", "255");
+  await expect(capture.locator("svg[data-km-ink-wash]")).toHaveAttribute("data-km-ink-frame", "255");
+  await page.evaluate(() => window.__kmVideoExport!.seek(32));
+  await expect(capture).toHaveAttribute("data-frame", "32");
+});
