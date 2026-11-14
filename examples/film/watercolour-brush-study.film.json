@@ -25,7 +25,7 @@
       "durationFrames": 410,
       "content": {
         "slot": "watercolour-brush",
-        "label": "Original iris study in watercolour",
+        "label": "Watercolor iris painted by successive brush strokes",
         "props": {
           "subject": "wild-iris"
         }
@@ -40,7 +40,7 @@
       },
       "content": {
         "slot": "watercolour-brush",
-        "label": "Original coastal sunrise watercolour",
+        "label": "Watercolor coastal scene painted by successive brush strokes",
         "props": {
           "subject": "coastal-dawn"
         }
