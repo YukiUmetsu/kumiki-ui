@@ -128,7 +128,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         if (progress <= 0) return null;
         return <g key={i} fill="none" strokeLinecap="round">
           {nibStyle==="tapered" ?
-            <path d={crayonNibPath(mark, progress)} fill={colors[mark.tone]}
+            <path d={progress>=1 ? mark.nibD : crayonNibPath(mark, progress)} fill={colors[mark.tone]}
               data-km-crayon-nib="tapered"
               opacity={coverage==="opaque" ? .32+mark.pressure*.34 : .2+mark.pressure*.24} /> :
             <path d={mark.d} pathLength={100} stroke={colors[mark.tone]} strokeWidth={mark.width}
