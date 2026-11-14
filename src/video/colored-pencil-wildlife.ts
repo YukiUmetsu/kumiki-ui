@@ -134,7 +134,7 @@ function coloredRegion(id: string, shape: string,
     direction: opts.direction ?? -25, flow: opts.flow ?? 17,
     tone: opts.tone ?? "core", texture: opts.texture ?? "fiber",
     material: opts.material ?? "dense", underpaintOpacity: opts.base ?? .63,
-    clipDetails: opts.clipDetails ?? false,
+    clipDetails: opts.clipDetails,
     contourColor: opts.contour ?? "#4D4C54", opaqueSupport: true,
     details: opts.details,
   });
