@@ -49,7 +49,7 @@ export function inspectPencilActors(actors: readonly PencilActorSpec[]): string[
   for (const [a, actor] of actors.entries()) {
     const at = "actors[" + a + "]";
     if (!actor || typeof actor !== "object") {issues.push(at + ": invalid rig."); continue;}
-    if (!/^[A-Za-z][\\w-]{0,40}$/.test(actor.id) || actorIds.has(actor.id))
+    if (typeof actor.id !== "string" || !/^[A-Za-z][\w-]{0,40}$/.test(actor.id) || actorIds.has(actor.id))
       issues.push(at + ".id: unique safe identifier required.");
     actorIds.add(actor.id);
     if (!safeTransform(actor.transform)) issues.push(at + ".transform: invalid placement.");
@@ -61,7 +61,7 @@ export function inspectPencilActors(actors: readonly PencilActorSpec[]): string[
     for (const [i, part] of actor.parts.entries()) {
       const here = at + ".parts[" + i + "]";
       if (!part || typeof part !== "object") {issues.push(here + ": invalid part."); continue;}
-      if (!/^[A-Za-z][\\w-]{0,40}$/.test(part.id) || seen.has(part.id))
+      if (typeof part.id !== "string" || !/^[A-Za-z][\w-]{0,40}$/.test(part.id) || seen.has(part.id))
         issues.push(here + ".id: unique safe part ID required.");
       if (part.parent !== undefined && !seen.has(part.parent))
         issues.push(here + ".parent: must name a previously declared part.");

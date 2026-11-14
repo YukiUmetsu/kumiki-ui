@@ -25,7 +25,8 @@ function part(id: string, path: string, bounds: readonly [number, number, number
     id, parent, pivot, keys,
     region: createPencilRegion({
       id, path, bounds, palette, seed: boundedSeed, startFrame: 8, durationFrames: 148,
-      material: "layered", direction: -28 + (boundedSeed % 33), flow: id.includes("wing") ? 25 : 14,
+      material: "dense", underpaintOpacity: .9,
+      direction: -28 + (boundedSeed % 33), flow: id.includes("wing") ? 25 : 14,
       tone: "core",
       details: detail ? [{
         path: detail, color: "#6B6157", width: 1.15,
@@ -120,10 +121,10 @@ export function pencilCharacterScene(aspect: PencilAspect): PencilSceneSpec {
   const portrait = aspect === "portrait";
   const actors = [fox(), bird()].map((actor, i) => ({
     ...actor, transform: portrait
-      ? (i === 0 ? "translate(82 518) scale(.66)" : "translate(272 495) scale(.66)")
-      : (i === 0 ? "translate(505 260) scale(.82)" : "translate(733 265) scale(.76)"),
+      ? (i === 0 ? "translate(68 514) scale(1)" : "translate(280 499) scale(.99)")
+      : (i === 0 ? "translate(483 236) scale(1.2)" : "translate(722 241) scale(1.07)"),
   }));
-  const annotations = source.annotations?.map(item => {
+  const annotations = source.annotations?.filter(item => !item.id.startsWith("guide-")).map(item => {
     if (item.id === "title" && item.type === "text")
       return { ...item, text: ["A SMALL", "ENCOUNTER"] };
     if (item.id === "section" && item.type === "text")
@@ -132,5 +133,12 @@ export function pencilCharacterScene(aspect: PencilAspect): PencilSceneSpec {
       return { ...item, text: ["A fox greets a visiting bird.", "A pencil-drawn character study."] };
     return item;
   });
-  return { ...source, actors, annotations };
+  const backdrop = { ...source.drawing, regions: source.drawing.regions.map(region => ({
+    ...region,
+    layers: region.layers.map(layer => ({
+      ...layer, pressure: layer.pressure * .55, tipWidth: layer.tipWidth * .73,
+    })),
+    contour: { ...region.contour, opacity: .32 },
+  })) };
+  return { ...source, drawing: backdrop, actors, annotations };
 }

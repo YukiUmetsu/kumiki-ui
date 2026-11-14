@@ -17,7 +17,7 @@ const leaf: readonly PencilRegion[] = [
     id: "primary-leaf",
     path: "M204 351 C161 296 99 229 110 155 C119 89 198 43 287 23 C342 71 377 138 353 204 C330 267 265 321 204 351 Z",
     bounds: [103, 18, 276, 336],
-    underpaint: "#99A67E",
+    underpaint: "#99A67E", underpaintOpacity: .21,
     contour: draw("M204 351 C161 296 99 229 110 155 C119 89 198 43 287 23 C342 71 377 138 353 204 C330 267 265 321 204 351 Z", GRAPHITE, 2.05, 10, 72),
     layers: [
       { color: "#94A985", angle: -32, spacing: 3.6, pressure: .83, tipWidth: 1.7, seed: 3, flow: 24, tone: "core", startFrame: 52, durationFrames: 126 },
@@ -44,7 +44,7 @@ const leaf: readonly PencilRegion[] = [
     id: "young-leaf",
     path: "M175 286 C125 271 70 243 47 181 C99 163 155 191 178 241 Z",
     bounds: [42, 157, 142, 134],
-    underpaint: "#A7B693",
+    underpaint: "#A7B693", underpaintOpacity: .24,
     contour: draw("M175 286 C125 271 70 243 47 181 C99 163 155 191 178 241 Z", GRAPHITE, 1.55, 28, 72),
     layers: [
       { color: "#90A47E", angle: 26, spacing: 4.1, pressure: .7, tipWidth: 1.1, seed: 92, flow: -20, tone: "core", startFrame: 88, durationFrames: 126 },
@@ -62,7 +62,7 @@ const crystal: readonly PencilRegion[] = [
     id: "left-facet",
     path: "M112 334 L71 212 L153 128 L191 34 L225 144 L194 355 Z",
     bounds: [68, 28, 159, 334],
-    underpaint: "#BCC7CA",
+    underpaint: "#BCC7CA", underpaintOpacity: .23,
     contour: draw("M112 334 L71 212 L153 128 L191 34 L225 144 L194 355 Z", GRAPHITE, 1.85, 10, 71),
     layers: [
       { color: "#849EAE", angle: -51, spacing: 3.6, pressure: .8, tipWidth: 1.4, seed: 102, tone: "rim", startFrame: 55, durationFrames: 125 },
@@ -74,7 +74,7 @@ const crystal: readonly PencilRegion[] = [
     id: "central-facet",
     path: "M194 355 L191 34 L267 12 L309 133 L280 358 Z",
     bounds: [188, 8, 125, 353],
-    underpaint: "#C2B7CB",
+    underpaint: "#C2B7CB", underpaintOpacity: .25,
     contour: draw("M194 355 L191 34 L267 12 L309 133 L280 358 Z", GRAPHITE, 2.05, 16, 70),
     layers: [
       { color: "#ABB1C4", angle: 24, spacing: 3.6, pressure: .8, tipWidth: 1.3, seed: 111, tone: "core", startFrame: 63, durationFrames: 136 },
@@ -90,7 +90,7 @@ const crystal: readonly PencilRegion[] = [
     id: "right-facet",
     path: "M280 358 L309 133 L358 154 L390 255 L346 340 Z",
     bounds: [275, 129, 118, 233],
-    underpaint: "#D3C0AB",
+    underpaint: "#D3C0AB", underpaintOpacity: .23,
     contour: draw("M280 358 L309 133 L358 154 L390 255 L346 340 Z", GRAPHITE, 1.85, 25, 66),
     layers: [
       { color: "#B69A87", angle: -36, spacing: 3.7, pressure: .75, tipWidth: 1.5, seed: 122, tone: "rim", startFrame: 91, durationFrames: 132 },
@@ -102,7 +102,7 @@ const crystal: readonly PencilRegion[] = [
     id: "base-facet",
     path: "M112 334 L194 355 L280 358 L346 340 L302 391 L172 393 Z",
     bounds: [108, 330, 241, 67],
-    underpaint: "#9D8990",
+    underpaint: "#9D8990", underpaintOpacity: .26,
     contour: draw("M112 334 L194 355 L280 358 L346 340 L302 391 L172 393 Z", GRAPHITE, 1.7, 42, 71),
     layers: [
       { color: "#817F97", angle: 8, spacing: 3.9, pressure: .78, tipWidth: 1.6, seed: 131, tone: "core", startFrame: 134, durationFrames: 112 },
