@@ -1,12 +1,26 @@
 # 35 — Material-native film styles: step-by-step implementation roadmap
 
 **Prepared:** 2026-11-13  
-**Status:** Proposed implementation plan; no feature completion or visual approval is claimed by this document.  
+**Status:** Active implementation roadmap. Functional implementation, automated validation, exported-proof evidence and explicit human visual acceptance are tracked separately below.  
 **Target:** `YukiUmetsu/kumiki-ui`, with a separate ContentGen integration after native Kumiki proof.  
 **Inspiration and comparison:** [Lemo-Opuscar](https://github.com/lemomo-ai/lemo-opuscar), particularly its [style index](https://github.com/lemomo-ai/lemo-opuscar/blob/main/styles/README.md), [film technique guide](https://github.com/lemomo-ai/lemo-opuscar/blob/main/TECHNIQUE.md), and medium-specific demos. **Use these as research references, not code or documentation to republish.**  
 **Repository baseline inspected:** `main` at `b57b3f91008c9ba35ca0b4179b13afbe7ece44b2`. Re-audit before implementation if main changes.
 
 **Visual source board:** [35A — Material-native style reference gallery](35a-material-native-style-reference-gallery.md) (verified playable films, stills, shot checkpoints, independent craft references and visual-QA rubric). Every style requires a reference-evidence packet before its implementation PR is approved.
+
+## Progress ledger (2026-11-14)
+
+This ledger records **code availability**, not automatic artistic approval. Keep future entries pinned to actual PRs and observed CI artifacts.
+
+| Roadmap work | Code / evidence as of 2026-11-14 | Visual acceptance / remaining gate |
+| --- | --- | --- |
+| Phase 0 baseline & Phase 1 Risograph vertical slice | [Merged PR #151](https://github.com/YukiUmetsu/kumiki-ui/pull/151): independent SVG spot plates, validated printing spec, 3-shot FilmStage, portable production film, two aspect ratios, browser evidence and rendered proof | Completed implementation; no signed-off normal-speed **human** review for either aspect |
+| Phase 2 print compositor & sheet-feed | [Merged PR #151](https://github.com/YukiUmetsu/kumiki-ui/pull/151): multiply-style spot overprint, fixed registration, screened plates, paper pores, deterministic ink passes and physical-sheet bridge | Further density, authored registration-kick and multi-subject visual qualification remain |
+| Phase 2 spot-ink native overprint transition | [Open PR #152](https://github.com/YukiUmetsu/kumiki-ui/pull/152): authored ink-only impression, separate no-text ink contact, native contour paper replacement, five-shot FilmStage, 16:9/9:16 browser frames and exact-seek tests. [Successful deterministic CI](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43566575452) and [browser/production QA](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43566575486) | Browser-visible text overlap and alpha-ghosting corrected; normal-speed **full-transition** video review and independent art acceptance still pending; production audit flags small decorative text and low-contrast footer |
+| Phase 3 ink stroke geometry & paper deposition | **Next focused implementation slice: PR 4** after the Phase 2 proof is reviewed | Not implemented |
+| Phases 4–10 and ContentGen | Not started as part of this roadmap | Dependency-gated; do not claim all media/styles shipped |
+
+Prioritize the implementation gates in Sections 4, 6 and 10 over the proposed PR numbering. Historical "next task" wording later in this file describes the original starting plan and is superseded by this ledger.
 
 ## 1. Executive decision
 
