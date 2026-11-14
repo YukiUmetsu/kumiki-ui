@@ -43,3 +43,24 @@ Visual review must look at actual film frames, closeups and normal-speed motion;
 6. Review both entire 42-second landscape/portrait films at normal speed and obtain human artistic acceptance.
 
 This does not claim spectral pigment chemistry or parity with the original watercolor masterworks.
+
+## Second-pass verification and visual critique
+
+[WM6 unit/typecheck CI](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43642134981)
+and [real browser/encoded film export](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43642134942)
+both passed after correcting a unit and browser-detected 1025-mark budget
+regression. The source now caps individually detailed focal specimens so the
+maximum active mark count stays strictly below 1000.
+
+The actual six-frame landscape/portrait film contact sheet and paired
+boat, botanical and facade closeups were inspected. The leaf-edge strokes
+and boat rigging are visible at close inspection but their effect is
+limited at normal 960x540 size; the composition is still a gentle,
+flat illustrative watercolor rather than a high-contrast material-rich
+master study. The sailboat person remains anatomically simplified.
+Repeated meadow heads and fairly uniform architectural planes are
+the next art weaknesses. No claim of professional watercolor parity
+or completed motion QA should be made.
+
+The scoped heavyweight WM6 browser workflow is restored to
+workflow_dispatch only; routine PR CI stays changed-tests plus typechecking.

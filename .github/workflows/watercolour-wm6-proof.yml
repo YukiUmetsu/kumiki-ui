@@ -1,13 +1,7 @@
 name: Watercolour WM6 observational detail proof
-# One scoped PR browser/film proof. Return to dispatch-only when qualified.
+# Manual-only after the scoped PR art check. No costly browser or FFmpeg
+# tasks on ordinary pull requests or main pushes.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/watercolour-wm6-proof.yml"
-      - "src/video/watercolour-craft-detail.tsx"
-      - "src/video/watercolour-master-studies.tsx"
-      - "src/video/watercolour-master-studies.stories.tsx"
-      - "tests/e2e-storybook/watercolour-wm6-detail.spec.ts"
   workflow_dispatch:
 
 permissions:
