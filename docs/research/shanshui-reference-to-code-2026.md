@@ -397,3 +397,22 @@ scenery was frozen at frame 299 while character expressions and cloth
 sampled the interactive slider frame. These behavior changes need a fresh
 complete browser and video QA run. A successful old run does not verify
 this newly authored bamboo design or early-motion export.
+
+
+### Reading direction and character contact
+
+The original film cue made all three characters look at the distant landscape.
+That was narratively wrong for the young scholar holding a manuscript. The
+reusable `shanshuiPerformanceCues(scene)` now directs the reader's gaze to
+`scroll-page`, a runtime target derived from the actual two fitted hand
+anchors rather than an arbitrary scene-space coordinate. The walker and
+hermit retain a distant landscape gaze. Unit checks cover the distinct
+characters and valid page target. Eyes and hands retain the same approved
+rigging system.
+
+**Outstanding animation failure:** The full-body film crop still shows the
+robe moving almost rigidly while shoes advance beneath it; world-planted
+foot checks alone do not demonstrate natural garment/leg acting. Future
+work needs a proper split-hem acting rig with meaningful alternating cloth
+silhouette drawings, plus filmed foot-contact evidence. Do not call this
+finished character motion based only on the current pass.
