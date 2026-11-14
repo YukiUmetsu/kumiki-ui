@@ -235,7 +235,7 @@ function StoryTitle({ width, height, portrait, day, frame, reduced }: { width:nu
   const ink = day ? "#34455b" : "#fbefcd";
   const titleSize = portrait ? 64 : 74;
   return <g fill={ink} opacity={crayonProgress(frame,60,110,0,1,reduced)} data-km-crayon-title="">
-    <text x={x} y={portrait ? 51 : 50} fontFamily="Georgia, 'Times New Roman', serif" fontSize={portrait ? 14 : 15}
+    <text x={x} y={portrait ? 51 : 50} fontFamily="Georgia, 'Times New Roman', serif" fontSize={portrait ? 15 : 16}
       fontWeight="700" letterSpacing={3}>TINY TALES   /   {day ? "02" : "01"}</text>
     <path d={"M" + x + " " + (portrait ? 65 : 64) + " H" + (portrait ? 255 : 404)}
       fill="none" stroke={ink} opacity=".65" strokeWidth="1.6"/>
@@ -243,7 +243,7 @@ function StoryTitle({ width, height, portrait, day, frame, reduced }: { width:nu
       fontFamily="Georgia, 'Times New Roman', serif" fontWeight="700"
       fontSize={titleSize} letterSpacing={-2.3}>{line}</text>)}
     <text x={x+3} y={y + title.length * (portrait ? 72 : 79) + 16} fontFamily="Georgia,serif"
-      fontSize={portrait ? 18 : 18} fontStyle="italic" opacity=".88">{day ? "A pocketful of beginnings." : "A little light for the long way home."}</text>
+      fontSize={portrait ? 20 : 23} fontStyle="italic" opacity=".88">{day ? "A pocketful of beginnings." : "A little light for the long way home."}</text>
     {!portrait && <text x={width-53} y={height-27} textAnchor="end" fontFamily="Georgia,serif"
       fontSize="15" letterSpacing={1.3} fill={day ? "#304d54" : "#f8eccd"}>WAX CRAYON   /   001</text>}
   </g>;
