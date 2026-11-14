@@ -27,6 +27,8 @@ test("reference-inspired code-driven mountain, river and hermit compositions are
     await expect(page.locator("[data-km-shanshui-mountains]")).toHaveCount(1);
     await expect(page.locator("[data-km-shanshui-birds]")).toHaveCount(1);
     await expect(page.locator("[data-km-shanshui-foreground]")).toHaveCount(1);
+    await expect.poll(()=>page.locator("[data-km-shanshui-bamboo-leaf]").count())
+      .toBeGreaterThan(70);
     await expect(actor).toHaveCount(1);
     // Ink material renders a set of individual named paths inside the same
     // canonical body part; one actor is not one DOM path.
@@ -71,6 +73,8 @@ test("real paper/ink controls change geometry and the reduce-motion contract fre
     path:info.outputPath("shanshui-sparse-detail.png")});
   expect(hash(before)).not.toBe(hash(after));
   await page.getByRole("checkbox",{name:"Reduced motion"}).check();
+  await expect(page.locator("[data-km-ink-character-frame]"))
+    .toHaveAttribute("data-km-ink-character-frame","299");
   const original=await page.locator("[data-km-shanshui-birds]").getAttribute("data-km-shanshui-bird-x");
   await seek(page,38);
   await expect(page.locator("[data-km-shanshui-birds]")).toHaveAttribute("data-km-shanshui-bird-x",original!);
@@ -97,6 +101,16 @@ for(const [scene,story] of [
   });
 }
 
+
+test("the gallery opens on a painted walking pose and plays forward",async({page})=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
+  const slider=page.getByRole("slider",{name:/Shanshui frame/});
+  await expect(slider).toHaveValue("84");
+  await page.getByRole("button",{name:"Play film"}).click();
+  await expect.poll(async()=>Number(await slider.inputValue())).toBeGreaterThan(90);
+  await page.getByRole("button",{name:"Pause film"}).click();
+  await expect(page.getByRole("button",{name:"Play film"})).toBeVisible();
+});
 
 test("gallery restarts playback from frame zero after the final frame",async({page})=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
