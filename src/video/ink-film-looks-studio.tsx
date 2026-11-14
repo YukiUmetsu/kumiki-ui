@@ -139,7 +139,10 @@ export function InkLooksStudio({initialMode="painting"}:{initialMode?:InkLookMod
     // the visual preview advances at most a few authored frames per RAF.
     let advanced=origin,raf=0;
     const tick=(now:number)=>{
-      const target=origin+Math.floor((now-start)*30/1000*playbackRate);
+      // requestAnimationFrame's frame timestamp may predate performance.now()
+      // from the click handler. Never sample frame -1 on a first callback.
+      const elapsed=Math.max(0,now-start);
+      const target=origin+Math.floor(elapsed*30/1000*playbackRate);
       const step=Math.max(1,Math.round(3*playbackRate));
       advanced=Math.min(target,advanced+step);
       const next=loop?advanced%(maxFrame+1):Math.min(maxFrame,advanced);
