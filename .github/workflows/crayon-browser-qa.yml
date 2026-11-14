@@ -10,6 +10,7 @@ on:
       - "src/video/crayon-scene*"
       - "tests/crayon-scene.test.tsx"
       - "tests/e2e-storybook/crayon-scene.spec.ts"
+      - "tests/e2e-storybook/crayon-smoke.spec.ts"
       - "examples/film/crayon-scene-three-subjects.film.json"
       - "tests/e2e-storybook/crayon-storybook.spec.ts"
       - ".github/workflows/crayon-browser-qa.yml"
@@ -35,7 +36,11 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Native-paper and draw-on browser captures
+      - name: Fast native-paper browser smoke
+        if: github.event_name != 'workflow_dispatch'
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/crayon-smoke.spec.ts
+      - name: Full multi-frame browser art qualification
+        if: github.event_name == 'workflow_dispatch'
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/crayon-storybook.spec.ts tests/e2e-storybook/crayon-scene.spec.ts
       - name: Validate exported film document
         run: |
