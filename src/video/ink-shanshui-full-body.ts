@@ -59,6 +59,9 @@ export interface ShanshuiBodyFit {
   stageScale:number;stageCenterX:number;stageFootY:number;
   nearSide:"left"|"right";
   headRest:CharacterPoseDelta;
+  /** Independently measured hair, eyebrow, eye, pupil and mouth rest offsets. */
+  facialRest:Record<"hair"|"brows"|"eyes"|"pupil-left"|
+    "pupil-right"|"mouth"|"beard",CharacterPoseDelta>;
   anchors:Record<"leftShoulder"|"rightShoulder"|"leftWaist"|"rightWaist"|
     "leftHip"|"rightHip"|"leftHem"|"rightHem"|
     "nearShoulder"|"farShoulder"|"nearHand"|"farHand"|
@@ -80,19 +83,46 @@ export function shanshuiBodyFit(scene:ShanshuiScene):ShanshuiBodyFit{
       r.regions["sleeve-screen-right"]!.height*.53}):
     s.point("hand-right");
   const nearSide=scene==="river-scholar"?"right":"left";
-  const skull=s.box("skull"),face=s.box("face");
-  const old=SHANSHUI_LEGACY_PUPPET_MESH.regions.skull!;
-  const headScale=Math.max(.49,Math.min(1,skull.height/old.height));
-  const headPivot={x:139,y:124};
-  const faceTopInArt=65,faceCenterInArt=139.5;
+  const skull=s.box("skull"),face=s.box("face"),hair=s.box("hair");
+  // Face vs scalp cannot share one scale: the old generic puppet's face is
+  // almost as tall as its skull, whereas all three teacher figures have a
+  // compact drawn jaw and a taller crown/bun. Solve independent X/Y size.
+  const faceOriginal={x:110,y:65,width:60,height:77};
+  const headScaleX=face.width/faceOriginal.width;
+  const headScaleY=face.height/faceOriginal.height;
+  const pivot={x:139,y:124};
   const headRest:CharacterPoseDelta={
-    scaleX:headScale,scaleY:headScale,
-    x:n(face.origin.x+face.width*.5-
-      (headPivot.x+(faceCenterInArt-headPivot.x)*headScale)),
-    y:n(face.origin.y-
-      (headPivot.y+(faceTopInArt-headPivot.y)*headScale)),
+    scaleX:headScaleX,scaleY:headScaleY,
+    x:face.origin.x+face.width*.5-
+      (pivot.x+(faceOriginal.x+faceOriginal.width*.5-pivot.x)*headScaleX),
+    y:face.origin.y-
+      (pivot.y+(faceOriginal.y-pivot.y)*headScaleY),
     rotation:scene==="misty-hermit"?-6:scene==="river-scholar"?-4:-8,
   };
+  const atHeadY=(originalY:number)=>
+    pivot.y+(originalY-pivot.y)*headScaleY+(headRest.y??0);
+  const originalHair={pivotY:74,top:scene==="misty-hermit"?36:
+    scene==="river-scholar"?27:28,height:scene==="misty-hermit"?64:84};
+  const hairScaleY=hair.height/(originalHair.height*headScaleY);
+  const hairTopBefore=atHeadY(originalHair.pivotY+
+    hairScaleY*(originalHair.top-originalHair.pivotY));
+  const hairRestY=(hair.origin.y-hairTopBefore)/headScaleY;
+  const average=(names:readonly string[])=>names.map(id=>s.point(id))
+    .reduce((v,p)=>v+p.y,0)/names.length;
+  const partY=(targetY:number,originalY:number)=>
+    (targetY-atHeadY(originalY))/headScaleY;
+  const eyebrowY=average(["brow-left-inner","brow-right-inner"]);
+  const eyeY=average(["eye-left-inner","eye-right-inner"]);
+  const mouthY=average(["mouth-left","mouth-right"]);
+  const facialRest={
+    hair:{scaleY:hairScaleY,y:hairRestY},
+    brows:{y:partY(eyebrowY,94)},
+    eyes:{y:partY(eyeY,102)},
+    "pupil-left":{y:partY(eyeY,102)},
+    "pupil-right":{y:partY(eyeY,101)},
+    mouth:{y:partY(mouthY,124)},
+    beard:{scaleY:scene==="misty-hermit"?.82:1},
+  } satisfies ShanshuiBodyFit["facialRest"];
   const hemDist=Math.abs(rightHem.x-leftHem.x);
   const sleeveL=s.box("sleeve-screen-left"),sleeveR=s.box("sleeve-screen-right");
   const leftShoe=r.regions["foot-screen-left"]!,
@@ -109,7 +139,7 @@ export function shanshuiBodyFit(scene:ShanshuiScene):ShanshuiBodyFit{
     sourceSleeveRatio:n(Math.max(sleeveL.height,sleeveR.height)/291),
     stageScale:n((r.figure.height/r.source.height*540)/291),
     stageCenterX:n((r.figure.x+r.figure.width*.5)/r.source.width*960),
-    stageFootY:n(footY),nearSide,headRest,
+    stageFootY:n(footY),nearSide,headRest,facialRest,
     anchors:{
       leftShoulder,rightShoulder,leftWaist,rightWaist,leftHip,rightHip,
       leftHem,rightHem,
@@ -406,6 +436,9 @@ export function applyShanshuiBodyFit(
   return parts.map(part=>{
     switch(part.id){
       case "head":return {...part,rest:{...part.rest,...headRest}};
+      case "hair":case "brows":case "eyes":case "pupil-left":
+      case "pupil-right":case "mouth":case "beard":
+        return {...part,rest:{...part.rest,...fit.facialRest[part.id]}};
       case "far-sleeve":return {...part,pivot:a.farShoulder};
       case "near-sleeve":return {...part,pivot:a.nearShoulder};
       case "far-hand":return {...part,pivot:a.farHand,z:17};
