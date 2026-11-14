@@ -91,12 +91,20 @@ describe("teacher-grounded Chinese ink scholar proportion meshes",()=>{
       expect(validateCharacterDefinition(definition)
         .filter(x=>x.severity==="error")).toEqual([]);
       expect(instance.revision).toEqual(definition.revision);
-      const old=SHANSHUI_LEGACY_PUPPET_MESH;
-      const ratio=teacherHeadRatio(scene)/(old.regions.skull!.height/old.figure.height);
-      const target=Math.max(.5,Math.min(.92,ratio));
+      // A common head scale distorted the painted jaw and hairline.
+      // Width and height are now fitted independently from the FACE region,
+      // while the hair, brow, eye and mouth keep their own source Y anchors.
+      const teacher=SHANSHUI_TEACHER_MESHES[scene];
+      const teacherFace=teacher.regions.face!;
+      const factor=291/teacher.figure.height;
       const head=definition.parts.find(p=>p.id==="head");
-      expect(head?.rest?.scaleX).toBeCloseTo(target,7);
-      expect(head?.rest?.scaleY).toBeCloseTo(target,7);
+      expect(head?.rest?.scaleX).toBeCloseTo(teacherFace.width*factor/60,7);
+      expect(head?.rest?.scaleY).toBeCloseTo(teacherFace.height*factor/77,7);
+      for(const name of ["hair","brows","eyes","pupil-left","pupil-right","mouth"]){
+        const rest=definition.parts.find(p=>p.id===name)?.rest;
+        expect(rest).toBeDefined();
+        expect(rest?.y).toBeTypeOf("number");
+      }
       expect(definition.capabilities).toContain("teacher-measured-proportions");
       const face=shanshuiFaceAssets(scene);
       expect(definition.assets.face).toEqual(face.face);
