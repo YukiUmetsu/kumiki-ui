@@ -147,17 +147,34 @@ export function hatchPencilRegion(region: PencilRegion, layer: PencilPigmentLaye
   if (rows > 320) throw new RangeError("Pencil hatch density exceeds 320 marks.");
   const cx = x + width / 2, cy = y + height / 2;
   return Array.from({ length: rows }, (_, i): PencilMark => {
-    const jitter = (pencilHash(layer.seed, i, 1) - .5) * layer.spacing * .18;
+    const jitter = (pencilHash(layer.seed, i, 1) - .5) * layer.spacing * .48;
     const yy = cy - span / 2 + i * layer.spacing + jitter;
     const startX = cx - span / 2, endX = cx + span / 2;
     const bow = (pencilHash(layer.seed, i, 2) - .5) * 3.4;
     const start = layer.startFrame + Math.floor(i * Math.max(0, layer.durationFrames - 14) / Math.max(1, rows - 1));
     const pressure = .48 + pencilHash(layer.seed, i, 3) * .52;
     const widthHere = layer.tipWidth * (.36 + .64 * layer.pressure) * pressure;
+    // A pencil moves in broken gestures as its point lifts off toothy paper. Earlier
+    // full-width quadratic curves made a perfectly regular CAD hatch; these seeded,
+    // bounded short segments retain an authored direction without forming a digital grid.
+    const pieces: string[] = [];
+    let cursor = startX + pencilHash(layer.seed, i, 6) * 8;
+    for (let segment = 0; cursor < endX && segment < 160; segment++) {
+      const key = i * 163 + segment;
+      const length = 11 + pencilHash(layer.seed, key, 7) * 30;
+      const tip = Math.min(endX, cursor + length);
+      const variation = (pencilHash(layer.seed, key, 8) - .5) * 1.9;
+      const y0 = yy + variation;
+      const mid = (cursor + tip) / 2;
+      const midY = yy + bow + (pencilHash(layer.seed, key, 9) - .5) * 2.5;
+      const y1 = yy + (pencilHash(layer.seed, key, 10) - .5) * 2.3;
+      pieces.push("M" + cursor.toFixed(2) + " " + y0.toFixed(2) +
+        " Q" + mid.toFixed(2) + " " + midY.toFixed(2) +
+        " " + tip.toFixed(2) + " " + y1.toFixed(2));
+      cursor = tip + 3 + pencilHash(layer.seed, key, 12) * 12;
+    }
     return {
-      path: "M" + startX.toFixed(2) + " " + yy.toFixed(2) +
-        " Q" + cx.toFixed(2) + " " + (yy + bow).toFixed(2) +
-        " " + endX.toFixed(2) + " " + (yy + (pencilHash(layer.seed, i, 4) - .5) * 2).toFixed(2),
+      path: pieces.join(" "),
       width: widthHere,
       opacity: (.19 + layer.pressure * .48) * (.65 + pencilHash(layer.seed, i, 5) * .35),
       startFrame: start,
