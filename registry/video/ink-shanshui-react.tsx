@@ -15,7 +15,7 @@ import type {ShanshuiControls,ShanshuiScene,ShanshuiMotion} from "./ink-shanshui
  * No interval, runtime randomness, image loading or independent animation clock.
  */
 const W=960,H=540;
-const INK="#493b2e",STONE="#82674d",DRY="#a58c6a",PAPER="#f3e6cd";
+const INK="#493b2e",STONE="#82674d",PAPER="#f3e6cd";
 type P=readonly [number,number];
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const f=(x:number)=>Number(x.toFixed(2));
