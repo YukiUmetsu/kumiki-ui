@@ -8,6 +8,8 @@ export interface CrayonMark {
   pressure: number; index: number;
   /** Curves used for variable-width nib contact, in authored drawing coordinates. */
   nibArcs: readonly CrayonNibArc[];
+  /** Cached full-contact geometry for repeated film frames. */
+  nibD: string;
 }
 export interface CrayonOptions { seed: number; pressure: number; spacing?: number; passes?: number }
 /**
@@ -119,11 +121,13 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
           " l" + (grainLen*.4).toFixed(2) + " " + ((rand(13)-.5)*3).toFixed(2);
         const p = Math.min(1, Math.max(.14, options.pressure * (.65 + rand(7) * .52)));
         const toneSample = rand(14);
-        marks.push({
-          d, scumble, scrape, nibArcs, index, pressure: p,
+        const mark: CrayonMark = {
+          d, scumble, scrape, nibArcs, nibD:"", index, pressure: p,
           tone: toneSample < .73 ? 0 : toneSample < .94 ? 1 : 2,
           width: 2.1 + p * 3.9 + rand(15) * 1.1,
-        });
+        };
+        mark.nibD = crayonNibPath(mark);
+        marks.push(mark);
       }
     }
   }
