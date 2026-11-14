@@ -1,6 +1,6 @@
 import {describe,expect,it} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
-import {crayonFurFlow} from "../src/video/crayon-editorial-character-craft";
+import {crayonFurFlow,crayonIrisFlecks} from "../src/video/crayon-editorial-character-craft";
 import {crayonWildlifePortraitScene} from "../src/video/crayon-wildlife-portrait-fixtures";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
@@ -36,6 +36,20 @@ describe("wax crayon anatomical hair flow",()=>{
    expect(()=>crayonFurFlow({...options,length:101})).toThrow(/fur flow/);
    expect(()=>crayonFurFlow({...options,forkRate:.31})).toThrow(/fur flow/);
    expect(()=>crayonFurFlow({...options,guide:[guide[0],guide[0],guide[0],guide[0]]})).toThrow(/fur flow/);
+ });
+});
+describe("directional iris wax engraving",()=>{
+ it("lays irregular but repeatable radial pigment inside an ellipse",()=>{
+   const opts={seed:19,cx:-56,cy:-57,rx:13.4,ry:12.8,count:38};
+   const a=crayonIrisFlecks(opts);
+   expect(a).toBe(crayonIrisFlecks(opts));
+   expect(a.match(/M/g)).toHaveLength(38);
+   expect(a).not.toBe(crayonIrisFlecks({...opts,seed:20}));
+   expect(crayonIrisFlecks({...opts,count:0})).toBe("");
+   expect(()=>crayonIrisFlecks({...opts,rx:0})).toThrow(/iris/);
+   expect(()=>crayonIrisFlecks({...opts,maxRadius:1.4})).toThrow(/iris/);
+   expect(()=>crayonIrisFlecks({...opts,count:81})).toThrow(/iris/);
+   expect(a).not.toMatch(/NaN|Infinity/);
  });
 });
 describe("silhouette-aware wax crayon hatching",()=>{
@@ -110,6 +124,15 @@ describe("silhouette-aware wax crayon hatching",()=>{
     expect(high.elements.find(x=>x.id==="head"))
       .toEqual(low.elements.find(x=>x.id==="head"));
     expect(high.durationFrames).toBe(240);
+    for(const id of ["iris-deep-radials","iris-gold-radials"]){
+      const node=high.elements.find(n=>n.id===id);
+      expect(node?.kind).toBe("contour");
+      if(node?.kind==="contour"){
+        expect(node.parentId).toBe("eye-amber-iris");
+        expect(node.clipToParent).toBe(true);
+        expect((node.d.match(/M/g)??[]).length).toBeGreaterThan(18);
+      }
+    }
    });
  }
 });
