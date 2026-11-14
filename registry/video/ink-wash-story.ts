@@ -121,7 +121,7 @@ export function inspectInkFilm(plan: InkFilmPlan): InkPlanIssue[] {
       error(at+"/layers","Provide up to 80 visual layers per shot.");
     else {
       const layerIds = new Set<string>();
-      shot.layers.forEach((layer,j) => {
+      shot.layers.forEach((layer: InkLayerPlan, j: number) => {
         const loc=at+"/layers/"+j;
         if(!layer || !ident(layer.id) || layerIds.has(layer.id)) error(loc+"/id","Layer IDs must be unique per shot.");
         if(layer) layerIds.add(layer.id);
@@ -218,7 +218,8 @@ export function inkRevealPath(width:number,height:number,progress:number,kind:In
   direction:InkDirection="right",origin:readonly[number,number]=[.5,.5]):string {
   if(!numeric(width,1,8192)||!numeric(height,1,8192)||!numeric(progress,0,1)||
       !Number.isSafeInteger(seed)||seed<0||seed>2147483647||
-      !directionValid(direction)||!revealValid(kind)||!origin.every(p=>numeric(p,0,1)))
+      !directionValid(direction)||!revealValid(kind)||!Array.isArray(origin)||origin.length!==2||
+      !origin.every(p=>numeric(p,0,1)))
     throw new RangeError("Ink reveal parameters are invalid.");
   if(progress===0)return "M0 0 Z";
   if(progress===1||kind==="instant")return "M0 0 H"+width+" V"+height+" H0 Z";
