@@ -28,6 +28,47 @@ function detail(path: string, color = "#504A55", width = 1, startFrame = 168,
   return { path, color, width, startFrame, durationFrames: 52, opacity };
 }
 
+/**
+ * ArtCraft feather-tract grammar: every short barb originates on an authored curved
+ * rachis. That is a connected feather, not an uncorrelated noise/hatch sticker.
+ * Axis coordinates are hand-staged inside their parent silhouette; the actor's
+ * existing parent hierarchy carries all grooves and barbs through wing motion.
+ */
+type FeatherAxis = readonly [number, number, number, number, number];
+function featherVanes(axes: readonly FeatherAxis[], color: string,
+  startFrame = 190): PencilTrace[] {
+  const fmt = (n: number) => n.toFixed(2);
+  return axes.map(([x0, y0, x1, y1, bend], index) => {
+    const dx = x1 - x0, dy = y1 - y0;
+    const length = Math.hypot(dx, dy);
+    if (length < 1) throw new RangeError("Feather rachis needs a nonzero length.");
+    const nx = -dy / length, ny = dx / length;
+    const point = (t: number): readonly [number, number] => {
+      const offset = 4 * t * (1 - t) * bend;
+      return [x0 + dx * t + nx * offset, y0 + dy * t + ny * offset];
+    };
+    const mid = point(.5);
+    const marks = ["M" + fmt(x0) + " " + fmt(y0) + " Q" +
+      fmt(mid[0] * 2 - (x0 + x1) / 2) + " " +
+      fmt(mid[1] * 2 - (y0 + y1) / 2) + " " + fmt(x1) + " " + fmt(y1)];
+    for (let barb = 0; barb < 5; barb++) {
+      const t = .24 + barb * .135;
+      const root = point(t), forward = point(t + .055);
+      const width = (1 - t) * (2.9 + ((index + barb) % 3) * .38);
+      for (const side of [-1, 1]) {
+        const tipX = forward[0] + side * nx * width;
+        const tipY = forward[1] + side * ny * width;
+        const middleX = root[0] * .42 + tipX * .58 + side * nx * .35;
+        const middleY = root[1] * .42 + tipY * .58 + side * ny * .35;
+        marks.push("M" + fmt(root[0]) + " " + fmt(root[1]) + " Q" +
+          fmt(middleX) + " " + fmt(middleY) + " " +
+          fmt(tipX) + " " + fmt(tipY));
+      }
+    }
+    return detail(marks.join(" "), color, .63, startFrame + index * 5, .77);
+  });
+}
+
 interface RegionOptions {
   color: readonly [string, string, string];
   start?: number;
@@ -154,6 +195,12 @@ function copperbird(): PencilActorSpec {
           detail("M110 173 Q135 185 161 177 M113 197 Q139 210 163 201", "#183C5E", 1.15),
           detail("M116 225 Q129 227 141 221 M117 235 Q125 239 131 239", "#456F9B", .9),
           detail("M106 217 Q112 242 128 254 M122 196 Q143 204 154 199", "#1E5074", .85),
+          detail("M102 204 Q112 199 121 202 M110 236 Q118 233 128 238", "#173B5A", 1.55, 200, .83),
+          ...featherVanes([
+            [106, 181, 111, 254, -3], [117, 171, 123, 249, -4],
+            [128, 174, 133, 237, -3], [140, 180, 146, 219, -2.5],
+            [151, 184, 150, 207, -2],
+          ], "#C4DADB"),
         ]}, "torso", [119, 169], wing),
     // Sculpted trailing feathers, not another generic oval filled by a CAD hatch.
     // They travel with the wing but remain layered behind the small shoulder coverts.
@@ -165,7 +212,12 @@ function copperbird(): PencilActorSpec {
           detail("M133 208 Q144 222 134 243 M143 207 Q148 218 141 228", "#D3E3DB", .83),
           detail("M108 225 Q118 237 106 248 M116 233 Q125 241 118 255", "#2B5076", .83),
           detail("M110 218 Q126 234 116 246 M122 222 Q134 235 125 245", "#224D70", .68),
-        ]}, "wing-main", [121, 210], wing),
+          detail("M105 224 Q111 219 119 221 M117 237 Q126 228 133 232", "#193A5A", 1.55, 206, .82),
+          ...featherVanes([
+            [107, 215, 109, 262, -1], [117, 213, 121, 250, -1.6],
+            [130, 214, 134, 237, -1.3], [141, 211, 141, 222, -.7],
+          ], "#B4D2D8", 201),
+        ]}, "wing-main", [121, 210]),
     anatomy("wing-coverts",
       "M109 159 Q133 149 165 167 Q163 188 149 196 Q121 199 104 186 Z",
       [100, 147, 68, 54], 1237, {color:blue, direction:-42, flow:37, start:101,
@@ -175,7 +227,12 @@ function copperbird(): PencilActorSpec {
           detail("M113 179 L129 190 M127 173 L142 185 M138 170 L154 180", "#325F85", .77),
           detail("M109 189 Q126 203 150 201 M117 164 Q133 166 148 174", "#254A72", .95),
           detail("M120 175 L135 189 M132 173 L149 191", "#7EA7BA", .75),
-        ]}, "wing-main", [128, 184], wing),
+          detail("M109 178 Q122 187 137 189 M120 162 Q135 163 151 173", "#244965", 1.4, 205, .78),
+          ...featherVanes([
+            [112, 165, 137, 185, -2], [122, 160, 146, 186, -2.2],
+            [132, 166, 152, 186, -1.7],
+          ], "#E0EBE1", 208),
+        ]}, "wing-main", [128, 184]),
     anatomy("head",
       "M150 130 C142 109 147 85 161 72 Q177 56 203 60 Q231 61 245 89 Q253 112 236 132 Q222 147 202 149 Q167 155 150 130 Z",
       [140, 57, 114, 98], 1261, {color:blue, direction:-54, flow:29, start:100,
@@ -201,11 +258,18 @@ function copperbird(): PencilActorSpec {
     anatomy("eye-ring",
       "M213 97 Q218 88 230 93 Q235 99 232 108 Q224 114 217 110 Q211 104 213 97 Z",
       [209, 88, 27, 27], 1351, {color:cream, direction:18, flow:10, start:144,
-        details:[detail("M208 95 Q216 84 229 89", "#FDF2D9", 1.2)]}, "head", [219, 100]),
+        details:[
+          detail("M208 95 Q216 84 229 89", "#FDF2D9", 1.2),
+          detail("M213 106 Q220 114 231 108", "#8D8183", .68, 212, .72),
+        ]}, "head", [219, 100]),
     anatomy("eye",
       "M217 97 Q223 92 229 98 Q233 104 226 108 Q218 109 216 103 Z",
       [213, 92, 21, 20], 1381, {color:night, direction:27, flow:13, start:155, base:1,
-        details:[detail("M217 102 Q224 109 230 102", "#364E65", .72)]},
+        details:[
+          detail("M217 102 Q224 109 230 102", "#364E65", .72),
+          detail("M217 99 Q221 92 228 98", "#101E30", 1.5, 190, .92),
+          detail("M219 103 Q224 107 228 102", "#5D8293", .74, 209, .85),
+        ]},
       "head", [223, 101], blink),
     anatomy("catchlight",
       "M220 95 Q224 94 225 97 Q224 100 221 100 Q220 98 220 95 Z",

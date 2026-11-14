@@ -17,6 +17,37 @@ Inspect frames 0, 80, 180, 225, 255, 291, 350 and 419 in both layouts. At full-s
 
 The bird must remain opaque at full colour completion: scenery strokes must never show through its chest or face. Body, wing, tail and head materials should be visually different. Validate that fine feather strands retain legibility when downsampled to video resolution and the frame is not overloaded with repeated parallel patterns.
 
+## ArtCraft v6 structural-reference iteration (follow-up)
+
+Reference mode: **style-guided original illustration**, not source-pixel matching.
+I inspected publicly viewable examples and technique material; these are study links only,
+not redistributed source art or inferred permission to reproduce it.
+
+| Reference and visible characteristic | Failure mode in earlier bird | Code construction |
+| --- | --- | --- |
+| [Catrin Membery, wildlife goldfinch](https://www.catrinmemberyart.com/wildlife): discrete primary/secondary feather masses, a small bright eye with surrounding tonal shifts, and defined toe-branch contact | Flat wing ribbons, uniformly spaced generic hatches and a bead-like eye | Hand-authored rachis axes, opposing attached barb series, contrasted root grooves and a layered upper eyelid |
+| [Claire Milligan, coloured-pencil kingfisher](https://www.pinterest.com/pin/446419381805336706/): blue-copper colour contrast, shaft-aligned wing strokes and different throat/wing mark density | Local feather flow disappeared under global stroke fans | Separate covert, main-wing and primary-feather tracts; each layer retains its own authored pigment |
+| [International Artist, Structure and Definition](https://www.internationalartist.com/issues/169/Structure-and-Definition): fine eye and head layering, sharp-pencil highlights, dark areas made from blues and other chromatic notes | Wing/eye lacked enough microstructure to sustain a close crop | Distinct cool highlight barbs and dark blue root grooves, plus a second eye-lid contour |
+
+### Semantic shape-and-attachment graph
+
+- **Wing main**: five separate authored feather shafts, each with five paired barb levels connected at the shaft, moving with the existing near-wing hinge.
+- **Primaries**: four independently positioned tapered line networks, rooted in the primary region and following the wing-main parent/secondary motion.
+- **Coverts**: three shorter line networks with warmer/lighter accents and a dark overlap boundary.
+- **Eye**: three tonal paths (under-eye, dark upper lash and cool lower reflected light); a small separate catchlight remains slaved to the blink rig.
+- **Negative control**: free-floating randomized dashes, a uniform comb of equal-length straight lines, disconnected sticker highlights, or an opaque circular eye would not satisfy this structure.
+
+This introduces **12 authored shaft-and-barb networks / 120 directly connected barb marks**.
+All are deterministic and time-addressed, and are below the 80-detail-per-region guard. 
+Both aspect ratios use the same artwork but independent placement. The Storybook
+Wildlife stories now expose **Wing microstructure / Eye and eyelid** inspection
+without creating a new sidebar folder or altering exported film.
+
+**Verification scope:** structural-unit checks and two-aspect macro screenshots were
+added. No reference-relative five-axis numeric assessment, independent image-crop
+match, or normal-speed artistic approval has been recorded in this change. The
+ArtCraft release gate remains **pending** until real exported footage is reviewed.
+
 ## Known limitations and next craftsmanship work
 
 - This is an original detailed stylized illustration, not yet a natural-history anatomical reconstruction or a copy of any reference image.

@@ -59,3 +59,25 @@ Automated: `npm run typecheck`, `npx vitest run --project unit tests/colored-pen
 **Targeted verification:** `tests/colored-pencil-science.test.tsx`, `tests/colored-pencil-scene.test.tsx`, `tests/colored-pencil-actor.test.tsx`, and their corresponding coloured-pencil Storybook browser suites. The focused GitHub workflow also checks both portable film files and exports proof frames.
 
 **Not yet complete:** calibrated scientific diagrams, broad motion libraries, deformation-aware hair/feathers, anatomically realistic animals, page-turn/erase scenes, pixel-grounded professional art approval and clean package-install acceptance. Do not describe the new example rig as a mature universal character animation system.
+
+## Wildlife ArtCraft follow-up — feather-tract microgeometry (2026-11-14)
+
+The original twenty-part copperbird remains in `src/video/colored-pencil-wildlife.ts`.
+Twelve explicitly positioned feather rachises now carry five paired curved barbs each;
+all marks are joined to the rachis rather than distributed as floating pencil noise.
+The near-wing, primary-feather and covert tracery inherits existing articulated
+transforms and retains the 24-region CP1 / 20-part actor budgets. A small upper-eyelid
+and lower-reflection pass adds iris depth without altering the existing blink contract.
+Details are timed to resolve after pigment deposition; low-detail study mode suppresses
+half of the graphite embellishments.
+
+**Existing Storybook path remains unchanged:** Video Production / Film Looks /
+Colour-pencil / Wildlife. Both established Wildlife stories remain in place;
+the illustration story adds non-exportable Wing/Eye macro inspection at 2.5×/3.4×
+for actual 16:9 and 9:16 vector detail checks. Browser proof captures both macros.
+The FD1 film and native graphics API are unchanged; no new Storybook folder.
+
+See [wildlife craft study](../research/colour-pencil-wildlife-craft-2026-11-14.md)
+for the ArtCraft reference/attachment ledger. Automated topology and contract
+checks can establish only technical invariants; the full ArtCraft five-axis
+source-relative measurement and human normal-speed visual acceptance are **pending**.
