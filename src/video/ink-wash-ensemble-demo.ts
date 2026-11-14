@@ -4,25 +4,33 @@ import type { InkEnsembleCastMember } from "../../registry/video/ink-wash-ensemb
 import { INK_TRAVELLER } from "./ink-wash-performer";
 import { INK_APPRENTICE } from "./ink-wash-apprentice";
 import { bakeInkActorTrack } from "../../registry/video/ink-actor-director";
+import { makeClassicalInkFigure } from "./ink-figure-classical-art";
+import type { InkFigureCraftControls } from "../../registry/video/ink-figure-craft";
+import { DEFAULT_INK_FIGURE_CRAFT } from "../../registry/video/ink-figure-craft";
 
 /** Original two-actor study. Source-specific acting/costume assets stay in this demo,
  * not inside the registry. Separate instance seeds/skins keep both rigs independent. */
 export type InkDuetAspect = "landscape" | "portrait";
-export function inkDuet(aspect: InkDuetAspect): {
+export function inkDuet(
+  aspect: InkDuetAspect,
+  craft: InkFigureCraftControls = DEFAULT_INK_FIGURE_CRAFT,
+): {
   plan: InkEnsemblePlan;
   cast: InkEnsembleCastMember[];
   width: number; height: number;
 } {
   const portrait = aspect === "portrait";
   const width = portrait ? 540 : 960, height = portrait ? 960 : 540;
+  const masterArt = makeClassicalInkFigure(INK_TRAVELLER, "master", craft);
+  const learnerArt = makeClassicalInkFigure(INK_APPRENTICE, "apprentice", craft);
   const first: CharacterInstance = {
-    instanceId: "ink-master", characterId: INK_TRAVELLER.characterId,
-    revision: INK_TRAVELLER.revision, seed: 197,
+    instanceId: "ink-master", characterId: masterArt.characterId,
+    revision: masterArt.revision, seed: 197,
     targets: { viewer: { x: 210, y: 110 }, "ink-partner": { x: 244, y: 102 } },
   };
   const second: CharacterInstance = {
-    instanceId: "ink-learner", characterId: INK_APPRENTICE.characterId,
-    revision: INK_APPRENTICE.revision, skin: "slate", seed: 293,
+    instanceId: "ink-learner", characterId: learnerArt.characterId,
+    revision: learnerArt.revision, skin: "slate", seed: 293,
     targets: { viewer: { x: 56, y: 112 }, "ink-partner": { x: 25, y: 102 } },
   };
   const cuesA: CharacterCue[] = [
@@ -90,13 +98,26 @@ export function inkDuet(aspect: InkDuetAspect): {
     ],
   };
   const cast: InkEnsembleCastMember[] = [
-    { trackId: "master", definition: INK_TRAVELLER, instance: first, cues: cuesA,
-      label: "An ink-painted teacher, gesturing and speaking" },
-    { trackId: "learner", definition: INK_APPRENTICE, instance: second, cues: cuesB,
+    { trackId: "master", definition: masterArt, instance: first, cues: cuesA,
+      label: "An ink-painted teacher, gesturing and speaking",
+      partFinish: {
+        eyes: {bleed:0,dryContour:true}, "pupil-left": {bleed:0,dryContour:true},
+        "pupil-right": {bleed:0,dryContour:true}, mouth: {bleed:0,dryContour:true},
+        head: {bleed:.12,dryContour:true}, hair: {bleed:.18,dryContour:true},
+        beard: {bleed:.22}, body: {bleed:.85},
+        "near-sleeve": {bleed:.76}, "far-sleeve": {bleed:.68},
+        "near-hand": {bleed:.12,dryContour:true}, "far-hand": {bleed:.12,dryContour:true},
+      } },
+    { trackId: "learner", definition: learnerArt, instance: second, cues: cuesB,
       label: "An ink-painted apprentice, listening and answering",
       partFinish: { eyes: { bleed: 0, dryContour: true },
+        "pupil-left": {bleed:0,dryContour:true},
+        "pupil-right": {bleed:0,dryContour:true},
         mouth: { bleed: 0, dryContour: true },
         head: { bleed: .12, dryContour: true },
+        hair: {bleed:.16,dryContour:true},
+        "near-hand": {bleed:.10,dryContour:true},
+        "far-hand": {bleed:.10,dryContour:true},
         body: { bleed: .76 }, "near-sleeve": { bleed: .65 },
         "far-sleeve": { bleed: .65 } } },
   ];

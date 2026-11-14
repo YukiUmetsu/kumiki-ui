@@ -9,6 +9,7 @@ import { inkEnsembleAt, auditInkEnsembleHands } from "../../registry/video/ink-w
 import { inkEnsembleBackdrop } from "./ink-wash-ensemble-backdrop";
 import { inkDuet } from "./ink-wash-ensemble-demo";
 import type { InkDuetAspect } from "./ink-wash-ensemble-demo";
+import { DEFAULT_INK_FIGURE_CRAFT } from "../../registry/video/ink-figure-craft";
 
 const LENGTH = 330;
 const button = { border:"1px solid #B6B4A8",borderRadius:4,minHeight:40,
@@ -27,11 +28,14 @@ const shot: InkShot = { id:"a-shared-scroll",label:"A teacher and apprentice mee
  * It is an artistic staging example, not a claim of physically correct hand-to-hand contact.
  */
 export function InkEnsembleFilm({frame,aspect="landscape",reducedMotion=false,
-  absorption=.72,grain=.65,showGrounding=false}:{
+  absorption=.72,grain=.65,showGrounding=false,
+  figureDetail=1,figureContrast=.85}:{
   frame:number;aspect?:InkDuetAspect;reducedMotion?:boolean;absorption?:number;
-  grain?:number;showGrounding?:boolean;
+  grain?:number;showGrounding?:boolean;figureDetail?:number;figureContrast?:number;
 }) {
-  const duet=useMemo(()=>inkDuet(aspect),[aspect]);
+  const duet=useMemo(()=>inkDuet(aspect,{
+    ...DEFAULT_INK_FIGURE_CRAFT,detail:figureDetail,contrast:figureContrast,
+  }),[aspect,figureDetail,figureContrast]);
   const spec=useMemo(()=>inkEnsembleBackdrop(aspect,absorption,grain),[aspect,absorption,grain]);
   const state=inkEnsembleAt(duet.plan,frame,reducedMotion);
   const handAudit=showGrounding ? auditInkEnsembleHands(
@@ -83,6 +87,8 @@ function Studio(){
   const [absorption,setAbsorption]=useState(.72);
   const [grain,setGrain]=useState(.65);
   const [ground,setGround]=useState(false);
+  const [figureDetail,setFigureDetail]=useState(1);
+  const [figureContrast,setFigureContrast]=useState(.85);
   useEffect(()=>{
     if(!playing)return;
     const origin=frame,start=performance.now();
@@ -127,6 +133,16 @@ function Studio(){
         <input aria-label="Ink ensemble grain" type="range" min="0" max="1" step=".05" value={grain}
           onChange={e=>setGrain(Number(e.target.value))} style={{display:"block"}}/>
       </label>
+      <label>Figure brush detail · {Math.round(figureDetail*100)}%
+        <input aria-label="Ink figure detail" type="range" min="0" max="1" step=".05"
+          value={figureDetail} onChange={e=>setFigureDetail(Number(e.target.value))}
+          style={{display:"block"}}/>
+      </label>
+      <label>Figure line density · {Math.round(figureContrast*100)}%
+        <input aria-label="Ink figure contrast" type="range" min="0" max="2" step=".05"
+          value={figureContrast} onChange={e=>setFigureContrast(Number(e.target.value))}
+          style={{display:"block"}}/>
+      </label>
       <label><input type="checkbox" checked={ground}
         onChange={e=>setGround(e.target.checked)}/> Show reach audit</label>
       <label><input type="checkbox" checked={reduced}
@@ -136,7 +152,8 @@ function Studio(){
       background:"#F3EEE2",overflow:"hidden",boxShadow:"0 13px 37px #323D302A"}}>
       <div style={{width:dims.w,height:dims.h,transform:"scale("+dims.f+")",transformOrigin:"0 0"}}>
         <InkEnsembleFilm frame={frame} aspect={aspect} absorption={absorption}
-          grain={grain} reducedMotion={reduced} showGrounding={ground}/>
+          grain={grain} reducedMotion={reduced} showGrounding={ground}
+          figureDetail={figureDetail} figureContrast={figureContrast}/>
       </div>
     </div>
     <div style={{display:"flex",gap:12,width:"100%",maxWidth:820,alignItems:"center"}}>
@@ -158,13 +175,110 @@ function Studio(){
     </nav>
   </main>;
 }
-const meta={title:"Video production/Film Looks/Chinese Ink/Ensemble",id:"video-ink-ensemble",
+const meta={title:"Video production/Film Looks",id:"video-ink-ensemble",
   component:Studio,parameters:{layout:"fullscreen"}} satisfies Meta<typeof Studio>;
 export default meta;
 export const InkEnsembleStory:StoryObj<typeof meta>={
   name:"Chinese Ink · Ensemble Character Acting",
 };
 
+
+
+/** A true production-viewport crop, not a static reconstruction of the ink art.
+ * Focus follows the canonical absolute-frame actor position, including during
+ * travel. The performer and its pigmented artwork are identical to film export.
+ */
+function FigureBrushworkLab() {
+  const [frame,setFrame]=useState(188);
+  const [aspect,setAspect]=useState<InkDuetAspect>("landscape");
+  const [focus,setFocus]=useState<"master"|"learner"|"wide">("master");
+  const [detail,setDetail]=useState(1);
+  const [contrast,setContrast]=useState(.85);
+  const [reduced,setReduced]=useState(false);
+  const duet=useMemo(()=>inkDuet(aspect),[aspect]);
+  const actor=inkEnsembleAt(duet.plan,frame,reduced).actors.find(p=>p.id===focus);
+  const portrait=aspect==="portrait";
+  const viewport=portrait?{w:405,h:700}:{w:850,h:490};
+  const zoom=focus==="wide"?(portrait?.73:.9):2.15;
+  const centerX=actor?.pose.x??duet.width/2;
+  const centerY=actor?actor.pose.y-actor.pose.scale*155:duet.height/2;
+  const dx=viewport.w/2-centerX*zoom,dy=viewport.h/2-centerY*zoom;
+  return <main style={{padding:24,background:"#E8E5DD",minHeight:"100vh",
+    color:"#27322D",font:"14px/1.45 system-ui",display:"grid",gap:14,justifyItems:"start"}}>
+    <header>
+      <div style={{font:"700 11px system-ui",letterSpacing:2,color:"#98513F"}}>
+        VIDEO PRODUCTION / FILM LOOKS / FIGURE BRUSHWORK
+      </div>
+      <h1 style={{font:"500 31px Georgia,serif",margin:"6px 0"}}>
+        Chinese Ink · Classical Figure Brushwork
+      </h1>
+      <p style={{maxWidth:780,margin:0}}>
+        Close-up inspection of the actual master/apprentice film. Compare the
+        original figure drawing (detail 0) with layered orchid-leaf strokes,
+        interrupted reed folds, independent robe washes, dry hair and crisp eyes.
+      </p>
+    </header>
+    <div style={{display:"flex",gap:17,flexWrap:"wrap",alignItems:"end"}}>
+      <label>Performer
+        <select aria-label="Ink figure focus" value={focus}
+          onChange={e=>setFocus(e.target.value as typeof focus)}
+          style={{display:"block",minHeight:38}}>
+          <option value="master">Teacher close-up</option>
+          <option value="learner">Apprentice close-up</option>
+          <option value="wide">Full composition</option>
+        </select>
+      </label>
+      <label>Format
+        <select aria-label="Ink figure aspect" value={aspect}
+          onChange={e=>setAspect(e.target.value as InkDuetAspect)}
+          style={{display:"block",minHeight:38}}>
+          <option value="landscape">16:9</option><option value="portrait">9:16</option>
+        </select>
+      </label>
+      <label>Brush detail · {Math.round(detail*100)}%
+        <input aria-label="Ink closeup detail" type="range" min="0" max="1" step=".05"
+          value={detail} onChange={e=>setDetail(Number(e.target.value))}
+          style={{display:"block"}}/>
+      </label>
+      <label>Ink contrast · {Math.round(contrast*100)}%
+        <input aria-label="Ink closeup contrast" type="range" min="0" max="2" step=".05"
+          value={contrast} onChange={e=>setContrast(Number(e.target.value))}
+          style={{display:"block"}}/>
+      </label>
+      <label><input type="checkbox" checked={reduced}
+        onChange={e=>setReduced(e.target.checked)}/> Reduced motion</label>
+    </div>
+    <div data-testid="ink-figure-closeup" style={{
+      width:viewport.w,height:viewport.h,overflow:"hidden",
+      position:"relative",background:"#F4F0E5",
+      boxShadow:"0 13px 38px #323D3026",
+    }}>
+      <div style={{position:"absolute",width:duet.width,height:duet.height,
+        transform:`translate(${dx}px,${dy}px) scale(${zoom})`,
+        transformOrigin:"0 0"}}>
+        <InkEnsembleFilm aspect={aspect} frame={frame} reducedMotion={reduced}
+          figureDetail={detail} figureContrast={contrast}/>
+      </div>
+    </div>
+    <div style={{width:"100%",maxWidth:850}}>
+      <label>Film frame {frame} / {LENGTH-1}
+        <input aria-label="Ink figure closeup frame" type="range" min="0" max={LENGTH-1}
+          value={frame} onChange={e=>setFrame(Number(e.target.value))}
+          style={{display:"block",width:"100%"}}/>
+      </label>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}}>
+        {([["Arrival",67],["Attentive",128],["Exchange",188],
+          ["Reply",235],["Bow",296]] as const).map(([label,key])=>
+          <button key={label} type="button" style={button}
+            onClick={()=>setFrame(key)}>{label}</button>)}
+      </div>
+    </div>
+  </main>;
+}
+export const InkFigureBrushworkStudy: StoryObj<typeof meta>={
+  name:"Chinese Ink · Classical Figure Brushwork Close-Up",
+  render:()=> <FigureBrushworkLab/>,
+};
 
 /** Same source scene and timing as the interactive preview: no substitute render pipeline. */
 function Export({aspect}:{aspect:InkDuetAspect}){

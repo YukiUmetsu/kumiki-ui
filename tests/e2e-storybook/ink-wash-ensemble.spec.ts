@@ -89,3 +89,80 @@ test("original ink duet uses real independent rigs, ordered scenes and frame-add
     await page.getByRole("checkbox",{name:"Show reach audit"}).uncheck();
   }
 });
+
+test("original classical figure painting follows both articulated performers and supports live brush controls",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-ensemble--ink-ensemble-story&viewMode=story");
+  const scene=page.locator('[data-km-ink-scene]');
+  const setRange=async(name:string,value:string)=>{
+    const input=page.getByRole("slider",{name});
+    await input.evaluate((node,v)=>{
+      const el=node as HTMLInputElement;
+      const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+      if(!setter)throw new Error("range input setter missing");
+      setter.call(el,v);
+      el.dispatchEvent(new Event("input",{bubbles:true}));
+      el.dispatchEvent(new Event("change",{bubbles:true}));
+    },value);
+    await expect(input).toHaveValue(value);
+  };
+  for(const aspect of ["landscape","portrait"] as const){
+    await page.getByRole("combobox",{name:"Ink ensemble output"}).selectOption(aspect);
+    await seek(page,188);
+    const robe=page.locator('[data-km-ink-ensemble-actor="master"] [data-km-ink-character-part="body"] path');
+    const apprentice=page.locator('[data-km-ink-ensemble-actor="learner"] [data-km-ink-character-part="body"] path');
+    const fullMaster=await robe.count(),fullApprentice=await apprentice.count();
+    expect(fullMaster).toBeGreaterThan(10);
+    expect(fullApprentice).toBeGreaterThan(10);
+    await scene.screenshot({animations:"disabled",
+      path:info.outputPath("ink-classical-"+aspect+"-detail-full.png")});
+    await setRange("Ink figure detail","0");
+    await expect.poll(()=>robe.count()).toBeLessThan(fullMaster);
+    await expect.poll(()=>apprentice.count()).toBeLessThan(fullApprentice);
+    await scene.screenshot({animations:"disabled",
+      path:info.outputPath("ink-classical-"+aspect+"-detail-zero.png")});
+    await setRange("Ink figure detail","1");
+    await expect.poll(()=>robe.count()).toBe(fullMaster);
+    await setRange("Ink figure contrast",".25");
+    const light=await scene.screenshot({animations:"disabled"});
+    await setRange("Ink figure contrast","1.5");
+    const strong=await scene.screenshot({animations:"disabled"});
+    expect(digest(light)).not.toEqual(digest(strong));
+    await seek(page,295);
+    await seek(page,188);
+    await scene.screenshot({animations:"disabled",
+      path:info.outputPath("ink-classical-"+aspect+"-dense.png")});
+    await setRange("Ink figure contrast",".85");
+  }
+});
+
+test("close-up Film Looks study displays real articulated figure assets in both aspects",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-ensemble--ink-figure-brushwork-study&viewMode=story");
+  const stage=page.getByTestId("ink-figure-closeup");
+  await expect(stage).toBeVisible();
+  const master=page.locator('[data-km-ink-ensemble-actor="master"] [data-km-ink-character-part="body"] path');
+  await expect.poll(()=>master.count()).toBeGreaterThan(10);
+  await stage.screenshot({animations:"disabled",
+    path:info.outputPath("ink-figure-master-closeup.png")});
+  await page.getByRole("combobox",{name:"Ink figure focus"}).selectOption("learner");
+  await page.getByRole("combobox",{name:"Ink figure aspect"}).selectOption("portrait");
+  await expect(stage).toHaveCSS("overflow","hidden");
+  await stage.screenshot({animations:"disabled",
+    path:info.outputPath("ink-figure-apprentice-portrait-closeup.png")});
+  const advanced=await stage.screenshot({animations:"disabled"});
+  const slider=page.getByRole("slider",{name:"Ink closeup detail"});
+  await slider.evaluate(input=>{
+    const el=input as HTMLInputElement;
+    const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    if(!setter)throw new Error("native range setter unavailable");
+    setter.call(el,"0");
+    el.dispatchEvent(new Event("input",{bubbles:true}));
+    el.dispatchEvent(new Event("change",{bubbles:true}));
+  });
+  await expect(slider).toHaveValue("0");
+  const baseline=await stage.screenshot({animations:"disabled"});
+  expect(digest(advanced)).not.toBe(digest(baseline));
+  await page.getByRole("button",{name:"Bow"}).click();
+  await expect(page.getByRole("slider",{name:"Ink figure closeup frame"})).toHaveValue("296");
+  await expect(page.locator("[data-km-ink-ensemble]")).toHaveAttribute(
+    "data-km-ink-ensemble-frame","296");
+});
