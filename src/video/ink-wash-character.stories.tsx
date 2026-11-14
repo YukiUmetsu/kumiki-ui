@@ -72,9 +72,9 @@ export function InkPerformanceFilm({frame,aspect="landscape",mineral=false,reduc
     const culms=aspect==="portrait"?new Set([0,4]):new Set([0,1,4]);
     const sprays=aspect==="portrait"?new Set([0,7,8]):new Set([0,1,2,5,7,8]);
     return {...original,strokes:original.strokes.filter(stroke=>{
-      const culm=stroke.id.match(/^(?:culm|node)-(\\d+)(?:-|$)/);
+      const culm=stroke.id.match(/^(?:culm|node)-(\d+)(?:-|$)/);
       if(culm)return culms.has(Number(culm[1]));
-      const spray=stroke.id.match(/^(?:twig|leaf)-(\\d+)(?:-|$)/);
+      const spray=stroke.id.match(/^(?:twig|leaf)-(\d+)(?:-|$)/);
       if(spray)return sprays.has(Number(spray[1]));
       return true;
     })};
