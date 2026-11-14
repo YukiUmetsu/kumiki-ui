@@ -30,8 +30,10 @@ perfect horizontal rows, resembling a printer more than a hand.
    the order.
 2. Add `strokeOrder: "patches" | "scanline"` to the independent wax material
    API and data-driven CRAYON1 scene. Both orders are strict/validated.
-3. The new patch mode fills 5-row local patches in serpentine directions,
-   then moves to adjacent patches, first coating before second coating.
+3. The new patch mode fills 5-row local patches in serpentine directions
+   along a two-dimensional Morton/Z-order tile traversal. This keeps hand
+   movement spatially local without imposing a horizontal row-band reveal.
+   The first wax coating always precedes the second.
    This is an authored **efficient local traversal**, not a simulated
    tracked hand/nib or pose.
 4. Reuse all existing `crayonProgress(frame,...)` logic so random seeking,
