@@ -22,6 +22,7 @@ function RisoCharacterStudio() {
   const [plate,setPlate] = useState("both");
   const [useIK,setUseIK] = useState(true);
   const [showRig,setShowRig] = useState(false);
+  const [footRoll,setFootRoll] = useState(12);
   const compiled = useMemo(()=>compileFilm(RISO_CHARACTER_FILM,{outputId:aspect}),[aspect]);
   useEffect(()=>{
     if(!playing)return;
@@ -67,7 +68,7 @@ function RisoCharacterStudio() {
             aspect={aspect} frame={offset+context.frame} cadence={cadence}
             seed={seed} misregistration={registration} grain={grain}
             reducedMotion={context.reducedMotion} visiblePlateIds={visiblePlateIds}
-            useIK={useIK} showRig={showRig}/>;
+            useIK={useIK} showRig={showRig} footRoll={footRoll}/>;
         }} style={{transform:"scale("+scale+")",transformOrigin:"top left"}}/>
     </div>
     <div style={{width:Math.min(film.width*scale,950),maxWidth:"100%",display:"grid",gap:11}}>
@@ -110,6 +111,10 @@ function RisoCharacterStudio() {
             <option value="blue">Cobalt only</option>
             <option value="red">Vermilion only</option>
           </select>
+        </label>
+        <label style={label}>Swing toe-roll · {footRoll}°
+          <input type="range" min={0} max={35} step={1} value={footRoll}
+            aria-label="Swing toe roll degrees" onChange={e=>setFootRoll(Number(e.target.value))}/>
         </label>
         <label style={label}>Printed pose cadence · {cadence} frames
           <input type="range" min={1} max={4} step={1} value={cadence}
