@@ -9,9 +9,11 @@ on:
       - "tests/ink-shanshui.test.tsx"
       - "tests/ink-shanshui-proportion.test.tsx"
       - "tests/ink-shanshui-full-body.test.tsx"
-      - "tests/ink-shanshui-fine-craft.test.tsx"
+      - "tests/ink-shanshui-fine-craft.test.tsx tests/ink-shanshui-reader-face.test.tsx"
+      - "tests/ink-shanshui-reader-face.test.tsx"
       - "tests/e2e-storybook/ink-shanshui.spec.ts"
       - "tests/e2e-storybook/ink-shanshui-proportion.spec.ts"
+      - "tests/e2e-storybook/ink-shanshui-reader-face.spec.ts"
       - "docs/research/shanshui-reference-to-code-2026.md"
       - "registry.json"
       - ".github/workflows/ink-shanshui-qa.yml"
@@ -38,7 +40,7 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
       - name: Deterministic painting, actor and composition tests
-        run: npx vitest run --project unit tests/ink-shanshui.test.tsx tests/ink-shanshui-proportion.test.tsx tests/ink-shanshui-full-body.test.tsx tests/ink-shanshui-fine-craft.test.tsx
+        run: npx vitest run --project unit tests/ink-shanshui.test.tsx tests/ink-shanshui-proportion.test.tsx tests/ink-shanshui-full-body.test.tsx tests/ink-shanshui-fine-craft.test.tsx tests/ink-shanshui-reader-face.test.tsx
       - name: Registry and catalog installation contracts
         run: |
           npm run registry:validate
@@ -46,16 +48,16 @@ jobs:
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: All three films in the actual Storybook browser
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-shanshui.spec.ts tests/e2e-storybook/ink-shanshui-proportion.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-shanshui.spec.ts tests/e2e-storybook/ink-shanshui-proportion.spec.ts tests/e2e-storybook/ink-shanshui-reader-face.spec.ts
       - name: FFmpeg
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends ffmpeg
-      - name: Encode three art-directed, full-resolution production proofs
+      - name: Encode source-informed reader-face motion proof
         run: |
-          npm run video:export -- --story=video-ink-shanshui--mountain-trail-export --startFrame=115 --frames=96 --output=dist/shanshui-mountain-trail.mp4
+          # This PR iteration edits ONLY the young reader's face. Export that
+          # specific film; keep structural regression tests for all three.
           npm run video:export -- --story=video-ink-shanshui--river-scholar-export --startFrame=115 --frames=96 --output=dist/shanshui-river-scholar.mp4
-          npm run video:export -- --story=video-ink-shanshui--misty-hermit-export --startFrame=115 --frames=96 --output=dist/shanshui-misty-hermit.mp4
       - name: Preserve moving-film evidence
         if: always()
         uses: actions/upload-artifact@v4
