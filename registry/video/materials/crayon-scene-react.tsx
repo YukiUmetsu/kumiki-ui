@@ -68,7 +68,8 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
       construction={node.construction} coverage={node.coverage} nibStyle={node.nibStyle}
       strokeOrder={node.strokeOrder} markLength={node.markLength}
       redraw={node.redraw} edgeRoughness={node.edgeRoughness}
-      outlineOpacity={node.outlineOpacity} reduced={reducedMotion} /> :
+      outlineOpacity={node.outlineOpacity} sgraffito={node.sgraffito}
+      reduced={reducedMotion} /> :
       node.kind === "contour" ? <>
         {clipParent?.kind==="wax" && <defs>
           <clipPath id={clipId} clipPathUnits="userSpaceOnUse"
