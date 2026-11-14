@@ -11,14 +11,14 @@ import portableFilm from "../examples/film/colored-pencil-wildlife.film.json";
 
 describe("fine-feathered paper-native wildlife craft", () => {
   for (const aspect of ["landscape", "portrait"] as const) {
-    it("validates original 19-part bird and separately staged " + aspect + " composition", () => {
+    it("validates original 20-part bird and separately staged " + aspect + " composition", () => {
       const scene = pencilWildlifeScene({ aspect });
       expect(inspectPencilScene(scene)).toEqual([]);
       expect(scene.drawing.regions).toHaveLength(4);
       expect(scene.actors).toHaveLength(1);
       const parts = scene.actors![0].parts;
       expect(parts.map(part => part.id)).toEqual(COPPERBIRD_PART_ORDER);
-      expect(parts).toHaveLength(19);
+      expect(parts).toHaveLength(20);
       expect(parts.every(part => part.region.opaqueSupport === true)).toBe(true);
       expect(parts.some(part => part.region.layers.some(layer => layer.texture === "fiber"))).toBe(true);
       expect(parts.filter(part => part.region.details?.length).length).toBeGreaterThan(13);
