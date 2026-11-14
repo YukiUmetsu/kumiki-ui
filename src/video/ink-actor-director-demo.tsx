@@ -43,6 +43,9 @@ export const INK_WALKING_TRAVELLER: CharacterDefinition={
       poly("M143 323 Q159 316 171 325 Q178 333 156 330 L141 329 Z","#283029"),
       poly("M154 302 Q155 307 157 312","none","#8b958a",1.1)),
   },
+  // The source's old two-sprite step action targets the removed single-piece legs.
+  // This rig uses source-authored IK correction tracks instead.
+  actions:Object.fromEntries(Object.entries(INK_TRAVELLER.actions).filter(([id])=>id!=="step")),
   parts:[
     ...INK_TRAVELLER.parts.filter(part=>part.id!=="far-leg"&&part.id!=="near-leg"),
     {id:"far-thigh",asset:"far-upper",channel:"walk",pivot:{x:109,y:254},z:2},
@@ -80,7 +83,7 @@ export function inkDirectorGait(aspect:DirectorAspect):InkWalkPlan {
 export function inkDirectorInstance(aspect:DirectorAspect):CharacterInstance {
   return {
     ...TRAVELLER_INSTANCE,revision:INK_WALKING_TRAVELLER.revision,
-    corrections:bakeInkWalkCorrections(inkDirectorGait(aspect),3),
+    corrections:bakeInkWalkCorrections(inkDirectorGait(aspect),1),
   };
 }
 export const INK_DIRECTOR_SHOT:InkShot={
