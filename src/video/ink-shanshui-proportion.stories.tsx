@@ -122,6 +122,12 @@ function FullBodyPanel({scene}:{scene:ShanshuiScene}){
   const transform="translate("+(head.x??0)+" "+(head.y??0)+") "+
     "translate(139 124) rotate("+(head.rotation??0)+") "+
     "scale("+(head.scaleX??1)+" "+(head.scaleY??1)+") translate(-139 -124)";
+  const faceTransform=(id:keyof typeof fit.facialRest,x:number,y:number)=>{
+    const rest=fit.facialRest[id];
+    return "translate("+(rest.x??0)+" "+(rest.y??0)+") "+
+      "translate("+x+" "+y+") rotate("+(rest.rotation??0)+") "+
+      "scale("+(rest.scaleX??1)+" "+(rest.scaleY??1)+") translate(-"+x+" -"+y+")";
+  };
   const landmarks=Object.entries(fit.anchors);
   return <section style={{display:"grid",gap:8}}>
     <h3 style={{font:"500 21px Georgia,serif",margin:0}}>
@@ -150,11 +156,11 @@ function FullBodyPanel({scene}:{scene:ShanshuiScene}){
       {sprite("hand-near","hand-near")}
       <g transform={transform}>
         {sprite("face","face")}
-        {sprite("hair","hair")}
-        {sprite("brow","brow")}
-        {sprite("eyes-open","eyes")}
-        {sprite("mouth-rest","mouth")}
-        {sprite("beard","beard")}
+        <g transform={faceTransform("hair",140,74)}>{sprite("hair","hair")}</g>
+        <g transform={faceTransform("brows",140,94)}>{sprite("brow","brow")}</g>
+        <g transform={faceTransform("eyes",140,102)}>{sprite("eyes-open","eyes")}</g>
+        <g transform={faceTransform("mouth",142,124)}>{sprite("mouth-rest","mouth")}</g>
+        <g transform={faceTransform("beard",142,139)}>{sprite("beard","beard")}</g>
       </g>
       {landmarks.map(([name,pt])=><g key={name}>
         <circle cx={pt.x} cy={pt.y} r="1.5"
