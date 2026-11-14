@@ -23,3 +23,4 @@ jobs:
       - run: npm run typecheck
       - run: npx vitest run --project unit tests/paper-craft.test.tsx
       - run: npm run prestorybook
+      - run: npm run film:check -- examples/film/paper-craft-garden.film.json

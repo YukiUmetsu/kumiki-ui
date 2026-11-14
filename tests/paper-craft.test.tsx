@@ -48,6 +48,7 @@ describe("PAPER1 native paper cut, fold, light and puppet", () => {
       for (const id of ["perch-bridge","bird-body","bird-tail","bird-wing",
         "bird-crest","bird-head","bird-beak","bird-feet"]) expect(ids).toContain(id);
       expect(scene.layers.find(layer=>layer.id==="bird-head")?.holes).toHaveLength(1);
+      expect(scene.layers.find(layer=>layer.id==="bird-wing")?.pivot).toHaveLength(2);
       expect(scene.layers.find(layer=>layer.id==="bird-wing")?.holes).toHaveLength(3);
       expect(scene.layers.find(layer=>layer.id==="perch-bridge")!.depth)
         .toBeLessThan(scene.layers.find(layer=>layer.id==="bird-feet")!.depth);
