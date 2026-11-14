@@ -1,3 +1,7 @@
+import { PaperCraftStage } from "../../registry/video/paper-craft-react";
+import { PAPER_STYLES } from "../../registry/video/paper-craft";
+import type { PaperStyle } from "../../registry/video/paper-craft";
+import { paperCraftExampleSpec } from "../video/paper-craft-demo";
 import { InkBrushPoster } from "../video/ink-brush-demo";
 import "../styles/collage-fonts.css";
 import { renderCollageSlot } from "../video/collage-slot";
@@ -918,6 +922,19 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         return <RisoPrint spec={spec} artworks={risoSecondSheetArtworks(aspect)}
           frame={completedRisoFrame(spec)} misregistration={.25} paperGrain={.55}
           reducedMotion={context.reducedMotion}/>;
+      }
+
+      case "paper-craft-study": {
+        const raw = props.medium ?? "layered";
+        if (typeof raw !== "string" || !PAPER_STYLES.includes(raw as PaperStyle))
+          throw new RangeError("paper-craft-study requires a known paper medium.");
+        const offset = props.offsetFrame ?? 0;
+        if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0)
+          throw new RangeError("paper-craft-study offsetFrame must be a nonnegative integer.");
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        return <PaperCraftStage spec={paperCraftExampleSpec(raw as PaperStyle, aspect)}
+          frame={offset + context.frame} reducedMotion={context.reducedMotion}
+          tooth={.58} shadowStrength={.8} edgeStrength={.55}/>;
       }
 
       default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-character-film, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, watercolour-wet-paper, watercolour-master-study, painted-composition, watercolour-actor, collage-scene, collage-tear.`);

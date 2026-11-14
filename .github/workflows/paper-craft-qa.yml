@@ -1,0 +1,26 @@
+name: Paper Craft targeted QA
+on:
+  pull_request:
+    paths:
+      - 'registry/video/paper-craft*'
+      - 'src/video/paper-craft*'
+      - 'src/film/film-slots.tsx'
+      - 'tests/paper-craft.test.tsx'
+      - 'registry.json'
+      - '.github/workflows/paper-craft-qa.yml'
+  workflow_dispatch:
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npx vitest run --project unit tests/paper-craft.test.tsx
+      - run: npm run prestorybook
+      - run: npm run film:check -- examples/film/paper-craft-garden.film.json

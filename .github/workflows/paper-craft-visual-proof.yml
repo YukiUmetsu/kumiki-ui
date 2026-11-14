@@ -1,0 +1,58 @@
+name: Paper Craft visual film proof
+# Scoped to the Paper Craft PR so other material work does not spend browser minutes.
+on:
+  pull_request:
+    paths:
+      - 'tests/e2e-storybook/paper-craft.spec.ts'
+      - '.github/workflows/paper-craft-visual-proof.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: paper-proof-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Full native Storybook film art screenshots
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-craft.spec.ts
+      - name: Validate paper film for both outputs
+        run: npm run film:check -- examples/film/paper-craft-garden.film.json
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Capture all five paper treatments in 16:9 and 9:16
+        run: |
+          for output in landscape portrait; do
+            for frame in 140 314 488 662 836; do
+              npm run film:frame -- examples/film/paper-craft-garden.film.json --frame="$frame" --only="$output" --out="dist/paper-proof"
+            done
+          done
+      - name: Encode genuine production-slot preview frames
+        run: npm run film:render -- examples/film/paper-craft-garden.film.json --frames=48 --only=landscape --out=dist/paper-proof
+      - name: Keep actual rendered browser captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper-craft-storybook-visuals
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Keep production PNG and encoded film
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper-craft-production-visuals
+          path: dist/paper-proof/
+          retention-days: 7
+          if-no-files-found: warn
