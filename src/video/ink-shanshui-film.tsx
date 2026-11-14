@@ -128,8 +128,8 @@ export function shanshuiScholarInstance(
     const vel=inkRouteAt(route,frame).vx;
     const gait=clamp01(Math.abs(vel)/1.8);
     return {frame,pose:{
-      rotation:(-1.2-1.8*Math.sin(frame*.12))*gait*clothAmount,
-      x:-2*Math.sin(frame*.09)*gait*clothAmount,
+      rotation:clothAmount===0?0:(-1.2-1.8*Math.sin(frame*.12))*gait*clothAmount,
+      x:clothAmount===0?0:-2*Math.sin(frame*.09)*gait*clothAmount,
     }};
   });
   return {
