@@ -128,9 +128,9 @@ export function inspectPaintedComposition(spec: PaintedCompositionSpec): PaintIs
       if (!int(layer[k], 0, 3600)) add(k, p + "/" + k, k + " must be 0..3600.");
     if (layer.paintFrames > 0 && (!pathValid(layer.brushPath) || !valid(layer.brushWidth ?? NaN, 1, 2048)))
       add("paint-path", p + "/brushPath", "Animated washes require a valid brushPath and brushWidth (1..2048).");
-    if (layer.reservePaths && (layer.reservePaths.length > 64 || layer.reservePaths.some(v => !pathValid(v))))
+    if (layer.reservePaths && (layer.reservePaths.length > 64 || layer.reservePaths.some((v: string) => !pathValid(v))))
       add("reserves", p + "/reservePaths", "Reserve paths must be authored SVG paths (max 64).");
-    if (layer.details && (layer.details.length > 128 || layer.details.some(d =>
+    if (layer.details && (layer.details.length > 128 || layer.details.some((d: NonNullable<PaintWash["details"]>[number]) =>
       !pathValid(d.path) || !HEX.test(d.color) || !valid(d.width, .1, 96) || !valid(d.opacity, 0, 1))))
       add("details", p + "/details", "Detail paths require SVG geometry, color, width and opacity.");
   });
