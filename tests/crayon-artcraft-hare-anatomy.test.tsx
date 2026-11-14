@@ -1,0 +1,95 @@
+import {describe,expect,it} from "vitest";
+import {renderToStaticMarkup} from "react-dom/server";
+import {crayonWildlifePortraitScene} from "../src/video/crayon-wildlife-portrait-fixtures";
+import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
+import {crayonWorldPoint,crayonDrawingAt,inspectCrayonScene} from "../registry/video/materials/crayon-scene";
+
+/**
+ * ArtCraft construction checks, not a numerical aesthetic certification.
+ * Source image URLs and observed local motifs are documented separately;
+ * no external artist assets are copied or packed into the application.
+ */
+describe("ArtCraft anatomical hare source construction",()=>{
+ for(const aspect of ["landscape","portrait"] as const){
+  const scene=crayonWildlifePortraitScene(aspect,{detail:1,earMotion:1});
+  const part=(id:string)=>{
+    const el=scene.elements.find(x=>x.id===id);
+    if(!el)throw new Error("Missing ArtCraft semantic subpart "+id);
+    return el;
+  };
+  it("replaces simple mask with attached articulated ear, eye and nasal masses in "+aspect,()=>{
+    expect(inspectCrayonScene(scene)).toEqual([]);
+    for(const id of [
+      "far-ear-crease-shadow","near-ear-outer-lip","near-ear-canal-shadow",
+      "orbital-structure","eye-brow-bone","nasal-bridge-plane",
+      "malar-ridge-shadow","muzzle-underside","nasal-wax-luster",
+    ]){
+      const el=part(id);
+      expect(el.kind).toBe("wax");
+      if(el.kind==="wax"){
+        expect(el.coverage).toBe("opaque");
+        expect(el.d).toMatch(/[QC]/);
+        expect(el.d).not.toMatch(/NaN|Infinity/);
+      }
+    }
+    for(const id of [
+      "far-ear-rim-fold","near-ear-rim-fold","eye-tear-duct",
+      "eye-brow-feathering","whisker-follicles","malar-form-creases",
+      "contour-rooted-cheek-tufts",
+    ]){
+      expect(part(id).kind).toBe("contour");
+    }
+    expect(part("near-ear-canal-shadow").parentId).toBe("near-ear");
+    expect(part("near-ear-outer-lip").parentId).toBe("near-ear");
+    expect(part("far-ear-crease-shadow").parentId).toBe("far-ear");
+    expect(part("nasal-bridge-plane").parentId).toBe("head");
+    expect(part("muzzle-underside").parentId).toBe("head");
+    expect(part("eye-brow-bone").parentId).toBe("head");
+    expect(part("whisker-follicles").parentId).toBe("head");
+    expect(part("near-ear-inner").parentId).toBe("near-ear");
+    expect(part("eye-amber-iris").parentId).toBe("head");
+    expect(scene.elements.length).toBeLessThan(240);
+  });
+  it("holds anatomical root, ear tips and muzzle entirely inside the rendered page in "+aspect,()=>{
+    const body=part("shoulder-silhouette");
+    expect(body.placement?.scale).toBe(.94);
+    for(const frame of [0,85,135,181,239]){
+      for(const [id,coordinate] of [
+        ["far-ear",{x:-21,y:-328}],["near-ear",{x:139,y:-308}],
+        ["nose",{x:-207,y:19}],["head",{x:-56,y:-57}],
+      ] as const){
+        const p=crayonWorldPoint(scene,part(id),frame,coordinate);
+        expect(Number.isFinite(p.x)&&Number.isFinite(p.y)).toBe(true);
+        expect(p.x).toBeGreaterThan(0);
+        expect(p.x).toBeLessThan(scene.width);
+        expect(p.y).toBeGreaterThan(9);
+        expect(p.y).toBeLessThan(scene.height);
+      }
+    }
+  });
+  it("does not break held eyelid redraw or motion parentage in "+aspect,()=>{
+    const lid=part("eyelid-painted-occlusion");
+    if(lid.kind!=="wax")throw new Error("Missing opaque eyelid");
+    expect(lid.coverage).toBe("opaque");
+    expect(crayonDrawingAt(lid,89).d).not.toBe(crayonDrawingAt(lid,95).d);
+    expect(crayonDrawingAt(lid,203).d).not.toBe(crayonDrawingAt(lid,209).d);
+    const root=part("shoulder-silhouette");
+    expect(part("head").parentId).toBe(root.id);
+    const iris=part("iris-gold-radials");
+    expect(iris.parentId).toBe("eye-amber-iris");
+    expect(iris.kind).toBe("contour");
+    if(iris.kind==="contour")expect(iris.clipToParent).toBe(true);
+  });
+ }
+ it("SSR renders true original wax elements and a solid body on the ArtCraft final frame",()=>{
+   const scene=crayonWildlifePortraitScene("landscape");
+   const out=renderToStaticMarkup(<CrayonScene spec={scene} frame={237}/>);
+   for(const name of ["orbital-structure","nasal-bridge-plane","near-ear-canal-shadow",
+     "muzzle-underside","whisker-follicles"]){
+     expect(out).toContain('data-km-crayon-element="'+name+'"');
+   }
+   expect(out).toContain('data-km-crayon-underpaint="opaque"');
+   expect(out).toContain('data-km-crayon-coverage="opaque"');
+   expect(renderToStaticMarkup(<CrayonScene spec={scene} frame={237}/>)).toBe(out);
+ });
+});
