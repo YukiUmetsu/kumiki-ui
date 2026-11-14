@@ -25,12 +25,14 @@ describe("Riso native overprint scene bridge", () => {
     const { outgoing, incoming } = sheets("landscape");
     const evalAt = (at: number, reduce = false) =>
       evaluateRisoOverprint(outgoing.spec, incoming.spec, "red", at, 0, 179, reduce);
-    expect(evalAt(0)).toEqual({ progress: 0, stamp: 0, incomingOpacity: 0, inkOpacity: 0 });
-    expect(evalAt(179)).toEqual({ progress: 1, stamp: 1, incomingOpacity: 1, inkOpacity: 0 });
+    expect(evalAt(0)).toEqual({ progress: 0, stamp: 0, paperReveal: 0, inkOpacity: 0 });
+    expect(evalAt(179)).toEqual({ progress: 1, stamp: 1, paperReveal: 1, inkOpacity: 0 });
     const midway = evalAt(90);
     expect(midway.stamp).toBeGreaterThan(0);
     expect(midway.inkOpacity).toBeGreaterThan(0);
-    expect(midway.incomingOpacity).toBe(0);
+    expect(midway.paperReveal).toBe(0);
+    expect(evalAt(150).paperReveal).toBeGreaterThan(0);
+    expect(evalAt(150).paperReveal).toBeLessThan(1);
     evalAt(179); evalAt(10); evalAt(40);
     expect(evalAt(90)).toEqual(midway);
     expect(evalAt(0, true)).toEqual(evalAt(179));
@@ -48,6 +50,12 @@ describe("Riso native overprint scene bridge", () => {
       expect(middle).toContain("PRINT / 03");
       expect(middle).toContain("mix-blend-mode:multiply");
       expect(middle).toContain("data-km-riso-plate=\"red\"");
+      const knockout = frame(150, aspect);
+      expect(knockout).toContain("data-km-riso-incoming");
+      expect(knockout).toContain("-paper)");
+      // A pixel belongs to either sheet: the incoming page is clipped, never alpha-faded.
+      expect(knockout).toContain('data-km-riso-outgoing=""');
+      expect(knockout).not.toContain('data-km-riso-incoming="" opacity=');
       expect(end).not.toContain("data-km-riso-outgoing");
       expect(end).not.toContain("data-km-riso-imprint-ink");
       expect(end).toContain("data-km-riso-incoming");
