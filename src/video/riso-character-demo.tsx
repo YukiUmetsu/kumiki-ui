@@ -237,6 +237,10 @@ export interface RisoPerformanceProps {
   misregistration?: number;
   grain?: number;
   reducedMotion?: boolean;
+  /** Compare physically constrained planted feet against the earlier FK-only artwork. */
+  useIK?: boolean;
+  /** Optional animator overlay showing joints, bones and targets. */
+  showRig?: boolean;
   visiblePlateIds?: readonly string[];
 }
 function LayeredCity({ aspect, paint, ink }: {
@@ -277,7 +281,7 @@ function LayeredCity({ aspect, paint, ink }: {
 }
 export function RisoCharacterPerformance({
   aspect, frame, seed = 89, cadence = 2, misregistration = .3, grain = .55,
-  reducedMotion = false, visiblePlateIds,
+  reducedMotion = false, visiblePlateIds, useIK = true, showRig = false,
 }: RisoPerformanceProps) {
   const portrait = aspect === "portrait";
   const spec = risoPerformanceSpec(aspect, seed);
@@ -290,10 +294,11 @@ export function RisoCharacterPerformance({
     <g data-km-riso-performance-plate={plateId}>
       <LayeredCity aspect={aspect} paint={paint} ink={plateId}/>
       <RisoCharacterInk spec={courier} frame={sample} plateId={plateId} paint={paint}
-        x={stage.x} y={stage.y} scale={stage.scale} reducedMotion={reducedMotion}/>
+        x={stage.x} y={stage.y} scale={stage.scale} reducedMotion={reducedMotion}
+        disableIK={!useIK} showRig={showRig}/>
       <RisoCharacterInk spec={bird} frame={sample} plateId={plateId} paint={paint}
         x={stage.birdX} y={stage.birdY} scale={portrait?1.1:1.0}
-        reducedMotion={reducedMotion}/>
+        reducedMotion={reducedMotion} showRig={showRig}/>
       {plateId === "blue" ? <g fill={paint.solid} fontFamily="Georgia,serif">
         <text x={titleX} y={headlineY} fontSize={portrait?59:66}
           fontWeight={700} letterSpacing="-1.8">PAPER</text>
