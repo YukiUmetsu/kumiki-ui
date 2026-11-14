@@ -2,7 +2,7 @@
 
 **Registry ID:** `crayon-storybook`  
 **Source:** `registry/video/materials/crayon.ts`, `crayon-react.tsx`  
-**Storybook:** Video production → Film Art Styles → Crayon Storybook  
+**Storybook:** Video production → Film Looks → Crayon Storybook  
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
 
@@ -176,7 +176,7 @@ reduced-motion end-state rendering.
 validation enforces bounded SVG path data, unique pose IDs, defined cue
 references, sorted frame keys, and practical track limits.
 
-**Live example:** Storybook **Video production / Film Art Styles / Crayon
+**Live example:** Storybook **Video production / Film Looks / Crayon
 Scene Engine / Character Performance** and **Character Performance Portrait**.
 The original little woodland character waves a flower, gives a short performed
 greeting (authored without a soundtrack), blinks, smiles, tilts its head and
