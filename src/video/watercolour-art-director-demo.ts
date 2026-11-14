@@ -300,12 +300,14 @@ export function watercolorWetlandSpec(output: WetlandOutput, seed = 83): Waterco
         (34 + i % 3 * 12) + " 0", i % 3 === 0 ? "#6F959B" : "#C3B99D",
         i % 4 === 0 ? 1.4 : .75, .37, "drybrush");
     }),
-    ...Array.from({ length: 6 }, (_, i) =>
-      reed("left-reed-" + i, 90 + i * 27, 492 + (i % 3) * 5,
+    ...Array.from({ length: portrait ? 3 : 6 }, (_, i) =>
+      reed("left-reed-" + i, (portrait ? 439 + i * 21 : 90 + i * 27),
+        492 + (i % 3) * 5,
         135 + (i % 4) * 21, (i % 2 ? -1 : 1) * (18 + i * 3),
         i % 2 ? "#6E887D" : "#9D9873")),
-    ...Array.from({ length: 7 }, (_, i) =>
-      reed("right-reed-" + i, 797 + i * 20, 487 + (i % 3) * 4,
+    ...Array.from({ length: portrait ? 4 : 7 }, (_, i) =>
+      reed("right-reed-" + i, (portrait ? 741 + i * 22 : 797 + i * 20),
+        487 + (i % 3) * 4,
         139 + (i % 4) * 27, -18 - i * 2,
         i % 3 ? "#789080" : "#A39C78")),
     // Soft puddled reflection lives in actual water-space. Each mark is
@@ -343,6 +345,9 @@ export function watercolorWetlandSpec(output: WetlandOutput, seed = 83): Waterco
     version: 1, width, height, seed, paper,
     wetPaper,
     parts: [group("art-direction-viewport", foreground,
-      [pose(0, portrait ? -277 : 0, portrait ? 237 : 0, 0, portrait ? .94 : 1)])],
+      // Portrait is explicitly composed, not a shrunk landscape through a crop:
+      // bill and tail stay inside the frame; body/legs fill the central field.
+      [pose(0, portrait ? -605 : 0, portrait ? 90 : 0, 0,
+        portrait ? 1.45 : 1)])],
   };
 }
