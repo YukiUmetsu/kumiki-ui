@@ -11,7 +11,7 @@ export interface CrayonSgraffito {
 }
 export function assertCrayonSgraffito(value:CrayonSgraffito):void {
   if(!value || typeof value.d!=="string" || value.d.length<2 ||
-    value.d.length>25000 || !/^[0-9.,+\\-\\sMmLlHhVvCcSsQqTtAaZzEe]+$/.test(value.d) ||
+    value.d.length>25000 || !/^[0-9.,+\-\sMmLlHhVvCcSsQqTtAaZzEe]+$/.test(value.d) ||
     !/[Mm]/.test(value.d) ||
     !Number.isFinite(value.width)||value.width<.2||value.width>12||
     !Number.isSafeInteger(value.first)||!Number.isSafeInteger(value.last)||
