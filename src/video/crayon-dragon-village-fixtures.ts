@@ -58,7 +58,15 @@ export function crayonDragonVillageScene(
   const wax=(id:string,d:string,bounds:{x:number;y:number;width:number;height:number},
     colors:readonly [CrayonColor,CrayonColor,CrayonColor],extra:Partial<Wax>={})=>{
     elements.push({kind:"wax",id,d,bounds,colors,timing:{start:14,end:82},
-      pressure:.77,spacing:7,construction:build,...extra});
+      pressure:.77,spacing:7,construction:build,
+      coverage:/^(sky-paper|hills|village-moon|left-sky-cloud|right-sky-cloud)$/.test(id)
+        ? "open" : "opaque",
+      angle:id.includes("wing-")?(id.includes("far")?-21:23):
+        id.includes("tail")?-16:id.includes("neck")?-27:
+        id.includes("horn")?30:id.includes("leg")?16:
+        id.includes("roof")||id.includes("spire")?-9:
+        id==="dragon-body"?-7:0,
+      ...extra});
   };
   const line=(id:string,d:string,color:CrayonColor="#566078",width=2.5,
     extra:Partial<Contour>={})=>{
