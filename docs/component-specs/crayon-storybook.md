@@ -430,6 +430,32 @@ exposure. Hand/tool tracking, per-stroke pressure kinetics, multistroke
 semantic sequencing inside *one* complex outline and whole-video
 normal-speed independent art signoff remain open.
 
+
+### Structural craftsmanship: grouped detail atlas
+
+The Dragon Village cast and observatory now support dense, authored
+**scute, limb, wing, feather, masonry, pitched-roof and carved-stone**
+detail without introducing hundreds of React nodes per object.
+`crayonScaleField`, `crayonMasonryCourses` and
+`crayonRoofCourses` generate deterministic, validated SVG subpaths with
+limits on rows, columns and output complexity. Each generated detail
+region is a single named `CrayonContourElement` attached to the
+appropriate animated rig or building part, preserving actor and camera
+motion. The existing `villageDetail` control varies actual hand-drawn
+geometry density, not just procedural paper noise.
+
+The **Dragon Anatomy Detail**, **Dragon Anatomy Detail Portrait** and
+**Castle Masonry Detail** stories provide original close-up films in
+`Video production / Film Looks / Crayon Scene Engine`. The new
+`shot` option is `wide | dragon | architecture`. It adjusts framing
+only; no actors, rig keys or wax layers are replaced. Camera framing is
+validated in both native 960×540 and 540×960 sizes, with exact-frame
+seek tests and real Chromium screenshots.
+
+The architectural language and dragon anatomy decisions are
+reference-backed in the
+[creature and architecture study](../research/crayon-dragon-creature-and-architecture-study.md).
+
 ### Multi-character creature rigging and sophisticated architecture
 
 **Dragon & The Village** is a 330-frame (11 second), three-actor
