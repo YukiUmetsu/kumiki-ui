@@ -4,6 +4,8 @@ import {InkShanshuiFilm} from "./ink-shanshui-film";
 import {DEFAULT_SHANSHUI,SHANSHUI_FRAMES,SHANSHUI_REFERENCE_NOTES} from "../../registry/video/ink-shanshui";
 import type {ShanshuiControls,ShanshuiScene} from "../../registry/video/ink-shanshui";
 import {VideoExportStage} from "../../registry/video/video-export-stage";
+import {shanshuiFittedRoute} from "./ink-shanshui-full-body";
+import {inkRouteAt} from "../../registry/video/ink-actor-director";
 import type {VideoExportManifest} from "../../registry/video/video-export-stage";
 
 /** Original code-drawn shanshui animated film study. The three reference images
@@ -129,6 +131,88 @@ function Gallery(){
     </div>
   </main>;
 }
+/** Three exact film frames, cropped onto the lower garment and planted
+ * shoes. This comparison is a production QA view, not a second animation
+ * engine or baked image. Everything here is the real InkShanshuiFilm. */
+function GarmentMotion(){
+  const [scene,setScene]=useState<ShanshuiScene>("river-scholar");
+  const [start,setStart]=useState(60);
+  const [cloth,setCloth]=useState(.72);
+  const [detail,setDetail]=useState(.9);
+  const controls={...DEFAULT_SHANSHUI,scene,detail};
+  const route=shanshuiFittedRoute(scene);
+  return <main data-testid="shanshui-garment-studio"
+    style={{padding:24,background:"#e9e2d5",color:"#372e24",
+      font:"14px/1.5 system-ui",display:"grid",gap:16,minHeight:"100vh",
+      alignContent:"start"}}>
+    <header>
+      <h1 style={{font:"400 30px Georgia,serif",margin:"0 0 8px"}}>
+        Walking robe · three exact gait phases
+      </h1>
+      <p style={{margin:0,maxWidth:860}}>
+        Compare the real painted hem, shoe contact and overlapping garment
+        silhouette at three frames, half a 26-frame stride apart.
+        No static mockups or cropped reference-image textures.
+      </p>
+    </header>
+    <div style={{display:"flex",gap:17,flexWrap:"wrap",alignItems:"end"}}>
+      <label style={style.field}>Figure
+        <select aria-label="Garment scene" value={scene}
+          onChange={e=>setScene(e.target.value as ShanshuiScene)}
+          style={{height:38,background:"#fff8ed"}}>
+          <option value="river-scholar">Riverside reader</option>
+          <option value="mountain-trail">Mountain traveler</option>
+          <option value="misty-hermit">Misty hermit</option>
+        </select>
+      </label>
+      <label style={{...style.field,minWidth:230}}>First frame · {start}
+        <input aria-label="Garment first frame" type="range" min="0"
+          max={SHANSHUI_FRAMES-27} value={start}
+          onChange={e=>setStart(Number(e.target.value))}/>
+      </label>
+      <label style={{...style.field,minWidth:170}}>Gait cloth · {Math.round(cloth*100)}%
+        <input aria-label="Garment cloth" type="range" min="0" max="1"
+          step=".05" value={cloth}
+          onChange={e=>setCloth(Number(e.target.value))}/>
+      </label>
+      <label style={{...style.field,minWidth:170}}>Brush detail · {Math.round(detail*100)}%
+        <input aria-label="Garment detail" type="range" min=".2" max="1"
+          step=".05" value={detail}
+          onChange={e=>setDetail(Number(e.target.value))}/>
+      </label>
+    </div>
+    <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"start"}}>
+      {[0,13,26].map((offset,i)=>{
+        const filmFrame=start+offset;
+        const foot=inkRouteAt(route,filmFrame);
+        const zoom=2.3;
+        const dx=160-zoom*foot.x;
+        const dy=162-zoom*(foot.y-65);
+        return <section key={offset} data-gait-study-frame={filmFrame}
+          style={{display:"grid",gap:8}}>
+          <div style={{fontWeight:600,color:"#514436"}}>
+            {["Plant / lift","Opposite stride","Next cycle"][i]} · frame {filmFrame}
+          </div>
+          <div style={{width:320,height:324,position:"relative",overflow:"hidden",
+            background:"#f3e6cd",border:"1px solid #b6a489"}}>
+            <div style={{position:"absolute",left:0,top:0,
+              transformOrigin:"top left",
+              transform:"translate("+dx+"px,"+dy+"px) scale("+zoom+")"}}>
+              <InkShanshuiFilm frame={filmFrame} controls={controls}
+                clothAmount={cloth}/>
+            </div>
+          </div>
+        </section>;
+      })}
+    </div>
+    <p style={{margin:0,maxWidth:970,fontSize:12,color:"#6f5c49"}}>
+      All three frames are sampled from the same scene-specific rig and
+      fixed paper coordinates. Compare the two independently moving,
+      fully opaque hip-attached hem panels and the planted shoe tips.
+    </p>
+  </main>;
+}
+
 function Export({scene}:{scene:ShanshuiScene}){
   const [frame,setFrame]=useState(0);
   const manifest:VideoExportManifest={
@@ -146,6 +230,11 @@ export default meta;
 export const GalleryStudio:StoryObj<typeof meta>={
   name:"Original landscape paintings · interactive gallery",
 };
+export const GarmentMotionStudio:StoryObj<typeof GarmentMotion>={
+  name:"Garment motion · three gait phases",
+  render:()=> <GarmentMotion/>,
+};
+
 export const MountainTrailExport:StoryObj<typeof Export>={
   name:"Mountain trail · production MP4 (16:9)",
   render:()=> <Export scene="mountain-trail"/>,
