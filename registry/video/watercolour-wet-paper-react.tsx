@@ -43,6 +43,11 @@ export function WatercolourWetPaper({
     data-km-wet-paper-pigment={state.totalPigment.toFixed(4)}
     style={{width:"100%",height:"100%",display:"block",isolation:"isolate",overflow:"hidden",...style}}>
     <defs>
+      {Boolean(spec.reservePaths?.length) && <mask id={id+"-reserves"} maskUnits="userSpaceOnUse"
+        x={0} y={0} width={spec.width} height={spec.height}>
+        <rect width={spec.width} height={spec.height} fill="#fff"/>
+        {spec.reservePaths?.map((path,i)=><path key={i} d={path} fill="#000"/>)}
+      </mask>}
       {/* Stroke-scale softness then paper-tooth displacement; the film and
           UI typography are never blurred or displaced. */}
       <filter id={id+"-wick"} x="-8%" y="-8%" width="116%" height="116%"
@@ -65,7 +70,8 @@ export function WatercolourWetPaper({
       </g>
     </>}
     <g data-km-wet-pigment-field="" pointerEvents="none"
-      style={{mixBlendMode:"multiply"}} filter={`url(#${id}-wick)`}>
+      style={{mixBlendMode:"multiply"}} filter={`url(#${id}-wick)`}
+      mask={spec.reservePaths?.length?`url(#${id}-reserves)`:undefined}>
       {state.cells.map((cell,i)=><rect key={i}
         data-km-pigment-cell="" x={cell.x} y={cell.y}
         width={cell.width+.35} height={cell.height+.35}
