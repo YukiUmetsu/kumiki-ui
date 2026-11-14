@@ -75,3 +75,8 @@ type Story=StoryObj<typeof meta>;
 export const LayerCoverageComparison:Story={};
 export const LayerCoverageCoral:Story={args:{underlay:"coral"}};
 export const SolidPigmentOnBoth:Story={args:{left:"opaque",right:"opaque"}};
+
+// Inspect actual deposition around the mid-fill frame before the fully opaque finish.
+export const StrokePathUnderpainting:Story={
+  args:{left:"opaque",right:"opaque",frame:82,pressure:.92,paperTooth:.74,underlay:"coral"},
+};

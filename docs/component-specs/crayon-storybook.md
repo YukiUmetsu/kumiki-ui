@@ -692,3 +692,25 @@ membrane skinning, pigment accumulation/erasure model, calibrated
 physical crayon nib scans with safe rights, and real-time full-film
 normal-speed acceptance. Do not claim those capabilities from a
 short encoded smoke alone.
+
+## Stroke-following opaque build-up (2026-11-14)
+
+During construction, foreground subjects now acquire dense pigment **along their
+existing individual crayon strokes**, not through a vertical rectangular wipe.
+The first pass of original seeded hatching provides the underpainting mask; a
+late, brief settling coat closes remaining pores and yields the same fully opaque
+completed silhouette as before. The tooth-masked decorative strokes remain
+above the backing. This keeps completed actors and buildings solid while making
+their creation look materially drawn rather than digitally revealed.
+
+Use Storybook **Material Studies / Stroke Path Underpainting** at frame 82, then
+scrub through frames 0–120 to compare the incomplete contact patches with the
+finished 100%-opacity body. The old `coverage: "open"` mode and all scene JSON
+contracts stay unchanged. A new deterministic SSR test checks the material mask
+only while construction is incomplete, preventing accidental permanent holes.
+See [the deposition/film follow-up study](../research/crayon-wax-deposition-follow-up-2026.md).
+
+**Still pending:** real nib-contact path sampling, pressure-sensitive paper
+height fields, wax smearing/erasing, deformable wing and torso skin, independent
+normal-speed human visual acceptance in both aspect ratios. This change is an
+engine improvement, not a claim of finished film-quality artwork.
