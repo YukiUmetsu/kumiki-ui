@@ -652,8 +652,9 @@ export function crayonDragonVillageScene(
   // hide screen-space titles; the architecture view isolates the environment.
   // The wide shot retains every original actor, caption and story beat.
   const visibleElements=shot==="wide" ? elements : elements.filter(node=>
-    node.kind!=="lettering" && (shot!=="architecture" ||
-      !/^(dragon|owl|friend)-/.test(node.id)));
+    node.kind!=="lettering" && (shot==="architecture"
+      ? !/^(dragon|owl|friend)-/.test(node.id)
+      : !/^(castle|western-shop|eastern-shop|owl|friend)-/.test(node.id)));
   return {version:1,id:"crayon-dragon-village-"+aspect,
     width:W,height:H,durationFrames:D,
     paper:"#f7f0e2",paperTooth:.69,seed:7264,elements:visibleElements,
