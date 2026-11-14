@@ -27,6 +27,8 @@ export interface RisoWalkTarget {
   /** Offsets the other foot by half a cycle, without introducing an extra clock. */
   phaseFrames?: number;
   lift: number;
+  /** Degrees of toe-down then toe-up pitch during swing, zero while planted. */
+  footRoll?: number;
 }
 export type RisoIKTarget = RisoIKKeyTarget | RisoWalkTarget;
 export interface RisoTwoBoneIK {
@@ -81,6 +83,18 @@ export function sampleRisoIKTarget(target: RisoIKTarget, frame: number): RisoPoi
   const p = (local - target.stanceFrames) / (target.cycleFrames - target.stanceFrames);
   const lift = Math.sin(Math.PI * p);
   return { x: x + target.stride * smooth(p), y: target.groundY - target.lift * lift };
+}
+
+/** Swing-only ankle rotation; contact poses return exactly zero toe roll. */
+export function sampleRisoFootRoll(target: RisoIKTarget, frame: number): number {
+  if (!Number.isSafeInteger(frame) || frame < 0) throw new RangeError("IK frame must be a nonnegative integer.");
+  if (target.kind !== "walk" || !target.footRoll || frame < target.startFrame ||
+      frame > target.endFrame) return 0;
+  const phase = frame - target.startFrame + (target.phaseFrames ?? 0);
+  const local = phase % target.cycleFrames;
+  if (local <= target.stanceFrames) return 0;
+  const p = (local - target.stanceFrames) / (target.cycleFrames - target.stanceFrames);
+  return Math.sin(2 * Math.PI * p) * target.footRoll;
 }
 
 /**
@@ -142,10 +156,12 @@ export function applyRisoIK(
     const currentE = point(world.get(constraint.end)!);
     const second = direction(K, solution.ankle) - direction(K, currentE);
     for (const id of subtree(constraint.mid)) world.set(id, rotateAbout(world.get(id)!, K, second));
-    if (constraint.endRotation !== undefined) {
+    const additionalRoll = sampleRisoFootRoll(constraint.target, frame);
+    if (constraint.endRotation !== undefined || additionalRoll !== 0) {
       const ankle = point(world.get(constraint.end)!);
       const matrix = world.get(constraint.end)!;
-      const delta = constraint.endRotation * Math.PI / 180 - Math.atan2(matrix.b, matrix.a);
+      const desired = (constraint.endRotation ?? 0) + additionalRoll;
+      const delta = desired * Math.PI / 180 - Math.atan2(matrix.b, matrix.a);
       for (const id of subtree(constraint.end)) world.set(id, rotateAbout(world.get(id)!, ankle, delta));
     }
     const solvedAnkle = point(world.get(constraint.end)!);
