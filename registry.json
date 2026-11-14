@@ -3328,7 +3328,7 @@
       "name": "riso-character",
       "type": "registry:ui",
       "title": "Risograph Articulated Character Rig (RISO3)",
-      "description": "Ink-separated character rigs with FK, planted two-bone IK, dynamic joint-bound limb contours, authored expressions, stable printed-frame cadence, and rig diagnostics.",
+      "description": "Source-faithful two-ink character rigs with FK/IK, opaque paper knockouts, deforming limb skins, expression keys, authorable proportion meshes and printable construction sheets.",
       "dependencies": [],
       "registryDependencies": [
         "riso-print"
@@ -3353,6 +3353,16 @@
           "path": "registry/video/riso-joint-skin.ts",
           "type": "registry:ui",
           "target": "components/video/riso-joint-skin.ts"
+        },
+        {
+          "path": "registry/video/riso-proportion-mesh.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-proportion-mesh.ts"
+        },
+        {
+          "path": "registry/video/riso-character-sheet-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-character-sheet-react.tsx"
         }
       ]
     },
@@ -6443,4 +6453,4 @@
       ]
     }
   ]
-}
+}\n
