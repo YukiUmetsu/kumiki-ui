@@ -62,3 +62,43 @@ test("source teacher reference image overlays locally without committing image p
     await expect(reference.locator('image[href^="blob:"]')).toHaveCount(1);
     await expect(page.getByTestId("reader-coded-face")).toBeVisible();
   });
+
+test("ArtCraft crown macro renders nine distinct attached regions and reveals the rightward-lowered band",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
+    const crown=page.getByTestId("reader-crown-artcraft");
+    await expect(crown).toBeVisible();
+    const parts=["trailing-silk","rear-tie-wing","sideburn","rear-topknot",
+      "front-topknot","cap-shell","forehead-band","fold-lines","dry-ink-grain"];
+    for(const name of parts){
+      await expect(crown.locator('[data-km-reader-crown-region="'+name+'"]'))
+        .toHaveCount(1);
+    }
+    await crown.screenshot({
+      path:info.outputPath("reader-crown-artcraft-all-regions.png"),
+      animations:"disabled",
+    });
+    const picker=page.getByRole("combobox",{name:"Crown structural region"});
+    await picker.selectOption("forehead-band");
+    await expect(crown.locator('[data-km-reader-crown-region="forehead-band"]'))
+      .toHaveAttribute("opacity","1");
+    await expect(crown.locator('[data-km-reader-crown-region="front-topknot"]'))
+      .toHaveAttribute("opacity",".13");
+    await crown.screenshot({
+      path:info.outputPath("reader-crown-artcraft-band-only.png"),
+      animations:"disabled",
+    });
+    await picker.selectOption("all");
+    const slider=page.getByRole("slider",{name:"Face craftsmanship"});
+    await slider.focus();await slider.press("Home");
+    await expect(slider).toHaveValue("0");
+    const low=await crown.locator('path').count();
+    await slider.press("End");
+    await expect(slider).toHaveValue("1");
+    await expect.poll(()=>crown.locator('path').count())
+      .toBeGreaterThan(low);
+    await crown.screenshot({
+      path:info.outputPath("reader-crown-artcraft-100pct.png"),
+      animations:"disabled",
+    });
+  });
