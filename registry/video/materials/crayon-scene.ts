@@ -79,6 +79,8 @@ export interface CrayonWaxElement extends CrayonBase {
   redraw?: CrayonRedrawOptions;
   /** Optional broken nib accents on opaque silhouettes (0..1). */
   edgeRoughness?: number;
+  /** Separate illustrator's drawn outline from opaque wax mass. Zero is valid. */
+  outlineOpacity?: number;
   /** Explicit silhouette-outline versus pigment-deposition sequence. */
   construction?: CrayonWaxConstruction;
 }
@@ -309,6 +311,9 @@ export function inspectCrayonScene(input: unknown): string[] {
         if(node.edgeRoughness!==undefined && (!finite(node.edgeRoughness)||
           node.edgeRoughness<0||node.edgeRoughness>1))
           errors.push(p+".edgeRoughness must be in [0,1]");
+        if(node.outlineOpacity!==undefined && (!finite(node.outlineOpacity)||
+          node.outlineOpacity<0||node.outlineOpacity>1))
+          errors.push(p+".outlineOpacity must be in [0,1]");
         if(node.redraw!==undefined){
           try{assertCrayonRedrawOptions(node.redraw);}
           catch{errors.push(p+".redraw must have valid held exposures and strength");}
