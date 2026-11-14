@@ -92,6 +92,19 @@ describe("RISO8 small, conforming construction mesh",()=>{
       expect(fine.regions.some(r=>r.triangles.length>coarse.regions.find(p=>p.id===r.id)!.triangles.length)).toBe(true);
     }
   });
+  it("spends the larger focused budget on truly smaller Bird wing facets",()=>{
+    const limited=evaluateRisoCharacterMesh(PAPER_BIRD,RISO_PAPER_BIRD_SHEET,84,{
+      focusRegionId:"left-wing",maxEdgeLength:5,maxTrianglesPerRegion:950,
+    }).regions.find(r=>r.id==="left-wing")!;
+    const detailed=evaluateRisoCharacterMesh(PAPER_BIRD,RISO_PAPER_BIRD_SHEET,84,{
+      focusRegionId:"left-wing",maxEdgeLength:5,maxTrianglesPerRegion:3600,
+    }).regions.find(r=>r.id==="left-wing")!;
+    expect(detailed.triangles.length).toBeGreaterThan(limited.triangles.length);
+    expect(detailed.triangles.length).toBeLessThanOrEqual(3600);
+    expect(detailed.maxTriangleEdgeLength).toBeLessThan(limited.maxTriangleEdgeLength);
+    expect(detailed.outline).toEqual(limited.outline);
+    expect(detailed.contourArea).toBeCloseTo(detailed.triangleArea,4);
+  });
   it("focused microcells remain conforming and preserve all other source measurements",()=>{
     for(const {spec,sheet,frame,focus} of [
       {spec:COURIER,sheet:RISO_COURIER_SHEET,frame:46,focus:"head-shape"},
