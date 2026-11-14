@@ -80,7 +80,7 @@ export function inspectRisoPrint(spec: RisoPrintSpec): PrintIssue[] {
     if (!p || !inRange(p.opacity, 0, 1)) error("plate-opacity", path + "/opacity", "Ink opacity must be between 0 and 1.");
     if (!p || !inRange(p.dotCell, 3, 36)) error("plate-cell", path + "/dotCell", "Dot cell size must be 3..36 design pixels.");
     if (!p || !inRange(p.dotAngle, -180, 180)) error("plate-angle", path + "/dotAngle", "Screen angle must be between -180 and 180 degrees.");
-    if (!p || !Array.isArray(p.registration) || p.registration.length !== 2 || !p.registration.every(v => inRange(v, -12, 12)))
+    if (!p || !Array.isArray(p.registration) || p.registration.length !== 2 || !p.registration.every((v: number) => inRange(v, -12, 12)))
       error("registration", path + "/registration", "Registration needs a finite [x, y] pair in the range -12..12.");
   }
   return issues;
