@@ -121,20 +121,70 @@ function Stem({i,seed,frame}: {i:number;seed:number;frame:number}) {
         stroke={dark} strokeWidth=".7" opacity=".43" fill="none"/>
     </g>;
   });
-  const head=kind%2===0 ? Array.from({length:6},(_,n)=>{
-    const cy=-height+n*5.2;
-    return <g key={n}>
-      <path d={`M${tipX} ${cy} q${(n%2?-1:1)*7} -10 ${(n%2?-1:1)*12} -12`}
-        stroke={dark} fill="none" strokeWidth=".75"/>
-      <ellipse cx={tipX+(n%2?-1:1)*12} cy={cy-12} rx={1.6} ry={3.1}
-        fill={n%3===0?"#B6A072":"#788467"} opacity=".73"/>
-    </g>;
-  }):<g>
-    <path d={`M${tipX} ${-height} q-5 -20 -3 -30 q5 8 6 31`}
-      fill="#83956C" opacity=".62" stroke={dark} strokeWidth=".6"/>
-    {Array.from({length:7},(_,n)=><path key={n}
-      d={`M${tipX-4} ${-height-n*3.7} l${n%2?9:-8} -5`}
-      stroke="#778267" strokeWidth=".7" opacity=".68"/>)}
+  // Five recognizable botanical families: panicle, plantain-like seed spike,
+  // daisy-like composite head, clustered umbel, and feathered grass. Deliberate
+  // morphology matters more than adding randomly placed micro-speckles.
+  const head=kind===0? <g>
+    {Array.from({length:9},(_,n)=>{
+      const branch=n%2?-1:1;
+      const yy=-height+4+n*5.4,xx=tipX+branch*(11+n*.6);
+      return <g key={n}>
+        <path d={"M"+tipX+" "+yy+" Q"+(tipX+branch*4)+" "+(yy-4)+" "+xx+" "+(yy-13)}
+          stroke={dark} fill="none" strokeWidth=".65"/>
+        <ellipse cx={xx} cy={yy-13} rx={1.7} ry={3}
+          fill={n%3===0?"#B4A46B":"#788967"} opacity=".8"/>
+      </g>;
+    })}
+  </g>:kind===1?<g>
+    <path d={"M"+tipX+" "+(-height+4)+" q-4 -15 -1 -42"}
+      stroke={dark} strokeWidth="1.2" fill="none"/>
+    {Array.from({length:22},(_,n)=>{
+      const shift=(n%2?-1:1)*(2+paintHash(seed,i*47+n,81)*3);
+      return <ellipse key={n} cx={tipX+shift} cy={-height-1-n*1.7}
+        rx={1.4} ry={2.2} fill={n%5===0?"#AFB38A":"#6F7F65"}
+        opacity={.6+.25*paintHash(seed,i*13+n,89)}/>;
+    })}
+  </g>:kind===2?<g>
+    {/* Daisylike flower: ray florets attach around a dense disc. */}
+    {Array.from({length:13},(_,n)=>{
+      const a=n*Math.PI*2/13;
+      const x=tipX+Math.cos(a)*10,y=-height-5+Math.sin(a)*9;
+      return <ellipse key={n} cx={x} cy={y} rx={3.3} ry={8.7}
+        transform={"rotate("+(a*180/Math.PI+90)+" "+x+" "+y+")"}
+        fill={n%3===0?"#DFD2AE":"#E3DFC4"} stroke="#B2AC8E"
+        strokeWidth=".5" opacity=".8"/>;
+    })}
+    <circle cx={tipX} cy={-height-5} r={5.6} fill="#AC9861" opacity=".86"/>
+    {Array.from({length:14},(_,n)=>{
+      const a=n*2.399,r=Math.sqrt(n)*1.16;
+      return <circle key={n} cx={tipX+Math.cos(a)*r} cy={-height-5+Math.sin(a)*r}
+        r=".55" fill="#766F4A" opacity=".8"/>;
+    })}
+  </g>:kind===3?<g>
+    {Array.from({length:7},(_,n)=>{
+      const a=(n-3)*.32;
+      const x=tipX+Math.sin(a)*20,y=-height-14-Math.cos(a)*13;
+      return <g key={n}>
+        <path d={"M"+tipX+" "+(-height)+" Q"+((x+tipX)/2)+" "+(-height-17)+" "+x+" "+y}
+          stroke="#7F8C6D" strokeWidth=".7" fill="none"/>
+        {Array.from({length:5},(_,j)=>{
+          const t=j*2*Math.PI/5;
+          return <ellipse key={j} cx={x+Math.cos(t)*3.2}
+            cy={y+Math.sin(t)*3.1} rx={1.5} ry={2.8}
+            fill={j%2?"#DDC8A1":"#F3E5C7"} opacity=".72"/>;
+        })}
+      </g>;
+    })}
+  </g>:<g>
+    <path d={"M"+tipX+" "+(-height+5)+" Q"+(tipX+8)+" "+(-height-24)+" "+(tipX-1)+" "+(-height-46)}
+      stroke={dark} strokeWidth=".8" fill="none"/>
+    {Array.from({length:31},(_,n)=>{
+      const yy=-height-3-(n%16)*2.8,side=n%2?-1:1;
+      const x=tipX+side*(2+n%6*1.8);
+      return <path key={n} d={"M"+x+" "+yy+" q"+(side*10)+" -9 "+(side*(13+n%4*2))+" -15"}
+        stroke={n%3===0?"#A6A479":"#758C7B"} strokeWidth=".55"
+        opacity=".4" fill="none"/>;
+    })}
   </g>;
   return <g transform={`translate(${x.toFixed(2)} ${y.toFixed(2)})`}
     opacity={appear}>
@@ -194,6 +244,17 @@ function EstuaryArt({frame}:{frame:number}) {
         stroke="#536D77" strokeWidth="1.1" fill="none"/>
       <path d="M731 412 Q766 422 795 416 M732 423 Q765 437 803 428"
         stroke="#D1D4C7" strokeWidth="1.5" fill="none" opacity=".7"/>
+      {/* Tiny figure is a deliberate anatomy and storytelling scale mark,
+           not a flat featureless blob: head, shirt, bent arm and seated legs. */}
+      <g opacity=".81">
+        <ellipse cx="778" cy="387" rx="3.4" ry="4.4" fill="#B68D74"/>
+        <path d="M777 389 Q772 394 769 398 L779 402 L784 395 Q782 392 777 389 Z"
+          fill="#8B9283"/>
+        <path d="M773 396 Q771 399 767 399 M779 402 l7 0"
+          stroke="#657476" strokeWidth="2" fill="none" strokeLinecap="round"/>
+        <path d="M773 391 Q778 389 781 392"
+          stroke="#5E686D" strokeWidth="1.3" fill="none"/>
+      </g>
     </g>
     {Array.from({length:14},(_,i)=>{
       const x=376+i*17+paintHash(22,i,17)*9;
