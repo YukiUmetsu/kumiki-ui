@@ -37,6 +37,34 @@ describe("WC11 original watercolour human portrait",()=>{
     });
   }
 
+  it("uses opaque underpainting for real human skin rather than multiplying dark hair through it",()=>{
+    const art=watercolorPortraitSpec("portrait");
+    const find=(id:string,parts:typeof art.parts):typeof art.parts[number]|null=>{
+      for(const p of parts){
+        if(p.id===id)return p;
+        if(p.kind==="group"){
+          const child=find(id,p.children);
+          if(child)return child;
+        }
+      }
+      return null;
+    };
+    for(const id of ["opaque-face-volume","neck-volume","near-sclera","far-sclera",
+      "opaque-coat","hair-opaque-back"]){
+      const part=find(id,art.parts);
+      expect(part?.kind).toBe("path");
+      if(part?.kind==="path")expect(part.composite).toBe("normal");
+    }
+    const face=find("opaque-face-volume",art.parts);
+    if(face?.kind!=="path")throw new Error("Missing face paint");
+    expect(face.opacity).toBeGreaterThan(.98);
+    const xml=renderToStaticMarkup(<WatercolourIllustration spec={art} frame={255}/>);
+    expect(xml).toContain('data-km-watercolour-composite="normal"');
+    const unsafe={...face,composite:"screen"} as unknown as typeof face;
+    expect(inspectWatercolourArtwork({...art,parts:[unsafe]}))
+      .toContain("/parts/0/composite");
+  });
+
   it("keeps original portrait within both native aspect ratios and eyes on the face",()=>{
     const near=PORTRAIT_LANDMARKS.nearEye,far=PORTRAIT_LANDMARKS.farEye;
     const mouth=PORTRAIT_LANDMARKS.mouth;
