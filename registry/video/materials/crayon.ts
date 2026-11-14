@@ -226,3 +226,21 @@ export function crayonProgress(frame: number, first: number, last: number, index
   const t = Math.min(1, Math.max(0, (time - stagger) / .22));
   return t * t * (3 - 2 * t);
 }
+
+/**
+ * Material-native hand-coloring exposure schedule. Unlike a cinematic
+ * simultaneous reveal, at most one nib mark is partially deposited at a
+ * given instant. Finished marks remain fully stable under absolute seeks.
+ * Legacy scanline scenes retain their original overlapping write-on.
+ */
+export function crayonStrokeProgress(
+  frame:number, first:number, last:number, index:number, count:number,
+  order:CrayonStrokeOrder, reducedMotion=false,
+):number{
+  const legacy=crayonProgress(frame,first,last,index,count,reducedMotion);
+  if(order==="scanline" || reducedMotion)return legacy;
+  if(order!=="patches")throw new RangeError("crayon stroke order must be scanline or patches");
+  const position=Math.min(1,Math.max(0,(frame-first)/(last-first)))*count-index;
+  const t=Math.min(1,Math.max(0,position));
+  return t*t*(3-2*t);
+}
