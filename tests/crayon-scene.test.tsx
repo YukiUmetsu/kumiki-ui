@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { crayonConstructionWindows } from "../registry/video/materials/crayon";
 import { renderToStaticMarkup } from "react-dom/server";
 import { inspectCrayonScene, crayonCamera, crayonContactOffset, crayonContactPhase, crayonTwoBoneSolve, crayonWorldPoint, crayonVisiblePoint, crayonConnectorPath, crayonConnectorBendAt, crayonDrawingAt, crayonElementPlacement, crayonElementTransform } from "../registry/video/materials/crayon-scene";
 import { CrayonScene } from "../registry/video/materials/crayon-scene-react";
 import { crayonDemoScene } from "../src/video/crayon-scene-fixtures";
 import { crayonPerformanceScene } from "../src/video/crayon-performance-fixtures";
 import { crayonWalkScene } from "../src/video/crayon-walk-fixtures";
+import { crayonCharacterDrawScene } from "../src/video/crayon-character-draw-fixtures";
 import { compileFilm, type FilmDocument } from "../registry/video/film-document";
 import { loadFilmSlots } from "../src/film/film-slots";
 import portable from "../examples/film/crayon-scene-three-subjects.film.json";
@@ -498,6 +500,99 @@ describe("CRAYON1 data-driven scene grammar",()=>{
     expect(invalid({bendKeys:[{frame:0,bend:10}]})).toMatch(/mutually exclusive/);
     expect(()=>crayonWalkScene("landscape",{stride:Infinity})).toThrow(/walk settings/);
     expect(()=>crayonWalkScene("portrait",{lift:0})).toThrow(/walk settings/);
+  });
+
+
+  it("splits physical outline and hatching into deterministic, bounded windows",()=>{
+    const outline=crayonConstructionWindows(100,200,{
+      order:"outline-first",outlineFraction:.3,glaze:.14,
+    });
+    expect(outline).toEqual({outlineStart:100,outlineEnd:130,fillStart:130,fillEnd:200});
+    expect(crayonConstructionWindows(100,200,{
+      order:"fill-first",outlineFraction:.3,glaze:.14,
+    })).toEqual({fillStart:100,fillEnd:170,outlineStart:170,outlineEnd:200});
+    expect(()=>crayonConstructionWindows(10,11,{order:"outline-first",outlineFraction:.3,glaze:.12}))
+      .toThrow(/construction/);
+    expect(()=>crayonConstructionWindows(10,90,{order:"outline-first",outlineFraction:0,glaze:.12}))
+      .toThrow(/construction/);
+    expect(()=>crayonConstructionWindows(10,90,{order:"outline-first",outlineFraction:.3,glaze:.8}))
+      .toThrow(/construction/);
+  });
+
+  for(const aspect of ["landscape","portrait"] as const){
+    it("reveals an originally drawn character in deliberate stages: "+aspect,async()=>{
+      const scene=crayonCharacterDrawScene(aspect);
+      expect(inspectCrayonScene(scene)).toEqual([]);
+      const body=scene.elements.find(e=>e.id==="body");
+      const guide=scene.elements.find(e=>e.id==="construction-head");
+      if(!body||body.kind!=="wax"||!guide)throw new Error("missing character construction");
+      expect(body.construction).toMatchObject({order:"outline-first",glaze:.17});
+      expect(guide.exitFade).toEqual({start:183,end:234});
+      const render=(frame:number,reducedMotion=false)=>renderToStaticMarkup(
+        <CrayonScene spec={scene} frame={frame} reducedMotion={reducedMotion}/>);
+      const outline=render(148),pigment=render(204),final=render(449);
+      expect(outline).toMatch(/data-km-crayon-element="body"[^>]*>[\s\S]{0,400}data-km-crayon-build="outlining"/);
+      expect(pigment).toMatch(/data-km-crayon-element="body"[^>]*>[\s\S]{0,400}data-km-crayon-build="pigment"/);
+      expect(final).toMatch(/data-km-crayon-element="body"[^>]*>[\s\S]{0,400}data-km-crayon-build="finished"/);
+      expect(final).toMatch(/data-km-crayon-element="construction-head"[^>]*data-km-crayon-exit="finished"[^>]*opacity="0"/);
+      expect(pigment).not.toEqual(outline);
+      expect(final).not.toEqual(pigment);
+      render(0);render(74);render(449);
+      expect(render(204)).toEqual(pigment);
+      expect(render(0,true)).toContain('data-km-crayon-build="finished"');
+      expect(final).toContain(aspect==="portrait"?'viewBox="0 0 540 960"':'viewBox="0 0 960 540"');
+      const film:FilmDocument={schemaVersion:1,id:"crayon-draw-"+aspect,
+        fps:{num:30,den:1},drift:0,
+        outputs:[{id:aspect,width:scene.width,height:scene.height}],
+        scenes:[{id:"construction",recipeId:"slot",durationFrames:450,
+          content:{slot:"crayon-scene",label:"Original drawn character",props:{scene}}}]};
+      const compiled=compileFilm(film,{outputId:aspect});
+      expect(compiled.ok).toBe(true);
+      if(!compiled.ok)return;
+      const slots=await loadFilmSlots(compiled.film);
+      const html=renderToStaticMarkup(<>{slots(
+        {slot:"crayon-scene",label:"Draw",props:{scene}},
+        {frame:204,fps:{num:30,den:1},durationFrames:450,
+          width:scene.width,height:scene.height,reducedMotion:false},
+      )}</>);
+      expect(html).toContain('data-km-crayon-build="pigment"');
+    });
+  }
+
+  it("compares fill-first and outline-first without changing subject identity",()=>{
+    const a=crayonCharacterDrawScene("landscape",{order:"outline-first",outlineFraction:.31,glaze:.17});
+    const b=crayonCharacterDrawScene("landscape",{order:"fill-first",outlineFraction:.31,glaze:.17});
+    expect(inspectCrayonScene(b)).toEqual([]);
+    const markup=renderToStaticMarkup(<CrayonScene spec={b} frame={148}/>);
+    expect(markup).toMatch(/data-km-crayon-element="body"[^>]*>[\s\S]{0,400}data-km-crayon-build="pigment"/);
+    const actorA=a.elements.find(n=>n.id==="body");
+    const actorB=b.elements.find(n=>n.id==="body");
+    if(!actorA||actorA.kind!=="wax"||!actorB||actorB.kind!=="wax")
+      throw new Error("missing body");
+    expect(actorA.d).toBe(actorB.d);
+    expect(actorA.bounds).toEqual(actorB.bounds);
+    const legacy=crayonPerformanceScene("landscape");
+    expect(legacy.elements.some(n=>n.kind==="wax"&&!!n.construction)).toBe(false);
+    expect(renderToStaticMarkup(<CrayonScene spec={legacy} frame={176}/>))
+      .not.toContain('data-km-crayon-build="outlining"');
+  });
+
+  it("rejects malformed wax construction and guide exit timing at the scene boundary",()=>{
+    const scene=crayonCharacterDrawScene("landscape");
+    const body=scene.elements.find(e=>e.id==="body");
+    const guide=scene.elements.find(e=>e.id==="construction-head");
+    if(!body||body.kind!=="wax"||!guide)throw new Error("missing geometry");
+    const invalid=(element:unknown)=>inspectCrayonScene({
+      ...scene,elements:scene.elements.map(e=>e.id===(element as {id:string}).id?element:e),
+    }).join(" ");
+    expect(invalid({...body,construction:{order:"invalid",outlineFraction:.3,glaze:.17}})).toMatch(/construction/);
+    expect(invalid({...body,construction:{order:"outline-first",outlineFraction:Infinity,glaze:.17}})).toMatch(/construction/);
+    expect(invalid({...body,construction:{order:"outline-first",outlineFraction:.3,glaze:-.1}})).toMatch(/construction/);
+    expect(invalid({...body,timing:{start:100,end:101}})).toMatch(/construction/);
+    expect(invalid({...guide,exitFade:{start:70,end:95}})).toMatch(/exitFade/);
+    expect(invalid({...guide,exitFade:{start:440,end:460}})).toMatch(/exitFade/);
+    expect(()=>crayonCharacterDrawScene("landscape",{outlineFraction:0})).toThrow(/style settings/);
+    expect(()=>crayonCharacterDrawScene("portrait",{glaze:Infinity})).toThrow(/style settings/);
   });
 
   it("fails on wrong FilmStage output dimensions",async()=>{
