@@ -85,7 +85,7 @@ export function inspectWatercolourArtwork(spec: WatercolourArtwork): string[] {
       problems.push(at); return;
     }
     visited.add(part);
-    if (++count > 256) { problems.push("/parts/budget"); return; }
+    if (++count > 384) { problems.push("/parts/budget"); return; }
     if (typeof part.id !== "string" || !/^[a-z][a-z0-9-]{0,47}$/.test(part.id) || ids.has(part.id))
       problems.push(at + "/id");
     else ids.add(part.id);
