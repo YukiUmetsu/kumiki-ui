@@ -71,7 +71,7 @@ export interface UkiyoeAction {
   amount?: number;
   /** look: turn the head to look behind. */
   back?: boolean;
-  /** Blend-in frames (default 6). */
+  /** Blend frames (default 6): in after `start`, out after `end`. */
   blend?: number;
 }
 
@@ -132,10 +132,11 @@ export function facingAt(spec: UkiyoeFigureSpec, frame: number): { dir: 1 | -1; 
 
 // ---- Pose ------------------------------------------------------------------------------------------------------------------------
 
+/** An action is fully in force from `start + blend` through `end`, then hands over during the next `blend` frames. */
 function weight(a: UkiyoeAction, frame: number): number {
-  const b = a.blend ?? 6;
-  if (frame < a.start || frame > a.end) return 0;
-  return Math.min(1, smooth((frame - a.start) / Math.max(1, b)), smooth((a.end - frame) / Math.max(1, b)));
+  const b = Math.max(1, a.blend ?? 6);
+  if (frame < a.start || frame > a.end + b) return 0;
+  return Math.min(smooth((frame - a.start) / b), frame <= a.end ? 1 : smooth(1 - (frame - a.end) / b));
 }
 
 export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, height: number): FigurePose {

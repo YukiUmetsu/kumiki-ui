@@ -236,28 +236,32 @@ function wave(p: P, c: MotifContext): Prim[] {
   });
   out.push({ t: "fill", d: smoothD([...rim, ...rimIn.reverse()], true, .3), fill: foamC, outline: 1.2, outlineColor: color, emboss: true });
   // Claws: fingers of foam along the lip, reaching outward and hooking over at the tips; denser toward the lip's end.
-  const claws = Math.round(num(p, "claws", 34) * (.2 + .8 * curl));
+  const claws = Math.round(num(p, "claws", 26) * (.2 + .8 * curl));
   const fingers: string[] = [];
   for (let k = 0; k < claws; k++) {
-    const u = .15 + .85 * ((k + .5) / claws) ** .8, idx = Math.min(rim.length - 2, Math.floor(u * (rim.length - 1)));
+    const u = .12 + .88 * ((k + .5) / claws) ** .85, idx = Math.min(rim.length - 2, Math.floor(u * (rim.length - 1)));
     const q = rim[idx], nx = rim[idx + 1];
     // Outward from the lip but swept toward the wave's travel (left), so every finger reaches forward.
     const tl = Math.hypot(nx[0] - q[0], nx[1] - q[1]) || 1, nrm: Pt = [-(nx[1] - q[1]) / tl, (nx[0] - q[0]) / tl];
-    const ang = Math.atan2(nrm[1] + .1, nrm[0] - .55) / DEG + hashSigned(seed, k, 3) * 12;
-    const len = H * (.045 + .12 * Math.sin(Math.PI * Math.min(1, u * 1.1)) ** .7) * (.6 + .8 * hash01(seed, k)) * (1 + crash * .6);
-    const sway = Math.sin(c.frame / 6 + k * 1.7) * 6;
-    const spine: Pt[] = [q];
-    let a = ang + sway, at: Pt = q;
-    for (let j = 0; j < 7; j++) { at = polar(at, a, len / 7); spine.push(at); a -= 3 + 52 * (j / 6) ** 2 * (.6 + .4 * curl); }
-    fingers.push(carvedLine(spine, H * .017 * (.7 + .3 * Math.sin(Math.PI * u)), { taper: "end", seed: seed + k, minRatio: .04 }));
-    if (hash01(seed, k, 9) < .5) {
-      const from = spine[2], twig: Pt[] = [from];
-      let a2 = a + 75, at2 = from;
-      for (let j = 0; j < 4; j++) { at2 = polar(at2, a2, len / 9); twig.push(at2); a2 -= 22; }
-      fingers.push(carvedLine(twig, H * .012, { taper: "end", seed: seed + k * 7, minRatio: .05 }));
+    const ang = Math.atan2(nrm[1] + .1, nrm[0] - .55) / DEG + hashSigned(seed, k, 3) * 10;
+    const len = H * (.07 + .12 * Math.sin(Math.PI * Math.min(1, u * 1.1)) ** .7) * (.65 + .6 * hash01(seed, k)) * (1 + crash * .6);
+    const sway = Math.sin(c.frame / 6 + k * 1.7) * 5;
+    // A claw: straight-ish at the root, hooking hard at the tip like a curled finger.
+    const finger = (from: Pt, a0: number, l: number, hook: number): Pt[] => {
+      const pts: Pt[] = [from];
+      let a = a0, at = from;
+      for (let j = 0; j < 14; j++) { at = polar(at, a, l / 14 * (1 - j * .03)); pts.push(at); a -= hook / 4 * (j / 13) ** 2; }
+      return pts;
+    };
+    const main = finger(q, ang + sway, len, 150 + 60 * curl);
+    fingers.push(carvedLine(main, H * .017 * (.75 + .25 * Math.sin(Math.PI * u)), { taper: "end", seed: seed + k, minRatio: .05 }));
+    const twigs = hash01(seed, k, 9) < .65 ? 2 : 1;
+    for (let t = 0; t < twigs; t++) {
+      const from = main[4 + t * 3];
+      fingers.push(carvedLine(finger(from, ang + sway - 34 - t * 18, len * (.42 - t * .1), 170), H * .01, { taper: "end", seed: seed + k * 7 + t, minRatio: .05 }));
     }
   }
-  if (fingers.length) out.push({ t: "fill", d: fingers.join(""), fill: foamC, outline: 1, outlineColor: color });
+  if (fingers.length) out.push({ t: "fill", d: fingers.join(""), fill: foamC, outline: 1.1, outlineColor: color });
   // Spray: droplets flung ahead of the lip like falling snow; a burst when it breaks.
   const sprayAmt = clamp01(num(p, "spray", .7)), dots: string[] = [];
   const count = Math.round(55 * sprayAmt * curl + 150 * crash);

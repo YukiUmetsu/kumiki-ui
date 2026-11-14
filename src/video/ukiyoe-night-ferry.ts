@@ -65,7 +65,7 @@ const caption = (id: string, aspect: UkiyoeAspect, text: string, from: number, t
 function riverWorld(opts: { horizon: number; storm?: boolean; night?: boolean; width?: number }): UkiyoeNode[] {
   const w = opts.width ?? 2600, hz = opts.horizon;
   return [
-    { id: "sky", kind: "motif", motif: "sky", depth: .25, x: -900, y: -900, params: { width: w + 1800, height: hz + 960, top: opts.night ? "yoru" : "bero", horizon: opts.night ? "murasaki" : "beni", band: opts.night ? .78 : .55, mid: opts.night ? "ai" : "paper" } },
+    { id: "sky", kind: "motif", motif: "sky", depth: .25, x: -900, y: -900, params: { width: w + 1800, height: hz + 1500, top: opts.night ? "yoru" : "bero", horizon: opts.night ? "murasaki" : "beni", band: opts.night ? .62 : .42, mid: opts.night ? "ai" : "paper" } },
     { id: "far-hills", kind: "motif", motif: "hills", depth: .7, x: 960, y: hz + 6, params: { width: w + 1400, height: 90, color: opts.night ? "ai" : "kusa", dark: opts.night ? "yoru" : "matsu", trees: .7, treeKind: "cedar", variant: 2 } },
     { id: "river", kind: "motif", motif: "sea", depth: .7, x: -700, y: hz, params: { width: w + 1400, height: 1400, deepAt: 560, rows: 22, color: opts.night ? "yoru" : "bero", light: opts.night ? "ai" : "sora", foam: opts.storm ? .7 : .15, swell: opts.storm ? 2.2 : .8, speed: .5 } },
   ];
@@ -110,7 +110,7 @@ const title: UkiyoeShot = { id: "title", title: "The print", build: (aspect, t =
 
 const town: UkiyoeShot = { id: "town", title: "The riverside town", build: (aspect, t = {}) => {
   const P = aspect === "portrait", gy = 840, dur = 390;
-  const camY = P ? 620 : 560;
+  const camY = P ? 470 : 560;
   const keys = scrollPan({ from: P ? 4950 : 4700, to: P ? 860 : 1050, y: camY, start: 0, end: dur - 1, zoom: P ? 1.15 : 1,
     stations: [{ x: P ? 4250 : 4200, hold: 40 }, { x: P ? 2650 : 2700, hold: 30 }] });
   const lantern = (id: string, x: number, at: number, kind: "chochin" | "stone" = "chochin", y = gy - 150): UkiyoeNode =>
@@ -192,6 +192,8 @@ const boarding: UkiyoeShot = { id: "boarding", title: "Boarding", build: (aspect
   });
 } };
 
+const STORM_SKY = (hz: number): UkiyoeNode => ({ id: "storm", kind: "motif", motif: "sky", depth: .25, x: -900, y: -900, params: { width: 4400, height: hz + 1500, top: "sumi", mid: "usuzumi", band: .4, storm: 1, stormAt: .5 }, keys: [{ frame: 0, opacity: 0 }, { frame: 40, opacity: 0 }, { frame: 140, opacity: .92 }] }) as UkiyoeNode;
+
 // ---- 4. The squall -----------------------------------------------------------------------------------------------------------------
 
 const squall: UkiyoeShot = { id: "squall", title: "The squall", build: (aspect, t = {}) => {
@@ -202,9 +204,8 @@ const squall: UkiyoeShot = { id: "squall", title: "The squall", build: (aspect, 
       shake: [{ frame: breakAt + 8, duration: 26, amount: 1.4 }, { frame: 60, duration: 14, amount: .4 }] },
     wind: { base: .2, turbulence: .5, gusts: [{ frame: 50, duration: 150, strength: 1.6 }, { frame: 180, duration: 140, strength: 2.2 }] },
     nodes: [
-      ...riverWorld({ horizon: hz, storm: true }),
-      { id: "storm", kind: "motif", motif: "sky", depth: .25, x: -900, y: -900, params: { width: 4400, height: hz + 960, top: "sumi", mid: "usuzumi", band: .5, storm: 1, stormAt: .7 }, keys: [{ frame: 0, opacity: 0 }, { frame: 40, opacity: 0 }, { frame: 140, opacity: .92 }] },
-      { id: "far-hills2", kind: "motif", motif: "hills", depth: .7, x: 960, y: hz + 6, params: { width: 4000, height: 70, color: "usuzumi", dark: "sumi", trees: .5, treeKind: "cedar", variant: 6 }, keys: [{ frame: 0, opacity: 0 }, { frame: 140, opacity: .8 }] },
+      ...riverWorld({ horizon: hz, storm: true }).flatMap((n, i) => i === 0 ? [n, STORM_SKY(hz)] : [n]),
+      { id: "far-hills2", kind: "motif", motif: "hills", depth: .7, x: 960, y: hz + 6, params: { width: 4000, height: 120, color: "usuzumi", dark: "sumi", trees: .5, treeKind: "cedar", variant: 6 }, keys: [{ frame: 0, opacity: 0 }, { frame: 140, opacity: 1 }] },
       { id: "pine", kind: "motif", motif: "pine", depth: .7, x: 1600, y: hz + 8, params: { height: 190, lean: -10, pads: 5 } },
       { id: "wave", kind: "motif", motif: "wave", depth: .95, x: 640, y: by + 120, params: { width: 1200, height: 640, breakAt, breakDuration: 40 },
         keys: [{ frame: 0, progress: 0 }, { frame: 90, progress: 0 }, { frame: 225, progress: 1, ease: "inOut" }], enter: { preset: "rise", frame: 70, duration: 30, distance: 160 } },
@@ -217,6 +218,8 @@ const squall: UkiyoeShot = { id: "squall", title: "The squall", build: (aspect, 
         keys: [{ frame: 0, x: 1120 }, { frame: breakAt, x: 1060, rotate: 0 }, { frame: breakAt + 14, x: 1100, rotate: -6, ease: "out" }, { frame: breakAt + 50, x: 1080, rotate: 0, ease: "inOut" }] }),
       { id: "spray", kind: "particles", type: "spray", depth: .95, bursts: [{ frame: breakAt + 10, x: 640, y: by - 60, radius: 300, count: 110 }, { frame: breakAt + 20, x: 840, y: by, radius: 180, count: 60 }] },
       { id: "rain", kind: "particles", type: "rain", depth: 1.1, area: [-300, -500, 2600, 2600], count: 560, speed: 38, angle: 6, opacity: .6, keys: [{ frame: 0, opacity: 0 }, { frame: 70, opacity: 0 }, { frame: 130, opacity: 1 }] },
+      { id: "storm-wash", kind: "block", depth: 0, x: DIM[aspect][0] / 2, y: DIM[aspect][1] / 2, shape: { type: "rect", width: DIM[aspect][0] + 40, height: DIM[aspect][1] + 40 }, line: 0, blend: "multiply",
+        fill: { type: "linear", angle: 90, stops: [[0, "usuzumi", .6], [1, "ai", .8]] }, keys: [{ frame: 0, opacity: 0 }, { frame: 60, opacity: 0 }, { frame: 160, opacity: .38 }, { frame: 290, opacity: .38 }, { frame: 329, opacity: .2 }] },
       ...caption("cap-squall-1", aspect, "Halfway across, the wind turned.", 40, 170, t),
       ...caption("cap-squall-2", aspect, "Then the river stood up.", 196, dur, t),
     ],
