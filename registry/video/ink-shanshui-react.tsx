@@ -20,6 +20,16 @@ type P=readonly [number,number];
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const f=(x:number)=>Number(x.toFixed(2));
 const s=(seed:number,i:number)=>shanshuiHash(seed,i);
+const quadraticPoint=(a:P,b:P,c:P,t:number):P=>{
+  const u=1-t;
+  return [u*u*a[0]+2*u*t*b[0]+t*t*c[0],
+    u*u*a[1]+2*u*t*b[1]+t*t*c[1]];
+};
+const cubicPoint=(a:P,b:P,c:P,d:P,t:number):P=>{
+  const u=1-t;
+  return [u*u*u*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],
+    u*u*u*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]];
+};
 /** Curved rock profiles have local fracture variation and non-regular slope
  * transitions, unlike polygons that look like paper triangles. The silhouette
  * is stable for a seed and its exact x stations are also used by cunfa strokes.
@@ -129,6 +139,16 @@ function Birds({motion}:{motion:ShanshuiMotion}){
  * The vine origin follows its branch; tiny breeze changes leaf rotation only.
  */
 function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
+  // Parent every hanging frond to a point ON an authored bough. Earlier
+  // random x/y samples left leaf sprays disconnected from the main tree.
+  const arches:readonly {from:P;control:P;to:P}[]=[
+    {from:[27,-228],control:[140,-328],to:[326,-329]},
+    {from:[36,-254],control:[151,-364],to:[393,-332]},
+    {from:[58,-298],control:[187,-303],to:[379,-284]},
+    {from:[78,-319],control:[205,-370],to:[352,-357]},
+    {from:[17,-213],control:[99,-276],to:[243,-252]},
+    {from:[40,-248],control:[138,-286],to:[302,-291]},
+  ];
   const strands=Math.round(39*detail);
   return <g data-km-shanshui-willow="" transform="translate(25 433)">
     <path d="M-16 10 Q10 -43 18 -112 Q24 -172 35 -237 Q54 -281 97 -315 Q133 -333 168 -347
@@ -136,26 +156,32 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
       fill="#7e654a" stroke={INK} strokeWidth="2.2"/>
     <path d="M-10 -3 Q6 -116 26 -217 Q39 -295 115 -332 M1 -91 Q23 -159 30 -223"
       fill="none" stroke="#dfc89f" strokeWidth="5" opacity=".45"/>
-    <path d="M27 -228 Q140 -328 326 -329 M36 -254 Q151 -364 393 -332
-      M58 -298 Q187 -303 379 -284 M78 -319 Q205 -370 352 -357
-      M17 -213 Q99 -276 243 -252 M40 -248 Q138 -286 302 -291"
-      stroke="#6b5038" strokeWidth="5.1" fill="none" strokeLinecap="round"/>
+    {arches.map((branch,i)=><path key={i}
+      d={"M"+branch.from.join(" ")+" Q"+branch.control.join(" ")+
+        " "+branch.to.join(" ")}
+      stroke="#6b5038" strokeWidth={3.1+(i%3)*.52} fill="none"
+      strokeLinecap="round"/>)}
     <path d="M31 -233 Q137 -320 322 -325 M41 -252 Q152 -352 387 -331
       M62 -294 Q197 -298 367 -280"
       stroke="#c0a180" strokeWidth="1.2" fill="none" opacity=".8"/>
     {Array.from({length:strands},(_,i)=>{
-      const left=29+380*s(seed,i*7+9),top=-334+75*s(seed,i*3+50);
+      const branch=arches[i%arches.length];
+      const u=.18+.78*s(seed,i*7+9);
+      const origin=quadraticPoint(branch.from,branch.control,branch.to,u);
       const fall=48+125*s(seed,i*11+20);
-      const drop=fall*(1+.012*wind);
+      const control:P=[origin[0]-10+wind*4,origin[1]+fall*.48];
+      const end:P=[origin[0]+8+wind*6,origin[1]+fall*(1+.012*wind)];
       const leafCount=Math.round(4+7*s(seed,i*5+2));
-      return <g key={i}>
-        <path d={"M"+f(left)+" "+f(top)+" Q"+f(left-10+wind*4)+" "+
-          f(top+fall*.48)+" "+f(left+8+wind*6)+" "+f(top+drop)}
+      return <g key={i} data-km-willow-frond="">
+        <path d={"M"+f(origin[0])+" "+f(origin[1])+
+          " Q"+f(control[0])+" "+f(control[1])+
+          " "+f(end[0])+" "+f(end[1])}
           fill="none" stroke="#9c8568" strokeWidth={.7+.35*s(seed,i*31)}
           opacity=".6"/>
         {Array.from({length:leafCount},(_,j)=>{
-          const t=(j+.6)/(leafCount+1),x=left-12*t+8*t*t+wind*t*5;
-          const y=top+drop*t,dir=j%2?1:-1,len=6+6*s(seed,i*37+j);
+          const t=(j+.6)/(leafCount+1);
+          const [x,y]=quadraticPoint(origin,control,end,t);
+          const dir=j%2?1:-1,len=6+6*s(seed,i*37+j);
           return <path key={j}
             d={"M"+f(x)+" "+f(y)+" Q"+f(x+dir*len*.8)+" "+f(y+3)+
               " "+f(x+dir*len)+" "+f(y+len*.52)+
@@ -206,11 +232,17 @@ function NeedleSpray({x,y,scale,seed,wind}:{x:number;y:number;scale:number;seed:
 function OldPine({x,y,scale,wind,seed,detail}:{
   x:number;y:number;scale:number;wind:number;seed:number;detail:number;
 }){
+  // Asymmetric branch endpoints and tip-heavy clustered needles emulate
+  // old-pine brush canopies rather than regularly spaced horizontal shelves.
   const stems=[
-    {y:-95,dir:-1,len:83},{y:-129,dir:1,len:153},
-    {y:-156,dir:-1,len:153},{y:-184,dir:1,len:167},
-    {y:-209,dir:-1,len:100},{y:-227,dir:1,len:107},
-    {y:-250,dir:-1,len:72},{y:-273,dir:1,len:65},
+    {y:-95,dir:-1,len:81,tipDy:16},
+    {y:-131,dir:1,len:139,tipDy:-9},
+    {y:-161,dir:-1,len:129,tipDy:13},
+    {y:-190,dir:1,len:157,tipDy:-17},
+    {y:-219,dir:-1,len:111,tipDy:11},
+    {y:-239,dir:1,len:101,tipDy:-10},
+    {y:-264,dir:-1,len:69,tipDy:6},
+    {y:-281,dir:1,len:62,tipDy:-11},
   ];
   return <g data-km-shanshui-pine="" transform={"translate("+x+" "+y+") scale("+scale+")"}>
     <path d="M-19 2 C-21 -37 7 -59 2 -94 C-14 -121 15 -144 8 -175
@@ -230,18 +262,24 @@ function OldPine({x,y,scale,wind,seed,detail}:{
     })}
     {stems.map((b,i)=>{
       const a=(b.y+270)/95,reach=b.len*b.dir;
-      return <g key={i}>
-        <path d={"M"+f(9+a*11)+" "+b.y+" Q"+f(reach*.32)+" "+
-          f(b.y-16)+" "+f(reach*.57)+" "+f(b.y-23)+
-          " T"+f(reach)+" "+f(b.y-13)}
+      const root:P=[9+a*11,b.y];
+      const c1:P=[reach*.24,b.y-14-(i%2)*5];
+      const c2:P=[reach*.61,b.y-29+(i%3)*4];
+      const tip:P=[reach,b.y-14+b.tipDy];
+      const count=Math.round((4+(i%3))*detail);
+      return <g key={i} data-km-pine-bough="">
+        <path d={"M"+f(root[0])+" "+f(root[1])+
+          " C"+f(c1[0])+" "+f(c1[1])+" "+f(c2[0])+" "+f(c2[1])+
+          " "+f(tip[0])+" "+f(tip[1])}
           stroke="#51402c" strokeWidth={7-i*.48} fill="none" strokeLinecap="round"/>
-        <path d={"M"+f(10+a*11)+" "+f(b.y-2)+" Q"+f(reach*.4)+" "+
-          f(b.y-18)+" "+f(reach)+" "+f(b.y-15)}
-          stroke="#c2a080" strokeWidth="1.6" fill="none" opacity=".76"/>
-        {Array.from({length:Math.round((4+(i%3))*detail)},(_,j)=>{
-          const u=(j+.32)/(5+(i%3));
+        <path d={"M"+f(root[0])+" "+f(root[1]-2)+
+          " Q"+f(c2[0])+" "+f(c2[1]-2)+" "+f(tip[0])+" "+f(tip[1]-1)}
+          stroke="#c2a080" strokeWidth="1.4" fill="none" opacity=".7"/>
+        {Array.from({length:count},(_,j)=>{
+          const u=.45+.51*(j+.35)/(count+.25);
+          const point=cubicPoint(root,c1,c2,tip,u);
           return <NeedleSpray key={j}
-            x={f(reach*u)} y={f(b.y-14-8*Math.sin(u*Math.PI))}
+            x={f(point[0])} y={f(point[1])}
             scale={.58+(.62*s(seed,i*21+j))} wind={wind}
             seed={seed+i*41+j*71}/>;
         })}
