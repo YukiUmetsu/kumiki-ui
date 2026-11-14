@@ -53,14 +53,15 @@ const walkingLeg = {
 - Stance phase: the target's **stage-space x/y never changes**, even as the actor's root translates. Reachable targets are solved by the geometric law of cosines, retaining upper and lower bone lengths.
 - Swing phase: position eases horizontally to the next contact point while a sine arc raises the foot. The second foot can start half a cycle later.
 - End frame: both targets freeze; there is no new integration step or independent clock. Requested targets that are physically unreachable are **clamped** rather than stretching or producing NaNs.
-- The `endRotation` option keeps shoes horizontal, even as the knee bends. This can also preserve the orientation of a grasped prop at a hand end joint.
+- The `endRotation` option keeps shoes horizontal, even as the knee bends. The optional `footRoll` parameter pitches shoes down during lift and up before the next landing, returning to exactly level during stance.
+- **Animated prop followers:** An IK target `{kind:"follow",joint:"satchel",x:7,y:4}` resolves the grip relative to a sibling animated prop joint every film frame; the elbow and wrist can reach for a swinging bag, steering wheel, or other character-attached target. Cycles, unknown joints and invalid grip offsets are rejected. The `satchel-handhold` demonstration uses a 2-bone shoulder→elbow→wrist chain independent of the planted legs.
 - Joint hierarchy, target intervals, sorted position keys, overlapping chains, and zero-length bones are validated before evaluation.
 - `evaluateRisoCharacter(spec, frame)` returns both the resolved plate parts and optional `joints` / `ik` diagnostic positions. The frame is quantized once to the original print cadence; reduced motion resolves the identical final cel.
 - `evaluateRisoCharacter(spec, frame, {disableIK:true})` is available for comparison with plain forward kinematics.
 
 **Storybook:** `Video production → Film Looks → Risograph Characters → RISO3 · Rigging Microscope`. The close-up offers Play/Pause, frame seek, FK-vs-IK toggle, diagnostic skeleton and foot targets, printed cadence, plate separation, misregistration and grain. The regular RISO2 film story also exposes IK and rig diagnostics. The rig debug shapes are **off by default** in production/export.
 
-This is a solid structural rig foundation—not a full animation-authoring package. **Still missing:** joint-bound skin deformation that follows bending shapes, foot shape swaps/heel roll on impact, pelvis counterrotation and center-of-mass constraints, action blending, hand/prop targets, head rotation artwork, perspective turnarounds, collision-aware footfall placement, automatic 3D-to-2D retargeting, and timecoded phonemes. These are prioritized work rather than claims of completion.
+This is a solid structural rig foundation—not a full animation-authoring package. **Still missing:** joint-bound skin deformation that follows bending shapes, foot shape swaps/heel roll on impact, pelvis counterrotation and center-of-mass constraints, action blending, grasp/release timelines and robust hand pose redraws, head rotation artwork, perspective turnarounds, collision-aware footfall placement, automatic 3D-to-2D retargeting, and timecoded phonemes. These are prioritized work rather than claims of completion.
 
 ### Focused verification
 
