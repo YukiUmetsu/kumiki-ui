@@ -145,6 +145,12 @@ export function readerCrownRegions(detail=1):
       "$ink","none",0,.16),
     p("M156.1 69.5 C164.2 71.5 169.2 77.4 170.1 83.1 C165.3 77.9 160.7 75.2 154.1 74.2 Z",
       "$ink","none",0,.13),
+    // The artist's cap terminates flush against an opaque dark hairline.
+    // This small CONTOURED connective underside belongs to the cap, not
+    // to the face; it bridges the paper-colored strip that appeared between
+    // the lower brow band and the front temple at film viewing scale.
+    p("M114.5 84.2 C125.6 80.8 137.6 80.7 148.4 83.4 C157.8 85.8 165 88.2 169.8 90.2 C168.2 92.9 164.3 94.1 159.6 92.3 C147.9 88.7 137.6 87.5 128.4 89.4 C121.1 90.4 117 92.6 114.5 94.1 Z",
+      "$shadow","none",0,.96),
   ];
   const foreheadBand:CharacterPathShape[]=[
     // IMPORTANT: source's front band falls DOWN to the right. Old band
