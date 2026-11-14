@@ -108,6 +108,10 @@ export function crayonCharacterDrawScene(
           {frame:345,x:0,y:0,rotate:0},{frame:449,x:0,y:0,rotate:0}]}:{}),
     };
     if(node.kind==="contour"){
+      // This is a light paper-landscape gesture, not a strong diagonal divider.
+      if(node.id==="rolling-grass")return {...node,timing,
+        width:aspect==="portrait"?2.2:3.1,opacity:aspect==="portrait"?.23:.38,
+        color:"#829b8b"};
       if(node.id==="left-eye"||node.id==="right-eye")
         return {...node,timing,poseCadence:2,
           poseCues:[{frame:0,pose:"base"},{frame:368,pose:"blink"},
