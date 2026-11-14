@@ -56,9 +56,11 @@ test("Ink brush FilmStage: two subjects, five tones, deterministic seek, and pap
         path: info.outputPath("ink-" + aspect + "-film-" + frame + ".png"),
         animations: "disabled",
       });
-      if (frame === 0) await expect(stage.locator("[data-km-ink-stroke]")).toHaveCount(0);
-      if (frame === 210) await expect(stage.locator("[data-km-ink-stroke]")).toHaveCount(15);
-      if (frame === 599) await expect(stage.locator("[data-km-ink-stroke]")).toHaveCount(26);
+      await expect(stage.locator("[data-km-ink-raster]")).toHaveCount(1);
+      await expect(stage.locator("[data-km-ink-raster]")).toHaveAttribute("href", /^data:image\/png;base64,/);
+      if (frame === 0) await expect(stage.locator("[data-km-ink-raster]")).toHaveAttribute("data-km-ink-stroke-count", "0");
+      if (frame === 210) await expect(stage.locator("[data-km-ink-raster]")).toHaveAttribute("data-km-ink-stroke-count", "15");
+      if (frame === 599) await expect(stage.locator("[data-km-ink-raster]")).toHaveAttribute("data-km-ink-stroke-count", "26");
     }
     await seek(slider, 135);
     const before = await stage.screenshot({ animations: "disabled" });
@@ -71,7 +73,7 @@ test("Ink brush FilmStage: two subjects, five tones, deterministic seek, and pap
     expect(distance.changed, JSON.stringify(distance)).toBeLessThanOrEqual(Math.ceil(distance.total * .0001));
     await seek(slider, 280);
     await page.getByRole("checkbox", { name: "Reduced motion" }).check();
-    await expect(stage.locator("[data-km-ink-stroke]")).toHaveCount(26);
+    await expect(stage.locator("[data-km-ink-raster]")).toHaveAttribute("data-km-ink-stroke-count", "26");
     await page.getByRole("checkbox", { name: "Reduced motion" }).uncheck();
   }
 });
@@ -82,19 +84,17 @@ test("Ink brush material microscope: wash gradation, isolated paper apertures an
   await page.evaluate(() => document.fonts.ready);
   const slider = page.getByRole("slider", { name: "Brush material frame" });
   const stage = page.locator("svg[data-km-ink-microscope]");
-  await expect(stage).toHaveAttribute("data-km-ink-material", "graded-bristle-contact");
+  await expect(stage).toHaveAttribute("data-km-ink-material", "paper-pigment");
   for (const frame of [0, 45, 95, 136, 185, 220]) {
     await seek(slider, frame);
     await expect(stage).toHaveAttribute("data-km-ink-frame", String(frame));
     await stage.screenshot({ path: info.outputPath("ink-material-contact-" + frame + ".png"),
       animations: "disabled" });
-    if (frame === 0) await expect(stage.locator("[data-km-ink-stroke]")).toHaveCount(0);
+    if (frame === 0) await expect(stage.locator("[data-km-ink-raster]")).toHaveAttribute("data-km-ink-stroke-count", "0");
     if (frame === 220) {
-      await expect(stage.locator("[data-km-ink-stroke]")).toHaveCount(4);
-      await expect(stage.locator("[data-km-ink-core]")).toHaveCount(4);
-      await expect(stage.locator("[data-km-ink-fibres]")).toHaveCount(4);
-      await expect(stage.locator("linearGradient")).toHaveCount(4);
-      expect(await stage.locator("mask ellipse").count()).toBeGreaterThan(3);
+      await expect(stage.locator("[data-km-ink-raster]")).toHaveAttribute("data-km-ink-stroke-count", "4");
+      await expect(stage.locator("linearGradient")).toHaveCount(0);
+      await expect(stage.locator("[data-km-ink-raster]")).toHaveAttribute("href", /^data:image\/png;base64,/);
     }
   }
   const a = await stage.screenshot({ animations: "disabled" });
@@ -108,4 +108,13 @@ test("Ink brush material microscope: wash gradation, isolated paper apertures an
   await seek(page.getByRole("slider", { name: "Material zoom" }), 2);
   await stage.screenshot({ path: info.outputPath("ink-material-contact-zoom-2x.png"),
     animations: "disabled" });
+  const wet = await stage.screenshot({ animations: "disabled" });
+  await page.getByRole("combobox", { name: "Microscope render mode" }).selectOption("vector");
+  await expect(stage).toHaveAttribute("data-km-ink-material", "graded-bristle-contact");
+  await expect(stage.locator("[data-km-ink-core]")).toHaveCount(4);
+  await expect(stage.locator("[data-km-ink-raster]")).toHaveCount(0);
+  const vector = await stage.screenshot({ animations: "disabled",
+    path: info.outputPath("ink-material-earlier-vector-zoom-2x.png") });
+  const modeDifference = await pixelDistance(page, wet, vector);
+  expect(modeDifference.changed).toBeGreaterThan(modeDifference.total * .005);
 });
