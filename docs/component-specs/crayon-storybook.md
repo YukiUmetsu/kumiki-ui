@@ -254,6 +254,50 @@ locomotion velocity, collision/contact timing derived from geometry, smooth
 contact hand-off at every speed, genuine hand-to-hand prop transfer and
 normal-speed 16:9/9:16 encoded visual approval.
 
+### Connected articulated limbs (native crayon connectors)
+
+CRAYON1 supports a new validated `connector` element. It joins two named,
+moving, local-drawing anchors by painting a **dry-wax contour in world space**
+at each absolute source frame. The anchors may belong to independently
+animated hierarchy branches. Each anchor includes contact correction, so
+a hip-to-foot stroke remains joined to a planted foot as the torso advances.
+Connectors preserve the authored painter's order, seeded brush rendering,
+reduced-motion end state and deterministic film seeks.
+
+```json
+{
+  "kind": "connector", "id": "leg-back",
+  "timing": {"start": 0, "end": 26}, "poseCadence": 2,
+  "from": {"elementId": "body", "anchor": {"x": -25, "y": 76}},
+  "to": {"elementId": "foot-back", "anchor": {"x": -29, "y": 103}},
+  "color": "#8b6c80", "width": 12, "opacity": 0.86,
+  "bendKeys": [
+    {"frame": 0, "bend": -5},
+    {"frame": 65, "bend": -28},
+    {"frame": 94, "bend": -8},
+    {"frame": 269, "bend": -5}
+  ]
+}
+```
+
+`bend` supplies a static signed perpendicular control-point offset. Optional
+`bendKeys` smoothly interpolate knee/elbow bend while the attachment points
+move; `poseCadence` holds on twos or threes. No untrusted SVG path is accepted
+from connector references. Validation rejects missing or screen-space
+references, connector-to-connector references, invalid anchors, unsorted or
+nonfinite bend keys, and local transforms that would double-transform the
+world-space path.
+
+The walk examples in **Video production / Film Looks / Crayon Scene Engine**
+now show two articulated crayon legs joining the original body to alternating
+planted feet, with stronger knee curvature during the swing phase. There are
+landscape and portrait versions and browser evidence for both.
+
+**Limitations:** This solves position continuity with one curved segment per
+leg but does not implement physical two-bone IK, heel/toe rolling, leg volume
+or limb self-occlusion. Full 16:9/9:16 encoded normal-speed artistic signoff
+remains a separate gate.
+
 ### Production proof
 
 The 420-frame (14 s at 30 fps), three-shot FilmDocument uses the existing `slot` scene type in `FilmStage`, not another timeline or an unbounded playback loop. Its shot frames are 0…119, 120…269 and 270…419. The slot adapter adds each scene's `offsetFrame` to its local frame. The second original scene, the flower garden, is available as a separate interactive Storybook story.
