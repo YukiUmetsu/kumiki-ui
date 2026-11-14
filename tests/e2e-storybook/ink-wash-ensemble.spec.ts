@@ -71,6 +71,13 @@ test("original ink duet uses real independent rigs, ordered scenes and frame-add
     await expect(page.locator('[data-km-ink-reach="pass"]')).toHaveCount(0);
     await seek(page,188);
     await expect(page.locator('[data-km-ink-reach="pass"]')).toHaveCount(1);
+    // The second QA marker measures the *posed* hand anchors. Its result may
+    // legitimately fail despite passing coarse actor-root reach.
+    const hand = page.locator("[data-km-ink-hand-contact]");
+    await expect(hand).toHaveCount(1);
+    await expect(hand).toHaveAttribute("data-km-ink-hand-gap",/^\\d+\\.\\d{2}$/);
+    const accurate = await hand.getAttribute("data-km-ink-hand-contact");
+    expect(["pass","fail"]).toContain(accurate);
     const first=await scene.screenshot({animations:"disabled"});
     await seek(page,20);await seek(page,188);
     const again=await scene.screenshot({animations:"disabled"});
