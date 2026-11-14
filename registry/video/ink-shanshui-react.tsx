@@ -34,8 +34,12 @@ const cubicPoint=(a:P,b:P,c:P,d:P,t:number):P=>{
  * transitions, unlike polygons that look like paper triangles. The silhouette
  * is stable for a seed and its exact x stations are also used by cunfa strokes.
  */
-const ridgePath=(nodes:readonly P[],seed:number,band:number)=>{
-  const chunks=["M "+f(nodes[0][0])+" "+f(nodes[0][1])];
+/** Construct one fractured mountain silhouette. The exact same stations are
+ * used for the filled contour, cliff brush roots, and moss deposits. Linear
+ * interpolation over only the teacher nodes put some strokes into empty sky.
+ */
+const ridgeStations=(nodes:readonly P[],seed:number,band:number):P[]=>{
+  const stations:P[]=[[f(nodes[0][0]),f(nodes[0][1])]];
   for(let i=0;i<nodes.length-1;i++){
     const a=nodes[Math.max(i-1,0)][1],b=nodes[i][1],
       c=nodes[i+1][1],d=nodes[Math.min(i+2,nodes.length-1)][1];
@@ -47,17 +51,21 @@ const ridgePath=(nodes:readonly P[],seed:number,band:number)=>{
       const shapeNoise=(shanshuiHash(seed+band*113,i*17+k)-.5)*2;
       const fracture=(band===0?2.5:band===1?4.5:6.2)*
         Math.sin(Math.PI*t)*shapeNoise;
-      chunks.push("L "+f(x0+(x1-x0)*t)+" "+f(smooth+fracture));
+      stations.push([f(x0+(x1-x0)*t),f(smooth+fracture)]);
     }
   }
-  return chunks.join(" ")+" L 1080 550 L -110 550 Z";
+  return stations;
 };
-const ridgeHeight=(nodes:readonly P[],x:number)=>{
-  for(let i=0;i<nodes.length-1;i++){
-    const [x0,y0]=nodes[i],[x1,y1]=nodes[i+1];
-    if(x>=x0&&x<=x1)return y0+(y1-y0)*(x-x0)/(x1-x0);
+const ridgePath=(stations:readonly P[])=>
+  stations.map(([x,y],i)=>(i?"L ":"M ")+x+" "+y).join(" ")+
+  " L 1080 550 L -110 550 Z";
+const ridgeHeight=(stations:readonly P[],x:number)=>{
+  if(x<=stations[0][0])return stations[0][1];
+  for(let i=0;i<stations.length-1;i++){
+    const [x0,y0]=stations[i],[x1,y1]=stations[i+1];
+    if(x<=x1)return y0+(y1-y0)*(x-x0)/(x1-x0);
   }
-  return nodes[nodes.length-1][1];
+  return stations[stations.length-1][1];
 };
 const RIDGES:Record<ShanshuiScene,readonly (readonly P[])[]>={
   "misty-hermit":[
@@ -83,18 +91,23 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
   return <g data-km-shanshui-mountains="">
     {RIDGES[scene].map((ridge,band)=>{
       const width=band===0?1.1:band===1?1.3:1.8;
+      const stations=ridgeStations(ridge,seed,band);
       const count=Math.round((band===0?27:band===1?48:67)*detail);
-      return <g key={band} opacity={(band===0?.32:band===1?.58:.73)*ink}>
-        <path d={ridgePath(ridge,seed,band)} fill={"url(#"+([ids.far,ids.mid,ids.near][band])+")"}
+      return <g key={band} data-km-shanshui-ridge={band}
+        opacity={(band===0?.32:band===1?.58:.73)*ink}>
+        <path data-km-shanshui-ridge-contour={band} d={ridgePath(stations)}
+          fill={"url(#"+([ids.far,ids.mid,ids.near][band])+")"}
           stroke={band===2?"#816b51":"#ac9070"} strokeWidth={band===2?.85:.55}/>
         {/* Cunfa: lines emerge from slopes, vary in weight and leave deliberate fog gaps. */}
         {Array.from({length:count},(_,i)=>{
           const x=-22+1000*s(seed+band*1201,i*3+3);
-          const y=ridgeHeight(ridge,x)+5+11*s(seed+5,i*19+band);
+          const crest=ridgeHeight(stations,x);
+          const y=crest+5+11*s(seed+5,i*19+band);
           const length=(band===0?30:band===1?66:92)*(.36+s(seed+19,i*7+band));
           const dx=-17+42*s(seed+29,i*5+band);
           const opacity=(.18+.47*s(seed+8,i*11+band))*(1-.55*mist);
-          return <path key={i}
+          return <path key={i} data-km-shanshui-cunfa=""
+            data-km-cunfa-crest-y={f(crest)} data-km-cunfa-root-y={f(y)}
             d={"M"+f(x)+" "+f(y)+" Q"+f(x+dx*.35)+" "+f(y+length*.35)+
               " "+f(x+dx*.58)+" "+f(y+length*.67)+" T"+
               f(x+dx)+" "+f(y+length)}
@@ -105,7 +118,7 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
         {/* Moss dots cling to the actual crest rather than being random screen confetti. */}
         {Array.from({length:Math.round((band===2?52:22)*detail)},(_,i)=>{
           const x=18+915*s(seed+band*31,i*3+97);
-          const y=ridgeHeight(ridge,x)+3+10*s(seed+band*51,i+119);
+          const y=ridgeHeight(stations,x)+3+10*s(seed+band*51,i+119);
           return <ellipse key={i} cx={f(x)} cy={f(y)}
             rx={f(.65+1.9*s(seed,i*13+band))}
             ry={f(.45+.9*s(seed,i*9+band))}
