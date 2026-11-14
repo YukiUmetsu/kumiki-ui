@@ -23,7 +23,7 @@ const contour=(id:string,d:string,width:number,props:Partial<Extract<CrayonEleme
 
 export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSceneSpec {
   const portrait=aspect==="portrait", W=portrait?540:960,H=portrait?960:540;
-  const ox=W*.51, oy=portrait?H*.62:H*.63;
+  const ox=W*.51, oy=portrait?H*.65:H*.63;
   const bodyMotion=[
     {frame:0,x:0,y:0,rotate:0},
     {frame:68,x:0,y:4,rotate:-3},
@@ -153,7 +153,7 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
       {parentId:"front-arm",timing:{start:45,end:116},spacing:4}),
     // The edge-of-frame flora provides scale and a grounded visual baseline.
     ...[.15,.32,.69,.89].map((ratio,i):CrayonElement=>{
-      const fx=W*ratio, fy=H*(portrait?.77:.82)+(i%2?8:-6);
+      const fx=W*ratio, fy=H*(portrait ? .77 : .82)+(i%2?8:-6);
       return contour("meadow-sprig-"+i,
         `M${fx} ${fy+28} Q${fx-9} ${fy+7} ${fx-5} ${fy-5} M${fx-5} ${fy+13} l-10 -8 M${fx-5} ${fy+7} l11 -11`,
         3,{color:i%2?"#677b66":"#718467",opacity:.77,timing:{start:44,end:176}});
