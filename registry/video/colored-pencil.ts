@@ -139,7 +139,7 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
 /** Author time belongs to the individual mark; after deposition there is NO evolving noise.
  * The region clips rotated stroke geometry, so parallel lines become a physical surface, not a photo shader.
  */
-export function hatchPencilRegion(region: PencilRegion, layer: PencilPigmentLayer): PencilMark[] {
+export function hatchPencilRegion(region: Pick<PencilRegion, "bounds">, layer: PencilPigmentLayer): PencilMark[] {
   const [x, y, width, height] = region.bounds;
   if (![x, y, width, height, layer.spacing, layer.pressure, layer.tipWidth, layer.angle]
     .every(Number.isFinite) || width <= 0 || height <= 0 ||
