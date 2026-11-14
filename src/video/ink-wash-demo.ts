@@ -25,6 +25,12 @@ function createSubject(subject: InkSubject, aspect: InkAspect): InkStroke[] {
         x: region.x + x * region.width, y: region.y + y * region.height, pressure,
       })),
       width: width * unit / 540, tone, water, load: .88,
+      // Broad diluted slopes and single-pull leaves are painted with the side of the brush;
+      // dry crags drag across the fiber, leaving coherent bristle gaps.
+      brush: (width > 38 && water > .6) || id.startsWith("leaf-") || id.startsWith("crag-")
+        ? "oblique" : "upright",
+      tipInk: id.startsWith("leaf-") ? .95 : (water > .75 ? .43 : .7),
+      drag: id.includes("ledge") || id.includes("crag") ? .9 : (water < .3 ? .67 : .21),
       startFrame: start, drawFrames: duration, spreadFrames: 28, dryFrames: 44, accent,
     });
   };
