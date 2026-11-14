@@ -95,6 +95,39 @@ RISO3 planted the courier's feet but still drew every limb as a single rigid SVG
 - The validator rejects nonexistent or nondescendant endpoint joints, nonpositive/nonfinite widths, and unsafe bow/overlap ranges. `tests/riso-joint-skin.test.ts` covers finite folded joints, direct-parent constraints, walking and arm poses, deterministic back-seeks and non-skinned legacy drawings.
 - Deforming a tapered contour improves seam continuity but is **not** a substitute for fully hand-redrawn muscle masses, cloth wrinkles, segmented bone topology, elbow volume preservation, occlusion masks or production character design. Human visual review of overlaps, passing limbs, hem silhouette and the 16:9/9:16 film is still required.
 
+## RISO5 — paper-backed opaque characters, trapped silhouettes and new details
+
+**Why:** An ink pass is translucent for genuine Riso overprint, but that must not make characters look like acetate. Previous RISO2–RISO4 artwork applied partial opacity to its primary face, coat, bag and bird shapes and multiplied the entire character over an already printed city, exposing its background through the figure.
+
+**New compositing:** `RisoPrint.foregroundLayers` supports ordered paper knockouts and separate spot-ink foreground passes. Each layer has `id`, `knockout` (optional SVG artwork), and `artworks` with callbacks for every declared plate. Background still prints in declared order. A complete opaque paper silhouette is painted **after all environment spots** and **before** an actor's blue/red ink. The new layer is not a third ink, not postprocessed alpha, and not a second animation clock. Existing RisoPrint users with no foreground layers render identically.
+
+`RisoCharacterKnockout` evaluates the entire actor pose (including bent deforming joint skins, expressions, and full part geometry) with the same sampled frame, same IK controls and same stage placement as `RisoCharacterInk`. Its `spread` (0..8 character-stage units; default 1.8) expands paper clearance slightly to trap inevitable ink-plate misregistration gaps. It inherits the paper fill from `RisoPrint` and never uses authored part opacity.
+
+```tsx
+<RisoPrint
+  spec={printSpec} frame={3} artworks={cityAndTypeByInk}
+  foregroundLayers={[{
+    id: "courier",
+    knockout: <RisoCharacterKnockout
+      spec={courier} frame={frame} x={x} y={y} scale={scale}/>,
+    artworks: {
+      blue: paint => <RisoCharacterInk spec={courier} frame={frame}
+        plateId="blue" paint={paint} x={x} y={y} scale={scale}/>,
+      red: paint => <RisoCharacterInk spec={courier} frame={frame}
+        plateId="red" paint={paint} x={x} y={y} scale={scale}/>,
+    },
+  }]}
+/>
+```
+
+The original courier and bird now use **fully opaque base color masses**. The entire face contour is paper-only (`knockoutOnly: true`); the face is never printed with translucent blue dots. Strong solid facial linework gives expression contrast, while small cheek and pocket accents may use actual halftone dot fills. Additional details include cobalt facial keyline, red boot construction and sole marks, vermilion coat seam/pocket ink, and contrasting satchel hardware.
+
+The foreground API intentionally refuses duplicate IDs, invalid/missing plate callbacks and paper knockouts in `transparentPaper` mode. One-ink isolation still shows the paper-clearance silhouette, and plate registration remains independent.
+
+**Proof:** Storybook `Video production → Film Looks → Risograph Characters → RISO5 · Opaque Print Proof` stresses both actors against dense crossed printed lines and halftones. It exposes ink isolation, paper-trapping spread, registration, paper grain, background intensity and timeline seeking. Test `riso-opaque-characters.test.tsx` checks full-opacity originals, layer ordering, proof serialization and validation; Playwright verifies the film at 16:9/9:16 plus the dense-background lab, with video frame proof through the existing FilmStage export.
+
+**Further limitations:** The character limbs still use simplified ribbon contours; actual joint mass, fabric folds, constrained shadow lines, secondary acting, intentional plate-scoped distress and variation between physical sheets remain in the craft roadmap. See [printmaking reference audit](../research/risograph-character-opaque-print-craft-2026.md). Crucially, adding more transparent ink texture is not a fix for weak shape design.
+
 ## Original film
 
 **Paper Courier** is an original short editorial example, not copied from any published Riso animation. The courier walks into town with separately rotating legs and arms, a swinging satchel, blinking, opening their mouth and smiling; a bird has independent moving wings and tail. Cobalt and vermilion art print as separate physical plates, with a screened backdrop, fixed misregistration, paper grain and 16:9/9:16 layouts.

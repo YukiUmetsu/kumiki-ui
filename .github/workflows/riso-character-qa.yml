@@ -11,6 +11,9 @@ on:
       - "registry/video/riso-character-react.tsx"
       - "src/video/riso-rig-lab.stories.tsx"
       - "tests/e2e-storybook/riso-rig-ik.spec.ts"
+      - "tests/e2e-storybook/riso-opaque-print.spec.ts"
+      - "src/video/riso-opaque-print.stories.tsx"
+      - "registry/video/print-plates-react.tsx"
       - ".github/workflows/riso-character-qa.yml"
   workflow_dispatch:
 
@@ -35,13 +38,13 @@ jobs:
       - name: Strict typecheck and focused motion contracts
         run: |
           npm run typecheck
-          npm run test -- tests/riso-character.test.tsx tests/riso-rig-ik.test.tsx tests/riso-nested-ik.test.ts tests/riso-joint-skin.test.ts
+          npm run test -- tests/riso-character.test.tsx tests/riso-rig-ik.test.tsx tests/riso-nested-ik.test.ts tests/riso-joint-skin.test.ts tests/riso-opaque-characters.test.tsx
       - name: Clean independent registry consumer install
         run: node scripts/registry-fixture.js --item=riso-character
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Actual 16:9 and 9:16 Storybook actor/browser screenshots
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-characters.spec.ts tests/e2e-storybook/riso-rig-ik.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-characters.spec.ts tests/e2e-storybook/riso-rig-ik.spec.ts tests/e2e-storybook/riso-opaque-print.spec.ts
       - name: Validate source-portable Film Document
         run: npm run film:check -- examples/film/riso-character-performance.film.json
       - name: Install FFmpeg for true production MP4

@@ -39,6 +39,8 @@ export interface RisoCharacterPart {
   expressions?: Readonly<Record<string, string>>;
   paint: RisoInkLayer;
   opacity?: number;
+  /** Draw this contour only as paper clearance, not as an ink deposit. */
+  knockoutOnly?: boolean;
   /** Optional rounded, deforming contour from this joint to its child. */
   skin?: RisoJointSkin;
 }
@@ -62,6 +64,7 @@ export interface RisoPartFrame {
   plate: string;
   paint: RisoInkLayer;
   opacity: number;
+  knockoutOnly: boolean;
   d: string;
   transform: string;
 }
@@ -167,6 +170,8 @@ export function inspectRisoCharacter(input: unknown, allowedPlates?: readonly st
     if (part?.paint !== "solid" && part?.paint !== "screen") err(p + "/paint", "paint must be solid or screen");
     if (part?.opacity !== undefined && !safeNumber(part.opacity, 0, 1))
       err(p + "/opacity", "opacity must be 0..1");
+    if (part?.knockoutOnly !== undefined && typeof part.knockoutOnly !== "boolean")
+      err(p + "/knockoutOnly", "knockoutOnly must be a boolean");
     if (part?.skin !== undefined) {
       const skin = part.skin;
       const tip = byJoint.get(skin?.tipJoint);
@@ -327,6 +332,7 @@ export function evaluateRisoCharacter(
       const m = resolve(p.joint);
       return {
         id: p.id, plate: p.plate, paint: p.paint, opacity: p.opacity ?? 1,
+        knockoutOnly: p.knockoutOnly ?? false,
         // The skin already resolves into world-stage coordinates; a second
         // joint transform would incorrectly rotate or translate it twice.
         d: p.skin ? risoJointSkinPath(m, resolve(p.skin.tipJoint), p.skin)
