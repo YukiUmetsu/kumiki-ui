@@ -80,8 +80,8 @@ function Paper({ width, height, seed, tooth, strength }: { width: number; height
           <circle cx={(f.x + 59) % 144} cy={(f.y + 43) % 144} r={f.r * strength} />
         </g>)}
       </pattern>
-      <mask id={tooth} maskUnits="userSpaceOnUse" x={-4096} y={-4096} width={8192} height={8192}>
-        <rect x={-4096} y={-4096} width={8192} height={8192} fill={"url(#" + tooth + "-texture)"} />
+      <mask id={tooth} maskUnits="userSpaceOnUse" x={-320} y={-320} width={width + 640} height={height + 640}>
+        <rect x={-320} y={-320} width={width + 640} height={height + 640} fill={"url(#" + tooth + "-texture)"} />
       </mask>
     </defs>
     <rect width={width} height={height} fill="#faf1da" />
