@@ -1,8 +1,8 @@
-import { useId } from "react";
+import { useId, useMemo } from "react";
 import { RisoCharacterKnockout, RisoCharacterInk } from "./riso-character-react";
 import { evaluateRisoCharacter } from "./riso-character";
 import { evaluateRisoCharacterMesh } from "./riso-proportion-mesh";
-import type { RisoCharacterMeshSheet, RisoMeshBounds, RisoMeshFrameRegion, RisoMeshPoint, RisoMeshDetail } from "./riso-proportion-mesh";
+import type { RisoCharacterMeshSheet, RisoMeshBounds, RisoMeshFrameRegion, RisoMeshPoint } from "./riso-proportion-mesh";
 import type { RisoCharacterSpec } from "./riso-character";
 
 export interface RisoModelSheetProps {
@@ -12,10 +12,10 @@ export interface RisoModelSheetProps {
   frame?: number;
   selectedRegion?: string;
   showMesh?: boolean;
+  /** Maximum edge of diagnostic triangles (stage units); smaller = finer mesh. */
+  meshEdgeLength?: number;
   showLabels?: boolean;
   showJoints?: boolean;
-  /** Controls triangle size, not original ink or character scale. */
-  meshDetail?: RisoMeshDetail;
   /** Mapping from actor spot-ink ID to its print color. */
   inks?: Readonly<Record<string, string>>;
   paper?: string;
@@ -38,22 +38,22 @@ function Wireframe({regions, selected, showMesh, showLabels}:{
   showMesh: boolean; showLabels: boolean;
 }) {
   return <g data-km-riso-mesh-overlay="" pointerEvents="none">
-    {showMesh && regions.map(region=><g key={region.id}
+    {showMesh && regions.filter(region=>region.id===selected).map(region=><g key={region.id}
       data-km-riso-mesh-region={region.id} fill="none"
       stroke={region.id===selected?"#EE5639":"#226B86"}
-      strokeWidth={region.id===selected?.24:.2} strokeLinejoin="round"
-      opacity={region.id===selected?.64:.16}>
-      {region.id===selected && region.triangles.map((triangle,i)=><path key={i}
+      strokeWidth={region.id===selected?1.1:.38} strokeLinejoin="round"
+      opacity={region.id===selected?1:.3}>
+      {region.triangles.map((triangle,i)=><path key={i}
         data-km-riso-mesh-triangle={region.id} d={path(triangle)} />)}
-      <path d={path(region.outline)} strokeWidth={region.id===selected?.78:.55}/>
-      {region.id===selected && region.landmarks.map(point=><circle key={point.id}
-        cx={point.at[0]} cy={point.at[1]} r={.65}
+      <path d={path(region.outline)} strokeWidth={region.id===selected?1.8:.8}/>
+      {region.landmarks.map(point=><circle key={point.id}
+        cx={point.at[0]} cy={point.at[1]} r={1.1}
         fill={region.id===selected?"#EE5639":"#226B86"} stroke="none"/>)}
     </g>)}
-    {selected && regions.filter(r=>r.id===selected).map(region=>
+    {showMesh && selected && regions.filter(r=>r.id===selected).map(region=>
       <path key={region.id} data-km-riso-focused-region={region.id}
-        d={path(region.outline)} stroke="#E74C35" strokeWidth={.8}
-        strokeDasharray="2.1 1.4" opacity={.9} fill="none"/>)}
+        d={path(region.outline)} stroke="#E74C35" strokeWidth={2.4}
+        strokeDasharray="4 2" fill="none"/>)}
     {showLabels && regions.map(region=>{
       const x=region.bounds.x+region.bounds.width/2;
       const y=region.bounds.y+region.bounds.height/2;
@@ -75,15 +75,23 @@ function GuideGrid({x,y,w,h}: {x:number;y:number;w:number;h:number}) {
 }
 /** One source-faithful, printable SVG model sheet; not a fabricated multi-angle turnaround. */
 export function RisoCharacterModelSheet({
-  spec,sheet,frame=0,selectedRegion,showMesh=true,showLabels=false,showJoints=true,
-  meshDetail="fine",
+  spec,sheet,frame=0,selectedRegion,showMesh=true,meshEdgeLength=8,showLabels=false,showJoints=true,
   inks={blue:"#245F9A",red:"#DD593D"},paper="#FBF2DE",
 }:RisoModelSheetProps) {
   const uid=useId().replace(/[^a-z0-9]/gi,"");
-  const report=evaluateRisoCharacterMesh(spec,sheet,frame,meshDetail);
+  const report=useMemo(
+    ()=>evaluateRisoCharacterMesh(spec,sheet,frame,{maxEdgeLength:meshEdgeLength}),
+    [spec,sheet,frame,meshEdgeLength],
+  );
   const avian=spec.id==="paper-bird";
   const region=report.regions.find(r=>r.id===selectedRegion)??report.regions[0];
-  const poseReports=sheet.poses.map(p=>({label:p.label,frame:p.frame,report:evaluateRisoCharacterMesh(spec,sheet,p.frame,"coarse")}));
+  // Thumbnail actors never render their triangulation. Cache the coarse
+  // source bounds once and avoid recomputing thousands of fine triangles
+  // for all three printed poses on every character-sheet control change.
+  const poseReports=useMemo(()=>sheet.poses.map(p=>({
+    label:p.label,frame:p.frame,
+    report:evaluateRisoCharacterMesh(spec,sheet,p.frame,{maxEdgeLength:200}),
+  })),[spec,sheet]);
   const allPlates=[...new Set(spec.parts.filter(p=>!p.knockoutOnly).map(p=>p.plate))];
   const section=(x:number,y:number,w:number,h:number,title:string,index:string)=><g>
     <rect x={x} y={y} width={w} height={h} rx={5} fill="#FFFBF1" stroke="#D5CABC"/>
@@ -167,8 +175,7 @@ export function RisoCharacterModelSheet({
     width="100%" role="img"
     aria-label={`${sheet.label} construction and proportion sheet with ${sheet.regions.length} measured regions`}
     data-km-riso-model-sheet={spec.id} data-km-riso-sheet-frame={frame}
-    data-km-riso-sheet-feature={region.id}
-    data-km-riso-mesh-detail={meshDetail}
+    data-km-riso-sheet-feature={region.id} data-km-riso-mesh-edge-length={meshEdgeLength}
     style={{display:"block",maxWidth:1220,background:paper}}>
     <defs>
       {allPlates.map((plate,i)=><pattern key={plate} id={`${uid}-screen-${i}`}
@@ -212,12 +219,12 @@ export function RisoCharacterModelSheet({
               <path key={p.id} data-km-riso-wing-isolated-ink={p.id}
                 d={p.d} transform={p.transform} fill={inks[p.plate]??"#315B86"}
                 opacity={p.opacity}/>)}
-            <g stroke="#247A8F" strokeWidth={.75} opacity={.75} fill="none"
+            {showMesh && <g stroke="#247A8F" strokeWidth={.44} opacity={.58} fill="none"
               data-km-riso-wing-cage={id}>
               {wing.triangles.map((triangle,n)=>
                 <path key={n} d={path(triangle)}/>)}
-              <path d={path(wing.outline)} strokeWidth={1.3}/>
-            </g>
+              <path d={path(wing.outline)} strokeWidth={1.05}/>
+            </g>}
           </svg>
           <text x={x+10} y={730} fontFamily="ui-monospace,monospace"
             fontSize={10.5} fill="#40586B">
@@ -247,10 +254,10 @@ export function RisoCharacterModelSheet({
       data-km-riso-selected-source-detail="" overflow="hidden">
       <path d={path(region.outline)} fill="#DDE9E6" stroke="#D95C42"
         strokeWidth={1.2} strokeLinejoin="round"/>
-      {region.triangles.map((t,i)=><path key={i} d={path(t)}
+      {showMesh && region.triangles.map((t,i)=><path key={i} d={path(t)}
         data-km-riso-selected-source-triangle=""
-        stroke="#2C7A86" opacity={.53} strokeWidth={.22} fill="none"/>)}
-      {region.landmarks.filter(p=>p.id==="source-center").map(p=>
+        stroke="#2C7A86" opacity={.65} strokeWidth={.58} fill="none"/>)}
+      {showMesh && region.landmarks.filter(p=>p.id==="source-center").map(p=>
         <circle key={p.id} cx={p.at[0]} cy={p.at[1]} r={1.25}
           fill="#DE5C42" stroke="#FAF2E4" strokeWidth={.65}/>)}
     </svg>

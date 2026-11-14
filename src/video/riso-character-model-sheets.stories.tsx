@@ -5,7 +5,7 @@ import {evaluateRisoCharacterMesh} from "../../registry/video/riso-proportion-me
 import {COURIER,PAPER_BIRD} from "./riso-character-demo";
 import {RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET} from "./riso-character-mesh-sheets";
 import type {RisoCharacterSpec} from "../../registry/video/riso-character";
-import type {RisoCharacterMeshSheet,RisoMeshDetail} from "../../registry/video/riso-proportion-mesh";
+import type {RisoCharacterMeshSheet} from "../../registry/video/riso-proportion-mesh";
 
 const fields={font:"700 12px system-ui",display:"grid",gap:6,color:"#2A465A"} as const;
 const btn={border:"1px solid #BDB2A4",borderRadius:5,background:"#FFFBF2",
@@ -16,12 +16,12 @@ function CharacterSheetStudio({spec,sheet}:{
   const [frame,setFrame]=useState(sheet.poses[0].frame);
   const [focus,setFocus]=useState(sheet.headRegion);
   const [mesh,setMesh]=useState(true);
-  const [detail,setDetail]=useState<RisoMeshDetail>("fine");
+  const [edgeSize,setEdgeSize]=useState(7);
   const [labels,setLabels]=useState(false);
   const [skeleton,setSkeleton]=useState(false);
   const [category,setCategory]=useState("all");
   const svgHost=useRef<HTMLDivElement>(null);
-  const report=useMemo(()=>evaluateRisoCharacterMesh(spec,sheet,frame,detail),[spec,sheet,frame,detail]);
+  const report=useMemo(()=>evaluateRisoCharacterMesh(spec,sheet,frame,{maxEdgeLength:edgeSize}),[spec,sheet,frame,edgeSize]);
   const selected=report.regions.find(r=>r.id===focus)!;
   const categories=[...new Set(sheet.regions.map(r=>r.category))].sort();
   const visible=report.regions.filter(r=>category==="all"||r.category===category);
@@ -55,7 +55,7 @@ function CharacterSheetStudio({spec,sheet}:{
       gap:18,alignItems:"start"}}>
       <div ref={svgHost} style={{minWidth:0,boxShadow:"0 18px 38px #31455723"}}>
         <RisoCharacterModelSheet spec={spec} sheet={sheet} frame={frame}
-          selectedRegion={focus} showMesh={mesh} meshDetail={detail} showLabels={labels}
+          selectedRegion={focus} showMesh={mesh} meshEdgeLength={edgeSize} showLabels={labels}
           showJoints={skeleton}/>
       </div>
       <aside style={{display:"grid",gap:17,maxHeight:800,overflowY:"auto",
@@ -69,14 +69,9 @@ function CharacterSheetStudio({spec,sheet}:{
           {sheet.poses.map(p=><button type="button" key={p.frame} style={btn}
             onClick={()=>setFrame(p.frame)}>{p.label}</button>)}
         </div>
-        <label style={fields}>Triangle density (character-relative)
-          <select aria-label="Character sheet mesh density" value={detail}
-            onChange={e=>setDetail(e.target.value as RisoMeshDetail)}
-            style={{padding:9}}>
-            <option value="fine">Fine · smaller facets</option>
-            <option value="balanced">Balanced · medium facets</option>
-            <option value="coarse">Coarse · fast preview</option>
-          </select>
+        <label style={fields}>Mesh cell size · {edgeSize} drawing units (smaller = finer)
+          <input aria-label="Character sheet mesh cell size" type="range" min={3}
+            max={18} step={1} value={edgeSize} onChange={e=>setEdgeSize(Number(e.target.value))}/>
         </label>
         <div style={{display:"grid",gap:9}}>
           {([
@@ -113,10 +108,15 @@ function CharacterSheetStudio({spec,sheet}:{
             {selected.widthInHeads.toFixed(3)} × {selected.heightInHeads.toFixed(3)} head units
           </span>
           <span style={{font:"12px ui-monospace,monospace"}}>
-            {selected.sourceContourPoints} sampled source vertices · {selected.triangles.length} inside triangles
+            {selected.sourceContourPoints} source contour points · {selected.triangles.length} fine mesh cells
           </span>
           <span style={{font:"12px ui-monospace,monospace"}}>
             Triangle area residual {Math.abs(selected.triangleArea-selected.contourArea).toFixed(2)} u²
+          </span>
+          <span data-km-riso-achieved-edge={selected.maxTriangleEdgeLength.toFixed(2)}
+            style={{font:"12px ui-monospace,monospace",color:selected.refinementTargetMet?"#285C55":"#A45632"}}>
+            Actual largest edge {selected.maxTriangleEdgeLength.toFixed(2)} u
+            {selected.refinementTargetMet?" · target met":" · capped at 950 cells"}
           </span>
         </div>
         <div style={{borderTop:"1px solid #CBBFAD",paddingTop:12,display:"grid",gap:8}}
@@ -146,8 +146,8 @@ function CharacterSheetStudio({spec,sheet}:{
       </aside>
     </div>
     <p style={{margin:0,maxWidth:1200,fontSize:12,color:"#5E6A73"}}>
-      The microfacet mesh is bounded and source-faithful: RISO8 subdivides RISO7’s sampled SVG curves—no
-      bounding-rectangle proxies or oversized generic wireframes. Part dimensions and facial distances remain in actual 2D
+      RISO7 triangulates the original authored SVG curves and evaluated IK contours—no
+      bounding-rectangle proxies. Part dimensions and facial distances are measured in actual 2D
       drawing coordinates, not 3D depth. Side, back and three-quarter turnarounds remain unauthored.
     </p>
   </main>;

@@ -1,6 +1,6 @@
 import { evaluateRisoCharacter, inspectRisoCharacter } from "./riso-character";
 import type { RisoCharacterSpec, RisoMatrix } from "./riso-character";
-import { selectRisoSourceContour, triangulateRisoContour, refineRisoContourTriangles } from "./riso-path-geometry";
+import { selectRisoSourceContour, triangulateRisoContour, refineRisoContourMesh } from "./riso-path-geometry";
 import type { RisoContourPoint, RisoContourTriangle } from "./riso-path-geometry";
 
 /**
@@ -11,8 +11,6 @@ import type { RisoContourPoint, RisoContourTriangle } from "./riso-path-geometry
  * never used to substitute for a printable source silhouette.
  */
 export type RisoMeshPoint = RisoContourPoint;
-/** Mesh detail alters only diagnostic interior facets, never original ink geometry. */
-export type RisoMeshDetail = "fine" | "balanced" | "coarse";
 export type RisoMeshCategory =
   | "face" | "hair" | "headwear" | "torso" | "sleeve" | "arm"
   | "hand" | "leg" | "foot" | "wing" | "tail" | "accessory";
@@ -59,7 +57,6 @@ export interface RisoMeshFrameRegion {
 export interface RisoMeshReport {
   frame: number;
   headUnit: number;
-  detail: RisoMeshDetail;
   overallBounds: RisoMeshBounds;
   regions: readonly (RisoMeshFrameRegion & {
     /** Measured from the original SVG feature in joint-local drawing coordinates. */
@@ -71,11 +68,17 @@ export interface RisoMeshReport {
     contourArea: number;
     /** Area of emitted triangles, used to detect escaped or incomplete ear clipping. */
     triangleArea: number;
+    /** Measured longest edge after refinement, not a claimed target. */
+    maxTriangleEdgeLength: number;
+    /** False when the hard mesh budget prevents reaching the requested size. */
+    refinementTargetMet: boolean;
   })[];
   measurements: readonly {id: string;label: string;distance: number;
     dx: number;dy: number;distanceInHeads: number}[];
 }
 export interface RisoMeshIssue {path: string; message: string}
+/** Inspection-only control. Smaller edge targets produce smaller coherent triangles. */
+export interface RisoMeshEvaluationOptions { maxEdgeLength?: number; maxTrianglesPerRegion?: number }
 const slug = /^[a-z][a-z0-9-]{0,47}$/;
 const finite = (p: RisoMeshPoint): boolean =>
   Array.isArray(p) && p.length === 2 && p.every(n => Number.isFinite(n) && Math.abs(n) <= 4096);
@@ -163,8 +166,7 @@ export function inspectRisoCharacterMesh(spec: RisoCharacterSpec, sheet: RisoCha
 }
 /** Deterministic IK-aware source-path contour sampling, with real source-relative measurements. */
 export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoCharacterMeshSheet,
-                                          frame:number,detail:RisoMeshDetail="fine"):RisoMeshReport {
-  if(!["fine","balanced","coarse"].includes(detail))throw new RangeError("Invalid Riso mesh detail");
+                                          frame:number,options:RisoMeshEvaluationOptions={}):RisoMeshReport {
   const errors=inspectRisoCharacterMesh(spec,sheet);
   if(errors.length)throw new RangeError(errors.map(x=>x.path+": "+x.message).join("; "));
   const pose=evaluateRisoCharacter(spec,frame);
@@ -181,16 +183,16 @@ export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoChara
   const anchor=sheet.regions.find(r=>r.id===sheet.headRegion)!;
   const headUnit=risoMeshBounds(getLocal(anchor)).height;
   if(headUnit<=0)throw new RangeError("head-region source must have positive height");
+  const maxEdgeLength=options.maxEdgeLength??Math.max(4,Math.min(9,headUnit/11));
+  const maxTriangles=options.maxTrianglesPerRegion??950;
   const regions=sheet.regions.map(r=>{
     const ink=frameParts.get(r.parts[0])!;
     const localOutline=getLocal(r);
     const outline=selectRisoSourceContour(ink.d,r.sourceSubpathIndex).map(p=>
       mapPoint(parseFrameMatrix(ink.transform),p));
-    // Original ink remains unchanged. Limit interior face area relative to
-    // each character's authored head height (H), not the page viewport.
-    const linearH=detail==="fine"?.085:detail==="balanced"?.15:.24;
-    const faceArea=Math.max(.18,(headUnit*linearH)**2*.5);
-    const triangles=refineRisoContourTriangles(triangulateRisoContour(outline),faceArea,384,6);
+    const triangles=refineRisoContourMesh(triangulateRisoContour(outline),{
+      maxEdgeLength,maxTriangles,
+    });
     const bounds=risoMeshBounds(outline),referenceBounds=risoMeshBounds(localOutline);
     const m=parseFrameMatrix(ink.transform);
     // For skin paths, ink already lives in stage/world coordinates; source landmarks
@@ -209,12 +211,17 @@ export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoChara
       ...(r.landmarks??[]).filter(p=>p.id!=="center").map(p=>({id:p.id,at:mapPoint(guideMatrix,p.at)})),
     ];
     const contourArea=area(outline),triangleArea=triangles.reduce((a,t)=>a+triArea(t),0);
+    const maxTriangleEdgeLength=triangles.reduce((maximum,t)=>Math.max(maximum,
+      Math.hypot(t[0][0]-t[1][0],t[0][1]-t[1][1]),
+      Math.hypot(t[1][0]-t[2][0],t[1][1]-t[2][1]),
+      Math.hypot(t[2][0]-t[0][0],t[2][1]-t[0][1])),0);
     return {
       id:r.id,label:r.label,category:r.category,parts:r.parts,
       outline,triangles,landmarks,bounds,referenceBounds,
       widthInHeads:referenceBounds.width/headUnit,
       heightInHeads:referenceBounds.height/headUnit,
       sourceContourPoints:outline.length,contourArea,triangleArea,
+      maxTriangleEdgeLength,refinementTargetMet:maxTriangleEdgeLength<=maxEdgeLength+1e-6,
     };
   });
   const byId=new Map(regions.map(r=>[r.id,r]));
@@ -225,5 +232,5 @@ export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoChara
     return {id:m.id,label:m.label,distance,dx,dy,distanceInHeads:distance/headUnit};
   });
   const all=regions.flatMap(r=>r.outline);
-  return {frame:pose.sampledFrame,headUnit,detail,overallBounds:risoMeshBounds(all),regions,measurements};
+  return {frame:pose.sampledFrame,headUnit,overallBounds:risoMeshBounds(all),regions,measurements};
 }
