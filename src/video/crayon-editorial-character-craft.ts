@@ -129,3 +129,34 @@ export function crayonFurFlow({
   }
   return out.join(" ");
 }
+
+/** Minute radial pigment striations in a naturally elliptical iris, below the
+ * pupil. The two rings have different seeds/colors and do not form a perfectly
+ * uniform clock-face. Clip the contour to the painted iris to preserve edges. */
+export interface CrayonIrisFlecks {
+  seed:number;cx:number;cy:number;rx:number;ry:number;count:number;
+  minRadius?:number;maxRadius?:number;
+}
+export function crayonIrisFlecks({
+  seed,cx,cy,rx,ry,count,minRadius=.49,maxRadius=.91,
+}:CrayonIrisFlecks):string {
+  if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(count)||count<0||count>80||
+    ![cx,cy,rx,ry,minRadius,maxRadius].every(Number.isFinite)||
+    Math.abs(cx)>8192||Math.abs(cy)>8192||rx<=0||ry<=0||rx>100||ry>100||
+    minRadius<0||maxRadius>1||maxRadius<=minRadius)
+    throw new RangeError("Invalid wax iris striation study");
+  const out:string[]=[];
+  for(let i=0;i<count;i++){
+    const theta=(i+.19+crayonHash(seed,i,91)*.42)*Math.PI*2/Math.max(1,count);
+    const r0=minRadius+(maxRadius-minRadius)*(.1+crayonHash(seed,i,92)*.24);
+    const r1=minRadius+(maxRadius-minRadius)*(.58+crayonHash(seed,i,93)*.4);
+    const shift=(crayonHash(seed,i,94)-.5)*.10;
+    const point=(r:number,t:number)=>({x:cx+rx*r*Math.cos(t),
+      y:cy+ry*r*Math.sin(t)});
+    const a=point(r0,theta),mid=point((r0+r1)*.5,theta+shift*.4),
+      b=point(r1,theta+shift);
+    out.push("M"+fmt(a.x)+" "+fmt(a.y)+" Q"+
+      fmt(mid.x)+" "+fmt(mid.y)+" "+fmt(b.x)+" "+fmt(b.y));
+  }
+  return out.join(" ");
+}
