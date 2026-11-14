@@ -1,6 +1,7 @@
 import { useId } from "react";
 import type { CSSProperties } from "react";
 import { RisoPrint } from "./print-plates-react";
+import type { RisoArtwork } from "./print-plates-react";
 import { clamp01, inspectRisoPrint } from "./print-plates";
 import type { RisoPrintSpec } from "./print-plates";
 import type { RisoSheet } from "./riso-sheet-feed";
@@ -22,6 +23,8 @@ export interface RisoOverprintProps {
   durationFrames: number;
   /** An incoming plate ID to print across the outgoing artwork. */
   imprintPlateId: string;
+  /** Ink-only SVG for the impression, without labels or print-stock marks. */
+  imprintArtwork: RisoArtwork;
   /** Maximum enlargement of the authored ink shape, between 1 and 12. */
   imprintScale?: number;
   misregistration?: number;
@@ -77,7 +80,7 @@ export function evaluateRisoOverprint(
 
 export function RisoOverprintTransition({
   outgoing, incoming, imprintPath, imprintOrigin, frame, startFrame, durationFrames,
-  imprintPlateId, imprintScale = 1.85, misregistration = 0, paperGrain = .5,
+  imprintPlateId, imprintArtwork, imprintScale = 1.85, misregistration = 0, paperGrain = .5,
   reducedMotion = false, label = "An incoming spot ink overprints a poster, then resolves into a second print",
   className, style,
 }: RisoOverprintProps) {
@@ -106,6 +109,7 @@ export function RisoOverprintTransition({
   const paperScale = .015 + state.paperReveal * 12;
   const [ox, oy] = imprintOrigin;
   const common = { paperGrain, misregistration, reducedMotion: true, "aria-hidden": true as const };
+  const inkArtwork = { ...incoming.artworks, [imprintPlateId]: imprintArtwork };
   return <svg className={className} xmlns="http://www.w3.org/2000/svg"
     role="img" aria-label={label} viewBox={`0 0 ${outgoing.spec.width} ${outgoing.spec.height}`}
     data-km-riso-overprint="" data-km-riso-overprint-frame={frame}
@@ -124,7 +128,7 @@ export function RisoOverprintTransition({
     </g>}
     {state.inkOpacity > 0 && <g clipPath={`url(#${uid})`} data-km-riso-imprint-ink=""
       opacity={state.inkOpacity} style={{ mixBlendMode: "multiply" }}>
-      <RisoPrint spec={incoming.spec} artworks={incoming.artworks}
+      <RisoPrint spec={incoming.spec} artworks={inkArtwork}
         frame={completedRisoFrame(incoming.spec)} {...common}
         transparentPaper visiblePlateIds={[imprintPlateId]}/>
     </g>}
