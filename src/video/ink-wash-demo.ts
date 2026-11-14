@@ -13,7 +13,6 @@ type Builder = (id: string, pts: readonly Point[], width: number, tone: number, 
  */
 function createSubject(subject: InkSubject, aspect: InkAspect): InkStroke[] {
   const portrait = aspect === "portrait";
-  const w = portrait ? 540 : 960, h = portrait ? 960 : 540;
   const unit = Math.min(w, h);
   // Local art plane sits below the exhibition heading, with a full intentional paper margin.
   const region = portrait
@@ -67,7 +66,7 @@ function createSubject(subject: InkSubject, aspect: InkAspect): InkStroke[] {
       add("river-" + i, [[x,y,.07],[x + .11,y-.014,.25],[x + .23,y+.005,.08]],
         2.1 + i % 3, INK_TONES.pale, .22, 205 + i * 3, 13);
     }
-    add("seal-ring", arc(.81,.22,.047,portrait?.029:.07), 6, INK_TONES.dark, .25, 240, 26, true);
+    add("seal-ring", arc(.81,.22,.047, portrait ? .029 : .07), 6, INK_TONES.dark, .25, 240, 26, true);
   } else {
     add("mist-hill-left", [[-.05,.78,.1],[.10,.64,.42],[.25,.67,.32],[.45,.62,.1]], 41, INK_TONES.whisper, .94, 18, 30);
     add("mist-hill-right", [[.49,.70,.11],[.66,.58,.27],[.86,.64,.37],[1.04,.55,.05]], 37, INK_TONES.pale, .91, 34, 29);
