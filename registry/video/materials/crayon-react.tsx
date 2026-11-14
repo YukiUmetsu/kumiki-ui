@@ -28,6 +28,9 @@ export type WaxProps = {
   redraw?: CrayonRedrawOptions;
   /** Fragmented wax nib trace around the visible outline, 0..1. */
   edgeRoughness?: number;
+  /** Independent intensity of the dark drawn edge; zero removes the digital
+   * cartoon outline while retaining fully opaque volume and wax texture. */
+  outlineOpacity?: number;
   /** Wax-contact profile. Rounded retains the old constant-width line. */
   nibStyle?: CrayonNibStyle;
   /** Authored stroke sequence; changes draw-in choreography, not pigment. */
@@ -37,7 +40,7 @@ export type WaxProps = {
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0, nibStyle = "tapered", strokeOrder = "patches", markLength = "long" }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0, outlineOpacity = 1, nibStyle = "tapered", strokeOrder = "patches", markLength = "long" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
   if (nibStyle !== "rounded" && nibStyle !== "tapered")
@@ -48,6 +51,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     throw new RangeError("crayon mark length must be long or short");
   if (!Number.isFinite(edgeRoughness) || edgeRoughness<0 || edgeRoughness>1)
     throw new RangeError("crayon edge roughness out of bounds");
+  if (!Number.isFinite(outlineOpacity) || outlineOpacity<0 || outlineOpacity>1)
+    throw new RangeError("crayon outline opacity must be 0..1");
   if (redraw) assertCrayonRedrawOptions(redraw);
   const windows=construction ? crayonConstructionWindows(first,last,construction) : null;
   const fillFirst=windows?.fillStart ?? first,fillLast=windows?.fillEnd ?? last;
@@ -93,7 +98,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     data-km-crayon-coverage={coverage}
     data-km-crayon-exposure={redraw ? exposure : undefined}
     data-km-crayon-stroke-order={strokeOrder}
-    data-km-crayon-mark-length={markLength}>
+    data-km-crayon-mark-length={markLength}
+    data-km-crayon-outline-opacity={outlineOpacity}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
       {coverage==="opaque" && pigmentProgress>0 && pigmentProgress<1 && <mask id={deposit}
@@ -180,11 +186,11 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
           opacity={.22+edgeRoughness*.32} transform="translate(-.65 .7)"/>
       </g>}
     {construction ? <WaxLine d={d} color={colors[1]} width={2.5+pressure*1.5}
-      seed={seed+919} opacity={.65} frame={frame} first={outlineFirst} last={outlineLast}
+      seed={seed+919} opacity={.65*outlineOpacity} frame={frame} first={outlineFirst} last={outlineLast}
       reduced={reduced} /> :
       <path d={d} fill="none" stroke={colors[1]} strokeWidth={2.5 + pressure * 1.5}
         strokeLinecap="round" strokeLinejoin="round"
-        opacity={.38 * crayonProgress(frame, first, last, 0, 1, reduced)} />}
+        opacity={.38 * outlineOpacity * crayonProgress(frame, first, last, 0, 1, reduced)} />}
   
   </g>;
 }
