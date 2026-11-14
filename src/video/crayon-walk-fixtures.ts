@@ -29,6 +29,10 @@ export function crayonWalkScene(aspect:"landscape"|"portrait"):CrayonSceneSpec {
     {frame:156,x:20,y:0},{frame:214,x:-41,y:0},{frame:269,x:-41,y:0},
   ];
   const elements:CrayonElement[]=base.elements.map((node):CrayonElement=>{
+    if(node.id==="shadow")return {...node,motion:[
+      {frame:0,x:-88,y:0},{frame:36,x:-88,y:0},{frame:94,x:-37,y:0},
+      {frame:156,x:17,y:0},{frame:214,x:78,y:0},{frame:269,x:78,y:0},
+    ]};
     if(node.id==="body")return {...node,motion:move,poseCadence:2};
     if(node.id==="foot-back")return {...node,motion:back,poseCadence:2,
       contacts:[{start:0,end:38,anchor:{x:-29,y:107}},
