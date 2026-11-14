@@ -26,50 +26,51 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
     throw new RangeError("crayon bounds must be finite, positive and no larger than 4096");
   const spacing = options.spacing ?? 10.5;
   const passes = options.passes ?? 2;
-  const rows = Math.ceil(bounds.height / spacing) + 2;
-  if (rows * passes > 1200) throw new RangeError("crayon surface would exceed the stroke budget");
+  const rows = Math.ceil(bounds.height / spacing) + 3;
+  // Short independent patches get independent pigment and pressure. Coloring a whole
+  // horizontal row at once looked like stacked tiles, not wax rubbed by a hand.
+  const groups = Math.max(1, Math.ceil(bounds.width / 132));
+  if (rows * groups * passes > 2500) throw new RangeError("crayon surface would exceed the stroke budget");
   const marks: CrayonMark[] = [];
+  const groupWidth = (bounds.width + 32) / groups;
   for (let layer = 0; layer < passes; layer++) {
     for (let row = 0; row < rows; row++) {
-      const index = layer * rows + row;
-      const shift = (crayonHash(options.seed, index, 4) - .5) * spacing * 1.8;
-      const y = bounds.y - spacing + row * spacing + shift + layer * spacing * .45;
-      const slant = (layer ? -1 : 1) * (4 + crayonHash(options.seed, index, 5) * 9);
-      const left = bounds.x - 18;
-      const right = bounds.x + bounds.width + 18;
-      const wobble = (crayonHash(options.seed, index, 6) - .5) * 8;
-      // Tiny side-rubbings: many short, uneven strokes deposited into the same tooth.
-      // A full-width regular ribbon reads as digital stripes, so a hand lifts between
-      // patches and changes pressure, direction and coverage at every short passage.
-      const segments = Math.max(2, Math.min(96, Math.ceil(bounds.width / 39)));
-      const segmentWidth = (right-left) / segments;
-      const d = Array.from({length:segments}, (_,part) => {
-        const skew = (crayonHash(options.seed,index,100+part)-.5)*Math.min(12,segmentWidth*.22);
-        const gap = (1.5+crayonHash(options.seed,index,230+part)*Math.min(8,segmentWidth*.14));
-        const startX = left + segmentWidth*part + skew;
-        const endX = left + segmentWidth*(part+1) - gap;
-        const jitter=(crayonHash(options.seed,index,400+part)-.5)*Math.min(14,spacing*1.9);
-        const angle=(crayonHash(options.seed,index,560+part)-.5)*Math.min(24,segmentWidth*.52);
-        const sy = y + slant * (1-2*part/segments) + jitter - angle*.48;
-        const ey = y + slant * (1-2*(part+1)/segments) + jitter + angle*.48;
-        const midY=(sy+ey)/2+(crayonHash(options.seed,index,700+part)-.5)*5;
-        return "M "+startX.toFixed(2)+" "+sy.toFixed(2)+
-          " Q "+((startX+endX)/2).toFixed(2)+" "+midY.toFixed(2)+
-          " "+endX.toFixed(2)+" "+ey.toFixed(2);
-      }).join(" ");
-      const grainX = left + bounds.width * (.18 + crayonHash(options.seed, index, 10) * .61);
-      const grainY = y + slant * (1 - 2 * ((grainX - left) / (right - left)));
-      const grainLen = 15 + crayonHash(options.seed, index, 11) * 66;
-      const scumble = "M" + grainX.toFixed(2) + " " + (grainY + 2).toFixed(2) +
-        " q" + (grainLen * .48).toFixed(2) + " " + (wobble * .8).toFixed(2) +
-        " " + grainLen.toFixed(2) + " " + (wobble * .17).toFixed(2);
-      const scrape = "M" + (grainX + 6).toFixed(2) + " " + (grainY - 1.7).toFixed(2) +
-        " l" + (grainLen * .43).toFixed(2) + " " + (-wobble * .08).toFixed(2);
-      const p = Math.min(1, Math.max(.16, options.pressure * (.77 + crayonHash(options.seed, index, 7) * .36)));
-      marks.push({
-        d, scumble, scrape, index, pressure: p, tone: crayonHash(options.seed,index,8) < .73 ? 0 : crayonHash(options.seed,index,8) < .92 ? 1 : 2,
-        width: 4.5 + p * 5.6 + crayonHash(options.seed, index, 9) * 1.9,
-      });
+      for (let group = 0; group < groups; group++) {
+        const index = layer * rows * groups + row * groups + group;
+        const rand = (channel: number) => crayonHash(options.seed, index, channel);
+        const patchX = bounds.x - 16 + group * groupWidth + (rand(4) - .5) * 13;
+        const patchY = bounds.y - spacing + row * spacing + layer * spacing * .36 + (rand(5) - .5) * spacing * 1.4;
+        const segmentCount = Math.max(2, Math.ceil(groupWidth / 42));
+        const segmentWidth = groupWidth / segmentCount;
+        const lean = (rand(6) - .5) * 19;
+        const d = Array.from({length:segmentCount}, (_,part) => {
+          const shortfall = 2 + crayonHash(options.seed,index,120+part)*segmentWidth*.23;
+          const x = patchX + segmentWidth*part + (crayonHash(options.seed,index,150+part)-.5)*6;
+          const endX = x + segmentWidth - shortfall;
+          const y = patchY + (crayonHash(options.seed,index,190+part)-.5)*spacing*1.25;
+          const startY = y - lean*.5;
+          const endY = y + lean*.5;
+          const curvature = (crayonHash(options.seed,index,230+part)-.5)*7;
+          return "M "+x.toFixed(2)+" "+startY.toFixed(2)+" Q "+
+            ((x+endX)/2).toFixed(2)+" "+(y+curvature).toFixed(2)+" "+
+            endX.toFixed(2)+" "+endY.toFixed(2);
+        }).join(" ");
+        const grainX = patchX + groupWidth * (.22 + rand(8) * .52);
+        const grainY = patchY + (rand(9) - .5) * 5;
+        const grainLen = 9 + rand(10) * Math.min(33,groupWidth*.48);
+        const scumble = "M" + grainX.toFixed(2) + " " + (grainY + 1.5).toFixed(2) +
+          " q" + (grainLen*.5).toFixed(2) + " " + ((rand(11)-.5)*7).toFixed(2) +
+          " " + grainLen.toFixed(2) + " " + ((rand(12)-.5)*7).toFixed(2);
+        const scrape = "M" + (grainX + 5).toFixed(2) + " " + (grainY - 1).toFixed(2) +
+          " l" + (grainLen*.4).toFixed(2) + " " + ((rand(13)-.5)*3).toFixed(2);
+        const p = Math.min(1, Math.max(.14, options.pressure * (.65 + rand(7) * .52)));
+        const toneSample = rand(14);
+        marks.push({
+          d, scumble, scrape, index, pressure: p,
+          tone: toneSample < .73 ? 0 : toneSample < .94 ? 1 : 2,
+          width: 2.1 + p * 3.9 + rand(15) * 1.1,
+        });
+      }
     }
   }
   return marks;
