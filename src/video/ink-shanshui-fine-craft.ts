@@ -14,7 +14,6 @@ import type {ShanshuiScene} from "../../registry/video/ink-shanshui";
 type V=CharacterVec2;
 const n=(v:number)=>Number(v.toFixed(3));
 const vec=(x:number,y:number):V=>({x,y});
-const mix=(a:number,b:number,t:number)=>a+(b-a)*t;
 const cubic=(a:V,b:V,c:V,d:V,t:number):V=>{
   const u=1-t;
   return {x:u*u*u*a.x+3*u*u*t*b.x+3*u*t*t*c.x+t*t*t*d.x,
@@ -115,7 +114,6 @@ export function inkArt(shapes:CharacterPathShape[],
   return {kind:"shapes",width:260,height:340,shapes,
     provenance:{license:"CC0-1.0",source:label}};
 }
-const points=(text:string)=>text.replace(/\s+/g," ").trim();
 /**
  * Source character specific detail rather than generic wallpaper:
  * scholar with a lowered head, reader with a rolled manuscript, and
