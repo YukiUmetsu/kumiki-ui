@@ -83,3 +83,24 @@ export function risoSecondSheetArtworks(aspect: RisoAspect): Record<string, Riso
     </g>,
   };
 }
+
+
+/** Text-free spot-ink impression for transitions: ink contact is constrained to
+ * the visual subject. Editorial captions and approval stamps never double-print
+ * on a different poster while the incoming sheet is travelling.
+ */
+export function risoSecondSheetImprintArt(aspect: RisoAspect): RisoArtwork {
+  const hero = aspect === "portrait" ? "translate(-425 366)" : "";
+  return paint => <g transform={hero} fill={paint.solid}>
+    <circle cx={736} cy={243} r={108} fill={paint.dots} opacity=".9"/>
+    <circle cx={736} cy={243} r={92} fill="none" stroke={paint.solid} strokeWidth={3}/>
+    <path d="M579 123 C610 163 603 186 630 210 S687 245 694 282 S756 327 799 370"
+      fill="none" stroke={paint.solid} strokeWidth={3.5} strokeDasharray="3 16" strokeLinecap="round"/>
+    <path d="M636 208 C618 236 600 258 568 268 S526 288 498 329"
+      fill="none" stroke={paint.solid} strokeWidth={3} strokeDasharray="10 15"/>
+    <path d="M696 282 C733 259 775 242 808 210"
+      fill="none" stroke={paint.solid} strokeWidth={3} strokeDasharray="3 10"/>
+    <path d="M697 116 l12 28 -24 -7z M845 354 l22 10 -23 11z"/>
+    <circle cx={867} cy={154} r={4.5}/><circle cx={701} cy={403} r={4}/>
+  </g>;
+}
