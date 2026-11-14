@@ -1,24 +1,25 @@
-name: One-time RISO9 ArtCraft illustration and Storybook proof
-# Delete after visual qualification. Routine CI remains changed-tests-only.
+name: One-time RISO10 single-folder Storybook verification
+# Temporary PR proof; restore manual-only after evidence review.
 on:
   pull_request:
     branches: [main]
     paths:
-      - "src/video/riso-character-demo.tsx"
-      - "src/video/riso-character-mesh-sheets.ts"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "src/video/film-looks.stories.tsx"
       - "src/video/riso-artcraft-studies.stories.tsx"
-      - "tests/riso-artcraft-characters.test.tsx"
-      - "tests/e2e-storybook/riso-artcraft-studies.spec.ts"
+      - "tests/riso-storybook-navigation.test.ts"
+      - "tests/e2e-storybook/riso-film-looks.spec.ts"
+      - "tests/e2e-storybook/riso-storybook-smoke.spec.ts"
       - ".github/workflows/riso9-artcraft-proof.yml"
 permissions:
   contents: read
 concurrency:
-  group: riso9-artcraft-${{ github.ref }}
+  group: riso10-single-folder
   cancel-in-progress: true
 jobs:
-  artcraft-real-render:
+  risograph-storybook-proof:
     runs-on: ubuntu-latest
-    timeout-minutes: 22
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,21 +27,21 @@ jobs:
           node-version: "24.15.0"
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Source type safety and affected Riso character tests
+      - name: Source type safety and Risograph navigation contracts
         run: |
           npm run typecheck
-          npx vitest run --project unit tests/riso-artcraft-characters.test.tsx tests/riso-character-model-sheets.test.tsx tests/riso-fine-mesh.test.ts tests/riso-character.test.tsx tests/riso-opaque-characters.test.tsx tests/riso-source-contour.test.ts
+          npx vitest run --project unit tests/riso-storybook-navigation.test.ts tests/riso-artcraft-characters.test.tsx tests/riso-character-model-sheets.test.tsx
       - name: Production Storybook build
         run: npm run build-storybook
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: ArtCraft reference-led closeups and original character sheets
-        run: npx playwright test -c playwright.storybook.config.ts --timeout=90000 tests/e2e-storybook/riso-artcraft-studies.spec.ts tests/e2e-storybook/riso-character-model-sheets.spec.ts tests/e2e-storybook/riso-storybook-smoke.spec.ts
-      - name: Preserve actual rendered previews and SVG exports
+      - name: Verify every Risograph story, printing studio and ArtCraft detail
+        run: npx playwright test -c playwright.storybook.config.ts --timeout=90000 tests/e2e-storybook/riso-film-looks.spec.ts tests/e2e-storybook/riso-storybook-smoke.spec.ts tests/e2e-storybook/riso-artcraft-studies.spec.ts
+      - name: Preserve actual rendered Risograph evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: riso9-artcraft-visual-craft-evidence
+          name: riso10-single-folder-storybook-evidence
           path: test-results/
           retention-days: 7
           if-no-files-found: warn
