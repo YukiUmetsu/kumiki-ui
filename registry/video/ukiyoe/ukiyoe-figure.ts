@@ -8,7 +8,7 @@
  * Origin: ground point between the feet. The figure is authored facing right and mirrored for left.
  */
 import type { Pt } from "./ukiyoe-core";
-import { add, carvedLine, clamp, clamp01, DEG, ease, hash01, lerp, noise1, polar, polyD, quad, smooth, smoothD, span } from "./ukiyoe-core";
+import { add, alongPath, carvedLine, clamp, clamp01, DEG, ease, hash01, lerp, noise1, polar, polyD, polylineLength, quad, smooth, smoothD, span } from "./ukiyoe-core";
 import type { Prim, UkiyoePattern } from "./ukiyoe-prims";
 import { circleD, ellipseD } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
@@ -71,6 +71,8 @@ export interface UkiyoeAction {
   /** walk/run: local x to travel to (relative to the node origin); optional y for slopes and bridges. */
   to?: number;
   toY?: number;
+  /** walk/run: waypoints `[x, y]` to pass through on the way (pier edge, step down into a boat, bridge crown). */
+  via?: readonly (readonly [number, number])[];
   /** point/hold/look: angle in degrees. bow: depth in degrees. */
   angle?: number;
   amount?: number;
@@ -104,20 +106,22 @@ const KEYS = Object.keys(STAND) as (keyof FigurePose)[];
 
 const TRAVEL = new Set<UkiyoeActionType>(["walk", "run"]);
 /** Root offset at a frame from the walk/run actions (each starts where the previous left off). */
-export function travelAt(actions: readonly UkiyoeAction[], frame: number): { x: number; y: number; moving?: UkiyoeAction; from: Pt; dir: number } {
-  let x = 0, y = 0, moving: UkiyoeAction | undefined, from: Pt = [0, 0], dir = 0;
+export function travelAt(actions: readonly UkiyoeAction[], frame: number): { x: number; y: number; moving?: UkiyoeAction; from: Pt; dir: number; dist: number } {
+  let x = 0, y = 0, moving: UkiyoeAction | undefined, from: Pt = [0, 0], dir = 0, dist = 0;
   for (const a of actions) {
     if (!TRAVEL.has(a.type) || a.start > frame) continue;
     const tx = a.to ?? x, ty = a.toY ?? y, len = Math.max(1, a.end - a.start);
     const u = clamp01((frame - a.start) / len);
     // Short acceleration and deceleration; constant pace in between (no floaty ease on a walk).
     const accel = Math.min(.2, 10 / len), e = u < accel ? u * u / (2 * accel * (1 - accel)) : u > 1 - accel ? 1 - (1 - u) ** 2 / (2 * accel * (1 - accel)) : (u - accel / 2) / (1 - accel);
+    // The path runs through any `via` waypoints at an even pace, so feet follow piers, gangways, steps and slopes.
+    const path: Pt[] = [[x, y], ...(a.via ?? []), [tx, ty]], total = polylineLength(path);
     from = [x, y];
     dir = Math.sign(tx - x) || dir;
-    if (frame <= a.end) { moving = a; x = lerp(x, tx, e); y = lerp(y, ty, e); break; }
-    x = tx; y = ty;
+    if (frame <= a.end) { moving = a; dist = total * e; [x, y] = alongPath(path, dist); break; }
+    x = tx; y = ty; dist = total;
   }
-  return { x, y, moving, from, dir };
+  return { x, y, moving, from, dir, dist };
 }
 
 /** Facing at a frame: walking sets it from the travel direction; `turn` flips it at the action's midpoint. */
@@ -157,8 +161,7 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
     switch (a.type) {
       case "walk": case "run": {
         const run = a.type === "run", cycle = height * (run ? 1.25 : .62) * (a.amount ?? 1);
-        const dist = Math.hypot(tr.x - tr.from[0], tr.y - tr.from[1]);
-        const ph = (tr.moving === a ? dist : Math.abs((a.to ?? 0) - tr.from[0])) / cycle * Math.PI * 2;
+        const ph = tr.dist / cycle * Math.PI * 2;
         const A = run ? 30 : 17, s = Math.sin(ph), c = Math.cos(ph);
         target.hipF = A * s + 2; target.hipB = -A * s + 2;
         // The leg swinging forward bends its knee; the stance leg stays nearly straight.
@@ -182,9 +185,12 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
       case "look": target.tilt = a.angle ?? -8; if (a.back) target.headBack = 1; break;
       case "kneel": target.kneel = 1; target.lean = 6; target.shF = 22; target.elF = 50; target.shB = 12; target.elB = 40; break;
       case "pole": {
-        const c2 = Math.sin(t / 22 * Math.PI);
-        target.lean = 14 + 12 * c2; target.shF = 40 + 25 * c2; target.elF = 40 - 20 * c2; target.shB = 70 + 20 * c2; target.elB = 30;
-        target.hipF = 14 + 6 * c2; target.knF = 18; target.hipB = -16 - 6 * c2; target.knB = 6; target.propAngle = -24 - 16 * c2;
+        // One stroke every 44 frames: plant the pole ahead, lean into it as the boat slides past (the pole foot stays
+        // put, so the shaft swings back), then lift and reach forward again. Pair with a `surge` loop on the boat
+        // (same start, period 44) so the hull speeds up on each push.
+        const c2 = Math.sin(t / 22 * Math.PI), lift = Math.max(0, -Math.cos(t / 22 * Math.PI));
+        target.lean = 12 + 12 * c2; target.shF = 46 + 22 * c2 + 10 * lift; target.elF = 46 - 22 * c2; target.shB = 72 + 18 * c2 + 12 * lift; target.elB = 34;
+        target.hipF = 14 + 7 * c2; target.knF = 18; target.hipB = -16 - 7 * c2; target.knB = 6; target.propAngle = 31 + 23 * c2;
         break;
       }
       case "row": { const c2 = Math.sin(t / 18 * Math.PI); target.lean = 8 + 10 * c2; target.shF = 60 + 25 * c2; target.elF = 30; target.shB = 55 + 25 * c2; target.elB = 30; target.hipF = 16; target.hipB = -14; target.knF = 12; target.propAngle = c2 * 14; break; }

@@ -6,6 +6,8 @@ import { CrayonScene } from "../../registry/video/materials/crayon-scene-react";
 import { assertCrayonScene } from "../../registry/video/materials/crayon-scene";
 import { crayonPerformanceScene } from "../video/crayon-performance-fixtures";
 import { crayonDragonVillageScene } from "../video/crayon-dragon-village-fixtures";
+import { crayonWildlifePortraitScene } from "../video/crayon-wildlife-portrait-fixtures";
+import type { CrayonWildlifePortraitOptions } from "../video/crayon-wildlife-portrait-fixtures";
 import type { CrayonDragonVillageOptions } from "../video/crayon-dragon-village-fixtures";
 import { WetStudyPage, wetPaperDemo } from "../video/watercolour-wet-paper-demo";
 import { WatercolourMasterStudyPage, watercolourStudySpec, WATERCOLOUR_STUDIES } from "../video/watercolour-master-studies";
@@ -719,19 +721,23 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
       case "crayon-character-film": {
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const subject = props.subject;
-        if (subject !== "performance" && subject !== "dragon-village")
-          throw new RangeError("crayon-character-film subject must be performance or dragon-village");
+        if (subject !== "performance" && subject !== "dragon-village" && subject !== "wildlife-hare")
+          throw new RangeError("crayon-character-film subject must be performance, dragon-village or wildlife-hare");
         const rawOptions = props.options;
         if (rawOptions !== undefined && (
-          subject !== "dragon-village" || !rawOptions || Array.isArray(rawOptions) ||
+          subject === "performance" || !rawOptions || Array.isArray(rawOptions) ||
           typeof rawOptions !== "object"))
           throw new RangeError("crayon-character-film options apply only to dragon-village as an object");
-        const allowed = ["wingPower","detail","followThrough","redrawStrength",
-          "exposureFrames","cast","palette","shot"];
+        const allowed = subject === "wildlife-hare"
+          ? ["detail","earMotion"]
+          : ["wingPower","detail","followThrough","redrawStrength",
+            "exposureFrames","cast","palette","shot"];
         if (rawOptions && Object.keys(rawOptions).some(key=>!allowed.includes(key)))
           throw new RangeError("crayon-character-film options contain an unknown field");
         const scene = subject === "performance" ? crayonPerformanceScene(aspect) :
-          crayonDragonVillageScene(aspect, rawOptions as Partial<CrayonDragonVillageOptions> | undefined);
+          subject === "wildlife-hare"
+            ? crayonWildlifePortraitScene(aspect, rawOptions as CrayonWildlifePortraitOptions | undefined)
+            : crayonDragonVillageScene(aspect, rawOptions as Partial<CrayonDragonVillageOptions> | undefined);
         if (scene.width !== context.width || scene.height !== context.height ||
           scene.durationFrames !== context.durationFrames)
           throw new RangeError("crayon-character-film dimensions and duration must match the FilmStage shot");

@@ -45,6 +45,19 @@ The owner asked for the wave and Fuji to look like Hokusai's *Under the Wave off
 
 Engine changes: the wave motif was rebuilt with that anatomy, `mountain` defaults to this Fuji, `sky` gained `style: "horizon"`, and the karazuri emboss became highlight-only so large white fills no longer grey. In the squall shot the wave now curls over the ferry with a small Fuji in the trough. This is a homage to a public-domain technique and look, not a tracing: the silhouettes are parametric and the composition is our own.
 
+## Boats and foam pass (owner feedback, 2026-11-14)
+
+The owner watched the film and reported four problems. Each was confirmed by tracking the boat's transform frame by frame before fixing it.
+
+| Reported | Measured cause | Fix |
+| --- | --- | --- |
+| People walked in the air getting on and off the boats | The ferry was moored 300–500 px from the pier, and passengers walked a straight line across the gap | The ferry lies alongside the landing stage. Passengers walk the pier and step down via a waypoint. Nobody moves until the hull is at rest |
+| The ferryman worked but the boat sometimes did not advance | Shots opened with a slow ease-in from rest (about 30 frames of no motion), and the boat sat still for 50 frames after the wave | Mid-crossing shots start at full speed; from rest the hull gathers way within the first push; a `surge` loop ties speed to each stroke |
+| The wave did not affect the boat convincingly | The boat only rocked on a fixed loop next to the wave | The boat `ride`s the wave: drawn in, lifted and pitched up the face, held as the crest breaks, then carried back down. Largest per-frame step is now 6 px sideways, 8 px down and 1.4° of pitch (it was 14 px, 23 px and 5.7°) |
+| The wave still did not look like the print | Foam was two rows of single hooks | Foam is now a lace of small hooked hands in layered tiers with indigo outlines and pale-blue shadow, cascading from the lip; flecks cluster on the lighter bands |
+
+The print's own boats are the model for the squall: long hulls pitched steeply on the face under the claw of foam, with the crew crouched low. Ours carries its own cast and composition.
+
 ## Folktale creatures (owner request, 2026-11-14)
 
 Motifs common to Japanese folktales and their prints: kitsune and the fox wedding (*kitsune no yomeiri*, foxes under a sun-shower with foxfire, *kitsunebi*), tanuki (the drumming, sake-carrying folk tanuki), shape-shifting (*henge*), oni (red and blue, horns, tiger-skin loincloth, iron club), Momotarō's peach and companions (dog, pheasant), cranes, dragons chasing the flaming pearl, and rice paddies. All are public-domain folklore. The rigs and the "Peach and the Oni" story are original work.
@@ -53,7 +66,7 @@ Motifs common to Japanese folktales and their prints: kitsune and the fox weddin
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
 - Faces are a single profile design per hairstyle. There are no three-quarter turns or expressive brow and eye shapes yet.
-- The wave's claws are procedural and less intricate than Hokusai's carved foam: there is no recursive claw-in-claw detail and no foam lace on the back.
+- The wave's foam is procedural. It has the print's layered hooked hands, but not its hand-drawn variety: every hand is built from the same palm-and-talon unit, and the back of the wave carries no foam lace.
 - Creature drawing is simpler than print animals (fur is hatch strokes, not carved texture), and there is no monkey, horse or kappa rig yet.
 - No soundtrack yet (shakuhachi and koto beds, rain and surf foley).
 - Human normal-speed review of the film has **not** been recorded.
