@@ -4,6 +4,7 @@ import type {Meta,StoryObj} from "@storybook/react-vite";
 import {shanshuiBodyFit} from "./ink-shanshui-full-body";
 import {shanshuiFaceAssets} from "./ink-shanshui-face-plates";
 import {READER_FACE_LANDMARKS} from "./ink-shanshui-reader-face";
+import {READER_CROWN_STRUCTURE,readerCrownRegions} from "./ink-shanshui-reader-crown";
 type Eyes="open"|"soft"|"closed";
 type Mouth="rest"|"aa"|"oh"|"mm"|"smile";
 const palette:Record<string,string>={
@@ -17,6 +18,7 @@ function ReaderFaceStudio(){
   const [eyes,setEyes]=useState<Eyes>("soft");
   const [mouth,setMouth]=useState<Mouth>("rest");
   const [showPoints,setShowPoints]=useState(false);
+  const [crownRegion,setCrownRegion]=useState("all");
   const [source,setSource]=useState<string|undefined>();
   const [error,setError]=useState<string|undefined>();
   useEffect(()=>()=>{if(source)URL.revokeObjectURL(source)},[source]);
@@ -28,6 +30,7 @@ function ReaderFaceStudio(){
     setError(undefined);setSource(URL.createObjectURL(file));
   };
   const parts=shanshuiFaceAssets("river-scholar",detail);
+  const crown=readerCrownRegions(detail);
   const fit=shanshuiBodyFit("river-scholar");
   const pose=(rest:{x?:number;y?:number;rotation?:number;
     scaleX?:number;scaleY?:number},pivotX:number,pivotY:number)=>
@@ -103,6 +106,14 @@ function ReaderFaceStudio(){
           onChange={e=>setShowPoints(e.target.checked)}/>
         Show portrait landmarks
       </label>
+      <label style={{display:"grid",gap:5}}>Crown structural region
+        <select aria-label="Crown structural region" value={crownRegion}
+          style={style} onChange={e=>setCrownRegion(e.target.value)}>
+          <option value="all">Entire crown · all connected regions</option>
+          {READER_CROWN_STRUCTURE.map(r=>
+            <option key={r.id} value={r.id}>{r.id}</option>)}
+        </select>
+      </label>
       <label style={{display:"grid",gap:5}}>
         Reference image (local only)
         <input type="file" aria-label="Load scroll reader teacher image"
@@ -156,6 +167,30 @@ function ReaderFaceStudio(){
               </g>)}
           </g>
         </svg>
+      </section>
+      <section>
+        <h2 style={{font:"500 18px Georgia,serif"}}>
+          ArtCraft · isolated nine-region crown construction
+        </h2>
+        <svg data-testid="reader-crown-artcraft" role="img"
+          aria-label="Source-driven reader cap construction with inspectable regions"
+          viewBox="36 24 146 112" style={box}>
+          {Object.entries(crown).map(([key,marks])=>
+            <g key={key} data-km-reader-crown-region={key}
+              opacity={crownRegion==="all"||crownRegion===key?1:.13}>
+              {marks.map((shape,i)=><path key={i}
+                d={shape.d} fill={colour(shape.fill)}
+                stroke={colour(shape.stroke)}
+                strokeWidth={shape.strokeWidth??1}
+                opacity={shape.opacity??1}
+                strokeLinecap="round" strokeLinejoin="round"/>)}
+            </g>)}
+        </svg>
+        <p style={{fontSize:12,color:"#715d48"}}>
+          Nine named contour groups follow the teacher's actual overlapped
+          cloth masses, brow-band slope and two left-falling silk tails.
+          Changing a region highlights its exact source-derived SVG art.
+        </p>
       </section>
     </div>
     <p style={{fontSize:12,color:"#76614a",maxWidth:1100}}>
