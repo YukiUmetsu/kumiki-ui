@@ -28,6 +28,12 @@ function sky(p: P, c: MotifContext): Prim[] {
   const out: Prim[] = [
     { t: "fill", d: rectD(0, 0, w, h), fill: { type: "linear", angle: 90, stops: [[0, mid, mid === "paper" ? 0 : 1], [1, mid, mid === "paper" ? 0 : 1]] }, grain: mid === "paper" ? 0 : .6 },
   ];
+  if (str(p, "style", "band") === "horizon") {
+    // The great-wave sky: bare paper above, a grey bokashi deepening toward the horizon (at `horizonAt` of the height).
+    const at = clamp01(num(p, "horizonAt", .85)), grey = paint(p, "top", "usuzumi");
+    out.push({ t: "fill", d: rectD(0, 0, w, h), grain: .9, fill: { type: "linear", angle: 90, stops: [[0, grey, 0], [at * .45, grey, .08], [at * .8, grey, .55], [at, grey, .85], [1, grey, .85]] } });
+    return out;
+  }
   if (glow) out.push({ t: "fill", d: rectD(0, 0, w, h), grain: .4, fill: { type: "linear", angle: 90, stops: [[0, glow, 0], [.55, glow, 0], [.86, glow, .62], [1, glow, .82]] } });
   out.push({ t: "fill", d: rectD(0, 0, w, h), grain: .9, fill: { type: "linear", angle: 90, stops: [[0, top, 1], [band * .45, top, .96], [band, top, .5], [band * 1.55, top, 0]] } });
   const storm = clamp01(num(p, "storm", 0));
@@ -67,7 +73,54 @@ function mountainProfile(p: P, seed: number): Pt[] {
   return pts;
 }
 
+/**
+ * The great-wave Fuji: an almost-straight cone, mostly white snow, with blue "flames" of bare rock rising into the
+ * snow from a dark base, scattered flecks either side of the line, a notched summit and a fine dark outline.
+ */
+function fujiHokusai(p: P, c: MotifContext): Prim[] {
+  const w = num(p, "width", 600), h = num(p, "height", 280), color = paint(p, "color", "bero"), seed = c.seed + num(p, "variant", 0) * 97;
+  const line = clamp01(num(p, "snowLine", .32)), top = .045;
+  const prof: Pt[] = [[-w / 2, 0]];
+  for (let i = 0; i <= 40; i++) {
+    const t = i / 40, x = -w / 2 + w * (.5 - top) * t;
+    prof.push([x, -h * (t ** 1.08) * (1 + .01 * noise1(seed, i))]);
+  }
+  for (let i = 0; i <= 6; i++) prof.push([-w * top + w * 2 * top * i / 6, -h - (i % 2 ? h * .012 : 0) - (i === 3 ? h * .006 : 0)]);
+  for (let i = 40; i >= 0; i--) {
+    const t = i / 40, x = w / 2 - w * (.5 - top) * t;
+    prof.push([x, -h * (t ** 1.08) * (1 + .01 * noise1(seed + 3, i))]);
+  }
+  const outline = smoothD(prof, true, .2);
+  const out: Prim[] = [{ t: "fill", d: outline, fill: { type: "linear", angle: 0, stops: [[0, "gofun", 1], [.6, "gofun", 1], [1, "sora", .55]] }, emboss: true }];
+  // Rock flames: a jagged boundary of tall and short points rising from the base band.
+  const flames: Pt[] = [[-w * .62, 4], [-w * .62, -h * line * .6]];
+  const n = Math.round(num(p, "flames", 15));
+  // Irregular spacing: a few broad rock faces, many narrow flames.
+  const steps = Array.from({ length: n * 2 + 1 }, (_, i) => .4 + 1.4 * hash01(seed, i, 11) ** 2);
+  const total = steps.reduce((a, b) => a + b, 0);
+  let acc = 0;
+  for (let i = 0; i <= n * 2; i++) {
+    acc += steps[i];
+    const t = acc / total, x = -w * .5 + w * t, peak = i % 2 === 1;
+    const edge = h * (1 - Math.abs(x) / (w / 2)) * 1.0;
+    const hgt = peak ? h * line * (.75 + .9 * hash01(seed, i, 1) ** 1.4) : h * line * (.35 + .25 * hash01(seed, i, 2));
+    flames.push([x + hashSigned(seed, i, 3) * w * .012, -Math.min(edge * .95, hgt)]);
+  }
+  flames.push([w * .62, -h * line * .6], [w * .62, 4]);
+  const rock: Prim[] = [{ t: "fill", d: smoothD(flames, true, .12), fill: { type: "linear", angle: 90, stops: [[0, color, 1], [1, "ai", 1]] }, grain: .6 }];
+  const flecks: string[] = [];
+  for (let i = 0; i < 40; i++) {
+    const x = hashSigned(seed, i, 7) * w * .38, y = -h * line * (.6 + 1.1 * hash01(seed, i, 8)), r = 1.2 + 2.6 * hash01(seed, i, 9) ** 2;
+    if (-y < h * (1 - Math.abs(x) / (w / 2)) * .92) flecks.push(circleD(x, y, r));
+  }
+  rock.push({ t: "dots", d: flecks.join(""), color });
+  out.push({ t: "clip", d: outline, prims: rock, key: "fuji-rock" });
+  out.push({ t: "fill", d: outline, fill: "gofun", opacity: 0, outline: 1.6, outlineColor: "sumi" });
+  return out;
+}
+
 function mountain(p: P, c: MotifContext): Prim[] {
+  if (str(p, "style", "hokusai") === "hokusai" && num(p, "peaks", 1) === 1) return fujiHokusai(p, c);
   const h = num(p, "height", 420), color = paint(p, "color", "bero"), snow = clamp01(num(p, "snow", .3));
   const seed = c.seed + num(p, "variant", 0) * 97, prof = mountainProfile(p, seed);
   const mist = clamp01(num(p, "mist", .35)), shade = clamp01(num(p, "shade", .28));
@@ -179,18 +232,40 @@ function sea(p: P, c: MotifContext): Prim[] {
 // ---- Great wave -----------------------------------------------------------------------------------------------------------------------
 
 // Normalised silhouette of a towering wave curling left (x in widths from the centre, y in heights, up negative).
-const WAVE_BACK: readonly Pt[] = [[.5, 0], [.36, -.04], [.24, -.13], [.15, -.28], [.08, -.48], [.02, -.68], [-.05, -.84], [-.13, -.95], [-.22, -1]];
-const WAVE_LIP: readonly Pt[] = [[-.31, -.99], [-.39, -.93], [-.45, -.83], [-.47, -.71], [-.45, -.61]];
-const WAVE_UNDER: readonly Pt[] = [[-.41, -.63], [-.4, -.72], [-.36, -.79], [-.3, -.82], [-.24, -.79], [-.2, -.7]];
+const WAVE_BACK: readonly Pt[] = [[.5, 0], [.43, -.08], [.35, -.2], [.26, -.37], [.17, -.56], [.08, -.75], [-.02, -.89], [-.11, -.97], [-.21, -1]];
+const WAVE_LIP: readonly Pt[] = [[-.3, -.995], [-.38, -.95], [-.44, -.86], [-.47, -.75], [-.46, -.64]];
+const WAVE_UNDER: readonly Pt[] = [[-.42, -.62], [-.4, -.71], [-.36, -.78], [-.3, -.81], [-.24, -.78], [-.2, -.7]];
 const WAVE_FRONT: readonly Pt[] = [[-.19, -.55], [-.21, -.38], [-.27, -.22], [-.36, -.1], [-.5, -.03]];
+/** Where the white back of the wave meets its deep-blue inner face, from the crest down to the trough. */
+const WAVE_RIDGE: readonly Pt[] = [[-.19, -.97], [-.12, -.88], [-.07, -.72], [-.03, -.54], [.01, -.35], [.04, -.17], [.06, 0]];
 
 /**
- * A breaking wave with clawed foam, curling left (flip the node for right). `progress` 0 → 1 raises a swell into the
- * curled crest; `breakAt` (frame) starts the collapse: the lip drops, the crest falls, foam boils and spray flies.
+ * One foam claw: a fat white root that reaches out and hooks over at the tip, as the carved foam of the great-wave
+ * prints. `turn` sets which way the hook curls (-1 counter-clockwise on screen, +1 clockwise).
+ */
+function claw(base: Pt, angle: number, size: number, turn: number, wobble: number): { spine: Pt[]; d: string } {
+  // Reach out almost straight for the first half, then roll the tip over into a tight hook (~210°).
+  const spine: Pt[] = [base];
+  let a = angle, at = base;
+  const n = 22;
+  for (let j = 0; j < n; j++) {
+    const t = j / (n - 1);
+    at = polar(at, a, size / n * (1.3 - .8 * t));
+    spine.push(at);
+    a += turn * (3 + 22 * t ** 1.5) + wobble * (t - .5) * 1.5;
+  }
+  return { spine, d: carvedLine(spine, size * .15, { taper: "end", minRatio: .02, wobble: .1, smooth: true, seed: Math.round(size * 7 + angle) }) };
+}
+
+/**
+ * A breaking wave in the manner of the great-wave prints, curling left (flip the node for right). The back is white
+ * foam edged with a fine indigo line; the inner face is Prussian blue with lighter bands and snow-like flecks; rows of
+ * hooked claws (each sprouting smaller claws) run down the ridge and hang from the lip over pale-blue shadow.
+ * `progress` 0 → 1 raises a swell into the curled crest; `breakAt` (frame) collapses it with boiling foam and spray.
  */
 function wave(p: P, c: MotifContext): Prim[] {
   const W = num(p, "width", 1100), Hmax = num(p, "height", 560), seed = c.seed + num(p, "variant", 0) * 17;
-  const color = paint(p, "color", "bero"), light = paint(p, "light", "sora"), foamC = paint(p, "foam", "gofun");
+  const deep = paint(p, "color", "bero"), mid = paint(p, "light", "sora"), pale = paint(p, "pale", "sora"), foamC = paint(p, "foam", "gofun"), lineC = paint(p, "line", "ai");
   const rise = ease("inOut", clamp01(c.progress));
   const breakAt = typeof p.breakAt === "number" ? p.breakAt as number : undefined, breakDur = num(p, "breakDuration", 36);
   const crash = breakAt === undefined ? 0 : ease("in", span(c.frame, breakAt, breakAt + breakDur));
@@ -198,84 +273,112 @@ function wave(p: P, c: MotifContext): Prim[] {
   const H = Hmax * (.12 + .88 * rise) * (1 - crash * .5) * (1 + breathe);
   const curl = smooth(span(rise, .3, 1));
   const crest = WAVE_BACK[WAVE_BACK.length - 1];
-  // Before it curls, the lip and its underside fold back onto a simple peaked front.
   const mound = (i: number, n: number): Pt => [lerp(crest[0], -.3, i / n), lerp(crest[1], -.55, i / n)];
   const lipN = WAVE_LIP.length + WAVE_UNDER.length;
   const lipPts = [...WAVE_LIP, ...WAVE_UNDER].map((q, i) => {
-    const m = mound(i + 1, lipN + 1);
-    const t = i / (lipN - 1), fall = crash * (.35 + .25 * t);
+    const m = mound(i + 1, lipN + 1), t = i / (lipN - 1), fall = crash * (.35 + .25 * t);
     return [lerp(m[0], q[0], curl) - crash * .04, lerp(m[1], q[1], curl) + fall] as Pt;
   });
-  const shape: Pt[] = [...WAVE_BACK, ...lipPts, ...WAVE_FRONT.map(q => [q[0], q[1] * (1 - crash * .3)] as Pt), [-.5, 0]];
   const X = (q: Pt): Pt => [q[0] * W, q[1] * H];
-  const pts = shape.map(X);
-  const bodyD = smoothD(pts, true, .32);
-  const out: Prim[] = [{ t: "fill", d: bodyD, grain: .7, outline: 2.2, outlineColor: "ai", fill: { type: "linear", angle: 75, stops: [[0, color, 1], [.75, color, 1], [1, "ai", 1]] } }];
-  // Bands of lighter water running from the crest down the back and around the lip, clipped to the body.
-  const ridge = resample(smoothPts([...WAVE_BACK.slice(2), ...lipPts.slice(0, WAVE_LIP.length)].map(X)), 10);
+  const shape: Pt[] = [...WAVE_BACK, ...lipPts, ...WAVE_FRONT.map(q => [q[0], q[1] * (1 - crash * .3)] as Pt), [-.5, 0]];
+  const bodyD = smoothD(shape.map(X), true, .32);
+  const out: Prim[] = [{ t: "fill", d: bodyD, fill: foamC, outline: 2, outlineColor: lineC, emboss: true }];
+
+  // The deep inner face: everything forward of the ridge, clipped to the body.
+  const ridge = smoothPts(WAVE_RIDGE.map(q => [lerp(-.3, q[0], .4 + .6 * curl), q[1]] as Pt).map(X), 5);
+  const faceD = polyD([...ridge, [-.8 * W, 0], [-.8 * W, -1.3 * H], [ridge[0][0], -1.3 * H]]);
+  const inner: Prim[] = [{ t: "fill", d: faceD, fill: deep, grain: .6 }];
+  // Lighter bands following the ridge, curving round under the lip; snow flecks on the blue.
   const offset = (line: Pt[], off: number) => line.map((q, i) => {
     const a = line[Math.max(0, i - 1)], b = line[Math.min(line.length - 1, i + 1)], tx = b[0] - a[0], ty = b[1] - a[1], len = Math.hypot(tx, ty) || 1;
     return [q[0] + ty / len * off, q[1] - tx / len * off] as Pt;
   });
-  const stripes: Prim[] = [];
-  const nStripes = Math.round(num(p, "stripes", 8));
-  for (let s = 1; s <= nStripes; s++) {
-    const off = H * (.035 + .055 * s), fade = 1 - s / (nStripes + 1);
-    const line = offset(ridge, off), start = Math.round(line.length * (.05 + .25 * hash01(seed, s))), end = line.length - 1 - Math.round(line.length * (.05 + .18 * (1 - fade)));
-    if (end - start < 3) continue;
-    stripes.push({ t: "line", d: carvedLine(line.slice(start, end), H * .026 * (.5 + fade), { taper: "both", seed: seed + s, wobble: .3 }), color: light, opacity: .45 + .4 * fade });
-    stripes.push({ t: "line", d: carvedLine(offset(line, -H * .02).slice(start + 1, end - 1), H * .006, { taper: "both", seed: seed + s * 3 }), color: foamC, opacity: .8 * fade });
+  const bands = Math.round(num(p, "stripes", 5));
+  for (let s = 0; s < bands; s++) {
+    const line = offset(ridge, -W * (.035 + .055 * s)).map((q, i, all) => [q[0] - Math.sin(i / all.length * Math.PI) * W * .02 * s, q[1]] as Pt);
+    const from = Math.round(line.length * (.04 + .06 * s)), to = line.length - Math.round(line.length * (.06 + .03 * s));
+    if (to - from < 3) continue;
+    inner.push({ t: "line", d: carvedLine(line.slice(from, to), W * (.026 - .002 * s), { taper: "both", seed: seed + s, wobble: .25 }), color: mid, opacity: .5 });
   }
-  out.push({ t: "clip", d: bodyD, prims: stripes, key: "wave-stripes" });
-  // Foam crest: a white rim along the top of the back and the outside of the lip.
-  const rim = resample(smoothPts([...WAVE_BACK.slice(-4), ...lipPts.slice(0, WAVE_LIP.length)].map(X)), 8);
-  const rimIn = rim.map((q, i) => {
-    const a = rim[Math.max(0, i - 1)], b = rim[Math.min(rim.length - 1, i + 1)], tx = b[0] - a[0], ty = b[1] - a[1], len = Math.hypot(tx, ty) || 1;
-    const u = i / (rim.length - 1), depth = H * (.015 + .05 * Math.sin(Math.PI * Math.min(1, u * 1.15)) ** .6) * (1 + .3 * noise1(seed + 4, i / 3)) * (1 + crash * 1.5);
+  // The crest itself is white foam: a rim band inside the outer edge of the back's top and the whole lip.
+  const rimEdge = smoothPts([...WAVE_BACK.slice(-4), ...lipPts.slice(0, WAVE_LIP.length)].map(X), 6);
+  const rimIn = rimEdge.map((q, i) => {
+    const a = rimEdge[Math.max(0, i - 1)], b = rimEdge[Math.min(rimEdge.length - 1, i + 1)], tx = b[0] - a[0], ty = b[1] - a[1], len = Math.hypot(tx, ty) || 1;
+    const u = i / (rimEdge.length - 1), depth = H * (.03 + .05 * Math.sin(Math.PI * Math.min(1, u * 1.1)) ** .6) * (1 + .3 * noise1(seed + 9, i / 4));
     return [q[0] + ty / len * depth, q[1] - tx / len * depth] as Pt;
   });
-  out.push({ t: "fill", d: smoothD([...rim, ...rimIn.reverse()], true, .3), fill: foamC, outline: 1.2, outlineColor: color, emboss: true });
-  // Claws: fingers of foam along the lip, reaching outward and hooking over at the tips; denser toward the lip's end.
-  const claws = Math.round(num(p, "claws", 26) * (.2 + .8 * curl));
-  const fingers: string[] = [];
-  for (let k = 0; k < claws; k++) {
-    const u = .12 + .88 * ((k + .5) / claws) ** .85, idx = Math.min(rim.length - 2, Math.floor(u * (rim.length - 1)));
-    const q = rim[idx], nx = rim[idx + 1];
-    // Outward from the lip but swept toward the wave's travel (left), so every finger reaches forward.
-    const tl = Math.hypot(nx[0] - q[0], nx[1] - q[1]) || 1, nrm: Pt = [-(nx[1] - q[1]) / tl, (nx[0] - q[0]) / tl];
-    const ang = Math.atan2(nrm[1] + .1, nrm[0] - .55) / DEG + hashSigned(seed, k, 3) * 10;
-    const len = H * (.07 + .12 * Math.sin(Math.PI * Math.min(1, u * 1.1)) ** .7) * (.65 + .6 * hash01(seed, k)) * (1 + crash * .6);
-    const sway = Math.sin(c.frame / 6 + k * 1.7) * 5;
-    // A claw: straight-ish at the root, hooking hard at the tip like a curled finger.
-    const finger = (from: Pt, a0: number, l: number, hook: number): Pt[] => {
-      const pts: Pt[] = [from];
-      let a = a0, at = from;
-      for (let j = 0; j < 14; j++) { at = polar(at, a, l / 14 * (1 - j * .03)); pts.push(at); a -= hook / 4 * (j / 13) ** 2; }
-      return pts;
-    };
-    const main = finger(q, ang + sway, len, 150 + 60 * curl);
-    fingers.push(carvedLine(main, H * .017 * (.75 + .25 * Math.sin(Math.PI * u)), { taper: "end", seed: seed + k, minRatio: .05 }));
-    const twigs = hash01(seed, k, 9) < .65 ? 2 : 1;
-    for (let t = 0; t < twigs; t++) {
-      const from = main[4 + t * 3];
-      fingers.push(carvedLine(finger(from, ang + sway - 34 - t * 18, len * (.42 - t * .1), 170), H * .01, { taper: "end", seed: seed + k * 7 + t, minRatio: .05 }));
+  const rimD = smoothD([...rimEdge, ...rimIn.slice().reverse()], true, .35);
+  const flecks: string[] = [];
+  const nFleck = Math.round(140 * curl);
+  for (let i = 0; i < nFleck; i++) {
+    const u = hash01(seed, i, 1), q = ridge[Math.floor(u * (ridge.length - 1))];
+    const x = q[0] - W * (.02 + .3 * hash01(seed, i, 2) ** 1.4), y = q[1] + hashSigned(seed, i, 3) * H * .04;
+    const r = W * (.002 + .005 * hash01(seed, i, 4) ** 2), k = 3 + Math.floor(hash01(seed, i, 5) * 3), pts: Pt[] = [];
+    for (let v = 0; v < k; v++) pts.push(polar([x, y], v * 360 / k + hash01(seed, i, v + 6) * 50, r * (.7 + .6 * hash01(seed, i, v + 9))));
+    flecks.push(polyD(pts));
+  }
+  if (flecks.length) inner.push({ t: "fill", d: flecks.join(""), fill: foamC, noPrint: true });
+  // On the white back: a pale-blue wash along the ridge and a few fine indigo contour lines.
+  inner.unshift({ t: "line", d: carvedLine(offset(ridge, W * .045), W * .07, { taper: "both", seed: seed + 41 }), color: pale, opacity: .55 });
+  for (let s = 1; s <= 3; s++) inner.unshift({ t: "line", d: carvedLine(offset(ridge, W * (.08 + .07 * s)).slice(2 + s, -2 - s), 1.6, { taper: "both", seed: seed + 50 + s }), color: lineC, opacity: .45 });
+  inner.push({ t: "group", transform: `translate(${(W * .006).toFixed(1)} ${(H * .02).toFixed(1)})`, prims: [{ t: "fill", d: rimD, fill: pale, opacity: .75, noPrint: true }] });
+  inner.push({ t: "fill", d: rimD, fill: foamC });
+  out.push({ t: "clip", d: bodyD, prims: inner, key: "wave-face" });
+
+  // Claws: rows of hooked foam fingers down the ridge (reaching forward over the blue) and hanging from the lip.
+  const shadows: string[] = [], claws: string[] = [];
+  const addClaw = (base: Pt, angle: number, size: number, turn: number, k: number, depth: number) => {
+    const sway = Math.sin(c.frame / 7 + k * 1.3) * 5 * (1 + crash);
+    const cl = claw(base, angle + sway, size, turn, hashSigned(seed, k, 2));
+    claws.push(cl.d);
+    shadows.push(carvedLine(cl.spine.slice(0, 8).map(q => [q[0] + size * .06, q[1] + size * .08] as Pt), size * .36, { taper: "end", minRatio: .3 }));
+    if (depth > 0) for (let b = 0; b < 2; b++) {
+      if (hash01(seed, k, 20 + b) < .25) continue;
+      const at = cl.spine[5 + b * 5];
+      addClaw(at, angle + turn * (34 + 22 * b) + hashSigned(seed, k, 30 + b) * 12, size * (.62 - b * .14), turn, k * 7 + b + 1, depth - 1);
+    }
+  };
+  const ridgeAll = resample(rimEdge, H * .045);
+  const nR = Math.round(num(p, "claws", 18) * (.25 + .75 * curl));
+  let k = 0;
+  // Two rows along the crest and lip: big outer claws on the edge, smaller ones rooted lower in front of them.
+  for (const row of [0, 1] as const) {
+    const line = row === 0 ? rimEdge : rimIn, count = row === 0 ? nR : Math.round(nR * .8);
+    for (let i = 0; i < count; i++) {
+      const u = (i + .5 + (row ? .5 : 0)) / (count + (row ? .5 : 0)), idx = Math.min(line.length - 2, Math.floor(u * (line.length - 1)));
+      const q = line[idx], nx = line[idx + 1];
+      const tangent = Math.atan2(nx[1] - q[1], nx[0] - q[0]) / DEG;
+      const size = H * (row === 0 ? .15 + .11 * Math.sin(Math.PI * Math.min(1, u * 1.15)) ** .6 : .1 + .06 * Math.sin(Math.PI * u)) * (.75 + .5 * hash01(seed, i + row * 50, 4)) * (1 + crash * .5);
+      const ang = tangent + (row === 0 ? 62 : 38) + hashSigned(seed, i + row * 50, 5) * 16 - (u > .75 ? (u - .75) * 160 : 0);
+      addClaw(q, ang, size, -1, k++, 0);
     }
   }
-  if (fingers.length) out.push({ t: "fill", d: fingers.join(""), fill: foamC, outline: 1.1, outlineColor: color });
-  // Spray: droplets flung ahead of the lip like falling snow; a burst when it breaks.
-  const sprayAmt = clamp01(num(p, "spray", .7)), dots: string[] = [];
-  const count = Math.round(55 * sprayAmt * curl + 150 * crash);
+  // Down the ridge: claws reaching over the inner face toward the travel direction.
+  const ridgeRows = Math.round(num(p, "ridgeClaws", 6) * curl);
+  for (let i = 0; i < ridgeRows; i++) {
+    const u = .08 + .62 * i / Math.max(1, ridgeRows - 1), q = ridge[Math.floor(u * (ridge.length - 1))];
+    const size = H * (.2 - .08 * u) * (.8 + .4 * hash01(seed, i, 8));
+    addClaw([q[0] + W * .012, q[1]], 158 + hashSigned(seed, i, 9) * 22, size, -1, k++, 0);
+  }
+  if (shadows.length) out.push({ t: "fill", d: shadows.join(""), fill: pale, opacity: .7, noPrint: true });
+  // Each claw is its own block over the ones behind it, so overlapping fingers occlude instead of tangling.
+  for (const d of claws) out.push({ t: "fill", d, fill: foamC, outline: 1.3, outlineColor: lineC });
+
+  // Spray: snow-like droplets flung from the lip; a burst when it breaks.
+  const sprayAmt = clamp01(num(p, "spray", .8)), dots: string[] = [];
+  const count = Math.round(70 * sprayAmt * curl + 160 * crash);
   for (let i = 0; i < count; i++) {
-    const base = rim[Math.floor((.3 + .7 * hash01(seed, i, 1)) * (rim.length - 1))];
-    const life = (c.frame * (.5 + .7 * hash01(seed, i, 4)) / 45 + hash01(seed, i, 2)) % 1;
-    const vx = -(30 + 150 * hash01(seed, i, 3)) * (1 + crash), vy = -(20 + 80 * hash01(seed, i, 5)) * (1 + crash * 1.6);
-    dots.push(circleD(base[0] + vx * life, base[1] + vy * life + 160 * life * life, (1.6 + 3.4 * hash01(seed, i, 6)) * (1 - life * .6) * (H / Hmax + .4)));
+    const base = ridgeAll[Math.floor((.35 + .65 * hash01(seed, i, 1)) * (ridgeAll.length - 1))];
+    const life = (c.frame * (.4 + .6 * hash01(seed, i, 4)) / 50 + hash01(seed, i, 2)) % 1;
+    const vx = -(30 + 170 * hash01(seed, i, 3)) * (1 + crash), vy = -(10 + 70 * hash01(seed, i, 5)) * (1 + crash * 1.6);
+    const r = (1.6 + 3.6 * hash01(seed, i, 6) ** 2) * (1 - life * .5) * (H / Hmax + .4);
+    dots.push(circleD(base[0] + vx * life, base[1] + vy * life + 150 * life * life, r));
   }
   if (dots.length) out.push({ t: "dots", d: dots.join(""), color: foamC });
   if (crash > 0) {
     const boil: Pt[] = [];
     for (let i = 0; i <= 18; i++) { const x = lerp(-.62 * W, .05 * W, i / 18); boil.push([x, -H * .3 * crash * (.5 + .5 * Math.abs(Math.sin(i * 1.7 + c.frame / 5)))]); }
-    out.push({ t: "fill", d: smoothD([[boil[0][0], 0], ...boil, [boil[18][0], 0]], true, .6), fill: foamC, outline: 1.2, outlineColor: color, opacity: clamp01(crash * 2) });
+    out.push({ t: "fill", d: smoothD([[boil[0][0], 0], ...boil, [boil[18][0], 0]], true, .6), fill: foamC, outline: 1.2, outlineColor: lineC, opacity: clamp01(crash * 2) });
   }
   return out;
 }

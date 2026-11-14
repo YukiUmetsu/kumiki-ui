@@ -369,8 +369,9 @@ export function UkiyoeScene({ spec, frame, reducedMotion = false, proof, printPr
       <filter id={`${pre}emboss`} x="-5%" y="-5%" width="110%" height="110%">
         <feGaussianBlur in="SourceAlpha" stdDeviation={1.6} result="b" />
         <feDiffuseLighting in="b" surfaceScale={2.2} diffuseConstant={1} lightingColor="#fff" result="l"><feDistantLight azimuth={235} elevation={42} /></feDiffuseLighting>
-        <feComposite in="l" in2="SourceAlpha" operator="in" result="lit" />
-        <feComponentTransfer in="lit"><feFuncA type="linear" slope={.5} /></feComponentTransfer>
+        {/* Keep only the light-facing relief: flat paper (N·L ≈ 0.67) maps to zero alpha, so large fills never grey. */}
+        <feColorMatrix in="l" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  3 0 0 0 -2.05" result="hi" />
+        <feComposite in="hi" in2="SourceAlpha" operator="in" />
       </filter>
       <pattern id={`${pre}washi`} patternUnits="userSpaceOnUse" width={tileSize} height={tileSize}><image href={washiTexture(tone, seed, fibre)} width={tileSize} height={tileSize} /></pattern>
       <radialGradient id={`${pre}age`} cx=".5" cy=".5" r=".75"><stop offset=".55" stopColor={paintOf(ctx, "kincha")} stopOpacity={0} /><stop offset="1" stopColor={paintOf(ctx, "kincha")} stopOpacity={.32 * age} /></radialGradient>

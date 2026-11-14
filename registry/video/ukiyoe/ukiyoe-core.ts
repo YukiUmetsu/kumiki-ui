@@ -289,7 +289,7 @@ export type Taper = "both" | "start" | "end" | "none" | "swell";
  * A carved key-block line: a filled ribbon whose width swells and tapers like a line left standing by the
  * carver's knife. `wobble` adds tiny seeded irregularity so long lines are not ruler-straight.
  */
-export function carvedLine(points: readonly Pt[], width: number, options: { taper?: Taper; seed?: number; wobble?: number; minRatio?: number } = {}): string {
+export function carvedLine(points: readonly Pt[], width: number, options: { taper?: Taper; seed?: number; wobble?: number; minRatio?: number; smooth?: boolean } = {}): string {
   const pts = points.length > 2 ? points : points.length === 2 ? resample(points, Math.max(4, polylineLength(points) / 8)) : [...points];
   const n = pts.length;
   if (n < 2) return "";
@@ -313,7 +313,7 @@ export function carvedLine(points: readonly Pt[], width: number, options: { tape
     left.push([pts[i][0] - ty * hw, pts[i][1] + tx * hw]);
     right.push([pts[i][0] + ty * hw, pts[i][1] - tx * hw]);
   }
-  return polyD([...left, ...right.reverse()], true);
+  return options.smooth ? smoothD([...left, ...right.reverse()], true, .45) : polyD([...left, ...right.reverse()], true);
 }
 
 export function rotatePt(p: Pt, deg: number, about: Pt = [0, 0]): Pt {
