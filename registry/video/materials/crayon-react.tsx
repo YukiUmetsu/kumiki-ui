@@ -56,7 +56,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   // Stable painted paper / silhouette; the small reworked pigment strokes are
   // the only parts that redraw on held exposures. No mutable frame history.
   const exposure=redraw ? crayonExposureAt(frame,last,redraw,reduced) : 0;
-  const exposureStrength=redraw && (reduced||frame>=last) ? redraw.strength : 0;
+  const exposureStrength=redraw && (reduced||frame>=(redraw.beginFrame??last)) ? redraw.strength : 0;
   const redrawStrokes=useMemo(()=>crayonExposureStrokes(bounds,seed,exposure,exposureStrength),
     [bounds.x,bounds.y,bounds.width,bounds.height,seed,exposure,exposureStrength]);
   const rimDashes=useMemo(()=>edgeRoughness>0 ? crayonWaxEdgeDashes(seed,edgeRoughness) : "",
