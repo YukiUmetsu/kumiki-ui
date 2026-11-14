@@ -77,9 +77,14 @@ export function crayonWalkScene(aspect:"landscape"|"portrait"):CrayonSceneSpec {
   elements.splice(7,0,
     {kind:"connector",id:"leg-back",from:{elementId:"body",anchor:{x:-25,y:76}},
       to:{elementId:"foot-back",anchor:{x:-29,y:103}},bend:-11,
+      bendKeys:[{frame:0,bend:-5},{frame:38,bend:-6},{frame:65,bend:-28},
+        {frame:94,bend:-8},{frame:156,bend:-8},{frame:185,bend:-27},
+        {frame:214,bend:-7},{frame:269,bend:-5}],
       width:12,color:"#8b6c80",opacity:.86,timing:{start:0,end:26},poseCadence:2},
     {kind:"connector",id:"leg-front",from:{elementId:"body",anchor:{x:27,y:76}},
       to:{elementId:"foot-front",anchor:{x:31,y:103}},bend:12,
+      bendKeys:[{frame:0,bend:6},{frame:94,bend:6},{frame:124,bend:29},
+        {frame:156,bend:8},{frame:214,bend:7},{frame:269,bend:6}],
       width:12,color:"#bb766d",opacity:.92,timing:{start:0,end:26},poseCadence:2},
   );
   // Ink-tracked footprints stay in the world, not under the traveling rig.
