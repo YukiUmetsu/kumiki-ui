@@ -59,13 +59,21 @@ for(const actor of [
       await expect(meshSize).toHaveValue(String(size));
       await expect(svg).toHaveAttribute("data-km-riso-mesh-edge-length",String(size));
     };
-    await setMeshSize(18);
+    await setMeshSize(14);
     const coarse=await svg.locator("[data-km-riso-selected-source-triangle]").count();
     await setMeshSize(4);
     const fine=await svg.locator("[data-km-riso-selected-source-triangle]").count();
     expect(fine, "fine mesh should contain more smaller triangles").toBeGreaterThan(coarse);
     await svg.screenshot({path:info.outputPath(`${actor.slug}-fine-mesh.png`),animations:"disabled"});
-    await setMeshSize(7);
+    await setMeshSize(5);
+    // Stress the smallest supported mesh, then select another anatomical
+    // feature to force a re-evaluation without changing the ink silhouette.
+    await setMeshSize(2);
+    await page.getByRole("combobox",{name:"Character sheet selected region"})
+      .selectOption(actor.slug==="courier"?"mouth":"left-wing");
+    await expect(svg.locator("[data-km-riso-mesh-region]")).toHaveCount(1);
+    await expect(svg.locator("[data-km-riso-selected-source-detail]")).toHaveCount(1);
+    await setMeshSize(5);
     await svg.screenshot({path:info.outputPath(`${actor.slug}-proportion-mesh.png`),animations:"disabled"});
     const download=page.waitForEvent("download");
     await page.getByRole("button",{name:"Export SVG sheet"}).click();
