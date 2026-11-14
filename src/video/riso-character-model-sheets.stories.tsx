@@ -22,7 +22,7 @@ function CharacterSheetStudio({spec,sheet}:{
   const [category,setCategory]=useState("all");
   const svgHost=useRef<HTMLDivElement>(null);
   const report=useMemo(()=>evaluateRisoCharacterMesh(spec,sheet,frame,{
-    maxEdgeLength:edgeSize,focusRegionId:focus,
+    maxEdgeLength:edgeSize,focusRegionId:focus,maxTrianglesPerRegion:1800,
   }),[spec,sheet,frame,edgeSize,focus]);
   const selected=report.regions.find(r=>r.id===focus)!;
   const categories=[...new Set(sheet.regions.map(r=>r.category))].sort();
@@ -57,7 +57,8 @@ function CharacterSheetStudio({spec,sheet}:{
       gap:18,alignItems:"start"}}>
       <div ref={svgHost} style={{minWidth:0,boxShadow:"0 18px 38px #31455723"}}>
         <RisoCharacterModelSheet spec={spec} sheet={sheet} frame={frame}
-          selectedRegion={focus} showMesh={mesh} meshEdgeLength={edgeSize} showLabels={labels}
+          selectedRegion={focus} showMesh={mesh} meshEdgeLength={edgeSize}
+          meshTriangleBudget={1800} showLabels={labels}
           showJoints={skeleton}/>
       </div>
       <aside style={{display:"grid",gap:17,maxHeight:800,overflowY:"auto",
@@ -118,7 +119,7 @@ function CharacterSheetStudio({spec,sheet}:{
           <span data-km-riso-achieved-edge={selected.maxTriangleEdgeLength.toFixed(2)}
             style={{font:"12px ui-monospace,monospace",color:selected.refinementTargetMet?"#285C55":"#A45632"}}>
             Actual largest edge {selected.maxTriangleEdgeLength.toFixed(2)} u
-            {selected.refinementTargetMet?" · target met":" · capped at 950 cells"}
+            {selected.refinementTargetMet?" · target met":" · bounded at 1800 cells"}
           </span>
         </div>
         <div style={{borderTop:"1px solid #CBBFAD",paddingTop:12,display:"grid",gap:8}}
