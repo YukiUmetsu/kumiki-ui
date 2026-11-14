@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { PencilDrawing } from "../../registry/video/colored-pencil-react";
 import type { PencilAspect, PencilDrawingSpec, PencilRegion, PencilTrace } from "../../registry/video/colored-pencil";
 
@@ -160,7 +161,8 @@ export function ColoredPencilSciencePlate({ aspect, subject = "leaf", frame, red
   seed = 47, paperTooth = .82 }: ColoredPencilSciencePlateProps) {
   if (!Number.isFinite(paperTooth) || paperTooth < 0 || paperTooth > 1)
     throw new RangeError("paperTooth must be within 0..1.");
-  const spec = { ...coloredPencilExample(subject, aspect, seed), paperTooth };
+  const spec = useMemo(() => ({ ...coloredPencilExample(subject, aspect, seed), paperTooth }),
+    [subject, aspect, seed, paperTooth]);
   const landscape = aspect === "landscape";
   const copy = titles[subject];
   const top = landscape ? 163 : 184;
