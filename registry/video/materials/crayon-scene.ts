@@ -1,5 +1,5 @@
-import { assertCrayonOptions, crayonConstructionWindows } from "./crayon";
-import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction } from "./crayon";
+import { assertCrayonOptions, assertCrayonSgraffito, crayonConstructionWindows } from "./crayon";
+import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction, CrayonSgraffito } from "./crayon";
 import { assertCrayonRedrawOptions } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
 
@@ -81,6 +81,9 @@ export interface CrayonWaxElement extends CrayonBase {
   edgeRoughness?: number;
   /** Separate illustrator's drawn outline from opaque wax mass. Zero is valid. */
   outlineOpacity?: number;
+  /** Scratch the overlying wax to reveal the fully opaque first pigment
+   * layer, rather than painting pale lines over the top. */
+  sgraffito?: CrayonSgraffito;
   /** Explicit silhouette-outline versus pigment-deposition sequence. */
   construction?: CrayonWaxConstruction;
 }
@@ -314,6 +317,14 @@ export function inspectCrayonScene(input: unknown): string[] {
         if(node.outlineOpacity!==undefined && (!finite(node.outlineOpacity)||
           node.outlineOpacity<0||node.outlineOpacity>1))
           errors.push(p+".outlineOpacity must be in [0,1]");
+        if(node.sgraffito!==undefined){
+          try {
+            assertCrayonSgraffito(node.sgraffito);
+            if(node.sgraffito.first<node.timing.end||
+              node.sgraffito.last>=(v.durationFrames??0))
+              errors.push(p+".sgraffito must follow wax deposition and fit duration");
+          }catch {errors.push(p+".sgraffito must have valid path, width and frames");}
+        }
         if(node.redraw!==undefined){
           try{assertCrayonRedrawOptions(node.redraw);}
           catch{errors.push(p+".redraw must have valid held exposures and strength");}
