@@ -102,6 +102,20 @@ describe("INK4 continuous character directing",()=>{
     expect(tracks["left-thigh"].every((key,i,array)=>i===0||key.frame>array[i-1].frame)).toBe(true);
     expect(()=>bakeInkWalkCorrections(gait,0)).toThrow(RangeError);
   });
+  it("keeps long baked routes moving at non-key frames, without repeated smoothstep stalls",()=>{
+    const long:InkRoutePlan={id:"long-route",instanceId:"test-actor",waypoints:[
+      {frame:0,x:100,y:200},{frame:2000,x:800,y:200},
+    ]};
+    const track=bakeInkActorTrack(long);
+    expect(track.interpolation).toBe("linear");
+    const middle=track.keys[Math.floor(track.keys.length/2)];
+    const frame=middle.frame+1;
+    const intended=inkRouteAt(long,frame);
+    const displayed=inkActorAt(track,frame);
+    expect(Math.abs(displayed.x-intended.x)).toBeLessThan(.03);
+    expect(Math.abs(displayed.y-intended.y)).toBeLessThan(.03);
+    expect(inkActorAt(track,frame)).toEqual(displayed);
+  });
   it("bakes long paths safely while respecting 512-key runtime cap",()=>{
     const long: InkRoutePlan={...route,waypoints:[
       {frame:0,x:0,y:300},{frame:15000,x:700,y:300},
