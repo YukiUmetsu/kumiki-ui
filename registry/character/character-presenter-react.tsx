@@ -1,9 +1,23 @@
-import { forwardRef, useEffect, useMemo, useRef } from "react";
+import { forwardRef, useEffect, useId, useMemo, useRef } from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import type { AffineMatrix } from "../motion/types";
 import type { CharacterAsset, CharacterCue, CharacterDefinition, CharacterDiagnostic, CharacterFrameState, CharacterInstance, CharacterPart, CharacterPartState, CharacterShape } from "./definition";
 import { evaluateCharacter, partAssetKey, partLocalMatrix, resolveCharacterAppearance } from "./evaluate";
 
+/** Original-part watercolor texture: the material follows animated vector assets,
+ * never applies a global frame-wide posterization to the completed character.
+ * Values are stylized controls, not measured pigment properties.
+ */
+export interface CharacterWatercolourMaterial {
+  /** Stable paper-fibre granulation, 0..1. */
+  granulation: number;
+  /** Edge capillary softness, 0..1. */
+  bleed: number;
+  /** Cotton-paper surface relief, 0..1. */
+  tooth: number;
+  /** Same seed + part + pose always renders the same material. */
+  seed: number;
+}
 export interface CharacterPresenterProps extends Omit<ComponentPropsWithoutRef<"div">, "children"> {
   definition: CharacterDefinition;
   instance: CharacterInstance;
@@ -12,6 +26,8 @@ export interface CharacterPresenterProps extends Omit<ComponentPropsWithoutRef<"
   frame: number;
   /** Host-resolved URLs for `kind: "image"` assets, keyed by `asset.uri`. Missing URLs are reported, never fetched. */
   assetUrls?: Record<string, string>;
+  /** Original per-part watercolor treatment. Not a whole-frame video filter. */
+  watercolourMaterial?: CharacterWatercolourMaterial;
   /** Required accessible name. The SVG art is hidden from assistive technology. */
   label: string;
   /** `auto` follows prefers-reduced-motion. `true` suppresses blink and idle motion for this performer. */
@@ -29,7 +45,13 @@ interface PresenterModel {
   layers: Record<string, Layer[]>;
   diagnostics: CharacterDiagnostic[];
 }
-interface Scene { model: PresenterModel; children: Record<string, CharacterPart[]>; urls: Record<string, string> | undefined }
+interface Scene {
+  model: PresenterModel;
+  children: Record<string, CharacterPart[]>;
+  urls: Record<string, string> | undefined;
+  watercolour?: CharacterWatercolourMaterial;
+  materialId: string;
+}
 
 const HEX = /^#[0-9a-fA-F]{3,8}$/;
 
@@ -62,18 +84,33 @@ function paint(value: string | undefined, palette: Record<string, string>): stri
   return HEX.test(value) ? value : "none";
 }
 
-function shapeNode(shape: CharacterShape, index: number, palette: Record<string, string>): ReactNode {
-  const paintProps = { fill: paint(shape.fill, palette), stroke: paint(shape.stroke, palette), strokeWidth: shape.strokeWidth, opacity: shape.opacity };
-  if (shape.type === "path") return <path key={index} d={shape.d} {...paintProps} />;
-  if (shape.type === "ellipse") return <ellipse key={index} cx={shape.cx} cy={shape.cy} rx={shape.rx} ry={shape.ry} {...paintProps} />;
-  return <rect key={index} x={shape.x} y={shape.y} width={shape.width} height={shape.height} rx={shape.rx} {...paintProps} />;
+function shapeNode(shape: CharacterShape, index: number, scene: Scene): ReactNode {
+  const palette = scene.model.palette;
+  const paintProps = {
+    fill: paint(shape.fill, palette), stroke: paint(shape.stroke, palette),
+    strokeWidth: shape.strokeWidth, opacity: shape.opacity,
+  };
+  const base = shape.type === "path"
+    ? <path d={shape.d} {...paintProps}/>
+    : shape.type === "ellipse"
+      ? <ellipse cx={shape.cx} cy={shape.cy} rx={shape.rx} ry={shape.ry} {...paintProps}/>
+      : <rect x={shape.x} y={shape.y} width={shape.width}
+          height={shape.height} rx={shape.rx} {...paintProps}/>;
+  if (!scene.watercolour) return <g key={index}>{base}</g>;
+  return <g key={index} data-km-watercolour-character-part="">
+    {/* Each articulated face/limb carries its own pigment and soft edge.
+       Source and viseme art stay the same; the character evaluator owns movement. */}
+    <g filter={"url(#" + scene.materialId + "-edge)"}>{base}</g>
+    <g opacity={.045 + scene.watercolour.bleed * .11}
+      filter={"url(#" + scene.materialId + "-bleed)"}>{base}</g>
+  </g>;
 }
 
 function assetNode(layer: Layer, index: number, scene: Scene): ReactNode {
   const asset = scene.model.assets[layer.key];
   if (!asset) return null;
   let body: ReactNode = null;
-  if (asset.kind === "shapes") body = asset.shapes.map((shape, i) => shapeNode(shape, i, scene.model.palette));
+  if (asset.kind === "shapes") body = asset.shapes.map((shape, i) => shapeNode(shape, i, scene));
   // A missing URL draws nothing; the warning is raised with the other diagnostics.
   else if (scene.urls?.[asset.uri]) body = <image href={scene.urls[asset.uri]} x={0} y={0} width={asset.width} height={asset.height} />;
   return body === null ? null : <g key={index} data-asset={layer.key} opacity={layer.opacity}>{body}</g>;
@@ -94,8 +131,16 @@ function partNode(part: CharacterPart, scene: Scene): ReactNode {
 
 /** Evaluates one performer at one absolute frame and draws the resulting pose. Pure: no state, timers or frame loops. */
 export const CharacterPresenter = forwardRef<HTMLDivElement, CharacterPresenterProps>(function CharacterPresenter({
-  definition, instance, cues, frame, assetUrls, label, reducedMotion = "auto", onDiagnostics, style, ...props
+  definition, instance, cues, frame, assetUrls, label, reducedMotion = "auto", watercolourMaterial, onDiagnostics, style, ...props
 }, ref) {
+  if (watercolourMaterial && (
+    !Number.isSafeInteger(watercolourMaterial.seed) || watercolourMaterial.seed < 0 ||
+    watercolourMaterial.seed > 2147483647 ||
+    ![watercolourMaterial.tooth, watercolourMaterial.bleed, watercolourMaterial.granulation]
+      .every(v => Number.isFinite(v) && v >= 0 && v <= 1)
+  )) throw new RangeError("Watercolour character material needs bounded tooth/bleed/granulation and seed.");
+  const rawMaterialId = useId();
+  const materialId = "kmwc" + rawMaterialId.replace(/[^a-zA-Z0-9_-]/g, "");
   const reduce = reducedMotion === "auto" ? typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches : reducedMotion;
   const hierarchy = useMemo(() => buildHierarchy(definition.parts), [definition.parts]);
   const model = useMemo<PresenterModel>(() => {
@@ -126,13 +171,31 @@ export const CharacterPresenter = forwardRef<HTMLDivElement, CharacterPresenterP
   const signature = JSON.stringify(model.diagnostics);
   useEffect(() => { notify.current?.(latest.current); }, [signature]);
 
-  const scene: Scene = { model, children: hierarchy.children, urls: assetUrls };
+  const scene: Scene = { model, children: hierarchy.children, urls: assetUrls,
+    watercolour: watercolourMaterial, materialId };
   const { width, height } = definition.design;
   return <div {...props} ref={ref} role="img" aria-label={label} data-km-character-presenter=""
     data-reduced-motion={reduce ? "" : undefined} data-blinking={model.state.blinking ? "" : undefined} data-diagnostics={model.diagnostics.length}
     style={{ display: "block", position: "relative", width: "100%", aspectRatio: `${width} / ${height}`, overflow: "hidden", ...style }}>
     <svg aria-hidden="true" focusable="false" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet"
       strokeLinejoin="round" strokeLinecap="round" style={{ display: "block", width: "100%", height: "100%", overflow: "hidden" }}>
+      {watercolourMaterial && <defs>
+        {/* Spatial texture is fixed to the character's local SVG coordinate system.
+            It follows arms, eyes, mouth and clothes through their rig transforms. */}
+        <filter id={materialId + "-edge"} x="-15%" y="-15%" width="130%" height="130%"
+          colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise"
+            baseFrequency={.025 + watercolourMaterial.tooth * .055}
+            numOctaves={3} seed={1 + watercolourMaterial.seed % 997} result="paper"/>
+          <feDisplacementMap in="SourceGraphic" in2="paper"
+            scale={.1 + watercolourMaterial.granulation * 1.75}
+            xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <filter id={materialId + "-bleed"} x="-25%" y="-25%" width="150%" height="150%"
+          colorInterpolationFilters="sRGB">
+          <feGaussianBlur stdDeviation={.15 + watercolourMaterial.bleed * 1.55}/>
+        </filter>
+      </defs>}
       {hierarchy.roots.map(part => partNode(part, scene))}
     </svg>
   </div>;
