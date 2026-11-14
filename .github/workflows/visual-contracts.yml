@@ -33,6 +33,9 @@ jobs:
       - name: Verify opaque crayon underpainting contracts
         if: github.event_name != 'workflow_dispatch'
         run: npm run test -- tests/crayon-coverage.test.tsx
+      - name: Verify held exposure redraw and anatomical silhouette contractions
+        if: github.event_name != 'workflow_dispatch'
+        run: npm run test -- tests/crayon-exposure.test.tsx
       - name: Lightweight command-line contract tests
         if: github.event_name != 'workflow_dispatch'
         run: node --test tests/catalog-api.test.mjs
