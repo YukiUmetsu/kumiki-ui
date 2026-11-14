@@ -80,6 +80,36 @@ describe("entire-body, reference-projected shanshui figures",()=>{
       }
     }
   });
+  it("uses opaque connected finger silhouettes for both reader scroll grips",()=>{
+    const reader=shanshuiBodyAssets("river-scholar");
+    const fallback=shanshuiBodyAssets("misty-hermit");
+    for(const name of ["hand-near","hand-far"]){
+      const grip=reader[name],old=fallback[name];
+      if(grip.kind!=="shapes"||old.kind!=="shapes")
+        throw Error("Hand art must be inspectable vector shapes");
+      expect(grip.shapes.length).toBeGreaterThanOrEqual(7);
+      expect(grip.shapes.length).toBeGreaterThan(old.shapes.length);
+      const silhouette=grip.shapes[0];
+      expect(silhouette).toMatchObject({
+        type:"path",fill:"$skin",opacity:1,
+      });
+      if(silhouette.type!=="path")throw Error("Reader hand is not a path");
+      expect(silhouette.d.endsWith(" Z")).toBe(true);
+      expect(grip.shapes.filter(x=>x.type==="path"&&x.fill==="none").length)
+        .toBeGreaterThan(4);
+      for(const shape of grip.shapes){
+        if(shape.type!=="path")throw Error("Reader grip must be authored paths");
+        expect(shape.d).not.toMatch(/NaN|Infinity|undefined/);
+      }
+    }
+    const model=makeShanshuiScholar(.9,.9,"river-scholar");
+    expect(validateCharacterDefinition(model).filter(x=>x.severity==="error"))
+      .toEqual([]);
+    for(const name of ["near-hand","far-hand"]){
+      expect(model.parts.find(part=>part.id===name)).toBeDefined();
+    }
+  });
+
   it("plants actual shoe art anchors at the world-locked gait targets at every sampled pose",()=>{
     for(const scene of SHANSHUI_SCENES){
       const definition=makeShanshuiScholar(.9,.9,scene);
