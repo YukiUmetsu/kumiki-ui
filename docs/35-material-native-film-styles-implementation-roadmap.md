@@ -6,6 +6,8 @@
 **Inspiration and comparison:** [Lemo-Opuscar](https://github.com/lemomo-ai/lemo-opuscar), particularly its [style index](https://github.com/lemomo-ai/lemo-opuscar/blob/main/styles/README.md), [film technique guide](https://github.com/lemomo-ai/lemo-opuscar/blob/main/TECHNIQUE.md), and medium-specific demos. **Use these as research references, not code or documentation to republish.**  
 **Repository baseline inspected:** `main` at `b57b3f91008c9ba35ca0b4179b13afbe7ece44b2`. Re-audit before implementation if main changes.
 
+**Visual source board:** [35A — Material-native style reference gallery](35a-material-native-style-reference-gallery.md) (verified playable films, stills, shot checkpoints, independent craft references and visual-QA rubric). Every style requires a reference-evidence packet before its implementation PR is approved.
+
 ## 1. Executive decision
 
 Build **five reusable, production-qualifiable film-style families** in dependency order:
@@ -90,6 +92,10 @@ This is intentionally *not* an instruction string or remote arbitrary code. Map 
 6. Captions remain readable over textured backgrounds; support English, Japanese/CJK, long lines, 16:9 and 9:16, and reduced motion.
 7. Evaluate actual exported frames, not mockups; no test can mark a style visually approved without a recorded human review.
 
+### 3.4 Mandatory reference review gate
+
+Before implementing **each** style (including every future new art-style preset), use the [reference gallery](35a-material-native-style-reference-gallery.md): open a representative video and stills; record owner/source/rights, inspected timestamps, material microstructure, composition, character cadence, camera movement, transition and soundtrack timing. Add at least one independent authentic-material/process reference where relevant. The style may not be marked visually approved until a human compares our original encoded 16:9 and 9:16 film against the documented reference principles at normal playback speed. We do **not** reproduce reference stories, characters, frames, branded designs or unlicensed audio.
+
 ## 4. Implementation phases, in exact order
 
 ### Phase 0 — Audit and reproducible baseline (PR 0)
@@ -101,6 +107,7 @@ This is intentionally *not* an instruction string or remote arbitrary code. Map 
 3. Render a small existing film with `npm run film:review -- examples/film/texture-moves.film.json --only=draft` or a working equivalent determined from the CLI help. Capture 16:9 baseline frames, the current review state and any environment limitations.
 4. Map where a material pass could bind to the already compiled film stage; add one small failing test for the missing capability before editing public APIs.
 5. Produce a short audit table: reusable API, missing renderer hook, compatibility risk, baseline proof files and their hashes.
+6. Review the corresponding [visual-reference board](35a-material-native-style-reference-gallery.md); verify film playback, inspect the listed timecoded stills and identify at least one independent process reference. Log what was actually observed vs. only read from a source description.
 
 **Files to inspect:** `registry/video/film-document.ts`, `film-stage.tsx`, `film-look.ts`, `film-matte.ts`, `shader-fx.ts`, `registry/visual/film-style-grammar.ts`, `registry/motion/`, `src/video/`.
 
