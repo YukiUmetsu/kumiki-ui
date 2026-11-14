@@ -1,7 +1,7 @@
 import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
-import { crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
-import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction } from "./crayon";
+import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
+import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction, CrayonSgraffito } from "./crayon";
 import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
 
@@ -31,6 +31,8 @@ export type WaxProps = {
   /** Independent intensity of the dark drawn edge; zero removes the digital
    * cartoon outline while retaining fully opaque volume and wax texture. */
   outlineOpacity?: number;
+  /** After coating, remove selected top wax to show opaque buried pigment. */
+  sgraffito?: CrayonSgraffito;
   /** Wax-contact profile. Rounded retains the old constant-width line. */
   nibStyle?: CrayonNibStyle;
   /** Authored stroke sequence; changes draw-in choreography, not pigment. */
@@ -40,7 +42,7 @@ export type WaxProps = {
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0, outlineOpacity = 1, nibStyle = "tapered", strokeOrder = "patches", markLength = "long" }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
   if (nibStyle !== "rounded" && nibStyle !== "tapered")
@@ -54,6 +56,13 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   if (!Number.isFinite(outlineOpacity) || outlineOpacity<0 || outlineOpacity>1)
     throw new RangeError("crayon outline opacity must be 0..1");
   if (redraw) assertCrayonRedrawOptions(redraw);
+  if (sgraffito) {
+    assertCrayonSgraffito(sgraffito);
+    if (coverage!=="opaque")
+      throw new RangeError("Crayon sgraffito requires opaque buried pigment");
+    if (sgraffito.first < last)
+      throw new RangeError("Crayon sgraffito must follow wax deposition");
+  }
   const windows=construction ? crayonConstructionWindows(first,last,construction) : null;
   const fillFirst=windows?.fillStart ?? first,fillLast=windows?.fillEnd ?? last;
   const outlineFirst=windows?.outlineStart ?? first,outlineLast=windows?.outlineEnd ?? last;
@@ -76,6 +85,9 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   // Contact pressure changes the opacity of raised paper-grain interruptions.
   // This remains a detail mask for the wax layer, never for opaque underpaint.
   const reliefContact = Number((.26 + (1-pressure)*.67).toFixed(4));
+  const scrapeReveal=sgraffito
+    ? crayonProgress(frame,sgraffito.first,sgraffito.last,0,1,reduced)
+    : 0;
   const marks = useMemo(() => crayonMarks(drawBounds, { seed, pressure, spacing, passes: 2, strokeOrder, markLength }),
     [drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, seed, pressure, spacing, strokeOrder, markLength]);
   // Stable painted paper / silhouette; the small reworked pigment strokes are
@@ -128,6 +140,17 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
           width={bounds.width + 50} height={bounds.height + 50}
           fill={"url(#" + tooth + "-relief)"} opacity={reliefContact}
           data-km-crayon-paper-contact={reliefContact} />
+        {/* True sgraffito subtracts from the *top* pigmented wax layer
+            through its own tooth mask. The separate opaque undercoat is
+            deliberately outside this mask, so scraping exposes buried wax
+            rather than cutting an alpha hole through the character. */}
+        {sgraffito && scrapeReveal>0 && <path d={sgraffito.d}
+          fill="none" stroke="#000" strokeWidth={sgraffito.width}
+          strokeLinecap="round" strokeLinejoin="round"
+          pathLength={100} strokeDasharray={100}
+          strokeDashoffset={100*(1-scrapeReveal)}
+          data-km-crayon-sgraffito="subtractive"
+          data-km-crayon-scrape-progress={scrapeReveal} />}
       </mask>
     </defs>
     {/* Solid underpainting is deposited BEFORE rough wax layers but OUTSIDE the
