@@ -17,7 +17,7 @@ const buttonStyle = { border: "1px solid #B4B0A3", background: "#FAF8F3",
 const labelStyle = { display: "grid", gap: 5, minWidth: 160,
   font: "600 13px system-ui", color: "#393D36" } as const;
 
-function Painting({ spec, subject, frame, absorption, grain, reducedMotion }: {
+export function Painting({ spec, subject, frame, absorption, grain, reducedMotion }: {
   spec: InkWashSpec; subject: InkSubject; frame: number; absorption: number; grain: number; reducedMotion: boolean;
 }) {
   const portrait = spec.height > spec.width;
