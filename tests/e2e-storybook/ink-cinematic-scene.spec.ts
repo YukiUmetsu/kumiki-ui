@@ -71,6 +71,6 @@ test("all four film variants and real export surfaces remain reachable in Chines
   expect(body.entries[id]?.title).toBe("Video production/Film Looks/Chinese Ink/Cinematic Landscape Engine");
  }
  await page.goto("/iframe.html?id=video-ink-cinematic-landscape--production-export&viewMode=story");
- await expect(page.locator("[data-km-video-export-stage]")).toHaveCount(1);
+ await expect(page.locator("[data-km-video-capture]")).toHaveCount(1);
  await expect(page.locator("[data-km-ink-cinematic-scene]")).toHaveCount(1);
 });
