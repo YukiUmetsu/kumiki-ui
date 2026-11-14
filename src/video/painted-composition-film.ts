@@ -12,7 +12,7 @@ export const PAINTED_WORLDS_FILM: FilmDocument = {
     { id: "portrait", width: 540, height: 960 },
   ],
   scenes: PAINTED_GENRES.map((genre, i) => ({
-    id: genre + "-painting", recipeId: "slot" as const, durationFrames: 320,
+    id: genre + "-painting", recipeId: "slot" as const, durationFrames: 400,
     ...(i > 0 ? { transition: { kind: "cut" as const } } : {}),
     content: { slot: "painted-composition", label: "Original material study: " + genre,
       props: { genre } },
