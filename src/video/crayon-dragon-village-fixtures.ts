@@ -420,11 +420,11 @@ export function crayonDragonVillageScene(
     lineHeight:1.06,timing:{start:0,end:25},weight:700,family:"serif",
     color:"#516179"});
   elements.push({kind:"lettering",id:"dragon-village-subtitle",screenSpace:true,
-    lines:["THREE LITTLE LIVES  /  ONE CRAYON WORLD"],
+    lines:[cast==="trio"?"THREE LITTLE LIVES  /  ONE CRAYON WORLD":"TWO LITTLE LIVES  /  ONE CRAYON WORLD"],
     x:portrait?29:45,y:portrait?174:93,fontSize:portrait?12:15,
     timing:{start:18,end:69},family:"sans",weight:700,color:"#847584"});
   elements.push({kind:"lettering",id:"dragon-village-caption",screenSpace:true,
-    lines:["EVERYTHING HERE WAS DRAWN BY HAND"],
+    lines:["ORIGINAL WAX ART  /  FRAME BY FRAME"],
     x:portrait?30:44,y:H-(portrait?30:26),fontSize:portrait?12:15,
     timing:{start:183,end:283},family:"serif",weight:700,color:"#697783"});
   return {version:1,id:"crayon-dragon-village-"+aspect,
