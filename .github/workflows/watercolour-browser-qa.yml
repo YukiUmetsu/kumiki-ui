@@ -42,7 +42,8 @@ jobs:
       - name: Browser paint and paper checks
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-brush.spec.ts tests/e2e-storybook/watercolour-actor.spec.ts
       - name: Validate portable film
-        run: npm run film:check -- examples/film/watercolour-brush-study.film.json
+        run: |
+          npm run film:check -- examples/film/watercolour-brush-study.film.json
           npm run film:check -- examples/film/watercolour-character.film.json
       - name: Install FFmpeg
         run: |
