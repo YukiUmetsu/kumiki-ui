@@ -20,7 +20,8 @@ describe("CRAYON1 pressure-aware paper relief",()=>{
    const b=scene(140,.7,.84);
    expect(a).toBe(b);
    expect(a).toContain('data-km-crayon-paper-relief=""');
-   const grain=a.match(/<pattern id="physical-paper-relief"[\\s\\S]+?<\\/pattern>/)?.[0];
+   const begin=a.indexOf('<pattern id="physical-paper-relief"');
+   const grain=a.slice(begin,a.indexOf("</pattern>",begin)+10);
    expect(grain).toContain("<path");
    expect(grain).not.toContain('<rect');
    expect(scene(140,.7,0)).not.toEqual(a);
