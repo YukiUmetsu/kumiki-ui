@@ -1,6 +1,6 @@
 import {describe,expect,it} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
-import {crayonMarks} from "../registry/video/materials/crayon";
+import {crayonMarks,crayonStrokeProgress} from "../registry/video/materials/crayon";
 import {Paper,WaxRegion} from "../registry/video/materials/crayon-react";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
@@ -22,6 +22,19 @@ describe("CRAYON1 localized hand-coloring order",()=>{
     const byIndex=(marks:typeof hand)=>[...marks].sort((a,b)=>a.index-b.index);
     expect(byIndex(scan)).toEqual(byIndex(hand));
     expect(ids(hand)).not.toEqual(ids(scan));
+  });
+  it("exposes a single active nib contact at any non-boundary film instant",()=>{
+    const frame=45, first=0,last=100,count=10;
+    const values=Array.from({length:count},(_,i)=>
+      crayonStrokeProgress(frame,first,last,i,count,"patches"));
+    expect(values.slice(0,4)).toEqual([1,1,1,1]);
+    expect(values[4]).toBeCloseTo(.5,8);
+    expect(values.slice(5)).toEqual([0,0,0,0,0]);
+    expect(values.filter(x=>x>0 && x<1)).toHaveLength(1);
+    expect(crayonStrokeProgress(frame,first,last,4,count,"patches",true)).toBe(1);
+    expect(crayonStrokeProgress(frame,first,last,4,count,"scanline")).not.toBe(.5);
+    expect(()=>crayonStrokeProgress(frame,first,last,4,count,"broken" as "patches"))
+      .toThrow(/stroke order/);
   });
   it("accepts only strict authored stroke orders, with pinned frame seeks",()=>{
     expect(()=>crayonMarks(bounds,{...common,strokeOrder:"random" as "patches"}))
