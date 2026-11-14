@@ -66,8 +66,14 @@ export function WatercolourWetPaper({
     data-km-wet-paper="" data-km-wet-paper-frame={frame}
     data-km-wet-paper-phase={state.settled?"dry":"wet"}
     data-km-wet-paper-pigment={state.totalPigment.toFixed(4)}
+    data-km-wet-paper-region-count={spec.paintAreas?.length??0}
     style={{width:"100%",height:"100%",display:"block",isolation:"isolate",overflow:"hidden",...style}}>
     <defs>
+      {Boolean(spec.paintAreas?.length) && <clipPath id={id+"-paint-area"}
+        clipPathUnits="userSpaceOnUse">
+        {spec.paintAreas?.map((poly,i)=><polygon key={i}
+          points={poly.map(p=>p.x.toFixed(2)+","+p.y.toFixed(2)).join(" ")}/>)}
+      </clipPath>}
       {Boolean(spec.reservePaths?.length) && <mask id={id+"-reserves"} maskUnits="userSpaceOnUse"
         x={0} y={0} width={spec.width} height={spec.height}>
         <rect width={spec.width} height={spec.height} fill="#fff"/>
@@ -96,7 +102,8 @@ export function WatercolourWetPaper({
     </>}
     <g data-km-wet-pigment-field="" pointerEvents="none"
       style={{mixBlendMode:"multiply"}} filter={`url(#${id}-wick)`}
-      mask={spec.reservePaths?.length?`url(#${id}-reserves)`:undefined}>
+      mask={spec.reservePaths?.length?`url(#${id}-reserves)`:undefined}
+      clipPath={spec.paintAreas?.length?`url(#${id}-paint-area)`:undefined}>
       {state.cells.map((cell,i)=><path key={i}
         data-km-pigment-cell="" d={watercolourPigmentFootprint(cell,spec.seed)}
         fill={cell.pigment}

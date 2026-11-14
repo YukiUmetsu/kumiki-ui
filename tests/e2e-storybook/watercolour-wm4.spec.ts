@@ -9,13 +9,18 @@ for(const output of ["landscape","portrait"] as const){
     await expect(page.getByRole("heading",{name:"Three studies in light, water and detail"})).toBeVisible();
     await page.getByRole("combobox",{name:"Master studies output"}).selectOption(output);
     const labels=["Botanical observation","Light on water","Architectural shadows"];
-    const surface=page.locator("svg[data-km-wet-paper]");
+    const surface=page.locator("svg[data-km-wet-paper]").first();
+    const subject=page.locator("[data-km-subject-pigment] svg[data-km-wet-paper]");
     for(let i=0;i<labels.length;i++){
       await page.getByRole("button",{name:labels[i]}).click();
       await expect(surface).toBeVisible();
       await expect(surface).toHaveAttribute("viewBox",output==="portrait"?"0 0 540 960":"0 0 960 540");
       await expect(surface).toHaveAttribute("data-km-wet-paper-frame","355");
       await expect(surface).toHaveAttribute("data-km-wet-paper-phase","dry");
+      await expect(subject).toBeVisible();
+      await expect(subject).toHaveAttribute("data-km-wet-paper-phase","dry");
+      await expect(subject).toHaveAttribute("data-km-wet-paper-region-count",/^[1-9][0-9]*$/);
+      await expect(subject.locator("clipPath polygon").first()).toHaveCount(1);
       await expect(page.locator('[data-km-wet-pigment-field] > path').first()).toBeVisible();
       expect(await page.locator('[data-km-wet-pigment-field] > rect').count()).toBe(0);
       await surface.locator("..").screenshot({
@@ -38,6 +43,7 @@ for(const output of ["landscape","portrait"] as const){
     for(const frame of [80,155,240,355]){
       await setFrame(frame);
       await expect(surface).toHaveAttribute("data-km-wet-paper-frame",String(frame));
+      await expect(subject).toHaveAttribute("data-km-wet-paper-frame",String(frame));
       await surface.locator("..").screenshot({
         animations:"disabled",
         path:info.outputPath("wm4-"+output+"-botanical-frame-"+frame+".png"),

@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, useMemo } from "react";
 import { WatercolourWetPaper } from "../../registry/video/watercolour-wet-paper-react";
 import { paintHash } from "../../registry/video/watercolour-brush";
 import type { WetPaperSpec, WetPigmentDrop } from "../../registry/video/watercolour-wet-paper";
@@ -109,6 +109,129 @@ export function watercolourStudySpec(study:WatercolourStudy,output:WatercolourOu
   return {version:1,width,height,seed,paper:{color:"#F8F3E8",tooth:.82},
     cellSize:20,flow:.72,granulation:.8,dryFrames:208,
     reservePaths:reserves,drops};
+}
+
+
+type PaintPoint={x:number;y:number};
+/** Pressure-shaped lanceolate leaves: no circle/ellipse stamps or identical
+ * repeated head geometry. Source geometry is reused from the specimen rig. */
+function paintedLeaf(a:PaintPoint,b:PaintPoint,width:number):PaintPoint[] {
+  const vx=b.x-a.x,vy=b.y-a.y,scale=Math.hypot(vx,vy)||1;
+  const nx=-vy/scale,ny=vx/scale;
+  const edge=(sign:number)=>Array.from({length:9},(_,i)=>{
+    const t=sign>0?i/8:1-i/8;
+    // One side remains broader; leaf apex tapers asymmetrically.
+    const flank=Math.pow(Math.sin(Math.PI*t),.8)*(1+.13*(t-.5));
+    const w=flank*width*(sign>0?1:.8);
+    return {x:a.x+vx*t+nx*w*sign,y:a.y+vy*t+ny*w*sign};
+  });
+  return [...edge(1),...edge(-1)];
+}
+
+/** A second *physical* pigment field constrained to painted subjects.
+ * Unlike a clipped image overlay, deposition, diffusion and drying all obey
+ * the same SVG-authored silhouettes. It is not a copied master painting. */
+export function watercolourSubjectSpec(study:WatercolourStudy,seed=83,
+  material:{flow:number;granulation:number;tooth:number}={
+    flow:.72,granulation:.8,tooth:.82,
+  }):WetPaperSpec {
+  const paintAreas:PaintPoint[][]=[];
+  const drops:WetPigmentDrop[]=[];
+  const add=(area:PaintPoint[],id:string,x:number,y:number,
+    radius:number,pigment:string,load:number,startFrame:number,
+    path?:WetPigmentDrop["path"])=>{
+    paintAreas.push(area);
+    drops.push({id,x,y,radius,pigment,load,water:.65,startFrame,path});
+  };
+  if(study==="botanical"){
+    const hue=["#587D67","#778F73","#93A27C","#7D9885","#557E7C"];
+    // Eight independently built focal specimens, 3 distinguishable leaves
+    // each. Shape attachment repeats the same leaf/root calculations as Stem.
+    for(let i=0;i<8;i++){
+      const h=paintHash(seed,i,13),q=paintHash(seed,i,19);
+      const x=[383,497,614,751,841][i%5]+Math.floor(i/5)*13+(h-.5)*48;
+      const height=86+paintHash(seed,i,23)*242;
+      const y=478+(q-.5)*19,bend=(h-.5)*54;
+      const kind=i%5;
+      for(let n=0;n<3;n++){
+        const side=n%2?1:-1;
+        const up=height*(.26+n*.13);
+        const len=(17+(1-h)*12)*(1-n*.13);
+        const a={x:x+bend*.1,y:y-up};
+        const b={x:x+side*len,y:y-up-30};
+        const poly=paintedLeaf(a,b,5.5+2.2*paintHash(seed,i,n));
+        const at={x:a.x+(b.x-a.x)*.57,y:a.y+(b.y-a.y)*.57};
+        add(poly,"leaf-"+i+"-"+n,at.x,at.y,14,
+          hue[kind],.048+.018*paintHash(seed,i,n),38+i*7+n*4);
+      }
+    }
+  }else if(study==="estuary"){
+    const hills:PaintPoint[]=[
+      {x:354,y:318},{x:387,y:311},{x:420,y:301},{x:458,y:299},
+      {x:490,y:296},{x:525,y:282},{x:555,y:285},{x:605,y:293},
+      {x:634,y:289},{x:675,y:277},{x:716,y:280},{x:744,y:282},
+      {x:781,y:282},{x:835,y:277},{x:883,y:284},{x:941,y:290},
+      {x:941,y:357},{x:354,y:354},
+    ];
+    const distant:PaintPoint[]=[
+      {x:354,y:350},{x:403,y:340},{x:468,y:345},{x:540,y:339},
+      {x:610,y:336},{x:682,y:341},{x:747,y:330},{x:807,y:337},
+      {x:880,y:333},{x:941,y:341},{x:941,y:377},{x:354,y:377},
+    ];
+    const sea:PaintPoint[]=[
+      {x:353,y:373},{x:450,y:367},{x:515,y:370},{x:600,y:365},
+      {x:682,y:369},{x:754,y:365},{x:840,y:374},{x:941,y:368},
+      {x:941,y:493},{x:353,y:493},
+    ];
+    add(hills,"distant-blue",610,313,115,"#6A8393",.62,29);
+    add(hills,"distant-cool",785,314,106,"#77949A",.38,53);
+    add(distant,"mist-aqua",611,349,100,"#78999C",.44,61);
+    add(distant,"mist-umber",802,353,72,"#A4A39A",.35,76);
+    add(sea,"sea-cobalt",574,420,118,"#416F87",.83,91,[
+      {x:439,y:407,pressure:.28},{x:624,y:414,pressure:.94},
+      {x:851,y:428,pressure:.32},
+    ]);
+    add(sea,"sea-viridian",775,433,106,"#528987",.78,107,[
+      {x:566,y:449,pressure:.22},{x:736,y:443,pressure:.92},
+      {x:879,y:456,pressure:.15},
+    ]);
+    add(sea,"sea-ochre",519,466,95,"#AC9479",.43,132);
+  }else{
+    const roof:PaintPoint[]=[
+      {x:427,y:291},{x:567,y:202},{x:770,y:205},{x:901,y:291},
+      {x:885,y:315},{x:769,y:244},{x:574,y:241},{x:448,y:320},
+    ];
+    const walls:PaintPoint[]=[
+      {x:464,y:318},{x:574,y:255},{x:773,y:254},
+      {x:882,y:318},{x:882,y:471},{x:464,y:471},
+    ];
+    const shadow:PaintPoint[]=[
+      {x:772,y:255},{x:883,y:316},{x:883,y:470},{x:771,y:470},
+    ];
+    const garden=Array.from({length:15},(_,i)=>{
+      const t=i*Math.PI*2/15;
+      const wobble=1+.19*Math.sin(i*2.4+seed*.1);
+      return {x:853+Math.cos(t)*70*wobble,
+        y:400+Math.sin(t)*64*wobble};
+    });
+    add(roof,"roof-terracotta",655,257,120,"#A05D55",.81,35);
+    add(roof,"roof-slate",827,276,105,"#646E83",.69,49);
+    add(walls,"plaster-gold",617,361,136,"#D4AA82",.67,73,[
+      {x:505,y:363,pressure:.3},{x:635,y:358,pressure:.89},
+      {x:786,y:377,pressure:.23},
+    ]);
+    add(walls,"plaster-ochre",677,421,113,"#BDA180",.52,95);
+    add(shadow,"blue-shade",821,387,112,"#53788E",.9,113);
+    add(shadow,"reflected-green",836,450,69,"#5E8A8A",.49,127);
+    add(garden,"garden-sage",848,402,60,"#638C6E",.55,139);
+    add(garden,"garden-ochre",872,432,44,"#B1A36A",.32,155);
+  }
+  return {
+    version:1,width:960,height:540,seed:seed+101,
+    paper:{color:"#F8F3E8",tooth:material.tooth},cellSize:16,
+    flow:material.flow,granulation:material.granulation,
+    edgePooling:.9,dryFrames:170,paintAreas,drops,
+  };
 }
 
 function Stem({i,seed,frame}: {i:number;seed:number;frame:number}) {
@@ -449,6 +572,9 @@ export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false
   const word=story[study];
   const washId="wm4-subject-"+useId().replace(/[^a-zA-Z0-9_-]/g,"");
   const washFilter="url(#"+washId+")";
+  const subject=useMemo(()=>watercolourSubjectSpec(study,spec.seed,{
+    flow:spec.flow,granulation:spec.granulation,tooth:spec.paper.tooth,
+  }),[study,spec.seed,spec.flow,spec.granulation,spec.paper.tooth]);
   return <div style={{width:spec.width,height:spec.height,position:"relative",
     overflow:"hidden",background:spec.paper.color}}>
     <WatercolourWetPaper spec={spec} frame={frame} reducedMotion={reducedMotion}/>
@@ -471,6 +597,15 @@ export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false
           washFilter={washFilter}/>:
           study==="estuary"?<EstuaryArt frame={reducedMotion?420:frame} washFilter={washFilter}/>:
             <CourtyardArt frame={reducedMotion?420:frame} washFilter={washFilter}/>}
+        {/* Real water transport and sedimentation restricted to the painted
+            botanical/landscape/architecture silhouettes. This glaze shares
+            the absolute film frame and follows art-transform in portrait. */}
+        <g data-km-subject-pigment="" opacity=".85" pointerEvents="none"
+          style={{mixBlendMode:"multiply"}}>
+          <WatercolourWetPaper spec={subject} frame={reducedMotion?420:frame}
+            reducedMotion={reducedMotion} transparentPaper aria-hidden="true"
+            style={{width:960,height:540}}/>
+        </g>
       </g>
       <g fill="#46585A">
         <path d={portrait?"M35 65 H505":"M40 58 H919"} stroke="#A19F90"

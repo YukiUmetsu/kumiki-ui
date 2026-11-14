@@ -11,7 +11,7 @@ describe("WM5 artist-built subject masks and real drying-front transport",()=>{
       expect(inspectWetPaper(spec)).toEqual([]);
       expect(spec.paintAreas!.length).toBeGreaterThan(2);
       expect(spec.edgePooling).toBeGreaterThan(0);
-      const wet=evaluateWetPaper(spec,148),dry=evaluateWetPaper(spec,999);
+      const wet=evaluateWetPaper(spec,200),dry=evaluateWetPaper(spec,999);
       const expected=65*spec.drops.reduce((sum,d)=>sum+d.load,0);
       expect(wet.totalPigment).toBeCloseTo(expected,4);
       expect(dry.totalPigment).toBeCloseTo(expected,4);
@@ -22,7 +22,7 @@ describe("WM5 artist-built subject masks and real drying-front transport",()=>{
       expect(dry.cells.every(cell=>cell.sediment===1)).toBe(true);
       const html=renderToStaticMarkup(<WatercolourWetPaper spec={spec} frame={325} transparentPaper/>);
       expect(html).toContain('data-km-wet-paper-region-count="'+spec.paintAreas!.length+'"');
-      expect(html).toContain('clipPath="url(#');
+      expect(html).toContain('clip-path="url(#');
       expect(html).toContain("<clipPath");
       expect(html).toContain("<polygon");
       expect(html).not.toContain('data-km-wet-paper-fibres');

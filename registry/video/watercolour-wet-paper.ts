@@ -38,6 +38,10 @@ export interface WetPaperSpec {
   granulation: number;
   /** Frames after the last drop before the dry state is permanently held. */
   dryFrames: number;
+  /** Optional 0..1 outward wet-front transport that deposits pigment along drying edges. */
+  edgePooling?: number;
+  /** Painted subject silhouettes. Pigment and water cannot cross these boundaries. */
+  paintAreas?: readonly (readonly { x: number; y: number }[])[];
   /** Artist-preserved unpainted paper in SVG coordinates; wax/masking-fluid style. */
   reservePaths?: readonly string[];
   drops: readonly WetPigmentDrop[];
@@ -75,6 +79,16 @@ export function inspectWetPaper(spec: WetPaperSpec): WetPaperIssue[] {
   if (!integer(spec.cellSize,12,64)) add("cellSize","/cellSize","Cell size must be 12..64 whole paper pixels.");
   if (!finite(spec.flow,0,1)) add("flow","/flow","Flow must be 0..1.");
   if (!finite(spec.granulation,0,1)) add("granulation","/granulation","Granulation must be 0..1.");
+  if(spec.edgePooling!==undefined && !finite(spec.edgePooling,0,1))
+    add("edge-pooling","/edgePooling","Edge pooling must be 0..1.");
+  if(spec.paintAreas!==undefined && (
+    !Array.isArray(spec.paintAreas) || spec.paintAreas.length<1 || spec.paintAreas.length>48 ||
+    spec.paintAreas.some(poly=>!Array.isArray(poly) || poly.length<3 || poly.length>64 ||
+      poly.some(p=>!p || !finite(p.x,0,spec.width) || !finite(p.y,0,spec.height)) ||
+      Math.abs(poly.reduce((acc,p,i)=>{
+        const q=poly[(i+1)%poly.length];return acc+p.x*q.y-q.x*p.y;
+      },0))<2)))
+    add("paint-areas","/paintAreas","Use 1..48 nondegenerate polygons of 3..64 paper-space vertices each.");
   if (!integer(spec.dryFrames,24,360)) add("dryFrames","/dryFrames","Drying must last 24..360 frames.");
   if (integer(spec.width,240,8192) && integer(spec.height,240,8192) &&
       integer(spec.cellSize,12,64) &&
@@ -115,6 +129,22 @@ export function inspectWetPaper(spec: WetPaperSpec): WetPaperIssue[] {
   return issues;
 }
 
+/** Even-odd silhouette test in paper coordinates, independent of the DOM. */
+export function insideWetPaintArea(x:number,y:number,
+  polygons:readonly (readonly {x:number;y:number}[])[]):boolean {
+  for(const vertices of polygons){
+    let inside=false;
+    for(let i=0,j=vertices.length-1;i<vertices.length;j=i++){
+      const a=vertices[i],b=vertices[j];
+      if((a.y>y)!==(b.y>y)){
+        if(x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;
+      }
+    }
+    if(inside)return true;
+  }
+  return false;
+}
+
 const rgb = (hex: string): [number,number,number] => [
   parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),
 ];
@@ -134,6 +164,20 @@ export function evaluateWetPaper(spec: WetPaperSpec, frame: number, reducedMotio
   const first=Math.min(...spec.drops.map(d=>d.startFrame));
   const dryFrame=Math.max(...spec.drops.map(d=>d.startFrame))+spec.dryFrames;
   const target=reducedMotion?dryFrame:Math.min(frame,dryFrame);
+  // Compute polygon bounding boxes once per render; otherwise many fine
+  // subject leaves would retest every vertex for every untouched paper cell.
+  const boundedAreas=spec.paintAreas?.map(poly=>({
+    poly,minX:Math.min(...poly.map(p=>p.x)),maxX:Math.max(...poly.map(p=>p.x)),
+    minY:Math.min(...poly.map(p=>p.y)),maxY:Math.max(...poly.map(p=>p.y)),
+  }));
+  const active=boundedAreas?
+    Array.from({length:n},(_,i)=>{
+      const x=(i%cols+.5)*dx,y=(Math.floor(i/cols)+.5)*dy;
+      return boundedAreas.some(a=>x>=a.minX && x<=a.maxX &&
+        y>=a.minY && y<=a.maxY && insideWetPaintArea(x,y,[a.poly]));
+    }):
+    Array.from({length:n},()=>true);
+  if(!active.some(Boolean))throw new RangeError("Paint areas have no coverage at this grid resolution.");
   const m=Array.from({length:4},()=>new Float64Array(n));
   const fixed=Array.from({length:4},()=>new Float64Array(n));
   let water=new Float64Array(n);
@@ -145,6 +189,7 @@ export function evaluateWetPaper(spec: WetPaperSpec, frame: number, reducedMotio
     const weights:number[]=[];
     let sum=0;
     for(let i=0;i<n;i++){
+      if(!active[i]){weights.push(0);continue;}
       const x=(i%cols+.5)*dx,y=(Math.floor(i/cols)+.5)*dy;
       let norm=((x-d.x)**2+(y-d.y)**2)/(d.radius*d.radius);
       if (d.path) {
@@ -164,9 +209,16 @@ export function evaluateWetPaper(spec: WetPaperSpec, frame: number, reducedMotio
       weights.push(w);sum+=w;
     }
     if(sum===0) {
-      const ix=Math.min(cols-1,Math.floor(d.x/dx));
-      const iy=Math.min(rows-1,Math.floor(d.y/dy));
-      weights[iy*cols+ix]=1;sum=1;
+      // Small painted shapes can miss the original radial dab. Preserve all
+      // deposited mass by using the closest *valid* paper-region cell.
+      let nearest=-1,best=Infinity;
+      for(let i=0;i<n;i++)if(active[i]){
+        const x=(i%cols+.5)*dx,y=(Math.floor(i/cols)+.5)*dy;
+        const dist=(x-d.x)**2+(y-d.y)**2;
+        if(dist<best){nearest=i;best=dist;}
+      }
+      if(nearest<0)throw new RangeError("Paint area contains no active cells.");
+      weights[nearest]=1;sum=1;
     }
     for(let i=0;i<n;i++) if(weights[i]>0){
       const part=weights[i]/sum * 65*d.load;
@@ -180,10 +232,11 @@ export function evaluateWetPaper(spec: WetPaperSpec, frame: number, reducedMotio
   // every physics step inflated GC cost during interactive 30 fps playback.
   const neighbors=Array.from({length:n},(_,i)=>{
     const x=i%cols,y=Math.floor(i/cols),out:number[]=[];
-    if(x>0)out.push(i-1);
-    if(x<cols-1)out.push(i+1);
-    if(y>0)out.push(i-cols);
-    if(y<rows-1)out.push(i+cols);
+    if(!active[i])return out;
+    if(x>0&&active[i-1])out.push(i-1);
+    if(x<cols-1&&active[i+1])out.push(i+1);
+    if(y>0&&active[i-cols])out.push(i-cols);
+    if(y<rows-1&&active[i+cols])out.push(i+cols);
     return out;
   });
   let previous=first-1;
@@ -198,15 +251,23 @@ export function evaluateWetPaper(spec: WetPaperSpec, frame: number, reducedMotio
     const moving=Array.from({length:4},()=>new Float64Array(n));
     for(let i=0;i<n;i++){
       const nbr=neighbors[i],w=water[i];
+      if(!active[i])continue;
       const waterFraction=.22*spec.flow;
       const mobility=.235*spec.flow*clamp(w);
       // Neighbor flux is conservative, including at the paper boundary.
       newWater[i]+=w*(1-waterFraction)*.95;
       for(let k=0;k<4;k++){
         const pigment=m[k][i],flow=pigment*mobility;
-        moving[k][i]+=pigment-flow;
-        for(const j of nbr)moving[k][j]+=flow/4;
-        moving[k][i]+=flow*(4-nbr.length)/4;
+        let pooled=0;
+        for(const j of nbr){
+          // Pigment follows wet-to-dry water-front gradients and becomes
+          // trapped by the higher dry-front sedimentation of paper fibres.
+          const outward=Math.max(0,clamp(w)-clamp(water[j]));
+          const pushed=pigment*(spec.edgePooling??0)*.09*outward;
+          pooled+=pushed;
+          moving[k][j]+=flow/4+pushed;
+        }
+        moving[k][i]+=pigment-flow-pooled+flow*(4-nbr.length)/4;
       }
       for(const j of nbr)newWater[j]+=w*waterFraction/4*.95;
       newWater[i]+=w*waterFraction*(4-nbr.length)/4*.95;
@@ -232,6 +293,7 @@ export function evaluateWetPaper(spec: WetPaperSpec, frame: number, reducedMotio
   const cells:WetPaperCell[]=[];
   let total=0, totalWater=0;
   for(let i=0;i<n;i++){
+    if(!active[i])continue;
     const mass=fixed[0][i]+m[0][i];
     total+=mass; totalWater+=water[i];
     if(mass<.012)continue;
