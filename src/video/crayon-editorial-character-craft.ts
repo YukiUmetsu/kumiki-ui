@@ -117,8 +117,14 @@ export function crayonFurFlow({
     // Connected, asymmetric side filaments trace wax drag near the tips.
     // This is not random overlaid paper noise; the branch starts *on* a hair.
     if(crayonHash(seed,i,55)<forkRate){
-      const fork={x:mid.x+tangent.x*extent*.16,
-        y:mid.y+tangent.y*extent*.16};
+      // A quadratic control point is NOT on the pigment stroke.
+      // Attach the side-hair at the actual 72%-along curve coordinate;
+      // otherwise the "fork" becomes a visually isolated digital mark.
+      const forkT=.72,other=1-forkT;
+      const fork={
+        x:other*other*start.x+2*other*forkT*mid.x+forkT*forkT*end.x,
+        y:other*other*start.y+2*other*forkT*mid.y+forkT*forkT*end.y,
+      };
       const turn=(crayonHash(seed,i,56)<.5?-1:1);
       const forkEnd={x:end.x-tangent.y*turn*extent*.2,
         y:end.y+tangent.x*turn*extent*.2};
