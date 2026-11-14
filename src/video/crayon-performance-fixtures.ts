@@ -35,14 +35,16 @@ const contour=(id:string,d:string,width:number,props:Partial<Extract<CrayonEleme
 export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSceneSpec {
   const portrait=aspect==="portrait", W=portrait?540:960,H=portrait?960:540;
   const ox=W*.51, oy=portrait?H*.65:H*.63;
+  // Opaque torso is a soft volume: weight compresses on anticipation and
+  // releases on the lifted gesture. Neither axis ever collapses the shape.
   const bodyMotion=[
-    {frame:0,x:0,y:0,rotate:0},
-    {frame:68,x:0,y:4,rotate:-3},
-    {frame:88,x:0,y:-7,rotate:3},
-    {frame:120,x:0,y:-9,rotate:2},
-    {frame:160,x:0,y:-3,rotate:-2},
-    {frame:217,x:0,y:0,rotate:0},
-    {frame:269,x:0,y:0,rotate:0},
+    {frame:0,x:0,y:0,rotate:0,scaleX:1,scaleY:1},
+    {frame:68,x:0,y:4,rotate:-3,scaleX:1.045,scaleY:.965},
+    {frame:88,x:0,y:-7,rotate:3,scaleX:.965,scaleY:1.045},
+    {frame:120,x:0,y:-9,rotate:2,scaleX:.975,scaleY:1.035},
+    {frame:160,x:0,y:-3,rotate:-2,scaleX:1.025,scaleY:.985},
+    {frame:217,x:0,y:0,rotate:0,scaleX:.99,scaleY:1.01},
+    {frame:269,x:0,y:0,rotate:0,scaleX:1,scaleY:1},
   ];
   const headMotion=[
     {frame:0,x:0,y:0,rotate:0},
@@ -66,6 +68,35 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
     {frame:170,pose:"smile"}, {frame:192,pose:"blink"},
     {frame:198,pose:"smile"}, {frame:232,pose:"base"},
   ] as const;
+  // Distinct eyebrow art carries the emotional sentence, not a mirrored
+  // rotation of a flat head. These cues intentionally precede/succeed the
+  // mouth and eyelid keyframes by several source frames.
+  const browCues=[
+    {frame:0,pose:"base"}, {frame:64,pose:"concern"},
+    {frame:83,pose:"wonder"}, {frame:103,pose:"base"},
+    {frame:152,pose:"wonder"}, {frame:171,pose:"smile"},
+    {frame:214,pose:"concern"}, {frame:230,pose:"base"},
+  ] as const;
+  // Ear and textile response lag behind skull, arms and torso by separate
+  // authored offsets. Every path is still parented to its natural joint.
+  const leftEarMotion=[
+    {frame:0,x:0,y:0,rotate:0,scaleY:1},
+    {frame:72,x:0,y:0,rotate:8,scaleY:.95},
+    {frame:104,x:0,y:0,rotate:-10,scaleY:1.04},
+    {frame:140,x:0,y:0,rotate:4,scaleY:1},
+    {frame:183,x:0,y:0,rotate:-7,scaleY:1.03},
+    {frame:238,x:0,y:0,rotate:3,scaleY:.99},
+    {frame:269,x:0,y:0,rotate:0,scaleY:1},
+  ];
+  const rightEarMotion=[
+    {frame:0,x:0,y:0,rotate:0,scaleY:1},
+    {frame:72,x:0,y:0,rotate:-5,scaleY:1.05},
+    {frame:103,x:0,y:0,rotate:9,scaleY:.96},
+    {frame:148,x:0,y:0,rotate:-4,scaleY:1},
+    {frame:184,x:0,y:0,rotate:7,scaleY:1.04},
+    {frame:241,x:0,y:0,rotate:-3,scaleY:1},
+    {frame:269,x:0,y:0,rotate:0,scaleY:1},
+  ];
 
   const elements:CrayonElement[]=[
     wax("distant-meadow",`M0 ${H*.69} Q${W*.25} ${H*.59} ${W*.46} ${H*.71} Q${W*.73} ${H*.58} ${W} ${H*.70} V${H} H0Z`,
@@ -88,13 +119,17 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
           {frame:130,x:0,y:0,rotate:-9},{frame:190,x:0,y:0,rotate:21},
           {frame:269,x:0,y:0,rotate:-14}],poseCadence:2}),
     wax("left-ear",egg(-37,-126,20,43),{x:-59,y:-170,width:44,height:88},
-      berries,{parentId:"head",pivot:{x:-37,y:-97}}),
+      berries,{parentId:"head",pivot:{x:-37,y:-97},
+        motion:leftEarMotion,motionLagFrames:3,poseCadence:2}),
     wax("right-ear",egg(37,-126,20,43),{x:15,y:-170,width:44,height:88},
-      berries,{parentId:"head",pivot:{x:37,y:-97}}),
+      berries,{parentId:"head",pivot:{x:37,y:-97},
+        motion:rightEarMotion,motionLagFrames:5,poseCadence:2}),
+    // Inner ear pigment must follow the moving outer ear, not remain stuck
+    // directly to the head; the local artwork is still the same original.
     wax("left-ear-inner",egg(-37,-127,9,27),{x:-48,y:-155,width:22,height:56},
-      honey,{parentId:"head",spacing:4.5,pressure:.45}),
+      honey,{parentId:"left-ear",spacing:4.5,pressure:.45}),
     wax("right-ear-inner",egg(37,-127,9,27),{x:26,y:-155,width:22,height:56},
-      honey,{parentId:"head",spacing:4.5,pressure:.45}),
+      honey,{parentId:"right-ear",spacing:4.5,pressure:.45}),
     wax("back-arm","M-48 15 Q-78 34 -73 69 Q-51 83 -36 45Z",
       {x:-82,y:10,width:50,height:81},berries,{parentId:"body",pivot:{x:-49,y:18},
         motion:[{frame:0,x:0,y:0,rotate:10},{frame:90,x:0,y:0,rotate:-12},
@@ -103,22 +138,46 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
       {x:-80,y:-70,width:160,height:188},berries,{
         placement:{x:ox,y:oy},motion:bodyMotion,poseCadence:2}),
     wax("foot-back",egg(-29,94,24,13),{x:-55,y:79,width:52,height:31},
-      plum,{parentId:"body",pressure:.68,spacing:4.5}),
+      plum,{parentId:"body",pressure:.68,spacing:4.5,
+        contacts:[{start:0,end:269,anchor:{x:-29,y:103}}]}),
     wax("foot-front",egg(31,94,24,13),{x:4,y:79,width:54,height:31},
-      plum,{parentId:"body",pressure:.68,spacing:4.5}),
+      plum,{parentId:"body",pressure:.68,spacing:4.5,
+        contacts:[{start:0,end:269,anchor:{x:31,y:103}}]}),
     wax("belly",egg(0,30,37,53),{x:-40,y:-25,width:80,height:110},honey,
       {parentId:"body",pressure:.58,spacing:8}),
     wax("scarf-wrap","M-37 -38 Q0 -18 39 -38 L34 -20 Q0 1 -33 -22Z",
       {x:-42,y:-42,width:86,height:46},indigo,{parentId:"body",pressure:.82,spacing:5.5}),
     wax("scarf-tail","M21 -24 Q35 -18 46 -6 L56 25 L37 29 L24 0Z",
-      {x:18,y:-27,width:42,height:60},indigo,{parentId:"body",pressure:.8,spacing:5}),
-    contour("scarf-weave","M-29 -29 Q0 -8 31 -29 M38 16 L50 14",2.2,
+      {x:18,y:-27,width:42,height:60},indigo,{parentId:"body",pressure:.8,spacing:5,
+        pivot:{x:24,y:-20},motionLagFrames:6,poseCadence:2,
+        motion:[{frame:0,x:0,y:0,rotate:0,scaleY:1},
+          {frame:78,x:0,y:0,rotate:-8,scaleY:.96},
+          {frame:111,x:0,y:0,rotate:15,scaleY:1.08},
+          {frame:159,x:0,y:0,rotate:-6,scaleY:.95},
+          {frame:199,x:0,y:0,rotate:8,scaleY:1.04},
+          {frame:244,x:0,y:0,rotate:-3,scaleY:1},
+          {frame:269,x:0,y:0,rotate:0,scaleY:1}]}),
+    contour("scarf-weave","M-29 -29 Q0 -8 31 -29",2.2,
       {parentId:"body",color:"#d5d9df",opacity:.75}),
+    contour("scarf-tail-stitch","M38 16 L50 14",2.2,
+      {parentId:"scarf-tail",color:"#d5d9df",opacity:.75}),
     wax("head","M-63 -83 Q-69 -130 -29 -149 Q2 -161 38 -144 Q66 -126 64 -83 Q54 -47 4 -45 Q-47 -45 -63 -83Z",
       {x:-70,y:-164,width:140,height:124},berries,{
         parentId:"body",pivot:{x:0,y:-71},motion:headMotion,poseCadence:2}),
     wax("muzzle",egg(0,-77,38,27),{x:-40,y:-106,width:80,height:59},honey,
       {parentId:"head",pressure:.62,spacing:5}),
+    contour("brow-left","M-32 -115 Q-23 -122 -14 -117",2.8,{
+      parentId:"head",poseCadence:2,opacity:.82,
+      poses:[{id:"concern",d:"M-34 -114 Q-23 -127 -13 -120"},
+        {id:"wonder",d:"M-33 -123 Q-24 -131 -14 -123"},
+        {id:"smile",d:"M-33 -115 Q-23 -117 -14 -113"}],
+      poseCues:browCues}),
+    contour("brow-right","M14 -117 Q24 -122 33 -115",2.8,{
+      parentId:"head",poseCadence:2,opacity:.82,
+      poses:[{id:"concern",d:"M14 -120 Q24 -127 34 -114"},
+        {id:"wonder",d:"M14 -123 Q24 -131 33 -123"},
+        {id:"smile",d:"M14 -113 Q24 -117 33 -115"}],
+      poseCues:browCues}),
     contour("left-eye","M-27 -101 a5 6 0 1 0 10 0 a5 6 0 1 0 -10 0",3.4,{
       parentId:"head",poseCadence:2,
       poses:[{id:"blink",d:"M-29 -103 Q-22 -95 -15 -103"},
