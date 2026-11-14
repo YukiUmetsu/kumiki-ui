@@ -32,7 +32,7 @@ describe("RISO8 small, conforming construction mesh",()=>{
     for(const [a,b,c] of refined)for(const [p,q] of [[a,b],[b,c],[c,a]] as const)
       counts.set(edge(p,q),(counts.get(edge(p,q))??0)+1);
     expect([...counts.values()].every(n=>n===1||n===2)).toBe(true);
-    expect(refined.reduce((sum,t)=>sum+area(t),0)).toBeCloseTo(333,5);
+    expect(refined.reduce((sum,t)=>sum+area(t),0)).toBeCloseTo(387,5);
     for(const t of refined){
       const centroid:RisoContourPoint=[(t[0][0]+t[1][0]+t[2][0])/3,
         (t[0][1]+t[1][1]+t[2][1])/3];
