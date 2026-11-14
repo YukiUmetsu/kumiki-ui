@@ -1,0 +1,56 @@
+name: Crayon Storybook browser and film qualification
+
+# Chromium and full 14-second MP4 export are deliberately manual, to conserve CI minutes.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-film-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Native-paper and draw-on browser captures
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/crayon-storybook.spec.ts
+      - name: Validate exported film document
+        run: npm run film:check -- examples/film/crayon-storybook.film.json
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Capture material beats in both aspects
+        run: |
+          for frame in 0 90 156 270 360 419; do
+            npm run film:frame -- examples/film/crayon-storybook.film.json --frame=$frame --only=landscape --out=dist/crayon-film-proof
+            npm run film:frame -- examples/film/crayon-storybook.film.json --frame=$frame --only=portrait --out=dist/crayon-film-proof
+          done
+      - name: Render full 14-second encoded film
+        run: |
+          npm run film:render -- examples/film/crayon-storybook.film.json --frames=420 --only=landscape --out=dist/crayon-film-proof
+          npm run film:render -- examples/film/crayon-storybook.film.json --frames=420 --only=portrait --out=dist/crayon-film-proof
+      - name: Preserve encoded video and frame proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crayon-production-film-proof
+          path: dist/crayon-film-proof/
+          retention-days: 10
+          if-no-files-found: warn
+      - name: Preserve browser stills and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crayon-browser-proof
+          path: test-results/
+          retention-days: 10
+          if-no-files-found: warn
