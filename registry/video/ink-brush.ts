@@ -274,6 +274,33 @@ function geometry(
       opacity: .16 + s.load * .30,
     });
   }
+  // At the lift, separated bristles continue beyond the wet core and fade independently.
+  // They grow only during the final brush travel, never ahead of the contact tip.
+  const drawnArc = pts[pts.length - 1].arc;
+  const lift = clamp((drawnArc / Math.max(.1, totalArc) - .97) / .03, 0, 1);
+  if (lift > 0 && complete.length > 8) {
+    const tip = complete[complete.length - 1];
+    const prior = complete[Math.max(0, complete.length - 8)];
+    const dx = tip.x - prior.x, dy = tip.y - prior.y, length = Math.hypot(dx, dy) || 1;
+    const dirX = dx / length, dirY = dy / length;
+    for (let lane = 0; lane < 17; lane++) {
+      const offset = (lane - 8) / 8 * (.6 + .3 * s.dryness);
+      const begin = complete[Math.max(0, complete.length - 9 - (lane % 4))];
+      const a = point(begin, offset, 0);
+      const distance = (6 + 32 * inkHash(seed, lane, 149)) * lift
+        * (.42 + .58 * s.dryness);
+      const sx = tip.x + dirX * distance + tip.nx * offset * s.width * .09;
+      const sy = tip.y + dirY * distance + tip.ny * offset * s.width * .09;
+      hairs.push({
+        d: "M" + fmt(a[0]) + " " + fmt(a[1]) +
+          "Q" + fmt(tip.x + tip.nx * offset * s.width * .08) + " " +
+          fmt(tip.y + tip.ny * offset * s.width * .08) + " " +
+          fmt(sx) + " " + fmt(sy),
+        width: .24 + 1.0 * inkHash(seed, lane, 151) * (.3 + .7 * s.load),
+        opacity: (.12 + .48 * inkHash(seed, lane, 153)) * lift,
+      });
+    }
+  }
   const xs = hull.map(p => p[0]), ys = hull.map(p => p[1]);
   return {
     outline, core, gaps, pores, hairs, flow,
