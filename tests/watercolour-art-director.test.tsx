@@ -35,6 +35,32 @@ describe("WC9 ArtCraft-inspired reusable watercolour illustration scene", () => 
     });
   }
 
+  it("art-directs the native portrait crop, preserving beak, tail and grounded feet", () => {
+    const spec = watercolorWetlandSpec("portrait");
+    expect(inspectWatercolourArtwork(spec)).toEqual([]);
+    const root = spec.parts[0];
+    expect(root.kind).toBe("group");
+    if (root.kind !== "group") return;
+    const pose = root.keys?.[0];
+    expect(pose).toBeDefined();
+    if (!pose) return;
+    const point = (x: number, y: number) => ({
+      x: pose.x + x * pose.scale, y: pose.y + y * pose.scale,
+    });
+    // Bird is built at (426,19) inside the shared original paper coordinates.
+    const tip = point(426 + 11, 19 + 75);
+    const tail = point(426 + 349, 19 + 258);
+    const crown = point(426 + 105, 19 + 55);
+    const foot = point(426 + 198, 19 + 455);
+    expect(tip.x).toBeGreaterThan(20);
+    expect(tail.x).toBeLessThan(535);
+    expect(crown.y).toBeGreaterThan(150);
+    expect(foot.y).toBeLessThan(860);
+    expect(pose.scale).toBeGreaterThan(1.2);
+    expect(root.children.filter(p => p.id.startsWith("left-reed-"))).toHaveLength(3);
+    expect(root.children.filter(p => p.id.startsWith("right-reed-"))).toHaveLength(4);
+  });
+
   it("supports bounded optical pigments with real shape-level glazing and pooling", () => {
     const spec = watercolorWetlandSpec("landscape");
     expect(inspectWatercolourArtwork(spec)).toEqual([]);
