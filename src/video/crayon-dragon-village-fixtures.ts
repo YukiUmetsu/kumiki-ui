@@ -359,12 +359,12 @@ export function crayonDragonVillageScene(
   // Instead of flat teal torso fill, hand-engraved interlocking scutes
   // follow the ribcage. Two levels of pigment read as anatomy, not noise.
   line("dragon-flank-scale-field",
-    crayonScaleField({x:-59,y:-34,rows:5,columns:7,
+    crayonScaleField({x:-59,y:-34,rows:Math.round(3+detail*3),columns:Math.round(4+detail*4),
       stepX:14,stepY:14,width:10,depth:5.8,seed:417,taper:1}),
     "#3f6273",1.9,{parentId:root,opacity:.58,
       timing:{start:128,end:238}});
   line("dragon-flank-highlight-scales",
-    crayonScaleField({x:-52,y:-30,rows:4,columns:6,
+    crayonScaleField({x:-52,y:-30,rows:Math.round(2+detail*3),columns:Math.round(3+detail*4),
       stepX:14,stepY:14,width:7,depth:3,seed:914,taper:1}),
     "#d6d3b9",1.25,{parentId:root,opacity:.43,
       timing:{start:153,end:254}});
@@ -568,6 +568,19 @@ export function crayonDragonVillageScene(
       {parentId:owl,pivot:{x:0,y:-49},
         motion:[move(0),move(160),move(198,12),move(246,-12),move(289,9),move(329)],
         motionLagFrames:followThrough,timing:{start:81,end:173}});
+    line("owl-forehead-feather-vines",
+      "M-40 -94Q-26 -113 -14 -98M-13 -101Q0 -118 14 -100"+
+      "M15 -99Q26 -112 41 -92M-40 -49Q-34 -36 -20 -29"+
+      "M39 -49Q34 -35 20 -29",
+      "#d5bca1",2.1,{parentId:"owl-head",opacity:.68,timing:{start:136,end:216}});
+    line("owl-wing-far-feather-groups",
+      "M-78 -27Q-70 -9 -54 4M-86 -7Q-71 10 -52 17"+
+      "M-81 12Q-62 23 -44 27",
+      "#d1c1b6",2.4,{parentId:"owl-wing-far",opacity:.61,timing:{start:138,end:219}});
+    line("owl-wing-near-feather-groups",
+      "M54 -26Q78 -14 83 4M56 -4Q71 13 87 16"+
+      "M51 13Q65 26 79 29",
+      "#e6d5ba",2.4,{parentId:"owl-wing-near",opacity:.63,timing:{start:140,end:221}});
     for(const [side,sign] of [["left",-1],["right",1]] as const){
       const x=sign*23;
       wax("owl-ear-"+side,
@@ -580,6 +593,9 @@ export function crayonDragonVillageScene(
       wax("owl-pupil-"+side,egg(x-sign*2,-66,7,10),
         {x:x-13,y:-81,width:27,height:28},dragon.dark,
         {parentId:"owl-head",timing:{start:141,end:207},spacing:4});
+      line("owl-eye-glint-"+side,
+        "M"+(x-sign*2-1)+" -70l2 -2",
+        "#fff6e6",2.9,{parentId:"owl-head",opacity:.92,timing:{start:166,end:229}});
       line("owl-lid-"+side,`M${x-17} -85Q${x} -95 ${x+17} -85`,
         "#675e71",3.2,{parentId:"owl-head",timing:{start:133,end:211},
           poses:[{id:"blink",d:`M${x-17} -66Q${x} -60 ${x+17} -66`},
@@ -596,12 +612,18 @@ export function crayonDragonVillageScene(
     wax("owl-beak","M-10 -57L0 -35L12 -57Q0 -64 -10 -57Z",
       {x:-13,y:-67,width:28,height:36},gold,
       {parentId:"owl-head",timing:{start:144,end:205}});
-    for(let i=0;i<8;i++){
-      const x=-30+i*8;
-      line("owl-feather-"+i,`M${x} 8q5 12 0 22`,
-        "#bdafaa",2,{parentId:"owl-breast",
-          timing:{start:149+i*2,end:232+i*2}});
-    }
+    const breastFeathers=Array.from({length:18},(_,i)=>{
+      const row=Math.floor(i/6),col=i%6;
+      const x=-27+col*10+(row%2)*4,y=-9+row*17;
+      return "M"+x+" "+y+"q4 10 0 18";
+    }).join(" ");
+    line("owl-layered-breast-feathers",breastFeathers,
+      "#b89c91",1.8,{parentId:"owl-breast",opacity:.65,
+        timing:{start:148,end:241}});
+    line("owl-tail-feather-partings",
+      "M-38 34Q-48 50 -47 60M-31 37Q-36 51 -37 66",
+      "#d2ac94",2,{parentId:"owl-tail",opacity:.68,
+        timing:{start:145,end:225}});
   }
   // Landscape and portrait have independent editorial composition.
   elements.push({kind:"lettering",id:"dragon-village-title",screenSpace:true,
