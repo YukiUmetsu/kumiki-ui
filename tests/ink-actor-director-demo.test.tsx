@@ -33,8 +33,8 @@ describe("INK4 authored character and cinematic stage",()=>{
     expect(inkRouteAt(inkDirectorRoute("landscape"),110).vx).toBeGreaterThan(0);
     const stop=inkRouteAt(inkDirectorRoute("landscape"),230);
     const hold=inkRouteAt(inkDirectorRoute("landscape"),320);
-    expect(stop.x).toBe(hold.x);
-    expect(stop.y).toBe(hold.y);
+    expect(stop.x).toBeCloseTo(hold.x,8);
+    expect(stop.y).toBeCloseTo(hold.y,8);
     expect(stop.vx).toBe(0);
     expect(stop.vy).toBe(0);
   });

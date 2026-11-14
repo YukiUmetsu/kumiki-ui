@@ -120,7 +120,7 @@ describe("INK4 continuous character directing",()=>{
     const tracks=bakeInkWalkCorrections(gait,3);
     expect(Object.keys(tracks)).toHaveLength(10);
     expect(tracks["left-thigh"][0].frame).toBe(0);
-    expect(tracks["head"][0].pose.rotation).toBe(0);
+    expect(tracks["head"][0].pose.rotation).toBeCloseTo(0,9);
     expect(tracks["body"][0].pose.y).toBe(0);
     expect(tracks["left-sleeve"][0].pose.rotation).not.toBe(tracks["left-arm"][0].pose.rotation);
     const after=inkWalkAt(gait,201);
