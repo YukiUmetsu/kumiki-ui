@@ -559,7 +559,7 @@ export function crayonConnectorBendAt(
   if(!keys?.length)return node.bend??0;
   const source=reducedMotion ? (durationFrames??0)-1 : frame;
   if(!int(source)||source<0)throw new RangeError("Reduced connector bend requires duration");
-  const t=Math.floor(source/(node.poseCadence??1))*(node.poseCadence??1);
+  const t=reducedMotion?source:Math.floor(source/(node.poseCadence??1))*(node.poseCadence??1);
   const prev=[...keys].reverse().find(k=>k.frame<=t)??keys[0];
   const next=keys.find(k=>k.frame>=t)??keys[keys.length-1];
   const fraction=prev.frame===next.frame?0:Math.max(0,Math.min(1,(t-prev.frame)/(next.frame-prev.frame)));
