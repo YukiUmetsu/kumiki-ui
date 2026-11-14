@@ -13,7 +13,7 @@ type Builder = (id: string, pts: readonly Point[], width: number, tone: number, 
  */
 function createSubject(subject: InkSubject, aspect: InkAspect): InkStroke[] {
   const portrait = aspect === "portrait";
-  const unit = Math.min(w, h);
+  const unit = 540; // Both proof aspect ratios have a 540px short side.
   // Local art plane sits below the exhibition heading, with a full intentional paper margin.
   const region = portrait
     ? { x: 45, y: 280, width: 455, height: 560 }
