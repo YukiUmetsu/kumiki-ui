@@ -1,3 +1,6 @@
+import { RisoSheetFeed, completedRisoFrame } from "../../registry/video/riso-sheet-feed";
+import { risoSecondSheetArtworks } from "./riso-print-demo-alt";
+import { RISO_SHEET_FEED_FILM } from "./riso-print-film";
 import { useEffect, useMemo, useState } from "react";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import { compileFilm } from "../../registry/video/film-document";
@@ -250,4 +253,93 @@ export const RisographTwoInk: StoryObj<typeof RisoLab> = {
 export const RisographFilm: StoryObj<typeof RisoFilmLab> = {
   name: "Risograph · 3-Shot Film Stage",
   render: () => <RisoFilmLab />,
+};
+
+
+/**
+ * A different original poster appears by paper feed and two ink passes. The Stage
+ * remains FilmStage; there is deliberately no new editor section or film timebase.
+ */
+function RisoSheetFilmLab() {
+  const [aspect, setAspect] = useState<RisoAspect>("landscape");
+  const [frame, setFrame] = useState(465);
+  const [paperGrain, setPaperGrain] = useState(.55);
+  const [misregistration, setMisregistration] = useState(3);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const compiled = useMemo(() => compileFilm(RISO_SHEET_FEED_FILM, { outputId: aspect }), [aspect]);
+  const firstSpec = useMemo(() => risoExampleSpec(aspect), [aspect]);
+  const nextSpec = useMemo(() => risoExampleSpec(aspect, 37), [aspect]);
+  const firstArt = useMemo(() => risoExampleArtworks(aspect), [aspect]);
+  const nextArt = useMemo(() => risoSecondSheetArtworks(aspect), [aspect]);
+  if (!compiled.ok) return <pre role="alert">{compiled.diagnostics.map(item => item.path + ": " + item.message).join("\n")}</pre>;
+  const film = compiled.film, scale = aspect === "landscape" ? 1 : .65;
+  const outgoing = { spec: firstSpec, artworks: firstArt };
+  const incoming = { spec: nextSpec, artworks: nextArt };
+  return <div style={risoUi.page}>
+    <div style={{ maxWidth: 960 }}>
+      <div style={{ color: "#865D44", fontSize: 12, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase" }}>
+        Printmaking / Native scene transition
+      </div>
+      <h1 style={{ margin: "6px 0 8px", font: "600 clamp(23px, 3vw, 34px)/1.15 Georgia, serif" }}>
+        Risograph · Sheet Feed Between Films
+      </h1>
+      <p style={{ margin: 0, color: "var(--km-text-secondary, #56616B)" }}>
+        The first printed editorial sheet advances into a different original artwork.
+        The incoming cobalt and vermilion inks arrive in order as the new sheet passes the roller.
+      </p>
+    </div>
+    <div style={risoUi.toolbar}>
+      <label style={risoUi.label}>Output
+        <select value={aspect} onChange={e => setAspect(e.target.value as RisoAspect)} style={{ font: "inherit", minHeight: 38 }}>
+          <option value="landscape">16:9 landscape</option><option value="portrait">9:16 portrait</option>
+        </select>
+      </label>
+      <label style={risoUi.label}>Registration · {misregistration}px
+        <input type="range" min={0} max={12} value={misregistration} onChange={e => setMisregistration(Number(e.target.value))}/>
+      </label>
+      <label style={risoUi.label}>Paper grain · {Math.round(paperGrain * 100)}%
+        <input type="range" min={0} max={1} step={.05} value={paperGrain} onChange={e => setPaperGrain(Number(e.target.value))}/>
+      </label>
+      <label style={{ display: "flex", alignItems: "center", gap: 10, font: "600 13px system-ui" }}>
+        <input type="checkbox" checked={reducedMotion} onChange={e => setReducedMotion(e.target.checked)}/>
+        Reduced motion
+      </label>
+    </div>
+    <div style={{ width: "100%", maxWidth: 960, display: "grid", gap: 8 }}>
+      <label style={{ display: "grid", gap: 4, font: "600 13px system-ui" }}>
+        Film frame {frame} / {film.durationFrames - 1}
+        <input aria-label="Film frame" type="range" min={0} max={film.durationFrames - 1} value={frame}
+          onChange={e => setFrame(Number(e.target.value))}/>
+      </label>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {([["First sheet", 330], ["Feed begins", 392], ["Halfway", 480], ["New sheet", 570], ["Hold", 660]] as const).map(([label, at]) =>
+          <button key={label} type="button" onClick={() => setFrame(at)} style={risoUi.button}>{label}</button>)}
+      </div>
+    </div>
+    <div style={{ width: film.width * scale, height: film.height * scale, maxWidth: "100%", overflow: "hidden",
+      boxShadow: "0 10px 40px rgba(49,38,27,.13)" }}>
+      <FilmStage film={film} frame={frame} renderObject={() => null} reducedMotion={reducedMotion}
+        renderSlot={(content, context) => {
+          if (content.slot === "riso-print-study") return <RisoPrint spec={firstSpec} artworks={firstArt}
+            frame={Number(content.props?.offsetFrame ?? 0) + context.frame} misregistration={misregistration / 12}
+            paperGrain={paperGrain} reducedMotion={context.reducedMotion}/>;
+          if (content.slot === "riso-sheet-feed") return <RisoSheetFeed outgoing={outgoing} incoming={incoming}
+            frame={context.frame} startFrame={0} durationFrames={170} reducedMotion={context.reducedMotion}
+            paperGrain={paperGrain} misregistration={misregistration / 12}/>;
+          if (content.slot === "riso-next-print") return <RisoPrint spec={nextSpec} artworks={nextArt}
+            frame={completedRisoFrame(nextSpec)} reducedMotion={context.reducedMotion}
+            misregistration={misregistration / 12} paperGrain={paperGrain}/>;
+          throw new Error("Unknown print scene slot: " + content.slot);
+        }}
+        style={{ transform: "scale(" + scale + ")", transformOrigin: "top left" }}/>
+    </div>
+    <p style={{ margin: 0, maxWidth: 960, color: "var(--km-text-secondary, #56616B)", fontSize: 13 }}>
+      Scenes 1–3 develop the first print. Scene 4 feeds a new sheet with sequential spot-ink passes.
+      Scene 5 holds the second print. All state comes from the existing FilmStage frame.
+    </p>
+  </div>;
+}
+export const RisographSheetFeed: StoryObj<typeof RisoSheetFilmLab> = {
+  name: "Risograph · Paper Feed Transition",
+  render: () => <RisoSheetFilmLab />,
 };
