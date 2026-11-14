@@ -214,7 +214,7 @@ function MeadowDetails({width,height,seed,frame,reduced,day}:{
   return <g data-km-crayon-meadow="" aria-hidden="true">
     {blades.map((b,i)=><WaxLine key={i} d={`M${b.x.toFixed(1)} ${b.y.toFixed(1)} q${b.tilt.toFixed(1)} -${(b.length*.7).toFixed(1)} ${b.tilt.toFixed(1)} -${b.length.toFixed(1)}`}
       color={day?"#517967":"#aec3a2"} width={1.2+(i%3)*.6} seed={seed+i}
-      frame={frame} first={285+i*2} last={406} reduced={reduced} opacity={day?.55:.42}/>)}
+      frame={frame} first={285+i*2} last={406} reduced={reduced} opacity={day ? .55 : .42}/>)}
     {Array.from({length:13},(_,i)=>{
       const x=30+crayonHash(seed,i,74)*(width-60);
       const y=height*(.72+crayonHash(seed,i,75)*.25);
