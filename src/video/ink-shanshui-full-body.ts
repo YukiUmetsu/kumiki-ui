@@ -103,7 +103,14 @@ export function shanshuiBodyFit(scene:ShanshuiScene):ShanshuiBodyFit{
     pivot.y+(originalY-pivot.y)*headScaleY+(headRest.y??0);
   const originalHair={pivotY:74,top:scene==="misty-hermit"?36:
     scene==="river-scholar"?27:28,height:scene==="misty-hermit"?64:84};
-  const hairScaleY=hair.height/(originalHair.height*headScaleY);
+  // The young reader's measured "hair" box also contains an ear-sideburn
+  // and flying ribbon, not just the WRAPPED CAP. Using its full height as
+  // cap height pushed the ink hairline down across both eyes. Calibrate the
+  // visible cap separately to its ~46px height in the teacher painting:
+  // the top knot stays aligned while brows/upper lids remain uncovered.
+  const boxHairScale=hair.height/(originalHair.height*headScaleY);
+  const hairScaleY=scene==="river-scholar"
+    ?Math.min(1.45,boxHairScale):boxHairScale;
   const hairTopBefore=atHeadY(originalHair.pivotY+
     hairScaleY*(originalHair.top-originalHair.pivotY));
   const hairRestY=(hair.origin.y-hairTopBefore)/headScaleY;
