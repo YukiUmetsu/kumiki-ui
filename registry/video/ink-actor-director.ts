@@ -192,6 +192,8 @@ export function assertInkWalk(plan:InkWalkPlan) {
   if (!Number.isSafeInteger(plan.startFrame)||!Number.isSafeInteger(plan.endFrame)||
       plan.startFrame<0||plan.endFrame<=plan.startFrame||
       plan.endFrame>plan.route.waypoints[plan.route.waypoints.length-1].frame ||
+      plan.startFrame<plan.route.waypoints[0].frame ||
+      plan.hipHeight>plan.upperLength+plan.lowerLength ||
       !Number.isSafeInteger(plan.cycleFrames)||plan.cycleFrames<12||plan.cycleFrames>180||
       !bound(plan.stanceFraction??.58,.4,.75) ||
       !bound(plan.hipHeight,1,4096)||!bound(plan.upperLength,1,4096)||
@@ -273,11 +275,26 @@ export function bakeInkWalkCorrections(plan:InkWalkPlan,stepFrames=2):CharacterP
   const frames:number[]=[];
   for(let f=plan.startFrame;f<plan.endFrame;f+=stepFrames)frames.push(f);
   frames.push(plan.endFrame);
-  if(frames.length>1800)throw new RangeError("INK4 gait bake exceeds 1800 samples; split into shots.");
+  // Native correction-track limit is 512 keys per part. Avoid generating an
+  // apparently valid output that the core character evaluator silently discards.
+  if(frames.length+1>512) throw new RangeError("INK4 gait bake exceeds 512 correction keys per part; increase sampling or split shots.");
   for(const f of frames){
     const pose=inkWalkPose(plan,f);
     for(const [part,delta] of Object.entries(pose)){
       (tracks[part]??=[]).push({frame:f,pose:delta});
+    }
+  }
+  // When a character stops walking, all corrective limb/cloth rotations ease
+  // naturally back to rig-neutral, rather than freezing at an arbitrary stride.
+  const recoveryFrame=Math.min(360000,plan.endFrame+12);
+  if(recoveryFrame>plan.endFrame){
+    for(const [part,keys] of Object.entries(tracks)){
+      const last=keys[keys.length-1].pose;
+      const identity:CharacterPoseDelta={};
+      for(const name of Object.keys(last) as (keyof CharacterPoseDelta)[]){
+        identity[name]=name==="scaleX"||name==="scaleY"?1:0;
+      }
+      keys.push({frame:recoveryFrame,pose:identity});
     }
   }
   return tracks;
