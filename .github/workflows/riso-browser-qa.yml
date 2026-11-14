@@ -33,7 +33,9 @@ jobs:
       - name: Browser geometry, ink passes, nonsequential seeking and frame screenshots
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-film-looks.spec.ts
       - name: Validate portable Film Document
-        run: npm run film:check -- examples/film/riso-paper-feed.film.json
+        run: |
+          npm run film:check -- examples/film/riso-paper-feed.film.json
+          npm run film:check -- examples/film/riso-native-overprint.film.json
       - name: Install production FFmpeg
         run: |
           sudo apt-get update -qq
@@ -46,12 +48,17 @@ jobs:
           npm run film:frame -- examples/film/riso-paper-feed.film.json --frame=480 --only=landscape --out=dist/riso-film-proof
           npm run film:frame -- examples/film/riso-paper-feed.film.json --frame=680 --only=landscape --out=dist/riso-film-proof
           npm run film:render -- examples/film/riso-paper-feed.film.json --frames=180 --only=landscape --out=dist/riso-film-proof
+          npm run film:frame -- examples/film/riso-native-overprint.film.json --frame=480 --only=landscape --out=dist/riso-overprint-proof
+          npm run film:frame -- examples/film/riso-native-overprint.film.json --frame=569 --only=landscape --out=dist/riso-overprint-proof
+          npm run film:frame -- examples/film/riso-native-overprint.film.json --frame=570 --only=portrait --out=dist/riso-overprint-proof
       - name: Keep the actual encoded video and transition proof frames
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: riso-production-render-evidence
-          path: dist/riso-film-proof/
+          path: |
+            dist/riso-film-proof/
+            dist/riso-overprint-proof/
           retention-days: 10
           if-no-files-found: warn
       - name: Preserve actual screenshots and traces
