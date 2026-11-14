@@ -48,6 +48,23 @@ describe("paper-native brush deposition (INK1 wet medium)", () => {
     expect(inspect(absorbed.rgba).painted).toBeGreaterThan(inspect(noSpread.rgba).painted);
   });
 
+  it("never modifies an already dry region when a different stroke is added later", () => {
+    const later = { ...spec.strokes[0], id: "late-small-mark", startFrame: 120,
+      durationFrames: 30, width: 7, dryness: .95, load: .3,
+      points: [
+        { x: 70, y: 38, pressure: .1, pace: 2 },
+        { x: 230, y: 44, pressure: .8, pace: 1 },
+        { x: 380, y: 35, pressure: .05, pace: 3 },
+      ],
+    };
+    const both: InkBrushSpec = { ...spec, strokes: [spec.strokes[0], later] };
+    const before = sampleWetInk(both, 110, { scale: .5 });
+    const after = sampleWetInk(both, 153, { scale: .5 });
+    const startRow = 45;
+    expect(after.rgba.slice(startRow * after.width * 4))
+      .toEqual(before.rgba.slice(startRow * before.width * 4));
+  });
+
   it("conserves deposited pigment approximately as the wash expands", () => {
     const first = sampleWetInk(spec, 36, { scale: .5, bleed: .72 });
     const later = sampleWetInk(spec, 53, { scale: .5, bleed: .72 });
