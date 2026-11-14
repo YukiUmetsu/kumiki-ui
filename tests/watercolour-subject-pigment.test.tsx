@@ -75,7 +75,7 @@ describe("WM5 artist-built subject masks and real drying-front transport",()=>{
       const spec=watercolourStudySpec("botanical",output,106);
       const html=renderToStaticMarkup(<WatercolourMasterStudyPage study="botanical"
         spec={spec} frame={195}/>);
-      expect((html.match(/data-km-wet-paper=""/g)??[]).toHaveLength(2);
+      expect(html.match(/data-km-wet-paper=""/g)??[]).toHaveLength(2);
       expect(html).toContain('data-km-subject-pigment=""');
       expect(html).toContain('data-km-wet-paper-region-count="24"');
       expect(html).toContain("data-km-wet-paper-pigment=");
