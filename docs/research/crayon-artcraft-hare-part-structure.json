@@ -1,0 +1,727 @@
+{
+  "schema_version": 3,
+  "character": "Crayon Wildlife Hare / ArtCraft side-profile rebuild",
+  "reference_study": "docs/research/crayon-artcraft-hare-reference-study.json",
+  "production_method": "procedural-svg",
+  "view": "profile with three-quarter dimensional cue",
+  "coordinate_system": {
+    "x_min": -240,
+    "x_max": 170,
+    "y_min": -355,
+    "y_max": 455,
+    "origin": "upper-left local character coordinates; nested parent motions in world space",
+    "projection": "2D authoring plane",
+    "root": {
+      "id": "shoulder-silhouette",
+      "landscape": {
+        "x": 676,
+        "y": 357,
+        "scale": 0.94
+      },
+      "portrait": {
+        "x": 340,
+        "y": 599,
+        "scale": 0.94
+      }
+    }
+  },
+  "required_parts": [
+    "shoulder-silhouette",
+    "head",
+    "near-ear",
+    "near-ear-inner",
+    "near-ear-outer-lip",
+    "near-ear-canal-shadow",
+    "far-ear",
+    "far-ear-inner",
+    "orbital-structure",
+    "eye-brow-bone",
+    "eye-amber-iris",
+    "eye-pupil",
+    "nasal-bridge-plane",
+    "muzzle-projection",
+    "muzzle-underside",
+    "muzzle-light",
+    "nose",
+    "whisker-follicles"
+  ],
+  "parts": [
+    {
+      "id": "shoulder-silhouette",
+      "parent": null,
+      "representation": "vector-2d",
+      "bbox": [
+        0.1,
+        0.5395,
+        1.0512,
+        0.9963
+      ],
+      "pivot": [
+        0,
+        0.44
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Single body root supporting neck ruff and all head animation",
+      "details": {
+        "primary": "Single body root supporting neck ruff and all head animation",
+        "secondary": "Shoulder-to-chest connection not a free-standing oval",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Shoulder-to-chest connection not a free-standing oval",
+      "layering_plan": "Opaque underpaint, chest/superficial fur overlaid",
+      "semantic_children": [
+        "head",
+        "neck-ruff"
+      ],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "head",
+      "parent": "shoulder-silhouette",
+      "representation": "vector-2d",
+      "bbox": [
+        0.1902,
+        0.2173,
+        0.9439,
+        0.5543
+      ],
+      "pivot": [
+        0.58,
+        0.53
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Wedge cranium with non-circular occipital transition and jaw",
+      "details": {
+        "primary": "Wedge cranium with non-circular occipital transition and jaw",
+        "secondary": "Upper brow breaks into ear roots; lower jaw tapers to throat",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Upper brow breaks into ear roots; lower jaw tapers to throat",
+      "layering_plan": "Base umber before top temple/crown/cheek paint",
+      "semantic_children": [
+        "near-ear",
+        "far-ear",
+        "orbital-structure",
+        "muzzle-projection"
+      ],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "far-ear",
+      "parent": "head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.5,
+        0.0037,
+        0.739,
+        0.3185
+      ],
+      "pivot": [
+        0.55,
+        0.3
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Far folded ear with thick anterior margin and dark recess",
+      "details": {
+        "primary": "Far folded ear with thick anterior margin and dark recess",
+        "secondary": "Interior narrows and fold changes tangent along long axis",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Interior narrows and fold changes tangent along long axis",
+      "layering_plan": "Dark exterior, warm inner rib, canal root shadow",
+      "semantic_children": [
+        "far-ear-inner",
+        "far-ear-crease-shadow"
+      ],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "far-ear-inner",
+      "parent": "far-ear",
+      "representation": "vector-2d",
+      "bbox": [
+        0.5146,
+        0.0333,
+        0.6634,
+        0.2938
+      ],
+      "pivot": [
+        0.5,
+        0.55
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Asymmetric ear membrane with tapered tip",
+      "details": {
+        "primary": "Asymmetric ear membrane with tapered tip",
+        "secondary": "Internal narrow ridge, not a geometrically scaled duplicate of near ear",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Internal narrow ridge, not a geometrically scaled duplicate of near ear",
+      "layering_plan": "Ear interior below crease and optional fur strokes",
+      "semantic_children": [],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "near-ear",
+      "parent": "head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.739,
+        0.0383,
+        0.9976,
+        0.3222
+      ],
+      "pivot": [
+        0.53,
+        0.35
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Near ear with outer rim and hollow canal",
+      "details": {
+        "primary": "Near ear with outer rim and hollow canal",
+        "secondary": "Tapered, folded cartilage with irregular two-sided width",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Tapered, folded cartilage with irregular two-sided width",
+      "layering_plan": "Base deep wax followed by ear-inner, outer lip and recessed canal",
+      "semantic_children": [
+        "near-ear-inner",
+        "near-ear-outer-lip",
+        "near-ear-canal-shadow"
+      ],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "near-ear-inner",
+      "parent": "near-ear",
+      "representation": "vector-2d",
+      "bbox": [
+        0.778,
+        0.0457,
+        0.9634,
+        0.3
+      ],
+      "pivot": [
+        0.5,
+        0.51
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Warm inner cartilage with thinner attached edge",
+      "details": {
+        "primary": "Warm inner cartilage with thinner attached edge",
+        "secondary": "Curved interior taper varies over length; no pill-shaped overlay",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Curved interior taper varies over length; no pill-shaped overlay",
+      "layering_plan": "Warm midtone carved by sparing sgraffito",
+      "semantic_children": [],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "near-ear-outer-lip",
+      "parent": "near-ear",
+      "representation": "vector-2d",
+      "bbox": [
+        0.8366,
+        0.0469,
+        0.9902,
+        0.3074
+      ],
+      "pivot": [
+        0.53,
+        0.48
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Outer ear wall folds back toward head",
+      "details": {
+        "primary": "Outer ear wall folds back toward head",
+        "secondary": "Convex edge thick near apex, concave near root",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Convex edge thick near apex, concave near root",
+      "layering_plan": "Warm ridge above inner ear; dark canal later",
+      "semantic_children": [],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "near-ear-canal-shadow",
+      "parent": "near-ear",
+      "representation": "vector-2d",
+      "bbox": [
+        0.7902,
+        0.2272,
+        0.8854,
+        0.3086
+      ],
+      "pivot": [
+        0.52,
+        0.52
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Deep root canal at ear attachment",
+      "details": {
+        "primary": "Deep root canal at ear attachment",
+        "secondary": "Concave visible opening and dark underside, not free black oval",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Concave visible opening and dark underside, not free black oval",
+      "layering_plan": "Occludes inner membrane only at true root",
+      "semantic_children": [],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "orbital-structure",
+      "parent": "head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.2829,
+        0.2827,
+        0.6366,
+        0.4086
+      ],
+      "pivot": [
+        0.5,
+        0.43
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Bone socket around eye and brow",
+      "details": {
+        "primary": "Bone socket around eye and brow",
+        "secondary": "Two arch curvatures: upper projecting and lower inset",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Two arch curvatures: upper projecting and lower inset",
+      "layering_plan": "Painted under brow and above forehead; eye shape in front",
+      "semantic_children": [
+        "eye-brow-bone",
+        "eye-amber-iris"
+      ],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "eye-brow-bone",
+      "parent": "head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.2902,
+        0.2926,
+        0.5659,
+        0.3568
+      ],
+      "pivot": [
+        0.47,
+        0.59
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Warm supraorbital eyebrow ridge",
+      "details": {
+        "primary": "Warm supraorbital eyebrow ridge",
+        "secondary": "Follows slanted brow then drops into inner eye corner",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Follows slanted brow then drops into inner eye corner",
+      "layering_plan": "Located above shadow orbital structure and behind eye ring",
+      "semantic_children": [],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "eye-amber-iris",
+      "parent": "head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.4098,
+        0.3469,
+        0.4878,
+        0.3901
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Amber visible iris with radial multicolor wax engraving",
+      "details": {
+        "primary": "Amber visible iris with radial multicolor wax engraving",
+        "secondary": "Elliptical not perfect circle, darker rim and two uneven glints",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Elliptical not perfect circle, darker rim and two uneven glints",
+      "layering_plan": "Painted on dark rim behind pupil; clipped radial flecks",
+      "semantic_children": [
+        "iris-deep-radials",
+        "iris-gold-radials"
+      ],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "eye-pupil",
+      "parent": "head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.4341,
+        0.3506,
+        0.478,
+        0.3864
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Eccentric pupil reflecting side light",
+      "details": {
+        "primary": "Eccentric pupil reflecting side light",
+        "secondary": "Vertical but asymmetrically curved opening",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Vertical but asymmetrically curved opening",
+      "layering_plan": "Black-pigment core above iris",
+      "semantic_children": [],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "nasal-bridge-plane",
+      "parent": "head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.0561,
+        0.3333,
+        0.3659,
+        0.4506
+      ],
+      "pivot": [
+        0.38,
+        0.51
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Sloped nose bridge joining brow and fore muzzle",
+      "details": {
+        "primary": "Sloped nose bridge joining brow and fore muzzle",
+        "secondary": "Taper, not cylinder or rigid triangular beak",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Taper, not cylinder or rigid triangular beak",
+      "layering_plan": "Warm/cool illuminated nasal plane below cheek and front of skull",
+      "semantic_children": [],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "muzzle-projection",
+      "parent": "head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.0366,
+        0.3444,
+        0.3512,
+        0.4741
+      ],
+      "pivot": [
+        0.55,
+        0.5
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Connected tapered maxilla and forward muzzle bridge",
+      "details": {
+        "primary": "Connected tapered maxilla and forward muzzle bridge",
+        "secondary": "Curvature follows orbital line to nostril; no peanut blob",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Curvature follows orbital line to nostril; no peanut blob",
+      "layering_plan": "Wax under maxillary pad and thin nasal underside",
+      "semantic_children": [
+        "muzzle-underside",
+        "muzzle-light"
+      ],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "muzzle-underside",
+      "parent": "head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.0415,
+        0.4432,
+        0.3317,
+        0.5099
+      ],
+      "pivot": [
+        0.54,
+        0.51
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Shadowed connected lower jaw",
+      "details": {
+        "primary": "Shadowed connected lower jaw",
+        "secondary": "Concave mouth-to-throat transition and small lower pad",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Concave mouth-to-throat transition and small lower pad",
+      "layering_plan": "Dark wax under muzzle-light",
+      "semantic_children": [],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "muzzle-light",
+      "parent": "head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.0756,
+        0.4235,
+        0.2488,
+        0.4975
+      ],
+      "pivot": [
+        0.52,
+        0.5
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Asymmetric maxillary whisker pad",
+      "details": {
+        "primary": "Asymmetric maxillary whisker pad",
+        "secondary": "Tight, irregular wedge; not circle",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Tight, irregular wedge; not circle",
+      "layering_plan": "Warm value above dark underside, follicles mark hair roots",
+      "semantic_children": [
+        "whisker-follicles"
+      ],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "nose",
+      "parent": "head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.0415,
+        0.4395,
+        0.1244,
+        0.4864
+      ],
+      "pivot": [
+        0.45,
+        0.5
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Inset nostril with slanted small highlight",
+      "details": {
+        "primary": "Inset nostril with slanted small highlight",
+        "secondary": "Subtle tip wing and nostril fissure",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Subtle tip wing and nostril fissure",
+      "layering_plan": "Darkest wax separated from whisker pad",
+      "semantic_children": [],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    },
+    {
+      "id": "whisker-follicles",
+      "parent": "head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.1146,
+        0.4457,
+        0.2293,
+        0.4852
+      ],
+      "pivot": [
+        0.5,
+        0.48
+      ],
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "construction": "Clustered vibrissal pores with anisotropic spacing",
+      "details": {
+        "primary": "Clustered vibrissal pores with anisotropic spacing",
+        "secondary": "Tapered miniature curves, no random dots",
+        "tertiary": "Use parented wax/bounded fur; no disconnected filler particles"
+      },
+      "topology": "Authored connected cubic/quadratic SVG and explicit painter-order occlusion; parent motion in CRAYON1",
+      "contour_plan": "Tapered miniature curves, no random dots",
+      "layering_plan": "Dark root microstrokes under pale whiskers",
+      "semantic_children": [],
+      "required_source_poses": [
+        "rest",
+        "blink-89",
+        "ear-twist-135",
+        "late-portrait-237"
+      ],
+      "source_rights": "Original Kumiki geometry informed by external anatomy/technique references, not a traced artist contour"
+    }
+  ],
+  "negative_control": "Single oval skull, circular eye, round muzzle and duplicate ear capsules without ridge, canine smile or paper-noise substitution",
+  "render_evidence_state": "Prototype PNG and before/after comparison inspected locally; no final browser-backed CRAYON1 screenshot or licensed source image crops yet",
+  "release_verdict": "BLOCKED — ArtCraft v6 strict source-image, five-axis and normal-speed film acceptance not available in this execution."
+}
