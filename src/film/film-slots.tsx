@@ -1,3 +1,6 @@
+import { PaintedWorldPage } from "../video/painted-composition-page";
+import { paintedDemoSpec } from "../video/painted-composition-demo";
+import type { PaintedGenre } from "../video/painted-composition-demo";
 import { PaintedPage } from "../video/watercolour-brush-page";
 import { paintExampleSpec } from "../video/watercolour-brush-demo";
 import { RisoPrint } from "../../registry/video/print-plates-react";
@@ -665,6 +668,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
   // A FilmStage samples hundreds of absolute frames from one immutable authored sheet.
   // Cache the two subject/aspect combinations per loaded film, not the render frame.
   const watercolorSheets = new Map<string, ReturnType<typeof paintExampleSpec>>();
+  const paintedWorlds = new Map<string, ReturnType<typeof paintedDemoSpec>>();
   return (content, context) => {
     const props = content.props ?? {};
     switch (content.slot) {
@@ -678,6 +682,20 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
 
       // Original art-style fixtures run through the same production renderer as Storybook.
       // The Film Document still owns all scene timing; these slots draw only frame samples.
+      case "painted-composition": {
+        const genre = props.genre;
+        if (genre !== "nature" && genre !== "architecture" && genre !== "science" && genre !== "product")
+          throw new RangeError("painted-composition requires a supported genre.");
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const key = aspect + "/" + genre;
+        let material = paintedWorlds.get(key);
+        if (!material) {
+          material = paintedDemoSpec(genre as PaintedGenre, aspect);
+          paintedWorlds.set(key, material);
+        }
+        return <PaintedWorldPage spec={material} genre={genre}
+          frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
       case "watercolour-brush": {
         const subject = props.subject;
         if (subject !== "wild-iris" && subject !== "coastal-dawn")
