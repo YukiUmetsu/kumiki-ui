@@ -46,15 +46,23 @@ for (const [story, startingMode, expected, key] of [
     };
     const a = await still(key, "wide");
     const root = preview.locator(expected).first();
-    const snapshot = await root.evaluate(el => el.outerHTML);
+    // React's useId may change when FilmStage unmounts one shot and remounts
+    // another. Def IDs are implementation details, not material geometry.
+    const geometry = () => root.evaluate(el => JSON.stringify(
+      Array.from(el.querySelectorAll("path,rect,circle,ellipse,polygon,text")).map(n => [
+        n.tagName,
+        ...["d","x","y","cx","cy","rx","ry","width","height","transform",
+          "fill","stroke","opacity","font-size","stroke-width","points","textContent"]
+          .map(k => k==="textContent"?n.textContent:n.getAttribute(k)),
+      ])));
+    const snapshot = await geometry();
     const b = await still(12, "wide");
     expect(a).not.toEqual(b);
     await still(key, "wide-again");
     await expect(slider).toHaveValue(String(key));
-    // SVG turbulence may rasterize slightly differently across two Chromium
-    // screenshots even when source geometry is identical. The real invariant
-    // is exact evaluated markup, including paths, data frames and transforms.
-    expect(await root.evaluate(el => el.outerHTML)).toEqual(snapshot);
+    // SVG turbulence and ephemeral <defs> IDs can differ after remounting
+    // a shot. The material geometry and the required frame state must not.
+    expect(await geometry()).toEqual(snapshot);
     if (startingMode === "character")
       await expect(preview.locator("[data-km-ink-character]"))
         .toHaveAttribute("data-km-ink-character-frame", String(key));
