@@ -108,3 +108,18 @@ test("gallery restarts playback from frame zero after the final frame",async({pa
   await page.getByRole("button",{name:"Pause film"}).click();
   await expect(page.getByRole("button",{name:"Play film"})).toBeVisible();
 });
+
+
+test("reduced-motion gallery stays static and does not present a nonfunctional player",async({page})=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
+  const frame=page.getByRole("slider",{name:/Shanshui frame/});
+  await seek(page,180);
+  await page.getByRole("checkbox",{name:"Reduced motion"}).check();
+  const play=page.getByRole("button",{name:"Play film"});
+  await expect(play).toBeDisabled();
+  await expect(frame).toHaveValue("180");
+  await page.waitForTimeout(150);
+  await expect(frame).toHaveValue("180");
+  await page.getByRole("checkbox",{name:"Reduced motion"}).uncheck();
+  await expect(play).toBeEnabled();
+});
