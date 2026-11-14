@@ -30,6 +30,7 @@ function MasterStudies() {
   const [reduced,setReduced]=useState(false);
   const [artOnly,setArtOnly]=useState(false);
   const [craftDetail,setCraftDetail]=useState(1);
+  const [materialDepth,setMaterialDepth]=useState(1);
   const [custom,setCustom]=useState<Partial<Record<WatercolourStudy,WetPaperSpec>>>({});
   const compiled=useMemo(()=>compileFilm(WATERCOLOUR_MASTER_STUDIES_FILM,{outputId:output}),[output]);
   const specs=useMemo(()=>Object.fromEntries(WATERCOLOUR_STUDIES.map(study=>{
@@ -95,6 +96,8 @@ function MasterStudies() {
         onChange={v=>{clear();setGrain(v);}}/>
       <WatercolourSlider label="Fine brush craftsmanship" value={craftDetail}
         step={.1} onChange={v=>{setPlaying(false);setCraftDetail(v);}}/>
+      <WatercolourSlider label="Watercolor material depth" value={materialDepth}
+        step={.1} onChange={v=>{setPlaying(false);setMaterialDepth(v);}}/>
       <label style={{display:"grid",gap:5,fontSize:13,fontWeight:700}}>Paper seed
         <input style={{...control,width:100}} aria-label="Master studies seed"
           min={0} max={2147483647} type="number" value={seed}
@@ -136,7 +139,7 @@ function MasterStudies() {
           if(!WATERCOLOUR_STUDIES.includes(study))throw new RangeError("Invalid study");
           return <WatercolourMasterStudyPage study={study} spec={specs[study]}
             frame={context.frame} reducedMotion={context.reducedMotion}
-            artOnly={artOnly} craftDetail={craftDetail}/>;
+            artOnly={artOnly} craftDetail={craftDetail} materialDepth={materialDepth}/>;
         }} style={{transform:"scale("+scale+")",transformOrigin:"top left"}}/>}
     </WatercolourFilmViewport>
     <WatercolourParameterEditor title={cards[current]} value={specs[current]}

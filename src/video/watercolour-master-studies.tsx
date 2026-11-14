@@ -1,5 +1,6 @@
 import { useId, useMemo } from "react";
 import { WatercolourCraftDetails } from "./watercolour-craft-detail";
+import { WatercolourMasterworkMaterial } from "./watercolour-masterwork-material";
 import { WatercolourWetPaper } from "../../registry/video/watercolour-wet-paper-react";
 import { paintHash } from "../../registry/video/watercolour-brush";
 import type { WetPaperSpec, WetPigmentDrop } from "../../registry/video/watercolour-wet-paper";
@@ -565,15 +566,19 @@ function CourtyardArt({frame,washFilter}:{frame:number;washFilter:string}) {
   </g>;
 }
 
-export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false,artOnly=false,craftDetail=1}:{
+export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false,artOnly=false,craftDetail=1,materialDepth=1}:{
   study:WatercolourStudy;spec:WetPaperSpec;frame:number;reducedMotion?:boolean;
   /** Full-frame painting instead of the editorial study with titles. */
   artOnly?:boolean;
   /** Bounded 0..1 anatomical, reflected-water, and perspective detail. */
   craftDetail?:number;
+  /** Bounded material passes: translucent glazing, lifted paper and dry brush. */
+  materialDepth?:number;
 }) {
   if(!Number.isFinite(craftDetail)||craftDetail<0||craftDetail>1)
     throw new RangeError("Watercolour detail must be 0..1.");
+  if(!Number.isFinite(materialDepth)||materialDepth<0||materialDepth>1)
+    throw new RangeError("Watercolour material depth must be 0..1.");
   const portrait=spec.height>spec.width;
   const artOnlyPortraitCameras:Record<WatercolourStudy,string>={
     // Crop by a subject-specific camera without distorting its proportions.
@@ -645,6 +650,11 @@ export function WatercolourMasterStudyPage({study,spec,frame,reducedMotion=false
             reducedMotion={reducedMotion} transparentPaper aria-hidden="true"
             style={{width:960,height:540}}/>
         </g>
+        {/* Original material-driven shadow value, dry brush and actual
+            negative-space lifting; localized to the artwork beneath the
+            fine anatomical drawing, not to titles or film composition. */}
+        <WatercolourMasterworkMaterial study={study} seed={spec.seed}
+          frame={reducedMotion?420:frame} intensity={materialDepth}/>
         {/* Observational structure is a separate film-frame pure paint pass.
             Its botanical marks inherit source rig motion, while water marks
             follow the current and masonry respects the window openings. */}
