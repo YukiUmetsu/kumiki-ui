@@ -102,6 +102,32 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     })));
   });
 
+  it("places cunfa roots under the same curved ridge actually painted",()=>{
+    for(const scene of SHANSHUI_SCENES){
+      const controls={...DEFAULT_SHANSHUI,scene};
+      const svg=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:168,controls,
+      }));
+      const ridges=[...svg.matchAll(/data-km-shanshui-ridge="([0-2])"/g)];
+      expect(ridges.map(x=>x[1])).toEqual(["0","1","2"]);
+      for(const band of ["0","1","2"])
+        expect(svg).toContain('data-km-shanshui-ridge-contour="'+band+'"');
+      const roots=[...svg.matchAll(/data-km-cunfa-crest-y="([^"]+)" data-km-cunfa-root-y="([^"]+)"/g)];
+      expect(roots.length).toBeGreaterThan(100);
+      for(const [,crest,root] of roots){
+        const offset=Number(root)-Number(crest);
+        expect(Number.isFinite(offset)).toBe(true);
+        expect(offset).toBeGreaterThanOrEqual(4.95);
+        expect(offset).toBeLessThanOrEqual(16.05);
+      }
+      // Randomized-looking pigment is deterministic even after out-of-order
+      // seek; the rock-geometry evidence is independent of animation clocks.
+      expect(svg).toEqual(renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:168,controls,
+      })));
+    }
+  });
+
   it("preserves articulated knee, hair, face and garment ancestry with warm original costume art",()=>{
     const scholar=makeShanshuiScholar();
     const issues=validateCharacterDefinition(scholar);
