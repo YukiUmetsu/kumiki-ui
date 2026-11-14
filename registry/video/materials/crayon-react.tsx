@@ -145,6 +145,14 @@ function Fox({ x, y, scale, seed, frame, tooth, reduced }: { x: number; y: numbe
     <circle cx={124} cy={-58} r={1.7} fill="#fff4d7" opacity={crayonProgress(frame, 300, 333, 0, 1, reduced)}/>
     <WaxLine d="M134 -31 Q148 -26 159 -38" color="#504153" width={3.1} frame={frame} first={312} last={349} reduced={reduced} seed={seed+25}/>
     <circle cx={154} cy={-39} r={5.3} fill="#4d4150" opacity={crayonProgress(frame, 310, 345, 0, 1, reduced)}/>
+    {/* Layered neckerchief and irregular hatching distinguish an illustrated character from a flat icon. */}
+    {part("M26 8 Q61 33 105 17 L97 45 Q73 56 46 42 L24 63 L25 41Z",
+      {x:18,y:4,width:92,height:65},["#567e99","#315f83","#89abc3"],10,279,357,5)}
+    <WaxLine d="M33 33 Q60 46 92 32 M39 42 L21 62" color="#d5dcc8" width={1.7}
+      frame={frame} first={314} last={367} reduced={reduced} seed={seed+52} opacity={.72}/>
+    <WaxLine d="M49 -47 l-12 -5 M55 -35 l-16 -1 M48 0 l-16 2 M16 -12 l-13 -5"
+      color="#f6d8ae" width={2.1} frame={frame} first={291} last={372}
+      reduced={reduced} seed={seed+53} opacity={.65}/>
     {/* A loose hand-drawn lantern, never a blur bloom. The rings and lines reveal as crayon marks. */}
     <WaxLine d="M157 -36 Q181 -51 199 -19 L197 6" color="#9a6647" width={4} frame={frame} first={315} last={355} reduced={reduced} seed={seed+29}/>
     {part("M174 3 L220 3 L213 58 Q197 70 180 56Z", {x:173,y:2,width:50,height:70},
@@ -171,6 +179,11 @@ function Bloom({ x,y,scale,seed,frame,tooth,reduced }: { x:number;y:number;scale
       <WaxRegion d={blossom} bounds={{x:-29,y:-111,width:58,height:103}} colors={petalsColor}
         seed={seed+10+i*3} pressure={.76} tooth={tooth} frame={frame} first={205+i*2} last={319} reduced={reduced} spacing={6}/>
     </g>)}
+    {petals.map(i=><g key={"vein-"+i} transform={"rotate("+(i*40)+")"}>
+      <WaxLine d="M0 -31 Q-4 -58 0 -88 M-5 -52 L-14 -62 M5 -66 L13 -75"
+        color="#fff0ca" width={1.7} seed={seed+i+62}
+        frame={frame} first={295+i*2} last={382} reduced={reduced} opacity={.6}/>
+    </g>)}
     <WaxRegion d="M-28 0 A28 28 0 1 0 28 0 A28 28 0 1 0 -28 0Z"
       bounds={{x:-30,y:-29,width:60,height:60}} colors={["#9f7159","#6e555b","#d7a36d"]}
       seed={seed+40} pressure={.93} tooth={tooth} frame={frame} first={266} last={354} reduced={reduced} spacing={5}/>
@@ -178,6 +191,33 @@ function Bloom({ x,y,scale,seed,frame,tooth,reduced }: { x:number;y:number;scale
       const a = i * 2.4, r = 7 + i * 1.4;
       return <circle key={i} cx={Math.cos(a)*r} cy={Math.sin(a)*r} r="2.1" fill="#e8bb7e"
         opacity={crayonProgress(frame,292,375,i,11,reduced)}/>;
+    })}
+  </g>;
+}
+/** Hand-sketch details make wide negative space feel worked, without synthetic noise. */
+function MeadowDetails({width,height,seed,frame,reduced,day}:{
+  width:number;height:number;seed:number;frame:number;reduced:boolean;day:boolean;
+}){
+  const blades=Array.from({length:28},(_,i)=>{
+    const x=22+crayonHash(seed,i,70)*(width-44);
+    const y=height*(.77+crayonHash(seed,i,71)*.19);
+    const length=8+crayonHash(seed,i,72)*16;
+    const tilt=(crayonHash(seed,i,73)-.5)*12;
+    return {x,y,length,tilt};
+  });
+  return <g data-km-crayon-meadow="" aria-hidden="true">
+    {blades.map((b,i)=><WaxLine key={i} d={`M${b.x.toFixed(1)} ${b.y.toFixed(1)} q${b.tilt.toFixed(1)} -${(b.length*.7).toFixed(1)} ${b.tilt.toFixed(1)} -${b.length.toFixed(1)}`}
+      color={day?"#517967":"#aec3a2"} width={1.2+(i%3)*.6} seed={seed+i}
+      frame={frame} first={285+i*2} last={406} reduced={reduced} opacity={day?.55:.42}/>)}
+    {Array.from({length:13},(_,i)=>{
+      const x=30+crayonHash(seed,i,74)*(width-60);
+      const y=height*(.72+crayonHash(seed,i,75)*.25);
+      const visibility=crayonProgress(frame,330,419,i,13,reduced);
+      return <g key={i} fill={day?"#f8d2ac":"#f6dd9d"} opacity={visibility*.75}>
+        <circle cx={x} cy={y} r={1.4+(i%3)*.7}/>
+        <path d={`M${x-4} ${y}h8M${x} ${y-4}v8`} stroke={day?"#d99a7e":"#f6dd9d"}
+          strokeWidth=".9" strokeLinecap="round"/>
+      </g>;
     })}
   </g>;
 }
@@ -255,6 +295,7 @@ export function CrayonStorybook({frame, story = "lantern", aspect = "landscape",
       <WaxLine d={"M" + W*.05 + " " + H*.90 + " Q" + W*.43 + " " + H*.86 + " " + W*.82 + " " + H*.98}
         color="#caa990" width={9} seed={seed+140} frame={totalFrame} first={220} last={340} reduced={reducedMotion} opacity={.56}/>
     </>}
+    <MeadowDetails width={W} height={H} seed={seed+172} frame={totalFrame} reduced={reducedMotion} day={day}/>
     <StoryTitle width={W} height={H} portrait={portrait} day={day} frame={totalFrame} reduced={reducedMotion}/>
     {portrait && <g fill={day?"#365265":"#f9ebd2"} fontSize="17" fontFamily="Georgia,serif" letterSpacing="2" opacity=".86">
       <path d={"M33 " + (H-70) + " H" + (W-33)} stroke={day?"#365265":"#f9ebd2"} strokeWidth="1.5" fill="none"/>
