@@ -220,9 +220,13 @@ export function inspectRisoCharacterScene(value: unknown): RisoSceneIssue[] {
           fail("pivot", p + "/pivot", "Pivot must be a finite [x,y] attachment.");
         if (joint?.z !== undefined && (!Number.isSafeInteger(joint.z) || Math.abs(joint.z) > 100))
           fail("z", p + "/z", "Layer z must be an integer within -100..100.");
-        if (joint?.cycleFrames !== undefined && (!Number.isSafeInteger(joint.cycleFrames) ||
-            joint.cycleFrames < 2 || joint.cycleFrames >= duration))
-          fail("cycle", p + "/cycleFrames", "Cycle length must be 2..duration-1.");
+        if (joint?.cycleFrames !== undefined) {
+          if (!Number.isSafeInteger(joint.cycleFrames) ||
+              joint.cycleFrames < 2 || joint.cycleFrames >= duration)
+            fail("cycle", p + "/cycleFrames", "Cycle length must be 2..duration-1.");
+          if (!joint.motion?.length)
+            fail("cycle-track", p + "/motion", "A cyclic joint must include an authored motion track.");
+        }
         inspectKeys(joint?.motion, duration, p + "/motion", fail, joint?.cycleFrames);
         if (!joint?.marks && !joint?.variants)
           fail("marks", p, "Joint needs authored marks or expression variants.");
@@ -245,7 +249,7 @@ export function inspectRisoCharacterScene(value: unknown): RisoSceneIssue[] {
             (joint.variantKeys as RisoVariantKey[]).forEach((k, n) => {
               if (!k || !inScene(k.frame, duration) || k.frame <= prev ||
                   typeof k.name !== "string" || !joint.variants ||
-                  !(k.name in joint.variants))
+                  !Object.prototype.hasOwnProperty.call(joint.variants, k.name))
                 fail("variant-key", p + "/variantKeys/" + n, "Expression keys must be sorted and reference existing variants.");
               prev = k?.frame ?? prev;
             });
