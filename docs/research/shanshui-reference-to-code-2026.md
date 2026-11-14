@@ -362,3 +362,38 @@ All marks retain the same actual silhouette roots and respect depth/mist
 controls. Tests assert both modes and attachment bounds. The new two-family
 render must be visually re-reviewed; the cited run is **before** that
 specific stroke-family change.
+
+
+## Bamboo close-up and film choreography audit (2026-11-14)
+
+The native 960×540 browser frame was cropped to its right-hand bamboo
+region at 3× scale. It revealed a **material construction problem**:
+uniform blunt-ended culm lines, tiny almost invisible V-shaped leaves,
+nodes positioned by straight interpolation rather than the curved stalk,
+and foliage partly clipped at the edge of the frame.
+
+The code painter now builds a continuous tapered **opaque culm silhouette**
+for each of three bamboo stalks. Stem rings and alternating leaf-bearing
+branch roots use the exact same quadratic centerline as the culm. Each leaf
+origin samples its own branch curve and sweeps outward into an asymmetric,
+pressure-loaded lanceolate wedge with a pointed tip and darker pigment.
+Bamboo position shifts modestly inward so the newly substantive leaves are
+visible without covering the scholar. User controls for detail, wind and
+seed still drive the same deterministic design. Unit/browser tests guard the
+three connected stems, broad nonempty leaves, zero optional foliage at
+detail=0 and finite SVG geometry.
+
+The previous **3.2-second river-reader MP4 proof** sampled frames 115–210,
+which primarily included the final walking stride and contemplation hold.
+It did not give a fair view of repeated foot plants. The scoped export now
+samples frames 44–139 (still 96 frames, 30 fps, 960×540) to show multiple
+walk cycles without increasing exported frame count. The Storybook gallery
+also opens at authored frame 84, when the landscape reveal is complete but
+the scholar is still moving.
+
+A final reduced-motion correction gives both the foreground scholar and
+the painted environment their same final absolute frame; previously the
+scenery was frozen at frame 299 while character expressions and cloth
+sampled the interactive slider frame. These behavior changes need a fresh
+complete browser and video QA run. A successful old run does not verify
+this newly authored bamboo design or early-motion export.
