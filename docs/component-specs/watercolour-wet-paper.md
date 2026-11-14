@@ -201,3 +201,25 @@ Reference images, animation frames and audio are not copied or redistributed.
    cadence, multiple actors, gestures, grounded props and authored camera work.
 5. Review a narrated 20–40 second original film at **normal playback speed** in
    both aspects; retain source-level test evidence and an explicit art signoff.
+
+
+## WM7 separately authored watercolor material depth
+
+The additional `src/video/watercolour-masterwork-material.tsx` material renderer
+is an **original, deterministic demonstration compositor** used by the three
+reference-informed film studies. It does not modify the conservative WM4
+pigment transport contract. It adds authored translucent shadow/value areas,
+light-aware weather and water gestures, local lost/found edge softening,
+and black-stroke holes in the **new overlay layer only** to expose paper.
+The Storybook `Watercolor material depth` slider and optional FilmStage
+`watercolour-master-study` slot property `materialDepth: 0..1` control it.
+At 0, WM4/WM5 shared wet-paper pigment and WM6 structural drawing remain
+visible. Invalid values throw `RangeError`. FilmStage time is absolute and
+repeated seeks are deterministic.
+
+[WM7 ten-master study and original material roadmap](../research/watercolour-wm7-ten-master-study.md)
+records specific source artworks and precisely which physical effects remain
+unimplemented. [WM7 final Chromium/film proof](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43644599942)
+passed both ratios, but **human art review and full-length two-format film
+qualification remain outstanding**. Do not conflate WM7's additive overlay
+with true physically simulated lifting or spectral pigments.
