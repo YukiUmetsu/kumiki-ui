@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { inspectCrayonScene, crayonCamera, crayonDrawingAt, crayonElementPlacement, crayonElementTransform } from "../registry/video/materials/crayon-scene";
 import { CrayonScene } from "../registry/video/materials/crayon-scene-react";
 import { crayonDemoScene } from "../src/video/crayon-scene-fixtures";
+import { crayonPerformanceScene } from "../src/video/crayon-performance-fixtures";
 import { compileFilm, type FilmDocument } from "../registry/video/film-document";
 import { loadFilmSlots } from "../src/film/film-slots";
 import portable from "../examples/film/crayon-scene-three-subjects.film.json";
@@ -173,6 +174,66 @@ describe("CRAYON1 data-driven scene grammar",()=>{
     expect(invalid({...wing,drawings:[{frame:20,d:"M0 0L10 0Z",bounds:{x:0,y:0,width:0,height:4}}]})).toMatch(/bounds/);
     expect(invalid({...eye,drawings:Array.from({length:49},(_,i)=>({frame:i+1,d:"M0 0L1 1"}))})).toMatch(/1..48/);
     expect(()=>crayonDrawingAt(eye,-1)).toThrow(/nonnegative/);
+  });
+
+
+  for (const aspect of ["landscape","portrait"] as const) {
+    it("renders original acting poses and dual-aspect performance through FilmStage in "+aspect, async()=>{
+      const scene=crayonPerformanceScene(aspect);
+      expect(inspectCrayonScene(scene)).toEqual([]);
+      const mouth=scene.elements.find(e=>e.id==="mouth");
+      const leftEye=scene.elements.find(e=>e.id==="left-eye");
+      if (!mouth || mouth.kind!=="contour" || !leftEye || leftEye.kind!=="contour")
+        throw new Error("Performance fixture is missing its face");
+      expect(crayonDrawingAt(mouth,0).d).toBe(mouth.d);
+      expect(crayonDrawingAt(mouth,82).d).not.toBe(mouth.d);
+      expect(crayonDrawingAt(mouth,88).d).not.toBe(crayonDrawingAt(mouth,82).d);
+      expect(crayonDrawingAt(leftEye,102).d).not.toBe(leftEye.d);
+      expect(crayonDrawingAt(leftEye,106).d).toBe(leftEye.d);
+      const at=(frame:number,reducedMotion=false)=>renderToStaticMarkup(
+        <CrayonScene spec={scene} frame={frame} reducedMotion={reducedMotion}/>);
+      const speech=at(88),smile=at(176),reduced=at(12,true);
+      expect(speech).toContain('data-km-crayon-element="mouth"');
+      expect(speech).toContain('data-km-crayon-camera=""');
+      expect(smile).not.toBe(speech);
+      expect(at(88)).toBe(speech);
+      at(269);at(0);at(102);
+      expect(at(88)).toBe(speech);
+      expect(reduced).toContain('data-km-crayon-frame="12"');
+      expect(crayonDrawingAt(mouth,0,true,270).d).toBe(mouth.d);
+      expect(speech).toContain(aspect==="portrait"?'viewBox="0 0 540 960"':'viewBox="0 0 960 540"');
+      const film:FilmDocument={schemaVersion:1,id:"crayon-actor-"+aspect,fps:{num:30,den:1},
+        drift:0,outputs:[{id:aspect,width:scene.width,height:scene.height}],
+        scenes:[{id:"performance",recipeId:"slot",durationFrames:270,
+          content:{slot:"crayon-scene",label:"Original acting",props:{scene}}}]};
+      const compiled=compileFilm(film,{outputId:aspect});
+      expect(compiled.ok).toBe(true);
+      if (!compiled.ok) return;
+      const slots=await loadFilmSlots(compiled.film);
+      const html=renderToStaticMarkup(<>{slots(
+        {slot:"crayon-scene",label:"Original acting",props:{scene}},
+        {frame:118,fps:{num:30,den:1},durationFrames:270,
+          width:scene.width,height:scene.height,reducedMotion:false},
+      )}</>);
+      expect(html).toContain('data-km-crayon-element="mouth"');
+    });
+  }
+
+  it("rejects malformed, unknown, ambiguous and unsorted performance pose cues",()=>{
+    const scene=crayonPerformanceScene("landscape");
+    const mouth=scene.elements.find(n=>n.id==="mouth");
+    if (!mouth || mouth.kind!=="contour") throw new Error("missing mouth");
+    const invalid=(patch:Partial<typeof mouth>)=>
+      inspectCrayonScene({...scene,elements:[{...mouth,parentId:undefined,...patch}]}).join(" ");
+    expect(invalid({poses:undefined})).toMatch(/poses/);
+    expect(invalid({poseCues:undefined})).toMatch(/poseCues/);
+    expect(invalid({poses:[{id:"smile",d:"M0 0L1 1"},{id:"smile",d:"M0 0L2 2"}]})).toMatch(/unique slug/);
+    expect(invalid({poses:[{id:"base",d:"M0 0L1 1"}]})).toMatch(/not base/);
+    expect(invalid({poses:[{id:"oh",d:"<script>"}]})).toMatch(/bounded SVG path/);
+    expect(invalid({poseCues:[{frame:20,pose:"mbp"},{frame:19,pose:"oh"}]})).toMatch(/sorted/);
+    expect(invalid({poseCues:[{frame:270,pose:"mbp"}]})).toMatch(/within scene/);
+    expect(invalid({poseCues:[{frame:14,pose:"not-drawn"}]})).toMatch(/not a declared pose/);
+    expect(invalid({drawings:[{frame:18,d:"M0 0L1 1"}]})).toMatch(/cannot be combined/);
   });
 
   it("fails on wrong FilmStage output dimensions",async()=>{

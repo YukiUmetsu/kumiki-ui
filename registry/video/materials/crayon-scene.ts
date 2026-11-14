@@ -33,6 +33,9 @@ export interface CrayonBase {
 /** Discrete original redraws; unlike rigging, each key can change the silhouette. */
 export interface CrayonWaxDrawing { frame: number; d: string; bounds: CrayonBounds }
 export interface CrayonContourDrawing { frame: number; d: string }
+/** Reusable original drawings addressed by a semantic acting cue, e.g. "mbp", "oh", "blink". */
+export interface CrayonNamedPose { id: string; d: string }
+export interface CrayonPoseCue { frame: number; pose: string }
 export interface CrayonWaxElement extends CrayonBase {
   kind: "wax";
   /** Original drawings selected at absolute frames. */
@@ -47,8 +50,12 @@ export interface CrayonWaxElement extends CrayonBase {
 }
 export interface CrayonContourElement extends CrayonBase {
   kind: "contour";
-  /** Replacement lines for eyes, mouths, folds and silhouettes. */
+  /** Chronological redraws without named reuse. Mutually exclusive with poses/poseCues. */
   drawings?: readonly CrayonContourDrawing[];
+  /** Author-defined visemes/expressions; "base" always means the initial d. */
+  poses?: readonly CrayonNamedPose[];
+  /** Aligned absolute-frame acting/exposure-sheet cues. No audio decoder or clock is implied. */
+  poseCues?: readonly CrayonPoseCue[];
   d: string;
   color: CrayonColor;
   width: number;
@@ -195,6 +202,35 @@ export function inspectCrayonScene(input: unknown): string[] {
         if (!finite(node.width) || node.width <= 0 || node.width > 64) errors.push(p + ".width out of bounds");
         if (node.opacity !== undefined && (!finite(node.opacity) || node.opacity < 0 || node.opacity > 1))
           errors.push(p + ".opacity out of bounds");
+        if (node.poses !== undefined || node.poseCues !== undefined) {
+          if (node.drawings !== undefined)
+            errors.push(p + ".drawings and named poses cannot be combined");
+          if (!Array.isArray(node.poses) || node.poses.length < 1 || node.poses.length > 24)
+            errors.push(p + ".poses must contain 1..24 named paths");
+          if (!Array.isArray(node.poseCues) || node.poseCues.length < 1 || node.poseCues.length > 600)
+            errors.push(p + ".poseCues must contain 1..600 cues");
+          if (Array.isArray(node.poses)) {
+            const ids=new Set<string>(["base"]);
+            for (const [j,pose] of node.poses.entries()) {
+              if (!pose || typeof pose.id !== "string" || !/^[a-z][a-z0-9-]{0,31}$/.test(pose.id) ||
+                ids.has(pose.id)) errors.push(p + ".poses["+j+"].id must be a unique slug (not base)");
+              else ids.add(pose.id);
+              if (!pose || typeof pose.d !== "string" || !pathSafe(pose.d))
+                errors.push(p + ".poses["+j+"].d must contain a bounded SVG path");
+            }
+            if (Array.isArray(node.poseCues)) {
+              let previous=-1;
+              for (const [j,cue] of node.poseCues.entries()) {
+                if (!cue || !int(cue.frame) || cue.frame <= previous ||
+                  cue.frame >= (v.durationFrames ?? 0))
+                  errors.push(p + ".poseCues["+j+"].frame must be sorted and within scene");
+                previous=cue?.frame ?? previous;
+                if (!cue || typeof cue.pose !== "string" || !ids.has(cue.pose))
+                  errors.push(p + ".poseCues["+j+"].pose is not a declared pose");
+              }
+            }
+          }
+        }
       } else if (node.kind === "lettering") {
         if (!Array.isArray(node.lines) || node.lines.length === 0 || node.lines.length > 6 ||
           node.lines.some((line: string) => typeof line !== "string" || line.length < 1 || line.length > 160))
@@ -329,12 +365,25 @@ export function crayonElementTransform(
  */
 export function crayonDrawingAt<T extends CrayonWaxElement | CrayonContourElement>(
   node: T, frame: number, reducedMotion = false, durationFrames?: number,
-): { d: string; bounds?: CrayonBounds; index: number } {
+): { d: string; bounds?: CrayonBounds; index: number; poseId?: string } {
   if (!int(frame) || frame < 0) throw new RangeError("Drawing frame must be a nonnegative safe integer");
   if (reducedMotion && (!durationFrames || !int(durationFrames) || durationFrames < 2))
     throw new RangeError("Reduced motion drawing requires a valid scene duration");
   const source = reducedMotion ? durationFrames! - 1 : frame;
   const sampled = Math.floor(source / (node.poseCadence ?? 1)) * (node.poseCadence ?? 1);
+  if (node.kind === "contour" && node.poses && node.poseCues) {
+    let selected:CrayonPoseCue | undefined;
+    let cueIndex=0;
+    for(const cue of node.poseCues) {
+      if(cue.frame>sampled) break;
+      selected=cue;
+      cueIndex++;
+    }
+    if (!selected || selected.pose === "base") return {d:node.d,index:cueIndex,poseId:"base"};
+    const pose=node.poses.find(value=>value.id===selected.pose);
+    if(!pose) throw new RangeError("Unknown CRAYON1 performance pose: "+selected.pose);
+    return {d:pose.d,index:cueIndex,poseId:selected.pose};
+  }
   const drawings=node.drawings ?? [];
   let index=0;
   for (let i=0;i<drawings.length;i++) {
