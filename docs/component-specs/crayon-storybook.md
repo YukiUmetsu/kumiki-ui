@@ -714,3 +714,32 @@ See [the deposition/film follow-up study](../research/crayon-wax-deposition-foll
 height fields, wax smearing/erasing, deformable wing and torso skin, independent
 normal-speed human visual acceptance in both aspect ratios. This change is an
 engine improvement, not a claim of finished film-quality artwork.
+
+## Variable-pressure wax nib contact (2026-11-14)
+
+CRAYON1 now produces short, physically motivated **tapered ribbon-shaped wax
+deposits**, evaluated from the same seeded quadratic paths as the existing
+crayon marks. Each stroke lands with a narrow tip, broadens under nib
+pressure and narrows as it leaves the paper. Local grain differences are
+pinned to each nib sample, not rerandomized per video frame.
+
+The optional wax-element `nibStyle` is `"tapered"` (default) or
+`"rounded"` (legacy constant-width line, maintained for backward visual
+comparison). It is accepted in serialized scenes and directly in
+`WaxRegion`. The fallback is explicit: old scenes render with the upgraded
+wax contact unless they select `"rounded"`.
+
+Storybook: **Video production → Film Looks → Crayon → Material Studies →
+Nib Contact Comparison** renders both nib styles on the same source art,
+with controls for aspect-independent pressure, paper tooth, frame and
+coverage.
+
+The variable-width ribbon consists of at most five fixed sample intervals
+per short cubic-free quadratic mark. It respects the original marks'
+construction windows, clipping, tooth masks, opacity, seed, painter order,
+and reduced-motion end state; no second renderer, timer or dependency is added.
+
+The ribbon is an economical **contact model**, not wax height-field physics.
+It does not reproduce bidirectional pigment pickup, multi-layer optical
+mixing, or measured real-paper calibration. Actual full-film playback and
+human visual approval are still necessary.

@@ -1,7 +1,7 @@
 import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
-import { crayonConstructionWindows, crayonHash, crayonMarks, crayonProgress } from "./crayon";
-import type { CrayonBounds, CrayonWaxConstruction } from "./crayon";
+import { crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonProgress } from "./crayon";
+import type { CrayonBounds, CrayonNibStyle, CrayonWaxConstruction } from "./crayon";
 import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
 
@@ -28,12 +28,16 @@ export type WaxProps = {
   redraw?: CrayonRedrawOptions;
   /** Fragmented wax nib trace around the visible outline, 0..1. */
   edgeRoughness?: number;
+  /** Wax-contact profile. Rounded retains the old constant-width line. */
+  nibStyle?: CrayonNibStyle;
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0 }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0, nibStyle = "tapered" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
+  if (nibStyle !== "rounded" && nibStyle !== "tapered")
+    throw new RangeError("crayon nib style must be rounded or tapered");
   if (!Number.isFinite(edgeRoughness) || edgeRoughness<0 || edgeRoughness>1)
     throw new RangeError("crayon edge roughness out of bounds");
   if (redraw) assertCrayonRedrawOptions(redraw);
@@ -123,9 +127,14 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         const progress = crayonProgress(frame, fillFirst, fillLast, i, marks.length, reduced);
         if (progress <= 0) return null;
         return <g key={i} fill="none" strokeLinecap="round">
-          <path d={mark.d} pathLength={100} stroke={colors[mark.tone]} strokeWidth={mark.width}
-            strokeDasharray={100} strokeDashoffset={100 * (1 - progress)}
-            opacity={coverage==="opaque" ? .32+mark.pressure*.34 : .2+mark.pressure*.24} />
+          {nibStyle==="tapered" ?
+            <path d={crayonNibPath(mark, progress)} fill={colors[mark.tone]}
+              data-km-crayon-nib="tapered"
+              opacity={coverage==="opaque" ? .32+mark.pressure*.34 : .2+mark.pressure*.24} /> :
+            <path d={mark.d} pathLength={100} stroke={colors[mark.tone]} strokeWidth={mark.width}
+              strokeDasharray={100} strokeDashoffset={100 * (1 - progress)}
+              data-km-crayon-nib="rounded"
+              opacity={coverage==="opaque" ? .32+mark.pressure*.34 : .2+mark.pressure*.24} />}
           {progress > .8 && <path d={mark.scumble} stroke={colors[(mark.tone + 1) % 3]}
             strokeWidth={1.3 + mark.pressure * 2.3} opacity={coverage==="opaque"?.41:.31} />}
           {progress >= 1 && <path d={mark.scrape} stroke="#faefd6"

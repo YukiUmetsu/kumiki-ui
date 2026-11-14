@@ -1,6 +1,14 @@
 /** Pure, frame-addressable wax-crayon deposition. No randomness, timers, filters or canvas state. */
 export interface CrayonBounds { x: number; y: number; width: number; height: number }
-export interface CrayonMark { d: string; scumble: string; scrape: string; width: number; tone: number; pressure: number; index: number }
+export type CrayonNibStyle = "rounded" | "tapered";
+/** A quadratic centerline retained alongside the older SVG stroke contract. */
+export type CrayonNibArc = readonly [number, number, number, number, number, number];
+export interface CrayonMark {
+  d: string; scumble: string; scrape: string; width: number; tone: number;
+  pressure: number; index: number;
+  /** Curves used for variable-width nib contact, in authored drawing coordinates. */
+  nibArcs: readonly CrayonNibArc[];
+}
 export interface CrayonOptions { seed: number; pressure: number; spacing?: number; passes?: number }
 /**
  * Physically motivated, authored order of outlining and hand-hatching.
@@ -83,6 +91,7 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
         const gestureCell = Math.floor(row/5)*gestureColumns + Math.floor(group/2);
         const lean = (crayonHash(options.seed,gestureCell,1600+layer)-.5)*35 +
           (rand(6)-.5)*12;
+        const nibArcs: CrayonNibArc[] = [];
         const d = Array.from({length:segmentCount}, (_,part) => {
           const taper = .16 + crayonHash(options.seed,index,120+part)*.32;
           const shortfall = 2 + segmentWidth*taper;
@@ -95,6 +104,7 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
           const curvature = (crayonHash(options.seed,index,230+part)-.5)*9;
           const controlX = (x+endX)/2 +
             (crayonHash(options.seed,index,250+part)-.5)*segmentWidth*.14;
+          nibArcs.push([x,startY,controlX,y+curvature,endX,endY]);
           return "M "+x.toFixed(2)+" "+startY.toFixed(2)+" Q "+
             controlX.toFixed(2)+" "+(y+curvature).toFixed(2)+" "+
             endX.toFixed(2)+" "+endY.toFixed(2);
@@ -110,7 +120,7 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
         const p = Math.min(1, Math.max(.14, options.pressure * (.65 + rand(7) * .52)));
         const toneSample = rand(14);
         marks.push({
-          d, scumble, scrape, index, pressure: p,
+          d, scumble, scrape, nibArcs, index, pressure: p,
           tone: toneSample < .73 ? 0 : toneSample < .94 ? 1 : 2,
           width: 2.1 + p * 3.9 + rand(15) * 1.1,
         });
@@ -119,6 +129,56 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
   }
   return marks;
 }
+
+/**
+ * Pressure-shaped wax contact from the exact quadratic marks used for drawing.
+ * Each sub-stroke is a bounded filled ribbon (not a fixed-width SVG line).
+ * Width swells through contact and tapers as the nib lifts; both paper-grain
+ * asymmetry and geometry are pinned to the mark rather than random per frame.
+ *
+ * The path is evaluated from an absolute progress fraction. Segments use
+ * fixed 1/5 samples, so previous deposits remain spatially stable when seeking
+ * or drawing forward; only the advancing tip is recomputed.
+ */
+export function crayonNibPath(mark: CrayonMark, progress = 1): string {
+  if (!Number.isFinite(progress) || progress < 0 || progress > 1)
+    throw new RangeError("crayon nib progress must be in [0,1]");
+  if (progress === 0) return "";
+  const arcCount = mark.nibArcs.length;
+  if (arcCount === 0) return "";
+  const fix = (n: number) => n.toFixed(2);
+  const shapes: string[] = [];
+  for (let i = 0; i < arcCount; i++) {
+    const exposed = Math.max(0, Math.min(1, progress * arcCount - i));
+    if (exposed <= 0) continue;
+    const [x0,y0,cx,cy,x1,y1] = mark.nibArcs[i];
+    // An advancing nib cannot have more than five fixed deposition steps
+    // per short lifted stroke. This caps SVG complexity on large scenes.
+    const sampleSteps = Math.ceil(exposed * 5);
+    const stops = Array.from({length:sampleSteps+1}, (_,j) =>
+      j === sampleSteps ? exposed : j/5);
+    const left: string[] = [], right: string[] = [];
+    for (let j = 0; j < stops.length; j++) {
+      const t = stops[j], inv = 1-t;
+      const x = inv*inv*x0 + 2*inv*t*cx + t*t*x1;
+      const y = inv*inv*y0 + 2*inv*t*cy + t*t*y1;
+      const tx = 2*inv*(cx-x0) + 2*t*(x1-cx);
+      const ty = 2*inv*(cy-y0) + 2*t*(y1-cy);
+      const length = Math.max(1e-6, Math.hypot(tx,ty));
+      const nx = -ty/length, ny = tx/length;
+      // A wax nib touches down lightly, flattens under force, then lifts.
+      const contact = .18 + .82*Math.pow(Math.max(0,Math.sin(Math.PI*t)),.6);
+      const tooth = .86 + .23*crayonHash(mark.index,i*7+j,3101);
+      const tip = exposed<1 && j===sampleSteps ? .25 : 1;
+      const radius = mark.width * .5 * contact * tooth * tip;
+      left.push(fix(x+nx*radius)+" "+fix(y+ny*radius));
+      right.push(fix(x-nx*radius)+" "+fix(y-ny*radius));
+    }
+    shapes.push("M"+left.join("L")+"L"+right.reverse().join("L")+"Z");
+  }
+  return shapes.join(" ");
+}
+
 export function crayonProgress(frame: number, first: number, last: number, index = 0, count = 1, reducedMotion = false): number {
   if (![frame, first, last, index, count].every(Number.isFinite) || first < 0 || last <= first ||
       index < 0 || count < 1 || index >= count)
