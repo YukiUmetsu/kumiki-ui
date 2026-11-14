@@ -56,14 +56,14 @@ These commands are the intended production workflow; successful MP4 export is no
 
 ## Native incoming-ink overprint transition (Phase 2)
 
-`RisoOverprintTransition` provides the second native print handoff after sheet-feed. The incoming artwork's **selected spot-ink plate** is overprinted on the outgoing completed sheet through an authored expanding SVG ink motif. Its transparent, ink-only plate multiplies against the outgoing colored ink (rather than drawing the incoming artwork as an opaque RGB image). The next paper/artwork then resolves. The authored motif is only the *ink contact area*, not a generic wipe of the entire scene. The physical metaphor remains illustrative, not press-calibrated.
+`RisoOverprintTransition` provides the second native print handoff after sheet-feed. The incoming artwork's **selected spot-ink plate** is overprinted on the outgoing completed sheet through an authored expanding SVG ink motif. Its transparent, ink-only plate multiplies against the outgoing colored ink (rather than drawing the incoming artwork as an opaque RGB image). The next paper/artwork then resolves through a **second expanding, authored ink-contour knockout**, not alpha cross-fading: one sheet owns each pixel, avoiding ghosted letters and gray paper. The authored motif is only the *ink contact area*, not a generic wipe of the entire scene. The physical metaphor remains illustrative, not press-calibrated.
 
 - `outgoing` / `incoming`: `RisoSheet` with matching resolution and paper hex, separate authored per-plate SVG artwork functions.
 - `imprintPlateId`: ID of exactly one declared incoming ink plate.
 - `imprintPath`: SVG path in local coordinates, with `imprintOrigin: [x,y]` in sheet design pixels and `imprintScale: 1..12`. Original illustrations may supply distinct motifs for separate aspect ratios.
 - `frame`, `startFrame`, `durationFrames`: absolute, integer FilmStage local-frame contract; supply `durationFrames = sceneDuration - 1` so the last sampled scene frame reaches the exact incoming end state.
 - `misregistration`, `paperGrain`: both in 0..1, fixed for every sample. `reducedMotion` returns the completed incoming print.
-- `evaluateRisoOverprint`: pure frame-state evaluation; `inkOpacity`, `stamp`, `incomingOpacity` are deterministic and have exact 0/1 endpoints.
+- `evaluateRisoOverprint`: pure frame-state evaluation; `inkOpacity`, `stamp`, `paperReveal` are deterministic and have exact 0/1 endpoints.
 - `RisoPrint` adds `transparentPaper` and `visiblePlateIds` for ink-only overprinting. Unknown plate IDs raise errors.
 
 The fixture `examples/film/riso-native-overprint.film.json` runs through **the same existing five-shot FilmStage/Film Document** flow and resolves `riso-overprint` via `src/film/film-slots.tsx`; it introduces no new timeline, filter preset or FD1 transition type. The source-artwork example, `RISO_OVERPRINT_FILM`, and original imprint motif live in `src/video/riso-print-film.ts`. Storybook: **Video production → Film Looks → Risograph · Native Overprint Transition** with frame seeking, aspect, grain, registration and reduced motion.
