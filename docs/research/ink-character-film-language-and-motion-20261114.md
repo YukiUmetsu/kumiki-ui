@@ -21,6 +21,16 @@
 | [Historical production perspective](https://paper.people.com.cn/rmzk/html/2018-09/07/content_1879952.htm) | The progression from tadpoles to quadrupeds, then deer/child and full human acting raises both animation and tonal-compositing complexity |
 | [The Herd Boy's Flute camera/ink analysis (2026)](https://doi.org/10.1080/17508061.2026.2749963) | Multi-plane rostrum camera movement, frame-by-frame exposure, ink laid into paper and independent moving painted layers |
 
+## Newly verified craft history: tonal layers, not outline filters
+
+China's animation museum describes the historical multi-cel method: one animated figure was separated into **roughly four or five tonal shapes** (light grey, deeper greys and near-black), painted on individual transparent cels and photographed in multiple exposures. This is a production technique, not an instruction to reproduce copyrighted movie artwork.
+
+- [中国动漫博物馆 — 中国水墨动画史](https://ccam.hzxcw.gov.cn/m/article/458.html): separate tonal paint cels, layered photography and complex keyframe/intermediate-paint workflow. Unlike a grey filter over vector art, value and softness are attached to *moving anatomy*.
+- [文艺报 — 水墨动画的缘起、式微和重生 (2023)](https://wyb.chinawriter.com.cn/content/202311/08/content72287.html): five-ink-value challenges, craft history, and paper-based character animation.
+- [人民日报 — 从《小蝌蚪找妈妈》说中国水墨动画片 (2026)](https://paper.people.com.cn/fcyym/pad/content/202602/06/content_30147519.html): classical animated figures largely lack the uniform hard contour of flat-vector animation; tonally distinct edges carry shape.
+
+**Design correction:** A character can be articulated yet visually inferior if its silhouettes are a flat opaque polygon with a crisp uniform outline. INK3 currently inherits character SVG fills and contours with optional paper edge treatments. A future **native ink-cel compositor** must author independently articulated multi-tone plates per part (four or five densities, not copied film cels), with registered soft boundaries, local edge drag, directional grain, and preserved facial definition. Grouping a few blurred duplicates of a flat vector does not alone recreate the original cel-exposure effect. A final filmmaker should inspect its original authored output against real reference principles.
+
 ## Verified missing features
 
 | Priority | Missing point | Required capability |
