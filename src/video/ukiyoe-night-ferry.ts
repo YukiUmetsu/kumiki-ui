@@ -248,7 +248,7 @@ const squall: UkiyoeShot = { id: "squall", title: "The squall", build: (aspect, 
   const P = aspect === "portrait", hz = 520, by = 880, dur = 400, breakAt = 252, caught = 190;
   // The ferryman poles on until the wave catches the boat; the water then draws it up the face, the crest breaks,
   // and the collapse throws the boat back before he can pole again.
-  const go = poled(1500, 0, caught, 2.5, 1, true), drawnX = go.cruiseX - 96, faceX = 800, thrownX = 1040, resume = 340, again = poled(thrownX, resume, dur + 40, 1.8);
+  const go = poled(1500, 0, caught, 2.5, 1, true), drawnX = go.cruiseX - 96, faceX = 772, thrownX = 1040, resume = 340, again = poled(thrownX, resume, dur + 40, 1.8);
   const brace = (start: number) => [{ type: "kneel" as const, start: 0, end: dur }, { type: "brace" as const, start, end: breakAt + 60, angle: 10 }];
   return base("squall", aspect, dur, t, "edo", {
     camera: { keys: [{ frame: 0, x: P ? 1420 : 1340, y: P ? 660 : 560, zoom: P ? 1.15 : 1 }, { frame: caught, x: P ? 930 : 940, y: P ? 630 : 530, zoom: P ? 1.1 : .97, ease: "inOut" },
@@ -261,7 +261,7 @@ const squall: UkiyoeShot = { id: "squall", title: "The squall", build: (aspect, 
       { id: "pine", kind: "motif", motif: "pine", depth: .7, x: 1900, y: hz + 8, params: { height: 170, lean: -10, pads: 5 } },
       { id: "fuji", kind: "motif", motif: "mountain", depth: .7, x: 1210, y: hz + 8, params: { width: 300, height: 130 } },
       { id: "wave", kind: "motif", motif: "wave", x: 420, y: by + 44, flip: true, params: { width: 1250, height: 720, breakAt, breakDuration: 40 },
-        keys: [{ frame: 0, progress: 0 }, { frame: 70, progress: 0 }, { frame: breakAt - 12, progress: 1, ease: "inOut" }], enter: { preset: "fade", frame: 56, duration: 30 } },
+        keys: [{ frame: 0, progress: 0 }, { frame: 56, progress: 0 }, { frame: breakAt - 12, progress: 1, ease: "sine" }], enter: { preset: "fade", frame: 50, duration: 30 } },
       ...ferry("boat", 1500, by, [
         fig("child", "child", SEAT.child, DECK, { facing: "right", actions: [{ type: "kneel", start: 0, end: dur }, { type: "point", start: 150, end: 196, angle: 120 }, { type: "startle", start: breakAt, end: breakAt + 26 }] }),
         fig("mother", "mother", SEAT.mother, DECK, { facing: "right", look: { ...CAST.mother, prop: "none" }, actions: brace(176) } as Partial<Extract<UkiyoeNode, { kind: "figure" }>>),
@@ -276,8 +276,8 @@ const squall: UkiyoeShot = { id: "squall", title: "The squall", build: (aspect, 
         { wake: [...go.wake.slice(0, -1), { frame: caught + 30, progress: 0 }, ...again.wake] }),
       { id: "sea-front", kind: "motif", motif: "sea", x: -800, y: by + 36, params: { width: 4200, height: 500, rows: 6, swell: 2.4, foam: .8, deepAt: 60, color: "bero", light: "ai", speed: .8 } },
       { id: "wave-small", kind: "motif", motif: "wave", depth: 1.15, x: 240, y: by + 330, flip: true, params: { width: 560, height: 260, variant: 3 },
-        keys: [{ frame: 0, progress: 0 }, { frame: 120, progress: 0 }, { frame: 260, progress: 1, ease: "inOut" }] },
-      { id: "spray", kind: "particles", type: "spray", bursts: [{ frame: breakAt + 12, x: faceX - 60, y: by - 170, radius: 320, count: 120 }, { frame: breakAt + 24, x: faceX + 150, y: by - 60, radius: 200, count: 70 }] },
+        keys: [{ frame: 0, progress: 0 }, { frame: 110, progress: 0 }, { frame: 270, progress: 1, ease: "sine" }] },
+      { id: "spray", kind: "particles", type: "spray", bursts: [{ frame: breakAt + 12, x: faceX - 40, y: by - 60, radius: 150, count: 26 }, { frame: breakAt + 24, x: faceX + 150, y: by - 20, radius: 110, count: 16 }] },
       { id: "rain", kind: "particles", type: "rain", depth: 1.1, area: [-300, -500, 2900, 2600], count: 560, speed: 38, angle: 6, opacity: .6, keys: [{ frame: 0, opacity: 0 }, { frame: 70, opacity: 0 }, { frame: 130, opacity: 1 }] },
       { id: "storm-wash", kind: "block", depth: 0, x: DIM[aspect][0] / 2, y: DIM[aspect][1] / 2, shape: { type: "rect", width: DIM[aspect][0] + 40, height: DIM[aspect][1] + 40 }, line: 0, blend: "multiply",
         fill: { type: "linear", angle: 90, stops: [[0, "usuzumi", .6], [1, "ai", .8]] }, keys: [{ frame: 0, opacity: 0 }, { frame: 60, opacity: 0 }, { frame: 160, opacity: .38 }, { frame: 340, opacity: .38 }, { frame: dur - 1, opacity: .2 }] },

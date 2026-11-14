@@ -77,7 +77,7 @@ describe("UKIYO1 frame purity", () => {
       expect(prims.filter(p => p.t === "fill" && p.outline), "frame " + frame).toEqual([]);
     }
   });
-  it("meets the great-wave checklist: forward-down branching claws, spread out, curved thin stripes on thick navy", () => {
+  it("meets the great-wave checklist: forward-down branching claws, spread out, curved stripes filling the column on thicker navy", () => {
     const prims = drawMotif("wave", { width: 1300, height: 760 }, { frame: 20, wind: 0, seed: 21, progress: 1 });
     const S = WAVE_STATS, med = (a: number[]) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
     expect(prims.filter(q => q.t === "sandwich")).toHaveLength(1);
@@ -99,7 +99,8 @@ describe("UKIYO1 frame purity", () => {
       expect(Math.abs(Math.atan2(b[0] - a[0], b[1] - a[1]) * 180 / Math.PI)).toBeLessThanOrEqual(35);
     }
     const gaps = S.stripes.slice(1).map((st, i) => { const A = S.stripes[i].line, m = A[Math.floor(A.length / 2)]; return Math.min(...st.line.map(q => Math.hypot(q[0] - m[0], q[1] - m[1]))) - st.width; });
-    expect(med(gaps) / S.stripes[0].width).toBeGreaterThanOrEqual(2);
+    // Owner asked for thicker light stripes (and more of them) after asking for thick navy: dark stays ≥ 1.5× light.
+    expect(med(gaps) / S.stripes[0].width).toBeGreaterThanOrEqual(1.5);
   });
   it("animates particles in closed form", () => {
     const rain = (f: number) => drawParticles({ type: "rain", count: 40 }, f, 0, 9);

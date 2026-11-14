@@ -76,6 +76,15 @@ The owner compared crops of the scan with our render and named the differences. 
 | The overall shape and curve angle differ | Broad dome far back, crest overhanging into a long lip, near-vertical column | The silhouette was re-measured from the scan by overlaying our control points on it |
 | Claws stretch forward and down, not upward; one claw at a time, spread out | Each claw is one arm rising forward, arcing over, hooking down and back; claws are staggered with pale between them | Claws point along the wave's travel, single arms on pale-blue ground, wider spacing |
 
+### Smooth growth (owner feedback, 2026-11-14)
+
+The owner saw the wave jump from small to medium to big. Per-frame measurement found three causes:
+- The rise was eased twice: once by the scene's keys, and again inside the motif. That made a near-snap mid-rise (273 → 576 px tall in 12 frames).
+- Claws were re-spaced every frame from the growing line, so the count changed on 45 of 170 frames and claws jumped up to 75 px.
+- The wave was drawn on twos.
+
+Now `progress` is used as given. Each row has a fixed claw count, taken once from the fully risen wave, and claws sit at fixed parameters along their lines. The wave is drawn on every frame. The stripes are copies of the column's front edge shifted horizontally: offsetting along the normal folded into zigzags when the wave was small or collapsing.
+
 ### Great-wave checklist
 
 Owner requirements gathered across the review rounds. Items marked (test) are asserted in `tests/ukiyoe.test.tsx`; the rest are measured from renders.
@@ -87,13 +96,15 @@ Owner requirements gathered across the review rounds. Items marked (test) are as
 | 3 | Claws branch into sections at the claw's own scale | At least 60% of claws have 2–3 hooks (test) | 87% |
 | 4 | Claw density: one claw at a time, spread out | Median nearest-neighbour gap ÷ claw size between 0.55 and 1.2 (test) | 0.74 |
 | 5 | Dome's top rolls in smooth, uneven bumps with no small wave parts | No claws high on the back of the wave (test); bumped top contour | Pass |
-| 6 | Blue stripes curve with the wave | Each stripe bows at least 8% of its length from its chord (test) | 13–17% |
-| 7 | Dark blue between stripes is thicker than the light stripes | Median dark gap ÷ stripe width at least 2 (test) | 3.3× |
-| 8 | Stripes run with the column, not diagonally across it | Each stripe within 35° of vertical (test) | 9–20° |
-| 9 | The top-right white mass is not too big | Wave pixels beyond the print's measured outline (+30 px band), wave alone on plain ground | 0.5% (was 13.5%) |
+| 6 | Blue stripes curve with the wave | Each stripe bows at least 8% of its length from its chord (test) | 24–31% |
+| 7 | Dark blue between stripes is thicker than the light stripes, while the light stripes are thick enough (later note) and fill the column down to the bottom | Median dark gap ÷ stripe width at least 1.5 (test; was 2 before the owner asked for thicker stripes) | 1.6×, 8 stripes |
+| 8 | Stripes run with the column, not diagonally across it | Each stripe within 35° of vertical (test) | 2–20° |
+| 9 | The top-right white mass is not too big | Wave pixels beyond the print's measured outline (+30 px band), wave alone on plain ground | 0.7% |
 | 10 | Overall silhouette and curl angle match the print | Measured control points overlaid on the scan | Pass |
 | 11 | Pale-blue tongues under claws; pale shows between claws | Visual (crop comparison with the scan) | Pass |
-| 12 | Boats ride the reshaped wave smoothly | Rider per-frame step limits (test) | Pass |
+| 12 | Boats ride the reshaped wave smoothly | Rider per-frame step limits (test) | Pass (largest step 10 px) |
+| 13 | The wave grows smoothly: no jumps from small to medium to big | Per-frame height change and per-claw step during the squall's rise; claw count constant | 6 px and 8 px max (was 75 px); 45 claws every frame |
+| 14 | Droplets never go above the wave, and are few | Droplets above the highest claw over rise and break; most per frame | 0; at most 32 (was about 230) |
 
 ## Folktale creatures (owner request, 2026-11-14)
 

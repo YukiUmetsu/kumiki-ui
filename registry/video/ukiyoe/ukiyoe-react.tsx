@@ -324,7 +324,9 @@ export function UkiyoeScene({ spec, frame, reducedMotion = false, proof, printPr
     const st = nodeState(node, f, cadence);
     if (!st.visible) return null;
     const ws = node.windScale ?? 1, nseed = (seed ^ seedOf(node.id)) >>> 0;
-    const nf = stepped(f, node.cadence ?? (node.kind === "motif" && ANIMATED_MOTIFS.has(node.motif) ? cadence : node.kind === "particles" ? 1 : 1));
+    // Animated motifs hold their drawing on the scene cadence, except the great wave: its rise, curl and break are drawn
+    // on every frame so the swell grows smoothly instead of in steps.
+    const nf = stepped(f, node.cadence ?? (node.kind === "motif" && ANIMATED_MOTIFS.has(node.motif) && node.motif !== "wave" ? cadence : 1));
     const p = st.pose;
     let content: ReactNode = null, extraX = 0, extraY = 0, dirScale = 1;
     switch (node.kind) {
