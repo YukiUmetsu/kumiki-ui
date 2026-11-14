@@ -5,6 +5,8 @@ import type { EdgeStyle } from "../../registry/video/collage/collage-geometry";
 import type { CollagePuppetActionType, CollagePuppetLook } from "../../registry/video/collage/collage-puppet";
 import { clock, mapPin, stamp } from "../../registry/video/collage/collage-kit";
 import { photoCutout, scraps, sourceLine } from "../../registry/video/collage/collage-kit-photo";
+import { WATCH, watchRig } from "./collage-watch-rig";
+import type { WatchMotion } from "./collage-watch-rig";
 import watchUrl from "./assets/collage/pocket-watch-cutout.webp";
 import locoUrl from "./assets/collage/locomotive-1873-cutout.webp";
 import { CAST, PALETTE as PAPER_PALETTE } from "./collage-standard-time";
@@ -136,14 +138,29 @@ export function CastLab() {
 }
 
 const PHOTO_SUBJECTS = {
+  rig: { label: "Pocket watch — animated parts (The Met, CC0)", href: watchUrl, w: 743, h: 1040 },
   watch: { label: "Pocket watch, about 1900 · The Met (CC0)", href: watchUrl, w: 743, h: 1040 },
   locomotive: { label: "Locomotive no. 421, 1873 · Library of Congress", href: locoUrl, w: 924, h: 261 },
 } as const;
 const BOARD_SWATCHES = { yellow: "#f4d21f", blue: "#2b6a99", red: "#c62f26", pink: "#e8536b", paper: "#efe6d2", slate: "#262b31" } as const;
 
+/** Hand motions for the taken-apart watch, over the lab's 10-second loop. */
+const WATCH_MOTIONS: Record<"tick" | "noon" | "spin" | "still", WatchMotion> = {
+  // Starts as photographed (about 4:48:20); the crown is wound and the hands sweep round to noon.
+  noon: { time: [{ frame: 0, hours: WATCH.photoTime }, { frame: 30, hours: WATCH.photoTime }, { frame: 200, hours: 12, ease: "inOut" }],
+    ticking: { frame: 200, startSecond: 20, seconds: 3 } },
+  // Hours fly by: the minute hand whirls, the hour hand follows at its twelfth of the speed.
+  spin: { time: [{ frame: 0, hours: WATCH.photoTime }, { frame: 20, hours: WATCH.photoTime }, { frame: 280, hours: WATCH.photoTime + 9, ease: "inOut" }] },
+  // Real time: the seconds hand ticks once a second; the minute hand creeps a tenth of a degree a second.
+  tick: { time: [{ frame: 0, hours: WATCH.photoTime }, { frame: 299, hours: WATCH.photoTime + 10 / 3600, ease: "linear" }], ticking: { frame: 0, startSecond: 20, seconds: 9 } },
+  still: {},
+};
+
 /** A real photo through the cut-out print pipeline: treatment, sticker border, colour disc, board, lift. */
 export function PhotoLab() {
-  const [subject, setSubject] = useState<keyof typeof PHOTO_SUBJECTS>("watch");
+  const [subject, setSubject] = useState<keyof typeof PHOTO_SUBJECTS>("rig");
+  const [motion, setMotion] = useState<"tick" | "noon" | "spin" | "still">("noon");
+  const [explode, setExplode] = useState(0);
   const [mode, setMode] = useState<"natural" | "mono" | "duotone" | "halftone">("halftone");
   const [cell, setCell] = useState(6);
   const [contrast, setContrast] = useState(1.3);
@@ -152,35 +169,45 @@ export function PhotoLab() {
   const [disc, setDisc] = useState(true);
   const [board, setBoard] = useState<keyof typeof BOARD_SWATCHES>("yellow");
   const [lift, setLift] = useState(0);
-  const loop = useLoop(89, 89);
+  const loop = useLoop(299, 160);
   const spec = useMemo<CollageSceneSpec>(() => {
     const s = PHOTO_SUBJECTS[subject], tall = s.h > s.w, h = tall ? 820 : 1500 * s.h / s.w, w = tall ? 820 * s.w / s.h : 1500;
     const dark = board === "slate";
     return {
-      version: 1, id: "photo-lab", width: 1920, height: 1080, durationFrames: 90, seed: 9, palette: PALETTE, cadence: 2, grain: .4,
+      version: 1, id: "photo-lab", width: 1920, height: 1080, durationFrames: 300, seed: 9, palette: PALETTE, cadence: 2, grain: .4,
       board: dark ? { material: "slate", grid: { spacing: 40, opacity: .1 } } : { material: "flat", color: BOARD_SWATCHES[board], halftone: { color: "#1d1b19", corner: "br", opacity: .18, cell: 24 } },
       nodes: [
         ...scraps("scrap", { box: { x: 200, y: 90, width: 1500, height: 880 }, count: 5, colors: ["paper", "ink", "red"], frame: 12, size: 60 }),
-        ...photoCutout("subject", { x: 960, y: 540, rotate: tall ? 5 : -2, width: w, height: h, href: s.href, sticker, torn,
+        ...(subject === "rig" ? watchRig("subject", { x: 960, y: 540, rotate: 5, width: w, sticker, torn, explode,
+          treatment: { mode, ink: "ink", paper: "paper", cell, contrast },
+          disc: disc ? { radius: 380, fill: board === "red" ? "yellow" : "red", halftone: "ink", offset: [-30, 60] } : undefined,
+          keys: [{ frame: 0, lift }], enter: { preset: "drop", frame: 0, duration: 12 }, bowFlops: [10],
+          ...WATCH_MOTIONS[motion] }) :
+        photoCutout("subject", { x: 960, y: 540, rotate: tall ? 5 : -2, width: w, height: h, href: s.href, sticker, torn,
           treatment: { mode, ink: "ink", paper: "paper", cell, contrast },
           disc: disc ? { radius: tall ? 380 : 330, fill: board === "red" ? "yellow" : "red", halftone: "ink", offset: [-30, 60] } : undefined,
-          keys: [{ frame: 0, lift }], enter: { preset: "drop", frame: 0, duration: 12 } }),
+          keys: [{ frame: 0, lift }], enter: { preset: "drop", frame: 0, duration: 12 } })),
         sourceLine("credit", { text: s.label, x: 80, y: 1036, color: dark ? "paper" : "ink" }),
       ],
     };
-  }, [subject, mode, cell, contrast, sticker, torn, disc, board, lift]);
+  }, [subject, mode, cell, contrast, sticker, torn, disc, board, lift, motion, explode]);
   return <div style={page}>
     <header><h1 style={{ margin: 0, font: "700 32px/1.15 Georgia, serif" }}>Photo treatment lab</h1>
       <p style={{ margin: "6px 0 0", maxWidth: 820 }}>Real photographs through the printed cut-out pipeline: the subject's own transparency drives a torn
-        white sticker border and a lift-aware shadow; the photo prints as natural, mono, duotone or a true halftone dot screen.</p></header>
+        white sticker border and a lift-aware shadow; the photo prints as natural, mono, duotone or a true halftone dot screen.
+        The watch is taken apart into its photographed parts — hour, minute and seconds hands turning on their real axles under
+        the arbor caps, and the bow tipping on its hinge when the watch lands. Pull the parts apart to see the layers.</p></header>
     <div style={stage}><CollageScene spec={spec} frame={loop.frame} /></div>
     <div style={{ display: "flex", gap: 12, alignItems: "end", maxWidth: 960 }}>
       <button type="button" style={button} onClick={loop.toggle}>{loop.playing ? "Pause" : "Play entrance"}</button>
-      <label style={{ ...label, flex: 1 }}>Frame · {loop.frame}<input type="range" aria-label="Photo lab frame" min={0} max={89} value={loop.frame} onChange={e => loop.setFrame(Number(e.target.value))} /></label>
+      <label style={{ ...label, flex: 1 }}>Frame · {loop.frame}<input type="range" aria-label="Photo lab frame" min={0} max={299} value={loop.frame} onChange={e => loop.setFrame(Number(e.target.value))} /></label>
     </div>
     <div style={{ display: "flex", flexWrap: "wrap", gap: 16, maxWidth: 980 }}>
       <label style={label}>Photo<select aria-label="Photo" value={subject} style={{ minHeight: 40, font: "inherit" }} onChange={e => setSubject(e.target.value as keyof typeof PHOTO_SUBJECTS)}>
         {Object.entries(PHOTO_SUBJECTS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></label>
+      {subject === "rig" && <label style={label}>Hands<select aria-label="Hands motion" value={motion} style={{ minHeight: 40, font: "inherit" }} onChange={e => setMotion(e.target.value as typeof motion)}>
+        <option value="noon">Wind to noon</option><option value="spin">Hours fly by</option><option value="tick">Real-time ticking</option><option value="still">As photographed</option></select></label>}
+      {subject === "rig" && <label style={label}>Pull parts apart · {Math.round(explode * 100)}%<input type="range" aria-label="Pull parts apart" min={0} max={1} step={.05} value={explode} onChange={e => setExplode(Number(e.target.value))} /></label>}
       <label style={label}>Treatment<select aria-label="Treatment" value={mode} style={{ minHeight: 40, font: "inherit" }} onChange={e => setMode(e.target.value as typeof mode)}>
         <option value="natural">Natural (evidence)</option><option value="mono">Mono</option><option value="duotone">Duotone</option><option value="halftone">Halftone print</option></select></label>
       <label style={label}>Board<select aria-label="Board" value={board} style={{ minHeight: 40, font: "inherit" }} onChange={e => setBoard(e.target.value as keyof typeof BOARD_SWATCHES)}>

@@ -3,7 +3,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import type { CollageNode, CollageSceneSpec } from "../registry/video/collage/collage-scene";
 import { inspectCollageScene } from "../registry/video/collage/collage-scene";
 import { CollageScene } from "../registry/video/collage/collage-react";
-import { archivalPrint, cutLetters, documentScan, photoCutout, scraps, sourceLine, yearBox } from "../registry/video/collage/collage-kit-photo";
+import { archivalPrint, clockHandKeys, cutLetters, documentScan, mergeKeys, photoCutout, photoRig, scraps, sourceLine, tickingSecondKeys, yearBox } from "../registry/video/collage/collage-kit-photo";
+import { watchRig } from "../src/video/collage-watch-rig";
 import { compileFilm } from "../registry/video/film-document";
 import { PHOTO_REGISTER_SHOTS, PHOTO_REGISTER_TEARS } from "../src/video/collage-photo-registers";
 import { collageFilm } from "../src/video/collage-film";
@@ -70,5 +71,38 @@ describe("COLLAGE1 photo registers", () => {
     const spec = scene(nodes, { board: { material: "slate", grid: { spacing: 32 } } });
     expect(inspectCollageScene(spec)).toEqual([]);
     expect(render(spec, 0, true)).toBe(render(spec, 50, true));
+  });
+});
+
+describe("COLLAGE1 photo rigs (parts of one photo animated separately)", () => {
+  it("turns photographed hands from their photographed angle to clock times, and ticks seconds", () => {
+    expect(clockHandKeys("minute", 288.8, [{ frame: 0, hours: 4.8 }, { frame: 10, hours: 12 }]).map(k => k.rotate)).toEqual([1439.2, 4031.2]);
+    expect(clockHandKeys("hour", 146.4, [{ frame: 0, hours: 12 }])[0].rotate).toBeCloseTo(213.6);
+    const ticks = tickingSecondKeys(122.4, { frame: 30, startSecond: 20, seconds: 2 });
+    expect(ticks.map(k => k.frame)).toEqual([30, 60, 64, 90, 94]);
+    expect(ticks[ticks.length - 1].rotate).toBeCloseTo(22 * 6 - 122.4);
+    expect(mergeKeys([{ frame: 5, lift: 1 }, { frame: 0, x: 2 }, { frame: 5, rotate: 3 }])).toEqual([{ frame: 0, x: 2 }, { frame: 5, lift: 1, rotate: 3 }]);
+  });
+
+  it("puts each part back where it was in the photo, pivoting on its axle, with one print screen for the rig", () => {
+    const nodes = photoRig("w", { x: 0, y: 0, href: PIXEL, sourceWidth: 1000, sourceHeight: 1000, width: 500, treatment: { mode: "halftone" }, disc: { radius: 100, fill: "#c62f26" },
+      parts: [{ id: "hand", href: PIXEL, box: [500, 300, 520, 500], pivot: [510, 500], keys: [{ frame: 0, rotate: 30 }] }] });
+    const hand = nodes.find(n => n.id === "w-hand") as Extract<CollageNode, { kind: "image" }>;
+    expect([hand.x, hand.y, hand.width, hand.height, hand.pivot]).toEqual([5, -50, 10, 100, [0, 50]]);
+    expect(hand.keys).toEqual([{ frame: 0, lift: .06, rotate: 30 }]);
+    expect(nodes.find(n => n.id === "w-print")!.print?.mode).toBe("halftone");
+    expect(nodes.find(n => n.id === "w-disc")!.parent).toBe("w");
+    const apart = photoRig("w", { href: PIXEL, sourceWidth: 1000, sourceHeight: 1000, width: 500, explode: 1, parts: [{ id: "hand", href: PIXEL, box: [500, 300, 520, 500] }] });
+    const lifted = apart.find(n => n.id === "w-hand") as Extract<CollageNode, { kind: "image" }>;
+    expect(lifted.x! < 5 && lifted.y! < -50).toBe(true);
+  });
+
+  it("validates the taken-apart watch and renders its minute hand at different angles over time", () => {
+    const spec = scene(watchRig("watch", { x: 640, y: 360, width: 300, time: [{ frame: 0, hours: 4.8 }, { frame: 100, hours: 12, ease: "linear" }],
+      ticking: { frame: 0, startSecond: 0, seconds: 3 }, bowFlops: [10] }));
+    expect(inspectCollageScene(spec)).toEqual([]);
+    const angle = (frame: number) => /rotate\((-?[\d.]+)\)/.exec(render(spec, frame).split('data-km-collage-node="watch-minute"')[1])![1];
+    expect(angle(20)).not.toBe(angle(60));
+    expect(render(spec, 60)).toBe(render(spec, 60));
   });
 });
