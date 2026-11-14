@@ -103,6 +103,23 @@ Use the existing `CharacterDefinition` + `evaluateCharacter` + `CharacterPresent
 
 The larger reference audit and remaining priorities are recorded in [Chinese ink animation: acting, brushcraft and production reference expansion](research/ink-animation-acting-and-visual-language.md). External film pages and published technique studies were analyzed for visual principles; **no frame-by-frame video playback or film-quality artistic certification is claimed**.
 
+
+## Live Film Looks Storybook studio
+
+All three original working films are interactive in the existing **Video production / Film Looks** group:
+
+- `video-film-looks--chinese-ink-painting`: original landscape or bamboo, wet brush deposition, stroke pressure, tone, orientation, load and drying
+- `video-film-looks--chinese-ink-documentary`: complete documentary, explanatory diagram and closing title with editable `InkFilm` paper/camera/reveal controls
+- `video-film-looks--chinese-ink-character`: rigged 19-part traveller with adjustable cloth/face ink, blink cadence, gestures, speech, stage placement and acting time-remap
+
+The component `src/video/ink-film-looks-studio.tsx` exposes **play, pause, restart, frame seeking, 0.25–2× speed, loop, 16:9/9:16, reduced motion, independent art presets** and collapsible live art-direction panels. Every numerical input is bounded; hex pigments and the deterministic random seed are validated. Each mode retains its own settings when switching. The configuration JSON pane can be copied, edited and reapplied, with inline errors instead of crashes.
+
+Editable source parameters are implemented by `src/video/ink-film-config.ts`: material (`configureInkSpec`), camera keyframes (`configureInkCamera`), layer kind/duration/parallax (`configureInkLayer`). The character panel additionally adjusts location, scale, body/face absorption, explicit acting rate, blink cadence and individual speech/gaze/greeting/bowing/blink channels. These are **actual inputs to the production renderer**, not a simulation of an animation video or a blanket postprocess filter. Advanced rig geometry, source footage, dialogue timestamps and raw asset definitions remain authored by their respective host APIs; the Storybook UI is not a complete rig editor.
+
+### QA and maintenance
+
+`tests/ink-film-config.test.ts` validates color/number bounds, geometry changes and shuffled seeks. `tests/e2e-storybook/ink-wash-film-looks.spec.ts` exercises each animation in both aspects, material and camera interactions, actor controls and JSON parsing. SVG screenshot comparisons require exact evaluated DOM source state at a frame, not pixel-identical turbulence rasterization across unrelated Chromium renders. Film export handshakes and encoded MP4 motion evidence are also required before merge.
+
 ## 6. Visual quality rubric and remaining gaps
 
 Use the [interactive original ink study](../component-specs/chinese-ink-wash.md) and the **new reusable [multi-genre Storybook story](../../src/video/ink-wash-universal.stories.tsx)**. Compare 16:9 and 9:16 on the final five prescribed stages: blank/onset, opening wash, thick gesture, capillary settle, resolved still. Check a nonsequential seek for raster flicker.
