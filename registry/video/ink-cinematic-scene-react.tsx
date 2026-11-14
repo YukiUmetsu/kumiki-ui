@@ -166,19 +166,19 @@ function Willow({m,seed,detail,ink,frame}:{
       stroke="#594a38" strokeWidth={6.3} fill="none" {...pathProps} opacity={.85*ink}/>
     <path d="M10 -38 Q11 -140 26 -198 M25 -240 Q19 -301 -24 -321"
       stroke="#ead6b4" strokeWidth={2.2} opacity={.51} fill="none"/>
-    {Array.from({length:Math.round(28*detail)},(_,i)=>{
+    {Array.from({length:Math.round(45*detail)},(_,i)=>{
       const side=i%2?1:-1;
       const bx=side*(24+rand(hash,i,9)*174);
       const by=-404+rand(hash,i,19)*129;
-      const length=64+rand(hash,i,31)*112;
+      const length=80+rand(hash,i,31)*132;
       const sway=frame.foliageSway*(.6+rand(hash,i,23));
       return <g key={i} transform={`translate(${F(bx)} ${F(by)}) rotate(${F(sway)} 0 0)`}>
         <path d={`M0 0 Q${F(side*9)} ${F(length*.5)} ${F(-side*11)} ${F(length)}`}
           stroke="#8e7a5b" strokeWidth={.8} fill="none" opacity={.46*ink}/>
-        {Array.from({length:8},(_,j)=>{
-          const yy=9+j*length/9;const tx=side*(3-Math.sin(j*.35)*5);
+        {Array.from({length:13},(_,j)=>{
+          const yy=9+j*length/14;const tx=side*(3-Math.sin(j*.35)*5);
           return <path key={j} d={`M${F(tx)} ${F(yy)} q${F(side*9)} -5 ${F(side*12)} ${F(-9)} q${F(-side*3)} 9 ${F(-side*12)} 9Z`}
-            fill="#806d52" opacity={(j%3===0?.28:.53)*ink}/>;
+            fill="#806d52" opacity={(j%3===0?.40:.66)*ink}/>;
         })}
       </g>;
     })}
@@ -330,6 +330,32 @@ function Grass({m,seed,detail,ink,frame}:{
  })}
  </g>;
 }
+/** Thin, distant trees break up the cliff line without crowding the reserved sky. */
+function DistantGroves({scene,ink,detail,seed}:{
+ scene:InkCinematicSceneSpec["composition"];ink:number;detail:number;seed:number;
+}){
+ const river=scene==="riverside-scroll";
+ const locations=river?[
+   [513,522,.72],[586,535,.5],[650,523,.7],[726,543,.36],[1133,518,.47],
+ ]:[[355,511,.5],[505,541,.6],[748,525,.43],[931,529,.36]];
+ return <g data-km-ink-cinema-groves="" opacity={.60*ink}>
+   {locations.map(([x,y,sc],i)=><g key={i}
+     transform={`translate(${x} ${y}) scale(${sc})`}>
+     <path d="M0 8 Q-7 -25 -3 -59 M0 -32 L-23 -46 M-1 -49 L21 -67"
+       fill="none" stroke="#897459" strokeWidth={2}/>
+     {Array.from({length:Math.round(11*detail)},(_,j)=>{
+       const dx=(rand(seed,i*17+j,201)-.5)*88;
+       const dy=-61+(rand(seed,i*19+j,203)-.5)*24;
+       const radius=10+rand(seed,i*13+j,211)*15;
+       return <ellipse key={j} cx={F(dx)} cy={F(dy)} rx={radius}
+         ry={radius*.54} fill={j%4===0?"#7d694f":"#a9987c"}
+         opacity={.12+.15*rand(seed,i*29+j,217)}/>;
+     })}
+     <path d="M-44 -49 Q-27 -68 0 -61 Q16 -76 43 -57"
+       stroke="#75624e" strokeWidth={1.1} fill="none" opacity={.26}/>
+   </g>)}
+ </g>;
+}
 /** Scene-specific long geological/shoreline masses. In front of the distant
  * mountain but below character feet; no invented 3D shadow postprocess.
  */
@@ -351,7 +377,39 @@ function Ground({scene,ink,detail,seed}:{
    {river&&<path d="M-10 568 Q280 543 425 576 Q537 602 653 622
      M60 619 Q242 592 434 630 M-20 666 Q264 632 440 680"
       stroke="#8a775f" strokeWidth={1.2} fill="none" opacity={.44}/>}
-   {Array.from({length:Math.round(detail*57)},(_,i)=>{
+   
+   {Array.from({length:Math.round(detail*(river?28:31))},(_,i)=>{
+     const row=Math.floor(i/10),station=i%10,t=station/9;
+     const x=river?34+station*58+row*16:298+station*68+row*12;
+     const y=river?584+row*42+Math.sin(t*3)*9:626+row*31-station*5;
+     const width=24+row*11+rand(seed,i,41)*12;
+     const height=7+row*3.2+rand(seed,i,43)*4;
+     const tilt=(rand(seed,i,47)-.5)*8;
+     return <g key={"stone-"+i} data-km-ink-cinema-stone=""
+       transform={`translate(${F(x)} ${F(y)}) rotate(${F(tilt)})`}>
+       <path d={`M${F(-width*.53)} ${F(height*.1)}
+         L${F(-width*.29)} ${F(-height*.64)}
+         L${F(width*.25)} ${F(-height*.78)}
+         L${F(width*.56)} ${F(-height*.18)}
+         L${F(width*.47)} ${F(height*.54)}
+         L${F(-width*.43)} ${F(height*.67)}Z`}
+         fill={row%3===0?"#f8ecd9":"#c9b292"} fillOpacity={row%3===0?.73:.24}
+         stroke="#84745e" strokeWidth={.75+row*.14} strokeOpacity={.3+row*.07}/>
+       <path d={`M${F(-width*.2)} 0 Q0 ${F(-height*.16)} ${F(width*.31)} ${F(height*.05)}`}
+         stroke="#7d6852" strokeWidth={.68} strokeOpacity={.27} fill="none"/>
+     </g>;
+   })}
+   {Array.from({length:Math.round(35*detail)},(_,i)=>{
+      const x=river?rand(seed,i,137)*610:115+rand(seed,i,137)*1115;
+      const y=river?571+rand(seed,i,143)*155:620+rand(seed,i,143)*100-x*.022;
+      const r=1.4+rand(seed,i,147)*3.4;
+      return <g key={"moss-"+i} fill="#53493a" opacity={.25+.42*rand(seed,i,151)}>
+        <ellipse cx={F(x)} cy={F(y)} rx={r} ry={r*.54}/>
+        <ellipse cx={F(x-r*1.9)} cy={F(y-r*.24)} rx={r*.77} ry={r*.43}/>
+        <ellipse cx={F(x+r*1.5)} cy={F(y+r*.12)} rx={r*.65} ry={r*.50}/>
+      </g>;
+   })}
+{Array.from({length:Math.round(detail*57)},(_,i)=>{
     const x=river?rand(seed,i,3)*620:120+rand(seed,i,3)*1040;
     const y=river?575+rand(seed,i,7)*159:627+rand(seed,i,7)*99-(x/1280)*45;
     const w=7+rand(seed,i,9)*30;
@@ -450,6 +508,7 @@ export function InkCinematicScene({
    <g data-km-ink-cinema-plane="middle" opacity={1}>
      {spec.motifs.filter(m=>m.depth===1).map(m=><g key={m.id}>{tree(m)}</g>)}
    </g>
+   <DistantGroves scene={spec.composition} ink={art.ink} detail={art.detail} seed={spec.seed}/>
    <Ground scene={spec.composition} ink={art.ink} detail={art.detail} seed={spec.seed}/>
    <g data-km-ink-cinema-plane="foreground">
      {spec.motifs.filter(m=>m.depth===2).map(m=><g key={m.id}>{tree(m)}</g>)}
