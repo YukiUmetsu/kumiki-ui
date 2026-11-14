@@ -4,13 +4,15 @@
  * All geometry is original vector art, not sampled copyrighted image pixels.
  * Hidden anatomy is not reconstructed from these three-quarter paintings.
  */
-import type {CharacterPart,CharacterShapeAsset,CharacterPoseDelta,CharacterVec2} from
+import type {CharacterPart,CharacterShapeAsset,CharacterPoseDelta,CharacterVec2,
+  CharacterPoseCorrectionTracks} from
   "../../registry/character/definition";
 import type {ShanshuiScene} from "../../registry/video/ink-shanshui";
 import {SHANSHUI_TEACHER_MESHES,SHANSHUI_LEGACY_PUPPET_MESH} from
   "./ink-shanshui-teacher-mesh";
 import {shanshuiRoute} from "../../registry/video/ink-shanshui";
-import type {InkRoutePlan} from "../../registry/video/ink-actor-director";
+import {inkWalkAt,inkRouteAt} from "../../registry/video/ink-actor-director";
+import type {InkRoutePlan,InkWalkPlan} from "../../registry/video/ink-actor-director";
 
 type P=CharacterVec2;
 const n=(v:number)=>Number(v.toFixed(2));
@@ -19,6 +21,8 @@ const at=(x:number,y:number):P=>({x:n(x),y:n(y)});
 const path=(a:P)=>"M"+n(a.x)+" "+n(a.y);
 const line=(a:P)=>" L"+n(a.x)+" "+n(a.y);
 const quad=(c:P,a:P)=>" Q"+n(c.x)+" "+n(c.y)+" "+n(a.x)+" "+n(a.y);
+const cubic=(a:P,b:P,c:P)=>" C"+n(a.x)+" "+n(a.y)+
+  " "+n(b.x)+" "+n(b.y)+" "+n(c.x)+" "+n(c.y);
 const p=(d:string,fill="none",stroke="$ink",strokeWidth=1.1,opacity=1)=>({
   type:"path" as const,d,fill,stroke,strokeWidth,opacity,
 });
@@ -91,8 +95,10 @@ export function shanshuiBodyFit(scene:ShanshuiScene):ShanshuiBodyFit{
   };
   const hemDist=Math.abs(rightHem.x-leftHem.x);
   const sleeveL=s.box("sleeve-screen-left"),sleeveR=s.box("sleeve-screen-right");
-  const boxFoot=s.ref.regions["foot-screen-left"]!;
-  const footY=(boxFoot.y+boxFoot.height*.86)/r.source.height*540;
+  const leftShoe=r.regions["foot-screen-left"]!,
+    rightShoe=r.regions["foot-screen-right"]!;
+  const footY=Math.max(leftShoe.y+leftShoe.height*.91,
+    rightShoe.y+rightShoe.height*.91)/r.source.height*540;
   return {
     scene,sourceFigureRatio:n(r.figure.width/r.figure.height),
     sourceHeadRatio:n(skull.height/291),
@@ -193,25 +199,49 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
     const inner=side==="left"?b.origin.x+b.width:b.origin.x;
     const spread=side==="left"?-1:1;
     const bottom=b.origin.y+b.height;
+    // A real hanging 袖: upper cloth gathers at shoulder and elbow, then
+    // widens into an elongated, weighted hem. Two cubic sides replace the
+    // visibly triangular first-pass sleeve. The wrist stays above the drape.
+    const sleeveY=b.origin.y+b.height*.35;
+    const edge=at(outer+spread*5,bottom-16);
+    const lower=at(outer+spread*2,bottom);
+    const innerBottom=at(inner-spread*5,bottom-2);
     const silhouette=path(shoulder)+
-      quad(at(shoulder.x+spread*20,topY+23),at(outer,b.origin.y+b.height*.38))+
-      quad(at(outer+spread*13,bottom-27),at(outer+spread*2,bottom))+
-      quad(at((outer+inner)*.51,bottom+7),at(inner,bottom-6))+
-      quad(at(hand.x+spread*11,hand.y+14),hand)+
-      quad(at(hand.x-spread*11,hand.y-12),at(shoulder.x-spread*9,shoulder.y+16))+
-      " Z";
+      cubic(at(shoulder.x+spread*13,topY+6),
+        at(outer-spread*16,sleeveY-18),at(outer,sleeveY))+
+      cubic(at(outer+spread*13,sleeveY+19),
+        at(outer-spread*8,bottom-48),edge)+
+      cubic(at(outer+spread*7,bottom-1),
+        at(outer-spread*9,bottom+10),lower)+
+      cubic(at((outer+inner)*.44,bottom+14),
+        at((outer+inner)*.77,bottom+7),innerBottom)+
+      cubic(at(inner+spread*13,bottom-28),
+        at(hand.x+spread*14,hand.y+20),hand)+
+      cubic(at(hand.x-spread*10,hand.y-15),
+        at(shoulder.x-spread*18,shoulder.y+27),
+        at(shoulder.x-spread*5,shoulder.y+5))+" Z";
     return art(
       p(silhouette,"$linen","$ink",1.4,1),
-      p(path(at(shoulder.x+spread*6,shoulder.y+19))+
-        quad(at(outer-spread*3,b.origin.y+b.height*.5),
-          at(outer+spread*8,bottom-12)),
-        "none","$shadow",1.4,.77),
-      p(path(at(shoulder.x-spread*5,shoulder.y+18))+
-        quad(at(inner,b.origin.y+b.height*.5),at(inner+spread*3,bottom-10)),
-        "none","$wash",2.1,.51),
-      p(path(at(outer+spread*2,bottom-3))+
-        quad(at((outer+inner)*.5,bottom+12),at(inner,bottom-7)),
-        "none","$shadow",1.2,.79),
+      p(path(at(shoulder.x+spread*4,shoulder.y+20))+
+        cubic(at(outer-spread*9,sleeveY+17),
+          at(outer+spread*10,bottom-54),at(outer+spread*5,bottom-13)),
+        "none","$shadow",1.5,.78),
+      p(path(at(shoulder.x-spread*4,shoulder.y+13))+
+        cubic(at(inner+spread*10,sleeveY+19),
+          at(inner+spread*11,bottom-39),at(inner,bottom-15)),
+        "none","$wash",3.4,.6),
+      p(path(at(outer+spread*4,bottom-12))+
+        cubic(at(outer+spread*9,bottom+6),
+          at((outer+inner)*.59,bottom+13),innerBottom),
+        "none","$shadow",1.2,.78),
+      p(path(at(shoulder.x-spread*8,shoulder.y+24))+
+        cubic(at(hand.x+spread*6,hand.y+12),
+          at(inner+spread*8,bottom-31),at(inner+spread*4,bottom-18)),
+        "none","$deep",.95,.62),
+      p(path(at(outer+spread*6,bottom-23))+
+        cubic(at(outer+spread*1,bottom-5),
+          at((outer+inner)*.4,bottom+4),at((outer+inner)*.54,bottom+2)),
+        "none","$paper",2,.58),
     );
   };
   const hand=(which:"near"|"far")=>{
@@ -299,7 +329,10 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
     "hem-drape-art":hemFabric,
     "near-cuff-art":cuff("near"),"far-cuff-art":cuff("far"),
     "near-upper":empty(),"far-upper":empty(),
-    "near-lower":shoe("right"),"far-lower":shoe("left"),
+    // The animated shoe parts are separate root children. The former two-bone
+    // lower leg graphics must NOT draw another pair of ungrounded dark shoes.
+    "near-lower":empty(),"far-lower":empty(),
+    "shoe-left":shoe("left"),"shoe-right":shoe("right"),
     "near-brush-grip-art":empty(),
   };
 }
@@ -340,4 +373,40 @@ export function shanshuiFittedRoute(scene:ShanshuiScene):InkRoutePlan{
     ...k,x:n(k.x+offsetX),y:n(k.y+offsetY),
     scale:n((k.scale??1)/baseScale*fit.stageScale),
   }))};
+}
+
+/** Explicit paper-space shoe placement from the canonical contact-aware gait,
+ * converted to design coordinates BEFORE evaluation. Each shoe is moved by
+ * the exact correction required to place its approved art anchor on the foot
+ * contact target at each absolute frame. No invented ankle joint coordinate.
+ */
+export function bakeShanshuiGroundedShoes(
+  plan:InkWalkPlan,fit:ShanshuiBodyFit,lastFrame=299,
+):CharacterPoseCorrectionTracks{
+  if(!Number.isSafeInteger(lastFrame)||lastFrame<plan.endFrame||
+      lastFrame>360000)throw new RangeError("Shoe track duration invalid.");
+  const tracks:CharacterPoseCorrectionTracks={
+    "shoe-left":[],"shoe-right":[],
+  };
+  const frames:number[]=[];
+  for(let i=0;i<lastFrame;i+=2)frames.push(i);
+  frames.push(lastFrame);
+  for(const frame of frames){
+    const stage=inkRouteAt(plan.route,frame);
+    const contact=inkWalkAt(plan,frame);
+    for(const [id,foot,base] of [
+      ["shoe-left",contact.left,fit.anchors.leftFoot],
+      ["shoe-right",contact.right,fit.anchors.rightFoot],
+    ] as const){
+      const designX=133+(foot.x-stage.x)/stage.scale;
+      const designY=340+(foot.y-stage.y)/stage.scale;
+      tracks[id].push({
+        frame,pose:{
+          x:n(designX-base.x),y:n(designY-base.y),
+          rotation:foot.planted?0:foot.x>=stage.x?-2:2,
+        },
+      });
+    }
+  }
+  return tracks;
 }
