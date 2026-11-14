@@ -49,8 +49,8 @@ async function expectStablePixels(page: Page, before: Buffer, after: Buffer) {
     .toBeLessThanOrEqual(Math.max(12, Math.ceil(diff.totalPixels * .0001)));
 }
 
-const story = "/iframe.html?id=video-film-looks--risograph-two-ink&viewMode=story";
-const filmStory = "/iframe.html?id=video-film-looks--risograph-film&viewMode=story";
+const story = "/iframe.html?id=video-riso-print-lab--risograph-two-ink&viewMode=story";
+const filmStory = "/iframe.html?id=video-riso-print-lab--risograph-film&viewMode=story";
 const frames = [0, 50, 135, 250] as const;
 
 type Rect = { x: number; y: number; right: number; bottom: number; width: number; height: number };
@@ -154,7 +154,7 @@ test("Riso films reuse the existing three-shot FilmStage for both aspect ratios"
 
 
 test("native sheet feed uses FilmStage timeline, compares two different posters and remains seek-exact", async ({ page }, info) => {
-  await page.goto("/iframe.html?id=video-film-looks--risograph-sheet-feed&viewMode=story");
+  await page.goto("/iframe.html?id=video-riso-print-lab--risograph-sheet-feed&viewMode=story");
   const slider = page.getByRole("slider", { name: "Film frame" });
   await expect(slider).toBeVisible();
   for (const aspect of ["landscape", "portrait"] as const) {
@@ -190,7 +190,7 @@ test("native sheet feed uses FilmStage timeline, compares two different posters 
 });
 
 test("native overprint bridge stamps real incoming spot ink and seeks exactly in both aspect ratios", async ({ page }, info) => {
-  await page.goto("/iframe.html?id=video-film-looks--risograph-overprint&viewMode=story");
+  await page.goto("/iframe.html?id=video-riso-print-lab--risograph-overprint&viewMode=story");
   const slider = page.getByRole("slider", { name: "Overprint film frame" });
   await expect(slider).toBeVisible();
   await page.evaluate(() => document.fonts.ready);

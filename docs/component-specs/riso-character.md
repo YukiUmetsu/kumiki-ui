@@ -2,7 +2,7 @@
 
 **Registry item:** `riso-character`; dependency `riso-print`.  
 **Sources:** `registry/video/riso-character.ts` and `riso-character-react.tsx`.  
-**Storybook:** **Video production → Film Looks → Risograph Characters → RISO2 · Animated Character Film**.  
+**Storybook:** **Video production → Film Looks → Risograph → RISO2 · Animated Character Film**.  
 **Production fixture:** `examples/film/riso-character-performance.film.json`.  
 **Research evidence:** [Risograph animated film/process references](../research/riso-character-animation-video-study.md).
 
@@ -59,7 +59,7 @@ const walkingLeg = {
 - `evaluateRisoCharacter(spec, frame)` returns both the resolved plate parts and optional `joints` / `ik` diagnostic positions. The frame is quantized once to the original print cadence; reduced motion resolves the identical final cel.
 - `evaluateRisoCharacter(spec, frame, {disableIK:true})` is available for comparison with plain forward kinematics.
 
-**Storybook:** `Video production → Film Looks → Risograph Characters → RISO3 · Rigging Microscope`. The close-up offers Play/Pause, frame seek, FK-vs-IK toggle, diagnostic skeleton and foot targets, printed cadence, plate separation, misregistration and grain. The regular RISO2 film story also exposes IK and rig diagnostics. The rig debug shapes are **off by default** in production/export.
+**Storybook:** `Video production → Film Looks → Risograph → RISO3 · Rigging Microscope`. The close-up offers Play/Pause, frame seek, FK-vs-IK toggle, diagnostic skeleton and foot targets, printed cadence, plate separation, misregistration and grain. The regular RISO2 film story also exposes IK and rig diagnostics. The rig debug shapes are **off by default** in production/export.
 
 This is a solid structural rig foundation—not a full animation-authoring package. **Still missing:** joint-bound skin deformation that follows bending shapes, foot shape swaps/heel roll on impact, pelvis counterrotation and center-of-mass constraints, action blending, grasp/release timelines and robust hand pose redraws, head rotation artwork, perspective turnarounds, collision-aware footfall placement, automatic 3D-to-2D retargeting, and timecoded phonemes. These are prioritized work rather than claims of completion.
 
@@ -124,7 +124,7 @@ The original courier and bird now use **fully opaque base color masses**. The en
 
 The foreground API intentionally refuses duplicate IDs, invalid/missing plate callbacks and paper knockouts in `transparentPaper` mode. One-ink isolation still shows the paper-clearance silhouette, and plate registration remains independent.
 
-**Proof:** Storybook `Video production → Film Looks → Risograph Characters → RISO5 · Opaque Print Proof` stresses both actors against dense crossed printed lines and halftones. It exposes ink isolation, paper-trapping spread, registration, paper grain, background intensity and timeline seeking. Test `riso-opaque-characters.test.tsx` checks full-opacity originals, layer ordering, proof serialization and validation; Playwright verifies the film at 16:9/9:16 plus the dense-background lab, with video frame proof through the existing FilmStage export.
+**Proof:** Storybook `Video production → Film Looks → Risograph → RISO5 · Opaque Print Proof` stresses both actors against dense crossed printed lines and halftones. It exposes ink isolation, paper-trapping spread, registration, paper grain, background intensity and timeline seeking. Test `riso-opaque-characters.test.tsx` checks full-opacity originals, layer ordering, proof serialization and validation; Playwright verifies the film at 16:9/9:16 plus the dense-background lab, with video frame proof through the existing FilmStage export.
 
 **Further limitations:** The character limbs still use simplified ribbon contours; actual joint mass, fabric folds, constrained shadow lines, secondary acting, intentional plate-scoped distress and variation between physical sheets remain in the craft roadmap. See [printmaking reference audit](../research/risograph-character-opaque-print-craft-2026.md). Crucially, adding more transparent ink texture is not a fix for weak shape design.
 
