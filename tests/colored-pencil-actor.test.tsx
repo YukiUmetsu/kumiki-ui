@@ -17,6 +17,7 @@ describe("CP3 authored coloured-pencil ensemble", () => {
       expect(scene.actors).toHaveLength(2);
       const all = scene.actors!.flatMap(a => a.parts.map(p => a.id + "-" + p.id));
       expect(new Set(all).size).toBe(all.length);
+      expect(scene.actors![0].parts.every(part => part.region.underpaintOpacity === .9)).toBe(true);
       expect(all).toContain("fox-head");
       expect(all).toContain("bird-front-wing");
     }
