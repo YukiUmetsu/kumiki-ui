@@ -1,7 +1,7 @@
 import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
-import { crayonHash, crayonMarks, crayonProgress } from "./crayon";
-import type { CrayonBounds } from "./crayon";
+import { crayonConstructionWindows, crayonHash, crayonMarks, crayonProgress } from "./crayon";
+import type { CrayonBounds, CrayonWaxConstruction } from "./crayon";
 
 export type CrayonStory = "lantern" | "garden";
 export type CrayonAspect = "landscape" | "portrait";
@@ -19,11 +19,18 @@ export type WaxProps = {
   d: string; bounds: CrayonBounds; colors: readonly [string, string, string];
   seed: number; pressure: number; tooth: string; frame: number;
   first: number; last: number; reduced: boolean; spacing?: number; angle?: number;
+  construction?: CrayonWaxConstruction;
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0 }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
+  const windows=construction ? crayonConstructionWindows(first,last,construction) : null;
+  const fillFirst=windows?.fillStart ?? first,fillLast=windows?.fillEnd ?? last;
+  const outlineFirst=windows?.outlineStart ?? first,outlineLast=windows?.outlineEnd ?? last;
+  const phase=!construction ? undefined : reduced || frame>=last ? "finished" :
+    construction.order==="outline-first" ? (frame < fillFirst ? "outlining":"pigment") :
+      (frame < outlineFirst ? "pigment":"outlining");
   const cx = bounds.x + bounds.width / 2, cy = bounds.y + bounds.height / 2;
   const size = angle === 0 ? 0 : Math.ceil(Math.hypot(bounds.width,bounds.height));
   const drawBounds = angle === 0 ? bounds : {x:cx-size/2,y:cy-size/2,width:size,height:size};
@@ -31,7 +38,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const pores = clip + "-tooth";
   const marks = useMemo(() => crayonMarks(drawBounds, { seed, pressure, spacing, passes: 2 }),
     [drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, seed, pressure, spacing]);
-  return <g data-km-crayon-region="" data-km-crayon-seed={seed}>
+  return <g data-km-crayon-region="" data-km-crayon-seed={seed} data-km-crayon-build={phase}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
       <mask id={pores} maskUnits="userSpaceOnUse"
@@ -42,10 +49,11 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
       </mask>
     </defs>
     <g clipPath={"url(#" + clip + ")"} mask={"url(#" + pores + ")"} data-km-crayon-wax="">
-      <path d={d} fill={colors[0]} opacity={crayonProgress(frame, first, last, 0, 1, reduced) * .58} />
+      <path d={d} fill={colors[0]}
+        opacity={crayonProgress(frame,fillFirst,fillLast,0,1,reduced)*(construction?.glaze??.58)} />
       <g transform={angle ? "rotate(" + angle + " " + cx + " " + cy + ")" : undefined}>
       {marks.map((mark, i) => {
-        const progress = crayonProgress(frame, first, last, i, marks.length, reduced);
+        const progress = crayonProgress(frame, fillFirst, fillLast, i, marks.length, reduced);
         if (progress <= 0) return null;
         return <g key={i} fill="none" strokeLinecap="round">
           <path d={mark.d} pathLength={100} stroke={colors[mark.tone]} strokeWidth={mark.width}
@@ -59,9 +67,13 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
       })}
       </g>
     </g>
-    <path d={d} fill="none" stroke={colors[1]} strokeWidth={2.5 + pressure * 1.5}
-      strokeLinecap="round" strokeLinejoin="round"
-      opacity={.38 * crayonProgress(frame, first, last, 0, 1, reduced)} />
+    {construction ? <WaxLine d={d} color={colors[1]} width={2.5+pressure*1.5}
+      seed={seed+919} opacity={.65} frame={frame} first={outlineFirst} last={outlineLast}
+      reduced={reduced} /> :
+      <path d={d} fill="none" stroke={colors[1]} strokeWidth={2.5 + pressure * 1.5}
+        strokeLinecap="round" strokeLinejoin="round"
+        opacity={.38 * crayonProgress(frame, first, last, 0, 1, reduced)} />}
+  
   </g>;
 }
 
