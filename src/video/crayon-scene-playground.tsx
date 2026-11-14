@@ -83,17 +83,17 @@ export function CrayonPlayground({subject,aspect,paperRecipe,seed,paperTooth,red
       {frame:0,focusX,focusY,zoom},
       {frame:base.durationFrames-1,focusX,focusY,zoom},
     ] : base.camera;
-    // Macro inspections should not hide the artwork under editorial title
-    // overlays. Filtering screen-space copy is preview-only: film export
-    // preserves the complete authored source illustration.
-    const elements=(close?base.elements.filter(node=>!node.screenSpace):
-      base.elements).map(node=>applyCrayonStudyWaxSettings(
-        node,{nibStyle,strokeOrder,markLength}));
+    // Keep all source elements in their original order, even when macro
+    // shots suppress editorial copy at the renderer's presentation boundary.
+    // Indexed wax seeds must match the exported film without exception.
+    const elements=base.elements.map(node=>applyCrayonStudyWaxSettings(
+      node,{nibStyle,strokeOrder,markLength}));
     return {...base,...crayonPreviewPaperOverrides({paperRecipe,seed,paperTooth}),camera,elements};
   },[subject,aspect,paperRecipe,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion,wildlifeCrop]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,subject+":"+aspect,playbackRate,loop);
   const duration=spec.durationFrames-1;
+  const hideEditorial=subject==="wildlife-portrait"&&wildlifeCrop!=="composition";
   const beats:readonly (readonly [number,string])[]=subject==="wildlife-portrait" ?
     [[0,"Paper"],[32,"First mass"],[82,"Eye & ear"],[137,"Fur grain"],[197,"Portrait"],[239,"Final artwork"]] : subject==="dragon-village" ?
     [[0,"Paper"],[58,"Towers rise"],[112,"Dragon arrives"],[155,"Wings unfurl"],[207,"Dragon reacts"],[260,"Friends answer"],[329,"Final pose"]] : subject==="draw-in" ?
@@ -109,7 +109,8 @@ export function CrayonPlayground({subject,aspect,paperRecipe,seed,paperTooth,red
     </div>
     <div style={{width:aspect==="portrait"?"min(100%,440px)":"100%",aspectRatio:aspect==="portrait"?"540/960":"960/540",
       margin:"0 auto",border:"10px solid #fff7e8",background:"#fff7e8",boxSizing:"border-box",boxShadow:"0 12px 28px #3e4d5c26"}}>
-      <CrayonScene frame={frame} spec={spec} reducedMotion={reducedMotion}/>
+      <CrayonScene frame={frame} spec={spec} reducedMotion={reducedMotion}
+        hideScreenSpace={hideEditorial}/>
     </div>
     <div style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:10,marginTop:20}}>
       <button type="button" aria-label={playing?"Pause animation":"Play animation"} onClick={toggle}

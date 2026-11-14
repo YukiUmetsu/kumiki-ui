@@ -9,6 +9,8 @@ export interface CrayonSceneProps extends Omit<SVGProps<SVGSVGElement>, "width" 
   spec: CrayonSceneSpec;
   frame: number;
   reducedMotion?: boolean;
+  /** Hide editorial screen-space artwork without reindexing the seeded wax source. */
+  hideScreenSpace?: boolean;
   style?: CSSProperties;
 }
 const family = {
@@ -97,13 +99,17 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
  * wax paths, graphite-like outlines, high-contrast type, paper, world layers, and camera.
  * No built-in fox, flower, video clock, or hardcoded story. Supplied JSON passes validation.
  */
-export function CrayonScene({spec, frame, reducedMotion = false, style, ...svgProps}:CrayonSceneProps) {
+export function CrayonScene({spec, frame, reducedMotion = false, hideScreenSpace = false, style, ...svgProps}:CrayonSceneProps) {
   if (!Number.isSafeInteger(frame) || frame < 0) throw new RangeError("CrayonScene frame must be a nonnegative integer");
   const raw = useId(), tooth = "crayonscene" + raw.replace(/[^a-zA-Z0-9_-]/g,"");
   const camera = crayonCamera(spec, frame, reducedMotion);
   const at = reducedMotion ? spec.durationFrames - 1 : frame;
+  // Derive wax seeds from original authored indices BEFORE any presentation filtering.
+  // A detail crop must retain the identical wax/paper marks of the exported film.
   const indexed = spec.elements.map((node,i)=>({node,seed:spec.seed+i*1193}));
-  const rendered = (screenSpace:boolean) => indexed.filter(x=>(x.node.screenSpace ?? false)===screenSpace).map(x=>
+  const rendered = (screenSpace:boolean) => indexed.filter(x=>
+    (x.node.screenSpace ?? false)===screenSpace &&
+    (!hideScreenSpace || !x.node.screenSpace)).map(x=>
     <CrayonNode key={x.node.id} spec={spec} node={x.node} seed={x.seed} tooth={tooth}
       frame={at} reducedMotion={reducedMotion} />);
   return <svg {...svgProps} role={svgProps["aria-hidden"] ? undefined : "img"}
