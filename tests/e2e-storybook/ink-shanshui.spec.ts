@@ -96,3 +96,15 @@ for(const [scene,story] of [
       path:info.outputPath("shanshui-export-"+scene+".png")});
   });
 }
+
+
+test("gallery restarts playback from frame zero after the final frame",async({page})=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
+  await seek(page,299);
+  await page.getByRole("button",{name:"Play film"}).click();
+  const frame=page.getByRole("slider",{name:/Shanshui frame/});
+  await expect.poll(async()=>Number(await frame.inputValue())).toBeLessThan(299);
+  await expect(page.getByRole("button",{name:"Pause film"})).toBeVisible();
+  await page.getByRole("button",{name:"Pause film"}).click();
+  await expect(page.getByRole("button",{name:"Play film"})).toBeVisible();
+});
