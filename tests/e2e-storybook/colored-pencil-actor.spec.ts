@@ -23,6 +23,8 @@ test("original two-character pencil performance is inspectable in 16:9 and 9:16"
     const first = await svg.evaluate(el => el.outerHTML);
     await setFrame(page, 240);
     await expect(svg.locator("[data-km-pencil-region='fox-head']")).toHaveCount(1);
+    await expect(svg.locator("[data-km-pencil-region='fox-head'] [data-km-pencil-underpaint]"))
+      .toHaveAttribute("opacity", "0.9");
     await expect(svg.locator("[data-km-pencil-region='bird-front-wing']")).toHaveCount(1);
     const pose = await svg.evaluate(el => el.outerHTML);
     expect(pose).not.toBe(first);
