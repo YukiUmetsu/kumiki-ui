@@ -141,14 +141,33 @@ function Pine({m,seed,detail,ink,frame}:{
     {clusters.slice(0,Math.max(4,Math.round(clusters.length*detail))).map(([x,y,sc],i)=>
       <g key={i} transform={`translate(${x} ${y}) scale(${sc})`}
         data-km-ink-cinema-pine-needles="">
+        {/* Soft mass under a ragged dry-brush needle crown, not one
+            uniform vector ellipse. Sunlight still passes between needles. */}
+        <path d="M-41 1 Q-47 -9 -34 -13 Q-41 -24 -22 -23 Q-14 -33 -3 -26
+          Q9 -36 18 -23 Q36 -27 42 -15 Q53 -8 39 0
+          Q24 7 6 3 Q-17 6 -41 1Z"
+          fill="#78664f" opacity={.19*ink}/>
+        <path d="M-32 -6 Q-22 -19 -11 -13 Q0 -24 16 -12 Q29 -17 37 -7"
+          stroke="#564938" strokeWidth={2.4} fill="none" opacity={.62*ink}/>
         <path d="M-25 4 Q0 -3 27 3" stroke="#534938" strokeWidth={3.2} fill="none"/>
-        {Array.from({length:17},(_,j)=>{
-          const dx=-35+j*4.3+(rand(hash,i*21+j,3)-.5)*4.2;
-          const len=8+rand(hash,i*19+j,19)*15;
+        {Array.from({length:35},(_,j)=>{
+          const dx=-42+j*2.47+(rand(hash,i*41+j,3)-.5)*6;
+          const len=11+rand(hash,i*39+j,19)*24;
           const side=j%2?-1:1;
-          return <path key={j} d={`M${F(dx)} 1 q${F((j-8)*.28)} ${F(-len*.35)} ${F(side*5)} ${F(-len)}`}
-            stroke={j%3===0?"#9b886f":"#453d33"} strokeWidth={.7+(j%4)*.12}
-            opacity={(j%3===0?.42:.82)*ink} fill="none" {...pathProps}/>;
+          const curl=(j-17)*.27;
+          return <path key={j} d={`M${F(dx)} ${F(1+rand(hash,i*30+j,5)*4)}
+            q${F(curl)} ${F(-len*.48)} ${F(side*5+curl)} ${F(-len)}`}
+            stroke={j%5===0?"#a39278":j%3===0?"#71614b":"#453d33"}
+            strokeWidth={.75+(j%5)*.17}
+            opacity={(j%5===0?.48:.82)*ink} fill="none" {...pathProps}/>;
+        })}
+        {Array.from({length:12},(_,j)=>{
+          const x=-40+rand(hash,i*19+j,213)*78;
+          const y=-6+rand(hash,i*27+j,219)*14;
+          return <path key={"dian"+j}
+            d={`M${F(x-2)} ${F(y+1)} Q${F(x)} ${F(y-3)} ${F(x+3)} ${F(y+2)}`}
+            stroke="#44392f" strokeWidth={1.35} fill="none"
+            opacity={.42*ink}/>;
         })}
       </g>)}
   </g>;
