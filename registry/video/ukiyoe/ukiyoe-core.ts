@@ -233,22 +233,26 @@ export function scrollPan(options: {
 
 export type Pt = readonly [number, number];
 const f = (v: number) => (Math.round(v * 10) / 10).toString();
+/** Whole-pixel formatting for small, dense shapes (foam lace): about half the markup, no visible difference. */
+const fi = (v: number) => Math.round(v).toString();
 
-export function polyD(points: readonly Pt[], closed = true): string {
+export function polyD(points: readonly Pt[], closed = true, coarse = false): string {
   if (!points.length) return "";
-  return "M" + points.map(p => f(p[0]) + " " + f(p[1])).join("L") + (closed ? "Z" : "");
+  const g = coarse ? fi : f;
+  return "M" + points.map(p => g(p[0]) + " " + g(p[1])).join("L") + (closed ? "Z" : "");
 }
-/** Catmull-Rom spline through points as cubic Béziers. */
-export function smoothD(points: readonly Pt[], closed = false, tension = .5): string {
+/** Catmull-Rom spline through points as cubic Béziers. `coarse` rounds to whole pixels. */
+export function smoothD(points: readonly Pt[], closed = false, tension = .5, coarse = false): string {
   const n = points.length;
-  if (n < 3) return polyD(points, closed);
+  if (n < 3) return polyD(points, closed, coarse);
+  const g = coarse ? fi : f;
   const at = (i: number) => closed ? points[(i + n) % n] : points[clamp(i, 0, n - 1)];
-  let d = "M" + f(points[0][0]) + " " + f(points[0][1]);
+  let d = "M" + g(points[0][0]) + " " + g(points[0][1]);
   const last = closed ? n : n - 1;
   for (let i = 0; i < last; i++) {
     const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2), k = tension / 3;
-    d += "C" + f(p1[0] + (p2[0] - p0[0]) * k) + " " + f(p1[1] + (p2[1] - p0[1]) * k) + " "
-      + f(p2[0] - (p3[0] - p1[0]) * k) + " " + f(p2[1] - (p3[1] - p1[1]) * k) + " " + f(p2[0]) + " " + f(p2[1]);
+    d += "C" + g(p1[0] + (p2[0] - p0[0]) * k) + " " + g(p1[1] + (p2[1] - p0[1]) * k) + " "
+      + g(p2[0] - (p3[0] - p1[0]) * k) + " " + g(p2[1] - (p3[1] - p1[1]) * k) + " " + g(p2[0]) + " " + g(p2[1]);
   }
   return d + (closed ? "Z" : "");
 }
@@ -311,7 +315,7 @@ export type Taper = "both" | "start" | "end" | "none" | "swell" | "point";
  * A carved key-block line: a filled ribbon whose width swells and tapers like a line left standing by the
  * carver's knife. `wobble` adds tiny seeded irregularity so long lines are not ruler-straight.
  */
-export function carvedLine(points: readonly Pt[], width: number, options: { taper?: Taper; seed?: number; wobble?: number; minRatio?: number; smooth?: boolean } = {}): string {
+export function carvedLine(points: readonly Pt[], width: number, options: { taper?: Taper; seed?: number; wobble?: number; minRatio?: number; smooth?: boolean; coarse?: boolean } = {}): string {
   const pts = points.length > 2 ? points : points.length === 2 ? resample(points, Math.max(4, polylineLength(points) / 8)) : [...points];
   const n = pts.length;
   if (n < 2) return "";
@@ -336,7 +340,7 @@ export function carvedLine(points: readonly Pt[], width: number, options: { tape
     left.push([pts[i][0] - ty * hw, pts[i][1] + tx * hw]);
     right.push([pts[i][0] + ty * hw, pts[i][1] - tx * hw]);
   }
-  return options.smooth ? smoothD([...left, ...right.reverse()], true, .45) : polyD([...left, ...right.reverse()], true);
+  return options.smooth ? smoothD([...left, ...right.reverse()], true, .45, options.coarse) : polyD([...left, ...right.reverse()], true, options.coarse);
 }
 
 export function rotatePt(p: Pt, deg: number, about: Pt = [0, 0]): Pt {

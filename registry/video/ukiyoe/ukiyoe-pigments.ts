@@ -7,10 +7,10 @@ import { isHex, lightness } from "./ukiyoe-core";
 
 export type UkiyoeRole =
   | "paper" | "sumi" | "usuzumi" | "ai" | "bero" | "sora" | "asagi" | "kusa" | "matsu" | "ki" | "kincha"
-  | "beni" | "shu" | "tan" | "sakura" | "murasaki" | "cha" | "kogecha" | "gofun" | "hada" | "kin" | "yoru";
+  | "beni" | "shu" | "tan" | "sakura" | "murasaki" | "cha" | "kogecha" | "gofun" | "hada" | "kin" | "yoru" | "hanada";
 export const UKIYOE_ROLES: readonly UkiyoeRole[] = [
   "paper", "sumi", "usuzumi", "ai", "bero", "sora", "asagi", "kusa", "matsu", "ki", "kincha",
-  "beni", "shu", "tan", "sakura", "murasaki", "cha", "kogecha", "gofun", "hada", "kin", "yoru",
+  "beni", "shu", "tan", "sakura", "murasaki", "cha", "kogecha", "gofun", "hada", "kin", "yoru", "hanada",
 ];
 
 /** What each role is for, for UIs and docs. */
@@ -19,7 +19,7 @@ export const ROLE_NOTES: Readonly<Record<UkiyoeRole, string>> = {
   sora: "Pale sky blue", asagi: "Blue-green", kusa: "Grass green", matsu: "Pine green", ki: "Yellow",
   kincha: "Golden brown", beni: "Safflower red", shu: "Vermilion", tan: "Red lead orange", sakura: "Blossom pink",
   murasaki: "Purple", cha: "Tea brown", kogecha: "Dark brown", gofun: "Shell white", hada: "Skin", kin: "Gold cloud",
-  yoru: "Night sky",
+  yoru: "Night sky", hanada: "Medium blue (the great wave's lighter bands)",
 };
 
 export type UkiyoePalette = Readonly<Record<UkiyoeRole, string>>;
@@ -28,7 +28,7 @@ const EDO: UkiyoePalette = {
   paper: "#efe3c8", sumi: "#24211e", usuzumi: "#7d786d", ai: "#2f4f72", bero: "#1d3d6e", sora: "#9fbccb",
   asagi: "#5f9a99", kusa: "#7d9752", matsu: "#2e5b3e", ki: "#e3b84f", kincha: "#b98d45", beni: "#c64a62",
   shu: "#c9472f", tan: "#d8743f", sakura: "#efc3c0", murasaki: "#6b4c78", cha: "#80583a", kogecha: "#4a3427",
-  gofun: "#f7f1e3", hada: "#f2dcc4", kin: "#d9b866", yoru: "#232a3a",
+  gofun: "#f7f1e3", hada: "#f2dcc4", kin: "#d9b866", yoru: "#232a3a", hanada: "#2f68a3",
 };
 
 export type UkiyoePresetName = "edo" | "twilight" | "night" | "snow" | "spring" | "autumn" | "aizuri";
@@ -38,7 +38,7 @@ export const UKIYOE_PRESETS: readonly UkiyoePresetName[] = ["edo", "twilight", "
 const PRESETS: Readonly<Record<UkiyoePresetName, Partial<Record<UkiyoeRole, string>>>> = {
   edo: {},
   twilight: { paper: "#ecdcc0", sora: "#b6c3c9", ki: "#e7b25a", beni: "#cc5a5a", kin: "#e2b46a" },
-  night: { paper: "#ddd0b4", sora: "#55708a", bero: "#1a2f55", yoru: "#1d2433", kin: "#e8c36e", hada: "#e8d2b8" },
+  night: { paper: "#ddd0b4", sora: "#55708a", bero: "#1a2f55", yoru: "#1d2433", kin: "#e8c36e", hada: "#e8d2b8", hanada: "#2a5384" },
   snow: { paper: "#f1ebdf", sora: "#b9c6cc", usuzumi: "#8a8a86", kusa: "#879a78", matsu: "#3a5b4b" },
   spring: { paper: "#f1e6cc", sakura: "#f3c1c4", kusa: "#90a85c", sora: "#a9c5d0", beni: "#cf5370" },
   autumn: { paper: "#eedfbf", kusa: "#a79a4e", matsu: "#3d553a", beni: "#b8452f", ki: "#dfa53e", tan: "#cd5e2e" },
