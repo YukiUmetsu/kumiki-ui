@@ -8,10 +8,12 @@ import { crayonCharacterDrawScene } from "./crayon-character-draw-fixtures";
 import { crayonDragonVillageScene } from "./crayon-dragon-village-fixtures";
 import { useCrayonStoryPlayback } from "./crayon-story-playback";
 import type { CrayonDemoAspect, CrayonDemoSubject } from "./crayon-scene-fixtures";
-import type { CrayonElement } from "../../registry/video/materials/crayon-scene";
+import type { CrayonElement, CrayonSceneSpec } from "../../registry/video/materials/crayon-scene";
 
 export interface PlaygroundProps {
-  subject:CrayonDemoSubject | "performance" | "walk" | "draw-in" | "dragon-village" | "wildlife-portrait"; aspect:CrayonDemoAspect; seed:number; paperTooth:number;
+  subject:CrayonDemoSubject | "performance" | "walk" | "draw-in" | "dragon-village" | "wildlife-portrait"; aspect:CrayonDemoAspect;
+  /** Source materials remain unchanged unless an explicit Storybook experiment is requested. */
+  paperRecipe:"authored"|"custom"; seed:number; paperTooth:number;
   reducedMotion:boolean; startFrame:number; stride:number; stepLift:number; rig:"drawn"|"ik";
   playbackRate:number; loop:boolean;
   drawOrder:"outline-first"|"fill-first"; outlineFraction:number; waxGlaze:number;
@@ -26,6 +28,22 @@ export interface PlaygroundProps {
   editorialDetail:number;
   wildlifeDetail:number; wildlifeEarMotion:number; wildlifeCrop:"composition"|"eye"|"fur"|"muzzle"|"ear";
 }
+/**
+ * Source paper settings are part of a film's visual identity. Only an explicit
+ * experiment may replace them; the production scene is never mutated.
+ */
+export function crayonPreviewPaperOverrides(
+  controls:Pick<PlaygroundProps,"paperRecipe"|"seed"|"paperTooth">,
+):Partial<Pick<CrayonSceneSpec,"seed"|"paperTooth">> {
+  if(controls.paperRecipe==="authored") return {};
+  if(controls.paperRecipe!=="custom"||
+     !Number.isSafeInteger(controls.seed)||
+     !Number.isFinite(controls.paperTooth)||
+     controls.paperTooth<0||controls.paperTooth>1)
+    throw new RangeError("Invalid custom Crayon paper recipe");
+  return {seed:controls.seed,paperTooth:controls.paperTooth};
+}
+
 /** Storybook-only material overrides. Unchanged authoring wins by default. */
 export function applyCrayonStudyWaxSettings(
   node:CrayonElement,
@@ -40,7 +58,7 @@ export function applyCrayonStudyWaxSettings(
     ...(markLength==="authored"?{}:{markLength}),
   };
 }
-export function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion,wildlifeCrop}:PlaygroundProps){
+export function CrayonPlayground({subject,aspect,paperRecipe,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion,wildlifeCrop}:PlaygroundProps){
   const spec=useMemo(()=>{
     const base=subject==="performance"?crayonPerformanceScene(aspect,{editorialDetail}):
       subject==="walk"?crayonWalkScene(aspect,{stride,lift:stepLift,rig}):
@@ -71,8 +89,8 @@ export function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,s
     const elements=(close?base.elements.filter(node=>!node.screenSpace):
       base.elements).map(node=>applyCrayonStudyWaxSettings(
         node,{nibStyle,strokeOrder,markLength}));
-    return {...base,seed,paperTooth,camera,elements};
-  },[subject,aspect,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion,wildlifeCrop]);
+    return {...base,...crayonPreviewPaperOverrides({paperRecipe,seed,paperTooth}),camera,elements};
+  },[subject,aspect,paperRecipe,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail,wildlifeDetail,wildlifeEarMotion,wildlifeCrop]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,subject+":"+aspect,playbackRate,loop);
   const duration=spec.durationFrames-1;
@@ -122,7 +140,7 @@ export function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,s
         subject==="performance"?
         "Inspect eyebrow, eye, hand and mouth acting cues as held source drawings. Compare expression transitions and meaningful follow-through.":
         "Inspect the authored illustration's hierarchy, wax-material deposits, paper grain and absolute-frame construction rather than substituting a uniform digital filter."}
-      {" Wax, paper, and playback remain configurable. Choose 'authored' to retain the original region-by-region recipe; choose another setting only to run a controlled material experiment. The underlying source scene and film clock remain unchanged."}
+      {" Wax and paper remain configurable, but their authored source settings are the default. Set Paper recipe to 'custom' to enable a seed/tooth experiment, or change nib, stroke order or mark length to compare wax treatments. The production scene and film clock remain unchanged."}
     </p>
   </div>;
 }

@@ -1,6 +1,6 @@
 import {describe,expect,it} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
-import {CrayonPlayground,applyCrayonStudyWaxSettings} from "../src/video/crayon-scene-playground";
+import {CrayonPlayground,applyCrayonStudyWaxSettings,crayonPreviewPaperOverrides} from "../src/video/crayon-scene-playground";
 import {crayonSceneDefaultArgs,crayonSceneArgTypes} from "../src/video/crayon-scene-story-config";
 import {crayonWildlifePortraitScene} from "../src/video/crayon-wildlife-portrait-fixtures";
 import sceneMeta,{WaterCycle,WaterCyclePortrait,StorybookTown,IllustratedData} from "../src/video/crayon-scene.stories";
@@ -45,6 +45,7 @@ describe("Crayon Storybook organization",()=>{
      }
    }
    expect(crayonSceneDefaultArgs.wildlifeCrop).toBe("composition");
+   expect(crayonSceneDefaultArgs.paperRecipe).toBe("authored");
    expect(CrayonPlayground).toBeTypeOf("function");
  });
  it("the new close-ups use the original composable scene renderer, not raster screenshots",()=>{
@@ -122,6 +123,41 @@ describe("Crayon Storybook organization",()=>{
    expect(crayonSceneDefaultArgs).toMatchObject(authored);
    for(const key of ["nibStyle","strokeOrder","markLength"]){
      expect((crayonSceneArgTypes[key as keyof typeof crayonSceneArgTypes] as {options?:string[]}).options).toContain("authored");
+   }
+ });
+
+ it("defaults to film-identical paper recipes, preserving both native aspects and all material seeds",()=>{
+   const original=crayonWildlifePortraitScene("landscape");
+   const vertical=crayonWildlifePortraitScene("portrait");
+   const source={paperRecipe:"authored" as const,seed:54,paperTooth:.64};
+   for(const base of [original,vertical]){
+     const override=crayonPreviewPaperOverrides(source);
+     expect(override).toEqual({});
+     expect({...base,...override}).toEqual(base);
+     expect(base.seed).toBe(8642);
+     expect(base.paperTooth).toBe(.69);
+   }
+   const preview=renderToStaticMarkup(<CrayonPlayground {...crayonSceneDefaultArgs}
+     subject="wildlife-portrait" aspect="landscape" startFrame={239} reducedMotion/>);
+   expect(preview).toContain('data-km-crayon-seed="8642"');
+ });
+ it("allows explicit seed and tooth experiments without changing original film specs",()=>{
+   const base=crayonWildlifePortraitScene("landscape");
+   const custom={paperRecipe:"custom" as const,seed:771,paperTooth:.3};
+   const override=crayonPreviewPaperOverrides(custom);
+   expect(override).toEqual({seed:771,paperTooth:.3});
+   expect({...base,...override}).toMatchObject(override);
+   expect(base.seed).toBe(8642);
+   expect(base.paperTooth).toBe(.69);
+   expect(()=>crayonPreviewPaperOverrides({...custom,seed:NaN})).toThrow(/paper recipe/);
+   expect(()=>crayonPreviewPaperOverrides({...custom,paperTooth:-.1})).toThrow(/paper recipe/);
+   expect(()=>crayonPreviewPaperOverrides({...custom,paperTooth:1.1})).toThrow(/paper recipe/);
+   for(const page of [sceneMeta,wildlifeMeta,actingMeta,walkMeta,drawMeta,dragonMeta]){
+     const args=page.argTypes as Record<string,{options?:string[];if?:{arg:string;eq:string};table?:{category?:string}}>;
+     expect(args.paperRecipe.options).toEqual(["authored","custom"]);
+     expect(args.paperRecipe.table?.category).toBe("Wax & Paper");
+     expect(args.seed.if).toEqual({arg:"paperRecipe",eq:"custom"});
+     expect(args.paperTooth.if).toEqual({arg:"paperRecipe",eq:"custom"});
    }
  });
 });

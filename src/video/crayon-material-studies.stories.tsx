@@ -53,8 +53,17 @@ export function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,lef
         first={72} last={113} reduced={false}/>
       <WaxLine d="M-7 21Q26 38 58 11" color="#855b5b" width={4}
         seed={seed+2} frame={frame} first={86} last={113} reduced={false}/>
-      {frame>=86 && <path data-km-crayon-optics-nose=""
-        d="M15 -13l9 5-10 8Z" fill="#664e58"/>}
+      {frame>=86 && <g data-km-crayon-optics-nose=""
+        data-km-crayon-optics-nose-phase={frame>=108?"finished":"drawing"}>
+        <WaxRegion d="M15 -13L24 -8L14 0Z"
+          bounds={{x:10,y:-16,width:18,height:20}}
+          colors={["#664e58","#5b4651","#90716c"]}
+          coverage="opaque" nibStyle="tapered" markLength="short"
+          strokeOrder="patches" outlineOpacity={.24}
+          seed={seed+3} pressure={.94} spacing={4.3}
+          tooth={tooth} frame={frame} first={86} last={108}
+          reduced={false}/>
+      </g>}
     </g>
   );
   return <div style={{padding:22,background:"#eee7d9",color:"#3d4b5e",fontFamily:"system-ui",maxWidth:1020}}>
