@@ -40,7 +40,7 @@ describe("CRAYON1 mature naturalistic wildlife portrait",()=>{
      const fur=scene.elements.filter(n=>n.kind==="contour"&&
        /fur|fibers|scratches/.test(n.id));
      expect(fur.length).toBeGreaterThan(7);
-     expect(fur.reduce((n,node)=>n+node.d.split("M").length-1,0)).toBeGreaterThan(600);
+     expect(fur.reduce((n,node)=>n+(node.kind==="contour" ? node.d.split("M").length-1 : 0),0)).toBeGreaterThan(600);
    });
    it("animates blink, ear overlap and head in exact held frames in "+aspect,()=>{
      const lid=find("eyelid-painted-occlusion");
