@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import type { CharacterInkPartFinish } from "../character/character-presenter-react";
 import { CharacterPresenter } from "../character/character-presenter-react";
 import type { CharacterCue, CharacterDefinition, CharacterInstance } from "../character/definition";
 import type { InkActorTrack } from "./ink-wash-character";
@@ -16,6 +17,8 @@ export interface InkCharacterProps {
   /** Paper-specific per-part grain and capillary spread; neutral if omitted. */
   absorption?: number;
   grain?: number;
+  /** Per-part wet/dry craftsmanship: crisp face/eyes, broad garment bleed, dry hair. */
+  partFinish?: Readonly<Record<string, CharacterInkPartFinish>>;
   className?: string;
   style?: CSSProperties;
 }
@@ -29,7 +32,7 @@ export interface InkCharacterProps {
  */
 export function InkCharacter({
   definition, instance, cues, frame, track, label,
-  reducedMotion = false, absorption = .68, grain = .65, className, style,
+  reducedMotion = false, absorption = .68, grain = .65, partFinish, className, style,
 }: InkCharacterProps) {
   if (instance.instanceId !== track.instanceId)
     throw new RangeError("Ink actor track must target the supplied approved character instance.");
@@ -47,6 +50,6 @@ export function InkCharacter({
       transformOrigin:"50% 100%", ...style }}>
     <CharacterPresenter definition={definition} instance={instance} cues={cues} frame={frame}
       label={label} reducedMotion={reducedMotion}
-      inkMaterial={{absorption,grain,seed:instance.seed}} />
+      inkMaterial={{absorption,grain,seed:instance.seed,partFinish}} />
   </div>;
 }
