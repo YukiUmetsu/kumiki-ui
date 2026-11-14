@@ -108,11 +108,11 @@ describe("WM2 independently authored painterly compositions", () => {
       const compiled = compileFilm(portable, { outputId });
       expect(compiled.ok).toBe(true);
       if (!compiled.ok) continue;
-      expect(compiled.film.durationFrames).toBe(1280);
+      expect(compiled.film.durationFrames).toBe(1600);
       const slot = await loadFilmSlots(compiled.film);
       const html = renderToStaticMarkup(<>{slot(
         { slot: "painted-composition", label: "Product", props: { genre:"product" } },
-        { frame:255, fps:{num:30,den:1}, durationFrames:320,
+        { frame:255, fps:{num:30,den:1}, durationFrames:400,
           width:compiled.film.width,height:compiled.film.height,reducedMotion:false },
       )}</>);
       expect(html).toContain("data-km-painted-composition");
