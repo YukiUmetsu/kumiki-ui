@@ -13,6 +13,7 @@
 import type {CharacterPathShape,CharacterShapeAsset} from
   "../../registry/character/definition";
 import {inkPressureStroke} from "./ink-shanshui-fine-craft";
+import {readerCrownShapes} from "./ink-shanshui-reader-crown";
 
 const p=(d:string,fill="none",stroke="$ink",strokeWidth=1,
   opacity=1):CharacterPathShape=>({
@@ -122,61 +123,9 @@ export function scrollReaderFacePortrait(detail=1):
       "none","$paper",.59,.52),
   );
 
-  const hair:CharacterPathShape[]=[
-    // Back hair and bound topknot are substantially different from the
-    // earlier single oval bun. Panel seams follow the wrapped cloth form.
-    p("M116.5 76.5 C116.2 65.8 124.3 62.5 133 59.7 C137 54.1 138.9 43.1 140.9 39.2 C143.4 32.9 147.8 29.6 155 30.4 C162.2 31.4 167.4 36.9 168.3 45.2 C174.2 48.3 178 54.4 175.5 60.7 C174.9 67.1 172.6 73.5 171.4 76.7 C164.4 72.8 153.8 70.2 143.6 71.6 C134 73.3 124.1 77.6 116.5 76.5 Z",
-      "$shadow","$ink",1.4),
-    p("M137 62.7 C137.9 51.5 143.9 34.3 153.3 32.6 C156.9 31.2 163.4 37.4 164.4 47.2 C164.9 53.3 161.1 59.5 155.4 64.1 Z",
-      "$deep","$ink",.87,.61),
-    // Wrapped crescent over the top-knot, with independent fold valleys.
-    p("M161.2 34.2 C172.2 37.7 178.4 45.8 176 58.1 C172.4 62.7 168.3 64.4 162.2 61.7 C165.8 50.8 165.4 41 161.2 34.2 Z",
-      "$wash","$shadow",.87,.66),
-    p("M138.2 57.8 Q123.5 58.7 114.3 64.2 Q107.9 77.6 109.7 88.5 C126.3 81.2 134.4 78.5 146.8 76.5 C156.8 75.9 167.3 77.1 172.9 83.9 C176.3 68.2 169.9 60.3 160.8 57.8 C152.8 54.1 145.6 55.2 138.2 57.8 Z",
-      "$shadow","$ink",1.2),
-    // Actual hairline follows the brow plane with a side part and exposes
-    // a readable ear rather than covering the entire left face.
-    p("M111.3 88.4 C118.3 81.2 128.9 80.1 138.9 76.2 C150.2 72.1 162.1 76.3 172 82.1 C163.5 79.2 154.2 78.8 144.7 82.5 C134.2 85 126 89.4 118.7 94.2 L113.5 94 Z",
-      "$deep","$ink",.82),
-    p("M111.3 79.4 Q106.2 89.4 110.5 106.2 Q112.7 107.4 114.2 103.2 Q113.2 92.4 119.2 85 Z",
-      "$ink","none",0,.48),
-    // Tied ribbon projects LEFT and tapers with hand-drawn rather than a
-    // rectangular tail; new geometry, no source bitmap.
-    p("M132.7 66.1 C114.1 62.4 96.2 53.8 76.6 52 C65.5 51.7 54.2 46 44.1 40 C53.3 53.8 64.2 62.8 78.4 63.8 C95.8 64.5 113.9 68.8 131.1 72.2 Z",
-      "$deep","$shadow",.85,.86),
-    p("M129.1 69.4 C105.5 75.5 92.1 88.7 76.1 91.1 C70.3 92.5 61.3 90.7 56 86.8 C68.9 98.1 81.8 101.2 96 91.7 C110.2 82.6 122.5 76.7 135.5 74.5 Z",
-      "$wash","$shadow",.7,.63),
-    p("M133.7 68 Q121.2 64.5 108.7 62.8",
-      "none","$paper",1.25,.55),
-    p("M169 46.4 Q166.7 52.4 164.3 57.8",
-      "none","$ink",.8,.75),
-    p("M155.9 35.3 Q150.6 42.1 147.4 56",
-      "none","$paper",1.1,.53),
-    p("M145.1 39.5 Q140.4 49.7 140.8 59",
-      "none","$wash",1.3,.66),
-    p("M112 70.7 Q125.2 62 141.2 61.5",
-      "none","$wash",1.12,.67),
-    p("M123.6 81.7 Q139.9 72.4 154.1 73.7",
-      "none","$paper",.84,.48),
-  ];
-  if(medium)hair.push(
-    pressure([136.8,62.1],[148.1,58.1],[158.4,60.5],[166.2,66.6],
-      .85,71,"$ink",.68),
-    pressure([118.4,70.8],[127.6,62.9],[138,61.8],[147.3,61.4],
-      .75,72,"$ink",.61),
-    pressure([146.1,36.8],[142.9,46.9],[141,54.9],[140.7,60.6],
-      .58,73,"$ink",.68),
-    p("M116.8 87 Q125.5 79.5 138.5 76.4",
-      "none","$paper",.66,.62),
-  );
-  if(high)hair.push(
-    pressure([158.8,35],[163,42],[162,54],[157.2,61],
-      .54,74,"$shadow",.73),
-    pressure([168,57],[165.2,62],[165.3,69.6],[168.5,73.8],
-      .67,75,"$ink",.69),
-    pressure([117.5,71.3],[123.1,66.1],[129.2,64.4],[136.8,63.2],
-      .51,76,"$paper",.65),
-  );
+  // ArtCraft source-to-contour study: replaces the helmet-like cap, not
+  // the face, eyes, mouth, head pivots, or body rig.
+  const hair=readerCrownShapes(detail);
 
   const brow:CharacterPathShape[]=[
     // Asymmetry is essential: the near brow is long and the far one is
