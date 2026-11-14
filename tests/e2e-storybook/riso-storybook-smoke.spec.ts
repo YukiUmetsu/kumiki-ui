@@ -1,6 +1,6 @@
 import {expect,test} from "@playwright/test";
 
-/** Prove the entire Riso character Storybook group mounts without runtime faults.
+/** Prove the complete Risograph Storybook group mounts without runtime faults.
  * These are deliberate small smoke checks, not pixel snapshots for every component.
  */
 const stories=[
@@ -9,9 +9,15 @@ const stories=[
   ["Opaque print proof","video-riso-opaque-lab--opaque-print-proof"],
   ["Courier fine-mesh sheet","video-riso-character-model-sheets--courier-construction-sheet"],
   ["Bird fine-mesh sheet","video-riso-character-model-sheets--paper-bird-construction-sheet"],
+  ["Two-ink printing","video-riso-print-lab--risograph-two-ink"],
+  ["Three-shot film","video-riso-print-lab--risograph-film"],
+  ["Paper feed transition","video-riso-print-lab--risograph-sheet-feed"],
+  ["Native overprint","video-riso-print-lab--risograph-overprint"],
+  ["Courier ArtCraft detail","video-riso-artcraft-studies--courier-artcraft-detail"],
+  ["Bird ArtCraft detail","video-riso-artcraft-studies--bird-artcraft-detail"],
 ] as const;
 for(const [name,id] of stories){
-  test(`RISO8 Storybook runtime: ${name}`,async({page},info)=>{
+  test(`Risograph Storybook runtime: ${name}`,async({page},info)=>{
     const pageErrors:string[]=[],consoleErrors:string[]=[];
     page.on("pageerror",error=>pageErrors.push(error.message));
     page.on("console",message=>{
