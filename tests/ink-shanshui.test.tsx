@@ -156,6 +156,21 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("samples the same final absolute frame for reduced-motion scenery and actor",()=>{
+    for(const requestedFrame of [0,88,200,299]){
+      const html=renderToStaticMarkup(createElement(InkShanshuiFilm,{
+        frame:requestedFrame,controls:DEFAULT_SHANSHUI,reducedMotion:true,
+      }));
+      expect(html).toContain('data-km-shanshui-frame="'+requestedFrame+'"');
+      expect(html).toContain('data-km-ink-character-frame="299"');
+      expect(html).toMatch(/data-km-shanshui-world=""[^>]*><g opacity="1">/);
+    }
+    const animated=renderToStaticMarkup(createElement(InkShanshuiFilm,{
+      frame:88,controls:DEFAULT_SHANSHUI,
+    }));
+    expect(animated).toContain('data-km-ink-character-frame="88"');
+  });
+
   it("preserves articulated knee, hair, face and garment ancestry with warm original costume art",()=>{
     const scholar=makeShanshuiScholar();
     const issues=validateCharacterDefinition(scholar);
