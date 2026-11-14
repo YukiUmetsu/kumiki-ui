@@ -115,7 +115,7 @@ export function bakeInkActorTrack(plan: InkRoutePlan): InkActorTrack {
     return {frame,x:v.x,y:v.y,scale:v.scale,rotation:v.rotation,facing:v.facing};
   });
   if (keys.length > 512) throw new RangeError("INK4 path bake exceeds 512 INK3 keys.");
-  return {id:plan.id,instanceId:plan.instanceId,keys};
+  return {id:plan.id,instanceId:plan.instanceId,keys,interpolation:"linear"};
 }
 
 export interface InkLimbAngles {
