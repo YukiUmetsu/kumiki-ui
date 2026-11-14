@@ -234,10 +234,13 @@ export function inkRevealPath(width:number,height:number,progress:number,kind:In
     // stable under arbitrary seeking because angular noise is tied to seed.
     const maxR=Math.max(Math.hypot(cx,cy),Math.hypot(width-cx,cy),
       Math.hypot(cx,height-cy),Math.hypot(width-cx,height-cy));
-    const radius=maxR*(.12*progress+.88*progress*progress);
+    const radius=maxR*(.05*progress+1.23*Math.pow(progress,1.45));
     const angular=Array.from({length:65},(_,i)=>{
       const a=i*Math.PI*2/64;
-      const wave=.88+.13*inkHash(seed,i%64,17)+.06*Math.sin(a*7+seed*.013);
+      // Low-frequency watercolor lobes, not the jagged high-frequency polygon
+      // of a paper-tear matte. The final station matches the first exactly.
+      const coarse=(inkHash(seed,Math.floor((i%64)/8),17)-.5)*.025;
+      const wave=.94+.057*Math.sin(a*3+seed*.013)+.026*Math.sin(a*7+seed*.035)+coarse;
       return fmt(cx+Math.cos(a)*radius*wave)+" "+fmt(cy+Math.sin(a)*radius*wave);
     });
     return "M"+angular.join(" L")+" Z";
