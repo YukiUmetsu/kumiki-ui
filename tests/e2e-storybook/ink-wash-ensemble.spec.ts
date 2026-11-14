@@ -103,7 +103,8 @@ test("original classical figure painting follows both articulated performers and
       el.dispatchEvent(new Event("input",{bubbles:true}));
       el.dispatchEvent(new Event("change",{bubbles:true}));
     },value);
-    await expect(input).toHaveValue(value);
+    // HTML range inputs canonicalize numeric strings such as ".25" to "0.25".
+    await expect(input).toHaveValue(String(Number(value)));
   };
   for(const aspect of ["landscape","portrait"] as const){
     await page.getByRole("combobox",{name:"Ink ensemble output"}).selectOption(aspect);
