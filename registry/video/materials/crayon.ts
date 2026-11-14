@@ -167,7 +167,7 @@ export function crayonNibPath(mark: CrayonMark, progress = 1): string {
       const length = Math.max(1e-6, Math.hypot(tx,ty));
       const nx = -ty/length, ny = tx/length;
       // A wax nib touches down lightly, flattens under force, then lifts.
-      const contact = .18 + .82*Math.pow(Math.max(0,Math.sin(Math.PI*t)),.6);
+      const contact = .36 + .64*Math.pow(Math.max(0,Math.sin(Math.PI*t)),.6);
       const tooth = .86 + .23*crayonHash(mark.index,i*7+j,3101);
       const tip = exposed<1 && j===sampleSteps ? .25 : 1;
       const radius = mark.width * .5 * contact * tooth * tip;
