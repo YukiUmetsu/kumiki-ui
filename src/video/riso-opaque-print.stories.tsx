@@ -34,9 +34,9 @@ function RisoOpaquePrintLab() {
   },[playing]);
   const backdrop=(ink:Ink):RisoArtwork=>paint=><g data-km-riso-opaque-backdrop={ink}>
     {ink==="blue" ? <>
-      <rect x={224} y={27} width={700} height={470} fill={paint.dots} opacity={density}/>
+      <rect x={268} y={27} width={656} height={470} fill={paint.dots} opacity={density}/>
       {Array.from({length:19},(_,i)=><path key={i}
-        d={`M${250+i*34} 34 l-216 456`}
+        d={`M${312+i*32} 34 l-80 456`}
         stroke={paint.solid} strokeWidth={3.6} opacity={density}/>)}
       <path d="M242 430 H927" stroke={paint.solid} strokeWidth={3.5}/>
       <text x={33} y={83} fontSize={19} fontWeight={800} fill={paint.solid}
@@ -50,9 +50,9 @@ function RisoOpaquePrintLab() {
       <text x={34} y={512} fontFamily="Arial, sans-serif" fontSize={12}
         letterSpacing={1.4}>SUBJECT SILHOUETTE UNDER DENSE INKS</text>
     </> : <>
-      <rect x={239} y={55} width={663} height={424} fill={paint.dots} opacity={density * .65}/>
+      <rect x={272} y={55} width={630} height={424} fill={paint.dots} opacity={density * .65}/>
       {Array.from({length:13},(_,i)=><path key={i}
-        d={`M${238+i*52} 48 l228 433`}
+        d={`M${275+i*50} 48 l170 433`}
         stroke={paint.solid} strokeWidth={2.8} opacity={density * .7}/>)}
       <circle cx={769} cy={201} r={94} fill={paint.dots} opacity={density}/>
       <path d="M34 245 H198" stroke={paint.solid} strokeWidth={3} strokeDasharray="11 9"/>
