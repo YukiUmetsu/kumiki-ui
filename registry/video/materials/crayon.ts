@@ -76,7 +76,13 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
           (rand(5) - .5) * spacing * 1.95;
         const segmentCount = Math.max(2,Math.ceil(groupWidth / (32 + rand(16)*19)));
         const segmentWidth = groupWidth / segmentCount;
-        const lean = (rand(6) - .5) * 35 + (layer % 2 ? (rand(17) < .5 ? -11 : 11) : 0);
+        // A human maintains one rubbing direction for several strokes before
+        // rotating the crayon. Low-frequency gesture fields prevent the noisy,
+        // confetti-like orientation changes of fully independent hatch angles.
+        const gestureColumns = Math.max(1,Math.ceil(groups/2));
+        const gestureCell = Math.floor(row/5)*gestureColumns + Math.floor(group/2);
+        const lean = (crayonHash(options.seed,gestureCell,1600+layer)-.5)*35 +
+          (rand(6)-.5)*12;
         const d = Array.from({length:segmentCount}, (_,part) => {
           const taper = .16 + crayonHash(options.seed,index,120+part)*.32;
           const shortfall = 2 + segmentWidth*taper;
