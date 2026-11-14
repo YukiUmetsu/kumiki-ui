@@ -46,11 +46,11 @@ function Mountain({m,id,seed,detail,ink,frame}:{
   const clip=id+"-"+m.id+"-mountain";
   // A mountain is a multi-peak *mass*, then directional rock-fibre texture,
   // then moss dots. These are not evenly distributed noise.
-  const shape="M-278 137 Q-251 103 -225 58 L-185 1 Q-164 -12 -144 -59
+  const shape=`M-278 137 Q-251 103 -225 58 L-185 1 Q-164 -12 -144 -59
     Q-126 -105 -94 -145 Q-70 -157 -55 -198 L-26 -247
     Q-11 -261 4 -249 L37 -203 Q55 -162 69 -142 Q88 -136 99 -101
     L128 -54 Q148 -41 163 -12 L201 42 Q235 74 276 121 L287 163
-    L-285 163 Z";
+    L-285 163 Z`;
   const fade=m.depth===0?.43:.71,geo=seed+m.x*7+m.y*13;
   const strokes=Math.max(8,Math.round((m.depth===0?20:40)*detail));
   const mirror=m.flipped?-1:1;
@@ -325,10 +325,10 @@ function Ground({scene,ink,detail,seed}:{
 }){
  const river=scene==="riverside-scroll";
  const ground=river?
-  "M-50 548 Q171 525 359 565 Q482 565 559 588 Q606 609 668 616
-   L630 740 L-50 740Z":
-  "M-50 711 Q153 696 262 672 Q393 645 497 633 Q611 626 690 620
-   Q780 581 870 570 Q1032 573 1330 592 L1330 740 L-50 740Z";
+  `M-50 548 Q171 525 359 565 Q482 565 559 588 Q606 609 668 616
+   L630 740 L-50 740Z`:
+  `M-50 711 Q153 696 262 672 Q393 645 497 633 Q611 626 690 620
+   Q780 581 870 570 Q1032 573 1330 592 L1330 740 L-50 740Z`;
  return <g data-km-ink-cinema-ground="" opacity={.95*ink}>
    <path d={ground} fill={river?"#d9c5a5":"#d7bfa0"} opacity={.55}/>
    <path d={ground} fill="none" stroke="#82715b" strokeWidth={2.4} opacity={.64}/>
