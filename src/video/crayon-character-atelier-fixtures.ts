@@ -148,7 +148,7 @@ export function crayonIllustratedChildScene(
     {frame:127,x:0,y:0,rotate:-15},{frame:167,x:0,y:0,rotate:-8},
     {frame:225,x:0,y:0,rotate:5},{frame:269,x:0,y:0,rotate:-3},
   ];
-  const shoeMove=(side:-1|1):readonly CrayonMotionKey[]=walk?[
+  const shoeMove=(side:-1|1):readonly CrayonMotionKey[]=>walk?[
     {frame:0,x:0,y:0},{frame:41,x:0,y:0,rotate:side*3},
     {frame:73,x:side*20*stride,y:-18*stepLift,rotate:-side*12},
     {frame:104,x:side*23*stride,y:0},{frame:135,x:-side*11*stride,y:0},
