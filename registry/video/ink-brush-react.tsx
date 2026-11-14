@@ -51,10 +51,10 @@ export function InkBrushCanvas({
       <filter id={uid + "-pigment-tooth"} x={0} y={0} width={spec.width} height={spec.height}
         filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency=".105 .16" numOctaves={3}
+        <feTurbulence type="fractalNoise" baseFrequency=".31 .26" numOctaves={3}
           seed={spec.seed % 997} stitchTiles="noStitch" result="fibre-noise"/>
         <feColorMatrix in="fibre-noise" type="matrix"
-          values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.7 0 0 0 -.63"
+          values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1.0 0 0 0 .31"
           result="fibre-absorption"/>
         <feComposite in="SourceGraphic" in2="fibre-absorption" operator="in"/>
       </filter>
@@ -90,7 +90,7 @@ export function InkBrushCanvas({
         {/* A soft capillary-contact fringe behind the real marked silhouette. This is
             stroke-local, not a Gaussian blur of an entire image or a simulation of diffusion. */}
         <path data-km-ink-edge={mark.id} d={mark.outline} fill={mark.color}
-          opacity={mark.opacity * .17} filter={"url(#" + uid + "-edge-soft)"}/>
+          opacity={mark.opacity * .12} filter={"url(#" + uid + "-edge-soft)"}/>
         {/* The brush deposits a graded wash across its paper contact area. */}
         <path data-km-ink-stroke={mark.id} data-km-ink-progress={mark.progress}
           d={mark.outline} fill={"url(#" + uid + "-pigment-" + i + ")"}
