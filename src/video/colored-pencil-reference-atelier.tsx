@@ -393,7 +393,7 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
           data-km-portrait-craft-evidence=""
           style={{fontSize:12,color:"#687A71",margin:"8px 0 0"}}>
           Experimental CC0 source-matched construction: {Object.values(study.portraitFeatures)
-            .reduce((sum,n)=>sum+n,0)} additional eye, brow, alar and lip pencil marks.
+            .reduce((sum,n)=>sum+n,0)} additional eye, brow, nose, lip and form-following skin pencil marks.
           Landmark alignment is manually reviewed, not independent artistic sign-off.
         </p>}
       </figure>
