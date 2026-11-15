@@ -126,7 +126,10 @@ export function crayonWaxFiberContacts(
       const paper=crayonPaperHeight(mid.x,mid.y,paperSeed);
       const jitter=crayonHash(seed,k*41+i,33);
       // A worn crayon catches raised paper and leaves broken lengths.
-      if(.54*paper+.35*pressure+.11*jitter<.28)continue;
+      // Paper valley dropout is essential: with the previous low cutoff
+      // almost every station survived at firm pressure, turning individual
+      // wax rubs into smooth, straight vector-colored hair ribbons.
+      if(.62*paper+.30*pressure+.08*jitter<.58)continue;
       const a=point(t0),b=point(exposed);
       const scale=(exposed-t0)/3;
       const aCtl={x:a.x+a.tx*scale,y:a.y+a.ty*scale};
