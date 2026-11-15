@@ -21,6 +21,38 @@ const brush=(a:[number,number],b:[number,number],
     to:{x:d[0],y:d[1]},width,seed,ink,opacity,samples:18,
   });
 
+/** Zeng Jing-style restrained “ink-bone” modeling: several thin tonal
+ * deposits that describe the eye-socket and nose cheek transition by
+ * accumulation, without adding a hard black outline or noisy stippling.
+ * Original head-local contours, not traced source artwork.
+ */
+function socketWash(kind:"hermit"|"walker"):CharacterPathShape[]{
+  if(kind==="hermit")return [
+    p("M117.7 101.2 Q122.4 98.5 131.1 101.2 Q134.5 104.8 132.8 108.2 Q127.2 111.4 120.5 108.1 Z",
+      "$skinshade","none",0,.075),
+    p("M121.3 103.6 Q126.2 101.6 130.4 103.6 Q131.4 106.5 127.2 108.6 Q124.1 109 121.3 103.6 Z",
+      "$skinshade","none",0,.065),
+    p("M145.9 99.8 Q152.7 95.4 160.6 99.6 Q159.4 104.4 154 105.9 Q149.6 105.5 145.9 99.8 Z",
+      "$skinshade","none",0,.08),
+    p("M149.8 100.9 Q154.4 99.3 157.3 100.5 Q157 103.9 153.2 104.7 Z",
+      "$skinshade","none",0,.06),
+    p("M147.3 108.6 Q151.8 111.7 148.6 115.7 Q145.6 119.9 141.5 119.4 Q147 116 147.3 108.6 Z",
+      "$skinshade","none",0,.07),
+  ];
+  return [
+    p("M118.4 101.9 Q124.6 100.2 132.5 101.8 Q134.9 105.7 130.4 108.6 Q124.2 109.4 118.4 101.9 Z",
+      "$skinshade","none",0,.066),
+    p("M122.3 102.3 Q127 101.1 131 103.3 Q130.7 106.2 127.7 107.3 Z",
+      "$skinshade","none",0,.055),
+    p("M146.2 99.7 Q154.4 97.4 163.1 100.3 Q162.7 103.9 158.8 105 Q152.4 105.5 146.2 99.7 Z",
+      "$skinshade","none",0,.063),
+    p("M152.4 100.6 Q157.9 100 160.7 101.4 Q160.5 104.1 156.8 104.3 Z",
+      "$skinshade","none",0,.047),
+    p("M148.8 109.1 Q149.9 113.1 146.8 116.8 Q144.9 119.5 142.1 119.2 Q147.3 115.4 148.8 109.1 Z",
+      "$skinshade","none",0,.073),
+  ];
+}
+
 export const SHANSHUI_PORTRAIT_OBSERVATIONS={
   "misty-hermit":{
     age:"older scholar with deeply set asymmetric eyes",
@@ -63,6 +95,7 @@ export function shanshuiOtherFaceCraft(scene:ShanshuiScene,detail=1):Record<stri
       p("M120.2 119.1 Q123.2 126.4 130.2 128.6",
         "none","$skinshade",.55,.42),
     ];
+    if(high)face.push(...socketWash("hermit"));
     if(high)face.push(
       p("M123.1 82.4 Q128.5 83.4 132 82.2",
         "none","$skinshade",.36,.3),
@@ -121,6 +154,7 @@ export function shanshuiOtherFaceCraft(scene:ShanshuiScene,detail=1):Record<stri
     p("M117.1 119 Q121.1 127.5 129.5 132.8",
       "none","$skinshade",.43,.3),
   ];
+  if(high)face.push(...socketWash("walker"));
   if(high)face.push(
     p("M120.2 112.4 Q125.6 114.5 131.1 112.7",
       "none","$skinshade",.37,.32),
