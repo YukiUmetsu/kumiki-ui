@@ -759,7 +759,18 @@ export function pencilLivingStudyDrawing({
     const locallyRooted=subject==="fox"&&part.material==="fur";
     const softSkin=subject==="portrait"&&part.material==="skin";
     const fineHair=subject==="portrait"&&part.material==="hair";
-    return {...region, clipDetails:part.id==="whisker-roots"?false:region.clipDetails, layers:region.layers.map(layer=>({
+    const furDensity=part.id==="head-main"?.80:
+      part.id==="muzzle"?.70:
+      part.id==="chest"||part.id==="neck-ruff"?.66:
+      part.id==="tail-back"||part.id==="tail-tip"?.73:
+      part.id==="body"?.59:
+      part.id.startsWith("ear-")?.54:
+      part.id.startsWith("foreleg-")?.48:.36;
+    return {...region,
+      craft:locallyRooted&&region.craft?{
+        ...region.craft,pigmentDensity:furDensity,
+      }:region.craft,
+      clipDetails:part.id==="whisker-roots"?false:region.clipDetails, layers:region.layers.map(layer=>({
       ...layer,
       // CP-F1 direction/pressure remains intact, but soft facial skin needs
       // grain rather than ruler-like diagonals; scalp/brow hair needs fibre.
