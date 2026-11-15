@@ -896,13 +896,16 @@ function BambooTerminalSpray({root,bend,tip,fan,seed,id,detail}:{
   // should remain recognizable as a real leaf group at 960x540. Small
   // deterministic seed changes alter wrist speed, not its anatomy.
   const gestures=[
-    {at:.22,angle:-.76,len:44,wide:5.5},
-    {at:.33,angle:.38,len:34,wide:4.3},
-    {at:.46,angle:-.24,len:53,wide:6.1},
-    {at:.55,angle:.86,len:30,wide:3.9},
-    {at:.68,angle:-1.04,len:41,wide:4.9},
-    {at:.78,angle:.12,len:39,wide:5.1},
-    {at:.88,angle:-.54,len:35,wide:3.8},
+    // A few long leaves fall *across* the twig, instead of seven
+    // vertically upraised knives. Album 17010703 carries down-swept
+    // pennants under its arching twig and only a few upright accents.
+    {at:.22,angle:.32,len:44,wide:5.5},
+    {at:.33,angle:.92,len:34,wide:4.3},
+    {at:.46,angle:-.29,len:53,wide:6.1},
+    {at:.55,angle:1.2,len:30,wide:3.9},
+    {at:.68,angle:-.67,len:41,wide:4.9},
+    {at:.78,angle:.52,len:39,wide:5.1},
+    {at:.88,angle:-.06,len:35,wide:3.8},
   ] as const;
   return <g data-km-bamboo-hero-spray=""
     data-km-bamboo-hero-parent={f(stemRoot[0])+","+f(stemRoot[1])}

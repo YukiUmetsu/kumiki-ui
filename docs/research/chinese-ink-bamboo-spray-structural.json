@@ -119,13 +119,13 @@
       0.88
     ],
     "hero_motif_angle_offsets_radians": [
-      -0.76,
-      0.38,
-      -0.24,
-      0.86,
-      -1.04,
-      0.12,
-      -0.54
+      0.32,
+      0.92,
+      -0.29,
+      1.2,
+      -0.67,
+      0.52,
+      -0.06
     ],
     "hero_length_paper_units": [
       44,
@@ -197,5 +197,17 @@
     "technical": "TypeScript, focused unit, Chromium 5-card Storybook crop study, 960×540 96-frame MP4, seed=71 and 87 stability.",
     "visual": "Compare 1-stroke and complete-cluster study to WZ-A/WZ-B at full film size and zoom. Assess gaps, crossings, ink load and texture without overfitting to a pixel match. Check all three scenes.",
     "current": "candidate; not art approved, do not merge based on CI alone."
+  },
+  "visual_review_v12": {
+    "evidence": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43726792573",
+    "input_head": "feb61a856f615f64e7b530efb24f2dcb8b25d031",
+    "rendered_native_resolution": [
+      960,
+      540
+    ],
+    "inspected": "v12 native 2.15x brushwork crops and misty-hermit normal film frame",
+    "observed_problem": "Extra leaves increase dark clustered coverage but many are near-vertical dark knife shapes. Source NPM image 17010703 has more hanging/side-swept leaves beneath its arching bough, so pressure alone is insufficient.",
+    "change": "Rebalance seven authored relative headings toward horizontal and drooping sweeps, preserve the one attached parent twig and all tonal masks.",
+    "approval": "pending new exact-head native review; not an artistic pass"
   }
 }

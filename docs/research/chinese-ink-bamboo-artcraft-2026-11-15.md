@@ -495,3 +495,14 @@ frames at seeds 71/87, brushwork closeups at 2.15×, sparse/full detail,
 normal-speed 96-frame film and seed/frame reproducibility.
 This iteration improves structural clustering, not facial anatomy or
 mid-range mountain texture; full-scene acceptance is not presumed.
+
+
+## Twelfth pass — actual native visual rejection of upright spray geometry
+
+The [eleventh-pass-exact-head film/Chromium render](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43726792573) was captured at the real 960×540 resolution and as the original five 2.15× Storybook inspection cards. The bamboo canopy crop gained substantial painted density (an 11,270-pixel region-local change at >10 mean RGB difference in 320×255 pixels, under a same-crop comparison; this is **not** a source fidelity metric). The pine crop remained pixel-identical, which helps isolate the change. The full scene, however, showed too many vertically upright heavy leaves like pointed knives.
+
+Comparison to [Wu Zhen's bending bamboo source leaf 17010703, NPM](https://theme.npm.edu.tw/selection/att/collection/04009183/17010703.jpg) suggests a more convincing calligraphic **horizontal and hanging** rhythm beneath bent branches, interrupted by only a couple of upward gestures. The original v11 hero plan used relative headings
+`[-.76,.38,-.24,.86,-1.04,.12,-.54]`; this was a poor directional hierarchy. The v12 correction replaces them with
+`[.32,.92,-.29,1.2,-.67,.52,-.06]`, under the same parent tangent and handed fan sign. It retains the **same seven** loaded leaf strokes, same branch roots and normalized stations, same 15-station brush pressure, same dry-fibre masks, same ink gradation, and the same absolute-frame scene behavior.
+
+**ArtCraft result: unresolved until new native evidence** and five-axis source-specific crop study. The sampled source is not a contour trace or an exact numerical calibration. The brushwork still must be evaluated against real paintings; stronger image contrast alone does not prove natural brush hierarchy. The distant mountains and scholar are outside this narrowly scoped botanical pass.
