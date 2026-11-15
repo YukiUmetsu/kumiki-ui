@@ -238,3 +238,49 @@ export const SourceMeasuredCc0EyePortrait:Story={
   args:{aspect:"portrait",detail:1,startFrame:299},
   render:args=><Cc0EyeCropWorkbench {...args}/>,
 };
+
+/** Opt-in material A/B. Same CC0 study, anatomical paths, seed, frame and
+ * viewport. Only wax deposition changes. Kept in the one Crayon folder.
+ */
+export function Cc0WaxContactComparison({aspect,detail,startFrame,playbackRate,loop}:StudyProps){
+  const baseline=useMemo(()=>crayonCc0NearEyeStudy(aspect,Math.max(.2,detail),"smooth"),
+    [aspect,detail]);
+  const drawn=useMemo(()=>crayonCc0NearEyeStudy(aspect,Math.max(.2,detail),"stroke-built"),
+    [aspect,detail]);
+  const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
+    startFrame,drawn.durationFrames,"crayon-material-compare:"+aspect,playbackRate,loop);
+  return <section data-km-crayon-material-comparison="" style={{maxWidth:1120,
+    margin:"auto",padding:14,background:"#f4e8dd",boxSizing:"border-box"}}>
+    <h2 style={{fontSize:18,margin:"0 0 8px"}}>Crayon tooth and pressure — actual mark construction</h2>
+    <p style={{maxWidth:760,fontSize:13,lineHeight:1.5}}>
+      The same anatomy and seed in both samples. Left uses the previous polished
+      wax finish; right uses cross-grain broken crayon contacts, visible paper
+      tooth and an opaque, non-airbrushed undercoat. Experimental craft review.
+    </p>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,320px),1fr))",
+      gap:14}}>
+      {([{label:"Before · smooth wax",spec:baseline},
+         {label:"After · stroke-built wax",spec:drawn}] as const).map(({label,spec})=>
+        <figure key={label} style={{margin:0,minWidth:0}}>
+          <figcaption style={{margin:"0 0 7px",fontWeight:700,fontSize:13}}>{label}</figcaption>
+          <div style={{aspectRatio:aspect==="portrait"?"540 / 960":"960 / 540"}}>
+            <CrayonScene spec={spec} frame={frame}/>
+          </div>
+        </figure>)}
+    </div>
+    <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",marginTop:12}}>
+      <button type="button" onClick={toggle}>{playing?"Pause":"Play wax deposition"}</button>
+      <button type="button" onClick={restart}>Restart</button>
+      <label>Frame <input aria-label="Wax contact frame" type="range"
+        min={0} max={drawn.durationFrames-1} value={frame}
+        onChange={e=>seek(Number(e.target.value))}/></label>
+      <output>{frame}</output>
+      <button type="button" onClick={()=>seek(299)}>Inspect final</button>
+    </div>
+  </section>;
+}
+export const SourceMeasuredWaxContactComparison:Story={
+  name:"Crayon contact · smooth versus stroke-built (ArtCraft experiment)",
+  args:{aspect:"landscape",detail:1,startFrame:299},
+  render:args=><Cc0WaxContactComparison {...args}/>,
+};
