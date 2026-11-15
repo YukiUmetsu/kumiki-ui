@@ -63,6 +63,27 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("uses ANAT1 grown eyebrow follicles and upper/lower lash flow instead of solid bars",()=>{
+    const A=pencilPortraitAnatomy();
+    const parts=new Map(pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"})
+      .regions.map(r=>[r.id,r]));
+    for(const side of ["R","L"] as const){
+      for(const [kind,count] of [["brow",35],["lash-upper",15],["lash-lower",5]] as const){
+        const strands=A.hair[kind+"."+side];
+        expect(strands,kind+"."+side).toBeDefined();
+        expect(strands.count).toBeGreaterThanOrEqual(count);
+        expect(strands.path).toContain(" Q");
+        expect(strands.path).not.toMatch(/NaN|Infinity/);
+        expect(strands.path.length).toBeLessThanOrEqual(12000);
+      }
+      const eye=parts.get(side==="R"?"eye-white-far":"eye-white-near")!;
+      expect(eye.details?.some(d=>d.id==="anat-lash-upper-"+side)).toBe(true);
+      expect(eye.details?.some(d=>d.id==="anat-lash-lower-"+side)).toBe(true);
+      const brow=parts.get("brows")!;
+      expect(brow.details?.some(d=>d.id==="anat-brow-fibres-"+side)).toBe(true);
+    }
+  });
+
   it("uses ANAT1 nasal cartilage and restrained lip volume instead of floating rectangular mouth stickers",()=>{
     const A=pencilPortraitAnatomy();
     const parts=new Map(pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"})
