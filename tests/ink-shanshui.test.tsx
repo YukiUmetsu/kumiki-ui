@@ -103,6 +103,70 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     })));
   });
 
+  it("builds a rounded mid-ridge and bone-anchored interlocking rock face volumes",()=>{
+    const paint=(seed:number,detail=1)=>renderToStaticMarkup(createElement(
+      InkShanshuiStage,{frame:145,controls:{
+        ...DEFAULT_SHANSHUI,scene:"mountain-trail",detail,seed,
+      }},
+    ));
+    const full=paint(71);
+    const ridge=full.match(/data-km-shanshui-ridge-contour="1" d="([^"]+)"/)?.[1];
+    expect(ridge).toBeDefined();
+    const points=[...ridge!.matchAll(/[ML] ?(-?[0-9.]+) (-?[0-9.]+)/g)]
+      .map(([,x,y])=>[Number(x),Number(y)]);
+    const summit=points.filter(([x])=>x>=531&&x<=572);
+    // The formerly needle-sharp triangle now has a real rounded
+    // double-shoulder summit with many intermediate contour stations.
+    expect(summit.length).toBeGreaterThan(20);
+    expect(summit.filter(([,y])=>y>=96&&y<=115).length)
+      .toBeGreaterThan(12);
+    const masses=[...full.matchAll(
+      /data-km-rock-interlocked-mass="" data-km-rock-mass-root="([^"]+)" data-km-rock-mass-side="(-?1)"/g,
+    )];
+    expect(masses).toHaveLength(3);
+    expect(masses.map(m=>Number(m[2]))).toEqual([-1,1,-1]);
+    expect(new Set(masses.map(m=>m[1])).size).toBe(3);
+    const washes=[...full.matchAll(
+      /data-km-rock-mass-underwash="" d="([^"]+)" fill="url\\(#([^"]+)\\)"/g,
+    )];
+    expect(washes).toHaveLength(3);
+    for(let i=0;i<masses.length;i++){
+      expect(washes[i][1].startsWith("M"+masses[i][1].replace(","," ")))
+        .toBe(true);
+      expect((washes[i][1].match(/ C/g)??[])).toHaveLength(5);
+      expect(full).toContain('id="'+washes[i][2]+'"');
+    }
+    const caps=[...full.matchAll(
+      /data-km-rock-mass-alum-cap="" data-km-rock-mass-cap-root="([^"]+)" d="([^"]+)"/g,
+    )];
+    const cracks=[...full.matchAll(
+      /data-km-rock-mass-erosion="" data-km-rock-mass-erosion-root="([^"]+)" d="([^"]+)"/g,
+    )];
+    expect(caps).toHaveLength(6);
+    expect(cracks).toHaveLength(9);
+    for(const [,r,d] of [...caps,...cracks]){
+      expect(d.startsWith("M"+r.replace(","," "))).toBe(true);
+      expect((d.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(22);
+    }
+    expect(full).toBe(paint(71));
+    expect(paint(87)).not.toBe(full);
+    expect(paint(71,0)).not.toContain("data-km-rock-interlocked-mass");
+    expect(full).not.toMatch(/NaN|Infinity|undefined/);
+    // Three neighboring Storybook previews may not share SVG gradient IDs.
+    const adjacent=renderToStaticMarkup(createElement("section",null,
+      createElement(InkShanshuiStage,{frame:145,controls:{
+        ...DEFAULT_SHANSHUI,scene:"mountain-trail",detail:1,
+      }}),
+      createElement(InkShanshuiStage,{frame:145,controls:{
+        ...DEFAULT_SHANSHUI,scene:"mountain-trail",detail:1,ink:.4,
+      }}),
+    ));
+    const ids=[...adjacent.matchAll(/<linearGradient id="(kmrock[^"]+face[012])"/g)]
+      .map(m=>m[1]);
+    expect(ids).toHaveLength(6);
+    expect(new Set(ids).size).toBe(6);
+  });
+
   it("constructs pine canopies as root-connected, pressure-tapered needle clusters",()=>{
     for(const scene of ["mountain-trail","misty-hermit"] as const){
       const controls={...DEFAULT_SHANSHUI,scene,detail:1};
