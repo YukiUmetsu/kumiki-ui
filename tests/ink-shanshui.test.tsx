@@ -111,7 +111,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       }));
       const sprays=(full.match(/data-km-pine-spray=""/g)??[]).length;
       const rosettes=[...full.matchAll(
-        /data-km-pine-needle-cluster="" data-km-pine-needles="(\\d+)" data-km-pine-twig-root="([^"]+)"/g,
+        /data-km-pine-needle-cluster="" data-km-pine-needles="(\d+)" data-km-pine-twig-root="([^"]+)"/g,
       )];
       expect(sprays).toBeGreaterThan(25);
       expect(rosettes.length).toBeGreaterThan(sprays*2);
