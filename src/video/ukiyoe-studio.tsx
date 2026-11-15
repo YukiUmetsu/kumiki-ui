@@ -53,6 +53,7 @@ import type { UkiyoeRealmScene } from "../../registry/video/ukiyoe/ukiyoe-realms
 import { realmScene, UKIYOE_REALM_SCENES } from "../../registry/video/ukiyoe/ukiyoe-realms";
 import type { UkiyoeParadeScene } from "../../registry/video/ukiyoe/ukiyoe-parade";
 import { paradeScene, UKIYOE_PARADE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-parade";
+import { UKIYOE_MOODS } from "../../registry/video/ukiyoe/ukiyoe-face";
 import type { UkiyoeEpisodeAspect, UkiyoeEpisodeSpec } from "../../registry/video/ukiyoe/ukiyoe-episode";
 import { inspectUkiyoeEpisode, ukiyoeEpisode, ukiyoeEpisodeSrt, ukiyoeEpisodeStarts } from "../../registry/video/ukiyoe/ukiyoe-episode";
 import { KASA_JIZO_EPISODE } from "./ukiyoe-kasa-jizo";
@@ -423,6 +424,39 @@ const ACTION_HINT: Partial<Record<UkiyoeActionType, Partial<UkiyoeAction>>> = { 
 
 const CAST_NAMES = ["traveller", "mother", "child", "ferryman", "merchant", "maiko", "oni-red", "monk", "oiran", "samurai"] as const;
 const CAST_LOOKS: Readonly<Record<string, UkiyoeFigureLook>> = { ...CAST, maiko: UKIYOE_MAIKO_LOOK, oiran: UKIYOE_OIRAN_LOOKS.oiran, samurai: UKIYOE_SAMURAI_LOOK };
+
+/** Faces: the bijin face after Utamaro, eight expressions, and the face traits that make every character different. */
+export function FaceLab() {
+  const [view, setView] = useState<"profile" | "three-quarter" | "front">("three-quarter");
+  const [who, setWho] = useState<"woman" | "maiko" | "oiran" | "man" | "elder">("woman");
+  const [show, setShow] = useState<"expressions" | "crowd">("expressions");
+  const looks: Record<string, UkiyoeFigureLook> = { woman: CAST.mother, maiko: CAST.maiko, oiran: UKIYOE_OIRAN_LOOKS.oiran, man: CAST.merchant, elder: CAST.elder };
+  const moods = ["none", ...UKIYOE_MOODS] as const;
+  const spec: UkiyoeSceneSpec = useMemo(() => ({
+    version: 1, id: "face-lab", width: 1920, height: 1080, durationFrames: 120, seed: 5, palette: { preset: "edo" }, mount: { kind: "print" },
+    nodes: [
+      { id: "bg", kind: "block", x: 960, y: 540, shape: { type: "rect", width: 1920, height: 1080 }, fill: "paper", line: 0 },
+      ...(show === "expressions" ? [
+        // The chosen character in each mood, as busts in two rows.
+        ...moods.map((m, i) => ({ id: "m" + i, kind: "figure", look: { ...looks[who], prop: "none", view }, x: 130 + i * 207, y: 1010, scale: 3.4, facing: "right", actions: m === "none" ? [] : [{ type: "emote", mood: m, start: 0, end: 999, blend: 1 }] } as UkiyoeNode)),
+        ...moods.map((m, i) => ({ id: "t" + i, kind: "text", style: "plain", text: m, x: 130 + i * 207, y: 70, size: 30, color: "sumi" } as UkiyoeNode)),
+      ] : Array.from({ length: 14 }, (_, i) => ({ id: "c" + i, kind: "figure", look: { ...(Object.values(CAST)[i % Object.values(CAST).length]), robe: (["ai", "cha", "kusa", "beni", "murasaki", "kogecha", "sora"] as const)[i % 7], prop: "none", view }, x: 140 + (i % 7) * 270, y: i < 7 ? 520 : 1020, scale: 1.7, facing: "right" } as UkiyoeNode))),
+    ],
+  }), [view, who, show]);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Faces" title="The bijin face, expressions and face traits">
+      <p style={{ margin: 0 }}>After Utamaro's bust portraits: a hair-fine face line, long narrow eyes with the iris hanging from the lid, soft grey
+        brows, the tiny rouged mouth, a hairline of combed strands. The <code>emote</code> action blends eight expressions; <code>look.features</code>
+        (eye, brow, nose, mouth, jaw, age, mole) default from the look's identity, so each character keeps one face and a crowd's faces differ.</p>
+    </Header>
+    <section aria-label="Face controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="Show" value={show} options={["expressions", "crowd"] as const} onChange={setShow} />
+      <Select name="View" value={view} options={["profile", "three-quarter", "front"] as const} onChange={setView} />
+      <Select name="Character" value={who} options={["woman", "maiko", "oiran", "man", "elder"] as const} onChange={setWho} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={30} style={{ width: "100%", height: "100%" }} aria-label="Faces and expressions" /></Fit>
+  </div>;
+}
 
 export function CastLab() {
   const names = CAST_NAMES;

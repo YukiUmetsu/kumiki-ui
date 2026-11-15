@@ -180,6 +180,20 @@ The owner wants animated ukiyo-e YouTube films of 100 Japanese folktales. The [f
 | **F16 — Processions and parades** (delivered 2026-11-15; see the [reference study](research/ukiyoe-handscroll-reference-study.md#processions-and-parades-folktale-queue-f16-2026-11-15)) | Night parades built on the crowd system: the Hyakki Yagyō with its mix of yōkai and object spirits, the fox wedding in a sunshower, the mouse wedding. | 3 | A mixed crowd walks in order without overlaps; the sunshower rain falls in sunlight. |
 | **F17 — YouTube episode template** (delivered 2026-11-15; see the [reference study](research/ukiyoe-handscroll-reference-study.md#youtube-episode-template-and-kasa-jizō-folktale-queue-f17-2026-11-15)) | One folktale episode as a reusable recipe: a title card, a narrated act structure, scene changes between handscroll stations, subtitles in safe regions, end card, and the export settings. One complete short episode (Kasa Jizō, which is ready today) proves it. | all | `film:check` passes; captions never collide; a low-res draft is reviewed before any full render. |
 
+### Ukiyo-e quality queue (UKIYO1) — owner request 2026-11-15
+
+The owner asked to stop adding episodes and raise the craft instead. Slices are taken in this order, each reference-led
+and checked on rendered stills, then on the episodes:
+
+| Slice | Deliverable | State |
+|---|---|---|
+| **Q1 — Faces** | The bijin face after Utamaro (fine face line, narrow eyes with the iris hanging from the lid, grey brows, rouged mouth, combed hairline, powdered skin); front-view shimada; eight expressions (`emote`); face traits per look (`look.features`). | Delivered 2026-11-15. |
+| **Q2 — Clothing variety** | More kimono patterns and dyes (shibori, stripes, plaids, flowers, waves on hems), obi knots, layered collars, a wardrobe generator for women and men by class and season. | Next. |
+| **Q3 — Animation** | Secondary motion (sleeves, hems, hair ornaments), weight shifts, anticipation and settle on actions, head turns. | Queued. |
+| **Q4 — Effects** | Rain, snow, smoke, fire, water and light at print quality. | Queued. |
+| **Q5 — Transitions** | Beyond kasumi: scroll wipes, ink bleeds, page turns, shot-matched cuts. | Queued. |
+| **Q6 — Sound effects** | Recorded foley and hits chosen and checked with earshot, placed on action frames in the episodes. | Queued. |
+
 ### Ukiyo-e folktale episodes (UKIYO1) — episode queue
 
 With F1–F17 delivered, the queue moves from new art to episodes. Each episode is one `ukiyoeEpisode()` spec in

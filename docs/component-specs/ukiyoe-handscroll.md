@@ -426,6 +426,31 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
 
   Storybook **Parades** plays them.
 
+### Faces
+
+`ukiyoe-face.ts` draws every human face (profile, three-quarter and front):
+
+- **The bijin face, after Utamaro.**
+  - A hair-fine face line.
+  - Long narrow eyes: one upper-lid line lifting at the outer end, the iris hanging from it, clipped to the lids.
+  - Soft grey brows, darker along the lower edge.
+  - One fine nose line with a small hook.
+  - A tiny rouged mouth: a low-M upper lip and a fuller lower lip.
+  - Rouge at the eye's outer corner.
+  - Women are powdered white (`skin` defaults to `gofun` for women's hair styles).
+- **Hair.**
+  - The profile shimada: a hairline of combed strands (`kewari`), sheen lines through the mass, the knot in two loops
+    with its red cloth and paper tie, a tortoiseshell comb, the bar and a pin with dangling strips.
+  - The front shimada: the Fuji-shaped hairline, the side locks combed out into thin wings, the front puff, the knot,
+    the comb and two pins.
+- **Expressions.** The `emote` action (`mood`: smile, laugh, sad, cry, surprise, angry, fear, shy) blends like any
+  action. It moves the brows, the lids and iris, and the mouth; tears run, and the cheeks colour.
+- **Face traits.** `look.features` sets eye, brow, nose, mouth, jaw, age and mole. Whatever is left out comes from a
+  hash of the look's identity (hair, build, skin, robe, sash), not its view or props, so a character keeps one face in
+  every shot while a crowd's faces differ. Age adds lines at the brow, eye and mouth.
+
+Storybook **Faces** shows the moods for a woman, maiko, oiran, man or elder in each view, and a crowd's faces.
+
 ### Village goods
 
 - **`kasaHat(cx, cy, r, lw, tilt)`.** One straw kasa: a shallow cone seen a little from above, its ribs running from
