@@ -39,6 +39,19 @@ describe("ArtCraft source-studied adult body (research-only)",()=>{
     const spec=crayonArtcraftBodyStudy();
     expect(inspectCrayonScene(spec)).toEqual([]);
     expect(spec).toMatchObject({width:669,height:1000,seed:11837,durationFrames:300});
+    const hair=spec.elements.find(e=>e.id==="hair-back");
+    expect(hair?.kind).toBe("wax");
+    if(hair?.kind!=="wax")throw new Error("Short hair source mass missing");
+    // Source B1 has short layered hair, not the original invented bob whose
+    // side cap dropped to the jaw and below the neck line.
+    expect(hair.bounds.height).toBeLessThan(150);
+    expect(hair.bounds.width).toBeLessThan(165);
+    expect(spec.elements.find(e=>e.id==="left-sideburn")).toBeDefined();
+    expect(spec.elements.find(e=>e.id==="right-sideburn")).toBeDefined();
+    // A neutral face is an explicitly blocked construction reference, NOT
+    // an implicitly approved fabricated portrait with symbol eyes.
+    expect(spec.elements.find(e=>/face-eye|face-mouth|face-nose/.test(e.id)))
+      .toBeUndefined();
     const ids=spec.elements.map(e=>e.id);
     expect(new Set(ids).size).toBe(ids.length);
     for(const id of [
