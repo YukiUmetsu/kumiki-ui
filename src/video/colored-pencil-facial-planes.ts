@@ -121,9 +121,15 @@ export const createFacialOpticalPlanes=(
         const y=mix(top,bottom,u);
         const c=rgb(source,x,y),v=value(source,x,y);
         const redExcess=c[0]-c[1],chroma=c[0]-c[2];
-        // The source has a pale opening between both lips. Preserve it;
-        // do not fill teeth, highlights or skin with a preset lipstick red.
-        if(v>.83||redExcess<13||chroma<6)continue;
+        const nearbySkin=rgb(source,x,top-d*.072);
+        const skinValue=value(source,x,top-d*.072);
+        const skinRedExcess=nearbySkin[0]-nearbySkin[1];
+        // A geometrically plausible lip must also be OPTICALLY supported
+        // by the actual photograph. Warm facial skin alone is NOT
+        // vermilion; reject unchanged skin, pale teeth and highlights.
+        const observedLip=skinValue-v>.075||
+          redExcess-skinRedExcess>16;
+        if(!observedLip||v>.83||redExcess<13||chroma<6)continue;
         const pressure=clamp((.88-v)/.68,0,1);
         const likelihood=(.50+.48*pressure)*(.50+.50*across);
         if(pencilHash(seed,n,312)>likelihood)continue;
