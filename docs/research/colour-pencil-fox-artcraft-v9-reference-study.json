@@ -1,0 +1,184 @@
+{
+  "schema_version": 3,
+  "project": "Kumiki UI / CP-F1 original left-facing red fox",
+  "mode": "style-research",
+  "reference_policy": {
+    "min_references": 3,
+    "min_deep_studies": 2
+  },
+  "evidence_state": "research-completed; source-aligned anatomy/five-axis pixel gate BLOCKED",
+  "direct_source_identity_match": false,
+  "source_image_crop_artifact_present": false,
+  "sources": [
+    {
+      "id": "fox-cc0-anatomy",
+      "url": "https://commons.wikimedia.org/wiki/File:Wild_Red_Fox.jpg",
+      "title": "Wild Red Fox",
+      "creator": "T.Voekler",
+      "rights": "CC0; verify file-specific metadata before redistribution",
+      "medium": "wildlife photograph",
+      "view": "right-facing fox at rest; mirrored design cues only, not source-identity match",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Long cranium-to-nose taper, substantial ear cartilage rooted behind skull, chest ruff physically merges with shoulders and long narrow forelegs, small eye in deeper brow orbit.",
+        "material": "Warm rust upper coat, cooler charcoal-brown lower limbs, cream chin and ruff; tail has a brush silhouette and pale far tip.",
+        "microdetail": "Rooted whiskers near muzzle, fur growth reverses across crown, ear cartilage and cheek, separate soft/short rostrum fur.",
+        "light": "Soft side-lit fur plane transitions, under-jaw shadow and dark eye recesses."
+      },
+      "crops": [
+        {
+          "feature": "head-eye-nose",
+          "bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "observation": "Available photographed preview confirms an eye much smaller than the cranial volume, nose tip small relative to muzzle and a tapered profile; this box is whole-source only, not an independently measured semantic crop.",
+          "implementation_rule": "Apply small near eyelid, small black nose and eye-to-nose connected pencil tracts. DO NOT claim source-pixel likeness."
+        }
+      ]
+    },
+    {
+      "id": "gwatkin-fox-eye",
+      "url": "https://www.gwatkinartworks.co.uk/wildlife-art",
+      "title": "Fox - Early Morning Gaze",
+      "creator": "Darren Gwatkin",
+      "rights": "artist-owned; technique study ONLY, do not trace/export image data",
+      "medium": "realistic colored pencil wildlife painting",
+      "view": "portrait-close side profile fox eye, muzzle, cheek",
+      "deep_study": true,
+      "analysis": {
+        "construction": "One small amber focal eye, upper-lid black sepia contact held in larger eye socket, long nasal bridge, lower muzzle darker than upper cheek.",
+        "material": "Many individually directed warm gray, pale ochre, russet and chocolate strands optically build coat instead of solid polygons.",
+        "microdetail": "Eyelid darkest near pupil, small discontinuous catchlight, short hairs near muzzle, longer along cheek/ruff and soft whiskers.",
+        "light": "Warm russet upper plane fading to gray/cream lower plane with shadow at their interface."
+      },
+      "crops": [
+        {
+          "feature": "eye-and-lower-cheek",
+          "bbox": [
+            0.29,
+            0.24,
+            0.76,
+            0.74
+          ],
+          "observation": "Public preview eye sits in dense changing-direction hair with much darker upper eyelid than lower eyelid and short glint; approximate whole-image region, not pixel-registered data.",
+          "implementation_rule": "The full fox close-up eye must be under one seventh of the visible cranium width; use upper-lid, iris, pupil and lower fur as distinct pencil marks; no cartoon white oval."
+        }
+      ]
+    },
+    {
+      "id": "bonny-snowdon-process",
+      "url": "https://bonnysnowdonacademy.com/fox-draw-resources/",
+      "title": "How to Draw a Fox in Coloured Pencil",
+      "creator": "Bonny Snowdon",
+      "rights": "artist-owned educational text and artwork; technique-only, no line-art/file copying",
+      "medium": "colored pencil fox step-by-step tutorial",
+      "view": "studio pencil process",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Work structure, small eye and ear BEFORE fur, then muzzle and ruff; whiskers last.",
+        "material": "Polychromos burnt ochre/terracotta/sepia plus ash grey/beige/cream layered at low pressure on Pastelmat tooth, without a single opaque white face sticker.",
+        "microdetail": "Small upper-lid sepia contact; warm gray tiny nose over indigo, fur fans out from ear base, whicker pores and fine pale marks drawn last.",
+        "light": "Darkness built progressively inside sockets/behind ear, light-over-dark accents selective."
+      },
+      "crops": [
+        {
+          "feature": "structure-eyes-muzzle",
+          "bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "observation": "Source is written multi-stage studio tutorial. No source-image crop is imported; general process guidance only.",
+          "implementation_rule": "Order structure -> eye -> ear -> head color -> tiny nose/velvety muzzle -> neck ruff -> whiskers; preserve editable stroke paths and paper-resident tooth."
+        }
+      ]
+    }
+  ],
+  "feature_targets": [
+    {
+      "id": "fox-eye",
+      "reference_ids": [
+        "fox-cc0-anatomy",
+        "gwatkin-fox-eye",
+        "bonny-snowdon-process"
+      ],
+      "critical": true,
+      "geometry_rule": "At max ~24 local units width the focal near eye is attached to brow and tear-trough planes; far canthus remains occluded and >75% inside head silhouette.",
+      "microdetails": [
+        "superior lid thicker and darker",
+        "soft lower lid",
+        "amber iris encircles indigo slit",
+        "one reserved glint",
+        "rooted periocular fur"
+      ],
+      "test_view": "1x/3x actual Storybook 16:9, 9:16",
+      "part_ids": [
+        "eye-near",
+        "eye-far",
+        "periocular-form",
+        "mask"
+      ],
+      "source_observation": "Realistic eye is a small subordinate element within the russet and black socket, not an oversized stylized orange ellipse.",
+      "detail_critical": true
+    },
+    {
+      "id": "fox-muzzle",
+      "reference_ids": [
+        "fox-cc0-anatomy",
+        "gwatkin-fox-eye",
+        "bonny-snowdon-process"
+      ],
+      "critical": true,
+      "geometry_rule": "Connected narrowing upper rostrum and gray/cream lower jaw, with small less-than-30-unit curved nose, not a bulbous rounded rectangle.",
+      "microdetails": [
+        "nasal leather highlights",
+        "off-center nostril",
+        "short rostrum fur",
+        "soft cheek-to-upper-muzzle boundary"
+      ],
+      "test_view": "3x full-head and nasal bridge",
+      "part_ids": [
+        "head-main",
+        "muzzle",
+        "rostrum-bridge",
+        "nose"
+      ],
+      "source_observation": "Muzzle tapers continuously in perspective with a small soft-edged dark nose.",
+      "detail_critical": true
+    },
+    {
+      "id": "fox-fur-mass",
+      "reference_ids": [
+        "fox-cc0-anatomy",
+        "gwatkin-fox-eye",
+        "bonny-snowdon-process"
+      ],
+      "critical": true,
+      "geometry_rule": "Ear cartilage masses overlap skull, thorax and ruff interlock, forelegs have thin paws; pale tail tip physically at end of brush.",
+      "microdetails": [
+        "directionally distinct ear internal hair",
+        "rooted ruff",
+        "undercoat/guard hair separation",
+        "warm dark/light pigment build"
+      ],
+      "test_view": "1x whole fox; 3x ear/ruff/tail",
+      "part_ids": [
+        "ear-near",
+        "ear-far",
+        "ear-near-inner",
+        "ear-far-inner",
+        "chest",
+        "neck-ruff",
+        "body",
+        "tail-back",
+        "tail-tip"
+      ],
+      "source_observation": "Warm rust top, pale cream ruff and dark limbs require nonuniform hand-layered marks, not uniform hatch or synthetic noise.",
+      "detail_critical": true
+    }
+  ]
+}
