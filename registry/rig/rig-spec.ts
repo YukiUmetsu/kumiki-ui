@@ -70,7 +70,17 @@ export interface RigPart {
 export interface RigKey { frame: number; x?: number; y?: number; rotate?: number; scaleX?: number; scaleY?: number; opacity?: number; ease?: EasingSpec }
 
 /** Root motion through the scene. `x`/`y` are absolute scene positions; facing flips the whole figure. */
-export interface RigRootKey { frame: number; x: number; y?: number; rotate?: number; ease?: EasingSpec; facing?: 1 | -1 }
+export interface RigRootKey {
+  frame: number; x: number; y?: number; rotate?: number; ease?: EasingSpec;
+  /** Which way the figure faces. Without it the figure faces its direction of travel; with it, travel against the
+   * facing is reversing (feet step back, wheels roll backward). */
+  facing?: 1 | -1;
+  /** Depth scale: below 1 the figure is further from the camera, above 1 closer. Travel is measured in the figure's own units. */
+  scale?: number;
+  /** Yaw away from the side view, degrees: positive turns the nose into the picture (the rear face shows), negative
+   * turns it toward the camera (the front face shows). The side outline foreshortens by cos(yaw). */
+  yaw?: number;
+}
 
 // ---- Drivers ---------------------------------------------------------------------------------------------------------------------
 
@@ -90,23 +100,66 @@ export interface RigLeg {
   bend: 1 | -1;
   /** Extra distance from the shin's end to the sole. */
   sole?: number;
+  /** Swing height for this leg, as a multiple of the gait's `lift` (forelegs of a galloping horse fold higher). */
+  lift?: number;
+  /** Degrees the foot curls relative to the shin at the top of its swing (hooves flip back, paws tuck, toes point). */
+  curl?: number;
+  /** Ankle-to-toe distance: at the end of stance the foot rolls up onto its planted toe instead of sliding (people). */
+  toe?: number;
+  /** Fraction of the foot's fore-aft travel the hip joint follows (a quadruped's shoulder blade and pelvis swing). */
+  swingHip?: number;
 }
 
 export type RigDriver = RigWindow & (
   /** Legged locomotion: feet plant on the ground and stay put while the body passes over them. */
   | { type: "gait"; legs: readonly RigLeg[]; body: string; stride: number; stance?: number; lift?: number; bob?: number; ground?: number;
+      /** Cycle position (0..1) where the body is highest, and bobs per cycle (2 for walks and trots, 1 for gallops). */
+      bobPhase?: number; bobHarmonic?: 1 | 2;
+      /** Body pitch in step: rotate += pitch·cos(2π·h·(cycle − pitchPhase)); positive is nose-down. */
+      pitch?: number; pitchPhase?: number; pitchHarmonic?: 1 | 2;
+      /** The body lowers this far while travelling (legs flex into the gait). */ sink?: number;
       /** Bones that swing in step with the gait (arms, head nod, tail): rotate += amplitude·cos(2π(cycle + phase)). */
       swing?: readonly { bone: string; amplitude: number; phase: number; harmonic?: 1 | 2 }[];
       /** When the root is not travelling, march in place at this cycle length. */ idleCycle?: number }
-  /** Flapping: shoulder sweep with a faster downstroke, an elbow that folds on the upstroke. */
+  /** Flapping: shoulder sweep with a faster downstroke, an elbow that folds on the upstroke (flat, in the picture plane). */
   | { type: "wing"; shoulder: string; elbow?: string; tip?: string; amplitude: number; period: number; phase?: number; fold?: number; bias?: number }
+  /**
+   * Side-view flapping by projection. `plane` is a bone at the shoulder whose local +y is the wing's span and +x its
+   * chord; the wing beats about the body's long axis, so seen from the side its span foreshortens by sin(elevation).
+   * `arm`/`hand` fold back inside the wing plane on the upstroke (tips tucked) and spread for the downstroke.
+   * `tilt` lifts the camera slightly above the body so the far wing shows over the back.
+   */
+  | { type: "flap"; plane: string; arm?: string; hand?: string; period: number; phase?: number;
+      /** Elevation at the top and the bottom of the stroke, degrees (up positive). */ up: number; down: number;
+      /** Fraction of the cycle spent on the downstroke (default .45). */ downstroke?: number;
+      side?: "near" | "far"; tilt?: number;
+      /** Degrees the arm and hand fold back on the upstroke. */ fold?: number;
+      /** Fore-aft sweep of the whole wing, degrees (tips trace a loop). */ sweep?: number;
+      /** Bone that heaves with each stroke (rises on the downstroke) and how far. */ body?: string; heave?: number;
+      /** Glide: hold the wings spread at this elevation inside the window instead of flapping. */ glide?: number }
   /** Travelling wave down a chain of bones: tails, necks, serpents, fins, tentacles, flags. */
   | { type: "chain"; bones: readonly string[]; amplitude: number; period: number; lag: number; growth?: number; phase?: number; bias?: number;
       /** Follow-through on root turns/accelerations: degrees per unit of root acceleration. */ follow?: number }
-  /** Wheels roll by the root's travel: rotation = distance / radius. */
-  | { type: "wheel"; bones: readonly string[]; radius: number; extra?: number }
-  /** Constant spin (propellers, rotors, fans): degrees per frame with a spin-up time. */
-  | { type: "spin"; bone: string; speed: number; spinUp?: number }
+  /** Wheels roll by the root's travel: rotation = distance / radius (a negative radius turns the other way: pedals kept
+   * level, gears). `lock` frames skid: the wheel stops turning while the vehicle slides on. */
+  | { type: "wheel"; bones: readonly string[]; radius: number; extra?: number; lock?: readonly { start: number; end: number }[] }
+  /** Two-bone IK reach toward a target: feet planted on the ground or a pedal, hands on a knee, a chin, a handlebar.
+   * The target is keyed in root space, or follows another bone's joint (plus an offset in root space). */
+  | { type: "reach"; upper: string; lower: string; tip?: string; bend: 1 | -1;
+      target?: readonly { frame: number; x: number; y: number; ease?: EasingSpec }[];
+      follow?: string; offset?: readonly [number, number];
+      /** World angle for the `tip` bone (0 keeps a foot level), or omit to leave it as posed. */ tipAngle?: number }
+  /** Lights and indicators: opacity switches on and off on a square wave (`period`, `duty`), or stays on in the window. */
+  | { type: "flash"; bones: readonly string[]; period?: number; duty?: number; phase?: number; fade?: number }
+  /** Suspension and inertia: the bone pitches and heaves on a damped spring driven by the root's acceleration
+   * (nose dives under braking, squats under throttle, rebounds when stopped; riders lurch). */
+  | { type: "suspension"; bone: string; pitch: number; heave?: number; period?: number; damping?: number; max?: number }
+  /** Turning in depth: end-face bones open by sin(yaw) from the root's `yaw` (the whole figure foreshortens by cos(yaw)).
+   * List several bones per end when the face is stepped in depth (a bumper at the tail, the hatch glass further in). */
+  | { type: "turn"; rear?: readonly string[]; front?: readonly string[] }
+  /** Constant spin (propellers, rotors, fans): degrees per frame with a spin-up time. `project` spins edge-on (a rotor
+   * blade seen from the side): instead of turning, the bone's x scale follows cos(angle) plus `phase` degrees. */
+  | { type: "spin"; bone: string; speed: number; spinUp?: number; project?: boolean; phase?: number }
   /** Crank linkage: a rod whose one end rides a pin on a turning wheel. `slide` keeps the far end on a horizontal guide
    * (piston/crosshead); `coupling` keeps the rod parallel (coupling rods between drivers). */
   | { type: "crank"; wheel: string; rod: string; radius: number; length?: number; mode: "slide" | "coupling"; phase?: number; slideY?: number;
@@ -127,8 +180,9 @@ export type RigDriver = RigWindow & (
   | { type: "variant"; part: string; mode: "keys"; keys: readonly { frame: number; name: string | null }[] }
   /** Talking: mouth cycles open/closed on a syllable rhythm while active. */
   | { type: "variant"; part: string; mode: "talk"; open: string; mid?: string; seed?: number }
-  /** Tilt the root to follow its own path (planes climbing, dragons diving, cars on hills). */
-  | { type: "bank"; amount: number; max?: number }
+  /** Tilt the root to follow its own path (planes climbing, dragons diving, cars on hills); `lean` adds degrees per
+   * unit of forward speed (a helicopter noses down to fly forward). */
+  | { type: "bank"; amount: number; max?: number; lean?: number }
 );
 export type RigDriverType = RigDriver["type"];
 
@@ -232,6 +286,7 @@ export function inspectRig(input: unknown): string[] {
           if (l.foot !== undefined) bone(l.foot, p + ".legs[" + j + "].foot");
           if (!fin(l.phase)) out.push(p + ".legs[" + j + "].phase must be finite");
           if (l.bend !== 1 && l.bend !== -1) out.push(p + ".legs[" + j + "].bend must be 1 or -1");
+          for (const k of ["lift", "curl", "toe", "sole", "swingHip"] as const) if (l[k] !== undefined && !fin(l[k])) out.push(p + ".legs[" + j + "]." + k + " must be finite");
           for (const id of [l.upper, l.lower]) if (!((bones.get(id)?.length ?? 0) > 0)) out.push(p + ".legs[" + j + "] bone \"" + id + "\" needs a length");
         });
         if (!fin(d.stride) || d.stride <= 0) out.push(p + ".stride must be > 0");
@@ -243,7 +298,24 @@ export function inspectRig(input: unknown): string[] {
       case "chain": if (!Array.isArray(d.bones) || !d.bones.length) out.push(p + ".bones must not be empty"); else d.bones.forEach((b, j) => bone(b, p + ".bones[" + j + "]"));
         if (!fin(d.amplitude) || !fin(d.period) || d.period < 2 || !fin(d.lag)) out.push(p + " needs amplitude, period ≥ 2 and lag"); break;
       case "wheel": if (!Array.isArray(d.bones) || !d.bones.length) out.push(p + ".bones must not be empty"); else d.bones.forEach((b, j) => bone(b, p + ".bones[" + j + "]"));
-        if (!fin(d.radius) || d.radius <= 0) out.push(p + ".radius must be > 0"); break;
+        if (!fin(d.radius) || d.radius === 0) out.push(p + ".radius must be non-zero");
+        (d.lock ?? []).forEach((l, j) => { if (!int(l.start) || !int(l.end) || l.end <= l.start) out.push(p + ".lock[" + j + "] needs start < end frames"); }); break;
+      case "flap": bone(d.plane, p + ".plane"); if (d.arm) bone(d.arm, p + ".arm"); if (d.hand) bone(d.hand, p + ".hand"); if (d.body) bone(d.body, p + ".body");
+        if (!fin(d.period) || d.period < 2) out.push(p + ".period must be ≥ 2");
+        if (!fin(d.up) || !fin(d.down) || d.up <= d.down || d.up > 90 || d.down < -90) out.push(p + " needs -90 ≤ down < up ≤ 90");
+        if (d.downstroke !== undefined && !(d.downstroke > .15 && d.downstroke < .85)) out.push(p + ".downstroke must be .15..0.85"); break;
+      case "reach": bone(d.upper, p + ".upper"); bone(d.lower, p + ".lower"); if (d.tip) bone(d.tip, p + ".tip"); if (d.follow) bone(d.follow, p + ".follow");
+        if (d.bend !== 1 && d.bend !== -1) out.push(p + ".bend must be 1 or -1");
+        for (const id of [d.upper, d.lower]) if (!((bones.get(id)?.length ?? 0) > 0)) out.push(p + " bone \"" + id + "\" needs a length");
+        if (!d.follow && !(Array.isArray(d.target) && d.target.length)) out.push(p + " needs target keys or a follow bone");
+        else if (d.target) { let pf = -Infinity; d.target.forEach((k, j) => { if (!int(k.frame) || k.frame <= pf || !fin(k.x) || !fin(k.y)) out.push(p + ".target[" + j + "] needs increasing frame, x, y"); pf = k.frame; }); }
+        break;
+      case "flash": if (!Array.isArray(d.bones) || !d.bones.length) out.push(p + ".bones must not be empty"); else d.bones.forEach((b, j) => bone(b, p + ".bones[" + j + "]"));
+        if (d.period !== undefined && (!fin(d.period) || d.period < 2)) out.push(p + ".period must be ≥ 2");
+        if (d.duty !== undefined && !(d.duty > 0 && d.duty < 1)) out.push(p + ".duty must be 0..1"); break;
+      case "suspension": bone(d.bone, p + ".bone"); if (!fin(d.pitch) || (d.heave !== undefined && !fin(d.heave))) out.push(p + " needs finite pitch and heave");
+        if (d.period !== undefined && (!fin(d.period) || d.period < 4)) out.push(p + ".period must be ≥ 4"); break;
+      case "turn": for (const k of ["rear", "front"] as const) { const v = d[k]; if (v !== undefined) { if (!Array.isArray(v)) out.push(p + "." + k + " must be a list of bones"); else v.forEach((b, j) => bone(b, p + "." + k + "[" + j + "]")); } } break;
       case "spin": bone(d.bone, p + ".bone"); if (!fin(d.speed)) out.push(p + ".speed must be finite"); break;
       case "crank": bone(d.wheel, p + ".wheel"); bone(d.rod, p + ".rod");
         if (!fin(d.radius) || d.radius <= 0) out.push(p + ".radius must be > 0");
@@ -279,6 +351,8 @@ export function inspectRig(input: unknown): string[] {
   let prevRoot = -Infinity;
   (r.root ?? []).forEach((k, j) => {
     if (!int(k.frame) || k.frame <= prevRoot || !fin(k.x)) out.push("root[" + j + "] needs increasing frame and x");
+    if (k.scale !== undefined && !(fin(k.scale) && k.scale > .05 && k.scale < 20)) out.push("root[" + j + "].scale must be .05..20");
+    if (k.yaw !== undefined && !(fin(k.yaw) && Math.abs(k.yaw) <= 80)) out.push("root[" + j + "].yaw must be within ±80°");
     prevRoot = k.frame;
   });
   return out;

@@ -13,21 +13,28 @@
 import { createContext, useContext, useId, useMemo } from "react";
 import type { CSSProperties, ReactNode, SVGProps } from "react";
 import type { RigFrame, RigPartFrame } from "./rig-evaluate";
-import { evaluateRig, matrixAttr, shapePath } from "./rig-evaluate";
+import { evaluateRig, matrixAttr, rootState, shapePath } from "./rig-evaluate";
 import type { RigRole, RigShape, RigSpec } from "./rig-spec";
 import { flattenPath, paperEdge, toPathD } from "../video/collage/collage-geometry";
 import { boardTexture, fiberTexture } from "../video/collage/collage-texture";
 import { Paper, WaxLine, WaxRegion } from "../video/materials/crayon-react";
 
 export type RigLook = "flat" | "collage" | "crayon" | "riso" | "ink" | "blueprint";
-export const RIG_LOOKS: readonly { id: RigLook; label: string; cadence: number }[] = [
-  { id: "flat", label: "Flat vector", cadence: 1 },
-  { id: "collage", label: "Paper collage", cadence: 2 },
-  { id: "crayon", label: "Crayon", cadence: 2 },
-  { id: "riso", label: "Riso print", cadence: 2 },
-  { id: "ink", label: "Ink wash", cadence: 2 },
-  { id: "blueprint", label: "Blueprint", cadence: 1 },
+/**
+ * Looks animate on ones by default (smooth); pass `cadence={2}` for a stop-motion feel. `boil` is how often a
+ * hand-drawn medium redraws its texture, independent of the motion: wax boils every few frames even on ones.
+ */
+export const RIG_LOOKS: readonly { id: RigLook; label: string; cadence: number; boil: number }[] = [
+  { id: "flat", label: "Flat vector", cadence: 1, boil: 1 },
+  { id: "collage", label: "Paper collage", cadence: 1, boil: 1 },
+  { id: "crayon", label: "Crayon", cadence: 1, boil: 4 },
+  { id: "riso", label: "Riso print", cadence: 1, boil: 1 },
+  { id: "ink", label: "Ink wash", cadence: 1, boil: 1 },
+  { id: "blueprint", label: "Blueprint", cadence: 1, boil: 1 },
 ];
+const lookOf = (look: RigLook) => RIG_LOOKS.find(l => l.id === look)!;
+/** Texture redraw step for a frame: on the motion cadence or the medium's boil, whichever is slower. */
+const boilStep = (look: RigLook, frame: number, cadence?: number) => Math.floor(frame / Math.max(1, cadence ?? 1, lookOf(look).boil));
 
 export interface RigLookContext { look: RigLook; uid: string; seed: number; step: number; showBones: boolean; reduced: boolean; inkPass?: "wash" | "line" }
 const LookCtx = createContext<RigLookContext | null>(null);
@@ -166,7 +173,7 @@ export function RigFigure({ spec, frame, cadence, reducedMotion, showBones }: Ri
   const f = evaluateRig(spec, frame, { cadence: cadence ?? look.cadence, reducedMotion: reducedMotion ?? ctx.reduced });
   const parts = f.parts;
   const shadowFill = ctx.look === "blueprint" ? "none" : ctx.look === "riso" ? "#0078bf" : "#1c1208";
-  const contacts = <g data-km-rig-contacts="">{f.contacts.map(([x, y], i) => <ellipse key={i} cx={r2(x)} cy={r2(y + 1)} rx={14} ry={3.2} fill={shadowFill}
+  const contacts = <g data-km-rig-contacts="">{f.contacts.map(([x, y], i) => <ellipse key={i} cx={r2(x)} cy={r2(y + 1)} rx={r2(14 * f.root.scale)} ry={r2(3.2 * f.root.scale)} fill={shadowFill}
     opacity={ctx.look === "riso" ? .25 : .16} filter={`url(#${ctx.uid}-soft)`} />)}</g>;
   const draw = (p: RigPartFrame, plate?: 0 | 1) => {
     switch (ctx.look) {
@@ -236,26 +243,16 @@ function LookDefs({ look, uid, width, height, seed }: { look: RigLook; uid: stri
   </defs>;
 }
 
-function Board({ look, uid, width, height, ground, seed }: { look: RigLook; uid: string; width: number; height: number; ground: number; seed: number }) {
+function Backdrop({ look, uid, width, height, seed }: { look: RigLook; uid: string; width: number; height: number; seed: number }) {
   const kraft = useMemo(() => look === "collage" ? boardTexture("kraft", "#b48b5e", seed) : "", [look, seed]);
   switch (look) {
     case "collage": return <>
       <defs><pattern id={`${uid}-board`} patternUnits="userSpaceOnUse" width={384} height={384}><image href={kraft} width={384} height={384} /></pattern></defs>
       <rect width={width} height={height} fill={`url(#${uid}-board)`} />
-      <path d={toPathD(paperEdge([[-20, ground], [width + 20, ground], [width + 20, height + 20], [-20, height + 20]], { style: "torn", seed, roughness: 4 }), true)} fill="#ece2c8" />
     </>;
-    case "crayon": return <>
-      <Paper width={width} height={height} seed={seed} tooth={uid + "-tooth"} strength={.6} color="#f6ecd6" />
-      <WaxLine d={`M0 ${ground + 2} C${width * .3} ${ground - 3} ${width * .6} ${ground + 5} ${width} ${ground}`} color="#8a6b4a" width={4} frame={2} first={0} last={1} reduced seed={seed} />
-    </>;
-    case "riso": return <>
-      <rect width={width} height={height} fill="#f4efe1" />
-      <rect y={ground} width={width} height={height - ground} fill={`url(#${uid}-riso1-15)`} opacity={.9} />
-    </>;
-    case "ink": return <>
-      <rect width={width} height={height} fill="#f3eee2" />
-      <path d={`M0 ${ground + 3} C${width * .25} ${ground - 4} ${width * .55} ${ground + 6} ${width} ${ground + 1}`} fill="none" stroke="#2a2a30" strokeWidth={2.2} opacity={.5} filter={`url(#${uid}-dry)`} />
-    </>;
+    case "crayon": return <Paper width={width} height={height} seed={seed} tooth={uid + "-tooth"} strength={.6} color="#f6ecd6" />;
+    case "riso": return <rect width={width} height={height} fill="#f4efe1" />;
+    case "ink": return <rect width={width} height={height} fill="#f3eee2" />;
     case "blueprint": {
       const lines: string[] = [];
       for (let x = 0; x <= width; x += 40) lines.push(`M${x} 0V${height}`);
@@ -263,14 +260,50 @@ function Board({ look, uid, width, height, ground, seed }: { look: RigLook; uid:
       return <>
         <rect width={width} height={height} fill="#1f4f8f" />
         <path d={lines.join("")} stroke="#9cc3ff" strokeWidth={.6} opacity={.35} />
-        <path d={`M0 ${ground}H${width}`} stroke="#eaf3ff" strokeWidth={1.4} />
       </>;
     }
-    default: return <>
-      <rect width={width} height={height} fill="#e9eef0" />
-      <rect y={ground} width={width} height={height - ground} fill="#cfd9c4" />
-    </>;
+    default: return <rect width={width} height={height} fill="#e9eef0" />;
   }
+}
+
+const TILE = 640;
+const tileRand = (seed: number, k: number, i: number) => { let h = Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(k + 7919, 0xc2b2ae35) ^ Math.imul(i + 31, 0x27d4eb2d); h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d); return ((h ^ (h >>> 13)) >>> 0) / 4294967296; };
+/** One world-anchored tile of ground: its edge, its band and a few marks (tufts, pebbles), seeded by tile index so the
+ * ground is the same wherever the camera looks from. */
+function GroundTile({ look, uid, k, ground, depth, seed }: { look: RigLook; uid: string; k: number; ground: number; depth: number; seed: number }) {
+  const x0 = k * TILE, x1 = x0 + TILE, bottom = ground + depth;
+  const edge = useMemo(() => look === "collage" ? toPathD(paperEdge([[x0 - 6, ground], [x1 + 6, ground], [x1 + 6, bottom], [x0 - 6, bottom]], { style: "torn", seed: seed + k * 31 + 5000, roughness: 4 }), true) : "", [look, x0, x1, ground, bottom, seed, k]);
+  const marks: ReactNode[] = [];
+  for (let i = 0; i < 5; i++) {
+    const x = x0 + (i + tileRand(seed, k, i)) * TILE / 5, y = ground + 6 + tileRand(seed, k, i + 9) * Math.min(60, depth * .4), kind = tileRand(seed, k, i + 17) > .45 ? "tuft" : "pebble", s = .8 + tileRand(seed, k, i + 23) * .6;
+    const d = kind === "tuft" ? `M${r2(x - 7 * s)} ${r2(y)}Q${r2(x - 5 * s)} ${r2(y - 9 * s)} ${r2(x - 3 * s)} ${r2(y - 13 * s)}M${r2(x)} ${r2(y)}Q${r2(x)} ${r2(y - 10 * s)} ${r2(x + 2 * s)} ${r2(y - 16 * s)}M${r2(x + 6 * s)} ${r2(y)}Q${r2(x + 6 * s)} ${r2(y - 7 * s)} ${r2(x + 10 * s)} ${r2(y - 11 * s)}`
+      : `M${r2(x - 6 * s)} ${r2(y)}Q${r2(x)} ${r2(y - 6 * s)} ${r2(x + 6 * s)} ${r2(y)}Z`;
+    const stroke = look === "blueprint" ? "#eaf3ff" : look === "riso" ? "#0078bf" : look === "crayon" ? "#7d6a45" : look === "ink" ? "#2a2a30" : look === "collage" ? "#6f5a3c" : "#9fb08f";
+    marks.push(look === "crayon"
+      ? <WaxLine key={i} d={d} color={stroke} width={2.4} frame={2} first={0} last={1} reduced seed={seed + k * 13 + i} />
+      : <path key={i} d={d} fill={kind === "pebble" && look !== "blueprint" && look !== "ink" ? stroke : "none"} stroke={stroke} strokeWidth={look === "ink" ? 1.6 : 2} strokeLinecap="round" opacity={look === "ink" ? .55 : .8}
+        filter={look === "ink" ? `url(#${uid}-dry)` : undefined} />);
+  }
+  switch (look) {
+    case "collage": return <g><path d={edge} fill="#ece2c8" />{marks}</g>;
+    case "crayon": return <g><WaxLine d={`M${x0} ${ground + 2} C${x0 + TILE * .3} ${ground - 3} ${x0 + TILE * .6} ${ground + 5} ${x1} ${ground + 2}`} color="#8a6b4a" width={4} frame={2} first={0} last={1} reduced seed={seed + k} />{marks}</g>;
+    case "riso": return <g><rect x={x0} y={ground} width={TILE + .5} height={depth} fill={`url(#${uid}-riso1-15)`} opacity={.9} />{marks}</g>;
+    case "ink": return <g><path d={`M${x0} ${ground + 3} C${x0 + TILE * .25} ${ground - 4} ${x0 + TILE * .55} ${ground + 6} ${x1} ${ground + 3}`} fill="none" stroke="#2a2a30" strokeWidth={2.2} opacity={.5} filter={`url(#${uid}-dry)`} />{marks}</g>;
+    case "blueprint": return <g><path d={`M${x0} ${ground}H${x1}`} stroke="#eaf3ff" strokeWidth={1.4} />{marks}</g>;
+    default: return <g><rect x={x0} y={ground} width={TILE + .5} height={depth} fill="#cfd9c4" />{marks}</g>;
+  }
+}
+
+export interface RigCamera {
+  /** World point shown at the centre of the frame. */
+  x: number;
+  y?: number;
+  zoom?: number;
+}
+/** A camera that tracks a rig: its root, led a little ahead in the direction it faces. */
+export function followCamera(spec: RigSpec, frame: number, options: { y: number; lead?: number; zoom?: number }): RigCamera {
+  const s = rootState(spec, frame);
+  return { x: s.x + (options.lead ?? 0) * s.facing, y: options.y, zoom: options.zoom };
 }
 
 export interface RigSceneProps extends Omit<SVGProps<SVGSVGElement>, "width" | "height" | "viewBox" | "children"> {
@@ -287,23 +320,34 @@ export interface RigSceneProps extends Omit<SVGProps<SVGSVGElement>, "width" | "
   reducedMotion?: boolean;
   seed?: number;
   style?: CSSProperties;
-  /** Extra content drawn under the figures (scenery), in scene coordinates. */
+  /** Extra content drawn under the figures (scenery), in world coordinates. */
   children?: ReactNode;
+  /** World point at the centre of the frame (tracking shots). Without it the world and the frame coincide. */
+  camera?: RigCamera;
+  /** Draw the look's ground band and marks (default true). */
+  showGround?: boolean;
 }
 /** A board in a film look with rigged figures on it. */
-export function RigScene({ look, width, height, ground, frame, rigs, cadence, showBones = false, reducedMotion = false, seed = 11, style, children, ...svg }: RigSceneProps) {
+export function RigScene({ look, width, height, ground, frame, rigs, cadence, showBones = false, reducedMotion = false, seed = 11, style, children, camera, showGround = true, ...svg }: RigSceneProps) {
   const raw = useId(), uid = "rg" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
-  const step = Math.floor(frame / Math.max(1, cadence ?? RIG_LOOKS.find(l => l.id === look)!.cadence));
-  const ctx: RigLookContext = { look, uid, seed, step, showBones, reduced: reducedMotion };
+  const ctx: RigLookContext = { look, uid, seed, step: boilStep(look, frame, cadence), showBones, reduced: reducedMotion };
+  const zoom = camera?.zoom ?? 1, cx = camera?.x ?? width / 2, cy = camera?.y ?? height / 2;
+  const view = camera ? `translate(${r2(width / 2 - cx * zoom)} ${r2(height / 2 - cy * zoom)}) scale(${zoom})` : undefined;
+  const left = cx - width / 2 / zoom, right = cx + width / 2 / zoom, tiles: number[] = [];
+  for (let k = Math.floor(left / TILE); k * TILE < right; k++) tiles.push(k);
+  const depth = Math.max(40, cy + height / 2 / zoom - ground + 40);
   return <svg {...svg} viewBox={`0 0 ${width} ${height}`} xmlns="http://www.w3.org/2000/svg" role={svg["aria-hidden"] ? undefined : "img"}
     aria-label={svg["aria-hidden"] ? undefined : svg["aria-label"] ?? "Rigged figures"} data-km-rig-look={look}
     style={{ width: "100%", height: "100%", display: "block", overflow: "hidden", ...style }}>
     <LookDefs look={look} uid={uid} width={width} height={height} seed={seed} />
-    <Board look={look} uid={uid} width={width} height={height} ground={ground} seed={seed} />
-    {children}
-    <LookCtx.Provider value={ctx}>
-      {rigs.map(r => <RigFigure key={r.id} spec={r} frame={frame} cadence={cadence} />)}
-    </LookCtx.Provider>
+    <Backdrop look={look} uid={uid} width={width} height={height} seed={seed} />
+    <g transform={view} data-km-rig-world="">
+      {showGround && <g data-km-rig-ground="">{tiles.map(k => <GroundTile key={k} look={look} uid={uid} k={k} ground={ground} depth={depth} seed={seed} />)}</g>}
+      {children}
+      <LookCtx.Provider value={ctx}>
+        {rigs.map(r => <RigFigure key={r.id} spec={r} frame={frame} cadence={cadence} />)}
+      </LookCtx.Provider>
+    </g>
   </svg>;
 }
 
@@ -316,7 +360,7 @@ export interface RigLayerProps { look: RigLook; spec: RigSpec; frame: number; ca
  */
 export function RigLayer({ look, spec, frame, cadence, reducedMotion = false, showBones = false, seed = 11 }: RigLayerProps) {
   const raw = useId(), uid = "rl" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
-  const step = Math.floor(frame / Math.max(1, cadence ?? RIG_LOOKS.find(l => l.id === look)!.cadence));
+  const step = boilStep(look, frame, cadence);
   return <g data-km-rig-layer={look}>
     <LookDefs look={look} uid={uid} width={0} height={0} seed={seed} />
     {look === "crayon" && <defs><Paper width={1} height={1} seed={seed} tooth={uid + "-tooth"} strength={.6} /></defs>}
