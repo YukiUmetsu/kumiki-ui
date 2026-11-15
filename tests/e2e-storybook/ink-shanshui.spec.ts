@@ -138,7 +138,7 @@ test("four distinct historical ink schools paint separate real rooted rock struc
     crests.push((await top.getAttribute("d"))??"");
     await expect(card.locator("image")).toHaveCount(0);
   }
-  expect(crests.every(c=>c===crests[0])).toBe(true);
+  expect(new Set(crests).size).toBe(4); // sculpted historical landforms
   await page.screenshot({animations:"disabled",fullPage:true,
     path:info.outputPath("shanshui-four-masters-artcraft-comparison.png")});
   await page.getByRole("slider",{name:"Master detail"}).focus();
