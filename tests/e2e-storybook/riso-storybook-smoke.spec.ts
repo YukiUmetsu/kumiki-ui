@@ -15,6 +15,7 @@ const stories=[
   ["Native overprint","video-riso-print-lab--risograph-overprint"],
   ["Courier ArtCraft detail","video-riso-artcraft-studies--courier-artcraft-detail"],
   ["Bird ArtCraft detail","video-riso-artcraft-studies--bird-artcraft-detail"],
+  ["Human anatomy pose comparison","video-riso-artcraft-studies--courier-human-anatomy"],
 ] as const;
 for(const [name,id] of stories){
   test(`Risograph Storybook runtime: ${name}`,async({page},info)=>{
