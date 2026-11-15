@@ -297,3 +297,57 @@ encoded clip, not a static mockup. Inspect the bamboo crop in the gallery at 0/1
 seeds 71 and 87, wind 0 and 1, and compare frames 145/210 at native size. Then
 inspect the complete 960×540 river and hermit footage, including edge clipping.
 No source-relative image score or final artistic approval is claimed here.
+
+## Eighth pass — internal *fei-bai* deposition (candidate, not approved)
+
+The native Chromium artifacts from [run 43688026010](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43688026010)
+were inspected before this change, including the real 2.15× bamboo canopy
+and node crops and complete 960×540 misty-hermit frame. **The material gate
+failed despite passing CI:** dark bamboo leaves still look like clean filled
+vector blades, and many leaf patches are too isolated against the already
+weak distant mountain wash. More generic filter noise would not fix the
+brush-material problem.
+
+References studied for this limited pass:
+
+- [Wu Zhen, *Manual of Ink Bamboo* (National Palace Museum)](https://theme.npm.edu.tw/exh105/oversized10/en/selectionZoom/img5.html):
+  leaf silhouettes and the parent twig flow must be judged together;
+  pressure mass must not be confused with separate geometric arrow tips.
+- [Xia Chang, *The Serene Bank of the Xiang River* (Nelson-Atkins)](https://art.nelson-atkins.org/objects/6135/the-serene-bank-of-the-xiang-river):
+  each bamboo blade is a single directed calligraphic gesture; the dark
+  center and the released bristle edge are not independent paint stickers.
+- [Asian Art Museum, *Introduction to Chinese Brushpainting Techniques*](https://education.asianart.org/resources/an-introduction-to-chinese-brushpainting-techniques/):
+  fei-bai dry-brush and side-ink techniques explain why coherent strokes
+  contain fine internal interruptions rather than random global speckling.
+
+### Topology / flow / pressure / optical rhythm / microtexture
+
+- **Topology:** each new dry bristle line is explicitly nested within the
+  existing leaf's pressure-contour path. The twig and silhouette remain
+  unchanged; no disconnected decoration is introduced on the paper.
+- **Flow:** the dry marks are evaluated along the exact leaf chord and
+  the **same deterministic curvature** as the loaded outer blade.
+  Their sampled ends lie within the pressure belly.
+- **Pressure:** three short, unequally spaced 0.18–0.4 px lines are
+  placed inside each full-detail primary blade and, when detail > .85,
+  each full-detail satellite blade. The marks are not a replacement
+  for the 10 pressure stations, only a discrete dry-fibre contribution.
+- **Optical rhythm:** seeded bristle starts, lengths and offset vary
+  within the pressure belly. Deliberate blank internodes remain.
+- **Microtexture:** retained instance-local absorption + within-blade
+  bristle skips rather than large canvas blur or repeated parallel lines.
+
+**Negative controls to reject:** dry strokes extending across untouched
+paper; outer silhouettes losing their taper; identical oblique hatching;
+a jagged scatter of unrelated dots; texture hiding branch anatomy;
+a dense blob covering all intentional spaces.
+
+**Next inspection:** CI must produce actual native 960×540 captures in all
+three compositions, 2.15× canopy/node crops with detail 0/.7/1,
+ink 0/.5/1, wind 0/1 and seeds 71/87. Inspect the exact edited
+head-SHA screenshots against the museum brush strokes and review the
+96-frame encoded film. Automated bristle counts and passing typecheck
+cannot approve painterly authenticity. If the underlying arrow-shaped
+silhouette persists, adjust the **pressure contour shape**, not add
+further pigment noise. This PR stays in draft until independent visual
+approval.
