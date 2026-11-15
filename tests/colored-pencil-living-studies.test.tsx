@@ -227,6 +227,34 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       .every(r=>r.layers.every(layer=>layer.texture==="fiber"))).toBe(true);
   });
 
+  it("grows the fox brush tail from the rump with interleaved low-pressure distal pencil fibres",()=>{
+    // The released specimen previously read as a perfectly smooth sausage
+    // with a detached white end-cap. Check topology and real pigment contacts
+    // separately; a passing structural gate is NOT artistic approval.
+    for(const aspect of ["landscape","portrait"] as const){
+      const drawing=pencilLivingStudyDrawing({subject:"fox",aspect,seed:291});
+      const parts=new Map(drawing.regions.map(r=>[r.id,r]));
+      const tail=parts.get("tail-back")!,tip=parts.get("tail-tip")!;
+      expect(tail.path.match(/C/g)?.length).toBeGreaterThan(10);
+      expect(tail.path).toContain("C11 376 17 382 24 385");
+      expect(tail.path).toContain("195 346 Z");
+      expect(tip.path.match(/C/g)?.length).toBeGreaterThan(6);
+      expect(tip.path).toContain("C48 367 46 374 49 381");
+      expect(tail.details!.filter(d=>d.id?.startsWith("fibre-"))).toHaveLength(24);
+      expect(tip.details!.filter(d=>d.id?.startsWith("fibre-"))).toHaveLength(15);
+      const seam=tip.details!.find(d=>d.id==="tail-tip-feathered-seam");
+      expect(seam?.path.match(/M/g)).toHaveLength(3);
+      for(const region of [tail,tip]){
+        for(const trace of region.details!){
+          expect(trace.path).not.toMatch(/NaN|Infinity/);
+          expect(trace.width).toBeLessThan(1);
+          expect(trace.path.length).toBeLessThanOrEqual(12000);
+        }
+      }
+      expect(pencilLivingStudyDrawing({subject:"fox",aspect,seed:291})).toEqual(drawing);
+    }
+  });
+
   it("constructs a fox with distinct ear inserts, ruff, four facial feature masses and rooted fur",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"portrait"});
     const parts=new Map(drawing.regions.map(region=>[region.id,region]));
