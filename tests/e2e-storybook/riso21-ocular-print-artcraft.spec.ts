@@ -61,7 +61,7 @@ test("RISO21 both original faces: 16:9/9:16, anatomy states, distinct inks",asyn
   const narrowTiles=await page.locator('svg[data-km-riso-print]').first()
     .locator('pattern').evaluateAll(elements=>elements.map(el=>Number(el.getAttribute("width"))));
   expect(narrowTiles).toHaveLength(2);
-  expect(narrowTiles.every(value=>value>=1.4&&value<=2.2)).toBe(true);
+  expect(narrowTiles.every(value=>value>=2&&value<=2.2)).toBe(true);
   await pitch.fill("6");
   await page.locator("main").screenshot({
     path:info.outputPath("negative-control-coarse-6-unit-screen.png"),animations:"disabled",
