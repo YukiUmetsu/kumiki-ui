@@ -134,6 +134,41 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(nodes.get("hair-nape-sweep")?.kind).toBe("wax");
       expect(nodes.get("tailored-scarf-wrap")?.parentId).toBe("coat-silhouette");
       expect(nodes.get("tailored-scarf-weft")?.parentId).toBe("tailored-scarf-wrap");
+      const centerLace=nodes.get("shirt-lace-ruffle-center");
+      if(centerLace?.kind!=="wax")throw new Error("Missing connected middle lace");
+      expect(centerLace.coverage).toBe("opaque");
+      expect(centerLace.parentId).toBe("shirt-linen");
+      expect((centerLace.d.match(/[CQ]/g)??[]).length).toBeGreaterThan(5);
+      for(const id of ["shirt-linen-pleat-near","shirt-linen-pleat-far"]){
+        const layer=nodes.get(id);
+        if(layer?.kind!=="wax")throw new Error("Missing linen pleat "+id);
+        expect(layer.coverage).toBe("open");
+        expect(layer.parentId).toBe("shirt-linen");
+        expect(layer.clipToParent).toBe(true);
+      }
+      for(const id of ["coat-sleeve-cap-near","coat-sleeve-cap-far",
+        "coat-collar-left","coat-collar-right",
+        "shirt-lace-ruffle-left","shirt-lace-ruffle-right"]){
+        const node=nodes.get(id);
+        if(node?.kind!=="wax")throw new Error("Missing tailored silhouette "+id);
+        expect(node.coverage).toBe("opaque");
+        expect(node.d.match(/[CQ]/g)?.length??0).toBeGreaterThan(3);
+      }
+      for(const id of ["coat-collar-felt-near","coat-collar-felt-far",
+        "scarf-overlap-fold"]){
+        const node=nodes.get(id);
+        if(node?.kind!=="wax")throw new Error("Missing attached cloth fold "+id);
+        expect(node.coverage).toBe("open");
+        expect(node.clipToParent).toBe(true);
+        expect(node.blendRadius).toBeGreaterThan(0);
+      }
+      for(const id of ["shirt-lace-edge-scallops","shirt-lace-eyelets",
+        "coat-sleeve-attachment-near","coat-sleeve-attachment-far",
+        "coat-body-tailoring-darts","coat-lapel-roll-near","coat-lapel-roll-far"]){
+        const node=nodes.get(id);
+        if(node?.kind!=="contour")throw new Error("Missing tailored stitching "+id);
+        expect(node.clipToParent).toBe(true);
+      }
       const neck=nodes.get("neck-under-jaw");
       const scarf=nodes.get("tailored-scarf-wrap");
       const collarShadow=nodes.get("neck-jaw-cast-shadow");
@@ -166,6 +201,19 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       const blouse=nodes.get("shirt-linen");
       if(blouse?.kind!=="wax")throw new Error("Missing blouse");
       expect(blouse.bounds.width/blouse.bounds.height).toBeLessThan(.96);
+      expect(blouse.bounds.width).toBeGreaterThan(160);
+      expect(blouse.bounds.height).toBeGreaterThan(190);
+      const knot=nodes.get("scarf-overlap-knot");
+      if(knot?.kind!=="wax")throw new Error("Unattached woven scarf knot");
+      expect(knot.parentId).toBe("coat-silhouette");
+      expect(knot.coverage).toBe("opaque");
+      expect(knot.bounds.y).toBeLessThan(118);
+      const buttons=["coat-brass-button-one","coat-brass-button-two"]
+        .map(id=>nodes.get(id));
+      for(const b of buttons){
+        if(b?.kind!=="wax")throw new Error("Missing brass closure");
+        expect(b.bounds.x).toBeLessThan(-95);
+      }
       const nose=nodes.get("nose-bridge");
       if(nose?.kind!=="wax")throw new Error("Missing nose");
       expect(nose.coverage).toBe("open");

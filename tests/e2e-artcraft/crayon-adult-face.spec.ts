@@ -56,6 +56,20 @@ for(const item of [
       path:info.outputPath("artcraft-nose-mouth-"+item.aspect+"-299.jpg"),
       animations:"disabled"});
     console.log("ARTCRAFT_NOSE_JPEG:"+item.aspect+":"+nasal.toString("base64"));
+    for(const garmentId of ["coat-sleeve-cap-near","coat-sleeve-cap-far",
+      "shirt-lace-ruffle-left","shirt-lace-ruffle-right",
+      "coat-collar-felt-near","coat-collar-felt-far",
+      "scarf-overlap-fold"]){
+      await expect(svg.locator('[data-km-crayon-element="'+garmentId+'"]'))
+        .toBeAttached();
+    }
+    const textileCrop=item.aspect==="portrait"?
+      {x:22,y:559,width:496,height:310}:
+      {x:303,y:301,width:354,height:210};
+    const cloth=await page.screenshot({clip:textileCrop,type:"jpeg",
+      quality:87,path:info.outputPath("artcraft-garment-"+item.aspect+"-299.jpg"),
+      animations:"disabled"});
+    console.log("ARTCRAFT_GARMENT_JPEG:"+item.aspect+":"+cloth.toString("base64"));
     // Actual legacy-proportion negative control, captured with the same
     // renderer and viewport rather than a manipulated illustrative image.
     // This makes the macro-anatomy decision independently reviewable.
