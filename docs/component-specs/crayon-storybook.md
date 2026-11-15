@@ -12,7 +12,7 @@ A new strict, reference-informed **construction system** checks real CRAYON1
 source scenes before artistic review. See
 [artist study, medium boundaries, and four-pass drawing contract](../research/crayon-drawing-grammar-and-artist-study-2026.md).
 
-- **Core:** `registry/video/materials/crayon-art-direction.ts` validates
+- **Core:** `registry/video/materials/crayon-art-direction.ts`, also included in the installable `crayon-storybook` registry pack, validates
   physical part hierarchies, opaque subject masses, phase timing,
   clipped glazes, clipped strokes, source-specific curved-path minimums,
   attached world-space endpoints throughout source motion and untracked elements.
