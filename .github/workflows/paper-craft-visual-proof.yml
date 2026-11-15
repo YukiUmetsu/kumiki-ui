@@ -15,6 +15,9 @@ on:
       - 'registry/video/paper-director-react.tsx'
       - 'src/video/paper-director-demo.ts'
       - 'tests/paper-director.test.tsx'
+      - 'tests/paper-director-page-turn.test.tsx'
+      - 'tests/e2e-storybook/paper-director-page-turn.spec.ts'
+      - 'examples/film/paper-craft-page-turn.film.json'
       - 'tests/e2e-storybook/paper-director.spec.ts'
       - 'examples/film/paper-craft-director.film.json'
       - 'registry/video/paper-craft-react.tsx'
@@ -45,7 +48,7 @@ jobs:
       - name: Full native Storybook film art screenshots
         # Earlier paper modes have their own existing regression suite.
         # Only the current paper-object stories consume Chromium minutes.
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-craft-scenery.spec.ts tests/e2e-storybook/paper-director.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-craft-scenery.spec.ts tests/e2e-storybook/paper-director.spec.ts tests/e2e-storybook/paper-director-page-turn.spec.ts
       - name: Current kingfisher wing and anatomical paper browser proof
         # Two relevant captures; retain the other object suites for local work.
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-craft-objects.spec.ts --grep "Reference-led anatomy persists"
@@ -54,6 +57,7 @@ jobs:
           npm run film:check -- examples/film/paper-craft-objects.film.json
           npm run film:check -- examples/film/paper-craft-scenery.film.json
           npm run film:check -- examples/film/paper-craft-director.film.json
+          npm run film:check -- examples/film/paper-craft-page-turn.film.json
       - name: Install FFmpeg
         run: |
           sudo apt-get update -qq
@@ -88,6 +92,15 @@ jobs:
           done
       - name: Encode a cross-cut paper film sequence
         run: npm run film:render -- examples/film/paper-craft-director.film.json --startFrame=226 --frames=30 --only=landscape --out=dist/paper-director-proof
+      - name: Capture native hinged book-page edits in both formats
+        run: |
+          for output in landscape portrait; do
+            for frame in 228 234 239 240 246 251; do
+              npm run film:frame -- examples/film/paper-craft-page-turn.film.json --frame="$frame" --only="$output" --out=dist/paper-page-turn-proof
+            done
+          done
+      - name: Encode an actual turning leaf across the hard edit
+        run: npm run film:render -- examples/film/paper-craft-page-turn.film.json --startFrame=223 --frames=34 --only=landscape --out=dist/paper-page-turn-proof
       - name: Keep actual rendered browser captures
         if: always()
         uses: actions/upload-artifact@v4
@@ -106,5 +119,6 @@ jobs:
             dist/paper-director-proof/
             dist/paper-kingfisher-proof/
             dist/paper-curtain-proof/
+            dist/paper-page-turn-proof/
           retention-days: 7
           if-no-files-found: warn

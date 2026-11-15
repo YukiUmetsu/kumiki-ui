@@ -446,3 +446,7 @@ Sizes are **relative complexity**, not a promised schedule. Split an L task furt
 ### PAPER-D1 — film director and reusable shot engine
 
 A generalized cut-paper director is implemented over PAPER1 instead of making more scene presets. It supports arbitrary original closed contours, true holes, short bounded pose and camera keyframe tracks, native 16:9/9:16 art direction, scene schedules, four unrelated production film subjects, Storybook frame scrubbing and FD1 film-slot integration. Future authoring must still supply original high-quality illustrations, and sophisticated physical folds, IK/character acting, automatic reference-to-art construction and full cinematic proof remain open. [Film director specification](component-specs/paper-craft.md#paper-d1--reusable-shot-based-paper-film-framework-artcraft-v7).
+
+### PAPER-D3 — art-printed hinged book transitions
+
+PAPER-D3 extends the director with full physical cut-paper artwork on a rigid two-sided printed leaf, anchored to a book gutter while the next scene remains visible underneath. The optional native page-turn extends the original curtain grammar and is independently authorable per shot in the FD1 paper storyboard. Production acceptance requires a two-aspect real-browser and encoded-film review of both sides of the edit. It is **not** a fully solved page curl/V-fold or general human-character performance system; advanced multi-actor motion and contact rigs remain next.
