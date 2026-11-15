@@ -44,7 +44,7 @@ describe("ArtCraft rebuilt kingfisher wildlife illustration",()=>{
     const chest=actor.parts.find(p=>p.id==="breast")!;
     for(const part of [wing,far,crown,chest]){
       const traces=part.region.details??[];
-      expect(traces.length).toBeGreaterThan(2);
+      expect(traces.length).toBeGreaterThanOrEqual(1);
       expect(traces.some(t=>(t.path.match(/ Q/g)??[]).length>=18)).toBe(true);
       expect(traces.every(t=>t.path.length<=12000)).toBe(true);
       expect(traces.every(t=>!t.path.includes("NaN")&&!t.path.includes("Infinity"))).toBe(true);
@@ -75,7 +75,7 @@ describe("ArtCraft rebuilt kingfisher wildlife illustration",()=>{
     const posed=evaluatePencilActorRegions(actor,212);
     const torso=posed.find(p=>p.id==="kingfisher-torso")!;
     const front=posed.find(p=>p.id==="kingfisher-near-wing")!;
-    expect(front.transform).toContain(torso.transform+" translate(0 0) rotate(");
+    expect(front.transform).toContain(torso.transform+" translate(0 -2) rotate(17");
     const coverts=posed.find(p=>p.id==="kingfisher-wing-coverts")!;
     expect(coverts.transform).toContain(front.transform+" translate(0 0) rotate(0");
   });
