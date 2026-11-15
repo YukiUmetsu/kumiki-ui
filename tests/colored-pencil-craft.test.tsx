@@ -102,6 +102,34 @@ describe("ArtCraft high-fidelity medium deposition",()=>{
     const human=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
     expect(human.regions.every(r=>r.craft?.pigmentDensity===undefined)).toBe(true);
   });
+  it("makes optically subordinate tonal support an explicit, bounded original-pigment craft choice",()=>{
+    const spec=drawing(),base=spec.regions[0],finish=base.craft!;
+    const html=(weight?:number)=>renderToStaticMarkup(<PencilDrawing
+      drawing={{...spec,regions:[{...base,craft:{
+        ...finish,...(weight===undefined?{}:{tonalSupportWeight:weight}),
+      }}]}} frame={330}/>);
+    const opacity=(markup:string)=>{
+      const match=markup.match(/data-km-pencil-craft-base=""[^>]*opacity="([0-9.]+)"/);
+      if(!match)throw new Error("Missing pigment base");
+      return Number(match[1]);
+    };
+    expect(html(1)).toEqual(html());
+    expect(opacity(html(.64))).toBeCloseTo(opacity(html())*.64,5);
+    expect(isPencilCraftFinish({...finish,tonalSupportWeight:0})).toBe(true);
+    expect(isPencilCraftFinish({...finish,tonalSupportWeight:1})).toBe(true);
+    expect(isPencilCraftFinish({...finish,tonalSupportWeight:-.1})).toBe(false);
+    expect(isPencilCraftFinish({...finish,tonalSupportWeight:1.01})).toBe(false);
+    expect(isPencilCraftFinish({...finish,tonalSupportWeight:NaN})).toBe(false);
+    const fox=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
+    const fur=fox.regions.filter(r=>r.craft?.kind==="fur");
+    expect(fur.length).toBeGreaterThanOrEqual(12);
+    expect(fur.every(r=>(r.craft?.tonalSupportWeight??1)<.73)).toBe(true);
+    expect(fur.every(r=>(r.craft?.tonalSupportWeight??0)>.49)).toBe(true);
+    const human=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
+    expect(human.regions.every(r=>r.craft?.tonalSupportWeight===undefined))
+      .toBe(true);
+  });
+
   it("renders a volumetric layer and a dry tooth instead of a uniform matte",()=>{
     const spec=drawing();
     const html=(frame:number,reducedMotion=false)=>renderToStaticMarkup(
