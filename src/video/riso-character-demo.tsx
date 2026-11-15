@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
 import {riso31PhalanxJoints,riso31FingerParts} from "./riso31-finger-phalanges";
+import {riso32ThumbJoints,riso32ThumbParts} from "./riso32-thumb-opposition";
 
 export type RisoPerformanceAspect = "landscape" | "portrait";
 // RISO28: arm pendulum tracks the same 54-frame alternating contact
@@ -111,6 +112,9 @@ export const COURIER: RisoCharacterSpec = {
     { id: "left-thumb", parent: "left-hand", x: -9, y: 8,
       keys: [{frame:0,rotate:-8,easing:"ease"},{frame:92,rotate:15,easing:"ease"},
         {frame:160,rotate:4,easing:"ease"},{frame:198,rotate:-14,easing:"ease"},{frame:239,rotate:-14}] },
+    // ANAT1 MCP and single IP are genuine child bones of CMC thumb, not
+    // the other digits' PIP/DIP hierarchy.
+    ...riso32ThumbJoints("left"),
     { id: "left-index", parent: "left-hand", x: -6, y: 16,
       keys: [{frame:0,rotate:7,easing:"ease"},{frame:92,rotate:-8,easing:"ease"},
         {frame:160,rotate:13,easing:"ease"},{frame:198,rotate:-5,easing:"ease"},{frame:239,rotate:-5}] },
@@ -157,6 +161,9 @@ export const COURIER: RisoCharacterSpec = {
     { id: "right-thumb", parent: "right-hand", x: 9, y: 8,
       keys: [{frame:0,rotate:-9,easing:"ease"},{frame:90,rotate:0,easing:"ease"},
         {frame:156,rotate:18,easing:"ease"},{frame:198,rotate:12},{frame:239,rotate:12}] },
+    // ANAT1 MCP and single IP are genuine child bones of CMC thumb, not
+    // the other digits' PIP/DIP hierarchy.
+    ...riso32ThumbJoints("right"),
     { id: "right-index", parent: "right-hand", x: 6, y: 16,
       keys: [{frame:0,rotate:3,easing:"ease"},{frame:90,rotate:16,easing:"ease"},
         {frame:156,rotate:25,easing:"ease"},{frame:198,rotate:19},{frame:239,rotate:19}] },
@@ -274,8 +281,7 @@ export const COURIER: RisoCharacterSpec = {
     ...riso31FingerParts("left","middle"),
     ...riso31FingerParts("left","ring"),
     ...riso31FingerParts("left","pinky"),
-    { id: "left-glove-thumb", joint: "left-thumb", plate: "red", paint: "solid",
-      d: "M2.1 -3.6 Q-.5 -6 -3.2 -5.2 Q-6.3 -4.4 -9.5 -.6 Q-10.8 2.5 -8 3.5 Q-5.5 3.4 -3 1.6 Q-.5 .3 1.7 2.2 Z" },
+    ...riso32ThumbParts("left","courier"),
     { id: "left-finger-joint-lines", joint: "left-middle", plate: "blue", paint: "solid",
       d: "M0 4 Q2 3 3 5 L3 5.8 Q2 5 0 5 Z" },
     { id: "left-glove-detail", joint: "left-hand", plate: "blue", paint: "solid",
@@ -299,8 +305,7 @@ export const COURIER: RisoCharacterSpec = {
     ...riso31FingerParts("right","middle"),
     ...riso31FingerParts("right","ring"),
     ...riso31FingerParts("right","pinky"),
-    { id: "right-glove-thumb", joint: "right-thumb", plate: "red", paint: "solid",
-      d: "M-2 -3.6 Q.8 -6.2 3.5 -5.5 Q7 -4.9 9.8 -.5 Q11.1 2.1 8.2 3.4 Q5.4 3.5 3.2 1.5 Q1 -.1 -1.7 2.0 Z" },
+    ...riso32ThumbParts("right","courier"),
     { id: "right-finger-joint-lines", joint: "right-index", plate: "blue", paint: "solid",
       d: "M0 4 Q2 3 3 5 L3 5.8 Q2 5 0 5 Z" },
     { id: "right-glove-detail", joint: "right-hand", plate: "blue", paint: "solid",
