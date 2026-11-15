@@ -80,6 +80,8 @@ export interface PencilSkinWeave {
   readonly protectedSpans:number;
   /** Independently drawn light-plane fibres, not a smooth raster glaze. */
   readonly opticalLightFibres:number;
+  /** Exact mark indices supporting a photographed light skin plane. */
+  readonly lightFibreIndices:readonly number[];
   readonly rasterUnderpainting:false;
   readonly sourceRequired:true;
   readonly strength:number;
@@ -90,12 +92,13 @@ export function createPencilSkinOpticalWeave(
 ):PencilSkinWeave {
   validate(source,guides,face,seed,strength);
   const marks:PencilPhotoMark[]=[];
+  const lightFibreIndices:number[]=[];
   let sourceSupported=0,protectedHighlights=0,
     protectedEdges=0,protectedAnatomy=0,protectedSpans=0,
     opticalLightFibres=0;
   if(strength===0)return {
     marks,sourceSupported,protectedHighlights,protectedEdges,
-    protectedAnatomy,protectedSpans,opticalLightFibres,
+    protectedAnatomy,protectedSpans,opticalLightFibres,lightFibreIndices,
     rasterUnderpainting:false,sourceRequired:true,strength,
   };
   const eyeDist=dist(guides.eyeNearCenter,guides.eyeFarCenter);
@@ -218,11 +221,14 @@ export function createPencilSkinOpticalWeave(
         endX:end[0],endY:end[1],
         color:hex(local),alpha,width,pass:2,
       });
-      if(lightSupport>.2)opticalLightFibres++;
+      if(lightSupport>.2){
+        lightFibreIndices.push(marks.length-1);
+        opticalLightFibres++;
+      }
       sourceSupported++;
     }
   }
   return {marks,sourceSupported,protectedHighlights,protectedEdges,
-    protectedAnatomy,protectedSpans,opticalLightFibres,
+    protectedAnatomy,protectedSpans,opticalLightFibres,lightFibreIndices,
     rasterUnderpainting:false,sourceRequired:true,strength};
 }
