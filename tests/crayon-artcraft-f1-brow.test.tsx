@@ -16,8 +16,8 @@ describe("ArtCraft F1 source-brow wax construction",()=>{
   it("retains an exact negative control and every unstudied anatomical element",()=>{
     const old=crayonCc0FaceStudy({...settings,browForm:"baseline"});
     const next=crayonCc0FaceStudy({...settings,browForm:"source-rooted"});
-    expect(CRAYON_F1_BROW_IDS).toHaveLength(4);
-    expect(next.elements).toHaveLength(old.elements.length+4);
+    expect(CRAYON_F1_BROW_IDS).toHaveLength(6);
+    expect(next.elements).toHaveLength(old.elements.length+6);
     expect(next.seed).toBe(old.seed);
     expect(next.paper).toBe(old.paper);
     expect(next.paperTooth).toBe(old.paperTooth);
@@ -37,19 +37,27 @@ describe("ArtCraft F1 source-brow wax construction",()=>{
     const names=elements.map(e=>e.id);
     for(const side of ["near","far"] as const){
       const core=elements.find(e=>e.id==="source-brow-wax-"+side);
+      const halo=elements.find(e=>e.id==="source-brow-feather-"+side);
       const overlay=elements.find(e=>e.id==="brow-superciliary-"+side);
       expect(core).toMatchObject({kind:"wax",parentId:"face-outline",
         clipToParent:true,coverage:"opaque",deposition:"stroke-built",
         featherContacts:false,outlineOpacity:0});
       expect(overlay).toMatchObject({kind:"wax",coverage:"open",
         featherContacts:true,clipToParent:true});
+      expect(halo).toMatchObject({kind:"wax",coverage:"open",
+        featherContacts:true,clipToParent:true,
+        parentId:"face-outline",outlineOpacity:0,
+        underpaintTooth:0});
       if(core?.kind!=="wax")throw Error("Missing connected wax brow "+side);
       expect(core.underpaintGradient?.shadow).toMatch(/^#[0-9a-f]{6}$/i);
       expect(core.underpaintTooth).toBeGreaterThan(.15);
+      expect(core.markStrength).toBeLessThan(.15);
       expect(core.pressure).toBeGreaterThan(.8);
       expect(core.spacing).toBeLessThan(5.1);
       expect((core.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(4);
       expect(names.indexOf("face-outline")).toBeLessThan(names.indexOf(core.id));
+      expect(names.indexOf("source-brow-feather-"+side)).toBeLessThan(
+        names.indexOf(core.id));
       expect(names.indexOf(core.id)).toBeLessThan(
         names.indexOf("brow-superciliary-"+side));
     }
@@ -70,8 +78,8 @@ describe("ArtCraft F1 source-brow wax construction",()=>{
     for(const [side,bundle] of [["near",near],["far",far]] as const){
       expect((bundle.d.match(/C/g)??[]).length).toBe(
         side==="near"?20:9);
-      expect(bundle.width).toBeLessThan(.45);
-      expect(bundle.waxPressure).toBeGreaterThan(.5);
+      expect(bundle.width).toBeLessThan(.3);
+      expect(bundle.waxPressure).toBeGreaterThan(.45);
       expect(names.indexOf("brow-superciliary-"+side)).toBeLessThan(
         names.indexOf("source-brow-fibers-"+side));
       expect(names.indexOf("source-brow-fibers-"+side)).toBeLessThan(
