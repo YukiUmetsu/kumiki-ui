@@ -1,5 +1,7 @@
 # WC17: Strict watercolor face acceptance (unapproved private study)
 
+**WC18 material correction:** The rejected portraits were not constructed with the actual WM1 watercolor-pressure brush or WM4 wet paint. [Native material contract](wc18-watercolour-portrait-true-brush-paint-contract.md) now explicitly requires both painting engines before any future face can qualify for visual acceptance.
+
 **Status: the flat-vector face was REJECTED after native Chromium inspection and deleted before merge. No public Storybook, FilmStage portrait, or artistic approval.** This replaces the previous unmeasured "looks believable" bar.
 
 ## 1. Reference types and rights
