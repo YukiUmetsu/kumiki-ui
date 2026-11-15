@@ -47,3 +47,27 @@ test("ArtCraft rebuilt fox and kingfisher remain opaque and anatomically compose
     expect(await svg.evaluate(el => el.outerHTML)).toBe(pose);
   }
 });
+
+
+test("ArtCraft fox and kingfisher share original actor geometry at macro crops",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-colored-pencil-science--character-performance&viewMode=story");
+  const scene=page.locator("svg[data-km-pencil-scene]");
+  const inspect=page.getByRole("combobox",{name:"Character inspection"});
+  await expect(scene).toBeVisible();
+  for(const aspect of ["landscape","portrait"] as const){
+    await page.getByRole("combobox",{name:"World aspect"}).selectOption(aspect);
+    await setFrame(page,310);
+    for(const focus of ["fox-eye","fox-paw","kingfisher-bill","kingfisher-wing"] as const){
+      await inspect.selectOption(focus);
+      await expect(scene).toHaveAttribute("style",/scale\(/);
+      await scene.locator("xpath=..").screenshot({
+        animations:"disabled",
+        path:info.outputPath("artcraft-character-"+aspect+"-"+focus+".png"),
+      });
+      await expect(scene.locator('[data-km-pencil-support="fox-head"]')).toHaveCount(1);
+      await expect(scene.locator('[data-km-pencil-support="kingfisher-feet"]')).toHaveCount(1);
+    }
+    await inspect.selectOption("composition");
+    await expect(scene).not.toHaveAttribute("style",/scale\(/);
+  }
+});
