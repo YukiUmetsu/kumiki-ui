@@ -194,3 +194,37 @@ misty-hermit bamboo at 960×540 and the Storybook 2.15× crop, comparing leaf
 fan negative space and brush loading to the museum image. Also inspect the
 exported motion after the CI run; this pass intentionally does not mark the PR
 ready to merge without rendered proof.
+
+
+## Wen Zhengming Old Pine — second source-led bough and foliage pass
+
+**Artwork:** [Wen Zhengming, *Old Pine Tree* (late 1530s),
+Cleveland Museum of Art](https://www.clevelandart.org/art/1964.43).
+The museum's open-access details show a trunk built from unevenly loaded
+light/dark ink with twisting limbs and compact but overlapping angular
+needle bouquets. The branches rise, fall and cross; their needle fan axes
+are not all parallel. The strength is in the structural silhouette, not
+random fine-grain noise.
+
+The baseline 960×540 film and 2.15× brushwork screenshot on the prior
+successful CI run showed visible **regular canopy shelves**: repeated
+almost-horizontal boughs, similarly upright needle fans, and more uniform
+branch spacing than the reference. Those are major artistic defects even
+though earlier topology and test counts passed.
+
+**Revised original code:** eight existing trunk-connected branch roots
+remain, but handedness, crooked control points, elevation and end drops
+are now asymmetrical. Each needle bouquet has a source-inspired, seeded
+fan lean and varied spread relative to the actual branch. A metadata
+marker exposes fan-turn measurements for reproducible SVG tests.
+Needles retain distinct ink-loading classes, point closure, real twig
+roots, dry flicks and the absolute-frame motion contract.
+
+**Gate:** the new test checks >80 rooted bouquets, >0.95 radians of pitch
+variation, distinct bough silhouettes and deterministic rendering at a
+fixed seed. These geometric checks are necessary, **not sufficient**.
+Review the actual pine canopy and film in the existing Storybook
+Brushwork close-up; reject it again if it still resembles a comb,
+fan stencil or pasted geometry. Compare against the museum's needle
+clusters and ink-bone trunk; do not assert parity until direct visual
+inspection at both native and enlarged scales.
