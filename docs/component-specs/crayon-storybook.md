@@ -6,6 +6,18 @@
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
 
+## ArtCraft native-camera facial inspection (2026-11-14)
+
+The hidden `Video production / Film Looks / Crayon / Characters / ArtCraft Adult Face Lab`
+has an **Inspection** control for `full`, `face`, `eyes`, `nose-mouth`,
+and `garment`, plus matched warm/neutral eye macro comparison. Crops use
+original CRAYON1 scenes with two stationary native camera keys, not CSS
+magnification or reference bitmaps. This retains semantic IDs, material
+seeds, timing, and rig geometry; portrait and landscape crop positions are
+independently authored. All stories remain in the existing single Crayon
+Storybook root with `!dev`. Structural tests are **not** artistic approval;
+inspect actual source-rendered face and fabric crops before acceptance.
+
 ## ArtCraft v6: character quality quarantine and portrait-safe previews
 
 Following direct review of the reference board and premium human portrait,
