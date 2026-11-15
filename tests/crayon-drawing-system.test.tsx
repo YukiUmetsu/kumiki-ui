@@ -93,7 +93,7 @@ describe("strict native Crayon drawing grammar",()=>{
       x.parentId==="solid"&&x.d.includes("Q"))).toBe(true);
     for(const change of [
       {...options,pressure:NaN},{...options,count:1000},
-      {...options,guide:[guide[0],guide[0],guide[0],guide[0]]},
+      {...options,guide:[guide[0],guide[0],guide[0],guide[0]] as const},
       {...options,spread:-1},{...options,color:"#123" as "#123456"},
     ])expect(()=>crayonDirectionalStrokes(change)).toThrow(RangeError);
     expect(()=>crayonBotanicalDrawing({...params("landscape"),detail:1.1})).toThrow();
