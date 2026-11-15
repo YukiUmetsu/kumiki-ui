@@ -51,3 +51,26 @@ Using the unchanged portrait candidate and strict ArtCraft v7 gate, **17/18 land
 The actual native [Crayon ArtCraft Chromium proof](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43684634456) rendered at 960×540 and 540×960 (frame 299) and both screenshots were inspected. **Rejected for visual fidelity:** despite native wax and valid element hierarchy, the eye read as a clean graphic icon in a bounded rectangular pink patch, the brow a solid vector swoosh, the upper lashes a clockwork straight comb, and the iris a nearly perfect outlined circle.
 
 **Iteration 2:** expand the opaque anatomical skin undercoat beyond both camera frames, preserving the original 210×200 local coordinate frame for the eye; lower its global high-frequency rubbing; build the eyebrow as *open, clipped* chromatic wash over continuous opaque skin with 91 guided curved follicles; thin/sparsify six upper lash groups and lower iris radial contrast. This changes form/attachments, not arbitrary surface grain. The hard stop on merging the rejected full-face portrait remains in force. Source-aligned contours and aligned region masks still need to be audited against the original licensed photo.
+
+
+### Two actual-image iterations after the CC0 eye proof (2026-11-15)
+
+**ArtCraft v7 sequence:** inspect source crop → dissect canthus/upper globe/lower-lid attachment → rebuild semantic wax contours and clipping → render Chromium at 960×540 and 540×960 → inspect output at 1× and magnified eye detail → reject remaining weak craftsmanship.
+
+| State | Actual native Chromium run | Root-cause observation | Construction change | Review decision |
+| --- | --- | --- | --- | --- |
+| Earlier eye (v2) | [43685185755](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43685185755) | Fully visible circular iris, too much white sclera and pale upper lash root; pink separate canthus | Maintained as a visual negative control | FAIL |
+| Eye v3 | [43685699764](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43685699764) | Iris now sits beneath hooded upper lid, but eye corner remains an opaque salmon sticker and lower lid a bright vector ribbon | Narrowed opening, shifted and parent-clipped the iris/pupil, added upper-lid contact shadow | Better structural hierarchy, **still experimental** |
+| Eye v4 | [43685989993](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43685989993) | Right corner no longer detached, lower rim softened; still a relatively flat graphic eye with a simplified brow and insufficient source-level lash and orbital structure | Small dark parent-clipped canthus, open wax lower eyelid over opaque face, less stroke pressure and a broader lower orbital glaze | PASS technical renderer; **FAIL professional visual likeness** |
+
+**Independent code checks:** [Changed tests and type safety](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43685989950) is green. The source-based eye remains an opt-in \`!dev\` Storybook construction exercise. A 4-panel actual-pixel comparison (CC0 browser crop, v2, v3, v4) was manually rendered during QA and reviewed; the local evidence is not embedded into the repo.
+
+**Supporting craft technique references (not identity sources):**
+- [National Portrait Gallery — Artist demonstration: how to draw an eye](https://www.npg.org.uk/schools-hub/artist-demonstration-how-to-draw-an-eye): eyelids occupy a three-dimensional surface, their contact shadow falls over the globe, and iris position reflects gaze; confirms the need for a physical lid volume rather than black eyeliner.
+- [Eddie Armer, *A Tonal Study*, wax crayon portraiture](https://www.cutoutandkeep.net/projects/tonal-study): pressure, directional light, the paper's tooth and broad side-nib shading influence wax-crayon tonal construction. **Neither example authorizes copying its composition.**
+
+**Original CC0 source provenance clarified:** [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Brunette_woman_portrait_(Unsplash).jpg) identifies the Christopher Campbell 2015 original as 5184×3456 JPEG, 7,264,042 bytes, SHA-1 \`29612991a226c0f9dbdd33be0b8014ee4f00629c\`, published before the CC0 Unsplash licence change. Original URL:
+\`https://upload.wikimedia.org/wikipedia/commons/1/16/Brunette_woman_portrait_%28Unsplash%29.jpg\`.
+The original download endpoint returned HTTP 429 during this review; **its original bytes were not captured, and an original-image SHA-256 cannot be claimed**. The existing 608×1082 browser screenshot and its SHA-256 remain the actual audited *source preview*.
+
+**Next strict gate:** acquire and hash the original CC0 JPEG; independently map eye socket, eyelashes, lid shadow, iris and corners from full-resolution source pixels into the 210×200 canonical coordinate frame; reconstruct the second eye and facial planes only once the eye static hero passes aligned source-relative part masks and independent artistic review. The full-face specimen still fails the frozen 17/18 landmarks and four tonal regions gate; do not merge it as a finished human character or remove \`!dev\`.
