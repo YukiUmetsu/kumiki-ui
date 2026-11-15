@@ -581,24 +581,71 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
         [startFrame+(band%3)*4,299],.27+band*.057,parentId);
     }
   };
+  // F1 source-space, manually traced CURTAIN flow rails. These are
+  // research guides, not pixel-registered individual fibers. The left
+  // curtain hugs the ear/cheek before dropping, while the right curtain
+  // flows from the part across the far cheek into a widening lower lock.
+  // A mark is a SHORT SUBCURVE of a guide, never a randomly oriented
+  // screen-space scratch. The parent's wax silhouette still clips it.
+  type HairGuide=readonly [number,number,number,number,number,number,number,number];
+  const hairGuides:Record<"left"|"right",readonly HairGuide[]>={
+    left:[
+      [35,366,31,542,42,894,57,1084],
+      [46,338,54,539,62,903,72,1089],
+      [61,316,65,525,86,858,92,1089],
+      [76,292,73,520,91,868,107,1090],
+      [87,356,80,565,102,892,110,1088],
+    ],
+    right:[
+      [452,315,469,493,474,837,481,1080],
+      [466,340,495,527,493,884,497,1088],
+      [476,361,506,561,513,898,519,1091],
+      [485,399,523,625,543,919,544,1084],
+      [495,420,542,632,555,948,562,1092],
+      [507,467,552,671,573,917,584,1090],
+    ],
+  };
+  const hairPoint=(g:HairGuide,t:number):[number,number]=>{
+    const s=1-t;
+    return [
+      s*s*s*g[0]+3*s*s*t*g[2]+3*s*t*t*g[4]+t*t*t*g[6],
+      s*s*s*g[1]+3*s*s*t*g[3]+3*s*t*t*g[5]+t*t*t*g[7],
+    ];
+  };
+  const hairTangent=(g:HairGuide,t:number):[number,number]=>{
+    const s=1-t;
+    return [
+      3*s*s*(g[2]-g[0])+6*s*t*(g[4]-g[2])+3*t*t*(g[6]-g[4]),
+      3*s*s*(g[3]-g[1])+6*s*t*(g[5]-g[3])+3*t*t*(g[7]-g[5]),
+    ];
+  };
+  // Exact cubic subsegments: tangent and deposited orientation vary
+  // continuously with the authored lock, including at any animation seek.
+  const hairSubcurve=(g:HairGuide,t0:number,t1:number,offset:number)=>{
+    const p=hairPoint(g,t0),q=hairPoint(g,t1);
+    const u=hairTangent(g,t0),v=hairTangent(g,t1);
+    const uLen=Math.hypot(...u)||1,vLen=Math.hypot(...v)||1;
+    const p0=[p[0]-u[1]/uLen*offset,p[1]+u[0]/uLen*offset];
+    const p3=[q[0]-v[1]/vLen*offset,q[1]+v[0]/vLen*offset];
+    const scale=(t1-t0)/3;
+    const p1=[p0[0]+u[0]*scale,p0[1]+u[1]*scale];
+    const p2=[p3[0]-v[0]*scale,p3[1]-v[1]*scale];
+    const fmt=(point:number[])=>point.map(n=>n.toFixed(2)).join(" ");
+    return "M"+fmt(p0)+" C"+fmt(p1)+" "+fmt(p2)+" "+fmt(p3);
+  };
   for(const [side,count,seed] of [
     ["left",85,33107],["right",130,44631],
   ] as const){
     const parentId=side==="left"?"hair-left-curtain":"hair-right-curtain";
+    const guides=hairGuides[side];
     const bands=Array.from({length:hairBands},()=>[] as string[]);
     for(let i=0;i<Math.round(count*detail);i++){
-      const u=fiber(seed,i,1),v=fiber(seed,i,2);
-      const x=side==="left"?-20+u*148:433+u*141;
-      const y=(side==="left"?352:290)+v*(side==="left"?660:750);
-      const len=34+fiber(seed,i,3)*151;
-      // Left mass falls around the jaw; right mass follows the occluding
-      // far-face curtain. Both are seeded in the same F1 source frame.
-      const sway=(side==="left"?.05:.13)+(fiber(seed,i,4)-.5)*.13;
-      const bend=side==="left"?-3:6;
-      const d="M"+x.toFixed(2)+" "+y.toFixed(2)+
-        " C"+(x+len*sway*.21+bend).toFixed(2)+" "+(y+len*.29).toFixed(2)+
-        " "+(x+len*sway*.82).toFixed(2)+" "+(y+len*.76).toFixed(2)+
-        " "+(x+len*sway).toFixed(2)+" "+(y+len).toFixed(2);
+      const guide=guides[Math.min(guides.length-1,
+        Math.floor(fiber(seed,i,1)*guides.length))];
+      const t0=.07+fiber(seed,i,2)*.75;
+      const t1=Math.min(.99,t0+.07+fiber(seed,i,3)*.16);
+      const offset=(fiber(seed,i,4)-.5)*8;
+      const d=hairSubcurve(guide,t0,t1,offset);
       const band=Math.min(hairBands-1,
         Math.floor(fiber(seed,i,6)*hairBands));
       bands[band].push(d);
