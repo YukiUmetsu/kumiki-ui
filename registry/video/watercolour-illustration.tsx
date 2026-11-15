@@ -282,14 +282,17 @@ export function WatercolourIllustration({ spec, frame, reducedMotion = false, ..
             numOctaves={2} seed={1 + spec.seed % 661} result="granules"/>
           <feColorMatrix in="granules" type="saturate" values="0" result="granuleMono"/>
           <feComponentTransfer in="granuleMono" result="granuleTint">
-            <feFuncR type="linear" slope={.36 * (spec.paper.granulation ?? 0)}
-              intercept={1 - .33 * (spec.paper.granulation ?? 0)}/>
-            <feFuncG type="linear" slope={.36 * (spec.paper.granulation ?? 0)}
-              intercept={1 - .33 * (spec.paper.granulation ?? 0)}/>
-            <feFuncB type="linear" slope={.36 * (spec.paper.granulation ?? 0)}
-              intercept={1 - .33 * (spec.paper.granulation ?? 0)}/>
+            <feFuncR type="linear" slope={.12 * (spec.paper.granulation ?? 0)}
+              intercept={1 - .075 * (spec.paper.granulation ?? 0)}/>
+            <feFuncG type="linear" slope={.12 * (spec.paper.granulation ?? 0)}
+              intercept={1 - .075 * (spec.paper.granulation ?? 0)}/>
+            <feFuncB type="linear" slope={.12 * (spec.paper.granulation ?? 0)}
+              intercept={1 - .075 * (spec.paper.granulation ?? 0)}/>
             <feFuncA type="linear" slope={0} intercept={1}/>
           </feComponentTransfer>
+          {/* Grain is a small centered tonal modulation, not a darkening layer:
+              multiple semitransparent watercolor shapes otherwise accumulate
+              into muddy, opaque skin. Preserve hue and alpha. */}
           {/* Arithmetic multiplication modulates pigment RGB while preserving its
               alpha. Overlay blending here would incorrectly double opacity and
               turn translucent watercolor washes into solid cartoon patches. */}
