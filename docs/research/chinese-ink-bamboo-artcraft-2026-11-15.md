@@ -242,6 +242,42 @@ not improve believable pressure/fibre deposition. Inspect both 16:9
 full frames and encoded motion. The composition and figure need
 their own dedicated ArtCraft rebuild after bamboo acceptance.
 
+## Seventh pass — reference-shaped pressure profile and negative-space rhythm
+
+Primary reference: National Palace Museum, Wu Zhen *Manual of Ink Bamboo*,
+the original leaf *Bamboo in Wind and Rain*, at
+https://theme.npm.edu.tw/exh105/oversized10/en/selectionZoom/img5.html
+and the NPM https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04009183.
+Secondary technique study: https://files.eric.ed.gov/fulltext/ED358003.pdf
+(brush tip / half-side / stalk / leaf loading techniques).
+
+The sixth filtered crop at native 960×540 made the paint marginally
+more fibrous, but there was little **structural** improvement: identical
+five-blade motifs persisted at every bamboo joint. The original artwork
+instead uses alternating voids and loaded clusters, with visibly
+different tones between foreground and receding leaves.
+
+Seventh pass: replace the two-cubic vector teardrop with ten asymmetric,
+deterministically sampled brush-pressure stations and smoothly joined
+cubic edges. The original source is **not** sampled as pixels; material
+design remains style-guided. Heavy paint appears from roughly 30–60%
+of stroke length, followed by a gradually thinning release. Slight
+independent edge irregularity follows the local stroke tangent normal.
+
+The 21 culm collars are retained but no longer all carry a uniform
+five-leaf star. The seven-level cluster budget `[0, 3, 8, 1, 10, 2, 10]`
+gives **102** brush leaves across three culms: deliberate bare nodes,
+small transitional pairs, and loaded dark masses toward the crown.
+Spur attachment counts, sparse detail and finite path contracts
+were updated to match this design instead of preserving a uniformity
+bug through test expectations. Roots and branch hierarchy remain
+shared and deterministic.
+
+All material and morphology changes still require new actual 2.15×
+crops, full-composition thumbnails, normal-speed MP4 QA and independent
+ArtCraft review. No claim of stylistic equivalence is made from
+passing count/curve tests.
+
 ## Required release evidence
 
 Run from a clean repository checkout:
