@@ -94,7 +94,7 @@ const turtleShore: UkiyoeEpisodeShot = {
 // ---- 3. The turtle's invitation and the dive --------------------------------------------------------------------------------------
 
 const dive: UkiyoeEpisodeShot = {
-  id: "dive", title: "Down to the Dragon Palace", kasumi: 30, sound: { sound: "bed-underwater", gainDb: -18 },
+  id: "dive", title: "Down to the Dragon Palace", kasumi: 30, sound: { sound: "bed-bubbles-underwater", gainDb: -14 },
   narration: [
     { text: "Days later, the turtle rose beside his boat.", from: 34, to: 140 },
     { text: "'Come with me,' it said, 'to the Dragon Palace.'", from: 150, to: 282 },
@@ -143,9 +143,9 @@ function palaceStage(): UkiyoeNode[] {
 }
 const FLOOR = 930;
 const palace: UkiyoeEpisodeShot = {
-  id: "palace", title: "Princess Otohime", kasumi: 30, sound: { sound: "bed-underwater", gainDb: -20 },
-  // Small bells as the princess begins her dance, heard through the water.
-  sounds: [{ sound: "bells-suzu", at: 172, gainDb: -10, room: "underwater", source: "otohime" }, { sound: "bells-suzu", at: 330, gainDb: -12, room: "underwater", source: "otohime" }],
+  id: "palace", title: "Princess Otohime", kasumi: 30, sound: { sound: "bed-bubbles-underwater", gainDb: -17 },
+  // Small bells as the princess begins her dance, ringing round the palace hall.
+  sounds: [{ sound: "bells-suzu", at: 172, gainDb: -10, room: "hall", source: "otohime" }, { sound: "bells-suzu", at: 330, gainDb: -12, room: "hall", source: "otohime" }],
   narration: [
     { text: "Princess Otohime welcomed him to the palace.", from: 34, to: 150 },
     { text: "There were feasts, music and dancing fish.", from: 164, to: 304 },
@@ -172,9 +172,9 @@ const palace: UkiyoeEpisodeShot = {
 // ---- 5. The gift of the box --------------------------------------------------------------------------------------------------------
 
 const gift: UkiyoeEpisodeShot = {
-  id: "gift", title: "The jewelled box", kasumi: 30, sound: { sound: "bed-underwater", gainDb: -20 },
+  id: "gift", title: "The jewelled box", kasumi: 30, sound: { sound: "bed-bubbles-underwater", gainDb: -17 },
   // The lacquered box set into his hands.
-  sounds: [{ sound: "lid-box-wood", at: 210, gainDb: -8, room: "underwater", source: "taro-2" }],
+  sounds: [{ sound: "lid-box-wood", at: 210, gainDb: -8, room: "hall", source: "taro-2" }],
   narration: [
     { text: "But Tarō missed his home and his mother.", from: 34, to: 150 },
     { text: "The princess gave him a jewelled box.", from: 164, to: 284 },

@@ -93,7 +93,7 @@
   {
    "id": "bed-birds-uguisu",
    "path": "recorded/bed-birds-uguisu.wav",
-   "sha256": "fd7c17a3f72a32cd9797c0702ffbf4efda0864ef1276c3f5a41bd628be430b5b",
+   "sha256": "4853c124bbd682f9d12c9c178cc983dccd4c955abcce2d127ffc2307b08a9890",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -114,6 +114,37 @@
    "description": "A Japanese bush warbler (uguisu) singing in spring, with small birds around it.",
    "sourceUrl": "https://freesound.org/people/warukunai/sounds/524526/",
    "author": "warukunai",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "bed-bubbles-underwater",
+   "path": "recorded/bed-bubbles-underwater.wav",
+   "sha256": "98dcc5484174aa75aa1a54462eb934638530d39b0416bb8521d66b1e860a4b9f",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 480000,
+   "peakSeconds": 0,
+   "loudnessLufs": -23,
+   "tags": [
+    "ambience",
+    "loop",
+    "water",
+    "underwater",
+    "bubbles",
+    "hydrophone",
+    "recorded"
+   ],
+   "description": "Under the water, through a hydrophone: bubbles rising and gurgling, soft and close.",
+   "sourceUrl": "https://freesound.org/people/thaighaudio/sounds/349878/",
+   "author": "thaighaudio",
    "licenseId": "CC0-1.0",
    "origin": "recorded",
    "redistributable": true,
@@ -253,13 +284,13 @@
   {
    "id": "bed-fire-hearth",
    "path": "recorded/bed-fire-hearth.wav",
-   "sha256": "57768f2d59e19fc565dd03058e997d32c2509d34769d94a3fa7a3e118e3c72e4",
+   "sha256": "3532f9afc4a2409f31a47a048face72c06815ca0fe59c92a29612f852b25604c",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
    "durationSamples": 480000,
    "peakSeconds": 0,
-   "loudnessLufs": -24.1,
+   "loudnessLufs": -23,
    "tags": [
     "ambience",
     "loop",
@@ -269,9 +300,9 @@
     "interior",
     "recorded"
    ],
-   "description": "A wood fire burning in a hearth, close: steady crackle and soft pops.",
-   "sourceUrl": "https://freesound.org/people/kyles/sounds/454016/",
-   "author": "kyles",
+   "description": "A small wood fire crackling, close: dry crackle and snaps (rumble filtered out, snaps evened with gentle compression).",
+   "sourceUrl": "https://freesound.org/people/aerror/sounds/350757/",
+   "author": "aerror",
    "licenseId": "CC0-1.0",
    "origin": "recorded",
    "redistributable": true,
@@ -410,11 +441,11 @@
   {
    "id": "bed-stream-close",
    "path": "recorded/bed-stream-close.wav",
-   "sha256": "1291487c9a2357f9992c15b16fad3c05e452e5dbd07c82f7258ff8059a8a4cc1",
+   "sha256": "8df04cec38a1d592fb9d72dd5dbfdc28deb6594c1d9594557b656984f1f9ce3d",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
-   "durationSamples": 384000,
+   "durationSamples": 312000,
    "peakSeconds": 0,
    "loudnessLufs": -23,
    "tags": [
@@ -436,7 +467,7 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-08"
+   "verifiedAt": "2026-11-15"
   },
   {
    "id": "bed-surf-beach",
@@ -561,6 +592,39 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-08"
+  },
+  {
+   "id": "bed-wind-snow",
+   "path": "recorded/bed-wind-snow.wav",
+   "sha256": "6609834dd59de78ebac8a2f76da9b1e78150897cfe2e52d6666ffa5c63fe4a79",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 480000,
+   "peakSeconds": 0,
+   "loudnessLufs": -23,
+   "tags": [
+    "ambience",
+    "loop",
+    "wind",
+    "winter",
+    "snow",
+    "trees",
+    "quiet",
+    "outdoor",
+    "recorded"
+   ],
+   "description": "A light winter wind through bare trees: a soft, airy hush for falling snow.",
+   "sourceUrl": "https://freesound.org/people/kyles/sounds/637566/",
+   "author": "kyles",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
   },
   {
    "id": "bell-temple-large",
@@ -757,13 +821,13 @@
   {
    "id": "chop-axe-1",
    "path": "recorded/chop-axe-1.wav",
-   "sha256": "91df413ad2728dc47e6eaca6c63cbf61ba83f41010339aae93bafe5d20e30ec5",
+   "sha256": "9ac110ab3d0007ed538db21f7d0fb923b08aff49cbedd15491c1fbba97a764ae",
    "channels": 1,
    "sampleRate": 48000,
    "bitDepth": 16,
-   "durationSamples": 37790,
+   "durationSamples": 38278,
    "peakSeconds": 0.02,
-   "loudnessLufs": -24.8,
+   "loudnessLufs": -31.5,
    "tags": [
     "chop",
     "axe",
@@ -787,13 +851,13 @@
   {
    "id": "chop-axe-2",
    "path": "recorded/chop-axe-2.wav",
-   "sha256": "01fd4281825b63cff0ef4b6e5af43f987da0901aa7e12284501ef9881827343a",
+   "sha256": "a4915f2867cc4661db915b08048ccc5c51705498c654e5c15ad4b70f9625d8d6",
    "channels": 1,
    "sampleRate": 48000,
    "bitDepth": 16,
-   "durationSamples": 21109,
+   "durationSamples": 21084,
    "peakSeconds": 0.02,
-   "loudnessLufs": -26.5,
+   "loudnessLufs": -30.6,
    "tags": [
     "chop",
     "axe",
@@ -2841,13 +2905,13 @@
   {
    "id": "step-snow-1",
    "path": "recorded/step-snow-1.wav",
-   "sha256": "62583539966304b9f5caff2fdbd2a40d8b3e0ac660bd4188e280f313e8f8af69",
+   "sha256": "9499196877b2b82376d0adff760175c5eae95d75dd0e29a552ae1053b314fc93",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
-   "durationSamples": 17760,
-   "peakSeconds": 0.1946,
-   "loudnessLufs": -70,
+   "durationSamples": 37200,
+   "peakSeconds": 0.0302,
+   "loudnessLufs": -28.6,
    "tags": [
     "step",
     "footstep",
@@ -2856,9 +2920,9 @@
     "snow",
     "recorded"
    ],
-   "description": "One footstep in snow: a soft, short crunch.",
-   "sourceUrl": "https://freesound.org/people/morganpurkis/sounds/369777/",
-   "author": "morganpurkis",
+   "description": "One footstep in fresh snow: a crisp crunch.",
+   "sourceUrl": "https://freesound.org/people/cabled_mess/sounds/384423/",
+   "author": "cabled_mess",
    "licenseId": "CC0-1.0",
    "origin": "recorded",
    "redistributable": true,
@@ -2871,13 +2935,13 @@
   {
    "id": "step-snow-2",
    "path": "recorded/step-snow-2.wav",
-   "sha256": "43686000f28bf8c12ad46b9de474963238a6dfca1fdf0a596f73bd41bcb3c9c7",
+   "sha256": "2bfdae0ae95cd438b51388295e66838b9d38538350d589812102b113decf669b",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
-   "durationSamples": 17836,
-   "peakSeconds": 0.1856,
-   "loudnessLufs": -70,
+   "durationSamples": 40800,
+   "peakSeconds": 0.1454,
+   "loudnessLufs": -26,
    "tags": [
     "step",
     "footstep",
@@ -2886,9 +2950,9 @@
     "snow",
     "recorded"
    ],
-   "description": "One footstep in snow: a soft, short crunch.",
-   "sourceUrl": "https://freesound.org/people/morganpurkis/sounds/369778/",
-   "author": "morganpurkis",
+   "description": "One footstep in fresh snow: a crisp crunch.",
+   "sourceUrl": "https://freesound.org/people/cabled_mess/sounds/384422/",
+   "author": "cabled_mess",
    "licenseId": "CC0-1.0",
    "origin": "recorded",
    "redistributable": true,
@@ -2901,13 +2965,13 @@
   {
    "id": "step-snow-3",
    "path": "recorded/step-snow-3.wav",
-   "sha256": "b34458e87e1bf2082b31685e7e42d2696676b50e566cf7e1bcd5ad71e5f7ca9b",
+   "sha256": "2dcc937af408e29bf262d6f4522d57df63230aeb7c5f401e8d066fdca9b834e7",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
-   "durationSamples": 15922,
-   "peakSeconds": 0.1086,
-   "loudnessLufs": -70,
+   "durationSamples": 27840,
+   "peakSeconds": 0.0401,
+   "loudnessLufs": -29.5,
    "tags": [
     "step",
     "footstep",
@@ -2916,9 +2980,9 @@
     "snow",
     "recorded"
    ],
-   "description": "One footstep in snow: a soft, short crunch.",
-   "sourceUrl": "https://freesound.org/people/morganpurkis/sounds/369779/",
-   "author": "morganpurkis",
+   "description": "One footstep in fresh snow: a crisp crunch.",
+   "sourceUrl": "https://freesound.org/people/cabled_mess/sounds/384421/",
+   "author": "cabled_mess",
    "licenseId": "CC0-1.0",
    "origin": "recorded",
    "redistributable": true,
@@ -2931,13 +2995,13 @@
   {
    "id": "step-snow-4",
    "path": "recorded/step-snow-4.wav",
-   "sha256": "c2c7b60a70e0019f98efc3a134a89c6a4fd5e69daf95e99b047915862dfba8e3",
+   "sha256": "3a64137f394cdecaa80bb4aea0dc5223618a2a81175da16ab453f038daa3bb78",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
    "durationSamples": 25200,
    "peakSeconds": 0.0595,
-   "loudnessLufs": -26.8,
+   "loudnessLufs": -26.5,
    "tags": [
     "step",
     "footstep",
@@ -2948,6 +3012,36 @@
    ],
    "description": "One footstep in snow: heel and sole pressing a crunch.",
    "sourceUrl": "https://freesound.org/people/cabled_mess/sounds/384424/",
+   "author": "cabled_mess",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "step-snow-5",
+   "path": "recorded/step-snow-5.wav",
+   "sha256": "1d7e4833395f2e2f2f9770a024ca796cdd663f88c4ffee9f72e59d42381afd32",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 23317,
+   "peakSeconds": 0.0253,
+   "loudnessLufs": -26.6,
+   "tags": [
+    "step",
+    "footstep",
+    "walk",
+    "contact",
+    "snow",
+    "recorded"
+   ],
+   "description": "One footstep in fresh snow: a lighter crunch.",
+   "sourceUrl": "https://freesound.org/people/cabled_mess/sounds/384421/",
    "author": "cabled_mess",
    "licenseId": "CC0-1.0",
    "origin": "recorded",
