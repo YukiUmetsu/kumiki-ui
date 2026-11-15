@@ -658,6 +658,13 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(count).toBeGreaterThan((before.d.match(/M[0-9]+ /g)??[]).length);
       expect((after.d.match(/C/g)??[]).length).toBe(count);
       expect(after.d).not.toMatch(/[QqZz]/);
+      // Terminal pickup must be at the anatomical lid ROOT, not the
+      // elevated thin free end (which produced polka-dot mascara beads).
+      if(side==="near"){
+        expect(after.d).toMatch(/^M215 555 C216 557 217 558 218 558/);
+      }else{
+        expect(after.d).toMatch(/^M404 524 C404 525 405 527 406 529/);
+      }
       expect(after.width).toBeLessThan(.36);
       expect(after.opacity).toBeLessThanOrEqual(.70);
       expect(after.waxPressure).toBeLessThanOrEqual(.60);
