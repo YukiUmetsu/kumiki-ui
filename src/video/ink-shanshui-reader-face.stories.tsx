@@ -170,6 +170,39 @@ function ReaderFaceStudio(){
       </section>
       <section>
         <h2 style={{font:"500 18px Georgia,serif"}}>
+          ArtCraft · eye, nose and mouth at 6×
+        </h2>
+        <svg data-testid="reader-anatomy-closeup" role="img"
+          aria-label="Native portrait microanatomy with adjustable eyelid and viseme"
+          viewBox="111 87 58 50" style={box}>
+          <g transform={pose(fit.headRest,139,124)}>
+            <g data-ink-anatomy-feature="base-face">{shapes("face")}</g>
+            {facePart("brows","brow",[140,94])}
+            <g data-ink-anatomy-feature="eye-apertures">
+              {facePart("eyes","eyes-"+eyes,[140,102])}
+            </g>
+            {eyes!=="closed"&&<>
+              <g data-ink-anatomy-feature="near-iris">
+                {facePart("pupil-left","pupil-left",[128,102])}
+              </g>
+              <g data-ink-anatomy-feature="far-iris">
+                {facePart("pupil-right","pupil-right",[156,102])}
+              </g>
+            </>}
+            <g data-ink-anatomy-feature="lip-planes">
+              {facePart("mouth","mouth-"+mouth,[142,124])}
+            </g>
+          </g>
+        </svg>
+        <p style={{fontSize:12,lineHeight:1.6,color:"#715d48"}}>
+          Inspect unequal eyelid apertures, individually connected irises,
+          nasal ridge and alar wings, philtrum, cheek tonal planes and
+          expression-sensitive lips. The eye and mouth controls above drive
+          this same production artwork, not a separate static mockup.
+        </p>
+      </section>
+      <section>
+        <h2 style={{font:"500 18px Georgia,serif"}}>
           ArtCraft · isolated nine-region crown construction
         </h2>
         <svg data-testid="reader-crown-artcraft" role="img"
