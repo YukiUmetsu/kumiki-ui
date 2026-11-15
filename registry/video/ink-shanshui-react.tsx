@@ -1,7 +1,7 @@
 import {useId,useMemo} from "react";
 import type {ReactNode} from "react";
 import {assertShanshuiControls,shanshuiAt,shanshuiHash} from "./ink-shanshui";
-import type {ShanshuiControls,ShanshuiScene,ShanshuiMotion} from "./ink-shanshui";
+import type {ShanshuiControls,ShanshuiScene,ShanshuiMotion,InkRockSchool} from "./ink-shanshui";
 
 /**
  * A procedural painter, NOT a flat bitmap disguised as a movie.
@@ -266,6 +266,175 @@ function rockLoadedCubicRibbon(root:P,c1:P,c2:P,tip:P,width:number,seed:number){
       f(next[0])+" "+f(next[1]));
   }
   return out.join(" ")+" Z";
+}
+/**
+ * Four distinct historic ink-rock grammars, all drawn as editable SVG.
+ *
+ * Huang Gongwang (Fuchun): uneven long hemp, paper between dense families.
+ * Guo Xi (Early Spring): curled cloud-head folds and reversing hook strokes.
+ * Fan Kuan (Travelers): heavy monumental faces / short loaded raindrop cun.
+ * Wang Meng (Forest Chamber Grotto): dense curved dry ox-hair brush traffic.
+ *
+ * These are original authored parent forms with seeded brush-flow children,
+ * NOT scanned textures, a common noise overlay, or unrelated sticker marks.
+ * Each mark roots on its own positively painted rock-face upper contour and
+ * is clipped to that exact face. Changing school never changes the 300-frame
+ * camera, walker, ridge topology, or original tree/landscape anatomy.
+ */
+function MasterRockBrush({root,seed,mist,detail,school}:{
+  root:P;seed:number;mist:number;detail:number;school:InkRockSchool;
+}){
+  const id=useId().replace(/[^a-z0-9_-]/gi,"");
+  const control:P=[root[0]-19,root[1]+31];
+  const tip:P=[root[0]-56,root[1]+116];
+  const parent=[
+    {at:.085,side:-1,spread:118,rise:27,depth:132},
+    {at:.32,side:1,spread:94,rise:15,depth:123},
+    {at:.61,side:-1,spread:82,rise:16,depth:92},
+  ] as const;
+  const strokes:Record<InkRockSchool,readonly number[]>={
+    "fuchun":[34,26,18],
+    "early-spring":[22,17,13],
+    "travelers":[78,65,44],
+    "forest-grotto":[73,59,46],
+  };
+  const label:Record<InkRockSchool,string>={
+    "fuchun":"long-hemp",
+    "early-spring":"cloud-head",
+    "travelers":"raindrop",
+    "forest-grotto":"ox-hair",
+  };
+  return <g data-km-master-rock-art="" data-km-master-school={school}
+    data-km-master-hero-root={f(root[0])+","+f(root[1])}>
+    {parent.map((plane,i)=>{
+      const a=quadraticPoint(root,control,tip,plane.at);
+      const direction=plane.side;
+      const reach=plane.spread*(.95+.12*s(seed+4011,i*47));
+      const rise=plane.rise*(.88+.21*s(seed+4027,i*59));
+      const depth=plane.depth*(.9+.13*s(seed+4031,i*37));
+      const crown:P=[a[0]+direction*reach*.45,a[1]-rise];
+      const shoulder:P=[a[0]+direction*reach*.82,a[1]+depth*.32];
+      const outer:P=[a[0]+direction*reach*.78,a[1]+depth*.91];
+      const inner:P=[a[0]+direction*reach*.12,a[1]+depth*.82];
+      // Three different non-radial rock cheeks: supported concavities
+      // between weighted outer shoulders, no detached polygon triangle.
+      const mass="M"+f(a[0])+" "+f(a[1])+
+        " C"+f(a[0]+direction*reach*.15)+" "+f(a[1]-rise*.61)+
+        " "+f(crown[0]-direction*reach*.14)+" "+f(crown[1]-rise*.11)+
+        " "+f(crown[0])+" "+f(crown[1])+
+        " C"+f(a[0]+direction*reach*.74)+" "+f(a[1]-rise*.63)+
+        " "+f(a[0]+direction*reach*.77)+" "+f(a[1]+depth*.11)+
+        " "+f(shoulder[0])+" "+f(shoulder[1])+
+        " C"+f(a[0]+direction*reach*.97)+" "+f(a[1]+depth*.52)+
+        " "+f(a[0]+direction*reach*.76)+" "+f(a[1]+depth*.75)+
+        " "+f(outer[0])+" "+f(outer[1])+
+        " C"+f(a[0]+direction*reach*.58)+" "+f(a[1]+depth*.8)+
+        " "+f(a[0]+direction*reach*.35)+" "+f(a[1]+depth*.94)+
+        " "+f(inner[0])+" "+f(inner[1])+
+        " C"+f(a[0]-direction*reach*.09)+" "+f(a[1]+depth*.6)+
+        " "+f(a[0]+direction*reach*.19)+" "+f(a[1]+depth*.17)+
+        " "+f(a[0])+" "+f(a[1])+" Z";
+      const clip="kmrk"+id+"m"+i;
+      const tone=clip+"tone";
+      const qty=Math.round(strokes[school][i]*detail);
+      const brush=Array.from({length:qty},(_,j)=>{
+        const budget=strokes[school][i];
+        // Distribute marks in two natural, unequal source-flow clusters.
+        // Leave the center of each material mass with breathing paper.
+        const first=Math.ceil(budget*.57);
+        const t=j<first
+          ?.13+j*(.29/Math.max(1,first-1))+
+            (s(seed+4111,j*43+i*17)-.5)*.015
+          :.57+(j-first)*(.31/Math.max(1,budget-first-1))+
+            (s(seed+4127,j*37+i*29)-.5)*.014;
+        const at=clamp(t,.1,.9);
+        const entry=quadraticPoint(a,crown,shoulder,at);
+        const jitter=(s(seed+4153,j*31+i*19)-.5);
+        // Source vocabularies differ in geometry, loaded width, cadence,
+        // and curve direction. They must not be the same stamp with opacity.
+        const wt=s(seed+4177,j*11+i*31);
+        const wt2=s(seed+4193,j*17+i*47);
+        let c1:P,c2:P,end:P,width:number;
+        if(school==="travelers"){
+          const len=4.2+7.4*wt+(j%6===0?3:0);
+          const drift=direction*(.3+2*wt2)+jitter*2.6;
+          c1=[entry[0]+drift*.24,entry[1]+len*.12];
+          c2=[entry[0]+drift*.81,entry[1]+len*.56];
+          end=[entry[0]+drift,entry[1]+len];
+          width=.82+1.6*wt+(j%8===0?.83:0);
+        }else if(school==="early-spring"){
+          const len=17+20*wt+(j%5===0?9:0);
+          const sway=direction*(10+14*wt2);
+          c1=[entry[0]+sway*.94,entry[1]+len*.08];
+          c2=[entry[0]-sway*.62,entry[1]+len*.8];
+          end=[entry[0]+sway*.45+3*jitter,entry[1]+len];
+          width=1.4+2.25*wt;
+        }else if(school==="forest-grotto"){
+          const len=23+35*wt+(j%7===0?11:0);
+          const sway=direction*(14+16*wt2)+jitter*8;
+          c1=[entry[0]+sway*.36,entry[1]+len*.17];
+          c2=[entry[0]+sway*1.3,entry[1]+len*.63];
+          end=[entry[0]+sway*.9,entry[1]+len];
+          width=.58+.92*wt+(j%11===0?.67:0);
+        }else{
+          const len=17+29*wt+(j%5===0?7:0);
+          const sway=direction*(10+12*wt2)+jitter*6;
+          c1=[entry[0]+sway*.12,entry[1]+len*.28];
+          c2=[entry[0]+sway*.72,entry[1]+len*.54];
+          end=[entry[0]+sway,entry[1]+len];
+          width=.82+1.1*wt+(j%7===0?.6:0);
+        }
+        const pressure=rockLoadedCubicRibbon(entry,c1,c2,end,width,
+          seed+4211+i*113+j*13);
+        const dry=(j%5===2||j%9===4);
+        const cut=cubicPoint(entry,c1,c2,end,.76);
+        const lift=cubicPoint(entry,c1,c2,end,.96);
+        const dryPath="M"+f(cut[0])+" "+f(cut[1])+
+          " Q"+f((cut[0]+lift[0])*.5+direction*.7)+" "+
+          f((cut[1]+lift[1])*.5)+" "+f(lift[0])+" "+f(lift[1]);
+        return {entry,pressure,dry,dryPath};
+      });
+      const isFan=school==="travelers",isGuo=school==="early-spring";
+      const isWang=school==="forest-grotto";
+      return <g key={i} data-km-master-face=""
+        data-km-master-face-root={f(a[0])+","+f(a[1])}
+        data-km-master-face-side={direction}
+        data-km-master-plane-index={i}>
+        <defs>
+          <clipPath id={clip} clipPathUnits="userSpaceOnUse">
+            <path d={mass}/>
+          </clipPath>
+          <linearGradient id={tone} x1="0%" y1="0%" x2="38%" y2="100%">
+            <stop offset="0" stopColor={isFan?"#2b2826":isWang?"#3d352f":"#504536"}
+              stopOpacity={isFan?.81:isWang?.76:.65}/>
+            <stop offset=".24" stopColor={isFan?"#4b4035":isWang?"#4a3c34":"#77634d"}
+              stopOpacity={isFan?.76:isWang?.7:.49}/>
+            <stop offset=".57" stopColor={isFan?"#735e48":isWang?"#745e4a":"#907960"}
+              stopOpacity={isFan?.41:isWang?.47:.31}/>
+            <stop offset=".92" stopColor="#b9a287" stopOpacity=".08"/>
+            <stop offset="1" stopColor="#b9a287" stopOpacity="0"/>
+          </linearGradient>
+        </defs>
+        <path data-km-master-mass="" d={mass}
+          fill={"url(#"+tone+")"} opacity={f((isFan?.96:isWang?.94:.87)*(1-.16*mist))}/>
+        <g data-km-master-brush-field="" data-km-master-field-count={qty}
+          clipPath={"url(#"+clip+")"}>
+          {brush.map(({entry,pressure,dry,dryPath},j)=><g key={j}
+            data-km-master-stroke="" data-km-master-stroke-style={label[school]}
+            data-km-master-stroke-root={f(entry[0])+","+f(entry[1])}
+            data-km-master-stroke-dry={dry?"dry":"wet"}>
+            <path data-km-master-stroke-loaded="" d={pressure}
+              fill={isFan?"#2a2623":isWang?"#322d29":isGuo?"#392f28":"#44382f"}
+              opacity={f((dry?.35:isFan?.83:isWang?.68:isGuo?.72:.62)*
+                (1-.25*mist))}/>
+            {dry&&<path data-km-master-dry-tail="" d={dryPath}
+              fill="none" stroke="#86735a" strokeWidth={isFan?.34:.55}
+              opacity={f(.37*(1-.18*mist))}/>}
+          </g>)}
+        </g>
+      </g>;
+    })}
+  </g>;
 }
 /** One deliberately composed folded rock formation, not a collection
  * of repeated floating pebbles. Its parent bone emerges at a *real*
@@ -998,8 +1167,9 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
     })}
   </g>;
 }
-function Mountains({scene,seed,detail,mist,ink,ids}:{
+function Mountains({scene,seed,detail,mist,ink,school,ids}:{
   scene:ShanshuiScene;seed:number;detail:number;mist:number;ink:number;
+  school:InkRockSchool;
   ids:{far:string;mid:string;near:string;grain:string};
 }){
   return <g data-km-shanshui-mountains="">
@@ -1153,6 +1323,8 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
             </clipPath>
           </defs>
           <g clipPath={"url(#"+ids.grain+"-hero-"+band+"-clip)"}>
+            <MasterRockBrush root={[heroPeak[0],ridgeHeight(stations,heroPeak[0])+2.5]}
+              seed={seed+band*251+777} mist={mist} detail={detail} school={school}/>
             <MountainHeroCliff
               root={[heroPeak[0],ridgeHeight(stations,heroPeak[0])+2.5]}
               seed={seed+band*251+777} mist={mist} detail={detail}/>
@@ -2443,7 +2615,8 @@ export function InkShanshuiStage({frame,controls={
       <g data-km-shanshui-world="" transform={transform}>
         <g opacity={f(washOpacity)}>
           <Mountains scene={controls.scene} seed={seed} detail={controls.detail}
-            mist={controls.mist} ink={controls.ink} ids={ids}/>
+            mist={controls.mist} ink={controls.ink}
+            school={controls.inkSchool??"fuchun"} ids={ids}/>
           <Clouds shift={at.cloudX}/>
           <Birds motion={at}/>
           {controls.scene==="mountain-trail"&&
