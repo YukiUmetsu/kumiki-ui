@@ -291,13 +291,17 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     // Very dark, thin source upper lash bands are deposited in real wax.
     // The heavy pigment is intentional but must not expand the scleral
     // mask into a flat full-eye paint capsule.
-    for(const id of ["lash-root-near","lash-contact-near"]){
-      const lid=get(id);
-      expect(lid).toMatchObject({kind:"wax",parentId:"face-outline",
-        clipToParent:true,coverage:"opaque",deposition:"stroke-built"});
-      if(lid?.kind!=="wax")throw new Error("Missing attached eyelash wax");
-      expect(lid.underpaintTooth).toBeLessThan(.2);
-    }
+    expect(get("lash-root-near")).toMatchObject({kind:"wax",
+      parentId:"face-outline",clipToParent:true,
+      coverage:"opaque",deposition:"stroke-built"});
+    const nearLashes=get("lash-contact-near");
+    expect(nearLashes).toMatchObject({kind:"contour",
+      parentId:"face-outline",clipToParent:true,
+      waxContact:"dry-wax",waxPressure:.76});
+    if(nearLashes?.kind!=="contour")throw new Error("Missing near wax fibers");
+    expect(nearLashes.d.match(/ M/g)?.length).toBeGreaterThanOrEqual(9);
+    expect(nearLashes.d).not.toMatch(/[QqZz]/);
+    expect(nearLashes.width).toBeLessThan(.45);
     const layers=scene.elements.map(e=>e.id);
     expect(layers.indexOf("iris-near")).toBeLessThan(
       layers.indexOf("upper-lid-near"));
@@ -323,11 +327,12 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
         parentId:"face-outline",clipToParent:true,
         coverage:"open",deposition:"stroke-built"});
     }
-    for(const id of ["lash-root-far","lash-contact-far"]){
-      expect(get(id)).toMatchObject({kind:"wax",
-        parentId:"face-outline",clipToParent:true,
-        coverage:"opaque",deposition:"stroke-built"});
-    }
+    expect(get("lash-root-far")).toMatchObject({kind:"wax",
+      parentId:"face-outline",clipToParent:true,
+      coverage:"opaque",deposition:"stroke-built"});
+    expect(get("lash-contact-far")).toMatchObject({kind:"contour",
+      parentId:"face-outline",clipToParent:true,
+      waxContact:"dry-wax",waxPressure:.73});
     const layers=scene.elements.map(e=>e.id);
     expect(layers.indexOf("iris-far")).toBeLessThan(
       layers.indexOf("upper-lid-far"));
