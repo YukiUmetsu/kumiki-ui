@@ -17,19 +17,23 @@ function audit(spec: RigSpec) {
   const legs = gaits.flatMap(g => g.type === "gait" ? g.legs.map(l => ({ ...l, ground: g.ground ?? spec.ground ?? 0 })) : []);
   const byId = new Map(spec.bones.map(b => [b.id, b]));
   const rows: string[] = [];
-  let worstSlide = 0, worstReach = 0, clamped = 0, planted = 0;
+  let worstSlide = 0, worstSkid = 0, worstReach = 0, clamped = 0, planted = 0;
   for (const leg of legs) {
     const a = byId.get(leg.upper)!.length!, b = byId.get(leg.lower)!.length!;
     let run: number[] = [];
-    const flush = () => { if (run.length > 1) worstSlide = Math.max(worstSlide, Math.max(...run) - Math.min(...run)); run = []; };
+    // Planted drift is measured inside each contact run; the first and last frames (touch-down and lift-off) are
+    // reported separately as the contact skid.
+    const flush = () => { if (run.length > 3) { const inner = run.slice(1, -1); worstSlide = Math.max(worstSlide, Math.max(...inner) - Math.min(...inner)); worstSkid = Math.max(worstSkid, Math.max(...run) - Math.min(...run)); } run = []; };
     for (let f = 20; f < FRAMES - 20; f++) {
       const fr = evaluateRig(spec, f), up = fr.bones.get(leg.upper)!.world, lo = fr.bones.get(leg.lower)!.world;
       const end = [lo.c * b + lo.e, lo.d * b + lo.f], hip = [up.e, up.f];
       const s = Math.hypot(fr.toScene.a, fr.toScene.b);
       const groundY = fr.root.y + (leg.ground - (leg.sole ?? 0)) * s;
+      const ankle = [end[0], end[1]];
+      if (leg.pastern && leg.foot) { const fb = fr.bones.get(leg.foot)!; end[0] = fb.world.c * fb.length + fb.world.e; end[1] = fb.world.d * fb.length + fb.world.f; }
       // A foot is "down" when its ankle is within half a pixel of the sole height, or when its toe is planted.
       const down = Math.abs(end[1] - groundY) < .5;
-      const ratio = Math.hypot(end[0] - hip[0], end[1] - hip[1]) / ((a + b) * s);
+      const ratio = Math.hypot(ankle[0] - hip[0], ankle[1] - hip[1]) / ((a + b) * s);
       if (down) { planted++; run.push(end[0]); worstReach = Math.max(worstReach, ratio); if (ratio > .997) clamped++; } else flush();
     }
     flush();
@@ -37,7 +41,7 @@ function audit(spec: RigSpec) {
   // Ankles at the sole height cover the flat part of stance (feet with a toe roll lift the ankle late in stance).
   const travelling = gaits.some(g => g.type === "gait" && g.start !== undefined);
   const expected = travelling ? gaits.reduce((s, g) => s + (g.type === "gait" ? g.legs.length * (g.stance ?? .6) * (g.legs[0].toe ? .52 : 1) : 0), 0) * (FRAMES - 40) : legs.length * (FRAMES - 40);
-  rows.push(`slide ${worstSlide.toFixed(2)}px  reach ${(worstReach * 100).toFixed(1)}%  clamped ${clamped}  down ${planted}/${Math.round(expected)}`);
+  rows.push(`slide ${worstSlide.toFixed(2)}px  contact skid ${worstSkid.toFixed(1)}px  reach ${(worstReach * 100).toFixed(1)}%  clamped ${clamped}  down ${planted}/${Math.round(expected)}`);
   return rows.join(" ");
 }
 

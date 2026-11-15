@@ -64,6 +64,15 @@ export interface RigPart {
   line?: boolean;
   /** Line width when `line` is set. */
   lineWidth?: number;
+  /**
+   * Solid depth for turns: the outline is extruded across the figure's `depth3d`. When the root yaws, the far side
+   * shifts by depth·tan(yaw) and the faces between the near and far outlines (a car's hood, windscreen, nose, tail)
+   * are drawn, shaded by the way they face.
+   */
+  extrude?: boolean;
+  /** Sits on the far side of a solid figure (far wheels, the other headlamp, far indicators): drawn shifted by the
+   * depth when the figure yaws; `under` paints below the extruded faces, `over` on top of them. */
+  far3d?: "under" | "over";
 }
 
 /** Keyframed local overrides for one bone (added to rest and drivers). */
@@ -108,6 +117,16 @@ export interface RigLeg {
   toe?: number;
   /** Fraction of the foot's fore-aft travel the hip joint follows (a quadruped's shoulder blade and pelvis swing). */
   swingHip?: number;
+  /**
+   * Pastern length (hooves, paws): `foot` becomes the pastern from the fetlock to the ground contact. During stance the
+   * leg above stays almost straight and the fetlock sinks or rises on the pastern to take up the height (a galloping
+   * horse's planted leg is a straight column while the fetlock drops under load); in swing the leg folds and reaches.
+   */
+  pastern?: number;
+  /** Hoof or paw bone at the pastern's end, kept flat on the ground in stance. */
+  hoof?: string;
+  /** With a pastern: how straight the leg above stays in stance, as a fraction of its full length (default .985). */
+  straight?: number;
 }
 
 export type RigDriver = RigWindow & (
@@ -153,13 +172,15 @@ export type RigDriver = RigWindow & (
   | { type: "flash"; bones: readonly string[]; period?: number; duty?: number; phase?: number; fade?: number }
   /** Suspension and inertia: the bone pitches and heaves on a damped spring driven by the root's acceleration
    * (nose dives under braking, squats under throttle, rebounds when stopped; riders lurch). */
-  | { type: "suspension"; bone: string; pitch: number; heave?: number; period?: number; damping?: number; max?: number }
+  | { type: "suspension"; bone: string; pitch: number; heave?: number; period?: number; damping?: number; max?: number;
+      /** Asymmetric limits [min, max] in degrees (a bicycle can lift its rear wheel but not sink it). */ range?: readonly [number, number] }
   /** Turning in depth: end-face bones open by sin(yaw) from the root's `yaw` (the whole figure foreshortens by cos(yaw)).
    * List several bones per end when the face is stepped in depth (a bumper at the tail, the hatch glass further in). */
   | { type: "turn"; rear?: readonly string[]; front?: readonly string[] }
   /** Constant spin (propellers, rotors, fans): degrees per frame with a spin-up time. `project` spins edge-on (a rotor
    * blade seen from the side): instead of turning, the bone's x scale follows cos(angle) plus `phase` degrees. */
-  | { type: "spin"; bone: string; speed: number; spinUp?: number; project?: boolean; phase?: number }
+  | { type: "spin"; bone: string; speed: number; spinUp?: number; project?: boolean; phase?: number;
+      /** Frames to wind down to a stop that ends at the window's `end` (a rotor after landing). */ spinDown?: number }
   /** Crank linkage: a rod whose one end rides a pin on a turning wheel. `slide` keeps the far end on a horizontal guide
    * (piston/crosshead); `coupling` keeps the rod parallel (coupling rods between drivers). */
   | { type: "crank"; wheel: string; rod: string; radius: number; length?: number; mode: "slide" | "coupling"; phase?: number; slideY?: number;
@@ -202,6 +223,8 @@ export interface RigSpec {
   ground?: number;
   /** Size of the figure for framing: width and height around the root, in design px. */
   bounds: { x: number; y: number; width: number; height: number };
+  /** Width of the figure across the picture (design px), for `extrude` and `far3d` parts when it yaws. */
+  depth3d?: number;
   /** Provenance of the design (original rigs say so). */
   provenance: { license: string; source: string };
 }
@@ -264,6 +287,8 @@ export function inspectRig(input: unknown): string[] {
     if (!RIG_ROLES.includes(q.role)) out.push(p + ".role is not a rig role");
     if (!fin(q.z)) out.push(p + ".z must be finite");
     if (q.color !== undefined && !HEX.test(q.color)) out.push(p + ".color must be a 6-digit hex colour");
+    if (q.far3d !== undefined && q.far3d !== "under" && q.far3d !== "over") out.push(p + ".far3d must be under or over");
+    if ((q.extrude || q.far3d) && !(fin(r.depth3d) && r.depth3d! > 0)) out.push(p + " needs the rig's depth3d");
     shapeIssues(q.shape, p + ".shape", out);
     for (const [name, v] of Object.entries(q.variants ?? {})) shapeIssues(v as RigShape, p + ".variants." + name, out);
   });
@@ -284,9 +309,11 @@ export function inspectRig(input: unknown): string[] {
         else d.legs.forEach((l, j) => {
           bone(l.upper, p + ".legs[" + j + "].upper"); bone(l.lower, p + ".legs[" + j + "].lower");
           if (l.foot !== undefined) bone(l.foot, p + ".legs[" + j + "].foot");
+          if (l.hoof !== undefined) bone(l.hoof, p + ".legs[" + j + "].hoof");
+          if (l.pastern !== undefined && !l.foot) out.push(p + ".legs[" + j + "].pastern needs a foot bone");
           if (!fin(l.phase)) out.push(p + ".legs[" + j + "].phase must be finite");
           if (l.bend !== 1 && l.bend !== -1) out.push(p + ".legs[" + j + "].bend must be 1 or -1");
-          for (const k of ["lift", "curl", "toe", "sole", "swingHip"] as const) if (l[k] !== undefined && !fin(l[k])) out.push(p + ".legs[" + j + "]." + k + " must be finite");
+          for (const k of ["lift", "curl", "toe", "sole", "swingHip", "pastern", "straight"] as const) if (l[k] !== undefined && !fin(l[k])) out.push(p + ".legs[" + j + "]." + k + " must be finite");
           for (const id of [l.upper, l.lower]) if (!((bones.get(id)?.length ?? 0) > 0)) out.push(p + ".legs[" + j + "] bone \"" + id + "\" needs a length");
         });
         if (!fin(d.stride) || d.stride <= 0) out.push(p + ".stride must be > 0");

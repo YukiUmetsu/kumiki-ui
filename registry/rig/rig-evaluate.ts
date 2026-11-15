@@ -175,7 +175,11 @@ function keyedPoint(keys: readonly { frame: number; x: number; y: number; ease?:
 }
 
 export interface RigBoneFrame { id: string; local: AffineMatrix; world: AffineMatrix; opacity: number; length: number }
-export interface RigPartFrame { id: string; bone: string; role: RigRole; shape: RigShape; matrix: AffineMatrix; z: number; color?: string; opacity: number; line?: boolean; lineWidth?: number; variant?: string; far?: boolean }
+export interface RigPartFrame {
+  id: string; bone: string; role: RigRole; shape: RigShape; matrix: AffineMatrix; z: number; color?: string; opacity: number; line?: boolean; lineWidth?: number; variant?: string; far?: boolean;
+  /** For `extrude` parts: the far side's matrix (the faces span from `matrix` to it). For `far3d` parts it replaces `matrix`. */
+  farMatrix?: AffineMatrix; extrude?: boolean; far3d?: "under" | "over";
+}
 export interface RigFrame {
   frame: number;
   root: RigRootState;
@@ -221,7 +225,7 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
   // Pass 2: pose drivers.
   for (const d of drivers) {
     const w = envelope(d, f);
-    if (w <= 0 && d.type !== "clock" && d.type !== "variant" && d.type !== "flash" && d.type !== "wheel" && d.type !== "turn") continue;
+    if (w <= 0 && d.type !== "clock" && d.type !== "variant" && d.type !== "flash" && d.type !== "wheel" && d.type !== "turn" && d.type !== "spin") continue;
     const P = (id: string) => pose.get(id)!;
     switch (d.type) {
       case "wing": {
@@ -271,8 +275,14 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
         break;
       }
       case "spin": {
-        const t = f - (d.start ?? 0), up = d.spinUp ?? 0;
-        const turned = up > 0 && t < up ? d.speed * t * t / (2 * up) : d.speed * (t - up / 2);
+        const t = f - (d.start ?? 0), up = d.spinUp ?? 0, down = d.spinDown ?? 0;
+        const spun = (tt: number) => up > 0 && tt < up ? d.speed * tt * tt / (2 * up) : d.speed * (tt - up / 2);
+        let turned = spun(t);
+        if (down > 0 && d.end !== undefined) {
+          // Wind down linearly to a stop at the window's end, then hold the blade where it stopped.
+          const t1 = d.end - (d.start ?? 0) - down;
+          if (t > t1) { const tau = Math.min(t - t1, down); turned = spun(t1) + d.speed * (tau - tau * tau / (2 * down)); }
+        }
         if (d.project) P(d.bone).sx *= Math.cos(((t > 0 ? turned : 0) + (d.phase ?? 0)) / DEG);
         else P(d.bone).rotate += t > 0 ? turned : 0;
         break;
@@ -300,8 +310,8 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
           const a = velocityAt(keys, f - k + .5) - velocityAt(keys, f - k - .5);
           x += a * om * om * Math.exp(-zeta * om * k) * Math.sin(od * k) / od;
         }
-        const lim = d.max ?? 12;
-        P(d.bone).rotate += clamp(-x * d.pitch, -lim, lim);
+        const lim = d.max ?? 12, [lo, hi] = d.range ?? [-lim, lim];
+        P(d.bone).rotate += clamp(-x * d.pitch, lo, hi);
         if (d.heave) P(d.bone).y += -x * d.heave;
         break;
       }
@@ -402,6 +412,11 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
     for (const sw of d.swing ?? []) pose.get(sw.bone)!.rotate += wm * sw.amplitude * Math.cos(2 * Math.PI * (sw.harmonic ?? 1) * (cyc + sw.phase));
     solve();
     for (const leg of d.legs) {
+      if (leg.pastern && leg.foot) {
+        const c = pasternLeg(leg, cyc, stance, d.stride, lift, ground, wm, rest, byId, pose, world, solve);
+        if (c) contacts.push(c);
+        continue;
+      }
       const target = legTarget(leg, cyc, stance, d.stride, lift, ground, wm, rest, byId);
       if (leg.swingHip) { pose.get(leg.upper)!.x += leg.swingHip * (target.foot[0] - target.hip); solve(); }
       solveTwoBone(leg.upper, leg.lower, leg.bend, target.foot, byId, pose, world, 1);
@@ -481,12 +496,17 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
   // Pass 6: parts.
   const yawC = Math.max(.2, Math.cos(root.yaw / DEG));
   const toScene = mul(local(root.x, root.y, root.rotate, 1, 1), local(0, 0, 0, root.facing * root.scale * yawC, root.scale));
+  // Solid figures turning in depth: the far side sits depth·tan(yaw) behind the near side (in root space, before the
+  // cos(yaw) foreshortening of `toScene`).
+  const farShift = spec.depth3d ? -spec.depth3d * Math.tan(clamp(root.yaw, -80, 80) / DEG) : 0;
+  const farScene = mul(toScene, local(farShift, 0, 0, 1, 1));
   const parts: RigPartFrame[] = spec.parts.map((q: RigPart) => {
     const v = variants.get(q.id);
     return {
       id: q.id, bone: q.bone, role: q.role, z: q.z, color: q.color, line: q.line, lineWidth: q.lineWidth, variant: v, far: q.far,
       shape: v && q.variants?.[v] ? q.variants[v] : q.shape,
-      matrix: mul(toScene, world.get(q.bone)!), opacity: alpha.get(q.bone)!,
+      matrix: mul(q.far3d ? farScene : toScene, world.get(q.bone)!), opacity: alpha.get(q.bone)!,
+      extrude: q.extrude || undefined, far3d: q.far3d, farMatrix: q.extrude ? mul(farScene, world.get(q.bone)!) : undefined,
     };
   }).filter(p => p.opacity > .003).sort((a, b) => a.z - b.z);
   const bones = new Map<string, RigBoneFrame>(spec.bones.map((b: RigBone) => {
@@ -517,6 +537,101 @@ export function clockHours(time: readonly { frame: number; hours: number; ease?:
     return a.hours + (b.hours - a.hours) * evaluateEasing(b.ease ?? "linear", (frame - a.frame) / (b.frame - a.frame));
   }
   return time[time.length - 1].hours;
+}
+
+/** Where the fetlock sits for a hoof planted at H: on the pastern's circle around H, at the distance from the hip that keeps
+ * the leg above nearly straight, behind and above the hoof. Out of range, the pastern points at the hip. */
+function fetlockFor(H: [number, number], P: number, J: [number, number], s: number): [number, number] {
+  const dx = J[0] - H[0], dy = J[1] - H[1], d = Math.hypot(dx, dy) || 1e-6;
+  const toHip: [number, number] = [H[0] + P * dx / d, H[1] + P * dy / d];
+  if (d >= P + s || d <= Math.abs(s - P)) return toHip;
+  const a = (P * P - s * s + d * d) / (2 * d), h = Math.sqrt(Math.max(0, P * P - a * a)), mx = H[0] + a * dx / d, my = H[1] + a * dy / d;
+  const p1: [number, number] = [mx + h * dy / d, my - h * dx / d], p2: [number, number] = [mx - h * dy / d, my + h * dx / d];
+  const F = p1[0] < p2[0] ? p1 : p2;
+  // A pastern never flattens past ~15° above the ground; then the knee takes the rest.
+  const minUp = Math.sin(15 / DEG) * P;
+  return H[1] - F[1] >= minUp ? F : [H[0] - Math.cos(15 / DEG) * P, H[1] - minUp];
+}
+/** Bone `rotate` (0 = pointing down) whose +y points from p to q. */
+const directionAngle = (p: [number, number], q: [number, number]) => Math.atan2(-(q[0] - p[0]), q[1] - p[1]) * DEG;
+
+/**
+ * A leg with a pastern (hooves, paws). Stance: the hoof is planted and stays put while the body passes; the fetlock rides
+ * the pastern so the leg above stays almost straight (a column), sinking under load at mid-stance. Swing: the fetlock
+ * follows a ground-speed-matched arc between the lift-off and landing fetlocks, folding high, and the hoof flips back.
+ */
+function pasternLeg(leg: RigLeg, cycle: number, stance: number, stride: number, lift: number, ground: number, w: number,
+  rest: Map<string, AffineMatrix>, byId: Map<string, RigBone>, pose: Map<string, Pose>, world: Map<string, AffineMatrix>, solve: () => void): [number, number] | undefined {
+  const upper = byId.get(leg.upper)!, lower = byId.get(leg.lower)!, P = leg.pastern!;
+  const [hx] = apply(upper.parent ? mul(rest.get(upper.parent)!, local(upper.x, upper.y, 0, 1, 1)) : local(upper.x, upper.y, 0, 1, 1), 0, 0);
+  const t = frac(cycle + leg.phase), R = stride * stance, L = lift * (leg.lift ?? 1), swing = t >= stance;
+  // Hooves match ground speed almost fully at lift-off and touch-down: they leave and arrive without skidding.
+  const s = swing ? (t - stance) / (1 - stance) : 0, m = -R / stance * (1 - stance) * .85;
+  const relStance = (tt: number) => R * (.5 - tt / stance);
+  const rel = swing ? hermite(relStance(stance), relStance(0), m, m, s) : relStance(t);
+  if (leg.swingHip) { pose.get(leg.upper)!.x += leg.swingHip * rel * w; solve(); }
+  const parentM = upper.parent ? world.get(upper.parent)! : IDENT, up = pose.get(leg.upper)!;
+  const J = apply(parentM, up.x, up.y), reachS = (leg.straight ?? .985) * (upper.length! + lower.length!);
+  const hoofAt = (r: number): [number, number] => [hx + r * w, ground];
+  // Unloaded, the pastern continues the line of the leg (it points at the hip); loaded, the fetlock sinks onto the
+  // pastern so the leg above stays straight. The load comes on just after touchdown and goes off before push-off.
+  const unloaded = (H: [number, number]): [number, number] => { const dx = J[0] - H[0], dy = J[1] - H[1], d = Math.hypot(dx, dy) || 1; return [H[0] + P * dx / d, H[1] + P * dy / d]; };
+  /** Between two fetlock positions on the pastern's circle around the hoof: blend the angle, so the pastern keeps its length. */
+  const onPastern = (H: [number, number], A: [number, number], B: [number, number], k: number): [number, number] => {
+    const a = Math.atan2(A[1] - H[1], A[0] - H[0]), b = Math.atan2(B[1] - H[1], B[0] - H[0]), d = Math.atan2(Math.sin(b - a), Math.cos(b - a)), g = a + d * k;
+    return [H[0] + P * Math.cos(g), H[1] + P * Math.sin(g)];
+  };
+  let F: [number, number], aim: [number, number], footAngle: number, hoofLocal = 0, lw = 1, contact: [number, number] | undefined;
+  if (!swing) {
+    // Loaded through the stance (the leg stays a straight column on the sinking fetlock); only at break-over, as the
+    // hoof peels off, does the pastern straighten.
+    const H = hoofAt(rel), k = t / stance, load = w < 1 ? 1 : 1 - smooth((k - .86) / .14);
+    const Fu = unloaded(H), Fl = fetlockFor(H, P, J, reachS);
+    F = onPastern(H, Fu, Fl, load); aim = H;
+    contact = H;
+  } else {
+    // The hoof travels from lift-off to landing on a ground-speed-matched arc: it folds high early (tucked up under the
+    // body), then unfolds so the last third is the leg reaching forward and down, straight, before it lands.
+    const fold = Math.max(s < .35 ? Math.sin(Math.PI / 2 * s / .35) : Math.cos(Math.PI / 2 * Math.min(1, (s - .35) / .42)) ** 2, .28 * Math.sqrt(Math.sin(Math.PI * s)));
+    const H: [number, number] = [hx + rel * w, ground - L * w * fold];
+    // Unloaded in mid-swing (the hoof hangs in line with the leg); reaching for the landing the leg straightens and the
+    // pastern takes its loaded angle, so the leg lands as a straight column.
+    const Fu = unloaded(H), Fl = fetlockFor(H, P, J, reachS);
+    lw = Math.max(1 - smooth(s / .25), smooth((s - .6) / .4));
+    F = onPastern(H, Fu, Fl, lw); aim = H;
+  }
+  solveTwoBone(leg.upper, leg.lower, leg.bend, F, byId, pose, world, 1);
+  solve();
+  const shinAngle = angleOf(world.get(leg.lower)!);
+  // Aim the pastern from the fetlock the IK actually reached at the hoof's intended point. Planted, it may stretch by a
+  // few percent so the hoof sits exactly where it landed even at full reach; swinging, the hoof keeps to its arc.
+  const lm = world.get(leg.lower)!, Fa: [number, number] = [lm.c * lower.length! + lm.e, lm.d * lower.length! + lm.f];
+  footAngle = directionAngle(Fa, aim);
+  if (contact) {
+    hoofLocal = -footAngle;
+    const stretch = clamp(Math.hypot(contact[0] - Fa[0], contact[1] - Fa[1]) / P, .85, 1.15);
+    pose.get(leg.foot!)!.sy *= stretch;
+    if (leg.hoof) pose.get(leg.hoof)!.sy /= stretch;
+  } else hoofLocal = -footAngle * lw;
+  if (swing && leg.curl !== undefined) {
+    // The hoof flips back with the folding cannon at the top of the swing, then reaches for the ground.
+    // Done by three quarters of the swing, so the reaching leg comes down clean with the hoof on its arc.
+    const bump = Math.sin(Math.PI * clamp(s / .75, 0, 1)) * w;
+    footAngle = footAngle + angleDelta(footAngle, shinAngle + leg.curl) * bump;
+    hoofLocal = hoofLocal * (1 - bump);
+  }
+  if (swing) {
+    // A swinging hoof never dips through the ground: tilt the pastern forward until it just clears.
+    const lm = world.get(leg.lower)!, Fy = lm.d * lower.length! + lm.f, drop = Fy + P * Math.cos(footAngle / DEG);
+    if (drop > ground && ground - Fy < P) {
+      const tilt = Math.acos(clamp((ground - Fy) / P, -1, 1)) * DEG * (footAngle < 0 ? -1 : 1);
+      hoofLocal += footAngle - tilt; footAngle = tilt;
+    }
+  }
+  pose.get(leg.foot!)!.rotate = footAngle - shinAngle;
+  if (leg.hoof) pose.get(leg.hoof)!.rotate = hoofLocal;
+  solve();
+  return w > .5 ? contact : undefined;
 }
 
 /** Toe-off roll at the end of stance (radians at lift-off). */

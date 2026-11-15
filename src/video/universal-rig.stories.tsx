@@ -39,7 +39,7 @@ function stage(entry: RigPresetEntry, motion: string, mode: CameraMode, id = ent
     : entry.id === "bird" ? 380 : entry.id === "dragon" ? 400 : 360;
   let from = W / 2, to = W / 2;
   if (staged) {
-    if (motion === "brake" || motion === "sudden-brake") { from = -size * .8; to = W * .6; }
+    if (motion === "brake" || motion === "sudden-brake" || motion === "stop" || motion === "sudden-stop") { from = -size * .8; to = W * .6; }
     else if (motion === "reverse") { from = W * .7; to = W * .32; }
     else if (motion === "turn-away" || motion === "turn-toward") { from = -size * .7; to = W + size * .7; }
   } else if (entry.travels(motion) && pace > 0) {

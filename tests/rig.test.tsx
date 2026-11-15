@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { RIG_PRESETS, scalePath, personRig, quadrupedRig, locomotiveRig, clockRig, birdRig, modernCarRig } from "../registry/rig/rig-presets";
+import { RIG_PRESETS, scalePath, personRig, quadrupedRig, locomotiveRig, clockRig, birdRig, modernCarRig, bicycleRig, helicopterRig } from "../registry/rig/rig-presets";
 import { evaluateRig, wingStroke } from "../registry/rig/rig-evaluate";
 import { inspectRig } from "../registry/rig/rig-spec";
 import type { RigSpec } from "../registry/rig/rig-spec";
@@ -68,7 +68,13 @@ describe("RIG1 motion", () => {
     expect([byLeg["up-fore-near"].bend, byLeg["up-hind-near"].bend]).toEqual([1, -1]);
     // Landing order (phase = 1 − landing time): hind, hind, fore, fore, then a suspension.
     const landing = (id: string) => (1 - byLeg[id].phase) % 1;
-    expect(["up-hind-far", "up-hind-near", "up-fore-far", "up-fore-near"].map(landing)).toEqual([0, .1, .32, .42].map(v => expect.closeTo(v, 5)));
+    expect(["up-hind-far", "up-hind-near", "up-fore-far", "up-fore-near"].map(landing)).toEqual([0, .1, .27, .4].map(v => expect.closeTo(v, 5)));
+    // Joint angles change through the stride: straight in stance (a column on the sinking fetlock), folded in swing.
+    const knee = (f: number) => { const fr = evaluateRig(spec, f), a = fr.bones.get("up-fore-near")!.world, b = fr.bones.get("lo-fore-near")!.world;
+      return Math.abs(((Math.atan2(b.b, b.a) - Math.atan2(a.b, a.a)) * 180 / Math.PI + 540) % 360 - 180); };
+    const knees = Array.from({ length: 60 }, (_, i) => knee(60 + i));
+    expect(Math.min(...knees)).toBeLessThan(24); // .985 of full length: reads straight, never snaps to a locked knee
+    expect(Math.max(...knees)).toBeGreaterThan(70);
   });
   it("beats side-view wings by projection, never swinging the tips ahead of the shoulder", () => {
     const spec = birdRig({ motion: "fly", start: 0, end: 60, from: 0, to: 600 });
@@ -94,13 +100,28 @@ describe("RIG1 motion", () => {
     expect(evaluateRig(back, 120).parts.some(p => p.id === "reverse")).toBe(true);
     expect(evaluateRig(back, 230).parts.some(p => p.id === "reverse")).toBe(false);
   });
-  it("turns into the distance: smaller, foreshortened, rear face open", () => {
+  it("turns into the distance as a solid: smaller, faces opening, far-side indicator only", () => {
     const spec = modernCarRig({ motion: "turn-away", start: 0, end: 240, from: 0, to: 1600, y: 700 });
     const mid = evaluateRig(spec, 138), end = evaluateRig(spec, 230);
     expect(mid.root.yaw).toBeGreaterThan(15);
     expect(end.root.scale).toBeLessThan(.7);
-    expect(mid.parts.some(p => p.id === "rear-face")).toBe(true);
-    expect(evaluateRig(spec, 10).parts.some(p => p.id === "rear-face")).toBe(false);
+    expect(mid.parts.find(p => p.id === "shell")!.farMatrix!.e).toBeLessThan(mid.parts.find(p => p.id === "shell")!.matrix.e - 40);
+    expect(renderToStaticMarkup(<RigScene look="flat" width={1600} height={900} ground={700} frame={138} rigs={[spec]} />)).toContain('data-km-rig-part="shell-face-');
+    // Turning away is a left turn: the far (left) indicators blink, the near ones stay dark.
+    const blink = evaluateRig(spec, 50).parts.map(p => p.id);
+    expect(blink).toContain("ind-r-far");
+    expect(blink).not.toContain("ind-r");
+  });
+  it("stops a bicycle hard enough to lift the rear wheel, and lands a helicopter with the rotor winding down", () => {
+    const bike = bicycleRig({ motion: "sudden-stop", start: 0, end: 240, from: 0, to: 900, y: 700 });
+    const lift = Array.from({ length: 120 }, (_, i) => { const m = evaluateRig(bike, 50 + i).bones.get("pitch")!.local; return Math.atan2(m.b, m.a) * 180 / Math.PI; });
+    expect(Math.max(...lift)).toBeGreaterThan(3);
+    expect(Math.min(...lift)).toBeGreaterThanOrEqual(0);
+    const heli = helicopterRig({ motion: "land", start: 0, end: 240, from: 600, y: 700 });
+    const blade = (f: number) => evaluateRig(heli, f).bones.get("blade-a")!.world.a;
+    expect(blade(100)).not.toBeCloseTo(blade(101), 3);
+    expect(blade(232)).toBeCloseTo(blade(239), 6);
+    expect(evaluateRig(heli, 236).root.y).toBe(700);
   });
   it("sits a person on a chair with feet planted and hands on the knees", () => {
     const spec = personRig({ motion: "sit", start: 0, end: 120, from: 400, y: 700 });
