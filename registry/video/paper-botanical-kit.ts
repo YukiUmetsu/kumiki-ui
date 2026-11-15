@@ -190,6 +190,34 @@ function hindWingVeins(p:Painter,side:-1|1){
     leaf(p,x(72),83,x(124),121,4.4,side*2),
   ].join(" ");
 }
+/** The central ribbon and its leaves are one cut-stock design, never a straight wire. */
+function vineSheet(p:Painter,x0:number,y0:number,x1:number,y1:number,bend:number){
+  const dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy),nx=-dy/len,ny=dx/len;
+  const width=2.65;
+  const c1x=x0+dx*.25+nx*bend,c1y=y0+dy*.25+ny*bend;
+  const c2x=x0+dx*.73-nx*bend,c2y=y0+dy*.73-ny*bend;
+  const ribbon=[
+    p.M(x0+nx*width,y0+ny*width),
+    p.C(c1x+nx*width,c1y+ny*width,c2x+nx*width,c2y+ny*width,
+      x1+nx*width,y1+ny*width),
+    p.L(x1-nx*width,y1-ny*width),
+    p.C(c2x-nx*width,c2y-ny*width,c1x-nx*width,c1y-ny*width,
+      x0-nx*width,y0-ny*width),"Z",
+  ].join(" ");
+  const point=(t:number):[number,number]=>{
+    const u=1-t;
+    return [
+      u*u*u*x0+3*u*u*t*c1x+3*u*t*t*c2x+t*t*t*x1,
+      u*u*u*y0+3*u*u*t*c1y+3*u*t*t*c2y+t*t*t*y1,
+    ];
+  };
+  const leaves=[.23,.43,.64,.81].map((t,i)=>{
+    const [x,y]=point(t),side=i%2===0?1:-1;
+    return leaf(p,x,y,x+dx/len*15+nx*side*21,
+      y+dy/len*15+ny*side*21,5.4,side*1.5);
+  });
+  return [ribbon,...leaves].join(" ");
+}
 function taperedStroke(p:Painter,x0:number,y0:number,x1:number,y1:number,w:number){
   return leaf(p,x0,y0,x1,y1,w,0);
 }
@@ -312,8 +340,8 @@ export function paperBotanicalSpec(
   for(const sign of [-1,1] as const){
     const bx=vertical?sign*21:sign*450,by=vertical?sign*450:sign*22;
     const stem=vertical?
-      leaf(p,bx,by-sign*165,bx,by+sign*58,3.8):
-      leaf(p,bx-sign*165,by,bx+sign*53,by,3.8);
+      vineSheet(p,bx,sign*285,bx,by-sign*26,sign*24):
+      vineSheet(p,sign*285,by,bx-sign*24,by,sign*24);
     add("aspect-spray-"+(sign<0?"a":"b"),c.stem,4,stem,{
       enterFrame:22,durationFrames:40});
     const bloomX=vertical?bx:bx-sign*24,bloomY=vertical?by-sign*26:by;

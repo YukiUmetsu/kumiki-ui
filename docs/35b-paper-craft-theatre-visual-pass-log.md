@@ -79,3 +79,8 @@ Code correction: replace smooth oval wing outlines with multi-scalloped continuo
 Reviewed production and Storybook images from the revised wing/perforation pass (the prior approval evidence is visually superseded). New detail is clearly legible in color and ivory, with correct portrait proportions and no translucent subject stock. The aspect-only flower sprays, however, stopped just outside the circular papercraft mat. The rachis now begins **inside** the medallion radius so the flower and stem have a visible physical bridge to the main relief in both 16:9 and 9:16. A regression asserts this geometric overlap.
 
 The expensive browser/film CI job now tests only the latest botanical studies and new three-scene film; older paper art browser suites remain in source for local runs. It captures a two-aspect native film frame and a 108-frame true production-slot preview. The cheaper targeted workflow still runs all paper unit tests and validates both older and newer JSON film documents.
+
+
+## ArtCraft pass 12 — real output rejects straight-line supports
+
+The actual 16:9 and 9:16 production images of pass 11 revealed a striking failure: the connected peripheral asters were now tethered by thin straight horizontal/vertical lines, which read as technical crosshairs rather than believable paper vines. Replaced each line with one closed S-curved ribbon and four individually tapered leaf blades built from the true ribbon Bézier anchors. The vine ends at its flower center and starts inside the circular medallion; nothing extends uselessly past the blossom. This is the topology-plus-craft correction required before merge.

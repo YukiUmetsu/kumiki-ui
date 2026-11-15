@@ -26,6 +26,8 @@ describe("PAPER1 ArtCraft botanical construction", () => {
           const radius=Math.hypot(Number(start![1])-spec.width/2,
             Number(start![2])-spec.height/2);
           expect(radius).toBeLessThan(322*Math.min(spec.width,spec.height)/720);
+          // Four physically cut leaf blades join each soft S-shaped tendril.
+          expect((spray.path.match(/M/g)||[]).length).toBe(5);
         }
         expect(spec.layers.filter(l=>l.id.startsWith("flower-"))).toHaveLength(20);
         expect(spec.layers.find(l=>l.id==="flower-0-top")?.holes).toHaveLength(9);
