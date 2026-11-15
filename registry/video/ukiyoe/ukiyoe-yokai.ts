@@ -14,13 +14,13 @@
  * authored facing right.
  */
 import type { Pt } from "./ukiyoe-core";
-import { add, carvedLine, clamp01, hash01, lerp, noise1, polar, polyD, smooth, smoothD } from "./ukiyoe-core";
+import { add, carvedLine, clamp01, hash01, hashSigned, lerp, noise1, polar, polyD, smooth, smoothD } from "./ukiyoe-core";
 import type { Prim } from "./ukiyoe-prims";
 import { circleD, ellipseD } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 
-export type UkiyoeYokai = "yukionna" | "yurei" | "rokurokubi" | "kasaobake" | "chochinobake" | "hitodama" | "kappa" | "tengu" | "karasutengu";
-export const UKIYOE_YOKAI: readonly UkiyoeYokai[] = ["yukionna", "yurei", "rokurokubi", "kasaobake", "chochinobake", "hitodama", "kappa", "tengu", "karasutengu"];
+export type UkiyoeYokai = "yukionna" | "yurei" | "rokurokubi" | "kasaobake" | "chochinobake" | "hitodama" | "kappa" | "tengu" | "karasutengu" | "nurikabe" | "tsuchigumo";
+export const UKIYOE_YOKAI: readonly UkiyoeYokai[] = ["yukionna", "yurei", "rokurokubi", "kasaobake", "chochinobake", "hitodama", "kappa", "tengu", "karasutengu", "nurikabe", "tsuchigumo"];
 
 /** What the yōkai drawing needs to know about the creature's actions at this frame. */
 export interface YokaiState {
@@ -537,12 +537,149 @@ function featherY(base: Pt, angle: number, len: number, width: number): string {
   return smoothD([[base[0] + nx * width * .25, base[1] + ny * width * .25], [mid[0] + nx * width * .5, mid[1] + ny * width * .5], tip, [mid[0] - nx * width * .4, mid[1] - ny * width * .4], [base[0] - nx * width * .25, base[1] - ny * width * .25]], true, .4);
 }
 
+// ---- Nurikabe ---------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * The nurikabe, the wall that blocks the night road, after the Edo *Bakemono no e* scroll: a huge white beast crouched
+ * low and broad as a plastered wall, its skin folded and cracked like old plaster, three eyes (one on the brow) ringed
+ * in blue with petal-like lids, a curled nose, a downturned mouth with dark tusks, great round paws. It breathes, its
+ * eyes roll, it shuffles (`walk`) and opens its mouth (`roar`).
+ */
+function nurikabe(look: YokaiLook, s: YokaiState, frame: number, seed: number): Prim[] {
+  const H = look.size ?? 150, out: Prim[] = [], line = Math.max(1, H / 150 * 1.3), skin = look.color ?? "gofun";
+  const walk = s.w("walk").w * (s.moving ? 1 : 0), roar = s.w("roar").w, ph = s.dist / (H * .6) * Math.PI * 2;
+  const breath = Math.sin(frame / 26 + seed) * .012, bob = walk * Math.abs(Math.sin(ph)) * H * .03;
+  const P = (x: number, y: number): Pt => [x * H, (-y * (1 + breath)) * H - bob];
+  out.push({ t: "fill", d: ellipseD(-H * .1, 2, H * .95, H * .06), fill: "sumi", opacity: .14, noPrint: true });
+  // Hind paw behind, the body like a wall, the head low at the front.
+  const paw = (cx: number, lift: number): string => smoothD([P(cx - .2, .02 + lift), P(cx - .22, .2 + lift), P(cx - .05, .27 + lift), P(cx + .15, .24 + lift), P(cx + .22, .1 + lift), P(cx + .18, 0 + lift)], true, .45);
+  const hind = paw(-.72, walk * Math.max(0, Math.sin(ph)) * .06), front = paw(.18, walk * Math.max(0, -Math.sin(ph)) * .06);
+  const body = smoothD([P(-.92, .05), P(-1.0, .45), P(-.88, .82), P(-.45, .98), P(.05, 1.0), P(.42, .95), P(.68, .8), P(.76, .55), P(.72, .22), P(.55, .06), P(.3, .02), P(-.4, .02)], true, .38);
+  for (const d of [hind]) out.push({ t: "fill", d, fill: skin, outline: line, grain: .6 });
+  out.push({ t: "fill", d: body, fill: { type: "linear", angle: 90, stops: [[0, skin, 1], [.75, skin, 1], [1, "sakura", .5]] }, outline: line * 1.1, grain: .8 });
+  // Folds and plaster cracks: long soft folds over the shoulder and flank, fine branching cracks, a pink tinge in the creases.
+  // Skin rolls curving round the face like a heavy hood, then long folds over the haunch.
+  const folds = [.18, .3, .43].map(r => smoothD([P(.5 - r * .2, .62 + r * 1.15), P(.3 - r * .9, .6 + r * .6), P(.32 - r * 1.05, .3), P(.42 - r * .7, .08)], false, .45))
+    .concat([smoothD([P(-.55, .92), P(-.8, .62), P(-.72, .28)], false, .4), smoothD([P(-.88, .4), P(-.66, .3), P(-.5, .12)], false, .4)]);
+  const cracks: string[] = [];
+  for (let i = 0; i < 9; i++) {
+    let at: Pt = P(-.85 + hash01(seed, i, 501) * 1.3, .2 + hash01(seed, i, 502) * .65); const pts: Pt[] = [at];
+    for (let j = 0; j < 4; j++) { at = add(at, [hashSigned(seed, i * 7 + j, 503) * H * .06, H * (.03 + .03 * hash01(seed, i * 7 + j, 504))]); pts.push(at); }
+    cracks.push(polyD(pts).replace(/Z$/, ""));
+  }
+  out.push({ t: "clip", d: body, key: "nuribody", prims: [
+    { t: "stroke", d: folds.join(""), color: "beni", width: line * 2.2, opacity: .3 },
+    { t: "stroke", d: folds.join(""), color: "usuzumi", width: line * .9, opacity: .8 },
+    { t: "stroke", d: cracks.join(""), color: "usuzumi", width: .7, opacity: .5 },
+    { t: "dots", d: Array.from({ length: 10 }, (_, i) => circleD(...P(.35 + hash01(seed, i, 505) * .3, .25 + hash01(seed, i, 506) * .35), H * .012)).join(""), color: "beni", opacity: .45 },
+  ] });
+  out.push({ t: "fill", d: front, fill: skin, outline: line, grain: .6 });
+  out.push({ t: "stroke", d: [-.04, .08, .2].map(dx => smoothD([P(.18 + dx - .03, .2), P(.18 + dx, .1), P(.18 + dx - .02, .02)], false, .4)).join(""), color: "usuzumi", width: line * .8, opacity: .8 });
+  // The face: three blue-ringed eyes with petal lids, rolling together; a curled nose; a frowning mouth with dark tusks.
+  const roll: Pt = [Math.sin(frame / 37 + seed) * .012, Math.cos(frame / 53 + seed) * .008];
+  const blink = ((frame + seed * 11) % 140) < 5;
+  const eye = (cx: number, cy: number, r: number): Prim[] => {
+    const c = P(cx, cy), petals: string[] = [];
+    for (let i = 0; i < 10; i++) { const a = i * 36, q = polar(c, a, r * H * 1.35); petals.push(ellipseD(q[0], q[1], r * H * .32, r * H * .22)); }
+    const res: Prim[] = [{ t: "stroke", d: petals.join(""), color: "beni", width: .8, opacity: .55 }, { t: "fill", d: ellipseD(c[0], c[1], r * H * 1.15, r * H), fill: "sora", outline: line * .8 }];
+    if (blink) res.push({ t: "line", d: carvedLine([[c[0] - r * H, c[1]], [c[0], c[1] + r * H * .3], [c[0] + r * H, c[1]]], r * H * .25, { taper: "both" }), color: "sumi" });
+    else res.push({ t: "fill", d: ellipseD(c[0], c[1], r * H * .78, r * H * .7), fill: "gofun" }, { t: "dots", d: circleD(c[0] + roll[0] * H, c[1] + roll[1] * H, r * H * .45), color: "sumi" }, { t: "dots", d: circleD(c[0] + roll[0] * H + r * H * .15, c[1] + roll[1] * H - r * H * .15, r * H * .12), color: "gofun" });
+    return res;
+  };
+  out.push(...eye(.46, .8, .062), ...eye(.36, .6, .072), ...eye(.58, .6, .072));
+  // Brow ridges over the lower eyes, curling.
+  out.push({ t: "stroke", d: smoothD([P(.27, .68), P(.36, .73), P(.44, .69)], false, .4) + smoothD([P(.5, .69), P(.58, .73), P(.66, .67)], false, .4), color: "usuzumi", width: line, opacity: .9 });
+  out.push({ t: "fill", d: smoothD([P(.62, .5), P(.7, .47), P(.71, .4), P(.64, .38), P(.58, .42)], true, .5), fill: "sakura", outline: line * .7 });
+  out.push({ t: "stroke", d: smoothD([P(.6, .45), P(.65, .43), P(.64, .4)], false, .5), color: "beni", width: .8 });
+  const open = roar * (.6 + .3 * Math.sin(frame / 4));
+  out.push({ t: "fill", d: smoothD([P(.4, .33), P(.52, .37 + .02 * open), P(.66, .32), P(.64, .3 - .07 * open), P(.52, .27 - .1 * open), P(.41, .3 - .06 * open)], true, .4), fill: open > .1 ? "sumi" : "beni", outline: line * .9, opacity: open > .1 ? .9 : .75 });
+  // The dark tusks hang down from the frowning lip.
+  out.push({ t: "fill", d: polyD([P(.45, .3), P(.47, .16), P(.5, .29)]) + polyD([P(.58, .29), P(.61, .16), P(.63, .28)]), fill: "sumi", outline: line * .6 });
+  return out;
+}
+
+// ---- Tsuchigumo -------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * The tsuchigumo, the earth spider of the Raikō tale: a giant spider with a striped abdomen, a hairy cephalothorax
+ * with two great glaring eyes among smaller ones, hooked fangs, and eight jointed legs banded in yellow, each arching
+ * high at the knee. It creeps (`walk`, a four-and-four gait) and rears with its forelegs raised and fangs spread
+ * (`roar`); standing still, it trails a thread of silk up from its spinnerets.
+ */
+function tsuchigumo(look: YokaiLook, s: YokaiState, frame: number, seed: number): Prim[] {
+  const H = look.size ?? 160, out: Prim[] = [], line = Math.max(1, H / 160 * 1.2), body = look.color ?? "kogecha", band = look.accent ?? "ki";
+  const walk = s.w("walk").w * (s.moving ? 1 : 0), roar = s.w("roar").w, ph = s.dist / (H * .5) * Math.PI * 2;
+  const idle = Math.sin(frame / 20 + seed), rear = roar * (.8 + .2 * Math.sin(frame / 7));
+  const bodyY = -H * (.42 + .02 * idle + rear * .12), tilt = -rear * 22;
+  const C: Pt = [H * .05, bodyY];
+  const T = (x: number, y: number): Pt => { const a = tilt * Math.PI / 180, px = x * H, py = -y * H; return [C[0] + px * Math.cos(a) - py * Math.sin(a), C[1] + px * Math.sin(a) + py * Math.cos(a)]; };
+  out.push({ t: "fill", d: ellipseD(0, 2, H * .9, H * .05), fill: "sumi", opacity: .13, noPrint: true });
+  // Eight legs: hip on the cephalothorax, knee arched high, foot on the ground. Far legs first (darker), near legs after.
+  const legs = (near: boolean): Prim[] => {
+    const res: Prim[] = [];
+    for (let i = 0; i < 4; i++) {
+      const fore = i === 0, hipQ = T(.12 + (i - 1.5) * .045, .02), spread = [-.55, -.2, .25, .62][i] * (near ? 1 : .88), phase = (i % 2 === (near ? 0 : 1) ? 0 : Math.PI);
+      const step = walk * Math.sin(ph + phase), lift = walk * Math.max(0, Math.cos(ph + phase)) * H * .1;
+      let foot: Pt = [H * (.05 + spread * 1.1) + step * H * .12 + (near ? H * .03 : -H * .03), -lift];
+      if (fore && rear > .05) foot = lerp2(foot, T(.85, .55 + .1 * Math.sin(frame / 6 + (near ? 0 : 1))), rear);
+      const knee: Pt = [lerp(hipQ[0], foot[0], .45) + spread * H * .1, Math.min(hipQ[1], foot[1]) - H * (.32 - .06 * Math.abs(spread))];
+      const seg = curveY(hipQ, knee, 4).concat(curveY(knee, foot, 6).slice(1));
+      const d = ribbonY(seg, H * .055, H * .015);
+      res.push({ t: "fill", d, fill: body, outline: line, opacity: near ? 1 : .85 });
+      // Yellow bands at the joints and bristles along the leg.
+      const bands = [.25, .5, .7, .85].map(f => { const q = seg[Math.round(f * (seg.length - 1))], q2 = seg[Math.min(seg.length - 1, Math.round(f * (seg.length - 1)) + 1)], a = Math.atan2(q2[1] - q[1], q2[0] - q[0]) * 180 / Math.PI + 90, w = H * .03 * (1 - f * .6); return carvedLine([polar(q, a, w), polar(q, a + 180, w)], H * .018, { taper: "none" }); }).join("");
+      res.push({ t: "clip", d, key: "lb" + i + (near ? "n" : "f"), prims: [{ t: "fill", d: bands, fill: band, opacity: .9 }] });
+      res.push({ t: "stroke", d: seg.slice(1, -1).map((q, j) => j % 2 ? "" : `M${q[0].toFixed(1)} ${q[1].toFixed(1)}l${(H * .015).toFixed(1)} ${(-H * .02).toFixed(1)}`).join(""), color: "sumi", width: .8, opacity: .6 });
+      if (!near) res.push({ t: "fill", d, fill: "sumi", opacity: .2 });
+    }
+    return res;
+  };
+  out.push(...legs(false));
+  // Silk thread rising from the spinnerets while it stands still.
+  if (!s.moving && rear < .1) out.push({ t: "stroke", d: `M${T(-.62, .05).join(" ")}Q${T(-.7, .5)[0].toFixed(1)} ${(T(-.7, .5)[1]).toFixed(1)} ${T(-.66, 2.2).join(" ")}`, color: "gofun", width: .8, opacity: .6 });
+  // Abdomen: a big egg with tiger stripes and a hairy fringe; the cephalothorax in front, hairy, with the face.
+  const abd = smoothD([T(-.05, .02), T(-.25, -.12), T(-.58, -.08), T(-.72, .1), T(-.62, .32), T(-.3, .38), T(-.06, .22)], true, .45);
+  out.push({ t: "fill", d: abd, fill: { type: "linear", angle: 90, stops: [[0, body, 1], [1, "sumi", 1]] }, outline: line * 1.1, grain: .6 });
+  const stripes: string[] = [];
+  for (let i = 0; i < 6; i++) { const x = -.12 - i * .1; stripes.push(carvedLine([T(x + .03, .38), T(x, .15), T(x + .02, -.1)], H * .035, { taper: "both", minRatio: .2, smooth: true })); }
+  out.push({ t: "clip", d: abd, key: "abd", prims: [{ t: "fill", d: stripes.join(""), fill: band, opacity: .85 }, { t: "dots", d: Array.from({ length: 22 }, (_, i) => circleD(...T(-.15 - hash01(seed, i, 601) * .5, -.05 + hash01(seed, i, 602) * .38), H * .008)).join(""), color: "sumi", opacity: .6 }] });
+  const ceph = smoothD([T(-.06, .02), T(.08, -.08), T(.28, -.02), T(.34, .12), T(.24, .26), T(.02, .26), T(-.08, .16)], true, .45);
+  out.push({ t: "fill", d: ceph, fill: body, outline: line, grain: .5 });
+  out.push({ t: "stroke", d: Array.from({ length: 26 }, (_, i) => { const q = T(-.04 + hash01(seed, i, 603) * .34, .0 + hash01(seed, i, 604) * .26); return `M${q[0].toFixed(1)} ${q[1].toFixed(1)}l${(H * .02).toFixed(1)} ${(-H * .015).toFixed(1)}`; }).join(""), color: "sumi", width: .7, opacity: .55 });
+  // Eyes: two great glaring ones and a row of small ones; the fangs hook down and spread when it rears.
+  const blink = ((frame + seed * 5) % 150) < 4;
+  for (const [x, y, r] of [[.24, .17, .045], [.15, .2, .04]] as const) {
+    const c = T(x, y);
+    out.push({ t: "fill", d: ellipseD(c[0], c[1], H * r, H * r * .9), fill: "ki", outline: line * .9 });
+    if (!blink) out.push({ t: "dots", d: circleD(c[0] + H * .01, c[1], H * r * .5), color: "sumi" }, { t: "dots", d: circleD(c[0] + H * .015, c[1] - H * r * .25, H * r * .15), color: "gofun" });
+    else out.push({ t: "line", d: carvedLine([[c[0] - H * r, c[1]], [c[0] + H * r, c[1]]], H * .01), color: "sumi" });
+  }
+  out.push({ t: "dots", d: [[.29, .1], [.3, .05], [.2, .26], [.1, .27]].map(([x, y]) => circleD(...T(x, y), H * .012)).join(""), color: "shu" });
+  const spreadF = rear * .06;
+  for (const side of [0, 1]) {
+    const base = T(.3, .06 - side * .04), tip = T(.36 + spreadF, -.08 - side * .03 - spreadF);
+    out.push({ t: "fill", d: ribbonY(curveY(base, T(.4 + spreadF, -.02 - side * .03), 5).concat([tip]), H * .03, H * .004), fill: "sumi", outline: line * .6 });
+  }
+  out.push(...legs(true));
+  return out;
+}
+/** Points along a quadratic-ish arc from a to b bulging a little upward. */
+function curveY(a: Pt, b: Pt, n: number): Pt[] {
+  const m: Pt = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - Math.hypot(b[0] - a[0], b[1] - a[1]) * .08];
+  const out: Pt[] = [];
+  for (let i = 0; i <= n; i++) { const t = i / n, u = 1 - t; out.push([u * u * a[0] + 2 * u * t * m[0] + t * t * b[0], u * u * a[1] + 2 * u * t * m[1] + t * t * b[1]]); }
+  return out;
+}
+function ribbonY(spine: readonly Pt[], w0: number, w1: number): string { return ribbon(spine, w0, w1); }
+
 /** Draws a yōkai. */
 export function drawYokai(kind: UkiyoeYokai, look: YokaiLook, s: YokaiState, frame: number, wind: number, seed: number): Prim[] {
   let prims: Prim[];
   switch (kind) {
     case "yukionna": case "yurei": case "rokurokubi": prims = spiritWoman(kind, look, s, frame, wind, seed); break;
     case "kappa": prims = kappa(look, s, frame, seed); break;
+    case "nurikabe": prims = nurikabe(look, s, frame, seed); break;
+    case "tsuchigumo": prims = tsuchigumo(look, s, frame, seed); break;
     case "tengu": case "karasutengu": prims = tengu(kind === "tengu" ? "red" : "crow", look, s, frame, wind, seed); break;
     case "kasaobake": prims = kasaObake(look, s, frame, wind, seed); break;
     case "chochinobake": prims = chochinObake(look, s, frame, wind, seed); break;

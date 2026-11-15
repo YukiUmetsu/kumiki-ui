@@ -233,12 +233,29 @@ What was built:
 
 Not done: three-quarter views. Every rig is still a profile, mirrored to turn.
 
+## Three-quarter faces, nue, nurikabe, tsuchigumo (owner request, 2026-11-14)
+
+- **Three-quarter faces.** Most faces in ukiyo-e are drawn three-quarter: both eyes, the far one foreshortened by the curve of the face, the nose a hooked line breaking the cheek's edge, the mouth set toward the cheek. Figures now take `look.view: "three-quarter"`, and the `face` action swings a head between the views. The head narrows through the turn and the drawing changes at the midpoint, the same trick the body `turn` uses. In the films, the mother in *The Night Ferry* is drawn three-quarter, as bijin are, and the traveller turns his face to us as he prays at the end of *The Snow Woman*. Bodies and creatures stay profile rigs.
+- **Nue** ([Sekien](https://commons.wikimedia.org/wiki/File:SekienNue.jpg); [Kuniyoshi, Yorimasa shooting the nue](https://commons.wikimedia.org/wiki/File:Yorimasa_shooting_at_the_monsterous_nue.jpg)):
+  - The four-legged rig with a monkey's red face.
+  - A tiger coat: stripes from the spine down the body and bands across the legs.
+  - A living snake for a tail, scaled and sinuous, its head turning back with a flicking tongue.
+- **Nurikabe** ([*Bakemono no e*, BYU](https://commons.wikimedia.org/wiki/File:Nurikabe_Bakemono_no_e_BYU.jpg)): a huge white beast crouched low as a wall.
+  - Skin rolls hooding the face and plaster cracks over the body.
+  - Three blue-ringed eyes with petal lids that roll and blink.
+  - A curled nose, a frowning lip with dark tusks, and great round paws.
+- **Tsuchigumo** ([Kuniyoshi, *The Earth Spider at Raikō's mansion*](https://commons.wikimedia.org/wiki/File:Warrior_Minamoto_Raiko_and_the_Earth_Spider_LACMA_M.2006.136.292a-c_(1_of_2).jpg)):
+  - A striped abdomen and a hairy cephalothorax with two great eyes and a row of small red ones.
+  - Hooked fangs, and eight legs arching high at the knee, banded in yellow.
+  - It creeps in a four-and-four gait and rears with forelegs raised, fangs spread. Standing still, it trails a thread of silk.
+- **In *The Snow Woman*:** a nurikabe crouches across the far road in the pass. At the shrine, the earth spider hangs in the torii and rears, and the nue prowls past.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
 - Faces are a single profile design per hairstyle. There are no three-quarter turns or expressive brow and eye shapes yet.
 - The wave's foam is procedural. It is now one connected white like the print's, but every claw is built from the same palm-and-talon unit, so it lacks the print's hand-drawn variety of claw sizes and the long lace trailing over the back.
 - The wave breaks one way only: a plunging breaker. There is no spilling breaker for the small background waves, and the falling curtain has no motion smear at its fastest frames.
-- Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Every rig is a profile, so there are no three-quarter turns yet.
+- Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Faces turn three-quarter, but bodies and creatures are profile rigs that mirror to turn.
 - No soundtrack yet (shakuhachi and koto beds, rain and surf foley).
 - Human normal-speed review of the film has **not** been recorded.

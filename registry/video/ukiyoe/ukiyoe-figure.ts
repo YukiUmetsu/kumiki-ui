@@ -56,13 +56,16 @@ export interface UkiyoeFigureLook {
   accent?: UkiyoePaint;
   lips?: UkiyoePaint;
   beard?: boolean;
+  /** How the face is drawn: in profile, or turned three-quarters toward the viewer as most print faces are (both eyes,
+   * the nose a hooked line at the cheek's edge). The `face` action turns a profile head to three-quarter and back. */
+  view?: "profile" | "three-quarter";
 }
 
 export type UkiyoeActionType =
   | "walk" | "run" | "bow" | "wave" | "point" | "talk" | "look" | "kneel" | "pole" | "row" | "brace" | "dance"
-  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray";
+  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face";
 export const UKIYOE_ACTIONS: readonly UkiyoeActionType[] = [
-  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray",
+  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face",
 ];
 export interface UkiyoeAction {
   type: UkiyoeActionType;
@@ -92,13 +95,15 @@ export interface FigurePose {
   footF: number; footB: number;
   mouth: number; blink: number; kneel: number; headBack: number;
   propAngle: number; squash: number;
+  /** 0 profile → 1 three-quarter (the `face` action). */
+  faceView: number;
 }
 
 const STAND: FigurePose = {
   lean: 2, tilt: 2, crouch: 0, lift: 0,
   shF: 10, elF: 28, shB: -4, elB: 18,
   hipF: 3, knF: 2, hipB: -3, knB: 2, footF: 0, footB: 0,
-  mouth: 0, blink: 0, kneel: 0, headBack: 0, propAngle: 0, squash: 0,
+  mouth: 0, blink: 0, kneel: 0, headBack: 0, propAngle: 0, squash: 0, faceView: 0,
 };
 const KEYS = Object.keys(STAND) as (keyof FigurePose)[];
 
@@ -216,6 +221,8 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
       case "hold": target.shF = a.angle ?? 40; target.elF = a.amount ?? 80; break;
       case "sweep": { const c2 = Math.sin(t / 14 * Math.PI); target.lean = 22; target.shF = 30 + 30 * c2; target.elF = 30; target.shB = 20 + 30 * c2; target.elB = 40; target.propAngle = 20 * c2; break; }
       case "pray": target.shF = 55; target.elF = 105; target.shB = 50; target.elB = 105; target.tilt = 14; target.lean = 8; break;
+      // Turn the face toward the viewer (three-quarter view); the head swings round over the blend.
+      case "face": target.faceView = 1; break;
     }
     for (const k of KEYS) if (target[k] !== undefined) pose[k] = lerp(pose[k], target[k]!, w);
   }
@@ -315,7 +322,13 @@ const FACE: Pt[] = [
   [3, 25], [-6, 25], [-8, 15], [-14.5, 6], [-16, -4], [-13, -14], [-7, -19],
 ];
 
-function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: number, wind: number, frame: number, seed: number): Prim[] {
+/** The same head turned three-quarters toward the viewer: a broader face, the cheek rounding where the profile's nose was. */
+const FACE3: Pt[] = [
+  [0, -20], [9, -18], [14.5, -11], [16, -3.5], [16.6, 2.5], [15.8, 8.5], [13.6, 13.5], [10, 17.2], [5.5, 19], [2.5, 19.6],
+  [2, 25], [-6, 25], [-8, 15], [-14.5, 6], [-16, -4], [-13, -14], [-7, -19],
+];
+
+function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: number, wind: number, frame: number, seed: number, tq = false): Prim[] {
   const P = (x: number, y: number): Pt => [x * k, y * k];
   const out: Prim[] = [], lw = lineW(H) * .85, skin = look.skin ?? "hada", hairC = look.hairColor ?? (look.hair === "elder" ? "usuzumi" : "sumi");
   const hair = look.hair ?? "chonmage", female = hair === "shimada" || hair === "long";
@@ -334,19 +347,35 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
     }
     out.push({ t: "fill", d: smoothD([P(4, 8), ...spikes, P(10, -21)], true, .12), fill: hairC, outline: lw });
   }
-  out.push({ t: "fill", d: smoothD(FACE.map(q => P(q[0], q[1])), true, .32), fill: skin, outline: lw, outlineColor: "sumi" });
+  out.push({ t: "fill", d: smoothD((tq ? FACE3 : FACE).map(q => P(q[0], q[1])), true, .32), fill: skin, outline: lw, outlineColor: "sumi" });
   // Shaved pate of an Edo man: a cool blue-grey crown.
   if (hair === "chonmage" || hair === "elder") out.push({ t: "fill", d: smoothD([P(-2, -19.6), P(9, -17.4), P(14.6, -11.5), P(9, -12), P(2, -13), P(-4, -14.5)], true, .4), fill: { type: "linear", angle: 90, stops: [[0, "sora", .85], [1, "sora", .35]] } });
   // Eye, brow, mouth.
-  const shut = pose.blink;
-  if (shut > .5) out.push({ t: "line", d: carvedLine([P(7.5, -1), P(10, .3), P(12.6, -.2)], .9 * k * .5 + .6, { taper: "both" }), color: "sumi" });
-  else {
-    out.push({ t: "line", d: carvedLine([P(6.8, -1.6), P(9.8, -2.6), P(12.8, -.6)], k * .55 + .5, { taper: "both" }), color: "sumi" });
-    out.push({ t: "dots", d: circleD(11 * k, -1.2 * k, .95 * k), color: "sumi" });
+  const shut = pose.blink, browC = hairC === "usuzumi" ? "usuzumi" : "sumi";
+  if (tq) {
+    // Three-quarter: the nose a hooked line breaking the cheek's edge; the near eye a long narrow slit, the far eye
+    // foreshortened by the curve of the face; high thin brows; a small mouth set toward the cheek.
+    out.push({ t: "line", d: carvedLine([P(13.4, -4.5), P(15.2, 1.5), P(16.9, 5), P(15.8, 6), P(14.4, 5.8)], k * .5 + .45, { taper: "both", minRatio: .35, smooth: true }), color: "sumi" });
+    const eye = (cx: number, w: number, slant: number) => shut > .5
+      ? [{ t: "line" as const, d: carvedLine([P(cx - w, -1.2), P(cx, -.2), P(cx + w, -1.2 + slant)], .9 * k * .5 + .5, { taper: "both" }), color: "sumi" }]
+      : [{ t: "line" as const, d: carvedLine([P(cx - w, -1.2), P(cx - w * .1, -2.6), P(cx + w, -1.4 + slant)], k * .5 + .45, { taper: "both", minRatio: .3, smooth: true }), color: "sumi" },
+        { t: "dots" as const, d: circleD((cx + w * .15) * k, -1.3 * k, .85 * k * Math.min(1, w / 2.6)), color: "sumi" }];
+    out.push(...eye(6.8, 2.8, -.3), ...eye(14.2, 1.35, .2));
+    out.push({ t: "line", d: carvedLine([P(3.2, -6.6), P(6.6, -7.9), P(10, -6.9)], k * .4 + .35, { taper: "both" }), color: browC, opacity: .9 });
+    out.push({ t: "line", d: carvedLine([P(12.6, -6.9), P(14.2, -7.4), P(15.6, -6.6)], k * .35 + .3, { taper: "both" }), color: browC, opacity: .85 });
+    if (pose.mouth > .08) out.push({ t: "fill", d: ellipseD(12.4 * k, 10.4 * k, 1.5 * k, (.6 + 1.6 * pose.mouth) * k), fill: "kogecha", noPrint: true });
+    else if (female || look.lips) out.push({ t: "fill", d: ellipseD(12.6 * k, 10.2 * k, 1.25 * k, .65 * k), fill: look.lips ?? "beni", noPrint: true });
+    else out.push({ t: "line", d: carvedLine([P(11, 10.4), P(12.6, 10.6), P(14, 10.2)], k * .35 + .3, { taper: "both" }), color: "sumi", opacity: .7 });
+  } else {
+    if (shut > .5) out.push({ t: "line", d: carvedLine([P(7.5, -1), P(10, .3), P(12.6, -.2)], .9 * k * .5 + .6, { taper: "both" }), color: "sumi" });
+    else {
+      out.push({ t: "line", d: carvedLine([P(6.8, -1.6), P(9.8, -2.6), P(12.8, -.6)], k * .55 + .5, { taper: "both" }), color: "sumi" });
+      out.push({ t: "dots", d: circleD(11 * k, -1.2 * k, .95 * k), color: "sumi" });
+    }
+    out.push({ t: "line", d: carvedLine([P(5.5, -6.2), P(9.5, -7.6), P(13.2, -6.2)], k * .45 + .4, { taper: "both" }), color: browC, opacity: .9 });
+    if (pose.mouth > .08) out.push({ t: "fill", d: ellipseD(16.4 * k, 9.4 * k, 1.5 * k, (.6 + 1.6 * pose.mouth) * k), fill: "kogecha", noPrint: true });
+    else if (female || look.lips) out.push({ t: "fill", d: ellipseD(17 * k, 9.3 * k, 1.1 * k, .7 * k), fill: look.lips ?? "beni", noPrint: true });
   }
-  out.push({ t: "line", d: carvedLine([P(5.5, -6.2), P(9.5, -7.6), P(13.2, -6.2)], k * .45 + .4, { taper: "both" }), color: hairC === "usuzumi" ? "usuzumi" : "sumi", opacity: .9 });
-  if (pose.mouth > .08) out.push({ t: "fill", d: ellipseD(16.4 * k, 9.4 * k, 1.5 * k, (.6 + 1.6 * pose.mouth) * k), fill: "kogecha", noPrint: true });
-  else if (female || look.lips) out.push({ t: "fill", d: ellipseD(17 * k, 9.3 * k, 1.1 * k, .7 * k), fill: look.lips ?? "beni", noPrint: true });
   if (!female && hair !== "child") out.push({ t: "line", d: carvedLine([P(-1, 2), P(-3, 4.5), P(-1.5, 7)], k * .4 + .3), color: "sumi", opacity: .7 });
   if (look.beard) out.push({ t: "fill", d: smoothD([P(15, 12), P(11, 22), P(6, 26), P(5, 18), P(9, 15)], true, .4), fill: hairC, outline: lw * .7 });
   // Hair styles.
@@ -398,7 +427,8 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
   } else if (hat === "eboshi") {
     out.push({ t: "fill", d: smoothD([P(-12, -14), P(-14, -30), P(-8, -46), P(2, -44), P(4, -30), P(8, -16), P(0, -13)], true, .35), fill: hatC, outline: lw, grain: .3 });
   } else if (hat === "hood") {
-    out.push({ t: "fill", d: smoothD([P(-4, -23), P(10, -20), P(16, -10), P(13, -9), P(9, -14), P(4, -10), P(4, 12), P(-6, 26), P(-18, 22), P(-18, -6), P(-13, -18)], true, .35), fill: hatC, outline: lw, grain: .3 });
+    const fx = tq ? -1 : 4;   // the hood's front edge frames a three-quarter face further back
+    out.push({ t: "fill", d: smoothD([P(-4, -23), P(10, -20), P(16, -10), P(13, -9), P(9, -14), P(fx, -10), P(fx, 12), P(-6, 26), P(-18, 22), P(-18, -6), P(-13, -18)], true, .35), fill: hatC, outline: lw, grain: .3 });
   } else if (hat === "headband") {
     const tail = wind * 8 + Math.sin(frame / 4 + seed) * 2;
     out.push({ t: "fill", d: smoothD([P(-16, -9), P(14, -12), P(15, -9), P(-15, -5)], true, .2), fill: hatC === "kincha" ? "gofun" : hatC, outline: lw * .8 });
@@ -636,7 +666,10 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   // Head, tilted about the neck.
   const tilt = pose.tilt + s.lean * .4;
   const headFlip = pose.headBack > .5 ? -1 : 1;
-  out.push({ t: "group", transform: `translate(${s.head[0].toFixed(2)} ${s.head[1].toFixed(2)}) rotate(${(tilt * headFlip).toFixed(2)}) scale(${headFlip} 1)`, prims: headPrims(look, pose, k, H, wl * headFlip, frame, seed) });
+  // Profile or three-quarter: the head narrows as it swings round and the drawing changes at the midpoint.
+  const view = look.face === "oni" ? 0 : clamp01((look.view === "three-quarter" ? 1 : 0) + pose.faceView * (look.view === "three-quarter" ? -1 : 1));
+  const swing = view > 0 && view < 1 ? Math.max(.62, Math.abs(Math.cos(Math.PI * view))) : 1;
+  out.push({ t: "group", transform: `translate(${s.head[0].toFixed(2)} ${s.head[1].toFixed(2)}) rotate(${(tilt * headFlip).toFixed(2)}) scale(${(headFlip * swing).toFixed(3)} 1)`, prims: headPrims(look, pose, k, H, wl * headFlip, frame, seed, view >= .5) });
 
   // Front arm, sleeve and hand-held prop.
   out.push(...propPrims(look, pose, s, wl, frame, "front"));
