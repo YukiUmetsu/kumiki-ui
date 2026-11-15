@@ -400,6 +400,23 @@ function fox():PencilSubjectPart[] {
         ],2077,["#8C6B60","#393238","#BEA696"],250),
         {...mark("M180 402 Q188 399 195 403 M197 406 Q205 402 212 405 M212 406 Q218 403 223 405",
           "#342E32",.58,260,.77),id:"paw-toes"},
+        // Digit pads spread into four discrete low-pressure creases;
+        // flexor lines begin on the leg and fade into the metacarpal fan.
+        {...mark("M181 399 Q184 402 183 405 "+
+          "M191 397 Q194 402 193 406 "+
+          "M202 397 Q205 402 204 406 "+
+          "M214 398 Q218 402 217 405",
+          "#45393A",.42,266,.68),id:"toe-furrows"},
+        {...mark("M182 405 l1.8 1.2 "+
+          "M192 406 l1.6 .9 "+
+          "M203 406 l1.8 1.1 "+
+          "M216 405 l1.6 .8",
+          "#342C30",.35,278,.65),id:"claw-tips"},
+        {...mark("M190 354 Q188 371 184 389 "+
+          "M197 351 Q197 373 192 393 "+
+          "M205 355 Q205 375 203 392 "+
+          "M213 356 Q212 376 215 394",
+          "#9B8C83",.32,259,.48),id:"wrist-tendons"},
       ]},
     {id:"foreleg-right",material:"fur",palette:charcoal,
       path:"M279 306 C287 306 295 319 298 333 "+
@@ -418,6 +435,23 @@ function fox():PencilSubjectPart[] {
         ],2129,["#8B695E","#3A3036","#B9A292"],248),
         {...mark("M255 405 Q267 401 278 404 M280 405 Q290 401 301 404 M301 405 Q308 402 314 405",
           "#3B3439",.58,260,.77),id:"paw-toes"},
+        // Oblique near paw bears more weight; toe ridges are slightly
+        // wider apart than the far foreleg and are not a drawn boot cuff.
+        {...mark("M256 398 Q260 403 258 406 "+
+          "M269 396 Q274 403 272 406 "+
+          "M287 396 Q292 402 290 406 "+
+          "M303 398 Q308 402 307 405",
+          "#44393B",.43,266,.68),id:"toe-furrows"},
+        {...mark("M257 405 l1.5 1 "+
+          "M271 406 l1.7 .8 "+
+          "M289 406 l1.9 .9 "+
+          "M307 405 l1.6 .9",
+          "#342C30",.35,278,.65),id:"claw-tips"},
+        {...mark("M270 354 Q268 374 259 390 "+
+          "M280 352 Q276 377 274 392 "+
+          "M288 352 Q289 376 291 393 "+
+          "M296 354 Q298 379 305 394",
+          "#A3948A",.33,259,.48),id:"wrist-tendons"},
       ]},
     {id:"chest",material:"fur",palette:pale,
       path:"M191 242 C209 239 228 245 241 255 "+
