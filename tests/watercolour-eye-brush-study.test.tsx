@@ -44,7 +44,11 @@ describe("WC19 — actual natural-media eye study, not a gradient vector paintin
     const dry=evaluateWetPaper(study.wet,999);
     expect(wet.totalPigment).toBeGreaterThan(0);
     expect(dry.settled).toBe(true);
-    expect(dry.totalPigment).toBeCloseTo(wet.totalPigment,5);
+    // At frame 130 the later pigment drops are not deposited yet; total
+    // deposited mass is NOT supposed to equal the final dried mass.
+    expect(dry.totalPigment).toBeGreaterThan(wet.totalPigment);
+    expect(evaluateWetPaper(study.wet,400).totalPigment)
+      .toBeCloseTo(dry.totalPigment,5);
     expect(dry.cells.some(c=>c.sediment>0)).toBe(true);
   });
   it("preserves eye landmark asymmetry and source-connected iris/lid hierarchy",()=>{
