@@ -611,26 +611,28 @@ function fox():PencilSubjectPart[] {
         mark("M131 211 Q164 200 198 199 M185 221 Q219 210 243 216",
           "#BD7C69",.65,265,.68),
       ]},
-    {id:"cheek-ruff",material:"fur",palette:["#B8A58F","#70645E","#E5D0B5"],
-      // Malar feathering remains attached to the eye/upper-jaw crest and
-      // continues down into the white throat. No isolated gray cheek oval.
-      path:"M253 222 C266 229 276 239 279 252 "+
-        "C285 262 282 273 274 281 C267 290 260 294 253 299 "+
-        "C247 302 238 307 232 310 C238 301 240 291 240 284 "+
-        "C247 271 245 252 250 239 C251 232 252 226 253 222 Z",
-      bounds:[228,217,62,100],direction:64,start:150,
+    {id:"cheek-ruff",material:"fur",
+      palette:["#CEB79B","#917D71","#E9D3B4"],
+      // Narrow, layered malar-to-throat root strip, not an opaque gray
+      // triangular scarf. Its lower fibres grow into the existing white
+      // chest and neck fur while the skull still occludes the upper root.
+      path:"M251 225 C260 230 269 242 269 252 "+
+        "C271 263 267 272 261 281 C255 289 252 298 250 313 "+
+        "C247 302 245 292 244 282 C245 269 243 255 246 242 "+
+        "C247 235 249 230 251 225 Z",
+      bounds:[240,221,38,97],direction:64,start:150,
       details:[
         ...pencilRootedFur([
-          [252,231,270,273,268,245,31,10],
-          [249,253,238,303,262,280,35,9],
-          [261,267,240,305,249,294,30,10],
-        ],765,["#CDAA8C","#705B56","#F6DBC0"],257),
-        mark("M262 272 Q277 255 283 246 M247 287 Q259 278 267 267",
-          "#E7C6A8",.52,279,.71),
+          [252,236,259,286,258,258,31,8],
+          [250,263,251,307,245,289,35,7],
+          [255,278,251,306,258,292,30,7],
+        ],765,["#D6BBA1","#8B786E","#F2DEC5"],257),
+        mark("M251 245 Q261 260 262 278 M249 282 Q250 298 250 308",
+          "#E7CFB3",.40,279,.55),
         ...pencilContourFringe([
-          [258,230,279,258,274,239,30,-1],
-          [276,276,235,306,262,297,29,-1],
-        ],905,["#CFB198","#726763","#F7DDC0"],255),
+          [257,238,267,274,269,250,30,-1],
+          [261,281,250,309,258,297,29,-1],
+        ],905,["#D8BDA1","#9E8980","#F8E4C8"],255),
       ]},
     {id:"eye-far",material:"glaze",palette:["#786151","#584E49","#AC8A70"],
       // With the skull yawed left, the far eye is behind the brow/bridge.
