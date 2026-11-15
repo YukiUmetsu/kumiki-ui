@@ -24,13 +24,15 @@ export interface PaperCraftStageProps extends Omit<SVGProps<SVGSVGElement>, "chi
   edgeStrength?: number;
   /** 0–1 intensity of opaque cardstock curvature shading (not transparency). */
   curlStrength?: number;
+  /** 0–1 physical fold articulation, projected from the authored paper hinge. */
+  liftStrength?: number;
   label?: string;
 }
 /** Five distinct native assemblages, using the same real cut-outs and physical pivot information.
  * All SVG masks, patterns, fibres and shadows are sheet-anchored and stable across seeks.
  */
 export function PaperCraftStage({
-  spec, frame, reducedMotion = false, tooth = .55, shadowStrength = .7, edgeStrength = .55, curlStrength = .85,
+  spec, frame, reducedMotion = false, tooth = .55, shadowStrength = .7, edgeStrength = .55, curlStrength = .85, liftStrength = 1,
   label = "Layered cut-paper illustration", style, ...props
 }: PaperCraftStageProps) {
   const state = evaluatePaperCraft(spec, frame, reducedMotion);
@@ -39,6 +41,7 @@ export function PaperCraftStage({
   const strength = Math.max(0, Math.min(1, Number.isFinite(shadowStrength) ? shadowStrength : 0));
   const edge = Math.max(0, Math.min(1, Number.isFinite(edgeStrength) ? edgeStrength : 0));
   const bend = Math.max(0, Math.min(1, Number.isFinite(curlStrength) ? curlStrength : 0));
+  const foldPower = Math.max(0, Math.min(1, Number.isFinite(liftStrength) ? liftStrength : 0));
   const fibres = useMemo(() => Array.from({ length: 64 }, (_, i) => ({
     x: paperHash(spec.seed, i, 71) * 83,
     y: paperHash(spec.seed, i, 73) * 83,
@@ -123,6 +126,25 @@ export function PaperCraftStage({
             d={`M${pivot[0]} ${pivot[1] - 48} v96`}
             stroke="#5a3441" strokeWidth="1.35" strokeDasharray="4 4" opacity=".22" fill="none"/>}
         </g>
+        {/* The separate tip is a real shape, outside the base clipping mask;
+            its hinge remains attached through every rig transform and frame seek.
+            Both underside and lifted shadow are opaque solid-stock geometry. */}
+        {layer.liftedTip && (() => {
+          const tip = layer.liftedTip;
+          const amount = foldPower * Math.max(0, Math.min(1, q.progress));
+          const [hx,hy] = tip.hinge;
+          const folded = `translate(${hx} ${hy}) rotate(${(tip.rotateDegrees*amount).toFixed(3)}) scale(1 ${(1-amount*.12).toFixed(4)}) translate(${-hx} ${-hy})`;
+          const liftedShadow = `drop-shadow(0px ${(tip.lift*amount).toFixed(2)}px ${(1.1+tip.lift*.25*amount).toFixed(2)}px rgba(28,21,23,${(.28*strength).toFixed(3)}))`;
+          return <g data-km-paper-lift-tip={layer.id}
+            data-km-paper-fold-angle={(tip.rotateDegrees*amount).toFixed(3)}
+            transform={folded} style={{filter:liftedShadow}}>
+            <path d={tip.path} fill={amount>0?paperShade(layer.color,.23*amount):layer.color}
+              fillRule="evenodd" stroke={paperShade(layer.color,-.25)}
+              strokeWidth=".7" strokeLinejoin="round"/>
+            <path d={tip.path} fill="none" stroke={paperShade(layer.color,.4)}
+              strokeWidth=".45" strokeOpacity=".9" pointerEvents="none"/>
+          </g>;
+        })()}
         {spec.style === "kirigami" && q.progress > 0 && q.progress < 1 &&
           <line x1={pivot[0]} y1={0} x2={pivot[0]} y2={spec.height}
             stroke="#654d3a" strokeWidth=".7" opacity={.08 + (1 - q.progress) * .16}/>}

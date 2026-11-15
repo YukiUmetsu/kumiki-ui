@@ -5,6 +5,17 @@
  */
 export type PaperStyle = "layered" | "kirigami" | "pop-up" | "lightbox" | "shadow-puppet";
 export type PaperMotion = "rise" | "swing" | "unfold" | "still" | "flutter";
+/** Separate, actually hinged tip contour; unlike a gradient this changes silhouette. */
+export interface PaperLiftedTip {
+  /** Closed original cardstock contour adjoining the base at hinge. */
+  path: string;
+  /** Sheet-space attachment point; hinge remains fixed while the tip rotates. */
+  hinge: readonly [number, number];
+  /** In-plane projected cardstock fold, limited to 25 degrees. */
+  rotateDegrees: number;
+  /** Maximum shadow offset of the folded sheet, 0–18 output pixels. */
+  lift: number;
+}
 export interface PaperCutLayer {
   id: string;
   /** Authored paper contour, in output-sheet coordinates. */
@@ -21,6 +32,8 @@ export interface PaperCutLayer {
   swingDegrees?: number;
   /** 0–1 authored curvature cue for opaque graded cardstock (not a 3D mesh). */
   curl?: number;
+  /** Independently sculpted and shadowed opaque stock, attached to main cut. */
+  liftedTip?: PaperLiftedTip;
   /** Stable named rig: connected wing pieces share a hinge, waveform and phase. */
   rigGroup?: string;
   /** Frequency of a fluttering rig, cycles per second (0.1–8). */
@@ -121,6 +134,18 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
       bad(base + ".swingDegrees", "swing must be within ±30 degrees");
     if (layer.curl !== undefined && (!finite(layer.curl) || layer.curl < 0 || layer.curl > 1))
       bad(base + ".curl", "curl must be finite 0–1");
+    if (layer.liftedTip !== undefined) {
+      const tip = layer.liftedTip;
+      if (!tip || typeof tip !== "object" || !isPaperCutContour(tip.path))
+        bad(base + ".liftedTip.path", "a closed die-cut tip contour is required");
+      if (!Array.isArray(tip?.hinge) || tip.hinge.length !== 2 ||
+          tip.hinge.some((n:number) => !finite(n) || n < -4096 || n > 8192))
+        bad(base + ".liftedTip.hinge", "finite two-coordinate paper hinge required");
+      if (!finite(tip?.rotateDegrees) || Math.abs(tip.rotateDegrees) > 25)
+        bad(base + ".liftedTip.rotateDegrees", "fold must be within ±25 degrees");
+      if (!finite(tip?.lift) || tip.lift < 0 || tip.lift > 18)
+        bad(base + ".liftedTip.lift", "paper relief must be 0–18 pixels");
+    }
     if (layer.flapHz !== undefined && (!finite(layer.flapHz) || layer.flapHz < .1 || layer.flapHz > 8))
       bad(base + ".flapHz", "flapHz must be finite 0.1–8");
     if (layer.flapPhase !== undefined && (!finite(layer.flapPhase) || layer.flapPhase < 0 || layer.flapPhase > 360))

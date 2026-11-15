@@ -26,6 +26,8 @@ export interface PaperObjectOptions {
   curl?: number;
   /** 0–1: scale ongoing linked wing-beat amplitude; zero freezes the rig. */
   motion?: number;
+  /** 0–1 amount of geometric folded-tip projection and cast shadow. */
+  relief?: number;
   seed?: number;
 }
 type Stock = Readonly<{
@@ -98,11 +100,32 @@ function geometry(w:number,h:number){
       C(...p(1.05,-.15),...p(1.05,-.69),...right),
       C(...p(.62,-1.06),...p(.29,-.75),...o),Z].join(" ");
   };
+  /** Two joined cards, each with its own silhouette and small base/tip overlap.
+   * Rotating the distal piece now reveals a real, raised cardstock edge. */
+  const feather=(x0:number,y0:number,x1:number,y1:number,width:number)=>{
+    const dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy)||1;
+    const ux=dx/len,uy=dy/len,nx=-uy,ny=ux;
+    const f=(t:number,v:number):[number,number]=>[
+      x0+dx*t+nx*width*v,y0+dy*t+ny*width*v];
+    const base=[
+      M(...f(0,-.20)),
+      C(...f(.15,-.82),...f(.41,-1.04),...f(.755,-.68)),
+      L(...f(.755,.68)),
+      C(...f(.41,1.04),...f(.15,.82),...f(0,.20)),Z
+    ].join(" ");
+    const tip=[
+      M(...f(.74,-.7)),
+      C(...f(.84,-.7),...f(.96,-.43),...f(1,0)),
+      C(...f(.96,.43),...f(.84,.7),...f(.74,.7)),Z
+    ].join(" ");
+    const h=f(.745,0);
+    return {base,tip,hinge:[cx+s*h[0],cy+s*h[1]] as const};
+  };
   const band=(x0:number,y0:number,x1:number,y1:number,thick:number)=>{
     const dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy)||1,nx=-dy/len*thick/2,ny=dx/len*thick/2;
     return poly([[x0+nx,y0+ny],[x1+nx,y1+ny],[x1-nx,y1-ny],[x0-nx,y0-ny]]);
   };
-  return {s,cx,cy,M,L,C,Q,Z,poly,oval,disk,rect,roundRect,taper,petal,band};
+  return {s,cx,cy,M,L,C,Q,Z,poly,oval,disk,rect,roundRect,taper,petal,feather,band};
 }
 type P=ReturnType<typeof geometry>;
 type Add=(id:string,color:string,depth:number,path:string,rest?:Partial<PaperCutLayer>)=>void;
@@ -189,8 +212,11 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
   const feathers=11+Math.round(detail*7);
   for(let i=0;i<feathers;i++){
     const t=i/(feathers-1),x=-105+64*t,y=-34+62*t;
+    const card=p.feather(x,y,x-16-21*t,y+42+17*t,5.4+(i%3)*.65);
     add("wing-feather-"+i,i%3===0?c.gold:i%2?c.blue:c.blueLight,18,
-      p.taper(x,y,x-16-21*t,y+42+17*t,4.2,2),{
+      card.base,{
+        liftedTip:{path:card.tip,hinge:card.hinge,
+          rotateDegrees:(i%2?-1:1)*(9+(i%4)*2.5),lift:5+(i%3)*2},
         enterFrame:69+i*2,durationFrames:25,motion:"flutter",swingDegrees:5,flapHz:.65,
         flapPhase:0,rigGroup:"kingfisher-wing",curl:.92,
         pivot:[p.cx-85*p.s,p.cy-55*p.s]});
@@ -500,10 +526,10 @@ export function paperObjectSpec(
   if(!Number.isSafeInteger(seed))throw new RangeError("Paper object seed must be a safe integer.");
   if(options.detail!==undefined&&(!Number.isFinite(options.detail)||options.detail<0||options.detail>1))
     throw new RangeError("Paper object detail must be finite between 0 and 1.");
-  for(const [key,value] of [["curl",options.curl],["motion",options.motion]] as const)
+  for(const [key,value] of [["curl",options.curl],["motion",options.motion],["relief",options.relief]] as const)
     if(value!==undefined&&(!Number.isFinite(value)||value<0||value>1))
       throw new RangeError("Paper object "+key+" must be finite between 0 and 1.");
-  const detail=clamp(options.detail??.85),curlAmount=options.curl??.85,motionAmount=options.motion??1,c=STOCKS[palette];
+  const detail=clamp(options.detail??.85),curlAmount=options.curl??.85,motionAmount=options.motion??1,reliefAmount=options.relief??1,c=STOCKS[palette];
   const w=aspect==="portrait"?540:960,h=aspect==="portrait"?960:540,p=geometry(w,h);
   const layers:PaperCutLayer[]=[];
   const add:Add=(id,color,depth,path,rest={})=>{
@@ -524,6 +550,11 @@ export function paperObjectSpec(
   const shaped=layers.map(layer=>({
     ...layer,
     curl:layer.curl===undefined?undefined:layer.curl*curlAmount,
+    liftedTip:layer.liftedTip===undefined?undefined:{
+      ...layer.liftedTip,
+      rotateDegrees:layer.liftedTip.rotateDegrees*reliefAmount,
+      lift:layer.liftedTip.lift*reliefAmount,
+    },
     swingDegrees:layer.motion==="flutter"
       ? (layer.swingDegrees??8)*motionAmount :layer.swingDegrees,
   }));
