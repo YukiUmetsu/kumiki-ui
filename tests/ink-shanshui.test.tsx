@@ -169,7 +169,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(fields.every(([,id])=>full.includes('id="'+id+'"')))
       .toBe(true);
     expect((paint(71,.81).match(/data-km-rock-mass-flow=""/g)??[]))
-      .toHaveLength(27); // 11 + 9 + 6 at reduced density
+      .toHaveLength(26); // 11 + 9 + 6 at reduced density
 
     for(const [,r,d] of [...caps,...cracks]){
       expect(d.startsWith("M"+r.replace(","," "))).toBe(true);
