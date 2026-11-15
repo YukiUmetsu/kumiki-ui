@@ -131,6 +131,7 @@ export function createPencilMaterialRegion(input: PencilMaterialInput): PencilRe
   } satisfies PencilObjectInput);
   const craftKind: PencilCraftKind =
     input.surface==="petal" || input.surface==="citrus"?"general":
+    input.surface==="leaf"?"foliage":input.surface==="masonry"?"stone":
     input.surface==="cast-shadow" || input.surface==="glass" ||
     input.surface==="glaze"?"general":input.surface;
   return {
