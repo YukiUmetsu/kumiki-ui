@@ -426,9 +426,10 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
           coverage:"opaque",deposition:"stroke-built"});
       }else{
         const original=originals.get(id);
-        expect(original?.kind).toBe("wax");
-        expect(candidate?.parentId).toBe(original?.parentId);
-        expect(candidate?.d).not.toBe(original?.d);
+        if(original?.kind!=="wax"||candidate?.kind!=="wax")
+          throw new Error("Missing comparable source wax "+id);
+        expect(candidate.parentId).toBe(original.parentId);
+        expect(candidate.d).not.toBe(original.d);
       }
     }
     const where=(id:string)=>scene.elements.findIndex(e=>e.id===id);
