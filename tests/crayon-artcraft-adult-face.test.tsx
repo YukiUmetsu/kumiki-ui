@@ -134,6 +134,29 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(nodes.get("hair-nape-sweep")?.kind).toBe("wax");
       expect(nodes.get("tailored-scarf-wrap")?.parentId).toBe("coat-silhouette");
       expect(nodes.get("tailored-scarf-weft")?.parentId).toBe("tailored-scarf-wrap");
+      for(const id of ["coat-sleeve-cap-near","coat-sleeve-cap-far",
+        "coat-collar-left","coat-collar-right",
+        "shirt-lace-ruffle-left","shirt-lace-ruffle-right"]){
+        const node=nodes.get(id);
+        if(node?.kind!=="wax")throw new Error("Missing tailored silhouette "+id);
+        expect(node.coverage).toBe("opaque");
+        expect(node.d.match(/[CQ]/g)?.length??0).toBeGreaterThan(3);
+      }
+      for(const id of ["coat-collar-felt-near","coat-collar-felt-far",
+        "scarf-overlap-fold"]){
+        const node=nodes.get(id);
+        if(node?.kind!=="wax")throw new Error("Missing attached cloth fold "+id);
+        expect(node.coverage).toBe("open");
+        expect(node.clipToParent).toBe(true);
+        expect(node.blendRadius).toBeGreaterThan(0);
+      }
+      for(const id of ["shirt-lace-edge-scallops","shirt-lace-eyelets",
+        "coat-sleeve-attachment-near","coat-sleeve-attachment-far",
+        "coat-body-tailoring-darts","coat-lapel-roll-near","coat-lapel-roll-far"]){
+        const node=nodes.get(id);
+        if(node?.kind!=="contour")throw new Error("Missing tailored stitching "+id);
+        expect(node.clipToParent).toBe(true);
+      }
       const neck=nodes.get("neck-under-jaw");
       const scarf=nodes.get("tailored-scarf-wrap");
       const collarShadow=nodes.get("neck-jaw-cast-shadow");

@@ -34,6 +34,9 @@ const colors={
   hairLight:["#916b60","#4d4046","#bd937b"] as const,
   neck:["#bc8a78","#816269","#dfb09b"] as const,
   coat:["#556677","#344958","#84909b"] as const,
+  coatLight:["#76889a","#4a5d72","#b3a99f"] as const,
+  coatShadow:["#394b5f","#273b50","#657a85"] as const,
+  linenLace:["#f0dcca","#c7a994","#fff0d5"] as const,
   noseShade:["#c79c8b","#a67e7b","#e6bda6"] as const,
   scarf:["#aa6a5e","#724f59","#d5a082"] as const,
   scarfShadow:["#845251","#5d434b","#bc7a68"] as const,
@@ -51,6 +54,10 @@ export const portraitCriticalParts=[
   "lip-upper-volume","lip-lower-volume","mandible-plane",
   "hair-back","hair-temple-lock","neck-under-jaw",
   "coat-collar-left","coat-collar-right",
+  "coat-sleeve-cap-near","coat-sleeve-cap-far",
+  "coat-collar-felt-near","coat-collar-felt-far",
+  "shirt-lace-ruffle-left","shirt-lace-ruffle-right",
+  "scarf-overlap-fold",
   "tailored-scarf-wrap","tailored-scarf-tail",
   "nose-tip-underpaint","cheek-warm-pigment","tear-trough-value",
   "neck-jaw-cast-shadow",
@@ -126,19 +133,42 @@ export function crayonAdultFaceStudy(
     "V"+H+"H0Z",box(0,H*.7,W,H*.3),
     colors.silk,"base",{coverage:"open",pressure:.3,spacing:14,outlineOpacity:0});
   wax("coat-silhouette",
-    "M-140 115Q-178 124 -194 160"+
-    "Q-204 187 -200 237L-185 327"+
-    "Q-171 340 -143 340L-129 280"+
-    "Q-128 324 -104 345Q-1 355 103 346"+
-    "Q134 331 140 281L146 337"+
-    "Q175 345 190 328L199 237"+
-    "Q206 185 174 152Q153 128 120 117"+
-    "Q88 104 43 112L-49 111Q-99 99 -140 115Z",
-    box(-216,91,428,270),colors.coat,"base",
+    "M-133 111Q-168 118 -189 144"+
+    "C-211 176 -202 222 -194 270"+
+    "L-181 328Q-171 341 -151 340"+
+    "Q-146 338 -140 326L-131 296"+
+    "Q-122 338 -96 348Q-65 361 -17 356"+
+    "Q48 361 99 344Q121 335 135 292"+
+    "L144 331Q153 344 176 338"+
+    "Q190 325 195 276L201 220"+
+    "Q204 180 182 151Q160 127 120 113"+
+    "Q79 101 49 111Q10 114 -28 110"+
+    "Q-93 100 -133 111Z",
+    box(-215,92,426,276),colors.coat,"base",
     {placement:{x:rootX,y:rootY,scale:rootScale},
       spacing:9,markStrength:.78,
       underpaintGradient:{light:"#718899",shadow:"#304355",focusX:.35,focusY:.1,radius:1.2},
       outlineOpacity:0});
+  // Structural garment blocks: continuous sleeve caps overlap the body
+  // at a sewn shoulder seam. The dark underarm crease is NOT transparent.
+  wax("coat-sleeve-cap-near",
+    "M-131 117Q-170 124 -190 167"+
+    "Q-202 206 -186 261Q-176 300 -162 322"+
+    "Q-151 315 -152 272Q-163 208 -122 156Z",
+    box(-205,107,96,232),colors.coatLight,"value",
+    {parentId:"coat-silhouette",spacing:8,markStrength:.53,
+      underpaintGradient:{light:"#91a0aa",shadow:"#354859",
+        focusX:.23,focusY:.21,radius:1.04},
+      outlineOpacity:.025,edgeRoughness:.23});
+  wax("coat-sleeve-cap-far",
+    "M124 115Q176 134 192 172"+
+    "Q201 210 190 268Q182 302 166 326"+
+    "Q151 320 157 271Q165 222 121 159Z",
+    box(111,109,97,236),colors.coatShadow,"value",
+    {parentId:"coat-silhouette",spacing:8,markStrength:.55,
+      underpaintGradient:{light:"#748598",shadow:"#2c3e52",
+        focusX:.28,focusY:.23,radius:1.11},
+      outlineOpacity:.025,edgeRoughness:.23});
   wax("neck-under-jaw",
     "M-36 56Q-32 86 -67 119Q-39 136 11 137"+
     "Q53 133 72 117Q43 92 42 55Z",
@@ -664,17 +694,69 @@ export function crayonAdultFaceStudy(
   wax("coat-collar-left",
     "M-130 123Q-96 105 -65 139L-8 201"+
     "Q-38 231 -78 272Q-100 216 -130 123Z",
-    box(-140,97,140,183),colors.coat,"anatomy",
-    {parentId:"coat-silhouette",spacing:7.5,outlineOpacity:.09});
+    box(-140,97,140,183),colors.coatLight,"anatomy",
+    {parentId:"coat-silhouette",spacing:8,markStrength:.47,
+      underpaintGradient:{light:"#97a6a9",shadow:"#3d4e60",
+        focusX:.28,focusY:.1,radius:1.08},
+      outlineOpacity:.065});
   wax("coat-collar-right",
     "M55 114Q103 106 151 158Q112 183 71 266"+
     "Q44 193 27 168Z",
-    box(21,101,146,178),colors.coat,"anatomy",
-    {parentId:"coat-silhouette",spacing:7.5,outlineOpacity:.09});
+    box(21,101,146,178),colors.coatShadow,"anatomy",
+    {parentId:"coat-silhouette",spacing:8.3,markStrength:.55,
+      underpaintGradient:{light:"#6c7c89",shadow:"#2d3e50",
+        focusX:.35,focusY:.12,radius:1.09},
+      outlineOpacity:.065});
+  wax("coat-collar-felt-near",
+    "M-120 130Q-93 129 -73 148"+
+    "Q-63 171 -38 203Q-53 216 -72 225"+
+    "Q-82 190 -120 130Z",
+    box(-130,120,104,117),colors.coatShadow,"value",
+    {parentId:"coat-collar-left",coverage:"open",clipToParent:true,
+      blendRadius:5,pressure:.45,markStrength:.27,spacing:9.5,
+      outlineOpacity:0,edgeRoughness:0});
+  wax("coat-collar-felt-far",
+    "M60 123Q91 119 129 151"+
+    "Q101 163 84 188Q75 160 60 123Z",
+    box(50,112,92,86),colors.coatLight,"value",
+    {parentId:"coat-collar-right",coverage:"open",clipToParent:true,
+      blendRadius:4,pressure:.39,markStrength:.22,spacing:10,
+      outlineOpacity:0,edgeRoughness:0});
   wax("shirt-linen","M-53 150Q-23 171 7 181Q38 167 61 151"+
     "Q33 208 21 268Q10 281 -11 266Z",
     box(-64,137,136,153),colors.silk,"anatomy",
     {parentId:"coat-silhouette",markStrength:.43,spacing:10,outlineOpacity:0});
+  // Under the wool and scarf are two physically attached linen ruffles.
+  // These are inked, asymmetrical scalloped folds, not five disconnected
+  // white "petals" or flat sawtooth triangles.
+  wax("shirt-lace-ruffle-left",
+    "M-52 155Q-39 150 -28 162"+
+    "Q-17 161 -15 171Q-17 178 -25 181"+
+    "Q-22 192 -33 196Q-43 194 -44 185"+
+    "Q-55 180 -52 169Z",
+    box(-61,145,56,59),colors.linenLace,"anatomy",
+    {parentId:"shirt-linen",spacing:4.8,markStrength:.36,
+      outlineOpacity:.07,edgeRoughness:.35});
+  wax("shirt-lace-ruffle-right",
+    "M17 164Q33 147 50 155"+
+    "Q60 166 50 177Q54 187 43 194"+
+    "Q32 195 28 187Q19 189 16 179Z",
+    box(9,142,61,60),colors.linenLace,"anatomy",
+    {parentId:"shirt-linen",spacing:4.6,markStrength:.35,
+      outlineOpacity:.07,edgeRoughness:.35});
+  ink("shirt-lace-edge-scallops",
+    "M-51 173Q-45 181 -38 177Q-35 189 -27 185"+
+    "M17 177Q24 184 30 179Q33 188 41 184"+
+    "M-46 158Q-32 163 -23 174M21 168Q35 156 49 162",
+    "#bc988c",.96,"detail",
+    {parentId:"shirt-linen",clipToParent:true,opacity:.74});
+  ink("shirt-lace-eyelets",
+    "M-43 170q3 -5 6 0q-3 5 -6 0"+
+    "M-31 177q2 -4 5 0q-3 4 -5 0"+
+    "M27 171q2 -5 5 -1q-2 5 -5 1"+
+    "M39 168q3 -4 5 0q-2 5 -5 0",
+    "#9d827a",.81,"detail",
+    {parentId:"shirt-linen",clipToParent:true,opacity:.67});
   // Wrapped textile has separate rolled band and hanging tail with
   // grain following cloth direction. No flat screen-space tartan overlay.
   wax("tailored-scarf-wrap",
@@ -685,6 +767,22 @@ export function crayonAdultFaceStudy(
     box(-94,88,184,78),colors.scarf,"anatomy",
     {parentId:"coat-silhouette",spacing:5.6,markStrength:.62,
       edgeRoughness:.43,outlineOpacity:.06});
+  // Fold is layered above the wrap rather than a band printed onto it;
+  // its darker underturn breaks the horizontal neck-ring silhouette.
+  wax("scarf-overlap-fold",
+    "M-67 106Q-35 91 -6 110"+
+    "Q8 127 34 117Q22 143 -7 146"+
+    "Q-38 148 -65 132Z",
+    box(-76,88,122,69),colors.scarfShadow,"anatomy",
+    {parentId:"tailored-scarf-wrap",coverage:"open",clipToParent:true,
+      blendRadius:3.4,pressure:.55,markStrength:.48,spacing:6.7,
+      outlineOpacity:0,edgeRoughness:0});
+  ink("scarf-gather-rooted-creases",
+    "M-65 111Q-32 115 -8 132"+
+    "M-57 124Q-34 139 -13 144"+
+    "M15 112Q37 122 60 113",
+    "#6e4549",1.05,"detail",
+    {parentId:"tailored-scarf-wrap",clipToParent:true,opacity:.79});
   wax("tailored-scarf-tail",
     "M27 144Q49 152 55 179Q62 213 51 239"+
     "Q46 260 33 269L13 255"+
@@ -716,6 +814,35 @@ export function crayonAdultFaceStudy(
     {parentId:"coat-silhouette",coverage:"open",clipToParent:true,
       blendRadius:5,markStrength:.4,spacing:11,pressure:.48,
       outlineOpacity:0,edgeRoughness:0});
+  // Tailored construction: underarm seam, curved armscye, lapel roll
+  // and waist dart. Each contour follows its own cloth mass.
+  ink("coat-sleeve-attachment-near",
+    "M-133 128Q-163 174 -152 246"+
+    "M-162 145Q-184 200 -173 263"+
+    "M-165 272Q-156 303 -162 327",
+    "#a8adb1",1.16,"detail",
+    {parentId:"coat-sleeve-cap-near",clipToParent:true,opacity:.76});
+  ink("coat-sleeve-attachment-far",
+    "M130 131Q158 174 156 248"+
+    "M159 153Q183 198 175 260"+
+    "M169 272Q166 309 160 330",
+    "#74858d",1.12,"detail",
+    {parentId:"coat-sleeve-cap-far",clipToParent:true,opacity:.75});
+  ink("coat-body-tailoring-darts",
+    "M-93 273Q-83 310 -67 345"+
+    "M89 262Q87 304 70 343"+
+    "M-58 226Q-64 280 -61 313"+
+    "M66 224Q75 267 70 303",
+    "#80909a",1.07,"detail",
+    {parentId:"coat-silhouette",clipToParent:true,opacity:.58});
+  ink("coat-lapel-roll-near",
+    "M-123 130Q-85 154 -59 195Q-54 206 -47 211",
+    "#d4c6af",1.04,"detail",
+    {parentId:"coat-collar-left",clipToParent:true,opacity:.83});
+  ink("coat-lapel-roll-far",
+    "M68 127Q110 148 119 165Q93 194 73 241",
+    "#a4b2b5",1.01,"detail",
+    {parentId:"coat-collar-right",clipToParent:true,opacity:.72});
   ink("coat-fold-seams",
     "M-150 142Q-108 184 -91 253M71 141Q101 163 132 165"+
     "M-101 262Q-106 285 -115 315M75 268Q84 296 85 318",

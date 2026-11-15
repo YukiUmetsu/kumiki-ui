@@ -106,3 +106,11 @@ reference tracing.
 [Browser proof 43667084536](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43667084536) provides both the old head and a new source-native 540×960 frame. Head compression visibly reduced the stylized horse-like vertical silhouette, but also exposed a skin-colored **stiff elongated neck** with large wax chunks and a bright, disconnected orange scarf ring. The neck, not the head, was the next macro flaw.
 
 Follow-up code fixes: shorten and redraw the sternocleidomastoid/underjaw neck silhouette, add a low-pressure opaque skin undercoat with a soft source-clipped jaw cast shadow, lower coarse wax strokes, and move the existing scarf wrap upward into neck attachment. Rebuild the tail so its cloth roots are contiguous with the scarf; retune woven diagonals to its moved geometry. These are geometry and material edits, not additional random speckles. Browser proof again required; this study remains unpublished.
+
+## 2026-11-15 garment reconstruction after actual browser review
+
+[Head and garment proof 43667254459](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43667254459) made the neck shorter and reduced angular skin noise, but the remaining jacket was still a **flat navy pad**, with a floating horizontal orange scarf band. This fails the user-provided `fabric.png` and `adults.png` benchmark.
+
+Construction now separates sleeve caps from the coat body, introduces non-identical near/far felt lapels and directional underarm seams, has a tighter waist dart, and adds original scalloped linen ruffles below the scarf. Scarf has a separate colored underturn/crossover layer and anchored curved-gather creases rather than only repetitive diagonal bands. Every detail remains an editable named wax contour and underpainting; no third-party reference pixels were embedded.
+
+**Negative controls:** a unified single blob coat, symmetric flat lapels, disconnected lace circles, and a digitally printed tartan band are all rejected. The new sleeve and lace shapes must remain opaque; only their tonal glazing uses locally clipped open wax. Visual proof and shape inspection at 16:9 / 9:16 remain mandatory before release.
