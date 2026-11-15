@@ -98,9 +98,34 @@ describe("RISO29 Kumiki ANAT1 source human anatomy",()=>{
     expect(mesh.regions.some(region=>region.id==="neck")).toBe(actor.id==="courier");
   });
 
+  it.each(people)("%s: ANAT1-guided torso-to-leg repair is actual joint length, not stretched pixels",actor=>{
+    const upper=actor.joints.find(j=>j.id==="left-knee");
+    const lower=actor.joints.find(j=>j.id==="left-ankle");
+    const hip=actor.joints.find(j=>j.id==="left-leg");
+    const body=actor.joints.find(j=>j.id==="body");
+    expect(upper?.y).toBe(55);
+    expect(lower?.y).toBe(52);
+    expect(hip?.y).toBe(-90);
+    expect(body?.y).toBe(-104);
+    expect(RISO29_ANAT1.adultReferenceLegRatio).toBeGreaterThan(.45);
+    for(const frame of [0,46,160,198,239]){
+      const measured=inspectRisoAnatomy(actor,frame);
+      expect(Number.isFinite(measured.projectedStature)).toBe(true);
+      expect(measured.legProjectionRatio,actor.id+" legs still look childlike at f"+frame).toBeGreaterThan(.385);
+      expect(measured.legProjectionRatio,actor.id+" leg exceeds adult ratio at f"+frame).toBeLessThan(.50);
+      if(frame===0||frame===198){
+        const head=evaluateRisoCharacter(actor,frame).joints.find(j=>j.id==="head")!;
+        const crown=head.y+RISO29_ANAT1.headCrownY*RISO29_ANAT1.headScale;
+        const studioCrown=455-38+crown*1.45;
+        expect(studioCrown,actor.id+" hair cut off by native full-figure crop").toBeGreaterThan(25);
+        expect(studioCrown).toBeLessThan(140);
+      }
+    }
+  });
+
   it("preserves all source-time handoff, actor IK and independently printed blue/red ink",()=>{
     for(const aspect of ["landscape","portrait"] as const)
-      for(const frame of [0,24,76,160,165,178,198,239]){
+      for(const frame of [0,24,46,76,126,160,165,178,190,198,202,239]){
         const state=evaluateRisoHumanEnsemble(frame,aspect);
         // Before the original f126 unfurl the physical transfer sheet is
         // intentionally absent. Test its true phase instead of requiring a
