@@ -81,7 +81,11 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
         for(const name of ["princess","prince"]){
           const head=extent(byId(name+"-head").path);
           const neck=extent(byId(name+"-neck").path);
-          const plane=extent(byId(name+"-face-planes").path);
+          // The sheet also carries a separately connected ear and
+          // nostril. Bound the cheek's *first contour*, not the union of
+          // all semantic features cut into that same physical stock.
+          const cheek=byId(name+"-face-planes").path.split(" Z")[0]+" Z";
+          const plane=extent(cheek);
           const headHeight=head.maxY-head.minY;
           const headWidth=head.maxX-head.minX;
           const neckHeight=neck.maxY-neck.minY;
