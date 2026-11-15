@@ -148,6 +148,22 @@ describe("ArtCraft anatomical hare source construction",()=>{
     expect(closedRim.bounds.height).toBeLessThan(openRim.bounds.height);
     expect(crayonDrawingAt(rim,89).d).toBe(crayonDrawingAt(rim,203).d);
     expect(crayonDrawingAt(rim,95).d).toBe(crayonDrawingAt(rim,237).d);
+    for(const eyePart of ["eye-amber-iris","eye-pupil"]){
+      const n=part(eyePart);
+      if(n.kind!=="wax")throw new Error("Missing moving pigmented globe");
+      const shutter=crayonDrawingAt(n,203),rest=crayonDrawingAt(n,209);
+      if(!shutter.bounds||!rest.bounds)
+        throw new Error("Missing held globe bounds");
+      expect(shutter.bounds.width).toBeLessThan(rest.bounds.width*.2);
+      expect(shutter.bounds.height).toBeLessThan(rest.bounds.height*.2);
+      expect(crayonDrawingAt(n,89).d).toBe(shutter.d);
+      expect(crayonDrawingAt(n,95).d).toBe(rest.d);
+    }
+    for(const name of ["eye-bright-catchlight","eye-secondary-catchlight"]){
+      const glint=part(name);
+      if(glint.kind!=="contour")throw new Error("Missing eye reflection");
+      expect(crayonDrawingAt(glint,203).d).not.toBe(crayonDrawingAt(glint,209).d);
+    }
     const root=part("shoulder-silhouette");
     expect(part("head").parentId).toBe(root.id);
     const iris=part("iris-gold-radials");
