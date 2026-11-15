@@ -64,7 +64,7 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, object, objec
   const spec = useMemo(() => artwork === "botanical"
     ? paperBotanicalSpec(selected, aspect, {palette, detail, colorLayers, seed})
     : artwork === "scenery"
-      ? paperScenerySpec(selected, aspect, {scenery, palette: sceneryPalette, detail, breeze, seed})
+      ? paperScenerySpec(selected, aspect, {scenery, palette: sceneryPalette, detail, breeze, relief, seed})
     : artwork === "object"
       ? paperObjectSpec(selected, aspect, {object, palette: objectPalette, detail, curl, motion, relief, seed})
       : paperCraftExampleSpec(selected, aspect, seed),
@@ -194,12 +194,12 @@ export const Botanical: Story = {
 };
 export const Scenery: Story = {
   name:"Scenery",
-  args:{artwork:"scenery",scenery:"woodland",sceneryPalette:"sage",breeze:.5,
+  args:{artwork:"scenery",scenery:"woodland",sceneryPalette:"sage",breeze:.45,relief:1,
     detail:1,medium:"layered",aspect:"landscape",frame:214,tooth:.72,
-    shadow:1,edge:.75,seed:37},
+    shadow:1,edge:.47,seed:37},
   argTypes:{artwork:hideControl,object:hideControl,objectPalette:hideControl,
     palette:hideControl,colorLayers:hideControl,curl:hideControl,
-    motion:hideControl,relief:hideControl},
+    motion:hideControl},
 };
 export const Kingfisher: Story = {
   name:"Kingfisher",
