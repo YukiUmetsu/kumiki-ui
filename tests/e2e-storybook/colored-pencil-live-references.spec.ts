@@ -84,6 +84,23 @@ for(const sample of ["fox","kingfisher"] as const){
 /** Real CC0 portrait pixels: facial landmarks must survive close framing and redraw. */
 for(const sample of ["woman","man"] as const){
   test("ArtCraft realistic "+sample+" face is source-conditioned in both frames",async({page},info)=>{
+    if(sample==="woman")await page.addInitScript(()=>{
+      // Instrument native browser Canvas APIs BEFORE Storybook mounts. A
+      // drawImage/putImageData on dry art would be a photo-composite bug.
+      const prototype=CanvasRenderingContext2D.prototype;
+      for(const method of ["drawImage","putImageData"] as const){
+        const original=prototype[method];
+        (prototype as unknown as Record<string,unknown>)[method]=
+          function(this:CanvasRenderingContext2D,...args:unknown[]){
+            if(this.canvas.hasAttribute("data-km-pencil-full-head-dry")){
+              const attr="data-km-pencil-forbidden-raster-ops";
+              const n=Number(this.canvas.getAttribute(attr)??0);
+              this.canvas.setAttribute(attr,String(n+1));
+            }
+            return Reflect.apply(original,this,args);
+          };
+      }
+    });
     await page.goto("/iframe.html?id=video-colored-pencil-science--reference-guided-faces&viewMode=story");
     await page.getByRole("combobox",{name:"Pencil photo source"}).selectOption(sample);
     const output=page.locator("canvas[data-km-pencil-photo]");
@@ -128,6 +145,8 @@ for(const sample of ["woman","man"] as const){
         await expect(full).toHaveAttribute("data-km-pencil-raster-underpaint","none");
         await expect(full).toHaveAttribute("data-km-pencil-full-head-rendered",
           "true",{timeout:90000});
+        expect(await full.getAttribute(
+          "data-km-pencil-forbidden-raster-ops")).toBeNull();
         await expect(headSource).toHaveAttribute(
           "data-km-pencil-full-head-source","ready",{timeout:90000});
         // Actual Chromium 0% legacy vs 100% anatomy-connected fibre A/B:
