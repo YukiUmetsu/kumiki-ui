@@ -106,8 +106,12 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
       dry*.23+coarse*.16,.10,.92);
     const subject=attention[i];
     const active=1-options.focus*(1-subject);
-    const coverage=limit(base*(.23+.77*active)+
-      options.focus*subject*.29,.02,.99);
+    // Body shadow should stay convincing even when salience fails at a
+    // dark back crossing the image border. Focus mutes *extra noise* outside
+    // the subject more than it erases the source's actual value anatomy.
+    const coverage=limit(base*(.72+.28*active)+
+      options.focus*subject*.18+
+      darkness*.15*(1-options.focus*.5),.03,.99);
     for(let c=0;c<3;c++){
       const mixed=paper[c]+(toned[i*3+c]-paper[c])*coverage;
       const contour=mixed*(1-edge*.13);
