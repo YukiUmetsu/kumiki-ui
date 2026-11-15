@@ -42,10 +42,10 @@ const C={
   hair:["#4c382f","#21191d","#886753"] as const,
   hairLight:["#815c4a","#45302f","#b49273"] as const,
   hairShadow:["#3a2a29","#20191f","#6d4c43"] as const,
-  skin:["#d1a490","#92766f","#f0c9ae"] as const,
-  skinLight:["#eed1be","#bb9a91","#ffe1c6"] as const,
-  skinCool:["#c29e9a","#896c76","#e0c2b7"] as const,
-  cheek:["#dca78e","#ad7b77","#eec2a7"] as const,
+  skin:["#bb8d7c","#785e5c","#d9ad99"] as const,
+  skinLight:["#d9b4a8","#a88682","#edcbb7"] as const,
+  skinCool:["#af8c8a","#755e66","#d4b0a6"] as const,
+  cheek:["#cb967f","#916969","#e6b9a2"] as const,
   socket:["#aa807e","#66545e","#c59d9a"] as const,
   lid:["#c7a19b","#886a72","#e3b8ad"] as const,
   sclera:["#b3a5a0","#777074","#dfc9bb"] as const,
@@ -57,7 +57,7 @@ const C={
   lip:["#bd8883","#814d54","#dfaaa0"] as const,
   lipLight:["#d4a19c","#a7797e","#f1bdb1"] as const,
   mouth:["#773d43","#43272f","#ad6c6e"] as const,
-  neck:["#95736c","#483a3d","#c2a08b"] as const,
+  neck:["#77574d","#32292c","#a78372"] as const,
 } satisfies Record<string,CrayonColor|readonly [CrayonColor,CrayonColor,CrayonColor]>;
 
 export const CRAYON_F1_FACE_PARTS=[
@@ -132,7 +132,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(-48,164,682,941),C.hair,[1,88],
     {pressure:.79,spacing:8.3,markStrength:.27,
       underpaintTooth:.19,edgeRoughness:.26,
-      underpaintGradient:{light:"#a17c60",shadow:"#2b2025",
+      underpaintGradient:{light:"#785b4b",shadow:"#201a1d",
         focusX:.33,focusY:.17,radius:1.14}});
   // Crown is an upper/temple wax volume with its OWN visible surface.
   // Hair-back contains the entire background behind the face, so clipping
@@ -149,7 +149,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(-48,157,531,350),C.hairLight,[26,112],
     {pressure:.81,spacing:9.3,markStrength:.15,
       edgeRoughness:.25,underpaintTooth:.16,
-      underpaintGradient:{light:"#b48a69",shadow:"#302327",
+      underpaintGradient:{light:"#86644f",shadow:"#251b20",
         focusX:.57,focusY:.23,radius:1.03}});
   // The actual face taper remains visible from near left cheek across an
   // oblique jaw to the chin at (398,858); the far edge is hair-occluded.
@@ -158,9 +158,28 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "Q431 915 447 976Q469 1045 480 1091"+
     "L122 1091Q135 1005 139 930Q150 872 149 807Z",
     rect(116,798,374,298),C.neck,[17,115],
-    {pressure:.75,spacing:8.1,markStrength:.17,
-      underpaintTooth:.2,underpaintGradient:{light:"#bd9985",shadow:"#584142",
+    {pressure:.91,spacing:8.1,markStrength:.17,
+      underpaintTooth:.2,underpaintGradient:{light:"#765c52",shadow:"#32292b",
         focusX:.43,focusY:.12,radius:1.18}});
+  // F1 under-jaw occlusion is the projected mandibular cast on a
+  // continuous neck mass, not a drawn floating jaw line.
+  wax("neck-submandibular-cast",
+    "M149 804Q213 837 292 856Q373 869 421 832"+
+    "Q438 878 436 916Q398 944 347 941"+
+    "Q255 944 178 917Q143 877 149 804Z",
+    rect(138,794,309,161),
+    ["#685251","#3a3032","#a08179"],[81,180],
+    {parentId:"neck-attached",clipToParent:true,coverage:"open",
+      featherContacts:true,pressure:.64,spacing:9.6,
+      blendRadius:15,markStrength:.13});
+  wax("neck-cervical-turn",
+    "M151 851Q170 916 184 980Q194 1052 202 1082"+
+    "Q248 1087 265 1082Q227 963 203 920Z",
+    rect(144,838,128,248),
+    ["#654944","#35292c","#9b7569"],[112,203],
+    {parentId:"neck-attached",clipToParent:true,coverage:"open",
+      featherContacts:true,pressure:.52,spacing:12.5,
+      blendRadius:18,markStrength:.13});
   wax("ear-underplane",
     "M99 650C81 644 67 666 67 692Q68 733 86 758"+
     "Q104 777 125 767Q152 753 151 728Q144 682 124 661Z",
@@ -220,7 +239,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "C145 795 119 762 112 719Q101 669 106 604"+
     "Q108 530 108 467C111 421 118 389 142 353Z",
     rect(99,272,412,608),C.skin,[42,147],
-    {underpaintGradient:{light:"#efd0b7",shadow:"#a87a76",
+    {underpaintGradient:{light:"#b99a93",shadow:"#6e5050",
         focusX:.4,focusY:.29,radius:1.1},
       markStrength:.14,pressure:.72,underpaintTooth:.24,spacing:11.5});
   // THE SOURCE'S OPEN LIGHT ZONES: warm left cheek, cooler forehead and
@@ -740,7 +759,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(376,184,245,915),C.hair,[130,240],
     {pressure:.8,spacing:8.2,markStrength:.28,
       underpaintTooth:.2,edgeRoughness:.32,
-      underpaintGradient:{light:"#956c52",shadow:"#251c20",
+      underpaintGradient:{light:"#5d413b",shadow:"#171419",
         focusX:.6,focusY:.32,radius:1.2}});
   // Interior medium-specific marks correspond to *observed* direction:
   // thick root sweep across crown, thin vertical strands on right curtain,
@@ -933,8 +952,8 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "M353 834Q383 850 414 843",
     "#ddb3a7",.8,[246,298],.33,"face-outline");
   mark("jaw-underside-contour",
-    "M157 784Q222 868 339 873Q398 876 446 835",
-    "#805d5e",.76,[241,298],.35,"face-outline");
+    "M158 797Q230 865 334 872Q397 868 452 828",
+    "#795857",.45,[241,298],.10,"face-outline");
 
   if(view==="anatomy"){
     const links=[
