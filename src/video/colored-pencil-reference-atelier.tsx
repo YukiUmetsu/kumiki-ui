@@ -1074,6 +1074,7 @@ export function ReferencePencilAtelier({
               headPlate.observedIrisCounts.sourceContrastFar.toFixed(2)}.
             Iris optical strength: {" "+Math.round(headPlate.irisDepth*100)}%.
             Fine skin weave nibs: {" "+headPlate.skinWeaveEvidence.pigments}.
+            Replaced coarse scumbles: {" "+headPlate.skinWeaveEvidence.replacedCoarseScumbles}.
             Protected skin highlights / boundaries / features:
             {" "+headPlate.skinWeaveEvidence.protectedHighlights+" / "+
               headPlate.skinWeaveEvidence.protectedEdges+" / "+
