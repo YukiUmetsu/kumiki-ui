@@ -96,6 +96,7 @@ export function pencilMaterialCraftFinish(surface: PencilSurface): PencilCraftFi
     throw new RangeError("Unknown coloured-pencil material surface.");
   if (!RECIPES[surface].support) return null;
   const kind: PencilCraftKind =
+    surface==="glass"||surface==="glaze"||surface==="cast-shadow" ? "general" :
     surface==="petal" || surface==="citrus" ? "general" :
     surface==="leaf" ? "foliage" :
     surface==="masonry" ? "stone" : surface;
