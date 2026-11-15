@@ -5,6 +5,9 @@ import {flattenRisoSvgPath,risoContourSignedArea} from "../registry/video/riso-p
 import {inspectRisoCharacter,evaluateRisoCharacter} from "../registry/video/riso-character";
 import {inspectRisoCharacterMesh,evaluateRisoCharacterMesh} from "../registry/video/riso-proportion-mesh";
 import {RisoCharacterInk} from "../registry/video/riso-character-react";
+import {inspectRisoPrint} from "../registry/video/print-plates";
+import {createRisoScreenGeometry} from "../registry/video/riso-screening";
+import type {RisoPrintSpec} from "../registry/video/print-plates";
 import {COURIER} from "../src/video/riso-character-demo";
 import {PAPER_ARTIST,RISO_PAPER_ARTIST_SHEET} from "../src/video/riso-human-ensemble";
 import {RISO_COURIER_SHEET} from "../src/video/riso-character-mesh-sheets";
@@ -18,6 +21,30 @@ const engravings=["eye-iris-grain","eye-lower-orbit-engraving"] as const;
 const stressed=[46,78,160,198] as const;
 
 describe("RISO23 actual-render-informed facial tone and microink layout",()=>{
+  it("the production print contract permits an actual two-unit fine screen, rejects subpixel alias-prone pitches",()=>{
+    const fine=createRisoScreenGeometry({cell:2,mode:"am",density:.33,
+      dotGain:0,seed:38,plateIndex:0});
+    expect(fine.tileSize).toBe(2);
+    expect(fine.dots).toHaveLength(1);
+    expect(fine.dots[0].r).toBeGreaterThan(.4);
+    expect(fine.dots[0].r).toBeLessThan(1);
+    const fm=createRisoScreenGeometry({cell:2,mode:"fm",density:.33,
+      dotGain:0,seed:38,plateIndex:0});
+    expect(fm.tileSize).toBe(16);
+    expect(fm.dots.length).toBeGreaterThan(15);
+    for(const cell of [1.99,0,-1,NaN,Infinity])
+      expect(()=>createRisoScreenGeometry({cell,mode:"am",density:.33,
+        dotGain:0,seed:38,plateIndex:0})).toThrow(RangeError);
+    const spec:RisoPrintSpec={
+      version:1,width:640,height:360,paper:"#F6EDDD",seed:38,startFrame:0,passFrames:1,gapFrames:0,
+      plates:[{id:"blue",color:"#255B8E",opacity:1,dotCell:2,dotAngle:-12,registration:[0,0]},
+        {id:"red",color:"#D65641",opacity:1,dotCell:2,dotAngle:17,registration:[.5,-.4]}],
+    };
+    expect(inspectRisoPrint(spec)).toEqual([]);
+    expect(inspectRisoPrint({...spec,plates:spec.plates.map(p=>({...p,dotCell:1.99}))})
+      .some(issue=>issue.code==="plate-cell")).toBe(true);
+  });
+
   it.each(subjects)("$actor.id: valid large tonal planes and non-sampling-limited eye engraving",({actor,sheet})=>{
     expect(inspectRisoCharacter(actor)).toEqual([]);
     expect(inspectRisoCharacterMesh(actor,sheet)).toEqual([]);
