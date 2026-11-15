@@ -218,11 +218,34 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
       fill="#7e654a" stroke={INK} strokeWidth="2.2"/>
     <path d="M-10 -3 Q6 -116 26 -217 Q39 -295 115 -332 M1 -91 Q23 -159 30 -223"
       fill="none" stroke="#dfc89f" strokeWidth="5" opacity=".45"/>
-    {arches.map((branch,i)=><path key={i}
-      d={"M"+branch.from.join(" ")+" Q"+branch.control.join(" ")+
-        " "+branch.to.join(" ")}
-      stroke="#6b5038" strokeWidth={3.1+(i%3)*.52} fill="none"
-      strokeLinecap="round"/>)}
+    {arches.map((branch,i)=>{
+      // A flexible, shrinking ink ribbon: the primary branch retains a
+      // loaded root and releases to a hairline, unlike uniform-width bars.
+      const steps=14;
+      const sides:[P[],P[]]=[[],[]];
+      for(let k=0;k<=steps;k++){
+        const t=k/steps;
+        const center=quadraticPoint(branch.from,branch.control,branch.to,t);
+        const tx=2*(1-t)*(branch.control[0]-branch.from[0])+
+          2*t*(branch.to[0]-branch.control[0]);
+        const ty=2*(1-t)*(branch.control[1]-branch.from[1])+
+          2*t*(branch.to[1]-branch.control[1]);
+        const norm=Math.max(1e-6,Math.hypot(tx,ty));
+        const pressure=(2.5+.27*(i%3))*Math.pow(1-t,.85)+.09;
+        const nx=-ty/norm*pressure,ny=tx/norm*pressure;
+        sides[0].push([f(center[0]+nx),f(center[1]+ny)]);
+        sides[1].push([f(center[0]-nx),f(center[1]-ny)]);
+      }
+      const points=[...sides[0],...sides[1].reverse()];
+      const d=points.map((v,j)=>(j?" L":"M")+f(v[0])+" "+f(v[1])).join("")+" Z";
+      return <g key={i}>
+        <path data-km-willow-tapered-branch="" d={d}
+          fill="#71573e" opacity=".89"/>
+        <path d={"M"+branch.from.join(" ")+" Q"+
+          branch.control.join(" ")+" "+branch.to.join(" ")}
+          stroke="#af9069" strokeWidth=".56" opacity=".56" fill="none"/>
+      </g>;
+    })}
     <path d="M31 -233 Q137 -320 322 -325 M41 -252 Q152 -352 387 -331
       M62 -294 Q197 -298 367 -280"
       stroke="#c0a180" strokeWidth="1.2" fill="none" opacity=".8"/>
@@ -244,18 +267,20 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
           const t=(j+.6)/(leafCount+1);
           const [x,y]=quadraticPoint(origin,control,end,t);
           const dir=j%2?1:-1,len=6+6*s(seed,i*37+j);
-          return <path key={j}
-            d={"M"+f(x)+" "+f(y)+" Q"+f(x+dir*len*.8)+" "+f(y+3)+
-              " "+f(x+dir*len)+" "+f(y+len*.52)+
-              " Q"+f(x+dir*len*.4)+" "+f(y+len*.48)+" "+f(x)+" "+f(y)}
+          return <path key={j} data-km-willow-leaf=""
+            d={"M"+f(x)+" "+f(y)+
+              " Q"+f(x+dir*len*.22)+" "+f(y-1.5)+
+              " "+f(x+dir*len*.75)+" "+f(y+len*.2)+
+              " Q"+f(x+dir*len*.65)+" "+f(y+len*.48)+
+              " "+f(x)+" "+f(y)}
             fill={j%4===0?"#a48b6a":"#66543f"}
-            opacity={.32+.35*s(seed,i*11+j*5)}/>;
+            opacity={f(.32+.35*s(seed,i*11+j*5))}/>;
         })}
       </g>;
     })}
     {Array.from({length:31},(_,i)=>{
       const yy=-21-i*8,xx=-14+15*Math.sin(i*.25);
-      return <path key={i}
+      return <path key={i} data-km-willow-bark=""
         d={"M"+f(xx)+" "+f(yy)+" q"+f(8+s(seed,i)*10)+" -17 "+f(17+s(seed,i+2)*18)+" -18"}
         fill="none" stroke={i%3===0?"#382a22":"#bd9b71"} strokeWidth={i%3===0?1.7:1}
         opacity={.5+s(seed,i+2)*.35}/>;
