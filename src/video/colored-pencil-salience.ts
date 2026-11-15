@@ -63,18 +63,21 @@ export function createPencilSalience(input:PencilPhotoPixels,flow:PencilFlowFiel
     if(!isImage(x,y))continue;
     const i=y*w+x,j=i*4;
     const dist=Math.hypot(data[j]-bg[0],data[j+1]-bg[1],data[j+2]-bg[2])/442;
-    const score=clamp((dist-.105)*3.1 + flow.edge[i]*.14,0,1);
+    // Border-adjacent background textures must not enter a broad subject
+    // halo simply because their nearest feather is high contrast.
+    const score=clamp((dist-.135)*5.2 + flow.edge[i]*.055,0,1);
     const z=Math.floor(y/cell)*cw+Math.floor(x/cell);
     cores[z]=Math.max(cores[z],score);
   }
   const smoothed=new Float32Array(cw*ch);
   for(let cy=0;cy<ch;cy++)for(let cx=0;cx<cw;cx++){
     let high=0;
-    for(let vy=-2;vy<=2;vy++)for(let vx=-2;vx<=2;vx++){
+    for(let vy=-1;vy<=1;vy++)for(let vx=-1;vx<=1;vx++){
       const ax=clamp(cx+vx,0,cw-1),ay=clamp(cy+vy,0,ch-1);
-      high=Math.max(high,cores[ay*cw+ax]*(1-.12*Math.hypot(vx,vy)));
+      const falloff=vx===0&&vy===0?1:.57;
+      high=Math.max(high,cores[ay*cw+ax]*falloff);
     }
-    smoothed[cy*cw+cx]=clamp((high-.15)/.46,0,1);
+    smoothed[cy*cw+cx]=clamp((high-.13)/.62,0,1);
   }
   const attention=new Float32Array(w*h);
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
@@ -85,7 +88,16 @@ export function createPencilSalience(input:PencilPhotoPixels,flow:PencilFlowFiel
     const u=clamp(px-xL,0,1),v=clamp(py-yT,0,1);
     const top=smoothed[yT*cw+xL]*(1-u)+smoothed[yT*cw+xR]*u;
     const bottom=smoothed[yB*cw+xL]*(1-u)+smoothed[yB*cw+xR]*u;
-    attention[y*w+x]=top*(1-v)+bottom*v;
+    const i=y*w+x,j=i*4;
+    const dist=Math.hypot(data[j]-bg[0],data[j+1]-bg[1],
+      data[j+2]-bg[2])/442;
+    // The local colour-distance must itself substantiate a subject pixel.
+    // Dilation may suggest an adjacent beak but must NEVER fill an arbitrary
+    // 16-pixel green/dark halo outside the actual blue/orange bird contour.
+    const direct=clamp((dist-.10)*5.6,0,1);
+    const nearby=top*(1-v)+bottom*v;
+    attention[i]=clamp(direct*(.52+.48*nearby)+
+      Math.min(.19,flow.edge[i]*.22)*nearby,0,1);
   }
   return {attention,background:bg,photographedBounds:bounds};
 }
