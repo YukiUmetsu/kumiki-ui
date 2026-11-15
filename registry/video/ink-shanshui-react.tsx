@@ -791,6 +791,29 @@ function OldPine({x,y,scale,wind,seed,detail}:{
     </>}
   </g>;
 }
+/** Loaded-fibre calligraphic leaf: width follows the local leaf normal,
+ * not the screen's vertical axis, and the release converges to a point.
+ * Controlled deterministic curvature makes a brush belly rather than
+ * a uniform vector triangle. */
+function bambooBrushBlade(root:P,tip:P,width:number,seed:number){
+  const dx=tip[0]-root[0],dy=tip[1]-root[1];
+  const length=Math.max(.01,Math.hypot(dx,dy));
+  const nx=-dy/length,ny=dx/length;
+  const bend=(s(seed,17)-.5)*length*.105;
+  const at=(t:number,load:number):P=>{
+    const offset=width*load+bend*Math.sin(Math.PI*t);
+    return [root[0]+dx*t+nx*offset,root[1]+dy*t+ny*offset];
+  };
+  const c1=at(.1,.12),c2=at(.48,1.12);
+  const c3=at(.61,-.36),c4=at(.19,-.35);
+  return "M"+f(root[0])+" "+f(root[1])+
+    " C"+f(c1[0])+" "+f(c1[1])+
+    " "+f(c2[0])+" "+f(c2[1])+
+    " "+f(tip[0])+" "+f(tip[1])+
+    " C"+f(c3[0])+" "+f(c3[1])+
+    " "+f(c4[0])+" "+f(c4[1])+
+    " "+f(root[0])+" "+f(root[1])+" Z";
+}
 /** Bamboo is a calligraphic plant, not uniform fence-post lines. The
  * centerline of each tapered culm also supplies the positions of its branch
  * nodes; each broad leaf begins on its own painted branching centerline.
@@ -892,21 +915,32 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
               const leafTipX=bx+leafDir*len;
               const leafTipY=by-len*(.33+.4*s(seed+5,k+i*23+j));
               const wide=1.8+3.3*s(seed+11,k+i*13+j);
-              // A pressure-loaded brush blade: narrow insertion, full belly,
-              // then a needle release. Dark/soft blades share a live shoot.
-              const blade="M"+f(bx)+" "+f(by)+
-                " C"+f(bx+leafDir*len*.19)+" "+f(by-wide*.94)+
-                " "+f(bx+leafDir*len*.57)+" "+f(leafTipY+len*.17)+
-                " "+f(leafTipX)+" "+f(leafTipY)+
-                " C"+f(bx+leafDir*len*.78)+" "+f(leafTipY+len*.32)+
-                " "+f(bx+leafDir*len*.14)+" "+f(by+wide*.84)+
-                " "+f(bx)+" "+f(by)+" Z";
+              // Orient the brush belly to the blade tangent, not paper Y.
+              // Secondary tip releases grow from the same parent wood,
+              // but their size and pitch vary rather than forming mirror pairs.
+              const blade=bambooBrushBlade([bx,by],[leafTipX,leafTipY],
+                wide,seed+i*1009+j*41+k*17);
+              const echo=detail>.62&&k%2===0;
+              const echoT=clamp(t+(k===4?-.09:.095),.04,.95);
+              const echoRoot=quadraticPoint(origin.root,origin.bend,
+                origin.tip,echoT);
+              const echoLen=len*(.56+.2*s(seed+1321,i*59+j*11+k));
+              const echoDir=-leafDir*(.74+.17*s(seed+1351,i*71+j*17+k));
+              const echoTip:P=[echoRoot[0]+echoDir*echoLen,
+                echoRoot[1]-echoLen*(.29+.43*s(seed+1397,i*13+j*29+k))];
+              const satellite=bambooBrushBlade(echoRoot,echoTip,
+                wide*(.54+.21*s(seed+1381,i*17+j*11+k)),
+                seed+1409+i*31+j*23+k*37);
               return <g key={k}>
                 <path data-km-shanshui-bamboo-leaf="" d={blade}
                   data-km-bamboo-leaf-root={f(bx)+","+f(by)}
                   data-km-bamboo-leaf-parent={spurIndex<0?"main":"spur-"+spurIndex}
                   fill={k===0||j%5===0?"#89765c":"#40392b"}
                   opacity={f(.63+.24*s(seed,k+i*31+j*7))}/>
+                {echo&&<path data-km-bamboo-satellite-leaf=""
+                  data-km-bamboo-satellite-root={f(echoRoot[0])+","+f(echoRoot[1])}
+                  d={satellite} fill={k===4?"#675442":"#8b765c"}
+                  opacity={f(.62+.18*s(seed+1459,i*13+j*7+k))}/>}
                 {detail>.77&&(k===1||k===3)&&
                   <path data-km-bamboo-dry-lift=""
                     d={"M"+f(bx+leafDir*len*.21)+" "+f(by-len*.1)+
