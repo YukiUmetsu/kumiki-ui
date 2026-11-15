@@ -33,3 +33,30 @@ For modern animation context, [Chen Hailu's study of Chinese CGI ink-painting an
 5. **Visual acceptance:** CSS and unit tests only verify invariants. Capture multiple acting beats in real Chromium, encode the production MP4, inspect in motion and at crop details. Film quality is **not** approved solely by test results.
 
 **Remaining highest impact:** split sleeves/forearms into actual multi-bone anatomy with verified hand-to-object constraints and cloth settling; precise character joint masking; more truthful deforming ink wash boundaries; expressive facial acting and authored nonhuman animal rigs. The current painted strokes improve material craft but do not themselves improve inverse kinematics or physical handoffs.
+
+
+## Master portrait reconstruction · November 15 (ArtCraft follow-up)
+
+**Reference selection and study**
+
+- [Tokyo National Museum, Liang Kai: *Li Bai Strolling*](https://webarchives.tnm.jp/imgsearch/show/E0008311) — adult profile, deliberately irregular ink line pressure, highly resolved facial landmarks against economy of garments. The contrast between curved robe contour and abrupt foot marks is especially relevant to the currently overly symmetric Kumiki scholar.
+- [National Palace Museum, Liang Kai: *Immortal in Splashed Ink*](https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000969) — ink-wash clothing masses, limited dark facial marks, unpainted paper as the brightest plane. The relationship between sparse anatomy and wet clothes is critical; no uniform black outlines on all parts.
+- [The Met, Liang Kai: *Poet strolling by a marshy bank*](https://www.metmuseum.org/art/collection/search/40090) — restrained figure placement and long stillness. Do not replace negative space with extra ornament.
+- [Japan Search: *The Poet Li Bai Strolling*](https://jpsearch.go.jp/en/item/cobas-141892) — explicitly distinguishes gently curved clothing contours, angular feet, and subtly different sleeve ink concentrations.
+
+**ArtCraft topology, anatomy and medium decomposition**
+
+- Earlier master at 4×: bald-looking oval face under a uniform cap, two identical inverted-smile eyes, button nose, generic smiling mouth, tiny triangular goatee; the symmetrical contour reads as a children's mascot, not an adult ink-painted scholar.
+- Rebuilt **15 distinct original master sprite assets** in `src/video/ink-master-portrait-art.ts`: connected adult face and cheek bone planes, offset asymmetrical brows, open/soft/closed eyelids with pupil registration, nasal bridge/nostril connected turn, independently actuated mouth visemes, structurally continuous layered hairline/bun, and separated fine beard bristles.
+- The body was recast as a connected asymmetric robe silhouette with **15 authored base ink marks** before the pre-existing wet/dry ArtCraft fold atlas; retains shoulder, waist, sleeve and hem attachment coordinates. The workflow is **ink masses → light bone-less washes → fine dry contours → controlled highlights**, not a global vector filter.
+- No part IDs, parent hierarchy, speech/blink timing, gaze targets, leg IK or animator code were changed. `detail=0` restores the previous source assets; `detail=1` selects the real authored portrait rebuild. Both Ensemble and Character Director use `makeClassicalInkFigure`, avoiding separate concept art and production art.
+- `Chinese Ink / Ensemble → Classical Figure Brushwork Close-Up` now includes a genuine **4.1× master facial inspection** in the same Storybook leaf, with real 16:9 and 9:16 production renderers. Screenshots capture expression, bow, and original `detail=0` controls for side-by-side critique.
+
+**Explicit visual acceptance thresholds (manual after Chromium)**
+
+1. At 1× and 4.1×, facial character must read as an adult, with no emoji eye symmetry, floating brows or disconnected upper hair/bun. The chin and beard should remain attached to the actual face through head acting.
+2. At low `detail`, the old face remains unchanged for visual A/B. At high `detail`, brush masses have different value/edge and pressure hierarchy rather than uniformly black traces.
+3. Portrait and landscape face crops must not clip the bun/chin; bow frames must not reveal detached parts. Assess a 4× crop and the *whole-film 1×* silhouette.
+4. Passing TypeScript/Vitest/Playwright is not evidence of reference-level quality. Reject on visual inspection if the face or robe remains rigid, flat, too small or too symmetrical. Never claim historical re-creation or copied artwork.
+
+All code-painted strokes are original and retain the existing asset provenance metadata. References are solely artistic/stroke-method evidence.
