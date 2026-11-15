@@ -6,9 +6,13 @@ import {
 } from "../registry/video/riso-transfer-sheet";
 import {evaluateRisoHumanEnsemble} from "../src/video/riso-human-ensemble";
 
+type Detailed=ReturnType<typeof evaluateRisoTransferSheet>&{
+  contactCreases:{source:readonly string[];receiver:readonly string[]};
+  contactShadows:{source:string;receiver:string};
+};
 const a={x:30,y:90},b={x:240,y:155};
-const geometry=(sourceGrip:number,receiverGrip:number,imprintDepth=1)=>
-  evaluateRisoTransferSheet(a,b,1,{sourceGrip,receiverGrip,imprintDepth} as never);
+const geometry=(sourceGrip:number,receiverGrip:number,imprintDepth=1):Detailed=>
+  evaluateRisoTransferSheet(a,b,1,{sourceGrip,receiverGrip,imprintDepth} as never) as Detailed;
 const coords=(path:string):number[] => (path.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
 const along=(x:number,y:number)=>
   ((x-a.x)*(b.x-a.x)+(y-a.y)*(b.y-a.y))/Math.hypot(b.x-a.x,b.y-a.y);
@@ -62,7 +66,7 @@ describe("RISO19 material-native pressure creases",()=>{
     expect(off.contactShadows.receiver).toBe("");
     const stub=evaluateRisoTransferSheet(a,{x:58,y:95},1,{
       sourceGrip:1,receiverGrip:1,imprintDepth:1,
-    } as never);
+    } as never) as Detailed;
     expect(stub.contactCreases.source).toHaveLength(0);
     expect(stub.contactCreases.receiver).toHaveLength(0);
     const full=geometry(1,1);
@@ -100,10 +104,10 @@ describe("RISO19 material-native pressure creases",()=>{
     for(const aspect of ["landscape","portrait"] as const){
       const shared=evaluateRisoHumanEnsemble(177,aspect);
       const accepted=evaluateRisoHumanEnsemble(239,aspect);
-      expect(shared.printDetails.contactCreases.source).toHaveLength(3);
-      expect(shared.printDetails.contactCreases.receiver).toHaveLength(3);
-      expect(accepted.printDetails.contactCreases.source).toHaveLength(0);
-      expect(accepted.printDetails.contactCreases.receiver).toHaveLength(3);
+      expect((shared.printDetails as Detailed).contactCreases.source).toHaveLength(3);
+      expect((shared.printDetails as Detailed).contactCreases.receiver).toHaveLength(3);
+      expect((accepted.printDetails as Detailed).contactCreases.source).toHaveLength(0);
+      expect((accepted.printDetails as Detailed).contactCreases.receiver).toHaveLength(3);
       expect(evaluateRisoHumanEnsemble(239,aspect).printDetails).toEqual(accepted.printDetails);
     }
   });
