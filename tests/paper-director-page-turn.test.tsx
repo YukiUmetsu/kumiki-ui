@@ -28,6 +28,15 @@ describe("PAPER-D3 printed leaf and book-gutter transition",()=>{
         film,frame,aspect:"landscape","aria-hidden":true,
       }));
       expect(hidden).not.toContain('role="img"');
+      const hiddenString=renderToStaticMarkup(React.createElement(PaperDirectorStage,{
+        film,frame,aspect:"landscape","aria-hidden":"true",
+      }));
+      expect(hiddenString).not.toContain('role="img"');
+      const explicitlyVisible=renderToStaticMarkup(React.createElement(PaperDirectorStage,{
+        film,frame,aspect:"landscape","aria-hidden":"false",label:"A paper story",
+      }));
+      expect(explicitlyVisible.match(/role="img"/g) ?? []).toHaveLength(1);
+      expect(explicitlyVisible).toContain('aria-label="A paper story"');
     }
   });
   it("resolves previous and next complete paper sets continuously across the edit in both aspects",()=>{
