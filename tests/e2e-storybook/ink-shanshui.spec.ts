@@ -183,6 +183,10 @@ test("four distinct historical ink schools paint separate real rooted rock struc
       .toHaveCount(clouds);
     await expect(card.locator("[data-km-master-cloud-recess]"))
       .toHaveCount(clouds);
+    if(school==="early-spring")
+      for(const motif of [0,1,2,3])
+        await expect(card.locator('[data-km-master-cloud-morph="'+motif+'"]'))
+          .toHaveCount(3);
     const bankCount=school==="fuchun"?9:school==="forest-grotto"?12:0;
     await expect(card.locator("[data-km-master-rock-bank]"))
       .toHaveCount(bankCount);
