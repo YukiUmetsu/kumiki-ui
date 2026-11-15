@@ -251,6 +251,7 @@ export function RisoHumanEnsembleStudio(){
   const [fingertipOcclusion,setFingertipOcclusion]=useState(true);
   const [paperCurl,setPaperCurl]=useState(3);
   const [gripPinch,setGripPinch]=useState(.5);
+  const [imprintDepth,setImprintDepth]=useState(.75);
   const [releaseStart,setReleaseStart]=useState(178);
   const [releaseDuration,setReleaseDuration]=useState(24);
   const [settleDegrees,setSettleDegrees]=useState(-45);
@@ -266,8 +267,9 @@ export function RisoHumanEnsembleStudio(){
     releaseStart,releaseEnd:releaseStart+releaseDuration,settleDegrees,
   };
   const state=useMemo(()=>evaluateRisoHumanEnsemble(frame,aspect,{
-    curl:paperCurl,gripPinch,
-  },handoffSchedule),[frame,aspect,paperCurl,gripPinch,releaseStart,releaseDuration,settleDegrees]);
+    curl:paperCurl,gripPinch,imprintDepth,
+  },handoffSchedule),[frame,aspect,paperCurl,gripPinch,imprintDepth,
+    releaseStart,releaseDuration,settleDegrees]);
   const printSpec:RisoPrintSpec={
     version:1,width:state.width,height:state.height,paper,seed:38,
     startFrame:0,passFrames:1,gapFrames:0,
@@ -339,7 +341,7 @@ export function RisoHumanEnsembleStudio(){
   ];
   return <main style={{background:"#F0E4D1",padding:18,minHeight:"100vh",font:"14px system-ui,sans-serif"}}>
     <div style={{maxWidth:1320,margin:"0 auto"}}>
-      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO18 / HAND-TO-HAND PRINT TRANSFER & MATERIAL OWNERSHIP</div>
+      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO19 / PRESSURE-RESPONSIVE HAND-HELD RISO PAPER</div>
       <h2 style={{font:"700 29px Georgia,serif",margin:"8px 0"}}>Two original figures · a printed-sheet exchange</h2>
       <p style={{fontSize:13,maxWidth:900,lineHeight:1.5}}>
         Distinct coat, bob hair and facial geometry for the Paper Artist; the Courier retains
@@ -347,7 +349,8 @@ export function RisoHumanEnsembleStudio(){
         with controllable curl, grip compression, screened fold and original address engravings.
         The joint-posed fingertips print in front of paper during contact, and the Courier
         releases the sheet while the Paper Artist keeps holding it. Release timing, duration
-        and tilt are authored; this is not a force-based collision solver.
+        and tilt are authored; original material-local pressure folds and screened compression
+        track the two hand grips. This is not a force-based collision solver.
         Real RisoPrint spot-ink screens, print registration, paper pores and fibres are used.
       </p>
       <div style={{display:"flex",flexWrap:"wrap",gap:20,alignItems:"center",padding:"12px 0"}}>
@@ -376,6 +379,10 @@ export function RisoHumanEnsembleStudio(){
           <input type="range" min={0} max={1} step={.05} value={gripPinch}
             aria-label="RISO ensemble paper grip pinch"
             onChange={e=>setGripPinch(Number(e.target.value))}/></label>
+        <label>Pressed paper creases · {imprintDepth.toFixed(2)}
+          <input type="range" min={0} max={1} step={.05} value={imprintDepth}
+            aria-label="RISO ensemble pressure crease depth"
+            onChange={e=>setImprintDepth(Number(e.target.value))}/></label>
         <label>Release starts · {releaseStart}
           <input type="range" min={170} max={190} step={1} value={releaseStart}
             aria-label="RISO ensemble donor release frame"
@@ -452,6 +459,7 @@ export function RisoHumanEnsembleStudio(){
           data-km-riso-human-ensemble-aspect={aspect}
           data-km-riso-human-ensemble-paper-curl={paperCurl}
           data-km-riso-human-ensemble-grip-pinch={gripPinch}
+          data-km-riso-human-ensemble-imprint-depth={imprintDepth}
           data-km-riso-human-ensemble-contact-overprint={fingertipOcclusion}
           data-km-riso-handoff-phase={state.phase}
           data-km-riso-handoff-owner={state.owner}
