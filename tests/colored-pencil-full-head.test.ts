@@ -81,6 +81,8 @@ describe("Source-measured ArtCraft full-head geometry (experimental)",()=>{
     const garden=createDryPencilHeadPlate(source(true),guides,71);
     expect(garden.materialCounts["hair-mass"]).toBe(0);
     expect(garden.materialCounts["hair-fibre"]).toBe(0);
+    expect(garden.materialCounts["hair-occlusion"]).toBe(0);
+    expect(hair.materialCounts["hair-occlusion"]).toBeGreaterThan(30);
     expect(hair.materialCounts["hair-mass"]).toBeGreaterThan(200);
     expect(hair.strokes).not.toEqual(garden.strokes);
     expect(createDryPencilHeadPlate(source(),guides,72).strokes)
@@ -120,6 +122,7 @@ describe("ArtCraft four-shot production storyboard and pencil scumbling",()=>{
     expect(phases[1].some(m=>m.zone==="face-chroma")).toBe(true);
     expect(phases[2].some(m=>m.zone==="face-scumble")).toBe(true);
     expect(phases[2].some(m=>m.zone==="face-form")).toBe(true);
+    expect(phases[2].some(m=>m.zone==="hair-occlusion")).toBe(true);
     expect(phases[2].some(m=>m.zone==="hair-fibre")).toBe(false);
     expect(phases[3].some(m=>m.zone==="hair-fibre")).toBe(true);
     expect(phases[3].some(m=>m.zone==="measured-features")).toBe(true);
