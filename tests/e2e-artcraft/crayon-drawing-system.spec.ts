@@ -4,6 +4,7 @@ import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
 import {inspectCrayonDrawingPlan} from "../../registry/video/materials/crayon-art-direction";
 import {crayonBotanicalDrawing} from "../../src/video/crayon-drawing-system-fixtures";
+import {crayonDrawingInspectionSpec} from "../../src/video/crayon-drawing-system.stories";
 
 /** Original code-rendered stills: structural evidence, NOT aesthetic approval. */
 for(const item of [
@@ -41,6 +42,32 @@ for(const item of [
         animations:"disabled",path:info.outputPath(
           "crayon-atelier-"+item.aspect+"-"+frame+".jpg")});
       console.log("CRAYON_GRAMMAR_JPEG:"+item.aspect+":"+frame+":"+
+        screenshot.toString("base64"));
+    });
+  }
+}
+
+/** Native closeups preserve the exact wax marks of the film, not enlarged JPEGs. */
+for(const item of [
+  {aspect:"landscape",width:960,height:540},
+  {aspect:"portrait",width:540,height:960},
+] as const){
+  for(const inspection of ["surface","stalk-leaf","contact"] as const){
+    test("Crayon botanical anatomy closeup "+item.aspect+"/"+inspection,async({page},info)=>{
+      const {scene}=crayonBotanicalDrawing({aspect:item.aspect,detail:1,
+        pressure:.88,paperTooth:.78});
+      const framed=crayonDrawingInspectionSpec(scene,inspection);
+      expect(framed.elements).toBe(scene.elements);
+      await page.setViewportSize({width:item.width,height:item.height});
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec:framed,frame:239}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg.locator('[data-km-crayon-element="pear-body"]')).toBeAttached();
+      const screenshot=await svg.screenshot({type:"jpeg",quality:83,
+        animations:"disabled",
+        path:info.outputPath("crayon-atelier-"+item.aspect+"-"+inspection+".jpg")});
+      console.log("CRAYON_CRAFT_JPEG:"+item.aspect+":"+inspection+":"+
         screenshot.toString("base64"));
     });
   }
