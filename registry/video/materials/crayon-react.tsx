@@ -24,6 +24,8 @@ export type WaxProps = {
   construction?: CrayonWaxConstruction;
   /** Open scumble for skies/atmosphere; opaque buildup for tangible subjects. */
   coverage?: "open" | "opaque";
+  /** Deterministic, spatially blurred pigment glaze underneath directional wax marks. */
+  blendRadius?: number;
   /** After the drawing completes, repaint small wax daubs on discrete held exposures. */
   redraw?: CrayonRedrawOptions;
   /** Fragmented wax nib trace around the visible outline, 0..1. */
@@ -42,9 +44,12 @@ export type WaxProps = {
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long" }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
+  if (!Number.isFinite(blendRadius)||blendRadius<0||blendRadius>18||
+    (blendRadius>0&&coverage!=="open"))
+    throw new RangeError("crayon blendRadius must be 0..18 for open wax");
   if (nibStyle !== "rounded" && nibStyle !== "tapered")
     throw new RangeError("crayon nib style must be rounded or tapered");
   if (strokeOrder !== "scanline" && strokeOrder !== "patches")
@@ -82,6 +87,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const raw = useId(), clip = "waxclip-" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
   const pores = clip + "-tooth";
   const deposit = clip + "-deposit";
+  const blendId = clip + "-soft-glaze";
   // Contact pressure changes the opacity of raised paper-grain interruptions.
   // This remains a detail mask for the wax layer, never for opaque underpaint.
   const reliefContact = Number((.26 + (1-pressure)*.67).toFixed(4));
@@ -114,6 +120,12 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     data-km-crayon-outline-opacity={outlineOpacity}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
+      {blendRadius>0 && <filter id={blendId} filterUnits="userSpaceOnUse"
+        colorInterpolationFilters="sRGB"
+        x={bounds.x-3*blendRadius} y={bounds.y-3*blendRadius}
+        width={bounds.width+6*blendRadius} height={bounds.height+6*blendRadius}>
+        <feGaussianBlur stdDeviation={blendRadius} />
+      </filter>}
       {coverage==="opaque" && pigmentProgress>0 && pigmentProgress<1 && <mask id={deposit}
         data-km-crayon-deposit-mask="" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
         x={bounds.x-25} y={bounds.y-25} width={bounds.width+50} height={bounds.height+50}>
@@ -164,8 +176,13 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         opacity={settlingCoat} clipPath={"url(#"+clip+")"}
         data-km-crayon-settling-coat="" />}
     </>}
+    {/* The rubbed-over skin tone is feathered before local tooth strokes.
+        Parent clipping in CrayonScene prevents any blur from escaping a face. */}
+    {coverage==="open" && blendRadius>0 && fillProgress>0 &&
+      <path d={d} fill={colors[0]} opacity={fillProgress*(construction?.glaze??.58)}
+        filter={"url(#"+blendId+")"} data-km-crayon-soft-glaze={blendRadius} />}
     <g clipPath={"url(#" + clip + ")"} mask={"url(#" + pores + ")"} data-km-crayon-wax="">
-      {coverage==="open" && <path d={d} fill={colors[0]}
+      {coverage==="open" && blendRadius===0 && <path d={d} fill={colors[0]}
         opacity={fillProgress*(construction?.glaze??.58)} />}
       {coverage==="opaque" && <path d={d} fill={colors[2]}
         opacity={pigmentProgress*.09}/>}

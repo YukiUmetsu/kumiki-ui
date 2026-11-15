@@ -56,6 +56,8 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
         if(patch?.kind!=="wax")throw new Error("Missing tonal wax "+tonal);
         expect(patch.coverage).toBe("open");
         expect(patch.parentId).toBe("adult-face");
+        expect(patch.clipToParent).toBe(true);
+        expect(patch.blendRadius).toBeGreaterThanOrEqual(6);
       }
       const human=nodes.get("adult-face");
       expect(human?.kind==="wax"&&human.coverage).toBe("opaque");
@@ -82,6 +84,8 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(html).toContain('data-km-crayon-element="adult-face"');
       expect(html).toContain('data-km-crayon-element="left-upper-lid"');
       expect(html).toContain('data-km-crayon-underpaint="opaque"');
+      expect(html).toContain('data-km-crayon-soft-glaze="');
+      expect(html).toContain('data-km-crayon-clipped-to="adult-face"');
       expect(html).not.toContain('data-km-crayon-lettering=');
       expect(renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>)).toBe(html);
     });
