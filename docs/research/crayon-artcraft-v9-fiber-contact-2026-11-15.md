@@ -32,3 +32,11 @@ The source photograph and conservation micrographs have **different scopes**. Th
 - **Art:** visually inspect whether the dark wax mass, raised paper gaps, end pickups and source-guided direction survive at finished playback speed. Material local-contrast statistics alone do not certify authentic crayon. Re-run independent anatomical and source-pixel gates before any full portrait is promoted.
 
 **Current release gate remains REJECTED.** The F1 face has known anatomical/identity defects (nostril form, iris/eyelid attachment, lip and teeth slit, chin and jaw/neck shadow) and has no independently approved 1×/3× complete-character render, wax-stroke reference match or acting/motion audit. Keep #281 draft and Storybook `!dev`; do not merge on technical CI alone.
+
+## Native browser material A/B rejection ledger
+
+- **V1** 608×1082 matched right hair macro, final frame 299: wax versus smooth control mean RGB absolute difference **0.352/channel**; only **2.94%** of pixels changed by more than five levels in any channel. Actual visual review rejects this as an effectively invisible material change; smooth line signatures remained dominant.
+- **V2** wider true wax side contact, same scene and negative-control camera: mean RGB difference **1.263/channel**; **10.39%** of pixels changed by more than five levels and **2.15%** by more than 20 levels. Browser captured individual broader strips, but artist review **rejects** the result as nearly parallel uninterrupted tan/gold bands floating over unrelated hatch noise. Increased numerical change alone is not ArtCraft visual acceptance.
+- **V3 staged correction** changes *only* the contact valley threshold and bright hair pigment values. Keeps all 215 source-directed curtain trajectories, 52 crown arcs, clips, layer hierarchy and source framing intact. Goal is to recover broken raised-fiber wax clumps and dark hair coherence without reducing semantic complexity. Must be inspected at native actual pixels and compared with identical A/B control before any claim.
+
+**Unresolved source gap:** no independent high-resolution macro wax hair study under matching paper/pressure, no independently re-measured 18 candidate anatomy landmarks for this revision, and no accepted full portrait or normal-speed motion proof. Structural, material and artistic release gates remain distinct; **PR #281 stays draft**.
