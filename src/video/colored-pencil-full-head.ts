@@ -136,8 +136,9 @@ export const selectHeadStoryboardStrokes=(
   return strokes.filter(stroke=>phase==="detail"||
     (phase==="value"&&(stroke.zone==="face-value"||
       stroke.zone==="hair-mass"&&stroke.pass===0))||
-    (phase==="pigment"&&(stroke.pass<=1||
-      stroke.zone==="face-value"||stroke.zone==="face-chroma"))||
+    (phase==="pigment"&&stroke.zone!=="measured-features"&&
+      (stroke.pass<=1||stroke.zone==="face-value"||
+        stroke.zone==="face-chroma"))||
     (phase==="form"&&stroke.zone!=="hair-fibre"&&
       stroke.zone!=="measured-features"));
 };
