@@ -193,6 +193,20 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       )];
       expect(washes).toBe(masses.length);
       expect(bones).toBe(masses.length);
+      // 3 shared clipped wash filters (one per depth band), not a
+      // separate noisy global filter on every geological child path.
+      const absorbed=[...full.matchAll(
+        /<filter id="([^"]+-rock-[0-2]-paper-absorption)" /g,
+      )].map(m=>m[1]);
+      expect(absorbed).toHaveLength(3);
+      expect(new Set(absorbed).size).toBe(3);
+      const absorbedWashes=[...full.matchAll(
+        /data-km-rock-shoulder-wash="" d="[^"]+" fill="url\(#([^"]+)\)" filter="url\(#([^"]+)\)"/g,
+      )];
+      expect(absorbedWashes).toHaveLength(washes);
+      expect(absorbedWashes.every(([,gradient,filter])=>
+        full.includes('id="'+gradient+'"')&&absorbed.includes(filter)))
+        .toBe(true);
       expect(fibres.length).toBeGreaterThan(masses.length*3);
       expect(fibres.every(([,root,d])=>d.startsWith("M"+
         root.replace(","," "))&&d.includes(" Q"))).toBe(true);

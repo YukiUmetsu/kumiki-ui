@@ -589,3 +589,38 @@ actual 2.15× geology crop plus all three 960×540 full scene screenshots
 and encoded 96-frame film. A green suite or increased dark-pixel count
 does **not** authorize a merge. Record the after-render weakness and
 change no more than three high-impact causes before another comparison.
+
+
+## Fourteenth pass — refuse hard-rock SVG wedge material (native visual critique)
+
+**Actual rendering studied:** [v13 technical-success Chromium and
+96-frame MP4](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43729067826).
+Inspected the real film-scale `misty-hermit` and `mountain-trail` frames
+and existing 2.15× `皴法 · Geological texture` Storybook crop. The
+source-derived crest attachments and hemp fibre vectors behave correctly
+and TypeScript/27 Shanshui regression tests pass, but the previously
+new wide wash surfaces retain visibly hard polygon-like edges. On
+an unchanged 700×150 distant-range crop, fewer than 1% of pixels
+changed by >10/255 versus the v12 film: the apparent depth improvement
+is small. The last pass is **not** artist-approved.
+
+**Correction:** retain the geometrically complete mountain bone and
+all 3/5/7 ridge-attached child fibres, then pass only the broad
+ink-water shoulder `path` through a single *per-band* paper response
+filter. A small seeded fractal displacement of its existing SVG edge
+(scale 2.1 paper pixels) followed by Gaussian absorption
+(std deviation 0.72) softens the overly precise vector edge;
+bone/child fracture marks are **not blurred or flattened**.
+The wash has a more concentrated root with mid/near tonal weight
+(0.58/0.78 at root before parent-group opacity) and a deliberately
+depleted release (opacity zero at tip), preserving separate
+distant haze and nearby rock darkness. The original negative
+paper channels between peaks remain unpainted.
+
+This is an observable wet-ink/paper-edge approximation, not a fluid
+simulation, and it is not a substitute for correctly measured
+rock contour shape. The larger source-to-render failure is still
+geometric and compositional: the lower slope remains too smooth,
+supporting stones too simplified, and terrain has too many
+repeated curving sweep motifs. The final head **must** be re-rendered
+and reviewed before applying any 'approved' status or merging.
