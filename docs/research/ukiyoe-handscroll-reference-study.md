@@ -642,6 +642,47 @@ They showed five things the motif lacked, all now built:
 - Interiors have no three-quarter or deep-perspective view.
 - Nobody has done a human visual review yet.
 
+## Women ghosts and hags (folktale queue F3, 2026-11-15)
+
+**Sources** (public domain prints; one photograph of a print studied only).
+
+- Hokusai's *Sarayashiki* and *Oiwa-san* from *One Hundred Ghost Stories* (Wikimedia Commons; the Oiwa file is a CC BY-SA photograph of the print, studied only).
+- Toriyama Sekien's *Hone-onna*, *Ubume* and *Nure-onna* (Wikimedia Commons).
+- Utamaro's *Yamauba and Kintoki* (Met DP135601, CC0).
+- Hokuei's and Toyokuni's Oiwa prints in the Met (76565, 45290), seen in search only.
+
+**What they show.**
+
+- **Okiku.** Okiku's neck is a long serpentine coil of stacked plates. Her hair falls in a great black mass beside it, her face is a white profile, and one thin curl of breath drifts out. The well is a ragged plank curb overgrown with ivy.
+- **Oiwa.** Oiwa's face merges with a torn lantern: one eye drags down under a swelling, and the hair is thin.
+- **Hone-onna.** Hone-onna looks like a living young woman in a patterned kimono, carrying a peony lantern at a gate.
+- **Ubume.** The ubume wades in the river in rain with wet loose hair, holding the baby.
+- **Yamauba.** Yamauba's hair is long and wild.
+
+**What was built.** `ukiyoe-onna.ts` adds:
+- six ghost faces with the `reveal` action, in every view;
+- the peony lantern, the baby and the candle crown;
+- eight generic looks.
+
+`ukiyoe-yokai.ts` adds `okiku`, and `ukiyoe-interior.ts` adds the `well` motif. Storybook has **Women ghosts**, and the Motifs gallery has the well.
+
+**Review rounds.**
+
+1. **Close-ups of all eight looks**, in four views, before and after the reveal.
+   - The futakuchi mouth in profile was too small to see behind the bun; it is now almost twice the size, with a tongue.
+   - Oiwa's swelling looked like a lens, with a hard outline; it is now an uneven bruise sagging onto the cheek.
+   - The yamanba's spiky "wild" hair read as a starburst. She now has long white hair.
+2. **Okiku.** The first coil was a few small plates and the face was tiny. She now has seventeen overlapping plates, a heavier mass of hair and a larger head, which is closer to Hokusai.
+3. **The lineup.** A ground block covered only half the frame (rect nodes are centred), and the labels were checked for gaps between them.
+
+**Not done.**
+
+- The ame-onna and tsurara-onna are composed from existing pieces (long wet hair with rain; the snow woman in icy colours). They have no look of their own.
+- The funayūrei and nure-onna are left for F12, with the sea monsters.
+- Oiwa has no lantern-face version.
+- The skull reveal does not show the bones of the body.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

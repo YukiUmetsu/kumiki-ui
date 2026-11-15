@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { faceOutline, humanFeatures, onnaScene, UKIYOE_GHOST_FACES, UKIYOE_ONNA_LOOKS } from "../registry/video/ukiyoe/ukiyoe-onna";
 import { interiorScene, LOOM_BEATER_PULL, loomGrip, UKIYOE_INTERIOR_KINDS, UKIYOE_WEAVE_PERIOD, weaveBeat } from "../registry/video/ukiyoe/ukiyoe-interior";
 import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
@@ -481,6 +482,39 @@ describe("UKIYO1 interiors", () => {
     expect((weaver.x ?? 0) + act.aim![0]).toBeCloseTo((loom.x ?? 0) + g[0], 3);
     expect((weaver.y ?? 0) + act.aim![1]).toBeCloseTo((loom.y ?? 0) + g[1], 3);
     expect(act.amount! / h).toBeCloseTo(LOOM_BEATER_PULL, 2);
+  });
+});
+
+describe("UKIYO1 women ghosts", () => {
+  it("keeps each woman human until her reveal, then changes her face in every view, and holds it", () => {
+    expect(inspectUkiyoeScene(onnaScene("lineup"))).toEqual([]);
+    expect(inspectUkiyoeScene(onnaScene("okiku"))).toEqual([]);
+    const acts: UkiyoeAction[] = [{ type: "reveal", start: 30, end: 60, amount: 20 }];
+    for (const k of Object.keys(UKIYOE_ONNA_LOOKS) as (keyof typeof UKIYOE_ONNA_LOOKS)[]) for (const view of ["profile", "three-quarter", "front", "back"] as const) {
+      const look = { ...UKIYOE_ONNA_LOOKS[k], view } as Parameters<typeof drawFigure>[0]["look"];
+      const at = (f: number) => JSON.stringify(drawFigure({ look, actions: acts, facing: "right" }, f, 0, 4).prims);
+      expect(figurePose({ look, actions: acts }, 10, 4, 250).reveal, k).toBe(0);
+      expect(figurePose({ look, actions: acts }, 90, 4, 250).reveal, k).toBe(1);                       // stays revealed after the action
+      const changes = look.face && !(view === "back" && look.face !== "futakuchi") && !(look.face === "futakuchi" && view === "front");
+      if (changes) expect(at(10) === at(52), `${k} ${view}`).toBe(false);
+    }
+    // The faceless woman loses every feature and the nose; a skull keeps a little of the outline's shape.
+    expect(humanFeatures("noppera", 1)).toBe(0);
+    expect(humanFeatures("kuchisake", 1)).toBe(1);
+    const nose = (face: typeof UKIYOE_GHOST_FACES[number], r: number) => Math.max(...faceOutline(face, r, [[0, -20], [17, -1], [20.2, 4.2], [17.4, 10.8], [5, 19.5]], false).map(q => q[0]));
+    expect(nose("noppera", 0)).toBeCloseTo(20.2);
+    expect(nose("noppera", 1)).toBeLessThan(17);
+  });
+  it("raises Okiku out of the well on her coil of plates, between the well's two parts", () => {
+    const spec = onnaScene("okiku"), ids = spec.nodes.map(n => n.id);
+    expect(ids.indexOf("well-back")).toBeLessThan(ids.indexOf("okiku"));
+    expect(ids.indexOf("okiku")).toBeLessThan(ids.indexOf("well-front"));
+    const okiku = spec.nodes.find(n => n.id === "okiku") as Extract<UkiyoeSceneSpec["nodes"][number], { kind: "creature" }>;
+    const plates = (f: number) => (JSON.stringify(drawCreature(okiku, f, 0, 3)).match(/rotate\(/g) ?? []).length;
+    expect(plates(60)).toBeGreaterThan(0);
+    expect(plates(200)).toBeGreaterThan(plates(60));
+    expect(JSON.stringify(drawMotif("well", { part: "front" }, { frame: 0, wind: 0, seed: 1, progress: 1 }))).not.toContain("radial");   // the water is in the back part
+    expect(JSON.stringify(drawMotif("well", { part: "back" }, { frame: 0, wind: 0, seed: 1, progress: 1 }))).toContain("radial");
   });
 });
 

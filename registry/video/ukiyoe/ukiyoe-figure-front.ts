@@ -17,6 +17,7 @@ import { darariBack, eriAshi, maiogi, obiFront, OKOBO_HEIGHT, okoboSquare, wares
 import type { SquareSword } from "./ukiyoe-katana";
 import { katana, mon, reachArm, saya } from "./ukiyoe-katana";
 import { kanabo } from "./ukiyoe-oni";
+import { babyBundle, ghostFaceBack, ghostFaceFront, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
 
 const lerp2 = (a: Pt, b: Pt, t: number): Pt => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
 const ribbon = (a: Pt, b: Pt, w0: number, w1: number): string => {
@@ -278,7 +279,7 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
   const headR = H * (child ? .085 : look.face === "oni" ? .08 : .064), headY = neckY - headR * 1.15 + bowK * headR * .5;
   const tilt = (pose.tilt - 2) * .4;
   out.push({ t: "fill", d: ribbon([0, neckY + H * .01], [0, headY + headR * .6], headR * .32, headR * .3), fill: skin, outline: lw * .8 });
-  out.push({ t: "group", transform: `translate(0 ${headY.toFixed(2)}) rotate(${tilt.toFixed(2)})`, prims: back ? headBack(look, headR, lw, hairC, wind) : headFront(look, pose, headR, lw, hairC, female, wind) });
+  out.push({ t: "group", transform: `translate(0 ${headY.toFixed(2)}) rotate(${tilt.toFixed(2)})`, prims: back ? headBack(look, headR, lw, hairC, wind, pose, frame) : headFront(look, pose, headR, lw, hairC, female, wind, frame) });
   // ---- Props seen from the front or behind: the umbrella over the head, a staff or pole upright at the side, a
   // lantern hanging from the hand, a fan.
   const accent = look.accent ?? "shu", propC = look.propColor ?? "cha";
@@ -295,6 +296,10 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
     for (const a of [armF, armB]) out.push({ t: "fill", d: ellipseD(poleX, a[2][1], H * .016, H * .014), fill: look.skin ?? "hada", outline: lw * .8 });
   } else if (prop === "staff" || (prop === "kanabo" && !club)) {
     out.push({ t: "line", d: carvedLine([add(hand, [0, -H * (.25)]), add(hand, [0, prop === "kanabo" ? H * .02 : -hand[1]])], H * (prop === "kanabo" ? .04 : .012), { taper: prop === "kanabo" ? "start" : "none" }), color: prop === "kanabo" ? "sumi" : propC });
+  } else if (prop === "peony-lantern") {
+    out.push(...peonyLantern(hand, H, lw, frame, wind, 0));
+  } else if (prop === "baby") {
+    out.push(...babyBundle([(armF[2][0] + armB[2][0]) / 2, (armF[2][1] + armB[2][1]) / 2 - H * .02], H, lw, 1, true));
   } else if (prop === "lantern") {
     out.push({ t: "line", d: carvedLine([hand, add(hand, [0, H * .05])], H * .006, { taper: "none" }), color: "sumi" });
     out.push({ t: "fill", d: ellipseD(hand[0], hand[1] + H * .1, H * .035, H * .05), fill: "ki", outline: lw, opacity: .95 }, { t: "glow", cx: hand[0], cy: hand[1] + H * .1, r: H * .12, color: "ki", opacity: .35 });
@@ -315,7 +320,7 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
 }
 
 /** The face from the front: both eyes, brows, the nose as a small hooked line, the mouth; then the hair style. */
-function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: number, hairC: UkiyoePaint, female: boolean, wind: number): Prim[] {
+function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: number, hairC: UkiyoePaint, female: boolean, wind: number, frame = 0): Prim[] {
   const out: Prim[] = [], skin = look.skin ?? "hada", hair = look.hair ?? "chonmage", P = (x: number, y: number): Pt => [x * r, y * r];
   const hairBack = (pts: Pt[]) => out.push({ t: "fill", d: smoothD(pts, true, .4), fill: hairC, outline: lw });
   const sway = wind * .8 + Math.sin(pose.tilt / 7 + r) * .2;
@@ -328,7 +333,7 @@ function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: numb
   // Face: an oval, a little narrower at the chin; ears at the sides.
   if (hair !== "hyogo" && hair !== "kamuro" && hair !== "wareshinobu") out.push({ t: "fill", d: ellipseD(-r * .95, r * .05, r * .14, r * .22) + ellipseD(r * .95, r * .05, r * .14, r * .22), fill: skin, outline: lw * .7 });
   out.push({ t: "fill", d: smoothD([P(-.88, -.3), P(-.8, .45), P(-.45, .92), P(0, 1.05), P(.45, .92), P(.8, .45), P(.88, -.3), P(.6, -.95), P(0, -1.08), P(-.6, -.95)], true, .4), fill: skin, outline: lw * .9 });
-  const oni = look.face === "oni", shut = pose.blink > .5;
+  const oni = look.face === "oni", shut = pose.blink > .5, ghost = isGhostFace(look.face) ? look.face : undefined, featStart = out.length;
   if (oni) {
     for (const s of [-1, 1]) {
       out.push({ t: "fill", d: ellipseD(s * r * .38, -r * .08, r * .24, r * .2), fill: "gofun", outline: lw }, { t: "dots", d: circleD(s * r * .36, -r * .06, r * .1), color: "sumi" });
@@ -348,6 +353,10 @@ function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: numb
     else out.push({ t: "line", d: carvedLine([P(-.16, .6), P(0, .63), P(.16, .6)], r * .04 + .25, { taper: "both" }), color: "sumi", opacity: .7 });
     if (look.beard) out.push({ t: "fill", d: smoothD([P(-.5, .55), P(-.3, 1.2), P(0, 1.5), P(.3, 1.2), P(.5, .55), P(0, .85)], true, .4), fill: hairC, outline: lw * .7 });
   }
+  // Ghost-story faces: the features smooth away or the bone shows, then the face's own marks.
+  const shown = humanFeatures(ghost, pose.reveal);
+  if (shown < 1) { const feats = out.splice(featStart); if (shown > 0) out.push({ t: "group", opacity: shown, prims: feats }); }
+  if (ghost) out.push(...ghostFaceFront(ghost, pose.reveal, P, r, lw, skin, pose.mouth, frame));
   // Hair in front.
   switch (hair) {
     case "chonmage": case "elder":
@@ -372,12 +381,12 @@ function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: numb
     case "bald": break;
   }
   if (look.face === "oni") for (const s of [-1, 1]) out.push({ t: "fill", d: smoothD([P(s * .3, -.85), P(s * .45, -1.7), P(s * .55, -.8)], true, .3), fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [1, "ki", 1]] }, outline: lw });
-  out.push(...hatFront(look, r, lw, wind));
+  out.push(...hatFront(look, r, lw, wind, frame));
   return out;
 }
 
 /** The head from behind: the back of the hair (the shaved pate and topknot, the shimada bun with its pins), the ears and the nape. */
-function headBack(look: UkiyoeFigureLook, r: number, lw: number, hairC: UkiyoePaint, wind: number): Prim[] {
+function headBack(look: UkiyoeFigureLook, r: number, lw: number, hairC: UkiyoePaint, wind: number, pose?: FigurePose, frame = 0): Prim[] {
   const out: Prim[] = [], skin = look.skin ?? "hada", hair = look.hair ?? "chonmage", P = (x: number, y: number): Pt => [x * r, y * r];
   if (hair !== "hyogo" && hair !== "kamuro" && hair !== "wareshinobu") out.push({ t: "fill", d: ellipseD(-r * .95, r * .05, r * .14, r * .22) + ellipseD(r * .95, r * .05, r * .14, r * .22), fill: skin, outline: lw * .7 });
   out.push({ t: "fill", d: smoothD([P(-.88, -.3), P(-.78, .5), P(-.4, .95), P(0, 1.02), P(.4, .95), P(.78, .5), P(.88, -.3), P(.6, -.95), P(0, -1.08), P(-.6, -.95)], true, .4), fill: skin, outline: lw * .9 });
@@ -408,12 +417,14 @@ function headBack(look: UkiyoeFigureLook, r: number, lw: number, hairC: UkiyoePa
     case "bald": break;
   }
   if (look.face === "oni") for (const s of [-1, 1]) out.push({ t: "fill", d: smoothD([P(s * .3, -.85), P(s * .45, -1.7), P(s * .55, -.8)], true, .3), fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [1, "ki", 1]] }, outline: lw });
-  out.push(...hatFront(look, r, lw, wind));
+  if (pose && isGhostFace(look.face)) out.push(...ghostFaceBack(look.face, pose.reveal, P, r, lw, frame));
+  out.push(...hatFront(look, r, lw, wind, frame));
   return out;
 }
 
 /** Hats are near enough symmetric to serve front and back. */
-function hatFront(look: UkiyoeFigureLook, r: number, lw: number, wind: number): Prim[] {
+function hatFront(look: UkiyoeFigureLook, r: number, lw: number, wind: number, frame = 0): Prim[] {
+  if (look.hat === "gotoku") return gotokuCrown((x, y) => [x * r, y * r], r, lw, frame, 0, true);
   const hat = look.hat ?? "none", hatC = look.hatColor ?? (hat === "eboshi" ? "sumi" : hat === "hood" ? "ai" : "kincha"), P = (x: number, y: number): Pt => [x * r, y * r];
   if (hat === "kasa" || hat === "conical") {
     const deep = hat === "conical", rim = deep ? 1.7 : 2.1, apex = deep ? -2.3 : -1.75, brimY = deep ? -.35 : -.55;

@@ -15,6 +15,7 @@
 - `ukiyoe-castle.ts`: the castle motif.
 - `ukiyoe-town.ts`: the castle-town motifs and the `castleTown()` scene.
 - `ukiyoe-interior.ts`: rooms and their furnishings, and the `interiorScene()` recipes.
+- `ukiyoe-onna.ts`: the women of the ghost stories (faces, props, the candle crown) and `onnaScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -197,6 +198,22 @@ A room is drawn as the prints draw it: the front wall taken away, the floor in p
   - `sleep` lies the figure on its back with its eyes closed.
   - `weave` kneels at the loom. Given `aim` (the loom's `loomGrip`, relative to the figure) and `amount` (`LOOM_BEATER_PULL × height`), the near hand holds the beater bar by IK and pulls it in on the beat, and the far hand works the shuttle. Both the loom and the action run on `weaveBeat(frame)`, so they agree on every frame.
 - **`interiorScene(kind)`.** Builds a complete room scene: `inn` (Hiroshige's Akasaka at night), `weaver` (the crane wife), `hearth` (an old couple at a farmhouse irori) or `bedroom` (a sleeper; a shoji slides open on the snow). Storybook **Interiors** plays them, and the Motifs gallery shows each motif.
+
+### Women ghosts and hags
+
+Most women in the ghost stories look alive until the story turns, so they are figure looks. They walk, kneel, talk and turn in every view, and a `reveal` action (over `amount` frames, default 24; it stays revealed) shows what they are.
+
+- **`face`.** It shows in profile, three-quarter, front and, for the back of the head, the back view.
+  - `noppera`: the eyes, brows, nose and lips smooth away into a bare egg.
+  - `kuchisake`: a cloth over her mouth slips down to show it slit back to the ears, with teeth. It opens with `talk`.
+  - `futakuchi`: a second mouth opens in the back of her head, and two locks of hair reach out like hands.
+  - `skull`: the face and hands turn to bone, with sockets, a nose cavity and teeth.
+  - `oiwa`: a livid swelling closes one eye, the skin greys and the hair thins into strands.
+  - `hag`: lines and hollows; the reveal bares a fanged grin.
+- **Props and hat.** `prop: "peony-lantern"` (the botan-dōrō, painted and tied with peonies, flickering pink) and `prop: "baby"` (a swaddled infant held at the breast in both arms). `hat: "gotoku"` is the iron trivet with three burning candles.
+- **`UKIYOE_ONNA_LOOKS`.** Generic looks: `noppera`, `kuchisake`, `futakuchi`, `honeonna`, `oiwa`, `yamanba`, `hashihime` (a red face, white robe and candle crown) and `ubume`.
+- **`okiku` (yōkai).** After Hokusai's *Sarayashiki*. `appear` raises her out of a well on a coil of blue-and-white plates, her hair streaming beside it, her breath curling out. `howl` moves her lips as she counts. Place her on the mouth of a `well` motif, between its `part: "back"` and `part: "front"`. The `well` has staves, rope hoops, ivy and an optional `pulley` with a bucket.
+- **`onnaScene("lineup" | "okiku", view)`.** Storybook **Women ghosts** plays both.
 
 ### Transition
 

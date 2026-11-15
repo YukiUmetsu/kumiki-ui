@@ -744,9 +744,53 @@ export function byobu(p: P, cx: InteriorContext): Prim[] {
   return out;
 }
 
-export const INTERIOR_MOTIFS = { room, andon, irori, futon, loom, byobu };
+/**
+ * A well (ido): a round curb of upright boards bound with two rope hoops, the dark water deep inside, ivy over the
+ * rim, and optionally a pulley frame with its rope and bucket. `part: "back"` draws the inside and the rim's far half,
+ * `part: "front"` the near curb, so something can rise out of it between them (Okiku). The mouth's centre is at
+ * (0, −height). Params: radius, height, pulley, ivy, part.
+ */
+export function well(p: P, cx: InteriorContext): Prim[] {
+  const R = num(p, "radius", 80), h = num(p, "height", R * .85), ry = R * .32, lw = Math.max(1, R * .018), part = str(p, "part", "all"), out: Prim[] = [];
+  const top = -h, staves = 13;
+  if (part !== "front") {
+    if (bool(p, "pulley", false)) {
+      const ph = h + R * 2.2;
+      out.push({ t: "fill", d: rectD(-R * 1.05, -ph, R * .1, ph - h * .2) + rectD(R * .95, -ph, R * .1, ph - h * .2), fill: WOOD, outline: lw, grain: .6 });
+      out.push({ t: "fill", d: rectD(-R * 1.2, -ph - R * .12, R * 2.4, R * .14), fill: DARKWOOD, outline: lw });
+      out.push({ t: "fill", d: ellipseD(0, -ph + R * .12, R * .14, R * .14), fill: "kogecha", outline: lw }, { t: "fill", d: ellipseD(0, -ph + R * .12, R * .04, R * .04), fill: "sumi" });
+      const bucketY = top - R * .5 + Math.sin(cx.frame / 40) * R * .05;
+      out.push({ t: "stroke", d: `M${f(-R * .13)} ${f(-ph + R * .12)}V${f(bucketY)}M${f(R * .13)} ${f(-ph + R * .12)}V${f(top + R * .3)}`, color: "kincha", width: lw * 1.2 });
+      out.push({ t: "fill", d: poly([[-R * .3, bucketY], [R * .04, bucketY], [0, bucketY + R * .32], [-R * .26, bucketY + R * .32]]), fill: WOOD, outline: lw, grain: .5 });
+    }
+    // The far half of the rim and the water far down inside.
+    out.push({ t: "fill", d: ellipseD(0, top, R, ry), fill: DARKWOOD, outline: lw });
+    out.push({ t: "fill", d: ellipseD(0, top + ry * .15, R * .86, ry * .78), fill: { type: "radial", stops: [[0, "ai", 1], [.7, "sumi", 1], [1, "sumi", 1]] } });
+    out.push({ t: "stroke", d: smoothD([[-R * .3, top + ry * .2], [0, top + ry * .32], [R * .3, top + ry * .2]], false, .5), color: "sora", width: lw * .6, opacity: .3 + .2 * Math.sin(cx.frame / 20) });
+  }
+  if (part !== "back") {
+    // The near curb: boards (lit toward the middle), the rope hoops, the rim's near edge.
+    const body = `M${f(-R)} ${f(top)}A${f(R)} ${f(ry)} 0 0 0 ${f(R)} ${f(top)}L${f(R)} 0A${f(R)} ${f(ry)} 0 0 1 ${f(-R)} 0Z`;
+    out.push({ t: "fill", d: body, fill: { type: "linear", angle: 0, stops: [[0, "kogecha", 1], [.45, "kincha", 1], [1, "cha", 1]] }, outline: lw, grain: .8 });
+    const boards: string[] = [];
+    for (let i = 1; i < staves; i++) { const x = -R * Math.cos(Math.PI * i / staves), y = ry * Math.sin(Math.PI * i / staves); boards.push(`M${f(x)} ${f(top + y)}L${f(x)} ${f(y)}`); }
+    out.push({ t: "stroke", d: boards.join(""), color: "kogecha", width: lw * .8, opacity: .8 });
+    for (const k of [.3, .75]) out.push({ t: "stroke", d: `M${f(-R)} ${f(top * (1 - k))}A${f(R)} ${f(ry)} 0 0 0 ${f(R)} ${f(top * (1 - k))}`, color: "kincha", width: R * .07 }, { t: "stroke", d: `M${f(-R)} ${f(top * (1 - k))}A${f(R)} ${f(ry)} 0 0 0 ${f(R)} ${f(top * (1 - k))}`, color: "kogecha", width: R * .015, dash: `${f(R * .05)} ${f(R * .04)}` });
+    out.push({ t: "stroke", d: `M${f(-R)} ${f(top)}A${f(R)} ${f(ry)} 0 0 0 ${f(R)} ${f(top)}`, color: "kogecha", width: R * .06 });
+    if (bool(p, "ivy", true)) {
+      // Ivy leaves trailing over the rim and down the boards (Hokusai's well is overgrown).
+      const leaves: string[] = [], vine: Pt[] = [];
+      for (let i = 0; i <= 8; i++) { const u = i / 8, x = lerp(-R * .9, R * .2, u), y = top + ry * Math.sqrt(Math.max(0, 1 - (x / R) ** 2)) + Math.sin(u * 7) * R * .08 + u * h * .5; vine.push([x, y]); }
+      vine.forEach((q, i) => { if (i % 2) return; const s = R * (.09 + .03 * hash01(cx.seed, i, 3)); leaves.push(smoothD([[q[0], q[1]], [q[0] - s, q[1] - s * .6], [q[0] - s * .3, q[1] - s * 1.3], [q[0] + s * .3, q[1] - s * .9], [q[0] + s, q[1] - s * .5]], true, .4)); });
+      out.push({ t: "stroke", d: smoothD(vine, false, .4), color: "matsu", width: lw }, { t: "fill", d: leaves.join(""), fill: "matsu", outline: lw * .6 });
+    }
+  }
+  return out;
+}
+
+export const INTERIOR_MOTIFS = { room, andon, irori, futon, loom, byobu, well };
 /** The interior motifs that change with the frame. */
-export const ANIMATED_INTERIOR = ["room", "andon", "irori", "loom"] as const;
+export const ANIMATED_INTERIOR = ["room", "andon", "irori", "loom", "well"] as const;
 
 // ---- Scene recipes -----------------------------------------------------------------------------------------------------------------
 
