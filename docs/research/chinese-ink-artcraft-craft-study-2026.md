@@ -476,7 +476,7 @@ of their roots. Connectivity alone did not imply a convincing willow.
 1. Preserve six tapered parent branches and exactly sample each
    child insertion from its own authored quadratic parent arch.
 2. Give each frond a seed-dependent signed horizontal sweep
-   (+/-12 to 60 px) and different control-point curvature;
+   (+/-7 to 27 px) and a distinct outward-bowing control point;
    retain bounded, deterministic film wind.
 3. Render every hanging branch as an eleven-station, tapering
    filled ink ribbon; root ink pressure fades to a fine release.
@@ -502,3 +502,27 @@ and decorative stamped triangular leaves. Inspect native
 960x540 river scene AND the real 2.15x willow crop before merge.
 Fail if the new foliage becomes random hanging spaghetti, loses
 branch attachment, or occupies the figure's reading space.
+
+
+### Willow native-render correction — reject the diagonal mesh
+
+The first actual PR #332 full-scene capture and 2.15x willow crop
+showed that 60-pixel signed horizontal drifts were much too large
+relative to some short 53-pixel vertical drops. Despite correct
+parent-branch attachment, the lines crossed like a dense diagonal
+lattice and little willow-like hanging motion remained. The six
+heavy parent branches also read like even crossbars.
+
+The revised geometry uses longer drops (80–228 px), only 7–27 px
+of lateral displacement, and a control point farther outward than
+the final tip. Its upper arc bows away while its lower tangent returns
+toward vertical, like Mei Qing's willow ink gestures. Both parent
+and child brush widths and opacity have been reduced; small tapering
+leaves retain enough value to read at 960x540. Five fully bare
+fronds still leave paper reserves.
+
+**Release criterion:** the result must look like hanging, gently
+arched ink-silk fronds rather than struts, a fishnet, or a
+uniform vertical picket fence. The branch skeleton and leaves must
+remain contiguous at native film resolution. A second render
+comparison is required before final acceptance.
