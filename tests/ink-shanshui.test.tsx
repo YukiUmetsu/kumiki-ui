@@ -359,6 +359,18 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       const expectedGullies=school==="forest-grotto"?9:0;
       expect(gullies).toHaveLength(expectedGullies);
       expect(gullyShadows).toHaveLength(expectedGullies);
+      // V40 screenshot showed large downward columns ending at a
+      // blunt parent-clip boundary; the painted gully was too long
+      // and dark compared to the source's tapered recessed rock.
+      const falls=[...html.matchAll(
+        /data-km-master-wang-gully-fall="([^"]+)"/g,
+      )].map(m=>Number(m[1]));
+      expect(falls).toHaveLength(expectedGullies);
+      expect(falls.every(Number.isFinite)).toBe(true);
+      if(school==="forest-grotto"){
+        expect(Math.max(...falls)).toBeLessThan(50);
+        expect(Math.min(...falls)).toBeGreaterThan(20);
+      }
       expect((html.match(/data-km-master-wang-gully-rim=""/g)??[]))
         .toHaveLength(expectedGullies);
       expect((html.match(/data-km-master-wang-gully-fold=""/g)??[]))
