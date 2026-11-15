@@ -44,7 +44,9 @@ function Laboratory(){
   if(!compiled.ok)return <pre role="alert">{compiled.diagnostics.map(d=>d.message).join("\n")}</pre>;
   const film=compiled.film,scale=aspect==="landscape"?1:.66;
   // A viewport crop of the same film: no duplicated actor or separate clock.
-  const cameraPose=inkRouteAt(inkDirectorRoute(aspect),frame);
+  // Under reduced motion the actor holds the completed frame 419; its
+  // inspection camera must follow that pose rather than frame-0 travel.
+  const cameraPose=inkRouteAt(inkDirectorRoute(aspect),reduce?419:frame);
   const zoom=framing==="figure"?(aspect==="portrait"?1.65:1.38):1;
   const visualScale=scale*zoom;
   const focusX=cameraPose.x,focusY=cameraPose.y-165;
