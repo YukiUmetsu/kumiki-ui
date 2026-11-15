@@ -18,10 +18,11 @@ describe("PAPER1 ArtCraft botanical construction", () => {
         expect(spec.layers.length).toBeLessThanOrEqual(80);
         expect(new Set(spec.layers.map(l=>l.id)).size).toBe(spec.layers.length);
         expect(spec.layers.filter(l=>l.id.startsWith("flower-"))).toHaveLength(20);
-        expect(spec.layers.find(l=>l.id==="moth-left-fore")?.holes).toHaveLength(4);
-        expect(spec.layers.find(l=>l.id==="moth-right-fore")?.holes).toHaveLength(4);
-        expect(spec.layers.find(l=>l.id==="moth-left-hind")?.holes).toHaveLength(3);
-        expect(spec.layers.find(l=>l.id==="moth-right-hind")?.holes).toHaveLength(3);
+        expect(spec.layers.find(l=>l.id==="flower-0-top")?.holes).toHaveLength(9);
+        expect(spec.layers.find(l=>l.id==="moth-left-fore")?.holes).toHaveLength(13);
+        expect(spec.layers.find(l=>l.id==="moth-right-fore")?.holes).toHaveLength(13);
+        expect(spec.layers.find(l=>l.id==="moth-left-hind")?.holes).toHaveLength(8);
+        expect(spec.layers.find(l=>l.id==="moth-right-hind")?.holes).toHaveLength(8);
         const markup=renderToStaticMarkup(React.createElement(PaperCraftStage,{
           spec,frame:194,tooth:.7,shadowStrength:.9,edgeStrength:.7,
         }));

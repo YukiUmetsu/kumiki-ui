@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PaperCraftStage } from "../../registry/video/paper-craft-react";
@@ -46,9 +46,12 @@ function PaperCraftLab({ artwork, palette, detail, medium, aspect, frame, tooth,
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [playing, selected, aspect, reducedMotion]);
-  const spec = artwork === "botanical"
+  // A high-detail cut geometry should be constructed once per art direction,
+  // not 30 times per second during Storybook playback.
+  const spec = useMemo(() => artwork === "botanical"
     ? paperBotanicalSpec(selected, aspect, {palette, detail, seed})
-    : paperCraftExampleSpec(selected, aspect, seed);
+    : paperCraftExampleSpec(selected, aspect, seed),
+    [artwork, selected, aspect, palette, detail, seed]);
   const current = reducedMotion ? spec.durationFrames : liveFrame;
   const text: CSSProperties = { fontFamily: "'Newsreader',Georgia,serif", color: "#f3eddf" };
   const small: CSSProperties = { font: "11px/1.5 Arial,sans-serif", letterSpacing: "2px", textTransform: "uppercase", color: "#bfb6a8" };

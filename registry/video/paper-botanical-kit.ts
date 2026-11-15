@@ -121,39 +121,74 @@ function corolla(p:Painter,cx:number,cy:number,r:number,n:number,seed:number,tag
 const centreHoles=(p:Painter,x:number,y:number,r:number,count:number)=>
   Array.from({length:count},(_,i)=>{const [xx,yy]=at(x,y,i*360/count,r*.54);
     return p.circle(xx,yy,Math.max(1.5,r*.075));});
-/** Mirrored, scalloped butterfly wings, with authored pierced decorative windows. */
+/** Hand-cut wing contours carry scallops and fine lace, not simple oval silhouettes. */
 function upperWing(p:Painter,side:-1|1){
   const x=(a:number)=>a*side;
   return [p.M(x(9),-17),
-    p.C(x(51),-82,x(127),-194,x(217),-188),
-    p.C(x(270),-174,x(251),-97,x(222),-52),
-    p.C(x(198),-15,x(149),-4,x(95),10),
-    p.Q(x(44),24,x(9),-17),"Z"].join(" ");
+    p.C(x(52),-88,x(132),-209,x(215),-187),
+    p.C(x(245),-185,x(259),-159,x(258),-139),
+    p.Q(x(259),-122,x(241),-111),
+    p.C(x(262),-100,x(253),-81,x(231),-75),
+    p.Q(x(247),-55,x(227),-38),
+    p.C(x(208),-18,x(185),-24,x(173),-8),
+    p.C(x(141),7,x(89),20,x(55),13),
+    p.Q(x(25),8,x(9),-17),"Z"].join(" ");
 }
 function lowerWing(p:Painter,side:-1|1){
   const x=(a:number)=>a*side;
   return [p.M(x(9),7),
-    p.C(x(82),20,x(161),5,x(190),69),
-    p.C(x(220),115,x(201),168,x(162),185),
-    p.C(x(160),221,x(181),239,x(169),258),
-    p.C(x(122),225,x(49),125,x(11),30),"Z"].join(" ");
+    p.C(x(82),19,x(167),6,x(191),65),
+    p.Q(x(216),80,x(213),108),
+    p.Q(x(219),128,x(197),136),
+    p.C(x(202),166,x(181),187,x(162),184),
+    p.C(x(155),222,x(187),240,x(169),258),
+    p.Q(x(133),244,x(119),207),
+    p.C(x(68),165,x(43),114,x(10),32),"Z"].join(" ");
 }
 function wingHoles(p:Painter,side:-1|1){
   const x=(v:number)=>v*side;
+  const lacy:[number,number,number][]=[
+    [172,-149,4.3],[191,-158,4.4],[209,-148,4.1],
+    [221,-125,4.5],[224,-102,4.2],[217,-83,4.4],
+    [202,-62,3.7],[180,-44,3.3],[157,-35,3.1],
+  ];
   return [
-    petal(p,x(112),-98,46,side===1?-115:-65,10.2),
-    petal(p,x(181),-111,32,side===1?-40:-140,9),
-    p.circle(x(207),-145,8.8),
-    p.circle(x(164),-65,5.5),
+    petal(p,x(112),-99,45,side===1?-113:-67,10.2),
+    petal(p,x(181),-112,31,side===1?-45:-135,8.6),
+    petal(p,x(151),-55,23,side===1?-61:-119,6.3),
+    p.circle(x(206),-145,8.6),
+    ...lacy.map(([xx,yy,r])=>p.circle(x(xx),yy,r)),
   ];
 }
 function lowerHoles(p:Painter,side:-1|1){
   const x=(v:number)=>v*side;
-  return [
-    petal(p,x(116),93,32,side===1?115:65,8),
-    p.circle(x(163),112,7),
-    p.circle(x(141),145,4),
+  const pearls:[number,number,number][]=[
+    [186,94,5.1],[191,117,4.2],[184,140,4.6],
+    [167,161,4.4],[146,180,3.9],[115,151,3.6],
   ];
+  return [
+    petal(p,x(111),92,31,side===1?110:70,8.2),
+    petal(p,x(85),53,27,side===1?48:132,5.8),
+    ...pearls.map(([xx,yy,r])=>p.circle(x(xx),yy,r)),
+  ];
+}
+/** Small layered veins are separate attached cardstock paths, not painted texture. */
+function foreWingVeins(p:Painter,side:-1|1){
+  const x=(n:number)=>n*side;
+  return [
+    leaf(p,x(62),-40,x(169),-149,7,side*6),
+    leaf(p,x(76),-25,x(190),-116,6,side*5),
+    leaf(p,x(85),-14,x(198),-80,5,side*4),
+    leaf(p,x(96),2,x(163),-42,4,side*3),
+  ].join(" ");
+}
+function hindWingVeins(p:Painter,side:-1|1){
+  const x=(n:number)=>n*side;
+  return [
+    leaf(p,x(46),54,x(167),143,6.2,side*4),
+    leaf(p,x(57),75,x(144),177,5.2,side*3),
+    leaf(p,x(72),83,x(124),121,4.4,side*2),
+  ].join(" ");
 }
 function taperedStroke(p:Painter,x0:number,y0:number,x1:number,y1:number,w:number){
   return leaf(p,x0,y0,x1,y1,w,0);
@@ -210,6 +245,11 @@ export function paperBotanicalSpec(
         enterFrame:36+i*9,durationFrames:36,motion:"unfold",pivot:[p.cx+x*p.s,p.cy+y*p.s]});
     add("flower-"+i+"-top",c.petal,12,
       corolla(p,x,y,rr*.69,9,seed,i+90),{
+        holes:Array.from({length:9},(_,k)=>{
+          const angle=-90+k*40,[sx,sy]=at(x,y,angle,rr*.26),
+            [ex,ey]=at(x,y,angle,rr*.48);
+          return leaf(p,sx,sy,ex,ey,1.25);
+        }),
         enterFrame:44+i*9,durationFrames:31,motion:"unfold",pivot:[p.cx+x*p.s,p.cy+y*p.s]});
     add("flower-"+i+"-pollen",c.center,14,p.circle(x,y,rr*.205),{
       holes:centreHoles(p,x,y,rr*.205,9),enterFrame:62+i*8,durationFrames:26});
@@ -241,18 +281,16 @@ export function paperBotanicalSpec(
     const label=side<0?"left":"right";
     add("moth-"+label+"-hind",c.wingLow,17,lowerWing(p,side),{
       holes:lowerHoles(p,side),enterFrame:85,durationFrames:48,
-      motion:"swing",swingDegrees:5,pivot:[p.cx,p.cy+12*p.s]});
+      motion:"swing",swingDegrees:side*5,pivot:[p.cx,p.cy+12*p.s]});
     add("moth-"+label+"-fore",c.wing,19,upperWing(p,side),{
       holes:wingHoles(p,side),enterFrame:93,durationFrames:45,
-      motion:"swing",swingDegrees:6,pivot:[p.cx,p.cy-14*p.s]});
+      motion:"swing",swingDegrees:side*6,pivot:[p.cx,p.cy-14*p.s]});
     const fx=(n:number)=>n*side;
     // Layered bands are individually curved cut cards with visible negative gaps.
-    add("moth-"+label+"-feather",c.wingHigh,21,
-      petal(p,fx(102),-60,119,side===1?-47:-133,20),{
-        holes:[p.circle(fx(169),-109,7)],enterFrame:108,durationFrames:34});
-    add("moth-"+label+"-window",c.wingSpot,22,
-      petal(p,fx(91),66,57,side===1?41:139,12),{
-        holes:[p.circle(fx(122),93,4)],enterFrame:115,durationFrames:30});
+    add("moth-"+label+"-feather",c.wingHigh,21,foreWingVeins(p,side),{
+        enterFrame:108,durationFrames:34});
+    add("moth-"+label+"-window",c.wingSpot,22,hindWingVeins(p,side),{
+        enterFrame:115,durationFrames:30});
     add("moth-"+label+"-gold",c.center,23,
       p.circle(fx(188),-127,13),{
         holes:[p.circle(fx(188),-127,5)],enterFrame:122,durationFrames:23});
@@ -264,7 +302,9 @@ export function paperBotanicalSpec(
       p.circle(-52,-108,4.5),p.circle(52,-108,4.5),
     ].join(" "),{enterFrame:118,durationFrames:27,motion:"still"});
   add("moth-abdomen",c.body,25,
-    leaf(p,0,-50,0,111,17,3),{enterFrame:118,durationFrames:32,motion:"rise"});
+    leaf(p,0,-50,0,111,17,3),{
+      holes:Array.from({length:6},(_,i)=>p.rect(-8,-13+i*15,8,-10+i*15)),
+      enterFrame:118,durationFrames:32,motion:"rise"});
   add("moth-thorax",c.wingSpot,26,
     p.circle(0,-30,16),{holes:[p.circle(0,-30,4)],enterFrame:128,durationFrames:24});
   // Extra shoulder wreaths fill the long axis without stretching individual petals.
