@@ -52,6 +52,11 @@ test("original ink duet uses real independent rigs, ordered scenes and frame-add
   await page.goto("/iframe.html?id=video-ink-ensemble--ink-ensemble-story&viewMode=story");
   const scene=page.locator('[data-km-ink-scene]');
   await expect(scene).toBeVisible();
+  // The Storybook entry point must show *actors*, not an empty sheet that
+  // looks like a rendering error. Full frame-0 reveal stays seekable below.
+  await expect(page.getByRole("slider",{name:"Ink ensemble frame"}))
+    .toHaveValue("117");
+  await expect(page.locator("[data-km-ink-ensemble-actor]")).toHaveCount(2);
   // The authored paper reveal begins at frame 3. The initial frame intentionally
   // contains no mounted actor media, preserving a completely empty sheet.
   await seek(page,10);
@@ -88,6 +93,23 @@ test("original ink duet uses real independent rigs, ordered scenes and frame-add
     await expectStablePixels(page,first,again);
     await page.getByRole("checkbox",{name:"Show reach audit"}).uncheck();
   }
+});
+
+test("Ensemble Storybook opens without a runtime error for either output format",async({page})=>{
+  const errors:string[]=[];
+  page.on("pageerror",error=>errors.push(error.message));
+  await page.goto("/iframe.html?id=video-ink-ensemble--ink-ensemble-story&viewMode=story");
+  await expect(page.getByRole("slider",{name:"Ink ensemble frame"})).toHaveValue("117");
+  for(const aspect of ["landscape","portrait"] as const){
+    await page.getByRole("combobox",{name:"Ink ensemble output"}).selectOption(aspect);
+    for(const frame of [0,3,57,117,188,253,298,329]){
+      await seek(page,frame);
+      await expect(page.locator("[data-km-ink-scene]")).toBeVisible();
+      if(frame>=3)
+        await expect(page.locator("[data-km-ink-ensemble-actor]")).toHaveCount(2);
+    }
+  }
+  expect(errors).toEqual([]);
 });
 
 test("original classical figure painting follows both articulated performers and supports live brush controls",async({page},info)=>{
