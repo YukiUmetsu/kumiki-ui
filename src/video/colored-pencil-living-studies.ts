@@ -1,6 +1,7 @@
 import { pencilHash } from "../../registry/video/colored-pencil";
 import type { PencilAspect, PencilDrawingSpec, PencilRegion, PencilTrace } from "../../registry/video/colored-pencil";
 import { createPencilMaterialRegion } from "../../registry/video/colored-pencil-materials";
+import { createPencilFoundationDrawing } from "../../registry/video/colored-pencil-foundation";
 import type { PencilSurface } from "../../registry/video/colored-pencil-materials";
 
 /**
@@ -494,7 +495,32 @@ export function pencilLivingStudyDrawing({
       ...layer,pressure:Math.min(1,layer.pressure*pressure),
     }))};
   });
-  return {version:1,seed,paper:"#F8F4EA",paperTooth,
+  const reference=subject==="portrait"?{
+    title:"Elena Pancorbo — coloured-pencil portrait studies",
+    url:"https://www.elenapancorbo.com/",
+    observation:"Almond eyelid overlap, asymmetric facial planes and individual hair group direction.",
+  }:subject==="fox"?{
+    title:"Claire Milligan — coloured-pencil wildlife and fox",
+    url:"https://www.clairemilliganart.com/patreon-video-tutorials",
+    observation:"Fox ear attachment, narrower muzzle, graded eye socket and varied rooted fur lengths.",
+  }:{
+    title:"Peter Weatherill — landscape coloured-pencil example",
+    url:"https://www.pencil-topics.co.uk/landscape-in-colored-pencil.html",
+    observation:"Colour temperature separates distant mountains from foreground trees and shaded water.",
+  };
+  return createPencilFoundationDrawing({
+    version:1,seed,paper:"#F8F4EA",paperTooth,
     width:aspect==="landscape"?960:540,
-    height:aspect==="landscape"?540:960,regions};
+    height:aspect==="landscape"?540:960,regions,
+  },{
+    subject:subject==="portrait"?"human":subject==="fox"?"wildlife":"landscape",
+    medium:"dry",
+    references:[{...reference,rights:"technique-only"}],
+    construction:subject==="portrait"?
+      "Build cranial silhouette, attached ear, orbital lids, nostrils, lips and hair root flows; preserve cheek glazing and opaque facial masses.":
+      subject==="fox"?
+      "Build head and ear cartilage over the torso, set eye sockets on the skull, align tapered muzzle, whisker roots and fur growth by form.":
+      "Compose far mountains, stepped evergreen hierarchy, near banks and a river widening towards the camera, with directional light and aerial colour.",
+    surfaces:Object.fromEntries(parts.map(part=>[part.id,part.material])),
+  });
 }
