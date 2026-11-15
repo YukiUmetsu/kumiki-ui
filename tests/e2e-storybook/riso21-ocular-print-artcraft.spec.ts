@@ -53,6 +53,23 @@ test("RISO21 both original faces: 16:9/9:16, anatomy states, distinct inks",asyn
       });
     }
   }
+  // ArtCraft negative control from the first RISO23 screenshot: a 6-unit
+  // halftone over a ~70-unit face produces cartoon-sized isolated red freckles.
+  // The default is a genuinely fine screen; retain a coarse-pitch comparison.
+  const pitch=page.getByRole("slider",{name:"RISO23 screen pitch"});
+  await expect(pitch).toHaveValue("2");
+  const narrowTiles=await page.locator('svg[data-km-riso-print]').first()
+    .locator('pattern').evaluateAll(elements=>elements.map(el=>Number(el.getAttribute("width"))));
+  expect(narrowTiles).toHaveLength(2);
+  expect(narrowTiles.every(value=>value>=1.4&&value<=2.2)).toBe(true);
+  await pitch.fill("6");
+  await page.locator("main").screenshot({
+    path:info.outputPath("negative-control-coarse-6-unit-screen.png"),animations:"disabled",
+  });
+  await pitch.fill("2");
+  await page.locator("main").screenshot({
+    path:info.outputPath("recovered-fine-2-unit-screen.png"),animations:"disabled",
+  });
   // A plate-separated physical print must be inspectable, not just asserted.
   await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("blue");
   await page.locator("main").screenshot({
