@@ -17,8 +17,6 @@ const detailParts=[
   "nasolabial-flow","labiomental-crease",
 ] as const;
 const blue=new Set(["ear-helix-fold","ear-tragus-root","upper-lip-engraving","labiomental-crease"]);
-const red=new Set(["ear-concha-pocket","ear-lobule-seam",
-  "nasal-sidewall-line","nasal-ala-fold","nasolabial-flow"]);
 const facialExpressions=[46,78,160,198] as const;
 
 describe("RISO25 ArtCraft v9 ear and expression-linked midface printing",()=>{
