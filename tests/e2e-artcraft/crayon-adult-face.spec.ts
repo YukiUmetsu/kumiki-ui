@@ -328,7 +328,7 @@ for(const view of ["wax","anatomy"] as const){
         await expect(svg.locator(
           '[data-km-crayon-contact-feather-mask]')).toHaveCount(25);
         await expect(svg.locator(
-          '[data-km-crayon-opaque-burnish]')).toHaveCount(8);
+          '[data-km-crayon-opaque-burnish]')).toHaveCount(7);
         for(const id of ["socket-near","socket-far",
           "eye-orbital-undercut-near","eye-orbital-undercut-far",
           "neck-submandibular-cast","neck-cervical-turn",
