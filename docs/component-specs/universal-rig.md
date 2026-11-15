@@ -112,6 +112,26 @@ Gait audit at the time of writing: planted-foot drift 0 px for every quadruped g
 touch-down / lift-off frame skids by a few px at most (the horse walk ~20 px at the audit's 2.5× speed). Reference: Muybridge,
 *The Horse in Motion* (1878, public domain), studied frame by frame for the gallop timing and leg shapes.
 
+## Reference study: horse lower leg (fetlock, pastern, hoof)
+
+Sources, all public domain (Muybridge, 1887):
+- Plate 563, the "Dusel" walk, studied as the Commons animation [Muybridge horse walking animated.gif](https://commons.wikimedia.org/wiki/File:Muybridge_horse_walking_animated.gif).
+- Plate 626, "Annie G." gallop: [Muybridge race horse animated.gif](https://commons.wikimedia.org/wiki/File:Muybridge_race_horse_animated.gif).
+- Plate 611, trot: [Animal locomotion. Plate 611](https://commons.wikimedia.org/wiki/File:Animal_locomotion._Plate_611_-_DPLA_-_aeff1b20efcfdc09b5f84345674ae8d1.jpg).
+
+Method: the lower legs were cropped from every frame, enlarged, and compared with rig contact sheets at the same frame count.
+
+Supporting biomechanics:
+- The fetlock behaves as an elastic spring and is extended only under load. Slow-motion gallop studies measure about 90° of hoof rotation at break-over.
+- Distal joints flex in sequence in swing: knee (carpus), then fetlock, then hoof.
+
+| Observation | Construction rule | Check |
+| --- | --- | --- |
+| Stance: the pastern slopes 45–60° down and forward from the fetlock to a flat hoof. The fetlock sinks under load but never to the ground. | The pastern angle is solved per frame to keep the leg above at 98.5% of its length, clamped to at least 38° above the ground. | Pastern 43–61° through walk stance; planted drift 0 px. |
+| The front wall of the hoof continues the pastern's slope (the hoof–pastern axis). The hoof is about half the fetlock's height, and the pastern is about as long as the hoof is tall. | Hoof drawn with its front wall parallel to the standing pastern. Pastern 9.5u, about 18% of leg height. | Feet close-up sheets. |
+| Break-over: the heel lifts and the hoof pivots on the planted toe. The pastern turns with it, and at lift-off hoof and pastern stand in line, sole facing back. | The last 28% of stance rotates hoof and pastern together about the toe, up to 64°. | Test: the hoof passes 40° with its toe on the ground; then lands flat. |
+| Swing: the fetlock flexes and the hoof hangs in line with the pastern, sole facing back, never upside down. The leg then straightens and sets the hoof down flat. | Hoof kept in line with the pastern in swing; fetlock curl 44° fore and 26° hind (peak hoof angle about 120°). Landing blends to the loaded, flat pose. | Swing hoof angle 118–126°; landing flat. |
+
 ## Limits
 
 - Side-on 2D rigs: no full turnarounds. Turns in depth extrude the side outline across the figure's width (an

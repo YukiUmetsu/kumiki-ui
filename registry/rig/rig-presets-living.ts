@@ -296,7 +296,7 @@ interface QuadDef { palette: Partial<Record<RigRole, string>>; H: number; neck: 
   /** Pastern length and its standing angle above the ground (degrees). */ pastern: number; pasternAngle: number; flex: number; curlFore: number; curlHind: number }
 const QUAD: Record<QuadKind, QuadDef> = {
   dog: { palette: { fur: "#b5793f", "fur-dark": "#7d4f27", belly: "#e9c99a", eye: "#1d1715", detail: "#2b1d14", mouth: "#3b1714", horn: "#2b1d14" }, H: 40, neck: 13, neckAngle: -132, legW: 7.5, tail: 7, tailAngle: 140, head: 1, pastern: 5, pasternAngle: 68, flex: 9, curlFore: 50, curlHind: 30 },
-  horse: { palette: { fur: "#7a4a2c", "fur-dark": "#4f2e1a", belly: "#8d5a38", hair: "#24170f", eye: "#1d1715", detail: "#24170f", horn: "#3a3a3a", mouth: "#24170f" }, H: 55, neck: 30, neckAngle: -132, legW: 7, tail: 9, tailAngle: 48, head: 1.25, pastern: 7.5, pasternAngle: 56, flex: 2.5, curlFore: 80, curlHind: 46 },
+  horse: { palette: { fur: "#7a4a2c", "fur-dark": "#4f2e1a", belly: "#8d5a38", hair: "#24170f", eye: "#1d1715", detail: "#24170f", horn: "#3a3a3a", mouth: "#24170f" }, H: 55, neck: 30, neckAngle: -132, legW: 7, tail: 9, tailAngle: 48, head: 1.25, pastern: 9.5, pasternAngle: 56, flex: 2.5, curlFore: 44, curlHind: 26 },
   cat: { palette: { fur: "#8b8f97", "fur-dark": "#5e626a", belly: "#d9dade", eye: "#c9a227", detail: "#2a2b2e", mouth: "#4a2a2a", horn: "#2a2b2e" }, H: 31, neck: 9, neckAngle: -122, legW: 5.6, tail: 9, tailAngle: 120, head: .9, pastern: 4, pasternAngle: 70, flex: 12, curlFore: 40, curlHind: 26 },
 };
 /**
@@ -379,12 +379,18 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
       rig.part("lo-" + l.id, "lo-" + l.id, cap(lo, w * .82, w * .6), role, z, { far: l.far });
     }
     // Fetlock: a small bulge at the back of the joint; the pastern ends inside the hoof (no knob below the sole).
-    rig.part("fetlock-" + l.id, "paw-" + l.id, ell(-w * .1, .2, w * .34, w * .36), role, z + .03, { far: l.far });
-    rig.part("pastern-" + l.id, "paw-" + l.id, cap(P - (horse ? 3.6 : 1.6), w * .48, w * .4), role, z + .04, { far: l.far });
+    // Lower leg after Muybridge's plates: cannon, a fetlock bulging at the back, a sloping pastern about as long as the
+    // hoof is tall, and a hoof whose front wall continues the pastern's slope (the hoof–pastern axis).
+    rig.part("fetlock-" + l.id, "paw-" + l.id, ell(-w * .16, .6, w * .38, w * .44), role, z + .03, { far: l.far });
+    rig.part("pastern-" + l.id, "paw-" + l.id, cap(P - (horse ? 2.8 : 1.6), w * .46, w * .42), role, z + .04, { far: l.far });
     // Hoof (or paw) with its sole on the ground line at the bone's origin.
-    rig.part("hoof-" + l.id, "hoof-" + l.id, horse ? poly([[-2.6, -4.6], [2, -5], [3.4, -2.4], [4.8, 0], [-2.8, 0]]) : ell(1.6, -1.5, w * .66, 1.7), horse ? "horn" : role, z + .1, { far: l.far });
-    if (horse) rig.part("coronet-" + l.id, "hoof-" + l.id, poly([[-2.8, -4.4], [2.2, -4.8], [2.6, -3.8], [-2.8, -3.4]]), "hair", z + .11, { far: l.far });
-    legs.push({ upper: "up-" + l.id, lower: "lo-" + l.id, foot: "paw-" + l.id, hoof: "hoof-" + l.id, pastern: P * u, straight: l.front ? FORE_STRAIGHT : HIND_STRAIGHT, phase: 0, bend: l.front ? 1 : -1,
+    // Hoof about half the fetlock's standing height, so the pastern shows above it.
+    rig.part("hoof-" + l.id, "hoof-" + l.id, horse ? poly([[4.2, 0], [1.7, -3.7], [-1, -3.3], [-3.6, -2.1], [-4.1, -.9], [-3.5, 0]]) : ell(1.6, -1.5, w * .66, 1.7), horse ? "horn" : role, z + .1, { far: l.far });
+    if (horse) {
+      rig.part("coronet-" + l.id, "hoof-" + l.id, poly([[1.9, -3.95], [-3.8, -2.3], [-3.5, -1.65], [1.5, -3.25]]), "hair", z + .11, { far: l.far });
+      rig.part("hoof-wall-" + l.id, "hoof-" + l.id, path("M3.2 -.5L1.3 -3.1"), "detail", z + .12, { far: l.far, line: true, lineWidth: .35, color: "#5a5a5a" });
+    }
+    legs.push({ upper: "up-" + l.id, lower: "lo-" + l.id, foot: "paw-" + l.id, hoof: "hoof-" + l.id, pastern: P * u, toe: (horse ? 4.2 : kind === "dog" ? 2.6 : 2) * u, straight: l.front ? FORE_STRAIGHT : HIND_STRAIGHT, phase: 0, bend: l.front ? 1 : -1,
       lift: l.front ? 1.25 : .9, curl: l.front ? q.curlFore : q.curlHind, swingHip: l.front ? .16 : .12 });
   }
   // Neck and head.

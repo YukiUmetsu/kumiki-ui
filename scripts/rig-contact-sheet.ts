@@ -24,8 +24,8 @@ const to = staged ? (motion === "reverse" ? W * .32 : motion.includes("brake") |
 const spec = entry.build({ size: entry.size, motion, start: 0, end: D, y, from, to });
 const frames = Array.from({ length: Number(count) }, (_, i) => Number(first) + i * Number(step));
 const cells = frames.map(f => {
-  const zoom = flags.includes("--zoom") ? (entry.size < 250 ? 4.5 : 2.2) : 1;
-  const camera = follow || zoom > 1 ? followCamera(spec, f, { y: zoom > 1 ? (air ? y : GROUND - entry.size * .4) : H / 2, zoom }) : undefined;
+  const feet = flags.includes("--feet"), zoom = feet ? 4 : flags.includes("--zoom") ? (entry.size < 250 ? 4.5 : 2.2) : 1;
+  const camera = follow || zoom > 1 ? followCamera(spec, f, { y: feet ? GROUND - entry.size * .1 : zoom > 1 ? (air ? y : GROUND - entry.size * .4) : H / 2, zoom }) : undefined;
   if (camera && !follow) camera.x = W / 2;
   if (camera && zoom > 1 && air) camera.y = rootState(spec, f).y;
   const svg = renderToStaticMarkup(createElement(RigScene, { look: look as RigLook, width: W, height: H, ground: motion === "turn-away" ? GROUND - entry.size * .5 : GROUND, frame: f, rigs: [spec], camera, showBones: bones }));
