@@ -684,7 +684,7 @@ function fox():PencilSubjectPart[] {
           [232,193,250,197,241,200,27,5],
         ],1779,["#BB8465","#493B3B","#E4AB83"],289),
       ]},
-    {id:"whisker-roots",material:"fur",palette:["#BEB2A2","#827874","#E9DBBE"],
+    {id:"whisker-roots",material:"glaze",palette:["#BEB2A2","#827874","#E9DBBE"],
       path:"M151 235 Q170 245 187 247 Q207 243 232 234 Q222 254 198 256 Q166 255 149 242 Z",
       bounds:[146,231,92,28],direction:10,start:171,
       details:[
