@@ -74,6 +74,43 @@ describe("ArtCraft anatomical hare source construction",()=>{
     expect(part("whisker-follicles").parentId).toBe("head");
     expect(part("near-ear-inner").parentId).toBe("near-ear");
     expect(part("eye-amber-iris").parentId).toBe("head");
+    // ArtCraft: the ocular aperture is built from contiguous, named
+    // anatomical planes, never a huge black symbol with a small gold dot.
+    for(const id of ["eye-bone-light-shelf","eye-upper-lid-overhang",
+      "eye-lower-fur-fold","eye-medial-canthus"]){
+      const node=part(id);
+      expect(node.kind).toBe("wax");
+      expect(node.parentId).toBe("head");
+      if(node.kind==="wax"){
+        expect(node.coverage).toBe("opaque");
+        expect(node.d).toMatch(/[CQ]/);
+      }
+    }
+    const limbus=part("eye-dark-rim"),iris=part("eye-amber-iris");
+    const socket=part("eye-socket"),lid=part("eyelid-painted-occlusion");
+    if(limbus.kind!=="wax"||iris.kind!=="wax"||
+      socket.kind!=="wax"||lid.kind!=="wax")
+      throw new Error("Missing layered ocular anatomy");
+    // Authored source proportions, not a claim of pixel/reference fidelity.
+    expect(iris.bounds.width/limbus.bounds.width).toBeGreaterThan(.58);
+    expect(iris.bounds.width/limbus.bounds.width).toBeLessThan(.75);
+    expect(limbus.bounds.width/socket.bounds.width).toBeGreaterThan(.56);
+    expect(lid.drawings?.length).toBe(4);
+    expect(lid.drawings?.[0].bounds.x).toBeLessThan(iris.bounds.x);
+    expect((lid.drawings?.[0].bounds.x??0)+
+      (lid.drawings?.[0].bounds.width??0))
+      .toBeGreaterThan(iris.bounds.x+iris.bounds.width);
+    expect(lid.drawings?.[0].bounds.y).toBeLessThan(iris.bounds.y);
+    expect((lid.drawings?.[0].bounds.y??0)+
+      (lid.drawings?.[0].bounds.height??0))
+      .toBeGreaterThan(iris.bounds.y+iris.bounds.height);
+    const lower=part("eye-lower-fur-fibers");
+    expect(lower.kind).toBe("contour");
+    expect(lower.parentId).toBe("eye-lower-fur-fold");
+    if(lower.kind==="contour"){
+      expect(lower.clipToParent).toBe(true);
+      expect((lower.d.match(/Q/g)??[]).length).toBeGreaterThanOrEqual(3);
+    }
     expect(scene.elements.length).toBeLessThan(240);
   });
   it("holds anatomical root, ear tips and muzzle entirely inside the rendered page in "+aspect,()=>{
@@ -111,7 +148,8 @@ describe("ArtCraft anatomical hare source construction",()=>{
    const scene=crayonWildlifePortraitScene("landscape");
    const out=renderToStaticMarkup(<CrayonScene spec={scene} frame={237}/>);
    for(const name of ["orbital-structure","nasal-bridge-plane","near-ear-canal-shadow",
-     "muzzle-underside","maxillary-junction","whisker-follicles"]){
+     "muzzle-underside","maxillary-junction","whisker-follicles",
+     "eye-upper-lid-overhang","eye-lower-fur-fold","eye-medial-canthus"]){
      expect(out).toContain('data-km-crayon-element="'+name+'"');
    }
    expect(out).toContain('data-km-crayon-underpaint="opaque"');
