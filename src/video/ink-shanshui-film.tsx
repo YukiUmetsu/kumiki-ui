@@ -167,7 +167,7 @@ export function shanshuiScholarInstance(
     instanceId:route.instanceId,characterId:"shanshui-scholar",
     revision:(scene==="river-scholar"
       ?"shanshui-scholar-reader-portrait-river-scholar-v10"
-      :"shanshui-scholar-fine-figure-"+scene+"-v6"),seed:113,
+      :"shanshui-scholar-fine-figure-"+scene+"-v7"),seed:113,
     targets:{landscape:{x:16,y:77},viewer:{x:176,y:90},
       ...(scene==="river-scholar"?{"scroll-page":{
         x:(fit.anchors.nearHand.x+fit.anchors.farHand.x)/2,
