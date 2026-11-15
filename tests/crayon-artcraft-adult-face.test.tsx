@@ -138,7 +138,7 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(a.d).not.toBe(b.d);
     }
     expect(()=>crayonAdultFaceStudy("landscape",{expression:"surprised" as "warm"}))
-      .toThrow(/options/);
+      .toThrow(/Invalid ArtCraft facial study/);
     expect(inspectCrayonScene(smiling)).toEqual([]);
     expect(inspectCrayonScene(neutral)).toEqual([]);
   });
