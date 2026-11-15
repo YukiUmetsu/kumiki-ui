@@ -3,6 +3,7 @@ import type {Meta,StoryObj} from "@storybook/react-vite";
 import {FilmStage} from "../../registry/video/film-stage";
 import {compileFilm} from "../../registry/video/film-document";
 import {WatercolourIllustration} from "../../registry/video/watercolour-illustration";
+import type {WatercolourArtwork,WatercolourArtPart} from "../../registry/video/watercolour-illustration";
 import {WATERCOLOUR_PORTRAIT_ENSEMBLE_FILM} from "./watercolour-portrait-ensemble-film";
 import {
   DEFAULT_PORTRAIT_CAST,inspectPortraitCast,watercolorPortraitEnsembleSpec,
@@ -25,17 +26,31 @@ function EnsembleAtelier(){
   const [frame,setFrame]=useState(257);
   const [playing,setPlaying]=useState(false);
   const [reduced,setReduced]=useState(false);
+  const [paintedCraft,setPaintedCraft]=useState(true);
   const [seed,setSeed]=useState(83);
   const [cast,setCast]=useState<WatercolourPortraitCastMember[]>(()=>initial("landscape"));
   const [tooth,setTooth]=useState(.8);
   const [granulation,setGranulation]=useState(.73);
   const compiled=useMemo(()=>compileFilm(WATERCOLOUR_PORTRAIT_ENSEMBLE_FILM,{outputId:output}),[output]);
-  const authored=useMemo(()=>{
+  const authored=useMemo<WatercolourArtwork>(()=>{
     const art=watercolorPortraitEnsembleSpec(output,seed,cast);
-    return {...art,paper:{...art.paper,tooth,granulation},
+    const detailed={...art,paper:{...art.paper,tooth,granulation},
       wetPaper:art.wetPaper?{...art.wetPaper,granulation,paper:{
         ...art.wetPaper.paper,tooth}}:undefined};
-  },[output,seed,cast,tooth,granulation]);
+    if(paintedCraft)return detailed;
+    // Comparison switch: retain the anatomically attached opaque foundation.
+    // Exclude only the new expressive wash/drybrush construction passes.
+    const additions=/^[abc]-(?:portrait-directed-value-brushwork|portrait-selective-calligraphic-accents|crown-unbroken-light-ribbon|crown-shadow-broken-ribbon|temple-reflected-warm-pigment|root-following-gouache-dry-runs|shoulder-left-bloom|shoulder-right-broken-violet|chest-suggestion-of-fabric-weight|lapel-reserved-lift|right-lapel-tail-glaze|sewn-fabric-broken-drybrush|beard-sculpted-side-volume|beard-chin-salt-pigment)$/;
+    const prune=(node:WatercolourArtPart):WatercolourArtPart|null=>{
+      if(additions.test(node.id))return null;
+      return node.kind==="group"
+        ?{...node,children:node.children.map(prune).filter(
+          (x):x is WatercolourArtPart=>x!==null)}
+        :node;
+    };
+    return {...detailed,parts:detailed.parts.map(prune).filter(
+      (x):x is WatercolourArtPart=>x!==null)};
+  },[output,seed,cast,tooth,granulation,paintedCraft]);
   useEffect(()=>{
     if(!playing)return;
     const start=performance.now(),begin=frame;
@@ -68,9 +83,11 @@ function EnsembleAtelier(){
       </h1>
       <p style={{margin:0,maxWidth:940,fontSize:14,lineHeight:1.65}}>
         Independently authored head, eye, skin, hair and garment contours share
-        one watercolor paper coordinate system. Each actor has its own pigment
-        arrival, gaze, blink and head-gesture timeline; geometry remains editable
-        without tracing a photograph. Switch between 16:9 film and 9:16 stacked portraits.
+        one watercolor paper coordinate system. Character-specific wet brushstrokes
+        build the orbital ridge, cheekbone, nose, beard, hair and fabric folds.
+        Both heads, hair and eyes move as connected performers. Compare the expressive
+        brush layers against their original underpainting, and switch between
+        16:9 film and 9:16 stacked portraits.
       </p>
     </header>
     <div style={{display:"flex",alignItems:"end",flexWrap:"wrap",gap:14}}>
@@ -105,6 +122,12 @@ function EnsembleAtelier(){
         onChange={n=>{setPlaying(false);setTooth(n);}}/>
       <WatercolourSlider label="Pigment granulation" value={granulation}
         onChange={n=>{setPlaying(false);setGranulation(n);}}/>
+      <label style={{display:"flex",gap:6,alignItems:"center",fontSize:13,minHeight:42}}>
+        <input type="checkbox" checked={paintedCraft}
+          aria-label="Expressive watercolor brush layers"
+          onChange={e=>{setPlaying(false);setPaintedCraft(e.target.checked);}}/>
+        Expressive brush layers
+      </label>
       <label style={{display:"flex",gap:6,alignItems:"center",fontSize:13,minHeight:42}}>
         <input type="checkbox" checked={reduced}
           aria-label="Ensemble reduced motion"
