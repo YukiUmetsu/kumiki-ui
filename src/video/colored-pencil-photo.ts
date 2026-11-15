@@ -15,6 +15,8 @@ import { pencilHash } from "../../registry/video/colored-pencil";
 import { PENCIL_PHOTO_FOUNDATION } from "../../registry/video/colored-pencil-foundation";
 import { createPencilFlowField } from "./colored-pencil-flow-field";
 import { createPencilSalience } from "./colored-pencil-salience";
+import { createPencilPortraitFeatureMarks } from "./colored-pencil-portrait-guides";
+import type { PortraitFeatureMap } from "./colored-pencil-portrait-guides";
 
 export interface PencilPhotoPixels {
   width:number;
@@ -58,6 +60,8 @@ export interface PencilPhotoStudy {
   pigment:Uint8ClampedArray;
   strokes:readonly PencilPhotoMark[];
   seed:number;
+  /** Source-photo-guided mark counts. No artist-level approval is implied. */
+  portraitFeatures?:Readonly<Record<string,number>>;
 }
 const limit=(n:number,lo:number,hi:number)=>Math.max(lo,Math.min(hi,n));
 const hex=(r:number,g:number,b:number):string=>"#"+[r,g,b].map(x=>
@@ -75,7 +79,8 @@ const check=(p:PencilPhotoPixels,o:PencilPhotoOptions)=>{
 };
 /** Paint from authorized input pixels; all calculations are deterministic and local. */
 export function createPencilPhotoStudy(source:PencilPhotoPixels,
-  settings:Partial<PencilPhotoOptions>={}):PencilPhotoStudy {
+  settings:Partial<PencilPhotoOptions>={},
+  portraitGuides?:PortraitFeatureMap):PencilPhotoStudy {
   const options={...PENCIL_PHOTO_DEFAULTS,...settings};
   check(source,options);
   const {width:w,height:h,data}=source;
@@ -139,7 +144,9 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
   const strokes:PencilPhotoMark[]=[];
   const step=limit(Math.round(4.2/options.density),2,11);
   const gridW=Math.ceil(w/step), gridH=Math.ceil(h/step);
-  const max=PENCIL_PHOTO_FOUNDATION.maxStrokes;
+  // Reserve a bounded feature budget so global hatching never crowds out
+  // measured eye/lip/alar detail on dense photographs.
+  const max=PENCIL_PHOTO_FOUNDATION.maxStrokes-(portraitGuides?550:0);
   for(let gy=0;gy<gridH;gy++)for(let gx=0;gx<gridW;gx++){
     if(strokes.length>=max)break;
     const j=gy*gridW+gx;
@@ -185,10 +192,17 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
       alpha,pass,
     });
   }
+  // A guide is supplied ONLY for the matching rights-verified source; do
+  // not apply sample coordinates to unrelated photographs or user uploads.
+  const detail=portraitGuides?
+    createPencilPortraitFeatureMarks(source,portraitGuides,options.seed):null;
+  if(detail)strokes.push(...detail.marks.slice(
+    0,PENCIL_PHOTO_FOUNDATION.maxStrokes-strokes.length));
   // Stable chronological grouping; no need to store frames or mutable clocks.
   strokes.sort((a,b)=>a.pass-b.pass);
   return {foundationVersion:"CP-F1",foundationPasses:PENCIL_PHOTO_FOUNDATION.markOrder,
-    width:w,height:h,pigment,strokes,seed:options.seed};
+    width:w,height:h,pigment,strokes,seed:options.seed,
+    ...(detail?{portraitFeatures:detail.featureCounts}:{})};
 }
 export function pencilPhotoStrokeCount(study:PencilPhotoStudy,frame:number,total=350):number {
   if(!Number.isSafeInteger(frame)||frame<0||
