@@ -97,6 +97,7 @@ function paint(ctx:CanvasRenderingContext2D,study:PencilPhotoStudy,
 /** One existing sidebar folder, no external subscription/AI or server upload. */
 export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSample?:Sample}={}){
   const canvasRef=useRef<HTMLCanvasElement>(null);
+  const faceMacroRef=useRef<HTMLCanvasElement>(null);
   const underpaint=useRef<HTMLCanvasElement|null>(null);
   const progress=useRef<{study:PencilPhotoStudy;frame:number;drawn:number;wash:number}|null>(null);
   const localObjectUrl=useRef<string|null>(null);
@@ -122,6 +123,8 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
   const [wash,setWash]=useState((initialSample==="woman"||initialSample==="man") ? .91 : .84);
   const [showReference,setShowReference]=useState(false);
   const [showFaceGuides,setShowFaceGuides]=useState(false);
+  const [showFaceMacro,setShowFaceMacro]=useState(false);
+  const [faceMacroRegion,setFaceMacroRegion]=useState<"eyes"|"lips">("eyes");
   const [applyFaceCraft,setApplyFaceCraft]=useState(true);
   const [uploaded,setUploaded]=useState(false);
   const size=aspect==="landscape"?{width:900,height:506}:{width:506,height:900};
@@ -215,6 +218,26 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
       progress.current=null;
     }
   },[study,frame,wash]);
+  // Capture the ACTUAL finished canvas into a separate inspector. This keeps
+  // review pixels identical to PNG export and prevents guide/zoom UI from
+  // becoming part of any video frame.
+  useEffect(()=>{
+    if(!showFaceMacro||!faceGuides)return;
+    const artwork=canvasRef.current,macro=faceMacroRef.current;
+    if(!artwork||!macro)return;
+    const ctx=macro.getContext("2d");
+    if(!ctx)return;
+    const anchor=faceMacroRegion==="eyes"?
+      faceGuides.eyeNearCenter:faceGuides.lipCupid;
+    // A source-native 120×80 window maps to 360×240 review pixels:
+    // exactly 3× nearest-neighbour inspection, never an estimated zoom.
+    const cropWidth=macro.width/3,cropHeight=macro.height/3;
+    ctx.globalAlpha=1;
+    ctx.fillStyle="#FAF5ED";ctx.fillRect(0,0,macro.width,macro.height);
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(artwork,anchor[0]-cropWidth*.5,anchor[1]-cropHeight*.5,
+      cropWidth,cropHeight,0,0,macro.width,macro.height);
+  },[showFaceMacro,faceMacroRegion,faceGuides,study,frame,wash]);
   useEffect(()=>{
     if(!playing)return;
     const began=performance.now(),offset=frame;
@@ -324,6 +347,19 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
           <option value="fit">Entire photograph / paper margins</option>
         </select>
       </label>}
+      {faceGuides&&<label style={{...control,alignSelf:"end",minHeight:40,
+        display:"flex",flexDirection:"row",alignItems:"center",gap:9}}>
+        <input aria-label="Inspect portrait detail at three times scale" type="checkbox"
+          checked={showFaceMacro} onChange={e=>setShowFaceMacro(e.target.checked)}/>
+        Inspect eye / lip pencil details (3×)
+      </label>}
+      {faceGuides&&showFaceMacro&&<label style={control}>Facial crop
+        <select aria-label="Pencil face detail region" value={faceMacroRegion}
+          style={field} onChange={e=>setFaceMacroRegion(e.target.value as "eyes"|"lips")}>
+          <option value="eyes">Eye and eyelid</option>
+          <option value="lips">Vermilion and mouth</option>
+        </select>
+      </label>}
       <label style={control}>Source wash · {Math.round(wash*100)}%
         <input aria-label="Pencil photo wash" type="range" min=".25" max="1"
           step=".05" value={wash} onChange={e=>{
@@ -401,12 +437,25 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
               </circle>)}
           </svg>}
         </div>
+        {faceGuides&&showFaceMacro&&<figure style={{margin:"12px 0 0"}}>
+          <figcaption style={{fontSize:13,fontWeight:700,marginBottom:7}}>
+            Native output crop · {faceMacroRegion==="eyes"?"eye / eyelid":"lips"} ·
+            3× inspection only, not exported
+          </figcaption>
+          <canvas ref={faceMacroRef} width={360} height={240}
+            data-km-pencil-face-macro={faceMacroRegion}
+            aria-label="Magnified real coloured-pencil portrait output"
+            style={{display:"block",width:"min(100%, 540px)",height:"auto",
+              aspectRatio:"3 / 2",border:"1px solid #ADA89A",
+              background:"#FAF5ED"}}/>
+        </figure>}
         {study?.portraitFeatures&&<p
           data-km-portrait-craft-evidence=""
           style={{fontSize:12,color:"#687A71",margin:"8px 0 0"}}>
           Experimental CC0 source-matched construction: {Object.values(study.portraitFeatures)
             .reduce((sum,n)=>sum+n,0)} additional eye, brow, nose, lip and form-following skin pencil marks.
-          Landmark alignment is manually reviewed, not independent artistic sign-off.
+          {study.portraitHighlightReserves??0} iris deposits reserved for observed bright
+          eye glints. Landmark alignment is manually reviewed, not independent artistic sign-off.
         </p>}
       </figure>
       {showReference&&<figure style={{margin:0,flex:"1 1 380px",maxWidth:900}}>

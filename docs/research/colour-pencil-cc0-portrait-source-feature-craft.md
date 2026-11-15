@@ -26,6 +26,18 @@ The existing `ReferenceGuidedFaces` camera produces a canvas of 900×506. Earlie
 
 These source-derived paths are **not universal facial recognition** and do not magically make a true high-end pencil painting. They are a more reliable basis for a later face drawing engine than the rejected hand-invented human SVG.
 
+## ArtCraft reference-led iteration — glint reserves and true 3× pixel inspection
+
+**Observed craftsmanship (2026-11-15):**
+- [Jesse Lane, *Photorealism Decoded*](https://www.artistsnetwork.com/art-mediums/colored-pencil/photorealism-decoded-oceans-of-layers/) describes how multiple subtle skin colours, values and tight marks build organic volume. Anatomical values precede fine fibres.
+- [Jesse Lane, *Abyss*](https://realismtoday.com/abyss-colored-pencil-art-by-jesse-lane/) discusses intentionally preserving white paper for the brightest focal highlights. Our CC0 reference, not his artwork, provides all source pixel locations and colours.
+- [Alyona Nickelsen's portrait Q&A](https://coloredpencilmag.com/amaalyona/) describes controlled needle-point dark layering and optical blending rather than uniform broad dark outlines.
+
+**Implementation:** The eye-fibre deposition routine now samples root, midpoint and endpoint luminance/alpha. If a reference-observed eye glint would be darkened by an iris microstroke, the mark is omitted; the number of reserved gestures is recorded. Luminance-aware stroke pressure and bounded gesture controls reduce hard unnatural lines at image edges. Invalid source pixels, nonfinite guide positions and impossible focal settings fail early.
+
+**Existing Storybook atelier:** The eye/lip inspection switch renders a 3× view of the *actual resulting canvas* independently from the export. Both 16:9 and 9:16 views retain the same CC0 source geometry, and the source/portrait marks can still be A/B toggled. The magnifier, review guides and counters are not embedded in film pixels.
+
+**Release limitation:** The output remains a photo-derived illustration, not an independently approved high-end hand-drawn pencil portrait. ArtCraft v7 18-point independent source-versus-output measurement, five tonal planes and 1×/3× artist critique are still required for portrait promotion. The rejected manually built face remains experimental; no claim of realism or visual reference parity is made.
 ## Concrete tests and quality acceptance
 
 `tests/colored-pencil-portrait-guides.test.ts` validates camera projection relative to actual observed coordinates, distinct feature families, cropping, deterministic marks, bounded pressure and explicit opt-in. `tests/e2e-storybook/colored-pencil-portrait-guides.spec.ts` checks Chromium interactivity in both formats using **synthetic controlled art**; these E2E screenshots are *technical regressions only*, not examples of professional human portrait quality. The overlay is debugging-only and never alters export canvas pixels.
