@@ -152,8 +152,8 @@
   },
   "gate_status": {
     "artcraft_source": "partial; external craft not source identity",
-    "full_film_visual": "pending full contact sheet",
+    "full_film_visual": "RISO27 actual 24 milestone 16:9 plus 13 milestone 9:16 screenshots reviewed from GitHub Chromium run 43749835464, after rejecting the first cropped/overlapping 9:16 source. Source frontal shape, paper transfer, anatomy handover and final hold accepted as technical/style continuity, not approved for real human body fidelity.",
     "human_anatomy": "blocked on missing independently annotated source and true 3/4/profile views",
-    "production": "pending latest CI"
+    "production": "TypeScript, 9/9 targeted unit tests, 5/5 native Chromium tests confirmed in run 43749835464 (code SHA 0814c1ffc03008c5a1fd5695f1c7889cec74cfdf)."
   }
 }
