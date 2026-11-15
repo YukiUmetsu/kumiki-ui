@@ -61,10 +61,12 @@ export function PencilFoundationStudio(){
         From observation to a finished pencil drawing
       </h1>
       <p style={{margin:"4px 0",maxWidth:950}}>
-        Each original illustration passes through the same reference, anatomy,
-        value, translucent pigment, directional mark and final review gates.
-        Material recipes are enforced in code: solid forms have paper-backed
-        pigment; glass, glazes and cast shadows remain intentionally translucent.
+        This studio draws original author-defined SVG geometry with CP-F1
+        pencil pigments, layered stroke paths and paper-tooth masks.
+        There is no source photograph, photographic bitmap underpainting,
+        Canvas image overlay or photo filter. Transparent vector tonal
+        supports and material gradients remain part of this drawing system.
+        CP-F1 validates structure and materials, not artistic realism.
       </p>
     </header>
     <section aria-label="Pencil foundation controls" style={{
@@ -144,7 +146,8 @@ export function PencilFoundationStudio(){
         {" "}{reference.observation} Technique-only, not traced or redistributed.
       </p>
       <p style={{margin:0,fontSize:12,color:"#67736D"}}>
-        CP-F1 qualified · {drawing.regions.length} named material regions ·
+        Photo-free authored vector artwork · CP-F1 technically qualified ·
+        {drawing.regions.length} named material regions ·
         {drawing.regions.filter(r=>r.opaqueSupport).length} opaque supports ·
         {drawing.regions.filter(r=>!r.opaqueSupport).length} light/transparent passes ·
         technical contract passed, independent artistic fidelity review remains open
