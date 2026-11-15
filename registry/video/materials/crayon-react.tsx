@@ -1,6 +1,6 @@
 import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
-import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonPaperHeight, crayonWaxContactClumps, crayonMarks, crayonNibPath, crayonDryNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
+import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonPaperHeight, crayonWaxContactClumps, crayonStrokeEndPickup, crayonMarks, crayonNibPath, crayonDryNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
 import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction, CrayonSgraffito } from "./crayon";
 import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
@@ -145,6 +145,9 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, pressure, to
   // Legacy tapered/rounded scenes pay no extra allocation or SVG cost.
   const dryMarks=useMemo(()=>nibStyle==="dry"
     ? marks.map(mark=>crayonDryNibPath(mark,1,strokeBuilt?"hand":"legacy",paperSeed)):[],
+    [marks,nibStyle,strokeBuilt,paperSeed]);
+  const waxPickups=useMemo(()=>strokeBuilt&&nibStyle==="dry"
+    ? marks.map(mark=>crayonStrokeEndPickup(mark,paperSeed)):[],
     [marks,nibStyle,strokeBuilt,paperSeed]);
   // Cross-grain gestures are deterministic per source region, not per frame.
   const crossAngle=strokeBuilt
@@ -321,6 +324,12 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, pressure, to
               opacity={pigmentContact*(strokeBuilt?.49+.23*mark.pressure:
                 coverage==="opaque"?.48+.38*mark.pressure:.37+.29*mark.pressure)}
               data-km-crayon-dry-ribbons="" />
+            {strokeBuilt && <path
+              d={progress>=1?waxPickups[i]:
+                crayonStrokeEndPickup(mark,paperSeed,progress)}
+              fill={colors[mark.tone]} stroke="none"
+              opacity={pigmentContact*(.57+.32*mark.pressure)}
+              data-km-crayon-wax-pickup="stroke-end" />}
           </g> : nibStyle==="tapered" ?
             <path d={progress>=1 ? mark.nibD : crayonNibPath(mark, progress)} fill={colors[mark.tone]}
               data-km-crayon-nib="tapered"
