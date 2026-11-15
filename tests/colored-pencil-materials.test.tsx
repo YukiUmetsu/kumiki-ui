@@ -12,7 +12,7 @@ const materialInput = {
 };
 describe("coloured-pencil universal material atlas", () => {
   it("exposes ten bounded semantic material recipes to arbitrary authored SVG geometry", () => {
-    expect(PENCIL_MATERIALS).toHaveLength(15);
+    expect(PENCIL_MATERIALS).toHaveLength(16);
     const materials = PENCIL_MATERIALS.map(surface => createPencilMaterialRegion({
       ...materialInput,surface,
     }));
@@ -33,7 +33,9 @@ describe("coloured-pencil universal material atlas", () => {
     expect(materials[12].layers[2].texture).toBe("fiber");  // hair strands
     expect(materials[13].layers[2].texture).toBe("hatch");  // surface ripples
     expect(materials[14].layers[2].texture).toBe("stipple"); // foliage granules
-    expect(materials.slice(11).every(region=>region.opaqueSupport)).toBe(true);
+    expect(materials.slice(11,15).every(region=>region.opaqueSupport)).toBe(true);
+    expect(materials[15].opaqueSupport).toBe(false);
+    expect(materials[15].layers.every(layer=>layer.pressure<.8)).toBe(true);
     expect(materials[0].clipDetails).toBe(true);
     expect(materials[3].clipDetails).toBe(false);
     expect(materials[4].layers[2].texture).toBe("fiber");
