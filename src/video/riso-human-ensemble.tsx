@@ -199,8 +199,8 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
   if(!Number.isInteger(frame)||frame<0||frame>239)throw new RangeError("Riso ensemble frame must be an integer 0..239");
   const portrait=aspect==="portrait";
   const width=portrait?540:960,height=portrait?960:540;
-  const first={x:portrait?24:120,y:portrait?690:445,scale:portrait?1.05:1.05};
-  const second={x:portrait?265:520,y:portrait?690:445,scale:portrait?1.05:1.05};
+  const first={x:portrait?0:120,y:portrait?705:445,scale:portrait?1.2:1.05};
+  const second={x:portrait?335:520,y:portrait?705:445,scale:portrait?1.2:1.05};
   const a=personPoint(COURIER,frame,"right-hand",first.x,first.y,first.scale);
   const b=personPoint(PAPER_ARTIST,frame,"left-hand",second.x,second.y,second.scale);
   const progress=Math.min(1,Math.max(0,(frame-126)/34));
@@ -260,6 +260,12 @@ export function RisoHumanEnsembleStudio(){
           </pattern>
         </defs>
         <rect x={0} y={0} width={state.width} height={state.height} fill={paper}/>
+        <text x={state.width/2} y={aspect==="portrait"?178:76} textAnchor="middle"
+          fontFamily="Georgia,serif" fontWeight={700} fontSize={aspect==="portrait"?35:35}
+          fill={blue}>A PRINT TO SHARE</text>
+        <text x={state.width/2} y={aspect==="portrait"?210:99} textAnchor="middle"
+          fontFamily="system-ui,sans-serif" fontWeight={700} letterSpacing={3}
+          fontSize={aspect==="portrait"?12:11} fill={red}>TWO MAKERS · TWO INKS</text>
         <path d={`M0 ${state.first.y+12} H${state.width}`} fill="none"
           stroke="#C7AB91" strokeWidth={1.5}/>
         {state.progress>0&& <g data-km-riso-human-ensemble-sheet={state.progress.toFixed(3)}>
