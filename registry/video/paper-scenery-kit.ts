@@ -96,11 +96,11 @@ function paperGeometry(w:number,h:number) {
    */
   const conifer=(x:number,foot:number,height:number,wide:number,
     species:PaperConiferSpecies,treeSeed:number,detail:number)=>{
-    const rows=(species==="spruce"?9:species==="fir"?6:7)+Math.round(detail*3);
+    const rows=(species==="spruce"?8:species==="fir"?5:6)+Math.round(detail*2);
     const rise=height/rows;
-    const exponent=species==="larch"?.63:species==="fir"?.96:.78;
-    const notch=species==="larch"?.17:species==="fir"?.29:.38;
-    const droop=species==="fir"?.055:species==="larch"?.115:.26;
+    const exponent=species==="larch"?.57:species==="fir"?.72:.68;
+    const notch=species==="larch"?.18:species==="fir"?.31:.42;
+    const droop=species==="fir"?.115:species==="larch"?.095:.235;
     const arms=(side:-1|1):[number,number][]=>{
       const segments:[number,number][]=[];
       for(let row=0;row<rows;row++){
@@ -112,7 +112,7 @@ function paperGeometry(w:number,h:number) {
         segments.push(
           [x+side*span*notch,yy],
           [x+side*span,yy-rise*droop],
-          [x+side*span*(species==="fir"?.72:.77),yy-rise*(droop+.16)],
+          [x+side*span*(species==="fir"?.72:.77),yy-rise*(droop+(species==="fir"?.34:.26))],
           [x+side*span*notch*.85,yy-rise*.82]);
       }
       return segments;
@@ -270,8 +270,8 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
     const px=-x*.89+i*x*1.78/(farTreeCount-1)+jitter*x*.063;
     const py=y*(.16+.057*Math.sin(i*1.64)+jitter*.035);
     const species=speciesFor(seed,i+17,treeVariety);
-    const tall=47+paperHash(seed,i,4)*53;
-    const wide=15+paperHash(seed,i,5)*11;
+    const tall=55+paperHash(seed,i,4)*57;
+    const wide=22+paperHash(seed,i,5)*16;
     return p.conifer(px,py,tall,wide,species,seed+i*127,detail);
   });
   add("woodland-far-pines",c.near,15,farPines.join(" "),{enterFrame:85,curl:.3});
@@ -457,8 +457,8 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
       const xx=-x*.92+(x*1.84)*k+jitter*x*.067;
       const yy=y*(.23+.036*Math.sin(i*1.38)+jitter*.04);
       const species=speciesFor(seed,i+37,treeVariety);
-      return p.conifer(xx,yy,53+paperHash(seed,i,7)*56,
-        15+paperHash(seed,i,51)*15,species,seed+i*113,detail);
+      return p.conifer(xx,yy,58+paperHash(seed,i,7)*62,
+        20+paperHash(seed,i,51)*15,species,seed+i*113,detail);
     }).join(" "),{enterFrame:82,curl:.37});
   add("alpine-lake-bank",c.middle,14,
     ridge(p,x,y+12,y*.3,26,2.1),{enterFrame:86,durationFrames:34});
@@ -516,8 +516,8 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
       const py=y*(.69+(j%3)*.047+offset*.025);
       const species=speciesFor(seed,j+i*79+127,treeVariety);
       add("alpine-pine-"+i+"-"+j,j%3===0?c.trunk:c.leaf,22,
-        p.conifer(px,py,72+paperHash(seed,j+i*17,22)*88,
-          23+paperHash(seed,j+i*17,32)*19,species,pineSeed,detail),{
+        p.conifer(px,py,74+paperHash(seed,j+i*17,22)*92,
+          32+paperHash(seed,j+i*17,32)*27,species,pineSeed,detail),{
           enterFrame:112+i*9+j*3,curl:.48,
           motion:"flutter",swingDegrees:breeze*.3,flapHz:.19+j*.01,
           pivot:[p.cx+px*p.scale,p.cy+py*p.scale]});
