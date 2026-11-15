@@ -280,6 +280,40 @@ for(const sample of ["woman","man"] as const){
         expect(await output.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
+        // CP17 opt-in skin tooth bridge: the same CC0 source and same
+        // finished dry-pigment drawing, no imported bitmap or raster blur.
+        // Report actual pencil nib count and 1×/3× film-aspect evidence.
+        const bridge=page.getByLabel("Pencil source-aware tooth bridge");
+        await bridge.focus();await bridge.press("Home");
+        await expect(bridge).toHaveValue("0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-tooth-bridge","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-tooth-bridge-nibs","0");
+        const bridgeLegacy=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-tooth-bridge-0.png")});
+        await bridge.press("End");
+        await expect(bridge).toHaveValue("1");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-tooth-bridge","1");
+        const bridgeNibs=Number(await full.getAttribute(
+          "data-km-pencil-tooth-bridge-nibs"));
+        expect(bridgeNibs).toBeGreaterThan(10);
+        const bridgePixels=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        expect(bridgePixels).not.toBe(bridgeLegacy);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-tooth-bridge-100.png")});
+        await bridge.press("Home");
+        await expect(bridge).toHaveValue("0");
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(bridgeLegacy);
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Needle-sharp pigment densification is a reversible render-time
         // skin material only. It may not touch the photo, hair, iris, lip
         // or the independent photo-to-pencil video export.
