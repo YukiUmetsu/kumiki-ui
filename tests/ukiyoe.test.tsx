@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { realmScene, UKIYOE_REALM_SCENES } from "../registry/video/ukiyoe/ukiyoe-realms";
 import { tsukumoScene, UKIYOE_TSUKUMO, UKIYOE_TSUKUMO_SCENES } from "../registry/video/ukiyoe/ukiyoe-tsukumo";
 import { giantScene, UKIYOE_GIANT_SCENES, UKIYOE_GIANTS } from "../registry/video/ukiyoe/ukiyoe-giants";
 import { folkYokaiScene, UKIYOE_FOLK_YOKAI_LOOKS, UKIYOE_FOLK_YOKAI_SCENES } from "../registry/video/ukiyoe/ukiyoe-folkyokai";
@@ -738,6 +739,20 @@ describe("UKIYO1 tsukumogami", () => {
     const kettle = (f: number) => JSON.stringify(drawCreature({ species: "chagama", actions: [{ type: "transform", start: 0, end: 40 }] }, f, 0, 1).prims).includes("kogecha");
     expect(kettle(5)).toBe(true);
     expect(kettle(35)).toBe(false);
+  });
+});
+
+describe("UKIYO1 realms", () => {
+  it("builds each realm; the camera follows the rider below the waves, the magpies fill the bridge, the boulder rolls", () => {
+    for (const k of UKIYOE_REALM_SCENES) expect(inspectUkiyoeScene(realmScene(k)), k).toEqual([]);
+    const r = realmScene("ryugu"), cam = (f: number) => cameraAt(r.camera, f, r.width, r.height).y;
+    expect(cam(0)).toBeLessThan(1000);                           // starting above the sea surface (y 1000)
+    expect(cam(r.durationFrames - 1)).toBeGreaterThan(1400);     // ending down by the palace
+    const birds = (progress: number) => (JSON.stringify(drawMotif("magpies", {}, { frame: 0, wind: 0, seed: 1, progress })).match(/translate\(/g) ?? []).length;
+    expect(birds(0)).toBe(0); expect(birds(.5)).toBeGreaterThan(0); expect(birds(1)).toBeGreaterThan(birds(.5));
+    const cave = (progress: number) => JSON.stringify(drawMotif("iwato", { opens: 1 }, { frame: 0, wind: 0, seed: 1, progress }));
+    expect(cave(0)).not.toContain("glow");
+    expect(cave(1)).toContain("glow");
   });
 });
 

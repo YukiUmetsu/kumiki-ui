@@ -9,9 +9,10 @@ import type { Prim } from "./ukiyoe-prims";
 import { circleD } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 import { ash, foxfire, lightning, smokePuffs, whirlwind } from "./ukiyoe-effects";
+import { bubbles } from "./ukiyoe-realms";
 
-export type UkiyoeParticleType = "rain" | "snow" | "petals" | "leaves" | "fireflies" | "birds" | "fireworks" | "spray" | "embers" | "ripples" | "sparks" | "smoke" | "lightning" | "ash" | "foxfire" | "whirlwind";
-export const UKIYOE_PARTICLES: readonly UkiyoeParticleType[] = ["rain", "snow", "petals", "leaves", "fireflies", "birds", "fireworks", "spray", "embers", "ripples", "sparks", "smoke", "lightning", "ash", "foxfire", "whirlwind"];
+export type UkiyoeParticleType = "rain" | "snow" | "petals" | "leaves" | "fireflies" | "birds" | "fireworks" | "spray" | "embers" | "ripples" | "sparks" | "smoke" | "lightning" | "ash" | "foxfire" | "whirlwind" | "bubbles";
+export const UKIYOE_PARTICLES: readonly UkiyoeParticleType[] = ["rain", "snow", "petals", "leaves", "fireflies", "birds", "fireworks", "spray", "embers", "ripples", "sparks", "smoke", "lightning", "ash", "foxfire", "whirlwind", "bubbles"];
 
 export interface UkiyoeBurst { frame: number; x: number; y: number; radius?: number; color?: UkiyoePaint; count?: number; kind?: "peony" | "willow" | "ring"; launchFrom?: number }
 export interface UkiyoeParticleSpec {
@@ -40,6 +41,7 @@ export function drawParticles(spec: UkiyoeParticleSpec, frame: number, wind: num
     case "lightning": return lightning(spec.bursts ?? [], frame, seed, size, [ax, ay, aw, ah]);
     case "ash": return ash(spec.bursts ?? [], frame, seed, wind, size);
     case "foxfire": return foxfire(n, [ax, ay, aw, ah], frame, seed, size);
+    case "bubbles": return bubbles(n, [ax, ay, aw, ah], frame, seed, size);
     case "whirlwind": return whirlwind([ax, ay, aw, ah], frame, seed, size, (spec.count ?? 0) > 0);
     case "rain": {
       // Two families of lines at slightly different angles, like the two rain blocks of a sudden-shower print.

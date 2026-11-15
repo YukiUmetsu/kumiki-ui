@@ -27,6 +27,7 @@
 - `ukiyoe-folkyokai.ts`: household and road yōkai (gourd head, straw cape, eyes, bean basket, the throw, the akaname) and `folkYokaiScene()`.
 - `ukiyoe-giants.ts`: the giant monsters and `giantScene()`.
 - `ukiyoe-tsukumo.ts`: the tsukumogami (object spirits), the kimono rack and `tsukumoScene()`.
+- `ukiyoe-realms.ts`: the other realms (sea palace, moon, Milky Way, rock cave, oni island) and `realmScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -376,6 +377,29 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
 - **Motif `ikou`.** A kimono rack with a robe; `hands` brings thin pale hands out of the sleeves (Kosode-no-te).
 - **Existing motifs.** The `room` takes `eyes`, which opens blinking eyes in its shoji panes (Mokumokuren). The `gissha` takes `face`, a vast face at its front (Oboro-guruma).
 - **`tsukumoScene(kind)`.** Builds `wheel`, `biwa`, `shoji`, `kosode`, `cotton`, `kettle` or `cart`. Storybook **Tsukumogami** plays them.
+
+### Other realms
+
+- **Motifs.**
+  - `ryugu`: the Dragon King's vermilion halls with green curving roofs and a round gate.
+  - `seabed`: rocks, branching red coral, swaying seaweed.
+  - `lightrays`: pale shafts from above.
+  - `moonpalace`: the full moon with the moon people's palace and clouds.
+  - `amanogawa`: the Milky Way, a river of stars.
+  - `magpies`: the bridge of magpies, which fills from both banks by keyed `progress`.
+  - `iwato`: the rock cave. Its boulder rolls aside by `open`, or by `opens` × progress (negative closes it), and gold rays burst out when `light`.
+  - `onigashima`: the oni island with crags, palisade and iron gate.
+  - `sasa`: a Tanabata bamboo with paper strips and streamers.
+- **Particle `bubbles`.**
+- **`realmScene(kind)`.** Each realm comes with its way in:
+  - `ryugu`: the camera follows Urashima on the turtle from above the waves down to the palace gate.
+  - `moon`: Kaguya rises on a cloud and the camera rises with her to the moon palace.
+  - `tanabata`: the magpie bridge forms between the weaver and the cowherd.
+  - `iwato`: the boulder rolls away and Amaterasu's light floods out while Uzume dances.
+  - `yomi`: Izanagi flees the dark cave, soul-flames following, and the boulder closes.
+  - `onigashima`: Momotarō's boat crosses.
+
+  Storybook **Realms** plays them, and the Motifs gallery has five tiles.
 
 ### Transition
 
