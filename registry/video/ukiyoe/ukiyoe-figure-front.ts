@@ -19,6 +19,7 @@ import { katana, mon, reachArm, saya } from "./ukiyoe-katana";
 import { kanabo } from "./ukiyoe-oni";
 import { hachiSide } from "./ukiyoe-folk";
 import { courtProp, heianHairSquare, kanmuriSquare } from "./ukiyoe-heian";
+import { armEyes, gourdSquare, minoSquare, zaru } from "./ukiyoe-folkyokai";
 import { kabutoSquare, naginata as naginataProp, oyoroiSquare } from "./ukiyoe-bushi";
 import { ancientHairSquare, kamiProp, magatama, stoleSquare, zukin } from "./ukiyoe-kami";
 import { babyBundle, ghostFaceBack, ghostFaceFront, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
@@ -283,6 +284,8 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
   else out.push(...sheathedHilts, ...swordPrims, ...drawArm(armB), ...drawArm(armF), ...kataginuWings);
   // The great armour over everything below the neck (the shoulder boards stand out over the arms).
   if (look.armor) out.push(...oyoroiSquare(sw, shY, waistY, H, lw, look.armor, back));
+  if (look.mino) out.push(...minoSquare(sw, shY, waistY, H, lw, frame));
+  if (look.eyes && !back) for (const a of [armF, armB]) out.push(...armEyes(a[1], a[2], H, lw, frame, a === armF ? 1 : 2));
   // ---- Neck and head.
   const headR = H * (child ? .085 : look.face === "oni" ? .08 : .064), headY = neckY - headR * 1.15 + bowK * headR * .5;
   const tilt = (pose.tilt - 2) * .4;
@@ -305,6 +308,8 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
     for (const a of [armF, armB]) out.push({ t: "fill", d: ellipseD(poleX, a[2][1], H * .016, H * .014), fill: look.skin ?? "hada", outline: lw * .8 });
   } else if (prop === "staff" || (prop === "kanabo" && !club)) {
     out.push({ t: "line", d: carvedLine([add(hand, [0, -H * (.25)]), add(hand, [0, prop === "kanabo" ? H * .02 : -hand[1]])], H * (prop === "kanabo" ? .04 : .012), { taper: prop === "kanabo" ? "start" : "none" }), color: prop === "kanabo" ? "sumi" : propC });
+  } else if (prop === "zaru") {
+    out.push(...zaru([(armF[2][0] + armB[2][0]) / 2, (armF[2][1] + armB[2][1]) / 2], H, lw, frame));
   } else if (prop === "shaku" || prop === "hiogi") {
     out.push(...courtProp(prop, hand, H, lw, frame));
   } else if (prop === "naginata") {
@@ -347,6 +352,7 @@ function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: numb
   if (hair === "long") hairBack([P(-1.05, -.4), P(-1.2, .6), P(-1.25 - wind * .1, 2.6), P(-.7, 2.7), P(.7, 2.7), P(1.25 - wind * .1, 2.6), P(1.2, .6), P(1.05, -.4), P(0, -1.2)]);
   if (hair === "shimada") hairBack([P(-1.35, -.1), P(-1.45, .5), P(-1.0, .75), P(1.0, .75), P(1.45, .5), P(1.35, -.1), P(.9, -1.0), P(0, -1.25), P(-.9, -1.0)]);
   if (hair === "wild") { const sp: Pt[] = []; for (let i = 0; i <= 18; i++) { const a = Math.PI * (1.05 + i / 18 * .9 * 2) / 1, rr = 1.25 + (i % 2 ? .4 + .15 * Math.sin(i * 2.3) : 0); sp.push(P(Math.cos(a) * rr, Math.sin(a) * rr * 1.05 - .1)); } hairBack(sp); }
+  if (hair === "gourd") out.push(...gourdSquare(P, lw, skin));
   // Face: an oval, a little narrower at the chin; ears at the sides.
   if (hair !== "hyogo" && hair !== "kamuro" && hair !== "wareshinobu") out.push({ t: "fill", d: ellipseD(-r * .95, r * .05, r * .14, r * .22) + ellipseD(r * .95, r * .05, r * .14, r * .22), fill: skin, outline: lw * .7 });
   out.push({ t: "fill", d: smoothD([P(-.88, -.3), P(-.8, .45), P(-.45, .92), P(0, 1.05), P(.45, .92), P(.8, .45), P(.88, -.3), P(.6, -.95), P(0, -1.08), P(-.6, -.95)], true, .4), fill: skin, outline: lw * .9 });
@@ -397,6 +403,7 @@ function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: numb
     case "kamuro": out.push(...kamuroSquare(r, lw, hairC, look.accent ?? "beni", false)); break;
     case "mizura": case "tenko": out.push(...ancientHairSquare(hair, P, r, lw, hairC, look.accent ?? "shu", false)); break;
     case "heian": out.push(...heianHairSquare(P, lw, hairC, (pose.kneel > .5 ? 5 : 8.5), false)); break;
+    case "gourd": break;
     case "bald": break;
   }
   if (look.face === "oni") for (const s of [-1, 1]) out.push({ t: "fill", d: smoothD([P(s * .3, -.85), P(s * .45, -1.7), P(s * .55, -.8)], true, .3), fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [1, "ki", 1]] }, outline: lw });
@@ -435,6 +442,7 @@ function headBack(look: UkiyoeFigureLook, r: number, lw: number, hairC: UkiyoePa
     case "kamuro": out.push(...kamuroSquare(r, lw, hairC, look.accent ?? "beni", true)); break;
     case "mizura": case "tenko": out.push(...ancientHairSquare(hair, P, r, lw, hairC, look.accent ?? "shu", true)); break;
     case "heian": out.push(...heianHairSquare(P, lw, hairC, (pose && pose.kneel > .5 ? 5 : 8.5), true)); break;
+    case "gourd": out.push(...gourdSquare(P, lw, skin)); break;
     case "bald": break;
   }
   if (look.face === "oni") for (const s of [-1, 1]) out.push({ t: "fill", d: smoothD([P(s * .3, -.85), P(s * .45, -1.7), P(s * .55, -.8)], true, .3), fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [1, "ki", 1]] }, outline: lw });

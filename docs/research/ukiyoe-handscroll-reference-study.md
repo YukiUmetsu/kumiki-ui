@@ -1033,6 +1033,43 @@ Storybook has **Heian court**, and the Motifs gallery has four tiles.
 - No bugaku dancers or court music.
 - Nobody has done a human visual review yet.
 
+## Folk yōkai (folktale queue F7, 2026-11-15)
+
+**Sources** (public domain, Wikimedia Commons): Toriyama Sekien's *Akaname*, *Nurarihyon* and *Dodomeki*, and Takehara Shunsen's *Azukiarai*.
+
+**What they show.**
+
+- **Akaname.** A wild-haired imp with a long tongue and one-toed clawed feet, peeking into a bathhouse past the tubs.
+- **Nurarihyon.** An old gentleman in fine robes with an enormous bald gourd of a head, sitting at ease on a veranda.
+- **Azukiarai.** A squat, grinning little man washing beans in a tub at the stream's edge.
+- **Dodomeki.** A veiled woman in long robes; the legend covers her arms with eyes.
+
+**What was built.** `ukiyoe-folkyokai.ts`:
+- the gourd head, the straw cape, the eyes and the bean basket;
+- the `throw` action with sand;
+- the `akaname` yōkai;
+- eight looks;
+- `folkYokaiScene()`.
+
+Storybook has **Folk yōkai**.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - Nurarihyon's head was barely bigger than a bald man's and is now a great gourd.
+   - The akaname looked like a kiwi bird. It is now Sekien's crouching imp, with knees up and an arm reaching to the floor.
+   - Dodomeki's eyes were too small to see, and the straw cape was a patch on the shoulders. Both have been enlarged.
+   - The bean basket was hidden because the hands were apart; the figure now holds it in both hands.
+2. **The throw.** The sand was too fine to see; it now has bigger grains and a dust glow.
+
+**Not done.**
+
+- The konaki-jiji does not turn into a stone.
+- The yukinko does not melt.
+- Nurarihyon does not smoke or drink.
+- The akaname has no front view.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
