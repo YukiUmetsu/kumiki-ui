@@ -134,7 +134,12 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(parts.get("muzzle")!.opaqueSupport).toBe(true);
     const whisker=parts.get("whisker-roots")!;
     expect(whisker.clipDetails).toBe(false);
-    expect(whisker.opaqueSupport).toBe(true);
+    // Whiskers and follicles are marks, never an opaque floating sticker
+    // painted on top of the jaw/chin plane.
+    expect(whisker.opaqueSupport).toBe(false);
+    expect(whisker.craft).toBeUndefined();
+    expect(whisker.underpaint).toBeUndefined();
+    expect(whisker.contour.opacity??1).toBeLessThanOrEqual(.10);
     expect(whisker.details!.slice(0,2).reduce((n,t)=>
       n+(t.path.match(/M/g)??[]).length,0)).toBe(6);
   });
@@ -433,6 +438,19 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(nose.bounds[3]).toBeLessThanOrEqual(20);
     expect((nose.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(5);
     expect(map.get("cheek-ruff")!.layers[0].color).not.toBe("#CEB79B");
+  });
+
+  it("blends the warm fox nasal bridge into cheek fur without a hard white sticker boundary",()=>{
+    const parts=new Map(pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"})
+      .regions.map(r=>[r.id,r]));
+    const muzzle=parts.get("muzzle")!;
+    expect(muzzle.clipDetails).toBe(false);
+    expect(muzzle.contour.opacity??1).toBeLessThanOrEqual(.23);
+    const boundaryRoots=muzzle.details!.filter(t=>t.id?.startsWith("fringe-"));
+    expect(boundaryRoots).toHaveLength(3);
+    expect(boundaryRoots.every(t=>(t.path.match(/M/g)??[]).length>=85))
+      .toBe(true);
+    expect(boundaryRoots.every(t=>t.path.includes(" Q"))).toBe(true);
   });
 
   it("renders original CP-F1 fox anatomy from authored pencil vectors with zero photo pixels",()=>{
