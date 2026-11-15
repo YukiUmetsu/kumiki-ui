@@ -161,6 +161,35 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
               strokeWidth={f(.3+width*.28)} opacity={f(opacity*.44)}/>}
           </g>;
         })}
+        {/* Dragon-vein structure: selected true crest high points produce
+            descending fractured rock spines, not free-floating random rain. */}
+        {ridge.slice(1,-1).flatMap(([rx,ry],i)=>{
+          if(ry>=ridge[i][1]||ry>=ridge[i+2][1]||detail===0)return [];
+          const crest=ridgeHeight(stations,rx);
+          const rootY=crest+6;
+          const len=(band===0?29:band===1?66:84)*
+            (.77+.33*s(seed+band*31,i*15+19));
+          const drift=(s(seed+band*7,i*11+37)-.5)*len*.4;
+          const d="M"+f(rx)+" "+f(rootY)+
+            " Q"+f(rx+drift*.12)+" "+f(rootY+len*.26)+
+            " "+f(rx+drift*.55)+" "+f(rootY+len*.48)+
+            " M"+f(rx+drift*.58+3)+" "+f(rootY+len*.53)+
+            " Q"+f(rx+drift*.91)+" "+f(rootY+len*.8)+
+            " "+f(rx+drift)+" "+f(rootY+len);
+          return [<g key={"spine-"+i}>
+            <path data-km-rock-spine="" data-km-rock-spine-root-y={f(crest)}
+              d={d} fill="none"
+              stroke={band===0?"#685b4c":INK}
+              strokeWidth={band===0?.82:band===1?1.25:1.65}
+              strokeLinecap="round"
+              opacity={f((band===0?.43:.66)*(1-.35*mist))}/>
+            <path d={"M"+f(rx+3)+" "+f(rootY+len*.17)+
+              " Q"+f(rx+drift*.35+5)+" "+f(rootY+len*.34)+
+              " "+f(rx+drift*.7+4)+" "+f(rootY+len*.65)}
+              fill="none" stroke="#d1bb96" strokeWidth=".95"
+              opacity=".37"/>
+          </g>];
+        })}
         {/* Moss dots cling to the actual crest rather than being random screen confetti. */}
         {Array.from({length:Math.round((band===2?52:22)*detail)},(_,i)=>{
           const centers=band===0?[80,250,570,740,900]:[70,210,350,560,720,890];
@@ -350,10 +379,22 @@ function NeedleSpray({x,y,scale,seed,wind}:{
           strokeWidth={f(1.05*scale)} fill="none" strokeLinecap="round"/>
         {/* Capillary ink underwash must never replace the needles' tips. */}
         <path data-km-pine-foliage-wash="" d={cloud}
-          fill="#59503d" opacity={f(.25+.14*s(seed+j*29,47))}/>
+          fill="#59503d" opacity={f(.10+.07*s(seed+j*29,47))}/>
         <path d={wet.join(" ")} fill="#332c23" opacity=".86"/>
         <path d={middle.join(" ")} fill="#675741" opacity=".78"/>
         <path d={dry.join(" ")} fill="#a18b6a" opacity=".52"/>
+        {Array.from({length:3},(_,k)=>{
+          const startX=tx+(k-1)*6*scale;
+          const toX=startX+(s(seed+j*29,k*17+31)-.5)*7*scale;
+          const upperY=ty-4*scale-(k%2)*3*scale;
+          return <path key={k} data-km-pine-feather=""
+            d={"M"+f(startX)+" "+f(ty+2*scale)+
+              " Q"+f(startX-2*scale)+" "+f(upperY)+
+              " "+f(toX)+" "+f(upperY-3*scale)}
+            fill="none" stroke={k===0?"#b9a485":"#6c5942"}
+            strokeWidth={f((.37+.19*k)*scale)}
+            opacity={f(.25+.09*s(seed+j*37,k*9+49))}/>;
+        })}
         <path data-km-pine-foliage-wash=""
           d={"M"+f(tx-spreadX*.72)+" "+f(ty+2*scale)+
             " Q"+f(tx)+" "+f(ty-spreadY*.55)+
