@@ -113,6 +113,7 @@ export function inspectCrayonDrawingPlan(scene:CrayonSceneSpec,plan:CrayonDrawin
           errors.push(n.id+": not structurally rooted in "+subject.rootId);
       }
     }
+    const subjectNodes=new Set(subject.parts.map((p:CrayonPartRule)=>p.nodeId));
     if(!Array.isArray(subject.attachments))errors.push(subject.id+": attachments must be an array");
     else for(const [i,link] of subject.attachments.entries()){
       const key=subject.id+": attachment["+i+"]";
@@ -122,7 +123,7 @@ export function inspectCrayonDrawingPlan(scene:CrayonSceneSpec,plan:CrayonDrawin
         errors.push(key+": invalid anchors or tolerance");continue;
       }
       const from=nodes.get(a.nodeId),to=nodes.get(b.nodeId);
-      if(!from||!to||!claimed.has(from.id)||!claimed.has(to.id)){
+      if(!from||!to||!subjectNodes.has(from.id)||!subjectNodes.has(to.id)){
         errors.push(key+": anchors must belong to this subject");continue;
       }
       // A pair of nearby points outside their source bounds is not evidence
