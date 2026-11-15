@@ -35,6 +35,7 @@ interface DrawingStudioProps {
   aspect:CrayonDrawingAspect;detail:number;pressure:number;paperTooth:number;
   nibStyle?:"tapered"|"dry";
   underpaintTooth?:number;
+  comparison?:"single"|"tooth";
   startFrame:number;playbackRate:number;loop:boolean;
   inspection?:CrayonDrawingInspection;
 }
@@ -50,13 +51,21 @@ const steps=[
  * illustration. Text and interactive controls stay outside the film SVG.
  */
 export function CrayonDrawingStudio({aspect,detail,pressure,paperTooth,nibStyle="dry",
-  underpaintTooth=.82,
+  underpaintTooth=.82,comparison="single",
   startFrame,playbackRate,loop,inspection="full"}:DrawingStudioProps){
   const {scene,plan}=useMemo(()=>crayonBotanicalDrawing({
     aspect,detail,pressure,paperTooth,nibStyle,underpaintTooth,
   }),[aspect,detail,pressure,paperTooth,nibStyle,underpaintTooth]);
   const errors=useMemo(()=>inspectCrayonDrawingPlan(scene,plan),[scene,plan]);
   const framed=useMemo(()=>crayonDrawingInspectionSpec(scene,inspection),[scene,inspection]);
+  // A/B uses independently authored source scenes with the exact same seed,
+  // geometry, frame and camera; only opaque optical tooth strength changes.
+  // Skip construction of the second material-heavy SVG in ordinary stories.
+  const reference=useMemo(()=>comparison==="tooth"?
+    crayonDrawingInspectionSpec(crayonBotanicalDrawing({
+      aspect,detail,pressure,paperTooth,nibStyle,underpaintTooth:0,
+    }).scene,inspection):null,
+    [comparison,aspect,detail,pressure,paperTooth,nibStyle,inspection]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,scene.durationFrames,"crayon-art-system:"+aspect,
     playbackRate,loop);
@@ -109,6 +118,29 @@ export function CrayonDrawingStudio({aspect,detail,pressure,paperTooth,nibStyle=
         </ul>}
       </aside>
     </div>
+    {reference&&<section data-km-crayon-material-ab=""
+      aria-label="Matched ArtCraft wax-material comparison"
+      style={{marginTop:20}}>
+      <h3 style={{fontSize:17,margin:"0 0 5px"}}>Matched wax-grain comparison</h3>
+      <p style={{fontSize:13,lineHeight:1.55,margin:"0 0 12px"}}>
+        Same source shape, lighting, seed, camera and playhead. Only optical
+        tooth over the opaque underpainting differs. This is a material study,
+        not a second composition or artistic approval.
+      </p>
+      <div style={{display:"grid",gridTemplateColumns:
+        "repeat(auto-fit,minmax(min(100%, 320px),1fr))",gap:16}}>
+        {([{label:"Opaque wax without tooth",spec:reference},
+          {label:"Opaque wax with tooth",spec:framed}] as const).map(({label,spec})=>
+          <figure key={label} style={{margin:0,minWidth:0}}>
+            <figcaption style={{fontSize:13,fontWeight:700,marginBottom:8}}>{label}</figcaption>
+            <div style={{width:"100%",maxWidth:aspect==="portrait"?380:undefined,
+              margin:"0 auto",aspectRatio:aspect==="portrait"?"540 / 960":"960 / 540",
+              background:"#fff5e4",border:"7px solid #fff9ef",boxSizing:"border-box"}}>
+              <CrayonScene spec={spec} frame={frame} style={{width:"100%",height:"100%"}}/>
+            </div>
+          </figure>)}
+      </div>
+    </section>}
     <div style={{display:"flex",gap:10,marginTop:15,flexWrap:"wrap",alignItems:"center"}}>
       <button type="button" onClick={toggle}>{playing?"Pause":"Play drawing"}</button>
       <button type="button" onClick={restart}>Restart</button>
@@ -130,7 +162,7 @@ const meta={
   tags:["!dev"],
   args:{aspect:"landscape",detail:1,pressure:.88,paperTooth:.78,
     startFrame:239,playbackRate:1.25,loop:false,inspection:"full",nibStyle:"dry",
-    underpaintTooth:.82},
+    underpaintTooth:.82,comparison:"single"},
   argTypes:{
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
     inspection:{control:"select",options:["full","surface","stalk-leaf","contact"],
@@ -140,6 +172,8 @@ const meta={
     paperTooth:{control:{type:"range",min:0,max:1,step:.05}},
     underpaintTooth:{control:{type:"range",min:0,max:1,step:.05},
       description:"Shared paper relief applied to opaque wax volume without see-through gaps"},
+    comparison:{control:"inline-radio",options:["single","tooth"],
+      description:"Same source, seed and frame: optical tooth OFF vs ON; comparison remains a study"},
     nibStyle:{control:"inline-radio",options:["tapered","dry"],
       description:"Compare the original smooth nib with fractured dry-wax paper contact"},
     startFrame:{control:{type:"range",min:0,max:239,step:1}},
