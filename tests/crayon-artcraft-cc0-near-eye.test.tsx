@@ -193,7 +193,7 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
   });
 
   for(const aspect of ["landscape","portrait"] as const){
-    it("lays down colored wax contacts without airbrushing or transparency in "+aspect,()=>{
+    it("lays down pressure-tinted tonal wax beneath contact without transparency in "+aspect,()=>{
       const hand=crayonCc0NearEyeStudy(aspect,1,"stroke-built");
       const smooth=crayonCc0NearEyeStudy(aspect,1,"smooth");
       expect(inspectCrayonScene(hand)).toEqual([]);
@@ -205,7 +205,8 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
       expect(html).toContain('data-km-crayon-dry-ribbons=""');
       expect(html).toContain('data-km-crayon-underpaint="opaque"');
       expect(html).toContain('data-km-crayon-undercoat-pits=""');
-      expect(html).not.toContain('data-km-crayon-underpaint-gradient=""');
+      expect(html).toContain('data-km-crayon-volume-burnish="wax"');
+      expect(html).toContain('data-km-crayon-pressure-tinted="true"');
       expect(old).toContain('data-km-crayon-deposition="smooth"');
       expect(html).toContain('data-km-crayon-paper-contact="height"');
       expect(html).toContain('data-km-crayon-contact-clumps="wax"');
