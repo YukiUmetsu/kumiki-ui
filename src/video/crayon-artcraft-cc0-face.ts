@@ -61,7 +61,7 @@ const C={
 } satisfies Record<string,CrayonColor|readonly [CrayonColor,CrayonColor,CrayonColor]>;
 
 export const CRAYON_F1_FACE_PARTS=[
-  "hair-back","neck-attached","ear-underplane",
+  "hair-back","hair-crown-surface","neck-attached","ear-underplane",
   "ear-helix-value","ear-concha-shadow","ear-antihelix-reflection",
   "ear-lobe-warmth","ear-stud-setting","ear-stud-glint","face-outline",
   "forehead-light","brow-superciliary-near","brow-superciliary-far",
@@ -119,6 +119,23 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
       underpaintTooth:.19,edgeRoughness:.26,
       underpaintGradient:{light:"#a17c60",shadow:"#2b2025",
         focusX:.33,focusY:.17,radius:1.14}});
+  // Crown is an upper/temple wax volume with its OWN visible surface.
+  // Hair-back contains the entire background behind the face, so clipping
+  // source crown fibers to hair-back would print dark hatches ON THE SKIN
+  // when these fibers are drawn late. A crown-only parent fixes the
+  // anatomical overlap without changing semantic element seed order.
+  wax("hair-crown-surface",
+    "M-44 404C-8 270 83 195 182 183"+
+    "Q303 157 381 195Q447 218 478 313"+
+    "Q474 347 459 383Q448 337 421 311"+
+    "Q391 279 365 273Q316 261 261 270"+
+    "Q206 282 161 322Q111 354 89 417"+
+    "Q60 466 37 501L-35 501Z",
+    rect(-48,157,531,350),C.hairLight,[26,112],
+    {pressure:.81,spacing:9.3,markStrength:.15,
+      edgeRoughness:.25,underpaintTooth:.16,
+      underpaintGradient:{light:"#b48a69",shadow:"#302327",
+        focusX:.57,focusY:.23,radius:1.03}});
   // The actual face taper remains visible from near left cheek across an
   // oblique jaw to the chin at (398,858); the far edge is hair-occluded.
   wax("neck-attached",
@@ -535,7 +552,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     mark("hair-fiber-flow-"+i,hairFlow[i],
       i%4===0?"#b28e70":i%3===0?"#34252a":"#9d7965",
       i%4===0?1.05:.65,[204+(i%4)*2,298],
-      i%5===0?.55:.35,i<9?"hair-back":
+      i%5===0?.55:.35,i<9?"hair-crown-surface":
       i<15?"hair-right-curtain":"hair-left-curtain");
 
   // Hair is a flow field and a value mass, not a random hatch screen.
@@ -606,7 +623,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
       Math.floor(fiber(66317,i,7)*hairBands));
     crownBands[band].push(d);
   }
-  finishHair("crown","hair-back",186,crownBands);
+  finishHair("crown","hair-crown-surface",186,crownBands);
   const eyebrowFiberGroups=[
     "M202 491Q218 477 232 479 M211 487Q231 472 248 471",
     "M234 476Q248 462 269 465 M249 470Q268 459 285 467",
