@@ -185,8 +185,8 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
           expect((snow.path.match(/L/g)??[]).length).toBeGreaterThan(14);
           // Registration gate: the glacier's nine summit/shoulder vertices
           // must coincide exactly with the underlying physical rock cut.
-          const vertices=(d:string)=>(d.match(/[ML][-\\d. ]+/g)??[])
-            .map(point=>point.slice(1).trim().replace(/\\s+/g,","));
+          const vertices=(d:string)=>(d.match(/[ML][-\d. ]+/g)??[])
+            .map(point=>point.slice(1).trim().replace(/\s+/g,","));
           const mountainPoints=new Set(vertices(crest.path));
           expect(vertices(snow.path).slice(0,9)
             .every(point=>mountainPoints.has(point))).toBe(true);
