@@ -78,3 +78,37 @@ and clip, and non-ink characters retain the old clipping behavior. Unit tests
 and Chromium assert the actual overflow contracts. Follow-up film review must
 check the raised sleeve and hand in both formats; it must not confuse
 unclipping with improved anatomy or natural hand contact.
+
+
+## November 15 Storybook visibility and physical blocking review — PR #350
+
+Inspected the **actual earlier** 16:9 and 9:16 Ensemble Storybook
+screenshots from run `43618633594`, including frames 10, 117, 188 and 298.
+At opening, the interactive studio displayed a blank paper and captions;
+the real cast had not emerged from the authored bloom yet. For an art
+gallery this looked like a failed renderer although the preview was
+technically complying with the film reveal. The Storybook demo now
+opens on frame **117** with both performers present; reverse seeking
+to the original reveal frame 0 and export-frame determinism are retained.
+
+At frame 188 the story narrates an exchange but the actual transformed
+hand anchors were separated by about **96 px (landscape)** and **70 px
+(portrait)**, well beyond the 12 px contact tolerance. Moving the
+characters blindly closer in both aspects *worsened portrait contact*
+because the mirrored hand anchors crossed through one another;
+a regression test measured **105.62 px** instead of the expected
+improvement. Rather than weaken the test, the apprentice now reciprocates the
+teacher's actual sleeve gesture at frame 154 and portrait root positions
+are adjusted to preserve coarse stage reach without interpenetrating
+feet. The reciprocal arm cue resolved an otherwise excessive vertical
+hand gap in the unit-rendered pose. Both aspects must be verified with
+actual pose-evaluated hand anchors, not coarse root radii.
+
+A dedicated, path-filtered Storybook QA job now catches browser
+exceptions at start/onset/exchange/parting, captures real screenshots,
+and runs only the Ensemble and Character Director browser/ink unit
+tests when this subsystem changes. It is not a replacement for watching
+both encoded MP4s at normal speed. **No physical prop handoff is
+implemented or claimed.** Artcraft acceptance requires two readable,
+independent silhouettes, appropriate gaze, genuine hand distances,
+negative-space staging and unclipped sleeves at every key beat.

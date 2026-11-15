@@ -25,6 +25,19 @@ describe("INK4 authored ink-painting multi-actor staging", () => {
       expect(state.contacts[0].intersectingFeet).toBe(false);
       expect(state.actors.some(actor => actor.activity === "exchange")).toBe(true);
     });
+    it(aspect + " holds a much closer posed-hand exchange without overlapping feet", () => {
+      const frame=188;
+      const contacts=inkEnsembleAt(duet.plan,frame).contacts;
+      const hands=auditInkEnsembleHands(duet.plan,duet.cast,frame);
+      expect(contacts).toHaveLength(1);
+      expect(contacts[0].intersectingFeet).toBe(false);
+      expect(hands).toHaveLength(1);
+      expect(hands[0].missingAnchor).toBe(false);
+      // Previously the authored two-character shot had a 70–96px real
+      // hand gap yet narrated a shared exchange. Keep numerical evidence.
+      expect(hands[0].handGap).not.toBeNull();
+      expect(hands[0].handGap!).toBeLessThan(aspect==="portrait"?67:90);
+    });
     it(aspect + " composes two actual character presenters, with different skins and source IDs", () => {
       const render = (frame: number, reduce = false) =>
         renderToStaticMarkup(createElement(InkEnsemble, {

@@ -229,3 +229,33 @@ Accept only if these new layers improve the face at film resolution; adding
 transparent polygons can create muddy eye sockets, even when unit tests pass.
 The original baseline and screenshots serve as qualitative evidence, not
 a numeric equivalence score to Zeng Jing's painting.
+
+
+## Character Director source-led quality follow-up — PR #350
+
+Inspected actual `Ink Character Director Proof` browser frames
+from run `43610096133`: original wide scenes at 0/85/135/235/310/419,
+in both 16:9 and 9:16. The character was consistently grounded but
+the costume/face read as flat vector puppet art; full landscape
+framing also concealed the artist's medium-scale facial detail.
+
+This is an **asset-level consistency defect**, not proof that an extra
+screen-space texture filter would solve visual quality. The existing
+classical master figure already has authored orchid-leaf dark volumes,
+broken-reed hem strokes, cheek and nasal planes, hair and beard accents
+in `INK_MASTER_CLASSICAL_ACCENTS`. The Director omitted all of these
+by applying only `INK_TRAVELLER_FOLDS`. It now calls the same
+`makeClassicalInkFigure` artist module as Ensemble on the
+**original segmented-legged walker**. Hip/knee pivots, material ownership,
+idle acting and gaze stay unchanged. Tests check incremental genuine
+face/hair/beard geometry as well as the shared definition revision.
+
+The existing Character Director Storybook laboratory adds a choice
+between the complete film and an **actor-tracking close-up**, both
+using the exact same production `InkDirectorFilm`, frame and rig.
+No new Storybook folder, substitute viewport actor or animation
+timeline is introduced. The close-up lets reviewers inspect
+silk-thread folds, eyes and contact while the full-film framing
+still checks continuity. Actual new Chromium crops and film review
+remain artistic release gates; more paths alone do not establish
+faithful Chinese ink figure painting.

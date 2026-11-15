@@ -40,6 +40,21 @@ describe("INK4 authored character and cinematic stage",()=>{
       expect(rich).toContain('data-km-ink-character-part="body"');
     }
   });
+  it("shares the richer master portrait and garment brush atlas with Ensemble",()=>{
+    const bare=makeInkWalkingTraveller({detail:0,contrast:.85,seed:83});
+    const fullyPainted=makeInkWalkingTraveller({detail:1,contrast:1.2,seed:83});
+    expect(fullyPainted.revision).toBe(INK_WALKING_TRAVELLER.revision);
+    for(const part of ["face","hair","beard","robe","sleeve-near","sleeve-far"]){
+      const before=bare.assets[part],after=fullyPainted.assets[part];
+      expect(before.kind).toBe("shapes");
+      expect(after.kind).toBe("shapes");
+      if(before.kind==="shapes"&&after.kind==="shapes")
+        expect(after.shapes.length,part).toBeGreaterThan(before.shapes.length);
+    }
+    expect(inkDirectorInstance("landscape").revision).toBe(fullyPainted.revision);
+    expect(validateCharacterDefinition(fullyPainted).filter(x=>x.severity==="error"))
+      .toEqual([]);
+  });
   it("attaches distinct hem and cuff drawings and places painted fingers above the brush",()=>{
     const byId=new Map(INK_WALKING_TRAVELLER.parts.map(part=>[part.id,part]));
     expect(byId.get("hem-drape")).toMatchObject({parent:"body",asset:"hem-drape-art"});
