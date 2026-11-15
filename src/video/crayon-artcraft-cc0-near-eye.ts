@@ -83,13 +83,15 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
     rect(0,127,148,68),palettes.light,[96,167],{
       parentId:"eye-skin",clipToParent:true,coverage:"open",
       blendRadius:10,pressure:.43,markStrength:.26,outlineOpacity:0});
+
+  // The source brow is fine follicular pigment over opaque skin, not a
+  // solid single-piece vector decal.
   wax("brow-root",
     "M22 91 C48 65 70 49 104 42 C121 40 148 46 162 62"+
     "C146 57 129 57 105 54 C75 58 52 72 22 91Z",
     rect(15,35,154,63),palettes.brow,[70,164],{
-      parentId:"eye-skin",spacing:5.7,markStrength:.32,
-      underpaintGradient:{light:"#aa7c6a",shadow:"#604345",focusX:.55,focusY:.2,radius:1},
-      outlineOpacity:0});
+      parentId:"eye-skin",clipToParent:true,coverage:"open",
+      blendRadius:3,spacing:6.4,pressure:.53,markStrength:.28,outlineOpacity:0});
   wax("brow-pigment-turn",
     "M26 84 C47 69 75 56 105 50 C130 48 152 53 165 65"+
     "Q135 57 109 62 C79 65 54 77 26 84Z",
@@ -172,12 +174,17 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
     " M105 151 Q105 157 103 160 M124 150 Q126 156 129 158"+
     " M137 145 Q140 151 143 152",
     "#885e61",.4,[239,295],"eye-skin",.55);
+
+  const follicles=crayonFurFlow({
+    seed:2084,guide:[{x:25,y:88},{x:59,y:67},{x:102,y:47},{x:161,y:61}],
+    count:Math.round(91*detail),spread:3.3,length:10.2,curvature:.21,forkRate:.06,
+  });
+  if(follicles)line("brow-rooted-fibres",follicles,"#493b3c",.33,[217,298],
+    "brow-root",.62);
   line("brow-wax",
-    "M25 80 Q36 68 52 63 M38 80 Q53 65 70 58"+
-    " M57 72 Q69 55 83 53 M74 65 Q94 49 106 46"+
-    " M94 59 Q110 44 122 45 M116 54 Q129 45 141 51"+
-    " M132 57 Q149 53 161 63 M22 88 Q31 81 38 78",
-    "#5f4244",.63,[237,298],"brow-root",.55);
+    "M25 80 Q36 68 52 63 M57 72 Q69 55 83 53"+
+    " M94 59 Q110 44 122 45 M132 57 Q149 53 161 63",
+    "#675052",.48,[237,298],"brow-root",.42);
   return {version:1,id:"crayon-artcraft-cc0-near-eye-"+aspect,
     width,height,durationFrames:300,seed:20918,paper:"#f5e8d8",paperTooth:.8,
     elements,camera:[{frame:0,focusX:width/2,focusY:height/2,zoom:1},
