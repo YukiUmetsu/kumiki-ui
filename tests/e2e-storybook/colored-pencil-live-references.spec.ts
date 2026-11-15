@@ -267,6 +267,36 @@ for(const sample of ["woman","man"] as const){
         expect(await output.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
+        // Needle-sharp pigment densification is a reversible render-time
+        // skin material only. It may not touch the photo, hair, iris, lip
+        // or the independent photo-to-pencil video export.
+        const needle=page.getByLabel("Pencil needlepoint skin optical fill");
+        await needle.focus();
+        await needle.press("Home");
+        await expect(needle).toHaveValue("0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-needlepoint-depth","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-needlepoint-fibres","0");
+        const sparseSkin=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-needlepoint-sparse-0.png")});
+        await needle.press("End");
+        await expect(needle).toHaveValue("1");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-needlepoint-depth","1");
+        const fineFibres=Number(await full.getAttribute(
+          "data-km-pencil-needlepoint-fibres"));
+        expect(fineFibres).toBeGreaterThan(2000);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(sparseSkin);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-needlepoint-dense-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Actual licensed source, ALL four chronologically composited
         // Storybook shots. Stage 1..4 must contain increasing genuine
         // pencil marks; the exported film bitmap must not be affected.
