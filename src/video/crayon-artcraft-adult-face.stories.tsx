@@ -467,12 +467,13 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const [showReference,setShowReference]=useState(true);
   const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
   const [eyeContact,setEyeContact]=useState<"source-shade"|"baseline">("source-shade");
+  const [midfaceForm,setMidfaceForm]=useState<"source-volume"|"baseline">("source-volume");
   const [inspection,setInspection]=useState<
     "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|
     "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right">("full");
   const spec=useMemo(()=>crayonCc0FaceStudy({
-    detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,
-  }),[detail,view,fiberMaterial,eyeContact]);
+    detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,midfaceForm,
+  }),[detail,view,fiberMaterial,eyeContact,midfaceForm]);
   const framed=useMemo(()=>{
     if(inspection==="full")return spec;
     const focus={
@@ -577,6 +578,14 @@ export function Cc0SourceRegisteredFaceWorkbench({
             "source-shade"|"baseline")}>
           <option value="source-shade">Source-led iris, lids and root wax (experiment)</option>
           <option value="baseline">Unchanged previous eye (negative control)</option>
+        </select>
+      </label>
+      <label>Source nose and lip volumes{" "}
+        <select aria-label="F1 source midface anatomy" value={midfaceForm}
+          onChange={e=>setMidfaceForm(e.target.value as
+            "source-volume"|"baseline")}>
+          <option value="source-volume">Attached nasal and lip/dental wax (experiment)</option>
+          <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
       <label>Hair mark material{" "}
