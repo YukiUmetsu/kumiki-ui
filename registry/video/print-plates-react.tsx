@@ -2,6 +2,8 @@ import { Fragment, useId, useMemo } from "react";
 import type { ReactNode, SVGProps } from "react";
 import { evaluateRisoPrint, inspectRisoPrint, plateRegistration, printHash } from "./print-plates";
 import type { RisoPrintSpec } from "./print-plates";
+import { createRisoScreenGeometry, wrapRisoScreenDots } from "./riso-screening";
+import type { RisoScreenMode } from "./riso-screening";
 
 /** Render-owned SVG paint bindings: authored artwork chooses solid fills or screened densities per spot ink. */
 export interface RisoPaint {
@@ -26,6 +28,12 @@ export interface RisoPrintProps extends Omit<SVGProps<SVGSVGElement>, "children"
   foregroundLayers?: readonly RisoForegroundLayer[];
   misregistration?: number;
   paperGrain?: number;
+  /** AM regular variable-radius screen or FM deterministic dispersed droplets. Defaults to AM. */
+  screenMode?: RisoScreenMode;
+  /** Nominal screened coverage 0..1; defaults to the legacy .32-radius AM screen. */
+  screenDensity?: number;
+  /** Emulated physical spread of deposited ink 0..1; does not affect solid artwork. */
+  dotGain?: number;
   reducedMotion?: boolean;
   /** Render ink only, without an opaque paper rectangle or paper fibres. For native overprinting. */
   transparentPaper?: boolean;
@@ -49,7 +57,8 @@ export function printRevealPath(width: number, height: number, progress: number,
 
 /** Separate ink layers over fixed paper; no local clocks, image downloads, or WebGL. */
 export function RisoPrint({
-  spec, frame, artworks, foregroundLayers = [], misregistration = 0, paperGrain = .5, reducedMotion = false,
+  spec, frame, artworks, foregroundLayers = [], misregistration = 0, paperGrain = .5,
+  screenMode = "am", screenDensity = Math.PI * .32 * .32, dotGain = 0, reducedMotion = false,
   transparentPaper = false, visiblePlateIds, label = "Two-color Risograph print", style, ...svgProps
 }: RisoPrintProps) {
   const issues = inspectRisoPrint(spec);
@@ -70,11 +79,18 @@ export function RisoPrint({
     if (transparentPaper && layer.knockout != null)
       throw new Error("Paper knockouts are incompatible with transparentPaper output.");
   }
+  if ((screenMode !== "am" && screenMode !== "fm") || !Number.isFinite(screenDensity) || screenDensity < 0 || screenDensity > 1 ||
+      !Number.isFinite(dotGain) || dotGain < 0 || dotGain > 1)
+    throw new RangeError("RISO screenMode must be AM or FM, with screenDensity and dotGain between 0 and 1.");
   const activePlateIds = visiblePlateIds ? new Set(visiblePlateIds) : null;
   const frameState = evaluateRisoPrint(spec, frame, reducedMotion);
   const rawId = useId();
   const uid = "riso" + rawId.replace(/[^a-zA-Z0-9_-]/g, "");
   const grain = Math.max(0, Math.min(1, paperGrain));
+  const screens = spec.plates.map((plate, index) => createRisoScreenGeometry({
+    cell: plate.dotCell, mode: screenMode, density: screenDensity, dotGain,
+    seed: spec.seed, plateIndex: index,
+  }));
   const sheet = useMemo(() => Array.from({ length: 450 }, (_, i) => ({
     x: printHash(spec.seed, i, 31) * spec.width,
     y: printHash(spec.seed, i, 37) * spec.height,
@@ -106,16 +122,21 @@ export function RisoPrint({
     aria-label={svgProps["aria-hidden"] ? undefined : label}
     viewBox={`0 0 ${spec.width} ${spec.height}`}
     xmlns="http://www.w3.org/2000/svg"
-    data-km-riso-print="" data-km-riso-frame={frame} style={{ width: "100%", height: "100%", display: "block", overflow: "hidden", isolation: "isolate", ...style }}>
+    data-km-riso-print="" data-km-riso-frame={frame}
+    data-km-riso-screen-mode={screenMode} data-km-riso-screen-density={screenDensity}
+    data-km-riso-dot-gain={dotGain}
+    style={{ width: "100%", height: "100%", display: "block", overflow: "hidden", isolation: "isolate", ...style }}>
     <defs>
       <mask id={`${uid}-tooth`} x={0} y={0} width={spec.width} height={spec.height} maskUnits="userSpaceOnUse">
         <rect width={spec.width} height={spec.height} fill="#fff" />
         {grain > 0 && pores.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={p.r * (.4 + grain)} fill="#000" />)}
       </mask>
       {spec.plates.map((plate, index) => <Fragment key={plate.id}>
-        <pattern id={`${uid}-dots-${index}`} x={0} y={0} width={plate.dotCell} height={plate.dotCell}
+        <pattern id={`${uid}-dots-${index}`} x={0} y={0}
+          width={screens[index].tileSize} height={screens[index].tileSize}
           patternUnits="userSpaceOnUse" patternTransform={`rotate(${plate.dotAngle})`}>
-          <circle cx={plate.dotCell / 2} cy={plate.dotCell / 2} r={plate.dotCell * .32} fill={plate.color} />
+          {wrapRisoScreenDots(screens[index]).map((dot, dotIndex) => <circle key={dotIndex}
+            cx={dot.x} cy={dot.y} r={dot.r} fill={plate.color} />)}
         </pattern>
         <clipPath id={`${uid}-clip-${index}`} clipPathUnits="userSpaceOnUse">
           <path d={printRevealPath(spec.width, spec.height, frameState.plates[index].progress, spec.seed + index * 11)} />

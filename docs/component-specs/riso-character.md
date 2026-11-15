@@ -341,3 +341,18 @@ const paper = evaluateRisoTransferSheet(
 `RisoTransferSheetPlate` draws local pressure lines and the two tiny compression pockets **only on the blue press master**; red stamp/hatching remain independent and paper still uses one opaque knockout. `detail=false` and `imprintDepth=0` both yield a simple material-negative control. All crease points use the same rotated, bowed material coordinate transform as the paper sheet, not screen-relative paths or postprocessed gradients. The existing Risograph Storybook folder includes a `Pressed paper creases` slider and two-aspect source/receiving/released frame tests.
 
 [ArtCraft reference and negative controls](../research/riso19-contact-pressure-artcraft.md) document shape topology, localized tangent flow, pressure metrics, real print references, and the *unverified* browser/normal-speed film and pixel-comparison release gates. This is deterministic illustrated paper pressure, **not** physically simulated force feedback or approved artistic likeness.
+
+
+## RISO20 — material-native AM / FM printing and bounded dot gain
+
+The existing print renderer `registry/video/print-plates-react.tsx` now exposes three optional `RisoPrint` props:
+
+- `screenMode?: "am" | "fm"` (default `"am"`): amplitude-modulated variable-area periodic screen or frequency-modulated 8×8 seeded microdot screen.
+- `screenDensity?: number` (0..1): nominal per-plate screen tone; default `Math.PI * .32 * .32` preserves the original `dotCell * .32` halftone radius.
+- `dotGain?: number` (0..1, default 0): increases the actual deposited dot radius without changing original vector outlines, colors, masks, background paper or solid spot ink.
+
+`registry/video/riso-screening.ts` computes pure, frame-independent geometry with distinct seed per plate. The new FM droplet rank order is **nested** across tone settings (raising density adds dots without moving existing ones); droplets crossing the tile edge are wrapped to prevent a print seam. Both methods respect each ink's existing independently rotated screen and all fore-/background ink passes.
+
+The controls are available in the **existing** Risograph Storybook folder under `Risograph · Two-Ink Printing`, in both 16:9 and 9:16. No new gallery path, motion clock, external dependency, raster filter or character simplification was introduced. The detailed [RISO20 ArtCraft reference decomposition](../research/riso20-print-screening-artcraft.md) records authentic material references, five-axis topology/flow/weight/rhythm/texture rules, and negative controls.
+
+**Validation:** run `npm run typecheck`, `npx vitest run --project unit tests/riso20-print-screening.test.tsx tests/print-plates.test.ts tests/riso-print-demo.test.tsx`, then actual Storybook browser and encoded-film QA. This is a digital screen model, **not** measured physical ink gain, licensed photographic scan fidelity, an approved portrait, or independent artistic signoff.
