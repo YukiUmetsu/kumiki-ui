@@ -106,3 +106,18 @@ A professional visual gate still requires inspection of the final native
 macro screenshots in both aspects. In particular, tiny lenticels, real
 paper-to-wax contact, natural leaf vein branching, and the cast shadow must
 remain readable without making the fruit resemble a vector gradient.
+
+### Third material pass: avoid synthetic brush bands
+
+A second native capture showed that the earlier increased `markStrength`
+created large, identical-looking crayon bands on the pear. This is not a
+convincing wax-crayon surface at close zoom. The subsequent code changes
+reduce opaque base-band prominence; strengthen smaller irregular open wax
+depositions in the blush, umbra and cool turning plane; and add lighter
+pressure-dependent short guide-following binder deposits. The contact umbra
+is intentionally stronger under the fruit. Two seed-distinct, bounded fields
+stay within the source geometry and below CRAYON1's 240-node limit.
+
+Acceptance is still **pending** a source-native browser review of the new
+normal-distance render and close-up. No claim of professional artwork is
+made solely because the code and tests pass.
