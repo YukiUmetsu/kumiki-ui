@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { heianScene, UKIYOE_HEIAN_LOOKS, UKIYOE_HEIAN_SCENES } from "../registry/video/ukiyoe/ukiyoe-heian";
 import { treeScene, UKIYOE_TREE_SCENES } from "../registry/video/ukiyoe/ukiyoe-trees";
 import { bellStrike, templeScene, UKIYOE_TEMPLE_SCENES } from "../registry/video/ukiyoe/ukiyoe-temple";
 import { animalScene, animalYokaiScene, UKIYOE_ANIMAL_HABITATS, UKIYOE_ANIMAL_YOKAI_SCENES, UKIYOE_CRITTERS } from "../registry/video/ukiyoe/ukiyoe-critters";
@@ -671,6 +672,21 @@ describe("UKIYO1 trees", () => {
     expect(d("shinboku", { face: 1 }).length).toBeGreaterThan(d("shinboku", { face: 0 }).length);
     expect(d("shinboku", { reach: 1 }) === d("shinboku", { reach: 0 })).toBe(false);
     expect(d("kaki", { fruit: 1 }).length).toBeGreaterThan(d("kaki", { fruit: 0 }).length);
+  });
+});
+
+describe("UKIYO1 heian court", () => {
+  it("draws the court looks in every view, the cart's wheels turn with its travel, the lady sits between the palace's parts and the blinds rise", () => {
+    for (const k of UKIYOE_HEIAN_SCENES) expect(inspectUkiyoeScene(heianScene(k)), k).toEqual([]);
+    for (const k of Object.keys(UKIYOE_HEIAN_LOOKS) as (keyof typeof UKIYOE_HEIAN_LOOKS)[]) for (const view of ["profile", "three-quarter", "front", "back"] as const)
+      expect(drawFigure({ look: { ...UKIYOE_HEIAN_LOOKS[k], view } as Parameters<typeof drawFigure>[0]["look"] }, 10, 0, 2).prims.length, `${k} ${view}`).toBeGreaterThan(10);
+    const cart = (progress: number) => JSON.stringify(drawMotif("gissha", { travel: 600 }, { frame: 0, wind: 0, seed: 1, progress }));
+    expect(cart(0) === cart(.3)).toBe(false);
+    const v = heianScene("veranda"), ids = v.nodes.map(n => n.id);
+    expect(ids.indexOf("palace")).toBeLessThan(ids.indexOf("lady"));
+    expect(ids.indexOf("lady")).toBeLessThan(ids.indexOf("palace-front"));
+    const blindHeight = (progress: number) => JSON.stringify(drawMotif("shinden", { part: "front", up: 0, rise: 1 }, { frame: 0, wind: 0, seed: 1, progress })).length;
+    expect(blindHeight(0) === blindHeight(1)).toBe(false);
   });
 });
 

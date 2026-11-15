@@ -992,6 +992,47 @@ Storybook has **Trees**, and the Motifs gallery has five new tiles.
 - The bamboo stalk does not split open to show the child.
 - Nobody has done a human visual review yet.
 
+## Heian court (folktale queue F2, 2026-11-15)
+
+**Sources** (the Met, public domain):
+
+- the Tosa-school *Evening Face* scene of the Tale of Genji (45743);
+- Hokusai's *Court Lady* (57286);
+- the 16th-century *Aoi* chapter scroll (670936).
+
+**What they show.**
+
+- **The lady.** She wears pink layered robes over a red hakama, her hair straight and loose to the floor. Hokusai's seated lady spreads in many coloured layers, each edge showing at the sleeve and the hem.
+- **The noble.** Green robes, a black cap with its standing tail, a baton.
+- **The ox-cart.** A black-lacquered house on two great spoked wheels, with a blind across the front.
+- **The palace.** The Aoi scroll's rooms are seen from above, with blinds and screens framing the people.
+
+**What was built.** `ukiyoe-heian.ts`:
+- the `heian` hair and the `kanmuri`;
+- the `shaku` and `hiogi`;
+- court looks;
+- the `gissha`, `sudare`, `kicho` and `shinden` motifs;
+- `heianScene()`.
+
+Storybook has **Heian court**, and the Motifs gallery has four tiles.
+
+**Review rounds.**
+
+1. **Cast sheets in profile and front.**
+   - The noble carried an Edo katana that stuck out at the hip; it has been removed.
+   - The layers show at the hem in the front view.
+2. **The veranda.**
+   - The palace was drawn over the lady, hiding her, and she floated above the floor.
+   - The palace now splits into back and front. She kneels on the floor between them, seen dimly through the translucent blinds, which roll half up as the noble comes.
+3. **The ox-cart.** The ox did not reach the shafts, and an attendant overlapped the cart. The ox now stands in the shafts and the attendants walk clear.
+
+**Not done.**
+
+- Layered sleeves spilling out under the blinds (uchiide no kinu).
+- No seated spread-robe pose: the kneeling robe does not fan out like Hokusai's lady.
+- No bugaku dancers or court music.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
