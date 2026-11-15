@@ -14,7 +14,7 @@ import { ukiyoeEndCard, ukiyoeTitleCard } from "../../registry/video/ukiyoe/ukiy
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import { UKIYOE_JIZO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-village";
 import { base, CAST } from "./ukiyoe-night-ferry";
-import { cam, figure, follow, motif } from "./ukiyoe-episode-kit";
+import { cam, figure, follow, motif, STEPS } from "./ukiyoe-episode-kit";
 
 type A = UkiyoeEpisodeAspect;
 
@@ -52,6 +52,8 @@ const title = ukiyoeTitleCard({
 
 const home: UkiyoeEpisodeShot = {
   id: "home", title: "By the hearth", kasumi: 30, sound: { sound: "bed-wind-mountain", gainDb: -26, lowpassHz: 700 },
+  // The fire in the sunken hearth, close by; the wind stays outside the walls.
+  ambience: [{ sound: "bed-fire-hearth", gainDb: -22 }],
   narration: [
     { text: "It was the last day of the year,", from: 32, to: 114 },
     { text: "and they had no rice for New Year.", from: 120, to: 204 },
@@ -73,7 +75,9 @@ const home: UkiyoeEpisodeShot = {
 // ---- 3. The market: no one buys -------------------------------------------------------------------------------------------------------
 
 const market: UkiyoeEpisodeShot = {
-  id: "market", title: "The market in the snow", kasumi: 36, transition: "scroll", sound: { sound: "bed-wind-mountain", gainDb: -18 },
+  id: "market", title: "The market in the snow", kasumi: 36, transition: "scroll", sound: { sound: "bed-wind-mountain", gainDb: -20 },
+  // Passers-by tread the snow and go; the old man stands still with his hats.
+  sounds: ["p1", "p2", "p3", "p4"].map(node => ({ sound: STEPS.snow, at: { node, on: "step" as const }, gainDb: -13 })),
   narration: [
     { text: "The old man carried the hats to the market in town.", from: 40, to: 170 },
     { text: "But it snowed all day, and nobody bought a single one.", from: 182, to: 322 },
@@ -121,7 +125,9 @@ const giving = (): UkiyoeAction[] => {
   return acts;
 };
 const jizoRow: UkiyoeEpisodeShot = {
-  id: "jizo", title: "Six jizō in the snow", kasumi: 30, sound: { sound: "bed-wind-mountain", gainDb: -12 },
+  id: "jizo", title: "Six jizō in the snow", kasumi: 30, sound: { sound: "bed-wind-mountain", gainDb: -16 },
+  // His steps in the snow from one jizō to the next (the figure without his cloth takes over at the sixth).
+  sounds: ["oldman", "oldman-bare"].map(node => ({ sound: STEPS.snow, at: { node, on: "step" as const }, gainDb: -8 })),
   narration: [
     { text: "On the way home, he passed six stone jizō", from: 32, to: 124 },
     { text: "standing in the snow.", from: 130, to: 184 },
@@ -164,6 +170,15 @@ const jizoWalk = (dx: number, away: number): UkiyoeAction[] => [
 ];
 const night: UkiyoeEpisodeShot = {
   id: "night", title: "The jizō come in the night", kasumi: 40, transition: "ink", sound: { sound: "bed-wind-mountain", gainDb: -20, lowpassHz: 900 },
+  sounds: [
+    // New Year's Eve: a temple bell far off (joya no kane), then the stone feet in the snow. The six walk in step, so six crunches
+    // on one frame would only make one loud one: the lead and two others, quieter, in different takes, sound like many feet.
+    { sound: "bell-temple-large", at: 64, gainDb: -3, pan: -.35, distance: 40 },
+    { sound: STEPS.snow, at: { node: "jizo-0", on: "step" }, gainDb: -9 },
+    ...[2, 4].map(k => ({ sound: STEPS.snow, at: { node: "jizo-" + k, on: "step" as const }, gainDb: -14 })),
+    // The loaded sled comes to rest at the door.
+    { sound: "thud-club-1", at: ARRIVE_AT + 2, source: "sled", distance: 5, gainDb: -12 },
+  ],
   narration: [
     { text: "That night, there were footsteps in the snow.", from: 44, to: 170 },
     { text: "Six jizō were coming to the house, pulling a heavy sled.", from: 184, to: 330 },
@@ -214,6 +229,8 @@ const morningBackdrop = (a: A): UkiyoeSceneSpec => {
 };
 const end = ukiyoeEndCard({
   closing: "めでたし、めでたし", next: "Next: Urashima Tarō", seal: "組木", backdrop: morningBackdrop, kasumi: 30, sound: { sound: "bed-wind-mountain", gainDb: -24 },
+  // New Year's morning: crows in the trees beyond the village.
+  ambience: [{ sound: "bed-crows-day", gainDb: -21, lowpassHz: 5000 }],
   narration: [
     { text: "In the morning, they found rice and mochi", from: 44, to: 124 },
     { text: "and gifts for New Year.", from: 130, to: 196 },

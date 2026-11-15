@@ -73,6 +73,14 @@ export function toolAt(actions: readonly UkiyoeAction[], frame: number): { actio
   return undefined;
 }
 
+/** The frames on which a tool action's head lands, one per stroke. */
+export function toolStrikes(a: { type: string; start: number; end: number }): number[] {
+  if (!isToolAction(a.type)) return [];
+  const P = STROKE[a.type].period, out: number[] = [];
+  for (let f = a.start + Math.round(P * .8); f <= a.end; f += P) out.push(f);
+  return out;
+}
+
 /** How a stroke moves the body: leaning back as the tool goes up, throwing the weight forward and down as it falls. */
 export function toolBody(st: { up: number; down: number; hit: number }): { lean: number; crouch: number; tilt: number; hipF: number; hipB: number; knF: number } {
   const fwd = Math.max(st.down, st.hit);

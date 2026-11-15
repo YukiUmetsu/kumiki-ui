@@ -1655,6 +1655,107 @@ No new image reference was used.
 - **Momotarō:** scroll along the road, ink into the fight.
 - **Kaguya:** print into her grown beauty, ink into the night at the moon.
 
+## Sound effects (quality slice Q6, 2026-11-15)
+
+**Sources.** Every new sound is a recording from Freesound, found through Openverse.
+- **Licence check:** each one's own Freesound page shows Creative Commons 0 (a `publicdomain/zero/1.0` link and no
+  attribution licence), checked on 2026-11-15.
+- **Shipping:** they are trimmed into `assets/sound/recorded/`, each with its source URL and author in
+  `assets/sound/catalog.json`.
+- **The 35 sounds:**
+
+| Sounds | Recording (author, Freesound ID) |
+| --- | --- |
+| `bell-temple-large` | Temple Bell, Valley of the Temples (Mista Bumpy, 232333) |
+| `bells-suzu` | Suzu - Japanese Bell (DiSK, 519190) |
+| `step-snow-1`–`3` | Snow Step 1–3 (morganpurkis, 369777–9) |
+| `step-snow-4` | Footstep in the snow_04 (cabled_mess, 384424) |
+| `step-sand-1`–`4` | Footsteps in Sand (kessir, 264124) |
+| `bed-fire-hearth` | fire in fireplace close (kyles, 454016) |
+| `bed-crows-day` | A Murder of Crows in the Daytime (kactus23, 121142) |
+| `bed-birds-uguisu` | Japanese bush warbler (uguisu) (warukunai, 524526) |
+| `clash-sword-1`, `clash-sword-2` | Swords Clash (Christopherderp, 364529, 342393) |
+| `swing-sword` | swosh swinging sword 37 (qubodup, 60024) |
+| `draw-sword`, `sheathe-sword` | Unsheathing the sword and Sword sheathing (ihitokage, 395364, 395371) |
+| `thud-club-1`, `thud-club-2` | HEAVY BAG DROP DIRT (burbujafilms, 392008) |
+| `fall-body` | Fight and body falls on stone (craigsmith, 675925) |
+| `chop-axe-1`, `chop-axe-2` | axe chop into old upside down wood rowboat (kyles, 452553) |
+| `bark-dog-1`, `bark-dog-2` | A dog barking (close recording) (felix.blume, 199261) |
+| `howl-dog` | Dog Howl (Latranz, 518566) |
+| `flap-wings-1`, `flap-wings-2` | Bird wings flapping quickly (craigsmith, 675959) |
+| `call-gull-1`, `call-gull-2` | Seagulls clean wildtrack (Soojay, 462462) |
+| `hiss-smoke` | steam (JustineOu, 569449) |
+| `creak-wood` | Boat creaking; moving against dock (craigsmith, 675784) |
+| `lid-box-wood` | Little Wooden Box Opening And Closing (arduenn, 676420) |
+| `paper-sheet-slide`, `paper-sheet-lay` | paper sheets handling (kyles, 450043) and Paper sheets (paulocorona, 334994) |
+
+**Choosing, with earshot.** Each candidate was trimmed with `find`, labelled with `describe` and checked with `realness`
+before import. Earshot `realness` was run again on the 35 files as shipped:
+- 34 read "real or pro-produced" (p_real 0.83–0.996).
+- `bell-temple-large` reads "uncertain" (0.62 on its 10 s file, judged by the long-file thresholds of 0.40 and 0.77).
+  Its strike trims read 0.81–0.92. A long, clean ringing tone is what that model leans toward hearing as synthesised.
+  The recording comes from a source page that places it at the Valley of the Temples, so it was kept.
+
+Earshot rejected these, by what it heard:
+- **Both bowstring recordings:** an impact (z 3.3) and a squelch (z 3.3), not a twang. The Kaguya archers never loose,
+  so their bows now drop with wooden knocks.
+- **A second shrine-bell file:** it read as cutlery.
+- **A "bamboo forest" bed:** it held someone walking through dry leaves (Walk, footsteps 0.49).
+- **A cart crossing a bridge and a sled dragged on snow:** both were unclear.
+- **A second temple bell:** it read as code-synthesised in parts.
+- **Two long snow-walk recordings:** they were continuous crunching, with no single steps. Single steps came from
+  other recordings.
+
+The catalog's older foley, impacts and whooshes are synthesised (Wyzowl). The episodes use none of them. Even the
+transitions' paper sounds are now recorded.
+
+**Placing.** The rig gives the frames:
+- **Steps:** where a stride's phase reaches a quarter or three quarters of a cycle, on the drawing that shows it.
+- **Axe strikes:** from the tool stroke's own timing.
+- **Blows:** the fight's contact frames.
+- **Others:** the end of a fall or a drop.
+
+Frame checks:
+- **Club:** on the club smash at frame 112, the club is coming down beside Momotarō's feet. On 114 it rests on the rock
+  with the dust thrown up.
+- **Axe:** at the axe strike on frame 52, the head is at the shining stalk, and stays there through 54.
+
+**Review.** These are measurements, not listening.
+
+1. **Late steps.** The first steps were late. The snow takes started up to 115 ms before their crunch, and FD1 placed a
+   cue's peak, not its start, on the frame. The importer's `keepLead` now starts a take where it becomes audible. FD1
+   cues gained `align: "start"`, which steps, strikes and contacts use.
+2. **Sync.** earshot `timeline` against each episode's own cue list:
+
+   | Episode | Within one frame (chance) | Median offset |
+   | --- | --- | --- |
+   | Kasa Jizō | 36% (20%) | 44 ms, the snow crunch builds |
+   | Urashima Tarō | 49% (26%) | 23 ms |
+   | Momotarō | 62% (17%) | 18 ms |
+   | Kaguya-hime | 67% (20%) | 19 ms |
+   | Momotarō's battle alone | 77% (16%), 0 cues without a hit | 9 ms |
+
+   Some cues have no hit; these are mostly distant steps and gulls under surf, wind or crickets.
+3. **Stacked steps.** Six jizō walking in step stacked six crunches on one frame. Now the lead and two others, quieter
+   and in different takes, are heard.
+4. **Repeated takes.** A two-take pool could repeat a take across a pass boundary (`soundVariant` compared with the
+   previous pass before its own swap). Fixed; it is covered in `tests/sound-design.test.ts`.
+5. **Levels.** Mastered to −14 LUFS, −2 dBTP. The limiter takes 6–8 dB off the loudest peaks, under the 9 dB cap. Most
+   of that is the beds' own gusts and crackles at +25 dB of master gain: the committed Kasa Jizō, with beds only,
+   already took 6.8 dB. A narration voice will carry the loudness and lower the master gain.
+6. **Seams.** The fire, crow and warbler beds were cut at seam points measured on the importer's own pipeline. The
+   seams are −35, −39 and −34 dB against each bed's level.
+
+**Not done.**
+- No human has listened yet.
+- These effects have no cue yet:
+  - straw rustle for the hats;
+  - the sled's runners;
+  - the monkey and the pheasant's calls;
+  - bowstrings;
+  - a market crowd.
+- Each needs a recording that passes earshot.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

@@ -38,6 +38,8 @@ import { UKIYOE_MAIKO_LOOK } from "../registry/video/ukiyoe/ukiyoe-maiko";
 import { BLADE, samuraiDuel, samuraiKata, swordAt, swordGeometry, UKIYOE_SAMURAI_LOOK } from "../registry/video/ukiyoe/ukiyoe-katana";
 import { palette, resolvePaint } from "../registry/video/ukiyoe/ukiyoe-pigments";
 import { nodeState, UkiyoeScene } from "../registry/video/ukiyoe/ukiyoe-react";
+import { ukiyoeNodeOnScreen, ukiyoeShotCues } from "../registry/video/ukiyoe/ukiyoe-sound";
+import { figureMoments, gaitCycle } from "../registry/video/ukiyoe/ukiyoe-figure";
 import type { UkiyoeSceneSpec } from "../registry/video/ukiyoe/ukiyoe-scene";
 import type { UkiyoeAction } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { inspectUkiyoeScene } from "../registry/video/ukiyoe/ukiyoe-scene";
@@ -1131,5 +1133,47 @@ describe("UKIYO1 transitions", () => {
     }
     const doc = ukiyoeEpisode(KASA_JIZO_EPISODE) as unknown as { scenes: { content: { slot: string; props: { kind?: string } } }[] };
     expect(doc.scenes.map(s => s.content.props.kind).filter(Boolean)).toEqual(["scroll", "ink"]);
+  });
+});
+
+describe("UKIYO1 sound", () => {
+  const jizo = KASA_JIZO_EPISODE.shots.find(shot => shot.id === "jizo")!, scene = jizo.build("landscape");
+  const oldman = scene.nodes.find(n => n.id === "oldman")!;
+  const spec = oldman.kind === "figure" ? { look: oldman.look, actions: oldman.actions, facing: oldman.facing } : undefined!;
+  it("puts a step where the forward foot is furthest out, on the drawing that shows it", () => {
+    const steps = figureMoments(spec, "step", { cadence: 2 }), walk = spec.actions![0], cycle = gaitCycle(spec, walk);
+    expect(steps.length).toBeGreaterThan(10);
+    expect(steps.every(f => f % 2 === 0)).toBe(true);
+    // Each step is the first drawing past a quarter or three quarters of a stride.
+    for (const f of steps.filter(f => f <= walk.end)) {
+      const phase = travelAt(spec.actions!, f).dist / cycle, before = travelAt(spec.actions!, f - 2).dist / cycle;
+      expect(Math.floor((phase - .25) / .5)).toBeGreaterThan(Math.floor((before - .25) / .5));
+    }
+  });
+  it("pans each sound to its source on screen and sets its distance from the source's size", () => {
+    const cues = ukiyoeShotCues("jizo", scene, [{ sound: ["a", "b"], at: { node: "oldman", on: "step" } }], 30);
+    const first = cues[0], last = cues[cues.length - 1];
+    // He walks in from the right and on to the left; steps land on their start, take turns and vary a little in level.
+    expect(first.pan!).toBeGreaterThan(last.pan!);
+    expect(cues.every(c => c.align === "start" && c.at === "jizo/start" && Math.abs(c.pan ?? 0) <= .7 && (c.distance ?? 0) >= 1.5)).toBe(true);
+    expect(new Set(cues.map(c => c.sound))).toEqual(new Set(["catalog:a", "catalog:b"]));
+    expect(cues.slice(1).every((c, i) => c.sound !== cues[i].sound)).toBe(true);
+    expect(ukiyoeNodeOnScreen(scene, "oldman", 470)).toBeUndefined();
+  });
+  it("lands blows on the fight's own contact frames", () => {
+    const battle = MOMOTARO_EPISODE.shots.find(shot => shot.id === "battle")!.build("landscape"), oni = battle.nodes.find(n => n.id === "fight-oni")!;
+    const contacts = oni.kind === "figure" ? figureMoments({ look: oni.look, actions: oni.actions }, "contact", { type: "smash", cadence: 2 }) : [];
+    const doc = ukiyoeEpisode(MOMOTARO_EPISODE), cues = doc.audio!.cues!.filter(c => c.sound.startsWith("catalog:thud-club") && c.at === "battle/start");
+    expect(cues.map(c => c.offsetFrames! + 36).slice(0, contacts.length)).toEqual(contacts);
+  });
+  it("names only recorded catalog sounds, with the kit the cues need", () => {
+    const catalog = JSON.parse(readFileSync("assets/sound/catalog.json", "utf8")) as { sounds: { id: string; origin: string; tags: string[] }[] };
+    const byId = new Map(catalog.sounds.map(s => [s.id, s]));
+    for (const ep of [KASA_JIZO_EPISODE, URASHIMA_EPISODE, MOMOTARO_EPISODE, KAGUYA_EPISODE]) {
+      const doc = ukiyoeEpisode(ep), audio = doc.audio!;
+      expect(audio.accents?.kit).toBe("assets/sfx");
+      for (const cue of audio.cues ?? []) expect(byId.get(cue.sound.replace("catalog:", ""))?.origin, cue.id).toBe("recorded");
+      for (const bed of audio.beds ?? []) expect(byId.get(bed.sound)?.tags, bed.id).toContain("loop");
+    }
   });
 });

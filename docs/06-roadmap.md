@@ -192,7 +192,7 @@ and checked on rendered stills, then on the episodes:
 | **Q3 — Animation** | Secondary motion (sleeves, hems, hair ornaments), weight shifts, anticipation and settle on actions, head turns. | Delivered 2026-11-15 (PR #417): spring follow-through on sleeves and hems, settle-overshoot on gestures, half-lid blinks, idle glances and head drift. |
 | **Q4 — Effects** | Rain, snow, smoke, fire, water and light at print quality. | Delivered 2026-11-15 (PR #418): Hiroshige's long two-block rain with veil and splashes, snow in three depths, curling hooked flames with flamelets and darker smoke. |
 | **Q5 — Transitions** | Beyond kasumi: scroll wipes, ink bleeds, page turns, shot-matched cuts. | Delivered 2026-11-15: scroll unroll, ink bleed and print-in transitions, chosen per shot in episodes. |
-| **Q6 — Sound effects** | Recorded foley and hits chosen and checked with earshot, placed on action frames in the episodes. | Next. |
+| **Q6 — Sound effects** | Recorded foley and hits chosen and checked with earshot, placed on action frames in the episodes. | Delivered 2026-11-15: 35 CC0 recordings, steps on every foot plant and blows on their contact frames, panned and distanced from the picture, in all four episodes. Human listening pending. |
 
 ### Ukiyo-e folktale episodes (UKIYO1) — episode queue
 

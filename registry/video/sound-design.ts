@@ -82,9 +82,13 @@ export function soundVariant<T>(pool: readonly T[], seed: number, index: number)
     for (let i = size - 1; i > 0; i -= 1) { const j = Math.floor(next() * (i + 1)); [items[i], items[j]] = [items[j], items[i]]; }
     return items;
   };
-  const pass = Math.floor(index / size), current = order(pass);
-  if (pass > 0 && size > 1 && order(pass - 1)[size - 1] === current[0]) [current[0], current[1]] = [current[1], current[0]];
-  return pool[current[index % size]];
+  // Each pass is compared with the previous pass as it was played (after its own swap): with two takes, that swap changes its end.
+  const settled = (pass: number): number[] => {
+    const current = order(pass);
+    if (pass > 0 && size > 1 && settled(pass - 1)[size - 1] === current[0]) [current[0], current[1]] = [current[1], current[0]];
+    return current;
+  };
+  return pool[settled(Math.floor(index / size))[index % size]];
 }
 /** A small detune for one take, in cents, so a repeated sound is not one identical file. */
 export const takeDetuneCents = (seed: number, index: number) => Math.round((random(seed + index * 104729)() - .5) * 70);

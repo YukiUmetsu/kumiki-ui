@@ -3983,17 +3983,23 @@
       "name": "ukiyoe-episode",
       "type": "registry:ui",
       "title": "Ukiyo-e Folktale Episode Template (UKIYO1)",
-      "description": "Turns a folktale written as UKIYO1 shots and the narration over each into one FD1 film document for YouTube (16:9) and Shorts (9:16): a title printed block by block with a cartouche and seal, gold-mist (kasumi) transitions, narration as the film caption track sized per output inside the platform safe area, an end card that keeps the end-screen area clear, a pre-render script check (reading speed, two-line fit per output, caption gaps, scene text out of the caption band, end-card length) and an .srt export for upload.",
+      "description": "Turns a folktale written as UKIYO1 shots and the narration over each into one FD1 film document for YouTube (16:9) and Shorts (9:16): a title printed block by block with a cartouche and seal, gold-mist (kasumi) transitions, narration as the film caption track sized per output inside the platform safe area, an end card that keeps the end-screen area clear, recorded sound effects placed on what the picture does (footsteps on every foot plant, blows on their contact frames) and panned and distanced from where their source stands on screen, a pre-render script check (reading speed, two-line fit per output, caption gaps, scene text out of the caption band, end-card length) and an .srt export for upload.",
       "dependencies": [],
       "registryDependencies": [
         "ukiyoe-handscroll",
-        "film-document"
+        "film-document",
+        "sound-design"
       ],
       "files": [
         {
           "path": "registry/video/ukiyoe/ukiyoe-episode.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-episode.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-sound.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-sound.ts"
         }
       ]
     },
