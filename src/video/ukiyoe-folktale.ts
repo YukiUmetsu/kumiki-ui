@@ -1,7 +1,7 @@
 /**
  * "The Peach and the Oni" — an original three-shot UKIYO1 folktale homage (after the public-domain Momotarō tradition):
  * a peach comes down the river past ripe rice terraces and splits open; a handscroll pan along the road of old stories
- * (a fox wedding with foxfire, a drumming tanuki, cranes, a rabbit, a dog and a pheasant, the oni gate, a dragon in
+ * (a fox wedding with foxfire, a drumming tanuki, cranes, a rabbit, a kappa, a packhorse, tengu, the dog, monkey and pheasant, the oni gate, a dragon in
  * the clouds); and the island of the oni in a great-wave sea, where the oni lay down their clubs.
  */
 import { scrollPan } from "../../registry/video/ukiyoe/ukiyoe-core";
@@ -14,7 +14,7 @@ const creature = (id: string, species: string, x: number, y: number, extra: Reco
 
 // ---- 1. The peach on the river -----------------------------------------------------------------------------------------------------------
 
-const peachRiver: UkiyoeShot = { id: "peach-river", title: "A peach on the river", build: (aspect, t = {}) => {
+const peachRiver: UkiyoeShot = { id: "peach-river", title: "A peach on the river", sound: { sound: "bed-river-fast", gainDb: -14 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", hz = 470, dur = 330, openAt = 196;
   return base("peach-river", aspect, dur, t, "spring", {
     mount: { kind: "print" },
@@ -43,7 +43,7 @@ const peachRiver: UkiyoeShot = { id: "peach-river", title: "A peach on the river
 
 // ---- 2. The road of old stories: a handscroll pan ------------------------------------------------------------------------------------------
 
-const road: UkiyoeShot = { id: "road", title: "The road of old stories", build: (aspect, t = {}) => {
+const road: UkiyoeShot = { id: "road", title: "The road of old stories", sound: { sound: "bed-stream-close", gainDb: -22 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", gy = 820, dur = 480;
   const keys = scrollPan({ from: P ? 5200 : 5000, to: P ? 900 : 1050, y: P ? 470 : 540, start: 0, end: dur - 1, zoom: P ? 1.1 : 1,
     stations: [{ x: P ? 4300 : 4250, hold: 50 }, { x: P ? 2900 : 2950, hold: 50 }, { x: P ? 1700 : 1750, hold: 40 }] });
@@ -71,11 +71,18 @@ const road: UkiyoeShot = { id: "road", title: "The road of old stories", build: 
       fig("monk", "monk", 2880, gy + 80, { scale: .85, facing: "right", from: 281, enter: { preset: "mist", frame: 281, duration: 10 }, actions: [{ type: "bow", start: 300, end: 360, angle: 30 }, { type: "walk", start: 370, end: dur, to: -500 }] }),
       creature("cat", "cat", 3560, gy + 30, { scale: 1, facing: "left", actions: [{ type: "sit", start: 0, end: dur }, { type: "look", start: 120, end: 300, angle: -14 }] }),
       creature("rabbit", "rabbit", 2500, gy + 120, { scale: 1, facing: "left", actions: [{ type: "hop", start: 40, end: 400, to: -700 }] }),
-      // The companions: a dog, a pheasant, the boy with his peach.
+      // The companions: a dog, a monkey and a pheasant, the boy with his peach.
       creature("pheasant", "pheasant", 2150, gy + 90, { scale: 1.1, facing: "left", actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
-      creature("dog", "dog", 2350, gy + 110, { scale: 1.1, facing: "left", actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
+      creature("monkey", "monkey", 2250, gy + 100, { scale: 1.15, facing: "left", actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
+      creature("dog", "dog", 2350, gy + 110, { scale: 1.1, facing: "left", look: { view: "three-quarter" }, actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
       fig("momo", "momo", 2600, gy + 110, { scale: .85, facing: "left", actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
       creature("cranes", "crane", 2400, gy + 60, { scale: .9, facing: "right", actions: [{ type: "dance", start: 0, end: dur }] }),
+      // A kappa at the edge of the paddy bows to the travellers, spilling its dish; a packhorse waits with its load.
+      creature("kappa", "kappa", 2000, gy + 40, { scale: 1, facing: "right", actions: [{ type: "stand", start: 0, end: 330 }, { type: "bow", start: 330, end: 400 }, { type: "dance", start: 400, end: dur }] }),
+      creature("horse", "horse", 3900, gy + 110, { scale: .8, facing: "left", look: { tack: true }, actions: [{ type: "look", start: 60, end: 160, angle: 12 }] }),
+      // A tengu watches from the pine, fanning up the wind; a karasu-tengu circles over the temple.
+      creature("tengu", "tengu", 3300, gy - 300, { depth: .95, scale: .7, facing: "left", actions: [{ type: "fly", start: 0, end: dur, to: 0 }, { type: "fan", start: 140, end: 230 }] }),
+      creature("karasu", "karasutengu", 3900, 260, { depth: .8, scale: .55, facing: "left", actions: [{ type: "fly", start: 0, end: dur, to: -900, toY: 60 }] }),
       // The oni gate.
       { id: "gate", kind: "motif", motif: "torii", x: 1500, y: gy + 20, params: { width: 380, height: 420, color: "sumi" } },
       fig("oni-a", "oni-red", 1300, gy + 70, { scale: .95, facing: "right", actions: [{ type: "hold", start: 0, end: dur, angle: 60, amount: 70 }, { type: "talk", start: 380, end: dur }] }),
@@ -95,7 +102,7 @@ const road: UkiyoeShot = { id: "road", title: "The road of old stories", build: 
 
 // ---- 3. The island of the oni --------------------------------------------------------------------------------------------------------------
 
-const island: UkiyoeShot = { id: "island", title: "The island of the oni", build: (aspect, t = {}) => {
+const island: UkiyoeShot = { id: "island", title: "The island of the oni", sound: { sound: "bed-surf-beach", gainDb: -9 }, layers: [{ sound: "bed-wind-mountain", gainDb: -20 }], build: (aspect, t = {}) => {
   const P = aspect === "portrait", [w] = DIM[aspect as UkiyoeAspect], hz = 520, dur = 360, by = 880;
   return base("island", aspect, dur, t, "edo", {
     camera: { keys: [{ frame: 0, x: 900, y: P ? 600 : 540, zoom: P ? 1.15 : 1 }, { frame: 200, x: 1100, y: P ? 600 : 540, zoom: P ? 1.15 : 1.04, ease: "inOut" }, { frame: dur - 1, x: 1180, y: P ? 560 : 520, zoom: P ? 1.1 : 1, ease: "inOut" }] },
@@ -111,13 +118,13 @@ const island: UkiyoeShot = { id: "island", title: "The island of the oni", build
       { id: "island-gate", kind: "motif", motif: "torii", depth: .75, x: 1300, y: hz - 150, scale: .5, params: { color: "sumi" } },
       fig("oni-1", "oni-red", 1430, hz - 120, { depth: .75, scale: .55, facing: "left", actions: [{ type: "cheer", start: 0, end: 150 }, { type: "startle", start: 160, end: 190 }, { type: "bow", start: 220, end: dur, angle: 40 }] }),
       fig("oni-2", "oni-blue", 1620, hz - 110, { depth: .75, scale: .55, facing: "left", actions: [{ type: "talk", start: 0, end: 150 }, { type: "startle", start: 166, end: 196 }, { type: "bow", start: 226, end: dur, angle: 44 }] }),
-      { id: "wave-back", kind: "motif", motif: "wave", depth: .85, x: 2250, y: by + 100, params: { width: 760, height: 360, variant: 2 }, keys: [{ frame: 0, progress: .55 }, { frame: 160, progress: 1, ease: "inOut" }] },
-      { id: "boat", kind: "group", depth: .95, x: 300, y: by, keys: [{ frame: 0, x: 300 }, { frame: 200, x: 820, ease: "out" }], loops: [{ kind: "rock", amplitude: 1.4, period: 44 }] },
-      { id: "hull", kind: "motif", motif: "boat", parent: "boat", params: { length: 460, kind: "ferry" } },
+      { id: "wave-back", kind: "motif", motif: "wave", depth: .85, x: 2250, y: by + 100, params: { width: 760, height: 360, variant: 2 }, keys: [{ frame: 0, progress: .55 }, { frame: 160, progress: 1, ease: "sine" }] },
+      { id: "boat", kind: "group", depth: .95, x: 300, y: by, keys: [{ frame: 0, x: 300 }, { frame: 150, x: 720, ease: "linear" }, { frame: 215, x: 810, ease: "outQuad" }], loops: [{ kind: "rock", amplitude: 1.4, period: 44 }] },
+      { id: "hull", kind: "motif", motif: "boat", parent: "boat", params: { length: 460, kind: "ferry", sail: true, wake: 1 }, keys: [{ frame: 0, progress: 1 }, { frame: 170, progress: 1 }, { frame: 215, progress: 0 }] },
       { ...fig("momo", "momo", 60, -18, { facing: "right", actions: [{ type: "point", start: 120, end: 210, angle: 110 }, { type: "cheer", start: 260, end: dur }] }), parent: "boat" } as UkiyoeNode,
       { ...creature("dog", "dog", -100, -18, { scale: .9, actions: [{ type: "howl", start: 150, end: 190 }, { type: "sit", start: 200, end: dur }] }), parent: "boat" } as UkiyoeNode,
       { ...creature("pheasant", "pheasant", 170, -18, { scale: .9, actions: [{ type: "stand", start: 0, end: 160 }, { type: "fly", start: 170, end: dur, to: 500, toY: -380 }] }), parent: "boat" } as UkiyoeNode,
-      { id: "wave-front", kind: "motif", motif: "wave", depth: 1.15, x: 160, y: by + 300, flip: true, params: { width: 700, height: 320, variant: 4 }, keys: [{ frame: 0, progress: .2 }, { frame: 240, progress: 1, ease: "inOut" }] },
+      { id: "wave-front", kind: "motif", motif: "wave", depth: 1.15, x: 160, y: by + 300, flip: true, params: { width: 700, height: 320, variant: 4 }, keys: [{ frame: 0, progress: .2 }, { frame: 240, progress: 1, ease: "sine" }] },
       { id: "end", kind: "text", style: "cartouche", depth: 0, align: "end", x: P ? w - 90 : w - 110, y: P ? 150 : 96, text: "めでたし", sub: "And so it ended well", size: P ? 46 : 40, enter: { preset: "stamp", frame: 290, duration: 10 } },
       ...caption("cap-island-1", aspect, "The boy sailed out to the island of the oni.", 20, 170, t),
       ...caption("cap-island-2", aspect, "The oni had never seen a peach-boy before. They put down their clubs.", 220, dur, t),

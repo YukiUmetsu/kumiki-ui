@@ -22,6 +22,21 @@ describe("material-native wax-crayon storybook", () => {
     expect(crayonHash(32,1,2)).toBe(crayonHash(32,1,2));
   });
 
+  it("uses nonuniform cross-grain hand rubs instead of repeated horizontal strips",()=>{
+    const marks=crayonMarks({x:0,y:0,width:500,height:280},
+      {seed:913,pressure:.85,spacing:10});
+    // The first cubic in each compound mark has an independently sampled tangent.
+    const slopes=marks.map(m=>{
+      const result=m.d.match(/M (-?[0-9]+(?:[.][0-9]+)?) (-?[0-9]+(?:[.][0-9]+)?) Q (-?[0-9]+(?:[.][0-9]+)?) (-?[0-9]+(?:[.][0-9]+)?) (-?[0-9]+(?:[.][0-9]+)?) (-?[0-9]+(?:[.][0-9]+)?)/);
+      if(!result)throw new Error("invalid short wax stroke");
+      return (Number(result[6])-Number(result[2]))/(Number(result[5])-Number(result[1]));
+    });
+    expect(slopes.filter(x=>x>.25).length).toBeGreaterThan(20);
+    expect(slopes.filter(x=>x<-.25).length).toBeGreaterThan(20);
+    expect(new Set(slopes.map(x=>x.toFixed(2))).size).toBeGreaterThan(90);
+    expect(marks).toEqual(crayonMarks({x:0,y:0,width:500,height:280},
+      {seed:913,pressure:.85,spacing:10}));
+  });
   it("evaluates a wax gesture by absolute frame, stable under reversed seeks and reduced motion", () => {
     expect(crayonProgress(0,0,100)).toBe(0);
     expect(crayonProgress(100,0,100)).toBe(1);
@@ -57,7 +72,11 @@ describe("material-native wax-crayon storybook", () => {
       expect(mid).toContain('data-km-crayon-region=""');
       expect(end).toContain('data-km-crayon-paper=""');
       expect(end).toContain('stroke-dasharray="100"');
-      expect(end).toContain('data-km-crayon-title=""');
+      if (aspect==="landscape") expect(end).toContain('data-km-crayon-title=""');
+      else {
+        expect(end).not.toContain('data-km-crayon-title=""');
+        expect(end).not.toContain(">WAX CRAYON   /");
+      }
       expect(end).toContain(aspect==="portrait"?'viewBox="0 0 540 960"':'viewBox="0 0 960 540"');
       expect(mid).not.toBe(first);
       expect(end).not.toBe(mid);
@@ -68,6 +87,16 @@ describe("material-native wax-crayon storybook", () => {
       expect(render(419,23,false,0)).not.toBe(end);
     });
   }
+
+  it("keeps portrait editorial opt-in while allowing explicit title experiments",()=>{
+    const portrait=renderToStaticMarkup(<CrayonStorybook frame={419} aspect="portrait"/>);
+    const optIn=renderToStaticMarkup(<CrayonStorybook frame={419} aspect="portrait" showEditorial/>);
+    const forcedOff=renderToStaticMarkup(<CrayonStorybook frame={419} aspect="landscape" showEditorial={false}/>);
+    expect(portrait).not.toContain('data-km-crayon-title=""');
+    expect(optIn).toContain('data-km-crayon-title=""');
+    expect(optIn).toContain("WAX CRAYON");
+    expect(forcedOff).not.toContain('data-km-crayon-title=""');
+  });
 
   it("preserves the existing FilmStage timeline with portable, dual-aspect proof and renderable slots", async () => {
     expect(portable).toEqual(CRAYON_STORYBOOK_FILM);

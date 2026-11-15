@@ -13,9 +13,10 @@ interface PlayerProps {
   startFrame: number;
   playbackRate: number;
   loop: boolean;
+  editorial: "auto" | "show" | "hide";
 }
 /** Player clocks live only here. The library renderer always evaluates a pinned absolute frame. */
-function CrayonPlayer({story,aspect,seed,pressure,paperTooth,reducedMotion,startFrame,playbackRate,loop}:PlayerProps) {
+function CrayonPlayer({story,aspect,seed,pressure,paperTooth,reducedMotion,startFrame,playbackRate,loop,editorial}:PlayerProps) {
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,420,story+":"+aspect,playbackRate,loop);
   const chapters = [
@@ -34,7 +35,8 @@ function CrayonPlayer({story,aspect,seed,pressure,paperTooth,reducedMotion,start
     </div>
     <div style={{maxWidth:aspect==="portrait"?440:960,width:"100%",aspectRatio:aspect==="portrait"?"540 / 960":"960 / 540",margin:"auto",background:"#faf1da",boxShadow:"0 10px 34px #28344d2b",border:"11px solid #faf1da",boxSizing:"border-box"}}>
       <CrayonStorybook story={story} aspect={aspect} seed={seed} frame={frame} pressure={pressure}
-        paperTooth={paperTooth} reducedMotion={reducedMotion} />
+        paperTooth={paperTooth} reducedMotion={reducedMotion}
+        showEditorial={editorial==="auto"?undefined:editorial==="show"} />
     </div>
     <div style={{display:"flex",gap:10,alignItems:"center",marginTop:18,flexWrap:"wrap"}}>
       <button type="button" onClick={toggle}
@@ -57,15 +59,18 @@ function CrayonPlayer({story,aspect,seed,pressure,paperTooth,reducedMotion,start
           color:frame===chapter.frame?"white":"#33475e",font:"13px system-ui",cursor:"pointer"}}>{chapter.name}</button>)}
     </nav>
     <div style={{fontSize:12,lineHeight:1.5,color:"#6b706f",marginTop:15}}>
-      Artist controls live in the Storybook Controls panel, including playback speed and loop. Playback seeks by elapsed time rather than one-frame timer ticks. Scrub backward and forward: each mark and paper pore is frame-stable. Full-motion acceptance still requires an encoded-film review.
+      All crayon Film Looks are grouped in the Crayon sidebar folder. Characters and flowers use full-coverage layered wax while skies retain lighter strokes. Artist controls live in the Storybook Controls panel, including playback speed and loop. Playback seeks by elapsed time rather than one-frame timer ticks. Scrub backward and forward: each mark and paper pore is frame-stable. Full-motion acceptance still requires an encoded-film review.
     </div>
   </div>;
 }
 const meta = {
-  title:"Video production/Film Looks/Crayon Storybook",
+  title:"Video production/Film Looks/Crayon/Lantern & Garden",
   id:"video-crayon-storybook",
+  // Historical animal-character sketches are retained for source/API compatibility
+  // but intentionally hidden while the new illustrated character sets replace them.
+  tags:["!dev"],
   component:CrayonPlayer,
-  args:{story:"lantern",aspect:"landscape",seed:23,pressure:.87,paperTooth:.58,reducedMotion:false,startFrame:320,playbackRate:1.2,loop:false},
+  args:{story:"lantern",aspect:"landscape",seed:23,pressure:.87,paperTooth:.58,reducedMotion:false,startFrame:320,playbackRate:1.2,loop:false,editorial:"auto"},
   argTypes:{
     story:{control:"inline-radio",options:["lantern","garden"]},
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
@@ -73,6 +78,8 @@ const meta = {
     pressure:{control:{type:"range",min:0,max:1,step:.05}},
     paperTooth:{control:{type:"range",min:0,max:1,step:.05}},
     reducedMotion:{control:"boolean"},
+    editorial:{control:"inline-radio",options:["auto","show","hide"],
+      description:"Portrait auto-hides unmeasured text; show is for visual experiments only."},
     playbackRate:{control:{type:"range",min:.25,max:2,step:.25}},
     loop:{control:"boolean"},
     startFrame:{control:{type:"range",min:0,max:419,step:1}},

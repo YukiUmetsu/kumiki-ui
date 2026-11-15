@@ -6,19 +6,19 @@ const samples=[
   {name:"storybook garden portrait",id:"video-crayon-storybook--garden-portrait",attr:"data-km-crayon-storybook",aspect:"portrait"},
   {name:"science data scene",id:"video-crayon-scene-engine--water-cycle",attr:"data-km-crayon-scene",aspect:"landscape"},
   {name:"chart data scene",id:"video-crayon-scene-engine--illustrated-data",attr:"data-km-crayon-scene",aspect:"landscape"},
-  {name:"acting landscape",id:"video-crayon-scene-engine--character-performance",attr:"data-km-crayon-scene",aspect:"landscape"},
-  {name:"acting portrait",id:"video-crayon-scene-engine--character-performance-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
-  {name:"walk landscape",id:"video-crayon-scene-engine--character-walk-cycle",attr:"data-km-crayon-scene",aspect:"landscape"},
-  {name:"walk portrait",id:"video-crayon-scene-engine--character-walk-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
-  {name:"two-bone gait landscape",id:"video-crayon-scene-engine--character-two-bone-ik",attr:"data-km-crayon-scene",aspect:"landscape"},
-  {name:"two-bone gait portrait",id:"video-crayon-scene-engine--character-two-bone-ik-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
-  {name:"character draw in landscape",id:"video-crayon-scene-engine--character-draw-in",attr:"data-km-crayon-scene",aspect:"landscape"},
-  {name:"character draw in portrait",id:"video-crayon-scene-engine--character-draw-in-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
-  {name:"dragon village three actors",id:"video-crayon-scene-engine--dragon-village",attr:"data-km-crayon-scene",aspect:"landscape"},
-  {name:"dragon village portrait",id:"video-crayon-scene-engine--dragon-village-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
-  {name:"dragon anatomy detail",id:"video-crayon-scene-engine--dragon-anatomy-detail",attr:"data-km-crayon-scene",aspect:"landscape"},
-  {name:"castle masonry detail",id:"video-crayon-scene-engine--castle-masonry-detail",attr:"data-km-crayon-scene",aspect:"landscape"},
-  {name:"dragon anatomy portrait detail",id:"video-crayon-scene-engine--dragon-anatomy-detail-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
+  {name:"acting landscape",id:"video-crayon-acting--character-performance",attr:"data-km-crayon-scene",aspect:"landscape"},
+  {name:"acting portrait",id:"video-crayon-acting--character-performance-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
+  {name:"walk landscape",id:"video-crayon-walk--character-walk-cycle",attr:"data-km-crayon-scene",aspect:"landscape"},
+  {name:"walk portrait",id:"video-crayon-walk--character-walk-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
+  {name:"two-bone gait landscape",id:"video-crayon-walk--character-two-bone-ik",attr:"data-km-crayon-scene",aspect:"landscape"},
+  {name:"two-bone gait portrait",id:"video-crayon-walk--character-two-bone-ik-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
+  {name:"character draw in landscape",id:"video-crayon-draw-in--character-draw-in",attr:"data-km-crayon-scene",aspect:"landscape"},
+  {name:"character draw in portrait",id:"video-crayon-draw-in--character-draw-in-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
+  {name:"dragon village three actors",id:"video-crayon-dragon--dragon-village",attr:"data-km-crayon-scene",aspect:"landscape"},
+  {name:"dragon village portrait",id:"video-crayon-dragon--dragon-village-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
+  {name:"dragon anatomy detail",id:"video-crayon-dragon--dragon-anatomy-detail",attr:"data-km-crayon-scene",aspect:"landscape"},
+  {name:"castle masonry detail",id:"video-crayon-dragon--castle-masonry-detail",attr:"data-km-crayon-scene",aspect:"landscape"},
+  {name:"dragon anatomy portrait detail",id:"video-crayon-dragon--dragon-anatomy-detail-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
 ] as const;
 for(const sample of samples) {
   test("crayon real-browser smoke: "+sample.name,async({page},info)=>{
@@ -33,7 +33,7 @@ for(const sample of samples) {
 }
 
 test("crayon acting mouth and eyes switch named poses at exact exposure frames",async({page},info)=>{
-  await page.goto("/iframe.html?id=video-crayon-scene-engine--character-performance&viewMode=story");
+  await page.goto("/iframe.html?id=video-crayon-acting--character-performance&viewMode=story");
   const scene=page.locator("svg[data-km-crayon-scene]");
   const mouth=scene.locator('[data-km-crayon-element="mouth"]');
   const eye=scene.locator('[data-km-crayon-element="left-eye"]');
@@ -50,7 +50,7 @@ test("crayon acting mouth and eyes switch named poses at exact exposure frames",
 });
 
 test("walk animation plants, releases, and replants the correct foot on keyed story beats",async({page},info)=>{
-  await page.goto("/iframe.html?id=video-crayon-scene-engine--character-walk-cycle&viewMode=story");
+  await page.goto("/iframe.html?id=video-crayon-walk--character-walk-cycle&viewMode=story");
   const scene=page.locator("svg[data-km-crayon-scene]");
   const back=scene.locator('[data-km-crayon-element="foot-back"]');
   const front=scene.locator('[data-km-crayon-element="foot-front"]');
@@ -78,7 +78,7 @@ test("walk animation plants, releases, and replants the correct foot on keyed st
 
 
 test("two-bone walk uses analytic knees and eases a releasing planted foot",async({page},info)=>{
-  await page.goto("/iframe.html?id=video-crayon-scene-engine--character-two-bone-ik&viewMode=story");
+  await page.goto("/iframe.html?id=video-crayon-walk--character-two-bone-ik&viewMode=story");
   const scene=page.locator("svg[data-km-crayon-scene]");
   const back=scene.locator('[data-km-crayon-element="foot-back"]');
   const front=scene.locator('[data-km-crayon-element="foot-front"]');
@@ -122,7 +122,7 @@ test("crayon Storybook wall-clock playback advances, pauses, and restarts",async
 
 
 test("drawn-character film builds wax after outlines and clears transient guides",async({page},info)=>{
-  await page.goto("/iframe.html?id=video-crayon-scene-engine--character-draw-in&viewMode=story");
+  await page.goto("/iframe.html?id=video-crayon-draw-in--character-draw-in&viewMode=story");
   const svg=page.locator("svg[data-km-crayon-scene]");
   const body=svg.locator('[data-km-crayon-element="body"] [data-km-crayon-build]');
   const guide=svg.locator('[data-km-crayon-element="construction-head"]');
@@ -147,7 +147,7 @@ test("drawn-character film builds wax after outlines and clears transient guides
 });
 
 test("drawn-character portrait retains separate guide, pigment and acting frames",async({page},info)=>{
-  await page.goto("/iframe.html?id=video-crayon-scene-engine--character-draw-in-portrait&viewMode=story");
+  await page.goto("/iframe.html?id=video-crayon-draw-in--character-draw-in-portrait&viewMode=story");
   const svg=page.locator("svg[data-km-crayon-scene]");
   const body=svg.locator('[data-km-crayon-element="body"] [data-km-crayon-build]');
   await expect(svg).toHaveAttribute("viewBox","0 0 540 960");
@@ -161,7 +161,7 @@ test("drawn-character portrait retains separate guide, pigment and acting frames
 
 
 test("dragon village choreography: late wing flap, blinking dragon and responsive owl",async({page},info)=>{
-  await page.goto("/iframe.html?id=video-crayon-scene-engine--dragon-village&viewMode=story");
+  await page.goto("/iframe.html?id=video-crayon-dragon--dragon-village&viewMode=story");
   const scene=page.locator('svg[data-km-crayon-scene]');
   const dragon=scene.locator('[data-km-crayon-element="dragon-body"]');
   const wing=scene.locator('[data-km-crayon-element="dragon-wing-near"]');
@@ -190,7 +190,7 @@ test("dragon village choreography: late wing flap, blinking dragon and responsiv
   expect(await wing.getAttribute("transform")).toBe(openWing);
 });
 test("dragon village portrait composition and independent cast variant",async({page},info)=>{
-  await page.goto("/iframe.html?id=video-crayon-scene-engine--dragon-village-portrait&viewMode=story");
+  await page.goto("/iframe.html?id=video-crayon-dragon--dragon-village-portrait&viewMode=story");
   const scene=page.locator("svg[data-km-crayon-scene]");
   await expect(scene).toHaveAttribute("viewBox","0 0 540 960");
   await page.getByRole("button",{name:"Friends answer"}).click();
@@ -198,7 +198,7 @@ test("dragon village portrait composition and independent cast variant",async({p
   await page.getByRole("button",{name:"Final pose"}).click();
   await expect(scene).toHaveAttribute("data-km-crayon-frame","329");
   await scene.screenshot({path:info.outputPath("dragon-village-portrait-final.png"),animations:"disabled"});
-  await page.goto("/iframe.html?id=video-crayon-scene-engine--dragon-village-duo&viewMode=story");
+  await page.goto("/iframe.html?id=video-crayon-dragon--dragon-village-duo&viewMode=story");
   const duo=page.locator("svg[data-km-crayon-scene]");
   await expect(duo.locator('[data-km-crayon-element="owl-body"]')).toHaveCount(0);
   await expect(duo.locator('[data-km-crayon-element="friend-body"]')).toBeAttached();
@@ -226,4 +226,111 @@ test("dragon and architecture close-ups expose actual craft geometry and distinc
     expect(d?.length).toBeGreaterThan(80);
     await svg.screenshot({path:info.outputPath(item.name+"-260.png"),animations:"disabled"});
   }
+});
+
+
+test("all crayon Storybook pages appear under one Film Looks / Crayon folder",async({page})=>{
+  const response=await page.request.get("/index.json");
+  expect(response.ok()).toBe(true);
+  const index=await response.json() as {
+    entries: Record<string,{id:string;title:string;type:string}>;
+  };
+  const all=Object.values(index.entries).filter(entry=>entry.type==="story");
+  for(const metaId of ["video-crayon-scene-engine",
+    "video-crayon-storybook","video-crayon-material-studies"]){
+    const stories=all.filter(entry=>entry.id.startsWith(metaId+"--"));
+    expect(stories.length).toBeGreaterThan(0);
+    for(const entry of stories)
+      expect(entry.title).toMatch(/^Video production\/Film Looks\/Crayon\//);
+  }
+});
+
+test("opaque wax optical regression: background cannot bleed through finished character",async({page},info)=>{
+  async function inspect(id:string,shot:string){
+    await page.goto("/iframe.html?id=video-crayon-material-studies--"+id+"&viewMode=story");
+    const svg=page.locator("svg[data-km-crayon-optics]");
+    await expect(svg).toBeVisible();
+    await expect(svg.locator('[data-km-crayon-coverage="open"]')).toHaveCount(1);
+    await expect(svg.locator('[data-km-crayon-coverage="opaque"]')).toHaveCount(1);
+    await expect(svg.locator('[data-km-crayon-underpaint="opaque"]')).toHaveCount(1);
+    const pixels=await page.evaluate(async()=>{
+      const svg=document.querySelector('svg[data-km-crayon-optics]');
+      if(!svg)throw new Error("Missing optical proof SVG");
+      const serialized=new XMLSerializer().serializeToString(svg);
+      const url=URL.createObjectURL(new Blob([serialized],
+        {type:"image/svg+xml;charset=utf-8"}));
+      try {
+        const image=new Image();
+        image.src=url;
+        await image.decode();
+        const canvas=document.createElement("canvas");
+        canvas.width=960;canvas.height=540;
+        const context=canvas.getContext("2d");
+        if(!context)throw new Error("Canvas is unavailable");
+        context.drawImage(image,0,0,960,540);
+        const rgb=(x:number,y:number)=>
+          Array.from(context.getImageData(x,y,1,1).data).slice(0,3);
+        // Matching interior cheek positions, not outlines or blinking eyes.
+        return {open:rgb(285,340),opaque:rgb(656,340)};
+      } finally {URL.revokeObjectURL(url);}
+    });
+    await svg.screenshot({path:info.outputPath(shot+".png"),animations:"disabled"});
+    return pixels;
+  }
+  const blue=await inspect("layer-coverage-comparison","wax-coverage-cobalt");
+  const coral=await inspect("layer-coverage-coral","wax-coverage-coral");
+  const difference=(a:number[],b:number[])=>
+    a.reduce((sum,channel,i)=>sum+Math.abs(channel-b[i]),0);
+  expect(difference(blue.open,coral.open)).toBeGreaterThan(65);
+  expect(difference(blue.opaque,coral.opaque)).toBeLessThan(9);
+});
+
+
+test("dragon held wax exposures redraw at authored intervals without silhouette jitter",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-crayon-dragon--dragon-hand-redraw&viewMode=story");
+  const scene=page.locator("svg[data-km-crayon-scene]");
+  await expect(scene).toBeVisible();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","221");
+  const body=scene.locator('[data-km-crayon-element="dragon-body"]');
+  const region=body.locator('[data-km-crayon-region]');
+  const layer=body.locator('[data-km-crayon-repaint]');
+  const pigment=body.locator('[data-km-crayon-underpaint]');
+  await expect(region).toHaveAttribute("data-km-crayon-exposure","20");
+  await expect(layer).toHaveCount(1);
+  await expect(pigment).toHaveCount(1);
+  const d=await pigment.getAttribute("d");
+  const sample=async()=>layer.locator("path").first().getAttribute("d");
+  const first=await sample();
+  const seek=page.getByRole("slider",{name:"Film frame"});
+  await seek.press("ArrowRight");
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","222");
+  await expect(region).toHaveAttribute("data-km-crayon-exposure","21");
+  const second=await sample();
+  expect(second).not.toEqual(first);
+  expect(await pigment.getAttribute("d")).toEqual(d);
+  await seek.press("ArrowRight");
+  await expect(region).toHaveAttribute("data-km-crayon-exposure","21");
+  expect(await sample()).toEqual(second);
+  await scene.screenshot({animations:"disabled",path:info.outputPath("wax-redraw-223.png")});
+  await page.getByRole("button",{name:"Dragon reacts"}).click();
+  await expect(region).toHaveAttribute("data-km-crayon-exposure","13");
+  await page.getByRole("button",{name:"Friends answer"}).click();
+  await expect(region).toHaveAttribute("data-km-crayon-exposure","40");
+});
+
+test("wing silhouettes and bone accents change together while keeping wax opaque",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-crayon-dragon--dragon-wing-morph&viewMode=story");
+  const scene=page.locator("svg[data-km-crayon-scene]");
+  const wing=scene.locator('[data-km-crayon-element="dragon-wing-near"]');
+  const ribs=scene.locator('[data-km-crayon-element="dragon-wing-near-ribs"]');
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","182");
+  await expect(wing).toHaveAttribute("data-km-crayon-drawing","2");
+  await expect(ribs).toHaveAttribute("data-km-crayon-drawing","2");
+  await expect(wing.locator('[data-km-crayon-underpaint]')).toHaveCount(1);
+  await expect(wing.locator('[data-km-crayon-frayed-rim]')).toHaveCount(1);
+  await scene.screenshot({animations:"disabled",path:info.outputPath("wing-morph-flexed-182.png")});
+  await page.getByRole("button",{name:"Wings unfurl"}).click();
+  await expect(wing).toHaveAttribute("data-km-crayon-drawing","1");
+  await expect(ribs).toHaveAttribute("data-km-crayon-drawing","1");
+  await scene.screenshot({animations:"disabled",path:info.outputPath("wing-morph-stretched-155.png")});
 });

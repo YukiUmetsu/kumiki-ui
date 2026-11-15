@@ -93,6 +93,7 @@ export function crayonCharacterDrawScene(
     const timing={start:range[0],end:range[1]};
     if(node.kind==="wax")return {
       ...node,timing,
+      redraw:node.redraw ? {...node.redraw,beginFrame:408} : undefined,
       ...(background.has(node.id) ?
         (node.id==="shadow" ? {} : {
           colors:scenicColors[node.id]??node.colors,

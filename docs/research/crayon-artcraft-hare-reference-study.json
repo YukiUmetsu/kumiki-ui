@@ -1,0 +1,213 @@
+{
+  "schema_version": 3,
+  "project": "Kumiki UI / ArtCraft source-led European hare",
+  "mode": "style_guided",
+  "reference_policy": {
+    "min_references": 3,
+    "min_deep_studies": 2
+  },
+  "sources": [
+    {
+      "id": "anatomy-side",
+      "url": "https://www.wildtierportal.bayern.de/wildtiere_bayern/102456/index.php",
+      "image_url": "https://www.wildtierportal.bayern.de/mam/cms12/wildtiere_bayern/bilder/feldhase_portrait_rudolf_vornehm_pism.jpg",
+      "title": "European hare profile (Bavarian wildlife information portal)",
+      "creator": "Rudolf Vornehm (site photograph credit)",
+      "rights": "Reference only; reuse/license not verified; no image packaged",
+      "medium": "wildlife photograph",
+      "view": "lateral profile",
+      "deep_study": true,
+      "visual_resolution": "Web image search 512px thumbnail; proportions approximate, not a measured high-resolution crop",
+      "analysis": {
+        "construction": "Actual lateral brow, nostril, skull to throat and ear root; eye is set in a bulging orbital ring",
+        "material": "Short near-direction hairs change orientation around socket, longer stiffer guard hairs on cheek and neck",
+        "microdetail": "Whisker roots cluster on the maxillary pad; ear interior shows layered cartilage folds",
+        "light": "Warm eye and muzzle facing soft side light; neck shadow separates cheek from shoulder"
+      },
+      "crops": [
+        {
+          "feature": "profile-eye",
+          "bbox": [
+            0.24,
+            0.26,
+            0.56,
+            0.62
+          ],
+          "observation": "Single amber eye embedded in upper dark socket, dark upper lid, pale lower fold; not a simple outlined almond",
+          "implementation_rule": "Layer orbital-structure, eye-brow-bone, the existing amber/pupil/wax iris and eye-tear-duct"
+        },
+        {
+          "feature": "profile-muzzle",
+          "bbox": [
+            0.04,
+            0.38,
+            0.42,
+            0.73
+          ],
+          "observation": "The nasal bridge narrows toward a small dark nostril; whisker pad and lower jaw are distinct connected masses",
+          "implementation_rule": "Nasal bridge + tapered muzzle projection + muzzle underside + inset whisker follicles"
+        },
+        {
+          "feature": "near-ear",
+          "bbox": [
+            0.53,
+            0,
+            0.96,
+            0.45
+          ],
+          "observation": "Ear wall has a recessed darker interior and thick outer rim, connected to skull base",
+          "implementation_rule": "Outer lip, canal-shadow, inner fold path and near-ear animated parenting"
+        }
+      ]
+    },
+    {
+      "id": "pastel-character",
+      "url": "https://www.saatchiart.com/en-pr/art/Drawing-Portrait-of-a-hare-painting-animal-art-oil-pastel-rabbit-art/296362/9862769/view",
+      "image_url": "https://images.saatchiart.com/saatchi/296362/art/9862769/8925715-RDKBSNNJ-7.jpg",
+      "title": "Portrait of a Hare in Oil Pastel",
+      "creator": "Nadezhda Kokorina",
+      "rights": "Copyright reserved; visual study only, do not copy artwork or distribute source images",
+      "medium": "oil pastel on paper (not identical to hard wax crayon)",
+      "view": "near profile",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Face and neck read as contiguous volume with no large circular cheek sticker",
+        "material": "Overlapping short/long light and dark gestures follow eye corner, neck and ear",
+        "microdetail": "Multihued fur root, narrow amber eye and highly selective white edge filaments",
+        "light": "Dark background, strong value hierarchy around eye"
+      },
+      "crops": [
+        {
+          "feature": "face-planes",
+          "bbox": [
+            0.16,
+            0.24,
+            0.78,
+            0.77
+          ],
+          "observation": "Fur is built from connected directional color bands, not distributed uniform sparse flecks",
+          "implementation_rule": "Use separate attached orbital, zygomatic, nasal and jowl planes before fur flow; keep highest contrast near eye"
+        }
+      ]
+    },
+    {
+      "id": "pencil-detail",
+      "url": "https://annkullberg.com/blogs/ann-muses/the-pencil-box-featured-artists-january-2024",
+      "title": "After the Dawn (hare)",
+      "creator": "Tracy Barnett",
+      "rights": "Copyright reserved; style observation only, no artwork imported",
+      "medium": "colored pencil; anatomical detail reference, not a wax-material claim",
+      "view": "side/three-quarter",
+      "deep_study": false,
+      "analysis": {
+        "construction": "Nasal bridge and jaw have subtle curvature with taper toward nostril",
+        "material": "Tightly packed directional hairs change scale from brow to chest",
+        "microdetail": "A few visible long whiskers sit over dense small root hairs; eye highlight restrained",
+        "light": "Warm nasal bridge vs cool lower fur"
+      }
+    },
+    {
+      "id": "wax-markmaking",
+      "url": "https://westernexhibitions.com/exhibition/5488/",
+      "title": "Richard Hull crayon work and sgraffito",
+      "creator": "Richard Hull",
+      "rights": "Artist copyright reserved; technical observation only",
+      "medium": "layered wax crayon",
+      "view": "surface technique",
+      "deep_study": false,
+      "analysis": {
+        "construction": "Dense intertwined, continuous forms hold painted mass",
+        "material": "Wax buildup is scratched back exposing lower pigment",
+        "microdetail": "Directional comb-like scratches and contrasting underpainting",
+        "light": "Layer-driven value contrast"
+      }
+    }
+  ],
+  "feature_targets": [
+    {
+      "id": "skull-proportion",
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "critical": true,
+      "geometry_rule": "One asymmetric wedge-shaped skull with cheek/jaw attachment, not a circle or egg",
+      "source_observation": "Brow bridges forward into nasal slope; cheek narrows into throat",
+      "part_ids": [
+        "head",
+        "orbital-structure",
+        "malar-ridge-shadow"
+      ],
+      "test_view": "wide and 3x cheek profile",
+      "detail_critical": true
+    },
+    {
+      "id": "eye",
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character",
+        "pencil-detail"
+      ],
+      "critical": true,
+      "geometry_rule": "Dark ring and separate brow/tear duct around an amber iris and opaque held blinking",
+      "source_observation": "Small glossy eye set below robust brow with inner corner",
+      "part_ids": [
+        "eye-brow-bone",
+        "eye-tear-duct",
+        "eye-amber-iris",
+        "eye-pupil",
+        "eyelid-painted-occlusion"
+      ],
+      "test_view": "eye macro at frame 89, 95, 203 and 237",
+      "detail_critical": true
+    },
+    {
+      "id": "muzzle",
+      "reference_ids": [
+        "anatomy-side",
+        "pencil-detail"
+      ],
+      "critical": true,
+      "geometry_rule": "Connected tapering bridge, unequal muzzle pads and inset nose/philtrum",
+      "source_observation": "Not a round peanut or separate nose ball; clustered vibrissal pores at upper pad",
+      "part_ids": [
+        "nasal-bridge-plane",
+        "muzzle-projection",
+        "muzzle-underside",
+        "muzzle-light",
+        "nose",
+        "whisker-follicles"
+      ],
+      "test_view": "profile muzzle macro at 1x and 3x",
+      "detail_critical": true
+    },
+    {
+      "id": "ear",
+      "reference_ids": [
+        "anatomy-side",
+        "pastel-character"
+      ],
+      "critical": true,
+      "geometry_rule": "Two differently bent ear surfaces with nested rim/lip/canal shadow, attached to head pivot",
+      "source_observation": "Asymmetric near/far ear and dark, recessed cartilage roots",
+      "part_ids": [
+        "near-ear",
+        "near-ear-inner",
+        "near-ear-outer-lip",
+        "near-ear-canal-shadow",
+        "far-ear",
+        "far-ear-crease-shadow"
+      ],
+      "test_view": "ear macro and 85/135/181 stress poses",
+      "detail_critical": true
+    }
+  ],
+  "negative_controls": [
+    "Oval skull filled with one warm color and dark outline",
+    "Circular eye sticker with isolated white point but no orbit or tear corner",
+    "Peanut-shaped muzzle with black dot nose and no maxillary pad",
+    "Two identical tapered ear triangles without attached canal and folded lip",
+    "Global random noise or uniform-angle hatching used instead of anatomical pigment boundaries"
+  ],
+  "evidence_state": "Source works inspected through web image search, no locally stored reference crops. ArtCraft strict v6 pixel/axis release gate remains BLOCKED; do not label source-faithful."
+}

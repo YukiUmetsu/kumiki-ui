@@ -3283,6 +3283,11 @@
           "target": "components/video/materials/crayon-react.tsx"
         },
         {
+          "path": "registry/video/materials/crayon-exposure.ts",
+          "type": "registry:ui",
+          "target": "components/video/materials/crayon-exposure.ts"
+        },
+        {
           "path": "registry/video/materials/crayon-scene.ts",
           "type": "registry:ui",
           "target": "components/video/materials/crayon-scene.ts"
@@ -3291,6 +3296,11 @@
           "path": "registry/video/materials/crayon-scene-react.tsx",
           "type": "registry:ui",
           "target": "components/video/materials/crayon-scene-react.tsx"
+        },
+        {
+          "path": "registry/video/materials/crayon-art-direction.ts",
+          "type": "registry:ui",
+          "target": "components/video/materials/crayon-art-direction.ts"
         }
       ]
     },
@@ -3327,8 +3337,8 @@
     {
       "name": "riso-character",
       "type": "registry:ui",
-      "title": "Risograph Articulated Character Rig (RISO3)",
-      "description": "Ink-separated character rigs with FK, planted two-bone IK, dynamic joint-bound limb contours, authored expressions, stable printed-frame cadence, and rig diagnostics.",
+      "title": "Risograph Character Rigs & Source-Contour Model Sheets (RISO7)",
+      "description": "Art-directed 2D print character rigs with paper knockouts, authored facial expressions, FK/IK, SVG curve-accurate proportion meshes, concave triangulation and printable per-character reference sheets.",
       "dependencies": [],
       "registryDependencies": [
         "riso-print"
@@ -3353,6 +3363,21 @@
           "path": "registry/video/riso-joint-skin.ts",
           "type": "registry:ui",
           "target": "components/video/riso-joint-skin.ts"
+        },
+        {
+          "path": "registry/video/riso-proportion-mesh.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-proportion-mesh.ts"
+        },
+        {
+          "path": "registry/video/riso-character-sheet-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-character-sheet-react.tsx"
+        },
+        {
+          "path": "registry/video/riso-path-geometry.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-path-geometry.ts"
         }
       ]
     },
@@ -3373,6 +3398,45 @@
           "path": "registry/video/watercolour-brush-react.tsx",
           "type": "registry:ui",
           "target": "components/video/watercolour-brush-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "watercolour-wet-paper",
+      "type": "registry:ui",
+      "title": "Watercolour Wet Paper & Pigment Transport (WM4)",
+      "description": "Shared paper-space finite-volume watercolor study: multiple wet pigments mix across one conservative grid, then sediment and dry into permanent, seeded, frame-addressable colors. Bounded CPU reference solver, SVG adapter, 16:9/9:16 FilmStage sample and interactive material parameters. Qualitative watercolor physics rather than calibrated spectral pigment.",
+      "dependencies": [],
+      "registryDependencies": [
+        "watercolour-brush"
+      ],
+      "files": [
+        {
+          "path": "registry/video/watercolour-wet-paper.ts",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-wet-paper.ts"
+        },
+        {
+          "path": "registry/video/watercolour-wet-paper-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-wet-paper-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "watercolour-illustration",
+      "type": "registry:ui",
+      "title": "Art-directed Watercolor Illustration & Motion",
+      "description": "WC9 original-source SVG illustration director: safe semantic group/path graph, rooted local pivots, absolute-frame keyframes, differentiated transparent watercolor/line/drybrush marks and optional shared wet-paper underpainting. Arbitrary subject authoring is supported through a bounded portable JSON contract.",
+      "dependencies": [],
+      "registryDependencies": [
+        "watercolour-wet-paper"
+      ],
+      "files": [
+        {
+          "path": "registry/video/watercolour-illustration.tsx",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-illustration.tsx"
         }
       ]
     },
@@ -3446,12 +3510,87 @@
       ]
     },
     {
+      "name": "universal-rig",
+      "type": "registry:ui",
+      "title": "Universal Rig (RIG1)",
+      "description": "Style-agnostic 2D rigs for people, dogs, horses, cats, songbirds, butterflies, koi, dragons, modern and vintage cars, bicycles with riders, locomotives, planes, helicopters, hot-air balloons, ships and clocks: a JSON bone hierarchy with material-role parts and procedural drivers (IK gaits with real footfall orders, toe roll and planted feet, side-view projected wingbeats, IK reaches, suspension springs, lights and indicators, turns in depth, rolling and skidding wheels, crank linkages, emitters, pendulums, clock hands, blinks and talk), evaluated purely from the frame, painted in six film looks on ones or twos with a tracking camera over world-anchored ground.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track",
+        "crayon-storybook"
+      ],
+      "files": [
+        {
+          "path": "registry/rig/rig-spec.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-spec.ts"
+        },
+        {
+          "path": "registry/rig/rig-evaluate.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-evaluate.ts"
+        },
+        {
+          "path": "registry/rig/rig-kit.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-kit.ts"
+        },
+        {
+          "path": "registry/rig/rig-presets-living.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-presets-living.ts"
+        },
+        {
+          "path": "registry/rig/rig-presets-machines.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-presets-machines.ts"
+        },
+        {
+          "path": "registry/rig/rig-presets-nature.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-presets-nature.ts"
+        },
+        {
+          "path": "registry/rig/rig-presets-actions.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-presets-actions.ts"
+        },
+        {
+          "path": "registry/rig/rig-flutter.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-flutter.ts"
+        },
+        {
+          "path": "registry/rig/rig-presets.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-presets.ts"
+        },
+        {
+          "path": "registry/rig/rig-react.tsx",
+          "type": "registry:ui",
+          "target": "components/rig/rig-react.tsx"
+        },
+        {
+          "path": "registry/video/collage/collage-geometry.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-geometry.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-texture.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-texture.ts"
+        }
+      ]
+    },
+    {
       "name": "editorial-collage",
       "type": "registry:ui",
       "title": "Editorial Paper Collage (COLLAGE1)",
       "description": "Data-driven newsroom-explainer paper collage: torn and cut paper with white fibre cores and lift shadows, amplitude-modulated halftone shading and archival-print filter, tape, boiling marker and highlighter strokes, condensed headlines on pasted-up slips with measured word layout, paper maps (Natural Earth land) with routes and pins, red string, jointed paper-puppet characters with walk/run/talk/gesture actions, stop-motion cadence and boil, parallax rostrum camera, object kit, real-photo registers (cut-outs with alpha-following torn sticker borders, halftone/duotone print, Ken Burns archival prints, document scans with OCR-placed highlights and spotlight, flat-colour and dark slate boards, shaded-relief maps, label/year boxes, chapter captions) and a paper-tear transition. Pure absolute-frame evaluation; JSON scenes validated with path-specific errors.",
       "dependencies": [],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "universal-rig"
+      ],
       "files": [
         {
           "path": "registry/video/collage/collage-geometry.ts",
@@ -3559,6 +3698,21 @@
           "target": "components/video/ukiyoe/ukiyoe-figure.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-figure-front.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-figure-front.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-oiran.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-oiran.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-maiko.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-maiko.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"
@@ -3577,6 +3731,21 @@
           "path": "registry/video/ukiyoe/ukiyoe-transitions.tsx",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-transitions.tsx"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-scenery.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-scenery.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-yokai.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-yokai.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-crowd.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-crowd.ts"
         }
       ]
     },
@@ -3597,6 +3766,28 @@
           "path": "registry/video/film-look-react.tsx",
           "type": "registry:ui",
           "target": "components/video/film-look-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ink-shanshui-landscape",
+      "type": "registry:ui",
+      "title": "Chinese Ink Shanshui Landscape Animator",
+      "description": "Code-drawn 16:9 Chinese ink landscapes with layered sepia mountain washes, cunfa cliff lines, original pine, willow and bamboo art, arched bridges, water, mist and parallax; three compositional presets, deterministic absolute-frame animation, no raster references or external runtime dependencies.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-actor-director"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-shanshui.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-shanshui.ts"
+        },
+        {
+          "path": "registry/video/ink-shanshui-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-shanshui-react.tsx"
         }
       ]
     },
@@ -3720,33 +3911,6 @@
           "path": "registry/video/ink-figure-motion.ts",
           "type": "registry:ui",
           "target": "components/video/ink-figure-motion.ts"
-        }
-      ]
-    },
-    {
-      "name": "ink-cinematic-landscape",
-      "type": "registry:ui",
-      "title": "Cinematic Chinese Ink Landscape",
-      "description": "Original code-painted shan-shui animation engine: typed scene/motif DSL, pressure-native mountains, pine and willow, cliffs, stone river, bridge, pavilion, atmosphere, scholar gestures, absolute-frame camera and 16:9/9:16 compositing.",
-      "dependencies": [],
-      "registryDependencies": [
-        "ink-wash-core"
-      ],
-      "files": [
-        {
-          "path": "registry/video/ink-cinematic-scene.ts",
-          "type": "registry:ui",
-          "target": "components/video/ink-cinematic-scene.ts"
-        },
-        {
-          "path": "registry/video/ink-cinematic-scholar-react.tsx",
-          "type": "registry:ui",
-          "target": "components/video/ink-cinematic-scholar-react.tsx"
-        },
-        {
-          "path": "registry/video/ink-cinematic-scene-react.tsx",
-          "type": "registry:ui",
-          "target": "components/video/ink-cinematic-scene-react.tsx"
         }
       ]
     },
@@ -6466,6 +6630,68 @@
           "path": "registry/motion/paired-focus-react.tsx",
           "type": "registry:ui",
           "target": "components/motion/paired-focus-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "paper-craft",
+      "type": "registry:ui",
+      "title": "Paper Craft Theatre",
+      "description": "Frame-exact cut-paper film engine: garden, botanical relief, five object sculptures and two reference-led scenery worlds (woodland, alpine lake). Opaque cutout foliage, layered relief, real apertures, palettes, two output aspects and Stage controls.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/paper-craft.ts",
+          "type": "registry:ui",
+          "target": "components/video/paper-craft.ts"
+        },
+        {
+          "path": "registry/video/paper-craft-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/paper-craft-react.tsx"
+        },
+        {
+          "path": "registry/video/paper-botanical-kit.ts",
+          "type": "registry:ui",
+          "target": "components/video/paper-botanical-kit.ts"
+        },
+        {
+          "path": "registry/video/paper-object-kit.ts",
+          "type": "registry:ui",
+          "target": "components/video/paper-object-kit.ts"
+        },
+        {
+          "path": "registry/video/paper-scenery-kit.ts",
+          "type": "registry:ui",
+          "target": "components/video/paper-scenery-kit.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-cinematic-landscape",
+      "type": "registry:ui",
+      "title": "Cinematic Chinese Ink Landscape",
+      "description": "Original code-painted shan-shui animation engine: typed scene/motif DSL, pressure-native mountains, pine and willow, cliffs, stone river, bridge, pavilion, atmosphere, scholar gestures, absolute-frame camera and 16:9/9:16 compositing.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-wash-core"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-cinematic-scene.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-cinematic-scene.ts"
+        },
+        {
+          "path": "registry/video/ink-cinematic-scholar-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-cinematic-scholar-react.tsx"
+        },
+        {
+          "path": "registry/video/ink-cinematic-scene-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-cinematic-scene-react.tsx"
         }
       ]
     }

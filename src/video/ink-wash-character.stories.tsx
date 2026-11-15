@@ -256,7 +256,9 @@ function Export({aspect}:{aspect:Aspect}){
   </VideoExportStage>;
 }
 const meta={title:"Video production/Film Looks/Chinese Ink/Character Performance",
-  id:"video-ink-character",component:Studio,parameters:{layout:"fullscreen"}} satisfies Meta<typeof Studio>;
+  id:"video-ink-character",component:Studio,parameters:{layout:"fullscreen"},
+  // Rig helpers and the film surface are imported by other stories; they are not stories.
+  excludeStories:["placeActor","InkPerformanceFilm","DEFAULT_INK_ACTOR"]} satisfies Meta<typeof Studio>;
 export default meta;
 export const Interactive:StoryObj<typeof meta>={
   name:"Scholar · walk, gaze, expression, speech, bow",
