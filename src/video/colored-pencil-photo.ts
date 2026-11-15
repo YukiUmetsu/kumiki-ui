@@ -119,7 +119,6 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
   const step=limit(Math.round(5/options.density),3,11);
   const gridW=Math.ceil(w/step), gridH=Math.ceil(h/step);
   const max=30000;
-  let k=0;
   for(let gy=0;gy<gridH;gy++)for(let gx=0;gx<gridW;gx++){
     if(strokes.length>=max)break;
     const j=gy*gridW+gx;
@@ -157,7 +156,6 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
       width:pass===0?.58:pass===1?.72:.36,
       alpha,pass,
     });
-    k++;
   }
   // Stable chronological grouping; no need to store frames or mutable clocks.
   strokes.sort((a,b)=>a.pass-b.pass);
