@@ -404,7 +404,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     const candidateHtml=renderToStaticMarkup(<CrayonScene spec={candidate} frame={299}/>);
     const baselineHtml=renderToStaticMarkup(<CrayonScene spec={baseline} frame={299}/>);
     expect(candidateHtml.match(/data-km-crayon-contact-feather-mask=""/g)?.length)
-      .toBe((baselineHtml.match(/data-km-crayon-contact-feather-mask=""/g)?.length??0)+3);
+      .toBe((baselineHtml.match(/data-km-crayon-contact-feather-mask=""/g)?.length??0)+5);
   });
   it("preserves F1 narrow anatomical near-eye occlusion rather than a round doll iris",()=>{
     const scene=crayonCc0FaceStudy({view:"wax"});
