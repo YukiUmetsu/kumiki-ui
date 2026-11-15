@@ -141,3 +141,46 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
   await tooth.focus();await tooth.press("ArrowLeft");
   await expect(svg).toHaveAttribute("data-km-pencil-foundation","CP-F1");
 });
+
+
+test("ArtCraft fox brush and human nape are inspectable from actual anatomy at 1×/2.15× in both film aspects",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
+  const scene=page.locator("[data-km-foundation-studio]");
+  const svg=page.locator("svg[data-km-colored-pencil]");
+  const subject=page.getByRole("combobox",{name:"Foundation subject"});
+  const aspect=page.getByRole("combobox",{name:"Foundation aspect"});
+  const target=page.getByRole("combobox",{name:"Foundation inspection focus"});
+  const macro=page.getByRole("checkbox",{name:"Foundation inspect macro"});
+
+  await expect(scene).toHaveAttribute("data-km-foundation-inspection-focus","default");
+  for(const format of ["landscape","portrait"] as const){
+    await aspect.selectOption(format);
+    for(const [specimen,focus,part] of [
+      ["fox","fox-tail","tail-back"],
+      ["portrait","portrait-nape","neck"],
+    ] as const){
+      await subject.selectOption(specimen);
+      const before=await svg.screenshot({animations:"disabled"});
+      await target.selectOption(focus);
+      await macro.check();
+      await expect(scene).toHaveAttribute("data-km-foundation-inspection-focus",part);
+      await expect(svg).toHaveAttribute("style",/scale\(2\.15\)/);
+      const origin=await svg.evaluate(node=>(node as SVGSVGElement).style.transformOrigin);
+      const coordinates=(origin.match(/([\d.]+)% ([\d.]+)%/)??[]);
+      expect(coordinates.length).toBe(3);
+      expect(Number(coordinates[1])).toBeGreaterThan(0);
+      expect(Number(coordinates[1])).toBeLessThan(100);
+      expect(Number(coordinates[2])).toBeGreaterThan(0);
+      expect(Number(coordinates[2])).toBeLessThan(100);
+      // A real browser screenshot of the original CP-F1 artwork, NOT
+      // a photograph edit or duplicated/flattened alternate hero.
+      await svg.screenshot({animations:"disabled",
+        path:info.outputPath("pencil-"+specimen+"-"+format+"-"+part+"-macro.png")});
+      expect(await svg.locator("image,foreignObject,feImage").count()).toBe(0);
+      await target.selectOption("default");
+      await expect(scene).toHaveAttribute("data-km-foundation-inspection-focus","default");
+      await macro.uncheck();
+      expect(await svg.screenshot({animations:"disabled"})).toEqual(before);
+    }
+  }
+});
