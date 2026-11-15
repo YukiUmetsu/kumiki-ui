@@ -46,11 +46,19 @@ describe("CC0 photo-derived portrait feature construction",()=>{
     expect(portrait.eyeNearCenter[1]).not.toBeCloseTo(
       mapCC0WomanPortraitFeatures(layout).eyeNearCenter[1]);
     const art=createPencilPortraitFeatureMarks(photo(506,900),portrait,8);
-    expect(art.marks.every(m=>m.x>=1&&m.x<504&&m.y>=1&&m.y<898))
+    expect(art.marks.every(m=>m.x>=1&&m.x<504&&m.y>=1&&m.y<898&&
+      m.endX>=1&&m.endX<=504&&m.endY>=1&&m.endY<=898))
       .toBe(true);
     expect(()=>mapCC0WomanPortraitFeatures({...layout,naturalWidth:0}))
       .toThrow(RangeError);
     expect(()=>mapCC0WomanPortraitFeatures({...layout,zoom:9}))
+      .toThrow(RangeError);
+    // Focal coordinates at the exact top-left edge are valid.
+    expect(()=>mapCC0WomanPortraitFeatures({...layout,focal:[0,0]}))
+      .not.toThrow();
+    expect(()=>mapCC0WomanPortraitFeatures({...layout,focal:[-.01,.5]}))
+      .toThrow(RangeError);
+    expect(()=>mapCC0WomanPortraitFeatures({...layout,mode:"invalid" as never}))
       .toThrow(RangeError);
   });
   it("draws independent iris, eyelid, brow, alar and lip families; never a cartoon eye fill",()=>{
@@ -71,6 +79,34 @@ describe("CC0 photo-derived portrait feature construction",()=>{
     expect(createPencilPortraitFeatureMarks(input,mapped,55)).toEqual(made);
     expect(createPencilPortraitFeatureMarks(input,mapped,56).marks)
       .not.toEqual(made.marks);
+  });
+  it("protects bright photographed iris glints instead of painting over them",()=>{
+    const clean=photo();
+    const guides=mapCC0WomanPortraitFeatures(layout);
+    const untreated=createPencilPortraitFeatureMarks(clean,guides,55);
+    const glint=photo();
+    const [cx,cy]=guides.eyeNearCenter;
+    for(let y=Math.floor(cy)-9;y<=Math.ceil(cy)+9;y++)
+      for(let x=Math.floor(cx)-9;x<=Math.ceil(cx)+9;x++){
+        const k=4*(glint.width*y+x);
+        glint.data[k]=255;glint.data[k+1]=255;glint.data[k+2]=255;
+      }
+    const reserved=createPencilPortraitFeatureMarks(glint,guides,55);
+    expect(untreated.featureCounts["iris-near"]).toBeGreaterThan(0);
+    expect(reserved.highlightReserves).toBeGreaterThan(0);
+    expect(reserved.featureCounts["iris-near"]??0)
+      .toBeLessThan(untreated.featureCounts["iris-near"]);
+    expect(createPencilPhotoStudy(glint,{seed:55},guides)
+      .portraitHighlightReserves).toBe(reserved.highlightReserves);
+  });
+  it("rejects malformed source pixels and invalid observed guides before painting",()=>{
+    const guides=mapCC0WomanPortraitFeatures(layout);
+    expect(()=>createPencilPortraitFeatureMarks({
+      width:0,height:0,data:new Uint8ClampedArray(0),
+    },guides)).toThrow(RangeError);
+    expect(()=>createPencilPortraitFeatureMarks(photo(),{
+      ...guides,eyeNearCenter:[NaN,22],
+    })).toThrow(RangeError);
   });
   it("applies features ONLY when matching photo guides are explicitly supplied",()=>{
     const input=photo(104,72);
