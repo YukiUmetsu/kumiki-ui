@@ -260,6 +260,37 @@ function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
             " "+f(tip[0])+" "+f(tip[1]);
           return {root,d:out};
         });
+        // Alum-head outcrops describe the rock cap's thickness. Their
+        // dark interiors are physically attached to the crest-to-foothill
+        // spine, not detached triangles sprinkled across the mountain.
+        // Sparse, uneven lips expose paper at different heights.
+        const shelves=Array.from({length:band===0?1:band===1?2:3},
+          (_,j)=>{
+            const t=.24+j*.205+
+              (s(seed+251,i*37+j*13)-.5)*.025;
+            const root=quadraticPoint(parent,bend,end,t);
+            const wing=(j%2===0?side:-side);
+            const reach=(band===0?6:band===1?11:15)*
+              (.81+.34*s(seed+263,i*19+j*17));
+            const load=(band===0?2.3:band===1?4.2:5.9)*
+              (.76+.33*s(seed+269,i*23+j));
+            const x0=root[0],y0=root[1];
+            const face="M"+f(x0)+" "+f(y0)+
+              " Q"+f(x0+wing*reach*.24)+" "+f(y0-load*.4)+
+              " "+f(x0+wing*reach*.53)+" "+f(y0-load*.28)+
+              " Q"+f(x0+wing*reach*.73)+" "+f(y0-load*.55)+
+              " "+f(x0+wing*reach)+" "+f(y0+load*.18)+
+              " Q"+f(x0+wing*reach*.94)+" "+f(y0+load*.77)+
+              " "+f(x0+wing*reach*.58)+" "+f(y0+load)+
+              " Q"+f(x0+wing*reach*.28)+" "+f(y0+load*.64)+
+              " "+f(x0)+" "+f(y0)+" Z";
+            const rim="M"+f(x0)+" "+f(y0)+
+              " Q"+f(x0+wing*reach*.34)+" "+f(y0-load*.58)+
+              " "+f(x0+wing*reach*.53)+" "+f(y0-load*.28)+
+              " Q"+f(x0+wing*reach*.78)+" "+f(y0-load*.46)+
+              " "+f(x0+wing*reach)+" "+f(y0+load*.18);
+            return {root,face,rim};
+          });
         return <g key={i} data-km-rock-shoulder=""
           data-km-rock-shoulder-crest={f(crest)}
           data-km-rock-shoulder-root={f(x)+","+f(y)}
@@ -282,6 +313,19 @@ function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
           <path data-km-rock-shoulder-wash=""
             d={wash} fill={"url(#"+washId+")"}
             filter={"url(#"+washFilter+")"}/>
+          {shelves.map(({root,face,rim},j)=><g key={"ledge"+j}
+            data-km-rock-alum-ledge=""
+            data-km-rock-alum-ledge-root={f(root[0])+","+f(root[1])}>
+            <path data-km-rock-alum-face="" d={face}
+              fill={j%2===0?"#48382d":"#65503e"}
+              opacity={f((band===0?.27:band===1?.47:.66)*
+                (.78+.19*s(seed+281,i*19+j))*(1-.18*mist))}/>
+            <path data-km-rock-alum-rim="" d={rim} fill="none"
+              stroke="#4d3a2c"
+              strokeWidth={f(band===0?.53:band===1?.77:.98)}
+              opacity={f((band===0?.29:band===1?.48:.68)*(1-.22*mist))}
+              strokeLinecap="round"/>
+          </g>)}
           <path data-km-rock-shoulder-bone=""
             d={bone} fill="none" stroke="#4b3d31"
             strokeWidth={f(band===0?.75:band===1?1.28:1.73)}
