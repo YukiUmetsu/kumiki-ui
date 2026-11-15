@@ -294,6 +294,43 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect((full.match(/data-km-rock-hero-crease=""/g)??[]))
         .toHaveLength(4);
       expect(childFibres).toHaveLength(8);
+      // Fuchun nested backs are modeled as attached cubic ribbons.
+      // Unlike the earlier straight wedge/rain marks, every primary
+      // lobe grows from the ONE mountain bone and the fine hemp tips
+      // grow from actual stations of that lobe.
+      const terraces=[...full.matchAll(
+        /data-km-rock-terrace="" data-km-rock-terrace-root="([^"]+)" data-km-rock-terrace-side="(-?1)"/g,
+      )];
+      expect(terraces).toHaveLength(3);
+      expect(terraces.map(m=>Number(m[2]))).toEqual([-1,1,-1]);
+      expect(new Set(terraces.map(m=>m[1])).size).toBe(3);
+      const backs=[...full.matchAll(
+        /data-km-rock-terrace-back="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      const unders=(full.match(/data-km-rock-terrace-under=""/g)??[]).length;
+      expect(backs).toHaveLength(3);
+      expect(unders).toBe(3);
+      expect(backs.every((d,i)=>
+        d.startsWith("M"+terraces[i][1].replace(","," "))&&
+        (d.match(/ C/g)??[]).length>=34&&d.endsWith(" Z")))
+        .toBe(true);
+      const caps=[...full.matchAll(
+        /data-km-rock-terrace-cap="" data-km-rock-terrace-cap-root="([^"]+)" d="([^"]+)"/g,
+      )];
+      expect(caps).toHaveLength(6);
+      expect(caps.every(([,root,d])=>d.startsWith("M"+root.replace(","," "))))
+        .toBe(true);
+      const terraceFibres=[...full.matchAll(
+        /data-km-rock-terrace-hemp="" data-km-rock-terrace-hemp-root="([^"]+)" data-km-rock-terrace-hemp-dry="(yes|no)" d="([^"]+)"/g,
+      )];
+      expect(terraceFibres).toHaveLength(40); // 13 + 16 + 11 from three parent backs
+      expect(new Set(terraceFibres.map(m=>m[1])).size).toBe(40);
+      expect(terraceFibres.filter(m=>m[2]==="yes").length).toBeGreaterThan(7);
+      expect(terraceFibres.every(([,r,,d])=>
+        r.split(",").every(v=>Number.isFinite(Number(v)))&&
+        d.startsWith("M"+r.replace(","," "))&&
+        (d.match(/ C/g)??[]).length>=22&&d.endsWith(" Z")))
+        .toBe(true);
       expect((full.match(/data-km-rock-hero-recess=""/g)??[]))
         .toHaveLength(1);
       expect(ribFaces.every((d,i)=>d.startsWith("M"+
