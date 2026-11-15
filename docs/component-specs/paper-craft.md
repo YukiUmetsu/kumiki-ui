@@ -238,3 +238,46 @@ No new API, external asset, story folder, renderer or dependency. Existing detai
 The existing **Video production / Film Looks / Paper Craft / Scenery** page now uses an original connected knife-cut mountain silhouette instead of smooth convex domes. Each peak has a seeded but fixed asymmetric sequence of shoulders, ledges and sharp crest breaks. Its fitted snow stock shares summit and shoulder stations with the rock beneath rather than floating as a generic triangular sticker. Two actual cut-through snow apertures per summit reveal the underlying rock, with deliberate bridges between the openings and the outer snow edge. A companion raised cardstock sheet carries two facing folded rock planes per peak.
 
 The public `paperScenerySpec` contract is unchanged. All six Alpine combinations (two aspects × three palettes) retain deterministic absolute-frame motion, opaque cut paper, two valid punched holes per snowcap, and the 128-layer budget. No additional Storybook page, package, raster reference or animation technique was introduced. The shape-led ArtCraft review remains conditional on actual browser screenshots and native film frames, rather than path-count tests alone.
+
+## PAPER-D1 — reusable shot-based paper film framework (ArtCraft v7)
+
+The installable `paper-craft` registry pack now also exports `registry/video/paper-director.ts` and `paper-director-react.tsx`. This is a **composer over the existing PAPER1 physical renderer**, not a sixth material style. Authors can provide arbitrary original closed SVG cutouts, true holes, stock depth and pivots; position/angle keys and a shallow overhead camera animate these assets with absolute-frame determinism. A sequence contains 1–24 shots, two independently authored aspects, consistent fps/shot timing, and a hard editorial cut at each boundary. Subject drawing quality remains the author's responsibility.
+
+```tsx
+import { paperCut, compilePaperDirector } from "./components/video/paper-director";
+import { PaperDirectorStage } from "./components/video/paper-director-react";
+import type { PaperDirectorFilm } from "./components/video/paper-director";
+
+const makeScene=(width:number,height:number) => ({
+  version:1 as const, id:"paper-card-"+width,style:"layered" as const,
+  width,height,fps:30,durationFrames:90,seed:12,
+  backing:"#142F37",light:"#FAE9C8",
+  layers:[{
+    id:"paper-disc",color:"#F6DEB0",depth:8,
+    path:paperCut.ellipse(width/2,height/2,45,45),
+    holes:[paperCut.ellipse(width/2,height/2,12,12)],
+    motion:"still" as const,enterFrame:0,durationFrames:1,
+    poseKeys:[
+      {frame:0,x:-55,y:0,angle:0,ease:"smooth" as const},
+      {frame:44,x:0,y:0,angle:0,ease:"hold" as const},
+      {frame:89,x:0,y:0,angle:22},
+    ],
+  }],
+  cameraKeys:[{frame:0,x:0,y:0,zoom:1},{frame:89,x:0,y:0,zoom:1.05}],
+});
+const film:PaperDirectorFilm={
+  version:1,id:"original-cut-paper",
+  shots:[{id:"opening",scenes:{
+    landscape:makeScene(960,540),
+    portrait:makeScene(540,960),
+  }}],
+};
+const plan=compilePaperDirector(film);
+// <PaperDirectorStage film={film} aspect="landscape" frame={42}/>
+```
+
+The Stage takes the **absolute full-film frame** and resolves shot-local frames; frame seeking is stable when played backwards or jumped arbitrarily. Internally FD1 `paper-craft-director` accepts `content.props.storyboard` containing the `PaperDirectorFilm` JSON object, or app-level `preset:"four-chapters"` with `medium`, `motion` and `seed` controls. FD1 retains captions, audio, aspect outputs and rendering. See [example 32s, dual-format film](../../examples/film/paper-craft-director.film.json).
+
+Storybook: **Video production → Film Looks → Paper Craft → Film Director · Four Chapters**. It provides chapter buttons, full-length frame scrubbing, play/pause, all five physical media, aspect, camera/prop motion intensity, seed, tooth, shadows and edges. Existing Paper Craft pages and IDs remain unchanged, and there is no new sidebar folder.
+
+ArtCraft source, construction table, rights and non-goals: [PAPER-D1 film study](../research/paper-director-artcraft-film-study.md) and [structured reference ledger](../research/paper-director-artcraft-reference-study.json). Native FilmStage proof of all four subjects/ratios and a cross-cut encoded clip is required before merging. Passing technical tests does not imply finished character art or true engineered folds.
