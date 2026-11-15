@@ -1104,3 +1104,18 @@ describe("UKIYO1 follow-through and idle life", () => {
     expect(gazes.size).toBeGreaterThan(2);
   });
 });
+
+describe("UKIYO1 print-quality effects", () => {
+  it("draws Hiroshige's long rain with a veil and splashes, snow in three depths, and hooked flame tongues", () => {
+    const rain = drawParticles({ type: "rain", count: 90, ground: 900 }, 30, 0, 3);
+    const lens = (rain.find(p => p.t === "stroke") as { d: string }).d.split("M").filter(Boolean).map(seg => { const n = seg.match(/-?\d+(\.\d+)?/g)!.map(Number); return Math.hypot(n[2], n[3]); });
+    expect(Math.min(...lens)).toBeGreaterThan(1080 * .3);                    // lines cross much of the sky
+    expect(JSON.stringify(rain)).toContain('"noPrint":true');                // the darkening veil
+    expect(rain.filter(p => p.t === "stroke").length).toBe(4);               // three rain blocks and the splashes
+    expect(drawParticles({ type: "rain", count: 90, style: "short" }, 30, 0, 3).filter(p => p.t === "stroke").length).toBe(2);
+    const snow = drawParticles({ type: "snow", count: 200 }, 30, 0, 3).filter(p => p.t === "dots");
+    expect(snow.length).toBe(3);
+    const fire = (f: number) => JSON.stringify(drawMotif("fire", {}, { frame: f, wind: 0, seed: 2, progress: 0 }));
+    expect(fire(10)).not.toBe(fire(14));                                     // the flames flicker
+  });
+});
