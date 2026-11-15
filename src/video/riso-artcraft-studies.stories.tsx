@@ -11,6 +11,7 @@ import {RisoPrint} from "../../registry/video/print-plates-react";
 import {RisoCharacterInk,RisoCharacterKnockout} from "../../registry/video/riso-character-react";
 import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import {RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET} from "./riso-character-mesh-sheets";
+import {RISO29_ANAT1,inspectRisoAnatomy} from "./riso-human-anatomy";
 
 type PlateMode="both"|"blue"|"red";
 interface ArtcraftProps {actor:"courier"|"paper-bird"}
@@ -524,4 +525,133 @@ export const OcularPrintCraft:StoryObj<typeof meta>={
   name:"RISO26 · Original Portrait Tone Master Craft",
   args:{actor:"courier"},
   render:()=> <RisoEyeCraftLab/>,
+};
+
+
+/** RISO29 / ArtCraft 9.1. All previews below are from the *same* physical
+ * two-ink RisoPrint and original 240-frame character rig. Both editorial
+ * figures can be compared at actual full-body scale and in the true
+ * cervical/face source crop, never an unrelated raster reference avatar.
+ */
+function Riso29PrintPose({actor,frame,mode,plate,showRig,screenDensity}:{
+  actor:RisoCharacterSpec;frame:number;mode:"full"|"portrait";
+  plate:PlateMode;showRig:boolean;screenDensity:number;
+}){
+  const width=510,height=455;
+  const pose=evaluateRisoCharacter(actor,frame);
+  const head=pose.joints.find(j=>j.id==="head")!;
+  const root=pose.joints.find(j=>j.id==="root")!;
+  const scale=mode==="full"?1.65:4.05;
+  const x=mode==="full"?width/2-root.x*scale:width/2-head.x*scale;
+  const y=mode==="full"?height-38:160-head.y*scale;
+  const printSpec:RisoPrintSpec={
+    version:1,width,height,paper:"#F9EDDB",seed:38,startFrame:0,passFrames:1,gapFrames:0,
+    plates:[{id:"blue",color:blue,opacity:1,dotCell:4,dotAngle:-12,registration:[0,0]},
+      {id:"red",color:red,opacity:1,dotCell:4,dotAngle:17,registration:[.5,-.4]}],
+  };
+  return <div data-km-riso29-source-actor={actor.id} data-km-riso29-source-frame={frame}
+    data-km-riso29-source-view={mode} style={{minWidth:0,border:"1px solid #D6C6AF"}}>
+    <RisoPrint spec={printSpec} frame={239} paperGrain={.42} misregistration={.24}
+      screenMode="am" screenDensity={screenDensity} dotGain={.05}
+      label={actor.id+" ANAT1 editorial "+mode}
+      visiblePlateIds={plate==="both"?undefined:[plate]}
+      artworks={{blue:()=>null,red:()=>null}}
+      foregroundLayers={[{
+        id:actor.id+"-anatomy",
+        knockout:<RisoCharacterKnockout spec={actor} frame={frame}
+          x={x} y={y} scale={scale} spread={1.4}/>,
+        artworks:{
+          blue:paint=><RisoCharacterInk spec={actor} frame={frame}
+            plateId="blue" paint={paint} x={x} y={y} scale={scale}
+            showRig={showRig}/>,
+          red:paint=><RisoCharacterInk spec={actor} frame={frame}
+            plateId="red" paint={paint} x={x} y={y} scale={scale}/>,
+        },
+      }]}
+      style={{width:"100%",height:"auto"}}/>
+  </div>;
+}
+function Riso29AnatomyWorkbench(){
+  const [actorId,setActorId]=useState<"courier"|"paper-artist">("courier");
+  const [frame,setFrame]=useState(160);
+  const [plate,setPlate]=useState<PlateMode>("both");
+  const [showRig,setShowRig]=useState(false);
+  const [screenDensity,setScreenDensity]=useState(.42);
+  const actor=actorId==="courier"?COURIER:PAPER_ARTIST;
+  const measure=inspectRisoAnatomy(actor,frame);
+  return <main data-km-riso29-anatomy-workbench="" data-km-riso29-anatomy-actor={actorId}
+    data-km-riso29-anatomy-frame={frame} data-km-riso29-anatomy-connected={String(measure.connected)}
+    style={{background:"#EEE2CD",padding:20,minHeight:"100vh",color:"#234B63",font:"14px system-ui,sans-serif"}}>
+    <div style={{maxWidth:1160,margin:"0 auto"}}>
+      <h2 style={{font:"700 28px Georgia,serif",margin:"0 0 5px"}}>RISO29 · Human anatomy / head, neck, face</h2>
+      <p style={{maxWidth:990,fontSize:13,lineHeight:1.5}}>
+        ANAT1 source framework gives cervical/cranial joint anatomy and facial landmark grammar.
+        RISO source SVG is still fully editable and printed as cobalt and vermilion spot inks.
+        This is stylized 2D anatomy, not a measured portrait or 3/4 likeness certificate.
+      </p>
+      <div style={{display:"flex",gap:15,flexWrap:"wrap",alignItems:"end",margin:"14px 0"}}>
+        <label>Character
+          <select aria-label="RISO29 anatomy character" value={actorId}
+            onChange={e=>setActorId(e.target.value as "courier"|"paper-artist")}
+            style={{display:"block",minHeight:32}}>
+            <option value="courier">Paper Courier</option><option value="paper-artist">Paper Artist</option>
+          </select></label>
+        <label>Expression
+          <select aria-label="RISO29 anatomy pose" value={frame}
+            onChange={e=>setFrame(Number(e.target.value))}
+            style={{display:"block",minHeight:32}}>
+            <option value={0}>First contact / 0</option><option value={46}>Neutral / 46</option>
+            <option value={78}>Blink / 78</option><option value={160}>Speaking / 160</option>
+            <option value={198}>Smile / 198</option><option value={239}>Held finish / 239</option>
+          </select></label>
+        <label>Ink separation
+          <select aria-label="RISO29 anatomy ink" value={plate}
+            onChange={e=>setPlate(e.target.value as PlateMode)}
+            style={{display:"block",minHeight:32}}>
+            <option value="both">Both spot inks</option><option value="blue">Cobalt only</option>
+            <option value="red">Vermilion only</option>
+          </select></label>
+        <label>Physical coverage · {screenDensity.toFixed(2)}
+          <input aria-label="RISO29 anatomy ink coverage" type="range" min={.25} max={.75} step={.05}
+            value={screenDensity} onChange={e=>setScreenDensity(Number(e.target.value))}
+            style={{display:"block",width:140}}/>
+        </label>
+        <label><input type="checkbox" checked={showRig}
+          onChange={e=>setShowRig(e.target.checked)}
+          aria-label="RISO29 anatomy show joints"/> 2D neck / limb rig</label>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:15}}>
+        <section style={{background:"#FCF6EB",padding:10}}>
+          <strong style={{display:"block",marginBottom:7}}>01 / Complete original character — silhouette and stance</strong>
+          <Riso29PrintPose actor={actor} frame={frame} mode="full" plate={plate}
+            screenDensity={screenDensity} showRig={showRig}/>
+        </section>
+        <section style={{background:"#FCF6EB",padding:10}}>
+          <strong style={{display:"block",marginBottom:7}}>02 / Printed forehead → clavicle — true portrait crop</strong>
+          <Riso29PrintPose actor={actor} frame={frame} mode="portrait" plate={plate}
+            screenDensity={screenDensity} showRig={showRig}/>
+        </section>
+      </div>
+      <dl style={{display:"flex",flexWrap:"wrap",gap:24,marginTop:15,fontSize:13}}>
+        <div><dt>Head vs shoulder-joint span</dt><dd data-km-riso29-head-shoulder-ratio=""
+          style={{margin:0,fontWeight:700}}>{measure.headToShoulder.toFixed(3)}×</dd></div>
+        <div><dt>Actual connected cervical axis</dt><dd style={{margin:0,fontWeight:700}}>
+          {measure.neckLength.toFixed(1)} source units</dd></div>
+        <div><dt>Source facial ink primitives</dt><dd style={{margin:0,fontWeight:700}}>
+          {measure.printDetails} named parts</dd></div>
+        <div><dt>ANAT1 adult reference (not target)</dt><dd style={{margin:0,fontWeight:700}}>
+          {RISO29_ANAT1.headsTallAdultReference} heads tall</dd></div>
+      </dl>
+      <p style={{fontSize:12,color:"#5A7284",lineHeight:1.5}}>
+        Separate observations: this authored figure is deliberately stylized rather than ANAT1 adult average.
+        Face/neck geometry is explicit source-authored curved paths, while press dots remain individual real stencil masters.
+        Check both 16:9/9:16 full film and all smile/blink/speak heads before accepting a release.
+      </p>
+    </div>
+  </main>;
+}
+export const HumanAnatomyNeckPortrait:StoryObj<typeof meta>={
+  name:"RISO29 · ANAT1 Human Body / Neck / Face",
+  args:{actor:"courier"},
+  render:()=> <Riso29AnatomyWorkbench/>,
 };
