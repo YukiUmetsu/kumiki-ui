@@ -275,8 +275,8 @@ function rockLoadedCubicRibbon(root:P,c1:P,c2:P,tip:P,width:number,seed:number){
  * of nested rounded hill-backs, connected long fibres and sparse recesses.
  * These original curves are authored, not traced from museum pixels.
  */
-function MountainHeroCliff({root,seed,mist}:{
-  root:P;seed:number;mist:number;
+function MountainHeroCliff({root,seed,mist,detail}:{
+  root:P;seed:number;mist:number;detail:number;
 }){
   const [x,y]=root;
   const boneControl:P=[x-19,y+31];
@@ -377,6 +377,33 @@ function MountainHeroCliff({root,seed,mist}:{
           return {start,d:rockLoadedRibbon(start,c,end,
             .74+j*.31,seed+2911+i*59+j*23)};
         });
+        // Fuchun long-hemp dry brush: marks do not float over the hill.
+        // Two unequal density clusters follow the SAME curved face crown,
+        // leaving a deliberate open paper passage across the middle.
+        // Material pressure varies without narrowing the parent anatomy.
+        const budget=i===0?14:i===1?11:8;
+        const fibreCount=Math.round(budget*detail);
+        const flow=Array.from({length:fibreCount},(_,j)=>{
+          const dense=Math.ceil(budget*.59);
+          const station=j<dense
+            ? .17+j*.022+(s(seed+3011,i*41+j*17)-.5)*.01
+            : .54+(j-dense)*.043+(s(seed+3023,i*47+j*19)-.5)*.016;
+          const source=quadraticPoint(a,cap,belly,Math.min(.92,station));
+          // Transverse drift responds to the facing direction of the
+          // curved shoulder instead of drawing vertical screen rain.
+          const deviation=(j%4===0?-1:1)*
+            (2.5+3.4*s(seed+3041,i*13+j*29));
+          const fall=9+14*s(seed+3049,i*31+j*11)+(j%5===0?7:0);
+          const ctrl:P=[source[0]+sign*fall*.16+deviation*.24,
+            source[1]+fall*(.31+.12*s(seed+3061,i*17+j*7))];
+          const tip:P=[source[0]+sign*fall*.32+deviation,
+            source[1]+fall];
+          const load=(j%6===0?1.45:j%4===1?1.04:.66)*
+            (.7+.4*s(seed+3079,i*17+j*41));
+          return {source,path:rockLoadedRibbon(source,ctrl,tip,load,
+            seed+3083+i*137+j*37),depleted:j%4===2};
+        });
+        const faceClip=grad+"-contour";
         return <g key={i} data-km-rock-interlocked-mass=""
           data-km-rock-mass-root={f(a[0])+","+f(a[1])}
           data-km-rock-mass-side={sign}>
@@ -387,9 +414,22 @@ function MountainHeroCliff({root,seed,mist}:{
               <stop offset=".69" stopColor="#80694f" stopOpacity=".38"/>
               <stop offset="1" stopColor="#b8a082" stopOpacity=".07"/>
             </linearGradient>
+            <clipPath id={faceClip} clipPathUnits="userSpaceOnUse">
+              <path d={faceD}/>
+            </clipPath>
           </defs>
           <path data-km-rock-mass-underwash="" d={faceD}
             fill={"url(#"+grad+")"} opacity={f(.81*(1-.2*mist))}/>
+          <g data-km-rock-mass-flow-group=""
+            clipPath={"url(#"+faceClip+")"}
+            data-km-rock-mass-flow-count={fibreCount}>
+            {flow.map(({source,path,depleted},j)=><path key={j}
+              data-km-rock-mass-flow=""
+              data-km-rock-mass-flow-root={f(source[0])+","+f(source[1])}
+              data-km-rock-mass-flow-load={depleted?"lifted":"loaded"}
+              d={path} fill={j%6===0?"#342e2a":"#594939"}
+              opacity={f((depleted?.35:j%6===0?.77:.55)*(1-.21*mist))}/>)}
+          </g>
           {caps.map(({start,d},j)=><path key={j}
             data-km-rock-mass-alum-cap=""
             data-km-rock-mass-cap-root={f(start[0])+","+f(start[1])}
@@ -416,7 +456,7 @@ function MountainHeroCliff({root,seed,mist}:{
       // descends as a gently rolling hillside rather than a triangle.
       const bend:P=[r[0]+side*breadth*.57,r[1]-rise];
       const tip:P=[r[0]+side*breadth,r[1]+descend];
-      const longEdge=rockLoadedRibbon(r,bend,tip,fold.width,
+      const longEdge=rockLoadedRibbon(r,bend,tip,fold.width*.83,
         seed+1511+i*101);
       const taperStart=quadraticPoint(r,bend,tip,.22);
       const taperEnd=quadraticPoint(r,bend,tip,.87);
@@ -517,7 +557,7 @@ function MountainHeroCliff({root,seed,mist}:{
           origin[1]-high*(i===1?.55:.76)];
         const end:P=[origin[0]+side*spread,origin[1]+fall];
         const main=rockLoadedCubicRibbon(origin,c1,c2,end,
-          terrace.width,seed+2111+i*101);
+          terrace.width*.86,seed+2111+i*101);
         const subArcStart=cubicPoint(origin,c1,c2,end,.28);
         const subArcEnd=cubicPoint(origin,c1,c2,end,.76);
         const subControl:P=[subArcStart[0]+side*spread*.29,
@@ -1115,7 +1155,7 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
           <g clipPath={"url(#"+ids.grain+"-hero-"+band+"-clip)"}>
             <MountainHeroCliff
               root={[heroPeak[0],ridgeHeight(stations,heroPeak[0])+2.5]}
-              seed={seed+band*251+777} mist={mist}/>
+              seed={seed+band*251+777} mist={mist} detail={detail}/>
           </g>
         </g>}
         {/* Independently loaded foreground-to-midground brush layer.
