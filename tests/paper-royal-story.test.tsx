@@ -38,10 +38,12 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
       expect(id.size).toBe(scene.layers.length);
       expect(scene.layers.length).toBeGreaterThan(88);
       for(const name of [
-        "princess-bodice","princess-head","princess-lashes","princess-tiara",
+        "princess-bodice","princess-head","princess-neck","princess-face-planes","princess-eye-white",
+        "princess-lashes","princess-tiara",
         "princess-hair-braid","princess-right-sleeve","prince-coat",
-        "prince-left-arm","prince-crown","prince-head","prince-belt-clasp",
-        "fox-body","fox-tail","rabbit-body","rabbit-ear-left",
+        "prince-left-arm","prince-crown","prince-head","prince-neck",
+        "prince-face-planes","prince-eye-white","prince-belt-clasp",
+        "fox-body","fox-tail","fox-fur-shingles","rabbit-body","rabbit-ear-left",
         "deer-body","deer-antlers","owl-body","owl-wing-right",
         "lantern-outer","lantern-star","moon-face","castle-walls",
         "forest-left-wood","forest-right-foliage"]){
@@ -51,6 +53,12 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
       expect(scene.layers.filter(l=>l.parentId).length).toBeGreaterThan(40);
       expect(scene.layers.find(l=>l.id==="lantern-outer")?.holes?.length).toBe(1);
       expect(scene.layers.find(l=>l.id==="stage-frame")?.holes?.length).toBe(1);
+      expect(scene.layers.find(l=>l.id==="moon-face")?.holes?.length).toBe(1);
+      if(aspect==="portrait"){
+        expect(id.has("portrait-hanging-left-wood")).toBe(true);
+        expect(id.has("portrait-hanging-right-leaves")).toBe(true);
+      }
+      expect(id.has("lantern-rays")).toBe(true);
       for(const sheet of scene.layers.filter(l=>l.parentId)){
         expect(id.has(sheet.parentId!),sheet.id).toBe(true);
         expect(sheet.pivot?.length,sheet.id).toBe(2);
