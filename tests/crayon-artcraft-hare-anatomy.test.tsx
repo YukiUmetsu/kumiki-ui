@@ -96,14 +96,20 @@ describe("ArtCraft anatomical hare source construction",()=>{
     expect(iris.bounds.width/limbus.bounds.width).toBeLessThan(.75);
     expect(limbus.bounds.width/socket.bounds.width).toBeGreaterThan(.56);
     expect(lid.drawings?.length).toBe(4);
-    expect(lid.drawings?.[0].bounds.x).toBeLessThan(iris.bounds.x);
-    expect((lid.drawings?.[0].bounds.x??0)+
-      (lid.drawings?.[0].bounds.width??0))
-      .toBeGreaterThan(iris.bounds.x+iris.bounds.width);
-    expect(lid.drawings?.[0].bounds.y).toBeLessThan(iris.bounds.y);
-    expect((lid.drawings?.[0].bounds.y??0)+
-      (lid.drawings?.[0].bounds.height??0))
-      .toBeGreaterThan(iris.bounds.y+iris.bounds.height);
+    expect(iris.drawings?.length).toBe(4);
+    // The lid band only needs to cover the *collapsed* iris at blink. The
+    // prior test mistakenly required a circular full-open-sized skin sticker.
+    const closedLid=lid.drawings?.[0].bounds;
+    const closedIris=iris.drawings?.[0].bounds;
+    if(!closedLid||!closedIris)
+      throw new Error("Missing authored closed-lid geometry");
+    expect(closedLid.x).toBeLessThan(closedIris.x);
+    expect(closedLid.x+closedLid.width)
+      .toBeGreaterThan(closedIris.x+closedIris.width);
+    expect(closedLid.y).toBeLessThan(closedIris.y);
+    expect(closedLid.y+closedLid.height)
+      .toBeGreaterThan(closedIris.y+closedIris.height);
+    expect(closedLid.height/iris.bounds.height).toBeLessThan(.85);
     const lower=part("eye-lower-fur-fibers");
     expect(lower.kind).toBe("contour");
     expect(lower.parentId).toBe("eye-lower-fur-fold");
