@@ -9,7 +9,7 @@ import type { PencilObjectInput, PencilRegion, PencilTrace } from "./colored-pen
 export const PENCIL_MATERIALS = [
   "petal", "leaf", "citrus", "glass", "metal",
   "masonry", "fabric", "wood", "stone", "fur", "cast-shadow",
-  "skin", "hair", "water", "foliage", "glaze", "keratin",
+  "skin", "hair", "water", "foliage", "glaze", "keratin", "ocular",
 ] as const;
 export type PencilSurface = typeof PENCIL_MATERIALS[number];
 type Mark = "hatch" | "fiber" | "stipple";
@@ -81,6 +81,10 @@ const RECIPES: Record<PencilSurface, Recipe> = {
   keratin: { density:"layered", marks:["hatch","hatch","stipple"], tone:"core",
     flow:4, direction:77, underpaintOpacity:.93, support:true,
     clipDetails:true, contourOpacity:.61 },
+  // Glossy cornea is opaque over underlying head fur; separate glints supply highlights.
+  ocular: { density:"dense", marks:["hatch","hatch","stipple"], tone:"rim",
+    flow:2, direction:4, underpaintOpacity:.98, support:true,
+    clipDetails:true, contourOpacity:.69 },
 };
 export interface PencilMaterialInput {
   surface: PencilSurface;
@@ -134,6 +138,7 @@ export function createPencilMaterialRegion(input: PencilMaterialInput): PencilRe
       pressure:input.surface === "glass" ? layer.pressure * .65 :
         input.surface === "cast-shadow" ? layer.pressure * .55 :
         input.surface === "skin" ? layer.pressure * .75 :
+        input.surface === "ocular" ? layer.pressure * .88 :
         input.surface === "glaze" ? layer.pressure * .52 : layer.pressure,
     })),
   };
