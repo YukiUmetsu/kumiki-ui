@@ -24,7 +24,7 @@ describe("Common kingfisher ArtCraft anatomy reconstruction",()=>{
         "kingfisher-ankle-0","kingfisher-talon-1-2","kingfisher-crown-bar-2"]){
           expect(ids.has(id),id).toBe(true);
         }
-      expect(spec.layers.filter(x=>/^kingfisher-tail-\\d+$/.test(x.id))).toHaveLength(7);
+      expect(spec.layers.filter(x=>/^kingfisher-tail-\d+$/.test(x.id))).toHaveLength(7);
       expect(spec.layers.filter(x=>x.id.startsWith("wing-feather-"))).toHaveLength(18);
       const primary=spec.layers.filter(x=>x.id.startsWith("wing-feather-"));
       expect(primary.every(x=>x.holes?.length===1)).toBe(true);
