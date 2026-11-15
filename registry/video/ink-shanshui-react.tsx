@@ -907,45 +907,61 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
                 (s(seed+71,i*43+j*11+k)-.5)*.047,.06,.91);
               const [bx,by]=quadraticPoint(origin.root,origin.bend,
                 origin.tip,t);
-              const side=(k===0||k===3?-1:1)*
-                (s(seed+1081,i*29+j*17+k)>.34?1:-1);
-              const len=(15+22*s(seed,i*50+j*9+k))*
-                (k===4?.78:1);
-              const leafDir=side*.81+fan*.25;
-              const leafTipX=bx+leafDir*len;
-              const leafTipY=by-len*(.33+.4*s(seed+5,k+i*23+j));
-              const wide=1.8+3.3*s(seed+11,k+i*13+j);
+              // Leaf direction is tied to the actual branch tangent.
+              // Independent screen-space arrows caused comb-like foliage.
+              const tangent:P=[
+                2*(1-t)*(origin.bend[0]-origin.root[0])+
+                  2*t*(origin.tip[0]-origin.bend[0]),
+                2*(1-t)*(origin.bend[1]-origin.root[1])+
+                  2*t*(origin.tip[1]-origin.bend[1]),
+              ];
+              const branchAngle=Math.atan2(tangent[1],tangent[0]);
+              const fanAngles=[-.98,-.42,.4,.96,-.7];
+              const direction=branchAngle+fanAngles[k]+
+                (s(seed+1081,i*29+j*17+k)-.5)*.48;
+              const len=(18+19*s(seed,i*50+j*9+k))*(k===4?.85:1);
+              const leafTipX=bx+Math.cos(direction)*len;
+              const leafTipY=by+Math.sin(direction)*len;
+              const wide=2.65+3.9*s(seed+11,k+i*13+j);
               // Orient the brush belly to the blade tangent, not paper Y.
               // Secondary tip releases grow from the same parent wood,
               // but their size and pitch vary rather than forming mirror pairs.
               const blade=bambooBrushBlade([bx,by],[leafTipX,leafTipY],
                 wide,seed+i*1009+j*41+k*17);
+              // Leaf cluster resolves at a common live twig tip,
+              // not at arbitrary positions distributed across empty space.
               const echo=detail>.62&&k%2===0;
-              const echoT=clamp(t+(k===4?-.09:.095),.04,.95);
+              const echoT=clamp(.79+.08*s(seed+1321,i*59+j*11+k),.05,.94);
               const echoRoot=quadraticPoint(origin.root,origin.bend,
                 origin.tip,echoT);
-              const echoLen=len*(.56+.2*s(seed+1321,i*59+j*11+k));
-              const echoDir=-leafDir*(.74+.17*s(seed+1351,i*71+j*17+k));
-              const echoTip:P=[echoRoot[0]+echoDir*echoLen,
-                echoRoot[1]-echoLen*(.29+.43*s(seed+1397,i*13+j*29+k))];
+              const echoLen=len*(.59+.2*s(seed+1351,i*71+j*17+k));
+              const echoAngle=branchAngle+
+                (k===0?-.56:k===2?.66:-.84)+
+                (s(seed+1397,i*13+j*29+k)-.5)*.27;
+              const echoTip:P=[echoRoot[0]+Math.cos(echoAngle)*echoLen,
+                echoRoot[1]+Math.sin(echoAngle)*echoLen];
               const satellite=bambooBrushBlade(echoRoot,echoTip,
-                wide*(.54+.21*s(seed+1381,i*17+j*11+k)),
+                wide*(.59+.19*s(seed+1381,i*17+j*11+k)),
                 seed+1409+i*31+j*23+k*37);
               return <g key={k}>
                 <path data-km-shanshui-bamboo-leaf="" d={blade}
                   data-km-bamboo-leaf-root={f(bx)+","+f(by)}
                   data-km-bamboo-leaf-parent={spurIndex<0?"main":"spur-"+spurIndex}
                   fill={k===0||j%5===0?"#89765c":"#40392b"}
-                  opacity={f(.63+.24*s(seed,k+i*31+j*7))}/>
+                  opacity={f((k===0||j%5===0?.67:.83)+
+                    .15*s(seed,k+i*31+j*7))}/>
                 {echo&&<path data-km-bamboo-satellite-leaf=""
                   data-km-bamboo-satellite-root={f(echoRoot[0])+","+f(echoRoot[1])}
                   d={satellite} fill={k===4?"#675442":"#8b765c"}
                   opacity={f(.62+.18*s(seed+1459,i*13+j*7+k))}/>}
                 {detail>.77&&(k===1||k===3)&&
                   <path data-km-bamboo-dry-lift=""
-                    d={"M"+f(bx+leafDir*len*.21)+" "+f(by-len*.1)+
-                      " Q"+f(bx+leafDir*len*.47)+" "+f(by-len*.29)+
-                      " "+f(bx+leafDir*len*.74)+" "+f(leafTipY+len*.13)}
+                    d={"M"+f(bx+(leafTipX-bx)*.2)+" "+
+                      f(by+(leafTipY-by)*.2)+
+                      " Q"+f(bx+(leafTipX-bx)*.42)+" "+
+                      f(by+(leafTipY-by)*.45)+
+                      " "+f(bx+(leafTipX-bx)*.68)+" "+
+                      f(by+(leafTipY-by)*.69)}
                     stroke="#d6c09b" strokeWidth=".36" opacity=".42"
                     fill="none" strokeLinecap="round"/>}
               </g>;
