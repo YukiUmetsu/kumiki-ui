@@ -254,13 +254,23 @@ export function crayonWildlifePortraitScene(
     {x:-97,y:-107,width:77,height:40},C.warm,
     {parentId:"head",spacing:7.1,markStrength:.28,
       outlineOpacity:0,edgeRoughness:.12});
-  wax("eye-dark-rim",
+  const openLimbus=
     "M-81 -61 C-80 -77 -69 -84 -55 -83"+
     "C-36 -84 -29 -70 -31 -55"+
     "C-33 -40 -46 -36 -60 -38"+
-    "C-74 -40 -83 -47 -81 -61 Z",
-    {x:-86,y:-90,width:62,height:58},C.pupil,
-    {parentId:"head",spacing:5,pressure:.94,outlineOpacity:.15});
+    "C-74 -40 -83 -47 -81 -61 Z";
+  const closedLimbus="M-81 -57 Q-58 -67 -33 -57"+
+    "Q-57 -49 -81 -57 Z";
+  const rimRest={x:-86,y:-90,width:62,height:58};
+  const rimBlink={x:-86,y:-74,width:61,height:32};
+  wax("eye-dark-rim",openLimbus,rimRest,C.pupil,
+    {parentId:"head",spacing:5,pressure:.94,outlineOpacity:.15,
+      // A blink reshapes the *aperture*, not only the paint laid over it.
+      // Otherwise the old open circle stays around a blank skin sticker.
+      drawings:[{frame:88,d:closedLimbus,bounds:rimBlink},
+        {frame:94,d:openLimbus,bounds:rimRest},
+        {frame:202,d:closedLimbus,bounds:rimBlink},
+        {frame:208,d:openLimbus,bounds:rimRest}]});
   wax("eye-amber-iris",oval(-55,-58,16.2,16),
     {x:-74,y:-77,width:38,height:38},C.eye,
     {parentId:"head",spacing:4.4,pressure:.96,outlineOpacity:.04,
@@ -332,21 +342,21 @@ export function crayonWildlifePortraitScene(
   // catchlight are occluded by opaque face pigment for the blink exposure;
   // switching only the contour would leave the eye visible through a line.
   const eyelidOpen="M-83 -58h2v1h-2Z";
-  const eyelidClosed="M-87 -62C-84 -87 -62 -90 -46 -85"+
-    "Q-24 -76 -26 -55Q-39 -30 -61 -33Q-82 -35 -87 -62Z";
+  const eyelidClosed="M-91 -72C-78 -92 -42 -94 -26 -72"+
+    "Q-19 -57 -28 -41Q-55 -27 -82 -44Q-92 -56 -91 -72Z";
   const lidBase={x:-87,y:-62,width:8,height:8};
-  const lidClosed={x:-92,y:-96,width:72,height:70};
-  wax("eyelid-painted-occlusion",eyelidOpen,lidBase,C.umber,
-    {parentId:"head",timing:{start:0,end:56},spacing:4.5,
-      edgeRoughness:0,pressure:.97,
+  const lidClosed={x:-97,y:-101,width:81,height:80};
+  wax("eyelid-painted-occlusion",eyelidOpen,lidBase,C.warm,
+    {parentId:"head",timing:{start:0,end:56},spacing:6.6,
+      markStrength:.26,edgeRoughness:0,outlineOpacity:0,pressure:.96,
       drawings:[{frame:88,d:eyelidClosed,bounds:lidClosed},
         {frame:94,d:eyelidOpen,bounds:lidBase},
         {frame:202,d:eyelidClosed,bounds:lidClosed},
         {frame:208,d:eyelidOpen,bounds:lidBase}]});
   line("eyelid-blink",
     "M-82 -59Q-66 -81 -48 -80Q-34 -76 -31 -58",
-    "#332e32",2.1,{parentId:"head",poseCadence:2,
-      poses:[{id:"blink",d:"M-84 -57Q-59 -39 -29 -56"},
+    "#483a37",1.82,{parentId:"head",poseCadence:2,
+      poses:[{id:"blink",d:"M-81 -56Q-58 -47 -33 -56"},
         {id:"soft",d:"M-82 -58Q-60 -70 -31 -59"}],
       poseCues:blink});
   // A hidden, fully opaque maxillary junction joins the projected nose
