@@ -5,6 +5,7 @@ import type { RisoPrintSpec } from "../../registry/video/print-plates";
 import type { RisoPaint, RisoArtwork } from "../../registry/video/print-plates-react";
 import type { ReactNode } from "react";
 import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
+import {risoHandArtcraftParts} from "./riso-hand-artcraft";
 
 export type RisoPerformanceAspect = "landscape" | "portrait";
 // RISO28: arm pendulum tracks the same 54-frame alternating contact
@@ -264,6 +265,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-5 2 Q-2 1 -1 3 L-2 4 Q-4 3 -5 4 Z M1 1 Q3 1 4 3 L3 4 Q2 2 1 3 Z" },
     { id: "left-glove-thumb-fold", joint: "left-hand", plate: "blue", paint: "solid",
       d: "M7 -2 Q10 -1 11 1 Q8 -1 7 1 Z" },
+    ...risoHandArtcraftParts("courier","left"),
     { id: "right-upper-sleeve", joint: "right-arm", plate: "blue", paint: "solid",
       skin: { tipJoint: "right-elbow", baseWidth: 21, tipWidth: 18, overlap: 3, bow: 1.4 },
       d: "M-10 0 Q-17 18 -9 30 Q0 35 9 27 Q8 10 4 0 Z" },
@@ -290,6 +292,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-5 2 Q-2 1 -1 3 L-2 4 Q-4 3 -5 4 Z M1 1 Q3 1 4 3 L3 4 Q2 2 1 3 Z" },
     { id: "right-glove-thumb-fold", joint: "right-hand", plate: "blue", paint: "solid",
       d: "M7 -2 Q10 -1 11 1 Q8 -1 7 1 Z" },
+    ...risoHandArtcraftParts("courier","right"),
     { id: "satchel-ink", joint: "satchel", plate: "red", paint: "solid",
       d: "M-6 0 Q25 -15 36 5 L35 56 Q9 70 -9 51 Z" },
     { id: "satchel-buckle", joint: "satchel", plate: "blue", paint: "solid",
