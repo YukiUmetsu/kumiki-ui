@@ -514,6 +514,14 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(leaves.filter(m=>m[3]==="main")).toHaveLength(63);
       expect(leaves.filter(m=>m[3]==="spur-0")).toHaveLength(21);
       expect(leaves.filter(m=>m[3]==="spur-1")).toHaveLength(21);
+      const satellites=[...html.matchAll(
+        /data-km-bamboo-satellite-leaf="" data-km-bamboo-satellite-root="([^"]+)" d="([^"]+)"/g,
+      )];
+      expect(satellites).toHaveLength(63);
+      for(const [,root,d] of satellites){
+        expect(d.startsWith("M"+root.replace(","," "))).toBe(true);
+        expect(d.endsWith(" Z")).toBe(true);
+      }
       for(const [,d,root] of leaves){
         expect(d.startsWith("M"+root.replace(","," "))).toBe(true);
       }
