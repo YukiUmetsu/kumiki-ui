@@ -5,6 +5,7 @@ import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
 import {crayonAdultFaceStudy} from "../../src/video/crayon-artcraft-adult-face-fixtures";
 import {crayonCc0NearEyeStudy} from "../../src/video/crayon-artcraft-cc0-near-eye";
 import {crayonPaperContactSwatches} from "../../src/video/crayon-artcraft-paper-contact-fixtures";
+import {crayonArtcraftBodyStudy} from "../../src/video/crayon-artcraft-body-study";
 import {AdultFaceArtcraftWorkbench} from "../../src/video/crayon-artcraft-adult-face.stories";
 
 /** Only exact React-native CRAYON1 renders may serve as visual evidence.
@@ -247,6 +248,52 @@ for(const pressure of [.32,.82]){
         ' [data-km-crayon-underpaint="opaque"]')).toBeAttached();
       await svg.screenshot({path:info.outputPath("crayon-paper-height-contact-"+pressure+".png"),
         animations:"disabled"});
+      expect(errors).toEqual([]);
+    });
+}
+
+
+/** Source-studied whole-body geometry captured ONLY from native CRAYON1.
+ * ArtCraft v7 artistic approval remains blocked: the reference photograph
+ * itself is not presented as a finished crayon rendering.
+ */
+for(const view of ["painted","construction"] as const){
+  test("ArtCraft source-studied full-body wax "+view,
+    async({page},info)=>{
+      const spec=crayonArtcraftBodyStudy({view,detail:1});
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      const errors:string[]=[];
+      page.on("pageerror",e=>errors.push(e.message));
+      await page.setViewportSize({width:669,height:1000});
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["shirt-main","hand-left","hand-right",
+        "trouser-leg-left","trouser-leg-right","shoe-left","shoe-right"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toBeAttached();
+      }
+      if(view==="construction"){
+        await expect(svg.locator('[data-km-crayon-element^="body-source-landmark-"]'))
+          .toHaveCount(22);
+      } else {
+        await expect(svg.locator('[data-km-crayon-element^="body-source-landmark-"]'))
+          .toHaveCount(0);
+      }
+      await svg.screenshot({path:info.outputPath(
+        "crayon-body-source-study-"+view+"-299.png"),animations:"disabled"});
+      if(view==="painted"){
+        const early=renderToStaticMarkup(createElement(CrayonScene,{
+          spec,frame:155,
+        }));
+        await page.setContent("<!doctype html><body style='margin:0'>"+
+          early+"</body>");
+        await page.locator("svg[data-km-crayon-scene]").screenshot({
+          path:info.outputPath("crayon-body-source-study-painted-155.png"),
+          animations:"disabled",
+        });
+      }
       expect(errors).toEqual([]);
     });
 }
