@@ -60,7 +60,8 @@ describe("strict native Crayon drawing grammar",()=>{
         // portrait fruit and sunken landscape fruit).
         const shadow=nodes.get("cast-shadow");
         if(pear?.kind!=="wax"||shadow?.kind!=="wax"||
-          !pear.placement||typeof pear.placement.scale!=="number")
+          !pear.placement||typeof pear.placement.scale!=="number"||
+          typeof pear.placement.y!=="number")
           throw new Error("Missing source ground-contact geometry");
         const shadowOrigin=/^M(-?[0-9.]+) (-?[0-9.]+) C/.exec(shadow.d);
         expect(shadowOrigin).not.toBeNull();
