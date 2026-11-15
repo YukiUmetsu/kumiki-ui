@@ -96,7 +96,11 @@ describe("WC11 original watercolour human portrait",()=>{
       expect(x(418)).toBeLessThan(spec.width-10);
       expect(y(60)).toBeGreaterThan(0);
       expect(y(432)).toBeLessThan(spec.height-50);
-      if(output==="portrait")expect(y(783)).toBeLessThan(920);
+      if(output==="portrait"){
+        expect(y(60)).toBeLessThan(120); // head fills the editorial close-up
+        expect(y(783)).toBeLessThan(960); // coat naturally reaches canvas edge
+        expect(k.scale).toBeGreaterThan(1.15);
+      }
     }
   });
 
