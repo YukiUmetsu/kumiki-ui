@@ -197,6 +197,22 @@ for(const sample of ["woman","man"] as const){
         expect(lipNumbers.lower).toBeLessThan(36);
         await expect(lipEvidence).toContainText(
           "No independent ArtCraft artistic approval");
+        const lightSkin=page.locator(
+          '[data-km-pencil-light-skin-proof="ready"]');
+        await expect(lightSkin).toHaveCount(1);
+        const lit=await lightSkin.evaluate(node=>({
+          malar:Number(node.getAttribute(
+            "data-km-pencil-malar-deficit")),
+          bridge:Number(node.getAttribute(
+            "data-km-pencil-bridge-deficit")),
+        }));
+        // The CC0 photo is luminous but NOT blank white at these measured
+        // points; prior mechanical paper reserve discarded its pigment.
+        // Never treat passing technical optics as artist approval.
+        expect(lit.malar).toBeLessThan(30);
+        expect(lit.bridge).toBeLessThan(32);
+        await expect(lightSkin).toContainText(
+          "Independent likeness and artistry NOT APPROVED");
         const skinEvidence=page.locator(
           '[data-km-pencil-skin-proof="ready"]');
         await expect(skinEvidence).toHaveCount(1);
