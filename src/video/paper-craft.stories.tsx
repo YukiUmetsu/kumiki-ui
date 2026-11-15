@@ -165,7 +165,7 @@ function PaperDirectorLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMo
   },[playing,reducedMotion,plan]);
   const currentFrame=reducedMotion?plan.durationFrames-1:playhead;
   const current=resolvePaperDirector(plan,currentFrame,aspect);
-  const chapter=(id:string,start:number)=>{setPlaying(false);anchor.current=null;setPlayhead(start);};
+  const chapter=(start:number)=>{setPlaying(false);anchor.current=null;setPlayhead(start);};
   const control:CSSProperties={border:"1px solid #bea889",background:"#2f3437",color:"#f5ead6",
     padding:"9px 14px",borderRadius:4,cursor:"pointer",font:"600 13px Arial,sans-serif"};
   return <main style={{minHeight:"100vh",background:"#171d23",color:"#efe6d6",
@@ -185,7 +185,7 @@ function PaperDirectorLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMo
         role="group" aria-label="Select film chapter">
         {plan.shots.map((shot,i)=><button key={shot.id} type="button"
           style={{...control,background:current.shotId===shot.id?"#8b664a":"#2f3437"}}
-          aria-pressed={current.shotId===shot.id} onClick={()=>chapter(shot.id,shot.startFrame)}>
+          aria-pressed={current.shotId===shot.id} onClick={()=>chapter(shot.startFrame)}>
           {String(i+1).padStart(2,"0")} · {["Woodland","Botanical","Canal houses","Camera"][i]}
         </button>)}
       </div>

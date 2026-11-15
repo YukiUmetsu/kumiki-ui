@@ -30,6 +30,10 @@ describe("PAPER-D1 reusable paper director",()=>{
         }
         expect(resolvePaperDirector(plan,239,aspect).shotId).toBe("woodland-light");
         expect(resolvePaperDirector(plan,240,aspect).shotId).toBe("botanical-wing");
+        const entering=resolvePaperDirector(plan,240,aspect);
+        const assembled=evaluatePaperCraft(entering.spec,entering.localFrame);
+        // No blank purple canvas or single isolated paper ellipse at a cut.
+        expect(assembled.layers.every(l=>l.progress===1&&l.opacity===1)).toBe(true);
         expect(resolvePaperDirector(plan,720,aspect).shotId).toBe("constructed-device");
       }
     }
@@ -84,6 +88,8 @@ describe("PAPER-D1 reusable paper director",()=>{
       {frame:120,x:0,y:0,zoom:1.7}]};
     expect(inspectPaperCraft(bad).map(x=>x.path)).toContain("cameraKeys[1].frame");
     expect(inspectPaperCraft(bad).map(x=>x.path)).toContain("cameraKeys[1].zoom");
+    expect(inspectPaperCraft({...spec,startAssembled:"yes" as never}).map(x=>x.path))
+      .toContain("startAssembled");
     const wrong={...spec,layers:spec.layers.map((l,i)=>i===0?
       {...l,poseKeys:[{frame:0,x:0,y:0,angle:0},{frame:0,x:0,y:0,angle:0}]}:l)};
     expect(inspectPaperCraft(wrong).map(x=>x.path)).toContain("layers[0].poseKeys[1].frame");

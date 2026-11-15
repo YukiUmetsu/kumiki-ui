@@ -11,6 +11,9 @@ for(const aspect of ["landscape","portrait"] as const){
     await page.getByRole("button",{name:/03 · Canal houses/}).click();
     await expect(stage).toHaveAttribute("data-km-paper-shot","city-layering");
     await expect(stage).toHaveAttribute("data-km-paper-frame","0");
+    const initialProgress=await stage.locator("[data-km-paper-layer]").evaluateAll(nodes=>
+      nodes.map(n=>n.getAttribute("data-km-paper-progress")));
+    expect(initialProgress.every(p=>p==="1.0000")).toBe(true);
     await page.getByRole("button",{name:/04 · Camera/}).click();
     await expect(stage).toHaveAttribute("data-km-paper-shot","constructed-device");
     await expect(stage).toHaveAttribute("data-km-paper-frame","0");

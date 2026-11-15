@@ -76,6 +76,8 @@ export interface PaperCraftSpec {
   /** Foreground-to-background light tint for the chosen paper stock. */
   light: string;
   layers: readonly PaperCutLayer[];
+  /** A completed physical set is on stage at the first frame of a shot. */
+  startAssembled?: boolean;
   /** Optional overhead-camera key poses. A bounded, solid-stock push/pan only. */
   cameraKeys?: readonly PaperCameraKey[];
 }
@@ -171,6 +173,8 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
   if (!spec || typeof spec !== "object") return [{path:"spec",message:"PAPER1 scene object required"}];
   if (spec.version !== 1) bad("version", "PAPER1 requires version 1");
   if (!spec.id || !/^[a-zA-Z0-9_-]+$/.test(spec.id)) bad("id", "use a nonempty stable ASCII identifier");
+  if (spec.startAssembled !== undefined && typeof spec.startAssembled !== "boolean")
+    bad("startAssembled","startAssembled must be a boolean");
   if (!PAPER_STYLES.includes(spec.style)) bad("style", "unsupported paper medium");
   if (![spec.width, spec.height].every(n => Number.isInteger(n) && n >= 128 && n <= 4096)) bad("size", "width and height must be 128–4096");
   if (!Number.isInteger(spec.fps) || spec.fps < 1 || spec.fps > 120) bad("fps", "FPS must be 1–120");
@@ -250,7 +254,7 @@ export function evaluatePaperCraft(spec: PaperCraftSpec, frame: number, reducedM
   const layers = spec.layers.map((layer, i): PaperLayerFrame => {
     const start = layer.enterFrame ?? (8 + i * 11);
     const duration = layer.durationFrames ?? 38;
-    const progress = reducedMotion ? 1 : paperEase((frame - start) / duration);
+    const progress = reducedMotion || spec.startAssembled ? 1 : paperEase((frame - start) / duration);
     const motion = layer.motion ?? (spec.style === "kirigami" ? "unfold" : spec.style === "pop-up" ? "rise" : "still");
     const age = Math.max(0, (frame - start) / spec.fps);
     const swing = reducedMotion || progress <= 0 ? 0 : (layer.swingDegrees ?? 8) *

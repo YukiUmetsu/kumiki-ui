@@ -30,7 +30,9 @@ function animate(spec:PaperCraftSpec,kind:"woodland"|"botanical"|"houses"|"camer
       return {...layer,poseKeys:pose(.55*intensity)};
     return layer;
   });
-  return {...spec,layers,cameraKeys:camera(spec.width,intensity,
+  // Editorial cut to a finished stage: keep paper pose keys and camera
+  // choreography, but never cut to a blank progressive-assembly frame.
+  return {...spec,startAssembled:true,layers,cameraKeys:camera(spec.width,intensity,
     kind==="woodland"||kind==="camera"?-1:1)};
 }
 /** A reusable director film: four material subjects, four edits, two orientations. */
