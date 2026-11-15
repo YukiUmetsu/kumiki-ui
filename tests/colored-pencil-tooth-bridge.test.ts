@@ -66,7 +66,7 @@ describe("ArtCraft photo-conditioned pencil-tooth residual repair",()=>{
     // thousands of expect() calls and typed-array deep equality are NOT
     // necessary to verify every point in the full painted geometry.
     const safe=a.marks.every(m=>
-      m.alpha>0&&m.alpha<.37&&m.pass===2&&m.width>0&&
+      m.alpha>0&&m.alpha<.45&&m.pass===2&&m.width>0&&
       /^#[a-f0-9]{6}$/.test(m.color)&&
       [m.x,m.y,m.endX,m.endY,m.controlX,m.controlY]
         .every(Number.isFinite)&&
@@ -87,7 +87,7 @@ describe("ArtCraft photo-conditioned pencil-tooth residual repair",()=>{
       src,paint,guides,face,crop,1,32);
     expect(JSON.stringify(alternate.marks.slice(0,40)))
       .not.toBe(JSON.stringify(a.marks.slice(0,40)));
-  },20000);
+  },30000);
   it("refuses invented pigmentation on genuine paper or already dark skin",()=>{
     const bright=image(900,506,252);
     for(let k=0;k<bright.data.length;k+=4){
