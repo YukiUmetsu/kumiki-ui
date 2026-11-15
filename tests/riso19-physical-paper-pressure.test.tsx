@@ -100,6 +100,37 @@ describe("RISO19 material-native pressure creases",()=>{
     expect(flat).not.toContain("data-km-riso-contact-shadow");
   });
 
+  it("removes pressure art when the paper no longer touches the original finger roots",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const frame of [142,156,158,160,177,181,186,189,195,202,239]){
+        const state=evaluateRisoHumanEnsemble(frame,aspect) as ReturnType<typeof evaluateRisoHumanEnsemble>&{
+          sourceContactPressure:number;receiverContactPressure:number;
+        };
+        const sourceGap=Math.hypot(state.paperStart.x-state.source.x,
+          state.paperStart.y-state.source.y);
+        const receiverGap=Math.hypot(state.paperEnd.x-state.receiver.x,
+          state.paperEnd.y-state.receiver.y);
+        expect(state.sourceContactPressure).toBeGreaterThanOrEqual(0);
+        expect(state.sourceContactPressure).toBeLessThanOrEqual(state.sourceGrip);
+        expect(state.receiverContactPressure).toBeGreaterThanOrEqual(0);
+        expect(state.receiverContactPressure).toBeLessThanOrEqual(state.receiverGrip);
+        const creases=(state.printDetails as Detailed).contactCreases;
+        if(sourceGap>=12){
+          expect(state.sourceContactPressure).toBe(0);
+          expect(creases.source).toHaveLength(0);
+        }
+        if(receiverGap>=12){
+          expect(state.receiverContactPressure).toBe(0);
+          expect(creases.receiver).toHaveLength(0);
+        }
+        if(sourceGap<.001)
+          expect(state.sourceContactPressure).toBeCloseTo(state.sourceGrip,6);
+        if(receiverGap<.001)
+          expect(state.receiverContactPressure).toBeCloseTo(state.receiverGrip,6);
+      }
+    }
+  });
+
   it("derives local pressure art directly from actual source and receiving grip in both frame outputs",()=>{
     for(const aspect of ["landscape","portrait"] as const){
       const shared=evaluateRisoHumanEnsemble(177,aspect);
