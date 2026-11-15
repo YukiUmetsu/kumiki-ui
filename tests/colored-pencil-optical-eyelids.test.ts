@@ -27,10 +27,15 @@ const photographedLids=()=>{
   const source=beige();
   for(const eye of ["near","far"] as const){
     const lid=createPortraitEyeAperture(guides,eye);
-    for(const ctr of [lid.upper,lid.lower]){
+    for(const rim of ["upper","lower"] as const){
+      const midpoint:readonly[number,number]=[
+        (lid.start[0]+lid.end[0])*.5,
+        (lid.start[1]+lid.end[1])*.5+
+          2*lid.span*(rim==="upper"?-.075:.12),
+      ];
       for(let i=0;i<=2000;i++){
         const t=i/2000;
-        const [x,y]=quadratic(lid.start,ctr,lid.end,t);
+        const [x,y]=quadratic(lid.start,midpoint,lid.end,t);
         const xx=Math.round(x),yy=Math.round(y);
         for(const dx of [0,1])for(const dy of [0,1]){
           const k=((yy+dy)*source.width+xx+dx)*4;
