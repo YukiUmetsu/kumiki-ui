@@ -70,3 +70,7 @@
 - **Material:** wet vs dry edge differs; secondary pigment glazes visibly; reserves expose the *paper*, not opaque white patches; no polka-dot spotting or mechanical parallel stripes.
 - **Motion:** same frame after nonsequential seek matches visually; when static, no accidental boil/flicker; camera drift keeps paper and pigment in one coordinate system.
 - **Export:** both ratios, normal speed in an encoded file, actual browser screenshots and frame audit warnings; no approval for non-played files.
+
+## WC13 portrait reconstruction study (2026-11-14)
+
+New two-sitter reference-led human character construction: [original portrait geometry and ArtCraft craft audit](research/watercolour-human-portrait-reference-rebuild.md). Includes facial topology, material observations, source images, Storybook integration and remaining normal-speed visual acceptance. No reference image pixels were redistributed.
