@@ -39,3 +39,46 @@ for(const item of [
       animations:"disabled"});
   });
 }
+
+/** Region-by-region source-native screenshot evidence. Unlike a scaled bitmap,
+ * each view is rendered again with the CRAYON1 source camera.
+ */
+for(const item of [
+  {aspect:"landscape",width:1120,height:840},
+  {aspect:"portrait",width:440,height:1000},
+] as const){
+  for(const inspection of ["eyes","nose-mouth","garment"] as const){
+    test("ArtCraft native inspection "+item.aspect+"/"+inspection,async({page},info)=>{
+      await page.setViewportSize({width:item.width,height:item.height});
+      const html=renderToStaticMarkup(createElement(AdultFaceExpressionComparison,{
+        aspect:item.aspect,detail:1,expression:"warm",headScaleY:.82,
+        startFrame:299,playbackRate:1,loop:false,inspection,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const root=page.locator("[data-km-crayon-artcraft-comparison]");
+      await expect(root).toHaveAttribute("data-km-crayon-artcraft-inspection",inspection);
+      const scenes=root.locator("svg[data-km-crayon-scene]");
+      await expect(scenes).toHaveCount(2);
+      for(const scene of [scenes.nth(0),scenes.nth(1)]){
+        await expect(scene).toHaveAttribute("data-km-crayon-frame","299");
+        await expect(scene.locator('[data-km-crayon-element="adult-face"]')).toBeAttached();
+      }
+      const figures=await root.locator("figure").evaluateAll(nodes=>nodes.map(node=>{
+        const b=node.getBoundingClientRect();
+        return {left:b.left,right:b.right,top:b.top,bottom:b.bottom};
+      }));
+      expect(figures[0].right<=figures[1].left ||
+        figures[0].bottom<=figures[1].top).toBe(true);
+      const bounds=await root.boundingBox();
+      expect(bounds).not.toBeNull();
+      if(!bounds)throw Error("Missing comparison review area");
+      expect(figures.every(b=>b.left>=bounds.x-1&&
+        b.right<=bounds.x+bounds.width+1)).toBe(true);
+      const proof=await root.screenshot({type:"jpeg",quality:77,
+        path:info.outputPath("artcraft-"+item.aspect+"-"+inspection+".jpg"),
+        animations:"disabled"});
+      console.log("ARTCRAFT_INSPECTION_JPEG:"+item.aspect+":"+inspection+":"+
+        proof.toString("base64"));
+    });
+  }
+}
