@@ -180,6 +180,120 @@ function eye(side:"near"|"far",p:Palette,subject:PortraitSubject):WatercolourArt
   ],undefined,undefined,126,53);
 }
 
+/** Hand-directed broad and broken value strokes, composed in source space.
+ * Studied from traditional watercolor portraits: saturated facial color is
+ * deliberately concentrated around the orbital ridge, nose wing and cheek;
+ * the wide facial lights are left unobstructed. THESE are original contours,
+ * never bitmap-backed brush stamps or randomized splatter masks.
+ *
+ * This function is applied beneath the nose/eyes so the anatomy remains
+ * coherent even when each gesture arrives at a different frame.
+ */
+function paintedFaceValues(p:Palette,subject:PortraitSubject):WatercolourArtPart {
+  const older=subject==="sitter-b";
+  return group("portrait-directed-value-brushwork",[
+    wash("supraorbital-violet-cool",
+      older
+        ?"M224 223 C246 207 281 208 313 221 Q294 229 265 225"+
+          " Q238 233 223 244 L224 223 Z"
+        :"M229 217 C253 204 291 202 313 220 Q283 226 260 226"+
+          " Q236 231 225 240 Z",
+      p.reflected,.34,luminous(p.light,p.reflected,.41,.04),99,69),
+    wash("far-brow-warm-undertone",
+      older?"M345 217 C365 204 396 211 403 230 Q387 225 374 227"+
+        " Q358 229 349 236 Z"
+      :"M346 211 C367 201 392 209 401 225 Q379 221 360 228 Z",
+      p.shade,.29,luminous(p.light,p.shade,.47,.08),117,59),
+    wash("malar-light-uneven-brush",
+      older
+        ?"M226 286 C247 265 277 276 300 295 Q286 302 281 313"+
+          " Q261 307 247 321 L221 315 Q240 306 226 286 Z"
+        :"M224 285 Q245 267 277 281 L302 290 Q287 294 282 312"+
+          " Q268 301 248 321 Q228 323 219 315 Z",
+      p.cheek,.37,luminous("#EDB1A0",p.cheek,.48,.10),133,73),
+    wash("cheek-cool-broken-plane",
+      older
+        ?"M220 319 Q239 326 246 353 Q261 371 287 384"+
+          " Q261 373 250 352 Q238 347 224 341 Z"
+        :"M214 319 C226 328 241 345 248 361"+
+          " Q261 386 288 402 Q260 392 242 369 L219 341 Z",
+      p.reflected,.36,luminous(p.skin,p.reflected,.38,.03),145,64),
+    wash("malar-second-colour-note",
+      older
+        ?"M366 291 Q384 277 393 294 L385 317 Q369 329 354 334"+
+          " Q368 315 366 291 Z"
+        :"M369 289 Q391 275 394 294 L390 319 Q382 328 360 332 Z",
+      p.cheek,.30,luminous(p.light,p.cheek,.42,.07),143,60),
+    wash("nose-saddle-left-plane",
+      older
+        ?"M302 246 Q316 265 321 287 L320 319"+
+          " Q304 300 306 282 L298 264 Z"
+        :"M312 247 Q321 262 325 287 L327 310 Q312 293 315 274 Z",
+      p.reflected,.32,luminous(p.light,p.reflected,.55,.04),144,53),
+    wash("nose-wing-sienna-pigment",
+      older
+        ?"M313 320 Q326 328 330 339 Q319 349 306 337"+
+          " Q307 324 313 320 Z"
+        :"M318 314 Q329 321 330 331 Q315 340 311 331 Z",
+      p.cheek,.43,luminous(p.light,p.shade,.21,.09),174,44),
+    wash("nasolabial-edge-falloff",
+      older
+        ?"M365 334 C378 343 379 360 369 378"+
+          " Q373 358 356 349 Z"
+        :"M376 328 Q386 348 370 368 Q372 350 361 344 Z",
+      p.shade,.32,luminous(p.skin,p.shade,.44,.02),168,61),
+    wash("chin-cool-turn-and-reserved-skin",
+      older
+        ?"M279 408 Q303 433 326 441 Q357 433 369 409"+
+          " Q354 450 328 454 Q299 439 279 408 Z"
+        :"M287 399 Q310 423 337 428 Q365 420 378 396"+
+          " Q363 441 331 443 Q302 426 287 399 Z",
+      p.reflected,.26,luminous(p.skin,p.reflected,.59,.02),173,66),
+    wash("jaw-luminous-wet-gap",
+      older
+        ?"M233 359 Q250 405 280 424 Q264 416 256 393 Z"
+        :"M221 350 Q248 408 291 425 Q251 399 236 381 Z",
+      p.light,.25,luminous("#F5D5B9",p.light,.47,0),163,59),
+  ],undefined,undefined,103,67);
+}
+
+/** A few decisive tapered brush silhouettes, rather than fake uniform
+ * outlines or evenly scattered freckle noise; these deliberately break
+ * before reaching the facial contour.
+ */
+function drawnFacialAccent(p:Palette,subject:PortraitSubject):WatercolourArtPart {
+  const mature=subject==="sitter-b";
+  return group("portrait-selective-calligraphic-accents",[
+    wash("near-lid-outer-brushstroke",
+      mature?"M234 245 Q255 233 277 235 Q290 236 296 240"+
+          " Q271 239 251 245 Z"
+        :"M244 237 Q260 228 285 232 Q301 233 304 236"+
+          " Q276 234 256 242 Z",
+      p.brow,.33,luminous(p.shade,p.brow,.15,.02),199,32),
+    wash("far-lid-tapered-brushstroke",
+      mature?"M351 231 Q361 226 379 226 Q391 227 394 233"+
+        " Q375 230 359 234 Z"
+      :"M355 226 Q370 222 389 225 Q396 227 400 232"+
+        " Q373 227 362 230 Z",
+      p.brow,.27,luminous(p.shade,p.brow,.18,.01),201,30),
+    mark("bridge-nasal-broken-drawing",
+      mature
+        ?"M318 261 q2 13 5 21 M348 295 q6 12 5 21"
+        :"M329 260 q4 11 6 20 M353 289 q7 13 6 22",
+      p.shade,1.24,.46,218),
+    mark("lip-gesture-not-outline",
+      mature
+        ?"M307 381 Q321 382 327 379 M346 385 q11 -3 18 -6"
+        :"M306 370 Q321 372 330 370 M343 373 q10 -2 16 -7",
+      p.lip,1.32,.52,214),
+    mark("cheek-vanishing-dry-edge",
+      mature
+        ?"M218 323 Q222 346 231 355 M392 325 q-6 15 -11 22"
+        :"M220 337 Q226 357 232 363 M395 309 q-7 19 -12 23",
+      p.shade,1.02,.31,230),
+  ],undefined,undefined,184,45);
+}
+
 /** The skull, upper/lower orbital planes, cheekbone, muzzle and jaw are painted
  * as overlapping translucent anatomical value groups, never as emoji features.
  */
@@ -225,6 +339,7 @@ function face(p:Palette,subject:PortraitSubject):WatercolourArtPart {
     wash("malar-transition",
       "M239 296 Q260 328 292 331 L309 350 Q266 346 248 326 Z",
       p.shade,.14,luminous(p.skin,p.shade,.97,.02),132,62),
+    paintedFaceValues(p,subject),
     wash("lower-jaw-turn",
       mature
         ? "M217 337 C237 394 271 429 321 453 Q354 467 390 399"+
@@ -290,6 +405,7 @@ function face(p:Palette,subject:PortraitSubject):WatercolourArtPart {
           " Q325 408 317 394 Z",
       p.shade,.20,luminous(p.skin,p.shade,.85,.03),185,59),
     eye("near",p,subject),eye("far",p,subject),
+    drawnFacialAccent(p,subject),
     mark("lid-folds-and-bone",
       "M242 215 Q271 203 305 218 M350 206 Q370 201 394 212"+
       " M245 259 Q275 266 307 250 M356 247 Q374 254 390 240",
