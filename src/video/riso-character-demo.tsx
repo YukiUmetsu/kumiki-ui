@@ -36,6 +36,10 @@ export const COURIER: RisoCharacterSpec = {
       // not the original f0 bent-knee squat. Raise the source pelvis relative
       // to two planted boots; toe prints remain at the SAME paper baseline.
       { frame: 0, x: 50, y: -10, easing: "ease" },
+      // First 27 frames advance the real hip ahead of the swing boot. Without
+      // this crossing key, the raised entrance makes the right ankle
+      // unreachable at f26 even though the static first cel is upright.
+      { frame: 27, x: 70, y: -9, easing: "ease" },
       { frame: 105, x: 125, y: -7, easing: "ease" },
       // RISO28 ArtCraft: source centre-of-mass advances *before* the third
       // right-boot contact at f135. A paper-contact study found the old root
