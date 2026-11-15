@@ -4,6 +4,7 @@ import {CRAYON_PORTRAIT_AUDIT}
   from "./crayon-artcraft-portrait-audit";
 import {crayonHash} from "../../registry/video/materials/crayon";
 import {crayonF1ReconstructEyes} from "./crayon-artcraft-f1-ocular-geometry";
+import {crayonF1ReconstructMidface} from "./crayon-artcraft-f1-midface-geometry";
 
 /**
  * ArtCraft v7: independently source-registered native-crayon facial
@@ -35,7 +36,8 @@ export const CRAYON_F1_FACE_PROOF={
 export type Cc0FaceView="wax"|"anatomy";
 /** Source-registered ocular pigment experiment; baseline is an unchanged negative control. */
 export type Cc0EyeContact="baseline"|"source-shade";
-export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView;fiberMaterial?:"line"|"dry-wax";eyeContact?:Cc0EyeContact}
+export type Cc0MidfaceForm="baseline"|"source-volume";
+export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView;fiberMaterial?:"line"|"dry-wax";eyeContact?:Cc0EyeContact;midfaceForm?:Cc0MidfaceForm}
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
 type Ink=Extract<CrayonElement,{kind:"contour"}>;
 const rect=(x:number,y:number,width:number,height:number)=>
@@ -103,10 +105,12 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   const detail=options.detail??1,view=options.view??"wax";
   const fiberMaterial=options.fiberMaterial??"dry-wax";
   const eyeContact=options.eyeContact??"source-shade";
+  const midfaceForm=options.midfaceForm??"source-volume";
   if(!Number.isFinite(detail)||detail<.2||detail>1||
     !["wax","anatomy"].includes(view)||
     !["line","dry-wax"].includes(fiberMaterial)||
-    !["baseline","source-shade"].includes(eyeContact))
+    !["baseline","source-shade"].includes(eyeContact)||
+    !["baseline","source-volume"].includes(midfaceForm))
     throw new RangeError("Invalid ArtCraft F1 face controls");
   const elements:CrayonElement[]=[];
   const wax=(id:string,d:string,bounds:ReturnType<typeof rect>,
@@ -1139,10 +1143,17 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
         "M"+(p[0]-4)+" "+p[1]+"h8M"+p[0]+" "+(p[1]-4)+"v8",
         "#b82737",1.24,[0,299],.95);
   }
+  // Preserve independent, exact negative controls for eye and midface.
+  // Both experimental passes are native editable wax geometry and share
+  // the original CRAYON1 absolute-frame timing, paper and camera.
+  const ocular=eyeContact==="source-shade"?
+    crayonF1ReconstructEyes(elements):elements;
+  const studied=midfaceForm==="source-volume"?
+    crayonF1ReconstructMidface(ocular):ocular;
   return {version:1,id:"crayon-artcraft-cc0-portrait-"+view,
     width:608,height:1082,durationFrames:300,seed:441501,
     paper:C.paper,paperTooth:.79,
-    elements:eyeContact==="source-shade"?crayonF1ReconstructEyes(elements):elements,
+    elements:studied,
     camera:[{frame:0,focusX:304,focusY:541,zoom:1},
       {frame:299,focusX:304,focusY:541,zoom:1}]};
 }
