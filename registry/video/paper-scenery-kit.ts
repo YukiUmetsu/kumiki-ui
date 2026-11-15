@@ -464,17 +464,38 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
   }).join(" ");
   add("woodland-stream-surface-highlights",c.ripple,28,riverLight,{
     enterFrame:155,durationFrames:27,curl:.4});
-  // Tiny die-cut wildflower constellations, anchored by visible stems.
+  // Herbaceous broadleaf cards stand behind individually cut flower heads.
+  // Roots sit on the same foreground paper terrace; vein material is separate.
+  const woodlandHerbVeins:string[]=[];
+  for(const [bank,side] of [-1,1].entries()){
+    for(let j=0;j<3+Math.round(detail*1);j++){
+      const px=side*x*(.205+j*.085),
+        py=y*(.80+(j%2)*.027);
+      const plant=scenicHerb(p,px,py,86+paperHash(seed,bank*11+j,263)*45,
+        side as -1|1,seed+bank*121+j*89,detail);
+      add("woodland-herb-"+bank+"-"+j,j%3===0?c.near:c.leaf,28,
+        plant.stock,{enterFrame:141+j*3+bank*5,curl:.83});
+      woodlandHerbVeins.push(plant.veins);
+    }
+  }
+  add("woodland-herb-veins",c.leafLight,29,woodlandHerbVeins.join(" "),{
+    enterFrame:152,curl:.34});
+  // Larger seed-specific flower heads grow from attached papercut stems.
+  const woodlandFlowerCenters:string[]=[];
   for(let i=0;i<4+Math.round(detail*5);i++){
     const side=i%2?-1:1,x0=side*(x*(.13+(i%3)*.085)),y0=y*.83,tip=y0-29-(i%3)*8;
     add("woodland-flower-stem-"+i,c.leafLight,27,
       [p.M(x0-1.6,y0),p.C(x0+side*5,y0-19,x0+side*9,tip+8,x0+side*11,tip),
         p.L(x0+side*13,tip),p.C(x0+side*11,tip+8,x0+side*8,y0-18,x0+1.6,y0),p.Z].join(" "),{
         enterFrame:142+i*2});
-    add("woodland-flower-"+i,i%3?c.accent:c.light,28,
-      Array.from({length:7},(_,j)=>p.leaf(x0+side*12,tip,13,j*360/7,4.5)).join(" "),{
-        enterFrame:150+i*2,curl:.4});
+    const bloom=scenicBloom(p,x0+side*12,tip,
+      17+(i%3)*3.2,seed+i*109,detail);
+    add("woodland-flower-"+i,i%3?c.accent:c.light,28,bloom.petals,{
+      enterFrame:150+i*2,curl:.48});
+    woodlandFlowerCenters.push(bloom.center);
   }
+  add("woodland-flower-centers",c.trunk,29,
+    woodlandFlowerCenters.join(" "),{enterFrame:162,curl:.18});
 }
 /** Alpine: cut-silhouette peaks, individual snow shelf plates, depth-spaced pines. */
 function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:number,seed:number,treeVariety:number){
@@ -635,10 +656,33 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
     add("alpine-meadow-grass-"+i,c.leaf,27,stalks.join(" "),{
       enterFrame:149+i*3,curl:.68});
     const seedX=side*x*.33,seedY=y*.69;
-    add("alpine-meadow-bloom-"+i,c.accent,28,
-      Array.from({length:7},(_,j)=>p.leaf(seedX,seedY,10,j*360/7,3.8)).join(" "),{
-        enterFrame:157+i*2,curl:.62});
+    const alpineBloom=scenicBloom(p,seedX,seedY,15+i*1.8,seed+i*73,detail);
+    add("alpine-meadow-bloom-"+i,c.accent,28,alpineBloom.petals,{
+      enterFrame:157+i*2,curl:.62});
   }
+  // Elevated riverbank and rocky meadow contain differently branched broadleaf
+  // herbs, with small supplementary vein cuts as a brighter sheet.
+  const alpineHerbVeins:string[]=[];
+  for(const [bank,side] of [-1,1].entries()){
+    for(let j=0;j<2+Math.round(detail*1);j++){
+      const px=side*x*(.24+j*.13),
+        py=y*(.81+(j%2)*.014);
+      const sprig=scenicHerb(p,px,py,65+paperHash(seed,bank*7+j,269)*34,
+        side as -1|1,seed+bank*131+j*97+17,detail);
+      add("alpine-herb-"+bank+"-"+j,j%2?c.leaf:c.leafLight,28,
+        sprig.stock,{enterFrame:146+j*3+bank*4,curl:.73});
+      alpineHerbVeins.push(sprig.veins);
+    }
+  }
+  add("alpine-herb-veins",c.bark,29,alpineHerbVeins.join(" "),{
+    enterFrame:155,curl:.32});
+  // Bright centers are cut from one companion stock, not a filtered dot layer.
+  const alpineBloomCenters=[-1,1].map((side,i)=>{
+    const seedX=side*x*.33,seedY=y*.69;
+    return scenicBloom(p,seedX,seedY,15+i*1.8,seed+i*73,detail).center;
+  });
+  add("alpine-meadow-bloom-centers",c.trunk,29,
+    alpineBloomCenters.join(" "),{enterFrame:163,curl:.27});
   // A small flight in the open distance gives scale without opaque sprites.
   for(let i=0;i<3+Math.round(detail*3);i++){
     const bx=x*.05+i*28,by=-y*.66+(i%3)*11;
