@@ -155,6 +155,39 @@ for(const sample of ["woman","man"] as const){
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
         await boardToggle.uncheck();
+        const atlasToggle=page.getByRole("checkbox",{
+          name:"Inspect CC0 eye nose and lip detail atlas",
+        });
+        await atlasToggle.check();
+        const atlas=page.locator('[data-km-pencil-anatomy-atlas]');
+        await expect(atlas).toHaveCount(1);
+        const anatomySource=atlas.locator(
+          'canvas[data-km-pencil-anatomy-source]');
+        const anatomyDry=atlas.locator(
+          'canvas[data-km-pencil-anatomy-dry]');
+        await expect(anatomyDry).toHaveAttribute(
+          "data-km-pencil-raster-underpaint","none");
+        const anatomySelect=page.getByRole("combobox",{
+          name:"CC0 measured face crop",
+        });
+        for(const region of ["lips","nose","eyes"] as const){
+          await anatomySelect.selectOption(region);
+          await expect(anatomySource).toHaveAttribute(
+            "data-km-pencil-anatomy-rendered",region,{timeout:90000});
+          await expect(anatomyDry).toHaveAttribute(
+            "data-km-pencil-anatomy-rendered",region,{timeout:90000});
+          await atlas.screenshot({animations:"disabled",
+            path:info.outputPath("artcraft-cc0-"+aspect+"-detail-"+region+"-3x.png")});
+        }
+        const currentSource=await anatomySource.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        const currentDry=await anatomyDry.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        expect(currentSource).not.toBe(currentDry);
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
+        await atlasToggle.uncheck();
         const contactToggle=page.getByRole("checkbox",{
           name:"Inspect portrait hairline contact at three times scale",
         });
