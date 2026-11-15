@@ -59,12 +59,15 @@ const hermit={
     p("M117 108 Q126 111 135 107 M146 106 Q154 108 163 103",
       "none","$ink",1.5)),
   beard:art(
-    p("M119 123 Q127 129 132 125 Q143 128 150 122 Q157 132 152 145 L143 169 Q135 163 134 150 Q122 145 119 123 Z",
-      "$shadow","$ink",.9,.8),
-    p("M126 126 Q134 132 139 128 M139 128 Q146 131 150 124",
-      "none","$ink",2.1,.9),
-    p("M132 143 Q136 152 141 167 M144 142 Q147 151 143 164",
-      "none","$paper",1.1,.42),
+    // The hermit's beard is an irregular ink-wash volume whose edges
+    // separate into tapered tufts. Never substitute a straight triangular
+    // fan: it fights the face's soft, sunken eye and cheek modeling.
+    p("M119 123 C124 126 128 127 133 125 C138 128 145 127 150 122 C154 128 155 136 152 143 C150 148 146 151 146 157 C145 162 144 166 141 171 C139 170 136 166 134 163 C133 158 130 153 127 148 C122 142 120 134 119 123 Z",
+      "$shadow","$ink",.7,.76),
+    p("M124.8 126.2 Q131.4 130.4 138.3 127.9 M139.1 128 Q145.2 130.1 149.2 125",
+      "none","$ink",1.42,.76),
+    p("M130.1 140.4 Q135.1 152.7 140.2 165.3 M145.6 141.8 Q146.3 150.6 144 160.4",
+      "none","$paper",.7,.27),
     p("M130 130 Q125 141 133 150","none","$ink",.8,.63)),
   mouth:art(p("M132 126 Q140 129 147 125","none","$ink",1.2,.72)),
   mouthA:art(p("M131 126 Q140 135 147 125 Z","$shadow","$ink",.8,.75)),
