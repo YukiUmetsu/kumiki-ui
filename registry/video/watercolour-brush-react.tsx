@@ -168,6 +168,13 @@ export function WatercolourSurface({
         <feTurbulence type="fractalNoise" baseFrequency=".014 .025" numOctaves={3} seed={1 + (spec.seed % 991)} result="tooth" />
         <feDisplacementMap in="SourceGraphic" in2="tooth" scale={3.2 * spec.paper.tooth} xChannelSelector="R" yChannelSelector="G"/>
       </filter>
+      {Boolean(spec.reservePaths?.length) && <mask id={uid + "-paper-reserves"}
+        maskUnits="userSpaceOnUse" x={0} y={0}
+        width={spec.width} height={spec.height}>
+        <rect width={spec.width} height={spec.height} fill="#fff"/>
+        {spec.reservePaths?.map((path,i)=>
+          <path key={i} d={path} fill="#000"/>)}
+      </mask>}
       <radialGradient id={uid + "-bloom"}>
         <stop offset="0%" stopColor="#ffffff" stopOpacity=".70" />
         <stop offset="53%" stopColor="#ffffff" stopOpacity=".18" />
@@ -184,8 +191,11 @@ export function WatercolourSurface({
           transform={`rotate(${p.angle.toFixed(2)} ${p.x.toFixed(1)} ${p.y.toFixed(1)})`}/>)}
       </g>
     </>}
-    {spec.strokes.map((stroke, i) => <PaintStrokeLayer key={stroke.id}
-      spec={spec} stroke={stroke} i={i} uid={uid} prepared={prepared[i]}
-      phase={evaluatePaintStroke(stroke, frame, reducedMotion)}/>)}
+    <g data-km-wm1-pigment-pass="" data-km-paper-reserve-count={spec.reservePaths?.length??0}
+      mask={spec.reservePaths?.length ? `url(#${uid}-paper-reserves)` : undefined}>
+      {spec.strokes.map((stroke, i) => <PaintStrokeLayer key={stroke.id}
+        spec={spec} stroke={stroke} i={i} uid={uid} prepared={prepared[i]}
+        phase={evaluatePaintStroke(stroke, frame, reducedMotion)}/>)}
+    </g>
   </svg>;
 }
