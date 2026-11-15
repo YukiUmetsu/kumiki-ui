@@ -3,6 +3,8 @@ import { PAPER_STYLES } from "../../registry/video/paper-craft";
 import type { PaperStyle } from "../../registry/video/paper-craft";
 import { paperCraftExampleSpec } from "../video/paper-craft-demo";
 import { paperBotanicalSpec } from "../../registry/video/paper-botanical-kit";
+import { paperObjectSpec, PAPER_OBJECTS, PAPER_OBJECT_PALETTES } from "../../registry/video/paper-object-kit";
+import type { PaperObject, PaperObjectPalette } from "../../registry/video/paper-object-kit";
 import type { PaperBotanicalPalette } from "../../registry/video/paper-botanical-kit";
 import { InkBrushPoster } from "../video/ink-brush-demo";
 import "../styles/collage-fonts.css";
@@ -942,8 +944,8 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           throw new RangeError("paper-craft-study offsetFrame must be a nonnegative integer.");
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const artwork = props.artwork ?? "garden";
-        if (artwork !== "garden" && artwork !== "botanical")
-          throw new RangeError("paper-craft-study artwork must be garden or botanical.");
+        if (artwork !== "garden" && artwork !== "botanical" && artwork !== "object")
+          throw new RangeError("paper-craft-study artwork must be garden, botanical or object.");
         const palette = props.palette ?? "nocturne";
         if (!["nocturne","ivory","rainforest","wildflower"].includes(palette as string))
           throw new RangeError("paper-craft-study palette must be nocturne, ivory, rainforest or wildflower.");
@@ -957,10 +959,21 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         const seed = props.seed ?? 37;
         if (typeof seed !== "number" || !Number.isSafeInteger(seed))
           throw new RangeError("paper-craft-study seed must be a safe integer.");
+        const object = props.object ?? "kingfisher";
+        const objectPalette = props.objectPalette ?? "jewel";
+        if (artwork === "object") {
+          if (typeof object !== "string" || !PAPER_OBJECTS.includes(object as PaperObject))
+            throw new RangeError("paper-craft-study object must be a known paper sculpture.");
+          if (typeof objectPalette !== "string" || !PAPER_OBJECT_PALETTES.includes(objectPalette as PaperObjectPalette))
+            throw new RangeError("paper-craft-study objectPalette must be jewel, pastel or heritage.");
+        }
         const paper = artwork === "botanical"
           ? paperBotanicalSpec(raw as PaperStyle, aspect, {
             palette: palette as PaperBotanicalPalette, detail, colorLayers, seed })
-          : paperCraftExampleSpec(raw as PaperStyle, aspect, seed);
+          : artwork === "object"
+            ? paperObjectSpec(raw as PaperStyle, aspect, {
+              object: object as PaperObject, palette: objectPalette as PaperObjectPalette, detail, seed })
+            : paperCraftExampleSpec(raw as PaperStyle, aspect, seed);
         const absoluteFrame = offset + context.frame;
         if (!Number.isSafeInteger(absoluteFrame)) throw new RangeError("Invalid paper frame.");
         return <PaperCraftStage spec={paper}

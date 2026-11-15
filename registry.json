@@ -6545,7 +6545,7 @@
       "name": "paper-craft",
       "type": "registry:ui",
       "title": "Paper Craft Theatre",
-      "description": "Deterministic multi-layer paper craft with genuine cutouts, deep cardstock shadows, four botanical stock palettes, colorful independent floral paper tiers, butterfly wing linings and up to 128 adjustable cut sheets.",
+      "description": "Frame-exact cut-paper film engine: garden, botanical relief and five reusable sculptures (kingfisher, dragonfly, canal houses, camera, teacup). Multiple opaque paper layers, real apertures, 3 stock palettes, landscape/portrait, full Stage controls.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -6563,6 +6563,11 @@
           "path": "registry/video/paper-botanical-kit.ts",
           "type": "registry:ui",
           "target": "components/video/paper-botanical-kit.ts"
+        },
+        {
+          "path": "registry/video/paper-object-kit.ts",
+          "type": "registry:ui",
+          "target": "components/video/paper-object-kit.ts"
         }
       ]
     }
