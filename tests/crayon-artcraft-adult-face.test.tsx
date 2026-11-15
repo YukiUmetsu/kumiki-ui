@@ -39,6 +39,18 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(face.bounds.height/face.bounds.width).toBeGreaterThan(1.45);
       const bg=nodes.get("paper-value");
       expect(bg?.kind==="wax"&&bg.coverage).toBe("open");
+      // Tonal masses are now translucent rubs OVER solid human underpainting.
+      // This is physically layered wax, not a see-through character mask.
+      for(const tonal of ["temple-cool","forehead-ochre","left-cheek-volume",
+        "right-cheek-receding","malar-reflection","mandible-plane",
+        "left-supraorbital","right-supraorbital","nose-sidewall"]){
+        const patch=nodes.get(tonal);
+        if(patch?.kind!=="wax")throw new Error("Missing tonal wax "+tonal);
+        expect(patch.coverage).toBe("open");
+        expect(patch.parentId).toBe("adult-face");
+      }
+      const human=nodes.get("adult-face");
+      expect(human?.kind==="wax"&&human.coverage).toBe("opaque");
       expect(nodes.get("hair-back")?.parentId).toBe("adult-face");
       const hair=nodes.get("hair-back");
       const torso=nodes.get("coat-silhouette");

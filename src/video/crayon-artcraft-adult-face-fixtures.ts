@@ -134,42 +134,42 @@ export function crayonAdultFaceStudy(
     "M72 -227Q115 -206 118 -162Q122 -99 94 -60"+
     "Q84 -105 70 -158Z",
     box(63,-241,69,190),colors.cool,"value",
-    {parentId:"adult-face",outlineOpacity:0,spacing:9.6});
+    {parentId:"adult-face",coverage:"open",pressure:.39,spacing:12,outlineOpacity:0,edgeRoughness:0});
   wax("forehead-ochre",
-    "M-89 -201Q-58 -257 -5 -268Q51 -269 90 -226"+
-    "Q44 -221 -8 -209Q-57 -187 -70 -161Z",
+    "M-84 -204Q-46 -251 5 -251Q49 -255 79 -222"+
+    "Q33 -227 -4 -216Q-50 -193 -70 -172Z",
     box(-102,-277,203,128),colors.warm,"value",
-    {parentId:"adult-face",outlineOpacity:0,spacing:9.2});
+    {parentId:"adult-face",coverage:"open",pressure:.42,spacing:12.6,outlineOpacity:0,edgeRoughness:0});
   wax("left-supraorbital",
     "M-101 -173Q-69 -196 -29 -184Q-4 -178 4 -159"+
     "Q-22 -141 -60 -143Q-91 -148 -101 -173Z",
     box(-109,-206,123,78),colors.socket,"value",
-    {parentId:"adult-face",outlineOpacity:0,spacing:8.2});
+    {parentId:"adult-face",coverage:"open",pressure:.5,spacing:11,outlineOpacity:0,edgeRoughness:0});
   wax("right-supraorbital",
     "M34 -172Q60 -194 98 -165Q111 -151 103 -136"+
     "Q67 -130 43 -143Z",
     box(24,-201,94,79),colors.cool,"value",
-    {parentId:"adult-face",outlineOpacity:0});
+    {parentId:"adult-face",coverage:"open",pressure:.45,spacing:11,outlineOpacity:0,edgeRoughness:0});
   wax("left-cheek-volume",
     "M-96 -103Q-70 -118 -48 -94Q-34 -65 -41 -32"+
     "Q-58 -16 -74 -34Q-90 -68 -96 -103Z",
     box(-105,-126,82,122),colors.cheek,"value",
-    {parentId:"adult-face",outlineOpacity:0,spacing:8});
+    {parentId:"adult-face",coverage:"open",pressure:.4,spacing:11.5,outlineOpacity:0,edgeRoughness:0});
   wax("right-cheek-receding",
     "M83 -126Q102 -115 104 -80Q99 -44 81 -17"+
     "Q64 -27 65 -63Z",
     box(59,-138,55,132),colors.cool,"value",
-    {parentId:"adult-face",outlineOpacity:0});
+    {parentId:"adult-face",coverage:"open",pressure:.37,spacing:12,outlineOpacity:0,edgeRoughness:0});
   wax("malar-reflection",
     "M-84 -87Q-59 -100 -34 -75Q-23 -50 -39 -17"+
     "Q-63 -27 -77 -43Z",
     box(-94,-109,78,101),colors.warm,"value",
-    {parentId:"adult-face",outlineOpacity:0,spacing:8.5});
+    {parentId:"adult-face",coverage:"open",pressure:.37,spacing:11.6,outlineOpacity:0,edgeRoughness:0});
   wax("mandible-plane",
     "M-62 -12Q-24 18 15 23Q52 25 78 -3"+
     "Q70 44 31 85Q-2 100 -28 73Q-55 46 -62 -12Z",
     box(-76,-23,167,130),colors.cool,"value",
-    {parentId:"adult-face",outlineOpacity:0,spacing:9.1});
+    {parentId:"adult-face",coverage:"open",pressure:.35,spacing:13,outlineOpacity:0,edgeRoughness:0});
   wax("nose-bridge",
     "M-6 -140Q9 -150 20 -137Q15 -99 20 -70"+
     "Q23 -43 30 -29Q18 -20 6 -34Q-3 -61 -6 -90Z",
@@ -179,7 +179,7 @@ export function crayonAdultFaceStudy(
     "M-7 -100Q-14 -75 -19 -53Q-29 -39 -18 -30"+
     "Q-6 -38 -1 -58Z",
     box(-34,-111,43,92),colors.cool,"anatomy",
-    {parentId:"adult-face",outlineOpacity:0,spacing:4.6});
+    {parentId:"adult-face",coverage:"open",pressure:.56,spacing:7.5,outlineOpacity:0,edgeRoughness:0});
   wax("nose-alar-wing",
     "M32 -40Q52 -51 61 -29Q60 -10 40 -14"+
     "Q28 -8 17 -21Q18 -31 32 -40Z",
@@ -336,6 +336,20 @@ export function crayonAdultFaceStudy(
     93,181,38,46,-41,100,"#8998a1");
   grain("jaw-chromatic-undercoat","adult-face",1006,
     6,51,37,36,24,32,"#a27577");
+  // Source-led cloth construction: folded seam tubes track shoulder tension,
+  // buttonhole and dress-front drape rather than a rectangular inset bib.
+  ink("coat-neck-roll","M-143 118Q-108 118 -87 137M56 128Q99 117 151 158",
+    "#b1aea8",1.8,"detail",{parentId:"coat-silhouette",opacity:.83});
+  ink("coat-right-princess-seam","M69 242Q83 269 93 310",
+    "#9ba5a8",1.15,"detail",{parentId:"coat-silhouette",opacity:.65});
+  ink("linen-vertical-gathers","M-20 173Q-30 220 -27 283"+
+    "M8 174Q3 229 16 283M31 170Q43 226 39 279",
+    "#b8a498",1.35,"detail",{parentId:"shirt-linen",opacity:.72});
+  ink("linen-fold-under-chin","M-46 161Q-7 189 37 167",
+    "#f2dac6",1.65,"detail",{parentId:"shirt-linen",opacity:.89});
+  ink("tailored-coat-cuff-crease","M-163 279Q-150 296 -137 302"+
+    "M130 307Q144 299 156 279",
+    "#b0b7b2",1.4,"detail",{parentId:"coat-silhouette",opacity:.76});
   return {version:1,id:"crayon-artcraft-adult-face-"+aspect,
     width:W,height:H,durationFrames:300,seed:6812,
     paper:"#f8efe0",paperTooth:.8,elements,
