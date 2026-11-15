@@ -11,6 +11,7 @@ import { alongPath, carvedLine, clamp, clamp01, DEG, ease, fbm1, hash01, hashSig
 import type { Prim } from "./ukiyoe-prims";
 import { circleD, ellipseD, rectD, tf } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
+import { SCENERY_MOTIFS } from "./ukiyoe-scenery";
 
 export interface MotifContext { frame: number; wind: number; seed: number; progress: number }
 type P = Readonly<Record<string, unknown>>;
@@ -1405,16 +1406,19 @@ function field(p: P): Prim[] {
 
 export type UkiyoeMotifName =
   | "sky" | "mountain" | "hills" | "sea" | "wave" | "pine" | "sakura" | "willow" | "reeds" | "rock" | "cloud" | "sun" | "moon"
-  | "house" | "pagoda" | "torii" | "bridge" | "boat" | "lantern" | "field" | "pier" | "peach" | "ricefield";
+  | "house" | "pagoda" | "torii" | "bridge" | "boat" | "lantern" | "field" | "pier" | "peach" | "ricefield"
+  | "range" | "minka" | "jizo" | "komainu";
 export const UKIYOE_MOTIFS: readonly UkiyoeMotifName[] = [
   "sky", "mountain", "hills", "sea", "wave", "pine", "sakura", "willow", "reeds", "rock", "cloud", "sun", "moon",
   "house", "pagoda", "torii", "bridge", "boat", "lantern", "field", "pier", "peach", "ricefield",
+  "range", "minka", "jizo", "komainu",
 ];
 /** Motifs whose drawing depends on the frame or wind (others are drawn once and cached). */
-export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "reeds", "lantern", "peach", "ricefield", "boat"]);
+export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "reeds", "lantern", "peach", "ricefield", "boat", "range", "minka"]);
 
 const MOTIFS: Readonly<Record<UkiyoeMotifName, (p: P, c: MotifContext) => Prim[]>> = {
   sky, mountain, hills, sea, wave, pine, sakura, willow, reeds, rock, cloud, sun, moon, house, pagoda, torii, bridge, boat, lantern, field, pier, peach, ricefield,
+  ...SCENERY_MOTIFS,
 };
 
 export function drawMotif(name: UkiyoeMotifName, params: P, context: MotifContext): Prim[] {
