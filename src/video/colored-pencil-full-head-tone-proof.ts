@@ -249,3 +249,45 @@ export const compareCC0LuminousSkin=(
     region.lightnessDeficit>=CC0_LUMINOUS_SKIN_PROBES[i].deficitMax);
   return {regions,missingPhotographedLightSkin,artisticApproval:false};
 };
+
+/**
+ * Measured dark jaw/sideburn contact in the licensed CC0 285×318
+ * source crop. Each patch is genuinely DARK brown. At the previous
+ * head plate an ivory 1px halo was visible at all three coordinates
+ * although the source luminance was ~50–70. These gates only reject
+ * missing contact ink; they cannot approve a human portrait.
+ */
+export const CC0_JAW_CONTACT_PROBES=[
+  {name:"upper-jaw",x:82/285,y:180/318,r:2/285,
+    sourceMax:135,deficitMax:65},
+  {name:"mid-jaw",x:99/285,y:210/318,r:2/285,
+    sourceMax:135,deficitMax:65},
+  {name:"lower-jaw",x:120/285,y:230/318,r:2/285,
+    sourceMax:135,deficitMax:65},
+] as const;
+export interface CC0JawContactResult {
+  readonly regions:readonly {
+    name:"upper-jaw"|"mid-jaw"|"lower-jaw";
+    sourceLuminance:number;drawnLuminance:number;
+    lightnessDeficit:number;
+  }[];
+  readonly missingDarkJawContact:boolean;
+  readonly artisticApproval:false;
+}
+export const compareCC0JawContact=(
+  source:PencilTonePixelGrid,drawing:PencilTonePixelGrid,
+):CC0JawContactResult=>{
+  validate(source);validate(drawing);
+  if(source.width!==drawing.width||source.height!==drawing.height)
+    throw new RangeError("Jaw-edge proof requires matching registered canvases");
+  const regions=CC0_JAW_CONTACT_PROBES.map(p=>{
+    const sourceLuminance=sample(source,p.x,p.y,p.r);
+    const drawnLuminance=sample(drawing,p.x,p.y,p.r);
+    return {name:p.name,sourceLuminance,drawnLuminance,
+      lightnessDeficit:drawnLuminance-sourceLuminance};
+  });
+  const missingDarkJawContact=regions.some((r,i)=>
+    r.sourceLuminance>=CC0_JAW_CONTACT_PROBES[i].sourceMax||
+    r.lightnessDeficit>=CC0_JAW_CONTACT_PROBES[i].deficitMax);
+  return {regions,missingDarkJawContact,artisticApproval:false};
+};

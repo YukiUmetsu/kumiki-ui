@@ -5,6 +5,7 @@ import {
   CC0_VERMILION_PROBES,compareCC0Vermilion,
   CC0_SKIN_COVERAGE_PROBES,compareCC0SoftSkin,
   CC0_LUMINOUS_SKIN_PROBES,compareCC0LuminousSkin,
+  CC0_JAW_CONTACT_PROBES,compareCC0JawContact,
 } from "../src/video/colored-pencil-full-head-tone-proof";
 import type {PencilTonePixelGrid} from "../src/video/colored-pencil-full-head-tone-proof";
 
@@ -24,6 +25,28 @@ const paint=(image:PencilTonePixelGrid,x:number,y:number,value:number)=>{
     image.data[index]=image.data[index+1]=image.data[index+2]=value;
   }
 };
+describe("ArtCraft three distinct source-dark jaw contact patches",()=>{
+  it("rejects bright ivory gaps and accepts only source-matched dry fibres",()=>{
+    const source=make(230),old=make(230),repaired=make(230);
+    const src=[65,52,66],bad=[149,134,141],ink=[107,103,116];
+    CC0_JAW_CONTACT_PROBES.forEach((p,i)=>{
+      paint(source,p.x,p.y,src[i]);
+      paint(old,p.x,p.y,bad[i]);
+      paint(repaired,p.x,p.y,ink[i]);
+    });
+    expect(compareCC0JawContact(source,old).missingDarkJawContact)
+      .toBe(true);
+    const a=compareCC0JawContact(source,repaired);
+    expect(a.missingDarkJawContact).toBe(false);
+    expect(a.artisticApproval).toBe(false);
+    expect(a.regions.map(x=>x.name)).toEqual([
+      "upper-jaw","mid-jaw","lower-jaw"]);
+    expect(compareCC0JawContact(make(230),repaired)
+      .missingDarkJawContact).toBe(true);
+    expect(()=>compareCC0JawContact(source,{...repaired,width:20}))
+      .toThrow(RangeError);
+  });
+});
 describe("ArtCraft luminous cheek/nasal bridge vs genuine paper-white negative gate",()=>{
   it("rejects prior blank-white face regions while protecting real source light",()=>{
     const src=make(230),chalk=make(240),optical=make(240);

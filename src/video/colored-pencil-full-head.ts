@@ -321,7 +321,11 @@ export const createDryPencilHeadPlate=(
     // round-to-nearest photographic RGB at the polygon boundary can sample
     // *skin* into the garden. A subpixel registration tolerance prevents
     // false hair without the previous large white sticker-like inset.
-    const registrationTolerance=eyeDist*.010;
+    // The previous 0.010-eye-span inset (about 0.67 source pixels)
+    // systematically left a no-material ring between source-verified dark
+    // hair and the face polygon. Narrow to a subpixel registration guard;
+    // chromatic/source-dark checks below still prevent painting garden.
+    const registrationTolerance=eyeDist*.003;
     if(inside(p,geometry.hairOuter)&&
       distanceToEdge(p,geometry.face)>registrationTolerance){
       const rgb=photoRGB(source,p[0],p[1]);
@@ -613,6 +617,100 @@ export const createDryPencilHeadPlate=(
         color([rgb[0]*.74+69*.26,rgb[1]*.73+48*.27,
           rgb[2]*.76+44*.24]),.13+.18*(1-value),
         .43,2,(pencilHash(seed,i*1000+k,77)-.5)*.06);
+    }
+  }
+  // Source-verified dark hair/jaw CONTACT: the manually measured CC0
+  // silhouette has ~4 reference-pixel uncertainty. The old hair classifier
+  // reserved a small empty strip outside the polygon, and the 0.43px
+  // contour fibres left that strip ivory-white even where source Y=23..80.
+  // Only the source-observed LEFT cheek-to-jaw run (indices 12..16)
+  // receives short, pressure-variable pencil overtraces. Every nib
+  // samples its own physically dark, auburn source pigment and is skipped
+  // for pale skin or the green background. This is not a solid SVG rim.
+  for(let i=12;i<=16;i++){
+    const a=geometry.face[i],b=geometry.face[(i+1)%geometry.face.length];
+    const span=length(a,b);
+    const count=Math.max(3,Math.ceil(span/(eyeDist*.016)));
+    const dx=(b[0]-a[0])/count,dy=(b[1]-a[1])/count;
+    const nx=-(b[1]-a[1])/span,ny=(b[0]-a[0])/span;
+    for(let k=0;k<count;k++){
+      const t=(k+.48)/count;
+      const c:Point=[interp(a[0],b[0],t),
+        interp(a[1],b[1],t)];
+      // Never mistake a dark but warm SKIN edge for hair. Both q and its
+      // exterior neighbour must be corroborated by actual source pigment.
+      // In synthetic no-hair photos the garden is green outside the face;
+      // then no jaw repair is permitted anywhere on that contour.
+      const exteriorSide=([-1,1] as const).find(side=>{
+        const outer:Point=[c[0]+nx*eyeDist*.046*side,
+          c[1]+ny*eyeDist*.046*side];
+        return onPhoto(source,outer[0],outer[1])&&
+          !inside(outer,geometry.face)&&
+          photoValue(source,outer[0],outer[1])<.55&&
+          isHairColour(photoRGB(source,outer[0],outer[1]));
+      });
+      if(exteriorSide===undefined)continue;
+      // Crossing rather than tracing: short irregular nibs weave the
+      // photographed near-black lock into the pale pigmented cheek, with
+      // hair and skin nibs independently sampled on opposite sides of the
+      // observed edge. Their uneven contact avoids a hard sticker outline.
+      // These are pressure-variable pencil gestures, never a flat mask.
+      const crossId=i*69017+k;
+      if(pencilHash(seed,crossId,407)>.13){
+        const out:Point=[c[0]+nx*eyeDist*.029*exteriorSide,
+          c[1]+ny*eyeDist*.029*exteriorSide];
+        const inn:Point=[c[0]-nx*eyeDist*.029*exteriorSide,
+          c[1]-ny*eyeDist*.029*exteriorSide];
+        const outRGB=photoRGB(source,out[0],out[1]);
+        const outValue=photoValue(source,out[0],out[1]);
+        if(outValue<.55&&isHairColour(outRGB)){
+          const depth=clamp((.55-outValue)/.44,0,1);
+          push("hair-occlusion",out,
+            [-nx*exteriorSide*eyeDist*.059,
+              -ny*exteriorSide*eyeDist*.059],
+            color([outRGB[0]*.78+35*.22,
+              outRGB[1]*.78+26*.22,outRGB[2]*.8+27*.2]),
+            (.16+.22*depth)*(.74+.26*pencilHash(seed,crossId,408)),
+            .57+.49*pencilHash(seed,crossId,409),2,
+            (pencilHash(seed,crossId,410)-.5)*.31);
+        }
+        const insideValue=photoValue(source,inn[0],inn[1]);
+        if(inside(inn,geometry.face)&&insideValue<.90){
+          const skin=photoRGB(source,inn[0],inn[1]);
+          push("face-form",inn,
+            [nx*exteriorSide*eyeDist*.037,
+              ny*exteriorSide*eyeDist*.037],
+            color([skin[0]*.85+74*.15,
+              skin[1]*.84+53*.16,skin[2]*.85+53*.15]),
+            (.10+.11*(1-insideValue))*
+              (.69+.31*pencilHash(seed,crossId,411)),
+            .54+.51*pencilHash(seed,crossId,412),2,
+            (pencilHash(seed,crossId,413)-.5)*.25);
+        }
+      }
+      for(let band=-1;band<=1;band++){
+        const id=i*500003+k*11+band+1;
+        const shift=eyeDist*.016*(band+
+          (pencilHash(seed,id,401)-.5)*.36);
+        const q:Point=[c[0]+nx*shift,c[1]+ny*shift];
+        if(!onPhoto(source,q[0],q[1]))continue;
+        const rgb=photoRGB(source,q[0],q[1]);
+        const value=photoValue(source,q[0],q[1]);
+        // No garden-colored hair, ivory highlight obliteration, or
+        // uniformly dark silhouette. The *photograph* must confirm
+        // a dark and warm/brown physical edge beneath each mark.
+        if(value>.53||!isHairColour(rgb))continue;
+        const depth=clamp((.53-value)/.40,0,1);
+        if(pencilHash(seed,id,402)>.66+.33*depth)continue;
+        const ink=color([rgb[0]*.69+34*.31,
+          rgb[1]*.69+24*.31,rgb[2]*.70+23*.30]);
+        push("hair-occlusion",q,
+          [dx*(1.03+.37*pencilHash(seed,id,403)),
+            dy*(1.03+.37*pencilHash(seed,id,403))],
+          ink,(.31+.23*depth)*(.82+.18*pencilHash(seed,id,404)),
+          1.08+.52*pencilHash(seed,id,405),2,
+          (pencilHash(seed,id,406)-.5)*.22);
+      }
     }
   }
   // Hair as connected MASSES first. The physical photographic reference

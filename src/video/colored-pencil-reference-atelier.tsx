@@ -14,12 +14,12 @@ import {
 import {
   compareCC0PortraitTones,compareCC0HairOcclusion,
   compareCC0Vermilion,compareCC0SoftSkin,
-  compareCC0LuminousSkin,
+  compareCC0LuminousSkin,compareCC0JawContact,
   CC0_HAIR_OCCLUSION_PROBE,
 } from "./colored-pencil-full-head-tone-proof";
 import type {
   PencilToneComparison,CC0HairOcclusionResult,CC0VermilionResult,
-  CC0SoftSkinResult,CC0LuminousSkinResult,
+  CC0SoftSkinResult,CC0LuminousSkinResult,CC0JawContactResult,
 } from "./colored-pencil-full-head-tone-proof";
 
 /**
@@ -169,6 +169,8 @@ export function ReferencePencilAtelier({
     useState<CC0SoftSkinResult|null>(null);
   const [lightSkinEvidence,setLightSkinEvidence]=
     useState<CC0LuminousSkinResult|null>(null);
+  const [jawEvidence,setJawEvidence]=
+    useState<CC0JawContactResult|null>(null);
   const [faceMacroRegion,setFaceMacroRegion]=useState<"eyes"|"lips">("eyes");
   const [applyFaceCraft,setApplyFaceCraft]=useState(true);
   const [uploaded,setUploaded]=useState(false);
@@ -333,6 +335,7 @@ export function ReferencePencilAtelier({
     setVermilionEvidence(compareCC0Vermilion(original,rendered));
     setSkinEvidence(compareCC0SoftSkin(original,rendered));
     setLightSkinEvidence(compareCC0LuminousSkin(original,rendered));
+    setJawEvidence(compareCC0JawContact(original,rendered));
   },[headPlate,raw]);
   useEffect(()=>{
     if(!showHairContact||!headPlate)return;
@@ -726,6 +729,23 @@ export function ReferencePencilAtelier({
             Contact recovery: {" "+(headOcclusion.missingDarkLock?
               "NEGATIVE GATE FAILED":"TECHNICAL THRESHOLD ONLY")}.
             Artistic approval: NOT PASSED.
+          </p>}
+          {jawEvidence&&<p
+            data-km-pencil-jaw-contact="ready"
+            data-km-pencil-jaw-upper-deficit={
+              jawEvidence.regions[0].lightnessDeficit.toFixed(1)}
+            data-km-pencil-jaw-mid-deficit={
+              jawEvidence.regions[1].lightnessDeficit.toFixed(1)}
+            data-km-pencil-jaw-lower-deficit={
+              jawEvidence.regions[2].lightnessDeficit.toFixed(1)}
+            style={{fontSize:12,margin:"10px 0",color:"#53665E"}}>
+            Measured source-dark left jaw contact (upper / middle / lower):
+            {" "+jawEvidence.regions.map(r=>
+              r.sourceLuminance.toFixed(1)+"→"+
+                r.drawnLuminance.toFixed(1)).join(" · ")}.
+            Pencil-contact negative gate:{" "+(jawEvidence.missingDarkJawContact?
+              "WHITE HALO / FAIL":"TECHNICAL THRESHOLD ONLY")}.
+            Not independent portrait or material approval.
           </p>}
           {headToneComparison&&<div style={{marginTop:10}}
             data-km-pencil-tonal-comparison="ready"
