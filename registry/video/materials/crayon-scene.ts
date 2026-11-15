@@ -90,6 +90,13 @@ export interface CrayonWaxElement extends CrayonBase {
   /** Edge blending radius (0..18 SVG units) for painted open wax glazes.
    * Finished subjects remain opaque because their own underpaint is separate. */
   blendRadius?: number;
+  /** Feather the DIRECTIONAL GRAIN CONTACT along the same open-wax
+   * silhouette radius. Unlike blendRadius alone, this also fades the
+   * pressure marks and contact clumps that would otherwise end abruptly
+   * at the clipPath and create a cut-paper polygon. Requires an open,
+   * stroke-built glaze with blendRadius > 0. Off by default, especially
+   * for opaque characters and precise ink boundaries. */
+  featherContacts?: boolean;
   /** 0..1 artistic density of medium-native random tooth marks.
    * Lower values leave opaque underpaint intact; the artist can layer
    * explicit anatomy and form-directed marks on top instead of noise. */
@@ -339,6 +346,12 @@ export function inspectCrayonScene(input: unknown): string[] {
         if (node.blendRadius !== undefined && (!finite(node.blendRadius)||node.blendRadius<0||
           node.blendRadius>18||node.coverage!=="open"))
           errors.push(p + ".blendRadius must be 0..18 on open wax");
+        if (node.featherContacts !== undefined &&
+          (typeof node.featherContacts!=="boolean" ||
+            (node.featherContacts &&
+              (node.coverage!=="open" || node.deposition!=="stroke-built" ||
+                !finite(node.blendRadius) || (node.blendRadius??0)<=0))))
+          errors.push(p + ".featherContacts requires open stroke-built wax with blendRadius > 0");
         if (node.underpaintGradient !== undefined) {
           const g=node.underpaintGradient;
           if(!g || node.coverage!=="opaque" || !finite(g.focusX) || !finite(g.focusY) ||
