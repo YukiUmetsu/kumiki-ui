@@ -345,7 +345,7 @@ function GeologicalInkStudy(){
       note:"Geometry disabled, not a fake painted sample. This must lose the attached ridge folds, pima-cun fibres and pine detail.",
       level:0,load:ink},
     {key:"original",label:"1 · Current authored ink",
-      note:"Inspect the new rounded multi-saddle ridge, three bone-rooted graded crag masses, six mass caps and nine attached erosion grooves underneath three cubic hill backs, six tertiary caps and forty hemp strokes. Look for actual nested stone volume, source-like pressure and open paper; reject triangle outlines, duplicated scallops or strings.",
+      note:"Inspect the new rounded multi-saddle ridge, three bone-rooted graded crag masses, six mass caps and nine attached erosion grooves and a new brush-clipped 33-stroke hemp field beneath three cubic hill backs, six tertiary caps and forty additional hemp strokes. Look for actual nested stone volume, source-like pressure and open paper; reject triangle outlines, duplicated scallops or strings.",
       level:detail,load:ink},
     {key:"dilute",label:"2 · Diluted ink comparison",
       note:"Identical scene, seed, frame, geometry and camera; only ink concentration changes. Verify the same attachments survive.",
