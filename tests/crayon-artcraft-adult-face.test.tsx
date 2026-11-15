@@ -16,8 +16,8 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(new Set(scene.elements.map(x=>x.id)).size).toBe(scene.elements.length);
       for(const id of portraitCriticalParts)expect(nodes.has(id),id).toBe(true);
       expect(scene.elements.length).toBeLessThan(240);
-      for(const id of ["adult-face","hair-back","nose-bridge",
-        "nose-alar-wing","lip-upper-volume","lip-lower-volume",
+      for(const id of ["adult-face","hair-back",
+        "nose-alar-wing",
         "left-eye-aperture","right-eye-aperture","left-upper-lid","right-upper-lid"]){
         const node=nodes.get(id);
         if(node?.kind!=="wax")throw new Error("No semantic wax: "+id);
@@ -45,13 +45,23 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(far.bounds.width/face.bounds.width).toBeLessThan(.23);
       expect(nodes.get("near-iris-radials")?.parentId).toBe("left-eye-iris");
       expect(nodes.get("far-iris-radials")?.parentId).toBe("right-eye-iris");
+      expect(nodes.get("hair-left-lower-wave")?.kind).toBe("wax");
+      expect(nodes.get("hair-nape-sweep")?.kind).toBe("wax");
+      const blouse=nodes.get("shirt-linen");
+      if(blouse?.kind!=="wax")throw new Error("Missing blouse");
+      expect(blouse.bounds.width/blouse.bounds.height).toBeLessThan(.96);
+      const nose=nodes.get("nose-bridge");
+      if(nose?.kind!=="wax")throw new Error("Missing nose");
+      expect(nose.coverage).toBe("open");
       const bg=nodes.get("paper-value");
       expect(bg?.kind==="wax"&&bg.coverage).toBe("open");
       // Tonal masses are now translucent rubs OVER solid human underpainting.
       // This is physically layered wax, not a see-through character mask.
       for(const tonal of ["temple-cool","forehead-ochre","left-cheek-volume",
         "right-cheek-receding","malar-reflection","mandible-plane",
-        "left-supraorbital","right-supraorbital","nose-sidewall"]){
+        "left-supraorbital","right-supraorbital","nose-sidewall",
+        "nose-bridge","lip-upper-volume","lip-lower-volume",
+        "nose-tip-reflected-wax","hair-amber-crown-glaze"]){
         const patch=nodes.get(tonal);
         if(patch?.kind!=="wax")throw new Error("Missing tonal wax "+tonal);
         expect(patch.coverage).toBe("open");
