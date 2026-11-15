@@ -100,6 +100,22 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(upper.details?.some(d=>d.id==="anat-mouth-seam")).toBe(true);
   });
 
+  it("rejects facial stubble-shaped heavy dashes: skin contacts stay short, low-pressure optical layers",()=>{
+    const atlas=pencilPortraitAnatomy();
+    expect(atlas.pigment.length).toBeGreaterThanOrEqual(12);
+    for(const trace of atlas.pigment){
+      expect(trace.opacity,trace.id).toBeLessThanOrEqual(.31);
+      expect(trace.width,trace.id).toBeLessThanOrEqual(.44);
+      const segments=[...trace.path.matchAll(
+        /M(-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?) Q-?\\d+(?:\\.\\d+)? -?\\d+(?:\\.\\d+)? (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/g,
+      )];
+      expect(segments.length,trace.id).toBeGreaterThanOrEqual(30);
+      const max=Math.max(...segments.map(m=>
+        Math.hypot(Number(m[3])-Number(m[1]),Number(m[4])-Number(m[2]))));
+      expect(max,trace.id).toBeLessThanOrEqual(3.4);
+    }
+  });
+
   it("builds visible layered human skin value using true ANAT1 surface normals and native pencil marks",()=>{
     const atlas=pencilPortraitAnatomy();
     const portrait=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
