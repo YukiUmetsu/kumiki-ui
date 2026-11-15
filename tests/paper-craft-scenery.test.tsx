@@ -48,7 +48,7 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
     expect(names.filter(id=>id.startsWith("woodland-fern-")).length).toBeGreaterThan(8);
     expect(names.filter(id=>id.startsWith("woodland-water-cut-"))).toHaveLength(6);
     const crowns=world.layers.filter(layer=>layer.id.startsWith("woodland-foliage-"));
-    expect(crowns).toHaveLength(6);
+    expect(crowns).toHaveLength(8);
     expect(crowns.every(layer=>layer.motion==="flutter"&&!!layer.pivot)).toBe(true);
     expect(crowns.every(layer=>(layer.path.match(/C/g)||[]).length>=6)).toBe(true);
   });
