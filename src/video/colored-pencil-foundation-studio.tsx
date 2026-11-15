@@ -105,7 +105,10 @@ export function PencilFoundationStudio(){
     }}>
       <label style={caption}>Original subject
         <select aria-label="Foundation subject" style={choice} value={specimen}
-          onChange={e=>setSpecimen(e.target.value as Specimen)}>
+          onChange={e=>{
+            setSpecimen(e.target.value as Specimen);
+            setInspectionFocus("default");
+          }}>
           {(Object.keys(specimenMeta) as Specimen[]).map(s=>
             <option key={s} value={s}>{specimenMeta[s].title}</option>)}
         </select>
