@@ -241,7 +241,7 @@ test("RISO26 true graded press master: original faces, two film ratios, AM and F
   await expect(tone).toBeVisible({timeout:12000});
   const aspect=page.getByRole("combobox",{name:"RISO21 crop aspect"});
   const pose=page.getByRole("combobox",{name:"RISO21 expression pose"});
-  const mode=page.getByRole("combobox",{name:"RISO21 AM/FM screen"});
+  const mode=page.getByRole("combobox",{name:"RISO21 screening method"});
   await page.getByRole("combobox",{name:"RISO24 feature focus"}).selectOption("head");
   for(const screening of ["am","fm"] as const){
     await mode.selectOption(screening);
