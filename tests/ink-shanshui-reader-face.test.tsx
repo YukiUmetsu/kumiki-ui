@@ -156,6 +156,19 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     const walker=shanshuiOtherFaceCraft("mountain-trail",1);
     expect(SHANSHUI_PORTRAIT_OBSERVATIONS["misty-hermit"].age)
       .not.toEqual(SHANSHUI_PORTRAIT_OBSERVATIONS["mountain-trail"].age);
+    for(const scene of ["misty-hermit","mountain-trail"] as const){
+      const high=shanshuiOtherFaceCraft(scene,1).face;
+      const medium=shanshuiOtherFaceCraft(scene,.5).face;
+      // Gradated near-transparent washes remain separate from eye-cel
+      // outlines; identical upper/lower lids must not be duplicated.
+      const washes=high.filter(x=>x.type==="path"&&
+        x.fill==="$skinshade"&&x.stroke==="none"&&
+        x.opacity!==undefined&&x.opacity<.09);
+      expect(washes.length).toBeGreaterThanOrEqual(5);
+      expect(high.length).toBeGreaterThan(medium.length);
+      expect(new Set(washes.map(x=>x.type==="path"?x.d:"")).size)
+        .toBe(washes.length);
+    }
     expect(shanshuiOtherFaceCraft("river-scholar",1)).toEqual({});
     expect(shanshuiOtherFaceCraft("misty-hermit",0)).toEqual({});
     expect(shanshuiOtherFaceCraft("mountain-trail",0)).toEqual({});
