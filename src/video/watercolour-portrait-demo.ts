@@ -20,6 +20,15 @@ export const PORTRAIT_SUBJECTS: readonly PortraitSubject[] = ["sitter-a","sitter
 
 const key=(frame:number,x=0,y=0,rotation=0,scale=1,opacity=1):WatercolourArtKey=>
   ({frame,x,y,rotation,scale,opacity});
+/** The back hair, front hair, face and beard must all follow the same
+ * continuous head gesture around the neck. Keyed eye gaze remains local.
+ * Source-space amplitudes are deliberately human rather than exaggerated.
+ */
+const HEAD_PERFORMANCE:readonly WatercolourArtKey[]=[
+  key(0),key(145),key(182,0,-1,-.9),key(223,1,-1,.65),
+  key(255,2,-2,1.8),key(284,1,-1,.9),key(319,-1,1,-1.05),
+  key(359),
+];
 const wash=(id:string,path:string,fill:string,opacity=1,
   material?:WatercolourWashTreatment,startFrame=0,fadeFrames=0,
   composite:"normal"|"multiply"="multiply"):WatercolourArtPart=>
@@ -91,8 +100,11 @@ function eye(side:"near"|"far",p:Palette,subject:PortraitSubject):WatercolourArt
   const landmark=near?SITTER_LANDMARKS[subject].nearEye:SITTER_LANDMARKS[subject].farEye;
   const {x:cx,y:cy,halfWidth:rx}=landmark;
   const left=cx-rx, right=cx+rx;
-  const aperture="M"+left+" "+cy+" Q"+(cx-4)+" "+(cy-16)+" "+right+" "+(cy-1)+
-    " Q"+cx+" "+(cy+10)+" "+left+" "+cy+" Z";
+  // Irregular almond apertures, not cartoon white disks: the upper lid
+  // occludes the iris and the small wet-paper sclera narrows at both canthi.
+  const aperture="M"+left+" "+(cy+1)+" C"+(left+11)+" "+(cy-8)+
+    " "+(cx+3)+" "+(cy-11)+" "+right+" "+(cy-2)+
+    " Q"+(cx+2)+" "+(cy+6)+" "+left+" "+(cy+1)+" Z";
   const open=[key(0),key(176),key(184,0,0,0,1,0),
     key(190,0,0,0,1,0),key(201),key(306),key(313,0,0,0,1,0),
     key(320,0,0,0,1,0),key(329),key(359)];
@@ -105,6 +117,10 @@ function eye(side:"near"|"far",p:Palette,subject:PortraitSubject):WatercolourArt
       " Q"+(right+16)+" "+(cy+10)+" "+(right+1)+" "+(cy+22)+
       " Q"+(cx-20)+" "+(cy+25)+" "+(left-8)+" "+(cy+2)+" Z",
       p.reflected,.18,luminous(p.light,p.shade,.86,0),102,55),
+    wash(side+"-lid-orbital-shadow",
+      "M"+(left-3)+" "+(cy-4)+" Q"+(cx-12)+" "+(cy-27)+" "+(right+7)+" "+(cy-14)+
+      " Q"+(cx+9)+" "+(cy-10)+" "+(left-3)+" "+(cy-4)+" Z",
+      p.shade,.31,luminous(p.light,p.reflected,.51,.05),137,62),
     group(side+"-open-eye",[
       group(side+"-eye-inset",[
       wash(side+"-sclera",aperture,"#F1DDD0",.98,
@@ -127,12 +143,12 @@ function eye(side:"near"|"far",p:Palette,subject:PortraitSubject):WatercolourArt
       {x:cx,y:cy}),
       ],undefined,undefined,0,0,aperture),
       mark(side+"-upper-lid",
-        "M"+left+" "+cy+" Q"+(cx-12)+" "+(cy-16)+" "+cx+" "+(cy-12)+
-        " Q"+(cx+10)+" "+(cy-13)+" "+right+" "+(cy-1),
-        p.brow,near?2.25:1.75,.88,144),
+        "M"+left+" "+(cy+1)+" C"+(left+12)+" "+(cy-8)+" "+
+        (cx+3)+" "+(cy-11)+" "+right+" "+(cy-2),
+        p.brow,near?1.8:1.55,.80,144),
       mark(side+"-lower-lid",
-        "M"+left+" "+cy+" Q"+cx+" "+(cy+10)+" "+right+" "+(cy-1),
-        p.shade,1.08,.55,154),
+        "M"+left+" "+(cy+1)+" Q"+(cx+3)+" "+(cy+6)+" "+right+" "+(cy-2),
+        p.shade,.95,.47,154),
       mark(side+"-outer-canthus",
         "M"+right+" "+(cy-1)+" q5 -2 8 1",p.brow,1,.7,155),
     ],open,{x:cx,y:cy}),
@@ -141,15 +157,26 @@ function eye(side:"near"|"far",p:Palette,subject:PortraitSubject):WatercolourArt
         "M"+left+" "+(cy+2)+" Q"+cx+" "+(cy+9)+" "+right+" "+(cy+1),
         p.brow,1.9,.9),
     ],closed,{x:cx,y:cy}),
+    wash(side+"-brow-volume",
+      "M"+(left-4)+" "+(cy-24)+" C"+(cx-16)+" "+(cy-37)+
+      " "+(cx+2)+" "+(cy-32)+" "+(right+1)+" "+(cy-27)+
+      " Q"+(cx-8)+" "+(cy-29)+" "+(left-4)+" "+(cy-24)+" Z",
+      p.brow,.53,luminous(p.hairLight,p.brow,.43,.09),165,51),
     mark(side+"-brow",
-      "M"+(left-4)+" "+(cy-23)+" Q"+(cx-10)+" "+(cy-35)+" "+(right-2)+" "+(cy-27),
-      p.brow,near?3.25:2.7,.82,168),
+      "M"+(left-4)+" "+(cy-24)+" Q"+(cx-10)+" "+(cy-33)+
+      " "+(right-2)+" "+(cy-28),
+      p.brow,near?1.75:1.5,.55,174),
     mark(side+"-brow-bristles",
-      Array.from({length:near?13:9},(_,i)=>{
-        const x=left+3+i*(near?3.9:4.1);
-        const y=cy-25-Math.sin(i/(near?12:8)*Math.PI)*5;
-        return "M"+x.toFixed(1)+" "+y.toFixed(1)+" l2.4 -3.6";
-      }).join(" "),p.hairDeep,.65,.52,212),
+      near?[
+        "M"+(left+4)+" "+(cy-25)+" q3 -5 7 -5",
+        "M"+(left+13)+" "+(cy-30)+" q5 -4 9 -3",
+        "M"+(left+25)+" "+(cy-31)+" q6 -2 11 0",
+        "M"+(left+40)+" "+(cy-29)+" q7 -1 11 2",
+      ].join(" "):[
+        "M"+(left+3)+" "+(cy-23)+" q3 -4 7 -5",
+        "M"+(left+12)+" "+(cy-29)+" q5 -3 10 -1",
+        "M"+(left+26)+" "+(cy-28)+" q5 0 9 2",
+      ].join(" "),p.hairDeep,.9,.48,212),
   ],undefined,undefined,126,53);
 }
 
@@ -281,8 +308,7 @@ function face(p:Palette,subject:PortraitSubject):WatercolourArtPart {
         "M256 176 Q294 170 324 181 M275 192 Q301 188 324 195",
         p.shade,.8,.25,225),
     ]:[]),
-  ],[key(0),key(148,0,0,-.45),key(247,2,-1,1.1),
-      key(300,0,0,.3),key(359,0,0,-.4)],{x:331,y:415},45,110);
+  ],HEAD_PERFORMANCE,{x:331,y:415},45,110);
 }
 
 function hair(p:Palette,subject:PortraitSubject):[WatercolourArtPart,WatercolourArtPart] {
@@ -306,7 +332,7 @@ function hair(p:Palette,subject:PortraitSubject):[WatercolourArtPart,Watercolour
         :"M376 82 Q432 126 430 218 Q435 319 399 393 Q415 454 434 486"+
           " Q402 466 391 422 Q406 340 411 251 Q410 143 376 82 Z",
       p.hairDeep,.55,luminous(p.hair,p.hairDeep,.55,.09),63,102),
-  ],undefined,undefined,36,108);
+  ],HEAD_PERFORMANCE,{x:331,y:415},36,108);
   const fringe=group("directional-hair-overpainting",[
     wash("crown-root-and-parting",
       mature
@@ -363,8 +389,7 @@ function hair(p:Palette,subject:PortraitSubject):[WatercolourArtPart,Watercolour
         "M209 106 Q193 79 219 64 M424 123 Q452 155 440 190 M168 355 Q155 387 160 413",
         p.hairLight,.88,.42,219),
     ]),
-  ],[key(0),key(148,0,0,-.45),key(247,2,-1,1.1),
-      key(300,0,0,.3),key(359,0,0,-.4)],{x:331,y:415},60,105);
+  ],HEAD_PERFORMANCE,{x:331,y:415},60,105);
   return [back,fringe];
 }
 
@@ -459,8 +484,7 @@ function matureBeard(p:Palette):WatercolourArtPart {
     mark("moustache-broken-hairs",
       "M301 351 Q318 345 330 350 M343 351 Q356 345 370 353",
       p.hairDeep,2.2,.52,199),
-  ],[key(0),key(148,0,0,-.45),key(247,2,-1,1.1),
-      key(300,0,0,.3),key(359,0,0,-.4)],{x:331,y:415},151,82);
+  ],HEAD_PERFORMANCE,{x:331,y:415},151,82);
 }
 
 function figure(subject:PortraitSubject):WatercolourArtPart {
