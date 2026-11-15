@@ -229,14 +229,23 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
   const releaseB=personPoint(PAPER_ARTIST,handoffSchedule.releaseStart,"left-hand",
     second.x,second.y,second.scale);
   const handoff=evaluateRisoPropHandoff(frame,a,b,releaseA,releaseB,handoffSchedule);
-  // One material geometry drives the actual knockout and both ink masters.
-  // Independent pinch decreases on the letting-go hand and increases on the
-  // receiving hand; neither has its own random film clock.
+  // Finger pressure is a *contact* property, not merely a held-gesture
+  // parameter. As the sheet peels away its root, the ink folds must relax
+  // continuously and disappear rather than hovering around an empty grip.
+  const pressureAt=(grip:number,edge:{x:number;y:number},hand:{x:number;y:number})=>
+    grip*Math.max(0,Math.min(1,1-Math.hypot(edge.x-hand.x,edge.y-hand.y)/12));
+  const sourceContactPressure=pressureAt(handoff.sourceGrip,handoff.paperStart,a);
+  const receiverContactPressure=pressureAt(handoff.receiverGrip,handoff.paperEnd,b);
+  // One material geometry drives the actual knockout and both spot masters.
+  // It inherits the two real hand joints and release schedule, no local clock.
   const printDetails=evaluateRisoTransferSheet(
     handoff.paperStart,handoff.paperEnd,handoff.progress,
-    {...paperOptions,sourceGrip:handoff.sourceGrip,receiverGrip:handoff.receiverGrip});
-  return {...handoff,frame,aspect,width,height,first,second,source:a,receiver:b,
-    propEnd:handoff.paperEnd,progress:handoff.progress,sheet:printDetails.outline,printDetails};
+    {...paperOptions,sourceGrip:sourceContactPressure,
+      receiverGrip:receiverContactPressure});
+  return {...handoff,sourceContactPressure,receiverContactPressure,
+    frame,aspect,width,height,first,second,source:a,receiver:b,
+    propEnd:handoff.paperEnd,progress:handoff.progress,
+    sheet:printDetails.outline,printDetails};
 }
 export function RisoHumanEnsembleStudio(){
   const [frame,setFrame]=useState(176);
@@ -421,8 +430,8 @@ export function RisoHumanEnsembleStudio(){
           borderTop:"1px solid #B99F87",padding:"8px 0",marginBottom:8}}>
         <span>Performance beat · <strong>{state.phase}</strong></span>
         <span>Print owner · <strong>{state.owner}</strong></span>
-        <span>Courier grip · {Math.round(state.sourceGrip*100)}%</span>
-        <span>Artist grip · {Math.round(state.receiverGrip*100)}%</span>
+        <span>Courier paper pressure · {Math.round(state.sourceContactPressure*100)}%</span>
+        <span>Artist paper pressure · {Math.round(state.receiverContactPressure*100)}%</span>
       </div>
       <div style={{width:aspect==="portrait"?450:960,
         maxWidth:"100%",aspectRatio:aspect==="portrait"?"540 / 960":"960 / 540",
@@ -460,6 +469,8 @@ export function RisoHumanEnsembleStudio(){
           data-km-riso-human-ensemble-paper-curl={paperCurl}
           data-km-riso-human-ensemble-grip-pinch={gripPinch}
           data-km-riso-human-ensemble-imprint-depth={imprintDepth}
+          data-km-riso-paper-source-contact={state.sourceContactPressure.toFixed(3)}
+          data-km-riso-paper-receiver-contact={state.receiverContactPressure.toFixed(3)}
           data-km-riso-human-ensemble-contact-overprint={fingertipOcclusion}
           data-km-riso-handoff-phase={state.phase}
           data-km-riso-handoff-owner={state.owner}
