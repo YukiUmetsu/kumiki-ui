@@ -308,6 +308,24 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("roots fine coat edge-fibres to named cheek and throat curves instead of clipped opaque sticker edges",()=>{
+    const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
+    const map=new Map(drawing.regions.map(region=>[region.id,region]));
+    for(const id of ["chest","neck-ruff","cheek-ruff"]){
+      const region=map.get(id)!;
+      expect(region.clipDetails).toBe(false);
+      expect(region.contour.opacity??1).toBeLessThan(.27);
+      const fringes=region.details!.filter(t=>t.id?.startsWith("fringe-"));
+      expect(fringes).toHaveLength(3);
+      for(const trace of fringes){
+        expect((trace.path.match(/M/g)??[]).length).toBeGreaterThan(24);
+        expect(trace.path).toMatch(/ Q/);
+        expect(trace.path).not.toMatch(/NaN|Infinity/);
+        expect(trace.width).toBeLessThan(.6);
+      }
+    }
+  });
+
   it("renders original CP-F1 fox anatomy from authored pencil vectors with zero photo pixels",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     expect(drawing.foundation?.subject).toBe("wildlife");
