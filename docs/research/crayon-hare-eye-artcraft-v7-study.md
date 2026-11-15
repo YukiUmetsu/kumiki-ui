@@ -91,6 +91,22 @@ shows gaps in the incomplete wax undercoat: this is a **separate source-timing
 problem**, not proof of a finished transparent hare. Final-frame opacity must
 remain intact. Do not call this a passing full-film proof.
 
+### Second Chromium review and third localized correction
+
+The second native captures (post-orbital-refinement) showed a noticeably
+smaller brow shadow, but the 203-frame blink still formed a blank, perfectly
+round skin sticker because the *open* dark limbus remained present while the
+fully opaque eyelid was painted over the iris. That was a negative-control
+failure under ArtCraft structural-appearance criteria.
+
+The third candidate now carries discrete *limbal redrawing* at frames 88/94
+and 202/208, using a shallow curved closing aperture with its own bounded
+CRAYON1 wax drawing while keeping the actual head transform unchanged. The
+opaque lid uses the nearby warmer head pigment rather than an isolated
+dark-brown circle; its crease moves with the new opening. Tests assert closed
+versus reopened geometry and final rest recovery. Source-relative axes
+remain blocked; another real-pixel proof is mandatory.
+
 ### Unresolved issues
 
 The surrounding skull, nose, cheek and upper forehead still have planar digital-looking boundaries and may require a separate reference-conditioned rebuild. The eye change alone does not qualify the character or authorize exposing the hidden `Crayon/The Wild Hare` Storybook stories.
