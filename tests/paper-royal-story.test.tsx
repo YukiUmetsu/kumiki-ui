@@ -65,6 +65,43 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
       }
     }
   });
+  it("compresses both adult cranial frames and avoids long giraffe neck gaps",()=>{
+    const extent=(d:string)=>{
+      const numbers=(d.match(/-?\d+(?:\.\d+)?/g)||[]).map(Number);
+      const x=numbers.filter((_,i)=>i%2===0);
+      const y=numbers.filter((_,i)=>i%2===1);
+      return {minX:Math.min(...x),maxX:Math.max(...x),
+        minY:Math.min(...y),maxY:Math.max(...y)};
+    };
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const phase of [0,1,2]){
+        const spec=paperRoyalStoryScene("layered",aspect,phase,37,.85);
+        const byId=(id:string)=>spec.layers.find(l=>l.id===id)!;
+        const bodyHeight=aspect==="portrait"?1.16:.0+1.03;
+        for(const name of ["princess","prince"]){
+          const head=extent(byId(name+"-head").path);
+          const neck=extent(byId(name+"-neck").path);
+          const plane=extent(byId(name+"-face-planes").path);
+          const headHeight=head.maxY-head.minY;
+          const headWidth=head.maxX-head.minX;
+          const neckHeight=neck.maxY-neck.minY;
+          expect(headWidth/headHeight).toBeGreaterThan(.65);
+          expect(headWidth/headHeight).toBeLessThan(1.15);
+          expect(neckHeight/headHeight,name+" neck too long").toBeLessThan(.65);
+          expect(neck.maxY-head.maxY,name+" jaw/collar gap").toBeLessThan(20*bodyHeight);
+          expect(neck.maxY).toBeGreaterThan(head.maxY);
+          expect(plane.maxX-plane.minX).toBeLessThan(headWidth*.72);
+          expect(byId(name+"-head").parentId).toBe(
+            name==="princess"?"princess-bodice":"prince-coat");
+          for(const detail of name==="princess"
+            ? ["forelock","hair-braid","eye-white","lashes","lips","tiara","tiara-jewels"]
+            : ["hair","hair-strands","eye-white","eye-brow","mouth","crown","crown-stones"]){
+            expect(byId(name+"-"+detail).parentId).toBe(name+"-head");
+          }
+        }
+      }
+    }
+  });
   it("is deterministic, has meaningful body/arm motion and supports a static reduced-motion pose",()=>{
     const spec=paperRoyalStoryScene("layered","landscape",2,37,1);
     const a=evaluatePaperCraft(spec,44);
