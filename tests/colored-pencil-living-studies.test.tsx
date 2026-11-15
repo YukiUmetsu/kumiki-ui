@@ -90,7 +90,7 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       expect(colour.bounds[1]+colour.bounds[3])
         .toBeLessThanOrEqual(sclera.bounds[1]+sclera.bounds[3]+2);
       expect(dark.bounds[2]).toBeLessThan(colour.bounds[2]);
-      expect(sclera.palette[0]).not.toBe("#FFFFFF");
+      expect(sclera.layers[0].color).not.toBe("#FFFFFF");
     }
     const skin=regions.filter(r=>r.craft?.kind==="skin");
     expect(skin.length).toBeGreaterThan(5);
