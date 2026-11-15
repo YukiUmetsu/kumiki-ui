@@ -124,3 +124,15 @@ The original authored sample in src/video/colored-pencil-living-studies.ts offer
 
 
 A follow-up ArtCraft review adds an opt-in **glaze** surface (sixteenth recipe) for non-occluding highlights over existing skin masses, correcting paper-coloured silhouette sticker artifacts. Near/far pupil subforms now add independently coloured dark centers and highlights. The fox contact shadow is drawn after opaque earth, and the dark nose after muzzle-rooted whisker base, correcting two compositing order defects.
+
+## ArtCraft character replacement — original fox and kingfisher (2026-11-14)
+
+The legacy cartoon fox and round blue bird in the former character scene, and the separate copper songbird in Wildlife, have been **removed**. Their old source import paths remain as forwards to the new scene so existing consumers do not break. Production still uses the existing CP1 render materials, CP3 relative-pivot rig, CP2 scene and FD1 film adapters.
+
+- **Fox:** 11 original animal anatomical parts with a horizontal long-body silhouette, tall inset ears, ivory muzzle/ruff, dark planted limbs, independent black nose and warm eye. Locally rooted curved colour-pencil fur groups follow cheek, ear, shoulder, tail and undercoat; one forepaw lifts briefly rather than waving a human arm.
+- **Kingfisher:** 10 original parts with blue/teal back, orange cheek/breast, dark tapered beak, clear pupil, near/far articulated wings and branch-gripping toes. Reused from one actor factory by the Character Performance, Character Film and Wildlife Storybooks. Wildlife adds two extra crown/wing fibre groups and an original four-region branch/leaf composition. All actor and solid scenery parts retain opaque support.
+- **Storybook:** existing Film Looks / Colour-pencil and Film Looks / Colour-pencil / Wildlife entries only; no new folder. The previous old-character examples are no longer available. Control selectors, portrait/landscape support and frame scrub remain, while copy and macro coordinates refer to the new animals.
+- **Film:** existing 320-frame, 420-frame, 30fps/dual-aspect portable FD1 timings unchanged; humanlike walking/waving metadata replaced with honest fox-paw/wing descriptions.
+- **QA:** tests/colored-pencil-actor.test.tsx and tests/colored-pencil-wildlife.test.tsx enforce named structural region inventory, opacity, attached details, eye squeeze, head/wing/foot transform invariants, budget (3 + 11 + 10 = 24), deterministic out-of-order seek, and source/film equality. Local-only Storybook screenshot suite captures animated macro crops.
+
+References, bounds/pivots, region adjacency graph, negative controls and candid ArtCraft acceptance status: [character rebuild craft ledger](../research/colour-pencil-character-rebuild-artcraft-2026-11-14.md). **Independent full-resolution and normal-speed review remains pending.**
