@@ -378,12 +378,12 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
         expect(mark,id+" "+feature).toBeDefined();
         expect(mark!.width).toBeLessThan(.8);
         expect(mark!.path).not.toMatch(/NaN|Infinity/);
-        const strokes=mark!.path.match(/M-?\\d+(?:\\.\\d+)? -?\\d+(?:\\.\\d+)?/g)??[];
+        const strokes=mark!.path.match(/M-?\d+(?:\.\d+)? -?\d+(?:\.\d+)?/g)??[];
         expect(strokes.length,id+" "+feature).toBe(4);
         if(feature!=="claw-tips")expect(mark!.path).toContain(" Q");
       }
       const crease=paw.details!.find(trace=>trace.id==="toe-furrows")!;
-      const coordinates=Array.from(crease.path.matchAll(/M(-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/g),
+      const coordinates=Array.from(crease.path.matchAll(/M(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g),
         match=>[Number(match[1]),Number(match[2])]);
       expect(coordinates.every(([x,y])=>
         x>=paw.bounds[0]&&x<=paw.bounds[0]+paw.bounds[2]&&
