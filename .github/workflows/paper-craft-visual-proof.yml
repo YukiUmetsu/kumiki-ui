@@ -5,6 +5,9 @@ on:
     paths:
       - 'tests/e2e-storybook/paper-craft.spec.ts'
       - 'registry/video/paper-botanical-kit.ts'
+      - 'registry/video/paper-object-kit.ts'
+      - 'tests/e2e-storybook/paper-craft-objects.spec.ts'
+      - 'examples/film/paper-craft-objects.film.json'
       - 'src/video/paper-craft.stories.tsx'
       - 'src/film/film-slots.tsx'
       - 'examples/film/paper-craft-chromatic.film.json'
@@ -14,7 +17,7 @@ permissions:
   contents: read
 concurrency:
   group: paper-proof-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   visual:
     runs-on: ubuntu-latest
@@ -29,31 +32,24 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Full native Storybook film art screenshots
         # Earlier paper modes have their own existing regression suite.
-        # Run only the latest reference-led botanical scenes on this PR.
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-craft.spec.ts --grep "ArtCraft botanical"
+        # Only the current paper-object stories consume Chromium minutes.
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-craft-objects.spec.ts
       - name: Validate paper film for both outputs
         run: |
-          npm run film:check -- examples/film/paper-craft-botanical.film.json
-          npm run film:check -- examples/film/paper-craft-chromatic.film.json
+          npm run film:check -- examples/film/paper-craft-objects.film.json
       - name: Install FFmpeg
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends ffmpeg
-      - name: Capture botanical art in both output ratios
+      - name: Render all object sculptures in both formats
         run: |
           for output in landscape portrait; do
-            npm run film:frame -- examples/film/paper-craft-botanical.film.json --frame=174 --only="$output" --out=dist/paper-botanical-proof
-            npm run film:frame -- examples/film/paper-craft-botanical.film.json --frame=354 --only="$output" --out=dist/paper-botanical-proof
-          done
-      - name: Capture chromatic stocks in both aspect ratios
-        run: |
-          for output in landscape portrait; do
-            for frame in 174 354; do
-              npm run film:frame -- examples/film/paper-craft-chromatic.film.json --frame="$frame" --only="$output" --out=dist/paper-chromatic-proof
+            for frame in 174 354 534 714 894; do
+              npm run film:frame -- examples/film/paper-craft-objects.film.json --frame="$frame" --only="$output" --out=dist/paper-objects-proof
             done
           done
       - name: Encode genuine production-slot preview frames
-        run: npm run film:render -- examples/film/paper-craft-chromatic.film.json --frames=72 --only=landscape --out=dist/paper-chromatic-proof
+        run: npm run film:render -- examples/film/paper-craft-objects.film.json --frames=54 --only=landscape --out=dist/paper-objects-proof
       - name: Keep actual rendered browser captures
         if: always()
         uses: actions/upload-artifact@v4
@@ -67,8 +63,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: paper-craft-production-visuals
-          path: |
-            dist/paper-botanical-proof/
-            dist/paper-chromatic-proof/
+          path: dist/paper-objects-proof/
           retention-days: 7
           if-no-files-found: warn
