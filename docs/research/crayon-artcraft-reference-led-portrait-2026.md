@@ -118,3 +118,9 @@ Construction now separates sleeve caps from the coat body, introduces non-identi
 ### Static-art construction guard (2026-11-15)
 
 The first garment CI [43667602248](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43667602248) failed a deliberate >3 curved-segment minimum because two legacy lapel paths still had only three turns. Rather than lower the Craft quality threshold, both lapels were redrawn with **seven connected curved transitions**, shoulder notch and cloth roll turns. These are meaningful silhouette and collar-topology changes, not subdivided filler strokes. Rerender to inspect the altered lapel geometry; the overall wardrobe still fails professional-art reference quality and stays hidden.
+
+### The real garment crop still failed visual review
+
+[Native 1x and 9:16 crop 43667758101](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43667758101) confirmed the sleeves and lapel source geometry rendered and CI passed, but the visual silhouette still resembled a **flat sleeveless padded jacket** with an undersized, shapeless central cream bib and gold buttons on/near the bib. More seam scratches cannot fix the missing blouse area.
+
+Reconstructed blouse geometry as a larger, tapering linen volume with independent light/shadow underpaint and scalloped ruffle overlays; moved both garment closures to the actual dark left placket (and moved buttonhole/hand-sewn stitches with them). Added an opaque, asymmetrical side knot physically joined to the existing scarf and hanging tail. This is a clothing **form/topology correction**, not a test-threshold relaxation or an unrelated decoration. Still fails full reference fidelity until independently inspected at the target output scale.

@@ -189,6 +189,19 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       const blouse=nodes.get("shirt-linen");
       if(blouse?.kind!=="wax")throw new Error("Missing blouse");
       expect(blouse.bounds.width/blouse.bounds.height).toBeLessThan(.96);
+      expect(blouse.bounds.width).toBeGreaterThan(160);
+      expect(blouse.bounds.height).toBeGreaterThan(190);
+      const knot=nodes.get("scarf-overlap-knot");
+      if(knot?.kind!=="wax")throw new Error("Unattached woven scarf knot");
+      expect(knot.parentId).toBe("coat-silhouette");
+      expect(knot.coverage).toBe("opaque");
+      expect(knot.bounds.y).toBeLessThan(118);
+      const buttons=["coat-brass-button-one","coat-brass-button-two"]
+        .map(id=>nodes.get(id));
+      for(const b of buttons){
+        if(b?.kind!=="wax")throw new Error("Missing brass closure");
+        expect(b.bounds.x).toBeLessThan(-95);
+      }
       const nose=nodes.get("nose-bridge");
       if(nose?.kind!=="wax")throw new Error("Missing nose");
       expect(nose.coverage).toBe("open");

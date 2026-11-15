@@ -57,7 +57,7 @@ export const portraitCriticalParts=[
   "coat-sleeve-cap-near","coat-sleeve-cap-far",
   "coat-collar-felt-near","coat-collar-felt-far",
   "shirt-lace-ruffle-left","shirt-lace-ruffle-right",
-  "scarf-overlap-fold",
+  "scarf-overlap-fold","scarf-overlap-knot",
   "tailored-scarf-wrap","tailored-scarf-tail",
   "nose-tip-underpaint","cheek-warm-pigment","tear-trough-value",
   "neck-jaw-cast-shadow",
@@ -726,10 +726,15 @@ export function crayonAdultFaceStudy(
     {parentId:"coat-collar-right",coverage:"open",clipToParent:true,
       blendRadius:4,pressure:.39,markStrength:.22,spacing:10,
       outlineOpacity:0,edgeRoughness:0});
-  wax("shirt-linen","M-53 150Q-23 171 7 181Q38 167 61 151"+
-    "Q33 208 21 268Q10 281 -11 266Z",
-    box(-64,137,136,153),colors.silk,"anatomy",
-    {parentId:"coat-silhouette",markStrength:.43,spacing:10,outlineOpacity:0});
+  wax("shirt-linen",
+    "M-62 152Q-28 174 5 182Q36 171 73 150"+
+    "Q59 190 53 224Q42 275 23 315"+
+    "Q-10 318 -27 296Q-46 253 -53 205Z",
+    box(-78,137,165,196),colors.silk,"anatomy",
+    {parentId:"coat-silhouette",markStrength:.39,spacing:10,
+      underpaintGradient:{light:"#f5e5cb",shadow:"#b39a91",
+        focusX:.35,focusY:.2,radius:1.1},
+      outlineOpacity:0});
   // Under the wool and scarf are two physically attached linen ruffles.
   // These are inked, asymmetrical scalloped folds, not five disconnected
   // white "petals" or flat sawtooth triangles.
@@ -787,6 +792,21 @@ export function crayonAdultFaceStudy(
     "M15 112Q37 122 60 113",
     "#6e4549",1.05,"detail",
     {parentId:"tailored-scarf-wrap",clipToParent:true,opacity:.79});
+  // Separate bulky cloth knot gives the wrap a sideward crossing and
+  // a real attachment root for the downward tail (not a floating stripe).
+  wax("scarf-overlap-knot",
+    "M36 123Q51 115 66 127Q77 138 68 152"+
+    "Q64 172 46 170Q32 158 34 144Z",
+    box(26,108,60,73),colors.scarfShadow,"anatomy",
+    {parentId:"coat-silhouette",spacing:7.2,markStrength:.47,
+      underpaintGradient:{light:"#ca8c79",shadow:"#563b45",
+        focusX:.25,focusY:.15,radius:1.04},
+      outlineOpacity:.03});
+  ink("scarf-knot-attached-ridges",
+    "M43 127Q57 133 64 142M40 142Q51 155 59 159"+
+    "M40 149Q48 165 53 169",
+    "#d9a183",1.03,"detail",
+    {parentId:"scarf-overlap-knot",clipToParent:true,opacity:.77});
   wax("tailored-scarf-tail",
     "M27 144Q49 152 55 179Q62 213 51 239"+
     "Q46 260 33 269L13 255"+
@@ -856,7 +876,7 @@ export function crayonAdultFaceStudy(
     "#bac0b4",1.05,"detail",
     {parentId:"coat-silhouette",opacity:.81});
   ink("coat-reinforced-buttonholes",
-    "M-8 239Q4 241 10 235M-13 271Q1 275 14 267",
+    "M-100 232Q-85 237 -72 232M-108 278Q-92 281 -75 277",
     "#c2bab0",1.7,"detail",
     {parentId:"coat-silhouette",opacity:.74});
   ink("blouse-yoke-gathers",
@@ -958,18 +978,19 @@ export function crayonAdultFaceStudy(
   // curved placket, sewn bound edges, uneven button spacing and wool
   // rubs anchored to fabric masses. All lines clip to the coat shape.
   wax("coat-brass-button-one",
-    "M-31 258Q-25 250 -18 254Q-12 261 -18 268Q-28 268 -31 258Z",
-    box(-37,244,30,32),colors.brass,"detail",
+    "M-90 241Q-81 232 -73 238Q-69 249 -77 254"+
+    "Q-89 256 -90 241Z",
+    box(-100,224,39,38),colors.brass,"detail",
     {parentId:"coat-silhouette",spacing:4,markStrength:.23,
       outlineOpacity:.11});
   wax("coat-brass-button-two",
-    "M-38 292Q-31 285 -23 287Q-15 292 -21 304"+
-    "Q-31 307 -38 292Z",
-    box(-44,279,36,34),colors.brass,"detail",
+    "M-98 290Q-88 278 -79 284Q-74 299 -85 305"+
+    "Q-98 309 -98 290Z",
+    box(-107,267,39,46),colors.brass,"detail",
     {parentId:"coat-silhouette",spacing:4,markStrength:.23,
       outlineOpacity:.12});
   ink("coat-button-threads",
-    "M-26 259l5 4M-22 257l-3 6M-32 292l7 6M-25 291l-7 6",
+    "M-85 242l7 6M-78 241l-6 7M-92 292l9 8M-83 290l-8 9",
     "#c4ac90",1.05,"detail",
     {parentId:"coat-silhouette",opacity:.92});
   ink("coat-hand-sewn-piping",
