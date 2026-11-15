@@ -565,18 +565,21 @@ function fox():PencilSubjectPart[] {
         mark("M165 207 Q180 213 192 211 M224 213 Q248 216 270 205",
           "#ECC0A2",.66,253,.58),
       ]},
-    {id:"mask",material:"fur",palette:["#69514E","#423C41","#986A5C"],
-      // Narrow, dark bony orbits and an oblique tear duct beneath near eye.
-      path:"M195 190 Q201 184 209 186 Q210 189 203 192 Q198 193 195 190 Z M227 188 Q237 179 250 181 C261 184 258 194 249 199 Q234 197 227 188 Z",
-      bounds:[147,169,123,39],direction:18,start:135,
+    {id:"mask",material:"fur",palette:["#8B604D","#543E3D","#B37D63"],
+      // Thin shadow wedges stay attached to both orbital roofs. The far
+      // socket recedes into the bridge rather than a black elliptical patch.
+      path:"M198 189 Q202 186 207 188 Q204 191 201 191 Q199 191 198 189 Z "+
+        "M232 188 C239 181 250 180 255 184 "+
+        "C252 186 250 190 246 190 C240 189 237 189 232 188 Z",
+      bounds:[193,176,68,26],direction:18,start:135,
       details:[
-        mark("M195 189 Q202 185 208 187 M230 185 Q240 180 253 183",
-          "#43393E",.70,251,.67),
-        mark("M230 193 Q225 201 224 208 M236 196 Q245 201 253 191",
-          "#59474A",.70,264,.85),
+        mark("M198 188 Q203 186 208 188 M233 186 Q243 180 255 184",
+          "#43393E",.62,251,.70),
+        mark("M233 191 Q230 197 228 198 M240 191 Q246 193 250 188",
+          "#59474A",.48,264,.62),
         ...pencilRootedFur([
-          [194,188,210,197,200,185,17,5],
-          [222,190,255,208,238,209,18,6],
+          [195,188,209,193,201,185,17,4],
+          [229,185,254,194,243,180,21,5],
         ],645,["#AA7965","#5F4A4C","#B99479"],250),
       ]},
     {id:"muzzle",material:"fur",palette:["#D6BFA6","#88786E","#F5DEC1"],
@@ -617,7 +620,7 @@ function fox():PencilSubjectPart[] {
           "#BD7C69",.65,265,.68),
       ]},
     {id:"cheek-ruff",material:"fur",
-      palette:["#CEB79B","#917D71","#E9D3B4"],
+      palette:["#B59278","#69534D","#D8B49A"],
       // Narrow, layered malar-to-throat root strip, not an opaque gray
       // triangular scarf. Its lower fibres grow into the existing white
       // chest and neck fur while the skull still occludes the upper root.
@@ -639,31 +642,29 @@ function fox():PencilSubjectPart[] {
           [261,281,250,309,258,297,29,-1],
         ],905,["#D8BDA1","#9E8980","#F8E4C8"],255),
       ]},
-    {id:"eye-far",material:"glaze",palette:["#776153","#594C4A","#AE947D"],
-      // At this yaw the contralateral canthus is occluded by the long
-      // bridge: a slim shadow seam, never a second glossy cartoon eye.
-      path:"M198 189 C201 187 204 187 207 189 "+
-        "Q207 192 202 192 Q200 192 198 189 Z",
-      bounds:[197,185,12,9],start:153,
+    {id:"eye-far",material:"glaze",palette:["#856B5E","#615250","#AE947D"],
+      // Occluded far canthus: a shadow under the left brow, not a second eye.
+      path:"M199 189 Q202 187 207 188 Q206 190 202 191 Q200 191 199 189 Z",
+      bounds:[197,185,12,8],start:153,
       details:[
-        mark("M198 189 Q202 185 208 188","#4E3C39",.46,253,.63),
-        mark("M198 190 Q202 193 206 190","#917061",.29,264,.40),
-        mark("M200 188 Q203 188 204 189","#463B3A",.27,272,.35),
+        mark("M199 189 Q203 186 207 188","#57443F",.38,253,.51),
+        mark("M200 190 Q203 192 205 190","#A5816B",.25,264,.36),
+        mark("M201 189 Q203 188 204 189","#544442",.24,272,.33),
       ]},
     {id:"eye-near",material:"glass",
       palette:["#866847","#34343A","#B69161"],
       // Miniature amber aperture recessed under superior brow shadow.
       // Upper eyelid darker than the receding inferior edge.
-      path:"M235 190 C238 185 244 184 249 186 "+
-        "Q252 188 249 191 C245 194 239 194 235 190 Z",
-      bounds:[233,182,20,14],start:155,
+      path:"M236 190 C239 186 244 185 249 187 "+
+        "Q250 189 247 191 C243 192 239 192 236 190 Z",
+      bounds:[234,183,19,12],start:155,
       details:[
         mark("M235 189 Q242 181 250 187","#242632",.88,250,.96),
         mark("M237 191 Q243 195 248 191","#71504A",.46,258,.55),
-        mark("M242 185 Q246 185 248 188 Q248 192 246 193 Q241 192 241 188 Z",
-          "#986D3B",.46,263,.75),
-        mark("M245 186 Q248 189 246 192","#20252C",.59,268,.90),
-        mark("M243 186 L244 185","#FFF0D2",.36,276,.91),
+        mark("M242 187 Q245 185 247 188 Q248 190 245 191 Q242 190 242 187 Z",
+          "#986D3B",.42,263,.74),
+        mark("M245 187 Q247 189 245 191","#20252C",.55,268,.90),
+        mark("M243 186 L244 185","#FFF0D2",.29,276,.88),
         mark("M233 190 Q236 193 238 193 M250 186 Q252 184 255 183",
           "#4B3837",.41,279,.72),
         mark("M235 194 Q241 198 249 193 M240 198 Q244 199 248 195",
@@ -687,19 +688,20 @@ function fox():PencilSubjectPart[] {
           "#635A58",.48,279,.75),
       ]},
     {id:"nose",material:"fur",palette:["#333B41","#1C252D","#6F7070"],
-      // Small graphite-indigo nasal leather, nostril and connected philtrum.
-      path:"M107 221 C110 216 113 214 118 215 "+
-        "C123 216 125 219 125 223 C124 228 119 232 114 232 "+
-        "C110 231 107 227 107 221 Z",
-      bounds:[105,212,23,23],direction:14,start:160,
+      // Asymmetric flattened nasal leather with tapered ventral nostril,
+      // following the bridge instead of a circular cartoon button.
+      path:"M105 221 C108 217 112 216 116 217 "+
+        "C119 216 124 219 125 221 C125 224 121 226 118 228 "+
+        "C116 231 113 231 111 229 C108 227 105 224 105 221 Z",
+      bounds:[103,214,24,20],direction:14,start:160,
       details:[
-        mark("M108 220 Q114 215 121 217","#96948A",.43,248,.56),
-        mark("M110 223 Q113 226 115 224 M118 226 Q122 225 122 221",
-          "#131F27",.48,260,.85),
-        mark("M112 229 Q116 230 120 227","#89817C",.35,267,.66),
-        {...mark("M119 229 Q124 233 125 237",
-          "#62504D",.54,274,.75),id:"nasal-philtrum"},
-        mark("M109 219 Q111 218 113 218","#DDD1BE",.24,277,.52),
+        mark("M107 219 Q113 216 119 218","#96948A",.43,248,.54),
+        mark("M109 224 Q113 226 115 224 M119 224 Q122 225 123 222",
+          "#131F27",.44,260,.85),
+        mark("M110 228 Q113 230 117 227","#89817C",.33,267,.67),
+        {...mark("M117 229 Q123 233 125 237",
+          "#62504D",.47,274,.70),id:"nasal-philtrum"},
+        mark("M107 219 Q109 218 112 218","#DDD1BE",.23,277,.51),
       ]},
     {id:"tail-tip",material:"fur",palette:pale,
       path:"M54 356 C51 366 50 376 54 387 Q61 400 80 401 Q89 402 93 399 C76 391 70 380 72 369 Q70 357 74 349 C68 350 60 354 54 356 Z",
@@ -872,7 +874,8 @@ export function pencilLivingStudyDrawing({
         ...region.craft,pigmentDensity:furDensity,
       }:region.craft,
       clipDetails:part.id==="whisker-roots"||
-        (subject==="fox"&&["chest","neck-ruff","cheek-ruff"].includes(part.id))?
+        (subject==="fox"&&(part.id==="nose"||
+          ["chest","neck-ruff","cheek-ruff"].includes(part.id)))?
         false:region.clipDetails, layers:region.layers.map((layer,index)=>({
       ...layer,
       // Multiple dry-pencil colours follow the *same* authored fur-growth
