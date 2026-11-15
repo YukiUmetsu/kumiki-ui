@@ -75,7 +75,7 @@ export function AdultFaceArtcraftWorkbench({aspect,detail,expression,headScaleY,
         </a>
         <figcaption style={{fontSize:12,lineHeight:1.5,marginTop:8}}>
           Licensed CC0 photographic reference, not the same identity as the
-          unfinished CRAYON1 character. The audit measures a separate 608×343
+          unfinished CRAYON1 character. The audit measures a separate 608×1082
           browser capture; the image above is an unregistered preview.
         </figcaption>
       </figure>}

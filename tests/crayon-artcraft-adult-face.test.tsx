@@ -290,7 +290,7 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
     expect(CRAYON_PORTRAIT_AUDIT.source.sha256).toMatch(/^[a-f0-9]{64}$/);
     expect(CRAYON_PORTRAIT_AUDIT.candidate.sha256).toMatch(/^[a-f0-9]{64}$/);
     expect(audit.inspectedLandmarks).toBe(18);
-    expect(audit.failedLandmarks).toHaveLength(15);
+    expect(audit.failedLandmarks).toHaveLength(17);
     expect(audit.failedTonalRegions.map(x=>x.region))
       .toEqual(["eye_socket","nose_planes","cheek_planes","lips"]);
     expect(audit.artisticApproval).toBe(false);
@@ -307,7 +307,7 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
     const review=renderToStaticMarkup(<AdultFaceArtcraftWorkbench {...args}
       referenceReview showCandidateLandmarks/>);
     expect(review).toContain('data-km-crayon-portrait-audit="REJECT"');
-    expect(review).toContain("15/18");
+    expect(review).toContain("17/18");
     expect(review).toContain("4/5");
     expect(review).toContain("CC0 photographic anatomy reference");
     expect((review.match(/data-km-crayon-portrait-landmark=/g)??[])).toHaveLength(18);

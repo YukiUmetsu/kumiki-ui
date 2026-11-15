@@ -13,8 +13,8 @@ export const CRAYON_PORTRAIT_AUDIT={
     "license": "CC0 1.0",
     "year": 2015,
     "width": 608,
-    "height": 343,
-    "sha256": "a7984f9e0322aefe2c55d3771b57c3c2f75a955268b57609e6647e946c6826ed",
+    "height": 1082,
+    "sha256": "f8d28cbede8c8c14f9902a328b6e979e353fd9ebe6efb454bda3152586b929c2",
     "artifact": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43682633614"
   },
   "candidate": {
@@ -26,76 +26,76 @@ export const CRAYON_PORTRAIT_AUDIT={
   },
   "sourcePoints": {
     "face_top": [
-      291,
-      79
+      281,
+      288
     ],
     "face_left": [
-      221,
-      197
+      72,
+      683
     ],
     "face_right": [
-      376,
-      213
+      501,
+      709
     ],
     "chin": [
-      340,
-      297
+      398,
+      858
     ],
     "eye_far_inner": [
-      344,
-      169
+      405,
+      514
     ],
     "eye_far_outer": [
-      367,
-      166
+      463,
+      513
     ],
     "eye_near_inner": [
-      309,
-      177
+      303,
+      543
     ],
     "eye_near_outer": [
-      274,
-      183
+      222,
+      544
     ],
     "brow_near_peak": [
-      291,
-      152
+      274,
+      480
     ],
     "nose_root": [
-      325,
-      175
+      363,
+      522
     ],
     "nose_tip": [
-      348,
-      204
+      411,
+      631
     ],
     "nostril_near": [
-      341,
-      215
+      399,
+      643
     ],
     "mouth_left": [
-      333,
-      243
+      348,
+      741
     ],
     "mouth_right": [
-      374,
-      230
+      489,
+      710
     ],
     "upper_lip": [
-      355,
-      238
+      418,
+      708
     ],
     "lower_lip": [
-      360,
-      251
+      420,
+      761
     ],
     "cheek_near": [
-      266,
-      229
+      211,
+      658
     ],
     "hairline_center": [
-      299,
-      89
+      282,
+      292
     ]
   },
   "candidatePoints": {
@@ -174,23 +174,23 @@ export const CRAYON_PORTRAIT_AUDIT={
   },
   "tonalRegions": {
     "eye_socket": {
-      "source": 140,
+      "source": 126,
       "candidate": 45
     },
     "nose_planes": {
-      "source": 113,
+      "source": 110,
       "candidate": 16
     },
     "cheek_planes": {
-      "source": 97.1,
+      "source": 58,
       "candidate": 15
     },
     "lips": {
-      "source": 131,
+      "source": 123,
       "candidate": 17
     },
     "hair": {
-      "source": 157,
+      "source": 166,
       "candidate": 154
     }
   },
