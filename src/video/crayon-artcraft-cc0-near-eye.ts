@@ -10,9 +10,13 @@ import {crayonFurFlow,crayonIrisFlecks} from "./crayon-editorial-character-craft
  * below are manually interpreted photo-space shapes, not SVG eye templates.
  * Never silently transplant this person's eye onto the unrelated #281 bust.
  */
-export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):CrayonSceneSpec {
+export function crayonCc0NearEyeStudy(
+  aspect:"landscape"|"portrait",detail=1,
+  deposition:"smooth"|"stroke-built"="stroke-built",
+):CrayonSceneSpec {
   if(!["landscape","portrait"].includes(aspect)||!Number.isFinite(detail)||
-    detail<.2||detail>1)throw new RangeError("Invalid ArtCraft eye-study controls");
+    detail<.2||detail>1||!["smooth","stroke-built"].includes(deposition))
+    throw new RangeError("Invalid ArtCraft eye-study controls");
   const portrait=aspect==="portrait",width=portrait?540:960,height=portrait?960:540;
   const elements:CrayonElement[]=[];
   type Wax=Extract<CrayonElement,{kind:"wax"}>;
@@ -34,10 +38,25 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
   const wax=(id:string,d:string,bounds:ReturnType<typeof rect>,
     colors:readonly [CrayonColor,CrayonColor,CrayonColor],
     timing:[number,number],overrides:Partial<Wax>={})=>{
+    const coverage=overrides.coverage??"opaque";
+    const handLaid=deposition==="stroke-built";
+    // Full paper is always blocked by a physically opaque undercoat.
+    // The *visible surface* is built from broken, independently colored
+    // contacts; no gradient, Gaussian haze or uniform digital gloss.
+    const weight=overrides.markStrength??.6;
+    const contactProps:Partial<Wax>=handLaid?{
+      deposition:"stroke-built",
+      markStrength:Math.min(1,Math.max(coverage==="opaque"?.68:.43,weight*1.68)),
+      spacing:Math.min(overrides.spacing??5.8,8.2),
+      markLength:["eye-skin","upper-orbital-turn","eye-socket-umbra",
+        "lower-orbital-hollow","cheek-light-turn"].includes(id)?"long":"short",
+      ...(coverage==="opaque"?{underpaintTooth:overrides.underpaintTooth??.79}:{}),
+    }:{};
     elements.push({kind:"wax",id,d,bounds,colors,
       timing:{start:timing[0],end:timing[1]},coverage:"opaque",
       pressure:.82,spacing:5.8,nibStyle:"dry",strokeOrder:"patches",
-      markLength:"short",edgeRoughness:.19,outlineOpacity:.03,...overrides});
+      markLength:"short",edgeRoughness:.19,outlineOpacity:.03,
+      ...overrides,...contactProps});
   };
   const line=(id:string,d:string,color:CrayonColor,w:number,timing:[number,number],
     parentId="eye-skin",opacity=.7)=>{
