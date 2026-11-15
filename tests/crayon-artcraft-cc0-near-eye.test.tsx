@@ -26,9 +26,16 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
       const support=hand.elements.find(x=>x.id==="eye-skin");
       if(support?.kind!=="wax")throw new Error("Missing skin support");
       expect(support.coverage).toBe("opaque");
-      expect(support.underpaintTooth).toBeGreaterThan(.7);
-      expect(support.markStrength).toBeGreaterThan(.6);
-      expect(support.spacing).toBeLessThan(9);
+      expect(support.underpaintTooth).toBeGreaterThan(.4);
+      expect(support.markStrength).toBeLessThan(.4);
+      expect(support.spacing).toBeGreaterThan(11);
+      const brow=hand.elements.find(x=>x.id==="brow-root");
+      const socket=hand.elements.find(x=>x.id==="eye-socket-umbra");
+      if(brow?.kind!=="wax"||socket?.kind!=="wax")
+        throw new Error("Missing local pigment regions");
+      expect(brow.markStrength).toBeGreaterThan((support.markStrength??0)*2);
+      expect(socket.markStrength).toBeGreaterThan(support.markStrength??0);
+      expect(brow.angle).not.toBe(support.angle);
       expect(html).toBe(renderToStaticMarkup(<CrayonScene spec={hand} frame={299}/>));
     });
     it("constructs topologically attached ocular pigment without transparency in "+aspect,()=>{
