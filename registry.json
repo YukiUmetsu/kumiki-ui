@@ -3765,6 +3765,28 @@
       ]
     },
     {
+      "name": "ink-shanshui-landscape",
+      "type": "registry:ui",
+      "title": "Chinese Ink Shanshui Landscape Animator",
+      "description": "Code-drawn 16:9 Chinese ink landscapes with layered sepia mountain washes, cunfa cliff lines, original pine, willow and bamboo art, arched bridges, water, mist and parallax; three compositional presets, deterministic absolute-frame animation, no raster references or external runtime dependencies.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-actor-director"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-shanshui.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-shanshui.ts"
+        },
+        {
+          "path": "registry/video/ink-shanshui-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-shanshui-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "ink-wash-core",
       "type": "registry:ui",
       "title": "Chinese Ink Wash Brush and Paper",

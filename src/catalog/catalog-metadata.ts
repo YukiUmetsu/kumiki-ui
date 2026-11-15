@@ -143,6 +143,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:editorial-collage":{storyId:"video-editorial-collage--collage-film"},
   "pack:universal-rig":{storyId:"video-universal-rig--lab"},
   "pack:ukiyoe-handscroll":{storyId:"video-ukiyoe-handscroll--night-ferry"},
+  "pack:ink-shanshui-landscape":{storyId:"video-ink-shanshui--gallery-studio"},
   "pack:crayon-storybook":{storyId:"video-crayon-storybook--lantern-trail"},
   "pack:screen-demo":{storyId:"video-production-screen-demo--live-ui"},
   "pack:motion-chart":{storyId:"video-production-motion-chart--guided"},
