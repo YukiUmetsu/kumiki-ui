@@ -171,7 +171,7 @@ export const KINGFISHER_REBUILT_PARTS=[
   "tail","far-wing","torso","breast","near-wing","head",
   "cheek","beak","feet","eye",
 ] as const;
-function kingfisher():PencilActorSpec {
+export function createKingfisherActor():PencilActorSpec {
   const parts:PencilActorPart[]=[
     part({id:"tail",material:"feather",colors:birdCobalt,pivot:[131,177],
       keys:[key(0),key(171),key(199,0,0,-7),key(227,0,0,5),key(280),key(319)],
@@ -264,7 +264,7 @@ export function pencilCharacterScene(aspect:PencilAspect):PencilSceneSpec {
   const portrait=aspect==="portrait";
   const foxActor={...fox(),transform:portrait?
     "translate(58 513) scale(.97)":"translate(487 226) scale(1.08)"};
-  const birdActor={...kingfisher(),transform:portrait?
+  const birdActor={...createKingfisherActor(),transform:portrait?
     "translate(281 496) scale(.94)":"translate(749 221) scale(.99)"};
   const annotations=source.annotations?.filter(a=>!a.id.startsWith("guide-")).map(a=>{
     if(a.id==="title"&&a.type==="text")return {...a,text:["FOX &","KINGFISHER"]};
