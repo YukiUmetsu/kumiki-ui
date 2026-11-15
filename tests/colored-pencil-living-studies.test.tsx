@@ -262,6 +262,12 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       const drawing=pencilLivingStudyDrawing({subject:"fox",aspect,seed:291});
       const parts=new Map(drawing.regions.map(r=>[r.id,r]));
       const tail=parts.get("tail-back")!,tip=parts.get("tail-tip")!;
+      // Delicate contour hairs are explicitly authored *outside* the pelt.
+      // A material-wide clip silently erased every silhouette breakthrough.
+      expect(tail.clipDetails).toBe(false);
+      expect(tip.clipDetails).toBe(false);
+      expect(tail.details!.some(d=>d.id?.startsWith("fringe-"))).toBe(true);
+      expect(tip.details!.some(d=>d.id?.startsWith("fringe-"))).toBe(true);
       expect(tail.path.match(/C/g)?.length).toBeGreaterThan(10);
       expect(tail.path).toContain("C11 376 17 382 24 385");
       expect(tail.path).toContain("195 346 Z");
