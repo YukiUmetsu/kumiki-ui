@@ -89,12 +89,19 @@ export const createOpticalEyelidFibres=(
     for(const rim of ["upper","lower"] as const){
       const ctrl=rim==="upper"?lid.upper:lid.lower;
       const steps=clamp(Math.ceil(lid.span/.76),14,96);
-      const tolerance=clamp(lid.span*.085,1.2,4.0);
+      // The old theoretical "upper" arch lies roughly 5–7 review pixels
+      // ABOVE the actual dark near-eye lid in the licensed source. Anchor
+      // the search to measured CANTHI and source value, not that guessed
+      // half-ellipse. It must still remain inside a small eye-only band.
+      const tolerance=clamp(lid.span*.17,2.8,11.5);
       const points:Sample[]=[];
       let supported=0;
       for(let i=0;i<=steps;i++){
         const t=.04+.92*i/steps;
-        const base=q(lid.start,ctrl,lid.end,t);
+        const arc=q(lid.start,ctrl,lid.end,t);
+        const baseline=lerp(lid.start[1],lid.end[1],t);
+        const base:Point=[arc[0],baseline+
+          lid.span*(rim==="upper"?-.075:.07)];
         const [x,yy]=base;
         // Interior guard is deliberately stricter than the photo loader:
         // three-pixel source neighbours must not clamp into the margin.
@@ -111,17 +118,24 @@ export const createOpticalEyelidFibres=(
           const middle=luminance(source,x,y);
           const above=luminance(source,x,y-2);
           const below=luminance(source,x,y+2);
-          const ridge=(above+below)*.5-middle;
+          // A source-observed UPPER lid casts a downward shadow on iris:
+          // look for dark pigment versus the eyebrow-facing skin ABOVE.
+          // The LOWER rim borders illuminated cheek BELOW. This polarity
+          // rejects many iris/eyebrow spots that would pass a symmetric
+          // "darkest pixel" heuristic and make generic cartoon eyeliner.
+          const ridge=rim==="upper"?
+            .70*(above-middle)+.30*(below-middle):
+            .70*(below-middle)+.30*(above-middle);
           const c=rgb(source,x,y);
           // No stray dark-green plant pixels masquerading as eyelashes.
           if(c[1]>c[0]*1.18&&c[1]>c[2]*1.13)continue;
-          const supportedOptics=middle<.73&&ridge>.022;
+          const supportedOptics=middle<.73&&ridge>.025;
           if(!supportedOptics)continue;
           const score=ridge*.83+Math.max(0,.63-middle)*.20-
             Math.abs(offset)/tolerance*.035;
           if(score>bestScore){bestScore=score;bestY=y;}
         }
-        const visible=bestScore>.026;
+        const visible=bestScore>.028;
         if(visible)supported++;
         points.push({base,x,y:visible?bestY:yy,
           score:Math.max(0,bestScore),supported:visible});
