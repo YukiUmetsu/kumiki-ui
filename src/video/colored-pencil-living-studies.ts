@@ -284,21 +284,29 @@ function fox():PencilSubjectPart[] {
     {id:"ground-shadow",material:"cast-shadow",palette:["#77736B","#696A63","#B5AA9D"],
       path:"M78 380 Q190 367 328 378 Q384 381 401 396 Q228 417 96 401 Z",
       bounds:[73,362,333,57],start:36},
-    {id:"tail-back",material:"fur",palette:charcoal,
-      path:"M159 320 Q108 292 63 335 Q33 373 79 397 Q133 413 176 373 Q203 358 210 341 Z",
+    {id:"tail-back",material:"fur",palette:["#AC694F","#614B4B","#DBA477"],
+      path:"M170 334 C147 320 124 314 100 320 C76 322 55 342 52 366 C50 392 77 405 105 405 C139 409 171 392 192 367 C199 358 204 348 202 341 Z",
       bounds:[49,290,166,125],direction:80,start:60,
-      details:flowBundles([
-        [69,362,151,385,103,405,28,13],[83,345,172,377,130,383,20,10],
-      ],310,"#AEB0A4",.74,220)},
+      details:[
+        ...pencilRootedFur([
+          [75,344,142,375,94,367,34,17],
+          [91,323,160,360,132,331,30,18],
+          [67,372,139,394,91,396,32,15],
+        ],310,["#E0AE7B","#755653","#F2D3AA"],224),
+        ...flowBundles([
+          [67,350,151,378,90,378,28,13],
+          [90,337,172,368,131,356,20,10],
+        ],312,"#E5B083",.57,245),
+      ]},
     {id:"body",material:"fur",palette:orange,
-      path:"M177 240 Q208 216 263 223 Q318 231 347 289 Q366 343 329 388 Q285 403 239 384 Q198 410 159 370 Q133 324 177 240 Z",
+      path:"M190 226 C211 216 244 221 266 239 C295 245 325 270 336 303 C348 336 335 366 317 383 Q292 400 262 389 Q236 386 222 381 Q195 392 174 374 Q153 355 156 322 C155 287 170 250 190 226 Z",
       bounds:[137,218,229,188],direction:73,start:73,
       details:flowBundles([
         [194,249,211,345,166,286,24,17],[243,233,265,373,244,291,27,15],
         [303,248,324,370,333,294,21,13],
       ],381,"#F5BE85",.65,224)},
     {id:"rear-leg",material:"fur",palette:charcoal,
-      path:"M313 313 Q342 328 348 365 Q348 390 363 393 L357 403 L314 402 Q306 366 296 343 Z",
+      path:"M311 313 C331 316 344 332 344 349 C342 368 354 384 365 389 L369 402 Q357 407 344 404 Q325 410 312 400 C315 378 305 354 295 342 Z",
       bounds:[292,310,75,96],direction:72,start:84,
       details:flowBundles([[318,333,335,388,326,365,18,9]],421,"#A9B0A7",.66)},
     {id:"foreleg-left",material:"fur",palette:charcoal,
@@ -310,20 +318,20 @@ function fox():PencilSubjectPart[] {
       bounds:[247,302,76,107],direction:75,start:94,
       details:flowBundles([[270,332,282,399,273,372,20,10]],489,"#B3B5AC",.65)},
     {id:"chest",material:"fur",palette:pale,
-      path:"M185 236 Q219 221 271 244 Q301 275 295 316 Q289 344 267 366 Q232 344 222 314 Q203 298 182 306 Q164 270 185 236 Z",
+      path:"M191 240 C208 235 225 242 243 252 Q263 261 274 279 Q286 301 279 326 Q278 336 269 349 Q263 356 253 365 L249 353 Q237 365 232 355 L226 347 Q218 354 214 342 L206 326 Q197 322 194 312 Q182 318 175 307 Q181 293 172 281 Q176 256 191 240 Z",
       bounds:[163,220,137,152],direction:69,start:95,
       details:flowBundles([
         [194,250,222,328,196,305,23,15],[234,254,261,344,247,302,23,14],
       ],523,"#FFF1D7",.71,229)},
     {id:"neck-ruff",material:"fur",palette:pale,
-      path:"M165 240 Q158 259 175 279 Q159 291 176 311 Q185 304 195 318 Q203 303 218 314 Q227 298 243 301 Q256 284 241 266 Z",
+      path:"M160 234 C166 242 173 247 176 257 Q185 254 192 266 C202 258 211 264 217 271 C226 266 235 270 246 278 Q248 289 236 299 L228 290 Q225 307 212 313 L207 304 Q202 320 190 320 L187 306 Q175 315 166 308 L170 295 Q160 289 164 279 Q155 268 160 253 Q157 243 160 234 Z",
       bounds:[154,235,108,85],direction:59,start:104,
       details:flowBundles([[174,247,206,306,176,291,20,14],
         [210,248,237,295,225,278,19,14]],557,"#F8E7C6",.67)},
     {id:"head-main",material:"fur",palette:["#B66C4E","#724849","#EBAE79"],
       // Three-quarter fox: skull widens behind the near orbit and narrows into
       // an oblique snout; avoid the old round bilateral mask.
-      path:"M133 167 C142 130 171 113 207 109 C250 99 287 129 299 166 C308 192 295 223 274 237 C258 243 255 262 229 267 C199 266 165 249 143 235 Q124 222 122 206 Q118 185 133 167 Z",
+      path:"M139 190 C143 171 156 154 170 146 C185 135 205 128 222 129 C245 126 266 137 280 150 C291 166 295 183 290 198 C286 216 277 229 264 237 C251 242 244 255 224 258 C200 256 174 247 152 233 C139 224 135 210 139 190 Z",
       bounds:[116,99,195,173],direction:43,start:112,
       details:[
         ...pencilRootedFur([
@@ -339,10 +347,23 @@ function fox():PencilSubjectPart[] {
           "#714F4C",.67,258,.50),
         mark("M165 178 Q183 163 199 169 M230 178 Q250 166 272 185",
           "#8E5D4D",.65,244,.64),
+        // Real fur grows in neighboring scalp, temple, orbital and cheek
+        // fields, not a uniform hatch across a circular orange mask.
+        ...pencilRootedFur([
+          [149,164,193,180,172,151,34,10],
+          [181,148,233,166,207,139,33,15],
+          [241,146,276,193,281,162,31,14],
+          [176,204,219,238,190,223,31,14],
+          [255,210,274,239,284,217,28,13],
+        ],1647,["#C98965","#704E4A","#F6CB95"],241),
+        mark("M160 158 C178 139 203 139 223 144 M216 145 Q241 141 259 157",
+          "#F7C99C",.62,248,.54),
+        mark("M167 220 Q185 235 205 242 M234 239 Q248 237 259 228",
+          "#7B5350",.55,257,.54),
       ]},
     {id:"ear-far",material:"fur",palette:["#AF6B52","#714B49","#E1A47B"],
       // Ear-to-skull proportion: broad cartilage base, shorter tapered tip.
-      path:"M150 152 C143 128 145 101 155 77 Q161 63 170 71 C184 82 196 111 202 132 Q178 130 150 152 Z",
+      path:"M159 155 C150 134 147 108 153 89 C156 74 161 68 168 72 C179 82 192 105 198 133 C184 137 173 144 159 155 Z",
       bounds:[143,63,62,94],direction:67,start:114,
       details:[
         mark("M159 132 Q154 105 164 77 Q180 97 186 123",
@@ -351,13 +372,13 @@ function fox():PencilSubjectPart[] {
           ["#D4A282","#6D5653","#F1BFA2"],252),
       ]},
     {id:"ear-far-inner",material:"fur",palette:["#A17E73","#6A555B","#C9AD9A"],
-      path:"M159 126 C154 105 159 91 165 81 Q179 99 185 122 Z",
+      path:"M162 127 Q155 105 160 89 C166 83 176 105 187 124 Q177 127 162 127 Z",
       bounds:[154,78,35,53],direction:72,start:131,
       details:[
         mark("M164 96 Q164 115 178 120","#D4B29B",.44,245,.71),
       ]},
     {id:"ear-near",material:"fur",palette:["#B87658","#724F4A","#E4AA7F"],
-      path:"M252 127 C261 98 278 73 293 64 Q304 56 310 72 Q316 105 295 153 Q277 134 252 127 Z",
+      path:"M247 138 C256 117 267 92 284 69 Q302 50 309 62 C317 78 308 121 294 155 C275 145 262 140 247 138 Z",
       bounds:[246,55,71,102],direction:-66,start:115,
       details:[
         mark("M266 128 Q279 91 301 69 Q305 105 284 143",
@@ -366,7 +387,7 @@ function fox():PencilSubjectPart[] {
           ["#E2AD88","#6B5556","#F5C9A6"],252),
       ]},
     {id:"ear-near-inner",material:"fur",palette:["#A37C6E","#68545C","#D9B39A"],
-      path:"M269 123 Q283 86 298 75 Q303 99 287 139 Z",
+      path:"M267 126 C273 105 286 80 298 72 Q303 90 297 111 Q291 128 285 140 Q275 132 267 126 Z",
       bounds:[265,71,41,71],direction:-68,start:131,
       details:[mark("M291 94 Q282 107 282 127","#E8CAB0",.50,246,.73)]},
     // ArtCraft: one continuous source-free *anatomy* study, not a photo
@@ -393,7 +414,7 @@ function fox():PencilSubjectPart[] {
       ]},
     {id:"mask",material:"fur",palette:["#69514E","#423C41","#986A5C"],
       // Narrow, dark bony orbits and an oblique tear duct beneath near eye.
-      path:"M150 191 Q163 176 185 184 C189 190 181 198 167 200 Q156 201 150 191 Z M217 188 Q235 171 264 181 C267 191 254 203 231 205 Q220 202 217 188 Z",
+      path:"M155 188 C166 179 179 178 189 184 Q191 190 181 196 Q170 199 156 195 Q153 193 155 188 Z M215 187 C229 175 247 172 261 179 C267 185 262 191 255 194 Q242 200 227 199 Q217 196 215 187 Z",
       bounds:[147,169,123,39],direction:18,start:135,
       details:[
         mark("M151 190 Q168 178 184 185 M218 186 Q238 171 264 183",
@@ -407,7 +428,7 @@ function fox():PencilSubjectPart[] {
       ]},
     {id:"muzzle",material:"fur",palette:["#C8B6A0","#736A68","#EAD7B9"],
       // One coherent oblique nasal-to-maxilla plane and a soft lower jaw.
-      path:"M105 221 C132 211 153 210 180 216 Q211 223 239 218 C261 215 271 224 274 234 Q264 248 237 259 Q207 265 165 258 Q126 251 107 239 Q97 232 105 221 Z",
+      path:"M108 215 C122 213 137 213 151 210 C179 200 194 196 210 199 C234 197 254 205 267 216 C276 227 268 240 253 250 C232 259 198 256 170 248 C145 243 124 239 110 232 C103 227 102 219 108 215 Z",
       bounds:[96,204,182,65],direction:14,start:146,
       details:[
         ...pencilRootedFur([
@@ -424,7 +445,7 @@ function fox():PencilSubjectPart[] {
       ]},
     {id:"rostrum-bridge",material:"glaze",palette:["#B27660","#80584F","#D59D7F"],
       // Optical dry-colour plane overlays muzzle, without an opaque sticker.
-      path:"M120 219 C151 206 180 202 205 192 Q230 190 246 214 C209 218 168 226 124 229 Z",
+      path:"M117 212 C136 203 159 196 188 192 C207 183 235 183 254 200 C231 209 201 218 163 220 Q138 223 118 223 Z",
       bounds:[117,188,131,43],direction:13,start:149,
       details:[
         ...pencilRootedFur([
@@ -436,7 +457,7 @@ function fox():PencilSubjectPart[] {
       ]},
     {id:"cheek-ruff",material:"fur",palette:["#B5896E","#7B5F58","#D7B59A"],
       // Irregular roots turn into neck ruff. Avoid a detached parallelogram.
-      path:"M252 215 Q270 220 285 233 L291 242 Q287 245 284 252 Q278 253 278 259 L269 263 Q268 272 258 276 L250 289 Q251 274 241 271 Q250 255 235 240 Q248 234 252 215 Z",
+      path:"M252 210 C267 218 282 226 290 235 Q300 242 300 250 L292 252 Q294 260 288 267 L279 266 Q279 275 269 282 L261 276 Q255 291 243 296 Q251 280 244 270 C244 259 236 245 230 235 C240 234 248 223 252 210 Z",
       bounds:[232,211,63,82],direction:64,start:150,
       details:[
         ...pencilRootedFur([
@@ -510,7 +531,7 @@ function fox():PencilSubjectPart[] {
         mark("M127 247 Q132 253 136 255","#5B5150",.52,281,.71),
       ]},
     {id:"tail-tip",material:"fur",palette:pale,
-      path:"M67 351 Q46 374 79 397 Q97 407 118 397 Q103 392 91 377 Q80 365 67 351 Z",
+      path:"M74 353 C64 362 61 376 67 387 Q78 402 103 403 C112 405 119 402 125 398 Q105 386 94 373 Q82 358 74 353 Z",
       bounds:[45,347,79,63],direction:57,start:180},
   ];
 }
