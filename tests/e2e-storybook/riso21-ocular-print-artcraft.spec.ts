@@ -485,8 +485,11 @@ test("RISO30 ANAT1 hands: original donor / receiver, 2 ink masters, live gesture
           .toHaveCount(1);
         await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-'+digit+'-distal-phalanx"]'))
           .toHaveCount(1);
+        // ArtCraft visual rejection: stacked solid cobalt PIP+DIP bars
+        // looked like tiger stripes in actual f46/f166 6× print.
+        // DIP gets real LIGHT source-screen ink, not compositing opacity.
         await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-'+digit+'-dip-crease"]'))
-          .toHaveCount(1);
+          .toHaveAttribute("data-km-riso-screen-tone","light");
       }
       expect(Number(await panel.getAttribute("data-km-riso30-hand-parts"))).toBeGreaterThan(21);
       expect(Number(await panel.getAttribute("data-km-riso30-crop-margin")))
