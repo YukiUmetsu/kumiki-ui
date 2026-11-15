@@ -18,6 +18,8 @@ export interface PaperSceneryOptions {
   detail?: number;
   /** Strength of small shared-hinge foliage motion (0–1). */
   breeze?: number;
+  /** Physical paper-depth separation, 0 = flat sheets, 1 = full relief. */
+  relief?: number;
   seed?: number;
 }
 type Stock = Readonly<{
@@ -99,15 +101,20 @@ function ridge(p:P,xExtent:number,yFloor:number,level:number,amplitude:number,ph
     p.L(xExtent+10,yFloor+20),p.L(-xExtent-10,yFloor+20),p.Z].join(" ");
 }
 function smallFern(p:P,x:number,y:number,height:number,side:number,detail:number){
+  // A continuous slanting rachis and every leaflet overlaps its stem.
+  // The paired fronds fan *perpendicularly* to the main growth axis.
   const tipX=x+side*height*.31,tipY=y-height;
-  const bits=[p.band(x,y,tipX,tipY,1.8)];
-  const count=4+Math.round(detail*4);
+  const bits=[p.band(x,y,tipX,tipY,2.15)];
+  const direction=-90+side*17;
+  const count=5+Math.round(detail*5);
   for(let i=1;i<=count;i++){
     const t=i/(count+1),bx=x+(tipX-x)*t,by=y-height*t;
-    const size=(1-t*.7)*height*.34;
-    bits.push(p.leaf(bx,by,size,-160+side*12,3.2));
-    bits.push(p.leaf(bx,by,size*.84,-20+side*14,2.8));
+    const size=(1-t*.62)*height*.36;
+    const width=Math.max(3.4,size*.23);
+    bits.push(p.leaf(bx,by,size,direction-64+(i%3)*4,width));
+    bits.push(p.leaf(bx,by,size*.86,direction+64-(i%3)*5,width*.92));
   }
+  bits.push(p.leaf(tipX-1.5,tipY+2,12,direction,3.2));
   return bits.join(" ");
 }
 function silhouetteTree(p:P,x:number,ground:number,height:number,width:number,lean:number){
@@ -120,6 +127,53 @@ function silhouetteTree(p:P,x:number,ground:number,height:number,width:number,le
     p.L(x-width*.35,ground+7),p.Z].join(" ");
   return {path,top,tipX};
 }
+
+/** Continuous die-cut crown (never a collection of floating stickers).
+ * The broad cardstock mass is anchored over the foreground tree top. Its
+ * smaller eye-shaped *physical holes* transmit light through negative space.
+ */
+function laceCanopy(p:P,x:number,y:number,side:number,detail:number,seed:number){
+  const sx=(v:number)=>side*v;
+  const path=[
+    p.M(sx(x*1.10),-y*1.10),
+    p.C(sx(x*.88),-y*1.08,sx(x*.74),-y*.99,sx(x*.63),-y*.98),
+    p.C(sx(x*.54),-y*1.065,sx(x*.43),-y*1.015,sx(x*.40),-y*.90),
+    p.C(sx(x*.295),-y*.94,sx(x*.28),-y*.825,sx(x*.365),-y*.77),
+    p.C(sx(x*.37),-y*.68,sx(x*.485),-y*.655,sx(x*.55),-y*.72),
+    p.C(sx(x*.58),-y*.625,sx(x*.715),-y*.625,sx(x*.755),-y*.72),
+    p.C(sx(x*.85),-y*.565,sx(x*.945),-y*.625,sx(x*1.10),-y*.49),
+    p.L(sx(x*1.10),-y*1.10),p.Z
+  ].join(" ");
+  const holes=Array.from({length:4+Math.round(detail*5)},(_,k)=>{
+    const h=paperHash(seed,k+(side>0?60:0),91);
+    const px=sx(x*(.52+(k%3)*.115)),py=-y*(.835-(Math.floor(k/3))*.036);
+    return p.leaf(px,py,13+8*h,side*(k%2?58:-37)-90,5+2*h);
+  });
+  return {path,holes};
+}
+/** Tapered paired blades form a joined, asymmetric thicket with openings.
+ * This is all one cardstock color, but can be cut from a single sheet.
+ */
+function understoryCluster(p:P,x:number,y:number,side:number,detail:number,seed:number){
+  const parts=[p.band(x,y,x+side*7,y-19,3.2)];
+  const blades=5+Math.round(detail*6);
+  for(let i=0;i<blades;i++){
+    const h=28+paperHash(seed,i+Math.round(x),107)*32;
+    const dx=side*(i-(blades-1)/2)*5.8;
+    const tilt=-95+(i-(blades-1)/2)*10+(paperHash(seed,i,108)-.5)*9;
+    parts.push(p.leaf(x+dx,y-h*.16,h,tilt,5+(i%3)*2));
+  }
+  return parts.join(" ");
+}
+/** Folded clipped glacial sediment, never uniformly tiled triangles. */
+function alpineStratum(p:P,cx:number,peak:number,span:number,offset:number,side:number){
+  const rootX=cx+side*span*.14,rootY=peak+offset;
+  return p.poly([[rootX,rootY],[rootX+side*span*.22,rootY+offset*.26],
+    [rootX+side*span*.41,rootY+offset*.52],
+    [rootX+side*span*.29,rootY+offset*.45],
+    [rootX+side*span*.14,rootY+offset*.54]]);
+}
+
 /** A filled paper-world within a physical matted aperture. */
 function portal(p:P,add:Add,x:number,y:number,c:Stock){
   add("scenery-mat",c.mat,0,p.oval(0,0,x+13,y+13),{motion:"still",enterFrame:0});
