@@ -471,6 +471,12 @@ test("RISO30 ANAT1 hands: original donor / receiver, 2 ink masters, live gesture
       await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-thenar-plane"]'))
         .toHaveAttribute("data-km-riso-screen-tone","light");
       await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-index"]')).toHaveCount(1);
+      // Rejected first Chromium RISO30 hands were anatomically four-digit
+      // black mittens. Require a real separate fifth printed finger AND its
+      // independent tiny hand-engraved cuticle attached to a pinky bone.
+      await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-pinky"]')).toHaveCount(1);
+      await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-pinky-nail"]')).toHaveCount(1);
+      expect(Number(await panel.getAttribute("data-km-riso30-hand-parts"))).toBeGreaterThan(21);
     }
     await story.screenshot({path:info.outputPath("riso30-hands-"+f+"-two-ink.png"),
       animations:"disabled"});
