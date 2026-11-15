@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { AnimalYokai, Animals, Bestiary, CastLab, CastleTown, CrowdLab, Effects, FolkWork, FolktaleFilmPlayer, HeianCourt, Interiors, Kami, MaikoDance, MotifGallery, NightFerryPlayer, OiranProcession, OniFight, PrintersProof, SamuraiDuel, SamuraiKata, SceneEditor, SnowWomanFilmPlayer, Temples, Trees, Warriors, WomenGhosts } from "./ukiyoe-studio";
+import { AnimalYokai, Animals, Bestiary, CastLab, CastleTown, CrowdLab, Effects, FolkWork, FolkYokai, FolktaleFilmPlayer, HeianCourt, Interiors, Kami, MaikoDance, MotifGallery, NightFerryPlayer, OiranProcession, OniFight, PrintersProof, SamuraiDuel, SamuraiKata, SceneEditor, SnowWomanFilmPlayer, Temples, Trees, Warriors, WomenGhosts } from "./ukiyoe-studio";
 
 const meta = {
   title: "Video Production/Film Looks/Ukiyo-e Handscroll",
@@ -16,6 +16,7 @@ export const SnowWoman: Story = { name: "UKIYO1 · The Snow Woman (yōkai film)"
 export const FolktaleBestiary: Story = { name: "UKIYO1 · Folktale bestiary", render: () => <Bestiary /> };
 export const PrintersProofLab: Story = { name: "UKIYO1 · Printer's proof", render: () => <PrintersProof /> };
 export const Crowds: Story = { name: "UKIYO1 · Crowds", render: () => <CrowdLab /> };
+export const Household: Story = { name: "UKIYO1 · Folk yōkai", render: () => <FolkYokai /> };
 export const Court: Story = { name: "UKIYO1 · Heian court", render: () => <HeianCourt /> };
 export const Forest: Story = { name: "UKIYO1 · Trees", render: () => <Trees /> };
 export const BeastSpirits: Story = { name: "UKIYO1 · Animal yōkai", render: () => <AnimalYokai /> };

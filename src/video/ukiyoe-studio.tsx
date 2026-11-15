@@ -43,6 +43,8 @@ import type { UkiyoeTreeScene } from "../../registry/video/ukiyoe/ukiyoe-trees";
 import { treeScene, UKIYOE_TREE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-trees";
 import type { UkiyoeHeianScene } from "../../registry/video/ukiyoe/ukiyoe-heian";
 import { heianScene, UKIYOE_HEIAN_SCENES } from "../../registry/video/ukiyoe/ukiyoe-heian";
+import type { UkiyoeFolkYokaiScene } from "../../registry/video/ukiyoe/ukiyoe-folkyokai";
+import { folkYokaiScene, UKIYOE_FOLK_YOKAI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-folkyokai";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -932,6 +934,29 @@ export function HeianCourt() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={HEIAN_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Heian frame" />
+  </div>;
+}
+
+// ---- Folk yōkai --------------------------------------------------------------------------------------------------------------------
+
+const FY_LABELS: Readonly<Record<UkiyoeFolkYokaiScene, string>> = { house: "Nurarihyon, zashiki-warashi, amanojaku", stream: "Azukiarai washing beans", bath: "Akaname in the bathhouse", road: "Sunakake-baba, konaki-jiji, Dodomeki", snow: "The snow child" };
+
+/** The household and road yōkai. */
+export function FolkYokai() {
+  const [kind, setKind] = useState<UkiyoeFolkYokaiScene>("house");
+  const spec = useMemo(() => folkYokaiScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Folk yōkai" title="The bean-washer, the filth-licker and the master of yōkai">
+      <p style={{ margin: 0 }}>After Sekien's akaname, nurarihyon and dodomeki and Shunsen's azukiarai. New for figures: the <code>gourd</code> head,
+        the straw <code>mino</code>, arms covered in <code>eyes</code>, the bean basket <code>zaru</code> and the <code>throw</code> that flings sand on its
+        contact frame; and the crouching <code>akaname</code> with its licking tongue.</p>
+    </Header>
+    <section aria-label="Folk yokai controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={UKIYOE_FOLK_YOKAI_SCENES} onChange={setKind} labels={FY_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={FY_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Yokai frame" />
   </div>;
 }
 

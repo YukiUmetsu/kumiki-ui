@@ -24,6 +24,7 @@
 - `ukiyoe-temple.ts`: belfry, temple hall, gate, shrine, graves, stone lantern and hut, and `templeScene()`.
 - `ukiyoe-trees.ts`: bamboo, persimmon, the sacred tree and the face tree, and `treeScene()`.
 - `ukiyoe-heian.ts`: the Heian court (hair, cap, props, ox-cart, blinds, curtain screen, palace veranda) and `heianScene()`.
+- `ukiyoe-folkyokai.ts`: household and road yōkai (gourd head, straw cape, eyes, bean basket, the throw, the akaname) and `folkYokaiScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -338,6 +339,17 @@ Most women in the ghost stories look alive until the story turns, so they are fi
   - `kicho`: a curtain screen whose silk panels stir.
   - `shinden`: the palace veranda on posts, with railing, pillars, blinds and a cypress-bark roof. `part: back | front` puts a figure between the interior and the blinds; `rise` × keyed progress rolls the blinds up.
 - **`heianScene(kind)`.** Builds `veranda` (a lady behind the rising blinds, a noble bowing in the moonlit garden), `oxcart` or `chamber`. Storybook **Heian court** plays them, and the Motifs gallery has four tiles.
+
+### Folk yōkai
+
+- **Figure look fields.**
+  - Hair `gourd`: Nurarihyon's great bald head swelling up and back.
+  - `mino`: a fringed straw rain cape.
+  - `eyes`: eyes along the forearms and hands, blinking in turn.
+  - Prop `zaru`: a basket of azuki beans held in both hands.
+- **Action `throw`.** A wind-up over the shoulder and a fling forward. From the `contact` frame, sand flies from where the hand released it and falls, over 40 frames.
+- **Yōkai `akaname`.** After Sekien: a crouching red imp with a wild mane, one-toed claws and a licking tongue; it walks with `walk`.
+- **Looks and scenes.** `UKIYOE_FOLK_YOKAI_LOOKS` has `zashikiwarashi`, `amanojaku`, `azukiarai`, `konakijiji`, `sunakakebaba`, `nurarihyon`, `yukinko` and `dodomeki`. `folkYokaiScene(kind)` builds `house`, `stream`, `bath`, `road` or `snow`. Storybook **Folk yōkai** plays them.
 
 ### Transition
 

@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { folkYokaiScene, UKIYOE_FOLK_YOKAI_LOOKS, UKIYOE_FOLK_YOKAI_SCENES } from "../registry/video/ukiyoe/ukiyoe-folkyokai";
 import { heianScene, UKIYOE_HEIAN_LOOKS, UKIYOE_HEIAN_SCENES } from "../registry/video/ukiyoe/ukiyoe-heian";
 import { treeScene, UKIYOE_TREE_SCENES } from "../registry/video/ukiyoe/ukiyoe-trees";
 import { bellStrike, templeScene, UKIYOE_TEMPLE_SCENES } from "../registry/video/ukiyoe/ukiyoe-temple";
@@ -687,6 +688,21 @@ describe("UKIYO1 heian court", () => {
     expect(ids.indexOf("lady")).toBeLessThan(ids.indexOf("palace-front"));
     const blindHeight = (progress: number) => JSON.stringify(drawMotif("shinden", { part: "front", up: 0, rise: 1 }, { frame: 0, wind: 0, seed: 1, progress })).length;
     expect(blindHeight(0) === blindHeight(1)).toBe(false);
+  });
+});
+
+describe("UKIYO1 folk yokai", () => {
+  it("draws the folk yokai looks in every view, flings sand only from the contact frame, and the akaname licks", () => {
+    for (const k of UKIYOE_FOLK_YOKAI_SCENES) expect(inspectUkiyoeScene(folkYokaiScene(k)), k).toEqual([]);
+    for (const k of Object.keys(UKIYOE_FOLK_YOKAI_LOOKS) as (keyof typeof UKIYOE_FOLK_YOKAI_LOOKS)[]) for (const view of ["profile", "three-quarter", "front", "back"] as const)
+      expect(drawFigure({ look: { ...UKIYOE_FOLK_YOKAI_LOOKS[k], view } as Parameters<typeof drawFigure>[0]["look"] }, 10, 0, 2).prims.length, `${k} ${view}`).toBeGreaterThan(10);
+    const look = UKIYOE_FOLK_YOKAI_LOOKS.sunakakebaba as unknown as Parameters<typeof drawFigure>[0]["look"], acts: UkiyoeAction[] = [{ type: "throw", start: 0, end: 60, contact: 30 }];
+    const sand = (f: number) => JSON.stringify(drawFigure({ look, actions: acts }, f, 0, 2).prims).includes('"color":"kincha","opacity"');
+    expect(sand(29)).toBe(false);
+    expect(sand(35)).toBe(true);
+    expect(sand(80)).toBe(false);
+    const ak = (f: number) => JSON.stringify(drawCreature({ species: "akaname", actions: [{ type: "stand", start: 0, end: 100 }] }, f, 0, 1).prims);
+    expect(ak(2) === ak(12)).toBe(false);
   });
 });
 

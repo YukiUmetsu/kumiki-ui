@@ -3798,6 +3798,11 @@
           "target": "components/video/ukiyoe/ukiyoe-heian.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-folkyokai.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-folkyokai.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"
