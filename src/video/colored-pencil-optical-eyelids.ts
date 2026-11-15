@@ -128,7 +128,7 @@ export const createOpticalEyelidFibres=(
       }
       const before=marks.length;
       for(let i=1;i<points.length-1;i++){
-        const p=points[i],next=points[i+1],prev=points[i-1];
+        const p=points[i],next=points[i+1];
         if(!p.supported||!next.supported)continue;
         // Average the observed ridge deviation with immediate neighbours;
         // never blur the photographic colour or alter the baseline. At
