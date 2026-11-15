@@ -1893,3 +1893,23 @@ Changes:
 - Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Figures and animals turn three-quarter, and figures and four-legged animals can face front or back. Birds, the dragon and the yōkai cannot, and there is no animated turn between views.
 - Sound is recorded ambience beds (river, stream, wind, rain, surf, distant fireworks, crickets). There is no music and no hits timed to frames (a crash on the wave's break, each firework). Nobody has listened to the mix yet.
 - Human normal-speed review of the film has **not** been recorded.
+
+## Legs and faces against ANIM1 (2026-11-15)
+
+The new animal anatomy framework ([ANIM1](../component-specs/animal-anatomy.md), research:
+[animal anatomy framework](animal-anatomy-framework-2026-11-15.md)) measures every UKIYO1 quadruped off its own
+standing contour (`ukiyoeBeastLandmarks`). Changes from that check and from the owner's note on faces:
+
+- **Legs.** The boar and the bear stood on less than half the measured clearance under the chest. Their legs are now
+  inside the ranges of the Fauna Japonica plate and the Tanaka plate and Okuhida specimens. Strides grew with the legs,
+  and walking feet now slide less than before.
+- **Faces.** The owner wrote that the bear, tanuki, mouse, weasel and boar faces needed better proportions. They were
+  rebuilt from PD/CC0 references:
+  - **Tanuki:** a short muzzle, with the mask running down over the cheek.
+  - **Mouse:** big bead eyes, huge round ears and no neck.
+  - **Weasel:** a flat head with low side ears, a dark mask and a white chin.
+  - **Bear:** a long tapering muzzle with no smile.
+  - **Boar:** broad laid-back ears, a deep jaw, the eye set back, and a bigger face square on.
+- **Open finding.** The fox, dog, cat, wolf, tanuki, rabbit, ox and mouse are still long and low compared with the real
+  animals (see the Storybook "UKIYO1 proportion check").
+

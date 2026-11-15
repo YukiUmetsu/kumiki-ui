@@ -21,3 +21,19 @@ find it: `npm run catalog:find -- --query="hair"` (or "skin colour", "pose", "fa
 
 Binary body model: `assets/models/anatomy/human-body-lattice.bin` (CC0 MakeHuman, see `NOTICE.md`). Reference images:
 `assets/photos/anatomy-references/`. Bake scripts: `scripts/anatomy/`.
+
+# ANIM1 — animal anatomy framework (file map)
+
+The same animal in any art style. Full guide: [spec](../../docs/component-specs/animal-anatomy.md) · agent workflow:
+[skill](../../skills/kumiki-animal-anatomy/SKILL.md) · Storybook: Video production → Art Foundations → Animal Anatomy ·
+find it: `npm run catalog:find -- --query="tanuki"` (or "gallop", "fur map", "animal proportions") · exact exports:
+`npm run catalog:api -- --id=animal-anatomy --format=json`.
+
+| I need… | File | Start with |
+|---|---|---|
+| What a whole group shares (feet, construction, gaits, parts, coat regions) | `animal-plans.ts` | `BODY_PLANS` |
+| One animal: sizes, proportions, face, coat, palette, sounds, culture, references, where it is drawn | `animal-species.ts` | `findAnimal`, `ANIMAL_SPECIES`, `animalStyles` |
+| Footfalls, body motion, speeds and stride times | `animal-gaits.ts` | `ANIMAL_GAITS`, `quadFootfalls`, `quadBody`, `footfallBars`, `gaitSpeed`, `strideFrames` |
+| A posed side-view construction and region shapes to paint over | `animal-construct.ts` | `animalConstruction`, `poseAnimal`, `skeletonShapes` |
+| Check a drawing or rig against the real animal | `animal-check.ts` | `measureAnimal`, `checkAnimalProportions`, `checkSpeciesData` |
+| A painter or the character sheet (React) | `animal-react.tsx` | `AnimalFigure`, `AnimalSheet`, `FootfallDiagram` |

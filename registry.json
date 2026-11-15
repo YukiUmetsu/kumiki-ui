@@ -3584,7 +3584,8 @@
       "dependencies": [],
       "registryDependencies": [
         "motion-track",
-        "crayon-storybook"
+        "crayon-storybook",
+        "animal-anatomy"
       ],
       "files": [
         {
@@ -3751,6 +3752,48 @@
           "path": "registry/anatomy/data/LICENSE-MediaPipe-Apache-2.0.txt",
           "type": "registry:ui",
           "target": "components/anatomy/data/LICENSE-MediaPipe-Apache-2.0.txt"
+        }
+      ]
+    },
+    {
+      "name": "animal-anatomy",
+      "type": "registry:ui",
+      "title": "Animal Anatomy Framework (ANIM1)",
+      "description": "Style-neutral animals for drawing the same creature in any art style: sixteen body plans (bears, dogs and foxes, cats, pigs, deer and cattle, horses, hares, mice, weasels, monkeys, five bird plans, fish) fixing foot posture, side-view construction (trunk, chest depth, leg clearance, head, muzzle, neck, tail, leg segments, back line, limb girth, waist, head carriage, ears), gaits, rearing, the parts every member has, coat regions and footfall; 23 Japanese folklore species (moon bear, wild boar, fox, tanuki, wolf, Shiba, cat, hare, macaque, sika, black cattle, Kiso horse, weasel, mouse, crane, heron, crow, pheasant, sparrow, goshawk, mandarin duck, kingfisher, koi) with graded size and proportion ranges (reported, measured, estimated) and sources, face proportions, coat type and length by region, palettes painted by region, tip, band or eye mask, markings, seasonal and juvenile variants, sounds (catalog ids or search terms), culture, public-domain and CC0 references and where each is already drawn in the library; one shared gait table (walk, amble, trot, canter, transverse and rotary gallop, half-bound) after Muybridge and Hildebrand, with footfall diagrams, speeds by dynamic similarity and stride times by body mass; a construction that poses any species standing or at any point of a stride with planted feet that never slide; silhouette, construction, colour-map and fur-map painters; proportion checks that measure any drawing or rig against the species' ranges; and a character sheet with size against a person.",
+      "dependencies": [],
+      "registryDependencies": [
+        "human-anatomy"
+      ],
+      "files": [
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-gaits.ts",
+          "path": "registry/anatomy/animal-gaits.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-plans.ts",
+          "path": "registry/anatomy/animal-plans.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-species.ts",
+          "path": "registry/anatomy/animal-species.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-construct.ts",
+          "path": "registry/anatomy/animal-construct.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-check.ts",
+          "path": "registry/anatomy/animal-check.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-react.tsx",
+          "path": "registry/anatomy/animal-react.tsx"
         }
       ]
     },

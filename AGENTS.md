@@ -32,6 +32,7 @@ Read [docs/INDEX.md](docs/INDEX.md), then only the documents relevant to your ta
 - Making a film or video: [content skill](skills/kumiki-content/SKILL.md) and [film document](docs/component-specs/film-document.md) — write one JSON file, then `film:check`, `film:review`, `film:render`
 - Status of every component, spec and report (generated): [component status](docs/component-status.md)
 - Drawing people (any style, realistic proportions, poses, faces, hands, hair, skin and eye colour): [human anatomy framework ANAT1](docs/component-specs/human-anatomy.md) and [skill](skills/kumiki-human-anatomy/SKILL.md) — measured ranges, posable 3D body, `HumanFrame` for painters
+- Drawing or animating animals, birds or fish (any style; proportions, faces, coat and fur, colours, gaits, sounds): [animal anatomy framework ANIM1](docs/component-specs/animal-anatomy.md) and [skill](skills/kumiki-animal-anatomy/SKILL.md) — body plans, species sheets, one gait table, proportion checks
 - Explainer / short-form video components: [explainer visual components](docs/17-explainer-visual-components.md) — product principles, gap roadmap; preflight with `inspectExplainerPrinciples`
 
 When a technical choice conflicts with these standards, document the tradeoff and ask for a decision instead of silently reducing quality.
