@@ -32,7 +32,7 @@ export const CRAYON_F1_FACE_PROOF={
   review:"Unapproved artwork; source anchors alone are not pixel fidelity",
 } as const;
 export type Cc0FaceView="wax"|"anatomy";
-export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView}
+export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView;fiberMaterial?:"line"|"dry-wax"}
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
 type Ink=Extract<CrayonElement,{kind:"contour"}>;
 const rect=(x:number,y:number,width:number,height:number)=>
@@ -81,8 +81,10 @@ export const CRAYON_F1_FACE_PARTS=[
 
 export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   const detail=options.detail??1,view=options.view??"wax";
+  const fiberMaterial=options.fiberMaterial??"dry-wax";
   if(!Number.isFinite(detail)||detail<.2||detail>1||
-    !["wax","anatomy"].includes(view))
+    !["wax","anatomy"].includes(view)||
+    !["line","dry-wax"].includes(fiberMaterial))
     throw new RangeError("Invalid ArtCraft F1 face controls");
   const elements:CrayonElement[]=[];
   const wax=(id:string,d:string,bounds:ReturnType<typeof rect>,
@@ -100,10 +102,12 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     });
   };
   const mark=(id:string,d:string,color:CrayonColor,width:number,
-    stage:[number,number]=[175,292],opacity=.62,parentId?:string)=>{
+    stage:[number,number]=[175,292],opacity=.62,parentId?:string,
+    contact?:{waxContact:"dry-wax";waxPressure:number})=>{
     const item:Ink={kind:"contour",id,d,color,width,opacity,
       timing:{start:stage[0],end:stage[1]},
-      ...(parentId?{parentId,clipToParent:true}:{})};
+      ...(parentId?{parentId,clipToParent:true}:{}),
+      ...(contact??{})};
     elements.push(item);
   };
 
@@ -578,7 +582,9 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
       if(!path)continue;
       mark("hair-rooted-"+region+"-"+band,path,
         pigment[band],.31+band*.155,
-        [startFrame+(band%3)*4,299],.27+band*.057,parentId);
+        [startFrame+(band%3)*4,299],.27+band*.057,parentId,
+        region!=="crown"&&fiberMaterial==="dry-wax"?
+          {waxContact:"dry-wax",waxPressure:.78}:undefined);
     }
   };
   // F1 source-space, manually traced CURTAIN flow rails. These are
