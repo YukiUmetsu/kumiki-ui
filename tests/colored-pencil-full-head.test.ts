@@ -68,6 +68,11 @@ describe("Source-measured ArtCraft full-head geometry (experimental)",()=>{
     expect(plate.fiveValueCounts.reduce((a,b)=>a+b,0)).toBeGreaterThan(100);
     expect(plate.materialCounts["face-value"]).toBeGreaterThan(150);
     expect(plate.materialCounts["face-chroma"]).toBeGreaterThan(150);
+    expect(plate.materialCounts["face-optical-weave"]).toBeGreaterThan(300);
+    expect(plate.skinWeaveEvidence.pigments).toBe(
+      plate.materialCounts["face-optical-weave"]);
+    expect(plate.skinWeaveDepth).toBe(.70);
+    expect(plate.skinWeaveEvidence.protectedAnatomy).toBeGreaterThan(0);
     expect(plate.materialCounts["hair-mass"]).toBeGreaterThan(100);
     expect(plate.materialCounts["hair-fibre"]).toBeGreaterThan(80);
     expect(plate.materialCounts["measured-features"]).toBeGreaterThan(20);
