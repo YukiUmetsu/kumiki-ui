@@ -212,6 +212,90 @@ function understoryCluster(p:P,x:number,y:number,side:number,detail:number,seed:
   }
   return parts.join(" ");
 }
+
+/** Scalloped herbaceous blade with actual V-notch stock contour, not just
+ * a perfect elliptical leaf copied around a stem. Ends taper to true points.
+ * Each leaf keeps the same authored form through every absolute frame.
+ */
+function notchedBotanicalLeaf(p:P,x:number,y:number,length:number,angle:number,
+  width:number,seed:number,detail:number){
+  const a=radians(angle),ux=Math.cos(a),uy=Math.sin(a),nx=-uy,ny=ux;
+  const n=6+Math.round(detail*4);
+  const sidePoints=(side:-1|1):[number,number][]=>{
+    const result:[number,number][]=[];
+    for(let i=0;i<=n;i++){
+      const t=i/n;
+      const envelope=Math.pow(Math.sin(Math.PI*t),.81);
+      const notch=i>1&&i<n-1&&i%3===1?.69:1;
+      const w=width*envelope*notch*
+        (.91+.18*paperHash(seed,i,side>0?223:229));
+      const spineBend=Math.sin(Math.PI*t)*width*.13;
+      result.push([
+        x+ux*length*t+nx*(spineBend+side*w),
+        y+uy*length*t+ny*(spineBend+side*w),
+      ]);
+    }
+    return result;
+  };
+  return p.poly([...sidePoints(-1),...sidePoints(1).reverse()]);
+}
+/** The trunk is one contoured card, lateral forks are attached, and individual
+ * leaves begin inside each fork. Veins are additional lighter cut-stock strips.
+ * Return both material planes without creating an individual layer per leaf.
+ */
+function scenicHerb(p:P,x:number,y:number,height:number,side:-1|1,
+  seed:number,detail:number):{stock:string;veins:string}{
+  const tipX=x+side*height*(.18+.11*paperHash(seed,0,233));
+  const tipY=y-height;
+  const stock=[
+    p.M(x-3,y+4),
+    p.C(x+side*1,y-height*.26,tipX-side*8,y-height*.73,tipX-1,tipY),
+    p.L(tipX+2,tipY),
+    p.C(tipX-side*2,y-height*.73,x+side*7,y-height*.28,x+3,y+4),
+    p.Z,
+  ];
+  const veins:string[]=[];
+  const tiers=3+Math.round(detail*3);
+  for(let j=0;j<tiers;j++){
+    const t=(j+1)/(tiers+1);
+    const baseX=x+(tipX-x)*t,baseY=y-height*t;
+    const direction:1|-1=j%2===0?1:-1;
+    const dx=direction*side;
+    const spread=height*(.20+.09*paperHash(seed,j,239))*(1-t*.27);
+    const ex=baseX+dx*spread,ey=baseY-height*(.115+.07*paperHash(seed,j,241));
+    stock.push(p.band(baseX,baseY,ex,ey,2.3*(1-t*.28)));
+    const length=height*(.26+.075*paperHash(seed,j,243))*(1-t*.42);
+    const angle=dx>0?-32-8*paperHash(seed,j,247):-148+8*paperHash(seed,j,249);
+    stock.push(notchedBotanicalLeaf(p,ex-2*dx,ey+3,length,angle,
+      Math.max(5.8,height*.075)*(1-t*.34),seed+j*61,detail));
+    const vLen=length*.57,rad=radians(angle);
+    veins.push(p.band(ex,ey,ex+vLen*Math.cos(rad),ey+vLen*Math.sin(rad),.78));
+  }
+  const crownAngle=side>0?-66:-114;
+  stock.push(notchedBotanicalLeaf(p,tipX,tipY+4,height*.23,
+    crownAngle,height*.082,seed+413,detail));
+  return {stock:stock.join(" "),veins:veins.join(" ")};
+}
+/** Layered paper wildflower, with independently cut flower-stock and centers.
+ * Petal bases converge to a common carpellary junction; no floating disks.
+ */
+function scenicBloom(p:P,x:number,y:number,radius:number,
+  seed:number,detail:number):{petals:string;center:string}{
+  const count=5+Math.round(detail*2);
+  const petals=Array.from({length:count},(_,j)=>{
+    const h=paperHash(seed,j,251);
+    const angle=j*360/count+(h-.5)*9-90;
+    return p.leaf(x,y,radius*(.89+.19*h),angle,
+      radius*(.26+.09*paperHash(seed,j,257)));
+  }).join(" ");
+  const center=p.oval(x,y,radius*.19,radius*.19)+
+    " "+Array.from({length:5},(_,j)=>{
+      const a=radians(j*360/5),rr=radius*.28;
+      return p.oval(x+Math.cos(a)*rr,y+Math.sin(a)*rr,radius*.049,radius*.049);
+    }).join(" ");
+  return {petals,center};
+}
+
 /** Folded clipped glacial sediment, never uniformly tiled triangles. */
 function alpineStratum(p:P,cx:number,peak:number,span:number,offset:number,side:number){
   const rootX=cx+side*span*.14,rootY=peak+offset;
