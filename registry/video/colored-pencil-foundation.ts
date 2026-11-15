@@ -98,6 +98,7 @@ function inspectManifest(drawing:PencilDrawingSpec,
       errors.push("foundation.surfaces: missing material for "+region.id);
       continue;
     }
+    if(!MATERIAL_SET.has(surface))continue; // Report invalid surface above, do not throw.
     if(region.layers.length<3)
       errors.push("foundation.layers: each region needs 3+ colour deposits ("+region.id+")");
     const finish=pencilMaterialCraftFinish(surface);
