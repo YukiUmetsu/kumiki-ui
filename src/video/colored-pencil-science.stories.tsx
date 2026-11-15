@@ -239,7 +239,7 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
         <select aria-label="Pencil world" value={subject}
           onChange={e => {setPlaying(false); setSubject(e.target.value as PencilDemoSubject | "characters");}} style={{ minHeight: 40 }}>
           <option value="terrain">Landscape · Layered terrain</option>
-          <option value="characters">Narrative · Fox & bird performance</option>
+          <option value="characters">ArtCraft · Fox & kingfisher</option>
           <option value="orbit">Astronomy · Illustrated orbit</option>
           <option value="circuit">Engineering · Signal pathway</option>
         </select>
@@ -321,8 +321,9 @@ function CharacterFilmStudio() {
       Coloured Pencil · Original Character Film
     </h1>
     <p style={{ maxWidth: 840, margin: 0 }}>
-      Graphite construction → the fox walks and greets → the bird blinks and flaps.
-      All keyframes are authored in paper coordinates and sampled by FilmStage, not an independent clock.
+      Graphite construction → a fox raises its forepaw → a kingfisher blinks and flexes its layered wings.
+      This replaces the former cartoon actors with anatomically structured pencil drawings.
+      All keyframes use paper coordinates sampled by FilmStage, not an independent clock.
     </p>
     <div style={{ display: "flex", alignItems: "end", gap: 14, flexWrap: "wrap" }}>
       <label style={label}>Character film output
