@@ -123,3 +123,12 @@ References: [Diana Beltrán Herrera's paper bird collection](https://www.dianabe
 **Correction:** author the primary's visible front and back vane edges as actual contours with shallow seeded, symmetric-in-count but asymmetric-in-placement V-shaped notches. Maintain the rounded root, 18 physical individual feather blades, 18 independently hinged opaque tips, all coherent anatomical rig pivots and 128-layer budget. The detail control changes real cuts rather than color/noise. No third-party pixels or outlines are copied.
 
 **Release evidence:** focused geometry/rig tests plus native landscape/portrait Storybook screenshots and FilmStage renders from the PR visual proof. Do not claim matched ArtCraft scores or manual visual approval based only on passing mechanical tests.
+
+
+## Storybook consolidation — one object, one configurable page
+
+The Film Looks sidebar had expanded to 25 Paper Craft stories, duplicating nearly identical subject renders for portrait, stock, feather relief, animation and revised anatomy. Consolidated all of them under **Video production / Film Looks / Paper Craft** as seven pages: Garden, Botanical & Butterfly, Kingfisher, Dragonfly, Canal Houses, Camera and Teacup & Citrus.
+
+All five media remain selectable in the on-stage selector; aspect, palette, detail, color-layer density, curl, motion, relief, surface tooth, shadows, edges, frame scrubbing and seed remain available through relevant Storybook controls. Subject identity is fixed per object page. Legacy preview story URLs change to the consolidated folder; native FilmStage contracts and paper-sculpture IDs do not.
+
+E2E browser proofs were revised to vary Storybook URL arguments and exercise dynamic media buttons rather than maintaining repeated preview stories. Verify the current commit in Chromium: seven URLs, five distinct objects, both aspects, opaque cardstock, feather-hinge alignment, coordinated motion, botanical palettes, gallery media and console errors. Tests cannot replace independent visual craft review.
