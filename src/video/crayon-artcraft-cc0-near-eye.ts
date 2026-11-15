@@ -110,14 +110,14 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
     "M87 111 C88 101 98 99 109 100 C122 102 130 112 129 123"+
     "C126 137 113 143 102 140 C92 137 84 128 87 111Z",
     rect(83,97,50,47),palettes.iris,[125,220],{
-      parentId:"eye-sclera",spacing:3.4,markStrength:.48,pressure:.88,
+      parentId:"eye-sclera",spacing:4.2,markStrength:.48,pressure:.88,
       underpaintGradient:{light:"#bb9b76",shadow:"#3a322f",
         focusX:.75,focusY:.57,radius:.92},outlineOpacity:.08});
   wax("eye-pupil",
     "M98 111 C101 106 105 105 110 107 C117 109 118 116 117 122"+
     "C114 129 105 129 100 125 C96 121 96 115 98 111Z",
     rect(95,104,26,26),palettes.pupil,[157,231],{
-      parentId:"eye-iris",spacing:3.3,markStrength:.38,pressure:.96,outlineOpacity:0});
+      parentId:"eye-iris",spacing:4.2,markStrength:.38,pressure:.96,outlineOpacity:0});
   const irisFlecks=crayonIrisFlecks({seed:1407,cx:108,cy:120,
     rx:20,ry:20,count:Math.round(26*detail),minRadius:.46,maxRadius:.94});
   if(irisFlecks)line("iris-dark-radials",irisFlecks,"#493f36",.55,[171,271],"eye-iris",.77);
@@ -129,7 +129,7 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
   wax("tear-duct",
     "M164 116 Q168 113 174 117 Q170 123 165 123 Q162 120 164 116Z",
     rect(160,111,17,16),palettes.tear,[174,253],{
-      parentId:"eye-skin",pressure:.67,markStrength:.4,spacing:3.2,outlineOpacity:0});
+      parentId:"eye-skin",pressure:.67,markStrength:.4,spacing:4.2,outlineOpacity:0});
   wax("upper-lid-overhang",
     "M61 122 C74 103 94 96 116 96 C138 97 156 105 168 115"+
     "Q149 107 135 106 C106 102 82 110 61 122Z",
