@@ -227,61 +227,105 @@ export function crayonWildlifePortraitScene(
     "Q-86 59 -119 27Z",
     {x:-127,y:-39,width:104,height:107},C.warm,
     {parentId:"head",spacing:8.5,pressure:.92});
+  // ArtCraft v7 anatomical reconstruction. Photo study (Wikimedia/Bavarian
+  // wildlife) shows a compact globe within a distinct raised orbital rim,
+  // upper-lid overhang and narrow cream lower fold. Previous implementation
+  // was a 60-unit BLACK almond around a 27-unit iris: it read as a mascot.
+  // Keep a small near-black limbus, physically attached lid and all pigment
+  // opaque; procedural hairs come only after those semantic masses.
   wax("eye-socket",
-    "M-109 -75Q-84 -102 -47 -92Q-18 -85 -16 -63"+
-    "Q-35 -44 -65 -44Q-94 -47 -109 -75Z",
-    {x:-116,y:-112,width:112,height:78},C.shadow,
-    {parentId:"head",spacing:7.4});
+    "M-96 -69 C-95 -91 -78 -103 -57 -99"+
+    "C-30 -96 -20 -82 -23 -61"+
+    "C-26 -42 -46 -33 -66 -36 C-86 -39 -100 -52 -96 -69 Z",
+    {x:-105,y:-107,width:94,height:80},C.coolPlane,
+    {parentId:"head",spacing:7.2,outlineOpacity:0,edgeRoughness:.08});
+  wax("eye-bone-light-shelf",
+    "M-91 -75 C-85 -100 -62 -102 -43 -94"+
+    "Q-28 -87 -26 -73 Q-46 -89 -64 -87"+
+    "Q-81 -85 -91 -75 Z",
+    {x:-97,y:-107,width:77,height:40},C.warm,
+    {parentId:"head",spacing:6.2,outlineOpacity:0,edgeRoughness:.12});
   wax("eye-dark-rim",
-    "M-89 -58Q-58 -83 -28 -58Q-49 -34 -79 -39Z",
-    {x:-98,y:-86,width:80,height:65},C.pupil,
-    {parentId:"head",spacing:5.5,pressure:.94,outlineOpacity:.55});
-  wax("eye-amber-iris",oval(-56,-57,13.5,13),
-    {x:-72,y:-74,width:32,height:35},C.eye,
-    {parentId:"head",spacing:4.5,pressure:.95});
-  // The eye in reference wildlife studies is not a flat gold circle.
-  // Irregular inner pigment rays, copper arcs and deep limbal flecks
-  // converge around the dark pupil. Clipping holds every micro-stroke
-  // inside the original amber iris even when the head rotates.
+    "M-81 -61 C-80 -77 -69 -84 -55 -83"+
+    "C-36 -84 -29 -70 -31 -55"+
+    "C-33 -40 -46 -36 -60 -38"+
+    "C-74 -40 -83 -47 -81 -61 Z",
+    {x:-86,y:-90,width:62,height:58},C.pupil,
+    {parentId:"head",spacing:5,pressure:.94,outlineOpacity:.15});
+  wax("eye-amber-iris",oval(-55,-58,16.2,16),
+    {x:-74,y:-77,width:38,height:38},C.eye,
+    {parentId:"head",spacing:4.4,pressure:.96,outlineOpacity:.04,
+      nibStyle:"dry",markStrength:.5});
+  // A true pigmented iris is not a flat yellow disc: two independently
+  // seeded circular fiber layers interleave over its warm copper ground.
   line("iris-deep-radials",crayonIrisFlecks({
-    seed:211,cx:-56,cy:-57,rx:13.4,ry:12.8,count:35,
-    minRadius:.52,maxRadius:.94}),"#4c3637",.92,
-    {parentId:"eye-amber-iris",clipToParent:true,opacity:.84,
+    seed:211,cx:-55,cy:-58,rx:16,ry:15.8,count:38,
+    minRadius:.5,maxRadius:.94}),"#4c3637",.78,
+    {parentId:"eye-amber-iris",clipToParent:true,opacity:.78,
       timing:{start:121,end:183}});
   line("iris-gold-radials",crayonIrisFlecks({
-    seed:212,cx:-56,cy:-57,rx:13.3,ry:12.7,count:22,
-    minRadius:.58,maxRadius:.90}),"#ecd297",.62,
-    {parentId:"eye-amber-iris",clipToParent:true,opacity:.86,
+    seed:212,cx:-55,cy:-58,rx:15.9,ry:15.7,count:26,
+    minRadius:.57,maxRadius:.9}),"#ecd297",.61,
+    {parentId:"eye-amber-iris",clipToParent:true,opacity:.81,
       timing:{start:132,end:190}});
-  wax("eye-pupil",oval(-53,-57,6.5,11),
-    {x:-62,y:-71,width:18,height:29},C.pupil,
-    {parentId:"head",spacing:4.4});
-  line("eye-bright-catchlight","M-59 -65Q-56 -69 -52 -65",
-    "#f6f5de",2.6,{parentId:"head",opacity:.98});
-  line("eye-secondary-catchlight","M-47 -49Q-45 -51 -43 -50",
-    "#b2d1cf",1.35,{parentId:"head",opacity:.88,
+  wax("eye-pupil",oval(-53,-58,7.3,11.5),
+    {x:-63,y:-72,width:21,height:29},C.pupil,
+    {parentId:"head",spacing:4.1,pressure:.98,outlineOpacity:0});
+  // Raised upper lid casts a narrow pigmented shadow *across* the globe;
+  // it never becomes a second dark almond or a forehead-wide cartoon brow.
+  wax("eye-upper-lid-overhang",
+    "M-82 -62 C-81 -77 -66 -86 -51 -84"+
+    "C-35 -83 -30 -70 -30 -61"+
+    "Q-37 -73 -55 -75 Q-73 -75 -82 -62 Z",
+    {x:-88,y:-91,width:65,height:38},C.shadow,
+    {parentId:"head",spacing:5,pressure:.9,outlineOpacity:0,
+      edgeRoughness:.06});
+  // The thin lower white-fur rim is an attached crescent, not the sclera
+  // printed as a white disk underneath the ocular surface.
+  wax("eye-lower-fur-fold",
+    "M-83 -53 C-75 -39 -63 -35 -51 -36"+
+    "Q-35 -38 -31 -48 Q-42 -41 -56 -41"+
+    "Q-73 -42 -83 -53 Z",
+    {x:-89,y:-60,width:64,height:29},C.cream,
+    {parentId:"head",spacing:5.8,pressure:.87,outlineOpacity:0});
+  line("eye-lower-fur-fibers",
+    "M-77 -44 Q-73 -40 -68 -40 M-64 -39 Q-60 -37 -54 -38"+
+    "M-51 -38 Q-47 -39 -43 -41",
+    "#f2dcc0",.87,{parentId:"eye-lower-fur-fold",clipToParent:true,
+      opacity:.76,timing:{start:151,end:215}});
+  // Tear corner / canthus connects the orbital aperture to the nasal
+  // bridge. Bright reflection is deliberately tiny compared with the iris.
+  wax("eye-medial-canthus",
+    "M-83 -59 Q-79 -64 -75 -61 Q-78 -54 -82 -53 Z",
+    {x:-87,y:-66,width:17,height:17},C.cheek,
+    {parentId:"head",spacing:4.7,pressure:.84,outlineOpacity:0});
+  line("eye-bright-catchlight","M-61 -67Q-59 -69 -57 -66",
+    "#f6f5de",2.15,{parentId:"head",opacity:.93});
+  line("eye-secondary-catchlight","M-47 -48Q-46 -49 -45 -48",
+    "#b2d1cf",.9,{parentId:"head",opacity:.67,
       timing:{start:151,end:210}});
-  line("eye-limbal-light","M-73 -59Q-72 -75 -61 -77M-40 -48Q-48 -36 -62 -37",
-    "#d3b595",1.15,{parentId:"head",opacity:.66});
+  line("eye-limbal-light",
+    "M-75 -63Q-72 -76 -63 -78M-38 -54Q-43 -43 -57 -42",
+    "#d3b595",.88,{parentId:"head",opacity:.55});
   line("eye-orbit-structure",
-    "M-109 -76Q-79 -108 -46 -97Q-26 -92 -16 -72"+
-    "M-102 -47Q-75 -27 -37 -46",
-    "#382e32",1.8,{parentId:"head",opacity:.81});
-  line("eye-tear-duct","M-100 -64Q-94 -61 -88 -58",
-    "#ba9474",1.5,{parentId:"head",opacity:.89});
+    "M-96 -73Q-81 -99 -58 -99Q-35 -99 -24 -75"+
+    "M-88 -46Q-74 -34 -56 -35Q-40 -36 -30 -46",
+    "#4b3c3b",1.26,{parentId:"head",opacity:.76});
+  line("eye-tear-duct","M-84 -58Q-79 -55 -76 -56",
+    "#ba9474",1.2,{parentId:"head",opacity:.77});
   line("eye-brow-feathering",
-    "M-108 -94Q-91 -107 -75 -108M-97 -91Q-83 -97 -64 -101"+
-    "M-82 -86Q-66 -93 -50 -90",
-    "#e4c49c",1.15,{parentId:"head",opacity:.73,
+    "M-98 -91Q-81 -101 -66 -103 M-87 -90Q-72 -94 -57 -96"+
+    "M-70 -87Q-55 -92 -45 -89",
+    "#ddbc96",.87,{parentId:"head",opacity:.62,
       timing:{start:110,end:185}});
   // True held-frame repaint of the eyelid. The underlying iris, pupil and
   // catchlight are occluded by opaque face pigment for the blink exposure;
   // switching only the contour would leave the eye visible through a line.
-  const eyelidOpen="M-90 -58h2v1h-2Z";
-  const eyelidClosed="M-95 -64Q-63 -91 -25 -64"+
-    "Q-38 -42 -84 -46Z";
-  const lidBase={x:-94,y:-62,width:7,height:7};
-  const lidClosed={x:-100,y:-94,width:84,height:62};
+  const eyelidOpen="M-83 -58h2v1h-2Z";
+  const eyelidClosed="M-87 -62C-84 -87 -62 -90 -46 -85"+
+    "Q-24 -76 -26 -55Q-39 -30 -61 -33Q-82 -35 -87 -62Z";
+  const lidBase={x:-87,y:-62,width:8,height:8};
+  const lidClosed={x:-92,y:-96,width:72,height:70};
   wax("eyelid-painted-occlusion",eyelidOpen,lidBase,C.umber,
     {parentId:"head",timing:{start:0,end:56},spacing:4.5,
       edgeRoughness:0,pressure:.97,
@@ -290,10 +334,10 @@ export function crayonWildlifePortraitScene(
         {frame:202,d:eyelidClosed,bounds:lidClosed},
         {frame:208,d:eyelidOpen,bounds:lidBase}]});
   line("eyelid-blink",
-    "M-90 -59Q-55 -81 -26 -59",
-    "#332e32",2.8,{parentId:"head",poseCadence:2,
-      poses:[{id:"blink",d:"M-91 -58Q-57 -37 -25 -58"},
-        {id:"soft",d:"M-90 -57Q-57 -71 -25 -58"}],
+    "M-82 -59Q-66 -81 -48 -80Q-34 -76 -31 -58",
+    "#332e32",2.1,{parentId:"head",poseCadence:2,
+      poses:[{id:"blink",d:"M-84 -57Q-59 -39 -29 -56"},
+        {id:"soft",d:"M-82 -58Q-60 -70 -31 -59"}],
       poseCues:blink});
   // A hidden, fully opaque maxillary junction joins the projected nose
   // bridge to the cheek and jaw. The ArtCraft silhouette review caught
