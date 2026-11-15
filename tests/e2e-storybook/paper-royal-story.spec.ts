@@ -109,3 +109,26 @@ test("portrait deer body stays clear of the prince's coat in early scenes",async
     expect(overlaps,`frame ${frame}`).toBe(false);
   }
 });
+
+test("landscape fox does not overlap the prince's hand or boots",async({page})=>{
+  await page.goto(path+"&args=aspect:landscape;motion:0.75;medium:layered");
+  const stage=page.locator('svg[data-km-paper-director="the-moonlit-lantern"]');
+  const slider=page.getByRole("slider",{name:"Scrub fairy tale"});
+  for(const frame of [130,370,610]){
+    await slider.fill(String(frame));
+    const bounds=await stage.boundingBox();
+    for(const foxId of ["fox-body","fox-head","fox-tail"]){
+      const fox=await stage.locator(`[data-km-paper-layer="${foxId}"] > g > path`).first().boundingBox();
+      expect(fox,foxId).not.toBeNull();expect(bounds).not.toBeNull();
+      expect(fox!.x,foxId).toBeGreaterThanOrEqual(bounds!.x);
+      expect(fox!.x+fox!.width,foxId).toBeLessThanOrEqual(bounds!.x+bounds!.width);
+      for(const actorId of ["prince-left-hand","prince-right-hand","prince-left-boot","prince-right-boot"]){
+        const actor=await stage.locator(`[data-km-paper-layer="${actorId}"] > g > path`).first().boundingBox();
+        expect(actor,actorId).not.toBeNull();
+        const overlaps=fox!.x < actor!.x+actor!.width && fox!.x+fox!.width > actor!.x &&
+          fox!.y < actor!.y+actor!.height && fox!.y+fox!.height > actor!.y;
+        expect(overlaps,`${frame} ${foxId}/${actorId}`).toBe(false);
+      }
+    }
+  }
+});
