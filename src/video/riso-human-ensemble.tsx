@@ -3,6 +3,7 @@ import {evaluateRisoCharacter} from "../../registry/video/riso-character";
 import type {RisoCharacterPart,RisoCharacterSpec,RisoJoint} from "../../registry/video/riso-character";
 import {RisoCharacterInk,RisoCharacterKnockout} from "../../registry/video/riso-character-react";
 import {RisoPrint} from "../../registry/video/print-plates-react";
+import {RisoTransferSheetPlate,evaluateRisoTransferSheet} from "../../registry/video/riso-transfer-sheet";
 import type {RisoForegroundLayer} from "../../registry/video/print-plates-react";
 import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import type {RisoCharacterMeshSheet,RisoMeshCategory} from "../../registry/video/riso-proportion-mesh";
@@ -216,7 +217,8 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
     L${end.x.toFixed(2)} ${(end.y+21).toFixed(2)}
     Q${mid.x.toFixed(2)} ${(mid.y+27).toFixed(2)} ${a.x.toFixed(2)} ${(a.y+21).toFixed(2)} Z`;
   return {frame,aspect,width,height,first,second,source:a,receiver:b,
-    propEnd:end,progress,sheet:sheet||""};
+    propEnd:end,progress,sheet:sheet||"",
+    printDetails:evaluateRisoTransferSheet(a,end,progress)};
 }
 export function RisoHumanEnsembleStudio(){
   const [frame,setFrame]=useState(176);
@@ -227,6 +229,7 @@ export function RisoHumanEnsembleStudio(){
   const [grain,setGrain]=useState(.45);
   const [misregistration,setMisregistration]=useState(.25);
   const [dotCell,setDotCell]=useState(6);
+  const [sheetDetail,setSheetDetail]=useState(true);
   // Playback is a Storybook convenience. Production frames stay pure: a
   // film exporter passes an absolute frame to evaluateRisoHumanEnsemble.
   useEffect(()=>{
@@ -252,12 +255,10 @@ export function RisoHumanEnsembleStudio(){
       knockout:state.progress>0?<path d={state.sheet}
         data-km-riso-human-ensemble-sheet={state.progress.toFixed(3)}/>:undefined,
       artworks:{
-        blue:paint=>state.progress>0?<path d={state.sheet} fill="none"
-          stroke={paint.solid} strokeWidth={2.1} strokeLinejoin="round"/>:null,
-        red:paint=>state.progress>0?<path
-          d={`M${state.source.x+3} ${state.source.y-11}
-            L${state.propEnd.x-3} ${state.propEnd.y-11}`}
-          fill="none" stroke={paint.solid} strokeWidth={2.2}/>:null,
+        blue:paint=><RisoTransferSheetPlate outline={state.sheet}
+          geometry={state.printDetails} paint={paint} plateId="blue" detail={sheetDetail}/>,
+        red:paint=><RisoTransferSheetPlate outline={state.sheet}
+          geometry={state.printDetails} paint={paint} plateId="red" detail={sheetDetail}/>,
       },
     },
     ...people.map(({spec,stage}):RisoForegroundLayer=>({
@@ -301,6 +302,9 @@ export function RisoHumanEnsembleStudio(){
           <option value="both">Both plates</option><option value="blue">Cobalt</option>
           <option value="red">Vermilion</option>
         </select></label>
+        <label><input type="checkbox" checked={sheetDetail}
+          aria-label="RISO ensemble fine printed-sheet detail"
+          onChange={e=>setSheetDetail(e.target.checked)}/> Fine printed-sheet detail</label>
         <label><input type="checkbox" checked={anchors} aria-label="RISO ensemble contact anchors"
           onChange={e=>setAnchors(e.target.checked)}/> Show contact anchors</label>
         <label>Screen cell · {dotCell}px <input type="range" min={3} max={12} step={1}
@@ -316,8 +320,8 @@ export function RisoHumanEnsembleStudio(){
             onChange={e=>setGrain(Number(e.target.value))}/></label>
       </div>
       <div style={{width:aspect==="portrait"?450:960,
-        height:aspect==="portrait"?800:540,
-        maxWidth:"100%",margin:"0 auto",
+        maxWidth:"100%",aspectRatio:aspect==="portrait"?"540 / 960":"960 / 540",
+        margin:"0 auto",
         border:"1px solid #B99F87",overflow:"visible"}}
         data-km-riso-ensemble-stage-container={aspect}>
         <RisoPrint
