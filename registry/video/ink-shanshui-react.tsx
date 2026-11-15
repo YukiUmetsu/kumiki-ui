@@ -848,11 +848,13 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
               root[1]-(7+5*s(seed+1061,i*19+j*37+k*3))];
             return {root,bend,tip};
           });
+          const visibleLeaves=Math.round(detail*5);
+          const visibleSpurs=visibleLeaves>4?2:visibleLeaves>1?1:0;
           return <g key={j} data-km-bamboo-branch-root={f(cx)+","+f(cy)}
             transform={"rotate("+f(wind*.6)+" "+f(cx)+" "+f(cy)+")"}>
             <path data-km-bamboo-pressure-twig="" d={branch}
               fill="#685541" opacity=".87"/>
-            {spurs.map((spur,k)=>{
+            {spurs.slice(0,visibleSpurs).map((spur,k)=>{
               const root=spur.root,bend=spur.bend,tip=spur.tip;
               const side=k===0?-fan:fan;
               const d="M"+f(root[0]-side*.47)+" "+f(root[1]+.35)+
@@ -865,7 +867,7 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
                 d={d} fill={k===0?"#62513e":"#514438"}
                 opacity={k===0?.78:.65}/>;
             })}
-            {Array.from({length:Math.round(detail*5)},(_,k)=>{
+            {Array.from({length:visibleLeaves},(_,k)=>{
               const spurIndex=k===1?0:k===4?1:-1;
               const origin=spurIndex<0
                 ?{root:base,bend:branchControl,tip:end}
