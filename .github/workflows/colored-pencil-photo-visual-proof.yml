@@ -1,0 +1,45 @@
+name: ArtCraft Colour-Pencil Photo Proof
+
+# NOT global CI: this focused browser check runs only for source-conditioned
+# pencil work (or manual dispatch). No FFmpeg and no unrelated tests.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/video/colored-pencil-photo.ts'
+      - 'src/video/colored-pencil-flow-field.ts'
+      - 'src/video/colored-pencil-reference-atelier.tsx'
+      - 'tests/e2e-storybook/colored-pencil-live-references.spec.ts'
+      - 'tests/e2e-storybook/colored-pencil-photo.spec.ts'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pencil-artcraft-photo-\${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.15.0'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Install Chromium for actual Storybook screenshots
+        run: npx playwright install --with-deps chromium
+      - name: Capture reference-conditioned pencil and source images
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-photo.spec.ts tests/e2e-storybook/colored-pencil-live-references.spec.ts
+      - name: Preserve photographed-source and generated-pencil screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artcraft-pencil-real-reference-pixel-evidence
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
