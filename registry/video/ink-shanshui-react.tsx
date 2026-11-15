@@ -25,11 +25,6 @@ const quadraticPoint=(a:P,b:P,c:P,t:number):P=>{
   return [u*u*a[0]+2*u*t*b[0]+t*t*c[0],
     u*u*a[1]+2*u*t*b[1]+t*t*c[1]];
 };
-const cubicPoint=(a:P,b:P,c:P,d:P,t:number):P=>{
-  const u=1-t;
-  return [u*u*u*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],
-    u*u*u*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]];
-};
 /** Curved rock profiles have local fracture variation and non-regular slope
  * transitions, unlike polygons that look like paper triangles. The silhouette
  * is stable for a seed and its exact x stations are also used by cunfa strokes.
