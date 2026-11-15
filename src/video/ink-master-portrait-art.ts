@@ -109,6 +109,27 @@ export const MASTER_PORTRAIT_STUDY:Readonly<Record<string,readonly CharacterPath
     p("M140 122 C144 120 147 124 147 128 C146 131 141 132 139 128 C138 126 138 123 140 122 Z","$shadow","none",0,.94),
     p("M140 122 C143 123 145 123 146 125","none","$skinshade",.7,.59),
   ],
+  "hand-far":[
+    // A jointed palm and distinct curled fingers, not the former single
+    // mitten oval. Its negative gaps remain paper, not transparent paint.
+    p("M42 236 C45 233 48 233 52 233 C57 233 60 236 62 240 C64 244 60 247 55 248 C51 250 45 250 42 246 C39 243 40 239 42 236 Z","$skin","$shadow",.87),
+    p("M42 238 C45 237 49 236 52 237","none","$skinshade",.72,.74),
+    p("M48 240 C51 241 54 241 57 240","none","$shadow",.66,.72),
+    p("M46 244 C50 246 54 246 57 244","none","$skinshade",.71,.68),
+    p("M54 234 C59 235 61 239 61 242","none","$shadow",.73,.59),
+    p("M42 241 C44 245 47 247 50 248","none","$linen",.56,.64),
+  ],
+  "hand-near":[
+    // Brush-grip thumb is separate from the curled index finger. The real
+    // prop remains a child of near-hand and is not painted onto this cel.
+    p("M219 236 C222 231 225 231 229 233 C233 232 237 235 239 239 C242 244 238 249 233 251 C227 252 221 250 219 246 C217 241 217 239 219 236 Z","$skin","$shadow",.84),
+    p("M222 236 C225 234 230 235 232 239 C233 241 231 243 228 243","none","$skinshade",1.03,.76),
+    p("M226 243 C230 244 234 243 236 240","none","$shadow",.70,.74),
+    p("M223 247 C227 248 231 248 233 246","none","$skinshade",.72,.60),
+    p("M234 234 C237 237 238 240 237 243","none","$shadow",.74,.62),
+    p("M219 241 C220 245 222 247 226 250","none","$linen",.59,.58),
+    p("M230 238 C232 236 234 237 235 239","none","$shadow",.64,.85),
+  ],
   beard:[
     // Six separately released hairs with negative-paper channels, never a
     // triangular plug beneath the chin. Facial identity stays distinct
