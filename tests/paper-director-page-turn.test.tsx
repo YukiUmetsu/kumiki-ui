@@ -10,6 +10,26 @@ import fixture from "../examples/film/paper-craft-page-turn.film.json";
 
 const make=()=>paperDirectorDemo("layered",37,.7,true,"page-turn");
 describe("PAPER-D3 printed leaf and book-gutter transition",()=>{
+  it("keeps the current shot accessible during each half of a page turn",()=>{
+    const film=make();
+    for(const frame of [227,228,239,240,251,252]) {
+      const html=renderToStaticMarkup(React.createElement(PaperDirectorStage,{
+        film,frame,aspect:"landscape",label:"A paper story",
+      }));
+      expect(html.match(/role="img"/g) ?? []).toHaveLength(1);
+      expect(html).toContain('aria-label="A paper story"');
+      if(frame>=228 && frame<=251) {
+        const document=new DOMParser().parseFromString(html,"text/html");
+        const visibleShot=document.querySelector('[role="img"]');
+        expect(visibleShot?.closest(frame<240
+          ? '[data-km-paper-printed-front]' : '[data-km-paper-next-page]')).not.toBeNull();
+      }
+      const hidden=renderToStaticMarkup(React.createElement(PaperDirectorStage,{
+        film,frame,aspect:"landscape","aria-hidden":true,
+      }));
+      expect(hidden).not.toContain('role="img"');
+    }
+  });
   it("resolves previous and next complete paper sets continuously across the edit in both aspects",()=>{
     const film=make(),plan=compilePaperDirector(film);
     expect(inspectPaperDirector(film)).toEqual([]);

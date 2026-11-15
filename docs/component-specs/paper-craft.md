@@ -325,4 +325,6 @@ An authored director shot can select `transitionOut:{kind:"paper-page-turn",dura
 
 The FD1 slot `paper-craft-director` adds `transitionStyle:"page-turn"|"curtain"` for its four-chapter preset; existing documents default to curtain. An authored `storyboard` uses the per-shot `kind` directly and needs no separate setting. [Portable page-turn film example](../../examples/film/paper-craft-page-turn.film.json). The existing Storybook **Film Director · Four Chapters** page adds `pageTurn` and frame-range controls without introducing a new folder or changing existing studies.
 
+During a page turn, assistive technology receives one illustration: the outgoing shot before the edit and the incoming shot after it. The consumer's label and `aria-hidden` setting continue to apply throughout the transition.
+
 This is a **rigid leaf with one spine**, not a V-fold engine or dynamic bending-paper finite-element solver. The artist-authored next scene must be preassembled for a seamless edit. ArtCraft research/limitations: [PAPER-D3 physical page study](../research/paper-page-turn-artcraft-study.md).

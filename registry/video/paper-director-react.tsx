@@ -92,7 +92,7 @@ function PaperPageTurn({shot,reducedMotion,renderProps}:{
       perspective:`${Math.round(width*2.1)}px`}}>
     <div data-km-paper-next-page="" style={{position:"absolute",inset:0}}>
       <PaperCraftStage {...renderProps} spec={incoming} frame={incomingFrame}
-        reducedMotion={reducedMotion} aria-hidden="true"/>
+        reducedMotion={reducedMotion} aria-hidden={phase === "closing" ? true : renderProps["aria-hidden"]}/>
     </div>
     <div data-km-paper-page-leaf="" style={{
       position:"absolute",inset:0,
@@ -107,7 +107,7 @@ function PaperPageTurn({shot,reducedMotion,renderProps}:{
         backgroundColor:outgoing.backing,
       }}>
         <PaperCraftStage {...renderProps} spec={outgoing} frame={outgoingFrame}
-          reducedMotion={reducedMotion} aria-hidden="true"/>
+          reducedMotion={reducedMotion} aria-hidden={phase === "opening" ? true : renderProps["aria-hidden"]}/>
         {/* The moving FORE edge is opposite the book hinge.
             Attaching stock to the spine looked like a digital crop during
             the first real native preview. A real paper edge casts shadow. */}
