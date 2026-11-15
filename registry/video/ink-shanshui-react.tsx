@@ -585,17 +585,23 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         const bone=stratum[(k*2+i)%stratum.length];
         const root=quadraticPoint(bone.top,bone.bend,bone.tip,at);
         const sign=direction*((k+i)%3===1?-1:1);
-        const reach=(k===1?41:k===2?29:34)*
+        // The first source candidate read as twelve horizontal eaves.
+        // Four morphologically distinct turning rock anatomies encode
+        // a curled crown, a steep hood, a tall split and a gully throat.
+        const motif=(k+i*2)%4;
+        const reach=([19,43,25,34][motif])*
           (.83+.32*s(seed+5011,i*43+k*17));
-        const rise=(k===1?15:11)*
+        const rise=([8,13,22,15][motif])*
           (.74+.36*s(seed+5021,i*29+k*31));
-        const drop=(k===2?28:36)*
+        const drop=([22,39,46,56][motif])*
           (.78+.37*s(seed+5039,i*11+k*47));
-        const cap:P=[root[0]+sign*reach*.33,root[1]-rise];
-        const lip:P=[root[0]+sign*reach*.91,root[1]-rise*.13];
-        const throat:P=[root[0]+sign*reach*.61,
-          root[1]+drop*.47];
-        const belly:P=[root[0]+sign*reach*.44,
+        const cap:P=[root[0]+sign*reach*(motif===2?.4:.28),
+          root[1]-rise];
+        const lip:P=[root[0]+sign*reach*(motif===3?.63:.85),
+          root[1]+drop*([.24,.15,.35,.21][motif])];
+        const throat:P=[root[0]+sign*reach*(motif===3?.31:.48),
+          root[1]+drop*(motif===0?.32:.53)];
+        const belly:P=[root[0]+sign*reach*(motif===3?.15:.36),
           root[1]+drop];
         const rootD="M"+f(root[0])+" "+f(root[1]);
         const outline=rootD+
@@ -627,7 +633,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           [belly[0]+sign*reach*.21,belly[1]-drop*.16],belly,
           1.7+1.8*s(seed+5101,i*47+k*13),
           seed+5107+i*53+k*37);
-        return {root,outline,curl,recess,tonal:tone+"cloud"+k};
+        return {root,outline,curl,recess,tonal:tone+"cloud"+k,motif};
       }):[];
       // Fan Kuan's original monumental rock has grouped cliff *mass*:
       // two asymmetrically carved dark recesses attach to EACH positive
@@ -724,27 +730,28 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         </g>}
         {isGuo&&<g clipPath={"url(#"+clip+")"}
           data-km-master-cloud-geology="">
-          {cloudBanks.map(({root,outline,curl,recess,tonal},k)=>
+          {cloudBanks.map(({root,outline,curl,recess,tonal,motif},k)=>
             <g key={k} data-km-master-cloud-bank=""
               data-km-master-cloud-bank-root={f(root[0])+","+f(root[1])}
-              data-km-master-cloud-bank-index={k}>
+              data-km-master-cloud-bank-index={k}
+              data-km-master-cloud-morph={motif}>
               <defs>
                 <linearGradient id={tonal} x1="15%" y1="0%" x2="85%" y2="96%">
-                  <stop offset="0" stopColor="#382f29" stopOpacity=".91"/>
-                  <stop offset=".27" stopColor="#4d4135" stopOpacity=".72"/>
-                  <stop offset=".69" stopColor="#715e4c" stopOpacity=".41"/>
+                  <stop offset="0" stopColor="#51463b" stopOpacity=".7"/>
+                  <stop offset=".27" stopColor="#635347" stopOpacity=".56"/>
+                  <stop offset=".69" stopColor="#89715e" stopOpacity=".31"/>
                   <stop offset="1" stopColor="#99836b" stopOpacity="0"/>
                 </linearGradient>
               </defs>
               <path data-km-master-cloud-mass="" d={outline}
                 fill={"url(#"+tonal+")"}
-                opacity={f((k===1?.78:.64)*(1-.17*mist))}/>
+                opacity={f((k===1?.61:.49)*(1-.17*mist))}/>
               <path data-km-master-cloud-crown="" d={curl}
                 fill="#39322b"
-                opacity={f((k%2===0?.73:.6)*(1-.21*mist))}/>
+                opacity={f((k%2===0?.48:.39)*(1-.21*mist))}/>
               <path data-km-master-cloud-recess="" d={recess}
                 fill="#5a4b3d"
-                opacity={f((k%2===0?.55:.46)*(1-.2*mist))}/>
+                opacity={f((k%2===0?.76:.65)*(1-.2*mist))}/>
             </g>)}
         </g>}
         {isFan&&<g clipPath={"url(#"+clip+")"}
