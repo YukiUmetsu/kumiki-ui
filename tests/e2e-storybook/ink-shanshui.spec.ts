@@ -194,6 +194,14 @@ test("geological ArtCraft proof compares source-rooted forms against a genuine m
   const diluted=page.locator('[data-km-geology-condition="dilute"]');
   await expect(negative.locator("[data-km-rock-hero-cliff]")).toHaveCount(0);
   await expect(negative.locator("[data-km-rock-pima-stroke]")).toHaveCount(0);
+  await expect(negative.locator("[data-km-rock-terrace]")).toHaveCount(0);
+  await expect.poll(()=>original.locator("[data-km-rock-terrace]").count())
+    .toBe(3);
+  await expect.poll(()=>original.locator("[data-km-rock-terrace-hemp]").count())
+    .toBe(40);
+  await expect.poll(()=>diluted.locator("[data-km-rock-terrace-hemp]").count())
+    .toBe(40);
+
   await expect.poll(()=>original.locator("[data-km-rock-pima-stroke]").count())
     .toBeGreaterThan(10);
   await expect.poll(()=>diluted.locator("[data-km-rock-pima-stroke]").count())
