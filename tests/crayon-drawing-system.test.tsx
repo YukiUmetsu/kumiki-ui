@@ -4,6 +4,7 @@ import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
 import type {CrayonSceneSpec} from "../registry/video/materials/crayon-scene";
 import {crayonDirectionalStrokes,inspectCrayonDrawingPlan} from "../registry/video/materials/crayon-art-direction";
+import type {CrayonDrawingPlan} from "../registry/video/materials/crayon-art-direction";
 import {crayonBotanicalDrawing} from "../src/video/crayon-drawing-system-fixtures";
 import studioMeta,{CrayonDrawingStudio,FourPassWaxConstruction,VerticalDrawingStudy}
   from "../src/video/crayon-drawing-system.stories";
@@ -85,6 +86,25 @@ describe("strict native Crayon drawing grammar",()=>{
     const primitive:CrayonSceneSpec={...scene,elements:scene.elements.map(n=>
       n.id==="pear-body"&&n.kind==="wax"?{...n,d:"M0 0L1 0L0 1Z"}:n)};
     expect(inspectCrayonDrawingPlan(primitive,plan).some(x=>x.includes("insufficient authored curves"))).toBe(true);
+  });
+  it("does not accept a touchpoint from a different subject merely because its world position matches",()=>{
+    const {scene,plan}=crayonBotanicalDrawing(params("landscape"));
+    const original=scene.elements.find(n=>n.id==="pear-body");
+    if(original?.kind!=="wax")throw new Error("Missing source fruit");
+    const second={...original,id:"second-fruit"};
+    const copied:CrayonSceneSpec={...scene,elements:[...scene.elements,second]};
+    const bad:CrayonDrawingPlan={...plan,subjects:[...plan.subjects,{
+      id:"second-subject",kind:"object",rootId:"second-fruit",
+      parts:[{nodeId:"second-fruit",role:"solid",phase:"blocking",minCurves:6}],
+      attachments:[{
+        from:{nodeId:"second-fruit",point:{x:-17,y:-139}},
+        to:{nodeId:"pear-body",point:{x:-17,y:-139}},
+        tolerance:1,
+      }],
+    }]};
+    expect(inspectCrayonScene(copied)).toEqual([]);
+    expect(inspectCrayonDrawingPlan(copied,bad)).toContain(
+      "second-subject: attachment[0]: anchors must belong to this subject");
   });
   it("returns reproducible tangent-led width-modulated strokes and rejects invalid controls",()=>{
     const guide=[
