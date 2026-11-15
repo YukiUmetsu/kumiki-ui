@@ -5,6 +5,10 @@ on:
       - 'registry/video/paper-craft*'
       - 'src/video/paper-craft*'
       - 'registry/video/paper-object-kit.ts'
+      - 'registry/video/paper-scenery-kit.ts'
+      - 'tests/paper-craft-scenery.test.tsx'
+      - 'tests/e2e-storybook/paper-craft-scenery.spec.ts'
+      - 'examples/film/paper-craft-scenery.film.json'
       - 'tests/paper-craft-objects.test.tsx'
       - 'tests/paper-craft-material-rigs.test.tsx'
       - 'tests/paper-craft-lifted-tips.test.tsx'
@@ -30,6 +34,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run typecheck
-      - run: npx vitest run --project unit tests/paper-craft.test.tsx tests/paper-craft-objects.test.tsx tests/paper-craft-material-rigs.test.tsx tests/paper-craft-lifted-tips.test.tsx tests/paper-craft-kingfisher-artcraft.test.tsx
+      - run: npx vitest run --project unit tests/paper-craft.test.tsx tests/paper-craft-objects.test.tsx tests/paper-craft-material-rigs.test.tsx tests/paper-craft-lifted-tips.test.tsx tests/paper-craft-kingfisher-artcraft.test.tsx tests/paper-craft-scenery.test.tsx
       - run: npm run prestorybook
       - run: npm run film:check -- examples/film/paper-craft-objects.film.json
+      - run: npm run film:check -- examples/film/paper-craft-scenery.film.json
