@@ -1002,7 +1002,9 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
               const fanAngles=[-.69,-.95,.36,.83,-.43];
               const direction=branchAngle+fanAngles[motif]*(fan>0?1:-1)+
                 (layer===0?0:-.095*fan)+
-                (s(seed+1081,i*29+j*17+k)-.5)*.29;
+                // Individual brush wrists diverge slightly within one
+                // common twig fan, avoiding identical ray headings.
+                (s(seed+1081,i*29+j*17+k)-.5)*.52;
               const familyLength=[1.12,.81,1.06,.7,.79][motif];
               const len=(24+17*s(seed,i*50+j*9+k))*familyLength*
                 (layer===1?.84:1);
