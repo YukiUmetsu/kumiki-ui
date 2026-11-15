@@ -912,15 +912,26 @@ function MountainHeroCliff({root,seed,mist,detail}:{
       const descend=fold.drop*(.92+.15*s(seed+521,i*17));
       // The high shoulder bends BACK over the attached root, then
       // descends as a gently rolling hillside rather than a triangle.
+      // The previous fold's quadratic outline collapsed into a
+      // nearly straight 100px diagonal wedge at native film scale.
+      // A real Fuchun rock back rises, curls into a rounded crown,
+      // travels over the shoulder and drops under its own weight.
+      // All 24 pima strokes and 9 tributaries must sample this *same*
+      // newly curved cubic parent—no leftover floating children.
       const bend:P=[r[0]+side*breadth*.57,r[1]-rise];
+      const c1:P=[r[0]+side*breadth*.19,r[1]-rise*1.18];
+      const c2:P=[r[0]+side*breadth*.73,
+        r[1]-rise*(i===1?.66:.86)+descend*.17];
       const tip:P=[r[0]+side*breadth,r[1]+descend];
-      const longEdge=rockLoadedRibbon(r,bend,tip,fold.width*.83,
-        seed+1511+i*101);
-      const taperStart=quadraticPoint(r,bend,tip,.22);
-      const taperEnd=quadraticPoint(r,bend,tip,.87);
+      const longEdge=rockLoadedCubicRibbon(r,c1,c2,tip,
+        fold.width*.78,seed+1511+i*101);
+      const taperStart=cubicPoint(r,c1,c2,tip,.22);
+      const taperEnd=cubicPoint(r,c1,c2,tip,.87);
       const inner="M"+f(taperStart[0])+" "+f(taperStart[1]+2)+
-        " Q"+f(bend[0]-side*fold.width*1.15)+" "+
-          f(bend[1]+fold.width*1.72)+" "+
+        " C"+f(c1[0]+side*fold.width*.12)+" "+
+          f(c1[1]+fold.width*1.1)+" "+
+          f(c2[0]-side*fold.width*.37)+" "+
+          f(c2[1]+fold.width*1.78)+" "+
           f(taperEnd[0])+" "+f(taperEnd[1]);
       // Source-specific dry/wet rhythm: clustered pima-cun along each
       // rolling hill-back, never independent rain streaks. All origins
@@ -930,10 +941,10 @@ function MountainHeroCliff({root,seed,mist,detail}:{
       const pimaBundles=Array.from({length:bundleCount},(_,j)=>{
         const station=.19+j*(.61/(bundleCount-1))+
           (s(seed+613,i*29+j*17)-.5)*.018;
-        const origin=quadraticPoint(r,bend,tip,station);
+        const origin=cubicPoint(r,c1,c2,tip,station);
         const t2=Math.min(.99,station+.17+
           .06*s(seed+619,i*31+j*13));
-        const ahead=quadraticPoint(r,bend,tip,t2);
+        const ahead=cubicPoint(r,c1,c2,tip,t2);
         const spread=((i+j)%3===0?-1:1)*(5+
           7*s(seed+631,i*19+j*11));
         const target:P=[
@@ -957,7 +968,7 @@ function MountainHeroCliff({root,seed,mist,detail}:{
         return {origin,path,dry,depleted};
       });
       const tributaries=([.31,.54,.73] as const).map((at,k)=>{
-        const entry=quadraticPoint(r,bend,tip,at);
+        const entry=cubicPoint(r,c1,c2,tip,at);
         const off=((i+k)%2===0?-1:1)*(11+
           11*s(seed+571,i*19+k*13));
         const fall=17+19*s(seed+587,i*17+k);
