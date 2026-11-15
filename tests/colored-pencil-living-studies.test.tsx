@@ -149,6 +149,20 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       expect(region.layers.every(layer=>layer.tipWidth<1.55)).toBe(true);
     }
     expect(parts.get("mask")!.bounds[3]).toBeLessThanOrEqual(46);
+    // Photo-informed morphology, still an original hand-authored vector.
+    // The far orbit is only a short occluded seam: two glossy, evenly
+    // sized cartoon eyes are forbidden for this left-turned seated fox.
+    expect(parts.get("eye-far")!.opaqueSupport).toBe(false);
+    expect(parts.get("eye-far")!.craft).toBeUndefined();
+    expect(parts.get("eye-far")!.details!.length).toBe(3);
+    expect(parts.get("eye-near")!.details!.length)
+      .toBeGreaterThan(parts.get("eye-far")!.details!.length);
+    const partsInOrder=drawing.regions.map(r=>r.id);
+    for(const id of ["ear-far","ear-far-inner","ear-near","ear-near-inner"])
+      expect(partsInOrder.indexOf(id))
+        .toBeLessThan(partsInOrder.indexOf("head-main"));
+    expect(parts.get("tail-back")!.layers[0].color)
+      .not.toBe("#59616A");
     const orbit=parts.get("periocular-form")!;
     expect(orbit.opaqueSupport).toBe(false);
     expect(orbit.craft).toBeUndefined();
