@@ -19,6 +19,7 @@ import { UKIYOE_PATTERNS } from "../../registry/video/ukiyoe/ukiyoe-prims";
 import type { UkiyoeCrowdMood } from "../../registry/video/ukiyoe/ukiyoe-crowd";
 import { UKIYOE_CROWD_MOODS } from "../../registry/video/ukiyoe/ukiyoe-crowd";
 import { UKIYOE_SQUARE_VIEW_SPECIES } from "../../registry/video/ukiyoe/ukiyoe-creatures";
+import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import { inspectUkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -324,14 +325,15 @@ function PaletteSwatches({ preset }: { preset: UkiyoePresetName }) {
 // ---- 3. Cast lab ----------------------------------------------------------------------------------------------------------------------
 
 const ROBE_ROLES = ["ai", "bero", "beni", "shu", "asagi", "kusa", "matsu", "ki", "kincha", "murasaki", "cha", "usuzumi", "sakura", "gofun"] as const;
-const ACTION_HINT: Partial<Record<UkiyoeActionType, Partial<UkiyoeAction>>> = { walk: { to: 260 }, run: { to: 420 }, point: { angle: 80 }, bow: { angle: 38 }, look: { angle: -24 }, hold: { angle: 40, amount: 80 } };
+const ACTION_HINT: Partial<Record<UkiyoeActionType, Partial<UkiyoeAction>>> = { walk: { to: 260 }, dochu: { to: 110 }, run: { to: 420 }, point: { angle: 80 }, bow: { angle: 38 }, look: { angle: -24 }, hold: { angle: 40, amount: 80 } };
 
-const CAST_NAMES = ["traveller", "mother", "child", "ferryman", "merchant", "maiko", "oni-red", "monk"] as const;
+const CAST_NAMES = ["traveller", "mother", "child", "ferryman", "merchant", "maiko", "oni-red", "monk", "oiran"] as const;
+const CAST_LOOKS: Readonly<Record<string, UkiyoeFigureLook>> = { ...CAST, oiran: UKIYOE_OIRAN_LOOKS.oiran };
 
 export function CastLab() {
   const names = CAST_NAMES;
-  const [cast, setCast] = useState<Record<string, UkiyoeFigureLook>>(() => Object.fromEntries(names.map(n => [n, CAST[n]])));
-  const [actions, setActions] = useState<Record<string, UkiyoeActionType>>({ traveller: "walk", mother: "hold", child: "cheer", ferryman: "pole", merchant: "bow", maiko: "dance", "oni-red": "talk", monk: "pray" });
+  const [cast, setCast] = useState<Record<string, UkiyoeFigureLook>>(() => Object.fromEntries(names.map(n => [n, CAST_LOOKS[n]])));
+  const [actions, setActions] = useState<Record<string, UkiyoeActionType>>({ traveller: "walk", mother: "hold", child: "cheer", ferryman: "pole", merchant: "bow", maiko: "dance", "oni-red": "talk", monk: "pray", oiran: "dochu" });
   const [selected, setSelected] = useState<(typeof CAST_NAMES)[number]>("mother");
   const [wind, setWind] = useState(.3);
   const [cadence, setCadence] = useState<1 | 2 | 3 | 4>(2);
@@ -345,7 +347,7 @@ export function CastLab() {
       { id: "mist", kind: "motif", motif: "cloud", x: 960, y: 230, params: { width: 1500, height: 70, color: "kin" } },
       ...CAST_NAMES.map((n, i): UkiyoeNode => {
         const type = actions[n], a: UkiyoeAction = { type, start: 0, end: 239, ...ACTION_HINT[type], ...(type === "walk" || type === "run" ? { start: 10, end: 230 } : {}) };
-        return { id: n, kind: "figure", x: 150 + i * 232 - (type === "walk" || type === "run" ? 100 : 0), y: 930, scale: 1.18, look: cast[n], facing: i % 2 ? "left" : "right", actions: [a] };
+        return { id: n, kind: "figure", x: 110 + i * 196 - (type === "walk" || type === "run" ? 100 : type === "dochu" ? 60 : 0), y: 930, scale: 1.1, look: cast[n], facing: i % 2 ? "left" : "right", actions: [a] };
       }),
     ],
   }), [cast, actions, wind, cadence]);
@@ -378,7 +380,7 @@ export function CastLab() {
       <Select name="Lower garment" value={look.lower ?? "robe"} options={["robe", "tucked", "hakama"] as const} onChange={v => set({ lower: v })} />
       <Select name="Sleeves" value={look.sleeves ?? "short"} options={["short", "long"] as const} onChange={v => set({ sleeves: v })} />
       <Select name="Build" value={look.build ?? "average"} options={["slim", "average", "stout", "child"] as const} onChange={v => set({ build: v })} />
-      <Select name="Footwear" value={look.feet ?? "waraji"} options={["waraji", "geta", "tabi", "bare"] as const} onChange={v => set({ feet: v })} />
+      <Select name="Footwear" value={look.feet ?? "waraji"} options={["waraji", "geta", "tabi", "bare", "koma-geta"] as const} onChange={v => set({ feet: v })} />
       <Select name="Accent (umbrella, fan…)" value={look.accent ?? "ai"} options={ROBE_ROLES} onChange={v => set({ accent: v })} />
       <Slider name="Wind" value={wind} min={-2} max={2} step={.1} onChange={setWind} format={v => v.toFixed(1)} />
       <Select name="Cadence" value={cadence} options={[1, 2, 3, 4] as const} onChange={setCadence} labels={{ 1: "On ones", 2: "On twos", 3: "On threes", 4: "On fours" }} />
@@ -483,6 +485,61 @@ export function CrowdLab() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={`A ${mood} crowd of ${count}`} /></Fit>
     <Transport clock={clock} total={480} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Frame" />
+  </div>;
+}
+
+// ---- Oiran procession ----------------------------------------------------------------------------------------------------------------
+
+/**
+ * A courtesan's procession (oiran dōchū) down a pleasure-quarter street at dusk, and the oiran in all four views. The
+ * procession comes from `oiranProcession`; the looks from `UKIYOE_OIRAN_LOOKS`.
+ */
+export function OiranProcession() {
+  const [view, setView] = useState<"profile" | "three-quarter">("profile");
+  const [lookBack, setLookBack] = useState(true);
+  const [wind, setWind] = useState(.2);
+  const clock = usePlayback(720, 0, 1, true, true);
+  const street = useMemo((): UkiyoeSceneSpec => ({
+    version: 1, id: "oiran-procession", width: 1920, height: 1080, durationFrames: 720, seed: 21, wind: { base: wind, turbulence: .3 }, palette: { preset: "twilight" },
+    nodes: [
+      { id: "sky", kind: "motif", motif: "sky", params: { width: 1920, height: 1080, band: .4, horizon: "beni" } },
+      { id: "street", kind: "block", x: 960, y: 880, shape: { type: "rect", width: 1960, height: 420 }, fill: { type: "linear", angle: 90, stops: [[0, "kincha", .7], [1, "cha", .8]] }, line: 0, grain: .8 },
+      { id: "houses", kind: "motif", motif: "house", x: 960, y: 610, params: { width: 1900, height: 190, noren: "beni", stories: 2, doors: 8 } },
+      ...[180, 760, 1380, 1860].map((x, i): UkiyoeNode => ({ id: "sakura" + i, kind: "motif", motif: "sakura", x, y: 745, scale: .75, params: { height: 360, variant: i, lean: i % 2 ? -5 : 6 } })),
+      ...[120, 470, 950, 1450, 1800].map((x, i): UkiyoeNode => ({ id: "lamp" + i, kind: "motif", motif: "lantern", x, y: 560, scale: .9, params: { color: i % 2 ? "shu" : "beni" } })),
+      { id: "onlookers", kind: "crowd", x: 960, y: 772, width: 1850, count: 7, rows: 1, mood: "stroll", direction: "both", scale: .5, frames: 720 },
+      ...oiranProcession({ id: "dochu", x: 760, y: 1010, scale: 1.22, start: 20, end: 700, distance: 300, view, lookBackAt: lookBack ? 330 : undefined, lookFor: 100 }),
+    ],
+  }), [view, lookBack, wind]);
+  const views = useMemo((): UkiyoeSceneSpec => ({
+    version: 1, id: "oiran-views", width: 1920, height: 820, durationFrames: 720, seed: 4, wind: { base: wind }, palette: { preset: "edo" }, mount: { kind: "print" },
+    nodes: [
+      { id: "ground", kind: "block", x: 960, y: 770, shape: { type: "rect", width: 2000, height: 160 }, fill: { type: "linear", angle: 90, stops: [[0, "ki", .5], [1, "kincha", .7]] }, line: 0, grain: 1 },
+      ...(["profile", "three-quarter", "front", "back"] as const).map((v, i): UkiyoeNode => ({
+        id: "oiran-" + v, kind: "figure", x: 250 + i * 470, y: 735, scale: 1.4, look: { ...UKIYOE_OIRAN_LOOKS.oiran, view: v },
+        actions: [{ type: "dochu", start: 0, end: 720, ...(v === "front" ? { to: 0, toY: 24 } : v === "back" ? { to: 0, toY: -24 } : { to: 140 }) }],
+      })),
+    ],
+  }), [wind]);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Oiran" title="The courtesan's procession">
+      <p style={{ margin: 0 }}>After the procession prints of Kiyonaga, Eishi and Shunchō. The oiran wears the hyōgo hairstyle (two great loops,
+        translucent lantern side-wings, tortoiseshell combs, a kōgai bar and a fan of kanzashi tipped with coral and gold), an open black
+        uchikake with chrysanthemum roundels and a padded hem that trails behind her, the gold obi tied in front in a great bundle, layered
+        collars (kasane), and tall black koma-geta. She walks the slow figure-eight step (<code>dochu</code>): the free clog swings out
+        and round and is set down only a little ahead, the planted clog never sliding. Two kamuro walk ahead, the lantern bearer leads,
+        the manservant holds the long-handled parasol over her and a shinzō follows. With <em>Look back</em>, the procession halts while
+        she turns her head over her shoulder (mikaeri).</p>
+    </Header>
+    <section aria-label="Procession controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="View" value={view} options={["profile", "three-quarter"] as const} onChange={setView} labels={{ profile: "Profile", "three-quarter": "Three-quarter" }} />
+      <Check name="Look back (mikaeri)" value={lookBack} onChange={setLookBack} />
+      <Slider name="Wind" value={wind} min={-1.5} max={1.5} step={.1} onChange={setWind} format={v => v.toFixed(1)} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={street} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="An oiran's procession down a pleasure-quarter street at dusk" /></Fit>
+    <Transport clock={clock} total={720} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Procession frame" />
+    <h2 style={{ font: "600 18px Newsreader Variable, serif", margin: "8px 0 0" }}>The oiran in four views</h2>
+    <Fit width={1920} height={820} maxHeight={520}><UkiyoeScene spec={views} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="The oiran in profile, three-quarter, front and back, stepping" /></Fit>
   </div>;
 }
 

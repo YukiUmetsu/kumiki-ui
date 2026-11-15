@@ -341,6 +341,51 @@ Prints often show a figure from behind: a traveller walking away down the road, 
   - No film uses these views yet.
   - The turn between views is a cut, not an animated turn.
 
+## Oiran (roadmap U1, owner request, 2026-11-14)
+
+**Sources.** Public-domain prints from the Metropolitan Museum's open-access collection, studied at full resolution:
+
+- Torii Kiyonaga, *An Oiran Accompanied by Two Kamuro* (Met 56034)
+- Chōbunsai Eishi, *Karakoto of Chōjiya on Parade* (52000) and *Oiran and Attendants at the Ō Mon of the Yoshiwara* (36662)
+- Katsukawa Shunchō, *The Oiran Shirayu of Wakanaya attended by Two Kamuro and Shinzo* (54819)
+- Chōkōsai Eishō, a large-head portrait of Hanaogi of Ōgiya (36664), for the hair
+- Katsushika Taito II, *Courtesan on Parade* (57069), for the back view
+
+Accounts of the procession step and the costume, which agree in outline and differ in detail:
+
+- uncannyjapan.com and japlanease.com: soto-hachimonji, the foot tracing an 8
+- oldtokyo.com: the skater-like crossing step; three-toothed lacquered clogs about 8 inches tall; the order of the procession
+- Wikipedia "Oiran" and tsunagujapan.com: the date-hyōgo hairstyle, the manaita obi tied in front, the unbelted uchikake
+
+The counts of kanzashi and the weights given vary between sources and were not used as targets.
+
+**What the prints show.**
+
+- **Hair.** Wide, translucent side-wings with fine combed lines and a bun at the nape. Large loops on top with a broad tortoiseshell comb in front, and long pins radiating out on both sides, tipped with coral beads and flat ornaments.
+- **Collars.** Several collars layered at the neck (white, red, yellow).
+- **Obi.** A huge padded obi bundle at the belly in a gold tortoiseshell-hexagon weave, its ends hanging long.
+- **Over-robe.** A black uchikake with large motifs, its hems pooling and flaring over the coloured hems of the robes beneath, with a fat padded roll at the bottom.
+- **Clogs.** Tall black clogs peeking out under the hem.
+- **Attendants.** Two kamuro in matching red with flower pins, walking at her side or ahead.
+- **Parasol.** A manservant behind holding a big long-handled parasol over her.
+
+**What was built.** `ukiyoe-oiran.ts` holds the hyōgo hair (side and square views), the kamuro bob, the koma-geta (side and square), the padded hem, the kasane bands, the mae-obi (side and front), the chrysanthemum roundels and the parasol. The `dochu` step, `UKIYOE_OIRAN_LOOKS` and `oiranProcession` complete it. Storybook has **Oiran procession**: a pleasure-quarter street at dusk with cherry trees, lanterns and onlookers, plus the oiran in four views. The Cast lab includes the oiran.
+
+**Measured, not eyeballed.**
+
+- Tracking the clog teeth frame by frame first found the clogs drawn upward into the foot. The teeth sat 21 px above the ground; that is fixed, and the teeth now reach the ground within 1 px.
+- The planted clog slid about 8 px a step. The sweep is now ±10° at an even (triangle-wave) rate, and the planted clog holds within 0.3 px over a step.
+- The tests check both (within 3 px and within 1.5 px).
+
+**Not done.**
+
+- The uchikake's motifs are roundels, not the painted cranes, phoenixes or waves of the prints.
+- The turn between views is a cut.
+- The look-back mirrors the head; the body does not twist.
+- Kneeling in the uchikake is a rough mound.
+- No film uses the procession yet.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
