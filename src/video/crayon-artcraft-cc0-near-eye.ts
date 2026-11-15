@@ -25,9 +25,9 @@ export function crayonCc0NearEyeStudy(
   const palettes={
     skin:["#e5baa6","#be9a8d","#f6d2bd"],
     light:["#f1c6b4","#cb988a","#ffe0c4"],
-    shadow:["#ba8e91","#865e65","#dcb1a4"],
-    socket:["#ac8182","#705962","#c9a0a0"],
-    eyelid:["#d1a3a0","#9c777d","#f1c9b4"],
+    shadow:["#c19b8f","#917879","#dfbaaa"],
+    socket:["#ae8885","#735b5a","#c8a39a"],
+    eyelid:["#d2a99f","#947775","#edc3b1"],
     sclera:["#d8cbc3","#aaaeb0","#f1e4d7"],
     iris:["#806451","#403b37","#b69374"],
     pupil:["#312b2d","#181c22","#4a383b"],
@@ -109,11 +109,11 @@ export function crayonCc0NearEyeStudy(
       parentId:"eye-skin",clipToParent:true,coverage:"open",
       blendRadius:9,markStrength:.36,pressure:.57,outlineOpacity:0});
   wax("lower-orbital-hollow",
-    "M62 140 C78 159 104 165 127 159 Q163 152 176 128"+
-    "Q167 168 142 180 C100 186 76 178 62 140Z",
-    rect(59,126,121,61),palettes.shadow,[77,170],{
+    "M55 134 C76 145 104 152 126 147 Q158 138 172 125"+
+    "Q155 159 126 163 C90 165 68 150 55 134Z",
+    rect(52,122,124,45),palettes.shadow,[77,170],{
       parentId:"eye-skin",clipToParent:true,coverage:"open",
-      blendRadius:10,pressure:.52,markStrength:.39,outlineOpacity:0});
+      blendRadius:8,pressure:.42,markStrength:.23,outlineOpacity:0});
   wax("cheek-light-turn",
     "M11 144 C32 129 53 136 71 154 Q96 178 142 181"+
     "C106 194 46 194 4 181Z",
@@ -149,19 +149,19 @@ export function crayonCc0NearEyeStudy(
       parentId:"eye-sclera",clipToParent:true,coverage:"open",
       blendRadius:3,pressure:.55,markStrength:.3,outlineOpacity:0});
   wax("eye-iris",
-    "M79 109 C84 101 94 103 103 104 C116 105 124 116 123 126"+
-    "C120 138 110 144 98 139 C85 134 76 121 79 109Z",
-    rect(76,100,51,47),palettes.iris,[125,220],{
+    "M79 108 C84 100 93 101 102 102 C114 103 122 112 120 124"+
+    "C117 134 109 139 99 136 C88 132 79 121 79 108Z",
+    rect(76,98,48,44),palettes.iris,[125,220],{
       parentId:"eye-sclera",clipToParent:true,spacing:4.2,markStrength:.45,pressure:.86,
       underpaintGradient:{light:"#8d7260",shadow:"#312b2e",
         focusX:.8,focusY:.68,radius:.9},outlineOpacity:.08});
   wax("eye-pupil",
-    "M90 110 C94 106 99 106 103 109 C110 111 111 118 109 123"+
-    "Q106 129 100 129 C92 127 89 120 90 110Z",
-    rect(88,104,25,27),palettes.pupil,[157,231],{
+    "M91 111 C95 108 99 108 103 111 C108 113 109 119 107 123"+
+    "Q104 128 100 127 C93 126 91 120 91 111Z",
+    rect(89,107,23,23),palettes.pupil,[157,231],{
       parentId:"eye-iris",clipToParent:true,spacing:4.2,markStrength:.38,pressure:.96,outlineOpacity:0});
-  const irisFlecks=crayonIrisFlecks({seed:1407,cx:100,cy:120,
-    rx:20,ry:20,count:Math.round(18*detail),minRadius:.46,maxRadius:.91});
+  const irisFlecks=crayonIrisFlecks({seed:1407,cx:100,cy:118,
+    rx:18,ry:17,count:Math.round(24*detail),minRadius:.40,maxRadius:.91});
   if(irisFlecks)line("iris-dark-radials",irisFlecks,"#493f36",.37,[171,271],"eye-iris",.49);
   wax("sclera-reflection",
     "M131 111 Q151 107 162 115 Q153 123 135 130Z",
@@ -197,18 +197,18 @@ export function crayonCc0NearEyeStudy(
       spacing:4.6,pressure:.63,markStrength:.37,
       blendRadius:1.7,outlineOpacity:0});
   wax("lower-lid-flesh",
-    "M66 123 C88 139 103 143 119 140 C140 139 157 128 167 117"+
-    "C156 143 137 153 118 154 C94 156 73 146 66 123Z",
-    rect(62,115,110,43),palettes.eyelid,[174,262],{
+    "M62 124 C83 139 105 143 121 139 C144 136 155 126 165 117"+
+    "Q153 144 125 150 C95 151 76 145 62 124Z",
+    rect(58,114,112,40),palettes.eyelid,[174,262],{
       parentId:"eye-skin",clipToParent:true,coverage:"open",
-      blendRadius:5.6,spacing:5.8,markStrength:.22,pressure:.49,
+      blendRadius:4.2,spacing:5.8,markStrength:.16,pressure:.45,
       outlineOpacity:0});
   wax("lower-lid-groove",
-    "M72 135 C88 149 106 153 122 151 Q146 148 163 130"+
-    "Q145 167 115 167 C92 166 75 155 72 135Z",
-    rect(70,129,97,43),palettes.socket,[184,267],{
+    "M62 139 C81 149 102 153 121 149 Q148 143 164 125"+
+    "Q146 159 118 160 C91 164 73 154 62 139Z",
+    rect(59,121,109,45),palettes.socket,[184,267],{
       parentId:"eye-skin",clipToParent:true,coverage:"open",
-      blendRadius:8.5,pressure:.48,markStrength:.2,outlineOpacity:0});
+      blendRadius:7,pressure:.4,markStrength:.16,outlineOpacity:0});
   line("upper-crease",
     "M60 106 C75 88 96 85 119 88 C138 89 153 97 164 106",
     "#875e63",.56,[214,290],"eye-skin",.36);
@@ -219,12 +219,19 @@ export function crayonCc0NearEyeStudy(
     "M84 140 Q99 148 116 145 C134 143 151 135 161 125",
     "#edbeae",.43,[216,290],"lower-lid-flesh",.3);
 
-  // Six unequal curved lash roots replace a regularly spaced vertical fan.
+  // Rooted short fibers are attached along the upper *occluding* lid.
+  // The CC0 crop shows a dense, asymmetric dark lash band, not six
+  // long equally spaced fan symbols. Small groups turn with the crease.
   line("upper-lashes",
-    "M72 116 Q69 112 67 110 M81 112 Q76 105 74 104"+
-    " M92 108 Q90 103 89 101 M118 104 Q119 100 119 98"+
-    " M139 107 Q145 101 147 101 M155 111 Q160 109 162 107",
-    "#4b353d",.48,[220,296],"eye-skin",.68);
+    "M67 118q-3 -3 -3 -6 M71 115q-2 -4 -3 -7"+
+    " M76 112q-3 -4 -3 -7 M81 110q-3 -6 -2 -8"+
+    " M87 107q-2 -6 -1 -8 M92 105q-1 -5 0 -7"+
+    " M98 104q-2 -7 0 -9 M104 104q0 -5 1 -7"+
+    " M111 104q1 -7 3 -8 M118 104q1 -5 3 -7"+
+    " M124 105q2 -4 4 -6 M131 107q4 -6 6 -7"+
+    " M139 108q3 -5 7 -7 M147 111q5 -5 7 -5"+
+    " M154 113q4 -3 7 -4",
+    "#45383b",.48,[220,296],"eye-skin",.72);
   line("lower-lashes",
     "M84 141 Q82 145 79 146 M110 146 Q111 149 112 151"+
     " M146 134 Q150 137 152 136",
