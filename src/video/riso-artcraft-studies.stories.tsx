@@ -412,7 +412,7 @@ function RisoEyeCraftLab(){
             <option value="am">AM halftone</option><option value="fm">FM droplets</option>
           </select></label>
         <label>Screen pitch · {screenPitch.toFixed(1)} units
-          <input aria-label="RISO23 screen pitch" type="range" min={1.4} max={6} step={.2}
+          <input aria-label="RISO23 screen pitch" type="range" min={2} max={6} step={.2}
             value={screenPitch} onChange={e=>setScreenPitch(Number(e.target.value))}
             style={{display:"block",marginTop:9}}/></label>
         <label>Screen coverage · {Math.round(screenDensity*100)}%
