@@ -115,6 +115,15 @@ export const createOpticalEyelidFibres=(
         // never pass. Search only around each observed eye aperture.
         for(let k=-7;k<=7;k++){
           const offset=tolerance*k/7,y=yy+offset;
+          // Positive anatomical support: dark eyelid material must stay
+          // *outside* the observed iris, not merely somewhere dark inside
+          // the orbit. The CC0 source showed iris-bottom false positives
+          // until these lid-vs-canthus spatial gates were applied.
+          const canthusY=lerp(lid.start[1],lid.end[1],t);
+          if(rim==="upper"&&(y<canthusY-lid.span*.15||y>canthusY))
+            continue;
+          if(rim==="lower"&&(y<canthusY+lid.span*.10||
+            y>canthusY+lid.span*.28))continue;
           const middle=luminance(source,x,y);
           const above=luminance(source,x,y-2);
           const below=luminance(source,x,y+2);
