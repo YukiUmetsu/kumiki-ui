@@ -38,6 +38,31 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
         for(const region of ["periocular-form","mask","eye-far","eye-near"])
           await expect(svg.locator(
             '[data-km-pencil-region="'+region+'"]')).toHaveCount(1);
+        const attachment=await svg.evaluate(root=>{
+          const path=(id:string)=>{
+            const r=root.querySelector(
+              '[data-km-pencil-region="'+id+'"]');
+            const d=r?.querySelector('[data-km-pencil-support]')
+              ?.getAttribute("d");
+            if(!d)throw new Error("Missing fox structural path: "+id);
+            return new Path2D(d);
+          };
+          const ctx=document.createElement("canvas")
+            .getContext("2d")!;
+          const cranium=path("head-main");
+          const far=path("ear-far"),near=path("ear-near");
+          let farOverlap=0,nearOverlap=0;
+          // Independent actual 2D topology: ears must physically overlap
+          // skull, not merely display visually adjacent beige triangles.
+          for(let y=110;y<=210;y+=2)for(let x=135;x<=320;x+=2){
+            if(!ctx.isPointInPath(cranium,x,y))continue;
+            if(ctx.isPointInPath(far,x,y))farOverlap++;
+            if(ctx.isPointInPath(near,x,y))nearOverlap++;
+          }
+          return {farOverlap,nearOverlap};
+        });
+        expect(attachment.farOverlap).toBeGreaterThan(12);
+        expect(attachment.nearOverlap).toBeGreaterThan(12);
       }
       if(["rose","fox","portrait"].includes(item)){
         await svg.screenshot({animations:"disabled",
