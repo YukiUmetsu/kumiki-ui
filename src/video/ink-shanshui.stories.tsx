@@ -250,10 +250,26 @@ function BrushworkDetail(){
       </h1>
       <p style={{margin:0,maxWidth:900,color:"#6f5c49"}}>
         Five 2.15× views from the actual procedural 960×540 film renderer.
-        Compare continuous branch roots, varied ink pressure, rock texture
-        rhythm, and deliberate negative space. No raster reference collage.
+        Compare connected roots, asymmetric press-drag-lift profiles, actual
+        luminance-cut paper gaps, mixed ink concentration, and deliberate
+        negative space. Real renderer; no reference pixels in the artwork.
       </p>
     </header>
+    <div data-testid="shanshui-brush-material-presets"
+      style={{display:"flex",flexWrap:"wrap",gap:10}}>
+      <button type="button" style={style.button}
+        onClick={()=>{setDetail(1);setInk(1);setWind(0);setSeed(71);}}>
+        Wet loaded brush · still
+      </button>
+      <button type="button" style={style.button}
+        onClick={()=>{setDetail(.85);setInk(.5);setWind(.5);setSeed(87);}}>
+        Dry lifted brush · breeze
+      </button>
+      <button type="button" style={style.button}
+        onClick={()=>{setDetail(.3);setInk(.75);setWind(0);setSeed(71);}}>
+        Sparse geometry baseline
+      </button>
+    </div>
     <div style={{display:"flex",flexWrap:"wrap",gap:13,alignItems:"end"}}>
       {([
         ["Brushwork detail",detail,setDetail],
