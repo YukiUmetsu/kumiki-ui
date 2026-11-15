@@ -2,7 +2,7 @@ import {useEffect,useState} from "react";
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {InkShanshuiFilm} from "./ink-shanshui-film";
 import {InkShanshuiStage} from "../../registry/video/ink-shanshui-react";
-import {DEFAULT_SHANSHUI,SHANSHUI_FRAMES,SHANSHUI_REFERENCE_NOTES,INK_ROCK_SCHOOLS} from "../../registry/video/ink-shanshui";
+import {DEFAULT_SHANSHUI,SHANSHUI_FRAMES,SHANSHUI_REFERENCE_NOTES} from "../../registry/video/ink-shanshui";
 import type {ShanshuiControls,ShanshuiScene,InkRockSchool} from "../../registry/video/ink-shanshui";
 import {VideoExportStage} from "../../registry/video/video-export-stage";
 import {shanshuiFittedRoute} from "./ink-shanshui-full-body";
