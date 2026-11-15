@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { cameraAt, carvedLine, ease, loopOffsets, scrollPan, seedOf, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
 import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES } from "../registry/video/ukiyoe/ukiyoe-creatures";
-import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
+import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, settledPose, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
 import { realmScene, UKIYOE_REALM_SCENES } from "../registry/video/ukiyoe/ukiyoe-realms";
@@ -1086,5 +1086,21 @@ describe("UKIYO1 wardrobe", () => {
       const html = renderToStaticMarkup(<UkiyoeScene spec={{ version: 1, id: "p", width: 100, height: 100, durationFrames: 2, seed: 1, nodes: [{ id: "b", kind: "block", x: 50, y: 50, shape: { type: "rect", width: 100, height: 100 }, fill: "ai", pattern: { type, color: "gofun" } }] } as never} frame={0} />);
       expect(html, type).toContain("<pattern");
     }
+  });
+});
+
+describe("UKIYO1 follow-through and idle life", () => {
+  it("lets the arm overshoot and settle after a gesture, leaves contact actions exact, half-closes the lids and glances", () => {
+    const woman = { look: { hair: "shimada" as const, robe: "beni" }, actions: [{ type: "wave" as const, start: 10, end: 40 }] };
+    const rest = figurePose(woman, 80, 3, 262).shF;
+    const after = Array.from({ length: 20 }, (_, i) => settledPose(woman, 41 + i, 3, 262).shF);
+    expect(Math.min(...after)).toBeLessThan(rest - 3);                    // swings past the rest pose
+    expect(Math.abs(settledPose(woman, 80, 3, 262).shF - rest)).toBeLessThan(.5); // and settles
+    const fighter = { look: { hair: "chonmage" as const }, actions: [{ type: "cut" as const, start: 10, end: 60, contact: 30, aim: [100, -200] as [number, number] }] };
+    for (const f of [20, 30, 45]) expect(settledPose(fighter, f, 3, 250)).toEqual(figurePose(fighter, f, 3, 250));
+    const blinks = new Set(Array.from({ length: 400 }, (_, f) => figurePose({ look: {} }, f, 7, 250).blink));
+    expect([...blinks].some(b => b > 0 && b < 1)).toBe(true);
+    const gazes = new Set(Array.from({ length: 600 }, (_, f) => Math.round(figurePose({ look: {} }, f, 7, 250).gaze * 10)));
+    expect(gazes.size).toBeGreaterThan(2);
   });
 });

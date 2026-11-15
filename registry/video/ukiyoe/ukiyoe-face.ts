@@ -93,7 +93,7 @@ export function profileOutline(base: readonly Pt[], t: FaceTraits): Pt[] {
   });
 }
 
-interface Ctx { P: Map2; k: number; lw: number; m: FaceMoods; t: FaceTraits; blink: number; mouth: number; hair: UkiyoePaint; lips?: UkiyoePaint }
+interface Ctx { P: Map2; k: number; lw: number; m: FaceMoods; t: FaceTraits; blink: number; mouth: number; hair: UkiyoePaint; lips?: UkiyoePaint; gaze?: number }
 
 /** One eye: the upper lid (curving with the mood), the iris hanging from it, lower lid when wide, lashes of the closed eye. */
 function eye(c: Ctx, cx: number, cy: number, len: number, dir: 1 | -1, tilt: number): Prim[] {
@@ -116,7 +116,7 @@ function eye(c: Ctx, cx: number, cy: number, len: number, dir: 1 | -1, tilt: num
   const mid: Pt = [cx + dir * w * .08, cy + lift];
   out.push({ t: "line", d: carvedLine([P(...inner), P(...mid), P(...outer), P(outer[0] - dir * w * .06, outer[1] - .2)], lineW, { taper: "both", minRatio: .2, smooth: true }), color: "sumi" });
   // Iris: a small black almond hanging from the lid toward the inner corner; hidden more as the lid lowers.
-  const irisR = .66 * Math.min(1.3, .7 + open * .3), ix = cx + dir * w * .12, iy = cy + lift * .55 + irisR * .55;
+  const irisR = .66 * Math.min(1.3, .7 + open * .3), ix = cx + dir * w * .12 + (c.gaze ?? 0) * w * .2, iy = cy + lift * .55 + irisR * .55;
   const hide = clamp01(1 - open) * .6 + m.shy * .3;
   out.push({ t: "clip", d: smoothD([P(...inner), P(...mid), P(...outer), P(cx, cy + 1.6 * open + .4)], true, .35), key: "iris", prims: [
     { t: "fill", d: ellipseD(...P(ix, iy + hide * irisR), irisR * k * .85, irisR * k), fill: "sumi" },
@@ -190,11 +190,11 @@ function aged(c: Ctx, brow: Pt, fold: [Pt, Pt]): Prim[] {
   return [{ t: "stroke", d: [0, 1].map(i => { const q = P(brow[0], brow[1] - 2.2 - i * 1.4); return `M${f1(q[0] - k * 2)} ${f1(q[1])}q${f1(k * 2)} ${f1(-k * .5)} ${f1(k * 4)} 0`; }).join("") + `M${f1(P(...fold[0])[0])} ${f1(P(...fold[0])[1])}Q${f1(P(fold[0][0], fold[1][1])[0])} ${f1(P(fold[0][0], fold[1][1])[1])} ${f1(P(...fold[1])[0])} ${f1(P(...fold[1])[1])}`, color: "sumi", width: k * .2 + .25, opacity: .4 * a }];
 }
 
-export interface FaceArgs { P: Map2; k: number; lw: number; moods: FaceMoods; traits: FaceTraits; blink: number; mouth: number; hair: UkiyoePaint; lips?: UkiyoePaint }
+export interface FaceArgs { P: Map2; k: number; lw: number; moods: FaceMoods; traits: FaceTraits; blink: number; mouth: number; hair: UkiyoePaint; lips?: UkiyoePaint; gaze?: number }
 
 /** Features of a head in profile (head units, facing +x): eye, brow, nostril, mouth, rouge, age, mole. */
 export function faceProfile(a: FaceArgs): Prim[] {
-  const c: Ctx = { P: a.P, k: a.k, lw: a.lw, m: a.moods, t: a.traits, blink: a.blink, mouth: a.mouth, hair: a.hair, lips: a.lips }, t = a.traits, out: Prim[] = [];
+  const c: Ctx = { P: a.P, k: a.k, lw: a.lw, m: a.moods, t: a.traits, blink: a.blink, mouth: a.mouth, hair: a.hair, lips: a.lips, gaze: a.gaze }, t = a.traits, out: Prim[] = [];
   out.push(...colour(c, [10.2, -1.4], [12.5, 4.5], -1));
   out.push(...brow(c, 9.6, -6.9, 7.4, 1));
   out.push(...eye(c, 10, -1.4, 6.2, 1, .2));
@@ -209,7 +209,7 @@ export function faceProfile(a: FaceArgs): Prim[] {
 
 /** Features of a head turned three-quarters (head units): the near eye long, the far eye foreshortened; nose line. */
 export function faceThreeQuarter(a: FaceArgs): Prim[] {
-  const c: Ctx = { P: a.P, k: a.k, lw: a.lw, m: a.moods, t: a.traits, blink: a.blink, mouth: a.mouth, hair: a.hair, lips: a.lips }, t = a.traits, out: Prim[] = [];
+  const c: Ctx = { P: a.P, k: a.k, lw: a.lw, m: a.moods, t: a.traits, blink: a.blink, mouth: a.mouth, hair: a.hair, lips: a.lips, gaze: a.gaze }, t = a.traits, out: Prim[] = [];
   out.push(...colour(c, [6.8, -1.3], [5.5, 4.5], -1));
   out.push(...brow(c, 6.6, -7.2, 7, 1), ...brow(c, 14.2, -7.1, 3, 1));
   out.push(...eye(c, 6.8, -1.3, 5.6, 1, .25), ...eye(c, 14.1, -1.1, 2.7, 1, .1));
@@ -225,7 +225,7 @@ export function faceThreeQuarter(a: FaceArgs): Prim[] {
 /** Features of a head seen square on (unit radius r): both eyes, brows, nose line, mouth. */
 export function faceFront(a: FaceArgs): Prim[] {
   // Work in the profile helpers' units (≈ 18 units to the radius) and mirror for the two sides.
-  const u = a.k / 18, P: Map2 = (x, y) => a.P(x / 18, y / 18), c: Ctx = { P, k: a.k / 18 * 1, lw: a.lw, m: a.moods, t: a.traits, blink: a.blink, mouth: a.mouth, hair: a.hair, lips: a.lips }, out: Prim[] = [];
+  const u = a.k / 18, P: Map2 = (x, y) => a.P(x / 18, y / 18), c: Ctx = { P, k: a.k / 18 * 1, lw: a.lw, m: a.moods, t: a.traits, blink: a.blink, mouth: a.mouth, hair: a.hair, lips: a.lips, gaze: a.gaze }, out: Prim[] = [];
   void u;
   for (const s of [-1, 1] as const) {
     out.push(...colour(c, [s * 6.4, -1.2], [s * 8.5, 5], s === 1 ? -1 : 1));

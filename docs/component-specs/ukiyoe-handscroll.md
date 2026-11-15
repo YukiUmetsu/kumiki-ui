@@ -426,6 +426,18 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
 
   Storybook **Parades** plays them.
 
+### Follow-through and idle life
+
+- **Sleeves and hems.** They swing on a damped spring driven by the wrists' and the body's recent motion. They trail a
+  moving arm or a walking body, swing on past it when it stops, and settle within about ten frames. Everything stays a
+  pure function of the frame: the spring reads the figure's own past poses.
+- **Gestures.** `settledPose()` adds the same follow-through to the arms, lean and head tilt, so a wave or a point
+  overshoots a little and settles. It skips figures with contact actions (sword, club, tools, bow, holding, carrying,
+  rowing) and the square views, so contact frames and authored poses stay exact.
+- **Idle life.** Blinks pass through a half-lid frame. The eyes glance back or forward every few seconds, the iris
+  shifting (`pose.gaze`), and the head drifts a little.
+- **Cost.** The castle-town scroll went from about 58 to 59–71 ms per frame in the same bench.
+
 ### Wardrobe
 
 - **Patterns.** Eleven more:
