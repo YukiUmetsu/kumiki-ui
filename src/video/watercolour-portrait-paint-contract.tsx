@@ -1,3 +1,4 @@
+import {useId} from "react";
 import type {CSSProperties} from "react";
 import {WatercolourSurface} from "../../registry/video/watercolour-brush-react";
 import type {PaintSurfaceSpec,PaintStroke} from "../../registry/video/watercolour-brush";
@@ -118,18 +119,36 @@ export function NativeWatercolourPortraitPaint({spec,frame,reducedMotion=false,
   spec:NativeWatercolourPortraitSpec;frame:number;reducedMotion?:boolean;
   style?:CSSProperties;
 }){
+  const rawId=useId();
+  const clip="km-native-face-"+rawId.replace(/[^a-zA-Z0-9_-]/g,"");
   const problems=inspectNativePortraitPaint(spec);
   if(problems.length)throw new Error("Invalid native watercolor portrait: "+problems.join(", "));
-  return <div data-km-native-watercolour-portrait="" data-km-native-medium="WM1+WM4"
+  return <svg role="img" aria-label="Native hand-painted watercolor study"
+    data-km-native-watercolour-portrait="" data-km-native-medium="WM1+WM4"
     data-km-native-frame={frame}
-    style={{width:spec.width,height:spec.height,position:"relative",
-      background:spec.paper.color,overflow:"hidden",...style}}>
-    <WatercolourWetPaper spec={spec.wetPigment} frame={frame}
-      reducedMotion={reducedMotion} transparentPaper aria-hidden
-      style={{position:"absolute",inset:0,width:"100%",height:"100%"}}/>
-    <WatercolourSurface spec={spec.brush} frame={frame}
-      reducedMotion={reducedMotion} transparentPaper
-      label="Source-painted watercolor portrait pigment and pressure brush"
-      style={{position:"absolute",inset:0,width:"100%",height:"100%"}}/>
-  </div>;
+    viewBox={`0 0 ${spec.width} ${spec.height}`}
+    width={spec.width} height={spec.height}
+    style={{display:"block",background:spec.paper.color,
+      overflow:"hidden",...style}}>
+    <defs>
+      {/* Shared subject topology. WM1 brush ribbons are clipped to the same
+          semantic paper areas as WM4 pigment. Brush width cannot bleed
+          outside an authored face/neck/hair region by accident. */}
+      <clipPath id={clip} clipPathUnits="userSpaceOnUse"
+        data-km-native-paint-area-mask="">
+        {spec.regions.map(region=><polygon key={region.id}
+          data-km-native-paint-region={region.id}
+          points={region.polygon.map(p=>p.x+","+p.y).join(" ")}/>)}
+      </clipPath>
+    </defs>
+    <g clipPath={`url(#${clip})`}>
+      <WatercolourWetPaper spec={spec.wetPigment} frame={frame}
+        reducedMotion={reducedMotion} transparentPaper aria-hidden
+        style={{width:"100%",height:"100%"}}/>
+      <WatercolourSurface spec={spec.brush} frame={frame}
+        reducedMotion={reducedMotion} transparentPaper
+        label="Source-painted watercolor portrait pigment and pressure brush"
+        style={{width:"100%",height:"100%"}}/>
+    </g>
+  </svg>;
 }
