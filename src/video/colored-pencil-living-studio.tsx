@@ -3,9 +3,12 @@ import { PencilDrawing } from "../../registry/video/colored-pencil-react";
 import type { PencilAspect } from "../../registry/video/colored-pencil";
 import { pencilLivingStudyDrawing, PENCIL_LIVING_STUDIES } from "./colored-pencil-living-studies";
 import type { PencilLivingStudy } from "./colored-pencil-living-studies";
+import { PENCIL_PORTRAIT_ART_STATUS,PENCIL_PORTRAIT_ART_REASON,
+  PENCIL_PORTRAIT_LANDMARKS,PENCIL_PORTRAIT_LANDMARK_KEYS,
+} from "./colored-pencil-portrait-art-review";
 
 const descriptive:Record<PencilLivingStudy,{title:string; subtitle:string; material:string; anchor:readonly[number,number]}> = {
-  portrait:{title:"A PORTRAIT IN PENCIL",subtitle:"Light across skin · fine hair · living eyes",
+  portrait:{title:"PORTRAIT CONSTRUCTION STUDY",subtitle:"Unapproved: anatomy and tonal structure require full rebuild",
     material:"SKIN / HAIR / FABRIC",anchor:[262,208]},
   fox:{title:"RED FOX AT REST",subtitle:"Direction of fur · layered ruff · bright eyes",
     material:"FUR / EYE / EAR",anchor:[232,194]},
@@ -32,6 +35,7 @@ export function PencilLivingAtelier() {
   const [seed,setSeed]=useState(271);
   const [speed,setSpeed]=useState(1);
   const [focus,setFocus]=useState(false);
+  const [anatomy,setAnatomy]=useState(false);
   const [faceDetail,setFaceDetail]=useState<"eyes"|"nose"|"mouth">("eyes");
   const [reduce,setReduce]=useState(false);
   const [playing,setPlaying]=useState(false);
@@ -89,13 +93,26 @@ export function PencilLivingAtelier() {
         colour and landscape drawing. Original geometry, not traced artist images.
       </p>
     </header>
+    {subject==="portrait"&&
+      <aside role="status" data-km-portrait-quality={PENCIL_PORTRAIT_ART_STATUS}
+        style={{maxWidth:960,border:"1px solid #AF8472",background:"#FFF9F0",
+          padding:12,borderRadius:5}}>
+        <strong>Experimental anatomy blockout — failed reference-quality review.</strong>
+        <p style={{margin:"6px 0 0"}}>{PENCIL_PORTRAIT_ART_REASON}</p>
+        <p style={{margin:"6px 0 0",fontSize:13}}>
+          No artist-level realism is claimed. Enable output landmarks to inspect
+          the existing drawing's geometry; these are not measured source landmarks.
+          Rebuild requires a rights-verified photo, independent source/output annotations,
+          a tonal gate and actual 1×/3× reviewer acceptance before new art is promoted.
+        </p>
+      </aside>}
     <section aria-label="Living pencil atelier controls"
       style={{display:"flex",flexWrap:"wrap",alignItems:"end",gap:13,maxWidth:1020}}>
       <label style={labelStyle}>Study
         <select aria-label="Living subject" style={selectStyle} value={subject}
           onChange={e=>{setPlaying(false);setSubject(e.target.value as PencilLivingStudy);}}>
           {PENCIL_LIVING_STUDIES.map(s=><option key={s} value={s}>{
-            s==="portrait"?"Original human portrait":s==="fox"?"Red fox with layered fur":
+            s==="portrait"?"Human portrait · unapproved blockout":s==="fox"?"Red fox with layered fur":
             "Mountain, pines and river"
           }</option>)}
         </select>
@@ -144,6 +161,11 @@ export function PencilLivingAtelier() {
         <input aria-label="Living inspect macro" type="checkbox" checked={focus}
           onChange={e=>setFocus(e.target.checked)}/> Inspect macro
       </label>
+      {subject==="portrait"&&<label style={{display:"flex",minHeight:40,alignItems:"center",gap:7}}>
+        <input aria-label="Living show output landmarks" type="checkbox" checked={anatomy}
+          onChange={e=>setAnatomy(e.target.checked)}/>
+        Show measured output anchors (NOT source-approved)
+      </label>}
       <label style={{display:"flex",minHeight:40,alignItems:"center",gap:7}}>
         <input aria-label="Living reduced motion" type="checkbox" checked={reduce}
           onChange={e=>{setReduce(e.target.checked);setPlaying(false);}}/> Reduced motion
@@ -156,6 +178,22 @@ export function PencilLivingAtelier() {
         boxShadow:"0 16px 50px #54534d32"}}>
       <PencilDrawing drawing={drawing} frame={frame} reducedMotion={reduce}
         style={detailStyle} label={meta.title+" in coloured pencil"}>
+        {subject==="portrait"&&anatomy&&
+          <g data-km-portrait-output-landmarks=""
+            aria-label="Output-only portrait geometry diagnostic"
+            transform={landscape?"translate(441 35) scale(1.06)":
+              "translate(-31 145) scale(1.38)"}>
+            {PENCIL_PORTRAIT_LANDMARK_KEYS.map(id=>{
+              const [x,y]=PENCIL_PORTRAIT_LANDMARKS[id];
+              return <g key={id}>
+                <circle cx={x} cy={y} r={2.6} stroke="#FAF9E6" strokeWidth={.9}
+                  fill="#AF3B2B"/>
+                <text x={x+4} y={y-5} fontSize={7.4} fill="#7A2821"
+                  fontFamily="Arial,sans-serif" paintOrder="stroke"
+                  stroke="#FFF9EC" strokeWidth={1.6}>{id}</text>
+              </g>;
+            })}
+          </g>}
         <g fontFamily="Georgia, serif" fill="#3D4B50">
           <text x={landscape?54:45} y={landscape?80:77}
             fontSize={13} fontFamily="Arial, sans-serif" fontWeight={600}
@@ -188,7 +226,9 @@ export function PencilLivingAtelier() {
       </nav>
     </div>
     <p style={{margin:0,maxWidth:920,fontSize:13,color:"#697B78"}}>
-      Select Eyes, Nose, or Mouth to scrutinize anatomical contours at 3×. Paper tooth,
+      Select Eyes, Nose, or Mouth to scrutinize anatomical contours at 3×.
+      The human study is a rejected experimental construction, not an approved
+      realistic portrait. Output-only anchors do not imply source-image fidelity. Paper tooth,
       pressure, pigment burnishing and absolute frames remain editable. Neither the
       face-inspection zoom nor its controls enter exported scenes. Every new drawing
       uses the validated CP-F1 foundation, without an unqualified flat-vector bypass.
