@@ -400,7 +400,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         const bend:P=[top[0]*.52+tip[0]*.48+
           direction*(5+3*s(seed+4337,i*23+k*19)),
           top[1]*.57+tip[1]*.43+(k%3===1?-7:3)];
-        const load=(school==="travelers"?8.2:
+        const load=(school==="travelers"?4.4:
           school==="forest-grotto"?5.4:
           school==="early-spring"?6:3.6)*
           (.66+.49*s(seed+4343,i*41+k*31));
@@ -430,8 +430,21 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         // without adding independent decoration to the blank paper.
         const depth=clamp(.12+.78*(at-.1)/.8+
           (s(seed+4411,j*23+i*37)-.5)*.09,.08,.92);
-        const entry=quadraticPoint(upperBank.top,upperBank.bend,
-          upperBank.tip,depth);
+        // Fan Kuan's raindrop cun are *separate loaded touches on a
+        // connected rock plane*, unlike parent-rooted long hemp ribbons.
+        // Root them to the parent rock surface, distributing small dots
+        // over its whole face; otherwise five regular vertical tubes
+        // misleadingly replace his source-specific mottled cliff texture.
+        const fanU=clamp(.11+.8*s(seed+4421,j*29+i*13),.1,.91);
+        const fanTop=quadraticPoint(a,crown,shoulder,fanU);
+        const fanBottom=quadraticPoint(a,inner,outer,fanU);
+        const fanDepth=.14+.72*s(seed+4439,j*31+i*23);
+        const fanEntry:P=[
+          fanTop[0]*(1-fanDepth)+fanBottom[0]*fanDepth,
+          fanTop[1]*(1-fanDepth)+fanBottom[1]*fanDepth,
+        ];
+        const entry=school==="travelers"?fanEntry:
+          quadraticPoint(upperBank.top,upperBank.bend,upperBank.tip,depth);
         const jitter=(s(seed+4153,j*31+i*19)-.5);
         // Source vocabularies differ in geometry, loaded width, cadence,
         // and curve direction. They must not be the same stamp with opacity.
@@ -439,19 +452,26 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         const wt2=s(seed+4193,j*17+i*47);
         let c1:P,c2:P,end:P,width:number;
         if(school==="travelers"){
-          const len=4.2+7.4*wt+(j%6===0?3:0);
-          const drift=direction*(.3+2*wt2)+jitter*2.6;
-          c1=[entry[0]+drift*.24,entry[1]+len*.12];
-          c2=[entry[0]+drift*.81,entry[1]+len*.56];
+          // Bulbed, occasionally split press-and-lift droplets. The
+          // short 3–8px gesture must remain a dot at native resolution,
+          // not a 20px repeated black arrowhead or a hanging comb tooth.
+          const len=2.4+4.8*wt+(j%11===0?1.7:0);
+          const drift=direction*(.22+.88*wt2)+jitter*1.7;
+          c1=[entry[0]+drift*.18,entry[1]+len*.18];
+          c2=[entry[0]+drift*.72,entry[1]+len*.49];
           end=[entry[0]+drift,entry[1]+len];
-          width=.82+1.6*wt+(j%8===0?.83:0);
+          width=.68+1.35*wt+(j%11===0?.58:0);
         }else if(school==="early-spring"){
-          const len=17+20*wt+(j%5===0?9:0);
-          const sway=direction*(10+14*wt2);
-          c1=[entry[0]+sway*.94,entry[1]+len*.08];
-          c2=[entry[0]-sway*.62,entry[1]+len*.8];
-          end=[entry[0]+sway*.45+3*jitter,entry[1]+len];
-          width=1.4+2.25*wt;
+          // Cloud-head stones hook BACK into their support. Reverse
+          // handedness at irregular intervals: identical S-scrolls
+          // in five parallel strings are not Guo Xi brush anatomy.
+          const len=11+18*wt+(j%7===0?7.5:0);
+          const hook=(j%4===1||j%7===0?-1:1);
+          const sway=direction*hook*(7+12*wt2);
+          c1=[entry[0]+sway*.96,entry[1]+len*.06];
+          c2=[entry[0]-sway*.72,entry[1]+len*.68];
+          end=[entry[0]+sway*.31+2.1*jitter,entry[1]+len];
+          width=1.2+2.05*wt;
         }else if(school==="forest-grotto"){
           const len=23+35*wt+(j%7===0?11:0);
           const sway=direction*(14+16*wt2)+jitter*8;
@@ -507,11 +527,11 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
             data-km-master-stratum-index={k}>
             <path data-km-master-stratum-wash="" d={body}
               fill={isFan?"#312c27":isWang?"#4c4034":"#5c4e3e"}
-              opacity={f((isFan?.49:isWang?.35:isGuo?.29:.19)*
+              opacity={f((isFan?.19:isWang?.35:isGuo?.29:.19)*
                 (1-.18*mist))}/>
             <path data-km-master-stratum-lip="" d={lip}
               fill={isFan?"#2b2925":"#4a3b31"}
-              opacity={f(Math.min(.83,.37+load*.027)*(1-.18*mist))}/>
+              opacity={f((isFan?.26:Math.min(.83,.37+load*.027))*(1-.18*mist))}/>
           </g>)}
         </g>
         <g data-km-master-brush-field="" data-km-master-field-count={qty}
