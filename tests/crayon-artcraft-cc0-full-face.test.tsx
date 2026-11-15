@@ -127,7 +127,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     }
   });
   it("restores the source-specific strong asymmetrical nostril cores",()=>{
-    const spec=crayonCc0FaceStudy({view:"wax"});
+    const spec=crayonCc0FaceStudy({view:"wax",midfaceForm:"source-volume"});
     const get=(id:string)=>spec.elements.find(e=>e.id===id);
     const near=get("naris-shadow-near"),far=get("naris-shadow-far");
     for(const x of [near,far]){
@@ -275,7 +275,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(left.every(p=>p.x>=24&&p.x<=117)).toBe(true);
   });
   it("preserves attached F1 alar-septal anatomy without nostril glyph rings",()=>{
-    const scene=crayonCc0FaceStudy({view:"wax"});
+    const scene=crayonCc0FaceStudy({view:"wax",midfaceForm:"source-volume"});
     const get=(id:string)=>scene.elements.find(e=>e.id===id);
     for(const id of ["nose-septal-transition","nose-tip-underlight"]){
       const e=get(id);
@@ -710,7 +710,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(html).toBe(renderToStaticMarkup(<CrayonScene spec={wax} frame={299}/>));
   });
   it("uses deep burnished wax for iris, nostril and articulated buried dental arch",()=>{
-    const scene=crayonCc0FaceStudy({view:"wax"});
+    const scene=crayonCc0FaceStudy({view:"wax",midfaceForm:"source-volume"});
     const dark=["iris-near","iris-far","pupil-near","pupil-far",
       "naris-shadow-near","naris-shadow-far","mouth-aperture-depth"];
     for(const id of dark){
