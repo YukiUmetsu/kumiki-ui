@@ -518,6 +518,15 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         expect(d.startsWith("M"+root.replace(","," "))).toBe(true);
       }
       expect(html).not.toMatch(/NaN|Infinity|undefined/);
+      const sparse=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:153,controls:{...controls,detail:.35},
+      }));
+      expect((sparse.match(/data-km-bamboo-secondary-shoot=""/g)??[]))
+        .toHaveLength(21);
+      const bare=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:153,controls:{...controls,detail:0},
+      }));
+      expect(bare).not.toContain("data-km-bamboo-secondary-shoot");
     }
   });
 
