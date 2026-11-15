@@ -91,7 +91,7 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
         {artwork === "botanical"
           ? "Original sculptural paper garden: vibrant individually cut paper stocks, multi-level flowers, fern leaflets and luminous butterfly apertures. Change the real color-layer count and scrub every frame."
           : artwork === "scenery"
-            ? "Layered paper scenery: woodland with real arched tree forks and punched canopy-lace holes, plus alpine mountains and lake, with sculpted foliage, flowers and adjustable cardstock relief. Detail changes the physical cutwork."
+            ? "Layered paper scenery: arched woodland canopies and Alpine Lake's jagged cut-paper crests, pierced ice caps and raised rock folds. Adjust foliage, palette, depth and real cardstock detail."
           : artwork === "object"
             ? "Five independently constructed studies — kingfisher, dragonfly, canal houses, camera and teacup. Each uses actual opaque cut shapes, layered assembly and paper apertures."
             : "One illustrated world, five physical paper techniques. Separate cut cards, open apertures, anchored fibres, hinged motion and transmitted light. Scrub every frame."}

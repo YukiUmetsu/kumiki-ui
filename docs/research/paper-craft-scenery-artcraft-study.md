@@ -137,3 +137,16 @@ R06's original code-generated cut forms replace these without increasing physica
 3. Existing detail scales actual branch count and leaf geometry; seed remains deterministic. Neither alters public API or Storybook organization.
 
 Reject builds with opaque canopy sealing the sky, a blocked center stream/sun, detached twig-to-leaf contact, too-thin stock, fake transparent collage, or altered portrait proportions. Structural path-count tests cannot establish artistic quality; actual 16:9/9:16 browser and film renders must be inspected.
+
+
+## Pass 26 — reference study: asymmetrical Alpine ridgelines and perforated glacier stock
+
+Reference observations, not copied compositions:
+
+- [Erin Ziter, *University Glacier*, National Park Service](https://www.nps.gov/olym/university-glacier-by-erin-ziter.htm): physically stacked contour cardstock and intentionally exposed blue glacier voids express geological relief. Translate the **inset material** principle into distinct glacier holes and faceted, raised slopes.
+- [Remy Glock, *Lake Tahoe* paper topography](https://www.remyglock.com/lake-tahoe): repeated irregular nested card edges make depth legible because each cut layer has a materially distinct contour. Translate this into stepped ridge breaks and restrained folded face layers; not topographic-image tracing.
+- [Christina Peressini, paper landscapes](https://www.peressini.ca/art): hand-cut scenic layers balance simplified distant masses with distinct near contours and physical shadow spacing. Preserve the bright lake as open negative space rather than maximizing geological clutter.
+
+**Prior weakness:** snow stock had the same nine-sided cap on all three smooth domes, with weak rock/ice contour registration and no cut-through negative space. **Construction:** change the shared crest and cap grammar first; match summit/shoulders, then punch two restrained holes and add two physical planes grouped onto one sheet. The seed changes only a bounded ledge displacement; the animation never regenerates shapes per frame.
+
+**Quality invariants:** three distinct complete summit silhouettes, matched snow/rock landmarks, opaque punched holes, clear lake, cuttable bridge thickness, stable frame seek, both aspect ratios, max 128 material planes. **Visual acceptance:** inspect 16:9 and 9:16 rendered peaks at full scale and 1× crop, verify holes do not breach the white contour and that the foreground does not bury the lake. Numeric path-count assertions are structural checks only.
