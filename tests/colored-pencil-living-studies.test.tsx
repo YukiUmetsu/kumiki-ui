@@ -63,6 +63,22 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("uses ANAT1 nasal cartilage and restrained lip volume instead of floating rectangular mouth stickers",()=>{
+    const A=pencilPortraitAnatomy();
+    const parts=new Map(pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"})
+      .regions.map(r=>[r.id,r]));
+    const nose=parts.get("nose-bridge")!;
+    const upper=parts.get("lip-upper")!,lower=parts.get("lip-lower")!;
+    expect(nose.path).toBe(A.nose.path);
+    expect(nose.bounds[2]).toBeLessThan(45);
+    expect(A.nose.path).toContain("C");
+    expect(nose.details?.some(d=>d.id==="anat-nose-base")).toBe(true);
+    expect(A.lips.bounds[3]).toBeLessThanOrEqual(23);
+    expect(upper.opaqueSupport).toBe(false);
+    expect(lower.opaqueSupport).toBe(false);
+    expect(upper.details?.some(d=>d.id==="anat-mouth-seam")).toBe(true);
+  });
+
   it("deposits genuine local low-pressure colored-pencil contacts across the human facial volume",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
     const face=drawing.regions.find(r=>r.id==="face-main")!;
@@ -402,6 +418,26 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(cheek.clipDetails).toBe(false);
     expect(cheek.details!.filter(t=>t.id?.startsWith("fringe-")))
       .toHaveLength(3);
+  });
+
+  it("anchors the fox's tapered nasal cartilage close to its eye instead of a disconnected 170px beak",()=>{
+    const parts=new Map(pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"})
+      .regions.map(r=>[r.id,r]));
+    const eye=parts.get("eye-near")!,nose=parts.get("nose")!;
+    const head=parts.get("head-main")!,muzzle=parts.get("muzzle")!;
+    const bridge=parts.get("rostrum-bridge")!;
+    const pupilX=eye.bounds[0]+eye.bounds[2]/2;
+    const nasalX=nose.bounds[0]+nose.bounds[2]/2;
+    const ratio=(pupilX-nasalX)/head.bounds[2];
+    expect(ratio).toBeGreaterThan(.4);
+    expect(ratio).toBeLessThanOrEqual(.59);
+    expect(nose.bounds[0]).toBeGreaterThanOrEqual(128);
+    expect(muzzle.bounds[2]).toBeLessThanOrEqual(152);
+    expect(muzzle.bounds[0]).toBeLessThanOrEqual(nose.bounds[0]);
+    expect(bridge.bounds[0]).toBeLessThan(nose.bounds[0]+16);
+    expect(muzzle.details?.some(d=>d.id==="zygomatic-transition")).toBe(true);
+    expect(muzzle.details?.some(d=>d.id==="nasolabial-shadow")).toBe(true);
+    expect((muzzle.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(7);
   });
 
   it("fox structural pass keeps the eye embedded and nasal tip connected to a tapered muzzle",()=>{
