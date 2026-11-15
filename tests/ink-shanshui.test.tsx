@@ -262,6 +262,57 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("renders authored non-collinear pine elbows and anchors all fork roots to that skeleton",()=>{
+    for(const scene of ["mountain-trail","misty-hermit"] as const){
+      const controls={...DEFAULT_SHANSHUI,scene,seed:71,detail:1};
+      const full=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:142,controls,
+      }));
+      const primary=[...full.matchAll(
+        /data-km-pine-bough="" data-km-pine-bough-root="([^"]+)" data-km-pine-bough-tip="([^"]+)"/g,
+      )];
+      const elbows=[...full.matchAll(/data-km-pine-elbow="([^"]+)"/g)]
+        .map(m=>m[1].split(" ").map(Number));
+      expect(primary).toHaveLength(8);
+      expect(elbows).toHaveLength(16);
+      const deviations=primary.flatMap((p,i)=>{
+        const [rx,ry]=p[1].split(",").map(Number);
+        const [tx,ty]=p[2].split(",").map(Number);
+        const dx=tx-rx,dy=ty-ry;
+        return elbows.slice(i*2,i*2+2).map(([x,y])=>
+          Math.abs(dx*(y-ry)-dy*(x-rx))/Math.hypot(dx,dy));
+      });
+      expect(deviations.filter(x=>x>9).length).toBeGreaterThanOrEqual(12);
+      expect(new Set(deviations.map(x=>x.toFixed(1))).size).toBeGreaterThan(12);
+      expect((full.match(/data-km-pine-bough-light=""/g)??[])).toHaveLength(8);
+      const shapes=[...full.matchAll(/data-km-pine-bough-shape="" d="([^"]+)"/g)];
+      expect(shapes).toHaveLength(8);
+      // Smooth sampled normals form a continuous taper without the
+      // sharp folded-cardboard joints of the first draft.
+      expect((full.match(/data-km-pine-bough-stations="37"/g)??[]))
+        .toHaveLength(8);
+      for(const shape of shapes){
+        expect((shape[1].match(/ L/g)??[]).length).toBeGreaterThanOrEqual(70);
+        expect(shape[1].endsWith(" Z")).toBe(true);
+        expect(shape[1]).not.toMatch(/NaN|Infinity|--[0-9]/);
+      }
+      expect((full.match(/data-km-pine-lateral-parent-pt="[^"]+"/g)??[]))
+        .toHaveLength(24);
+      expect(full).not.toMatch(/NaN|Infinity|undefined|--[0-9]/);
+      expect(full).toBe(renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:142,controls,
+      })));
+      const sparse=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:142,controls:{...controls,detail:0},
+      }));
+      // Branch *shape* is structural and must remain when details fade;
+      // all separately animated foliage and bough scratches are optional.
+      expect((sparse.match(/data-km-pine-bough-shape=""/g)??[])).toHaveLength(8);
+      expect(sparse).not.toContain('data-km-pine-fan-turn');
+      expect(sparse).not.toContain('data-km-pine-bough-bark=""');
+    }
+  });
+
   it("constructs ridge-rooted geological brush planes, not floating repeated rain",()=>{
     for(const scene of SHANSHUI_SCENES){
       const controls={...DEFAULT_SHANSHUI,scene,detail:1};

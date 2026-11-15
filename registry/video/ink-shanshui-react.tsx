@@ -27,8 +27,10 @@ const quadraticPoint=(a:P,b:P,c:P,t:number):P=>{
 };
 const cubicPoint=(a:P,b:P,c:P,d:P,t:number):P=>{
   const u=1-t;
-  return [u*u*u*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],
-    u*u*u*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]];
+  return [
+    u*u*u*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],
+    u*u*u*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1],
+  ];
 };
 /** Curved rock profiles have local fracture variation and non-regular slope
  * transitions, unlike polygons that look like paper triangles. The silhouette
@@ -417,9 +419,12 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
 function NeedleSpray({x,y,scale,seed,wind,lean=0}:{
   x:number;y:number;scale:number;seed:number;wind:number;lean?:number;
 }){
+  // Layered hanging / ascending / sideward needles form rhythmic
+  // brush families, not three copies of the same radial firework.
   const sprigs=[
-    {dx:-19,dy:-6,tilt:-.24},{dx:0,dy:-11,tilt:.03},
-    {dx:19,dy:-5,tilt:.25},
+    {dx:-18,dy:-8,tilt:-.6},
+    {dx:-1,dy:-14,tilt:.03},
+    {dx:16,dy:-3,tilt:.73},
   ];
   return <g data-km-pine-spray=""
     transform={"rotate("+f(wind*.85)+" "+f(x)+" "+f(y)+")"}>
@@ -430,9 +435,9 @@ function NeedleSpray({x,y,scale,seed,wind,lean=0}:{
       const count=17+Math.floor(10*s(seed+17,j*11+1));
       // Wen Zhengming's needle bouquets cross at different pitches rather
       // than rising as identical vertical fireworks along horizontal limbs.
-      const fanTurn=lean+sprig.tilt*.48+
-        (s(seed+149,j*41+3)-.5)*1.02;
-      const fanSpread=.81+.36*s(seed+233,j*29+1);
+      const fanTurn=lean+sprig.tilt+
+        (s(seed+149,j*41+3)-.5)*.49;
+      const fanSpread=.37+.24*s(seed+233,j*29+1);
       const wet:string[]=[],dry:string[]=[],middle:string[]=[];
       for(let k=0;k<count;k++){
         // Needle trajectories do not belong to a regular polar stencil.
@@ -508,15 +513,18 @@ function OldPine({x,y,scale,wind,seed,detail}:{
 }){
   // Asymmetric branch endpoints and tip-heavy clustered needles emulate
   // old-pine brush canopies rather than regularly spaced horizontal shelves.
+  // Authored branch crooks, not eight Bézier shelves. The first
+  // deflection goes against (or across) the eventual tip direction.
+  // Wen Zhengming paints wood that turns under load before continuing.
   const stems=[
-    {y:-95,dir:-1,len:98,tipDy:39},
-    {y:-133,dir:1,len:132,tipDy:28},
-    {y:-166,dir:1,len:92,tipDy:-44},
-    {y:-192,dir:-1,len:154,tipDy:-32},
-    {y:-225,dir:-1,len:105,tipDy:25},
-    {y:-245,dir:1,len:108,tipDy:-24},
-    {y:-270,dir:-1,len:80,tipDy:-37},
-    {y:-285,dir:1,len:63,tipDy:-20},
+    {y:-95, dir:-1,len:98, tipDy:39, firstDy:-22,secondDy:27},
+    {y:-133,dir:1, len:132,tipDy:28, firstDy:-31,secondDy:-8},
+    {y:-166,dir:1, len:92, tipDy:-44,firstDy:18, secondDy:-56},
+    {y:-192,dir:-1,len:154,tipDy:-32,firstDy:-17,secondDy:-65},
+    {y:-225,dir:-1,len:105,tipDy:25, firstDy:20, secondDy:-14},
+    {y:-245,dir:1, len:108,tipDy:-24,firstDy:-36,secondDy:-48},
+    {y:-270,dir:-1,len:80, tipDy:-37,firstDy:11, secondDy:-49},
+    {y:-285,dir:1, len:63, tipDy:-20,firstDy:-36,secondDy:-4},
   ];
   // A shared trunk construction map also anchors the bark and bough roots.
   // Do not interpolate branches from unrelated arbitrary horizontal shelves.
@@ -562,37 +570,90 @@ function OldPine({x,y,scale,wind,seed,detail}:{
     {stems.map((b,i)=>{
       const reach=b.len*b.dir;
       const root:P=[trunkX(b.y),b.y];
-      const c1:P=[root[0]+reach*(.17+.1*s(seed+241,i*13)),
-        b.y-9-17*s(seed+257,i*7)];
-      const c2:P=[root[0]+reach*(.63+.13*s(seed+271,i*13)),
-        b.y+b.tipDy*.75-14+16*s(seed+283,i*11)];
       const tip:P=[root[0]+reach,b.y+b.tipDy];
-      const count=Math.round((4+(i%3))*detail);
+      const knots:readonly P[]=[
+        root,
+        [root[0]+reach*.255,b.y+b.firstDy],
+        [root[0]+reach*.63,b.y+b.secondDy],
+        tip,
+      ];
+      // A connected Catmull–Rom-like ink skeleton *passes through*
+      // the authored crooks but rounds the wood, rather than joining
+      // angled strips with sharp artificial corners.
+      const handles=knots.slice(0,-1).map((p,k)=>{
+        const q=knots[k+1];
+        const before=knots[Math.max(0,k-1)];
+        const after=knots[Math.min(3,k+2)];
+        const a:P=[
+          p[0]+(q[0]-before[0])*.17,
+          p[1]+(q[1]-before[1])*.17,
+        ];
+        const b:P=[
+          q[0]-(after[0]-p[0])*.17,
+          q[1]-(after[1]-p[1])*.17,
+        ];
+        return [a,b] as const;
+      });
+      const boughPoint=(t:number):P=>{
+        const u=clamp(t,0,1);
+        const index=Math.min(2,Math.floor(u*3));
+        const [a,b]=handles[index];
+        return cubicPoint(knots[index],a,b,knots[index+1],
+          index===2&&u===1?1:u*3-index);
+      };
+      const pointText=(p:P)=>f(p[0])+" "+f(p[1]);
+      const spineCurve="M"+pointText(root)+
+        handles.map(([a,b],k)=>" C"+pointText(a)+" "+pointText(b)+
+          " "+pointText(knots[k+1])).join("");
+      // Subpixel curve sampling gives one smooth, pressure-tapered
+      // silhouette with local unevenness. No pointy quad joints.
+      const stationCount=37;
+      const upper:P[]=[],lower:P[]=[];
+      for(let k=0;k<stationCount;k++){
+        const u=k/(stationCount-1);
+        const p=boughPoint(u);
+        const before=boughPoint(Math.max(0,u-.006));
+        const after=boughPoint(Math.min(1,u+.006));
+        const dx=after[0]-before[0],dy=after[1]-before[1];
+        const len=Math.hypot(dx,dy)||1;
+        const width=(3.7*Math.pow(1-u,.68)+.14)*
+          (1+.075*Math.sin(6.5*Math.PI*u+i*.7));
+        const nx=-dy/len,ny=dx/len;
+        upper.push([p[0]+nx*width,p[1]+ny*width]);
+        lower.push([p[0]-nx*width,p[1]-ny*width]);
+      }
+      const bone="M"+upper.map(pointText).join(" L")+
+        " L"+lower.reverse().map(pointText).join(" L")+" Z";
+      const inner=spineCurve;
+      const count=Math.round((3+(i%3))*detail);
       return <g key={i} data-km-pine-bough=""
         data-km-pine-bough-root={f(root[0])+","+f(root[1])}
         data-km-pine-bough-tip={f(tip[0])+","+f(tip[1])}>
-        {/* Trunk-rooted, pressure-loaded thick start to hairline release,
-            not a uniform ruler-width horizontal stick. */}
-        <path data-km-pine-bough-shape=""
-          d={"M"+f(root[0])+" "+f(root[1]-3.4)+
-            " C"+f(c1[0])+" "+f(c1[1]-3)+
-            " "+f(c2[0])+" "+f(c2[1]-1.7)+
-            " "+f(tip[0])+" "+f(tip[1])+
-            " C"+f(c2[0])+" "+f(c2[1]+1.2)+
-            " "+f(c1[0])+" "+f(c1[1]+2.6)+
-            " "+f(root[0])+" "+f(root[1]+3.4)+" Z"}
-          fill="#65503a" opacity=".94"/>
-        <path d={"M"+f(root[0]+1)+" "+f(root[1]-1.8)+
-          " C"+f(c1[0])+" "+f(c1[1]-1.8)+
-          " "+f(c2[0])+" "+f(c2[1]-1)+
-          " "+f(tip[0])+" "+f(tip[1])}
-          stroke="#c2a080" strokeWidth=".7" fill="none" opacity=".56"/>
+        {/* A pressure-tapered, smoothly curved multi-elbow ink bone.
+            Sampled contour normals avoid sharp folded wooden strips.
+            All young stems, fissures
+            and needles inherit this same changing centerline. */}
+        <path data-km-pine-bough-shape="" d={bone}
+          data-km-pine-bough-stations={stationCount}
+          fill="#594733" opacity=".91" stroke="#3e3228"
+          strokeWidth=".42" strokeLinejoin="round"/>
+        <path data-km-pine-bough-light="" d={inner}
+          stroke="#d0b18c" strokeWidth=".82" fill="none"
+          strokeLinecap="round" opacity=".59"/>
+        {knots.slice(1,3).map((p,k)=>
+          <path key={k} data-km-pine-elbow={pointText(p)}
+            d={"M"+pointText(p)+" q"+f((k===0?-1:1)*2.1)+
+              " "+f((i%2===0?-1:1)*3.2)+
+              " "+f((k===0?1:-1)*3.4)+" "+f((i%2===0?-1:1)*4.6)}
+            stroke="#382d23" strokeWidth="1.05" opacity=".65"
+            strokeLinecap="round" fill="none"/>
+        )}
         {/* The exposed heartwood is alternately dark/soft and chipped:
             fractal noise is NOT a replacement for contour-following bark. */}
         {Array.from({length:Math.round(detail*9)},(_,k)=>{
           const u=.095+.83*(k+.35)/(9+.2);
-          const at=cubicPoint(root,c1,c2,tip,u);
-          const after=cubicPoint(root,c1,c2,tip,Math.min(u+.055,.995));
+          const at=boughPoint(u);
+          const after=boughPoint(Math.min(u+.055,.995));
           const tangentX=after[0]-at[0],tangentY=after[1]-at[1];
           const len=Math.hypot(tangentX,tangentY)||1;
           const tx=tangentX/len,ty=tangentY/len;
@@ -616,7 +677,7 @@ function OldPine({x,y,scale,wind,seed,detail}:{
             canopy stickers. Each fork carries its own old-wood ink bone. */}
         {Array.from({length:3},(_,k)=>{
           const u=.22+.235*k+.035*(s(seed+911,i*37+k)-.5);
-          const rootFork=cubicPoint(root,c1,c2,tip,u);
+          const rootFork=boughPoint(u);
           const flip=(k===1?-1:1)*(s(seed+929,i*13+k)>.55?-1:1);
           const branchLen=(27+27*s(seed+947,i*17+k))*(k===2?.8:1);
           const dx=reach>=0?branchLen*.47:-branchLen*.47;
@@ -661,7 +722,7 @@ function OldPine({x,y,scale,wind,seed,detail}:{
         {Array.from({length:count},(_,j)=>{
           const u=clamp(.43+.54*(j+.35)/(count+.25)+
             .1*(s(seed+307,i*53+j*13)-.5),.34,.98);
-          const point=cubicPoint(root,c1,c2,tip,u);
+          const point=boughPoint(u);
           return <NeedleSpray key={j}
             x={f(point[0])} y={f(point[1])}
             scale={.58+(.62*s(seed,i*21+j))} wind={wind}

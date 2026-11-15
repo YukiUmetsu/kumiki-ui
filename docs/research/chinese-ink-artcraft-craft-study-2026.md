@@ -366,3 +366,90 @@ negative space, microscopic bark at export scale, or secondary twigs
 looking disconnected from their thick limb. Adjust actual form before
 adding grain. The Storybook section remains under the existing
 Video production / Film Looks / Chinese Ink folder; no new folder.
+
+
+## Sixth ArtCraft pass — old-pine silhouette before microdetail
+
+**Original reference research** (no extracted artwork is committed):
+- [Wen Zhengming, *Old Pine Tree*, Cleveland Museum of Art 1964.43](https://www.clevelandart.org/art/1964.43).
+  Museum zoom shows a large old pine with alternately rising and falling
+  wood, sudden direction changes and clustered needles that cross at
+  several pitches. Critical grammar: twisted branch *shape*, bark tones
+  and overall paper reserve precede small needle count.
+- [Wang Hui, *Old Pines in the Style of Shen Zhou*, National Palace
+  Museum](https://digitalarchive.npm.gov.tw/Painting/Content?Dept=P&pid=6061).
+  Notice strongly asymmetric ancient limbs and non-uniform, directional
+  masses of foliage rather than equidistant radial rosettes.
+- [Xia Gui, *Pure and Remote View of Streams and Mountains*, painting
+  detail](https://www.jiguzuo.com/guohua/xia-gui-xi-shan-qing-yuan-tu-juan.html).
+  Edge-lit thin calligraphic needles contrast with negative-space
+  reserves, broad washes and rock structure.
+
+**Problem in the already merged #323 render:** branch trunks remain
+long smooth diagonals/horizontal rods; angular secondary twigs are
+stuck to a rigid main line. 3 sprigs per foliage cluster still repeat
+a radial starburst silhouette. Existing tests check connectivity
+and leaf counts, but do not check that ancient wood has meaningful
+non-collinear elbows.
+
+**Revised geometric construction:** eight intentionally authored
+branch trajectories now each have **two explicit crooks** with
+different rising/falling/pitch signatures. A tangent-continuous, three-section
+cubic curve is the *only* anatomical source of:
+1. upper and lower pressure-tapered wood outlines;
+2. two visible knot bends and the centerline ink lift;
+3. all 24 secondary branch insertion roots;
+4. tangent-following bark marks and major canopy insertions.
+
+The effect is a more believable network of branches that turn and
+recover under load. An explicitly drawn silhouette is essential:
+seeded noise, extra bark texture or 200 more leaves do not fix
+shelf-like topology. The needle family uses narrower, asymmetrically
+tilted up/side/down brush sweeps; opacity layers and paper gaps are
+retained. The main-branch spray count is slightly reduced to preserve
+gaps between foliage clusters.
+
+**Five-axis ArtCraft release review:**
+- Topology: 8 main branch roots, 16 non-collinear elbows, 24 exact
+  parent-curve forks, no floating twig masses.
+- Directional flow: dry bark strokes sample the same centerline and
+  local tangent; needles tilt differently by bough and sprig.
+- Stroke pressure: wood taper decreases from heavy trunk insertions
+  toward hairline distal tips; secondary wood retains lighter lifts.
+- Optical rhythm: eight authored first-/second-kink combinations
+  intentionally break shelf spacing and 3 needle gestures are
+  differently pitched; reject three identical radial starbursts.
+- Microtexture: fissures remain aligned to woody forms. Do not
+  equate arbitrary noise or counting paths with ink-painting quality.
+
+**Independent visual gate:** compare the latest native 960x540 pine
+against the previous PR #323 image and Cleveland museum source.
+Reject the candidate if the canopy still resembles generic vector
+fireworks, if main branches leave their trunk, if detail=0 removes the
+essential wood skeleton, or if silhouettes cross the storybook border.
+Analyze the 2.15x original brushwork crop as well as complete film.
+Source-guided, not pixel-matched: per-region contour/spacing
+measurements are more useful than whole-frame SSIM.
+
+
+### Visual correction after first browser review
+
+The first PR #328 browser capture improved anatomy and lateral
+attachments, but revealed harsh V-shaped, folded-paper limb joints at
+the two authored elbows. This was an important ArtCraft failure even
+though topology and unit tests passed. Drawing fewer needles or
+increasing surface grain would not correct it.
+
+The release candidate now uses tangent-continuous cubic splines
+through the same authored crook positions. Its ink outline is created
+from 37 centerline stations and perpendicular, progressively reducing
+brush half-width. A small nonperiodic pressure variation retains
+slightly imperfect loaded edges, while a true curved ink-bone line
+gives the branch a flowing internal contour. All bark and foliage
+attachment sites sample this same revised cubic path, so a shape
+improvement does not detach any secondary limb.
+
+**Independent visual gate:** the new browser crop must remove the
+angular-cardboard defect without erasing the deliberate ancient
+branch kinks. Inspect negative space and tonal separation at 960x540,
+not only the zoomed Storybook brushwork crop.
