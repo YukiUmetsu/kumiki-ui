@@ -64,6 +64,32 @@ describe("Common kingfisher ArtCraft anatomy reconstruction",()=>{
     expect(new Set(spec.layers.map(x=>x.id)).size).toBe(spec.layers.length);
     expect(make()).toEqual(spec);
   });
+  it("cuts asymmetric V-notches into actual feather stock only when detail is requested",()=>{
+    const plain=paperObjectSpec("layered","landscape",{
+      object:"kingfisher",palette:"jewel",detail:0,curl:1,relief:1,motion:.5,seed:37,
+    });
+    const intricate=make();
+    expect(inspectPaperCraft(plain)).toEqual([]);
+    expect(inspectPaperCraft(intricate)).toEqual([]);
+    expect(intricate.layers.length).toBe(plain.layers.length);
+    const plainFeathers=plain.layers.filter(x=>x.id.startsWith("wing-feather-"));
+    const detailedFeathers=intricate.layers.filter(x=>x.id.startsWith("wing-feather-"));
+    expect(plainFeathers).toHaveLength(18);
+    expect(detailedFeathers).toHaveLength(18);
+    for(let i=0;i<18;i++){
+      const a=plainFeathers[i],b=detailedFeathers[i];
+      // Five shallow V-cuts on each vane edge: three contour segments per cut.
+      expect((b.path.match(/L/g)||[]).length-(a.path.match(/L/g)||[]).length).toBe(30);
+      expect(a.liftedTip).toEqual(b.liftedTip);
+      expect(a.pivot).toEqual(b.pivot);
+      expect(a.rigGroup).toBe(b.rigGroup);
+      expect(b.path.endsWith("Z")).toBe(true);
+      expect(b.color).toMatch(/^#[0-9a-fA-F]{6}$/);
+    }
+    expect(paperObjectSpec("layered","landscape",{
+      object:"kingfisher",detail:1,curl:1,relief:1,motion:.5,seed:37,
+    })).toEqual(intricate);
+  });
   it("supports jewel, pastel and heritage sheets with equal silhouette topology",()=>{
     const jewel=make("portrait","jewel");
     for(const p of ["pastel","heritage"] as const){

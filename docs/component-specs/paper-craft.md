@@ -5,7 +5,7 @@
 - Core `registry/video/paper-craft.ts`; renderer `registry/video/paper-craft-react.tsx`.
 - Installable registry item `paper-craft` depends only on React.
 - Original fixtures: `src/video/paper-craft-demo.ts` and `examples/film/paper-craft-garden.film.json`.
-- Six interactive stories live in **Video production → Film Looks** itself: no new Storybook sidebar folder.
+- Seven interactive pages live together in **Video production → Film Looks → Paper Craft**: Garden, Botanical & Butterfly, Kingfisher, Dragonfly, Canal Houses, Camera, Teacup & Citrus.
 
 ```tsx
 import { PaperCraftStage } from "./components/video/paper-craft-react";
@@ -27,6 +27,24 @@ const spec: PaperCraftSpec = {
 
 **Material honesty:** edge catchlights, genuine geometric apertures, independent cut stock and deterministic contact shadows differ from a flat-paper video filter. But axis-specific physical folds, hinging constraints/tabs, translucent tissue optics, advanced actor rigs and user/ArtCraft visual approval are not yet implemented. Follow the [visual review log](../35b-paper-craft-theatre-visual-pass-log.md).
 
+## Storybook navigation and controls
+
+All Paper Craft demonstrations are organized under **Video production / Film Looks / Paper Craft**. There are seven pages, one per distinct subject, not one per palette, medium, orientation, rig or revision:
+
+| Storybook page | Source artwork | Controls that change the actual geometry/material |
+| --- | --- | --- |
+| Garden | Original mixed paper-craft garden | Five paper media, aspect, frame/timeline, tooth, edge, shadow, seed, reduced motion |
+| Botanical & Butterfly | Paper flowers, foliage, butterflies | Four stock palettes, color-layer density, detail, five media, aspect, frame and material controls |
+| Kingfisher | Sculpted paper bird | Jewel/pastel/heritage stock, real feather detail, raised-tip relief, curvature, wing motion, five media, aspect and playback |
+| Dragonfly | Wing lace and abdomen | Stock, venation detail, flutter amplitude, curvature, media, aspect and playback |
+| Canal Houses | Facades and canals | Stock, architecture detail, paper folds, media, aspect and playback |
+| Camera | Layered camera | Stock, lens/finish detail, curvature, media, aspect and playback |
+| Teacup & Citrus | Paper table still life | Stock, citrus detail, napkin folds, media, aspect and playback |
+
+Storybook rendering uses a single `PaperCraftLab` component and one source file (`src/video/paper-craft.stories.tsx`). Subject identity is fixed per page; unused Storybook controls are hidden for Garden and Botanical. The retained gallery buttons switch all five media without changing page. The landscape/portrait and material variations remain accessible as Storybook controls and through Storybook URL `args`.
+
+`tests/e2e-storybook/paper-craft.spec.ts` and `paper-craft-objects.spec.ts` now exercise these variants on the consolidated pages, including 16:9, 9:16, material combinations, frame seeking, opacity and real cut geometry. This reorganizes Storybook navigation only; native FilmStage, exported object IDs and existing registry APIs remain unchanged.
+
 ## Character construction
 
 For editable wildlife cutwork, construct a visually complete static animal before animating its parts. The garden bird now uses local coordinates multiplied by one uniform `birdScale` for horizontal and portrait outputs. The branch continues into the bird's perch and talons; anatomical regions include the head-body outline, breast/throat, pierced eye, crest, beak, wing with true feather apertures, coverts, tail feathers and feet. Depth order separates real paper stock. The moving wing's pivot stays at its shoulder. This illustrates a character-specific fixture rather than a generic anatomy solver.
@@ -46,7 +64,7 @@ Usage example:
 
 Choose palette = "ivory" for monochrome sculptural paper or "nocturne" for midnight colored cardstock. Detail 0–1 changes the amount of actual leaf and petal geometry. The scene has a bounded maximum of 128 separately drawn sheets, stable seed-derived imperfections, and a real portrait layout without nonuniformly stretching wings or petals.
 
-FilmStage's existing paper-craft-study slot accepts artwork="botanical", palette, detail and seed alongside medium. Production film: examples/film/paper-craft-botanical.film.json. Six Storybook botanical studies remain directly in Video production / Film Looks, *not* a new sidebar folder.
+FilmStage's existing paper-craft-study slot accepts artwork="botanical", palette, detail and seed alongside medium. Production film: examples/film/paper-craft-botanical.film.json. The single **Botanical & Butterfly** Storybook page exposes all four palette choices and both aspect ratios through controls.
 
 See docs/research/paper-craft-artcraft-botanical-study.md for observed references, the source-to-geometry plan and artistic limitations.
 
@@ -61,7 +79,7 @@ const spec = paperBotanicalSpec("layered", "landscape",
 
 At full density, the generator adds more than 30 differently colored independent cardstock plates, including a concentric pressed-paper ring, accent leaflets attached to existing fronds, extended 13-petal outer crowns, nested flower hearts and stamen beads, satellite-bloom underlayers, and actual paper wing linings visible through apertures. Rendering remains bounded at `MAX_PAPER_LAYERS=128` and frames stay deterministic. Different palettes use indexed stock colors across individual blooms, not a uniform global hue change. `colorLayers=0` retains the simpler original silhouette.
 
-Use Storybook's existing **Video production / Film Looks** controls to compare the color sets and adjust `colorLayers`, `detail`, `tooth`, `edge`, `shadow`, `seed`, paper medium and aspect ratio. The original garden and earlier botanical stories remain available without any new Storybook sidebar folder. The native dual-output, three-scene film is `examples/film/paper-craft-chromatic.film.json`.
+Use the **Video production / Film Looks / Paper Craft / Botanical & Butterfly** page to compare color sets and adjust `colorLayers`, `detail`, `tooth`, `edge`, `shadow`, `seed`, paper medium and aspect ratio. Previously separate botanical and chromatic variants are selected through controls, without duplicate pages. The native dual-output, three-scene film is `examples/film/paper-craft-chromatic.film.json`.
 
 These are expressive cinema cutouts; they are **not** manufacturer-ready laser/cutter paths, real physical pleating or calibrated 3D foam-board spacing.
 
@@ -86,7 +104,7 @@ const spec = paperObjectSpec("layered", "landscape",
 
 Controls: `object` = kingfisher | dragonfly | canal-houses | camera | teacup; `palette` = jewel | pastel | heritage; `detail` = 0–1; `seed` integer. All cut pieces are bounded opaque cardstock; depth is integer 0–32. The entire original material scene stays within 128 paper layers. The exact same geometry is composed in 16:9 and 9:16 without distorting object proportions, and supports arbitrary absolute-frame seeking and reduced-motion presentation.
 
-Use `artwork:"object"`, `object`, and `objectPalette` on the existing `paper-craft-study` FilmStage slot. See `examples/film/paper-craft-objects.film.json` (five cuts and dual output formats). Six more interactive studies are kept **directly within Video production / Film Looks**; no new sidebar folder. For original reference links, design audits and remaining work, read `docs/research/paper-craft-objects-study.md`.
+Use `artwork:"object"`, `object`, and `objectPalette` on the existing `paper-craft-study` FilmStage slot. See `examples/film/paper-craft-objects.film.json` (five cuts and dual output formats). The five objects have one configurable Storybook page each in **Video production / Film Looks / Paper Craft**, with no duplicate portrait, animation or material variants. For each object, adjust paper medium, stock, detail, motion, curl, relief, aspect, frame and lighting controls in its own page. For original reference links, design audits and remaining work, read `docs/research/paper-craft-objects-study.md`.
 
 This produces cinematographic 2.5D cardstock illustrations, **not** physically folded and dimensionally manufactured 3D objects, die templates or articulated skeleton rigs.
 
@@ -109,7 +127,7 @@ const spec = paperObjectSpec("layered", "landscape", {
   shadowStrength={.92} edgeStrength={.68} />;
 ```
 
-`artwork:"object"` FilmStage props `curl` and `motion` accept finite 0–1 numbers and reject untrusted malformed values. Storybook maintains **one existing Film Looks section** and now exposes `curl`/`motion` alongside other material controls, including separate motion-focused kingfisher and dragonfly scenes. The five-scene portable `examples/film/paper-craft-objects.film.json` renders at both 16:9 and 9:16, with frame-exact dynamics. No 3D fold rig, extrusion, material thickness solver or die-ready cut templates are claimed.
+`artwork:"object"` FilmStage props `curl` and `motion` accept finite 0–1 numbers and reject untrusted malformed values. Storybook exposes `curl`/`motion` alongside other controls on the single Kingfisher and Dragonfly pages; their motion-specific looks no longer need separate stories. The five-scene portable `examples/film/paper-craft-objects.film.json` renders at both 16:9 and 9:16, with frame-exact dynamics. No 3D fold rig, extrusion, material thickness solver or die-ready cut templates are claimed.
 
 ## Pass 17 — real separate hinged terminal cardstock
 
@@ -123,7 +141,7 @@ const spec=paperObjectSpec("layered","landscape",{
   shadowStrength={.95} edgeStrength={.75}/>;
 ```
 
-Eighteen individually shaped primary feather bases and tips use distinct contours and joined authored hinges; the same primitive adds eave lip folds to three houses and a corner fold to the teacup's napkin. `relief` (0–1) is validated in object generation and FilmStage. Two additional landscape/portrait Storybook examples remain directly inside **Video production / Film Looks**; the existing stories are retained. The design stays under the 128-layer budget because the distal piece belongs to its parent cut. Source study and candid limitations: `docs/research/paper-craft-lifted-tip-study.md`.
+Eighteen individually shaped primary feather bases and tips use distinct contours and joined authored hinges; the same primitive adds eave lip folds to three houses and a corner fold to the teacup's napkin. `relief` (0–1) is validated in object generation and FilmStage. The Kingfisher page exposes `relief` and a portrait aspect control; previously separate landscape/portrait relief examples are consolidated. The design stays under the 128-layer budget because the distal piece belongs to its parent cut. Source study and candid limitations: `docs/research/paper-craft-lifted-tip-study.md`.
 
 This is hinge-projecting 2.5D paper construction, **not** a continuous elastic 3D curved sheet or cutter-ready pattern.
 
@@ -133,8 +151,17 @@ The original kingfisher has been rebuilt after comparing real *Alcedo atthis* si
 
 A full rebuild of `kingfisher(...)` in `paper-object-kit.ts` keeps the public object/rig API, 18 lifted primary-tip pieces, 10 crown strips, 12 breast scales, seeded absolute-frame motion and both aspect modes. The shape now adds twelve packed multi-contour layers for fine covert, back, crown and breast feather tracts—many dozens of small true paper cuts without exceeding PAPER1's 128-layer budget. All paper colors remain fully opaque, and the wing still uses one shared hinge. The 9:16 portrait uses uniform scales.
 
-New art-direction examples in existing **Video production / Film Looks**:
-- Paper Craft · Kingfisher Anatomy Study
-- Paper Craft · Kingfisher Anatomy Portrait
+The **Kingfisher** page in **Video production / Film Looks / Paper Craft** combines the anatomy study and portrait variant through its aspect and material controls.
 
 This is artistic reference-guided code generation, not a copy of Diana Beltrán Herrera's sculpture, and not a 3D bird scan or physics model.
+
+
+## Pass 19 — hand-snipped feather vane edges
+
+The kingfisher's 18 primary feathers now carry a detail-responsive, true die-cut vane-edge microstructure, based on observing individually hand-trimmed feather sheets in Diana Beltrán Herrera's paper birds. Each feather retains a smooth Bézier root, the same separately hinged raised tip, underlying shaft aperture, and shared wing rig. At full detail, each closed root contour has five shallow asymmetric V-snips per side following the taper of the paper vane. These are cuts in the cardstock silhouette, not painted strokes, alpha effects, translucency or procedural noise.
+
+The detail control varies true incision count from zero to five per side. Fixed seeded grain subtly varies notches across different feathers without adding frame-dependent randomness. Landscape and portrait are uniformly scaled; the bounded cardstock-layer count and the palette-independent silhouettes are unchanged.
+
+The fine vane cutwork is available on the **Kingfisher** page in the Paper Craft Storybook folder at `detail=1`; it does not require a separate page. Focused construction tests check edge geometry at minimum and maximum detail, physical tip/hinge continuity, rig identity, deterministic frames and paper validation. The existing PR-scoped visual workflow captures real Storybook and native film images.
+
+**Limit:** This is original 2.5D reference-guided cut-paper illustration, not manufacturing geometry or a reconstruction of another artist's protected sculpture. Browser-capture review and independent artistic inspection are still needed before asserting visual parity.

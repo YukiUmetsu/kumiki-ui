@@ -129,8 +129,8 @@ function PaperCraftLab({ artwork, object, objectPalette, palette, detail, colorL
   </main>;
 }
 const meta = {
-  // Use existing Film Looks sidebar group, never create a separate paper folder.
-  title: "Video production/Film Looks",
+  // All Paper Craft studies share one Storybook folder under Film Looks.
+  title: "Video production/Film Looks/Paper Craft",
   component: PaperCraftLab,
   args: { artwork:"garden", object:"kingfisher", objectPalette:"jewel", palette:"nocturne", detail:.82, colorLayers:1, curl:.85, motion:1, relief:1, medium:"layered", aspect:"landscape", frame:182, tooth:.55, shadow:.7, edge:.55, seed:27, reducedMotion:false },
   argTypes: {
@@ -155,93 +155,54 @@ const meta = {
 } satisfies Meta<typeof PaperCraftLab>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-export const PaperCraftGallery: Story = { name:"Paper Craft · Gallery" };
-export const PaperCraftKirigami: Story = { name:"Paper Craft · Kirigami", args:{medium:"kirigami"} };
-export const PaperCraftPopUp: Story = { name:"Paper Craft · Pop-up", args:{medium:"pop-up"} };
-export const PaperCraftLightbox: Story = { name:"Paper Craft · Lightbox", args:{medium:"lightbox"} };
-export const PaperCraftShadowPuppet: Story = { name:"Paper Craft · Shadow Puppet", args:{medium:"shadow-puppet"} };
-export const PaperCraftPortrait: Story = { name:"Paper Craft · Portrait", args:{aspect:"portrait"} };
-
-export const PaperCraftBotanicalNocturne: Story = {
-  name:"Paper Craft · Botanical Nocturne",
-  args:{artwork:"botanical",palette:"nocturne",medium:"layered",detail:1,frame:198,seed:37},
+// Each subject gets exactly one customizable page. Media, orientation,
+// paper stock, detail, curl, motion, relief, frame and rendering controls
+// remain available without multiplying variants in the Storybook sidebar.
+const hideControl = {control:false,table:{disable:true}} as const;
+const objectControls = {
+  artwork:hideControl,object:hideControl,palette:hideControl,colorLayers:hideControl,
 };
-export const PaperCraftBotanicalIvory: Story = {
-  name:"Paper Craft · Ivory Botanical Relief",
-  args:{artwork:"botanical",palette:"ivory",medium:"layered",detail:1,frame:198,seed:37,shadow:1,edge:.8},
+export const Gallery: Story = {
+  name:"Garden",
+  args:{artwork:"garden",medium:"layered",frame:182},
+  argTypes:{artwork:hideControl,object:hideControl,objectPalette:hideControl,
+    palette:hideControl,detail:hideControl,colorLayers:hideControl,
+    curl:hideControl,motion:hideControl,relief:hideControl},
 };
-export const PaperCraftBotanicalPortrait: Story = {
-  name:"Paper Craft · Botanical Portrait",
-  args:{artwork:"botanical",palette:"nocturne",medium:"layered",aspect:"portrait",detail:1,frame:198,seed:37},
+export const Botanical: Story = {
+  name:"Botanical & Butterfly",
+  args:{artwork:"botanical",palette:"rainforest",colorLayers:1,
+    detail:1,medium:"layered",frame:198,seed:37,shadow:.92,edge:.65},
+  argTypes:{artwork:hideControl,object:hideControl,objectPalette:hideControl,
+    curl:hideControl,motion:hideControl,relief:hideControl},
 };
-
-export const PaperCraftChromaticRainforest: Story = {
-  name:"Paper Craft · Chromatic Rainforest",
-  args:{artwork:"botanical",palette:"rainforest",colorLayers:1,detail:1,medium:"layered",frame:198,seed:37,shadow:.92,edge:.6},
-};
-export const PaperCraftChromaticWildflower: Story = {
-  name:"Paper Craft · Chromatic Wildflower",
-  args:{artwork:"botanical",palette:"wildflower",colorLayers:1,detail:1,medium:"layered",frame:198,seed:37,shadow:.94,edge:.65},
-};
-export const PaperCraftChromaticPortrait: Story = {
-  name:"Paper Craft · Chromatic Portrait",
-  args:{artwork:"botanical",palette:"rainforest",colorLayers:1,detail:1,medium:"layered",aspect:"portrait",frame:198,seed:37,shadow:.92},
-};
-
-export const PaperCraftObjectKingfisher: Story = {
-  name:"Paper Craft · Kingfisher Sculpture",
-  args:{artwork:"object",object:"kingfisher",objectPalette:"jewel",detail:1,frame:195,shadow:.94,edge:.65,seed:37},
-};
-export const PaperCraftObjectDragonfly: Story = {
-  name:"Paper Craft · Dragonfly Cutwork",
-  args:{artwork:"object",object:"dragonfly",objectPalette:"jewel",detail:1,frame:195,shadow:.94,edge:.65,seed:37},
-};
-export const PaperCraftObjectCanalHouses: Story = {
-  name:"Paper Craft · Canal Houses",
-  args:{artwork:"object",object:"canal-houses",objectPalette:"pastel",detail:1,frame:195,shadow:.9,edge:.55,seed:37},
-};
-export const PaperCraftObjectCamera: Story = {
-  name:"Paper Craft · Vintage Camera",
-  args:{artwork:"object",object:"camera",objectPalette:"heritage",detail:1,frame:195,shadow:.88,edge:.55,seed:37},
-};
-export const PaperCraftObjectTeacup: Story = {
-  name:"Paper Craft · Teacup and Citrus",
-  args:{artwork:"object",object:"teacup",objectPalette:"pastel",detail:1,frame:195,shadow:.92,edge:.55,seed:37},
-};
-export const PaperCraftObjectPortrait: Story = {
-  name:"Paper Craft · Kingfisher Portrait",
-  args:{artwork:"object",object:"kingfisher",objectPalette:"jewel",detail:1,aspect:"portrait",frame:195,seed:37},
-};
-
-export const PaperCraftFeatherRig: Story = {
-  name:"Paper Craft · Curled Feather Rig",
-  args:{artwork:"object",object:"kingfisher",objectPalette:"jewel",curl:1,motion:1,
-    detail:1,medium:"layered",frame:190,shadow:.96,edge:.74,seed:37},
-};
-export const PaperCraftDragonflyFlutter: Story = {
-  name:"Paper Craft · Coordinated Dragonfly Flutter",
-  args:{artwork:"object",object:"dragonfly",objectPalette:"jewel",curl:1,motion:1,
-    detail:1,medium:"layered",frame:192,shadow:.92,edge:.69,seed:37},
-};
-
-export const PaperCraftFeatherReliefMacro: Story = {
-  name:"Paper Craft · Layered Feather Tip Relief",
-  args:{artwork:"object",object:"kingfisher",objectPalette:"jewel",curl:1,motion:.45,
-    relief:1,detail:1,medium:"layered",frame:198,shadow:1,edge:.85,seed:37},
-};
-export const PaperCraftFeatherReliefPortrait: Story = {
-  name:"Paper Craft · Feather Tip Relief Portrait",
-  args:{artwork:"object",object:"kingfisher",objectPalette:"jewel",curl:1,motion:.45,
-    relief:1,detail:1,medium:"layered",aspect:"portrait",frame:198,shadow:1,edge:.85,seed:37},
-};
-
-export const PaperCraftKingfisherReferenceRebuild: Story = {
-  name:"Paper Craft · Kingfisher Anatomy Study",
+export const Kingfisher: Story = {
+  name:"Kingfisher",
   args:{artwork:"object",object:"kingfisher",objectPalette:"jewel",detail:1,
-    curl:1,relief:1,motion:.35,frame:215,shadow:.96,edge:.65,seed:37},
+    curl:1,relief:1,motion:.5,medium:"layered",frame:215,shadow:.96,edge:.72,seed:37},
+  argTypes:objectControls,
 };
-export const PaperCraftKingfisherReferencePortrait: Story = {
-  name:"Paper Craft · Kingfisher Anatomy Portrait",
-  args:{artwork:"object",object:"kingfisher",objectPalette:"jewel",detail:1,
-    curl:1,relief:1,motion:.35,aspect:"portrait",frame:215,shadow:.96,edge:.65,seed:37},
+export const Dragonfly: Story = {
+  name:"Dragonfly",
+  args:{artwork:"object",object:"dragonfly",objectPalette:"jewel",detail:1,
+    curl:1,relief:1,motion:1,medium:"layered",frame:195,shadow:.94,edge:.69,seed:37},
+  argTypes:objectControls,
+};
+export const CanalHouses: Story = {
+  name:"Canal Houses",
+  args:{artwork:"object",object:"canal-houses",objectPalette:"pastel",detail:1,
+    curl:1,relief:1,motion:1,medium:"layered",frame:195,shadow:.9,edge:.55,seed:37},
+  argTypes:objectControls,
+};
+export const Camera: Story = {
+  name:"Camera",
+  args:{artwork:"object",object:"camera",objectPalette:"heritage",detail:1,
+    curl:1,relief:1,motion:1,medium:"layered",frame:195,shadow:.88,edge:.55,seed:37},
+  argTypes:objectControls,
+};
+export const Teacup: Story = {
+  name:"Teacup & Citrus",
+  args:{artwork:"object",object:"teacup",objectPalette:"pastel",detail:1,
+    curl:1,relief:1,motion:1,medium:"layered",frame:195,shadow:.92,edge:.55,seed:37},
+  argTypes:objectControls,
 };
