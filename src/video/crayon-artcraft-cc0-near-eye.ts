@@ -99,31 +99,31 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
       parentId:"brow-root",clipToParent:true,coverage:"open",
       blendRadius:3,markStrength:.42,pressure:.61,outlineOpacity:0});
   wax("eye-sclera",
-    "M65 122 C74 107 93 98 115 98 C136 99 154 107 166 116"+
-    "C151 126 137 139 116 144 C97 148 79 139 65 122Z",
-    rect(61,94,111,56),palettes.sclera,[105,202],{
+    "M63 122 C73 108 91 105 112 105 C133 105 155 112 168 116"+
+    "C154 128 139 137 117 141 C96 146 79 138 63 122Z",
+    rect(59,102,114,47),palettes.sclera,[105,202],{
       parentId:"eye-skin",spacing:4.4,markStrength:.23,
       underpaintGradient:{light:"#eeebe1",shadow:"#7f8990",
         focusX:.75,focusY:.3,radius:1},outlineOpacity:0});
   wax("upper-sclera-occlusion",
-    "M66 122 C76 104 95 99 118 99 Q144 100 165 116"+
-    "Q132 107 108 107 C90 107 76 115 66 122Z",
-    rect(63,96,105,29),palettes.socket,[125,203],{
+    "M63 122 C81 107 98 102 119 104 Q147 106 168 116"+
+    "Q148 116 131 114 C109 112 80 115 63 122Z",
+    rect(60,100,112,27),palettes.socket,[125,203],{
       parentId:"eye-sclera",clipToParent:true,coverage:"open",
       blendRadius:3,pressure:.55,markStrength:.3,outlineOpacity:0});
   wax("eye-iris",
-    "M87 111 C88 101 98 99 109 100 C122 102 130 112 129 123"+
-    "C126 137 113 143 102 140 C92 137 84 128 87 111Z",
-    rect(83,97,50,47),palettes.iris,[125,220],{
-      parentId:"eye-sclera",spacing:4.2,markStrength:.48,pressure:.88,
-      underpaintGradient:{light:"#bb9b76",shadow:"#3a322f",
-        focusX:.75,focusY:.57,radius:.92},outlineOpacity:.08});
+    "M79 109 C84 101 94 103 103 104 C116 105 124 116 123 126"+
+    "C120 138 110 144 98 139 C85 134 76 121 79 109Z",
+    rect(76,100,51,47),palettes.iris,[125,220],{
+      parentId:"eye-sclera",clipToParent:true,spacing:4.2,markStrength:.45,pressure:.86,
+      underpaintGradient:{light:"#8d7260",shadow:"#312b2e",
+        focusX:.8,focusY:.68,radius:.9},outlineOpacity:.08});
   wax("eye-pupil",
-    "M98 111 C101 106 105 105 110 107 C117 109 118 116 117 122"+
-    "C114 129 105 129 100 125 C96 121 96 115 98 111Z",
-    rect(95,104,26,26),palettes.pupil,[157,231],{
-      parentId:"eye-iris",spacing:4.2,markStrength:.38,pressure:.96,outlineOpacity:0});
-  const irisFlecks=crayonIrisFlecks({seed:1407,cx:108,cy:120,
+    "M90 110 C94 106 99 106 103 109 C110 111 111 118 109 123"+
+    "Q106 129 100 129 C92 127 89 120 90 110Z",
+    rect(88,104,25,27),palettes.pupil,[157,231],{
+      parentId:"eye-iris",clipToParent:true,spacing:4.2,markStrength:.38,pressure:.96,outlineOpacity:0});
+  const irisFlecks=crayonIrisFlecks({seed:1407,cx:100,cy:120,
     rx:20,ry:20,count:Math.round(18*detail),minRadius:.46,maxRadius:.91});
   if(irisFlecks)line("iris-dark-radials",irisFlecks,"#493f36",.37,[171,271],"eye-iris",.49);
   wax("sclera-reflection",
