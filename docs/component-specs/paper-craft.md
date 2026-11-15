@@ -210,3 +210,10 @@ API: paperScenerySpec(style, aspect, { scenery, palette, detail, breeze, relief,
 treeVariety must be finite between 0 and 1 (default 0.9). Zero gives a consistent spruce stand; one mixes three species with stronger placement variation. This changes actual cardstock path geometry, not opacity or texture noise. Only the existing Scenery page exposes this control; unrelated Paper Craft pages hide it. The FilmStage paper-craft-study slot passes it through for both 16:9 and 9:16 outputs.
 
 The original PAPER1 128-layer cap, all five media, scene identifiers, and deterministic seek contract remain unchanged.
+
+
+## Pass 23 — sculpted foreground vegetation and flowers
+
+The same Scenery Storybook page now renders broadleaf understory plants with sculpted closed cardstock serrations, continuous rooted stems, lateral forks and a raised opaque vein plane; woodland adds eight and alpine adds six high-detail herb sheets. Flowers gain seed-specific asymmetrical petals and physical contrasting centers. These details are formed from code-authored contours, not noise or translucent collage overlays. The scene generator's existing detail control governs actual cut density, and seed governs repeatable plant morphology.
+
+No new public property, Storybook folder, renderer or film slot. The native two-aspect film, five PAPER1 material styles, existing options and 128-layer budget remain supported. New unit/browser checks cover geometry complexity, physical layering, palette opacity and deterministic frame seeking.

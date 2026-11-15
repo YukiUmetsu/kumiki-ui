@@ -212,6 +212,102 @@ function understoryCluster(p:P,x:number,y:number,side:number,detail:number,seed:
   }
   return parts.join(" ");
 }
+
+/** Scalloped herbaceous blade with actual V-notch stock contour, not just
+ * a perfect elliptical leaf copied around a stem. Ends taper to true points.
+ * Each leaf keeps the same authored form through every absolute frame.
+ */
+function notchedBotanicalLeaf(p:P,x:number,y:number,length:number,angle:number,
+  width:number,seed:number,detail:number){
+  const a=radians(angle),ux=Math.cos(a),uy=Math.sin(a),nx=-uy,ny=ux;
+  const n=6+Math.round(detail*4);
+  const sidePoints=(side:-1|1):[number,number][]=>{
+    const result:[number,number][]=[];
+    for(let i=0;i<=n;i++){
+      const t=i/n;
+      const envelope=Math.pow(Math.sin(Math.PI*t),.81);
+      const notch=i>1&&i<n-1&&i%3===1?.69:1;
+      const w=width*envelope*notch*
+        (.91+.18*paperHash(seed,i,side>0?223:229));
+      const spineBend=Math.sin(Math.PI*t)*width*.13;
+      result.push([
+        x+ux*length*t+nx*(spineBend+side*w),
+        y+uy*length*t+ny*(spineBend+side*w),
+      ]);
+    }
+    return result;
+  };
+  return p.poly([...sidePoints(-1),...sidePoints(1).reverse()]);
+}
+/** The trunk is one contoured card, lateral forks are attached, and individual
+ * leaves begin inside each fork. Veins are additional lighter cut-stock strips.
+ * Return both material planes without creating an individual layer per leaf.
+ */
+function scenicHerb(p:P,x:number,y:number,height:number,side:-1|1,
+  seed:number,detail:number):{stock:string;veins:string}{
+  const tipX=x+side*height*(.18+.11*paperHash(seed,0,233));
+  const tipY=y-height;
+  const stock=[
+    p.M(x-3,y+4),
+    p.C(x+side*1,y-height*.26,tipX-side*8,y-height*.73,tipX-1,tipY),
+    p.L(tipX+2,tipY),
+    p.C(tipX-side*2,y-height*.73,x+side*7,y-height*.28,x+3,y+4),
+    p.Z,
+  ];
+  const veins:string[]=[];
+  // Two large opposite basal blades connect the entire sprig visually to its
+  // ground plane. They are broad paper *masses*, not detached spear strokes.
+  for(const [i,angle] of [-156,-24].entries()){
+    const rootX=x+(i?2:-2),rootY=y-5;
+    const len=height*(.37+.06*paperHash(seed,i,271));
+    const width=height*(.105+.015*paperHash(seed,i,273));
+    stock.push(notchedBotanicalLeaf(p,rootX,rootY,len,angle,
+      width,seed+503+i*31,detail));
+    const ang=radians(angle);
+    veins.push(p.band(rootX,rootY,rootX+Math.cos(ang)*len*.61,
+      rootY+Math.sin(ang)*len*.61,1.15));
+  }
+  const tiers=3+Math.round(detail*3);
+  for(let j=0;j<tiers;j++){
+    const t=(j+1)/(tiers+1);
+    const baseX=x+(tipX-x)*t,baseY=y-height*t;
+    const direction:1|-1=j%2===0?1:-1;
+    const dx=direction*side;
+    const spread=height*(.20+.09*paperHash(seed,j,239))*(1-t*.27);
+    const ex=baseX+dx*spread,ey=baseY-height*(.115+.07*paperHash(seed,j,241));
+    stock.push(p.band(baseX,baseY,ex,ey,2.3*(1-t*.28)));
+    const length=height*(.29+.085*paperHash(seed,j,243))*(1-t*.40);
+    const angle=dx>0?-32-8*paperHash(seed,j,247):-148+8*paperHash(seed,j,249);
+    stock.push(notchedBotanicalLeaf(p,ex-2*dx,ey+3,length,angle,
+      Math.max(8.2,height*.105)*(1-t*.32),seed+j*61,detail));
+    const vLen=length*.57,rad=radians(angle);
+    veins.push(p.band(ex,ey,ex+vLen*Math.cos(rad),ey+vLen*Math.sin(rad),.78));
+  }
+  const crownAngle=side>0?-66:-114;
+  stock.push(notchedBotanicalLeaf(p,tipX,tipY+4,height*.23,
+    crownAngle,height*.115,seed+413,detail));
+  return {stock:stock.join(" "),veins:veins.join(" ")};
+}
+/** Layered paper wildflower, with independently cut flower-stock and centers.
+ * Petal bases converge to a common carpellary junction; no floating disks.
+ */
+function scenicBloom(p:P,x:number,y:number,radius:number,
+  seed:number,detail:number):{petals:string;center:string}{
+  const count=5+Math.round(detail*2);
+  const petals=Array.from({length:count},(_,j)=>{
+    const h=paperHash(seed,j,251);
+    const angle=j*360/count+(h-.5)*9-90;
+    return p.leaf(x,y,radius*(.89+.19*h),angle,
+      radius*(.26+.09*paperHash(seed,j,257)));
+  }).join(" ");
+  const center=p.oval(x,y,radius*.19,radius*.19)+
+    " "+Array.from({length:5},(_,j)=>{
+      const a=radians(j*360/5),rr=radius*.28;
+      return p.oval(x+Math.cos(a)*rr,y+Math.sin(a)*rr,radius*.049,radius*.049);
+    }).join(" ");
+  return {petals,center};
+}
+
 /** Folded clipped glacial sediment, never uniformly tiled triangles. */
 function alpineStratum(p:P,cx:number,peak:number,span:number,offset:number,side:number){
   const rootX=cx+side*span*.14,rootY=peak+offset;
@@ -380,17 +476,38 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
   }).join(" ");
   add("woodland-stream-surface-highlights",c.ripple,28,riverLight,{
     enterFrame:155,durationFrames:27,curl:.4});
-  // Tiny die-cut wildflower constellations, anchored by visible stems.
+  // Herbaceous broadleaf cards stand behind individually cut flower heads.
+  // Roots sit on the same foreground paper terrace; vein material is separate.
+  const woodlandHerbVeins:string[]=[];
+  for(const [bank,side] of [-1,1].entries()){
+    for(let j=0;j<3+Math.round(detail*1);j++){
+      const px=side*x*(.205+j*.085),
+        py=y*(.80+(j%2)*.027);
+      const plant=scenicHerb(p,px,py,86+paperHash(seed,bank*11+j,263)*45,
+        side as -1|1,seed+bank*121+j*89,detail);
+      add("woodland-herb-"+bank+"-"+j,j%3===0?c.near:c.leaf,28,
+        plant.stock,{enterFrame:141+j*3+bank*5,curl:.83});
+      woodlandHerbVeins.push(plant.veins);
+    }
+  }
+  add("woodland-herb-veins",c.leafLight,29,woodlandHerbVeins.join(" "),{
+    enterFrame:152,curl:.34});
+  // Larger seed-specific flower heads grow from attached papercut stems.
+  const woodlandFlowerCenters:string[]=[];
   for(let i=0;i<4+Math.round(detail*5);i++){
     const side=i%2?-1:1,x0=side*(x*(.13+(i%3)*.085)),y0=y*.83,tip=y0-29-(i%3)*8;
     add("woodland-flower-stem-"+i,c.leafLight,27,
       [p.M(x0-1.6,y0),p.C(x0+side*5,y0-19,x0+side*9,tip+8,x0+side*11,tip),
         p.L(x0+side*13,tip),p.C(x0+side*11,tip+8,x0+side*8,y0-18,x0+1.6,y0),p.Z].join(" "),{
         enterFrame:142+i*2});
-    add("woodland-flower-"+i,i%3?c.accent:c.light,28,
-      Array.from({length:7},(_,j)=>p.leaf(x0+side*12,tip,13,j*360/7,4.5)).join(" "),{
-        enterFrame:150+i*2,curl:.4});
+    const bloom=scenicBloom(p,x0+side*12,tip,
+      17+(i%3)*3.2,seed+i*109,detail);
+    add("woodland-flower-"+i,i%3?c.accent:c.light,28,bloom.petals,{
+      enterFrame:150+i*2,curl:.48});
+    woodlandFlowerCenters.push(bloom.center);
   }
+  add("woodland-flower-centers",c.trunk,29,
+    woodlandFlowerCenters.join(" "),{enterFrame:162,curl:.18});
 }
 /** Alpine: cut-silhouette peaks, individual snow shelf plates, depth-spaced pines. */
 function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:number,seed:number,treeVariety:number){
@@ -551,10 +668,33 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
     add("alpine-meadow-grass-"+i,c.leaf,27,stalks.join(" "),{
       enterFrame:149+i*3,curl:.68});
     const seedX=side*x*.33,seedY=y*.69;
-    add("alpine-meadow-bloom-"+i,c.accent,28,
-      Array.from({length:7},(_,j)=>p.leaf(seedX,seedY,10,j*360/7,3.8)).join(" "),{
-        enterFrame:157+i*2,curl:.62});
+    const alpineBloom=scenicBloom(p,seedX,seedY,15+i*1.8,seed+i*73,detail);
+    add("alpine-meadow-bloom-"+i,c.accent,28,alpineBloom.petals,{
+      enterFrame:157+i*2,curl:.62});
   }
+  // Elevated riverbank and rocky meadow contain differently branched broadleaf
+  // herbs, with small supplementary vein cuts as a brighter sheet.
+  const alpineHerbVeins:string[]=[];
+  for(const [bank,side] of [-1,1].entries()){
+    for(let j=0;j<2+Math.round(detail*1);j++){
+      const px=side*x*(.24+j*.13),
+        py=y*(.81+(j%2)*.014);
+      const sprig=scenicHerb(p,px,py,65+paperHash(seed,bank*7+j,269)*34,
+        side as -1|1,seed+bank*131+j*97+17,detail);
+      add("alpine-herb-"+bank+"-"+j,j%2?c.leaf:c.leafLight,28,
+        sprig.stock,{enterFrame:146+j*3+bank*4,curl:.73});
+      alpineHerbVeins.push(sprig.veins);
+    }
+  }
+  add("alpine-herb-veins",c.bark,29,alpineHerbVeins.join(" "),{
+    enterFrame:155,curl:.32});
+  // Bright centers are cut from one companion stock, not a filtered dot layer.
+  const alpineBloomCenters=[-1,1].map((side,i)=>{
+    const seedX=side*x*.33,seedY=y*.69;
+    return scenicBloom(p,seedX,seedY,15+i*1.8,seed+i*73,detail).center;
+  });
+  add("alpine-meadow-bloom-centers",c.trunk,29,
+    alpineBloomCenters.join(" "),{enterFrame:163,curl:.27});
   // A small flight in the open distance gives scale without opaque sprites.
   for(let i=0;i<3+Math.round(detail*3);i++){
     const bx=x*.05+i*28,by=-y*.66+(i%3)*11;

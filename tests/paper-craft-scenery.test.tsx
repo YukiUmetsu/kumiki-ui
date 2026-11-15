@@ -101,6 +101,59 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
     expect(world.layers.filter(layer=>layer.id.startsWith("alpine-meadow-grass-"))).toHaveLength(2);
     expect(world.layers.find(layer=>layer.id==="alpine-islet-reeds")?.path).toContain("C");
   });
+  it("constructs joined serrated herbs and layered botanical highlights in both scenery worlds",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const scenery of PAPER_SCENERIES){
+        const rich=paperScenerySpec("layered",aspect,{
+          scenery,detail:1,seed:117,breeze:.42});
+        const sparse=paperScenerySpec("layered",aspect,{
+          scenery,detail:0,seed:117,breeze:.42});
+        expect(inspectPaperCraft(rich)).toEqual([]);
+        expect(inspectPaperCraft(sparse)).toEqual([]);
+        const prefix=scenery==="woodland"?"woodland":"alpine";
+        const herbs=rich.layers.filter(layer=>layer.id.startsWith(prefix+"-herb-")&&
+          !layer.id.endsWith("-veins"));
+        const veins=rich.layers.find(layer=>layer.id===prefix+"-herb-veins")!;
+        const leafMaterial=herbs.filter(layer=>layer.id!==prefix+"-herb-veins");
+        expect(leafMaterial.length).toBeGreaterThanOrEqual(6);
+        expect(leafMaterial.every(layer=>(layer.path.match(/M/g)??[]).length>14)).toBe(true);
+        // Serrated, non-elliptic leaves include scored L-vertex runs and
+        // the root/stem contributes a continuous cubic C-shaped stock.
+        expect(leafMaterial.every(layer=>layer.path.includes("C")&&
+          (layer.path.match(/L/g)??[]).length>50)).toBe(true);
+        expect(leafMaterial.every(layer=>layer.depth===28)).toBe(true);
+        expect(veins.depth).toBe(29);
+        expect((veins.path.match(/M/g)??[]).length).toBeGreaterThan(12);
+        const html=renderToStaticMarkup(React.createElement(PaperCraftStage,{
+          spec:rich,frame:226,reducedMotion:false,tooth:.65
+        }));
+        expect(html).toContain('data-km-paper-layer="'+prefix+'-herb-veins"');
+        expect(html).not.toContain('fill-opacity="0.');
+        // An entire stand of physically cut leaves remains within the PAPER1 budget.
+        expect(rich.layers.length).toBeLessThanOrEqual(MAX_PAPER_LAYERS);
+      }
+    }
+  });
+  it("new original flower heads have visible separately cut pistil stock",()=>{
+    const w=paperScenerySpec("layered","landscape",{
+      scenery:"woodland",palette:"sage",detail:1,seed:19});
+    const a=paperScenerySpec("layered","landscape",{
+      scenery:"alpine-lake",palette:"moonlight",detail:1,seed:19});
+    const wCenters=w.layers.find(l=>l.id==="woodland-flower-centers")!;
+    const aCenters=a.layers.find(l=>l.id==="alpine-meadow-bloom-centers")!;
+    expect(wCenters.color).not.toEqual(w.layers.find(l=>l.id==="woodland-flower-0")!.color);
+    expect(aCenters.color).not.toEqual(a.layers.find(l=>l.id==="alpine-meadow-bloom-0")!.color);
+    expect((wCenters.path.match(/M/g)??[]).length).toBe(9*6);
+    expect((aCenters.path.match(/M/g)??[]).length).toBe(2*6);
+    expect(wCenters.depth).toBeGreaterThan(w.layers.find(l=>l.id==="woodland-flower-0")!.depth);
+    expect(aCenters.depth).toBeGreaterThan(a.layers.find(l=>l.id==="alpine-meadow-bloom-0")!.depth);
+    const alt=paperScenerySpec("layered","landscape",{
+      scenery:"woodland",detail:1,seed:22});
+    expect(alt.layers.find(l=>l.id==="woodland-herb-0-0")?.path)
+      .not.toBe(w.layers.find(l=>l.id==="woodland-herb-0-0")?.path);
+    expect(paperScenerySpec("layered","landscape",{
+      scenery:"woodland",palette:"sage",detail:1,seed:19})).toEqual(w);
+  });
   it("scenery relief adjusts physical z-separation without modifying contours",()=>{
     for(const scenery of PAPER_SCENERIES){
       const flat=paperScenerySpec("lightbox","portrait",{scenery,detail:1,relief:0,seed:27});
