@@ -5,6 +5,7 @@ name: Crayon drawing grammar native proof
 on:
   pull_request:
     paths:
+      - registry.json
       - registry/video/materials/crayon-art-direction.ts
       - src/video/crayon-drawing-system-fixtures.ts
       - src/video/crayon-drawing-system.stories.tsx
@@ -31,6 +32,10 @@ jobs:
           node-version: "24.15.0"
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - name: Validate installable registry and catalog metadata
+        run: |
+          npm run registry:validate
+          npm run catalog:check
       - name: Install headless browser
         run: npx playwright install --with-deps chromium
       - name: Capture four-pass drawing construction in both aspects
