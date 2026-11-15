@@ -44,13 +44,31 @@ export function crayonCc0NearEyeStudy(
     // The *visible surface* is built from broken, independently colored
     // contacts; no gradient, Gaussian haze or uniform digital gloss.
     const weight=overrides.markStrength??.6;
+    const support=id==="eye-skin";
+    const accent=["brow-root","eye-iris","eye-pupil",
+      "upper-lash-root-shadow","upper-lid-overhang"].includes(id);
+    const valuePlane=["upper-orbital-turn","eye-socket-umbra",
+      "lower-orbital-hollow","cheek-light-turn","lower-lid-groove"].includes(id);
+    // Skin should not have the same high-frequency pigment density as
+    // brow/eyelid anatomy. Concentrate true deposits at meaningful planes.
+    const floor=support?.25:accent?.64:valuePlane?.48:
+      coverage==="opaque"?.48:.38;
+    const gestureAngles:Record<string,number>={
+      "eye-skin":-5,"upper-orbital-turn":-16,
+      "eye-socket-umbra":-8,"lower-orbital-hollow":12,
+      "cheek-light-turn":17,"brow-root":-13,
+      "upper-lid-overhang":-7,"lower-lid-flesh":12,
+      "lower-lid-groove":14,"eye-iris":-4,
+    };
     const contactProps:Partial<Wax>=handLaid?{
       deposition:"stroke-built",
-      markStrength:Math.min(1,Math.max(coverage==="opaque"?.68:.43,weight*1.68)),
-      spacing:Math.min(overrides.spacing??5.8,8.2),
-      markLength:["eye-skin","upper-orbital-turn","eye-socket-umbra",
-        "lower-orbital-hollow","cheek-light-turn"].includes(id)?"long":"short",
-      ...(coverage==="opaque"?{underpaintTooth:overrides.underpaintTooth??.79}:{}),
+      markStrength:support?.25:Math.min(1,Math.max(floor,
+        weight*(coverage==="open"?1.3:1.42))),
+      spacing:support?11.7:Math.min(overrides.spacing??5.8,8.2),
+      angle:gestureAngles[id]??overrides.angle??0,
+      markLength:support||valuePlane?"long":"short",
+      ...(coverage==="opaque"?{underpaintTooth:support?.48:
+        overrides.underpaintTooth??.72}:{}),
     }:{};
     elements.push({kind:"wax",id,d,bounds,colors,
       timing:{start:timing[0],end:timing[1]},coverage:"opaque",
