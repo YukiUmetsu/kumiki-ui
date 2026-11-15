@@ -107,3 +107,22 @@ Reviewed the real 960×540 Chromium PNGs from [CP-F1 foundation run 43753184068]
 - **Measured baseline contrast (audit ROI):** fox local 260×260 region x540–800/y145–405: default vs pigment-only average absolute RGB difference **33.4/255**, **55.2%** of pixels differ on at least one channel by >18. Human x600–820/y100–390: average RGB difference **73.9/255**, **95.2%** differ >18. These ROIs include background/adjacent structures and are *diagnostic* only, not a perceptual realism score.
 
 **Next craft work:** use measured fox skull-to-muzzle/ear base and leg attachment from the CC0 anatomy reference, construct individual fur growth fields across shaded planes, then re-run the same on/off comparison; for the human, prioritize volumetric orbital rim/eyelid, nose-ala and malar/mandibular topology first, then low-pressure multi-layer skin pigment. Capture 1× and 3× native crops, and run independent anatomical/portrait gates before approval. Do not cure the blank regions solely by raising gradient opacity. No finished third-party artwork used as output assets.
+
+
+## Continuing ArtCraft anatomical and dry pigment correction — November 15
+
+Reference observation (technique-only / no source pixels in SVG):
+- [Missouri Department of Conservation, red fox field guide](https://mdc.mo.gov/discover-nature/field-guide/red-fox): dark distal feet, tawny iris, tapered muzzle, erect ears, long fur and pale lower jaw/chest. **Source is anatomy guidance, not output texture.**
+- [Wikimedia, Fox nose close-up](https://commons.wikimedia.org/wiki/File:Fox_nose!.jpg): the brow/eye appears embedded behind fur, the relatively narrow snout is continuous with forehead, whiskers fan out of the muzzle rather than the nose tip. The photograph is not imported.
+- Colour-pencil studio technique references earlier in this document: study short low-pressure dry contacts, separate pigment colors and retained paper tooth rather than one smooth digital fill.
+
+Five-axis changes now committed on the existing CP-F1 fox/portrait authoring stack:
+1. **Topology:** both fox forepaw distal contours acquire four independent toe creases, small nail tips and four metacarpal tendon curves. The newly traced furrows are bounded by the actual paw silhouette, not floating in space.
+2. **Vector flow:** four-toe creases follow the standing fox leg toward the ground; the human face gains five convex cheek, forehead, chin and lateral-temple root guides with over 260 short Bézier contacts per pigment pass.
+3. **Weight:** eye/nose and paw claws carry dark focal accents; dermal marks are less than 0.55px wide and use restrained alpha, so high-value skin planes can still remain unburnished.
+4. **Rhythm:** seeded, deliberately nonuniform positions and lengths vary along quadratic parent arcs, with three independent palette and timing groups. Each study remains deterministic under frame seeking.
+5. **Texture:** the new human `dermis-0..2` paths are **actual authored pencil marks** and continue to render with `showTonalSupport={false}`, unlike the earlier empty facial gradient-only output. This is not a photographic conversion, blur, or baked canvas.
+
+Unit QA includes the explicit four toe/wrist/nail contracts and independently layered human face pigment contacts. Both native landscape and portrait Storybook frames remain the required evidence; no new folder is introduced.
+
+**Artistic release hold remains.** Testable presence of proper digits and physical pencil contacts does **not** demonstrate reference-equivalent anatomy or painterly realism. Verify the four furrows visually at 1× and 3×; in the portrait inspect for repetitive fibrous freckles, angular cheek masks, inaccurate eye/nose anatomy and poor optical skin integration. Reject these deficiencies rather than increasing background gradients or calling the output finished.
