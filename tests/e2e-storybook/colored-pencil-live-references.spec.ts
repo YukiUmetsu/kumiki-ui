@@ -196,6 +196,38 @@ for(const sample of ["woman","man"] as const){
         expect(await output.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
+        // ArtCraft v13: only this CC0 sitter's visible near/far iris
+        // pigment may be reconstructed. The 0% render must exactly
+        // reproduce the old photographed eyelid and skin construction;
+        // 100% is a separate radial/nib pupil material, not source pixels.
+        const iris=page.getByLabel("Pencil photo-registered iris and pupil");
+        await iris.focus();
+        await iris.press("Home");
+        await expect(iris).toHaveValue("0");
+        await expect(full).toHaveAttribute("data-km-pencil-iris-depth","0");
+        await expect(full).toHaveAttribute("data-km-pencil-iris-near","0");
+        const originalEyes=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-iris-pupil-legacy.png")});
+        await iris.press("End");
+        await expect(iris).toHaveValue("1");
+        await expect(full).toHaveAttribute("data-km-pencil-iris-depth","1");
+        const irisNear=Number(await full.getAttribute("data-km-pencil-iris-near"));
+        const irisFar=Number(await full.getAttribute("data-km-pencil-iris-far"));
+        const glintReserves=Number(await full.getAttribute(
+          "data-km-pencil-iris-reserves"));
+        expect(irisNear).toBeGreaterThan(40);
+        expect(irisFar).toBeGreaterThanOrEqual(0);
+        expect(glintReserves).toBeGreaterThan(0);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(originalEyes);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-source-iris-pupil-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Actual licensed source, ALL four chronologically composited
         // Storybook shots. Stage 1..4 must contain increasing genuine
         // pencil marks; the exported film bitmap must not be affected.
