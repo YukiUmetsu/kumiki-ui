@@ -67,7 +67,10 @@ describe("ArtCraft source-conditioned realistic pencil eyelids",()=>{
       m.pass===2&&/^#[0-9a-f]{6}$/.test(m.color)&&
       [m.x,m.y,m.controlX,m.controlY,m.endX,m.endY]
         .every(Number.isFinite))).toBe(true);
-    expect(src.data).toEqual(before);
+    // Vitest deep-diffing a 1.8-million-element typed array exceeds the
+    // focused 5-second test budget; a linear exact equality scan does not.
+    expect(src.data.length).toBe(before.length);
+    expect(src.data.every((value,i)=>value===before[i])).toBe(true);
     expect(createOpticalEyelidFibres(src,guides,271,.9)).toEqual(result);
     expect(createOpticalEyelidFibres(src,guides,272,.9).marks)
       .not.toEqual(result.marks);
