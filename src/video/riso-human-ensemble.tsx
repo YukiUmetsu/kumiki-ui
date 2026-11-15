@@ -342,6 +342,7 @@ export const RISO_ENSEMBLE_MOTION_BEATS=[
   {frame:126,label:"Unfurl",intent:"Sheet emerges"},
   {frame:144,label:"Reach",intent:"Midair hand to hand"},
   {frame:160,label:"Contact",intent:"Recipient touches the sheet"},
+  {frame:165,label:"Foot plant",intent:"Both printed boots anchor as weight travels into the exchange"},
   {frame:178,label:"Release",intent:"Donor opens hand"},
   {frame:190,label:"Peel",intent:"Paper and hand separate"},
   {frame:202,label:"Received",intent:"Sheet follows receiver only"},
@@ -476,7 +477,8 @@ export function RisoHumanEnsembleStudio(){
   return <main style={{background:"#F0E4D1",padding:18,minHeight:"100vh",font:"14px system-ui,sans-serif"}}>
     <div style={{maxWidth:1320,margin:"0 auto"}} data-km-riso27-film-editor=""
         data-km-riso27-playing={playing?"yes":"no"} data-km-riso27-fps={RISO_ENSEMBLE_FILM_FPS}
-        data-km-riso27-source-frame={frame}>
+        data-km-riso27-source-frame={frame}
+        data-km-riso28-footfall={frame>=165?"grounded":"approaching"}>
       <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO27 / 24 FPS HANDOFF FILM · SOURCE CONTACT SHEET</div>
       <h2 style={{font:"700 29px Georgia,serif",margin:"8px 0"}}>Two original figures · a printed-sheet exchange</h2>
       <p style={{fontSize:13,maxWidth:900,lineHeight:1.5}}>
@@ -488,6 +490,8 @@ export function RisoHumanEnsembleStudio(){
         and tilt are authored; original material-local pressure folds and screened compression
         track the two hand grips. This is not a force-based collision solver.
         Real RisoPrint spot-ink screens, print registration, paper pores and fibres are used.
+        The approach uses complementary grounded strides; both original boots stay planted
+        from frame 165 while the pelvis advances into the handoff.
       </p>
       <div style={{display:"flex",flexWrap:"wrap",gap:9,alignItems:"center",padding:"8px 0"}}
         data-km-riso27-acting-beats="">
@@ -500,7 +504,7 @@ export function RisoHumanEnsembleStudio(){
             background:frame===beat.frame?"#255B8E":"#F8F0E2",
             color:frame===beat.frame?"#FFF":"#355061",
           }}>{beat.label} <small>f{beat.frame}</small></button>)}
-        <small style={{color:"#63727A"}}>240 source frames · 24fps · 10 seconds</small>
+        <small style={{color:"#63727A"}}>240 source frames · 24fps · 10 seconds · {frame>=165?"both boots planted":"alternating contacts"}</small>
       </div>
       <div style={{display:"flex",flexWrap:"wrap",gap:20,alignItems:"center",padding:"12px 0"}}>
         <button type="button" aria-label={playing?"Pause Risograph ensemble":"Play Risograph ensemble"}
