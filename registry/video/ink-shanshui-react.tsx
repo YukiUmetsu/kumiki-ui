@@ -575,6 +575,60 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           " "+f(-breadth-dx)+" "+f(-height*.26)+" Z";
         return {root:[x,y] as P,d,wet:j%6===0};
       }):[];
+      // Guo Xi / Early Spring (NPM, 1072): cloud-head texture occurs
+      // on mutually INTERLOCKING stone lobes, not forty standalone
+      // cursive S-curves laid across a smooth triangular beige fill.
+      // Twelve irregular, bone-sampled positive crescent banks are
+      // connected to the five *existing* parent stratum bends.
+      // A blank curl throat is reserved between neighboring lobes.
+      const cloudBanks=isGuo?([.14,.41,.67,.85] as const).map((at,k)=>{
+        const bone=stratum[(k*2+i)%stratum.length];
+        const root=quadraticPoint(bone.top,bone.bend,bone.tip,at);
+        const sign=direction*((k+i)%3===1?-1:1);
+        const reach=(k===1?41:k===2?29:34)*
+          (.83+.32*s(seed+5011,i*43+k*17));
+        const rise=(k===1?15:11)*
+          (.74+.36*s(seed+5021,i*29+k*31));
+        const drop=(k===2?28:36)*
+          (.78+.37*s(seed+5039,i*11+k*47));
+        const cap:P=[root[0]+sign*reach*.33,root[1]-rise];
+        const lip:P=[root[0]+sign*reach*.91,root[1]-rise*.13];
+        const throat:P=[root[0]+sign*reach*.61,
+          root[1]+drop*.47];
+        const belly:P=[root[0]+sign*reach*.44,
+          root[1]+drop];
+        const rootD="M"+f(root[0])+" "+f(root[1]);
+        const outline=rootD+
+          " C"+f(root[0]+sign*reach*.1)+" "+f(root[1]-rise*.88)+
+            " "+f(cap[0]-sign*reach*.17)+" "+
+            f(cap[1]-rise*.19)+" "+f(cap[0])+" "+f(cap[1])+
+          " C"+f(cap[0]+sign*reach*.25)+" "+
+            f(cap[1]-rise*.18)+" "+f(lip[0]-sign*reach*.11)+
+            " "+f(lip[1]-rise*.49)+" "+f(lip[0])+" "+f(lip[1])+
+          " C"+f(lip[0]+sign*reach*.05)+" "+
+            f(lip[1]+drop*.22)+" "+f(throat[0]+sign*reach*.19)+
+            " "+f(throat[1]-drop*.31)+" "+
+            f(throat[0])+" "+f(throat[1])+
+          " C"+f(throat[0]-sign*reach*.12)+" "+
+            f(throat[1]-drop*.13)+" "+f(belly[0]+sign*reach*.31)+
+            " "+f(belly[1]-drop*.12)+" "+
+            f(belly[0])+" "+f(belly[1])+
+          " C"+f(root[0]+sign*reach*.18)+" "+
+            f(belly[1]+drop*.1)+" "+f(root[0]-sign*reach*.12)+
+            " "+f(root[1]+drop*.22)+" "+
+            f(root[0])+" "+f(root[1])+" Z";
+        const curl=rockLoadedCubicRibbon(root,
+          [root[0]+sign*reach*.08,root[1]-rise*.77],
+          [lip[0]-sign*reach*.17,lip[1]-rise*.34],lip,
+          2.1+1.9*s(seed+5077,i*31+k*19),
+          seed+5083+i*103+k*23);
+        const recess=rockLoadedCubicRibbon(throat,
+          [throat[0]-sign*reach*.19,throat[1]-drop*.23],
+          [belly[0]+sign*reach*.21,belly[1]-drop*.16],belly,
+          1.7+1.8*s(seed+5101,i*47+k*13),
+          seed+5107+i*53+k*37);
+        return {root,outline,curl,recess,tonal:tone+"cloud"+k};
+      }):[];
       // Fan Kuan's original monumental rock has grouped cliff *mass*:
       // two asymmetrically carved dark recesses attach to EACH positive
       // stone face. These are broad angular geologic facets, not more
@@ -667,6 +721,31 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
             data-km-master-moss-wet={wet?"wet":"dry"}
             d={d} fill={wet?"#342c28":"#554638"}
             opacity={f((wet?.8:.55)*(1-.2*mist))}/>)}
+        </g>}
+        {isGuo&&<g clipPath={"url(#"+clip+")"}
+          data-km-master-cloud-geology="">
+          {cloudBanks.map(({root,outline,curl,recess,tonal},k)=>
+            <g key={k} data-km-master-cloud-bank=""
+              data-km-master-cloud-bank-root={f(root[0])+","+f(root[1])}
+              data-km-master-cloud-bank-index={k}>
+              <defs>
+                <linearGradient id={tonal} x1="15%" y1="0%" x2="85%" y2="96%">
+                  <stop offset="0" stopColor="#382f29" stopOpacity=".91"/>
+                  <stop offset=".27" stopColor="#4d4135" stopOpacity=".72"/>
+                  <stop offset=".69" stopColor="#715e4c" stopOpacity=".41"/>
+                  <stop offset="1" stopColor="#99836b" stopOpacity="0"/>
+                </linearGradient>
+              </defs>
+              <path data-km-master-cloud-mass="" d={outline}
+                fill={"url(#"+tonal+")"}
+                opacity={f((k===1?.78:.64)*(1-.17*mist))}/>
+              <path data-km-master-cloud-crown="" d={curl}
+                fill="#39322b"
+                opacity={f((k%2===0?.73:.6)*(1-.21*mist))}/>
+              <path data-km-master-cloud-recess="" d={recess}
+                fill="#5a4b3d"
+                opacity={f((k%2===0?.55:.46)*(1-.2*mist))}/>
+            </g>)}
         </g>}
         {isFan&&<g clipPath={"url(#"+clip+")"}
           data-km-master-fan-geology="">
