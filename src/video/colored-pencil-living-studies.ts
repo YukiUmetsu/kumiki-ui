@@ -914,6 +914,9 @@ export function pencilLivingStudyDrawing({
       craft:subject==="fox"&&part.id==="whisker-roots"?
         undefined:locallyRooted&&region.craft?{
         ...region.craft,pigmentDensity:furDensity,
+        // Opt-in optical mixing: keep tonal light planes, but pigment marks
+        // now own most of the fox coat's perceptual weight at native 1x.
+        tonalSupportWeight:.64,
       }:region.craft,
       clipDetails:part.id==="whisker-roots"||
         (subject==="fox"&&(part.id==="nose"||part.id==="muzzle"||
