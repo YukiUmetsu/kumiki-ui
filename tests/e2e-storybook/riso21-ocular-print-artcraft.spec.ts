@@ -37,16 +37,34 @@ test("RISO21 both original faces: 16:9/9:16, anatomy states, distinct inks",asyn
         await expect(svg.locator('[data-km-riso-part="eye-iris-grain"]')).toHaveCount(1);
         await expect(svg.locator('[data-km-riso-part="eye-lower-orbit-engraving"]')).toHaveCount(1);
       }
-      await people.screenshot({path:info.outputPath(aspect+"-both-faces-"+frame+".png"),animations:"disabled"});
+      // Every actor is a separate rendered proof. A multi-match locator's
+      // screenshot() is a Playwright strictness error and had never been run.
+      for(const actor of ["courier","paper-artist"] as const){
+        await page.locator('[data-km-riso21-actor="'+actor+'"]').screenshot({
+          path:info.outputPath(aspect+"-"+actor+"-"+frame+".png"),animations:"disabled",
+        });
+      }
+      await page.locator("main").screenshot({
+        path:info.outputPath(aspect+"-pair-"+frame+".png"),animations:"disabled",
+      });
     }
   }
+  // A plate-separated physical print must be inspectable, not just asserted.
   await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("blue");
+  await page.locator("main").screenshot({
+    path:info.outputPath("blue-only-faces.png"),animations:"disabled",
+  });
   await expect(page.locator('[data-km-riso-part="eye-iris-grain"]')).toHaveCount(0);
   await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("red");
+  await page.locator("main").screenshot({
+    path:info.outputPath("red-only-faces.png"),animations:"disabled",
+  });
   await expect(page.locator('[data-km-riso-part="eye-lash-wedges"]')).toHaveCount(0);
   await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("both");
   await page.getByRole("combobox",{name:"RISO21 screening method"}).selectOption("fm");
   await expect(page.locator('[data-km-riso-screen-mode="fm"]')).toHaveCount(2);
+  await page.getByRole("slider",{name:"RISO21 dot gain"}).fill("0.5");
+  await expect(page.locator('svg[data-km-riso-dot-gain="0.5"]')).toHaveCount(2);
   await page.getByRole("checkbox",{name:"RISO21 region IDs"}).check();
   await expect(page.getByText(/iris-screen-left/)).toBeVisible();
   expect(errors).toEqual([]);
