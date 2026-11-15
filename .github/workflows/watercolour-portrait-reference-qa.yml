@@ -1,0 +1,42 @@
+name: WC16 watercolor portrait reference atlas proof
+# Retired portrait pixels must not reappear in Storybook. Browser QA is
+# scoped to the replacement atlas and explicit film-slot rejection.
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/video/watercolour-portrait-reference-*'
+      - 'src/video/watercolour-portrait*.stories.tsx'
+      - 'src/film/film-slots.tsx'
+      - 'tests/watercolour-portrait-reference-retirement.test.tsx'
+      - 'tests/e2e-storybook/watercolour-portrait-reference-atlas.spec.ts'
+      - '.github/workflows/watercolour-portrait-reference-qa.yml'
+permissions:
+  contents: read
+concurrency:
+  group: watercolor-portrait-reference-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  reference-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.15.0'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Retired figure inventory and protected heron renderer
+        run: npx vitest run tests/watercolour-portrait-reference-retirement.test.tsx
+      - run: npx playwright install --with-deps chromium
+      - name: Inspect referenced artists in existing Storybook Film Looks
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-portrait-reference-atlas.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wc16-original-art-reference-atlas
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
