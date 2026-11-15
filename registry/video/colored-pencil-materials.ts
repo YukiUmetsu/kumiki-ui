@@ -99,7 +99,7 @@ export interface PencilMaterialInput {
 
 /**
  * Any valid authored SVG silhouette can use a material recipe. Transparent
- * glass and optical cast shadows omit paper support; other recipes are fully
+ * glass, optical cast shadows and skin-light glazes omit paper support; other recipes are fully
  * opaque over scenery. Three passes remain bounded by CP1's safeguards.
  */
 export function createPencilMaterialRegion(input: PencilMaterialInput): PencilRegion {
