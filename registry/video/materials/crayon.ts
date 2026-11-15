@@ -269,21 +269,23 @@ export function crayonNibPath(mark: CrayonMark, progress = 1): string {
 export function crayonPaperHeight(x:number,y:number,paperSeed:number):number{
   if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isSafeInteger(paperSeed))
     throw new RangeError("Invalid crayon paper coordinates or seed");
-  const field=(scale:number,salt:number)=>{
-    const gx=x/scale,gy=y/scale;
+  // Repeatable 176-unit paper tile shared by the SVG pigment pattern.
+  // Toroidal lattice indexing prevents a digital seam at tile boundaries.
+  const field=(cells:number,salt:number)=>{
+    const gx=x*cells/176,gy=y*cells/176;
     const ix=Math.floor(gx),iy=Math.floor(gy);
     const sx=gx-ix,sy=gy-iy;
     const smooth=(v:number)=>v*v*(3-2*v);
+    const wrap=(i:number)=>((i%cells)+cells)%cells;
     const hash=(i:number,j:number)=>crayonHash(paperSeed,
-      (Math.imul(i,73856093)^Math.imul(j,19349663))|0,salt);
+      (Math.imul(wrap(i),73856093)^Math.imul(wrap(j),19349663))|0,salt);
     const top=hash(ix,iy)+(hash(ix+1,iy)-hash(ix,iy))*smooth(sx);
     const bottom=hash(ix,iy+1)+(hash(ix+1,iy+1)-hash(ix,iy+1))*smooth(sx);
     return top+(bottom-top)*smooth(sy);
   };
-  // Raised paper fibers and broader compressed depressions. Fixed UVs make
-  // successive crayon colors interact with identical tooth at each point.
-  return Math.max(0,Math.min(1,.39*field(5.2,4121)+
-    .37*field(1.65,4122)+.24*field(.63,4123)));
+  // All strokes on the same page sample the same tactile cell structure.
+  return Math.max(0,Math.min(1,.39*field(32,4121)+
+    .37*field(88,4122)+.24*field(352,4123)));
 }
 
 export function crayonDryNibPath(
