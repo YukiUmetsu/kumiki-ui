@@ -130,6 +130,10 @@ export interface CrayonContourElement extends CrayonBase {
   color: CrayonColor;
   width: number;
   opacity?: number;
+  /** Source-directed opaque broken crayon pigment, not a digital hairline. */
+  waxContact?: "line"|"dry-wax";
+  /** 0.2..1; only active for dry-wax contour contact. */
+  waxPressure?:number;
 }
 /** Authored drawing anchor on a moving element, prior to camera framing. */
 export interface CrayonAnchorRef { elementId: string; anchor: {x:number; y:number} }
@@ -410,6 +414,13 @@ export function inspectCrayonScene(input: unknown): string[] {
         if (!finite(node.width) || node.width <= 0 || node.width > 64) errors.push(p + ".width out of bounds");
         if (node.opacity !== undefined && (!finite(node.opacity) || node.opacity < 0 || node.opacity > 1))
           errors.push(p + ".opacity out of bounds");
+        if(node.waxContact!==undefined && node.waxContact!=="line" &&
+          node.waxContact!=="dry-wax")
+          errors.push(p+".waxContact must be line or dry-wax");
+        if(node.waxPressure!==undefined &&
+          (!finite(node.waxPressure)||node.waxPressure<.2||
+            node.waxPressure>1||node.waxContact!=="dry-wax"))
+          errors.push(p+".waxPressure requires valid dry-wax contact");
         if (node.poses !== undefined || node.poseCues !== undefined) {
           if (node.drawings !== undefined)
             errors.push(p + ".drawings and named poses cannot be combined");
