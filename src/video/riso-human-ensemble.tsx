@@ -96,8 +96,18 @@ const facePieces:readonly RisoCharacterPart[]=[
     d:"M-38 -29 C-45 -57 -30 -74 -8 -74 Q15 -81 33 -65 Q46 -53 40 -26 Q46 -4 36 21 Q27 26 24 13 Q34 -5 27 -29 Q22 -46 11 -52 Q-17 -57 -28 -35 Q-29 -8 -26 11 Q-31 23 -40 13 Q-46 2 -38 -29 Z"},
   {id:"face",joint:"head",plate:"blue",paint:"solid",knockoutOnly:true,
     d:"M-29 -38 C-26 -54 -12 -59 5 -56 Q26 -54 30 -35 Q34 -12 25 11 Q16 29 -2 31 Q-23 26 -30 8 Q-34 -10 -29 -38 Z"},
+  // RISO25 Paper Artist: a smaller, tucked helix and concha; distinct source
+  // ear geometry from Courier, with ear/lobule overprinted beneath her bob.
   {id:"ear-left",joint:"head",plate:"blue",paint:"solid",
-    d:"M-28 -11 Q-36 -16 -37 -7 Q-38 3 -30 7 L-28 4 Q-35 0 -33 -6 Q-31 -9 -28 -7 Z"},
+    d:"M-28 -10.8 C-32 -14.4 -37.3 -11.6 -38.1 -6.3 C-39.3 -.7 -36.6 5 -32.6 6.9 Q-29.7 7.4 -28.3 4.8 L-29.4 2.8 Q-32 5 -34.6 .6 C-37.1 -4 -34.4 -9.2 -29.6 -8.3 Z"},
+  {id:"ear-helix-fold",joint:"head",plate:"blue",paint:"solid",
+    d:"M-34.2 -10 C-37.1 -8 -38 -4.5 -36.6 -1.8 Q-35.7 -4.5 -34 -8.5 Z"},
+  {id:"ear-concha-pocket",joint:"head",plate:"red",paint:"solid",
+    d:"M-33.0 -5.3 Q-32.1 -6.1 -31.2 -4.9 Q-31.4 -3.7 -32.4 -3.9 Q-33.3 -4.3 -33.0 -5.3 Z"},
+  {id:"ear-tragus-root",joint:"head",plate:"blue",paint:"solid",
+    d:"M-30.6 -2.2 Q-32 -.8 -31.6 .8 Q-30.2 .9 -29.9 -.7 Z"},
+  {id:"ear-lobule-seam",joint:"head",plate:"red",paint:"solid",
+    d:"M-35 3.5 Q-32.6 6.5 -30.7 5.6 Q-33 7 -35.4 5.2 Z"},
   {id:"face-outline",joint:"head",plate:"blue",paint:"solid",
     d:"M-29 -37 C-27 -51 -14 -58 2 -57 Q23 -56 29 -37 Q35 -13 26 11 C21 24 6 32 -5 30 Q-25 24 -30 8 L-27 7 Q-24 23 -4 27 C10 29 20 18 23 8 Q31 -12 26 -34 Q23 -51 2 -53 Q-17 -55 -25 -34 Z"},
   {id:"temple-tones",joint:"head",plate:"red",paint:"screen",
@@ -162,6 +172,31 @@ const facePieces:readonly RisoCharacterPart[]=[
     d:"M-10 14 L-7 14 L-7 16 Z M8 12 L11 11 L9 15 Z",
     expressions:{speak:"M-8 12 L-5 10 L-6 14 Z M7 12 L10 13 L8 16 Z",
       smile:"M-13 10 Q-12 13 -10 15 L-11 15 Z M11 10 Q15 8 16 5 L15 11 Z"}},
+  // RISO25 / expressed midface print masters. This actor's nose, mouth
+  // and cheekbone directions differ from Courier; expressive contours are
+  // redrawn at the two authored visemes, not stretched with a procedural rig.
+  {id:"nasal-sidewall-line",joint:"head",plate:"red",paint:"solid",
+    d:"M1.7 -9.7 Q3.4 -7 3.4 -4.4 Q2.8 -5.7 2.1 -8.1 Z"},
+  {id:"nasal-ala-fold",joint:"head",plate:"red",paint:"solid",
+    d:"M7.9 5.1 Q10.2 5.9 10.7 7.8 Q10.2 8.5 9.4 8.5 Q10.1 7 7.7 6.2 Z"},
+  {id:"upper-lip-engraving",joint:"head",plate:"blue",paint:"solid",
+    d:"M-7.3 13.6 Q-4 12.8 -1 14.4 Q1 14 4.8 12.9 L7.6 13.3 Q4.3 14.5 1 15.2 Q-2.5 14.1 -6.4 14.8 Z",
+    expressions:{
+      speak:"M-6.4 12.7 Q-2 10.3 1.5 10.6 Q4.2 11.2 6 13.2 Q1.4 11.5 -2 11.8 Q-4.5 12.1 -6.4 13.2 Z",
+      smile:"M-11.7 10.6 Q-3 16.8 11.6 10.1 Q6 15 .1 15.7 Q-7.7 14.3 -11.7 11.5 Z",
+    }},
+  {id:"nasolabial-flow",joint:"head",plate:"red",paint:"solid",
+    d:"M-15.6 5.4 Q-16.6 10.2 -13.6 13.2 Q-15.9 11.2 -16.1 7.4 Z M13.0 5.6 Q15.1 9.2 13.5 12.3 Q14.4 9.1 12.7 7.1 Z",
+    expressions:{
+      smile:"M-16.6 4.2 Q-18.1 9.8 -14.3 13.5 Q-17.3 11.1 -17.2 6.8 Z M14.0 4.8 Q16.9 9.7 14.5 13.4 Q15.7 9.4 13.6 6.1 Z",
+      speak:"M-15.6 5.8 Q-17.1 9.1 -13.5 12.7 Q-16 10.8 -16.2 7.8 Z M13.1 6 Q15.8 9.3 13.2 12.1 Q14.1 9.7 12.8 7.2 Z",
+    }},
+  {id:"labiomental-crease",joint:"head",plate:"blue",paint:"solid",
+    d:"M-4.5 24.5 Q1 26.3 6 23.7 Q2.8 26 -2.7 25.8 Z",
+    expressions:{
+      smile:"M-6.5 26.3 Q1 29.1 8 24.8 Q3.2 28.1 -3.1 28.2 Z",
+      speak:"M-5.5 24.8 Q.5 28.2 6.5 24 Q2.5 27.5 -3.1 27.3 Z",
+    }},
   {id:"chin-tone",joint:"head",plate:"red",paint:"screen",
     d:"M-8 25 Q2 29 14 23 Q11 29 1 30 Z"},
   {id:"hair-fringe",joint:"head",plate:"blue",paint:"solid",
