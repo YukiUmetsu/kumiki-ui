@@ -6,6 +6,7 @@ import {risoSheetViewBox} from "../../registry/video/riso-character-sheet-react"
 import type {RisoCharacterSpec} from "../../registry/video/riso-character";
 import type {RisoCharacterMeshSheet,RisoMeshFrameRegion,RisoMeshPoint} from "../../registry/video/riso-proportion-mesh";
 import {COURIER,PAPER_BIRD} from "./riso-character-demo";
+import {RisoHumanEnsembleStudio} from "./riso-human-ensemble";
 import {RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET} from "./riso-character-mesh-sheets";
 
 type PlateMode="both"|"blue"|"red";
@@ -308,4 +309,11 @@ export const CourierHumanAnatomy:StoryObj<typeof meta>={
   name:"RISO13 · Human Face and Finger Construction",
   args:{actor:"courier"},
   render:()=> <CourierAnatomyComparison/>,
+};
+
+/** RISO14: two differently authored human actors with frame-bound paper prop. */
+export const HumanEnsembleActing:StoryObj<typeof meta>={
+  name:"RISO14 · Two-Human Print Exchange",
+  args:{actor:"courier"},
+  render:()=> <RisoHumanEnsembleStudio/>,
 };
