@@ -1,21 +1,25 @@
 import { expect, test } from "@playwright/test";
 
-// Dedicated real-Chromium proof; expensive visual checks remain outside routine CI.
-const root = "/iframe.html?id=video-production-film-looks--";
-const studies = [
-  { id: "paper-craft-gallery", medium: "layered" },
-  { id: "paper-craft-kirigami", medium: "kirigami" },
-  { id: "paper-craft-pop-up", medium: "pop-up" },
-  { id: "paper-craft-lightbox", medium: "lightbox" },
-  { id: "paper-craft-shadow-puppet", medium: "shadow-puppet" },
+// All paper craft stories are under one Film Looks / Paper Craft folder.
+const root="/iframe.html?id=video-production-film-looks-paper-craft--";
+const scene=(id:string,args?:string)=>root+id+"&viewMode=story"+(args?"&args="+args:"");
+const studies=[
+  { medium:"layered", button:"layered" },
+  { medium:"kirigami", button:"kirigami" },
+  { medium:"pop-up", button:"pop-up" },
+  { medium:"lightbox", button:"lightbox" },
+  { medium:"shadow-puppet", button:"shadow-puppet" },
 ] as const;
-const scene = (id: string) => root + id + "&viewMode=story";
-test("Paper Craft original five media render genuinely different opaque cut-paper studies",async({page},info)=>{
+
+test("One Garden page supports all five paper media without duplicate Storybook pages",async({page},info)=>{
   const errors:string[]=[];
   page.on("pageerror",err=>errors.push(err.message));
+  await page.goto(scene("gallery"));
+  const canvas=page.locator("svg[data-km-paper-craft]");
   for(const study of studies){
-    await page.goto(scene(study.id));
-    const canvas=page.locator("svg[data-km-paper-craft]");
+    if(study.medium!=="layered"){
+      await page.locator('[data-paper-medium-link="'+study.button+'"]').click();
+    }
     await expect(canvas).toBeVisible();
     await expect(canvas).toHaveAttribute("data-km-paper-style",study.medium);
     await expect(canvas).toHaveAttribute("viewBox","0 0 960 540");
@@ -40,10 +44,11 @@ test("Paper Craft original five media render genuinely different opaque cut-pape
   }
   expect(errors).toEqual([]);
 });
-test("Paper Craft portrait crop, frame seek and reduced-motion assembly",async({page},info)=>{
+
+test("Garden page portrait, frame seek and reduced-motion assembly",async({page},info)=>{
   const errors:string[]=[];
   page.on("pageerror",err=>errors.push(err.message));
-  await page.goto(scene("paper-craft-portrait"));
+  await page.goto(scene("gallery","aspect:portrait"));
   const svg=page.locator("svg[data-km-paper-craft]");
   await expect(svg).toBeVisible();
   await expect(svg).toHaveAttribute("viewBox","0 0 540 960");
@@ -64,35 +69,37 @@ test("Paper Craft portrait crop, frame seek and reduced-motion assembly",async({
   expect(errors).toEqual([]);
 });
 
-test("ArtCraft botanical sheets have connected detail, real holes and correct two-aspect framing", async ({page},info)=>{
+test("One Botanical page renders every stock and aspect with genuine paper apertures",async({page},info)=>{
   const errors:string[]=[];
   page.on("pageerror",err=>errors.push(err.message));
-  for(const {id,aspect} of [
-    {id:"paper-craft-botanical-nocturne",aspect:"landscape"},
-    {id:"paper-craft-botanical-ivory",aspect:"landscape"},
-    {id:"paper-craft-botanical-portrait",aspect:"portrait"},
-    {id:"paper-craft-chromatic-rainforest",aspect:"landscape"},
-    {id:"paper-craft-chromatic-wildflower",aspect:"landscape"},
-    {id:"paper-craft-chromatic-portrait",aspect:"portrait"},
+  for(const {palette,aspect} of [
+    {palette:"nocturne",aspect:"landscape"},
+    {palette:"ivory",aspect:"landscape"},
+    {palette:"nocturne",aspect:"portrait"},
+    {palette:"rainforest",aspect:"landscape"},
+    {palette:"wildflower",aspect:"landscape"},
+    {palette:"rainforest",aspect:"portrait"},
   ] as const){
-    await page.goto(scene(id));
+    await page.goto(scene("botanical","palette:"+palette+";aspect:"+aspect+";colorLayers:1;detail:1"));
     const svg=page.locator("svg[data-km-paper-craft]");
     await expect(svg).toBeVisible();
     await expect(svg).toHaveAttribute("viewBox",aspect==="landscape"?"0 0 960 540":"0 0 540 960");
     const layers=svg.locator("[data-km-paper-layer]");
     const count=await layers.count();
-    expect(count).toBeGreaterThan(60);
     expect(count).toBeGreaterThan(106);
     expect(count).toBeLessThanOrEqual(128);
     const ids=await layers.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("data-km-paper-layer")));
     expect(new Set(ids).size).toBe(count);
-    for(const id of ["fern-0","fern-0-chroma","flower-0-outer-stock","flower-0-top","flower-0-inner-stock","moth-left-fore-lining","moth-left-fore","moth-left-fore-panel","moth-right-fore-panel","moth-right-fore","moth-thorax"]){
+    for(const id of ["fern-0","fern-0-chroma","flower-0-outer-stock",
+      "flower-0-top","flower-0-inner-stock","moth-left-fore-lining",
+      "moth-left-fore","moth-left-fore-panel","moth-right-fore-panel",
+      "moth-right-fore","moth-thorax"]){
       await expect(svg.locator('[data-km-paper-layer="'+id+'"]')).toBeVisible();
     }
     const colors=await layers.locator('path[fill-rule="evenodd"]').evaluateAll(nodes=>
       [...new Set(nodes.map(n=>n.getAttribute("fill")))]);
     expect(colors.length).toBeGreaterThan(18);
-    await svg.screenshot({animations:"disabled",path:info.outputPath(id+".png")});
+    await svg.screenshot({animations:"disabled",path:info.outputPath("botanical-"+palette+"-"+aspect+".png")});
   }
   expect(errors).toEqual([]);
 });
