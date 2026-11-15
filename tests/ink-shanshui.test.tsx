@@ -487,6 +487,19 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       // Brush-pressure station geometry replaces a two-C vector lozenge:
       // there should be many continuously loaded pressure transitions.
       expect(blades.every(d=>(d.match(/ C/g)??[]).length>=17)).toBe(true);
+      // At high detail every loaded blade carries three short, *internal*
+      // direction-following dry bristle marks, not detached paper speckles.
+      const internal=[...full.matchAll(
+        /data-km-bamboo-internal-bristle="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      const satellites=[...full.matchAll(
+        /data-km-bamboo-satellite-bristle="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      expect(internal).toHaveLength(blades.length*3);
+      expect(satellites).toHaveLength(63*3);
+      expect([...internal,...satellites].every(path=>
+        path.startsWith("M")&&path.includes(" Q")&&
+        !/NaN|undefined|Infinity/.test(path))).toBe(true);
       expect(full).not.toMatch(/NaN|Infinity|undefined/);
       const sparse=renderToStaticMarkup(createElement(InkShanshuiStage,{
         frame:153,controls:{...DEFAULT_SHANSHUI,scene,detail:.35},
@@ -494,6 +507,8 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect((sparse.match(/data-km-shanshui-bamboo-leaf=""/g)??[]))
         .toHaveLength(39);
       expect(sparse).not.toContain("data-km-bamboo-dry-lift");
+      expect(sparse).not.toContain("data-km-bamboo-internal-bristle");
+      expect(sparse).not.toContain("data-km-bamboo-satellite-bristle");
     }
   });
 
