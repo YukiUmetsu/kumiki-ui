@@ -496,6 +496,12 @@ function MasterInkSourceComparison(){
   const [zoom,setZoom]=useState(1.65);
   const [cropX,setCropX]=useState(549);
   const [cropY,setCropY]=useState(151);
+  // Camera-only QA: all four specimen views keep the identical native 960x540
+  // renderer. Film view reveals composition; crop view examines actual pigment.
+  const [view,setView]=useState<"crop"|"film">("crop");
+  const inspect=(scale:number,x:number,y:number)=>{
+    setView("crop");setZoom(scale);setCropX(x);setCropY(y);
+  };
   const refs=[
     {school:"fuchun",title:"Huang Gongwang · long hemp fibre",
       url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975",
@@ -517,8 +523,13 @@ function MasterInkSourceComparison(){
   // In the original 960×540 film, the middle peak is centered near 549×151.
   // We crop only using browser transforms; never paint a second test-only SVG.
   const width=420,height=308;
-  const camera="translate("+ (width/2-zoom*cropX)+"px,"+
-    (height/2-zoom*cropY)+"px) scale("+zoom+")";
+  // Preserve the complete native 16:9 film without cropping or distortion.
+  const fitted=Math.min(width/960,height/540);
+  const camera=view==="film"
+    ?"translate("+((width-960*fitted)/2)+"px,"+
+      ((height-540*fitted)/2)+"px) scale("+fitted+")"
+    :"translate("+(width/2-zoom*cropX)+"px,"+
+      (height/2-zoom*cropY)+"px) scale("+zoom+")";
   return <main data-testid="shanshui-master-ink-study"
     style={{padding:24,minHeight:"100vh",background:"#e9e2d5",
       color:"#352c23",font:"14px/1.5 system-ui",display:"grid",
@@ -534,6 +545,8 @@ function MasterInkSourceComparison(){
         geometric brushwork. Inspect structural rock mass first, then named
         calligraphic flow, then individual loaded/dry edge details.
         The masters' museum works are references, not traced image textures.
+        Start with full-frame topology and voids, then inspect the same
+        rendered mountain at macro, meso and micro scales.
       </p>
     </header>
     <div data-testid="shanshui-master-controls"
@@ -556,9 +569,28 @@ function MasterInkSourceComparison(){
         </label>)}
       <button type="button" style={style.button}
         onClick={()=>{setFrame(145);setSeed(71);setDetail(1);setMist(.35);
-          setInk(.9);setZoom(1.65);setCropX(549);setCropY(151);}}>
+          setInk(.9);inspect(1.65,549,151);}}>
         Reset all four studies
       </button>
+    </div>
+    <div data-testid="shanshui-master-camera-presets" role="group"
+      aria-label="ArtCraft inspection camera presets"
+      style={{display:"flex",flexWrap:"wrap",gap:9,alignItems:"center"}}>
+      <button type="button" style={style.button} aria-pressed={view==="film"}
+        onClick={()=>setView("film")}>Full film · 16:9</button>
+      <button type="button" style={style.button}
+        aria-pressed={view==="crop"&&zoom===1.65&&cropX===549&&cropY===151}
+        onClick={()=>inspect(1.65,549,151)}>Summit · macro</button>
+      <button type="button" style={style.button}
+        aria-pressed={view==="crop"&&zoom===2.4&&cropX===552&&cropY===177}
+        onClick={()=>inspect(2.4,552,177)}>Rock strata · meso</button>
+      <button type="button" style={style.button}
+        aria-pressed={view==="crop"&&zoom===3.35&&cropX===553&&cropY===207}
+        onClick={()=>inspect(3.35,553,207)}>Brush edge · micro</button>
+      <span style={{font:"12px/1.45 system-ui",color:"#675745"}}>
+        {view==="film"?"Uncropped 960×540 native frame · fitted to panel":
+          "Actual scene-space crop · no raster scaling of a source image"}
+      </span>
     </div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(440px,1fr))",
       gap:18,alignItems:"start"}}>
@@ -570,8 +602,9 @@ function MasterInkSourceComparison(){
         return <section key={ref.school} data-km-master-study={ref.school}
           style={{display:"grid",gap:8,maxWidth:460}}>
           <h2 style={{font:"500 19px Georgia,serif",margin:0}}>{ref.title}</h2>
-          <div style={{width,height,position:"relative",overflow:"hidden",
-            border:"1px solid #9b8a74",background:"#f3e6cd"}}>
+          <div data-km-master-camera-view={view}
+            style={{width,height,position:"relative",overflow:"hidden",
+              border:"1px solid #9b8a74",background:"#f3e6cd"}}>
             <div style={{position:"absolute",left:0,top:0,
               transformOrigin:"top left",transform:camera}}>
               <InkShanshuiStage frame={frame} controls={controls}/>
@@ -589,10 +622,13 @@ function MasterInkSourceComparison(){
       })}
     </div>
     <p style={{margin:0,fontSize:12,maxWidth:1050}}>
-      ArtCraft release hold: historical labels identify observed craftsmanship
-      only. The shapes are newly authored, not paintings copied from the
-      museum. Reject regular repeating scallops, randomly scattered detached
-      marks and false source parity; check the native 960×540 video.
+      ArtCraft review: five independent axes — connected structural roots,
+      calligraphic vector flow, wet/dry ink weight, clustered rhythm with
+      reserved paper, and edge-fibre texture. At full frame reject flat
+      mountains, absent atmospheric depth and generic tree silhouettes;
+      at micro scale reject repeated curves, floating cun marks and vector
+      smoothness. These newly authored paintings are NOT artist-approved
+      reconstructions of the museum works.
     </p>
   </main>;
 }
