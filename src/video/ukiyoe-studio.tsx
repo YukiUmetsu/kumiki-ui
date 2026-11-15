@@ -57,6 +57,7 @@ import type { UkiyoeEpisodeAspect, UkiyoeEpisodeSpec } from "../../registry/vide
 import { inspectUkiyoeEpisode, ukiyoeEpisode, ukiyoeEpisodeSrt, ukiyoeEpisodeStarts } from "../../registry/video/ukiyoe/ukiyoe-episode";
 import { KASA_JIZO_EPISODE } from "./ukiyoe-kasa-jizo";
 import { URASHIMA_EPISODE } from "./ukiyoe-urashima";
+import { MOMOTARO_EPISODE } from "./ukiyoe-momotaro";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -314,7 +315,7 @@ function UkiyoeFilmPlayer({ shots, kasumi, filmId, title, kicker, description, i
 // ---- Episode template ----------------------------------------------------------------------------------------------------------------
 
 /** A folktale episode built with `ukiyoeEpisode()`: title card, narrated shots with mist transitions, end card, captions and .srt. */
-const EPISODES: readonly UkiyoeEpisodeSpec[] = [KASA_JIZO_EPISODE, URASHIMA_EPISODE];
+const EPISODES: readonly UkiyoeEpisodeSpec[] = [KASA_JIZO_EPISODE, URASHIMA_EPISODE, MOMOTARO_EPISODE];
 const EPISODE_IDS = EPISODES.map(e => e.id);
 const EPISODE_LABELS = Object.fromEntries(EPISODES.map(e => [e.id, e.title]));
 

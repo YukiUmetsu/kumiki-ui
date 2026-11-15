@@ -1387,6 +1387,51 @@ Storybook has **Parades**.
 - No video render yet.
 - Nobody has done a human visual review yet.
 
+## Momotarō (episode E3, 2026-11-15)
+
+**Sources**:
+
+- Utagawa Toyoharu's *Momotarō and His Animal Friends Conquer the Demons* (Wikimedia Commons, public domain);
+- Yoshitoshi's *Momotarō Goes to Devil's Island* (Commons, public domain);
+- the Momotarō inrō by Kogyoku Tokayo (Met 45583, CC0).
+
+**What they show.**
+
+- **Toyoharu.** The beaten oni crawl and bow, with the treasure heaped on a tray: tied sacks, red coral, the mallet,
+  the hat and straw cloak of invisibility.
+- **Yoshitoshi.** Momotarō in a headband with a sword. The monkey wears a red vest and the dog a red scarf, and a tall
+  nobori banner flies with a small streaming flag at its head.
+- **The inrō.** Momotarō with a pack on his back, the dog sitting before him.
+
+**What was built.**
+
+- `ukiyoe-treasure.ts`: banner, dumplings, treasure heap, handcart.
+- `src/video/ukiyoe-momotaro.ts`: eight shots, reusing the splitting peach, the oni fight, the animal rigs, Onigashima
+  and the boats.
+
+**Review rounds.**
+
+1. **Art sheet.** The dog read as a fox. The episode now draws it white, the folktale dog.
+2. **Landscape stills.**
+   - The peach sat in the fire pit, and the baby was too small.
+   - The country sky was pink to the top.
+   - The monkey never left its tree. For creatures, `leap` is an in-place jump; `hop` travels. It then landed on the
+     dog and now lands on Momotarō's other side, turned to face him.
+   - The grandparents were cut at the end card's edge.
+3. **Portrait stills.** The boat, the surrender and the homecoming lost their subjects at the edge. The cameras now pan
+   with the action.
+4. **Checks.** `film:check` passed. The script check, including caption covers, reports nothing. `film:review` of both
+   outputs found 0 errors.
+
+**Not done.**
+
+- The animals' costumes (vest, scarf).
+- The oni's kneeling loincloth reads as tents.
+- The fight shows the animals' attacks briefly, not Toyoharu's melee.
+- No voice.
+- No video render yet.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

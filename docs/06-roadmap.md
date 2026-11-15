@@ -197,8 +197,8 @@ Video renders wait for the owner.
 |---|---|---|
 | **E1 — Kasa Jizō** | 12 | Delivered 2026-11-15 (PR #401). |
 | **E2 — Urashima Tarō** | 5 | Delivered 2026-11-15. New: Dragon Palace people and treasures (`ukiyoe-ryugu.ts`). |
-| **E3 — Momotarō** | 1 | Next (Urashima's end card promises it). Ready: peach, oni, dog, monkey, pheasant, Onigashima, boats. |
-| **E4 — Kaguya-hime** | 4 | Ready: bamboo (shine), Heian court, moon ascent. |
+| **E3 — Momotarō** | 1 | Delivered 2026-11-15. New: banner, kibi-dango, treasure heap and handcart (`ukiyoe-treasure.ts`). |
+| **E4 — Kaguya-hime** | 4 | Next (Momotarō's end card promises it). Ready: bamboo (shine), Heian court, moon ascent. |
 | **E5 — Tsuru no Ongaeshi** | 6 | Ready: loom (weaving), crane, snowy farmhouse. |
 | **E6 — Hanasaka Jiisan** | 8 | Ready: dog, ash particles, cherry. Needs blossoms bursting on bare trees. |
 | **E7 — Issun-bōshi** | 3 | Needs a tiny hero in a bowl boat with a needle sword. Ready: oni, uchide-no-kozuchi. |

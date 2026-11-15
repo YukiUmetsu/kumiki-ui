@@ -30,6 +30,7 @@
 - `ukiyoe-realms.ts`: the other realms (sea palace, moon, Milky Way, rock cave, oni island) and `realmScene()`.
 - `ukiyoe-parade.ts`: animal heads and tails for `look.animal`, the `kago` palanquin, `procession()` and `paradeScene()`.
 - `ukiyoe-village.ts`: New Year village goods (straw hats, rice bales, a loaded sled) and the walking jizō look.
+- `ukiyoe-treasure.ts`: the hero's gear and the oni's treasure (`nobori` and `dango` props, `takara` heap, `kuruma` handcart).
 - `ukiyoe-ryugu.ts`: Dragon Palace people and treasures (dragon crown, tamatebako held and opening, Otohime, Dragon King, Urashima, `agedLook()`).
 - `ukiyoe-film-slot.tsx`: the `ukiyoe-scene` and `ukiyoe-kasumi` slots, so film documents render UKIYO1 shots in Storybook, `film:review` and `film:render`.
 - `ukiyoe-episode.ts` (registry item `ukiyoe-episode`, which also needs `film-document`): the YouTube episode template.
@@ -451,6 +452,16 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
 - **Looks.** `UKIYOE_OTOHIME_LOOK` (dragon crown, long hair, seigaiha robe over vermilion and green, stole, fan),
   `UKIYOE_RYUJIN_LOOK` (dragon crown, white hair and beard, red robe), `UKIYOE_URASHIMA_LOOK`.
 
+### Hero's gear and the oni's treasure
+
+- **Prop `nobori`.** A tall banner held upright: the white cloth tied along the pole, a peach crest in place of lettering,
+  a little streaming flag at the head.
+- **Prop `dango`.** Millet dumplings (kibi-dango) on a fold of paper, held out to be given.
+- **Motif `takara`.** The treasure heap on a lacquered stand: straw cloak and hat of invisibility, sacks, coral, gold
+  coins, the mallet. Params `size`, `stand`.
+- **Motif `kuruma`.** A two-wheeled handcart carrying the heap, shafts forward. Its wheels turn by `roll`, or by
+  `travel` × keyed progress, so they keep pace with the walk it follows.
+
 ### Episode template
 
 `ukiyoeEpisode(spec)` turns a folktale, written as shots and the narration over each, into one film document.
@@ -480,7 +491,7 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
 
   After that, `film:check` checks the document, and `film:review` measures the real rendered text boxes for collisions
   and clipping.
-- **Examples.** `src/video/ukiyoe-urashima.ts` (*Urashima Tarō*, eight shots, 106 s, `examples/film/ukiyoe-urashima-taro.film.json`) and `src/video/ukiyoe-kasa-jizo.ts` (compiled to `examples/film/ukiyoe-kasa-jizo.film.json`, with its `.srt`) are complete episodes: *Kasa Jizō*, six shots, 73 s. Storybook
+- **Examples.** `src/video/ukiyoe-momotaro.ts` (*Momotarō*, eight shots, 100 s, `examples/film/ukiyoe-momotaro.film.json`), `src/video/ukiyoe-urashima.ts` (*Urashima Tarō*, eight shots, 106 s, `examples/film/ukiyoe-urashima-taro.film.json`) and `src/video/ukiyoe-kasa-jizo.ts` (compiled to `examples/film/ukiyoe-kasa-jizo.film.json`, with its `.srt`) are complete episodes: *Kasa Jizō*, six shots, 73 s. Storybook
   **Episode (Kasa Jizō)** plays it in either output, with the script check and an .srt download.
 
 ### Transition
