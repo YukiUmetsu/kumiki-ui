@@ -62,3 +62,7 @@ The first code render improved the head/body silhouette but **failed a higher ar
 Changed the actual generator again: the auricular patch is located **behind** the eye, the white side-neck and throat are independent natural regions, the bill is all-dark adult male rather than an orange smiling stripe, the eye is smaller and recessed, and teal/cobalt head flecks become **directional fine engraved paper vanes**. The wing covert and breast tracts are narrower, close-toned paper cuts instead of big contrasting spots. The subject uses a uniform 1.18× sculptural composition scale (while keeping the mat/frame unchanged), in both 16:9 and 9:16.
 
 This iteration is based on inspecting real Chromium capture artifacts, not guessing from code alone. One further visual gate must inspect this corrected render and avoid claiming photo identity with the paper sculptures.
+
+### Iteration 18c — die-cut vane structure
+
+The final close-up review found wing primaries still too solid and the white throat too narrow/pointed. The 18 independently hinged wing feathers now each contain a **true, closed, physically pierced rachis slit**, so paper stock behind them shows through rather than relying on a shaded painted stripe. The white throat has been shortened into a curved side-neck patch, keeping the natural blue/chestnut/cream color break of *Alcedo atthis*. These refinements add no new cardstock actor layers and are tested against the physical contour validator.
