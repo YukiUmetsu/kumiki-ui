@@ -177,7 +177,8 @@ export interface DryPencilHeadPlate {
   readonly irisDepth:number;
   readonly skinWeaveDepth:number;
   readonly skinWeaveEvidence:Readonly<{
-    pigments:number;protectedHighlights:number;protectedEdges:number;
+    pigments:number;replacedCoarseScumbles:number;
+    protectedHighlights:number;protectedEdges:number;
     protectedAnatomy:number;
   }>;
   readonly observedIrisCounts:Readonly<{
@@ -936,6 +937,7 @@ export const createDryPencilHeadPlate=(
   }
   const skinWeaveEvidence={
     pigments:materialCounts["face-optical-weave"],
+    replacedCoarseScumbles:replacementCount,
     protectedHighlights:skinWeave.protectedHighlights,
     protectedEdges:skinWeave.protectedEdges,
     protectedAnatomy:skinWeave.protectedAnatomy,
