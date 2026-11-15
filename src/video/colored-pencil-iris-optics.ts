@@ -75,9 +75,15 @@ export interface IrisOpticalEvidence {
  */
 const observedDark=(source:PencilPhotoPixels,start:Point,end:Point,
   limit:number):boolean=>{
-  for(const t of [0,.5,1]){
+  for(const t of [0,.25,.5,.75,1]){
     const x=mix(start[0],end[0],t),y=mix(start[1],end[1],t);
-    if(x<3||y<3||x>=source.width-3||y>=source.height-3||
+    if(x<3||y<3||x>=source.width-3||y>=source.height-3)
+      return false;
+    // Test the INDIVIDUAL source pixel as well as the soft 3×3 optical
+    // neighbourhood: a 1-pixel photographed corneal catchlight otherwise
+    // averages into a dark iris and receives a spurious brown nib.
+    const direct=photo(source,x,y);
+    if(lum(direct[0],direct[1],direct[2])>limit||
       value(source,x,y)>limit)return false;
   }
   return true;
