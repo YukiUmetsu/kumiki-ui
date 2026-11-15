@@ -292,34 +292,44 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
 
 export type QuadKind = "dog" | "horse" | "cat";
 export const QUADRUPED_MOTIONS = ["idle", "walk", "trot", "canter", "gallop", "sit"] as const;
-interface QuadDef { palette: Partial<Record<RigRole, string>>; H: number; neck: number; neckAngle: number; legW: number; tail: number; tailAngle: number; head: number; toe: number; flex: number; curlFore: number; curlHind: number }
+interface QuadDef { palette: Partial<Record<RigRole, string>>; H: number; neck: number; neckAngle: number; legW: number; tail: number; tailAngle: number; head: number;
+  /** Pastern length and its standing angle above the ground (degrees). */ pastern: number; pasternAngle: number; flex: number; curlFore: number; curlHind: number }
 const QUAD: Record<QuadKind, QuadDef> = {
-  dog: { palette: { fur: "#b5793f", "fur-dark": "#7d4f27", belly: "#e9c99a", eye: "#1d1715", detail: "#2b1d14", mouth: "#3b1714", horn: "#2b1d14" }, H: 40, neck: 13, neckAngle: -132, legW: 7.5, tail: 7, tailAngle: 140, head: 1, toe: 3, flex: 9, curlFore: 50, curlHind: 30 },
-  horse: { palette: { fur: "#7a4a2c", "fur-dark": "#4f2e1a", belly: "#8d5a38", hair: "#24170f", eye: "#1d1715", detail: "#24170f", horn: "#3a3a3a", mouth: "#24170f" }, H: 55, neck: 30, neckAngle: -132, legW: 7, tail: 9, tailAngle: 48, head: 1.25, toe: 4.2, flex: 2.5, curlFore: 80, curlHind: 46 },
-  cat: { palette: { fur: "#8b8f97", "fur-dark": "#5e626a", belly: "#d9dade", eye: "#c9a227", detail: "#2a2b2e", mouth: "#4a2a2a", horn: "#2a2b2e" }, H: 31, neck: 9, neckAngle: -122, legW: 5.6, tail: 9, tailAngle: 120, head: .9, toe: 2.6, flex: 12, curlFore: 40, curlHind: 26 },
+  dog: { palette: { fur: "#b5793f", "fur-dark": "#7d4f27", belly: "#e9c99a", eye: "#1d1715", detail: "#2b1d14", mouth: "#3b1714", horn: "#2b1d14" }, H: 40, neck: 13, neckAngle: -132, legW: 7.5, tail: 7, tailAngle: 140, head: 1, pastern: 5, pasternAngle: 68, flex: 9, curlFore: 50, curlHind: 30 },
+  horse: { palette: { fur: "#7a4a2c", "fur-dark": "#4f2e1a", belly: "#8d5a38", hair: "#24170f", eye: "#1d1715", detail: "#24170f", horn: "#3a3a3a", mouth: "#24170f" }, H: 55, neck: 30, neckAngle: -132, legW: 7, tail: 9, tailAngle: 48, head: 1.25, pastern: 7.5, pasternAngle: 56, flex: 2.5, curlFore: 80, curlHind: 46 },
+  cat: { palette: { fur: "#8b8f97", "fur-dark": "#5e626a", belly: "#d9dade", eye: "#c9a227", detail: "#2a2b2e", mouth: "#4a2a2a", horn: "#2a2b2e" }, H: 31, neck: 9, neckAngle: -122, legW: 5.6, tail: 9, tailAngle: 120, head: .9, pastern: 4, pasternAngle: 70, flex: 12, curlFore: 40, curlHind: 26 },
 };
 /**
  * Gait table. Phases are listed hind-far, fore-far, hind-near, fore-near; a leg lands when (cycle + phase) wraps to 0,
  * so phase = 1 − landing time. Stride is in fore-leg lengths, cycle in frames at 30 fps.
  */
 interface GaitDef { phases: readonly number[]; stance: number; stride: number; lift: number; bob: number; bobPhase: number; bobH: 1 | 2; pitch: number; pitchPhase: number; sink: number; neck: number; neckH: 1 | 2; neckPhase: number; flex: number; flexPhase: number }
+// Walk, trot and canter let the shoulder blade and pelvis follow the legs further (more reach); the gallop keeps the
+// hips steadier so the planted legs visibly sweep from forward-sloping to back-sloping.
 const GAITS: Record<string, GaitDef> = {
   // Lateral-sequence walk: LH, LF, RH, RF a quarter apart; the head nods twice per stride.
-  walk: { phases: [0, .75, .5, .25], stance: .64, stride: 1.2, lift: .13, bob: .6, bobPhase: .2, bobH: 2, pitch: 0, pitchPhase: 0, sink: 1.4, neck: 3, neckH: 2, neckPhase: .15, flex: .25, flexPhase: .2 },
+  walk: { phases: [0, .75, .5, .25], stance: .64, stride: 1.02, lift: .13, bob: .6, bobPhase: .2, bobH: 2, pitch: 0, pitchPhase: 0, sink: 2.2, neck: 3, neckH: 2, neckPhase: .15, flex: .25, flexPhase: .2 },
   // Trot: diagonal pairs with a short suspension between them; the body is highest in the suspension.
-  trot: { phases: [0, .5, .5, 0], stance: .4, stride: 1.95, lift: .22, bob: 1.8, bobPhase: .45, bobH: 2, pitch: .8, pitchPhase: .2, sink: 1.4, neck: 2, neckH: 2, neckPhase: .3, flex: .3, flexPhase: .2 },
+  trot: { phases: [0, .5, .5, 0], stance: .4, stride: 1.95, lift: .22, bob: 1.8, bobPhase: .45, bobH: 2, pitch: .8, pitchPhase: .2, sink: 3.2, neck: 2, neckH: 2, neckPhase: .3, flex: .3, flexPhase: .2 },
   // Canter: three beats (outside hind, diagonal pair, leading fore) and a suspension; the body rocks once per stride.
-  canter: { phases: [0, .7, .7, .5], stance: .42, stride: 2.2, lift: .26, bob: 2.4, bobPhase: .96, bobH: 1, pitch: 3.4, pitchPhase: .7, sink: 2, neck: 5, neckH: 1, neckPhase: .3, flex: .6, flexPhase: .1 },
-  // Transverse gallop (Muybridge): LH, RH, LF, RF, then a gathered suspension with the legs folded under the body.
-  gallop: { phases: [0, .68, .9, .58], stance: .3, stride: 2.75, lift: .34, bob: 3, bobPhase: .86, bobH: 1, pitch: 4, pitchPhase: .57, sink: 3, neck: 7, neckH: 1, neckPhase: .43, flex: 1, flexPhase: .1 },
+  canter: { phases: [0, .7, .7, .5], stance: .42, stride: 2.2, lift: .26, bob: 2.4, bobPhase: .96, bobH: 1, pitch: 3.4, pitchPhase: .7, sink: 3.6, neck: 5, neckH: 1, neckPhase: .3, flex: .6, flexPhase: .1 },
+  // Transverse gallop, timed from Muybridge's 15-frame stride: hinds land at 0 and .1, fores at .27 and .4, each foot
+  // down for ~30%, then ~30% gathered suspension with the legs folded under the body.
+  gallop: { phases: [0, .73, .9, .6], stance: .3, stride: 3.5, lift: .38, bob: 3, bobPhase: .86, bobH: 1, pitch: 4, pitchPhase: .55, sink: 3.4, neck: 7, neckH: 1, neckPhase: .43, flex: 1, flexPhase: .1 },
   // Rotary gallop (dogs, cats): LH, RH, RF, LF; extended and gathered suspensions, the spine flexing between them.
-  rotary: { phases: [0, .46, .92, .56], stance: .27, stride: 3.1, lift: .3, bob: 2.5, bobPhase: .9, bobH: 1, pitch: 3, pitchPhase: .55, sink: 2, neck: 3, neckH: 1, neckPhase: .45, flex: 1, flexPhase: .1 },
+  rotary: { phases: [0, .46, .92, .56], stance: .27, stride: 3.1, lift: .3, bob: 2.5, bobPhase: .9, bobH: 1, pitch: 3, pitchPhase: .55, sink: 3, neck: 3, neckH: 1, neckPhase: .45, flex: 1, flexPhase: .1 },
 };
 const CYCLE: Record<QuadKind, Record<string, number>> = {
   dog: { walk: 26, trot: 16, canter: 14, gallop: 11 }, horse: { walk: 34, trot: 22, canter: 19, gallop: 15 }, cat: { walk: 28, trot: 16, canter: 13, gallop: 10 },
 };
 const quadGait = (kind: QuadKind, m: string) => GAITS[m === "gallop" && kind !== "horse" ? "rotary" : m] ?? GAITS.walk;
-const foreLength = (kind: QuadKind) => (QUAD[kind].H - 5 - (kind === "horse" ? 4 : 3.4)) * 1.012;
+/** Leg above the pastern (elbow or stifle to fetlock) that stands straight with the pastern at its standing angle. */
+function legLength(kind: QuadKind, hipHeight: number, straight: number) {
+  const q = QUAD[kind], a = q.pasternAngle * Math.PI / 180;
+  return Math.hypot(Math.cos(a) * q.pastern, hipHeight - Math.sin(a) * q.pastern) / straight;
+}
+const FORE_STRAIGHT = .985, HIND_STRAIGHT = .965;
+const foreLength = (kind: QuadKind) => legLength(kind, QUAD[kind].H - 5, FORE_STRAIGHT);
 /** Natural travel speed in px per frame for an animal of length `size`. */
 export function quadPace(kind: QuadKind, motion: string, size: number) {
   if (!CYCLE[kind][motion]) return 0;
@@ -330,7 +340,7 @@ export function quadPace(kind: QuadKind, motion: string, size: number) {
 export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec {
   const q = QUAD[kind], u = (o.size ?? (kind === "horse" ? 460 : kind === "cat" ? 260 : 320)) / 100, rig = new Rig(u);
   const m = o.motion ?? "walk", start = o.start ?? 0, end = o.end ?? 180, H = q.H, t = at(start, end), horse = kind === "horse";
-  const sole = horse ? 4 : 3.4;
+  const pa = q.pasternAngle * Math.PI / 180, fetlockY = Math.sin(pa) * q.pastern, fetlockBack = Math.cos(pa) * q.pastern;
   rig.bone("root", undefined, 0, 0);
   rig.bone("body", "root", 0, -H);
   // The pelvis end of the spine: hind legs and tail hang from it, so the back can flex in a rotary gallop or a sit.
@@ -350,14 +360,15 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
     { id: "hind-far", x: -30, front: false, far: true }, { id: "fore-far", x: 30, front: true, far: true },
     { id: "hind-near", x: -32, front: false, far: false }, { id: "fore-near", x: 32, front: true, far: false },
   ];
-  const Tf = foreLength(kind), Th = (H - 3 - sole) * 1.035, w = q.legW;
+  const Tf = foreLength(kind), Th = legLength(kind, H - 3, HIND_STRAIGHT), w = q.legW, P = q.pastern, restPastern = -(90 - q.pasternAngle);
   for (const l of legDefs) {
     const z = l.far ? 1 : 6, role: RigRole = l.far ? "fur-dark" : "fur", T = l.front ? Tf : Th;
     const up = T * (l.front ? .54 : .52), lo = T - up;
     const parent = l.front ? "body" : "haunch", px = l.front ? l.x : l.x + 8, py = l.front ? 5 : 3;
     rig.bone("up-" + l.id, parent, px, py, 0, up);
     rig.bone("lo-" + l.id, "up-" + l.id, 0, up, 0, lo);
-    rig.bone("paw-" + l.id, "lo-" + l.id, 0, lo);
+    rig.bone("paw-" + l.id, "lo-" + l.id, 0, lo, restPastern, P);
+    rig.bone("hoof-" + l.id, "paw-" + l.id, 0, P, -restPastern);
     if (l.front) {
       rig.part("up-" + l.id, "up-" + l.id, poly([[-w * .95, -5], [w * .95, -5], [w * .78, up * .5], [w * .5, up], [-w * .5, up], [-w * .7, up * .45]]), role, z, { far: l.far });
       rig.part("knee-" + l.id, "lo-" + l.id, ell(0, .4, w * .52, w * .62), role, z + .02, { far: l.far });
@@ -367,10 +378,13 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
       rig.part("up-" + l.id, "up-" + l.id, poly([[-w * 1.4, -5], [w * 1.5, -6], [w * 1.05, up * .55], [w * .55, up], [-w * .62, up + 1.4], [-w * 1.05, up * .62]]), role, z, { far: l.far });
       rig.part("lo-" + l.id, "lo-" + l.id, cap(lo, w * .82, w * .6), role, z, { far: l.far });
     }
-    rig.part("fetlock-" + l.id, "paw-" + l.id, ell(0, 0, w * .5, w * .5), role, z + .05, { far: l.far });
-    rig.part("paw-" + l.id, "paw-" + l.id, horse ? poly([[-2.6, -.6], [1.8, -.8], [3.2, 1.6], [4.6, 4], [-2.4, 4]]) : ell(1.4, sole * .5, w * .62, sole * .62), horse ? "horn" : role, z + .1, { far: l.far });
-    legs.push({ upper: "up-" + l.id, lower: "lo-" + l.id, foot: "paw-" + l.id, phase: 0, bend: l.front ? 1 : -1, sole: sole * u, toe: q.toe * u,
-      lift: l.front ? 1.1 : .85, curl: l.front ? q.curlFore : q.curlHind, swingHip: l.front ? .28 : .22 });
+    rig.part("fetlock-" + l.id, "paw-" + l.id, ell(0, .4, w * .42, w * .46), role, z + .03, { far: l.far });
+    rig.part("pastern-" + l.id, "paw-" + l.id, cap(P, w * .5, w * .4), role, z + .04, { far: l.far });
+    // Hoof (or paw) with its sole on the ground line at the bone's origin.
+    rig.part("hoof-" + l.id, "hoof-" + l.id, horse ? poly([[-2.6, -4.6], [2, -5], [3.4, -2.4], [4.8, 0], [-2.8, 0]]) : ell(1.6, -1.5, w * .66, 1.7), horse ? "horn" : role, z + .1, { far: l.far });
+    if (horse) rig.part("coronet-" + l.id, "hoof-" + l.id, poly([[-2.8, -4.4], [2.2, -4.8], [2.6, -3.8], [-2.8, -3.4]]), "hair", z + .11, { far: l.far });
+    legs.push({ upper: "up-" + l.id, lower: "lo-" + l.id, foot: "paw-" + l.id, hoof: "hoof-" + l.id, pastern: P * u, straight: l.front ? FORE_STRAIGHT : HIND_STRAIGHT, phase: 0, bend: l.front ? 1 : -1,
+      lift: l.front ? 1.25 : .9, curl: l.front ? q.curlFore : q.curlHind, swingHip: l.front ? .16 : .12 });
   }
   // Neck and head.
   rig.bone("neck", "body", kind === "cat" ? 32 : horse ? 34 : 38, horse ? -8 : -6, q.neckAngle, q.neck);
@@ -417,16 +431,19 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
   const sitting = m === "sit", moving = m !== "idle" && !sitting, g = quadGait(kind, m);
   const gaitDriver = (window: { start?: number; end?: number }): RigDriver => ({
     type: "gait", body: "body", ...window, stride: g.stride * Tf * u, stance: g.stance, lift: g.lift * Tf * u, bob: g.bob * u, bobPhase: g.bobPhase, bobHarmonic: g.bobH,
-    pitch: g.pitch, pitchPhase: g.pitchPhase, sink: g.sink * u, legs: legs.map((l, i) => ({ ...l, phase: g.phases[i] })),
+    pitch: g.pitch, pitchPhase: g.pitchPhase, sink: g.sink * u, legs: legs.map((l, i) => ({ ...l, phase: g.phases[i], swingHip: (l.swingHip ?? 0) * (m === "gallop" ? 1 : 1.7) })),
     swing: [{ bone: "neck", amplitude: g.neck, phase: g.neckPhase, harmonic: g.neckH }, { bone: "head", amplitude: -g.neck * .6, phase: g.neckPhase, harmonic: g.neckH },
       { bone: "haunch", amplitude: -q.flex * g.flex, phase: g.flexPhase }],
   });
   rig.drivers.push(gaitDriver(moving ? { start, end } : sitting ? { end: t(.18) } : {}));
+  // At speed the neck stretches forward and the head reaches out (the horse lengthens its frame).
+  const stretch = ({ trot: 4, canter: 9, gallop: 15 } as Record<string, number>)[m] ?? 0;
+  if (stretch && horse) { rig.track("neck", [{ frame: start, rotate: stretch }]); rig.track("head", [{ frame: start, rotate: -stretch * .5 }]); }
   if (sitting) {
     // Sit: the rump lowers to the ground over folded hind legs, the chest rises on straight forelegs, the tail curls.
     const s0 = t(.14), s1 = t(.34);
     // Lower the body until the raised forelegs still reach the ground (the pitch lifts the shoulders).
-    const drop = H + 32 * Math.sin(22 * Math.PI / 180) - 5 * Math.cos(22 * Math.PI / 180) - sole - Tf * .965;
+    const drop = H + 32 * Math.sin(22 * Math.PI / 180) - 5 * Math.cos(22 * Math.PI / 180) - fetlockY - Tf * .965;
     rig.track("body", [{ frame: s0, rotate: 0, y: 0 }, { frame: s1, rotate: -22, y: drop * u, ease: "ease-in-out-cubic" }]);
     rig.track("haunch", [{ frame: s0, rotate: 0 }, { frame: s1, rotate: -8, ease: "ease-in-out-cubic" }]);
     rig.track("neck", [{ frame: s0, rotate: 0 }, { frame: s1, rotate: 16, ease: "ease-in-out-cubic" }]);
@@ -436,9 +453,10 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
       const front = l.bend === 1, far = l.upper.includes("far"), x0 = front ? (far ? 30 : 32) : (far ? -30 : -32), x1 = front ? x0 : x0 + 14;
       const mid = Math.round((s0 + s1) / 2) + (far ? 4 : -4);
       // Folded under a sitting rump the hind leg bends stifle-forward (a Z), so the joint never dips through the ground.
-      rig.drivers.push({ type: "reach", start: t(.12), ramp: 8, upper: l.upper, lower: l.lower, tip: l.foot, tipAngle: 0, bend: 1, target: front
-        ? [{ frame: s0, x: x0 * u, y: -sole * u }]
-        : [{ frame: s0, x: x0 * u, y: -sole * u }, { frame: mid, x: (x0 + x1) / 2 * u, y: -(sole + 4) * u }, { frame: s1, x: x1 * u, y: -sole * u }] });
+      const fx = (x: number) => (x - fetlockBack) * u;
+      rig.drivers.push({ type: "reach", start: t(.12), ramp: 8, upper: l.upper, lower: l.lower, tip: l.foot, tipAngle: restPastern, bend: 1, target: front
+        ? [{ frame: s0, x: fx(x0), y: -fetlockY * u }]
+        : [{ frame: s0, x: fx(x0), y: -fetlockY * u }, { frame: mid, x: fx((x0 + x1) / 2), y: -(fetlockY + 4) * u }, { frame: s1, x: fx(x1), y: -fetlockY * u }] });
     }
     rig.drivers.push({ type: "chain", start: s1, bones: tailBones, amplitude: kind === "dog" ? 14 : 5, period: kind === "dog" ? 12 : 60, lag: .8, growth: 1.2, bias: kind === "cat" ? 10 : -4, ramp: 16 });
     if (kind === "dog") rig.drivers.push({ type: "oscillate", start: s1, bone: "chest", property: "scaleY", amplitude: .02, period: 12, ramp: 10 });

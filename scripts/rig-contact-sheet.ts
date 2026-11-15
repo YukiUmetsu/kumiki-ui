@@ -19,8 +19,8 @@ const follow = flags.includes("--follow"), bones = flags.includes("--bones");
 const air = entry.airborne?.(motion) ?? false, pace = entry.pace?.(motion, entry.size) ?? 0;
 const y = air ? 400 : GROUND;
 const staged = entry.staged?.(motion);
-const from = staged ? (motion === "reverse" ? W * .7 : motion.includes("brake") ? -entry.size * .8 : motion.startsWith("turn") ? -entry.size * .7 : W / 2) : follow ? 0 : W / 2 - pace * D / 2;
-const to = staged ? (motion === "reverse" ? W * .32 : motion.includes("brake") ? W * .6 : motion.startsWith("turn") ? W + entry.size * .7 : W / 2) : follow ? pace * D : W / 2 + pace * D / 2;
+const from = staged ? (motion === "reverse" ? W * .7 : motion.includes("brake") || motion.includes("stop") ? -entry.size * .8 : motion.startsWith("turn") ? -entry.size * .7 : W / 2) : follow ? 0 : W / 2 - pace * D / 2;
+const to = staged ? (motion === "reverse" ? W * .32 : motion.includes("brake") || motion.includes("stop") ? W * .6 : motion.startsWith("turn") ? W + entry.size * .7 : W / 2) : follow ? pace * D : W / 2 + pace * D / 2;
 const spec = entry.build({ size: entry.size, motion, start: 0, end: D, y, from, to });
 const frames = Array.from({ length: Number(count) }, (_, i) => Number(first) + i * Number(step));
 const cells = frames.map(f => {

@@ -23,7 +23,9 @@ export const CAR_STAGED = new Set(["brake", "sudden-brake", "reverse", "turn-awa
 
 interface CarBones {
   u: number; body: string; wheels: readonly string[]; head?: string; driver?: string;
-  brake?: string[]; reverse?: string[]; indicators?: string[]; beam?: string[]; glass?: string; arm?: string; hand?: string; smoke?: string[];
+  brake?: string[]; reverse?: string[];
+  /** Indicators on the side facing the camera (the right side when the car faces right) and on the far side. */
+  indicators?: string[]; farIndicators?: string[]; beam?: string[]; glass?: string; arm?: string; hand?: string; smoke?: string[];
 }
 /** Wire a car action: root path, suspension, lights, skids, turns. Returns the root keys. */
 function carAction(rig: Rig, o: RigPresetOptions, m: string, c: CarBones, size: number): RigRootKey[] {
@@ -44,7 +46,7 @@ function carAction(rig: Rig, o: RigPresetOptions, m: string, c: CarBones, size: 
       if (hard) {
         const wheel = rig.drivers.find(d => d.type === "wheel") as Extract<RigDriver, { type: "wheel" }> | undefined;
         if (wheel) Object.assign(wheel, { lock: [{ start: tb + 3, end: ts }] });
-        light(c.indicators, ts + 18, end, true);
+        light([...c.indicators ?? [], ...c.farIndicators ?? []], ts + 18, end, true);
         for (const [i, origin] of (c.smoke ?? []).entries()) {
           const puffs = Array.from({ length: 10 }, (_, k) => { const id = `skid-${i}-${k}`; rig.bone(id, "root", 0, 0); rig.part(id, id, ell(0, 0, 4.4, 3.4), "smoke", 9); return id; });
           rig.drivers.push({ type: "emitter", start: tb + 3, end: ts + 2, ramp: 0, puffs, origin, every: 1, life: 34, velocity: [-.05 * u, -.32 * u], growth: 3.4, drift: .8 * u });
@@ -63,7 +65,9 @@ function carAction(rig: Rig, o: RigPresetOptions, m: string, c: CarBones, size: 
       // and rises or drops on screen with its distance; the side foreshortens and the end face shows.
       const away = m === "turn-away", s1 = away ? .62 : 1.3, yawMax = away ? 26 : -24, dy = away ? -.36 * size : .16 * size;
       const a = t(.36), b = t(.78);
-      light(c.indicators, t(.1), t(.6), true);
+      // Facing right we see the car's right side: turning away is a left turn, signalled by the far-side (left)
+      // indicators, which only show on the corners once the car yaws; turning toward the camera is a right turn.
+      light(away ? c.farIndicators : c.indicators, t(.1), t(.6), true);
       const shape = (f: number) => { const k = Math.min(1, Math.max(0, (f - a) / (b - a))); return { k: k * k * (3 - 2 * k), yaw: yawMax * Math.sin(Math.PI * k) ** 1.2 }; };
       // Integrate screen x for a constant ground speed so the car neither surges nor stalls through the turn.
       let total = 0;
@@ -90,7 +94,7 @@ function carAction(rig: Rig, o: RigPresetOptions, m: string, c: CarBones, size: 
       for (const at0 of [t(.28), t(.62)]) rig.drivers.push({ type: "flash", bones: c.beam ?? [], start: at0, end: at0 + 22, ramp: 0, period: 11, duty: .55, fade: 1 });
       return [{ frame: start, x: from, y, facing: o.facing ?? 1 }];
     case "hazards":
-      light(c.indicators, t(.1), end, true);
+      light([...c.indicators ?? [], ...c.farIndicators ?? []], t(.1), end, true);
       return [{ frame: start, x: from, y, facing: o.facing ?? 1 }];
     case "indicate":
       light(c.indicators, start, end, true);
@@ -98,6 +102,10 @@ function carAction(rig: Rig, o: RigPresetOptions, m: string, c: CarBones, size: 
     default:
       return [{ frame: start, x: from, y }, { frame: end, x: to, y, ease: "linear" }];
   }
+}
+/** Duplicate parts onto the far side of a solid figure (far wheels under the body faces, the other lamps over them). */
+function farCopy(rig: Rig, ids: string[], mode: "under" | "over") {
+  for (const id of ids) { const q = rig.parts.find(p => p.id === id); if (q) rig.parts.push({ ...q, id: id + "-far", far3d: mode, far: mode === "under" ? true : q.far }); }
 }
 /** Lights are bones that only show while a `flash` driver switches them on: this registers them, switched off. */
 const lightsOff = (bones: string[]): RigDriver => ({ type: "flash", bones, start: -2, end: -1, ramp: 0 });
@@ -110,7 +118,7 @@ export function carRig(o: RigPresetOptions = {}): RigSpec {
   const palette: Partial<Record<RigRole, string>> = { paint: "#c8342b", "paint-dark": "#8f2219", metal: "#cfd2d4", "metal-dark": "#2a2a2e", rubber: "#1d1b1b", glass: "#bfd8e0", light: "#f2d98a", skin: "#d39b76", hair: "#2b211c", smoke: "#c9c4b6", accent: "#9e1d16" };
   rig.bone("root", undefined, 0, 0);
   rig.bone("body", "root", 0, -R - 2);
-  rig.part("body", "body", path("M-48 -4C-48 -12 -44 -16 -36 -16L-24 -16L-16 -34C-14 -38 -10 -40 -6 -40L16 -40C20 -40 22 -38 24 -34L30 -18L44 -16C50 -15 52 -10 52 -4L52 2C52 4 50 5 48 5L-46 5C-48 5 -48 4 -48 2Z"), "paint", 4);
+  rig.part("body", "body", path("M-48 -4C-48 -12 -44 -16 -36 -16L-24 -16L-16 -34C-14 -38 -10 -40 -6 -40L16 -40C20 -40 22 -38 24 -34L30 -18L44 -16C50 -15 52 -10 52 -4L52 2C52 4 50 5 48 5L-46 5C-48 5 -48 4 -48 2Z"), "paint", 4, { extrude: true });
   rig.part("window-back", "body", path("M-14 -18L-8 -34C-7 -36 -5 -37 -3 -37L4 -37L4 -18Z"), "glass", 4.2);
   rig.part("window-front", "body", path("M8 -37L15 -37C17 -37 19 -36 20 -34L26 -18L8 -18Z"), "glass", 4.2);
   rig.part("mudguard-r", "body", path("M-44 4A15 15 0 0 1 -16 4Z"), "paint-dark", 5.2);
@@ -125,19 +133,6 @@ export function carRig(o: RigPresetOptions = {}): RigSpec {
   rig.part("driver-head", "driver", ell(0, 0, 6.4, 7), "skin", 4.1);
   rig.part("driver-cap", "driver", path("M-7 -1C-7 -9 7 -9 7 -2L10 -1L-7 0Z"), "hair", 4.15);
   rig.part("driver-nose", "driver", ell(6.2, 1, 1.4, 1.4), "skin", 4.12);
-  // End faces for turns in depth: the rear with its spare wheel, the front with its radiator and lamps.
-  rig.bone("rear-face", "body", -48, 0);
-  rig.part("rear-face", "rear-face", path("M0 -16L-34 -16L-35 -4L-34 5L0 5Z"), "paint", 4.65);
-  rig.part("rear-glass", "rear-face", rect(-28, -37, 22, 15, 2), "glass", 4.66);
-  rig.part("rear-roof", "rear-face", path("M-2 -38L-32 -38L-30 -16L-4 -16Z"), "paint-dark", 4.64);
-  rig.part("rear-spare", "rear-face", ring(9, 5.6), "rubber", 4.67);
-  rig.part("rear-lamps", "rear-face", path("M-2 -9h3v4h-3z M-33 -9h3v4h-3z"), "accent", 4.68);
-  rig.bone("front-face", "body", 52, 0);
-  rig.part("front-face", "front-face", path("M0 -16L34 -16L35 -4L34 5L0 5Z"), "paint", 4.65);
-  rig.part("front-roof", "front-face", path("M4 -40L30 -40L32 -18L2 -18Z"), "glass", 4.64);
-  rig.part("radiator", "front-face", rect(10, -15, 14, 16, 2), "metal", 4.66);
-  rig.part("radiator-grille", "front-face", path("M12 -13h1v12h-1z M15 -13h1v12h-1z M18 -13h1v12h-1z M21 -13h1v12h-1z"), "metal-dark", 4.67);
-  rig.part("front-lamps", "front-face", path("M2 -12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0Z M26 -12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0Z"), "light", 4.68);
   const wheels: string[] = [];
   for (const [id, x] of [["wheel-r", -30], ["wheel-f", 32]] as const) {
     rig.bone(id, "root", x, -R);
@@ -149,15 +144,16 @@ export function carRig(o: RigPresetOptions = {}): RigSpec {
   rig.drivers.push({ type: "wheel", bones: wheels, radius: R * u },
     { type: "oscillate", bone: "body", property: "y", amplitude: 1.1 * u, period: 11, wobble: .6, bySpeed: true },
     { type: "oscillate", bone: "body", property: "rotate", amplitude: .8, period: 17, wobble: .5, bySpeed: true },
-    { type: "oscillate", bone: "driver", property: "rotate", amplitude: 4, period: 48, wobble: .5 },
-    { type: "turn", rear: ["rear-face"], front: ["front-face"] });
+    { type: "oscillate", bone: "driver", property: "rotate", amplitude: 4, period: 48, wobble: .5 });
   const puffs: string[] = [];
   for (let i = 0; i < 6; i++) { const id = "puff-" + i; rig.bone(id, "root", 0, 0); puffs.push(id); rig.part(id, id, ell(0, 0, 3, 2.6), "smoke", 2); }
   rig.bone("exhaust", "body", -48, 2);
   rig.drivers.push({ type: "emitter", puffs, origin: "exhaust", every: 8, life: 40, velocity: [-.2 * u, -.18 * u], growth: 2, drift: .6 * u });
+  farCopy(rig, ["wheel-r", "wheel-r-hub", "wheel-f", "wheel-f-hub"], "under");
+  farCopy(rig, ["lamp", "tail-lamp", "brake"], "over");
   rig.drivers.push(lightsOff(["brake"]));
   const root = carAction(rig, o, m, { u, body: "body", wheels, head: "driver", brake: ["brake"], smoke: ["wheel-r-contact", "wheel-f-contact"] }, size);
-  return finish("car", "car", rig, root, palette, { x: -50 * u, y: -56 * u, width: 108 * u, height: 58 * u }, o);
+  return { ...finish("car", "car", rig, root, palette, { x: -50 * u, y: -56 * u, width: 108 * u, height: 58 * u }, o), depth3d: Math.round(36 * u * 100) / 100 };
 }
 
 /**
@@ -174,10 +170,10 @@ export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
   rig.bone("root", undefined, 0, 0);
   rig.bone("body", "root", 0, -R - 1);
   // Full silhouette behind everything: roof, pillars, hood, hatch; wheel arches cut out of the sill line.
-  rig.part("shell", "body", path("M48.5 4.2L50.6 2.4Q51.6 -.4 51.2 -4.8L49.4 -7.4Q44 -9.4 30 -11.2L22.5 -12L8.6 -22.4Q6.6 -23.9 3 -24L-12 -24.4Q-22 -24.2 -30 -22.6L-35.4 -20.6L-44.6 -12.4Q-46.8 -10.2 -47.4 -6L-47.6 -1L-46.4 3.6L-41.52 4.2A11 11 0 0 1 -20.48 4.2L20.48 4.2A11 11 0 0 1 41.52 4.2Z"), "paint", 4);
+  rig.part("shell", "body", path("M48.5 4.2L50.6 2.4Q51.6 -.4 51.2 -4.8L49.4 -7.4Q44 -9.4 30 -11.2L22.5 -12L8.6 -22.4Q6.6 -23.9 3 -24L-12 -24.4Q-22 -24.2 -30 -22.6L-35.4 -20.6L-44.6 -12.4Q-46.8 -10.2 -47.4 -6L-47.6 -1L-46.4 3.6L-41.52 4.2A11 11 0 0 1 -20.48 4.2L20.48 4.2A11 11 0 0 1 41.52 4.2Z"), "paint", 4, { extrude: true });
   rig.part("well-r", "body", ell(-31, 1, 10.4, 10.4), "metal-dark", 3.9);
   rig.part("well-f", "body", ell(31, 1, 10.4, 10.4), "metal-dark", 3.9);
-  rig.part("cabin", "body", poly([[21, -12.8], [8.4, -21.8], [3.6, -23.2], [-12, -23.6], [-24, -23], [-38.4, -14.8]]), "detail", 4.1);
+  rig.part("cabin", "body", poly([[21, -12.8], [8.4, -21.8], [3.6, -23.2], [-12, -23.6], [-24, -23], [-38.4, -14.8]]), "detail", 4.1, { extrude: true });
   // Driver and headrest behind the glass.
   rig.part("headrest", "body", rect(-6.6, -21.2, 3.4, 5.6, 1.2), "metal-dark", 4.15);
   rig.bone("driver", "body", 1.4, -12.6);
@@ -237,23 +233,14 @@ export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
     rig.part(id + "-glow", id, ell(0, 0, w * .62 + .5, h * .6 + .5), "light", 4.78, { color: "#ffd27a" });
     ind.push(id);
   }
+  // The far side's indicators: they show only on the end corners when the car turns away from the camera.
+  const farInd: string[] = [];
+  for (const [id, x, yy] of [["ind-f-far", 47.6, -3.6], ["ind-r-far", -46.2, -6.2]] as const) {
+    rig.bone(id, "body", x, yy);
+    for (const q of rig.parts.filter(q => q.bone === id.replace("-far", ""))) rig.parts.push({ ...q, id: q.id.replace(id.replace("-far", ""), id), bone: id, far3d: "over" });
+    farInd.push(id);
+  }
   // End faces for turns in depth.
-  // End faces for turns in depth, cut to each end's real height: the tail panel under the hatch, the nose under the hood
-  // line. They open beside the near-vertical ends as the car yaws.
-  rig.bone("rear-face", "body", -47.4, 0);
-  rig.part("rear-face", "rear-face", path("M.4 -9.4Q.2 -11.8 -2.4 -11.8L-39.6 -11.8Q-42.4 -11.8 -42.6 -9.4L-42.8 -4L-42.2 3.6L0 3.6L.6 -4Z"), "paint", 4.65);
-  rig.part("rear-face-shade", "rear-face", rect(-42.4, -4.6, 42.8, 3.6, .8), "paint-dark", 4.66);
-  rig.part("rear-face-lamps", "rear-face", path("M-41.6 -10.8L-33.6 -10.8L-33.8 -7.8L-42 -7.4Z M-.2 -10.8L-8.2 -10.8L-8 -7.8L.2 -7.4Z"), "accent", 4.67);
-  rig.part("rear-face-strip", "rear-face", rect(-33.6, -9.8, 25.4, 1, .4), "accent", 4.67);
-  rig.part("rear-face-plate", "rear-face", rect(-26.4, -6, 10.8, 3.6, .6), "light", 4.67, { color: "#e9e4d8" });
-  rig.part("rear-face-bumper", "rear-face", rect(-42.6, -1.2, 43.2, 4.8, 1.2), "rubber", 4.68);
-  rig.bone("front-face", "body", 51.2, 0);
-  rig.part("front-face", "front-face", path("M-.4 -5.4Q-.2 -7.6 2.4 -7.6L38.8 -7.6Q41.4 -7.6 41.6 -5.4L41.8 2L41.2 4.2L0 4.2L-.6 2Z"), "paint", 4.65);
-  rig.part("front-face-shade", "front-face", rect(-.4, -.6, 42, 2.4, .8), "paint-dark", 4.66);
-  rig.part("front-face-lamps", "front-face", path("M1.6 -7L10.6 -7L10.4 -4.4L1.8 -4Z M30.8 -7L39.8 -7L39.6 -4L31 -4.4Z"), "glass", 4.66, { color: "#e3ecf0" });
-  rig.part("front-face-drl", "front-face", path("M2.2 -6.2L10 -6.4M31.4 -6.4L39.2 -6.2"), "light", 4.67, { line: true, lineWidth: .6, color: "#ffffff" });
-  rig.part("front-face-grille", "front-face", rect(13.4, -6.4, 14.4, 4.6, 1.4), "metal-dark", 4.67);
-  rig.part("front-face-intake", "front-face", rect(10, .2, 21.2, 3, 1), "rubber", 4.67);
   // Wheels: tyre, brake disc, alloy; calipers ride with the body.
   const wheels: string[] = [];
   for (const [id, x] of [["wheel-r", -31], ["wheel-f", 31]] as const) {
@@ -270,8 +257,7 @@ export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
   rig.drivers.push({ type: "wheel", bones: wheels, radius: R * u },
     { type: "oscillate", bone: "body", property: "y", amplitude: .35 * u, period: 9, wobble: .6, bySpeed: true },
     { type: "oscillate", bone: "body", property: "y", amplitude: .05 * u, period: 3 },
-    { type: "oscillate", bone: "driver-head", property: "rotate", amplitude: 3, period: 70, wobble: .5 },
-    { type: "turn", rear: ["rear-face"], front: ["front-face"] });
+    { type: "oscillate", bone: "driver-head", property: "rotate", amplitude: 3, period: 70, wobble: .5 });
   rig.track("glass-f", [{ frame: 0, opacity: .62 }]);
   rig.part("glass-r-tint", "body", poly([[-5, -13.7], [-5, -22.95], [-14, -23.1], [-21.5, -22.5], [-23.5, -14]]), "detail", 4.29);
   const puffs: string[] = [];
@@ -280,18 +266,20 @@ export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
   rig.drivers.push({ type: "emitter", puffs, origin: "exhaust", every: 14, life: 34, velocity: [-.1 * u, -.12 * u], growth: 2.2, drift: .4 * u });
   // The beam and flash are lights, but the beam is a translucent cone: its bone carries a lower opacity.
   rig.track("beam", [{ frame: 0, opacity: .38 }]);
-  rig.drivers.push(lightsOff(["brake", "reverse", ...ind, "beam", "flash"]));
+  farCopy(rig, ["wheel-r-tyre", "wheel-r-sidewall", "wheel-r-disc", "wheel-r-alloy", "wheel-f-tyre", "wheel-f-sidewall", "wheel-f-disc", "wheel-f-alloy"], "under");
+  farCopy(rig, ["headlamp", "drl", "taillamp", "brake", "brake-glow", "reverse"], "over");
+  rig.drivers.push(lightsOff(["brake", "reverse", ...ind, ...farInd, "beam", "flash"]));
   const root = carAction(rig, o, m, {
-    u, body: "body", wheels, head: "driver-head", brake: ["brake"], reverse: ["reverse"], indicators: ind, beam: ["beam", "flash"],
+    u, body: "body", wheels, head: "driver-head", brake: ["brake"], reverse: ["reverse"], indicators: ind, farIndicators: farInd, beam: ["beam", "flash"],
     glass: "glass-f", arm: "driver-arm", hand: "driver-hand", smoke: ["wheel-r-contact", "wheel-f-contact"],
   }, size);
   if (m !== "open-window") rig.track("driver-arm", [{ frame: 0, opacity: 0 }]);
-  return finish("modern-car", "car", rig, root, palette, { x: -52 * u, y: -40 * u, width: 110 * u, height: 42 * u }, o);
+  return { ...finish("modern-car", "car", rig, root, palette, { x: -52 * u, y: -40 * u, width: 110 * u, height: 42 * u }, o), depth3d: Math.round(42 * u * 100) / 100 };
 }
 
 // ---- Bicycle ---------------------------------------------------------------------------------------------------------------------
 
-export const BICYCLE_MOTIONS = ["ride", "coast"] as const;
+export const BICYCLE_MOTIONS = ["ride", "coast", "stop", "sudden-stop"] as const;
 /** A city bicycle with a rider: the crank turns by distance through the gearing, pedals stay level, feet ride the
  * pedals and hands hold the bar by IK. Coasting freewheels: the crank stops. Wheelbase = 58% of `size`. */
 export function bicycleRig(o: RigPresetOptions = {}): RigSpec {
@@ -300,7 +288,9 @@ export function bicycleRig(o: RigPresetOptions = {}): RigSpec {
     skin: "#c98d6a", hair: "#2b211c", cloth: "#d8573a", "cloth-dark": "#2d3142", shoe: "#1f1b18", eye: "#1d1715", mouth: "#3b1714", detail: "#1d1715", accent: "#e2a62b" };
   const R = 18, G = 2.4;
   rig.bone("root", undefined, 0, 0);
-  rig.bone("bike", "root", 0, 0);
+  // The frame pitches about the front tyre's contact patch, so a hard front-brake stop lifts the rear wheel.
+  rig.bone("pitch", "root", 29, 0);
+  rig.bone("bike", "pitch", -29, 0);
   const wheels: string[] = [];
   for (const [id, x] of [["wheel-r", -29], ["wheel-f", 29]] as const) {
     rig.bone(id, "bike", x, -R);
@@ -332,24 +322,40 @@ export function bicycleRig(o: RigPresetOptions = {}): RigSpec {
     rig.bone("pedal-" + side, "crank-" + side, 0, 9.5);
     rig.part("pedal-" + side, "pedal-" + side, rect(-3, -.8, 6, 1.6, .5), "metal-dark", z + .05, { far: side === "f" });
   }
-  const crankRadius = R * G * u;
+  const crankRadius = R * G * u, stopping = m === "stop" || m === "sudden-stop", hard = m === "sudden-stop", t = at(start, end), D = end - start;
+  // Stops: cruise, then brake at a constant rate to rest; the rider stops pedalling as soon as the brakes go on.
+  const tb = t(hard ? .3 : .22), ts = tb + Math.round(D * (hard ? .1 : .42));
+  const from = o.from ?? 0, to = o.to ?? from + 900, v = (to - from) / ((tb - start) + (ts - tb) / 2), decel = Math.max(.01, Math.abs(v) / (ts - tb));
+  const freewheel = m === "coast" ? [{ start: start - 1000, end: end + 1000 }] : stopping ? [{ start: tb, end: end + 1000 }] : undefined;
   rig.drivers.push({ type: "wheel", bones: wheels, radius: R * u },
-    { type: "wheel", bones: ["crank"], radius: crankRadius, lock: m === "coast" ? [{ start: start - 1000, end: end + 1000 }] : undefined },
-    { type: "wheel", bones: ["pedal-n", "pedal-f"], radius: -crankRadius, lock: m === "coast" ? [{ start: start - 1000, end: end + 1000 }] : undefined });
+    { type: "wheel", bones: ["crank"], radius: crankRadius, lock: freewheel },
+    { type: "wheel", bones: ["pedal-n", "pedal-f"], radius: -crankRadius, lock: freewheel });
+  if (stopping) {
+    // Front brake: the frame pitches forward about the front contact (a hard stop lifts the rear wheel, never sinks it);
+    // the rider is thrown forward and settles back.
+    rig.drivers.push({ type: "suspension", bone: "pitch", pitch: (hard ? 7.5 : .8) / decel, period: 26, damping: .42, range: [0, hard ? 10 : 1.2] },
+      { type: "suspension", bone: "torso", pitch: (hard ? 14 : 5) / decel, period: 18, damping: .3, range: [-6, 18] });
+  }
   // Rider: hips on the saddle, chest leaning to the bar.
   addPersonBody(rig, "bike", -12.6, -47.2);
-  rig.track("torso", [{ frame: start, rotate: 32 }]);
-  rig.track("head", [{ frame: start, rotate: -26 }]);
+  rig.track("torso", stopping ? [{ frame: start, rotate: 32 }, { frame: ts + 6, rotate: 32 }, { frame: ts + 26, rotate: 20, ease: "ease-in-out-cubic" }] : [{ frame: start, rotate: 32 }]);
+  rig.track("head", stopping ? [{ frame: start, rotate: -26 }, { frame: ts + 6, rotate: -26 }, { frame: ts + 26, rotate: -16, ease: "ease-in-out-cubic" }] : [{ frame: start, rotate: -26 }]);
   for (const [side, pedal] of [["f", "pedal-n"], ["b", "pedal-f"]] as const) {
     rig.drivers.push({ type: "reach", upper: "thigh-" + side, lower: "shin-" + side, tip: "foot-" + side, tipAngle: 8, bend: 1, follow: pedal, offset: [-2.2 * u, -2.8 * u] });
     rig.drivers.push({ type: "reach", upper: "arm-" + side, lower: "fore-" + side, bend: -1, follow: "bar-grip", offset: [(side === "f" ? .4 : 1.4) * u, (side === "f" ? 0 : -.6) * u] });
   }
+  // At rest the rider takes the near foot off the pedal and puts it down on the ground beside the bike.
+  if (stopping) rig.drivers.push({ type: "reach", start: ts - 2, ramp: 12, upper: "thigh-f", lower: "shin-f", tip: "foot-f", tipAngle: 0, bend: 1,
+    target: [{ frame: ts - 2, x: 4 * u, y: -12 * u }, { frame: ts + 10, x: 7 * u, y: -2.4 * u, ease: "ease-in-out-cubic" }] });
   rig.drivers.push({ type: "oscillate", bone: "torso", property: "rotate", amplitude: m === "coast" ? .3 : 1.1, period: 21 },
     { type: "oscillate", bone: "head", property: "rotate", amplitude: 1.4, period: 90, wobble: .5 },
     { type: "variant", part: "eye", name: "shut", mode: "blink", interval: [64, 130], duration: 4 });
-  return finish("bicycle", "bicycle", rig, travel(o, start, end, m === "coast" ? "ease-out-quad" : "linear"), palette, { x: -50 * u, y: -100 * u, width: 100 * u, height: 102 * u }, o);
+  const y = o.y ?? 0;
+  const root = stopping ? [{ frame: start, x: from, y }, { frame: tb, x: from + v * (tb - start), y, ease: "linear" as const }, { frame: ts, x: to, y, ease: "ease-out-quad" as const }]
+    : travel(o, start, end, m === "coast" ? "ease-out-quad" : "linear");
+  return finish("bicycle", "bicycle", rig, root, palette, { x: -50 * u, y: -100 * u, width: 100 * u, height: 102 * u }, o);
 }
-export const bicyclePace = (motion: string, size: number) => size * (motion === "coast" ? .03 : .036);
+export const bicyclePace = (motion: string, size: number) => motion === "stop" || motion === "sudden-stop" ? 0 : size * (motion === "coast" ? .03 : .036);
 
 // ---- Steam locomotive ------------------------------------------------------------------------------------------------------------
 
@@ -449,7 +455,7 @@ export function planeRig(o: RigPresetOptions = {}): RigSpec {
     palette, { x: -58 * u, y: -64 * u, width: 110 * u, height: 66 * u }, o);
 }
 
-export const HELICOPTER_MOTIONS = ["hover", "takeoff", "fly"] as const;
+export const HELICOPTER_MOTIONS = ["hover", "takeoff", "fly", "land"] as const;
 /** A light helicopter: the main rotor is seen edge-on (blades sweep as cos(angle) inside a blur disc), the tail rotor
  * turns face-on, the cabin swings on its rotor, noses down to fly forward and flares to stop. Length = `size`. */
 export function helicopterRig(o: RigPresetOptions = {}): RigSpec {
@@ -472,17 +478,25 @@ export function helicopterRig(o: RigPresetOptions = {}): RigSpec {
   rig.part("beacon", "body", ell(-6, -24.6, 1.2, 1), "accent", 4.3, { color: "#ff3d2e" });
   rig.bone("mast", "body", 2, -26);
   rig.part("mast", "mast", rect(-1, -4, 2, 4), "metal-dark", 4.4);
-  rig.part("rotor-blur", "mast", ell(0, -4, 50, 1.6), "glass", 4.45, { color: "#d9d6cf" });
+  // Rotor spin: spun up on take-off, wound down after landing (the blur discs fade with the speed).
+  const land = m === "land", spinOff = land ? { end: t(.95), spinDown: t(.95) - t(.64) } : {};
+  rig.bone("rotor-blur", "mast", 0, -4);
+  rig.part("rotor-blur", "rotor-blur", ell(0, 0, 50, 1.6), "glass", 4.45, { color: "#d9d6cf" });
   for (const [id, ph] of [["blade-a", 0], ["blade-b", 90]] as const) {
     rig.bone(id, "mast", 0, -4.2);
     rig.part(id, id, rect(-50, -.7, 100, 1.4, .7), "metal-dark", 4.5);
-    rig.drivers.push({ type: "spin", bone: id, speed: 31, spinUp: m === "takeoff" ? 60 : 0, start: m === "takeoff" ? start : undefined, project: true, phase: ph });
+    rig.drivers.push({ type: "spin", bone: id, speed: 31, spinUp: m === "takeoff" ? 60 : 0, start: m === "takeoff" ? start : undefined, project: true, phase: ph, ...spinOff });
   }
   rig.part("hub", "mast", ell(0, -4.2, 2, 1.4), "metal", 4.55);
   rig.bone("tail-rotor", "body", -53, -6);
-  rig.part("tail-blur", "tail-rotor", ell(0, 0, 7.4, 7.4), "glass", 4.6, { color: "#d9d6cf" });
+  rig.bone("tail-blur", "body", -53, -6);
+  rig.part("tail-blur", "tail-blur", ell(0, 0, 7.4, 7.4), "glass", 4.6, { color: "#d9d6cf" });
   rig.part("tail-blades", "tail-rotor", path("M-7.4 -.6h14.8v1.2h-14.8z M-.6 -7.4h1.2v14.8h-1.2z"), "metal-dark", 4.65);
-  rig.drivers.push({ type: "spin", bone: "tail-rotor", speed: 53, spinUp: m === "takeoff" ? 60 : 0, start: m === "takeoff" ? start : undefined });
+  rig.drivers.push({ type: "spin", bone: "tail-rotor", speed: 53, spinUp: m === "takeoff" ? 60 : 0, start: m === "takeoff" ? start : undefined, ...spinOff });
+  for (const b of ["rotor-blur", "tail-blur"]) {
+    if (m === "takeoff") rig.track(b, [{ frame: start, opacity: 0 }, { frame: start + 50, opacity: 1, ease: "ease-in-quad" }]);
+    if (land) rig.track(b, [{ frame: t(.64), opacity: 1 }, { frame: t(.86), opacity: 0, ease: "ease-out-quad" }]);
+  }
   const y = o.y ?? 0, from = o.from ?? 0, to = o.to ?? from + 1400;
   let root;
   if (m === "takeoff") {
@@ -490,6 +504,13 @@ export function helicopterRig(o: RigPresetOptions = {}): RigSpec {
     rig.drivers.push({ type: "oscillate", start: t(.3), bone: "body", property: "y", amplitude: 1.2 * u, period: 54, wobble: .4, ramp: 30 });
     root = [{ frame: start, x: from, y, facing: o.facing ?? 1 as const }, { frame: t(.3), x: from, y }, { frame: t(.6), x: from, y: y - 40 * u, ease: "ease-in-out-cubic" as const }, { frame: end, x: from + 30 * u, y: y - 80 * u, ease: "ease-in-quad" as const }];
     rig.track("body", [{ frame: t(.28), rotate: 0 }, { frame: t(.36), rotate: -2 }, { frame: t(.6), rotate: 1 }, { frame: end, rotate: 4 }]);
+  } else if (land) {
+    // Hover high, descend with a slight drift, flare nose-up to kill the sink, settle on the skids, wind the rotor down.
+    rig.drivers.push({ type: "oscillate", end: t(.4), bone: "body", property: "y", amplitude: 1.4 * u, period: 60, wobble: .4, ramp: 20 });
+    root = [{ frame: start, x: from, y: y - 70 * u, facing: o.facing ?? 1 as const }, { frame: t(.12), x: from, y: y - 70 * u },
+      { frame: t(.56), x: from + 26 * u, y, ease: "ease-in-out-cubic" as const }];
+    rig.track("body", [{ frame: t(.3), rotate: 0, y: 0 }, { frame: t(.46), rotate: -5, ease: "ease-in-out-cubic" }, { frame: t(.56), rotate: 0, y: 0 },
+      { frame: t(.59), y: 1.4 * u, ease: "ease-out-quad" }, { frame: t(.66), y: 0, ease: "ease-in-out-cubic" }]);
   } else if (m === "fly") {
     rig.drivers.push({ type: "bank", amount: 0, lean: 9 / Math.max(1, (to - from) / Math.max(1, end - start)), max: 14 }, { type: "oscillate", bone: "body", property: "y", amplitude: 1 * u, period: 60, wobble: .4 });
     root = [{ frame: start, x: from, y }, { frame: end, x: to, y: y - 10 * u, ease: "ease-in-out-quad" as const }];

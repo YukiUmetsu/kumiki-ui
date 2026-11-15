@@ -150,6 +150,56 @@ function BlueprintPart({ p }: { p: RigPartFrame }) {
     strokeDasharray={p.role === "smoke" || p.far ? "4 3" : undefined} vectorEffect="non-scaling-stroke" opacity={p.far ? .6 : .95} />;
 }
 
+const IDENTITY = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+const flatCache = new WeakMap<object, [number, number][][]>();
+const flatLoops = (shape: RigShape) => { let l = flatCache.get(shape); if (!l) { l = flattenPath(pathOf(shape), 2.5).map(s => s.points as [number, number][]).filter(p => p.length > 2); flatCache.set(shape, l); } return l; };
+const at = (m: { a: number; b: number; c: number; d: number; e: number; f: number }, p: readonly [number, number]): [number, number] => [m.a * p[0] + m.c * p[1] + m.e, m.b * p[0] + m.d * p[1] + m.f];
+/**
+ * Solid figures turning in depth. For each extruded part, the faces between its near outline and its far copy that turn
+ * toward the camera (those facing the way the far side has shifted) are added as strips, one per run of similarly
+ * facing edges, shaded by orientation (tops lighter, ends darker); far-side parts are slotted under or over them.
+ */
+function withSolidFaces(spec: RigSpec, parts: RigPartFrame[]): RigPartFrame[] {
+  const solids = parts.filter(p => p.extrude && p.farMatrix);
+  if (!solids.length && !parts.some(p => p.far3d)) return parts;
+  const lowest = Math.min(...solids.map(p => p.z), Infinity);
+  const out: RigPartFrame[] = parts.map(p => p.far3d === "under" ? { ...p, z: p.z - 1000 } : p.far3d === "over" ? { ...p, z: (Number.isFinite(lowest) ? lowest : p.z) - .0005 + p.z * 1e-6 } : p);
+  for (const p of solids) {
+    const [nx0, ny0] = at(p.matrix, [0, 0]), [fx0, fy0] = at(p.farMatrix!, [0, 0]), dx = fx0 - nx0, dy = fy0 - ny0;
+    if (Math.hypot(dx, dy) < .6) continue;
+    const base = partColor(spec, p);
+    flatLoops(p.shape).forEach((loop, li) => {
+      const near = loop.map(q => at(p.matrix, q)), far = loop.map(q => at(p.farMatrix!, q)), n = near.length;
+      let area = 0;
+      for (let i = 0; i < n; i++) { const a = near[i], b = near[(i + 1) % n]; area += a[0] * b[1] - b[0] * a[1]; }
+      const sign = area > 0 ? 1 : -1;
+      const normal = (i: number) => { const a = near[i], b = near[(i + 1) % n], ex = b[0] - a[0], ey = b[1] - a[1], L = Math.hypot(ex, ey) || 1; return [sign * ey / L, -sign * ex / L] as const; };
+      const visible = (i: number) => { const [ux, uy] = normal(i); return ux * dx + uy * dy > 0; };
+      // Start from an edge that is hidden so runs do not wrap around the start.
+      let first = 0; while (first < n && visible(first)) first++;
+      if (first === n) first = 0;
+      let run: number[] = [], strip = 0;
+      const flush = () => {
+        if (!run.length) return;
+        const [ux, uy] = run.reduce(([sx, sy], i) => { const [a, b] = normal(i); return [sx + a, sy + b]; }, [0, 0]);
+        const L = Math.hypot(ux, uy) || 1, up = -uy / L;
+        const pts = [...run.map(i => near[i]), near[(run[run.length - 1] + 1) % n], far[(run[run.length - 1] + 1) % n], ...[...run].reverse().map(i => far[i])];
+        out.push({ id: `${p.id}-face-${li}-${strip++}`, bone: p.bone, role: p.role, shape: { type: "polygon", points: pts.map(([x, y]) => [r2(x), r2(y)] as const) },
+          matrix: IDENTITY, z: p.z - .001, color: shade(base, up > .35 ? .1 * up : -.16 + .06 * up), opacity: p.opacity });
+        run = [];
+      };
+      for (let k = 0; k < n; k++) {
+        const i = (first + k) % n;
+        if (!visible(i)) { flush(); continue; }
+        if (run.length) { const [a, b] = normal(run[0]), [c, d] = normal(i); if (a * c + b * d < Math.cos(40 * Math.PI / 180)) flush(); }
+        run.push(i);
+      }
+      flush();
+    });
+  }
+  return out.sort((a, b) => a.z - b.z);
+}
+
 /** Bones as tapered lines from joint to child joint, joints as rings: the rig itself, for explainers and debugging. */
 function BoneOverlay({ frame, color }: { frame: RigFrame; color: string }) {
   const items: ReactNode[] = [];
@@ -171,7 +221,7 @@ export function RigFigure({ spec, frame, cadence, reducedMotion, showBones }: Ri
   if (!ctx) throw new Error("RigFigure must be inside a RigScene (or a RigLookProvider)");
   const look = RIG_LOOKS.find(l => l.id === ctx.look)!;
   const f = evaluateRig(spec, frame, { cadence: cadence ?? look.cadence, reducedMotion: reducedMotion ?? ctx.reduced });
-  const parts = f.parts;
+  const parts = withSolidFaces(spec, f.parts);
   const shadowFill = ctx.look === "blueprint" ? "none" : ctx.look === "riso" ? "#0078bf" : "#1c1208";
   const contacts = <g data-km-rig-contacts="">{f.contacts.map(([x, y], i) => <ellipse key={i} cx={r2(x)} cy={r2(y + 1)} rx={r2(14 * f.root.scale)} ry={r2(3.2 * f.root.scale)} fill={shadowFill}
     opacity={ctx.look === "riso" ? .25 : .16} filter={`url(#${ctx.uid}-soft)`} />)}</g>;
