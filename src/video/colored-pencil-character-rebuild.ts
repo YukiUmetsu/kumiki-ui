@@ -284,7 +284,7 @@ export function pencilCharacterScene(aspect:PencilAspect):PencilSceneSpec {
   const foxActor={...fox(),transform:portrait?
     "translate(58 513) scale(.97)":"translate(487 226) scale(1.08)"};
   const birdActor={...createKingfisherActor(),transform:portrait?
-    "translate(281 496) scale(.94)":"translate(749 221) scale(.99)"};
+    "translate(301 496) scale(.94)":"translate(768 221) scale(.99)"};
   const annotations=source.annotations?.filter(a=>!a.id.startsWith("guide-")).map(a=>{
     if(a.id==="title"&&a.type==="text")return {...a,text:["FOX &","KINGFISHER"]};
     if(a.id==="section"&&a.type==="text")return {...a,text:"WILDLIFE / COLOURED PENCIL"};
