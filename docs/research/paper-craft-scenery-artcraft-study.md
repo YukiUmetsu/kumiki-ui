@@ -117,3 +117,23 @@ Reference-to-code lessons; no artwork is traced or bundled:
 **Original geometric construction:** wovenArbor generates two middle-distance rooted saplings with tapering trunk stock, 5–8 curved main forks, 2–3 secondary twig forks per arm and leaf clusters at terminal junctions. The dark geometrically offset stock (depth 16) lies behind visible wood (depth 18), then paper leaf tips (depth 19), not copied semitransparent sprites. The scalloped overhead canopy now punches 5–18 small leaf-shaped clearances (under the 32-hole max). Short asymmetrical curved bark scoring replaces a single conspicuous straight pale rod.
 
 **Quality invariants:** each twig begins inside a parent bough; silhouette touches its terrain; all cut cardstock colors are opaque; the sky/sun and river remain visible; real holes remain within the canopy; seed and absolute-frame seeking are deterministic; scene never exceeds 128 paper layers. The source assets are newly authored and derivative-free. Render actual browser and native film frames at 16:9 and 9:16 before considering the iteration visually validated.
+
+
+## Pass 25 — natural multigeneration canopy grammar and cut-paper negative space
+
+Reference study only; no tracing or redistribution:
+
+- [Hari & Deepti (Colossal, 2014)](https://www.thisiscolossal.com/2014/03/illuminated-cut-paper-light-boxes-by-hari-deepti/): real paper stock and connected tapering branches, with deliberate luminous negative space.
+- [Hari & Deepti (Heron Arts exhibition)](https://heronarts.com/exhibition/forgotten-places-of-beings-and-things): multiple nested branch hierarchies create a layered arch with bright clearings. The forest reads in silhouette before adding micro-details.
+- [Bernie Levine, Positive and Negative Space in Papercutting (Guild of American Papercutters)](https://papercutters.org/wp-content/uploads/FirstCut/2012-27-1.pdf): solid-vs-open balance preserves the story and avoids turning a precise cutout into noise.
+- [Hari & Deepti, Royal Mail interview](https://gbps.org.uk/information/downloads/magazines/philatelic-bulletin/pdfs/Philatelic%20Bulletin%2057-4.pdf): hand cutting from 140–300 gsm watercolor paper. Real negative spaces require bridges, not detached tiny pixels.
+
+R05's actual artwork still contained too many identical straight rays radiating from one point: the two canopy rib sheets and all eight foreground foliage cards were structural starbursts, not branched canopies.
+
+R06's original code-generated cut forms replace these without increasing physical layer counts:
+
+1. canopyBranchLace: 5–9 joined parent stems per side, each divided at a true bent joint and supporting 2–3 secondary forks. Each fork ends in asymmetrically paired leaves. All pieces remain grouped under the existing woodland-canopy-ribs sheet IDs.
+2. nestedLeafCrown: 3–5 main leaders rooted in an existing bough; each leader has 2–3 independent lateral branch joints, real attached twig stock and unequal paired terminal leaves. Eight original foreground foliage sheets are reused, including their absolute-frame motion pivots.
+3. Existing detail scales actual branch count and leaf geometry; seed remains deterministic. Neither alters public API or Storybook organization.
+
+Reject builds with opaque canopy sealing the sky, a blocked center stream/sun, detached twig-to-leaf contact, too-thin stock, fake transparent collage, or altered portrait proportions. Structural path-count tests cannot establish artistic quality; actual 16:9/9:16 browser and film renders must be inspected.
