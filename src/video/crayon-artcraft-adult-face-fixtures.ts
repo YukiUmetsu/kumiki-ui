@@ -14,15 +14,15 @@ type Ink=Extract<CrayonElement,{kind:"contour"}>;
 type Rect={x:number;y:number;width:number;height:number};
 const box=(x:number,y:number,width:number,height:number):Rect=>({x,y,width,height});
 const colors={
-  flesh:["#cb947c","#94645e","#f0c3a0"] as const,
-  warm:["#e0ac8c","#b97b6b","#ffdbb0"] as const,
-  cool:["#9e7780","#705967","#c0a09b"] as const,
-  cheek:["#b97b77","#935b66","#e6a294"] as const,
-  socket:["#875b68","#5e4a57","#b58b8b"] as const,
-  sclera:["#c8b6aa","#8f848c","#e0cbbc"] as const,
+  flesh:["#d6a68d","#b58374","#f0c4a8"] as const,
+  warm:["#e4b498","#c08b79","#f6d0b2"] as const,
+  cool:["#b69591","#96777f","#d0b5a7"] as const,
+  cheek:["#cf9a87","#b47b78","#edbcaa"] as const,
+  socket:["#aa827b","#805f61","#c6a09a"] as const,
+  sclera:["#cfc0af","#a79998","#e6d6c2"] as const,
   iris:["#80796e","#514b4e","#bcae8e"] as const,
   pupil:["#37343b","#292d35","#62585b"] as const,
-  lip:["#ae656e","#7e4e5b","#d7988d"] as const,
+  lip:["#b77b76","#8d6069","#d5a094"] as const,
   hair:["#66484b","#3a333d","#9d726b"] as const,
   hairLight:["#916b60","#4d4046","#bd937b"] as const,
   neck:["#bc8a78","#816269","#dfb09b"] as const,
@@ -58,7 +58,7 @@ export function crayonAdultFaceStudy(
     stage:keyof typeof time,overrides:Partial<Wax>={})=>{
     elements.push({kind:"wax",id,d,bounds,colors:palette,
       timing:{start:time[stage][0],end:time[stage][1]},
-      coverage:"opaque",pressure:.89,spacing:6.8,nibStyle:"tapered",
+      coverage:"opaque",pressure:.9,spacing:9.4,nibStyle:"tapered",
       strokeOrder:"patches",markLength:"long",edgeRoughness:.31,
       outlineOpacity:.12,...overrides});
   };
@@ -90,16 +90,18 @@ export function crayonAdultFaceStudy(
     "V"+H+"H0Z",box(0,H*.7,W,H*.3),
     colors.silk,"base",{coverage:"open",pressure:.3,spacing:14,outlineOpacity:0});
   wax("coat-silhouette",
-    "M-190 124Q-174 86 -128 80Q-53 99 1 84"+
-    "Q94 80 149 106Q181 152 201 244"+
-    "Q201 308 148 326L-122 326Q-185 303 -195 250Z",
-    box(-210,73,422,265),colors.coat,"base",
+    "M-146 115Q-182 145 -187 202L-179 291"+
+    "Q-163 323 -120 337L-58 329L65 335"+
+    "Q131 341 162 307Q183 261 170 206"+
+    "Q154 132 117 112Q87 101 43 108"+
+    "L-50 110Q-100 94 -146 115Z",
+    box(-199,89,386,262),colors.coat,"base",
     {placement:{x:rootX,y:rootY,scale:rootScale},
       spacing:9,outlineOpacity:0});
   wax("neck-under-jaw",
-    "M-53 19Q-51 86 -96 118Q-59 155 8 145"+
-    "Q77 137 114 108Q57 84 45 15Z",
-    box(-106,3,231,166),colors.neck,"base",
+    "M-36 56Q-39 100 -74 122Q-42 146 11 147"+
+    "Q59 139 85 117Q49 95 42 55Z",
+    box(-87,46,180,113),colors.neck,"base",
     {parentId:"coat-silhouette",outlineOpacity:0});
   wax("hair-back",
     "M-132 -172C-164 -248 -117 -310 -25 -318"+
@@ -132,53 +134,52 @@ export function crayonAdultFaceStudy(
     "M72 -227Q115 -206 118 -162Q122 -99 94 -60"+
     "Q84 -105 70 -158Z",
     box(63,-241,69,190),colors.cool,"value",
-    {parentId:"adult-face",outlineOpacity:0,spacing:9.6});
+    {parentId:"adult-face",coverage:"open",pressure:.39,spacing:12,outlineOpacity:0,edgeRoughness:0});
   wax("forehead-ochre",
-    "M-89 -201Q-58 -257 -5 -268Q51 -269 90 -226"+
-    "Q44 -221 -8 -209Q-57 -187 -70 -161Z",
+    "M-84 -204Q-46 -251 5 -251Q49 -255 79 -222"+
+    "Q33 -227 -4 -216Q-50 -193 -70 -172Z",
     box(-102,-277,203,128),colors.warm,"value",
-    {parentId:"adult-face",outlineOpacity:0,spacing:9.2});
+    {parentId:"adult-face",coverage:"open",pressure:.42,spacing:12.6,outlineOpacity:0,edgeRoughness:0});
   wax("left-supraorbital",
     "M-101 -173Q-69 -196 -29 -184Q-4 -178 4 -159"+
     "Q-22 -141 -60 -143Q-91 -148 -101 -173Z",
     box(-109,-206,123,78),colors.socket,"value",
-    {parentId:"adult-face",outlineOpacity:0,spacing:8.2});
+    {parentId:"adult-face",coverage:"open",pressure:.5,spacing:11,outlineOpacity:0,edgeRoughness:0});
   wax("right-supraorbital",
     "M34 -172Q60 -194 98 -165Q111 -151 103 -136"+
     "Q67 -130 43 -143Z",
     box(24,-201,94,79),colors.cool,"value",
-    {parentId:"adult-face",outlineOpacity:0});
+    {parentId:"adult-face",coverage:"open",pressure:.45,spacing:11,outlineOpacity:0,edgeRoughness:0});
   wax("left-cheek-volume",
-    "M-99 -128Q-62 -125 -31 -99Q-4 -72 -15 -24"+
-    "Q-47 12 -76 -18Q-97 -65 -99 -128Z",
-    box(-111,-139,105,164),colors.cheek,"value",
-    {parentId:"adult-face",outlineOpacity:0,spacing:8});
+    "M-96 -103Q-70 -118 -48 -94Q-34 -65 -41 -32"+
+    "Q-58 -16 -74 -34Q-90 -68 -96 -103Z",
+    box(-105,-126,82,122),colors.cheek,"value",
+    {parentId:"adult-face",coverage:"open",pressure:.4,spacing:11.5,outlineOpacity:0,edgeRoughness:0});
   wax("right-cheek-receding",
-    "M77 -133Q105 -120 110 -84Q99 -26 74 0"+
-    "Q52 -26 53 -75Z",
-    box(47,-146,73,156),colors.cool,"value",
-    {parentId:"adult-face",outlineOpacity:0});
+    "M83 -126Q102 -115 104 -80Q99 -44 81 -17"+
+    "Q64 -27 65 -63Z",
+    box(59,-138,55,132),colors.cool,"value",
+    {parentId:"adult-face",coverage:"open",pressure:.37,spacing:12,outlineOpacity:0,edgeRoughness:0});
   wax("malar-reflection",
-    "M-84 -87Q-55 -113 -28 -84Q-14 -45 -26 -13"+
-    "Q-58 -12 -77 -37Z",
-    box(-93,-122,84,125),colors.warm,"value",
-    {parentId:"adult-face",outlineOpacity:0,spacing:8.5});
+    "M-84 -87Q-59 -100 -34 -75Q-23 -50 -39 -17"+
+    "Q-63 -27 -77 -43Z",
+    box(-94,-109,78,101),colors.warm,"value",
+    {parentId:"adult-face",coverage:"open",pressure:.37,spacing:11.6,outlineOpacity:0,edgeRoughness:0});
   wax("mandible-plane",
-    "M-75 -14Q-35 28 12 23Q59 28 89 -9"+
-    "Q76 54 32 97Q-6 107 -38 83Q-69 58 -75 -14Z",
-    box(-86,-23,188,139),colors.cool,"value",
-    {parentId:"adult-face",outlineOpacity:0,spacing:9.1});
+    "M-62 -12Q-24 18 15 23Q52 25 78 -3"+
+    "Q70 44 31 85Q-2 100 -28 73Q-55 46 -62 -12Z",
+    box(-76,-23,167,130),colors.cool,"value",
+    {parentId:"adult-face",coverage:"open",pressure:.35,spacing:13,outlineOpacity:0,edgeRoughness:0});
   wax("nose-bridge",
-    "M-12 -156Q11 -169 26 -150Q24 -116 28 -83"+
-    "Q30 -48 43 -32Q46 -24 35 -20"+
-    "Q10 -23 -3 -48Q-12 -101 -12 -156Z",
-    box(-22,-177,76,173),colors.warm,"anatomy",
+    "M-6 -140Q9 -150 20 -137Q15 -99 20 -70"+
+    "Q23 -43 30 -29Q18 -20 6 -34Q-3 -61 -6 -90Z",
+    box(-17,-160,56,151),colors.warm,"anatomy",
     {parentId:"adult-face",outlineOpacity:0,spacing:5});
   wax("nose-sidewall",
-    "M-14 -119Q-14 -84 -29 -60Q-39 -41 -21 -26"+
-    "Q-8 -30 0 -52Q-10 -71 -14 -119Z",
-    box(-44,-128,52,117),colors.cool,"anatomy",
-    {parentId:"adult-face",outlineOpacity:0,spacing:4.6});
+    "M-7 -100Q-14 -75 -19 -53Q-29 -39 -18 -30"+
+    "Q-6 -38 -1 -58Z",
+    box(-34,-111,43,92),colors.cool,"anatomy",
+    {parentId:"adult-face",coverage:"open",pressure:.56,spacing:7.5,outlineOpacity:0,edgeRoughness:0});
   wax("nose-alar-wing",
     "M32 -40Q52 -51 61 -29Q60 -10 40 -14"+
     "Q28 -8 17 -21Q18 -31 32 -40Z",
@@ -211,70 +212,89 @@ export function crayonAdultFaceStudy(
     "#d5aaa1",1.55,"detail",{parentId:"adult-face"});
   // Independent eyelid/sclera/iris systems; lid shadows lie over irises.
   wax("left-eye-aperture",
-    "M-87 -164Q-64 -177 -38 -168Q-24 -161 -15 -147"+
-    "Q-36 -131 -61 -141Q-80 -146 -87 -164Z",
-    box(-94,-184,89,62),colors.sclera,"anatomy",
+    "M-77 -163Q-61 -176 -44 -169Q-29 -166 -22 -153"+
+    "Q-37 -139 -54 -143Q-70 -148 -77 -163Z",
+    box(-85,-184,70,53),colors.sclera,"anatomy",
     {parentId:"adult-face",spacing:4,outlineOpacity:.12,
       timing:{start:133,end:187}});
   wax("right-eye-aperture",
-    "M45 -163Q67 -178 93 -160Q102 -153 102 -142"+
-    "Q74 -136 56 -147Z",
-    box(35,-188,78,61),colors.sclera,"anatomy",
+    "M49 -158Q64 -170 79 -161Q87 -157 89 -148"+
+    "Q75 -138 59 -146Q52 -149 49 -158Z",
+    box(44,-178,51,47),colors.sclera,"anatomy",
     {parentId:"adult-face",spacing:4,outlineOpacity:.12,
       timing:{start:133,end:187}});
   wax("left-eye-iris",
-    "M-67 -168Q-53 -178 -46 -164Q-43 -147 -52 -143"+
-    "Q-65 -146 -67 -168Z",
-    box(-75,-184,38,52),colors.iris,"anatomy",
+    "M-59 -170Q-50 -173 -45 -164Q-42 -152 -49 -145"+
+    "Q-57 -146 -59 -158Q-60 -164 -59 -170Z",
+    box(-64,-179,26,40),colors.iris,"anatomy",
     {parentId:"adult-face",spacing:4.2,outlineOpacity:0,
       timing:{start:169,end:229}});
   wax("right-eye-iris",
-    "M68 -165Q80 -177 87 -162Q92 -147 82 -144"+
-    "Q70 -144 68 -165Z",
-    box(61,-182,39,51),colors.iris,"anatomy",
+    "M66 -164Q75 -169 80 -160Q83 -152 77 -146"+
+    "Q70 -145 67 -151Q65 -158 66 -164Z",
+    box(61,-176,27,39),colors.iris,"anatomy",
     {parentId:"adult-face",spacing:4.2,outlineOpacity:0,
       timing:{start:169,end:229}});
-  wax("left-eye-pupil","M-57 -165Q-52 -170 -49 -162Q-48 -155 -54 -153Z",
-    box(-62,-174,20,30),colors.pupil,"anatomy",
+  wax("left-eye-pupil","M-54 -165Q-51 -169 -49 -162Q-48 -156 -52 -153"+
+    "Q-55 -156 -54 -165Z",
+    box(-58,-172,14,24),colors.pupil,"anatomy",
     {parentId:"adult-face",spacing:4,outlineOpacity:0,
       timing:{start:198,end:246}});
-  wax("right-eye-pupil","M76 -163Q81 -167 84 -160Q85 -153 79 -151Z",
-    box(72,-171,18,30),colors.pupil,"anatomy",
+  wax("right-eye-pupil","M72 -161Q75 -166 77 -160Q78 -154 74 -153"+
+    "Q71 -156 72 -161Z",
+    box(69,-169,13,20),colors.pupil,"anatomy",
     {parentId:"adult-face",spacing:4,outlineOpacity:0,
       timing:{start:198,end:246}});
   wax("left-upper-lid",
-    "M-91 -170Q-64 -192 -38 -176Q-15 -166 -12 -151"+
-    "Q-36 -169 -57 -173Q-75 -165 -91 -155Z",
-    box(-101,-199,103,65),colors.socket,"anatomy",
+    "M-78 -169Q-61 -180 -43 -172Q-26 -165 -19 -153"+
+    "Q-41 -162 -54 -161Q-69 -159 -78 -153Z",
+    box(-86,-190,75,50),colors.socket,"anatomy",
     {parentId:"adult-face",spacing:4,outlineOpacity:0,
       timing:{start:159,end:216}});
   wax("right-upper-lid",
-    "M43 -171Q68 -193 97 -168Q109 -161 109 -146"+
-    "Q83 -169 65 -167Q52 -160 43 -150Z",
-    box(35,-202,87,69),colors.cool,"anatomy",
+    "M47 -164Q64 -174 80 -164Q91 -155 92 -146"+
+    "Q75 -158 64 -157Q56 -155 47 -149Z",
+    box(42,-182,58,43),colors.cool,"anatomy",
     {parentId:"adult-face",spacing:4,outlineOpacity:0,
       timing:{start:159,end:216}});
-  ink("upper-lid-rim-left","M-88 -164Q-61 -185 -38 -171Q-22 -164 -11 -150",
-    "#51424a",2.35,"detail",{parentId:"adult-face"});
-  ink("upper-lid-rim-right","M44 -165Q66 -180 92 -165Q104 -154 107 -145",
-    "#57464f",2.0,"detail",{parentId:"adult-face"});
-  ink("lower-lid-rim-left","M-83 -154Q-61 -134 -37 -143Q-23 -147 -16 -153",
-    "#af8580",1.28,"detail",{parentId:"adult-face"});
-  ink("lower-lid-rim-right","M46 -150Q72 -134 104 -146",
-    "#a0807f",1.23,"detail",{parentId:"adult-face"});
-  ink("left-tear-duct","M-90 -158Q-84 -151 -77 -154",
-    "#a97772",1.5,"detail",{parentId:"adult-face"});
-  ink("right-tear-duct","M44 -157Q50 -150 55 -155",
-    "#af7671",1.23,"detail",{parentId:"adult-face"});
+  ink("upper-lid-rim-left","M-80 -164Q-60 -178 -44 -170Q-29 -164 -21 -154",
+    "#5a474e",1.75,"detail",{parentId:"adult-face"});
+  ink("upper-lid-rim-right","M47 -160Q62 -173 78 -161Q86 -155 89 -146",
+    "#594a50",1.5,"detail",{parentId:"adult-face"});
+  ink("lower-lid-rim-left","M-76 -157Q-57 -139 -43 -146Q-30 -146 -23 -153",
+    "#b48781",1.08,"detail",{parentId:"adult-face"});
+  ink("lower-lid-rim-right","M49 -152Q67 -139 88 -149",
+    "#ac8884",1.02,"detail",{parentId:"adult-face"});
+  ink("left-tear-duct","M-79 -157Q-75 -153 -70 -155",
+    "#a97772",1.16,"detail",{parentId:"adult-face"});
+  ink("right-tear-duct","M49 -155Q54 -152 57 -154",
+    "#af7671",1.05,"detail",{parentId:"adult-face"});
   ink("brow-structure-left",
-    "M-96 -195Q-71 -217 -34 -194",
-    "#503f45",3.7,"detail",{parentId:"adult-face"});
+    "M-88 -191Q-63 -206 -30 -187",
+    "#60484b",2.4,"detail",{parentId:"adult-face"});
   ink("brow-structure-right",
-    "M39 -198Q69 -216 108 -185",
-    "#5a4147",3.2,"detail",{parentId:"adult-face"});
+    "M45 -190Q66 -202 99 -184",
+    "#614a4d",2.2,"detail",{parentId:"adult-face"});
   ink("iris-catchlights",
-    "M-57 -170l2 -2M77 -169l2 -2",
-    "#f5e7d0",1.5,"detail",{parentId:"adult-face"});
+    "M-54 -166l1.5 -1.8M72 -162l1.2 -1.4",
+    "#f5e7d0",1.2,"detail",{parentId:"adult-face"});
+  // Anatomy-first iris fibers follow each smaller pupil. Both stroke beds
+  // are clipped to real pigmented irises; never independent radial clip-art.
+  ink("near-iris-radials",
+    "M-56 -165l3 2M-56 -158l4 1M-49 -168l-1 4M-51 -151l1 3",
+    "#a59278",.78,"detail",
+    {parentId:"left-eye-iris",clipToParent:true,opacity:.7});
+  ink("far-iris-radials",
+    "M70 -162l3 1M69 -155l3 1M76 -161l-1 3",
+    "#a78f76",.72,"detail",
+    {parentId:"right-eye-iris",clipToParent:true,opacity:.65});
+  // Sparse flesh-colored upper-lid fold creases, aligned to observed socket.
+  ink("orbital-fold-left",
+    "M-78 -182Q-56 -193 -39 -185M-74 -141Q-59 -136 -48 -141",
+    "#b18b82",1.05,"detail",{parentId:"adult-face",opacity:.62});
+  ink("orbital-fold-right",
+    "M52 -181Q72 -188 88 -173M61 -139Q75 -137 85 -144",
+    "#b09088",.98,"detail",{parentId:"adult-face",opacity:.59});
   wax("hair-temple-lock",
     "M-119 -212Q-149 -158 -129 -98"+
     "Q-118 -68 -111 -36Q-88 -62 -97 -105"+
@@ -282,8 +302,8 @@ export function crayonAdultFaceStudy(
     box(-157,-224,107,205),colors.hairLight,"anatomy",
     {parentId:"adult-face",edgeRoughness:.57,outlineOpacity:.09});
   wax("hair-crown-part",
-    "M-119 -224Q-126 -293 -32 -316Q39 -329 91 -284"+
-    "Q36 -286 -13 -262Q-64 -231 -80 -183Z",
+    "M-119 -224Q-139 -280 -78 -312Q-43 -329 6 -315"+
+    "Q62 -316 94 -283Q40 -290 -13 -260Q-64 -227 -80 -183Z",
     box(-134,-337,242,169),colors.hair,"anatomy",
     {parentId:"adult-face",edgeRoughness:.57,outlineOpacity:.06});
   wax("hair-far-wave",
@@ -306,35 +326,49 @@ export function crayonAdultFaceStudy(
     "M119 -263Q145 -272 153 -242",
     "#634b4e",1.25,"detail",{parentId:"adult-face"});
   wax("coat-collar-left",
-    "M-158 123Q-108 97 -79 128L-26 202"+
-    "Q-82 210 -105 258Z",
-    box(-168,91,153,182),colors.coat,"anatomy",
+    "M-130 123Q-96 105 -65 139L-8 201"+
+    "Q-38 231 -78 272Q-100 216 -130 123Z",
+    box(-140,97,140,183),colors.coat,"anatomy",
     {parentId:"coat-silhouette",spacing:7.5,outlineOpacity:.09});
   wax("coat-collar-right",
-    "M62 109Q127 104 162 156Q99 194 69 259"+
-    "Q43 194 20 170Z",
-    box(13,91,165,182),colors.coat,"anatomy",
+    "M55 114Q103 106 151 158Q112 183 71 266"+
+    "Q44 193 27 168Z",
+    box(21,101,146,178),colors.coat,"anatomy",
     {parentId:"coat-silhouette",spacing:7.5,outlineOpacity:.09});
-  wax("shirt-linen","M-37 145Q0 156 44 141L66 274"+
-    "Q17 285 -39 276Z",
-    box(-48,134,129,162),colors.silk,"anatomy",
+  wax("shirt-linen","M-58 145Q-29 161 6 176Q37 159 67 143"+
+    "L54 290Q22 303 -29 292Z",
+    box(-69,130,145,179),colors.silk,"anatomy",
     {parentId:"coat-silhouette",spacing:6.9,outlineOpacity:0});
   ink("coat-fold-seams",
     "M-150 142Q-108 184 -91 253M71 141Q101 163 132 165"+
     "M-101 262Q-106 285 -115 315M75 268Q84 296 85 318",
     "#a6aca9",1.8,"detail",{parentId:"coat-silhouette"});
   grain("left-cheek-layered-wax","adult-face",1001,
-    -57,-78,31,54,-42,107,"#e7b39b");
+    -57,-78,31,54,-42,40,"#e7b39b");
   grain("nose-sidewall-wax","adult-face",1002,
-    9,-88,21,49,76,82,"#c88d78");
+    9,-88,21,49,76,32,"#c88d78");
   grain("right-temple-shadow-wax","adult-face",1003,
-    89,-93,21,53,-64,86,"#846871");
+    89,-93,21,53,-64,32,"#846871");
   grain("coat-wool-broken-rub","coat-collar-left",1004,
     -107,188,35,48,70,117,"#b8b7ab");
   grain("coat-fold-shaded-wax","coat-collar-right",1005,
     93,181,38,46,-41,100,"#8998a1");
   grain("jaw-chromatic-undercoat","adult-face",1006,
-    6,51,37,36,24,75,"#a27577");
+    6,51,37,36,24,32,"#a27577");
+  // Source-led cloth construction: folded seam tubes track shoulder tension,
+  // buttonhole and dress-front drape rather than a rectangular inset bib.
+  ink("coat-neck-roll","M-143 118Q-108 118 -87 137M56 128Q99 117 151 158",
+    "#b1aea8",1.8,"detail",{parentId:"coat-silhouette",opacity:.83});
+  ink("coat-right-princess-seam","M69 242Q83 269 93 310",
+    "#9ba5a8",1.15,"detail",{parentId:"coat-silhouette",opacity:.65});
+  ink("linen-vertical-gathers","M-20 173Q-30 220 -27 283"+
+    "M8 174Q3 229 16 283M31 170Q43 226 39 279",
+    "#b8a498",1.35,"detail",{parentId:"shirt-linen",opacity:.72});
+  ink("linen-fold-under-chin","M-46 161Q-7 189 37 167",
+    "#f2dac6",1.65,"detail",{parentId:"shirt-linen",opacity:.89});
+  ink("tailored-coat-cuff-crease","M-163 279Q-150 296 -137 302"+
+    "M130 307Q144 299 156 279",
+    "#b0b7b2",1.4,"detail",{parentId:"coat-silhouette",opacity:.76});
   return {version:1,id:"crayon-artcraft-adult-face-"+aspect,
     width:W,height:H,durationFrames:300,seed:6812,
     paper:"#f8efe0",paperTooth:.8,elements,

@@ -17,7 +17,7 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       for(const id of portraitCriticalParts)expect(nodes.has(id),id).toBe(true);
       expect(scene.elements.length).toBeLessThan(240);
       for(const id of ["adult-face","hair-back","nose-bridge",
-        "nose-sidewall","nose-alar-wing","lip-upper-volume","lip-lower-volume",
+        "nose-alar-wing","lip-upper-volume","lip-lower-volume",
         "left-eye-aperture","right-eye-aperture","left-upper-lid","right-upper-lid"]){
         const node=nodes.get(id);
         if(node?.kind!=="wax")throw new Error("No semantic wax: "+id);
@@ -37,8 +37,28 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       const face=nodes.get("adult-face");
       if(face?.kind!=="wax")throw new Error("No adult cranium");
       expect(face.bounds.height/face.bounds.width).toBeGreaterThan(1.45);
+      const near=nodes.get("left-eye-aperture");
+      const far=nodes.get("right-eye-aperture");
+      if(near?.kind!=="wax"||far?.kind!=="wax")throw new Error("Missing eyes");
+      // Eye symbols must not overwhelm adult face construction.
+      expect(near.bounds.width/face.bounds.width).toBeLessThan(.3);
+      expect(far.bounds.width/face.bounds.width).toBeLessThan(.23);
+      expect(nodes.get("near-iris-radials")?.parentId).toBe("left-eye-iris");
+      expect(nodes.get("far-iris-radials")?.parentId).toBe("right-eye-iris");
       const bg=nodes.get("paper-value");
       expect(bg?.kind==="wax"&&bg.coverage).toBe("open");
+      // Tonal masses are now translucent rubs OVER solid human underpainting.
+      // This is physically layered wax, not a see-through character mask.
+      for(const tonal of ["temple-cool","forehead-ochre","left-cheek-volume",
+        "right-cheek-receding","malar-reflection","mandible-plane",
+        "left-supraorbital","right-supraorbital","nose-sidewall"]){
+        const patch=nodes.get(tonal);
+        if(patch?.kind!=="wax")throw new Error("Missing tonal wax "+tonal);
+        expect(patch.coverage).toBe("open");
+        expect(patch.parentId).toBe("adult-face");
+      }
+      const human=nodes.get("adult-face");
+      expect(human?.kind==="wax"&&human.coverage).toBe("opaque");
       expect(nodes.get("hair-back")?.parentId).toBe("adult-face");
       const hair=nodes.get("hair-back");
       const torso=nodes.get("coat-silhouette");
