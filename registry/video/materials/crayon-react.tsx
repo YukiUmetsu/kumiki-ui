@@ -424,7 +424,8 @@ export function Paper({ width, height, seed, tooth, strength, color = "#faf1da",
     <defs>
       {pigmentTexture.map(({kind,paths})=><pattern key={kind}
         id={tooth+"-pigment-"+kind} width={176} height={176}
-        patternUnits="userSpaceOnUse" data-km-crayon-pigment-paper={kind}>
+        patternUnits="userSpaceOnUse" data-km-crayon-pigment-paper={kind}
+        data-km-crayon-paper-contact={handContact?"height":"legacy"}>
         <rect width={176} height={176} fill="#000"/>
         <g fill="none" stroke="#fff" strokeLinecap="round">
           {paths.map((f,i)=>f.d&&<path key={i} d={f.d}
