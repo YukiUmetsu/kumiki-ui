@@ -213,6 +213,10 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       const first=html.match(/data-km-shanshui-ridge-contour="1" d="([^"]+)"/);
       expect(first).not.toBeNull();
       ridgeContour.push(first![1]);
+      if(school!=="fuchun"){
+        expect(first![1]).not.toEqual(paint("fuchun").match(
+          /data-km-shanshui-ridge-contour="1" d="([^"]+)"/)?.[1]);
+      }
       expect(html).toContain('data-km-master-school="'+school+'"');
       const faces=[...html.matchAll(
         /data-km-master-face="" data-km-master-face-root="([^"]+)" data-km-master-face-side="(-?1)" data-km-master-plane-index="(\d+)"/g,
@@ -268,7 +272,9 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       const diluted=light.match(/data-km-master-mass="" d="([^"]+)"/)?.[1];
       expect(original).toBe(diluted);
     }
-    expect(new Set(ridgeContour).size).toBe(1);
+    // This compares school-specific *source-sculpted landforms* rather
+    // than merely changing ink opacity on the same generic triangle.
+    expect(new Set(ridgeContour).size).toBe(4);
     expect(new Set(uniqueStyles).size).toBe(4);
     expect(()=>assertShanshuiControls({...DEFAULT_SHANSHUI,
       inkSchool:"invented-master" as never})).toThrow(RangeError);
