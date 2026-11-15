@@ -671,8 +671,8 @@ test("F1 source-rooted eyebrow wax vs unchanged wash, actual 3x Chromium",async(
     await expect(svg.locator('[data-km-crayon-element="brow-superciliary-near"]'))
       .toBeAttached();
     for(const id of ["source-brow-feather-near","source-brow-wax-near",
-      "source-brow-fibers-near","source-brow-feather-far",
-      "source-brow-wax-far","source-brow-fibers-far"]){
+      "source-brow-vein-near","source-brow-fibers-near","source-brow-feather-far",
+      "source-brow-wax-far","source-brow-vein-far","source-brow-fibers-far"]){
       await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
         .toHaveCount(browForm==="source-rooted"?1:0);
     }
