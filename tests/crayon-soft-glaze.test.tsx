@@ -55,8 +55,10 @@ describe("medium-native artistically blended crayon pigment",()=>{
       for(const node of blur){
         if(node.kind!=="wax")continue;
         expect(node.coverage).toBe("open");
-        expect(node.parentId).toBe(node.id==="hair-amber-crown-glaze"?
-          "hair-crown-part":"adult-face");
+        const expectedParent=node.id==="hair-amber-crown-glaze"?
+          "hair-crown-part":node.id.startsWith("coat-")?
+          "coat-silhouette":"adult-face";
+        expect(node.parentId).toBe(expectedParent);
         expect(node.clipToParent).toBe(true);
       }
       const full=renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>);
