@@ -94,3 +94,18 @@ test("portrait fox is visible and clear of the prince's boots",async({page})=>{
     expect(overlaps,`frame ${frame}`).toBe(false);
   }
 });
+
+test("portrait deer body stays clear of the prince's coat in early scenes",async({page})=>{
+  await page.goto(path+"&args=aspect:portrait;motion:0.75;medium:layered");
+  const stage=page.locator('svg[data-km-paper-director="the-moonlit-lantern"]');
+  const slider=page.getByRole("slider",{name:"Scrub fairy tale"});
+  for(const frame of [130,370]){
+    await slider.fill(String(frame));
+    const deer=await stage.locator('[data-km-paper-layer="deer-body"] > g > path').first().boundingBox();
+    const coat=await stage.locator('[data-km-paper-layer="prince-coat"] > g > path').first().boundingBox();
+    expect(deer).not.toBeNull();expect(coat).not.toBeNull();
+    const overlaps=deer!.x < coat!.x+coat!.width && deer!.x+deer!.width > coat!.x &&
+      deer!.y < coat!.y+coat!.height && deer!.y+deer!.height > coat!.y;
+    expect(overlaps,`frame ${frame}`).toBe(false);
+  }
+});

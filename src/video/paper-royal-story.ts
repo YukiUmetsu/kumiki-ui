@@ -637,7 +637,7 @@ function scenery(w:number,h:number,aspect:PaperDirectorAspect,phase:number,seed:
       ...boughs.map(([a,b,c,d,thick])=>
         p.band(...tip(a,b),...tip(c,d),thick,sign*2.1)),
     ].join(" ");
-    add("forest-"+side+"-wood","#324B54",16,limb);
+    add("forest-"+side+"-wood","#324B54",aspect==="portrait" && sign===1?10:16,limb);
     const leaves=boughs.map(([, ,c,d],i)=>{
       const [x,y]=tip(c,d);
       const spread=sign===-1?[-130,-41]:[-141,-41];
@@ -718,12 +718,12 @@ export function paperRoyalStoryScene(
   // Scale around each character's physical contact point, never stretch
   // one aspect's people to fill the other aspect's video rectangle.
   princess(pen(w/2-distance,ground,actorScale),add,phase,motion);
-  prince(pen(w/2+distance,ground,actorScale),add,phase,motion);
+  prince(pen(w/2+distance-(aspect==="portrait"?(phase===0?65:phase===1?30:0):0),ground,actorScale),add,phase,motion);
   const addFox:Add=(id,color,depth,path,rest)=>add(id,color,depth+(aspect==="portrait"?6:0),path,rest);
   fox(pen(w/2+(aspect==="portrait"?-160:56),ground+(aspect==="portrait"?35:-2),actorScale*.85),addFox,phase,motion);
   rabbit(pen(w/2-(aspect==="portrait"?36:56),ground,actorScale*.71),add,phase,motion);
-  deer(pen(w/2+(aspect==="portrait"?140:327),ground-10,
-    actorScale*(aspect==="portrait"?.77:.77)),add,phase,motion);
+  deer(pen(w/2+(aspect==="portrait"?165:327),ground-10,
+    actorScale*(aspect==="portrait"?.65:.77)),add,phase,motion);
   owl(pen(w/2-(aspect==="portrait"?179:334),ground-(aspect==="portrait"?185:178),actorScale*.64),
     add,phase,motion);
   const lantern=pen(w/2,ground-(phase===0?179:phase===1?144:127),
