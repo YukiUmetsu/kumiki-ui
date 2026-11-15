@@ -46,6 +46,8 @@ describe("ArtCraft photographed skin optical weave",()=>{
     const out=createPencilSkinOpticalWeave(img,guides,face,271,0);
     expect(out.marks).toHaveLength(0);
     expect(out.sourceSupported).toBe(0);
+    expect(out.protectedSpans).toBe(0);
+    expect(out.opticalLightFibres).toBe(0);
     expect(out.rasterUnderpainting).toBe(false);
     expect(out.sourceRequired).toBe(true);
     expect(img.data.every((v,i)=>v===before[i])).toBe(true);
@@ -57,6 +59,8 @@ describe("ArtCraft photographed skin optical weave",()=>{
     expect(w.marks.length).toBeGreaterThan(300);
     expect(w.marks.length).toBeLessThan(50000);
     expect(w.sourceSupported).toBe(w.marks.length);
+    expect(w.opticalLightFibres).toBeGreaterThan(0);
+    expect(w.protectedSpans).toBeGreaterThanOrEqual(0);
     expect(w.protectedAnatomy).toBeGreaterThan(20);
     expect(w.protectedHighlights).toBeGreaterThan(0);
     expect(w.marks.some(m=>Math.abs(m.controlY-
@@ -66,6 +70,19 @@ describe("ArtCraft photographed skin optical weave",()=>{
       [m.x,m.y,m.controlX,m.controlY,m.endX,m.endY]
         .every(Number.isFinite)&&
       inPoly(m.x,m.y,face)&&inPoly(m.endX,m.endY,face))).toBe(true);
+    // Curved contact is never allowed to bend outside the measured
+    // cheek silhouette, even if both endpoints happen to be inside.
+    for(const m of w.marks)for(const t of [.2,.4,.6,.8]){
+      const q=1-t,x=q*q*m.x+2*q*t*m.controlX+t*t*m.endX;
+      const y=q*q*m.y+2*q*t*m.controlY+t*t*m.endY;
+      expect(inPoly(x,y,face)).toBe(true);
+      expect(Math.min(
+        Math.hypot(x-guides.eyeNearCenter[0],y-guides.eyeNearCenter[1]),
+        Math.hypot(x-guides.eyeFarCenter[0],y-guides.eyeFarCenter[1]),
+      )).toBeGreaterThanOrEqual(
+        Math.hypot(guides.eyeNearCenter[0]-guides.eyeFarCenter[0],
+          guides.eyeNearCenter[1]-guides.eyeFarCenter[1])*.28);
+    }
     expect(img.data.every((v,i)=>v===before[i])).toBe(true);
     expect(createPencilSkinOpticalWeave(img,guides,face,271,.7)).toEqual(w);
     expect(createPencilSkinOpticalWeave(img,guides,face,272,.7).marks)
