@@ -41,7 +41,9 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
   await page.getByRole("checkbox",{name:"Foundation inspect macro"}).check();
   await expect(svg).toHaveAttribute("style",/scale\(2.15\)/);
   await page.getByRole("checkbox",{name:"Foundation inspect macro"}).uncheck();
-  await page.getByRole("slider",{name:"Foundation burnish"}).fill("0.45");
-  await page.getByRole("slider",{name:"Foundation paper tooth"}).fill("0.5");
+  const burnish=page.getByRole("slider",{name:"Foundation burnish"});
+  await burnish.focus();await burnish.press("ArrowLeft");
+  const tooth=page.getByRole("slider",{name:"Foundation paper tooth"});
+  await tooth.focus();await tooth.press("ArrowLeft");
   await expect(svg).toHaveAttribute("data-km-pencil-foundation","CP-F1");
 });
