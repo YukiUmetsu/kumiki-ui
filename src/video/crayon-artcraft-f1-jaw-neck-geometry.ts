@@ -69,10 +69,14 @@ const regions:Readonly<Record<string,Partial<Wax>>>={
       "L135 1091 C145 1042 142 968 140 925 "+
       "C136 883 143 841 151 811Z",
     bounds:{x:128,y:795,width:360,height:301},
-    colors:["#826660","#493b3c","#aa897e"],
-    pressure:.89,spacing:8.3,markStrength:.18,underpaintTooth:.17,
+    // Pixel-observed source upper-neck is ~31/43/54 RGB levels darker
+    // than the previous native render at its 2.4x comparison camera.
+    // Keep a truly opaque wax undercoat, but place the light center LOW
+    // on the cervical column so the submandibular root is in deep shade.
+    colors:["#775347","#3b2d2f","#9b735f"],
+    pressure:.91,spacing:8.3,markStrength:.18,underpaintTooth:.17,
     underpaintGradient:{
-      light:"#8e7269",shadow:"#392d30",focusX:.49,focusY:.15,radius:1.10,
+      light:"#745141",shadow:"#35272b",focusX:.46,focusY:.84,radius:.98,
     },
   },
   "neck-submandibular-cast":{
@@ -82,8 +86,8 @@ const regions:Readonly<Record<string,Partial<Wax>>>={
       "C363 923 286 918 230 892 "+
       "C185 875 160 851 149 810Z",
     bounds:{x:139,y:801,width:311,height:133},
-    colors:["#4a3439","#30282d","#8b6662"],
-    pressure:.69,spacing:8.6,markStrength:.23,
+    colors:["#563b37","#302023","#96695d"],
+    pressure:.71,spacing:8.6,markStrength:.26,
     blendRadius:18,featherContacts:true,
     underpaintTooth:0,
   },
