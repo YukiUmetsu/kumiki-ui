@@ -180,8 +180,8 @@ export function crayonWildlifePortraitScene(
     "Q10 83 -23 75Q-71 68 -103 34Q-136 3 -148 -88Z",
     {x:-162,y:-179,width:309,height:273},C.umber,
     {parentId:"shoulder-silhouette",pivot:{x:-2,y:65},
-      motion:headMotion,poseCadence:2,spacing:10,
-      outlineOpacity:.45,edgeRoughness:.32});
+      motion:headMotion,poseCadence:2,spacing:10,markStrength:.49,
+      outlineOpacity:.19,edgeRoughness:.2});
   wax("temple-shadow-plane",
     "M-9 -154Q66 -154 113 -111Q134 -69 116 -35"+
     "Q96 19 59 49Q71 -23 35 -97Z",
@@ -194,16 +194,23 @@ export function crayonWildlifePortraitScene(
     {parentId:"head",spacing:9,pressure:.89});
   // The orbital ridge, high nasal bridge and sloped zygomatic planes
   // are distinct connected structures, not a large circular face mask.
+  // The orbital shadow supports the lid; it must not read as a giant
+  // triangular solid eye mask that swallows the brow and cheek.
   wax("orbital-structure",
-    "M-119 -90Q-84 -120 -41 -101Q-7 -91 8 -66"+
-    "Q-23 -40 -56 -32Q-100 -36 -119 -63Z",
-    {x:-124,y:-126,width:145,height:102},C.shadow,
-    {parentId:"head",spacing:7.2,outlineOpacity:.07});
+    "M-104 -81C-88 -103 -62 -110 -40 -101"+
+    "C-19 -94 -13 -79 -16 -65Q-23 -53 -38 -45"+
+    "Q-31 -69 -49 -87Q-76 -102 -104 -81Z",
+    {x:-110,y:-115,width:103,height:77},C.umber,
+    {parentId:"head",spacing:8.4,markStrength:.21,outlineOpacity:0,
+      edgeRoughness:.08});
+  // Narrow, rooted eyebrow shelf rather than a flat light-colored ribbon.
   wax("eye-brow-bone",
-    "M-112 -83Q-89 -112 -61 -107Q-30 -104 -14 -75"+
-    "Q-40 -84 -67 -88Q-92 -89 -112 -83Z",
-    {x:-121,y:-118,width:113,height:52},C.warm,
-    {parentId:"head",spacing:7.4,pressure:.85,outlineOpacity:.05});
+    "M-102 -86C-84 -108 -64 -113 -43 -103"+
+    "Q-27 -97 -22 -82Q-43 -95 -65 -97"+
+    "Q-86 -96 -102 -86Z",
+    {x:-108,y:-118,width:93,height:41},C.cheek,
+    {parentId:"head",spacing:7.4,pressure:.83,
+      markStrength:.28,outlineOpacity:0});
   wax("nasal-bridge-plane",
     "M-119 -77Q-135 -52 -158 -34Q-184 -19 -194 2"+
     "Q-180 -3 -160 -7Q-123 -15 -99 -34Z",
@@ -237,14 +244,16 @@ export function crayonWildlifePortraitScene(
     "M-96 -69 C-95 -91 -78 -103 -57 -99"+
     "C-30 -96 -20 -82 -23 -61"+
     "C-26 -42 -46 -33 -66 -36 C-86 -39 -100 -52 -96 -69 Z",
-    {x:-105,y:-107,width:94,height:80},C.coolPlane,
-    {parentId:"head",spacing:7.2,outlineOpacity:0,edgeRoughness:.08});
+    {x:-105,y:-107,width:94,height:80},C.cheek,
+    {parentId:"head",spacing:8.2,markStrength:.26,
+      outlineOpacity:0,edgeRoughness:.08});
   wax("eye-bone-light-shelf",
     "M-91 -75 C-85 -100 -62 -102 -43 -94"+
     "Q-28 -87 -26 -73 Q-46 -89 -64 -87"+
     "Q-81 -85 -91 -75 Z",
     {x:-97,y:-107,width:77,height:40},C.warm,
-    {parentId:"head",spacing:6.2,outlineOpacity:0,edgeRoughness:.12});
+    {parentId:"head",spacing:7.1,markStrength:.28,
+      outlineOpacity:0,edgeRoughness:.12});
   wax("eye-dark-rim",
     "M-81 -61 C-80 -77 -69 -84 -55 -83"+
     "C-36 -84 -29 -70 -31 -55"+
@@ -274,20 +283,21 @@ export function crayonWildlifePortraitScene(
   // Raised upper lid casts a narrow pigmented shadow *across* the globe;
   // it never becomes a second dark almond or a forehead-wide cartoon brow.
   wax("eye-upper-lid-overhang",
-    "M-82 -62 C-81 -77 -66 -86 -51 -84"+
-    "C-35 -83 -30 -70 -30 -61"+
-    "Q-37 -73 -55 -75 Q-73 -75 -82 -62 Z",
-    {x:-88,y:-91,width:65,height:38},C.shadow,
-    {parentId:"head",spacing:5,pressure:.9,outlineOpacity:0,
-      edgeRoughness:.06});
+    "M-81 -61 C-78 -76 -65 -81 -53 -81"+
+    "C-38 -81 -33 -70 -32 -61"+
+    "Q-42 -72 -56 -73 Q-71 -73 -81 -61 Z",
+    {x:-87,y:-87,width:61,height:32},C.shadow,
+    {parentId:"head",spacing:5,pressure:.9,markStrength:.32,
+      outlineOpacity:0,edgeRoughness:.06});
   // The thin lower white-fur rim is an attached crescent, not the sclera
   // printed as a white disk underneath the ocular surface.
   wax("eye-lower-fur-fold",
-    "M-83 -53 C-75 -39 -63 -35 -51 -36"+
-    "Q-35 -38 -31 -48 Q-42 -41 -56 -41"+
-    "Q-73 -42 -83 -53 Z",
-    {x:-89,y:-60,width:64,height:29},C.cream,
-    {parentId:"head",spacing:5.8,pressure:.87,outlineOpacity:0});
+    "M-82 -53 C-75 -43 -64 -39 -51 -39"+
+    "Q-37 -40 -33 -47 Q-44 -43 -56 -43"+
+    "Q-72 -44 -82 -53 Z",
+    {x:-88,y:-59,width:61,height:24},C.cream,
+    {parentId:"head",spacing:5.8,pressure:.85,
+      markStrength:.29,outlineOpacity:0});
   line("eye-lower-fur-fibers",
     "M-77 -44 Q-73 -40 -68 -40 M-64 -39 Q-60 -37 -54 -38"+
     "M-51 -38 Q-47 -39 -43 -41",
