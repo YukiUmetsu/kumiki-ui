@@ -122,6 +122,18 @@ const groove=(actor:RisoHandActor, side:RisoHandSide)=>{
     const prefix=side+"-glove-";
     if(!part.id.startsWith(prefix))return part;
     const id=part.id.slice(prefix.length);
+    // The original thumb-nail was stamped onto the one-piece CMC thumb.
+    // It must now follow the actual distal IP bone, not remain floating
+    // over the paper when the thumb tip opposes the receiving index.
+    if(id==="thumb-nail"){
+      const opposite=side==="right"?1:-1;
+      const w=actor==="courier"?.68:.57;
+      const edge=(x:number)=>Number((x*opposite).toFixed(2));
+      return {...part,joint:side+"-thumb-ip",
+        d:`M${edge(2.52)} -${w} Q${edge(3.7)} -${Number((w+.25).toFixed(2))}
+${edge(4.42)} -.45 L${edge(4.31)} .05
+Q${edge(3.37)} -${Number((w-.06).toFixed(2))} ${edge(2.55)} .04 Z`};
+    }
     const nail=/^(index|middle|ring|pinky)-nail$/.exec(id);
     if(nail){
       const digit=nail[1] as keyof typeof RISO31_GEOMETRY;
@@ -239,7 +251,9 @@ export function layoutRisoHandArtcraft(
     box(j(name+"-pip"),-4,-3,5,source.intermediate+3);
     box(j(name+"-dip"),-4,-3,5,source.distal+2.5);
   }
-  box(j("thumb"),-12,-8,12,6); // radial opposition, both handednesses
+  box(j("thumb"),-12,-8,12,6); // original CMC / metacarpal base
+  box(j("thumb-mcp"),-5,-7,9,7); // real rotating first phalanx
+  box(j("thumb-ip"),-5,-6,9,6); // actual nail-bearing distal bone
   const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
   const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
   const centerX=(left+right)/2,centerY=(top+bottom)/2;
