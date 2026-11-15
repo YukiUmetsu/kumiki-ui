@@ -1,7 +1,7 @@
 import {describe,expect,it} from "vitest";
 import {
   createDryPencilHeadPlate,projectMeasuredHeadContours,
-  observedLightSkinSupport,
+  observedLightSkinSupport,pencilSkinFibreFlow,
   HEAD_STORYBOARD_PHASES,selectHeadStoryboardStrokes,
 } from "../src/video/colored-pencil-full-head";
 import {mapCC0WomanPortraitFeatures} from "../src/video/colored-pencil-portrait-guides";
@@ -111,6 +111,57 @@ describe("Source-measured ArtCraft full-head geometry (experimental)",()=>{
 });
 
 
+describe("ArtCraft anatomy-connected colored-pencil fibre flow",()=>{
+  it("transitions across measured facial planes without a ruled diagonal",()=>{
+    const d=Math.hypot(
+      guides.eyeNearCenter[0]-guides.eyeFarCenter[0],
+      guides.eyeNearCenter[1]-guides.eyeFarCenter[1]);
+    const near:readonly[number,number]=[
+      guides.noseBridge[0]+d*.16,guides.noseBridge[1]+d*.11,
+    ];
+    const other:readonly[number,number]=[
+      near[0]+d*.004,near[1]+d*.004,
+    ];
+    const first=pencilSkinFibreFlow(near,guides,d,0);
+    const neighbour=pencilSkinFibreFlow(other,guides,d,0);
+    const chroma=pencilSkinFibreFlow(near,guides,d,1);
+    const form=pencilSkinFibreFlow(near,guides,d,2);
+    expect(Math.abs(first.angle-neighbour.angle)).toBeLessThan(.12);
+    expect(chroma.angle-first.angle).toBeCloseTo(.61,9);
+    expect(form.angle-first.angle).toBeCloseTo(-.34,9);
+    expect(chroma.curvature).toBeLessThan(first.curvature);
+    const cheek=pencilSkinFibreFlow([
+      guides.noseBridge[0]-d*.7,guides.noseBridge[1]+d*.3,
+    ],guides,d,0);
+    const bridge=pencilSkinFibreFlow([
+      guides.noseBridge[0],guides.noseBridge[1]+d*.15,
+    ],guides,d,0);
+    expect(Math.abs(cheek.angle-bridge.angle)).toBeGreaterThan(.45);
+    expect([first,neighbour,chroma,form,cheek,bridge].every(v=>
+      Number.isFinite(v.angle)&&Number.isFinite(v.curvature)&&
+      Math.abs(v.curvature)<.25)).toBe(true);
+    expect(pencilSkinFibreFlow(near,guides,d,0)).toEqual(first);
+    expect(()=>pencilSkinFibreFlow([NaN,2],guides,d,0))
+      .toThrow(RangeError);
+    expect(()=>pencilSkinFibreFlow(near,guides,0,0))
+      .toThrow(RangeError);
+  });
+  it("retains separate dry marks and monotonic four-shot reveals",()=>{
+    const plate=createDryPencilHeadPlate(source(),guides,271,.85);
+    for(const zone of ["face-value","face-chroma","face-scumble"] as const){
+      const marks=plate.strokes.filter(m=>m.zone===zone);
+      expect(marks.length).toBeGreaterThan(50);
+      expect(marks.every(m=>m.alpha>0&&m.alpha<=.56&&
+        m.width>0&&Number.isFinite(m.controlX)&&
+        Number.isFinite(m.controlY))).toBe(true);
+    }
+    expect(plate.rasterUnderpainting).toBe(false);
+    const stages=HEAD_STORYBOARD_PHASES.map(p=>
+      selectHeadStoryboardStrokes(plate.strokes,p.id));
+    for(let i=1;i<stages.length;i++)
+      expect(stages[i].length).toBeGreaterThan(stages[i-1].length);
+  },15000);
+});
 describe("ArtCraft source-observed luminous skin is not unpigmented paper",()=>{
   it("preserves real light-face pigment while reserving actual ivory highlights",()=>{
     const malar=observedLightSkinSupport(202/255);
