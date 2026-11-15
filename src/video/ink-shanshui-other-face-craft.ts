@@ -34,16 +34,10 @@ export const SHANSHUI_PORTRAIT_OBSERVATIONS={
   },
 } as const;
 
-type FacialMap=Partial<Record<
-  "face"|"brow"|"eyes-open"|"eyes-soft"|"eyes-closed"|
-  "mouth-rest"|"pupil-left"|"pupil-right",
-  CharacterPathShape[]
->>;
-
 /** Independent identity-preserving stroke groups, zero at detail=0. The
  * shared blink and mouth controllers remain authoritative; this only
  * supplies small local relief marks and iris geometry where appropriate. */
-export function shanshuiOtherFaceCraft(scene:ShanshuiScene,detail=1):FacialMap {
+export function shanshuiOtherFaceCraft(scene:ShanshuiScene,detail=1):Record<string,CharacterPathShape[]> {
   if(!Number.isFinite(detail)||detail<0||detail>1)
     throw new RangeError("Face craft detail must be in 0..1.");
   if(scene==="river-scholar"||detail<.45)return {};
