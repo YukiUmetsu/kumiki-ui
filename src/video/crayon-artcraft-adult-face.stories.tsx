@@ -1,3 +1,4 @@
+import {useMemo} from "react";
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
 import {crayonAdultFaceStudy} from "./crayon-artcraft-adult-face-fixtures";
@@ -10,7 +11,9 @@ interface StudyProps {
   startFrame:number;playbackRate:number;loop:boolean;
 }
 export function AdultFaceArtcraftWorkbench({aspect,detail,expression,headScaleY,startFrame,playbackRate,loop}:StudyProps){
-  const spec=crayonAdultFaceStudy(aspect,{detail,expression,headScaleY});
+  // Source geometry is expensive and independent of the animation playhead.
+  const spec=useMemo(()=>crayonAdultFaceStudy(aspect,{detail,expression,headScaleY}),
+    [aspect,detail,expression,headScaleY]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,"adult-face-artcraft:"+aspect+":"+expression+":"+headScaleY,playbackRate,loop);
   return <div style={{maxWidth:1040,margin:"auto",padding:16,color:"#34333d",
@@ -39,8 +42,12 @@ export function AdultFaceArtcraftWorkbench({aspect,detail,expression,headScaleY,
 }
 /** Matched two-up proof: same material, pose, frame and scale; expression alone changes. */
 export function AdultFaceExpressionComparison({aspect,detail,headScaleY,startFrame,playbackRate,loop}:StudyProps){
-  const warm=crayonAdultFaceStudy(aspect,{detail,headScaleY,expression:"warm"});
-  const neutral=crayonAdultFaceStudy(aspect,{detail,headScaleY,expression:"neutral"});
+  // Reuse identical source geometry while the shared playhead advances.
+  // Two full handcrafted SVG studies are intentionally rendered in this bench.
+  const warm=useMemo(()=>crayonAdultFaceStudy(aspect,{detail,headScaleY,expression:"warm"}),
+    [aspect,detail,headScaleY]);
+  const neutral=useMemo(()=>crayonAdultFaceStudy(aspect,{detail,headScaleY,expression:"neutral"}),
+    [aspect,detail,headScaleY]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,warm.durationFrames,"adult-face-expression-compare:"+aspect+":"+headScaleY,
     playbackRate,loop);
