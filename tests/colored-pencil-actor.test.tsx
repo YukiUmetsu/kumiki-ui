@@ -43,6 +43,10 @@ describe("CP3 authored coloured-pencil ensemble", () => {
       expect(scene.actors!.every(actor=>actor.parts.every(part=>part.region.opaqueSupport))).toBe(true);
       expect(scene.actors!.every(actor=>actor.parts.some(part=>part.region.details!.length>3))).toBe(true);
       expect(scene.drawing.regions.some(r=>r.id==="kingfisher-perch")).toBe(true);
+      const grounded=scene.drawing.regions.find(r=>r.id==="kingfisher-perch")!;
+      expect((grounded.path.match(/M/g)??[]).length).toBe(2);
+      expect((grounded.path.match(/Z/g)??[]).length).toBe(2);
+      expect(grounded.opaqueSupport).toBe(true);
       expect(scene.drawing.regions.some(r=>r.id==="sun-disk")).toBe(false);
       expect(scene.drawing.regions.some(r=>r.id==="near-hills")).toBe(false);
     }
