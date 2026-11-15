@@ -214,8 +214,10 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(original).toContain('data-km-pencil-region="eye-far"');
     expect(original).toContain('data-km-pencil-micro=""');
     expect(original).toContain('data-km-pigment-layer="2"');
-    expect(original).not.toMatch(/<(?:image|foreignObject|feImage)\\b/i);
-    expect(original).not.toMatch(/data:image\\//);
+    expect(original).not.toContain("<image");
+    expect(original).not.toContain("<foreignObject");
+    expect(original).not.toContain("<feImage");
+    expect(original).not.toContain("data:image/");
     expect(renderToStaticMarkup(
       <PencilDrawing drawing={drawing} frame={335}/>)).toBe(original);
   });
