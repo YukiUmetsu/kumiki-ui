@@ -504,3 +504,24 @@ previous run at precisely matching crop/scale, then inspect the moving MP4.
 Do not merge simply because both screenshots look visually different.
 A genuinely natural gait still requires convincing exposure/occlusion of
 feet under fabric and nonmechanical cloth contours.
+
+
+### Second native screenshot comparison: residual straight lower seam
+
+QA run `43656328579` passed the complete scoped workflow and exported
+another 960×540, 30 fps, 96-frame film. Side-by-side inspection of the
+three-phase garment studio against run `43655855851` showed the dark
+**double perimeter** is substantially reduced and all filled garment
+layers remain opaque. A too-straight line still traversed the lower
+panels, visually flattening the skirt despite animated individual parts.
+
+The subsequent third art iteration replaces that full-width interior
+panel baseline with two **short diagonal compression folds** near the
+outside hem turns. These folded strokes rise through the hanging fabric
+rather than drawing a false second flat hem. Their geometry remains
+separately attached to each panel/hip, and the shoe-contact tracks are
+unchanged. Review this specific latest state in new frame-60/73/86
+evidence before claiming visual approval.
+
+**Still not solved:** full fabric shape morphing through a stride, naturally
+exposed shoe silhouettes and bespoke close-up hand/cloth acting.
