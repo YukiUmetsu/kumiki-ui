@@ -131,6 +131,17 @@ describe("UKIYO1 figures", () => {
     const look = { sleeves: "long" as const, hair: "shimada" as const };
     expect(JSON.stringify(drawFigure({ look }, 20, 1.5, 3).prims)).not.toEqual(JSON.stringify(drawFigure({ look }, 20, 0, 3).prims));
   });
+  it("draws a three-quarter face, and the face action turns a profile head to it and back; oni stay in profile", () => {
+    const head = (spec: Parameters<typeof drawFigure>[0], f: number) => JSON.stringify(drawFigure(spec, f, 0, 3).prims.find(p => p.t === "group" && /scale\(/.test(p.transform ?? "")));
+    const look = { hair: "shimada" as const };
+    const turned = { look, actions: [{ type: "face" as const, start: 10, end: 60, blend: 10 }] };
+    expect(head(turned, 5)).toEqual(head({ look }, 5));                       // profile before
+    expect(head(turned, 40)).toEqual(head({ look: { ...look, view: "three-quarter" } }, 40));   // three-quarter while held
+    expect(head(turned, 40)).not.toEqual(head({ look }, 40));
+    expect(head(turned, 80)).toEqual(head({ look }, 80));                     // back to profile after the blend
+    const oni = { look: CAST["oni-red"] };
+    expect(head({ ...oni, actions: [{ type: "face" as const, start: 0, end: 60 }] }, 30)).toEqual(head(oni, 30));
+  });
 });
 
 describe("UKIYO1 print, camera and transitions", () => {

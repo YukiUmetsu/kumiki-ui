@@ -27,7 +27,8 @@ export interface UkiyoeFilmTweaks {
 export const CAST: Readonly<Record<string, UkiyoeFigureLook>> = {
   traveller: { robe: "ai", robePattern: { type: "kanoko", color: "gofun", scale: .45, opacity: .8 }, hat: "kasa", lower: "tucked", legs: "gofun", feet: "waraji", prop: "staff", obi: "kogecha", under: "sora" },
   ferryman: { robe: "asagi", robePattern: { type: "shima", color: "ai", scale: .5, opacity: .7 }, hair: "chonmage", hat: "headband", hatColor: "gofun", lower: "tucked", legs: "hada", feet: "bare", prop: "pole", propColor: "kincha", obi: "ai" },
-  mother: { robe: "beni", robePattern: { type: "asanoha", color: "gofun", scale: .45, opacity: .75 }, hair: "shimada", obi: "kincha", under: "ki", sleeves: "long", prop: "umbrella", accent: "ai", feet: "geta" },
+  // As in bijin prints, the mother is drawn with her face turned three-quarters toward us.
+  mother: { robe: "beni", robePattern: { type: "asanoha", color: "gofun", scale: .45, opacity: .75 }, hair: "shimada", obi: "kincha", under: "ki", sleeves: "long", prop: "umbrella", accent: "ai", feet: "geta", view: "three-quarter" },
   child: { robe: "ki", robePattern: { type: "ichimatsu", color: "shu", scale: .5, opacity: .9 }, hair: "child", build: "child", obi: "shu", feet: "geta" },
   porter: { robe: "cha", hair: "chonmage", hat: "headband", hatColor: "ai", lower: "tucked", legs: "hada", feet: "waraji", prop: "basket-pole", propColor: "kincha" },
   merchant: { robe: "kusa", hair: "chonmage", coat: "kogecha", coatPattern: { type: "kikko", color: "cha", scale: .4, opacity: .6 }, lower: "hakama", hakama: "usuzumi", feet: "tabi", prop: "fan", accent: "shu" },

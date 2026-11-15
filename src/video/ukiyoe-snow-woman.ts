@@ -39,6 +39,8 @@ const pass: UkiyoeShot = { id: "pass", title: "The mountain pass", build: (aspec
       creature("fox", "fox", 1900, road + 110, { depth: 1, scale: .9, actions: [{ type: "walk", start: 10, end: 140, to: -520 }, { type: "look", start: 140, end: 200, angle: -30 }, { type: "run", start: 200, end: dur, to: -1500 }] }),
       creature("crow-a", "crow", 1800, 230, { depth: .5, scale: .8, actions: [{ type: "fly", start: 0, end: dur, to: -1300, toY: -40 }] }),
       creature("crow-b", "crow", 2050, 300, { depth: .5, scale: .65, actions: [{ type: "fly", start: 20, end: dur, to: -1500, toY: -80 }] }),
+      // On the far road a nurikabe has crouched across the way, a wall where no wall should be.
+      creature("nurikabe", "nurikabe", 320, road + 30, { depth: 1, scale: .7, facing: "right", actions: [{ type: "stand", start: 0, end: 220 }, { type: "roar", start: 220, end: 260 }] }),
       fig("traveller", "traveller", 2150, road + 20, { depth: 1, scale: .95, facing: "left", actions: [{ type: "walk", start: 0, end: dur, to: -1350 }] }),
       { id: "snow", kind: "particles", type: "snow", depth: 1.1, area: [-300, -300, 2700, 1700], count: 260, speed: 1.4, size: 1.3 } as UkiyoeNode,
       ...caption("cap-pass-1", aspect, "In the mountains of the north, the snow fell for days.", 20, 150, t),
@@ -70,6 +72,9 @@ const shrine: UkiyoeShot = { id: "shrine", title: "The old shrine at night", bui
       creature("flame-a", "hitodama", 420, gy - 60, { depth: .95, scale: 1.1, actions: [{ type: "float", start: 0, end: dur, to: 520, toY: -60 }] }),
       creature("flame-b", "hitodama", 1600, gy - 120, { depth: .95, scale: .9, actions: [{ type: "float", start: 0, end: dur, to: -380, toY: 40 }] }),
       creature("yurei", "yurei", P ? 690 : 300, gy + 40, { depth: .9, scale: 1.05, facing: "right", actions: [{ type: "appear", start: ghostAt, end: ghostAt + 40 }, { type: "stand", start: ghostAt, end: dur }, { type: "vanish", start: dur - 50, end: dur - 5 }] }),
+      // Up in the torii's shadow the earth spider hangs on its thread; the nue prowls the far edge of the precinct.
+      creature("tsuchigumo", "tsuchigumo", 760, gy - 360, { depth: .9, scale: .7, actions: [{ type: "stand", start: 0, end: 200 }, { type: "roar", start: 200, end: 250 }] }),
+      creature("nue", "nue", 2250, gy - 90, { depth: .8, scale: .6, facing: "left", actions: [{ type: "walk", start: 30, end: dur, to: -1900 }] }),
       // Behind the right-hand guardian a woman stands in the dark; as he passes, her neck begins to stretch.
       creature("rokuro", "rokurokubi", 1610, gy + 40, { depth: .93, scale: .95, facing: "left", actions: [{ type: "appear", start: 120, end: 150 }, { type: "stand", start: 120, end: 200 }, { type: "stretch", start: 200, end: dur }] }),
       fig("traveller", "traveller", 1950, gy + 70, { depth: 1, scale: 1, facing: "left", actions: [{ type: "walk", start: 0, end: hop + 60, to: -700 }, { type: "startle", start: hop + 62, end: hop + 90 }, { type: "look", start: hop + 90, end: ghostAt + 30, angle: 10 }, { type: "run", start: ghostAt + 40, end: dur, to: -1500 }] }),
@@ -95,7 +100,7 @@ const snowWoman: UkiyoeShot = { id: "snow-woman", title: "The snow woman", build
       { id: "field", kind: "block", depth: .8, x: 960, y: gy + 200, shape: { type: "rect", width: 4400, height: 900 }, fill: { type: "linear", angle: 90, stops: [[0, "sora", 1], [.5, "sora", .85], [1, "ai", .9]] }, grain: .6, line: 0 } as UkiyoeNode,
       motif("house", "minka", 1520, hz + 190, { width: 300, snow: 1, smoke: .6, light: 1, variant: 5 }, { depth: .6 }),
       motif("jizo", "jizo", 420, gy + 10, { height: 110, count: 1, cap: true, snow: 1 }, { depth: .9 }),
-      fig("traveller", "traveller", 700, gy + 40, { depth: 1, scale: 1.25, facing: "right", actions: [{ type: "kneel", start: 0, end: dur }, { type: "look", start: comes + 30, end: breath, angle: -12 }, { type: "startle", start: breath, end: breath + 30 }, { type: "brace", start: breath + 30, end: gone, angle: 14 }, { type: "pray", start: gone + 10, end: dur }] }),
+      fig("traveller", "traveller", 700, gy + 40, { depth: 1, scale: 1.25, facing: "right", actions: [{ type: "kneel", start: 0, end: dur }, { type: "look", start: comes + 30, end: breath, angle: -12 }, { type: "startle", start: breath, end: breath + 30 }, { type: "brace", start: breath + 30, end: gone, angle: 14 }, { type: "pray", start: gone + 10, end: dur }, { type: "face", start: gone + 20, end: dur, blend: 14 }] }),
       creature("yuki", "yukionna", 1700, gy + 30, { depth: 1, scale: 1.75, facing: "left", actions: [{ type: "appear", start: comes, end: comes + 50 }, { type: "float", start: comes, end: breath - 10, to: -520 }, { type: "blow", start: breath, end: breath + 80 }, { type: "vanish", start: gone, end: gone + 45 }] }),
       { id: "snow", kind: "particles", type: "snow", depth: 1.1, area: [-300, -300, 2700, 1700], count: 420, speed: 2.2, size: 1.4, angle: 18 } as UkiyoeNode,
       { id: "end", kind: "text", style: "cartouche", depth: 0, align: "end", x: P ? w - 90 : w - 110, y: P ? 150 : 96, text: "雪女", sub: "The Snow Woman", size: P ? 46 : 40, enter: { preset: "stamp", frame: gone + 30, duration: 10 } },

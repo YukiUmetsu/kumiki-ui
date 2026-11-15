@@ -439,7 +439,7 @@ export function SceneEditor() {
 
 interface Specimen { id: string; label: string; actions: readonly string[]; node: (action: string) => UkiyoeNode; sky?: "day" | "night" | "storm" }
 const travel = (type: string) => ["walk", "run", "fly", "hop"].includes(type) ? { to: 0 } : {};
-const SPIRITS = new Set(["yukionna", "yurei", "rokurokubi", "kasaobake", "chochinobake", "hitodama"]);
+const SPIRITS = new Set(["yukionna", "yurei", "rokurokubi", "kasaobake", "chochinobake", "hitodama", "nue", "nurikabe", "tsuchigumo"]);
 const beast = (id: string, species: string, label: string, actions: string[], look: Record<string, unknown> = {}, scale = 1.25, y = 330): Specimen => ({
   id, label, actions, ...(SPIRITS.has(species) ? { sky: "night" as const } : {}),
   node: action => ({ id: "c", kind: "creature", species, x: 300, y, scale, look, actions: [{ type: action, start: 0, end: 239, ...travel(action) }] } as UkiyoeNode),
@@ -469,6 +469,9 @@ const BESTIARY: readonly Specimen[] = [
   beast("tengu", "tengu", "Tengu with feather fan", ["fan", "stand", "fly", "walk"], {}, 1.05, 350),
   beast("karasutengu", "karasutengu", "Karasu-tengu", ["fly", "stand", "fan", "walk"], {}, 1.05, 350),
   beast("rokurokubi", "rokurokubi", "Rokurokubi, the long-necked woman", ["stretch", "stand", "appear", "vanish"], {}, .75, 365),
+  beast("nue", "nue", "Nue: monkey face, tiger body, snake tail", ["walk", "run", "sit", "roar", "look"], {}, 1.15),
+  beast("nurikabe", "nurikabe", "Nurikabe, the wall on the night road", ["stand", "walk", "roar"], {}, 1.2, 350),
+  beast("tsuchigumo", "tsuchigumo", "Tsuchigumo, the earth spider", ["walk", "stand", "roar"], {}, 1.1, 350),
   beast("yukionna", "yukionna", "Yuki-onna, the snow woman", ["stand", "blow", "beckon", "appear", "vanish"], {}, 1.3, 360),
   beast("yurei", "yurei", "Yūrei, a ghost", ["stand", "appear", "vanish"], {}, 1.3, 360),
   beast("kasaobake", "kasaobake", "Kasa-obake, the umbrella spirit", ["hop", "stand", "look"], {}, 1.3, 350),
@@ -507,7 +510,8 @@ export function Bestiary() {
         the snow woman (her robe trails into snow, she breathes out the cold), a yūrei ghost, the umbrella and lantern spirits, and
         soul-flames, the rokurokubi whose neck stretches, the bowing kappa that spills the water from its dish, and the tengu (red and
         long-nosed, or crow-headed) with wings and a gale-raising fan; <code>appear</code> and <code>vanish</code> fade spirits in and out.
-        Momotarō's monkey and the Tōkaidō packhorse join the four-legged rig. The dragon swims through
+        Momotarō's monkey and the Tōkaidō packhorse join the four-legged rig, with the nue (monkey face, tiger body, snake tail); the
+        nurikabe blocks the night road and the tsuchigumo creeps on eight banded legs. The dragon swims through
         the air with whiskers, mane, belly plates and its flaming pearl. Oni are full figures with horns, fangs, a tiger-skin loincloth
         and a kanabō, so they can do every figure action. <code>transform</code> vanishes a creature in a puff of smoke (henge) so a
         new node can appear in its place. Pick an action on any card.</p>

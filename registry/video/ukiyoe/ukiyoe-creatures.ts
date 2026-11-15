@@ -15,8 +15,8 @@ import type { UkiyoeYokai } from "./ukiyoe-yokai";
 import { drawYokai, UKIYOE_YOKAI } from "./ukiyoe-yokai";
 import type { UkiyoeFill, UkiyoePaint } from "./ukiyoe-pigments";
 
-export type UkiyoeSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse" | "crane" | "heron" | "crow" | "pheasant" | "sparrow" | "dragon" | UkiyoeYokai;
-export const UKIYOE_SPECIES: readonly UkiyoeSpecies[] = ["fox", "tanuki", "dog", "cat", "rabbit", "monkey", "horse", "crane", "heron", "crow", "pheasant", "sparrow", "dragon", ...UKIYOE_YOKAI];
+export type UkiyoeSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse" | "nue" | "crane" | "heron" | "crow" | "pheasant" | "sparrow" | "dragon" | UkiyoeYokai;
+export const UKIYOE_SPECIES: readonly UkiyoeSpecies[] = ["fox", "tanuki", "dog", "cat", "rabbit", "monkey", "horse", "nue", "crane", "heron", "crow", "pheasant", "sparrow", "dragon", ...UKIYOE_YOKAI];
 export type UkiyoeCreatureActionType = "walk" | "run" | "fly" | "hop" | "float" | "sit" | "stand" | "look" | "leap" | "howl" | "drum" | "peck" | "dance" | "coil" | "roar" | "transform" | "sleep"
   | "beckon" | "blow" | "vanish" | "appear" | "bow" | "fan" | "stretch";
 export const UKIYOE_CREATURE_ACTIONS: readonly UkiyoeCreatureActionType[] = ["walk", "run", "fly", "hop", "float", "sit", "stand", "look", "leap", "howl", "drum", "peck", "dance", "coil", "roar", "transform", "sleep",
@@ -97,12 +97,14 @@ interface Beast {
   ears: "fox" | "round" | "cat" | "rabbit" | "dog" | "horse" | "monkey"; snout: number;
   /** Neck length (× the usual), head tilt (deg, + turns the face down), mane colour, hooves, bare-skinned face colour. */
   neck?: number; headTilt?: number; mane?: UkiyoePaint; hoof?: boolean; face?: UkiyoePaint;
+  /** Tiger stripes over the coat and legs. */
+  stripes?: boolean;
   /** Belly tuck (+ up at the waist, − sagging), chest depth, fur length (fraction of body height), hairline density. */
   tuck: number; chest: number; fur: number; hairs: number;
   /** Long-coat colour for ruff, cheeks and belly fringe; lower-leg colour ("stockings"); eye iris; slit pupil. */
   ruff: UkiyoePaint; stocking?: UkiyoePaint; iris: UkiyoePaint; slit: boolean; tailTip?: UkiyoePaint;
 }
-type QuadSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse";
+type QuadSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse" | "nue";
 const BEASTS: Readonly<Record<QuadSpecies, Beast>> = {
   fox: { L: 150, bh: 46, leg: 54, color: "tan", belly: "gofun", dark: "kogecha", head: 34, tail: 118, tailW: 36, ears: "fox", snout: 1.25,
     tuck: .2, chest: .14, fur: .2, hairs: 1, ruff: "gofun", stocking: "sumi", iris: "ki", slit: true, tailTip: "gofun" },
@@ -120,6 +122,9 @@ const BEASTS: Readonly<Record<QuadSpecies, Beast>> = {
   // A bay packhorse: long legs, a long arched neck and long head, black mane, tail and stockings, hooves.
   horse: { L: 200, bh: 76, leg: 118, head: 40, tail: 110, tailW: 30, ears: "horse", snout: 1.75, tuck: .1, chest: .18, fur: .03, hairs: .45,
     color: "cha", belly: "cha", dark: "kogecha", ruff: "cha", stocking: "sumi", iris: "kogecha", slit: false, neck: 2.3, headTilt: 48, mane: "sumi", hoof: true },
+  // The nue of the Heike tale, after Sekien: a monkey's face, a tiger-striped body and legs, and a snake for a tail.
+  nue: { L: 150, bh: 56, leg: 56, head: 32, tail: 170, tailW: 15, ears: "monkey", snout: .3, tuck: .14, chest: .12, fur: .1, hairs: 1,
+    color: "ki", belly: "gofun", dark: "kogecha", ruff: "ki", iris: "ki", slit: false, face: "beni", neck: .35, headTilt: 4, stripes: true },
 };
 
 const lerp2 = (a: Pt, b: Pt, t: number): Pt => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
@@ -411,6 +416,15 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
         const front = hind ? [polar(massTop, a1 - 70, w0 * .55), polar(root, a1 - 80, w0 * .95), polar(knee, a1 - 90, w0 * .38)] : [polar(massTop, a1 + 60, w0 * .4), polar(root, a1 - 85, w0 * .9), polar(knee, a1 - 90, w0 * .38)];
         out.push({ t: "line", d: carvedLine(front, Math.max(1, bh * .035), { taper: "both", minRatio: .15, smooth: true }), color: "sumi", opacity: .85 });
       }
+      // Tiger bands across the leg (nue).
+      if (b.stripes && !look.color) {
+        const bands: string[] = [];
+        for (let i = 0; i < 6; i++) {
+          const u = (i + .6) / 6.5, q = i < 3 ? lerp2(root, knee, u * 2) : lerp2(knee, paw, (u - .46) * 1.9), across = (hind ? a1 : a1) + 90;
+          bands.push(carvedLine([polar(q, across, w0 * (i < 3 ? .9 : .4)), polar(q, across + 180, w0 * (i < 3 ? .6 : .35))], bh * .06, { taper: "both", minRatio: .2 }));
+        }
+        out.push({ t: "clip", d: upper + lower, union: true, key: "legbands", prims: [{ t: "fill", d: bands.join(""), fill: "sumi", opacity: near ? .8 : .6 }] });
+      }
       // Breeches: long fur on the back of the thigh (fox, tanuki), tufts lying down the leg.
       if (hind && fur > 2) {
         const br = furEdge([polar(root, a1 + 100, w0 * .7), polar(knee, a1 + 90, w0 * .3)], fur * .8, sideSign > 0 ? -1 : 1, 1, seed + (near ? 7 : 9));
@@ -451,6 +465,25 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
         - wind * 8 * u * (species === "rabbit" ? 0 : 1) + (sit * 12);
       at = polar(at, a, len / segs);
       pts.push(at);
+    }
+    if (species === "nue") {
+      // The nue's tail is a living snake: a long sinuous body in scales, its head turning back to look and flicking
+      // a forked tongue.
+      const sp: Pt[] = [tailRoot];
+      let ang = -160 + pitch * .6, at2 = tailRoot;
+      for (let i = 0; i < 18; i++) { const u = i / 17; ang += Math.sin(frame / 8 - u * 5 + seed) * 16 * (.4 + u) - 4; at2 = polar(at2, ang, b.tail * k / 18); sp.push(at2); }
+      const w0 = b.tailW * k, body = ribbonQ(sp, w0, w0 * .62);
+      tailPrims.push({ t: "fill", d: body, fill: "matsu", outline: 1.1, pattern: { type: "uroko", color: "kusa", scale: .35, opacity: .7 }, grain: .3 });
+      tailPrims.push({ t: "clip", d: body, key: "snakebelly", prims: [{ t: "line", d: carvedLine(sp.map((q, i) => { const a3 = sp[Math.max(0, i - 1)], c3 = sp[Math.min(sp.length - 1, i + 1)], l3 = Math.hypot(c3[0] - a3[0], c3[1] - a3[1]) || 1; return [q[0] - (c3[1] - a3[1]) / l3 * w0 * .3, q[1] + (c3[0] - a3[0]) / l3 * w0 * .3] as Pt; }), w0 * .35, { taper: "end", minRatio: .5, smooth: true }), color: "ki", opacity: .75 }] });
+      // The head: a wedge with a glaring eye, the jaw line, and the tongue.
+      const end = sp[sp.length - 1], prev2 = sp[sp.length - 3], ha = Math.atan2(end[1] - prev2[1], end[0] - prev2[0]) / DEG, hl = w0 * 2.2;
+      const SH = (x: number, y: number): Pt => add(end, rot([x * hl, y * hl], ha, [0, 0]));
+      tailPrims.push({ t: "fill", d: smoothD([SH(-.1, -.38), SH(.55, -.4), SH(1.05, -.12), SH(1.08, .1), SH(.6, .34), SH(-.1, .36)], true, .4), fill: "matsu", outline: 1.1 });
+      tailPrims.push({ t: "line", d: carvedLine([SH(1.02, .05), SH(.6, .12), SH(.2, .1)], w0 * .08, { taper: "end" }), color: "sumi" });
+      tailPrims.push({ t: "fill", d: ellipseD(...SH(.6, -.16), hl * .12, hl * .1), fill: "ki", outline: .8 }, { t: "dots", d: circleD(...SH(.62, -.16), hl * .05), color: "sumi" });
+      const flick = Math.sin(frame / 3 + seed) > .3;
+      if (flick) tailPrims.push({ t: "stroke", d: `M${SH(1.05, .02).join(" ")}L${SH(1.45, .04).join(" ")}L${SH(1.6, -.08).join(" ")}M${SH(1.45, .04).join(" ")}L${SH(1.6, .14).join(" ")}`, color: "shu", width: Math.max(1, w0 * .1) });
+      continue;
     }
     if (species === "horse") {
       // A horse's tail: a short dock, then a long fall of hair in strands, swinging and parting as it moves.
@@ -531,6 +564,18 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
     { t: "fill", d: smoothD([R([-L * .38, top]), R([-L * .12, top - bh * .05]), R([-L * .02, top + bh * .5]), R([-L * .3, top + bh * .55])], true, .5), fill: "ki", opacity: .92 },
     { t: "fill", d: smoothD([R([-L * .06, top - bh * .1]), R([L * .14, top - bh * .05]), R([L * .2, top + bh * .4]), R([0, top + bh * .45])], true, .5), fill: "sumi", opacity: .88 },
     { t: "fill", d: smoothD([R([L * .22, top]), R([L * .42, top + bh * .05]), R([L * .38, top + bh * .3]), R([L * .25, top + bh * .3])], true, .5), fill: "ki", opacity: .9 }] });
+  if (b.stripes && !look.color) {
+    // Tiger stripes: dark tapering bands down from the spine, forking and thinning toward the belly.
+    const Lb = polylineLength(backLine), stripesD: string[] = [];
+    for (let i = 0; i < 11; i++) {
+      const u = (i + .5) / 11, q = alongPath(backLine, Lb * u), t2 = tangentAt(backLine, Lb * u), sgn = t2[0] < 0 ? -1 : 1, dn: Pt = [-t2[1] * sgn, t2[0] * sgn];   // pointing down into the body
+      const len = bh * (.55 + .3 * hash01(seed, i, 401)), bend = hashSigned(seed, i, 402) * bh * .12;
+      const a3 = add(q, [-dn[0] * bh * .05, -dn[1] * bh * .05]), m3 = add(q, [dn[0] * len * .5 + t2[0] * bend, dn[1] * len * .5 + t2[1] * bend]), e3 = add(q, [dn[0] * len + t2[0] * bend * 1.6, dn[1] * len + t2[1] * bend * 1.6]);
+      stripesD.push(carvedLine([a3, m3, e3], bh * (.1 + .05 * hash01(seed, i, 403)), { taper: "end", minRatio: .05, smooth: true }));
+      if (hash01(seed, i, 404) < .4) stripesD.push(carvedLine([m3, add(m3, [dn[0] * len * .35 - t2[0] * bh * .12, dn[1] * len * .35 - t2[1] * bh * .12])], bh * .06, { taper: "end", minRatio: .05 }));
+    }
+    out.push({ t: "clip", d: coatD + neckD, union: true, key: "stripes", prims: [{ t: "fill", d: stripesD.join(""), fill: "sumi", opacity: .85 }] });
+  }
   if (species === "tanuki") out.push({ t: "clip", d: coatD, key: "tbelly", prims: [{ t: "fill", d: ellipseD(...R([L * .05, by - bh * .1]), L * .3, bh * .38), fill: belly, opacity: .9 }] });
   out.push(...legPrims(true));
   // The horse's mane falls from the crest of the neck in long locks over its side, the forelock between the ears.
@@ -933,9 +978,9 @@ export function drawCreature(spec: UkiyoeCreatureSpec, frame: number, wind: numb
   for (const a of spec.actions ?? []) { if (a.start > frame) break; if (TRAVEL.has(a.type) && a.to !== undefined && a.to !== x) { dir = a.to > x ? 1 : -1; x = a.to; } }
   let prims: Prim[];
   switch (spec.species) {
-    case "fox": case "tanuki": case "dog": case "cat": case "rabbit": case "monkey": case "horse": prims = quadruped(spec.species, spec, frame, wind * dir, seed); break;
+    case "fox": case "tanuki": case "dog": case "cat": case "rabbit": case "monkey": case "horse": case "nue": prims = quadruped(spec.species, spec, frame, wind * dir, seed); break;
     case "dragon": prims = dragon(spec, frame, wind * dir, seed); break;
-    case "yukionna": case "yurei": case "rokurokubi": case "kasaobake": case "chochinobake": case "hitodama": case "kappa": case "tengu": case "karasutengu": {
+    case "yukionna": case "yurei": case "rokurokubi": case "kasaobake": case "chochinobake": case "hitodama": case "kappa": case "tengu": case "karasutengu": case "nurikabe": case "tsuchigumo": {
       const acts = spec.actions ?? [], st = actionState(acts, frame);
       const w = (type: string) => { const e = st(type as UkiyoeCreatureActionType); return { w: e.w, t: e.t, len: e.a ? e.a.end - e.a.start : 1 }; };
       // A spirit with an `appear` is unseen until it first appears; after a `vanish` has run it stays gone (until the next
