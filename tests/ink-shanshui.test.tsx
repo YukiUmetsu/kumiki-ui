@@ -331,6 +331,36 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         expect((shadowBodies[idx][1].match(/ C/g)??[])).toHaveLength(5);
         expect(html).toContain('id="'+shadowBodies[idx][2]+'"');
       }
+      // Wang Meng's "almost claustrophobic" interlocking rock must
+      // exist as shaded connected mass, not exclusively thin hair/line
+      // primitives over one beige polygon. Nine nested gorge formations
+      // are rooted at five real stone-bank stations, strictly clipped.
+      const gullies=[...html.matchAll(
+        /data-km-master-wang-gully="" data-km-master-wang-gully-root="([^"]+)" data-km-master-wang-gully-kind="([0-2])"/g,
+      )];
+      const gullyShadows=[...html.matchAll(
+        /data-km-master-wang-gully-shadow="" d="([^"]+)" fill="url\(#([^"]+)\)"/g,
+      )];
+      const expectedGullies=school==="forest-grotto"?9:0;
+      expect(gullies).toHaveLength(expectedGullies);
+      expect(gullyShadows).toHaveLength(expectedGullies);
+      expect((html.match(/data-km-master-wang-gully-rim=""/g)??[]))
+        .toHaveLength(expectedGullies);
+      expect((html.match(/data-km-master-wang-gully-fold=""/g)??[]))
+        .toHaveLength(expectedGullies);
+      if(school==="forest-grotto"){
+        expect(gullies.map(m=>Number(m[2])))
+          .toEqual([0,1,2,0,1,2,0,1,2]);
+        expect(new Set(gullies.map(m=>m[1])).size).toBe(9);
+        for(let index=0;index<9;index++){
+          const root=gullies[index][1];
+          const [_,d,id]=gullyShadows[index];
+          expect(d.startsWith("M"+root.replace(","," "))).toBe(true);
+          expect((d.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(5);
+          expect(d.endsWith(" Z")).toBe(true);
+          expect(html).toContain('id="'+id+'"');
+        }
+      }
       const moss=[...html.matchAll(
         /data-km-master-moss-dab="" data-km-master-moss-root="([^"]+)" data-km-master-moss-wet="(dry|wet)" d="([^"]+)"/g,
       )];
