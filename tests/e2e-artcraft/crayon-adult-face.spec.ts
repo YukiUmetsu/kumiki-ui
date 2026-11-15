@@ -324,9 +324,9 @@ for(const view of ["wax","anatomy"] as const){
         // Browser proof of the real V4 failure: wax contact clumps were
         // clipped at the polygon while its under-glaze feathered.
         await expect(svg.locator(
-          '[data-km-crayon-feather-contacts="open-wax"]')).toHaveCount(19);
+          '[data-km-crayon-feather-contacts="open-wax"]')).toHaveCount(20);
         await expect(svg.locator(
-          '[data-km-crayon-contact-feather-mask]')).toHaveCount(19);
+          '[data-km-crayon-contact-feather-mask]')).toHaveCount(20);
         await expect(svg.locator(
           '[data-km-crayon-opaque-burnish]')).toHaveCount(7);
         for(const id of ["socket-near","socket-far",
