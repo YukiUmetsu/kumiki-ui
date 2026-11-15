@@ -6667,6 +6667,33 @@
           "target": "components/video/paper-scenery-kit.ts"
         }
       ]
+    },
+    {
+      "name": "ink-cinematic-landscape",
+      "type": "registry:ui",
+      "title": "Cinematic Chinese Ink Landscape",
+      "description": "Original code-painted shan-shui animation engine: typed scene/motif DSL, pressure-native mountains, pine and willow, cliffs, stone river, bridge, pavilion, atmosphere, scholar gestures, absolute-frame camera and 16:9/9:16 compositing.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-wash-core"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-cinematic-scene.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-cinematic-scene.ts"
+        },
+        {
+          "path": "registry/video/ink-cinematic-scholar-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-cinematic-scholar-react.tsx"
+        },
+        {
+          "path": "registry/video/ink-cinematic-scene-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-cinematic-scene-react.tsx"
+        }
+      ]
     }
   ]
 }
