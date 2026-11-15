@@ -66,7 +66,7 @@ export function inspectNativePortraitPaint(spec:NativeWatercolourPortraitSpec):s
     if(!r||r.id!==role){errors.push("/regions/"+index+"/order");continue;}
     const path="/regions/"+r.id;
     if(!Array.isArray(r.polygon)||r.polygon.length<3||
-      r.polygon.length>64||r.polygon.some(p=>!p||
+      r.polygon.length>64||r.polygon.some((p:{x:number;y:number})=>!p||
         !Number.isFinite(p.x)||!Number.isFinite(p.y)||
         p.x<0||p.x>spec.width||p.y<0||p.y>spec.height)){
       errors.push(path+"/polygon");continue;
