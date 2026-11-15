@@ -18,6 +18,26 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
+type InspectionFocus="default"|"fox-tail"|"portrait-nape";
+
+/** Select the actual drawn part's projected center, not a guessed camera-space
+ * crop. Both aspect transforms are shared with the drawing output itself. */
+function projectedInspectionCenter(
+  drawing:ReturnType<typeof pencilLivingStudyDrawing>,
+  partId:string,
+):[number,number]|null{
+  const part=drawing.regions.find(region=>region.id===partId);
+  const transform=part?.transform?.match(
+    /^translate\((-?[\d.]+) (-?[\d.]+)\) scale\(([\d.]+)\)$/);
+  if(!part||!transform)return null;
+  const [,offsetX,offsetY,scaleText]=transform;
+  const [x,y,width,height]=part.bounds;
+  const scale=Number(scaleText);
+  const px=(Number(offsetX)+(x+width*.5)*scale)/drawing.width;
+  const py=(Number(offsetY)+(y+height*.5)*scale)/drawing.height;
+  if(!Number.isFinite(px)||!Number.isFinite(py))return null;
+  return [Math.max(0,Math.min(1,px)),Math.max(0,Math.min(1,py))];
+}
 
 /** In the original Colour-pencil Storybook folder: all samples are CP-F1 qualified.
  * Artwork is 100% programmatic, frame-addressed and authored from original geometry.
@@ -31,6 +51,7 @@ export function PencilFoundationStudio(){
   const [burnish,setBurnish]=useState(.78);
   const [seed,setSeed]=useState(291);
   const [zoom,setZoom]=useState(false);
+  const [inspectionFocus,setInspectionFocus]=useState<InspectionFocus>("default");
   const [reduced,setReduced]=useState(false);
   const [showTonalSupport,setShowTonalSupport]=useState(true);
   const drawing=useMemo(()=>{
@@ -46,12 +67,21 @@ export function PencilFoundationStudio(){
   if(errors.length)throw new Error("Pencil foundation studio: "+errors.join("; "));
   const current=PENCIL_FOUNDATION_STAGES.reduce((acc,s,i)=>frame>=s.frame?i:acc,0);
   const reference=drawing.foundation!.references[0];
-  const focus=specimenMeta[specimen].focus;
+  // ArtCraft macro/meso/micro proof must be able to inspect the ACTUAL
+  // corrected anatomy: tail-tip in the wildlife actor and nape/collar
+  // in the human actor, at either film aspect. No alternate artwork.
+  const focusPart=inspectionFocus==="fox-tail"&&specimen==="fox"?
+    "tail-back":inspectionFocus==="portrait-nape"&&specimen==="portrait"?
+    "neck":null;
+  const focus=(focusPart?projectedInspectionCenter(
+    drawing as ReturnType<typeof pencilLivingStudyDrawing>,focusPart):null)??
+    specimenMeta[specimen].focus;
   const zoomStyle=zoom?{
     transform:"scale(2.15)",
     transformOrigin:(focus[0]*100)+"% "+(focus[1]*100)+"%",
   }:undefined;
   return <main data-km-foundation-studio="" data-km-foundation-stage={PENCIL_FOUNDATION_STAGES[current].id}
+    data-km-foundation-inspection-focus={focusPart??"default"}
     style={{minHeight:"100vh",padding:24,display:"grid",alignContent:"start",
       gap:16,background:"#E8E7DE",font:"15px/1.5 system-ui",color:"#3B4747"}}>
     <header style={{maxWidth:1050,display:"grid",gap:4}}>
@@ -104,6 +134,19 @@ export function PencilFoundationStudio(){
             const n=Number(e.target.value);
             setSeed(Number.isSafeInteger(n)?Math.min(2147483000,Math.max(0,n)):291);
           }}/>
+      </label>
+      <label style={caption}>Anatomical inspection focus
+        <select aria-label="Foundation inspection focus" style={choice}
+          value={inspectionFocus}
+          onChange={e=>setInspectionFocus(e.target.value as InspectionFocus)}>
+          <option value="default">Reference emphasis</option>
+          <option value="fox-tail" disabled={specimen!=="fox"}>
+            Fox brush / tail-tip
+          </option>
+          <option value="portrait-nape" disabled={specimen!=="portrait"}>
+            Human nape / collar
+          </option>
+        </select>
       </label>
       <label style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
         <input aria-label="Foundation inspect macro" type="checkbox" checked={zoom}
