@@ -521,10 +521,16 @@ function fox():PencilSubjectPart[] {
       // Brush tail is an anatomical continuation of the sitting rump: a
       // long softly tapering weight-bearing pelt along the ground. Preserve
       // its connection under the hindquarters, not a free round pompom.
-      path:"M195 346 C177 335 154 329 129 330 "+
-        "C104 327 78 329 52 339 C35 347 21 356 15 367 "+
-        "C10 373 18 386 34 392 C60 401 91 405 119 403 "+
-        "C150 400 175 383 195 359 C200 353 198 348 195 346 Z",
+      // Interleaved, unequal guard-hair tufts interrupt the silhouette.
+      // The rump root stays behind the body while the white tip remains
+      // within the distal pelt. Not a smooth tube or separate pompom.
+      path:"M195 346 C178 337 161 332 144 331 "+
+        "C133 327 123 330 113 330 C92 329 73 331 54 338 "+
+        "C45 337 38 342 31 348 C24 349 18 354 15 362 "+
+        "C11 366 13 369 14 372 C11 376 17 382 24 385 "+
+        "C30 393 46 396 59 398 C70 403 82 401 94 404 "+
+        "C117 406 139 398 155 391 C172 380 185 368 197 357 "+
+        "C201 352 198 348 195 346 Z",
       bounds:[12,326,207,82],direction:157,start:60,
       details:[
         ...pencilRootedFur([
@@ -533,6 +539,11 @@ function fox():PencilSubjectPart[] {
           [141,335,28,359,75,332,32,14],
           [163,381,72,399,125,410,32,14],
           [102,347,18,374,52,351,30,12],
+          // Interlocking shallow scalp-to-distal fans keep the tail
+          // densely furred instead of a long uniform diagonal hatch.
+          [162,346,73,343,122,336,32,11],
+          [148,377,34,383,97,398,33,12],
+          [94,345,24,368,52,342,30,11],
         ],310,["#E2AE81","#74554F","#F0C79A"],224),
         ...pencilContourFringe([
           [150,330,34,349,82,324,31,-1],
@@ -942,16 +953,25 @@ function fox():PencilSubjectPart[] {
     {id:"tail-tip",material:"fur",palette:pale,
       // Cream brush hairs dissolve into the outer tip, turning back over the
       // lower russet pelt. Do not cover the middle with a round white sticker.
-      path:"M17 361 C24 350 43 341 61 341 "+
-        "C54 349 49 358 46 367 C41 378 47 388 64 394 "+
-        "C42 398 24 394 18 386 C12 379 12 371 17 361 Z",
+      // The terminal white coat interleaves along two staggered seams,
+      // rather than ending at a single neat, rounded colour boundary.
+      path:"M17 361 C24 352 39 343 54 340 "+
+        "C61 342 61 346 58 349 C53 352 50 355 51 362 "+
+        "C48 367 46 374 49 381 C52 388 59 391 67 394 "+
+        "C57 398 44 398 33 392 C23 391 14 383 14 373 "+
+        "C13 369 14 364 17 361 Z",
       bounds:[10,338,59,64],direction:164,start:180,
       details:[
         ...pencilRootedFur([
           [57,347,17,363,36,347,29,10],
           [62,393,17,383,42,397,30,10],
           [48,366,14,375,27,369,28,9],
+          [58,351,22,358,39,346,31,8],
+          [55,382,22,386,40,394,31,8],
         ],1999,["#F7E9D4","#988274","#FFF3D9"],263),
+        {...mark("M60 348 Q54 353 52 360 "+
+          "M50 366 Q46 375 51 383 M53 386 Q57 390 65 393",
+          "#A8907D",.33,271,.43),id:"tail-tip-feathered-seam"},
         ...pencilContourFringe([
           [49,341,15,362,27,339,28,-1],
           [17,382,52,394,28,396,28,1],
