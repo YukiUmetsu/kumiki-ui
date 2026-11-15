@@ -77,6 +77,25 @@ describe("RISO25 ArtCraft v9 ear and expression-linked midface printing",()=>{
     }
   });
 
+  it.each(subjects)("$actor.id: negative gate rejects oversize printed nasal ribbons",({actor})=>{
+    // Chromium RISO25 first pass was visibly rejected: a full bridge-length
+    // red stripe plus a nostril-sized hook misread as cartoon damage.
+    // Constrain new ink to individual *anatomical junctions*, not the entire
+    // nose/cheek: inspect authored source bounds rather than a noise score.
+    const limits:Readonly<Record<string,{w:number;h:number}>>={
+      "nasal-sidewall-line":{w:4,h:7},
+      "nasal-ala-fold":{w:4,h:5},
+      "ear-concha-pocket":{w:6,h:8},
+    };
+    for(const [id,{w,h}] of Object.entries(limits)){
+      const part=actor.parts.find(p=>p.id===id)!;
+      const samples=flattenRisoSvgPath(part.d).flatMap(p=>p.points);
+      const xs=samples.map(p=>p[0]),ys=samples.map(p=>p[1]);
+      expect(Math.max(...xs)-Math.min(...xs),id+" ink width").toBeLessThan(w);
+      expect(Math.max(...ys)-Math.min(...ys),id+" ink height").toBeLessThan(h);
+    }
+  });
+
   it("Courier and Paper Artist have genuinely independent ear and facial mark geometry",()=>{
     for(const id of ["ear-left",...detailParts]){
       expect(COURIER.parts.find(p=>p.id===id)!.d,id)
