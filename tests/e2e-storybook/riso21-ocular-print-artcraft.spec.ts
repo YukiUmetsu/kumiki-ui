@@ -58,8 +58,17 @@ test("RISO21 both original faces: 16:9/9:16, anatomy states, distinct inks",asyn
   // The default is a genuinely fine screen; retain a coarse-pitch comparison.
   const pitch=page.getByRole("slider",{name:"RISO23 screen pitch"});
   await expect(pitch).toHaveValue("2");
-  const narrowTiles=await page.locator('svg[data-km-riso-print]').first()
-    .locator('pattern').evaluateAll(elements=>elements.map(el=>Number(el.getAttribute("width"))));
+  // RISO26 adds TWO real tone patterns per plate. The original RISO23
+  // mechanical guarantee is *exactly two normal-master* patterns, plus now
+  // exactly four coherent local-value variants sharing the same pitch.
+  const firstPrint=page.locator('svg[data-km-riso-print]').first();
+  const narrowTiles=await firstPrint.locator('pattern[id$="-dots-0"],pattern[id$="-dots-1"]')
+    .evaluateAll(elements=>elements.map(el=>Number(el.getAttribute("width"))));
+  const tonalTiles=await firstPrint.locator(
+    'pattern[id*="-dots-light-"],pattern[id*="-dots-mid-"]')
+    .evaluateAll(elements=>elements.map(el=>Number(el.getAttribute("width"))));
+  expect(tonalTiles).toHaveLength(4);
+  expect(tonalTiles.every(value=>value>=2&&value<=2.2)).toBe(true);
   expect(narrowTiles).toHaveLength(2);
   expect(narrowTiles.every(value=>value>=2&&value<=2.2)).toBe(true);
   await pitch.fill("6");
