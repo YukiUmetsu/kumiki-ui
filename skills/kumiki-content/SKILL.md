@@ -34,6 +34,8 @@ Write data, not TSX. Read [the film document](../../docs/component-specs/film-do
 
 **People on screen:** any drawn, painted or rigged human (body, face, hands, pose, hair, skin or eye colour) starts from the human anatomy framework — [kumiki-human-anatomy](../kumiki-human-anatomy/SKILL.md) — so proportions, joint angles and colours come from measured data.
 
+**Animals on screen:** any drawn, painted or rigged animal, bird or fish starts from the animal anatomy framework — [kumiki-animal-anatomy](../kumiki-animal-anatomy/SKILL.md) — so build, face, coat, gait timing and sounds come from the species record, and an animal already drawn in another style is reused.
+
 **Stop and ask** if an asset has no clear rights, if a claim has no source, or if no recipe fits a beat. Do not change a recipe to fix one film. Fix an authoring rule or a component once, then use it.
 
 **Never:** put exact text or numbers inside generated imagery, add motion that teaches nothing, repeat a title and a caption, or call a film finished before you watch it.
