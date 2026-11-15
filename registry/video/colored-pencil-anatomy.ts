@@ -246,7 +246,7 @@ export function pencilPortraitAnatomy(
       }
     }
   }
-  const pigment:PencilPortraitAnatomy["pigment"]=[];
+  const pigment:Array<PencilPortraitAnatomy["pigment"][number]>=[];
   for(const [family,source]of Object.entries(families)){
     // A bounded independent pencil stroke family is the export unit;
     // each 140-stroke SVG brush remains comfortably under 12K chars.
