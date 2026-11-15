@@ -50,6 +50,18 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(parts.get("pupil-far")!.opaqueSupport).toBe(true);
     expect(parts.get("temple-light")!.opaqueSupport).toBe(false);
     expect(parts.get("cheek-light")!.opaqueSupport).toBe(false);
+    // Source-led face construction: narrow natural apertures, layered sockets,
+    // cartilage/naris detail, and short directional brow hairs, not doll eyes.
+    for(const eye of ["eye-white-far","eye-white-near"]){
+      const r=parts.get(eye)!;
+      expect(r.bounds[3]).toBeLessThanOrEqual(30);
+      expect(r.details!.length).toBeGreaterThanOrEqual(3);
+      expect(r.path.match(/C|Q/g)?.length).toBeGreaterThanOrEqual(2);
+    }
+    expect(parts.get("face-main")!.details!.length).toBeGreaterThanOrEqual(8);
+    expect(parts.get("brows")!.details!.length).toBeGreaterThanOrEqual(3);
+    expect(parts.get("nose-bridge")!.details!.length).toBeGreaterThanOrEqual(4);
+    expect(parts.get("lip-upper")!.details!.length).toBeGreaterThanOrEqual(2);
     expect(parts.get("eye-white-near")!.bounds[2])
       .toBeGreaterThan(parts.get("eye-white-far")!.bounds[2]);
     expect(parts.get("lip-upper")!.path).not.toBe(parts.get("lip-lower")!.path);
@@ -68,7 +80,15 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       "ear-near","ear-near-inner","mask","muzzle","eye-far","eye-near",
       "nose","whisker-roots","tail-tip",
     ])expect(parts.has(id)).toBe(true);
-    expect(parts.get("head-main")!.details!.length).toBe(3);
+    // The old broad continuous raccoon band must resolve into socket shadows.
+    expect((parts.get("mask")!.path.match(/M/g)??[]).length).toBe(2);
+    expect(parts.get("head-main")!.details!.length).toBeGreaterThanOrEqual(4);
+    for(const eye of ["eye-far","eye-near"]){
+      expect(parts.get(eye)!.details!.length).toBeGreaterThanOrEqual(3);
+      expect(parts.get(eye)!.bounds[3]).toBeLessThanOrEqual(26);
+    }
+    expect(parts.get("muzzle")!.details!.length).toBeGreaterThanOrEqual(3);
+    expect(parts.get("nose")!.details!.length).toBeGreaterThanOrEqual(3);
     expect(parts.get("chest")!.details!.length).toBe(2);
     expect(parts.get("ground-shadow")!.opaqueSupport).toBe(false);
     expect(parts.get("muzzle")!.opaqueSupport).toBe(true);
