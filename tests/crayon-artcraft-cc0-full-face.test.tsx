@@ -353,6 +353,39 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       {frame:299,focusX:269,focusY:546,zoom:3.35},
     ]})).not.toEqual([]);
   });
+  it("places bilateral orbital cast in true F1 source anatomy before lid and hair",()=>{
+    const scene=crayonCc0FaceStudy({view:"wax"});
+    const get=(id:string)=>scene.elements.find(e=>e.id===id);
+    const ids=scene.elements.map(e=>e.id);
+    for(const side of ["near","far"] as const){
+      const id="eye-orbital-undercut-"+side;
+      const e=get(id);
+      expect(e).toMatchObject({kind:"wax",parentId:"face-outline",
+        clipToParent:true,coverage:"open",deposition:"stroke-built"});
+      if(e?.kind!=="wax")throw new Error("Missing rooted orbital cast");
+      expect(e.blendRadius).toBeGreaterThanOrEqual(5);
+      expect(e.markStrength).toBeGreaterThanOrEqual(.3);
+      expect(ids.indexOf("socket-"+side)).toBeLessThan(ids.indexOf(id));
+      expect(ids.indexOf(id)).toBeLessThan(ids.indexOf("sclera-"+side));
+      expect(ids.indexOf(id)).toBeLessThan(ids.indexOf("hair-right-curtain"));
+    }
+    expect(inspectCrayonScene(scene)).toEqual([]);
+  });
+  it("renders dark eyebrow filaments through native paper-grain contact instead of identical smooth vector arches",()=>{
+    const scene=crayonCc0FaceStudy({view:"wax"});
+    const fibres=scene.elements.filter(e=>e.id.startsWith("brow-fibers-"));
+    expect(fibres).toHaveLength(8);
+    for(const e of fibres){
+      expect(e).toMatchObject({kind:"contour",parentId:"face-outline",
+        clipToParent:true,waxContact:"dry-wax",waxPressure:.68});
+      if(e.kind!=="contour")throw new Error("Brow lost fiber structure");
+      expect(e.d.match(/M/g)?.length).toBeGreaterThanOrEqual(2);
+      expect(e.d.match(/C/g)?.length).toBeGreaterThanOrEqual(2);
+      expect(e.d).not.toMatch(/[QqZz]/);
+      expect(e.width).toBeLessThan(.55);
+    }
+    expect(inspectCrayonScene(scene)).toEqual([]);
+  });
   it("keeps an exact independent source graph only in explicit anatomy mode",()=>{
     const wax=crayonCc0FaceStudy({view:"wax",detail:.5});
     const construction=crayonCc0FaceStudy({view:"anatomy",detail:.5});
