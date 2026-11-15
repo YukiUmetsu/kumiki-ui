@@ -13,7 +13,7 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
       expect(spec.elements.length).toBeGreaterThan(18);
       expect(new Set(spec.elements.map(x=>x.id)).size).toBe(spec.elements.length);
       const nodes=new Map(spec.elements.map(x=>[x.id,x]));
-      for(const part of ["eye-skin","brow-root","eye-sclera","eye-iris","eye-pupil",
+      for(const part of ["eye-skin","eye-sclera","eye-iris","eye-pupil",
         "upper-lid-overhang","lower-lid-flesh","tear-duct"]){
         const n=nodes.get(part);
         if(n?.kind!=="wax")throw new Error("Missing sourced ocular mass "+part);
@@ -21,6 +21,21 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
         expect((n.d.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(3);
         expect(n.bounds.width).toBeGreaterThan(0);
       }
+
+      // The root is never a rectangular 210x200 patch visible at 1×.
+      const undercoat=nodes.get("eye-skin");
+      if(undercoat?.kind!=="wax"||!undercoat.placement)
+        throw new Error("Missing photo-crop undercoat");
+      expect(undercoat.bounds.x).toBeLessThan(-100);
+      expect(undercoat.bounds.width).toBeGreaterThan(440);
+      const brow=nodes.get("brow-root");
+      expect(brow).toMatchObject({kind:"wax",coverage:"open",
+        clipToParent:true,parentId:"eye-skin"});
+      const hairs=nodes.get("brow-rooted-fibres");
+      if(hairs?.kind!=="contour")throw Error("Missing tangent-led eyebrow hairs");
+      expect(hairs.parentId).toBe("brow-root");
+      expect(hairs.clipToParent).toBe(true);
+      expect((hairs.d.match(/Q/g)??[]).length).toBeGreaterThanOrEqual(91);
       expect(nodes.get("eye-sclera")?.parentId).toBe("eye-skin");
       expect(nodes.get("eye-iris")?.parentId).toBe("eye-sclera");
       expect(nodes.get("eye-pupil")?.parentId).toBe("eye-iris");
