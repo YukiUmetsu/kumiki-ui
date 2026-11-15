@@ -8,6 +8,12 @@
 
 ## ArtCraft illustrated-character rebuild (current)
 
+Historical cartoon actor pages under **Classics** and the old schematic
+animal heads under **Materials** have also been hidden from the Storybook
+navigation (`!dev`); their independent source implementations and regression
+tests remain intact. None of the old character artwork is presented as a new
+premium character showcase.
+
 The visible **Acting, Walk and Draw-In** examples have been replaced by a
 new child protagonist, "The Blue Coat", without deleting any previous
 CRAYON1 source film factories or breaking their APIs. All stories remain in

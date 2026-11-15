@@ -95,6 +95,9 @@ export function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,lef
 const meta={
   title:"Video production/Film Looks/Crayon/Materials/Wax & Pigment",
   id:"video-crayon-material-studies",
+  // Keep the historical schematic animal heads for A/B regression only; do
+  // not present this primitive study as premium character artwork.
+  tags:["!dev"],
   component:MaterialStudy,
   args:{frame:115,pressure:.84,paperTooth:.72,left:"open",right:"opaque",
     leftNib:"rounded",rightNib:"tapered",strokeOrder:"patches",

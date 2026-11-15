@@ -44,6 +44,8 @@ describe("Crayon Storybook organization",()=>{
        expect(story.args?.startFrame??meta.args.startFrame).toBeLessThanOrEqual(449);
      }
    }
+   expect(legacyMeta.tags).toContain("!dev");
+   expect(materialMeta.tags).toContain("!dev");
    expect(crayonSceneDefaultArgs.wildlifeCrop).toBe("composition");
    expect(crayonSceneDefaultArgs.paperRecipe).toBe("authored");
    expect(crayonSceneDefaultArgs.atelierCrop).toBe("composition");
