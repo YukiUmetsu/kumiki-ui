@@ -1,23 +1,11 @@
-name: One-time RISO11 ArtCraft and production film qualification
+name: Risograph character film browser QA
 
-# Temporarily qualifies this rigging change with real Chromium and MP4 on PR; restore manual-only after review.
+# RISO11 film and ArtCraft qualification completed on PR #289; manual-only thereafter.
 # Lightweight unit, typecheck and registry tests remain automatic in visual-contracts.yml.
 # Full browser and encoded-film qualification is local-first and opt-in.
 # No expensive renderer/Playwright/FFmpeg job runs for routine PRs or main pushes.
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    paths:
-      - "src/video/riso-character-demo.tsx"
-      - "registry/video/riso-character-react.tsx"
-      - "tests/riso-character-paper-clearance.test.tsx"
-      - "tests/e2e-storybook/riso-characters.spec.ts"
-      - "src/video/riso-character-mesh-sheets.ts"
-      - "src/video/riso-artcraft-studies.stories.tsx"
-      - "tests/riso11-ink-craft.test.ts"
-      - "tests/e2e-storybook/riso-artcraft-studies.spec.ts"
-      - ".github/workflows/riso-character-qa.yml"
 
 permissions:
   contents: read
