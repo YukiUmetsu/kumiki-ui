@@ -132,3 +132,33 @@ The Film Looks sidebar had expanded to 25 Paper Craft stories, duplicating nearl
 All five media remain selectable in the on-stage selector; aspect, palette, detail, color-layer density, curl, motion, relief, surface tooth, shadows, edges, frame scrubbing and seed remain available through relevant Storybook controls. Subject identity is fixed per object page. Legacy preview story URLs change to the consolidated folder; native FilmStage contracts and paper-sculpture IDs do not.
 
 E2E browser proofs were revised to vary Storybook URL arguments and exercise dynamic media buttons rather than maintaining repeated preview stories. Verify the current commit in Chromium: seven URLs, five distinct objects, both aspects, opaque cardstock, feather-hinge alignment, coordinated motion, botanical palettes, gallery media and console errors. Tests cannot replace independent visual craft review.
+
+
+## Pass 20 — scenery reference-to-contour foundation
+
+New landscape ArtCraft references studied: Hari & Deepti's illuminated nested shadow boxes, Helen Musselwhite's cut-paper woodland illustration, Eiko Ojala's restrained vertical landscapes and Louise Jenkins's stacked countryside paper. See `docs/research/paper-craft-scenery-artcraft-study.md` for technique-specific observations and copyright boundary.
+
+Added `paperScenerySpec`: two original scenes (woodland stream and alpine lake) with individually cut trunks, boughs, canopies, notched pines, mountains and snow, real lake/stream surfaces, ferns, smaller botanicals, true oval die-cut mat and multi-plane shading. Seeded microdetail is actual geometry, not a transparent visual filter. Both landscapes and all 3 palettes share the exact PAPER1 runtime, 128-sheet bound and absolute-frame motion contract. No unlicensed image files, new runtime dependencies or extra Storybook folder.
+
+One **Scenery** page joins the existing `Video production/Film Looks/Paper Craft` group; choose scenery, palette, detail, breeze and aspect through controls. The `paper-craft-study` FilmStage slot now accepts `artwork:"scenery"` and has a two-scene landscape/portrait film.
+
+Verification gate: focused unit tests for paths/holes, opaque stock, seeded detail and seeks, FilmStage compile and both aspects, Chromium captures and native film render. Run these against the final PR SHA. ArtCraft structural analysis does not substitute for direct image comparison, and no unmeasured quantitative fidelity is asserted.
+
+
+### Pass 20b — actual rendered-frame critique and corrections
+
+Inspected the genuine Chromium screenshots and FilmStage 16:9/9:16 images (initial PR #296 proof artifacts, not an independent mockup). Initial woodland output **failed artistic readiness**: trees were skinny poles with microscopic isolated leaves and most ferns/flowers fell outside the elliptical frame; the stream disappeared behind the front bank. Initial alpine output **failed structural readiness**: mountain base polygons extended to the stage bottom, leaving obvious vertical seams, while ledges/moss were clipped off-frame. Sunrise halos read as target circles.
+
+**Corrections implemented:** grow each rooted tree into four natural boughs with spatially connected veined canopy packets; increase independently cut foliage and reposition ferns/flowers into the actual oval view aperture; re-expose a true foreground water sheet and pebble detail. Recut alpine mountains as independent closed paper peaks ending in curved foothills rather than rectangular full-stage extensions, add directional snow/rock facets, pull pines/ledges/moss into visible space and remove hard annular sun rings.
+
+These are visible-construction changes, not global noise, random transparency or a claim of photorealism. Regenerate fresh final-commit browser/film captures: the first proof images are superseded and cannot certify this correction.
+
+
+### Pass 20c — mountain footing continuity
+
+The revised browser proof removed the previous box-like mountain geometry but still showed a conspicuous sky-colored horizontal gap beneath the mountain bases. Added two continuous, irregular cut-paper foothill terraces **behind** the pine line and front lake, physically bridging the peak feet to the shore. This resolves the major depth-plane discontinuity without drawing flat rectangular backgrounds or transparent filler. New current-commit captures supersede the earlier proof.
+
+
+### Catalog parity gate (pre-existing repository-wide blocker)
+
+The PR's optional full `npm run catalog:check` step was executed and **failed** with purpose-group/story-ID gaps spanning older watercolour, ink, risograph and paper packs (13 legacy registry items, including the existing `paper-craft` catalog entry). These are not syntax errors in the new scenery generator or its Storybook page. The paper-targeted CI retains `npm run registry:validate`, source typecheck, focused unit tests, Chromium and native video checks. Global catalog parity remains a separate repo-wide cleanup, **not** a passed release gate.

@@ -4,6 +4,8 @@ import type { PaperStyle } from "../../registry/video/paper-craft";
 import { paperCraftExampleSpec } from "../video/paper-craft-demo";
 import { paperBotanicalSpec } from "../../registry/video/paper-botanical-kit";
 import { paperObjectSpec, PAPER_OBJECTS, PAPER_OBJECT_PALETTES } from "../../registry/video/paper-object-kit";
+import { paperScenerySpec, PAPER_SCENERIES, PAPER_SCENERY_PALETTES } from "../../registry/video/paper-scenery-kit";
+import type { PaperScenery, PaperSceneryPalette } from "../../registry/video/paper-scenery-kit";
 import type { PaperObject, PaperObjectPalette } from "../../registry/video/paper-object-kit";
 import type { PaperBotanicalPalette } from "../../registry/video/paper-botanical-kit";
 import { InkBrushPoster } from "../video/ink-brush-demo";
@@ -943,8 +945,8 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           throw new RangeError("paper-craft-study offsetFrame must be a nonnegative integer.");
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const artwork = props.artwork ?? "garden";
-        if (artwork !== "garden" && artwork !== "botanical" && artwork !== "object")
-          throw new RangeError("paper-craft-study artwork must be garden, botanical or object.");
+        if (artwork !== "garden" && artwork !== "botanical" && artwork !== "object" && artwork !== "scenery")
+          throw new RangeError("paper-craft-study artwork must be garden, botanical, scenery or object.");
         const palette = props.palette ?? "nocturne";
         if (!["nocturne","ivory","rainforest","wildflower"].includes(palette as string))
           throw new RangeError("paper-craft-study palette must be nocturne, ivory, rainforest or wildflower.");
@@ -974,9 +976,25 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           if (typeof objectPalette !== "string" || !PAPER_OBJECT_PALETTES.includes(objectPalette as PaperObjectPalette))
             throw new RangeError("paper-craft-study objectPalette must be jewel, pastel or heritage.");
         }
+        const scenery = props.scenery ?? "woodland";
+        const sceneryPalette = props.sceneryPalette ?? "sage";
+        const breeze = props.breeze ?? .5;
+        if (artwork === "scenery") {
+          if (typeof scenery !== "string" || !PAPER_SCENERIES.includes(scenery as PaperScenery))
+            throw new RangeError("paper-craft-study scenery must be woodland or alpine-lake.");
+          if (typeof sceneryPalette !== "string" ||
+              !PAPER_SCENERY_PALETTES.includes(sceneryPalette as PaperSceneryPalette))
+            throw new RangeError("paper-craft-study sceneryPalette must be sage, ember or moonlight.");
+          if (typeof breeze !== "number" || !Number.isFinite(breeze) || breeze < 0 || breeze > 1)
+            throw new RangeError("paper-craft-study breeze must be finite between 0 and 1.");
+        }
         const paper = artwork === "botanical"
           ? paperBotanicalSpec(raw as PaperStyle, aspect, {
             palette: palette as PaperBotanicalPalette, detail, colorLayers, seed })
+          : artwork === "scenery"
+            ? paperScenerySpec(raw as PaperStyle, aspect, {
+              scenery: scenery as PaperScenery, palette: sceneryPalette as PaperSceneryPalette,
+              detail, breeze: breeze as number, seed })
           : artwork === "object"
             ? paperObjectSpec(raw as PaperStyle, aspect, {
               object: object as PaperObject, palette: objectPalette as PaperObjectPalette, detail, curl:curl as number, motion:motion as number, relief:relief as number, seed })

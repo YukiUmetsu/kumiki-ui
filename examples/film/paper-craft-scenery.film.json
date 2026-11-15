@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "paper-craft-landscapes",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "woodland-diorama",
+      "recipeId": "slot",
+      "durationFrames": 240,
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Original hand-cut woodland paper landscape",
+        "props": {
+          "artwork": "scenery",
+          "scenery": "woodland",
+          "sceneryPalette": "sage",
+          "detail": 1,
+          "breeze": 0.45,
+          "seed": 37,
+          "medium": "layered"
+        }
+      }
+    },
+    {
+      "id": "alpine-lake-diorama",
+      "recipeId": "slot",
+      "durationFrames": 240,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Original layered alpine lake paper landscape",
+        "props": {
+          "artwork": "scenery",
+          "scenery": "alpine-lake",
+          "sceneryPalette": "moonlight",
+          "detail": 1,
+          "breeze": 0.25,
+          "seed": 37,
+          "medium": "lightbox"
+        }
+      }
+    }
+  ]
+}

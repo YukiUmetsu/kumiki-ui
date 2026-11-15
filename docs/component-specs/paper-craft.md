@@ -29,12 +29,13 @@ const spec: PaperCraftSpec = {
 
 ## Storybook navigation and controls
 
-All Paper Craft demonstrations are organized under **Video production / Film Looks / Paper Craft**. There are seven pages, one per distinct subject, not one per palette, medium, orientation, rig or revision:
+All Paper Craft demonstrations are organized under **Video production / Film Looks / Paper Craft**. There are eight pages, one per distinct subject group, not one per palette, medium, orientation, rig or revision:
 
 | Storybook page | Source artwork | Controls that change the actual geometry/material |
 | --- | --- | --- |
 | Garden | Original mixed paper-craft garden | Five paper media, aspect, frame/timeline, tooth, edge, shadow, seed, reduced motion |
 | Botanical & Butterfly | Paper flowers, foliage, butterflies | Four stock palettes, color-layer density, detail, five media, aspect, frame and material controls |
+| Scenery | Original woodland and alpine-lake shadowboxes | Scenery preset, sage/ember/moonlight stock, leaf/rock/snow detail, breeze, five media, aspect and playback |
 | Kingfisher | Sculpted paper bird | Jewel/pastel/heritage stock, real feather detail, raised-tip relief, curvature, wing motion, five media, aspect and playback |
 | Dragonfly | Wing lace and abdomen | Stock, venation detail, flutter amplitude, curvature, media, aspect and playback |
 | Canal Houses | Facades and canals | Stock, architecture detail, paper folds, media, aspect and playback |
@@ -165,3 +166,26 @@ The detail control varies true incision count from zero to five per side. Fixed 
 The fine vane cutwork is available on the **Kingfisher** page in the Paper Craft Storybook folder at `detail=1`; it does not require a separate page. Focused construction tests check edge geometry at minimum and maximum detail, physical tip/hinge continuity, rig identity, deterministic frames and paper validation. The existing PR-scoped visual workflow captures real Storybook and native film images.
 
 **Limit:** This is original 2.5D reference-guided cut-paper illustration, not manufacturing geometry or a reconstruction of another artist's protected sculpture. Browser-capture review and independent artistic inspection are still needed before asserting visual parity.
+
+
+## Pass 20 — reusable scenic paper-cut theatre
+
+Original reference-led **landscape dioramas** are implemented by the installable `paper-scenery-kit.ts` alongside the existing PAPER1 renderer. Two authored scenes are available: `woodland` (forest canopy, lit horizon, winding stream, fine-cut ferns) and `alpine-lake` (separate peaks, snow caps, glacial lake, conifers, terraced rock and reflections). They use real opaque paper cutouts and separate depth layers, with a die-cut front frame and true apertures rather than semitransparent stacked scene images.
+
+```tsx
+import { paperScenerySpec } from "./components/video/paper-scenery-kit";
+import { PaperCraftStage } from "./components/video/paper-craft-react";
+
+const spec = paperScenerySpec("layered", "landscape", {
+  scenery:"woodland",palette:"sage",detail:1,breeze:.45,seed:37,
+});
+<PaperCraftStage spec={spec} frame={216} shadowStrength={1} edgeStrength={.75}/>;
+```
+
+Public options: `scenery` = `woodland | alpine-lake`; `palette` = `sage | ember | moonlight`; `detail` and `breeze` are finite 0–1; `seed` is a safe integer. Palette changes affect complete opaque stock colors; detail adjusts individual cut geometry. Breezes use bounded, deterministic absolute-frame `flutter` swings (never random frame noise). A portrait version is composed with a taller die-cut opening and **preserves local geometry scale**. Scenes remain bounded at 128 cardstock layers and support all five paper media.
+
+The **single Scenery page** in `Video production / Film Looks / Paper Craft` exposes scene, palette, detail, breeze, medium, aspect, frame, light/shadow, tooth and reduced-motion controls. It does not create separate pages per landscape, material, palette or aspect.
+
+Native FilmStage supports `artwork:"scenery"` with `scenery`, `sceneryPalette`, `detail`, `breeze`, `seed` and `medium` in the existing `paper-craft-study` slot. A complete two-scene dual-aspect film is `examples/film/paper-craft-scenery.film.json`. The research and honest limitations are recorded at `docs/research/paper-craft-scenery-artcraft-study.md`.
+
+This is premium-intent **2.5D illustrative paper theatre**, not a photogrammetric 3D world, laser cutter-ready contour plan, or validated reproduction of another artist's work. Rendered browser and video evidence must be reviewed before artistic quality sign-off.
