@@ -78,7 +78,8 @@ export const CRAYON_F1_FACE_PARTS=[
   "chin-plane","jaw-underside","cheek-malar-cast",
   "cheek-malar-bounce","nose-sidewall-form","nose-subalar-contact",
   "nose-alar-undercut-near","nose-alar-undercut-far",
-  "nose-tip-reflected-light","naris-shadow-near","naris-shadow-far",
+  "nose-tip-reflected-light","nasal-alar-attachment-near",
+   "nasal-alar-attachment-far","naris-shadow-near","naris-shadow-far",
    "mouth-aperture-depth","dental-surface-left","dental-surface-center",
    "dental-surface-far","hair-left-curtain",
   "hair-right-curtain",
@@ -599,9 +600,10 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "Q399 650 384 637Q357 621 351 585"+
     "Q343 541 335 510Z",
     rect(328,503,92,148),
-    ["#b9968c","#907272","#d8b1a3"],[136,246],
+    ["#ab7f77","#6f5353","#ce9e91"],[136,246],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      blendRadius:9.3,pressure:.57,markStrength:.25,spacing:8.2});
+      featherContacts:true,
+      blendRadius:12.2,pressure:.59,markStrength:.24,spacing:8.2});
   wax("nose-subalar-contact",
     "M372 629Q387 640 400 643Q416 644 429 634"+
     "Q436 628 444 627Q438 647 420 654"+
@@ -669,26 +671,42 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     ["#a4827a","#80605e","#c69c91"],[234,299],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       pressure:.38,spacing:7.4,markStrength:.12,blendRadius:2.5});
-  // F1 6x source: x390..423/y619..649 large oblique dark naris;
-  // x444..462/y612..643 smaller foreshortened vertical naris.
-  // Independently shaded attached wax masses, NOT matching black ovals.
+  // F1 6× photo: near nostril is a deep concave oblique shadow,
+  // the far opening is a slender foreshortened wedge. Split a *soft
+  // attached alar cast* from the small deepest recess; never two dots.
+  wax("nasal-alar-attachment-near",
+    "M377 623Q391 609 408 614Q425 620 427 631"+
+    "Q415 650 402 655Q386 650 377 623Z",
+    rect(371,606,61,56),
+    ["#a06c66","#69474a","#cf9388"],[197,274],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      featherContacts:true,pressure:.67,spacing:5.6,
+      blendRadius:8.6,markStrength:.3});
+  wax("nasal-alar-attachment-far",
+    "M440 611Q447 597 459 603Q470 613 465 632"+
+    "Q456 649 447 644Q439 626 440 611Z",
+    rect(434,594,41,58),
+    ["#a47572","#704e4e","#ce998f"],[193,275],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      featherContacts:true,pressure:.6,spacing:5.7,
+      blendRadius:7.2,markStrength:.24});
+  // Irregular, nested darkest nasal air masses (not the full ale).
   wax("naris-shadow-near",
-    "M391 636C394 627 400 622 407 620"+
-    "C417 617 422 624 421 632Q418 639 411 641"+
-    "Q406 645 402 649Q392 647 391 636Z",
-    rect(387,615,40,40),["#453130","#21171c","#77504c"],[236,299],
+    "M394 635Q399 624 407 624Q415 621 418 627"+
+    "Q420 633 413 638Q407 640 403 647"+
+    "Q396 645 394 635Z",
+    rect(390,620,32,32),["#443031","#21171c","#77504c"],[236,299],
     {parentId:"face-outline",clipToParent:true,
-      pressure:.96,spacing:4.1,markStrength:.4,
+      pressure:.91,spacing:4.2,markStrength:.32,
       edgeRoughness:0,outlineOpacity:0,underpaintTooth:.10,
       underpaintGradient:{light:"#674642",shadow:"#1d161b",
-        focusX:.7,focusY:.26,radius:.82}});
+        focusX:.7,focusY:.25,radius:.85}});
   wax("naris-shadow-far",
-    "M445 633C444 625 447 619 451 615"+
-    "Q457 611 460 616Q463 622 459 633"+
-    "Q454 645 448 643Q445 641 445 633Z",
-    rect(440,607,25,43),["#563938","#291d23","#80605a"],[236,299],
+    "M449 634Q446 625 452 620Q457 617 459 622"+
+    "Q461 629 455 637Q449 645 449 634Z",
+    rect(445,614,18,34),["#513435","#291d23","#80605a"],[236,299],
     {parentId:"face-outline",clipToParent:true,
-      pressure:.91,spacing:4.3,markStrength:.29,
+      pressure:.89,spacing:4.4,markStrength:.22,
       edgeRoughness:0,outlineOpacity:0,underpaintTooth:.12,
       underpaintGradient:{light:"#79524c",shadow:"#24181c",
         focusX:.38,focusY:.28,radius:.83}});
