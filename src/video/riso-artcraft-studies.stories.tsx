@@ -244,16 +244,6 @@ function CourierAnatomyComparison(){
           onChange={e=>setMeshOn(e.target.checked)}
           aria-label="RISO anatomy show region outlines"/> Source contours</label>
       </div>
-      <svg width="0" height="0" aria-hidden="true" style={{position:"absolute"}}>
-        <defs>
-          <pattern id={uid+"-anatomy-blue"} width="4.2" height="4.2" patternUnits="userSpaceOnUse">
-            <circle cx="1.3" cy="1.3" r={.83*density} fill={blue}/>
-          </pattern>
-          <pattern id={uid+"-anatomy-red"} width="4.7" height="4.7" patternUnits="userSpaceOnUse">
-            <circle cx="1.7" cy="1.7" r={.92*density} fill={red}/>
-          </pattern>
-        </defs>
-      </svg>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(265px,1fr))",gap:16}}>
         {courierPoseStudies.map(({frame,label})=>{
           const model=evaluateRisoCharacterMesh(COURIER,RISO_COURIER_SHEET,frame,{maxEdgeLength:8});
@@ -299,6 +289,16 @@ function CourierAnatomyComparison(){
           </article>;
         })}
       </div>
+      <svg width="0" height="0" aria-hidden="true" style={{position:"absolute"}}>
+        <defs>
+          <pattern id={uid+"-anatomy-blue"} width="4.2" height="4.2" patternUnits="userSpaceOnUse">
+            <circle cx="1.3" cy="1.3" r={.83*density} fill={blue}/>
+          </pattern>
+          <pattern id={uid+"-anatomy-red"} width="4.7" height="4.7" patternUnits="userSpaceOnUse">
+            <circle cx="1.7" cy="1.7" r={.92*density} fill={red}/>
+          </pattern>
+        </defs>
+      </svg>
       <p style={{fontSize:12,marginTop:18}}>All four poses are generated from the same deterministic
         RISO character source. Side/back/three-quarter artwork is not yet authored or certified.</p>
     </div>
