@@ -174,6 +174,15 @@ test("four distinct historical ink schools paint separate real rooted rock struc
     await expect(card.locator("[data-km-master-stratum]")).toHaveCount(15);
     await expect(card.locator("[data-km-master-stratum-wash]")).toHaveCount(15);
     await expect(card.locator("[data-km-master-stratum-lip]")).toHaveCount(15);
+    const clouds=school==="early-spring"?12:0;
+    await expect(card.locator("[data-km-master-cloud-bank]"))
+      .toHaveCount(clouds);
+    await expect(card.locator("[data-km-master-cloud-mass]"))
+      .toHaveCount(clouds);
+    await expect(card.locator("[data-km-master-cloud-crown]"))
+      .toHaveCount(clouds);
+    await expect(card.locator("[data-km-master-cloud-recess]"))
+      .toHaveCount(clouds);
     const bankCount=school==="fuchun"?9:school==="forest-grotto"?12:0;
     await expect(card.locator("[data-km-master-rock-bank]"))
       .toHaveCount(bankCount);
