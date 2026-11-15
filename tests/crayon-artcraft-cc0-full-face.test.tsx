@@ -1,0 +1,92 @@
+import {describe,it,expect} from "vitest";
+import {renderToStaticMarkup} from "react-dom/server";
+import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
+import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
+import {CRAYON_PORTRAIT_AUDIT}
+  from "../src/video/crayon-artcraft-portrait-audit";
+import {CRAYON_F1_FACE_PROOF,CRAYON_F1_FACE_PARTS,
+  crayonCc0FaceStudy} from "../src/video/crayon-artcraft-cc0-face";
+import meta,{Cc0RegisteredFullFace}
+  from "../src/video/crayon-artcraft-adult-face.stories";
+
+describe("ArtCraft F1 registered CC0 face experiment",()=>{
+  it("uses the actual frozen source dimensions, rights and all 18 source anchors",()=>{
+    const source=CRAYON_PORTRAIT_AUDIT.source;
+    expect(CRAYON_F1_FACE_PROOF).toMatchObject({
+      width:608,height:1082,sourceSha256:source.sha256,
+      url:source.link,rights:"CC0 1.0",
+    });
+    expect(CRAYON_F1_FACE_PROOF.sourceLandmarks)
+      .toEqual(CRAYON_PORTRAIT_AUDIT.sourcePoints);
+    expect(Object.keys(CRAYON_F1_FACE_PROOF.sourceLandmarks)).toHaveLength(18);
+    expect(CRAYON_F1_FACE_PROOF.review).toMatch(/Unapproved/);
+  });
+  it("validates opaque, semantically connected 3/4 planes without inventing B1 body",()=>{
+    const scene=crayonCc0FaceStudy({view:"wax"});
+    expect(inspectCrayonScene(scene)).toEqual([]);
+    expect(scene.width).toBe(608);
+    expect(scene.height).toBe(1082);
+    expect(scene.seed).toBe(441501);
+    const ids=scene.elements.map(e=>e.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for(const id of CRAYON_F1_FACE_PARTS)expect(ids).toContain(id);
+    const part=(id:string)=>scene.elements.find(e=>e.id===id);
+    for(const id of ["face-outline","neck-attached","hair-back",
+      "hair-left-curtain","hair-right-curtain","sclera-near","sclera-far",
+      "lip-upper","lip-lower","oral-opening"]){
+      const el=part(id);
+      expect(el?.kind).toBe("wax");
+      if(el?.kind!=="wax")throw new Error("Missing region "+id);
+      expect(el.coverage).toBe("opaque");
+      expect(el.deposition).toBe("stroke-built");
+      expect(el.underpaintTooth).toBeGreaterThan(0);
+    }
+    expect(part("iris-near")).toMatchObject({
+      kind:"wax",parentId:"sclera-near",clipToParent:true});
+    expect(part("iris-far")).toMatchObject({
+      kind:"wax",parentId:"sclera-far",clipToParent:true});
+    expect(part("pupil-near")).toMatchObject({
+      kind:"wax",parentId:"iris-near",clipToParent:true});
+    expect(part("pupil-far")).toMatchObject({
+      kind:"wax",parentId:"iris-far",clipToParent:true});
+    expect(part("nose-alar-near")).toMatchObject({
+      kind:"wax",coverage:"open",clipToParent:true,
+      parentId:"face-outline"});
+    expect(part("mouth-teeth")).toMatchObject({
+      kind:"wax",parentId:"oral-opening",clipToParent:true});
+    expect(ids.filter(x=>x.startsWith("hair-fiber-flow-")).length)
+      .toBeGreaterThanOrEqual(17);
+    expect(ids.filter(x=>x.startsWith("brow-fibers-")).length)
+      .toBeGreaterThanOrEqual(6);
+    expect(part("trouser-leg-left")).toBeUndefined();
+    expect(part("sleeve-left-roll")).toBeUndefined();
+    expect(meta.tags).toContain("!dev");
+    expect(Cc0RegisteredFullFace.name).toMatch(/ArtCraft experiment/);
+  });
+  it("keeps an exact independent source graph only in explicit anatomy mode",()=>{
+    const wax=crayonCc0FaceStudy({view:"wax",detail:.5});
+    const construction=crayonCc0FaceStudy({view:"anatomy",detail:.5});
+    expect(inspectCrayonScene(wax)).toEqual([]);
+    expect(inspectCrayonScene(construction)).toEqual([]);
+    expect(wax.elements.filter(e=>e.id.startsWith("source-face-landmark-")))
+      .toHaveLength(0);
+    const annotated=construction.elements.filter(e=>
+      e.id.startsWith("source-face-landmark-"));
+    expect(annotated).toHaveLength(18);
+    expect(construction.elements.filter(e=>
+      e.id.startsWith("source-face-link-")).length).toBeGreaterThan(10);
+    expect(construction.elements.filter(e=>
+      !e.id.startsWith("source-face-"))).toEqual(wax.elements);
+    const html=renderToStaticMarkup(<CrayonScene spec={wax} frame={299}/>);
+    expect(html).toContain('data-km-crayon-element="face-outline"');
+    expect(html).toContain('data-km-crayon-element="oral-opening"');
+    expect(html).toContain('data-km-crayon-underpaint="opaque"');
+    expect(html).toBe(renderToStaticMarkup(<CrayonScene spec={wax} frame={299}/>));
+  });
+  it("rejects invalid settings without silently simplifying high-value regions",()=>{
+    expect(()=>crayonCc0FaceStudy({detail:NaN})).toThrow();
+    expect(()=>crayonCc0FaceStudy({detail:0})).toThrow();
+    expect(()=>crayonCc0FaceStudy({detail:1.3})).toThrow();
+    expect(()=>crayonCc0FaceStudy({view:"freehand" as "wax"})).toThrow();
+  });
+});
