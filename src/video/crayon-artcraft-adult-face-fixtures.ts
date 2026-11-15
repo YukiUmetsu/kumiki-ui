@@ -21,6 +21,8 @@ const colors={
   warm:["#e4b498","#c08b79","#f6d0b2"] as const,
   cool:["#b69591","#96777f","#d0b5a7"] as const,
   cheek:["#cf9a87","#b47b78","#edbcaa"] as const,
+  blush:["#df7864","#ac5262","#f7ad87"] as const,
+  blushLight:["#ec9b7e","#c67572","#ffcca0"] as const,
   socket:["#aa827b","#805f61","#c6a09a"] as const,
   sclera:["#cfc0af","#a79998","#e6d6c2"] as const,
   iris:["#80796e","#514b4e","#bcae8e"] as const,
@@ -47,6 +49,8 @@ export const portraitCriticalParts=[
   "coat-collar-left","coat-collar-right",
   "tailored-scarf-wrap","tailored-scarf-tail",
   "nose-tip-underpaint","cheek-warm-pigment","tear-trough-value",
+  "cheek-malar-crayon-red","cheek-far-crayon-red",
+  "forelock-loose-curl","nose-septum-alar",
 ] as const;
 const time={base:[1,98],value:[63,173],anatomy:[135,236],detail:[206,288]} as const;
 
@@ -148,10 +152,13 @@ export function crayonAdultFaceStudy(
   // Adult 3/4 head: forehead broad, asymmetrical lower jaw, chin displaced
   // toward the viewer's right; substantially taller than the old child mask.
   wax("adult-face",
-    "M-96 -203Q-77 -274 -10 -288C61 -304 110 -261 124 -197"+
-    "Q131 -148 114 -105Q120 -57 91 4Q75 54 31 100"+
-    "Q-3 117 -41 89C-81 58 -90 12 -103 -45"+
-    "Q-130 -119 -96 -203Z",
+    "M-94 -208C-85 -270 -41 -289 16 -291"+
+    "C81 -297 113 -261 122 -201"+
+    "Q132 -154 112 -111Q115 -68 100 -27"+
+    "Q88 18 71 50Q58 76 43 91"+
+    "Q19 104 -9 99Q-38 94 -52 76"+
+    "C-80 43 -103 7 -108 -42"+
+    "Q-127 -133 -94 -208Z",
     box(-137,-312,272,446),colors.flesh,"value",
     {parentId:"neck-under-jaw",spacing:9.8,markStrength:.2,
       underpaintGradient:{light:"#f3ccab",shadow:"#ad7e78",focusX:.34,focusY:.28,radius:1.06},
@@ -216,6 +223,37 @@ export function crayonAdultFaceStudy(
     {parentId:"adult-face",coverage:"open",clipToParent:true,
       blendRadius:5,markStrength:.1,pressure:.34,spacing:12,
       outlineOpacity:0,edgeRoughness:0});
+  // User-supplied Crayon Design Board: warm saturated malar color is a
+  // structural facial plane, not uniformly scattered digital freckles.
+  // Each rub follows a source-locked cheek volume over continuous skin.
+  wax("cheek-malar-crayon-red",
+    "M-94 -113Q-66 -134 -37 -112"+
+    "Q-16 -93 -25 -56Q-40 -31 -62 -45"+
+    "Q-91 -58 -94 -113Z",
+    box(-106,-144,94,116),colors.blushLight,"value",
+    {parentId:"adult-face",coverage:"open",clipToParent:true,
+      blendRadius:14,markStrength:.16,pressure:.35,spacing:11,
+      angle:-16,outlineOpacity:0,edgeRoughness:0});
+  // Irregular near-cheek red contacts remain discrete wax spots rather
+  // than covering the whole malar plane with one synthetic red circle.
+  wax("cheek-saturated-contact",
+    "M-72 -99Q-54 -103 -43 -91Q-38 -78 -50 -67"+
+    "Q-60 -62 -74 -74Q-80 -85 -72 -99Z",
+    box(-85,-111,55,57),colors.blush,"anatomy",
+    {parentId:"adult-face",coverage:"open",clipToParent:true,
+      blendRadius:7,markStrength:.32,pressure:.53,spacing:6.5,
+      angle:-18,outlineOpacity:0,edgeRoughness:0});
+  wax("cheek-far-crayon-red",
+    "M70 -115Q96 -120 108 -97"+
+    "Q113 -80 96 -60Q82 -55 72 -70Z",
+    box(63,-132,56,87),colors.blushLight,"value",
+    {parentId:"adult-face",coverage:"open",clipToParent:true,
+      blendRadius:8,markStrength:.24,pressure:.45,spacing:7.5,
+      angle:19,outlineOpacity:0,edgeRoughness:0});
+  grain("blush-directed-pigment-near","adult-face",1051,
+    -64,-81,29,32,-28,96,"#c45f62");
+  grain("blush-directed-pigment-far","adult-face",1052,
+    88,-90,15,24,36,33,"#d88a7a");
   wax("mandible-plane",
     "M-62 -12Q-24 18 15 23Q52 25 78 -3"+
     "Q70 44 31 85Q-2 100 -28 73Q-55 46 -62 -12Z",
@@ -235,20 +273,20 @@ export function crayonAdultFaceStudy(
     box(-34,-111,43,92),colors.noseShade,"anatomy",
     {parentId:"adult-face",coverage:"open",clipToParent:true,markStrength:.16,blendRadius:9,pressure:.38,spacing:7.5,outlineOpacity:0,edgeRoughness:0});
   wax("nose-alar-wing",
-    "M32 -40Q52 -51 61 -29Q60 -10 40 -14"+
-    "Q28 -8 17 -21Q18 -31 32 -40Z",
-    box(11,-58,59,61),colors.flesh,"anatomy",
-    {parentId:"adult-face",markStrength:.27,outlineOpacity:.02,spacing:7});
+    "M25 -39Q38 -44 48 -32Q52 -22 41 -19"+
+    "Q32 -19 21 -26Q20 -33 25 -39Z",
+    box(16,-49,42,39),colors.flesh,"anatomy",
+    {parentId:"adult-face",markStrength:.13,outlineOpacity:0,spacing:8});
   wax("nose-tip-reflected-wax",
-    "M12 -41Q25 -52 41 -41Q44 -33 32 -26"+
-    "Q17 -29 12 -41Z",
-    box(6,-57,44,39),colors.warm,"anatomy",
+    "M19 -37Q29 -44 38 -37Q40 -31 32 -28"+
+    "Q24 -30 19 -37Z",
+    box(13,-50,33,29),colors.warm,"anatomy",
     {parentId:"adult-face",coverage:"open",clipToParent:true,
-      blendRadius:5,markStrength:.12,pressure:.34,spacing:12,
+      blendRadius:8,markStrength:.07,pressure:.3,spacing:13,
       outlineOpacity:0,edgeRoughness:0});
   ink("nose-dorsal-soft-edge",
-    "M7 -103Q9 -81 14 -61M17 -49Q21 -40 25 -39",
-    "#b48775",1.25,"detail",{parentId:"adult-face",opacity:.68});
+    "M8 -87Q12 -61 18 -48",
+    "#b48775",.9,"detail",{parentId:"adult-face",opacity:.43});
   ink("nose-alar-undercut",
     "M22 -23Q28 -18 35 -20M39 -26Q45 -31 51 -27",
     "#a4716c",1.15,"detail",{parentId:"adult-face",opacity:.69});
@@ -256,11 +294,11 @@ export function crayonAdultFaceStudy(
   // These follow the existing forehead/dorsum underpainting and cannot leak
   // out of the continuous adult facial silhouette.
   wax("nose-tip-underpaint",
-    "M8 -35Q21 -48 36 -41Q48 -32 37 -23"+
-    "Q28 -20 15 -24Q11 -28 8 -35Z",
-    box(2,-55,52,44),colors.noseShade,"anatomy",
+    "M14 -36Q27 -49 42 -35Q43 -29 34 -25"+
+    "Q24 -25 17 -29Z",
+    box(8,-54,41,35),colors.noseShade,"anatomy",
     {parentId:"adult-face",coverage:"open",clipToParent:true,
-      blendRadius:4,markStrength:.15,pressure:.47,spacing:11,
+      blendRadius:8,markStrength:.1,pressure:.36,spacing:13,
       outlineOpacity:0,edgeRoughness:0});
   wax("nose-root-sunlight",
     "M1 -122Q11 -132 19 -116Q15 -91 18 -70"+
@@ -269,9 +307,24 @@ export function crayonAdultFaceStudy(
     {parentId:"adult-face",coverage:"open",clipToParent:true,
       blendRadius:6,markStrength:.09,pressure:.38,spacing:13,
       outlineOpacity:0,edgeRoughness:0});
+  // The nostril wing and septum do not meet as a glyph: the alar margin
+  // turns around the bulb, the cast shadow stays below the tip.
+  ink("nose-septum-alar",
+    "M26 -27Q31 -24 35 -27"+
+    "M44 -29L46 -30",
+    "#91615f",.87,"detail",
+    {parentId:"adult-face",opacity:.73});
+  ink("dorsum-nose-bone-line",
+    "M1 -94Q8 -66 14 -52",
+    "#b78a7a",.89,"detail",
+    {parentId:"adult-face",opacity:.44});
+  ink("nose-tip-chromatic-highlight",
+    "M19 -39Q25 -43 32 -39",
+    "#d7ad96",.86,"detail",
+    {parentId:"adult-face",opacity:.58});
   ink("nostril-underplane",
-    "M14 -27Q19 -22 24 -26M40 -27Q44 -30 48 -29",
-    "#865e61",1.08,"detail",{parentId:"adult-face",opacity:.7});
+    "M29 -27Q32 -26 35 -28",
+    "#b17c72",.63,"detail",{parentId:"adult-face",opacity:.35});
   ink("nasolabial-transition",
     "M58 -4Q66 4 64 12M-6 22Q-10 27 -8 31",
     "#ab7c75",.88,"detail",{parentId:"adult-face",opacity:.42});
@@ -387,6 +440,24 @@ export function crayonAdultFaceStudy(
     "M68 -162Q74 -166 79 -162",
     "#564e52",1.03,"detail",
     {parentId:"adult-face",opacity:.74});
+  // Lash roots are tangent to the actual painted lid rims; separate
+  // near/far eye taper rather than radial clock-face spokes.
+  ink("upper-lashes-rooted-near",
+    "M-78 -161Q-82 -165 -83 -168"+
+    "M-73 -166Q-75 -169 -76 -172"+
+    "M-65 -170Q-65 -173 -66 -175"+
+    "M-46 -170Q-44 -171 -43 -173",
+    "#654a50",.76,"detail",{parentId:"adult-face",opacity:.78});
+  ink("upper-lashes-rooted-far",
+    "M49 -157Q47 -160 47 -163"+
+    "M54 -165Q52 -167 52 -169"+
+    "M64 -167Q62 -169 62 -171",
+    "#685259",.67,"detail",{parentId:"adult-face",opacity:.69});
+  ink("lower-lid-pigmented-ridges",
+    "M-70 -144Q-54 -137 -37 -148"+
+    "M55 -144Q73 -139 85 -149",
+    "#c99991",1.1,"detail",
+    {parentId:"adult-face",opacity:.7});
   ink("iris-catchlights",
     "M-54 -166l1.5 -1.8M72 -162l1.2 -1.4",
     "#f5e7d0",1.2,"detail",{parentId:"adult-face"});
@@ -446,6 +517,31 @@ export function crayonAdultFaceStudy(
     {parentId:"hair-crown-part",coverage:"open",clipToParent:true,
       blendRadius:6,markStrength:.28,spacing:9.8,pressure:.48,
       outlineOpacity:0,edgeRoughness:0});
+  // Loose forehead curl is a tapered, CONNECTED lock with a shadowed
+  // underside and individual source-following crayon fibers.
+  wax("forelock-loose-curl",
+    "M-123 -237Q-109 -271 -67 -283"+
+    "Q-21 -285 3 -260Q-43 -270 -72 -241"+
+    "Q-89 -228 -92 -199Q-105 -205 -103 -223"+
+    "Q-114 -224 -123 -237Z",
+    box(-137,-296,150,112),colors.hairLight,"anatomy",
+    {parentId:"adult-face",spacing:8.7,markStrength:.42,
+      edgeRoughness:.47,outlineOpacity:.05});
+  wax("forelock-underturn",
+    "M-107 -224Q-94 -252 -70 -261"+
+    "Q-45 -272 -20 -267Q-66 -252 -83 -218Z",
+    box(-120,-277,116,69),colors.hair,"anatomy",
+    {parentId:"forelock-loose-curl",coverage:"open",
+      clipToParent:true,blendRadius:2.5,
+      spacing:5.1,markStrength:.65,pressure:.56,
+      outlineOpacity:0,edgeRoughness:0});
+  hair("forelock-fiber-direction","forelock-loose-curl",
+    [{x:-120,y:-238},{x:-105,y:-275},{x:-51,y:-288},{x:0,y:-261}],
+    620,72,"#b99685");
+  ink("forelock-loose-rooted-tip",
+    "M-101 -237Q-91 -214 -91 -198M-104 -232Q-98 -206 -92 -193",
+    "#78544c",1.25,"detail",{parentId:"forelock-loose-curl",
+      clipToParent:true,opacity:.82});
   hair("rooted-crown-direction","hair-crown-part",
     [{x:-119,y:-228},{x:-113,y:-290},{x:-18,y:-324},{x:87,y:-269}],
     610,124,"#c4a087");
@@ -602,8 +698,8 @@ export function crayonAdultFaceStudy(
     "M-114 -237Q-97 -288 -39 -310M-106 -250Q-78 -294 -30 -304"+
     "M-87 -257Q-39 -305 9 -306M-57 -283Q-7 -304 36 -293"+
     "M-27 -299Q12 -314 55 -288",
-    "#d8a68d",1.65,"detail",
-    {parentId:"hair-crown-part",clipToParent:true,opacity:.9});
+    "#c39a86",1.24,"detail",
+    {parentId:"hair-crown-part",clipToParent:true,opacity:.62});
   ink("crown-root-hatching",
     "M-109 -219Q-90 -251 -65 -262M-101 -215Q-73 -252 -46 -266"+
     "M-92 -212Q-52 -256 -31 -264M-74 -228Q-42 -257 -16 -264",
@@ -669,6 +765,27 @@ export function crayonAdultFaceStudy(
     "M-8 252q4 -8 8 -1q4 -8 8 -1",
     "#b78175",.9,"detail",
     {parentId:"shirt-linen",clipToParent:true,opacity:.55});
+  // Pull the under-eye, nasal and lip shapes together with local anatomy.
+  // Avoid an extra face-wide texture overlay: every guide is supported by
+  // the parent mask and its original authored coordinates.
+  ink("malar-crease-near",
+    "M-79 -123Q-64 -118 -47 -125"+
+    "M-67 -115Q-54 -112 -46 -119",
+    "#c68b80",.92,"detail",
+    {parentId:"adult-face",opacity:.59});
+  ink("malar-crease-far",
+    "M66 -120Q81 -113 94 -120",
+    "#b78a86",.85,"detail",
+    {parentId:"adult-face",opacity:.46});
+  ink("upper-lip-philtrum-highlight",
+    "M6 18Q10 28 11 31M19 15Q20 23 18 29",
+    "#e6b69c",1.09,"detail",
+    {parentId:"adult-face",opacity:.72});
+  ink("oral-commissure-warm-creases",
+    smiling?"M-23 41Q-28 34 -29 30M45 35Q52 32 53 26":
+      "M-21 45Q-24 41 -24 37M43 42Q47 39 48 35",
+    "#b87674",.88,"detail",
+    {parentId:"adult-face",opacity:.58});
   return {version:1,id:"crayon-artcraft-adult-face-"+aspect,
     width:W,height:H,durationFrames:300,seed:6812,
     paper:"#f8efe0",paperTooth:.8,elements,

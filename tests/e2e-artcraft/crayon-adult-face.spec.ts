@@ -56,5 +56,20 @@ for(const item of [
       path:info.outputPath("artcraft-nose-mouth-"+item.aspect+"-299.jpg"),
       animations:"disabled"});
     console.log("ARTCRAFT_NOSE_JPEG:"+item.aspect+":"+nasal.toString("base64"));
+    const neutralScene=crayonAdultFaceStudy(item.aspect,{expression:"neutral"});
+    const neutralSvg=renderToStaticMarkup(createElement(CrayonScene,{
+      spec:neutralScene,frame:299,
+    }));
+    await page.setContent("<!doctype html><html><body style='margin:0;padding:0;width:"+
+      item.width+"px;height:"+item.height+"px;overflow:hidden'>"+
+      neutralSvg+"</body></html>");
+    const neutral=page.locator("svg[data-km-crayon-scene]");
+    await expect(neutral).toBeVisible();
+    await expect(neutral.locator('[data-km-crayon-element="forelock-loose-curl"]')).toBeAttached();
+    await expect(neutral.locator('[data-km-crayon-element="cheek-malar-crayon-red"]')).toBeAttached();
+    const neutralShot=await neutral.screenshot({type:"jpeg",quality:80,
+      path:info.outputPath("native-adult-neutral-"+item.aspect+"-299.jpg"),
+      animations:"disabled"});
+    console.log("ARTCRAFT_NEUTRAL_JPEG:"+item.aspect+":"+neutralShot.toString("base64"));
   });
 }
