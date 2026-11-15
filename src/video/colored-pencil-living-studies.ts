@@ -580,8 +580,11 @@ export function pencilLivingStudyDrawing({
   if (!Number.isFinite(pressure)||pressure<.2||pressure>1.2)
     throw new RangeError("Invalid pencil pressure");
   const parts=subject==="portrait"?face():subject==="fox"?fox():valley();
+  // Portrait films deserve a large readable hero instead of a small sticker
+  // floating in a blank page. Dedicated copy-safe top/bottom zones remain.
   const transform=aspect==="landscape"?"translate(441 35) scale(1.06)":
-    "translate(35 253) scale(1.06)";
+    subject==="valley"?"translate(-16 154) scale(1.31)":
+    "translate(-31 145) scale(1.38)";
   const regions:PencilRegion[]=parts.map((part,i)=>{
     const region=createPencilMaterialRegion({
       id:part.id,surface:part.material,path:part.path,bounds:part.bounds,
