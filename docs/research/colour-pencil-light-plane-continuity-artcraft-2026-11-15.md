@@ -57,3 +57,43 @@ Scope: existing `Video Production / Film Looks / Colour-pencil` Storybook and so
 **Rejection/negative checks:** (1) source+draw buffers byte-identical after computation; (2) actual quadratic pigment samples stay strictly within the independently measured CC0 facial polygon; (3) photographed true-white source adds zero nibs; (4) already dark/filled skin adds zero nibs; (5) 0% canvas remains identical to the prior PR head; (6) integer positions, deterministic seed, 16:9 and 9:16 and exact 0→100→0 restores via native Chromium; (7) do not approve any change until exact output screenshot grain, glint, skin-gradient and portrait landmark gates are inspected, not merely test logs. See `tests/colored-pencil-tooth-bridge.test.ts` and `tests/e2e-storybook/colored-pencil-live-references.spec.ts`.
 
 **Art status remains unapproved.** This material experiment does not rebuild the underlying historical sketch-derived human or fox geometry; those structural defects are a separate high-priority task.
+
+## CP-F1 pigment-only visual negative control — 2026-11-15
+
+**Reference diagnosis:** Real dry colored-pencil shading uses many low-pressure
+contacts and overlapping hatches, not a single contiguous tinted surface.
+[Faber-Castell's artist materials guide](https://www.faber-castell.co.id/cfind/source/files/art-graphic.pdf)
+contrasts shallow-angle shading (visible paper structure), pressure-dependent
+blocks of color, and directional cross-hatching. [Janie Gildow's studio handout](https://www.desertmuseumarts.com/_files/ugd/7a6b2d_b5b3d4744f55473394fbd965bad1a04a.pdf)
+shows how a sharp nib reaches the paper tooth, whereas a blunt point leaves
+larger bare valleys. Technique-only sources; no artwork pixels copied.
+
+**Five-axis check:**
+
+| Axis | Required evidence from the same authored fox/portrait |
+| --- | --- |
+| Topology | Switching off tonal gradients must not move cranial silhouettes, facial parts, fur roots, or other semantic regions. |
+| Vector flow | Multi-pass hatches, individual micro-deposits and rooted curves stay live and directionally varied without a gradient color field. |
+| Weight | Upper eyelid/pupil accents and chin shadow remain distinct from quiet cheek/forehead pressure; no uniform single-value wash should masquerade as pigment. |
+| Rhythm | Region-specific fiber/stipple/hatch passes preserve their original seeded irregularity and absolute animation-frame schedule. |
+| Texture | Bare paper-tooth valleys and short colored pencil contacts remain readable at 1× and at the existing 2.15× inspect control. |
+
+**Production integration:** `PencilDrawing.showTonalSupport` defaults to true and
+is backward compatible. The *existing* Foundation Storybook has a clearly
+labelled **pigment-only audit** checkbox; disabling tonal support hides only
+`data-km-pencil-craft-base` gradient silhouettes while retaining paper
+support for occluding parts, all colored-pencil stroke passes, contours,
+micro-deposits, named anatomy, 16:9/9:16 layouts and deterministic animation.
+The live stage carries `data-km-pencil-tonal-support=on|off` for automated
+inspection. It is an **explicit diagnostic/negative control**, not a silent
+change to delivered animation aesthetics. It does not paste, manipulate or
+stylize any photo.
+
+**Proof contract:** Vitest verifies default and explicit-on render identically
+and off retains all named region/stroke passes for both fox and human. Chromium
+records native 960×540 fox and portrait with the gradient support removed and
+proves a 0→100→0 toggle restores the original default screenshot byte-for-byte.
+Review both modes before deciding whether tonal gradients are doing too much
+of the rendering work. The reference gates can **fail** despite green tests:
+the authored fox/portrait anatomy remains artistically unapproved. Do not
+merge PR #409 solely from the existence of this inspection option.
