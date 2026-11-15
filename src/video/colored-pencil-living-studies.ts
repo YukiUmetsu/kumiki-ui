@@ -1153,7 +1153,14 @@ export function pencilLivingStudyDrawing({
     return {...region,
       // Whiskers are fine, floating pencil contacts from visible follicles;
       // never flood the chin with an opaque region or gradient undercoat.
-      opaqueSupport:subject==="fox"&&part.id==="whisker-roots"?
+      // Labial skin is continuous with the surrounding face. An opaque
+      // paper-coloured support under each lip made a large white sticker
+      // even after 3 physical pencil passes. Keep the ANAT1 rolled curves,
+      // three layered pigment deposits and tonal support, but let the
+      // parent face's pigment remain beneath the translucent tissue.
+      opaqueSupport:subject==="portrait"&&
+        (part.id==="lip-upper"||part.id==="lip-lower")?
+        false:subject==="fox"&&part.id==="whisker-roots"?
         false:region.opaqueSupport,
       underpaint:subject==="fox"&&part.id==="whisker-roots"?
         undefined:region.underpaint,
