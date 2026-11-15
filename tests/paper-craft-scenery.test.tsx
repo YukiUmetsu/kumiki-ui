@@ -44,6 +44,8 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
       "woodland-foliage-1-2","woodland-far-pines","woodland-fern-0",
       "woodland-flower-0","woodland-stream-tail","woodland-bank-pebble-0",
       "woodland-lace-canopy-0","woodland-canopy-ribs-1",
+      "woodland-arched-arbor-0","woodland-arched-arbor-shadow-0",
+      "woodland-arched-arbor-leaves-1",
       "woodland-understory-0-0","woodland-stream-surface-highlights","scenery-frame"]){
       expect(names).toContain(part);
     }
@@ -76,8 +78,8 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
     const dense=paperScenerySpec("layered","landscape",{
       scenery:"woodland",palette:"sage",detail:1,seed:44});
     const crown=(spec:typeof dense)=>spec.layers.find(layer=>layer.id==="woodland-lace-canopy-0")!;
-    expect(crown(sparse).holes).toHaveLength(4);
-    expect(crown(dense).holes).toHaveLength(9);
+    expect(crown(sparse).holes).toHaveLength(5);
+    expect(crown(dense).holes).toHaveLength(18);
     expect(crown(dense).path).toMatch(/C/g);
     expect(crown(dense).color).toMatch(/^#[0-9a-fA-F]{6}$/);
     const leafRibs=dense.layers.filter(layer=>layer.id.startsWith("woodland-canopy-ribs-"));
@@ -87,6 +89,49 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
     const understory=dense.layers.filter(layer=>layer.id.startsWith("woodland-understory-"));
     expect(understory).toHaveLength(8);
     expect(understory.every(layer=>(layer.path.match(/C/g)??[]).length>10)).toBe(true);
+  });
+  it("woodland forest uses anchored arched trees and actual separated cast paper stock",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const sparse=paperScenerySpec("lightbox",aspect,{
+        scenery:"woodland",detail:0,seed:37,breeze:.2});
+      const dense=paperScenerySpec("lightbox",aspect,{
+        scenery:"woodland",detail:1,seed:37,breeze:.2});
+      expect(inspectPaperCraft(dense)).toEqual([]);
+      expect(dense.layers.length).toBeLessThanOrEqual(MAX_PAPER_LAYERS);
+      for(let side=0;side<2;side++){
+        const get=(suffix:string)=>dense.layers.find(l=>l.id==="woodland-arched-arbor-"+suffix+"-"+side)!;
+        const wood=dense.layers.find(l=>l.id==="woodland-arched-arbor-"+side)!;
+        const shadow=get("shadow"),leaves=get("leaves");
+        expect(wood.depth).toBeGreaterThan(shadow.depth);
+        expect(leaves.depth).toBeGreaterThan(wood.depth);
+        expect(wood.path).not.toBe(shadow.path);
+        expect((wood.path.match(/M/g)??[]).length).toBeGreaterThanOrEqual(19);
+        expect((wood.path.match(/C/g)??[]).length).toBeGreaterThan(12);
+        expect(wood.path.startsWith("M")).toBe(true);
+        expect(wood.path.includes("Z")).toBe(true);
+        expect(leaves.path.includes("C")).toBe(true);
+        expect(leaves.motion).not.toBe("flutter"); // rigid branch attached to the paper card
+        const oldGrain=dense.layers.find(l=>l.id==="woodland-trunk-grain-"+side)!;
+        expect((oldGrain.path.match(/C/g)??[]).length).toBeGreaterThan(8);
+      }
+      expect(dense.layers.filter(l=>l.id.startsWith("woodland-arched-arbor-"))).toHaveLength(6);
+      const sparseCrown=sparse.layers.find(l=>l.id==="woodland-lace-canopy-0")!;
+      const denseCrown=dense.layers.find(l=>l.id==="woodland-lace-canopy-0")!;
+      expect(sparseCrown.holes).toHaveLength(5);
+      expect(denseCrown.holes).toHaveLength(18);
+      expect(denseCrown.holes?.every(path=>path.includes("C")&&path.endsWith("Z"))).toBe(true);
+      // Both palette and cut-through holes remain fully opaque at high detail.
+      const html=renderToStaticMarkup(React.createElement(PaperCraftStage,{
+        spec:dense,frame:220,shadowStrength:1,edgeStrength:.35
+      }));
+      expect(html).toContain('data-km-paper-layer="woodland-arched-arbor-0"');
+      expect(html).toContain('clip-rule="evenodd"');
+      expect(html).not.toContain('fill-opacity="0.');
+      const again=paperScenerySpec("lightbox",aspect,{
+        scenery:"woodland",detail:1,seed:37,breeze:.2});
+      expect(again).toEqual(dense);
+      expect(evaluatePaperCraft(dense,196)).toEqual(evaluatePaperCraft(again,196));
+    }
   });
   it("alpine water is genuinely open and mountain faces carry relief plates",()=>{
     const world=paperScenerySpec("layered","landscape",{
