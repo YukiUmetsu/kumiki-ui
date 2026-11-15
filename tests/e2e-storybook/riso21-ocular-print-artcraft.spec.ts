@@ -459,7 +459,7 @@ test("RISO30 ANAT1 hands: original donor / receiver, 2 ink masters, live gesture
   await expect(page.locator('[data-km-riso30-hand="courier-right"]')).toHaveAttribute("data-km-riso30-hand-artcraft","true");
   await expect(page.locator('[data-km-riso30-hand="paper-artist-left"]')).toHaveAttribute("data-km-riso30-hand-artcraft","true");
   const gesture=page.getByRole("combobox",{name:"RISO30 gesture frame"});
-  for(const f of [46,144,160,178,198]){
+  for(const f of [0,46,126,144,160,166,178,186,198,239]){
     await gesture.selectOption(String(f));
     await expect(story).toHaveAttribute("data-km-riso30-frame",String(f));
     for(const spec of [{name:"courier",side:"right"},{name:"paper-artist",side:"left"}]){
@@ -476,6 +476,21 @@ test("RISO30 ANAT1 hands: original donor / receiver, 2 ink masters, live gesture
       // independent tiny hand-engraved cuticle attached to a pinky bone.
       await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-pinky"]')).toHaveCount(1);
       await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-pinky-nail"]')).toHaveCount(1);
+      // RISO31: do not mistake two blue printed crease lines for moving
+      // anatomy. Require all three REAL red source ink sections per digit.
+      await expect(panel).toHaveAttribute("data-km-riso31-segments","12");
+      await expect(panel).toHaveAttribute("data-km-riso31-actual-flexion","true");
+      for(const digit of ["index","middle","ring","pinky"]){
+        await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-'+digit+'-middle-phalanx"]'))
+          .toHaveCount(1);
+        await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-'+digit+'-distal-phalanx"]'))
+          .toHaveCount(1);
+        // ArtCraft visual rejection: stacked solid cobalt PIP+DIP bars
+        // looked like tiger stripes in actual f46/f166 6× print.
+        // DIP gets real LIGHT source-screen ink, not compositing opacity.
+        await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-'+digit+'-dip-crease"]'))
+          .toHaveAttribute("data-km-riso-screen-tone","light");
+      }
       expect(Number(await panel.getAttribute("data-km-riso30-hand-parts"))).toBeGreaterThan(21);
       expect(Number(await panel.getAttribute("data-km-riso30-crop-margin")))
         .toBeGreaterThanOrEqual(35);

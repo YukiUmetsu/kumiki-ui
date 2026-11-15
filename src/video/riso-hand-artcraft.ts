@@ -2,6 +2,7 @@ import type {RisoCharacterPart,RisoCharacterSpec,RisoJointFrame,RisoCharacterFra
 import {evaluateRisoCharacter} from "../../registry/video/riso-character";
 import {HAND_POSES} from "../../registry/anatomy/anatomy-pose";
 import {SURFACE_FORMS,ANSUR} from "../../registry/anatomy/anatomy-reference";
+import {RISO31_GEOMETRY} from "./riso31-finger-phalanges";
 
 /**
  * RISO30 | ArtCraft + ANAT1.
@@ -51,7 +52,7 @@ const groove=(actor:RisoHandActor, side:RisoHandSide)=>{
   const blue=(id:string,joint:string,d:string):RisoCharacterPart=>({
     id:side+"-glove-"+id,joint,plate:"blue",paint:"solid",d,
   });
-  return [
+  const original:RisoCharacterPart[]=[
     // Dorsal metacarpal arch: ascending second and third knuckles with a
     // smaller ulna-side contour. Irregular hand-drawn contour, not straight
     // parallel metacarpal stripes.
@@ -112,6 +113,48 @@ const groove=(actor:RisoHandActor, side:RisoHandSide)=>{
       ?"M-2 -3 C-1 0 .7 3.5 1.2 6 Q1.8 6.9 2.1 7.6 Q1.2 5 -1 2 Q-2.7 -.9 -2 -3 Z"
       :"M-2.7 -2.9 Q-2 1.5 .5 5.5 Q1.4 7 1.8 7.7 Q-.4 5.6 -2.3 1.7 Q-3.5 -1.1 -2.7 -2.9 Z"),
   ];
+  // RISO31: the ink marks cannot keep their old rigid MCP transform after
+  // the actual red finger shape bends. Apply the ORIGINAL independently
+  // observed detail grammar to the respective real PIP/DIP joint. The
+  // trimmed nail rim is at the actual moving fingertip, not an old
+  // coordinate that floats on the paper when the new bone rotates.
+  const adjusted=original.map(part=>{
+    const prefix=side+"-glove-";
+    if(!part.id.startsWith(prefix))return part;
+    const id=part.id.slice(prefix.length);
+    const nail=/^(index|middle|ring|pinky)-nail$/.exec(id);
+    if(nail){
+      const digit=nail[1] as keyof typeof RISO31_GEOMETRY;
+      const distal=RISO31_GEOMETRY[digit].distal;
+      const near=Number((distal-1.5).toFixed(2));
+      const tip=Number((distal-.7).toFixed(2));
+      const halfWidth=Number((RISO31_GEOMETRY[digit].width*.54).toFixed(2));
+      const variation=courier?.15:.28;
+      return {...part,joint:side+"-"+digit+"-dip",
+        d:`M${-halfWidth} ${near} Q-.05 ${Number((near-variation).toFixed(2))} ${halfWidth} ${near}
+L${halfWidth} ${tip} Q0 ${Number((near+.35).toFixed(2))} ${-halfWidth} ${tip} Z`};
+    }
+    const crease=/^(index|middle|ring|pinky)-joint-crease$/.exec(id);
+    if(crease){
+      const digit=crease[1];
+      const width=Number((RISO31_GEOMETRY[digit as keyof typeof RISO31_GEOMETRY].width*.9).toFixed(2));
+      return {...part,joint:side+"-"+digit+"-pip",
+        d:`M${-width} -1.22 Q0 -1.75 ${width} -1.22 L${width} -.94 Q0 -1.40 ${-width} -.92 Z
+M${Number((-width*.76).toFixed(2))} .75 Q0 .40 ${Number((width*.76).toFixed(2))} .79 L${Number((width*.74).toFixed(2))} 1.09 Q0 .75 ${Number((-width*.75).toFixed(2))} 1.08 Z`};
+    }
+    return part;
+  });
+  const distalInk=(["index","middle","ring","pinky"] as const).map(digit=>{
+    const width=Number((RISO31_GEOMETRY[digit].width*.8).toFixed(2));
+    // Two microengraved pressure folds remain independent and source-drawn,
+    // but the DIP uses a physically screened LIGHT cobalt master. The old
+    // fully solid pair formed thick tiger stripes at original 6.2× review.
+    return {...blue(digit+"-dip-crease",side+"-"+digit+"-dip",
+      `M${-width} -1.22 Q0 -1.62 ${width} -1.17 L${width} -.87 Q0 -1.27 ${-width} -.88 Z
+M${Number((-width*.78).toFixed(2))} .65 Q.05 .38 ${Number((width*.70).toFixed(2))} .76 L${Number((width*.70).toFixed(2))} 1.06 Q0 .74 ${Number((-width*.78).toFixed(2))} 1.05 Z`),
+      paint:"screen" as const,screenTone:"light" as const};
+  });
+  return [...adjusted,...distalInk];
 };
 
 /** Source-only new art; never mutates or rewrites original expression keys. */
@@ -123,6 +166,10 @@ export const RISO30_GRIP_FOREGROUND_IDS=(side:RisoHandSide):readonly string[]=>[
   side+"-glove-thumb-nail",side+"-glove-pinky-nail",
   side+"-glove-index-joint-crease",side+"-glove-middle-joint-crease",
   side+"-glove-ring-joint-crease",side+"-glove-pinky-joint-crease",
+  // RISO31 independent distal phalanx creases print in the over-the-letter
+  // blue hand pass instead of being buried under the moving paper.
+  side+"-glove-index-dip-crease",side+"-glove-middle-dip-crease",
+  side+"-glove-ring-dip-crease",side+"-glove-pinky-dip-crease",
 ];
 
 /** Production inspection: hand region topology, data-backed referent and
@@ -184,8 +231,14 @@ export function layoutRisoHandArtcraft(
   // conservative digit/forearm extents at every authored gesture.
   box(j("elbow"),-12,-5,12,7); // skinned forearm root
   box(j("hand"),-12,-6,12,22); // widest metacarpal/palm wedge
-  for(const [name,endY] of Object.entries({index:21,middle:23,ring:21,pinky:17}))
+  for(const [name,endY] of Object.entries({index:21,middle:23,ring:21,pinky:17})){
     box(j(name),-4,-4,5,endY);
+    // A real bend may project beyond the formerly straight MCP finger
+    // proxy. Use the actual moving PIP and DIP bones for the studio crop.
+    const source=RISO31_GEOMETRY[name as keyof typeof RISO31_GEOMETRY];
+    box(j(name+"-pip"),-4,-3,5,source.intermediate+3);
+    box(j(name+"-dip"),-4,-3,5,source.distal+2.5);
+  }
   box(j("thumb"),-12,-8,12,6); // radial opposition, both handednesses
   const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
   const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);

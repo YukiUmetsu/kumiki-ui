@@ -8,15 +8,21 @@ import {COURIER} from "./riso-character-demo";
 import {PAPER_ARTIST} from "./riso-human-ensemble";
 import {RISO30_ANAT1_HAND,inspectRisoHandArtcraft,layoutRisoHandArtcraft} from "./riso-hand-artcraft";
 import type {RisoHandSide} from "./riso-hand-artcraft";
+import {RISO31_ANAT1_REFERENCE,riso31Inspect} from "./riso31-finger-phalanges";
 
 type PlateMode="both"|"blue"|"red";
-type GestureFrame=46|144|160|178|198;
+type GestureFrame=0|46|126|144|160|166|178|186|198|239;
 const FRAME_OPTIONS:readonly {frame:GestureFrame;label:string}[]=[
+  {frame:0,label:"Opening · anatomical rest"},
   {frame:46,label:"Relaxed fingers"},
+  {frame:126,label:"Prepare to receive"},
   {frame:144,label:"Hand approaches"},
   {frame:160,label:"Pinch / paper contact"},
+  {frame:166,label:"Receiver peak PIP flexion"},
   {frame:178,label:"Fingertip release"},
+  {frame:186,label:"Receiver releases"},
   {frame:198,label:"Settled smile"},
+  {frame:239,label:"Final source hold"},
 ];
 const aspect={width:446,height:482};
 const printSpec:RisoPrintSpec={
@@ -42,6 +48,7 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     p.id.startsWith(side+"-glove")||p.id===side+"-finger-joint-lines"||
     p.id==="cuff-"+side||p.id===side+"-forearm").map(p=>p.id),[actor,side]);
   const region=inspectRisoHandArtcraft(actor,frame,side);
+  const bones=riso31Inspect(actor,frame,side);
   // Frame the real articulated five-finger and forearm envelope: the
   // Artist's hand rotates almost horizontally at 160f, so wrist-centering
   // alone clipped source fingertips even though the actor had them.
@@ -51,6 +58,8 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso30-hand-frame={frame}
     data-km-riso30-hand-parts={region.sourceCount}
     data-km-riso30-hand-artcraft={String(region.actuallyEngraved)}
+    data-km-riso31-segments={bones.reduce((n,j)=>n+j.phalanxPathCount,0)}
+    data-km-riso31-actual-flexion={String(bones.every(j=>j.exactRedSource))}
     data-km-riso30-crop-margin={camera.marginX.toFixed(2)}
     data-km-riso30-effective-scale={camera.scale.toFixed(2)}
     style={{border:"1px solid #CBB9A4",borderRadius:7,padding:13,background:"#FFF7E9"}}>
@@ -63,7 +72,7 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
         paperGrain={.55} misregistration={.22} screenDensity={density}
         dotGain={.04} visiblePlateIds={plate==="both"?undefined:[plate]}
         artworks={{blue:()=>null,red:()=>null}}
-        label={"RISO30 print master "+actor.id+" "+side}
+        label={"RISO31 articulated print master "+actor.id+" "+side}
         foregroundLayers={[{
           id:actor.id+"-"+side+"-anatomy",
           knockout:<RisoCharacterKnockout spec={actor} frame={frame}
@@ -81,8 +90,9 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
         style={{display:"block",width:"100%",height:"auto"}}/>
     </div>
     <p style={{fontSize:12,margin:"9px 0 0",color:"#55727E",lineHeight:1.5}}>
-      {region.sourceCount} original hand source paths; {region.fingers.length} separate digit roots,
-      cobalt nail beds and knuckle folds printed directly on vermilion hand masses.
+      {region.sourceCount} original hand source paths; five authentic digits,
+      12 red articulated sections across four fingers, individual PIP/DIP blue creases
+      and moving nail rims. Every mark remains a spot-colour print master.
     </p>
   </article>;
 }
@@ -102,7 +112,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO30</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO31</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
@@ -150,6 +160,7 @@ export function Riso30HumanHandsWorkbench(){
         Anatomical basis: Kumiki ANAT1 hand surface form ({RISO30_ANAT1_HAND.anatomicalKnuckleIds.join(", ")});
         source grade S + measured ANSUR median hand length {RISO30_ANAT1_HAND.handLengthMedianMm} mm
         (population reference, NOT this stylized figure's identity).
+        Frontal 2D flexion gain {Math.round(RISO31_ANAT1_REFERENCE.projectedPinchFactor*100)}% of ANAT1 pinch ROM (not photo likeness).
         <span style={{marginLeft:10}}>Authored film strokes retain the original contact and release chronology.</span>
       </footer>
     </div>
