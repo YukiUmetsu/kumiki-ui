@@ -394,6 +394,20 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-34 -52 C-24 -72 -7 -75 13 -68 C27 -63 35 -57 37 -48 Q-1 -51 -34 -49 Z" },
     { id: "cap-brim", joint: "head", plate: "red", paint: "solid",
       d: "M-38 -50 C-15 -53 17 -50 34 -47 L43 -44 Q10 -43 -38 -46 Z" },
+    // RISO24 / ArtCraft v9: structural crown grain, not an RGB noise overlay.
+    // The original red cap and blue hair made one opaque overprint helmet in
+    // actual Chromium. Narrow negative-paper gouges are *real press knockout*
+    // against BOTH preceding spot masters, then fine hand-authored engraving
+    // re-inks through the local clearances. Direction follows the scalp arc.
+    { id: "cap-paper-ribbons", joint: "head", plate: "blue", paint: "solid", knockoutOnly: true,
+      d: "M-30 -57 C-25 -66 -14 -71 -3 -70 Q-16 -67 -23 -59 Q-26 -55 -30 -57 Z M-17 -67 C-8 -73 1 -72 12 -67 Q0 -70 -9 -65 Q-14 -63 -17 -67 Z M10 -69 C20 -67 29 -61 33 -53 Q26 -61 17 -64 Q11 -65 10 -69 Z M-24 -54 C-13 -61 -5 -62 7 -61 Q-9 -59 -20 -51 Q-22 -51 -24 -54 Z M26 -62 C32 -58 35 -53 36 -49 Q32 -56 27 -58 Z" },
+    { id: "cap-brim-paper-welt", joint: "head", plate: "blue", paint: "solid", knockoutOnly: true,
+      d: "M-31 -48.1 C-15 -50.8 3 -49.9 21 -47.4 Q2 -48.6 -15 -48.3 Q-25 -47.2 -31 -48.1 Z M25 -47.2 Q31 -46.8 36 -45.5 Q30 -46 25 -46.6 Z" },
+    { id: "cap-crown-engraving", joint: "head", plate: "red", paint: "solid",
+      d: "M-28 -60 C-23 -67 -13 -70 -6 -69 Q-18 -66 -25 -58 Z M-21 -62 C-13 -69 -3 -70 7 -67 Q-8 -68 -17 -60 Z M-10 -65 C1 -70 13 -68 21 -62 Q9 -67 -7 -63 Z M7 -64 C18 -65 28 -58 32 -52 Q23 -60 11 -62 Z M-30 -54 C-20 -59 -9 -60 -1 -59 Q-16 -57 -27 -51 Z M15 -58 Q25 -55 31 -50 L29 -49 Q23 -54 15 -58 Z" },
+    { id: "cap-brim-engraving", joint: "head", plate: "blue", paint: "solid",
+      d: "M-35 -48 C-18 -51 -1 -49.5 12 -48.6 Q-4 -49 -21 -48.3 Z M16 -47.9 Q29 -47.4 39 -44.7 Q26 -46.1 16 -47.4 Z M-28 -46.3 Q-14 -47.3 -3 -46.5 Q-17 -45.6 -28 -45.8 Z" },
+
   ],
 };
 /** Tiny paper bird: demonstrates that parent rig is anatomy-agnostic. */
