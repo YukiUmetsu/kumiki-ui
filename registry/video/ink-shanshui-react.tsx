@@ -98,6 +98,33 @@ const RIDGES:Record<ShanshuiScene,readonly (readonly P[])[]>={
     [[-60,430],[78,359],[160,405],[275,298],[338,361],[427,304],[530,235],[586,274],[713,340],[812,295],[1050,383]],
   ],
 };
+/** One deliberately authored macro landform per master, not four coats
+ * of different strokes on exactly the same generic triangle. All retain
+ * monotone x stations, genuine ridgeHeight-rooted child anatomy, independent
+ * depth bands and source-guided intentional voids. These are not tracings. */
+const MASTER_TRAIL_MIDDLE:Record<Exclude<InkRockSchool,"fuchun">,readonly P[]>={
+  "early-spring":[
+    [-60,334],[64,271],[146,288],[254,195],[340,251],
+    [408,220],[432,182],[451,159],[472,162],[488,173],
+    [507,150],[527,119],[548,109],[565,120],[585,128],
+    [601,116],[617,119],[638,156],[662,185],[690,173],
+    [730,158],[755,181],[825,221],[1050,318],
+  ],
+  "travelers":[
+    [-60,334],[64,271],[146,288],[254,195],[340,251],
+    [382,261],[412,226],[438,164],[457,123],[483,93],
+    [503,78],[529,76],[550,78],[573,84],[596,98],
+    [615,127],[631,157],[650,187],[681,207],[719,190],
+    [755,183],[794,205],[825,221],[1050,318],
+  ],
+  "forest-grotto":[
+    [-60,334],[64,271],[146,288],[254,195],[340,251],
+    [395,233],[421,201],[443,177],[462,149],[478,130],
+    [494,139],[507,154],[526,137],[544,114],
+    [561,94],[578,91],[597,111],[617,156],[636,162],
+    [657,181],[684,175],[711,160],[748,183],[825,221],[1050,318],
+  ],
+};
 /** Long, ridge-rooted hemp-fibre families with small alum-head rock
  * shelves. Huang Gongwang's contours accumulate in linked geological
  * groups; independent random raindrops would make the cliff look wet.
@@ -287,11 +314,31 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
   const id=useId().replace(/[^a-z0-9_-]/gi,"");
   const control:P=[root[0]-19,root[1]+31];
   const tip:P=[root[0]-56,root[1]+116];
-  const parent=[
-    {at:.085,side:-1,spread:118,rise:27,depth:132},
-    {at:.32,side:1,spread:94,rise:15,depth:123},
-    {at:.61,side:-1,spread:82,rise:16,depth:92},
-  ] as const;
+  const sourcePlanes:Record<InkRockSchool,readonly {
+    at:number;side:1|-1;spread:number;rise:number;depth:number;
+  }[]>={
+    "fuchun":[
+      {at:.085,side:-1,spread:118,rise:27,depth:132},
+      {at:.32,side:1,spread:94,rise:15,depth:123},
+      {at:.61,side:-1,spread:82,rise:16,depth:92},
+    ],
+    "early-spring":[
+      {at:.09,side:-1,spread:104,rise:40,depth:117},
+      {at:.36,side:1,spread:105,rise:22,depth:135},
+      {at:.65,side:-1,spread:70,rise:29,depth:91},
+    ],
+    "travelers":[
+      {at:.075,side:-1,spread:135,rise:24,depth:156},
+      {at:.31,side:1,spread:126,rise:16,depth:152},
+      {at:.59,side:-1,spread:82,rise:10,depth:118},
+    ],
+    "forest-grotto":[
+      {at:.13,side:-1,spread:115,rise:38,depth:145},
+      {at:.37,side:1,spread:79,rise:33,depth:118},
+      {at:.63,side:-1,spread:95,rise:18,depth:113},
+    ],
+  };
+  const parent=sourcePlanes[school];
   const strokes:Record<InkRockSchool,readonly number[]>={
     "fuchun":[34,26,18],
     "early-spring":[22,17,13],
@@ -1173,7 +1220,11 @@ function Mountains({scene,seed,detail,mist,ink,school,ids}:{
   ids:{far:string;mid:string;near:string;grain:string};
 }){
   return <g data-km-shanshui-mountains="">
-    {RIDGES[scene].map((ridge,band)=>{
+    {RIDGES[scene].map((baseRidge,band)=>{
+      // Source school changes only its authored mountain-trail middle-rock
+      // skeleton. Far/near ridge depth, path, waterfall and camera remain.
+      const ridge=scene==="mountain-trail"&&band===1&&school!=="fuchun"
+        ?MASTER_TRAIL_MIDDLE[school]:baseRidge;
       const width=band===0?1.1:band===1?1.3:1.8;
       const stations=ridgeStations(ridge,seed,band);
       const count=Math.round((band===0?27:band===1?48:67)*detail);
