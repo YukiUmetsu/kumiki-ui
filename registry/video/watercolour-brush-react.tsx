@@ -37,7 +37,11 @@ function pigmentMarks(spec: PaintSurfaceSpec, stroke: PaintStroke, index: number
     const r = Math.sqrt(paintHash(spec.seed + index * 47, i, 13)) * s.radius;
     return {
       x: s.x + Math.cos(a) * r, y: s.y + Math.sin(a) * r,
-      radius: .4 + paintHash(spec.seed + index * 31, i, 19) * Math.max(.9, Math.min(3.8, stroke.width * .11)),
+      // Preserve microscopic tooth on richly glazed paintings rather than
+      // drawing opaque confetti-sized circles across face/skin.
+      radius: (spec.pigmentGranulation??0)>0
+        ? .18+paintHash(spec.seed+index*31,i,19)*Math.min(1.2,.35+stroke.width*.014)
+        : .4+paintHash(spec.seed+index*31,i,19)*Math.max(.9,Math.min(3.8,stroke.width*.11)),
       alpha: .14 + paintHash(spec.seed + index * 37, i, 23) * .72,
     };
   });
@@ -108,6 +112,9 @@ const PaintStrokeLayer = memo(function PaintStrokeLayer({ spec, stroke, prepared
   const tint = Math.min(.22, density * .24 * phase.spread);
   const clip = uid + "-clip-" + i, maskId = uid + "-bristles-" + i;
   const dryFibers = stroke.dryBrush >= .15 && prepared.bristles.length > 0;
+  const realGranule=(spec.pigmentGranulation??0)>0 && stroke.width>=12 && stroke.water>=.35;
+  const naturalBloom=(spec.pigmentGranulation??0)>0
+    ? stroke.water>=.88 && stroke.width>=70 : stroke.water>.15;
   return <g data-km-brush-stroke={stroke.id} data-km-paint-phase={phase.settled ? "dry" : "wet"}
     style={{ mixBlendMode: "multiply" }} pointerEvents="none">
     <defs>
@@ -122,13 +129,16 @@ const PaintStrokeLayer = memo(function PaintStrokeLayer({ spec, stroke, prepared
     </defs>
     {phase.spread > 0 && <path data-km-wet-spread="" d={spread.path} fill={stroke.color}
       opacity={edgeOpacity} filter={stroke.width > 20 ? `url(#${uid}-edge)` : undefined}/>}
-    <path data-km-deposition="" d={main.path} fill={stroke.color} opacity={coreOpacity}
+    <path data-km-deposition=""
+      data-km-granulated-deposition={realGranule?"":undefined}
+      d={main.path} fill={stroke.color} opacity={coreOpacity}
+      filter={realGranule?`url(#${uid}-sediment-grain)`:undefined}
       mask={dryFibers ? `url(#${maskId})` : undefined}/>
     <g clipPath={`url(#${clip})`}>
       {prepared.flecks.map((p, j) => <circle key={j} cx={p.x} cy={p.y} r={p.radius}
         fill={j % 4 === 0 ? spec.paper.color : stroke.color}
         opacity={(j % 4 === 0 ? .48 : .29) * p.alpha * (stroke.dryBrush + spec.paper.tooth * .7)}/>)}
-      {stroke.water > .15 && phase.spread > 0 && prepared.blooms.map((b, j) =>
+      {naturalBloom && phase.spread > 0 && prepared.blooms.map((b, j) =>
         <circle key={j} cx={b.x} cy={b.y} r={b.r * (.65 + phase.spread * .35)}
           fill={`url(#${uid}-bloom)`} opacity={b.alpha * stroke.water * phase.spread}/>)}
       {tint > 0 && <path d={main.path} fill={stroke.color} opacity={tint * (1 - .25 * phase.absorption)}/>}
@@ -161,6 +171,7 @@ export function WatercolourSurface({
     aria-label={props["aria-hidden"] ? undefined : label}
     xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${spec.width} ${spec.height}`}
     data-km-watercolour="" data-km-paint-frame={frame} data-km-paint-medium={spec.medium}
+    data-km-pigment-granulation={spec.pigmentGranulation??0}
     style={{ width: "100%", height: "100%", display: "block", overflow: "hidden", isolation: "isolate", ...style }}>
     <defs>
       {/* A single stable paper relief pattern. It moves with artwork, not with the camera/screen. */}
@@ -175,6 +186,24 @@ export function WatercolourSurface({
         {spec.reservePaths?.map((path,i)=>
           <path key={i} d={path} fill="#000"/>)}
       </mask>}
+      {(spec.pigmentGranulation??0)>0 && (() => {
+        const weight=1.75*(spec.pigmentGranulation??0);
+        const bias=1-weight*.5;
+        // Pigment density follows micro-scale paper relief WITHIN the real
+        // pressure-brush ribbon. Never apply this to captions or whole frame.
+        return <filter id={uid+"-sediment-grain"} x="-3%" y="-3%"
+          width="106%" height="106%" primitiveUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency=".29 .35"
+            numOctaves={3} seed={1+(spec.seed%991)} result="paper-grain"/>
+          <feColorMatrix in="paper-grain" type="matrix"
+            values={`0 0 0 0 0
+              0 0 0 0 0
+              0 0 0 0 0
+              ${weight} 0 0 0 ${bias}`} result="sediment-coverage"/>
+          <feComposite in="SourceGraphic" in2="sediment-coverage" operator="in"/>
+        </filter>;
+      })()}
       <radialGradient id={uid + "-bloom"}>
         <stop offset="0%" stopColor="#ffffff" stopOpacity=".70" />
         <stop offset="53%" stopColor="#ffffff" stopOpacity=".18" />
