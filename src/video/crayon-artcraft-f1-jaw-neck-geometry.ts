@@ -1,6 +1,7 @@
 import type {CrayonElement} from "../../registry/video/materials/crayon-scene";
 
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
+type Contour=Extract<CrayonElement,{kind:"contour"}>;
 
 /**
  * ArtCraft 9.1: F1 photographed mandibular shelf and attached neck study.
@@ -103,6 +104,64 @@ const regions:Readonly<Record<string,Partial<Wax>>>={
   },
 };
 
+/**
+ * Two medium-specific direction fields traced from the CC0 lower-jaw and
+ * sternocleidomastoid gesture. Grouping 13+11 short, unequal contours into
+ * two semantic nodes saves hundreds of per-stroke React elements. The
+ * stroke-build uses the SAME CRAYON1 broken wax contact as rooted hair.
+ *
+ * A source photograph does not contain wax: these forms are derived from
+ * source anatomy but their material behavior is from the actual wax-craft
+ * references. Unlike spray/noise decoration they follow the parent volume
+ * and remain clipped beneath the face's jaw edge on all animation frames.
+ */
+const flowFields:readonly Contour[]=[
+  {
+    kind:"contour",id:"neck-jaw-wax-flow",parentId:"neck-attached",
+    clipToParent:true,timing:{start:118,end:231},
+    color:"#5b3f3e",opacity:.30,width:.53,
+    waxContact:"dry-wax",waxPressure:.45,
+    d:[
+      "M155 842 C169 848 184 851 199 855",
+      "M172 850 C190 857 204 863 222 867",
+      "M192 860 C209 867 230 871 247 876",
+      "M213 866 C235 876 251 878 265 881",
+      "M239 877 C261 884 277 888 293 889",
+      "M256 882 C279 890 296 893 310 895",
+      "M276 881 C301 891 321 893 337 890",
+      "M296 887 C313 894 335 893 351 887",
+      "M316 886 C340 892 354 884 371 878",
+      "M339 883 C360 881 377 871 391 863",
+      "M369 874 C387 863 405 853 417 843",
+      "M389 867 C403 852 417 846 430 835",
+      "M407 859 C420 845 431 839 438 832",
+    ].join(" "),
+  },
+  {
+    kind:"contour",id:"neck-cervical-wax-flow",
+    parentId:"neck-attached",clipToParent:true,
+    timing:{start:127,end:244},
+    color:"#8e655b",opacity:.27,width:.45,
+    waxContact:"dry-wax",waxPressure:.39,
+    d:[
+      "M152 870 C158 891 166 908 169 931",
+      "M168 892 C173 913 183 934 188 961",
+      "M177 906 C186 933 193 958 201 979",
+      "M187 937 C196 957 205 986 210 1008",
+      "M194 966 C205 993 212 1024 218 1045",
+      "M205 1007 C216 1037 223 1054 227 1073",
+      "M281 916 C284 944 280 972 278 991",
+      "M302 901 C303 923 301 950 296 974",
+      "M326 895 C322 921 319 948 317 968",
+      "M363 879 C354 900 345 925 340 951",
+      "M398 857 C382 883 366 905 358 925",
+    ].join(" "),
+  },
+] as const;
+export const CRAYON_F1_JAW_NECK_FLOW_IDS=Object.freeze(
+  flowFields.map(f=>f.id),
+);
+
 /** All expected IDs must exist. Reject silent partial patches. */
 export const CRAYON_F1_JAW_NECK_IDS=Object.freeze(Object.keys(regions));
 
@@ -110,12 +169,21 @@ export function crayonF1ReconstructJawNeck(
   elements:readonly CrayonElement[],
 ):CrayonElement[]{
   const found=new Set<string>();
-  const out=elements.map(element=>{
-    if(element.kind!=="wax"||!(element.id in regions))return element;
+  const out:CrayonElement[]=[];
+  for(const element of elements){
+    if(element.kind!=="wax"||!(element.id in regions)){
+      out.push(element);
+      continue;
+    }
     if(found.has(element.id))throw new RangeError("Duplicate jaw/neck: "+element.id);
     found.add(element.id);
-    return {...element,...regions[element.id]};
-  });
+    out.push({...element,...regions[element.id]});
+    if(element.id==="neck-cervical-turn"){
+      // Both fields are intentionally under the face-outline and above the
+      // continuous neck underpaint. No uniform digital edge paths.
+      out.push(...flowFields);
+    }
+  }
   for(const id of CRAYON_F1_JAW_NECK_IDS){
     if(!found.has(id))throw new RangeError("Missing source jaw/neck: "+id);
   }
