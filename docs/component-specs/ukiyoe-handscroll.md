@@ -426,6 +426,37 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
 
   Storybook **Parades** plays them.
 
+### Wardrobe
+
+- **Patterns.** Eleven more:
+  - `koshi` (plaid);
+  - `tachiwaki` (rising steam);
+  - `kiku` (chrysanthemum);
+  - `ume` (plum);
+  - `momiji` (maple);
+  - `shippo` (interlocking circles);
+  - `kasuri` (ikat marks);
+  - `hishi` (diamonds);
+  - `sayagata` (key-fret);
+  - `kumo` (clouds);
+  - `ayame` (iris).
+- **`look.hem`.** A design rising from the hem (suso-moyō): any pattern, usually large, clipped to the lower skirt,
+  with a rolling top edge. `ground` recolours the band; `height` is its share of the figure.
+- **`look.obiKnot`.** The bow at the back of a woman's obi: `taiko`, `tateya` (the standing bow on the diagonal),
+  `bunko` (flat wings with two hanging ends) or `kichiya` (long swinging ends). It defaults from the look, so a woman
+  keeps her knot. `look.obiDesign` weaves a pattern into the obi and knot.
+- **`ukiyoeWardrobe(role, seed, season)`.** A complete look for a maiden, wife, elder woman, girl, merchant, artisan,
+  labourer, samurai, elder man or boy:
+  - the robe's dye and pattern from the season's palette and motifs;
+  - hem designs for young women;
+  - the obi, its knot and design;
+  - the under-collar and layers;
+  - hair, footwear and the things people carry.
+- **`ukiyoeTownsfolk(seed, count, season)`.** A mixed street.
+- **Crowds.** With no `cast` given, crowds dress their people this way; `season` picks the dress.
+
+Storybook **Wardrobe** shows every role, by season and view, with a re-dress button.
+
 ### Faces
 
 `ukiyoe-face.ts` draws every human face (profile, three-quarter and front):
