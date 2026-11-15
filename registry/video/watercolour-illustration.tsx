@@ -339,7 +339,32 @@ export function WatercolourIllustration({ spec, frame, reducedMotion = false, ..
             seed={1 + spec.seed % 997} result="bleed"/>
           <feDisplacementMap in="SourceGraphic" in2="bleed" result="wet-edge"
             scale={2.4*spec.paper.tooth} xChannelSelector="R" yChannelSelector="G"/>
-          <feGaussianBlur in="wet-edge" stdDeviation={blur*spec.paper.tooth}/>
+          <feGaussianBlur in="wet-edge" stdDeviation={blur*spec.paper.tooth}
+            result="soft-pigment"/>
+          {/* Previously local wet edges bypassed the medium's granulation
+              entirely. Most portrait planes use lost edges, so whole
+              characters resembled soft vector gradients rather than paint.
+              Modulate RGB after blur but preserve its original alpha. */}
+          {(spec.paper.granulation ?? 0)>0&&<>
+            <feTurbulence type="fractalNoise" baseFrequency=".105 .083"
+              numOctaves={3} seed={2+spec.seed%661} result="soft-paper-grain"/>
+            <feColorMatrix in="soft-paper-grain" type="saturate" values="0"
+              result="soft-grain-mono"/>
+            <feComponentTransfer in="soft-grain-mono" result="soft-grain-tint">
+              <feFuncR type="linear"
+                slope={.26*(spec.paper.granulation ?? 0)}
+                intercept={1-.13*(spec.paper.granulation ?? 0)}/>
+              <feFuncG type="linear"
+                slope={.26*(spec.paper.granulation ?? 0)}
+                intercept={1-.13*(spec.paper.granulation ?? 0)}/>
+              <feFuncB type="linear"
+                slope={.26*(spec.paper.granulation ?? 0)}
+                intercept={1-.13*(spec.paper.granulation ?? 0)}/>
+              <feFuncA type="linear" slope={0} intercept={1}/>
+            </feComponentTransfer>
+            <feComposite in="soft-pigment" in2="soft-grain-tint"
+              operator="arithmetic" k1={1} k2={0} k3={0} k4={0}/>
+          </>}
         </filter>)}
       <filter id={id + "-dry"} x="-3%" y="-3%" width="106%" height="106%"
         colorInterpolationFilters="sRGB">
