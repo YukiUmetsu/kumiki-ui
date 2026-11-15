@@ -96,7 +96,8 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
         <g clipPath={clipId ? "url(#"+clipId+")" : undefined}
           data-km-crayon-clipped-to={clipParent?.id}>
           <WaxLine d={drawing!.d} color={node.color} width={node.width}
-            opacity={node.opacity ?? 1} seed={seed}
+            opacity={node.opacity ?? 1} seed={seed} paperSeed={spec.seed}
+            contact={node.waxContact} waxPressure={node.waxPressure}
             frame={frame} first={node.timing.start} last={node.timing.end}
             reduced={reducedMotion} />
         </g>
