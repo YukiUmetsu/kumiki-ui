@@ -31,6 +31,7 @@ Read [docs/INDEX.md](docs/INDEX.md), then only the documents relevant to your ta
 - Delivery order: [roadmap](docs/06-roadmap.md)
 - Making a film or video: [content skill](skills/kumiki-content/SKILL.md) and [film document](docs/component-specs/film-document.md) — write one JSON file, then `film:check`, `film:review`, `film:render`
 - Status of every component, spec and report (generated): [component status](docs/component-status.md)
+- Drawing people (any style, realistic proportions, poses, faces, hands): [human anatomy framework ANAT1](docs/component-specs/human-anatomy.md) and [skill](skills/kumiki-human-anatomy/SKILL.md) — measured ranges, posable 3D body, `HumanFrame` for painters
 - Explainer / short-form video components: [explainer visual components](docs/17-explainer-visual-components.md) — product principles, gap roadmap; preflight with `inspectExplainerPrinciples`
 
 When a technical choice conflicts with these standards, document the tradeoff and ask for a decision instead of silently reducing quality.

@@ -1,0 +1,494 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import latticeUrl from "../../assets/models/anatomy/human-body-lattice.bin?url";
+import type { HumanBodyModel, HumanParams } from "../../registry/anatomy/anatomy-body";
+import { HUMAN_PRESETS, createHumanBody, loadHumanBodyModel } from "../../registry/anatomy/anatomy-body";
+import { measureHumanBody } from "../../registry/anatomy/anatomy-measure";
+import { HAND_POSES, POSE_PRESETS, poseHumanBody } from "../../registry/anatomy/anatomy-pose";
+import type { HumanPose } from "../../registry/anatomy/anatomy-pose";
+import { HumanFigure } from "../../registry/anatomy/anatomy-react";
+import type { HumanSurface } from "../../registry/anatomy/anatomy-react";
+import { projectPoint, renderHumanFrame, renderMeshFrame, smoothPath } from "../../registry/anatomy/anatomy-view";
+import { FACE_FEATURES, FACE_LANDMARKS, FACE_NORMS, IRIS_DIAMETER_MM, createFace, eyeCentres, faceFeatureLines, measureFace } from "../../registry/anatomy/anatomy-face";
+import type { FaceMeasureKey, FaceParams } from "../../registry/anatomy/anatomy-face";
+import { JOINTS, ROM_SOURCES } from "../../registry/anatomy/anatomy-pose";
+import { AGE_CHANGES, ANSUR, CANON_CHECKS, DRAWING_RECIPE, MODEL_TABLES, SURFACE_FORMS, statureForAge } from "../../registry/anatomy/anatomy-reference";
+import referenceData from "../../registry/anatomy/data/anatomy-references.json";
+import { rasterizeHumanFrame } from "../../registry/anatomy/anatomy-view";
+import type { HumanFrame } from "../../registry/anatomy/anatomy-view";
+
+const referenceUrls = import.meta.glob("../../assets/photos/anatomy-references/*.jpg", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+import type { HumanCamera } from "../../registry/anatomy/anatomy-view";
+
+const page = { display: "grid", gap: 16, padding: 24, minHeight: "100vh", background: "#f3efe8", color: "#26211d", font: "15px/1.45 system-ui, sans-serif" } as const;
+const panel = { display: "grid", gap: 10, alignContent: "start", minWidth: 260, maxWidth: 340 } as const;
+const label = { display: "grid", gap: 4, font: "600 13px system-ui" } as const;
+const button = { border: "1px solid #a39a8c", borderRadius: 7, background: "#ffffff", color: "#26211d", padding: "7px 11px", minHeight: 36, cursor: "pointer", font: "600 13px system-ui" } as const;
+const active = { ...button, background: "#26211d", color: "#ffffff", border: "1px solid #26211d" } as const;
+const row = { display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" } as const;
+const caption = { font: "600 13px system-ui", textAlign: "center", color: "#4a413a" } as const;
+
+function useHumanModel() {
+  const [model, setModel] = useState<HumanBodyModel | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { let live = true; loadHumanBodyModel(latticeUrl).then(m => live && setModel(m), e => live && setError(String(e))); return () => { live = false; }; }, []);
+  return { model, error };
+}
+function Loading({ error }: { error: string | null }) {
+  return <div style={page} role="status" aria-live="polite">{error ? `Could not load the body model: ${error}` : "Loading the body model…"}</div>;
+}
+
+function Figure({ model, params, pose, camera, width, height, surface = "clay", contour = true, terminator, skeleton, landmarks, grid, pixelsPerMetre, floorY }: {
+  model: HumanBodyModel; params: HumanParams; pose?: HumanPose; camera?: HumanCamera; width: number; height: number; surface?: HumanSurface; contour?: boolean;
+  terminator?: boolean; skeleton?: boolean; landmarks?: boolean; grid?: boolean; pixelsPerMetre?: number; floorY?: number;
+}) {
+  const body = useMemo(() => createHumanBody(model, params), [model, params]);
+  const posed = useMemo(() => poseHumanBody(body, pose ?? {}), [body, pose]);
+  const frame = useMemo(() => renderHumanFrame(body, posed.points, camera, { width, height, pixelsPerMetre, floorY, padding: 20 }), [body, posed, camera, width, height, pixelsPerMetre, floorY]);
+  const m = useMemo(() => (grid ? measureHumanBody(body) : null), [body, grid]);
+  return <HumanFigure frame={frame} surface={surface} contour={contour} terminator={terminator} skeleton={skeleton} landmarks={landmarks}
+    headGrid={m ? { stature: m.stature, headHeight: m.headHeight } : undefined} label="Human body reference figure" />;
+}
+
+function BodyLab() {
+  const { model, error } = useHumanModel();
+  const [params, setParams] = useState<HumanParams>({ sex: 0.5, age: 25, muscle: 0.5, weight: 0.5, height: 0.5 });
+  const [yaw, setYaw] = useState(30);
+  const [pitch, setPitch] = useState(0);
+  const [surface, setSurface] = useState<HumanSurface>("clay");
+  const [poseId, setPoseId] = useState("relaxed");
+  const [show, setShow] = useState({ contour: true, terminator: false, skeleton: false, landmarks: false, grid: true });
+  const body = useMemo(() => (model ? createHumanBody(model, params) : null), [model, params]);
+  const m = useMemo(() => (body ? measureHumanBody(body) : null), [body]);
+  if (!model || !body || !m) return <Loading error={error} />;
+  const pose = POSE_PRESETS.find(p => p.id === poseId)!.pose;
+  const slider = (key: keyof HumanParams, name: string, min: number, max: number, step: number, fmt: (v: number) => string) => (
+    <label style={label}>{name}: {fmt(params[key] as number)}
+      <input type="range" min={min} max={max} step={step} value={params[key] as number} onChange={e => setParams(p => ({ ...p, [key]: Number(e.target.value) }))} />
+    </label>
+  );
+  const cm = (v: number) => `${(v * 100).toFixed(1)} cm`;
+  return (
+    <div style={{ ...page, gridTemplateColumns: "minmax(260px, 340px) 1fr" }}>
+      <div style={panel}>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Body lab</h2>
+        {slider("sex", "Sex (female → male)", 0, 1, 0.05, v => v.toFixed(2))}
+        {slider("age", "Age (years)", 1, 90, 1, v => `${v}`)}
+        {slider("muscle", "Muscle", 0, 1, 0.05, v => v.toFixed(2))}
+        {slider("weight", "Weight (soft tissue)", 0, 1, 0.05, v => v.toFixed(2))}
+        {slider("height", "Height for age", 0, 1, 0.05, v => v.toFixed(2))}
+        <label style={label}>View yaw: {yaw}°<input type="range" min={-180} max={180} step={5} value={yaw} onChange={e => setYaw(Number(e.target.value))} /></label>
+        <label style={label}>View pitch: {pitch}°<input type="range" min={-40} max={40} step={5} value={pitch} onChange={e => setPitch(Number(e.target.value))} /></label>
+        <div style={row}>{(["clay", "tonal", "silhouette", "none"] as const).map(s => <button key={s} type="button" style={surface === s ? active : button} aria-pressed={surface === s} onClick={() => setSurface(s)}>{s}</button>)}</div>
+        <div style={row}>{(Object.keys(show) as (keyof typeof show)[]).map(k => <button key={k} type="button" style={show[k] ? active : button} aria-pressed={show[k]} onClick={() => setShow(s => ({ ...s, [k]: !s[k] }))}>{k}</button>)}</div>
+        <label style={label}>Pose<select value={poseId} onChange={e => setPoseId(e.target.value)} style={{ minHeight: 36 }}>{POSE_PRESETS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select></label>
+        <dl style={{ display: "grid", gridTemplateColumns: "auto auto", gap: "2px 12px", margin: 0, font: "13px/1.5 system-ui" }}>
+          <dt>Stature</dt><dd style={{ margin: 0 }}>{cm(m.stature)}</dd>
+          <dt>Heads tall</dt><dd style={{ margin: 0 }}>{m.headsTall.toFixed(2)}</dd>
+          <dt>Crotch height</dt><dd style={{ margin: 0 }}>{cm(m.crotchHeight)} ({(m.crotchHeight / m.stature * 100).toFixed(1)}%)</dd>
+          <dt>Shoulders (bony)</dt><dd style={{ margin: 0 }}>{cm(m.biacromialBreadth)}</dd>
+          <dt>Hips</dt><dd style={{ margin: 0 }}>{cm(m.hipBreadth)}</dd>
+          <dt>Chest / waist girth</dt><dd style={{ margin: 0 }}>{cm(m.chestCircumference)} / {cm(m.waistCircumference)}</dd>
+          <dt>Est. mass · BMI</dt><dd style={{ margin: 0 }}>{m.massKg.toFixed(0)} kg · {m.bmi.toFixed(1)}</dd>
+        </dl>
+        <p style={{ margin: 0, font: "13px/1.45 system-ui", color: "#5a5048" }}>{POSE_PRESETS.find(p => p.id === poseId)!.note}</p>
+      </div>
+      <Figure model={model} params={params} pose={pose} camera={{ yaw, pitch }} width={640} height={900} surface={surface} {...show} />
+    </div>
+  );
+}
+
+function Population() {
+  const { model, error } = useHumanModel();
+  if (!model) return <Loading error={error} />;
+  const ppm = 210, h = 1.95 * ppm + 30;
+  return (
+    <div style={page}>
+      <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Population line-up — one scale, head-unit grid per figure</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 12 }}>
+        {HUMAN_PRESETS.map(p => (
+          <figure key={p.id} style={{ margin: 0, display: "grid", justifyItems: "center", gap: 4 }}>
+            <Figure model={model} params={p.params} pose={POSE_PRESETS[1].pose} camera={{ yaw: 20 }} width={150} height={h} pixelsPerMetre={ppm} floorY={h - 12} grid />
+            <figcaption style={caption}>{p.label}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Turnaround() {
+  const { model, error } = useHumanModel();
+  const [sex, setSex] = useState(0);
+  if (!model) return <Loading error={error} />;
+  const ppm = 230, h = 1.9 * ppm + 30;
+  return (
+    <div style={page}>
+      <div style={row}>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Turnaround</h2>
+        {[["Female", 0], ["Male", 1]].map(([n, v]) => <button key={n} type="button" style={sex === v ? active : button} aria-pressed={sex === v} onClick={() => setSex(v as number)}>{n}</button>)}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: 8 }}>
+        {[0, 45, 90, 135, 180, 225, 270, 315].map(y => (
+          <figure key={y} style={{ margin: 0, display: "grid", justifyItems: "center" }}>
+            <Figure model={model} params={{ sex, age: 25 }} pose={POSE_PRESETS[0].pose} camera={{ yaw: y }} width={170} height={h} pixelsPerMetre={ppm} floorY={h - 12} surface="tonal" terminator grid />
+            <figcaption style={caption}>{y}°</figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Poses() {
+  const { model, error } = useHumanModel();
+  const [sex, setSex] = useState(1);
+  const [yaw, setYaw] = useState(35);
+  if (!model) return <Loading error={error} />;
+  return (
+    <div style={page}>
+      <div style={row}>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Pose library — clamped to measured joint ranges</h2>
+        {[["Female", 0], ["Male", 1]].map(([n, v]) => <button key={n} type="button" style={sex === v ? active : button} aria-pressed={sex === v} onClick={() => setSex(v as number)}>{n}</button>)}
+        {[["Front", 0], ["Three-quarter", 35], ["Side", 90], ["Back", 180]].map(([n, v]) => <button key={n} type="button" style={yaw === v ? active : button} aria-pressed={yaw === v} onClick={() => setYaw(v as number)}>{n}</button>)}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 12 }}>
+        {POSE_PRESETS.map(p => (
+          <figure key={p.id} style={{ margin: 0, display: "grid", justifyItems: "center", gap: 4 }}>
+            <Figure model={model} params={{ sex, age: 28 }} pose={p.pose} camera={{ yaw, pitch: 5 }} width={230} height={340} surface="clay" />
+            <figcaption style={caption}>{p.label}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PosesAt({ yaw }: { yaw: number }) {
+  const { model, error } = useHumanModel();
+  if (!model) return <Loading error={error} />;
+  return (
+    <div style={{ ...page, gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}>
+      {POSE_PRESETS.map(p => (
+        <figure key={p.id} style={{ margin: 0, display: "grid", justifyItems: "center", gap: 4 }}>
+          <Figure model={model} params={{ sex: 1, age: 28 }} pose={p.pose} camera={{ yaw }} width={200} height={300} surface="clay" skeleton />
+          <figcaption style={caption}>{p.label}</figcaption>
+        </figure>
+      ))}
+    </div>
+  );
+}
+
+
+const FACE_KEYS: [FaceMeasureKey, string][] = [["enEn", "Eye spacing (en–en)"], ["exEn", "Eye width (ex–en)"], ["alAl", "Nose width (al–al)"], ["nSn", "Nose height (n–sn)"], ["snGn", "Lower face (sn–gn)"], ["chCh", "Mouth width (ch–ch)"], ["exEx", "Outer eye corners (ex–ex)"], ["zyZy", "Face width at zygion"]];
+
+function FaceView({ params, yaw, pitch, size, guides = true, features = true, surface = "clay" }: { params: FaceParams; yaw: number; pitch: number; size: number; guides?: boolean; features?: boolean; surface?: HumanSurface }) {
+  const face = useMemo(() => createFace(params), [params]);
+  const frame = useMemo(() => renderMeshFrame(face.mesh, { yaw, pitch, target: [0, 0.0, 0.03] }, { width: size, height: size * 1.15, pixelsPerMetre: size * 4.6, centerOnTarget: true }), [face, yaw, pitch, size]);
+  const lines = useMemo(() => (features ? faceFeatureLines(frame).filter(l => l.id !== "nose-bridge" && l.id !== "oval") : []), [frame, features]);
+  const L = (k: keyof typeof FACE_LANDMARKS) => frame.landmarks[k];
+  // irises on a 12 mm eyeball, clipped by the lid opening so the upper lid overlaps them as in life
+  const eyes = useMemo(() => {
+    const c = eyeCentres(face.vertices);
+    return (["R", "L"] as const).map(side => {
+      const e = c[side], ring = (r: number) => Array.from({ length: 28 }, (_, i) => { const a = (i / 28) * Math.PI * 2; return projectPoint(frame, [(e[0] + Math.cos(a) * r) / 1000, (e[1] + Math.sin(a) * r) / 1000, (e[2] - 0.6) / 1000]); });
+      const up = FACE_FEATURES[`eye-upper.${side}`].loop, lo = FACE_FEATURES[`eye-lower.${side}`].loop;
+      const lid = [...up, ...[...lo].reverse()].map(i => [frame.screen[i * 3], frame.screen[i * 3 + 1]] as [number, number]);
+      const facing = frame.vertexFacing[FACE_LANDMARKS[`palpebrale-superius.${side}`]] > 0.05;
+      return { side, iris: ring(IRIS_DIAMETER_MM / 2), pupil: ring(1.9), lid, facing };
+    });
+  }, [face, frame]);
+  const poly = (pts: readonly (readonly number[])[]) => pts.map((q, i) => `${i ? "L" : "M"}${q[0].toFixed(1)} ${q[1].toFixed(1)}`).join("") + "Z";
+  const clipBase = useMemo(() => `eye-${Math.random().toString(36).slice(2)}`, []);
+  const hz = ["glabella", "sellion", "subnasale", "stomion", "menton"] as const;
+  const vt = ["exocanthion.R", "endocanthion.R", "endocanthion.L", "exocanthion.L", "alare.R", "alare.L", "cheilion.R", "cheilion.L"] as const;
+  return (
+    <div style={{ position: "relative", width: size, height: size * 1.15 }}>
+      <HumanFigure frame={frame} surface={surface} contour lineWidth={1.4} label="Face study" />
+      <svg width={size} height={size * 1.15} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} aria-hidden="true">
+        <defs>{eyes.map(e => <clipPath key={e.side} id={`${clipBase}-${e.side}`}><path d={poly(e.lid)} /></clipPath>)}</defs>
+        {eyes.filter(e => e.facing).map(e => (
+          <g key={e.side} clipPath={`url(#${clipBase}-${e.side})`}>
+            <path d={poly(e.lid)} fill="#f1ece4" />
+            <path d={poly(e.iris)} fill="#6d5a48" stroke="#2a211d" strokeWidth={0.8} />
+            <path d={poly(e.pupil)} fill="#1b1512" />
+            <path d={poly(e.lid)} fill="none" stroke="#2a211d" strokeWidth={4} opacity={0.18} />
+          </g>
+        ))}
+        {lines.map((l, i) => <path key={i} d={smoothPath(l.points)} fill="none" stroke="#2a211d" strokeWidth={l.id.startsWith("brow") ? 2.4 : 1.3} strokeLinecap="round" opacity={0.9} />)}
+        {guides && yaw === 0 && hz.map(k => <line key={k} x1={0} x2={size} y1={L(k)[1]} y2={L(k)[1]} stroke="#c2413a" strokeWidth={0.8} strokeDasharray="4 4" opacity={0.7} />)}
+        {guides && yaw === 0 && vt.map(k => <line key={k} y1={0} y2={size * 1.15} x1={L(k)[0]} x2={L(k)[0]} stroke="#2f6f8f" strokeWidth={0.8} strokeDasharray="2 4" opacity={0.7} />)}
+      </svg>
+    </div>
+  );
+}
+
+function FaceLab() {
+  const [p, setP] = useState<FaceParams>({ norm: "north-american-white", sex: 0.5, eyeSpacing: 0, eyeWidth: 0, noseWidth: 0, noseLength: 0, lowerFace: 0, faceWidth: 1, mouthWidth: 1 });
+  const [yaw, setYaw] = useState(0); const [pitch, setPitch] = useState(0);
+  const m = useMemo(() => measureFace(createFace(p).vertices), [p]);
+  const norm = FACE_NORMS[p.norm ?? "north-american-white"];
+  const z = (key: keyof FaceParams, name: string, min = -2.5, max = 2.5, step = 0.1, unit = "SD") => (
+    <label style={label}>{name}: {(p[key] as number).toFixed(unit === "SD" ? 1 : 2)} {unit}
+      <input type="range" min={min} max={max} step={step} value={p[key] as number} onChange={e => setP(q => ({ ...q, [key]: Number(e.target.value) }))} /></label>
+  );
+  return (
+    <div style={{ ...page, gridTemplateColumns: "minmax(260px, 340px) auto 1fr" }}>
+      <div style={panel}>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Face lab</h2>
+        <label style={label}>Norm<select value={p.norm} onChange={e => setP(q => ({ ...q, norm: e.target.value as FaceParams["norm"] }))} style={{ minHeight: 36 }}>
+          {Object.entries(FACE_NORMS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></label>
+        {z("sex", "Sex (female → male)", 0, 1, 0.05, "")}
+        {z("eyeSpacing", "Eye spacing")}{z("eyeWidth", "Eye width")}{z("noseWidth", "Nose width")}{z("noseLength", "Nose height")}{z("lowerFace", "Lower face height")}
+        {z("faceWidth", "Face width ×", 0.88, 1.12, 0.01, "")}{z("mouthWidth", "Mouth width ×", 0.85, 1.15, 0.01, "")}
+        <label style={label}>Yaw: {yaw}°<input type="range" min={-90} max={90} step={5} value={yaw} onChange={e => setYaw(Number(e.target.value))} /></label>
+        <label style={label}>Pitch: {pitch}°<input type="range" min={-40} max={40} step={5} value={pitch} onChange={e => setPitch(Number(e.target.value))} /></label>
+        <p style={{ margin: 0, font: "12px/1.45 system-ui", color: "#5a5048" }}>{norm.source}. Guides (front view): red = horizontal thirds (glabella, nasal root, nose base, mouth, chin); blue = eye corners, nose wings, mouth corners.</p>
+      </div>
+      <FaceView params={p} yaw={yaw} pitch={pitch} size={520} />
+      <table style={{ alignSelf: "start", borderCollapse: "collapse", font: "13px/1.5 system-ui" }}>
+        <caption style={{ textAlign: "left", font: "700 14px system-ui", paddingBottom: 6 }}>Measured on the study vs. {norm.label}</caption>
+        <thead><tr>{["Measure", "Study mm", "Norm mean ± SD", "z"].map(h => <th key={h} style={{ textAlign: "left", padding: "3px 8px", borderBottom: "1px solid #b8ab9c" }}>{h}</th>)}</tr></thead>
+        <tbody>{FACE_KEYS.map(([k, name]) => {
+          const f = norm.female[k], mm = norm.male[k], s = p.sex ?? 0.5;
+          const nmv = f && mm ? [f[0] + (mm[0] - f[0]) * s, f[1] + (mm[1] - f[1]) * s] : null;
+          return <tr key={k}><td style={{ padding: "3px 8px" }}>{name}</td><td style={{ padding: "3px 8px" }}>{m[k].toFixed(1)}</td>
+            <td style={{ padding: "3px 8px" }}>{nmv ? `${nmv[0].toFixed(1)} ± ${nmv[1].toFixed(1)}` : "— (no norm cited)"}</td>
+            <td style={{ padding: "3px 8px" }}>{nmv ? ((m[k] - nmv[0]) / nmv[1]).toFixed(1) : ""}</td></tr>;
+        })}</tbody>
+      </table>
+    </div>
+  );
+}
+
+function FaceAngles() {
+  const yaws = [-90, -60, -30, 0, 30, 60, 90], pitches = [25, 0, -25];
+  return (
+    <div style={page}>
+      <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Head angles — the same face from 21 views (tonal value study + feature lines)</h2>
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(${yaws.length}, 170px)`, gap: 6, overflowX: "auto" }}>
+        {pitches.flatMap(pt => yaws.map(y => (
+          <figure key={`${pt}/${y}`} style={{ margin: 0, display: "grid", justifyItems: "center" }}>
+            <FaceView params={{ sex: 0.5 }} yaw={y} pitch={pt} size={170} guides={false} surface="tonal" />
+            <figcaption style={caption}>yaw {y}° · pitch {pt}°</figcaption>
+          </figure>
+        )))}
+      </div>
+    </div>
+  );
+}
+
+function RangeOfMotion() {
+  const { model, error } = useHumanModel();
+  const sided = JOINTS.filter(j => !j.id.startsWith("finger") && !j.id.startsWith("thumb") && j.id !== "jaw" && j.id !== "eyes");
+  const [jointId, setJointId] = useState("shoulder");
+  const def = JOINTS.find(j => j.id === jointId)!;
+  const dofs = Object.keys(def.dofs) as (keyof typeof def.dofs)[];
+  const [dof, setDof] = useState<string>("flex");
+  const d = def.dofs[dof as keyof typeof def.dofs] ?? def.dofs[dofs[0]]!;
+  const dk = def.dofs[dof as keyof typeof def.dofs] ? dof : dofs[0];
+  if (!model) return <Loading error={error} />;
+  const key = def.sided ? `${def.id}.L` : def.id;
+  const yaw = dk === "abduct" ? 0 : dk === "twist" ? 30 : 90;
+  return (
+    <div style={page}>
+      <div style={row}>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Range of motion</h2>
+        <label style={{ ...label, gridAutoFlow: "column", alignItems: "center" }}>Joint <select value={jointId} onChange={e => { setJointId(e.target.value); setDof("flex"); }} style={{ minHeight: 36 }}>{sided.map(j => <option key={j.id} value={j.id}>{j.label}</option>)}</select></label>
+        {dofs.map(k => <button key={k} type="button" style={dk === k ? active : button} aria-pressed={dk === k} onClick={() => setDof(k)}>{def.dofs[k]!.names[1]}</button>)}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+        {[[d.min, d.names[0] + " limit"], [0, "neutral"], [(d.min + d.max) / 2, "mid-range"], [d.max, d.names[1] + " limit"]].map(([v, n]) => (
+          <figure key={String(n)} style={{ margin: 0, display: "grid", justifyItems: "center", gap: 4 }}>
+            <Figure model={model} params={{ sex: 0.5, age: 30 }} pose={{ [key]: { [dk]: v as number } }} camera={{ yaw: def.sided ? yaw : yaw }} width={240} height={360} surface="clay" skeleton />
+            <figcaption style={caption}>{String(n)}: {Math.round(v as number)}°</figcaption>
+          </figure>
+        ))}
+      </div>
+      <p style={{ margin: 0, font: "13px/1.5 system-ui", maxWidth: 900 }}><strong>Source {d.source}:</strong> {ROM_SOURCES[d.source]}</p>
+    </div>
+  );
+}
+
+
+/** Pen-and-ink painter built only from the frame: hatching clipped to the shadow side, contours on top. */
+function InkHatch({ frame }: { frame: HumanFrame }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const cv = ref.current; if (!cv) return;
+    cv.width = frame.width * 2; cv.height = frame.height * 2;
+    const ctx = cv.getContext("2d")!; ctx.clearRect(0, 0, cv.width, cv.height);
+    const mask = rasterizeHumanFrame(frame, "tonal", { light: [255, 255, 255], shadow: [0, 0, 0], eye: [255, 255, 255] }, 2);
+    // shadow mask: dark values become opaque
+    const m = new Uint8ClampedArray(mask.data.length);
+    for (let i = 0; i < m.length; i += 4) { const v = mask.data[i]; m[i + 3] = mask.data[i + 3] && v < 150 ? (v < 60 ? 255 : 150) : 0; }
+    const mc = document.createElement("canvas"); mc.width = cv.width; mc.height = cv.height; mc.getContext("2d")!.putImageData(new ImageData(m, cv.width, cv.height), 0, 0);
+    ctx.strokeStyle = "#1f1a17"; ctx.lineWidth = 1.3;
+    for (let x = -cv.height; x < cv.width; x += 7) { ctx.beginPath(); ctx.moveTo(x, cv.height); ctx.lineTo(x + cv.height * 0.9, 0); ctx.stroke(); }
+    ctx.globalCompositeOperation = "destination-in"; ctx.drawImage(mc, 0, 0); ctx.globalCompositeOperation = "source-over";
+  }, [frame]);
+  return (
+    <div style={{ position: "relative", width: frame.width, height: frame.height, background: "#fbf8f2" }}>
+      <canvas ref={ref} style={{ position: "absolute", inset: 0, width: frame.width, height: frame.height }} aria-hidden="true" />
+      <HumanFigure frame={frame} surface="none" contour lineWidth={1.8} palette={{ ink: "#1f1a17" }} label="Pen and ink rendering" style={{ position: "absolute", inset: 0 }} />
+    </div>
+  );
+}
+
+function AnyStyle() {
+  const { model, error } = useHumanModel();
+  const body = useMemo(() => (model ? createHumanBody(model, { sex: 0.15, age: 30 }) : null), [model]);
+  const frame = useMemo(() => {
+    if (!body) return null;
+    const posed = poseHumanBody(body, POSE_PRESETS.find(p => p.id === "contrapposto")!.pose);
+    return renderHumanFrame(body, posed.points, { yaw: 28, pitch: 4, distance: 6 }, { width: 250, height: 420, padding: 14 });
+  }, [body]);
+  if (!body || !frame) return <Loading error={error} />;
+  const m = measureHumanBody(body);
+  const cells: [string, ReactNode][] = [
+    ["Clay reference", <HumanFigure frame={frame} surface="clay" contour label="Clay reference" />],
+    ["Value study (5 bands + terminator)", <HumanFigure frame={frame} surface="tonal" terminator contour={false} label="Value study" />],
+    ["Cel / flat colour (2 values)", <HumanFigure frame={frame} surface="cel" lineWidth={2} palette={{ light: "#efc9a8", shadow: "#a8705a", ink: "#3a2018" }} label="Cel shading" />],
+    ["Pen and ink (hatching from the frame)", <InkHatch frame={frame} />],
+    ["Silhouette (notan)", <HumanFigure frame={frame} surface="silhouette" contour={false} palette={{ shadow: "#26211d" }} label="Silhouette" />],
+    ["Construction (skeleton, landmarks, head grid)", <HumanFigure frame={frame} surface="none" contour skeleton landmarks headGrid={{ stature: m.stature, headHeight: m.headHeight }} lineWidth={1} label="Construction drawing" />],
+  ];
+  return (
+    <div style={page}>
+      <h2 style={{ margin: 0, font: "700 20px system-ui" }}>One frame, any style — painters read the same HumanFrame</h2>
+      <p style={{ margin: 0, maxWidth: 880 }}>The frame fixes where the forms, contours, terminator and landmarks are (perspective camera at 6 m). A painter only decides the medium; pencil, collage, riso or paint packs consume the same data.</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
+        {cells.map(([name, node]) => <figure key={name} style={{ margin: 0, display: "grid", justifyItems: "center", gap: 6 }}>{node}<figcaption style={caption}>{name}</figcaption></figure>)}
+      </div>
+    </div>
+  );
+}
+
+const th = { textAlign: "left", padding: "4px 8px", borderBottom: "1px solid #b8ab9c", font: "700 12px system-ui" } as const;
+const td = { padding: "3px 8px", borderBottom: "1px solid #e2d9cd", font: "13px/1.45 system-ui", verticalAlign: "top" } as const;
+const ANSUR_ROWS = ["stature", "acromialheight", "waistheightomphalion", "crotchheight", "kneeheightmidpatella", "biacromialbreadth", "bideltoidbreadth", "chestcircumference", "waistcircumference", "hipbreadth",
+  "acromionradialelength", "radialestylionlength", "handlength", "footlength", "span", "headlength", "headbreadth", "bizygomaticbreadth", "mentonsellionlength", "interpupillarybreadth", "earlength"];
+
+function Proportions() {
+  const byAge = MODEL_TABLES.byAge as Record<"female" | "male", { age: number; stature: number; headsTall: number; eyeLineInHead: number; crotchRatio: number }[]>;
+  return (
+    <div style={{ ...page, maxWidth: 1180 }}>
+      <h2 style={{ margin: 0, font: "700 22px system-ui" }}>Proportions and ranges</h2>
+      <section style={{ display: "grid", gap: 8 }}>
+        <h3 style={{ margin: 0, font: "700 17px system-ui" }}>Measured adults — ANSUR II (mm; p5 / p50 / p95; share of stature at p50)</h3>
+        <div style={{ overflowX: "auto" }}><table style={{ borderCollapse: "collapse", minWidth: 760 }}>
+          <thead><tr><th style={th}>Measure</th><th style={th}>Women</th><th style={th}>Men</th><th style={th}>Women ÷ stature</th><th style={th}>Men ÷ stature</th></tr></thead>
+          <tbody>{ANSUR_ROWS.map(k => { const f = ANSUR.female.measurements[k], mm = ANSUR.male.measurements[k]; return (
+            <tr key={k}><td style={td}><strong>{k}</strong><br /><span style={{ color: "#6a6058" }}>{f.description}</span></td>
+              <td style={td}>{f.p5} / <strong>{f.p50}</strong> / {f.p95}</td><td style={td}>{mm.p5} / <strong>{mm.p50}</strong> / {mm.p95}</td>
+              <td style={td}>{f.ratioToStature ? f.ratioToStature.p50.toFixed(3) : "—"}</td><td style={td}>{mm.ratioToStature ? mm.ratioToStature.p50.toFixed(3) : "—"}</td></tr>); })}</tbody>
+        </table></div>
+        <p style={{ margin: 0, font: "12px/1.45 system-ui", color: "#5a5048" }}>U.S. Army 2012 survey (women n = {ANSUR.female.n}, men n = {ANSUR.male.n}); fitter and younger than the general population.</p>
+      </section>
+      <section style={{ display: "grid", gap: 8 }}>
+        <h3 style={{ margin: 0, font: "700 17px system-ui" }}>Growth and heads tall by age</h3>
+        <div style={{ overflowX: "auto" }}><table style={{ borderCollapse: "collapse", minWidth: 760 }}>
+          <thead><tr>{["Age", "CDC stature p5–p95 (girls)", "CDC stature p5–p95 (boys)", "Heads tall F / M (model)", "Eye line in head (model)", "Crotch ÷ stature (model)"].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+          <tbody>{byAge.female.filter(r => r.age <= 25 || r.age % 20 === 5).map((r, i) => { const mrow = byAge.male.find(x => x.age === r.age)!; const a = Math.min(20, r.age); return (
+            <tr key={i}><td style={td}>{r.age}</td>
+              <td style={td}>{Math.round(statureForAge("female", a, 0.05) / 10)}–{Math.round(statureForAge("female", a, 0.95) / 10)} cm</td>
+              <td style={td}>{Math.round(statureForAge("male", a, 0.05) / 10)}–{Math.round(statureForAge("male", a, 0.95) / 10)} cm</td>
+              <td style={td}>{r.headsTall.toFixed(2)} / {mrow.headsTall.toFixed(2)}</td><td style={td}>{r.eyeLineInHead.toFixed(2)} / {mrow.eyeLineInHead.toFixed(2)}</td><td style={td}>{r.crotchRatio.toFixed(3)} / {mrow.crotchRatio.toFixed(3)}</td></tr>); })}</tbody>
+        </table></div>
+      </section>
+      <section style={{ display: "grid", gap: 8 }}>
+        <h3 style={{ margin: 0, font: "700 17px system-ui" }}>Drawing canons tested against data</h3>
+        <ul style={{ margin: 0, paddingLeft: 20, display: "grid", gap: 6 }}>{CANON_CHECKS.map(c => <li key={c.canon}><strong>{c.canon}</strong> — {c.finding} <span style={{ color: "#6a6058" }}>({c.grade}) {c.data}</span></li>)}</ul>
+      </section>
+      <section style={{ display: "grid", gap: 8 }}>
+        <h3 style={{ margin: 0, font: "700 17px system-ui" }}>Surface forms that make a body read as real</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 10 }}>
+          {SURFACE_FORMS.map(f => <div key={f.id} style={{ border: "1px solid #d8cdbf", borderRadius: 8, padding: 10, background: "#fbf8f3" }}>
+            <strong>{f.id.replace(/-/g, " ")}</strong> <span style={{ color: "#6a6058" }}>· {f.region} · {f.kind}</span>
+            <p style={{ margin: "4px 0 0", font: "13px/1.45 system-ui" }}>{f.where} <em>{f.shows}</em> {f.draw}</p></div>)}
+        </div>
+      </section>
+      <section style={{ display: "grid", gap: 8 }}>
+        <h3 style={{ margin: 0, font: "700 17px system-ui" }}>Age changes</h3>
+        <ul style={{ margin: 0, paddingLeft: 20, display: "grid", gap: 6 }}>{AGE_CHANGES.map(a => <li key={a.age}><strong>{a.age}</strong> ({a.grade}) — {a.changes}</li>)}</ul>
+      </section>
+      <section style={{ display: "grid", gap: 8 }}>
+        <h3 style={{ margin: 0, font: "700 17px system-ui" }}>Recipe: a realistic person in any style</h3>
+        <ol style={{ margin: 0, paddingLeft: 22, display: "grid", gap: 6 }}>{DRAWING_RECIPE.map(r => <li key={r}>{r}</li>)}</ol>
+      </section>
+    </div>
+  );
+}
+
+function ReferenceBoard() {
+  const refs = referenceData.references;
+  const [region, setRegion] = useState("all");
+  const regions = ["all", ...Array.from(new Set(refs.map(r => r.region)))];
+  return (
+    <div style={page}>
+      <div style={row}><h2 style={{ margin: 0, font: "700 20px system-ui" }}>Reference board — public-domain anatomy</h2>
+        {regions.map(r => <button key={r} type="button" style={region === r ? active : button} aria-pressed={region === r} onClick={() => setRegion(r)}>{r}</button>)}</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+        {refs.filter(r => region === "all" || r.region === region).map(r => {
+          const url = referenceUrls[`../../${r.file}`];
+          return (
+            <figure key={r.id} style={{ margin: 0, display: "grid", gap: 6, alignContent: "start", border: "1px solid #d8cdbf", borderRadius: 8, padding: 10, background: "#fbf8f3" }}>
+              <img src={url} alt={r.title} loading="lazy" style={{ width: "100%", height: 260, objectFit: "contain", background: "#fff", borderRadius: 4 }} />
+              <figcaption style={{ display: "grid", gap: 4, font: "13px/1.45 system-ui" }}>
+                <strong>{r.title}</strong>
+                <ul style={{ margin: 0, paddingLeft: 18 }}>{r.study.map(s => <li key={s}>{s}</li>)}</ul>
+                <span style={{ color: "#6a6058" }}>{r.source.licence} · <a href={r.source.page} target="_blank" rel="noreferrer">Wikimedia Commons</a></span>
+              </figcaption>
+            </figure>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Hands() {
+  const { model, error } = useHumanModel();
+  if (!model) return <Loading error={error} />;
+  return (
+    <div style={page}>
+      <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Hand poses</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+        {Object.entries(HAND_POSES).map(([id, f]) => (
+          <figure key={id} style={{ margin: 0, display: "grid", justifyItems: "center", gap: 4 }}>
+            <HandFigure model={model} pose={{ ...f(), "shoulder.L": { flex: 60, abduct: 20 }, "elbow.L": { flex: 60 } }} />
+            <figcaption style={caption}>{id}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  );
+}
+function HandFigure({ model, pose }: { model: HumanBodyModel; pose: HumanPose }) {
+  const body = useMemo(() => createHumanBody(model, { sex: 0.5, age: 30 }), [model]);
+  const posed = useMemo(() => poseHumanBody(body, pose), [body, pose]);
+  const frame = useMemo(() => {
+    const p = posed.points, j = body.bones.find(b => b.id === "metacarpal2.L")!;
+    const t: [number, number, number] = [p[j.tail * 3], p[j.tail * 3 + 1], p[j.tail * 3 + 2]];
+    return renderHumanFrame(body, posed.points, { yaw: 40, pitch: 10, target: t }, { width: 220, height: 220, pixelsPerMetre: 1100, centerOnTarget: true });
+  }, [body, posed]);
+  return <HumanFigure frame={frame} surface="clay" label="Hand pose reference" />;
+}
+
+const meta = { title: "Video production/Art Foundations/Human Anatomy", id: "video-human-anatomy", component: BodyLab, parameters: { layout: "fullscreen" } } satisfies Meta<typeof BodyLab>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+export const Lab: Story = { render: () => <BodyLab /> };
+export const PopulationLineUp: Story = { name: "Population line-up", render: () => <Population /> };
+export const TurnaroundSheet: Story = { name: "Turnaround", render: () => <Turnaround /> };
+export const PoseLibrary: Story = { name: "Pose library", render: () => <Poses /> };
+export const PoseLibraryFront: Story = { name: "Pose library (front QA)", render: () => <PosesAt yaw={0} /> };
+export const PoseLibrarySide: Story = { name: "Pose library (side QA)", render: () => <PosesAt yaw={90} /> };
+export const HandPoses: Story = { name: "Hand poses", render: () => <Hands /> };
+export const FaceLabStory: Story = { name: "Face lab", render: () => <FaceLab /> };
+export const HeadAngles: Story = { name: "Head angles", render: () => <FaceAngles /> };
+export const RangeOfMotionStory: Story = { name: "Range of motion", render: () => <RangeOfMotion /> };
+export const AnyStyleStory: Story = { name: "Any style", render: () => <AnyStyle /> };
+export const ProportionsStory: Story = { name: "Proportions and ranges", render: () => <Proportions /> };
+export const ReferenceBoardStory: Story = { name: "Reference board", render: () => <ReferenceBoard /> };

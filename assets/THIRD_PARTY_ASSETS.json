@@ -2433,5 +2433,463 @@
   "redistributionVerified": true,
   "attributionRequired": false,
   "notes": "An original render of Kumiki's own procedural phone model; no third-party geometry or textures."
+ },
+ {
+  "id": "anat1-makehuman-body-lattice",
+  "assetPath": "assets/models/anatomy/human-body-lattice.bin",
+  "name": "ANAT1 morphable human lattice (from MakeHuman hm08 + macro targets + default skeleton/weights)",
+  "creator": "MakeHuman team (Data Collection AB, Joel Palmius, Jonas Hauquier)",
+  "sourceUrl": "https://github.com/makehumancommunity/makehuman/tree/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data",
+  "sourceRevision": "a8bc2d54ff0ac92e78ff71431b1023eda42bf482",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://github.com/makehumancommunity/makehuman/blob/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/LICENSE.ASSETS.md",
+  "licenseNotice": "assets/models/anatomy/NOTICE.md",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "decimated body with barycentric target transfer (scripts/anatomy/bake_makehuman.py)",
+   "72 macro corners + 16 height + 24 ancestry deltas, int16 0.1 mm",
+   "57-bone skeleton, 4-bone skin weights, 47 named landmarks"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "677b6b5a515e0580850eca784d6f4f923431b3219cba67de354106f257ec4d88"
+ },
+ {
+  "id": "anat1-mediapipe-canonical-face",
+  "assetPath": "registry/anatomy/data/face-mesh-mediapipe.json",
+  "name": "MediaPipe canonical face model (468 vertices)",
+  "creator": "Google LLC (MediaPipe authors)",
+  "sourceUrl": "https://github.com/google-ai-edge/mediapipe/blob/02ca022d573c004c463d8c61eb3f8ce17e95a7fc/mediapipe/modules/face_geometry/data/canonical_face_model.obj",
+  "sourceRevision": "02ca022d573c004c463d8c61eb3f8ce17e95a7fc",
+  "license": "Apache-2.0",
+  "licenseUrl": "https://github.com/google-ai-edge/mediapipe/blob/02ca022d573c004c463d8c61eb3f8ce17e95a7fc/LICENSE",
+  "licenseNotice": "registry/anatomy/data/LICENSE-MediaPipe-Apache-2.0.txt",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "OBJ vertices converted from cm to mm and stored as JSON with the triangle list (scripts/anatomy/bake_reference_data.py)"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": true,
+  "attribution": "MediaPipe canonical face model, Copyright Google LLC, Apache License 2.0."
+ },
+ {
+  "id": "anat1-ref-proportions-richer-canon",
+  "assetPath": "assets/photos/anatomy-references/proportions-richer-canon.jpg",
+  "name": "Richer's canon of proportions (front and side, head units marked).",
+  "creator": "Paul Richer",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._146.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Richer_-_Anatomie_artistique%2C_2_p._146.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._146.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "a3c0db1a990c5d5a72a352155bea159767a712356d9d16148a56888951440777",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-male-front-topography-richer",
+  "assetPath": "assets/photos/anatomy-references/male-front-topography-richer.jpg",
+  "name": "Surface topography of a standing male, front, with landmarks named.",
+  "creator": "Paul Richer",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._81.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Richer_-_Anatomie_artistique%2C_2_p._81.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._81.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "d48965a51bd020fc88e50a95369116fa4de9c2f51e196d47738d6e451bf8196c",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-back-forms-richer",
+  "assetPath": "assets/photos/anatomy-references/back-forms-richer.jpg",
+  "name": "Back of the trunk: trapezius, scapulae, latissimus, erector columns and gluteals.",
+  "creator": "Paul Richer",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._87.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/1/12/Richer_-_Anatomie_artistique%2C_2_p._87.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._87.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "96ad8d7ea1c36c62a411cea23dafd0128ea98df49f4a8b64e4d1b1a694ec8cfe",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-trunk-skeleton-richer",
+  "assetPath": "assets/photos/anatomy-references/trunk-skeleton-richer.jpg",
+  "name": "Skeleton of the trunk, front: rib cage, clavicles, pelvis.",
+  "creator": "Paul Richer",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._23.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Richer_-_Anatomie_artistique%2C_2_p._23.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._23.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "26aef79a96f2ac1f1064910cae6cd2948748b8e7b0a8229a46b7290a59681139",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-arm-forms-richer",
+  "assetPath": "assets/photos/anatomy-references/arm-forms-richer.jpg",
+  "name": "Outer forms of the upper limb.",
+  "creator": "Paul Richer",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._91.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/1/12/Richer_-_Anatomie_artistique%2C_2_p._91.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._91.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "23961366689555264d466a59a102ba4a832dd8260d146dbed3900b4bdb5a309e",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-forearm-rotation-1-richer",
+  "assetPath": "assets/photos/anatomy-references/forearm-rotation-1-richer.jpg",
+  "name": "The forearm from supination to pronation (sequence).",
+  "creator": "Paul Richer",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._133.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/2/27/Richer_-_Anatomie_artistique%2C_2_p._133.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._133.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "7259a891886322bb61757d96c4b4080669c8244b2f73d3c5635f071e9edc0cf3",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-forearm-rotation-2-richer",
+  "assetPath": "assets/photos/anatomy-references/forearm-rotation-2-richer.jpg",
+  "name": "Forearm rotation, second view sequence.",
+  "creator": "Paul Richer",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._137.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/6/69/Richer_-_Anatomie_artistique%2C_2_p._137.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._137.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "619c4d401ce852dd208087eda5acb37306a284d31de718c3ca02f5a29df6b755",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-thigh-muscles-richer",
+  "assetPath": "assets/photos/anatomy-references/thigh-muscles-richer.jpg",
+  "name": "Thigh muscles in three views.",
+  "creator": "Paul Richer",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._71.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/2/22/Richer_-_Anatomie_artistique%2C_2_p._71.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._71.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "a29edf0ac7a30df8df39be28998b74ada75643298d3371f93f6d76d972e8514e",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-head-neck-movement-richer",
+  "assetPath": "assets/photos/anatomy-references/head-neck-movement-richer.jpg",
+  "name": "Head and neck movement (photographs).",
+  "creator": "Paul Richer",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._106.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/7/72/Richer_-_Anatomie_artistique%2C_2_p._106.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._106.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "1029162c3e64c38a60c8648d5b0da95df93c7fa544be3a1c8e9be767a1b1d1a5",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-expression-duchenne-fig78",
+  "assetPath": "assets/photos/anatomy-references/expression-duchenne-fig78.jpg",
+  "name": "Duchenne's electrically evoked expression (1862).",
+  "creator": "Duchenne, G.-B.",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Duchenne_Mecanisme_de_la_physionomie_humaine,_fig._78.jpg",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Duchenne_Mecanisme_de_la_physionomie_humaine%2C_fig._78.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Duchenne_Mecanisme_de_la_physionomie_humaine,_fig._78.jpg",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "7ec0337f27933d4eb0a42f97c3279f89e731d8c4e075de8b81b2d94859c9c4d3",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-face-neck-muscles-gray378",
+  "assetPath": "assets/photos/anatomy-references/face-neck-muscles-gray378.jpg",
+  "name": "Muscles of the head, face and neck (Gray 1918).",
+  "creator": "Henry Vandyke Carter",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gray378.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Gray378.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Gray378.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "37053ae76bd7492182e1b2d55291278b3e4142fd8a32d1859cb8420194b68259",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-jaw-muscles-gray383",
+  "assetPath": "assets/photos/anatomy-references/jaw-muscles-gray383.jpg",
+  "name": "Deep jaw muscles and the skull (Gray 1918).",
+  "creator": "Henry Vandyke Carter",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gray383.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/0/06/Gray383.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Gray383.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "b3abb642d3f33940552beab90a601e833d01370ee89595d9143abf951e680cfe",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-shoulder-arm-muscles-gray410",
+  "assetPath": "assets/photos/anatomy-references/shoulder-arm-muscles-gray410.jpg",
+  "name": "Shoulder and upper-arm muscles (Gray 1918).",
+  "creator": "Henry Vandyke Carter",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gray410.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/d/de/Gray410.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Gray410.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "8ff9d6c5b745aa8e381b134c8433635fb401fc05b3ec22cf119bc5074e36469c",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-hand-bones-gray219",
+  "assetPath": "assets/photos/anatomy-references/hand-bones-gray219.jpg",
+  "name": "Bones of the left hand (Gray 1918).",
+  "creator": "Henry Vandyke Carter",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gray219.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Gray219.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Gray219.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "1e30cd85a4c89a172b1d5802dfa57b9463c1cab61f8584ad479f5c29d1a2e594",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-foot-bones-gray268",
+  "assetPath": "assets/photos/anatomy-references/foot-bones-gray268.jpg",
+  "name": "Bones of the left foot (Gray 1918).",
+  "creator": "Henry Vandyke Carter",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gray268.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9e/Gray268.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Gray268.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "7129ccf0b06918480b2fc813caf175f6d7496e782e52cb6f1a9a9e5d5197d182",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-knee-joint-gray345",
+  "assetPath": "assets/photos/anatomy-references/knee-joint-gray345.jpg",
+  "name": "Knee joint with the patella (Gray 1918).",
+  "creator": "Henry Vandyke Carter",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gray345.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Gray345.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Gray345.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "ba43a76db41cc48a8239f1474caab7ce096e7468719f4af5c7bbe6771abdaaf8",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-thigh-back-muscles-gray434",
+  "assetPath": "assets/photos/anatomy-references/thigh-back-muscles-gray434.jpg",
+  "name": "Back of the thigh: gluteals and hamstrings (Gray 1918).",
+  "creator": "Henry Vandyke Carter",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gray434.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Gray434.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Gray434.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "620b2b662ef678859c82558e518bf3241d712e5e5aa165234faaba0e1b228c34",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-thigh-cross-section-gray432",
+  "assetPath": "assets/photos/anatomy-references/thigh-cross-section-gray432.jpg",
+  "name": "Cross-section through the thigh (Gray 1918).",
+  "creator": "Henry Vandyke Carter",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gray432.png",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/8/82/Gray432.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Gray432.png",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "b160987c24edbf0a6c414c357ae88ced1455a6012d74bab0c14166085dc5bccf",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-hands-leonardo-rcin912558",
+  "assetPath": "assets/photos/anatomy-references/hands-leonardo-rcin912558.jpg",
+  "name": "Leonardo, study of a woman's hands (c.1490).",
+  "creator": "Leonardo da Vinci",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Leonardo_da_Vinci_-_RCIN_912558,_A_study_of_a_woman%27s_hands_c.1490.jpg",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/2/26/Leonardo_da_Vinci_-_RCIN_912558%2C_A_study_of_a_woman%27s_hands_c.1490.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Leonardo_da_Vinci_-_RCIN_912558,_A_study_of_a_woman%27s_hands_c.1490.jpg",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "c510f7ef757238891721a6e384c75ee8c06efe62f8e2a8f035055e3f5dac63da",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-running-muybridge-060",
+  "assetPath": "assets/photos/anatomy-references/running-muybridge-060.jpg",
+  "name": "Muybridge, man running (1887), sequential photographs.",
+  "creator": "Muybridge, Eadweard, 1830-1904",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Man_in_pelvis_cloth_running_at_a_half-mile_gait_(rbm-QP301M8-1887-060).jpg",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/6/67/Man_in_pelvis_cloth_running_at_a_half-mile_gait_%28rbm-QP301M8-1887-060%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Man_in_pelvis_cloth_running_at_a_half-mile_gait_(rbm-QP301M8-1887-060).jpg",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "4f476bfd3843cc4ff10fc1339015be4b12b4c986082b3de5415d02c1eb8a9853",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-run-jump-muybridge-159",
+  "assetPath": "assets/photos/anatomy-references/run-jump-muybridge-159.jpg",
+  "name": "Muybridge, man running and jumping (1887).",
+  "creator": "Muybridge, Eadweard, 1830-1904",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Man_in_pelvis_cloth_running_and_jumping_(rbm-QP301M8-1887-159).jpg",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9e/Man_in_pelvis_cloth_running_and_jumping_%28rbm-QP301M8-1887-159%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Man_in_pelvis_cloth_running_and_jumping_(rbm-QP301M8-1887-159).jpg",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "08e8fcd87dbac047f416c39f98921221ae99f835bd4ae86552a7f99a92c2d42f",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "anat1-ref-locomotion-plate-470-muybridge",
+  "assetPath": "assets/photos/anatomy-references/locomotion-plate-470-muybridge.jpg",
+  "name": "Muybridge, Animal Locomotion plate 470 (1887).",
+  "creator": "Eadweard Muybridge",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Animal_locomotion._Plate_470_(Boston_Public_Library).jpg",
+  "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/8/86/Animal_locomotion._Plate_470_%28Boston_Public_Library%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Animal_locomotion._Plate_470_(Boston_Public_Library).jpg",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "downscaled to 1400 px and re-encoded as JPEG"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "ef8c000ed37a21ebd4f38c8fe5efa59f0e8c311f332bfb8ca390112bcce458ad",
+  "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
  }
 ]

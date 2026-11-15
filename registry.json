@@ -3598,6 +3598,86 @@
       ]
     },
     {
+      "name": "human-anatomy",
+      "type": "registry:ui",
+      "title": "Human Anatomy Framework (ANAT1)",
+      "description": "Style-neutral, measured human for drawing realistic people in any art style (proportions, poses, faces, hands, depth, shading): a morphable, posable 3D body (CC0 MakeHuman lattice: sex, age 1–90, muscle, weight, height, ancestry; 57-bone skeleton; 47 named anthropometric landmarks) calibrated against ANSUR II adult measurements and CDC growth curves; clinical joint angles clamped to AAOS/CDC ranges with a pose and hand-pose library; tape-measure sections and ANSUR-named measurements; a camera that renders a HumanFrame (depth-sorted shaded triangles, visible contours with weight hints, light/shadow terminators, landmarks, joints) plus a software rasteriser for clay, five-band value, cel and silhouette surfaces; a MediaPipe-based 3D face study fitted to published facial norms with feature loops and lid-clipped irises; canon checks, surface-anatomy notes, age changes and a curated public-domain reference board.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/anatomy/anatomy-body.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-body.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-growth.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-growth.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-measure.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-measure.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-pose.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-pose.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-view.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-view.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-face.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-face.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-reference.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-reference.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-react.tsx"
+        },
+        {
+          "path": "registry/anatomy/data/ansur-ii-ranges.json",
+          "type": "registry:ui",
+          "target": "components/anatomy/data/ansur-ii-ranges.json"
+        },
+        {
+          "path": "registry/anatomy/data/stature-for-age-cdc.json",
+          "type": "registry:ui",
+          "target": "components/anatomy/data/stature-for-age-cdc.json"
+        },
+        {
+          "path": "registry/anatomy/data/face-mesh-mediapipe.json",
+          "type": "registry:ui",
+          "target": "components/anatomy/data/face-mesh-mediapipe.json"
+        },
+        {
+          "path": "registry/anatomy/data/model-tables.json",
+          "type": "registry:ui",
+          "target": "components/anatomy/data/model-tables.json"
+        },
+        {
+          "path": "registry/anatomy/data/anatomy-references.json",
+          "type": "registry:ui",
+          "target": "components/anatomy/data/anatomy-references.json"
+        },
+        {
+          "path": "registry/anatomy/data/LICENSE-MediaPipe-Apache-2.0.txt",
+          "type": "registry:ui",
+          "target": "components/anatomy/data/LICENSE-MediaPipe-Apache-2.0.txt"
+        }
+      ]
+    },
+    {
       "name": "editorial-collage",
       "type": "registry:ui",
       "title": "Editorial Paper Collage (COLLAGE1)",
