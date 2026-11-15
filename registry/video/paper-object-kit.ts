@@ -260,7 +260,12 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
     const tx=sx-6+col*1.6,ty=sy+37+row*.9;
     const card=p.feather(sx,sy,tx,ty,9.1+(i%3)*.75);
     const colors=[c.blueLight,c.blue,c.green,c.ink,c.blue];
+    // Tiny physical slit, oriented along the rachis and entirely within
+    // the feather's broad opaque root. This is real negative space, not ink.
+    const slit=p.taper(sx+(tx-sx)*.27,sy+(ty-sy)*.27,
+      sx+(tx-sx)*.56,sy+(ty-sy)*.56,.78);
     add("wing-feather-"+i,colors[(row+col)%colors.length],18,card.base,{
+      holes:[slit],
       liftedTip:{path:card.tip,hinge:card.hinge,
         rotateDegrees:(i%2?-1:1)*(7+row*.6),lift:5+col*1.5},
       enterFrame:72+i,durationFrames:23,curl:.9,...rig});
@@ -342,9 +347,9 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
     p.C(47,-51,35,-48,17,-54),
     p.C(11,-59,11,-63,15,-70),p.Z].join(" "),{enterFrame:120});
   add("kingfisher-throat",c.white,23,[
-    p.M(92,-63),p.C(98,-54,79,-39,62,-24),
-    p.C(53,-33,57,-44,71,-53),
-    p.C(80,-60,87,-66,92,-63),p.Z].join(" "),{enterFrame:122});
+    p.M(94,-63),p.C(90,-49,75,-43,53,-35),
+    p.C(49,-47,60,-59,77,-66),
+    p.C(85,-66,90,-66,94,-63),p.Z].join(" "),{enterFrame:122});
   add("kingfisher-eye-mask",c.ink,26,p.oval(90,-102,10.3,8.8),{
     enterFrame:117});
   add("kingfisher-eye",c.deep,27,p.oval(90,-103,6.6,6.5),{enterFrame:122});
