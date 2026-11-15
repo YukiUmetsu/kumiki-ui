@@ -1,0 +1,59 @@
+name: WC12 watercolor portrait edges and anatomy proof
+# Manual-only ArtCraft browser/FFmpeg proof after qualifying source renders.
+# Regular PRs keep only changed-code tests, not expensive film exports.
+on:
+  workflow_dispatch:
+  push:
+    branches: 
+      - feat/watercolour-wc12-realism-portrait-mastery
+    paths:
+      - docs/research/wc12-proof-trigger.md
+permissions:
+  contents: read
+concurrency:
+  group: wc12-portrait-proof
+  cancel-in-progress: true
+jobs:
+  painterly-face:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Validate portable twelve-second portrait
+        run: npm run film:check -- examples/film/watercolour-portrait.film.json
+      - run: npx playwright install --with-deps chromium
+      - name: Native 16:9 and 9:16 Storybook face, eyes, glazing and reduced-motion captures
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-portrait.spec.ts
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Render four production FilmStage portrait frames
+        run: |
+          npm run film:frame -- examples/film/watercolour-portrait.film.json --frame=140 --only=landscape --out=dist/wc12-proof
+          npm run film:frame -- examples/film/watercolour-portrait.film.json --frame=255 --only=landscape --out=dist/wc12-proof
+          npm run film:frame -- examples/film/watercolour-portrait.film.json --frame=140 --only=portrait --out=dist/wc12-proof
+          npm run film:frame -- examples/film/watercolour-portrait.film.json --frame=255 --only=portrait --out=dist/wc12-proof
+      - name: Encode frames 210–245 of actual articulated portrait in both ratios
+        run: |
+          npm run film:render -- examples/film/watercolour-portrait.film.json --startFrame=210 --frames=36 --only=landscape --out=dist/wc12-proof
+          npm run film:render -- examples/film/watercolour-portrait.film.json --startFrame=210 --frames=36 --only=portrait --out=dist/wc12-proof
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wc12-portrait-storybook-evidence
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wc12-portrait-film-evidence
+          path: dist/wc12-proof/
+          retention-days: 7
+          if-no-files-found: warn
