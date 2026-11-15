@@ -11,6 +11,7 @@ import type {RisoForegroundLayer} from "../../registry/video/print-plates-react"
 import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import type {RisoCharacterMeshSheet,RisoMeshCategory} from "../../registry/video/riso-proportion-mesh";
 import {COURIER} from "./riso-character-demo";
+import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 
 /** RISO14: a second authored human, not a color-inverted Courier.
  * Reuse a mechanically compatible limb/digit rig, not the Courier face, hair,
@@ -86,10 +87,16 @@ const coatPieces:readonly RisoCharacterPart[]=[
     d:"M-31 18 Q-2 30 30 19 L34 24 Q0 35 -34 23 Z"},
   {id:"coat-breast-pocket",joint:"body",plate:"blue",paint:"solid",
     d:"M12 -28 Q20 -31 23 -27 L22 -25 Q16 -28 12 -26 Z"},
+  // Paper Artist's own tapered clavicle/tendons. The original scarf is
+  // intentionally the last overprint around the neck, so it *wraps*
+  // the anatomy rather than being erased by a later knockout.
+  ...risoAnatomicalNeckParts("paper-artist"),
   {id:"scarf",joint:"body",plate:"blue",paint:"solid",
-    d:"M-9 -70 Q0 -75 10 -69 Q17 -61 13 -56 Q1 -59 -11 -57 Z M6 -58 Q17 -49 10 -32 L6 -35 Q9 -48 3 -57 Z"},
-  {id:"neck",joint:"body",plate:"blue",paint:"solid",
-    d:"M-8 -82 Q0 -85 8 -82 L9 -62 Q1 -58 -8 -62 Z"},
+    d:"M-13 -69 Q-11 -73 -8 -76 C-2 -74 3 -74 9 -75 Q15 -73 17 -65 Q15 -59 10 -57 Q0 -60 -12 -57 Q-17 -63 -13 -69 Z M6 -58 Q17 -49 10 -32 L6 -35 Q9 -48 3 -57 Z"},
+  {id:"scarf-overfold",joint:"body",plate:"red",paint:"screen",screenTone:"mid",
+    d:"M-11 -66 Q-7 -69 0 -69 Q8 -71 13 -65 L12 -62 Q5 -65 0 -64 Q-8 -64 -11 -62 Z"},
+  {id:"scarf-knot-seam",joint:"body",plate:"red",paint:"solid",
+    d:"M9 -61 Q12 -59 13 -56 Q10 -54 7 -57 L6 -59 Q9 -58 10 -56 Q12 -58 9 -61 Z"},
 ];
 const facePieces:readonly RisoCharacterPart[]=[
   {id:"hair-back",joint:"head",plate:"blue",paint:"solid",
@@ -164,10 +171,12 @@ const facePieces:readonly RisoCharacterPart[]=[
     d:"M1 -12 Q4 -7 3 -1 Q0 5 3 7 Q6 9 9 6 L9 8 Q6 11 2 9 Q-2 7 0 3 Q2 -4 1 -12 Z"},
   {id:"cheek-tones",joint:"head",plate:"red",paint:"screen",screenTone:"light",
     d:"M-25 3 Q-20 0 -14 5 Q-20 3 -24 8 Z M17 4 Q24 3 27 10 Q23 7 18 8 Z"},
+  // Two-lip profile derived from ANAT1 mouth loop and the Artist's narrower
+  // original chin. Prevent a single oversized red blob at the speaking cel.
   {id:"mouth",joint:"head",plate:"red",paint:"solid",
-    d:"M-7 15 Q0 18 7 13 L8 16 Q0 22 -7 18 Z",
-    expressions:{speak:"M-6 13 Q0 8 6 14 Q8 21 1 23 Q-6 22 -6 13 Z",
-      smile:"M-11 11 Q0 22 12 10 Q8 23 0 24 Q-7 23 -11 11 Z"}},
+    d:"M-7 15.1 Q-2 17.5 2 16.4 Q5 15.8 7 13.4 L8 15.2 Q3 19.7 -2 19.8 Q-5.3 19 -7 15.1 Z",
+    expressions:{speak:"M-4.8 13.4 Q-1.2 11 2.2 12 Q5 12.8 5.8 16 Q5.3 20.1 1 21.7 Q-3.4 21.3 -4.8 17.2 Z",
+      smile:"M-10.6 11.7 Q0 20.1 11.1 10.5 Q7 22.7 0 23.4 Q-7.4 21.2 -10.6 11.7 Z"}},
   {id:"lip-corners",joint:"head",plate:"blue",paint:"solid",
     d:"M-10 14 L-7 14 L-7 16 Z M8 12 L11 11 L9 15 Z",
     expressions:{speak:"M-8 12 L-5 10 L-6 14 Z M7 12 L10 13 L8 16 Z",
