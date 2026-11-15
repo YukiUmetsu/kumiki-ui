@@ -13,15 +13,16 @@ import type { Prim, UkiyoePattern } from "./ukiyoe-prims";
 import { circleD, ellipseD } from "./ukiyoe-prims";
 import { drawFigureFrontBack } from "./ukiyoe-figure-front";
 import { fuki, hyogoSide, kamuroSide, kasane, KOMA_GETA_HEIGHT, komaGetaSide, maeObiSide, parasol, roundels } from "./ukiyoe-oiran";
+import { darariSide, maiogi, OKOBO_HEIGHT, okoboSide, wareshinobuSide } from "./ukiyoe-maiko";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 
-export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild" | "hyogo" | "kamuro";
+export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild" | "hyogo" | "kamuro" | "wareshinobu";
 export type UkiyoeHat = "none" | "kasa" | "conical" | "eboshi" | "hood" | "headband";
-export type UkiyoeProp = "none" | "staff" | "umbrella" | "lantern" | "fan" | "pole" | "basket-pole" | "bundle" | "fishing-rod" | "scroll" | "pipe" | "kanabo" | "peach" | "parasol";
+export type UkiyoeProp = "none" | "staff" | "umbrella" | "lantern" | "fan" | "pole" | "basket-pole" | "bundle" | "fishing-rod" | "scroll" | "pipe" | "kanabo" | "peach" | "parasol" | "maiogi";
 export type UkiyoeBuild = "slim" | "average" | "stout" | "child" | "brute";
-export const UKIYOE_HAIRS: readonly UkiyoeHair[] = ["chonmage", "shimada", "child", "bald", "long", "elder", "topknot", "wild", "hyogo", "kamuro"];
+export const UKIYOE_HAIRS: readonly UkiyoeHair[] = ["chonmage", "shimada", "child", "bald", "long", "elder", "topknot", "wild", "hyogo", "kamuro", "wareshinobu"];
 export const UKIYOE_HATS: readonly UkiyoeHat[] = ["none", "kasa", "conical", "eboshi", "hood", "headband"];
-export const UKIYOE_PROPS: readonly UkiyoeProp[] = ["none", "staff", "umbrella", "lantern", "fan", "pole", "basket-pole", "bundle", "fishing-rod", "scroll", "pipe", "kanabo", "peach", "parasol"];
+export const UKIYOE_PROPS: readonly UkiyoeProp[] = ["none", "staff", "umbrella", "lantern", "fan", "pole", "basket-pole", "bundle", "fishing-rod", "scroll", "pipe", "kanabo", "peach", "parasol", "maiogi"];
 export const UKIYOE_BUILDS: readonly UkiyoeBuild[] = ["slim", "average", "stout", "child", "brute"];
 
 export interface UkiyoeFigureLook {
@@ -50,8 +51,9 @@ export interface UkiyoeFigureLook {
   face?: "human" | "oni";
   hakama?: UkiyoePaint;
   legs?: UkiyoePaint;
-  /** `koma-geta`: the courtesan's tall black-lacquered three-toothed clogs, worn bare-foot (they raise the whole figure). */
-  feet?: "waraji" | "geta" | "tabi" | "bare" | "koma-geta";
+  /** `koma-geta`: the courtesan's tall black-lacquered three-toothed clogs, worn bare-foot; `okobo`: the maiko's tall
+   * wooden clogs with a sloped toe, on which she takes small steps. Both raise the whole figure. */
+  feet?: "waraji" | "geta" | "tabi" | "bare" | "koma-geta" | "okobo";
   sleeves?: "short" | "long";
   prop?: UkiyoeProp;
   propColor?: UkiyoePaint;
@@ -68,8 +70,9 @@ export interface UkiyoeFigureLook {
   motif?: UkiyoePaint | "none";
   /** Kasane: the layered under-robes, outermost first, each showing as a band at the collar and at the hem. */
   layers?: readonly UkiyoePaint[];
-  /** `front`: the obi tied in front in a great padded bundle (mae-obi), its ends hanging to the knee. */
-  obiTie?: "back" | "front";
+  /** `front`: the obi tied in front in a great padded bundle (mae-obi), its ends hanging to the knee. `darari`: the
+   * maiko's obi, its long ends hanging from a high knot nearly to the hem and swinging as she moves. */
+  obiTie?: "back" | "front" | "darari";
   /** Colour of the obi's woven pattern (default kin). */
   obiPattern?: UkiyoePaint;
   /** How the figure faces the viewer: in profile; turned three-quarters (face, torso and limbs, as most print figures
@@ -80,9 +83,9 @@ export interface UkiyoeFigureLook {
 
 export type UkiyoeActionType =
   | "walk" | "run" | "bow" | "wave" | "point" | "talk" | "look" | "kneel" | "pole" | "row" | "brace" | "dance"
-  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu";
+  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu" | "kyomai";
 export const UKIYOE_ACTIONS: readonly UkiyoeActionType[] = [
-  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu",
+  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu", "kyomai",
 ];
 export interface UkiyoeAction {
   type: UkiyoeActionType;
@@ -187,17 +190,39 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
         // A three-quarter figure's stride is foreshortened (see turnSkeleton), so its legs cycle faster for the same
         // ground covered and the stance foot stays planted.
         const turned = spec.look.view === "three-quarter" && spec.look.face !== "oni";
-        const run = a.type === "run", cycle = height * (run ? 1.25 : .62) * (a.amount ?? 1) * (turned ? .72 : 1);
+        // On okobo the steps are short and quick, the knee barely lifting.
+        const okobo = spec.look.feet === "okobo" && a.type !== "run";
+        const run = a.type === "run", cycle = height * (run ? 1.25 : .62) * (a.amount ?? 1) * (turned ? .72 : 1) * (okobo ? .42 : 1);
         const ph = tr.dist / cycle * Math.PI * 2;
-        const A = run ? 30 : 17, s = Math.sin(ph), c = Math.cos(ph);
-        target.hipF = A * s + 2; target.hipB = -A * s + 2;
+        const A = run ? 30 : okobo ? 8 : 17, s = Math.sin(ph), c = Math.cos(ph);
+        // On okobo the stance leg sweeps at an even rate (a triangle wave), matching the even travel, so the planted
+        // clog does not skate on these short steps.
+        const sw = okobo ? Math.asin(s) * 2 / Math.PI : s;
+        target.hipF = A * sw + 2; target.hipB = -A * sw + 2;
         // The leg swinging forward bends its knee; the stance leg stays nearly straight.
-        target.knF = (run ? 70 : 34) * Math.max(0, c) ** 1.4 + 3; target.knB = (run ? 70 : 34) * Math.max(0, -c) ** 1.4 + 3;
-        target.footF = -12 * Math.max(0, c); target.footB = -12 * Math.max(0, -c);
+        target.knF = (run ? 70 : okobo ? 18 : 34) * Math.max(0, c) ** 1.4 + 3; target.knB = (run ? 70 : okobo ? 18 : 34) * Math.max(0, -c) ** 1.4 + 3;
+        target.footF = (okobo ? -4 : -12) * Math.max(0, c); target.footB = (okobo ? -4 : -12) * Math.max(0, -c);
         target.shF = (run ? 25 : 12) - (run ? 35 : 13) * s; target.shB = -(run ? 25 : 6) + (run ? 35 : 13) * s;
         target.elF = run ? 85 : 30; target.elB = run ? 85 : 22;
         target.lean = run ? 16 : 5;
         target.lift = run ? Math.abs(Math.sin(ph)) * height * .04 : 0;
+        break;
+      }
+      case "kyomai": {
+        // Kyōmai, the Kyoto dance: slow, held poses with the fan, each flowing into the next. A — the fan raised high to
+        // the side, the eyes following it; B — the fan brought before the face, the body sinking; C — the arms opened,
+        // the sleeves hanging from them; D — low, turned in, the fan lowered. Each is held about a second, then the
+        // body flows to the next over most of a second (smoothstep), so the dance never jerks.
+        const K: Partial<FigurePose>[] = [
+          { shF: 150, elF: 22, shB: 38, elB: 92, lean: 3, tilt: -9, crouch: .14 },
+          { shF: 72, elF: 58, shB: 30, elB: 96, lean: 10, tilt: 13, crouch: .26 },
+          { shF: 96, elF: 12, shB: -62, elB: 18, lean: 0, tilt: 3, crouch: .1 },
+          { shF: 42, elF: 44, shB: 22, elB: 70, lean: 17, tilt: 19, crouch: .34 },
+        ];
+        const seg = 64 * (a.amount ?? 1), hold = .45, q = t / seg, i = Math.floor(q) % K.length, u = q - Math.floor(q);
+        const m = smooth(clamp01((u - hold) / (1 - hold))), A0 = K[i], A1 = K[(i + 1) % K.length];
+        for (const key of Object.keys(A0) as (keyof FigurePose)[]) target[key] = lerp(A0[key]!, A1[key]!, m);
+        target.hipF = 6 + 4 * m; target.hipB = -4; target.knF = 10 + 20 * (target.crouch ?? 0); target.knB = 8 + 18 * (target.crouch ?? 0);
         break;
       }
       case "dochu": {
@@ -395,8 +420,8 @@ const FACE3: Pt[] = [
 function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: number, wind: number, frame: number, seed: number, tq = false): Prim[] {
   const P = (x: number, y: number): Pt => [x * k, y * k];
   const out: Prim[] = [], lw = lineW(H) * .85, skin = look.skin ?? "hada", hairC = look.hairColor ?? (look.hair === "elder" ? "usuzumi" : "sumi");
-  const hair = look.hair ?? "chonmage", female = hair === "shimada" || hair === "long" || hair === "hyogo" || hair === "kamuro";
-  const hyogo = hair === "hyogo" ? hyogoSide(P, k, lw, hairC, look.accent ?? "shu", tq) : undefined;
+  const hair = look.hair ?? "chonmage", female = hair === "shimada" || hair === "long" || hair === "hyogo" || hair === "kamuro" || hair === "wareshinobu";
+  const hyogo = hair === "hyogo" ? hyogoSide(P, k, lw, hairC, look.accent ?? "shu", tq) : hair === "wareshinobu" ? wareshinobuSide(P, k, lw, hairC, look, tq, wind * .8 + Math.sin(frame / 9 + seed) * .35) : undefined;
   if (hyogo) out.push(...hyogo.behind);
   // Long hair falls behind the head and blows in the wind.
   if (hair === "long") {
@@ -463,7 +488,7 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
     case "child": out.push({ t: "fill", d: smoothD([P(-1, -21), P(10, -18), P(15, -11), P(11, -9), P(6, -11), P(3, -6), P(0, 3), P(-6, 8), P(-15, 4), P(-16, -8), P(-11, -18)], true, .4), fill: hairC, outline: lw }); out.push({ t: "fill", d: ellipseD(-1 * k, -22 * k, 3.4 * k, 2.6 * k), fill: hairC }); break;
     case "long": out.push({ t: "fill", d: smoothD([P(-1, -21), P(9, -19), P(15.6, -10), P(12, -9), P(5, -11), P(1, -4), P(-1, 8), P(-7, 18), P(-16, 8), P(-17, -6), P(-12, -17)], true, .4), fill: hairC, outline: lw }); break;
     case "bald": break;
-    case "hyogo": out.push(...hyogo!.over); break;
+    case "hyogo": case "wareshinobu": out.push(...hyogo!.over); break;
     case "kamuro": out.push(...kamuroSide(P, k, lw, hairC, look.accent ?? "beni")); break;
   }
   if (look.face === "oni") {
@@ -553,6 +578,7 @@ function propPrims(look: UkiyoeFigureLook, pose: FigurePose, s: Skeleton, wind: 
         out.push({ t: "stroke", d: ribs, color: "cha", width: .7, opacity: .7 });
         break;
       }
+      case "maiogi": { const a = Math.atan2(w[1] - s.elF[1], w[0] - s.elF[0]) / DEG; out.push(...maiogi(w, a - 12, H * .17, lw, accent === "ai" ? "beni" : accent, clamp01((pose.shF - 25) / 45))); break; }
       case "scroll": out.push({ t: "fill", d: ellipseD(w[0] + H * .03, w[1], H * .06, H * .018), fill: "gofun", outline: lw }); break;
       case "pipe": out.push({ t: "line", d: carvedLine([w, add(w, [H * .14, -H * .06])], H * .008, { taper: "none" }), color: "kogecha" }); break;
       case "kanabo": {
@@ -624,7 +650,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   const sleevePattern = uchi ? look.uchikakePattern : coat ? look.coatPattern : look.robePattern;
   const sleeveDepth = H * (look.sleeves === "long" || uchi ? .34 : .17), sleeveW = H * (uchi ? .15 : .13);
   // Courtesan dress: tall clogs lift the whole figure (drawn at the end), kasane layers, the over-robe and its lining.
-  const gh = look.feet === "koma-geta" ? H * KOMA_GETA_HEIGHT : 0, layers = look.layers ?? [], lining = look.lining ?? "beni";
+  const gh = look.feet === "koma-geta" ? H * KOMA_GETA_HEIGHT : look.feet === "okobo" ? H * OKOBO_HEIGHT : 0, layers = look.layers ?? [], lining = look.lining ?? "beni";
   const lagF = clamp(((s.wrF[0] - sp.wrF[0]) * -1.4) + wl * -22, -55, 55), lagB = clamp(((s.wrB[0] - sp.wrB[0]) * -1.4) + wl * -22, -55, 55);
   const travelLag = clamp((tr.moving ? -1 : 0) * (tr.moving?.type === "run" ? 18 : 6), -30, 30);
   const k = H * (build === "child" ? .085 : look.face === "oni" ? .08 : .064) / 18, stout = build === "brute" ? 1.4 : build === "stout" ? 1.14 : build === "slim" ? .93 : 1;
@@ -659,6 +685,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     if (lower === "loincloth") p.push({ t: "fill", d: carvedLine([s.hip, kn, an], legW * 3, { taper: "end", minRatio: .5, smooth: true }), fill: legC, outline: lw * .9 });
     else p.push({ t: "fill", d: limb(kn, an, legW, legW * .8), fill: legC, outline: lw * .9 });
     const sole: Pt = [toe[0] + H * .012, toe[1]];
+    if (feet === "okobo") p.push(...okoboSide([an[0] - H * .032, an[1] - H * .003], [toe[0] + H * .014, toe[1] - H * .005], gh, lw * .9, isBack));
     if (feet === "koma-geta") p.push(...komaGetaSide([an[0] - H * .032, an[1] - H * .003], [toe[0] + H * .014, toe[1] - H * .005], gh, lw * .9, isBack));
     p.push({ t: "fill", d: smoothD([[an[0] - H * .025, an[1] - H * .01], [an[0] + H * .01, an[1] - H * .03], sole, [toe[0], toe[1] + H * .008], [an[0] - H * .03, an[1] + H * .01]], true, .35), fill: feet === "tabi" ? "gofun" : legC, outline: lw * .9 });
     if (feet === "geta") p.push({ t: "fill", d: polyD([[an[0] - H * .04, an[1] + H * .012], [sole[0] + H * .01, toe[1] + H * .01], [sole[0] + H * .01, toe[1] + H * .03], [an[0] - H * .04, an[1] + H * .032]]), fill: "cha", outline: lw * .8 });
@@ -771,7 +798,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     const hemCoat: Pt = [lerp(s.waistF[0], s.knF[0], .55) + H * .03, lerp(s.waistF[1], s.knF[1], .55)], hemCoatB: Pt = [s.waistB[0] - H * .05, hemCoat[1] + H * .01];
     out.push({ t: "fill", d: smoothD([nb, add(s.neck, [H * .01, H * .02]), add(chestF, [H * .005, H * .02]), hemCoat, hemCoatB, backTop], true, .3), fill: coat, outline: lw, pattern: look.coatPattern, grain: .25 });
   }
-  const obiH = H * .055, obiC = look.obi ?? (look.hair === "shimada" ? "kincha" : "kogecha");
+  const obiH = H * (look.obiTie === "darari" ? .075 : .055), obiC = look.obi ?? (look.hair === "shimada" ? "kincha" : "kogecha");
   const wn = dirDown(90 - s.lean), up: Pt = [Math.sin(s.lean * DEG), -Math.cos(s.lean * DEG)];
   const o1 = add(s.waistB, [-wn[0] * H * .01, 0]), o2 = add(s.waistF, [wn[0] * H * .01, 0]);
   const maeObi = look.obiTie === "front";
@@ -782,7 +809,13 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     const c1 = lerp2(o1, o2, .15), c2 = lerp2(o1, o2, .95);
     out.push({ t: "line", d: carvedLine([c1, c2], H * .008, { taper: "none" }), color: look.accent ?? (obiC === "kincha" ? "beni" : "kincha") });
   }
-  if ((look.hair === "shimada" || look.hair === "long") && !maeObi) {
+  const darari = look.obiTie === "darari";
+  if (darari) {
+    // The long ends hang from the knot at the shoulder blades and swing out behind her when she moves or turns.
+    const swing = H * ((tr.moving ? .035 : 0) + Math.sin(frame / 11 + seed) * (tr.moving ? .012 : .005)) + wl * H * .03 + Math.abs(lagF) * H * .0006;
+    out.push(...darariSide(add(s.waistB, [-H * .008, -H * .035]), hemY - H * .03, H, lw, obiC, look.obiPattern ?? "kin", swing, tqBody));
+  }
+  if ((look.hair === "shimada" || look.hair === "long") && !maeObi && !darari) {
     // Taiko knot: a big folded box at the back.
     const kb = add(s.waistB, [-H * .02, -H * .01]);
     out.push({ t: "fill", d: smoothD([add(kb, [H * .01, -H * .075]), add(kb, [-H * .055, -H * .08]), add(kb, [-H * .065, H * .025]), add(kb, [H * .005, H * .03])], true, .2), fill: obiC, outline: lw, pattern: { type: "kikko", color: "kin", scale: .25, opacity: .6 } });

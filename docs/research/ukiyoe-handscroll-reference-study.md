@@ -386,6 +386,42 @@ The counts of kanzashi and the weights given vary between sources and were not u
 - No film uses the procession yet.
 - Nobody has done a human visual review yet.
 
+## Maiko (roadmap U2, owner request, 2026-11-14)
+
+**Sources.** The maiko dress as now known (the darari obi, okobo, the wareshinobu) is late Edo to Meiji and later, so prints are few; the Met's open-access search found none. Studied instead, from Wikimedia Commons:
+
+- Kuroda Seiki, *Maiko* (1893, public domain)
+- Licensed photographs, studied only and not redistributed:
+  - *Darari.jpg* (CC BY-SA 2.0), a black-and-white back view of a darari obi
+  - *Gion Higashi maiko Hinayū in Seirai-in Temple 05/06* (CC BY-SA 2.0), the bun and the darari from behind
+  - *Okobo.JPG* (CC BY 3.0)
+  - *Maiko-henshin-fullheight.jpg* (CC BY-SA 3.0)
+  - *Two young maiko in Seirai-in Temple 01* (CC BY-SA 2.0)
+  - *Toshimana dancing 03* (CC BY-SA 2.0), dance with two fans
+
+**What they show.**
+
+- **Darari.** Two long ends hang from a high folded knot nearly to the hem, side by side, patterned and weighted with a crest at the tip.
+- **Hair.** A split bun on the crown with red tie-dyed silk in the split, a cluster of silk flowers at the temple with strands hanging, and a silver pin.
+- **Make-up and dress.** White make-up stopping in points at the nape, a red collar, long sleeves and a trailing hem over red layers.
+- **Okobo.** A tall unlacquered wooden block with the toe cut back in a slope and a red thong.
+- **Dance.** Held poses with an open gold fan, arms extended, the sleeves hanging from them, knees softly bent.
+
+**What was built.** `ukiyoe-maiko.ts` holds the wareshinobu (side and square views), the hana-kanzashi with swinging strands, the silver pin, the eri-ashi, the darari (side and back), the front obiage and pocchiri, the okobo (side and square) and the maiōgi. It also adds the `kyomai` action, okobo steps in `walk`, and `UKIYOE_MAIKO_LOOK`. Storybook has **Maiko dance**; the Cast lab's maiko uses the new look and dances the kyōmai.
+
+**Measured.**
+
+- Tracking the okobo frame by frame found the planted clog skating 4–7 px a step with the ordinary (sine) gait. On okobo the stance leg now sweeps at an even rate (triangle wave), and the clog holds within about 1 px.
+- The tests check that it holds within 1.5 px over a step. They also check that the kyōmai is still within a hold, never jumps more than 8° a frame in a transition, and opens the fan to dance.
+
+**Not done.**
+
+- The kyōmai is four poses, not a choreographed piece.
+- In the front view an arm swept back hangs instead of opening to the side.
+- Kneeling lets the darari hang to the floor instead of lying on it.
+- No film uses her yet.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

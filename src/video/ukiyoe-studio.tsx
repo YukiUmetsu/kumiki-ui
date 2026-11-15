@@ -19,6 +19,7 @@ import { UKIYOE_PATTERNS } from "../../registry/video/ukiyoe/ukiyoe-prims";
 import type { UkiyoeCrowdMood } from "../../registry/video/ukiyoe/ukiyoe-crowd";
 import { UKIYOE_CROWD_MOODS } from "../../registry/video/ukiyoe/ukiyoe-crowd";
 import { UKIYOE_SQUARE_VIEW_SPECIES } from "../../registry/video/ukiyoe/ukiyoe-creatures";
+import { UKIYOE_MAIKO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-maiko";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -328,12 +329,12 @@ const ROBE_ROLES = ["ai", "bero", "beni", "shu", "asagi", "kusa", "matsu", "ki",
 const ACTION_HINT: Partial<Record<UkiyoeActionType, Partial<UkiyoeAction>>> = { walk: { to: 260 }, dochu: { to: 110 }, run: { to: 420 }, point: { angle: 80 }, bow: { angle: 38 }, look: { angle: -24 }, hold: { angle: 40, amount: 80 } };
 
 const CAST_NAMES = ["traveller", "mother", "child", "ferryman", "merchant", "maiko", "oni-red", "monk", "oiran"] as const;
-const CAST_LOOKS: Readonly<Record<string, UkiyoeFigureLook>> = { ...CAST, oiran: UKIYOE_OIRAN_LOOKS.oiran };
+const CAST_LOOKS: Readonly<Record<string, UkiyoeFigureLook>> = { ...CAST, maiko: UKIYOE_MAIKO_LOOK, oiran: UKIYOE_OIRAN_LOOKS.oiran };
 
 export function CastLab() {
   const names = CAST_NAMES;
   const [cast, setCast] = useState<Record<string, UkiyoeFigureLook>>(() => Object.fromEntries(names.map(n => [n, CAST_LOOKS[n]])));
-  const [actions, setActions] = useState<Record<string, UkiyoeActionType>>({ traveller: "walk", mother: "hold", child: "cheer", ferryman: "pole", merchant: "bow", maiko: "dance", "oni-red": "talk", monk: "pray", oiran: "dochu" });
+  const [actions, setActions] = useState<Record<string, UkiyoeActionType>>({ traveller: "walk", mother: "hold", child: "cheer", ferryman: "pole", merchant: "bow", maiko: "kyomai", "oni-red": "talk", monk: "pray", oiran: "dochu" });
   const [selected, setSelected] = useState<(typeof CAST_NAMES)[number]>("mother");
   const [wind, setWind] = useState(.3);
   const [cadence, setCadence] = useState<1 | 2 | 3 | 4>(2);
@@ -485,6 +486,55 @@ export function CrowdLab() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={`A ${mood} crowd of ${count}`} /></Fit>
     <Transport clock={clock} total={480} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Frame" />
+  </div>;
+}
+
+// ---- Maiko --------------------------------------------------------------------------------------------------------------------------
+
+/** A maiko's dance before a gold folding screen, and her walk on okobo, her kneeling bow and her back. */
+export function MaikoDance() {
+  const [view, setView] = useState<"profile" | "three-quarter" | "front" | "back">("three-quarter");
+  const [wind, setWind] = useState(0);
+  const clock = usePlayback(512, 0, 1, true, true);
+  const screen = (x: number, i: number): UkiyoeNode => ({ id: "panel" + i, kind: "block", x, y: 470, shape: { type: "rect", width: 300, height: 620 }, fill: { type: "linear", angle: 90, stops: [[0, i % 2 ? "kin" : "ki", 1], [1, "kincha", 1]] }, line: 1.4, grain: .5 });
+  const stage = useMemo((): UkiyoeSceneSpec => ({
+    version: 1, id: "maiko-dance", width: 1920, height: 1080, durationFrames: 512, seed: 8, wind: { base: wind, turbulence: .2 }, palette: { preset: "edo" },
+    nodes: [
+      { id: "wall", kind: "block", x: 960, y: 540, shape: { type: "rect", width: 1960, height: 1100 }, fill: { type: "linear", angle: 90, stops: [[0, "kogecha", 1], [1, "cha", 1]] }, line: 0, grain: .6 },
+      ...[210, 510, 810, 1110, 1410, 1710].map(screen),
+      { id: "pine", kind: "motif", motif: "pine", x: 520, y: 760, scale: 1.25, params: { height: 520, lean: 14 } },
+      { id: "pine2", kind: "motif", motif: "pine", x: 1500, y: 760, scale: .9, params: { height: 420, lean: -18, variant: 2 } },
+      { id: "floor", kind: "block", x: 960, y: 930, shape: { type: "rect", width: 1960, height: 320 }, fill: { type: "linear", angle: 90, stops: [[0, "cha", 1], [1, "kogecha", 1]] }, line: 1.2, grain: 1 },
+      { id: "dancer", kind: "figure", x: 1000, y: 985, scale: 2.05, look: { ...UKIYOE_MAIKO_LOOK, view }, actions: [{ type: "kyomai", start: 0, end: 512 }] },
+    ],
+  }), [view, wind]);
+  const studies = useMemo((): UkiyoeSceneSpec => ({
+    version: 1, id: "maiko-studies", width: 1920, height: 820, durationFrames: 512, seed: 3, wind: { base: wind }, palette: { preset: "edo" }, mount: { kind: "print" },
+    nodes: [
+      { id: "ground", kind: "block", x: 960, y: 770, shape: { type: "rect", width: 2000, height: 160 }, fill: { type: "linear", angle: 90, stops: [[0, "ki", .5], [1, "kincha", .7]] }, line: 0, grain: 1 },
+      { id: "walk", kind: "figure", x: 180, y: 730, scale: 1.4, look: { ...UKIYOE_MAIKO_LOOK, prop: "none" }, actions: [{ type: "walk", start: 0, end: 512, to: 420 }] },
+      { id: "bow", kind: "figure", x: 1020, y: 730, scale: 1.4, look: { ...UKIYOE_MAIKO_LOOK, prop: "none", view: "three-quarter" }, actions: [{ type: "kneel", start: 0, end: 512 }, { type: "bow", start: 60, end: 200, angle: 40 }, { type: "bow", start: 300, end: 440, angle: 40 }] },
+      { id: "back", kind: "figure", x: 1600, y: 730, scale: 1.4, look: { ...UKIYOE_MAIKO_LOOK, view: "back" }, actions: [{ type: "walk", start: 0, end: 512, to: 0, toY: -24 }] },
+    ],
+  }), [wind]);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Maiko" title="A maiko's dance">
+      <p style={{ margin: 0 }}>After Meiji-era and later photographs of Kyoto's apprentice dancers and Kuroda Seiki's maiko studies. She wears the
+        wareshinobu (a split bun parted over red kanoko silk, the hana-kanzashi at her temple with strands of tiny flowers that swing as
+        she moves, a silver pin at the back), white make-up with the bare skin showing in two points at the nape, a pale kimono with long
+        sleeves and a trailing hem over red under-layers and a red collar, and the darari obi: its long ends hang from a high knot nearly
+        to the hem, each with a woven crest, and swing as she moves. She walks with short steps on wooden okobo (the planted clog holds
+        within a pixel). <code>kyomai</code> dances four held poses with the gold dance fan: raised high, before the face, arms opened with
+        the sleeves hanging, then low; each held and flowing smoothly into the next. Turn her with View.</p>
+    </Header>
+    <section aria-label="Maiko controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="View" value={view} options={["profile", "three-quarter", "front", "back"] as const} onChange={setView} labels={{ profile: "Profile", "three-quarter": "Three-quarter", front: "Front", back: "Back" }} />
+      <Slider name="Wind" value={wind} min={-1.5} max={1.5} step={.1} onChange={setWind} format={v => v.toFixed(1)} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={stage} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="A maiko dancing before a gold folding screen" /></Fit>
+    <Transport clock={clock} total={512} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Dance frame" />
+    <h2 style={{ font: "600 18px Newsreader Variable, serif", margin: "8px 0 0" }}>Okobo steps, a kneeling bow, the darari from behind</h2>
+    <Fit width={1920} height={820} maxHeight={520}><UkiyoeScene spec={studies} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="The maiko walking on okobo, bowing from her knees, and seen from behind" /></Fit>
   </div>;
 }
 
