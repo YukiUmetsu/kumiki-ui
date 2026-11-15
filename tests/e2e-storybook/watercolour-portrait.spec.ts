@@ -2,7 +2,7 @@ import {test,expect} from "@playwright/test";
 const story="/iframe.html?id=film-art-watercolour-portrait--naturalist-portrait&viewMode=story";
 
 for(const output of ["portrait","landscape"] as const){
-  test("WC11 original watercolor human portrait "+output+": painting, anatomy, blink and glazing",async({page},info)=>{
+  test("WC12 human watercolor wet-edge/eye aperture "+output+": painting, anatomy, blink and glazing",async({page},info)=>{
     await page.goto(story);
     await page.evaluate(()=>document.fonts.ready);
     await page.getByRole("combobox",{name:"Portrait output"}).selectOption(output);
@@ -38,6 +38,20 @@ for(const output of ["portrait","landscape"] as const){
       .toHaveCount(1);
     await svg.screenshot({animations:"disabled",
       path:info.outputPath("wc11-"+output+"-glazed.png")});
+    await expect(page.locator('clipPath[id*="-clip-near-iris-gaze"]')).toHaveCount(1);
+    await expect(page.locator('clipPath[id*="-clip-far-iris-gaze"]')).toHaveCount(1);
+    const soft=page.getByRole("checkbox",{name:"Soft wet-on-wet portrait edges"});
+    const cheek=page.locator('[data-km-watercolour-part="warm-near-cheek"] > path[data-km-watercolour-edge-softness]');
+    await expect(cheek).toHaveAttribute("data-km-watercolour-edge-softness","1");
+    const softened=await svg.screenshot({animations:"disabled",
+      path:info.outputPath("wc12-"+output+"-soft-wet-edges.png")});
+    await soft.uncheck();
+    await expect(cheek).toHaveAttribute("data-km-watercolour-edge-softness","0");
+    const sharp=await svg.screenshot({animations:"disabled",
+      path:info.outputPath("wc12-"+output+"-hard-wet-edges.png")});
+    expect(softened.equals(sharp)).toBe(false);
+    await soft.check();
+    await expect(cheek).toHaveAttribute("data-km-watercolour-edge-softness","1");
     await page.getByRole("checkbox",{name:"Fine facial details"}).uncheck();
     await expect(page.locator('[data-km-watercolour-part="near-pupil"]')).toHaveCount(0);
     await page.getByRole("checkbox",{name:"Fine facial details"}).check();
