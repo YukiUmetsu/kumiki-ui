@@ -95,7 +95,7 @@ const portraitFigure = ():WatercolourArtPart => {
   const backHair=group("behind-head-hair-mass",[
     wash("hair-opaque-back",
       "M171 205 Q149 166 177 110 C201 47 249 31 282 37 C336 13 390 49 416 101 Q450 164 431 263 Q411 361 423 425 Q438 477 463 513 Q407 524 366 498 C388 464 382 433 372 408 Q340 456 258 438 Q194 469 141 517 Q138 471 159 395 Q133 337 145 266 Q148 224 171 205 Z",
-      "#514754",.98,{highlight:"#8F747C",shadow:"#283241",
+      "#6D5967",.96,{highlight:"#AE8E91",shadow:"#39414D",
         glaze:{pigment:"#676176",opacity:.14},edgePooling:.35},39,95),
     wash("hair-rim-right",
       "M356 64 Q424 112 427 188 Q438 299 396 388 Q397 463 445 502 Q409 500 376 481 Q379 434 396 394 Q416 291 407 198 Q408 125 356 64 Z",
@@ -130,7 +130,7 @@ const portraitFigure = ():WatercolourArtPart => {
         wash(side+"-sclera",
           "M"+a+" "+cy+" Q"+cx+" "+(cy-19)+" "+b+" "+(cy-1)+
           " Q"+cx+" "+(cy+14)+" "+a+" "+cy+" Z",
-          "#F0E7D7",.87,{highlight:"#FCF1E1",shadow:"#ADA0A1"}),
+          "#E3D8CC",.78,{highlight:"#F9EDDD",shadow:"#B6ABA7"}),
         group(side+"-iris-gaze",[
           wash(side+"-iris",
             "M"+(cx-7)+" "+(cy-5)+" Q"+(cx-11)+" "+(cy+5)+" "+
@@ -172,7 +172,7 @@ const portraitFigure = ():WatercolourArtPart => {
         glaze:{pigment:"#C9A088",opacity:.12},edgePooling:.22},63,107),
     wash("forehead-reserve",
       "M228 150 Q271 122 329 153 Q314 177 292 189 Q254 183 228 150 Z",
-      "#F5DDC2",.47,{highlight:"#FFEDD0",shadow:"#D9AE9B"},107,75),
+      "#F5DDC2",.27,{highlight:"#FFEDD0",shadow:"#D9AE9B"},107,75),
     wash("temple-cool-plane",
       "M213 136 Q185 169 190 248 Q184 297 216 359 Q229 321 219 265 Q206 190 239 147 Z",
       "#A47F8B",.22,{highlight:"#D3ACA3",shadow:"#777385"},108,73),
@@ -190,13 +190,13 @@ const portraitFigure = ():WatercolourArtPart => {
       "#997E85",.29,{highlight:"#D6A8A0",shadow:"#7F7288"},128,86),
     wash("nose-bridge-light",
       "M295 243 Q308 246 311 269 L315 296 Q298 306 289 296 Q295 274 295 243 Z",
-      "#EFC7AC",.57,{highlight:"#FFF0D4",shadow:"#DDAA9B"},145,54),
+      "#EFC7AC",.41,{highlight:"#FFF0D4",shadow:"#DDAA9B"},145,54),
     wash("nose-side-plane",
       "M307 242 Q322 258 326 289 L333 307 Q340 317 332 323 L319 317 Q319 285 307 242 Z",
-      "#A57F83",.43,{highlight:"#D1A4A2",shadow:"#887082"},147,57),
+      "#A57F83",.27,{highlight:"#D1A4A2",shadow:"#887082"},147,57),
     wash("nose-tip",
       "M296 303 Q310 294 323 305 Q331 318 317 324 Q299 321 296 303 Z",
-      "#DCA58D",.60,{highlight:"#F4C9AA",shadow:"#B47A7B",edgePooling:.16},157,42),
+      "#DCA58D",.42,{highlight:"#F4C9AA",shadow:"#B47A7B",edgePooling:.1},157,42),
     line("nose-alar-and-nostrils",
       "M288 310 Q293 323 304 323 M321 321 Q332 316 335 322",
       "#805F67",1.22,.48,176),
@@ -230,13 +230,13 @@ const portraitFigure = ():WatercolourArtPart => {
   const frontHair=group("anatomical-hair-and-temple-strands",[
     wash("left-fringe-root",
       "M185 184 Q167 135 194 87 C225 38 291 27 344 45 Q302 58 278 111 Q234 146 215 188 Z",
-      "#514754",.98,{highlight:"#977B82",shadow:"#2D3443",edgePooling:.24},58,95),
+      "#6F5B6C",.91,{highlight:"#B49899",shadow:"#3E4354",edgePooling:.15},58,95),
     wash("swept-top-clump",
       "M210 150 C233 86 281 51 336 51 Q372 52 393 91 C356 70 328 92 301 124 Q256 160 210 150 Z",
-      "#6B5869",.92,{highlight:"#AE8E8D",shadow:"#363D51",edgePooling:.27},78,99),
+      "#796676",.81,{highlight:"#C3A199",shadow:"#514C60",edgePooling:.18},78,99),
     wash("right-temple-tress",
       "M346 70 Q403 98 414 164 Q412 218 397 270 Q382 236 383 190 Q383 115 346 70 Z",
-      "#3F3E4D",.95,{highlight:"#897682",shadow:"#28333F"},87,102),
+      "#5A5062",.90,{highlight:"#A18895",shadow:"#3D4654"},87,102),
     wash("left-temple-drape",
       "M194 164 Q176 219 188 272 Q181 322 215 379 Q174 344 174 273 Q164 221 194 164 Z",
       "#413D4D",.84,{highlight:"#7D696E",shadow:"#30323F"},91,91),
@@ -252,6 +252,24 @@ const portraitFigure = ():WatercolourArtPart => {
     line("flyaway-fibres",
       "M160 171 Q142 148 167 120 M424 123 Q458 189 438 266 M174 380 Q150 426 143 452",
       "#A28D92",.85,.4,196),
+    // One source-authored compound strand map, not per-frame random hair lines.
+    // Curves follow the actual crown-to-temple flow of this painted head.
+    line("fine-upper-hair-fibre-flow",
+      Array.from({length:26},(_,i)=>{
+        const x=207+i*5, y=112-Math.sin(i/25*Math.PI)*47;
+        return "M"+x.toFixed(1)+" "+y.toFixed(1)+
+          " q"+(13+i%4)+" -"+(9+i%3*3)+" "+(21+i%4)+" -"+(13+i%3*3);
+      }).join(" "), "#D0AC9E",.55,.23,208),
+    line("fine-temple-hair-flow",
+      Array.from({length:14},(_,i)=>{
+        const x=374+i%4*5, y=137+i*12;
+        return "M"+x+" "+y+" q"+(7+i%3)+" 11 "+(4+i%4)+" 24";
+      }).join(" "), "#C1A1A3",.54,.27,212),
+    line("lower-hair-lift-lines",
+      Array.from({length:10},(_,i)=>{
+        const x=161+i%4*7,y=337+i*11;
+        return "M"+x+" "+y+" q"+(i%2?-4:2)+" 16 "+(i%2?-8:1)+" 29";
+      }).join(" "), "#A98E96",.45,.20,215),
   ],[pose(0),pose(170,0,0,-.35),pose(275,0,0,.65),pose(359)],
     {x:288,y:69},50,100);
 
@@ -268,7 +286,7 @@ const portraitFigure = ():WatercolourArtPart => {
 
 export function watercolorPortraitSpec(output:PortraitOutput,seed=83):WatercolourArtwork{
   const upright=output==="portrait",width=upright?540:960,height=upright?960:540;
-  const paper={color:"#F8F1E7",tooth:.81};
+  const paper={color:"#F8F1E7",tooth:.81,granulation:.77};
   const source:(readonly [string,number,number,number,string,number,number,number])[]=
     upright?[
       ["morning-blue",121,217,184,"#B3C1C3",.73,.94,0],
@@ -298,7 +316,7 @@ export function watercolorPortraitSpec(output:PortraitOutput,seed=83):Watercolou
       upright?
         "M21 234 Q85 182 149 245 Q192 306 96 344 Q44 333 21 234 Z":
         "M64 201 Q154 143 225 213 Q245 267 126 303 Q78 280 64 201 Z",
-      "#BEB4BE",.12,{highlight:"#DED0C6",shadow:"#9EB2B4"},28,112),
+      "#BEB4BE",.055,{highlight:"#DED0C6",shadow:"#9EB2B4"},28,112),
     group("portrait-framing",[portraitFigure()],
       [pose(0,placement.x,placement.y,0,placement.scale)]),
   ];
