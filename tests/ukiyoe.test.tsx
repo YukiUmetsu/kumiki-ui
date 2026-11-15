@@ -10,6 +10,8 @@ import { realmScene, UKIYOE_REALM_SCENES } from "../registry/video/ukiyoe/ukiyoe
 import { paradeScene, UKIYOE_PARADE_SCENES } from "../registry/video/ukiyoe/ukiyoe-parade";
 import { inspectUkiyoeEpisode, ukiyoeCaptionLines, ukiyoeEpisode, ukiyoeEpisodeSrt, ukiyoeTitleCard } from "../registry/video/ukiyoe/ukiyoe-episode";
 import { KASA_JIZO_EPISODE } from "../src/video/ukiyoe-kasa-jizo";
+import { URASHIMA_EPISODE } from "../src/video/ukiyoe-urashima";
+import { tamatebakoSmoke, TAMATEBAKO_THICKEST } from "../registry/video/ukiyoe/ukiyoe-ryugu";
 import { tsukumoScene, UKIYOE_TSUKUMO, UKIYOE_TSUKUMO_SCENES } from "../registry/video/ukiyoe/ukiyoe-tsukumo";
 import { giantScene, UKIYOE_GIANT_SCENES, UKIYOE_GIANTS } from "../registry/video/ukiyoe/ukiyoe-giants";
 import { folkYokaiScene, UKIYOE_FOLK_YOKAI_LOOKS, UKIYOE_FOLK_YOKAI_SCENES } from "../registry/video/ukiyoe/ukiyoe-folkyokai";
@@ -1002,5 +1004,22 @@ describe("UKIYO1 episode template", () => {
     doc.captions.style.size = { landscape: "huge", portrait: "3cqw" };
     const c = compileFilm(doc, { outputId: "landscape" });
     expect(c.diagnostics.some(d => d.code === "caption-style-size")).toBe(true);
+  });
+});
+
+describe("UKIYO1 Urashima Tarō", () => {
+  it("passes the script check, matches its example, and hides the ageing under the box's thickest smoke", () => {
+    expect(inspectUkiyoeEpisode(URASHIMA_EPISODE)).toEqual([]);
+    expect(JSON.parse(readFileSync("examples/film/ukiyoe-urashima-taro.film.json", "utf8"))).toEqual(JSON.parse(JSON.stringify(ukiyoeEpisode(URASHIMA_EPISODE))));
+    // The smoke is up and at full strength where the young figure hands over to the old one, and gone by the end.
+    const plume = (u: number) => JSON.stringify(tamatebakoSmoke([0, 0], 50, 300, u, 1));
+    expect(plume(0)).toBe("[]");
+    expect(plume(TAMATEBAKO_THICKEST)).toContain('"opacity":1');
+    expect(plume(1)).toContain('"opacity":0');
+    const box = URASHIMA_EPISODE.shots.find(s => s.id === "box")!.build("landscape");
+    const young = box.nodes.find(n => n.id === "taro")!, old = box.nodes.find(n => n.id === "taro-old")!;
+    expect(young.to).toBe(old.from);
+    // The box is drawn in hands and on the ground, and the dragon crown in both views.
+    for (const view of ["profile", "front"]) expect(JSON.stringify(drawFigure({ look: { hat: "dragon", view, prop: "tamatebako" } } as never, 0, 0, 1).prims)).toContain("kin");
   });
 });

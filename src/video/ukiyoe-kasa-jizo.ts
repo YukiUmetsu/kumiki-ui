@@ -8,37 +8,21 @@
  * the end card.
  */
 import type { UkiyoeAction, UkiyoeFigureLook } from "../../registry/video/ukiyoe/ukiyoe-figure";
-import { travelAt } from "../../registry/video/ukiyoe/ukiyoe-figure";
 import { interiorScene } from "../../registry/video/ukiyoe/ukiyoe-interior";
 import type { UkiyoeEpisodeAspect, UkiyoeEpisodeShot, UkiyoeEpisodeSpec } from "../../registry/video/ukiyoe/ukiyoe-episode";
 import { ukiyoeEndCard, ukiyoeTitleCard } from "../../registry/video/ukiyoe/ukiyoe-episode";
-import type { UkiyoeKey } from "../../registry/video/ukiyoe/ukiyoe-core";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import { UKIYOE_JIZO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-village";
 import { base, CAST } from "./ukiyoe-night-ferry";
+import { cam, figure, follow, motif } from "./ukiyoe-episode-kit";
 
 type A = UkiyoeEpisodeAspect;
-const motif = (id: string, name: string, x: number, y: number, params: Record<string, unknown>, extra: Record<string, unknown> = {}): UkiyoeNode =>
-  ({ id, kind: "motif", motif: name, x, y, params, ...extra } as UkiyoeNode);
-const figure = (id: string, look: UkiyoeFigureLook, x: number, y: number, actions: UkiyoeAction[], extra: Record<string, unknown> = {}): UkiyoeNode =>
-  ({ id, kind: "figure", look, x, y, actions, ...extra } as UkiyoeNode);
-/** Keys that move a motif exactly as a figure walking `actions` from the same x (sampled from the walk itself). */
-const follow = (actions: readonly UkiyoeAction[], x: number, frames: number, dx = 0): UkiyoeKey[] => {
-  const keys: UkiyoeKey[] = [];
-  for (let f = 0; f <= frames; f += 6) keys.push({ frame: f, x: x + dx + travelAt(actions, f).x, ease: "linear" } as UkiyoeKey);
-  return keys;
-};
 
 const OLD_MAN: UkiyoeFigureLook = { ...CAST.elder, robe: "cha", prop: "none", hat: "headband", hatColor: "ai", lower: "tucked", legs: "gofun", feet: "waraji", mino: true };
 const OLD_WOMAN: UkiyoeFigureLook = { ...CAST.grandmother, hair: "elder", hairColor: "gofun" };
 const SNOW = (n = 220): UkiyoeNode => ({ id: "snow", kind: "particles", type: "snow", depth: 1.1, area: [-400, -400, 2800, 1900], count: n, speed: 1.2, size: 1.2 } as UkiyoeNode);
 const sky = (night = false): UkiyoeNode => motif("sky", "sky", -900, -1100, night ? { width: 4200, height: 2400, top: "yoru", mid: "ai", horizon: "murasaki", band: .7 } : { width: 4200, height: 2400, top: "usuzumi", mid: "paper", horizon: "gofun", band: .55 }, { depth: .25 });
 const snowfield = (y: number): UkiyoeNode => ({ id: "field", kind: "block", depth: .9, x: 960, y: y + 1200, shape: { type: "rect", width: 4600, height: 2400 }, fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [1, "sora", .8]] }, grain: .5, line: 0 } as UkiyoeNode);
-/** Landscape holds the whole stage; portrait follows the action, closer. */
-const cam = (a: A, land: [number, number, number][], port: [number, number, number][], dur: number) => {
-  const pts = a === "portrait" ? port : land;
-  return { keys: pts.map(([x, y, zoom], i) => ({ frame: Math.round(i * (dur - 1) / Math.max(1, pts.length - 1)), x, y, zoom, ease: "inOut" as const })) };
-};
 
 // ---- 1. Title: the village in snow ---------------------------------------------------------------------------------------------------
 

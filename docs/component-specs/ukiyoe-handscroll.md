@@ -30,6 +30,7 @@
 - `ukiyoe-realms.ts`: the other realms (sea palace, moon, Milky Way, rock cave, oni island) and `realmScene()`.
 - `ukiyoe-parade.ts`: animal heads and tails for `look.animal`, the `kago` palanquin, `procession()` and `paradeScene()`.
 - `ukiyoe-village.ts`: New Year village goods (straw hats, rice bales, a loaded sled) and the walking jizō look.
+- `ukiyoe-ryugu.ts`: Dragon Palace people and treasures (dragon crown, tamatebako held and opening, Otohime, Dragon King, Urashima, `agedLook()`).
 - `ukiyoe-film-slot.tsx`: the `ukiyoe-scene` and `ukiyoe-kasumi` slots, so film documents render UKIYO1 shots in Storybook, `film:review` and `film:render`.
 - `ukiyoe-episode.ts` (registry item `ukiyoe-episode`, which also needs `film-document`): the YouTube episode template.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
@@ -439,6 +440,17 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
   it is given.
 - **`UKIYOE_JIZO_LOOK`.** A figure look for a jizō that walks: stone grey, shaven, red at the collar, wearing its hat.
 
+### Dragon Palace people and treasures
+
+- **Hat `dragon`.** A gold dragon coiled on the head, its head over the brow holding a jewel, in profile and square views.
+- **Prop `tamatebako`.** The jewelled box held in both hands (pair it with `pray`, which holds it up as a gift is held):
+  black lacquer with gold waves, a ring fitting, the red cord crossing the lid and tied in a bow.
+- **Motif `tamatebako`.** The box on the ground. `opens` × keyed progress unties the cord and lifts the lid. The white
+  smoke then rises in cloud billows with scroll curls, swells, leans `toward` whoever opened it, and thins away. Swap a
+  figure for `agedLook(look)` at `TAMATEBAKO_THICKEST` (progress .55), under the smoke.
+- **Looks.** `UKIYOE_OTOHIME_LOOK` (dragon crown, long hair, seigaiha robe over vermilion and green, stole, fan),
+  `UKIYOE_RYUJIN_LOOK` (dragon crown, white hair and beard, red robe), `UKIYOE_URASHIMA_LOOK`.
+
 ### Episode template
 
 `ukiyoeEpisode(spec)` turns a folktale, written as shots and the narration over each, into one film document.
@@ -463,11 +475,12 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
   - every caption has enough frames to be read, using the film's own reading rule;
   - every caption fits two lines on each output (greedy word wrap at 0.6 em);
   - no scene text sits in the caption band while a caption shows;
+  - no figure on screen is more than a third inside the caption band at the middle of a cue (`ukiyoeCaptionCovers`), through the shot's camera and the figure's parallax depth, so captions fall over ground and water, not people;
   - the end card is at least five seconds.
 
   After that, `film:check` checks the document, and `film:review` measures the real rendered text boxes for collisions
   and clipping.
-- **Example.** `src/video/ukiyoe-kasa-jizo.ts` (compiled to `examples/film/ukiyoe-kasa-jizo.film.json`, with its `.srt`) is a complete episode: *Kasa Jizō*, six shots, 73 s. Storybook
+- **Examples.** `src/video/ukiyoe-urashima.ts` (*Urashima Tarō*, eight shots, 106 s, `examples/film/ukiyoe-urashima-taro.film.json`) and `src/video/ukiyoe-kasa-jizo.ts` (compiled to `examples/film/ukiyoe-kasa-jizo.film.json`, with its `.srt`) are complete episodes: *Kasa Jizō*, six shots, 73 s. Storybook
   **Episode (Kasa Jizō)** plays it in either output, with the script check and an .srt download.
 
 ### Transition

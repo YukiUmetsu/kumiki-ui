@@ -56,6 +56,7 @@ import { paradeScene, UKIYOE_PARADE_SCENES } from "../../registry/video/ukiyoe/u
 import type { UkiyoeEpisodeAspect, UkiyoeEpisodeSpec } from "../../registry/video/ukiyoe/ukiyoe-episode";
 import { inspectUkiyoeEpisode, ukiyoeEpisode, ukiyoeEpisodeSrt, ukiyoeEpisodeStarts } from "../../registry/video/ukiyoe/ukiyoe-episode";
 import { KASA_JIZO_EPISODE } from "./ukiyoe-kasa-jizo";
+import { URASHIMA_EPISODE } from "./ukiyoe-urashima";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -313,7 +314,13 @@ function UkiyoeFilmPlayer({ shots, kasumi, filmId, title, kicker, description, i
 // ---- Episode template ----------------------------------------------------------------------------------------------------------------
 
 /** A folktale episode built with `ukiyoeEpisode()`: title card, narrated shots with mist transitions, end card, captions and .srt. */
-export function EpisodePlayer({ episode = KASA_JIZO_EPISODE }: { episode?: UkiyoeEpisodeSpec }) {
+const EPISODES: readonly UkiyoeEpisodeSpec[] = [KASA_JIZO_EPISODE, URASHIMA_EPISODE];
+const EPISODE_IDS = EPISODES.map(e => e.id);
+const EPISODE_LABELS = Object.fromEntries(EPISODES.map(e => [e.id, e.title]));
+
+export function EpisodePlayer({ initial = KASA_JIZO_EPISODE.id }: { initial?: string }) {
+  const [id, setId] = useState(initial);
+  const episode = EPISODES.find(e => e.id === id) ?? EPISODES[0];
   const [aspect, setAspect] = useState<UkiyoeEpisodeAspect>("landscape");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [sound, setSound] = useState(true);
@@ -348,6 +355,7 @@ export function EpisodePlayer({ episode = KASA_JIZO_EPISODE }: { episode?: Ukiyo
     </Fit>
     <Transport clock={clock} total={total} rate={1} setRate={() => undefined} loop={false} setLoop={() => undefined} name="Episode frame" />
     <section aria-label="Episode controls" style={panel}>
+      <Select name="Episode" value={id} options={EPISODE_IDS} onChange={(v: string) => { setId(v); clock.seek(120); }} labels={EPISODE_LABELS} />
       <Select name="Output" value={aspect} options={["landscape", "portrait"] as const} onChange={setAspect} labels={{ landscape: "16:9 YouTube", portrait: "9:16 Shorts" }} />
       <Check name="Ambient sound (recorded beds)" value={sound} onChange={setSound} />
       <Check name="Reduced motion (settled frames)" value={reducedMotion} onChange={setReducedMotion} />

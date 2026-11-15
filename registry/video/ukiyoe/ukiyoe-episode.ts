@@ -13,13 +13,16 @@
  * `ukiyoeEndCard()` holds a closing scene for YouTube's end screen: the closing line in the upper left, the rest of
  * the frame kept quiet for the end-screen elements, for at least five seconds.
  * `inspectUkiyoeEpisode()` checks the script before anything is rendered: reading speed, line length, gaps between
- * captions, captions inside their shot, scene text out of the caption band, and the end card's length.
+ * captions, captions inside their shot, scene text out of the caption band, figures not covered by captions, and the end
+ * card's length.
  * `ukiyoeEpisodeSrt()` writes the same captions as an .srt file for upload, so viewers can switch them off or translate.
  */
 import type { FilmDocument } from "../film-document";
 import type { FilmSceneSound } from "../film-split-edits";
 import type { UkiyoeIssue, UkiyoeNode, UkiyoeSceneSpec } from "./ukiyoe-scene";
 import { inspectUkiyoeScene } from "./ukiyoe-scene";
+import { cameraAt } from "./ukiyoe-core";
+import { figureHeight, travelAt } from "./ukiyoe-figure";
 import { validateCaptionTrack } from "../../visual/caption-track";
 
 export type UkiyoeEpisodeAspect = "landscape" | "portrait";
@@ -145,6 +148,29 @@ export function ukiyoeCaptionLines(text: string, aspect: UkiyoeEpisodeAspect, si
   return lines;
 }
 
+/**
+ * Figures the caption band would cover: for each narration line, at its middle frame, every top-level figure on screen
+ * whose body (feet up to its height, through the scene camera and the node's parallax depth) lies more than a third
+ * inside the band. Captions belong over ground and water, not over the people the line is about.
+ */
+export function ukiyoeCaptionCovers(shot: UkiyoeEpisodeShot, aspect: UkiyoeEpisodeAspect): { line: number; node: string; frame: number; share: number }[] {
+  const scene = shot.build(aspect), [w, h] = UKIYOE_EPISODE_SIZE[aspect], safe = UKIYOE_EPISODE_SAFE[aspect];
+  const bandTop = h * (1 - safe.bottom - UKIYOE_CAPTION_BAND[aspect]), bandBottom = h * (1 - safe.bottom), out: { line: number; node: string; frame: number; share: number }[] = [];
+  (shot.narration ?? []).forEach((line, k) => {
+    const f = Math.round((line.from + line.to) / 2), cam = cameraAt(scene.camera, f, w, h, scene.seed);
+    for (const n of scene.nodes) {
+      if (n.kind !== "figure" || n.parent || (n.from ?? 0) > f || (n.to ?? Infinity) <= f) continue;
+      const d = n.depth ?? 1, z = 1 + (cam.zoom - 1) * d, fx = w / 2 + (cam.x - w / 2) * d, fy = h / 2 + (cam.y - h / 2) * d;
+      const tr = travelAt(n.actions ?? [], f), scale = n.scale ?? 1;
+      const sx = w / 2 + z * ((n.x ?? 0) + tr.x - fx), feet = h / 2 + z * ((n.y ?? 0) + tr.y - fy), tall = figureHeight(n.look) * scale * z * .85;
+      if (sx < 0 || sx > w || feet - tall > h) continue;
+      const share = Math.max(0, Math.min(feet, bandBottom) - Math.max(feet - tall, bandTop)) / tall;
+      if (share > 1 / 3) out.push({ line: k, node: n.id, frame: f, share: Math.round(share * 100) / 100 });
+    }
+  });
+  return out;
+}
+
 /** Approximate box of a scene text node in output pixels (no camera), for the caption-band check. */
 function textBox(node: Extract<UkiyoeNode, { kind: "text" }>): { top: number; bottom: number } {
   const size = node.size ?? 32, lines = node.sub ? 2.4 : 1.3;
@@ -176,6 +202,8 @@ export function inspectUkiyoeEpisode(spec: UkiyoeEpisodeSpec): UkiyoeIssue[] {
         if (shown && box.bottom > bandTop) issues.push({ path: `shots/${i}/${aspect}/nodes/${node.id}`, message: `Text "${node.text.slice(0, 24)}" reaches the caption band (bottom ${Math.round(box.bottom)} px, band from ${Math.round(bandTop)} px).` });
       }
     }
+    for (const aspect of UKIYOE_EPISODE_ASPECTS) for (const c of ukiyoeCaptionCovers(shot, aspect))
+      issues.push({ path: `shots/${i}/${aspect}/narration/${c.line}`, message: `The caption covers figure "${c.node}" (${Math.round(c.share * 100)}% of it, frame ${c.frame}); move the camera so the figure stands above the caption band.` });
     const dur = shot.build("landscape").durationFrames, lines = shot.narration ?? [];
     lines.forEach((line, k) => {
       const at = `shots/${i}/narration/${k}`, frames = line.to - line.from, chars = line.text.length;

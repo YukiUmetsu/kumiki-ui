@@ -18,6 +18,7 @@ import type { SquareSword } from "./ukiyoe-katana";
 import { katana, mon, reachArm, saya } from "./ukiyoe-katana";
 import { kanabo } from "./ukiyoe-oni";
 import { hachiSide } from "./ukiyoe-folk";
+import { dragonCrownSquare } from "./ukiyoe-ryugu";
 import { courtProp, heianHairSquare, kanmuriSquare } from "./ukiyoe-heian";
 import { armEyes, gourdSquare, minoSquare, zaru } from "./ukiyoe-folkyokai";
 import { animalHeadSquare } from "./ukiyoe-parade";
@@ -459,6 +460,7 @@ function hatFront(look: UkiyoeFigureLook, r: number, lw: number, wind: number, f
   if (look.hat === "hachi") return hachiSide((x, y) => [x * r, y * r], lw, true);
   if (look.hat === "zukin") return zukin((x, y) => [x * r, y * r], lw, true);
   if (look.hat === "kanmuri") return kanmuriSquare((x, y) => [x * r, y * r], lw, false);
+  if (look.hat === "dragon") return dragonCrownSquare((x, y) => [x * r, y * r], lw, false);
   if (look.hat === "kabuto") return kabutoSquare((x, y) => [x * r, y * r], r, lw, look.armor ?? "beni");
   if (look.hat === "gotoku") return gotokuCrown((x, y) => [x * r, y * r], r, lw, frame, 0, true);
   const hat = look.hat ?? "none", hatC = look.hatColor ?? (hat === "eboshi" ? "sumi" : hat === "hood" ? "ai" : "kincha"), P = (x: number, y: number): Pt => [x * r, y * r];

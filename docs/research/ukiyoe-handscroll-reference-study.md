@@ -1333,6 +1333,60 @@ Storybook has **Parades**.
 - The onigawara have no demon faces.
 - Nobody has done a human visual review yet.
 
+## Urashima Tarō (episode E2, 2026-11-15)
+
+**Sources**:
+
+- Yanagawa Shigenobu's *Hanatsuru as the Dragon Princess Otohime* (Met 845812, CC0);
+- Totoya Hokkei's *Urashima Tarō Going Home on the Back of a Tai* (Met 54029, CC0);
+- Kawanabe Kyōsai's *Urashima Tarō Riding on a Tortoise* (Met 50771, CC0);
+- a lacquered tebako (Met 45492, CC0).
+
+**What they show.**
+
+- **Otohime.** A gold dragon coiled as a crown, long loose black hair, a dark-blue seigaiha robe with coral sprigs over
+  vermilion and green layered collars, a long front panel, striped hems, a fan.
+- **The Dragon King.** A dragon crown, a red robe and a white beard.
+- **Urashima.** A young man with a topknot in a blue jacket with a rod and creel. He rides a minogame, a turtle with a
+  long seaweed tail, which the pack already had. The palace floats far off in mist.
+- **The box.** A deep lid overlapping a box with rounded corners, gold maki-e on lacquer, ring fittings for the cord.
+
+**What was built.**
+
+- `ukiyoe-ryugu.ts`: dragon crown, tamatebako prop and motif with its smoke, looks, `agedLook()`.
+- `src/video/ukiyoe-urashima.ts`: the eight-shot episode, which reuses the realm motifs for the dive and the palace.
+
+**Review rounds.**
+
+1. **Art sheet.**
+   - The crown was too small to read and is now 1.4× larger.
+   - The Dragon King's green coat hid his red robe.
+   - The held box was a speck in one hand. It is now larger and held up in both hands.
+   - The smoke curls stacked into a coiled spring. They are now scroll marks on every other billow.
+2. **First landscape stills.**
+   - Figures were small under a big sky. The shore cameras moved closer.
+   - The turtle was too large next to the children, and a boat stood in its path to the sea.
+   - The palace dwarfed the figures.
+   - The smoke rose beside Tarō instead of over him. It now leans onto him and covers his head at the swap.
+3. **Portrait stills.** Tarō arrived outside the frame on the beach, and he was cut at the palace. Both cameras were re-aimed.
+4. **`film:check`.** Passed.
+5. **`film:review`.** 0 errors on both outputs, and 10 warnings: the seal under the mist, and the last frame faded to black.
+6. **Captions over people.** In Storybook, "and he was an old, old man" sat across the old man. A new script check,
+   `ukiyoeCaptionCovers`, projects every figure through the camera at each cue's middle frame. It flagged 31
+   cue/figure pairs in six shots; Kasa Jizō had none. The cameras were moved until no figure lies more than a third
+   inside the caption band. After that, `film:review` found 0 errors and 11 warnings, all inside the mist transition
+   and the final fade.
+
+**Not done.**
+
+- The palace's four-season rooms.
+- Otohime's front panel and striped hems.
+- The CSV's expansion ideas (the time-dilation palace, the tsunami backstory).
+- A voice.
+- Sound beyond surf and underwater beds.
+- No video render yet.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

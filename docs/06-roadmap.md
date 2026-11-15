@@ -180,6 +180,32 @@ The owner wants animated ukiyo-e YouTube films of 100 Japanese folktales. The [f
 | **F16 — Processions and parades** (delivered 2026-11-15; see the [reference study](research/ukiyoe-handscroll-reference-study.md#processions-and-parades-folktale-queue-f16-2026-11-15)) | Night parades built on the crowd system: the Hyakki Yagyō with its mix of yōkai and object spirits, the fox wedding in a sunshower, the mouse wedding. | 3 | A mixed crowd walks in order without overlaps; the sunshower rain falls in sunlight. |
 | **F17 — YouTube episode template** (delivered 2026-11-15; see the [reference study](research/ukiyoe-handscroll-reference-study.md#youtube-episode-template-and-kasa-jizō-folktale-queue-f17-2026-11-15)) | One folktale episode as a reusable recipe: a title card, a narrated act structure, scene changes between handscroll stations, subtitles in safe regions, end card, and the export settings. One complete short episode (Kasa Jizō, which is ready today) proves it. | all | `film:check` passes; captions never collide; a low-res draft is reviewed before any full render. |
 
+### Ukiyo-e folktale episodes (UKIYO1) — episode queue
+
+With F1–F17 delivered, the queue moves from new art to episodes. Each episode is one `ukiyoeEpisode()` spec in
+`src/video/`, with:
+- reference-led art for anything the pack still lacks;
+- stills of every shot in both aspects;
+- `film:check`;
+- `film:review` with no errors;
+- a checked-in example film and .srt;
+- an entry in Storybook **UKIYO1 · Episodes**.
+
+Video renders wait for the owner.
+
+| Episode | Story (CSV #) | State |
+|---|---|---|
+| **E1 — Kasa Jizō** | 12 | Delivered 2026-11-15 (PR #401). |
+| **E2 — Urashima Tarō** | 5 | Delivered 2026-11-15. New: Dragon Palace people and treasures (`ukiyoe-ryugu.ts`). |
+| **E3 — Momotarō** | 1 | Next (Urashima's end card promises it). Ready: peach, oni, dog, monkey, pheasant, Onigashima, boats. |
+| **E4 — Kaguya-hime** | 4 | Ready: bamboo (shine), Heian court, moon ascent. |
+| **E5 — Tsuru no Ongaeshi** | 6 | Ready: loom (weaving), crane, snowy farmhouse. |
+| **E6 — Hanasaka Jiisan** | 8 | Ready: dog, ash particles, cherry. Needs blossoms bursting on bare trees. |
+| **E7 — Issun-bōshi** | 3 | Needs a tiny hero in a bowl boat with a needle sword. Ready: oni, uchide-no-kozuchi. |
+| **E8 — Bunbuku Chagama** | 11 | Ready: teakettle tanuki, temple. |
+| **E9 — Shita-kiri Suzume** | 10 | Ready: sparrow, baskets (tsuzura need building), yōkai. |
+| **E10 — Kintarō** | 2 | Ready: bear, axe, mountain. |
+
 Treat the gods, ghosts and religious places with respect: no mockery of living faiths.
 
 ## Within each component slice
