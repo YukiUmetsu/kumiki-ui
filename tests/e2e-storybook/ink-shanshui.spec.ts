@@ -184,6 +184,47 @@ test("brushwork study shows native rooted foliage and uneven rock deposition",as
   await expect(study.locator("[data-km-bamboo-pressure-twig]")).toHaveCount(0);
 });
 
+test("geological ArtCraft proof compares source-rooted forms against a genuine missing-detail control",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--geological-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-geology-study");
+  await expect(lab).toBeVisible();
+  await expect(page.locator("[data-km-geology-condition]")).toHaveCount(3);
+  const negative=page.locator('[data-km-geology-condition="no-structure"]');
+  const original=page.locator('[data-km-geology-condition="original"]');
+  const diluted=page.locator('[data-km-geology-condition="dilute"]');
+  await expect(negative.locator("[data-km-rock-hero-cliff]")).toHaveCount(0);
+  await expect(negative.locator("[data-km-rock-pima-stroke]")).toHaveCount(0);
+  await expect.poll(()=>original.locator("[data-km-rock-pima-stroke]").count())
+    .toBeGreaterThan(10);
+  await expect.poll(()=>diluted.locator("[data-km-rock-pima-stroke]").count())
+    .toBeGreaterThan(10);
+  const loaded=original.locator("[data-km-rock-hero-fold-pressure]").first();
+  const pale=diluted.locator("[data-km-rock-hero-fold-pressure]").first();
+  await expect(loaded).toBeAttached();
+  await expect(pale).toBeAttached();
+  // The geometry path is unchanged for a material-only comparison.
+  expect(await loaded.getAttribute("d")).toBe(await pale.getAttribute("d"));
+  expect(await original.locator("[data-km-rock-pima-stroke]").count())
+    .toBe(await diluted.locator("[data-km-rock-pima-stroke]").count());
+  await lab.screenshot({animations:"disabled",
+    path:info.outputPath("shanshui-artcraft-geology-3way.png")});
+  const frame=page.getByRole("slider",{name:"Geology frame"});
+  await frame.focus();
+  await frame.press("Home");
+  await expect(original).toHaveAttribute("data-km-geology-frame","0");
+  await frame.press("End");
+  await expect(original).toHaveAttribute("data-km-geology-frame","299");
+  await page.getByRole("button",{name:"Reset geology proof"}).click();
+  await expect(frame).toHaveValue("145");
+  const first=await original.locator("[data-km-geology-crop]").screenshot({animations:"disabled"});
+  await page.getByRole("slider",{name:"Geology seed"}).focus();
+  await page.getByRole("slider",{name:"Geology seed"}).press("ArrowRight");
+  await expect(original).toHaveAttribute("data-km-geology-seed","72");
+  await page.getByRole("button",{name:"Reset geology proof"}).click();
+  const again=await original.locator("[data-km-geology-crop]").screenshot({animations:"disabled"});
+  expect(hash(first)).toBe(hash(again));
+});
+
 test("one Shanshui Storybook folder also exposes the real three-phase garment study",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--garment-motion-studio&viewMode=story");
   await expect(page.getByTestId("shanshui-garment-studio")).toBeVisible();
