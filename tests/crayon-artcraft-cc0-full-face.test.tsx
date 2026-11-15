@@ -95,13 +95,16 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(el.markStrength).toBeLessThan(.3);
       expect(el.coverage).toBe("opaque");
     }
-    for(const id of ["nostril-contact-near","nostril-contact-far"]){
+    // F1 source is painted pressure relief: closed vector ink rings are
+    // not faithful nostril structures, even when attached to a face mask.
+    for(const id of ["nostril-contact-near","nostril-contact-far",
+      "nose-alar-crease-near","nose-alar-crease-far"]){
       const el=get(id);
-      expect(el?.kind).toBe("contour");
-      if(el?.kind!=="contour")throw new Error("Unattached nostril");
-      expect(el.d).not.toContain("Z");
-      expect(el.d).not.toContain("z");
-      expect(el.parentId).toBe("face-outline");
+      expect(el).toMatchObject({kind:"wax",parentId:"face-outline",
+        clipToParent:true,coverage:"open",deposition:"stroke-built"});
+      if(el?.kind!=="wax")throw new Error("Missing painted undercut "+id);
+      expect(el.blendRadius).toBeGreaterThanOrEqual(2);
+      expect(el.markStrength).toBeLessThan(.3);
     }
   });
   it("reconstructs photographed helix/concha and keeps stud attached to lobe",()=>{
@@ -216,11 +219,11 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     }
     for(const id of ["nostril-contact-near","nostril-contact-far"]){
       const e=get(id);
-      expect(e).toMatchObject({kind:"contour",parentId:"face-outline",
-        clipToParent:true});
-      if(e?.kind!=="contour")throw new Error("Missing alar undercut: "+id);
-      expect(e.width).toBeLessThanOrEqual(1.3);
-      expect(e.d).not.toMatch(/[Zz]/);
+      expect(e).toMatchObject({kind:"wax",parentId:"face-outline",
+        clipToParent:true,coverage:"open"});
+      if(e?.kind!=="wax")throw new Error("Missing alar relief: "+id);
+      expect(e.bounds.height).toBeLessThanOrEqual(20);
+      expect(e.blendRadius).toBeGreaterThanOrEqual(2);
     }
     // A source-observed nostril must be supported by alar mass, not two
     // independent dark capsules on otherwise featureless wax paper.
@@ -247,6 +250,13 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     if(slit?.kind!=="wax")
       throw new Error("Missing source-attached F1 mouth seam");
     expect(get("mouth-teeth")).toBeUndefined();
+    for(const id of ["lip-commissure-left","lip-commissure-right"]){
+      const e=get(id);
+      expect(e).toMatchObject({kind:"wax",parentId:"face-outline",
+        clipToParent:true,coverage:"open"});
+      if(e?.kind!=="wax")throw new Error("Missing painted labial corner");
+      expect(e.markStrength).toBeLessThan(.3);
+    }
     for(const id of ["lip-upper","lip-lower","oral-opening"]){
       expect(get(id)).toMatchObject({kind:"wax",coverage:"open",
         parentId:"face-outline",clipToParent:true});
