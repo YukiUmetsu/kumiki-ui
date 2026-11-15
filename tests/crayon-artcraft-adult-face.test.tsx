@@ -50,6 +50,14 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(nodes.get("tailored-scarf-wrap")?.parentId).toBe("coat-silhouette");
       expect(nodes.get("tailored-scarf-weft")?.parentId).toBe("tailored-scarf-wrap");
       expect(nodes.get("nose-dorsal-soft-edge")?.kind).toBe("contour");
+      for(const id of ["cheek-malar-glow","far-cheek-reflection",
+        "freckles-near","freckles-far","forelock-woodgrain",
+        "temple-curl-inner-flow","far-curl-inner-flow",
+        "coat-brass-button-one","coat-brass-button-two",
+        "coat-hand-sewn-piping","scarf-woven-check-diagonal",
+        "linen-floral-embroidery"]){
+        expect(nodes.has(id),id).toBe(true);
+      }
       for(const feature of ["nose-tip-underpaint","nose-root-sunlight",
         "cheek-warm-pigment","tear-trough-value"]){
         const region=nodes.get(feature);
@@ -118,6 +126,21 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
     expect(faceMeta.title).toMatch(/^Video production\/Film Looks\/Crayon\//);
     expect(AdultFaceThreeQuarter.args??{}).toEqual({});
     expect(AdultFacePortrait.args?.aspect).toBe("portrait");
+  });
+  it("hand-authors distinct lip and commissure geometry for a warm expression",()=>{
+    const smiling=crayonAdultFaceStudy("landscape",{expression:"warm"});
+    const neutral=crayonAdultFaceStudy("landscape",{expression:"neutral"});
+    for(const id of ["lip-upper-volume","lip-lower-volume","mouth-commissures"]){
+      const a=smiling.elements.find(n=>n.id===id),b=neutral.elements.find(n=>n.id===id);
+      if((a?.kind!=="wax"&&a?.kind!=="contour")||
+        (b?.kind!=="wax"&&b?.kind!=="contour"))
+        throw new Error("missing "+id);
+      expect(a.d).not.toBe(b.d);
+    }
+    expect(()=>crayonAdultFaceStudy("landscape",{expression:"surprised" as "warm"}))
+      .toThrow(/options/);
+    expect(inspectCrayonScene(smiling)).toEqual([]);
+    expect(inspectCrayonScene(neutral)).toEqual([]);
   });
   it("rejects invalid detail and animates wax at separate stages",()=>{
     expect(()=>crayonAdultFaceStudy("landscape",{detail:-.1})).toThrow();

@@ -8,7 +8,10 @@ import {crayonFurFlow,crayonFormHatching} from "./crayon-editorial-character-cra
  * techniques, and intentionally unapproved pending rendered crop review.
  */
 export type PortraitStudyAspect="landscape"|"portrait";
-export interface PortraitStudyOptions { detail?:number; frameLength?:300 }
+/** Static ArtCraft expression studies; not yet approved animated visemes. */
+export type PortraitStudyExpression="warm"|"neutral";
+export interface PortraitStudyOptions { detail?:number; frameLength?:300;
+  expression?:PortraitStudyExpression }
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
 type Ink=Extract<CrayonElement,{kind:"contour"}>;
 type Rect={x:number;y:number;width:number;height:number};
@@ -30,6 +33,7 @@ const colors={
   noseShade:["#c79c8b","#a67e7b","#e6bda6"] as const,
   scarf:["#aa6a5e","#724f59","#d5a082"] as const,
   scarfShadow:["#845251","#5d434b","#bc7a68"] as const,
+  brass:["#c1a076","#856c55","#f0cb92"] as const,
   silk:["#d7bda9","#a9918d","#eee0c7"] as const,
 } satisfies Record<string,readonly [CrayonColor,CrayonColor,CrayonColor]>;
 export const portraitCriticalParts=[
@@ -50,13 +54,29 @@ const time={base:[1,98],value:[63,173],anatomy:[135,236],detail:[206,288]} as co
 export function crayonAdultFaceStudy(
   aspect:PortraitStudyAspect,options:PortraitStudyOptions={},
 ):CrayonSceneSpec{
-  const detail=options.detail??1;
-  if(!["landscape","portrait"].includes(aspect)||
+  const detail=options.detail??1,expression=options.expression??"warm";
+  if(!["warm","neutral"].includes(expression)||!["landscape","portrait"].includes(aspect)||
      !Number.isFinite(detail)||detail<0||detail>1||
      (options.frameLength!==undefined&&options.frameLength!==300))
     throw new RangeError("Invalid ArtCraft facial study");
   const portrait=aspect==="portrait",W=portrait?540:960,H=portrait?960:540;
   const rootX=portrait?270:480,rootY=portrait?435:268,rootScale=portrait?1.24:.73;
+  // The three-quarter face is intentionally asymmetric; expressing a smile
+  // deforms the commissures and nasolabial folds, not merely their line color.
+  const smiling=expression==="warm";
+  const upperLip=smiling?
+    "M-20 43Q-8 34 4 36Q14 30 23 33Q35 31 46 35"+
+    "Q40 45 24 46Q8 47 -3 49Q-16 51 -20 43Z":
+    "M-18 43Q-6 37 6 38Q15 33 24 36"+
+    "Q35 36 43 41Q24 49 8 47Q-4 50 -18 43Z";
+  const lowerLip=smiling?
+    "M-15 51Q7 54 29 46Q37 49 31 57"+
+    "Q18 64 5 63Q-9 61 -15 51Z":
+    "M-13 53Q8 57 30 49Q34 58 28 64"+
+    "Q9 70 -4 62Q-10 58 -13 53Z";
+  const mouthLine=smiling?
+    "M-21 43Q-5 51 8 46Q27 51 46 34":
+    "M-18 45Q-5 49 8 47Q25 50 43 40";
   const elements:CrayonElement[]=[];
   const wax=(id:string,d:string,bounds:Rect,
     palette:readonly [CrayonColor,CrayonColor,CrayonColor],
@@ -256,19 +276,16 @@ export function crayonAdultFaceStudy(
     "M58 -4Q66 4 64 12M-6 22Q-10 27 -8 31",
     "#ab7c75",.88,"detail",{parentId:"adult-face",opacity:.42});
   wax("lip-upper-volume",
-    "M-18 43Q-6 37 6 38Q15 33 24 36"+
-    "Q35 36 43 41Q24 49 8 47Q-4 50 -18 43Z",
-    box(-25,30,77,29),colors.lip,"anatomy",
+    upperLip,
+    box(-29,26,88,34),colors.lip,"anatomy",
     {parentId:"adult-face",coverage:"open",clipToParent:true,blendRadius:3,
       pressure:.38,markStrength:.17,spacing:9,outlineOpacity:0,edgeRoughness:0});
   wax("lip-lower-volume",
-    "M-13 53Q8 57 30 49Q34 58 28 64"+
-    "Q9 70 -4 62Q-10 58 -13 53Z",
-    box(-20,46,60,29),colors.cheek,"anatomy",
+    lowerLip,
+    box(-23,42,69,35),colors.cheek,"anatomy",
     {parentId:"adult-face",coverage:"open",clipToParent:true,blendRadius:3,
       pressure:.38,markStrength:.17,spacing:9,outlineOpacity:0,edgeRoughness:0});
-  ink("mouth-commissures",
-    "M-18 45Q-5 49 8 47Q25 50 43 40",
+  ink("mouth-commissures",mouthLine,
     "#86575d",1.32,"detail",{parentId:"adult-face",opacity:.81});
   ink("lip-reflected-wax",
     "M-6 60Q10 65 26 57M-12 44Q-5 42 1 43",
@@ -544,6 +561,114 @@ export function crayonAdultFaceStudy(
   ink("tailored-coat-cuff-crease","M-163 279Q-150 296 -137 302"+
     "M130 307Q144 299 156 279",
     "#b0b7b2",1.4,"detail",{parentId:"coat-silhouette",opacity:.76});
+  // ArtCraft close-crop feature study: small, uneven pigment strokes at
+  // the exact orbital rim and malar tissue. Different layers carry
+  // asymmetrical freckles, warm light, and controlled nasolabial tension.
+  wax("cheek-malar-glow",
+    "M-87 -111Q-61 -127 -37 -101Q-28 -89 -31 -72"+
+    "Q-53 -56 -76 -73Z",
+    box(-98,-136,80,88),colors.warm,"anatomy",
+    {parentId:"adult-face",coverage:"open",clipToParent:true,
+      blendRadius:9,pressure:.34,spacing:13,markStrength:.18,
+      outlineOpacity:0,edgeRoughness:0});
+  wax("far-cheek-reflection",
+    "M66 -116Q87 -118 102 -103Q106 -89 91 -64"+
+    "Q82 -76 70 -85Z",
+    box(57,-130,57,80),colors.cheek,"anatomy",
+    {parentId:"adult-face",coverage:"open",clipToParent:true,
+      blendRadius:8,pressure:.36,spacing:12,markStrength:.18,
+      outlineOpacity:0,edgeRoughness:0});
+  ink("freckles-near",
+    "M-77 -81l1.9 -.8M-68 -86l1.2 -.5M-59 -79l2 -.6"+
+    "M-71 -72l1 -.7M-50 -88l1.6 -.4M-60 -91l1.4 -.2"+
+    "M-83 -74l1.2 -.7M-53 -71l1.5 -.7M-42 -84l1.2 -.6",
+    "#94645e",.88,"detail",{parentId:"adult-face",opacity:.58});
+  ink("freckles-far",
+    "M79 -93l1 -.6M87 -88l1.3 -.5M71 -81l1.7 -.2"+
+    "M85 -76l1.1 -.3M93 -94l1 -.6",
+    "#956c68",.76,"detail",{parentId:"adult-face",opacity:.5});
+  ink("smile-nasolabial-soft",
+    smiling?"M-25 12Q-34 22 -26 34M53 15Q57 26 50 33":
+      "M-26 14Q-29 20 -25 25M52 15Q55 22 51 28",
+    "#b68478",.83,"detail",{parentId:"adult-face",opacity:.48});
+  ink("smile-corner-undercuts",
+    smiling?"M-21 43q-3 -.5 -3 -4M46 35q4 -1 4 -5":
+      "M-20 44q-1 -1 -1 -2M43 42q2 -1 2 -3",
+    "#8b5e65",.95,"detail",{parentId:"adult-face",opacity:.65});
+  // Hair follows the lobes' actual growth and overlapping curls; the
+  // negative space beside each cheek remains open instead of filling it
+  // with a generic solid oval.
+  ink("forelock-woodgrain",
+    "M-114 -237Q-97 -288 -39 -310M-106 -250Q-78 -294 -30 -304"+
+    "M-87 -257Q-39 -305 9 -306M-57 -283Q-7 -304 36 -293"+
+    "M-27 -299Q12 -314 55 -288",
+    "#d8a68d",1.65,"detail",
+    {parentId:"hair-crown-part",clipToParent:true,opacity:.9});
+  ink("crown-root-hatching",
+    "M-109 -219Q-90 -251 -65 -262M-101 -215Q-73 -252 -46 -266"+
+    "M-92 -212Q-52 -256 -31 -264M-74 -228Q-42 -257 -16 -264",
+    "#59424a",1.75,"detail",
+    {parentId:"hair-crown-part",clipToParent:true,opacity:.82});
+  ink("temple-curl-inner-flow",
+    "M-128 -146Q-153 -109 -146 -72M-135 -148Q-153 -112 -138 -63"+
+    "M-146 -113Q-154 -83 -143 -52M-135 -93Q-139 -59 -125 -37",
+    "#e6b293",1.2,"detail",
+    {parentId:"hair-left-lower-wave",clipToParent:true,opacity:.79});
+  ink("far-curl-inner-flow",
+    "M128 -145Q156 -119 149 -93M139 -135Q162 -102 149 -73"+
+    "M147 -91Q150 -57 134 -38",
+    "#d5a18a",1.3,"detail",
+    {parentId:"hair-nape-sweep",clipToParent:true,opacity:.84});
+  ink("forehead-hairline-baby-hairs",
+    "M-70 -201q-5 2 -5 8M-61 -208q-4 2 -4 7"+
+    "M-53 -214q-5 3 -4 8M-46 -221q-5 2 -5 8"+
+    "M-18 -229q-3 2 -2 7",
+    "#8e6460",.88,"detail",
+    {parentId:"adult-face",opacity:.65});
+  // The tailored coat receives functional details before ornament:
+  // curved placket, sewn bound edges, uneven button spacing and wool
+  // rubs anchored to fabric masses. All lines clip to the coat shape.
+  wax("coat-brass-button-one",
+    "M-31 258Q-25 250 -18 254Q-12 261 -18 268Q-28 268 -31 258Z",
+    box(-37,244,30,32),colors.brass,"detail",
+    {parentId:"coat-silhouette",spacing:4,markStrength:.23,
+      outlineOpacity:.11});
+  wax("coat-brass-button-two",
+    "M-38 292Q-31 285 -23 287Q-15 292 -21 304"+
+    "Q-31 307 -38 292Z",
+    box(-44,279,36,34),colors.brass,"detail",
+    {parentId:"coat-silhouette",spacing:4,markStrength:.23,
+      outlineOpacity:.12});
+  ink("coat-button-threads",
+    "M-26 259l5 4M-22 257l-3 6M-32 292l7 6M-25 291l-7 6",
+    "#c4ac90",1.05,"detail",
+    {parentId:"coat-silhouette",opacity:.92});
+  ink("coat-hand-sewn-piping",
+    "M-128 118Q-91 149 -73 185Q-65 205 -59 229"+
+    "M53 127Q81 151 85 190Q91 217 87 243"+
+    "M-145 173Q-155 229 -149 298M132 173Q155 226 149 299",
+    "#d4c2b0",1.05,"detail",
+    {parentId:"coat-silhouette",clipToParent:true,opacity:.73});
+  ink("coat-wool-following-sleeve",
+    "M-162 163Q-181 206 -170 252M-157 173Q-173 209 -165 246"+
+    "M159 159Q175 211 171 246M167 180Q185 232 172 265",
+    "#a5a5a2",1.1,"detail",
+    {parentId:"coat-silhouette",clipToParent:true,opacity:.63});
+  ink("scarf-woven-check-diagonal",
+    "M-67 128Q-49 148 -36 164M-42 126Q-21 153 -13 167"+
+    "M-14 133Q-2 154 7 166M20 136Q33 155 44 162"+
+    "M46 131Q58 145 61 157",
+    "#f2c5a0",.97,"detail",
+    {parentId:"tailored-scarf-wrap",clipToParent:true,opacity:.92});
+  ink("scarf-edge-broken-fringe",
+    "M26 251l-5 9M30 252l-4 12M35 254l-3 11M41 253l0 9",
+    "#e3b092",1.35,"detail",
+    {parentId:"tailored-scarf-tail",clipToParent:true,opacity:.83});
+  ink("linen-floral-embroidery",
+    "M-18 232q4 -8 8 -1q5 -8 9 1M0 241q4 -8 8 -1q4 -8 8 -2"+
+    "M-8 252q4 -8 8 -1q4 -8 8 -1",
+    "#b78175",.9,"detail",
+    {parentId:"shirt-linen",clipToParent:true,opacity:.55});
   return {version:1,id:"crayon-artcraft-adult-face-"+aspect,
     width:W,height:H,durationFrames:300,seed:6812,
     paper:"#f8efe0",paperTooth:.8,elements,
