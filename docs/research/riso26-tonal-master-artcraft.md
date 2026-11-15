@@ -36,6 +36,16 @@ Production hooks:
 - `src/video/riso-character-demo.tsx` and `riso-human-ensemble.tsx`: set lighter cheek/jaw tone on the original named anatomy source paths and intermediate tone on original orbital/temple paths. **No path drawing, mesh triangulation or pose edit.**
 - Existing Storybook `OcularPrintCraft` (no new folder/page) adds **RISO26 tonal master comparison**: switch to legacy universal red dot radius or new original source-bound value hierarchy at identical pose/aspect/crop/ink mode; retain RISO24 hair and RISO25 face comparison controls.
 
+## Actual render review — first candidate accepted for its narrow tone goal
+
+**Directly opened and examined** the real Chromium artifact from [run 43746812507](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43746812507): `riso26-am-landscape-courier-46-flat.png`, `riso26-am-landscape-courier-46-graded.png`, corresponding original Paper Artist images, plus FM/portrait before-after, smile and red-only masters. The original and graded prints were captured with **identical head contours, eye, ear and lip paths, frame, crop, paper and color**.
+
+**Observed improvement:** Full-face red zygomatic and jaw marks are now finer and distinguishable from the stronger brow/orbit accents. The uniform broad red freckle patches are visibly smaller in both people. Source eye and ear details, asymmetric hair and nose contours remain readable. A real FM 9:16 stress view also shows lower local spot occupancy, without new moving film noise.
+
+**Remaining artistic critique:** These faces still use obviously simplified 2D front-view geometry and have no separately annotated, rights-cleared reference identity; a more painterly/portrait-like level of facial anatomy still requires independent source image/landmark fidelity work. This test accepts **only the printed color/pressure hierarchy**, not complete reference-level face craftsmanship. At high close-up, graded FM cheeks can become sparse, so keep Storybook's exact reversible controls as the material-design selection rather than asserting one empirical press calibration.
+
+The first browser run had 3/4 tests passed and a **legacy RISO21 test failure** because it expected precisely two SVG pattern definitions. RISO26 adds four legitimate true-print tone patterns. The legacy check was repaired to assert exactly two unchanged normal masters **and** the four new graded patterns at matching pitch. No visual work was reverted to satisfy the test.
+
 ## Acceptance and remaining gates
 
 Unit tests `tests/riso26-tonal-press-artcraft.test.tsx` verify source identity path invariance, invalid metadata rejection, pure opaque dot-area math, AM/FM deterministic ranks, no alpha overlays, separated red/blue print masks and real per-part fill URIs. Browser proof `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts` captures **both original faces** at 16:9 and 9:16, neutral and smile, AM and FM, before and after exact same zoom/pose, plus red-only and speech full-face prints.
