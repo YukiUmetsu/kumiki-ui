@@ -444,6 +444,10 @@ export function ReferencePencilAtelier({
         Math.floor(needlepoint*8+.001)));
     dry.setAttribute("data-km-pencil-skin-weave-nibs",
       String(headPlate.skinWeaveEvidence.pigments));
+    dry.setAttribute("data-km-pencil-skin-light-plane-fibres",
+      String(headPlate.skinWeaveEvidence.opticalLightFibres));
+    dry.setAttribute("data-km-pencil-skin-protected-curve-spans",
+      String(headPlate.skinWeaveEvidence.protectedSpans));
     dry.setAttribute("data-km-pencil-skin-weave-highlight-reserves",
       String(headPlate.skinWeaveEvidence.protectedHighlights));
     dry.setAttribute("data-km-pencil-iris-near",String(
@@ -1201,6 +1205,10 @@ export function ReferencePencilAtelier({
             {" "+headPlate.skinWeaveEvidence.protectedHighlights+" / "+
               headPlate.skinWeaveEvidence.protectedEdges+" / "+
               headPlate.skinWeaveEvidence.protectedAnatomy}.
+            {" "}Curved-nib protected crossings: {" "+
+              headPlate.skinWeaveEvidence.protectedSpans}.
+            {" "}Light-plane dry pencil fibres: {" "+
+              headPlate.skinWeaveEvidence.opticalLightFibres}.
             Skin optical weave: {" "+Math.round(headPlate.skinWeaveDepth*100)}%.
             Fine needlepoint skin fibres: {" "+
               headPlate.skinWeaveEvidence.pigments*
