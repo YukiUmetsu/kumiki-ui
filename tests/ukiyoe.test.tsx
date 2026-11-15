@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figurePose, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
+import { expandCrowd } from "../registry/video/ukiyoe/ukiyoe-crowd";
 import { palette, resolvePaint } from "../registry/video/ukiyoe/ukiyoe-pigments";
 import { nodeState, UkiyoeScene } from "../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeSceneSpec } from "../registry/video/ukiyoe/ukiyoe-scene";
@@ -13,6 +14,7 @@ import { kasumiBand } from "../registry/video/ukiyoe/ukiyoe-transitions";
 import { compileFilm } from "../registry/video/film-document";
 import { CAST, NIGHT_FERRY_SHOTS } from "../src/video/ukiyoe-night-ferry";
 import { FOLKTALE_KASUMI, FOLKTALE_SHOTS } from "../src/video/ukiyoe-folktale";
+import { SNOW_WOMAN_SHOTS } from "../src/video/ukiyoe-snow-woman";
 import { KASUMI_INTO, ukiyoeFilm } from "../src/video/ukiyoe-film";
 import { renderUkiyoeSlot } from "../src/video/ukiyoe-slot";
 import { ukiyoeFrameAtElapsed } from "../src/video/ukiyoe-studio";
@@ -130,6 +132,60 @@ describe("UKIYO1 figures", () => {
     const look = { sleeves: "long" as const, hair: "shimada" as const };
     expect(JSON.stringify(drawFigure({ look }, 20, 1.5, 3).prims)).not.toEqual(JSON.stringify(drawFigure({ look }, 20, 0, 3).prims));
   });
+  it("draws a three-quarter face, and the face action turns a profile head to it and back; oni stay in profile", () => {
+    const head = (spec: Parameters<typeof drawFigure>[0], f: number) => JSON.stringify(drawFigure(spec, f, 0, 3).prims.find(p => p.t === "group" && /scale\(/.test(p.transform ?? "")));
+    const look = { hair: "shimada" as const };
+    const turned = { look, actions: [{ type: "face" as const, start: 10, end: 60, blend: 10 }] };
+    expect(head(turned, 5)).toEqual(head({ look }, 5));                       // profile before
+    expect(head(turned, 40)).toEqual(head({ look: { ...look, view: "three-quarter" } }, 40));   // three-quarter while held
+    expect(head(turned, 40)).not.toEqual(head({ look }, 40));
+    expect(head(turned, 80)).toEqual(head({ look }, 80));                     // back to profile after the blend
+    // The body turns too: a three-quarter figure shows the collar's V (both under-collar edges) and the robe's front panel.
+    const underLines = (spec: Parameters<typeof drawFigure>[0]) => drawFigure(spec, 20, 0, 3).prims.filter(p => p.t === "line" && p.color === "ki").length;
+    const woman = { hair: "shimada" as const, under: "ki", robe: "beni" };
+    expect(underLines({ look: { ...woman, view: "three-quarter" } })).toBeGreaterThanOrEqual(underLines({ look: woman }) + 2);
+    // Limbs turn too: the stride's sideways spread foreshortens (the feet sit closer together in x mid-step).
+    const span = (spec: Parameters<typeof drawFigure>[0]) => { const xs = drawFigure(spec, 25, 0, 3).prims.filter(p => p.t === "fill" && /^M/.test(p.d)).flatMap(p => (p.t === "fill" ? p.d : "").match(/-?\d+(\.\d+)?/g)!.map(Number).filter((_, i) => i % 2 === 0)); return Math.max(...xs) - Math.min(...xs); };
+    const walker = { hair: "chonmage" as const, lower: "tucked" as const }, walk = [{ type: "walk" as const, start: 0, end: 100, to: 400 }];
+    expect(span({ look: { ...walker, view: "three-quarter" }, actions: walk })).toBeLessThan(span({ look: walker, actions: walk }));
+    const oni = { look: CAST["oni-red"] };
+    expect(head({ ...oni, actions: [{ type: "face" as const, start: 0, end: 60 }] }, 30)).toEqual(head(oni, 30));
+  });
+  it("draws a figure square on: both eyes from the front, none from behind, and both legs side by side", () => {
+    type P = { t: string; color?: unknown; prims?: P[] };
+    const flat = (ps: P[]): P[] => ps.flatMap(p => p.t === "group" || p.t === "clip" ? flat(p.prims ?? []) : [p]);
+    const look = { hair: "shimada" as const, robe: "beni", under: "ki" }, walk = [{ type: "walk" as const, start: 0, end: 100, to: 300 }];
+    const draw = (view?: "front" | "back") => drawFigure({ look: { ...look, view }, actions: walk }, 25, 0, 3);
+    const eyes = (view?: "front" | "back") => flat(draw(view).prims as P[]).filter(p => p.t === "dots" && p.color === "sumi").length;
+    expect(eyes("front")).toBe(2);
+    expect(eyes("back")).toBe(0);
+    const [pro, front, back] = [undefined, "front", "back"].map(v => JSON.stringify(draw(v as never).prims));
+    expect(new Set([pro, front, back]).size).toBe(3);
+    // Walking toward or away from us still travels along the road.
+    expect(draw("front").x).toBeCloseTo(draw().x, 5);
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "f", kind: "figure", look: { view: "back" } } as never] }))).toEqual([]);
+  });
+});
+
+describe("UKIYO1 crowds", () => {
+  it("expands a crowd into the same seeded people every time, in depth rows, back rows first", () => {
+    const spec = { id: "c", width: 1200, count: 18, rows: 3, mood: "stroll" as const };
+    const a = expandCrowd(spec, 9);
+    expect(expandCrowd(spec, 9)).toEqual(a);
+    expect(a).toHaveLength(18);
+    expect(new Set(a.map(m => m.id)).size).toBe(18);
+    expect(a.map(m => m.row)).toEqual([...a.map(m => m.row)].sort((x, y) => y - x));            // drawn back to front
+    expect(Math.min(...a.filter(m => m.row === 2).map(m => -m.y))).toBeGreaterThan(Math.max(...a.filter(m => m.row === 0).map(m => -m.y)));
+    expect(expandCrowd(spec, 10)).not.toEqual(a);
+    const file = expandCrowd({ id: "p", width: 1200, count: 10, mood: "procession" }, 3);
+    expect(file.every(m => m.facing === "left" && m.actions[0].type === "walk" && (m.actions[0].to ?? 0) < 0)).toBe(true);
+  });
+  it("renders a crowd node as figures and rejects a bad one", () => {
+    const html = renderToStaticMarkup(<UkiyoeScene spec={scene({ nodes: [{ id: "c", kind: "crowd", x: 320, y: 300, width: 600, count: 5 }] })} frame={10} />);
+    expect((html.match(/data-node="c-\d+"/g) ?? []).length).toBe(5);
+    const issues = inspectUkiyoeScene(scene({ nodes: [{ id: "c", kind: "crowd", width: 600, count: 500, mood: "riot" } as never] })).map(i => i.path);
+    expect(issues).toEqual(expect.arrayContaining(["$.nodes[0].count", "$.nodes[0].mood"]));
+  });
 });
 
 describe("UKIYO1 print, camera and transitions", () => {
@@ -186,9 +242,31 @@ describe("UKIYO1 folktale creatures", () => {
       const spec = { species, actions: [{ type, start: 0, end: 60, ...(["walk", "run", "fly", "hop"].includes(type) ? { to: 200 } : {}) }] };
       const a = drawCreature(spec, 30, .4, 5);
       expect(drawCreature(spec, 30, .4, 5), species + "/" + type).toEqual(a);
-      if (type !== "transform") expect(a.prims.length, species + "/" + type).toBeGreaterThan(3);
+      // Mid-transform, mid-appear or mid-vanish a creature is a fading group, not its full set of parts.
+      if (!["transform", "appear", "vanish"].includes(type)) expect(a.prims.length, species + "/" + type).toBeGreaterThan(3);
     }
     expect(creatureTravel([{ type: "fly", start: 0, end: 40, to: -300, toY: -50 }], 40)).toMatchObject({ x: -300, y: -50, dir: -1 });
+  });
+  it("turns an animal three-quarters: a shorter body and the far legs set back and higher", () => {
+    const xs = (look: Record<string, unknown>) => { const d = drawCreature({ species: "fox", look, actions: [{ type: "walk", start: 0, end: 60, to: 100 }] }, 20, 0, 5); return JSON.stringify(d.prims); };
+    const pro = xs({}), tq = xs({ view: "three-quarter" });
+    expect(tq).not.toEqual(pro);
+    expect(tq).toMatch(/"t":"group","transform":"translate\(-[\d.]+ -[\d.]+\)"/);           // far legs moved back and up
+    const crane = JSON.stringify(drawCreature({ species: "crane", look: { view: "three-quarter" }, actions: [{ type: "stand", start: 0, end: 60 }] }, 20, 0, 5).prims);
+    expect(crane).toMatch(/"t":"group","transform":"translate\(-[\d.]+ -[\d.]+\)"/);
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "c", kind: "creature", species: "fox", look: { view: "sideways" } } as never] })).map(i => i.path)).toContain("$.nodes[0].look.view");
+  });
+  it("draws four-legged animals square on, the kyūbi's tails fanned and the drumming tanuki upright", () => {
+    const draw = (species: string, view: string | undefined, action = "walk", look: Record<string, unknown> = {}) => JSON.stringify(drawCreature({ species: species as never, look: { ...look, view: view as never }, actions: [{ type: action as never, start: 0, end: 60, ...(action === "walk" ? { to: 100 } : {}) }] }, 20, 0, 5).prims);
+    for (const sp of ["fox", "tanuki", "dog", "cat", "rabbit", "monkey", "horse", "nue"]) {
+      const [pro, front, back] = [undefined, "front", "back"].map(v => draw(sp, v));
+      expect(new Set([pro, front, back]).size, sp).toBe(3);
+    }
+    const kyubi = draw("fox", "back", "sit", { tails: 9 }), one = draw("fox", "back", "sit");
+    expect((kyubi.match(/"t":"glow"/g) ?? []).length).toBe(12);                                   // foxfire: 3 + nine tails
+    expect(one).not.toMatch(/"t":"glow"/);
+    expect(draw("tanuki", "front", "drum", { hat: true })).not.toEqual(draw("tanuki", "front", "sit", { hat: true }));
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "c", kind: "creature", species: "horse", look: { view: "front" } } as never] }))).toEqual([]);
   });
   it("vanishes a creature in a henge puff and keeps it gone", () => {
     const spec = { species: "tanuki" as const, actions: [{ type: "transform" as const, start: 10, end: 30 }] };
@@ -214,7 +292,7 @@ describe("UKIYO1 folktale creatures", () => {
     expect(JSON.stringify(drawMotif("mountain", { style: "wash" }, { frame: 0, wind: 0, seed: 1, progress: 1 }))).not.toContain("fuji-rock");
   });
   it("compiles the folktale film in both aspects", () => {
-    for (const shot of FOLKTALE_SHOTS) for (const aspect of ["landscape", "portrait"] as const) expect(inspectUkiyoeScene(shot.build(aspect)), shot.id).toEqual([]);
+    for (const shot of [...FOLKTALE_SHOTS, ...SNOW_WOMAN_SHOTS]) for (const aspect of ["landscape", "portrait"] as const) expect(inspectUkiyoeScene(shot.build(aspect)), shot.id).toEqual([]);
     const doc = ukiyoeFilm(FOLKTALE_SHOTS, {}, { id: "folk", kasumi: FOLKTALE_KASUMI });
     for (const outputId of ["landscape", "portrait"]) expect(compileFilm(doc, { outputId }).ok).toBe(true);
   });

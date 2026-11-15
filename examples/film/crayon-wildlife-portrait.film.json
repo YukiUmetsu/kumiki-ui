@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "crayon-wildlife-portrait",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "lepus-field-study",
+      "recipeId": "slot",
+      "durationFrames": 240,
+      "content": {
+        "slot": "crayon-character-film",
+        "label": "Original naturalistic hare study",
+        "props": {
+          "subject": "wildlife-hare",
+          "options": {
+            "detail": 1,
+            "earMotion": 1
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { evaluateRisoCharacter } from "../../registry/video/riso-character";
-import { RisoCharacterInk } from "../../registry/video/riso-character-react";
+import { RisoCharacterInk, RisoCharacterKnockout } from "../../registry/video/riso-character-react";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import type { RisoArtwork, RisoPaint } from "../../registry/video/print-plates-react";
 import { COURIER, risoPerformanceSpec } from "./riso-character-demo";
@@ -43,8 +43,6 @@ function RisoRiggingLab() {
   const spec=risoPerformanceSpec("landscape",97);
   const artwork=(ink:"blue"|"red"):RisoArtwork=>(paint:RisoPaint)=>
     <g data-km-riso-rig-lab-plate={ink}>
-      <RisoCharacterInk spec={actor} frame={frame} plateId={ink} paint={paint}
-        x={260} y={470} scale={2.05} disableIK={!enabled} showRig={showRig}/>
       {ink==="blue" && <g fill={paint.solid}>
         <text x={42} y={52} fontFamily="Arial,sans-serif" fontSize={13}
           letterSpacing={2.4} fontWeight={700}>RISO 03 / ARTICULATION LAB</text>
@@ -83,6 +81,18 @@ function RisoRiggingLab() {
     </div>
     <div style={{width:"min(960px,100%)",boxShadow:"0 16px 34px #293C4B29"}}>
       <RisoPrint spec={spec} frame={3} artworks={{blue:artwork("blue"),red:artwork("red")}}
+        foregroundLayers={[{id:"courier",
+          knockout:<RisoCharacterKnockout spec={actor} frame={frame}
+            x={260} y={470} scale={2.05} disableIK={!enabled}/>,
+          artworks:{
+            blue:paint=><RisoCharacterInk spec={actor} frame={frame}
+              plateId="blue" paint={paint} x={260} y={470} scale={2.05}
+              disableIK={!enabled} showRig={showRig}/>,
+            red:paint=><RisoCharacterInk spec={actor} frame={frame}
+              plateId="red" paint={paint} x={260} y={470} scale={2.05}
+              disableIK={!enabled} showRig={showRig}/>,
+          },
+        }]}
         paperGrain={grain} misregistration={misregistration}
         visiblePlateIds={plate==="both"?undefined:[plate]}
         label="Magnified Risograph courier showing two-bone knee and foot constraints"
@@ -157,7 +167,7 @@ function RisoRiggingLab() {
   </div>;
 }
 const meta={
-  title:"Video production/Film Looks/Risograph Characters",
+  title:"Video production/Film Looks/Risograph",
   id:"video-riso-rig-lab",
   component:RisoRiggingLab,
   parameters:{layout:"fullscreen"},

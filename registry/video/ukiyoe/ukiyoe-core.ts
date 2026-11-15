@@ -42,8 +42,8 @@ export const DEG = Math.PI / 180;
 
 // ---- Easing -----------------------------------------------------------------------------------------------------------------------
 
-export type UkiyoeEase = "linear" | "in" | "out" | "inOut" | "sine" | "back" | "snap" | "hold";
-export const UKIYOE_EASES: readonly UkiyoeEase[] = ["linear", "in", "out", "inOut", "sine", "back", "snap", "hold"];
+export type UkiyoeEase = "linear" | "in" | "out" | "inOut" | "sine" | "back" | "snap" | "hold" | "inQuad" | "outQuad";
+export const UKIYOE_EASES: readonly UkiyoeEase[] = ["linear", "in", "out", "inOut", "sine", "back", "snap", "hold", "inQuad", "outQuad"];
 export function ease(name: UkiyoeEase | undefined, t: number): number {
   const x = clamp01(t);
   switch (name ?? "inOut") {
@@ -55,6 +55,9 @@ export function ease(name: UkiyoeEase | undefined, t: number): number {
     case "back": { const c = 1.6, y = x - 1; return 1 + (c + 1) * y * y * y + c * y * y; }
     case "snap": return x >= 1 ? 1 : 1 - 2 ** (-10 * x);
     case "hold": return x >= 1 ? 1 : 0;
+    // Gentle starts and stops for heavy things (boats, carts): the speed at the open end is twice the average.
+    case "inQuad": return x * x;
+    case "outQuad": return 1 - (1 - x) ** 2;
   }
 }
 
@@ -116,15 +119,23 @@ export function moveEffect(move: UkiyoeMove, p: number): MoveEffect {
 
 // ---- Idle loops --------------------------------------------------------------------------------------------------------------------
 
-export type UkiyoeLoopKind = "sway" | "bob" | "rock" | "drift" | "flutter" | "breathe" | "spin" | "pulse" | "float";
-export const UKIYOE_LOOPS: readonly UkiyoeLoopKind[] = ["sway", "bob", "rock", "drift", "flutter", "breathe", "spin", "pulse", "float"];
-export interface UkiyoeLoop { kind: UkiyoeLoopKind; amplitude?: number; period?: number; phase?: number; start?: number; end?: number }
+export type UkiyoeLoopKind = "sway" | "bob" | "rock" | "drift" | "flutter" | "breathe" | "spin" | "pulse" | "float" | "surge";
+export const UKIYOE_LOOPS: readonly UkiyoeLoopKind[] = ["sway", "bob", "rock", "drift", "flutter", "breathe", "spin", "pulse", "float", "surge"];
+/** `fade` eases the loop in after `start` and out before `end` over that many frames, so nothing pops. */
+export interface UkiyoeLoop { kind: UkiyoeLoopKind; amplitude?: number; period?: number; phase?: number; start?: number; end?: number; fade?: number }
 
 export function loopOffsets(loop: UkiyoeLoop, frame: number, seed: number): Partial<UkiyoePose> {
   if ((loop.start !== undefined && frame < loop.start) || (loop.end !== undefined && frame > loop.end)) return {};
-  const period = Math.max(2, loop.period ?? 90), a = loop.amplitude ?? 1;
+  const period = Math.max(2, loop.period ?? 90);
+  let a = loop.amplitude ?? 1;
+  if (loop.fade && loop.fade > 0) {
+    if (loop.start !== undefined) a *= smooth((frame - loop.start) / loop.fade);
+    if (loop.end !== undefined) a *= smooth((loop.end - frame) / loop.fade);
+  }
   const w = ((frame - (loop.start ?? 0)) / period + (loop.phase ?? 0)) * Math.PI * 2;
   switch (loop.kind) {
+    // A poled or rowed boat: speed pulses with each stroke (fastest mid-push, gliding between). Positive = toward +x.
+    case "surge": return { x: Math.sin(w) * 10 * a };
     case "sway": return { rotate: Math.sin(w) * 3 * a };
     case "bob": return { y: Math.sin(w) * 5 * a };
     // A moored boat: heave plus a lagging roll.
@@ -222,24 +233,39 @@ export function scrollPan(options: {
 
 export type Pt = readonly [number, number];
 const f = (v: number) => (Math.round(v * 10) / 10).toString();
+/** Whole-pixel formatting for small, dense shapes (foam lace): about half the markup, no visible difference. */
+const fi = (v: number) => Math.round(v).toString();
 
-export function polyD(points: readonly Pt[], closed = true): string {
+export function polyD(points: readonly Pt[], closed = true, coarse = false): string {
   if (!points.length) return "";
-  return "M" + points.map(p => f(p[0]) + " " + f(p[1])).join("L") + (closed ? "Z" : "");
+  const g = coarse ? fi : f;
+  return "M" + points.map(p => g(p[0]) + " " + g(p[1])).join("L") + (closed ? "Z" : "");
 }
-/** Catmull-Rom spline through points as cubic Béziers. */
-export function smoothD(points: readonly Pt[], closed = false, tension = .5): string {
+/** Catmull-Rom spline through points as cubic Béziers. `coarse` rounds to whole pixels. */
+export function smoothD(points: readonly Pt[], closed = false, tension = .5, coarse = false): string {
   const n = points.length;
-  if (n < 3) return polyD(points, closed);
+  if (n < 3) return polyD(points, closed, coarse);
+  const g = coarse ? fi : f;
   const at = (i: number) => closed ? points[(i + n) % n] : points[clamp(i, 0, n - 1)];
-  let d = "M" + f(points[0][0]) + " " + f(points[0][1]);
+  let d = "M" + g(points[0][0]) + " " + g(points[0][1]);
   const last = closed ? n : n - 1;
   for (let i = 0; i < last; i++) {
     const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2), k = tension / 3;
-    d += "C" + f(p1[0] + (p2[0] - p0[0]) * k) + " " + f(p1[1] + (p2[1] - p0[1]) * k) + " "
-      + f(p2[0] - (p3[0] - p1[0]) * k) + " " + f(p2[1] - (p3[1] - p1[1]) * k) + " " + f(p2[0]) + " " + f(p2[1]);
+    d += "C" + g(p1[0] + (p2[0] - p0[0]) * k) + " " + g(p1[1] + (p2[1] - p0[1]) * k) + " "
+      + g(p2[0] - (p3[0] - p1[0]) * k) + " " + g(p2[1] - (p3[1] - p1[1]) * k) + " " + g(p2[0]) + " " + g(p2[1]);
   }
   return d + (closed ? "Z" : "");
+}
+/** Point at arc-length `d` along a polyline (clamped to its ends). */
+export function alongPath(points: readonly Pt[], d: number): Pt {
+  if (points.length < 2 || d <= 0) return points[0];
+  let acc = 0;
+  for (let i = 1; i < points.length; i++) {
+    const [ax, ay] = points[i - 1], [bx, by] = points[i], len = Math.hypot(bx - ax, by - ay);
+    if (acc + len >= d) { const t = len ? (d - acc) / len : 0; return [ax + (bx - ax) * t, ay + (by - ay) * t]; }
+    acc += len;
+  }
+  return points[points.length - 1];
 }
 export function polylineLength(points: readonly Pt[]): number {
   let s = 0;
@@ -284,12 +310,12 @@ export function quad(a: Pt, c: Pt, b: Pt, n = 12): Pt[] {
   return out;
 }
 
-export type Taper = "both" | "start" | "end" | "none" | "swell";
+export type Taper = "both" | "start" | "end" | "none" | "swell" | "point";
 /**
  * A carved key-block line: a filled ribbon whose width swells and tapers like a line left standing by the
  * carver's knife. `wobble` adds tiny seeded irregularity so long lines are not ruler-straight.
  */
-export function carvedLine(points: readonly Pt[], width: number, options: { taper?: Taper; seed?: number; wobble?: number; minRatio?: number; smooth?: boolean } = {}): string {
+export function carvedLine(points: readonly Pt[], width: number, options: { taper?: Taper; seed?: number; wobble?: number; minRatio?: number; smooth?: boolean; coarse?: boolean } = {}): string {
   const pts = points.length > 2 ? points : points.length === 2 ? resample(points, Math.max(4, polylineLength(points) / 8)) : [...points];
   const n = pts.length;
   if (n < 2) return "";
@@ -308,12 +334,13 @@ export function carvedLine(points: readonly Pt[], width: number, options: { tape
     else if (taper === "start") w = min + (1 - min) * Math.min(1, t * 3.2);
     else if (taper === "end") w = min + (1 - min) * Math.min(1, (1 - t) * 3.2);
     else if (taper === "swell") w = .55 + .45 * Math.sin(Math.PI * clamp01(t));
+    else if (taper === "point") w = min + (1 - min) * (1 - clamp01(t)) ** .7;
     w *= 1 + noise1(seed, acc / 22) * wob;
     const hw = Math.max(.15, width * w / 2);
     left.push([pts[i][0] - ty * hw, pts[i][1] + tx * hw]);
     right.push([pts[i][0] + ty * hw, pts[i][1] - tx * hw]);
   }
-  return options.smooth ? smoothD([...left, ...right.reverse()], true, .45) : polyD([...left, ...right.reverse()], true);
+  return options.smooth ? smoothD([...left, ...right.reverse()], true, .45, options.coarse) : polyD([...left, ...right.reverse()], true, options.coarse);
 }
 
 export function rotatePt(p: Pt, deg: number, about: Pt = [0, 0]): Pt {

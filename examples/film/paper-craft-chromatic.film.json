@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "id": "paper-chromatic-botanical-theatre",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "paper-rainforest",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Chromatic rainforest relief",
+        "props": {
+          "artwork": "botanical",
+          "medium": "layered",
+          "palette": "rainforest",
+          "detail": 1,
+          "colorLayers": 1,
+          "seed": 37
+        }
+      }
+    },
+    {
+      "id": "paper-wildflower",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Chromatic wildflower relief",
+        "props": {
+          "artwork": "botanical",
+          "medium": "layered",
+          "palette": "wildflower",
+          "detail": 1,
+          "colorLayers": 1,
+          "seed": 37
+        }
+      }
+    },
+    {
+      "id": "paper-rainforest-lightbox",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Chromatic backlit rainforest",
+        "props": {
+          "artwork": "botanical",
+          "medium": "lightbox",
+          "palette": "rainforest",
+          "detail": 1,
+          "colorLayers": 0.9,
+          "seed": 37
+        }
+      }
+    }
+  ]
+}

@@ -1,5 +1,7 @@
-import { assertCrayonOptions, crayonConstructionWindows } from "./crayon";
-import type { CrayonBounds, CrayonWaxConstruction } from "./crayon";
+import { assertCrayonOptions, assertCrayonSgraffito, crayonConstructionWindows } from "./crayon";
+import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction, CrayonSgraffito } from "./crayon";
+import { assertCrayonRedrawOptions } from "./crayon-exposure";
+import type { CrayonRedrawOptions } from "./crayon-exposure";
 
 /**
  * Serializable, medium-native authored scene contract.
@@ -53,6 +55,16 @@ export interface CrayonContourDrawing { frame: number; d: string }
 /** Reusable original drawings addressed by a semantic acting cue, e.g. "mbp", "oh", "blink". */
 export interface CrayonNamedPose { id: string; d: string }
 export interface CrayonPoseCue { frame: number; pose: string }
+export interface CrayonVolumeGradient {
+  /** First wax pigment deposited near the lit plane. */
+  light:CrayonColor;
+  /** Darker pigment at the boundary far from the light. */
+  shadow:CrayonColor;
+  /** Normalized radial paint focus in the local wax silhouette (0..1). */
+  focusX:number;focusY:number;
+  /** Radius as proportion of the silhouette bounding-box, 0.2..1.5. */
+  radius:number;
+}
 export interface CrayonWaxElement extends CrayonBase {
   kind: "wax";
   /** Original drawings selected at absolute frames. */
@@ -64,14 +76,45 @@ export interface CrayonWaxElement extends CrayonBase {
   spacing?: number;
   /** Authored wax-rubbing direction in degrees. */
   angle?: number;
+  /** Pressure-shaped contact (default) or legacy rounded line renderer. */
+  nibStyle?: CrayonNibStyle;
+  /** Physically localized hand-coloring progress or historic scanline order. */
+  strokeOrder?: CrayonStrokeOrder;
+  /** Long connected rubbed patches or legacy short wax flecks. */
+  markLength?: CrayonMarkLength;
   /** Opaque, silhouette-blocking wax underpaint for characters and solid props;
    * default open retains translucent scenery and older CRAYON1 documents. */
   coverage?: "open" | "opaque";
+  /** Edge blending radius (0..18 SVG units) for painted open wax glazes.
+   * Finished subjects remain opaque because their own underpaint is separate. */
+  blendRadius?: number;
+  /** 0..1 artistic density of medium-native random tooth marks.
+   * Lower values leave opaque underpaint intact; the artist can layer
+   * explicit anatomy and form-directed marks on top instead of noise. */
+  markStrength?: number;
+  /** Smooth underlying side-nib mass, combined with full-opacity silhouette
+   * and explicit pressure-shaped wax scratches; never a global object blur. */
+  underpaintGradient?:CrayonVolumeGradient;
+  /** Confine a tonal glaze to the animated parent wax silhouette. */
+  clipToParent?: boolean;
+  /** Held, small-patch reworking of wax pigment; frame-deterministic. */
+  redraw?: CrayonRedrawOptions;
+  /** Optional broken nib accents on opaque silhouettes (0..1). */
+  edgeRoughness?: number;
+  /** Separate illustrator's drawn outline from opaque wax mass. Zero is valid. */
+  outlineOpacity?: number;
+  /** Scratch the overlying wax to reveal the fully opaque first pigment
+   * layer, rather than painting pale lines over the top. */
+  sgraffito?: CrayonSgraffito;
   /** Explicit silhouette-outline versus pigment-deposition sequence. */
   construction?: CrayonWaxConstruction;
 }
 export interface CrayonContourElement extends CrayonBase {
   kind: "contour";
+  /** Restrict drawn fur/hatch marks to the exact animated wax shape of this
+   * contour's anatomical parent (local parent coordinates). Preserves the
+   * opaque underpaint, while preventing stray lines outside the silhouette. */
+  clipToParent?: boolean;
   /** Chronological redraws without named reuse. Mutually exclusive with poses/poseCues. */
   drawings?: readonly CrayonContourDrawing[];
   /** Author-defined visemes/expressions; "base" always means the initial d. */
@@ -284,6 +327,53 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".angle must be in [-89,89]");
         if (node.coverage !== undefined && node.coverage !== "open" && node.coverage !== "opaque")
           errors.push(p + ".coverage must be open or opaque");
+        if (node.blendRadius !== undefined && (!finite(node.blendRadius)||node.blendRadius<0||
+          node.blendRadius>18||node.coverage!=="open"))
+          errors.push(p + ".blendRadius must be 0..18 on open wax");
+        if (node.underpaintGradient !== undefined) {
+          const g=node.underpaintGradient;
+          if(!g || node.coverage!=="opaque" || !finite(g.focusX) || !finite(g.focusY) ||
+            !finite(g.radius) || g.focusX<0 || g.focusX>1 || g.focusY<0 || g.focusY>1 ||
+            g.radius<.2 || g.radius>1.5)
+            errors.push(p + ".underpaintGradient is out of bounds or requires opaque wax");
+          if(g){
+            checkColor(String(g.light??""),p+".underpaintGradient.light",errors);
+            checkColor(String(g.shadow??""),p+".underpaintGradient.shadow",errors);
+          }
+        }
+        if (node.markStrength !== undefined && (!finite(node.markStrength)||
+          node.markStrength<0||node.markStrength>1))
+          errors.push(p + ".markStrength must be within [0,1]");
+        if (node.clipToParent !== undefined && typeof node.clipToParent!=="boolean")
+          errors.push(p + ".clipToParent must be a boolean");
+        if (node.clipToParent && !node.parentId)
+          errors.push(p + ".clipToParent requires a parent wax element");
+        if (node.nibStyle !== undefined && node.nibStyle !== "rounded" && node.nibStyle !== "tapered")
+          errors.push(p + ".nibStyle must be rounded or tapered");
+        if (node.strokeOrder !== undefined && node.strokeOrder !== "scanline" && node.strokeOrder !== "patches")
+          errors.push(p + ".strokeOrder must be scanline or patches");
+        if (node.markLength !== undefined && node.markLength !== "long" && node.markLength !== "short")
+          errors.push(p + ".markLength must be long or short");
+        if(node.edgeRoughness!==undefined && (!finite(node.edgeRoughness)||
+          node.edgeRoughness<0||node.edgeRoughness>1))
+          errors.push(p+".edgeRoughness must be in [0,1]");
+        if(node.outlineOpacity!==undefined && (!finite(node.outlineOpacity)||
+          node.outlineOpacity<0||node.outlineOpacity>1))
+          errors.push(p+".outlineOpacity must be in [0,1]");
+        if(node.sgraffito!==undefined){
+          try {
+            assertCrayonSgraffito(node.sgraffito);
+            if(node.coverage!=="opaque")
+              errors.push(p+".sgraffito requires opaque buried pigment");
+            if(node.sgraffito.first<node.timing.end||
+              node.sgraffito.last>=(v.durationFrames??0))
+              errors.push(p+".sgraffito must follow wax deposition and fit duration");
+          }catch {errors.push(p+".sgraffito must have valid path, width and frames");}
+        }
+        if(node.redraw!==undefined){
+          try{assertCrayonRedrawOptions(node.redraw);}
+          catch{errors.push(p+".redraw must have valid held exposures and strength");}
+        }
         if (node.construction !== undefined) {
           try{crayonConstructionWindows(node.timing.start,node.timing.end,node.construction);}
           catch{errors.push(p+".construction must have a valid outline order, fraction and wax glaze");}
@@ -291,6 +381,18 @@ export function inspectCrayonScene(input: unknown): string[] {
         try { assertCrayonOptions({seed:0,pressure:node.pressure ?? .84,spacing:node.spacing ?? 9}); }
         catch {errors.push(p + ".pressure/spacing is out of bounds");}
       } else if (node.kind === "contour") {
+        if (node.clipToParent !== undefined && typeof node.clipToParent !== "boolean")
+          errors.push(p + ".clipToParent must be a boolean");
+        if (node.clipToParent === true) {
+          const parent = (v.elements ?? []).find(x => x && x.id === node.parentId);
+          if (!node.parentId || !parent || parent.kind !== "wax")
+            errors.push(p + ".clipToParent requires a wax parent");
+          // Clipping is evaluated in the *parent's local coordinates*.
+          // A separate transform on this contour would disconnect its mask.
+          if (node.placement !== undefined || node.motion !== undefined ||
+            node.contacts !== undefined || node.screenSpace)
+            errors.push(p + ".clipToParent requires untransformed world-space child");
+        }
         if (!pathSafe(node.d)) errors.push(p + ".d must contain a bounded SVG path");
         checkColor(String(node.color),"color for "+p,errors);
         if (!finite(node.width) || node.width <= 0 || node.width > 64) errors.push(p + ".width out of bounds");

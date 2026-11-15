@@ -6,7 +6,8 @@
  * across it. A small built-in PNG writer: no canvas, no network and identical bytes on every run.
  */
 import { hash01, hashSigned } from "./collage-geometry";
-import type { CollageBoardMaterial } from "./collage-scene";
+/** Same union as `CollageBoardMaterial` in collage-scene (kept local so this module stands alone). */
+type CollageBoardMaterial = "kraft" | "cream" | "newsprint" | "cork" | "card" | "graph" | "blackboard" | "flat" | "slate";
 
 const cache = new Map<string, string>();
 

@@ -151,7 +151,7 @@ function RisoCharacterStudio() {
     </p>
   </div>;
 }
-const meta={title:"Video production/Film Looks/Risograph Characters",
+const meta={title:"Video production/Film Looks/Risograph",
   id:"video-riso-characters",component:RisoCharacterStudio,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof RisoCharacterStudio>;
 export default meta;

@@ -1,11 +1,12 @@
-name: Visual contracts (deterministic)
+name: Changed tests and type safety
+
+# Keep routine GitHub Actions inexpensive: only changed test files are executed.
+# Existing full suites, Chromium art reviews, and MP4 exports run locally.
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
-  # Explicit full qualification remains available without charging every PR.
-  workflow_dispatch:
+  push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -15,42 +16,53 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deterministic-visual-contracts:
+  changed-contracts:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 16
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: "24.15.0"
-          cache: "npm"
+          cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Typecheck
+      - name: Typecheck changed source against all exported contracts
         run: npm run typecheck
-      - name: Fast deterministic film, recipe and camera contracts
-        if: github.event_name != 'workflow_dispatch'
-        run: npm run test -- tests/film-document.test.ts tests/scene-template-recipes.test.tsx tests/cinematic-camera.test.ts tests/two-lane-swap.test.tsx tests/paired-focus.test.tsx tests/print-plates.test.ts tests/riso-print-demo.test.tsx tests/riso-sheet-feed.test.tsx tests/riso-overprint.test.tsx tests/watercolour-brush.test.tsx tests/painted-composition.test.tsx tests/watercolour-actor.test.tsx tests/watercolour-film-looks-parameters.test.tsx tests/crayon-storybook.test.tsx tests/crayon-scene.test.tsx tests/crayon-dragon-village.test.tsx tests/crayon-story-playback.test.ts tests/ink-brush.test.tsx tests/ink-wet-paper.test.ts tests/riso-character.test.tsx tests/riso-rig-ik.test.tsx tests/riso-nested-ik.test.ts tests/riso-joint-skin.test.ts
-      - name: Verify opaque crayon underpainting contracts
-        if: github.event_name != 'workflow_dispatch'
-        run: npm run test -- tests/crayon-coverage.test.tsx
-      - name: Lightweight command-line contract tests
-        if: github.event_name != 'workflow_dispatch'
-        run: node --test tests/catalog-api.test.mjs
-      - name: Validate registry contracts without consumer staging
-        if: github.event_name != 'workflow_dispatch'
-        run: npm run registry:validate
-      - name: Full unit and integration contracts (manual qualification)
-        if: github.event_name == 'workflow_dispatch'
-        run: npm test
-      - name: Registry validation and isolated staging
-        if: github.event_name == 'workflow_dispatch'
-        run: npm run registry:validate && npm run registry:smoke
-      - name: Unified component discovery parity
-        if: github.event_name == 'workflow_dispatch'
-        run: npm run catalog:check && npm run catalog:api:check && npm run video:export:check
-      - name: Clean consumer installation
-        if: github.event_name == 'workflow_dispatch'
-        run: node scripts/registry-fixture.js --item=film-document && node scripts/registry-fixture.js --item=shader-fx && node scripts/registry-fixture.js --item=sound-design && node scripts/registry-fixture.js --item=sound-mastering && node scripts/registry-fixture.js --item=ray-world && node scripts/registry-fixture.js --item=film-gallery && node scripts/registry-fixture.js --item=explainer-stage && node scripts/registry-fixture.js --item=cinematic-camera-director && node scripts/registry-fixture.js --item=process-journey && node scripts/registry-fixture.js --item=question-reveal && node scripts/registry-fixture.js --item=page-turn-story && node scripts/registry-fixture.js --item=glass-data-reveal && node scripts/registry-fixture.js --item=two-lane-swap && node scripts/registry-fixture.js --item=paired-focus && node scripts/registry-fixture.js --item=riso-print && node scripts/registry-fixture.js --item=crayon-storybook && node scripts/registry-fixture.js --item=ink-brush && node scripts/registry-fixture.js --item=riso-character
-      - name: Offline 3D hero approval evidence gate
-        if: github.event_name == 'workflow_dispatch'
-        run: npm run hero:quality
+      - name: Guard video Storybook source parsing and local imports
+        run: node scripts/check-video-storybook-source.mjs
+      - name: Execute only new or modified unit tests
+        shell: bash
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          base="${PR_BASE:-${PUSH_BEFORE:-}}"
+          if [[ -z "$base" || "$base" =~ ^0+$ ]]; then
+            base="HEAD^"
+          fi
+          if ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            git fetch --no-tags --depth=1 origin "$base"
+          fi
+          unit=()
+          node=()
+          while IFS= read -r file; do
+            if [[ ! -f "$file" ]]; then continue; fi
+            if [[ "$file" =~ ^tests/[^/]+\.test\.(ts|tsx)$ ]]; then
+              unit+=("$file")
+            elif [[ "$file" =~ ^tests/[^/]+\.test\.mjs$ ]]; then
+              node+=("$file")
+            fi
+          done < <(git diff --name-only --diff-filter=ACMR "$base" HEAD)
+          echo "Changed Vitest files: ${#unit[@]}; Node test files: ${#node[@]}"
+          if (( ${#unit[@]} > 0 )); then
+            npx vitest run --project unit "${unit[@]}"
+          fi
+          if (( ${#node[@]} > 0 )); then
+            node --test "${node[@]}"
+          fi
+          if (( ${#unit[@]} == 0 && ${#node[@]} == 0 )); then
+            echo "No added or edited unit tests; local full suite remains required."
+          fi

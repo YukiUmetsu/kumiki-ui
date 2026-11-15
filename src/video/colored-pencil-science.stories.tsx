@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
-import { ColoredPencilSciencePlate } from "./colored-pencil-science";
+import { ColoredPencilSciencePlate, coloredPencilExample } from "./colored-pencil-science";
+import { PencilDrawing } from "../../registry/video/colored-pencil-react";
+import type { PencilDrawingSpec, PencilPigmentLayer } from "../../registry/video/colored-pencil";
 import type { PencilSubject } from "./colored-pencil-science";
 import type { PencilAspect } from "../../registry/video/colored-pencil";
 import { COLOR_PENCIL_FILM } from "./colored-pencil-film";
@@ -11,6 +13,9 @@ import { pencilDemoScene } from "./colored-pencil-demo-scenes";
 import { pencilCharacterScene } from "./colored-pencil-character-scenes";
 import type { PencilDemoSubject } from "./colored-pencil-demo-scenes";
 import { PencilScene } from "../../registry/video/colored-pencil-scene-react";
+import { PencilObjectAtelier } from "./colored-pencil-object-studio";
+import { PencilLivingAtelier } from "./colored-pencil-living-studio";
+import { ReferencePencilAtelier } from "./colored-pencil-reference-atelier";
 
 const meta = {
   title: "Video Production/Film Looks/Colour-pencil",
@@ -175,6 +180,11 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
   const [pressure, setPressure] = useState(1);
   const [flow, setFlow] = useState(0);
   const [cameraEnabled, setCameraEnabled] = useState(true);
+  const [fibreMode,setFibreMode] = useState<"animated"|"fixed"|"hidden">("animated");
+  const [characterInspection,setCharacterInspection] = useState<
+    "composition" | "fox-eye" | "fox-paw" | "fox-ruff" |
+    "kingfisher-bill" | "kingfisher-wing" | "kingfisher-coverts"
+  >("composition");
   const scene = useMemo(() => {
     const authored = subject === "characters" ? pencilCharacterScene(aspect) : pencilDemoScene(subject, aspect);
     return {
@@ -182,8 +192,15 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
       camera: cameraEnabled ? authored.camera : undefined,
       actors: authored.actors?.map(actor => ({
         ...actor, parts: actor.parts.map(part => ({
-          ...part, region: {
-            ...part.region, layers: part.region.layers.map(layer => ({
+          ...part,
+          detailTracks:fibreMode==="animated"?part.detailTracks:undefined,
+          region: {
+            ...part.region,
+            details:fibreMode==="hidden"?
+              part.region.details?.filter(trace=>
+                !part.detailTracks?.some(track=>track.id===trace.id)):
+              part.region.details,
+            layers: part.region.layers.map(layer => ({
               ...layer, pressure: Math.min(1, layer.pressure * pressure), flow: (layer.flow ?? 0) + flow,
             })),
           },
@@ -200,7 +217,7 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
         })),
       },
     };
-  }, [subject, aspect, paperTooth, pressure, flow, cameraEnabled]);
+  }, [subject, aspect, paperTooth, pressure, flow, cameraEnabled, fibreMode]);
   useEffect(() => {
     if (!playing) return;
     const origin = performance.now(), offset = frame;
@@ -216,6 +233,28 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
     // Playback adopts the frame on play, not on every RAF update.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing]);
+  // Visual QA zoom lives solely in Storybook, never in CP3 material or film exports.
+  // Coordinates are measured from the same actor-local points used by the joint rig.
+  const inspection = subject==="characters"?characterInspection:"composition";
+  const focus = inspection==="fox-eye"?[213,105]:
+    inspection==="fox-paw"?[171,218]:
+    inspection==="fox-ruff"?[172,148]:
+    inspection==="kingfisher-bill"?[65,102]:
+    inspection==="kingfisher-coverts"?[145,132]:[148,154];
+  const foxFocus = inspection==="fox-eye"||inspection==="fox-paw"||inspection==="fox-ruff";
+  const shift = aspect==="landscape" ?
+    foxFocus?[487,226,1.08]:[768,221,.99]:
+    foxFocus?[58,513,.97]:[301,496,.94];
+  const stageSize = aspect==="landscape"?[960,540]:[540,960];
+  const zoom = inspection==="fox-paw"?3.85:inspection==="kingfisher-wing"?3.45:
+    inspection==="fox-eye"?4.2:inspection==="fox-ruff"?4.0:
+    inspection==="kingfisher-coverts"?4.6:3.25;
+  const artworkStyle = inspection==="composition"?undefined:{
+    transform:"translate("+(50-100*zoom*(shift[0]+shift[2]*focus[0])/stageSize[0]).toFixed(3)+
+      "%, "+(50-100*zoom*(shift[1]+shift[2]*focus[1])/stageSize[1]).toFixed(3)+
+      "%) scale("+zoom+")",
+    transformOrigin:"top left",
+  };
   return <main style={page}>
     <header style={{ maxWidth: 930 }}>
       <div style={{ fontSize: 12, letterSpacing: 2, fontWeight: 700, color: "#6c795c" }}>
@@ -226,7 +265,8 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
       </h1>
       <p style={{ margin: 0, maxWidth: 850 }}>
         Original illustrated worlds and two independently animated characters share pressure-sensitive pigment, local stroke fans,
-        layered paper, a frame-addressable camera and screen-safe annotations.
+        natural keratin bills, glossy ocular surfaces, layered paper, independently
+        articulated root-to-tip fibre groups, and frame-addressable animation.
         Nothing is inferred as a real measurement.
       </p>
     </header>
@@ -235,7 +275,7 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
         <select aria-label="Pencil world" value={subject}
           onChange={e => {setPlaying(false); setSubject(e.target.value as PencilDemoSubject | "characters");}} style={{ minHeight: 40 }}>
           <option value="terrain">Landscape · Layered terrain</option>
-          <option value="characters">Narrative · Fox & bird performance</option>
+          <option value="characters">ArtCraft · Fox & kingfisher</option>
           <option value="orbit">Astronomy · Illustrated orbit</option>
           <option value="circuit">Engineering · Signal pathway</option>
         </select>
@@ -262,11 +302,34 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
         <input aria-label="World camera" type="checkbox" checked={cameraEnabled}
           onChange={e => setCameraEnabled(e.target.checked)}/> Gentle camera move
       </label>
+      {subject==="characters"&&<label style={label}>ArtCraft anatomy crop
+        <select aria-label="Character inspection" value={characterInspection}
+          onChange={e=>{setPlaying(false);setCharacterInspection(
+            e.target.value as typeof characterInspection);}}>
+          <option value="composition">Whole composition</option>
+          <option value="fox-eye">Fox eyelid, cheek and whiskers</option>
+          <option value="fox-paw">Fox digits and floor contact</option>
+          <option value="fox-ruff">Fox rooted hair groups and ruff</option>
+          <option value="kingfisher-bill">Kingfisher beak and iris</option>
+          <option value="kingfisher-wing">Kingfisher rachis and coverts</option>
+          <option value="kingfisher-coverts">Kingfisher fine feather coverts</option>
+        </select>
+      </label>}
+      {subject==="characters"&&<label style={label}>Editable fine-fibre animation
+        <select aria-label="Character fine fibres" value={fibreMode}
+          onChange={e=>{setPlaying(false);
+            setFibreMode(e.target.value as typeof fibreMode);}}>
+          <option value="animated">Independent tuft / feather poses</option>
+          <option value="fixed">Fixed marks, parent motion only</option>
+          <option value="hidden">Hide authored fibre tracts</option>
+        </select>
+      </label>}
     </div>
     <div style={{ width: "100%", maxWidth: aspect === "landscape" ? 960 : 510, background: "#F8F2E6",
       aspectRatio: aspect === "landscape" ? "16/9" : "9/16",
-      boxShadow: "0 16px 44px #514d3d26" }}>
-      <PencilScene scene={scene} frame={frame} label={"Original illustrated " + subject + " story"}/>
+      boxShadow: "0 16px 44px #514d3d26", overflow:"hidden" }}>
+      <PencilScene scene={scene} frame={frame} style={artworkStyle}
+        label={"Original illustrated " + subject + " story"}/>
     </div>
     <div style={{ display: "grid", maxWidth: 960, gap: 8 }}>
       <label style={{ ...label, width: "100%" }}>World frame · {frame} / 320
@@ -317,8 +380,9 @@ function CharacterFilmStudio() {
       Coloured Pencil · Original Character Film
     </h1>
     <p style={{ maxWidth: 840, margin: 0 }}>
-      Graphite construction → the fox walks and greets → the bird blinks and flaps.
-      All keyframes are authored in paper coordinates and sampled by FilmStage, not an independent clock.
+      Graphite construction → a fox raises its forepaw → a kingfisher blinks and flexes its layered wings.
+      This replaces the former cartoon actors with anatomically structured pencil drawings.
+      All keyframes use paper coordinates sampled by FilmStage, not an independent clock.
     </p>
     <div style={{ display: "flex", alignItems: "end", gap: 14, flexWrap: "wrap" }}>
       <label style={label}>Character film output
@@ -378,4 +442,92 @@ export const CharacterFilm: StoryObj<typeof meta> = {
   name: "Character film · Three-shot FilmStage",
   args: { aspect: "landscape", subject: "leaf", frame: 220 },
   render: () => <CharacterFilmStudio/>,
+};
+
+/** Study the physical pencil marks visible in the supplied references, using only original demo art. */
+function PencilMarkLaboratory() {
+  const [texture, setTexture] = useState<NonNullable<PencilPigmentLayer["texture"]>>("fiber");
+  const [subject, setSubject] = useState<PencilSubject>("leaf");
+  const [aspect, setAspect] = useState<PencilAspect>("landscape");
+  const [frame, setFrame] = useState(275);
+  const drawing = useMemo<PencilDrawingSpec>(() => {
+    const original = coloredPencilExample(subject, aspect);
+    return { ...original, regions: original.regions.map(region => ({
+      ...region, layers: region.layers.map((layer, index) => ({
+        ...layer, texture: index === 1 ? "hatch" as const : texture,
+      })),
+    })) };
+  }, [subject, aspect, texture]);
+  return <main style={page}>
+    <h1 style={{ font: "600 30px Georgia,serif", margin: 0 }}>Colour-pencil · Mark-making laboratory</h1>
+    <p style={{ maxWidth: 780, margin: 0 }}>Compare long hatches, short directional feather fibres,
+      and fine graphite-like stippling. The second pigment pass retains long hatches for colour
+      blending. Every mark belongs to the paper and stays stable during seeking.</p>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "end" }}>
+      <label style={label}>Mark family
+        <select aria-label="Pencil mark family" value={texture}
+          onChange={e => setTexture(e.target.value as typeof texture)}>
+          <option value="hatch">Long hatch strokes</option>
+          <option value="fiber">Short fibres (feathers / grass / hair)</option>
+          <option value="stipple">Stipple taps (stone / bark / grain)</option>
+        </select>
+      </label>
+      <label style={label}>Original subject
+        <select aria-label="Mark lab specimen" value={subject}
+          onChange={e => setSubject(e.target.value as PencilSubject)}>
+          <option value="leaf">Leaf</option><option value="crystal">Crystal</option>
+        </select>
+      </label>
+      <label style={label}>Aspect
+        <select aria-label="Mark lab aspect" value={aspect}
+          onChange={e => setAspect(e.target.value as PencilAspect)}>
+          <option value="landscape">16:9</option><option value="portrait">9:16</option>
+        </select>
+      </label>
+      <label style={label}>Frame · {frame}
+        <input aria-label="Mark lab drawing frame" type="range" min={0} max={352}
+          value={frame} onChange={e => setFrame(Number(e.target.value))}/>
+      </label>
+    </div>
+    <div style={{ maxWidth: aspect === "landscape" ? 960 : 500, width: "100%",
+      boxShadow: "0 16px 44px #514d3d26" }}>
+      <PencilDrawing drawing={drawing} frame={frame}/>
+    </div>
+    <p style={{ maxWidth: 780, fontSize: 13, color: "#536455" }}>
+      Material technique preview only. Portraits, architecture, wildlife and landscapes need
+      individually authored shapes, anatomy and composition before artistic approval.</p>
+  </main>;
+}
+export const MarkMakingLaboratory: StoryObj<typeof meta> = {
+  name: "Mark-making · Hatches, fibres and stipples",
+  args: { aspect: "landscape", subject: "leaf", frame: 275 },
+  render: () => <PencilMarkLaboratory/>,
+};
+
+/** One more story in the existing Colour-pencil root; never a second sidebar folder. */
+export const ObjectMaterialAtelier: StoryObj<typeof meta> = {
+  name: "Objects · Rose, glass, masonry and fabric",
+  args: {aspect:"landscape",subject:"leaf",frame:325},
+  render: () => <PencilObjectAtelier/>,
+};
+
+/** Same Video Production/Film Looks/Colour-pencil group, no new Storybook folder. */
+export const LivingSubjectsAtelier: StoryObj<typeof meta> = {
+  name: "ArtCraft · Stylized vector faces and landscape (construction study)",
+  args: {aspect:"landscape",subject:"leaf",frame:325},
+  render: () => <PencilLivingAtelier/>,
+};
+
+/** A new implementation under the SAME Colour-pencil folder. Photos are CC0 or uploaded locally. */
+export const ReferenceGuidedPencil: StoryObj<typeof meta> = {
+  name: "ArtCraft · Reference-guided real anatomy (experimental)",
+  args: {aspect:"landscape",subject:"leaf",frame:325},
+  render:()=> <ReferencePencilAtelier/>,
+};
+
+/** Dedicated real-anatomy study inside the SAME existing Colour-pencil folder. */
+export const ReferenceGuidedFaces: StoryObj<typeof meta> = {
+  name:"ArtCraft · Realistic fox and human faces (CC0 photo-guided)",
+  args:{aspect:"landscape",subject:"leaf",frame:325},
+  render:()=> <ReferencePencilAtelier initialSample="woman"/>,
 };

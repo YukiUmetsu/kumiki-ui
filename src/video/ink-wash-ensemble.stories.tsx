@@ -176,7 +176,9 @@ function Studio(){
   </main>;
 }
 const meta={title:"Video production/Film Looks/Chinese Ink/Ensemble",id:"video-ink-ensemble",
-  component:Studio,parameters:{layout:"fullscreen"}} satisfies Meta<typeof Studio>;
+  component:Studio,parameters:{layout:"fullscreen"},
+  // Shared film surface requiring an absolute frame from its host; not a story.
+  excludeStories:["InkEnsembleFilm"]} satisfies Meta<typeof Studio>;
 export default meta;
 export const InkEnsembleStory:StoryObj<typeof meta>={
   name:"Chinese Ink · Ensemble Character Acting",

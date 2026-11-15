@@ -1,5 +1,8 @@
 # 35B — Watercolour / brush motion and craft reference audit
 
+> **WC16 corrective status (2026-11-14):** All rejected WC11–WC15 human portrait faces and two-sitter visual demos have been removed from source and public Storybook. The previous positive portrait claims in the historical sections below are superseded. See the [new masterwork portrait reference atlas](research/watercolour-portrait-masterwork-reference-atlas.md) and the in-folder `02 Portrait Reference Atelier` Storybook entry. Do not restore rejected faces or promote a replacement until close-up artist acceptance.
+
+
 **Scope:** WM1 pressure brush + WM2 painted compositions.  
 **Purpose:** inspect film craft before inventing shader effects or copying another studio's pictures.  
 **Evidence status (2026-11-14):** creator-authored video descriptions, published technique chapters, still references, and paper research verified online. **No claim of downloading/watching each complete hosted film frame-by-frame.** Full motion reviews and image-level timing analysis are a separate, incomplete gate.
@@ -70,3 +73,15 @@
 - **Material:** wet vs dry edge differs; secondary pigment glazes visibly; reserves expose the *paper*, not opaque white patches; no polka-dot spotting or mechanical parallel stripes.
 - **Motion:** same frame after nonsequential seek matches visually; when static, no accidental boil/flicker; camera drift keeps paper and pigment in one coordinate system.
 - **Export:** both ratios, normal speed in an encoded file, actual browser screenshots and frame audit warnings; no approval for non-played files.
+
+## WC13 portrait reconstruction study (2026-11-14)
+
+New two-sitter reference-led human character construction: [original portrait geometry and ArtCraft craft audit](research/watercolour-human-portrait-reference-rebuild.md). Includes facial topology, material observations, source images, Storybook integration and remaining normal-speed visual acceptance. No reference image pixels were redistributed.
+
+## WC14 two-character watercolor identity and motion (2026-11-14)
+
+See [WC14 ArtCraft identity and ensemble study](research/watercolour-wc14-ensemble-and-identity-craft.md): distinct sitter-specific face topology, eye locations, nose/mouth geometry, root-directed non-periodic hair/beard marks, and serializable 1–3 actor staging on common watercolor paper. The production film and native Storybook story share frame-pure motion and a strict cast validator. **Browser screenshot and normal-speed film artistic signoff remain independent gates.**
+
+## WC15 source-space facial brushwork and attached performer motion (2026-11-14)
+
+See [WC15 expressive portrait ArtCraft study](research/watercolour-wc15-expressive-portrait-artcraft.md): anatomical/value painting for eye sockets, malar planes, nose wings, jaw and lips; root-directed wet hair/cloth washes; a connected back-hair/face/fringe/beard performance rig; and in-Storybook **same-frame craft comparison**. Automated structural, rendering and native-browser tests are not a substitute for high-resolution portrait aesthetic acceptance. Full-body acting and final MP4 review remain outstanding.

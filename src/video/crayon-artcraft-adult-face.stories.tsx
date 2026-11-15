@@ -1,0 +1,141 @@
+import {useMemo} from "react";
+import type {Meta,StoryObj} from "@storybook/react-vite";
+import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
+import type {CrayonSceneSpec} from "../../registry/video/materials/crayon-scene";
+import {crayonAdultFaceStudy} from "./crayon-artcraft-adult-face-fixtures";
+import {useCrayonStoryPlayback} from "./crayon-story-playback";
+
+/** ArtCraft reference crops use only the native CRAYON1 camera; source marks remain unchanged. */
+export type ArtcraftInspection="full"|"face"|"eyes"|"nose-mouth"|"garment";
+const inspectionFocus={
+  landscape:{
+    face:{focusX:480,focusY:194,zoom:1.55},
+    eyes:{focusX:477,focusY:162,zoom:2.5},
+    "nose-mouth":{focusX:480,focusY:267,zoom:2.65},
+    garment:{focusX:480,focusY:405,zoom:1.85},
+  },
+  portrait:{
+    face:{focusX:270,focusY:330,zoom:1.5},
+    eyes:{focusX:270,focusY:243,zoom:2.15},
+    "nose-mouth":{focusX:270,focusY:431,zoom:2.7},
+    garment:{focusX:270,focusY:726,zoom:1.5},
+  },
+} as const;
+/** Original wax geometry, palette and seed remain immutable in inspection. */
+export function crayonArtcraftInspectionSpec(
+  spec:CrayonSceneSpec,inspection:ArtcraftInspection,
+):CrayonSceneSpec{
+  if(inspection==="full")return spec;
+  const aspect=spec.height>spec.width?"portrait":"landscape";
+  const focus=inspectionFocus[aspect][inspection];
+  if(!focus)throw new RangeError("Unknown ArtCraft inspection region");
+  return {...spec,camera:[{frame:0,...focus},{frame:spec.durationFrames-1,...focus}]};
+}
+/** ArtCraft unapproved evidence bench; not a public character showcase. */
+interface StudyProps {
+  aspect:"landscape"|"portrait";
+  detail:number;expression:"warm"|"neutral";headScaleY:number;
+  startFrame:number;playbackRate:number;loop:boolean;
+  inspection?:ArtcraftInspection;
+}
+export function AdultFaceArtcraftWorkbench({aspect,detail,expression,headScaleY,startFrame,playbackRate,loop,inspection="full"}:StudyProps){
+  // Source geometry is expensive and independent of the animation playhead.
+  const spec=useMemo(()=>crayonAdultFaceStudy(aspect,{detail,expression,headScaleY}),
+    [aspect,detail,expression,headScaleY]);
+  const framed=useMemo(()=>crayonArtcraftInspectionSpec(spec,inspection),[spec,inspection]);
+  const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
+    startFrame,spec.durationFrames,"adult-face-artcraft:"+aspect+":"+expression+":"+headScaleY,playbackRate,loop);
+  return <div data-km-crayon-artcraft-inspection={inspection} style={{maxWidth:1040,margin:"auto",padding:16,color:"#34333d",
+    background:"#efe7db",fontFamily:"system-ui",boxSizing:"border-box"}}>
+    <div style={{fontSize:18,fontWeight:700}}>ArtCraft — adult facial anatomy (unapproved)</div>
+    <p style={{maxWidth:640,lineHeight:1.6,margin:"7px 0 13px",fontSize:13}}>
+      Original source geometry: independent lids, tear ducts, orbital shadows,
+      nasal sidewall, alar cartilage, jaw planes and rooted hair. This is a
+      construction review, not a finished character. Text remains outside SVG.
+    </p>
+    <div style={{width:aspect==="portrait"?"min(100%,420px)":"100%",
+      aspectRatio:aspect==="portrait"?"540/960":"960/540",
+      margin:"0 auto",border:"9px solid #fff7e8",boxSizing:"border-box"}}>
+      <CrayonScene spec={framed} frame={frame}/>
+    </div>
+    <div style={{display:"flex",alignItems:"center",flexWrap:"wrap",
+      gap:12,marginTop:16}}>
+      <button type="button" onClick={toggle}>{playing?"Pause":"Play film"}</button>
+      <button type="button" onClick={restart}>Restart</button>
+      <label>Frame <input type="range" min={0} max={299} value={frame}
+        onChange={e=>seek(Number(e.target.value))}/></label>
+      <output style={{fontVariantNumeric:"tabular-nums"}}>{frame}</output>
+      <button type="button" onClick={()=>seek(299)}>Inspect final</button>
+    </div>
+  </div>;
+}
+/** Matched two-up proof: same material, pose, frame and scale; expression alone changes. */
+export function AdultFaceExpressionComparison({aspect,detail,headScaleY,startFrame,playbackRate,loop,inspection="full"}:StudyProps){
+  // Reuse identical source geometry while the shared playhead advances.
+  // Two full handcrafted SVG studies are intentionally rendered in this bench.
+  const warm=useMemo(()=>crayonAdultFaceStudy(aspect,{detail,headScaleY,expression:"warm"}),
+    [aspect,detail,headScaleY]);
+  const neutral=useMemo(()=>crayonAdultFaceStudy(aspect,{detail,headScaleY,expression:"neutral"}),
+    [aspect,detail,headScaleY]);
+  const framedWarm=useMemo(()=>crayonArtcraftInspectionSpec(warm,inspection),[warm,inspection]);
+  const framedNeutral=useMemo(()=>crayonArtcraftInspectionSpec(neutral,inspection),[neutral,inspection]);
+  const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
+    startFrame,warm.durationFrames,"adult-face-expression-compare:"+aspect+":"+headScaleY,
+    playbackRate,loop);
+  return <section data-km-crayon-artcraft-comparison="" data-km-crayon-artcraft-inspection={inspection}
+    style={{maxWidth:1120,margin:"auto",padding:16,background:"#efe7db",
+      color:"#34333d",fontFamily:"system-ui",boxSizing:"border-box"}}>
+    <h2 style={{fontSize:20,margin:"0 0 8px"}}>ArtCraft expression anatomy — review only</h2>
+    <p style={{fontSize:13,lineHeight:1.6,maxWidth:800,margin:"0 0 16px"}}>
+      Matched original three-quarter facial studies at exactly the same frame and scale.
+      Compare eyelids, commissures, cheeks and nasolabial tension before approving the design.
+      These studies are not approved production characters.
+    </p>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%, 340px),1fr))",gap:16}}>
+      {([{label:"Warm expression",spec:framedWarm},{label:"Neutral expression",spec:framedNeutral}] as const).map(({label,spec})=>
+        <figure key={label} style={{margin:0,minWidth:0}}>
+          <figcaption style={{fontWeight:700,marginBottom:8}}>{label}</figcaption>
+          <div style={{width:"100%",aspectRatio:aspect==="portrait"?"540 / 960":"960 / 540",
+            border:"7px solid #fff7e8",boxSizing:"border-box"}}>
+            <CrayonScene spec={spec} frame={frame}/>
+          </div>
+        </figure>)}
+    </div>
+    <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",marginTop:16}}>
+      <button type="button" onClick={toggle}>{playing?"Pause":"Play both"}</button>
+      <button type="button" onClick={restart}>Restart both</button>
+      <label>Shared frame <input type="range" min={0} max={warm.durationFrames-1}
+        value={frame} onChange={event=>seek(Number(event.target.value))}/></label>
+      <output aria-live="off" style={{fontVariantNumeric:"tabular-nums"}}>{frame}</output>
+      <button type="button" onClick={()=>seek(warm.durationFrames-1)}>Compare final</button>
+    </div>
+  </section>;
+}
+const meta={
+  title:"Video production/Film Looks/Crayon/Characters/ArtCraft Adult Face Lab",
+  id:"video-crayon-artcraft-adult-face",
+  tags:["!dev"],
+  component:AdultFaceArtcraftWorkbench,
+  args:{aspect:"landscape",detail:1,expression:"warm",headScaleY:.82,startFrame:299,playbackRate:1,loop:false,inspection:"full"},
+  argTypes:{aspect:{control:"inline-radio",options:["landscape","portrait"]},
+    detail:{control:{type:"range",min:0,max:1,step:.05}},
+    inspection:{control:"select",options:["full","face","eyes","nose-mouth","garment"],
+      description:"Native CRAYON1 camera crops; identical wax seed and anatomy"},
+    expression:{control:"inline-radio",options:["warm","neutral"]},
+    headScaleY:{control:{type:"range",min:.72,max:1,step:.01},
+      description:"ArtCraft skull proportion: 1 reproduces the rejected elongated head"},
+    startFrame:{control:{type:"range",min:0,max:299,step:1}},
+    playbackRate:{control:{type:"range",min:.25,max:2,step:.25}},
+    loop:{control:"boolean"}},
+} satisfies Meta<typeof AdultFaceArtcraftWorkbench>;
+export default meta;
+type Story=StoryObj<typeof meta>;
+export const AdultFaceThreeQuarter:Story={};
+export const AdultFacePortrait:Story={args:{aspect:"portrait"}};
+export const AdultFaceConstruction:Story={args:{startFrame:160}};
+export const MatchedExpressionComparison:Story={render:args=><AdultFaceExpressionComparison {...args}/>};
+export const MatchedExpressionPortrait:Story={args:{aspect:"portrait"},render:args=><AdultFaceExpressionComparison {...args}/>};
+export const EyeStructureMacro:Story={args:{inspection:"eyes",startFrame:299}};
+export const LipAndNoseMacro:Story={args:{inspection:"nose-mouth",startFrame:299}};
+export const TailoredGarmentMacro:Story={args:{inspection:"garment",startFrame:299}};
+export const MatchedEyesMacro:Story={args:{inspection:"eyes",startFrame:299},render:args=><AdultFaceExpressionComparison {...args}/>};

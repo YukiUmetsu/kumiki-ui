@@ -1,9 +1,29 @@
+import { PaperCraftStage } from "../../registry/video/paper-craft-react";
+import { PAPER_STYLES } from "../../registry/video/paper-craft";
+import type { PaperStyle } from "../../registry/video/paper-craft";
+import { paperCraftExampleSpec } from "../video/paper-craft-demo";
+import { paperBotanicalSpec } from "../../registry/video/paper-botanical-kit";
+import { paperObjectSpec, PAPER_OBJECTS, PAPER_OBJECT_PALETTES } from "../../registry/video/paper-object-kit";
+import { paperScenerySpec, PAPER_SCENERIES, PAPER_SCENERY_PALETTES } from "../../registry/video/paper-scenery-kit";
+import type { PaperScenery, PaperSceneryPalette } from "../../registry/video/paper-scenery-kit";
+import type { PaperObject, PaperObjectPalette } from "../../registry/video/paper-object-kit";
+import type { PaperBotanicalPalette } from "../../registry/video/paper-botanical-kit";
 import { InkBrushPoster } from "../video/ink-brush-demo";
 import "../styles/collage-fonts.css";
 import { renderCollageSlot } from "../video/collage-slot";
 import { CrayonStorybook } from "../../registry/video/materials/crayon-react";
 import { CrayonScene } from "../../registry/video/materials/crayon-scene-react";
 import { assertCrayonScene } from "../../registry/video/materials/crayon-scene";
+import { crayonPerformanceScene } from "../video/crayon-performance-fixtures";
+import { crayonDragonVillageScene } from "../video/crayon-dragon-village-fixtures";
+import { crayonWildlifePortraitScene } from "../video/crayon-wildlife-portrait-fixtures";
+import type { CrayonWildlifePortraitOptions } from "../video/crayon-wildlife-portrait-fixtures";
+import type { CrayonDragonVillageOptions } from "../video/crayon-dragon-village-fixtures";
+import { WetStudyPage, wetPaperDemo } from "../video/watercolour-wet-paper-demo";
+import { WatercolourIllustration } from "../../registry/video/watercolour-illustration";
+import { watercolorWetlandSpec } from "../video/watercolour-art-director-demo";
+import { WatercolourMasterStudyPage, watercolourStudySpec, WATERCOLOUR_STUDIES } from "../video/watercolour-master-studies";
+import type { WatercolourStudy } from "../video/watercolour-master-studies";
 import { PaintedTravellerPage } from "../video/watercolour-actor-demo";
 import { PaintedWorldPage } from "../video/painted-composition-page";
 import { paintedDemoSpec, paintedCameraAt } from "../video/painted-composition-demo";
@@ -15,6 +35,7 @@ import { RisoPrint } from "../../registry/video/print-plates-react";
 import { ColoredPencilSciencePlate } from "../video/colored-pencil-science";
 import { PencilScene } from "../../registry/video/colored-pencil-scene-react";
 import { pencilCharacterScene } from "../video/colored-pencil-character-scenes";
+import { pencilWildlifeScene } from "../video/colored-pencil-wildlife";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
 import { RisoSheetFeed, completedRisoFrame } from "../../registry/video/riso-sheet-feed";
@@ -678,6 +699,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
   }
   const watercolorSheets = new Map<string, ReturnType<typeof paintExampleSpec>>();
   const pencilCharacterSheets = new Map<"landscape" | "portrait", ReturnType<typeof pencilCharacterScene>>();
+  const pencilWildlifeSheets = new Map<"landscape" | "portrait", ReturnType<typeof pencilWildlifeScene>>();
   const paintedWorlds = new Map<string, ReturnType<typeof paintedDemoSpec>>();
   return (content, context) => {
     const props = content.props ?? {};
@@ -704,6 +726,35 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         if (scene.durationFrames !== context.durationFrames)
           throw new RangeError("crayon-scene durationFrames must match its film shot duration");
         return <CrayonScene spec={scene} frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
+      // Compact, source-authored export proof for the exact original Storybook
+      // character rigs. Avoid copying hundreds of wax nodes into two large
+      // static JSON blobs just to verify film output in both aspect ratios.
+      case "crayon-character-film": {
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const subject = props.subject;
+        if (subject !== "performance" && subject !== "dragon-village" && subject !== "wildlife-hare")
+          throw new RangeError("crayon-character-film subject must be performance, dragon-village or wildlife-hare");
+        const rawOptions = props.options;
+        if (rawOptions !== undefined && (
+          subject === "performance" || !rawOptions || Array.isArray(rawOptions) ||
+          typeof rawOptions !== "object"))
+          throw new RangeError("crayon-character-film options apply only to dragon-village as an object");
+        const allowed = subject === "wildlife-hare"
+          ? ["detail","earMotion"]
+          : ["wingPower","detail","followThrough","redrawStrength",
+            "exposureFrames","cast","palette","shot"];
+        if (rawOptions && Object.keys(rawOptions).some(key=>!allowed.includes(key)))
+          throw new RangeError("crayon-character-film options contain an unknown field");
+        const scene = subject === "performance" ? crayonPerformanceScene(aspect) :
+          subject === "wildlife-hare"
+            ? crayonWildlifePortraitScene(aspect, rawOptions as CrayonWildlifePortraitOptions | undefined)
+            : crayonDragonVillageScene(aspect, rawOptions as Partial<CrayonDragonVillageOptions> | undefined);
+        if (scene.width !== context.width || scene.height !== context.height ||
+          scene.durationFrames !== context.durationFrames)
+          throw new RangeError("crayon-character-film dimensions and duration must match the FilmStage shot");
+        return <CrayonScene spec={scene} frame={context.frame}
+          reducedMotion={context.reducedMotion}/>;
       }
       case "crayon-storybook": {
         const rawOffset = props.offsetFrame ?? 0;
@@ -750,6 +801,47 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           frame={context.frame} reducedMotion={context.reducedMotion}
           camera={paintedCameraAt(context.frame, context.reducedMotion)}/>;
       }
+      case "watercolour-illustration": {
+        const seed=props.seed??83;
+        if(typeof seed!=="number"||!Number.isSafeInteger(seed)||seed<0||seed>2147483647)
+          throw new RangeError("watercolour-illustration requires a nonnegative 31-bit seed.");
+        const subject=props.subject??"heron-wetland";
+        // Retire all previously rejected human face designs rather than
+        // silently generating them from historic portable film JSON.
+        if(subject!=="heron-wetland")
+          throw new RangeError("Watercolor portraits are retired pending an approved reference-led rebuild; use heron-wetland.");
+        const output=context.width>context.height?"landscape":"portrait";
+        return <WatercolourIllustration spec={watercolorWetlandSpec(output,seed)}
+          frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
+      case "watercolour-portrait-ensemble":
+        throw new RangeError("The rejected watercolor portrait ensemble is retired pending a new approved design.");
+      case "watercolour-master-study": {
+        const raw = props.study;
+        if (typeof raw !== "string" || !WATERCOLOUR_STUDIES.some(study => study === raw))
+          throw new RangeError("watercolour-master-study requires botanical, estuary or courtyard.");
+        const study = raw as WatercolourStudy;
+        const output = context.width > context.height ? "landscape" : "portrait";
+        if (props.artOnly!==undefined && typeof props.artOnly!=="boolean")
+          throw new RangeError("watercolour-master-study artOnly must be boolean.");
+        if(props.materialDepth!==undefined && (typeof props.materialDepth!=="number" ||
+          !Number.isFinite(props.materialDepth) || props.materialDepth<0 || props.materialDepth>1))
+          throw new RangeError("watercolour-master-study materialDepth must be 0..1.");
+        if(props.craftDetail!==undefined && (typeof props.craftDetail!=="number" ||
+          !Number.isFinite(props.craftDetail) || props.craftDetail<0 || props.craftDetail>1))
+          throw new RangeError("watercolour-master-study craftDetail must be 0..1.");
+        return <WatercolourMasterStudyPage study={study}
+          spec={watercolourStudySpec(study,output)}
+          frame={context.frame} reducedMotion={context.reducedMotion}
+          artOnly={props.artOnly===true}
+          craftDetail={typeof props.craftDetail==="number"?props.craftDetail:1}
+          materialDepth={typeof props.materialDepth==="number"?props.materialDepth:1}/>;
+      }
+      case "watercolour-wet-paper": {
+        const output = context.width > context.height ? "landscape" : "portrait";
+        return <WetStudyPage spec={wetPaperDemo(output)}
+          frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
       case "watercolour-brush": {
         const subject = props.subject;
         if (subject !== "wild-iris" && subject !== "coastal-dawn")
@@ -788,6 +880,19 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         }
         return <PencilScene scene={scene} frame={rawOffset + context.frame}
           reducedMotion={context.reducedMotion} label="Original two-character pencil animation"/>;
+      }
+      case "colored-pencil-wildlife": {
+        const offset = props.offsetFrame ?? 0;
+        if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0)
+          throw new RangeError("colored-pencil-wildlife offsetFrame must be a nonnegative integer.");
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        let scene = pencilWildlifeSheets.get(aspect);
+        if (!scene) {
+          scene = pencilWildlifeScene({ aspect });
+          pencilWildlifeSheets.set(aspect, scene);
+        }
+        return <PencilScene scene={scene} frame={offset + context.frame}
+          reducedMotion={context.reducedMotion} label="Original fine-feathered songbird pencil illustration"/>;
       }
       case "riso-character-performance": {
         const rawOffset = props.offsetFrame ?? 0;
@@ -831,7 +936,77 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           reducedMotion={context.reducedMotion}/>;
       }
 
-      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
+      case "paper-craft-study": {
+        const raw = props.medium ?? "layered";
+        if (typeof raw !== "string" || !PAPER_STYLES.includes(raw as PaperStyle))
+          throw new RangeError("paper-craft-study requires a known paper medium.");
+        const offset = props.offsetFrame ?? 0;
+        if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0)
+          throw new RangeError("paper-craft-study offsetFrame must be a nonnegative integer.");
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const artwork = props.artwork ?? "garden";
+        if (artwork !== "garden" && artwork !== "botanical" && artwork !== "object" && artwork !== "scenery")
+          throw new RangeError("paper-craft-study artwork must be garden, botanical, scenery or object.");
+        const palette = props.palette ?? "nocturne";
+        if (!["nocturne","ivory","rainforest","wildflower"].includes(palette as string))
+          throw new RangeError("paper-craft-study palette must be nocturne, ivory, rainforest or wildflower.");
+        const detail = props.detail ?? .82;
+        if (typeof detail !== "number" || !Number.isFinite(detail) || detail < 0 || detail > 1)
+          throw new RangeError("paper-craft-study detail must be finite between 0 and 1.");
+        const colorLayers = props.colorLayers ?? 1;
+        if (typeof colorLayers !== "number" || !Number.isFinite(colorLayers) ||
+            colorLayers < 0 || colorLayers > 1)
+          throw new RangeError("paper-craft-study colorLayers must be between 0 and 1.");
+        const curl = props.curl ?? .85;
+        const motion = props.motion ?? 1;
+        const relief = props.relief ?? 1;
+        if (artwork === "object" || artwork === "scenery") {
+          for(const [key,value] of (artwork === "scenery" ? [["relief",relief]] : [["curl",curl],["motion",motion],["relief",relief]]) as (readonly [string, unknown])[])
+            if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1)
+              throw new RangeError("paper-craft-study "+key+" must be finite between 0 and 1.");
+        }
+        const seed = props.seed ?? 37;
+        if (typeof seed !== "number" || !Number.isSafeInteger(seed))
+          throw new RangeError("paper-craft-study seed must be a safe integer.");
+        const object = props.object ?? "kingfisher";
+        const objectPalette = props.objectPalette ?? "jewel";
+        if (artwork === "object") {
+          if (typeof object !== "string" || !PAPER_OBJECTS.includes(object as PaperObject))
+            throw new RangeError("paper-craft-study object must be a known paper sculpture.");
+          if (typeof objectPalette !== "string" || !PAPER_OBJECT_PALETTES.includes(objectPalette as PaperObjectPalette))
+            throw new RangeError("paper-craft-study objectPalette must be jewel, pastel or heritage.");
+        }
+        const scenery = props.scenery ?? "woodland";
+        const sceneryPalette = props.sceneryPalette ?? "sage";
+        const breeze = props.breeze ?? .5;
+        if (artwork === "scenery") {
+          if (typeof scenery !== "string" || !PAPER_SCENERIES.includes(scenery as PaperScenery))
+            throw new RangeError("paper-craft-study scenery must be woodland or alpine-lake.");
+          if (typeof sceneryPalette !== "string" ||
+              !PAPER_SCENERY_PALETTES.includes(sceneryPalette as PaperSceneryPalette))
+            throw new RangeError("paper-craft-study sceneryPalette must be sage, ember or moonlight.");
+          if (typeof breeze !== "number" || !Number.isFinite(breeze) || breeze < 0 || breeze > 1)
+            throw new RangeError("paper-craft-study breeze must be finite between 0 and 1.");
+        }
+        const paper = artwork === "botanical"
+          ? paperBotanicalSpec(raw as PaperStyle, aspect, {
+            palette: palette as PaperBotanicalPalette, detail, colorLayers, seed })
+          : artwork === "scenery"
+            ? paperScenerySpec(raw as PaperStyle, aspect, {
+              scenery: scenery as PaperScenery, palette: sceneryPalette as PaperSceneryPalette,
+              detail, breeze: breeze as number, relief:relief as number, seed })
+          : artwork === "object"
+            ? paperObjectSpec(raw as PaperStyle, aspect, {
+              object: object as PaperObject, palette: objectPalette as PaperObjectPalette, detail, curl:curl as number, motion:motion as number, relief:relief as number, seed })
+            : paperCraftExampleSpec(raw as PaperStyle, aspect, seed);
+        const absoluteFrame = offset + context.frame;
+        if (!Number.isSafeInteger(absoluteFrame)) throw new RangeError("Invalid paper frame.");
+        return <PaperCraftStage spec={paper}
+          frame={absoluteFrame} reducedMotion={context.reducedMotion}
+          tooth={.62} shadowStrength={.92} edgeStrength={.68} curlStrength={1} liftStrength={1}/>
+      }
+
+      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-character-film, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, watercolour-wet-paper, watercolour-master-study, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
     }
   };
 }

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "crayon-painted-exposure-preview",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "wax-figure-in-motion",
+      "recipeId": "slot",
+      "durationFrames": 48,
+      "content": {
+        "slot": "crayon-storybook",
+        "label": "Original crayon fox oil-pastel deposition and redrawn wax",
+        "props": {
+          "offsetFrame": 269
+        }
+      }
+    }
+  ]
+}

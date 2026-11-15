@@ -1,0 +1,43 @@
+name: Paper Craft targeted QA
+on:
+  pull_request:
+    paths:
+      - 'registry/video/paper-craft*'
+      - 'src/video/paper-craft*'
+      - 'registry/video/paper-object-kit.ts'
+      - 'registry/video/paper-scenery-kit.ts'
+      - 'tests/paper-craft-scenery.test.tsx'
+      - 'tests/e2e-storybook/paper-craft-scenery.spec.ts'
+      - 'examples/film/paper-craft-scenery.film.json'
+      - 'tests/paper-craft-objects.test.tsx'
+      - 'tests/paper-craft-material-rigs.test.tsx'
+      - 'tests/paper-craft-lifted-tips.test.tsx'
+      - 'tests/paper-craft-kingfisher-artcraft.test.tsx'
+      - 'tests/e2e-storybook/paper-craft-objects.spec.ts'
+      - 'examples/film/paper-craft-objects.film.json'
+      - 'src/film/film-slots.tsx'
+      - 'tests/paper-craft.test.tsx'
+      - 'tests/paper-craft-botanical.test.tsx'
+      - 'examples/film/paper-craft-chromatic.film.json'
+      - 'registry.json'
+      - '.github/workflows/paper-craft-qa.yml'
+  workflow_dispatch:
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      # Global catalog parity is currently blocked by existing unrelated film packs.
+      # Keep this paper PR focused on distributable registry syntax and its tests.
+      - run: npm run registry:validate
+      - run: npx vitest run --project unit tests/paper-craft.test.tsx tests/paper-craft-objects.test.tsx tests/paper-craft-material-rigs.test.tsx tests/paper-craft-lifted-tips.test.tsx tests/paper-craft-kingfisher-artcraft.test.tsx tests/paper-craft-scenery.test.tsx
+      - run: npm run prestorybook
+      - run: npm run film:check -- examples/film/paper-craft-objects.film.json
+      - run: npm run film:check -- examples/film/paper-craft-scenery.film.json

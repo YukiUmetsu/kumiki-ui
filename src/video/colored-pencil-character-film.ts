@@ -28,7 +28,7 @@ export const COLOR_PENCIL_CHARACTER_FILM: FilmDocument = {
       "durationFrames": 105,
       "content": {
         "slot": "colored-pencil-character",
-        "label": "Two original animal figures drawn in pencil",
+        "label": "Rebuilt red fox and kingfisher drawn in layered coloured pencil",
         "props": {
           "offsetFrame": 0
         }
@@ -43,7 +43,7 @@ export const COLOR_PENCIL_CHARACTER_FILM: FilmDocument = {
       },
       "content": {
         "slot": "colored-pencil-character",
-        "label": "Two-character acting with head turns and walking",
+        "label": "Fox head tilt and raised paw, kingfisher wing and head motion",
         "props": {
           "offsetFrame": 105
         }
@@ -58,7 +58,7 @@ export const COLOR_PENCIL_CHARACTER_FILM: FilmDocument = {
       },
       "content": {
         "slot": "colored-pencil-character",
-        "label": "Wave, wing gesture, blink and illustration hold",
+        "label": "Fur, feather and eye blink gestures with stationary foot contact",
         "props": {
           "offsetFrame": 215
         }

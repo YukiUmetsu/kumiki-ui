@@ -1,10 +1,13 @@
 import type { CrayonColor, CrayonElement, CrayonMotionKey, CrayonSceneSpec } from "../../registry/video/materials/crayon-scene";
 import { crayonPerformanceScene } from "./crayon-performance-fixtures";
+import { crayonFormHatching } from "./crayon-editorial-character-craft";
 import { crayonScaleField, crayonMasonryCourses, crayonRoofCourses } from "./crayon-craft-detail-patterns";
 
 /** Original crayon cast: a rigged dragon, forest friend and owl in a detailed village. */
 export interface CrayonDragonVillageOptions {
   wingPower:number; detail:number; followThrough:number;
+  /** Pigment reworking after each held exposure, 0..1. */
+  redrawStrength:number; exposureFrames:2|3|4|5|6;
   cast:"duo"|"trio"; palette:"teal"|"copper"|"plum";
   /** Alternate camera compositions that expose handcrafted anatomy and masonry. */
   shot:"wide"|"dragon"|"architecture";
@@ -45,12 +48,15 @@ export function crayonDragonVillageScene(
 ):CrayonSceneSpec {
   const wingPower=options.wingPower??1,detail=options.detail??.85,
     followThrough=options.followThrough??7,cast=options.cast??"trio",
-    palette=options.palette??"teal",shot=options.shot??"wide";
+    palette=options.palette??"teal",shot=options.shot??"wide",
+    redrawStrength=options.redrawStrength??.68,exposureFrames=options.exposureFrames??3;
   if(!Number.isFinite(wingPower)||wingPower<.5||wingPower>1.6 ||
     !Number.isFinite(detail)||detail<.25||detail>1 ||
     !Number.isSafeInteger(followThrough)||followThrough<0||followThrough>18 ||
     !["duo","trio"].includes(cast)||!(palette in palettes)||
-    !["wide","dragon","architecture"].includes(shot))
+    !["wide","dragon","architecture"].includes(shot)||
+    !Number.isFinite(redrawStrength)||redrawStrength<0||redrawStrength>1||
+    ![2,3,4,5,6].includes(exposureFrames))
     throw new RangeError("Invalid CRAYON1 dragon village settings");
   const portrait=aspect==="portrait",W=portrait?540:960,H=portrait?960:540,D=330;
   const dragon=palettes[palette];
@@ -61,6 +67,10 @@ export function crayonDragonVillageScene(
       pressure:.77,spacing:7,construction:build,
       coverage:/^(sky-paper|hills|village-moon|left-sky-cloud|right-sky-cloud)$/.test(id)
         ? "open" : "opaque",
+      redraw:/^(dragon|owl|friend)-/.test(id) ?
+        {holdFrames:exposureFrames,strength:redrawStrength,beginFrame:180}:undefined,
+      edgeRoughness:/^(dragon|owl|friend)-/.test(id) ? .72 :
+        /^(castle|western-shop|eastern-shop)/.test(id) ? .34 : 0,
       angle:id.includes("wing-")?(id.includes("far")?-21:23):
         id.includes("tail")?-16:id.includes("neck")?-27:
         id.includes("horn")?30:id.includes("leg")?16:
@@ -248,22 +258,23 @@ export function crayonDragonVillageScene(
       `M${at-x*17} -44h${x*5}M${at} -59v-5`,
       "#edc58c",1.7,{parentId:tower,timing:{start:137,end:196},opacity:.57});
   }
-  for(let i=0;i<12;i+=3){
-    const shinglePaths=Array.from({length:3},(_,k)=>{
-      const n=i+k,x=-48+(n%4)*29,y=-191+Math.floor(n/4)*10;
-      return `M${x} ${y}q9 3 17 0`;
-    }).join(" ");
-    line("castle-roof-shingle-"+i,shinglePaths,
-      "#c6c0c5",1.6,{parentId:tower,timing:{start:103+i,end:168+i},opacity:.52});
-  }
+  // One original SVG drawing can hold related roof courses: retain the
+  // engraved geometry without turning every small group into a new actor.
+  const shinglePaths=Array.from({length:12},(_,n)=>{
+    const x=-48+(n%4)*29,y=-191+Math.floor(n/4)*10;
+    return `M${x} ${y}q9 3 17 0`;
+  }).join(" ");
+  line("castle-roof-shingle-0",shinglePaths,
+    "#c6c0c5",1.6,{parentId:tower,timing:{start:103,end:180},opacity:.52});
   wax("castle-terrace","M-81 -35H83V-17H-81Z",
     {x:-85,y:-40,width:172,height:28},shade,
     {parentId:tower,timing:{start:62,end:139}});
-  for(let i=0;i<Math.round(4+detail*7);i++){
+  const railingPath=Array.from({length:Math.round(4+detail*7)},(_,i)=>{
     const x=-78+i*14;
-    line("castle-railing-"+i,`M${x} -32V-5M${x-3} -9H${x+4}`,
-      "#887d86",2.3,{parentId:tower,timing:{start:72,end:155}});
-  }
+    return `M${x} -32V-5M${x-3} -9H${x+4}`;
+  }).join(" ");
+  line("castle-railing-0",railingPath,"#887d86",2.3,
+    {parentId:tower,timing:{start:72,end:155}});
   const masonryCount=Math.round(12+detail*24);
   for(let i=0;i<masonryCount;i+=4){
     const marks:string[]=[];
@@ -332,6 +343,15 @@ export function crayonDragonVillageScene(
     {x:-163,y:-198,width:130,height:192},dragon.wing,
     {parentId:root,pivot:{x:-43,y:-17},motion:wing(false),
       motionLagFrames:Math.min(24,followThrough+3),
+      drawings:[
+        {frame:138,d:"M-47 -16Q-97 -167 -169 -196Q-146 -177 -121 -158Q-106 -174 -81 -134Q-57 -153 -54 -94L-40 -34Z",
+          bounds:{x:-175,y:-204,width:142,height:200}},
+        {frame:181,d:"M-47 -16Q-78 -145 -151 -177Q-134 -158 -115 -143Q-97 -153 -75 -119Q-54 -128 -52 -86L-40 -34Z",
+          bounds:{x:-160,y:-186,width:128,height:181}},
+        {frame:225,d:"M-47 -16Q-94 -160 -163 -190Q-140 -172 -119 -153Q-99 -165 -80 -129Q-56 -142 -54 -90L-40 -34Z",
+          bounds:{x:-171,y:-200,width:140,height:196}},
+        {frame:278,d:"M-47 -16Q-89 -153 -159 -192Q-137 -175 -118 -153Q-99 -164 -81 -126Q-58 -141 -54 -91L-40 -34Z",bounds:{x:-163,y:-198,width:130,height:192}},
+      ],
       timing:{start:50,end:151},spacing:6});
   line("dragon-wing-far-ribs","M-43 -23Q-87 -139 -158 -191M-85 -109L-118 -152M-65 -77L-81 -125",
     "#667b8a",3,{parentId:"dragon-wing-far",timing:{start:92,end:174}});
@@ -345,9 +365,29 @@ export function crayonDragonVillageScene(
     "M-14 -24Q-23 -167 49 -218Q42 -181 76 -168Q39 -158 36 -123Q3 -137 -1 -87L-15 -38Z",
     {x:-26,y:-224,width:108,height:206},dragon.wing,
     {parentId:root,pivot:{x:-14,y:-24},motion:wing(true),
-      motionLagFrames:followThrough,timing:{start:53,end:155},spacing:6});
+      motionLagFrames:followThrough,
+      drawings:[
+        {frame:138,d:"M-14 -24Q-34 -172 46 -229Q50 -192 80 -175Q49 -163 30 -131Q0 -138 -3 -88L-15 -38Z",
+          bounds:{x:-36,y:-235,width:121,height:217}},
+        {frame:182,d:"M-14 -24Q-14 -151 58 -203Q48 -169 79 -155Q40 -151 41 -115Q9 -130 1 -84L-15 -38Z",
+          bounds:{x:-26,y:-209,width:111,height:194}},
+        {frame:227,d:"M-14 -24Q-27 -163 51 -221Q48 -181 79 -169Q42 -155 33 -125Q4 -138 -1 -85L-15 -38Z",
+          bounds:{x:-32,y:-227,width:114,height:211}},
+        {frame:272,d:"M-14 -24Q-30 -126 41 -192Q32 -163 69 -145Q38 -146 23 -103Q0 -115 -4 -79L-15 -38Z",
+          bounds:{x:-33,y:-199,width:105,height:182}},
+        {frame:312,d:"M-14 -24Q-23 -167 49 -218Q42 -181 76 -168Q39 -158 36 -123Q3 -137 -1 -87L-15 -38Z",
+          bounds:{x:-26,y:-224,width:108,height:206}},
+      ],
+      timing:{start:53,end:155},spacing:6});
   line("dragon-wing-near-ribs","M-14 -27Q-1 -159 49 -216M-10 -85Q14 -145 75 -168M-10 -88L36 -124",
-    "#647989",3.2,{parentId:"dragon-wing-near",timing:{start:91,end:177}});
+    "#647989",3.2,{parentId:"dragon-wing-near",timing:{start:91,end:177},
+      drawings:[
+        {frame:138,d:"M-14 -27Q-8 -167 46 -227M-10 -85Q11 -158 78 -174M-10 -88L31 -132"},
+        {frame:182,d:"M-14 -27Q4 -149 58 -201M-10 -85Q19 -140 76 -155M-10 -88L41 -117"},
+        {frame:227,d:"M-14 -27Q-2 -157 51 -220M-10 -85Q15 -148 79 -168M-10 -88L34 -126"},
+        {frame:272,d:"M-14 -27Q-5 -129 41 -190M-10 -85Q4 -130 68 -144M-10 -88L23 -103"},
+        {frame:312,d:"M-14 -27Q-1 -159 49 -216M-10 -85Q14 -145 75 -168M-10 -88L36 -124"},
+      ]});
   line("dragon-wing-near-membrane-veins",
     "M-4 -177Q9 -153 13 -125M18 -182Q22 -151 26 -137"+
     "M39 -170Q27 -142 31 -117M-5 -132Q3 -115 -1 -91"+
@@ -374,6 +414,11 @@ export function crayonDragonVillageScene(
       stepX:14,stepY:14,width:10,depth:5.8,seed:417,taper:1}),
     "#3f6273",1.9,{parentId:root,opacity:.58,
       timing:{start:128,end:238}});
+  line("dragon-flank-contour-hatching",
+    crayonFormHatching({seed:801,cx:-10,cy:9,rx:49,ry:30,angle:20,
+      count:Math.round(18+detail*66),length:11,curvature:.24}),
+    "#e8c9b1",1.18,{parentId:root,opacity:.48,
+      timing:{start:151,end:251}});
   line("dragon-flank-highlight-scales",
     crayonScaleField({x:-52,y:-30,rows:Math.round(2+detail*3),columns:Math.round(3+detail*4),
       stepX:14,stepY:14,width:7,depth:3,seed:914,taper:1}),
@@ -409,12 +454,22 @@ export function crayonDragonVillageScene(
   wax("dragon-belly","M-13 -22Q33 -30 62 4Q69 40 43 54Q10 65 -9 46Q15 17 -13 -22Z",
     {x:-21,y:-34,width:97,height:102},gold,
     {parentId:root,timing:{start:88,end:180},pressure:.58,spacing:5});
-  for(let i=0;i<Math.round(8+detail*7);i++){
-    const x=-57+i*9,y=-47+Math.sin(i*.42)*9;
-    wax("dragon-spine-"+i,
-      `M${x-7} ${y+13}L${x} ${y-6-(i%3)*3}L${x+10} ${y+11}Z`,
-      {x:x-9,y:y-23,width:22,height:38},dragon.dark,
-      {parentId:root,timing:{start:90+i*2,end:170+i*2},spacing:4.2});
+  // Keep original individual tapered spine points in the SVG, but paint
+  // short three-point anatomical groups as one connected source element.
+  // This reduces rig/DOM overhead without blurring the separate tips.
+  const spineCount=Math.round(8+detail*7);
+  for(let i=0;i<spineCount;i+=3){
+    const parts=Array.from({length:Math.min(3,spineCount-i)},(_,j)=>{
+      const n=i+j,x=-57+n*9,y=-47+Math.sin(n*.42)*9;
+      return {x,y,d:`M${x-7} ${y+13}L${x} ${y-6-(n%3)*3}L${x+10} ${y+11}Z`};
+    });
+    const minY=Math.min(...parts.map(v=>v.y-23));
+    const maxY=Math.max(...parts.map(v=>v.y+18));
+    wax("dragon-spine-"+i,parts.map(v=>v.d).join(" "),
+      {x:parts[0].x-9,y:minY,
+        width:parts[parts.length-1].x+13-(parts[0].x-9),
+        height:maxY-minY},dragon.dark,
+      {parentId:root,timing:{start:90+i*2,end:178+i*2},spacing:4.2});
   }
   const bellyScutes=Array.from({length:12},(_,i)=>{
     const x=-3+i*5.8,y=3+i*4.4;
@@ -430,11 +485,25 @@ export function crayonDragonVillageScene(
     {x:27,y:-92,width:94,height:109},dragon.skin,
     {parentId:root,pivot:{x:47,y:-16},motion:[
       move(0,-3),move(121,-3),move(174,-13),move(220,11),move(276,-4),move(329,-3)],
-      motionLagFrames:followThrough,timing:{start:72,end:170}});
+      motionLagFrames:followThrough,
+      drawings:[
+        {frame:168,d:"M35 -14Q30 -77 95 -88L118 -57Q83 -42 69 10Z",
+          bounds:{x:24,y:-96,width:100,height:114}},
+        {frame:221,d:"M35 -14Q52 -75 90 -81L111 -55Q89 -39 69 10Z",
+          bounds:{x:29,y:-89,width:90,height:108}},
+        {frame:280,d:"M35 -14Q42 -76 91 -84L115 -54Q84 -42 69 10Z",
+          bounds:{x:27,y:-92,width:94,height:109}},
+      ],
+      timing:{start:72,end:170}});
   line("dragon-neck-overlapping-scutes",
     crayonScaleField({x:48,y:-66,rows:4,columns:3,
       stepX:11,stepY:13,width:8,depth:4.5,seed:604,taper:3.1}),
     "#2f6775",1.95,{parentId:"dragon-neck",opacity:.56,timing:{start:143,end:222}});
+  line("dragon-neck-form-hatching",
+    crayonFormHatching({seed:804,cx:73,cy:-44,rx:17,ry:28,angle:-56,
+      count:Math.round(7+detail*37),length:8}),
+    "#f0c9a4",1.15,{parentId:"dragon-neck",opacity:.64,
+      timing:{start:160,end:247}});
   line("dragon-neck-belly-folds",
     "M62 -12Q80 -27 84 -51M55 -21Q73 -35 78 -56M53 -33Q65 -49 68 -62",
     "#f0c9a4",2.3,{parentId:"dragon-neck",opacity:.73,timing:{start:161,end:231}});
@@ -449,6 +518,11 @@ export function crayonDragonVillageScene(
     crayonScaleField({x:109,y:-86,rows:3,columns:4,
       stepX:11,stepY:10,width:7,depth:4.5,seed:724,taper:2}),
     "#417784",1.7,{parentId:"dragon-head",opacity:.55,timing:{start:164,end:238}});
+  line("dragon-cheek-directional-hatching",
+    crayonFormHatching({seed:806,cx:133,cy:-80,rx:26,ry:22,angle:42,
+      count:Math.round(8+detail*38),length:8}),
+    "#e2c59e",1.14,{parentId:"dragon-head",opacity:.53,
+      timing:{start:166,end:244}});
   line("dragon-muzzle-volume",
     "M167 -96Q191 -105 195 -86M160 -51Q179 -47 190 -59"+
     "M109 -54Q124 -47 137 -50",
@@ -472,8 +546,24 @@ export function crayonDragonVillageScene(
   wax("dragon-eye",egg(151,-86,9,7),
     {x:139,y:-96,width:24,height:20},dragon.dark,
     {parentId:"dragon-head",timing:{start:121,end:204},spacing:4});
+  wax("dragon-iris",egg(151,-86,5,5),
+    {x:145,y:-92,width:13,height:13},gold,
+    {parentId:"dragon-head",timing:{start:137,end:203},
+      spacing:4.2,pressure:.9}),
   line("dragon-eye-catchlight","M149 -88q3 -3 5 0",
     "#fdf2d2",2.8,{parentId:"dragon-head",opacity:.9,timing:{start:165,end:219}});
+  // The closed eyelid is actual silhouette-blocking wax. Eyelid contour
+  // alone would show the colored iris through an otherwise "closed" eye.
+  wax("dragon-eye-opaque-lid","M147 -89h2v2h-2Z",
+    {x:146,y:-90,width:5,height:5},dragon.skin,
+    {parentId:"dragon-head",timing:{start:125,end:195},
+      spacing:4.2,pressure:.93,edgeRoughness:0,
+      drawings:[
+        {frame:207,d:"M135 -94Q150 -111 166 -94L165 -83Q149 -76 137 -85Z",
+          bounds:{x:132,y:-112,width:37,height:39}},
+        {frame:212,d:"M147 -89h2v2h-2Z",
+          bounds:{x:146,y:-90,width:5,height:5}},
+      ]}),
   line("dragon-eyelid","M137 -92Q151 -102 163 -91",
     "#48566c",3.5,{parentId:"dragon-head",timing:{start:133,end:204},
       poses:[{id:"blink",d:"M138 -87Q150 -81 162 -88"},
@@ -492,23 +582,51 @@ export function crayonDragonVillageScene(
   }
   line("dragon-mouth","M158 -49Q180 -38 196 -60",
     "#775969",3.5,{parentId:"dragon-head",timing:{start:140,end:211}});
-  for(let i=0;i<5;i++)line("dragon-tooth-"+i,
-    `M${153+i*8} -43l3 6`,"#fff0d2",2,
-    {parentId:"dragon-jaw",timing:{start:149+i*2,end:228+i*2}});
-  for(let i=0;i<7;i++){
-    const x=dx+ds*(203+i*11),y=dy+ds*(-79+(i%3)*8);
-    line("dragon-magic-"+i,`M${x-3} ${y}h6M${x} ${y-3}v6`,
-      i%2?"#efc17f":"#e6a798",2.6,{timing:{start:181+i*3,end:243+i*2},opacity:.64});
+  const teeth=Array.from({length:5},(_,i)=>
+    `M${153+i*8} -43l3 6`).join(" ");
+  line("dragon-tooth-0",teeth,"#fff0d2",2,
+    {parentId:"dragon-jaw",timing:{start:149,end:237}});
+  // Two complementary colored collections preserve all seven original
+  // sparkle motifs while sharing only two source-element lifecycles.
+  for(const tone of [0,1] as const){
+    const sparks=Array.from({length:7},(_,i)=>i)
+      .filter(i=>i%2===tone).map(i=>{
+        const x=dx+ds*(203+i*11),y=dy+ds*(-79+(i%3)*8);
+        return `M${x-3} ${y}h6M${x} ${y-3}v6`;
+      }).join(" ");
+    line("dragon-magic-"+tone,sparks,tone?"#efc17f":"#e6a798",2.6,
+      {timing:{start:181+tone*3,end:257},opacity:.64});
   }
 
   // A second expressive animal reuses existing source art but has a new
   // rig identity, independent parent hierarchy, placement, expressions and keys.
   const friend=crayonPerformanceScene(aspect);
-  const included=new Set(["tail","left-ear","right-ear","left-ear-inner","right-ear-inner",
-    "back-arm","body","foot-back","foot-front","belly","scarf-wrap",
-    "scarf-tail","scarf-weave","head","muzzle","left-eye","right-eye",
-    "freckles-left","freckles-right","nose","mouth","front-arm"]);
-  const fx=W*(portrait?.23:.20),fy=H*(portrait?.835:.83),fs=portrait?.62:.68;
+  // The companion deliberately shares the *complete* editorial actor's
+  // anatomical source drawing, not the earlier mascot-only subset. Omitting
+  // the newer shin/coat/face layers left free-floating pupils, unmodeled
+  // silhouettes and feet extending below the film frame.
+  // Flower props, copy and distant landscape belong to the standalone scene.
+  const included=new Set([
+    "tail","left-ear","right-ear","left-ear-inner","right-ear-inner",
+    "back-arm","shin-back","shin-front","body","foot-back","foot-front",
+    "coat-shadow","coat-left-panel","coat-right-panel","coat-lapel-left",
+    "coat-lapel-right","coat-seam-architecture","coat-pocket-structure",
+    "coat-brass-button-one","coat-brass-button-two","boot-lacing",
+    "belly","scarf-wrap","scarf-tail","scarf-weave","scarf-tail-stitch",
+    "head","face-temple-shadow","face-cheek-light","muzzle",
+    "muzzle-jowl-shadow","nose-bridge-anatomy","cheek-whiskers",
+    "ear-left-fold","ear-right-fold","brow-left","brow-right",
+    "left-eye","right-eye","near-eye-iris","near-eye-pupil",
+    "near-eye-catchlight","orbital-bone","lower-jaw-volume",
+    "freckles-left","freckles-right","nose","mouth","front-arm",
+    "hand-glove","sleeve-rib",
+    "face-fur-grain","face-cheek-grain","left-ear-fur",
+    "right-ear-fur","left-coat-weave","right-coat-weave",
+    "waistcoat-fiber","boot-wear"
+  ]);
+  // Boot soles are now y≈166 in body coordinates, not y≈103. Adjust origin
+  // to keep them planted *inside* 540p as well as the 960p portrait output.
+  const fx=W*(portrait?.23:.20),fy=H*(portrait?.79:.765),fs=portrait?.62:.68;
   for(const node of friend.elements){
     if(!included.has(node.id))continue;
     const id="friend-"+node.id;
@@ -524,18 +642,27 @@ export function crayonDragonVillageScene(
         node.id==="front-arm"?[move(0,-9),move(166,-9),move(211,-37),
           move(244,-15),move(280,-48),move(329,-9)]:
         node.id==="back-arm"?[move(0,4),move(167,4),move(216,27),move(275,-10),move(329,4)]:
+        node.id==="left-ear"?[move(0),move(163),move(198,8),move(239,-7),move(279,5),move(329)]:
+        node.id==="right-ear"?[move(0),move(168),move(206,-7),move(235,6),move(286,-5),move(329)]:
+        node.id==="scarf-tail"?[move(0),move(163),move(214,14),move(253,-11),move(289,7),move(329)]:
         node.motion?[move(0),move(172),move(225,4),move(285,-4),move(329)]:undefined;
       wax(id,node.d,node.bounds,node.colors,{
         ...node,id,parentId,timing,construction:build,
         placement:node.id==="body"?{x:fx,y:fy,scale:fs}:node.placement,
         ...(motion?{motion,motionLagFrames:node.id==="tail"?
-          Math.min(24,followThrough+6):node.id==="head"?followThrough:0}:{}),
+          Math.min(24,followThrough+6):node.id==="head"?followThrough:
+          node.id==="left-ear"?3:node.id==="right-ear"?5:
+          node.id==="scarf-tail"?7:0}:{}),
       });
     }else if(node.kind==="contour"){
       const cues=node.id==="mouth"?[
         {frame:0,pose:"base"},{frame:191,pose:"oh"},
         {frame:211,pose:"base"},{frame:258,pose:"smile"}]:
-        node.id==="left-eye"||node.id==="right-eye"?[
+        node.id==="brow-left"||node.id==="brow-right"?[
+          {frame:0,pose:"base"},{frame:179,pose:"wonder"},
+          {frame:220,pose:"base"},{frame:267,pose:"smile"}]:
+        ["left-eye","right-eye","near-eye-iris","near-eye-pupil",
+          "near-eye-catchlight"].includes(node.id)?[
           {frame:0,pose:"base"},{frame:199,pose:"blink"},
           {frame:204,pose:"base"},{frame:269,pose:"smile"}]:undefined;
       line(id,node.d,node.color,node.width,{
@@ -598,11 +725,13 @@ export function crayonDragonVillageScene(
         sign===-1?"M-47 -93L-65 -131L-19 -108Z":"M18 -110L64 -134L47 -91Z",
         {x:sign===-1?-68:15,y:-137,width:53,height:50},timber,
         {parentId:"owl-head",timing:{start:95,end:175},spacing:5});
-      wax("owl-face-"+side,egg(x,-71,21,24),
-        {x:x-24,y:-98,width:48,height:55},paper,
+      wax("owl-face-"+side,
+        `M${x-21} -83Q${x-21} -104 ${x-3} -98Q${x+18} -103 ${x+23} -81`+
+        `Q${x+22} -55 ${x} -45Q${x-17} -62 ${x-21} -83Z`,
+        {x:x-25,y:-106,width:52,height:64},paper,
         {parentId:"owl-head",timing:{start:111,end:191},spacing:4});
-      wax("owl-pupil-"+side,egg(x-sign*2,-66,7,10),
-        {x:x-13,y:-81,width:27,height:28},dragon.dark,
+      wax("owl-pupil-"+side,egg(x-sign*2,-66,5.5,7.5),
+        {x:x-11,y:-76,width:22,height:22},dragon.dark,
         {parentId:"owl-head",timing:{start:141,end:207},spacing:4});
       line("owl-eye-glint-"+side,
         "M"+(x-sign*2-1)+" -70l2 -2",
@@ -631,6 +760,16 @@ export function crayonDragonVillageScene(
     line("owl-layered-breast-feathers",breastFeathers,
       "#b89c91",1.8,{parentId:"owl-breast",opacity:.65,
         timing:{start:148,end:241}});
+    line("owl-cervical-feather-grain",
+      crayonFormHatching({seed:1002,cx:0,cy:-65,rx:37,ry:31,
+        angle:82,count:Math.round(9+detail*55),length:7}),
+      "#d5bca1",1.1,{parentId:"owl-head",opacity:.52,
+        timing:{start:150,end:245}});
+    line("owl-breast-form-grain",
+      crayonFormHatching({seed:1003,cx:0,cy:7,rx:24,ry:31,
+        angle:95,count:Math.round(14+detail*67),length:9}),
+      "#a18b80",1.16,{parentId:"owl-breast",opacity:.55,
+        timing:{start:153,end:247}});
     line("owl-tail-feather-partings",
       "M-38 34Q-48 50 -47 60M-31 37Q-36 51 -37 66",
       "#d2ac94",2,{parentId:"owl-tail",opacity:.68,
@@ -643,7 +782,7 @@ export function crayonDragonVillageScene(
     lineHeight:1.06,timing:{start:0,end:25},weight:700,family:"serif",
     color:"#516179"});
   elements.push({kind:"lettering",id:"dragon-village-subtitle",screenSpace:true,
-    lines:[cast==="trio"?"THREE LITTLE LIVES  /  ONE CRAYON WORLD":"TWO LITTLE LIVES  /  ONE CRAYON WORLD"],
+    lines:[cast==="trio"?"THREE STUDIES   /   A LIVING LANDSCAPE":"TWO STUDIES   /   A LIVING LANDSCAPE"],
     x:portrait?29:45,y:portrait?174:93,fontSize:portrait?12:15,
     timing:{start:18,end:69},family:"sans",weight:700,color:"#847584"});
   elements.push({kind:"lettering",id:"dragon-village-caption",screenSpace:true,

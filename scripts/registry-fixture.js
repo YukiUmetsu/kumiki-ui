@@ -93,6 +93,22 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "universal-rig": (specifier) => {
+    const at = name => specifier.replace(/rig-spec$/, name);
+    return {
+      imports: [`import { RigScene, followCamera } from "${at("rig-react")}";`, `import { dragonRig, personRig, locomotiveRig, modernCarRig, quadrupedRig } from "${at("rig-presets")}";`,
+        `import { evaluateRig } from "${at("rig-evaluate")}";`, `import { inspectRig } from "${at("rig-spec")}";`],
+      componentName: "UniversalRigConsumerExample",
+      component: `const rigs = [personRig({ motion: "walk", start: 0, end: 90, from: 100, to: 600, y: 500 }), dragonRig({ motion: "fly", start: 0, end: 90, from: 900, to: 0, y: 200 }),
+  locomotiveRig({ start: 0, end: 90, from: -300, to: 900, y: 500 }), modernCarRig({ motion: "sudden-brake", start: 0, end: 90, from: -400, to: 700, y: 500 }),
+  quadrupedRig("horse", { motion: "gallop", start: 0, end: 90, from: 0, to: 2000, y: 500 })];
+export function UniversalRigConsumerExample() {
+  return <div data-issues={rigs.flatMap(inspectRig).length} data-parts={evaluateRig(rigs[0], 30).parts.length}>
+    <RigScene look="collage" width={960} height={540} ground={500} frame={30} rigs={rigs} camera={followCamera(rigs[4], 30, { y: 270 })} />
+  </div>;
+}`,
+    };
+  },
   "editorial-collage": (specifier) => {
     const at = name => specifier.replace(/collage-geometry$/, name);
     return {

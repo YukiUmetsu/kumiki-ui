@@ -1,0 +1,220 @@
+/**
+ * PAPER1 — deterministic, material-native paper-craft scene evaluation.
+ * Native cut-out shapes, exposed holes, hinges and folds: not a video filter.
+ * Pure absolute-frame evaluation; no timers, global RNG or second timeline.
+ */
+export type PaperStyle = "layered" | "kirigami" | "pop-up" | "lightbox" | "shadow-puppet";
+export type PaperMotion = "rise" | "swing" | "unfold" | "still" | "flutter";
+/** Separate, actually hinged tip contour; unlike a gradient this changes silhouette. */
+export interface PaperLiftedTip {
+  /** Closed original cardstock contour adjoining the base at hinge. */
+  path: string;
+  /** Sheet-space attachment point; hinge remains fixed while the tip rotates. */
+  hinge: readonly [number, number];
+  /** In-plane projected cardstock fold, limited to 25 degrees. */
+  rotateDegrees: number;
+  /** Maximum shadow offset of the folded sheet, 0–18 output pixels. */
+  lift: number;
+}
+export interface PaperCutLayer {
+  id: string;
+  /** Authored paper contour, in output-sheet coordinates. */
+  path: string;
+  /** Holes are empty physical cut-outs. They never receive the layer's fill. */
+  holes?: readonly string[];
+  color: string;
+  /** Z-order and shadow separation (0 = at the backing). */
+  depth: number;
+  /** Hinge/pivot in the same coordinate system as path. */
+  pivot?: readonly [number, number];
+  motion?: PaperMotion;
+  /** Optional authored maximum swing, in degrees (bounded to 30). */
+  swingDegrees?: number;
+  /** 0–1 authored curvature cue for opaque graded cardstock (not a 3D mesh). */
+  curl?: number;
+  /** Independently sculpted and shadowed opaque stock, attached to main cut. */
+  liftedTip?: PaperLiftedTip;
+  /** Stable named rig: connected wing pieces share a hinge, waveform and phase. */
+  rigGroup?: string;
+  /** Frequency of a fluttering rig, cycles per second (0.1–8). */
+  flapHz?: number;
+  /** Wing-beat phase in degrees (0–360). */
+  flapPhase?: number;
+  /** Local entry cue, absolute frames within this scene. */
+  enterFrame?: number;
+  /** Duration of local assembly beat (frames). */
+  durationFrames?: number;
+}
+export interface PaperCraftSpec {
+  version: 1;
+  id: string;
+  style: PaperStyle;
+  width: number;
+  height: number;
+  fps: number;
+  durationFrames: number;
+  seed: number;
+  backing: string;
+  /** Foreground-to-background light tint for the chosen paper stock. */
+  light: string;
+  layers: readonly PaperCutLayer[];
+}
+export interface PaperLayerFrame {
+  id: string;
+  /** Static once the cut-out is assembled. */
+  progress: number;
+  opacity: number;
+  translateX: number;
+  translateY: number;
+  rotation: number;
+  scaleX: number;
+  scaleY: number;
+  shadowX: number;
+  shadowY: number;
+  shadowBlur: number;
+}
+export interface PaperCraftFrame {
+  frame: number;
+  layers: readonly PaperLayerFrame[];
+}
+export interface PaperIssue { path: string; message: string }
+export const PAPER_STYLES: readonly PaperStyle[] = ["layered", "kirigami", "pop-up", "lightbox", "shadow-puppet"];
+/** Bounded detailed cut-stock budget; the renderer remains deterministic and exportable. */
+export const MAX_PAPER_LAYERS = 128;
+const hex = /^#[0-9a-fA-F]{6}$/;
+const finite = (n: number) => Number.isFinite(n);
+/** Closed, numeric SVG paths only: user data is never interpreted as SVG markup or CSS. */
+const allowedPaperPath = /^[MmLlHhVvCcSsQqTtAaZz0-9eE+.,\-\s]+$/;
+export function isPaperCutContour(value: unknown): value is string {
+  if (typeof value !== "string" || value.length < 5 || value.length > 50000) return false;
+  const p = value.trim();
+  return /^[Mm]/.test(p) && /[Zz]$/.test(p) &&
+    allowedPaperPath.test(p) && !/NaN|Infinity/i.test(p);
+}
+export const paperClamp = (v: number) => Math.max(0, Math.min(1, v));
+export const paperEase = (v: number) => { const t = paperClamp(v); return t * t * (3 - 2 * t); };
+/** Paper-safe independent hash: texture offsets do not evolve with the video clock. */
+export function paperHash(seed: number, index: number, channel: number): number {
+  let n = (seed ^ Math.imul(index + 1, 0x9e3779b1) ^ Math.imul(channel + 17, 0x85ebca6b)) | 0;
+  n ^= n >>> 16; n = Math.imul(n, 0x7feb352d); n ^= n >>> 15;
+  n = Math.imul(n, 0x846ca68b); n ^= n >>> 16;
+  return (n >>> 0) / 4294967296;
+}
+export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
+  const issues: PaperIssue[] = [], bad = (path: string, message: string) => issues.push({ path, message });
+  if (!spec || typeof spec !== "object") return [{path:"spec",message:"PAPER1 scene object required"}];
+  if (spec.version !== 1) bad("version", "PAPER1 requires version 1");
+  if (!spec.id || !/^[a-zA-Z0-9_-]+$/.test(spec.id)) bad("id", "use a nonempty stable ASCII identifier");
+  if (!PAPER_STYLES.includes(spec.style)) bad("style", "unsupported paper medium");
+  if (![spec.width, spec.height].every(n => Number.isInteger(n) && n >= 128 && n <= 4096)) bad("size", "width and height must be 128–4096");
+  if (!Number.isInteger(spec.fps) || spec.fps < 1 || spec.fps > 120) bad("fps", "FPS must be 1–120");
+  if (!Number.isInteger(spec.durationFrames) || spec.durationFrames < 1 || spec.durationFrames > 36000) bad("durationFrames", "duration must be 1–36000");
+  if (!Number.isSafeInteger(spec.seed)) bad("seed", "seed must be a safe integer");
+  if (!hex.test(spec.backing) || !hex.test(spec.light)) bad("paper", "paper colours must be opaque six-digit hex");
+  if (!Array.isArray(spec.layers) || spec.layers.length < 1 || spec.layers.length > MAX_PAPER_LAYERS) bad("layers", "provide 1–128 separate cut-outs");
+  const seen = new Set<string>();
+  const rigs = new Map<string, PaperCutLayer>();
+  const layers: readonly PaperCutLayer[] = Array.isArray(spec.layers) ? spec.layers : [];
+  for (const [i, layer] of layers.entries()) {
+    const base = `layers[${i}]`;
+    if (!layer || typeof layer !== "object") { bad(base, "cutout must be an object"); continue; }
+    if (!layer.id || !/^[a-zA-Z0-9_-]+$/.test(layer.id) || seen.has(layer.id)) bad(base + ".id", "unique stable id required");
+    seen.add(layer.id);
+    if (!isPaperCutContour(layer.path))
+      bad(base + ".path", "provide a closed bounded SVG cut contour");
+    if (!hex.test(layer.color)) bad(base + ".color", "colour must be opaque hex");
+    if (!Number.isInteger(layer.depth) || layer.depth < 0 || layer.depth > 32) bad(base + ".depth", "depth must be 0–32");
+    if (layer.holes && (!Array.isArray(layer.holes) || layer.holes.length > 32 ||
+      layer.holes.some((h: unknown) => !isPaperCutContour(h) || h.length > 10000)))
+      bad(base + ".holes", "each hole must be an SVG contour; maximum 32 holes");
+    if (layer.pivot && (!Array.isArray(layer.pivot) || layer.pivot.length !== 2 || layer.pivot.some((n: number) => !finite(n) || n < -4096 || n > 8192)))
+      bad(base + ".pivot", "finite sheet-coordinate hinge required");
+    if (layer.motion && !["rise", "swing", "unfold", "still", "flutter"].includes(layer.motion)) bad(base + ".motion", "unknown material motion");
+    if (layer.swingDegrees !== undefined && (!finite(layer.swingDegrees) || Math.abs(layer.swingDegrees) > 30))
+      bad(base + ".swingDegrees", "swing must be within ±30 degrees");
+    if (layer.curl !== undefined && (!finite(layer.curl) || layer.curl < 0 || layer.curl > 1))
+      bad(base + ".curl", "curl must be finite 0–1");
+    if (layer.liftedTip !== undefined) {
+      const tip = layer.liftedTip;
+      if (!tip || typeof tip !== "object" || !isPaperCutContour(tip.path))
+        bad(base + ".liftedTip.path", "a closed die-cut tip contour is required");
+      if (!Array.isArray(tip?.hinge) || tip.hinge.length !== 2 ||
+          tip.hinge.some((n:number) => !finite(n) || n < -4096 || n > 8192))
+        bad(base + ".liftedTip.hinge", "finite two-coordinate paper hinge required");
+      if (!finite(tip?.rotateDegrees) || Math.abs(tip.rotateDegrees) > 25)
+        bad(base + ".liftedTip.rotateDegrees", "fold must be within ±25 degrees");
+      if (!finite(tip?.lift) || tip.lift < 0 || tip.lift > 18)
+        bad(base + ".liftedTip.lift", "paper relief must be 0–18 pixels");
+    }
+    if (layer.flapHz !== undefined && (!finite(layer.flapHz) || layer.flapHz < .1 || layer.flapHz > 8))
+      bad(base + ".flapHz", "flapHz must be finite 0.1–8");
+    if (layer.flapPhase !== undefined && (!finite(layer.flapPhase) || layer.flapPhase < 0 || layer.flapPhase > 360))
+      bad(base + ".flapPhase", "flapPhase must be finite 0–360 degrees");
+    if (layer.rigGroup !== undefined) {
+      if (!/^[a-zA-Z0-9_-]{1,64}$/.test(layer.rigGroup))
+        bad(base + ".rigGroup", "rigGroup must be a stable short ASCII identifier");
+      if (layer.motion !== "flutter")
+        bad(base + ".rigGroup", "named paper rigs require flutter motion");
+      const previous = rigs.get(layer.rigGroup);
+      if (previous) {
+        const samePivot = previous.pivot && layer.pivot &&
+          previous.pivot[0] === layer.pivot[0] && previous.pivot[1] === layer.pivot[1];
+        if (!samePivot ||
+            (previous.flapHz ?? 1.4) !== (layer.flapHz ?? 1.4) ||
+            (previous.flapPhase ?? 0) !== (layer.flapPhase ?? 0) ||
+            (previous.swingDegrees ?? 8) !== (layer.swingDegrees ?? 8))
+          bad(base + ".rigGroup", "all sheets in one rig must share pivot and waveform");
+      } else rigs.set(layer.rigGroup, layer);
+    }
+    if (layer.enterFrame !== undefined && (!Number.isInteger(layer.enterFrame) || layer.enterFrame < 0 || layer.enterFrame >= spec.durationFrames))
+      bad(base + ".enterFrame", "entry must be inside the scene");
+    if (layer.durationFrames !== undefined && (!Number.isInteger(layer.durationFrames) || layer.durationFrames < 1 || layer.durationFrames > spec.durationFrames))
+      bad(base + ".durationFrames", "entry duration must be 1–durationFrames");
+  }
+  return issues;
+}
+export function evaluatePaperCraft(spec: PaperCraftSpec, frame: number, reducedMotion = false): PaperCraftFrame {
+  const issues = inspectPaperCraft(spec);
+  if (issues.length) throw new Error("Invalid PAPER1 scene: " + issues.map(x => x.path + ": " + x.message).join("; "));
+  if (!Number.isSafeInteger(frame) || frame < 0) throw new RangeError("PAPER1 frame must be a nonnegative integer");
+  const layers = spec.layers.map((layer, i): PaperLayerFrame => {
+    const start = layer.enterFrame ?? (8 + i * 11);
+    const duration = layer.durationFrames ?? 38;
+    const progress = reducedMotion ? 1 : paperEase((frame - start) / duration);
+    const motion = layer.motion ?? (spec.style === "kirigami" ? "unfold" : spec.style === "pop-up" ? "rise" : "still");
+    const age = Math.max(0, (frame - start) / spec.fps);
+    const swing = reducedMotion || progress <= 0 ? 0 : (layer.swingDegrees ?? 8) *
+      Math.exp(-age * .9) * Math.sin(age * 5.6 + paperHash(spec.seed, i, 11) * .6);
+    // Rig components use absolute film time, NOT local assembly age:
+    // every feather/vein remains in phase despite differing enterFrame values.
+    const flutterWave = motion === "flutter" && !reducedMotion && progress > 0
+      ? Math.sin(2 * Math.PI * frame / spec.fps * (layer.flapHz ?? 1.4) +
+        (layer.flapPhase ?? 0) * Math.PI / 180)
+      : 0;
+    const fold = motion === "unfold" || (spec.style === "kirigami" && motion === "still");
+    const rise = motion === "rise" || (spec.style === "pop-up" && motion === "still");
+    // Kirigami uses a hinged projection. Pop-up rises from a paper crease.
+    const rotation = motion === "flutter"
+      ? (layer.swingDegrees ?? 8) * flutterWave * progress
+      : motion === "swing" ? swing :
+      spec.style === "layered" ? (1 - progress) * (i % 2 ? -3.5 : 3.5) : 0;
+    const depth = layer.depth;
+    // A reduced-motion frame must be static regardless of the requested seek position.
+    const parallax = !reducedMotion && spec.style === "lightbox"
+      ? Math.sin(frame / spec.fps * .35) * depth * .55 : 0;
+    return {
+      id: layer.id, progress, opacity: progress <= 0 ? 0 : 1,
+      translateX: parallax + (spec.style === "layered" ? (1 - progress) * (i % 2 ? -18 : 18) : 0),
+      translateY: rise ? (1 - progress) * (24 + depth * 1.5) :
+        spec.style === "layered" ? (1 - progress) * 24 : 0,
+      rotation,
+      scaleX: fold ? Math.max(.015, progress) : motion === "flutter"
+        ? 1 - .08 * Math.abs(flutterWave) * progress * Math.abs(layer.swingDegrees ?? 8) / 8 : 1,
+      scaleY: rise ? Math.max(.015, progress) : 1,
+      shadowX: 1.8 + depth * (spec.style === "lightbox" ? 1.05 : .55),
+      shadowY: 2 + depth * (spec.style === "lightbox" ? 1.65 : .8),
+      shadowBlur: 2.2 + depth * (spec.style === "lightbox" ? 1.9 : .85),
+    };
+  });
+  return { frame, layers };
+}

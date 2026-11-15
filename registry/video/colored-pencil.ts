@@ -1,3 +1,5 @@
+import type { PencilCraftFinish } from "./colored-pencil-craft";
+
 /** CP1: deterministic, data-only coloured-pencil geometry. No frame clock, renderer or source assets.
  * Each stroke retains its own pressure, direction and drying-independent paper position.
  */
@@ -20,12 +22,18 @@ export interface PencilPigmentLayer extends PencilTiming {
   flow?: number;
   /** Optical value distribution across a form. Defaults to an even deposit. */
   tone?: "even" | "core" | "rim";
+  /** Original pencil geometry: broad hatching, short aligned fibres or fine stipple taps. */
+  texture?: "hatch" | "fiber" | "stipple";
 }
 export interface PencilTrace extends PencilTiming {
   path: string;
   color: string;
   width: number;
   opacity?: number;
+  /** Semantic subfeature key. Used by CP3 detail tracks without adding regions. */
+  id?: string;
+  /** Part-local pose; the enclosing opaque region owns clipping and z-order. */
+  transform?: string;
 }
 export interface PencilRegion {
   id: string;
@@ -36,9 +44,24 @@ export interface PencilRegion {
   transform?: string;
   /** Optional exceedingly light base tone; hatching remains the actual visible pigment. */
   underpaint?: string;
+  /** Paper-bound opaque base for layered foreground drawings, 0..1. Default preserves CP1 light tint. */
+  underpaintOpacity?: number;
+  /** A solid paper-coloured understructure keeps overlapping actor parts fully opaque.
+   * The matte is deposited only when this region begins drawing; tooth affects pigment,
+   * not the occlusion matte. Disabled by default to preserve earlier illustration looks.
+   */
+  opaqueSupport?: boolean;
   layers: readonly PencilPigmentLayer[];
   contour: PencilTrace;
   details?: readonly PencilTrace[];
+  /** Clip fine interior accents to the source silhouette; the enclosing contour stays uncut.
+   * Opt-in, preserving exterior construction and guide marks in legacy drawings.
+   */
+  clipDetails?: boolean;
+  /** Opt-in paper tooth, tonal deposition and densely layered microstrokes.
+   * It does not infer or replace authored anatomy/contours.
+   */
+  craft?: PencilCraftFinish;
 }
 export interface PencilDrawingSpec {
   version: 1;
@@ -66,15 +89,21 @@ export function evaluatePencilMark(frame: number, timing: PencilTiming, reducedM
   if (!Number.isSafeInteger(frame) || frame < 0 ||
       !Number.isSafeInteger(timing.startFrame) || timing.startFrame < 0 ||
       !Number.isSafeInteger(timing.durationFrames) || timing.durationFrames < 1)
-    throw new RangeError("Pencil marks require nonnegative integer frame/startFrame and positive durationFrames.");
+    throw new RangeError("Pencil marks require nonnegative integer frame/startFrame and positive durationFrames" +
+      " (frame=" + frame + ", startFrame=" + timing.startFrame + ", durationFrames=" + timing.durationFrames + ").");
   return reducedMotion ? 1 : Math.max(0, Math.min(1, (frame - timing.startFrame) / timing.durationFrames));
 }
 const HEX = /^#[0-9a-f]{6}$/i;
+/** Only serialized numeric SVG pose operations; no arbitrary function names. */
+const TRACE_TRANSFORM = /^(?:(?:translate|rotate|scale)\(\s*[-+]?(?:\d+(?:\.\d+)?|\.\d+)(?:[,\s]+[-+]?(?:\d+(?:\.\d+)?|\.\d+)){0,2}\s*\)\s*)+$/;
 const validTrace = (trace: PencilTrace): boolean =>
   !!trace && typeof trace === "object" && typeof trace.path === "string" && trace.path.length > 2 && trace.path.length <= 12000 &&
   /^[Mm]/.test(trace.path) && HEX.test(trace.color) &&
   Number.isFinite(trace.width) && trace.width >= .2 && trace.width <= 10 &&
   (trace.opacity === undefined || (Number.isFinite(trace.opacity) && trace.opacity >= 0 && trace.opacity <= 1)) &&
+  (trace.id === undefined || (typeof trace.id === "string" && /^[A-Za-z][\w-]{0,40}$/.test(trace.id))) &&
+  (trace.transform === undefined || (typeof trace.transform === "string" &&
+    trace.transform.length <= 300 && TRACE_TRANSFORM.test(trace.transform))) &&
   Number.isSafeInteger(trace.startFrame) && trace.startFrame >= 0 &&
   Number.isSafeInteger(trace.durationFrames) && trace.durationFrames >= 1;
 export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
@@ -109,6 +138,21 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
       issues.push(at + ".transform: unsupported SVG transform.");
     if (region.underpaint !== undefined && !HEX.test(region.underpaint))
       issues.push(at + ".underpaint: invalid hex colour.");
+    if (region.underpaintOpacity !== undefined &&
+        (!Number.isFinite(region.underpaintOpacity) || region.underpaintOpacity < 0 ||
+         region.underpaintOpacity > 1 || region.underpaint === undefined))
+      issues.push(at + ".underpaintOpacity: needs a base pigment and value in 0..1.");
+    if (region.opaqueSupport !== undefined && typeof region.opaqueSupport !== "boolean")
+      issues.push(at + ".opaqueSupport: expected a boolean.");
+    if (region.clipDetails !== undefined && typeof region.clipDetails !== "boolean")
+      issues.push(at + ".clipDetails: expected a boolean.");
+    if (region.craft !== undefined) {
+      const c=region.craft;
+      if(!c || !["fur","feather","skin","hair","foliage","wood","fabric",
+        "stone","metal","water","keratin","ocular","general"].includes(c.kind) ||
+        ![c.burnish,c.light,c.tooth].every(n=>Number.isFinite(n)&&n>=0&&n<=1))
+        issues.push(at+".craft: finite medium profile required.");
+    }
     if (!validTrace(region.contour)) issues.push(at + ".contour: invalid graphite stroke.");
     if (!Array.isArray(region.layers) || region.layers.length < 1 || region.layers.length > 6) {
       issues.push(at + ".layers: require 1–6 pigment passes.");
@@ -121,6 +165,7 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
           !Number.isFinite(layer.tipWidth) || layer.tipWidth < .3 || layer.tipWidth > 4 ||
           (layer.flow !== undefined && (!Number.isFinite(layer.flow) || Math.abs(layer.flow) > 60)) ||
           (layer.tone !== undefined && !["even", "core", "rim"].includes(layer.tone)) ||
+          (layer.texture !== undefined && !["hatch", "fiber", "stipple"].includes(layer.texture)) ||
           !Number.isSafeInteger(layer.seed) || layer.seed < 0 ||
           !Number.isSafeInteger(layer.startFrame) || layer.startFrame < 0 ||
           !Number.isSafeInteger(layer.durationFrames) || layer.durationFrames < 8)
@@ -139,7 +184,7 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
 /** Author time belongs to the individual mark; after deposition there is NO evolving noise.
  * The region clips rotated stroke geometry, so parallel lines become a physical surface, not a photo shader.
  */
-export function hatchPencilRegion(region: PencilRegion, layer: PencilPigmentLayer): PencilMark[] {
+export function hatchPencilRegion(region: Pick<PencilRegion, "bounds">, layer: PencilPigmentLayer): PencilMark[] {
   const [x, y, width, height] = region.bounds;
   if (![x, y, width, height, layer.spacing, layer.pressure, layer.tipWidth, layer.angle]
     .every(Number.isFinite) || width <= 0 || height <= 0 ||
@@ -177,17 +222,35 @@ export function hatchPencilRegion(region: PencilRegion, layer: PencilPigmentLaye
     let cursor = startX + pencilHash(layer.seed, i, 6) * 8;
     for (let segment = 0; cursor < endX && segment < 160; segment++) {
       const key = i * 163 + segment;
-      const length = 11 + pencilHash(layer.seed, key, 7) * 30;
-      const tip = Math.min(endX, cursor + length);
-      const variation = (pencilHash(layer.seed, key, 8) - .5) * 1.9;
-      const y0 = yy + variation;
-      const mid = (cursor + tip) / 2;
-      const midY = yy + bow + (pencilHash(layer.seed, key, 9) - .5) * 2.5;
-      const y1 = yy + (pencilHash(layer.seed, key, 10) - .5) * 2.3;
-      pieces.push("M" + cursor.toFixed(2) + " " + y0.toFixed(2) +
-        " Q" + mid.toFixed(2) + " " + midY.toFixed(2) +
-        " " + tip.toFixed(2) + " " + y1.toFixed(2));
-      cursor = tip + 3 + pencilHash(layer.seed, key, 12) * 12;
+      const texture = layer.texture ?? "hatch";
+      const grain = pencilHash(layer.seed, key, 8);
+      if (texture === "stipple") {
+        // Deliberate pencil taps in local paper coordinates, not a screen-space spray.
+        const px = cursor + grain * 2.2;
+        const py = yy + (pencilHash(layer.seed, key, 9) - .5) * layer.spacing * .72;
+        const dot = .12 + pencilHash(layer.seed, key, 10) * .34;
+        pieces.push("M" + px.toFixed(2) + " " + py.toFixed(2) +
+          " l" + dot.toFixed(2) + " " + (dot * .23).toFixed(2));
+        cursor += 4 + pencilHash(layer.seed, key, 12) * 10;
+      } else {
+        // Short curved fibres describe hair, feathers, grass and bark; long hatches
+        // build broad colour. Both remain seeded and stable when seeking frames.
+        const length = texture === "fiber" ? 4.5 + pencilHash(layer.seed, key, 7) * 13 :
+          11 + pencilHash(layer.seed, key, 7) * 30;
+        const tip = Math.min(endX, cursor + length);
+        const variation = (grain - .5) * (texture === "fiber" ? 4.2 : 1.9);
+        const y0 = yy + variation;
+        const mid = (cursor + tip) / 2;
+        const midY = yy + bow * (texture === "fiber" ? .55 : 1) +
+          (pencilHash(layer.seed, key, 9) - .5) * (texture === "fiber" ? 4.4 : 2.5);
+        const y1 = yy + (pencilHash(layer.seed, key, 10) - .5) *
+          (texture === "fiber" ? 4.2 : 2.3);
+        pieces.push("M" + cursor.toFixed(2) + " " + y0.toFixed(2) +
+          " Q" + mid.toFixed(2) + " " + midY.toFixed(2) +
+          " " + tip.toFixed(2) + " " + y1.toFixed(2));
+        cursor = tip + (texture === "fiber" ? 2 : 3) + pencilHash(layer.seed, key, 12) *
+          (texture === "fiber" ? 7 : 12);
+      }
     }
     return {
       path: pieces.join(" "),
@@ -216,10 +279,18 @@ export interface PencilObjectInput {
   /** Shading direction follows the authored object's dominant form. */
   direction?: number;
   material?: "soft" | "layered" | "dense";
+  /** Original foreground fill holds out background strokes underneath articulated parts. */
+  underpaintOpacity?: number;
+  /** Keep a separately shaded anatomical part opaque over scenery or another character. */
+  opaqueSupport?: boolean;
+  /** Restrict fine interior accents to this region without clipping its perimeter line. */
+  clipDetails?: boolean;
   /** A curved object needs directional stroke fan, independent of camera movement. */
   flow?: number;
   /** Value emphasis for cylindrical, convex or rim-lit forms. */
   tone?: "even" | "core" | "rim";
+  /** Surface-specific mark vocabulary, optional for existing callers. */
+  texture?: "hatch" | "fiber" | "stipple";
   contourColor?: string;
   transform?: string;
   details?: readonly PencilTrace[];
@@ -227,13 +298,19 @@ export interface PencilObjectInput {
 export function createPencilRegion(input: PencilObjectInput): PencilRegion {
   const { id, path, bounds, palette, seed, startFrame, durationFrames, direction = -28,
     material = "layered", contourColor = "#444A45", transform, details,
-    flow = 0, tone = "even" } = input;
+    flow = 0, tone = "even", texture = "hatch", underpaintOpacity, opaqueSupport = false,
+    clipDetails } = input;
   if (!Number.isSafeInteger(startFrame) || startFrame < 0 ||
       !Number.isSafeInteger(durationFrames) || durationFrames < 30 ||
       !Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647 ||
       !Number.isFinite(direction) || Math.abs(direction) > 180 ||
       !Number.isFinite(flow) || Math.abs(flow) > 60 ||
       !["even", "core", "rim"].includes(tone) ||
+      !["hatch", "fiber", "stipple"].includes(texture) ||
+      typeof opaqueSupport !== "boolean" ||
+      (clipDetails !== undefined && typeof clipDetails !== "boolean") ||
+      (underpaintOpacity !== undefined && (!Number.isFinite(underpaintOpacity) ||
+        underpaintOpacity < 0 || underpaintOpacity > 1)) ||
       palette.length !== 3 || palette.some(c => !HEX.test(c)) || !HEX.test(contourColor) ||
       !["soft", "layered", "dense"].includes(material))
     throw new RangeError("Invalid pencil object palette, material, direction or drawing frames.");
@@ -245,13 +322,15 @@ export function createPencilRegion(input: PencilObjectInput): PencilRegion {
   const style = presets[material];
   const layers: PencilPigmentLayer[] = palette.map((color, i) => ({
     color, angle: Math.max(-180, Math.min(180, direction + [0, 73, -44][i])),
-    flow: flow * [1, -.42, .64][i], tone,
+    flow: flow * [1, -.42, .64][i], tone, texture,
     spacing: style.spacing[i], pressure: style.pressure[i], tipWidth: style.tip[i],
     seed: seed + i * 307, startFrame: startFrame + Math.floor(i * durationFrames * .23),
     durationFrames: Math.max(8, Math.floor(durationFrames * .7)),
   }));
   const region: PencilRegion = {
-    id, path, bounds, transform, details,
+    id, path, bounds, transform, details, opaqueSupport,
+    ...(clipDetails === undefined ? {} : { clipDetails }),
+    underpaint: underpaintOpacity === undefined ? undefined : palette[0], underpaintOpacity,
     contour: { path, color: contourColor, width: 1.55, opacity: .74,
       startFrame, durationFrames: Math.floor(durationFrames * .38) },
     layers,

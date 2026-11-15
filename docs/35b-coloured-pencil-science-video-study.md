@@ -2,6 +2,10 @@
 
 **Study date:** 2026-11-14. **Status:** research-backed design directions, not visual acceptance. Search results and source descriptions were inspected, plus our *own* actual Chromium frames from PR #155. External videos were not systematically decoded or frame-inspected. Do not claim timed shot analysis until it has been done.
 
+## Direct user artwork reference study
+
+See [the twelve user-supplied artwork study](research/colour-pencil-user-art-reference-study-2026-11-14.md) for observed mark techniques, character and scene requirements, limitations and engineering acceptance criteria. The images themselves are not redistributed.
+
 ## Selected playable references and technique anchors
 
 | Source (open video/page) | Scope and useful production observation | Kumiki implication |
@@ -47,3 +51,31 @@ Run [43572716668](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/435727166
 4. **CP4 (future):** character-part rigs and optional source-backed 3D camera projections, evidence-grounded diagrams/charts, audio-aligned drawing, reusable style recipe compiler and preset discovery.
 
 **Visual approval still requires:** actual normal-speed 16:9 and 9:16 encoded films, stable out-of-order screenshot tests, close-up anatomy/facet review and independent human judgment. A CI pass never means 'absolutely beautiful.'
+
+
+## 2026-11-14 second material and character study — source-grounded observations
+
+Sources below were examined as **published illustrations, technique text or listed video pages**, not as decoded frame-by-frame films. No protected visual content is redistributed.
+
+| Reference | Observed design lesson | Applied to PR #155 |
+| --- | --- | --- |
+| [London Art College — Botanical Coloured Pencils, sample unit](https://www.londonartcollege.co.uk/content/attachments/LAC-Botanical-Coloured-Pencil-Sample-Pages.pdf) | Leaf vein spacing is irregular and secondary veins should be placed in relation to the main vein and leaf margin; contours vary in weight by importance. | Added hand-authored secondary veinlets and more restrained detail weighting to the leaf original; irregular anatomy is intentional, not procedural random points. |
+| [Ann Swan — Shiny Leaf Step-by-Step](https://annswan.co.uk/shiny-leaf-step-by-step/) | Realistic glossy leaves keep articulated dark value masses adjacent to reserved pale highlights rather than even crosshatching across the whole blade. | New `tone: "core" | "rim"` controls concentration of pressure-weighted deposits across each hatch pass. It remains an approximation; image-based highlight masks are future work. |
+| [Artists Network — Botanical Drawing: Understanding Lighting](https://www.artistsnetwork.com/art-mediums/colored-pencil/botanical-drawing-understanding-lighting/) | Gradations and multiple translucent pencil layers create a readable 3D turn of form. | Local curvature-fanning now changes stroke angles across a region while tone profiles make the center or rim darker. |
+| [Artists Network — Nests and Branches: Drawing Nature’s Details](https://www.artistsnetwork.com/art-mediums/colored-pencil/nests-and-branches-drawing-natures-details/) | Artist describes translucent layers and lighter blending pencils before sharpening the finest details. | Keep multiple independently timed layers; do not substitute a blur or one global digital tint for deposited colour. Selective burnishing is still pending. |
+| [American Society of Botanical Artists — botanical artwork examples](https://asba-art.org/content.aspx?club_id=92618&module_id=713209&page_id=22) | Published plant plate separates entire stem, leaf veins, open fruit and blossom details while preserving subject identity. | One original leaf plate now has additional veinlet hierarchy. More ambitious organ studies require licensed/source-backed botany references, not invented taxa. |
+
+### Implemented second-pass code
+
+- `registry/video/colored-pencil.ts`: bounded `flow` in degrees and `tone` for each pigment pass, retaining paper-space seed determinism.
+- `colored-pencil-react.tsx`: memoised paper texture and hatch geometry; active film-frame changes no longer regenerate immutable paths for articulated moving parts.
+- `colored-pencil-scene.ts`: optional CP3 authored actors and annotation placement; source data remains authoritative for metric labels.
+- `colored-pencil-actor.ts`: authored hierarchical joint transforms with independently animated body, head, eyes, mouth, limbs, wing and tail. Absolute frame keys, no invented animation clock.
+- `colored-pencil-character-scenes.ts`: original fox and bird performing together. Demonstration animals are stylised and are not claimed to be anatomically accurate species studies.
+- Storybook **Video Production / Film Looks / Colour-pencil** now offers material, illustrated worlds, interactive character performance and a three-shot FilmStage character film; both formats have separate composition.
+
+### Current art review, honest limitations
+
+This pass changes static geometry and film authoring but does not itself prove visible professional pencil finish. Inspect exported 16:9 and 9:16 movies at normal speed, then inspect a 2x close-up of the leaf veins, the crystal edge, and actor faces. Explicitly compare frame 160, 220, 240 and final hold. The actor rigs remain stylised cutout motion with fixed authored geometry: they do **not** yet demonstrate deformation-aware fur/feather redrawing, true volumetric rotoscoping, multi-view turnarounds, physics-based gait contact or verified wildlife anatomy.
+
+Further priorities: per-region stipple and tonal blending, genuinely nonuniform organic outer silhouettes, 2.5D parallax without pattern swimming, foot-contact and interaction props, animated erasure, text collision audits, 4K throughput and human visual sign-off.

@@ -1,0 +1,387 @@
+import { useId } from "react";
+import type { SVGProps } from "react";
+import { inspectWetPaper } from "./watercolour-wet-paper";
+import type { WetPaperSpec } from "./watercolour-wet-paper";
+import { WatercolourWetPaper } from "./watercolour-wet-paper-react";
+
+/** WC9: scene-independent, serializable watercolor artwork. No embedded timer,
+ * copyrighted image assets, or screen-space filter on text/other film content.
+ * A parent part moves its descendants, preserving their attachments.
+ */
+export type WatercolourTechnique = "wash" | "drybrush" | "line";
+export interface WatercolourArtKey {
+  frame: number;
+  x: number;
+  y: number;
+  rotation: number;
+  scale: number;
+  opacity: number;
+}
+interface ArtPartBase {
+  id: string;
+  /** Absolute-frame pose. A keyed parent carries every child with it. */
+  keys?: readonly WatercolourArtKey[];
+  /** Center of rotation and scaling in the part's local drawing coordinates. */
+  pivot?: { x: number; y: number };
+  startFrame?: number;
+  fadeFrames?: number;
+}
+/** Artist-directed optical glazing. These are pigments painted on the SUBJECT,
+ * not a screen-wide SVG filter or a replacement for WM4 water transport.
+ * Thin glazes intentionally let the underlying local paint show through.
+ */
+export interface WatercolourWashTreatment {
+  /** Pigment at the light-facing end of the shape's paper-locked gradient. */
+  highlight?: string;
+  /** Denser pigment at the lower/right side of the shape. */
+  shadow?: string;
+  /** Transparent pigment added after the first wash, within exactly its silhouette. */
+  glaze?: { pigment: string; opacity: number };
+  /** 0..1 pooled pigment along the actual original contour. */
+  edgePooling?: number;
+  /** Local wash boundary softness, 0..1. True watercolor lost edges are regional. */
+  edgeSoftness?: number;
+  /** Face and rounded forms can carry an off-centre luminance wash, not a flat panel. */
+  gradient?: "linear" | "radial";
+}
+export type WatercolourArtPart =
+  | (ArtPartBase & { kind: "group"; children: readonly WatercolourArtPart[];
+      /** Optional authored silhouette clip for eyes, eyelids or foreground wash. */
+      clipPath?: string })
+  | (ArtPartBase & { kind: "path"; path: string; technique: WatercolourTechnique;
+      fill?: string; stroke?: string; strokeWidth?: number; opacity?: number;
+      wash?: WatercolourWashTreatment;
+      /** Normal for opaque light/skin underpainting; multiply for transparent watercolor glaze. */
+      composite?: "normal" | "multiply"; });
+export interface WatercolourArtwork {
+  version: 1;
+  width: number;
+  height: number;
+  seed: number;
+  paper: { color: string; tooth: number; granulation?: number };
+  /** Original, hand-authored or procedurally built subject geometry. */
+  parts: readonly WatercolourArtPart[];
+  /** Optional shared-pigment atmospheric underpainting; same paper dimensions. */
+  wetPaper?: WetPaperSpec;
+}
+export interface WatercolourArtPose {
+  x: number; y: number; rotation: number; scale: number; opacity: number;
+}
+const hex = /^#[0-9a-f]{6}$/i;
+const pathSafe = (path: unknown) => typeof path === "string" &&
+  path.length >= 4 && path.length <= 65536 &&
+  /^[Mm]\s*[-+.\d]/.test(path) &&
+  /^[MmLlHhVvCcSsQqTtAaZz0-9eE,\s.+-]+$/.test(path);
+const bounded = (v: number, min: number, max: number) =>
+  typeof v === "number" && Number.isFinite(v) && v >= min && v <= max;
+const integer = (v: number, min: number, max: number) =>
+  Number.isSafeInteger(v) && v >= min && v <= max;
+const smooth = (t: number) => {
+  const u = Math.min(1, Math.max(0, t));
+  return u * u * (3 - 2 * u);
+};
+const neutral: WatercolourArtPose = { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1 };
+
+/** Invalid user-provided JSON must be rejected before it reaches SVG or FilmStage.
+ * Enforce bounded tree size, IDs, coordinate range, motion and path syntax.
+ */
+export function inspectWatercolourArtwork(spec: WatercolourArtwork): string[] {
+  const problems: string[] = [];
+  if (!spec || spec.version !== 1) return ["/version"];
+  if (!integer(spec.width, 240, 8192) || !integer(spec.height, 240, 8192))
+    problems.push("/artboard");
+  if (!integer(spec.seed, 0, 2147483647)) problems.push("/seed");
+  if (!spec.paper || !hex.test(spec.paper.color) || !bounded(spec.paper.tooth, 0, 1))
+    problems.push("/paper");
+  if (spec.paper && spec.paper.granulation !== undefined &&
+    !bounded(spec.paper.granulation, 0, 1)) problems.push("/paper/granulation");
+  if (!Array.isArray(spec.parts) || spec.parts.length < 1 || spec.parts.length > 128)
+    return [...problems, "/parts"];
+  if (spec.wetPaper) {
+    problems.push(...inspectWetPaper(spec.wetPaper).map(issue => "/wetPaper" + issue.path));
+    if (spec.wetPaper.width !== spec.width || spec.wetPaper.height !== spec.height)
+      problems.push("/wetPaper/artboard");
+  }
+  const ids = new Set<string>();
+  const visited = new WeakSet<object>();
+  let count = 0;
+  let budgetExceeded = false;
+  const inspect = (part: WatercolourArtPart, at: string, depth: number) => {
+    if (budgetExceeded) return;
+    if (!part || typeof part !== "object" || visited.has(part) || depth > 8) {
+      problems.push(at); return;
+    }
+    visited.add(part);
+    if (++count > 384) {
+      problems.push("/parts/budget"); budgetExceeded = true; return;
+    }
+    if (typeof part.id !== "string" || !/^[a-z][a-z0-9-]{0,47}$/.test(part.id) || ids.has(part.id))
+      problems.push(at + "/id");
+    else ids.add(part.id);
+    if (part.pivot && (!bounded(part.pivot.x, -8192, 8192) ||
+      !bounded(part.pivot.y, -8192, 8192))) problems.push(at + "/pivot");
+    if (part.startFrame !== undefined && !integer(part.startFrame, 0, 10000000))
+      problems.push(at + "/startFrame");
+    if (part.fadeFrames !== undefined && !integer(part.fadeFrames, 0, 600))
+      problems.push(at + "/fadeFrames");
+    if (part.keys !== undefined) {
+      if (!Array.isArray(part.keys) || !part.keys.length || part.keys.length > 64)
+        problems.push(at + "/keys");
+      else {
+        let prev = -1;
+        for (const [j, key] of part.keys.entries()) {
+          if (!key || !integer(key.frame, 0, 10000000) || key.frame <= prev ||
+            !bounded(key.x, -8192, 8192) || !bounded(key.y, -8192, 8192) ||
+            !bounded(key.rotation, -720, 720) || !bounded(key.scale, .05, 12) ||
+            !bounded(key.opacity, 0, 1)) problems.push(at + "/keys/" + j);
+          if (key && Number.isFinite(key.frame)) prev = key.frame;
+        }
+      }
+    }
+    if (part.kind === "group") {
+      if (part.clipPath !== undefined && !pathSafe(part.clipPath))
+        problems.push(at + "/clipPath");
+      if (!Array.isArray(part.children) || !part.children.length || part.children.length > 128)
+        problems.push(at + "/children");
+      else for (let j = 0; j < part.children.length && !budgetExceeded; j++)
+        inspect(part.children[j], at + "/children/" + j, depth + 1);
+      return;
+    }
+    if (part.kind !== "path") { problems.push(at + "/kind"); return; }
+    if (!pathSafe(part.path)) problems.push(at + "/path");
+    if (!["wash", "drybrush", "line"].includes(part.technique))
+      problems.push(at + "/technique");
+    if (!part.fill && !part.stroke) problems.push(at + "/pigment");
+    for (const color of [part.fill, part.stroke])
+      if (color !== undefined && color !== "none" && !hex.test(color))
+        problems.push(at + "/pigment");
+    if (part.strokeWidth !== undefined && !bounded(part.strokeWidth, .1, 96))
+      problems.push(at + "/strokeWidth");
+    if (part.opacity !== undefined && !bounded(part.opacity, 0, 1))
+      problems.push(at + "/opacity");
+    if (part.composite !== undefined && part.composite !== "normal" &&
+      part.composite !== "multiply") problems.push(at + "/composite");
+    if (part.wash !== undefined) {
+      const w = part.wash;
+      if (!w || typeof w !== "object" || Array.isArray(w) ||
+        part.technique !== "wash" || !part.fill || part.fill === "none") {
+        problems.push(at + "/wash");
+      } else {
+        for (const [key, pigment] of [["highlight", w.highlight], ["shadow", w.shadow]] as const)
+          if (pigment !== undefined && (typeof pigment !== "string" || !hex.test(pigment)))
+            problems.push(at + "/wash/" + key);
+        if (w.edgePooling !== undefined && !bounded(w.edgePooling, 0, 1))
+          problems.push(at + "/wash/edgePooling");
+        if (w.edgeSoftness !== undefined && !bounded(w.edgeSoftness, 0, 1))
+          problems.push(at + "/wash/edgeSoftness");
+        if (w.gradient !== undefined && w.gradient !== "linear" && w.gradient !== "radial")
+          problems.push(at + "/wash/gradient");
+        if (w.glaze !== undefined && (!w.glaze || !hex.test(w.glaze.pigment) ||
+          !bounded(w.glaze.opacity, 0, 1)))
+          problems.push(at + "/wash/glaze");
+      }
+    }
+  };
+  spec.parts.forEach((part, i) => inspect(part, "/parts/" + i, 0));
+  return problems;
+}
+
+/** A pure absolute-frame motion evaluator, independent of render/seek order. */
+export function watercolourArtPoseAt(part: WatercolourArtPart, frame: number,
+  reducedMotion = false): WatercolourArtPose {
+  if (!integer(frame, 0, 10000000)) throw new RangeError("Invalid illustration frame.");
+  const keys = part.keys;
+  if (!keys?.length) return neutral;
+  if (reducedMotion || frame >= keys[keys.length - 1].frame) return { ...keys[keys.length - 1] };
+  if (frame <= keys[0].frame) return { ...keys[0] };
+  for (let i = 1; i < keys.length; i++) {
+    if (frame > keys[i].frame) continue;
+    const a = keys[i - 1], b = keys[i];
+    const t = smooth((frame - a.frame) / (b.frame - a.frame));
+    const mix = (x: number, y: number) => x + (y - x) * t;
+    return { x: mix(a.x, b.x), y: mix(a.y, b.y),
+      rotation: mix(a.rotation, b.rotation),
+      scale: Math.exp(mix(Math.log(a.scale), Math.log(b.scale))),
+      opacity: mix(a.opacity, b.opacity) };
+  }
+  return neutral;
+}
+
+function ArtPart({ part, frame, reducedMotion, washFilter, dryFilter, softWashFilters, uid }: {
+  part: WatercolourArtPart; frame: number; reducedMotion: boolean;
+  washFilter: string; dryFilter: string; softWashFilters: readonly [string,string,string]; uid: string;
+}) {
+  const pose = watercolourArtPoseAt(part, frame, reducedMotion);
+  const start = part.startFrame ?? 0;
+  const visible = reducedMotion ? 1 : part.fadeFrames
+    ? smooth((frame - start) / part.fadeFrames) : Number(frame >= start);
+  if (visible <= 0 || pose.opacity <= 0) return null;
+  const pivot = part.pivot ?? { x: 0, y: 0 };
+  const transform = `translate(${pose.x} ${pose.y}) translate(${pivot.x} ${pivot.y}) rotate(${pose.rotation}) scale(${pose.scale}) translate(${-pivot.x} ${-pivot.y})`;
+  const material = part.kind === "path" ? part.wash : undefined;
+  const pigmentId = uid + "-pigment-" + part.id;
+  const opacity = part.kind === "path" ? (part.opacity ?? 1) : 1;
+  const hasGradient = Boolean(material?.highlight || material?.shadow);
+  const soft = material?.edgeSoftness ?? 0;
+  const effectiveWashFilter = soft > 0
+    ? softWashFilters[Math.min(2,Math.ceil(soft*3)-1)] : washFilter;
+  const clipId = uid + "-clip-" + part.id;
+  const descendants = part.kind === "group" ? part.children.map(child =>
+    <ArtPart key={child.id} part={child} frame={frame}
+      reducedMotion={reducedMotion} washFilter={washFilter} dryFilter={dryFilter}
+      softWashFilters={softWashFilters} uid={uid}/>) : null;
+  return <g data-km-watercolour-part={part.id} transform={transform}
+    opacity={pose.opacity * visible}>
+    {part.kind === "group" ? <>
+        {part.clipPath && <defs>
+          <clipPath id={clipId}><path d={part.clipPath}/></clipPath>
+        </defs>}
+        {part.clipPath ? <g clipPath={`url(#${clipId})`}>{descendants}</g>
+          : descendants}
+      </> : <>
+        {hasGradient && <defs>
+          {material?.gradient === "radial" ?
+            <radialGradient id={pigmentId} cx="37%" cy="34%" r="81%" fx="30%" fy="27%">
+              <stop offset="0" stopColor={material?.highlight ?? part.fill}/>
+              <stop offset=".51" stopColor={part.fill}/>
+              <stop offset="1" stopColor={material?.shadow ?? part.fill}/>
+            </radialGradient> :
+            <linearGradient id={pigmentId} x1="9%" y1="3%" x2="85%" y2="96%">
+              <stop offset="0" stopColor={material?.highlight ?? part.fill}/>
+              <stop offset=".54" stopColor={part.fill}/>
+              <stop offset="1" stopColor={material?.shadow ?? part.fill}/>
+            </linearGradient>}
+        </defs>}
+        <path d={part.path} fill={hasGradient ? `url(#${pigmentId})` : (part.fill ?? "none")}
+          stroke={part.stroke ?? "none"} strokeWidth={part.strokeWidth ?? 1}
+          strokeLinecap="round" strokeLinejoin="round" opacity={opacity}
+          filter={part.technique === "wash" ? effectiveWashFilter
+            : part.technique === "drybrush" ? dryFilter : undefined}
+          style={{ mixBlendMode: part.composite ??
+            (part.technique === "line" ? "normal" : "multiply") }}
+          data-km-watercolour-technique={part.technique}
+          data-km-watercolour-composite={part.composite ??
+            (part.technique === "line" ? "normal" : "multiply")}
+          data-km-watercolour-edge-softness={material?.edgeSoftness ?? 0}/>
+        {material?.glaze && material.glaze.opacity > 0 && <path
+          d={part.path} fill={material.glaze.pigment}
+          opacity={opacity * material.glaze.opacity}
+          filter={effectiveWashFilter} style={{ mixBlendMode: "multiply" }}
+          data-km-watercolour-optical-glaze={part.id}/>}
+        {material?.edgePooling && material.edgePooling > 0 && <path
+          d={part.path} fill="none"
+          stroke={material.shadow ?? part.fill}
+          strokeWidth={.7 + 2.2 * material.edgePooling}
+          strokeLinejoin="round" strokeLinecap="round"
+          opacity={opacity * material.edgePooling * .29}
+          filter={effectiveWashFilter} style={{ mixBlendMode: "multiply" }}
+          data-km-watercolour-edge-pooling={part.id}/>}
+      </>}
+  </g>;
+}
+
+/** Native SVG artwork composited over the existing physical wet-paper engine.
+ * Only watercolor pigment is displaced; FilmStage typography remains crisp.
+ */
+export function WatercolourIllustration({ spec, frame, reducedMotion = false, ...props }:
+  Omit<SVGProps<SVGSVGElement>, "width" | "height" | "viewBox" | "children"> & {
+    spec: WatercolourArtwork; frame: number; reducedMotion?: boolean;
+  }) {
+  const issues = inspectWatercolourArtwork(spec);
+  if (issues.length) throw new RangeError("Invalid watercolor illustration: " + issues.join(", "));
+  if (!integer(frame, 0, 10000000)) throw new RangeError("Invalid illustration frame.");
+  const id = "wc9" + useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  return <svg {...props} xmlns="http://www.w3.org/2000/svg"
+    role={props["aria-hidden"] ? undefined : "img"}
+    aria-label={props["aria-hidden"] ? undefined : (props["aria-label"] ?? "Watercolor illustration")}
+    viewBox={`0 0 ${spec.width} ${spec.height}`}
+    data-km-watercolour-illustration=""
+    data-km-watercolour-illustration-frame={frame}
+    style={{ display: "block", width: "100%", height: "100%", overflow: "hidden", ...props.style }}>
+    <defs>
+      <filter id={id + "-wash"} x="-4%" y="-4%" width="108%" height="108%"
+        colorInterpolationFilters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency=".019 .041" numOctaves={3}
+          seed={1 + spec.seed % 997} result="paper"/>
+        <feDisplacementMap in="SourceGraphic" in2="paper"
+          scale={2.3 * spec.paper.tooth} xChannelSelector="R" yChannelSelector="G"
+          result="displaced"/>
+        {(spec.paper.granulation ?? 0) > 0 && <>
+          <feTurbulence type="fractalNoise" baseFrequency=".14 .11"
+            numOctaves={2} seed={1 + spec.seed % 661} result="granules"/>
+          <feColorMatrix in="granules" type="saturate" values="0" result="granuleMono"/>
+          <feComponentTransfer in="granuleMono" result="granuleTint">
+            <feFuncR type="linear" slope={.12 * (spec.paper.granulation ?? 0)}
+              intercept={1 - .075 * (spec.paper.granulation ?? 0)}/>
+            <feFuncG type="linear" slope={.12 * (spec.paper.granulation ?? 0)}
+              intercept={1 - .075 * (spec.paper.granulation ?? 0)}/>
+            <feFuncB type="linear" slope={.12 * (spec.paper.granulation ?? 0)}
+              intercept={1 - .075 * (spec.paper.granulation ?? 0)}/>
+            <feFuncA type="linear" slope={0} intercept={1}/>
+          </feComponentTransfer>
+          {/* Grain is a small centered tonal modulation, not a darkening layer:
+              multiple semitransparent watercolor shapes otherwise accumulate
+              into muddy, opaque skin. Preserve hue and alpha. */}
+          {/* Arithmetic multiplication modulates pigment RGB while preserving its
+              alpha. Overlay blending here would incorrectly double opacity and
+              turn translucent watercolor washes into solid cartoon patches. */}
+          <feComposite in="displaced" in2="granuleTint" operator="arithmetic"
+            k1={1} k2={0} k3={0} k4={0}/>
+        </>}
+      </filter>
+      {/* Artist-directed lost edges are applied to the local painted region,
+          not to the entire portrait or crisp eye/pencil structure. */}
+      {([1.2,2.5,4.1] as const).map((blur,index)=>
+        <filter key={index} id={id + "-soft-" + (index+1)}
+          x="-16%" y="-16%" width="132%" height="132%"
+          colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency=".021 .037" numOctaves={3}
+            seed={1 + spec.seed % 997} result="bleed"/>
+          <feDisplacementMap in="SourceGraphic" in2="bleed" result="wet-edge"
+            scale={2.4*spec.paper.tooth} xChannelSelector="R" yChannelSelector="G"/>
+          <feGaussianBlur in="wet-edge" stdDeviation={blur*spec.paper.tooth}
+            result="soft-pigment"/>
+          {/* Previously local wet edges bypassed the medium's granulation
+              entirely. Most portrait planes use lost edges, so whole
+              characters resembled soft vector gradients rather than paint.
+              Modulate RGB after blur but preserve its original alpha. */}
+          {(spec.paper.granulation ?? 0)>0&&<>
+            <feTurbulence type="fractalNoise" baseFrequency=".095 .072"
+              numOctaves={3} seed={2+spec.seed%661} result="soft-paper-grain"/>
+            <feColorMatrix in="soft-paper-grain" type="saturate" values="0"
+              result="soft-grain-mono"/>
+            <feComponentTransfer in="soft-grain-mono" result="soft-grain-tint">
+              <feFuncR type="linear"
+                slope={.14*(spec.paper.granulation ?? 0)}
+                intercept={1-.07*(spec.paper.granulation ?? 0)}/>
+              <feFuncG type="linear"
+                slope={.14*(spec.paper.granulation ?? 0)}
+                intercept={1-.07*(spec.paper.granulation ?? 0)}/>
+              <feFuncB type="linear"
+                slope={.14*(spec.paper.granulation ?? 0)}
+                intercept={1-.07*(spec.paper.granulation ?? 0)}/>
+              <feFuncA type="linear" slope={0} intercept={1}/>
+            </feComponentTransfer>
+            <feComposite in="soft-pigment" in2="soft-grain-tint"
+              operator="arithmetic" k1={1} k2={0} k3={0} k4={0}/>
+          </>}
+        </filter>)}
+      <filter id={id + "-dry"} x="-3%" y="-3%" width="106%" height="106%"
+        colorInterpolationFilters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency=".13 .075" numOctaves={2}
+          seed={1 + spec.seed % 773} result="fibres"/>
+        <feDisplacementMap in="SourceGraphic" in2="fibres"
+          scale={1.5 * spec.paper.tooth} xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+    <rect width={spec.width} height={spec.height} fill={spec.paper.color}/>
+    {spec.wetPaper && <WatercolourWetPaper aria-hidden="true"
+      spec={spec.wetPaper} frame={frame} reducedMotion={reducedMotion}
+      transparentPaper/>}
+    {spec.parts.map(part => <ArtPart key={part.id} part={part} frame={frame}
+      reducedMotion={reducedMotion} washFilter={`url(#${id}-wash)`}
+      dryFilter={`url(#${id}-dry)`} softWashFilters={[
+        `url(#${id}-soft-1)`,`url(#${id}-soft-2)`,`url(#${id}-soft-3)`
+      ]} uid={id}/>)}
+  </svg>;
+}

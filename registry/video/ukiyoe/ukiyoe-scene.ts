@@ -18,6 +18,8 @@ import type { UkiyoeFill, UkiyoePaint, UkiyoePresetName } from "./ukiyoe-pigment
 import { palette, UKIYOE_PRESETS } from "./ukiyoe-pigments";
 import type { UkiyoePattern } from "./ukiyoe-prims";
 import { UKIYOE_PATTERNS } from "./ukiyoe-prims";
+import type { UkiyoeCrowdSpec } from "./ukiyoe-crowd";
+import { UKIYOE_CROWD_MOODS } from "./ukiyoe-crowd";
 
 export interface UkiyoeBase {
   id: string;
@@ -45,6 +47,12 @@ export interface UkiyoeBase {
   windScale?: number;
   /** Compositing: `multiply` for dusk and shadow washes, `screen` for light and mist. */
   blend?: "normal" | "multiply" | "screen";
+  /**
+   * Float on a `wave` motif: this top-level node (a boat group, a bird, driftwood) is lifted by the wave's surface
+   * under it and pitched to its slope, so it climbs the face as the wave rises and drops when it breaks.
+   * `amount` scales the lift, `tilt` the pitch, `span` is the waterline length sampled for the slope.
+   */
+  ride?: { on: string; amount?: number; tilt?: number; span?: number };
 }
 
 export interface UkiyoeBlockNode extends UkiyoeBase {
@@ -115,7 +123,13 @@ export interface UkiyoeTextNode extends UkiyoeBase {
   align?: "start" | "middle" | "end";
 }
 
-export type UkiyoeNode = UkiyoeBlockNode | UkiyoeLineNode | UkiyoeGroupNode | UkiyoeMotifNode | UkiyoeParticlesNode | UkiyoeFigureNode | UkiyoeCreatureNode | UkiyoeTextNode;
+/**
+ * A crowd of townsfolk filling a strip of road: strollers, talkers, porters, children, dancers or a procession, in depth
+ * rows, each a full figure with its own look and timing (seeded). It expands into figures before rendering.
+ */
+export interface UkiyoeCrowdNode extends UkiyoeBase, Omit<UkiyoeCrowdSpec, "id"> { kind: "crowd" }
+
+export type UkiyoeNode = UkiyoeBlockNode | UkiyoeLineNode | UkiyoeGroupNode | UkiyoeMotifNode | UkiyoeParticlesNode | UkiyoeFigureNode | UkiyoeCreatureNode | UkiyoeTextNode | UkiyoeCrowdNode;
 
 export interface UkiyoeSceneSpec {
   version: 1;
@@ -143,7 +157,7 @@ export interface UkiyoeSceneSpec {
 // ---- Validation --------------------------------------------------------------------------------------------------------------------
 
 export interface UkiyoeIssue { path: string; message: string }
-const KINDS = ["block", "line", "group", "motif", "particles", "figure", "creature", "text"] as const;
+const KINDS = ["block", "line", "group", "motif", "particles", "figure", "creature", "text", "crowd"] as const;
 const SAFE_PATH = /^[MmLlHhVvCcSsQqTtAaZz0-9eE+\-.,\s]*$/;
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const isInt = (v: unknown): v is number => Number.isSafeInteger(v);
@@ -209,6 +223,12 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
     for (const k of ["from", "to"] as const) if (n[k] !== undefined && !isInt(n[k])) bad(`${p}.${k}`, "must be an integer frame");
     if (n.cadence !== undefined && ![1, 2, 3, 4].includes(n.cadence)) bad(p + ".cadence", "must be 1..4");
     if (n.blend !== undefined && !["normal", "multiply", "screen"].includes(n.blend)) bad(p + ".blend", "must be normal, multiply or screen");
+    if (n.ride !== undefined) {
+      const target = s.nodes!.find(m => m && m.id === n.ride!.on);
+      if (!target || target.kind !== "motif" || target.motif !== "wave") bad(p + ".ride.on", "must be the id of a wave motif node");
+      if (n.parent !== undefined) bad(p + ".ride", "only top-level nodes can ride a wave");
+      range(p + ".ride.amount", n.ride.amount, 0, 3); range(p + ".ride.tilt", n.ride.tilt, 0, 3); range(p + ".ride.span", n.ride.span, 4, 4000);
+    }
     for (const k of ["enter", "exit"] as const) {
       const m = n[k];
       if (m && (!UKIYOE_MOVES.includes(m.preset) || !isInt(m.frame) || !isInt(m.duration) || m.duration < 1)) bad(`${p}.${k}`, "needs a known preset, integer frame and duration ≥ 1");
@@ -258,10 +278,12 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
         for (const k of ["skin", "hairColor", "hatColor", "robe", "under", "obi", "coat", "hakama", "legs", "propColor", "accent", "lips"] as const) if (l[k] !== undefined) paint(`${p}.look.${k}`, l[k]);
         for (const k of ["robePattern", "coatPattern"] as const) if (l[k]) { if (!UKIYOE_PATTERNS.includes(l[k]!.type)) bad(`${p}.look.${k}.type`, "unknown pattern"); paint(`${p}.look.${k}.color`, l[k]!.color); }
         range(p + ".look.height", l.height, 40, 2000);
+        if (l.view !== undefined && !["profile", "three-quarter", "front", "back"].includes(l.view)) bad(p + ".look.view", "must be profile, three-quarter, front or back");
         (n.actions ?? []).forEach((a, j) => {
           if (!UKIYOE_ACTIONS.includes(a.type)) bad(`${p}.actions[${j}].type`, "unknown action; use " + UKIYOE_ACTIONS.join(", "));
           if (!isInt(a.start) || !isInt(a.end) || a.end < a.start) bad(`${p}.actions[${j}]`, "needs integer start ≤ end");
           if ((a.type === "walk" || a.type === "run") && !isNum(a.to)) bad(`${p}.actions[${j}].to`, "walk/run needs a numeric target x");
+          if (a.via !== undefined && (!Array.isArray(a.via) || a.via.length > 64 || a.via.some(q => !Array.isArray(q) || !isNum(q[0]) || !isNum(q[1])))) bad(`${p}.actions[${j}].via`, "must be up to 64 [x, y] waypoints");
         });
         break;
       }
@@ -271,13 +293,31 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
         for (const k of ["color", "belly", "dark", "accent"] as const) if (l[k] !== undefined) paint(`${p}.look.${k}`, l[k]);
         range(p + ".look.size", l.size, 8, 6000);
         range(p + ".look.tails", l.tails, 1, 9);
+        if (l.view !== undefined && !["profile", "three-quarter", "front", "back"].includes(l.view)) bad(p + ".look.view", "must be profile, three-quarter, front or back");
         (n.actions ?? []).forEach((a, j) => {
           if (!UKIYOE_CREATURE_ACTIONS.includes(a.type)) bad(`${p}.actions[${j}].type`, "unknown action; use " + UKIYOE_CREATURE_ACTIONS.join(", "));
           if (!isInt(a.start) || !isInt(a.end) || a.end < a.start) bad(`${p}.actions[${j}]`, "needs integer start ≤ end");
-          if (["walk", "run", "fly", "hop"].includes(a.type) && !isNum(a.to)) bad(`${p}.actions[${j}].to`, "travel needs a numeric target x");
+          if (["walk", "run", "fly", "hop", "float"].includes(a.type) && !isNum(a.to)) bad(`${p}.actions[${j}].to`, "travel needs a numeric target x");
+          if (a.via !== undefined && (!Array.isArray(a.via) || a.via.length > 64 || a.via.some(q => !Array.isArray(q) || !isNum(q[0]) || !isNum(q[1])))) bad(`${p}.actions[${j}].via`, "must be up to 64 [x, y] waypoints");
         });
         break;
       }
+      case "crowd":
+        if (!isNum(n.width) || n.width <= 0 || n.width > 40000) bad(p + ".width", "must be a positive width in px");
+        if (!isInt(n.count) || n.count < 1 || n.count > 80) bad(p + ".count", "must be an integer 1..80");
+        if (n.rows !== undefined && (!isInt(n.rows) || n.rows < 1 || n.rows > 4)) bad(p + ".rows", "must be 1..4");
+        range(p + ".rowGap", n.rowGap, 0, 400);
+        range(p + ".scale", n.scale, .1, 10);
+        if (n.frames !== undefined && (!isInt(n.frames) || n.frames < 30 || n.frames > 108000)) bad(p + ".frames", "must be an integer 30..108000");
+        if (n.mood !== undefined && !UKIYOE_CROWD_MOODS.includes(n.mood)) bad(p + ".mood", "must be " + UKIYOE_CROWD_MOODS.join(", "));
+        if (n.direction !== undefined && !["left", "right", "both"].includes(n.direction)) bad(p + ".direction", "must be left, right or both");
+        (n.cast ?? []).forEach((l, j) => {
+          if (l.hair && !UKIYOE_HAIRS.includes(l.hair)) bad(`${p}.cast[${j}].hair`, "unknown hair");
+          if (l.hat && !UKIYOE_HATS.includes(l.hat)) bad(`${p}.cast[${j}].hat`, "unknown hat");
+          if (l.prop && !UKIYOE_PROPS.includes(l.prop)) bad(`${p}.cast[${j}].prop`, "unknown prop");
+          for (const k of ["skin", "hairColor", "hatColor", "robe", "under", "obi", "coat", "hakama", "legs", "propColor", "accent", "lips"] as const) if (l[k] !== undefined) paint(`${p}.cast[${j}].${k}`, l[k]);
+        });
+        break;
       case "text":
         if (!["cartouche", "caption", "seal", "plain"].includes(n.style)) bad(p + ".style", "must be cartouche, caption, seal or plain");
         if (typeof n.text !== "string" || !n.text.length || n.text.length > 400) bad(p + ".text", "must be 1..400 characters");

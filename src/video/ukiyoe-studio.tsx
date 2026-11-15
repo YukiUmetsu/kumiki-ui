@@ -7,6 +7,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import "@fontsource-variable/newsreader";
 import { compileFilm } from "../../registry/video/film-document";
+import type { CompiledSceneSound } from "../../registry/video/film-split-edits";
 import { FilmStage } from "../../registry/video/film-stage";
 import type { UkiyoeAction, UkiyoeActionType, UkiyoeFigureLook, UkiyoeHair, UkiyoeHat, UkiyoeProp } from "../../registry/video/ukiyoe/ukiyoe-figure";
 import { UKIYOE_ACTIONS, UKIYOE_HAIRS, UKIYOE_HATS, UKIYOE_PROPS } from "../../registry/video/ukiyoe/ukiyoe-figure";
@@ -15,12 +16,16 @@ import type { UkiyoePresetName } from "../../registry/video/ukiyoe/ukiyoe-pigmen
 import { palette, UKIYOE_PRESETS, UKIYOE_ROLES } from "../../registry/video/ukiyoe/ukiyoe-pigments";
 import type { UkiyoePatternType } from "../../registry/video/ukiyoe/ukiyoe-prims";
 import { UKIYOE_PATTERNS } from "../../registry/video/ukiyoe/ukiyoe-prims";
+import type { UkiyoeCrowdMood } from "../../registry/video/ukiyoe/ukiyoe-crowd";
+import { UKIYOE_CROWD_MOODS } from "../../registry/video/ukiyoe/ukiyoe-crowd";
+import { UKIYOE_SQUARE_VIEW_SPECIES } from "../../registry/video/ukiyoe/ukiyoe-creatures";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import { inspectUkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import { ukiyoeFilm, ukiyoeShotStarts } from "./ukiyoe-film";
 import type { UkiyoeAspect, UkiyoeFilmTweaks, UkiyoeShot } from "./ukiyoe-night-ferry";
 import { FOLKTALE_KASUMI, FOLKTALE_SHOTS } from "./ukiyoe-folktale";
+import { SNOW_WOMAN_KASUMI, SNOW_WOMAN_SHOTS } from "./ukiyoe-snow-woman";
 import { CAST, NIGHT_FERRY_SHOTS } from "./ukiyoe-night-ferry";
 import { renderUkiyoeSlot } from "./ukiyoe-slot";
 
@@ -87,6 +92,51 @@ export function usePlayback(durationFrames: number, initial = 0, rate = 1, loop 
   return { frame, playing, seek: (f: number) => { setPlaying(false); setFrame(Math.max(0, Math.min(last, Math.round(f)))); }, toggle: () => setPlaying(p => !p), restart: () => { setFrame(0); setPlaying(true); } };
 }
 
+// ---- Sound -------------------------------------------------------------------------------------------------------------------------
+
+const BED_PREVIEWS = import.meta.glob("../../assets/sound/lab/catalog/bed-*.m4a", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+/**
+ * Plays the compiled film's scene sounds (the same recorded beds the film renders with) on the player's frame clock:
+ * each bed loops while the playhead is inside it, its level following the compiled gain and the crossfades at the cuts.
+ * Audio starts only from the viewer's Play press and stops on pause, seek past it, or when sound is switched off. The
+ * preview leaves out the render's low-pass filter and mastering.
+ */
+/** A film bed (a layer over a shot) in the same shape as a compiled scene sound, so one player handles both. */
+function bedsAsSounds(doc: { audio?: { beds?: readonly { id: string; sound: string; gainDb?: number; startFrame?: number; durationFrames?: number; fadeSeconds?: number }[] } }, fps = 30): CompiledSceneSound[] {
+  return (doc.audio?.beds ?? []).map(bed => {
+    const start = bed.startFrame ?? 0, fade = Math.round((bed.fadeSeconds ?? 1.5) * fps);
+    return { sceneId: "bed:" + bed.id, sound: bed.sound, gainDb: bed.gainDb, startFrame: start, endFrame: start + (bed.durationFrames ?? 0), fadeInFrames: fade, fadeOutFrames: fade };
+  });
+}
+function useSceneSound(sounds: readonly CompiledSceneSound[], frame: number, playing: boolean, rate: number, enabled: boolean, fps = 30) {
+  const audios = useRef(new Map<string, HTMLAudioElement>());
+  useEffect(() => () => { audios.current.forEach(a => a.pause()); audios.current.clear(); }, []);
+  useEffect(() => {
+    const live = new Set<string>();
+    if (enabled && playing) for (const item of sounds) {
+      if (frame < item.startFrame || frame >= item.endFrame) continue;
+      const url = BED_PREVIEWS[`../../assets/sound/lab/catalog/${item.sound}.m4a`];
+      if (!url) continue;
+      const key = item.sceneId;
+      live.add(key);
+      let audio = audios.current.get(key);
+      if (!audio) {
+        audio = new Audio(url);
+        audio.loop = true;
+        audio.currentTime = ((frame - item.startFrame) / fps) % 8;
+        audios.current.set(key, audio);
+        // Media playback started by the viewer's Play press.
+        void HTMLMediaElement.prototype.play.call(audio).catch(() => undefined);
+      }
+      const fadeIn = item.fadeInFrames > 0 ? Math.min(1, (frame - item.startFrame) / item.fadeInFrames) : 1;
+      const fadeOut = item.fadeOutFrames > 0 ? Math.min(1, (item.endFrame - frame) / item.fadeOutFrames) : 1;
+      audio.volume = Math.max(0, Math.min(1, 10 ** ((item.gainDb ?? 0) / 20) * fadeIn * fadeOut));
+      audio.playbackRate = rate;
+    }
+    for (const [key, audio] of audios.current) if (!live.has(key)) { audio.pause(); audios.current.delete(key); }
+  }, [sounds, frame, playing, rate, enabled, fps]);
+}
+
 function Transport({ clock, total, rate, setRate, loop, setLoop, name }: { clock: ReturnType<typeof usePlayback>; total: number; rate: number; setRate: (v: number) => void; loop: boolean; setLoop: (v: boolean) => void; name: string }) {
   return <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "end" }}>
     <button type="button" style={button} onClick={clock.toggle}>{clock.playing ? "Pause" : "Play"}</button>
@@ -148,6 +198,16 @@ export function FolktaleFilmPlayer() {
       great-wave sea. Every creature is a rig in the same JSON scene engine.</>} />;
 }
 
+export function SnowWomanFilmPlayer() {
+  return <UkiyoeFilmPlayer shots={SNOW_WOMAN_SHOTS} kasumi={SNOW_WOMAN_KASUMI} filmId="ukiyoe-snow-woman" title="The Snow Woman" kicker="Ukiyo-e yōkai tale · UKIYO1" initialFrame={240} firstShotFrame={150}
+    description={<>An original three-shot yōkai tale after the yuki-onna legend. A traveller crosses a snowbound pass below a
+      Kisokaidō-style mountain range, past thatched and gasshō farmhouses with smoke rising and a row of jizō in red caps, while a
+      fox stops to watch him. At night he passes the old shrine: komainu guard the gate, a paper lantern grins on its hook, an
+      umbrella hops by on one leg, soul-flames drift and a ghost appears among the pines. In the snowfield beyond, a woman in white
+      comes out of the storm, breathes her cold over him and is gone. Every spirit, building and statue is a rig or motif in the
+      same JSON scene engine.</>} />;
+}
+
 function UkiyoeFilmPlayer({ shots, kasumi, filmId, title, kicker, description, initialFrame = 150, firstShotFrame = 40 }: FilmPlayerProps) {
   const [aspect, setAspect] = useState<UkiyoeAspect>("landscape");
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -162,6 +222,7 @@ function UkiyoeFilmPlayer({ shots, kasumi, filmId, title, kicker, description, i
   const [cadence, setCadence] = useState<1 | 2 | 3 | 4>(2);
   const [wind, setWind] = useState(0);
   const [captions, setCaptions] = useState(true);
+  const [sound, setSound] = useState(true);
   const tweaks: UkiyoeFilmTweaks = useMemo(() => ({ preset: preset === "per-shot" ? undefined : preset, registration, mottle, grain, line, fibre, cadence, wind, captions }),
     [preset, registration, mottle, grain, line, fibre, cadence, wind, captions]);
   const doc = useMemo(() => ukiyoeFilm(shots, tweaks, { id: filmId, kasumi }), [shots, tweaks, filmId, kasumi]);
@@ -169,6 +230,8 @@ function UkiyoeFilmPlayer({ shots, kasumi, filmId, title, kicker, description, i
   const starts = useMemo(() => ukiyoeShotStarts(shots), [shots]);
   const total = compiled.ok ? compiled.film.durationFrames : 1;
   const clock = usePlayback(total, initialFrame, rate, loop);
+  const allSounds = useMemo(() => [...(compiled.ok ? compiled.film.sceneSounds : []), ...bedsAsSounds(doc as never)], [compiled, doc]);
+  useSceneSound(allSounds, clock.frame, clock.playing, rate, sound);
   if (!compiled.ok) return <pre role="alert">{compiled.diagnostics.map(d => d.path + ": " + d.message).join("\n")}</pre>;
   const film = compiled.film, shotIndex = starts.reduce((found, s, i) => s <= clock.frame ? i : found, 0);
   return <div style={page}>
@@ -197,8 +260,12 @@ function UkiyoeFilmPlayer({ shots, kasumi, filmId, title, kicker, description, i
       <Select name="Figure cadence" value={cadence} options={[1, 2, 3, 4] as const} onChange={setCadence} labels={{ 1: "On ones", 2: "On twos (default)", 3: "On threes", 4: "On fours" }} />
       <Slider name="Extra wind" value={wind} min={-1.5} max={1.5} step={.1} onChange={setWind} format={v => (v > 0 ? "+" : "") + v.toFixed(1)} />
       <Check name="Captions" value={captions} onChange={setCaptions} />
+      <Check name="Ambient sound (recorded beds)" value={sound} onChange={setSound} />
       <Check name="Reduced motion (settled frames)" value={reducedMotion} onChange={setReducedMotion} />
     </section>
+    <p style={{ fontSize: 13, margin: 0, opacity: .8, maxWidth: 900 }}>Sound: each shot plays recorded CC0 field recordings from the sound catalog (river,
+      stream, mountain wind, heavy rain, surf, distant fireworks, night crickets), crossfading at the cuts. The same beds are written into the film document, so a render carries them with
+      its low-pass filter and mastering; the preview here plays them plainly.</p>
     <p style={{ fontSize: 13, margin: 0, opacity: .8, maxWidth: 900 }}>Every frame is a pure function of the frame number, so scrubbing, seeking backwards and
       jumping between shots are exact. All artwork is generated by the engine: no photographs, no third-party prints and no traced
       compositions. Ukiyo-e and emaki conventions (bokashi, kentō registration, suyari-gasumi, fukinuki-yatai) are public-domain techniques.</p>
@@ -288,7 +355,8 @@ export function CastLab() {
     <Header kicker="UKIYO1 · Cast lab" title="Figures, costumes and actions">
       <p style={{ margin: 0 }}>Each figure is an articulated rig drawn as a print would draw it: a robe silhouette, hanging sleeves
         that lag and blow in the wind, a pale profile face, and costume pattern as its own block. Pick a figure, then change its
-        costume and action. The whole cast plays together on one clock.</p>
+        costume and action, or turn it with View: three-quarters, square on from the front, or from behind. The whole cast plays
+        together on one clock.</p>
     </Header>
     <Fit width={1920} height={1080} maxHeight={560}><UkiyoeScene spec={spec} frame={clock.frame} aria-label="Cast lab stage" /></Fit>
     <Transport clock={clock} total={240} rate={rate} setRate={setRate} loop={loop} setLoop={setLoop} name="Cast frame" />
@@ -297,6 +365,7 @@ export function CastLab() {
     </nav>
     <section aria-label={"Edit " + selected} style={panel}>
       <Select name="Action" value={actions[selected]} options={UKIYOE_ACTIONS} onChange={v => setActions(a => ({ ...a, [selected]: v }))} />
+      <Select name="View" value={look.view ?? "profile"} options={["profile", "three-quarter", "front", "back"] as const} onChange={v => set({ view: v })} labels={{ profile: "Profile", "three-quarter": "Three-quarter", front: "Front", back: "Back" }} />
       <Select name="Hair" value={look.hair ?? "chonmage"} options={UKIYOE_HAIRS} onChange={(v: UkiyoeHair) => set({ hair: v })} />
       <Select name="Hat" value={look.hat ?? "none"} options={UKIYOE_HATS} onChange={(v: UkiyoeHat) => set({ hat: v })} />
       <Select name="Prop" value={look.prop ?? "none"} options={UKIYOE_PROPS} onChange={(v: UkiyoeProp) => set({ prop: v })} />
@@ -341,6 +410,12 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "ricefield", label: "Rice terraces · ripe", params: { width: 600, height: 170, crop: "ripe", terraces: 3 }, y: 190 },
   { motif: "ricefield", label: "Rice paddies · young", params: { width: 600, height: 170, crop: "young", terraces: 3 }, y: 190 },
   { motif: "peach", label: "Peach (momo)", params: { size: 80, openAt: 150, openDuration: 30 }, y: 230 },
+  { motif: "range", label: "Mountain range · waterfall", params: { width: 640, height: 300, layers: 4, waterfall: true }, y: 380 },
+  { motif: "range", label: "Mountain range · snow", params: { width: 640, height: 300, layers: 3, snow: .85, variant: 2 }, y: 380 },
+  { motif: "minka", label: "Thatched farmhouse · smoke", params: { width: 300, smoke: 1 }, y: 350 },
+  { motif: "minka", label: "Gassho house · snow, lit", params: { width: 220, style: "gassho", snow: 1, light: 1 }, y: 350 },
+  { motif: "jizo", label: "Roadside jizō", params: { height: 120, count: 3, cap: true }, y: 340 },
+  { motif: "komainu", label: "Komainu pair (a, un)", params: { height: 150, pair: true, gap: 330 }, y: 340 },
 ];
 
 export function MotifGallery() {
@@ -371,6 +446,43 @@ export function MotifGallery() {
         <UkiyoeScene spec={s} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={GALLERY[i].label} />
       </div>)}
     </div>
+  </div>;
+}
+
+// ---- Crowds ------------------------------------------------------------------------------------------------------------------------
+
+export function CrowdLab() {
+  const [mood, setMood] = useState<UkiyoeCrowdMood>("stroll");
+  const [count, setCount] = useState(24);
+  const [rows, setRows] = useState(3);
+  const [direction, setDirection] = useState<"both" | "left" | "right">("both");
+  const [seed, setSeed] = useState(12);
+  const clock = usePlayback(480, 0, 1, true, true);
+  const spec = useMemo((): UkiyoeSceneSpec => ({
+    version: 1, id: "crowd-lab", width: 1920, height: 1080, durationFrames: 480, seed, wind: { base: .25 }, palette: { preset: "twilight" },
+    nodes: [
+      { id: "sky", kind: "motif", motif: "sky", params: { width: 1920, height: 1080, band: .35, horizon: "beni" } },
+      { id: "street", kind: "block", x: 960, y: 900, shape: { type: "rect", width: 1960, height: 400 }, fill: { type: "linear", angle: 90, stops: [[0, "ki", .8], [1, "kincha", .9]] }, line: 0, grain: .8 },
+      { id: "houses", kind: "motif", motif: "house", x: 960, y: 640, params: { width: 1900, height: 200, noren: "ai", stories: 2, doors: 9 } },
+      { id: "crowd", kind: "crowd", x: 960, y: 960, width: 1800, count, rows, rowGap: 70, mood, direction, scale: .9 },
+    ],
+  }), [mood, count, rows, direction, seed]);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Crowds" title="Street life from one node">
+      <p style={{ margin: 0 }}>A <code>crowd</code> node fills a strip of road with townsfolk in depth rows, each a full figure with its own look,
+        pace and behaviour, seeded so the same crowd is the same people on every frame. <code>stroll</code>: most walk, some stop to look,
+        others stand talking or bowing. <code>busy</code>: porters and hurrying walkers. <code>festival</code>: dancing, cheering, waving.{" "}
+        <code>procession</code>: everyone walks one way in file. Pass a <code>cast</code> of looks to choose who is in it.</p>
+    </Header>
+    <section aria-label="Crowd controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="Mood" value={mood} options={UKIYOE_CROWD_MOODS} onChange={setMood} />
+      <Slider name="People" value={count} min={1} max={80} step={1} onChange={setCount} format={v => String(v)} />
+      <Slider name="Depth rows" value={rows} min={1} max={4} step={1} onChange={setRows} format={v => String(v)} />
+      <Select name="Direction" value={direction} options={["both", "left", "right"] as const} onChange={setDirection} />
+      <Slider name="Seed" value={seed} min={1} max={60} step={1} onChange={setSeed} format={v => String(v)} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={`A ${mood} crowd of ${count}`} /></Fit>
+    <Transport clock={clock} total={480} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Frame" />
   </div>;
 }
 
@@ -422,8 +534,9 @@ export function SceneEditor() {
 
 interface Specimen { id: string; label: string; actions: readonly string[]; node: (action: string) => UkiyoeNode; sky?: "day" | "night" | "storm" }
 const travel = (type: string) => ["walk", "run", "fly", "hop"].includes(type) ? { to: 0 } : {};
+const SPIRITS = new Set(["yukionna", "yurei", "rokurokubi", "kasaobake", "chochinobake", "hitodama", "nue", "nurikabe", "tsuchigumo"]);
 const beast = (id: string, species: string, label: string, actions: string[], look: Record<string, unknown> = {}, scale = 1.25, y = 330): Specimen => ({
-  id, label, actions,
+  id, label, actions, ...(SPIRITS.has(species) ? { sky: "night" as const } : {}),
   node: action => ({ id: "c", kind: "creature", species, x: 300, y, scale, look, actions: [{ type: action, start: 0, end: 239, ...travel(action) }] } as UkiyoeNode),
 });
 const BESTIARY: readonly Specimen[] = [
@@ -445,6 +558,20 @@ const BESTIARY: readonly Specimen[] = [
     node: action => ({ id: "c", kind: "figure", x: 300, y: 370, scale: .95, look: CAST["oni-red"], actions: [{ type: action, start: 0, end: 239, ...travel(action) }] } as UkiyoeNode) },
   { id: "oni-blue", label: "Blue oni", actions: ["talk", "walk", "cheer", "brace", "point"],
     node: action => ({ id: "c", kind: "figure", x: 300, y: 370, scale: .95, facing: "left", look: CAST["oni-blue"], actions: [{ type: action, start: 0, end: 239, ...travel(action), angle: action === "point" ? 85 : undefined }] } as UkiyoeNode) },
+  beast("monkey", "monkey", "Japanese macaque (saru)", ["walk", "sit", "run", "leap", "look", "sleep"], {}, 1.35),
+  beast("horse", "horse", "Packhorse with tack", ["walk", "run", "look", "stand"], { tack: true }, .95, 345),
+  beast("kappa", "kappa", "Kappa, bowing and spilling its dish", ["bow", "stand", "walk", "dance"], {}, 1.5, 345),
+  beast("tengu", "tengu", "Tengu with feather fan", ["fan", "stand", "fly", "walk"], {}, 1.05, 350),
+  beast("karasutengu", "karasutengu", "Karasu-tengu", ["fly", "stand", "fan", "walk"], {}, 1.05, 350),
+  beast("rokurokubi", "rokurokubi", "Rokurokubi, the long-necked woman", ["stretch", "stand", "appear", "vanish"], {}, .75, 365),
+  beast("nue", "nue", "Nue: monkey face, tiger body, snake tail", ["walk", "run", "sit", "roar", "look"], {}, 1.15),
+  beast("nurikabe", "nurikabe", "Nurikabe, the wall on the night road", ["stand", "walk", "roar"], {}, 1.2, 350),
+  beast("tsuchigumo", "tsuchigumo", "Tsuchigumo, the earth spider", ["walk", "stand", "roar"], {}, 1.1, 350),
+  beast("yukionna", "yukionna", "Yuki-onna, the snow woman", ["stand", "blow", "beckon", "appear", "vanish"], {}, 1.3, 360),
+  beast("yurei", "yurei", "Yūrei, a ghost", ["stand", "appear", "vanish"], {}, 1.3, 360),
+  beast("kasaobake", "kasaobake", "Kasa-obake, the umbrella spirit", ["hop", "stand", "look"], {}, 1.3, 350),
+  beast("chochinobake", "chochinobake", "Chōchin-obake, the lantern spirit", ["stand", "look"], {}, 1.2, 360),
+  beast("hitodama", "hitodama", "Hitodama, soul-flames", ["stand"], {}, 1.6, 330),
   { id: "peach", label: "Peach (momo) splitting open", actions: ["open", "float"], sky: "day",
     node: action => ({ id: "c", kind: "motif", motif: "peach", x: 300, y: 250, params: { size: 90, ...(action === "open" ? { openAt: 60, openDuration: 34 } : {}) }, loops: [{ kind: "rock", amplitude: 1.2, period: 60 }] } as UkiyoeNode) },
 ];
@@ -453,24 +580,42 @@ export function Bestiary() {
   const [wind, setWind] = useState(.3);
   const [cadence, setCadence] = useState<1 | 2 | 3 | 4>(2);
   const [chosen, setChosen] = useState<Record<string, string>>(() => Object.fromEntries(BESTIARY.map(b => [b.id, b.actions[0]])));
+  const [view, setView] = useState<"profile" | "three-quarter" | "front" | "back">("profile");
   const clock = usePlayback(240, 30, 1, true, true);
+  // The View switch turns every animal and figure three-quarters toward the viewer (creatures: body, far legs, head;
+  // figures: face, torso and limbs), or square on from the front or from behind (figures and four-legged animals; birds,
+  // the dragon and the yōkai stay in profile).
+  const square = view === "front" || view === "back";
+  const turn = (n: UkiyoeNode): UkiyoeNode => view === "profile" || (n.kind !== "creature" && n.kind !== "figure")
+    || (square && n.kind === "creature" && !UKIYOE_SQUARE_VIEW_SPECIES.includes(n.species)) ? n
+    : ({ ...n, look: { ...(n.look ?? {}), view } } as UkiyoeNode);
   const specs = useMemo(() => BESTIARY.map((b): UkiyoeSceneSpec => ({
     version: 1, id: "best-" + b.id, width: 600, height: 400, durationFrames: 240, seed: 70 + b.id.length, cadence, wind: { base: wind, turbulence: .4 },
     palette: { preset: b.sky === "storm" ? "edo" : "spring" },
     nodes: [
       b.sky === "storm"
         ? { id: "sky", kind: "motif", motif: "sky", params: { width: 600, height: 400, style: "horizon", horizonAt: .9 } }
+        : b.sky === "night" ? { id: "sky", kind: "motif", motif: "sky", params: { width: 600, height: 400, top: "yoru", mid: "ai", band: .7, horizon: "murasaki" } }
         : { id: "sky", kind: "motif", motif: "sky", params: { width: 600, height: 400, band: .35, horizon: "beni" } },
-      ...(b.sky === "storm" ? [] : [{ id: "ground", kind: "block", x: 300, y: 365, shape: { type: "rect", width: 620, height: 90 }, fill: { type: "linear", angle: 90, stops: [[0, "kusa", .8], [1, "matsu", .9]] }, grain: .8, line: 1 } as UkiyoeNode]),
-      b.node(chosen[b.id]),
+      ...(b.sky === "storm" ? [] : [{ id: "ground", kind: "block", x: 300, y: 365, shape: { type: "rect", width: 620, height: 90 }, fill: b.sky === "night" ? { type: "linear", angle: 90, stops: [[0, "ai", 1], [1, "yoru", 1]] } : { type: "linear", angle: 90, stops: [[0, "kusa", .8], [1, "matsu", .9]] }, grain: .8, line: 1 } as UkiyoeNode]),
+      turn(b.node(chosen[b.id])),
       { id: "t", kind: "text", style: "caption", depth: 0, x: 300, y: 394, text: b.label, size: 20 },
     ],
-  })), [wind, cadence, chosen]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  })), [wind, cadence, chosen, view]);
   return <div style={page}>
     <Header kicker="UKIYO1 · Folktale bestiary" title="Animals, spirits and the things of old stories">
-      <p style={{ margin: 0 }}>Creature rigs drawn as prints draw them: flat fills, a fine key line, fur and feather hatching. The
-        four-legged rig covers fox, nine-tailed kitsune with foxfire, tanuki (including the upright, belly-drumming folk tanuki with hat
-        and sake bottle), dog, cat and rabbit. The bird rig covers crane, heron, crow, pheasant and sparrow. The dragon swims through
+      <p style={{ margin: 0 }}>Creature rigs drawn as the animal prints of Koson and Kuniyoshi draw them: one coat silhouette whose
+        long-haired edges break into locks, carved hairlines following the body, jointed legs with hocks, wrists and toes, and faces
+        with a muzzle, lips, nose leather and a rimmed eye. The four-legged rig covers fox, nine-tailed kitsune with foxfire, tanuki
+        (including the upright, belly-drumming folk tanuki with hat and sake bottle), dog, cat and rabbit. Birds have real wings:
+        primaries, secondaries and scalloped coverts that fold along the body and spread in flight, scaled legs and toes. The bird rig
+        covers crane, heron (which flies with its neck drawn in), crow, pheasant and sparrow. Yōkai after Sekien, Ōkyo and Hokusai:
+        the snow woman (her robe trails into snow, she breathes out the cold), a yūrei ghost, the umbrella and lantern spirits, and
+        soul-flames, the rokurokubi whose neck stretches, the bowing kappa that spills the water from its dish, and the tengu (red and
+        long-nosed, or crow-headed) with wings and a gale-raising fan; <code>appear</code> and <code>vanish</code> fade spirits in and out.
+        Momotarō's monkey and the Tōkaidō packhorse join the four-legged rig, with the nue (monkey face, tiger body, snake tail); the
+        nurikabe blocks the night road and the tsuchigumo creeps on eight banded legs. The dragon swims through
         the air with whiskers, mane, belly plates and its flaming pearl. Oni are full figures with horns, fangs, a tiger-skin loincloth
         and a kanabō, so they can do every figure action. <code>transform</code> vanishes a creature in a puff of smoke (henge) so a
         new node can appear in its place. Pick an action on any card.</p>
@@ -478,6 +623,7 @@ export function Bestiary() {
     <section aria-label="Bestiary controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
       <Slider name="Wind" value={wind} min={-2} max={2} step={.1} onChange={setWind} format={v => v.toFixed(1)} />
       <Select name="Cadence" value={cadence} options={[1, 2, 3, 4] as const} onChange={setCadence} labels={{ 1: "On ones", 2: "On twos", 3: "On threes", 4: "On fours" }} />
+      <Select name="View" value={view} options={["profile", "three-quarter", "front", "back"] as const} onChange={setView} labels={{ profile: "Profile", "three-quarter": "Three-quarter", front: "Front", back: "Back" }} />
     </section>
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
       {specs.map((s, i) => {

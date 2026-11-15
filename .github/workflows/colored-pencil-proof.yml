@@ -1,15 +1,9 @@
 name: Colored Pencil Film Proof
 
 # Focused browser and production evidence only on pencil-style PR changes.
+# Full browser and encoded-film qualification is local-first and opt-in.
+# No expensive renderer/Playwright/FFmpeg job runs for routine PRs or main pushes.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/colored-pencil-proof.yml"
-      - "registry/video/colored-pencil*"
-      - "src/video/colored-pencil*"
-      - "tests/colored-pencil*"
-      - "tests/e2e-storybook/colored-pencil*"
-      - "examples/film/colored-pencil*"
   workflow_dispatch:
 
 permissions:
@@ -31,13 +25,15 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Focused deterministic pencil material tests
-        run: npx vitest run --project unit tests/colored-pencil-science.test.tsx tests/colored-pencil-scene.test.tsx
+        run: npx vitest run --project unit tests/colored-pencil-science.test.tsx tests/colored-pencil-scene.test.tsx tests/colored-pencil-actor.test.tsx tests/colored-pencil-materials.test.tsx tests/colored-pencil-living-studies.test.tsx tests/colored-pencil-craft.test.tsx tests/colored-pencil-photo.test.ts
       - name: Verify portable film schema
-        run: npm run film:check -- examples/film/colored-pencil-science.film.json
+        run: |
+          npm run film:check -- examples/film/colored-pencil-science.film.json
+          npm run film:check -- examples/film/colored-pencil-character.film.json
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Frame-level browser layout, pencil geometry and out-of-order seek
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-science.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-science.spec.ts tests/e2e-storybook/colored-pencil-actor.spec.ts tests/e2e-storybook/colored-pencil-materials.spec.ts tests/e2e-storybook/colored-pencil-living-studies.spec.ts tests/e2e-storybook/colored-pencil-photo.spec.ts
       - name: Install FFmpeg for actual film capture
         run: |
           sudo apt-get update -qq
@@ -46,6 +42,8 @@ jobs:
         run: |
           npm run film:frame -- examples/film/colored-pencil-science.film.json --frame=275 --only=landscape --out=dist/colored-pencil-proof
           npm run film:frame -- examples/film/colored-pencil-science.film.json --frame=352 --only=portrait --out=dist/colored-pencil-proof
+          npm run film:frame -- examples/film/colored-pencil-character.film.json --frame=240 --only=landscape --out=dist/colored-pencil-proof
+          npm run film:frame -- examples/film/colored-pencil-character.film.json --frame=240 --only=portrait --out=dist/colored-pencil-proof
           npm run film:render -- examples/film/colored-pencil-science.film.json --frames=353 --only=landscape --out=dist/colored-pencil-proof
           npm run film:render -- examples/film/colored-pencil-science.film.json --frames=353 --only=portrait --out=dist/colored-pencil-proof
       - name: Preserve browser screenshots and pixel diffs
