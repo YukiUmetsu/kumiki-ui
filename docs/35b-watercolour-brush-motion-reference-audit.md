@@ -1,5 +1,8 @@
 # 35B — Watercolour / brush motion and craft reference audit
 
+> **WC16 corrective status (2026-11-14):** All rejected WC11–WC15 human portrait faces and two-sitter visual demos have been removed from source and public Storybook. The previous positive portrait claims in the historical sections below are superseded. See the [new masterwork portrait reference atlas](research/watercolour-portrait-masterwork-reference-atlas.md) and the in-folder `02 Portrait Reference Atelier` Storybook entry. Do not restore rejected faces or promote a replacement until close-up artist acceptance.
+
+
 **Scope:** WM1 pressure brush + WM2 painted compositions.  
 **Purpose:** inspect film craft before inventing shader effects or copying another studio's pictures.  
 **Evidence status (2026-11-14):** creator-authored video descriptions, published technique chapters, still references, and paper research verified online. **No claim of downloading/watching each complete hosted film frame-by-frame.** Full motion reviews and image-level timing analysis are a separate, incomplete gate.
