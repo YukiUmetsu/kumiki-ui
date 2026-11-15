@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { RIG_PRESETS, scalePath, personRig, quadrupedRig, locomotiveRig, clockRig } from "../registry/rig/rig-presets";
+import { RIG_PRESETS, scalePath, personRig, quadrupedRig, locomotiveRig, clockRig, birdRig, modernCarRig } from "../registry/rig/rig-presets";
 import { evaluateRig, wingStroke } from "../registry/rig/rig-evaluate";
 import { inspectRig } from "../registry/rig/rig-spec";
 import type { RigSpec } from "../registry/rig/rig-spec";
-import { RIG_LOOKS, RigScene } from "../registry/rig/rig-react";
+import { RIG_LOOKS, RigScene, followCamera } from "../registry/rig/rig-react";
 import { inspectCollageScene } from "../registry/video/collage/collage-scene";
 import { CollageScene } from "../registry/video/collage/collage-react";
 
@@ -60,6 +60,55 @@ describe("RIG1 motion", () => {
     expect(Math.abs(evaluateRig(spec, 2).bones.get("pendulum")!.world.b - evaluateRig(spec, 30).bones.get("pendulum")!.world.b)).toBeGreaterThan(.05);
     expect(wingStroke(0)).toBe(1);
   });
+  it("gallops with knees forward, hocks back and the transverse footfall order", () => {
+    const spec = quadrupedRig("horse", { motion: "gallop", start: 0, end: 200, from: 0, to: 3000 });
+    const gait = spec.drivers!.find(d => d.type === "gait")!;
+    if (gait.type !== "gait") throw new Error("no gait");
+    const byLeg = Object.fromEntries(gait.legs.map(l => [l.upper, l]));
+    expect([byLeg["up-fore-near"].bend, byLeg["up-hind-near"].bend]).toEqual([1, -1]);
+    // Landing order (phase = 1 − landing time): hind, hind, fore, fore, then a suspension.
+    const landing = (id: string) => (1 - byLeg[id].phase) % 1;
+    expect(["up-hind-far", "up-hind-near", "up-fore-far", "up-fore-near"].map(landing)).toEqual([0, .1, .32, .42].map(v => expect.closeTo(v, 5)));
+  });
+  it("beats side-view wings by projection, never swinging the tips ahead of the shoulder", () => {
+    const spec = birdRig({ motion: "fly", start: 0, end: 60, from: 0, to: 600 });
+    let lowest = Infinity, highest = -Infinity, forward = -Infinity;
+    for (let f = 0; f < 28; f++) {
+      const fr = evaluateRig(spec, f), sh = fr.bones.get("wing-near")!.world, hand = fr.bones.get("hand-near")!, tip = [hand.world.c * hand.length + hand.world.e, hand.world.d * hand.length + hand.world.f];
+      lowest = Math.min(lowest, tip[1] - sh.f); highest = Math.max(highest, tip[1] - sh.f); forward = Math.max(forward, tip[0] - sh.e);
+    }
+    expect(lowest).toBeLessThan(-40);
+    expect(highest).toBeGreaterThan(30);
+    expect(forward).toBeLessThan(18);
+  });
+  it("brakes with a nose dive that rebounds, and reverses with wheels rolling backward", () => {
+    const stop = modernCarRig({ motion: "sudden-brake", start: 0, end: 240, from: 0, to: 1000, y: 700 });
+    const pitch = (spec: RigSpec, f: number) => { const m = evaluateRig(spec, f).bones.get("body")!.world; return Math.atan2(m.b, m.a) * 180 / Math.PI; };
+    const angles = Array.from({ length: 100 }, (_, i) => pitch(stop, 60 + i));
+    expect(Math.max(...angles)).toBeGreaterThan(3);
+    expect(Math.min(...angles)).toBeLessThan(-.5);
+    const back = modernCarRig({ motion: "reverse", start: 0, end: 240, from: 1000, to: 400, y: 700 });
+    const wheel = (f: number) => { const m = evaluateRig(back, f).bones.get("wheel-r")!.world; return Math.atan2(m.b, m.a); };
+    expect(evaluateRig(back, 120).root.facing).toBe(1);
+    expect(Math.sin(wheel(100) - wheel(98))).toBeLessThan(0);
+    expect(evaluateRig(back, 120).parts.some(p => p.id === "reverse")).toBe(true);
+    expect(evaluateRig(back, 230).parts.some(p => p.id === "reverse")).toBe(false);
+  });
+  it("turns into the distance: smaller, foreshortened, rear face open", () => {
+    const spec = modernCarRig({ motion: "turn-away", start: 0, end: 240, from: 0, to: 1600, y: 700 });
+    const mid = evaluateRig(spec, 138), end = evaluateRig(spec, 230);
+    expect(mid.root.yaw).toBeGreaterThan(15);
+    expect(end.root.scale).toBeLessThan(.7);
+    expect(mid.parts.some(p => p.id === "rear-face")).toBe(true);
+    expect(evaluateRig(spec, 10).parts.some(p => p.id === "rear-face")).toBe(false);
+  });
+  it("sits a person on a chair with feet planted and hands on the knees", () => {
+    const spec = personRig({ motion: "sit", start: 0, end: 120, from: 400, y: 700 });
+    const f = evaluateRig(spec, 20), pelvis = f.bones.get("pelvis")!.world.f, foot = f.bones.get("foot-f")!.world.f;
+    expect(pelvis).toBeGreaterThan(700 - 30 * 3.6);
+    expect(Math.abs(foot - (700 - 2.4 * 3.6))).toBeLessThan(.5);
+    expect(f.parts.some(p => p.id === "chair-seat")).toBe(true);
+  });
 });
 
 describe("RIG1 painters", () => {
@@ -70,6 +119,12 @@ describe("RIG1 painters", () => {
       expect(html, l.id).toContain('data-km-rig="dog"');
       expect(html).toContain("data-km-rig-bones");
     }
+  });
+  it("tracks a travelling rig with a camera over world-anchored ground", () => {
+    const rig = quadrupedRig("horse", { motion: "gallop", start: 0, end: 100, from: 0, to: 3000, y: 500 });
+    const html = renderToStaticMarkup(<RigScene look="collage" width={800} height={450} ground={500} frame={60} rigs={[rig]} camera={followCamera(rig, 60, { y: 225 })} />);
+    expect(html).toMatch(/<g transform="translate\(-\d+[^"]*"[^>]*data-km-rig-world=""/);
+    expect(html).toContain("data-km-rig-ground");
   });
   it("embeds rigs in COLLAGE1 scenes as rig nodes", () => {
     const spec = { version: 1, id: "c", width: 800, height: 450, durationFrames: 60, seed: 1, board: { material: "kraft" },
