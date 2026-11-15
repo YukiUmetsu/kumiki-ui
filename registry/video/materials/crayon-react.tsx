@@ -31,6 +31,9 @@ export type WaxProps = {
   markStrength?: number;
   /** Surface-integrated, opaque multi-pigment underpaint, not flat vector fill. */
   underpaintGradient?:CrayonVolumeGradient;
+  /** 0..1 optical paper-tooth color variation on *opaque* wax.
+   * Samples page-seeded relief without making the subject transparent. */
+  underpaintTooth?:number;
   /** After the drawing completes, repaint small wax daubs on discrete held exposures. */
   redraw?: CrayonRedrawOptions;
   /** Fragmented wax nib trace around the visible outline, 0..1. */
@@ -49,7 +52,7 @@ export type WaxProps = {
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient,
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient, underpaintTooth = 0,
   redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
@@ -64,6 +67,9 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   ))throw new RangeError("crayon underpaintGradient is invalid");
   if (!Number.isFinite(markStrength)||markStrength<0||markStrength>1)
     throw new RangeError("crayon markStrength must be 0..1");
+  if (!Number.isFinite(underpaintTooth)||underpaintTooth<0||underpaintTooth>1||
+    (underpaintTooth>0&&coverage!=="opaque"))
+    throw new RangeError("crayon underpaintTooth must be 0..1 for opaque wax");
   if (!Number.isFinite(blendRadius)||blendRadius<0||blendRadius>18||
     (blendRadius>0&&coverage!=="open"))
     throw new RangeError("crayon blendRadius must be 0..18 for open wax");
@@ -106,6 +112,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const deposit = clip + "-deposit";
   const blendId = clip + "-soft-glaze";
   const volumeId=clip+"-volume";
+  const darkToothMask=clip+"-undercoat-dark";
+  const lightToothMask=clip+"-undercoat-light";
   const underpaintFill=underpaintGradient ? "url(#"+volumeId+")" : colors[0];
   // Contact pressure changes the opacity of raised paper-grain interruptions.
   // This remains a detail mask for the wax layer, never for opaque underpaint.
@@ -142,7 +150,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     data-km-crayon-stroke-order={strokeOrder}
     data-km-crayon-mark-length={markLength}
     data-km-crayon-outline-opacity={outlineOpacity}
-    data-km-crayon-mark-strength={markStrength}>
+    data-km-crayon-mark-strength={markStrength}
+    data-km-crayon-underpaint-tooth={underpaintTooth>0?underpaintTooth:undefined}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
       {underpaintGradient && <radialGradient id={volumeId}
@@ -155,6 +164,16 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         <stop offset="48%" stopColor={colors[0]}/>
         <stop offset="100%" stopColor={underpaintGradient.shadow}/>
       </radialGradient>}
+      {coverage==="opaque"&&underpaintTooth>0&&(["dark","light"] as const).map((kind)=>(
+        <mask key={kind} id={kind==="dark"?darkToothMask:lightToothMask}
+          maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
+          x={bounds.x-25} y={bounds.y-25}
+          width={bounds.width+50} height={bounds.height+50}>
+          <rect x={bounds.x-25} y={bounds.y-25}
+            width={bounds.width+50} height={bounds.height+50}
+            fill={"url(#"+tooth+"-pigment-"+kind+")"}/>
+        </mask>
+      ))}
       {blendRadius>0 && <filter id={blendId} filterUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB"
         x={bounds.x-3*blendRadius} y={bounds.y-3*blendRadius}
@@ -210,6 +229,19 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
       {settlingCoat>0 && <path d={d} fill={underpaintFill}
         opacity={settlingCoat} clipPath={"url(#"+clip+")"}
         data-km-crayon-settling-coat="" />}
+      {/* Luminance-masked pigment shows undercoat paper-contact variation
+          without cutting see-through holes in the solid wax mass.
+          The same deposit mask preserves exact partial drawing coverage. */}
+      {underpaintTooth>0 && <g clipPath={"url(#"+clip+")"}
+        mask={pigmentProgress<1?"url(#"+deposit+")":undefined}
+        data-km-crayon-underpaint-grain="">
+        <path d={d} fill={colors[1]} mask={"url(#"+darkToothMask+")"}
+          opacity={underpaintTooth*(.28+.16*(1-pressure))}
+          data-km-crayon-undercoat-pits="" />
+        <path d={d} fill={colors[2]} mask={"url(#"+lightToothMask+")"}
+          opacity={underpaintTooth*(.32+.17*(1-pressure))}
+          data-km-crayon-undercoat-ridges="" />
+      </g>}
     </>}
     {/* The rubbed-over skin tone is feathered before local tooth strokes.
         Parent clipping in CrayonScene prevents any blur from escaping a face. */}
@@ -296,7 +328,10 @@ export function WaxLine({ d, color, width, frame, first, last, reduced, seed, op
       strokeDasharray={100} strokeDashoffset={100 * (1 - reveal)} opacity={.14 + wiggle * .08} />
   </g>;
 }
-export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" }: { width: number; height: number; seed: number; tooth: string; strength: number; color?: string }) {
+export function Paper({ width, height, seed, tooth, strength, color = "#faf1da", pigmentRelief = false }: {
+  width: number; height: number; seed: number; tooth: string;
+  strength: number; color?: string; pigmentRelief?: boolean;
+}) {
   const fibers = useMemo(() => Array.from({ length: 480 }, (_, i) => ({
     x: crayonHash(seed, i, 1) * width, y: crayonHash(seed, i, 2) * height,
     dx: 1 + crayonHash(seed, i, 3) * 14, dy: (crayonHash(seed, i, 4) - .5) * 4,
@@ -313,8 +348,43 @@ export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" 
     width:.45+crayonHash(seed, i, 105)*1.55,
     depth:.55+crayonHash(seed, i, 106)*.45,
   })),[seed]);
+  // Paper ridges are shared by every wax region, so independently painted
+  // parts don't receive unrelated stochastic texture. The dark and light
+  // cohorts occupy separate paper-contact islands and never cut alpha holes.
+  // Batch subpixel-scale paper tooth into six SVG compound paths.
+  // Rendering legacy scenes adds six small pattern paths rather than hundreds
+  // of per-mark DOM elements. Geometry is fixed to paper seed and strength.
+  const pigmentTexture=useMemo(()=>(
+    pigmentRelief ? (["dark","light"] as const).map(kind=>{
+      const dark=kind==="dark",total=Math.round(strength*(dark?860:650));
+      const marks:[string[],string[],string[]]=[[],[],[]];
+      const base=dark?1400:1500;
+      for(let i=0;i<total;i++){
+        const band=Math.floor(crayonHash(seed,i,base+7)*3);
+        const x=crayonHash(seed,i,base+1)*176;
+        const y=crayonHash(seed,i,base+2)*176;
+        const dx=(dark ? .35 : .25)+crayonHash(seed,i,base+3)*(dark ? 1.85 : 1.25);
+        const dy=(crayonHash(seed,i,base+4)-.5)*(dark?1.6:1.05);
+        marks[band].push("M"+x.toFixed(2)+" "+y.toFixed(2)+
+          "l"+dx.toFixed(2)+" "+dy.toFixed(2));
+      }
+      return {kind,paths:marks.map((parts,band)=>({
+        d:parts.join(" "),width:(dark ? .31 : .24)+band*(dark ? .17 : .14),
+        opacity:.50+band*.17,
+      }))};
+    }) : []
+  ),[seed,strength,pigmentRelief]);
   return <>
     <defs>
+      {pigmentTexture.map(({kind,paths})=><pattern key={kind}
+        id={tooth+"-pigment-"+kind} width={176} height={176}
+        patternUnits="userSpaceOnUse" data-km-crayon-pigment-paper={kind}>
+        <rect width={176} height={176} fill="#000"/>
+        <g fill="none" stroke="#fff" strokeLinecap="round">
+          {paths.map((f,i)=>f.d&&<path key={i} d={f.d}
+            opacity={f.opacity} strokeWidth={f.width}/>)}
+        </g>
+      </pattern>)}
       <pattern id={tooth + "-relief"} width={144} height={144}
         patternUnits="userSpaceOnUse" data-km-crayon-paper-relief="">
         {/* Transparent outside dark contact-resistant ridges. No bright dots

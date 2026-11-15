@@ -14,6 +14,7 @@ on:
       - src/video/crayon-drawing-system.stories.tsx
       - tests/crayon-drawing-system.test.tsx
       - tests/crayon-dry-nib.test.tsx
+      - tests/crayon-undercoat-tooth.test.tsx
       - tests/e2e-artcraft/crayon-drawing-system.spec.ts
       - .github/workflows/crayon-drawing-system-proof.yml
   workflow_dispatch:

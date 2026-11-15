@@ -172,3 +172,61 @@ contact variation, not a claim of physically simulated microscopic paper.
 The dry-mode geometry remains bounded (at most six lifted pieces per arc),
 monotonic in absolute exposure and evaluated only when dry mode is chosen.
 This study remains `!dev`; compare actual crops rather than only green CI.
+
+## Opaque undercoat paper-contact study — 2026-11-14
+
+**Problem observed in PR #317 native macro A/B:** despite more realistic dry
+nib contact, the pear's dominant smooth radial underpaint looked digitally
+filled, with intermittent hairlines floating over it. Simply adding many
+high-contrast scratch lines would worsen the artificial appearance.
+
+**Physical reference:** Rudolf, Mould and Neufeld (2005), [*A Bidirectional
+Deposition Model of Wax Crayons*](https://doi.org/10.1111/j.1467-8659.2005.00826.x).
+Their full numerical model represents a paper-height field and evolving
+crayon-mask friction/wax transfer. This update **does not reproduce** their
+numerical model. It uses a bounded SVG approximation to the observed
+unevenness of wax concentration over toothy paper.
+
+### Authored, opt-in `underpaintTooth: 0..1`
+
+- All opaque subjects retain a full-opacity primary undercoat. Page
+  background and occluded characters **cannot show through** pigment pores.
+- At most six compound SVG paths per paper sheet describe two independent
+  paper-height cohorts (shaded pits and raised highlights), seed-stable in
+  page coordinates. All wax parts reuse them, rather than generating
+  uncorrelated per-subject confetti.
+- Two thin local-palette color layers sample those paper cohorts through
+  a luminance mask clipped to each opaque silhouette. Their opacity scales
+  with authored tooth strength and pressure. This changes the underlying
+  mass, not just the late scratch overlay.
+- A separate drawing-progress mask prevents relief from appearing
+  across the fruit before the wax was deposited.
+- The property defaults to zero. All existing stories/scenes keep their
+  prior appearance; only the botanical demonstration enables it.
+- Scene-level `CrayonScene` turns on the shared paper patterns automatically
+  only when at least one wax element has `underpaintTooth>0`. Direct
+  `Paper` + `WaxRegion` compositions must set `pigmentRelief={true}` on
+  `Paper` when using that optional effect. Old scenes avoid both extra
+  DOM path strings and the source-field generation entirely.
+- Real paper will also deform, abrade, smear and exchange pigment. These
+  effects, genuine multiscale height measurement and a physical spectrum
+  shader are **not** included. Treat the work as a bounded compositing study.
+
+**ArtCraft inspection gate:** compare source-native macro crops at 960×540
+and 540×960 with `underpaintTooth=0` and `0.9`, then normal-distance
+full-frame stills and drawing phases. Verify repeatable tooth at fixed
+seed, no unintended transparency, natural skin color without grey dirt,
+and zero text collisions. The new artwork remains `!dev` until visually
+accepted; technical tests are necessary but not an aesthetic award.
+
+### Visual refinement after native A/B review
+
+The first 960×540 and 540×960 Chromium crops verified that paper-contact
+pigment was visible with the same source paths and camera, but it introduced
+another recognizable defect: discrete 5–8-unit dash marks resembled random
+scratches rather than microscopic paper tooth. The second iteration uses
+many more **subpixel-scale** traces (0.25–2.2 local units, with subunit
+width and slanted irregular orientations), compressed into the same six
+batched paths per paper. This changes spatial grain frequency instead of
+increasing full-frame SVG node count. It is still an *optical approximation*,
+not numerically simulated wax dynamics or professionally accepted art.

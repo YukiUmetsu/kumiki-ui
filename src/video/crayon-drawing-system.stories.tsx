@@ -34,6 +34,7 @@ export function crayonDrawingInspectionSpec(
 interface DrawingStudioProps {
   aspect:CrayonDrawingAspect;detail:number;pressure:number;paperTooth:number;
   nibStyle?:"tapered"|"dry";
+  underpaintTooth?:number;
   startFrame:number;playbackRate:number;loop:boolean;
   inspection?:CrayonDrawingInspection;
 }
@@ -49,10 +50,11 @@ const steps=[
  * illustration. Text and interactive controls stay outside the film SVG.
  */
 export function CrayonDrawingStudio({aspect,detail,pressure,paperTooth,nibStyle="dry",
+  underpaintTooth=.82,
   startFrame,playbackRate,loop,inspection="full"}:DrawingStudioProps){
   const {scene,plan}=useMemo(()=>crayonBotanicalDrawing({
-    aspect,detail,pressure,paperTooth,nibStyle,
-  }),[aspect,detail,pressure,paperTooth,nibStyle]);
+    aspect,detail,pressure,paperTooth,nibStyle,underpaintTooth,
+  }),[aspect,detail,pressure,paperTooth,nibStyle,underpaintTooth]);
   const errors=useMemo(()=>inspectCrayonDrawingPlan(scene,plan),[scene,plan]);
   const framed=useMemo(()=>crayonDrawingInspectionSpec(scene,inspection),[scene,inspection]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
@@ -127,7 +129,8 @@ const meta={
   // native-resolution reference-matched artistic review.
   tags:["!dev"],
   args:{aspect:"landscape",detail:1,pressure:.88,paperTooth:.78,
-    startFrame:239,playbackRate:1.25,loop:false,inspection:"full",nibStyle:"dry"},
+    startFrame:239,playbackRate:1.25,loop:false,inspection:"full",nibStyle:"dry",
+    underpaintTooth:.82},
   argTypes:{
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
     inspection:{control:"select",options:["full","surface","stalk-leaf","contact"],
@@ -135,6 +138,8 @@ const meta={
     detail:{control:{type:"range",min:.2,max:1,step:.05}},
     pressure:{control:{type:"range",min:.2,max:1,step:.05}},
     paperTooth:{control:{type:"range",min:0,max:1,step:.05}},
+    underpaintTooth:{control:{type:"range",min:0,max:1,step:.05},
+      description:"Shared paper relief applied to opaque wax volume without see-through gaps"},
     nibStyle:{control:"inline-radio",options:["tapered","dry"],
       description:"Compare the original smooth nib with fractured dry-wax paper contact"},
     startFrame:{control:{type:"range",min:0,max:239,step:1}},

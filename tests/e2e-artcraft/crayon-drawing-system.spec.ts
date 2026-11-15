@@ -97,3 +97,33 @@ for(const item of [{aspect:"landscape",width:960,height:540},
     });
   }
 }
+
+/** Color-grain A/B uses the identical authored marks, camera, seed and frame. */
+for(const item of [{aspect:"landscape",width:960,height:540},
+  {aspect:"portrait",width:540,height:960}] as const){
+  test("Crayon page-relief undercoat A/B "+item.aspect,async({page},info)=>{
+    const shots:Uint8Array[]=[];
+    for(const strength of [0,.9] as const){
+      const {scene}=crayonBotanicalDrawing({
+        aspect:item.aspect,detail:1,pressure:.83,paperTooth:.9,
+        nibStyle:"dry",underpaintTooth:strength,
+      });
+      const focused=crayonDrawingInspectionSpec(scene,"surface");
+      await page.setViewportSize({width:item.width,height:item.height});
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec:focused,frame:239}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg.locator('[data-km-crayon-underpaint="opaque"]').first()).toBeAttached();
+      if(strength>0)
+        await expect(svg.locator('[data-km-crayon-underpaint-grain=""]').first()).toBeAttached();
+      else await expect(svg.locator('[data-km-crayon-underpaint-grain=""]')).toHaveCount(0);
+      const img=await svg.screenshot({type:"png",animations:"disabled",
+        path:info.outputPath("crayon-relief-"+item.aspect+"-"+strength+".png")});
+      shots.push(img);
+      console.log("CRAYON_UNDERCOAT_PNG:"+item.aspect+":"+strength+":"+img.toString("base64"));
+    }
+    // A true visible material change, not just different SVG markup.
+    expect(Buffer.compare(shots[0],shots[1])).not.toBe(0);
+  });
+}
