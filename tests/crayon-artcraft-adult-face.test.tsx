@@ -37,6 +37,14 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       const face=nodes.get("adult-face");
       if(face?.kind!=="wax")throw new Error("No adult cranium");
       expect(face.bounds.height/face.bounds.width).toBeGreaterThan(1.45);
+      const near=nodes.get("left-eye-aperture");
+      const far=nodes.get("right-eye-aperture");
+      if(near?.kind!=="wax"||far?.kind!=="wax")throw new Error("Missing eyes");
+      // Eye symbols must not overwhelm adult face construction.
+      expect(near.bounds.width/face.bounds.width).toBeLessThan(.3);
+      expect(far.bounds.width/face.bounds.width).toBeLessThan(.23);
+      expect(nodes.get("near-iris-radials")?.parentId).toBe("left-eye-iris");
+      expect(nodes.get("far-iris-radials")?.parentId).toBe("right-eye-iris");
       const bg=nodes.get("paper-value");
       expect(bg?.kind==="wax"&&bg.coverage).toBe("open");
       // Tonal masses are now translucent rubs OVER solid human underpainting.

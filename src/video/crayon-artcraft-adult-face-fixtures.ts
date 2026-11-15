@@ -212,70 +212,89 @@ export function crayonAdultFaceStudy(
     "#d5aaa1",1.55,"detail",{parentId:"adult-face"});
   // Independent eyelid/sclera/iris systems; lid shadows lie over irises.
   wax("left-eye-aperture",
-    "M-87 -164Q-64 -177 -38 -168Q-24 -161 -15 -147"+
-    "Q-36 -131 -61 -141Q-80 -146 -87 -164Z",
-    box(-94,-184,89,62),colors.sclera,"anatomy",
+    "M-77 -163Q-61 -176 -44 -169Q-29 -166 -22 -153"+
+    "Q-37 -139 -54 -143Q-70 -148 -77 -163Z",
+    box(-85,-184,70,53),colors.sclera,"anatomy",
     {parentId:"adult-face",spacing:4,outlineOpacity:.12,
       timing:{start:133,end:187}});
   wax("right-eye-aperture",
-    "M45 -163Q67 -178 93 -160Q102 -153 102 -142"+
-    "Q74 -136 56 -147Z",
-    box(35,-188,78,61),colors.sclera,"anatomy",
+    "M49 -158Q64 -170 79 -161Q87 -157 89 -148"+
+    "Q75 -138 59 -146Q52 -149 49 -158Z",
+    box(44,-178,51,47),colors.sclera,"anatomy",
     {parentId:"adult-face",spacing:4,outlineOpacity:.12,
       timing:{start:133,end:187}});
   wax("left-eye-iris",
-    "M-67 -168Q-53 -178 -46 -164Q-43 -147 -52 -143"+
-    "Q-65 -146 -67 -168Z",
-    box(-75,-184,38,52),colors.iris,"anatomy",
+    "M-59 -170Q-50 -173 -45 -164Q-42 -152 -49 -145"+
+    "Q-57 -146 -59 -158Q-60 -164 -59 -170Z",
+    box(-64,-179,26,40),colors.iris,"anatomy",
     {parentId:"adult-face",spacing:4.2,outlineOpacity:0,
       timing:{start:169,end:229}});
   wax("right-eye-iris",
-    "M68 -165Q80 -177 87 -162Q92 -147 82 -144"+
-    "Q70 -144 68 -165Z",
-    box(61,-182,39,51),colors.iris,"anatomy",
+    "M66 -164Q75 -169 80 -160Q83 -152 77 -146"+
+    "Q70 -145 67 -151Q65 -158 66 -164Z",
+    box(61,-176,27,39),colors.iris,"anatomy",
     {parentId:"adult-face",spacing:4.2,outlineOpacity:0,
       timing:{start:169,end:229}});
-  wax("left-eye-pupil","M-57 -165Q-52 -170 -49 -162Q-48 -155 -54 -153Z",
-    box(-62,-174,20,30),colors.pupil,"anatomy",
+  wax("left-eye-pupil","M-54 -165Q-51 -169 -49 -162Q-48 -156 -52 -153"+
+    "Q-55 -156 -54 -165Z",
+    box(-58,-172,14,24),colors.pupil,"anatomy",
     {parentId:"adult-face",spacing:4,outlineOpacity:0,
       timing:{start:198,end:246}});
-  wax("right-eye-pupil","M76 -163Q81 -167 84 -160Q85 -153 79 -151Z",
-    box(72,-171,18,30),colors.pupil,"anatomy",
+  wax("right-eye-pupil","M72 -161Q75 -166 77 -160Q78 -154 74 -153"+
+    "Q71 -156 72 -161Z",
+    box(69,-169,13,20),colors.pupil,"anatomy",
     {parentId:"adult-face",spacing:4,outlineOpacity:0,
       timing:{start:198,end:246}});
   wax("left-upper-lid",
-    "M-91 -167Q-64 -184 -38 -173Q-15 -164 -12 -150"+
-    "Q-36 -162 -58 -163Q-77 -162 -91 -155Z",
-    box(-100,-193,103,50),colors.socket,"anatomy",
+    "M-78 -169Q-61 -180 -43 -172Q-26 -165 -19 -153"+
+    "Q-41 -162 -54 -161Q-69 -159 -78 -153Z",
+    box(-86,-190,75,50),colors.socket,"anatomy",
     {parentId:"adult-face",spacing:4,outlineOpacity:0,
       timing:{start:159,end:216}});
   wax("right-upper-lid",
-    "M43 -169Q68 -185 97 -165Q109 -158 109 -146"+
-    "Q83 -163 64 -162Q52 -158 43 -151Z",
-    box(35,-193,87,54),colors.cool,"anatomy",
+    "M47 -164Q64 -174 80 -164Q91 -155 92 -146"+
+    "Q75 -158 64 -157Q56 -155 47 -149Z",
+    box(42,-182,58,43),colors.cool,"anatomy",
     {parentId:"adult-face",spacing:4,outlineOpacity:0,
       timing:{start:159,end:216}});
-  ink("upper-lid-rim-left","M-88 -164Q-61 -185 -38 -171Q-22 -164 -11 -150",
-    "#51424a",2.35,"detail",{parentId:"adult-face"});
-  ink("upper-lid-rim-right","M44 -165Q66 -180 92 -165Q104 -154 107 -145",
-    "#57464f",2.0,"detail",{parentId:"adult-face"});
-  ink("lower-lid-rim-left","M-83 -154Q-61 -134 -37 -143Q-23 -147 -16 -153",
-    "#af8580",1.28,"detail",{parentId:"adult-face"});
-  ink("lower-lid-rim-right","M46 -150Q72 -134 104 -146",
-    "#a0807f",1.23,"detail",{parentId:"adult-face"});
-  ink("left-tear-duct","M-90 -158Q-84 -151 -77 -154",
-    "#a97772",1.5,"detail",{parentId:"adult-face"});
-  ink("right-tear-duct","M44 -157Q50 -150 55 -155",
-    "#af7671",1.23,"detail",{parentId:"adult-face"});
+  ink("upper-lid-rim-left","M-80 -164Q-60 -178 -44 -170Q-29 -164 -21 -154",
+    "#5a474e",1.75,"detail",{parentId:"adult-face"});
+  ink("upper-lid-rim-right","M47 -160Q62 -173 78 -161Q86 -155 89 -146",
+    "#594a50",1.5,"detail",{parentId:"adult-face"});
+  ink("lower-lid-rim-left","M-76 -157Q-57 -139 -43 -146Q-30 -146 -23 -153",
+    "#b48781",1.08,"detail",{parentId:"adult-face"});
+  ink("lower-lid-rim-right","M49 -152Q67 -139 88 -149",
+    "#ac8884",1.02,"detail",{parentId:"adult-face"});
+  ink("left-tear-duct","M-79 -157Q-75 -153 -70 -155",
+    "#a97772",1.16,"detail",{parentId:"adult-face"});
+  ink("right-tear-duct","M49 -155Q54 -152 57 -154",
+    "#af7671",1.05,"detail",{parentId:"adult-face"});
   ink("brow-structure-left",
-    "M-96 -195Q-71 -217 -34 -194",
-    "#503f45",3.7,"detail",{parentId:"adult-face"});
+    "M-88 -191Q-63 -206 -30 -187",
+    "#60484b",2.4,"detail",{parentId:"adult-face"});
   ink("brow-structure-right",
-    "M39 -198Q69 -216 108 -185",
-    "#5a4147",3.2,"detail",{parentId:"adult-face"});
+    "M45 -190Q66 -202 99 -184",
+    "#614a4d",2.2,"detail",{parentId:"adult-face"});
   ink("iris-catchlights",
-    "M-57 -170l2 -2M77 -169l2 -2",
-    "#f5e7d0",1.5,"detail",{parentId:"adult-face"});
+    "M-54 -166l1.5 -1.8M72 -162l1.2 -1.4",
+    "#f5e7d0",1.2,"detail",{parentId:"adult-face"});
+  // Anatomy-first iris fibers follow each smaller pupil. Both stroke beds
+  // are clipped to real pigmented irises; never independent radial clip-art.
+  ink("near-iris-radials",
+    "M-56 -165l3 2M-56 -158l4 1M-49 -168l-1 4M-51 -151l1 3",
+    "#a59278",.78,"detail",
+    {parentId:"left-eye-iris",clipToParent:true,opacity:.7});
+  ink("far-iris-radials",
+    "M70 -162l3 1M69 -155l3 1M76 -161l-1 3",
+    "#a78f76",.72,"detail",
+    {parentId:"right-eye-iris",clipToParent:true,opacity:.65});
+  // Sparse flesh-colored upper-lid fold creases, aligned to observed socket.
+  ink("orbital-fold-left",
+    "M-78 -182Q-56 -193 -39 -185M-74 -141Q-59 -136 -48 -141",
+    "#b18b82",1.05,"detail",{parentId:"adult-face",opacity:.62});
+  ink("orbital-fold-right",
+    "M52 -181Q72 -188 88 -173M61 -139Q75 -137 85 -144",
+    "#b09088",.98,"detail",{parentId:"adult-face",opacity:.59});
   wax("hair-temple-lock",
     "M-119 -212Q-149 -158 -129 -98"+
     "Q-118 -68 -111 -36Q-88 -62 -97 -105"+
