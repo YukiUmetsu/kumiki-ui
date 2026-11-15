@@ -6,6 +6,8 @@ import {SHANSHUI_SCENES,DEFAULT_SHANSHUI} from
   "../registry/video/ink-shanshui";
 import {scrollReaderFacePortrait,READER_FACE_LANDMARKS} from
   "../src/video/ink-shanshui-reader-face";
+import {readerFaceAnatomy,READER_FACE_CRAFT_REGIONS} from
+  "../src/video/ink-shanshui-reader-anatomy";
 import {shanshuiFaceAssets} from "../src/video/ink-shanshui-face-plates";
 import {shanshuiBodyFit,shanshuiBodyAssets} from
   "../src/video/ink-shanshui-full-body";
@@ -18,6 +20,56 @@ const paths=(assets:ReturnType<typeof scrollReaderFacePortrait>,key:string)=>{
   return a.shapes;
 };
 describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
+  it("models an asymmetric near/far eye aperture and individually connected facial planes",()=>{
+    const high=readerFaceAnatomy(1),low=readerFaceAnatomy(.1);
+    const expected=[
+      "orbit-near","orbit-far","nasal-bridge","alar-nostril",
+      "cheek-volume","mouth-volume","ear-concha",
+    ];
+    for(const id of expected){
+      expect(READER_FACE_CRAFT_REGIONS.find(x=>x.id===id)).toBeDefined();
+    }
+    expect(high.planes.length).toBeGreaterThan(low.planes.length);
+    expect(high.nose.length).toBeGreaterThanOrEqual(6);
+    expect(high.ear.length).toBeGreaterThanOrEqual(5);
+    expect(high.brow.length).toBeGreaterThanOrEqual(8);
+    expect(high.eyesOpen.length).toBeGreaterThanOrEqual(8);
+    expect(high.eyesOpen.length).toBeGreaterThan(low.eyesOpen.length);
+    expect(high.eyesSoft.length).toBeGreaterThan(4);
+    expect(high.eyesClosed.length).toBeGreaterThanOrEqual(3);
+    expect(high.nearPupil.length).toBeGreaterThanOrEqual(3);
+    expect(high.farPupil.length).toBeGreaterThanOrEqual(3);
+    expect(high.lips.length).toBeGreaterThanOrEqual(4);
+    // No emoji eyes or monochrome filled disks in place of eyelid/iris geometry.
+    for(const [key,region] of Object.entries(high)){
+      expect(region.every(shape=>shape.type==="path")).toBe(true);
+      for(const shape of region){
+        if(shape.type!=="path")continue;
+        expect(shape.d).not.toMatch(/NaN|Infinity|undefined/);
+        expect(shape.opacity).toBeGreaterThan(0);
+        expect(shape.opacity).toBeLessThanOrEqual(1);
+      }
+    }
+    expect(high).toEqual(readerFaceAnatomy(1));
+    expect(()=>readerFaceAnatomy(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  });
+  it("retains opaque face, head pivot, and separate animated gaze/viseme assets after anatomy upgrade",()=>{
+    const face=scrollReaderFacePortrait(1);
+    const anatomy=readerFaceAnatomy(1);
+    expect(paths(face,"face").length).toBeGreaterThan(25);
+    expect(paths(face,"eyes-open").length).toBeGreaterThanOrEqual(anatomy.eyesOpen.length);
+    expect(paths(face,"pupil-left").length).toBeGreaterThanOrEqual(anatomy.nearPupil.length);
+    expect(paths(face,"pupil-right").length).toBeGreaterThanOrEqual(anatomy.farPupil.length);
+    expect(paths(face,"reader-ear").length).toBeGreaterThanOrEqual(anatomy.ear.length);
+    const root=paths(face,"face").find(s=>s.type==="path"&&s.d.includes("143.3 143.7"));
+    expect(root).toMatchObject({fill:"$skin",opacity:1});
+    const rig=makeShanshuiScholar(1,.88,"river-scholar");
+    for(const part of ["eyes","brows","pupil-left","pupil-right","mouth","head"]){
+      expect(rig.parts.find(p=>p.id===part)).toBeDefined();
+    }
+    expect(rig.parts.find(p=>p.id==="head")?.rest)
+      .toEqual(shanshuiBodyFit("river-scholar").headRest);
+  });
   it("reconstructs an opaque tapered face with a separately delineated ear and nose",()=>{
     const art=scrollReaderFacePortrait(1);
     expect(allVector(art)).toBe(true);
