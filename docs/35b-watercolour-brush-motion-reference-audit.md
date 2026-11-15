@@ -74,3 +74,7 @@
 ## WC13 portrait reconstruction study (2026-11-14)
 
 New two-sitter reference-led human character construction: [original portrait geometry and ArtCraft craft audit](research/watercolour-human-portrait-reference-rebuild.md). Includes facial topology, material observations, source images, Storybook integration and remaining normal-speed visual acceptance. No reference image pixels were redistributed.
+
+## WC14 two-character watercolor identity and motion (2026-11-14)
+
+See [WC14 ArtCraft identity and ensemble study](research/watercolour-wc14-ensemble-and-identity-craft.md): distinct sitter-specific face topology, eye locations, nose/mouth geometry, root-directed non-periodic hair/beard marks, and serializable 1–3 actor staging on common watercolor paper. The production film and native Storybook story share frame-pure motion and a strict cast validator. **Browser screenshot and normal-speed film artistic signoff remain independent gates.**

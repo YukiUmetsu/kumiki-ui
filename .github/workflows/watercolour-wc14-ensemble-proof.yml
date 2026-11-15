@@ -1,0 +1,42 @@
+name: WC14 watercolor ensemble browser proof
+# The two new source-painted characters require real browser evidence. Keep
+# expensive browser work narrowly scoped to WC14 changes, not every PR.
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/video/watercolour-portrait-ensemble*'
+      - 'src/video/watercolour-portrait-demo.ts'
+      - 'registry/video/watercolour-illustration.tsx'
+      - 'src/film/film-slots.tsx'
+      - 'tests/e2e-storybook/watercolour-portrait-ensemble.spec.ts'
+      - '.github/workflows/watercolour-wc14-ensemble-proof.yml'
+permissions:
+  contents: read
+concurrency:
+  group: wc14-ensemble-browser-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  painted-ensemble-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.15.0'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Validate dual-ratio portable watercolor film
+        run: npm run film:check -- examples/film/watercolour-portrait-ensemble.film.json
+      - run: npx playwright install --with-deps chromium
+      - name: Capture real native watercolor two-character Storybook frames
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-portrait-ensemble.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wc14-ensemble-browser-captures
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn

@@ -37,6 +37,23 @@ const luminous=(highlight:string,shadow:string,edgeSoftness=.2,
   edgePooling=.12):WatercolourWashTreatment=>
   ({highlight,shadow,gradient:"radial",edgeSoftness,edgePooling});
 
+/** Distinct portrait identity is geometry, not a recolored head.
+ * Eye centers follow each sitter's orbital bone; the nose and mouth
+ * proportions are composed separately below. Original 600×800 art space.
+ */
+export const SITTER_LANDMARKS={
+  "sitter-a":{
+    crown:{x:319,y:42},chin:{x:331,y:447},
+    nearEye:{x:276,y:234,halfWidth:33},farEye:{x:374,y:225,halfWidth:21},
+    nose:{x:350,y:313},mouth:{x:335,y:369},neck:{x:328,y:477},
+  },
+  "sitter-b":{
+    crown:{x:333,y:55},chin:{x:324,y:461},
+    nearEye:{x:264,y:242,halfWidth:29},farEye:{x:361,y:232,halfWidth:22},
+    nose:{x:338,y:320},mouth:{x:329,y:378},neck:{x:325,y:482},
+  },
+} as const;
+/** Backward-compatible source-space anchors for the first sitter. */
 export const PORTRAIT_LANDMARKS={
   crown:{x:319,y:42},chin:{x:331,y:447},
   nearEye:{x:276,y:234},farEye:{x:374,y:225},
@@ -69,9 +86,10 @@ const PALETTES:Record<PortraitSubject,Palette>={
 /** Each eye's iris, sclera and pencil-like eyelid share ONE actual aperture.
  * No disconnected cartoon ellipse is allowed to escape the lid geometry.
  */
-function eye(side:"near"|"far",p:Palette):WatercolourArtPart {
+function eye(side:"near"|"far",p:Palette,subject:PortraitSubject):WatercolourArtPart {
   const near=side==="near";
-  const cx=near?276:374, cy=near?234:225, rx=near?33:21;
+  const landmark=near?SITTER_LANDMARKS[subject].nearEye:SITTER_LANDMARKS[subject].farEye;
+  const {x:cx,y:cy,halfWidth:rx}=landmark;
   const left=cx-rx, right=cx+rx;
   const aperture="M"+left+" "+cy+" Q"+(cx-4)+" "+(cy-16)+" "+right+" "+(cy-1)+
     " Q"+cx+" "+(cy+10)+" "+left+" "+cy+" Z";
@@ -148,10 +166,15 @@ function face(p:Palette,subject:PortraitSubject):WatercolourArtPart {
       "M205 263 Q182 248 179 275 Q185 312 207 322 L215 292 Z",
       p.skin,.99,luminous(p.light,p.shade,.22,.12),58,65,"normal"),
     wash("face-foundation",
-      "M243 142 C274 111 318 103 355 118 C399 130 422 172 425 228"+
-      " C431 282 409 343 386 389 C367 418 346 440 331 448"+
-      " Q307 451 281 426 C247 403 221 367 210 326"+
-      " C196 289 197 236 206 196 Q216 159 243 142 Z",
+      mature
+        ? "M237 143 C267 116 320 105 366 120 C417 133 431 186 433 238"+
+          " C434 292 411 349 397 395 C378 428 348 461 324 462"+
+          " Q289 454 267 430 C229 396 212 350 204 306"+
+          " C198 263 201 206 214 179 Q224 157 237 143 Z"
+        : "M243 142 C274 111 318 103 355 118 C399 130 422 172 425 228"+
+          " C431 282 409 343 386 389 C367 418 346 440 331 448"+
+          " Q307 451 281 426 C247 403 221 367 210 326"+
+          " C196 289 197 236 206 196 Q216 159 243 142 Z",
       p.skin,1,{...luminous(p.light,p.shade,.16,.15),
         glaze:{pigment:p.cheek,opacity:.09}},47,102,"normal"),
     wash("lit-forehead-plane",
@@ -176,45 +199,70 @@ function face(p:Palette,subject:PortraitSubject):WatercolourArtPart {
       "M239 296 Q260 328 292 331 L309 350 Q266 346 248 326 Z",
       p.shade,.14,luminous(p.skin,p.shade,.97,.02),132,62),
     wash("lower-jaw-turn",
-      "M224 338 Q244 400 303 435 Q341 458 376 394 Q361 438 334 452"+
-      " Q294 441 266 419 Q238 393 224 338 Z",
+      mature
+        ? "M217 337 C237 394 271 429 321 453 Q354 467 390 399"+
+          " Q378 445 331 463 Q280 449 252 420 Q225 395 217 337 Z"
+        : "M224 338 Q244 400 303 435 Q341 458 376 394 Q361 438 334 452"+
+          " Q294 441 266 419 Q238 393 224 338 Z",
       p.reflected,.18,luminous(p.skin,p.shade,.90,.06),111,87),
     wash("nose-dorsum-reserve",
-      "M322 224 Q340 235 350 275 L358 310 Q345 315 329 304"+
-      " Q329 284 326 265 Z",
+      mature
+        ? "M306 228 C325 236 341 263 341 287 L356 320"+
+          " Q341 327 324 315 Q327 297 318 269 Z"
+        : "M322 224 Q340 235 350 275 L358 310 Q345 315 329 304"+
+          " Q329 284 326 265 Z",
       p.light,.25,luminous("#FADEC5",p.skin,.84,.02),125,74),
     wash("nose-side-plane",
-      "M346 248 Q356 263 365 289 Q374 311 373 321"+
-      " Q363 326 353 319 Q359 294 346 248 Z",
+      mature
+        ? "M347 266 Q363 293 366 310 Q375 326 367 340"+
+          " Q349 341 344 330 Q354 309 347 266 Z"
+        : "M346 248 Q356 263 365 289 Q374 311 373 321"+
+          " Q363 326 353 319 Q359 294 346 248 Z",
       p.shade,.34,luminous(p.light,p.reflected,.79,.06),132,81),
     wash("nose-tip-form",
-      "M328 303 Q343 299 357 308 Q365 317 357 325"+
-      " Q339 332 328 319 Z",
+      mature
+        ? "M315 315 Q333 305 353 320 C359 330 349 338 337 338"+
+          " Q323 336 315 328 Z"
+        : "M328 303 Q343 299 357 308 Q365 317 357 325"+
+          " Q339 332 328 319 Z",
       p.cheek,.43,luminous(p.light,p.shade,.41,.07),158,52),
     wash("near-nostril-wing",
       "M322 313 Q317 325 329 330 Q333 326 332 320 Z",
       p.shade,.28,luminous(p.light,p.shade,.4,.02),173,45),
     mark("nostril-indications",
-      "M320 324 Q327 330 333 326 M352 325 Q363 323 369 328",
+      mature
+        ? "M310 333 Q320 339 329 337 M345 339 Q355 334 363 338"
+        : "M320 324 Q327 330 333 326 M352 325 Q363 323 369 328",
       p.brow,1.14,.61,196),
     wash("philtrum-planes",
       "M328 334 Q339 336 341 347 Q336 351 330 348 Z",
       p.shade,.13,luminous(p.light,p.shade,.86,0),174,53),
     wash("upper-lip-broken-wash",
-      "M292 369 Q305 361 320 361 L331 357 Q336 354 341 358"+
-      " Q355 359 369 363 Q354 375 337 376 Q313 372 292 369 Z",
+      mature
+        ? "M289 381 Q309 371 323 374 L332 370 Q341 373 353 374"+
+          " Q368 378 373 378 Q360 385 343 387 Q311 387 289 381 Z"
+        : "M292 369 Q305 361 320 361 L331 357 Q336 354 341 358"+
+          " Q355 359 369 363 Q354 375 337 376 Q313 372 292 369 Z",
       p.lip,.68,luminous("#DDA49A","#805963",.23,.08),172,46),
     wash("lower-lip-transparent",
-      "M305 373 Q325 382 342 378 Q358 371 368 365"+
-      " Q356 390 331 391 Q315 385 305 373 Z",
+      mature
+        ? "M300 386 Q318 395 337 392 Q360 389 371 380"+
+          " Q360 400 335 400 Q312 396 300 386 Z"
+        : "M305 373 Q325 382 342 378 Q358 371 368 365"+
+          " Q356 390 331 391 Q315 385 305 373 Z",
       p.cheek,.43,luminous(p.light,p.lip,.50,.05),179,53),
-    mark("lip-corner-accents","M289 367 q6 4 13 5 M361 369 q7 -3 11 -7",
+    mark("lip-corner-accents",
+      mature?"M288 380 q7 5 14 5 M361 383 q8 0 13 -6":
+        "M289 367 q6 4 13 5 M361 369 q7 -3 11 -7",
       p.brow,1.05,.64,207),
     wash("sub-labial-shadow",
-      "M317 394 Q338 403 356 392 Q352 412 336 412"+
-      " Q325 408 317 394 Z",
+      mature
+        ? "M306 401 Q330 414 359 402 Q352 420 329 420"+
+          " Q316 416 306 401 Z"
+        : "M317 394 Q338 403 356 392 Q352 412 336 412"+
+          " Q325 408 317 394 Z",
       p.shade,.20,luminous(p.skin,p.shade,.85,.03),185,59),
-    eye("near",p),eye("far",p),
+    eye("near",p,subject),eye("far",p,subject),
     mark("lid-folds-and-bone",
       "M242 215 Q271 203 305 218 M350 206 Q370 201 394 212"+
       " M245 259 Q275 266 307 250 M356 247 Q374 254 390 240",
@@ -287,13 +335,23 @@ function hair(p:Palette,subject:PortraitSubject):[WatercolourArtPart,Watercolour
           " M272 135 Q294 99 360 72 M365 77 Q402 119 411 195"+
           " M176 281 Q177 358 178 426",
       p.hairLight,1.75,.5,164),
+    // Authored root-to-tip trajectories: irregular group spacing, different
+    // tangent, length and curvature. No repeated cosine/sine stripe texture.
     mark("hair-broken-directional-bristles",
-      Array.from({length:28},(_,i)=>{
-        const t=i/27;
-        const x=218+147*t,y=mature?147-Math.sin(t*Math.PI)*60:151-Math.sin(t*Math.PI)*92;
-        return "M"+x.toFixed(1)+" "+y.toFixed(1)+
-          " q"+(8+3*t).toFixed(1)+" -"+(13-4*t).toFixed(1)+" 18 -16";
-      }).join(" "),p.hairLight,.65,.32,222),
+      (mature?[
+        "M232 151 C237 117 261 98 279 91","M243 154 Q259 110 295 93",
+        "M265 136 Q288 104 320 93","M284 122 Q308 92 344 98",
+        "M306 106 Q335 88 362 107","M329 96 Q365 95 385 123",
+        "M357 109 Q392 128 398 154","M384 142 Q403 166 402 187",
+        "M402 177 Q410 212 400 235",
+      ]:[
+        "M219 165 C234 128 247 89 279 68","M232 152 Q253 97 294 63",
+        "M249 144 C267 105 283 67 326 52","M269 129 Q290 76 342 58",
+        "M285 116 Q310 73 353 63","M306 98 Q331 63 364 71",
+        "M329 81 Q353 60 378 85","M355 81 Q385 91 397 117",
+        "M384 104 C406 126 410 165 406 195",
+        "M401 162 Q417 202 409 232",
+      ]).join(" "),p.hairLight,.82,.42,222),
     ...(mature?[
       mark("grey-temple-whisps","M398 161 Q409 194 402 221 M231 172 Q214 192 218 221",
         "#C8B9A8",1.1,.64,208),
@@ -388,12 +446,16 @@ function matureBeard(p:Palette):WatercolourArtPart {
       "M279 406 Q307 425 335 432 Q360 421 383 386"+
       " Q367 451 331 465 Q299 453 279 406 Z",
       p.hairDeep,.28,luminous(p.hair,p.hairDeep,.72,.06),173,58),
-    mark("beard-growth-flow",
-      Array.from({length:25},(_,i)=>{
-        const t=i/24,x=234+t*150,y=371+Math.sin(t*Math.PI)*46;
-        return "M"+x.toFixed(1)+" "+y.toFixed(1)+
-          " q"+(t<.5?4:-4)+" 12 "+(t<.5?8:-8)+" 20";
-      }).join(" "),p.hairLight,.8,.45,208),
+    // Individual growth paths turn around the jaw instead of repeating
+    // a regular sine-wave beard hatch.
+    mark("beard-growth-flow",[
+      "M238 369 Q239 388 249 403","M248 385 Q254 405 270 416",
+      "M265 398 Q277 420 295 433","M284 410 Q297 433 308 443",
+      "M305 423 Q312 445 322 450","M328 435 Q331 449 337 454",
+      "M347 431 Q345 449 340 455","M363 423 Q359 441 345 449",
+      "M379 400 Q372 427 351 439","M386 384 Q378 407 363 418",
+      "M284 398 q9 5 15 15","M350 418 q-8 18 -17 21",
+    ].join(" "),p.hairLight,.9,.49,208),
     mark("moustache-broken-hairs",
       "M301 351 Q318 345 330 350 M343 351 Q356 345 370 353",
       p.hairDeep,2.2,.52,199),
@@ -417,6 +479,14 @@ function figure(subject:PortraitSubject):WatercolourArtPart {
         "#D3B68D",.92,luminous("#F5D7A6","#927866",.1,.08),217,31,"normal"),
     ]),
   ]);
+}
+
+/** Standalone detailed source figure for multi-character watercolor staging.
+ * Consumer placements never alter original brush paths or mutate a sitter.
+ */
+export function watercolorPortraitFigure(subject:PortraitSubject):WatercolourArtPart {
+  if(!PORTRAIT_SUBJECTS.includes(subject))throw new RangeError("Unknown watercolor portrait subject");
+  return figure(subject);
 }
 
 export function watercolorPortraitSpec(output:PortraitOutput,seed=83,
