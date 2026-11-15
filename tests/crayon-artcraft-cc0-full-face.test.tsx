@@ -9,6 +9,8 @@ import {CRAYON_F1_LASH_CLUSTER_COUNTS}
   from "../src/video/crayon-artcraft-f1-lash-clusters";
 import {CRAYON_F1_RECONSTRUCTED_MIDFACE_IDS}
   from "../src/video/crayon-artcraft-f1-midface-geometry";
+import {CRAYON_F1_SOURCE_VALUE_IDS}
+  from "../src/video/crayon-artcraft-f1-ocular-geometry";
 import {CRAYON_F1_RECONSTRUCTED_OCULAR_IDS}
   from "../src/video/crayon-artcraft-f1-ocular-geometry";
 import {CRAYON_F1_FACE_PROOF,CRAYON_F1_FACE_PARTS,
@@ -465,6 +467,57 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(html).toContain('data-km-crayon-element="dental-arch-connected-wax"');
     const baselineHtml=renderToStaticMarkup(<CrayonScene spec={baseline} frame={299}/>);
     expect(baselineHtml).not.toContain('data-km-crayon-element="dental-arch-connected-wax"');
+  });
+  it("keeps F1 source-value underpaint strictly local to source-observed eye wax masses",()=>{
+    const original=crayonCc0FaceStudy({
+      eyeContact:"source-shade",midfaceForm:"baseline",
+    });
+    const candidate=crayonCc0FaceStudy({
+      eyeContact:"source-value",midfaceForm:"baseline",
+    });
+    const changed=new Set(CRAYON_F1_SOURCE_VALUE_IDS);
+    expect(changed.size).toBe(14);
+    expect(candidate.elements.length).toBe(original.elements.length);
+    expect(candidate.seed).toBe(original.seed);
+    expect(candidate.camera).toEqual(original.camera);
+    expect(candidate.elements.filter(e=>!changed.has(e.id)))
+      .toEqual(original.elements.filter(e=>!changed.has(e.id)));
+    for(const id of CRAYON_F1_SOURCE_VALUE_IDS){
+      const before=original.elements.find(e=>e.id===id);
+      const after=candidate.elements.find(e=>e.id===id);
+      if(before?.kind!=="wax"||after?.kind!=="wax")
+        throw Error("Missing source eye wax plane "+id);
+      expect(after.parentId).toBe(before.parentId);
+      expect(after.clipToParent).toBe(before.clipToParent);
+      expect(after.timing).toEqual(before.timing);
+      expect(after.deposition).toBe("stroke-built");
+      expect(after.coverage).toBe(before.coverage);
+      expect(after.colors).not.toEqual(before.colors);
+    }
+    // Only the exact near scleral aperture changes source geometry;
+    // all other source-eye vector contours remain in place.
+    for(const id of CRAYON_F1_SOURCE_VALUE_IDS){
+      const b=original.elements.find(e=>e.id===id);
+      const c=candidate.elements.find(e=>e.id===id);
+      if(b?.kind!=="wax"||c?.kind!=="wax")throw Error("Missing eye");
+      if(id==="sclera-near"){
+        expect(c.d).not.toEqual(b.d);
+        expect(c.bounds.height).toBeLessThan(b.bounds.height);
+      }else expect(c.d).toBe(b.d);
+    }
+    for(const id of ["iris-near","iris-far"]){
+      const b=original.elements.find(e=>e.id===id);
+      const c=candidate.elements.find(e=>e.id===id);
+      if(b?.kind!=="wax"||c?.kind!=="wax")throw Error("Missing iris");
+      expect(parseInt(c.colors[0].slice(1,3),16))
+        .toBeLessThan(parseInt(b.colors[0].slice(1,3),16));
+      expect(c.underpaintGradient?.shadow)
+        .not.toBe(b.underpaintGradient?.shadow);
+    }
+    expect(inspectCrayonScene(candidate)).toEqual([]);
+    expect(inspectCrayonScene(crayonCc0FaceStudy({
+      eyeContact:"source-value",detail:.2,
+    }))).toEqual([]);
   });
   it("preserves F1 narrow anatomical near-eye occlusion rather than a round doll iris",()=>{
     const scene=crayonCc0FaceStudy({view:"wax"});
