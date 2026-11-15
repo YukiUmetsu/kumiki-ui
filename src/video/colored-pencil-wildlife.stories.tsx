@@ -21,11 +21,14 @@ const button = {padding:"9px 14px", minHeight:42, border:"1px solid #B6B1A7",
   color:"#384951", font:"600 13px system-ui"} as const;
 
 /** Transport belongs only to Storybook. The drawing remains a pure function of absolute frames. */
-function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
+type WildlifeInspection = "composition" | "wing" | "eye" |
+  "breast" | "foot" | "beak" | "crown";
+function WildlifeStudio({ filmView = false, initialInspection = "composition" }:
+  { filmView?: boolean; initialInspection?: WildlifeInspection }) {
   const [aspect, setAspect] = useState<PencilAspect>("landscape");
   const [paperTooth, setTooth] = useState(.68);
   const [detail, setDetail] = useState<"full" | "study">("full");
-  const [inspection, setInspection] = useState<"composition" | "wing" | "eye" | "breast" | "foot" | "beak" | "crown">("composition");
+  const [inspection, setInspection] = useState<WildlifeInspection>(initialInspection);
   const [frame, setFrame] = useState(285);
   const [speed, setSpeed] = useState(1);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -85,7 +88,7 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
       <p style={{margin:0,maxWidth:820}}>
         Rebuilt original kingfisher with eleven anatomical regions: long tapered
         keratin beak, crisp opaque eye/cornea, short blue-white crown barring,
-        copper breast, curvature-anchored feather barbs and shoulder coverts. Short scaled tarsi grip the branch with grouped anterior toes, opposing
+        copper breast, ten asymmetric tapered barb pairs per authored feather shaft, and shoulder coverts. Short scaled tarsi grip the branch with grouped anterior toes, opposing
         halluces and fine claws; the old cartoon birds remain removed.
         All pigment remains fixed in paper coordinates during frame seeking.
       </p>
@@ -174,7 +177,7 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
           style={artworkStyle}/>} 
     </div>
     <p style={{maxWidth:790,margin:0,fontSize:13,color:"#6D7872"}}>
-      Original side-view kingfisher with anatomical fibre tracts and layered feathers,
+      Original side-view kingfisher with attached tapered rachis barbs, anatomical fibre tracts and layered feathers,
       not copied or traced from a source artist. Wing, Foot, Crown, Eye and Beak
       are inspectable at 2.85–4.8× without changing exported artwork.
       Posed features and pencil deposition are deterministic. Technical tests do not certify
@@ -192,4 +195,11 @@ export const FilmStageProof: StoryObj<typeof meta> = {
   name:"Kingfisher · FD1 three-shot film proof",
   args:{scene:pencilWildlifeScene({aspect:"landscape"}),frame:285},
   render:()=> <WildlifeStudio filmView/>,
+};
+
+/** In the existing Wildlife group: a ready-to-inspect real rig macro, not a raster. */
+export const FeatherConstruction: StoryObj<typeof meta> = {
+  name:"Feather construction · 2.85× shaft and vane macro",
+  args:{scene:pencilWildlifeScene({aspect:"landscape"}),frame:285},
+  render:()=> <WildlifeStudio initialInspection="wing"/>,
 };
