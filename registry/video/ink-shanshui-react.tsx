@@ -552,7 +552,8 @@ function OldPine({x,y,scale,wind,seed,detail}:{
       const tip:P=[root[0]+reach,b.y+b.tipDy];
       const count=Math.round((4+(i%3))*detail);
       return <g key={i} data-km-pine-bough=""
-        data-km-pine-bough-root={f(root[0])+","+f(root[1])}>
+        data-km-pine-bough-root={f(root[0])+","+f(root[1])}
+        data-km-pine-bough-tip={f(tip[0])+","+f(tip[1])}>
         {/* Trunk-rooted, pressure-loaded thick start to hairline release,
             not a uniform ruler-width horizontal stick. */}
         <path data-km-pine-bough-shape=""
@@ -569,6 +570,53 @@ function OldPine({x,y,scale,wind,seed,detail}:{
           " "+f(c2[0])+" "+f(c2[1]-1)+
           " "+f(tip[0])+" "+f(tip[1])}
           stroke="#c2a080" strokeWidth=".7" fill="none" opacity=".56"/>
+        {/* A gnarled pine divides into independent secondary limbs whose
+            roots are exact points ON the primary cubic, not random
+            canopy stickers. Each fork carries its own old-wood ink bone. */}
+        {Array.from({length:3},(_,k)=>{
+          const u=.22+.235*k+.035*(s(seed+911,i*37+k)-.5);
+          const rootFork=cubicPoint(root,c1,c2,tip,u);
+          const flip=(k===1?-1:1)*(s(seed+929,i*13+k)>.55?-1:1);
+          const branchLen=(27+27*s(seed+947,i*17+k))*(k===2?.8:1);
+          const dx=reach>=0?branchLen*.47:-branchLen*.47;
+          const q1:P=[rootFork[0]+dx*.47-flip*7,
+            rootFork[1]-flip*(branchLen*.22)];
+          const q2:P=[rootFork[0]+dx+flip*branchLen*.26,
+            rootFork[1]-flip*branchLen*(.56+.16*s(seed+967,i*11+k))];
+          const half=(2.1+.8*s(seed+981,i*23+k))*(1-.13*k);
+          const inkBone="M"+f(rootFork[0])+" "+f(rootFork[1]-half)+
+            " Q"+f(q1[0])+" "+f(q1[1]-half*.65)+
+            " "+f(q2[0])+" "+f(q2[1])+
+            " Q"+f(q1[0]+half*.6)+" "+f(q1[1]+half*.9)+
+            " "+f(rootFork[0])+" "+f(rootFork[1]+half)+" Z";
+          const veil="M"+f(rootFork[0]+.7)+" "+f(rootFork[1]-half*.52)+
+            " Q"+f(q1[0])+" "+f(q1[1]-half*.42)+
+            " "+f(q2[0])+" "+f(q2[1]);
+          return <g key={k} data-km-pine-lateral=""
+            data-km-pine-lateral-root={f(rootFork[0])+","+f(rootFork[1])}
+            data-km-pine-lateral-parent-pt={f(rootFork[0])+","+f(rootFork[1])}
+            data-km-pine-lateral-side={flip}>
+            <path data-km-pine-lateral-bone="" d={inkBone}
+              fill="#5b4935" opacity={f(.82-.08*k)}/>
+            <path data-km-pine-lateral-lift="" d={veil}
+              stroke="#e0c59f" strokeWidth={f(.48+.11*k)}
+              fill="none" opacity=".5" strokeLinecap="round"/>
+            <path data-km-pine-lateral-crotch=""
+              d={"M"+f(rootFork[0]-3)+" "+f(rootFork[1]+1)+
+                " q"+f(dx*.17)+" -"+f(flip*8)+
+                " "+f(dx*.29)+" -"+f(flip*10)}
+              fill="none" stroke="#392e25" strokeWidth="1.05" opacity=".64"/>
+            {Array.from({length:2},(_,j)=>{
+              const t=.61+j*.34;
+              const twig=quadraticPoint(rootFork,q1,q2,t);
+              return <NeedleSpray key={j}
+                x={f(twig[0])} y={f(twig[1])}
+                scale={f(.35+.28*s(seed+997,i*29+k*7+j))}
+                lean={f(flip*.25+.23*(s(seed+1013,i*31+k*5+j)-.5))}
+                wind={wind} seed={seed+1031+i*149+k*31+j*17}/>;
+            })}
+          </g>;
+        })}
         {Array.from({length:count},(_,j)=>{
           const u=clamp(.43+.54*(j+.35)/(count+.25)+
             .1*(s(seed+307,i*53+j*13)-.5),.34,.98);
