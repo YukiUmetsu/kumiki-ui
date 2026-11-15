@@ -298,31 +298,48 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   // EYE SOCKETS: their dark value comes BEFORE the sclera, and the
   // upper-lid wax fully overlaps each exposed iris, source F1 observed.
   wax("socket-near",
-    "M183 522Q199 484 243 470Q292 461 316 489"+
-    "Q335 516 319 555Q287 591 236 588"+
-    "Q196 582 183 550Z",
-    rect(175,457,163,143),C.socket,[89,197],
+    "M185 520C201 487 235 473 268 474"+
+    "C294 469 319 492 327 513Q332 550 305 572"+
+    "C277 591 239 587 215 571Q190 560 185 520Z",
+    rect(177,466,159,127),["#986d75","#55434f","#b78c91"],[89,197],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.47,spacing:6.2,markStrength:.25,blendRadius:8.5});
+      pressure:.64,spacing:6.8,markStrength:.39,blendRadius:10});
   wax("socket-far",
-    "M386 478Q400 450 435 440Q467 437 475 465"+
-    "Q492 502 484 534Q454 555 416 547"+
-    "Q390 533 386 478Z",
-    rect(379,433,115,131),C.socket,[94,199],
+    "M390 474Q406 447 435 443Q457 441 471 460"+
+    "Q483 484 480 523Q469 549 434 544Q398 539 390 507Z",
+    rect(384,435,104,118),["#936f79","#594851","#b58b91"],[94,199],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.43,spacing:5.7,markStrength:.22,blendRadius:7});
+      pressure:.61,spacing:6.8,markStrength:.34,blendRadius:8.2});
   wax("brow-superciliary-near",
-    "M192 498Q217 470 253 465Q299 456 326 476"+
-    "Q285 468 259 480Q218 490 192 498Z",
-    rect(184,451,150,57),C.eyebrow,[118,224],
+    "M201 496C223 477 250 463 278 462"+
+    "C300 458 315 470 324 478Q303 470 281 474"+
+    "C252 474 224 492 201 496Z",
+    rect(196,453,133,50),["#795753","#493a3e","#aa8576"],[118,224],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.46,spacing:5.7,markStrength:.31,blendRadius:2.7});
+      pressure:.62,spacing:6.3,markStrength:.42,blendRadius:5});
   wax("brow-superciliary-far",
-    "M395 462Q420 439 447 434Q464 434 475 442"+
-    "Q447 442 424 454Q409 463 395 462Z",
-    rect(388,430,92,42),C.eyebrow,[120,223],
+    "M393 465Q412 445 444 437Q461 435 473 440"+
+    "Q458 443 441 451Q418 460 393 465Z",
+    rect(388,433,91,38),["#765751","#493b3c","#a8837c"],[120,223],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.47,spacing:5.4,markStrength:.27,blendRadius:2});
+      pressure:.56,spacing:6.2,markStrength:.35,blendRadius:4.2});
+  // F1 upper orbital fat/eyelash attachment is an irregular asymmetric
+  // skin plane, not a hard oval or freehand floating eyebrow.
+  wax("eye-orbital-undercut-near",
+    "M208 547C219 524 245 506 267 505"+
+    "Q290 503 315 529Q305 526 291 521"+
+    "Q265 513 244 529Q222 543 208 547Z",
+    rect(202,499,117,53),
+    ["#906b74","#5c4b57","#ba9293"],[127,225],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.61,spacing:6.3,markStrength:.38,blendRadius:6.4});
+  wax("eye-orbital-undercut-far",
+    "M403 522Q410 502 430 491Q451 481 470 504"+
+    "Q452 492 438 502Q414 510 403 522Z",
+    rect(398,480,77,47),
+    ["#8c6972","#554750","#ad858a"],[133,230],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.6,spacing:6.3,markStrength:.35,blendRadius:5.6});
   // F1 photographed three-quarter eye topology, 608×1082 crop.
   // Near canthi x218..322; upper iris is occluded by lash margin.
   // Far eye x405..474 is narrower and hair-occluded, not mirrored.
@@ -445,11 +462,11 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   // Lower tarsal lip and infraorbital shadow: separate adjacent
   // 3D planes, not another complete thin oval under the eye.
   wax("lower-lid-near",
-    "M214 561C232 572 250 573 273 567Q306 562 322 544"+
-    "C309 566 293 576 276 580Q241 587 217 570Z",
-    rect(209,537,118,52),["#ba8c8a","#8c696d","#d7a8a1"],[184,276],
+    "M212 561C235 573 251 572 275 567Q306 562 322 542"+
+    "C315 561 299 579 274 582Q237 591 213 574Z",
+    rect(207,538,120,57),["#a87577","#684f56","#d09a92"],[184,276],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.5,spacing:6.8,markStrength:.27,blendRadius:6.6});
+      pressure:.58,spacing:6.8,markStrength:.36,blendRadius:5.8});
   wax("lower-lid-far",
     "M404 526Q421 539 442 533Q467 529 474 511"+
     "Q471 544 449 550Q422 550 406 536Z",
@@ -470,11 +487,12 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       pressure:.43,spacing:7.4,markStrength:.19,blendRadius:4.1});
   wax("lower-lid-margin-near",
-    "M218 567Q248 583 278 572Q304 566 318 551"+
-    "Q304 575 274 582Q240 586 218 567Z",
-    rect(214,547,109,40),["#a77c7b","#826466","#cda39e"],[214,299],
+    "M217 569Q242 583 272 576Q304 569 317 550"+
+    "Q309 572 277 586Q243 591 217 569Z",
+    rect(212,546,110,48),
+    ["#a67777","#74575b","#cfa19a"],[214,299],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.39,spacing:7.7,markStrength:.18,blendRadius:4.8});
+      pressure:.46,spacing:7.7,markStrength:.27,blendRadius:4.4});
   wax("lower-lid-margin-far",
     "M408 532Q430 548 450 539Q464 535 471 518"+
     "Q469 549 449 553Q426 556 408 532Z",
