@@ -28,11 +28,11 @@ These are authenticated institutional **craft references**, not exact geometric 
 | Key | Source evidence | Structural root / flow implementation | View and rejection |
 | --- | --- | --- | --- |
 | HG | NPM + annotated hemp/alum-head image | Quadratic original crest → 3 faced masses → 78 long asymmetric cubic hemp strokes; inherited full film ridge clipping | 960×540 mountain trail, aligned 1.75× / 2.4× / 3.45×. Reject sparse straight crossing wires and uniform pale polygons. |
-| GX | NPM *Early Spring* | Same crest / primary 3 rock anchors, 52 reversing loaded cubic marks with lateral counterturns | Reject identical scallops or generic wiggly decorations not reading as rock. |
-| FK | NPM Fan Kuan exhibition + museum description | Same silhouette but dark rock underwash with 187 short load-graded raindrop cun | Reject random screen-dot texture or loss of distant blank mist. |
-| WM | NPM *Forest Chamber* catalogue | Same crest, 3 dark cheek contours, 178 long fine curling ox-tail strokes and dry lifts, clipped per positive cheek | Reject comb-like parallel strokes, unreadable wet mass or fully filled paper. |
+| GX | NPM *Early Spring* | Distinct multi-saddle crest with a secondary curled summit / 3 parent crag anchors, 52 reversing loaded cubic marks with lateral counterturns | Reject identical scallops or generic wiggly decorations not reading as rock. |
+| FK | NPM Fan Kuan exhibition + museum description | Wide rounded monolithic summit and steep shoulder / dark rock underwash with 187 short load-graded raindrop cun | Reject random screen-dot texture or loss of distant blank mist. |
+| WM | NPM *Forest Chamber* catalogue | Two interacting off-center summits with a twisting saddle, 3 dark cheek contours, 178 long fine curling ox-tail strokes and dry lifts, clipped per positive cheek | Reject comb-like parallel strokes, unreadable wet mass or fully filled paper. |
 
-The **control variables** `inkSchool`, `detail`, `mist`, `ink`, `seed`, `frame` are independent. The historical mode **changes path geometry and pressure distribution**, not just CSS opacity or a bitmap filter. The hill landscape / trees / characters / camera clock are held identical for source comparisons. The 3 positive source planes have independent dark-to-dilute linear gradient shading and instance-local SVG clip paths. Child strokes are sampled on a specific named quadratic contour and may not paint into the sky or be accidentally reused across adjacent Storybook stages.
+The **control variables** `inkSchool`, `detail`, `mist`, `ink`, `seed`, `frame` are independent. The historical mode **changes both authored middle-mountain silhouette and interior path geometry / pressure distribution**, not merely CSS opacity or bitmap filters. The **far/near depth bands**, path, trees, characters, film camera and absolute clock remain identical while each source mode owns a distinct middle ridge and rock-face anatomy. The 3 positive source planes have independent dark-to-dilute linear gradient shading and instance-local SVG clip paths. Child strokes are sampled on a specific named quadratic contour and may not paint into the sky or be accidentally reused across adjacent Storybook stages.
 
 ## Practical QA protocol and release blockers
 
@@ -50,3 +50,19 @@ The **control variables** `inkSchool`, `detail`, `mist`, `ink`, `seed`, `frame` 
 - **Copyright:** External institutional reference images are linked for study; no museum image is embedded in the JavaScript registry, Storybook package, or video exporter.
 
 **Next priority:** pass the independent native art review for each school's geological mass before expanding into animal/human figures or claiming this engine is production-level for all Chinese ink aesthetics.
+
+
+## Second source-geometry pass — silhouettes must differ (native screenshot reviewed)
+
+The first *actual browser screenshot* showed four school styles with recognizably different stroke lengths/curvature, but **all painted on the same smooth triangular mountain silhouette**. At normal 960×540 viewing size this defeats the studied structural differences: Fan Kuan is not visually monumental, Guo Xi lacks a curled multiple-peak topology, and Wang Meng is not densely layered within actual twisting rock banks. Counts alone could not pass ArtCraft.
+
+**Correction made in code, still a candidate:**
+- `fuchun`: preserve the existing source-rooted middle-ridge composition for backward-compatible film scenes and tests.
+- `early-spring` / Guo Xi: 24 explicitly authored middle-ridge nodes with two subtly interlocking summits and curved saddles; three distinct broader/lifted rock cheek planes.
+- `travelers` / Fan Kuan: 24 authored nodes for a wider, higher, nearly plateaued monumental massif with steep sides; physically broader and deeper root-connected rock cheek planes.
+- `forest-grotto` / Wang Meng: 24 authored nodes tracing two unequal high summits with intervening gullies, 3 differently oriented compressed crag planes and long fine ox-tail texture.
+- All three use the existing span-sensitive fracture damping to prevent sawtooth peaks; vegetation/rock children attach to the real regenerated crest; far and near ridges, camera, actor, river and story timing do not change. The browser source-geometry test now **rejects identical crest paths** across the four schools.
+
+**Technical incident addressed:** A screenshot determinism test saw stale frame pixels after programmatically setting the slider while the larger new SVG painting was still committing to the DOM. The test helper now waits for the *stage* to confirm its frame and for two paint cycles before hashing. This fixes a real race in the test rather than relaxing its equality assertion.
+
+**Next release judgment:** Capture and inspect a new exact-head four-master Storybook screenshot at 960 native stage pixels and at 1.65× art crop. Reject if the five critical forms—summit, cliff planes, clouds/paper, underbrush geometry, trees—still read like a pasted layer of brushes on a colored triangle. Never mark museum-style fidelity approved from code/CI counts.
