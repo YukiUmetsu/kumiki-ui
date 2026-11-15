@@ -29,6 +29,12 @@ test("face feature guides are opt-in, stay aligned on aspect changes and never l
     await expect(drawing).toHaveAttribute("data-km-pencil-photo","ready",
       {timeout:25000});
     await expect(drawing).toHaveAttribute("data-km-portrait-features","source-guided");
+    const craftToggle=page.getByRole("checkbox",{name:"Apply source-based portrait pencil marks"});
+    await expect(craftToggle).toBeChecked();
+    await craftToggle.uncheck();
+    await expect(drawing).toHaveAttribute("data-km-portrait-features","none");
+    await craftToggle.check();
+    await expect(drawing).toHaveAttribute("data-km-portrait-features","source-guided");
     await expect(page.locator("[data-km-portrait-craft-evidence]")).toContainText(
       "additional eye, brow, nose, lip and form-following skin pencil marks");
     await expect(page.getByRole("alert")).toHaveCount(0);
