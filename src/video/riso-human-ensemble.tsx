@@ -2,6 +2,9 @@ import {useId,useMemo,useState} from "react";
 import {evaluateRisoCharacter} from "../../registry/video/riso-character";
 import type {RisoCharacterPart,RisoCharacterSpec,RisoJoint} from "../../registry/video/riso-character";
 import {RisoCharacterInk,RisoCharacterKnockout} from "../../registry/video/riso-character-react";
+import {RisoPrint} from "../../registry/video/print-plates-react";
+import type {RisoForegroundLayer} from "../../registry/video/print-plates-react";
+import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import type {RisoCharacterMeshSheet,RisoMeshCategory} from "../../registry/video/riso-proportion-mesh";
 import {COURIER} from "./riso-character-demo";
 
@@ -220,10 +223,47 @@ export function RisoHumanEnsembleStudio(){
   const [aspect,setAspect]=useState<EnsembleAspect>("landscape");
   const [plate,setPlate]=useState<EnsemblePlate>("both");
   const [anchors,setAnchors]=useState(false);
+  const [grain,setGrain]=useState(.45);
+  const [misregistration,setMisregistration]=useState(.25);
+  const [dotCell,setDotCell]=useState(6);
   const uid=useId().replace(/[^a-z0-9]/gi,"");
   const state=useMemo(()=>evaluateRisoHumanEnsemble(frame,aspect),[frame,aspect]);
-  const paint={blue:{solid:blue,dots:`url(#${uid}-dots-blue)`},
-    red:{solid:red,dots:`url(#${uid}-dots-red)`}};
+  const printSpec:RisoPrintSpec={
+    version:1,width:state.width,height:state.height,paper,seed:38,
+    startFrame:0,passFrames:1,gapFrames:0,
+    plates:[
+      {id:"blue",color:blue,opacity:1,dotCell,dotAngle:-12,registration:[0,0]},
+      {id:"red",color:red,opacity:1,dotCell,dotAngle:17,registration:[.5,-.4]},
+    ],
+  };
+  const people=[{spec:COURIER,stage:state.first},{spec:PAPER_ARTIST,stage:state.second}] as const;
+  const layers:RisoForegroundLayer[]=[
+    {
+      id:"shared-letter",
+      knockout:state.progress>0?<path d={state.sheet}
+        data-km-riso-human-ensemble-sheet={state.progress.toFixed(3)}/>:undefined,
+      artworks:{
+        blue:paint=>state.progress>0?<path d={state.sheet} fill="none"
+          stroke={paint.solid} strokeWidth={2.1} strokeLinejoin="round"/>:null,
+        red:paint=>state.progress>0?<path
+          d={`M${state.source.x+3} ${state.source.y-11}
+            L${state.propEnd.x-3} ${state.propEnd.y-11}`}
+          fill="none" stroke={paint.solid} strokeWidth={2.2}/>:null,
+      },
+    },
+    ...people.map(({spec,stage}):RisoForegroundLayer=>({
+      id:spec.id,
+      knockout:<g data-km-riso-human-actor={spec.id}>
+        <RisoCharacterKnockout spec={spec} frame={frame} x={stage.x} y={stage.y}
+          scale={stage.scale} spread={2}/></g>,
+      artworks:{
+        blue:paint=><RisoCharacterInk spec={spec} frame={frame} plateId="blue"
+          paint={paint} x={stage.x} y={stage.y} scale={stage.scale}/>,
+        red:paint=><RisoCharacterInk spec={spec} frame={frame} plateId="red"
+          paint={paint} x={stage.x} y={stage.y} scale={stage.scale}/>,
+      },
+    })),
+  ];
   return <main style={{background:"#F0E4D1",padding:18,minHeight:"100vh",font:"14px system-ui,sans-serif"}}>
     <div style={{maxWidth:1320,margin:"0 auto"}}>
       <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO14 / HUMAN ENSEMBLE ACTING STUDY</div>
@@ -232,6 +272,7 @@ export function RisoHumanEnsembleStudio(){
         Distinct coat, bob hair and facial geometry for the Paper Artist; the Courier retains
         its existing body and satchel grip. The unfurling printed sheet is anchored to two evaluated
         world-space hands. This is a gesture-blocking study, not a rigid-body contact solver.
+        Real RisoPrint spot-ink screens, print registration, paper pores and fibres are used.
       </p>
       <div style={{display:"flex",flexWrap:"wrap",gap:20,alignItems:"center",padding:"12px 0"}}>
         <label>Frame · {frame} <input type="range" min={0} max={239} value={frame}
@@ -247,52 +288,47 @@ export function RisoHumanEnsembleStudio(){
         </select></label>
         <label><input type="checkbox" checked={anchors} aria-label="RISO ensemble contact anchors"
           onChange={e=>setAnchors(e.target.checked)}/> Show contact anchors</label>
+        <label>Screen cell · {dotCell}px <input type="range" min={3} max={12} step={1}
+          aria-label="RISO ensemble screen cell" value={dotCell}
+          onChange={e=>setDotCell(Number(e.target.value))}/></label>
+        <label>Ink registration · {misregistration.toFixed(2)}
+          <input type="range" min={0} max={1} step={.05}
+            aria-label="RISO ensemble registration" value={misregistration}
+            onChange={e=>setMisregistration(Number(e.target.value))}/></label>
+        <label>Paper fibres · {grain.toFixed(2)}
+          <input type="range" min={0} max={1} step={.05}
+            aria-label="RISO ensemble paper grain" value={grain}
+            onChange={e=>setGrain(Number(e.target.value))}/></label>
       </div>
-      <svg width="100%" viewBox={`0 0 ${state.width} ${state.height}`}
-        style={{maxHeight:800,display:"block",background:paper,border:"1px solid #B99F87"}}
-        data-km-riso-human-ensemble-frame={frame} data-km-riso-human-ensemble-aspect={aspect}>
-        <defs>
-          <pattern id={uid+"-dots-blue"} width="4.2" height="4.2" patternUnits="userSpaceOnUse">
-            <circle cx="1.3" cy="1.3" r=".83" fill={blue}/>
-          </pattern>
-          <pattern id={uid+"-dots-red"} width="4.7" height="4.7" patternUnits="userSpaceOnUse">
-            <circle cx="1.7" cy="1.7" r=".92" fill={red}/>
-          </pattern>
-        </defs>
-        <rect x={0} y={0} width={state.width} height={state.height} fill={paper}/>
-        <text x={state.width/2} y={aspect==="portrait"?178:76} textAnchor="middle"
-          fontFamily="Georgia,serif" fontWeight={700} fontSize={aspect==="portrait"?35:35}
-          fill={blue}>A PRINT TO SHARE</text>
-        <text x={state.width/2} y={aspect==="portrait"?210:99} textAnchor="middle"
-          fontFamily="system-ui,sans-serif" fontWeight={700} letterSpacing={3}
-          fontSize={aspect==="portrait"?12:11} fill={red}>TWO MAKERS · TWO INKS</text>
-        <path d={`M0 ${state.first.y+12} H${state.width}`} fill="none"
-          stroke="#C7AB91" strokeWidth={1.5}/>
-        {state.progress>0&& <g data-km-riso-human-ensemble-sheet={state.progress.toFixed(3)}>
-          <path d={state.sheet} fill={paper} stroke={blue} strokeWidth={2} strokeLinejoin="round"/>
-          <path d={`M${state.source.x+3} ${state.source.y-11}
-            L${state.propEnd.x-3} ${state.propEnd.y-11}`}
-            fill="none" stroke={red} strokeWidth={2.3}/>
-        </g>}
-        {([{spec:COURIER,stage:state.first},{spec:PAPER_ARTIST,stage:state.second}] as const).map(({spec,stage})=>
-          <g key={spec.id} data-km-riso-human-actor={spec.id}>
-            <g fill={paper} stroke={paper}>
-              <RisoCharacterKnockout spec={spec} frame={frame}
-                x={stage.x} y={stage.y} scale={stage.scale} spread={2}/>
-            </g>
-            {(["blue","red"] as const).filter(p=>plate==="both"||plate===p).map(p=>
-              <g key={p} style={{mixBlendMode:"multiply"}}>
-                <RisoCharacterInk spec={spec} frame={frame} plateId={p}
-                  paint={paint[p]} x={stage.x} y={stage.y} scale={stage.scale}/>
-              </g>)}
-          </g>)}
-        {anchors&&<g fill="none" stroke="#078D79" strokeWidth={1.5}
-          data-km-riso-ensemble-debug-anchors="">
-          {([state.source,state.receiver] as const).map((pos,i)=>
-            <g key={i}><circle cx={pos.x} cy={pos.y} r={5}/>
-              <path d={`M${pos.x-10} ${pos.y}h20 M${pos.x} ${pos.y-10}v20`}/></g>)}
-        </g>}
-      </svg>
+      <div style={{maxHeight:800,overflow:"hidden",border:"1px solid #B99F87"}}>
+        <RisoPrint
+          spec={printSpec} frame={frame} reducedMotion={true}
+          paperGrain={grain} misregistration={misregistration}
+          visiblePlateIds={plate==="both"?undefined:[plate]}
+          artworks={{
+            blue:paint=><g fill={paint.solid}>
+              <text x={state.width/2} y={aspect==="portrait"?178:76}
+                textAnchor="middle" fontFamily="Georgia,serif"
+                fontWeight={700} fontSize={35}>A PRINT TO SHARE</text>
+              {anchors&&<g fill="none" stroke={paint.solid} strokeWidth={1.5}
+                data-km-riso-ensemble-debug-anchors="">
+                {([state.source,state.receiver] as const).map((pos,i)=>
+                  <g key={i}><circle cx={pos.x} cy={pos.y} r={5}/>
+                    <path d={`M${pos.x-10} ${pos.y}h20 M${pos.x} ${pos.y-10}v20`}/></g>)}
+              </g>}
+            </g>,
+            red:paint=><text x={state.width/2} y={aspect==="portrait"?210:99}
+              textAnchor="middle" fontFamily="system-ui,sans-serif" fontWeight={700}
+              letterSpacing={3} fontSize={aspect==="portrait"?12:11}
+              fill={paint.solid}>TWO MAKERS · TWO INKS</text>,
+          }}
+          foregroundLayers={layers}
+          data-km-riso-human-ensemble-frame={frame}
+          data-km-riso-human-ensemble-aspect={aspect}
+          label="Two human Risograph actors exchanging a printed sheet"
+        />
+      </div>
+
       <p style={{fontSize:12,color:"#63727A"}}>
         All frames are deterministic. A sheet becomes physically anchored to both hand roots
         by frame 160; no per-frame random alpha or transparent character bodies.
