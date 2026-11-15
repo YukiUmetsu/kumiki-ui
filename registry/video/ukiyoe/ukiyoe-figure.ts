@@ -19,17 +19,18 @@ import { BLADE, katana, mon, reachArm, saya, swordAt, swordGeometry, swordSmear 
 import { CLUB, clubAt, clubGeometry, groundCrack, kanabo, usesClub } from "./ukiyoe-oni";
 import { weaveBeat } from "./ukiyoe-interior";
 import type { UkiyoeGhostFace } from "./ukiyoe-onna";
+import { ancientHairSide, kamiProp, magatama, riceBag, stole, zukin } from "./ukiyoe-kami";
 import { drawTool, firewood, hachiSide, kozuchi, onigiri, strikeBits, toolAt, toolBody, toolContact, treasure } from "./ukiyoe-folk";
 import { babyBundle, faceOutline, ghostFaceSide, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 
-export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild" | "hyogo" | "kamuro" | "wareshinobu";
-export type UkiyoeHat = "none" | "kasa" | "conical" | "eboshi" | "hood" | "headband" | "gotoku" | "hachi";
-export type UkiyoeProp = "none" | "staff" | "umbrella" | "lantern" | "fan" | "pole" | "basket-pole" | "bundle" | "fishing-rod" | "scroll" | "pipe" | "kanabo" | "peach" | "parasol" | "maiogi" | "peony-lantern" | "baby" | "kozuchi" | "onigiri" | "firewood";
+export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild" | "hyogo" | "kamuro" | "wareshinobu" | "mizura" | "tenko";
+export type UkiyoeHat = "none" | "kasa" | "conical" | "eboshi" | "hood" | "headband" | "gotoku" | "hachi" | "zukin";
+export type UkiyoeProp = "none" | "staff" | "umbrella" | "lantern" | "fan" | "pole" | "basket-pole" | "bundle" | "fishing-rod" | "scroll" | "pipe" | "kanabo" | "peach" | "parasol" | "maiogi" | "peony-lantern" | "baby" | "kozuchi" | "onigiri" | "firewood" | "mirror" | "tsurugi" | "hoko" | "tai";
 export type UkiyoeBuild = "slim" | "average" | "stout" | "child" | "brute";
-export const UKIYOE_HAIRS: readonly UkiyoeHair[] = ["chonmage", "shimada", "child", "bald", "long", "elder", "topknot", "wild", "hyogo", "kamuro", "wareshinobu"];
-export const UKIYOE_HATS: readonly UkiyoeHat[] = ["none", "kasa", "conical", "eboshi", "hood", "headband", "gotoku", "hachi"];
-export const UKIYOE_PROPS: readonly UkiyoeProp[] = ["none", "staff", "umbrella", "lantern", "fan", "pole", "basket-pole", "bundle", "fishing-rod", "scroll", "pipe", "kanabo", "peach", "parasol", "maiogi", "peony-lantern", "baby", "kozuchi", "onigiri", "firewood"];
+export const UKIYOE_HAIRS: readonly UkiyoeHair[] = ["chonmage", "shimada", "child", "bald", "long", "elder", "topknot", "wild", "hyogo", "kamuro", "wareshinobu", "mizura", "tenko"];
+export const UKIYOE_HATS: readonly UkiyoeHat[] = ["none", "kasa", "conical", "eboshi", "hood", "headband", "gotoku", "hachi", "zukin"];
+export const UKIYOE_PROPS: readonly UkiyoeProp[] = ["none", "staff", "umbrella", "lantern", "fan", "pole", "basket-pole", "bundle", "fishing-rod", "scroll", "pipe", "kanabo", "peach", "parasol", "maiogi", "peony-lantern", "baby", "kozuchi", "onigiri", "firewood", "mirror", "tsurugi", "hoko", "tai"];
 export const UKIYOE_BUILDS: readonly UkiyoeBuild[] = ["slim", "average", "stout", "child", "brute"];
 
 export interface UkiyoeFigureLook {
@@ -58,6 +59,12 @@ export interface UkiyoeFigureLook {
   /** `oni`: the demon face. The ghost-story faces (`noppera`, `kuchisake`, `futakuchi`, `skull`, `oiwa`, `hag`) look
    * human, or nearly, until a `reveal` action shows them (see ukiyoe-onna). */
   face?: "human" | "oni" | UkiyoeGhostFace;
+  /** The hagoromo: a long gauze scarf from the shoulders streaming behind (heavenly beings). */
+  stole?: UkiyoePaint;
+  /** A string of magatama jewels at the collar (the ancient gods). */
+  beads?: boolean;
+  /** Daikoku's rice bag over the shoulder. */
+  bag?: boolean;
   hakama?: UkiyoePaint;
   legs?: UkiyoePaint;
   /** `koma-geta`: the courtesan's tall black-lacquered three-toothed clogs, worn bare-foot; `okobo`: the maiko's tall
@@ -99,9 +106,9 @@ export interface UkiyoeFigureLook {
 
 export type UkiyoeActionType =
   | "walk" | "run" | "bow" | "wave" | "point" | "talk" | "look" | "kneel" | "pole" | "row" | "brace" | "dance"
-  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu" | "kyomai" | "draw" | "kamae" | "cut" | "sheathe" | "parry" | "recoil" | "drop" | "fall" | "smash" | "swing" | "evade" | "sleep" | "weave" | "reveal" | "chop" | "hoe" | "pound" | "wash" | "shake";
+  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu" | "kyomai" | "draw" | "kamae" | "cut" | "sheathe" | "parry" | "recoil" | "drop" | "fall" | "smash" | "swing" | "evade" | "sleep" | "weave" | "reveal" | "chop" | "hoe" | "pound" | "wash" | "shake" | "fly";
 export const UKIYOE_ACTIONS: readonly UkiyoeActionType[] = [
-  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu", "kyomai", "draw", "kamae", "cut", "sheathe", "parry", "recoil", "drop", "fall", "smash", "swing", "evade", "sleep", "weave", "reveal", "chop", "hoe", "pound", "wash", "shake",
+  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu", "kyomai", "draw", "kamae", "cut", "sheathe", "parry", "recoil", "drop", "fall", "smash", "swing", "evade", "sleep", "weave", "reveal", "chop", "hoe", "pound", "wash", "shake", "fly",
 ];
 export interface UkiyoeAction {
   type: UkiyoeActionType;
@@ -159,7 +166,7 @@ const KEYS = Object.keys(STAND) as (keyof FigurePose)[];
 
 // ---- Travel ----------------------------------------------------------------------------------------------------------------------
 
-const TRAVEL = new Set<UkiyoeActionType>(["walk", "run", "dochu", "evade"]);
+const TRAVEL = new Set<UkiyoeActionType>(["walk", "run", "dochu", "evade", "fly"]);
 /** Root offset at a frame from the walk/run actions (each starts where the previous left off). */
 export function travelAt(actions: readonly UkiyoeAction[], frame: number): { x: number; y: number; moving?: UkiyoeAction; from: Pt; dir: number; dist: number } {
   let x = 0, y = 0, moving: UkiyoeAction | undefined, from: Pt = [0, 0], dir = 0, dist = 0;
@@ -256,6 +263,8 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
       case "wash": target.kneel = 1; target.lean = 22 + 4 * Math.sin(t / 5); target.tilt = 14; target.shF = 50; target.elF = 30; target.shB = 44; target.elB = 34; break;
       // The mallet of luck raised and shaken: the arm high, the wrist flicking, the body bouncing a little with it.
       case "shake": target.propAngle = t + 1; target.shF = 150 + 10 * Math.sin(t / 2.6); target.elF = 30 + 26 * Math.sin(t / 2.6); target.tilt = -10; target.lift = Math.abs(Math.sin(t / 5.2)) * height * .015; target.shB = 30; target.elB = 60; break;
+      // Flying: risen off the ground, leaning into the flight, the legs trailing back together, a gentle bob.
+      case "fly": target.lift = height * (.08 + .02 * Math.sin(t / 14)); target.lean = 28; target.tilt = -6; target.hipF = -24; target.hipB = -34; target.knF = 38; target.knB = 46; target.shF = 70 + 10 * Math.sin(t / 16); target.elF = 20; target.shB = 40; target.elB = 30; target.footF = 30; target.footB = 30; break;
       case "sleep": target.fall = 1; target.blink = 1; target.shF = 6 + 2 * Math.sin(t / 40); target.elF = 14; target.shB = 4; target.elB = 10; target.hipF = 2; target.hipB = -2; target.knF = 4; target.knB = 4; break;
       // Weaving at a loom, kneeling: the near hand pulls the beater in on the beat, the far hand throws the shuttle
       // while the shed is open. Timed by the absolute frame with the loom motif (weaveBeat), so the two agree.
@@ -561,6 +570,7 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
     case "bald": break;
     case "hyogo": case "wareshinobu": out.push(...hyogo!.over); break;
     case "kamuro": out.push(...kamuroSide(P, k, lw, hairC, look.accent ?? "beni")); break;
+    case "mizura": case "tenko": out.push(...ancientHairSide(hair, P, k, lw, hairC, look.accent ?? "shu")); break;
   }
   if (look.face === "oni") {
     // Glaring round eye, heavy brow, flared nostril, fangs; horns break through the hair.
@@ -581,6 +591,7 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
   if (ghost === "futakuchi") out.push(...ghostFaceSide(ghost, pose.reveal, P, k, lw, skin, pose.mouth, frame, seed, tq, outline));
   if (look.hat === "gotoku") out.push(...gotokuCrown(P, k, lw, frame, seed));
   if (look.hat === "hachi") out.push(...hachiSide(P, lw));
+  if (look.hat === "zukin") out.push(...zukin(P, lw));
   // Hats.
   const hat = look.hat ?? "none", hatC = look.hatColor ?? (hat === "eboshi" ? "sumi" : hat === "hood" ? "ai" : "kincha");
   if (hat === "kasa" || hat === "conical") {
@@ -615,6 +626,7 @@ function propPrims(look: UkiyoeFigureLook, pose: FigurePose, s: Skeleton, wind: 
     out.push({ t: "fill", d: ellipseD(c[0], c[1], H * .09, H * .1), fill: accent, outline: lw, pattern: { type: "kanoko", color: "gofun", scale: .6, opacity: .7 } });
   }
   if (layer === "back" && prop === "firewood") out.push(...firewood(add(s.neck, [-H * .05, H * .14]), H, lw));
+  if (layer === "back" && look.bag) out.push(...riceBag(add(s.neck, [-H * .04, H * .1]), H, lw));
   if (layer === "back" && prop === "basket-pole") {
     const bounce = Math.sin(frame / 3.5) * H * .012;
     const sh = add(s.shF, [0, -H * .02]), a: Pt = add(sh, [H * .45, -H * .02 + bounce * .5]), b: Pt = add(sh, [-H * .45, H * .01 - bounce * .5]);
@@ -639,6 +651,7 @@ function propPrims(look: UkiyoeFigureLook, pose: FigurePose, s: Skeleton, wind: 
       }
       case "peony-lantern": out.push(...peonyLantern(w, H, lw, frame, wind, 0)); break;
       case "onigiri": out.push(...onigiri([w[0] + H * .015, w[1] - H * .02], H * .03, lw)); break;
+      case "mirror": case "tsurugi": case "hoko": case "tai": out.push(...kamiProp(prop, w, H, lw, frame)); break;
       case "kozuchi": {
         // Held up by the handle, pointing on along the forearm; shaken, it pours out treasure.
         const a = Math.atan2(w[1] - s.elF[1], w[0] - s.elF[0]) / DEG;
@@ -802,6 +815,8 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
 
   // Back prop and back arm.
   const propLook = club ? { ...look, prop: "none" as const } : look;
+  // The hagoromo streams behind the body, stretched out when flying.
+  if (look.stole) out.push(...stole(s.shF, s.shB, H, look.stole, frame, tr.moving?.type === "fly" ? 1 : tr.moving ? .4 : .1, wl, lw, seed));
   out.push(...propPrims(propLook, pose, s, wl, frame, "back"));
   const bare = look.upper === "bare", skin = look.skin ?? "hada";
   const bareArm = (sh: Pt, el: Pt, wr: Pt, isBack: boolean): Prim[] => {
@@ -1006,6 +1021,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   // Profile or three-quarter: the head narrows as it swings round and the drawing changes at the midpoint.
   const view = look.face === "oni" ? 0 : clamp01((look.view === "three-quarter" ? 1 : 0) + pose.faceView * (look.view === "three-quarter" ? -1 : 1));
   const swing = view > 0 && view < 1 ? Math.max(.62, Math.abs(Math.cos(Math.PI * view))) : 1;
+  if (look.beads) out.push(...magatama(add(s.neck, [H * .005, H * .03]), H, lw));
   out.push({ t: "group", transform: `translate(${s.head[0].toFixed(2)} ${s.head[1].toFixed(2)}) rotate(${(tilt * headFlip).toFixed(2)}) scale(${(headFlip * swing).toFixed(3)} 1)`, prims: headPrims(look, pose, k, H, wl * headFlip, frame, seed, view >= .5) });
 
   // Front arm, sleeve and hand-held prop.

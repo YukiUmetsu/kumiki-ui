@@ -30,6 +30,8 @@ import type { UkiyoeFolkWork } from "../../registry/video/ukiyoe/ukiyoe-folk";
 import { folkScene, UKIYOE_FOLK_WORK } from "../../registry/video/ukiyoe/ukiyoe-folk";
 import type { UkiyoeEffectDemo } from "../../registry/video/ukiyoe/ukiyoe-effects";
 import { effectScene, UKIYOE_EFFECT_DEMOS } from "../../registry/video/ukiyoe/ukiyoe-effects";
+import type { UkiyoeKamiScene } from "../../registry/video/ukiyoe/ukiyoe-kami";
+import { kamiScene, UKIYOE_KAMI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-kami";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -450,6 +452,7 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "tarai", label: "Wash tub · cloth", params: { radius: 160 }, y: 320 },
   { motif: "fire", label: "Fire · smoke, embers", params: { width: 360, height: 160 }, y: 340 },
   { motif: "halo", label: "Halo · gold radiance", params: { radius: 110 }, y: 190 },
+  { motif: "kumo", label: "Auspicious cloud (zuiun)", params: { width: 300 }, y: 280 },
 ];
 
 export function MotifGallery() {
@@ -733,6 +736,32 @@ export function Effects() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={EFFECT_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Effect frame" />
+  </div>;
+}
+
+// ---- Kami and heavenly beings ------------------------------------------------------------------------------------------------------
+
+const KAMI_LABELS: Readonly<Record<UkiyoeKamiScene, string>> = {
+  hagoromo: "The celestial maiden flies", amaterasu: "The sun goddess leaves the cave", luck: "Ebisu and Daikoku on a cloud", susanoo: "The storm god",
+};
+
+/** Gods and celestials: the flying tennyo with her hagoromo, Amaterasu with the mirror, the gods of luck, Susanoo. */
+export function Kami() {
+  const [kind, setKind] = useState<UkiyoeKamiScene>("hagoromo");
+  const spec = useMemo(() => kamiScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Kami" title="Gods and heavenly beings">
+      <p style={{ margin: 0 }}>After the flying celestials of temple art and Hokkei's <em>Ebisu and Daikoku</em>. The <code>fly</code> action lifts a
+        figure into the air and carries her; the <code>stole</code> (hagoromo) streams out behind her. Ancient gods wear their hair in
+        <code>mizura</code> loops with magatama <code>beads</code>, and hold the <code>mirror</code>, the straight <code>tsurugi</code> or the jewelled
+        <code>hoko</code>; Ebisu carries his <code>tai</code>, Daikoku his mallet and rice <code>bag</code>. The <code>kumo</code> cloud carries them.</p>
+    </Header>
+    <section aria-label="Kami controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={UKIYOE_KAMI_SCENES} onChange={setKind} labels={KAMI_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={KAMI_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Kami frame" />
   </div>;
 }
 
