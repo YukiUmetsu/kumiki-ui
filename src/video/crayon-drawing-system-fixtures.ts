@@ -52,19 +52,24 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     elements.push(n);parts.push({nodeId:id,phase,role:"stroke",minCurves});
   };
   const place={x:width/2,y:height*(portrait?.44:.54),scale:portrait?1.25:1.07};
-  // Narrow neck and fuller asymmetric lower lobe: never an egg-shaped
-  // fruit merely decorated with a paper grain overlay.
+  // The left shoulder is broad, the right shoulder is high and narrower;
+  // subtly flattened blossom-end makes the fruit a studied pear, not a teardrop.
+  // Independent cubic tangents prevent symmetry and a computer-perfect ellipse.
   const rootD=
-    "M-15 -141 C-38 -148 -62 -129 -70 -95 "+
-    "C-75 -66 -102 -30 -111 18 C-130 89 -91 159 -24 175 "+
-    "C29 187 103 147 116 75 C126 21 102 -38 74 -69 "+
-    "C55 -92 50 -118 19 -133 C7 -141 -1 -135 -15 -141 Z";
+    "M-15 -140 C-31 -147 -46 -132 -54 -113 "+
+    "C-59 -91 -72 -69 -84 -46 C-105 -12 -114 38 -109 78 "+
+    "C-102 124 -75 156 -39 168 C-14 181 7 181 28 173 "+
+    "C71 161 101 123 111 75 C120 37 110 -6 86 -48 "+
+    "C67 -79 54 -99 41 -118 C27 -136 10 -140 -15 -140 Z";
   const leafD=
-    "M18 -175 C56 -227 98 -239 130 -228 Q143 -231 150 -219 "+
-    "C164 -217 172 -211 174 -208 C145 -164 108 -143 73 -160 "+
-    "Q39 -162 18 -175 Z";
-  const stemD="M-19 -140 Q-17 -159 0 -182 Q12 -189 21 -180 "+
-    "Q4 -165 -5 -132 Z";
+    "M19 -176 C49 -214 78 -231 104 -230 "+
+    "C126 -231 139 -227 146 -221 Q158 -218 167 -213 "+
+    "L176 -205 C151 -171 113 -147 84 -151 "+
+    "C57 -153 35 -163 19 -176 Z";
+  const stemD=
+    "M-21 -142 C-16 -157 -8 -173 2 -184 "+
+    "Q12 -192 22 -183 Q12 -180 7 -172 "+
+    "C-2 -158 -5 -146 -10 -132 Z";
   // World-space paper impression and atmospheric ground. These intentionally
   // remain open wax: only physically solid focal subjects need full opacity.
   const root={x:width/2,y:height*(portrait?.68:.87)};
@@ -94,30 +99,64 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     blendRadius:11,markStrength:.23,
   };
   elements.push(shadow);
-  addWax("pear-body",rootD,rect(-138,-166,269,356),
-    ["#d4aa5d","#8c8155","#e7c87a"],"blocking","solid",{start:9,end:89},{
+  addWax("pear-body",rootD,rect(-130,-166,260,356),
+    ["#e0b65f","#ad9365","#f3d38b"],"blocking","solid",{start:9,end:89},{
       placement:place,underpaintGradient:{
-        light:"#f0d58a",shadow:"#677756",focusX:.30,focusY:.27,radius:1.15},
-      markStrength:.24,spacing:8.5,edgeRoughness:.24,
+        light:"#f5d987",shadow:"#736c66",focusX:.25,focusY:.19,radius:1.36},
+      markStrength:.26,spacing:8.5,edgeRoughness:.3,
     },6);
   addWax("leaf-body",leafD,rect(8,-243,178,111),
-    ["#6b925e","#345d4e","#b0b979"],"blocking","solid",{start:28,end:105},{
+    ["#718c55","#3d624c","#b7be78"],"blocking","solid",{start:28,end:105},{
       parentId:"pear-body",underpaintGradient:{
-        light:"#b6c68c",shadow:"#31564e",focusX:.35,focusY:.2,radius:1.1},
-      markStrength:.3,spacing:6.2,edgeRoughness:.28,
+        light:"#c7c887",shadow:"#2c5248",focusX:.3,focusY:.18,radius:1.1},
+      markStrength:.36,spacing:6.2,edgeRoughness:.31,
     },3);
   addWax("stem-body",stemD,rect(-25,-192,52,70),
     ["#7a5846","#433e40","#b08566"],"blocking","solid",{start:32,end:113},{
       parentId:"pear-body",markStrength:.5,spacing:4.8,edgeRoughness:.3,
     },3);
+  // The stalk sits in an indented, pigmented well with its own light falloff.
+  // That depression is attached to pear flesh, never a free-floating brown disk.
+  addWax("stalk-well",
+    "M-42 -128 C-28 -149 -4 -153 13 -139 "+
+    "Q21 -130 10 -123 Q-13 -118 -42 -128 Z",
+    rect(-50,-157,77,45),
+    ["#9e794e","#6d634c","#c59a64"],"value","glaze",
+    {start:72,end:151},{
+      parentId:"pear-body",clipToParent:true,blendRadius:5,
+      pressure:pressure*.48,spacing:6.2,markStrength:.31,outlineOpacity:0,
+    },2);
   // The value range describes light turning into shadow, not arbitrary flecks.
   addWax("pear-turn-shadow",
     "M37 -119 C91 -106 113 -61 117 11 Q135 82 75 135 "+
     "Q30 169 10 165 C68 114 71 56 65 0 C60 -58 44 -91 37 -119 Z",
     rect(0,-128,143,311),
-    ["#798357","#58715a","#adb274"],"value","glaze",{start:68,end:156},{
+    ["#757c65","#5d6670","#b9a16e"],"value","glaze",{start:68,end:156},{
       parentId:"pear-body",clipToParent:true,blendRadius:10,
-      pressure:pressure*.65,spacing:8.9,markStrength:.21,outlineOpacity:0,
+      pressure:pressure*.65,spacing:8.9,markStrength:.26,outlineOpacity:0,
+    },4);
+  // Cool reflected light turns beneath the lower pear; reserve the brightest
+  // yellows for the upper illuminated shoulder. The wax is still translucent
+  // pigment on top of a fully occluding fruit body.
+  addWax("pear-belly-umbra",
+    "M-79 112 C-58 154 -14 178 28 173 "+
+    "C68 166 86 145 95 112 Q58 143 26 146 "+
+    "Q-21 160 -79 112 Z",
+    rect(-90,102,194,84),
+    ["#9d8273","#6c6371","#c8a06f"],"value","glaze",
+    {start:93,end:168},{
+      parentId:"pear-body",clipToParent:true,blendRadius:9,
+      pressure:pressure*.44,spacing:8.2,markStrength:.26,outlineOpacity:0,
+    },3);
+  addWax("pear-cool-turn",
+    "M88 -42 C110 -7 116 45 103 94 "+
+    "C96 121 75 144 51 157 C75 96 83 35 70 -3 "+
+    "Q69 -26 88 -42 Z",
+    rect(43,-53,83,222),
+    ["#6c836c","#5b6875","#a1a275"],"value","glaze",
+    {start:100,end:169},{
+      parentId:"pear-body",clipToParent:true,blendRadius:8,
+      pressure:pressure*.45,spacing:7.8,markStrength:.3,outlineOpacity:0,
     },4);
   addWax("leaf-fold-shadow",
     "M20 -174 Q105 -186 172 -208 C136 -155 83 -146 44 -163 Z",
@@ -134,6 +173,17 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
       parentId:"pear-body",clipToParent:true,blendRadius:10,
       pressure:pressure*.53,spacing:9,markStrength:.35,outlineOpacity:0,
     },3);
+  // A narrow raking highlight follows the changing left shoulder;
+  // it never becomes an unmotivated elliptical white sticker.
+  addWax("pear-raking-light",
+    "M-61 -105 C-78 -60 -99 -14 -97 32 "+
+    "Q-100 76 -83 105 C-91 42 -72 -28 -45 -94 Z",
+    rect(-112,-115,76,232),
+    ["#f7da91","#e8c67f","#ffebb0"],"colour","glaze",
+    {start:115,end:188},{
+      parentId:"pear-body",clipToParent:true,blendRadius:6,
+      pressure:pressure*.46,spacing:7.7,markStrength:.4,outlineOpacity:0,
+    },4);
   addWax("pear-blush",
     "M-110 -17 C-111 -82 -64 -115 -31 -91 C5 -63 -5 -11 -49 16 "+
     "Q-93 36 -110 -17 Z",
@@ -142,6 +192,17 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
       parentId:"pear-body",clipToParent:true,blendRadius:9,
       pressure:pressure*.6,spacing:6.8,markStrength:.32,outlineOpacity:0,
     },3);
+  // Two broken warm pigment pools make the blush feel overlaid in successive
+  // dry-wax applications, not like one airbrushed peach circle.
+  addWax("pear-blush-glimmer",
+    "M-87 -52 Q-80 -83 -57 -84 C-45 -80 -35 -69 -34 -52 "+
+    "C-43 -34 -66 -16 -84 -21 Q-92 -36 -87 -52 Z",
+    rect(-99,-93,74,87),
+    ["#df8e5d","#b76a57","#f1b97b"],"colour","glaze",
+    {start:148,end:196},{
+      parentId:"pear-body",clipToParent:true,blendRadius:5,
+      pressure:pressure*.48,spacing:6.8,markStrength:.36,outlineOpacity:0,
+    },3);
   addWax("leaf-rim-light",
     "M31 -173 C64 -219 126 -226 166 -209 Q108 -213 62 -176 Z",
     rect(24,-240,149,79),
@@ -149,27 +210,37 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
       parentId:"leaf-body",clipToParent:true,blendRadius:3,
       pressure:pressure*.54,spacing:5.8,markStrength:.5,outlineOpacity:0,
     },2);
+  // Broad luminous planes remain in wax, not printed gradients. Small glints
+  // can be carved from an existing color layer without changing its contour.
+  addWax("pear-reflected-glow",
+    "M5 142 Q35 142 51 126 Q35 157 6 160 Z",
+    rect(-1,119,58,51),
+    ["#efca85","#d8a671","#fae0a1"],"colour","glaze",
+    {start:151,end:193},{
+      parentId:"pear-body",clipToParent:true,blendRadius:5,
+      pressure:pressure*.42,spacing:6.5,markStrength:.22,outlineOpacity:0,
+    },2);
   const collect=(array:CrayonContourElement[],phase:CrayonDrawingPhase)=>{
     for(const n of array){elements.push(n);parts.push({nodeId:n.id,phase,role:"stroke",minCurves:1});}
   };
   // Directional grain is correlated to the studied skin curvature, never random
   // full-frame noise. All marks remain clipped to opaque fruit/leaf shapes.
   collect(crayonDirectionalStrokes({
-    prefix:"pear-wax-turn",parentId:"pear-body",seed:391,count:Math.max(1,Math.round(55*detail)),
-    guide:[{x:-80,y:-92},{x:-123,y:14},{x:-61,y:141},{x:35,y:156}],
-    spread:48,length:19,width:1.24,pressure,color:"#aa8459",
+    prefix:"pear-wax-turn",parentId:"pear-body",seed:391,count:Math.max(1,Math.round(47*detail)),
+    guide:[{x:-72,y:-93},{x:-120,y:0},{x:-66,y:124},{x:31,y:159}],
+    spread:34,length:15,width:1.02,pressure,color:"#aa805d",
     startFrame:164,endFrame:235,
   }),"detail");
   collect(crayonDirectionalStrokes({
-    prefix:"pear-wax-shadow",parentId:"pear-body",seed:481,count:Math.max(1,Math.round(44*detail)),
-    guide:[{x:66,y:-88},{x:97,y:-9},{x:109,y:86},{x:42,y:143}],
-    spread:33,length:16,width:1.42,pressure,color:"#658064",
+    prefix:"pear-wax-shadow",parentId:"pear-body",seed:481,count:Math.max(1,Math.round(42*detail)),
+    guide:[{x:58,y:-85},{x:94,y:-3},{x:111,y:74},{x:34,y:152}],
+    spread:26,length:14,width:1.24,pressure,color:"#7b7c70",
     startFrame:169,endFrame:235,
   }),"detail");
   collect(crayonDirectionalStrokes({
-    prefix:"leaf-wax-veins",parentId:"leaf-body",seed:582,count:Math.max(1,Math.round(32*detail)),
-    guide:[{x:28,y:-174},{x:75,y:-196},{x:129,y:-202},{x:165,y:-208}],
-    spread:27,length:15,width:.82,pressure,color:"#c4ce9c",
+    prefix:"leaf-wax-veins",parentId:"leaf-body",seed:582,count:Math.max(1,Math.round(25*detail)),
+    guide:[{x:29,y:-176},{x:72,y:-203},{x:124,y:-211},{x:166,y:-207}],
+    spread:20,length:13,width:.9,pressure,color:"#cad09d",
     startFrame:172,endFrame:235,
   }),"detail");
   // Sparse lenticels are distinct short stippled side-nib contacts, not
@@ -182,16 +253,20 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     color:"#a58f65",startFrame:190,endFrame:237,
   }),"detail");
   addLine("leaf-main-vein",
-    "M23 -175 Q91 -188 165 -208 M68 -185 Q81 -207 97 -218 "+
-    "M105 -195 Q118 -168 145 -166",
-    "leaf-body","detail","#d1d5a0",1.38,{start:178,end:237},3);
+    "M24 -176 C62 -192 105 -201 168 -208 "+
+    "M48 -184 Q65 -207 84 -219 "+
+    "M79 -192 Q98 -168 115 -163 "+
+    "M105 -199 Q123 -220 141 -220 "+
+    "M129 -203 Q147 -190 157 -182",
+    "leaf-body","detail","#d1d5a0",1.22,{start:178,end:237},5);
   addLine("stem-fold",
     "M-14 -141 Q-13 -164 8 -183 M-6 -148 Q1 -172 13 -179",
     "stem-body","detail","#d3a77c",.95,{start:178,end:237},2);
   addLine("pear-calyx",
-    "M-32 -140 Q-20 -146 -12 -138 M-20 -143 Q-20 -155 -12 -160 "+
-    "M-16 -144 Q-7 -151 4 -151",
-    "pear-body","detail","#746c50",1.35,{start:182,end:237},3);
+    "M-35 -131 Q-25 -141 -14 -137 "+
+    "M-18 -142 Q-12 -150 -3 -146 "+
+    "M-10 -137 Q0 -139 7 -133",
+    "pear-body","detail","#726454",1.28,{start:182,end:237},3);
   addLine("pear-bottom-fold",
     "M-30 165 Q-6 171 14 168 M-18 160 Q0 156 11 159",
     "pear-body","detail","#b48b56",.83,{start:181,end:236},2);
