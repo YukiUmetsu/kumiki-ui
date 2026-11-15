@@ -103,7 +103,13 @@ function princess(p:Pen,add:Add,phase:number,motion:number){
     attach(root,0,-91));
   add("princess-dress-inset","#DDA7B1",17,[
     p.M(-7,-67),p.C(-19,-39,-20,-13,-16,9),
-    p.C(0,14,14,13,25,10),p.C(12,-8,4,-43,10,-67),p.Z].join(" "),
+    p.C(0,14,14,13,25,10),p.C(12,-8,4,-43,10,-67),p.Z,
+    // The sculpted pleat field is a single die-cut sheet with the inset,
+    // not four extra translucent or independently drifting paper layers.
+    p.band(-29,-60,-43,0,2.1,-.7),
+    p.band(-9,-67,-16,8,1.65,.3),
+    p.band(12,-66,23,9,1.9,-.3),
+    p.band(30,-55,51,1,1.6,.5)].join(" "),
     attach(root,0,-91));
   add("princess-gown-gold-hem","#F8DDAA",18,[
     p.M(-69,-5),p.C(-41,7,-20,7,-2,9),p.C(30,13,49,8,73,-4),
@@ -124,23 +130,18 @@ function princess(p:Pen,add:Add,phase:number,motion:number){
     p.Q(-3,-133,0,-132),p.Q(5,-141,11,-138),
     p.Q(16,-137,22,-131),p.C(17,-126,12,-122,5,-122),
     p.Q(0,-125,-5,-124),p.Q(-13,-121,-19,-133),p.Z].join(" "),
-    attach(root,0,-128));
-  add("princess-collar-filigree","#E7D1BC",24,[
-    p.band(-17,-132,-9,-128,1.35),p.band(-3,-129,4,-127,1.2),
-    p.band(10,-130,19,-131,1.25)].join(" "),attach(root,0,-130));
+    attach(root,0,-128,{holes:[
+      p.band(-17,-132,-9,-128,1.35),
+      p.band(-3,-129,4,-127,1.2),
+      p.band(10,-130,19,-131,1.25),
+    ]}));
   add("princess-gold-seams","#F6D7A4",23,[
     p.band(-18,-95,-6,-80,1.3),p.band(17,-95,8,-80,1.3),
-    p.leaf(-4,-106,9,-85,1.4),p.leaf(3,-104,8,-95,1.2)].join(" "),
-    attach(root,0,-101));
-  add("princess-waist-seam","#E7C89F",24,[
+    p.leaf(-4,-106,9,-85,1.4),p.leaf(3,-104,8,-95,1.2),
     p.M(-19,-82),p.Q(-2,-75,19,-82),
     p.Q(14,-76,-1,-73),p.Q(-12,-75,-19,-82),p.Z,
-    p.leaf(0,-82,8,-92,3.2)].join(" "),attach(root,0,-83));
-  add("princess-gown-pleats","#E4AFBA",19,[
-    p.band(-29,-60,-43,0,2.1,-.7),
-    p.band(-9,-67,-16,8,1.65,.3),
-    p.band(12,-66,23,9,1.9,-.3),
-    p.band(30,-55,51,1,1.6,.5)].join(" "),attach(root,0,-77));
+    p.leaf(0,-82,8,-92,3.2)].join(" "),
+    attach(root,0,-101));
   add("princess-left-sleeve","#E9A9B7",20,[
     p.M(-22,-128),p.C(-37,-138,-45,-117,-42,-109),
     p.C(-39,-99,-47,-92,-49,-83),p.C(-40,-77,-32,-79,-27,-86),
@@ -286,17 +287,16 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
     attach(root,0,-118));
   add("prince-gold-braid","#EBC68C",25,[
     p.band(-23,-90,-14,-80,2),p.band(23,-90,15,-80,2),
-    p.oval(4,-105,2.1,2.8),p.oval(4,-94,2.1,2.8),p.oval(4,-82,2.1,2.8)].join(" "),
-    attach(root,0,-100));
-  // Physical stitching and reinforced coat seams follow lapel/shoulder
-  // grain direction instead of uniform oval buttons.
-  add("prince-tailor-seams","#C0C2B5",25,[
+    p.oval(4,-105,2.1,2.8),p.oval(4,-94,2.1,2.8),p.oval(4,-82,2.1,2.8),
+    // Gold-thread tailor seams are disjoint motifs on the *same* paper
+    // pigment sheet: keep details without exceeding the 128-layer cap.
     p.band(-29,-124,-25,-111,1.3),
     p.band(28,-123,26,-112,1.3),
     p.band(-18,-113,-16,-91,1.2),
     p.band(16,-113,17,-92,1.1),
     p.band(-29,-72,-13,-68,1.2),
-    p.band(16,-70,28,-74,1.2)].join(" "),attach(root,0,-103));
+    p.band(16,-70,28,-74,1.2)].join(" "),
+    attach(root,0,-100));
   add("prince-belt","#354957",26,p.band(-25,-81,26,-81,5),attach(root,0,-82));
   add("prince-belt-clasp","#F4D9A2",27,p.oval(4,-81,6,4),
     { ...attach(root,0,-81),holes:[p.oval(4,-81,3.3,2)]});
