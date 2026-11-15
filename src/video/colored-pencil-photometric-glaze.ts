@@ -118,7 +118,7 @@ export function createPhotometricSkinGlaze(
     // full unrestrained glaze decreased tooth noise but overshot real
     // forehead/malar/jaw pigment by ≈10–14 grey levels. Recover the
     // actual warm light-mass instead of chasing smoothness alone.
-    const alpha=clamp(strength*(.047+.092*shade)*pressure,.001,.17);
+    const alpha=clamp(strength*(.064+.123*shade)*pressure,.001,.21);
     const width=m.width*(3.65+1.25*shade)*
       (.91+.16*pencilHash(seed,key,1603));
     const wiggle=(pencilHash(seed,key,1604)-.5)*m.width*.27;
