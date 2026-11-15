@@ -390,6 +390,54 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     }
     expect(inspectCrayonScene(scene)).toEqual([]);
   });
+  it("feathers directional wax pigment contacts rather than clipping a polygonal orbital sticker",()=>{
+    const scene=crayonCc0FaceStudy({view:"wax"});
+    const soft=["socket-near","socket-far",
+      "brow-superciliary-near","brow-superciliary-far",
+      "eye-orbital-undercut-near","eye-orbital-undercut-far",
+      "lower-lid-near","lower-lid-far",
+      "lower-lid-margin-near","lower-lid-margin-far"];
+    for(const id of soft){
+      expect(scene.elements.find(e=>e.id===id)).toMatchObject({
+        kind:"wax",coverage:"open",deposition:"stroke-built",
+        featherContacts:true,parentId:"face-outline",clipToParent:true,
+      });
+    }
+    expect(scene.elements.filter(e=>e.kind==="wax"&&e.featherContacts))
+      .toHaveLength(soft.length);
+    for(const id of ["face-outline","hair-back","sclera-near","sclera-far"]){
+      expect(scene.elements.find(e=>e.id===id)).toMatchObject({
+        kind:"wax",coverage:"opaque",
+      });
+      expect(scene.elements.find(e=>e.id===id)).not.toHaveProperty("featherContacts",true);
+    }
+    const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>);
+    expect(html.match(/data-km-crayon-feather-contacts="open-wax"/g)).toHaveLength(10);
+    expect(html.match(/data-km-crayon-contact-feather-mask=""/g)).toHaveLength(10);
+    expect(html.match(/data-km-crayon-paper-contact-wax=""/g)?.length)
+      .toBeGreaterThan(40);
+    // The feather mask must leave the wax-grain deposits sharp and apply
+    // spatially to their OUTER alpha instead. The parent face retains
+    // hard clipping for anatomy and no tooth holes in opaque volumes.
+    expect(html).toMatch(/data-km-crayon-wax=""/);
+    expect(inspectCrayonScene(scene)).toEqual([]);
+  });
+  it("rejects accidental feathering of solid objects or unsupported open wax",()=>{
+    const scene=crayonCc0FaceStudy();
+    const base=scene.elements.find(e=>e.id==="socket-near");
+    if(base?.kind!=="wax")throw new Error("Missing measured F1 skin");
+    for(const invalid of [
+      {...base,coverage:"opaque" as const},
+      {...base,blendRadius:0},
+      {...base,deposition:"smooth" as const},
+      {...base,featherContacts:1 as unknown as boolean},
+    ]){
+      const modified={...scene,elements:scene.elements.map(e=>
+        e.id===base.id?invalid:e)};
+      expect(inspectCrayonScene(modified).join(" "))
+        .toMatch(/featherContacts|blendRadius/);
+    }
+  });
   it("keeps an exact independent source graph only in explicit anatomy mode",()=>{
     const wax=crayonCc0FaceStudy({view:"wax",detail:.5});
     const construction=crayonCc0FaceStudy({view:"anatomy",detail:.5});
