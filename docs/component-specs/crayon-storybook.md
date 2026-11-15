@@ -6,6 +6,19 @@
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
 
+## Fractured dry-wax nib for Crayon (2026-11-14)
+
+The material engine now has opt-in `nibStyle: "dry"`. This deposits
+bounded pressure-dependent bands of fragmented wax inside the **existing**
+authored nib arcs, with shared paper-space relief and unchanged solid
+underpaint. The original `rounded`/`tapered` nibs remain valid and
+unchanged. The existing `Crayon / Materials / Drawing System` and
+`Crayon / Materials / Wax & Pigment` Storybook pages expose A/B controls.
+No new Storybook root/folder was created. Source-rendered 16:9 and 9:16
+closeup comparisons are part of the targeted browser QA. See
+[technical drawing/material study](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+The demonstration remains `!dev` pending artistic review.
+
 ## Source-led botanical wax refinement (2026-11-14)
 
 The existing `Crayon / Materials / Drawing System` Storybook page now has a
