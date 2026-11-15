@@ -34,8 +34,15 @@ export const COURIER: RisoCharacterSpec = {
     { id: "root", x: 0, y: 0, keys: [
       { frame: 0, x: 50, y: 0, easing: "ease" },
       { frame: 105, x: 125, y: -7, easing: "ease" },
-      // Settle weight upward into a fully extended neutral stance after the
-      // final footfall instead of finishing in a permanent crouch.
+      // RISO28 ArtCraft: source centre-of-mass advances *before* the third
+      // right-boot contact at f135. A paper-contact study found the old root
+      // 8.6 units beyond IK reach at f136, so it clipped the planted shoe.
+      // Low, overlapping ease arcs let the pelvis settle back over two
+      // actual inked soles at f162, preserving the hand/letter release.
+      { frame: 135, x: 152, y: -2, easing: "ease" },
+      { frame: 165, x: 168, y: -11, easing: "ease" },
+      // Settle weight into a fully extended neutral stance after the final
+      // footfall instead of finishing in a permanent crouch.
       { frame: 198, x: 188, y: -13, easing: "ease" },
       { frame: 205, x: 192, y: -12, easing: "ease" },
       { frame: 239, x: 192, y: -12 },
