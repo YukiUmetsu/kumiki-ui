@@ -370,6 +370,11 @@ function houses(p:P,add:Add,c:Stock,detail:number,seed:number){
         pivot:[p.cx+(m.x+m.w/2)*p.s,p.cy+m.top*p.s]});
     add("house-"+m.id+"-roof",m.trim,base+4,
       p.poly([[m.x-15,m.top-3],[m.x+m.w/2,m.roof],[m.x+m.w+16,m.top-3]]),{
+        liftedTip:{
+          path:p.poly([[m.x-15,m.top-3],[m.x+26,m.top-24],[m.x+52,m.top-3]]),
+          hinge:[p.cx+(m.x+5)*p.s,p.cy+(m.top-13)*p.s],
+          rotateDegrees:i%2?-7:7,lift:4,
+        },
         enterFrame:49+i*8,durationFrames:36,motion:"unfold",curl:.45,
         pivot:[p.cx+(m.x+m.w/2)*p.s,p.cy+m.top*p.s]});
     add("house-"+m.id+"-roof-inset",c.dark,base+5,
@@ -465,6 +470,11 @@ function camera(p:P,add:Add,c:Stock,detail:number,seed:number){
 function teacup(p:P,add:Add,c:Stock,detail:number,seed:number){
   add("tea-table-shadow",c.deep,7,p.oval(0,181,285,43),{enterFrame:20});
   add("tea-napkin",c.greenLight,8,p.poly([[-298,99],[-124,83],[27,218],[-265,235]]),{
+    liftedTip:{
+      path:p.poly([[-298,99],[-228,94],[-257,145]]),
+      hinge:[p.cx-266*p.s,p.cy+119*p.s],
+      rotateDegrees:-13,lift:7,
+    },
     enterFrame:25,motion:"unfold",pivot:[p.cx-200*p.s,p.cy+100*p.s]});
   add("tea-napkin-fold",c.cream,9,p.poly([[-298,99],[-124,83],[-228,165]]),{enterFrame:34});
   add("tea-saucer-outer",c.cream,10,p.oval(6,158,219,45),{enterFrame:38});

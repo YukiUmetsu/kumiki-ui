@@ -34,7 +34,8 @@
           "seed": 37,
           "medium": "layered",
           "curl": 1,
-          "motion": 1
+          "motion": 1,
+          "relief": 1
         }
       }
     },
@@ -56,7 +57,8 @@
           "seed": 37,
           "medium": "layered",
           "curl": 1,
-          "motion": 1
+          "motion": 1,
+          "relief": 1
         }
       }
     },
@@ -78,7 +80,8 @@
           "seed": 37,
           "medium": "layered",
           "curl": 1,
-          "motion": 1
+          "motion": 1,
+          "relief": 1
         }
       }
     },
@@ -100,7 +103,8 @@
           "seed": 37,
           "medium": "layered",
           "curl": 1,
-          "motion": 1
+          "motion": 1,
+          "relief": 1
         }
       }
     },
@@ -122,7 +126,8 @@
           "seed": 37,
           "medium": "layered",
           "curl": 1,
-          "motion": 1
+          "motion": 1,
+          "relief": 1
         }
       }
     }
