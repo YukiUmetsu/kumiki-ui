@@ -145,7 +145,8 @@ const portraitFigure = ():WatercolourArtPart => {
         wash(side+"-sclera",aperture,
           "#CBB7AC",.34,{highlight:"#FAE9D9",shadow:"#C1AAA6",
             gradient:"radial",edgeSoftness:.14}),
-        group(side+"-iris-gaze",[
+        group(side+"-eye-aperture",[
+          group(side+"-iris-gaze",[
           wash(side+"-iris",
             "M"+(cx-7)+" "+(cy-6)+" Q"+(cx-10)+" "+(cy+2)+" "+
             cx+" "+(cy+7)+" Q"+(cx+8)+" "+(cy+3)+" "+(cx+7)+" "+(cy-6)+" Z",
@@ -158,8 +159,9 @@ const portraitFigure = ():WatercolourArtPart => {
           wash(side+"-glint",
             "M"+(cx-3)+" "+(cy-4)+" q4 -3 5 0 q-1 4 -5 3 Z",
             "#FBF1E5",.98),
-        ],[pose(0),pose(165),pose(235,-1,0),pose(271,2,0),pose(359)],
-          {x:cx,y:cy},0,0,aperture),
+          ],[pose(0),pose(165),pose(235,-1,0),pose(271,2,0),pose(359)],
+            {x:cx,y:cy}),
+        ],undefined,undefined,0,0,aperture),
         line(side+"-upper-lid",upper,"#71585E",near?2.3:2,.84),
         line(side+"-lower-lid",lower,"#A78182",1.14,.64),
         line(side+"-eye-corner",
