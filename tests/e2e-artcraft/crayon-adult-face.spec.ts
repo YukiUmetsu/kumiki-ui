@@ -353,9 +353,29 @@ for(const view of ["wax","anatomy"] as const){
         const svg=page.locator("svg[data-km-crayon-scene]");
         await expect(svg.locator('[data-km-crayon-element^="hair-rooted-"]'))
           .toHaveCount(18);
+        await expect(svg.locator('[data-km-crayon-fiber-contact="dry-wax"]'))
+          .toHaveCount(12);
         await svg.screenshot({path:info.outputPath(
           "crayon-f1-source-rooted-hair-"+name+"-macro-299.png"),
           animations:"disabled"});
+        if(name==="right"){
+          // Independent negative control: same F1 geometry, same camera,
+          // same frame, but the preceding vector-smooth contour material.
+          const lineSpec={...crayonCc0FaceStudy({
+            view:"wax",detail:1,fiberMaterial:"line",
+          }),camera:focused.camera};
+          const lineHtml=renderToStaticMarkup(createElement(CrayonScene,{
+            spec:lineSpec,frame:299,
+          }));
+          await page.setContent("<!doctype html><html><body style='margin:0'>"+
+            lineHtml+"</body></html>");
+          const lineSvg=page.locator("svg[data-km-crayon-scene]");
+          await expect(lineSvg.locator(
+            '[data-km-crayon-fiber-contact="dry-wax"]')).toHaveCount(0);
+          await lineSvg.screenshot({path:info.outputPath(
+            "crayon-f1-source-rooted-hair-right-line-control-299.png"),
+            animations:"disabled"});
+        }
       }
     }
     expect(exceptions).toEqual([]);
