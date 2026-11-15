@@ -1860,10 +1860,28 @@ five rounds, at 0.6× and 1.2×. The fixes in later rounds:
 
 The mountain habitat scene (bear walking, boar charging) renders cleanly.
 
+**Second round (motion).** The gaits were studied in Muybridge's *Animals in Motion* (1899, public domain, Getty copy
+on the Internet Archive). In its plate of gallop phases (p. 201):
+- the bear flings its fore legs far ahead and drives its hind legs back, its body drawn out long and low;
+- the hog keeps its body level on short, quick strides;
+- the bear, raccoon and hog share one sequence of footfalls.
+
+Muybridge also explains that the "flying gallop" of older art, all four legs flung out at once, never occurs. Morikuni's
+boar uses that convention.
+
+Changes:
+- **`stride`:** a shorter stride gives the boar quicker steps.
+- **`reach`:** the bear's fore legs reach further at the gallop.
+- **`arch`:** the bear's back arches between shoulders and hips, as in Tanaka's plate.
+- **Galloping legs (every quadruped):** a leg on the ground or reaching for it is now nearly straight, and folds only
+  while it is carried forward. Before, the lower leg hung down even when the upper leg reached, so the paws never got
+  ahead of the body.
+- **`stand`:** hooved animals (boar, deer, ox, horse) now stand on all four legs instead of rearing.
+- **Checking:** run cycles of the bear, boar, dog, horse, fox and deer were checked frame by frame.
+
 **Not matched yet.**
-- The boar's run is the generic bounding gait, not Morikuni's stretched gallop with the legs flung out.
-- The bear's back is flatter than the arched hump in Tanaka's plate.
-- Both animals rear up on the generic `stand` action, which a boar never does.
+- The bear's gallop still reads compact: its short legs under a deep coat need the body itself to stretch and pitch
+  through the stride.
 - No human visual review yet.
 
 ## Not yet matched (honest gaps)

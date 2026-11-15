@@ -120,8 +120,12 @@ interface Beast {
   tuck: number; chest: number; fur: number; hairs: number;
   /** Long-coat colour for ruff, cheeks and belly fringe; lower-leg colour ("stockings"); eye iris; slit pupil. */
   ruff: UkiyoePaint; stocking?: UkiyoePaint; iris: UkiyoePaint; slit: boolean; tailTip?: UkiyoePaint;
-  /** Shoulders rising above the back line (fraction of body height): the boar's high withers. */
-  withers?: number;
+  /** Shoulders rising above the back line (fraction of body height): the boar's high withers. The back arching up
+   * between shoulders and hips (the bear's). */
+  withers?: number; arch?: number;
+  /** Gait: ground covered per stride (× the usual; a hog takes short, quick strides) and how far the fore legs reach
+   * (× the usual; a galloping bear flings them far ahead, after Muybridge's plates). */
+  stride?: number; reach?: number;
   /** A crest of long stiff bristles standing along the nape and the spine (the boar's mane). */
   bristles?: UkiyoePaint;
   /** Lower legs and paws broader than usual (×), and long curved claws on the paws (the bear's). */
@@ -154,13 +158,13 @@ const BEASTS: Readonly<Record<QuadSpecies, Beast>> = {
   // barrel of a body on thick legs, the head carried low, a broad skull with big round ears and a short tan muzzle, a
   // shaggy ruff round the neck, the white crescent on the chest, flat broad paws with long curved claws.
   bear: { L: 158, bh: 76, leg: 56, color: "sumi", belly: "sumi", dark: "sumi", head: 38, tail: 10, tailW: 10, ears: "round", snout: .85, tuck: -.06, chest: .16, fur: .12, hairs: 1.8,
-    ruff: "sumi", iris: "kogecha", slit: false, crescent: true, neck: -.55, headTilt: 18, withers: .06, paw: 1.7, claws: true, muzzle: "cha" },
+    ruff: "sumi", iris: "kogecha", slit: false, crescent: true, neck: -.55, headTilt: 18, withers: .06, arch: .1, paw: 1.7, claws: true, muzzle: "cha", reach: 1.45, stride: 1.1 },
   // The Japanese wild boar, after the Fauna Japonica plate, Morikuni's running boars and Kuniyoshi's: heavy forequarters
   // under high withers and a crest of bristles, a long deep wedge of a head ending in the flat snout disc, small eye, small
   // pointed ears, the lower tusk curving up out of the lip, the pale stripe along the jaw that names it (leucomystax),
   // slender legs on cloven hooves, a thin tail with a tuft.
   boar: { L: 150, bh: 60, leg: 50, color: "cha", belly: "cha", dark: "kogecha", head: 32, tail: 22, tailW: 5, ears: "boar", snout: 1.2, tuck: .02, chest: .14, fur: .03, hairs: 2,
-    ruff: "cha", iris: "kogecha", slit: false, tusks: true, headTilt: 12, neck: .55, hoof: true, withers: .16, bristles: "kogecha", cheek: "gofun", tailTip: "kogecha" },
+    ruff: "cha", iris: "kogecha", slit: false, tusks: true, headTilt: 12, neck: .55, hoof: true, withers: .16, bristles: "kogecha", cheek: "gofun", tailTip: "kogecha", stride: .78 },
   // The sika deer of Nara and the old poems: slender legs and hooves, a long neck, white rump and spots, branched antlers.
   deer: { L: 140, bh: 46, leg: 86, color: "kincha", belly: "gofun", dark: "cha", head: 28, tail: 14, tailW: 10, ears: "horse", snout: 1.1, tuck: .18, chest: .12, fur: .05, hairs: .5,
     ruff: "gofun", iris: "kogecha", slit: false, horns: "antler", spots: true, hoof: true, neck: 1.6, headTilt: 22 },
@@ -858,8 +862,9 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
   const color = look.color ?? b.color, belly = look.belly ?? b.belly, dark = look.dark ?? b.dark;
   const stocking = look.color ? undefined : b.stocking;
   const st = actionState(spec.actions ?? [], frame), tr = creatureTravel(spec.actions ?? [], frame);
-  const run = st("run").w, hop = st("hop").w, sit = Math.max(st("sit").w, st("sleep").w), stand = Math.max(st("stand").w, st("drum").w), sleep = st("sleep").w;
-  const gaitLen = L * (run > .5 ? 1.6 : hop > .5 ? 1.2 : .9);
+  // Hooved animals (deer, ox, boar, horse) do not rear up: "stand" leaves them standing on all four legs.
+  const run = st("run").w, hop = st("hop").w, sit = Math.max(st("sit").w, st("sleep").w), stand = b.hoof ? 0 : Math.max(st("stand").w, st("drum").w), sleep = st("sleep").w;
+  const gaitLen = L * (run > .5 ? 1.6 : hop > .5 ? 1.2 : .9) * (b.stride ?? 1);
   const ph = tr.dist / gaitLen * Math.PI * 2, moving = tr.moving ? 1 : 0;
   // Body pitch: sitting raises the chest just enough for straight front legs to reach the ground; standing (tanuki)
   // turns the body upright on its hind legs; sleeping lays it flat.
@@ -878,7 +883,8 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
   // and the belly back to the rump (a deep chest, a tucked waist, the flank rising into the thigh).
   // High withers (the boar's) lift the shoulders above the back and let the line fall away to the rump.
   const wr = (b.withers ?? 0) * bh;
-  const backLine = ([[-L * .52, hip[1] + bh * .02], [-L * .47, top + bh * .1], [-L * .34, top - bh * .04 + wr * .3], [-L * .12, top + bh * .07 + wr * .05], [L * .12, top + bh * .04 - wr * .55],
+  const ar = (b.arch ?? 0) * bh;
+  const backLine = ([[-L * .52, hip[1] + bh * .02], [-L * .47, top + bh * .1 - ar * .3], [-L * .34, top - bh * .04 + wr * .3 - ar * .8], [-L * .12, top + bh * .07 + wr * .05 - ar], [L * .12, top + bh * .04 - wr * .55 - ar * .7],
     [L * .3, top - bh * .06 - wr], [L * .45, top + bh * .04 - wr * .55]] as Pt[]).map(R);
   const chestLine = ([[L * .45, top + bh * .04], [L * .53, hip[1] - bh * .04], [L * .48, by - bh * .02], [L * .32, by + bh * b.chest]] as Pt[]).map(R);
   const bellyLine = ([[L * .32, by + bh * b.chest], [L * .12, by + bh * (b.chest * .6 - b.tuck * .2)], [-L * .08, by - bh * b.tuck * .6], [-L * .22, by - bh * b.tuck],
@@ -903,12 +909,15 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
     const out: Prim[] = [];
     for (const [hind, phase] of [[true, near ? 0 : .5], [false, near ? .25 : .75]] as const) {
       const p = ph / (Math.PI * 2) + (run > .5 ? (hind ? 0 : .5) + (near ? .08 : 0) : hop > .5 ? (hind ? 0 : .5) : phase);
-      const swing = Math.sin(p * Math.PI * 2) * (run > .5 ? 38 : hop > .5 ? 30 : 22) * moving;
+      const swing = Math.sin(p * Math.PI * 2) * (run > .5 ? 38 : hop > .5 ? 30 : 22) * moving * (hind ? 1 : 1 + ((b.reach ?? 1) - 1) * run);
       const lift = Math.max(0, Math.cos(p * Math.PI * 2)) * moving;
       const root = hind ? R([-L * .33, hip[1] + bh * .1]) : shoulder;
       const reach = !hind && sit > 0 ? lerp(1, clamp((-root[1]) / (leg * 1.06), 1, 2.4), sit * (1 - sleep)) : 1;
       const seg1 = leg * (hind ? .52 : .5) * reach, seg2 = leg * (hind ? .58 : .56) * reach;
       let a1 = hind ? 78 - swing : 92 - swing, a2 = hind ? 112 - swing * .3 + lift * 25 : 88 - swing * .2 - lift * 45;
+      // Galloping, a leg on the ground or reaching for it is nearly straight (the fore leg flung ahead, the hind leg
+      // driving back, as in Muybridge's plates); it folds only while it is carried forward off the ground.
+      if (run > 0 && moving) { const plant = run * (1 - lift); a2 = lerp(a2, hind ? a1 + 28 : a1 + 6, plant * (hind ? .6 : .85)); }
       const mix = (w: number, t1: number, t2: number) => { if (w > 0) { a1 = lerp(a1, t1, w); a2 = lerp(a2, t2, w); } };
       mix(sit * (1 - sleep), hind ? 6 : 90, hind ? 168 : 90);
       if (!hind) mix(stand, 30 + Math.sin(frame / (st("drum").w > .5 ? 2.4 : 22)) * 35 * Math.max(st("drum").w, .2), 110);
