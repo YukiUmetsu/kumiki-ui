@@ -25,7 +25,7 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
   const [aspect, setAspect] = useState<PencilAspect>("landscape");
   const [paperTooth, setTooth] = useState(.68);
   const [detail, setDetail] = useState<"full" | "study">("full");
-  const [inspection, setInspection] = useState<"composition" | "wing" | "eye" | "breast" | "foot">("composition");
+  const [inspection, setInspection] = useState<"composition" | "wing" | "eye" | "breast" | "foot" | "beak" | "crown">("composition");
   const [frame, setFrame] = useState(285);
   const [speed, setSpeed] = useState(1);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -53,12 +53,15 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
   // World coordinates are derived from the existing authored actor placement.
   const point = inspection === "wing" ? [147, 157] :
     inspection === "breast" ? [115, 160] :
-    inspection === "foot" ? [134, 213] : [112, 95];
+    inspection === "foot" ? [138, 217] :
+    inspection === "beak" ? [65, 101] :
+    inspection === "crown" ? [127, 76] : [112, 95];
   const placement = aspect === "landscape" ?
     {x:475 + 1.65 * point[0], y:84 + 1.65 * point[1], w:960, h:540} :
     {x:78 + 1.72 * point[0], y:267 + 1.72 * point[1], w:540, h:960};
-  const zoom = inspection === "wing" ? 2.5 : inspection === "breast" ? 3.1 :
-    inspection === "foot" ? 4.2 : 3.4;
+  const zoom = inspection === "wing" ? 2.85 : inspection === "breast" ? 3.1 :
+    inspection === "foot" ? 4.8 : inspection === "beak" ? 3.2 :
+    inspection === "crown" ? 4.0 : 3.4;
   const artworkStyle = inspection === "composition" || filmView ? undefined : {
     transform:"translate(" + (50 - 100 * zoom * placement.x / placement.w).toFixed(3) +
       "%, " + (50 - 100 * zoom * placement.y / placement.h).toFixed(3) +
@@ -80,9 +83,10 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
         The Blue Kingfisher — ArtCraft Study
       </h1>
       <p style={{margin:0,maxWidth:820}}>
-        Rebuilt original kingfisher with eleven authored anatomical regions: long tapered
-        beak, short crown fibres, copper breast, overlapping feather coverts, layered wings, eye, tail and
-        planted feet. The old round bird and copper songbird are no longer rendered.
+        Rebuilt original kingfisher with eleven anatomical regions: long tapered
+        beak, crown fibres, copper breast, curvature-anchored feather barbs and shoulder
+        coverts. Short scaled tarsi grip the branch with grouped anterior toes, opposing
+        halluces and fine claws; the old cartoon birds remain removed.
         All pigment remains fixed in paper coordinates during frame seeking.
       </p>
     </header>
@@ -110,10 +114,12 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
         <select aria-label="Wildlife inspection" value={inspection}
           onChange={e=>{setPlaying(false);setInspection(e.target.value as typeof inspection);}}>
           <option value="composition">Whole composition</option>
-          <option value="wing">Wing microstructure</option>
+          <option value="wing">Rooted barbs and shoulder coverts</option>
           <option value="breast">Breast plumage and paper tooth</option>
-          <option value="foot">Foot and perch contact</option>
+          <option value="foot">Short tarsi, fused toes and branch grip</option>
           <option value="eye">Eye and eyelid</option>
+          <option value="beak">Long bill and beak seam</option>
+          <option value="crown">Kingfisher crown fibres</option>
         </select>
       </label>}
       <label style={label}>Playback speed
@@ -169,8 +175,8 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
     </div>
     <p style={{maxWidth:790,margin:0,fontSize:13,color:"#6D7872"}}>
       Original side-view kingfisher with anatomical fibre tracts and layered feathers,
-      not copied or traced from a source artist. Inspect Wing, Breast, Foot and Eye
-      at close range without altering exports.
+      not copied or traced from a source artist. Wing, Foot, Crown, Eye and Beak
+      are inspectable at 2.85–4.8× without changing exported artwork.
       Posed features and pencil deposition are deterministic. Technical tests do not certify
       feature-film illustration quality; review actual exports at full resolution.
     </p>
