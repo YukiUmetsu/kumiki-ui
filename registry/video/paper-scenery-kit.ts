@@ -137,21 +137,23 @@ function ridge(p:P,xExtent:number,yFloor:number,level:number,amplitude:number,ph
     }),
     p.L(xExtent+10,yFloor+20),p.L(-xExtent-10,yFloor+20),p.Z].join(" ");
 }
-function smallFern(p:P,x:number,y:number,height:number,side:number,detail:number){
-  // A continuous slanting rachis and every leaflet overlaps its stem.
-  // The paired fronds fan *perpendicularly* to the main growth axis.
-  const tipX=x+side*height*.31,tipY=y-height;
+function smallFern(p:P,x:number,y:number,height:number,side:number,detail:number,seed=31){
+  // Each fern is a connected slanting rachis, but its leaflet pairs have
+  // a distinct growth rhythm, irregular lengths and alternating asymmetry.
+  const tipX=x+side*height*(.21+paperHash(seed,2,121)*.23),tipY=y-height;
   const bits=[p.band(x,y,tipX,tipY,2.15)];
-  const direction=-90+side*17;
+  const direction=-90+side*15;
   const count=5+Math.round(detail*5);
   for(let i=1;i<=count;i++){
-    const t=i/(count+1),bx=x+(tipX-x)*t,by=y-height*t;
-    const size=(1-t*.62)*height*.36;
-    const width=Math.max(3.4,size*.23);
-    bits.push(p.leaf(bx,by,size,direction-64+(i%3)*4,width));
-    bits.push(p.leaf(bx,by,size*.86,direction+64-(i%3)*5,width*.92));
+    const stagger=(paperHash(seed,i,123)-.5)*.30;
+    const t=(i+stagger)/(count+1),bx=x+(tipX-x)*t,by=y-height*t;
+    const size=(1-t*.68)*height*(.27+.13*paperHash(seed,i,125));
+    const width=Math.max(3.1,size*(.16+.08*paperHash(seed,i,127)));
+    bits.push(p.leaf(bx,by,size,direction-65+(i%3)*4,width));
+    bits.push(p.leaf(bx,by,size*(.76+.17*paperHash(seed,i,129)),
+      direction+65-(i%3)*5,width*.92));
   }
-  bits.push(p.leaf(tipX-1.5,tipY+2,12,direction,3.2));
+  bits.push(p.leaf(tipX-1.5,tipY+2,9+paperHash(seed,0,133)*7,direction,3.2));
   return bits.join(" ");
 }
 function silhouetteTree(p:P,x:number,ground:number,height:number,width:number,lean:number){
@@ -316,11 +318,16 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
       // Each bough carries a single grouped paper canopy with real leaf tips.
       const leafCount=9+Math.round(detail*8);
       const packets=Array.from({length:leafCount},(_,k)=>{
-        const theta=(k-(leafCount-1)/2)/(leafCount-1)*Math.PI*1.23;
-        const fx=ex+Math.sin(theta)*66,fy=ey-Math.cos(theta)*34+(k%4)*9;
-        const angle=sign*(34+k*12)-109;
-        return p.band(ex,ey,fx,fy,2.4)+" "+
-          p.leaf(fx,fy,35+(k%5)*7,angle,11+(k%3)*2);
+        const hash=paperHash(seed,k+i*59+j*31,161);
+        const theta=(k-(leafCount-1)/2)/(leafCount-1)*Math.PI*1.23+
+          treeVariety*(hash-.5)*.29;
+        const radius=56+treeVariety*hash*26;
+        const fx=ex+Math.sin(theta)*radius,
+          fy=ey-Math.cos(theta)*(28+hash*16)+(k%4)*9;
+        const angle=sign*(34+k*12)-109+treeVariety*(hash-.5)*27;
+        return p.band(ex,ey,fx,fy,2.1+hash*.8)+" "+
+          p.leaf(fx,fy,30+(k%4)*6+treeVariety*hash*11,
+            angle,9+(k%3)*2+hash*2);
       });
       add("woodland-foliage-"+i+"-"+j,j%3?c.leaf:c.leafLight,23,
         packets.join(" "),{
@@ -340,7 +347,7 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
   for(let i=0;i<11+Math.round(detail*7);i++){
     const side=i%2?-1:1,px=side*(x*(.08+(i%6)*.059)),py=y*(.81+(i%3)*.018);
     add("woodland-fern-"+i,i%3===0?c.leafLight:c.leaf,26,
-      smallFern(p,px,py,60+(i%5)*13,side,detail),{
+      smallFern(p,px,py,55+(i%5)*13,side,detail,seed+i*73),{
         enterFrame:124+i*2,durationFrames:24,curl:.62});
   }
   // Foreground water remains visible through the overlapping bank,
@@ -527,7 +534,7 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
   for(let i=0;i<9+Math.round(detail*5);i++){
     const side=i%2?-1:1,px=side*(x*(.1+(i%5)*.065)),py=y*(.78+(i%3)*.016);
     add("alpine-moss-"+i,i%3?c.leaf:c.leafLight,26,
-      smallFern(p,px,py,46+(i%4)*12,side,detail),{
+      smallFern(p,px,py,43+(i%4)*12,side,detail,seed+11+i*83),{
         enterFrame:139+i*2,curl:.43});
   }
   // Foreground botanical silhouettes form a crafted scenic frame, not random
