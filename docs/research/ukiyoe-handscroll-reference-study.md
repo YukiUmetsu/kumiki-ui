@@ -888,6 +888,43 @@ The four-legged rig itself follows the Koson and Kuniyoshi studies earlier in th
 - Centipede and giant toad (F12).
 - Nobody has done a human visual review yet.
 
+## Temples, shrines and graves (folktale queue F8, 2026-11-15)
+
+**Sources.**
+
+- Public domain prints:
+  - Hiroshige's *Kinryūzan Temple at Asakusa* (Met 56689);
+  - *Gion Shrine in Snow* (55998);
+  - *Evening Bell at Mii Temple* (49931);
+  - Yoshitoshi's *The Southern Gate* (Wikimedia Commons).
+- A photograph of the Saikyō-ji bonshō in Fukuoka (Wikimedia Commons, CC BY-SA 4.0). It was studied only and is not redistributed.
+
+**What they show.**
+
+- **Asakusa gate.** The vermilion two-storey gate frames the hall, its great red lantern hanging in the opening, a pagoda beyond, all in snow.
+- **Gion shrine.** Stone lanterns stand inside the shrine fence, and the torii is snow-laden.
+- **Rashōmon.** Massive red pillars.
+- **The bonshō.** Verdigris bronze; rows of raised nubs in the upper panels; crossing raised bands; two lotus striking seats; the dragon loop; the log striker hanging on chains at the side.
+
+**What was built.** `ukiyoe-temple.ts`:
+- the `belfry`, `hondo`, `gate`, `hokora`, `graves`, `toro` and `hut` motifs, sharing the castle's roof;
+- `bellStrike` timing;
+- `templeScene()`.
+
+The well came earlier, with F3. Storybook has **Temples**, and the Motifs gallery has eight new tiles.
+
+**Review rounds.**
+
+1. **The graveyard.** The wooden sotoba stood twice the height of the stones and swamped them. Both have been rescaled.
+2. **The bell.** Checked at a strike and while ringing, and confirmed by test: the log is drawn back, meets the bell on the strike frame, and the bell sways afterwards.
+
+**Not done.**
+
+- The castle roof gives every temple the same eave with its pale underside. There are no curved Buddhist roof profiles.
+- No pagoda interior, and no bell wrapped by the serpent (F12).
+- The Rashōmon's ruin has no broken rafters.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

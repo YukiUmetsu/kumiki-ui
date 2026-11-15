@@ -36,6 +36,8 @@ import type { UkiyoeBushiScene } from "../../registry/video/ukiyoe/ukiyoe-bushi"
 import { bushiScene, UKIYOE_BUSHI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-bushi";
 import type { UkiyoeAnimalHabitat } from "../../registry/video/ukiyoe/ukiyoe-critters";
 import { animalScene, UKIYOE_ANIMAL_HABITATS } from "../../registry/video/ukiyoe/ukiyoe-critters";
+import type { UkiyoeTempleScene } from "../../registry/video/ukiyoe/ukiyoe-temple";
+import { templeScene, UKIYOE_TEMPLE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-temple";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -458,6 +460,14 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "halo", label: "Halo · gold radiance", params: { radius: 110 }, y: 190 },
   { motif: "kumo", label: "Auspicious cloud (zuiun)", params: { width: 300 }, y: 280 },
   { motif: "mato", label: "Archery target", params: { radius: 70, height: 130 }, y: 340 },
+  { motif: "belfry", label: "Belfry · bell struck", params: { width: 200, height: 280, strikes: [40, 120, 200] }, y: 350 },
+  { motif: "hondo", label: "Temple hall", params: { width: 380, height: 240 }, y: 340 },
+  { motif: "gate", label: "Two-storey gate · lantern", params: { width: 300, height: 290, lantern: true }, y: 350 },
+  { motif: "gate", label: "Rashōmon in ruin", params: { width: 300, height: 290, ruin: 1 }, y: 350 },
+  { motif: "hokora", label: "Mountain shrine · shimenawa", params: { width: 200 }, y: 340 },
+  { motif: "graves", label: "Graveyard · sotoba", params: { width: 520, count: 6 }, y: 330 },
+  { motif: "toro", label: "Stone lantern · lit", params: { height: 220, lit: 1 }, y: 350 },
+  { motif: "hut", label: "Hermit's hut", params: { width: 240, smoke: 1, light: 1 }, y: 340 },
 ];
 
 export function MotifGallery() {
@@ -814,6 +824,29 @@ export function Animals() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={HABITAT_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Animals frame" />
+  </div>;
+}
+
+// ---- Temples, shrines, graves ------------------------------------------------------------------------------------------------------
+
+const TEMPLE_LABELS: Readonly<Record<UkiyoeTempleScene, string>> = { bell: "The temple bell struck at dusk", graveyard: "Graveyard at night", rashomon: "Rashōmon in the rain", shrine: "Mountain shrine in snow", asakusa: "Temple gate with its great lantern" };
+
+/** Sacred and haunted places: the belfry, the hall, the gate, the shrine, the graveyard. */
+export function Temples() {
+  const [kind, setKind] = useState<UkiyoeTempleScene>("bell");
+  const spec = useMemo(() => templeScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Temples" title="Bell, hall, gate, shrine and graveyard">
+      <p style={{ margin: 0 }}>After Hiroshige's Asakusa and Gion Shrine, Yoshitoshi's Rashōmon and a bonshō's bronze. The <code>belfry</code>'s log is
+        drawn back and swung into the bell on its <code>strikes</code>; the bell sways and rings. The <code>gate</code> carries its great lantern or
+        falls to ruin; the <code>hokora</code> wears its sacred rope; the <code>graves</code> stand among wooden sotoba; <code>toro</code> lanterns glow.</p>
+    </Header>
+    <section aria-label="Temple controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Place" value={kind} options={UKIYOE_TEMPLE_SCENES} onChange={setKind} labels={TEMPLE_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={TEMPLE_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Temple frame" />
   </div>;
 }
 
