@@ -1,13 +1,9 @@
 name: WC12 watercolor portrait edges and anatomy proof
 # Manual-only ArtCraft browser/FFmpeg proof after qualifying source renders.
 # Regular PRs keep only changed-code tests, not expensive film exports.
+# Qualified art proof is manually runnable to avoid recurring FFmpeg/Chromium CI cost.
 on:
   workflow_dispatch:
-  push:
-    branches: 
-      - feat/watercolour-wc12-realism-portrait-mastery
-    paths:
-      - docs/research/wc12-proof-trigger.md
 permissions:
   contents: read
 concurrency:
