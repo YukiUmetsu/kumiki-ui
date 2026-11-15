@@ -61,7 +61,9 @@ const C={
 } satisfies Record<string,CrayonColor|readonly [CrayonColor,CrayonColor,CrayonColor]>;
 
 export const CRAYON_F1_FACE_PARTS=[
-  "hair-back","neck-attached","ear-underplane","face-outline",
+  "hair-back","neck-attached","ear-underplane",
+  "ear-helix-value","ear-concha-shadow","ear-antihelix-reflection",
+  "ear-lobe-warmth","ear-stud-setting","ear-stud-glint","face-outline",
   "forehead-light","brow-superciliary-near","brow-superciliary-far",
   "socket-near","socket-far","sclera-near","sclera-far",
   "iris-near","iris-far","pupil-near","pupil-far",
@@ -132,6 +134,49 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "Q104 777 125 767Q152 753 151 728Q144 682 124 661Z",
     rect(62,642,95,139),C.skinCool,[16,113],
     {pressure:.58,spacing:7.7,markStrength:.21,underpaintTooth:.2});
+  // Source F1 left ear: helix/root, antihelix and concha overlap the
+  // photographed cheek at x65..144/y653..781. The small silver earring
+  // anchors to the lobe, rather than floating as a circular face symbol.
+  wax("ear-helix-value",
+    "M95 661Q80 659 77 680Q77 708 87 728Q89 750 105 757"+
+    "Q119 758 126 746Q109 745 107 730Q93 715 93 693"+
+    "Q89 679 99 670Z",
+    rect(73,650,59,114),C.skinCool,[93,188],
+    {parentId:"ear-underplane",clipToParent:true,coverage:"open",
+      pressure:.56,spacing:6.4,markStrength:.26,blendRadius:4.4});
+  wax("ear-concha-shadow",
+    "M107 684Q126 683 129 704Q132 719 121 729"+
+    "Q110 726 108 713Q97 700 107 684Z",
+    rect(96,678,39,57),
+    ["#916e70","#5d4a50","#bd9790"],[117,215],
+    {parentId:"ear-underplane",clipToParent:true,coverage:"open",
+      pressure:.64,spacing:5.7,markStrength:.4,blendRadius:3.2});
+  wax("ear-antihelix-reflection",
+    "M91 676Q103 673 109 690Q105 707 110 720"+
+    "Q103 732 96 718Q88 700 91 676Z",
+    rect(85,669,31,69),C.skinLight,[132,229],
+    {parentId:"ear-underplane",clipToParent:true,coverage:"open",
+      pressure:.39,spacing:7.2,markStrength:.18,blendRadius:5});
+  wax("ear-lobe-warmth",
+    "M87 726Q91 742 109 750Q119 760 114 771"+
+    "Q100 781 89 761Q83 746 87 726Z",
+    rect(79,722,44,58),C.skin,[151,238],
+    {parentId:"ear-underplane",clipToParent:true,coverage:"open",
+      pressure:.47,spacing:8,markStrength:.15,blendRadius:5});
+  wax("ear-stud-setting",
+    "M101 759Q106 754 113 758Q119 764 115 770"+
+    "Q108 774 103 770Q99 764 101 759Z",
+    rect(97,752,25,25),
+    ["#aba29b","#716b6e","#d3cac2"],[193,274],
+    {parentId:"ear-underplane",clipToParent:true,
+      pressure:.74,spacing:4.4,markStrength:.3,underpaintTooth:.17});
+  wax("ear-stud-glint",
+    "M105 760Q110 759 112 764Q110 768 106 767"+
+    "Q103 765 105 760Z",
+    rect(101,755,16,17),
+    ["#f2ece4","#aca39e","#ffffff"],[229,289],
+    {parentId:"ear-stud-setting",clipToParent:true,
+      pressure:.63,spacing:4.4,markStrength:.19,underpaintTooth:.12});
   // SOURCE-CONTOUR MAIN SKIN. Forehead x145..439, outer cheek x107,
   // mandibular contact x161..459, chin near 398,858.
   wax("face-outline",
