@@ -172,7 +172,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     const boughs=[...html.matchAll(/data-km-pine-bough-shape="" d="([^"]+)"/g)];
     const foliage=(html.match(/data-km-pine-foliage-wash=""/g)??[]).length;
     const sprays=(html.match(/data-km-pine-spray=""/g)??[]).length;
-    const rosettes=[...html.matchAll(/data-km-pine-needles="(\\d+)"/g)]
+    const rosettes=[...html.matchAll(/data-km-pine-needles="(\d+)"/g)]
       .map(match=>Number(match[1]));
     expect(boughs.length).toBeGreaterThanOrEqual(8);
     expect(boughs.every(match=>match[1].endsWith(" Z"))).toBe(true);
