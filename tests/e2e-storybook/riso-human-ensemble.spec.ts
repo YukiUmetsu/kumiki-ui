@@ -88,6 +88,14 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
   await expect(page.getByText("Paper fibres · 0.75")).toBeVisible();
   await stage.screenshot({path:info.outputPath("two-human-native-ink-paper-calibration.png"),
     animations:"disabled"});
+  // The Storybook preview runs at 24fps, while its frame evaluator remains
+  // absolute-time and independent of previous seek history.
+  const before=await stage.getAttribute("data-km-riso-human-ensemble-frame");
+  await page.getByRole("button",{name:"Play Risograph ensemble"}).click();
+  await expect.poll(()=>stage.getAttribute("data-km-riso-human-ensemble-frame"),
+    {timeout:3000}).not.toBe(before);
+  await page.getByRole("button",{name:"Pause Risograph ensemble"}).click();
+  await expect(page.getByRole("button",{name:"Play Risograph ensemble"})).toBeVisible();
   expect(pageErrors).toEqual([]);
   expect(consoleErrors).toEqual([]);
 });
