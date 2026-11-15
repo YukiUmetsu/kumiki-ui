@@ -105,11 +105,15 @@ describe("RISO24 ArtCraft v9 scalp flow and real paper-negative hair",()=>{
         expect(actual,id).toContain('data-km-riso-part="'+id+'"');
         expect(other,id).not.toContain('data-km-riso-part="'+id+'"');
       }
-      // Clearance is present only on a plate with actual earlier deposited
-      // ink. Original Paper Artist has hair-back on blue but no red art
-      // earlier than the face, so inventing a red face mask is incorrect.
-      expect(blue).toContain('data-km-riso-paper-clearance="face"');
-      if(actor.id==="courier")expect(red).toContain('data-km-riso-paper-clearance="face"');
+      // A cropped head-only proof may have no painted ink *before* the face
+      // clearance. Courier paints head hair after face; Paper Artist paints
+      // blue hair-back before face. Only this latter plate needs the mask.
+      // Whole-body films separately include coat/limbs before the face.
+      if(actor.id==="paper-artist")
+        expect(blue).toContain('data-km-riso-paper-clearance="face"');
+      else
+        expect(blue).not.toContain('data-km-riso-paper-clearance="face"');
+      expect(red).not.toContain('data-km-riso-paper-clearance="face"');
     }
   });
 
