@@ -25,6 +25,7 @@ import { oniFight, UKIYOE_MOMOTARO_LOOK } from "../../registry/video/ukiyoe/ukiy
 import { castleTown } from "../../registry/video/ukiyoe/ukiyoe-town";
 import type { UkiyoeInteriorKind } from "../../registry/video/ukiyoe/ukiyoe-interior";
 import { interiorScene, UKIYOE_INTERIOR_KINDS } from "../../registry/video/ukiyoe/ukiyoe-interior";
+import { onnaScene } from "../../registry/video/ukiyoe/ukiyoe-onna";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -439,6 +440,7 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "futon", label: "Futon · mattress, quilt", params: { length: 420, sleeper: false }, y: 290 },
   { motif: "loom", label: "Loom · beater, shed, cloth", params: { height: 230 }, y: 340 },
   { motif: "byobu", label: "Byōbu folding screen", params: { height: 220, art: "pine" }, y: 330 },
+  { motif: "well", label: "Well · ivy, pulley", params: { radius: 90, pulley: true }, y: 340 },
 ];
 
 export function MotifGallery() {
@@ -642,6 +644,34 @@ export function Interiors() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={INTERIOR_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Room frame" />
+  </div>;
+}
+
+// ---- Women ghosts and hags --------------------------------------------------------------------------------------------------------
+
+type OnnaView = "profile" | "three-quarter" | "front" | "back";
+const ONNA_VIEWS: readonly OnnaView[] = ["profile", "three-quarter", "front", "back"];
+
+/** The women of the ghost stories: each looks alive until a `reveal`, then shows what she is; and Okiku in her well. */
+export function WomenGhosts() {
+  const [kind, setKind] = useState<"lineup" | "okiku">("lineup");
+  const [view, setView] = useState<OnnaView>("profile");
+  const spec = useMemo(() => onnaScene(kind, view), [kind, view]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Women ghosts" title="They look alive until the story turns">
+      <p style={{ margin: 0 }}>After Hokusai's <em>One Hundred Ghost Stories</em> and Sekien's yōkai books. Each woman is an ordinary figure
+        look with a ghost-story <code>face</code>: at frame 90 a <code>reveal</code> smooths the faceless woman's features away, drops the cloth
+        from the slit mouth, opens the mouth in the back of the head, turns the face to bone, swells Oiwa's eye and bares the hag's fangs.
+        Hashihime wears the iron crown of candles; the ubume holds her baby. Every view works. Okiku rises from her overgrown well on a coil of
+        plates, breathing out a curl of vapour.</p>
+    </Header>
+    <section aria-label="Ghost controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={["lineup", "okiku"] as const} onChange={setKind} labels={{ lineup: "Eight women, the reveal", okiku: "Okiku at the well" }} />
+      {kind === "lineup" ? <Select name="View" value={view} options={ONNA_VIEWS} onChange={setView} /> : null}
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={kind === "lineup" ? "Eight women of the ghost stories revealing what they are" : "Okiku rising from the well"} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Ghost frame" />
   </div>;
 }
 

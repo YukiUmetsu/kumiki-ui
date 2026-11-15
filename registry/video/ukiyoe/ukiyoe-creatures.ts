@@ -1210,7 +1210,7 @@ export function drawCreature(spec: UkiyoeCreatureSpec, frame: number, wind: numb
   switch (spec.species) {
     case "fox": case "tanuki": case "dog": case "cat": case "rabbit": case "monkey": case "horse": case "nue": prims = quadruped(spec.species, spec, frame, wind * dir, seed); break;
     case "dragon": prims = dragon(spec, frame, wind * dir, seed); break;
-    case "yukionna": case "yurei": case "rokurokubi": case "kasaobake": case "chochinobake": case "hitodama": case "kappa": case "tengu": case "karasutengu": case "nurikabe": case "tsuchigumo": {
+    case "yukionna": case "yurei": case "rokurokubi": case "kasaobake": case "chochinobake": case "hitodama": case "kappa": case "tengu": case "karasutengu": case "nurikabe": case "tsuchigumo": case "okiku": {
       const acts = spec.actions ?? [], st = actionState(acts, frame);
       const w = (type: string) => { const e = st(type as UkiyoeCreatureActionType); return { w: e.w, t: e.t, len: e.a ? e.a.end - e.a.start : 1 }; };
       // A spirit with an `appear` is unseen until it first appears; after a `vanish` has run it stays gone (until the next

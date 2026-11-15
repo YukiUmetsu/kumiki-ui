@@ -3753,6 +3753,11 @@
           "target": "components/video/ukiyoe/ukiyoe-interior.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-onna.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-onna.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"
