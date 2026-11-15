@@ -436,9 +436,13 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
         cubic(at(waist.x+sign*7,hip.y+46),
           at(hem.x+sign*4,hem.y-31),at(overlap.x+sign*3,overlap.y-7)),
         "none","$wash",2,.4),
-      p(path(at(sideHem.x+sign*3,sideHem.y+1))+
-        quad(at((sideHem.x+hem.x)*.5,hem.y+13),overlap),
-        "none","$shadow",.72,.58),
+      // A short diagonal compression crease communicates hem weight.
+      // The former stroke crossed BOTH panels as a straight false hem.
+      p(path(at(sideHem.x-sign*4,sideHem.y-19))+
+        cubic(at(sideHem.x-sign*7,sideHem.y-11),
+          at(sideHem.x-sign*16,sideHem.y-8),
+          at(sideHem.x-sign*23,sideHem.y-5)),
+        "none","$shadow",.72,.56),
     );
   };
   const hemFabric=art(
