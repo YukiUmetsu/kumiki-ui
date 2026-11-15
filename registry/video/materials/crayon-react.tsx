@@ -167,7 +167,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
       {coverage==="opaque"&&underpaintTooth>0&&(["dark","light"] as const).map((kind)=>(
         <mask key={kind} id={kind==="dark"?darkToothMask:lightToothMask}
           maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
-          x={bounds.x-25} y={bounds.y-25}
+          maskType="luminance" x={bounds.x-25} y={bounds.y-25}
           width={bounds.width+50} height={bounds.height+50}>
           <rect x={bounds.x-25} y={bounds.y-25}
             width={bounds.width+50} height={bounds.height+50}
@@ -348,35 +348,38 @@ export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" 
   // Paper ridges are shared by every wax region, so independently painted
   // parts don't receive unrelated stochastic texture. The dark and light
   // cohorts occupy separate paper-contact islands and never cut alpha holes.
-  const pigmentRidges=useMemo(()=>Array.from({length:264},(_,i)=>({
-    x:crayonHash(seed,i,1401)*176,
-    y:crayonHash(seed,i,1402)*176,
-    dx:1.6+crayonHash(seed,i,1403)*7.1,
-    dy:(crayonHash(seed,i,1404)-.5)*3.8,
-    width:.45+crayonHash(seed,i,1405)*1.05,
-    opacity:.55+crayonHash(seed,i,1406)*.45,
-  })),[seed]);
-  const pigmentPeaks=useMemo(()=>Array.from({length:204},(_,i)=>({
-    x:crayonHash(seed,i,1501)*176,
-    y:crayonHash(seed,i,1502)*176,
-    dx:.65+crayonHash(seed,i,1503)*3.4,
-    dy:(crayonHash(seed,i,1504)-.5)*2.7,
-    width:.35+crayonHash(seed,i,1505)*.85,
-    opacity:.55+crayonHash(seed,i,1506)*.45,
-  })),[seed]);
+  // Batch hundreds of varied ridge traces into six SVG compound paths.
+  // Rendering legacy scenes adds six small pattern paths rather than hundreds
+  // of per-mark DOM elements. Geometry is fixed to paper seed and strength.
+  const pigmentTexture=useMemo(()=>(
+    (["dark","light"] as const).map(kind=>{
+      const dark=kind==="dark",total=Math.round(strength*(dark?264:204));
+      const marks:[string[],string[],string[]]=[[],[],[]];
+      const base=dark?1400:1500;
+      for(let i=0;i<total;i++){
+        const band=Math.floor(crayonHash(seed,i,base+7)*3);
+        const x=crayonHash(seed,i,base+1)*176;
+        const y=crayonHash(seed,i,base+2)*176;
+        const dx=(dark?1.6:.65)+crayonHash(seed,i,base+3)*(dark?7.1:3.4);
+        const dy=(crayonHash(seed,i,base+4)-.5)*(dark?3.8:2.7);
+        marks[band].push("M"+x.toFixed(2)+" "+y.toFixed(2)+
+          "l"+dx.toFixed(2)+" "+dy.toFixed(2));
+      }
+      return {kind,paths:marks.map((parts,band)=>({
+        d:parts.join(" "),width:(dark?.48:.34)+band*(dark?.32:.26),
+        opacity:.55+band*.2,
+      }))};
+    })
+  ),[seed,strength]);
   return <>
     <defs>
-      {(["dark","light"] as const).map(kind=><pattern key={kind}
+      {pigmentTexture.map(({kind,paths})=><pattern key={kind}
         id={tooth+"-pigment-"+kind} width={176} height={176}
         patternUnits="userSpaceOnUse" data-km-crayon-pigment-paper={kind}>
         <rect width={176} height={176} fill="#000"/>
         <g fill="none" stroke="#fff" strokeLinecap="round">
-          {(kind==="dark"?pigmentRidges:pigmentPeaks)
-            .slice(0,Math.round(strength*(kind==="dark"?264:204))).map((f,i)=>
-            <path key={i}
-              d={"M"+f.x.toFixed(2)+" "+f.y.toFixed(2)+
-                "l"+f.dx.toFixed(2)+" "+f.dy.toFixed(2)}
-              opacity={f.opacity} strokeWidth={f.width}/>)}
+          {paths.map((f,i)=>f.d&&<path key={i} d={f.d}
+            opacity={f.opacity} strokeWidth={f.width}/>)}
         </g>
       </pattern>)}
       <pattern id={tooth + "-relief"} width={144} height={144}
