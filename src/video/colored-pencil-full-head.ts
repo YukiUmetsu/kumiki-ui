@@ -145,7 +145,7 @@ const isHairColour=(rgb:readonly number[])=>{
   // Reference-specific brown-gold signature separates photographed warm
   // hair from the green garden; NOT a generic hair-color classifier.
   const [r,g,b]=rgb;
-  return r>g*.94+6&&r>b*1.11+5;
+  return r>g*1.045+1&&r>b*1.055+1;
 };
 
 /** A person-specific, right-sized portrait drawing: five value classes,
@@ -208,7 +208,7 @@ export const createDryPencilHeadPlate=(
   // Reference-measured face tonal masses: three distinct low-pressure
   // layers. No flat face polygon, ellipse or 1:1 photographic pixel stamps.
   for(const pass of [0,1,2] as const){
-    const step=eyeDist*(pass===0?.046:pass===1?.041:.034);
+    const step=eyeDist*(pass===0?.034:pass===1?.032:.028);
     const nx=Math.ceil(cropWidth/step),ny=Math.ceil(cropHeight/step);
     for(let iy=0;iy<ny;iy++)for(let ix=0;ix<nx;ix++){
       const k=iy*nx+ix,hashBase=k+pass*338093;
@@ -221,7 +221,7 @@ export const createDryPencilHeadPlate=(
       if(pass===0)fiveValueCounts[band]++;
       if(band===4&&pass===2)continue;
       const edge=distanceToEdge(p,geometry.face);
-      const fade=clamp(edge/(eyeDist*.083),0,1);
+      const fade=clamp(edge/(eyeDist*.056),0,1);
       // Build soft orbital, malar and nasal values following cranium shape,
       // not as rectangles pasted onto skin or a uniform global diagonal.
       const toNose=Math.abs(px-guides.noseBridge[0])/eyeDist;
@@ -239,9 +239,9 @@ export const createDryPencilHeadPlate=(
       const len=step*(pass===0?1.56:pass===1?1.43:.94)*
         (.75+.40*pencilHash(seed,hashBase,13));
       const shade=1-value;
-      const pressure=pass===0?.09+.26*shade:
-        pass===1?.08+.23*shade:.065+.25*shade;
-      const density=(band===4?.34:band===3?.72:1);
+      const pressure=pass===0?.22+.34*shade:
+        pass===1?.18+.30*shade:.14+.30*shade;
+      const density=(band===4?.28:band===3?.95:1);
       if(pencilHash(seed,hashBase,14)>density)continue;
       // Subtle warm/cool layers are derived from the person's actual
       // captured pigments, not a globally assumed skin-color preset.
@@ -253,7 +253,7 @@ export const createDryPencilHeadPlate=(
       push(pass===0?"face-value":pass===1?"face-chroma":"face-form",
         p,[Math.cos(theta)*len,Math.sin(theta)*len],pigment,
         pressure*fade*(band===4?.52:1),
-        pass===0?.86:pass===1?.69:.52,pass,
+        pass===0?1.30:pass===1?1.04:.82,pass,
         (pencilHash(seed,hashBase,15)-.5)*.19);
     }
   }
@@ -261,7 +261,7 @@ export const createDryPencilHeadPlate=(
   // has auburn locks surrounding the head; green garden is NOT a hair mask.
   // Hair is a separate material and cannot inadvertently flatten the face.
   for(const pass of [0,1] as const){
-    const step=eyeDist*(pass===0?.043:.035);
+    const step=eyeDist*(pass===0?.027:.025);
     const nx=Math.ceil(cropWidth/step),ny=Math.ceil(cropHeight/step);
     for(let iy=0;iy<ny;iy++)for(let ix=0;ix<nx;ix++){
       const k=iy*nx+ix+pass*49103;
@@ -276,24 +276,26 @@ export const createDryPencilHeadPlate=(
         (eyeDist*.085),0,1);
       const side=Math.sign(px-guides.hairline[0]);
       const t=clamp((py-guides.hairline[1])/(eyeDist*3.6),0,1);
-      const heading=Math.PI*.49+side*(.18+.30*t);
+      // Hair mass tangent must follow its root-to-end clump direction:
+      // image-left hair travels left as it falls; image-right travels right.
+      const heading=Math.PI*.49-side*(.22+.33*t);
       const theta=heading+(pass===1?.17:0)+
         (pencilHash(seed,k,38)-.5)*.20;
       const len=step*(1.60+.48*pencilHash(seed,k,39));
       const pigment=pass===0?color([
-        rgb[0]*.68+67*.32,rgb[1]*.70+44*.30,rgb[2]*.71+42*.29,
-      ]):color([rgb[0]*.78+92*.22,rgb[1]*.74+61*.26,rgb[2]*.79+51*.21]);
+        rgb[0]*.85+51*.15,rgb[1]*.85+35*.15,rgb[2]*.85+28*.15,
+      ]):color([rgb[0]*.9+79*.1,rgb[1]*.9+44*.1,rgb[2]*.9+32*.1]);
       push("hair-mass",p,[Math.cos(theta)*len,Math.sin(theta)*len],
-        pigment,(pass===0?.23:.17)*fade*(.48+.9*(1-v)),
-        pass===0?1.25:.82,pass,
+        pigment,(pass===0?.41:.34)*fade*(.48+.9*(1-v)),
+        pass===0?1.65:1.27,pass,
         (pencilHash(seed,k,40)-.5)*.16);
     }
   }
   // Root-aligned fine strands: quadratic clumps from the actual parting
   // toward the photographed shoulder/hair ends. They are deposited only
   // where the author-observed hair mass AND local photo agree.
-  for(let clump=0;clump<148;clump++){
-    const t=(clump+.5)/148;
+  for(let clump=0;clump<210;clump++){
+    const t=(clump+.5)/210;
     const right=t>.76;
     const root:Point=mapScreen([interp(218,352,t),
       47+21*pencilHash(seed,clump,43)],guides,eyeDist);
@@ -311,12 +313,12 @@ export const createDryPencilHeadPlate=(
       const rgb=photoRGB(source,point[0],point[1]);
       const value=photoValue(source,point[0],point[1]);
       if(value>.80)continue;
-      const pressure=.11+.28*(1-value);
+      const pressure=.20+.35*(1-value);
       push("hair-fibre",point,
         [next[0]-point[0],next[1]-point[1]],
         color([rgb[0]*.74+61*.26,rgb[1]*.73+45*.27,
           rgb[2]*.77+39*.23]),pressure,
-        .39+.30*pencilHash(seed,clump*91+s,45),2,
+        .49+.38*pencilHash(seed,clump*91+s,45),2,
         (pencilHash(seed,clump*91+s,46)-.5)*.09);
     }
   }
@@ -334,7 +336,7 @@ export const createDryPencilHeadPlate=(
       controlX:clamp(control[0],0,SIZE.width),
       controlY:clamp(control[1],0,SIZE.height),
       width:m.width*scale,
-      alpha:clamp(m.alpha*.88,.005,.56),
+      alpha:clamp(m.alpha*1.36,.005,.56),
     });
     materialCounts["measured-features"]++;
   }
