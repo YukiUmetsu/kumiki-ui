@@ -94,8 +94,8 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
           expect(byId(name+"-head").parentId).toBe(
             name==="princess"?"princess-bodice":"prince-coat");
           for(const detail of name==="princess"
-            ? ["forelock","hair-braid","eye-white","lashes","lips","tiara","tiara-jewels"]
-            : ["hair","hair-strands","eye-white","eye-brow","mouth","crown","crown-stones"]){
+            ? ["forelock","hair-braid","brow","eye-white","lashes","lips","tiara","tiara-jewels"]
+            : ["hair","hair-strands","ear","eye-white","eye-brow","mouth","crown","crown-stones"]){
             expect(byId(name+"-"+detail).parentId).toBe(name+"-head");
           }
         }
