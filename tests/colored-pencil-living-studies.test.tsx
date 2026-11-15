@@ -31,6 +31,28 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("deposits genuine local low-pressure colored-pencil contacts across the human facial volume",()=>{
+    const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
+    const face=drawing.regions.find(r=>r.id==="face-main")!;
+    const dermis=face.details?.filter(t=>t.id?.startsWith("dermis-"))??[];
+    expect(dermis).toHaveLength(3);
+    for(const trace of dermis){
+      expect(trace.path).not.toMatch(/NaN|Infinity/);
+      expect(trace.width).toBeLessThan(.55);
+      expect(trace.opacity).toBeGreaterThan(.2);
+      expect(trace.opacity).toBeLessThan(.5);
+      expect((trace.path.match(/M/g)??[]).length).toBeGreaterThanOrEqual(260);
+      expect(trace.path).toContain(" Q");
+      // An ordered arch follows cheek or forehead planes; broad one-piece
+      // photographic skin gradients never satisfy a dry-point contact gate.
+    }
+    const withoutTonal=renderToStaticMarkup(
+      <PencilDrawing drawing={drawing} frame={330} showTonalSupport={false}/>);
+    expect(withoutTonal).toContain('data-km-pencil-tonal-support="off"');
+    expect(withoutTonal).toContain('data-km-pencil-details');
+    expect(withoutTonal).not.toContain("<image");
+  });
+
   it("constructs an original face with independent eyes, brow, bridge, jaw, lips and layered hair",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
     const parts=new Map(drawing.regions.map(region=>[region.id,region]));
