@@ -120,6 +120,13 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(summit.length).toBeGreaterThan(20);
     expect(summit.filter(([,y])=>y>=96&&y<=115).length)
       .toBeGreaterThan(12);
+    // A saw-tooth skyline was visible at native 960x540 when each
+    // 13–15px section inherited a full long-cliff jitter budget.
+    // The actual SVG now has continuous summit contour at 1.6px steps.
+    const summitSteps=summit.slice(1).map(([,y],i)=>
+      Math.abs(y-summit[i][1]));
+    expect(Math.max(...summitSteps)).toBeLessThan(4.4);
+
     const masses=[...full.matchAll(
       /data-km-rock-interlocked-mass="" data-km-rock-mass-root="([^"]+)" data-km-rock-mass-side="(-?1)"/g,
     )];
