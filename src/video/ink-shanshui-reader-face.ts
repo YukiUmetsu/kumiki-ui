@@ -34,7 +34,7 @@ const asset=(name:string,shapes:CharacterPathShape[]):CharacterShapeAsset=>({
     source:"Original Kumiki scroll-reader three-quarter portrait: "+name},
 });
 const mouth={
-  rest:"M135.2 125.2 Q138.8 126.3 142.1 125.4 Q145.3 126.1 148.8 123.9",
+  rest:"M135.2 125.4 Q139 126.4 142.3 126 Q146 126.2 148.8 125.1",
   aa:"M135.5 124.8 Q141.7 127.3 147.9 124.4 Q144.2 133.8 139.9 131.4 Q136.2 129.1 135.5 124.8 Z",
   oh:"M141.3 125.2 Q145.2 125.1 145.8 128.5 Q145.5 132.1 142 131.7 Q139.4 129.5 141.3 125.2 Z",
   mm:"M135.6 125.7 Q141 125.4 148.5 124.5",
