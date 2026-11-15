@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
 import {riso31PhalanxJoints,riso31FingerParts} from "./riso31-finger-phalanges";
+import {riso32ThumbIpJoint,riso32ThumbInkParts} from "./riso32-thumb-ip";
 
 export type RisoPerformanceAspect = "landscape" | "portrait";
 // RISO28: arm pendulum tracks the same 54-frame alternating contact
@@ -128,6 +129,7 @@ export const COURIER: RisoCharacterSpec = {
     ] },
     // RISO31: full original printed phalanges are a bone hierarchy.
     ...riso31PhalanxJoints("left"),
+    riso32ThumbIpJoint("left"),
     { id: "right-arm", parent: "body", x: 24, y: -44, keys: [
       { frame: 0, rotate: 14, easing: "ease" }, { frame: 65, rotate: -9, easing: "ease" },
       { frame: 137, rotate: 25, easing: "ease" }, { frame: 187, rotate: 42, easing: "ease" },
@@ -171,6 +173,7 @@ export const COURIER: RisoCharacterSpec = {
       {frame:160,rotate:-7,easing:"ease"},{frame:198,rotate:-3},{frame:239,rotate:-3},
     ] },
     ...riso31PhalanxJoints("right"),
+    riso32ThumbIpJoint("right"),
     { id: "satchel", parent: "body", x: 29, y: 0, keys: [
       { frame: 0, rotate: -5, easing: "ease" }, { frame: 25, rotate: 6, easing: "ease" },
       { frame: 49, rotate: -5, easing: "ease" }, { frame: 90, rotate: 7, easing: "ease" },
@@ -274,8 +277,7 @@ export const COURIER: RisoCharacterSpec = {
     ...riso31FingerParts("left","middle"),
     ...riso31FingerParts("left","ring"),
     ...riso31FingerParts("left","pinky"),
-    { id: "left-glove-thumb", joint: "left-thumb", plate: "red", paint: "solid",
-      d: "M2.1 -3.6 Q-.5 -6 -3.2 -5.2 Q-6.3 -4.4 -9.5 -.6 Q-10.8 2.5 -8 3.5 Q-5.5 3.4 -3 1.6 Q-.5 .3 1.7 2.2 Z" },
+    ...riso32ThumbInkParts("left"),
     { id: "left-finger-joint-lines", joint: "left-middle", plate: "blue", paint: "solid",
       d: "M0 4 Q2 3 3 5 L3 5.8 Q2 5 0 5 Z" },
     { id: "left-glove-detail", joint: "left-hand", plate: "blue", paint: "solid",
@@ -299,8 +301,7 @@ export const COURIER: RisoCharacterSpec = {
     ...riso31FingerParts("right","middle"),
     ...riso31FingerParts("right","ring"),
     ...riso31FingerParts("right","pinky"),
-    { id: "right-glove-thumb", joint: "right-thumb", plate: "red", paint: "solid",
-      d: "M-2 -3.6 Q.8 -6.2 3.5 -5.5 Q7 -4.9 9.8 -.5 Q11.1 2.1 8.2 3.4 Q5.4 3.5 3.2 1.5 Q1 -.1 -1.7 2.0 Z" },
+    ...riso32ThumbInkParts("right"),
     { id: "right-finger-joint-lines", joint: "right-index", plate: "blue", paint: "solid",
       d: "M0 4 Q2 3 3 5 L3 5.8 Q2 5 0 5 Z" },
     { id: "right-glove-detail", joint: "right-hand", plate: "blue", paint: "solid",
