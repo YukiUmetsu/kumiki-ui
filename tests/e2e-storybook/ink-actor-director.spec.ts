@@ -131,3 +131,21 @@ test("ink character director: both aspects, IK legs, frame-exact reverse seek an
       await page.getByRole("checkbox",{name:"Reduced motion"}).uncheck();
     }
   });
+
+test("Character Director can compare the actual actor crop with the untouched full film",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-character-director--continuous-walk&viewMode=story");
+  const framing=page.getByRole("combobox",{name:"Director preview framing"});
+  await expect(framing).toHaveValue("figure");
+  await seek(page,244);
+  const stage=page.locator("[data-km-ink-scene]");
+  const close=await stage.screenshot({animations:"disabled",
+    path:info.outputPath("ink-director-actor-inspection.png")});
+  await framing.selectOption("wide");
+  const wide=await stage.screenshot({animations:"disabled",
+    path:info.outputPath("ink-director-full-film.png")});
+  expect(await pixelDifference(page,close,wide)).toBeGreaterThan(.05);
+  await framing.selectOption("figure");
+  await seek(page,244);
+  expect(await pixelDifference(page,close,
+    await stage.screenshot({animations:"disabled"}))).toBeLessThan(.001);
+});
