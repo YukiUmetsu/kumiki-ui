@@ -6,6 +6,7 @@ import {crayonAdultFaceStudy} from "./crayon-artcraft-adult-face-fixtures";
 import {crayonCc0NearEyeStudy} from "./crayon-artcraft-cc0-near-eye";
 import {crayonPaperContactSwatches} from "./crayon-artcraft-paper-contact-fixtures";
 import {crayonArtcraftBodyStudy,CRAYON_BODY_REFERENCE} from "./crayon-artcraft-body-study";
+import {crayonCc0FaceStudy,CRAYON_F1_FACE_PROOF} from "./crayon-artcraft-cc0-face";
 import {useCrayonStoryPlayback} from "./crayon-story-playback";
 import {CRAYON_PORTRAIT_AUDIT,crayonPortraitFrozenAudit} from "./crayon-artcraft-portrait-audit";
 
@@ -438,4 +439,112 @@ export const SourceMeasuredBodyStudy:Story={
   name:"Full body · source geometry and garment art (ArtCraft experiment)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><BodyReferenceArtcraftWorkbench {...args}/>,
+};
+
+
+/**
+ * New F1-only portrait plane study, using ORIGINAL SOURCE PIXEL COORDINATES
+ * and actual independently observed source landmark points. Unlike the
+ * existing synthetic adult bust, it does not invent a different identity.
+ * It remains an unpublished experimental artifact pending pixel-gate review.
+ */
+export function Cc0SourceRegisteredFaceWorkbench({
+  detail,startFrame,playbackRate,loop,
+}:StudyProps){
+  const [view,setView]=useState<"wax"|"anatomy">("wax");
+  const [showReference,setShowReference]=useState(true);
+  const [showZoom,setShowZoom]=useState(false);
+  const spec=useMemo(()=>crayonCc0FaceStudy({
+    detail:Math.max(.2,detail),view,
+  }),[detail,view]);
+  const framed=useMemo(()=>{
+    if(!showZoom)return spec;
+    return {...spec,camera:[
+      {frame:0,focusX:335,focusY:586,zoom:1.6},
+      {frame:299,focusX:335,focusY:586,zoom:1.6},
+    ]};
+  },[spec,showZoom]);
+  const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
+    startFrame,spec.durationFrames,
+    "crayon-source-registered-face:"+view+":"+detail,playbackRate,loop);
+  return <section data-km-crayon-f1-registered-face=""
+    style={{maxWidth:1160,margin:"auto",padding:16,background:"#f3e9da",
+      boxSizing:"border-box",fontFamily:"system-ui",color:"#352b30"}}>
+    <h2 style={{fontSize:19,margin:"0 0 7px"}}>
+      CC0 full face · photographed landmarks to wax geometry (ArtCraft experiment)
+    </h2>
+    <p style={{maxWidth:870,fontSize:13,lineHeight:1.55}}>
+      Entire 608×1082 CC0 source viewport reconstructed as editable CRAYON1
+      planes. The anatomical positions of iris, eyelids, nasal cartilage,
+      lip volumes, chin, hairline and jaw use the same real photographed
+      identity. A source landmark graph can be toggled without changing
+      painted shapes or wax sequence. Artistic acceptance is NOT established.
+    </p>
+    <div style={{display:"grid",gap:16,alignItems:"start",
+      gridTemplateColumns:showReference?
+        "repeat(auto-fit,minmax(min(100%,310px),1fr))":"minmax(0,500px)",
+      justifyContent:"center"}}>
+      {showReference&&<figure style={{margin:0,minWidth:0}}>
+        <figcaption style={{fontSize:13,fontWeight:650,marginBottom:8}}>
+          Original CC0 photograph · source geometry
+        </figcaption>
+        <a href={CRAYON_F1_FACE_PROOF.url} target="_blank"
+          rel="noopener noreferrer">
+          <img loading="lazy" src={CRAYON_PORTRAIT_AUDIT.source.preview}
+            alt="CC0 photographed source identity and facial anatomy"
+            style={{width:"100%",display:"block",aspectRatio:"608/1082",
+              objectFit:"cover",background:"#d8ceba"}}/>
+        </a>
+        <figcaption style={{fontSize:11,lineHeight:1.5,marginTop:8}}>
+          Christopher Campbell, 2015 · CC0 1.0. The measurement baseline
+          is a real 608×1082 screenshot (not the original camera JPEG).
+          This remote preview is not packaged with the original wax drawing.
+        </figcaption>
+      </figure>}
+      <figure style={{margin:0,minWidth:0}}>
+        <figcaption style={{fontSize:13,fontWeight:650,marginBottom:8}}>
+          Code-only CRAYON1 · {view==="wax"?
+            "wax anatomical reconstruction":"frozen photographed landmarks"}
+        </figcaption>
+        <div style={{width:"100%",aspectRatio:"608 / 1082",
+          background:"#f4e6d3",overflow:"hidden"}}>
+          <CrayonScene spec={framed} frame={frame}/>
+        </div>
+        <figcaption style={{fontSize:11,lineHeight:1.5,marginTop:8}}>
+          RESEARCH ONLY. Measured placement and passing technical tests do
+          not verify likeness, authentic crayon microtexture, facial action
+          or all 18 independently re-observed render landmarks.
+        </figcaption>
+      </figure>
+    </div>
+    <div style={{display:"flex",flexWrap:"wrap",gap:10,marginTop:16,
+      alignItems:"center",fontSize:13}}>
+      <button type="button" onClick={toggle}>
+        {playing?"Pause":"Play wax deposition"}
+      </button>
+      <button type="button" onClick={restart}>Restart</button>
+      <label>Frame <input aria-label="Source face frame"
+        type="range" min={0} max={spec.durationFrames-1} value={frame}
+        onChange={e=>seek(Number(e.target.value))}/></label>
+      <output>{frame}</output>
+      <button type="button" onClick={()=>seek(299)}>Inspect final</button>
+      <button type="button" onClick={()=>
+        setView(v=>v==="wax"?"anatomy":"wax")}>
+        {view==="wax"?"View source landmarks":"Show wax only"}
+      </button>
+      <button type="button" aria-pressed={showReference}
+        onClick={()=>setShowReference(s=>!s)}>
+        {showReference?"Hide source":"Compare source"}
+      </button>
+      <button type="button" aria-pressed={showZoom}
+        onClick={()=>setShowZoom(s=>!s)}>
+        {showZoom?"Full view":"Zoom anatomical crop"}
+      </button>
+    </div>
+  </section>;
+}
+export const Cc0RegisteredFullFace:Story={
+  name:"CC0 full face · source-registered wax anatomy (ArtCraft experiment)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}/>,
 };
