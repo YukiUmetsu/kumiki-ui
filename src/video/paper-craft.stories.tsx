@@ -5,6 +5,7 @@ import { PaperCraftStage } from "../../registry/video/paper-craft-react";
 import { PaperDirectorStage } from "../../registry/video/paper-director-react";
 import { compilePaperDirector, resolvePaperDirector } from "../../registry/video/paper-director";
 import { paperDirectorDemo } from "./paper-director-demo";
+import { paperRoyalLanternFilm, ROYAL_STORY_BEATS } from "./paper-royal-story";
 import type { PaperStyle } from "../../registry/video/paper-craft";
 import { paperCraftExampleSpec } from "./paper-craft-demo";
 import { paperBotanicalSpec } from "../../registry/video/paper-botanical-kit";
@@ -228,6 +229,99 @@ function PaperDirectorLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMo
     </div>
   </main>;
 }
+
+/** Original narrative stays inside the single Paper Craft Storybook folder. */
+function PaperRoyalStoryLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMotion}:Controls){
+  const film=useMemo(()=>paperRoyalLanternFilm(medium,seed,motion),[medium,seed,motion]);
+  const plan=useMemo(()=>compilePaperDirector(film),[film]);
+  const [playhead,setPlayhead]=useState(130);
+  const [playing,setPlaying]=useState(false);
+  const anchor=useRef<{time:number;frame:number}|null>(null);
+  useEffect(()=>{setPlayhead(130);setPlaying(false);anchor.current=null;},[film,aspect]);
+  useEffect(()=>{
+    if(!playing||reducedMotion)return;
+    let request=0;
+    const tick=(now:number)=>{
+      if(!anchor.current)anchor.current={time:now,frame:playhead};
+      const elapsed=Math.floor((now-anchor.current.time)*plan.fps/1000);
+      setPlayhead((anchor.current.frame+elapsed)%plan.durationFrames);
+      request=requestAnimationFrame(tick);
+    };
+    request=requestAnimationFrame(tick);
+    return ()=>cancelAnimationFrame(request);
+  },[playing,reducedMotion,plan]);
+  const frame=reducedMotion?plan.durationFrames-1:playhead;
+  const shot=resolvePaperDirector(plan,frame,aspect);
+  const beat=ROYAL_STORY_BEATS[shot.shotIndex];
+  const selectBeat=(start:number)=>{setPlaying(false);anchor.current=null;setPlayhead(start);};
+  const control:CSSProperties={border:"1px solid #c9ad96",background:"#2E334A",
+    color:"#FFF2E5",padding:"9px 13px",borderRadius:5,cursor:"pointer",font:"600 13px Arial,sans-serif"};
+  return <main style={{background:"radial-gradient(ellipse at 56% 2%,#34465B,#181E31 65%)",
+    color:"#F7E8DB",minHeight:"100vh",padding:"23px clamp(16px,3.8vw,52px) 46px",
+    fontFamily:"Arial,sans-serif"}}>
+    <div style={{maxWidth:1120,margin:"0 auto"}}>
+      <p style={{fontSize:11,letterSpacing:2.2,color:"#E4BFA3"}}>
+        KUMIKI · ARTCRAFT · ORIGINAL PAPER THEATRE</p>
+      <h1 style={{font:"normal clamp(32px,4.6vw,57px)/1.12 Georgia,serif",
+        letterSpacing:-.7,margin:"10px 0 9px"}}>The Moonlit Lantern</h1>
+      <p style={{fontSize:14,lineHeight:1.7,maxWidth:720,color:"#C7C8C9",marginBottom:19}}>
+        A 24-second, three-act fairy tale told entirely with individually cut opaque paper.
+        The princess, prince, fox, rabbit, deer and owl have named articulated parts,
+        fixed paper-stock depth, and repeatable frame-accurate performance.
+      </p>
+      <div role="group" aria-label="Story chapters" style={{
+        display:"flex",flexWrap:"wrap",gap:8,marginBottom:14}}>
+        {plan.shots.map((chapter,i)=><button key={chapter.id} type="button"
+          style={{...control,background:shot.shotIndex===i?"#825775":"#2E334A"}}
+          aria-pressed={shot.shotIndex===i} onClick={()=>selectBeat(chapter.startFrame)}>
+          {String(i+1).padStart(2,"0")} · {ROYAL_STORY_BEATS[i].title}
+        </button>)}
+      </div>
+      <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",
+        gap:10,marginBottom:13}}>
+        <button type="button" style={control} disabled={reducedMotion}
+          onClick={()=>{anchor.current=null;setPlaying(v=>!v);}}>
+          {playing?"Pause story":"Play story"}
+        </button>
+        <button type="button" style={control}
+          onClick={()=>selectBeat(0)}>Restart</button>
+        <span style={{fontSize:12,color:"#DFC8B3"}}>
+          {(frame/30).toFixed(1)}s / 24.0s · {aspect==="portrait"?"9:16":"16:9"} · {medium}
+        </span>
+      </div>
+      <label style={{display:"block",fontSize:12,color:"#D8C4B7",marginBottom:18}}>
+        Scrub fairy tale
+        <input type="range" min={0} max={plan.durationFrames-1} step={1}
+          value={Math.min(plan.durationFrames-1,frame)} aria-label="Scrub fairy tale"
+          style={{display:"block",marginTop:9,width:"100%",accentColor:"#E0B78B"}}
+          onChange={e=>selectBeat(Number(e.currentTarget.value))}/>
+      </label>
+      <div style={{display:"grid",justifyItems:"center"}}>
+        <div style={{width:"100%",maxWidth:aspect==="portrait"?440:960,
+          aspectRatio:aspect==="portrait"?"9 / 16":"16 / 9",overflow:"hidden",
+          border:"9px solid #45404C",boxShadow:"0 20px 70px #080911A6"}}>
+          <PaperDirectorStage film={film} aspect={aspect} frame={frame}
+            reducedMotion={reducedMotion} tooth={tooth} shadowStrength={shadow}
+            edgeStrength={edge} curlStrength={.8} liftStrength={1}
+            label={"An original cut-paper fairy tale: "+beat.title}
+            data-testid="paper-royal-story-stage"/>
+        </div>
+      </div>
+      <div aria-live="polite" style={{textAlign:"center",margin:"17px auto 8px",
+        maxWidth:760,minHeight:76}}>
+        <h2 style={{font:"normal 24px/1.3 Georgia,serif",
+          margin:"0 0 6px"}}>{beat.title}</h2>
+        <p style={{font:"15px/1.65 Georgia,serif",color:"#E3CCBF",
+          margin:0}}>{beat.narration}</p>
+      </div>
+      <p style={{fontSize:11,color:"#B3A8AC",textAlign:"center",lineHeight:1.65}}>
+        Original stylized papercut character study · three camera-directed
+        scenes · connected articulated sheet rigs · physical opaque edit curtains
+      </p>
+    </div>
+  </main>;
+}
+
 const meta = {
   // All Paper Craft studies share one Storybook folder under Film Looks.
   title: "Video production/Film Looks/Paper Craft",
@@ -336,5 +430,21 @@ export const Director: Story = {
     palette:hideControl,detail:hideControl,colorLayers:hideControl,curl:hideControl,
     relief:hideControl,frame:hideControl,
     curtains:{control:"boolean",table:{disable:false}},
+  },
+};
+
+
+/** Original royal animal fairy tale; shares Paper Craft's existing sidebar folder. */
+export const MoonlitLantern: Story = {
+  name:"Story · Princess, Prince & Woodland Animals",
+  args:{medium:"layered",aspect:"landscape",seed:37,motion:.7,
+    tooth:.68,shadow:.9,edge:.55,reducedMotion:false},
+  render:args=><PaperRoyalStoryLab {...args}/>,
+  argTypes:{
+    artwork:hideControl,object:hideControl,objectPalette:hideControl,
+    scenery:hideControl,sceneryPalette:hideControl,breeze:hideControl,
+    treeVariety:hideControl,palette:hideControl,detail:hideControl,
+    colorLayers:hideControl,curl:hideControl,relief:hideControl,
+    frame:hideControl,curtains:hideControl,
   },
 };
