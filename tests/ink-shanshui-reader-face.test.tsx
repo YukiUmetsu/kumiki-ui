@@ -9,6 +9,8 @@ import {scrollReaderFacePortrait,READER_FACE_LANDMARKS} from
 import {readerFaceAnatomy,READER_FACE_CRAFT_REGIONS} from
   "../src/video/ink-shanshui-reader-anatomy";
 import {shanshuiFaceAssets} from "../src/video/ink-shanshui-face-plates";
+import {shanshuiOtherFaceCraft,SHANSHUI_PORTRAIT_OBSERVATIONS} from
+  "../src/video/ink-shanshui-other-face-craft";
 import {shanshuiBodyFit,shanshuiBodyAssets} from
   "../src/video/ink-shanshui-full-body";
 import {makeShanshuiScholar,shanshuiScholarInstance,InkShanshuiFilm} from
@@ -149,6 +151,42 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(makeShanshuiScholar(1,.88,"river-scholar").parts
       .find(x=>x.id==="head")?.rest).toEqual(head);
   });
+  it("keeps three distinct source-fitted identities instead of cloning reader facial cels",()=>{
+    const hermit=shanshuiOtherFaceCraft("misty-hermit",1);
+    const walker=shanshuiOtherFaceCraft("mountain-trail",1);
+    expect(SHANSHUI_PORTRAIT_OBSERVATIONS["misty-hermit"].age)
+      .not.toEqual(SHANSHUI_PORTRAIT_OBSERVATIONS["mountain-trail"].age);
+    expect(shanshuiOtherFaceCraft("river-scholar",1)).toEqual({});
+    expect(shanshuiOtherFaceCraft("misty-hermit",0)).toEqual({});
+    expect(shanshuiOtherFaceCraft("mountain-trail",0)).toEqual({});
+    expect(()=>shanshuiOtherFaceCraft("mountain-trail",Infinity))
+      .toThrow(RangeError);
+    for(const [scene,region] of [
+      ["misty-hermit",hermit],["mountain-trail",walker],
+    ] as const){
+      expect(region.face.length).toBeGreaterThanOrEqual(7);
+      expect(region.brow.length).toBeGreaterThanOrEqual(2);
+      expect(region["pupil-left"].length).toBe(1);
+      expect(region["pupil-right"].length).toBe(1);
+      expect(region["eyes-open"]).not.toEqual(region["eyes-closed"]);
+      const art=shanshuiFaceAssets(scene,1);
+      const low=shanshuiFaceAssets(scene,0);
+      expect(paths(art,"face").length).toBeGreaterThan(paths(low,"face").length);
+      for(const marks of Object.values(region)){
+        for(const shape of marks){
+          expect(shape.type).toBe("path");
+          if(shape.type!=="path")continue;
+          expect(shape.d).not.toMatch(/NaN|Infinity|undefined/);
+          expect(shape.opacity).toBeGreaterThan(0);
+          expect(shape.opacity).toBeLessThanOrEqual(1);
+        }
+      }
+    }
+    expect(hermit.face).not.toEqual(walker.face);
+    expect(shanshuiOtherFaceCraft("misty-hermit",1)).toEqual(hermit);
+    expect(shanshuiOtherFaceCraft("mountain-trail",1)).toEqual(walker);
+  });
+
   it("changes ONLY the reader's facial image assets; full garment, hand and rig remain identical",()=>{
     for(const scene of SHANSHUI_SCENES){
       const model=makeShanshuiScholar(1,.89,scene);
