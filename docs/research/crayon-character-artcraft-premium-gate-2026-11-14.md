@@ -113,3 +113,33 @@ landscape and portrait) to dist/crayon-artcraft-face-proof/. Rasterize
 them at original resolution and 3x for independent optical review. These
 are not source-matched fidelity scores and cannot promote the work by
 themselves. Recorded visual review and all ArtCraft axes remain pending.
+
+## Native rendered ArtCraft critique — visual fail, despite passing browser tests
+
+Browser QA run [43659715114](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43659715114)
+produced two **actual CRAYON1 React/Chromium renders** at 960×540 and 540×960,
+frame 299. The browser check passed only for syntax, opacity and element
+presence. **Independent visual rejection** is mandatory:
+
+- Face read as flat, posterized mauve and peach sticker shapes instead of
+  cohesive light, half-tone and shadow transitions. The long nasal sidewall
+  formed a distracting triangular stripe rather than anatomical planes.
+- Eyes read too large, circular and symmetric for the target adult portrait;
+  lid and socket hierarchy was subordinated to the exposed sclera/iris shape.
+- Hair formed a compact helmet/bob rather than rooted, overlapping flowing
+  locks. Stroke marks followed clip boundaries but not convincing hair mass.
+- Coat read as a rectangular rounded blob with a vertical apron-like linen
+  strip, lacking waist, shoulders and coat construction. Upper torso proportions
+  were unconvincing in both aspect ratios.
+- Surface grain appeared uniformly coarse on face, hair and coat; real wax
+  should distinguish heavy, opaque broad side-nib deposition from small
+  pressure-tapered directional strokes, respecting each material's scale.
+
+**First code remediation:** rebalance warm/cool palette; reduce prominence
+of hard cheek/jaw masks, narrow nose planes and eyelid shapes, reshape crown
+and tailored coat/collar/linen neckline, decrease facial microtexture density
+and increase base mark spacing. Rerender required before any acceptance.
+
+These are evidence-based *failures*, not numerical fidelity scores. Preserve
+failed screenshots in PR artifacts for side-by-side review. No character
+Storybook gallery is unhidden by this corrective iteration.
