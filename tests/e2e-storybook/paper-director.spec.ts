@@ -11,9 +11,13 @@ for(const aspect of ["landscape","portrait"] as const){
     await page.getByRole("button",{name:/03 · Canal houses/}).click();
     await expect(stage).toHaveAttribute("data-km-paper-shot","city-layering");
     await expect(stage).toHaveAttribute("data-km-paper-frame","0");
-    await page.getByRole("slider",{name:"Scrub complete paper film"}).fill("770");
+    await page.getByRole("button",{name:/04 · Camera/}).click();
     await expect(stage).toHaveAttribute("data-km-paper-shot","constructed-device");
-    await expect(stage).toHaveAttribute("data-km-paper-frame","50");
+    await expect(stage).toHaveAttribute("data-km-paper-frame","0");
+    const scrub=page.getByRole("slider",{name:"Scrub complete paper film"});
+    await scrub.focus();
+    await scrub.press("End");
+    await expect(stage).toHaveAttribute("data-km-paper-frame","239");
     await expect(stage.locator("[data-km-paper-camera]")).toHaveCount(1);
     const cuts=stage.locator("[data-km-paper-layer]");
     expect(await cuts.count()).toBeGreaterThan(20);
