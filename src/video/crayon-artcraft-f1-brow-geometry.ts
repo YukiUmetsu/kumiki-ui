@@ -132,10 +132,34 @@ function sourceRootedFiberScale(d:string,scale:number):string{
   return result;
 }
 
-/** Two halo glazes, two opaque roots and two distinct dry-wax bundles. */
+/**
+ * Source has only a narrow dense dark band, surrounded by translucent
+ * mixed wax on paper. The tiny rubbed core stays opaque, while the
+ * anatomically shaped main arch remains an OPEN native pigment layer,
+ * preventing a brown digital silhouette sticker.
+ */
+const vein:Readonly<Record<string,{d:string;bounds:Wax["bounds"]}>>={
+  near:{
+    d:"M227 491 C240 483 255 479 267 477 "+
+      "C281 474 293 477 304 480 "+
+      "C295 479 285 478 275 480 "+
+      "C260 481 244 487 227 491Z",
+    bounds:{x:223,y:470,width:85,height:25},
+  },
+  far:{
+    d:"M415 454 C428 445 439 442 449 443 "+
+      "C456 442 460 444 466 446 "+
+      "C453 445 437 449 415 454Z",
+    bounds:{x:411,y:437,width:59,height:21},
+  },
+};
+
+/** Two halo glazes, two form-built wax roots, two dense veins and two fibers. */
 export const CRAYON_F1_BROW_IDS=Object.freeze([
-  "source-brow-feather-near","source-brow-wax-near","source-brow-fibers-near",
-  "source-brow-feather-far","source-brow-wax-far","source-brow-fibers-far",
+  "source-brow-feather-near","source-brow-wax-near",
+  "source-brow-vein-near","source-brow-fibers-near",
+  "source-brow-feather-far","source-brow-wax-far",
+  "source-brow-vein-far","source-brow-fibers-far",
 ] as const);
 
 export function crayonF1ReconstructBrows(
@@ -166,15 +190,32 @@ export function crayonF1ReconstructBrows(
     const wax:Wax={
       ...element,
       id:spec.id,d:spec.d,bounds:spec.bounds,
-      colors:spec.colors,coverage:"opaque",
-      featherContacts:false,blendRadius:undefined,
-      pressure:near?.88:.84,
-      spacing:near?4.7:4.9,markStrength:near?.12:.11,
-      underpaintTooth:near?.23:.19,
-      underpaintGradient:spec.gradient,
-      edgeRoughness:.10,outlineOpacity:0,
+      // Dark source-root color is built with overlapping OPEN pigment
+      // contact and a separate microscopic opaque center vein, never
+      // one flat brown wedge with geometrically sharp boundaries.
+      colors:spec.colors,coverage:"open",
+      featherContacts:true,blendRadius:near?4.3:3.7,
+      pressure:near?.83:.81,
+      spacing:near?4.7:4.9,markStrength:near?.26:.23,
+      underpaintTooth:0,underpaintGradient:undefined,
+      edgeRoughness:.13,outlineOpacity:0,
     };
-    out.push(halo,wax,element);
+    const core=vein[near?"near":"far"];
+    const center:Wax={
+      ...element,
+      id:near?"source-brow-vein-near":"source-brow-vein-far",
+      d:core.d,bounds:core.bounds,
+      coverage:"opaque",
+      featherContacts:false,blendRadius:undefined,
+      underpaintTooth:near?.22:.17,
+      underpaintGradient:spec.gradient,
+      colors:near?["#684a45","#3e3032","#8f6860"]:
+        ["#644945","#413235","#85645d"],
+      pressure:near?.79:.75,spacing:near?4.4:4.6,
+      markStrength:near?.13:.12,
+      edgeRoughness:.07,outlineOpacity:0,
+    };
+    out.push(halo,wax,center,element);
     // The texture marks are single continuous native dry wax fibers,
     // not a uniform row of digital strokes or random disconnected dots.
     const fibers:Contour={
