@@ -44,3 +44,16 @@ Scope: existing `Video Production / Film Looks / Colour-pencil` Storybook and so
 4. Re-check ordinary photo-to-pencil 16:9/9:16 export and absolute seek invariance; don't merge as high-fidelity portrait if the human likeness/material remains below reference.
 
 **Current approval: NOT GRANTED.** This change establishes contact topology and instrumentation; screenshot artifact availability, live pixel critique and final independent visual judgment remain separate gates.
+
+
+## CP17 continuation — image-registered dry tooth gap bridging
+
+**Reference update:** [Alyona Nickelsen, *Ask Me Anything*, Colored Pencil Magazine (2017)](https://coloredpencilmag.com/amaalyona/) explains the high-frequency grain problem: dark lines sitting visibly on paler layers create a prominent grain; tight, sharp, low-pressure strokes within paper tooth provide optical merging. [Janie Gildow's instructor demonstration](https://www.desertmuseumarts.com/_files/ugd/7a6b2d_b5b3d4744f55473394fbd965bad1a04a.pdf) likewise specifies progressive light/medium tonal passes and overlapping loops, not a Gaussian blur. These are **materials/process references only**; the anatomical input remains the original CC0 photographed sitter.
+
+**Independent image diagnosis before implementation:** Existing CC0/browser 285×318 snapshots documented a local face 5×5 high-pass RMS of 10.96 in 16:9 and 9.23 in 9:16 after CP17's predecessor, compared with 3.42/3.71 in the photograph. The dark iris and mouth are already distinct: adding random skin noise or modifying eye paths is not a defensible fix.
+
+**New candidate** `createPhotoSkinToothBridge` inspects the actual already-painted **paper** against softly sampled local source values. It creates one original source-coloured, finite-width **quadratic dry-pencil nib** only where output paper is measurably too pale; it never places a pixel/image stamp, base wash or flat polygon. Two staggered source-local anatomy-flow passes and three-point/five-point span guarding maintain source-to-fibre topology and protect real glints, eye sockets, lip seam, nostrils and hard photographed value edges. No dark/light pixel is overwritten, erased or softened. The new control defaults to **0%** (no changes) and is visible in the **existing** Colour-pencil Storybook. It only runs after a complete photographed full-head plate (plus 4th chronological stage), not in ordinary photo-to-pencil video exports.
+
+**Rejection/negative checks:** (1) source+draw buffers byte-identical after computation; (2) actual quadratic pigment samples stay strictly within the independently measured CC0 facial polygon; (3) photographed true-white source adds zero nibs; (4) already dark/filled skin adds zero nibs; (5) 0% canvas remains identical to the prior PR head; (6) integer positions, deterministic seed, 16:9 and 9:16 and exact 0→100→0 restores via native Chromium; (7) do not approve any change until exact output screenshot grain, glint, skin-gradient and portrait landmark gates are inspected, not merely test logs. See `tests/colored-pencil-tooth-bridge.test.ts` and `tests/e2e-storybook/colored-pencil-live-references.spec.ts`.
+
+**Art status remains unapproved.** This material experiment does not rebuild the underlying historical sketch-derived human or fox geometry; those structural defects are a separate high-priority task.
