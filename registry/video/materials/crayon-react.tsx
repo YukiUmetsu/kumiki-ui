@@ -328,7 +328,10 @@ export function WaxLine({ d, color, width, frame, first, last, reduced, seed, op
       strokeDasharray={100} strokeDashoffset={100 * (1 - reveal)} opacity={.14 + wiggle * .08} />
   </g>;
 }
-export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" }: { width: number; height: number; seed: number; tooth: string; strength: number; color?: string }) {
+export function Paper({ width, height, seed, tooth, strength, color = "#faf1da", pigmentRelief = false }: {
+  width: number; height: number; seed: number; tooth: string;
+  strength: number; color?: string; pigmentRelief?: boolean;
+}) {
   const fibers = useMemo(() => Array.from({ length: 480 }, (_, i) => ({
     x: crayonHash(seed, i, 1) * width, y: crayonHash(seed, i, 2) * height,
     dx: 1 + crayonHash(seed, i, 3) * 14, dy: (crayonHash(seed, i, 4) - .5) * 4,
@@ -352,7 +355,7 @@ export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" 
   // Rendering legacy scenes adds six small pattern paths rather than hundreds
   // of per-mark DOM elements. Geometry is fixed to paper seed and strength.
   const pigmentTexture=useMemo(()=>(
-    (["dark","light"] as const).map(kind=>{
+    pigmentRelief ? (["dark","light"] as const).map(kind=>{
       const dark=kind==="dark",total=Math.round(strength*(dark?860:650));
       const marks:[string[],string[],string[]]=[[],[],[]];
       const base=dark?1400:1500;
@@ -369,8 +372,8 @@ export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" 
         d:parts.join(" "),width:(dark ? .31 : .24)+band*(dark ? .17 : .14),
         opacity:.50+band*.17,
       }))};
-    })
-  ),[seed,strength]);
+    }) : []
+  ),[seed,strength,pigmentRelief]);
   return <>
     <defs>
       {pigmentTexture.map(({kind,paths})=><pattern key={kind}
