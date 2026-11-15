@@ -227,17 +227,14 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
     if(!artwork||!macro)return;
     const ctx=macro.getContext("2d");
     if(!ctx)return;
-    const eyeSpacing=Math.hypot(
-      faceGuides.eyeFarCenter[0]-faceGuides.eyeNearCenter[0],
-      faceGuides.eyeFarCenter[1]-faceGuides.eyeNearCenter[1]);
     const anchor=faceMacroRegion==="eyes"?
       faceGuides.eyeNearCenter:faceGuides.lipCupid;
-    const cropWidth=Math.max(40,Math.min(180,eyeSpacing*
-      (faceMacroRegion==="eyes"?2.1:1.55)));
-    const cropHeight=cropWidth*2/3;
+    // A source-native 120×80 window maps to 360×240 review pixels:
+    // exactly 3× nearest-neighbour inspection, never an estimated zoom.
+    const cropWidth=macro.width/3,cropHeight=macro.height/3;
     ctx.globalAlpha=1;
     ctx.fillStyle="#FAF5ED";ctx.fillRect(0,0,macro.width,macro.height);
-    ctx.imageSmoothingEnabled=true;
+    ctx.imageSmoothingEnabled=false;
     ctx.drawImage(artwork,anchor[0]-cropWidth*.5,anchor[1]-cropHeight*.5,
       cropWidth,cropHeight,0,0,macro.width,macro.height);
   },[showFaceMacro,faceMacroRegion,faceGuides,study,frame,wash]);
