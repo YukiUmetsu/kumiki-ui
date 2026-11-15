@@ -61,3 +61,7 @@ PAPER1 supplies five media, cut layers, holes, shadows and deterministic motion;
 5. Actual paper stays opaque and correctly ordered at a hinge, opening or page seam.
 
 Each milestone owns the relevant regression and rendered proof. A source, visual, or rights blocker is recorded as open; it does not become a silent reduction in quality.
+
+## P2 source lead (not a completed study)
+
+[Auguste Edouart, *James Tooley* (1844)](https://www.metmuseum.org/art/collection/search/656554), cut-paper silhouette, is labeled Public Domain by The Met. The Met API returned the [original image](https://images.metmuseum.org/CRDImages/dp/original/DP-16322-001.jpg); downloaded bytes SHA-256 `98c1f530ef4f9e2b4f1c923cfc318c0d372fcbde8d1b1deaa65c7632197f6bb9`. Direct inspection shows a single readable profile with an angular hat brim, a narrow light opening between neck and collar, a forward-bent sleeve and separately articulated fingers resting on a cane. Fine interior costume marks are much subtler than the outer silhouette. This is a useful source for studying silhouette, hand-to-prop contact and negative space; it does not show a moving joint or authorize claims about animation. The original image was inspected locally, not committed. Crops, measurements, further sources, motion study and the ArtCraft source/structure gates remain open.
