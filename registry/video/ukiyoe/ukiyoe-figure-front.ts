@@ -20,6 +20,7 @@ import { kanabo } from "./ukiyoe-oni";
 import { hachiSide } from "./ukiyoe-folk";
 import { courtProp, heianHairSquare, kanmuriSquare } from "./ukiyoe-heian";
 import { armEyes, gourdSquare, minoSquare, zaru } from "./ukiyoe-folkyokai";
+import { animalHeadSquare } from "./ukiyoe-parade";
 import { kabutoSquare, naginata as naginataProp, oyoroiSquare } from "./ukiyoe-bushi";
 import { ancientHairSquare, kamiProp, magatama, stoleSquare, zukin } from "./ukiyoe-kami";
 import { babyBundle, ghostFaceBack, ghostFaceFront, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
@@ -407,6 +408,7 @@ function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: numb
     case "bald": break;
   }
   if (look.face === "oni") for (const s of [-1, 1]) out.push({ t: "fill", d: smoothD([P(s * .3, -.85), P(s * .45, -1.7), P(s * .55, -.8)], true, .3), fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [1, "ki", 1]] }, outline: lw });
+  if (look.animal) { out.length = 0; out.push(...animalHeadSquare(look.animal, P, lw, false)); }
   out.push(...hatFront(look, r, lw, wind, frame));
   return out;
 }
@@ -447,6 +449,7 @@ function headBack(look: UkiyoeFigureLook, r: number, lw: number, hairC: UkiyoePa
   }
   if (look.face === "oni") for (const s of [-1, 1]) out.push({ t: "fill", d: smoothD([P(s * .3, -.85), P(s * .45, -1.7), P(s * .55, -.8)], true, .3), fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [1, "ki", 1]] }, outline: lw });
   if (pose && isGhostFace(look.face)) out.push(...ghostFaceBack(look.face, pose.reveal, P, r, lw, frame));
+  if (look.animal) { out.length = 0; out.push(...animalHeadSquare(look.animal, P, lw, true)); }
   out.push(...hatFront(look, r, lw, wind, frame));
   return out;
 }

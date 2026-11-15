@@ -3898,6 +3898,11 @@
           "target": "components/video/ukiyoe/ukiyoe-realms.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-parade.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-parade.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"

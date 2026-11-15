@@ -6,6 +6,7 @@ import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
 import { realmScene, UKIYOE_REALM_SCENES } from "../registry/video/ukiyoe/ukiyoe-realms";
+import { paradeScene, UKIYOE_PARADE_SCENES } from "../registry/video/ukiyoe/ukiyoe-parade";
 import { tsukumoScene, UKIYOE_TSUKUMO, UKIYOE_TSUKUMO_SCENES } from "../registry/video/ukiyoe/ukiyoe-tsukumo";
 import { giantScene, UKIYOE_GIANT_SCENES, UKIYOE_GIANTS } from "../registry/video/ukiyoe/ukiyoe-giants";
 import { folkYokaiScene, UKIYOE_FOLK_YOKAI_LOOKS, UKIYOE_FOLK_YOKAI_SCENES } from "../registry/video/ukiyoe/ukiyoe-folkyokai";
@@ -950,5 +951,20 @@ describe("UKIYO1 boats, boarding and riding a wave", () => {
     expect(loopOffsets({ kind: "rock", period: 40, start: 100, fade: 20 }, 100, 0).y).toBeCloseTo(0, 6);
     expect(ease("inQuad", .5)).toBe(.25);
     expect(ease("outQuad", .5)).toBe(.75);
+  });
+});
+
+describe("UKIYO1 parades", () => {
+  it("builds each parade; the line keeps its order and gaps, and the palanquin rides between its bearers", () => {
+    for (const k of UKIYOE_PARADE_SCENES) expect(inspectUkiyoeScene(paradeScene(k)), k).toEqual([]);
+    const s = paradeScene("foxwedding"), node = (id: string) => s.nodes.find(n => n.id === id) as any;
+    const at = (id: string, f: number) => { const n = node(id); return n.kind === "motif" ? nodeState(n, f, s.cadence ?? 1).pose.x : n.x + travelAt(n.actions, f).x; };
+    for (const f of [0, 120, 240, s.durationFrames - 1]) {
+      const b0 = at("bearer0", f), b1 = at("bearer1", f), k = at("kago", f);
+      expect(k, `kago at ${f}`).toBeGreaterThan(b0 + 60); expect(k).toBeLessThan(b1 - 60);
+      expect(at("lantern2", f)).toBeLessThan(b0); expect(at("bride", f)).toBeGreaterThan(b1);
+    }
+    const fox = JSON.stringify(drawFigure({ look: { animal: "fox", robe: "gofun" } } as any, 0, 0, 1).prims);
+    expect(fox).toContain("tan");
   });
 });

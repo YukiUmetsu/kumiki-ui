@@ -28,6 +28,7 @@
 - `ukiyoe-giants.ts`: the giant monsters and `giantScene()`.
 - `ukiyoe-tsukumo.ts`: the tsukumogami (object spirits), the kimono rack and `tsukumoScene()`.
 - `ukiyoe-realms.ts`: the other realms (sea palace, moon, Milky Way, rock cave, oni island) and `realmScene()`.
+- `ukiyoe-parade.ts`: animal heads and tails for `look.animal`, the `kago` palanquin, `procession()` and `paradeScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -400,6 +401,25 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
   - `onigashima`: Momotarō's boat crosses.
 
   Storybook **Realms** plays them, and the Motifs gallery has five tiles.
+
+### Processions and parades
+
+- **Figure look `animal: "fox" | "mouse"`.** The head becomes the animal's in profile, front and back. Hands take the fur
+  colour, and a tail swings behind (a fox's bushy brush with a white tip, a mouse's long thin tail). The figure still
+  walks, carries and holds props like any other.
+- **Motif `kago`.** A palanquin: a lacquered box with a blind and a curved roof, slung from a long pole. Origin: the
+  middle of the pole. Params `width`, `color`.
+- **`procession(members, options)`.** Lines up creatures and figures one after another, spaced by their widths plus a
+  `gap`, in two depth rows (the far row higher, smaller, fainter). Every member travels the same `distance` over the same
+  frames, so the order and the gaps hold. Travel is in scene pixels, whatever the member's scale.
+- **`paradeScene(kind)`.**
+  - `hyakki`: the night parade along a wall under the moon. Oni, beast spirits, the wheel, the biwa, the umbrella, the
+    cotton strip overhead, soul-flames.
+  - `foxwedding`: foxes in haori and hakama through a sunshower. Three lantern bearers, the palanquin carried between two
+    bearers, the bride in white under her hood, two umbrella followers.
+  - `mousewedding`: the same order at dusk, with mice and a red palanquin.
+
+  Storybook **Parades** plays them.
 
 ### Transition
 

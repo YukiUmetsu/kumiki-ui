@@ -51,6 +51,8 @@ import type { UkiyoeTsukumoScene } from "../../registry/video/ukiyoe/ukiyoe-tsuk
 import { tsukumoScene, UKIYOE_TSUKUMO_SCENES } from "../../registry/video/ukiyoe/ukiyoe-tsukumo";
 import type { UkiyoeRealmScene } from "../../registry/video/ukiyoe/ukiyoe-realms";
 import { realmScene, UKIYOE_REALM_SCENES } from "../../registry/video/ukiyoe/ukiyoe-realms";
+import type { UkiyoeParadeScene } from "../../registry/video/ukiyoe/ukiyoe-parade";
+import { paradeScene, UKIYOE_PARADE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-parade";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -1040,6 +1042,29 @@ export function Realms() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={REALM_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Realm frame" />
+  </div>;
+}
+
+// ---- Processions and parades ---------------------------------------------------------------------------------------------------
+
+const PARADE_LABELS: Readonly<Record<UkiyoeParadeScene, string>> = { hyakki: "Night parade of a hundred demons", foxwedding: "The fox wedding in a sunshower", mousewedding: "The mouse wedding" };
+
+/** Processions that walk in order across the scroll: the night parade and the animal weddings. */
+export function Parades() {
+  const [kind, setKind] = useState<UkiyoeParadeScene>("foxwedding");
+  const spec = useMemo(() => paradeScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Parades" title="The night parade, the fox wedding, the mouse wedding">
+      <p style={{ margin: 0 }}>After the Shinjuan <em>Night Parade of One Hundred Demons</em>, the Met's fox-wedding inrō and Yamamoto Shōun's fox
+        wedding. <code>procession()</code> lines up yōkai, object spirits and figures one after another, all travelling the same distance so
+        nobody walks into anyone. Figures with <code>look.animal</code> walk as foxes or mice; two bearers carry the <code>kago</code> between them.</p>
+    </Header>
+    <section aria-label="Parade controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Parade" value={kind} options={UKIYOE_PARADE_SCENES} onChange={setKind} labels={PARADE_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={PARADE_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Parade frame" />
   </div>;
 }
 
