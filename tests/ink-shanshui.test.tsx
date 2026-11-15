@@ -564,6 +564,27 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         /data-km-bamboo-leaf-heading="(-?[0-9.]+)"/g,
       )].map(m=>Number(m[1]));
       expect(headings).toHaveLength(102);
+      const stations=[...html.matchAll(
+        /data-km-bamboo-leaf-parent="([^"]+)" data-km-bamboo-leaf-heading="([^"]+)" data-km-bamboo-leaf-station="([^"]+)" data-km-bamboo-leaf-cluster="([^"]+)"/g,
+      )];
+      expect(stations).toHaveLength(102);
+      expect(stations.every(m=>Number.isFinite(Number(m[3]))&&
+        Number(m[3])>=.12&&Number(m[3])<=.96)).toBe(true);
+      const byCluster=new Map<string,number[]>();
+      for(const m of stations.filter(m=>m[1]==="main")){
+        const positions=byCluster.get(m[4])??[];
+        positions.push(Number(m[3]));
+        byCluster.set(m[4],positions);
+      }
+      expect(byCluster.size).toBeGreaterThanOrEqual(12);
+      for(const positions of byCluster.values())
+        expect(Math.max(...positions)-Math.min(...positions)).toBeLessThan(.28);
+      const satelliteStations=[...html.matchAll(
+        /data-km-bamboo-satellite-station="([^"]+)" data-km-bamboo-satellite-cluster="([^"]+)"/g,
+      )];
+      expect(satelliteStations).toHaveLength(63);
+      expect(satelliteStations.every(m=>Number.isFinite(Number(m[1]))&&
+        Number(m[1])>=.12&&Number(m[1])<=.96)).toBe(true);
       // Genuine fan flow requires nonparallel ink gestures, not a lattice
       // of identically tilted triangles. This is a necessary, not artistic,
       // check: crop inspection remains the release authority.
