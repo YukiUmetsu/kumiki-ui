@@ -48,3 +48,25 @@ At 4× face crops, however, the princess's eye still reads like a generic white 
 Second contour correction on the same PR head: add a separate tapered princess brow, tighten sclera and pupil, recede both lips inside the closed facial outline, smooth both nasal tips, place a prince ear helix behind the sideburn, and re-register every new component to the face hinge. These are original stylized papercut contours. All are structural topology changes, not artificial microtexture or whole-frame filters.
 
 **R3b evidence pending:** inspect new exact-head 3× royal faces and a normal-speed act transition after focused tests; withhold any high-fidelity/source-matched claim until actual licensed source bytes, source/candidate hashes, 18 individual landmarks, and the independent ArtCraft v7 portrait gate can be supplied.
+
+## R4 continuity/gesture pass — source-led costume anatomy (2026-11-15)
+
+Study sources from this pass, **craftsmanship only**; do not reproduce these people's likenesses or copy third-party character outlines:
+
+- [The Golden Touch paper puppet pair, Nathaniel Devarie](https://natedevarie.com/artwork/4323978-The%20Kings%20Conflict%2C%20Paper%20Puppet%20for%20the%20shadow%20puppet%20show%20The%20Golden%20Touch%20%20%20.html): the two royal figures have hand-to-hand contact, shaped sleeves, narrow waist silhouettes and human-scaled wrist/hand hierarchy; not generic wrist circles.
+- [BFI archive: Lotte Reiniger's physical Cinderella puppets](https://www.bfi.org.uk/inside-the-archive/features/object-week-lotte-reiniger-cut-out-figures-backgrounds-cinderella): observed small separate mechanical paper cutouts and deliberate costume negative space.
+- [BFI/Sight and Sound: Reiniger describing original paper-film construction](https://www.bfi.org.uk/sight-and-sound/features/scissors-make-films-lotte-reiniger-creating-her-magical-animations/): real stiff limb components connected at joints, with natural motion studied frame-by-frame; avoid transparent morphs.
+
+### Critique → structural correction matrix
+
+| Anatomical region | Defect in actual R3b frames | R4 edit | Review criterion |
+| --- | --- | --- | --- |
+| Hands | Four mitten-like skin wedges with unarticulated fingers | Opposed thumbs, integrated palm silhouette, individual curved fingertip inflections; new princess left hand under cuff | Both hands have continuous sleeve attachment and distinct digit silhouette at 3× |
+| Shoulder/collar | Visible vertical neckline line and broad crescent resembling a bib | Recut folded lace collar with scalloped clavicle overlaps; custom cut filigree stock follows the collar, not a shader | Neck remains shorter than head; no floating cuff or unsupported collar tip |
+| Torso | Prince jacket has overly narrow shoulder roots and no tailoring line; princess waist feels unstructured | Broader coat clavicle cut, attached seam strips and bodice-to-skirt folded waist/pleats | Silhouette remains readable at final stage size |
+| Narrative gesture | The royals stand too far apart to convincingly raise the central lantern | Reduce only final landscape pair's base distance from 132 to 120 paper units, retaining existing synced animation | Each extended hand reaches the lantern region without two actors passing through each other |
+| QA | Previous browser captures only recorded full-stage videos, too small for facial inspection | On the **same** Storybook page, add stage/princess/prince zoom mode that magnifies the real full-resolution stage by 3× with no alternate face renderer | Browser captures two full-size facial view crops per aspect; stage mode restores unchanged native render |
+
+**Portrait hard stop is unchanged.** The linked public domain photography under [Library of Congress profile woman 1900](https://www.loc.gov/item/2004676295/) and [male profile photograph 1905](https://www.loc.gov/pictures/item/00651810/) provide candidate anatomical study, but we cannot claim a measured high-fidelity source/candidate reconstruction without locally available unchanged photographs, both hashes, independently annotated 18-landmark sets, tested tonal regions, and independent human review. Therefore this PR stays **experimental and unmerged** if this evidence cannot be produced. The R4 hand/costume improvements are separately testable and do not substitute for approved face details.
+
+**Render review required on latest head:** FilmStage 130/370/610 landscape and portrait, plus new loupe PNGs for princess and prince at act 3. Inspect hand-lantern overlap at 0/120/239 absolute shot frames, panel opacity, face detail and portrait cropping; technical CI pass alone is not artistic sign-off.
