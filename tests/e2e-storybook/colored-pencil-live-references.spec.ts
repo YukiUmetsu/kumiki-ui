@@ -267,6 +267,81 @@ for(const sample of ["woman","man"] as const){
         expect(await output.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
+        // Needle-sharp pigment densification is a reversible render-time
+        // skin material only. It may not touch the photo, hair, iris, lip
+        // or the independent photo-to-pencil video export.
+        const needle=page.getByLabel("Pencil needlepoint skin optical fill");
+        await needle.focus();
+        await needle.press("Home");
+        await expect(needle).toHaveValue("0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-needlepoint-depth","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-needlepoint-fibres","0");
+        // At true 285×318 presentation scale, the v14 source-matched
+        // cheek/forehead still had 3–6× excess high-pass paper grain.
+        // A positive diff PNG alone is NOT proof that it improved.
+        // This observes only the actual final Chromium canvas, never
+        // reads photo pixels into the painted artwork.
+        const measureSkinGrain=async()=>full.evaluate(node=>{
+          const canvas=node as HTMLCanvasElement;
+          const probe=document.createElement("canvas");
+          probe.width=285;probe.height=318;
+          const context=probe.getContext("2d")!;
+          context.imageSmoothingEnabled=true;
+          context.drawImage(canvas,0,0,285,318);
+          const rgba=context.getImageData(0,0,285,318).data;
+          const value=new Float32Array(285*318);
+          for(let i=0;i<value.length;i++){
+            const j=i*4;
+            value[i]=.2126*rgba[j]+.7152*rgba[j+1]+.0722*rgba[j+2];
+          }
+          const patches=[
+            [90,46,175,91],[75,124,160,192],
+            [90,200,180,235],[150,115,210,160],
+          ];
+          let residual=0,count=0;
+          for(const [x0,y0,x1,y1] of patches){
+            for(let y=y0+2;y<y1-2;y++)for(let x=x0+2;x<x1-2;x++){
+              let average=0;
+              for(let yy=-2;yy<=2;yy++)for(let xx=-2;xx<=2;xx++)
+                average+=value[(y+yy)*285+x+xx];
+              const d=value[y*285+x]-average/25;
+              residual+=d*d;count++;
+            }
+          }
+          // Must not alter the real deep iris or photographed lip seam.
+          const protectedPixels=[135+130*285,183+190*285,20+20*285]
+            .map(i=>Math.round(value[i]*100)/100);
+          return {grain:Math.sqrt(residual/count),protectedPixels};
+        });
+        const sparseEvidence=await measureSkinGrain();
+        const sparseSkin=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-needlepoint-sparse-0.png")});
+        await needle.press("End");
+        await expect(needle).toHaveValue("1");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-needlepoint-depth","1");
+        const fineFibres=Number(await full.getAttribute(
+          "data-km-pencil-needlepoint-fibres"));
+        expect(fineFibres).toBeGreaterThan(2000);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(sparseSkin);
+        const denseEvidence=await measureSkinGrain();
+        // A genuinely improved colored-pencil material lowers visible
+        // coarse grain, not merely changes ~6k face pixels. Keep the
+        // invariant as a negative quality gate for future refactors.
+        expect(denseEvidence.grain).toBeLessThan(sparseEvidence.grain-.15);
+        expect(denseEvidence.protectedPixels).toEqual(
+          sparseEvidence.protectedPixels);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-needlepoint-dense-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Actual licensed source, ALL four chronologically composited
         // Storybook shots. Stage 1..4 must contain increasing genuine
         // pencil marks; the exported film bitmap must not be affected.
