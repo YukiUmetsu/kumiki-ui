@@ -23,9 +23,9 @@ const MAX_STROKES=9;
 export function buildPencilNeedlepointSkinContact(
   mark:PencilPhotoMark,strength:number,seed=271,
 ):readonly PencilPhotoMark[]{
-  if(!Number.isFinite(strength)||strength<0||strength>1||
+  if(!mark||!Number.isFinite(strength)||strength<0||strength>1||
     !Number.isSafeInteger(seed)||seed<0||seed>2147483647||
-    !mark||![mark.x,mark.y,mark.controlX,mark.controlY,
+    ![mark.x,mark.y,mark.controlX,mark.controlY,
       mark.endX,mark.endY,mark.alpha,mark.width].every(Number.isFinite)||
     mark.alpha<=0||mark.alpha>1||mark.width<=0||
     !/^#[a-fA-F0-9]{6}$/.test(mark.color)||
