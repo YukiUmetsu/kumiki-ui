@@ -48,7 +48,7 @@ const sourceWax:Record<string,Partial<Wax>>={
       "C255 559 252 553 253 545Z",
     bounds:{x:251,y:539,width:18,height:23},
     colors:["#282123","#17161a","#433338"],
-    pressure:.96,spacing:3.8,underpaintTooth:.08,
+    pressure:.96,spacing:4.2,underpaintTooth:.08,
   },
   "upper-lid-near":{
     d:"M210 557 C220 537 240 523 263 519 "+
