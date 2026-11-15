@@ -24,7 +24,7 @@ describe("Common kingfisher ArtCraft anatomy reconstruction",()=>{
         "kingfisher-ankle-0","kingfisher-talon-1-2","kingfisher-crown-bar-2"]){
           expect(ids.has(id),id).toBe(true);
         }
-      expect(spec.layers.filter(x=>x.id.startsWith("kingfisher-tail-"))).toHaveLength(7);
+      expect(spec.layers.filter(x=>/^kingfisher-tail-\d+$/.test(x.id))).toHaveLength(7);
       expect(spec.layers.filter(x=>x.id.startsWith("wing-feather-"))).toHaveLength(18);
       const primary=spec.layers.filter(x=>x.id.startsWith("wing-feather-"));
       expect(primary.every(x=>x.holes?.length===1)).toBe(true);
@@ -89,6 +89,55 @@ describe("Common kingfisher ArtCraft anatomy reconstruction",()=>{
     expect(paperObjectSpec("layered","landscape",{
       object:"kingfisher",detail:1,curl:1,relief:1,motion:.5,seed:37,
     })).toEqual(intricate);
+  });
+  it("adds source-aligned feather shafts, ear coverts and two-sided vane barbs without breaking the cardstock budget",()=>{
+    const detailed=make();
+    const simple=paperObjectSpec("layered","landscape",{
+      object:"kingfisher",palette:"jewel",detail:0,curl:1,relief:1,motion:.5,seed:37,
+    });
+    expect(detailed.layers.length).toBeLessThanOrEqual(MAX_PAPER_LAYERS);
+    expect(detailed.layers.length).toBe(simple.layers.length);
+    for(const key of ["kingfisher-tail-shafts","kingfisher-auricular-feathers"]){
+      const full=detailed.layers.find(layer=>layer.id===key);
+      const plain=simple.layers.find(layer=>layer.id===key);
+      expect(full?.color).toMatch(/^#[a-fA-F0-9]{6}$/);
+      expect(full?.path.endsWith("Z")).toBe(true);
+      expect((full?.path.match(/M/g)||[]).length)
+        .toBeGreaterThan((plain?.path.match(/M/g)||[]).length);
+    }
+    expect((detailed.layers.find(l=>l.id==="kingfisher-tail-shafts")?.path.match(/M/g)||[]))
+      .toHaveLength(28); // 7 rectrices × four direction-following paper shafts
+    for(let col=0;col<3;col++){
+      const name="kingfisher-wing-spot-"+col;
+      const rich=detailed.layers.find(l=>l.id===name)!;
+      const quiet=simple.layers.find(l=>l.id===name)!;
+      expect(rich.rigGroup).toBe("kingfisher-wing");
+      expect(rich.pivot).toEqual(detailed.layers.find(l=>l.id==="wing-feather-0")!.pivot);
+      expect((rich.path.match(/M/g)||[]).length)
+        .toBeGreaterThan((quiet.path.match(/M/g)||[]).length+20);
+      expect(rich.path).not.toMatch(/NaN|Infinity/);
+    }
+    for(const aspect of ["landscape","portrait"] as const){
+      expect(inspectPaperCraft(make(aspect))).toEqual([]);
+    }
+  });
+  it("keeps beak a filled chisel, crown compact and primaries diagonally shingled in native sheet coordinates",()=>{
+    const spec=make();
+    const layer=(id:string)=>spec.layers.find(item=>item.id===id)!;
+    const numeric=(path:string)=>(path.match(/-?\d+(?:\.\d+)?/g)||[]).map(Number);
+    const beakYs=numeric(layer("kingfisher-beak-lower").path).filter((_,i)=>i%2===1);
+    expect(Math.max(...beakYs)-Math.min(...beakYs)).toBeGreaterThan(20);
+    const primary=layer("wing-feather-0");
+    const firstX=Number(/^M(-?\d+(?:\.\d+)?)/.exec(primary.path)?.[1]);
+    expect(firstX-primary.liftedTip!.hinge[0]).toBeGreaterThan(8);
+    for(let i=0;i<7;i++){
+      const rectrix=layer("kingfisher-tail-"+i);
+      const tailYs=numeric(rectrix.path).filter((_,index)=>index%2===1);
+      expect(Math.max(...tailYs)-Math.min(...tailYs)).toBeLessThan(65);
+    }
+    // Fine detail stays on physical stock, rather than faking a third silver bill.
+    expect(layer("beak-light-strip").color).toMatch(/^#[a-fA-F0-9]{6}$/);
+    expect(spec.layers).toHaveLength(MAX_PAPER_LAYERS);
   });
   it("supports jewel, pastel and heritage sheets with equal silhouette topology",()=>{
     const jewel=make("portrait","jewel");

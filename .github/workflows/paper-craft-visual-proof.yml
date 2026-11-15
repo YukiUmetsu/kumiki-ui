@@ -46,6 +46,9 @@ jobs:
         # Earlier paper modes have their own existing regression suite.
         # Only the current paper-object stories consume Chromium minutes.
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-craft-scenery.spec.ts tests/e2e-storybook/paper-director.spec.ts
+      - name: Current kingfisher wing and anatomical paper browser proof
+        # Two relevant captures; retain the other object suites for local work.
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-craft-objects.spec.ts --grep "Reference-led anatomy persists"
       - name: Validate paper film for both outputs
         run: |
           npm run film:check -- examples/film/paper-craft-objects.film.json
@@ -64,6 +67,11 @@ jobs:
           done
       - name: Encode a real native scenery film clip
         run: npm run film:render -- examples/film/paper-craft-scenery.film.json --startFrame=160 --frames=60 --only=landscape --out=dist/paper-scenery-proof
+      - name: Capture actual kingfisher cut-stock anatomy in both orientations
+        run: |
+          for output in landscape portrait; do
+            npm run film:frame -- examples/film/paper-craft-objects.film.json --frame=175 --only="$output" --out=dist/paper-kingfisher-proof
+          done
       - name: Capture four paper-film chapter compositions
         run: |
           for output in landscape portrait; do
@@ -96,6 +104,7 @@ jobs:
           path: |
             dist/paper-scenery-proof/
             dist/paper-director-proof/
+            dist/paper-kingfisher-proof/
             dist/paper-curtain-proof/
           retention-days: 7
           if-no-files-found: warn
