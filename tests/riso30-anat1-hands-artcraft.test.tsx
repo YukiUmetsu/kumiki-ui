@@ -8,7 +8,7 @@ import {RISO_PAPER_ARTIST_SHEET} from "../src/video/riso-human-ensemble";
 import {RISO_COURIER_SHEET} from "../src/video/riso-character-mesh-sheets";
 import {
  RISO30_ANAT1_HAND,RISO30_GRIP_FOREGROUND_IDS,
- inspectRisoHandArtcraft,risoHandArtcraftParts,
+ inspectRisoHandArtcraft,risoHandArtcraftParts,layoutRisoHandArtcraft,
 } from "../src/video/riso-hand-artcraft";
 const actors=[COURIER,PAPER_ARTIST] as const;
 const sides=["left","right"] as const;
@@ -67,7 +67,7 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
     }
   });
 
-  it.each(actors)("%s has physically connected 4-digit wrists throughout both film actors and each animation pose",actor=>{
+  it.each(actors)("%s has physically connected 5-digit wrists throughout both film actors and each animation pose",actor=>{
     for(const side of sides)
       for(const f of frames){
         const hand=inspectRisoHandArtcraft(actor,f,side);
@@ -77,7 +77,7 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
         expect(hand.sourceCount).toBeGreaterThan(17);
         expect(hand.fingers).toEqual(["thumb","index","middle","ring","pinky"].map(id=>side+"-"+id));
         expect(hand.independentDigitTransforms).toBe(true);
-        expect(hand.palmToFingerRoots.length).toBe(4);
+        expect(hand.palmToFingerRoots.length).toBe(5);
         expect(hand.palmToFingerRoots.every(x=>Number.isFinite(x)&&x>3&&x<30)).toBe(true);
         expect(hand.referenceKnuckleCount).toBeGreaterThan(0);
       }
@@ -99,6 +99,22 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
         }
         const palm=actor.id==="courier"?"glove-"+side+"-metacarpal":side+"-glove-knuckle-arc";
         expect(regions.find(r=>r.id===palm)).toBeDefined();
+      }
+    }
+  });
+
+  it.each(actors)("%s: true five-finger source crop contains rotating thumb and pinky from entrance through handoff",actor=>{
+    for(const side of sides){
+      for(let f=0;f<240;f+=2){
+        const pose=evaluateRisoCharacter(actor,f);
+        const crop=layoutRisoHandArtcraft(pose,side,6.2,446,482);
+        expect(crop.scale,actor.id+" broken crop at frame "+f).toBeGreaterThan(2);
+        expect(crop.scale).toBeLessThanOrEqual(6.2);
+        expect(crop.marginX,actor.id+" hand source clipped horizontally f"+f).toBeGreaterThanOrEqual(35);
+        expect(crop.marginY,actor.id+" hand source clipped vertically f"+f).toBeGreaterThanOrEqual(34);
+        expect(crop.paperBounds.left).toBeLessThan(crop.paperBounds.right);
+        expect(crop.paperBounds.top).toBeLessThan(crop.paperBounds.bottom);
+        expect(layoutRisoHandArtcraft(pose,side,6.2,446,482)).toEqual(crop);
       }
     }
   });
