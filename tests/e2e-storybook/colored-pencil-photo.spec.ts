@@ -20,16 +20,25 @@ test("reference-guided pencil renders locally loaded colour/edge structure in bo
       g.fillStyle="#FEEDCC";g.beginPath();g.ellipse(21,22,4,2,0,0,Math.PI*2);g.fill();
       return canvas.toDataURL("image/png").split(",")[1];
     });
-    await page.getByRole("textbox",{name:"Upload pencil reference photo"})
+    await page.getByLabel("Upload pencil reference photo")
       .setInputFiles({name:"controlled-anatomy.png",mimeType:"image/png",
         buffer:Buffer.from(img,"base64")});
     const canvas=page.locator('canvas[data-km-pencil-photo]');
     await expect(canvas).toHaveAttribute("data-km-pencil-photo","ready",{timeout:20000});
     await expect(page.getByRole("alert")).toHaveCount(0);
+    const setSlider=async(label:string,n:number)=>{
+      const slider=page.getByRole("slider",{name:label});
+      await slider.evaluate((input,next)=>{
+        const el=input as HTMLInputElement;
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set?.call(el,String(next));
+        el.dispatchEvent(new Event("input",{bubbles:true}));
+        el.dispatchEvent(new Event("change",{bubbles:true}));
+      },n);
+    };
     for(const aspect of ["landscape","portrait"] as const){
       await page.getByRole("combobox",{name:"Pencil photo aspect"}).selectOption(aspect);
       await expect(canvas).toHaveAttribute("data-km-pencil-photo","ready",{timeout:20000});
-      await page.getByRole("slider",{name:"Pencil photo frame"}).fill("350");
+      await setSlider("Pencil photo frame",350);
       const metrics=await canvas.evaluate(node=>{
         const c=node as HTMLCanvasElement;
         const x=c.getContext("2d")!;
@@ -41,13 +50,13 @@ test("reference-guided pencil renders locally loaded colour/edge structure in bo
       expect(metrics.right[2]).toBeGreaterThan(metrics.left[2]+15);
       await canvas.screenshot({animations:"disabled",
         path:info.outputPath("pencil-source-guided-"+aspect+"-finished.png")});
-      await page.getByRole("slider",{name:"Pencil photo frame"}).fill("175");
+      await setSlider("Pencil photo frame",175);
       await canvas.screenshot({animations:"disabled",
         path:info.outputPath("pencil-source-guided-"+aspect+"-mid-draw.png")});
     }
-    await page.getByRole("slider",{name:"Pencil photo density"}).fill("1.8");
+    await setSlider("Pencil photo density",1.8);
     await expect(canvas).toHaveAttribute("data-km-pencil-photo","ready");
-    await page.getByRole("slider",{name:"Pencil photo frame"}).fill("350");
+    await setSlider("Pencil photo frame",350);
     await canvas.screenshot({animations:"disabled",
       path:info.outputPath("pencil-source-guided-extra-strokes.png")});
   });
