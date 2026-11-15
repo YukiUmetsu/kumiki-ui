@@ -151,6 +151,20 @@ describe("UKIYO1 figures", () => {
     const oni = { look: CAST["oni-red"] };
     expect(head({ ...oni, actions: [{ type: "face" as const, start: 0, end: 60 }] }, 30)).toEqual(head(oni, 30));
   });
+  it("draws a figure square on: both eyes from the front, none from behind, and both legs side by side", () => {
+    type P = { t: string; color?: unknown; prims?: P[] };
+    const flat = (ps: P[]): P[] => ps.flatMap(p => p.t === "group" || p.t === "clip" ? flat(p.prims ?? []) : [p]);
+    const look = { hair: "shimada" as const, robe: "beni", under: "ki" }, walk = [{ type: "walk" as const, start: 0, end: 100, to: 300 }];
+    const draw = (view?: "front" | "back") => drawFigure({ look: { ...look, view }, actions: walk }, 25, 0, 3);
+    const eyes = (view?: "front" | "back") => flat(draw(view).prims as P[]).filter(p => p.t === "dots" && p.color === "sumi").length;
+    expect(eyes("front")).toBe(2);
+    expect(eyes("back")).toBe(0);
+    const [pro, front, back] = [undefined, "front", "back"].map(v => JSON.stringify(draw(v as never).prims));
+    expect(new Set([pro, front, back]).size).toBe(3);
+    // Walking toward or away from us still travels along the road.
+    expect(draw("front").x).toBeCloseTo(draw().x, 5);
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "f", kind: "figure", look: { view: "back" } } as never] }))).toEqual([]);
+  });
 });
 
 describe("UKIYO1 crowds", () => {
@@ -241,6 +255,18 @@ describe("UKIYO1 folktale creatures", () => {
     const crane = JSON.stringify(drawCreature({ species: "crane", look: { view: "three-quarter" }, actions: [{ type: "stand", start: 0, end: 60 }] }, 20, 0, 5).prims);
     expect(crane).toMatch(/"t":"group","transform":"translate\(-[\d.]+ -[\d.]+\)"/);
     expect(inspectUkiyoeScene(scene({ nodes: [{ id: "c", kind: "creature", species: "fox", look: { view: "sideways" } } as never] })).map(i => i.path)).toContain("$.nodes[0].look.view");
+  });
+  it("draws four-legged animals square on, the kyūbi's tails fanned and the drumming tanuki upright", () => {
+    const draw = (species: string, view: string | undefined, action = "walk", look: Record<string, unknown> = {}) => JSON.stringify(drawCreature({ species: species as never, look: { ...look, view: view as never }, actions: [{ type: action as never, start: 0, end: 60, ...(action === "walk" ? { to: 100 } : {}) }] }, 20, 0, 5).prims);
+    for (const sp of ["fox", "tanuki", "dog", "cat", "rabbit", "monkey", "horse", "nue"]) {
+      const [pro, front, back] = [undefined, "front", "back"].map(v => draw(sp, v));
+      expect(new Set([pro, front, back]).size, sp).toBe(3);
+    }
+    const kyubi = draw("fox", "back", "sit", { tails: 9 }), one = draw("fox", "back", "sit");
+    expect((kyubi.match(/"t":"glow"/g) ?? []).length).toBe(12);                                   // foxfire: 3 + nine tails
+    expect(one).not.toMatch(/"t":"glow"/);
+    expect(draw("tanuki", "front", "drum", { hat: true })).not.toEqual(draw("tanuki", "front", "sit", { hat: true }));
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "c", kind: "creature", species: "horse", look: { view: "front" } } as never] }))).toEqual([]);
   });
   it("vanishes a creature in a henge puff and keeps it gone", () => {
     const spec = { species: "tanuki" as const, actions: [{ type: "transform" as const, start: 10, end: 30 }] };

@@ -18,6 +18,7 @@ import type { UkiyoePatternType } from "../../registry/video/ukiyoe/ukiyoe-prims
 import { UKIYOE_PATTERNS } from "../../registry/video/ukiyoe/ukiyoe-prims";
 import type { UkiyoeCrowdMood } from "../../registry/video/ukiyoe/ukiyoe-crowd";
 import { UKIYOE_CROWD_MOODS } from "../../registry/video/ukiyoe/ukiyoe-crowd";
+import { UKIYOE_SQUARE_VIEW_SPECIES } from "../../registry/video/ukiyoe/ukiyoe-creatures";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import { inspectUkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -354,7 +355,8 @@ export function CastLab() {
     <Header kicker="UKIYO1 · Cast lab" title="Figures, costumes and actions">
       <p style={{ margin: 0 }}>Each figure is an articulated rig drawn as a print would draw it: a robe silhouette, hanging sleeves
         that lag and blow in the wind, a pale profile face, and costume pattern as its own block. Pick a figure, then change its
-        costume and action. The whole cast plays together on one clock.</p>
+        costume and action, or turn it with View: three-quarters, square on from the front, or from behind. The whole cast plays
+        together on one clock.</p>
     </Header>
     <Fit width={1920} height={1080} maxHeight={560}><UkiyoeScene spec={spec} frame={clock.frame} aria-label="Cast lab stage" /></Fit>
     <Transport clock={clock} total={240} rate={rate} setRate={setRate} loop={loop} setLoop={setLoop} name="Cast frame" />
@@ -363,6 +365,7 @@ export function CastLab() {
     </nav>
     <section aria-label={"Edit " + selected} style={panel}>
       <Select name="Action" value={actions[selected]} options={UKIYOE_ACTIONS} onChange={v => setActions(a => ({ ...a, [selected]: v }))} />
+      <Select name="View" value={look.view ?? "profile"} options={["profile", "three-quarter", "front", "back"] as const} onChange={v => set({ view: v })} labels={{ profile: "Profile", "three-quarter": "Three-quarter", front: "Front", back: "Back" }} />
       <Select name="Hair" value={look.hair ?? "chonmage"} options={UKIYOE_HAIRS} onChange={(v: UkiyoeHair) => set({ hair: v })} />
       <Select name="Hat" value={look.hat ?? "none"} options={UKIYOE_HATS} onChange={(v: UkiyoeHat) => set({ hat: v })} />
       <Select name="Prop" value={look.prop ?? "none"} options={UKIYOE_PROPS} onChange={(v: UkiyoeProp) => set({ prop: v })} />
@@ -577,11 +580,14 @@ export function Bestiary() {
   const [wind, setWind] = useState(.3);
   const [cadence, setCadence] = useState<1 | 2 | 3 | 4>(2);
   const [chosen, setChosen] = useState<Record<string, string>>(() => Object.fromEntries(BESTIARY.map(b => [b.id, b.actions[0]])));
-  const [view, setView] = useState<"profile" | "three-quarter">("profile");
+  const [view, setView] = useState<"profile" | "three-quarter" | "front" | "back">("profile");
   const clock = usePlayback(240, 30, 1, true, true);
   // The View switch turns every animal and figure three-quarters toward the viewer (creatures: body, far legs, head;
-  // figures: face, torso and limbs).
-  const turn = (n: UkiyoeNode): UkiyoeNode => view === "profile" || (n.kind !== "creature" && n.kind !== "figure") ? n
+  // figures: face, torso and limbs), or square on from the front or from behind (figures and four-legged animals; birds,
+  // the dragon and the yōkai stay in profile).
+  const square = view === "front" || view === "back";
+  const turn = (n: UkiyoeNode): UkiyoeNode => view === "profile" || (n.kind !== "creature" && n.kind !== "figure")
+    || (square && n.kind === "creature" && !UKIYOE_SQUARE_VIEW_SPECIES.includes(n.species)) ? n
     : ({ ...n, look: { ...(n.look ?? {}), view } } as UkiyoeNode);
   const specs = useMemo(() => BESTIARY.map((b): UkiyoeSceneSpec => ({
     version: 1, id: "best-" + b.id, width: 600, height: 400, durationFrames: 240, seed: 70 + b.id.length, cadence, wind: { base: wind, turbulence: .4 },
@@ -617,7 +623,7 @@ export function Bestiary() {
     <section aria-label="Bestiary controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
       <Slider name="Wind" value={wind} min={-2} max={2} step={.1} onChange={setWind} format={v => v.toFixed(1)} />
       <Select name="Cadence" value={cadence} options={[1, 2, 3, 4] as const} onChange={setCadence} labels={{ 1: "On ones", 2: "On twos", 3: "On threes", 4: "On fours" }} />
-      <Select name="View" value={view} options={["profile", "three-quarter"] as const} onChange={setView} labels={{ profile: "Profile", "three-quarter": "Three-quarter" }} />
+      <Select name="View" value={view} options={["profile", "three-quarter", "front", "back"] as const} onChange={setView} labels={{ profile: "Profile", "three-quarter": "Three-quarter", front: "Front", back: "Back" }} />
     </section>
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
       {specs.map((s, i) => {

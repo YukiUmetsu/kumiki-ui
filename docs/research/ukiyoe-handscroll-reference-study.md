@@ -314,12 +314,39 @@ Not done: three-quarter views. Every rig is still a profile, mirrored to turn.
   - **In Storybook.** The Bestiary has a **View** switch that turns every animal and figure.
 - **Not done.** No back views or full front views; dragons and yōkai keep their own drawings.
 
+## Back views and full front views (owner request, 2026-11-14)
+
+Prints often show a figure from behind: a traveller walking away down the road, a woman whose back is turned to show her nape and her obi's knot. They also show a figure square on, facing out of the print. Figures and four-legged animals now take `look.view: "front"` and `"back"`.
+
+- **Figures** (`ukiyoe-figure-front.ts`). The drawing is driven by the same pose channels as the profile rig, so every action works.
+  - **Legs.** They stand side by side. A stride lifts the swinging foot and bends its knee toward us, so the shin shortens.
+  - **Arms.** They hang at the sides. A profile shoulder angle becomes a sideways lift, reaching straight overhead at the top of a cheer. A forward reach foreshortens, and a folded forearm (praying, cradling) comes in to the chest. A punt pole stands upright at one side, held in both hands one above the other, and the hands climb and drop with the stroke.
+  - **Bow.** A bow shortens the torso and drops the head.
+  - **Kneeling.** Seiza folds the knees into a wide base.
+  - **From the front.** Both eyes and brows, the nose and mouth, the crossed collar (left over right), the front panel and the obi cord.
+  - **From behind.** The back of each hairstyle, the nape (the women's collar pulled low, emon-nuki), the taiko knot and the centre-back seam.
+  - **Oni.** Horns, fangs and the glaring eyes face out; from behind, only the wild hair and the horns.
+  - **Props.** The umbrella leans over the head without crossing the face, the staff or kanabō stands at the side, the lantern hangs from the hand, and the fan is held up.
+- **Four-legged animals** (`quadFrontBack` in `ukiyoe-creatures.ts`). The fox, tanuki, dog, cat, rabbit, monkey, horse and nue take these views.
+  - **From the front.** The face square on (both ears, both eyes, the muzzle toward us with the nose leather at its tip, each species' markings), the chest ruff, the front legs side by side, and the hind legs behind them.
+  - **From behind.** The backs of the ears, the rump with the tail down its middle, and the hind legs.
+  - **Horse.** From behind, its head stands high on the neck with the mane down it.
+  - **Sitting.** The haunches spread at the base.
+  - **Kyūbi.** Its nine tails fan out behind it, with the foxfire circling.
+  - **Drumming tanuki.** It stands upright, beating its belly with both paws, with the hat and the sake bottle.
+  - **Nue.** Its snake tail rears up over the back and looks at us.
+- **In Storybook.** The Bestiary's View switch offers Front and Back (birds, the dragon and the yōkai stay in profile), and the Cast lab has a View switch for each figure.
+- **Not done.**
+  - Birds, the dragon and the yōkai have no front or back drawing.
+  - No film uses these views yet.
+  - The turn between views is a cut, not an animated turn.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
-- Faces are a single profile design per hairstyle. There are no three-quarter turns or expressive brow and eye shapes yet.
+- Faces have one design per hairstyle in each view. There are no expressive brow and eye shapes yet.
 - The wave's foam is procedural. It is now one connected white like the print's, but every claw is built from the same palm-and-talon unit, so it lacks the print's hand-drawn variety of claw sizes and the long lace trailing over the back.
 - The wave breaks one way only: a plunging breaker. There is no spilling breaker for the small background waves, and the falling curtain has no motion smear at its fastest frames.
-- Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Figures and animals turn three-quarter as well as profile, but there are no back or full front views.
+- Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Figures and animals turn three-quarter, and figures and four-legged animals can face front or back. Birds, the dragon and the yōkai cannot, and there is no animated turn between views.
 - Sound is recorded ambience beds (river, stream, wind, rain, surf, distant fireworks, crickets). There is no music and no hits timed to frames (a crash on the wave's break, each firework). Nobody has listened to the mix yet.
 - Human normal-speed review of the film has **not** been recorded.
