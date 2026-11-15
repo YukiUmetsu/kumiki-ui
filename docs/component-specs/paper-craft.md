@@ -89,3 +89,24 @@ Controls: `object` = kingfisher | dragonfly | canal-houses | camera | teacup; `p
 Use `artwork:"object"`, `object`, and `objectPalette` on the existing `paper-craft-study` FilmStage slot. See `examples/film/paper-craft-objects.film.json` (five cuts and dual output formats). Six more interactive studies are kept **directly within Video production / Film Looks**; no new sidebar folder. For original reference links, design audits and remaining work, read `docs/research/paper-craft-objects-study.md`.
 
 This produces cinematographic 2.5D cardstock illustrations, **not** physically folded and dimensionally manufactured 3D objects, die templates or articulated skeleton rigs.
+
+## Sculptural curled-stock lighting and coordinated subject rigs
+
+The paper-object library adds an **authored curvature cue** to individual `PaperCutLayer` records (`curl?: number`, 0–1) and a renderer intensity `curlStrength?: number` (0–1). The renderer builds fixed, **fully opaque five-stop paper-pigment gradients** for only the pieces that request curvature. Separate feather, wing, roof, strap, cup and fruit layers retain their real apertures, cut path and material depth. This is a paper-bending *lighting approximation* rather than a true 3D ribbon or cloth simulation. `curlStrength=0` disables the gradient and restores solid stock.
+
+For moving subjects, `PaperMotion` now supports `flutter`, with `rigGroup`, `flapHz` (0.1–8 Hz), `flapPhase` (0–360°), shared `pivot`, and signed `swingDegrees` (±30°). Every paper layer in a named rig must share **exactly the same pivot, frequency, phase and amplitude** or `inspectPaperCraft` rejects it. Flutter is calculated exclusively from absolute film frames; it does not drift as layers enter at different times or when Storybook scrubs backward. Mild x-axis foreshortening approximates rotating cardstock in 2.5D. In reduced motion, the completed artwork is completely still across any frame seek.
+
+The kingfisher's coverts, large wing and all individual attached feathers now share one slow wing rig. The dragonfly's left/right fore/hind wing membranes, perforated lace and paper veins share four distinct wing rigs, with phase offset between fore and hind pairs. Cardstock curl values are applied to specific independently cut sheets (not raster filters or global overlays).
+
+```tsx
+const spec = paperObjectSpec("layered", "landscape", {
+  object:"dragonfly",palette:"jewel",detail:1,
+  curl:1,   // 0–1 physical-stock curvature lighting
+  motion:1, // 0–1 oscillation amplitude; 0 freezes the authored rig
+  seed:37,
+});
+<PaperCraftStage spec={spec} frame={198} curlStrength={1}
+  shadowStrength={.92} edgeStrength={.68} />;
+```
+
+`artwork:"object"` FilmStage props `curl` and `motion` accept finite 0–1 numbers and reject untrusted malformed values. Storybook maintains **one existing Film Looks section** and now exposes `curl`/`motion` alongside other material controls, including separate motion-focused kingfisher and dragonfly scenes. The five-scene portable `examples/film/paper-craft-objects.film.json` renders at both 16:9 and 9:16, with frame-exact dynamics. No 3D fold rig, extrusion, material thickness solver or die-ready cut templates are claimed.

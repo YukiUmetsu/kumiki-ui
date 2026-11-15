@@ -6,6 +6,8 @@ on:
       - 'tests/e2e-storybook/paper-craft.spec.ts'
       - 'registry/video/paper-botanical-kit.ts'
       - 'registry/video/paper-object-kit.ts'
+      - 'registry/video/paper-craft.ts'
+      - 'registry/video/paper-craft-react.tsx'
       - 'tests/e2e-storybook/paper-craft-objects.spec.ts'
       - 'examples/film/paper-craft-objects.film.json'
       - 'src/video/paper-craft.stories.tsx'

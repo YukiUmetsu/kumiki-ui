@@ -22,6 +22,10 @@ export interface PaperObjectOptions {
   palette?: PaperObjectPalette;
   /** 0–1: number of detail feathers, wing veins, facade embellishments. */
   detail?: number;
+  /** 0–1: multiply authored cardstock curvature (non-mesh shading cue). */
+  curl?: number;
+  /** 0–1: scale ongoing linked wing-beat amplitude; zero freezes the rig. */
+  motion?: number;
   seed?: number;
 }
 type Stock = Readonly<{
@@ -158,7 +162,7 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
   // Tail feathers tuck beneath the body and overlap the branch in the same plane.
   for(let i=0;i<9;i++){
     add("kingfisher-tail-"+i,i%3===0?c.blueLight:i%2?c.ink:c.blue,11,
-      p.taper(-111,-1,-224+i*7,156+i*2,7.5,4),{enterFrame:30+i*3});
+      p.taper(-111,-1,-224+i*7,156+i*2,7.5,4),{enterFrame:30+i*3,curl:.45});
   }
   add("kingfisher-body-shadow",c.dark,12,[
     p.M(-125,-77),p.C(-84,-135,-10,-116,43,-66),p.C(65,-20,37,86,-24,132),
@@ -175,15 +179,21 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
   add("kingfisher-wing-base",c.ink,16,[
     p.M(-107,-64),p.C(-80,-94,-33,-79,-14,-43),p.C(-26,15,-68,79,-112,99),
     p.C(-139,50,-147,-19,-107,-64),p.Z].join(" "),{
-      enterFrame:61,motion:"swing",swingDegrees:4,pivot:[p.cx-85*p.s,p.cy-55*p.s]});
+      enterFrame:61,motion:"flutter",swingDegrees:5,flapHz:.65,flapPhase:0,
+      rigGroup:"kingfisher-wing",curl:.5,pivot:[p.cx-85*p.s,p.cy-55*p.s]});
   add("kingfisher-wing-coverts",c.blueLight,17,[
     p.M(-112,-54),p.C(-68,-90,-35,-63,-34,-20),p.C(-59,28,-88,49,-113,69),
-    p.C(-128,33,-139,-20,-112,-54),p.Z].join(" "),{enterFrame:67});
+    p.C(-128,33,-139,-20,-112,-54),p.Z].join(" "),{
+      enterFrame:67,motion:"flutter",swingDegrees:5,flapHz:.65,flapPhase:0,
+      rigGroup:"kingfisher-wing",curl:.7,pivot:[p.cx-85*p.s,p.cy-55*p.s]});
   const feathers=11+Math.round(detail*7);
   for(let i=0;i<feathers;i++){
     const t=i/(feathers-1),x=-105+64*t,y=-34+62*t;
     add("wing-feather-"+i,i%3===0?c.gold:i%2?c.blue:c.blueLight,18,
-      p.taper(x,y,x-16-21*t,y+42+17*t,4.2,2),{enterFrame:69+i*2,durationFrames:25});
+      p.taper(x,y,x-16-21*t,y+42+17*t,4.2,2),{
+        enterFrame:69+i*2,durationFrames:25,motion:"flutter",swingDegrees:5,flapHz:.65,
+        flapPhase:0,rigGroup:"kingfisher-wing",curl:.92,
+        pivot:[p.cx-85*p.s,p.cy-55*p.s]});
   }
   for(let i=0;i<10;i++){
     const x=-30+i*4.7,y=58+i%2*7;
@@ -196,7 +206,7 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
     const col=i%4,row=Math.floor(i/4);
     const x=-67+col*19+row*4,y=-17+row*30+(col%2)*4;
     add("breast-scale-"+i,i%3===0?c.gold:i%2?c.coral:c.cream,17,
-      p.petal(x,y,23,77+row*6,5.5),{enterFrame:76+i*2,durationFrames:24});
+      p.petal(x,y,23,77+row*6,5.5),{enterFrame:76+i*2,durationFrames:24,curl:.8});
   }
   // Head separates mask, crest, cap and eye; no translucent overlays.
   add("kingfisher-head",c.blue,19,[
@@ -213,7 +223,7 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
   for(let i=0;i<10;i++){
     const x=-8+i*11,y=-104+Math.sin(i*.41)*8;
     add("head-crown-feather-"+i,i%3===0?c.white:c.blueLight,22,
-      p.taper(x,y,x+10,y-24,2.8,1),{enterFrame:111+i*2,durationFrames:20});
+      p.taper(x,y,x+10,y-24,2.8,1),{enterFrame:111+i*2,durationFrames:20,curl:.88});
   }
   add("kingfisher-eye-mask",c.ink,22,p.oval(87,-86,16,11),{enterFrame:112});
   add("kingfisher-eye",c.white,23,p.disk(88,-89,5),{enterFrame:116,durationFrames:22});
@@ -261,18 +271,19 @@ function dragonfly(p:P,add:Add,c:Stock,detail:number,seed:number){
       return p.oval(x,y,7+(1-t)*5,3.2+(1-t)*1.7);
     });
     const pivot:[number,number]=[p.cx+rootX*p.s,p.cy+rootY*p.s];
+    const beat={motion:"flutter" as const,rigGroup:name,
+      swingDegrees:w.side*(w.front?10:8),flapHz:2.1,
+      flapPhase:w.front?0:100,pivot};
     add(name+"-rear",w.front?c.blueLight:c.greenLight,12,upper,{
-      enterFrame:48+wi*5,durationFrames:45,motion:"swing",
-      swingDegrees:w.side*4,pivot});
+      enterFrame:48+wi*5,durationFrames:45,curl:.5,...beat});
     add(name+"-lace",w.front?c.blue:c.gold,14,upper,{
-      holes,enterFrame:61+wi*5,durationFrames:43,motion:"swing",
-      swingDegrees:w.side*4,pivot});
+      holes,enterFrame:61+wi*5,durationFrames:43,curl:.65,...beat});
     const n=6+Math.round(detail*4);
     for(let j=0;j<n;j++){
       const t=.15+j/(n-1)*.7,rx=rootX+(tipX-rootX)*t,ry=rootY+(tipY-rootY)*t;
       add(name+"-vein-"+j,j%2?c.white:c.cream,15,
         p.taper(rootX+w.side*5,rootY,rx,ry+(j%2?19:-19),1.55),{
-        enterFrame:73+wi*4+j,durationFrames:22,motion:"still"});
+        enterFrame:73+wi*4+j,durationFrames:22,...beat});
     }
   }
   // Body sits on top of the four wing root attachments.
@@ -333,7 +344,7 @@ function houses(p:P,add:Add,c:Stock,detail:number,seed:number){
         pivot:[p.cx+(m.x+m.w/2)*p.s,p.cy+m.top*p.s]});
     add("house-"+m.id+"-roof",m.trim,base+4,
       p.poly([[m.x-15,m.top-3],[m.x+m.w/2,m.roof],[m.x+m.w+16,m.top-3]]),{
-        enterFrame:49+i*8,durationFrames:36,motion:"unfold",
+        enterFrame:49+i*8,durationFrames:36,motion:"unfold",curl:.45,
         pivot:[p.cx+(m.x+m.w/2)*p.s,p.cy+m.top*p.s]});
     add("house-"+m.id+"-roof-inset",c.dark,base+5,
       p.poly([[m.x+2,m.top-8],[m.x+m.w/2,m.roof+27],[m.x+m.w-2,m.top-8]]),{
@@ -383,7 +394,7 @@ function camera(p:P,add:Add,c:Stock,detail:number,seed:number){
   add("camera-table-top",c.paper,8,p.roundRect(-315,169,630,28,7),{enterFrame:27});
   // Strap: a genuine punched paper band, attached to two camera lugs.
   add("camera-strap",c.coral,9,p.oval(-30,-30,306,188),{
-    holes:[p.oval(-30,-30,289,171)],enterFrame:34,durationFrames:44,motion:"unfold",
+    holes:[p.oval(-30,-30,289,171)],enterFrame:34,durationFrames:44,motion:"unfold",curl:.8,
     pivot:[p.cx,p.cy-18*p.s]});
   add("camera-back-slab",c.deep,11,p.roundRect(-235,-116,464,257,23),{enterFrame:41});
   add("camera-main-body",c.ink,12,p.roundRect(-223,-111,446,249,20),{enterFrame:47});
@@ -435,7 +446,7 @@ function teacup(p:P,add:Add,c:Stock,detail:number,seed:number){
   add("tea-saucer-rim",c.white,12,p.oval(5,146,177,26),{
     holes:[p.oval(5,147,147,17)],enterFrame:50});
   add("tea-handle-back",c.gold,12,p.oval(166,30,85,84),{
-    holes:[p.oval(170,30,52,54)],enterFrame:53,durationFrames:40});
+    holes:[p.oval(170,30,52,54)],enterFrame:53,durationFrames:40,curl:.6});
   add("tea-handle-inner",c.paper,13,p.oval(166,30,70,73),{
     holes:[p.oval(171,30,50,53)],enterFrame:60,durationFrames:40});
   add("tea-cup-body-shadow",c.dark,14,[
@@ -443,7 +454,7 @@ function teacup(p:P,add:Add,c:Stock,detail:number,seed:number){
     p.C(-20,177,95,169,122,126),p.C(143,99,165,16,163,-74),p.Z].join(" "),{enterFrame:59});
   add("tea-cup-body",c.cream,15,[
     p.M(-158,-83),p.C(-150,0,-120,118,-69,135),
-    p.C(-12,162,90,145,113,115),p.C(137,64,151,-15,158,-83),p.Z].join(" "),{enterFrame:67});
+    p.C(-12,162,90,145,113,115),p.C(137,64,151,-15,158,-83),p.Z].join(" "),{enterFrame:67,curl:.8});
   add("tea-cup-color-band",c.blue,16,[
     p.M(-148,56),p.C(-89,80,74,81,143,53),
     p.C(139,81,128,111,111,117),p.C(29,150,-79,143,-119,115),
@@ -468,7 +479,7 @@ function teacup(p:P,add:Add,c:Stock,detail:number,seed:number){
   for(let i=0;i<segments;i++){
     const angle=i*360/segments;
     add("tea-citrus-segment-"+i,c.coral,15,
-      p.petal(-240,141,38,angle,9.2),{enterFrame:57+i*3,durationFrames:25});
+      p.petal(-240,141,38,angle,9.2),{enterFrame:57+i*3,durationFrames:25,curl:.55});
   }
   add("tea-citrus-center",c.cream,16,p.disk(-240,141,8),{enterFrame:94});
   // Spoon rests on the saucer, with clearly hollow bowl.
@@ -489,7 +500,10 @@ export function paperObjectSpec(
   if(!Number.isSafeInteger(seed))throw new RangeError("Paper object seed must be a safe integer.");
   if(options.detail!==undefined&&(!Number.isFinite(options.detail)||options.detail<0||options.detail>1))
     throw new RangeError("Paper object detail must be finite between 0 and 1.");
-  const detail=clamp(options.detail??.85),c=STOCKS[palette];
+  for(const [key,value] of [["curl",options.curl],["motion",options.motion]] as const)
+    if(value!==undefined&&(!Number.isFinite(value)||value<0||value>1))
+      throw new RangeError("Paper object "+key+" must be finite between 0 and 1.");
+  const detail=clamp(options.detail??.85),curlAmount=options.curl??.85,motionAmount=options.motion??1,c=STOCKS[palette];
   const w=aspect==="portrait"?540:960,h=aspect==="portrait"?960:540,p=geometry(w,h);
   const layers:PaperCutLayer[]=[];
   const add:Add=(id,color,depth,path,rest={})=>{
@@ -505,8 +519,16 @@ export function paperObjectSpec(
     case "teacup":teacup(p,add,c,detail,seed);break;
   }
   if(layers.length>MAX_PAPER_LAYERS)throw new RangeError("Paper object exceeded bounded cardstock budget.");
+  // Adjust authored sheet curvature and rig amplitude without changing geometry,
+  // sheet count, deterministic assembly cues or all other paper media.
+  const shaped=layers.map(layer=>({
+    ...layer,
+    curl:layer.curl===undefined?undefined:layer.curl*curlAmount,
+    swingDegrees:layer.motion==="flutter"
+      ? (layer.swingDegrees??8)*motionAmount :layer.swingDegrees,
+  }));
   // Renderer sorts by depth, not declaration order; frame construction remains pure.
   return {version:1,id:"paper-object-"+object+"-"+aspect+"-"+palette,
     style,width:w,height:h,fps:30,durationFrames:240,seed,
-    backing:c.backing,light:c.cream,layers};
+    backing:c.backing,light:c.cream,layers:shaped};
 }

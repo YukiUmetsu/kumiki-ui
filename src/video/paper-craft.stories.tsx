@@ -17,6 +17,8 @@ type Controls = {
   palette: PaperBotanicalPalette;
   detail: number;
   colorLayers: number;
+  curl: number;
+  motion: number;
   medium: PaperStyle;
   aspect: PaperAspect;
   frame: number;
@@ -33,12 +35,12 @@ const labels: Record<PaperStyle, string> = {
   lightbox: "04 · Backlit lightbox",
   "shadow-puppet": "05 · Shadow puppetry",
 };
-function PaperCraftLab({ artwork, object, objectPalette, palette, detail, colorLayers, medium, aspect, frame, tooth, shadow, edge, seed, reducedMotion }: Controls) {
+function PaperCraftLab({ artwork, object, objectPalette, palette, detail, colorLayers, curl, motion, medium, aspect, frame, tooth, shadow, edge, seed, reducedMotion }: Controls) {
   const [liveFrame, setLiveFrame] = useState(frame), [playing, setPlaying] = useState(false);
   const [selected, setSelected] = useState<PaperStyle>(medium);
   useEffect(() => setSelected(medium), [medium]);
   const anchor = useRef<{ time: number; frame: number } | null>(null);
-  useEffect(() => { setLiveFrame(frame); anchor.current = null; }, [frame, selected, aspect, artwork, object, objectPalette, palette, detail, colorLayers, seed]);
+  useEffect(() => { setLiveFrame(frame); anchor.current = null; }, [frame, selected, aspect, artwork, object, objectPalette, palette, detail, colorLayers, curl, motion, seed]);
   useEffect(() => {
     if (!playing || reducedMotion) return;
     let raf = 0;
@@ -56,9 +58,9 @@ function PaperCraftLab({ artwork, object, objectPalette, palette, detail, colorL
   const spec = useMemo(() => artwork === "botanical"
     ? paperBotanicalSpec(selected, aspect, {palette, detail, colorLayers, seed})
     : artwork === "object"
-      ? paperObjectSpec(selected, aspect, {object, palette: objectPalette, detail, seed})
+      ? paperObjectSpec(selected, aspect, {object, palette: objectPalette, detail, curl, motion, seed})
       : paperCraftExampleSpec(selected, aspect, seed),
-    [artwork, object, objectPalette, selected, aspect, palette, detail, colorLayers, seed]);
+    [artwork, object, objectPalette, selected, aspect, palette, detail, colorLayers, curl, motion, seed]);
   const current = reducedMotion ? spec.durationFrames : liveFrame;
   const text: CSSProperties = { fontFamily: "'Newsreader',Georgia,serif", color: "#f3eddf" };
   const small: CSSProperties = { font: "11px/1.5 Arial,sans-serif", letterSpacing: "2px", textTransform: "uppercase", color: "#bfb6a8" };
@@ -116,7 +118,7 @@ function PaperCraftLab({ artwork, object, objectPalette, palette, detail, colorL
           <div style={{width:"100%", maxWidth:aspect==="portrait"?400:950,aspectRatio:aspect==="portrait"?"9 / 16":"16 / 9",
             border:"10px solid #353137",boxShadow:"0 22px 68px #0009",background:spec.backing}}>
             <PaperCraftStage spec={spec} frame={current} reducedMotion={reducedMotion} tooth={tooth}
-              shadowStrength={shadow} edgeStrength={edge} label={(artwork==="botanical"?"Butterfly botanical relief, ":artwork==="object"?"Paper sculpture "+object+", ":"Paper garden, ")+labels[selected]}
+              curlStrength={1} shadowStrength={shadow} edgeStrength={edge} label={(artwork==="botanical"?"Butterfly botanical relief, ":artwork==="object"?"Paper sculpture "+object+", ":"Paper garden, ")+labels[selected]}
               data-testid="paper-craft-stage"/>
           </div>
           <p style={small}>{labels[selected].toUpperCase()} / {aspect==="portrait"?"9:16":"16:9"} / 30 FPS / FRAME-EXACT</p>
@@ -129,13 +131,15 @@ const meta = {
   // Use existing Film Looks sidebar group, never create a separate paper folder.
   title: "Video production/Film Looks",
   component: PaperCraftLab,
-  args: { artwork:"garden", object:"kingfisher", objectPalette:"jewel", palette:"nocturne", detail:.82, colorLayers:1, medium:"layered", aspect:"landscape", frame:182, tooth:.55, shadow:.7, edge:.55, seed:27, reducedMotion:false },
+  args: { artwork:"garden", object:"kingfisher", objectPalette:"jewel", palette:"nocturne", detail:.82, colorLayers:1, curl:.85, motion:1, medium:"layered", aspect:"landscape", frame:182, tooth:.55, shadow:.7, edge:.55, seed:27, reducedMotion:false },
   argTypes: {
     artwork:{control:"select",options:["garden","botanical","object"]},
     object:{control:"select",options:["kingfisher","dragonfly","canal-houses","camera","teacup"]},
     objectPalette:{control:"select",options:["jewel","pastel","heritage"]},
     palette:{control:"select",options:["nocturne","ivory","rainforest","wildflower"]},
     colorLayers:{control:{type:"range",min:0,max:1,step:.1}},
+    curl:{control:{type:"range",min:0,max:1,step:.05}},
+    motion:{control:{type:"range",min:0,max:1,step:.05}},
     detail:{control:{type:"range",min:0,max:1,step:.05}},
     medium:{control:"select",options:["layered","kirigami","pop-up","lightbox","shadow-puppet"]},
     aspect:{control:"radio",options:["landscape","portrait"]},
@@ -205,4 +209,15 @@ export const PaperCraftObjectTeacup: Story = {
 export const PaperCraftObjectPortrait: Story = {
   name:"Paper Craft · Kingfisher Portrait",
   args:{artwork:"object",object:"kingfisher",objectPalette:"jewel",detail:1,aspect:"portrait",frame:195,seed:37},
+};
+
+export const PaperCraftFeatherRig: Story = {
+  name:"Paper Craft · Curled Feather Rig",
+  args:{artwork:"object",object:"kingfisher",objectPalette:"jewel",curl:1,motion:1,
+    detail:1,medium:"layered",frame:190,shadow:.96,edge:.74,seed:37},
+};
+export const PaperCraftDragonflyFlutter: Story = {
+  name:"Paper Craft · Coordinated Dragonfly Flutter",
+  args:{artwork:"object",object:"dragonfly",objectPalette:"jewel",curl:1,motion:1,
+    detail:1,medium:"layered",frame:192,shadow:.92,edge:.69,seed:37},
 };
