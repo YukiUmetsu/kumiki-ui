@@ -272,3 +272,11 @@ The [RISO13 portrait/hand ArtCraft implementation and review](../research/riso13
 The existing `Video production / Film Looks / Risograph` Storybook folder now includes a **four-pose human anatomy contact sheet** with interactive spot-plate/dot-density and source-outline controls; diagnostic controls are not physical printer calibration. No external reference artwork or new animation renderer is included.
 
 **Limitations:** first-pass portrait and finger-root articulation are not a full anatomically accurate three-knuckle hand, approved turnaround, complete human ensemble or independent artist approval. Those remain explicit roadmap items.
+
+## RISO14 — two-human original-character print exchange
+
+The [source-anchored two-human study](../research/riso14-human-ensemble-study.md) adds the original **Paper Artist** actor with different source face, hair, red coat and scarf contours, alongside the Courier. Its independently mapped model sheet, rigged digits, original facial expressions, and source-anchored printed-sheet exchange are available in the **same** Storybook Risograph folder.
+
+It reuses the native `RisoPrint` spot-ink renderer and offers portrait/landscape, timeline play/pause, blue/red plate separation, halftone cell, registration and paper grain controls, plus visual contact-anchor diagnostics. All shape/sample evaluation is absolute-frame deterministic; UI playback is only a frame driver.
+
+**Not a final artist-approved film:** side/three-quarter views, full digit knuckle chains, dynamic printed-sheet physics, realistic human contact and calibrated physical Riso color/ink proofing remain open.
