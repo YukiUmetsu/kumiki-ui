@@ -560,7 +560,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(strong).toContain('feTurbulence');
     expect(strong).not.toMatch(/NaN|Infinity|undefined/);
     const extract=(html:string)=>html.match(
-      /data-km-shanshui-bamboo="" data-km-bamboo-ink-load="[01]" filter="url\\(#([^"]+)\\)"/,
+      /data-km-shanshui-bamboo="" data-km-bamboo-ink-load="[01]" filter="url\(#([^"]+)\)"/,
     )?.[1];
     const id=extract(strong);
     expect(id).toBeTruthy();
