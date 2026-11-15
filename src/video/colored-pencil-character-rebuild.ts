@@ -298,9 +298,9 @@ export function pencilCharacterScene(aspect:PencilAspect):PencilSceneSpec {
   const branch=createPencilMaterialRegion({
     id:"kingfisher-perch",surface:"wood",
     path:portrait?
-      "M289 699 Q370 689 486 697 L488 710 Q391 705 286 715 Z":
-      "M738 433 Q824 424 963 440 L963 453 Q842 444 741 454 Z",
-    bounds:portrait?[281,682,214,42]:[734,418,231,42],
+      "M289 699 Q370 689 486 697 L488 710 Q391 705 286 715 Z M80 734 Q159 718 266 729 L272 743 Q158 735 76 745 Z":
+      "M738 433 Q824 424 963 440 L963 453 Q842 444 741 454 Z M475 470 Q579 455 711 464 L718 478 Q593 472 469 482 Z",
+    bounds:portrait?[73,682,420,67]:[465,418,502,68],
     palette:["#A08872","#665B52","#D6BC91"],seed:911,
     startFrame:34,durationFrames:170,direction:7,
     details:[trace(portrait?
