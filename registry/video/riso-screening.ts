@@ -27,11 +27,11 @@ const validUnit = (value: number) => Number.isFinite(value) && value >= 0 && val
 /** Site order is stable across density edits: increasing tone adds ink, never relocates old dots. */
 export function createRisoScreenGeometry(options: RisoScreenOptions): RisoScreenGeometry {
   const { cell, mode, density, dotGain, seed, plateIndex } = options;
-  if (!Number.isFinite(cell) || cell < 3 || cell > 36 ||
+  if (!Number.isFinite(cell) || cell < 2 || cell > 36 ||
       (mode !== "am" && mode !== "fm") || !validUnit(density) || !validUnit(dotGain) ||
       !Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647 ||
       !Number.isSafeInteger(plateIndex) || plateIndex < 0 || plateIndex > 24)
-    throw new RangeError("Riso screen requires cell 3..36, AM/FM, density and dotGain 0..1, a nonnegative 31-bit seed and a valid plate index.");
+    throw new RangeError("Riso screen requires cell 2..36, AM/FM, density and dotGain 0..1, a nonnegative 31-bit seed and a valid plate index.");
   if (density === 0) return { tileSize: mode === "am" ? cell : 8 * cell, dots: [] };
   if (mode === "am") {
     // For zero dot gain, area(circle)/area(cell) equals the requested nominal tone.
