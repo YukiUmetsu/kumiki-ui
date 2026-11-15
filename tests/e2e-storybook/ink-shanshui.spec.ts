@@ -216,6 +216,15 @@ test("geological ArtCraft proof compares source-rooted forms against a genuine m
     .toBe(await diluted.locator("[data-km-rock-pima-stroke]").count());
   await lab.screenshot({animations:"disabled",
     path:info.outputPath("shanshui-artcraft-geology-3way.png")});
+  // Each stage is the same live export scene at three source-review scales.
+  const zoom=page.getByRole("slider",{name:"Geology zoom"});
+  await expect(zoom).toHaveValue("1.75");
+  await page.getByRole("button",{name:"Hemp-fibre and alum-head · meso"}).click();
+  await expect(zoom).toHaveValue("2.4");
+  await page.getByRole("button",{name:"Ink-pressure and paper reserve · micro"}).click();
+  await expect(zoom).toHaveValue("3.45");
+  await page.getByRole("button",{name:"Full hill-back silhouette · macro"}).click();
+  await expect(zoom).toHaveValue("1.75");
   const frame=page.getByRole("slider",{name:"Geology frame"});
   await frame.focus();
   await frame.press("Home");
