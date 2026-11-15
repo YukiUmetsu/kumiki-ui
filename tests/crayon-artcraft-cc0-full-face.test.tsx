@@ -297,7 +297,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     const nearLashes=get("lash-contact-near");
     expect(nearLashes).toMatchObject({kind:"contour",
       parentId:"face-outline",clipToParent:true,
-      waxContact:"dry-wax",waxPressure:.76});
+      waxContact:"dry-wax",waxPressure:.56});
     if(nearLashes?.kind!=="contour")throw new Error("Missing near wax fibers");
     expect(nearLashes.d.match(/ M/g)?.length).toBeGreaterThanOrEqual(9);
     expect(nearLashes.d).not.toMatch(/[QqZz]/);
@@ -332,7 +332,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       coverage:"opaque",deposition:"stroke-built"});
     expect(get("lash-contact-far")).toMatchObject({kind:"contour",
       parentId:"face-outline",clipToParent:true,
-      waxContact:"dry-wax",waxPressure:.73});
+      waxContact:"dry-wax",waxPressure:.53});
     const layers=scene.elements.map(e=>e.id);
     expect(layers.indexOf("iris-far")).toBeLessThan(
       layers.indexOf("upper-lid-far"));
@@ -363,8 +363,11 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(e).toMatchObject({kind:"wax",parentId:"face-outline",
         clipToParent:true,coverage:"open",deposition:"stroke-built"});
       if(e?.kind!=="wax")throw new Error("Missing rooted orbital cast");
-      expect(e.blendRadius).toBeGreaterThanOrEqual(5);
-      expect(e.markStrength).toBeGreaterThanOrEqual(.3);
+      // Native V4 actually exposed harsh boxed charcoal patches around
+      // the eye: require broad feathering and bounded pressure rather
+      // than rewarding extreme visible patch contrast.
+      expect(e.blendRadius).toBeGreaterThanOrEqual(8);
+      expect(e.markStrength).toBeLessThanOrEqual(.26);
       expect(ids.indexOf("socket-"+side)).toBeLessThan(ids.indexOf(id));
       expect(ids.indexOf(id)).toBeLessThan(ids.indexOf("sclera-"+side));
       expect(ids.indexOf(id)).toBeLessThan(ids.indexOf("hair-right-curtain"));
@@ -377,12 +380,13 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(fibres).toHaveLength(8);
     for(const e of fibres){
       expect(e).toMatchObject({kind:"contour",parentId:"face-outline",
-        clipToParent:true,waxContact:"dry-wax",waxPressure:.68});
+        clipToParent:true,waxContact:"dry-wax",waxPressure:.48});
       if(e.kind!=="contour")throw new Error("Brow lost fiber structure");
       expect(e.d.match(/M/g)?.length).toBeGreaterThanOrEqual(2);
       expect(e.d.match(/C/g)?.length).toBeGreaterThanOrEqual(2);
       expect(e.d).not.toMatch(/[QqZz]/);
-      expect(e.width).toBeLessThan(.55);
+      expect(e.width).toBeLessThan(.35);
+      expect(e.opacity).toBeLessThanOrEqual(.55);
     }
     expect(inspectCrayonScene(scene)).toEqual([]);
   });
