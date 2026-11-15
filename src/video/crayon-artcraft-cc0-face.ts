@@ -426,7 +426,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   // These asymmetric pressure-bound deposits break up the oversized
   // chalk-bright white wedges without shrinking or replacing the iris.
   // Preserve the previous scene exactly as a blinded A/B negative control.
-  if(eyeContact==="source-shade"){
+  if(eyeContact!=="baseline"){
     wax("sclera-outer-contact-near",
       "M216 558C225 546 236 539 247 537"+
       "C239 543 234 552 239 560Q228 566 216 561Z",
