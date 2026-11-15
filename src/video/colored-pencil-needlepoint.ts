@@ -69,8 +69,12 @@ export function buildPencilNeedlepointSkinContact(
     extras.push({
       ...mark,
       x:x2,y:y2,
-      controlX:mark.controlX+spreadX+perpX*wiggle,
-      controlY:mark.controlY+spreadY+perpY*wiggle,
+      controlX:(x2+ex)*.5+
+        (mark.controlX-(mark.x+mark.endX)*.5)*nibLength+
+        perpX*wiggle,
+      controlY:(y2+ey)*.5+
+        (mark.controlY-(mark.y+mark.endY)*.5)*nibLength+
+        perpY*wiggle,
       endX:ex,endY:ey,
       alpha:clamp(mark.alpha*pressure*strength,.002,.55),
       width:mark.width*(.34+.18*pencilHash(seed,key,i+450)),
