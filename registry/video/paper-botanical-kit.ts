@@ -9,15 +9,17 @@
  * actual output coordinates at one uniform scale. This preserves natural
  * botanical proportions across landscape and portrait film exports.
  */
-import { paperHash } from "./paper-craft";
+import { MAX_PAPER_LAYERS, paperHash } from "./paper-craft";
 import type { PaperCraftSpec, PaperCutLayer, PaperStyle } from "./paper-craft";
 export type PaperBotanicalAspect = "landscape" | "portrait";
 
-export type PaperBotanicalPalette = "nocturne" | "ivory";
+export type PaperBotanicalPalette = "nocturne" | "ivory" | "rainforest" | "wildflower";
 export interface PaperBotanicalOptions {
   palette?: PaperBotanicalPalette;
-  /** 0-1 controls leaflets and satellite blooms; never a raster filter. */
+  /** 0–1 controls leaflets and satellite blooms; never a raster filter. */
   detail?: number;
+  /** 0–1 controls the number of additional real cardstock pieces, not SVG opacity. */
+  colorLayers?: number;
   seed?: number;
 }
 type Colors = Readonly<{
@@ -25,14 +27,20 @@ type Colors = Readonly<{
   leaf:string; leafAlt:string; vein:string; petal:string; petalLow:string;
   petalHigh:string; center:string; seed:string; wing:string; wingLow:string;
   wingHigh:string; wingSpot:string; body:string; frame:string;
+  leafFlash:readonly string[]; flowerOuter:readonly string[];
+  flowerInner:readonly string[]; wingLining:readonly string[];
 }>;
 const PALETTES: Record<PaperBotanicalPalette,Colors> = {
   nocturne:{
-    backing:"#1D343C", light:"#FFE9CB",mat:"#F2E6D4",ring:"#B4A28F",
+    backing:"#1D343C",light:"#FFE9CB",mat:"#F2E6D4",ring:"#B4A28F",
     stem:"#456C68",leaf:"#75978A",leafAlt:"#AFC0A0",vein:"#D8D8B8",
     petal:"#F8EADC",petalLow:"#CB8490",petalHigh:"#E7BBAF",
     center:"#D8AC65",seed:"#654C53",wing:"#344A65",wingLow:"#7C6D84",
     wingHigh:"#B18798",wingSpot:"#F2DCB3",body:"#253D4F",frame:"#334E51",
+    leafFlash:["#CCE1C0","#93C6B9","#E0C5A0","#BBA1CF"],
+    flowerOuter:["#AF6B8E","#D59477","#AD829F","#DBAE80","#9FB7A6"],
+    flowerInner:["#F9D5A9","#F5C0C3","#E6C4E3","#FFDFBA","#E4D6B6"],
+    wingLining:["#F6BC65","#7CD0C0","#E7A6C6"],
   },
   ivory:{
     backing:"#BEB3A1",light:"#FFFFFF",mat:"#F5F0E7",ring:"#D1C5B5",
@@ -40,6 +48,32 @@ const PALETTES: Record<PaperBotanicalPalette,Colors> = {
     petal:"#FFFCF6",petalLow:"#E2D5C4",petalHigh:"#F7EDE0",
     center:"#D0BDA4",seed:"#968572",wing:"#D5C5B3",wingLow:"#ECE1D3",
     wingHigh:"#FAF4E9",wingSpot:"#FFFFFF",body:"#998C7C",frame:"#E3D6C5",
+    leafFlash:["#FFF7E8","#D4C8BB","#FDF8F1","#DCD5C9"],
+    flowerOuter:["#E2D5C5","#F9F2EA","#D1C0B0","#EDE4D7","#D8C6B9"],
+    flowerInner:["#FFFFFF","#D9CDBD","#FAF6ED","#E9DDD1","#FFFDF6"],
+    wingLining:["#AA9B90","#F7EADF","#E4D6C5"],
+  },
+  rainforest:{
+    backing:"#251A51",light:"#FFDBAA",mat:"#286479",ring:"#F5BC51",
+    stem:"#256D54",leaf:"#13B7A3",leafAlt:"#89D870",vein:"#DEF2B3",
+    petal:"#FFE8B2",petalLow:"#E951A4",petalHigh:"#FA8E5A",
+    center:"#FCD052",seed:"#F77B46",wing:"#38217B",wingLow:"#EA459D",
+    wingHigh:"#3BD2C9",wingSpot:"#FFEBBB",body:"#30254F",frame:"#2E2362",
+    leafFlash:["#F7D255","#34D7BB","#A5EB78","#58ABD9"],
+    flowerOuter:["#F255A6","#F9A846","#AE7AED","#FB6959","#D3EA72"],
+    flowerInner:["#FFDC55","#EEABEC","#F4F2C9","#FFB797","#7AE2D1"],
+    wingLining:["#FACA39","#4CCFDF","#FF74A8"],
+  },
+  wildflower:{
+    backing:"#4D365B",light:"#FFE4D1",mat:"#F5D5D3",ring:"#D184A6",
+    stem:"#306A61",leaf:"#489E84",leafAlt:"#A6BF7A",vein:"#D7E7C5",
+    petal:"#FBE6D2",petalLow:"#D5669E",petalHigh:"#F4AE62",
+    center:"#EEC858",seed:"#BD615A",wing:"#365395",wingLow:"#9475BF",
+    wingHigh:"#E78EA7",wingSpot:"#FFDFB9",body:"#393B6B",frame:"#815574",
+    leafFlash:["#F2BA79","#B8DD8C","#77C8B8","#EAB5D0"],
+    flowerOuter:["#D85A91","#E79742","#9864BE","#EB7C6F","#ABCA70"],
+    flowerInner:["#FFE1BD","#A8C8DD","#FAED96","#FBC2DE","#FAAD85"],
+    wingLining:["#EEB956","#5DC5B9","#EFA2BE"],
   },
 };
 const clamp01=(n:number)=>Number.isFinite(n)?Math.max(0,Math.min(1,n)):0.8;
@@ -229,8 +263,12 @@ export function paperBotanicalSpec(
 ):PaperCraftSpec {
   const w=aspect==="portrait"?540:960,h=aspect==="portrait"?960:540;
   const p=makePainter(w,h),seed=options.seed??37,detail=clamp01(options.detail??.82);
+  const colorLayers=clamp01(options.colorLayers??1);
   const palette=options.palette??"nocturne",c=PALETTES[palette];
+  if (!c) throw new RangeError("Botanical paper palette must be a supported stock family.");
   if (!Number.isSafeInteger(seed)) throw new RangeError("Botanical paper seed must be a safe integer.");
+  if (options.colorLayers !== undefined && !Number.isFinite(options.colorLayers))
+    throw new RangeError("Botanical colorLayers must be finite.");
   const layers:PaperCutLayer[]=[];
   const add=(id:string,color:string,depth:number,path:string,params:Partial<PaperCutLayer>={})=>{
     layers.push({id,color,depth,path,enterFrame:Math.min(148,4+layers.length*2),
@@ -242,6 +280,9 @@ export function paperBotanicalSpec(
     {holes:[p.circle(0,0,317)],enterFrame:5,motion:"unfold",pivot:[w/2,h/2]});
   add("inner-pressed-ring",c.leafAlt,3,p.circle(0,0,251),
     {holes:[p.circle(0,0,246)],enterFrame:16});
+  if(colorLayers>.12)
+    add("chroma-pressed-ring",c.flowerOuter[2],3,p.circle(0,0,284),
+      {holes:[p.circle(0,0,278)],enterFrame:18,durationFrames:39,motion:"unfold",pivot:[w/2,h/2]});
   // An eight-frond radial structure forms a real connected pattern, not random leaves.
   const nLeaves=9+Math.round(detail*7);
   const fronds=[-167,-129,-86,-43,-4,39,82,124,167];
@@ -251,6 +292,18 @@ export function paperBotanicalSpec(
       holes:f.holes,enterFrame:16+i*7,durationFrames:39,
       motion:"rise",pivot:[w/2,h/2],
     });
+    if(i<Math.ceil(colorLayers*fronds.length)){
+      // Overlapping enclosed leaflets are independent paper stock, following
+      // the same rachis rather than spawning decorative unconnected particles.
+      const flash:string[]=[];
+      for(let j=0;j<6;j++){
+        const [x0,y0]=at(0,0,angle+11,174+j*22);
+        const [x1,y1]=at(0,0,angle+11+(j%2?6:-6),192+j*22);
+        flash.push(leaf(p,x0,y0,x1,y1,5.8,2));
+      }
+      add("fern-"+i+"-chroma",c.leafFlash[i%c.leafFlash.length],8,
+        flash.join(" "),{enterFrame:29+i*6,durationFrames:34});
+    }
     if(i%2===0){
       const [x0,y0]=at(0,0,angle,155),[x1,y1]=at(0,0,angle+11,300);
       add("fern-rachis-"+i,c.vein,8,
@@ -268,10 +321,15 @@ export function paperBotanicalSpec(
     add("flower-"+i+"-shadow",c.stem,9,
       corolla(p,x+3,y+5,rr*1.11,9,seed,i+200),{
         enterFrame:28+i*9,durationFrames:36,motion:"unfold",pivot:[p.cx+x*p.s,p.cy+y*p.s]});
-    add("flower-"+i+"-under",c.petalLow,10,
+    if(i<Math.ceil(5*colorLayers))
+      add("flower-"+i+"-outer-stock",c.flowerOuter[i],9,
+        corolla(p,x,y,rr*1.24,13,seed,i+510),{
+          enterFrame:31+i*9,durationFrames:37,
+          motion:"unfold",pivot:[p.cx+x*p.s,p.cy+y*p.s]});
+    add("flower-"+i+"-under",c.flowerOuter[i],10,
       corolla(p,x,y,rr,11,seed,i+60),{
         enterFrame:36+i*9,durationFrames:36,motion:"unfold",pivot:[p.cx+x*p.s,p.cy+y*p.s]});
-    add("flower-"+i+"-top",c.petal,12,
+    add("flower-"+i+"-top",i%2===0?c.petal:c.petalHigh,12,
       corolla(p,x,y,rr*.69,9,seed,i+90),{
         holes:Array.from({length:9},(_,k)=>{
           const angle=-90+k*40,[sx,sy]=at(x,y,angle,rr*.26),
@@ -279,8 +337,21 @@ export function paperBotanicalSpec(
           return leaf(p,sx,sy,ex,ey,1.25);
         }),
         enterFrame:44+i*9,durationFrames:31,motion:"unfold",pivot:[p.cx+x*p.s,p.cy+y*p.s]});
+    if(i<Math.ceil(5*colorLayers))
+      add("flower-"+i+"-inner-stock",c.flowerInner[i],13,
+        corolla(p,x,y,rr*.34,11,seed,i+560),{
+          enterFrame:57+i*9,durationFrames:29,motion:"unfold",
+          pivot:[p.cx+x*p.s,p.cy+y*p.s]});
     add("flower-"+i+"-pollen",c.center,14,p.circle(x,y,rr*.205),{
       holes:centreHoles(p,x,y,rr*.205,9),enterFrame:62+i*8,durationFrames:26});
+    if(i<Math.ceil(5*colorLayers)){
+      const beads=Array.from({length:7},(_,k)=>{
+        const [bx,by]=at(x,y,k*360/7,rr*.135);
+        return p.circle(bx,by,Math.max(1.9,rr*.035));
+      });
+      add("flower-"+i+"-seed-beads",c.seed,15,beads.join(" "),{
+        enterFrame:69+i*8,durationFrames:23,motion:"still"});
+    }
   }
   const satellites:[number,number][]=[
     [-315,-8],[-300,79],[-105,-312],[107,-305],
@@ -289,6 +360,11 @@ export function paperBotanicalSpec(
   const bloomCount=4+Math.round(detail*3);
   for(let i=0;i<bloomCount;i++){
     const [x,y]=satellites[i],r=16+paperHash(seed,i,55)*7;
+    if(i<Math.ceil(colorLayers*bloomCount))
+      add("aster-"+i+"-chroma",c.flowerOuter[i%c.flowerOuter.length],10,
+        corolla(p,x,y,r*1.25,9,seed,430+i),{
+          enterFrame:29+i*11,durationFrames:32,
+          motion:"unfold",pivot:[p.cx+x*p.s,p.cy+y*p.s]});
     add("aster-"+i+"-corolla",i%2===0?c.petalHigh:c.petalLow,11,
       corolla(p,x,y,r,7,seed,300+i),{
         enterFrame:35+i*11,durationFrames:31,
@@ -307,9 +383,17 @@ export function paperBotanicalSpec(
   // Symmetrical wings share a genuine thorax hinge. Perforations are empty paper.
   for(const side of [-1,1] as const){
     const label=side<0?"left":"right";
+    if(colorLayers>.25)
+      add("moth-"+label+"-hind-lining",c.wingLining[1],16,lowerWing(p,side),{
+        enterFrame:80,durationFrames:49,motion:"swing",swingDegrees:side*5,
+        pivot:[p.cx,p.cy+12*p.s]});
     add("moth-"+label+"-hind",c.wingLow,17,lowerWing(p,side),{
       holes:lowerHoles(p,side),enterFrame:85,durationFrames:48,
       motion:"swing",swingDegrees:side*5,pivot:[p.cx,p.cy+12*p.s]});
+    if(colorLayers>.25)
+      add("moth-"+label+"-fore-lining",c.wingLining[0],18,upperWing(p,side),{
+        enterFrame:87,durationFrames:47,motion:"swing",swingDegrees:side*6,
+        pivot:[p.cx,p.cy-14*p.s]});
     add("moth-"+label+"-fore",c.wing,19,upperWing(p,side),{
       holes:wingHoles(p,side),enterFrame:93,durationFrames:45,
       motion:"swing",swingDegrees:side*6,pivot:[p.cx,p.cy-14*p.s]});
@@ -345,6 +429,11 @@ export function paperBotanicalSpec(
     add("aspect-spray-"+(sign<0?"a":"b"),c.stem,4,stem,{
       enterFrame:22,durationFrames:40});
     const bloomX=vertical?bx:bx-sign*24,bloomY=vertical?by-sign*26:by;
+    if(colorLayers>.5)
+      add("aspect-collar-"+(sign<0?"a":"b"),c.flowerOuter[sign<0?0:1],11,
+        corolla(p,bloomX,bloomY,41,11,seed,490+sign),{
+          enterFrame:75,durationFrames:35,
+          motion:"unfold",pivot:[p.cx+bloomX*p.s,p.cy+bloomY*p.s]});
     add("aspect-bloom-"+(sign<0?"a":"b"),c.petalHigh,12,
       corolla(p,bloomX,bloomY,33,9,seed,400+sign),{
         enterFrame:80,durationFrames:33,
@@ -361,8 +450,9 @@ export function paperBotanicalSpec(
         " H"+inset+" Z"],
       enterFrame:130,durationFrames:28,motion:"still",
     });
-  // PAPER1 material evaluator is intentionally bounded at 80 physical sheet layers.
-  if (layers.length > 80) throw new RangeError("Botanical scene exceeded 80 cardstock layers.");
+  // Structural bound: no unbounded nested duplicate layers or runtime surprises.
+  if(layers.length > MAX_PAPER_LAYERS)
+    throw new RangeError("Botanical scene exceeded the cardstock layer budget.");
   return {
     version:1,id:"paper-botanical-"+style+"-"+aspect+"-"+palette,
     style,width:w,height:h,fps:30,durationFrames:240,seed,
