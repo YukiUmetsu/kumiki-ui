@@ -351,7 +351,7 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
         const ty=2*(1-t)*(branch.control[1]-branch.from[1])+
           2*t*(branch.to[1]-branch.control[1]);
         const norm=Math.max(1e-6,Math.hypot(tx,ty));
-        const pressure=(2.5+.27*(i%3))*Math.pow(1-t,.85)+.09;
+        const pressure=(1.48+.19*(i%3))*Math.pow(1-t,.86)+.07;
         const nx=-ty/norm*pressure,ny=tx/norm*pressure;
         sides[0].push([f(center[0]+nx),f(center[1]+ny)]);
         sides[1].push([f(center[0]-nx),f(center[1]-ny)]);
@@ -360,32 +360,32 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
       const d=points.map((v,j)=>(j?" L":"M")+f(v[0])+" "+f(v[1])).join("")+" Z";
       return <g key={i}>
         <path data-km-willow-tapered-branch="" d={d}
-          fill="#71573e" opacity=".89"/>
+          fill="#71573e" opacity=".72"/>
         <path d={"M"+branch.from.join(" ")+" Q"+
           branch.control.join(" ")+" "+branch.to.join(" ")}
-          stroke="#af9069" strokeWidth=".56" opacity=".56" fill="none"/>
+          stroke="#af9069" strokeWidth=".45" opacity=".39" fill="none"/>
       </g>;
     })}
     <path d="M31 -233 Q137 -320 322 -325 M41 -252 Q152 -352 387 -331
       M62 -294 Q197 -298 367 -280"
-      stroke="#c0a180" strokeWidth="1.2" fill="none" opacity=".8"/>
+      stroke="#c0a180" strokeWidth=".69" fill="none" opacity=".38"/>
     {Array.from({length:strands},(_,i)=>{
       const branch=arches[i%arches.length];
       const u=.13+.83*s(seed,i*7+9);
       // Exactly one insertion point on the original parent arch.
       const origin=quadraticPoint(branch.from,branch.control,branch.to,u);
-      const fall=53+135*s(seed,i*11+20);
-      // Mei Qing's willow rhythm: strands disagree about the direction
-      // of their fall. A fixed (x+8,y+fall) made a vertical curtain.
+      const fall=80+148*s(seed,i*11+20);
+      // A willow droops: the top of the frond bows outward, but its
+      // lower half returns to a nearly vertical fall. The previous
+      // 60 px lateral sweep made a diagonal mesh across the sky.
       const sweep=i%3===0?-1:i%3===1?1:
         s(seed+401,i*7+19)>.5?1:-1;
-      const drift=sweep*(12+48*s(seed+427,i*13+11));
-      const end:P=[origin[0]+drift+wind*10,
+      const drift=sweep*(7+20*s(seed+427,i*13+11));
+      const end:P=[origin[0]+drift+wind*8,
         origin[1]+fall*(1+.012*wind)];
       const control:P=[
-        origin[0]+drift*.47+
-          (s(seed+439,i*17+37)-.5)*25+wind*4,
-        origin[1]+fall*(.36+.13*s(seed+457,i*23+13)),
+        end[0]+sweep*(13+16*s(seed+439,i*17+37))-wind*3,
+        origin[1]+fall*(.31+.11*s(seed+457,i*23+13)),
       ];
       const frondPoint=(t:number)=>quadraticPoint(origin,control,end,t);
       const stationCount=11;
@@ -397,7 +397,7 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
         const after=frondPoint(Math.min(1,t+.012));
         const dx=after[0]-before[0],dy=after[1]-before[1];
         const len=Math.hypot(dx,dy)||1;
-        const pressure=(1.06+.53*s(seed+467,i*5+29))*
+        const pressure=(.72+.37*s(seed+467,i*5+29))*
           Math.pow(1-t,.91)+.045;
         const nx=-dy/len*pressure,ny=dx/len*pressure;
         upper.push([point[0]+nx,point[1]+ny]);
@@ -415,7 +415,7 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
         data-km-willow-frond-leaves={leafCount}>
         <path data-km-willow-pressure-strand="" d={ribbon}
           fill={i%7===0?"#554535":"#897158"}
-          opacity={f(.42+.25*s(seed+479,i*17+7))}/>
+          opacity={f(.33+.18*s(seed+479,i*17+7))}/>
         {i%4===0&&<path data-km-willow-dry-release=""
           d={"M"+f(origin[0])+" "+f(origin[1])+
             " Q"+f(control[0])+" "+f(control[1])+
@@ -448,7 +448,7 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
             " "+f(x)+" "+f(y)+" Z";
           return <path key={j} data-km-willow-leaf=""
             d={leaf} fill={j%5===0?"#a88c69":"#635342"}
-            opacity={f(.25+.31*s(seed+563,i*11+j*5))}/>;
+            opacity={f(.29+.33*s(seed+563,i*11+j*5))}/>;
         })}
       </g>;
     })}
