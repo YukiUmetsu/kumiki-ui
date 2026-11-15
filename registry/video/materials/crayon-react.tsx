@@ -16,6 +16,8 @@ export interface CrayonStorybookProps extends Omit<SVGProps<SVGSVGElement>, "wid
   pressure?: number;
   paperTooth?: number;
   reducedMotion?: boolean;
+  /** Whether to paint lettering over the art. Auto-hide in portrait until safe-area proof exists. */
+  showEditorial?: boolean;
   style?: CSSProperties;
 }
 export type WaxProps = {
@@ -559,7 +561,7 @@ function StoryTitle({ width, height, portrait, day, frame, reduced }: { width:nu
   </g>;
 }
 export function CrayonStorybook({frame, story = "lantern", aspect = "landscape", seed = 23,
-  pressure = .87, paperTooth = .58, reducedMotion = false, style, ...props}: CrayonStorybookProps) {
+  pressure = .87, paperTooth = .58, reducedMotion = false, showEditorial, style, ...props}: CrayonStorybookProps) {
   if (!Number.isSafeInteger(frame) || frame < 0) throw new RangeError("crayon frame must be a nonnegative integer");
   if (!Number.isSafeInteger(seed)) throw new RangeError("crayon seed must be a safe integer");
   if (!Number.isFinite(pressure) || pressure < 0 || pressure > 1) throw new RangeError("crayon pressure must be in [0,1]");
@@ -567,6 +569,10 @@ export function CrayonStorybook({frame, story = "lantern", aspect = "landscape",
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("unknown crayon aspect");
   if (story !== "lantern" && story !== "garden") throw new RangeError("unknown crayon story");
   const portrait = aspect === "portrait", day = story === "garden";
+  // In 9:16 the fixed title and tagline can cover the drawn subject or sun.
+  // Editorial is opt-in there until a measured composition-specific text
+  // safe area exists; 16:9 retains the authored title for compatibility.
+  const showStoryEditorial = showEditorial ?? !portrait;
   const W = portrait ? 540 : 960, H = portrait ? 960 : 540;
   const raw = useId(), tooth = "crayonpaper-" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
   const groundY = H * (portrait ? .76 : .78);
@@ -613,8 +619,8 @@ export function CrayonStorybook({frame, story = "lantern", aspect = "landscape",
         color="#caa990" width={9} seed={seed+140} frame={totalFrame} first={220} last={340} reduced={reducedMotion} opacity={.56}/>
     </>}
     <MeadowDetails width={W} height={H} seed={seed+172} frame={totalFrame} reduced={reducedMotion} day={day}/>
-    <StoryTitle width={W} height={H} portrait={portrait} day={day} frame={totalFrame} reduced={reducedMotion}/>
-    {portrait && <g fill={day?"#365265":"#f9ebd2"} fontSize="17" fontFamily="Georgia,serif" letterSpacing="2" opacity=".86">
+    {showStoryEditorial && <StoryTitle width={W} height={H} portrait={portrait} day={day} frame={totalFrame} reduced={reducedMotion}/>}
+    {portrait && showStoryEditorial && <g fill={day?"#365265":"#f9ebd2"} fontSize="17" fontFamily="Georgia,serif" letterSpacing="2" opacity=".86">
       <path d={"M33 " + (H-70) + " H" + (W-33)} stroke={day?"#365265":"#f9ebd2"} strokeWidth="1.5" fill="none"/>
       <text x={34} y={H-36}>WAX CRAYON   /   {day?"002":"001"}</text>
     </g>}
