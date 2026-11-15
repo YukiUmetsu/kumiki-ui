@@ -7,7 +7,7 @@ import type { CharacterAsset, CharacterDefinition, CharacterInstance } from "../
 import { DEFAULT_INK_FIGURE_CRAFT } from "../../registry/video/ink-figure-craft";
 import { bakeInkClothCorrections } from "../../registry/video/ink-figure-motion";
 import type { InkFigureCraftControls } from "../../registry/video/ink-figure-craft";
-import { INK_TRAVELLER_FOLDS, makeClassicalInkFigure } from "./ink-figure-classical-art";
+import { makeClassicalInkFigure } from "./ink-figure-classical-art";
 export { INK_TRAVELLER_FOLDS } from "./ink-figure-classical-art";
 import { InkCharacter } from "../../registry/video/ink-wash-character-react";
 import { InkWashScene } from "../../registry/video/ink-wash-story-react";
