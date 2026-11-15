@@ -633,6 +633,19 @@ export const createDryPencilHeadPlate=(
       const t=(k+.48)/count;
       const c:Point=[interp(a[0],b[0],t),
         interp(a[1],b[1],t)];
+      // Never mistake a dark but warm SKIN edge for hair. Both q and its
+      // exterior neighbour must be corroborated by actual source pigment.
+      // In synthetic no-hair photos the garden is green outside the face;
+      // then no jaw repair is permitted anywhere on that contour.
+      const hasExteriorHair=[-1,1].some(side=>{
+        const outer:Point=[c[0]+nx*eyeDist*.046*side,
+          c[1]+ny*eyeDist*.046*side];
+        return onPhoto(source,outer[0],outer[1])&&
+          !inside(outer,geometry.face)&&
+          photoValue(source,outer[0],outer[1])<.55&&
+          isHairColour(photoRGB(source,outer[0],outer[1]));
+      });
+      if(!hasExteriorHair)continue;
       for(let band=-1;band<=1;band++){
         const id=i*500003+k*11+band+1;
         const shift=eyeDist*.016*(band+
