@@ -82,6 +82,8 @@ export interface CrayonWaxElement extends CrayonBase {
   strokeOrder?: CrayonStrokeOrder;
   /** Long connected rubbed patches or legacy short wax flecks. */
   markLength?: CrayonMarkLength;
+  /** Opt-in layers of visible crayon pressure marks, not a polished gradient. */
+  deposition?: "smooth" | "stroke-built";
   /** Opaque, silhouette-blocking wax underpaint for characters and solid props;
    * default open retains translucent scenery and older CRAYON1 documents. */
   coverage?: "open" | "opaque";
@@ -362,6 +364,8 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".strokeOrder must be scanline or patches");
         if (node.markLength !== undefined && node.markLength !== "long" && node.markLength !== "short")
           errors.push(p + ".markLength must be long or short");
+        if(node.deposition !== undefined && node.deposition !== "smooth" && node.deposition !== "stroke-built")
+          errors.push(p+".deposition must be smooth or stroke-built");
         if(node.edgeRoughness!==undefined && (!finite(node.edgeRoughness)||
           node.edgeRoughness<0||node.edgeRoughness>1))
           errors.push(p+".edgeRoughness must be in [0,1]");
