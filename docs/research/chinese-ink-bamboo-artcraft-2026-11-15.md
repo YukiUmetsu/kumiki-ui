@@ -506,3 +506,86 @@ Comparison to [Wu Zhen's bending bamboo source leaf 17010703, NPM](https://theme
 `[.32,.92,-.29,1.2,-.67,.52,-.06]`, under the same parent tangent and handed fan sign. It retains the **same seven** loaded leaf strokes, same branch roots and normalized stations, same 15-station brush pressure, same dry-fibre masks, same ink gradation, and the same absolute-frame scene behavior.
 
 **ArtCraft result: unresolved until new native evidence** and five-axis source-specific crop study. The sampled source is not a contour trace or an exact numerical calibration. The brushwork still must be evaluated against real paintings; stronger image contrast alone does not prove natural brush hierarchy. The distant mountains and scholar are outside this narrowly scoped botanical pass.
+
+
+## Thirteenth pass — Huang Gongwang geological bone (2026-11-15)
+
+### Primary source review
+
+**Canonical source:** [Huang Gongwang, *Dwelling in the Fuchun
+Mountains*, 1350, National Palace Museum (Google Arts & Culture
+museum-authored feature)](https://artsandculture.google.com/story/GwUhSlv0zyTfKg?hl=en).
+The original handscroll uses successive dry and wet brushwork to build
+mountains, valleys and foliage. Closely inspect [Smarthistory's original
+mountain-section detail](https://smarthistory.org/wp-content/uploads/2023/06/National-Palace_lrg-det-6.jpeg)
+and [its side-by-side labeled *hemp fibre* / *alum-head* crop](https://smarthistory.org/wp-content/uploads/2023/10/National_Palace_brushstroke_labeled-copy.jpg)
+([article, including attribution](https://smarthistory.org/huang-gongwang-dwelling-in-the-fuchun-mountains/)).
+**Secondary institutional comparator:** [Wang Hui, *Dwelling in the Fuchun
+Mountains, after Huang Gongwang*, Smithsonian NMAA](https://asia-archive.si.edu/object/F1950.19/),
+which explicitly describes Wang Hui's smooth brushstrokes and carefully
+placed dots. The latter is a later copy, *not* a photograph of Huang's original.
+
+References above are links for study only; no image data, raster crops,
+traced paths or third-party artwork are included in the renderer.
+Reuse rights vary across museums; explicit asset clearance is a separate
+process. This is a **style-guided construction**, not a claimed pixel
+match to source.
+
+### Real prior-render diagnostic
+
+Reviewed real v12 native `shanshui-misty-hermit-125.png` and the
+2.15× Storybook geological crop. The five high-value issues were:
+
+1. Three distant bands read as stacked rounded **flat beige layers**.
+2. Fractures existed as a few independent hairline scratches rather than
+   a connected system of bedrock folds.
+3. Rock wash was too dilute and often did not describe any volume on the
+   ridges at normal 960×540 playback.
+4. Most texture appeared as small isolated lines: no clear progression
+   from core ink bone → secondary folding hemps → pale rubbed wash.
+5. The sky/mountain/near-plane ink hierarchy did not establish convincing
+   distance even though total branch and moss mark counts were high.
+
+### Topological and material reconstruction
+
+New `MountainRockShoulders` is a structural addition to the
+*existing* `Mountains` component and existing five-card Shanshui
+Storybook folder, not a scattering-noise shader.
+
+- **Peak anchors:** sample local uphill extrema from the very same
+  authored RIDGES silhouette arrays, then take each root's exact
+  sampled `ridgeHeight(stations,x)`. The root is 2.5 paper units
+  *below the actual crest*. All additional shapes are clipped to the
+  current band's own ridge silhouette to prevent painting across sky.
+- **Positive ink mass:** asymmetric four-side wet-loaded shoulder
+  with a three-stop decaying brush wash, darkest at the root and
+  released near the base. Same single geological fold as the
+  attached bone curve; no random external shadow triangles.
+- **Attached anatomy:** one broken fracture/bone curve and 3/5/7
+  fine hemp fibre children from mathematically sampled local
+  positions on that very curve (far/mid/near). No detached roots.
+- **Value recession:** preserve far/mid/near parent band opacity
+  and detail/ink/mist controls. An additional wash layer must
+  *not* indiscriminately darken distant paper; far pigment load
+  is explicitly 0.22–0, mid 0.43–0, near 0.62–0 within the
+  underlying group opacity and atmospheric ink control.
+- **Motion:** landscape geometry and ink remain absolute-frame
+  stable. No new temporal randomness, external raster textures,
+  new scene components or public slider types.
+
+### Five ArtCraft inspection axes
+
+| Axis | Required proof | Rejection test |
+| --- | --- | --- |
+| Topology | Each shoulder `root_y = crest_y + 2.5`; exactly one clipping contour and non-detached root per peak | Visible sky-crossing floating shadow wedge |
+| Flow | Veins start on the source parent's quadratic ink-bone tangent, and vary in length/direction with the parent | Parallel evenly spaced rain scratches |
+| Pressure | Broad wash decays from loaded root to exhausted tip; fractured middle spine and thin secondary line widths | Opaque dark triangles or smooth plastic gradients |
+| Rhythm | Dark and bare paper spots alternate at different mountain depths and between clipped peak shoulders | All peaks become the same repeated stamp |
+| Microtexture | Existing fibre filter plus mixed narrow/dry lines, moss on actual ledges and multiple wet/dry tonal channels | Increasing line count without credible rock surface |
+
+**Current acceptance:** implementation candidate, not an artistic pass.
+First re-run TypeScript and connected-root unit tests; then inspect the
+actual 2.15× geology crop plus all three 960×540 full scene screenshots
+and encoded 96-frame film. A green suite or increased dark-pixel count
+does **not** authorize a merge. Record the after-render weakness and
+change no more than three high-impact causes before another comparison.
