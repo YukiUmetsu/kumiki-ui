@@ -255,6 +255,10 @@ function applyPortraitAnatomy(part:PencilSubjectPart):PencilSubjectPart{
         {...mark(upper,"#624F56",.84,201,.82),id:"anat-upper-lid-"+eye},
         {...mark(lower,"#B68D8A",.48,221,.56),id:"anat-lower-lid-"+eye},
         {...mark(upper,"#D8B4A4",.28,248,.43),id:"anat-orbital-fold-"+eye},
+        {...mark(A.hair["lash-upper."+eye].path,"#584850",.25,258,.54),
+          id:"anat-lash-upper-"+eye},
+        {...mark(A.hair["lash-lower."+eye].path,"#94777C",.22,267,.42),
+          id:"anat-lash-lower-"+eye},
       ]};
   }
   const iris=part.id==="iris-far"?"R":
@@ -281,6 +285,10 @@ function applyPortraitAnatomy(part:PencilSubjectPart):PencilSubjectPart{
         id:"anat-brow-L"},
       {...mark(A.browInk.L.path+" "+A.browInk.R.path,
         "#C3A08E",.27,245,.42),id:"anat-brow-underfur"},
+      {...mark(A.hair["brow.R"].path,"#645258",.28,246,.69),
+        id:"anat-brow-fibres-R"},
+      {...mark(A.hair["brow.L"].path,"#614D55",.28,246,.70),
+        id:"anat-brow-fibres-L"},
     ]};
   if(part.id==="nose-bridge")return {...part,
     path:A.nose.path,bounds:A.nose.bounds,
@@ -1121,7 +1129,9 @@ export function pencilLivingStudyDrawing({
       }:region.craft,
       clipDetails:part.id==="whisker-roots"||
         (subject==="fox"&&(part.id==="nose"||part.id==="muzzle"||
-          ["chest","neck-ruff","cheek-ruff"].includes(part.id)))?
+          ["chest","neck-ruff","cheek-ruff"].includes(part.id)))||
+        (subject==="portrait"&&
+          ["brows","eye-white-far","eye-white-near"].includes(part.id))?
         false:region.clipDetails, layers:region.layers.map((layer,index)=>({
       ...layer,
       // Multiple dry-pencil colours follow the *same* authored fur-growth
