@@ -54,3 +54,11 @@ Three distinct reference classes were compared, without copying source geometry 
 - Existing 18 hinged feather tips retained but rebuilt with wide oblong asymmetric bases and 3×6 overlapping placement.
 
 **Remaining visual quality gates:** inspect actual Chromium screenshots at fully assembled frames, compare crown/bill/body/wing to reference photos, then inspect 9:16 framing and render native video. Still 2.5D; no claim of faithful photogrammetry or quantitative similarity scoring.
+
+### Iteration 18b: optical review of actual browser images
+
+The first code render improved the head/body silhouette but **failed a higher artistic bar**: the orange/white face geometry still read as a cartoon smile, the crown stipples looked jewel-like, chestnut feather patterns read as polka dots, and the bird was too small inside its presentation mat.
+
+Changed the actual generator again: the auricular patch is located **behind** the eye, the white side-neck and throat are independent natural regions, the bill is all-dark adult male rather than an orange smiling stripe, the eye is smaller and recessed, and teal/cobalt head flecks become **directional fine engraved paper vanes**. The wing covert and breast tracts are narrower, close-toned paper cuts instead of big contrasting spots. The subject uses a uniform 1.18× sculptural composition scale (while keeping the mat/frame unchanged), in both 16:9 and 9:16.
+
+This iteration is based on inspecting real Chromium capture artifacts, not guessing from code alone. One further visual gate must inspect this corrected render and avoid claiming photo identity with the paper sculptures.
