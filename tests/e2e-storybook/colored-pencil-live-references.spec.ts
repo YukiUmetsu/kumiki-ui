@@ -507,7 +507,7 @@ for(const sample of ["woman","man"] as const){
         // polygon, not merely a changed screenshot. Photo and dry-pencil
         // visual evidence are both sampled at real 285×318 presentation.
         // No photograph pixel is copied into the actual pigment artwork.
-        const jaw=page.getByLabel("Pencil photo-verified jaw paper-tooth repair");
+        const jawSlider=page.getByLabel("Pencil photo-verified jaw paper-tooth repair");
         const measuredJaw=async()=>full.evaluate(node=>{
           const source=document.querySelector<HTMLCanvasElement>(
             "canvas[data-km-pencil-full-head-source]");
@@ -559,8 +559,8 @@ for(const sample of ["woman","man"] as const){
           ].map(([x,y])=>Math.round(drawn[y*285+x]*100)/100);
           return {gap:gap/n,mae:mae/n,n,protect};
         });
-        await jaw.focus();await jaw.press("Home");
-        await expect(jaw).toHaveValue("0");
+        await jawSlider.focus();await jawSlider.press("Home");
+        await expect(jawSlider).toHaveValue("0");
         await expect(full).toHaveAttribute(
           "data-km-pencil-jaw-edge","0");
         await expect(full).toHaveAttribute(
@@ -571,8 +571,8 @@ for(const sample of ["woman","man"] as const){
           (node as HTMLCanvasElement).toDataURL("image/png"));
         await full.screenshot({animations:"disabled",
           path:info.outputPath("artcraft-cc0-"+aspect+"-jaw-chalk-legacy-0.png")});
-        await jaw.press("End");
-        await expect(jaw).toHaveValue("1");
+        await jawSlider.press("End");
+        await expect(jawSlider).toHaveValue("1");
         await expect(full).toHaveAttribute(
           "data-km-pencil-jaw-edge","1");
         const jawFibres=Number(await full.getAttribute(
