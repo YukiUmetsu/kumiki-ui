@@ -59,8 +59,8 @@ const STOCKS:Record<PaperObjectPalette,Stock>={
 const clamp=(n:number)=>Math.min(1,Math.max(0,n));
 const num=(v:number)=>Number(v.toFixed(3));
 const rad=(d:number)=>d*Math.PI/180;
-function geometry(w:number,h:number){
-  const s=Math.min(w,h)/720,cx=w/2,cy=h/2;
+function geometry(w:number,h:number,scale=1){
+  const s=Math.min(w,h)/720*scale,cx=w/2,cy=h/2;
   const pt=(x:number,y:number)=>num(cx+s*x)+" "+num(cy+s*y);
   const M=(x:number,y:number)=>"M"+pt(x,y);
   const L=(x:number,y:number)=>"L"+pt(x,y);
@@ -268,20 +268,21 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
   // Delicate covert stipples form 3 rows of hand-cut teardrop scales, rather
   // than a featureless painted wing disc.
   for(let row=0;row<3;row++){
-    const shards=Array.from({length:4+Math.round(detail*4)},(_,j)=>{
-      const x=-111+8.5*j+row*5,y=-58+row*25+j*2.8;
-      return p.petal(x,y,9+variation(j+row*13,29)*2.5,72,2.4);
+    const shards=Array.from({length:11+Math.round(detail*7)},(_,j)=>{
+      const col=j%6,line=Math.floor(j/6),x=-109+12.5*col+row*2.5;
+      const y=-56+row*24+line*13+col*3.8;
+      return p.taper(x,y,x-3.7,y+13+variation(j+row*13,29)*4,1.3,.7);
     }).join(" ");
-    add("kingfisher-wing-spot-"+row,row===1?c.blueLight:c.greenLight,19,
+    add("kingfisher-wing-spot-"+row,row===1?c.blueLight:c.green,19,
       shards,{enterFrame:88+row*7,curl:.72,...rig});
   }
   // Chestnut breast has close-spaced feathers with no giant white oval.
   for(let row=0;row<3;row++){
-    const plume=Array.from({length:4+Math.round(detail*4)},(_,col)=>{
-      const x=-29+col*9.4+row*2.6,y=-35+row*41+col*3.7;
-      return p.petal(x,y,20+variation(col+row*8,36)*4.5,88,4.1);
+    const plume=Array.from({length:8+Math.round(detail*6)},(_,col)=>{
+      const x=-35+col*6.3+row*3,y=-34+row*38+(col%3)*9;
+      return p.taper(x,y,x+4+variation(col+row*8,36)*4,y+20,1.4,1);
     }).join(" ");
-    add("kingfisher-breast-tract-"+row,row===1?c.gold:row===2?c.coral:c.coral,17,
+    add("kingfisher-breast-tract-"+row,row===1?paperTint(c.coral,c.dark,.14):paperTint(c.coral,c.cream,.15),17,
       plume,{enterFrame:74+row*8,curl:.38});
   }
   for(let i=0;i<10;i++){
@@ -292,8 +293,8 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
   }
   for(let i=0;i<12;i++){
     const col=i%4,row=Math.floor(i/4),x=-38+col*19+row*2,y=1+row*36+(col%2)*4;
-    add("breast-scale-"+i,i%5===0?c.gold:i%3===0?c.coral:paperTint(c.coral,c.cream,.18),
-      18,p.petal(x,y,17+variation(i,37)*2.5,86,4.7),{
+    add("breast-scale-"+i,i%5===0?paperTint(c.coral,c.cream,.2):i%3===0?paperTint(c.coral,c.dark,.14):paperTint(c.coral,c.cream,.11),
+      18,p.petal(x,y,17+variation(i,37)*2.5,86,3.2),{
         enterFrame:87+i*2,curl:.6});
   }
   // Crown and head are an irregular, compact skull, properly joined to nape.
@@ -317,43 +318,46 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
   for(let i=0;i<10;i++){
     const col=i%5,row=Math.floor(i/5),x=0+col*19+row*7;
     const y=-127+row*18+Math.sin(col*.7)*5;
-    add("head-crown-feather-"+i,i%3===0?c.greenLight:i%2?c.blueLight:c.green,23,
-      p.petal(x,y,16+(i%3)*2,53,4.2),{
+    add("head-crown-feather-"+i,i%3===0?c.green:i%2?c.blueLight:c.ink,23,
+      p.taper(x,y,x+10,y-12-(i%3)*2,2.6,.5),{
         enterFrame:104+i,durationFrames:22,curl:.86});
   }
   for(let row=0;row<3;row++){
     add("kingfisher-crown-bar-"+row,row===1?c.ink:c.blueLight,24,
       Array.from({length:6+Math.round(detail*5)},(_,j)=>{
         const x=10+j*8.6+row*5,y=-136+row*13+Math.sin(j*.5)*3;
-        return p.petal(x,y,6.5+(j%3),45,1.65);
+        return p.taper(x,y,x+6.5,y-7-(j%3),1.0,.3);
       }).join(" "),{enterFrame:108+row*3});
   }
   // Golden-orange auricular patch, separated clean white cheek and throat.
+  // Auricular patch stays behind the eye, not under the bill like a smile.
   add("kingfisher-cheek",c.coral,24,[
-    p.M(58,-80),p.C(70,-72,102,-71,118,-79),
-    p.C(111,-65,95,-61,76,-60),
-    p.C(60,-64,58,-71,58,-80),p.Z].join(" "),{enterFrame:118});
+    p.M(32,-89),p.C(48,-91,65,-82,72,-71),
+    p.C(58,-62,44,-65,32,-72),
+    p.C(29,-78,30,-84,32,-89),p.Z].join(" "),{enterFrame:118});
+  // White nape streak lies to the left of the orange ear, while the throat
+  // curves into the breast immediately beneath the beak's lower mandible.
   add("kingfisher-face-band",c.cream,25,[
-    p.M(54,-61),p.C(75,-54,96,-55,108,-62),
-    p.C(99,-43,85,-37,59,-39),
-    p.C(44,-43,44,-51,54,-61),p.Z].join(" "),{enterFrame:120});
+    p.M(15,-70),p.C(27,-68,42,-67,52,-60),
+    p.C(47,-51,35,-48,17,-54),
+    p.C(11,-59,11,-63,15,-70),p.Z].join(" "),{enterFrame:120});
   add("kingfisher-throat",c.white,23,[
-    p.M(72,-39),p.C(67,-22,57,-13,48,-6),
-    p.C(43,-23,48,-32,59,-39),
-    p.C(63,-40,69,-40,72,-39),p.Z].join(" "),{enterFrame:122});
-  add("kingfisher-eye-mask",c.ink,26,p.oval(89,-103,13.5,10.2),{
+    p.M(92,-63),p.C(98,-54,79,-39,62,-24),
+    p.C(53,-33,57,-44,71,-53),
+    p.C(80,-60,87,-66,92,-63),p.Z].join(" "),{enterFrame:122});
+  add("kingfisher-eye-mask",c.ink,26,p.oval(90,-102,10.3,8.8),{
     enterFrame:117});
-  add("kingfisher-eye",c.deep,27,p.oval(89,-104,7.7,7.5),{enterFrame:122});
-  add("kingfisher-pupil",c.white,28,p.disk(86.8,-106.7,2.45),{enterFrame:126});
+  add("kingfisher-eye",c.deep,27,p.oval(90,-103,6.6,6.5),{enterFrame:122});
+  add("kingfisher-pupil",c.white,28,p.disk(88.4,-105.4,1.7),{enterFrame:126});
   // Tapered two-piece adult bill: dark narrow ridge with a colored mandibular
   // seam rather than a parallel pair of cartoon whiskers.
-  add("kingfisher-beak-lower",c.coral,24,[
-    p.M(112,-91),p.C(147,-97,205,-102,237,-99),
-    p.C(196,-91,151,-86,113,-81),p.Z].join(" "),{enterFrame:112});
+  add("kingfisher-beak-lower",c.ink,24,[
+    p.M(112,-93),p.C(151,-100,211,-105,242,-101),
+    p.C(202,-96,148,-91,113,-88),p.Z].join(" "),{enterFrame:112});
   add("kingfisher-beak-upper",c.deep,26,[
-    p.M(110,-101),p.C(151,-112,211,-107,239,-101),
-    p.C(187,-103,151,-98,112,-87),p.Z].join(" "),{enterFrame:116,curl:.4});
-  add("beak-light-strip",c.blueLight,27,p.taper(123,-100,207,-103,1.7),{enterFrame:123});
+    p.M(111,-101),p.C(149,-111,210,-107,244,-101),
+    p.C(188,-103,148,-100,112,-94),p.Z].join(" "),{enterFrame:116,curl:.4});
+  add("beak-light-strip",c.blueLight,27,p.taper(123,-103,211,-104,1.15),{enterFrame:123});
   add("kingfisher-nostril",c.ink,28,p.oval(124,-96,3.3,1.7),{enterFrame:125});
   // Short orange tarsi curve around the upper side of the continuous branch.
   // Toes curl to the front and rear, not standing like two human legs.
@@ -656,7 +660,7 @@ export function paperObjectSpec(
   };
   setting(p,add,aspect,c,seed);
   switch(object){
-    case "kingfisher":kingfisher(p,add,c,detail,seed);break;
+    case "kingfisher":kingfisher(geometry(w,h,1.18),add,c,detail,seed);break;
     case "dragonfly":dragonfly(p,add,c,detail,seed);break;
     case "canal-houses":houses(p,add,c,detail,seed);break;
     case "camera":camera(p,add,c,detail,seed);break;
