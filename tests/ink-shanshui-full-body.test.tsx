@@ -113,6 +113,11 @@ describe("entire-body, reference-projected shanshui figures",()=>{
   it("animates separate opaque hem planes from grounded gait and settles at rest",()=>{
     for(const scene of SHANSHUI_SCENES){
       const fit=shanshuiBodyFit(scene),assets=shanshuiBodyAssets(scene);
+      const under=assets["scholar-opaque-ground"];
+      if(under.kind!=="shapes")throw Error("Under-robe must be original SVG");
+      expect(under.shapes[0]).toMatchObject({
+        type:"path",fill:"$mist",stroke:"none",strokeWidth:0,opacity:1,
+      });
       const model=makeShanshuiScholar(1,.9,scene);
       const moving=shanshuiScholarInstance(scene,1);
       const still=shanshuiScholarInstance(scene,0);
@@ -122,7 +127,7 @@ describe("entire-body, reference-projected shanshui figures",()=>{
         if(asset.kind!=="shapes")throw Error("Split hem requires SVG art");
         expect(asset.shapes.length).toBeGreaterThanOrEqual(4);
         expect(asset.shapes[0]).toMatchObject({
-          type:"path",fill:"$linen",opacity:1,
+          type:"path",fill:"$linen",stroke:"none",strokeWidth:0,opacity:1,
         });
         expect(model.parts.find(p=>p.id===id)).toMatchObject({
           parent:"body",channel:"body",asset:id,
