@@ -47,6 +47,14 @@ describe("photometric translucent pencil layer over source-measured skin",()=>{
     const a=createPhotometricSkinGlaze(src,guides,crop,strokes,1,271);
     expect(a.accepted).toBeGreaterThan(40);
     expect(a.marks.length).toBe(a.accepted*2);
+    const original=strokes.find(m=>m.zone==="face-value")!;
+    // Every existing base hatch keeps its own pressure and core. The
+    // extra optical fibers are paired ON EITHER SIDE of a source
+    // tangent, so they fill the paper void instead of doubling shadows.
+    const sample=a.marks.find(m=>m.zone==="face-value"&&
+      Math.abs(m.x-original.x)<6);
+    expect(sample).toBeDefined();
+    expect(a.marks.every(m=>m.alpha<.3&&m.width<4)).toBe(true);
     expect(a.marks.every(m=>
       /^#[0-9a-f]{6}$/.test(m.color)&&m.alpha>0&&m.alpha<.35&&
       m.width>0&&m.pass===0&&
