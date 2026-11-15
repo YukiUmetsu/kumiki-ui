@@ -216,6 +216,17 @@ for(const sample of ["woman","man"] as const){
         expect(lipNumbers.lower).toBeLessThan(36);
         await expect(lipEvidence).toContainText(
           "No independent ArtCraft artistic approval");
+        const jaw=page.locator('[data-km-pencil-jaw-contact="ready"]');
+        await expect(jaw).toHaveCount(1);
+        const jawDeficits=await jaw.evaluate(node=>[
+          "upper","mid","lower"].map(part=>Number(
+            node.getAttribute("data-km-pencil-jaw-"+part+"-deficit"))));
+        // Old real-browser dry output had jaw 5×5-pixel deficits
+        // 83, 80 and 68 despite source luminance only 50–70.
+        expect(jawDeficits.every(Number.isFinite)).toBe(true);
+        expect(jawDeficits.every(n=>n<65)).toBe(true);
+        await expect(jaw).toContainText(
+          "Not independent portrait or material approval");
         const lightSkin=page.locator(
           '[data-km-pencil-light-skin-proof="ready"]');
         await expect(lightSkin).toHaveCount(1);
