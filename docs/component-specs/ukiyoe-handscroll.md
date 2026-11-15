@@ -452,6 +452,12 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
 - **Looks.** `UKIYOE_OTOHIME_LOOK` (dragon crown, long hair, seigaiha robe over vermilion and green, stole, fan),
   `UKIYOE_RYUJIN_LOOK` (dragon crown, white hair and beard, red robe), `UKIYOE_URASHIMA_LOOK`.
 
+### The cut bamboo
+
+- **Motif `takegiri`.** The shining stalk after it is cut: a thick jointed stalk sliced on the slant, the pale cut face,
+  gold light from the hollow, and in it the tiny girl kneeling in red and white with long hair. `girl` (0–1), or with
+  `rises` 1 the keyed progress, raises her into view; `glow` sets the light.
+
 ### Hero's gear and the oni's treasure
 
 - **Prop `nobori`.** A tall banner held upright: the white cloth tied along the pole, a peach crest in place of lettering,
@@ -491,7 +497,7 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
 
   After that, `film:check` checks the document, and `film:review` measures the real rendered text boxes for collisions
   and clipping.
-- **Examples.** `src/video/ukiyoe-momotaro.ts` (*Momotarō*, eight shots, 100 s, `examples/film/ukiyoe-momotaro.film.json`), `src/video/ukiyoe-urashima.ts` (*Urashima Tarō*, eight shots, 106 s, `examples/film/ukiyoe-urashima-taro.film.json`) and `src/video/ukiyoe-kasa-jizo.ts` (compiled to `examples/film/ukiyoe-kasa-jizo.film.json`, with its `.srt`) are complete episodes: *Kasa Jizō*, six shots, 73 s. Storybook
+- **Examples.** `src/video/ukiyoe-kaguya.ts` (*Kaguya-hime*, eight shots, 95 s, `examples/film/ukiyoe-kaguya-hime.film.json`), `src/video/ukiyoe-momotaro.ts` (*Momotarō*, eight shots, 100 s, `examples/film/ukiyoe-momotaro.film.json`), `src/video/ukiyoe-urashima.ts` (*Urashima Tarō*, eight shots, 106 s, `examples/film/ukiyoe-urashima-taro.film.json`) and `src/video/ukiyoe-kasa-jizo.ts` (compiled to `examples/film/ukiyoe-kasa-jizo.film.json`, with its `.srt`) are complete episodes: *Kasa Jizō*, six shots, 73 s. Storybook
   **Episode (Kasa Jizō)** plays it in either output, with the script check and an .srt download.
 
 ### Transition

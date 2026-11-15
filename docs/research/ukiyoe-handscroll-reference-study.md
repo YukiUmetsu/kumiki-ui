@@ -1432,6 +1432,59 @@ Storybook has **Parades**.
 - No video render yet.
 - Nobody has done a human visual review yet.
 
+## Kaguya-hime (episode E4, 2026-11-15)
+
+**Sources**:
+
+- the illustrated *Tale of the Bamboo Cutter*, late 17th century (Met 45361, CC0; 74 page images, studied as contact
+  sheets);
+- Yoshitoshi's *Gekkyū no mukae* (studied for F10).
+
+**What they show.**
+
+- **The book.** Palace interiors seen from above without roofs (fukinuki yatai), green-bordered mats, gold cloud bands
+  framing each scene. Kaguya appears in layered robes with long hair in a raised room, the courtiers kneeling in the
+  garden. On one page, armoured guards with bows mass in the courtyard to wait for the moon people.
+- **Yoshitoshi.** Kaguya rises on clouds with her attendants.
+
+**What was built.**
+
+- The `takegiri` motif.
+- `src/video/ukiyoe-kaguya.ts`, which reuses:
+  - the shining grove;
+  - the Heian veranda, court looks and lords;
+  - the archers' `shoot`;
+  - the gissha as the moon people's flying cart on a cloud;
+  - the tennyo envoys;
+  - the moon palace;
+  - Fuji with smoke.
+
+**Review rounds.**
+
+1. **Script check.**
+   - The motif had never been added: a chained shell command stopped before the edit.
+   - Cameras on the title, guards and ascent put figures under the captions.
+   - One end-card line was too long for Shorts.
+2. **Landscape stills.**
+   - The radiant halo read as a sun emblem, both behind Kaguya and as the moon people's blaze. Her glow is now soft, and
+     the blaze is light rays from above.
+   - The host ended cut off at the top of the frame.
+   - The stalk's twig read as a stick and is now a leaf spray.
+   - The ascent lacked a place. It now has the wall and the kneeling archers.
+   - The cloud's tail covered the old couple.
+3. **Portrait stills.** All held.
+4. **Checks.** `film:check` passed. `film:review` of both outputs found 0 errors and 12 warnings, all in the mist and
+   the final fade.
+
+**Not done.**
+
+- The five treasures are named, not shown.
+- No Emperor on screen.
+- No elixir.
+- No voice.
+- No video render yet.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

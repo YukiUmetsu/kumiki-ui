@@ -12,6 +12,7 @@ import { inspectUkiyoeEpisode, ukiyoeCaptionLines, ukiyoeEpisode, ukiyoeEpisodeS
 import { KASA_JIZO_EPISODE } from "../src/video/ukiyoe-kasa-jizo";
 import { URASHIMA_EPISODE } from "../src/video/ukiyoe-urashima";
 import { MOMOTARO_EPISODE } from "../src/video/ukiyoe-momotaro";
+import { KAGUYA_EPISODE } from "../src/video/ukiyoe-kaguya";
 import { tamatebakoSmoke, TAMATEBAKO_THICKEST } from "../registry/video/ukiyoe/ukiyoe-ryugu";
 import { tsukumoScene, UKIYOE_TSUKUMO, UKIYOE_TSUKUMO_SCENES } from "../registry/video/ukiyoe/ukiyoe-tsukumo";
 import { giantScene, UKIYOE_GIANT_SCENES, UKIYOE_GIANTS } from "../registry/video/ukiyoe/ukiyoe-giants";
@@ -1034,5 +1035,15 @@ describe("UKIYO1 Momotarō", () => {
     // The cart's wheels turn with its keyed travel.
     const cart = (progress: number) => JSON.stringify(drawMotif("kuruma", { travel: 500 }, { frame: 0, wind: 0, seed: 1, progress }));
     expect(cart(0)).not.toBe(cart(.5));
+  });
+});
+
+describe("UKIYO1 Kaguya-hime", () => {
+  it("passes the script check, matches its example, and lets the girl rise in the cut stalk", () => {
+    expect(inspectUkiyoeEpisode(KAGUYA_EPISODE)).toEqual([]);
+    expect(JSON.parse(readFileSync("examples/film/ukiyoe-kaguya-hime.film.json", "utf8"))).toEqual(JSON.parse(JSON.stringify(ukiyoeEpisode(KAGUYA_EPISODE))));
+    const stalk = (progress: number) => JSON.stringify(drawMotif("takegiri", { rises: 1 }, { frame: 0, wind: 0, seed: 1, progress }));
+    expect(stalk(0)).not.toContain("takegiri-girl");
+    expect(stalk(1)).toContain("takegiri-girl");
   });
 });
