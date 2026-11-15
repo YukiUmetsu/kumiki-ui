@@ -242,6 +242,10 @@ for(const sample of ["woman","man"] as const){
         await expect(weave).toHaveValue("0");
         await expect(full).toHaveAttribute("data-km-pencil-skin-weave","0");
         await expect(full).toHaveAttribute("data-km-pencil-skin-weave-nibs","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-skin-light-plane-fibres","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-skin-protected-curve-spans","0");
         const withoutWeave=await full.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png"));
         await full.screenshot({animations:"disabled",
@@ -254,6 +258,15 @@ for(const sample of ["woman","man"] as const){
         const protectedSkinHighlights=Number(
           await full.getAttribute("data-km-pencil-skin-weave-highlight-reserves"));
         expect(opticalNibCount).toBeGreaterThan(300);
+        const lightFibres=Number(await full.getAttribute(
+          "data-km-pencil-skin-light-plane-fibres"));
+        const protectedCurves=Number(await full.getAttribute(
+          "data-km-pencil-skin-protected-curve-spans"));
+        expect(Number.isSafeInteger(lightFibres)).toBe(true);
+        expect(lightFibres).toBeGreaterThan(0);
+        expect(lightFibres).toBeLessThanOrEqual(opticalNibCount);
+        expect(Number.isSafeInteger(protectedCurves)).toBe(true);
+        expect(protectedCurves).toBeGreaterThanOrEqual(0);
         // Real camera exposure may contain no skin above the calibrated
         // near-paper reserve threshold. Never fabricate a highlight;
         // synthetic pure-white source is covered by the dedicated unit gate.
