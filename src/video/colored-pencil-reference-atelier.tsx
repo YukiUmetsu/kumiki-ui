@@ -80,6 +80,7 @@ export function ReferencePencilAtelier(){
   const underpaint=useRef<HTMLCanvasElement|null>(null);
   const progress=useRef<{study:PencilPhotoStudy;frame:number;drawn:number;wash:number}|null>(null);
   const localObjectUrl=useRef<string|null>(null);
+  const sourceImage=useRef<HTMLImageElement>(null);
   // Kingfisher is the preferred first artwork: saturated feather detail gives
   // better immediate source-vs-pencil feedback than a shaded fox background.
   const [sample,setSample]=useState<Sample>("kingfisher");
@@ -101,37 +102,29 @@ export function ReferencePencilAtelier(){
   useEffect(()=>()=>{if(localObjectUrl.current){
     URL.revokeObjectURL(localObjectUrl.current);localObjectUrl.current=null;
   }},[]);
+  const captureSource=(image:HTMLImageElement)=>{
+    if(!image.naturalWidth||!image.naturalHeight)return;
+    try{
+      setRaw(capture(image,size.width,size.height));
+      setError("");
+    }catch{
+      setRaw(null);
+      setError("The image host does not permit Canvas pixels. Upload a locally owned photo.");
+    }
+  };
+  // Browser-native img loads are reliable in React/Storybook StrictMode. The
+  // previous detached Image() sometimes stayed pending despite HTTP 200.
   useEffect(()=>{
-    let cancelled=false,settled=false;
-    const image=new Image();image.crossOrigin="anonymous";
-    let timeout:number|undefined;
-    const success=()=>{
-      if(cancelled||settled)return;
-      settled=true;
-      window.clearTimeout(timeout);
-      try{setRaw(capture(image,size.width,size.height));setError("");}
-      catch{
-        setRaw(null);setError(
-          "The image host does not permit Canvas pixels. Upload a locally owned photo.");
-      }
-    };
-    const failure=()=>{
-      if(cancelled||settled)return;
-      settled=true;window.clearTimeout(timeout);
-      setRaw(null);setError("The reference image could not load. Retry or upload a local photo.");
-    };
-    image.onload=success;
-    image.onerror=failure;
-    image.src=sourceUrl;
-    // Catch cached/decode-completed images as well as standard load events.
-    if(image.complete&&image.naturalWidth>0)success();
-    else void image.decode().then(success,failure);
-    timeout=window.setTimeout(failure,25000);
-    return()=>{
-      cancelled=true;window.clearTimeout(timeout);
-      image.onload=null;image.onerror=null;
-    };
-  },[sourceUrl,size.width,size.height,reload]);
+    const image=sourceImage.current;
+    if(image?.complete && image.naturalWidth>0)captureSource(image);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[sourceUrl,reload,size.width,size.height]);
+  useEffect(()=>{
+    if(raw||error)return;
+    const timer=window.setTimeout(()=>setError(
+      "Reference still loading. Retry, or choose a local photograph."),18000);
+    return()=>window.clearTimeout(timer);
+  },[raw,error,sourceUrl,reload]);
   const study=useMemo(()=>raw?createPencilPhotoStudy(raw,options):null,
     [raw,options]);
   // The static precomputed tone layer is cached: seeking/speed does not
@@ -191,6 +184,12 @@ export function ReferencePencilAtelier(){
   return <main style={{background:"#E7E5DC",minHeight:"100vh",
     padding:24,font:"14px/1.5 system-ui",color:"#34464C",
     display:"grid",gap:16,alignContent:"start"}}>
+    <img key={sourceUrl+"-"+reload} ref={sourceImage}
+      src={sourceUrl} crossOrigin="anonymous" alt=""
+      aria-hidden="true" style={{display:"none"}}
+      onLoad={e=>captureSource(e.currentTarget)}
+      onError={()=>{setRaw(null);setError(
+        "Reference unavailable. Retry, or choose a local image.");}}/>
     <header style={{maxWidth:1000}}>
       <div style={{letterSpacing:2,color:"#687A71",fontSize:12,fontWeight:700}}>
         ARTCRAFT / SOURCE-CONDITIONED COLOUR-PENCIL
