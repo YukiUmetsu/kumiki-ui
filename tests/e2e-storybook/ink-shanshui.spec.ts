@@ -195,6 +195,16 @@ test("geological ArtCraft proof compares source-rooted forms against a genuine m
   await expect(negative.locator("[data-km-rock-hero-cliff]")).toHaveCount(0);
   await expect(negative.locator("[data-km-rock-pima-stroke]")).toHaveCount(0);
   await expect(negative.locator("[data-km-rock-terrace]")).toHaveCount(0);
+  await expect(negative.locator("[data-km-rock-interlocked-mass]")).toHaveCount(0);
+  await expect(original.locator("[data-km-rock-interlocked-mass]")).toHaveCount(3);
+  await expect(original.locator("[data-km-rock-mass-alum-cap]")).toHaveCount(6);
+  await expect(original.locator("[data-km-rock-mass-erosion]")).toHaveCount(9);
+  await expect(diluted.locator("[data-km-rock-interlocked-mass]")).toHaveCount(3);
+  // Low ink changes material only; the full multi-lobed contour is identical.
+  expect(await original.locator("[data-km-rock-mass-underwash]").first()
+    .getAttribute("d")).toBe(await diluted.locator(
+      "[data-km-rock-mass-underwash]").first().getAttribute("d"));
+
   await expect.poll(()=>original.locator("[data-km-rock-terrace]").count())
     .toBe(3);
   await expect.poll(()=>original.locator("[data-km-rock-terrace-hemp]").count())
