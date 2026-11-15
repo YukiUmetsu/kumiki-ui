@@ -468,13 +468,14 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
   const [eyeContact,setEyeContact]=useState<"source-shade"|"baseline">("source-shade");
   const [midfaceForm,setMidfaceForm]=useState<"source-volume"|"baseline">("baseline");
+  const [jawNeckForm,setJawNeckForm]=useState<"source-contour"|"baseline">("baseline");
   const [lashFinish,setLashFinish]=useState<"sparse"|"rooted">("sparse");
   const [inspection,setInspection]=useState<
     "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|
     "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right">("full");
   const spec=useMemo(()=>crayonCc0FaceStudy({
-    detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,midfaceForm,lashFinish,
-  }),[detail,view,fiberMaterial,eyeContact,midfaceForm,lashFinish]);
+    detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,midfaceForm,jawNeckForm,lashFinish,
+  }),[detail,view,fiberMaterial,eyeContact,midfaceForm,jawNeckForm,lashFinish]);
   const framed=useMemo(()=>{
     if(inspection==="full")return spec;
     const focus={
@@ -594,6 +595,13 @@ export function Cc0SourceRegisteredFaceWorkbench({
             "source-volume"|"baseline")}>
           <option value="source-volume">Attached nasal and lip/dental wax (experiment)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
+        </select>
+      </label>
+      <label>Mandible and neck wax planes{" "}
+        <select aria-label="F1 jaw neck source contour" value={jawNeckForm}
+          onChange={e=>setJawNeckForm(e.target.value as "source-contour"|"baseline")}>
+          <option value="baseline">Previous facial contour (negative control)</option>
+          <option value="source-contour">Source mandibular curve and attached neck wax (experiment)</option>
         </select>
       </label>
       <label>Hair mark material{" "}
