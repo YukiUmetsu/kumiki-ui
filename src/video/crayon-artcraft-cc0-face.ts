@@ -467,7 +467,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(328,503,92,148),
     ["#b9968c","#907272","#d8b1a3"],[136,246],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      blendRadius:11,pressure:.52,markStrength:.19,spacing:8.2});
+      blendRadius:9.3,pressure:.57,markStrength:.25,spacing:8.2});
   wax("nose-subalar-contact",
     "M372 629Q387 640 400 643Q416 644 429 634"+
     "Q436 628 444 627Q438 647 420 654"+
@@ -507,6 +507,34 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     ["#d7a995","#af8179","#efc3ab"],[195,277],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       blendRadius:7.8,pressure:.37,spacing:8,markStrength:.18});
+  // Source F1 alar and nostril value breaks, attached BEFORE the hair
+  // occluder: painted wax cartilage, never isolated pure vector ink loops.
+  wax("nose-alar-crease-near",
+    "M381 634Q393 639 405 632Q401 644 390 647"+
+    "Q384 642 381 634Z",
+    rect(378,628,32,22),
+    ["#ab8980","#896d6b","#cda79d"],[224,297],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.47,spacing:7.3,markStrength:.19,blendRadius:3.5});
+  wax("nose-alar-crease-far",
+    "M445 625Q452 614 460 613Q456 627 450 632Z",
+    rect(443,611,21,23),
+    ["#b18c83","#94726d","#d1a99b"],[230,297],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.41,spacing:7.8,markStrength:.15,blendRadius:3.2});
+  wax("nostril-contact-near",
+    "M393 640Q401 644 410 639Q406 650 399 650"+
+    "Q394 647 393 640Z",
+    rect(390,637,24,16),
+    ["#9b7770","#785d5b","#bd9589"],[235,299],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.42,spacing:6.9,markStrength:.16,blendRadius:2.6});
+  wax("nostril-contact-far",
+    "M450 625Q455 620 460 619Q459 629 455 633Z",
+    rect(448,618,16,18),
+    ["#a4827a","#80605e","#c69c91"],[234,299],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.38,spacing:7.4,markStrength:.12,blendRadius:2.5});
   // Mouth's natural perspective slopes upwards toward the occluded far
   // cheek. Separate vermilion volumes, dark oral slit and visible tooth
   // interruption are sourced from F1 x348..490/y681..775, not a U glyph.
@@ -525,7 +553,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(349,690,141,59),
     ["#c49790","#97767a","#deb2a8"],[166,260],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.44,spacing:8.2,markStrength:.21,blendRadius:5.7});
+      pressure:.53,spacing:8.2,markStrength:.27,blendRadius:5.4});
   // The source F1 expression is nearly closed, oblique and asymmetric.
   // Keep an actual narrow internal opening, not a broad smile/teeth slot.
   wax("lip-cupid-tubercles",
@@ -543,7 +571,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(350,708,139,38),
     ["#9f7977","#775b5d","#bf9690"],[194,279],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      blendRadius:2.8,pressure:.42,spacing:7.9,markStrength:.17});
+      blendRadius:2.7,pressure:.47,spacing:7.9,markStrength:.24});
   // The actual CC0 face does not visibly show teeth. The prior 37×11
   // muted "enamel" still rendered as a conspicuous white paper stripe,
   // so remove the fabricated layer instead of endlessly shrinking it.
@@ -554,7 +582,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(352,710,138,60),
     ["#d0a19a","#a47f82","#e8beb0"],[199,286],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.43,spacing:8,markStrength:.19,blendRadius:5.2});
+      pressure:.51,spacing:8,markStrength:.25,blendRadius:5.0});
   // The inferior vermilion turns back into the chin as a wide *open*
   // value plane. This is not an opaque digital smile capsule.
   wax("lip-lower-core-shadow",
@@ -565,6 +593,20 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     ["#b48b88","#8b676a","#deb0a5"],[217,291],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       pressure:.42,spacing:7.8,markStrength:.23,blendRadius:6.2});
+  // Oblique commissures are tiny pressure-built depressions embedded in
+  // the vermilion, not two unrelated pure-ink cartoon brackets.
+  wax("lip-commissure-left",
+    "M351 741Q359 733 368 734Q361 743 355 746Z",
+    rect(349,730,23,19),
+    ["#a47a78","#7b6061","#c89e98"],[242,299],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.4,spacing:7.2,markStrength:.18,blendRadius:2.8});
+  wax("lip-commissure-right",
+    "M475 710Q482 708 488 713Q484 717 478 716Z",
+    rect(472,707,20,13),
+    ["#ac8580","#886766","#caa198"],[243,299],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.35,spacing:7.8,markStrength:.14,blendRadius:2.3});
   // Silhouette-order lock: hair curtains lie on TOP of the face on right
   // and behind left cheek, selectively masking the far pupil's outer edge.
   wax("hair-left-curtain",
@@ -773,26 +815,8 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "#906d6d",.58,[214,298],.46,"face-outline");
   mark("tear-canthus-near",
     "M321 540q6 2 7 8", "#8e6667",.8,[224,299],.68,"face-outline");
-  mark("nose-alar-crease-near",
-    "M382 638Q387 646 396 644M390 633Q391 625 401 626",
-    "#7a504a",1.12,[225,298],.61,"face-outline");
-  mark("nose-alar-crease-far",
-    "M446 622Q450 613 455 613",
-    "#86564c",.96,[231,298],.61,"face-outline");
-  // Nostrils are short dark OCCLUSIONS beneath the alar wings, not
-  // independent closed circles outlined against pale unmodeled skin.
-  mark("nostril-contact-near",
-    "M395 644Q402 644 408 640",
-    "#816363",.72,[235,299],.36,"face-outline");
-  mark("nostril-contact-far",
-    "M450 628Q455 623 459 621",
-    "#8b6c68",.59,[234,299],.35,"face-outline");
-  mark("lip-commissure-left",
-    "M351 744Q357 735 365 733",
-    "#663841",1.18,[243,298],.78,"face-outline");
-  mark("lip-commissure-right",
-    "M475 710Q484 707 490 713",
-    "#6e444d",.96,[245,298],.73,"face-outline");
+  // Alar relief and labial commissures are deposited in their anatomical
+  // paint order above; no late pure-ink outlines can float over hair.
   mark("lower-lip-reflected-contact",
     "M384 766Q425 780 461 750",
     "#e4b6aa",.94,[246,297],.48,"lip-lower");
