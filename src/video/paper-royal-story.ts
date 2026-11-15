@@ -719,7 +719,8 @@ export function paperRoyalStoryScene(
   // one aspect's people to fill the other aspect's video rectangle.
   princess(pen(w/2-distance,ground,actorScale),add,phase,motion);
   prince(pen(w/2+distance,ground,actorScale),add,phase,motion);
-  fox(pen(w/2+(aspect==="portrait"?48:56),ground-2,actorScale*.85),add,phase,motion);
+  const addFox:Add=(id,color,depth,path,rest)=>add(id,color,depth+(aspect==="portrait"?6:0),path,rest);
+  fox(pen(w/2+(aspect==="portrait"?-160:56),ground+(aspect==="portrait"?35:-2),actorScale*.85),addFox,phase,motion);
   rabbit(pen(w/2-(aspect==="portrait"?36:56),ground,actorScale*.71),add,phase,motion);
   deer(pen(w/2+(aspect==="portrait"?140:327),ground-10,
     actorScale*(aspect==="portrait"?.77:.77)),add,phase,motion);

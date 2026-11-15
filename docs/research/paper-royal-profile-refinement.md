@@ -94,3 +94,7 @@ Actual GitHub Actions browser PNGs from [run #43693882898](https://github.com/Yu
 ## Rejected foreground-fox experiment
 
 A portrait-only trial moved the fox down 105 sheet units and placed its layers above the foreground bank to separate it from the prince's boots. A browser bounding-box assertion passed, but the first native portrait frame 610 hid the fox behind the bank; raising its stock above the bank made the fox look isolated and unsupported on a large empty field. Both candidates were discarded. This is an art-review failure despite the passing geometry assertion. The original overlap remains; investigate grounded staging, coherent foreground construction and motion in both aspects before another change. Neither candidate nor its assertion was retained.
+
+## Portrait fox staging iteration
+
+The second tested portrait placement brings the fox to the left foreground, near the existing bank, and keeps its opaque paper layers above that bank. The original paths and landscape placement remain unchanged. Native portrait frames 130, 370 and 610 were rendered and inspected: the fox no longer covers the prince's boots, and the body, head and tail remain within frame in those samples. The fox still overlaps the princess's skirt, while the deer overlaps the prince in the earlier scenes; this is a partial improvement, not a passed artistic or full-motion review. Browser checks cover these three frames and the fox body/boot rectangles, not every animal outline or frame. Source-based portrait evaluation and independent review remain open.

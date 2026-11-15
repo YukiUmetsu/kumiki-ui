@@ -70,3 +70,27 @@ test("portrait deer remains within the paper stage across all chapters",async({p
     }
   }
 });
+
+test("portrait fox is visible and clear of the prince's boots",async({page})=>{
+  await page.goto(path+"&args=aspect:portrait;motion:0.75;medium:layered");
+  const stage=page.locator('svg[data-km-paper-director="the-moonlit-lantern"]');
+  const slider=page.getByRole("slider",{name:"Scrub fairy tale"});
+  for(const frame of [130,370,610]){
+    await slider.fill(String(frame));
+    const bounds=await stage.boundingBox();
+    const fox=await stage.locator('[data-km-paper-layer="fox-body"] > g > path').first().boundingBox();
+    for(const id of ["fox-tail","fox-head"]){
+      const part=await stage.locator(`[data-km-paper-layer="${id}"] > g > path`).first().boundingBox();
+      expect(part,id).not.toBeNull();
+      expect(part!.x,id).toBeGreaterThanOrEqual(bounds!.x);
+      expect(part!.x+part!.width,id).toBeLessThanOrEqual(bounds!.x+bounds!.width);
+    }
+    const boot=await stage.locator('[data-km-paper-layer="prince-right-boot"] > g > path').first().boundingBox();
+    expect(bounds).not.toBeNull();expect(fox).not.toBeNull();expect(boot).not.toBeNull();
+    expect(fox!.x).toBeGreaterThanOrEqual(bounds!.x);
+    expect(fox!.x+fox!.width).toBeLessThanOrEqual(bounds!.x+bounds!.width);
+    const overlaps=fox!.x < boot!.x+boot!.width && fox!.x+fox!.width > boot!.x &&
+      fox!.y < boot!.y+boot!.height && fox!.y+fox!.height > boot!.y;
+    expect(overlaps,`frame ${frame}`).toBe(false);
+  }
+});
