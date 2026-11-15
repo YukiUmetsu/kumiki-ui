@@ -136,6 +136,15 @@ describe("ArtCraft anatomical hare source construction",()=>{
     expect(lid.coverage).toBe("opaque");
     expect(crayonDrawingAt(lid,89).d).not.toBe(crayonDrawingAt(lid,95).d);
     expect(crayonDrawingAt(lid,203).d).not.toBe(crayonDrawingAt(lid,209).d);
+    // The limbal aperture itself narrows during the held blink, preventing
+    // an open black circle around a round skin-colored occlusion sticker.
+    const rim=part("eye-dark-rim");
+    if(rim.kind!=="wax")throw new Error("Missing wax limbus");
+    expect(crayonDrawingAt(rim,203).d).not.toBe(crayonDrawingAt(rim,209).d);
+    expect(crayonDrawingAt(rim,203).bounds.height)
+      .toBeLessThan(crayonDrawingAt(rim,209).bounds.height);
+    expect(crayonDrawingAt(rim,89).d).toBe(crayonDrawingAt(rim,203).d);
+    expect(crayonDrawingAt(rim,95).d).toBe(crayonDrawingAt(rim,237).d);
     const root=part("shoulder-silhouette");
     expect(part("head").parentId).toBe(root.id);
     const iris=part("iris-gold-radials");
