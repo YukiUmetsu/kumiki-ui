@@ -883,16 +883,39 @@ export const createDryPencilHeadPlate=(
   // material layer, NOT a filter on the finished portrait.
   const skinWeave=createPencilSkinOpticalWeave(
     source,guides,geometry.face,seed,skinWeaveDepth);
-  // A complete dry-pencil head has a strict existing 120k mark budget.
-  // Reserve EVERY measured feature, iris and eyelid pigment first:
-  // never sacrifice fine character features to add a broader skin layer.
-  // Thin the optional optical weave at evenly distributed positions to
-  // keep the full photographic cheek, forehead, nose and jaw in scope.
-  // Cutting off after the Nth nib would leave a conspicuous flat region.
+  // Budget-preserving medium replacement: all sharpened iris, nose,
+  // eyelid, lip, hair and form marks survive unchanged. The original
+  // uniform, *coarse* scumble base can be exchanged for more deliberate
+  // photometric looping fibers when a dense source already saturates its
+  // 120k mark budget. The optical weave never grows total strokes beyond
+  // the preexisting plate + available budget, even on source-heavy photos.
   const reservedDetails=details.marks.length+
     opticallyObservedLids.marks.length+opticallyObservedIris.marks.length;
-  const weaveBudget=Math.max(0,119999-marks.length-reservedDetails);
-  const count=Math.min(weaveBudget,skinWeave.marks.length);
+  const available=Math.max(0,119999-marks.length-reservedDetails);
+  const requested=Math.min(3600,skinWeave.marks.length);
+  const scumbleIndices:number[]=[];
+  if(requested>available){
+    for(let i=0;i<marks.length;i++){
+      if(marks[i].zone==="face-scumble")scumbleIndices.push(i);
+    }
+  }
+  const replacementCount=Math.min(
+    Math.max(0,requested-available),
+    Math.floor(scumbleIndices.length*.65));
+  if(replacementCount>0){
+    const obsolete=new Set<number>();
+    for(let i=0;i<replacementCount;i++){
+      obsolete.add(scumbleIndices[Math.floor(
+        (i+.5)*scumbleIndices.length/replacementCount)]);
+    }
+    // Stable geometry-wide sampling, not removal of only the first
+    // forehead/cheek strip. Old coarse scumble is replaced in all areas.
+    for(let i=marks.length-1;i>=0;i--){
+      if(obsolete.has(i))marks.splice(i,1);
+    }
+    materialCounts["face-scumble"]-=obsolete.size;
+  }
+  const count=Math.min(requested,available+replacementCount);
   for(let i=0;i<count;i++){
     const m=skinWeave.marks[
       Math.floor((i+.5)*skinWeave.marks.length/count)];
