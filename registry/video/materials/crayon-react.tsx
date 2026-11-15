@@ -262,11 +262,13 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     {/* The rubbed-over skin tone is feathered before local tooth strokes.
         Parent clipping in CrayonScene prevents any blur from escaping a face. */}
     {coverage==="open" && blendRadius>0 && fillProgress>0 &&
-      <path d={d} fill={colors[0]} opacity={fillProgress*(construction?.glaze??.58)}
-        filter={"url(#"+blendId+")"} data-km-crayon-soft-glaze={blendRadius} />}
+      <path d={d} fill={colors[0]}
+        opacity={fillProgress*(construction?.glaze??.58)*(strokeBuilt?.22:1)}
+        filter={strokeBuilt?undefined:"url(#"+blendId+")"}
+        data-km-crayon-soft-glaze={strokeBuilt?undefined:blendRadius} />}
     <g clipPath={"url(#" + clip + ")"} mask={"url(#" + pores + ")"} data-km-crayon-wax="">
       {coverage==="open" && blendRadius===0 && <path d={d} fill={colors[0]}
-        opacity={fillProgress*(construction?.glaze??.58)} />}
+        opacity={fillProgress*(construction?.glaze??.58)*(strokeBuilt?.22:1)} />}
       {coverage==="opaque" && <path d={d} fill={colors[2]}
         opacity={pigmentProgress*.09}/>}
 
