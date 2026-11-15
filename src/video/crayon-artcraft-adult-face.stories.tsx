@@ -453,11 +453,12 @@ export function Cc0SourceRegisteredFaceWorkbench({
 }:StudyProps){
   const [view,setView]=useState<"wax"|"anatomy">("wax");
   const [showReference,setShowReference]=useState(true);
+  const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
   const [inspection,setInspection]=useState<
     "full"|"face"|"hair-left"|"hair-right">("full");
   const spec=useMemo(()=>crayonCc0FaceStudy({
-    detail:Math.max(.2,detail),view,
-  }),[detail,view]);
+    detail:Math.max(.2,detail),view,fiberMaterial,
+  }),[detail,view,fiberMaterial]);
   const framed=useMemo(()=>{
     if(inspection==="full")return spec;
     const focus={
@@ -542,6 +543,13 @@ export function Cc0SourceRegisteredFaceWorkbench({
         onClick={()=>setShowReference(s=>!s)}>
         {showReference?"Hide source":"Compare source"}
       </button>
+      <label>Hair mark material{" "}
+        <select aria-label="CC0 hair mark material" value={fiberMaterial}
+          onChange={e=>setFiberMaterial(e.target.value as "line"|"dry-wax")}>
+          <option value="dry-wax">Paper-built crayon deposits</option>
+          <option value="line">Legacy smooth line · negative control</option>
+        </select>
+      </label>
       <label>Inspect source region{" "}
         <select aria-label="CC0 source anatomy inspection" value={inspection}
           onChange={e=>setInspection(e.target.value as
