@@ -503,6 +503,93 @@ for(const sample of ["woman","man"] as const){
         expect(await output.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
+        // CP18: detect false paper-white on the photo-measured jaw
+        // polygon, not merely a changed screenshot. Photo and dry-pencil
+        // visual evidence are both sampled at real 285×318 presentation.
+        // No photograph pixel is copied into the actual pigment artwork.
+        const jaw=page.getByLabel("Pencil photo-verified jaw paper-tooth repair");
+        const measuredJaw=async()=>full.evaluate(node=>{
+          const source=document.querySelector<HTMLCanvasElement>(
+            "canvas[data-km-pencil-full-head-source]");
+          if(!source)throw Error("No source photograph comparison");
+          const sample=(canvas:HTMLCanvasElement)=>{
+            const out=document.createElement("canvas");
+            out.width=285;out.height=318;
+            const ctx=out.getContext("2d")!;
+            ctx.drawImage(canvas,0,0,285,318);
+            const data=ctx.getImageData(0,0,285,318).data;
+            const rgb=new Float32Array(285*318);
+            for(let i=0;i<rgb.length;i++){
+              const k=4*i;
+              rgb[i]=.2126*data[k]+.7152*data[k+1]+.0722*data[k+2];
+            }
+            return rgb;
+          };
+          const ref=sample(source),drawn=sample(node as HTMLCanvasElement);
+          // A native screenshot projection of the photographed contour
+          // from face polygon indices 8 to 15. This measures both the
+          // ear-side cheek fold and the lower mandibular arc.
+          const edge=[
+            [204,221],[189,237],[171,246],[146,244],
+            [120,231],[99,211],[84,184],[73,151],
+          ];
+          const positions=new Set<number>();
+          for(let seg=0;seg<edge.length-1;seg++){
+            const [ax,ay]=edge[seg],[bx,by]=edge[seg+1];
+            const dx=bx-ax,dy=by-ay;
+            const len=Math.hypot(dx,dy);
+            for(let j=0;j<Math.ceil(len);j++){
+              const t=(j+.5)/Math.ceil(len);
+              for(const normal of [-1,0,1]){
+                const x=Math.round(ax+t*dx-normal*dy/len);
+                const y=Math.round(ay+t*dy+normal*dx/len);
+                if(x<2||y<2||x>=283||y>=316)continue;
+                positions.add(y*285+x);
+              }
+            }
+          }
+          let gap=0,mae=0,n=0;
+          for(const i of positions){
+            if(ref[i]>185)continue; // true photographed paper lights
+            const d=drawn[i]-ref[i];
+            gap+=Math.max(0,d);mae+=Math.abs(d);n++;
+          }
+          const protect=[
+            [135,130],[183,190],[20,20],[75,230],
+          ].map(([x,y])=>Math.round(drawn[y*285+x]*100)/100);
+          return {gap:gap/n,mae:mae/n,n,protect};
+        });
+        await jaw.focus();await jaw.press("Home");
+        await expect(jaw).toHaveValue("0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-jaw-edge","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-jaw-edge-nibs","0");
+        const oldJaw=await measuredJaw();
+        expect(oldJaw.n).toBeGreaterThan(250);
+        const noJaw=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-jaw-chalk-legacy-0.png")});
+        await jaw.press("End");
+        await expect(jaw).toHaveValue("1");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-jaw-edge","1");
+        const jawFibres=Number(await full.getAttribute(
+          "data-km-pencil-jaw-edge-nibs"));
+        expect(jawFibres).toBeGreaterThan(80);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(noJaw);
+        const newJaw=await measuredJaw();
+        expect(newJaw.gap).toBeLessThan(oldJaw.gap-1.5);
+        expect(newJaw.mae).toBeLessThan(oldJaw.mae+.9);
+        expect(newJaw.protect).toEqual(oldJaw.protect);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-jaw-photo-tooth-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Actual licensed source, ALL four chronologically composited
         // Storybook shots. Stage 1..4 must contain increasing genuine
         // pencil marks; the exported film bitmap must not be affected.
