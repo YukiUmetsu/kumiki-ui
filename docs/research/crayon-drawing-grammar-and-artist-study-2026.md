@@ -86,3 +86,23 @@ Replace the botanical geometry and its `parts`/named attachments with subject-sp
 5. Structural tests cover the new anatomical wax planes and leaf branch geometry; isolated Chromium visual proofs capture 960×540 and 540×960 construction frames plus cropped detail.
 
 **Approval status remains `!dev`:** these tests cannot certify a world-class illustration. A botanical reference can show high fidelity while the procedural wax deposition still looks too clean/digital. Inspect native captures at normal display scale, amend source geometry first, and only then consider accepting an artwork; do not claim that passing structural checks proves a finished professional drawing.
+
+### Second visual critique and correction
+
+The first post-implementation 960×540/540×960 Chromium source renders were reviewed.
+A broad flat blush, near-vector leaflet, and U-shaped eyebrow-like stem cup
+remained visually obvious, despite the new wax value planes and passing tests.
+
+The revised iteration retains the opaque source silhouettes and adds
+form-relevant **cross-direction dry-wax** contact on the pear/blush/leaf at
+lower opacity, narrower and more varied curved leaf venation, an actual
+stem-to-leaf overlap, lighter broken stem well marks rather than a large
+cartoon arc, and a small separate umbra directly beneath the fruit.
+New deposits remain deterministic, source clipped, and accounted for in
+the declared drawing plan. The added detail is not a particle noise shader;
+all marks follow separate authored cubic motion guides.
+
+A professional visual gate still requires inspection of the final native
+macro screenshots in both aspects. In particular, tiny lenticels, real
+paper-to-wax contact, natural leaf vein branching, and the cast shadow must
+remain readable without making the fruit resemble a vector gradient.
