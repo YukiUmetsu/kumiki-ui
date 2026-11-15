@@ -307,6 +307,26 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         .toHaveLength(cloudCount);
       expect((html.match(/data-km-master-cloud-recess=""/g)??[]))
         .toHaveLength(cloudCount);
+      expect((html.match(/data-km-master-cloud-undercut=""/g)??[]))
+        .toHaveLength(cloudCount);
+      expect((html.match(/data-km-master-cloud-shelf=""/g)??[]))
+        .toHaveLength(cloudCount);
+      const guoUndercuts=[...html.matchAll(
+        /data-km-master-cloud-undercut="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      const guoShelves=[...html.matchAll(
+        /data-km-master-cloud-shelf="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      expect(guoUndercuts).toHaveLength(cloudCount);
+      expect(guoShelves).toHaveLength(cloudCount);
+      expect(guoUndercuts.every(d=>d.startsWith("M")&&
+        (d.match(/ C/g)??[]).length>=3&&
+        (d.match(/ Q/g)??[]).length>=1&&d.endsWith(" Z")))
+        .toBe(true);
+      expect(guoShelves.every(d=>d.startsWith("M")&&
+        (d.match(/ C/g)??[]).length>=34&&d.endsWith(" Z")))
+        .toBe(true);
+      expect(new Set(guoUndercuts).size).toBe(cloudCount);
       if(school==="early-spring"){
         expect(cloudBanks.map(m=>Number(m[2]))).toEqual([
           0,1,2,3,0,1,2,3,0,1,2,3,
