@@ -256,7 +256,7 @@ export function RisoHumanEnsembleStudio(){
   const layers:RisoForegroundLayer[]=[
     {
       id:"shared-letter",
-      knockout:state.progress>0?<path d={state.sheet}
+      knockout:state.sheet?<path d={state.sheet}
         data-km-riso-human-ensemble-sheet={state.progress.toFixed(3)}/>:undefined,
       artworks:{
         blue:paint=><RisoTransferSheetPlate outline={state.sheet}
