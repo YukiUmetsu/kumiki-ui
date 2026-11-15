@@ -571,12 +571,12 @@ export function Cc0SourceRegisteredFaceWorkbench({
         onClick={()=>setShowReference(s=>!s)}>
         {showReference?"Hide source":"Compare source"}
       </button>
-      <label>Eye-white wax contact{" "}
-        <select aria-label="F1 source sclera contact" value={eyeContact}
+      <label>Source eye anatomy and wax{" "}
+        <select aria-label="F1 source eye anatomy" value={eyeContact}
           onChange={e=>setEyeContact(e.target.value as
             "source-shade"|"baseline")}>
-          <option value="source-shade">Source-registered wax shadow (experimental)</option>
-          <option value="baseline">Prior exposed sclera (negative control)</option>
+          <option value="source-shade">Source-led iris, lids and root wax (experiment)</option>
+          <option value="baseline">Unchanged previous eye (negative control)</option>
         </select>
       </label>
       <label>Hair mark material{" "}
