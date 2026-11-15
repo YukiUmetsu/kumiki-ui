@@ -2,6 +2,7 @@ import type {CrayonColor,CrayonElement,CrayonSceneSpec}
   from "../../registry/video/materials/crayon-scene";
 import {CRAYON_PORTRAIT_AUDIT}
   from "./crayon-artcraft-portrait-audit";
+import {crayonHash} from "../../registry/video/materials/crayon";
 
 /**
  * ArtCraft v7: independently source-registered native-crayon facial
@@ -492,6 +493,58 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
       i%5===0?.55:.35,i<9?"hair-back":
       i<15?"hair-right-curtain":"hair-left-curtain");
 
+  // Hair is a flow field and a value mass, not a random hatch screen.
+  // Photo F1: short crown roots sweep across the skull, while the two
+  // hanging curtains turn vertical with gravity. Unequal local
+  // source-space cubic strands remain clipped to these color masses.
+  // A partial mark is a tapered crayon fiber, not an opaque new hair rod.
+  const fiber=(seed:number,index:number,channel:number)=>
+    crayonHash(seed,index,channel);
+  for(const [side,count,seed] of [
+    ["left",85,33107],["right",130,44631],
+  ] as const){
+    const parentId=side==="left"?"hair-left-curtain":"hair-right-curtain";
+    for(let i=0;i<Math.round(count*detail);i++){
+      const u=fiber(seed,i,1),v=fiber(seed,i,2);
+      const x=side==="left"?-20+u*148:433+u*141;
+      const y=(side==="left"?352:290)+v*(side==="left"?660:750);
+      const len=34+fiber(seed,i,3)*151;
+      // Left side leans gently toward the shoulder; far strands
+      // follow the clockwise roll of the head and bend to frame right.
+      const sway=(side==="left"?.05:.13)+(fiber(seed,i,4)-.5)*.13;
+      const bend=side==="left"?-3:6;
+      const d="M"+x.toFixed(2)+" "+y.toFixed(2)+
+        " C"+(x+len*sway*.21+bend).toFixed(2)+" "+(y+len*.29).toFixed(2)+
+        " "+(x+len*sway*.82).toFixed(2)+" "+(y+len*.76).toFixed(2)+
+        " "+(x+len*sway).toFixed(2)+" "+(y+len).toFixed(2);
+      const color=fiber(seed,i,5)<.31?"#af876e":
+        fiber(seed,i,6)<.38?"#30262b":"#795848";
+      const width=.27+fiber(seed,i,7)*.87;
+      const opacity=.22+fiber(seed,i,8)*.45;
+      mark("hair-rooted-"+side+"-"+i,d,color,width,
+        [198+(i%6)*3,299],opacity,parentId);
+    }
+  }
+  // CROWN directional arcs radiate from the photographed off-center
+  // whorl (~x270, y204) to hairline at both temples; shorter and
+  // chromatically varied, never 80 equally parallel acrylic lines.
+  for(let i=0;i<Math.round(52*detail);i++){
+    const u=fiber(66317,i,1),t=fiber(66317,i,2);
+    const originX=213+u*156,originY=184+t*68;
+    const direction=u<.55?-1:1;
+    const len=25+fiber(66317,i,3)*118;
+    const dx=direction*len*(.55+fiber(66317,i,4)*.37);
+    const dy=len*(.22+fiber(66317,i,5)*.36);
+    const d="M"+originX.toFixed(2)+" "+originY.toFixed(2)+
+      " C"+(originX+dx*.22).toFixed(2)+" "+(originY-dy*.42).toFixed(2)+
+      " "+(originX+dx*.76).toFixed(2)+" "+(originY+dy*.15).toFixed(2)+
+      " "+(originX+dx).toFixed(2)+" "+(originY+dy).toFixed(2);
+    mark("hair-rooted-crown-"+i,d,
+      fiber(66317,i,7)<.38?"#bd9273":"#51392f",
+      .34+fiber(66317,i,8)*.86,
+      [186+(i%7)*3,299],.3+fiber(66317,i,9)*.33,
+      "hair-back");
+  }
   const eyebrowFiberGroups=[
     "M202 491Q218 477 232 479 M211 487Q231 472 248 471",
     "M234 476Q248 462 269 465 M249 470Q268 459 285 467",
