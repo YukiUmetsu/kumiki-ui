@@ -304,8 +304,10 @@ function rockLoadedCubicRibbon(root:P,c1:P,c2:P,tip:P,width:number,seed:number){
  *
  * These are original authored parent forms with seeded brush-flow children,
  * NOT scanned textures, a common noise overlay, or unrelated sticker marks.
- * Each mark roots on its own positively painted rock-face upper contour and
- * is clipped to that exact face. Changing school never changes the 300-frame
+ * Long hemp, ox-hair and cloud-head curves root on named pressure-loaded
+ * sub-strata. Fan Kuan raindrop dots instead live independently *within*
+ * their supporting rocky face, an intentional texture-particle class.
+ * All materials are clipped to that exact parent stone volume. Changing school never changes the 300-frame
  * camera, walker, ridge topology, or original tree/landscape anatomy.
  */
 function MasterRockBrush({root,seed,mist,detail,school}:{
@@ -387,8 +389,9 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
       // at native film scale they resembled a dark fringe above an
       // otherwise blank tan triangle. In true layered cunfa, the face
       // contains attached internal strata. These five pressure-loaded
-      // curved spines span the vertical rock mass; descendants start
-      // on their actual sampled curves, never at arbitrary screen pixels.
+      // curved spines span the vertical rock mass. Connected line families
+      // start on actual sampled curves; Fan Kuan's *detached loaded dots*
+      // occupy their named rock volume rather than forming fake hair ribs.
       const density=[.15,.31,.49,.67,.83] as const;
       const stratum=density.map((at,k)=>{
         const top=quadraticPoint(a,crown,shoulder,at);
