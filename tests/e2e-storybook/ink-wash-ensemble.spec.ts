@@ -223,6 +223,18 @@ test("ArtCraft master face uses the real acting rig in 4.1x landscape/portrait c
     expect(digest(after)).not.toEqual(digest(before));
     await setDetail("1");
     await page.getByRole("button",{name:"Bow"}).click();
+    // The crop must follow the posed eye pivot on a turning, bowing head.
+    // The previous fixed-foot camera pushed the face out of portrait view.
+    const eye=page.locator(
+      '[data-km-ink-ensemble-actor="master"] [data-km-ink-character-part="eyes"] path',
+    ).first();
+    const bounds=await studio.boundingBox(),eyeBounds=await eye.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(eyeBounds).not.toBeNull();
+    expect(eyeBounds!.x).toBeGreaterThan(bounds!.x+10);
+    expect(eyeBounds!.x+eyeBounds!.width).toBeLessThan(bounds!.x+bounds!.width-10);
+    expect(eyeBounds!.y).toBeGreaterThan(bounds!.y+8);
+    expect(eyeBounds!.y+eyeBounds!.height).toBeLessThan(bounds!.y+bounds!.height-8);
     await studio.screenshot({animations:"disabled",
       path:info.outputPath("ink-master-face-"+aspect+"-bow-4x.png")});
   }
