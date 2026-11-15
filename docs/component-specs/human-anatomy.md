@@ -5,13 +5,14 @@
 length/stature for age), `anatomy-measure.ts` (tape-measure sections, ANSUR-named measures, volume and mass),
 `anatomy-pose.ts` (clinical joints, ranges, forward kinematics, skinning, pose and hand-pose library),
 `anatomy-view.ts` (camera, `HumanFrame`, contours, terminators, software rasteriser, `projectPoint`),
-`anatomy-face.ts` (3D face study, landmarks, feature loops, facial norms), `anatomy-reference.ts` (ANSUR access,
+`anatomy-face.ts` (3D face study, landmarks, feature loops, facial norms), `anatomy-hair.ts` (hair data, strand
+generator, hair rendering, brows and lashes), `anatomy-color.ts` (skin, hair and iris colour; colour science), `anatomy-reference.ts` (ANSUR access,
 regressions, canon checks, surface forms, age changes, drawing recipe), `anatomy-react.tsx` (`HumanFigure` reference
 painter), `data/*` (baked tables and licences). Binary body model: `assets/models/anatomy/human-body-lattice.bin`
 (2.6 MB, 1.3 MB gzipped). Reference images: `assets/photos/anatomy-references/` (22 public-domain/CC0 plates).
 **Storybook:** Video production → Art Foundations → Human Anatomy → **Lab**, **Population line-up**, **Turnaround**,
 **Pose library** (+ front/side QA), **Hand poses**, **Face lab**, **Head angles**, **Range of motion**, **Any style**,
-**Proportions and ranges**, **Reference board**
+**Proportions and ranges**, **Reference board**, **Hair lab**, **Hair types and colours**, **Skin, hair and eye colour**
 **Status:** implemented; agent review of Chromium screenshots only — **human visual review not recorded**. This is a
 construction and reference framework. It does **not** certify a finished realistic portrait or pencil drawing: those
 still need their style's gates (CP-F1, ArtCraft v7 portrait gate — AGENTS.md rules 13–14).
@@ -147,6 +148,44 @@ height, lower face — so z = 0 is the published average and each step is one SD
 white (Farkas 2005), African American (Farkas 2007) and Saudi (Al-Sebaei 2015) values by sex. `measureFace` reports
 en–en, ex–en, al–al, n–sn, sn–gn, ch–ch, ex–ex, zy–zy. Irises: 11.7 mm, lid-clipped (`eyeCentres`, `IRIS_DIAMETER_MM`).
 The mask has no ears, cranium or hairline.
+
+## Hair (`growHair`, `renderHairSegments`, `faceHair`)
+
+`growHair(body, posedPoints, params)` plants roots inside an anatomical hairline — the front at the trichion (sellion
++ Farkas tr–n), temples (with `recession`), above the ears, the nape — orients them away from the crown whorl (right of
+midline and clockwise by default, per the measured frequencies), grows strands under gravity with collision against the
+head, neck and shoulders (hair lies along the skull near the root), keeps the face clear (front hair sweeps to its side;
+`fringe: true` cuts bangs above the brows instead), clumps strands into locks and adds waves (types II–III) or helices
+(IV–VIII) with curl shrinkage. Params: `length`, `curl` 1–8, `strands`, `parting` none/left/center/right, `flow`
+natural/down/back/forward, `recession`, `whorl`, `volume`, `clump`, `frizz`, `fringe`, `seed`. Output: strand
+polylines in metres, a per-point `scalpMask` (tint the skin under the hair) and per-strand jitter.
+
+`renderHairSegments(hair, frame, { eumelanin, pheomelanin, grey, depth })` projects strands with the frame's camera,
+culls segments behind the body using the rasteriser's depth buffer, tapers width to the tip and shades with
+Kajiya–Kay diffuse plus Marschner's two shifted highlights (white R toward the root, tinted TRT toward the tip).
+`HumanFigure` accepts `hair` and `hairColor` and draws all of this. `faceHair` gives eyebrow strokes (inner hairs up,
+body lateral-up, tail lateral-down) and upper/lower lashes for the face study.
+
+Data (`HAIR_GROUPS`, `HAIR_FACTS`, `CURL_TYPES`): density, cross-section (≈ 70–78 µm equivalent diameter), growth and
+ellipticity by broad group (secondary sources, grade M), whorl frequencies (Schmidt et al. 2008), lash counts and
+lengths. The eight curl types follow the de la Mettrie et al. 2007 classification; their geometry is an estimate (E)
+because the published per-type values were not accessible. Limit: guide strands for drawing (hundreds to thousands),
+not a groom of 100,000 hairs; tight coils read as a textured volume rather than individual coils.
+
+## Colour (`anatomy-color.ts`)
+
+- **Skin:** `MONK_SKIN_TONES` (CC BY 4.0, with CIELAB and ITA°), `itaDegrees` / `itaCategory` (Chardon 1991),
+  `SKIN_SCATTERING` (Jensen et al. 2001 skin1/skin2 σs′, σa, diffuse reflectance, η; verified against the paper's
+  Fig. 5b), `skinShade` / `skinRamp` (linear-light shading with a warm subsurface band at the terminator derived from
+  skin1 absorption), `SKIN_ZONES` / `skinZoneColor` (forehead, cheeks, nose, ears, lips, beard shadow, eyelids,
+  under-eye, knuckles, palms/soles, areola).
+- **Hair:** `hairSigmaA` (eumelanin σa 0.419/0.697/1.37, pheomelanin 0.187/0.4/1.05 per unit concentration, from pbrt-v3
+  after Chiang et al. 2016), `hairAlbedo` (painter base colour, stylised), `hairReflectanceFromSigmaA` (pbrt-compatible),
+  `HAIR_COLOR_PRESETS` (blonde 0.3, brown 1.3, black 8 per pbrt-v4 docs; the rest estimates), `hairColorHex` with a
+  grey-strand fraction, `HAIR_HIGHLIGHTS` (Marschner 2003 lobe shifts and widths), `shadeHair`.
+- **Eyes:** `IRIS_COLORS` (inner, outer, limbal ring), `EYE_NOTES`; body eyeballs show iris and pupil from the eye
+  bone's gaze axis.
+- **Science:** sRGB ↔ linear ↔ CIELAB helpers.
 
 ## Reference knowledge (`anatomy-reference.ts`)
 
