@@ -113,8 +113,8 @@ describe("WC13 reference-led watercolor character reconstruction",()=>{
       expect(closed).toContain('data-km-watercolour-part="near-closed-eye"');
       expect(returned).toContain('data-km-watercolour-part="near-open-eye"');
       expect(returned).not.toContain('data-km-watercolour-part="near-closed-eye"');
-      expect(returned).toMatch(/<clipPath id="[^"]+-clip-near-open-eye"/);
-      expect(returned).toMatch(/<clipPath id="[^"]+-clip-far-open-eye"/);
+      expect(returned).toMatch(/<clipPath id="[^"]+-clip-near-eye-inset"/);
+      expect(returned).toMatch(/<clipPath id="[^"]+-clip-far-eye-inset"/);
       expect(returned).toContain("<radialGradient");
       expect(returned).toContain('data-km-watercolour-edge-softness="0.97"');
       expect(render(subject,255)).toEqual(render(subject,255));
