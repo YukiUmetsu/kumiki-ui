@@ -325,6 +325,126 @@ function BrushworkDetail(){
   </main>;
 }
 
+
+/** ArtCraft geology control study. All panels render real SVG layers at the
+ * same absolute frame and camera. Each comparison changes exactly ONE axis:
+ * a geometry-off negative control or a low ink-load material condition.
+ * Museum images stay external and are never included in the video output.
+ */
+function GeologicalInkStudy(){
+  const [frame,setFrame]=useState(145);
+  const [seed,setSeed]=useState(71);
+  const [detail,setDetail]=useState(1);
+  const [ink,setInk]=useState(.9);
+  const [mist,setMist]=useState(.35);
+  const [centerX,setCenterX]=useState(568);
+  const [centerY,setCenterY]=useState(147);
+  const [zoom,setZoom]=useState(2.4);
+  const studies=[
+    {key:"no-structure",label:"0 · Structural negative control",
+      note:"Geometry disabled, not a fake painted sample. This must lose the attached ridge folds, pima-cun fibres and pine detail.",
+      level:0,load:ink},
+    {key:"original",label:"1 · Current authored ink",
+      note:"Inspect parent-rooted hill backs, connected dark cliff ribs, irregular pressure and paper channels. Reject smooth flat wedges.",
+      level:detail,load:ink},
+    {key:"dilute",label:"2 · Diluted ink comparison",
+      note:"Identical scene, seed, frame, geometry and camera; only ink concentration changes. Verify the same attachments survive.",
+      level:detail,load:ink*.42},
+  ] as const;
+  const sliders=[
+    {label:"Geology frame",value:frame,min:0,max:SHANSHUI_FRAMES-1,
+      step:1,onChange:setFrame},
+    {label:"Geology seed",value:seed,min:1,max:199,
+      step:1,onChange:setSeed},
+    {label:"Geology detail",value:detail,min:0,max:1,
+      step:.05,onChange:setDetail},
+    {label:"Geology ink",value:ink,min:0,max:1,
+      step:.05,onChange:setInk},
+    {label:"Geology mist",value:mist,min:0,max:1,
+      step:.05,onChange:setMist},
+    {label:"Geology crop X",value:centerX,min:0,max:960,
+      step:1,onChange:setCenterX},
+    {label:"Geology crop Y",value:centerY,min:0,max:540,
+      step:1,onChange:setCenterY},
+    {label:"Geology zoom",value:zoom,min:1,max:3.5,
+      step:.05,onChange:setZoom},
+  ] as const;
+  return <main data-testid="shanshui-geology-study"
+    style={{minHeight:"100vh",padding:24,background:"#e9e2d5",
+      color:"#352b21",font:"14px/1.5 system-ui",display:"grid",gap:18,
+      alignContent:"start"}}>
+    <header style={{maxWidth:960}}>
+      <h1 style={{font:"400 32px/1.2 Georgia,serif",margin:"0 0 8px"}}>
+        皴法 · Geological ink reconstruction
+      </h1>
+      <p style={{margin:"0 0 8px"}}>
+        ArtCraft macro / meso / micro proof: three actual film crops with
+        exactly aligned cameras. Compare the connected rolling landform
+        against its missing-structure control and a dilute-ink material
+        condition. Seek arbitrary frames without changing the source
+        renderer or painting static thumbnails.
+      </p>
+      <p style={{margin:0,fontSize:12,color:"#6f5c49"}}>
+        Source study: Huang Gongwang, <em>Dwelling in the Fuchun Mountains</em>,
+        National Palace Museum, c. 1350 ·{" "}
+        <a href="https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975"
+          target="_blank" rel="noreferrer">institutional full scroll</a>
+        {" · "}
+        <a href="https://smarthistory.org/huang-gongwang-dwelling-in-the-fuchun-mountains/"
+          target="_blank" rel="noreferrer">hemp-fibre and alum-head brush analysis</a>.
+        Reference imagery is not embedded. The original code study is
+        style-guided, not a pixel copy.
+      </p>
+    </header>
+    <div data-testid="shanshui-geology-controls"
+      style={{display:"flex",flexWrap:"wrap",gap:13,alignItems:"end"}}>
+      {sliders.map(control=><label key={control.label}
+        style={{...style.field,minWidth:160}}>
+        {control.label} · {control.value}
+        <input type="range" aria-label={control.label}
+          min={control.min} max={control.max} step={control.step}
+          value={control.value}
+          onChange={event=>control.onChange(Number(event.target.value))}/>
+      </label>)}
+      <button type="button" style={style.button}
+        onClick={()=>{setFrame(145);setSeed(71);setDetail(1);setInk(.9);
+          setMist(.35);setCenterX(568);setCenterY(147);setZoom(2.4);}}>
+        Reset geology proof
+      </button>
+    </div>
+    <div style={{display:"flex",flexWrap:"wrap",gap:16,alignItems:"start"}}>
+      {studies.map(study=>{
+        const controls:ShanshuiControls={...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",detail:study.level,ink:study.load,
+          mist,wind:0,seed};
+        const tx=160-zoom*centerX,ty=128-zoom*centerY;
+        return <section key={study.key}
+          data-km-geology-condition={study.key}
+          data-km-geology-frame={frame}
+          data-km-geology-seed={seed}
+          style={{display:"grid",gap:8,width:328,maxWidth:"100%"}}>
+          <strong style={{fontSize:13}}>{study.label}</strong>
+          <div data-km-geology-crop={study.key}
+            style={{width:320,height:256,position:"relative",overflow:"hidden",
+              background:"#f3e6cd",border:"1px solid #b8aa96"}}>
+            <div style={{position:"absolute",left:0,top:0,
+              transformOrigin:"top left",
+              transform:"translate("+tx+"px,"+ty+"px) scale("+zoom+")"}}>
+              <InkShanshuiStage frame={frame} controls={controls}/>
+            </div>
+          </div>
+          <p style={{fontSize:12,color:"#6f5c49",margin:0}}>{study.note}</p>
+        </section>;
+      })}
+    </div>
+    <p style={{maxWidth:950,margin:0,fontSize:12,color:"#6f5c49"}}>
+      Release gate remains visual: inspect the actual 960×540 mountain scene,
+      enlarged shoulder, three source-defined fibre densities and at least
+      two seeds. Test success alone cannot approve the painting.
+    </p>
+  </main>;
+}
+
 function Export({scene}:{scene:ShanshuiScene}){
   const [frame,setFrame]=useState(0);
   const manifest:VideoExportManifest={
@@ -345,6 +465,11 @@ export const GalleryStudio:StoryObj<typeof meta>={
 export const BrushworkDetailStudio:StoryObj<typeof BrushworkDetail>={
   name:"Brushwork close-ups · ArtCraft inspection",
   render:()=> <BrushworkDetail/>,
+};
+
+export const GeologicalInkStudio:StoryObj<typeof GeologicalInkStudy>={
+  name:"Geological ink · three-condition ArtCraft study",
+  render:()=> <GeologicalInkStudy/>,
 };
 
 export const GarmentMotionStudio:StoryObj<typeof GarmentMotion>={
