@@ -51,8 +51,14 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
         expect(node.coverage).toBe("open");
         expect(node.clipToParent).toBe(true);
         expect(node.blendRadius).toBeGreaterThan(0);
-        expect(node.markStrength).toBeGreaterThan(.2);
+        expect(node.markStrength).toBeGreaterThan(id==="cheek-malar-crayon-red"?.1:.2);
+        if(id==="cheek-malar-crayon-red")expect(node.blendRadius).toBeGreaterThanOrEqual(12);
       }
+      const focus=nodes.get("cheek-saturated-contact");
+      if(focus?.kind!=="wax")throw new Error("Missing localized cheek contact");
+      expect(focus.parentId).toBe("adult-face");
+      expect(focus.bounds.width).toBeLessThan(60);
+      expect(focus.blendRadius).toBeLessThan(9);
       expect(nodes.get("forelock-loose-curl")?.kind).toBe("wax");
       expect(nodes.get("forelock-underturn")?.parentId).toBe("forelock-loose-curl");
       for(const id of ["forelock-fiber-direction","upper-lashes-rooted-near",

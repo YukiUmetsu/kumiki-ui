@@ -155,8 +155,9 @@ export function crayonAdultFaceStudy(
     "M-94 -208C-85 -270 -41 -289 16 -291"+
     "C81 -297 113 -261 122 -201"+
     "Q132 -154 112 -111Q115 -68 100 -27"+
-    "Q90 19 66 57Q46 91 27 99"+
-    "Q-7 111 -38 84C-75 61 -101 18 -108 -42"+
+    "Q88 18 71 50Q58 76 43 91"+
+    "Q19 104 -9 99Q-38 94 -52 76"+
+    "C-80 43 -103 7 -108 -42"+
     "Q-127 -133 -94 -208Z",
     box(-137,-312,272,446),colors.flesh,"value",
     {parentId:"neck-under-jaw",spacing:9.8,markStrength:.2,
@@ -226,13 +227,22 @@ export function crayonAdultFaceStudy(
   // structural facial plane, not uniformly scattered digital freckles.
   // Each rub follows a source-locked cheek volume over continuous skin.
   wax("cheek-malar-crayon-red",
-    "M-93 -104Q-64 -128 -38 -108"+
-    "Q-20 -91 -24 -62Q-31 -41 -48 -34"+
-    "Q-77 -45 -93 -74Z",
-    box(-104,-139,92,115),colors.blush,"value",
+    "M-94 -113Q-66 -134 -37 -112"+
+    "Q-16 -93 -25 -56Q-40 -31 -62 -45"+
+    "Q-91 -58 -94 -113Z",
+    box(-106,-144,94,116),colors.blushLight,"value",
     {parentId:"adult-face",coverage:"open",clipToParent:true,
-      blendRadius:8,markStrength:.42,pressure:.59,spacing:6,
+      blendRadius:14,markStrength:.16,pressure:.35,spacing:11,
       angle:-16,outlineOpacity:0,edgeRoughness:0});
+  // Irregular near-cheek red contacts remain discrete wax spots rather
+  // than covering the whole malar plane with one synthetic red circle.
+  wax("cheek-saturated-contact",
+    "M-72 -99Q-54 -103 -43 -91Q-38 -78 -50 -67"+
+    "Q-60 -62 -74 -74Q-80 -85 -72 -99Z",
+    box(-85,-111,55,57),colors.blush,"anatomy",
+    {parentId:"adult-face",coverage:"open",clipToParent:true,
+      blendRadius:7,markStrength:.32,pressure:.53,spacing:6.5,
+      angle:-18,outlineOpacity:0,edgeRoughness:0});
   wax("cheek-far-crayon-red",
     "M70 -115Q96 -120 108 -97"+
     "Q113 -80 96 -60Q82 -55 72 -70Z",
@@ -241,7 +251,7 @@ export function crayonAdultFaceStudy(
       blendRadius:8,markStrength:.24,pressure:.45,spacing:7.5,
       angle:19,outlineOpacity:0,edgeRoughness:0});
   grain("blush-directed-pigment-near","adult-face",1051,
-    -68,-83,29,30,-28,74,"#c45f62");
+    -64,-81,29,32,-28,96,"#c45f62");
   grain("blush-directed-pigment-far","adult-face",1052,
     88,-90,15,24,36,33,"#d88a7a");
   wax("mandible-plane",
@@ -300,10 +310,10 @@ export function crayonAdultFaceStudy(
   // The nostril wing and septum do not meet as a glyph: the alar margin
   // turns around the bulb, the cast shadow stays below the tip.
   ink("nose-septum-alarm",
-    "M14 -27Q21 -18 28 -22Q34 -27 36 -29"+
-    "M39 -28Q44 -33 49 -26",
-    "#956566",1.27,"detail",
-    {parentId:"adult-face",opacity:.86});
+    "M20 -29Q23 -26 27 -28"+
+    "M42 -31Q45 -33 47 -30",
+    "#9a6862",.92,"detail",
+    {parentId:"adult-face",opacity:.78});
   ink("dorsum-nose-bone-line",
     "M-1 -118Q6 -98 9 -75Q8 -53 17 -39",
     "#b78077",1.08,"detail",
@@ -313,8 +323,8 @@ export function crayonAdultFaceStudy(
     "#efd0af",1.6,"detail",
     {parentId:"adult-face",opacity:.86});
   ink("nostril-underplane",
-    "M14 -27Q19 -22 24 -26M40 -27Q44 -30 48 -29",
-    "#865e61",1.08,"detail",{parentId:"adult-face",opacity:.7});
+    "M18 -29Q21 -26 24 -28M40 -29Q42 -31 44 -30",
+    "#b17c72",.68,"detail",{parentId:"adult-face",opacity:.45});
   ink("nasolabial-transition",
     "M58 -4Q66 4 64 12M-6 22Q-10 27 -8 31",
     "#ab7c75",.88,"detail",{parentId:"adult-face",opacity:.42});
@@ -433,18 +443,16 @@ export function crayonAdultFaceStudy(
   // Lash roots are tangent to the actual painted lid rims; separate
   // near/far eye taper rather than radial clock-face spokes.
   ink("upper-lashes-rooted-near",
-    "M-76 -164Q-80 -170 -83 -173"+
-    "M-71 -169Q-76 -177 -78 -180"+
-    "M-65 -171Q-68 -177 -69 -179"+
-    "M-58 -172Q-60 -176 -60 -178"+
-    "M-43 -168Q-41 -171 -40 -174",
-    "#5b4249",.94,"detail",{parentId:"adult-face",opacity:.87});
+    "M-78 -161Q-82 -165 -83 -168"+
+    "M-73 -166Q-75 -169 -76 -172"+
+    "M-65 -170Q-65 -173 -66 -175"+
+    "M-46 -170Q-44 -171 -43 -173",
+    "#654a50",.76,"detail",{parentId:"adult-face",opacity:.78});
   ink("upper-lashes-rooted-far",
-    "M49 -160Q47 -164 46 -168"+
-    "M53 -165Q51 -169 51 -171"+
-    "M61 -168Q59 -171 59 -173"+
-    "M80 -162Q82 -165 83 -167",
-    "#624d50",.75,"detail",{parentId:"adult-face",opacity:.76});
+    "M49 -157Q47 -160 47 -163"+
+    "M54 -165Q52 -167 52 -169"+
+    "M64 -167Q62 -169 62 -171",
+    "#685259",.67,"detail",{parentId:"adult-face",opacity:.69});
   ink("lower-lid-pigmented-ridges",
     "M-70 -144Q-54 -137 -37 -148"+
     "M55 -144Q73 -139 85 -149",
@@ -517,8 +525,8 @@ export function crayonAdultFaceStudy(
     "Q-89 -228 -92 -199Q-105 -205 -103 -223"+
     "Q-114 -224 -123 -237Z",
     box(-137,-296,150,112),colors.hairLight,"anatomy",
-    {parentId:"adult-face",spacing:7.1,markStrength:.56,
-      edgeRoughness:.53,outlineOpacity:.05});
+    {parentId:"adult-face",spacing:8.7,markStrength:.42,
+      edgeRoughness:.47,outlineOpacity:.05});
   wax("forelock-underturn",
     "M-107 -224Q-94 -252 -70 -261"+
     "Q-45 -272 -20 -267Q-66 -252 -83 -218Z",
@@ -529,7 +537,7 @@ export function crayonAdultFaceStudy(
       outlineOpacity:0,edgeRoughness:0});
   hair("forelock-fiber-direction","forelock-loose-curl",
     [{x:-120,y:-238},{x:-105,y:-275},{x:-51,y:-288},{x:0,y:-261}],
-    620,139,"#e5b28e");
+    620,72,"#b99685");
   ink("forelock-loose-rooted-tip",
     "M-101 -237Q-91 -214 -91 -198M-104 -232Q-98 -206 -92 -193",
     "#78544c",1.25,"detail",{parentId:"forelock-loose-curl",
@@ -690,8 +698,8 @@ export function crayonAdultFaceStudy(
     "M-114 -237Q-97 -288 -39 -310M-106 -250Q-78 -294 -30 -304"+
     "M-87 -257Q-39 -305 9 -306M-57 -283Q-7 -304 36 -293"+
     "M-27 -299Q12 -314 55 -288",
-    "#d8a68d",1.65,"detail",
-    {parentId:"hair-crown-part",clipToParent:true,opacity:.9});
+    "#c39a86",1.24,"detail",
+    {parentId:"hair-crown-part",clipToParent:true,opacity:.62});
   ink("crown-root-hatching",
     "M-109 -219Q-90 -251 -65 -262M-101 -215Q-73 -252 -46 -266"+
     "M-92 -212Q-52 -256 -31 -264M-74 -228Q-42 -257 -16 -264",

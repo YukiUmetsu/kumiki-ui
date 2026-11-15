@@ -36,3 +36,14 @@ The adult-bust source uses an original local drawing plane with head landmarks c
 ## Technical checks vs quality
 
 New checks must validate `inspectCrayonScene`, unique IDs, full opacity of adult face/hair/coat, attached hair/eyelash composition, clear parent clippings, warm and neutral artwork, 16:9 and 9:16 native Chromium renders, and source seeds. **Green CI is not artistic acceptance**. Review the actual exported head/eye/nose/blush and garment crops against the local references; log every deficiency and keep the lab hidden until independently approved.
+
+## Render critique: 2026-11-14 first pass rejected, second pass staged
+
+[Browser run 43665018219](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43665018219) rendered the actual source:
+- **Fail (nose):** added septum and older nostril paths intersected, creating a conspicuous cartoon-heart shape. Fixed by separating the pigment contacts; neither curve may form a joined glyph.
+- **Fail (cheek):** concentrated saturated wash formed a smooth red disk, not broken hand-deposited crayon. Fixed with a lower-chroma diffuse underlayer, a *smaller* saturated focal patch and independently directed red wax marks.
+- **Fail (forelock):** a bright, ruler-like golden hair band remained. Reduced filament count, lowered contrast and retained distinct clipped flow lines.
+- **Fail (eyes):** long eyelashes became evenly spaced spokes. Reduced length, density and darkness at the true eyelid root.
+- **Fail (chin):** face pointed excessively at the center. Flattened lower-jaw curve into a cheek-to-chin transition.
+
+Each repair is geometry/material-level code, not visual QA text. The revised browser evidence and ArtCraft acceptance are still pending. No user-supplied artwork was committed.
