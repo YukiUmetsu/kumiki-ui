@@ -60,3 +60,32 @@ For modern animation context, [Chen Hailu's study of Chinese CGI ink-painting an
 4. Passing TypeScript/Vitest/Playwright is not evidence of reference-level quality. Reject on visual inspection if the face or robe remains rigid, flat, too small or too symmetrical. Never claim historical re-creation or copied artwork.
 
 All code-painted strokes are original and retain the existing asset provenance metadata. References are solely artistic/stroke-method evidence.
+
+
+### ArtCraft second pass: native screenshot critique (PR #356)
+
+The initial successful Chromium evidence from run `43690990615` was inspected
+**as actual pixels**, not inferred from source path counts. The 4.1× landscape
+face had improved eyelids and independent nose/cheek planes compared with the
+baseline, but it still looked cartoon-like: an oversized cap-shaped head,
+uniform mouth patch, mitten hands and heavily outlined robe. The portrait
+bow screenshot was worse: the static foot-root close-up cut the turning
+face against the **right edge** of the 405×700 review viewport.
+
+The second pass accordingly:
+- Shrinks the complete head **parent** to x=.87, y=.90 relative to torso,
+  preserving all child eyes/nose/hair/beard/viseme transformations together.
+- Replaces two mitten hands with original connected finger/knuckle and grip
+  paint, without changing the existing real prop attachment to the rig.
+- Corrects the close-up camera: resolve the actual `evaluateCharacter`
+  eye anchor through `inkDesignToPaper` each frame so a bowed face moves
+  *inside* the crop. This camera is **inspection-only**: normal Storybook
+  cinema and both MP4 exports use the unchanged absolute film.
+- Extends the source-identity and parent-pivot tests. Re-render landscape
+  and portrait open-face + bowed-face close-ups before approving.
+
+**Unresolved:** The full-film actors remain 2.5D cutout puppets with limited
+head-angle sprite selection and physically simplified sleeve/hand joints.
+Fine path count alone cannot earn a world-class artistic label. The release
+gate must separately assess 1× acting silhouette, face anatomy and paint
+texture after the new render.
