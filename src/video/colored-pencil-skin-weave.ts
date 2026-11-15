@@ -17,7 +17,7 @@ import type {PortraitFeatureMap} from "./colored-pencil-portrait-guides";
 
 type Point=readonly[number,number];
 const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
-const mix=(a:number,b:number,t:number)=>a+(b-a)*t;
+
 const dist=(a:Point,b:Point)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
 const inside=(p:Point,poly:readonly Point[])=>{
   let state=false;
@@ -88,7 +88,10 @@ export function createPencilSkinOpticalWeave(
     strength,
   };
   const eyeDist=dist(guides.eyeNearCenter,guides.eyeFarCenter);
-  const step=clamp(eyeDist*.023,1.1,5.5);
+  // Preserve the existing <120k whole-head pencil mark budget.
+  // Dense optical coverage comes from broader, softly overlapping loops
+  // rather than expensive fields of tiny uniform individual stipples.
+  const step=clamp(eyeDist*.035,1.5,6.5);
   const minX=Math.max(3,Math.min(...face.map(p=>p[0])));
   const maxX=Math.min(source.width-4,Math.max(...face.map(p=>p[0])));
   const minY=Math.max(3,Math.min(...face.map(p=>p[1])));
