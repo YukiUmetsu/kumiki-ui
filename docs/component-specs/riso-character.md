@@ -263,3 +263,12 @@ Verify `tests/riso-character-paper-clearance.test.tsx`, the browser clearance st
 ## Human-character reference atlas (RISO12)
 
 The curated [Risograph human-character research atlas](../research/riso12-human-character-reference-atlas.md) documents nine verified printed figure studies, source links, facial/hand/garment/pose construction observations, the current Courier gaps, and ordered ArtCraft acceptance gates. It is a **reference study**, not a claim that the current character artwork meets these visual standards. Use it to prioritize face geometry and separately articulated hands before adding more print noise.
+
+
+## RISO13 — source-built facial anatomy and hand-root articulation
+
+The [RISO13 portrait/hand ArtCraft implementation and review](../research/riso13-human-portrait-and-hand-study.md) adds upper-lid expression planes, nose/philtrum/chin volume and a left ear/hair growth forms to the original Courier, while keeping the 240-frame actor contract. **Eight independent finger-root FK joints** introduce genuine thumb and three independently rotating digits per hand; they inherit the existing satchel-grip IK parent. Source sheets and stress-pose mesh tests cover all new parts.
+
+The existing `Video production / Film Looks / Risograph` Storybook folder now includes a **four-pose human anatomy contact sheet** with interactive spot-plate/dot-density and source-outline controls; diagnostic controls are not physical printer calibration. No external reference artwork or new animation renderer is included.
+
+**Limitations:** first-pass portrait and finger-root articulation are not a full anatomically accurate three-knuckle hand, approved turnaround, complete human ensemble or independent artist approval. Those remain explicit roadmap items.
