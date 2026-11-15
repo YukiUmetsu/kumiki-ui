@@ -9,7 +9,7 @@ import {CRAYON_F1_LASH_CLUSTER_COUNTS}
   from "../src/video/crayon-artcraft-f1-lash-clusters";
 import {CRAYON_F1_RECONSTRUCTED_MIDFACE_IDS}
   from "../src/video/crayon-artcraft-f1-midface-geometry";
-import {CRAYON_F1_SOURCE_VALUE_IDS}
+import {CRAYON_F1_SOURCE_VALUE_IDS,CRAYON_F1_TARSAL_OCCLUDER_IDS}
   from "../src/video/crayon-artcraft-f1-ocular-geometry";
 import {CRAYON_F1_RECONSTRUCTED_OCULAR_IDS}
   from "../src/video/crayon-artcraft-f1-ocular-geometry";
@@ -477,11 +477,29 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     });
     const changed=new Set(CRAYON_F1_SOURCE_VALUE_IDS);
     expect(changed.size).toBe(14);
-    expect(candidate.elements.length).toBe(original.elements.length);
+    expect(candidate.elements.length).toBe(original.elements.length+2);
     expect(candidate.seed).toBe(original.seed);
     expect(candidate.camera).toEqual(original.camera);
-    expect(candidate.elements.filter(e=>!changed.has(e.id)))
-      .toEqual(original.elements.filter(e=>!changed.has(e.id)));
+    const painted=new Set([...changed,...CRAYON_F1_TARSAL_OCCLUDER_IDS]);
+    expect(CRAYON_F1_TARSAL_OCCLUDER_IDS).toHaveLength(2);
+    expect(candidate.elements.filter(e=>!painted.has(e.id)))
+      .toEqual(original.elements.filter(e=>!painted.has(e.id)));
+    const names=candidate.elements.map(e=>e.id);
+    for(const [id,side] of [
+      ["tarsal-shelf-near","near"],["tarsal-shelf-far","far"],
+    ] as const){
+      const e=candidate.elements.find(e=>e.id===id);
+      if(e?.kind!=="wax")throw Error("Missing real eyelid wax shelf");
+      expect(e).toMatchObject({parentId:"face-outline",clipToParent:true,
+        coverage:"opaque",deposition:"stroke-built",nibStyle:"dry",
+        markLength:"short",outlineOpacity:0});
+      expect(e.underpaintTooth).toBeGreaterThanOrEqual(.15);
+      expect(e.underpaintGradient).toBeDefined();
+      expect(names.indexOf("iris-"+side)).toBeLessThan(names.indexOf(id));
+      expect(names.indexOf("upper-lid-"+side)).toBeLessThan(names.indexOf(id));
+      expect(names.indexOf(id)).toBeLessThan(names.indexOf("lash-root-"+side));
+      expect(original.elements.some(e=>e.id===id)).toBe(false);
+    }
     for(const id of CRAYON_F1_SOURCE_VALUE_IDS){
       const before=original.elements.find(e=>e.id===id);
       const after=candidate.elements.find(e=>e.id===id);
