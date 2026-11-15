@@ -234,8 +234,10 @@ function BrushworkDetail(){
       x:568,y:147,note:"Ridge-rooted ink-bone rock planes, broken hemp fibres, small alum-head ledges and moss pockets"},
     {label:"柳 · Hanging willow foliage",scene:"river-scholar",
       x:196,y:174,note:"Compare Mei Qing: 39 differently swept pressure-tapered silk strands, five bare paper reserves and asymmetrical angled leaves"},
-    {label:"竹 · Pressure-brush bamboo",scene:"misty-hermit",
-      x:875,y:365,note:"Compare Zheng Xie and the National Palace Museum: unequal culm joints, two connected lateral shoots per branch, loaded brush bellies normal to each leaf direction, attached satellite releases and varied ink weight; check negative space at low and high detail"},
+    {label:"竹葉 · Bamboo leaf canopy",scene:"misty-hermit",
+      x:884,y:263,note:"Compare Wu Zhen: leaf directions follow the twig tangent, with asymmetric tip clusters, thick-to-thin loaded bellies, and deliberate paper gaps. Inspect for repeated arrow tips"},
+    {label:"竹節 · Bamboo nodes and branches",scene:"misty-hermit",
+      x:875,y:365,note:"Compare Zheng Xie: three fanned culms with unequal joint intervals, two root-connected lateral shoots, narrow pressure collars, dark and dilute ink. Verify attachment at high and low detail"},
   ];
   const cropScale=2.15;
   return <main data-testid="shanshui-brushwork-studio"
@@ -247,7 +249,7 @@ function BrushworkDetail(){
         Shanshui · ink craftsmanship inspection
       </h1>
       <p style={{margin:0,maxWidth:900,color:"#6f5c49"}}>
-        Four 2.15× views from the actual procedural 960×540 film renderer.
+        Five 2.15× views from the actual procedural 960×540 film renderer.
         Compare continuous branch roots, varied ink pressure, rock texture
         rhythm, and deliberate negative space. No raster reference collage.
       </p>
