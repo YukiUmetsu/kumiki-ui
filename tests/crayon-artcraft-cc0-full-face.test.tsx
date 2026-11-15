@@ -169,6 +169,22 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       .toHaveLength(18);
     expect(crayonCc0FaceStudy({detail:1})).toEqual(scene);
   });
+  it("anchors lower curtain fibers to the photographed hair flow rather than a random x/y field",()=>{
+    const scene=crayonCc0FaceStudy({detail:1});
+    const origins=(prefix:string)=>scene.elements
+      .filter(el=>el.kind==="contour"&&el.id.startsWith(prefix))
+      .flatMap(el=>[...el.d.matchAll(/M(-?\\d+(?:\\.\\d+)?)\\s+(-?\\d+(?:\\.\\d+)?)\\s+C/g)]
+        .map(match=>({x:Number(match[1]),y:Number(match[2])})));
+    const right=origins("hair-rooted-right-").filter(p=>p.y>=780);
+    const left=origins("hair-rooted-left-").filter(p=>p.y>=750);
+    expect(right.length).toBeGreaterThan(12);
+    expect(left.length).toBeGreaterThan(8);
+    // In F1 source-space the lower curtain has bent around the cheek and
+    // occupies a narrow root-connected corridor. Screen-wide scratches
+    // violate this attached hair geometry despite being clipped later.
+    expect(right.every(p=>p.x>=467&&p.x<=586)).toBe(true);
+    expect(left.every(p=>p.x>=24&&p.x<=117)).toBe(true);
+  });
   it("keeps an exact independent source graph only in explicit anatomy mode",()=>{
     const wax=crayonCc0FaceStudy({view:"wax",detail:.5});
     const construction=crayonCc0FaceStudy({view:"anatomy",detail:.5});
