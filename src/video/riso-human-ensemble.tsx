@@ -12,6 +12,7 @@ import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import type {RisoCharacterMeshSheet,RisoMeshCategory} from "../../registry/video/riso-proportion-mesh";
 import {COURIER} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
+import {risoHandArtcraftParts,RISO30_GRIP_FOREGROUND_IDS} from "./riso-hand-artcraft";
 
 /** RISO14: a second authored human, not a color-inverted Courier.
  * Reuse a mechanically compatible limb/digit rig, not the Courier face, hair,
@@ -236,10 +237,10 @@ const sharedLimbs=[
   "right-thigh","right-shin","right-boot","right-boot-detail",
   "left-thigh","left-shin","left-boot","left-boot-detail",
   "left-upper-sleeve","left-forearm","sleeve-left-fold","cuff-left",
-  "left-glove","left-glove-index","left-glove-middle","left-glove-ring","left-glove-thumb",
+  "left-glove","left-glove-index","left-glove-middle","left-glove-ring","left-glove-pinky","left-glove-thumb",
   "left-glove-detail","left-glove-thumb-fold","left-finger-joint-lines",
   "right-upper-sleeve","right-forearm","sleeve-right-fold","cuff-right",
-  "right-glove","right-glove-index","right-glove-middle","right-glove-ring","right-glove-thumb",
+  "right-glove","right-glove-index","right-glove-middle","right-glove-ring","right-glove-pinky","right-glove-thumb",
   "right-glove-detail","right-glove-thumb-fold","right-finger-joint-lines",
 ];
 const legs=sharedLimbs.slice(0,8).map(id=>take(id));
@@ -253,14 +254,17 @@ export const PAPER_ARTIST:RisoCharacterSpec={
   expressions:[{frame:0,name:"neutral"},{frame:76,name:"blink"},
     {frame:81,name:"neutral"},{frame:156,name:"speak"},
     {frame:180,name:"neutral"},{frame:198,name:"smile"}],
-  parts:[...legs,...coatPieces,...arms,...facePieces],
+  parts:[...legs,...coatPieces,...arms,
+    ...risoHandArtcraftParts("paper-artist","left"),
+    ...risoHandArtcraftParts("paper-artist","right"),
+    ...facePieces],
 };
 function category(part:RisoCharacterPart):RisoMeshCategory{
   if(part.id.startsWith("hair"))return "hair";
   if(part.joint==="head")return "face";
   if(part.id.includes("boot"))return "foot";
   if(part.id.includes("thigh")||part.id.includes("shin"))return "leg";
-  if(part.joint.endsWith("hand")||["thumb","index","middle","ring"].some(d=>part.joint.endsWith("-"+d)))return "hand";
+  if(part.joint.endsWith("hand")||part.joint.endsWith("-palm-surface")||["thumb","index","middle","ring","pinky"].some(d=>part.joint.endsWith("-"+d)))return "hand";
   if(part.joint.includes("arm")||part.joint.includes("elbow"))return "arm";
   if(part.id==="scarf"||part.id.includes("pocket"))return "accessory";
   return "torso";
@@ -297,8 +301,9 @@ const personPoint=(spec:RisoCharacterSpec,frame:number,joint:string,x:number,y:n
  * This is depth ordering, not a fake sticker or alpha-blended actor.
  */
 const risoGripParts=(side:"left"|"right"):readonly string[]=>[
-  side+"-glove-index",side+"-glove-middle",side+"-glove-ring",side+"-glove-thumb",
+  side+"-glove-index",side+"-glove-middle",side+"-glove-ring",side+"-glove-pinky",side+"-glove-thumb",
   side+"-finger-joint-lines",side+"-glove-detail",side+"-glove-thumb-fold",
+  ...RISO30_GRIP_FOREGROUND_IDS(side),
 ];
 /** Exact geometry for a prop between two authored hand contact anchors.
  * Stage space, including aspect and placements, must be computed once. */
@@ -428,9 +433,9 @@ export function RisoHumanEnsembleStudio(){
   const gripLayer=(spec:RisoCharacterSpec,stage:{x:number;y:number;scale:number},
     side:"left"|"right",id:string):RisoForegroundLayer=>{
     const onlyPartIds=risoGripParts(side);
-    // Actual ink scratches are open contours. Only four closed, authored red
+    // Actual ink scratches are open contours. Only five closed, authored red
     // glove digit masses may cut paper; blue hatch/knuckle lines print on top.
-    const solidDigits=onlyPartIds.slice(0,4);
+    const solidDigits=onlyPartIds.slice(0,5);
     return {
       id,
       knockout:<g data-km-riso-grip-occlusion={id}>

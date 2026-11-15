@@ -12,6 +12,7 @@ import {RisoCharacterInk,RisoCharacterKnockout} from "../../registry/video/riso-
 import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import {RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET} from "./riso-character-mesh-sheets";
 import {RISO29_ANAT1,inspectRisoAnatomy} from "./riso-human-anatomy";
+import {Riso30HumanHandsWorkbench} from "./riso30-human-hands-studio";
 
 type PlateMode="both"|"blue"|"red";
 interface ArtcraftProps {actor:"courier"|"paper-bird"}
@@ -659,4 +660,11 @@ export const HumanAnatomyNeckPortrait:StoryObj<typeof meta>={
   name:"RISO29 · ANAT1 Human Body / Neck / Face",
   args:{actor:"courier"},
   render:()=> <Riso29AnatomyWorkbench/>,
+};
+
+/** RISO30: original physical-ink ANAT1 human hand craftsmanship. Same folder. */
+export const HumanHandAnatomyPrint:StoryObj<typeof meta>={
+  name:"RISO30 · ANAT1 Hand Gesture & Two-Ink Engraving",
+  args:{actor:"courier"},
+  render:()=> <Riso30HumanHandsWorkbench/>,
 };
