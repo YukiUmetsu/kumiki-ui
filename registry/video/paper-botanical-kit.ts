@@ -152,6 +152,29 @@ function corolla(p:Painter,cx:number,cy:number,r:number,n:number,seed:number,tag
   parts.push(p.circle(cx,cy,r*.20)); // Physical central bridge joining petal roots.
   return parts.join(" ");
 }
+
+/** Broad, rounded end grain inspired by real cut-paper flower sculptures.
+ * Five cubic arcs give each petal a distinct shoulder and curled distal lip.
+ */
+function roundedPetal(p:Painter,cx:number,cy:number,r:number,angle:number,width:number){
+  const ux=Math.cos(angle*R),uy=Math.sin(angle*R),nx=-uy,ny=ux;
+  const pt=(a:number,b:number):[number,number]=>
+    [cx+ux*r*a+nx*width*b,cy+uy*r*a+ny*width*b];
+  const b=pt(.10,0),l=pt(.78,.92),tip=pt(.96,0),rgt=pt(.78,-.92);
+  const a=pt(.29,.66),d=pt(.61,1.04),e=pt(1.04,.77),f=pt(1.045,.17);
+  const g=pt(1.045,-.17),hh=pt(1.04,-.77),i=pt(.61,-1.04),j=pt(.29,-.66);
+  return [p.M(...b),p.C(...a,...d,...l),p.C(...e,...f,...tip),
+    p.C(...g,...hh,...rgt),p.C(...i,...j,...b),"Z"].join(" ");
+}
+function sculptedCorolla(p:Painter,cx:number,cy:number,r:number,n:number,seed:number,tag:number){
+  const parts:string[]=[];
+  for(let k=0;k<n;k++){
+    const angle=-90+k*360/n+(paperHash(seed,tag*31+k,19)-.5)*3.8;
+    const length=r*(.92+paperHash(seed,tag*29+k,12)*.13);
+    parts.push(roundedPetal(p,cx,cy,length,angle,Math.PI*length/n*.81));
+  }
+  return [...parts,p.circle(cx,cy,r*.18)].join(" ");
+}
 const centreHoles=(p:Painter,x:number,y:number,r:number,count:number)=>
   Array.from({length:count},(_,i)=>{const [xx,yy]=at(x,y,i*360/count,r*.54);
     return p.circle(xx,yy,Math.max(1.5,r*.075));});
@@ -296,10 +319,15 @@ export function paperBotanicalSpec(
       // Overlapping enclosed leaflets are independent paper stock, following
       // the same rachis rather than spawning decorative unconnected particles.
       const flash:string[]=[];
+      const [stemX,stemY]=at(0,0,angle,146);
+      const [tipX,tipY]=at(0,0,angle+11,315);
+      const dx=tipX-stemX,dy=tipY-stemY,len=Math.hypot(dx,dy);
+      const nx=-dy/len,ny=dx/len;
       for(let j=0;j<6;j++){
-        const [x0,y0]=at(0,0,angle+11,174+j*22);
-        const [x1,y1]=at(0,0,angle+11+(j%2?6:-6),192+j*22);
-        flash.push(leaf(p,x0,y0,x1,y1,5.8,2));
+        const t=.18+j*.12,side=j%2?1:-1;
+        const ax=stemX+dx*t,ay=stemY+dy*t;
+        flash.push(leaf(p,ax,ay,
+          ax+dx/len*18+nx*side*19,ay+dy/len*18+ny*side*19,5.8,side*2));
       }
       add("fern-"+i+"-chroma",c.leafFlash[i%c.leafFlash.length],8,
         flash.join(" "),{enterFrame:29+i*6,durationFrames:34});
@@ -323,11 +351,11 @@ export function paperBotanicalSpec(
         enterFrame:28+i*9,durationFrames:36,motion:"unfold",pivot:[p.cx+x*p.s,p.cy+y*p.s]});
     if(i<Math.ceil(5*colorLayers))
       add("flower-"+i+"-outer-stock",c.flowerOuter[i],9,
-        corolla(p,x,y,rr*1.24,13,seed,i+510),{
+        sculptedCorolla(p,x,y,rr*1.24,13,seed,i+510),{
           enterFrame:31+i*9,durationFrames:37,
           motion:"unfold",pivot:[p.cx+x*p.s,p.cy+y*p.s]});
-    add("flower-"+i+"-under",c.flowerOuter[i],10,
-      corolla(p,x,y,rr,11,seed,i+60),{
+    add("flower-"+i+"-under",c.flowerInner[(i+1)%c.flowerInner.length],10,
+      sculptedCorolla(p,x,y,rr,11,seed,i+60),{
         enterFrame:36+i*9,durationFrames:36,motion:"unfold",pivot:[p.cx+x*p.s,p.cy+y*p.s]});
     add("flower-"+i+"-top",i%2===0?c.petal:c.petalHigh,12,
       corolla(p,x,y,rr*.69,9,seed,i+90),{
@@ -397,6 +425,25 @@ export function paperBotanicalSpec(
     add("moth-"+label+"-fore",c.wing,19,upperWing(p,side),{
       holes:wingHoles(p,side),enterFrame:93,durationFrames:45,
       motion:"swing",swingDegrees:side*6,pivot:[p.cx,p.cy-14*p.s]});
+    // Broad physical secondary wing stocks cover the basal silhouette,
+    // deliberately avoiding the perforated tip and decorative lace openings.
+    if(colorLayers>.55){
+      const x=(a:number)=>a*side;
+      add("moth-"+label+"-hind-panel",c.wingLining[1],18,
+        [p.M(x(28),36),
+          p.C(x(50),40,x(72),57,x(87),87),
+          p.C(x(90),106,x(78),110,x(62),83),
+          p.C(x(43),60,x(34),44,x(28),36),"Z"].join(" "),{
+          enterFrame:107,durationFrames:34,motion:"swing",swingDegrees:side*5,
+          pivot:[p.cx,p.cy+12*p.s]});
+      add("moth-"+label+"-fore-panel",c.wingLining[2],20,
+        [p.M(x(54),-13),
+          p.C(x(70),-46,x(99),-74,x(125),-77),
+          p.C(x(140),-74,x(136),-59,x(119),-47),
+          p.C(x(93),-23,x(73),-15,x(54),-13),"Z"].join(" "),{
+          enterFrame:113,durationFrames:30,motion:"swing",swingDegrees:side*6,
+          pivot:[p.cx,p.cy-14*p.s]});
+    }
     const fx=(n:number)=>n*side;
     // Layered bands are individually curved cut cards with visible negative gaps.
     add("moth-"+label+"-feather",c.wingHigh,21,foreWingVeins(p,side),{
