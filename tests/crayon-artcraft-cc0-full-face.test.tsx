@@ -32,8 +32,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     for(const id of CRAYON_F1_FACE_PARTS)expect(ids).toContain(id);
     const part=(id:string)=>scene.elements.find(e=>e.id===id);
     for(const id of ["face-outline","neck-attached","hair-back",
-      "hair-left-curtain","hair-right-curtain","sclera-near","sclera-far",
-      "lip-upper","lip-lower","oral-opening"]){
+      "hair-left-curtain","hair-right-curtain","sclera-near","sclera-far"]){
       const el=part(id);
       expect(el?.kind).toBe("wax");
       if(el?.kind!=="wax")throw new Error("Missing region "+id);
@@ -52,8 +51,13 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(part("nose-alar-near")).toMatchObject({
       kind:"wax",coverage:"open",clipToParent:true,
       parentId:"face-outline"});
-    expect(part("mouth-teeth")).toMatchObject({
-      kind:"wax",parentId:"oral-opening",clipToParent:true});
+    // Source F1 mouth is shut; a paper-bright enamel patch is fabricated.
+    expect(part("mouth-teeth")).toBeUndefined();
+    for(const id of ["lip-upper","lip-lower","oral-opening"]){
+      expect(part(id)).toMatchObject({
+        kind:"wax",parentId:"face-outline",clipToParent:true,
+        coverage:"open",deposition:"stroke-built"});
+    }
     expect(ids.filter(x=>x.startsWith("hair-fiber-flow-")).length)
       .toBeGreaterThanOrEqual(17);
     expect(ids.filter(x=>x.startsWith("brow-fibers-")).length)
@@ -67,25 +71,25 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     const spec=crayonCc0FaceStudy({view:"wax"});
     const get=(id:string)=>spec.elements.find(e=>e.id===id);
     const slit=get("oral-opening");
-    const teeth=get("mouth-teeth");
     const upper=get("lip-upper");
     const lower=get("lip-lower");
     const back=get("hair-back");
     const left=get("hair-left-curtain");
     const right=get("hair-right-curtain");
-    for(const el of [slit,teeth,upper,lower,back,left,right])
+    for(const el of [slit,upper,lower,back,left,right])
       expect(el?.kind).toBe("wax");
-    if(!slit||slit.kind!=="wax"||!teeth||teeth.kind!=="wax"||
+    if(!slit||slit.kind!=="wax"||
       !upper||upper.kind!=="wax"||!lower||lower.kind!=="wax")
       throw new Error("ArtCraft facial value volume missing");
-    // Actual Chromium V1 rendered a broad white tooth slash. Keep a small
-    // undercut interrupted by muted teeth rather than a geometry sticker.
+    // No enamel is visible in CC0 F1. Native Chromium V2 still showed
+    // a source-unsupported paper-bright slash even after shrinking it.
+    expect(get("mouth-teeth")).toBeUndefined();
     expect(slit.bounds.height).toBeLessThan(50);
-    expect(teeth.bounds.height).toBeLessThan(27);
+    expect(slit.coverage).toBe("open");
     expect(upper.bounds.height).toBeLessThan(70);
     expect(lower.bounds.height).toBeLessThan(65);
-    expect(teeth.parentId).toBe("oral-opening");
-    expect(teeth.clipToParent).toBe(true);
+    expect(upper.coverage).toBe("open");
+    expect(lower.coverage).toBe("open");
     for(const el of [back,left,right]){
       if(el?.kind!=="wax")throw new Error("Missing rooted hair mass");
       expect(el.markStrength).toBeLessThan(.3);
@@ -220,8 +224,16 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     }
     // A source-observed nostril must be supported by alar mass, not two
     // independent dark capsules on otherwise featureless wax paper.
-    expect(get("nose-alar-near")?.kind).toBe("wax");
-    expect(get("nose-alar-far")?.kind).toBe("wax");
+    for(const id of ["nose-alar-near","nose-alar-far"]){
+      const e=get(id);
+      if(e?.kind!=="wax")throw new Error("Missing photographed cartilage: "+id);
+      expect(e.coverage).toBe("open");
+      expect(e.blendRadius).toBeGreaterThanOrEqual(6);
+      expect(e.markStrength).toBeLessThanOrEqual(.26);
+    }
+    const sidewall=get("nose-sidewall-form");
+    if(sidewall?.kind!=="wax")throw new Error("Missing bridge-to-tip plane");
+    expect(sidewall.bounds.width).toBeGreaterThanOrEqual(78);
     expect(inspectCrayonScene(scene)).toEqual([]);
   });
   it("renders the F1 oblique near-closed mouth without a broad enamel slash",()=>{
@@ -231,13 +243,15 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(get(id)).toMatchObject({kind:"wax",parentId:"face-outline",
         clipToParent:true,coverage:"open"});
     }
-    const enamel=get("mouth-teeth"),slit=get("oral-opening");
-    if(enamel?.kind!=="wax"||slit?.kind!=="wax")
-      throw new Error("Missing layered F1 mouth anatomy");
-    expect(enamel.bounds.height).toBeLessThanOrEqual(12);
-    expect(enamel.bounds.width).toBeLessThanOrEqual(42);
-    expect(enamel.parentId).toBe("oral-opening");
-    expect(enamel.clipToParent).toBe(true);
+    const slit=get("oral-opening");
+    if(slit?.kind!=="wax")
+      throw new Error("Missing source-attached F1 mouth seam");
+    expect(get("mouth-teeth")).toBeUndefined();
+    for(const id of ["lip-upper","lip-lower","oral-opening"]){
+      expect(get(id)).toMatchObject({kind:"wax",coverage:"open",
+        parentId:"face-outline",clipToParent:true});
+    }
+    expect(slit.pressure).toBeLessThanOrEqual(.5);
     expect(slit.colors[0]).not.toBe("#f5ebe1");
     expect(inspectCrayonScene(scene)).toEqual([]);
   });
