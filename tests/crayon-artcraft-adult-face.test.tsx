@@ -5,7 +5,10 @@ import {renderToStaticMarkup} from "react-dom/server";
 import {inspectCrayonScene,crayonWorldPoint} from "../registry/video/materials/crayon-scene";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {crayonAdultFaceStudy,portraitCriticalParts} from "../src/video/crayon-artcraft-adult-face-fixtures";
-import faceMeta,{AdultFaceThreeQuarter,AdultFacePortrait} from "../src/video/crayon-artcraft-adult-face.stories";
+import faceMeta,{AdultFaceThreeQuarter,AdultFacePortrait,AdultFaceArtcraftWorkbench}
+  from "../src/video/crayon-artcraft-adult-face.stories";
+import {CRAYON_PORTRAIT_AUDIT,crayonPortraitFrozenAudit}
+  from "../src/video/crayon-artcraft-portrait-audit";
 
 describe("ArtCraft v6 reference-led adult portrait construction (not visual approval)",()=>{
   for(const aspect of ["landscape","portrait"] as const){
@@ -277,9 +280,41 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
   }
   it("keeps unfinished face studies out of public Storybook",()=>{
     expect(faceMeta.tags).toContain("!dev");
-    expect(faceMeta.title).toMatch(/^Video production\/Film Looks\/Crayon\//);
+    expect(faceMeta.title).toBe("Video production/Film Looks/Crayon/ArtCraft Adult Face Lab");
     expect(AdultFaceThreeQuarter.args??{}).toEqual({});
     expect(AdultFacePortrait.args?.aspect).toBe("portrait");
+  });
+  it("rejects real 2026-11-14 reference alignment rather than rewarding cosmetic wax",()=>{
+    const audit=crayonPortraitFrozenAudit();
+    expect(CRAYON_PORTRAIT_AUDIT.source.license).toBe("CC0 1.0");
+    expect(CRAYON_PORTRAIT_AUDIT.source.sha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(CRAYON_PORTRAIT_AUDIT.candidate.sha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(audit.inspectedLandmarks).toBe(18);
+    expect(audit.failedLandmarks).toHaveLength(15);
+    expect(audit.failedTonalRegions.map(x=>x.region))
+      .toEqual(["eye_socket","nose_planes","cheek_planes","lips"]);
+    expect(audit.artisticApproval).toBe(false);
+    expect(audit.sourceOriginalBytesAvailable).toBe(false);
+    expect(audit.status).toBe("REJECT");
+    expect(audit.faceAspectError).toBeLessThan(.16);
+  });
+  it("offers opt-in visible CC0 audit without contaminating normal native art",()=>{
+    const args={aspect:"portrait" as const,detail:1,expression:"warm" as const,
+      headScaleY:.82,startFrame:299,playbackRate:1,loop:false};
+    const normal=renderToStaticMarkup(<AdultFaceArtcraftWorkbench {...args}/>);
+    expect(normal).toContain('data-km-crayon-source-review="off"');
+    expect(normal).not.toContain("CC0 photographic anatomy reference");
+    const review=renderToStaticMarkup(<AdultFaceArtcraftWorkbench {...args}
+      referenceReview showCandidateLandmarks/>);
+    expect(review).toContain('data-km-crayon-portrait-audit="REJECT"');
+    expect(review).toContain("15/18");
+    expect(review).toContain("4/5");
+    expect(review).toContain("CC0 photographic anatomy reference");
+    expect((review.match(/data-km-crayon-portrait-landmark=/g)??[])).toHaveLength(18);
+    const unaligned=renderToStaticMarkup(<AdultFaceArtcraftWorkbench {...args}
+      aspect="landscape" referenceReview showCandidateLandmarks/>);
+    expect(unaligned).not.toContain('data-km-crayon-portrait-landmark=');
+    expect(unaligned).toContain("these current controls differ");
   });
   it("hand-authors distinct lip and commissure geometry for a warm expression",()=>{
     const smiling=crayonAdultFaceStudy("landscape",{expression:"warm"});
