@@ -127,7 +127,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(masses.map(m=>Number(m[2]))).toEqual([-1,1,-1]);
     expect(new Set(masses.map(m=>m[1])).size).toBe(3);
     const washes=[...full.matchAll(
-      /data-km-rock-mass-underwash="" d="([^"]+)" fill="url\\(#([^"]+)\\)"/g,
+      /data-km-rock-mass-underwash="" d="([^"]+)" fill="url\(#([^"]+)\)"/g,
     )];
     expect(washes).toHaveLength(3);
     for(let i=0;i<masses.length;i++){
