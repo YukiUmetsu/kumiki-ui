@@ -66,6 +66,15 @@ describe("RISO25 ArtCraft v9 ear and expression-linked midface printing",()=>{
     }
   });
 
+  it("Paper Artist concha remains a tiny partially hair-occluded ear detail, not a red circular earring",()=>{
+    const shape=PAPER_ARTIST.parts.find(p=>p.id==="ear-concha-pocket")!;
+    const points=flattenRisoSvgPath(shape.d)[0].points;
+    const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
+    expect(Math.max(...xs)-Math.min(...xs)).toBeLessThan(2.8);
+    expect(Math.max(...ys)-Math.min(...ys)).toBeLessThan(3);
+    expect(Math.abs(risoContourSignedArea(points))).toBeLessThan(5);
+  });
+
   it.each(subjects)("$actor.id: new nose/lip/cheek ink is anatomically inside the face silhouette",({actor})=>{
     const face=flattenRisoSvgPath(actor.parts.find(p=>p.id==="face")!.d)[0].points;
     for(const id of ["nasal-sidewall-line","nasal-ala-fold","upper-lip-engraving",
