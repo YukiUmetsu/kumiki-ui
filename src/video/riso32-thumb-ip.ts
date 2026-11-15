@@ -36,7 +36,7 @@ export const RISO32_THUMB_GEOMETRY={
 export function riso32ThumbIpJoint(side:Riso32Side):RisoJoint{
   const s=side==="right"?1:-1;
   const delay=side==="left"?6:0;
-  const full=referenceIp*RISO32_THUMB_ANAT1.projectionFactor*s;
+  const full=RISO32_THUMB_ANAT1.clinicalFistFlex*RISO32_THUMB_ANAT1.projectionFactor*s;
   return {
     id:side+"-thumb-ip",parent:side+"-thumb",
     x:s*RISO32_THUMB_GEOMETRY.ipX,y:RISO32_THUMB_GEOMETRY.ipY,
