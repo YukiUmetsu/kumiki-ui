@@ -78,6 +78,22 @@ const clusters:Record<string,{paths:readonly string[];width:number;
   },
 };
 
+/** Source-authored paths above run root → tip for easy anatomical review.
+ * Native crayon deposits terminal wax pickup at the END of a path. For
+ * eyelashes that creates a black dot at the *thin free tip* (a false
+ * mascara bead) and makes 33 strands look like a comb of little pegs.
+ * Reversing the same cubic geometry puts the thicker terminal deposition
+ * back inside the dark, parent-attached upper lash rim. It preserves every
+ * control point and the original silhouette, but restores material flow.
+ */
+function depositTowardRoot(path:string):string{
+  const m=/^M(-?\\d+) (-?\\d+) C(-?\\d+) (-?\\d+) (-?\\d+) (-?\\d+) (-?\\d+) (-?\\d+)$/
+    .exec(path);
+  if(!m)throw new RangeError("Invalid ArtCraft cubic lash root");
+  const [,x0,y0,x1,y1,x2,y2,x3,y3]=m;
+  return "M"+x3+" "+y3+" C"+x2+" "+y2+" "+x1+" "+y1+" "+x0+" "+y0;
+}
+
 /** Preserve all original elements exactly unless the opt-in rooted finish
  * is requested; the global scene still uses the same absolute timing,
  * paper seed, outline clipping and semantic eye parents.
@@ -90,7 +106,7 @@ export function crayonF1AddRootedLashes(elements:readonly CrayonElement[],
   return elements.map(e=>{
     if(e.kind!=="contour")return e;
     const group=clusters[e.id];
-    return group?{...e,d:group.paths.join(" "),
+    return group?{...e,d:group.paths.map(depositTowardRoot).join(" "),
       width:group.width,opacity:group.opacity,
       waxContact:"dry-wax",waxPressure:group.waxPressure} satisfies Contour:e;
   });
