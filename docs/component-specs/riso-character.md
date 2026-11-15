@@ -391,3 +391,9 @@ RISO22 Chromium revealed that **thin** eye engraved features were below the peri
 RISO23's portrait-crop Storybook story exposes native `screenDensity` alongside AM/FM, dot gain, two plates, four expressions and both exact 16:9/9:16 views; it stays inside the same **Risograph** folder.
 
 Regression: `tests/riso23-anatomical-ink-planes.test.tsx`, plus Chromium `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`. These checks do not establish photo-realism or independent ArtCraft human-anatomy/portrait certification.
+
+### RISO23 rendered second-pass screen-frequency correction
+
+Actual [first RISO23 browser screenshots](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43737587182) **failed artistic critique**: large screened cheek/socket/jaw masses looked like cartoon red freckles at the old `dotCell=6` in a ~70-unit-wide head. The source geometry was kept; print-master **frequency**, not global noise or shape simplification, was the issue. The RISO23 Storybook now defaults both independent spot plates to a valid **2-unit** pitch (configurable up to 6), and the production `PrintPlate.dotCell` and screen geometry accept **2..36** without changing older valid values. Actual coarse-vs-fine screenshot negative controls are required before promoting the updated illustration.
+
+[Full real-render ArtCraft revision ledger](../research/riso23-facial-screen-artcraft.md).
