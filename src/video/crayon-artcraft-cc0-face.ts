@@ -249,25 +249,25 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "Q288 554 273 563Q255 567 246 554Q240 547 241 535Z",
     rect(237,523,53,48),C.iris,[148,247],
     {parentId:"sclera-near",clipToParent:true,
-      pressure:.86,spacing:3.5,markStrength:.44});
+      pressure:.86,spacing:4.2,markStrength:.44});
   wax("pupil-near",
     "M252 536Q258 533 265 537Q274 541 271 550"+
     "Q266 558 257 555Q251 551 252 536Z",
     rect(249,530,28,29),C.pupil,[156,250],
     {parentId:"iris-near",clipToParent:true,
-      pressure:.95,spacing:3.2,markStrength:.49});
+      pressure:.95,spacing:4.1,markStrength:.49});
   wax("iris-far",
     "M424 509Q430 502 443 503Q456 501 460 512"+
     "Q465 524 451 532Q437 534 428 525Z",
     rect(420,498,48,39),C.iris,[146,245],
     {parentId:"sclera-far",clipToParent:true,
-      pressure:.83,spacing:3.6,markStrength:.4});
+      pressure:.83,spacing:4.3,markStrength:.4});
   wax("pupil-far",
     "M434 510Q439 508 446 511Q451 517 448 524"+
     "Q442 529 436 523Z",
     rect(431,505,22,28),C.pupil,[155,253],
     {parentId:"iris-far",clipToParent:true,pressure:.9,
-      spacing:3,markStrength:.42});
+      spacing:4.0,markStrength:.42});
   wax("upper-lid-near",
     "M207 553Q231 519 264 514Q304 508 328 539"+
     "Q303 526 276 527Q238 526 220 552Z",
