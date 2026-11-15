@@ -198,3 +198,7 @@ Visual concern from pass 22: a sparsely detailed, repetitive fern understory and
 - Unit and real-browser tests verify new layer identity, vertex density, 16:9 and 9:16 materials, physical stock depth and frame-exact determinism.
 
 Do not claim stylistic parity or a world-class art bar from path-count tests alone: inspect actual rendered browser screenshots and native film frames before merge.
+
+### Pass 23b — corrected paper mass from actual film-frame inspection
+
+Inspected the first real 960×540 woodland/alpine frames and both 540×960 portraits. The new foliage has more detailed cuts and real flower heads, but its near-camera leaf blades still read too much like fine drawn lines, particularly when rendered against dark alpine banks. The fix adds **two broad rooted, physically cut basal blades** per herb and their scored cut-paper midribs; it increases the width/volume of lateral leaves while maintaining genuine hand-cut serration and open lake/river sightlines. Changed tests now require over 14 individually defined stock contour starts per high-detail herb instead of merely checking that a valid SVG exists. This is a concrete second real-render art review, not a generic noise pass.
