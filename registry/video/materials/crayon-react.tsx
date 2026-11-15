@@ -26,6 +26,8 @@ export type WaxProps = {
   coverage?: "open" | "opaque";
   /** Deterministic, spatially blurred pigment glaze underneath directional wax marks. */
   blendRadius?: number;
+  /** Opacity of generic tooth marks; zero preserves blocking underpaint. */
+  markStrength?: number;
   /** After the drawing completes, repaint small wax daubs on discrete held exposures. */
   redraw?: CrayonRedrawOptions;
   /** Fragmented wax nib trace around the visible outline, 0..1. */
@@ -44,9 +46,11 @@ export type WaxProps = {
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long" }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
+  if (!Number.isFinite(markStrength)||markStrength<0||markStrength>1)
+    throw new RangeError("crayon markStrength must be 0..1");
   if (!Number.isFinite(blendRadius)||blendRadius<0||blendRadius>18||
     (blendRadius>0&&coverage!=="open"))
     throw new RangeError("crayon blendRadius must be 0..18 for open wax");
@@ -117,7 +121,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     data-km-crayon-exposure={redraw ? exposure : undefined}
     data-km-crayon-stroke-order={strokeOrder}
     data-km-crayon-mark-length={markLength}
-    data-km-crayon-outline-opacity={outlineOpacity}>
+    data-km-crayon-outline-opacity={outlineOpacity}
+    data-km-crayon-mark-strength={markStrength}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
       {blendRadius>0 && <filter id={blendId} filterUnits="userSpaceOnUse"
@@ -195,15 +200,15 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
           {nibStyle==="tapered" ?
             <path d={progress>=1 ? mark.nibD : crayonNibPath(mark, progress)} fill={colors[mark.tone]}
               data-km-crayon-nib="tapered"
-              opacity={coverage==="opaque" ? .32+mark.pressure*.34 : .2+mark.pressure*.24} /> :
+              opacity={markStrength*(coverage==="opaque" ? .32+mark.pressure*.34 : .2+mark.pressure*.24)} /> :
             <path d={mark.d} pathLength={100} stroke={colors[mark.tone]} strokeWidth={mark.width}
               strokeDasharray={100} strokeDashoffset={100 * (1 - progress)}
               data-km-crayon-nib="rounded"
-              opacity={coverage==="opaque" ? .32+mark.pressure*.34 : .2+mark.pressure*.24} />}
+              opacity={markStrength*(coverage==="opaque" ? .32+mark.pressure*.34 : .2+mark.pressure*.24)} />}
           {progress > .8 && <path d={mark.scumble} stroke={colors[(mark.tone + 1) % 3]}
-            strokeWidth={1.3 + mark.pressure * 2.3} opacity={coverage==="opaque"?.41:.31} />}
+            strokeWidth={1.3 + mark.pressure * 2.3} opacity={markStrength*(coverage==="opaque"?.41:.31)} />}
           {progress >= 1 && <path d={mark.scrape} stroke="#faefd6"
-            strokeWidth={.6 + (1 - mark.pressure) * 1.4} opacity={.29} />}
+            strokeWidth={.6 + (1 - mark.pressure) * 1.4} opacity={markStrength*.29} />}
         </g>;
       })}
       </g>

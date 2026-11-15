@@ -30,10 +30,21 @@ describe("medium-native artistically blended crayon pigment",()=>{
     expect(html).toContain('filterUnits="userSpaceOnUse"');
     expect(html).not.toContain('data-km-crayon-underpaint="opaque"');
     expect(html).toContain('data-km-crayon-wax=""');
+    expect(html).toContain('data-km-crayon-mark-strength="1"');
+    expect(()=>region("open",-1)).toThrow(/blendRadius/);
     expect(html).toEqual(region("open",9));
     expect(()=>region("opaque",8)).toThrow(/blendRadius/);
     expect(()=>region("open",19)).toThrow(/blendRadius/);
     expect(()=>region("open",NaN)).toThrow(/blendRadius/);
+    const minimal=renderToStaticMarkup(<svg><WaxRegion
+      d="M0 0Q30 0 30 30Q0 30 0 0Z"
+      bounds={{x:0,y:0,width:30,height:30}}
+      colors={["#bda192","#886c76","#edc7a7"]}
+      seed={89} pressure={.5} tooth="glaze-tooth"
+      frame={119} first={1} last={118} reduced={false}
+      coverage="opaque" markStrength={0}/></svg>);
+    expect(minimal).toContain('data-km-crayon-underpaint="opaque"');
+    expect(minimal).toContain('data-km-crayon-mark-strength="0"');
   });
   it("constrains soft glazes to the same editable source face at both aspect ratios",()=>{
     for(const aspect of ["landscape","portrait"] as const){
@@ -61,6 +72,8 @@ describe("medium-native artistically blended crayon pigment",()=>{
       ...face,elements:face.elements.map(x=>x.id===first.id?{...first,...changes}:x),
     });
     expect(inspectCrayonScene(rewrite({blendRadius:18.01})).join(";")).toMatch(/blendRadius/);
+    expect(inspectCrayonScene(rewrite({markStrength:-.01})).join(";")).toMatch(/markStrength/);
+    expect(inspectCrayonScene(rewrite({markStrength:1.01})).join(";")).toMatch(/markStrength/);
     expect(inspectCrayonScene(rewrite({coverage:"opaque"})).join(";")).toMatch(/blendRadius/);
     expect(inspectCrayonScene(rewrite({clipToParent:true,parentId:undefined})).join(";")).toMatch(/clipToParent/);
   });

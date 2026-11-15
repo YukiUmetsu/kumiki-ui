@@ -75,7 +75,8 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
             seed={seed} pressure={node.pressure ?? .84} spacing={node.spacing ?? 9} angle={node.angle ?? 0}
             tooth={tooth} frame={frame} first={node.timing.start} last={node.timing.end}
             construction={node.construction} coverage={node.coverage}
-            blendRadius={node.blendRadius} nibStyle={node.nibStyle}
+            blendRadius={node.blendRadius} markStrength={node.markStrength}
+            nibStyle={node.nibStyle}
             strokeOrder={node.strokeOrder} markLength={node.markLength}
             redraw={node.redraw} edgeRoughness={node.edgeRoughness}
             outlineOpacity={node.outlineOpacity} sgraffito={node.sgraffito}
