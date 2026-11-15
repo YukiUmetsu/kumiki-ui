@@ -100,6 +100,27 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(el.parentId).toBe("face-outline");
     }
   });
+  it("reconstructs photographed helix/concha and keeps stud attached to lobe",()=>{
+    const spec=crayonCc0FaceStudy({view:"wax"});
+    const find=(id:string)=>spec.elements.find(el=>el.id===id);
+    for(const id of ["ear-helix-value","ear-concha-shadow",
+      "ear-antihelix-reflection","ear-lobe-warmth"]){
+      expect(find(id)).toMatchObject({kind:"wax",parentId:"ear-underplane",
+        clipToParent:true,coverage:"open"});
+    }
+    expect(find("ear-stud-setting")).toMatchObject({
+      kind:"wax",parentId:"ear-underplane",clipToParent:true,
+      coverage:"opaque",deposition:"stroke-built"});
+    expect(find("ear-stud-glint")).toMatchObject({
+      kind:"wax",parentId:"ear-stud-setting",clipToParent:true,
+      coverage:"opaque"});
+    const setting=find("ear-stud-setting");
+    if(setting?.kind!=="wax")throw new Error("Missing source F1 earring");
+    expect(setting.bounds.x).toBeGreaterThan(95);
+    expect(setting.bounds.y).toBeGreaterThan(748);
+    expect(setting.bounds.y+setting.bounds.height).toBeLessThan(780);
+    expect(inspectCrayonScene(spec)).toEqual([]);
+  });
   it("retains source-directed wax fiber geometry while batching under scene budget",()=>{
     const scene=crayonCc0FaceStudy({detail:1});
     expect(inspectCrayonScene(scene)).toEqual([]);
