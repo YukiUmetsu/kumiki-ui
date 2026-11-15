@@ -95,10 +95,38 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
       res.push({ t: "fill", d: carvedLine([sh, el, wr], H * .052 * stout, { taper: "end", minRatio: .6, smooth: true }), fill: skin, outline: lw });
       res.push({ t: "line", d: carvedLine([lerp2(sh, el, .25), lerp2(sh, el, .75)], lw * .8, { taper: "both" }), color: "sumi", opacity: .4 });
     } else {
-      // The kimono sleeve hangs below the forearm as a deep pocket, swinging with the wind.
-      const drop = sleeveDepth, cuff = lerp2(el, wr, .7), dir = Math.sign(wr[0] - sh[0]) || 1;
+      // The kimono sleeve in two pieces of one cloth. The tube round the arm keeps its thickness across the arm, on one
+      // consistent side all the way from shoulder to cuff (offsets in x alone collapse to a line when the arm is level,
+      // and choosing each segment's side separately crosses the outline at a bent elbow). Under the forearm hangs the
+      // deep pocket, straight down, swinging with the wind; as the arm rises the cloth slides toward the elbow, and a
+      // hanging arm's pocket falls the full width of the sleeve past the hand.
+      const drop = sleeveDepth, cuff = lerp2(el, wr, .7), out = Math.sign(sh[0]) || 1, t1 = H * .032, t2 = H * .028;
+      const unit = (a: Pt, b: Pt): Pt => { const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l]; };
+      const d1 = unit(sh, el), d2 = unit(el, cuff), p1: Pt = [-d1[1], d1[0]], p2: Pt = [-d2[1], d2[0]];
+      const side = (Math.abs(p1[1]) > .3 ? p1[1] < 0 : p1[0] * out > 0) ? 1 : -1;
+      const n1: Pt = [p1[0] * side, p1[1] * side], n2: Pt = [p2[0] * side, p2[1] * side], sum: Pt = [n1[0] + n2[0], n1[1] + n2[1]], sl = Math.hypot(sum[0], sum[1]);
+      const nm: Pt = sl > .9 ? [sum[0] / sl, sum[1] / sl] : n1, at = (p: Pt, n: Pt, k: number): Pt => [p[0] + n[0] * k, p[1] + n[1] * k];
+      // The two outline points at the elbow. Bent sharply (the forearm folded back), the outer side rounds the tip of the
+      // elbow, beyond it along the upper arm, and the inner side tucks into the crook; otherwise they sit across the joint.
+      const inPlus = d2[0] * n1[0] + d2[1] * n1[1] > 0, tip: Pt = [el[0] + d1[0] * t1 * 1.25, el[1] + d1[1] * t1 * 1.25];
+      const crook = (k: number): Pt => at(el, nm, k * t1 * .25);
+      const elP: Pt[] = sl > .9 ? [at(el, nm, t1)] : inPlus ? [crook(1)] : [at(el, n1, t1 * 1.1), tip, at(el, n2, t2 * 1.1)];
+      const elM: Pt[] = sl > .9 ? [at(el, nm, -t1)] : inPlus ? [at(el, n2, -t2 * 1.1), tip, at(el, n1, -t1 * 1.1)] : [crook(-1)];
+      // The upper sleeve stands a little full of cloth between the shoulder and the elbow.
+      const mid = lerp2(sh, el, .55);
+      const hang = (p: Pt, k: number): Pt => [p[0] + sway * k, Math.max(p[1] + drop * k, p[1] + H * .02)];
+      const rise = clamp01((el[1] - cuff[1]) / (Math.hypot(cuff[0] - el[0], cuff[1] - el[1]) || 1)), attach = lerp2(cuff, el, rise * .7);
+      // A forearm hanging down: the pocket falls the sleeve's full width past the hand. Otherwise it hangs as a band under
+      // the arm's lower edge from near the shoulder seam to the cuff (a raised forearm lets it fall from the elbow and the
+      // upper arm, where the cloth has slid).
+      const lower = (p: Pt, n: Pt, t: number): Pt => { const a = at(p, n, t), b = at(p, n, -t); return a[1] > b[1] ? a : b; };
+      const lowEl: Pt = [...elP, ...elM].reduce((a, b) => (b[1] > a[1] ? b : a));
+      const pocket: Pt[] = Math.abs(n2[1]) < .35 && d2[1] > 0
+        ? [elP[0], elM[elM.length - 1], hang(at(cuff, n2, -t2), 1), hang(at(cuff, n2, t2), 1)]
+        : (() => { const Ls = lerp2(lower(sh, n1, t1), lowEl, .3), Lc = lower(attach, n2, t2); return [Ls, lowEl, Lc, hang(Lc, 1), hang(lowEl, .9), hang(Ls, .45)]; })();
       res.push({ t: "fill", d: ribbon(lerp2(el, wr, .9), wr, H * .014, H * .012), fill: skin, outline: lw * .8 });
-      res.push({ t: "fill", d: smoothD([add(sh, [-dir * H * .03, -H * .01]), add(sh, [dir * H * .03, -H * .005]), add(el, [dir * H * .03, 0]), add(cuff, [dir * H * .028, 0]), add(cuff, [dir * H * .02 + sway, drop]), add(el, [-dir * H * .015 + sway * .6, drop * .9]), add(el, [-dir * H * .035, H * .02])], true, .3),
+      res.push({ t: "fill", d: smoothD(pocket, true, .3), fill: sleeveC, outline: lw, pattern: sleevePattern, grain: .25 });
+      res.push({ t: "fill", d: smoothD([at(sh, n1, t1 * 1.05), at(mid, n1, t1 * 1.15), ...elP, at(cuff, n2, t2), at(cuff, n2, -t2), ...elM, at(mid, n1, -t1 * 1.15), at(sh, n1, -t1)], true, .25),
         fill: sleeveC, outline: lw, pattern: sleevePattern, grain: .25 });
     }
     const a = Math.atan2(wr[1] - el[1], wr[0] - el[0]), hs = H * .022;

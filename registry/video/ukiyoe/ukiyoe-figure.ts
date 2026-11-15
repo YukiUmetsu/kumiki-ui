@@ -396,8 +396,10 @@ function sleeve(sh: Pt, el: Pt, wr: Pt, depth: number, width: number, gravityDeg
   const cuff: Pt = [lerp(wr[0], el[0], slide), lerp(wr[1], el[1], slide)];
   const ax = cuff[0] - sh[0], ay = cuff[1] - sh[1], al = Math.hypot(ax, ay) || 1, ux = ax / al, uy = ay / al;
   // The panel hangs on the underside of the arm (behind it when the arm is lowered) and drops further under gravity.
-  const n: Pt = [-uy, ux];
+  // It always hangs on the gravity side: with the arm swung back the plain normal points up, and the panel would fold
+  // flat onto the arm (a paper-thin sleeve), so it is flipped.
   const g = dirDown(gravityDeg), across = Math.abs(ux * g[1] - uy * g[0]);
+  const n: Pt = -uy * g[0] + ux * g[1] < 0 ? [uy, -ux] : [-uy, ux];
   const drop = depth * (.35 + .65 * across);
   const wide = (p: Pt, k: number, extra: number): Pt => [p[0] + n[0] * width * k + g[0] * extra, p[1] + n[1] * width * k + g[1] * extra];
   const top0: Pt = [sh[0] - n[0] * width * .18, sh[1] - n[1] * width * .18];

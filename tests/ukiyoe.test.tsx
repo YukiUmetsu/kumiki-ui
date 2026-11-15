@@ -247,6 +247,16 @@ describe("UKIYO1 maiko", () => {
     expect(worst).toBeLessThan(8);
     expect(Math.abs(pose(70).shF - pose(20).shF)).toBeGreaterThan(40);
   });
+  it("never lets a sleeve go paper-thin through the dance, in any view", () => {
+    // Thickness of a closed shape: 2 × area / perimeter (about the width of a long strip). The robe and sleeve fills are
+    // the patterned asagi shapes; across a whole kyōmai cycle none may collapse toward a line.
+    const thickness = (d: string) => { const n = d.match(/-?\d+(\.\d+)?/g)!.map(Number), q: number[][] = []; for (let i = 0; i + 1 < n.length; i += 2) q.push([n[i], n[i + 1]]); let A = 0, L = 0; q.forEach((a, i) => { const b = q[(i + 1) % q.length]; A += a[0] * b[1] - b[0] * a[1]; L += Math.hypot(b[0] - a[0], b[1] - a[1]); }); return Math.abs(A) / (L || 1); };
+    for (const view of ["profile", "three-quarter", "front", "back"] as const) {
+      let thinnest = Infinity;
+      for (let f = 0; f < 256; f += 3) for (const p of draw(view, [{ type: "kyomai", start: 0, end: 600 }], f)) if (p.t === "fill" && p.fill === "asagi" && p.pattern) thinnest = Math.min(thinnest, thickness(p.d!));
+      expect(thinnest, view).toBeGreaterThan(5);
+    }
+  });
   it("walks on okobo with short steps, the planted clog holding still", () => {
     const actions = [{ type: "walk" as const, start: 0, end: 600, to: 200 }];
     const clog = (f: number) => { const d = drawFigure({ look: { ...UKIYOE_MAIKO_LOOK, prop: "none" }, actions }, f, 0, 5); const b = flat(d.prims as P[]).filter(p => p.t === "fill" && (p.fill as { stops?: unknown[][] })?.stops?.[0]?.[1] === "ki" && !p.noPrint).map(p => Math.min(...p.d!.match(/-?\d+(\.\d+)?/g)!.map(Number).filter((_, i) => i % 2 === 0)) + d.x); return b[0]; };
