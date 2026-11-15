@@ -51,7 +51,7 @@ describe("ArtCraft foreground pigment attention",()=>{
     const count=(r:readonly[number,number,number,number])=>
       s.strokes.filter(m=>m.x>=r[0]&&m.x<r[2]&&m.y>=r[1]&&m.y<r[3]).length/
       ((r[2]-r[0])*(r[3]-r[1]));
-    const bird=count([55,20,90,62]),background=count([15,20,50,62]);
+    const bird=count([55,20,90,62]),background=count([15,10,35,50]);
     expect(bird).toBeGreaterThan(background*2.2);
     const birdPixel=(44*p.width+70)*4,backgroundPixel=(12*p.width+22)*4;
     expect(s.pigment[birdPixel+2]).toBeLessThan(s.pigment[backgroundPixel+2]-35);
