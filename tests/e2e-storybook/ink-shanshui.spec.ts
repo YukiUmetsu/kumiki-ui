@@ -102,6 +102,21 @@ for(const [scene,story] of [
 }
 
 
+test("brushwork study shows native rooted foliage and uneven rock deposition",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--brushwork-detail-studio&viewMode=story");
+  const study=page.getByTestId("shanshui-brushwork-studio");
+  await expect(study).toBeVisible();
+  await expect(page.locator("[data-km-brush-study-card]")).toHaveCount(4);
+  await expect.poll(()=>study.locator("[data-km-pine-needle-cluster]").count())
+    .toBeGreaterThan(80);
+  await expect.poll(()=>study.locator("[data-km-cunfa-style]").count())
+    .toBeGreaterThan(100);
+  await study.screenshot({animations:"disabled",
+    path:info.outputPath("shanshui-native-brush-detail-study.png")});
+  await page.getByRole("slider",{name:"Brushwork detail"}).fill("0");
+  await expect(study.locator("[data-km-pine-needle-cluster]")).toHaveCount(0);
+});
+
 test("one Shanshui Storybook folder also exposes the real three-phase garment study",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--garment-motion-studio&viewMode=story");
   await expect(page.getByTestId("shanshui-garment-studio")).toBeVisible();
