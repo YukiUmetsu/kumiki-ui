@@ -46,21 +46,12 @@ const capture=(img:HTMLImageElement,width:number,height:number):PencilPhotoPixel
   return {width,height,data:context.getImageData(0,0,width,height).data};
 };
 
-function paint(ctx:CanvasRenderingContext2D,study:PencilPhotoStudy,
-  frame:number,source:HTMLCanvasElement){
-  const {width,height}=study;
-  ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";
-  ctx.fillStyle="#FAF5ED";ctx.fillRect(0,0,width,height);
-  const foundation=Math.min(1,Math.max(0,frame/140));
-  if(foundation>0){
-    // Build the flat pixel array only once per source/settings change in the
-    // caller, not a new source-to-pencil conversion on each animation tick.
-    ctx.globalAlpha=foundation;
-    ctx.drawImage(source,0,0);
-  }
-  if(frame<=95){ctx.globalAlpha=1;return;}
+/** Paint only newly deposited marks during forward playback; reconstruct on seek. */
+function paintMarkRange(ctx:CanvasRenderingContext2D,
+  study:PencilPhotoStudy,from:number,to:number){
   ctx.lineCap="round";ctx.lineJoin="round";
-  for(const stroke of study.strokes.slice(0,pencilPhotoStrokeCount(study,frame))){
+  for(let i=from;i<to;i++){
+    const stroke=study.strokes[i];
     ctx.beginPath();ctx.moveTo(stroke.x,stroke.y);
     ctx.quadraticCurveTo(stroke.controlX,stroke.controlY,stroke.endX,stroke.endY);
     ctx.strokeStyle=stroke.color;ctx.lineWidth=stroke.width;
@@ -68,10 +59,26 @@ function paint(ctx:CanvasRenderingContext2D,study:PencilPhotoStudy,
   }
   ctx.globalAlpha=1;
 }
+function paint(ctx:CanvasRenderingContext2D,study:PencilPhotoStudy,
+  frame:number,source:HTMLCanvasElement,wash:number){
+  const {width,height}=study;
+  ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";
+  ctx.fillStyle="#FAF5ED";ctx.fillRect(0,0,width,height);
+  const foundation=Math.min(1,Math.max(0,frame/140))*wash;
+  if(foundation>0){
+    // Source-derived *pigment*, not a full-strength photograph: retain paper
+    // voids and let graphite/mid-tone/fur microstroke families carry the value.
+    ctx.globalAlpha=foundation;
+    ctx.drawImage(source,0,0);
+  }
+  if(frame>95)paintMarkRange(ctx,study,0,pencilPhotoStrokeCount(study,frame));
+  ctx.globalAlpha=1;
+}
 /** One existing sidebar folder, no external subscription/AI or server upload. */
 export function ReferencePencilAtelier(){
   const canvasRef=useRef<HTMLCanvasElement>(null);
   const underpaint=useRef<HTMLCanvasElement|null>(null);
+  const progress=useRef<{study:PencilPhotoStudy;frame:number;drawn:number;wash:number}|null>(null);
   const localObjectUrl=useRef<string|null>(null);
   const [sample,setSample]=useState<Sample>("fox");
   const [sourceUrl,setSourceUrl]=useState<string>(photos.fox.url);
@@ -81,6 +88,8 @@ export function ReferencePencilAtelier(){
   const [playing,setPlaying]=useState(false);
   const [error,setError]=useState("");
   const [options,setOptions]=useState<PencilPhotoOptions>(PENCIL_PHOTO_DEFAULTS);
+  const [wash,setWash]=useState(.66);
+  const [showReference,setShowReference]=useState(false);
   const [uploaded,setUploaded]=useState(false);
   const size=aspect==="landscape"?{width:900,height:506}:{width:506,height:900};
 
@@ -110,7 +119,7 @@ export function ReferencePencilAtelier(){
   // The static precomputed tone layer is cached: seeking/speed does not
   // recompute pixels, gradients, stochastic paper or stroke directions.
   useEffect(()=>{
-    if(!study){underpaint.current=null;return;}
+    if(!study){underpaint.current=null;progress.current=null;return;}
     const image=document.createElement("canvas");
     image.width=study.width;image.height=study.height;
     const ctx=image.getContext("2d");
@@ -123,9 +132,19 @@ export function ReferencePencilAtelier(){
     if(!canvas)return;
     const ctx=canvas.getContext("2d");
     if(!ctx)return;
-    if(study&&underpaint.current)paint(ctx,study,frame,underpaint.current);
-    else{ctx.fillStyle="#FAF5ED";ctx.fillRect(0,0,canvas.width,canvas.height);}
-  },[study,frame]);
+    if(study&&underpaint.current){
+      const target=pencilPhotoStrokeCount(study,frame);
+      const previous=progress.current;
+      if(previous&&previous.study===study&&previous.wash===wash&&
+        frame>=previous.frame&&previous.frame>=140&&target>=previous.drawn){
+        paintMarkRange(ctx,study,previous.drawn,target);
+      }else paint(ctx,study,frame,underpaint.current,wash);
+      progress.current={study,frame,drawn:target,wash};
+    }else{
+      ctx.fillStyle="#FAF5ED";ctx.fillRect(0,0,canvas.width,canvas.height);
+      progress.current=null;
+    }
+  },[study,frame,wash]);
   useEffect(()=>{
     if(!playing)return;
     const began=performance.now(),offset=frame;
@@ -203,6 +222,18 @@ export function ReferencePencilAtelier(){
           <option value="landscape">16:9</option><option value="portrait">9:16</option>
         </select>
       </label>
+      <label style={control}>Source wash · {Math.round(wash*100)}%
+        <input aria-label="Pencil photo wash" type="range" min=".25" max="1"
+          step=".05" value={wash} onChange={e=>{
+            setWash(Number(e.target.value));setPlaying(false);
+          }}/>
+      </label>
+      <label style={{...control,alignSelf:"end",minHeight:40,
+        display:"flex",flexDirection:"row",alignItems:"center",gap:9}}>
+        <input aria-label="Show pencil source comparison" type="checkbox"
+          checked={showReference} onChange={e=>setShowReference(e.target.checked)}/>
+        Compare with source
+      </label>
       {([
         ["paper","Ivory paper lift",0,1,.05],
         ["saturation","Pencil chroma",0,1,.05],
@@ -218,12 +249,34 @@ export function ReferencePencilAtelier(){
     </section>
     {error&&<p role="alert" style={{margin:0,color:"#8F4440"}}>{error}</p>}
     {!study&&!error&&<p role="status" style={{margin:0}}>Loading photograph…</p>}
-    <canvas ref={canvasRef} width={size.width} height={size.height}
-      aria-label="Code-rendered coloured-pencil reconstruction"
-      data-km-pencil-photo={study?"ready":"source-pending"}
-      style={{width:"100%",maxWidth:aspect==="landscape"?900:506,
-        height:"auto",aspectRatio:aspect==="landscape"?"16 / 9":"9 / 16",
-        background:"#FAF5ED",boxShadow:"0 15px 40px #5A554E34"}}/>
+    <div style={{display:"flex",alignItems:"start",gap:16,flexWrap:"wrap",
+      maxWidth:showReference?1800:900}}>
+      <figure style={{margin:0,flex:"1 1 380px",maxWidth:900}}>
+        <figcaption style={{fontSize:13,fontWeight:700,marginBottom:7}}>
+          Coloured-pencil rendition · code-generated mark layers
+        </figcaption>
+        <canvas ref={canvasRef} width={size.width} height={size.height}
+          aria-label="Code-rendered coloured-pencil reconstruction"
+          data-km-pencil-photo={study?"ready":"source-pending"}
+          style={{width:"100%",maxWidth:900,
+            height:"auto",aspectRatio:aspect==="landscape"?"16 / 9":"9 / 16",
+            background:"#FAF5ED",boxShadow:"0 15px 40px #5A554E34"}}/>
+      </figure>
+      {showReference&&<figure style={{margin:0,flex:"1 1 380px",maxWidth:900}}>
+        <figcaption style={{fontSize:13,fontWeight:700,marginBottom:7}}>
+          Reference pixels · geometry/colour evidence (not pencil output)
+        </figcaption>
+        <canvas width={size.width} height={size.height}
+          data-km-pencil-reference=""
+          ref={node=>{
+            if(node&&raw){const ctx=node.getContext("2d");
+              ctx?.putImageData(new ImageData(new Uint8ClampedArray(raw.data),
+                raw.width,raw.height),0,0);}
+          }}
+          style={{width:"100%",height:"auto",background:"#FAF5ED",
+            boxShadow:"0 12px 28px #5A554E25"}}/>
+      </figure>}
+    </div>
     <section aria-label="Pencil photo timeline" style={{
       display:"flex",flexWrap:"wrap",alignItems:"end",gap:14,maxWidth:950,
     }}>
