@@ -134,6 +134,18 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(nodes.get("hair-nape-sweep")?.kind).toBe("wax");
       expect(nodes.get("tailored-scarf-wrap")?.parentId).toBe("coat-silhouette");
       expect(nodes.get("tailored-scarf-weft")?.parentId).toBe("tailored-scarf-wrap");
+      const centerLace=nodes.get("shirt-lace-ruffle-center");
+      if(centerLace?.kind!=="wax")throw new Error("Missing connected middle lace");
+      expect(centerLace.coverage).toBe("opaque");
+      expect(centerLace.parentId).toBe("shirt-linen");
+      expect((centerLace.d.match(/[CQ]/g)??[]).length).toBeGreaterThan(5);
+      for(const id of ["shirt-linen-pleat-near","shirt-linen-pleat-far"]){
+        const layer=nodes.get(id);
+        if(layer?.kind!=="wax")throw new Error("Missing linen pleat "+id);
+        expect(layer.coverage).toBe("open");
+        expect(layer.parentId).toBe("shirt-linen");
+        expect(layer.clipToParent).toBe(true);
+      }
       for(const id of ["coat-sleeve-cap-near","coat-sleeve-cap-far",
         "coat-collar-left","coat-collar-right",
         "shirt-lace-ruffle-left","shirt-lace-ruffle-right"]){

@@ -37,6 +37,7 @@ const colors={
   coatLight:["#76889a","#4a5d72","#b3a99f"] as const,
   coatShadow:["#394b5f","#273b50","#657a85"] as const,
   linenLace:["#f0dcca","#c7a994","#fff0d5"] as const,
+  linenShade:["#d2bba4","#a98f85","#eee0ce"] as const,
   noseShade:["#c79c8b","#a67e7b","#e6bda6"] as const,
   scarf:["#aa6a5e","#724f59","#d5a082"] as const,
   scarfShadow:["#845251","#5d434b","#bc7a68"] as const,
@@ -57,6 +58,8 @@ export const portraitCriticalParts=[
   "coat-sleeve-cap-near","coat-sleeve-cap-far",
   "coat-collar-felt-near","coat-collar-felt-far",
   "shirt-lace-ruffle-left","shirt-lace-ruffle-right",
+  "shirt-lace-ruffle-center","shirt-linen-pleat-near",
+  "shirt-linen-pleat-far",
   "scarf-overlap-fold","scarf-overlap-knot",
   "tailored-scarf-wrap","tailored-scarf-tail",
   "nose-tip-underpaint","cheek-warm-pigment","tear-trough-value",
@@ -727,14 +730,40 @@ export function crayonAdultFaceStudy(
       blendRadius:4,pressure:.39,markStrength:.22,spacing:10,
       outlineOpacity:0,edgeRoughness:0});
   wax("shirt-linen",
-    "M-62 152Q-28 174 5 182Q36 171 73 150"+
-    "Q59 190 53 224Q42 275 23 315"+
-    "Q-10 318 -27 296Q-46 253 -53 205Z",
-    box(-78,137,165,196),colors.silk,"anatomy",
+    "M-63 153Q-42 169 -14 172"+
+    "Q10 181 28 172Q48 155 76 151"+
+    "Q69 189 59 226Q55 263 44 296"+
+    "Q40 309 22 316Q4 317 -15 311"+
+    "Q-33 306 -39 289Q-52 248 -57 205Z",
+    box(-79,137,165,196),colors.silk,"anatomy",
     {parentId:"coat-silhouette",markStrength:.39,spacing:10,
       underpaintGradient:{light:"#f5e5cb",shadow:"#b39a91",
         focusX:.35,focusY:.2,radius:1.1},
       outlineOpacity:0});
+  // Form-directed linen pleats replace a uniform triangular bib. Each
+  // rubbed valley follows a woven fold, clipped to the opaque shirt.
+  wax("shirt-linen-pleat-near",
+    "M-44 177Q-23 183 -16 218"+
+    "Q-18 264 -32 293Q-22 301 -9 304"+
+    "Q-6 254 -15 208Q-26 181 -44 177Z",
+    box(-52,167,56,147),colors.linenShade,"anatomy",
+    {parentId:"shirt-linen",coverage:"open",clipToParent:true,
+      blendRadius:5,pressure:.42,markStrength:.24,spacing:9,
+      outlineOpacity:0,edgeRoughness:0});
+  wax("shirt-linen-pleat-far",
+    "M28 171Q49 185 48 221"+
+    "Q41 267 28 309Q34 304 44 296"+
+    "Q55 253 58 218Q52 184 28 171Z",
+    box(18,161,52,159),colors.linenShade,"anatomy",
+    {parentId:"shirt-linen",coverage:"open",clipToParent:true,
+      blendRadius:6,pressure:.37,markStrength:.2,spacing:10,
+      outlineOpacity:0,edgeRoughness:0});
+  ink("shirt-linen-following-seams",
+    "M-35 182Q-21 224 -25 277"+
+    "M-12 186Q-6 221 -8 265"+
+    "M28 185Q42 222 36 275",
+    "#b6a094",1.13,"detail",
+    {parentId:"shirt-linen",clipToParent:true,opacity:.7});
   // Under the wool and scarf are two physically attached linen ruffles.
   // These are inked, asymmetrical scalloped folds, not five disconnected
   // white "petals" or flat sawtooth triangles.
@@ -753,6 +782,21 @@ export function crayonAdultFaceStudy(
     box(9,142,61,60),colors.linenLace,"anatomy",
     {parentId:"shirt-linen",spacing:4.6,markStrength:.35,
       outlineOpacity:.07,edgeRoughness:.35});
+  wax("shirt-lace-ruffle-center",
+    "M-11 176Q-2 175 6 179Q13 181 23 174"+
+    "Q28 185 19 191Q26 200 14 206"+
+    "Q19 217 8 223Q-1 216 -4 205"+
+    "Q-13 196 -11 176Z",
+    box(-19,166,56,66),colors.linenLace,"anatomy",
+    {parentId:"shirt-linen",spacing:4.7,markStrength:.35,
+      outlineOpacity:.06,edgeRoughness:.36});
+  ink("shirt-lace-center-eyelets",
+    "M-4 186q3 -4 5 0q-2 5 -5 0"+
+    "M10 189q3 -4 6 0q-3 5 -6 0"+
+    "M5 207q3 -4 6 0q-3 5 -6 0",
+    "#b58d83",.88,"detail",
+    {parentId:"shirt-lace-ruffle-center",
+      clipToParent:true,opacity:.63});
   ink("shirt-lace-edge-scallops",
     "M-51 173Q-45 181 -38 177Q-35 189 -27 185"+
     "M17 177Q24 184 30 179Q33 188 41 184"+
@@ -989,6 +1033,15 @@ export function crayonAdultFaceStudy(
     box(-107,267,39,46),colors.brass,"detail",
     {parentId:"coat-silhouette",spacing:4,markStrength:.23,
       outlineOpacity:.12});
+  ink("brass-button-raised-rims",
+    "M-88 244Q-85 236 -78 239Q-74 242 -77 248"+
+    "M-96 293Q-94 286 -87 286Q-81 289 -84 298",
+    "#f8d4a0",.94,"detail",
+    {parentId:"coat-silhouette",opacity:.91});
+  ink("brass-button-side-shadow",
+    "M-79 250Q-85 254 -89 249M-84 301Q-92 306 -96 296",
+    "#725a4d",.95,"detail",
+    {parentId:"coat-silhouette",opacity:.82});
   ink("coat-button-threads",
     "M-85 242l7 6M-78 241l-6 7M-92 292l9 8M-83 290l-8 9",
     "#c4ac90",1.05,"detail",
