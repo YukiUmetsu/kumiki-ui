@@ -1,4 +1,4 @@
-import {useId,useMemo,useState} from "react";
+import {useMemo,useState} from "react";
 import {evaluateRisoCharacter} from "../../registry/video/riso-character";
 import type {RisoCharacterPart,RisoCharacterSpec,RisoJoint} from "../../registry/video/riso-character";
 import {RisoCharacterInk,RisoCharacterKnockout} from "../../registry/video/riso-character-react";
@@ -226,7 +226,6 @@ export function RisoHumanEnsembleStudio(){
   const [grain,setGrain]=useState(.45);
   const [misregistration,setMisregistration]=useState(.25);
   const [dotCell,setDotCell]=useState(6);
-  const uid=useId().replace(/[^a-z0-9]/gi,"");
   const state=useMemo(()=>evaluateRisoHumanEnsemble(frame,aspect),[frame,aspect]);
   const printSpec:RisoPrintSpec={
     version:1,width:state.width,height:state.height,paper,seed:38,
