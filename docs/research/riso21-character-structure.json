@@ -1,0 +1,220 @@
+{
+  "schema_version": 3,
+  "character": "Courier and Paper Artist (independent authored original character identities)",
+  "reference_study": "riso21-reference-study.json",
+  "status": "source-authored 2D experimental revision; not full ArtCraft v9 release",
+  "coordinate_units": "existing RisoCharacterSpec head-local SVG design units; not source-photo pixels",
+  "anatomy_basis": "Use existing Kumiki RISO13/14 source-authored facial landmarks; these are not approved reference-photo anatomical measurements",
+  "required_parts": [
+    "courier-head",
+    "paper-artist-head",
+    "courier-canthus",
+    "paper-artist-canthus",
+    "courier-lash",
+    "paper-artist-lash",
+    "courier-iris-tone",
+    "paper-artist-iris-tone",
+    "courier-under-eye",
+    "paper-artist-under-eye"
+  ],
+  "parts": [
+    {
+      "id": "courier-head",
+      "parent": null,
+      "representation": "vector-2d",
+      "bbox": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "reference_ids": [
+        "riso-printed-oculus",
+        "tarot-engraved-portrait"
+      ],
+      "construction": "Original Courier head joint and original face path, hair, eyes and eyelid contour retained; dynamic RISO2 IK/FK frame is immutable.",
+      "details": {
+        "primary": "original oblique eye aperture",
+        "secondary": "upper/lower lid and brow",
+        "tertiary": "canthus, printed iris facets, local orbital engraving"
+      },
+      "topology": "Single original head joint; linework exists in separate independent ink parts, not detached positioned sticker meshes",
+      "contour_plan": "Two nonidentical upper/lower eyelid apertures at local y≈-14..-2; do not replace existing facial feature geometry",
+      "layering_plan": "Opaque face paper knockout, blue ink drawings, red screened print passages; print registration preserved"
+    },
+    {
+      "id": "paper-artist-head",
+      "parent": null,
+      "representation": "vector-2d",
+      "bbox": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "reference_ids": [
+        "riso-printed-oculus",
+        "tarot-engraved-portrait"
+      ],
+      "construction": "Original Paper Artist bob haircut, face shape and narrower eyes kept; all new features drawn separately from Courier",
+      "details": {
+        "primary": "distinct narrower ocular contours",
+        "secondary": "asymmetric brow/lash tension",
+        "tertiary": "screened iris and socket hatching"
+      },
+      "topology": "Independent original Paper Artist head joint and source paths. Never derive face from Courier by translation/reflection.",
+      "contour_plan": "Eye apertures at x≈-23..-8 and 8..24, local y≈-17..-3; keep three inked planes on original head",
+      "layering_plan": "Existing paper knockout and multi-plate registered spot-ink order remain unchanged"
+    }
+  ],
+  "feature_parts": [
+    {
+      "id": "courier-canthus",
+      "head": "courier-head",
+      "source_part": "eye-canthus-shapes",
+      "subparts": [
+        {
+          "id": "left",
+          "sourceSubpathIndex": 0
+        },
+        {
+          "id": "right",
+          "sourceSubpathIndex": 1
+        }
+      ],
+      "construction": "Two independent closed, curved paper-sclera corner roots, with a blink redraw",
+      "pivot": "head joint",
+      "paint": "blue solid",
+      "negative_controls": [
+        "hard circle eye bead",
+        "mirror duplicate from right",
+        "unconnected pointed triangle"
+      ]
+    },
+    {
+      "id": "paper-artist-canthus",
+      "head": "paper-artist-head",
+      "source_part": "eye-canthus-shapes",
+      "subparts": [
+        {
+          "id": "left",
+          "sourceSubpathIndex": 0
+        },
+        {
+          "id": "right",
+          "sourceSubpathIndex": 1
+        }
+      ],
+      "construction": "Narrower upturned canthus sweep reflecting Paper Artist eye shape, independently drawn and blink-redrawn",
+      "pivot": "head joint",
+      "paint": "blue solid",
+      "negative_controls": [
+        "reuse Courier path",
+        "free-floating triangle"
+      ]
+    },
+    {
+      "id": "courier-lash",
+      "head": "courier-head",
+      "source_part": "eye-lash-wedges",
+      "construction": "Four tapered, different-length quadratic upper-lid eyelashes with blink-preserving shortened replacements",
+      "pivot": "head joint",
+      "paint": "blue solid",
+      "negative_controls": [
+        "radial sunray lashes",
+        "uniform identical spikes",
+        "loose detached strokes"
+      ]
+    },
+    {
+      "id": "paper-artist-lash",
+      "head": "paper-artist-head",
+      "source_part": "eye-lash-wedges",
+      "construction": "Four independently authored upper-lid roots with the Paper Artist's steeper outer-corner line flow",
+      "pivot": "head joint",
+      "paint": "blue solid",
+      "negative_controls": [
+        "mirrored cartoon line arrays",
+        "floating lashes"
+      ]
+    },
+    {
+      "id": "courier-iris-tone",
+      "head": "courier-head",
+      "source_part": "eye-iris-grain",
+      "paint": "red screened",
+      "construction": "Screened ink facets stay within original blue iris silhouette, preserve sclera paper reserve; blink replaces tall facets with narrow lines",
+      "pivot": "head joint",
+      "negative_controls": [
+        "opaque RGB gradients",
+        "new solid white eye stickers",
+        "iris facets visible after lid closure"
+      ]
+    },
+    {
+      "id": "paper-artist-iris-tone",
+      "head": "paper-artist-head",
+      "source_part": "eye-iris-grain",
+      "paint": "red screened",
+      "construction": "Separate taller asymmetrical screened facets under Paper Artist eye apertures; blink redraw",
+      "pivot": "head joint",
+      "negative_controls": [
+        "copy-pasted Courier iris",
+        "global eye blur"
+      ]
+    },
+    {
+      "id": "courier-under-eye",
+      "head": "courier-head",
+      "source_part": "eye-lower-orbit-engraving",
+      "paint": "red screened",
+      "construction": "Six uneven short closed curved contour fans with outer radial rhythm under both lower lids",
+      "pivot": "head joint",
+      "negative_controls": [
+        "full-face dot noise",
+        "uniform parallel bars",
+        "scribbles beyond face silhouette"
+      ]
+    },
+    {
+      "id": "paper-artist-under-eye",
+      "head": "paper-artist-head",
+      "source_part": "eye-lower-orbit-engraving",
+      "paint": "red screened",
+      "construction": "Six locally curved and unequal hatching pockets tuned to Paper Artist cheek/eye proportions",
+      "pivot": "head joint",
+      "negative_controls": [
+        "identical repeated chevrons",
+        "smooth gradient instead of marks"
+      ]
+    }
+  ],
+  "evaluation": {
+    "attachment": "All new parts retain joint=head, independently inspectable by RISO source contour mesh evaluator",
+    "safe_poses": [
+      46,
+      78,
+      160,
+      198
+    ],
+    "safe_aspects": [
+      "16:9",
+      "9:16"
+    ],
+    "plate_isolation": [
+      "blue",
+      "red",
+      "both"
+    ],
+    "output": "Existing FilmStage-independent character source and RisoPrint two-ink spot master; Storybook production-native proof",
+    "visual_gate": "pending: exact current revision cropped screenshots and human review; source-photo masks and v9 human fidelity manifest remain missing"
+  }
+}
