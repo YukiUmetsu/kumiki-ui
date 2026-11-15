@@ -208,7 +208,9 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
       cubic(at(a.rightHip.x+9,hip.y+31),
         at(a.rightWaist.x+3,waist.y+23),a.rightWaist)+
       quad(at(waist.x,waist.y+17),a.leftWaist)+" Z",
-      "$mist","$shadow",1.25,1),
+      // Preserve a solid, nontransparent under-robe without tracing an
+      // unrelated second dark hem across the animated front panels.
+      "$mist","none",0,1),
     p(path(at(waist.x-15,waist.y+16))+
       cubic(at(waist.x-29,hip.y+32),
         at(hem.x-35,underBottom-19),
@@ -223,7 +225,7 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
       cubic(at(hem.x-23,underBottom+10),
         at(hem.x+22,underBottom+10),
         at(a.rightHem.x+5,underBottom-7)),
-      "none","$ink",1.05,.71),
+      "none","$shadow",.72,.3),
   );
   const strokeFold=(dx:number,dy:number,width:number)=>{
     const begin=at(waist.x+dx*.3,waist.y+6);
@@ -249,7 +251,7 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
   );
   function pathDummy(){return p(path(at(a.leftHem.x,a.leftHem.y))+
       quad(at(hem.x-26,hem.y+13),at(hem.x,hem.y+6))+
-      quad(at(hem.x+24,hem.y+11),a.rightHem),"none","$ink",1.25,.8);}
+      quad(at(hem.x+24,hem.y+11),a.rightHem),"none","$shadow",1.05,.52);}
   const collar=art(
     p(path(a.neckLeft)+
       quad(at(waist.x-14,topY+18),at(waist.x+2,topY+41))+
@@ -425,7 +427,7 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
     return art(
       // Neither panel uses an alpha-blended skin/robe silhouette. The
       // unanimated base robe stays beneath as an occlusion safety layer.
-      p(shape,"$linen","$shadow",.9,1),
+      p(shape,"$linen","none",0,1),
       p(path(foldStart)+
         cubic(at(sideHip.x+sign*4,hip.y+39),
           at(foldEnd.x-sign*4,foldEnd.y-36),foldEnd),
@@ -436,7 +438,7 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
         "none","$wash",2,.4),
       p(path(at(sideHem.x+sign*3,sideHem.y+1))+
         quad(at((sideHem.x+hem.x)*.5,hem.y+13),overlap),
-        "none","$ink",.9,.76),
+        "none","$shadow",.72,.58),
     );
   };
   const hemFabric=art(
