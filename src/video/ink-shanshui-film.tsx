@@ -34,7 +34,7 @@ export function makeShanshuiScholar(
   return {
     ...base,characterId:"shanshui-scholar",
     revision:(scene==="river-scholar"
-      ?"shanshui-scholar-reader-portrait-river-scholar-v9"
+      ?"shanshui-scholar-reader-portrait-river-scholar-v10"
       :"shanshui-scholar-fine-figure-"+scene+"-v6"),
     palette:{
       ...base.palette,ink:"#403329",shadow:"#66513e",wash:"#bd9d7b",
