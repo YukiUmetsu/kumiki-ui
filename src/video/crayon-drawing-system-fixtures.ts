@@ -91,7 +91,9 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     colors:["#dfc6a8","#c5afa2","#eee0c9"],
     timing:{start:1,end:80},coverage:"open",pressure:.23,spacing:19,
     nibStyle:"tapered",strokeOrder:"patches",markLength:"long",
-    outlineOpacity:0,markStrength:.11,
+    // An unfiltered open-wax fill reads as a vector ellipse at 1× and 3×.
+    // Diffuse only the atmospheric rubbing; retain the sharp contact wedge.
+    blendRadius:16,outlineOpacity:0,markStrength:.11,
   };
   elements.push(ground);
   const shadow:CrayonWaxElement={
