@@ -29,7 +29,7 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
     pupil:["#312b2d","#181c22","#4a383b"],
     brow:["#7e4c45","#4e3338","#a77b6b"],
     ochre:["#b08374","#704c4d","#d5ac96"],
-    tear:["#aa6d70","#815a65","#d4a5a0"],
+    tear:["#765256","#523b42","#b08887"],
   } as const satisfies Record<string,readonly [CrayonColor,CrayonColor,CrayonColor]>;
   const wax=(id:string,d:string,bounds:ReturnType<typeof rect>,
     colors:readonly [CrayonColor,CrayonColor,CrayonColor],
@@ -131,10 +131,15 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
     rect(128,106,38,27),palettes.sclera,[172,246],{
       parentId:"eye-sclera",clipToParent:true,coverage:"open",
       blendRadius:4,pressure:.4,markStrength:.24,outlineOpacity:0});
+  // The photo's canthus is a contiguous dark lid/root shadow, not an
+  // independent opaque pink square at the corner.
   wax("tear-duct",
-    "M164 116 Q168 113 174 117 Q170 123 165 123 Q162 120 164 116Z",
-    rect(160,111,17,16),palettes.tear,[174,253],{
-      parentId:"eye-skin",pressure:.67,markStrength:.4,spacing:4.2,outlineOpacity:0});
+    "M159 117 C163 113 170 112 176 116 Q171 119 167 122"+
+    "Q162 122 159 117Z",
+    rect(157,110,21,15),palettes.tear,[174,253],{
+      parentId:"eye-skin",clipToParent:true,coverage:"open",
+      blendRadius:1.7,pressure:.49,markStrength:.26,spacing:4.7,
+      outlineOpacity:0});
   // Source contact: the upper lid covers the top of the iris, rather
   // than merely outlining the full exposed eye.
   wax("upper-lid-overhang",
@@ -158,13 +163,15 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
     "M66 123 C88 139 103 143 119 140 C140 139 157 128 167 117"+
     "C156 143 137 153 118 154 C94 156 73 146 66 123Z",
     rect(62,115,110,43),palettes.eyelid,[174,262],{
-      parentId:"eye-skin",spacing:5.3,markStrength:.27,pressure:.63,outlineOpacity:0});
+      parentId:"eye-skin",clipToParent:true,coverage:"open",
+      blendRadius:5.6,spacing:5.8,markStrength:.22,pressure:.49,
+      outlineOpacity:0});
   wax("lower-lid-groove",
     "M72 135 C88 149 106 153 122 151 Q146 148 163 130"+
     "Q145 167 115 167 C92 166 75 155 72 135Z",
     rect(70,129,97,43),palettes.socket,[184,267],{
       parentId:"eye-skin",clipToParent:true,coverage:"open",
-      blendRadius:4,pressure:.58,markStrength:.34,outlineOpacity:0});
+      blendRadius:8.5,pressure:.48,markStrength:.2,outlineOpacity:0});
   line("upper-crease",
     "M60 106 C75 88 96 85 119 88 C138 89 153 97 164 106",
     "#875e63",.56,[214,290],"eye-skin",.36);
@@ -173,7 +180,7 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
     "#684950",.87,[206,287],"eye-skin",.76);
   line("lower-lid-light",
     "M84 140 Q99 148 116 145 C134 143 151 135 161 125",
-    "#efc5b5",.55,[216,290],"lower-lid-flesh",.44);
+    "#edbeae",.43,[216,290],"lower-lid-flesh",.3);
 
   // Six unequal curved lash roots replace a regularly spaced vertical fan.
   line("upper-lashes",
