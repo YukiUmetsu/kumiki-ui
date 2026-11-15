@@ -5,6 +5,7 @@ import type {CrayonSceneSpec} from "../../registry/video/materials/crayon-scene"
 import {crayonAdultFaceStudy} from "./crayon-artcraft-adult-face-fixtures";
 import {crayonCc0NearEyeStudy} from "./crayon-artcraft-cc0-near-eye";
 import {crayonPaperContactSwatches} from "./crayon-artcraft-paper-contact-fixtures";
+import {crayonArtcraftBodyStudy,CRAYON_BODY_REFERENCE} from "./crayon-artcraft-body-study";
 import {useCrayonStoryPlayback} from "./crayon-story-playback";
 import {CRAYON_PORTRAIT_AUDIT,crayonPortraitFrozenAudit} from "./crayon-artcraft-portrait-audit";
 
@@ -345,4 +346,96 @@ export const ArtCraftPaperContactSamples:Story={
   name:"Paper height · contact and layering samples (ArtCraft experiment)",
   args:{aspect:"landscape",detail:.72,startFrame:239},
   render:args=><PaperContactMaterialLab {...args}/>,
+};
+
+
+/**
+ * ArtCraft v7 source-guided whole-body laboratory. This is deliberately
+ * distinct from the currently REJECTED full face. Reference is attributed
+ * CC BY-SA material for anatomical structure; no source photo is bundled.
+ * Never promote to a production-facing gallery without pixel registration
+ * and an independent artist signoff on an actual native browser render.
+ */
+export function BodyReferenceArtcraftWorkbench({
+  detail,startFrame,playbackRate,loop,
+}:StudyProps){
+  const [view,setView]=useState<"painted"|"construction">("painted");
+  const [sourceVisible,setSourceVisible]=useState(true);
+  const spec=useMemo(()=>crayonArtcraftBodyStudy({
+    detail:Math.max(.2,detail),view,
+  }),[detail,view]);
+  const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
+    startFrame,spec.durationFrames,"crayon-body-artcraft:"+view+":"+detail,playbackRate,loop);
+  return <section data-km-crayon-body-artcraft="" style={{
+    maxWidth:1250,margin:"auto",padding:16,background:"#f5e9dc",
+    color:"#39343b",boxSizing:"border-box",fontFamily:"system-ui"}}>
+    <h2 style={{fontSize:19,margin:"0 0 8px"}}>
+      Full-body anatomy · source-first Crayon construction (unapproved)
+    </h2>
+    <p style={{fontSize:13,maxWidth:870,lineHeight:1.55}}>
+      A standalone photograph-studied adult body. Distinct shoulder, elbow,
+      wrist, hip, knee and ankle anchors; folded garment volumes, cuff
+      overlaps, hand anatomy, pinstripes, trouser folds and grounded shoes.
+      The neutral head is intentionally unfinished: never mistake it for a
+      reference-accurate portrait.
+    </p>
+    <div style={{display:"grid",
+      gridTemplateColumns:sourceVisible?
+        "repeat(auto-fit,minmax(min(100%,340px),1fr))":"minmax(0,600px)",
+      gap:16,alignItems:"start",justifyContent:"center"}}>
+      {sourceVisible&&<figure style={{margin:0,minWidth:0}}>
+        <div style={{fontWeight:650,fontSize:13,marginBottom:8}}>
+          Original anatomy / garment reference
+        </div>
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Free_use_human_standing_simple.jpg/500px-Free_use_human_standing_simple.jpg"
+          alt="Licensed standing-figure photographic anatomy and clothing reference"
+          loading="lazy" style={{width:"100%",height:"auto",display:"block"}}/>
+        <figcaption style={{fontSize:11,lineHeight:1.55,marginTop:9}}>
+          {CRAYON_BODY_REFERENCE.title} · {CRAYON_BODY_REFERENCE.author},
+          {" "}{CRAYON_BODY_REFERENCE.license}.
+          <a style={{marginLeft:5}} target="_blank" rel="noopener noreferrer"
+            href={CRAYON_BODY_REFERENCE.url}>Source / license</a>.
+          Technique and construction reference; photograph not packaged.
+        </figcaption>
+      </figure>}
+      <figure style={{margin:0,minWidth:0}}>
+        <figcaption style={{fontWeight:650,fontSize:13,marginBottom:8}}>
+          CRAYON1 · {view==="painted"?"wax construction":"body landmark graph"}
+        </figcaption>
+        <div style={{width:"100%",aspectRatio:"669 / 1000",
+          background:"#f5ead8",overflow:"hidden"}}>
+          <CrayonScene spec={spec} frame={frame}/>
+        </div>
+        <figcaption style={{fontSize:11,lineHeight:1.5,marginTop:9}}>
+          ArtCraft: TECHNICAL EXPERIMENT. No measured photo/render fidelity
+          or visual approval is claimed. Human face, hands and clothing
+          remain subject to independent reference-matched reconstruction.
+        </figcaption>
+      </figure>
+    </div>
+    <div style={{display:"flex",gap:10,alignItems:"center",
+      flexWrap:"wrap",marginTop:16,fontSize:13}}>
+      <button type="button" onClick={toggle}>{playing?"Pause":"Play strokes"}</button>
+      <button type="button" onClick={restart}>Restart</button>
+      <label>Frame <input aria-label="Body ArtCraft frame" type="range"
+        min={0} max={spec.durationFrames-1} value={frame}
+        onChange={e=>seek(Number(e.target.value))}/></label>
+      <output>{frame}</output>
+      <button type="button" onClick={()=>seek(299)}>Finished still</button>
+      <button type="button" onClick={()=>
+        setView(previous=>previous==="painted"?"construction":"painted")}>
+        {view==="painted"?"Inspect reference anchors":"Return to wax"}
+      </button>
+      <button type="button" aria-pressed={sourceVisible}
+        onClick={()=>setSourceVisible(v=>!v)}>
+        {sourceVisible?"Hide source photo":"Compare original photo"}
+      </button>
+    </div>
+  </section>;
+}
+export const SourceMeasuredBodyStudy:Story={
+  name:"Full body · source geometry and garment art (ArtCraft experiment)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><BodyReferenceArtcraftWorkbench {...args}/>,
 };
