@@ -109,6 +109,30 @@ test("the same Chinese Ink folder displays three separately drawn face identitie
       path:info.outputPath("shanshui-three-portrait-blink-review.png")});
   });
 
+test("all three distinct figure faces remain in one Chinese Ink folder with live controls",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--three-faces-comparison&viewMode=story");
+    const studio=page.getByTestId("shanshui-three-faces-studio");
+    await expect(studio).toBeVisible();
+    for(const scene of ["river-scholar","mountain-trail","misty-hermit"]){
+      const face=studio.locator('[data-km-three-face-scene="'+scene+'"]');
+      await expect(face).toBeVisible();
+      await expect.poll(()=>face.locator('path').count()).toBeGreaterThan(18);
+      await expect(face.locator('[data-km-three-face-part="eyes"]')).toHaveCount(1);
+      await expect(face.locator('[data-km-three-face-part="pupil-left"]')).toHaveCount(1);
+    }
+    await studio.screenshot({animations:"disabled",
+      path:info.outputPath("shanshui-three-face-identities-open.png")});
+    await page.getByRole("combobox",{name:"Three faces eyelids"}).selectOption("closed");
+    await expect(studio.locator('[data-km-three-face-part="pupil-left"]')).toHaveCount(0);
+    await studio.screenshot({animations:"disabled",
+      path:info.outputPath("shanshui-three-face-identities-closed.png")});
+    await page.getByRole("slider",{name:"Three faces detail"}).focus();
+    await page.getByRole("slider",{name:"Three faces detail"}).press("Home");
+    await expect(page.getByRole("slider",{name:"Three faces detail"})).toHaveValue("0");
+    await expect(studio.locator("[data-km-three-face-scene]")).toHaveCount(3);
+  });
+
 test("source teacher reference image overlays locally without committing image pixels",
   async({page})=>{
     await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
