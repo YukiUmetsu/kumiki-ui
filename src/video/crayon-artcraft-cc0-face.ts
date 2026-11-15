@@ -363,10 +363,10 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   wax("iris-near",
     "M245 540C250 533 266 531 276 540C282 547 279 560 269 565"+
     "C254 568 245 558 245 540Z",
-    rect(242,530,42,39),["#5b493f","#29242a","#89705b"],[148,247],
+    rect(242,530,42,39),["#352b2d","#1b181d","#544038"],[148,247],
     {parentId:"sclera-near",clipToParent:true,
       pressure:.92,spacing:4.1,markStrength:.35,underpaintTooth:.12,
-      underpaintGradient:{light:"#806551",shadow:"#2e2829",
+      underpaintGradient:{light:"#58423d",shadow:"#1d1b20",
         focusX:.54,focusY:.69,radius:.82}});
   wax("pupil-near",
     "M254 541C257 537 265 538 269 544Q270 554 265 557"+
@@ -377,10 +377,10 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   wax("iris-far",
     "M425 512Q432 503 442 504Q459 502 460 515Q460 528 447 532"+
     "Q429 535 425 521Z",
-    rect(422,499,38,35),["#4f4036","#211d22","#75604e"],[146,245],
+    rect(422,499,38,35),["#30282b","#1a181d","#514038"],[146,245],
     {parentId:"sclera-far",clipToParent:true,
       pressure:.93,spacing:4.3,markStrength:.31,underpaintTooth:.12,
-      underpaintGradient:{light:"#74604d",shadow:"#211d23",
+      underpaintGradient:{light:"#53423a",shadow:"#1c191e",
         focusX:.5,focusY:.65,radius:.81}});
   wax("pupil-far",
     "M433 510Q438 506 445 511Q450 518 446 526Q439 528 434 524Z",
@@ -417,25 +417,31 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
       spacing:4.7,markStrength:.27,underpaintTooth:.17});
   // Connected tapered lash wedges; varying lean/length, no isolated
   // vertical whiskers emerging from the iris.
-  wax("lash-contact-near",
-    "M229 549Q221 541 220 539Q230 542 234 548Z"+
-    "M239 542Q232 534 230 530Q239 534 243 540Z"+
-    "M248 539Q241 531 239 527Q250 533 251 538Z"+
-    "M258 537Q253 530 252 527Q262 530 262 537Z"+
-    "M272 535Q268 529 267 527Q275 530 276 535Z"+
-    "M286 536Q285 530 285 529Q291 530 291 538Z"+
-    "M300 539Q302 535 305 533Q305 538 303 542Z",
-    rect(218,523,91,31),["#4b393a","#2b2226","#765658"],[219,299],
-    {parentId:"face-outline",clipToParent:true,pressure:.79,
-      spacing:4.5,markStrength:.27,underpaintTooth:.11});
-  wax("lash-contact-far",
-    "M414 517Q410 510 410 506Q417 509 419 514Z"+
-    "M426 508Q423 501 423 498Q429 500 431 506Z"+
-    "M440 504Q438 497 439 495Q445 498 445 504Z"+
-    "M451 505Q453 498 455 498Q455 503 454 508Z",
-    rect(408,493,52,28),["#433238","#281f27","#6b5054"],[220,299],
-    {parentId:"face-outline",clipToParent:true,pressure:.75,
-      spacing:4.4,markStrength:.25,underpaintTooth:.12});
+  // ArtCraft native dry-wax side nib, not flat opaque triangle
+  // eyelashes. Every short source-space cubic begins at the dark upper
+  // rim; worn wax skips paper valleys and picks up at its terminal.
+  // The near source cluster is concentrated x230..288, varied lean.
+  mark("lash-contact-near",
+    "M229 547 C227 542 225 536 223 535 "+
+    "M235 542 C233 538 230 534 229 531 "+
+    "M240 540 C238 536 235 530 235 528 "+
+    "M245 539 C243 535 240 531 240 529 "+
+    "M251 537 C250 533 247 530 246 527 "+
+    "M257 537 C255 532 254 529 254 527 "+
+    "M266 535 C264 532 264 529 263 528 "+
+    "M273 534 C272 531 272 529 271 528 "+
+    "M282 535 C281 532 281 529 281 528 "+
+    "M291 538 C291 534 291 531 290 530",
+    "#31282d",.33,[219,299],.87,"face-outline",
+    {waxContact:"dry-wax",waxPressure:.76});
+  mark("lash-contact-far",
+    "M416 517 C414 513 411 508 411 505 "+
+    "M424 511 C422 507 421 502 422 500 "+
+    "M432 507 C431 503 430 499 431 497 "+
+    "M440 505 C441 501 441 498 442 496 "+
+    "M450 504 C451 501 452 499 453 498",
+    "#2e252b",.3,[220,299],.82,"face-outline",
+    {waxContact:"dry-wax",waxPressure:.73});
   // Lower tarsal lip and infraorbital shadow: separate adjacent
   // 3D planes, not another complete thin oval under the eye.
   wax("lower-lid-near",
