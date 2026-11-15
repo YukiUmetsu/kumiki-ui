@@ -321,7 +321,11 @@ export const createDryPencilHeadPlate=(
     // round-to-nearest photographic RGB at the polygon boundary can sample
     // *skin* into the garden. A subpixel registration tolerance prevents
     // false hair without the previous large white sticker-like inset.
-    const registrationTolerance=eyeDist*.010;
+    // The previous 0.010-eye-span inset (about 0.67 source pixels)
+    // systematically left a no-material ring between source-verified dark
+    // hair and the face polygon. Narrow to a subpixel registration guard;
+    // chromatic/source-dark checks below still prevent painting garden.
+    const registrationTolerance=eyeDist*.003;
     if(inside(p,geometry.hairOuter)&&
       distanceToEdge(p,geometry.face)>registrationTolerance){
       const rgb=photoRGB(source,p[0],p[1]);
