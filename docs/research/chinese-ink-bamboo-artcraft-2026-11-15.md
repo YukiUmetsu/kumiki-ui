@@ -181,6 +181,36 @@ individual 2.15× crops, motion frames and generated MP4. Reject the
 iteration if leaf group silhouettes still resemble algorithmic stars
 or clean triangles more than directional brush deposition.
 
+## Fourth render rejection and fifth, shape-first iteration
+
+Actual run `43685563041` passed TypeScript, scene/rig unit checks,
+catalog installation, Chromium Storybook navigation and a real 96-frame
+film encode. Inspected the recorded 960×540 hermit still plus both
+2.15× bamboo crops. **Art review rejected** the new output: the
+branched leaves were more numerous and closer to the foreground, but
+their evenly distributed arrowhead silhouettes still looked like
+clean geometric vector cutouts. Light background mountains and the
+stiff hermit/pine remained unchanged. CI passing did **not** close
+the artistic gap.
+
+The [National Palace Museum Wu Zhen album leaf](https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04009183)
+shows curving, ink-loaded blade gestures and **terminal** clusters;
+closer study of the dark junctions led to these original code changes:
+
+- Place most main leaves on the final 40% of their connected branch;
+  group spur leaves toward their own branch tips, rather than across
+  equally spaced stations from trunk to endpoint.
+- Narrow the fan-angle family and asymmetrically curve individual
+  pressure contours, advancing the belly to an earlier variable
+  contact station; less repeated symmetric arrow geometry.
+- Keep all path roots, parent labels, sparse detail, the seeded
+  960×540 film frame contract, and the existing single Storybook leaf.
+
+**Fifth-release visual acceptance remains open.** The next actual
+render must be checked for a recognizable brush cluster, no detached
+blades, no lost negative space and no harder thumbnail-scale "star"
+shapes. Do not use angle-count tests as a replacement for this review.
+
 ## Required release evidence
 
 Run from a clean repository checkout:
