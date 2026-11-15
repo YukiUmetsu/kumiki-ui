@@ -88,3 +88,16 @@ Every evergreen is one connected closed cardstock silhouette. Left and right bra
 A 0–1 treeVariety option controls the use of the three species and composition jitter: 0 is a homogeneous spruce stand, 1 a mixed stand. The seed controls reproducible variation, never per-frame flicker. Deciduous branch tips and fern rachises now receive location-seeded growth variation.
 
 **Negative controls:** identical topology across a mixed treeline, disconnected branch roots, floating trunks, masking the central lake with foreground branches, and frame-to-frame path changes. The unit tests inspect per-species path vertex counts, one contour per tree, seed variation, opacity, portrait/landscape parity and the 128-stock budget. Review actual browser images separately; passing tests cannot establish aesthetic parity.
+
+
+## Pass 23 — sculpted botany, root topology and floral seedheads
+
+Reference-led observations, not copied source compositions:
+
+- [Helen Musselwhite's botanical wreath](https://www.designswan.com/archives/from-graphic-design-to-paper-magic-the-art-of-helen-musselwhite.html) features overlapping serrated fern edges, wide differences in leaf shape and substantial floral heads. The leaf *contour* matters more than random dot noise.
+- [Musselwhite's process](https://helenmusselwhite.com/about/) begins with sketches, proportion and color-coded layers, then hand cutting, scoring, curling and assembling distinct paper sheets. The silhouette hierarchy (large card → branch → leaf → bloom → contrasting seed center) matters more than polygon count.
+- [Su Blackwell, Into the Dark Woods](https://longandryle.com/exhibitions/94-into-the-dark-woods-su-blackwell/works/) and [Paper Birches](https://www.artsy.net/artwork/su-blackwell-paper-birches) show connected irregular tree forks and meaningful light-filled negative space, unlike repeated branch stickers.
+
+Implementation: notchedBotanicalLeaf creates closed, axis-directed serrated cut-stock contours; scenicHerb draws a continuous curved stem, connected lateral forks and several asymmetrically notched leaves, with bright midrib scores on a separate cardstock plane; scenicBloom makes seeded petal fans and separate opaque contrasting pistils. At full detail woodland gains 8 rooted herb sheets and Alpine Lake 6; one common lighter stock sheet carries all vein detail per scene. Existing flowers grow larger, with unequal petal contours and visible centers. The original cut paper shapes and material colors are not copies of any referenced work.
+
+Reject the negative controls: detached foliage, perfectly repeated identical leaf icons, daisy-like dots with no pistils, flowers outside the land, all foliage obscuring water, and shadow-line/edge artifacts outweighing paper stock. Passing M/L/C/Z closed-path validation is not artistic approval; inspect real film frames and browser crops at final resolution.
