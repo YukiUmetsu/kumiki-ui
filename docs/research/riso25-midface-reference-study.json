@@ -1,0 +1,98 @@
+{
+  "schema_version": 3,
+  "study_id": "RISO25-ear-and-midface",
+  "date": "2026-11-15",
+  "style": "original 2-spot-ink Risograph illustration",
+  "subject_type": "stylized human portrait",
+  "review_status": "reference and source structure planned; rendered visual acceptance pending",
+  "requested_views": [
+    "front"
+  ],
+  "unavailable_views": [
+    "three-quarter",
+    "side",
+    "back"
+  ],
+  "release_gate": "source-aligned identity and anatomy fidelity not certified",
+  "baseline_render": {
+    "pr": "https://github.com/YukiUmetsu/kumiki-ui/pull/403",
+    "evidence": "/riso24-second-proof/riso21-ocular-print-artcra-d0064--paper-carved-two-ink-craft-chromium/riso24-full-face-stress.png",
+    "analysis": [
+      "Courier pinna reads as an open C with a blank concha; existing blue contour has no observable helix/tragus/lobe structure.",
+      "Paper Artist's ear is mostly hair-occluded; its single ear shell lacks inner antihelix/concha tone.",
+      "Existing nose, smile, philtrum and cheek are authored as distinct ink shapes, but do not yet form a coherent printed facial contour progression from nasal ala to lip corners and chin.",
+      "RISO23 halftone has small red cheek and brow dots; drawing more dots cannot repair the missing 3D shape transitions.",
+      "Existing expressions are neutral, blink, speak and smile on the same 240-frame head-joint rig; nonexpressive ear must remain stable."
+    ]
+  },
+  "references": [
+    {
+      "id": "risograph-profile-ear",
+      "title": "Angela Giarratana Risograph Portrait (published commercial artwork)",
+      "url": "https://www.etsy.com/au/listing/1792373016/angela-giarratana-smosh-starkid-a4",
+      "observed": "Actual published art shows outer helix curling into antihelix, compressed dark concha region and an attached lobule with ink hatching near jaw; side-profile nose wing and lip borders are distinguishable in one dark-color master. Its ear has several independently drawn paths, not a lone C or floating spot.",
+      "takeaway": "Use rooted ear anatomy (outer shell, helix fold, concha, tragus and lobe) with deliberately varied blue/red contour widths; no tracing of portrait identity or silhouette.",
+      "rights": "creator/listing owner; third-party reference only, no bundled image",
+      "source_kind": "published artwork"
+    },
+    {
+      "id": "screenprint-eyes-lips",
+      "title": "Screenprints 2014, detailed orange/pink portrait, Behance",
+      "url": "https://www.behance.net/gallery/21866489/Screenprints-2014",
+      "observed": "Poster close-up shows directional fine dark hatching around nostrils/alar curve and upper lip with separately outlined vermilion region; fine line is visibly distinct from broad tone islands.",
+      "takeaway": "Use solid red/blue original thin print master paths for nasal wings and vermilion; avoid low-frequency halftone on tiny contours.",
+      "rights": "artist-owned third-party screenprint, not Risograph; technique only, not traced",
+      "source_kind": "screenprint artwork"
+    },
+    {
+      "id": "fish-guts-eyes",
+      "title": "Fish Guts Press Risograph printed close-up",
+      "url": "https://fishgutspress.com/collections/frontpage",
+      "observed": "Blue/pink screened ocular planes show many fine color-separated ink dots; the eye contours are still strongly bounded by distinct linework, not built entirely from face freckles.",
+      "takeaway": "Maintain RISO21 eye anatomy and fine RISO23 independent plate screens; draw ear/nose/mouth path geometry before any print grain tuning.",
+      "rights": "artist / printer copyright; reference only, no bundled image",
+      "source_kind": "risograph printed source"
+    },
+    {
+      "id": "sonny-ross-process",
+      "title": "Sonny Ross — Inkygoodness interview",
+      "url": "https://inkygoodness.com/features/interview-sonny-ross/",
+      "observed": "Risograph print technician describes how restricted color and registration/textures inform illustration design; limited palette and deliberate ink layering matter more than generic RGB effects.",
+      "takeaway": "Keep two native physical spot masters with separate ink order and no Gaussian blur or overlaid photo colors.",
+      "rights": "artist/interview publisher; no images redistributed",
+      "source_kind": "print artist process"
+    },
+    {
+      "id": "risolana-press-process",
+      "title": "Risolana Risograph Printing Guide",
+      "url": "https://www.risolana.org/printing",
+      "observed": "The ink drums print one color at a time; stencil master files have their own artwork and overprints are translucent. Grayscale masters determine coverage while paper remains visible.",
+      "takeaway": "No opaque sticker mimicking concha shading; proper authored blue/red ink paths and existing paper clearing must remain valid.",
+      "rights": "printer site; research link only",
+      "source_kind": "printing process"
+    }
+  ],
+  "source_identity": "Existing in-repo Courier and Paper Artist 2D authored human characters; study original parts instead of external identity matching",
+  "visual_negatives": [
+    "generic C-only ear loop",
+    "floating tragus without attached outer ear",
+    "symmetric repeated nasal furrow lines",
+    "disconnected freckle dot clusters in lieu of face planes",
+    "mouth line static through speak/smile",
+    "colored Photoshop/post-FX instead of actual spot-ink engraving",
+    "face geometry changed with an incorrect invented 3/4 view"
+  ],
+  "axes": {
+    "topology": "shell/helix/concha/lobe are distinct and bound to ear; cheek fold and lip contour each attached to current face anatomy",
+    "tangents": "concha curves along ear shell; nose wing transitions medially toward mouth corner; separate left/right nasolabial folds",
+    "weight": "narrow single-spot solid ink for each 1-2 design unit internal mark; preserve broad screened planes already in RISO23",
+    "rhythm": "ear lobe asymmetric vs concha; upper lip is nonuniform two-lobed contour; expression-specific fold tightening",
+    "microtexture": "existing native Riso ink/paper; 2-unit spot screen for broad planes, without redefining the press"
+  },
+  "blocked": [
+    "licensed matching close-up for exact source character identity",
+    "real side/3-4 human views",
+    "independent numeric anatomy-v9 landmark/reference mask gate",
+    "normal speed 240-frame encoded acting review"
+  ]
+}
