@@ -140,6 +140,20 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(near.bounds.x).toBeLessThan(far.bounds.x);
     expect(inspectCrayonScene(spec)).toEqual([]);
   });
+  it("renders seven source-curved lip wax fibers with native cubic nib contacts",()=>{
+    const scene=crayonCc0FaceStudy({view:"wax"});
+    const ribs=scene.elements.find(e=>e.id==="lip-lower-wax-ribs");
+    expect(ribs).toMatchObject({kind:"contour",
+      parentId:"lip-lower",clipToParent:true,
+      waxContact:"dry-wax",waxPressure:.44});
+    if(ribs?.kind!=="contour")throw Error("Vermilion wax missing");
+    expect(ribs.d.match(/M/g)).toHaveLength(7);
+    expect(ribs.d.match(/C/g)).toHaveLength(7);
+    expect(ribs.d).not.toMatch(/[QqZz]/);
+    expect(inspectCrayonScene(scene)).toEqual([]);
+    const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>);
+    expect(html).toContain('data-km-crayon-element="lip-lower-wax-ribs"');
+  });
   it("integrates the photographed submandibular neck cast instead of a black vector jaw stripe",()=>{
     const spec=crayonCc0FaceStudy({view:"wax"});
     for(const id of ["neck-submandibular-cast","neck-cervical-turn"]){
@@ -452,8 +466,15 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
         featherContacts:true,parentId:"face-outline",clipToParent:true,
       });
     }
+    const extra=["neck-submandibular-cast","neck-cervical-turn",
+      "lip-upper","oral-opening","lip-lower"];
+    for(const id of extra){
+      expect(scene.elements.find(e=>e.id===id)).toMatchObject({
+        kind:"wax",coverage:"open",featherContacts:true,
+      });
+    }
     expect(scene.elements.filter(e=>e.kind==="wax"&&e.featherContacts))
-      .toHaveLength(soft.length);
+      .toHaveLength(soft.length+extra.length);
     for(const id of ["face-outline","hair-back","sclera-near","sclera-far"]){
       expect(scene.elements.find(e=>e.id===id)).toMatchObject({
         kind:"wax",coverage:"opaque",
@@ -461,8 +482,10 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(scene.elements.find(e=>e.id===id)).not.toHaveProperty("featherContacts",true);
     }
     const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>);
-    expect(html.match(/data-km-crayon-feather-contacts="open-wax"/g)).toHaveLength(10);
-    expect(html.match(/data-km-crayon-contact-feather-mask=""/g)).toHaveLength(10);
+    expect(html.match(/data-km-crayon-feather-contacts="open-wax"/g))
+      .toHaveLength(soft.length+extra.length);
+    expect(html.match(/data-km-crayon-contact-feather-mask=""/g))
+      .toHaveLength(soft.length+extra.length);
     expect(html.match(/data-km-crayon-paper-contact-wax=""/g)?.length)
       .toBeGreaterThan(40);
     // The feather mask must leave the wax-grain deposits sharp and apply
