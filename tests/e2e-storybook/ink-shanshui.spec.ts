@@ -106,7 +106,9 @@ test("brushwork study shows native rooted foliage and uneven rock deposition",as
   await page.goto("/iframe.html?id=video-ink-shanshui--brushwork-detail-studio&viewMode=story");
   const study=page.getByTestId("shanshui-brushwork-studio");
   await expect(study).toBeVisible();
-  await expect(page.locator("[data-km-brush-study-card]")).toHaveCount(4);
+  await expect(page.locator("[data-km-brush-study-card]")).toHaveCount(5);
+  await expect(page.locator("[data-km-brush-study-card]")
+    .filter({hasText:"Bamboo leaf canopy"})).toHaveCount(1);
   await expect.poll(()=>study.locator("[data-km-pine-needle-cluster]").count())
     .toBeGreaterThan(80);
   await expect.poll(()=>study.locator("[data-km-cunfa-style]").count())
