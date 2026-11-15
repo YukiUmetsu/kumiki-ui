@@ -163,10 +163,10 @@ function princess(p:Pen,add:Add,phase:number,motion:number){
   // rounded mouth and chin, and actual visible skin-plane material.
   add("princess-head","#EDC3A5",24,[
     h.M(-22,-205),h.C(-13,-216,4,-220,16,-205),
-    h.C(21,-199,21,-190,20,-185),
-    h.C(21,-181,24,-179,27,-177),
-    h.Q(29,-174,25,-173),h.L(22,-172),
-    h.Q(24,-169,22,-167),h.Q(20,-164,17,-163),
+    h.C(20,-199,20,-190,19,-186),
+    h.C(20,-182,22,-180,25,-178),
+    h.Q(27,-175,24,-174),h.L(21,-172),
+    h.Q(23,-170,21,-168),h.Q(19,-165,16,-163),
     h.C(13,-156,5,-155,-3,-157),
     h.C(-16,-163,-24,-174,-25,-190),h.Z].join(" "),
     attachHead(root,-6,-177,{poseKeys:keys(0,0,0,-1,phase===2?-4:1,motion)}));
@@ -190,15 +190,19 @@ function princess(p:Pen,add:Add,phase:number,motion:number){
     h.M(-11,-191),h.Q(-7,-198,-3,-197),
     h.Q(-3,-192,-8,-188),h.Q(-11,-187,-11,-191),h.Z].join(" "),
     attachHead(face,7,-177));
-  add("princess-eye-white","#FAE8D7",27,[
-    h.M(8,-187),h.Q(15,-193,21,-186),h.Q(16,-181,8,-187),h.Z].join(" "),
+  add("princess-brow","#806270",27,[
+    h.M(7,-194),h.Q(13,-199,20,-194),h.Q(14,-193,7,-194),h.Z].join(" "),
+    attachHead(face,14,-194));
+  add("princess-eye-white","#F9E5D2",27,[
+    h.M(9,-187),h.C(12,-191,17,-191,20,-186),
+    h.Q(16,-183,9,-187),h.Z].join(" "),
     attachHead(face,14,-186));
   add("princess-lashes","#524050",28,
     [h.M(8,-187),h.Q(16,-191,21,-184),h.Q(16,-183,8,-187),h.Z,
-      h.oval(15,-186,2,2.8),h.leaf(11,-185,4,-79,1.1)].join(" "),
+      h.oval(15,-186,1.8,2.5),h.leaf(11,-185,3.2,-79,.8)].join(" "),
     attachHead(face,11,-186));
   add("princess-lips","#B86E81",28,[
-    h.M(18,-167),h.Q(22,-168,25,-166),h.Q(22,-163,19,-164),h.Z].join(" "),
+    h.M(17,-167),h.Q(21,-168,23,-166),h.Q(21,-165,18,-165),h.Z].join(" "),
     attachHead(face,15,-170));
   add("princess-tiara","#E9C780",29,[
     h.M(-16,-213),h.L(-12,-230),h.L(-3,-218),h.L(4,-237),
@@ -289,10 +293,10 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
     p.Q(2,-121,-11,-125),p.Z].join(" "),attach(root,0,-140));
   add("prince-head","#E6C2A5",24,[
     h.M(-20,-206),h.C(-11,-216,9,-219,20,-202),
-    h.C(24,-196,25,-188,23,-184),
-    h.C(24,-180,26,-178,29,-177),
-    h.Q(30,-174,26,-172),h.L(23,-171),
-    h.Q(24,-168,22,-166),h.Q(18,-162,14,-159),
+    h.C(24,-197,24,-188,22,-184),
+    h.C(23,-181,25,-179,27,-177),
+    h.Q(29,-174,25,-172),h.L(22,-171),
+    h.Q(24,-169,22,-166),h.Q(18,-162,14,-159),
     h.Q(8,-156,3,-158),
     h.Q(-5,-159,-8,-164),h.C(-19,-169,-25,-182,-24,-192),h.Z].join(" "),
     attachHead(root,0,-176,{poseKeys:keys(0,0,0,0,phase===1?-5:2,motion)}));
@@ -310,14 +314,20 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
     h.M(-11,-192),h.Q(-6,-197,-2,-196),
     h.Q(-4,-189,-10,-189),h.Z].join(" "),
     attachHead(face,9,-177));
+  // Ear helix is a cut skin plane, not a floating circle. Its root meets
+  // the cheek while the sideburn overlays its uppermost edge.
+  add("prince-ear","#D6AB91",25,[
+    h.M(-17,-182),h.C(-21,-179,-19,-169,-14,-167),
+    h.Q(-10,-165,-9,-172),h.C(-8,-178,-11,-184,-17,-182),h.Z].join(" "),
+    attachHead(face,-15,-176));
   add("prince-eye-white","#FFF1D8",28,[
-    h.M(9,-187),h.Q(17,-191,23,-185),h.Q(19,-181,9,-187),h.Z].join(" "),
+    h.M(10,-187),h.Q(17,-191,22,-185),h.Q(18,-183,10,-187),h.Z].join(" "),
     attachHead(face,16,-185));
   add("prince-eye-brow","#4B4858",29,
-    [h.M(9,-187),h.Q(17,-191,23,-185),h.Q(17,-186,9,-187),h.Z,
+    [h.M(9,-191),h.Q(17,-194,23,-188),h.Q(17,-190,9,-191),h.Z,
       h.oval(17,-184,2.1,2.6),h.leaf(-8,-175,7,40,1.2)].join(" "),attachHead(face,16,-187));
   add("prince-mouth","#9A7172",28,[
-    h.M(18,-167),h.Q(23,-168,25,-166),h.Q(22,-163,18,-165),h.Z].join(" "),
+    h.M(17,-166),h.Q(21,-168,23,-165),h.Q(20,-164,17,-165),h.Z].join(" "),
     attachHead(face,19,-166));
   add("prince-crown","#E8C17E",29,[
     h.M(-23,-217),h.L(-21,-234),h.L(-9,-222),
