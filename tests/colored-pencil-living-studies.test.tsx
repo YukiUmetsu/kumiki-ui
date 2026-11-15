@@ -100,6 +100,24 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(upper.details?.some(d=>d.id==="anat-mouth-seam")).toBe(true);
   });
 
+  it("builds visible layered human skin value using true ANAT1 surface normals and native pencil marks",()=>{
+    const atlas=pencilPortraitAnatomy();
+    const portrait=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
+    const face=portrait.regions.find(r=>r.id==="face-main")!;
+    const anatomy=face.details!.filter(d=>d.id?.startsWith("anat-skin-"));
+    expect(atlas.pigment.length).toBeGreaterThanOrEqual(12);
+    expect(anatomy.length).toBe(atlas.pigment.length);
+    const contacts=anatomy.reduce((sum,d)=>sum+(d.path.match(/M/g)??[]).length,0);
+    expect(contacts).toBeGreaterThan(3200);
+    expect(anatomy.some(d=>d.id?.startsWith("anat-skin-shadow"))).toBe(true);
+    expect(anatomy.some(d=>d.id?.startsWith("anat-skin-light"))).toBe(true);
+    expect(anatomy.some(d=>d.id?.startsWith("anat-skin-middle"))).toBe(true);
+    expect(atlas.pigment.every(v=>v.path.length<=12000&&v.width<=.76&&
+      v.opacity>=.3&&v.opacity<=.55)).toBe(true);
+    const redraw=pencilPortraitAnatomy();
+    expect(redraw.pigment).toEqual(atlas.pigment);
+  });
+
   it("deposits genuine local low-pressure colored-pencil contacts across the human facial volume",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
     const face=drawing.regions.find(r=>r.id==="face-main")!;
