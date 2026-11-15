@@ -72,3 +72,28 @@ for(const item of [
     });
   }
 }
+
+/** One seed, one authored pear: only dry contact vs tapered material changes. */
+for(const item of [{aspect:"landscape",width:960,height:540},
+  {aspect:"portrait",width:540,height:960}] as const){
+  for(const nibStyle of ["tapered","dry"] as const){
+    test("Crayon fractured wax A/B "+item.aspect+"/"+nibStyle,async({page},info)=>{
+      const {scene}=crayonBotanicalDrawing({
+        aspect:item.aspect,detail:1,pressure:.83,paperTooth:.92,nibStyle,
+      });
+      const focused=crayonDrawingInspectionSpec(scene,"surface");
+      expect(focused.elements).toBe(scene.elements);
+      await page.setViewportSize({width:item.width,height:item.height});
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec:focused,frame:239}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      if(nibStyle==="dry")
+        await expect(svg.locator('[data-km-crayon-nib="dry"]').first()).toBeAttached();
+      else await expect(svg.locator('[data-km-crayon-nib="dry"]')).toHaveCount(0);
+      const proof=await svg.screenshot({type:"jpeg",quality:83,
+        path:info.outputPath("crayon-dry-contact-"+item.aspect+"-"+nibStyle+".jpg")});
+      console.log("CRAYON_DRY_AB_JPEG:"+item.aspect+":"+nibStyle+":"+proof.toString("base64"));
+    });
+  }
+}
