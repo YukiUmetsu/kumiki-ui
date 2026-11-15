@@ -141,6 +141,25 @@ for(const sample of ["woman","man"] as const){
         });
         expect(headMetrics.painted).toBeGreaterThan(18000);
         expect(headMetrics.highContrast).toBeGreaterThan(150);
+        // Independent CC0 black-hair continuity gate. v1/v2 left an
+        // actual near-black root/lock completely unpainted (paper white).
+        // Check a small neighbourhood, not a lucky stroke-covered pixel.
+        const darkLock=await Promise.all([headSource,full].map(node=>
+          node.evaluate(canvasNode=>{
+            const canvas=canvasNode as HTMLCanvasElement;
+            const ctx=canvas.getContext("2d")!;
+            const cx=Math.floor(canvas.width*.281);
+            const cy=Math.floor(canvas.height*.691);
+            const pixels=ctx.getImageData(cx-4,cy-4,9,9).data;
+            let r=0,g=0,b=0,n=0;
+            for(let i=0;i<pixels.length;i+=4){
+              r+=pixels[i];g+=pixels[i+1];b+=pixels[i+2];n++;
+            }
+            return [r/n,g/n,b/n] as const;
+          })));
+        expect(darkLock[0][0]).toBeLessThan(70);
+        expect(darkLock[1][0]).toBeLessThan(237);
+        expect(darkLock[1][0]).toBeGreaterThan(darkLock[0][0]);
         await headSource.screenshot({animations:"disabled",
           path:info.outputPath("artcraft-cc0-"+aspect+"-full-head-source.png")});
         await full.screenshot({animations:"disabled",
