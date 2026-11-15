@@ -134,20 +134,28 @@ function silhouetteTree(p:P,x:number,ground:number,height:number,width:number,le
  */
 function laceCanopy(p:P,x:number,y:number,side:number,detail:number,seed:number){
   const sx=(v:number)=>side*v;
+  // The earlier top-only arc lay outside the actual ellipse. At normalized
+  // x=.7 the visible opening starts around y=-.714; the new scalloped
+  // lower silhouette extends to y≈-.25 so that cutwork is truly visible.
   const path=[
-    p.M(sx(x*1.10),-y*1.10),
-    p.C(sx(x*.88),-y*1.08,sx(x*.74),-y*.99,sx(x*.63),-y*.98),
-    p.C(sx(x*.54),-y*1.065,sx(x*.43),-y*1.015,sx(x*.40),-y*.90),
-    p.C(sx(x*.295),-y*.94,sx(x*.28),-y*.825,sx(x*.365),-y*.77),
-    p.C(sx(x*.37),-y*.68,sx(x*.485),-y*.655,sx(x*.55),-y*.72),
-    p.C(sx(x*.58),-y*.625,sx(x*.715),-y*.625,sx(x*.755),-y*.72),
-    p.C(sx(x*.85),-y*.565,sx(x*.945),-y*.625,sx(x*1.10),-y*.49),
-    p.L(sx(x*1.10),-y*1.10),p.Z
+    p.M(sx(x*1.12),-y*1.10),
+    p.C(sx(x*.93),-y*1.07,sx(x*.76),-y*1.02,sx(x*.63),-y*.965),
+    p.C(sx(x*.52),-y*1.02,sx(x*.36),-y*.96,sx(x*.31),-y*.84),
+    p.C(sx(x*.22),-y*.72,sx(x*.295),-y*.58,sx(x*.38),-y*.605),
+    p.C(sx(x*.40),-y*.48,sx(x*.49),-y*.41,sx(x*.57),-y*.51),
+    p.C(sx(x*.60),-y*.37,sx(x*.71),-y*.30,sx(x*.78),-y*.42),
+    p.C(sx(x*.89),-y*.29,sx(x*.97),-y*.21,sx(x*1.12),-y*.10),
+    p.L(sx(x*1.12),-y*1.10),p.Z
   ].join(" ");
+  const sites=[
+    [.39,.72],[.48,.69],[.58,.62],[.68,.52],[.80,.36],
+    [.45,.54],[.56,.48],[.69,.40],[.81,.30]
+  ] as const;
   const holes=Array.from({length:4+Math.round(detail*5)},(_,k)=>{
     const h=paperHash(seed,k+(side>0?60:0),91);
-    const px=sx(x*(.52+(k%3)*.115)),py=-y*(.835-(Math.floor(k/3))*.036);
-    return p.leaf(px,py,13+8*h,side*(k%2?58:-37)-90,5+2*h);
+    const [nx,ny]=sites[k];
+    const px=sx(x*nx),py=-y*ny;
+    return p.leaf(px,py,17+9*h,side*(k%2?53:-36)-88,5.5+2*h);
   });
   return {path,holes};
 }
@@ -181,7 +189,7 @@ function portal(p:P,add:Add,x:number,y:number,c:Stock){
 }
 /** Woodland: luminous opening, 5 landscape planes and physically attached trees. */
 function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:number,seed:number){
-  add("woodland-sun-halo",c.mist,2,p.oval(x*.12,-y*.55,66,66),{
+  add("woodland-sun-halo",c.light,2,p.oval(x*.12,-y*.55,66,66),{
     enterFrame:16,durationFrames:35,motion:"rise"});
   add("woodland-sun",c.sun,3,p.oval(x*.12,-y*.55,57,57),{enterFrame:20,durationFrames:33});
   for(let i=0;i<3;i++){
@@ -229,10 +237,10 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
     const crown=laceCanopy(p,x,y,side,detail,seed);
     add("woodland-lace-canopy-"+i,i?c.leaf:c.near,19,crown.path,{
       holes:crown.holes,enterFrame:101+i*4,durationFrames:42,curl:.65});
-    const twigX=side*x*.72,twigY=-y*.94;
+    const twigX=side*x*.72,twigY=-y*.65;
     const fronds=Array.from({length:5+Math.round(detail*5)},(_,j)=>{
       const ex=side*x*(.43+(j%4)*.11);
-      const ey=-y*(.79+Math.floor(j/4)*.045);
+      const ey=-y*(.48+Math.floor(j/4)*.047);
       return p.band(twigX,twigY,ex,ey,1.6)+
         " "+p.leaf(ex,ey,25+(j%3)*5,side*(j%2?72:132),6.4);
     });
@@ -264,14 +272,15 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
           p.C(bx+f.d*.62,ey+36,bx+f.d*.19,by-9,bx+6,by+10),p.Z].join(" "),{
           enterFrame:107+i*5+j*3,curl:.4});
       // Each bough carries a single grouped paper canopy with real leaf tips.
-      const leafCount=6+Math.round(detail*7);
+      const leafCount=9+Math.round(detail*8);
       const packets=Array.from({length:leafCount},(_,k)=>{
-        const theta=(k-(leafCount-1)/2)/(leafCount-1)*Math.PI*1.1;
-        const fx=ex+Math.sin(theta)*49,fy=ey-Math.cos(theta)*25+(k%3)*9;
-        return p.band(ex,ey,fx,fy,1.7)+" "+
-          p.leaf(fx,fy,27+(k%4)*6,sign*(30+k*14)-108,8.4);
+        const theta=(k-(leafCount-1)/2)/(leafCount-1)*Math.PI*1.23;
+        const fx=ex+Math.sin(theta)*66,fy=ey-Math.cos(theta)*34+(k%4)*9;
+        const angle=sign*(34+k*12)-109;
+        return p.band(ex,ey,fx,fy,2.4)+" "+
+          p.leaf(fx,fy,35+(k%5)*7,angle,11+(k%3)*2);
       });
-      add("woodland-foliage-"+i+"-"+j,j%2?c.leaf:c.leafLight,23,
+      add("woodland-foliage-"+i+"-"+j,j%3?c.leaf:c.leafLight,23,
         packets.join(" "),{
           enterFrame:119+i*5+j*3,durationFrames:28,curl:.72,
           motion:"flutter",swingDegrees:1.35*breeze,flapHz:.24+j*.025,
@@ -307,8 +316,8 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
   // each blade has a connected paper rachis, but a different slant/height.
   for(const [i,side] of [-1,1].entries()){
     for(let j=0;j<4;j++){
-      const cx=side*x*(.38+j*.14);
-      const cy=y*(.78+(j%3)*.028);
+      const cx=side*x*(.32+j*.145);
+      const cy=y*(.69+(j%3)*.025);
       add("woodland-understory-"+i+"-"+j,j%3?c.leaf:c.leafLight,28,
         understoryCluster(p,cx,cy,side,detail,seed+i*37+j*11),{
           enterFrame:151+j*2,curl:.64});
@@ -337,7 +346,7 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
 /** Alpine: cut-silhouette peaks, individual snow shelf plates, depth-spaced pines. */
 function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:number,seed:number){
   const sunX=-x*.38,sunY=-y*.60;
-  add("alpine-sun-halo",c.mist,2,p.oval(sunX,sunY,61,61),{enterFrame:15});
+  add("alpine-sun-halo",c.light,2,p.oval(sunX,sunY,61,61),{enterFrame:15});
   add("alpine-sun",c.sun,3,p.oval(sunX,sunY,51,51),{enterFrame:19});
   const mountains=[
     {cx:-x*.65,peak:-y*.83,r:x*.52,h:y*.6,col:c.mist},
@@ -373,7 +382,7 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
     for(let j=0;j<2+Math.round(detail*2);j++){
       const sx=j%2?-1:1;
       add("alpine-folded-stratum-"+i+"-"+j,
-        j%3===0?c.snow:(j%3===1?c.far:c.bark),11,
+        j%3===0?c.far:(j%3===1?c.middle:c.bark),11,
         alpineStratum(p,m.cx,m.peak,m.r,y*(.23+j*.09),sx),{
           enterFrame:68+i*4+j*2,curl:.72});
     }
