@@ -228,6 +228,28 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(()=>flowBundles(input,-1,"#AABBCC")).toThrow(RangeError);
   });
 
+  it("renders a reversible pigment-only ArtCraft negative control without changing original anatomy",()=>{
+    for(const subject of ["fox","portrait"] as const){
+      const drawing=pencilLivingStudyDrawing({subject,aspect:"landscape"});
+      const defaultArt=renderToStaticMarkup(<PencilDrawing drawing={drawing} frame={335}/>);
+      const painted=renderToStaticMarkup(
+        <PencilDrawing drawing={drawing} frame={335} showTonalSupport={true}/>);
+      const isolated=renderToStaticMarkup(
+        <PencilDrawing drawing={drawing} frame={335} showTonalSupport={false}/>);
+      expect(defaultArt).toBe(painted);
+      expect(defaultArt).toContain('data-km-pencil-tonal-support="on"');
+      expect(isolated).toContain('data-km-pencil-tonal-support="off"');
+      expect(defaultArt).toContain('data-km-pencil-craft-base');
+      expect(isolated).not.toContain('data-km-pencil-craft-base');
+      expect(isolated).toContain('data-km-pencil-micro');
+      expect(isolated).toContain('data-km-pigment-layer="2"');
+      expect(isolated.match(/data-km-pencil-region=/g)?.length)
+        .toBe(defaultArt.match(/data-km-pencil-region=/g)?.length);
+      expect(isolated).not.toContain("<image");
+      expect(isolated).not.toContain("data:image/");
+    }
+  });
+
   it("renders original CP-F1 fox anatomy from authored pencil vectors with zero photo pixels",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     expect(drawing.foundation?.subject).toBe("wildlife");
