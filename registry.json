@@ -3296,6 +3296,11 @@
           "path": "registry/video/materials/crayon-scene-react.tsx",
           "type": "registry:ui",
           "target": "components/video/materials/crayon-scene-react.tsx"
+        },
+        {
+          "path": "registry/video/materials/crayon-art-direction.ts",
+          "type": "registry:ui",
+          "target": "components/video/materials/crayon-art-direction.ts"
         }
       ]
     },
