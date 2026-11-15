@@ -300,8 +300,14 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
     throw new RangeError("Riso ensemble frame must be an integer 0..239");
   const portrait=aspect==="portrait";
   const width=portrait?540:960,height=portrait?960:540;
-  const first={x:portrait?0:120,y:portrait?705:445,scale:portrait?1.2:1.05};
-  const second={x:portrait?335:520,y:portrait?705:445,scale:portrait?1.2:1.05};
+  // RISO27 / actual Chromium 9:16 contact-sheet rejection: the previous
+  // portrait Courier began clipped at the left page edge (stage x=0) and
+  // by f202 overlapped the Paper Artist (other stage x=335), hiding the
+  // original body and fingertip acting. Give each head/body enough air in
+  // the *real source-space stage*, not by drawing smaller/simpler actors.
+  // Keep both at legible 1.1x, with a dedicated portrait editorial baseline.
+  const first={x:portrait?30:120,y:portrait?705:445,scale:portrait?1.1:1.05};
+  const second={x:portrait?405:520,y:portrait?705:445,scale:portrait?1.1:1.05};
   const a=personPoint(COURIER,frame,"right-hand",first.x,first.y,first.scale);
   const b=personPoint(PAPER_ARTIST,frame,"left-hand",second.x,second.y,second.scale);
   // Absolute reference pose sampled from the same two rigs: no history and
@@ -329,9 +335,27 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
     propEnd:handoff.paperEnd,progress:handoff.progress,
     sheet:printDetails.outline,printDetails};
 }
+/** Immutable motion beats for source-linked Riso film review. */
+export const RISO_ENSEMBLE_MOTION_BEATS=[
+  {frame:0,label:"Opening",intent:"Walking approach"},
+  {frame:76,label:"Blink",intent:"Eye anticipation"},
+  {frame:126,label:"Unfurl",intent:"Sheet emerges"},
+  {frame:144,label:"Reach",intent:"Midair hand to hand"},
+  {frame:160,label:"Contact",intent:"Recipient touches the sheet"},
+  {frame:178,label:"Release",intent:"Donor opens hand"},
+  {frame:190,label:"Peel",intent:"Paper and hand separate"},
+  {frame:202,label:"Received",intent:"Sheet follows receiver only"},
+  {frame:239,label:"Final hold",intent:"Last authored frame"},
+] as const;
+export const RISO_ENSEMBLE_FILM_FPS=24 as const;
+export function clampRisoEnsembleFilmFrame(value:number){
+  if(!Number.isInteger(value))throw new RangeError("RISO film frame must be integer");
+  return Math.max(0,Math.min(239,value));
+}
 export function RisoHumanEnsembleStudio(){
   const [frame,setFrame]=useState(176);
   const [playing,setPlaying]=useState(false);
+  const [playbackOrigin,setPlaybackOrigin]=useState(0);
   const [aspect,setAspect]=useState<EnsembleAspect>("landscape");
   const [plate,setPlate]=useState<EnsemblePlate>("both");
   const [anchors,setAnchors]=useState(false);
@@ -346,13 +370,32 @@ export function RisoHumanEnsembleStudio(){
   const [releaseStart,setReleaseStart]=useState(178);
   const [releaseDuration,setReleaseDuration]=useState(24);
   const [settleDegrees,setSettleDegrees]=useState(-45);
-  // Playback is a Storybook convenience. Production frames stay pure: a
-  // film exporter passes an absolute frame to evaluateRisoHumanEnsemble.
+  // Real-time playhead: use source frame based on elapsed wall-clock time,
+  // not chained setInterval ticks (which drift under expensive SVG rendering).
+  // End on a held final pose: the source is a story, not a seamless idle loop.
   useEffect(()=>{
     if(!playing)return;
-    const id=window.setInterval(()=>setFrame(current=>(current+1)%240),1000/24);
-    return ()=>window.clearInterval(id);
-  },[playing]);
+    const began=performance.now();
+    let id=0;
+    const tick=(now:number)=>{
+      const elapsed=Math.max(0,Math.floor((now-began)*RISO_ENSEMBLE_FILM_FPS/1000));
+      const sample=clampRisoEnsembleFilmFrame(playbackOrigin+elapsed);
+      setFrame(sample);
+      if(sample>=239){setPlaying(false);return;}
+      id=window.requestAnimationFrame(tick);
+    };
+    id=window.requestAnimationFrame(tick);
+    return ()=>window.cancelAnimationFrame(id);
+  },[playing,playbackOrigin]);
+  const seek=(next:number)=>{
+    setPlaying(false);
+    setFrame(clampRisoEnsembleFilmFrame(next));
+  };
+  const toggleFilm=()=>{
+    if(playing){setPlaying(false);return;}
+    const origin=frame>=239?0:frame;
+    setFrame(origin);setPlaybackOrigin(origin);setPlaying(true);
+  };
   const handoffSchedule:RisoHandoffSchedule={
     ...RISO_HANDOFF_DEFAULTS,
     releaseStart,releaseEnd:releaseStart+releaseDuration,settleDegrees,
@@ -431,8 +474,10 @@ export function RisoHumanEnsembleStudio(){
       : []),
   ];
   return <main style={{background:"#F0E4D1",padding:18,minHeight:"100vh",font:"14px system-ui,sans-serif"}}>
-    <div style={{maxWidth:1320,margin:"0 auto"}}>
-      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO19 / PRESSURE-RESPONSIVE HAND-HELD RISO PAPER</div>
+    <div style={{maxWidth:1320,margin:"0 auto"}} data-km-riso27-film-editor=""
+        data-km-riso27-playing={playing?"yes":"no"} data-km-riso27-fps={RISO_ENSEMBLE_FILM_FPS}
+        data-km-riso27-source-frame={frame}>
+      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO27 / 24 FPS HANDOFF FILM · SOURCE CONTACT SHEET</div>
       <h2 style={{font:"700 29px Georgia,serif",margin:"8px 0"}}>Two original figures · a printed-sheet exchange</h2>
       <p style={{fontSize:13,maxWidth:900,lineHeight:1.5}}>
         Distinct coat, bob hair and facial geometry for the Paper Artist; the Courier retains
@@ -444,15 +489,32 @@ export function RisoHumanEnsembleStudio(){
         track the two hand grips. This is not a force-based collision solver.
         Real RisoPrint spot-ink screens, print registration, paper pores and fibres are used.
       </p>
+      <div style={{display:"flex",flexWrap:"wrap",gap:9,alignItems:"center",padding:"8px 0"}}
+        data-km-riso27-acting-beats="">
+        {RISO_ENSEMBLE_MOTION_BEATS.map(beat=><button key={beat.frame} type="button"
+          aria-label={"Seek film to "+beat.label+" at frame "+beat.frame}
+          aria-pressed={frame===beat.frame} title={beat.intent}
+          onClick={()=>seek(beat.frame)} style={{
+            padding:"5px 9px",border:"1px solid #AA9682",borderRadius:4,
+            cursor:"pointer",font:"12px system-ui,sans-serif",
+            background:frame===beat.frame?"#255B8E":"#F8F0E2",
+            color:frame===beat.frame?"#FFF":"#355061",
+          }}>{beat.label} <small>f{beat.frame}</small></button>)}
+        <small style={{color:"#63727A"}}>240 source frames · 24fps · 10 seconds</small>
+      </div>
       <div style={{display:"flex",flexWrap:"wrap",gap:20,alignItems:"center",padding:"12px 0"}}>
         <button type="button" aria-label={playing?"Pause Risograph ensemble":"Play Risograph ensemble"}
-          aria-pressed={playing} onClick={()=>setPlaying(value=>!value)}
+          aria-pressed={playing} onClick={toggleFilm}
           style={{border:"1px solid #426079",borderRadius:4,color:"#FFF",background:"#244D6C",
             fontWeight:700,padding:"8px 12px",cursor:"pointer"}}>
-          {playing?"Pause":"Play scene"}
+          {playing?"Pause":"Play 24fps film"}
         </button>
+        <button type="button" aria-label="RISO27 previous source frame"
+          onClick={()=>seek(frame-1)}>−1 frame</button>
         <label>Frame · {frame} <input type="range" min={0} max={239} value={frame}
-          aria-label="RISO ensemble film frame" onChange={e=>setFrame(Number(e.target.value))}/></label>
+          aria-label="RISO ensemble film frame" onChange={e=>seek(Number(e.target.value))}/></label>
+        <button type="button" aria-label="RISO27 next source frame"
+          onClick={()=>seek(frame+1)}>+1 frame</button>
         <label>Output <select value={aspect} aria-label="RISO ensemble aspect"
           onChange={e=>setAspect(e.target.value as EnsembleAspect)}>
           <option value="landscape">16:9</option><option value="portrait">9:16</option>

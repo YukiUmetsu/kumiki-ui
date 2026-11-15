@@ -301,3 +301,89 @@ test("RISO26 true graded press master: original faces, two film ratios, AM and F
   await page.locator("main").screenshot({path:info.outputPath("riso26-portrait-speech-fullface.png"),animations:"disabled"});
   expect(errors).toEqual([]);
 });
+
+
+/** ArtCraft v9 animation gate: real 24fps full-ensemble SVG, physically printed,
+ * captures at authored motion beats, *including frames flanking contact/release*.
+ * A contact sheet built from these captures must be visually inspected.
+ */
+test("RISO27 original two-human 240-frame film: printed contact sequence and end hold",async({page},info)=>{
+  const errors:string[]=[];
+  page.on("pageerror",error=>errors.push(error.message));
+  page.on("console",message=>{if(message.type()==="error")errors.push(message.text());});
+  await page.setViewportSize({width:1440,height:1080});
+  await page.goto("/iframe.html?id=video-riso-artcraft-studies--human-ensemble-acting&viewMode=story");
+  await page.evaluate(()=>document.fonts.ready);
+  const editor=page.locator('[data-km-riso27-film-editor]');
+  await expect(editor).toHaveAttribute("data-km-riso27-fps","24",{timeout:15000});
+  const timeline=page.getByRole("slider",{name:"RISO ensemble film frame"});
+  const aspect=page.getByRole("combobox",{name:"RISO ensemble aspect"});
+  const take=page.locator('svg[data-km-riso-human-ensemble-frame]');
+  const stage=page.locator('[data-km-riso-ensemble-stage-container]');
+  const frames={
+    landscape:[0,24,48,76,96,120,125,126,134,144,152,159,160,168,177,178,186,190,194,201,202,218,238,239],
+    portrait:[0,76,126,144,159,160,177,178,190,201,202,218,239],
+  } as const;
+  const at=(frame:number)=>frame<160?"unfurl":frame<178?"shared":frame<202?"release":"received";
+  for(const ratio of ["landscape","portrait"] as const){
+    await aspect.selectOption(ratio);
+    for(const frame of frames[ratio]){
+      await timeline.fill(String(frame));
+      await expect(editor).toHaveAttribute("data-km-riso27-source-frame",String(frame));
+      await expect(take).toHaveAttribute("data-km-riso-human-ensemble-aspect",ratio);
+      await expect(take).toHaveAttribute("data-km-riso-human-ensemble-frame",String(frame));
+      await expect(take).toHaveAttribute("data-km-riso-handoff-phase",at(frame));
+      await expect(editor).toHaveAttribute("data-km-riso27-playing","no");
+      // The two original actor plates must always exist. Additional actors
+      // appear in *separate* physical finger-over-letter contact passes, so
+      // a global DOM count of 2 incorrectly rejects legitimate print depth.
+      for(const actor of ["courier","paper-artist"] as const){
+        const original=page.locator(
+          '[data-km-riso-foreground-layer="'+actor+'"] [data-km-riso-character="'+actor+'"]');
+        await expect(original).toHaveCount(2);
+      }
+      if(frame>=160&&frame<202)
+        await expect(take).toHaveAttribute("data-km-riso-handoff-owner","both");
+      if(frame>=202){
+        await expect(take).toHaveAttribute("data-km-riso-handoff-owner","receiver");
+        await expect(page.locator('[data-km-riso-foreground-layer="courier-grip"]')).toHaveCount(0);
+      }
+      // Draw at the *native stage print ratio*, not a head-only diagnostic
+      // approximation. This catches hands detaching from the real sheet.
+      await stage.screenshot({
+        path:info.outputPath("riso27-"+ratio+"-"+String(frame).padStart(3,"0")+".png"),
+        animations:"disabled",
+      });
+    }
+  }
+
+  // Seek exact boundaries from the existing page, with no new Storybook pages.
+  await page.getByRole("button",{name:"Seek film to Contact at frame 160"}).click();
+  await expect(editor).toHaveAttribute("data-km-riso27-source-frame","160");
+  await page.getByRole("button",{name:"RISO27 next source frame"}).click();
+  await expect(editor).toHaveAttribute("data-km-riso27-source-frame","161");
+  await page.getByRole("button",{name:"RISO27 previous source frame"}).click();
+  await expect(editor).toHaveAttribute("data-km-riso27-source-frame","160");
+
+  // Real-time playhead must finish at 239 and *hold* rather than snapping to
+  // 0 (the last and opening poses belong to different story moments).
+  await timeline.fill("232");
+  await page.getByRole("button",{name:"Play Risograph ensemble"}).click();
+  await expect(editor).toHaveAttribute("data-km-riso27-source-frame","239",{timeout:4000});
+  await expect(editor).toHaveAttribute("data-km-riso27-playing","no",{timeout:4000});
+  await page.waitForTimeout(300);
+  await expect(editor).toHaveAttribute("data-km-riso27-source-frame","239");
+  await page.getByRole("button",{name:"Play Risograph ensemble"}).click();
+  await expect(editor).toHaveAttribute("data-km-riso27-source-frame","0",{timeout:1500});
+  await page.getByRole("button",{name:"Pause Risograph ensemble"}).click();
+  await expect(editor).toHaveAttribute("data-km-riso27-playing","no");
+
+  await aspect.selectOption("landscape");
+  await timeline.fill("160");
+  await page.getByRole("combobox",{name:"RISO ensemble ink plate"}).selectOption("blue");
+  await stage.screenshot({path:info.outputPath("riso27-contact-blue-master.png"),animations:"disabled"});
+  await page.getByRole("combobox",{name:"RISO ensemble ink plate"}).selectOption("red");
+  await stage.screenshot({path:info.outputPath("riso27-contact-red-master.png"),animations:"disabled"});
+  await page.getByRole("combobox",{name:"RISO ensemble ink plate"}).selectOption("both");
+  expect(errors).toEqual([]);
+});
