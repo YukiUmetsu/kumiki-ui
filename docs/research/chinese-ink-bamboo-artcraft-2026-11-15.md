@@ -59,7 +59,7 @@ could not say whether the branch anatomy was credible.
 
 ## Code translation
 
-Within existing \`registry/video/ink-shanshui-react.tsx\` \`Bamboo\`:
+Within existing `registry/video/ink-shanshui-react.tsx` `Bamboo`:
 
 - Sample seven slightly unequal internodes along the **existing** curved
   culm. Both collar and primary branch consume the same computed node.
@@ -96,15 +96,15 @@ and detail 0/1 behavior. Browser screenshot and production moving film remain
 
 Run from a clean repository checkout:
 
-\`\`\`bash
+```bash
 npm run typecheck
 npx vitest run --project unit tests/ink-shanshui.test.tsx
 npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-shanshui.spec.ts
-npm run film:check -- examples/film/chinese-ink-shanshui.film.json
-\`\`\`
+npm run video:export -- --story=video-ink-shanshui--misty-hermit-export --startFrame=44 --frames=96 --output=dist/ink-misty-hermit.mp4
+```
 
-Use the actual film manifest filename available in this checkout if the
-example path differs. Inspect the bamboo crop in the gallery at 0/100% detail,
+The Storybook exporter uses the real Shanshui film renderer; this is an
+encoded clip, not a static mockup. Inspect the bamboo crop in the gallery at 0/100% detail,
 seeds 71 and 87, wind 0 and 1, and compare frames 145/210 at native size. Then
 inspect the complete 960×540 river and hermit footage, including edge clipping.
 No source-relative image score or final artistic approval is claimed here.
