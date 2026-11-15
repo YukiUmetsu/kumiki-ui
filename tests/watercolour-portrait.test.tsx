@@ -110,11 +110,9 @@ describe("WC11 original watercolour human portrait",()=>{
       expect(inspectWatercolourArtwork(spec)).toEqual([]);
       const markup=renderToStaticMarkup(<WatercolourIllustration spec={spec} frame={255}/>);
       expect(markup).toContain('data-km-watercolour-part="near-iris-gaze"');
-      expect(markup).toContain('data-km-watercolour-part="near-eye-aperture"');
-      expect(markup).toContain('data-km-watercolour-part="far-eye-aperture"');
       expect(markup).toContain('data-km-watercolour-part="far-iris-gaze"');
-      expect(markup).toMatch(/<clipPath id="[^"]+-clip-near-eye-aperture"/);
-      expect(markup).toMatch(/<clipPath id="[^"]+-clip-far-eye-aperture"/);
+      expect(markup).toMatch(/<clipPath id="[^"]+-clip-near-open-eyelids"/);
+      expect(markup).toMatch(/<clipPath id="[^"]+-clip-far-open-eyelids"/);
       expect(markup).toContain("<radialGradient");
       expect(markup).toContain('data-km-watercolour-part="warm-near-cheek"');
       expect(markup).toContain('data-km-watercolour-edge-softness="1"');
