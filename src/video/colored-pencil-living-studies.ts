@@ -877,6 +877,8 @@ export function pencilLivingStudyDrawing({
         false:region.opaqueSupport,
       underpaint:subject==="fox"&&part.id==="whisker-roots"?
         undefined:region.underpaint,
+      underpaintOpacity:subject==="fox"&&part.id==="whisker-roots"?
+        undefined:region.underpaintOpacity,
       // The fox iris has its own traced upper eyelid and pupil. Suppress
       // only the enclosing glass-vector ring, not the separate pencil marks.
       contour:subject==="fox"&&part.id==="whisker-roots"?
