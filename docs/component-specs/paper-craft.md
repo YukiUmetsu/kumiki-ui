@@ -287,3 +287,32 @@ ArtCraft source, construction table, rights and non-goals: [PAPER-D1 film study]
 Use `PaperCraftSpec.startAssembled: true` when a hard film edit must reveal an entire constructed paper set immediately. This **does not** disable the cut-piece pose keys, flutter hinges, texture, shadows or overhead camera tracks. The default is false, preserving the existing progressive cut-paper assembly demos. PAPER-D1's four sample chapters opt in.
 
 An actual first-run 30-frame film crossing global f239→240 exposed a completely empty purple incoming stage, followed by an isolated paper ellipse. This is a production blocker even though the film encoded and browser tests passed. New tests enforce all paper layers at progress=1 and opacity=1 at the first chapter frame in **both** output aspects. Re-inspect native final-head evidence before release.
+
+## PAPER-D2 — Connected puppet joints and material-native curtain edits
+
+**Rigging:** any `PaperCutLayer` may name an existing `parentId` with an explicit `pivot: [x,y]`. Coordinates are defined in the shared authored **rest-sheet** space, not local bounding-box pixels. The parent sheet’s full rigid transform is composed with each child’s local pose and its existing `motion` (swing, flutter, rise); all sheets still paint in the original global `depth` order. This preserves physical overlap of fabric/wing feathers. Parent links are validated for existence, unique stable IDs, explicit child pivot and cycles. Bounds/keys stay frame-pure. The engine exports `paperAffinePoint` and `paperAffineMultiply` for verifying actual pin landmarks in tests.
+
+```ts
+const layers = [
+  {
+    id:"body",path:"M80 60 L180 60 L170 130 L70 130 Z",
+    color:"#EBD7A9",depth:12,pivot:[120,90] as const,motion:"still" as const,
+    poseKeys:[{frame:0,x:0,y:0,angle:-8},
+      {frame:30,x:28,y:-4,angle:8}],
+  },
+  {
+    id:"front-arm",parentId:"body",pivot:[164,80] as const,
+    path:"M156 76 L188 88 L208 140 L183 135 Z",
+    color:"#C68765",depth:14,motion:"swing" as const,
+    swingDegrees:12,
+  },
+];
+```
+
+Use separate real artwork and hidden joint overlaps for expressive actors. This parent-child system is **rigid hinged cut stock**, not skinning, IK, human anatomy or automatically generated high-quality puppets. A nested puppet’s root needs its own cut contour and rest-sheet pivot. Parent transforms use continuous affine matrices; no duplicated body track is needed on every child. The botanical moth in the existing four-chapter demo now has one moving `moth-abdomen` parent; all remaining moth wings, antennae and accents inherit it.
+
+**Physical edit:** each `PaperDirectorShot` optionally sets `transitionOut: {kind:"paper-curtain",durationFrames:24,color:"#E8CEAA",direction:"left-to-right"}`. Frames are even, 8–60, with half closing on the outgoing scene and half uncovering the incoming scene. This is a true full-opacity moving cardstock sheet with a nonuniform die-cut edge and sheet-anchored tooth, **not two composited translucent drawings**. Alternate directions and palettes are supported. The final shot cannot transition out; overlapping beat windows, color and duration errors fail validation. With reduced motion the curtain is skipped so no static full-coverage blank image remains.
+
+Sample film `examples/film/paper-craft-director.film.json` enables paper curtains by default. In Storybook **Film Director · Four Chapters**, `curtains` toggles them without moving the page to a new folder. FD1's preset accepts `curtains:boolean` (default true); a custom author-provided `storyboard` embeds each shot's transition settings directly. Its existing clock/labels/audio remain untouched. Material details stay with the underlying PAPER1 renderer.
+
+**ArtCraft:** [rig and curtain source/structure study](../research/paper-puppet-curtain-artcraft-study.md). Reference previews were linked rather than redistributed: source image rights and reliable frame-accurate video examples were not established. Qualitative construction, not claim of pixel-match fidelity.

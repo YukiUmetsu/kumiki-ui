@@ -3,7 +3,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PaperDirectorStage } from "../registry/video/paper-director-react";
 import { compilePaperDirector, inspectPaperDirector, paperCut, resolvePaperDirector } from "../registry/video/paper-director";
-import { evaluatePaperCraft, inspectPaperCraft, PAPER_STYLES } from "../registry/video/paper-craft";
+import { evaluatePaperCraft, inspectPaperCraft, paperAffinePoint, PAPER_STYLES } from "../registry/video/paper-craft";
 import { paperDirectorDemo } from "../src/video/paper-director-demo";
 import { compileFilm } from "../registry/video/film-document";
 import { loadFilmSlots } from "../src/film/film-slots";
@@ -44,10 +44,22 @@ describe("PAPER-D1 reusable paper director",()=>{
       const shot=resolvePaperDirector(plan,370,aspect);
       const moth=shot.spec.layers.filter(l=>l.id.startsWith("moth-"));
       expect(moth.length).toBeGreaterThan(8);
-      expect(moth.every(l=>l.poseKeys?.length===3)).toBe(true);
-      const pose=new Set(moth.map(l=>JSON.stringify(l.poseKeys)));
-      expect(pose.size).toBe(1);
+      const root=moth.find(l=>l.id==="moth-abdomen");
+      expect(root?.poseKeys).toHaveLength(3);
+      expect(root?.parentId).toBeUndefined();
+      expect(moth.filter(l=>l.id!=="moth-abdomen")
+        .every(l=>l.parentId==="moth-abdomen" && l.pivot?.length===2 && !l.poseKeys)).toBe(true);
       expect(moth.every(l=>/^#[0-9a-fA-F]{6}$/.test(l.color))).toBe(true);
+      const rigFrame=evaluatePaperCraft(shot.spec,150);
+      const body=rigFrame.layers.find(l=>l.id==="moth-abdomen")!;
+      const wing=rigFrame.layers.find(l=>l.id==="moth-left-fore") ??
+        rigFrame.layers.find(l=>l.id.includes("fore"))!;
+      const wingSource=shot.spec.layers.find(l=>l.id===wing.id)!;
+      const pivot=wingSource.pivot!;
+      const expected=paperAffinePoint(body.worldMatrix!,pivot);
+      const actual=paperAffinePoint(wing.worldMatrix!,pivot);
+      expect(actual[0]).toBeCloseTo(expected[0],5);
+      expect(actual[1]).toBeCloseTo(expected[1],5);
       const first=evaluatePaperCraft(shot.spec,34);
       evaluatePaperCraft(shot.spec,210);
       expect(evaluatePaperCraft(shot.spec,34)).toEqual(first);
@@ -57,6 +69,63 @@ describe("PAPER-D1 reusable paper director",()=>{
       expect(evaluatePaperCraft(shot.spec,219,true).camera)
         .toEqual(evaluatePaperCraft(shot.spec,0,true).camera);
     }
+  });
+  it("uses opaque physical curtains across shot cuts without transparent pictures",()=>{
+    const plan=compilePaperDirector(paperDirectorDemo("layered",37,.7,true));
+    const seam=[
+      [228,"closing",0],[233,"closing",5/11],[239,"closing",1],
+      [240,"opening",0],[245,"opening",5/11],[251,"opening",1],
+    ] as const;
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const [frame,phase,progress] of seam){
+        const shot=resolvePaperDirector(plan,frame,aspect);
+        expect(shot.curtain?.phase).toBe(phase);
+        expect(shot.curtain?.progress).toBeCloseTo(progress,6);
+        const html=renderToStaticMarkup(React.createElement(PaperDirectorStage,{
+          film:paperDirectorDemo("layered",37,.7,true),aspect,frame,
+        }));
+        expect(html).toContain('data-km-paper-curtain=""');
+        expect(html).toContain('data-km-paper-phase="'+phase+'"');
+        expect(html).toContain('data-km-paper-frame="'+(frame<240?frame:frame-240)+'"');
+        expect(html).toContain('fill="#E8CEAA"');
+      }
+      expect(resolvePaperDirector(plan,252,aspect).curtain).toBeUndefined();
+      const staticHtml=renderToStaticMarkup(React.createElement(PaperDirectorStage,{
+        film:paperDirectorDemo("layered",37,.7,true),aspect,frame:240,reducedMotion:true,
+      }));
+      expect(staticHtml).not.toContain("data-km-paper-curtain");
+    }
+    const noCurtain=compilePaperDirector(paperDirectorDemo("layered",37,.7,false));
+    expect(resolvePaperDirector(noCurtain,239,"landscape").curtain).toBeUndefined();
+    expect(resolvePaperDirector(noCurtain,240,"portrait").curtain).toBeUndefined();
+  });
+  it("rejects missing/cyclic joints and invalid paper film transitions",()=>{
+    const film=paperDirectorDemo("layered",37,.6,true);
+    const spec=film.shots[1].scenes.landscape;
+    const root=spec.layers.find(l=>l.id==="moth-abdomen")!;
+    expect(inspectPaperCraft({...spec,layers:spec.layers.map(l=>
+      l.id===root.id?{...l,parentId:"missing-parent"}:l)}).map(e=>e.path))
+      .toContain("layers["+spec.layers.findIndex(l=>l.id===root.id)+"].parentId");
+    const cyclic={...spec,layers:spec.layers.map(l=>l.id==="moth-abdomen"
+      ? {...l,parentId:"moth-thorax"}:l)};
+    expect(inspectPaperCraft(cyclic).some(e=>e.message.includes("cycle"))).toBe(true);
+    const malformed={...film,shots:film.shots.map((s,i)=>
+      i===0?{...s,transitionOut:{kind:"paper-curtain" as const,
+        durationFrames:25,color:"#FFFFFF",direction:"left-to-right" as const}}:s)};
+    expect(inspectPaperDirector(malformed).some(e=>e.path.includes("transitionOut"))).toBe(true);
+    // Incomplete authored storyboard must return diagnostic paths, not crash.
+    const invalidShots={...film,shots:[film.shots[0],null as never,film.shots[2]]};
+    expect(()=>inspectPaperDirector(invalidShots)).not.toThrow();
+    expect(inspectPaperDirector(invalidShots).some(e=>e.path==="shots[1]")).toBe(true);
+    const brief={...film.shots[1],scenes:{
+      landscape:{...film.shots[1].scenes.landscape,durationFrames:6},
+      portrait:{...film.shots[1].scenes.portrait,durationFrames:6},
+    }};
+    const tooBrief={...film,shots:[film.shots[0],brief,...film.shots.slice(2)]};
+    expect(inspectPaperDirector(tooBrief).some(e=>e.message.includes("shorter than its opening curtain"))).toBe(true);
+    expect(inspectPaperDirector({...film,shots:film.shots.map((s,i)=>
+      i===3?{...s,transitionOut:film.shots[0].transitionOut}:s)})
+      .some(e=>e.message.includes("final shot"))).toBe(true);
   });
   it("cuts a real custom authored polygon and ellipse instead of a raster effect",()=>{
     const source=paperDirectorDemo("layered",37,0);

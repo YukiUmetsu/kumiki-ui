@@ -81,6 +81,81 @@
         "light": "No quantitative photographic reference"
       },
       "crops": []
+    },
+    {
+      "id": "jointed-paper-dog",
+      "title": "Giacomo Balla dog puppet art activity",
+      "creator": "Buffalo AKG Art Museum",
+      "url": "https://buffaloakg.org/learn-discover/kids-families/home-activities-kids-families/family-activity-inspired-giacomo-ballas",
+      "rights": "museum educational content, preview study only; no source pixels committed",
+      "medium": "paper silhouette with metal brad fastener",
+      "view": "photographed constructed puppet",
+      "deep_study": true,
+      "analysis": {
+        "construction": "The cut piece end is overlapped and mechanically pinned by a metal brad; articulated motion takes place around a stationary hole through both sheets",
+        "material": "A flat opaque printed sheet with drawn surface details, physically overlapping limbs",
+        "microdetail": "Small brad heads are visible against differently coloured limb paper; geometry follows its drawn contour rather than cylinder-like procedural limbs",
+        "light": "Soft ambient overhead lighting"
+      },
+      "crops": [
+        {
+          "feature": "articulated-pivot",
+          "bbox": [
+            0.22,
+            0.1,
+            0.75,
+            0.78
+          ],
+          "observation": "a brad sits at a visible cut-paper overlap and anchors rotation without opening an exposed gap",
+          "implementation_rule": "explicit child pivot in shared paper coordinates and inherited parent affine transform, preserving cross-sheet depth order"
+        }
+      ]
+    },
+    {
+      "id": "colored-shadow-puppet",
+      "title": "The Color of Shadows in China",
+      "creator": "MIT International Puppet Museum in Catalonia",
+      "url": "https://www.museudetitelles.com/en/el-color-a-les-ombres-xineses/",
+      "rights": "museum collections rights unverified; visual study only, no pixel copying",
+      "medium": "cut leather shadow puppets and control rods",
+      "view": "frontal articulated performance figures",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Numerous contiguous panels attach arms, garments and legs; rods and joints create a single coherent articulated figure",
+        "material": "Opaque silhouette/rich translucent leather in original medium. Paper demo intentionally uses opaque coloured stock instead of claiming authentic leather transmission",
+        "microdetail": "Tiny decorative carvings and patterned garments preserve meaningful character detail rather than simple oval parts",
+        "light": "Puppet figures read by silhouette and the bright projected curtain"
+      },
+      "crops": [
+        {
+          "feature": "figure-joint-structure",
+          "bbox": [
+            0.04,
+            0.02,
+            0.95,
+            0.96
+          ],
+          "observation": "articulated limbs connect around shoulder/hand contact points; control rods are separate from figure contours",
+          "implementation_rule": "bind pose with attached child pivots, independent motion and consistent z-order; cannot promise human character art from a rig API"
+        }
+      ]
+    },
+    {
+      "id": "paper-editorial-curtain",
+      "title": "Paper transition demonstrations",
+      "creator": "Paper Animators",
+      "url": "https://paperanimators.com/videos/",
+      "rights": "commercial product demo study only; no visual assets or proprietary source reused",
+      "medium": "paper tear and curtain-type editorial reveals",
+      "view": "online demonstration listing, not inspected frame-by-frame",
+      "deep_study": false,
+      "analysis": {
+        "construction": "Transitional opaque paper stock can cover a hard cut and then pull clear",
+        "material": "deckled cut edge and fixed surface grain; exact source material and timing unavailable",
+        "microdetail": "A non-uniform edge reads as hand cut if contour noise remains spatially fixed",
+        "light": "Separation shadow at moving edge, no ghosted incoming scene"
+      },
+      "crops": []
     }
   ],
   "feature_targets": [
@@ -148,6 +223,49 @@
         "paper-director-stage"
       ],
       "detail_critical": false
+    },
+    {
+      "id": "shared-parent-joint",
+      "reference_ids": [
+        "jointed-paper-dog",
+        "colored-shadow-puppet"
+      ],
+      "critical": true,
+      "source_observation": "metal fastener/rod driven connected parts remain attached across pose extremes",
+      "geometry_rule": "one root paper sheet, explicit child pivots, affine parent inheritance, sorted opaque layered stock, reject cycles",
+      "microdetails": [
+        "joint overlap visible",
+        "local flap unaffected",
+        "attachment landmarks invariant under parent motion"
+      ],
+      "test_view": "botanical f300/f390/f450 in both formats and extreme pose unit tests",
+      "part_ids": [
+        "moth-abdomen",
+        "moth-left-fore",
+        "moth-thorax"
+      ],
+      "detail_critical": true
+    },
+    {
+      "id": "solid-deckled-film-edit",
+      "reference_ids": [
+        "paper-editorial-curtain",
+        "colored-shadow-puppet"
+      ],
+      "critical": true,
+      "source_observation": "a paper sheet obscures a picture edit with a material edge; opaque bodies never dissolve",
+      "geometry_rule": "outgoing cover from edge-to-edge and incoming reveal with paper anchored cut outline and tooth",
+      "microdetails": [
+        "opaque pigment six digit hex",
+        "edge bends from slow swells",
+        "source layers fully constructed at the cut"
+      ],
+      "test_view": "f228/f234/f239/f240/f245/f251 both aspects plus 30-frame encoded cut",
+      "part_ids": [
+        "paper-curtain",
+        "film-camera"
+      ],
+      "detail_critical": true
     }
   ],
   "notes": {

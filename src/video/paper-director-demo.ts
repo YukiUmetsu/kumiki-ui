@@ -23,7 +23,20 @@ function animate(spec:PaperCraftSpec,kind:"woodland"|"botanical"|"houses"|"camer
   const layers=spec.layers.map((layer:PaperCutLayer):PaperCutLayer=>{
     // All moth components must share one translation; independent wing
     // flutter remains on its existing real hinge. No floating disconnected art.
-    if (kind==="botanical" && layer.id.startsWith("moth-")) return {...layer,poseKeys:pose(intensity)};
+    if (kind==="botanical" && layer.id==="moth-abdomen") return {
+      ...layer, pivot:layer.pivot ?? [spec.width/2,spec.height/2],
+      poseKeys:[
+        {frame:0,x:-14*intensity,y:5*intensity,angle:-2*intensity,ease:"smooth"},
+        {frame:120,x:3*intensity,y:-4*intensity,angle:1.5*intensity,ease:"smooth"},
+        {frame:239,x:13*intensity,y:-7*intensity,angle:-.6*intensity},
+      ],
+    };
+    // Existing moth cutouts sit in the same world sheet. Inherit their
+    // single root pose while preserving independent wing flap hinge tracks.
+    if (kind==="botanical" && layer.id.startsWith("moth-")) return {
+      ...layer, parentId:"moth-abdomen",
+      pivot:layer.pivot ?? [spec.width/2,spec.height/2],
+    };
     if (kind==="woodland" && layer.id==="woodland-stream-surface-highlights")
       return {...layer,poseKeys:pose(.4*intensity)};
     if (kind==="houses" && layer.id==="canal-water-highlight")
@@ -37,11 +50,12 @@ function animate(spec:PaperCraftSpec,kind:"woodland"|"botanical"|"houses"|"camer
 }
 /** A reusable director film: four material subjects, four edits, two orientations. */
 export function paperDirectorDemo(
-  medium:PaperStyle="layered",seed=37,motionIntensity=.7,
+  medium:PaperStyle="layered",seed=37,motionIntensity=.7,curtains=true,
 ):PaperDirectorFilm {
   if (!Number.isSafeInteger(seed))throw new RangeError("Director demo seed must be safe integer");
   if (!Number.isFinite(motionIntensity)||motionIntensity<0||motionIntensity>1)
     throw new RangeError("Director demo motion intensity must be finite 0–1");
+  if(typeof curtains!=="boolean")throw new RangeError("Director paper curtains must be boolean");
   const specs=(kind:"woodland"|"botanical"|"houses"|"camera")=>{
     const per=(aspect:PaperDirectorAspect):PaperCraftSpec=>{
       const base=kind==="woodland"
@@ -55,9 +69,12 @@ export function paperDirectorDemo(
     return {landscape:per("landscape"),portrait:per("portrait")};
   };
   return {version:1,id:"material-paper-tour",shots:[
-    {id:"woodland-light",scenes:specs("woodland")},
-    {id:"botanical-wing",scenes:specs("botanical")},
-    {id:"city-layering",scenes:specs("houses")},
+    {id:"woodland-light",scenes:specs("woodland"),...(curtains?{transitionOut:{
+      kind:"paper-curtain" as const,durationFrames:24,color:"#E8CEAA",direction:"left-to-right" as const}}:{})},
+    {id:"botanical-wing",scenes:specs("botanical"),...(curtains?{transitionOut:{
+      kind:"paper-curtain" as const,durationFrames:24,color:"#A5C7AE",direction:"right-to-left" as const}}:{})},
+    {id:"city-layering",scenes:specs("houses"),...(curtains?{transitionOut:{
+      kind:"paper-curtain" as const,durationFrames:24,color:"#F1D0BB",direction:"left-to-right" as const}}:{})},
     {id:"constructed-device",scenes:specs("camera")},
   ]};
 }
