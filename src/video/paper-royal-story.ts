@@ -497,29 +497,55 @@ function scenery(w:number,h:number,aspect:PaperDirectorAspect,phase:number,seed:
     p.band(-63,ground+66,-23,ground+57,1.8),
     p.band(12,ground+66,43,ground+56,1.5),
     p.band(68,ground+42,100,ground+23,1.5)].join(" "));
-  // Forest is *rooted* geometry, with forks and cut leaves on each side.
+  // Original six-to-eight-generation rooted cut-branch arch. Every
+  // leaf starts at the endpoint of a named paper twig, not in empty air.
+  const stretch=aspect==="portrait"?1.5:1;
   for(const sign of [-1,1]){
     const side=sign===-1?"left":"right",tx=sign*(width-35);
+    const tip=(dx:number,up:number)=>[tx-sign*dx,ground-up*stretch] as const;
+    const boughs=[
+      [12,225,70,278,10],[12,192,103,204,7.8],
+      [47,255,109,304,6.7],[80,201,126,241,5.8],
+      [18,141,88,170,5.8],[72,276,139,317,4.5],
+      [100,206,146,242,4.3],[70,167,128,191,4.6],
+    ] as const;
     const limb=[
-      p.band(tx,ground-13,tx-sign*13,ground-225,18),
-      p.band(tx-sign*13,ground-225,tx-sign*70,ground-277,11),
-      p.band(tx-sign*12,ground-193,tx-sign*102,ground-202,7),
-      p.band(tx-sign*48,ground-256,tx-sign*105,ground-300,6.5),
-      p.band(tx-sign*80,ground-202,tx-sign*124,ground-239,4.5),
+      p.band(tx,ground-6,...tip(12,225),20,sign*2.3),
+      ...boughs.map(([a,b,c,d,thick])=>
+        p.band(...tip(a,b),...tip(c,d),thick,sign*2.1)),
     ].join(" ");
     add("forest-"+side+"-wood","#324B54",16,limb);
-    const leaves=Array.from({length:14},(_,i)=>{
-      const q=i%7,t=Math.floor(i/7);
-      const x=tx-sign*(26+q*16),y=ground-(193+((q*23+t*11)%91));
-      const len=13+(i%4)*4;
-      return p.leaf(x,y,len,sign===-1?-80+(q%3)*31:-115+(q%3)*26,5.3+(i%3));
+    const leaves=boughs.map(([a,b,c,d],i)=>{
+      const [x,y]=tip(c,d);
+      const spread=sign===-1?[-130,-41]:[-141,-41];
+      return spread.map((angle,j)=>p.leaf(x,y,12+i%4*3,
+        angle+(i%3)*14+(j?12:0),5.8+i%3)).join(" ");
     }).join(" ");
     add("forest-"+side+"-foliage",c.leaf,17,leaves);
     add("forest-"+side+"-highlights",c.trim,18,
-      Array.from({length:7},(_,i)=>{
-        const x=tx-sign*(28+i*20),y=ground-(212+((i*29)%77));
-        return p.leaf(x,y,9+i%3,sign===-1?-72:-115,2.8);
+      boughs.filter((_,i)=>i%2===0).map(([a,b,dx,dy],i)=>{
+        const [x,y]=tip(dx,dy);
+        return p.leaf(x,y,7+i%3,sign===-1?-36:-135,2.7);
       }).join(" "));
+  }
+  if(aspect==="portrait"){
+    // Top-of-book hanging paper lace connects to the *top page edge*
+    // and carries the visual composition down toward the forest arch.
+    for(const sign of [-1,1]){
+      const side=sign===-1?"left":"right",x=sign*(w/2-25),top=-h/2+20;
+      add("portrait-hanging-"+side+"-wood","#415F68",14,[
+        p.band(x,top,x-sign*13,top+160,10,sign*3),
+        p.band(x-sign*13,top+160,x-sign*66,top+242,6,sign*2),
+        p.band(x-sign*7,top+96,x-sign*83,top+140,4.2),
+        p.band(x-sign*41,top+201,x-sign*106,top+220,4.2),
+      ].join(" "));
+      add("portrait-hanging-"+side+"-leaves",c.leaf,15,[
+        p.leaf(x-sign*66,top+242,24,sign===-1?-35:-155,9),
+        p.leaf(x-sign*83,top+140,20,sign===-1?-70:-120,8),
+        p.leaf(x-sign*106,top+220,22,sign===-1?-55:-135,7.5),
+        p.leaf(x-sign*41,top+201,18,sign===-1?26:153,7),
+      ].join(" "));
+    }
   }
   // Wide opaque foreground cardstock; flower stems visibly root into it.
   add("foreground-bank",c.foreground,22,[
