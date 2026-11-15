@@ -12,6 +12,7 @@
  * lighter/less-saturated chromatic pencil.
  */
 import { pencilHash } from "../../registry/video/colored-pencil";
+import { PENCIL_PHOTO_FOUNDATION } from "../../registry/video/colored-pencil-foundation";
 import { createPencilFlowField } from "./colored-pencil-flow-field";
 import { createPencilSalience } from "./colored-pencil-salience";
 
@@ -49,6 +50,9 @@ export interface PencilPhotoMark {
   pass:0|1|2;
 }
 export interface PencilPhotoStudy {
+  /** Every image-conditioned drawing uses the same pencil studio foundation. */
+  foundationVersion:"CP-F1";
+  foundationPasses:typeof PENCIL_PHOTO_FOUNDATION.markOrder;
   width:number;height:number;
   /** 8-bit RGBA, fully opaque. */
   pigment:Uint8ClampedArray;
@@ -60,7 +64,8 @@ const hex=(r:number,g:number,b:number):string=>"#"+[r,g,b].map(x=>
   limit(Math.round(x),0,255).toString(16).padStart(2,"0")).join("");
 const check=(p:PencilPhotoPixels,o:PencilPhotoOptions)=>{
   if(!Number.isSafeInteger(p.width)||!Number.isSafeInteger(p.height)||
-    p.width<8||p.height<8||p.width>2048||p.height>2048||
+    p.width<8||p.height<8||p.width>PENCIL_PHOTO_FOUNDATION.sourcePixelLimit||
+    p.height>PENCIL_PHOTO_FOUNDATION.sourcePixelLimit||
     !(p.data instanceof Uint8ClampedArray)||
     p.data.length!==p.width*p.height*4)throw new RangeError("Invalid source image pixels");
   if(!Number.isSafeInteger(o.seed)||o.seed<0||o.seed>2147483647||
@@ -134,7 +139,7 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
   const strokes:PencilPhotoMark[]=[];
   const step=limit(Math.round(4.2/options.density),2,11);
   const gridW=Math.ceil(w/step), gridH=Math.ceil(h/step);
-  const max=36000;
+  const max=PENCIL_PHOTO_FOUNDATION.maxStrokes;
   for(let gy=0;gy<gridH;gy++)for(let gx=0;gx<gridW;gx++){
     if(strokes.length>=max)break;
     const j=gy*gridW+gx;
@@ -182,7 +187,8 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
   }
   // Stable chronological grouping; no need to store frames or mutable clocks.
   strokes.sort((a,b)=>a.pass-b.pass);
-  return {width:w,height:h,pigment,strokes,seed:options.seed};
+  return {foundationVersion:"CP-F1",foundationPasses:PENCIL_PHOTO_FOUNDATION.markOrder,
+    width:w,height:h,pigment,strokes,seed:options.seed};
 }
 export function pencilPhotoStrokeCount(study:PencilPhotoStudy,frame:number,total=350):number {
   if(!Number.isSafeInteger(frame)||frame<0||
