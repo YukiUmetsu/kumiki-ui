@@ -244,6 +244,18 @@ function ReaderFaceStudio(){
           .map(scene=>{
             const actorArt=shanshuiFaceAssets(scene,detail);
             const actorFit=shanshuiBodyFit(scene);
+            // Normalize *only the inspection camera*. The artwork retains
+            // the real source-derived character head scale and pivot; a
+            // tiny reader must not be judged beside a 2× larger hermit.
+            const scaleX=actorFit.headRest.scaleX??1;
+            const scaleY=actorFit.headRest.scaleY??1;
+            const centerX=139+(143-139)*scaleX+(actorFit.headRest.x??0);
+            const topY=124+(24-124)*scaleY+(actorFit.headRest.y??0);
+            const portraitWidth=94*scaleX,portraitHeight=145*scaleY;
+            const portraitBox=[
+              centerX-portraitWidth*.5,topY,
+              portraitWidth,portraitHeight,
+            ].map(x=>Number(x.toFixed(3))).join(" ");
             const part=(id:keyof typeof actorFit.facialRest,
               key:string,pivot:[number,number])=>
               <g data-km-portrait-part={id}
@@ -259,7 +271,7 @@ function ReaderFaceStudio(){
               </div>
               <svg data-km-scene-face={scene}
                 role="img" aria-label={"Original "+scene+" ink portrait"}
-                viewBox="96 24 94 145"
+                viewBox={portraitBox}
                 style={{width:"100%",height:335,background:"#f6ead4",
                   border:"1px solid #e2d2ba",borderRadius:3}}>
                 <g transform={pose(actorFit.headRest,139,124)}>
