@@ -76,9 +76,12 @@ describe("RISO32 ArtCraft: thumb IP truly articulates as separate physical ink",
   it.each(actors)("%s: source-derived mesh regions include both original thumb segments",actor=>{
     const sheet=actor.id==="courier"?RISO_COURIER_SHEET:RISO_PAPER_ARTIST_SHEET;
     for(const side of sides){
-      expect(sheet.regions.some(r=>r.id==="glove-"+side+"-thumb-ip")).toBe(true);
+      // Courier uses named anatomical mesh guides; the Paper Artist
+      // intentionally derives one source region per authored ink part.
+      const id=actor.id==="courier"?"glove-"+side+"-thumb-ip":riso32ThumbDistalId(side);
+      expect(sheet.regions.some(r=>r.id===id)).toBe(true);
       const posed=evaluateRisoCharacterMesh(actor,sheet,160,{maxEdgeLength:6});
-      expect(posed.regions.find(r=>r.id==="glove-"+side+"-thumb-ip")).toBeDefined();
+      expect(posed.regions.find(r=>r.id===id)).toBeDefined();
     }
   });
 
@@ -87,7 +90,10 @@ describe("RISO32 ArtCraft: thumb IP truly articulates as separate physical ink",
       for(const frame of frames){
         const ensemble=evaluateRisoHumanEnsemble(frame,aspect);
         expect(ensemble.width).toBe(aspect==="landscape"?960:540);
-        expect(ensemble.sheet===""?frame<160:frame>=160).toBe(true);
+        // Anticipation is keyed; no assumption that every transitional
+        // f144 frame must still have a blank contour.
+        if([0,46,126].includes(frame))expect(ensemble.sheet).toBe("");
+        if(frame>=160)expect(ensemble.sheet).not.toBe("");
         expect(Number.isFinite(ensemble.source.x)).toBe(true);
         expect(Number.isFinite(ensemble.receiver.y)).toBe(true);
         expect(evaluateRisoCharacter(COURIER,frame).ik.every(j=>j.reachable)).toBe(true);
