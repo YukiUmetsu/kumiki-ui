@@ -179,7 +179,8 @@ export interface DryPencilHeadPlate {
   readonly skinWeaveEvidence:Readonly<{
     pigments:number;replacedCoarseScumbles:number;
     protectedHighlights:number;protectedEdges:number;
-    protectedAnatomy:number;
+    protectedAnatomy:number;protectedSpans:number;
+    opticalLightFibres:number;
   }>;
   readonly observedIrisCounts:Readonly<{
     near:number;far:number;glintReserves:number;sourceContrastNear:number;
@@ -941,6 +942,8 @@ export const createDryPencilHeadPlate=(
     protectedHighlights:skinWeave.protectedHighlights,
     protectedEdges:skinWeave.protectedEdges,
     protectedAnatomy:skinWeave.protectedAnatomy,
+    protectedSpans:skinWeave.protectedSpans,
+    opticalLightFibres:skinWeave.opticalLightFibres,
   };
   // Add verified source-aligned anatomical marks only within the face or
   // hair structure. Never paste the original photographic background.
