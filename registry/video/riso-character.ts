@@ -116,8 +116,11 @@ export function inspectRisoCharacter(input: unknown, allowedPlates?: readonly st
   if (s.cadence !== undefined && ![1, 2, 3, 4].includes(s.cadence)) err("/cadence", "cadence must be 1..4");
   if (!Array.isArray(s.joints) || s.joints.length < 1 || s.joints.length > 80)
     err("/joints", "provide 1..80 joints");
-  if (!Array.isArray(s.parts) || s.parts.length < 1 || s.parts.length > 160)
-    err("/parts", "provide 1..160 authored ink parts");
+  // RISO31: original detailed hands now contain PIP/DIP source plates, not
+  // flattened textures. Keep an explicit finite budget while permitting up
+  // to 192 genuinely named print paths in one full-film character.
+  if (!Array.isArray(s.parts) || s.parts.length < 1 || s.parts.length > 192)
+    err("/parts", "provide 1..192 authored ink parts");
   if (problems.some(p => p.path === "/joints" || p.path === "/parts")) return problems;
   const jointIds = new Set<string>(), parts = new Set<string>();
   for (const [i, j] of s.joints!.entries()) {
