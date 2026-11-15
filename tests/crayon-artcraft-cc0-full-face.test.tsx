@@ -6,7 +6,7 @@ import {CRAYON_PORTRAIT_AUDIT}
   from "../src/video/crayon-artcraft-portrait-audit";
 import {CRAYON_F1_FACE_PROOF,CRAYON_F1_FACE_PARTS,
   CRAYON_F1_EYE_INSPECTION,crayonCc0FaceStudy} from "../src/video/crayon-artcraft-cc0-face";
-import meta,{Cc0RegisteredFullFace}
+import meta,{Cc0RegisteredFullFace,crayonF1SourceCssCamera}
   from "../src/video/crayon-artcraft-adult-face.stories";
 
 describe("ArtCraft F1 registered CC0 face experiment",()=>{
@@ -551,6 +551,26 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(html).toContain('data-km-crayon-element="oral-opening"');
     expect(html).toContain('data-km-crayon-underpaint="opaque"');
     expect(html).toBe(renderToStaticMarkup(<CrayonScene spec={wax} frame={299}/>));
+  });
+  it("aligns Storybook original photo crop to exact scene camera at all F1 source regions",()=>{
+    const source=crayonCc0FaceStudy({view:"wax"});
+    const cameras=[
+      {focusX:269,focusY:546,zoom:2.95,expected:"translate(-80.5181%, -98.8632%) scale(2.9500)"},
+      {focusX:416,focusY:622,zoom:3,expected:"translate(-155.2632%, -122.4584%) scale(3.0000)"},
+      {focusX:417,focusY:734,zoom:3,expected:"translate(-155.7566%, -153.5120%) scale(3.0000)"},
+      {focusX:312,focusY:871,zoom:2.4,expected:"translate(-73.1579%, -143.1978%) scale(2.4000)"},
+    ] as const;
+    for(const c of cameras){
+      const spec={...source,camera:[
+        {frame:0,focusX:c.focusX,focusY:c.focusY,zoom:c.zoom},
+        {frame:299,focusX:c.focusX,focusY:c.focusY,zoom:c.zoom},
+      ]};
+      expect(crayonF1SourceCssCamera(spec,299)).toBe(c.expected);
+      expect(crayonF1SourceCssCamera(spec,0)).toBe(c.expected);
+      expect(inspectCrayonScene(spec)).toEqual([]);
+    }
+    expect(crayonF1SourceCssCamera(source,299))
+      .toBe("translate(0.0000%, 0.0000%) scale(1.0000)");
   });
   it("rejects invalid settings without silently simplifying high-value regions",()=>{
     expect(()=>crayonCc0FaceStudy({detail:NaN})).toThrow();
