@@ -19,6 +19,7 @@
 - `ukiyoe-folk.ts`: folk work, tools and props, and `folkScene()`.
 - `ukiyoe-effects.ts`: fire, halo, smoke, lightning, ash and fox-fire effects, and `effectScene()`.
 - `ukiyoe-kami.ts`: gods and heavenly beings, the auspicious cloud, and `kamiScene()`.
+- `ukiyoe-bushi.ts`: armour, helmet, bow and naginata, and `bushiScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -251,6 +252,21 @@ Most women in the ghost stories look alive until the story turns, so they are fi
 - **Hair, hat and props.** Hair `mizura` (the ancient man's ear loops) and `tenko` (the celestial's crowned topknot); hat `zukin` (Daikoku's round cap). Props `mirror` (the sun-mirror, flashing), `tsurugi` (the straight sword), `hoko` (the jewelled spear) and `tai` (Ebisu's sea bream, its tail flipping). All work in every view.
 - **`kumo` motif.** The auspicious cloud with curled lobes and a long tail, for gods to stand on (one outlined union).
 - **`UKIYOE_KAMI_LOOKS` and `kamiScene(kind)`.** Looks for `tennyo`, `amaterasu`, `susanoo`, `izanagi`, `ebisu` and `daikoku`. Scenes: `hagoromo` (she flies down over the pine shore and away), `amaterasu` (out of the cave with the mirror and halo), `luck` (Ebisu and Daikoku on a cloud) and `susanoo` (the storm god on a cloud). Storybook **Kami** plays them.
+
+### Warriors II
+
+- **`armor`.** The ō-yoroi laced in its colour, in every view:
+  - a cuirass of lacquered lamellae with lacing between the rows and a leather breast panel;
+  - skirt plates that follow the thighs;
+  - the great shoulder board along the upper arm (in profile it is drawn over the arm; square on, the boards stand out at both sides).
+- **Hat `kabuto`.** The riveted bowl, the flared neck guard laced in the armour colour, the turned-back wings and gilt horns.
+- **Bow.** Prop `yumi` with the action `shoot`.
+  - The bow is raised and the string drawn to the ear by IK. It is fully drawn and held before `contact`, then loosed on that frame.
+  - The arrow flies to `aim` (local px) at a speed set by the distance, and stays stuck there.
+  - Without a `shoot`, the bow is carried.
+- **Naginata.** Prop `naginata`: the glaive carried across the body in both hands.
+- **Motif `mato`.** An archery target.
+- **`bushiScene(kind)`.** Builds `archer` (three shots into the target), `bridge` (the warrior-monk and the young swordsman on a bridge by moonlight) or `armour` (four views). Storybook **Warriors** plays them.
 
 ### Transition
 

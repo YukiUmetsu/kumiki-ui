@@ -801,6 +801,47 @@ Storybook has **Kami**, and the Motifs gallery has the cloud.
 - Flying is a lean, not a full horizontal body like the apsara tile.
 - Nobody has done a human visual review yet.
 
+## Warriors II (folktale queue F5, 2026-11-15)
+
+**Sources.**
+
+- The Met's *Armor (Yoroi)*, early 14th to early 15th century (23025, Arms and Armor), studied from the museum photograph.
+- The armour and sword observations already in this study (U3a).
+- No archery or naginata print was studied for this slice. That gap remains, along with Kuniyoshi's and Yoshitoshi's warrior prints.
+
+**What it shows.**
+
+- **Horns.** The gilt horns rise tall and almost straight from a plate on the brow, far above the riveted bowl.
+- **Neck guard.** It flares very wide, like a low roof over the shoulders.
+- **Breastplate.** Covered with a stencilled diamond leather panel.
+- **Skirt plates.** Broad, reaching nearly to the knees, densely laced in rows.
+- **Shoulder boards and tassels.** Large square boards, and orange knotted tassels.
+
+**What was built.** `ukiyoe-bushi.ts`:
+- the `armor` ō-yoroi and the `kabuto`, in every view;
+- the `yumi` prop with the `shoot` timeline (raise, draw by IK, hold, loose on `contact`, the arrow flying to `aim` and sticking);
+- the `naginata`;
+- the `mato` target;
+- `bushiScene()`.
+
+Storybook has **Warriors**.
+
+**Review rounds.**
+
+1. **Tracking a shot frame by frame:** raised, drawn to the ear, held, loosed, in flight, stuck. The aim had been offset to the target's edge and now lands at its centre; the test checks this for all three arrows.
+2. **Front view.** The helmet's neck guard covered the face. It now flares only at the sides.
+3. **Against the yoroi photograph.** The horns were short and curled; they are now tall and straight. The neck guard was narrow and is now wide.
+
+**Not done.**
+
+- Archery and naginata print references.
+- The agemaki tassels.
+- Mounted warriors.
+- A naginata fighting timeline; it is only carried.
+- Toad magic.
+- The ghostly Heike army.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

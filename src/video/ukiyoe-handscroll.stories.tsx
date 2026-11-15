@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Bestiary, CastLab, CastleTown, CrowdLab, Effects, FolkWork, FolktaleFilmPlayer, Interiors, Kami, MaikoDance, MotifGallery, NightFerryPlayer, OiranProcession, OniFight, PrintersProof, SamuraiDuel, SamuraiKata, SceneEditor, SnowWomanFilmPlayer, WomenGhosts } from "./ukiyoe-studio";
+import { Bestiary, CastLab, CastleTown, CrowdLab, Effects, FolkWork, FolktaleFilmPlayer, Interiors, Kami, MaikoDance, MotifGallery, NightFerryPlayer, OiranProcession, OniFight, PrintersProof, SamuraiDuel, SamuraiKata, SceneEditor, SnowWomanFilmPlayer, Warriors, WomenGhosts } from "./ukiyoe-studio";
 
 const meta = {
   title: "Video Production/Film Looks/Ukiyo-e Handscroll",
@@ -16,6 +16,7 @@ export const SnowWoman: Story = { name: "UKIYO1 · The Snow Woman (yōkai film)"
 export const FolktaleBestiary: Story = { name: "UKIYO1 · Folktale bestiary", render: () => <Bestiary /> };
 export const PrintersProofLab: Story = { name: "UKIYO1 · Printer's proof", render: () => <PrintersProof /> };
 export const Crowds: Story = { name: "UKIYO1 · Crowds", render: () => <CrowdLab /> };
+export const Bushi: Story = { name: "UKIYO1 · Warriors", render: () => <Warriors /> };
 export const Gods: Story = { name: "UKIYO1 · Kami", render: () => <Kami /> };
 export const Magic: Story = { name: "UKIYO1 · Effects", render: () => <Effects /> };
 export const Work: Story = { name: "UKIYO1 · Folk work", render: () => <FolkWork /> };
