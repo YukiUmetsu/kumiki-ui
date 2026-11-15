@@ -165,6 +165,24 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("finesses old-pine bough taper and connected foliage ink masses",()=>{
+    const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:125,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",detail:1},
+    }));
+    const boughs=[...html.matchAll(/data-km-pine-bough-shape="" d="([^"]+)"/g)];
+    const foliage=(html.match(/data-km-pine-foliage-wash=""/g)??[]).length;
+    const sprays=(html.match(/data-km-pine-spray=""/g)??[]).length;
+    const rosettes=[...html.matchAll(/data-km-pine-needles="(\\d+)"/g)]
+      .map(match=>Number(match[1]));
+    expect(boughs.length).toBeGreaterThanOrEqual(8);
+    expect(boughs.every(match=>match[1].endsWith(" Z"))).toBe(true);
+    expect(foliage).toBeGreaterThanOrEqual(sprays*2);
+    expect(rosettes.length).toBeGreaterThan(80);
+    expect(rosettes.every(count=>count>=16&&count<=27)).toBe(true);
+    expect(new Set(rosettes).size).toBeGreaterThan(5);
+    expect(html).not.toMatch(/NaN|Infinity|undefined/);
+  });
+
   it("varies rock texture into long, broken and lateral side-brush gestures",()=>{
     for(const scene of SHANSHUI_SCENES){
       const svg=renderToStaticMarkup(createElement(InkShanshuiStage,{
