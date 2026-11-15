@@ -261,6 +261,20 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       )];
       expect(brushParents).toHaveLength(count);
       expect(new Set(brushParents.map(m=>m[3])).size).toBe(5);
+      const fanFaces=[...html.matchAll(
+        /data-km-master-fan-facet="" data-km-master-fan-facet-root="([^"]+)"/g,
+      )];
+      const fanMasses=[...html.matchAll(
+        /data-km-master-fan-facet-wash="" d="([^"]+)" fill="url\(#([^"]+)\)"/g,
+      )];
+      const expectedFacets=school==="travelers"?6:0;
+      expect(fanFaces).toHaveLength(expectedFacets);
+      expect(fanMasses).toHaveLength(expectedFacets);
+      expect((html.match(/data-km-master-fan-facet-rim=""/g)??[]))
+        .toHaveLength(expectedFacets);
+      expect(fanMasses.every((d,k)=>
+        d[1].startsWith("M"+fanFaces[k][1].replace(","," "))&&
+        html.includes('id="'+d[2]+'"'))).toBe(true);
       const placements=[...html.matchAll(
         /data-km-master-stroke-placement="(rock-volume|attached-stratum)" data-km-master-stroke-curl="(with|counter|none)"/g,
       )];
