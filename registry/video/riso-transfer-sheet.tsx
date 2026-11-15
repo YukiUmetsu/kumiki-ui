@@ -136,22 +136,25 @@ export function evaluateRisoTransferSheet(
     const reaches=[14.5,23,10.5];
     const creases=offsets.map((offset,i)=>{
       const reach=reaches[i]*intensity;
-      // Distinct rooted paths: tip vectors are not parallel, equally spaced
-      // repeats. A central knuckle sends the longest pleat into paper stock.
-      const root=at(into(1+i*.8),offset);
-      const control=at(into(2+reach*.48),offset+(i-1)*1.75*intensity);
-      const tip=at(into(3+reach),offset+(1-i)*2.6*intensity);
+      // All six control coordinates must converge to the *same* finger-root
+      // location as pressure approaches zero. A fixed 2-unit first segment
+      // caused a visible pop even when imprint strength was only 0.02.
+      const rooted=1+i*.8;
+      const root=at(into(rooted),offset);
+      const control=at(into(rooted+reach*.48),offset+(i-1)*1.75*intensity);
+      const tip=at(into(rooted+reach),offset+(1-i)*2.6*intensity);
       return "M"+xy(root)+" Q"+xy(control)+" "+xy(tip);
     });
-    // One screened crescent *inside* the sheet, not a white clearance and
-    // not a solid RGB gradient. Thin as pressure drops, zero on actual release.
-    const depth=4.5*intensity;
-    const shadow="M"+xy(at(into(.5),-2.8))+
-      " C"+xy(at(into(1.7),-4.5-depth))+" "+xy(at(into(7+depth),-4.8))+
-      " "+xy(at(into(12+depth*1.1),-2.1))+
-      " C"+xy(at(into(7+depth*.6),-1.1+depth*.42))+
-      " "+xy(at(into(1.6),-1.4+depth*.38))+
-      " "+xy(at(into(.5),-2.8))+" Z";
+    // This screened shadow is also pressure-scaled in BOTH longitudinal and
+    // transverse directions. At pressure=0 its entire topology collapses
+    // into a single local point, with no fixed-size elliptical sticker.
+    const shadowAt=(along:number,across:number)=>
+      at(into(.5+along*intensity),-2.8+across*intensity);
+    const shadow="M"+xy(shadowAt(0,0))+
+      " C"+xy(shadowAt(1.7,-5))+" "+xy(shadowAt(7.5,-3.2))+
+      " "+xy(shadowAt(13,-.4))+
+      " C"+xy(shadowAt(7,1.5))+" "+xy(shadowAt(1.6,1.2))+
+      " "+xy(shadowAt(0,0))+" Z";
     return {creases,shadow};
   };
   const sourcePressure=contact("source",sourceGrip);
