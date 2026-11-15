@@ -88,6 +88,20 @@ const HAIR_SCREEN:readonly Point[]=[
   [219,57],[246,44],[272,35],[307,40],[335,49],
   [361,76],[380,119],[391,175],[405,257],[420,343],
 ];
+/**
+ * Observed source-only shadow behind the left ear and below the jaw.
+ * The CC0 original has a connected near-black mass here, while the
+ * photograph-conditioned v6 output had a paper-white wedge. These eight
+ * author-observed vertices are in the same 608×343 source screenshot
+ * as the face/hair contours, with ±4 screenshot-pixel uncertainty.
+ *
+ * It is NOT a reusable facial landmark or generated painting contour:
+ * every actual deposit still requires a dark, valid SOURCE pixel.
+ */
+const EAR_CONTACT_SHADOW_SCREEN:readonly Point[]=[
+  [206,236],[228,236],[244,262],[252,300],
+  [249,343],[205,343],[202,306],[203,265],
+];
 const mapScreen=(p:Point,g:PortraitFeatureMap,eyeDistance:number):Point=>{
   const scale=eyeDistance/CAPTURE.eyeDistance;
   return [g.hairline[0]+(p[0]-CAPTURE.root[0])*scale,
@@ -96,6 +110,7 @@ const mapScreen=(p:Point,g:PortraitFeatureMap,eyeDistance:number):Point=>{
 export interface HeadContourEvidence {
   readonly face:readonly Point[];
   readonly hairOuter:readonly Point[];
+  readonly earShadow:readonly Point[];
   readonly reference:"cc0-campbell-608x343";
   readonly uncertaintySourcePixels:number;
 }
@@ -111,7 +126,9 @@ export const projectMeasuredHeadContours=(guides:PortraitFeatureMap):HeadContour
   const hairOuter=[...hair,[hair[0][0],hair[0][1]] as Point];
   return {
     face:FACE_SCREEN.map(p=>mapScreen(p,guides,d)),
-    hairOuter,reference:"cc0-campbell-608x343",
+    hairOuter,
+    earShadow:EAR_CONTACT_SHADOW_SCREEN.map(p=>mapScreen(p,guides,d)),
+    reference:"cc0-campbell-608x343",
     uncertaintySourcePixels:4,
   };
 };
@@ -254,8 +271,11 @@ export const createDryPencilHeadPlate=(
       // arbitrary background darkness (e.g. green garden/shadow).
       const value=lum(rgb);
       const closeToFace=distanceToEdge(p,geometry.face)<eyeDist*.24;
+      const sourceVerifiedOcclusion=inside(p,geometry.earShadow)&&
+        photoValue(source,p[0],p[1])<.28;
       const hair=isHairColour(rgb)?around>=1:
-        value<.16&&(around>=2||closeToFace);
+        value<.16&&(around>=2||closeToFace||
+          sourceVerifiedOcclusion);
       if(hair&&!paperWhite(source,p[0],p[1]))return "hair";
     }
     return "background";
@@ -550,7 +570,11 @@ export const createDryPencilHeadPlate=(
         const p:Point=[px,py];
         if(classify(p)!=="hair")continue;
         const distance=distanceToEdge(p,geometry.face);
-        if(distance>eyeDist*.20)continue;
+        // The observed black mass extends farther from the cheek than
+        // a generic narrow contour band. Reconstruct the connected CC0
+        // ear shadow, but only where the actual photo is dark.
+        if(distance>eyeDist*.20&&
+          !inside(p,geometry.earShadow))continue;
         const value=photoValue(source,px,py);
         if(value>.36)continue;
         const ink=photoRGB(source,px,py);
