@@ -560,7 +560,10 @@ export const createDryPencilHeadPlate=(
     // A coarser anisotropic stipple grid stays under the source-specific
     // stroke budget: denser ink *per mark*, not thousands of redundant
     // overlapping points (which would also look waxy at normal scale).
-    const step=eyeDist*.017;
+    // Fill the verified shadow through prior hair-mass passes; these
+    // sharpened overtraces should be sparse accents, not waxy duplicate
+    // strokes. Keep the entire 540×600 plate under its 120k mark budget.
+    const step=eyeDist*.022;
     const nx=Math.ceil(cropWidth/step),ny=Math.ceil(cropHeight/step);
     for(const layer of [0,1] as const){
       for(let iy=0;iy<ny;iy++)for(let ix=0;ix<nx;ix++){
