@@ -131,6 +131,12 @@ The swords and formal dress (`ukiyoe-katana.ts`) are drawn after the Met's mount
   - `cut`: a slow raise to jōdan, a fast forward diagonal strike with a pale fan of air behind the blade, the follow-through, and a low hold.
   - `sheathe`: the flick (chiburi), the blade brought to the scabbard's mouth, the slow slide home, and the hands letting go.
 - **Hands.** Both hands are put on the hilt by two-bone IK (`reachArm`) in every guard. The square views project the profile placement: a blade pointing ahead is foreshortened, and hassō moves to the right shoulder, clear of the face.
+- **Duels.** A `cut` can take `aim` (a point in the figure's own frame), `contact` (the frame it reaches it) and `parried`. A `parry` takes the same `aim` and `contact`.
+  - **Contact:** on the contact frame both blades are turned to pass through that point, so they cross exactly there.
+  - **Parried or not:** a parried cut stops on the other blade and rebounds; otherwise it follows through.
+  - **Hit and fall:** `recoil` staggers the body back; `drop` lowers the blade (`angle`); `fall` topples the figure back about its heels with an accelerating ease. It stays down, its scabbards swinging round to lie along the body.
+  - **Sparks:** the `sparks` particle bursts in a white flash and short gold streaks.
+  - **Recipe:** `samuraiDuel({ id, x, y, scale, gap, start, exchanges, a, b })` returns both fighters and the sparks. Both draw, each exchange is timed on its contact frame and aimed in front of the defender's brow, and a final unparried cut ends it, with the victor sheathing. Storybook **Samurai duel** shows it in a moonlit field of pampas grass.
 - **Look and kata.** `UKIYOE_SAMURAI_LOOK` is a generic look, and `samuraiKata(start)` builds the solo kata: draw, jōdan, cut, hassō, waki, chūdan, sheathe, bow. Storybook **Samurai kata** shows it in a raked-gravel courtyard with a View switch, and the four guards labelled. The Cast lab includes the samurai.
 
 ### Transition

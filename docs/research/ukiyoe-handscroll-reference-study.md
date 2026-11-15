@@ -453,6 +453,34 @@ The counts of kanzashi and the weights given vary between sources and were not u
 - No film uses the samurai yet.
 - Nobody has done a human visual review yet.
 
+## Duels (roadmap U3b, owner request, 2026-11-15)
+
+**What was built.**
+
+- **Aimed exchanges.** Contact is solved geometrically, not hoped for. Each exchange names its contact frame. The attacker's cut and the defender's receiving guard are both aimed at one point a quarter-height in front of the defender's brow. On that frame each blade is turned to pass through the point, wherever the figure's neck and hands actually are.
+- **Sparks.** A `sparks` particle bursts from that point.
+- **Parried or not.** A parried cut stops on the blade and rebounds. An unparried cut follows through.
+- **Hit and fall.** The struck figure recoils, and his blade drops. He topples back about his heels (`fall`, accelerating), his sword and scabbards laid along his body so nothing pierces the ground. The victor holds, clears his blade and sheathes it.
+- **Recipe and Storybook.** `samuraiDuel()` builds the whole duel from a list of exchanges. Storybook **Samurai duel** shows it in a moonlit field of pampas grass.
+
+**Measured.**
+
+- On every contact frame of the default duel the two blades cross within 0.2 px: 83% along the attacker's blade and 49% along the defender's. The spark sits on both.
+- Eight frames earlier the blades have not met.
+- Frame tracking of the fall found three defects, all fixed:
+  - the dropped blade spun a full circle the long way;
+  - while kneeling, the lowered blade went into the ground;
+  - lying down, the sword stuck straight up and the scabbards stabbed down.
+- The tests check contact within 2 px, that the defender falls and stays down, and that the victor sheathes.
+
+**Not done.**
+
+- No footwork: the fighters stand their ground.
+- Every cut is the same high diagonal.
+- No armour.
+- No film uses a duel yet.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

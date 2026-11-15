@@ -20,7 +20,7 @@ import type { UkiyoeCrowdMood } from "../../registry/video/ukiyoe/ukiyoe-crowd";
 import { UKIYOE_CROWD_MOODS } from "../../registry/video/ukiyoe/ukiyoe-crowd";
 import { UKIYOE_SQUARE_VIEW_SPECIES } from "../../registry/video/ukiyoe/ukiyoe-creatures";
 import { UKIYOE_MAIKO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-maiko";
-import { samuraiKata, UKIYOE_KAMAE, UKIYOE_SAMURAI_LOOK } from "../../registry/video/ukiyoe/ukiyoe-katana";
+import { samuraiDuel, samuraiKata, UKIYOE_KAMAE, UKIYOE_SAMURAI_LOOK } from "../../registry/video/ukiyoe/ukiyoe-katana";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -535,6 +535,44 @@ export function SamuraiKata() {
     <Transport clock={clock} total={480} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Kata frame" />
     <h2 style={{ font: "600 18px Newsreader Variable, serif", margin: "8px 0 0" }}>The four guards</h2>
     <Fit width={1920} height={820} maxHeight={520}><UkiyoeScene spec={stances} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="The middle, overhead, upright and low guards" /></Fit>
+  </div>;
+}
+
+// ---- Duel ---------------------------------------------------------------------------------------------------------------------------
+
+/** Two samurai duel in a moonlit field of pampas grass: parried cuts with sparks, then a cut that strikes home. */
+export function SamuraiDuel() {
+  const [view, setView] = useState<"profile" | "three-quarter">("profile");
+  const [ending, setEnding] = useState<"struck" | "parried">("struck");
+  const clock = usePlayback(620, 0, 1, true, true);
+  const spec = useMemo((): UkiyoeSceneSpec => ({
+    version: 1, id: "samurai-duel", width: 1920, height: 1080, durationFrames: 620, seed: 31, wind: { base: .6, turbulence: .5 }, palette: { preset: "edo" },
+    nodes: [
+      { id: "sky", kind: "motif", motif: "sky", params: { width: 1920, height: 1080, top: "yoru", mid: "ai", band: .62, horizon: "murasaki" } },
+      { id: "moon", kind: "motif", motif: "moon", x: 1460, y: 250, params: { radius: 110, halo: .9 } },
+      { id: "hills", kind: "motif", motif: "hills", x: 960, y: 760, params: { width: 2000, height: 180, color: "ai" } },
+      { id: "field", kind: "block", x: 960, y: 900, shape: { type: "rect", width: 1960, height: 360 }, fill: { type: "linear", angle: 90, stops: [[0, "matsu", 1], [1, "yoru", 1]] }, line: 0, grain: .8 },
+      ...[180, 520, 1380, 1720].map((x, i): UkiyoeNode => ({ id: "grass-back" + i, kind: "motif", motif: "reeds", x, y: 800, scale: .9, params: { width: 360, height: 210, count: 26, color: "kincha", variant: i } })),
+      ...(samuraiDuel({ id: "duel", x: 770, y: 960, scale: 1.5, exchanges: ending === "parried" ? [{ attacker: "a", contact: 104 }, { attacker: "b", contact: 172 }, { attacker: "a", contact: 236 }, { attacker: "b", contact: 298 }, { attacker: "a", contact: 372 }] : undefined })
+        .map(n => n.kind === "figure" ? { ...n, look: { ...n.look, view } } : n)),
+      ...[80, 1740].map((x, i): UkiyoeNode => ({ id: "grass-front" + i, kind: "motif", motif: "reeds", x, y: 1080, scale: 1.4, params: { width: 420, height: 260, count: 30, color: "kincha", variant: 7 + i } })),
+      { id: "leaves", kind: "particles", type: "leaves", area: [0, 0, 1920, 1080], count: 26, speed: 2.2, color: "shu", size: .8 },
+    ],
+  }), [view, ending]);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Duel" title="Two swords in a moonlit field">
+      <p style={{ margin: 0 }}>Built by <code>samuraiDuel</code> from a list of exchanges. Both draw; then each cut is timed on its contact frame
+        and aimed at one point in front of the defender's brow, so the attacker's blade and the defender's receiving blade cross exactly
+        there on that frame (within a fraction of a pixel), and sparks fly from it. A parried cut stops on the other blade and rebounds;
+        the last cut strikes home: the defender recoils, his blade drops, and he topples back about his heels, his sword and scabbards
+        coming to lie along him. The victor holds his guard, clears the blade and sheathes it.</p>
+    </Header>
+    <section aria-label="Duel controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="View" value={view} options={["profile", "three-quarter"] as const} onChange={setView} labels={{ profile: "Profile", "three-quarter": "Three-quarter" }} />
+      <Select name="Last cut" value={ending} options={["struck", "parried"] as const} onChange={setEnding} labels={{ struck: "Strikes home", parried: "Parried (both sheathe)" }} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="Two samurai dueling in a moonlit field" /></Fit>
+    <Transport clock={clock} total={620} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Duel frame" />
   </div>;
 }
 
