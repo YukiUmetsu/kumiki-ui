@@ -135,8 +135,8 @@
     "close-up facial field from named source part"
   ],
   "independent_artistic_review": {
-    "status": "pending",
-    "reason": "Actual RISO26 browser renders have not yet been inspected"
+    "status": "direct-screen-review-accepted-for-stencil-tone-only",
+    "reason": "Actual Chromium run 43746812507 AM and FM 16:9/9:16 side-by-side crops reviewed at native size. Original source outlines, eyes, ears and lip engraving remain intact; graded cheek/jaw dots shrink and form a clearer value hierarchy, with no evidence of alpha overlays or posterized silhouette loss. Still not source-identity or anatomy certified."
   },
   "human_anatomy_fidelity": {
     "status": "blocked",
