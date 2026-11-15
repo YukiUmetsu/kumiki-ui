@@ -48,6 +48,21 @@ describe("RISO28 original courier grounded arrival",()=>{
     }
   });
 
+  it("has no unreachable or clamped IK feet in ANY printed source cel",()=>{
+    // Rejected intermediate RISO28 candidate: right stance x203 at f136
+    // exceeded full 40+36 bone length by 8.6 units until the hip was moved.
+    // A nominal 'foot planted' target is insufficient without real joint reach.
+    for(let frame=0;frame<240;frame++){
+      const pose=evaluateRisoCharacter(COURIER,frame);
+      for(const id of ["left-foot-lock","right-foot-lock"]){
+        const contact=pose.ik.find(c=>c.id===id);
+        expect(contact,id+" missing at f"+frame).toBeDefined();
+        expect(contact?.reachable,id+" beyond actual bone reach at f"+frame).toBe(true);
+        expect(contact!.error,id+" clips physical boot at f"+frame).toBeLessThan(.02);
+      }
+    }
+  });
+
   it("plants the actual final 2-foot stance by frame 162 and never slides thereafter",()=>{
     const {left,right}=feet();
     expect(left.endFrame).toBe(165);
