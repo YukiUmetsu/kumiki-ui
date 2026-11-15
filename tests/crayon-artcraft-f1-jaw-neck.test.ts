@@ -1,7 +1,8 @@
 import {describe,it,expect} from "vitest";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
 import {crayonCc0FaceStudy} from "../src/video/crayon-artcraft-cc0-face";
-import {CRAYON_F1_JAW_NECK_IDS,crayonF1ReconstructJawNeck}
+import {CRAYON_F1_JAW_NECK_IDS,CRAYON_F1_JAW_NECK_FLOW_IDS,
+  crayonF1ReconstructJawNeck}
   from "../src/video/crayon-artcraft-f1-jaw-neck-geometry";
 
 const options={
@@ -14,7 +15,8 @@ describe("ArtCraft v9 F1 photograph-grounded jaw/neck native wax",()=>{
   it("retains exactly all original semantic regions outside six modified wax masses",()=>{
     const baseline=crayonCc0FaceStudy({...options,jawNeckForm:"baseline"});
     const candidate=crayonCc0FaceStudy({...options,jawNeckForm:"source-contour"});
-    const changed=new Set(CRAYON_F1_JAW_NECK_IDS);
+    const changed=new Set([...CRAYON_F1_JAW_NECK_IDS,
+      ...CRAYON_F1_JAW_NECK_FLOW_IDS]);
     expect(changed.size).toBe(6);
     expect(new Set(candidate.elements.map(e=>e.id)).size)
       .toBe(candidate.elements.length);
@@ -23,10 +25,10 @@ describe("ArtCraft v9 F1 photograph-grounded jaw/neck native wax",()=>{
     expect(candidate.width).toBe(608);
     expect(candidate.height).toBe(1082);
     expect(candidate.durationFrames).toBe(300);
-    expect(candidate.elements.length).toBe(baseline.elements.length);
+    expect(candidate.elements.length).toBe(baseline.elements.length+2);
     expect(candidate.elements.filter(e=>!changed.has(e.id)))
       .toEqual(baseline.elements.filter(e=>!changed.has(e.id)));
-    for(const id of changed){
+    for(const id of CRAYON_F1_JAW_NECK_IDS){
       const prev=baseline.elements.find(e=>e.id===id);
       const next=candidate.elements.find(e=>e.id===id);
       if(prev?.kind!=="wax"||next?.kind!=="wax")
@@ -89,6 +91,28 @@ describe("ArtCraft v9 F1 photograph-grounded jaw/neck native wax",()=>{
     expect(inspectCrayonScene(candidate)).toEqual([]);
   });
 
+  it("uses real grouped source-flow paper-contact fibers rooted below the jaw",()=>{
+    const scene=crayonCc0FaceStudy({...options,jawNeckForm:"source-contour"});
+    const original=crayonCc0FaceStudy({...options,jawNeckForm:"baseline"});
+    const get=(id:string)=>scene.elements.find(e=>e.id===id);
+    const order=scene.elements.map(e=>e.id);
+    for(const id of CRAYON_F1_JAW_NECK_FLOW_IDS){
+      expect(original.elements.some(e=>e.id===id)).toBe(false);
+      const fibers=get(id);
+      expect(fibers).toMatchObject({kind:"contour",
+        parentId:"neck-attached",clipToParent:true,
+        waxContact:"dry-wax"});
+      if(fibers?.kind!=="contour")throw Error("Missing native wax flow");
+      expect((fibers.d.match(/M/g)??[]).length).toBeGreaterThanOrEqual(10);
+      expect((fibers.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(10);
+      expect(fibers.d).not.toMatch(/[LlQqZz]/);
+      expect(fibers.width).toBeLessThan(.6);
+      expect(fibers.waxPressure).toBeLessThan(.5);
+      expect(order.indexOf("neck-attached")).toBeLessThan(order.indexOf(id));
+      expect(order.indexOf(id)).toBeLessThan(order.indexOf("face-outline"));
+    }
+    expect(inspectCrayonScene(scene)).toEqual([]);
+  });
   it("supports 20%-detail frames and all independent eye/midface combination switches",()=>{
     for(const eyeContact of ["baseline","source-shade"] as const){
       for(const midfaceForm of ["baseline","source-volume"] as const){
