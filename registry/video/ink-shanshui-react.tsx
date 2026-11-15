@@ -905,10 +905,15 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
           // Author a rhythmic motif rather than cloning five stars at every
           // one of 21 nodes. The same composition scales deterministically
           // with the public detail control.
-          const clusterBudget=[0,3,8,1,10,2,10][j];
+          const clusterBudget=[
+            [0,3,8,1,10,2,10],
+            [10,0,3,10,1,8,2],
+            [2,10,1,8,0,10,3],
+          ][i][j];
           const visibleLeaves=Math.round(detail*clusterBudget);
           const visibleSpurs=visibleLeaves>4?2:visibleLeaves>1?1:0;
           return <g key={j} data-km-bamboo-branch-root={f(cx)+","+f(cy)}
+            data-km-bamboo-cluster-budget={clusterBudget}
             transform={"rotate("+f(wind*.6)+" "+f(cx)+" "+f(cy)+")"}>
             <path data-km-bamboo-pressure-twig="" d={branch}
               fill="#685541" opacity=".87"/>
