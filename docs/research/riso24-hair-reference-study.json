@@ -1,0 +1,202 @@
+{
+  "schema_version": 3,
+  "work": "RISO24 original Courier cap + Paper Artist bob printed hair craftsmanship",
+  "date": "2026-11-15",
+  "reference_mode": "style-guided",
+  "source_of_identity": "Existing authored COURIER cap/hair and PAPER_ARTIST bob source SVGs; do not copy any third-party identity",
+  "source_render_benchmark": {
+    "url": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43738441409",
+    "artifact": "riso22-ocular-rendered-proof",
+    "examined": [
+      "landscape-pair-46.png",
+      "landscape-paper-artist-46.png",
+      "red-only-faces.png"
+    ],
+    "observed_failure": [
+      "Courier cap is large dark/red-blue overprinted helmet with no crown growth direction",
+      "Artist bob is flat cobalt blue masses, smooth perimeter and nearly no scalp strand-flow",
+      "Neither face has convincing shaded hair-group root and paper-preserved strand breaks"
+    ],
+    "quality_status": "baseline mechanically rendered; artistic hair gate failed"
+  },
+  "references": [
+    {
+      "id": "risoto-filip-print",
+      "url": "https://www.risoto.shop/products/jaroslav-filip",
+      "creator": "Sarah Camilla Pekarčíková",
+      "title": "Jaroslav Filip — Risograph Portrait",
+      "medium": "Black/white image and fluorescent orange ink on paper",
+      "rights": "artist-owned third-party printed artwork; technical observation only, no redistribution",
+      "actual_observations": {
+        "macro": "Dark hair does not form a uniform helmet; continuous crown arcs and large paper voids separate tuft silhouettes.",
+        "meso": "Left and right hair groups follow differing scalp tangents; curved white paper channels reveal crown flow and temple transitions.",
+        "micro": "Individual fine etched locks vary in length and spacing; thick dark shadows and hairline incisions have hierarchy, not random parallel scratches."
+      },
+      "features": [
+        "crown flow",
+        "paper glints",
+        "tapered root strands"
+      ],
+      "confidence": "actual preview image and published product details"
+    },
+    {
+      "id": "sinclair-orange-portraits",
+      "url": "https://manyformatt.com/risograph-portraits",
+      "creator": "Matt Sinclair",
+      "title": "Risograph Portraits",
+      "medium": "Original orange Risograph portrait series",
+      "rights": "artist-owned third-party artwork; study only",
+      "actual_observations": {
+        "macro": "Directional hair clumps originate from scalp, with irregular curly outer perimeter and deliberate forelock overlap.",
+        "meso": "Fine individual warm ink strands flow along broader locks and become denser at the root; drawn color is grouped, not evenly stippled.",
+        "micro": "Tapered curved strokes have unequal lengths, break at turning points, and leave clean unprinted gaps."
+      },
+      "features": [
+        "directional root origin",
+        "irregular strand rhythm",
+        "staggered micro hatching"
+      ],
+      "confidence": "actual artist portfolio preview and portfolio identification"
+    },
+    {
+      "id": "profile-bob-riso",
+      "url": "https://www.etsy.com/au/listing/1792373016/angela-giarratana-smosh-starkid-a4",
+      "creator": "Etsy listing artist attribution not independently verified",
+      "title": "Angela Giarratana — A4 printed profile portrait",
+      "medium": "Listed Risograph profile portrait; print-process attribution not independently verified",
+      "rights": "third-party commercial listing; technical visual reference only",
+      "actual_observations": {
+        "macro": "Bob/ponytail silhouette has distinct crown sweep, temple line, clustered short loose ends and a curved hair-to-neck insertion.",
+        "meso": "Hair strand groups are organized from parting toward side/nape; interior negative space follows locks rather than a smooth gradient.",
+        "micro": "Varying-length thin curved linework and crosshatch clusters concentrate in darker masses; near the forehead the boundary remains legible."
+      },
+      "features": [
+        "crown direction",
+        "bob temple",
+        "short-end flow"
+      ],
+      "confidence": "listing image preview; creator unverified"
+    },
+    {
+      "id": "nga-soyer-engraving",
+      "url": "https://www.nga.gov/artworks/10477-self-portrait",
+      "creator": "Raphael Soyer",
+      "title": "Self-Portrait (lithograph)",
+      "medium": "Lithograph, dark ink on paper, not a Risograph",
+      "rights": "museum reference; check item-specific image-use policy before redistribution",
+      "actual_observations": {
+        "macro": "Hair mass and scalp shadow support forehead, cheek and ear transition.",
+        "meso": "Directional print hatches show lock, eyebrow, hairline and shadow as separate forms.",
+        "micro": "Local ink compression and selective paper reserves create perceived form without a smooth airbrush blur."
+      },
+      "features": [
+        "source-appropriate cranial volume",
+        "incised line weight"
+      ],
+      "confidence": "museum artwork documentation; print process differs"
+    }
+  ],
+  "studied_features": [
+    {
+      "id": "courier-cap-crown",
+      "owner": "courier",
+      "source_head_path_ids": [
+        "hair",
+        "cap",
+        "cap-brim"
+      ],
+      "source_local_zone": {
+        "x": [
+          -38,
+          43
+        ],
+        "y": [
+          -76,
+          -43
+        ]
+      },
+      "topology": "5 distinct carved strands grouped in cap crown, 2 cut-in brim welt ribbons; all rooted in the existing cap silhouette, with 6 directional red engravings and 3 blue under-brim contours",
+      "vector_flow": "left tuft sweeps from (-30,-57) toward (-3,-70); middle follows scalp arc; right follows (10,-69) toward (33,-53)",
+      "layer_order": "original hair and cap → knockout (blue and red press masters) → engraved red/blue flow",
+      "reference_ids": [
+        "risoto-filip-print",
+        "sinclair-orange-portraits"
+      ],
+      "forbidden": [
+        "global RGB photo effect",
+        "white opaque sticker on cap",
+        "uniform radial hair comb teeth",
+        "cap circle redraw"
+      ]
+    },
+    {
+      "id": "artist-bob-crown",
+      "owner": "paper-artist",
+      "source_head_path_ids": [
+        "hair-back",
+        "hair-fringe",
+        "hair-linework"
+      ],
+      "source_local_zone": {
+        "x": [
+          -45,
+          46
+        ],
+        "y": [
+          -81,
+          23
+        ]
+      },
+      "topology": "3 paper carved crown strands; 4 side paper channels; 7 crown red engravings, 6 side red engravings, 5 fringe roots, 2 broad shadow masses",
+      "vector_flow": "from split upper crown (-13,-70) via scalp down to forehead fringe; side strands descend from (±37,-42) toward jaw/nape",
+      "layer_order": "original blue back hair and blue fringe → head-local paper carve-out → hand-engraved red spot-ink marks → two screened side-root masses",
+      "reference_ids": [
+        "profile-bob-riso",
+        "sinclair-orange-portraits",
+        "risoto-filip-print"
+      ],
+      "forbidden": [
+        "mirror Courier hairstyle",
+        "blunt solid-blue rounded bob",
+        "detached stick-like hairs in face",
+        "uniform repeated red hatch bars"
+      ]
+    }
+  ],
+  "evaluation": {
+    "required_frames": [
+      46,
+      78,
+      160,
+      198
+    ],
+    "required_ratios": [
+      "16:9",
+      "9:16"
+    ],
+    "separations": [
+      "blue",
+      "red",
+      "both"
+    ],
+    "review_scales": [
+      "full film head",
+      "scalp close-up",
+      "2–3x detail"
+    ],
+    "comparison_modes": [
+      "original 2026-11-15 master",
+      "engraved candidate"
+    ],
+    "mechanical_checks": [
+      "all SVG source subpaths closed",
+      "negative paper is real mask not paint",
+      "source hair heads retain existing joint",
+      "both identity hair outer silhouettes unchanged",
+      "print masters independent"
+    ],
+    "artistic_gate": "blocked pending real revised Chromium screenshots and independent visual source-to-style critique",
+    "human_anatomy_gate": "blocked: no rights-cleared identity source frontal/side/three-quarter landmark masks",
+    "encoded_animation_gate": "blocked: no normal-speed full film reviewed"
+  }
+}
