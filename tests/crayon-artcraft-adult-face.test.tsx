@@ -45,6 +45,21 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(far.bounds.width/face.bounds.width).toBeLessThan(.23);
       expect(nodes.get("near-iris-radials")?.parentId).toBe("left-eye-iris");
       expect(nodes.get("far-iris-radials")?.parentId).toBe("right-eye-iris");
+      for(const id of ["cheek-malar-crayon-red","cheek-far-crayon-red"]){
+        const node=nodes.get(id);
+        if(node?.kind!=="wax")throw new Error("Missing pigmented cheek "+id);
+        expect(node.coverage).toBe("open");
+        expect(node.clipToParent).toBe(true);
+        expect(node.blendRadius).toBeGreaterThan(0);
+        expect(node.markStrength).toBeGreaterThan(.2);
+      }
+      expect(nodes.get("forelock-loose-curl")?.kind).toBe("wax");
+      expect(nodes.get("forelock-underturn")?.parentId).toBe("forelock-loose-curl");
+      for(const id of ["forelock-fiber-direction","upper-lashes-rooted-near",
+        "upper-lashes-rooted-far","nose-septum-alarm","dorsum-nose-bone-line"]){
+        const node=nodes.get(id);
+        expect(node?.kind,id).toBe("contour");
+      }
       expect(nodes.get("hair-left-lower-wave")?.kind).toBe("wax");
       expect(nodes.get("hair-nape-sweep")?.kind).toBe("wax");
       expect(nodes.get("tailored-scarf-wrap")?.parentId).toBe("coat-silhouette");
