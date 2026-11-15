@@ -346,20 +346,20 @@ export function WatercolourIllustration({ spec, frame, reducedMotion = false, ..
               characters resembled soft vector gradients rather than paint.
               Modulate RGB after blur but preserve its original alpha. */}
           {(spec.paper.granulation ?? 0)>0&&<>
-            <feTurbulence type="fractalNoise" baseFrequency=".105 .083"
+            <feTurbulence type="fractalNoise" baseFrequency=".095 .072"
               numOctaves={3} seed={2+spec.seed%661} result="soft-paper-grain"/>
             <feColorMatrix in="soft-paper-grain" type="saturate" values="0"
               result="soft-grain-mono"/>
             <feComponentTransfer in="soft-grain-mono" result="soft-grain-tint">
               <feFuncR type="linear"
-                slope={.26*(spec.paper.granulation ?? 0)}
-                intercept={1-.13*(spec.paper.granulation ?? 0)}/>
+                slope={.14*(spec.paper.granulation ?? 0)}
+                intercept={1-.07*(spec.paper.granulation ?? 0)}/>
               <feFuncG type="linear"
-                slope={.26*(spec.paper.granulation ?? 0)}
-                intercept={1-.13*(spec.paper.granulation ?? 0)}/>
+                slope={.14*(spec.paper.granulation ?? 0)}
+                intercept={1-.07*(spec.paper.granulation ?? 0)}/>
               <feFuncB type="linear"
-                slope={.26*(spec.paper.granulation ?? 0)}
-                intercept={1-.13*(spec.paper.granulation ?? 0)}/>
+                slope={.14*(spec.paper.granulation ?? 0)}
+                intercept={1-.07*(spec.paper.granulation ?? 0)}/>
               <feFuncA type="linear" slope={0} intercept={1}/>
             </feComponentTransfer>
             <feComposite in="soft-pigment" in2="soft-grain-tint"
