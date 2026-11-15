@@ -300,8 +300,14 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
     throw new RangeError("Riso ensemble frame must be an integer 0..239");
   const portrait=aspect==="portrait";
   const width=portrait?540:960,height=portrait?960:540;
-  const first={x:portrait?0:120,y:portrait?705:445,scale:portrait?1.2:1.05};
-  const second={x:portrait?335:520,y:portrait?705:445,scale:portrait?1.2:1.05};
+  // RISO27 / actual Chromium 9:16 contact-sheet rejection: the previous
+  // portrait Courier began clipped at the left page edge (stage x=0) and
+  // by f202 overlapped the Paper Artist (other stage x=335), hiding the
+  // original body and fingertip acting. Give each head/body enough air in
+  // the *real source-space stage*, not by drawing smaller/simpler actors.
+  // Keep both at legible 1.1x, with a dedicated portrait editorial baseline.
+  const first={x:portrait?30:120,y:portrait?705:445,scale:portrait?1.1:1.05};
+  const second={x:portrait?405:520,y:portrait?705:445,scale:portrait?1.1:1.05};
   const a=personPoint(COURIER,frame,"right-hand",first.x,first.y,first.scale);
   const b=personPoint(PAPER_ARTIST,frame,"left-hand",second.x,second.y,second.scale);
   // Absolute reference pose sampled from the same two rigs: no history and
