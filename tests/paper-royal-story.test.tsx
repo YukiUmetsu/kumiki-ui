@@ -65,6 +65,19 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
       }
     }
   });
+  it("preserves the prince ear edge while softening the facial-plane rims",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const phase of [0,1,2]){
+        const scene=paperRoyalStoryScene("layered",aspect,phase,37,.85);
+        const ear=scene.layers.find(layer=>layer.id==="prince-ear");
+        const plane=scene.layers.find(layer=>layer.id==="prince-face-planes");
+        expect(ear?.parentId).toBe("prince-head");
+        expect(ear?.edgeIntensity).toBeUndefined();
+        expect(plane?.edgeIntensity).toBe(0);
+        expect(inspectPaperCraft(scene)).toEqual([]);
+      }
+    }
+  });
   it("keeps the princess iris and upper lid on separate, attached sheets",()=>{
     for(const aspect of ["landscape","portrait"] as const){
       for(const phase of [0,1,2]){

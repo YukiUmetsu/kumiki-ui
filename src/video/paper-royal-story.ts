@@ -377,7 +377,7 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
     h.Q(-4,-189,-10,-189),h.Z,
     h.M(23,-176),h.Q(25,-176,24,-174),
     h.Q(23,-174,23,-176),h.Z].join(" "),
-    attachHead(face,9,-177));
+    attachHead(face,9,-177,{edgeIntensity:0}));
   // Ear helix is a cut skin plane, not a floating circle. Its root meets
   // the cheek while the sideburn overlays its uppermost edge.
   add("prince-ear","#D6AB91",25,[
@@ -387,10 +387,15 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
   add("prince-eye-white","#FFF1D8",28,[
     h.M(11,-187),h.Q(15,-190,19,-185),h.Q(16,-183,11,-187),h.Z].join(" "),
     attachHead(face,16,-185));
+  // The lid and iris share one continuous contour, avoiding an even-odd
+  // knockout while fitting the director's bounded cut-stock budget.
   add("prince-eye-brow","#4B4858",29,
     [h.M(9,-191),h.Q(16,-194,21,-189),h.Q(15,-190,9,-191),h.Z,
+      h.M(10,-187),h.Q(14.5,-190.5,19,-185.4),h.Q(17.8,-186,16.3,-186.4),
+      h.C(16.4,-185.4,16,-184.8,15,-184.8),h.C(14,-184.8,13.6,-185.4,13.8,-186.5),
+      h.Q(11.8,-186.8,10,-187),h.Z,
       h.M(11,-183),h.Q(16,-181,20,-184),h.Q(15,-182,11,-183),h.Z,
-      h.oval(15,-184.5,1.55,2.15),h.leaf(-8,-175,7,40,1.2)].join(" "),attachHead(face,16,-187));
+      h.leaf(-8,-175,7,40,1.2)].join(" "),attachHead(face,16,-187));
   add("prince-mouth","#9A7172",28,[
     h.M(17,-166),h.Q(21,-168,23,-165),h.Q(20,-164,17,-165),h.Z].join(" "),
     attachHead(face,19,-166));

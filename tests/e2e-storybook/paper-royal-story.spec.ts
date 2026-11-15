@@ -132,3 +132,20 @@ test("landscape fox does not overlap the prince's hand or boots",async({page})=>
     }
   }
 });
+
+test("prince upper lid overlaps the eye aperture in both formats",async({page})=>{
+  for(const aspect of ["landscape","portrait"]){
+    await page.goto(path+"&args=aspect:"+aspect+";motion:0.75;medium:layered");
+    await page.getByRole("slider",{name:"Scrub fairy tale"}).fill("610");
+    const eye=page.locator('[data-km-paper-layer="prince-eye-white"] > g > path').first();
+    await expect(eye).toBeVisible();
+    const covered=await page.evaluate(()=>{
+      const aperture=document.querySelector<SVGGeometryElement>('[data-km-paper-layer="prince-eye-white"] > g > path');
+      const ink=document.querySelector<SVGGeometryElement>('[data-km-paper-layer="prince-eye-brow"] > g > path');
+      if(!aperture||!ink)throw Error("Prince eye stock is missing");
+      const box=aperture.getBBox();
+      return ink.isPointInFill(new DOMPoint(box.x+box.width*.5,box.y+box.height*.2));
+    });
+    expect(covered,aspect+" upper lid must overlap the aperture").toBe(true);
+  }
+});
