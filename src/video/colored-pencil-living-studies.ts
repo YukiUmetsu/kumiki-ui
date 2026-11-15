@@ -369,6 +369,28 @@ function fox():PencilSubjectPart[] {
       path:"M269 123 Q283 86 298 75 Q303 99 287 139 Z",
       bounds:[265,71,41,71],direction:-68,start:131,
       details:[mark("M291 94 Q282 107 282 127","#E8CAB0",.50,246,.73)]},
+    // ArtCraft: one continuous source-free *anatomy* study, not a photo
+    // extraction. The dark fox eye is embedded in brow bone and the cheek
+    // skin/fur plane; disconnected socket stickers made this face mask-like.
+    // Fine fibers originate from curved orbital ridges, turn into tear
+    // tracts and vanish into malar fur at three different pressures.
+    {id:"periocular-form",material:"glaze",
+      palette:["#B97959","#785047","#E4B28B"],
+      path:"M146 182 C158 165 174 167 190 177 Q198 182 192 192 Q181 179 169 184 Q158 183 147 196 Z "+
+        "M209 180 C225 160 251 159 273 169 Q288 181 285 200 Q278 217 267 224 Q271 204 257 196 Q240 174 220 196 Z "+
+        "M157 202 Q181 201 199 209 Q227 205 253 212 Q242 230 221 233 Q196 227 171 227 Z",
+      bounds:[145,156,145,81],direction:36,start:130,
+      details:[
+        ...pencilRootedFur([
+          [151,181,189,193,168,172,20,7],
+          [217,178,275,195,246,168,25,8],
+          [224,210,271,231,251,216,19,10],
+        ],814,["#DCA083","#84574C","#EBC3A0"],236),
+        mark("M152 183 Q174 168 191 183 M216 186 Q241 165 269 178",
+          "#794C46",.78,241,.65),
+        mark("M165 207 Q180 213 192 211 M224 213 Q248 216 270 205",
+          "#ECC0A2",.66,253,.58),
+      ]},
     {id:"mask",material:"fur",palette:["#69514E","#423C41","#986A5C"],
       // Narrow, dark bony orbits and an oblique tear duct beneath near eye.
       path:"M150 191 Q163 176 185 184 C189 190 181 198 167 200 Q156 201 150 191 Z M217 188 Q235 171 264 181 C267 191 254 203 231 205 Q220 202 217 188 Z",
@@ -424,29 +446,46 @@ function fox():PencilSubjectPart[] {
         mark("M262 272 Q277 255 283 246 M249 278 Q260 269 268 262",
           "#E7C6A8",.52,279,.71),
       ]},
-    {id:"eye-far",material:"glass",palette:["#B18E5D","#574B45","#DEB678"],
-      // Far orbit is partially occluded and much smaller than the near one.
-      path:"M160 190 C164 183 174 184 179 188 Q178 195 169 197 Q162 196 160 190 Z",
-      bounds:[158,182,23,17],start:153,
+    {id:"eye-far",material:"glass",palette:["#8B694D","#433E3C","#B49767"],
+      // The far eye is compressed in perspective and occluded by a bowed
+      // upper eyelid. A slit pupil follows the globe, not a clock face.
+      path:"M160 190 C166 185 172 184 179 188 C177 193 173 196 168 195 Q163 194 160 190 Z",
+      bounds:[158,183,23,15],start:153,
       details:[
-        mark("M159 189 Q168 181 180 188 M162 195 Q169 200 177 193",
-          "#302D33",.96,256,.82),
-        mark("M168 186 Q172 187 173 192 Q172 196 169 196",
-          "#785A3C",.73,262,.82),
-        mark("M170 187 Q171 190 170 194","#292C31",.84,268,.91),
-        mark("M168 188 L169 189","#FBEBB9",.61,273,.85),
+        mark("M159 189 C165 183 175 182 181 187","#29282F",1.0,250,.88),
+        mark("M162 192 Q170 198 177 192","#6E5550",.56,261,.72),
+        mark("M167 186 Q173 183 174 189 Q173 195 169 195",
+          "#8E673F",.70,262,.89),
+        mark("M170 186 Q172 190 169 195","#252932",.75,269,.93),
+        mark("M168 187 Q169 186 170 188","#FFF1C6",.40,276,.93),
+        mark("M159 189 Q158 192 161 195 M177 191 Q180 189 181 185",
+          "#3A2F32",.54,277,.76),
       ]},
-    {id:"eye-near",material:"glass",palette:["#B99A67","#5A4C44","#E8BC7F"],
-      path:"M225 190 C231 178 245 178 257 184 Q258 193 247 198 Q234 201 225 190 Z",
-      bounds:[222,176,39,26],start:155,
+    {id:"eye-near",material:"glass",palette:["#9D7950","#413B3B","#D0A875"],
+      // Near eye: six named anatomical contacts — canthi, upper-lid
+      // overhang, lower rim, thin amber iris, tear duct, displaced glint.
+      // Its upper lid is sharply pigmented; the lower is soft where the
+      // fur turns toward the muzzle. No unshaded white eye ellipse.
+      path:"M225 189 C231 182 239 179 248 181 Q256 182 258 185 "+
+        "C256 193 251 197 243 198 Q231 197 225 189 Z",
+      bounds:[223,178,38,23],start:155,
       details:[
-        mark("M225 187 Q238 174 258 183 M228 196 Q240 202 255 193",
-          "#2E3035",1.12,258,.88),
-        mark("M241 181 Q250 180 252 188 Q252 197 246 198 Q239 195 241 181",
-          "#936C46",.78,262,.84),
-        mark("M247 181 Q251 185 248 195","#212A2F",1.18,269,.89),
-        mark("M244 184 Q246 182 248 184","#FFEAC2",.92,274,.93),
-        mark("M223 193 Q235 205 248 202","#A1796B",.55,276,.71),
+        mark("M224 189 C232 179 244 177 256 182 Q259 183 260 185",
+          "#25272F",1.38,248,.94),
+        mark("M228 194 Q238 201 248 198 Q255 194 257 189",
+          "#73534B",.65,257,.72),
+        mark("M241 181 C247 178 253 183 252 189 Q251 196 246 198 "+
+          "Q240 197 239 191 Q239 186 241 181 Z",
+          "#B38A54",.73,264,.84),
+        mark("M246 181 Q250 185 249 191 Q249 195 246 197",
+          "#20262F",1.32,270,.93),
+        mark("M244 183 Q246 181 248 183","#FFF3D1",.70,276,.96),
+        mark("M225 188 Q228 192 231 192 M258 186 Q261 185 262 181",
+          "#302B32",.61,277,.85),
+        mark("M229 199 Q239 205 251 199 M232 203 Q245 207 254 200",
+          "#BD8F79",.48,284,.54),
+        mark("M220 184 Q231 178 241 177 M253 178 Q261 180 265 185",
+          "#764D43",.43,290,.62),
       ]},
     {id:"whisker-roots",material:"fur",palette:["#BEB2A2","#827874","#E9DBBE"],
       path:"M151 235 Q170 245 187 247 Q207 243 232 234 Q222 254 198 256 Q166 255 149 242 Z",
