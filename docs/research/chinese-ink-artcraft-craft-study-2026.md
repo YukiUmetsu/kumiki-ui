@@ -102,3 +102,55 @@ specific observed differences rather than invented fidelity scores.
 Museum and research images are **visual technique references only**. No
 source pixel data, hosted image URL, direct traced contours, or third
 party artwork are shipped in the film renderer or registry.
+
+
+## Render-led iteration — old-pine compression and willow branch taper
+
+The original 2.15× Storybook browser proof (CI `43658375042`) showed an
+unambiguous issue even though the branch-connectivity tests passed:
+
+- The new pine was still a row of oversized starburst needles on broad,
+  nearly horizontal, uniformly weighted limbs. The silhouette looked
+  diagrammatic rather than painterly, and the branch-to-twig ratios were
+  too thick.
+- The willow's main branches were heavy parallel stripes across the crop,
+  obscuring the subtler hanging fronds. The comparison crop for geological
+  texture was mistakenly centered on a mostly unpainted patch.
+
+### Further inspected references
+
+- [Wen Zhengming, *Old Pine Tree*, Cleveland Museum of Art](https://www.clevelandart.org/art/1964.43):
+  its high-resolution close-up separates a gnarled, soft-edged bark mass from
+  many **thin, crowded needle tufts**; dark and dilute ink overlap without
+  making the primary limbs evenly thick black sticks.
+- [Zhao Yuan, *Listening to the Rustling of Pines*, National Palace Museum](https://digitalarchive.npm.gov.tw/Collection/Detail/5786?dep=P):
+  radial needle masses surround complex joints, with deep and light ink
+  edges rather than broad empty angular bough rows.
+- [Mei Qing, *Landscapes after Ancient Masters*, Metropolitan Museum](https://www.metmuseum.org/art/collection/search/61825):
+  hanging willow arcs release to fine ends and the supple drooping groups
+  have more visual importance than the dark supporting branches.
+- [Attributed to Muqi, *Willow and Magpie*, Cleveland Museum](https://www.clevelandart.org/art/1982.53):
+  uses wet/dry ink handling to evoke willow and mist; strong trunk and
+  branch lines do not need uniformly heavy horizontal outlines.
+
+### Original code refinements
+
+1. Every pine bough is now a closed, individually tapered deposited-ink
+   silhouette: broad at its trunk joint, reducing continuously to near-zero
+   at its tip. Short highlight edges follow the SAME cubic centerline.
+2. Three needle groups per attached twig now use shorter, finer, denser
+   pressure-tapered needle shapes (17–26 per rosette). Each has dilute
+   underwash and selectively lifted dry strokes; the underwash must never
+   replace the individual pointed leaves.
+3. Willow arch branches are pressure-filled ink ribbons with explicit
+   asymmetric normal offsets and a loaded-to-hairline release. Every
+   original branch curve still parents the hanging fronds; leaves become
+   small pointed brush shapes, not uniform triangles.
+4. Geological close-up target now centers on the actual mountain face,
+   not a blank area. Existing depth/wind/ink sliders still affect the
+   same deterministic original film renderer.
+
+As required by ArtCraft, these are **new hypotheses pending direct visual
+comparison**, not an assertion of equivalent workmanship. The next
+browser contact sheet must show meaningful improvements in the branch
+silhouette and negative space at both 960×540 and enlarged crops.
