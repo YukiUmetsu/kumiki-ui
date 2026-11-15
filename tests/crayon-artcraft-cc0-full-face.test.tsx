@@ -198,6 +198,49 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(right.every(p=>p.x>=467&&p.x<=586)).toBe(true);
     expect(left.every(p=>p.x>=24&&p.x<=117)).toBe(true);
   });
+  it("preserves attached F1 alar-septal anatomy without nostril glyph rings",()=>{
+    const scene=crayonCc0FaceStudy({view:"wax"});
+    const get=(id:string)=>scene.elements.find(e=>e.id===id);
+    for(const id of ["nose-septal-transition","nose-tip-underlight"]){
+      const e=get(id);
+      expect(e).toMatchObject({kind:"wax",parentId:"face-outline",
+        clipToParent:true,coverage:"open"});
+      if(e?.kind!=="wax")throw new Error("Missing attached nasal form: "+id);
+      expect(e.bounds.x).toBeGreaterThan(360);
+      expect(e.bounds.x+e.bounds.width).toBeLessThan(474);
+      expect(e.underpaintTooth??0).toBe(0);
+    }
+    for(const id of ["nostril-contact-near","nostril-contact-far"]){
+      const e=get(id);
+      expect(e).toMatchObject({kind:"contour",parentId:"face-outline",
+        clipToParent:true});
+      if(e?.kind!=="contour")throw new Error("Missing alar undercut: "+id);
+      expect(e.width).toBeLessThanOrEqual(1.3);
+      expect(e.d).not.toMatch(/[Zz]/);
+    }
+    // A source-observed nostril must be supported by alar mass, not two
+    // independent dark capsules on otherwise featureless wax paper.
+    expect(get("nose-alar-near")?.kind).toBe("wax");
+    expect(get("nose-alar-far")?.kind).toBe("wax");
+    expect(inspectCrayonScene(scene)).toEqual([]);
+  });
+  it("renders the F1 oblique near-closed mouth without a broad enamel slash",()=>{
+    const scene=crayonCc0FaceStudy({view:"wax"});
+    const get=(id:string)=>scene.elements.find(e=>e.id===id);
+    for(const id of ["lip-cupid-tubercles","lip-lower-core-shadow"]){
+      expect(get(id)).toMatchObject({kind:"wax",parentId:"face-outline",
+        clipToParent:true,coverage:"open"});
+    }
+    const enamel=get("mouth-teeth"),slit=get("oral-opening");
+    if(enamel?.kind!=="wax"||slit?.kind!=="wax")
+      throw new Error("Missing layered F1 mouth anatomy");
+    expect(enamel.bounds.height).toBeLessThanOrEqual(12);
+    expect(enamel.bounds.width).toBeLessThanOrEqual(42);
+    expect(enamel.parentId).toBe("oral-opening");
+    expect(enamel.clipToParent).toBe(true);
+    expect(slit.colors[0]).not.toBe("#f5ebe1");
+    expect(inspectCrayonScene(scene)).toEqual([]);
+  });
   it("keeps an exact independent source graph only in explicit anatomy mode",()=>{
     const wax=crayonCc0FaceStudy({view:"wax",detail:.5});
     const construction=crayonCc0FaceStudy({view:"anatomy",detail:.5});
