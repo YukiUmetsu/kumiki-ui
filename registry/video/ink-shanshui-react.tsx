@@ -953,8 +953,8 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
                     .15*s(seed,k+i*31+j*7))}/>
                 {echo&&<path data-km-bamboo-satellite-leaf=""
                   data-km-bamboo-satellite-root={f(echoRoot[0])+","+f(echoRoot[1])}
-                  data-km-bamboo-satellite-heading={f(echoAngle)}
-                  d={satellite} fill={k===4?"#675442":"#8b765c"}
+                  d={satellite} data-km-bamboo-satellite-heading={f(echoAngle)}
+                  fill={k===4?"#675442":"#8b765c"}
                   opacity={f(.62+.18*s(seed+1459,i*13+j*7+k))}/>}
                 {detail>.77&&(k===1||k===3)&&
                   <path data-km-bamboo-dry-lift=""
