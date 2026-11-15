@@ -1,4 +1,4 @@
-import {useMemo} from "react";
+import {useMemo,useState} from "react";
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
 import type {CrayonSceneSpec} from "../../registry/video/materials/crayon-scene";
@@ -292,6 +292,7 @@ export const SourceMeasuredWaxContactComparison:Story={
  * Crayon folder, not a polished portrait or an additional category.
  */
 export function PaperContactMaterialLab({detail,startFrame,playbackRate,loop}:StudyProps){
+  const [compare,setCompare]=useState(false);
   const pressure=Math.max(.2,Math.min(1,detail));
   const spec=useMemo(()=>crayonPaperContactSwatches(pressure),[pressure]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
@@ -304,8 +305,21 @@ export function PaperContactMaterialLab({detail,startFrame,playbackRate,loop}:St
       broken side-nib contacts. The artwork is a material test, not an approved
       human eye. Pressure is controlled by the Detail slider.
     </p>
-    <div style={{width:"100%",aspectRatio:"960 / 318"}}>
-      <CrayonScene spec={spec} frame={frame}/>
+    <div data-km-crayon-contact-frames={compare?"comparison":"single"} style={{
+      display:compare?"grid":"block",gridTemplateColumns:compare?"repeat(2,minmax(0,1fr))":undefined,
+      gap:12,alignItems:"start"}}>
+      {compare&&<div>
+        <div style={{fontSize:12,marginBottom:4}}>Earlier absolute frame {Math.max(0,frame-24)}</div>
+        <div style={{width:"100%",aspectRatio:"960 / 318"}}>
+          <CrayonScene spec={spec} frame={Math.max(0,frame-24)}/>
+        </div>
+      </div>}
+      <div>
+        {compare&&<div style={{fontSize:12,marginBottom:4}}>Current absolute frame {frame}</div>}
+        <div style={{width:"100%",aspectRatio:"960 / 318"}}>
+          <CrayonScene spec={spec} frame={frame}/>
+        </div>
+      </div>
     </div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",
       gap:8,fontSize:12,marginTop:8,textAlign:"center"}}>
@@ -320,6 +334,10 @@ export function PaperContactMaterialLab({detail,startFrame,playbackRate,loop}:St
         onChange={e=>seek(Number(e.target.value))}/></label>
       <output>{frame}</output>
       <button type="button" onClick={()=>seek(239)}>Inspect material</button>
+      <button type="button" aria-pressed={compare}
+        onClick={()=>setCompare(previous=>!previous)}>
+        {compare?"Hide before/after":"Compare earlier/later frames"}
+      </button>
     </div>
   </section>;
 }
