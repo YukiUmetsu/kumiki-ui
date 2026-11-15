@@ -337,6 +337,64 @@ export function crayonWaxContactClumps(
   }));
 }
 
+/** Small waxy pickups at stroke lift-off, observed in real wax-crayon
+ * microscopy. Unlike region-wide sprinkle/clumps, the deposits attach to
+ * the actual quadratic nib gesture and share its draw-in timing.
+ *
+ * The final clump geometry is a deterministic function of the nib arc,
+ * contact pressure and canonical paper relief. This is an approximation,
+ * not a conservation-of-mass or temperature-dependent wax simulation.
+ */
+export function crayonStrokeEndPickup(
+  mark:CrayonMark,paperSeed:number,progress=1,
+):string {
+  if(!Number.isSafeInteger(paperSeed)||!Number.isFinite(progress)||
+    progress<0||progress>1)
+    throw new RangeError("Invalid crayon stroke pickup controls");
+  if(progress<=0)return "";
+  const out:string[]=[];
+  const fmt=(n:number)=>n.toFixed(2);
+  for(let i=0;i<mark.nibArcs.length;i++){
+    const exposed=Math.max(0,Math.min(1,progress*mark.nibArcs.length-i));
+    // Waxy matter piles up mainly when the worn nib lifts from paper.
+    if(exposed<.85)continue;
+    const [x0,y0,cx,cy,x1,y1]=mark.nibArcs[i];
+    const t=.85+.15*Math.min(1,(exposed-.85)/.15);
+    const inv=1-t;
+    const x=inv*inv*x0+2*inv*t*cx+t*t*x1;
+    const y=inv*inv*y0+2*inv*t*cy+t*t*y1;
+    const tx=2*inv*(cx-x0)+2*t*(x1-cx);
+    const ty=2*inv*(cy-y0)+2*t*(y1-cy);
+    const len=Math.max(1e-6,Math.hypot(tx,ty));
+    const nx=-ty/len,ny=tx/len,ux=tx/len,uy=ty/len;
+    const paper=crayonPaperHeight(x,y,paperSeed);
+    const wax=mark.pressure*(.32+.68*paper);
+    if(wax<.24)continue;
+    // Three overlapping asymmetric lobes, each joined to the existing
+    // contact ribbon. Their lopsided, tapered edges are not confetti.
+    const base=mark.width*(.14+.18*wax);
+    for(let lobe=0;lobe<3;lobe++){
+      const rand=(ch:number)=>crayonHash(mark.index,i*13+lobe,5230+ch);
+      if(rand(4)>.70+.22*wax)continue;
+      const sideways=(lobe-1)*base*.73+(rand(1)-.5)*base*.22;
+      const ahead=(lobe-.8)*base*.53;
+      const px=x+nx*sideways+ux*ahead;
+      const py=y+ny*sideways+uy*ahead;
+      const w=base*(.55+.65*rand(2));
+      const h=base*(.45+1.25*rand(3));
+      const backward=.85*h,forward=.55*h;
+      const sx=px-ux*backward,sy=py-uy*backward;
+      const ex=px+ux*forward,ey=py+uy*forward;
+      out.push("M"+fmt(sx-nx*w)+" "+fmt(sy-ny*w)+
+        "Q"+fmt(px-nx*w*1.35)+" "+fmt(py-ny*w*.90)+" "+
+        fmt(ex)+" "+fmt(ey)+
+        "Q"+fmt(px+nx*w*1.1)+" "+fmt(py+ny*w*.78)+" "+
+        fmt(sx+nx*w)+" "+fmt(sy+ny*w)+"Z");
+    }
+  }
+  return out.join(" ");
+}
+
 export function crayonDryNibPath(
   mark:CrayonMark,progress=1,contact:"legacy"|"hand"="legacy",
   paperSeed=0,
