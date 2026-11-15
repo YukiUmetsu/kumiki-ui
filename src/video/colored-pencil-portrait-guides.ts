@@ -53,10 +53,11 @@ export interface PortraitPhotoCapture {
 }
 export const mapCC0WomanPortraitFeatures=(capture:PortraitPhotoCapture):PortraitFeatureMap=>{
   const {width,height,naturalWidth,naturalHeight,mode,focal,zoom}=capture;
-  if([width,height,naturalWidth,naturalHeight,zoom,...focal].some(v=>
-    !Number.isFinite(v)||v<=0)||width>2048||height>2048||
+  if(![width,height,naturalWidth,naturalHeight,zoom].every(v=>
+    Number.isFinite(v)&&v>0)||width>2048||height>2048||
     naturalWidth<8||naturalHeight<8||
-    focal[0]>1||focal[1]>1||zoom>8)
+    !focal.every(v=>Number.isFinite(v)&&v>=0&&v<=1)||
+    zoom>8||(mode!=="focus"&&mode!=="fit"))
     throw new RangeError("Invalid photograph framing for portrait feature guides");
   const cover=mode==="focus";
   const scale=(cover?
@@ -96,6 +97,8 @@ export interface PortraitStrokeEvidence {
   readonly sampledSourceFeatures:PortraitFeatureMap;
   readonly marks:readonly PencilPhotoMark[];
   readonly featureCounts:Readonly<Record<string,number>>;
+  /** Iris strokes rejected to protect photograph-observed catchlights/paper white. */
+  readonly highlightReserves:number;
 }
 /** Fine dry pigment uses original source-color data at the measured features.
  * Supports per-shot rescaling/cropping; no arbitrary hand-invented human face.
@@ -106,22 +109,52 @@ export function createPencilPortraitFeatureMarks(
   guides:PortraitFeatureMap,
   seed=271,
 ):PortraitStrokeEvidence {
-  if(!Number.isSafeInteger(seed)||seed<0||
-    source.data.length!==source.width*source.height*4)
-    throw new RangeError("Invalid source photo or portrait pencil seed");
+  if(!Number.isSafeInteger(seed)||seed<0||seed>2147483647||
+    !Number.isSafeInteger(source.width)||!Number.isSafeInteger(source.height)||
+    source.width<8||source.height<8||source.width>2048||source.height>2048||
+    !(source.data instanceof Uint8ClampedArray)||
+    source.data.length!==source.width*source.height*4||
+    Object.keys(guides).length!==25||
+    Object.values(guides).some(p=>!Array.isArray(p)||p.length!==2||
+      p.some(v=>!Number.isFinite(v))))
+    throw new RangeError("Invalid source photo, observed portrait guides or seed");
   const marks:PencilPhotoMark[]=[];
   const counts:Record<string,number>={};
+  let highlightReserves=0;
   const add=(kind:string,x:number,y:number,dx:number,dy:number,
     alpha:number,width:number,pass:0|1|2,deep:number,step:number)=>{
     // Do not create marks outside actual photo pixels or on empty letterbox.
     if(x<1||y<1||x>=source.width-2||y>=source.height-2)return;
+    // Preserve the photographed corneal catchlight: a dark iris fibre must
+    // not turn a pale source pixel into a pupil-shaped digital stamp.
+    // The decision samples the whole short pencil gesture, not just its root.
+    if(kind.startsWith("iris-")){
+      const onHighlight=([px,py]:readonly[number,number])=>{
+        const sx=clamp(Math.round(px),0,source.width-1);
+        const sy=clamp(Math.round(py),0,source.height-1);
+        const k=4*(sy*source.width+sx);
+        return source.data[k+3]<220||
+          (.2126*source.data[k]+.7152*source.data[k+1]+
+            .0722*source.data[k+2])>224;
+      };
+      if([[x,y],[x+dx*.5,y+dy*.5],[x+dx,y+dy]].some(onHighlight)){
+        highlightReserves++;return;
+      }
+    }
     const palette=localPigment(source,x,y,deep);
     const wobble=(pencilHash(seed,step,68)-.5)*.35;
+    // Even crop-edge marks stay inside the physical drawing support.
+    const endX=clamp(x+dx,1,source.width-2);
+    const endY=clamp(y+dy,1,source.height-2);
+    const pixel=4*(Math.round(y)*source.width+Math.round(x));
+    const darkness=1-(.2126*source.data[pixel]+
+      .7152*source.data[pixel+1]+.0722*source.data[pixel+2])/255;
+    const pressure=.79+.26*darkness;
     marks.push({
-      x,y,controlX:x+dx*.5-dy*wobble*.1,
-      controlY:y+dy*.5+dx*wobble*.1,
-      endX:x+dx,endY:y+dy,color:palette,
-      alpha:clamp(alpha,0,.57),width,pass,
+      x,y,controlX:clamp(x+dx*.5-dy*wobble*.1,1,source.width-2),
+      controlY:clamp(y+dy*.5+dx*wobble*.1,1,source.height-2),
+      endX,endY,color:palette,
+      alpha:clamp(alpha*pressure,0,.57),width,pass,
     });
     counts[kind]=(counts[kind]??0)+1;
   };
@@ -267,5 +300,5 @@ export function createPencilPortraitFeatureMarks(
         .13+.13*(1-lum),j);
     }
   }
-  return {sampledSourceFeatures:guides,marks,featureCounts:counts};
+  return {sampledSourceFeatures:guides,marks,featureCounts:counts,highlightReserves};
 }
