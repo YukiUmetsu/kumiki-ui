@@ -342,7 +342,7 @@ function rabbit(p:Pen,add:Add,phase:number,motion:number){
     add("rabbit-ear-inner-"+id,"#D9A5AB",22,[
       p.M(x-3,-76),p.C(x-8+tilt*.2,-98,x-4+tilt,-115,x+2+tilt,-116),
       p.Q(x+9,-96,x+2,-77),p.Z].join(" "),
-      attach("rabbit-ear-"+id",x,-90));
+      attach("rabbit-ear-"+id,x,-90));
   }
   add("rabbit-face","#665964",24,[
     p.oval(15,-61,2.2,2.7),p.oval(24,-54,2.4,1.6),
