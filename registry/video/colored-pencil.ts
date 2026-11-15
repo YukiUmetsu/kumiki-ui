@@ -30,6 +30,10 @@ export interface PencilTrace extends PencilTiming {
   color: string;
   width: number;
   opacity?: number;
+  /** Semantic subfeature key. Used by CP3 detail tracks without adding regions. */
+  id?: string;
+  /** Part-local pose; the enclosing opaque region owns clipping and z-order. */
+  transform?: string;
 }
 export interface PencilRegion {
   id: string;
@@ -95,6 +99,9 @@ const validTrace = (trace: PencilTrace): boolean =>
   /^[Mm]/.test(trace.path) && HEX.test(trace.color) &&
   Number.isFinite(trace.width) && trace.width >= .2 && trace.width <= 10 &&
   (trace.opacity === undefined || (Number.isFinite(trace.opacity) && trace.opacity >= 0 && trace.opacity <= 1)) &&
+  (trace.id === undefined || (typeof trace.id === "string" && /^[A-Za-z][\\w-]{0,40}$/.test(trace.id))) &&
+  (trace.transform === undefined || (typeof trace.transform === "string" &&
+    trace.transform.length <= 300 && /^[\\w .(),+\\-]+$/.test(trace.transform))) &&
   Number.isSafeInteger(trace.startFrame) && trace.startFrame >= 0 &&
   Number.isSafeInteger(trace.durationFrames) && trace.durationFrames >= 1;
 export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
