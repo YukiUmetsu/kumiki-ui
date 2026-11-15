@@ -79,6 +79,24 @@ describe("ArtCraft photo-measured dry-pencil lip and alar tonal planes",()=>{
     expect(blank.regions["lip-vermilion"]).toBe(0);
     expect(blank.regions["nasal-alar"]).toBe(0);
   });
+  it("does not pigment teeth or a bright opening between real lip pillows",()=>{
+    const src=photo(true);
+    const left=g.lipCupid[0]-7,right=g.lipCupid[0]+7;
+    const top=(g.lipCupid[1]+g.lipLower[1])*.5-2;
+    const bottom=top+4;
+    for(let y=Math.floor(top);y<=Math.ceil(bottom);y++)
+      for(let x=Math.floor(left);x<=Math.ceil(right);x++){
+        const at=4*(y*src.width+x);
+        src.data[at]=244;src.data[at+1]=239;src.data[at+2]=232;
+      }
+    const plate=createFacialOpticalPlanes(src,g,271,.85);
+    const paintedOpening=plate.marks.filter(m=>
+      m.kind==="lip-vermilion"&&
+      m.x>=left+2&&m.x<=right-2&&
+      m.y>=top+1&&m.y<=bottom-1);
+    expect(paintedOpening).toHaveLength(0);
+    expect(plate.regions["lip-vermilion"]).toBeGreaterThan(100);
+  });
   it("fails closed with missing landmarks, corrupt pixel arrays and bad pressure",()=>{
     const img=photo();
     expect(()=>createFacialOpticalPlanes(img,g,271,NaN))
