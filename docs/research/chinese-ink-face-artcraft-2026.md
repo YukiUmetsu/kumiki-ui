@@ -168,3 +168,30 @@ natural differences in age. Do not mistake higher path count for genuine
 brushwork. The characters still need more faithful full-figure acting,
 close-up camera choreography, and view-dependent head-turn artwork.
 Keep this PR draft until both the film and the figure studies are approved.
+
+
+## Second native ArtCraft critique — beard and scale (2026-11-14)
+
+The three-face Storybook evidence from successful Shanshui run
+`43671039470` showed distinct facial designs, but also revealed two
+specific failures at presentation scale:
+
+1. **Old hermit:** the beard was a rigid dark triangle with repeated
+   whisker strokes converging at one sharp tip. This was geometry, not a
+   shading problem. The base silhouette now has eight continuously
+   connected cubic sections across cheek, jaw and diverging tufts,
+   and secondary hairs use unequal release coordinates and weights.
+   The darker beard stays part of the head-art hierarchy.
+2. **Reader comparison:** the source-projected reader head is much smaller
+   than the elder. Equal, fixed `viewBox` coordinates distorted the
+   apparent complexity comparison. The studio's **inspection-only**
+   window now incorporates each head's production `scaleX/scaleY`
+   and translated anchor. It does **not** stretch or replace the actual
+   model, so all three can be compared at equivalent apparent scale.
+   An e2e assertion guards the different camera windows.
+
+This revised beard and camera need another image/animation audit.
+The source-derived ArtCraft standard is not satisfied by passing tests
+or increasing the number of line segments. Remaining blockers include
+rigid crown geometry, limited view-dependent acting and inconsistent
+paint character at close/medium scene scales.
