@@ -242,12 +242,10 @@ const sharedLimbs=[
   "left-glove-detail","left-glove-thumb-fold","left-finger-joint-lines",
   // RISO31: copy both real bending red links of all four original fingers.
   ...riso31SegmentIds("left"),
-  ...riso31SegmentIds("left"),
   "right-upper-sleeve","right-forearm","sleeve-right-fold","cuff-right",
   "right-glove","right-glove-index","right-glove-middle","right-glove-ring","right-glove-pinky","right-glove-thumb",
   "right-glove-detail","right-glove-thumb-fold","right-finger-joint-lines",
   // RISO31: copy both real bending red links of all four original fingers.
-  ...riso31SegmentIds("right"),
   ...riso31SegmentIds("right"),
 ];
 const legs=sharedLimbs.slice(0,8).map(id=>take(id));
@@ -312,9 +310,7 @@ const personPoint=(spec:RisoCharacterSpec,frame:number,joint:string,x:number,y:n
  */
 const risoGripParts=(side:"left"|"right"):readonly string[]=>[
   side+"-glove-index",side+"-glove-middle",side+"-glove-ring",side+"-glove-pinky",side+"-glove-thumb",
-  ...riso31SegmentIds(side),
-  // The actual flexing intermediate/distal phalanges belong to the same
-  // physical overprint as the originals, never behind the receiving paper.
+  // Physically deposited moving PIP/DIP sections belong above the letter.
   ...riso31SegmentIds(side),
   side+"-finger-joint-lines",side+"-glove-detail",side+"-glove-thumb-fold",
   ...RISO30_GRIP_FOREGROUND_IDS(side),
