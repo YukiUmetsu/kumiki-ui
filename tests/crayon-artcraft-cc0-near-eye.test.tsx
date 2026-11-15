@@ -14,7 +14,7 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
       expect(new Set(spec.elements.map(x=>x.id)).size).toBe(spec.elements.length);
       const nodes=new Map(spec.elements.map(x=>[x.id,x]));
       for(const part of ["eye-skin","eye-sclera","eye-iris","eye-pupil",
-        "upper-lid-overhang","lower-lid-flesh","tear-duct"]){
+        "upper-lid-overhang"]){
         const n=nodes.get(part);
         if(n?.kind!=="wax")throw new Error("Missing sourced ocular mass "+part);
         expect(n.coverage).toBe("opaque");
@@ -52,6 +52,15 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
       const shadowOrder=spec.elements.findIndex(x=>x.id==="upper-lash-root-shadow");
       expect(lidOrder).toBeGreaterThan(irisOrder);
       expect(shadowOrder).toBeGreaterThan(lidOrder);
+      // Lower eyelid is a tonal volume OVER the opaque face, not a
+      // pasted opaque pink ribbon. Same for the canthus contact shadow.
+      for(const id of ["lower-lid-flesh","tear-duct"]){
+        const n=nodes.get(id);
+        expect(n).toMatchObject({kind:"wax",coverage:"open",clipToParent:true,
+          parentId:"eye-skin"});
+        if(n?.kind!=="wax")throw Error("Missing attached eye plane "+id);
+        expect(n.blendRadius).toBeGreaterThan(1);
+      }
       expect(nodes.get("eye-sclera")?.parentId).toBe("eye-skin");
       expect(nodes.get("eye-iris")?.parentId).toBe("eye-sclera");
       expect(nodes.get("eye-pupil")?.parentId).toBe("eye-iris");
