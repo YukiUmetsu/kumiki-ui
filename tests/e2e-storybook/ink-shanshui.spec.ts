@@ -12,6 +12,17 @@ async function seek(page:import("@playwright/test").Page,frame:number){
     el.dispatchEvent(new Event("change",{bubbles:true}));
   },frame);
   await expect(input).toHaveValue(String(frame));
+  // The slider's native setter synchronously changes the input value,
+  // but the much richer SVG/React film is painted on a later commit.
+  // Await the *actual stage* frame and two browser paint cycles before
+  // hashing native screenshots after rewind. Otherwise this test races
+  // a still-rendering previous frame and produces false determinism fails.
+  await expect(page.locator("[data-km-shanshui-frame]").first())
+    .toHaveAttribute("data-km-shanshui-frame",String(frame));
+  await page.evaluate(async()=>{
+    await new Promise<void>(r=>requestAnimationFrame(()=>r()));
+    await new Promise<void>(r=>requestAnimationFrame(()=>r()));
+  });
 }
 test("reference-inspired code-driven mountain, river and hermit compositions are real drawable scene layers",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
