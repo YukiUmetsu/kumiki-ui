@@ -84,8 +84,8 @@ const regions:Readonly<Record<string,Partial<Wax>>>={
     bounds:{x:139,y:801,width:311,height:133},
     colors:["#4a3439","#30282d","#8b6662"],
     pressure:.69,spacing:8.6,markStrength:.23,
-    blendRadius:19,featherContacts:true,
-    underpaintTooth:.17,
+    blendRadius:18,featherContacts:true,
+    underpaintTooth:0,
   },
   "neck-cervical-turn":{
     d:"M144 848 C159 875 175 912 183 951 "+
@@ -95,7 +95,7 @@ const regions:Readonly<Record<string,Partial<Wax>>>={
     bounds:{x:139,y:841,width:136,height:255},
     colors:["#604648","#3a2e32","#927269"],
     pressure:.47,spacing:11.1,markStrength:.16,
-    blendRadius:22,featherContacts:true,
+    blendRadius:18,featherContacts:true,
   },
 };
 
