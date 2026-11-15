@@ -475,3 +475,32 @@ historical costume reconstruction.
 **Still open:** natural hand-and-sleeve deformation during grasp; visible
 toe-to-heel acting, varied scenic/character shot direction and close-up
 expression timing. Green software tests alone cannot approve the art.
+
+
+### First split-hem render review: doubled-contour correction
+
+The first full scoped QA for the new garment system, GitHub Actions run
+`43655855851`, **passed** TypeScript, deterministic unit checks, 19 browser
+checks and an actual 3.2-second reader MP4 export. The browser evidence
+includes the new side-by-side gait study and native frame 60/73/86 captures.
+
+**Observed in the actual raster captures:** Alternating hem pose offsets are
+present, the two panels remain connected and fully opaque, and shoe contacts
+remain visible. However, the bottom of the robe showed too many stacked
+horizontal dark outlines: the *older solid under-robe*, the new panels and
+the existing overlay all inked the same hem region. The combined result read
+like an extra stiff apron, rather than folds of fabric moving over the feet.
+
+**Subsequent code correction (not yet visually reapproved):** Keep the older
+under-robe as fully opaque silhouette protection but remove its dark full
+outline. Remove full perimeter strokes from the two opaque moving panels
+and leave only softer, local weighted crease/edge lines. The original
+visible outer robe and its expressive silk folds remain intact. Unit tests
+now explicitly enforce solid fills while rejecting a second perimeter
+outline on the backing and panels.
+
+**Acceptance:** Compare a newly rendered frame-60/73/86 triptych with the
+previous run at precisely matching crop/scale, then inspect the moving MP4.
+Do not merge simply because both screenshots look visually different.
+A genuinely natural gait still requires convincing exposure/occlusion of
+feet under fabric and nonmechanical cloth contours.
