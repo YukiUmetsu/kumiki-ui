@@ -15,6 +15,14 @@ import {
   shanshuiFittedRoute,bakeShanshuiGroundedShoes,bakeShanshuiWalkingHem,
 } from "./ink-shanshui-full-body";
 
+/** One source of truth for the character image and its absolute-frame
+ * performance instance. Distinct facial-art revisions cannot accidentally
+ * diverge and invalidate Storybook/export replay contracts. */
+const shanshuiCharacterRevision=(scene:ShanshuiScene)=>
+  scene==="river-scholar"
+    ?"shanshui-scholar-reader-portrait-river-scholar-v10"
+    :"shanshui-scholar-fine-figure-"+scene+"-v7";
+
 /** A scene-specific portrait, not a replacement for the canonical walking rig.
  * Warm, longer nested robes and fluttering bands are original code-drawn assets.
  * Preserve real split knees, the instructor's face/visemes and body-pivot system.
@@ -33,9 +41,7 @@ export function makeShanshuiScholar(
   const fittedParts=applyShanshuiBodyFit(scene,base.parts);
   return {
     ...base,characterId:"shanshui-scholar",
-    revision:(scene==="river-scholar"
-      ?"shanshui-scholar-reader-portrait-river-scholar-v10"
-      :"shanshui-scholar-fine-figure-"+scene+"-v7"),
+    revision:shanshuiCharacterRevision(scene),
     palette:{
       ...base.palette,ink:"#403329",shadow:"#66513e",wash:"#bd9d7b",
       mist:"#dfcaad",deep:"#937251",paper:"#f6ead4",
@@ -165,9 +171,7 @@ export function shanshuiScholarInstance(
   });
   return {
     instanceId:route.instanceId,characterId:"shanshui-scholar",
-    revision:(scene==="river-scholar"
-      ?"shanshui-scholar-reader-portrait-river-scholar-v10"
-      :"shanshui-scholar-fine-figure-"+scene+"-v7"),seed:113,
+    revision:shanshuiCharacterRevision(scene),seed:113,
     targets:{landscape:{x:16,y:77},viewer:{x:176,y:90},
       ...(scene==="river-scholar"?{"scroll-page":{
         x:(fit.anchors.nearHand.x+fit.anchors.farHand.x)/2,
