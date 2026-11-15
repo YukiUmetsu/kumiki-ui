@@ -502,6 +502,48 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
       });
       const isFan=school==="travelers",isGuo=school==="early-spring";
       const isWang=school==="forest-grotto";
+      // Fan Kuan's original monumental rock has grouped cliff *mass*:
+      // two asymmetrically carved dark recesses attach to EACH positive
+      // stone face. These are broad angular geologic facets, not more
+      // independent texture dots or 5 smooth procedural drip-columns.
+      // The many short droplets must sit on a legible shadowed cliff.
+      const fanFacets=isFan?([.19,.59] as const).map((at,k)=>{
+        const root=quadraticPoint(a,crown,shoulder,at);
+        const extent=depth*(k===0?.69:.56)*
+          (.83+.23*s(seed+4513,i*43+k*17));
+        const width=(k===0?20:15)*
+          (.76+.31*s(seed+4523,i*29+k*19));
+        const dir=direction*(k===0?1:-1);
+        const shoulder0:P=[root[0]+dir*width*.32,root[1]-4];
+        const lip:P=[root[0]+dir*width,root[1]+extent*.18];
+        const heel:P=[root[0]+dir*width*.78,
+          root[1]+extent*(k===0?.95:.83)];
+        const throat:P=[root[0]-dir*width*.12,
+          root[1]+extent*.69];
+        const cut="M"+f(root[0])+" "+f(root[1])+
+          " C"+f(root[0]+dir*width*.11)+" "+f(root[1]-4)+
+          " "+f(shoulder0[0]-dir*2)+" "+f(shoulder0[1]-2)+
+          " "+f(shoulder0[0])+" "+f(shoulder0[1])+
+          " L"+f(lip[0])+" "+f(lip[1])+
+          " C"+f(lip[0]+dir*4)+" "+f(lip[1]+extent*.2)+
+          " "+f(heel[0]+dir*7)+" "+f(heel[1]-extent*.17)+
+          " "+f(heel[0])+" "+f(heel[1])+
+          " C"+f(throat[0]+dir*width*.43)+" "+
+            f(throat[1]+extent*.23)+
+          " "+f(throat[0]+dir*width*.18)+" "+
+            f(throat[1]-extent*.12)+
+          " "+f(throat[0])+" "+f(throat[1])+
+          " C"+f(root[0]-dir*width*.11)+" "+
+            f(root[1]+extent*.3)+
+          " "+f(root[0]+dir*width*.06)+" "+
+            f(root[1]+extent*.08)+
+          " "+f(root[0])+" "+f(root[1])+" Z";
+        const rim=rockLoadedRibbon(root,
+          [root[0]+dir*width*.39,root[1]-5],
+          [lip[0]+dir*3,lip[1]-3],2.1+k*.76,
+          seed+4591+i*59+k*17);
+        return {root,cut,rim,gradient:tone+"fanface"+k};
+      }):[];
       return <g key={i} data-km-master-face=""
         data-km-master-face-root={f(a[0])+","+f(a[1])}
         data-km-master-face-side={direction}
@@ -523,6 +565,27 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         </defs>
         <path data-km-master-mass="" d={mass}
           fill={"url(#"+tone+")"} opacity={f((isFan?.96:isWang?.94:.87)*(1-.16*mist))}/>
+        {isFan&&<g clipPath={"url(#"+clip+")"}
+          data-km-master-fan-geology="">
+          {fanFacets.map(({root,cut,rim,gradient},k)=><g key={k}
+            data-km-master-fan-facet=""
+            data-km-master-fan-facet-root={f(root[0])+","+f(root[1])}>
+            <defs>
+              <linearGradient id={gradient} x1="18%" y1="4%"
+                x2="76%" y2="94%">
+                <stop offset="0" stopColor="#302b26" stopOpacity=".78"/>
+                <stop offset=".36" stopColor="#413a33" stopOpacity=".61"/>
+                <stop offset=".76" stopColor="#5e5142" stopOpacity=".31"/>
+                <stop offset="1" stopColor="#9b856a" stopOpacity=".02"/>
+              </linearGradient>
+            </defs>
+            <path data-km-master-fan-facet-wash="" d={cut}
+              fill={"url(#"+gradient+")"}
+              opacity={f((k===0?.7:.61)*(1-.18*mist))}/>
+            <path data-km-master-fan-facet-rim="" d={rim}
+              fill="#322c27" opacity={f((k===0?.62:.53)*(1-.18*mist))}/>
+          </g>)}
+        </g>}
         <g clipPath={"url(#"+clip+")"} data-km-master-stratum-field="">
           {stratum.map(({top,body,lip,load},k)=><g key={k}
             data-km-master-stratum=""
