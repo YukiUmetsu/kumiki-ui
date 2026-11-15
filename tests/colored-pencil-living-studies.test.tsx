@@ -117,7 +117,19 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
     expect(parts.get("muzzle")!.details!.length).toBeGreaterThanOrEqual(3);
     expect(parts.get("nose")!.details!.length).toBeGreaterThanOrEqual(3);
-    expect(parts.get("chest")!.details!.length).toBe(2);
+    expect(parts.get("chest")!.details!.length).toBeGreaterThan(12);
+    expect(parts.get("neck-ruff")!.details!.length).toBeGreaterThan(9);
+    for(const ear of ["ear-far-inner","ear-near-inner"]){
+      const region=parts.get(ear)!;
+      const roots=region.details!.filter(d=>d.id?.startsWith("fibre-"));
+      expect(roots.length).toBeGreaterThanOrEqual(6);
+      expect(roots.every(r=>r.path.includes(" Q"))).toBe(true);
+      expect(region.opaqueSupport).toBe(true);
+    }
+    const tip=parts.get("tail-tip")!;
+    expect(tip.bounds[0]).toBeLessThan(parts.get("tail-back")!.bounds[0]);
+    expect(tip.details!.filter(d=>d.id?.startsWith("fibre-")).length)
+      .toBeGreaterThanOrEqual(6);
     expect(parts.get("ground-shadow")!.opaqueSupport).toBe(false);
     expect(parts.get("muzzle")!.opaqueSupport).toBe(true);
     const whisker=parts.get("whisker-roots")!;
