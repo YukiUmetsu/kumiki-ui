@@ -322,9 +322,10 @@ test("four-master ArtCraft gallery can inspect full native film and macro/meso/m
   await expect(page.getByRole("slider",{name:"Master zoom"})).toHaveValue("3.35");
   await page.getByRole("button",{name:"Summit · macro"}).click();
   await expect(page.getByRole("slider",{name:"Master zoom"})).toHaveValue("1.65");
-  await page.getByRole("slider",{name:"Master frame"}).fill("215");
+  await page.getByRole("slider",{name:"Master frame"}).focus();
+  await page.getByRole("slider",{name:"Master frame"}).press("End");
   await expect(lab.locator("[data-km-master-study='fuchun'] [data-km-shanshui-scene]"))
-    .toHaveAttribute("data-km-shanshui-frame","215");
+    .toHaveAttribute("data-km-shanshui-frame","299");
   await page.getByRole("button",{name:"Reset all four studies"}).click();
   await expect(page.getByRole("slider",{name:"Master frame"})).toHaveValue("145");
   await expect(cameras.first()).toHaveAttribute("data-km-master-camera-view","crop");
