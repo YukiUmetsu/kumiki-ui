@@ -165,6 +165,47 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("models mountain mass with crest-connected loaded ink shoulders and tributary fibres",()=>{
+    for(const scene of SHANSHUI_SCENES){
+      const controls={...DEFAULT_SHANSHUI,scene,seed:71,detail:1};
+      const draw=(detail:number,seed=71)=>renderToStaticMarkup(createElement(
+        InkShanshuiStage,{frame:145,controls:{...controls,detail,seed}},
+      ));
+      const full=draw(1);
+      const masses=[...full.matchAll(
+        /data-km-rock-shoulder="" data-km-rock-shoulder-crest="([^"]+)" data-km-rock-shoulder-root="([^"]+)" data-km-rock-shoulder-band="([0-2])" data-km-rock-shoulder-seed="([^"]+)"/g,
+      )];
+      expect(masses.length).toBeGreaterThanOrEqual(9);
+      expect(masses.length).toBeLessThan(23);
+      expect(new Set(masses.map(x=>x[3]))).toEqual(new Set(["0","1","2"]));
+      for(const [,crest,root] of masses){
+        const coords=root.split(",").map(Number);
+        expect(coords).toHaveLength(2);
+        expect(coords.every(Number.isFinite)).toBe(true);
+        expect(Number.isFinite(Number(crest))).toBe(true);
+        expect(coords[1]-Number(crest)).toBeGreaterThanOrEqual(2.49);
+        expect(coords[1]-Number(crest)).toBeLessThanOrEqual(2.51);
+      }
+      const washes=(full.match(/data-km-rock-shoulder-wash=""/g)??[]).length;
+      const bones=(full.match(/data-km-rock-shoulder-bone=""/g)??[]).length;
+      const fibres=[...full.matchAll(
+        /data-km-rock-shoulder-vein="" data-km-rock-shoulder-vein-root="([^"]+)" d="([^"]+)"/g,
+      )];
+      expect(washes).toBe(masses.length);
+      expect(bones).toBe(masses.length);
+      expect(fibres.length).toBeGreaterThan(masses.length*3);
+      expect(fibres.every(([,root,d])=>d.startsWith("M"+
+        root.replace(","," "))&&d.includes(" Q"))).toBe(true);
+      expect((full.match(/<clipPath id="[^"]*-rock-[0-2]-clip"/g)??[]))
+        .toHaveLength(3);
+      expect(draw(1)).toBe(full);
+      const sparse=draw(0);
+      expect(sparse).not.toContain('data-km-rock-shoulder=""');
+      expect(sparse).not.toContain('data-km-rock-shoulder-vein=""');
+      expect(draw(1,73)).not.toBe(full);
+    }
+  });
+
   it("renders willow boughs as closed tapering brush geometry with fine attached leaves",()=>{
     const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
       frame:125,controls:{...DEFAULT_SHANSHUI,scene:"river-scholar",detail:1},
