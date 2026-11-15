@@ -17,7 +17,9 @@ describe("ArtCraft v9 F1 photograph-grounded jaw/neck native wax",()=>{
     const candidate=crayonCc0FaceStudy({...options,jawNeckForm:"source-contour"});
     const changed=new Set([...CRAYON_F1_JAW_NECK_IDS,
       ...CRAYON_F1_JAW_NECK_FLOW_IDS]);
-    expect(changed.size).toBe(6);
+    expect(CRAYON_F1_JAW_NECK_IDS).toHaveLength(6);
+    expect(CRAYON_F1_JAW_NECK_FLOW_IDS).toHaveLength(2);
+    expect(changed.size).toBe(8);
     expect(new Set(candidate.elements.map(e=>e.id)).size)
       .toBe(candidate.elements.length);
     expect(candidate.seed).toBe(baseline.seed);
