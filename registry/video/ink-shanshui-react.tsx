@@ -829,8 +829,9 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
           const turn:P=[cx+reach*(.29+.08*s(seed+231,i*23+j)),
             cy-lift*.56];
           const end:P=[cx+reach,cy-lift];
+          const branchControl:P=[turn[0]-fan*.8,turn[1]-.9];
           const branch="M"+f(cx-.95)+" "+f(cy+.4)+
-            " Q"+f(turn[0]-fan*.8)+" "+f(turn[1]-.9)+
+            " Q"+f(branchControl[0])+" "+f(branchControl[1])+
             " "+f(end[0])+" "+f(end[1])+
             " Q"+f(turn[0]+fan*.55)+" "+f(turn[1]+.85)+
             " "+f(cx+1.05)+" "+f(cy+1.35)+" Z";
@@ -838,7 +839,7 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
           // little lateral shoots. Both child shoots start on the exact
           // painted parent curve; their leaves must use those curves too.
           const spurs=([.35,.69] as const).map((at,k)=>{
-            const root=quadraticPoint(base,turn,end,at);
+            const root=quadraticPoint(base,branchControl,end,at);
             const side=fan*(k===0?-1:1);
             const reach=9+12*s(seed+1021,i*53+j*19+k*7);
             const tip:P=[root[0]+side*reach,
@@ -867,7 +868,7 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
             {Array.from({length:Math.round(detail*5)},(_,k)=>{
               const spurIndex=k===1?0:k===4?1:-1;
               const origin=spurIndex<0
-                ?{root:base,bend:turn,tip:end}
+                ?{root:base,bend:branchControl,tip:end}
                 :spurs[spurIndex];
               const along=spurIndex<0?[.16,0,.51,.73,0][k]
                 :k===1?.59:.54;
