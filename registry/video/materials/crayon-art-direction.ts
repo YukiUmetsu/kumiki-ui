@@ -74,7 +74,7 @@ export function inspectCrayonDrawingPlan(scene:CrayonSceneSpec,plan:CrayonDrawin
     if(!Array.isArray(subject.parts)||subject.parts.length===0){
       errors.push(subject.id+": parts must be nonempty");continue;
     }
-    if(!subject.parts.some(p=>p.nodeId===subject.rootId&&p.role==="solid"))
+    if(!subject.parts.some((p:CrayonPartRule)=>p.nodeId===subject.rootId&&p.role==="solid"))
       errors.push(subject.id+": root must be declared as solid");
     for(const part of subject.parts){
       const n=nodes.get(part.nodeId);
