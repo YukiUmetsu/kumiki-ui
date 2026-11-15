@@ -86,6 +86,11 @@ test("the same Chinese Ink folder displays three separately drawn face identitie
         .toHaveCount(1);
     }
     await expect(review.locator("[data-km-portrait-irises]")).toHaveCount(3);
+    const windows=await review.locator("[data-km-scene-face]").evaluateAll(
+      elements=>elements.map(el=>el.getAttribute("viewBox")),
+    );
+    expect(new Set(windows).size).toBeGreaterThan(1);
+
     await review.screenshot({animations:"disabled",
       path:info.outputPath("shanshui-three-portrait-identity-review.png")});
     await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("closed");
