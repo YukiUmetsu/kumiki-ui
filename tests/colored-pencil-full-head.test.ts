@@ -1,6 +1,7 @@
 import {describe,expect,it} from "vitest";
 import {
   createDryPencilHeadPlate,projectMeasuredHeadContours,
+  observedLightSkinSupport,
   HEAD_STORYBOARD_PHASES,selectHeadStoryboardStrokes,
 } from "../src/video/colored-pencil-full-head";
 import {mapCC0WomanPortraitFeatures} from "../src/video/colored-pencil-portrait-guides";
@@ -110,6 +111,23 @@ describe("Source-measured ArtCraft full-head geometry (experimental)",()=>{
 });
 
 
+describe("ArtCraft source-observed luminous skin is not unpigmented paper",()=>{
+  it("preserves real light-face pigment while reserving actual ivory highlights",()=>{
+    const malar=observedLightSkinSupport(202/255);
+    const nasal=observedLightSkinSupport(199/255);
+    const paper=observedLightSkinSupport(242/255);
+    expect(malar.density).toBeGreaterThan(.68);
+    expect(malar.opacity).toBeGreaterThan(.81);
+    expect(nasal.density).toBeGreaterThan(malar.density);
+    expect(paper.density).toBeLessThan(.2);
+    expect(paper.opacity).toBeLessThan(.38);
+    expect(observedLightSkinSupport(.79)).toEqual(
+      {density:.72,opacity:.85});
+    expect(observedLightSkinSupport(.94).density).toBeCloseTo(.17,8);
+    for(const x of [-.01,1.01,NaN,Infinity])
+      expect(()=>observedLightSkinSupport(x)).toThrow(RangeError);
+  });
+});
 describe("ArtCraft four-shot production storyboard and pencil scumbling",()=>{
   it("constructs four chronological, strictly increasing paper-only mark families",()=>{
     const plate=createDryPencilHeadPlate(source(),guides,271,.85);
