@@ -374,3 +374,20 @@ The Courier and Paper Artist source paths are deliberately **different**, not pr
 [ArtCraft v9 reference, anatomy structure and blocked release study](../research/riso21-ocular-artcraft.md). Tests: `tests/riso21-ocular-print-artcraft.test.tsx`; optional browser captures: `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`.
 
 **Not artist-approved:** A valid original SVG contour, successful tests or Storybook presentation cannot substitute for measured 18-landmark source-to-render face anatomy, source-specific five-axis/pixel matching, independent 1×/3× full-head critique or encoded-film playback. The existing source is an **original stylized character**, while published reference works are used only for material technique; no artist's face/identity is traced or reproduced.
+
+
+## RISO23 — physically meaningful facial screens after actual Chromium critique
+
+[RISO23 real-screenshot source/art quality study](../research/riso23-facial-screen-artcraft.md)
+
+Both **Courier** and **Paper Artist** gain three asymmetric, head-local semantic `RisoCharacterPart` shapes, each comprising a left and right contour:
+
+- `orbital-tone-planes`: wide red **screen** shapes anchored anatomically above and beside the eyes
+- `zygomatic-tone-planes`: unequal red **screen** contour planes tracking cheekbone volume
+- `jaw-shadow-planing`: bounded red **screen** tapered jaw-form passages
+
+RISO22 Chromium revealed that **thin** eye engraved features were below the period of the 6-unit halftone screen and became separate chip-like pixels. Therefore the existing `eye-iris-grain` and `eye-lower-orbit-engraving` are now deliberate **red solid** engraving paths; their IDs and blink variants remain compatible, not removed. Wider tonal forms continue to use the physical plate `screen`. `RisoPrint` itself and original ink order, print registration, paper opacity, rig identity and whole-film frames remain unchanged.
+
+RISO23's portrait-crop Storybook story exposes native `screenDensity` alongside AM/FM, dot gain, two plates, four expressions and both exact 16:9/9:16 views; it stays inside the same **Risograph** folder.
+
+Regression: `tests/riso23-anatomical-ink-planes.test.tsx`, plus Chromium `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`. These checks do not establish photo-realism or independent ArtCraft human-anatomy/portrait certification.
