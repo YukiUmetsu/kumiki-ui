@@ -17,6 +17,11 @@ import { AGE_CHANGES, ANSUR, CANON_CHECKS, DRAWING_RECIPE, MODEL_TABLES, SURFACE
 import referenceData from "../../registry/anatomy/data/anatomy-references.json";
 import { rasterizeHumanFrame } from "../../registry/anatomy/anatomy-view";
 import type { HumanFrame } from "../../registry/anatomy/anatomy-view";
+import { CURL_TYPES, HAIR_FACTS, HAIR_GROUPS, faceHair, growHair } from "../../registry/anatomy/anatomy-hair";
+import type { HairParams } from "../../registry/anatomy/anatomy-hair";
+import { EYE_NOTES, HAIR_COLOR_PRESETS, IRIS_COLORS, MONK_SKIN_TONES, MONK_SKIN_TONE_ATTRIBUTION, SKIN_SCATTERING, SKIN_ZONES, hairColorHex, skinMeanFreePath, skinRamp, skinZoneColor } from "../../registry/anatomy/anatomy-color";
+import type { SkinZone } from "../../registry/anatomy/anatomy-color";
+import { rgbToHex, skinShade } from "../../registry/anatomy/anatomy-color";
 
 const referenceUrls = import.meta.glob("../../assets/photos/anatomy-references/*.jpg", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
 import type { HumanCamera } from "../../registry/anatomy/anatomy-view";
@@ -186,7 +191,8 @@ const FACE_KEYS: [FaceMeasureKey, string][] = [["enEn", "Eye spacing (en–en)"]
 function FaceView({ params, yaw, pitch, size, guides = true, features = true, surface = "clay" }: { params: FaceParams; yaw: number; pitch: number; size: number; guides?: boolean; features?: boolean; surface?: HumanSurface }) {
   const face = useMemo(() => createFace(params), [params]);
   const frame = useMemo(() => renderMeshFrame(face.mesh, { yaw, pitch, target: [0, 0.0, 0.03] }, { width: size, height: size * 1.15, pixelsPerMetre: size * 4.6, centerOnTarget: true }), [face, yaw, pitch, size]);
-  const lines = useMemo(() => (features ? faceFeatureLines(frame).filter(l => l.id !== "nose-bridge" && l.id !== "oval") : []), [frame, features]);
+  const lines = useMemo(() => (features ? faceFeatureLines(frame).filter(l => l.id !== "nose-bridge" && l.id !== "oval" && !l.id.startsWith("brow")) : []), [frame, features]);
+  const hairStrokes = useMemo(() => (features ? faceHair(face.vertices, FACE_FEATURES).map(h => ({ kind: h.kind, pts: h.points.map(q => projectPoint(frame, [q[0] / 1000, q[1] / 1000, q[2] / 1000])), facing: frame.vertexFacing[FACE_LANDMARKS[h.side === "L" ? "brow-mid.L" : "brow-mid.R"]] > 0.08 })) : []), [face, frame, features]);
   const L = (k: keyof typeof FACE_LANDMARKS) => frame.landmarks[k];
   // irises on a 12 mm eyeball, clipped by the lid opening so the upper lid overlaps them as in life
   const eyes = useMemo(() => {
@@ -216,6 +222,7 @@ function FaceView({ params, yaw, pitch, size, guides = true, features = true, su
             <path d={poly(e.lid)} fill="none" stroke="#2a211d" strokeWidth={4} opacity={0.18} />
           </g>
         ))}
+        {hairStrokes.filter(h => h.facing).map((h, i) => <path key={`h${i}`} d={smoothPath(h.pts.map(q => [q[0], q[1]] as [number, number]))} fill="none" stroke={h.kind === "brow" ? "#3b2a1e" : "#1d1611"} strokeWidth={h.kind === "brow" ? Math.max(0.6, size / 520) : Math.max(0.5, size / 640)} strokeLinecap="round" opacity={h.kind === "brow" ? 0.75 : 0.9} />)}
         {lines.map((l, i) => <path key={i} d={smoothPath(l.points)} fill="none" stroke="#2a211d" strokeWidth={l.id.startsWith("brow") ? 2.4 : 1.3} strokeLinecap="round" opacity={0.9} />)}
         {guides && yaw === 0 && hz.map(k => <line key={k} x1={0} x2={size} y1={L(k)[1]} y2={L(k)[1]} stroke="#c2413a" strokeWidth={0.8} strokeDasharray="4 4" opacity={0.7} />)}
         {guides && yaw === 0 && vt.map(k => <line key={k} y1={0} y2={size * 1.15} x1={L(k)[0]} x2={L(k)[0]} stroke="#2f6f8f" strokeWidth={0.8} strokeDasharray="2 4" opacity={0.7} />)}
@@ -448,6 +455,127 @@ function ReferenceBoard() {
   );
 }
 
+
+type HairColorChoice = { eumelanin: number; pheomelanin: number; grey?: number };
+function HeadWithHair({ model, params, hair, color, yaw, pitch = 4, size, surface = "clay", skin }: { model: HumanBodyModel; params: HumanParams; hair: HairParams; color: HairColorChoice; yaw: number; pitch?: number; size: number; surface?: HumanSurface; skin?: string }) {
+  const body = useMemo(() => createHumanBody(model, params), [model, params]);
+  const posed = useMemo(() => poseHumanBody(body, POSE_PRESETS[1].pose), [body]);
+  const strands = useMemo(() => growHair(body, posed.points, hair), [body, posed, hair]);
+  const frame = useMemo(() => {
+    const p = posed.points, lm = body.model.header.landmarks;
+    const v = lm.vertex, m = lm.menton;
+    const top = p[v * 3 + 1] + 0.03, chin = p[m * 3 + 1];
+    const drop = Math.min(0.42, Math.max(0.1, (hair.length ?? 0.12) * 0.8));
+    const bottom = Math.min(chin - 0.06, top - 0.26 - drop * 0.6);
+    const target: [number, number, number] = [0, (top + bottom) / 2, (p[v * 3 + 2] + p[m * 3 + 2]) / 2];
+    return renderHumanFrame(body, posed.points, { yaw, pitch, target }, { width: size, height: size * 1.2, pixelsPerMetre: (size * 1.2) / (top - bottom + 0.04), centerOnTarget: true });
+  }, [body, posed, yaw, pitch, size, hair.length]);
+  return <HumanFigure frame={frame} surface={surface} hair={strands} hairColor={color} palette={skin ? { light: skin, shadow: rgbToHex(skinShade(skin, -0.35)) } : undefined} label="Head with grown hair" />;
+}
+
+function HairLab() {
+  const { model, error } = useHumanModel();
+  const [hair, setHair] = useState<HairParams>({ length: 0.22, curl: 1, strands: 2200, parting: "left", flow: "natural", recession: 0, clump: 0.45, frizz: 0.15, seed: 1 });
+  const [color, setColor] = useState<HairColorChoice>({ eumelanin: 1.3, pheomelanin: 0, grey: 0 });
+  const [sex, setSex] = useState(0.2); const [yaw, setYaw] = useState(25);
+  if (!model) return <Loading error={error} />;
+  const num = (k: keyof HairParams, name: string, min: number, max: number, step: number, fmt = (v: number) => v.toFixed(2)) => (
+    <label style={label}>{name}: {fmt(hair[k] as number)}<input type="range" min={min} max={max} step={step} value={hair[k] as number} onChange={e => setHair(h => ({ ...h, [k]: Number(e.target.value) }))} /></label>);
+  return (
+    <div style={{ ...page, gridTemplateColumns: "minmax(260px, 340px) 1fr" }}>
+      <div style={panel}>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Hair lab</h2>
+        {num("length", "Length (m)", 0.01, 0.6, 0.01)}
+        <label style={label}>Curl type: {CURL_TYPES[(hair.curl ?? 1) - 1].label}<input type="range" min={1} max={8} step={1} value={hair.curl} onChange={e => setHair(h => ({ ...h, curl: Number(e.target.value) }))} /></label>
+        {num("strands", "Strands drawn", 300, 5000, 100, v => String(v))}
+        {num("clump", "Clumping", 0, 1, 0.05)}{num("frizz", "Frizz", 0, 1, 0.05)}{num("recession", "Hairline recession", 0, 1, 0.05)}
+        <div style={row}>{(["none", "left", "center", "right"] as const).map(v => <button key={v} type="button" style={hair.parting === v ? active : button} aria-pressed={hair.parting === v} onClick={() => setHair(h => ({ ...h, parting: v }))}>part {v}</button>)}</div>
+        <button type="button" style={hair.fringe ? active : button} aria-pressed={!!hair.fringe} onClick={() => setHair(h => ({ ...h, fringe: !h.fringe }))}>fringe (bangs)</button>
+        <div style={row}>{(["natural", "down", "back", "forward"] as const).map(v => <button key={v} type="button" style={hair.flow === v ? active : button} aria-pressed={hair.flow === v} onClick={() => setHair(h => ({ ...h, flow: v }))}>{v}</button>)}</div>
+        <label style={label}>Colour<select value={HAIR_COLOR_PRESETS.find(c => c.eumelanin === color.eumelanin && c.pheomelanin === color.pheomelanin)?.id ?? "brown"} onChange={e => { const c = HAIR_COLOR_PRESETS.find(x => x.id === e.target.value)!; setColor(q => ({ ...q, eumelanin: c.eumelanin, pheomelanin: c.pheomelanin })); }} style={{ minHeight: 36 }}>
+          {HAIR_COLOR_PRESETS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select></label>
+        <label style={label}>Grey strands: {Math.round((color.grey ?? 0) * 100)}%<input type="range" min={0} max={1} step={0.05} value={color.grey ?? 0} onChange={e => setColor(q => ({ ...q, grey: Number(e.target.value) }))} /></label>
+        <label style={label}>Sex (female → male): {sex.toFixed(2)}<input type="range" min={0} max={1} step={0.05} value={sex} onChange={e => setSex(Number(e.target.value))} /></label>
+        <label style={label}>View yaw: {yaw}°<input type="range" min={-180} max={180} step={5} value={yaw} onChange={e => setYaw(Number(e.target.value))} /></label>
+      </div>
+      <HeadWithHair model={model} params={{ sex, age: 28 }} hair={hair} color={color} yaw={yaw} size={560} />
+    </div>
+  );
+}
+
+function HairTypes() {
+  const { model, error } = useHumanModel();
+  if (!model) return <Loading error={error} />;
+  return (
+    <div style={page}>
+      <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Curl types I–VIII (same length before shrinkage), and hair colour from melanin</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 12 }}>
+        {CURL_TYPES.map((c, i) => (
+          <figure key={c.id} style={{ margin: 0, display: "grid", justifyItems: "center", gap: 4 }}>
+            <HeadWithHair model={model} params={{ sex: 0.3, age: 28 }} hair={{ length: 0.26, curl: c.id, strands: 1800, parting: "none", seed: 3 }} color={HAIR_COLOR_PRESETS[[0, 1, 2, 4, 9, 8, 1, 0][i]]} yaw={30} size={230} />
+            <figcaption style={caption}>{c.label} · {HAIR_COLOR_PRESETS[[0, 1, 2, 4, 9, 8, 1, 0][i]].label}</figcaption>
+          </figure>
+        ))}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8 }}>
+        {HAIR_COLOR_PRESETS.map(c => (
+          <div key={c.id} style={{ display: "grid", gridTemplateColumns: "48px 1fr", gap: 8, alignItems: "center", font: "13px/1.35 system-ui" }}>
+            <span aria-hidden="true" style={{ width: 48, height: 48, borderRadius: 6, background: `linear-gradient(160deg, ${hairColorHex(c.eumelanin * 0.55, c.pheomelanin * 0.55)}, ${hairColorHex(c.eumelanin, c.pheomelanin)} 55%, ${hairColorHex(c.eumelanin * 1.8, c.pheomelanin * 1.3)})` }} />
+            <span><strong>{c.label}</strong><br />eu {c.eumelanin} · pheo {c.pheomelanin} ({c.grade})</span>
+          </div>
+        ))}
+      </div>
+      <ul style={{ margin: 0, paddingLeft: 20, display: "grid", gap: 4, font: "13px/1.5 system-ui", maxWidth: 1000 }}>
+        {HAIR_FACTS.map(f => <li key={f.fact}>{f.fact} <span style={{ color: "#6a6058" }}>({f.grade})</span></li>)}
+        {Object.entries(HAIR_GROUPS).map(([k, g]) => <li key={k}><strong>{k}</strong>: density {g.densityPerCm2[0]} ± {g.densityPerCm2[1]} /cm², growth {g.growthUmPerDay[0]} ± {g.growthUmPerDay[1]} µm/day, ≈ {g.equivalentDiameterUm} µm thick, ellipticity {g.ellipticity}. {g.shape} <span style={{ color: "#6a6058" }}>(M, secondary)</span></li>)}
+      </ul>
+    </div>
+  );
+}
+
+function SkinAndColour() {
+  const { model, error } = useHumanModel();
+  const [tone, setTone] = useState(4);
+  if (!model) return <Loading error={error} />;
+  const t = MONK_SKIN_TONES[tone];
+  const zones = Object.keys(SKIN_ZONES) as SkinZone[];
+  const mfp = skinMeanFreePath(SKIN_SCATTERING.skin1);
+  return (
+    <div style={page}>
+      <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Skin, hair and eye colour</h2>
+      <div style={row}>
+        {MONK_SKIN_TONES.map((m, i) => (
+          <button key={m.id} type="button" onClick={() => setTone(i)} aria-pressed={tone === i} aria-label={`Monk tone ${i + 1}`}
+            style={{ width: 56, height: 56, borderRadius: 8, border: tone === i ? "3px solid #26211d" : "1px solid #b8ab9c", background: m.hex, cursor: "pointer" }} />
+        ))}
+      </div>
+      <p style={{ margin: 0, font: "13px/1.5 system-ui" }}><strong>Monk tone {tone + 1}</strong> {t.hex} · L* {t.lab[0].toFixed(1)} a* {t.lab[1].toFixed(1)} b* {t.lab[2].toFixed(1)} · ITA {t.ita.toFixed(1)}° ({t.category}). <span style={{ color: "#6a6058" }}>{MONK_SKIN_TONE_ATTRIBUTION}</span></p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16, alignItems: "start" }}>
+        <figure style={{ margin: 0, display: "grid", gap: 6 }}>
+          <HeadWithHair model={model} params={{ sex: 0.3, age: 30 }} hair={{ length: 0.18, curl: tone > 6 ? 6 : 2, strands: 1600, parting: "right" }} color={tone > 5 ? { eumelanin: 8, pheomelanin: 0, grey: 0 } : { eumelanin: 1.3, pheomelanin: 0.1, grey: 0 }} yaw={25} size={260} skin={t.hex} />
+          <figcaption style={caption}>Clay body in the chosen tone</figcaption>
+        </figure>
+        <div style={{ display: "grid", gap: 8 }}>
+          <strong>Shade ramp (shadow → light) with subsurface red at the terminator</strong>
+          <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 46 }}>{skinRamp(t.hex, 9).map((c, i) => <span key={i} style={{ flex: 1, background: c }} />)}</div>
+          <strong>Regional shifts</strong>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 6 }}>
+            {zones.map(z => <div key={z} style={{ display: "grid", gridTemplateColumns: "34px 1fr", gap: 6, alignItems: "center", font: "12px/1.35 system-ui" }}>
+              <span aria-hidden="true" style={{ width: 34, height: 34, borderRadius: 6, background: skinZoneColor(t.hex, z), border: "1px solid #0002" }} /><span><strong>{z}</strong> <span style={{ color: "#6a6058" }}>({SKIN_ZONES[z].grade})</span></span></div>)}
+          </div>
+        </div>
+        <div style={{ display: "grid", gap: 8, font: "13px/1.5 system-ui" }}>
+          <strong>Measured skin optics (Jensen et al. 2001)</strong>
+          <span>skin1 diffuse reflectance R {SKIN_SCATTERING.skin1.diffuse.join(" / ")} · mean free path (mm) R {mfp[0].toFixed(2)} G {mfp[1].toFixed(2)} B {mfp[2].toFixed(2)} — red light travels furthest under the skin, so shadow edges, ears and nostrils glow red against back light.</span>
+          <strong>Iris palette and eye notes</strong>
+          <div style={row}>{IRIS_COLORS.map(c => <span key={c.id} title={c.label} aria-label={c.label} role="img" style={{ width: 38, height: 38, borderRadius: "50%", background: `radial-gradient(circle, #120c08 0 22%, ${c.inner} 24% 48%, ${c.outer} 70%, ${c.limbal} 92%)` }} />)}</div>
+          <ul style={{ margin: 0, paddingLeft: 18 }}>{EYE_NOTES.map(n => <li key={n}>{n}</li>)}</ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Hands() {
   const { model, error } = useHumanModel();
   if (!model) return <Loading error={error} />;
@@ -492,3 +620,6 @@ export const RangeOfMotionStory: Story = { name: "Range of motion", render: () =
 export const AnyStyleStory: Story = { name: "Any style", render: () => <AnyStyle /> };
 export const ProportionsStory: Story = { name: "Proportions and ranges", render: () => <Proportions /> };
 export const ReferenceBoardStory: Story = { name: "Reference board", render: () => <ReferenceBoard /> };
+export const HairLabStory: Story = { name: "Hair lab", render: () => <HairLab /> };
+export const HairTypesStory: Story = { name: "Hair types and colours", render: () => <HairTypes /> };
+export const SkinColourStory: Story = { name: "Skin, hair and eye colour", render: () => <SkinAndColour /> };

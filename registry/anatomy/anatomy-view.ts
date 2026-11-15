@@ -51,6 +51,8 @@ export interface HumanFrame {
   vertexFacing: Float32Array;
   /** Index of the first eye point (render points from here on are eyeballs). */
   eyeStart: number;
+  /** Per render point: 0 skin/sclera, 1 iris, 2 pupil (eyeballs only; empty when the mesh has no eyes). */
+  eyeRegion: Uint8Array;
   triangles: FrameTriangle[];
   contours: FramePolyline[];
   terminators: FramePolyline[];
@@ -94,7 +96,8 @@ export function renderHumanFrame(body: HumanBody, points: Float32Array = body.po
   light: HumanLight = DEFAULT_LIGHT, resolution = 2): HumanFrame {
   const c = body.model.header.counts;
   return renderMeshFrame({ points, faces: body.faces, pointCount: c.points, renderCount: body.renderCount, eyeStart: c.body, contourFaces: c.bodyFaces,
-    landmarks: body.model.header.landmarks, bones: body.bones }, camera, viewport, light, resolution);
+    landmarks: body.model.header.landmarks, bones: body.bones, eyeCentres: body.bones.filter(b => b.id.startsWith("eye.")).map(b => b.head),
+    eyeAxes: body.bones.filter(b => b.id.startsWith("eye.")) }, camera, viewport, light, resolution);
 }
 
 /** Any triangle mesh in ANAT1 coordinates (metres, y up, z forward): the body, the face study, a prop. */
@@ -112,6 +115,10 @@ export interface MeshSource {
   bones?: readonly { id: string; head: number; tail: number }[];
   /** Draw open-mesh borders as contour (default false; the face mask is open behind the hairline). */
   borders?: boolean;
+  /** Point indices of eyeball centres: contour rings around them (eye sockets) are dropped. */
+  eyeCentres?: number[];
+  /** Eye bones (centre → gaze point indices) to mark iris and pupil on the eyeball points. */
+  eyeAxes?: { head: number; tail: number }[];
 }
 
 export function renderMeshFrame(src: MeshSource, camera: HumanCamera = {}, viewport: HumanViewport = { width: 600, height: 900 },
@@ -229,14 +236,30 @@ export function renderMeshFrame(src: MeshSource, camera: HumanCamera = {}, viewp
   // drop micro-loops (eyelids, nostrils, toe creases) that only read as noise at this scale
   const minSize = Math.max(6, (y1 - y0) * s * 0.012);
   const big = (l: FramePolyline) => { let a = Infinity, b = -Infinity, c = Infinity, d = -Infinity; for (const [x, y] of l.points) { a = Math.min(a, x); b = Math.max(b, x); c = Math.min(c, y); d = Math.max(d, y); } return Math.hypot(b - a, d - c) >= minSize; };
-  const keptContours = contours.filter(big), keptTerminators = terminators.filter(big);
+  // the body mesh's eye sockets give heavy rings around the eyeballs: leave the eyes to the eyeball surface
+  const eyeCentres = (src.eyeCentres ?? []).map(i => [screen[i * 3], screen[i * 3 + 1]]);
+  const eyeR = 0.017 * s;
+  const offEyes = (l: FramePolyline) => { let cx = 0, cy = 0; for (const [x, y] of l.points) { cx += x; cy += y; } cx /= l.points.length; cy /= l.points.length; return !eyeCentres.some(([ex, ey]) => Math.hypot(cx - ex, cy - ey) < eyeR); };
+  const keptContours = contours.filter(l => big(l) && offEyes(l)), keptTerminators = terminators.filter(big);
   contours.length = 0; contours.push(...keptContours); terminators.length = 0; terminators.push(...keptTerminators);
+  // iris and pupil on the eyeballs: angle from each eye's gaze axis
+  const eyeRegion = new Uint8Array(rc);
+  for (const ax of src.eyeAxes ?? []) {
+    const c = P(ax.head), g = nrm(sub(P(ax.tail), c));
+    for (let v = nb; v < rc; v++) {
+      const d = sub(P(v), c), r = Math.hypot(d[0], d[1], d[2]);
+      if (r > 0.02) continue;
+      const cos = dot(d, g) / (r || 1);
+      // MakeHuman eyeballs are ~31 mm across: an 11.7 mm iris spans ≈ 22° and a 4 mm pupil ≈ 7° from the axis
+      if (cos > 0.992) eyeRegion[v] = 2; else if (cos > 0.928) eyeRegion[v] = 1;
+    }
+  }
   const lm: Record<string, [number, number]> = {};
   for (const [name, i] of Object.entries(body.model.header.landmarks)) lm[name] = [screen[i * 3], screen[i * 3 + 1]];
   const joints: HumanFrame["joints"] = {};
   for (const b of body.bones) joints[b.id] = { head: [screen[b.head * 3], screen[b.head * 3 + 1]], tail: [screen[b.tail * 3], screen[b.tail * 3 + 1]] };
   return {
-    screen, vertexLight: lit, vertexFacing: facing, eyeStart: nb, triangles: tris, contours, terminators, landmarks: lm, joints, pixelsPerMetre: s,
+    screen, vertexLight: lit, vertexFacing: facing, eyeStart: nb, eyeRegion, triangles: tris, contours, terminators, landmarks: lm, joints, pixelsPerMetre: s,
     projection: { right, up, back, target, distance: dist, scale: s, ox, oy }, floorY: floorCam * s + oy,
     bounds: { x0: x0 * s + ox, y0: y0 * s + oy, x1: x1 * s + ox, y1: y1 * s + oy }, width: viewport.width, height: viewport.height,
   };
@@ -329,7 +352,7 @@ export function smoothPath(pts: readonly [number, number][], closed = false): st
 }
 
 export type RasterMode = "clay" | "tonal" | "cel" | "silhouette";
-export interface RasterColors { light: [number, number, number]; shadow: [number, number, number]; eye: [number, number, number] }
+export interface RasterColors { light: [number, number, number]; shadow: [number, number, number]; eye: [number, number, number]; iris?: [number, number, number]; pupil?: [number, number, number] }
 
 /**
  * Software-rasterise a frame's surface into RGBA pixels with per-pixel interpolated light (smooth, seam-free, the same
@@ -337,7 +360,8 @@ export interface RasterColors { light: [number, number, number]; shadow: [number
  * Clay uses wrapped diffuse light with a soft rim; tonal posterises into the five value bands of `toneBand`; cel is two
  * values split at the terminator.
  */
-export function rasterizeHumanFrame(frame: HumanFrame, mode: RasterMode, colors: RasterColors, scale = 1, ambient = DEFAULT_LIGHT.ambient ?? 0.18): ImageDataLike {
+export function rasterizeHumanFrame(frame: HumanFrame, mode: RasterMode, colors: RasterColors, scale = 1, ambient = DEFAULT_LIGHT.ambient ?? 0.18,
+  tint?: RasterTint): ImageDataLike & { depth: Float32Array } {
   const W = Math.round(frame.width * scale), H = Math.round(frame.height * scale);
   const rgba = new Uint8ClampedArray(W * H * 4), z = new Float32Array(W * H).fill(-Infinity);
   const s = frame.screen, L = frame.vertexLight, Fa = frame.vertexFacing;
@@ -370,14 +394,30 @@ export function rasterizeHumanFrame(frame: HumanFrame, mode: RasterMode, colors:
       }
       k = Math.min(1, Math.max(0, k));
       const o = i * 4;
-      if (t.eye && mode !== "silhouette") { rgba[o] = sr + (er - sr) * k; rgba[o + 1] = sg + (eg - sg) * k; rgba[o + 2] = sb + (eb - sb) * k; }
+      if (tint && !t.eye) {
+        const m = (w0 * tint.mask[t.a] + w1 * tint.mask[t.b] + w2 * tint.mask[t.c]) * (tint.strength ?? 1);
+        if (m > 0) {
+          const [tr, tg, tb] = tint.color, kk = mode === "silhouette" ? 0 : Math.min(1, k * 0.85 + 0.05);
+          const lr2 = sr + (lr - sr) * k, lg2 = sg + (lg - sg) * k, lb2 = sb + (lb - sb) * k;
+          rgba[o] = lr2 + (tr * kk - lr2) * m; rgba[o + 1] = lg2 + (tg * kk - lg2) * m; rgba[o + 2] = lb2 + (tb * kk - lb2) * m; rgba[o + 3] = 255;
+          continue;
+        }
+      }
+      if (t.eye && mode !== "silhouette") {
+        const reg = Math.max(frame.eyeRegion[t.a] ?? 0, frame.eyeRegion[t.b] ?? 0, frame.eyeRegion[t.c] ?? 0);
+        const ec = reg === 2 ? (colors.pupil ?? [18, 12, 8]) : reg === 1 ? (colors.iris ?? [92, 60, 34]) : null;
+        if (ec) { const kk = 0.55 + 0.6 * k; rgba[o] = ec[0] * kk; rgba[o + 1] = ec[1] * kk; rgba[o + 2] = ec[2] * kk; }
+        else { rgba[o] = sr + (er - sr) * k; rgba[o + 1] = sg + (eg - sg) * k; rgba[o + 2] = sb + (eb - sb) * k; }
+      }
       else { rgba[o] = sr + (lr - sr) * k; rgba[o + 1] = sg + (lg - sg) * k; rgba[o + 2] = sb + (lb - sb) * k; }
       rgba[o + 3] = 255;
     }
   }
-  return { data: rgba, width: W, height: H };
+  return { data: rgba, width: W, height: H, depth: z };
 }
 export interface ImageDataLike { data: Uint8ClampedArray; width: number; height: number }
+/** Colour some render points (0–1 mask per point, interpolated): the scalp under hair, make-up, a tattoo region. */
+export interface RasterTint { mask: ArrayLike<number>; color: [number, number, number]; strength?: number }
 
 /** Project any 3D point (metres) with a frame's camera: screen x, y and depth (larger = nearer). */
 export function projectPoint(frame: Pick<HumanFrame, "projection">, p: Vec3): [number, number, number] {

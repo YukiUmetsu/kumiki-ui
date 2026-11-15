@@ -3601,7 +3601,7 @@
       "name": "human-anatomy",
       "type": "registry:ui",
       "title": "Human Anatomy Framework (ANAT1)",
-      "description": "Style-neutral, measured human for drawing realistic people in any art style (proportions, poses, faces, hands, depth, shading): a morphable, posable 3D body (CC0 MakeHuman lattice: sex, age 1–90, muscle, weight, height, ancestry; 57-bone skeleton; 47 named anthropometric landmarks) calibrated against ANSUR II adult measurements and CDC growth curves; clinical joint angles clamped to AAOS/CDC ranges with a pose and hand-pose library; tape-measure sections and ANSUR-named measurements; a camera that renders a HumanFrame (depth-sorted shaded triangles, visible contours with weight hints, light/shadow terminators, landmarks, joints) plus a software rasteriser for clay, five-band value, cel and silhouette surfaces; a MediaPipe-based 3D face study fitted to published facial norms with feature loops and lid-clipped irises; canon checks, surface-anatomy notes, age changes and a curated public-domain reference board.",
+      "description": "Style-neutral, measured human for drawing realistic people in any art style (proportions, poses, faces, hands, depth, shading): a morphable, posable 3D body (CC0 MakeHuman lattice: sex, age 1–90, muscle, weight, height, ancestry; 57-bone skeleton; 47 named anthropometric landmarks) calibrated against ANSUR II adult measurements and CDC growth curves; clinical joint angles clamped to AAOS/CDC ranges with a pose and hand-pose library; tape-measure sections and ANSUR-named measurements; a camera that renders a HumanFrame (depth-sorted shaded triangles, visible contours with weight hints, light/shadow terminators, landmarks, joints) plus a software rasteriser for clay, five-band value, cel and silhouette surfaces; a MediaPipe-based 3D face study fitted to published facial norms with feature loops and lid-clipped irises; hair (measured fibre, density, growth and whorl data; a strand generator with anatomical hairline, parting, flow, eight curl types, clumping and collision; melanin-based hair colour, greying and Marschner highlights; brows and lashes); skin colour (Monk Skin Tone scale, ITA°, measured skin scattering, shade ramps with subsurface red at the terminator, regional colour zones) and iris colour; canon checks, surface-anatomy notes, age changes and a curated public-domain reference board.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -3639,6 +3639,16 @@
           "path": "registry/anatomy/anatomy-reference.ts",
           "type": "registry:ui",
           "target": "components/anatomy/anatomy-reference.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-hair.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-hair.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-color.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-color.ts"
         },
         {
           "path": "registry/anatomy/anatomy-react.tsx",

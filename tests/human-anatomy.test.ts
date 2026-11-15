@@ -59,3 +59,30 @@ describe("ANAT1 human anatomy", () => {
     expect(wide.alAl - m.alAl).toBeCloseTo(4.2, 0);
   });
 });
+
+import { growHair, renderHairSegments } from "../registry/anatomy/anatomy-hair";
+import { MONK_SKIN_TONES, hairColorHex, hexToRgb, skinRamp, srgbToLab } from "../registry/anatomy/anatomy-color";
+
+describe("ANAT1 hair and colour", () => {
+  it("grows deterministic hair on the scalp only and renders it in front of the body", () => {
+    const body = createHumanBody(model, { sex: 0.3 });
+    const a = growHair(body, body.points, { length: 0.2, strands: 300, seed: 2 });
+    const b = growHair(body, body.points, { length: 0.2, strands: 300, seed: 2 });
+    expect(Array.from(a.points.slice(0, 30))).toEqual(Array.from(b.points.slice(0, 30)));
+    expect(a.starts.length).toBe(300);
+    // roots sit above the eyes and away from the face
+    const lm = body.model.header.landmarks, eyeY = body.points[lm.sellion * 3 + 1];
+    for (let s = 0; s < a.starts.length; s += 17) expect(a.points[a.starts[s] * 3 + 1]).toBeGreaterThan(eyeY - 0.06);
+    const f = renderHumanFrame(body, body.points, { yaw: 20 }, { width: 300, height: 500 });
+    expect(renderHairSegments(a, f).length).toBeGreaterThan(1000);
+  });
+
+  it("orders skin and hair colours by pigment", () => {
+    const L = (h: string) => srgbToLab(hexToRgb(h))[0];
+    expect(MONK_SKIN_TONES.map(t => t.ita).every((v, i, arr) => i === 0 || v < arr[i - 1] + 6)).toBe(true);
+    expect(L(hairColorHex(0.3))).toBeGreaterThan(L(hairColorHex(1.3)));
+    expect(L(hairColorHex(1.3))).toBeGreaterThan(L(hairColorHex(8)));
+    const ramp = skinRamp(MONK_SKIN_TONES[4].hex, 7).map(L);
+    expect(ramp.every((v, i) => i === 0 || v >= ramp[i - 1] - 0.5)).toBe(true);
+  });
+});
