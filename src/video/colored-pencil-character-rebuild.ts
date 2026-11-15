@@ -65,7 +65,7 @@ const strokeFox=(guides:Parameters<typeof flowBundles>[0],seed:number,
   color="#F8D0A4",width=.62,start=205)=>flowBundles(guides,seed,color,width,start);
 
 export const FOX_REBUILT_PARTS=[
-  "tail","far-foreleg","torso","near-hindleg","near-foreleg","ruff",
+  "tail","tail-tip","far-foreleg","torso","near-hindleg","near-foreleg","ruff",
   "head","ear-interiors","muzzle","nose","eye",
 ] as const;
 function fox():PencilActorSpec {
@@ -82,6 +82,14 @@ function fox():PencilActorSpec {
           "#554D54",1.8,214),
         trace("M-26 141 Q-16 162 13 176","#FFF0D0",1.2,231),
       ]}),
+    // The light tip is a genuine connected tail-colour region, not a random
+    // white sticker crossing the coat. It inherits every swing of the rump tail.
+    part({id:"tail-tip",material:"fur",colors:foxLight,parent:"tail",
+      pivot:[-35,120],direction:17,flow:25,
+      path:"M-48 106 Q-35 115 -28 136 Q-21 144 -11 150 Q-30 147 -43 136 Q-54 121 -48 106 Z",
+      bounds:[-55,102,47,52],
+      details:[...strokeFox([[-44,113,-21,144,-39,130,16,8]],1241,"#FFF5DE",.59),
+        trace("M-47 111 Q-43 126 -29 141","#F5D2BA",.75,228)]}),
     part({id:"far-foreleg",material:"fur",colors:foxDark,pivot:[159,147],
       path:"M148 145 Q157 143 166 152 Q168 171 162 191 L161 209 Q167 216 179 222 L142 222 Q146 215 147 206 Q140 175 148 145 Z",
       bounds:[138,141,44,85],direction:83,
@@ -116,8 +124,8 @@ function fox():PencilActorSpec {
     part({id:"head",material:"fur",colors:foxRust,parent:"torso",pivot:[169,123],
       keys:[key(0),key(169),key(194,1,-1,-4),key(226,0,-4,-8),
         key(252,1,-1,-4),key(284),key(319)],
-      path:"M156 110 Q151 94 156 84 L157 56 Q159 47 167 55 L180 79 Q187 76 196 74 L207 54 Q214 48 217 57 Q218 75 214 91 Q226 98 236 107 Q244 114 236 122 Q215 133 190 132 Q171 128 156 118 Z",
-      bounds:[150,47,97,92],direction:31,flow:25,
+      path:"M156 112 Q146 99 154 84 Q156 71 156 55 Q158 43 166 47 Q173 59 177 78 Q186 77 200 70 Q204 56 211 51 Q220 50 217 66 L214 87 Q236 98 247 111 Q251 118 238 122 Q218 130 192 135 Q172 128 156 112 Z",
+      bounds:[145,41,109,98],direction:31,flow:25,
       details:[
         ...strokeFox([[164,80,189,121,161,111,22,10],
           [193,77,221,110,207,83,22,10],[173,60,200,88,189,55,18,9]],
@@ -127,8 +135,8 @@ function fox():PencilActorSpec {
         trace("M155 99 Q169 126 181 138","#FBE6C1",1.5,235),
       ]}),
     part({id:"ear-interiors",material:"fur",colors:foxDark,parent:"head",pivot:[183,62],
-      path:"M160 85 Q158 64 162 57 Q168 66 178 82 Z M196 83 Q205 65 213 58 Q215 72 210 88 Z",
-      bounds:[157,54,60,38],direction:79,
+      path:"M159 81 Q158 61 161 51 Q167 56 175 78 Z M200 79 Q206 62 212 55 Q215 67 210 87 Z",
+      bounds:[156,48,62,42],direction:79,
       details:strokeFox([[168,44,169,70,172,55,13,6],
         [212,47,205,72,207,61,13,6]],1439,"#DCA68F",.54)}),
     part({id:"muzzle",material:"fur",colors:foxLight,parent:"head",pivot:[210,118],
@@ -168,7 +176,7 @@ function fox():PencilActorSpec {
  * layered primaries and copper chest, rather than a generic blue round bird.
  */
 export const KINGFISHER_REBUILT_PARTS=[
-  "tail","far-wing","torso","breast","near-wing","head",
+  "tail","far-wing","torso","breast","near-wing","wing-coverts","head",
   "cheek","beak","feet","eye",
 ] as const;
 export function createKingfisherActor():PencilActorSpec {
@@ -210,6 +218,18 @@ export function createKingfisherActor():PencilActorSpec {
         trace("M136 133 Q151 153 159 174 M142 126 Q158 144 167 162",
           "#193C62",1.45,226),
         trace("M132 155 Q146 171 152 187","#D3E6DC",.83,239),
+      ]}),
+    // The overlapping shoulder coverts are a separate pigmented feather plane.
+    // The neutral animation inherits near-wing only once, even at wing extremes.
+    part({id:"wing-coverts",material:"feather",colors:birdBlue,
+      parent:"near-wing",pivot:[142,133],direction:39,flow:24,
+      path:"M133 114 Q156 107 171 125 Q167 145 150 156 Q134 155 125 139 Z",
+      bounds:[122,104,53,56],
+      details:[
+        ...strokeFox([[134,121,148,151,127,139,18,8],
+          [146,117,161,144,158,127,16,7]],1819,"#C0E3DA",.57),
+        trace("M130 132 Q143 151 151 151 M147 121 Q160 133 166 136",
+          "#1D5A73",.9,241),
       ]}),
     part({id:"head",material:"feather",colors:birdBlue,parent:"torso",pivot:[130,113],
       keys:[key(0),key(177),key(199,0,-2,6),key(227,0,-1,-4),
@@ -288,14 +308,9 @@ export function pencilCharacterScene(aspect:PencilAspect):PencilSceneSpec {
       "M296 704 Q372 696 480 702":"M745 442 Q824 434 958 446",
       "#DED0B2",.95,220)],
   });
-  const drawing={...source.drawing,regions:[
-    ...source.drawing.regions.filter(region=>region.id!=="sun-disk").map(region=>({
-      ...region,
-      layers:region.layers.map(layer=>({...layer,pressure:layer.pressure*.47,
-        tipWidth:layer.tipWidth*.76})),
-      contour:{...region.contour,opacity:.26},
-    })),
-    branch,
-  ]};
+  // Character film favours clean paper and a grounded prop; the previous
+  // tutorial mountain backdrop was removed with the cartoony cast, freeing
+  // two region slots for a real tail tip and overlapping wing coverts.
+  const drawing={...source.drawing,regions:[branch]};
   return {...source,drawing,actors:[foxActor,birdActor],annotations};
 }
