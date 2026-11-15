@@ -55,7 +55,12 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 205, x: 192, y: -12, easing: "ease" },
       { frame: 239, x: 192, y: -12 },
     ] },
-    { id: "body", parent: "root", x: 0, y: -72, keys: [
+    // RISO29 / ANAT1: original thighs were only a 62-unit projected
+    // run below the pelvis in a ~215-unit figure (childlike <.35).
+    // Rearticulate the upper-body + pelvic stations together and lengthen
+    // both real two-bone leg segments, preserving authored foot plant positions
+    // and ALL jacket, shoulder, hair and knee ink contours at source fidelity.
+    { id: "body", parent: "root", x: 0, y: -104, keys: [
       // RISO28: six alternating weight compressions over three complete
       // 54-frame strides. The penultimate/last frame pair plants both shoes
       // at f162; the body eases *over still boots* into the handoff by f198.
@@ -114,18 +119,18 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 137, rotate: 25, easing: "ease" }, { frame: 187, rotate: 42, easing: "ease" },
       { frame: 239, rotate: 42 },
     ] },
-    { id: "left-leg", parent: "root", x: -15, y: -62, keys: waveKeys() },
-    { id: "left-knee", parent: "left-leg", x: 0, y: 40 },
-    { id: "left-ankle", parent: "left-knee", x: 0, y: 36 },
-    { id: "right-leg", parent: "root", x: 15, y: -62, keys: [
+    { id: "left-leg", parent: "root", x: -15, y: -90, keys: waveKeys() },
+    { id: "left-knee", parent: "left-leg", x: 0, y: 55 },
+    { id: "left-ankle", parent: "left-knee", x: 0, y: 52 },
+    { id: "right-leg", parent: "root", x: 15, y: -90, keys: [
       { frame: 0, rotate: 13, easing: "ease" }, { frame: 16, rotate: -12, easing: "ease" },
       { frame: 36, rotate: 13, easing: "ease" }, { frame: 58, rotate: -12, easing: "ease" },
       { frame: 83, rotate: 13, easing: "ease" }, { frame: 108, rotate: -12, easing: "ease" },
       { frame: 138, rotate: 13, easing: "ease" }, { frame: 163, rotate: -12, easing: "ease" },
       { frame: 190, rotate: 13, easing: "ease" }, { frame: 239, rotate: 13 },
     ] },
-    { id: "right-knee", parent: "right-leg", x: 0, y: 40 },
-    { id: "right-ankle", parent: "right-knee", x: 0, y: 36 },
+    { id: "right-knee", parent: "right-leg", x: 0, y: 55 },
+    { id: "right-ankle", parent: "right-knee", x: 0, y: 52 },
     { id: "right-elbow", parent: "right-arm", x: 0, y: 28, keys: [
       { frame: 0, rotate: 6, easing: "ease" }, { frame: 40, rotate: -20, easing: "ease" },
       { frame: 80, rotate: 10, easing: "ease" }, { frame: 142, rotate: -35, easing: "ease" },
