@@ -90,6 +90,32 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
       }
     }
   }
+  // ArtCraft negative control: flattening artwork to an opaque vector tonal
+  // gradient must not be mistaken for the individual dry-pencil marks. Render
+  // both states from the SAME authored geometry; restore exact visual output.
+  await aspect.selectOption("landscape");
+  await subject.selectOption("fox");
+  await expect(svg).toHaveAttribute("data-km-pencil-tonal-support","on");
+  const baseline=await svg.screenshot({animations:"disabled"});
+  const pigmentOnly=page.getByRole("checkbox",{name:"Foundation pigment-only audit"});
+  await pigmentOnly.check();
+  await expect(svg).toHaveAttribute("data-km-pencil-tonal-support","off");
+  await expect(svg.locator("[data-km-pencil-craft-base]")).toHaveCount(0);
+  expect(await svg.locator("[data-km-pigment-layer] path").count()).toBeGreaterThan(100);
+  expect(await svg.locator("[data-km-pencil-micro] path").count()).toBeGreaterThan(0);
+  await svg.screenshot({animations:"disabled",
+    path:info.outputPath("pencil-foundation-fox-pigment-only.png")});
+  await pigmentOnly.uncheck();
+  await expect(svg.locator("[data-km-pencil-craft-base]").first()).toBeVisible();
+  expect(await svg.screenshot({animations:"disabled"})).toEqual(baseline);
+  // The same negative control must be usable for human portraits.
+  await subject.selectOption("portrait");
+  await pigmentOnly.check();
+  await expect(svg).toHaveAttribute("data-km-pencil-tonal-support","off");
+  await svg.screenshot({animations:"disabled",
+    path:info.outputPath("pencil-foundation-portrait-pigment-only.png")});
+  await pigmentOnly.uncheck();
+
   // Precise stage checkpoints must correspond to actual addressable drawing frames.
   await aspect.selectOption("landscape");
   await subject.selectOption("rose");
