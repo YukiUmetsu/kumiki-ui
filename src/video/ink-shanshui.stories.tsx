@@ -1,6 +1,7 @@
 import {useEffect,useState} from "react";
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {InkShanshuiFilm} from "./ink-shanshui-film";
+import {InkShanshuiStage} from "../../registry/video/ink-shanshui-react";
 import {DEFAULT_SHANSHUI,SHANSHUI_FRAMES,SHANSHUI_REFERENCE_NOTES} from "../../registry/video/ink-shanshui";
 import type {ShanshuiControls,ShanshuiScene} from "../../registry/video/ink-shanshui";
 import {VideoExportStage} from "../../registry/video/video-export-stage";
@@ -213,6 +214,98 @@ function GarmentMotion(){
   </main>;
 }
 
+/** Material-first ArtCraft inspection: original frame-pure renderer, four
+ * deliberately named crops and one shared art-direction control set. Use
+ * nearby browser screenshot evidence rather than calling abstract metrics
+ * a substitute for the appearance of actual brushwork. */
+function BrushworkDetail(){
+  const [detail,setDetail]=useState(1);
+  const [ink,setInk]=useState(.86);
+  const [mist,setMist]=useState(.41);
+  const [wind,setWind]=useState(.24);
+  const [frame,setFrame]=useState(145);
+  const [seed,setSeed]=useState(71);
+  const crops:readonly {
+    label:string;scene:ShanshuiScene;x:number;y:number;note:string;
+  }[]=[
+    {label:"松針 · Old-pine needle clusters",scene:"mountain-trail",
+      x:95,y:161,note:"Gnarled source-connected branches, split rosettes and tapering dry-brush tips"},
+    {label:"皴法 · Geological texture",scene:"mountain-trail",
+      x:463,y:266,note:"Broken hemp fibres, lateral axe-cuts, untouched paper and pigment islands"},
+    {label:"柳 · Hanging willow foliage",scene:"river-scholar",
+      x:196,y:174,note:"Each hanging frond emerges from a measured arch; varied leaf densities"},
+    {label:"竹 · Pressure-brush bamboo",scene:"misty-hermit",
+      x:875,y:365,note:"Joined stalks, branches, pointed blades and high-contrast wet–dry marks"},
+  ];
+  const cropScale=2.15;
+  return <main data-testid="shanshui-brushwork-studio"
+    style={{minHeight:"100vh",padding:24,background:"#e9e2d5",
+      color:"#352b21",font:"14px/1.5 system-ui",display:"grid",
+      gap:18,alignContent:"start"}}>
+    <header>
+      <h1 style={{font:"400 33px Georgia,serif",margin:"0 0 8px"}}>
+        Shanshui · ink craftsmanship inspection
+      </h1>
+      <p style={{margin:0,maxWidth:900,color:"#6f5c49"}}>
+        Four 2.15× views from the actual procedural 960×540 film renderer.
+        Compare continuous branch roots, varied ink pressure, rock texture
+        rhythm, and deliberate negative space. No raster reference collage.
+      </p>
+    </header>
+    <div style={{display:"flex",flexWrap:"wrap",gap:13,alignItems:"end"}}>
+      {([
+        ["Brushwork detail",detail,setDetail],
+        ["Brushwork ink",ink,setInk],
+        ["Brushwork mist",mist,setMist],
+        ["Brushwork wind",wind,setWind],
+      ] as const).map(([label,value,setValue])=>
+        <label key={label} style={{...style.field,minWidth:172}}>
+          {label} · {Math.round(value*100)}%
+          <input aria-label={label} type="range" min="0" max="1" step=".05"
+            value={value} onChange={e=>setValue(Number(e.target.value))}/>
+        </label>)}
+      <label style={{...style.field,minWidth:172}}>
+        Source seed · {seed}
+        <input aria-label="Brushwork seed" type="range" min="1" max="199"
+          step="1" value={seed} onChange={e=>setSeed(Number(e.target.value))}/>
+      </label>
+      <label style={{...style.field,minWidth:172}}>
+        Film frame · {frame}
+        <input aria-label="Brushwork frame" type="range" min="0"
+          max={SHANSHUI_FRAMES-1} step="1" value={frame}
+          onChange={e=>setFrame(Number(e.target.value))}/>
+      </label>
+    </div>
+    <div style={{display:"flex",flexWrap:"wrap",gap:16,alignItems:"start"}}>
+      {crops.map(crop=>{
+        const controls:ShanshuiControls={
+          ...DEFAULT_SHANSHUI,scene:crop.scene,detail,ink,mist,wind,seed,
+        };
+        const tx=160-cropScale*crop.x,ty=128-cropScale*crop.y;
+        return <section key={crop.label} data-km-brush-study-card={crop.label}
+          style={{display:"grid",gap:8,width:328,maxWidth:"100%"}}>
+          <div style={{font:"600 13px system-ui"}}>{crop.label}</div>
+          <div style={{width:320,height:256,position:"relative",
+            overflow:"hidden",background:"#f3e6cd",
+            border:"1px solid #b8aa96"}}>
+            <div style={{position:"absolute",left:0,top:0,
+              transformOrigin:"top left",
+              transform:"translate("+tx+"px,"+ty+"px) scale("+cropScale+")"}}>
+              <InkShanshuiStage frame={frame} controls={controls}/>
+            </div>
+          </div>
+          <p style={{fontSize:12,margin:0,color:"#6f5c49"}}>{crop.note}</p>
+        </section>;
+      })}
+    </div>
+    <p style={{margin:0,maxWidth:940,fontSize:12,color:"#6f5c49"}}>
+      ArtCraft review mode: style-guided, not pixel-matched. Native image
+      appearance, branch connectivity, pressure variation and optical
+      spacing all require visual evaluation at film resolution.
+    </p>
+  </main>;
+}
+
 function Export({scene}:{scene:ShanshuiScene}){
   const [frame,setFrame]=useState(0);
   const manifest:VideoExportManifest={
@@ -230,6 +323,11 @@ export default meta;
 export const GalleryStudio:StoryObj<typeof meta>={
   name:"Original landscape paintings · interactive gallery",
 };
+export const BrushworkDetailStudio:StoryObj<typeof BrushworkDetail>={
+  name:"Brushwork close-ups · ArtCraft inspection",
+  render:()=> <BrushworkDetail/>,
+};
+
 export const GarmentMotionStudio:StoryObj<typeof GarmentMotion>={
   name:"Garment motion · three gait phases",
   render:()=> <GarmentMotion/>,
