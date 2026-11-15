@@ -139,16 +139,20 @@ L${halfWidth} ${tip} Q0 ${Number((near+.35).toFixed(2))} ${-halfWidth} ${tip} Z`
       const digit=crease[1];
       const width=Number((RISO31_GEOMETRY[digit as keyof typeof RISO31_GEOMETRY].width*.9).toFixed(2));
       return {...part,joint:side+"-"+digit+"-pip",
-        d:`M${-width} -1.4 Q0 -2.3 ${width} -1.5 L${width} -.8 Q0 -1.5 ${-width} -.7 Z
-M${Number((-width*.87).toFixed(2))} 1 Q0 .4 ${Number((width*.87).toFixed(2))} 1.1 L${width*.8} 1.65 Q0 1.2 ${Number((-width*.85).toFixed(2))} 1.6 Z`};
+        d:`M${-width} -1.22 Q0 -1.75 ${width} -1.22 L${width} -.94 Q0 -1.40 ${-width} -.92 Z
+M${Number((-width*.76).toFixed(2))} .75 Q0 .40 ${Number((width*.76).toFixed(2))} .79 L${Number((width*.74).toFixed(2))} 1.09 Q0 .75 ${Number((-width*.75).toFixed(2))} 1.08 Z`};
     }
     return part;
   });
   const distalInk=(["index","middle","ring","pinky"] as const).map(digit=>{
     const width=Number((RISO31_GEOMETRY[digit].width*.8).toFixed(2));
-    return blue(digit+"-dip-crease",side+"-"+digit+"-dip",
-      `M${-width} -1.35 Q0 -2.05 ${width} -1.25 L${width} -.65 Q0 -1.28 ${-width} -.7 Z
-M${Number((-width*.8).toFixed(2))} .65 Q.05 .25 ${Number((width*.7).toFixed(2))} .8 L${Number((width*.7).toFixed(2))} 1.25 Q0 .85 ${Number((-width*.8).toFixed(2))} 1.1 Z`);
+    // Two microengraved pressure folds remain independent and source-drawn,
+    // but the DIP uses a physically screened LIGHT cobalt master. The old
+    // fully solid pair formed thick tiger stripes at original 6.2× review.
+    return {...blue(digit+"-dip-crease",side+"-"+digit+"-dip",
+      `M${-width} -1.22 Q0 -1.62 ${width} -1.17 L${width} -.87 Q0 -1.27 ${-width} -.88 Z
+M${Number((-width*.78).toFixed(2))} .65 Q.05 .38 ${Number((width*.70).toFixed(2))} .76 L${Number((width*.70).toFixed(2))} 1.06 Q0 .74 ${Number((-width*.78).toFixed(2))} 1.05 Z`),
+      paint:"screen" as const,screenTone:"light" as const};
   });
   return [...adjusted,...distalInk];
 };
