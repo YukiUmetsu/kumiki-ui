@@ -18,10 +18,10 @@ export const KINGFISHER_PERCHING_FEET = {
   contactY: 218,
   details: [
     {path:"M133 216 Q137 215 138 218 Q139 222 135 224 M161 217 Q166 216 168 219 Q168 223 164 225",
-      color:"#403845",width:1.25,startFrame:230,durationFrames:52,opacity:.89},
+      color:"#403845",width:.78,startFrame:230,durationFrames:52,opacity:.89},
     {path:"M105 219 Q101 219 100 222 Q100 225 104 225 M135 222 Q132 221 131 224 Q134 228 137 225",
-      color:"#443B47",width:1.05,startFrame:238,durationFrames:50,opacity:.88},
-    {path:"M114 190 Q118 192 122 190 M114 195 Q118 198 121 196 M114 201 Q117 203 120 201 M142 193 Q146 195 151 193 M142 198 Q146 200 149 198 M143 204 Q146 206 148 204",
+      color:"#443B47",width:.70,startFrame:238,durationFrames:50,opacity:.88},
+    {path:"M114 190 Q117 192 121 191 M115 195 Q118 197 121 196 M115 200 Q118 202 120 201 M143 193 Q147 195 150 194 M143 199 Q146 200 149 199 M143 204 Q146 206 148 205",
       color:"#D99D83",width:.58,startFrame:243,durationFrames:51,opacity:.90},
     {path:"M117 186 Q118 198 118 208 Q128 216 135 216 M146 188 Q144 200 146 211 Q156 216 163 218",
       color:"#F0BF99",width:.81,startFrame:251,durationFrames:50,opacity:.82},
