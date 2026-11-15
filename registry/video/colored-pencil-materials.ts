@@ -80,7 +80,7 @@ const RECIPES: Record<PencilSurface, Recipe> = {
   // Keratin claws and bird toes need harder edges; fur-like fibres look wrong.
   keratin: { density:"layered", marks:["hatch","hatch","stipple"], tone:"core",
     flow:4, direction:77, underpaintOpacity:.93, support:true,
-    clipDetails:true, contourOpacity:.76 },
+    clipDetails:true, contourOpacity:.61 },
 };
 export interface PencilMaterialInput {
   surface: PencilSurface;
@@ -125,7 +125,8 @@ export function createPencilMaterialRegion(input: PencilMaterialInput): PencilRe
   return {
     ...region,
     contour:{...region.contour, opacity:recipe.contourOpacity,
-      width:input.surface === "glass" ? 1.08 : 1.2},
+      width:input.surface === "glass" ? 1.08 :
+        input.surface === "keratin" ? .72 : 1.2},
     layers:region.layers.map((layer, index) => ({
       ...layer, texture:recipe.marks[index],
       // Every pass deposits physically separate marks. Glass avoids the
