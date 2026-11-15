@@ -235,7 +235,7 @@ function BrushworkDetail(){
     {label:"柳 · Hanging willow foliage",scene:"river-scholar",
       x:196,y:174,note:"Compare Mei Qing: 39 differently swept pressure-tapered silk strands, five bare paper reserves and asymmetrical angled leaves"},
     {label:"竹葉 · Bamboo leaf canopy",scene:"misty-hermit",
-      x:884,y:263,note:"Compare Wu Zhen: leaf directions follow the twig tangent, with asymmetric tip clusters, thick-to-thin loaded bellies, and deliberate paper gaps. Inspect for repeated arrow tips"},
+      x:884,y:263,note:"Compare Wu Zhen: leaf directions follow the twig tangent, with asymmetric tip clusters, thick-to-thin loaded bellies, subtle paper-fibre absorption, and deliberate paper gaps. Inspect for repeated arrow tips"},
     {label:"竹節 · Bamboo nodes and branches",scene:"misty-hermit",
       x:875,y:365,note:"Compare Zheng Xie: three fanned culms with unequal joint intervals, two root-connected lateral shoots, narrow pressure collars, dark and dilute ink. Verify attachment at high and low detail"},
   ];
