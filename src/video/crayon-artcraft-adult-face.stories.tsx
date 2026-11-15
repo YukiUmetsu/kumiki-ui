@@ -10,6 +10,7 @@ import {crayonArtcraftBodyStudy,CRAYON_BODY_REFERENCE} from "./crayon-artcraft-b
 import {crayonCc0FaceStudy,CRAYON_F1_FACE_PROOF,CRAYON_F1_EYE_INSPECTION} from "./crayon-artcraft-cc0-face";
 import {useCrayonStoryPlayback} from "./crayon-story-playback";
 import {CRAYON_PORTRAIT_AUDIT,crayonPortraitFrozenAudit} from "./crayon-artcraft-portrait-audit";
+import {auditCrayonF1LashRootContinuity} from "./crayon-artcraft-f1-lash-clusters";
 
 /** ArtCraft reference crops use only the native CRAYON1 camera; source marks remain unchanged. */
 export type ArtcraftInspection="full"|"face"|"eyes"|"nose-mouth"|"garment";
@@ -462,7 +463,11 @@ export function crayonF1SourceCssCamera(spec:CrayonSceneSpec,frame:number){
 
 export function Cc0SourceRegisteredFaceWorkbench({
   detail,startFrame,playbackRate,loop,
-}:StudyProps){
+  initialLashFinish="sparse",initialInspection="full",
+}:StudyProps & {
+  initialLashFinish?:"sparse"|"rooted";
+  initialInspection?:"full"|"near-eye"|"far-eye";
+}){
   const [view,setView]=useState<"wax"|"anatomy">("wax");
   const [showReference,setShowReference]=useState(true);
   const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
@@ -470,13 +475,16 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const [browForm,setBrowForm]=useState<"baseline"|"source-rooted">("baseline");
   const [midfaceForm,setMidfaceForm]=useState<"source-volume"|"baseline">("baseline");
   const [jawNeckForm,setJawNeckForm]=useState<"source-contour"|"baseline">("baseline");
-  const [lashFinish,setLashFinish]=useState<"sparse"|"rooted">("sparse");
+  const [lashFinish,setLashFinish]=useState<"sparse"|"rooted">(initialLashFinish);
   const [inspection,setInspection]=useState<
     "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|
-    "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right">("full");
+    "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right">(initialInspection);
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish,
   }),[detail,view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish]);
+  const lashRootAudit=useMemo(()=>lashFinish==="rooted"&&eyeContact!=="baseline"
+    ?auditCrayonF1LashRootContinuity(spec.elements):null,
+    [spec,eyeContact,lashFinish]);
   const framed=useMemo(()=>{
     if(inspection==="full")return spec;
     const focus={
@@ -513,6 +521,16 @@ export function Cc0SourceRegisteredFaceWorkbench({
       identity. A source landmark graph can be toggled without changing
       painted shapes or wax sequence. Artistic acceptance is NOT established.
     </p>
+    {lashRootAudit&&<p data-km-crayon-f1-lash-root-audit="topology-only"
+      style={{margin:"0 0 12px",fontSize:12,lineHeight:1.65,maxWidth:870}}>
+      Source-space rooted lash proximity: near {lashRootAudit.near.count} contacts,
+      max {lashRootAudit.near.maximumDistance.toFixed(2)} px;
+      far {lashRootAudit.far.count} contacts,
+      max {lashRootAudit.far.maximumDistance.toFixed(2)} px.
+      Both have {lashRootAudit.near.detached+lashRootAudit.far.detached}
+      detached deposits. This structural check does not establish portrait
+      likeness, anatomical realism or finished wax craftsmanship.
+    </p>}
     <div style={{display:"grid",gap:16,alignItems:"start",
       gridTemplateColumns:showReference?
         "repeat(auto-fit,minmax(min(100%,310px),1fr))":"minmax(0,500px)",
@@ -645,4 +663,16 @@ export const Cc0RegisteredFullFace:Story={
   name:"CC0 full face · source-registered wax anatomy (ArtCraft experiment)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}/>,
+};
+export const Cc0RootedNearLashMacro:Story={
+  name:"CC0 wax lash roots · near eye 2.95× (unapproved study)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialLashFinish="rooted" initialInspection="near-eye"/>,
+};
+export const Cc0RootedFarLashMacro:Story={
+  name:"CC0 wax lash roots · far eye 3× (unapproved study)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialLashFinish="rooted" initialInspection="far-eye"/>,
 };
