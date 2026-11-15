@@ -442,3 +442,58 @@ test("RISO29 neck and facial anatomy: two original actors, print plates, poses a
   await expect(page.locator('[data-km-riso-rig-diagnostics]')).toHaveCount(2);
   expect(errors).toEqual([]);
 });
+
+/** RISO30 | Actual Chromium press proof for the same joint-local source
+ * embroidery in *two independent* original human hands. No fake raster crop.
+ */
+test("RISO30 ANAT1 hands: original donor / receiver, 2 ink masters, live gesture anatomy and responsive crop",async({page},info)=>{
+  const errors:string[]=[];
+  page.on("pageerror",error=>errors.push(error.message));
+  page.on("console",message=>{if(message.type()==="error")errors.push(message.text());});
+  await page.setViewportSize({width:1550,height:1130});
+  await page.goto("/iframe.html?id=video-riso-artcraft-studies--human-hand-anatomy-print&viewMode=story");
+  await page.evaluate(()=>document.fonts.ready);
+  const story=page.locator('[data-km-riso30-hands-story]');
+  await expect(story).toBeVisible({timeout:20000});
+  await expect(page.locator('[data-km-riso30-hand]')).toHaveCount(2);
+  await expect(page.locator('[data-km-riso30-hand="courier-right"]')).toHaveAttribute("data-km-riso30-hand-artcraft","true");
+  await expect(page.locator('[data-km-riso30-hand="paper-artist-left"]')).toHaveAttribute("data-km-riso30-hand-artcraft","true");
+  const gesture=page.getByRole("combobox",{name:"RISO30 gesture frame"});
+  for(const f of [46,144,160,178,198]){
+    await gesture.selectOption(String(f));
+    await expect(story).toHaveAttribute("data-km-riso30-frame",String(f));
+    for(const spec of [{name:"courier",side:"right"},{name:"paper-artist",side:"left"}]){
+      const panel=page.locator('[data-km-riso30-hand="'+spec.name+"-"+spec.side+'"]');
+      await expect(panel).toHaveAttribute("data-km-riso30-hand-frame",String(f));
+      await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-knuckle-arc"]')).toHaveCount(1);
+      await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-thumb-nail"]')).toHaveCount(1);
+      await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-middle-joint-crease"]')).toHaveCount(1);
+      await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-thenar-plane"]'))
+        .toHaveAttribute("data-km-riso-screen-tone","light");
+      await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-index"]')).toHaveCount(1);
+    }
+    await story.screenshot({path:info.outputPath("riso30-hands-"+f+"-two-ink.png"),
+      animations:"disabled"});
+  }
+  const plate=page.getByRole("combobox",{name:"RISO30 ink plate"});
+  await plate.selectOption("blue");
+  await expect(story).toHaveAttribute("data-km-riso30-ink","blue");
+  await story.screenshot({path:info.outputPath("riso30-hands-blue-only.png"),animations:"disabled"});
+  await plate.selectOption("red");
+  await expect(story).toHaveAttribute("data-km-riso30-ink","red");
+  await story.screenshot({path:info.outputPath("riso30-hands-red-only.png"),animations:"disabled"});
+  await plate.selectOption("both");
+  await page.getByRole("checkbox",{name:"RISO30 compare opposite hands"}).check();
+  await expect(page.locator('[data-km-riso30-hand="courier-left"]')).toHaveAttribute("data-km-riso30-hand-artcraft","true");
+  await expect(page.locator('[data-km-riso30-hand="paper-artist-right"]')).toHaveAttribute("data-km-riso30-hand-artcraft","true");
+  await page.getByRole("checkbox",{name:"RISO30 show source joints"}).check();
+  await story.screenshot({path:info.outputPath("riso30-hands-opposite-with-source-joints.png"),
+    animations:"disabled"});
+  await page.setViewportSize({width:700,height:950});
+  await page.getByRole("checkbox",{name:"RISO30 compare opposite hands"}).uncheck();
+  await gesture.selectOption("160");
+  await expect(page.locator('[data-km-riso30-hand]')).toHaveCount(2);
+  await story.screenshot({path:info.outputPath("riso30-hands-narrow-source-gesture.png"),
+    animations:"disabled"});
+  expect(errors).toEqual([]);
+});
