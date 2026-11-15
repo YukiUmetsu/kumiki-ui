@@ -29,7 +29,7 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
         pencilMarks:node.querySelectorAll(
           "[data-km-pigment-layer] path").length,
         tracedGeometry:node.querySelectorAll(
-          "[data-km-pencil-trace]").length,
+          "[data-km-graphite] path").length,
       }));
       expect(provenance.photoElements).toBe(0);
       expect(provenance.pencilMarks).toBeGreaterThan(100);
