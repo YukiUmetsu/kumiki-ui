@@ -4,6 +4,7 @@ import {
   CC0_HAIR_OCCLUSION_PROBE,compareCC0HairOcclusion,
   CC0_VERMILION_PROBES,compareCC0Vermilion,
   CC0_SKIN_COVERAGE_PROBES,compareCC0SoftSkin,
+  CC0_LUMINOUS_SKIN_PROBES,compareCC0LuminousSkin,
 } from "../src/video/colored-pencil-full-head-tone-proof";
 import type {PencilTonePixelGrid} from "../src/video/colored-pencil-full-head-tone-proof";
 
@@ -23,6 +24,28 @@ const paint=(image:PencilTonePixelGrid,x:number,y:number,value:number)=>{
     image.data[index]=image.data[index+1]=image.data[index+2]=value;
   }
 };
+describe("ArtCraft luminous cheek/nasal bridge vs genuine paper-white negative gate",()=>{
+  it("rejects prior blank-white face regions while protecting real source light",()=>{
+    const src=make(230),chalk=make(240),optical=make(240);
+    const sourceY=[202,199],oldY=[241,236],drawY=[221,223];
+    CC0_LUMINOUS_SKIN_PROBES.forEach((region,i)=>{
+      paint(src,region.x,region.y,sourceY[i]);
+      paint(chalk,region.x,region.y,oldY[i]);
+      paint(optical,region.x,region.y,drawY[i]);
+    });
+    const missing=compareCC0LuminousSkin(src,chalk);
+    const restored=compareCC0LuminousSkin(src,optical);
+    expect(missing.missingPhotographedLightSkin).toBe(true);
+    expect(restored.missingPhotographedLightSkin).toBe(false);
+    expect(restored.artisticApproval).toBe(false);
+    expect(restored.regions.map(r=>r.name))
+      .toEqual(["malar","nasal-bridge"]);
+    expect(compareCC0LuminousSkin(make(245),optical)
+      .missingPhotographedLightSkin).toBe(true);
+    expect(()=>compareCC0LuminousSkin(src,{...optical,width:400}))
+      .toThrow(RangeError);
+  });
+});
 describe("ArtCraft independent cheek, under-eye and chin tonal support gate",()=>{
   it("fails on the prior chalk-white skin but not new source-matched dry fibres",()=>{
     const source=make(230),old=make(240),newPlate=make(240);
