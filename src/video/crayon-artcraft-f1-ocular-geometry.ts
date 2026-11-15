@@ -199,3 +199,117 @@ export function crayonF1ReconstructEyes(elements:readonly CrayonElement[]):Crayo
     return element;
   });
 }
+
+/**
+ * F1 third A/B: pigment VALUE reconstruction using source RGB statistics,
+ * not only source-space landmarks. This opt-in is not the art-approved eye.
+ *
+ * Photographic (608×1082, same camera) region mean vs earlier native wax:
+ * near iris: source [62,46,44], candidate [98,79,75];
+ * near exposed eye x285..322,y539..562: source [113,89,87],
+ * earlier candidate [172,150,143]; brow x205..330,y462..511:
+ * source [140,106,96], earlier candidate [188,157,147].
+ * Global color grades are not allowed: place dark wax on actual ocular
+ * parts while preserving facial/cervical colors and directional grain.
+ *
+ * These colors are original RGB/hex pigment hypotheses, NOT sampled pixels
+ * or a photographic filter. Fixed complete A/B control in Storybook.
+ */
+const sourceValueWax:Readonly<Record<string,Partial<Wax>>>={
+  "sclera-near":{
+    // The exposed inferior sclera is narrow and lid-held, never a white
+    // cartoon almond wrapping an isolated iris; keep all four cubics.
+    d:"M215 559 C225 544 247 537 266 535 "+
+      "C290 532 309 539 319 545 "+
+      "C311 553 291 560 273 563 "+
+      "C249 569 227 567 215 559Z",
+    bounds:{x:211,y:530,width:111,height:43},
+    colors:["#998a84","#56494d","#b7a59d"],
+    pressure:.85,spacing:5.4,markStrength:.20,
+    underpaintGradient:{
+      light:"#b6a59d",shadow:"#54464d",focusX:.81,focusY:.53,radius:.93,
+    },
+  },
+  "sclera-far":{
+    colors:["#756d6f","#3e363d","#a39996"],
+    pressure:.85,markStrength:.19,
+    underpaintGradient:{
+      light:"#a79996",shadow:"#43383d",focusX:.36,focusY:.65,radius:.86,
+    },
+  },
+  "iris-near":{
+    colors:["#382b27","#171518","#614338"],
+    pressure:.97,spacing:4.1,markStrength:.37,
+    underpaintGradient:{
+      light:"#634638",shadow:"#161318",focusX:.59,focusY:.77,radius:.92,
+    },
+  },
+  "iris-far":{
+    colors:["#2a2022","#151316","#47342d"],
+    pressure:.97,spacing:4.2,markStrength:.35,
+    underpaintGradient:{
+      light:"#49342d",shadow:"#161317",focusX:.48,focusY:.63,radius:.83,
+    },
+  },
+  "upper-lid-near":{
+    colors:["#a38383","#654e55","#c39893"],
+    pressure:.6,markStrength:.29,blendRadius:6.5,
+  },
+  "upper-lid-far":{
+    colors:["#927377","#55434b","#ba9090"],
+    pressure:.6,markStrength:.29,blendRadius:5.8,
+  },
+  "upper-lid-crease-near":{
+    colors:["#8d686e","#584751","#b78d8f"],
+    pressure:.43,markStrength:.19,blendRadius:7.7,
+  },
+  "upper-lid-crease-far":{
+    colors:["#8c6970","#57434d","#b58e90"],
+    pressure:.43,markStrength:.18,blendRadius:6.9,
+  },
+  "lash-root-near":{
+    colors:["#423034","#201b22","#694e4d"],
+    pressure:.88,spacing:4.4,markStrength:.34,
+  },
+  "lash-root-far":{
+    colors:["#3b2a30","#201a21","#594347"],
+    pressure:.87,spacing:4.4,markStrength:.30,
+  },
+  "brow-superciliary-near":{
+    colors:["#6b4b48","#342d32","#99746b"],
+    pressure:.63,spacing:6.8,markStrength:.34,blendRadius:9.7,
+  },
+  "brow-superciliary-far":{
+    colors:["#6b4d47","#362e32","#9d746c"],
+    pressure:.60,spacing:6.8,markStrength:.31,blendRadius:8.3,
+  },
+  "lower-lid-near":{
+    colors:["#996a6d","#614952","#bd8986"],
+    pressure:.60,markStrength:.28,blendRadius:9.2,
+  },
+  "lower-lid-far":{
+    colors:["#977074","#654b54","#bb908c"],
+    pressure:.55,markStrength:.26,blendRadius:7.9,
+  },
+};
+
+export const CRAYON_F1_SOURCE_VALUE_IDS=Object.freeze(
+  Object.keys(sourceValueWax),
+);
+
+/** Only source-visible ocular wax changes; all other elements are equal. */
+export function crayonF1SourceValueEyes(
+  elements:readonly CrayonElement[],
+):CrayonElement[]{
+  const found=new Set<string>();
+  const out=elements.map(e=>{
+    if(e.kind!=="wax"||!(e.id in sourceValueWax))return e;
+    if(found.has(e.id))throw new RangeError("Duplicate value root: "+e.id);
+    found.add(e.id);
+    return {...e,...sourceValueWax[e.id]};
+  });
+  for(const id of CRAYON_F1_SOURCE_VALUE_IDS){
+    if(!found.has(id))throw new RangeError("Missing source eye value: "+id);
+  }
+  return out;
+}
