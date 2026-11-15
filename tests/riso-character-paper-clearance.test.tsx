@@ -26,7 +26,8 @@ describe("Risograph local paper clearance for layered actors",()=>{
       expect(html).toContain('mask="url(#');
       expect(html).toContain('data-km-riso-ink-segment="0"');
       expect(html).not.toContain('data-km-riso-part="face"');
-      expect(html).toContain('data-km-riso-part="mouth"');
+      expect(html).toContain(plateId==="red"
+        ? 'data-km-riso-part="mouth"' : 'data-km-riso-part="face-outline"');
     }
   });
 
