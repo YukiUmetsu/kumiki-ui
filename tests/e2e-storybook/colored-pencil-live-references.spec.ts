@@ -179,6 +179,22 @@ for(const sample of ["woman","man"] as const){
           await atlas.screenshot({animations:"disabled",
             path:info.outputPath("artcraft-cc0-"+aspect+"-detail-"+region+"-3x.png")});
         }
+        const lipEvidence=page.locator(
+          '[data-km-pencil-vermilion-proof="ready"]');
+        await expect(lipEvidence).toHaveCount(1);
+        const lipNumbers=await lipEvidence.evaluate(node=>({
+          upper:Number(node.getAttribute(
+            "data-km-pencil-vermilion-upper-deficit")),
+          lower:Number(node.getAttribute(
+            "data-km-pencil-vermilion-lower-deficit")),
+        }));
+        // Both independently source-observed lip pillows previously
+        // disappeared into beige paper (~38 and 40 luma deficit). Keep
+        // the photographed upper/lower vermilion in this dry code render.
+        expect(lipNumbers.upper).toBeLessThan(25);
+        expect(lipNumbers.lower).toBeLessThan(36);
+        await expect(lipEvidence).toContainText(
+          "No independent ArtCraft artistic approval");
         const currentSource=await anatomySource.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png"));
         const currentDry=await anatomyDry.evaluate(node=>
