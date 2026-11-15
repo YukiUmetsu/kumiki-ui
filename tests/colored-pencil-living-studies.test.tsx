@@ -118,6 +118,8 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     // the parent facial plane must show through both tinted pencil layers.
     expect(upper.opaqueSupport).toBe(false);
     expect(lower.opaqueSupport).toBe(false);
+    expect(upper.layeredSkinOverParent).toBe(true);
+    expect(lower.layeredSkinOverParent).toBe(true);
     expect(upper.craft?.kind).toBe("skin");
     expect(lower.craft?.kind).toBe("skin");
     expect(upper.layers).toHaveLength(3);
