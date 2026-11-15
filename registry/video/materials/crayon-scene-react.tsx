@@ -132,7 +132,9 @@ export function CrayonScene({spec, frame, reducedMotion = false, hideScreenSpace
     xmlns="http://www.w3.org/2000/svg" style={{width:"100%",height:"100%",display:"block",overflow:"hidden",...style}}>
     <rect width={spec.width} height={spec.height} fill={spec.paper} />
     <Paper width={spec.width} height={spec.height} tooth={tooth}
-      seed={spec.seed} color={spec.paper} strength={spec.paperTooth ?? .6} />
+      seed={spec.seed} color={spec.paper} strength={spec.paperTooth ?? .6}
+      pigmentRelief={spec.elements.some(n=>n.kind==="wax"&&
+        (n.underpaintTooth??0)>0)} />
     <g data-km-crayon-camera="" transform={"translate("+camera.x+" "+camera.y+") scale("+camera.scale+")"}>
       {rendered(false)}
     </g>
