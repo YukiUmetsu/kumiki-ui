@@ -3,6 +3,7 @@ import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
 import {crayonAdultFaceStudy} from "../../src/video/crayon-artcraft-adult-face-fixtures";
+import {AdultFaceArtcraftWorkbench} from "../../src/video/crayon-artcraft-adult-face.stories";
 
 /** Only exact React-native CRAYON1 renders may serve as visual evidence.
  * This workflow produces viewable image files and machine-checks the DOM.
@@ -105,3 +106,39 @@ for(const item of [
     console.log("ARTCRAFT_NEUTRAL_JPEG:"+item.aspect+":"+neutralShot.toString("base64"));
   });
 }
+
+/**
+ * Frozen ArtCraft v7 reference-review surface in the EXISTING Crayon Storybook
+ * page. The measured CC0 source photograph is external; the native candidate
+ * is rendered directly from React. Neither SSR nor a green browser screenshot
+ * can approve likeness or assert that the original photo JPEG was preserved.
+ */
+test("ArtCraft source-referenced portrait audit remains rejected and isolated",
+  async({page},info)=>{
+    await page.setViewportSize({width:1180,height:1060});
+    const markup=renderToStaticMarkup(createElement(AdultFaceArtcraftWorkbench,{
+      aspect:"portrait",detail:1,expression:"warm",headScaleY:.82,
+      startFrame:299,playbackRate:1,loop:false,inspection:"full",
+      referenceReview:true,showCandidateLandmarks:true,
+    }));
+    const errors:string[]=[];
+    page.on("pageerror",err=>errors.push(err.message));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+
+      markup+"</body></html>");
+    const audit=page.locator('[data-km-crayon-portrait-audit="REJECT"]');
+    await expect(audit).toBeVisible();
+    await expect(audit).toContainText("17/18");
+    await expect(audit).toContainText("4/5");
+    const reference=page.locator('img[alt*="CC0 photographic anatomy reference"]');
+    await expect(reference).toHaveCount(1);
+    await expect(page.locator('[data-km-crayon-portrait-landmark]')).toHaveCount(18);
+    const native=page.locator('[data-km-crayon-source-review="on"] svg[data-km-crayon-scene]');
+    await expect(native).toHaveAttribute("data-km-crayon-frame","299");
+    await native.screenshot({path:info.outputPath("cc0-audit-native-crayon-portrait.png"),
+      animations:"disabled"});
+    // Record the complete review surface for actual artist scrutiny. The
+    // external image is a reference preview, not a registered image overlay.
+    await page.locator('[data-km-crayon-source-review="on"]').screenshot({
+      path:info.outputPath("cc0-audit-side-by-side-lab.png"),animations:"disabled"});
+    expect(errors).toEqual([]);
+  });
