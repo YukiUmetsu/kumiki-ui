@@ -215,9 +215,15 @@ function pencilDermalGlaze(
           fmt(midx)+" "+fmt(midy)+" "+fmt(ex)+" "+fmt(ey));
       }
     });
-    traces.push({...mark(pieces.join(" "),palette[layer],
-      [.39,.30,.25][layer],startFrame+layer*9,
-      [.34,.27,.25][layer]),id:"dermis-"+layer});
+    // A single giant trace would exceed CP-F1's 12K path budget. Split
+    // each physical pigment pass into three bounded, separately seekable
+    // brushes without dropping a single fine contact or authored plane.
+    for(let chunk=0;chunk<3;chunk++){
+      const portion=pieces.slice(chunk*150,(chunk+1)*150);
+      traces.push({...mark(portion.join(" "),palette[layer],
+        [.39,.30,.25][layer],startFrame+layer*9,
+        [.34,.27,.25][layer]),id:"dermis-"+layer+"-"+chunk});
+    }
   }
   return traces;
 }
