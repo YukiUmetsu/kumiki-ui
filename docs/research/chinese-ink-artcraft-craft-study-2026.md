@@ -314,3 +314,55 @@ two parallel tubes, disconnected splash confetti or an ungrounded
 noisy pool. Structural tests verify layers and deterministic content,
 not the quality of the artwork. Source image is used for study only;
 no artwork pixels are embedded in the repository.
+
+
+## Fifth source pass: Wen Zhengming's Old Pine — bark and secondary branch topology
+
+**Reference images:** [Cleveland Museum of Art, *Old Pine Tree*
+(1964.43), full painting and open-access detail views](https://www.clevelandart.org/art/1964.43).
+The museum's close-up detail shows one thick trunk bending through multiple
+irregular articulations and twisting, exposed wood; narrow boughs divide,
+some rising and others drooping. The ropy dark outline opens to untouched
+paper along broken bark fissures. Needle tufts radiate at unequal angles
+on branching twig systems rather than being equally spaced flower rosettes.
+
+**Visual diagnosis of merged PR #194:** At native browser scale the old
+pine still resembled horizontal shelves with identical decorative needles.
+Geometry tests verified eight roots and diverse fan angles, but the
+source's *branching topology*, fine bark fissures and ink-bone
+thick-to-thin wood were not present. More uniform radial stamps could
+not correct that.
+
+**New code in this branch:**
+- Each of eight primary branch cubic curves supplies three real fork roots
+  sampled directly along the branch. Every subordinate wood gesture is an
+  asymmetrically loaded closed shape, with a separate hand-brush dry lift
+  and crotch line; the resulting twenty-four child branches remain
+  **connected geometrically to the parent**.
+- Secondary foliage is seeded but varies *by parent and fork* and is
+  suppressed entirely at detail=0. This keeps controllable negative
+  space and the low-complexity Storybook state.
+- Added 9 small contour-following bark cracks along each primary limb
+  and 42 non-uniform trunk bark strokes, with additional dry split marks.
+  Cracks are tangent to the source bough cubic rather than random
+  vertical scratches.
+- Needle fans no longer use uniform polar intervals. Angle spacing has
+  small bounded offsets and a bias for imperfect overlapping bundles.
+  The original named twig roots and long/short ink-loading classes remain.
+
+**The five ArtCraft axes:** topology (child root = parent cubic sample),
+flow (bark marks follow the cubic tangent), pressure (closed wood/tapered
+ink and separate fine dry lift), rhythm (asymmetric fork direction and
+fan spacing), microtexture (fissures and compressed twig ink). The
+negative control is a trunk with ruler-like limbs and uniformly rotated
+rosettes. Automated tests check deterministic attachment, detail gating,
+finite SVG and construction counts. These are **structural evidence,
+not an assertion of art-quality parity**.
+
+**Next native-scale visual review:** compare the pine against the
+museum open-access close-ups at the film's 960x540 scale and Storybook's
+existing 2.15x pine crop. Check for too much black foliage obscuring
+negative space, microscopic bark at export scale, or secondary twigs
+looking disconnected from their thick limb. Adjust actual form before
+adding grain. The Storybook section remains under the existing
+Video production / Film Looks / Chinese Ink folder; no new folder.
