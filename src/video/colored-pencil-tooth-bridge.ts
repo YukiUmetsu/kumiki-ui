@@ -111,7 +111,10 @@ export function createPhotoSkinToothBridge(
     crop.top+p[1]/HEIGHT*crop.height,
   ];
   const drawScale=drawing.width/WIDTH;
-  const step=4.05;
+  // The 4px pilot missed almost every 1px exposed paper valley at native
+  // 540x600. Finer staggered sharpened-point contact is material construction,
+  // not a blur or a lower-resolution substitution.
+  const step=2.8;
   const nx=Math.ceil(WIDTH/step),ny=Math.ceil(HEIGHT/step);
   // Interleaved angular passes: no screen-wide parallel hatch or photo
   // pixel stamps. Each nib is independent of render frame / browser time.
@@ -143,14 +146,14 @@ export function createPhotoSkinToothBridge(
       // An intact tone or an intentional dark fibre is never brightened,
       // moved, removed or overdrawn. Recheck actual source values rather
       // than using a flat universal flesh colour.
-      if(paperGap<.032){untouchedAreas++;continue;}
-      const brightness=clamp((paperGap-.02)*4.2,0,1);
-      const probability=clamp((.18+.52*brightness)*strength,0,.85);
+      if(paperGap<.019){untouchedAreas++;continue;}
+      const brightness=clamp((paperGap-.008)*6,0,1);
+      const probability=clamp((.44+.40*brightness)*strength,0,.88);
       if(pencilHash(seed,k,213)>probability)continue;
       const flow=pencilSkinFibreFlow(sourcePoint,guides,eye,pass);
       const angle=flow.angle+(pass===1?.73:0)+
         (pencilHash(seed,k,214)-.5)*.21;
-      const length=step*(.74+.31*pencilHash(seed,k,215));
+      const length=step*(.88+.34*pencilHash(seed,k,215));
       const vx=Math.cos(angle)*length,vy=Math.sin(angle)*length;
       const start:Point=[x-vx*.5,y-vy*.5];
       const end:Point=[x+vx*.5,y+vy*.5];
@@ -189,8 +192,8 @@ export function createPhotoSkinToothBridge(
         controlX:control[0],controlY:control[1],
         endX:end[0],endY:end[1],
         color:ink,pass:2,
-        width:step*(.31+.16*pencilHash(seed,k,217)),
-        alpha:clamp((.13+.14*brightness+.06*shade)*strength,.01,.36),
+        width:step*(.49+.22*pencilHash(seed,k,217)),
+        alpha:clamp((.22+.16*brightness+.07*shade)*strength,.01,.44),
       });
       sourceMatchedGaps++;
     }
