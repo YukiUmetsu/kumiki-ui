@@ -99,3 +99,26 @@ The original download endpoint returned HTTP 429 during this review; **its origi
 The second medium recipe changes **where** the deposits accumulate: the face-support undercoat uses only 0.25 stroke strength, ~11.7-unit broad spacing and subdued paper contacts, while brow/lid/iris and source-observed orbital value planes retain higher pigment and local tangent directions. Rooted skin and eyelid shape contours remain unchanged; no unauthorised identity/face reconstruction is attempted. The renderer narrows the second-pass cross-angle, tones down the rare bright pigment cohort and returns a *minor* soft base to open tonal patches while retaining visible fractured strokes. These are opt-in effects; legacy \`smooth\` remains byte-for-byte equivalent in geometry and color treatment apart from an explicit diagnostic attribute.
 
 **Quantitative baseline (grayscale Laplacian standard deviation, one actual screenshot; not a quality score):** skin patch 2.16 smooth vs 5.62 first stroke-built; eye patch 12.61 smooth vs 18.74 first stroke-built. High-frequency contrast spread outside the feature increased too much. Inspect a fresh Chromium render and judge 1×/3× before promoting the revised material. Real human likeness still fails ArtCraft v7, independently of the material recipe.
+
+
+### Actual renderer visual review — four material iterations and release rejection
+
+All four native A/B comparisons are actual **Chromium captures from the same CC0-eye fixture**; changes did not paste a photographic texture into the film:
+
+| Material version | Native proof | Visible result | ArtCraft verdict |
+| --- | --- | --- | --- |
+| V1 — stronger uniform deposits | [run 43687338011](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43687338011) | Smooth gradient is gone but large unstructured pale and dark hatches overwhelm all skin | **Reject** |
+| V2 — part-based pressure and flow | [run 43687611078](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43687611078) | Background quiet, socket and eyebrow emphasized; thin marks still resemble pencil | Research only |
+| V3 — wide side-nib buildup | [run 43687779402](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43687779402) | Broader broken contact lowers the digitally thin-line impression | Research only |
+| V4 — pressure-worn contact geometry | [run 43688022561](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43688022561) | Additional nib samples and locally interrupted wax bands create stronger variable-width contact; form and edges still have obvious vector construction | **Improved medium, NOT a passed artwork** |
+
+At V4, \`crayonDryNibPath(...,"hand")\` is opt-in only: the legacy function continues to return its original four-sample bands exactly. The new pressure-worn path samples eight points along the quadratic gesture, varies width and lateral drift with seeded contact, and allows up to four crayon-side lanes. This reuses existing deterministic source marks, avoids per-frame randomness, and does not change the material of unrelated films. The final eye retains a fully opaque underpainting.
+
+**Actual-pixel control:** a grayscale Laplacian standard-deviation diagnostic, measured on comparable fixed screenshot patches, was **skin 5.62 in the rejected V1 and 2.27 in V4**, while the **eye went from 18.74 to 15.25**. This does **not** measure real crayon likeness. It establishes only that the overwhelming background mark energy was suppressed more strongly than the feature-detail energy. Direct inspection at normal viewing scale and 200% crop continues to reject the completed eye as a professional source-based illustration.
+
+**Final technical proof (V4 head \`f66619324207ecaa28ccf9575b399096417a1cab\`):**
+- [Changed tests and type safety — pass](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43688022545).
+- [Crayon drawing grammar native proof — pass](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43688022552).
+- [Crayon ArtCraft adult face browser proof — pass](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43688022561). Its artifact contains the native two-up A/B panel and portrait and landscape captures.
+
+**Unresolved before artist release:** source-aligned head/eye geometry and 17/18 failed human landmarks; under-eye shadow currently follows a stylized ellipse; the hand nib still lays deposits on a computationally simple uniform undercoat, not a calibrated paper-height/wax-layer material; high-frequency pigment and edge shapes have not been matched to real wax-crayon photographs under a verified crop, nor have intermediate frame motion extrema been visually signed off. Keep all human portrait art and the material A/B research \`!dev\` and PR #281 **draft**. Do not merge as final crayon artwork.
