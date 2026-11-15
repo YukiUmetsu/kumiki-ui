@@ -188,9 +188,9 @@ export const INK_DIRECTOR_SHOT:InkShot={
   layers:[{id:"traveler",startFrame:0,durationFrames:1,reveal:"instant",interactive:false}],
 };
 export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false,
-  foldDetail=1,foldContrast=.85,clothAmount=.75}:{
+  foldDetail=1,foldContrast=.85,clothAmount=.75,showCaption=true}:{
   frame:number;aspect?:DirectorAspect;reducedMotion?:boolean;
-  foldDetail?:number;foldContrast?:number;clothAmount?:number;
+  foldDetail?:number;foldContrast?:number;clothAmount?:number;showCaption?:boolean;
 }) {
   const definition=useMemo(()=>makeInkWalkingTraveller({
     ...DEFAULT_INK_FIGURE_CRAFT,detail:foldDetail,contrast:foldContrast,
@@ -222,7 +222,7 @@ export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false,
       }}
       style={{marginTop:10}}
       />}>
-    <div data-km-ink-directed-caption="" style={{position:"absolute",
+    {showCaption && <div data-km-ink-directed-caption="" style={{position:"absolute",
       left:aspect==="portrait"?33:42,top:aspect==="portrait"?76:50,
       width:aspect==="portrait"?450:720,
       color:"#303832",pointerEvents:"none"}}>
@@ -235,6 +235,6 @@ export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false,
       <div style={{font:"14px/1.5 Arial, sans-serif",marginTop:9,opacity:.7}}>
         Feet settle. Cloth follows. The ink holds.
       </div>
-    </div>
+    </div>}
   </InkWashScene>;
 }
