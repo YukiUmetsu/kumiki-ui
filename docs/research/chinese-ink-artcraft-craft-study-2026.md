@@ -154,3 +154,43 @@ As required by ArtCraft, these are **new hypotheses pending direct visual
 comparison**, not an assertion of equivalent workmanship. The next
 browser contact sheet must show meaningful improvements in the branch
 silhouette and negative space at both 960×540 and enlarged crops.
+
+
+## ArtCraft node-rooted bamboo pass — National Palace Museum 墨竹譜
+
+**Source inspected:** [墨竹譜, National Palace Museum](https://theme.npm.edu.tw/selection/Article.aspx?sNo=04009183).
+This historical brush-ink bamboo sheet uses narrow, living culm lines with
+strongly directional sword-like leaves, compressed fan clusters and irregular
+paper reserves. A loose fan reads as one gesture despite a mixture of sharp
+dark loaded blades and lighter, airy flicks. Reference is used for technique,
+not traced or embedded.
+
+**Prior code defect:** seven evenly repeated branch tiers and five strongly
+alternating, similar triangular leaves gave the small foreground bamboo the
+appearance of ornamental clip art. Branch nodes were spaced independently
+from the inked collars, even though those features represent the same physical
+joints. Changing random microtexture alone would not correct that structure.
+
+**Implemented in PR #194:**
+
+1. The quadratic bamboo culm is now sampled **once** into seven joints per
+   stalk. Rings and branch roots share exactly those same point coordinates;
+   topological continuity is asserted in deterministic renderer tests.
+2. The rooted branch is rendered as an original narrowing filled ink ribbon.
+   Branch handedness, rise, reach and leaf lengths are seeded but deliberately
+   irregular; each blade starts on the actual painted branch curve.
+3. Each leaf has unequal closed cubic edges that describe a loaded base and
+   tapered pointed release. Selected leaves reveal restrained internal
+   paper-tone dry lifts at high detail, without a uniform vein on every blade.
+4. The existing **Brushwork close-ups · ArtCraft inspection** Storybook leaf
+   stays inside the **single flat Chinese Ink folder**. Its existing detail,
+   ink, wind, frame and seed controls expose the updated living bamboo.
+
+**Structural checks** validate 21 matching joint/branch roots, distinct
+original blade curves, deterministic complexity and absence of non-finite SVG
+numbers in all three scenes. These are technical gates, not evidence of
+museum-level art parity. Before artistic acceptance, inspect the native
+misty-hermit bamboo at 960×540 and the Storybook 2.15× crop, comparing leaf
+fan negative space and brush loading to the museum image. Also inspect the
+exported motion after the CI run; this pass intentionally does not mark the PR
+ready to merge without rendered proof.
