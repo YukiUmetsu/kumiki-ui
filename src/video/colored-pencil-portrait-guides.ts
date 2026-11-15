@@ -149,7 +149,9 @@ export function createPencilPortraitFeatureMarks(
     const pixel=4*(Math.round(y)*source.width+Math.round(x));
     const darkness=1-(.2126*source.data[pixel]+
       .7152*source.data[pixel+1]+.0722*source.data[pixel+2])/255;
-    const pressure=.79+.26*darkness;
+    // Never mute the already faint source-aligned pencil build-up. In real
+    // same-photo browser A/B, sub-unity pressure lost visible craft detail.
+    const pressure=1.02+.10*darkness;
     marks.push({
       x,y,controlX:clamp(x+dx*.5-dy*wobble*.1,1,source.width-2),
       controlY:clamp(y+dy*.5+dx*wobble*.1,1,source.height-2),
