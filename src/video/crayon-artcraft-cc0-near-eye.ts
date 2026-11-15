@@ -19,12 +19,12 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
   type Ink=Extract<CrayonElement,{kind:"contour"}>;
   const rect=(x:number,y:number,w:number,h:number)=>({x,y,width:w,height:h});
   const palettes={
-    skin:["#e1b09e","#b98582","#f5d1bb"],
+    skin:["#e5baa6","#be9a8d","#f6d2bd"],
     light:["#f1c6b4","#cb988a","#ffe0c4"],
     shadow:["#ba8e91","#865e65","#dcb1a4"],
     socket:["#ac8182","#705962","#c9a0a0"],
     eyelid:["#d1a3a0","#9c777d","#f1c9b4"],
-    sclera:["#e0d3c6","#9ea8aa","#f7eadc"],
+    sclera:["#d8cbc3","#aaaeb0","#f1e4d7"],
     iris:["#806451","#403b37","#b69374"],
     pupil:["#312b2d","#181c22","#4a383b"],
     brow:["#7e4c45","#4e3338","#a77b6b"],
@@ -46,14 +46,17 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
     elements.push(item);
   };
   const place=portrait?{x:11,y:223,scale:2.47}:{x:214,y:17,scale:2.52};
+
+  // Source crop is full-bleed. The prior 210x200 wax sticker had a hard
+  // edge; extend its opaque support outside both camera aspect frames.
   wax("eye-skin",
-    "M4 1 C38 -2 169 -2 206 2 Q212 28 210 69"+
-    "C210 126 214 174 205 198 Q141 201 72 199"+
-    "Q19 201 3 198 C-2 139 -1 41 4 1Z",
-    rect(-2,-3,216,205),palettes.skin,[1,76],{
+    "M-125 -115 C-37 -123 113 -123 316 -113"+
+    "C323 -9 322 112 316 214 Q313 276 308 328"+
+    "C187 330 12 333 -126 326 C-134 157 -136 -22 -125 -115Z",
+    rect(-140,-129,467,467),palettes.skin,[1,76],{
       placement:place,underpaintGradient:{light:"#f6d8c2",shadow:"#9b7879",
-        focusX:.16,focusY:.12,radius:1.35},underpaintTooth:.83,
-      markStrength:.24,spacing:8.9,outlineOpacity:0});
+        focusX:.27,focusY:.20,radius:1.65},underpaintTooth:.79,
+      markStrength:.11,spacing:15.2,outlineOpacity:0});
   // The brow and eye do not share a smooth cartoon capsule. Each root and
   // local value plane is an individually connected wax silhouette.
   wax("upper-orbital-turn",
