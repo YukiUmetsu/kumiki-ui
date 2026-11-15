@@ -67,6 +67,10 @@ describe("ArtCraft coloured-pencil anatomical fidelity contract",()=>{
     expect(()=>vaneTracts([[0,0,0,0,0,0,3]],"#FFFFFF")).toThrow(RangeError);
     expect(()=>vaneTracts([[0,0,0,0,18,25,11]],"#FFFFFF")).toThrow(RangeError);
     expect(()=>vaneTracts(KINGFISHER_COVERT_AXES,"#FFFFFF",400)).toThrow(RangeError);
+    expect(()=>vaneTracts([[1e100,0,1e100,2,1e100,20,4]],"#FFFFFF"))
+      .toThrow(RangeError);
+    expect(()=>vaneTracts([[0,0,20,0,16,0,4]],"#FFFFFF"))
+      .toThrow(RangeError);
   });
 
   for(const aspect of ["landscape","portrait"] as const){
@@ -87,9 +91,9 @@ describe("ArtCraft coloured-pencil anatomical fidelity contract",()=>{
           .toEqual(["hatch","hatch","stipple"]);
         const main=actor.parts.find(p=>p.id==="near-wing")!;
         const coverts=actor.parts.find(p=>p.id==="wing-coverts")!;
-        expect(main.region.details!.some(d=>(d.path.match(/ Q/g)??[]).length===9))
+        expect(main.region.details!.some(d=>(d.path.match(/ Q/g)??[]).length===21))
           .toBe(true);
-        expect(coverts.region.details!.some(d=>(d.path.match(/ Q/g)??[]).length===9))
+        expect(coverts.region.details!.some(d=>(d.path.match(/ Q/g)??[]).length===21))
           .toBe(true);
         const footAt=(f:number)=>evaluatePencilActorRegions(actor,f)
           .find(r=>r.id==="kingfisher-feet")!.transform;
