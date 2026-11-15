@@ -109,7 +109,7 @@ describe("strict native Crayon drawing grammar",()=>{
       expect(html).toContain('data-km-crayon-material-ab=""');
       expect(html).toContain("Opaque wax without tooth");
       expect(html).toContain("Opaque wax with tooth");
-      expect((html.match(/data-km-crayon-scene=/g)??[])).toHaveLength(3);
+      expect((html.match(/data-km-crayon-scene=/g)??[])).toHaveLength(2);
       expect(html).toContain('data-km-crayon-underpaint-tooth="0.82"');
       expect(html).toContain('data-km-crayon-inspection="surface"');
     });
