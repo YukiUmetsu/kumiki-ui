@@ -14,7 +14,6 @@ import {COURIER} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts,RISO30_GRIP_FOREGROUND_IDS} from "./riso-hand-artcraft";
 import {riso31SegmentIds} from "./riso31-finger-phalanges";
-import {riso31SegmentIds} from "./riso31-finger-phalanges";
 
 /** RISO14: a second authored human, not a color-inverted Courier.
  * Reuse a mechanically compatible limb/digit rig, not the Courier face, hair,
