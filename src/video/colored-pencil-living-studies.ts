@@ -241,7 +241,17 @@ function applyPortraitAnatomy(part:PencilSubjectPart):PencilSubjectPart{
   const A=PENCIL_PORTRAIT_ANAT1;
   if(part.id==="face-main"){
     return {...part,path:A.features.oval.path,
-      bounds:A.features.oval.bounds};
+      bounds:A.features.oval.bounds,
+      // Optical pigment is deposited into the actual ANAT1 mesh light
+      // field *before* the explicitly authored major contour contacts.
+      details:[
+        ...A.pigment.map((group,index)=>({
+          ...mark(group.path,group.color,group.width,
+            216+Math.min(30,Math.floor(index/4)*5),group.opacity),
+          id:group.id,
+        })),
+        ...(part.details??[]),
+      ]};
   }
   const eye=part.id==="eye-white-far"?"R":
     part.id==="eye-white-near"?"L":undefined;
