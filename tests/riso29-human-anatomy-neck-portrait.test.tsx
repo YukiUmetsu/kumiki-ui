@@ -4,6 +4,9 @@ import {MODEL_TABLES,SURFACE_FORMS} from "../registry/anatomy/anatomy-reference"
 import {evaluateRisoCharacter,inspectRisoCharacter} from "../registry/video/riso-character";
 import {COURIER} from "../src/video/riso-character-demo";
 import {PAPER_ARTIST,evaluateRisoHumanEnsemble} from "../src/video/riso-human-ensemble";
+import {evaluateRisoCharacterMesh} from "../registry/video/riso-proportion-mesh";
+import {RISO_COURIER_SHEET} from "../src/video/riso-character-mesh-sheets";
+import {RISO_PAPER_ARTIST_SHEET} from "../src/video/riso-human-ensemble";
 import {RISO29_ANAT1,inspectRisoAnatomy} from "../src/video/riso-human-anatomy";
 
 /** Original source contours are the source of truth for identity, ANAT1
@@ -79,6 +82,20 @@ describe("RISO29 Kumiki ANAT1 source human anatomy",()=>{
       // Face, teeth, scarf and clavicle are not flattened into opaque skin.
       expect(pose.parts.filter(part=>part.id.startsWith("neck-"))).toHaveLength(5);
     }
+  });
+
+  it.each(people)("%s: actual smile never opens into an oversized triangular red wedge",actor=>{
+    const sheet=actor.id==="courier"?RISO_COURIER_SHEET:RISO_PAPER_ARTIST_SHEET;
+    // This samples exactly the authored SVG's smile paths AFTER hierarchical
+    // neck/head transforms and avoids pretending a text path is a body part.
+    const mesh=evaluateRisoCharacterMesh(actor,sheet,198,{maxEdgeLength:6});
+    const mouth=mesh.regions.find(region=>region.id==="mouth");
+    expect(mouth,actor.id+" mouth source region is missing").toBeDefined();
+    const face=inspectRisoAnatomy(actor,198);
+    expect(mouth!.bounds.height/face.headHeight,actor.id+" smile reads like a red triangle").toBeLessThan(.085);
+    expect(mouth!.bounds.width/face.headHeight,actor.id+" mouth disproportionately wide").toBeLessThan(.18);
+    expect(mouth!.bounds.height).toBeGreaterThan(.8);
+    expect(mesh.regions.some(region=>region.id==="neck")).toBe(actor.id==="courier");
   });
 
   it("preserves all source-time handoff, actor IK and independently printed blue/red ink",()=>{
