@@ -342,7 +342,14 @@ function face():PencilSubjectPart[] {
   const shirt:PencilPalette=["#718E9C","#384F73","#CCD9D3"];
   const parts:PencilSubjectPart[]=[
     {id:"hair-back",material:"hair",palette:hair,
-      path:"M113 161 C100 102 146 56 212 50 C276 35 339 80 354 143 Q375 207 354 300 C367 348 343 401 309 426 Q286 388 280 310 L143 311 Q151 373 120 418 C94 370 101 306 100 253 Q95 202 113 161 Z",
+      // Continuity: the inner occipital hair must overhang the nape,
+      // not terminate as a straight vertical cut exposing paper beside
+      // the anatomical neck and the left shoulder.
+      path:"M113 161 C100 102 146 56 212 50 C276 35 339 80 354 143 "+
+        "Q375 207 354 300 C367 348 343 401 309 426 "+
+        "Q286 388 280 310 C246 318 203 313 170 308 "+
+        "C174 333 177 353 169 373 Q153 411 120 418 "+
+        "C94 370 101 306 100 253 Q95 202 113 161 Z",
       bounds:[94,35,283,395],direction:67,flow:32,start:30,
       details:flowBundles([
         [165,76,116,386,116,214,22,17],[218,55,160,377,166,204,22,18],
@@ -353,9 +360,22 @@ function face():PencilSubjectPart[] {
       bounds:[43,349,365,91],direction:27,flow:28,start:34,
       details:[mark("M86 401 Q139 367 183 381 M320 369 Q359 385 384 427","#D4DCD1",2)]},
     {id:"neck",material:"skin",palette:skin,
-      path:"M196 303 Q217 323 280 303 L277 359 Q249 388 214 361 L191 344 Z",
-      bounds:[187,299,97,88],direction:68,flow:14,start:45,
-      details:[mark("M198 333 Q236 359 277 329 M207 359 Q238 372 261 363","#F5CAB0",1.2,214)]},
+      // Continuous anatomical nape/scm/trapezius under the mandible
+      // joins both collar wings. The broad *hidden* underlap is
+      // intentional: it prevents bright paper slots when hair shifts.
+      path:"M171 297 C190 314 208 325 235 323 "+
+        "C258 321 272 313 282 300 L279 365 "+
+        "C268 380 248 388 225 382 C206 375 185 371 164 375 "+
+        "L168 337 Z",
+      bounds:[161,293,125,99],direction:68,flow:14,start:45,
+      details:[
+        {...mark("M185 325 Q197 351 222 375 M272 328 Q264 358 245 379",
+          "#AE7C79",.48,214,.49),id:"neck-scm-attachments"},
+        {...mark("M172 350 Q190 368 215 380 M222 384 Q248 389 273 362",
+          "#F5CAB0",.51,226,.52),id:"neck-trapezius-turn"},
+        mark("M203 341 Q235 363 274 336 M210 363 Q238 378 263 367",
+          "#F5CAB0",.64,236,.57),
+      ]},
     {id:"ear",material:"skin",palette:skin,
       path:"M295 218 Q323 195 334 222 Q343 250 317 265 Q310 266 302 252 Z",
       bounds:[292,195,53,76],direction:18,start:79,
