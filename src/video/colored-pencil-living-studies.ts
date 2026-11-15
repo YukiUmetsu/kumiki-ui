@@ -337,19 +337,28 @@ function fox():PencilSubjectPart[] {
     {id:"ground-shadow",material:"cast-shadow",palette:["#77736B","#696A63","#B5AA9D"],
       path:"M78 380 Q190 367 328 378 Q384 381 401 396 Q228 417 96 401 Z",
       bounds:[73,362,333,57],start:36},
-    {id:"tail-back",material:"fur",palette:["#AC694F","#614B4B","#DBA477"],
-      path:"M170 334 C147 320 124 314 100 320 C76 322 55 342 52 366 C50 392 77 405 105 405 C139 409 171 392 192 367 C199 358 204 348 202 341 Z",
-      bounds:[49,290,166,125],direction:80,start:60,
+    {id:"tail-back",material:"fur",palette:["#A8624E","#684B46","#DEA77B"],
+      // Brush tail is an anatomical continuation of the sitting rump: a
+      // long softly tapering weight-bearing pelt along the ground. Preserve
+      // its connection under the hindquarters, not a free round pompom.
+      path:"M195 346 C177 335 154 329 129 330 "+
+        "C104 327 78 329 52 339 C35 347 21 356 15 367 "+
+        "C10 373 18 386 34 392 C60 401 91 405 119 403 "+
+        "C150 400 175 383 195 359 C200 353 198 348 195 346 Z",
+      bounds:[12,326,207,82],direction:157,start:60,
       details:[
         ...pencilRootedFur([
-          [75,344,142,375,94,367,34,17],
-          [91,323,160,360,132,331,30,18],
-          [67,372,139,394,91,396,32,15],
-        ],310,["#E0AE7B","#755653","#F2D3AA"],224),
-        ...pencilRootedFur([
-          [67,350,151,378,90,378,32,13],
-          [90,337,172,368,131,356,31,10],
-        ],312,["#E5B689","#7D5850","#F5D0A4"],245),
+          [183,342,54,348,116,325,34,17],
+          [180,367,46,385,114,402,33,17],
+          [141,335,28,359,75,332,32,14],
+          [163,381,72,399,125,410,32,14],
+          [102,347,18,374,52,351,30,12],
+        ],310,["#E2AE81","#74554F","#F0C79A"],224),
+        ...pencilContourFringe([
+          [150,330,34,349,82,324,31,-1],
+          [28,390,151,391,91,409,32,1],
+          [27,357,21,385,11,372,29,-1],
+        ],1768,["#BE7859","#694C47","#F1BB8D"],255),
       ]},
     {id:"body",material:"fur",palette:orange,
       path:"M190 226 C211 216 244 221 266 239 C295 245 325 270 336 303 C348 336 335 366 317 383 Q292 400 262 389 Q236 386 222 381 Q195 392 174 374 Q153 355 156 322 C155 287 170 250 190 226 Z",
@@ -712,12 +721,24 @@ function fox():PencilSubjectPart[] {
         mark("M107 219 Q109 218 112 218","#DDD1BE",.23,277,.51),
       ]},
     {id:"tail-tip",material:"fur",palette:pale,
-      path:"M54 356 C51 366 50 376 54 387 Q61 400 80 401 Q89 402 93 399 C76 391 70 380 72 369 Q70 357 74 349 C68 350 60 354 54 356 Z",
-      bounds:[47,346,50,60],direction:57,start:180,
-      details:pencilRootedFur([
-        [57,356,78,388,58,379,24,8],
-        [65,369,87,397,69,390,25,8],
-      ],1999,["#FFF0D5","#9A8271","#F7E2C2"],263)},
+      // Cream brush hairs dissolve into the outer tip, turning back over the
+      // lower russet pelt. Do not cover the middle with a round white sticker.
+      path:"M17 361 C24 350 43 341 61 341 "+
+        "C54 349 49 358 46 367 C41 378 47 388 64 394 "+
+        "C42 398 24 394 18 386 C12 379 12 371 17 361 Z",
+      bounds:[10,338,59,64],direction:164,start:180,
+      details:[
+        ...pencilRootedFur([
+          [57,347,17,363,36,347,29,10],
+          [62,393,17,383,42,397,30,10],
+          [48,366,14,375,27,369,28,9],
+        ],1999,["#F7E9D4","#988274","#FFF3D9"],263),
+        ...pencilContourFringe([
+          [49,341,15,362,27,339,28,-1],
+          [17,382,52,394,28,396,28,1],
+        ],2177,["#E1C8AD","#A59181","#FFF3DD"],275),
+      ]},
+
   ];
 }
 
