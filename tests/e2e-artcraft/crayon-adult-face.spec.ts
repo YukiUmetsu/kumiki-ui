@@ -502,10 +502,10 @@ test("F1 source sclera contact vs exact baseline at native near-eye camera",asyn
     const shade=svg.locator(
       '[data-km-crayon-element^="sclera-outer-contact-"],'+
       '[data-km-crayon-element="sclera-inner-contact-near"]');
-    await expect(shade).toHaveCount(eyeContact==="source-shade"?3:0);
+    await expect(shade).toHaveCount(eyeContact==="baseline"?0:3);
     await expect(svg.locator(
       '[data-km-crayon-contact-feather-mask]')).toHaveCount(
-        eyeContact==="source-shade"?25:20);
+        eyeContact==="baseline"?20:25);
     shots.push(await svg.screenshot({path:info.outputPath(
       "crayon-f1-sclera-"+eyeContact+"-near-299.png"),
       animations:"disabled"}));
