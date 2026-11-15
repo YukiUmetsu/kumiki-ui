@@ -167,6 +167,127 @@ function RockInkPlanes({stations,seed,band,detail,mist}:{
     })}
   </g>;
 }
+/** Source-led Huang Gongwang mountain *bone* (shan gu): each dark
+ * load starts at an actual peak on the same fractured silhouette as the
+ * painted ridge. Lateral dry-fibre families branch from that bone; the
+ * broader ink-water shoulder underneath them fades as the brush dries.
+ * This is not generic noise randomly pasted across a mountain polygon.
+ *
+ * Source: Dwelling in the Fuchun Mountains, 1350 (NPM). Smarthistory's
+ * 2023 detail shows curving densely loaded folds, secondary hemp fibres,
+ * alum-head ledges, and deliberate unmarked paper between the slopes.
+ */
+function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
+  ridge:readonly P[];stations:readonly P[];seed:number;band:number;
+  detail:number;mist:number;id:string;
+}){
+  // Geologically anchored positive peaks, not random page coordinates.
+  const peaks=ridge.slice(1,-1).flatMap(([x,y],i)=>
+    y<ridge[i][1]&&y<ridge[i+2][1] ? [[x,y] as P] : []);
+  const count=Math.round(peaks.length*detail);
+  const ridgeClip=id+"-clip";
+  return <g data-km-rock-shoulder-family={band}>
+    <defs>
+      <clipPath id={ridgeClip} clipPathUnits="userSpaceOnUse">
+        <path d={ridgePath(stations)}/>
+      </clipPath>
+    </defs>
+    <g clipPath={"url(#"+ridgeClip+")"}>
+      {peaks.slice(0,count).map(([x],i)=>{
+        const crest=ridgeHeight(stations,x);
+        const side=s(seed+band*37,i*17+13)>.48?1:-1;
+        const depth=(band===0?49:band===1?72:94)*
+          (.84+.27*s(seed+151,i*19));
+        const spread=(band===0?19:band===1?32:43)*
+          (.78+.32*s(seed+163,i*13));
+        const y=crest+2.5;
+        const parent:P=[x,y];
+        const bend:P=[
+          x+side*spread*.31,y+depth*.39,
+        ];
+        const end:P=[
+          x+side*spread*.71,y+depth*.91,
+        ];
+        const washId=id+"-wash-"+i;
+        // Unequal rounded fold edges and a depleted lower release.
+        const wash="M"+f(x-side*spread*.15)+" "+f(y)+
+          " C"+f(x-side*spread*.48)+" "+f(y+depth*.23)+
+          " "+f(x+side*spread*.04)+" "+f(y+depth*.36)+
+          " "+f(x-side*spread*.18)+" "+f(y+depth*.64)+
+          " Q"+f(x+side*spread*.04)+" "+f(y+depth*.87)+
+          " "+f(x+side*spread*.55)+" "+f(y+depth)+
+          " Q"+f(x+side*spread*.94)+" "+f(y+depth*.71)+
+          " "+f(x+side*spread*.85)+" "+f(y+depth*.41)+
+          " Q"+f(x+side*spread*.55)+" "+f(y+depth*.13)+
+          " "+f(x+side*spread*.22)+" "+f(y)+" Z";
+        const spineA=quadraticPoint(parent,bend,end,.43);
+        const spineB=quadraticPoint(parent,bend,end,.57);
+        const bone="M"+f(parent[0])+" "+f(parent[1])+
+          " Q"+f(bend[0])+" "+f(bend[1])+
+          " "+f(spineA[0])+" "+f(spineA[1])+
+          " M"+f(spineB[0])+" "+f(spineB[1])+
+          " Q"+f(bend[0]+side*spread*.13)+" "+f(y+depth*.75)+
+          " "+f(end[0])+" "+f(end[1]);
+        const veins=Array.from({length:band===0?3:band===1?5:7},(_,j)=>{
+          const t=.18+j*.09+(s(seed+181,i*37+j*11)-.5)*.025;
+          const root=quadraticPoint(parent,bend,end,t);
+          const length=(band===0?17:band===1?27:35)*
+            (.72+.39*s(seed+193,i*47+j*7));
+          const wing=(j%2===0?-side:side);
+          const reach=length*(.37+.18*s(seed+197,i*17+j));
+          const tip:P=[
+            root[0]+wing*reach,
+            root[1]+length*(.76+.16*s(seed+199,i*19+j)),
+          ];
+          const arc:P=[
+            root[0]+wing*reach*.31,
+            root[1]+length*.36,
+          ];
+          const out="M"+f(root[0])+" "+f(root[1])+
+            " Q"+f(arc[0])+" "+f(arc[1])+
+            " "+f(tip[0])+" "+f(tip[1]);
+          return {root,d:out};
+        });
+        return <g key={i} data-km-rock-shoulder=""
+          data-km-rock-shoulder-crest={f(crest)}
+          data-km-rock-shoulder-root={f(x)+","+f(y)}
+          data-km-rock-shoulder-band={band}
+          data-km-rock-shoulder-seed={seed}>
+          <defs>
+            <linearGradient id={washId}
+              gradientUnits="userSpaceOnUse"
+              x1={f(x)} y1={f(y)}
+              x2={f(x+side*spread*.43)} y2={f(y+depth)}>
+              <stop offset="0" stopColor="#41382e"
+                stopOpacity={f((band===0?.22:band===1?.43:.62)*(1-.2*mist))}/>
+              <stop offset=".26" stopColor="#574838"
+                stopOpacity={f((band===0?.17:band===1?.33:.49)*(1-.24*mist))}/>
+              <stop offset=".69" stopColor="#79614c"
+                stopOpacity={f((band===0?.09:band===1?.19:.28)*(1-.22*mist))}/>
+              <stop offset="1" stopColor="#927d62" stopOpacity="0"/>
+            </linearGradient>
+          </defs>
+          <path data-km-rock-shoulder-wash=""
+            d={wash} fill={"url(#"+washId+")"}/>
+          <path data-km-rock-shoulder-bone=""
+            d={bone} fill="none" stroke="#4b3d31"
+            strokeWidth={f(band===0?.66:band===1?1.1:1.53)}
+            strokeLinecap="round"
+            opacity={f((band===0?.19:band===1?.41:.6)*(1-.18*mist))}/>
+          {veins.map(({root,d},j)=><path key={j}
+            data-km-rock-shoulder-vein=""
+            data-km-rock-shoulder-vein-root={f(root[0])+","+f(root[1])}
+            d={d} fill="none" stroke={j%3===0?"#574332":"#765b45"}
+            strokeWidth={f((band===0?.45:band===1?.7:1.05)*
+              (.65+.5*s(seed+223,i*13+j)))}
+            opacity={f((band===0?.23:band===1?.37:.51)*
+              (.74+.19*s(seed+227,i*29+j))*(1-.24*mist))}
+            strokeLinecap="round"/>)}
+        </g>;
+      })}
+    </g>
+  </g>;
+}
 function Mountains({scene,seed,detail,mist,ink,ids}:{
   scene:ShanshuiScene;seed:number;detail:number;mist:number;ink:number;
   ids:{far:string;mid:string;near:string;grain:string};
@@ -181,6 +302,9 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
         <path data-km-shanshui-ridge-contour={band} d={ridgePath(stations)}
           fill={"url(#"+([ids.far,ids.mid,ids.near][band])+")"}
           stroke={band===2?"#765e48":"#ac9070"} strokeWidth={band===2?1.05:.55}/>
+        <MountainRockShoulders ridge={ridge} stations={stations}
+          seed={seed+band*251} band={band} detail={detail} mist={mist}
+          id={ids.grain+"-rock-"+band}/>
         <RockInkPlanes stations={stations} seed={seed+band*181} band={band}
           detail={detail} mist={mist}/>
         {/* Reference-led rock painting: cluster different brush pressures
