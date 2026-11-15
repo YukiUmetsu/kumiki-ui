@@ -873,8 +873,15 @@ export function pencilLivingStudyDrawing({
       }:region.craft,
       clipDetails:part.id==="whisker-roots"||
         (subject==="fox"&&["chest","neck-ruff","cheek-ruff"].includes(part.id))?
-        false:region.clipDetails, layers:region.layers.map(layer=>({
+        false:region.clipDetails, layers:region.layers.map((layer,index)=>({
       ...layer,
+      // Multiple dry-pencil colours follow the *same* authored fur-growth
+      // tract. The generic +73/-44 crosshatch offsets made a synthetic
+      // plaid over the fox, which real wildlife pencil studies avoid.
+      // Keep the broad three-pass pigment model and every other subject
+      // byte-identical; only the explicitly authored fox-fur atlas changes.
+      angle:locallyRooted?region.layers[0].angle+[0,16,-12][index]:
+        layer.angle,
       // CP-F1 direction/pressure remains intact, but soft facial skin needs
       // grain rather than ruler-like diagonals; scalp/brow hair needs fibre.
       texture:locallyRooted||fineHair?"fiber" as const:
