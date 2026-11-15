@@ -37,7 +37,7 @@ const sourceWax:Record<string,Partial<Wax>>={
       "C464 607 469 615 467 627 "+
       "C462 636 451 635 445 628Z",
     bounds:{x:433,y:597,width:42,height:44},
-    pressure:.52,markStrength:.29,blendRadius:5.7,
+    pressure:.52,markStrength:.29,blendRadius:6.2,
     colors:["#b58779","#7f5b5a","#d9a396"],
   },
   "nasal-alar-attachment-near":{
