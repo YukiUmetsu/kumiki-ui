@@ -17,6 +17,8 @@ New `createPencilSkinOpticalWeave` is **pure** and source-conditioned; two separ
 
 Negative gates: photographic near-paper bright glints Y > .918, source-observed sharp boundaries (contrast gradient > .085), near/far orbital regions (within .28 inter-eye span), parted lips (.24) and nostril detail (.14). They retain current high-frequency image anatomy; the new blender may not solve poor eye or lip shape by covering it with smooth wax.
 
+**Dense-source compositing rule:** the real source can already saturate the legacy head's 120,000-mark budget before any new skin marks. In that situation the pipeline replaces an evenly distributed subset of the old **uniform, coarse `face-scumble` strokes** (at most 65% of that material family) with an equivalent number of more articulate optically conditioned loops. It does NOT delete or degrade photographed iris, eyelid, nasolabial, lip, hair or source-value marks. On less dense sources, available capacity is used first. Only 3,600 extra optical-loop strokes are sought, with normal video output entirely untouched. Both the replaced coarse mark count and new optical nib count are inspectable in the same Storybook research panel.
+
 No source raster, image, global CSS filter, gradient polygon fill, Gaussian blur, or even 1×1 bitmap texture. The "skin weave" is a standalone vector nib material zone `face-optical-weave` and may be set to **0% for exact v13 output**; set 100% only after comparing actual Chromium output against CC0 in landscape and portrait. Existing `skin coverage`, `dry-contact`, `fibre flow`, iris, eyelid and 4-shot controls remain in ONE Storybook Color Pencil Reference Atelier folder.
 
 ## Gates
