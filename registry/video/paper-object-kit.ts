@@ -233,7 +233,7 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
     p.C(-147,-23,-140,-57,-132,-72),p.Z].join(" "),{enterFrame:56,curl:.55});
   // Fine back feather rows use stacked rather than giant flat blue cards.
   for(let row=0;row<3;row++){
-    const patches=Array.from({length:7},(_,j)=>{
+    const patches=Array.from({length:3+Math.round(detail*4)},(_,j)=>{
       const x=-119+j*12+row*4,y=-68+row*29+j*3.5;
       return p.petal(x,y,15+variation(j+row*10,21)*3,73,4.5);
     }).join(" ");
@@ -268,7 +268,7 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
   // Delicate covert stipples form 3 rows of hand-cut teardrop scales, rather
   // than a featureless painted wing disc.
   for(let row=0;row<3;row++){
-    const shards=Array.from({length:8},(_,j)=>{
+    const shards=Array.from({length:4+Math.round(detail*4)},(_,j)=>{
       const x=-111+8.5*j+row*5,y=-58+row*25+j*2.8;
       return p.petal(x,y,9+variation(j+row*13,29)*2.5,72,2.4);
     }).join(" ");
@@ -277,7 +277,7 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
   }
   // Chestnut breast has close-spaced feathers with no giant white oval.
   for(let row=0;row<3;row++){
-    const plume=Array.from({length:8},(_,col)=>{
+    const plume=Array.from({length:4+Math.round(detail*4)},(_,col)=>{
       const x=-29+col*9.4+row*2.6,y=-35+row*41+col*3.7;
       return p.petal(x,y,20+variation(col+row*8,36)*4.5,88,4.1);
     }).join(" ");
@@ -323,7 +323,7 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
   }
   for(let row=0;row<3;row++){
     add("kingfisher-crown-bar-"+row,row===1?c.ink:c.blueLight,24,
-      Array.from({length:11},(_,j)=>{
+      Array.from({length:6+Math.round(detail*5)},(_,j)=>{
         const x=10+j*8.6+row*5,y=-136+row*13+Math.sin(j*.5)*3;
         return p.petal(x,y,6.5+(j%3),45,1.65);
       }).join(" "),{enterFrame:108+row*3});
