@@ -414,3 +414,19 @@ The `knockoutOnly:true` paths use the existing `RisoCharacterInk` press-mask sem
 In the existing Storybook Risograph `OcularPrintCraft` story, new **RISO24 feature focus** and **RISO24 hair craft comparison** controls select a true source-measured hair close-up and switch only the new named hair parts on/off. Together with aspect, pose and plate isolation, this creates directly comparable legacy/engraved 16:9 and 9:16 proof images in the same story. The story ID is preserved, so existing links and tests remain valid.
 
 Mechanical QA: `tests/riso24-hair-craft-artcraft.test.tsx`; actual Chromium 1x/close-up comparisons in `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`. **Still not artist-certified**: source-reference human portrait landmark masks, profile/3/4 views and independent normal-speed film review are missing.
+
+
+## RISO25 — anatomy-bound ear and expressive facial detail
+
+[Visual ArtCraft v9 reference study, original source geometry and unfinished gates](../research/riso25-midface-artcraft.md)
+
+Both original rigged front-facing human characters now have an independently authored **connected ear shell** and nine named facial subparts. Their IDs are the same **semantic region contract** but all paths are specifically drawn for the Courier and Artist, with independently varying ear proportions, nose directions and lip shape. All new solid ink marks are deposited through the real two-master `RisoCharacterInk` production path and remain attached to the original `head` FK transform:
+
+- Ear: `ear-left` is refined in place. `ear-helix-fold` (blue), `ear-concha-pocket` (red), `ear-tragus-root` (blue), `ear-lobule-seam` (red) add structural helix/concha/lobule hierarchy rather than freckle dots.
+- Nose/cheek: `nasal-sidewall-line`, `nasal-ala-fold`, and two independently shaped islands of `nasolabial-flow` (red) follow the nose-to-mouth facial plane.
+- Mouth: `upper-lip-engraving` and `labiomental-crease` (blue) have **authored neutral, speech, smile** paths rather than algorithmically stretched/repeated features. Blink preserves neutral midface while the actual eyes blink.
+- The existing `RISO_COURIER_SHEET` registers these named source regions, including two independent nasolabial subpaths. The existing Paper Artist mesh maps every original/new source part automatically.
+
+No additional Storybook folder or page: `OcularPrintCraft` in the existing Risograph category gains source-derived **Ear** and **Midface** close-ups, a reversible **RISO25 facial craft comparison** that uses the exact original ear path, and retains independently adjustable hair, physical AM/FM ink screens, density, dot gain, pose and 16:9 / 9:16. Existing story ID and tests remain backward compatible.
+
+Technical acceptance: `tests/riso25-midface-artcraft.test.tsx` and the targeted Chromium `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`. **Human identity/portrait reference fidelity is NOT certified** without independently observed landmark/mask/view evidence, and unchanged frontal geometry must never be described as a real 3/4 or side head.
