@@ -1,6 +1,7 @@
 /** Pure, frame-addressable wax-crayon deposition. No randomness, timers, filters or canvas state. */
 export interface CrayonBounds { x: number; y: number; width: number; height: number }
-export type CrayonNibStyle = "rounded" | "tapered";
+/** Dry wax splits the nib footprint into pressure-dependent, paper-catching ribbons. */
+export type CrayonNibStyle = "rounded" | "tapered" | "dry";
 /** Long overlapping rubbing or legacy small fragmented strokes. */
 export type CrayonMarkLength = "long" | "short";
 /** A sharp tool removes only the upper wax pigment. The solid first pigment
@@ -30,6 +31,8 @@ export interface CrayonMark {
   nibArcs: readonly CrayonNibArc[];
   /** Cached full-contact geometry for repeated film frames. */
   nibD: string;
+  /** Precomputed fractured side-nib deposition; stable under frame seeking. */
+  dryNibD: string;
 }
 export interface CrayonOptions {
   seed: number; pressure: number; spacing?: number; passes?: number;
@@ -161,11 +164,12 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
         const p = Math.min(1, Math.max(.14, options.pressure * (.65 + rand(7) * .52)));
         const toneSample = rand(14);
         const mark: CrayonMark = {
-          d, scumble, scrape, nibArcs, nibD:"", index, pressure: p,
+          d, scumble, scrape, nibArcs, nibD:"", dryNibD:"", index, pressure: p,
           tone: toneSample < .73 ? 0 : toneSample < .94 ? 1 : 2,
           width: 2.1 + p * 3.9 + rand(15) * 1.1,
         };
         mark.nibD = crayonNibPath(mark);
+        mark.dryNibD = crayonDryNibPath(mark);
         marks.push(mark);
       }
     }
@@ -245,6 +249,71 @@ export function crayonNibPath(mark: CrayonMark, progress = 1): string {
     shapes.push("M"+left.join("L")+"L"+right.reverse().join("L")+"Z");
   }
   return shapes.join(" ");
+}
+
+/**
+ * An opt-in fractured wax footprint, not a stipple/noise filter.
+ *
+ * The same authored quadratic nib footprint is split into up to three
+ * thin side-nib contact bands. A few short lifts interrupt a band, exposing
+ * the shared paper-space relief. Low force deposits fewer, narrower bands.
+ * Everything is derived from the fixed mark index and its pressure; no
+ * clocks, random state or raster textures are used.
+ *
+ * The SVG is bounded to <= 3 bands x 2 lifted fragments per nib arc.
+ * Completed geometry is cached by crayonMarks; partial frames regenerate
+ * only the active nib and never rearrange previously painted marks.
+ */
+export function crayonDryNibPath(mark:CrayonMark,progress=1):string{
+  if(!Number.isFinite(progress)||progress<0||progress>1)
+    throw new RangeError("crayon dry nib progress must be in [0,1]");
+  if(progress===0||mark.nibArcs.length===0)return "";
+  const fmt=(n:number)=>n.toFixed(2);
+  const result:string[]=[];
+  const bands=mark.pressure>=.78?3:mark.pressure>=.42?2:1;
+  for(let arc=0;arc<mark.nibArcs.length;arc++){
+    const exposed=Math.min(1,Math.max(0,progress*mark.nibArcs.length-arc));
+    if(exposed<=0)continue;
+    const [x0,y0,cx,cy,x1,y1]=mark.nibArcs[arc];
+    const point=(t:number)=>{
+      const inv=1-t;
+      const x=inv*inv*x0+2*inv*t*cx+t*t*x1;
+      const y=inv*inv*y0+2*inv*t*cy+t*t*y1;
+      const tx=2*inv*(cx-x0)+2*t*(x1-cx);
+      const ty=2*inv*(cy-y0)+2*t*(y1-cy);
+      const len=Math.max(1e-6,Math.hypot(tx,ty));
+      return {x,y,nx:-ty/len,ny:tx/len};
+    };
+    const laneIds=bands===1?[1]:bands===2?[0,2]:[0,1,2];
+    for(const lane of laneIds){
+      const seed=arc*23+lane;
+      const liftStart=.035+.12*crayonHash(mark.index,seed,3102);
+      const liftEnd=.73+.22*crayonHash(mark.index,seed,3103);
+      const lifted=crayonHash(mark.index,seed,3104)<.38;
+      const gapStart=.43+.04*crayonHash(mark.index,seed,3105);
+      const gapEnd=gapStart+.08+.06*crayonHash(mark.index,seed,3106);
+      const ranges=lifted?[[liftStart,gapStart],[gapEnd,liftEnd]]:[[liftStart,liftEnd]];
+      const offset=(lane-1)*.29*mark.width+
+        (crayonHash(mark.index,seed,3107)-.5)*mark.width*.065;
+      for(const [lo,hi] of ranges){
+        const end=Math.min(exposed,hi);
+        if(end<=lo+.008)continue;
+        const left:string[]=[],right:string[]=[];
+        const mid=(lo+end)*.5;
+        for(const [j,t] of [lo,mid,end].entries()){
+          const pos=point(t);
+          const taper=j===0||j===2?.62:1;
+          const relief=.79+.21*crayonHash(mark.index,seed+j,3108);
+          const thickness=mark.width*(.075+.04*mark.pressure)*taper*relief;
+          const x=pos.x+pos.nx*offset,y=pos.y+pos.ny*offset;
+          left.push(fmt(x+pos.nx*thickness)+" "+fmt(y+pos.ny*thickness));
+          right.push(fmt(x-pos.nx*thickness)+" "+fmt(y-pos.ny*thickness));
+        }
+        result.push("M"+left.join("L")+"L"+right.reverse().join("L")+"Z");
+      }
+    }
+  }
+  return result.join(" ");
 }
 
 export function crayonProgress(frame: number, first: number, last: number, index = 0, count = 1, reducedMotion = false): number {
