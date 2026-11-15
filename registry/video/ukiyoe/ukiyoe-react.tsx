@@ -12,6 +12,7 @@ import type { UkiyoePose } from "./ukiyoe-core";
 import { cameraAt, cameraTransform, channelAt, clamp, clamp01, fbm1, hash01, hashSigned, lightness, loopOffsets, moveEffect, REST, seedOf, span, stepped, UKIYOE_CHANNELS, windAt } from "./ukiyoe-core";
 import { carvedLine, smoothD } from "./ukiyoe-core";
 import { drawCreature } from "./ukiyoe-creatures";
+import { expandCrowd } from "./ukiyoe-crowd";
 import { drawFigure } from "./ukiyoe-figure";
 import { ANIMATED_MOTIFS, drawMotif, waveSurface } from "./ukiyoe-motifs";
 import { drawParticles } from "./ukiyoe-particles";
@@ -299,6 +300,20 @@ export interface UkiyoeSceneProps extends Omit<SVGProps<SVGSVGElement>, "childre
 
 const validated = new WeakSet<object>();
 
+/** Crowd nodes become a group (keeping the crowd's placement, depth and keys) holding one figure per person. */
+function expandCrowds(spec: UkiyoeSceneSpec): readonly UkiyoeNode[] {
+  if (!spec.nodes.some(n => n.kind === "crowd")) return spec.nodes;
+  const out: UkiyoeNode[] = [];
+  for (const n of spec.nodes) {
+    if (n.kind !== "crowd") { out.push(n); continue; }
+    const { width, count, rows, rowGap, mood, direction, frames, cast, scale, ...base } = n;
+    out.push({ ...base, kind: "group" } as UkiyoeNode);
+    for (const m of expandCrowd({ id: n.id, width, count, rows, rowGap, mood, direction, frames: frames ?? spec.durationFrames, cast, scale }, (spec.seed ^ seedOf(n.id)) >>> 0))
+      out.push({ id: m.id, kind: "figure", parent: n.id, x: m.x, y: m.y, scale: m.scale, look: m.look, actions: m.actions, facing: m.facing, ...(n.cadence ? { cadence: n.cadence } : {}) });
+  }
+  return out;
+}
+
 export function UkiyoeScene({ spec, frame, reducedMotion = false, proof, printProgress, style, ...rest }: UkiyoeSceneProps) {
   if (!validated.has(spec)) { assertUkiyoeScene(spec); validated.add(spec); }
   const pre = "uk" + useId().replace(/[^A-Za-z0-9]/g, "") + "-";
@@ -317,9 +332,10 @@ export function UkiyoeScene({ spec, frame, reducedMotion = false, proof, printPr
   }
   const cam = cameraAt(spec.camera, f, W, H, seed);
   const cadence = spec.cadence ?? 2;
-  const byId = new Map(spec.nodes.map(n => [n.id, n]));
+  const nodes = useMemo(() => expandCrowds(spec), [spec]);
+  const byId = new Map(nodes.map(n => [n.id, n]));
   const children = new Map<string | undefined, UkiyoeNode[]>();
-  for (const n of spec.nodes) { const list = children.get(n.parent) ?? []; list.push(n); children.set(n.parent, list); }
+  for (const n of nodes) { const list = children.get(n.parent) ?? []; list.push(n); children.set(n.parent, list); }
 
   const renderNode = (node: UkiyoeNode): ReactNode => {
     const st = nodeState(node, f, cadence);

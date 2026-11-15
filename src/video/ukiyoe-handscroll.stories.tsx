@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Bestiary, CastLab, FolktaleFilmPlayer, MotifGallery, NightFerryPlayer, PrintersProof, SceneEditor, SnowWomanFilmPlayer } from "./ukiyoe-studio";
+import { Bestiary, CastLab, CrowdLab, FolktaleFilmPlayer, MotifGallery, NightFerryPlayer, PrintersProof, SceneEditor, SnowWomanFilmPlayer } from "./ukiyoe-studio";
 
 const meta = {
   title: "Video Production/Film Looks/Ukiyo-e Handscroll",
@@ -15,6 +15,7 @@ export const PeachAndOni: Story = { name: "UKIYO1 · The Peach and the Oni (folk
 export const SnowWoman: Story = { name: "UKIYO1 · The Snow Woman (yōkai film)", render: () => <SnowWomanFilmPlayer /> };
 export const FolktaleBestiary: Story = { name: "UKIYO1 · Folktale bestiary", render: () => <Bestiary /> };
 export const PrintersProofLab: Story = { name: "UKIYO1 · Printer's proof", render: () => <PrintersProof /> };
+export const Crowds: Story = { name: "UKIYO1 · Crowds", render: () => <CrowdLab /> };
 export const CastAndActions: Story = { name: "UKIYO1 · Cast & actions", render: () => <CastLab /> };
 export const Motifs: Story = { name: "UKIYO1 · Motif library", render: () => <MotifGallery /> };
 export const SceneJson: Story = { name: "UKIYO1 · Scene JSON editor", render: () => <SceneEditor /> };

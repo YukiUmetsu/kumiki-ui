@@ -12,6 +12,7 @@
 - `ukiyoe-creatures.ts`: four-legged animals, birds and the dragon.
 - `ukiyoe-yokai.ts`: yōkai and ghosts (snow woman, yūrei, umbrella and lantern spirits, soul-flames).
 - `ukiyoe-scenery.ts`: mountain ranges, thatched farmhouses, jizō and komainu.
+- `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
 - `ukiyoe-transitions.tsx`: `UkiyoeKasumi`.
@@ -63,6 +64,7 @@ Colours are pigment **roles**: `sumi`, `usuzumi`, `ai`, `bero`, `sora`, `asagi`,
 | `particles` | Closed-form weather and effects: `rain` (two Hiroshige line families), `snow`, `embers`, `petals`, `leaves`, `fireflies`, `birds`, `ripples`, `fireworks` (gold rocket trail, rayed stars, peony, willow or ring), `spray` (ballistic burst). |
 | `figure` | An articulated Edo figure with a `look` and layered `actions`. |
 | `creature` | A folktale animal or spirit (`species`): `fox` (with `tails` 1–9 and `foxfire`), `tanuki` (with `hat` and `bottle`), `dog`, `cat`, `rabbit`, `monkey` (Japanese macaque), `horse` (with `tack`: harness, saddle cloth and pack), `nue` (monkey face, tiger body, snake tail), `crane`, `heron`, `crow`, `pheasant`, `sparrow`, `dragon` (with `pearl`); yōkai `yukionna` (the snow woman; `blow` breathes out the cold, `beckon` reaches), `yurei` (a ghost with soul-flames), `kasaobake` (the one-legged umbrella), `chochinobake` (the grinning lantern), `hitodama` (a soul-flame), `rokurokubi` (`stretch` raises her head on a long swaying neck), `kappa` (`bow` spills the water from its dish; `walk`, `dance`), `tengu` and `karasutengu` (wings, `fly`, and `fan` to raise a gale), `nurikabe` (the wall of the night road: three eyes, `walk`, `roar`), `tsuchigumo` (the earth spider: eight banded legs, `walk`, rears with `roar`). Actions: `walk`, `run`, `fly`, `hop`, `float` (travel to `to`/`toY`), `appear` and `vanish` (fade a spirit in or out; it is unseen before its first `appear` and stays gone after a `vanish`), `sit`, `stand` (upright), `look`, `leap`, `howl`, `drum`, `peck`, `dance`, `coil`, `roar`, `sleep`, `transform` (henge: a smoke puff, after which the creature is gone, so place what it becomes as a new node). |
+| `crowd` | Townsfolk filling a strip of road (`width`, `count` 1–80, `rows` 1–4, `rowGap`, `scale`). `mood` is `stroll` (most walk, some stop to look, others talk or bow), `busy` (porters, hurrying walkers), `festival` (dancing, cheering, waving) or `procession` (all walk one way in file). Also `direction`, `frames`, and an optional `cast` of looks (the default is a varied set of Edo townsfolk). It expands into ordinary figures, seeded by the scene seed, so the same crowd is the same people on every frame. |
 | `text` | `cartouche` (framed title slip; vertical CJK with the Latin sub set sideways), `caption` (subtitle slip), `seal`, `plain`. `align: "end"` anchors right edges. |
 
 Every node has placement, pivot, parallax `depth` (0 pins it to the frame), visibility window, `enter`/`exit` (`print`, `mist`, `rise`, `sink`, `slide`, `grow`, `unroll`, `stamp`, `fade`), sparse `keys` (x, y, rotate, scale, scaleX, scaleY, opacity, progress), `loops` (`sway`, `bob`, `rock`, `drift`, `flutter`, `breathe`, `spin`, `pulse`, `float`), `cadence`, `flip`, `windScale` and `blend` (`multiply` for dusk washes, `screen` for light).
@@ -75,6 +77,10 @@ The camera is smooth. `scrollPan` builds right → left handscroll keys that lin
 - **Propulsion.** A `surge` loop pulses a hull's speed with each stroke of the figure `pole` action (same period, 44 frames). The `inQuad`/`outQuad` eases start and stop a heavy hull gently. Loops take `fade` so rocking eases in and out. The showcase helper `poled()` builds matching keys, so the hull is always advancing while the ferryman works and is at rest when he is not.
 - **Riding a wave.** `ride: { on: "<wave node id>", amount, tilt, span }` floats a top-level node on a `wave` motif. The water height is sampled on every frame at nine points along the waterline (`waveSurface`), so the node climbs the face as the wave rises, pitches to its slope, and comes down smoothly when it breaks.
 - **Boarding.** `walk`/`run` take `via` waypoints. Passengers walk along a pier to a point above their seat, then step down into a boat lying alongside, with the walk cycle tied to the distance covered. Mirror a boat group with `flip` to head left; child x then runs stern → bow.
+
+### Sound
+
+A shot can carry a recorded ambience bed (`sound` on the shot: a looping catalog sound with `gainDb`, and `lowpassHz` for a muffled bed). `ukiyoeFilm` writes it into each scene of the film document with the film's `audio` block, so a render bakes the beds in and crossfades them at the cuts. The Storybook players play the same compiled beds on their frame clock (no low-pass or mastering in the preview). The three films use CC0 field recordings from the catalog: river, stream and mountain wind.
 
 ### Figures
 
@@ -117,7 +123,7 @@ const scene = { version: 1, id: "demo", width: 1920, height: 1080, durationFrame
 ## Evidence
 
 ```bash
-npx vitest run --project unit tests/ukiyoe.test.tsx     # 28 tests (all three films' scenes inspected): contract, purity, motifs, wave (incl. foam drawn as one connected shape with a single outline), particles, figures, oni, creatures, henge, peach, Fuji, print pass, camera, kasumi, both films, slots, playback, and boats (hull advances whenever the pole works, passengers never leave the pier or deck, wave surface is seamless, a rider's per-frame steps stay small)
+npx vitest run --project unit tests/ukiyoe.test.tsx     # 31 tests (all three films' scenes inspected): contract, purity, motifs, wave (incl. foam drawn as one connected shape with a single outline), particles, figures, oni, creatures, henge, peach, Fuji, print pass, camera, kasumi, both films, slots, playback, and boats (hull advances whenever the pole works, passengers never leave the pier or deck, wave surface is seamless, a rider's per-frame steps stay small)
 npx eslint registry/video/ukiyoe src/video/ukiyoe-*.ts* tests/ukiyoe.test.tsx
 npm run registry:validate
 node scripts/registry-fixture.js --item=ukiyoe-handscroll   # clean consumer install + usage typecheck

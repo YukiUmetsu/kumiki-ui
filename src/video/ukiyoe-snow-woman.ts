@@ -16,7 +16,7 @@ const motif = (id: string, name: string, x: number, y: number, params: Record<st
 
 // ---- 1. The mountain pass -----------------------------------------------------------------------------------------------------------------
 
-const pass: UkiyoeShot = { id: "pass", title: "The mountain pass", build: (aspect, t = {}) => {
+const pass: UkiyoeShot = { id: "pass", title: "The mountain pass", sound: { sound: "bed-wind-mountain", gainDb: -12 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", hz = 560, dur = 300, road = 900;
   return base("pass", aspect, dur, t, "snow", {
     mount: { kind: "print" },
@@ -51,7 +51,7 @@ const pass: UkiyoeShot = { id: "pass", title: "The mountain pass", build: (aspec
 
 // ---- 2. The old shrine at night -----------------------------------------------------------------------------------------------------------
 
-const shrine: UkiyoeShot = { id: "shrine", title: "The old shrine at night", build: (aspect, t = {}) => {
+const shrine: UkiyoeShot = { id: "shrine", title: "The old shrine at night", sound: { sound: "bed-wind-mountain", gainDb: -22, lowpassHz: 900 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", hz = 600, dur = 330, gy = 930, hop = 90, ghostAt = 170;
   return base("shrine", aspect, dur, t, "night", {
     camera: { keys: [{ frame: 0, x: P ? 760 : 900, y: P ? 640 : 540, zoom: P ? 1.18 : 1 }, { frame: dur - 1, x: P ? 1080 : 1000, y: P ? 660 : 560, zoom: P ? 1.24 : 1.05, ease: "inOut" }] },
@@ -87,7 +87,7 @@ const shrine: UkiyoeShot = { id: "shrine", title: "The old shrine at night", bui
 
 // ---- 3. The snow woman ---------------------------------------------------------------------------------------------------------------------
 
-const snowWoman: UkiyoeShot = { id: "snow-woman", title: "The snow woman", build: (aspect, t = {}) => {
+const snowWoman: UkiyoeShot = { id: "snow-woman", title: "The snow woman", sound: { sound: "bed-wind-mountain", gainDb: -5 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", [w] = DIM[aspect], hz = 580, dur = 360, gy = 960, comes = 40, breath = 170, gone = 290;
   return base("snow-woman", aspect, dur, t, "snow", {
     camera: { keys: [{ frame: 0, x: P ? 1000 : 1000, y: P ? 700 : 600, zoom: P ? 1.2 : 1.05 }, { frame: breath, x: P ? 1000 : 1000, y: P ? 720 : 640, zoom: P ? 1.4 : 1.25, ease: "inOut" }, { frame: dur - 1, x: P ? 980 : 990, y: P ? 720 : 640, zoom: P ? 1.42 : 1.27, ease: "inOut" }],

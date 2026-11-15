@@ -14,7 +14,7 @@ const creature = (id: string, species: string, x: number, y: number, extra: Reco
 
 // ---- 1. The peach on the river -----------------------------------------------------------------------------------------------------------
 
-const peachRiver: UkiyoeShot = { id: "peach-river", title: "A peach on the river", build: (aspect, t = {}) => {
+const peachRiver: UkiyoeShot = { id: "peach-river", title: "A peach on the river", sound: { sound: "bed-river-fast", gainDb: -14 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", hz = 470, dur = 330, openAt = 196;
   return base("peach-river", aspect, dur, t, "spring", {
     mount: { kind: "print" },
@@ -43,7 +43,7 @@ const peachRiver: UkiyoeShot = { id: "peach-river", title: "A peach on the river
 
 // ---- 2. The road of old stories: a handscroll pan ------------------------------------------------------------------------------------------
 
-const road: UkiyoeShot = { id: "road", title: "The road of old stories", build: (aspect, t = {}) => {
+const road: UkiyoeShot = { id: "road", title: "The road of old stories", sound: { sound: "bed-stream-close", gainDb: -22 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", gy = 820, dur = 480;
   const keys = scrollPan({ from: P ? 5200 : 5000, to: P ? 900 : 1050, y: P ? 470 : 540, start: 0, end: dur - 1, zoom: P ? 1.1 : 1,
     stations: [{ x: P ? 4300 : 4250, hold: 50 }, { x: P ? 2900 : 2950, hold: 50 }, { x: P ? 1700 : 1750, hold: 40 }] });
@@ -102,7 +102,7 @@ const road: UkiyoeShot = { id: "road", title: "The road of old stories", build: 
 
 // ---- 3. The island of the oni --------------------------------------------------------------------------------------------------------------
 
-const island: UkiyoeShot = { id: "island", title: "The island of the oni", build: (aspect, t = {}) => {
+const island: UkiyoeShot = { id: "island", title: "The island of the oni", sound: { sound: "bed-wind-mountain", gainDb: -12 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", [w] = DIM[aspect as UkiyoeAspect], hz = 520, dur = 360, by = 880;
   return base("island", aspect, dur, t, "edo", {
     camera: { keys: [{ frame: 0, x: 900, y: P ? 600 : 540, zoom: P ? 1.15 : 1 }, { frame: 200, x: 1100, y: P ? 600 : 540, zoom: P ? 1.15 : 1.04, ease: "inOut" }, { frame: dur - 1, x: 1180, y: P ? 560 : 520, zoom: P ? 1.1 : 1, ease: "inOut" }] },

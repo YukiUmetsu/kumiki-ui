@@ -250,6 +250,17 @@ Not done: three-quarter views. Every rig is still a profile, mirrored to turn.
   - It creeps in a four-and-four gait and rears with forelegs raised, fangs spread. Standing still, it trails a thread of silk.
 - **In *The Snow Woman*:** a nurikabe crouches across the far road in the pass. At the shrine, the earth spider hangs in the torii and rears, and the nue prowls past.
 
+## Crowds, sound and fingered claws (owner request, 2026-11-14)
+
+- **Crowds.** Emaki and Tōkaidō station prints are full of street life. The new `crowd` node fills a strip of road with townsfolk in depth rows, from a reusable cast of twelve Edo looks. Every person is a full figure with its own pace and behaviour, seeded. The Night Ferry's riverside town now has two crowds strolling along the shop fronts and by the shrine, behind the story's named characters.
+- **Sound.** Each shot of the three films carries a recorded ambience bed from the sound catalog. All are CC0 field recordings: a fast river, a close stream and strong mountain wind.
+  - *The Night Ferry:* river at the title and the boarding, stream through the town, the fireworks and the arrival, and wind in the squall.
+  - *The Peach and the Oni:* river, stream on the road, wind on the island.
+  - *The Snow Woman:* wind throughout, muffled and low at the night shrine.
+  - The beds go into the film documents, so renders carry them with crossfades at the cuts. The Storybook players play them on their frame clock, with an on/off switch.
+  - The beds were chosen from the catalog's descriptions and have not been listened to in context. There are no event sounds yet (no surf crash, no fireworks): the catalog has no recorded ones.
+- **Fingered claws.** In the print, a big claw's hook ends in two or three small curled fingers, like a bird's foot (see the claw crop of the 3840 px scan). Hooks on the larger claws now split near the tip into a smaller twin curling the same way, and the biggest sometimes into two. Small claws stay single hooks, so the lace keeps its rhythm. The first version, thin backward ticks, read as hair, not fingers, and was redrawn. It is limited to the larger claws because the first version cost the squall 2–3 fps; it now plays at 27.5–29 fps.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
@@ -257,5 +268,5 @@ Not done: three-quarter views. Every rig is still a profile, mirrored to turn.
 - The wave's foam is procedural. It is now one connected white like the print's, but every claw is built from the same palm-and-talon unit, so it lacks the print's hand-drawn variety of claw sizes and the long lace trailing over the back.
 - The wave breaks one way only: a plunging breaker. There is no spilling breaker for the small background waves, and the falling curtain has no motion smear at its fastest frames.
 - Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Faces turn three-quarter, but bodies and creatures are profile rigs that mirror to turn.
-- No soundtrack yet (shakuhachi and koto beds, rain and surf foley).
+- Sound is ambience beds only (river, stream, wind). There is no music, no surf or fireworks foley, and no rain recording, because the catalog has none.
 - Human normal-speed review of the film has **not** been recorded.

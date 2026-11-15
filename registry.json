@@ -3706,6 +3706,11 @@
           "path": "registry/video/ukiyoe/ukiyoe-yokai.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-yokai.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-crowd.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-crowd.ts"
         }
       ]
     },

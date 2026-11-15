@@ -441,6 +441,29 @@ function foamHand(at: Pt, angle: number, size: number, fingers: number, seed: nu
     parts.push(carvedLine(br, bw, { taper: "point", minRatio: .04, wobble: .3, smooth: true, coarse: true, seed: seed * 31 + b }));
     lines.push(carvedLine(outerEdge(br, bw, bs, .2), lineW * .85, { taper: "both", minRatio: .3, wobble: .35, smooth: true, coarse: true, seed: seed + 9 + b }));
   }
+  // Fingered tips: as in the print, each hook ends not in one point but in two or three small curled fingers, like a
+  // bird's foot. Each fingerlet splits off the hook's outer side near its end and curls the same way at a smaller scale.
+  // Only on claws large enough for them to read (small claws stay single hooks, so the lace keeps its rhythm).
+  if (size > 22) {
+    const hooks: { spine: Pt[]; w: number; sw: number; s: number }[] = [{ spine: arm, w: armW, sw: sweep, s: seed * 31 }];
+    const extra = parts.length - 1;
+    for (let b = 1; b <= extra; b++) {
+      const k = Math.min(arm.length - 3, 2 + b + Math.floor(hash01(seed, b, 34) * 2)), q = arm[k], nx = arm[k + 1], h = Math.atan2(nx[1] - q[1], nx[0] - q[0]) / DEG;
+      const bl = len * (.6 - .12 * (b - 1)) * (.85 + .3 * hash01(seed, b, 36)), bs = sweep * (1.02 + hashSigned(seed, b, 38) * .08);
+      hooks.push({ spine: talonSpine(q, h + side * (48 + hashSigned(seed, b, 39) * 10), bl, bs, seed * 31 + b * 97, 1.55), w: bl * .32, sw: bs, s: seed * 31 + b * 97 });
+    }
+    for (const hk of hooks) {
+      // A smaller twin of the hook, splitting off a little behind its tip on the outer side and curling the same way.
+      const L = hk.spine.length, nf = size > 34 && hash01(hk.s, 3, 81) < .4 ? 2 : 1;
+      for (let f = 0; f < nf; f++) {
+        const k = Math.max(1, L - 4 - f * 2), q = hk.spine[k], nx = hk.spine[k + 1], h = Math.atan2(nx[1] - q[1], nx[0] - q[0]) / DEG;
+        const fl = polylineLength(hk.spine) * (.42 - .1 * f) * (.85 + .3 * hash01(hk.s, f, 82)), fs = hk.sw * (.95 + .1 * hash01(hk.s, f, 83));
+        const fin = talonSpine(q, h + side * (24 + 12 * hash01(hk.s, f, 84)), fl, fs, hk.s + 500 + f, 1.5), fw = Math.max(1.6, hk.w * (.55 - .1 * f));
+        parts.push(carvedLine(fin, fw, { taper: "point", minRatio: .05, wobble: .25, smooth: true, coarse: true, seed: hk.s + 501 + f }));
+        lines.push(carvedLine(outerEdge(fin, fw, fs, .25), lineW * .7, { taper: "both", minRatio: .3, wobble: .3, smooth: true, coarse: true, seed: hk.s + 502 + f }));
+      }
+    }
+  }
   // The pale-blue tongue inside the arm's curl.
   const mid = arm[Math.floor(arm.length * .55)], tipQ = arm[arm.length - 1], hc: Pt = [lerp(mid[0], tipQ[0], .3), lerp(mid[1], tipQ[1], .3)], hollow: Pt[] = [];
   const hcc = polar(hc, up + 180, size * .3);

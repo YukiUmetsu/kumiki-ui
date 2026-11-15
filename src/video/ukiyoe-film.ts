@@ -20,6 +20,8 @@ export function ukiyoeFilm(shots: readonly UkiyoeShot[] = NIGHT_FERRY_SHOTS, twe
       const prev = built[i - 1];
       scenes.push({
         id: shot.id + "-kasumi", recipeId: "slot", durationFrames: mist, transition: { kind: "cut" },
+        // The mist carries the incoming shot's ambience, so the sound changes with the picture.
+        ...(shot.sound ? { sound: shot.sound } : {}),
         content: { slot: "ukiyoe-kasumi", label: "Mist bands into " + shot.title, props: {
           from: { landscape: prev.landscape, portrait: prev.portrait }, to: { landscape, portrait }, toStartFrame: 0,
         } },
@@ -28,6 +30,7 @@ export function ukiyoeFilm(shots: readonly UkiyoeShot[] = NIGHT_FERRY_SHOTS, twe
     scenes.push({
       id: shot.id, recipeId: "slot", durationFrames: landscape.durationFrames - mist,
       ...(i ? { transition: { kind: "cut" } } : {}),
+      ...(shot.sound ? { sound: shot.sound } : {}),
       content: { slot: "ukiyoe-scene", label: shot.title, props: { scenes: { landscape, portrait }, startFrame: mist } },
     });
   });
@@ -38,6 +41,8 @@ export function ukiyoeFilm(shots: readonly UkiyoeShot[] = NIGHT_FERRY_SHOTS, twe
     drift: 0,
     outputs: [{ id: "landscape", width: 1920, height: 1080 }, { id: "portrait", width: 1080, height: 1920 }],
     scenes,
+    // Recorded ambience from the sound catalog (CC0 field recordings), one bed per shot, crossfading at the cuts.
+    ...(shots.some(shot => shot.sound) ? { audio: { lanes: [], licenseRef: "kumiki-sound-catalog", master: { profile: "youtube", limit: true } } } : {}),
   } as unknown as FilmDocument;
 }
 
