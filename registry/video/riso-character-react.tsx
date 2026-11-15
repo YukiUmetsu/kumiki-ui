@@ -103,7 +103,8 @@ export function RisoCharacterInk({
         maskContentUnits="userSpaceOnUse" x="-20%" y="-20%" width="140%" height="140%">
         <rect x={-16384} y={-16384} width={32768} height={32768} fill="white"/>
         {group.clearance.map(({part})=><path key={part.id} d={part.d}
-          transform={part.transform} fill="black"/>)}
+          transform={part.transform} data-km-riso-paper-clearance={part.id}
+          fill="black"/>)}
       </mask>)}
     </defs>}
     {segments.map((group,i)=><g key={i}
