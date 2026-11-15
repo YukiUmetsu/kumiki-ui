@@ -40,7 +40,9 @@ describe("ArtCraft foreground pigment attention",()=>{
     expect(bird).toBeGreaterThan(.58);
     expect(backdrop).toBeLessThan(.35);
     expect(bird).toBeGreaterThan(backdrop+.40);
-    expect(bill).toBeGreaterThan(.05); // soft proximity retains dark beak
+    // A narrow beak earns a small local feature score; broad dilation would
+    // restore the ugly 8–16px dark halo around the whole kingfisher.
+    expect(bill).toBeGreaterThan(.025);
     expect(result.attention[0]).toBe(0); // ivory letterbox
     expect(result.background[1]).toBeGreaterThan(50);
     expect(result).toEqual(createPencilSalience(p,flow));
