@@ -929,7 +929,7 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
           // Zheng Xie's bamboo distinguishes the principal branch from
           // little lateral shoots. Both child shoots start on the exact
           // painted parent curve; their leaves must use those curves too.
-          const spurs=([.35,.69] as const).map((at,k)=>{
+          const spurs=([.59,.78] as const).map((at,k)=>{
             const root=quadraticPoint(base,branchControl,end,at);
             const side=fan*(k===0?-1:1);
             const reach=9+12*s(seed+1021,i*53+j*19+k*7);
@@ -977,10 +977,14 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
               // Wu Zhen's bamboo resolves into terminal brush groups:
               // most leaves emerge from the outer branch section, not
               // evenly-spaced hooks along the entire bare bough.
-              const along=spurIndex<0?[.66,0,.85,.93,0][motif]
-                :motif===1?.74:.83;
-              const t=clamp(along-layer*.14+
-                (s(seed+71,i*43+j*11+k)-.5)*.056,.09,.96);
+              // Group three main strokes around the same terminal twig,
+              // while both attached lateral spurs retain their own growth
+              // direction. A wide stagger previously made each blade read
+              // as an isolated spear instead of a single botanical spray.
+              const along=spurIndex<0?[.75,0,.82,.89,0][motif]
+                :motif===1?.72:.82;
+              const t=clamp(along-layer*.075+
+                (s(seed+71,i*43+j*11+k)-.5)*.06,.12,.96);
               const [bx,by]=quadraticPoint(origin.root,origin.bend,
                 origin.tip,t);
               // Leaf direction is tied to the actual branch tangent.
@@ -992,12 +996,16 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
                   2*t*(origin.tip[1]-origin.bend[1]),
               ];
               const branchAngle=Math.atan2(tangent[1],tangent[0]);
-              const fanAngles=[-1.03,-.38,.24,1.04,-.72];
+              // Wu Zhen's loaded leaves overlap at their bases. The five
+              // gesture families are an *alternating* fan (long/short,
+              // open/closed), rather than five equally sized rays.
+              const fanAngles=[-.69,-.95,.36,.83,-.43];
               const direction=branchAngle+fanAngles[motif]*(fan>0?1:-1)+
-                (layer===0?0:-.13*fan)+
-                (s(seed+1081,i*29+j*17+k)-.5)*.42;
-              const len=(22+22*s(seed,i*50+j*9+k))*
-                (motif===4?.74:layer===1?.83:1);
+                (layer===0?0:-.095*fan)+
+                (s(seed+1081,i*29+j*17+k)-.5)*.29;
+              const familyLength=[1.12,.81,1.06,.7,.79][motif];
+              const len=(24+17*s(seed,i*50+j*9+k))*familyLength*
+                (layer===1?.84:1);
               const leafTipX=bx+Math.cos(direction)*len;
               const leafTipY=by+Math.sin(direction)*len;
               const wide=(2.15+4.4*s(seed+11,k+i*13+j))*
@@ -1010,13 +1018,14 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
               // Leaf cluster resolves at a common live twig tip,
               // not at arbitrary positions distributed across empty space.
               const echo=detail>.62&&motif%2===0;
-              const echoT=clamp(.79+.08*s(seed+1321,i*59+j*11+k),.05,.94);
+              const echoT=clamp(t+
+                (s(seed+1321,i*59+j*11+k)-.5)*.078,.12,.96);
               const echoRoot=quadraticPoint(origin.root,origin.bend,
-                origin.tip,clamp(echoT-layer*.11,.12,.94));
+                origin.tip,echoT);
               const echoLen=len*(.59+.2*s(seed+1351,i*71+j*17+k));
-              const echoAngle=branchAngle+
-                (motif===0?-.56:motif===2?.66:-.84)*fan+
-                (s(seed+1397,i*13+j*29+k)-.5)*.27;
+              const echoAngle=direction+
+                (motif===0?.33:motif===2?-.31:.25)*fan+
+                (s(seed+1397,i*13+j*29+k)-.5)*.19;
               const echoTip:P=[echoRoot[0]+Math.cos(echoAngle)*echoLen,
                 echoRoot[1]+Math.sin(echoAngle)*echoLen];
               const satellite=bambooBrushBlade(echoRoot,echoTip,
@@ -1085,6 +1094,8 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
                   data-km-bamboo-leaf-root={f(bx)+","+f(by)}
                   data-km-bamboo-leaf-parent={spurIndex<0?"main":"spur-"+spurIndex}
                   data-km-bamboo-leaf-heading={f(direction)}
+                  data-km-bamboo-leaf-station={f(t)}
+                  data-km-bamboo-leaf-cluster={i+"-"+j}
                   fill={"url(#"+pigment+")"}
                   mask={bristles.length>0?"url(#"+reserve+")":undefined}
                   opacity={f((dilute?.76:.88)+
@@ -1092,6 +1103,8 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
                 {echo&&<path data-km-bamboo-satellite-leaf=""
                   data-km-bamboo-satellite-root={f(echoRoot[0])+","+f(echoRoot[1])}
                   d={satellite} data-km-bamboo-satellite-heading={f(echoAngle)}
+                  data-km-bamboo-satellite-station={f(echoT)}
+                  data-km-bamboo-satellite-cluster={i+"-"+j}
                   fill={"url(#"+echoPigment+")"}
                   mask={echoBristles.length>0?"url(#"+echoReserve+")":undefined}
                   opacity={f(.67+.15*s(seed+1459,i*13+j*7+k))}/>}
