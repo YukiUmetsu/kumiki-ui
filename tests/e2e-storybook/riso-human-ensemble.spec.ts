@@ -54,6 +54,12 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
       }
       if(frame>=142)await expect(stage.locator("[data-km-riso-human-ensemble-sheet]")).toHaveCount(1);
       else await expect(stage.locator("[data-km-riso-human-ensemble-sheet]")).toHaveCount(0);
+      // Only authored fingertips sit in front of the paper, and only after
+      // the advancing sheet reaches each contact root.
+      await expect(stage.locator('[data-km-riso-paper-knockout="courier-grip"]'))
+        .toHaveCount(frame>=142?1:0);
+      await expect(stage.locator('[data-km-riso-paper-knockout="artist-grip"]'))
+        .toHaveCount(frame>=160?1:0);
       await stage.screenshot({path:info.outputPath(aspect+"-two-humans-"+frame+".png"),
         animations:"disabled"});
     }
@@ -82,6 +88,12 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
   const pinchedPaper=await stage.locator("[data-km-riso-human-ensemble-sheet]").getAttribute("d");
   expect(pinchedPaper).not.toEqual(curvedPaper);
   await expect(stage.locator("[data-km-riso-transfer-fold-shade]")).toHaveCount(1);
+  await page.getByRole("checkbox",{name:"RISO ensemble anatomical fingertip occlusion"}).uncheck();
+  await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-contact-overprint","false");
+  await expect(stage.locator("[data-km-riso-grip-occlusion]")).toHaveCount(0);
+  await page.getByRole("checkbox",{name:"RISO ensemble anatomical fingertip occlusion"}).check();
+  await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-contact-overprint","true");
+  await expect(stage.locator("[data-km-riso-grip-occlusion]")).toHaveCount(2);
   await expect(stage.locator("[data-km-riso-transfer-postmark]")).toHaveCount(1);
   await page.getByRole("checkbox",{name:"RISO ensemble fine printed-sheet detail"}).uncheck();
   await expect(stage.locator("[data-km-riso-transfer-postmark]")).toHaveCount(0);
