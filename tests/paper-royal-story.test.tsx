@@ -65,6 +65,25 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
       }
     }
   });
+  it("keeps the princess ear separately edged and attached to the head",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const phase of [0,1,2]){
+        const scene=paperRoyalStoryScene("layered",aspect,phase,37,.85);
+        const ear=scene.layers.find(layer=>layer.id==="princess-ear");
+        const plane=scene.layers.find(layer=>layer.id==="princess-face-planes");
+        expect(ear?.parentId).toBe("princess-head");
+        expect(ear?.edgeIntensity).toBeUndefined();
+        expect(plane?.edgeIntensity).toBe(0);
+        expect(inspectPaperCraft(scene)).toEqual([]);
+        const headIndex=scene.layers.findIndex(layer=>layer.id==="princess-head");
+        const earIndex=scene.layers.findIndex(layer=>layer.id==="princess-ear");
+        for(const frame of [0,120,239]) {
+          const pose=evaluatePaperCraft(scene,frame);
+          expect(pose.layers[earIndex].worldMatrix).toEqual(pose.layers[headIndex].worldMatrix);
+        }
+      }
+    }
+  });
   it("compresses both adult cranial frames and avoids long giraffe neck gaps",()=>{
     const extent=(d:string)=>{
       const numbers=(d.match(/-?\d+(?:\.\d+)?/g)||[]).map(Number);
@@ -159,7 +178,7 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
           expect(relative,who+" pupil aperture vs head width").toBeGreaterThan(.10);
           expect(relative,who+" pupil aperture vs head width").toBeLessThan(.20);
           expect(get(who+"-face-planes").path.match(/M/g)?.length)
-            .toBeGreaterThanOrEqual(who==="princess"?4:3);
+            .toBeGreaterThanOrEqual(3);
           expect(get(who+"-face-planes").parentId).toBe(who+"-head");
         }
       }

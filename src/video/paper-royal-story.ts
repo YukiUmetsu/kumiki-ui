@@ -220,12 +220,15 @@ function princess(p:Pen,add:Add,phase:number,motion:number){
     h.Q(6,-176,6,-180),h.Z,
     h.M(-11,-191),h.Q(-7,-198,-3,-197),
     h.Q(-3,-192,-8,-188),h.Q(-11,-187,-11,-191),h.Z,
-    // Ear is anchored near the jaw hinge instead of hanging as an oval.
-    h.M(-20,-183),h.C(-24,-182,-22,-173,-17,-170),
-    h.Q(-13,-168,-12,-175),h.Q(-11,-183,-20,-183),h.Z,
     h.M(22,-176),h.Q(24,-177,24,-175),
     h.Q(23,-174,22,-176),h.Z].join(" "),
-    attachHead(face,7,-177));
+    attachHead(face,7,-177,{edgeIntensity:0}));
+  // The ear is its own cut stock so its edge remains legible while the
+  // adjoining facial value planes do not acquire a mask-like cut rim.
+  add("princess-ear","#E7BDA5",25,[
+    h.M(-20,-183),h.C(-24,-182,-22,-173,-17,-170),
+    h.Q(-13,-168,-12,-175),h.Q(-11,-183,-20,-183),h.Z].join(" "),
+    attachHead(face,-17,-177));
   add("princess-brow","#806270",27,[
     h.M(7,-194),h.Q(13,-199,20,-194),h.Q(14,-193,7,-194),h.Z].join(" "),
     attachHead(face,14,-194));
