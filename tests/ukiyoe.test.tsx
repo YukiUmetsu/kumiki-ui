@@ -9,6 +9,7 @@ import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
 import { realmScene, UKIYOE_REALM_SCENES } from "../registry/video/ukiyoe/ukiyoe-realms";
 import { paradeScene, UKIYOE_PARADE_SCENES } from "../registry/video/ukiyoe/ukiyoe-parade";
 import { faceTraits } from "../registry/video/ukiyoe/ukiyoe-face";
+import { UkiyoeInkBleed, UkiyoePrintIn, UkiyoeScrollRoll } from "../registry/video/ukiyoe/ukiyoe-transitions";
 import { UKIYOE_ROLES_LIST, UKIYOE_SEASONS, ukiyoeWardrobe } from "../registry/video/ukiyoe/ukiyoe-wardrobe";
 import { inspectUkiyoeEpisode, ukiyoeCaptionLines, ukiyoeEpisode, ukiyoeEpisodeSrt, ukiyoeTitleCard } from "../registry/video/ukiyoe/ukiyoe-episode";
 import { KASA_JIZO_EPISODE } from "../src/video/ukiyoe-kasa-jizo";
@@ -1117,5 +1118,18 @@ describe("UKIYO1 print-quality effects", () => {
     expect(snow.length).toBe(3);
     const fire = (f: number) => JSON.stringify(drawMotif("fire", {}, { frame: f, wind: 0, seed: 2, progress: 0 }));
     expect(fire(10)).not.toBe(fire(14));                                     // the flames flicker
+  });
+});
+
+describe("UKIYO1 transitions", () => {
+  it("draws scroll, ink and print transitions that start on the outgoing shot and end on the incoming, and episodes use them", () => {
+    const a = KASA_JIZO_EPISODE.shots[2].build("landscape"), b = KASA_JIZO_EPISODE.shots[3].build("landscape");
+    for (const C of [UkiyoeScrollRoll, UkiyoeInkBleed, UkiyoePrintIn]) {
+      const html = (p: number) => renderToStaticMarkup(<C outgoing={a} incoming={b} outgoingFrame={300} incomingFrame={60} progress={p} />);
+      expect(html(.5)).not.toBe(html(.2));
+      expect(html(.5).length).toBeGreaterThan(1000);
+    }
+    const doc = ukiyoeEpisode(KASA_JIZO_EPISODE) as unknown as { scenes: { content: { slot: string; props: { kind?: string } } }[] };
+    expect(doc.scenes.map(s => s.content.props.kind).filter(Boolean)).toEqual(["scroll", "ink"]);
   });
 });

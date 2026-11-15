@@ -63,7 +63,7 @@ const title = ukiyoeTitleCard({
 
 const poke = (offset: number): UkiyoeAction[] => [0, 1, 2, 3].map(i => ({ type: "point", start: offset + i * 52, end: offset + i * 52 + 22 } as UkiyoeAction));
 const turtleShore: UkiyoeEpisodeShot = {
-  id: "turtle", title: "The turtle on the beach", kasumi: 30, sound: { sound: "bed-surf-beach", gainDb: -14 },
+  id: "turtle", title: "The turtle on the beach", kasumi: 36, transition: "scroll", sound: { sound: "bed-surf-beach", gainDb: -14 },
   narration: [
     { text: "One day he found children poking a turtle on the sand.", from: 36, to: 156 },
     { text: "'Stop that,' he said, and sent them home.", from: 166, to: 286 },
@@ -193,9 +193,9 @@ const gift: UkiyoeEpisodeShot = {
 // ---- 6. The changed shore ----------------------------------------------------------------------------------------------------------
 
 const returnShore: UkiyoeEpisodeShot = {
-  id: "return", title: "Three hundred years", kasumi: 30, sound: { sound: "bed-surf-beach", gainDb: -14 },
+  id: "return", title: "Three hundred years", kasumi: 40, transition: "ink", sound: { sound: "bed-surf-beach", gainDb: -14 },
   narration: [
-    { text: "Back on the shore, nothing was as he had left it.", from: 34, to: 164 },
+    { text: "Back on the shore, nothing was as he had left it.", from: 44, to: 168 },
     { text: "No one knew him. His house was gone.", from: 176, to: 300 },
     { text: "Three hundred years had passed.", from: 314, to: 414 },
   ],

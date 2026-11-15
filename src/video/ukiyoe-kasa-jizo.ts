@@ -73,7 +73,7 @@ const home: UkiyoeEpisodeShot = {
 // ---- 3. The market: no one buys -------------------------------------------------------------------------------------------------------
 
 const market: UkiyoeEpisodeShot = {
-  id: "market", title: "The market in the snow", kasumi: 30, sound: { sound: "bed-wind-mountain", gainDb: -18 },
+  id: "market", title: "The market in the snow", kasumi: 36, transition: "scroll", sound: { sound: "bed-wind-mountain", gainDb: -18 },
   narration: [
     { text: "The old man carried the hats to the market in town.", from: 40, to: 170 },
     { text: "But it snowed all day, and nobody bought a single one.", from: 182, to: 322 },
@@ -163,7 +163,7 @@ const jizoWalk = (dx: number, away: number): UkiyoeAction[] => [
   { type: "walk", start: LEAVE_AT, end: 470, to: dx + away },
 ];
 const night: UkiyoeEpisodeShot = {
-  id: "night", title: "The jizō come in the night", kasumi: 36, sound: { sound: "bed-wind-mountain", gainDb: -20, lowpassHz: 900 },
+  id: "night", title: "The jizō come in the night", kasumi: 40, transition: "ink", sound: { sound: "bed-wind-mountain", gainDb: -20, lowpassHz: 900 },
   narration: [
     { text: "That night, there were footsteps in the snow.", from: 44, to: 170 },
     { text: "Six jizō were coming to the house, pulling a heavy sled.", from: 184, to: 330 },
