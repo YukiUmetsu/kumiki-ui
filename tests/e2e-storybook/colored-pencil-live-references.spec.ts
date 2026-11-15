@@ -109,6 +109,21 @@ for(const sample of ["woman","man"] as const){
       await source.screenshot({animations:"disabled",
         path:info.outputPath("artcraft-portrait-"+sample+"-"+aspect+"-source.png")});
       if(sample==="woman"){
+        // Actual CC0 photographic facial values, not the synthetic fixture:
+        // capture the no-underpaint code-mark proof in both film aspects.
+        const inspect=page.getByRole("checkbox",{
+          name:"Inspect portrait detail at three times scale",
+        });
+        await inspect.check();
+        const dry=page.locator("canvas[data-km-pencil-dry-portrait]");
+        await expect(dry).toHaveAttribute("data-km-pencil-raster-underpaint","none");
+        const detail=page.getByRole("combobox",{name:"Pencil face detail region"});
+        for(const region of ["eyes","lips"] as const){
+          await detail.selectOption(region);
+          await expect(dry).toHaveAttribute("data-km-pencil-dry-rendered-region",region);
+          await dry.screenshot({animations:"disabled",
+            path:info.outputPath("artcraft-real-cc0-"+aspect+"-"+region+"-dry-only.png")});
+        }
         // Compare the exact same licensed source, crop, knobs and time; only
         // the measured facial-pencil passes change. Never attribute old
         // source/algorithm revisions to this PR.

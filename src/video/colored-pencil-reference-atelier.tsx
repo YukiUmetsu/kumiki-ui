@@ -6,6 +6,7 @@ import type {
   PencilPhotoPixels,PencilPhotoOptions,PencilPhotoStudy,
 } from "./colored-pencil-photo";
 import {mapCC0WomanPortraitFeatures} from "./colored-pencil-portrait-guides";
+import {createDryPortraitPlate} from "./colored-pencil-dry-portrait";
 
 /**
  * Source-backed pencil renderer. The default images are demonstrably public
@@ -68,7 +69,7 @@ const capture=(img:HTMLImageElement,width:number,height:number,
 
 /** Paint only newly deposited marks during forward playback; reconstruct on seek. */
 function paintMarkRange(ctx:CanvasRenderingContext2D,
-  study:PencilPhotoStudy,from:number,to:number){
+  study:Pick<PencilPhotoStudy,"strokes">,from:number,to:number){
   ctx.lineCap="round";ctx.lineJoin="round";
   for(let i=from;i<to;i++){
     const stroke=study.strokes[i];
@@ -98,6 +99,7 @@ function paint(ctx:CanvasRenderingContext2D,study:PencilPhotoStudy,
 export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSample?:Sample}={}){
   const canvasRef=useRef<HTMLCanvasElement>(null);
   const faceMacroRef=useRef<HTMLCanvasElement>(null);
+  const dryFaceRef=useRef<HTMLCanvasElement>(null);
   const underpaint=useRef<HTMLCanvasElement|null>(null);
   const progress=useRef<{study:PencilPhotoStudy;frame:number;drawn:number;wash:number}|null>(null);
   const localObjectUrl=useRef<string|null>(null);
@@ -189,6 +191,11 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
   const study=useMemo(()=>raw?createPencilPhotoStudy(
     raw,options,applyFaceCraft?faceGuides:undefined):null,
     [raw,options,faceGuides,applyFaceCraft]);
+  // Pencil-only ArtCraft proof: a separate paper canvas made entirely of
+  // algorithmically laid pigment, never a sampled image underpaint.
+  const dryPlate=useMemo(()=>raw&&faceGuides&&showFaceMacro?
+    createDryPortraitPlate(raw,faceGuides,faceMacroRegion,options.seed):null,
+    [raw,faceGuides,showFaceMacro,faceMacroRegion,options.seed]);
   // The static precomputed tone layer is cached: seeking/speed does not
   // recompute pixels, gradients, stochastic paper or stroke directions.
   useEffect(()=>{
@@ -238,6 +245,16 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
     ctx.drawImage(artwork,anchor[0]-cropWidth*.5,anchor[1]-cropHeight*.5,
       cropWidth,cropHeight,0,0,macro.width,macro.height);
   },[showFaceMacro,faceMacroRegion,faceGuides,study,frame,wash]);
+  useEffect(()=>{
+    const canvas=dryFaceRef.current;
+    if(!canvas||!dryPlate)return;
+    const ctx=canvas.getContext("2d");if(!ctx)return;
+    ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";
+    ctx.fillStyle="#FAF5ED";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    paintMarkRange(ctx,dryPlate,0,dryPlate.strokes.length);
+    canvas.setAttribute("data-km-pencil-dry-rendered-region",faceMacroRegion);
+  },[dryPlate,faceMacroRegion]);
   useEffect(()=>{
     if(!playing)return;
     const began=performance.now(),offset=frame;
@@ -442,12 +459,34 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
             Native output crop · {faceMacroRegion==="eyes"?"eye / eyelid":"lips"} ·
             3× inspection only, not exported
           </figcaption>
-          <canvas ref={faceMacroRef} width={360} height={240}
-            data-km-pencil-face-macro={faceMacroRegion}
-            aria-label="Magnified real coloured-pencil portrait output"
-            style={{display:"block",width:"min(100%, 540px)",height:"auto",
-              aspectRatio:"3 / 2",border:"1px solid #ADA89A",
-              background:"#FAF5ED"}}/>
+          <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+            <div style={{flex:"1 1 300px",maxWidth:540}}>
+              <p style={{fontSize:12,margin:"0 0 5px"}}>Photo-supported output</p>
+              <canvas ref={faceMacroRef} width={360} height={240}
+                data-km-pencil-face-macro={faceMacroRegion}
+                aria-label="Magnified photo-supported coloured-pencil portrait"
+                style={{display:"block",width:"100%",height:"auto",
+                  aspectRatio:"3 / 2",border:"1px solid #ADA89A",
+                  background:"#FAF5ED"}}/>
+            </div>
+            <div style={{flex:"1 1 300px",maxWidth:540}}>
+              <p style={{fontSize:12,margin:"0 0 5px"}}>
+                Dry-pencil construction proof · NO photographic underpaint
+              </p>
+              <canvas ref={dryFaceRef} width={360} height={240}
+                data-km-pencil-dry-portrait={faceMacroRegion}
+                data-km-pencil-raster-underpaint="none"
+                aria-label="Code-drawn dry pencil facial construction without photo underpaint"
+                style={{display:"block",width:"100%",height:"auto",
+                  aspectRatio:"3 / 2",border:"1px solid #ADA89A",
+                  background:"#FAF5ED"}}/>
+            </div>
+          </div>
+          <p style={{fontSize:12,color:"#687A71",margin:"6px 0 0"}}>
+            Value-first, cross-layer pigment strokes reconstructed from the licensed
+            reference; still experimental. A paper-and-marks study is not proof of
+            artist-grade facial anatomy or likeness.
+          </p>
         </figure>}
         {study?.portraitFeatures&&<p
           data-km-portrait-craft-evidence=""
