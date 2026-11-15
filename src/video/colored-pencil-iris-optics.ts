@@ -97,8 +97,8 @@ export function createOpticalIrisPencil(
   for(const eye of ["near","far"] as const){
     const lid=createPortraitEyeAperture(guides,eye);
     const near=eye==="near";
-    const rx=clamp(lid.span*(near?.195:.17),2.7,17);
-    const ry=rx*(near?.87:.81);
+    const rx=clamp(lid.span*(near ? .195 : .17),2.7,17);
+    const ry=rx*(near ? .87 : .81);
     const raw=lid.center;
     // Iris centre is NOT the mathematical centre of the eye aperture:
     // allow at most 12% of iris radius of source-dark centroid adjustment.
