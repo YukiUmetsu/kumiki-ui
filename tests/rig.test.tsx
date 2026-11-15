@@ -249,6 +249,20 @@ describe("RIG1 nature and actions", () => {
     const sleep = personRig({ motion: "sleep", start: 0, end: 240, y: 700 }), sf = evaluateRig(sleep, 60);
     expect(sf.parts.find(p => p.id === "eye")!.variant).toBe("shut");
     expect(sf.parts.some(p => p.id === "blanket")).toBe(true);
+    // Waking: asleep and lying at first, sitting up with open eyes at the end; getting up ends standing on the mat.
+    const wake = personRig({ motion: "wake-up", start: 0, end: 240, y: 700 }), angleAt = (spec: RigSpec, k: number) => { const m = evaluateRig(spec, k).bones.get("pelvis")!.world; return Math.atan2(m.b, m.a) * 180 / Math.PI; };
+    expect(Math.abs(angleAt(wake, 10) + 90)).toBeLessThan(3);
+    expect(evaluateRig(wake, 10).parts.find(p => p.id === "eye")!.variant).toBe("shut");
+    expect(Math.abs(angleAt(wake, 230))).toBeLessThan(10);
+    expect(evaluateRig(wake, 230).parts.find(p => p.id === "eye")!.variant).toBeUndefined();
+    const getUp = personRig({ motion: "get-up", start: 0, end: 240, y: 700 });
+    expect(Math.abs(angleAt(getUp, 10) + 90)).toBeLessThan(3);
+    expect(world(getUp, "pelvis", 230)[1]).toBeLessThan(700 - 42 * 3.6);
+    for (const foot of ["foot-f", "foot-b"]) expect(Math.abs(world(getUp, foot, 230)[1] - (700 - (2.4 + 2.4) * 3.6))).toBeLessThan(1.5 * 3.6);
+    for (let k = 0; k < 240; k += 2) for (const shin of ["shin-f", "shin-b"]) {
+      const b = evaluateRig(getUp, k).bones.get(shin)!, endY = b.world.f + b.world.d * b.length;
+      expect(endY, `${shin} above the floor at ${k}`).toBeLessThan(700 + 1);
+    }
     const roll = personRig({ motion: "roll", start: 0, end: 240, y: 700 });
     let turned = 0, prev = 0;
     for (let k = 0; k < 240; k++) { const m = evaluateRig(roll, k).bones.get("pelvis")!.world, a = Math.atan2(m.b, m.a) * 180 / Math.PI; if (k) turned += ((a - prev + 540) % 360) - 180; prev = a; }
