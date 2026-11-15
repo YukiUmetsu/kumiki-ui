@@ -395,6 +395,27 @@ export function crayonStrokeEndPickup(
   return out.join(" ");
 }
 
+/** Fixed full-stroke arc stations: drawing forward cannot reflow earlier wax.
+ * Only the current moving tip is interpolated; prior paper contacts stay
+ * pinned to their original world positions and shared paper-height samples.
+ * This is intentionally used only for the opt-in hand-contact renderer:
+ * legacy dry nib SVG output remains byte-for-byte unchanged.
+ */
+export function crayonStableNibStops(lo:number,hi:number,end:number):number[]{
+  if(![lo,hi,end].every(Number.isFinite)||
+    lo<0||lo>=hi||hi>1||end<0||end>1)
+    throw new RangeError("Invalid crayon nib sample interval");
+  if(end<=lo)return [];
+  const fractions=[0,.08,.17,.26,.36,.47,.58,.69,.79,.89,1];
+  const stops=fractions.map(f=>lo+(hi-lo)*f)
+    .filter(t=>t<=Math.min(end,hi)+1e-10);
+  // The advancing tip may move; every completed station must be immutable.
+  if(end<hi-1e-10&&
+    (stops.length===0||Math.abs(stops[stops.length-1]-end)>1e-10))
+    stops.push(end);
+  return stops;
+}
+
 export function crayonDryNibPath(
   mark:CrayonMark,progress=1,contact:"legacy"|"hand"="legacy",
   paperSeed=0,
@@ -445,19 +466,28 @@ export function crayonDryNibPath(
             result.push("M"+left.join("L")+"L"+right.reverse().join("L")+"Z");
           left=[];right=[];
         };
-        const fractions=handmade?[0,.08,.17,.26,.36,.47,.58,.69,.79,.89,1]:
-          [0,.3,.68,1];
-        for(const [j,fraction] of fractions.entries()){
-          const t=lo+(end-lo)*fraction;
+        // Legacy nibs retain their historical 4 moving samples. Hand-mode
+        // contacts instead use FIXED stations of the completed arc: the
+        // previous algorithm rescaled the entire ribbon at each seek frame,
+        // so colored wax slid around the page during an animated draw-in.
+        const samples=handmade
+          ? crayonStableNibStops(lo,hi,end)
+          : [0,.3,.68,1].map(fraction=>lo+(end-lo)*fraction);
+        for(const [j,t] of samples.entries()){
           const pos=point(t);
           // Paper friction makes wax break and veer *within* each contact.
           // No three perfectly parallel ribbons or identical edge thicknesses.
-          const edge=j===0||j===fractions.length-1;
+          // The temporary advancing tip can lift lightly; stations behind
+          // it retain their full-contact shape when more of the mark arrives.
+          const edge=j===0||(handmade ? Math.abs(t-hi)<1e-8 :
+            j===samples.length-1);
+          const advancingTip=handmade&&j===samples.length-1&&end<hi-1e-8;
           const drift=(crayonHash(mark.index,seed*11+j,3110)-.5)*
             mark.width*(handmade?(edge?.14:.29):(edge?.10:.22));
           // A real worn crayon end touches intermittently; height changes
           // along its side, making long contacts lumpy, not polygonal rulers.
-          const taper=edge?(handmade?.23+.25*crayonHash(mark.index,seed+j,3111):.43):1;
+          const taper=edge?(handmade?.23+.25*crayonHash(mark.index,seed+j,3111):.43):
+            advancingTip?.36:1;
           const x=pos.x+pos.nx*(offset+drift);
           const y=pos.y+pos.ny*(offset+drift);
           // Adjacent crayon passes sample the SAME paper relief. A high peak
