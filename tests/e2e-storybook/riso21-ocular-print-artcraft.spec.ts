@@ -477,6 +477,8 @@ test("RISO30 ANAT1 hands: original donor / receiver, 2 ink masters, live gesture
       await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-pinky"]')).toHaveCount(1);
       await expect(panel.locator('[data-km-riso-part="'+spec.side+'-glove-pinky-nail"]')).toHaveCount(1);
       expect(Number(await panel.getAttribute("data-km-riso30-hand-parts"))).toBeGreaterThan(21);
+      expect(Number(await panel.getAttribute("data-km-riso30-crop-margin")))
+        .toBeGreaterThanOrEqual(35);
     }
     await story.screenshot({path:info.outputPath("riso30-hands-"+f+"-two-ink.png"),
       animations:"disabled"});
