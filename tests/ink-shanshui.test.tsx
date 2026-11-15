@@ -151,6 +151,26 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     )];
     expect(caps).toHaveLength(6);
     expect(cracks).toHaveLength(9);
+    const inkFibre=[...full.matchAll(
+      /data-km-rock-mass-flow="" data-km-rock-mass-flow-root="([^"]+)" data-km-rock-mass-flow-load="(loaded|lifted)" d="([^"]+)"/g,
+    )];
+    expect(inkFibre).toHaveLength(33); // uneven 14 + 11 + 8
+    expect(new Set(inkFibre.map(m=>m[1])).size).toBe(33);
+    expect(inkFibre.filter(m=>m[2]==="lifted").length)
+      .toBeGreaterThan(6);
+    expect(inkFibre.every(([,root,,d])=>
+      d.startsWith("M"+root.replace(","," "))&&
+      (d.match(/ C/g)??[]).length>=22&&d.endsWith(" Z")))
+      .toBe(true);
+    const fields=[...full.matchAll(
+      /data-km-rock-mass-flow-group="" clip-path="url\(#([^"]+)\)" data-km-rock-mass-flow-count="([^"]+)"/g,
+    )];
+    expect(fields.map(m=>Number(m[2]))).toEqual([14,11,8]);
+    expect(fields.every(([,id])=>full.includes('id="'+id+'"')))
+      .toBe(true);
+    expect((paint(71,.81).match(/data-km-rock-mass-flow=""/g)??[]))
+      .toHaveLength(27); // 11 + 9 + 6 at reduced density
+
     for(const [,r,d] of [...caps,...cracks]){
       expect(d.startsWith("M"+r.replace(","," "))).toBe(true);
       expect((d.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(22);
