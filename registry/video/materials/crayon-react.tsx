@@ -167,7 +167,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
       {coverage==="opaque"&&underpaintTooth>0&&(["dark","light"] as const).map((kind)=>(
         <mask key={kind} id={kind==="dark"?darkToothMask:lightToothMask}
           maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
-          maskType="luminance" x={bounds.x-25} y={bounds.y-25}
+          x={bounds.x-25} y={bounds.y-25}
           width={bounds.width+50} height={bounds.height+50}>
           <rect x={bounds.x-25} y={bounds.y-25}
             width={bounds.width+50} height={bounds.height+50}
