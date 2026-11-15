@@ -424,7 +424,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     const baseline=crayonCc0FaceStudy({eyeContact:"baseline",midfaceForm:"baseline"});
     const originals=new Map(baseline.elements.map(e=>[e.id,e]));
     const changed=new Set(CRAYON_F1_RECONSTRUCTED_MIDFACE_IDS);
-    expect(scene.elements.length).toBe(baseline.elements.length+1);
+    expect(scene.elements.length).toBe(baseline.elements.length+3);
     expect(scene.elements.filter(e=>!changed.has(e.id)))
       .toEqual(baseline.elements.filter(e=>!changed.has(e.id)));
     for(const id of changed){
@@ -435,6 +435,18 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
         expect(candidate).toMatchObject({kind:"wax",
           parentId:"mouth-aperture-depth",clipToParent:true,
           coverage:"opaque",deposition:"stroke-built"});
+      }else if(id==="lip-upper-body-wax"||id==="lip-lower-body-wax"){
+        expect(originals.has(id)).toBe(false);
+        expect(candidate).toMatchObject({kind:"wax",
+          parentId:"face-outline",clipToParent:true,
+          coverage:"opaque",deposition:"stroke-built",
+          featherContacts:false,outlineOpacity:0});
+        if(candidate?.kind!=="wax")throw Error("Missing opaque lip tissue");
+        expect(candidate.underpaintGradient?.light).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(candidate.underpaintGradient?.shadow).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(candidate.underpaintTooth).toBeGreaterThan(.15);
+        expect(candidate.pressure).toBeGreaterThan(.75);
+        expect(candidate.spacing).toBeLessThan(6);
       }else{
         const original=originals.get(id);
         if(original?.kind!=="wax"||candidate?.kind!=="wax")
@@ -449,6 +461,12 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       where("dental-arch-connected-wax"));
     expect(where("dental-arch-connected-wax")).toBeLessThan(
       where("dental-surface-left"));
+    // Opaque undercoats are nested in the source face. Existing open
+    // crayon grain/feather glazes remain ABOVE each tissue mass, without
+    // suppressing mouth aperture or edge-tooth visibility.
+    expect(where("lip-upper-body-wax")).toBeLessThan(where("lip-upper"));
+    expect(where("dental-surface-far")).toBeLessThan(where("lip-lower-body-wax"));
+    expect(where("lip-lower-body-wax")).toBeLessThan(where("lip-lower"));
     const near=scene.elements.find(e=>e.id==="naris-shadow-near");
     const far=scene.elements.find(e=>e.id==="naris-shadow-far");
     if(near?.kind!=="wax"||far?.kind!=="wax")
