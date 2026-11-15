@@ -203,6 +203,11 @@ unevenness of wax concentration over toothy paper.
   across the fruit before the wax was deposited.
 - The property defaults to zero. All existing stories/scenes keep their
   prior appearance; only the botanical demonstration enables it.
+- Scene-level `CrayonScene` turns on the shared paper patterns automatically
+  only when at least one wax element has `underpaintTooth>0`. Direct
+  `Paper` + `WaxRegion` compositions must set `pigmentRelief={true}` on
+  `Paper` when using that optional effect. Old scenes avoid both extra
+  DOM path strings and the source-field generation entirely.
 - Real paper will also deform, abrade, smear and exchange pigment. These
   effects, genuine multiscale height measurement and a physical spectrum
   shader are **not** included. Treat the work as a bounded compositing study.
