@@ -2,6 +2,7 @@ import {describe,expect,it} from "vitest";
 import {
   CC0_FACE_VALUE_REGIONS,compareCC0PortraitTones,
   CC0_HAIR_OCCLUSION_PROBE,compareCC0HairOcclusion,
+  CC0_VERMILION_PROBES,compareCC0Vermilion,
 } from "../src/video/colored-pencil-full-head-tone-proof";
 import type {PencilTonePixelGrid} from "../src/video/colored-pencil-full-head-tone-proof";
 
@@ -21,6 +22,29 @@ const paint=(image:PencilTonePixelGrid,x:number,y:number,value:number)=>{
     image.data[index]=image.data[index+1]=image.data[index+2]=value;
   }
 };
+describe("ArtCraft independent upper/lower vermilion negative-only optical gate",()=>{
+  it("rejects the old pale mouth while retaining source-matched pigment, never approving art",()=>{
+    const source=make(230),old=make(230),corrected=make(230);
+    const src=[75,111],bad=[113,151],good=[82,138];
+    CC0_VERMILION_PROBES.forEach((region,i)=>{
+      paint(source,region.x,region.y,src[i]);
+      paint(old,region.x,region.y,bad[i]);
+      paint(corrected,region.x,region.y,good[i]);
+    });
+    const oldEvidence=compareCC0Vermilion(source,old);
+    const repaired=compareCC0Vermilion(source,corrected);
+    expect(oldEvidence.missingVermilionPigment).toBe(true);
+    expect(repaired.missingVermilionPigment).toBe(false);
+    expect(repaired.artisticApproval).toBe(false);
+    expect(repaired.regions.map(x=>x.name)).toEqual(["upper","lower"]);
+    expect(repaired.regions[0].lightnessDeficit).toBeCloseTo(7,0);
+    expect(repaired.regions[1].lightnessDeficit).toBeCloseTo(27,0);
+    expect(compareCC0Vermilion(make(220),corrected)
+      .missingVermilionPigment).toBe(true);
+    expect(()=>compareCC0Vermilion(source,{...old,width:400}))
+      .toThrow(RangeError);
+  });
+});
 describe("source-registered ear/hair shadow continuity (negative-only)",()=>{
   it("rejects a lost dark lock and accepts measured dark-pencil depth without artwork approval",()=>{
     const source=make(245),washed=make(250),ink=make(250);
