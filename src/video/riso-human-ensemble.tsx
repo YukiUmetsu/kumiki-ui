@@ -280,12 +280,13 @@ export function RisoHumanEnsembleStudio(){
   ];
   return <main style={{background:"#F0E4D1",padding:18,minHeight:"100vh",font:"14px system-ui,sans-serif"}}>
     <div style={{maxWidth:1320,margin:"0 auto"}}>
-      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO14 / HUMAN ENSEMBLE ACTING STUDY</div>
+      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO16 / CONTINUOUS SPOT-PRINT PAPER & TWO-HUMAN ACTING</div>
       <h2 style={{font:"700 29px Georgia,serif",margin:"8px 0"}}>Two original figures · a printed-sheet exchange</h2>
       <p style={{fontSize:13,maxWidth:900,lineHeight:1.5}}>
         Distinct coat, bob hair and facial geometry for the Paper Artist; the Courier retains
-        its existing body and satchel grip. The unfurling printed sheet is anchored to two evaluated
-        world-space hands. This is a gesture-blocking study, not a rigid-body contact solver.
+        its existing body and satchel grip. The curved printed sheet follows both evaluated hands through a shared physical contour,
+        with controllable curl, grip compression, screened fold and original address engravings.
+        It remains a staged contact study rather than a rigid-body contact solver.
         Real RisoPrint spot-ink screens, print registration, paper pores and fibres are used.
       </p>
       <div style={{display:"flex",flexWrap:"wrap",gap:20,alignItems:"center",padding:"12px 0"}}>
