@@ -553,6 +553,14 @@ test("ArtCraft F1 nasal-lip wax volume vs unmodified midface native A/B",async({
     await expect(svg.locator(
       '[data-km-crayon-element="dental-arch-connected-wax"]')).toHaveCount(
         midfaceForm==="source-volume"?1:0);
+    for(const id of ["lip-upper-body-wax","lip-lower-body-wax"]){
+      const lip=svg.locator('[data-km-crayon-element="'+id+'"]');
+      await expect(lip).toHaveCount(midfaceForm==="source-volume"?1:0);
+      if(midfaceForm==="source-volume"){
+        await expect(lip.locator(
+          '[data-km-crayon-underpaint-gradient]')).toHaveCount(1);
+      }
+    }
     images.push(await svg.screenshot({path:info.outputPath(
       "crayon-f1-midface-"+midfaceForm+"-299.png"),animations:"disabled"}));
   }
