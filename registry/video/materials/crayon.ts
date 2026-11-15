@@ -474,7 +474,10 @@ export function crayonDryNibPath(
           const relief=handmade?
             .12+1.44*paper:
             .59+.57*crayonHash(mark.index,seed+j,3108);
-          const thickness=mark.width*(handmade?.08+.052*mark.pressure:
+          // Broad worn side-nib wax contacts: observable ribbons are thicker
+          // than pencil-tip hatch lines, with valley gaps preserved by
+          // the shared paper-height field and per-contact abrasion.
+          const thickness=mark.width*(handmade?.14+.10*mark.pressure:
             .065+.043*mark.pressure)*taper*relief;
           const deposit=handmade?(.24+.76*mark.pressure):1;
           const contactWidth=thickness*deposit;
