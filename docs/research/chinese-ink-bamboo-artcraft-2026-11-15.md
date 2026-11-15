@@ -145,6 +145,42 @@ be tested against native output; it is **not** automatic proof of a
 world-class painted appearance. Pine, rock and scholar detail remain
 separate visible limitations.
 
+## Fourth ArtCraft pass — source-led clusters and tangent flow
+
+Compare the last actual native close-up in `43684518797` to
+[Wu Zhen, *Manual of Ink Bamboo* (1350), National Palace Museum](https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04009183)
+and [Zheng Xie, *Bamboo and Rock*, NPM](https://digitalarchive.npm.gov.tw/Collection/Detail/18568?dep=P).
+The source brush clusters are **not** standalone copies of identical
+arrowhead shapes: paired long and short blades leave a living twig at
+different pitches; their overlapping dark/dilute strokes resolve into
+a canopy mass against substantial untouched paper.
+
+The third candidate already had correct parent anatomy but too many
+isolated straight-pointed strokes in the actual full-frame render.
+The fourth pass therefore changes the structural **cause**:
+
+- Derive each primary leaf direction from its actual parent twig's
+  quadratic tangent, then vary relative fan pitch. Do not invent an
+  independent screen-up vector for every leaf.
+- Concentrate smaller echo strokes near the terminal 20% of the
+  same real painted parent branch, instead of dispersing them along
+  the entire branch. The code still exposes exact parent-root markers.
+- Increase dark-blade belly and ink load on foreground groups while
+  retaining lighter/diluted companion strokes.
+- Redirect dry-lift filaments along the actual leaf's length; their
+  previous screen-up curves were visibly detached from leaf geometry.
+- Keep five primary leaves per bamboo node at full art detail and the
+  same sparse/zero-detail contracts. A separate Storybook crop examines
+  upper canopy groups alongside an existing culm-joint crop, **without
+  creating an additional Chinese Ink sidebar story**.
+- Add a cheap seeded heading-diversity check; it is a diagnostic,
+  not a painterly quality metric.
+
+ArtCraft acceptance: evaluate all three original landscape compositions,
+individual 2.15× crops, motion frames and generated MP4. Reject the
+iteration if leaf group silhouettes still resemble algorithmic stars
+or clean triangles more than directional brush deposition.
+
 ## Required release evidence
 
 Run from a clean repository checkout:
