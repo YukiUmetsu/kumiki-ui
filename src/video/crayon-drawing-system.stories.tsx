@@ -33,7 +33,7 @@ export function crayonDrawingInspectionSpec(
 
 interface DrawingStudioProps {
   aspect:CrayonDrawingAspect;detail:number;pressure:number;paperTooth:number;
-  nibStyle:"tapered"|"dry";
+  nibStyle?:"tapered"|"dry";
   startFrame:number;playbackRate:number;loop:boolean;
   inspection?:CrayonDrawingInspection;
 }
