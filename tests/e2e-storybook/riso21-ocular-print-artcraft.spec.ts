@@ -276,7 +276,13 @@ test("RISO26 true graded press master: original faces, two film ratios, AM and F
           await expect(panel).toHaveAttribute("data-km-riso26-tone-study","graded");
           await expect(panel.locator('[data-km-riso-part="zygomatic-tone-planes"]'))
             .toHaveAttribute("data-km-riso-screen-tone","light");
+          // ArtCraft RISO29: orbital paper dot masters are intentionally LIGHT
+          // to avoid acne-like chips. Temple geometry remains MID density,
+          // preserving the complete physical three-value ink separation.
           await expect(panel.locator('[data-km-riso-part="orbital-tone-planes"]'))
+            .toHaveAttribute("data-km-riso-screen-tone","light");
+          await expect(panel.locator('[data-km-riso-part="'+
+            (actor==="courier"?"face-temple-shadow":"temple-tones")+'"]'))
             .toHaveAttribute("data-km-riso-screen-tone","mid");
           const image=await panel.screenshot({
             path:info.outputPath("riso26-"+screening+"-"+ratio+"-"+actor+"-"+frame+"-graded.png"),
