@@ -229,7 +229,7 @@ function BrushworkDetail(){
     label:string;scene:ShanshuiScene;x:number;y:number;note:string;
   }[]=[
     {label:"松針 · Old-pine needle clusters",scene:"mountain-trail",
-      x:95,y:161,note:"Gnarled crooks, pressure-loaded branch roots and varied needle-fan pitch; compare at film scale"},
+      x:95,y:161,note:"Study trunk fissures, 24 cubic-rooted lateral forks, broken branch bark and uneven needle-ink rhythm; compare at native scale"},
     {label:"皴法 · Geological texture",scene:"mountain-trail",
       x:568,y:147,note:"Ridge-rooted ink-bone rock planes, broken hemp fibres, small alum-head ledges and moss pockets"},
     {label:"柳 · Hanging willow foliage",scene:"river-scholar",
