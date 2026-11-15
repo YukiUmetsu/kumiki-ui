@@ -23,3 +23,15 @@ Date: November 14, 2026. The following source art was studied for **construction
 ## Known limitations and follow-up
 
 This is production-ready **as a prototype film illustration engine**, not a cutter-safe manufactured sculpture model. More work is required for curled cardstock, actual paper bend/crease dynamics, joint-constrained multi-layer object rigs, perspective thickness, fabrication/kerf constraints, multicharacter choreography and stable scene composition APIs. No quantitative five-axis ArtCraft reference-image fidelity score has been measured for these original compositions.
+
+## Pass 16: observation → physical paper cues
+
+Additional reference inspection (14 November 2026):
+
+- [Diana Beltrán Herrera's hand-cut bird construction, Smithsonian](https://www.smithsonianmag.com/science-nature/diana-beltran-herreras-flock-of-paper-birds-9713658/): birds have a structural paper foundation with carefully selected sizes and feather positions; feathers are individually scored. This motivated distributing selective *local curvature shading* to independently cut stock without blurring whole-body geometry.
+- [Paper birds by Herrera, designboom](https://www.designboom.com/art/diana-beltran-herrera-paper-birds-02-18-2016/): shaped and fringed oblong feathers are built atop a sturdy interwoven paper form. Motivated rendering a subtle lit ridge and shaded distal edge per separate paper feather, rather than using semi-transparent color fields.
+- [Beltrán Herrera's floral/fauna paper textures, Colossal](https://www.thisiscolossal.com/2021/08/diana-beltran-herrera-paper-sculpture/): material depth relies on many individual veins, creases and overlapping colored strips. Motivated synchronizing sculpted wing *membranes and individual veins* under a single anatomical hinge instead of independently rotating paper parts.
+
+**Implementation comparison:** Curvature is authored on individual SVG contours, with five opaque pigment colors as a per-path gradient, explicitly clipped to its real cut shape. The same stock still owns its physical shadow and may have cut-out windows. The renderer also exposes `data-km-paper-stock` for QA so a gradient does not conceal an accidentally translucent base. Four dragonfly rigs and one kingfisher wing rig use shared pivot and waveform, and the test suite asserts mathematical frame purity, component synchrony, motion-off behavior and reduced-motion stillness.
+
+**Unresolved fidelity gap:** actual out-of-plane paper bending, rolling, thickness, self-shadowing, physical crease spring dynamics, microscopic cut-fiber geometry and fully biophysical flapping motions. This 2.5D step improves legibility and material cues without claiming to reproduce reference sculpture shapes or 3D camera viewpoints. No numerical ArtCraft image-comparison scores are fabricated.
