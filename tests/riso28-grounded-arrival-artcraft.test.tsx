@@ -80,6 +80,22 @@ describe("RISO28 original courier grounded arrival",()=>{
     }
   });
 
+  it("RISO29 taller original leg skins keep their exact physical two-bone lengths in every printed cel",()=>{
+    for(let frame=0;frame<240;frame+=2){
+      const pose=evaluateRisoCharacter(COURIER,frame);
+      for(const side of ["left","right"] as const){
+        const hip=pose.joints.find(j=>j.id===side+"-leg")!;
+        const knee=pose.joints.find(j=>j.id===side+"-knee")!;
+        const ankle=pose.joints.find(j=>j.id===side+"-ankle")!;
+        const contact=pose.ik.find(j=>j.id===side+"-foot-lock")!;
+        expect(contact.reachable,side+" shoe fell out of reach f"+frame).toBe(true);
+        expect(contact.error,side+" shoe slips f"+frame).toBeLessThan(.02);
+        expect(gap(hip,knee),side+" thigh changed length f"+frame).toBeCloseTo(55,3);
+        expect(gap(knee,ankle),side+" shin changed length f"+frame).toBeCloseTo(52,3);
+      }
+    }
+  });
+
   it("plants the actual final 2-foot stance by frame 162 and never slides thereafter",()=>{
     const {left,right}=feet();
     expect(left.endFrame).toBe(165);
