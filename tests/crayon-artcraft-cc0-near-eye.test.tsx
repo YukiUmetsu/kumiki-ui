@@ -4,8 +4,38 @@ import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
 import {crayonDryNibPath,crayonMarks,crayonPaperHeight} from "../registry/video/materials/crayon";
 import {crayonCc0NearEyeStudy} from "../src/video/crayon-artcraft-cc0-near-eye";
+import {crayonPaperContactSwatches} from "../src/video/crayon-artcraft-paper-contact-fixtures";
 import faceMeta,{SourceMeasuredCc0Eye,SourceMeasuredCc0EyePortrait}
   from "../src/video/crayon-artcraft-adult-face.stories";
+describe("Crayon pressure-and-paper contact material studies",()=>{
+  for(const pressure of [.2,.32,.72,1]){
+    it("keeps all four material swatches solid at pressure "+pressure,()=>{
+      const spec=crayonPaperContactSwatches(pressure,974);
+      expect(inspectCrayonScene(spec)).toEqual([]);
+      expect(spec.elements).toHaveLength(6);
+      expect(new Set(spec.elements.map(n=>n.id)).size).toBe(6);
+      expect(spec.elements.filter(n=>n.kind==="wax"&&n.deposition==="stroke-built"))
+        .toHaveLength(5);
+      for(const n of spec.elements){
+        if(n.kind==="wax")expect(n.coverage).toBe("opaque");
+      }
+      const html=renderToStaticMarkup(<CrayonScene spec={spec} frame={239}/>);
+      expect(html).toContain('data-km-crayon-deposition="stroke-built"');
+      expect(html).toContain('data-km-crayon-paper-relief=""');
+      expect(html).toContain('data-km-crayon-underpaint="opaque"');
+      expect(html).toBe(renderToStaticMarkup(<CrayonScene spec={spec} frame={239}/>));
+    });
+  }
+  it("validates seed and pressure without changing material source identity",()=>{
+    expect(()=>crayonPaperContactSwatches(0)).toThrow();
+    expect(()=>crayonPaperContactSwatches(1.1)).toThrow();
+    expect(()=>crayonPaperContactSwatches(.72,1.3)).toThrow();
+    const a=crayonPaperContactSwatches(.72,974);
+    const b=crayonPaperContactSwatches(.72,975);
+    expect(a.elements).toEqual(b.elements);
+    expect(a.seed).not.toBe(b.seed);
+  });
+});
 describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
   it("samples deterministic, shared paper-height ridges across strokes",()=>{
     const height=crayonPaperHeight(27.2,-13.4,974);
