@@ -12,7 +12,7 @@ const materialInput = {
 };
 describe("coloured-pencil universal material atlas", () => {
   it("exposes ten bounded semantic material recipes to arbitrary authored SVG geometry", () => {
-    expect(PENCIL_MATERIALS).toHaveLength(10);
+    expect(PENCIL_MATERIALS).toHaveLength(11);
     const materials = PENCIL_MATERIALS.map(surface => createPencilMaterialRegion({
       ...materialInput,surface,
     }));
@@ -27,6 +27,8 @@ describe("coloured-pencil universal material atlas", () => {
     }
     expect(materials[3].opaqueSupport).toBe(false); // clear glass
     expect(materials.filter(region=>region.opaqueSupport)).toHaveLength(9);
+    expect(materials[10].opaqueSupport).toBe(false);
+    expect(materials[10].layers[2].texture).toBe("stipple");
     expect(materials[0].clipDetails).toBe(true);
     expect(materials[3].clipDetails).toBe(false);
     expect(materials[4].layers[2].texture).toBe("fiber");
@@ -97,7 +99,9 @@ describe("coloured-pencil universal material atlas", () => {
       .toBeGreaterThan(100);
     const textile=pencilObjectStudyDrawing({subject:"fabric",aspect:"landscape"});
     expect(textile.regions.filter(r=>r.id.includes("cloth")||r.id.includes("fold"))).toHaveLength(3);
-    expect(textile.regions.filter(r=>r.id.startsWith("brass-"))).toHaveLength(2);
+    expect(textile.regions.filter(r=>r.id.startsWith("brass-cup-"))).toHaveLength(3);
+    expect(textile.regions.find(r=>r.id==="brass-contact-shadow")!.opaqueSupport).toBe(false);
+    expect(brick.regions.find(r=>r.id==="ground-shadow")!.opaqueSupport).toBe(false);
   });
 
   it("rejects malformed studio inputs and keeps material pressure in bounds", () => {
