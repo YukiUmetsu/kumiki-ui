@@ -5,6 +5,7 @@
 import type {CharacterAsset,CharacterDefinition} from "../../registry/character/definition";
 import {inkCraftAsset,DEFAULT_INK_FIGURE_CRAFT} from "../../registry/video/ink-figure-craft";
 import type {InkFigureCraftControls,InkFigureStroke} from "../../registry/video/ink-figure-craft";
+import { masterPortraitAssets } from "./ink-master-portrait-art";
 
 const fold=(id:string,kind:InkFigureStroke["kind"],points:readonly (readonly[number,number,number])[],
   width:number,tone:number,water:number,detailMin=0,pigment?:string):InkFigureStroke=>({
@@ -162,7 +163,9 @@ export function makeClassicalInkFigure(
   const groups=role==="master"
     ? [INK_TRAVELLER_FOLDS,INK_MASTER_CLASSICAL_ACCENTS]
     : [INK_APPRENTICE_FOLDS];
-  const assets:Record<string,CharacterAsset>={...base.assets};
+  const assets:Record<string,CharacterAsset>=role==="master"
+    ? masterPortraitAssets(base.assets,controls.detail)
+    : {...base.assets};
   for(const group of groups)for(const [key,marks] of Object.entries(group)){
     const existing=assets[key];
     // Some master marks describe segmented IK leg art in the director variant.
