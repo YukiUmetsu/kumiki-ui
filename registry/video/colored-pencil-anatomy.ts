@@ -189,9 +189,12 @@ export function pencilPortraitAnatomy(
   // field of the calibrated 3D face triangles. A mark has an independent
   // pigment family, pressure, paper location and fixed animation timing.
   const families={
-    middle:{color:"#B87B70",width:.62,opacity:.43,paths:[] as string[]},
-    shadow:{color:"#806575",width:.55,opacity:.49,paths:[] as string[]},
-    light:{color:"#E1AD91",width:.48,opacity:.37,paths:[] as string[]},
+    // Native full-frame audit rejected the previous dark 7px slashes:
+    // they looked like facial stubble, not smooth dry-pencil glazing.
+    // Several pale, locally varied contacts build optical color instead.
+    middle:{color:"#D3A696",width:.41,opacity:.27,paths:[] as string[]},
+    shadow:{color:"#AC8988",width:.42,opacity:.30,paths:[] as string[]},
+    light:{color:"#E8C4AA",width:.34,opacity:.23,paths:[] as string[]},
   };
   const P=face.vertices,F=face.mesh.faces;
   const sun:[number,number,number]=[-.45,.60,.66];
@@ -234,7 +237,7 @@ export function pencilPortraitAnatomy(
         // front plane. No identical parallel hatch across all anatomy.
         const angle=Math.atan2(.18-.45*n[0],.75+.27*n[1])+
           (pencilHash(9061,key,43)-.5)*.44;
-        const step=(2.4+4.9*pencilHash(9061,key,44))*
+        const step=(1.25+1.9*pencilHash(9061,key,44))*
           (kind==="light"?.72:1);
         const dx=Math.cos(angle)*step,dy=Math.sin(angle)*step;
         const bow=(pencilHash(9061,key,45)-.5)*.65;
