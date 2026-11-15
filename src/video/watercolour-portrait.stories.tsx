@@ -6,8 +6,8 @@ import { WatercolourIllustration,inspectWatercolourArtwork }
   from "../../registry/video/watercolour-illustration";
 import type { WatercolourArtwork,WatercolourArtPart }
   from "../../registry/video/watercolour-illustration";
-import { watercolorPortraitSpec } from "./watercolour-portrait-demo";
-import type { PortraitOutput } from "./watercolour-portrait-demo";
+import { watercolorPortraitSpec, PORTRAIT_SUBJECTS } from "./watercolour-portrait-demo";
+import type { PortraitOutput, PortraitSubject } from "./watercolour-portrait-demo";
 import { WATERCOLOUR_PORTRAIT_FILM } from "./watercolour-portrait-film";
 import { WatercolourFilmViewport, WatercolourParameterEditor,
   WatercolourSlider, inspectJsonObject } from "./watercolour-film-parameters";
@@ -17,15 +17,13 @@ const control={font:"600 13px system-ui",border:"1px solid #BAADA1",
   background:"#FEFAF3",color:"#494651",padding:"9px 12px",
   borderRadius:7,minHeight:41} as const;
 
-/** WC11 replaces only the previously published miniature traveller STORY.
- * The old rig and portable character film stay available to API consumers.
- * All visual timing here comes from the source illustration and FilmStage.
- */
+/** WC13: two entirely rebuilt source-painted adult sitters in the existing Film Looks folder. */
 function PortraitAtelier(){
   const [output,setOutput]=useState<PortraitOutput>("portrait");
   const [frame,setFrame]=useState(255);
   const [playing,setPlaying]=useState(false);
   const [seed,setSeed]=useState(83);
+  const [subject,setSubject]=useState<PortraitSubject>("sitter-a");
   const [tooth,setTooth]=useState(.81);
   const [grain,setGrain]=useState(.77);
   const [showGlazing,setShowGlazing]=useState(true);
@@ -35,15 +33,15 @@ function PortraitAtelier(){
   const [custom,setCustom]=useState<WatercolourArtwork|null>(null);
   const compiled=useMemo(()=>compileFilm(WATERCOLOUR_PORTRAIT_FILM,{outputId:output}),[output]);
   const authored=useMemo(()=>{
-    const scene=watercolorPortraitSpec(output,seed);
+    const scene=watercolorPortraitSpec(output,seed,subject);
     return {...scene,paper:{...scene.paper,tooth,granulation:grain},
       wetPaper:scene.wetPaper?{...scene.wetPaper,granulation:grain,
         paper:{...scene.wetPaper.paper,tooth}}:undefined};
-  },[output,seed,tooth,grain]);
+  },[output,seed,subject,tooth,grain]);
   const raw=custom??authored;
   const painting=useMemo<WatercolourArtwork>(()=>{
     if(showGlazing&&showDetail&&showWetEdges)return raw;
-    const detail=/(-glint$|-pupil$|hair-separated|flyaway|philtrum|nose-alar|cloth-folds|mouth-corners|earring)/;
+    const detail=/(-catchlight$|-pupil$|directional-bristles|loose-crown|nostril-indications|philtrum|fabric-fold|lip-corner|earring|beard-growth)/;
     const transform=(node:WatercolourArtPart):WatercolourArtPart|null=>{
       if(!showDetail&&detail.test(node.id))return null;
       if(node.kind==="path"){
@@ -88,16 +86,16 @@ function PortraitAtelier(){
     fontFamily:"system-ui,sans-serif"}}>
     <header style={{maxWidth:940}}>
       <div style={{fontSize:12,fontWeight:750,letterSpacing:2.2,color:"#966D67"}}>
-        WC12 / PORTRAIT MATERIAL STUDIES
+        WC13 / PORTRAIT RECONSTRUCTION & PERFORMANCES
       </div>
       <h1 style={{font:"italic 500 39px/1.12 Georgia,serif",margin:"7px 0 9px"}}>
-        Where the light touches the face
+        Two portraits, rebuilt in watercolor
       </h1>
       <p style={{fontSize:14,lineHeight:1.65,maxWidth:840,margin:0}}>
-        Study original portrait anatomy alongside wet-on-wet softness and light:
-        facial values melt into translucent cheek and temple washes while the eyelids,
-        iris, hair roots and mouth stay structurally precise. Toggle soft edges and
-        optical glazing independently; inspect the same face in 16:9 and 9:16.
+        Two original adult characters are rebuilt from anatomical landmarks, lost-and-found
+        facial edges, carefully reserved light, transparent glazes and directional
+        dry-brush hair. Compare distinct hair, age, facial planes and clothing in
+        motion. No earlier human illustration is reused.
       </p>
     </header>
     <div style={{display:"flex",alignItems:"end",flexWrap:"wrap",gap:13}}>
@@ -108,6 +106,16 @@ function PortraitAtelier(){
             setOutput(e.target.value as PortraitOutput);}}>
           <option value="portrait">9:16 — vertical portrait</option>
           <option value="landscape">16:9 — editorial composition</option>
+        </select>
+      </label>
+      <label style={{display:"grid",gap:5,fontSize:13,fontWeight:700}}>
+        Original painted sitter
+        <select aria-label="Watercolour portrait subject" style={control} value={subject}
+          onChange={e=>{setPlaying(false);setCustom(null);
+            const next=e.target.value as PortraitSubject;
+            if(PORTRAIT_SUBJECTS.includes(next))setSubject(next);}}>
+          <option value="sitter-a">01 / Luminous adult portrait</option>
+          <option value="sitter-b">02 / Mature portrait and beard</option>
         </select>
       </label>
       <label style={{display:"grid",gap:5,fontSize:13,fontWeight:700}}>
@@ -160,7 +168,7 @@ function PortraitAtelier(){
             reducedMotion={context.reducedMotion}/>;
         }} style={{transform:"scale("+scale+")",transformOrigin:"top left"}}/>}
     </WatercolourFilmViewport>
-    <WatercolourParameterEditor key={output} title="Portrait anatomy, paint and film rig"
+    <WatercolourParameterEditor key={output+":"+subject} title="Editable painted sitter / anatomy, material and motion"
       value={raw} validate={candidate=>{
         const errors=inspectJsonObject(candidate);
         if(errors.length)return errors;
@@ -175,9 +183,9 @@ function PortraitAtelier(){
         change blink, head and gaze keyframes; adjust glow, gradient,
         optical glaze and wet-paper deposition. All edits are validated."/>
     <p style={{margin:0,maxWidth:900,fontSize:13,color:"#736C6A",lineHeight:1.55}}>
-      References establish watercolor practice, not a sitter identity. No artist
+      Independent studies: museum watercolor portrait handling and transparent washes. No artist
       painting, portrait photograph, licensed texture, or image tracing is bundled.
-      Art acceptance still requires visual comparison to real watercolor paintings.
+      See docs/research/watercolour-human-portrait-reference-rebuild.md for sources and artistic QA gates.
     </p>
   </main>;
 }
