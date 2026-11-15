@@ -329,7 +329,7 @@ export function createKingfisherActor():PencilActorSpec {
       keys:[key(0),key(177),key(199,0,-2,6),key(227,0,-1,-4),
         key(269),key(319)],
       path:"M95 105 C90 98 92 83 99 74 C108 63 121 58 137 61 Q158 62 168 82 C175 94 167 108 150 117 C137 123 121 122 109 116 Q99 112 95 105 Z",
-      bounds:[91,55,78,77],direction:39,flow:25,
+      bounds:[90,55,88,77],direction:39,flow:25,
       details:[
         ...strokeFox([[106,68,145,66,120,48,22,12],
           [104,85,153,89,119,72,24,12]],1831,"#9DE0D9",.61),
@@ -345,7 +345,7 @@ export function createKingfisherActor():PencilActorSpec {
       ]}),
     part({id:"cheek",material:"feather",colors:birdOrange,parent:"head",pivot:[127,111],
       path:"M99 102 C109 97 120 98 128 100 Q140 101 158 93 C153 105 145 113 134 117 Q117 122 105 112 Q100 109 99 102 Z",
-      bounds:[95,91,63,29],direction:24,
+      bounds:[95,91,65,33],direction:24,
       details:[trace("M101 102 Q121 111 141 103","#FFF1D8",1.25,233)]}),
     part({id:"beak",material:"keratin",colors:["#4C6370","#192A3B","#9EA6A4"],
       parent:"head",pivot:[100,100],
