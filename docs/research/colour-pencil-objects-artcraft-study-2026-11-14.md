@@ -28,7 +28,7 @@ All above reference images are for analysis only. Links may change; gallery imag
 
 ## Material-to-object construction contract
 
-The public, geometry-independent \`createPencilMaterialRegion\` consumes a **caller-authored** local SVG silhouette, its exact bounds, RGB palette, seed, timing, material ID and any high-value contours/details. It returns a CP1 \`PencilRegion\`, retaining existing frame/pressure validation. It does **not** discover objects from raster references. This is the practical route to arbitrary objects without pretending a stylistic filter can infer three-dimensional anatomy.
+The public, geometry-independent `createPencilMaterialRegion` consumes a **caller-authored** local SVG silhouette, its exact bounds, RGB palette, seed, timing, material ID and any high-value contours/details. It returns a CP1 `PencilRegion`, retaining existing frame/pressure validation. It does **not** discover objects from raster references. This is the practical route to arbitrary objects without pretending a stylistic filter can infer three-dimensional anatomy.
 
 | Surface | Mark / support strategy | Style-critical geometry must still be authored |
 | --- | --- | --- |
@@ -39,23 +39,24 @@ The public, geometry-independent \`createPencilMaterialRegion\` consumes a **cal
 | Masonry | Slightly broken/stippled surface over directional underlayers, opaque | Single-world perspective, real apertures, masonry joints |
 | Fabric | Intersecting long base hatches + aligned short fibres, opaque | Multi-plane folds, highlight crests, shadow valleys, seam roots |
 | Wood / stone / fur | Directional fibres or granular stipples, selected optical mass | Grain/flute, irregular chipping, species-specific hair or feather topology |
+| Cast shadow | Soft tonal hatching and stippling, no opaque paper matte | True object-ground contact footprint and falloff |
 
 ### ArtCraft gate ledger
 
 - **Reference research:** links, material features and rights status above. No actual cropped pixels saved to the repository because third-party redistribution rights are unclear.
 - **Structure:** four explicit silhouette/layout grammars, named negative spaces (flower center, glass opening, facade windows, drape folds). The stories use one independent landscape/portrait staging and preserve a title-safe region.
-- **Material:** ten reusable recipes with CP1 3-pass typed hatch/fibre/stipple and pressure, paper tooth, underpaint and support semantics. Grain is paper-space and deterministic.
-- **Interactive story:** one new story in the **existing** \`Video Production/Film Looks/Colour-pencil\` Storybook group; object, output, pressure, paper tooth, seed, playback speed, reduced motion, and frame seeking are controlled.
+- **Material:** eleven reusable recipes with CP1 3-pass typed hatch/fibre/stipple and pressure, paper tooth, underpaint and support semantics. Grain is paper-space and deterministic.
+- **Interactive story:** one new story in the **existing** `Video Production/Film Looks/Colour-pencil` Storybook group; object, output, pressure, paper tooth, seed, playback speed, reduced motion, and frame seeking are controlled.
 - **Technical gates:** focus Vitest for all four subjects in 16:9/9:16, material-family selection, opacity, invalid input; local-only Playwright proof for 8 final frames and shuffled seeks. These do not equal an ArtCraft pixel-fidelity pass.
 - **Critical unverified art gates:** normal-speed exports for each object, side-by-side motif crop analysis at actual resolution, per-object connection/contour/spacing/texture five-axis measurements, source-based proportions, subject-appropriate cast shadows and glass refraction. The rose still has stylised petals; the brick facade has repeated simplified windows; brass reflections need an environment map. A green CI run is **not** world-class art acceptance.
 
 ## Local verification
 
-\`\`\`bash
+```bash
 npm run typecheck
 node scripts/check-video-storybook-source.mjs
 npx vitest run --project unit tests/colored-pencil-materials.test.tsx tests/colored-pencil-science.test.tsx
 npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-materials.spec.ts
-\`\`\`
+```
 
 **Next craftsmanship priorities:** close crop revision of rose petal curl/veins, glass rim/refraction, cast shadows on fabric and 3D metal reflections; new domain-specific portrait/animal/vehicle/landscape geometry before declaring that the system renders any arbitrary prompt or raster image.
