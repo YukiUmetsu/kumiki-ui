@@ -9,27 +9,29 @@ import { COLOR_PENCIL_CHARACTER_FILM } from "../src/video/colored-pencil-charact
 import portableFilm from "../examples/film/colored-pencil-character.film.json";
 
 describe("CP3 authored coloured-pencil ensemble", () => {
-  it("removes old cartoon actors and builds original 11-plane fox / 10-plane kingfisher in both formats", () => {
-    expect(FOX_REBUILT_PARTS).toHaveLength(11);
-    expect(KINGFISHER_REBUILT_PARTS).toHaveLength(10);
+  it("replaces cartoon actors with 12-plane fox and 11-plane kingfisher anatomy in both formats", () => {
+    expect(FOX_REBUILT_PARTS).toHaveLength(12);
+    expect(KINGFISHER_REBUILT_PARTS).toHaveLength(11);
     for (const aspect of ["landscape", "portrait"] as const) {
       const scene = pencilCharacterScene(aspect);
       expect(inspectPencilScene(scene)).toEqual([]);
       expect(inspectPencilActors(scene.actors ?? [])).toEqual([]);
       expect(scene.actors?.map(a=>a.id)).toEqual(["fox","kingfisher"]);
-      expect(scene.drawing.regions).toHaveLength(3);
+      expect(scene.drawing.regions).toHaveLength(1);
       expect(scene.actors![0].parts.map(p=>p.id)).toEqual(FOX_REBUILT_PARTS);
       expect(scene.actors![1].parts.map(p=>p.id)).toEqual(KINGFISHER_REBUILT_PARTS);
       const all = scene.actors!.flatMap(a => a.parts.map(p => a.id + "-" + p.id));
-      expect(all).toHaveLength(21);
+      expect(all).toHaveLength(23);
       expect(new Set(all).size).toBe(all.length);
-      // Together with the 3 scene regions, CP1 still fits its strict 24 region ceiling.
+      // The replacement composition uses 1 grounded scenery region and 23 actor parts.
       expect(scene.drawing.regions.length + all.length).toBe(24);
       expect(all).toContain("fox-eye");
+      expect(all).toContain("fox-tail-tip");
       expect(all).toContain("fox-ear-interiors");
       expect(all).toContain("fox-nose");
       expect(all).toContain("kingfisher-head");
       expect(all).toContain("kingfisher-near-wing");
+      expect(all).toContain("kingfisher-wing-coverts");
       expect(all).toContain("kingfisher-cheek");
       expect(all).not.toContain("fox-arm");
       expect(all).not.toContain("bird-front-wing");
@@ -37,6 +39,7 @@ describe("CP3 authored coloured-pencil ensemble", () => {
       expect(scene.actors!.every(actor=>actor.parts.some(part=>part.region.details!.length>3))).toBe(true);
       expect(scene.drawing.regions.some(r=>r.id==="kingfisher-perch")).toBe(true);
       expect(scene.drawing.regions.some(r=>r.id==="sun-disk")).toBe(false);
+      expect(scene.drawing.regions.some(r=>r.id==="near-hills")).toBe(false);
     }
   });
 
