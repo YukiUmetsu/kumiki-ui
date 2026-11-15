@@ -14,6 +14,8 @@
 import type { RigDriver, RigLeg, RigRole, RigSpec } from "./rig-spec";
 import { Rig, arc, at, cap, ell, finish, path, poly, rect, sampledPath, travel, tube } from "./rig-kit";
 import type { Pt, RigPresetOptions } from "./rig-kit";
+import { ACTION_MOTIONS, ACTION_PALETTE, addPersonAction } from "./rig-presets-actions";
+import type { ActionMotion } from "./rig-presets-actions";
 
 // ---- People ----------------------------------------------------------------------------------------------------------------------
 
@@ -21,7 +23,7 @@ const PERSON_PALETTE: Partial<Record<RigRole, string>> = {
   skin: "#d39b76", hair: "#2b211c", cloth: "#3b6fb6", "cloth-dark": "#2d3142", shoe: "#1f1b18", eye: "#1d1715", mouth: "#3b1714", detail: "#1d1715",
   accent: "#c8342b", wood: "#8a5a36", "metal-dark": "#24262b",
 };
-export const PERSON_MOTIONS = ["idle", "walk", "run", "wave", "talk", "cheer", "sit", "sit-down", "stand-up", "jump", "point", "think", "clap", "bow", "dance", "phone"] as const;
+export const PERSON_MOTIONS = ["idle", "walk", "run", "wave", "talk", "cheer", "sit", "sit-down", "stand-up", "jump", "point", "think", "clap", "bow", "dance", "phone", ...ACTION_MOTIONS] as const;
 export const PERSON_PACE: Record<string, number> = { walk: 1.62, run: 4.6 };
 
 /**
@@ -75,7 +77,9 @@ export function addPersonBody(rig: Rig, parent: string, px: number, py: number, 
     rig.part("hand-" + side, "hand-" + side, ell(0, 0, 3, 3.3), "skin", z + .1, {
       far, variants: { point: path("M-3 0A3 3.3 0 1 0 3 0A3 3.3 0 1 0 -3 0Z M-.9 1.2L.9 1.2L.8 8.6Q0 9.4 -.8 8.6Z"), open: path("M-3.2 -.4A3.2 3.4 0 1 0 3.2 -.4L2.6 5.6L1.4 6.8L.2 5.4L-1 6.8L-2.2 5.6L-3.2 4Z"),
         // Open hand held flat, fingers together along the bone, thumb along the upper edge (clapping, waving off).
-        flat: path("M-1.9 -.6Q-2.6 2 -2.4 4.2L-2.1 7.4Q-1.9 8.4 -1.3 8.1L-1 7.6L-.8 8.7Q-.3 9.4 .1 8.6L.3 8L.6 8.8Q1.1 9.2 1.4 8.4L1.5 7.9L1.7 8.3Q2.2 8 2.1 6.9L2.1 4.6L2.6 3Q3.8 4.4 4.2 4.1Q4.3 3.6 3.2 1.6Q2.6 .4 1.9 -.6Z") },
+        flat: path("M-1.9 -.6Q-2.6 2 -2.4 4.2L-2.1 7.4Q-1.9 8.4 -1.3 8.1L-1 7.6L-.8 8.7Q-.3 9.4 .1 8.6L.3 8L.6 8.8Q1.1 9.2 1.4 8.4L1.5 7.9L1.7 8.3Q2.2 8 2.1 6.9L2.1 4.6L2.6 3Q3.8 4.4 4.2 4.1Q4.3 3.6 3.2 1.6Q2.6 .4 1.9 -.6Z"),
+        // Closed fist or grip: knuckles squared off at the end, thumb wrapped over the front.
+        fist: path("M-2.7 -1.2Q-3.1 1.6 -2.6 3.2Q-1.6 4.3 .2 4.2Q2.4 4.1 3 2.8Q3.4 .6 2.7 -1.4Q1.4 -2.7 -.2 -2.6Q-2 -2.4 -2.7 -1.2Z") },
     });
   }
   if (options.phone) {
@@ -129,9 +133,9 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
   /** Plant both feet with IK at root-space spots (x keyed in u) over a window. */
   /** Plant both feet with IK at root-space spots over a window; keys are [frame, x (u), lift (u)] so a foot that moves
    * steps (lifts and sets down) instead of sliding. */
-  const plant = (from: number, to: number, keysF: [number, number, number?][], keysB: [number, number, number?][], ramp = 6) => {
-    for (const [side, keys] of [["f", keysF], ["b", keysB]] as const)
-      rig.drivers.push({ type: "reach", start: from, end: to, ramp, upper: "thigh-" + side, lower: "shin-" + side, tip: "foot-" + side, tipAngle: 0, bend: 1,
+  const plant = (from: number, to: number, keysF: [number, number, number?][] | null, keysB: [number, number, number?][] | null, ramp = 6) => {
+    for (const [side, keys] of [["f", keysF], ["b", keysB]] as const) if (keys)
+      rig.drivers.push({ type: "reach", start: from, end: to >= end ? end + 60 : to, ramp, upper: "thigh-" + side, lower: "shin-" + side, tip: "foot-" + side, tipAngle: 0, bend: 1,
         target: keys.map(([frame, x, lift]) => ({ frame, x: x * u, y: -sole - (lift ?? 0) * u, ease: "ease-in-out-cubic" as const })) });
   };
   /** A step from x0 to x1 between frames a and b (lifting mid-way). */
@@ -307,7 +311,9 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
     rig.track("fore-b", [{ frame: start, rotate: 0 }, { frame: t(.3), rotate: -64 }, { frame: t(.5), rotate: -20 }, { frame: t(.7), rotate: -70 }, { frame: t(.9), rotate: -24 }]);
     rig.drivers.push({ type: "oscillate", start: t(.1), end, bone: "pelvis", property: "x", amplitude: .9 * u, period: 96, wobble: .4, ramp: 20 });
   }
-  return finish("person", "biped", rig, travel(o, start, end, moving ? "linear" : undefined), PERSON_PALETTE, { x: -16 * u, y: -100 * u, width: 32 * u, height: 102 * u }, o);
+  const action = (ACTION_MOTIONS as readonly string[]).includes(m);
+  if (action) addPersonAction(rig, m as ActionMotion, { u, start, end, t, plant });
+  return finish("person", "biped", rig, travel(o, start, end, moving ? "linear" : undefined), action ? { ...PERSON_PALETTE, ...ACTION_PALETTE } : PERSON_PALETTE, { x: -16 * u, y: -100 * u, width: 32 * u, height: 102 * u }, o);
 }
 
 // ---- Four-legged animals ---------------------------------------------------------------------------------------------------------
