@@ -6,7 +6,7 @@ import type {CrayonSceneSpec} from "../registry/video/materials/crayon-scene";
 import {crayonDirectionalStrokes,inspectCrayonDrawingPlan} from "../registry/video/materials/crayon-art-direction";
 import type {CrayonDrawingPlan} from "../registry/video/materials/crayon-art-direction";
 import {crayonBotanicalDrawing} from "../src/video/crayon-drawing-system-fixtures";
-import studioMeta,{CrayonDrawingStudio,FourPassWaxConstruction,VerticalDrawingStudy}
+import studioMeta,{CrayonDrawingStudio,FourPassWaxConstruction,VerticalDrawingStudy,crayonDrawingInspectionSpec}
   from "../src/video/crayon-drawing-system.stories";
 
 const params=(aspect:"landscape"|"portrait",detail=1)=>({
@@ -19,6 +19,7 @@ describe("strict native Crayon drawing grammar",()=>{
     expect(studioMeta.id).toBe("video-crayon-drawing-system");
     expect(VerticalDrawingStudy.args?.aspect).toBe("portrait");
     expect(FourPassWaxConstruction.args??{}).toEqual({});
+    expect(studioMeta.argTypes?.inspection).toBeDefined();
   });
   for(const aspect of ["landscape","portrait"] as const){
     for(const detail of [.2,1]){
@@ -34,7 +35,36 @@ describe("strict native Crayon drawing grammar",()=>{
         expect(leaf?.parentId).toBe("pear-body");
         expect(nodes.get("pear-blush")?.parentId).toBe("pear-body");
         expect(nodes.get("pear-blush")?.kind).toBe("wax");
+        // Light is built from stacked, individually curved wax planes.
+        for(const part of ["stalk-well","pear-belly-umbra","pear-cool-turn",
+          "pear-raking-light","pear-blush-glimmer","pear-reflected-glow"]){
+          const wax=nodes.get(part);
+          if(wax?.kind!=="wax")throw new Error("Missing studied volume: "+part);
+          expect(wax.coverage).toBe("open");
+          expect(wax.clipToParent).toBe(true);
+          expect(wax.parentId).toBe("pear-body");
+          expect(wax.blendRadius).toBeGreaterThan(0);
+          expect(wax.d).toMatch(/[CQ]/);
+        }
+        const body=nodes.get("pear-body");
+        if(body?.kind!=="wax")throw new Error("Missing fruit volume");
+        expect((body.d.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(8);
+        const vein=nodes.get("leaf-main-vein");
+        expect(vein?.kind).toBe("contour");
+        if(vein?.kind==="contour")
+          expect((vein.d.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(5);
         expect(plan.subjects[0].attachments).toHaveLength(2);
+        expect(plan.ambientIds).toContain("fruit-contact-umbra");
+        expect(nodes.get("fruit-contact-umbra")?.kind).toBe("wax");
+        const leafMidrib=nodes.get("leaf-midrib-undertone");
+        expect(leafMidrib?.parentId).toBe("leaf-body");
+        for(const group of ["pear-chromatic-scumble","pear-blush-broken-wax",
+          "leaf-second-pass","pear-light-binder","pear-cool-binder"]){
+          const marks=scene.elements.filter(node=>node.id.startsWith(group+"-"));
+          expect(marks.length).toBeGreaterThanOrEqual(Math.round(17*detail));
+          expect(marks.every(n=>n.kind==="contour"&&n.clipToParent&&
+            n.opacity!==undefined&&n.opacity<.5)).toBe(true);
+        }
         const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={239}/>);
         expect(html).toContain('data-km-crayon-underpaint="opaque"');
         expect(html).toContain('data-km-crayon-clipped-to="pear-body"');
@@ -42,6 +72,24 @@ describe("strict native Crayon drawing grammar",()=>{
         expect(html).not.toContain('data-km-crayon-lettering=');
       });
     }
+    it("keeps macro reviews source-native and identical in wax geometry at "+aspect,()=>{
+      const {scene}=crayonBotanicalDrawing(params(aspect));
+      expect(crayonDrawingInspectionSpec(scene,"full")).toBe(scene);
+      for(const inspection of ["surface","stalk-leaf","contact"] as const){
+        const framed=crayonDrawingInspectionSpec(scene,inspection);
+        expect(framed.seed).toBe(scene.seed);
+        expect(framed.elements).toBe(scene.elements);
+        expect(framed.durationFrames).toBe(scene.durationFrames);
+        expect(inspectCrayonScene(framed)).toEqual([]);
+        expect(framed.camera?.[0].zoom).toBeGreaterThan(2);
+        expect(framed.camera?.[1].frame).toBe(239);
+        const html=renderToStaticMarkup(<CrayonDrawingStudio {...params(aspect)}
+          startFrame={239} playbackRate={1} loop={false} inspection={inspection}/>);
+        expect(html).toContain('data-km-crayon-inspection="'+inspection+'"');
+        expect(html).toContain('data-km-crayon-element="pear-body"');
+        expect(html).toContain("Structure passes");
+      }
+    });
     it("provides a responsive, descriptive SVG workbench at "+aspect,()=>{
       const html=renderToStaticMarkup(<CrayonDrawingStudio {...params(aspect)}
         startFrame={239} playbackRate={1} loop={false}/>);

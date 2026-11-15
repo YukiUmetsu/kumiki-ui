@@ -6,6 +6,17 @@
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
 
+## Source-led botanical wax refinement (2026-11-14)
+
+The existing `Crayon / Materials / Drawing System` Storybook page now has a
+native-camera inspection control (`full`, `surface`, `stalk-leaf`,
+`contact`) in **both aspects**. These are **not** separate folders or
+new artwork variants; the original scene element list and seed are retained.
+The pear study includes an inset stem well, a cooler turn, lower umbra,
+sunlit wax shoulder, layered blush and branched leaf veins. See the
+[artist/reference-based review](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+Keep its `!dev` tag pending direct visual approval.
+
 ## Crayon drawing grammar (2026-11-14)
 
 A new strict, reference-informed **construction system** checks real CRAYON1

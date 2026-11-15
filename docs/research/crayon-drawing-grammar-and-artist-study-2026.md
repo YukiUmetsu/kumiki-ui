@@ -65,3 +65,59 @@ Replace the botanical geometry and its `parts`/named attachments with subject-sp
 | Film | Frame-pure source playback and responsive Storybook | No clipping, ugly pose transitions, portrait text overlap or animation jitter |
 
 **Known limitation:** The existing unapproved adult portrait (tracked in [PR #281](https://github.com/YukiUmetsu/kumiki-ui/pull/281)) still looks too flat and mouth/neck forms fail the art director's standard. Neither this validator nor a green CI run can promote it. The next priority is a measured multi-view portrait construction and image-led crop comparisons. This framework is deliberately falsifiable through tests and browser proof, but cannot compute aesthetic beauty from path counts.
+
+## Botanical craftsmanship iteration — dry wax crayon still life (2026-11-14)
+
+**Additional medium and compositional references, kept external:**
+
+- [Clara Lieu / Art Prof: Still Life Drawing in Crayon](https://artprof.org/learn/tutorials-media/drawing/still-life-drawing-in-crayon/) explicitly demonstrates Neocolor I wax-crayon still life, thumbnail composition, yellow-ochre underdrawing, local light/dark, warm/cool contrasts and final detail. **Transfer:** source-shaped masses and value hierarchy before mark counts.
+- [Philadelphia Museum of Art: Descriptive Terminology for Works on Paper, fig. 49](https://legacyweb.philamuseum.org/doc_downloads/conservation/DescriptiveTerminologyforArtonPaper.pdf) distinguishes high-wax deposits by dense, uneven clumping and lifting at the tips. **Transfer:** preserve pressure-led edge/mark variation rather than isotropic speckle texture.
+- [Stockmar: Wax Crayon Painting](https://www.stockmar.de/en/service/publications/?cid=1237&file=files%2FContents%2FDownloads%2FKreativtipps%2FEN%2FSTOCKMAR_wax+crayons_getting-started_EN.pdf) explains physical transparency, layered pigments and sharp-point vs broad-side contact. **Transfer:** separate opaque mass for solid subjects from open, stacked wax rubbing for light and colour.
+- [Nature morte — orange et bols](https://www.galerie-com.com/oeuvre/nature-morte-orange-et-bols.-/371110/) provides a fruit/ceramic/cloth still-life reference described as wax crayon. Observe contact shadow, cool cloth, orange light and distinct material surfaces; no image is copied into runtime.
+- [Pastel pear example](https://www.edisaxe.com/la-nature-au-pastel) is **pastel, not a crayon-material proof**. Use only as a lighting/composition comparison: an illuminated fruit, opposing cool side plane and cast shadow; do not imitate the powdery pastel mark morphology.
+
+**Previous source-native Chromium proof weaknesses:** oversized near-elliptical pear silhouette, flat yellow/olive wax, single airbrush-like blush, bright geometric leaf, faint floating oval shadow, weak stem depression, mechanically uniform dashes. All were visible even though the previous topological and deterministic checks passed.
+
+**New original drawing revisions:**
+1. Re-sculpted asymmetrical pear outline with a narrower, inset stem shoulder and less mechanically elliptical blossom end; reconstructed the leaf midrib with paired secondary branches.
+2. Layered stalk cup, lower-volume umbra, cool right turning plane, raking wax highlight, broken red/orange blush pass, and a small warm reflected glow. Every glaze is clipped to opaque source geometry and assigned to its intended source pass.
+3. Reduced rigid, repetitive scratches; the existing tangent-led crayon field now follows more restrained guide curves with less mark crowding. Restrained cool wax contrasts with warm amber and red in form-relevant regions.
+4. Added full-frame and source-camera inspection surfaces (`surface`, `stalk-leaf`, `contact`) to the existing **single** Drawing System Storybook page. Inspection modifies only camera keys, never the original deposited wax, seed, geometric source, or playhead.
+5. Structural tests cover the new anatomical wax planes and leaf branch geometry; isolated Chromium visual proofs capture 960×540 and 540×960 construction frames plus cropped detail.
+
+**Approval status remains `!dev`:** these tests cannot certify a world-class illustration. A botanical reference can show high fidelity while the procedural wax deposition still looks too clean/digital. Inspect native captures at normal display scale, amend source geometry first, and only then consider accepting an artwork; do not claim that passing structural checks proves a finished professional drawing.
+
+### Second visual critique and correction
+
+The first post-implementation 960×540/540×960 Chromium source renders were reviewed.
+A broad flat blush, near-vector leaflet, and U-shaped eyebrow-like stem cup
+remained visually obvious, despite the new wax value planes and passing tests.
+
+The revised iteration retains the opaque source silhouettes and adds
+form-relevant **cross-direction dry-wax** contact on the pear/blush/leaf at
+lower opacity, narrower and more varied curved leaf venation, an actual
+stem-to-leaf overlap, lighter broken stem well marks rather than a large
+cartoon arc, and a small separate umbra directly beneath the fruit.
+New deposits remain deterministic, source clipped, and accounted for in
+the declared drawing plan. The added detail is not a particle noise shader;
+all marks follow separate authored cubic motion guides.
+
+A professional visual gate still requires inspection of the final native
+macro screenshots in both aspects. In particular, tiny lenticels, real
+paper-to-wax contact, natural leaf vein branching, and the cast shadow must
+remain readable without making the fruit resemble a vector gradient.
+
+### Third material pass: avoid synthetic brush bands
+
+A second native capture showed that the earlier increased `markStrength`
+created large, identical-looking crayon bands on the pear. This is not a
+convincing wax-crayon surface at close zoom. The subsequent code changes
+reduce opaque base-band prominence; strengthen smaller irregular open wax
+depositions in the blush, umbra and cool turning plane; and add lighter
+pressure-dependent short guide-following binder deposits. The contact umbra
+is intentionally stronger under the fruit. Two seed-distinct, bounded fields
+stay within the source geometry and below CRAYON1's 240-node limit.
+
+Acceptance is still **pending** a source-native browser review of the new
+normal-distance render and close-up. No claim of professional artwork is
+made solely because the code and tests pass.
