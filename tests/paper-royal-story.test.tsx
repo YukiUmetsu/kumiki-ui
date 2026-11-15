@@ -102,6 +102,37 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
       }
     }
   });
+  it("joins anatomically sculpted hands, sleeves and tailored costume stock without broken rig parents",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const act of [0,1,2]){
+        const spec=paperRoyalStoryScene("layered",aspect,act,37,.9);
+        const sheets=new Map(spec.layers.map(l=>[l.id,l]));
+        expect(spec.layers.length).toBeLessThanOrEqual(128);
+        for(const [name,parent] of [
+          ["princess-left-hand","princess-left-sleeve"],
+          ["princess-right-hand","princess-right-sleeve"],
+          ["prince-left-hand","prince-left-arm"],
+          ["prince-right-hand","prince-right-arm"],
+          ["princess-waist-seam","princess-bodice"],
+          ["princess-gown-pleats","princess-bodice"],
+          ["princess-collar-filigree","princess-bodice"],
+          ["prince-tailor-seams","prince-coat"],
+        ] as const){
+          const part=sheets.get(name);
+          expect(part,name).toBeDefined();
+          expect(part?.parentId,name).toBe(parent);
+          expect(part?.pivot?.length,name).toBe(2);
+          expect(part?.color,name).toMatch(/^#[0-9A-Fa-f]{6}$/);
+          // Finger, sleeve and costume contours are authored curves,
+          // never one triangular joint placeholder.
+          expect(part?.path.includes("C")||part?.path.includes("Q"),name).toBe(true);
+        }
+        const opening=evaluatePaperCraft(spec,0),mid=evaluatePaperCraft(spec,120);
+        const handIndex=spec.layers.findIndex(l=>l.id==="princess-right-hand");
+        expect(opening.layers[handIndex].worldMatrix).not.toEqual(mid.layers[handIndex].worldMatrix);
+      }
+    }
+  });
   it("is deterministic, has meaningful body/arm motion and supports a static reduced-motion pose",()=>{
     const spec=paperRoyalStoryScene("layered","landscape",2,37,1);
     const a=evaluatePaperCraft(spec,44);
