@@ -194,6 +194,100 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(new Set(ids).size).toBe(6);
   });
 
+  it("separates original four-master Chinese rock brush grammars at one identical mountain topology",()=>{
+    const schools=[
+      ["fuchun","long-hemp",78],
+      ["early-spring","cloud-head",52],
+      ["travelers","raindrop",187],
+      ["forest-grotto","ox-hair",178],
+    ] as const;
+    const paint=(school:typeof schools[number][0],detail=1,ink=.95)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          seed:71,mist:.35,detail,ink,inkSchool:school},
+      }));
+    const ridgeContour:string[]=[];
+    const uniqueStyles:string[]=[];
+    for(const [school,expectedStyle,count] of schools){
+      const html=paint(school);
+      const first=html.match(/data-km-shanshui-ridge-contour="1" d="([^"]+)"/);
+      expect(first).not.toBeNull();
+      ridgeContour.push(first![1]);
+      expect(html).toContain('data-km-master-school="'+school+'"');
+      const faces=[...html.matchAll(
+        /data-km-master-face="" data-km-master-face-root="([^"]+)" data-km-master-face-side="(-?1)" data-km-master-plane-index="(\d+)"/g,
+      )];
+      expect(faces).toHaveLength(3);
+      expect(faces.map(m=>Number(m[2]))).toEqual([-1,1,-1]);
+      expect(faces.map(m=>Number(m[3]))).toEqual([0,1,2]);
+      const shades=[...html.matchAll(
+        /data-km-master-mass="" d="([^"]+)" fill="url\(#([^"]+)\)"/g,
+      )];
+      expect(shades).toHaveLength(3);
+      for(const [i,shade] of shades.entries()){
+        expect(shade[1].startsWith("M"+faces[i][1].replace(","," ")))
+          .toBe(true);
+        expect((shade[1].match(/ C/g)??[]).length).toBeGreaterThanOrEqual(5);
+        expect(html).toContain('id="'+shade[2]+'"');
+      }
+      const marks=[...html.matchAll(
+        /data-km-master-stroke="" data-km-master-stroke-style="([^"]+)" data-km-master-stroke-root="([^"]+)" data-km-master-stroke-dry="(dry|wet)"/g,
+      )];
+      expect(marks).toHaveLength(count);
+      expect(marks.every(m=>m[1]===expectedStyle)).toBe(true);
+      uniqueStyles.push(marks[0][1]);
+      expect(new Set(marks.map(m=>m[2])).size)
+        .toBeGreaterThan(count*.90);
+      expect(marks.some(m=>m[3]==="dry")).toBe(true);
+      expect(marks.some(m=>m[3]==="wet")).toBe(true);
+      expect(marks.every(m=>m[2].split(",")
+        .every(x=>Number.isFinite(Number(x))))).toBe(true);
+      const inkPaths=[...html.matchAll(
+        /data-km-master-stroke-loaded="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      expect(inkPaths).toHaveLength(count);
+      expect(inkPaths.every((d,i)=>
+        d.startsWith("M"+marks[i][2].replace(","," "))&&
+        (d.match(/ C/g)??[]).length>=34&&d.endsWith(" Z")))
+        .toBe(true);
+      const fields=[...html.matchAll(
+        /data-km-master-brush-field="" data-km-master-field-count="(\d+)" clip-path="url\(#([^"]+)\)"/g,
+      )];
+      expect(fields).toHaveLength(3);
+      expect(fields.reduce((sum,m)=>sum+Number(m[1]),0)).toBe(count);
+      expect(fields.every(([,n,id])=>Number(n)>0&&html.includes('id="'+id+'"')))
+        .toBe(true);
+      expect(html).not.toMatch(/NaN|Infinity|undefined/);
+      expect(paint(school)).toBe(html);
+      const low=paint(school,0);
+      expect(low).not.toContain('data-km-master-rock-art=""');
+      // Ink density must not alter brush geometry, and 0 ink removes
+      // the entire material contribution via its ancestor opacity.
+      const light=paint(school,1,.32);
+      const original=html.match(/data-km-master-mass="" d="([^"]+)"/)?.[1];
+      const diluted=light.match(/data-km-master-mass="" d="([^"]+)"/)?.[1];
+      expect(original).toBe(diluted);
+    }
+    expect(new Set(ridgeContour).size).toBe(1);
+    expect(new Set(uniqueStyles).size).toBe(4);
+    expect(()=>assertShanshuiControls({...DEFAULT_SHANSHUI,
+      inkSchool:"invented-master" as never})).toThrow(RangeError);
+    // CSS/gradient/clip ownership is per film; no duplicated IDs for
+    // the same artwork mounted four times on the comparison page.
+    const four=renderToStaticMarkup(createElement("section",null,
+      ...schools.map(([school])=>createElement(InkShanshuiStage,{
+        key:school,frame:145,
+        controls:{...DEFAULT_SHANSHUI,detail:1,inkSchool:school},
+      })),
+    ));
+    const scoping=[...four.matchAll(/<clipPath id="(kmrk[^"]+m[012])"/g)]
+      .map(m=>m[1]);
+    expect(scoping).toHaveLength(12);
+    expect(new Set(scoping).size).toBe(12);
+    expect(four).not.toContain("<image ");
+    expect(four).not.toContain("data:image/");
+  });
+
   it("constructs pine canopies as root-connected, pressure-tapered needle clusters",()=>{
     for(const scene of ["mountain-trail","misty-hermit"] as const){
       const controls={...DEFAULT_SHANSHUI,scene,detail:1};
