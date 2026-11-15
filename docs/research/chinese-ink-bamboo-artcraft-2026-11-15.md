@@ -761,3 +761,44 @@ these tests does not demonstrate source parity.
 **Exact real v20 screenshot reviewed:** native 960×540 `shanshui-mountain-trail-125.png` and 2.15× `shanshui-native-brush-detail-study.png` from [v20 CI](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43739236157). **ArtCraft critique:** the groves are attached correctly, yet resolve to pale wireframes and comb-like needle spikes at film resolution, not the nearly black complex pine tufts in Huang Gongwang's [National Palace Museum ink-tree close-up](https://smarthistory.org/wp-content/uploads/2023/06/National-Palace_lrg-det-3.jpeg). Causes: no filled dark crown brush masses; multiplied opacity by the parent middle mountain group; 5 trees too small and partially beyond the geological study crop.
 
 **Reconstruction:** keep every sampled root, independently curved trunk, 20 bough attachments, and 310 individual needles. Add 3 selective branch-station attached pressure pads per bough (60 total) with non-identical pigment and sizes, under existing terminal tap marks. Move the entire grove into its **own** paint layer, AFTER the midrange wash and BEFORE the near mountain occlusion, with deliberate `.85*ink` depth attenuation rather than double mountain opacity. Give trunks an original varied 42–76 px height range, group center x=620 for the film's dominant mountain-trail shoulder. Preserve cropped paper gaps and the seed/detail/scene controls. **Release hold:** measure the next native crop, reject if canopy becomes a rectangular brush-sausage or uniform conifer.
+
+
+## Twenty-second pass — geological Storybook proof board (2026-11-15)
+
+**Source deconstruction, ArtCraft v9:** The [National Palace Museum's
+original Fuchun handscroll](https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975)
+and [Smarthistory's labelled close-up](https://smarthistory.org/wp-content/uploads/2023/10/National_Palace_brushstroke_labeled-copy.jpg)
+show interlocked rounded hill backs, hooked alum-head shoulders, descending
+hemp-fibre brush traces and irregular dry/wet concentration. The broader
+hill form must be continuous even when the ink load becomes translucent;
+the fibre strokes should branch off an actual geological parent fold
+and leave irregular open paper channels. Uniform hatching or spear-wedge
+faces are explicit negative controls. This is a craftsmanship study for
+an *original* scene, not a copy of a third-party composition.
+
+**Storybook on this draft:** The existing "Video production / Film Looks /
+Chinese Ink / Shanshui Film Gallery" folder gains "Geological ink ·
+three-condition ArtCraft study", not a new folder. All three views
+share film frame (0–299), seed, zoom, pan, mist, wind=0 and camera.
+They differ in exactly one controlled parameter at a time:
+detail=0 as a true no-structure negative control; full authored geometry
+at the chosen ink load; the exact same geometry at 42% ink. Eight
+labelled controls allow frame/seed/detail/ink/mist/pan/zoom review.
+Actual source museum images stay as links, never embedded into artwork.
+
+**Technical regression evidence required:** Chromium test must verify
+zero hero folds and pima strokes at detail=0, connected geological
+parts under positive detail, identical vector paths across ink-only
+conditions, exact output at reset seed/frame, and a screenshot of all
+three actual rendering conditions. Full-canvas scene and 2.15× bamboo
+and grove studies remain in the same Storybook folder.
+
+**Review decision: NOT APPROVED.** This delivers a better inspection
+instrument, not a claim that existing rock faces are faithful.
+Before merging PR #338, inspect native 960×540 film and the cropped
+Storybook study, then reconstruct overly smooth or wedge-like
+large rock geometry if present. Check negative-space topology and
+source-appropriate mid- and high-frequency ink density across two
+seeds, a sparse scene, and a short animated film; preserve previous
+bamboo and pine material. Human/face releases still require the
+independent ArtCraft v9 anatomy and portrait gates.
