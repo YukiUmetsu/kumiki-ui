@@ -35,7 +35,8 @@ export interface PencilPortraitAnatomy {
   pupils: Record<"R"|"L",PencilAnatomyCurve>;
   browInk: Record<"R"|"L",PencilAnatomyCurve>;
   browMass: PencilAnatomyCurve;
-  lips: {upper:string;lower:string};
+  lips: {upper:string;lower:string;bounds:readonly [number,number,number,number]};
+  nose:PencilAnatomyCurve;
 }
 
 const round=(x:number)=>Math.round(x*100)/100;
@@ -126,9 +127,37 @@ export function pencilPortraitAnatomy(
     path:curve(browRibbon("R"),true)+" "+curve(browRibbon("L"),true),
     bounds:bounded(browPoints).bounds,
   };
-  const mouth=paths["mouth-line"];
-  const upper=[...paths["lips-upper"],...mouth.slice().reverse()];
-  const lower=[...mouth,...paths["lips-lower"].slice().reverse()];
+  // ANAT1 labial tissue is morphometrically grounded. In a dry pencil
+  // portrait the lips need their own narrow rolled plane, not a flat
+  // filled ellipse spanning the full underlying face mesh.
+  const mouthCenter=project(face.vertices[FACE_LANDMARKS.stomion])[1];
+  const softenLip=(pts:readonly [number,number][]):[number,number][]=>
+    pts.map(([x,y])=>[x,round(mouthCenter+(y-mouthCenter)*.57)]);
+  const mouth=softenLip(paths["mouth-line"]);
+  const upper=[...softenLip(paths["lips-upper"]),...mouth.slice().reverse()];
+  const lower=[...mouth,...softenLip(paths["lips-lower"]).slice().reverse()];
+  const lipsBounds=bounded([...upper,...lower],undefined,1).bounds;
+  // Dorsal nasal cartilage has a narrow sellion and a much broader
+  // soft alar base. All guide positions come from the same ANAT1 mesh.
+  const named=(key:keyof typeof FACE_LANDMARKS)=>
+    project(face.vertices[FACE_LANDMARKS[key]]);
+  const root=named("sellion"),tip=named("pronasale"),
+    base=named("subnasale"),alaR=named("alare.R"),alaL=named("alare.L");
+  const wing=(v:readonly [number,number]):[number,number]=>[
+    round(root[0]+(v[0]-root[0])*.80),v[1]];
+  const left=wing(alaR),right=wing(alaL);
+  const dorsal:[number,number][]=[
+    [root[0]-4,root[1]+2],
+    [root[0]-6,(root[1]+tip[1])*.52],
+    [tip[0]-6,tip[1]-5],
+    [left[0],left[1]],
+    [base[0],base[1]+2],
+    [right[0],right[1]],
+    [tip[0]+6,tip[1]-6],
+    [root[0]+5,(root[1]+tip[1])*.52],
+    [root[0]+4,root[1]+2],
+  ];
+  const nose=bounded(dorsal,curve(dorsal,true),1);
   const landmarks:Record<string,readonly [number,number]>={};
   for(const [name,index]of Object.entries(FACE_LANDMARKS))
     landmarks[name]=project(face.vertices[index]);
@@ -136,6 +165,6 @@ export function pencilPortraitAnatomy(
     source:FACE_MESH_SOURCE.name,
     metrics:measureFace(face.vertices),
     landmarks,features,eyes,irises,pupils,browInk,browMass,
-    lips:{upper:curve(upper,true),lower:curve(lower,true)},
+    nose,lips:{upper:curve(upper,true),lower:curve(lower,true),bounds:lipsBounds},
   };
 }
