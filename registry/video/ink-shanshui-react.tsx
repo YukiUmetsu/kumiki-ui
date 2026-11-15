@@ -331,8 +331,8 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
  * tapering dry needles. Short compact fans and deliberate gaps prevent the
  * large 'firework spikes on a ruler' appearance of the previous rendering.
  */
-function NeedleSpray({x,y,scale,seed,wind}:{
-  x:number;y:number;scale:number;seed:number;wind:number;
+function NeedleSpray({x,y,scale,seed,wind,lean=0}:{
+  x:number;y:number;scale:number;seed:number;wind:number;lean?:number;
 }){
   const sprigs=[
     {dx:-19,dy:-6,tilt:-.24},{dx:0,dy:-11,tilt:.03},
@@ -345,12 +345,17 @@ function NeedleSpray({x,y,scale,seed,wind}:{
       const tx=x+(sprig.dx+offset)*scale;
       const ty=y+sprig.dy*scale+(s(seed,j*17)-.5)*3*scale;
       const count=17+Math.floor(10*s(seed+17,j*11+1));
+      // Wen Zhengming's needle bouquets cross at different pitches rather
+      // than rising as identical vertical fireworks along horizontal limbs.
+      const fanTurn=lean+sprig.tilt*.48+
+        (s(seed+149,j*41+3)-.5)*1.02;
+      const fanSpread=.81+.36*s(seed+233,j*29+1);
       const wet:string[]=[],dry:string[]=[],middle:string[]=[];
       for(let k=0;k<count;k++){
         const spread=(k-(count-1)*.5)/((count-1)*.5);
-        const angle=-Math.PI/2+spread*.99+sprig.tilt*.35;
+        const angle=-Math.PI/2+spread*fanSpread+fanTurn;
         const len=(7.5+9*s(seed+j*73,k*17+7))*scale*
-          (1-.26*Math.abs(spread));
+          (1-.26*Math.abs(spread))*(.86+.28*s(seed+397,j*31+k));
         const rx=tx+spread*2.1*scale;
         const ry=ty+.7*scale*s(seed+j*13,k+17);
         const ex=rx+Math.cos(angle)*len;
@@ -373,7 +378,8 @@ function NeedleSpray({x,y,scale,seed,wind}:{
       const spreadY=(3+3*s(seed+j*17,39))*scale;
       return <g key={j} data-km-pine-needle-cluster=""
         data-km-pine-needles={count}
-        data-km-pine-twig-root={f(x)+","+f(y)}>
+        data-km-pine-twig-root={f(x)+","+f(y)}
+        data-km-pine-fan-turn={f(fanTurn)}>
         <path d={twig} stroke="#6a5339"
           strokeWidth={f(1.05*scale)} fill="none" strokeLinecap="round"/>
         {/* Capillary ink underwash must never replace the needles' tips. */}
@@ -415,14 +421,14 @@ function OldPine({x,y,scale,wind,seed,detail}:{
   // Asymmetric branch endpoints and tip-heavy clustered needles emulate
   // old-pine brush canopies rather than regularly spaced horizontal shelves.
   const stems=[
-    {y:-95,dir:-1,len:98,tipDy:25},
-    {y:-133,dir:1,len:132,tipDy:9},
-    {y:-166,dir:-1,len:121,tipDy:-28},
-    {y:-192,dir:1,len:154,tipDy:-37},
-    {y:-225,dir:-1,len:105,tipDy:20},
-    {y:-245,dir:1,len:108,tipDy:-12},
-    {y:-270,dir:-1,len:80,tipDy:-23},
-    {y:-285,dir:1,len:63,tipDy:-28},
+    {y:-95,dir:-1,len:98,tipDy:39},
+    {y:-133,dir:1,len:132,tipDy:28},
+    {y:-166,dir:1,len:92,tipDy:-44},
+    {y:-192,dir:-1,len:154,tipDy:-32},
+    {y:-225,dir:-1,len:105,tipDy:25},
+    {y:-245,dir:1,len:108,tipDy:-24},
+    {y:-270,dir:-1,len:80,tipDy:-37},
+    {y:-285,dir:1,len:63,tipDy:-20},
   ];
   // A shared trunk construction map also anchors the bark and bough roots.
   // Do not interpolate branches from unrelated arbitrary horizontal shelves.
@@ -456,8 +462,10 @@ function OldPine({x,y,scale,wind,seed,detail}:{
     {stems.map((b,i)=>{
       const reach=b.len*b.dir;
       const root:P=[trunkX(b.y),b.y];
-      const c1:P=[root[0]+reach*.24,b.y-13-(i%2)*7];
-      const c2:P=[root[0]+reach*.71,b.y+b.tipDy*.6-10+(i%3)*4];
+      const c1:P=[root[0]+reach*(.17+.1*s(seed+241,i*13)),
+        b.y-9-17*s(seed+257,i*7)];
+      const c2:P=[root[0]+reach*(.63+.13*s(seed+271,i*13)),
+        b.y+b.tipDy*.75-14+16*s(seed+283,i*11)];
       const tip:P=[root[0]+reach,b.y+b.tipDy];
       const count=Math.round((4+(i%3))*detail);
       return <g key={i} data-km-pine-bough=""
@@ -479,11 +487,13 @@ function OldPine({x,y,scale,wind,seed,detail}:{
           " "+f(tip[0])+" "+f(tip[1])}
           stroke="#c2a080" strokeWidth=".7" fill="none" opacity=".56"/>
         {Array.from({length:count},(_,j)=>{
-          const u=.45+.51*(j+.35)/(count+.25);
+          const u=clamp(.43+.54*(j+.35)/(count+.25)+
+            .1*(s(seed+307,i*53+j*13)-.5),.34,.98);
           const point=cubicPoint(root,c1,c2,tip,u);
           return <NeedleSpray key={j}
             x={f(point[0])} y={f(point[1])}
             scale={.58+(.62*s(seed,i*21+j))} wind={wind}
+            lean={f((b.dir<0?-.19:.21)+.52*(s(seed+313,i*23+j*7)-.5))}
             seed={seed+i*41+j*71}/>;
         })}
       </g>;
