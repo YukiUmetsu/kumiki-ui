@@ -105,7 +105,12 @@ export function CrayonPlayground({subject,aspect,paperRecipe,seed,paperTooth,red
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,subject+":"+aspect,playbackRate,loop);
   const duration=spec.durationFrames-1;
-  const hideEditorial=(subject==="wildlife-portrait"&&wildlifeCrop!=="composition")||
+  // Portrait Storybook films previously painted editorial SVG lettering over
+  // the art in the same viewport. Keep accessible HTML headings above the
+  // canvas; fail closed on embedded text until collision-checked safe areas
+  // have been authored and pixel-verified for each portrait subject.
+  const hideEditorial=aspect==="portrait"||
+    (subject==="wildlife-portrait"&&wildlifeCrop!=="composition")||
     (subject==="performance"&&atelierCrop!=="composition");
   const beats:readonly (readonly [number,string])[]=subject==="wildlife-portrait" ?
     [[0,"Paper"],[32,"First mass"],[82,"Eye & ear"],[137,"Fur grain"],[197,"Portrait"],[239,"Final artwork"]] : subject==="dragon-village" ?

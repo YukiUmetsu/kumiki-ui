@@ -6,6 +6,9 @@ import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-stor
 const meta={
   title:"Video production/Film Looks/Crayon/Wildlife/The Wild Hare",
   id:"video-crayon-wildlife",
+  // ArtCraft v6: reject the legacy gallery until actual 16:9/9:16 crops,
+  // rig extrema and reference-led visual acceptance are verified.
+  tags:["!dev"],
   component:CrayonPlayground,
   args:{...crayonSceneDefaultArgs,subject:"wildlife-portrait",startFrame:198},
   argTypes:crayonDirectorArgTypes("wildlife",239),
