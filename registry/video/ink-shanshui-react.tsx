@@ -214,6 +214,47 @@ function rockLoadedRibbon(root:P,control:P,tip:P,width:number,seed:number){
   }
   return path.join(" ")+" Z";
 }
+/** Root-to-tip cubic ink-loaded contour. Both edges sample ONE curve and its
+ * tangent: a swelled brush stroke, not two unrelated geometrical wedges.
+ * The long midsection rolls over a landform; dry release keeps paper holes.
+ */
+function rockLoadedCubicRibbon(root:P,c1:P,c2:P,tip:P,width:number,seed:number){
+  const knots=[0,.02,.05,.09,.14,.2,.27,.34,.42,.5,.58,.66,.73,.8,.86,.91,.95,.98,1];
+  const pressure=[0,.08,.2,.37,.56,.72,.85,.94,1,.88,.75,.66,.53,.4,.3,.19,.1,.03,0];
+  const point=(t:number):P=>{
+    const q=1-t;
+    return [
+      q*q*q*root[0]+3*q*q*t*c1[0]+3*q*t*t*c2[0]+t*t*t*tip[0],
+      q*q*q*root[1]+3*q*q*t*c1[1]+3*q*t*t*c2[1]+t*t*t*tip[1],
+    ];
+  };
+  const side=(sign:1|-1)=>knots.map((t,k):P=>{
+    const q=1-t,location=point(t);
+    const tangent:P=[
+      3*q*q*(c1[0]-root[0])+6*q*t*(c2[0]-c1[0])+3*t*t*(tip[0]-c2[0]),
+      3*q*q*(c1[1]-root[1])+6*q*t*(c2[1]-c1[1])+3*t*t*(tip[1]-c2[1]),
+    ];
+    const norm=Math.max(.001,Math.hypot(tangent[0],tangent[1]));
+    const teeth=k===0||k===knots.length-1?0:
+      (s(seed+31,k*37+(sign===1?3:17))-.5)*.19;
+    const load=width*Math.max(0,pressure[k]+teeth)*(sign===1?.69:.42);
+    return [location[0]-sign*tangent[1]/norm*load,
+      location[1]+sign*tangent[0]/norm*load];
+  });
+  const contour=[...side(1),...side(-1).slice(1,-1).reverse()];
+  const out=["M"+f(root[0])+" "+f(root[1])];
+  for(let k=0;k<contour.length;k++){
+    const before=contour[(k+contour.length-1)%contour.length];
+    const current=contour[k],next=contour[(k+1)%contour.length];
+    const after=contour[(k+2)%contour.length];
+    out.push("C"+f(current[0]+(next[0]-before[0])*.13)+" "+
+      f(current[1]+(next[1]-before[1])*.13)+" "+
+      f(next[0]-(after[0]-current[0])*.13)+" "+
+      f(next[1]-(after[1]-current[1])*.13)+" "+
+      f(next[0])+" "+f(next[1]));
+  }
+  return out.join(" ")+" Z";
+}
 /** One deliberately composed folded rock formation, not a collection
  * of repeated floating pebbles. Its parent bone emerges at a *real*
  * mid-distance ridge apex; four unequal paper-separated hemp ribs
@@ -243,6 +284,20 @@ function MountainHeroCliff({root,seed,mist}:{
     {at:.36,side:1,reach:77,rise:13,drop:78,width:6.7},
     {at:.59,side:-1,reach:65,rise:21,drop:54,width:5.6},
   ] as const;
+  // Huang Gongwang's rounded shan-gu hill backs must read as
+  // INTERLOCKING landform contour, not just descending triangular spines.
+  // Every arc starts on the same actual painted bone, and each small
+  // hemp mark starts on an exact station of its parent's cubic contour.
+  const terracePlan=[
+    {at:.09,side:-1,reach:103,rise:29,fall:51,width:4.8,marks:13},
+    {at:.29,side:1,reach:83,rise:22,fall:57,width:3.6,marks:16},
+    {at:.51,side:-1,reach:69,rise:17,fall:50,width:3.9,marks:11},
+  ] as const;
+  const cubicPoint=(a:P,c1:P,c2:P,b:P,t:number):P=>{
+    const u=1-t;
+    return [u*u*u*a[0]+3*u*u*t*c1[0]+3*u*t*t*c2[0]+t*t*t*b[0],
+      u*u*u*a[1]+3*u*u*t*c1[1]+3*u*t*t*c2[1]+t*t*t*b[1]];
+  };
   const pool=quadraticPoint(root,boneControl,boneTip,.49);
   return <g data-km-rock-hero-cliff=""
     data-km-rock-hero-root={f(x)+","+f(y)}>
@@ -345,6 +400,86 @@ function MountainHeroCliff({root,seed,mist}:{
           opacity={f((k===1?.37:.54)*(1-.15*mist))}/>)}
       </g>;
     })}
+    {/* Three interlocking curved backs (not parallel stamps), with
+        source-led hemp-fibre concentrations and unpainted air gaps.
+        All children attach to cubic stations on this same parent. */}
+    <g data-km-rock-terrace-family="">
+      {terracePlan.map((terrace,i)=>{
+        const origin=quadraticPoint(root,boneControl,boneTip,terrace.at);
+        const side=terrace.side;
+        const spread=terrace.reach*(.95+.13*s(seed+2091,i*31));
+        const high=terrace.rise*(.91+.18*s(seed+2093,i*41));
+        const fall=terrace.fall*(.92+.15*s(seed+2101,i*27));
+        const c1:P=[origin[0]+side*spread*.23,origin[1]-high*.86];
+        const c2:P=[origin[0]+side*spread*.81,
+          origin[1]-high*(i===1?.55:.76)];
+        const end:P=[origin[0]+side*spread,origin[1]+fall];
+        const main=rockLoadedCubicRibbon(origin,c1,c2,end,
+          terrace.width,seed+2111+i*101);
+        const subArcStart=cubicPoint(origin,c1,c2,end,.28);
+        const subArcEnd=cubicPoint(origin,c1,c2,end,.76);
+        const subControl:P=[subArcStart[0]+side*spread*.29,
+          subArcStart[1]+12+i*3];
+        const under=rockLoadedRibbon(subArcStart,subControl,
+          [subArcEnd[0]+side*3,subArcEnd[1]+8],2.5-i*.38,
+          seed+2161+i*43);
+        // Each fibre is a child of a specific cubic path station; do not
+        // scatter generic scratches across the triangular background wash.
+        const fibres=Array.from({length:terrace.marks},(_,j)=>{
+          // A deliberately quiet gap between two dense ink concentrations.
+          const cluster=j<Math.ceil(terrace.marks*.56)?0:1;
+          const local=cluster===0
+            ? .14+j*.023+(s(seed+2213,i*53+j*17)-.5)*.011
+            : .56+(j-Math.ceil(terrace.marks*.56))*.034+
+              (s(seed+2221,i*31+j*29)-.5)*.014;
+          const station=Math.min(.87,local);
+          const a=cubicPoint(origin,c1,c2,end,station);
+          const ahead=cubicPoint(origin,c1,c2,end,
+            Math.min(.98,station+.13));
+          const drift=(ahead[0]-a[0])*.27+
+            side*(2+4*s(seed+2243,i*13+j*7));
+          const length=10+11*s(seed+2251,i*19+j*11)+
+            (j%4===0?6:0);
+          const ctrl:P=[a[0]+drift*.27,
+            a[1]+length*(.26+.12*s(seed+2261,i*31+j))];
+          const tip:P=[a[0]+drift,a[1]+length];
+          const width=(j%7===1?1.65:j%5===0?1.3:.66)*
+            (.73+.37*s(seed+2281,i*37+j));
+          return {a,
+            body:rockLoadedRibbon(a,ctrl,tip,width,
+              seed+2293+i*71+j*13),
+            dry:j%4===2};
+        });
+        const caps=([.24,.67] as const).map((station,j)=>{
+          const a=cubicPoint(origin,c1,c2,end,station);
+          const control:P=[a[0]+side*(j?3:8),a[1]+(j?1:-4)];
+          const tip:P=[a[0]+side*(j?14:20),
+            a[1]+(j?11:9)];
+          return {a,path:rockLoadedRibbon(a,control,tip,
+            2.9+j*.75,seed+2333+i*67+j*17)};
+        });
+        return <g key={i} data-km-rock-terrace=""
+          data-km-rock-terrace-root={f(origin[0])+","+f(origin[1])}
+          data-km-rock-terrace-side={side}>
+          <path data-km-rock-terrace-back="" d={main}
+            fill={i===1?"#625444":"#46392d"}
+            opacity={f((i===1?.58:.72)*(1-.18*mist))}/>
+          <path data-km-rock-terrace-under="" d={under}
+            fill="#534233" opacity={f((i===1?.3:.43)*(1-.2*mist))}/>
+          {caps.map(({a,path},j)=><path key={j}
+            data-km-rock-terrace-cap=""
+            data-km-rock-terrace-cap-root={f(a[0])+","+f(a[1])}
+            d={path} fill={j?"#5e4b3a":"#312e28"}
+            opacity={f((j?.51:.76)*(1-.19*mist))}/>)}
+          {fibres.map(({a,body,dry},j)=><path key={j}
+            data-km-rock-terrace-hemp=""
+            data-km-rock-terrace-hemp-root={f(a[0])+","+f(a[1])}
+            data-km-rock-terrace-hemp-dry={dry?"yes":"no"}
+            d={body} fill={j%5===0?"#332f2a":"#5b4b3b"}
+            opacity={f((dry?.36:j%5===0?.74:.53)*(1-.23*mist))}/>)}
+        </g>;
+      })}
+    </g>
     {/* One broad moving backbone, with a lifted segment at mid-stroke. */}
     <path data-km-rock-hero-bone=""
       d={"M"+f(x)+" "+f(y)+
