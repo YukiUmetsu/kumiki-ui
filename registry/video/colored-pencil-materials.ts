@@ -1,6 +1,6 @@
 import { createPencilRegion } from "./colored-pencil";
 import type { PencilObjectInput, PencilRegion, PencilTrace } from "./colored-pencil";
-import type { PencilCraftKind } from "./colored-pencil-craft";
+import type { PencilCraftFinish, PencilCraftKind } from "./colored-pencil-craft";
 
 /**
  * Material-native coloured-pencil recipes. These are mark/deposition presets,
@@ -87,6 +87,26 @@ const RECIPES: Record<PencilSurface, Recipe> = {
     flow:2, direction:4, underpaintOpacity:.98, support:true,
     clipDetails:true, contourOpacity:.69 },
 };
+/** Canonical per-surface pencil finish. Reused by the foundation; no duplicated
+ * mappings or silent fallback from unsupported materials to generic shading.
+ * Glass, cast-shadow and highlight glaze intentionally stay non-occluding.
+ */
+export function pencilMaterialCraftFinish(surface: PencilSurface): PencilCraftFinish | null {
+  if (!Object.prototype.hasOwnProperty.call(RECIPES,surface))
+    throw new RangeError("Unknown coloured-pencil material surface.");
+  if (!RECIPES[surface].support) return null;
+  const kind: PencilCraftKind =
+    surface==="petal" || surface==="citrus" ? "general" :
+    surface==="leaf" ? "foliage" :
+    surface==="masonry" ? "stone" : surface;
+  return {
+    kind,
+    burnish:surface==="ocular" ? .91 : surface==="fur" ? .68 : .79,
+    light:.22,
+    tooth:surface==="skin" ? .35 : .77,
+  };
+}
+
 export interface PencilMaterialInput {
   surface: PencilSurface;
   id: string;
@@ -129,20 +149,10 @@ export function createPencilMaterialRegion(input: PencilMaterialInput): PencilRe
     details:input.details, transform:input.transform,
     contourColor:recipe.support ? "#424149" : "#67767A",
   } satisfies PencilObjectInput);
-  const craftKind: PencilCraftKind =
-    input.surface==="petal" || input.surface==="citrus"?"general":
-    input.surface==="leaf"?"foliage":input.surface==="masonry"?"stone":
-    input.surface==="cast-shadow" || input.surface==="glass" ||
-    input.surface==="glaze"?"general":input.surface;
+  const finish=input.craft?pencilMaterialCraftFinish(input.surface):null;
   return {
     ...region,
-    ...(input.craft && recipe.support?{craft:{
-      kind:craftKind,
-      burnish:input.surface==="ocular"?.91:
-        input.surface==="fur"?.68:.79,
-      light:.22,
-      tooth:input.surface==="skin"?.35:.77,
-    }}:{}),
+    ...(finish?{craft:finish}:{}),
     contour:{...region.contour, opacity:recipe.contourOpacity,
       width:input.surface === "glass" ? 1.08 :
         input.surface === "keratin" ? .72 : 1.2},
