@@ -231,33 +231,60 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
     })}
   </g>;
 }
-function NeedleSpray({x,y,scale,seed,wind}:{x:number;y:number;scale:number;seed:number;wind:number}){
-  const needles=Array.from({length:15},(_,i)=>{
-    const spread=(i-7)/7,len=(12+10*s(seed,i))*scale;
-    const startX=x+spread*5*scale,startY=y+2*Math.abs(spread);
-    const endX=startX+spread*len*1.6,endY=startY-(1-Math.abs(spread)*.5)*len*.42;
-    return "M"+f(startX)+" "+f(startY)+" Q"+f(startX+(endX-startX)*.6)+" "+
-      f(startY-len*.63)+" "+f(endX)+" "+f(endY);
-  }).join(" ");
-  return <g transform={"rotate("+f(wind*1.5)+" "+x+" "+y+")"}>
-    {/* Irregular dense pine boughs, not an exposed shelf with a few hairlines.
-        Keep brush-mass ellipses behind individual upward needle silhouettes. */}
-    <path d={"M"+f(x-22*scale)+" "+f(y+1)+" Q"+f(x-14*scale)+" "+
-      f(y-8*scale)+" "+f(x+2*scale)+" "+f(y-8*scale)+
-      " Q"+f(x+19*scale)+" "+f(y-6*scale)+" "+f(x+24*scale)+" "+f(y+1)+
-      " Q"+f(x+4*scale)+" "+f(y+3*scale)+" "+f(x-22*scale)+" "+f(y+1)+" Z"}
-      fill="#5b503b" opacity=".48"/>
-    <path d={needles} stroke="#302d23" fill="none"
-      strokeWidth={f(1.12*scale)} strokeLinecap="round" opacity=".89"/>
-    {Array.from({length:11},(_,i)=>{
-      const dx=(i-5)*4.1*scale,dy=-2.5*scale-(i%3)*2.2*scale;
-      return <path key={i} d={"M"+f(x+dx)+" "+f(y+1*scale)+" q"+
-        f(dx*.12)+" "+f(-8*scale)+" "+f(dx*.13)+" "+f(dy-2*scale)}
-        fill="none" stroke={i%4===0?"#8b7a5f":"#40372b"}
-        strokeWidth={f(.75*scale)} opacity=".72"/>;
+/** Source-study motif: old pine branchlets terminate in separate radial,
+ * pressure-loaded needle rosettes, not one flat comb-shaped canopy. Every
+ * visible twig roots in the parent branch point and needle root meets a twig.
+ * Keep all brush deposition seek-stable and preserve paper between clusters.
+ */
+function NeedleSpray({x,y,scale,seed,wind}:{
+  x:number;y:number;scale:number;seed:number;wind:number;
+}){
+  const sprigs=[
+    {dx:-23,dy:-6,tilt:-.28},{dx:4,dy:-17,tilt:.10},
+    {dx:25,dy:-8,tilt:.38},
+  ];
+  return <g data-km-pine-spray=""
+    transform={"rotate("+f(wind*1.25)+" "+f(x)+" "+f(y)+")"}>
+    {sprigs.map((sprig,j)=>{
+      const offset=(s(seed+67,j*5)-.5)*5*scale;
+      const tx=x+(sprig.dx+offset)*scale;
+      const ty=y+sprig.dy*scale+(s(seed,j*17)-.5)*3*scale;
+      const count=10+Math.floor(6*s(seed+17,j*11+1));
+      const wet:string[]=[],dry:string[]=[],middle:string[]=[];
+      for(let k=0;k<count;k++){
+        const spread=(k-(count-1)*.5)/((count-1)*.5);
+        const angle=-Math.PI/2+spread*1.18+sprig.tilt*.28;
+        const len=(11+14*s(seed+j*73,k*17+7))*scale*
+          (1-.20*Math.abs(spread));
+        const rx=tx+spread*2.6*scale;
+        const ry=ty+.9*scale*s(seed+j*13,k+17);
+        const ex=rx+Math.cos(angle)*len;
+        const ey=ry+Math.sin(angle)*len;
+        const nx=-(ey-ry)/len,ny=(ex-rx)/len;
+        const width=(.48+1.13*s(seed+j*31,k*19+3))*scale;
+        const d="M"+f(rx)+" "+f(ry)+
+          " Q"+f(rx+(ex-rx)*.37+nx*width)+" "+
+          f(ry+(ey-ry)*.37+ny*width)+
+          " "+f(ex)+" "+f(ey)+
+          " Q"+f(rx+(ex-rx)*.31-nx*width*.45)+" "+
+          f(ry+(ey-ry)*.31-ny*width*.45)+
+          " "+f(rx)+" "+f(ry)+" Z";
+        (k%6===0?dry:k%3===0?middle:wet).push(d);
+      }
+      return <g key={j} data-km-pine-needle-cluster=""
+        data-km-pine-needles={count}
+        data-km-pine-twig-root={f(x)+","+f(y)}>
+        <path d={"M"+f(x)+" "+f(y)+
+          " Q"+f((x+tx)*.5)+" "+f((y+ty)*.5-3*scale)+
+          " "+f(tx)+" "+f(ty)}
+          stroke="#4c3c2b" strokeWidth={f(1.6*scale)}
+          fill="none" strokeLinecap="round"/>
+        {/* Dark pigment, dilute secondary strokes, dry lifted highlights. */}
+        <path d={wet.join(" ")} fill="#332c23" opacity=".88"/>
+        <path d={middle.join(" ")} fill="#675741" opacity=".75"/>
+        <path d={dry.join(" ")} fill="#a18b6a" opacity=".58"/>
+      </g>;
     })}
-    <ellipse cx={x} cy={y-1} rx={23*scale} ry={2.2*scale}
-      fill="#5f543e" opacity=".32"/>
   </g>;
 }
 function OldPine({x,y,scale,wind,seed,detail}:{
@@ -266,15 +293,21 @@ function OldPine({x,y,scale,wind,seed,detail}:{
   // Asymmetric branch endpoints and tip-heavy clustered needles emulate
   // old-pine brush canopies rather than regularly spaced horizontal shelves.
   const stems=[
-    {y:-95,dir:-1,len:81,tipDy:16},
-    {y:-131,dir:1,len:139,tipDy:-9},
-    {y:-161,dir:-1,len:129,tipDy:13},
-    {y:-190,dir:1,len:157,tipDy:-17},
-    {y:-219,dir:-1,len:111,tipDy:11},
-    {y:-239,dir:1,len:101,tipDy:-10},
-    {y:-264,dir:-1,len:69,tipDy:6},
-    {y:-281,dir:1,len:62,tipDy:-11},
+    {y:-95,dir:-1,len:98,tipDy:25},
+    {y:-133,dir:1,len:132,tipDy:9},
+    {y:-166,dir:-1,len:121,tipDy:-28},
+    {y:-192,dir:1,len:154,tipDy:-37},
+    {y:-225,dir:-1,len:105,tipDy:20},
+    {y:-245,dir:1,len:108,tipDy:-12},
+    {y:-270,dir:-1,len:80,tipDy:-23},
+    {y:-285,dir:1,len:63,tipDy:-28},
   ];
+  // A shared trunk construction map also anchors the bark and bough roots.
+  // Do not interpolate branches from unrelated arbitrary horizontal shelves.
+  const trunkX=(y:number)=>{
+    const t=clamp(-y/299,0,1);
+    return -8+19*t+27*t*t+4*Math.sin(t*Math.PI*2);
+  };
   return <g data-km-shanshui-pine="" transform={"translate("+x+" "+y+") scale("+scale+")"}>
     <path d="M-19 2 C-21 -37 7 -59 2 -94 C-14 -121 15 -144 8 -175
       C-7 -207 32 -229 23 -251 C16 -276 27 -289 38 -299
@@ -285,20 +318,28 @@ function OldPine({x,y,scale,wind,seed,detail}:{
       Q35 -233 34 -271 M3 -25 Q-2 -77 12 -115 M6 -140 Q-4 -170 23 -207"
       stroke="#bd9870" strokeWidth="3.3" opacity=".55" fill="none"/>
     {Array.from({length:28},(_,i)=>{
-      const cy=-8-i*10,x0=-11+17*Math.sin(i*.33);
-      return <path key={i} d={"M"+f(x0)+" "+cy+" q"+f(9+s(seed,i)*12)+" -12 "+
-        f(22+s(seed,i+1)*12)+" -19"}
-        stroke={i%4===0?"#362a21":"#d0b18b"}
-        strokeWidth={i%4===0?1.9:.75} opacity=".62" fill="none"/>;
+      const cy=-8-i*10;
+      const x0=trunkX(cy)+(s(seed+3,i*23)-.5)*10;
+      const side=i%2===0?1:-1;
+      const dx=side*(3+6*s(seed+11,i*9));
+      const dy=7+10*s(seed+17,i*7);
+      return <path key={i} data-km-pine-bark=""
+        d={"M"+f(x0)+" "+f(cy)+
+          " Q"+f(x0+dx*.62)+" "+f(cy-dy*.54)+
+          " "+f(x0+dx*.35)+" "+f(cy-dy)}
+        stroke={i%5===0?"#35291e":"#b49471"}
+        strokeWidth={f(i%5===0?1.55:.65)} opacity={f(.38+.4*s(seed,i))}
+        strokeLinecap="round" fill="none"/>;
     })}
     {stems.map((b,i)=>{
-      const a=(b.y+270)/95,reach=b.len*b.dir;
-      const root:P=[9+a*11,b.y];
-      const c1:P=[reach*.24,b.y-14-(i%2)*5];
-      const c2:P=[reach*.61,b.y-29+(i%3)*4];
-      const tip:P=[reach,b.y-14+b.tipDy];
+      const reach=b.len*b.dir;
+      const root:P=[trunkX(b.y),b.y];
+      const c1:P=[root[0]+reach*.24,b.y-13-(i%2)*7];
+      const c2:P=[root[0]+reach*.71,b.y+b.tipDy*.6-10+(i%3)*4];
+      const tip:P=[root[0]+reach,b.y+b.tipDy];
       const count=Math.round((4+(i%3))*detail);
-      return <g key={i} data-km-pine-bough="">
+      return <g key={i} data-km-pine-bough=""
+        data-km-pine-bough-root={f(root[0])+","+f(root[1])}>
         <path d={"M"+f(root[0])+" "+f(root[1])+
           " C"+f(c1[0])+" "+f(c1[1])+" "+f(c2[0])+" "+f(c2[1])+
           " "+f(tip[0])+" "+f(tip[1])}
@@ -316,8 +357,10 @@ function OldPine({x,y,scale,wind,seed,detail}:{
         })}
       </g>;
     })}
-    <NeedleSpray x={39} y={-296} scale={.92} seed={seed+9} wind={wind}/>
-    <NeedleSpray x={19} y={-263} scale={1.1} seed={seed+61} wind={wind}/>
+    {detail>0&&<>
+      <NeedleSpray x={39} y={-296} scale={.92} seed={seed+9} wind={wind}/>
+      <NeedleSpray x={19} y={-263} scale={1.1} seed={seed+61} wind={wind}/>
+    </>}
   </g>;
 }
 /** Bamboo is a calligraphic plant, not uniform fence-post lines. The
