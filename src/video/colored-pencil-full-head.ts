@@ -615,6 +615,49 @@ export const createDryPencilHeadPlate=(
         .43,2,(pencilHash(seed,i*1000+k,77)-.5)*.06);
     }
   }
+  // Source-verified dark hair/jaw CONTACT: the manually measured CC0
+  // silhouette has ~4 reference-pixel uncertainty. The old hair classifier
+  // reserved a small empty strip outside the polygon, and the 0.43px
+  // contour fibres left that strip ivory-white even where source Y=23..80.
+  // Only the source-observed LEFT cheek-to-jaw run (indices 12..16)
+  // receives short, pressure-variable pencil overtraces. Every nib
+  // samples its own physically dark, auburn source pigment and is skipped
+  // for pale skin or the green background. This is not a solid SVG rim.
+  for(let i=12;i<=16;i++){
+    const a=geometry.face[i],b=geometry.face[(i+1)%geometry.face.length];
+    const span=length(a,b);
+    const count=Math.max(3,Math.ceil(span/(eyeDist*.016)));
+    const dx=(b[0]-a[0])/count,dy=(b[1]-a[1])/count;
+    const nx=-(b[1]-a[1])/span,ny=(b[0]-a[0])/span;
+    for(let k=0;k<count;k++){
+      const t=(k+.48)/count;
+      const c:Point=[interp(a[0],b[0],t),
+        interp(a[1],b[1],t)];
+      for(let band=-1;band<=1;band++){
+        const id=i*500003+k*11+band+1;
+        const shift=eyeDist*.016*(band+
+          (pencilHash(seed,id,401)-.5)*.36);
+        const q:Point=[c[0]+nx*shift,c[1]+ny*shift];
+        if(!onPhoto(source,q[0],q[1]))continue;
+        const rgb=photoRGB(source,q[0],q[1]);
+        const value=photoValue(source,q[0],q[1]);
+        // No garden-colored hair, ivory highlight obliteration, or
+        // uniformly dark silhouette. The *photograph* must confirm
+        // a dark and warm/brown physical edge beneath each mark.
+        if(value>.53||!isHairColour(rgb))continue;
+        const depth=clamp((.53-value)/.40,0,1);
+        if(pencilHash(seed,id,402)>.66+.33*depth)continue;
+        const ink=color([rgb[0]*.69+34*.31,
+          rgb[1]*.69+24*.31,rgb[2]*.70+23*.30]);
+        push("hair-occlusion",q,
+          [dx*(1.03+.37*pencilHash(seed,id,403)),
+            dy*(1.03+.37*pencilHash(seed,id,403))],
+          ink,(.31+.23*depth)*(.82+.18*pencilHash(seed,id,404)),
+          1.08+.52*pencilHash(seed,id,405),2,
+          (pencilHash(seed,id,406)-.5)*.22);
+      }
+    }
+  }
   // Hair as connected MASSES first. The physical photographic reference
   // has auburn locks surrounding the head; green garden is NOT a hair mask.
   // Hair is a separate material and cannot inadvertently flatten the face.
