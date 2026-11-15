@@ -3,54 +3,89 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { evaluatePencilActorRegions, evaluatePencilPose, inspectPencilActors } from "../registry/video/colored-pencil-actor";
 import { inspectPencilScene } from "../registry/video/colored-pencil-scene";
 import { PencilScene } from "../registry/video/colored-pencil-scene-react";
-import { pencilCharacterScene } from "../src/video/colored-pencil-character-scenes";
+import { pencilCharacterScene, FOX_REBUILT_PARTS, KINGFISHER_REBUILT_PARTS } from "../src/video/colored-pencil-character-scenes";
 import { compileFilm } from "../registry/video/film-document";
 import { COLOR_PENCIL_CHARACTER_FILM } from "../src/video/colored-pencil-character-film";
 import portableFilm from "../examples/film/colored-pencil-character.film.json";
 
 describe("CP3 authored coloured-pencil ensemble", () => {
-  it("validates independently constructed anatomy in both outputs", () => {
+  it("removes old cartoon actors and builds original 11-plane fox / 10-plane kingfisher in both formats", () => {
+    expect(FOX_REBUILT_PARTS).toHaveLength(11);
+    expect(KINGFISHER_REBUILT_PARTS).toHaveLength(10);
     for (const aspect of ["landscape", "portrait"] as const) {
       const scene = pencilCharacterScene(aspect);
       expect(inspectPencilScene(scene)).toEqual([]);
       expect(inspectPencilActors(scene.actors ?? [])).toEqual([]);
-      expect(scene.actors).toHaveLength(2);
+      expect(scene.actors?.map(a=>a.id)).toEqual(["fox","kingfisher"]);
+      expect(scene.drawing.regions).toHaveLength(3);
+      expect(scene.actors![0].parts.map(p=>p.id)).toEqual(FOX_REBUILT_PARTS);
+      expect(scene.actors![1].parts.map(p=>p.id)).toEqual(KINGFISHER_REBUILT_PARTS);
       const all = scene.actors!.flatMap(a => a.parts.map(p => a.id + "-" + p.id));
+      expect(all).toHaveLength(21);
       expect(new Set(all).size).toBe(all.length);
-      expect(scene.actors![0].parts.every(part => part.region.underpaintOpacity === .9)).toBe(true);
-      expect(all).toContain("fox-head");
-      expect(all).toContain("bird-front-wing");
+      // Together with the 3 scene regions, CP1 still fits its strict 24 region ceiling.
+      expect(scene.drawing.regions.length + all.length).toBe(24);
+      expect(all).toContain("fox-eye");
+      expect(all).toContain("fox-ear-interiors");
+      expect(all).toContain("fox-nose");
+      expect(all).toContain("kingfisher-head");
+      expect(all).toContain("kingfisher-near-wing");
+      expect(all).toContain("kingfisher-cheek");
+      expect(all).not.toContain("fox-arm");
+      expect(all).not.toContain("bird-front-wing");
+      expect(scene.actors!.every(actor=>actor.parts.every(part=>part.region.opaqueSupport))).toBe(true);
+      expect(scene.actors!.every(actor=>actor.parts.some(part=>part.region.details!.length>3))).toBe(true);
+      expect(scene.drawing.regions.some(r=>r.id==="kingfisher-perch")).toBe(true);
+      expect(scene.drawing.regions.some(r=>r.id==="sun-disk")).toBe(false);
     }
   });
 
-  it("is reproducible under out-of-order seeking with independent wing, eye and limb poses", () => {
-    const [fox, bird] = pencilCharacterScene("landscape").actors!;
+  it("supports connected expressive eye, head, paw, wing and tail poses without drift", () => {
+    const [fox, kingfisher] = pencilCharacterScene("landscape").actors!;
     const f200 = evaluatePencilActorRegions(fox, 200);
-    const b200 = evaluatePencilActorRegions(bird, 200);
+    const k200 = evaluatePencilActorRegions(kingfisher, 200);
     evaluatePencilActorRegions(fox, 0);
-    evaluatePencilActorRegions(fox, 320);
-    evaluatePencilActorRegions(bird, 320);
+    evaluatePencilActorRegions(fox, 319);
+    evaluatePencilActorRegions(kingfisher, 319);
     expect(evaluatePencilActorRegions(fox, 200)).toEqual(f200);
-    expect(evaluatePencilActorRegions(bird, 200)).toEqual(b200);
-    const foxArm = fox.parts.find(part => part.id === "arm")!;
-    expect(evaluatePencilPose(foxArm.keys, 235).rotation).toBeCloseTo(-58);
-    const birdWing = bird.parts.find(part => part.id === "front-wing")!;
-    expect(evaluatePencilPose(birdWing.keys, 167).rotation).toBeCloseTo(28);
-    expect(evaluatePencilActorRegions(fox, 0).find(part => part.id === "fox-eyes")!.transform)
-      .not.toEqual(evaluatePencilActorRegions(fox, 232).find(part => part.id === "fox-eyes")!.transform);
+    expect(evaluatePencilActorRegions(kingfisher, 200)).toEqual(k200);
+    const paw=fox.parts.find(part=>part.id==="near-foreleg")!;
+    expect(evaluatePencilPose(paw.keys,223).rotation).toBeCloseTo(-22);
+    const wing=kingfisher.parts.find(part=>part.id==="near-wing")!;
+    expect(evaluatePencilPose(wing.keys,212).rotation).toBeCloseTo(17);
+    const foxBlink=fox.parts.find(part=>part.id==="eye")!;
+    expect(evaluatePencilPose(foxBlink.keys,202).scale[1]).toBeCloseTo(.16);
+    const kingfisherBlink=kingfisher.parts.find(part=>part.id==="eye")!;
+    expect(evaluatePencilPose(kingfisherBlink.keys,208).scale[1]).toBeCloseTo(.12);
+    const at=(actor:typeof fox, id:string, frame:number)=>
+      evaluatePencilActorRegions(actor,frame).find(r=>r.id===actor.id+"-"+id)!.transform;
+    expect(at(kingfisher,"near-wing",173)).not.toBe(at(kingfisher,"near-wing",192));
+    expect(at(fox,"tail",181)).not.toBe(at(fox,"tail",208));
+    expect(at(fox,"head",194)).not.toBe(at(fox,"head",226));
+    expect(at(kingfisher,"feet",180)).toBe(at(kingfisher,"feet",260));
+    expect(at(fox,"far-foreleg",180)).toBe(at(fox,"far-foreleg",260));
+    // The eye inherits head transforms; its local blink is not applied to the muzzle.
+    expect(at(fox,"eye",202)).toContain(at(fox,"head",202));
+    expect(at(kingfisher,"eye",208)).toContain(at(kingfisher,"head",208));
   });
 
-  it("renders genuine moving pencil regions and a complete reduced-motion pose", () => {
+  it("renders newly authored regions opaque at completed frames and reduced motion", () => {
     const scene = pencilCharacterScene("portrait");
-    const html = (frame: number, reduce = false) =>
-      renderToStaticMarkup(<PencilScene scene={scene} frame={frame} reducedMotion={reduce}/>);
+    const html = (frame: number, reduced=false) =>
+      renderToStaticMarkup(<PencilScene scene={scene} frame={frame} reducedMotion={reduced}/>);
     expect(html(0)).toContain('data-km-pencil-region="fox-head"');
-    expect(html(0)).toContain('data-km-pencil-region="bird-front-wing"');
+    expect(html(0)).toContain('data-km-pencil-region="kingfisher-near-wing"');
     expect(html(0)).not.toBe(html(240));
     expect(html(240)).toBe(html(240));
-    expect(html(0, true)).toContain('data-km-pencil-region="fox-eyes"');
-    expect(evaluatePencilActorRegions(scene.actors![0], 0, true))
-      .toEqual(evaluatePencilActorRegions(scene.actors![0], 320, true));
+    const finished=html(300);
+    expect(finished).toContain('data-km-pencil-support="fox-head"');
+    expect(finished).toContain('data-km-pencil-support="kingfisher-head"');
+    expect(finished).toContain('data-km-pencil-support="kingfisher-eye"');
+    expect(finished).toContain('data-km-pencil-region="kingfisher-perch"');
+    expect(finished).not.toContain('data-km-pencil-region="bird-front-wing"');
+    expect(html(0,true)).toContain('data-km-pencil-region="fox-eye"');
+    expect(evaluatePencilActorRegions(scene.actors![0],0,true))
+      .toEqual(evaluatePencilActorRegions(scene.actors![0],319,true));
   });
 
   it("compiles a complete portable actor performance in both film formats", () => {
