@@ -1,3 +1,4 @@
+import {useMemo} from "react";
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
 import {crayonAdultFaceStudy} from "./crayon-artcraft-adult-face-fixtures";
@@ -10,7 +11,9 @@ interface StudyProps {
   startFrame:number;playbackRate:number;loop:boolean;
 }
 export function AdultFaceArtcraftWorkbench({aspect,detail,expression,headScaleY,startFrame,playbackRate,loop}:StudyProps){
-  const spec=crayonAdultFaceStudy(aspect,{detail,expression,headScaleY});
+  // Source geometry is expensive and independent of the animation playhead.
+  const spec=useMemo(()=>crayonAdultFaceStudy(aspect,{detail,expression,headScaleY}),
+    [aspect,detail,expression,headScaleY]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,"adult-face-artcraft:"+aspect+":"+expression+":"+headScaleY,playbackRate,loop);
   return <div style={{maxWidth:1040,margin:"auto",padding:16,color:"#34333d",
@@ -37,6 +40,46 @@ export function AdultFaceArtcraftWorkbench({aspect,detail,expression,headScaleY,
     </div>
   </div>;
 }
+/** Matched two-up proof: same material, pose, frame and scale; expression alone changes. */
+export function AdultFaceExpressionComparison({aspect,detail,headScaleY,startFrame,playbackRate,loop}:StudyProps){
+  // Reuse identical source geometry while the shared playhead advances.
+  // Two full handcrafted SVG studies are intentionally rendered in this bench.
+  const warm=useMemo(()=>crayonAdultFaceStudy(aspect,{detail,headScaleY,expression:"warm"}),
+    [aspect,detail,headScaleY]);
+  const neutral=useMemo(()=>crayonAdultFaceStudy(aspect,{detail,headScaleY,expression:"neutral"}),
+    [aspect,detail,headScaleY]);
+  const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
+    startFrame,warm.durationFrames,"adult-face-expression-compare:"+aspect+":"+headScaleY,
+    playbackRate,loop);
+  return <section data-km-crayon-artcraft-comparison=""
+    style={{maxWidth:1120,margin:"auto",padding:16,background:"#efe7db",
+      color:"#34333d",fontFamily:"system-ui",boxSizing:"border-box"}}>
+    <h2 style={{fontSize:20,margin:"0 0 8px"}}>ArtCraft expression anatomy — review only</h2>
+    <p style={{fontSize:13,lineHeight:1.6,maxWidth:800,margin:"0 0 16px"}}>
+      Matched original three-quarter facial studies at exactly the same frame and scale.
+      Compare eyelids, commissures, cheeks and nasolabial tension before approving the design.
+      These studies are not approved production characters.
+    </p>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%, 340px),1fr))",gap:16}}>
+      {([{label:"Warm expression",spec:warm},{label:"Neutral expression",spec:neutral}] as const).map(({label,spec})=>
+        <figure key={label} style={{margin:0,minWidth:0}}>
+          <figcaption style={{fontWeight:700,marginBottom:8}}>{label}</figcaption>
+          <div style={{width:"100%",aspectRatio:aspect==="portrait"?"540 / 960":"960 / 540",
+            border:"7px solid #fff7e8",boxSizing:"border-box"}}>
+            <CrayonScene spec={spec} frame={frame}/>
+          </div>
+        </figure>)}
+    </div>
+    <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",marginTop:16}}>
+      <button type="button" onClick={toggle}>{playing?"Pause":"Play both"}</button>
+      <button type="button" onClick={restart}>Restart both</button>
+      <label>Shared frame <input type="range" min={0} max={warm.durationFrames-1}
+        value={frame} onChange={event=>seek(Number(event.target.value))}/></label>
+      <output aria-live="off" style={{fontVariantNumeric:"tabular-nums"}}>{frame}</output>
+      <button type="button" onClick={()=>seek(warm.durationFrames-1)}>Compare final</button>
+    </div>
+  </section>;
+}
 const meta={
   title:"Video production/Film Looks/Crayon/Characters/ArtCraft Adult Face Lab",
   id:"video-crayon-artcraft-adult-face",
@@ -57,3 +100,5 @@ type Story=StoryObj<typeof meta>;
 export const AdultFaceThreeQuarter:Story={};
 export const AdultFacePortrait:Story={args:{aspect:"portrait"}};
 export const AdultFaceConstruction:Story={args:{startFrame:160}};
+export const MatchedExpressionComparison:Story={render:args=><AdultFaceExpressionComparison {...args}/>};
+export const MatchedExpressionPortrait:Story={args:{aspect:"portrait"},render:args=><AdultFaceExpressionComparison {...args}/>};
