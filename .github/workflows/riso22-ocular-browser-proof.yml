@@ -28,7 +28,7 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Chromium and native browser dependencies
         run: npx playwright install --with-deps chromium
-      - name: RISO21 two-original-human eyes: native print, 16:9/9:16, four poses and two plates
+      - name: "RISO21 two-original-human eyes: native print, 16:9/9:16, four poses and two plates"
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts
       - name: Preserve rendered ocular crops and browser traces
         if: always()
