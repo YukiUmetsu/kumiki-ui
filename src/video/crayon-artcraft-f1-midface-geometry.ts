@@ -59,11 +59,10 @@ const sourceWax:Record<string,Partial<Wax>>={
     featherContacts:true,blendRadius:6.5,pressure:.65,markStrength:.28,
   },
   "naris-shadow-near":{
-    d:"M387 635 C389 625 397 622 405 622 "+
-      "C411 620 417 623 419 628 "+
-      "C417 636 409 641 405 647 "+
-      "C397 649 389 645 387 635Z",
-    bounds:{x:384,y:618,width:39,height:33},
+    d:"M389 634 C392 627 399 623 406 625 "+
+      "C413 625 417 630 415 636 "+
+      "Q407 637 404 643 C399 646 393 640 389 634Z",
+    bounds:{x:385,y:622,width:35,height:26},
     colors:["#493032","#21171b","#81524d"],
     pressure:.92,spacing:4.2,markStrength:.32,
     underpaintTooth:.09,opaqueBurnish:.94,
@@ -72,10 +71,10 @@ const sourceWax:Record<string,Partial<Wax>>={
     },
   },
   "naris-shadow-far":{
-    d:"M448 632 C448 625 451 620 456 618 "+
-      "C461 622 462 629 458 635 "+
-      "Q452 642 448 632Z",
-    bounds:{x:445,y:614,width:21,height:31},
+    d:"M447 629 C449 621 453 619 457 620 "+
+      "C460 624 459 629 456 635 "+
+      "Q450 637 447 629Z",
+    bounds:{x:444,y:617,width:19,height:24},
     pressure:.91,spacing:4.3,markStrength:.27,
     underpaintTooth:.09,opaqueBurnish:.88,
   },
@@ -120,26 +119,23 @@ const sourceWax:Record<string,Partial<Wax>>={
     colors:["#61393f","#291e24","#8f555b"],
   },
   "dental-surface-left":{
-    d:"M391 732 C397 728 403 724 411 724 "+
-      "C412 728 410 732 408 736 "+
-      "C401 739 396 738 391 735Z",
-    bounds:{x:389,y:719,width:25,height:22},
+    d:"M392 731 C397 726 403 724 410 724 "+
+      "Q411 728 408 732 Q399 735 392 731Z",
+    bounds:{x:389,y:721,width:25,height:16},
     colors:["#706663","#494144","#a1928b"],
     pressure:.87,markStrength:.11,underpaintTooth:.09,
   },
   "dental-surface-center":{
-    d:"M414 723 C420 719 429 717 437 718 "+
-      "C438 722 435 728 431 731 "+
-      "C423 733 419 731 414 730Z",
-    bounds:{x:410,y:714,width:31,height:23},
+    d:"M414 724 C420 720 428 718 435 719 "+
+      "Q437 723 432 728 Q422 731 414 728Z",
+    bounds:{x:411,y:716,width:28,height:17},
     colors:["#79706c","#55494c","#afa29a"],
     pressure:.89,markStrength:.12,underpaintTooth:.09,
   },
   "dental-surface-far":{
-    d:"M438 717 C445 715 453 713 458 716 "+
-      "C458 719 453 722 445 723 "+
-      "Q440 724 438 721Z",
-    bounds:{x:434,y:709,width:28,height:19},
+    d:"M437 719 C444 716 451 715 457 716 "+
+      "C456 720 448 723 439 723Z",
+    bounds:{x:434,y:712,width:26,height:14},
     colors:["#7d7271","#55494d","#aca09a"],
     pressure:.88,markStrength:.1,underpaintTooth:.09,
   },
@@ -196,15 +192,15 @@ export function crayonF1ReconstructMidface(
       const dental:Wax={
         ...element,
         id:"dental-arch-connected-wax",
-        d:"M390 731 C401 724 413 718 430 717 "+
-          "C443 714 453 713 461 715 "+
-          "C456 727 433 734 407 739 "+
-          "Q395 739 390 731Z",
-        bounds:{x:387,y:710,width:78,height:33},
-        colors:["#716967","#484044","#ab9d96"],
+        d:"M391 732 C402 723 417 720 433 719 "+
+          "C443 716 454 713 460 716 "+
+          "C455 724 433 734 408 739 "+
+          "Q395 740 391 732Z",
+        bounds:{x:388,y:712,width:76,height:30},
+        colors:["#5d4545","#39252d","#785555"],
         timing:{start:217,end:292},
-        pressure:.84,spacing:4.5,markStrength:.09,
-        opaqueBurnish:.87,underpaintTooth:.08,
+        pressure:.8,spacing:5.2,markStrength:.11,
+        opaqueBurnish:.82,underpaintTooth:.13,
         parentId:"mouth-aperture-depth",clipToParent:true,
       };
       out.push(dental);
