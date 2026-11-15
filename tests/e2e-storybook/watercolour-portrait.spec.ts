@@ -38,8 +38,8 @@ for(const output of ["portrait","landscape"] as const){
       .toHaveCount(1);
     await svg.screenshot({animations:"disabled",
       path:info.outputPath("wc11-"+output+"-glazed.png")});
-    await expect(page.locator('clipPath[id*="-clip-near-iris-gaze"]')).toHaveCount(1);
-    await expect(page.locator('clipPath[id*="-clip-far-iris-gaze"]')).toHaveCount(1);
+    await expect(page.locator('clipPath[id*="-clip-near-eye-aperture"]')).toHaveCount(1);
+    await expect(page.locator('clipPath[id*="-clip-far-eye-aperture"]')).toHaveCount(1);
     const soft=page.getByRole("checkbox",{name:"Soft wet-on-wet portrait edges"});
     const cheek=page.locator('[data-km-watercolour-part="warm-near-cheek"] > path[data-km-watercolour-edge-softness]');
     await expect(cheek).toHaveAttribute("data-km-watercolour-edge-softness","1");
