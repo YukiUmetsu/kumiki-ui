@@ -57,6 +57,9 @@ describe("ArtCraft coloured-pencil anatomical fidelity contract",()=>{
       expect(trace.path).not.toMatch(/NaN|Infinity/);
       expect(trace.path.length).toBeLessThan(12000);
       expect(trace.startFrame).toBe(226+i*2);
+      // Paint should read as soft feather pigment, not luminous white comb lines.
+      expect(trace.width).toBeLessThanOrEqual(.42);
+      expect(trace.opacity).toBeLessThanOrEqual(.55);
     }
     expect(vaneTracts(KINGFISHER_COVERT_AXES,"#CBE7DB",229)).toHaveLength(4);
   });
