@@ -307,6 +307,15 @@ export const createDryPencilHeadPlate=(
       const rgb=photoRGB(source,px,py),value=photoValue(source,px,py);
       const band=toneBand(value);
       if(pass===0)fiveValueCounts[band]++;
+      // Paper white is NOT the same as photographed light skin.
+      // In the licensed portrait, the malar face and nose bridge have
+      // luminance ≈.79, yet v7's paper-bin cutoff was .73: 72% of
+      // foundational marks were discarded and the surviving strokes
+      // were weakened again by 48%. This made a source ≈202/255 cheek
+      // render as ≈241/255 ivory. Replenish optical translucency only
+      // while actual source brightness remains below the true paper
+      // shoulder (.91+). Preserve 100% original fine features/hair.
+      const reserve=clamp((value-.79)/.14,0,1);
       if(band===4&&pass===2)continue;
       const edge=distanceToEdge(p,geometry.face);
       // A bright unpigmented rim around the face read as a sticker or
@@ -354,7 +363,8 @@ export const createDryPencilHeadPlate=(
       const pressure=pass===0?.22+.34*shade:
         pass===1?.18+.30*shade:
           .14+.30*shade+.28*clamp((gradientStrength-.045)*3.4,0,1);
-      const density=(band===4?.28:band===3?.95:1);
+      const density=(band===4?
+        (.72-.55*reserve):band===3?.95:1);
       if(pencilHash(seed,hashBase,14)>density)continue;
       // Subtle warm/cool layers are derived from the person's actual
       // captured pigments, not a globally assumed skin-color preset.
@@ -365,7 +375,8 @@ export const createDryPencilHeadPlate=(
           color([rgb[0]*.75+62*.25,rgb[1]*.73+50*.27,rgb[2]*.80+60*.20]);
       push(pass===0?"face-value":pass===1?"face-chroma":"face-form",
         p,[Math.cos(theta)*len,Math.sin(theta)*len],pigment,
-        pressure*(1+.11*opticalCoverage)*fade*(band===4?.52:1),
+        pressure*(1+.11*opticalCoverage)*fade*
+          (band===4?.85-.50*reserve:1),
         pass===0?1.30+1.12*opticalCoverage:
           pass===1?1.04+.82*opticalCoverage:.82,pass,
         (pencilHash(seed,hashBase,15)-.5)*.19);
