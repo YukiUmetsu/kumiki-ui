@@ -84,3 +84,31 @@ detail at both the corrected close-up and at 960×540; the scholar's head
 occupies only a small fraction of a panoramic composition. A genuinely
 cinematic figure shot still requires camera reframing, body-and-head turn
 cel variants and tailored acting, not just extra paths.
+
+
+## Second rendered art critique: no line-count vanity
+
+The native browser proof from Shanshui CI `43662340858` confirmed that
+the corrected microcamera now frames the entire face. The new open eyes
+and gaze-dependent iris parts are visible. The reference-driven approach
+is an improvement over the former near-closed slits, but an independent
+art check still rejects the portrayal as fully resolved.
+
+**What still read falsely:** The nose tip had several overlapping closed
+arcs, forming an almost oval ring; two strong, long jaw-tracing marks
+made a young scholar's cheeks look artificially scarred or aged; the
+resting lip line still rose on the far side after the fitted -4° head
+rotation.
+
+**Third code pass (v10):** retain the painted single solid jaw contour,
+remove the duplicate interior jaw pressure marks, replace the nose's
+looped line with a shorter open bridge-to-alar stroke, lighten the old
+underside shadow and flatten the rest lip to compensate for the actual
+head's fitted rotation. The deliberately smiling viseme remains
+separate; no head pivots, blink controls or garment geometry change.
+
+This does **not** make the scholar museum-grade. Further high-return
+work should be a canonical still comparison against the user's own
+teacher painting, larger figure close-up shots in the film so the
+features are actually visible, view-dependent facial cels for turns,
+and full bespoke studies for hermit and mountain traveler.
