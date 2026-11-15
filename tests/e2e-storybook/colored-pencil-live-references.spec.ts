@@ -108,6 +108,34 @@ for(const sample of ["woman","man"] as const){
         path:info.outputPath("artcraft-portrait-"+sample+"-"+aspect+"-pencil.png")});
       await source.screenshot({animations:"disabled",
         path:info.outputPath("artcraft-portrait-"+sample+"-"+aspect+"-source.png")});
+      if(sample==="woman"){
+        // Compare the exact same licensed source, crop, knobs and time; only
+        // the measured facial-pencil passes change. Never attribute old
+        // source/algorithm revisions to this PR.
+        await expect(output).toHaveAttribute(
+          "data-km-portrait-features","source-guided");
+        const guided=await output.screenshot({animations:"disabled"});
+        const toggle=page.getByRole("checkbox",{
+          name:"Apply source-based portrait pencil marks"});
+        await toggle.uncheck();
+        await expect(output).toHaveAttribute("data-km-portrait-features","none");
+        const unguided=await output.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-portrait-"+sample+"-"+aspect+"-AB-unmodified-base.png")});
+        expect(Buffer.compare(guided,unguided)).not.toBe(0);
+        await toggle.check();
+        await expect(output).toHaveAttribute(
+          "data-km-portrait-features","source-guided");
+        await page.getByRole("checkbox",{name:"Show source-measured face guides"})
+          .check();
+        await expect(page.locator("svg[data-km-face-guide-overlay] circle"))
+          .toHaveCount(25);
+        await page.locator('svg[data-km-face-guide-overlay]').screenshot({
+          animations:"disabled",
+          path:info.outputPath("artcraft-portrait-"+sample+"-"+aspect+"-source-landmarks.png"),
+        });
+        await page.getByRole("checkbox",{name:"Show source-measured face guides"})
+          .uncheck();
+      }
     }
     await framing.selectOption("fit");
     await expect(output).toHaveAttribute("data-km-pencil-photo","ready");
