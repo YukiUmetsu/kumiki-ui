@@ -59,8 +59,16 @@ describe("strict native Crayon drawing grammar",()=>{
       ...first.attachments[0],
       to:{...first.attachments[0].to,point:{x:300,y:200}},
     }]}]};
-    expect(inspectCrayonDrawingPlan(scene,broken)).toContain(
-      "botanical-subject: attachment[0]: attachment is disconnected");
+    expect(inspectCrayonDrawingPlan(scene,broken).some(x=>
+      x.includes("attachment is disconnected"))).toBe(true);
+    // A final-frame-only check misses a leaf that separates then reconnects.
+    const drifting:CrayonSceneSpec={...scene,elements:scene.elements.map(n=>
+      n.id==="leaf-body"?{...n,motion:[
+        {frame:0,x:0,y:0},{frame:120,x:75,y:0},{frame:239,x:0,y:0},
+      ]}:n)};
+    expect(inspectCrayonScene(drifting)).toEqual([]);
+    expect(inspectCrayonDrawingPlan(drifting,plan).some(x=>
+      x.includes("disconnected at frame"))).toBe(true);
     const noLeaf={...plan,subjects:[{...first,
       parts:first.parts.filter(p=>p.nodeId!=="leaf-body")}]};
     expect(inspectCrayonDrawingPlan(scene,noLeaf).some(x=>x.includes("untracked scene element leaf-body"))).toBe(true);
