@@ -167,7 +167,7 @@ function withSolidFaces(spec: RigSpec, parts: RigPartFrame[]): RigPartFrame[] {
   for (const p of solids) {
     const [nx0, ny0] = at(p.matrix, [0, 0]), [fx0, fy0] = at(p.farMatrix!, [0, 0]), dx = fx0 - nx0, dy = fy0 - ny0;
     if (Math.hypot(dx, dy) < .6) continue;
-    const base = partColor(spec, p);
+    const faceRole = p.faceRole ?? p.role, base = p.faceRole ? spec.palette[p.faceRole] ?? partColor(spec, p) : partColor(spec, p);
     flatLoops(p.shape).forEach((loop, li) => {
       const near = loop.map(q => at(p.matrix, q)), far = loop.map(q => at(p.farMatrix!, q)), n = near.length;
       let area = 0;
@@ -184,7 +184,7 @@ function withSolidFaces(spec: RigSpec, parts: RigPartFrame[]): RigPartFrame[] {
         const [ux, uy] = run.reduce(([sx, sy], i) => { const [a, b] = normal(i); return [sx + a, sy + b]; }, [0, 0]);
         const L = Math.hypot(ux, uy) || 1, up = -uy / L;
         const pts = [...run.map(i => near[i]), near[(run[run.length - 1] + 1) % n], far[(run[run.length - 1] + 1) % n], ...[...run].reverse().map(i => far[i])];
-        out.push({ id: `${p.id}-face-${li}-${strip++}`, bone: p.bone, role: p.role, shape: { type: "polygon", points: pts.map(([x, y]) => [r2(x), r2(y)] as const) },
+        out.push({ id: `${p.id}-face-${li}-${strip++}`, bone: p.bone, role: faceRole, shape: { type: "polygon", points: pts.map(([x, y]) => [r2(x), r2(y)] as const) },
           matrix: IDENTITY, z: p.z - .001, color: shade(base, up > .35 ? .1 * up : -.16 + .06 * up), opacity: p.opacity });
         run = [];
       };
