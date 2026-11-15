@@ -22,13 +22,25 @@ const num = (p: P, k: string, d: number) => typeof p[k] === "number" && Number.i
 const bool = (p: P, k: string, d: boolean) => typeof p[k] === "boolean" ? p[k] as boolean : d;
 const f1 = (n: number) => n.toFixed(1);
 
-/** One flame tongue rising from `base`: a body swelling and narrowing to a tip that hooks over, flickering with time. */
-function tongue(base: Pt, w: number, h: number, lean: number, curl: number, frame: number, seed: number): { outer: string; inner: string } {
-  const fl = 1 + .18 * noise1(seed, frame * .21), hh = h * fl, sw = w * .3 * noise1(seed + 5, frame * .17) + lean * hh;
-  const pts: Pt[] = [[base[0] - w, base[1]], [base[0] - w * .85 + sw * .2, base[1] - hh * .3], [base[0] - w * .4 + sw * .55, base[1] - hh * .62], [base[0] + sw, base[1] - hh],
-    [base[0] + sw + curl * w * .9, base[1] - hh * .86], [base[0] + w * .35 + sw * .6, base[1] - hh * .6], [base[0] + w * .8 + sw * .25, base[1] - hh * .3], [base[0] + w, base[1]]];
-  const inn: Pt[] = [[base[0] - w * .5, base[1]], [base[0] - w * .3 + sw * .3, base[1] - hh * .35], [base[0] + sw * .6, base[1] - hh * .62], [base[0] + w * .3 + sw * .25, base[1] - hh * .3], [base[0] + w * .5, base[1]]];
-  return { outer: smoothD(pts, true, .42), inner: smoothD(inn, true, .45) };
+/**
+ * One flame tongue rising from `base`, drawn the way the scrolls and prints draw fire (the burning palace of the Heiji
+ * scroll, Kuniyoshi's fires): a broad body rising along a swaying spine that bends over near the top and curls back into
+ * a hooked tip, flickering with time. Returns the outer flame, its hotter inside and the spine's tip.
+ */
+function tongue(base: Pt, w: number, h: number, lean: number, curl: number, frame: number, seed: number): { outer: string; inner: string; tip: Pt } {
+  const fl = 1 + .2 * noise1(seed, frame * .21), hh = h * fl, sway = .35 * noise1(seed + 5, frame * .17), N = 14;
+  const spine: Pt[] = [base], angs: number[] = [];
+  for (let i = 0; i < N; i++) {
+    const t = i / N, hook = t > .62 ? curl * ((t - .62) / .38) ** 1.4 * 2.7 : 0, a = lean * .6 + sway * t * 1.4 + Math.sin(t * 3 + seed) * .12 + hook;
+    angs.push(a);
+    const step = hh / N * (t > .62 ? .75 : 1), q = spine[i];
+    spine.push([q[0] + Math.sin(a) * step, q[1] - Math.cos(a) * step]);
+  }
+  angs.push(angs[N - 1]);
+  const side = (k: number, s: 1 | -1, upto = N) => spine.slice(0, upto + 1).map((q, i) => { const t = i / N, wd = w * k * (1 - t) ** .85 * (.75 + .25 * Math.sin(Math.PI * Math.min(1, t * 1.6))); return [q[0] + Math.cos(angs[i]) * wd * s, q[1] + Math.sin(angs[i]) * wd * s] as Pt; });
+  const outer = smoothD([...side(1, 1), ...side(1, -1).reverse()], true, .35);
+  const inner = smoothD([...side(.55, 1, Math.round(N * .72)), ...side(.55, -1, Math.round(N * .72)).reverse()], true, .38);
+  return { outer, inner, tip: spine[N] };
 }
 
 /** A smoke billow: a cluster of round lobes (drawn as one outlined union), the way the scrolls draw smoke and cloud. */
@@ -57,17 +69,24 @@ export function fire(p: P, c: { frame: number; wind: number; seed: number }): Pr
       const u = ((c.frame / 90 + i / 7) % 1), x = (hash01(c.seed, i, 1) - .5) * W * .8 + lean * H * 1.6 * u + u * W * .15, y = -H * (.8 + 1.6 * u);
       sm.push(billow([x, y], H * (.18 + .3 * u) * k, c.seed + i));
     }
-    out.push({ t: "group", opacity: .7, prims: [{ t: "fill", d: sm.join(""), fill: { type: "linear", angle: 90, stops: [[0, "usuzumi", 1], [1, "paper", 1]] }, outline: lw * .8, outlineColor: "usuzumi", union: true, noPrint: true }] });
+    out.push({ t: "group", opacity: .78, prims: [{ t: "fill", d: sm.join(""), fill: { type: "linear", angle: 90, stops: [[0, "paper", 1], [.55, "usuzumi", 1], [1, "sumi", 1]] }, outline: lw * .8, outlineColor: "sumi", union: true, noPrint: true }] });
   }
   const outer: string[] = [], inner: string[] = [], cores: string[] = [];
   for (let i = 0; i < n; i++) {
     const u = n > 1 ? i / (n - 1) : .5, x = (u - .5) * W + (hash01(c.seed, i, 6) - .5) * W / n * .6, tall = (.45 + .55 * Math.sin(Math.PI * u)) * k * (.55 + .7 * hash01(c.seed, i, 2));
-    const t = tongue([x, 0], W / n * (.7 + .5 * hash01(c.seed, i, 7)), H * tall, lean * .3, (i % 2 ? 1 : -1) * .5, c.frame, c.seed + i * 13);
+    const curl = (i % 2 ? 1 : -1) * (.7 + .5 * hash01(c.seed, i, 8));
+    const t = tongue([x, 0], W / n * (.9 + .5 * hash01(c.seed, i, 7)), H * tall, lean * .3, curl, c.frame, c.seed + i * 13);
     outer.push(t.outer); inner.push(t.inner);
-    if (i % 2 === 0) cores.push(tongue([x, 0], W / n * .3, H * tall * .45, lean * .2, 0, c.frame, c.seed + i * 7).inner);
+    if (i % 2 === 0) cores.push(tongue([x, 0], W / n * .4, H * tall * .45, lean * .2, curl * .5, c.frame, c.seed + i * 7).inner);
+    // A flamelet breaks from the tip now and then and rises, shrinking, into the smoke.
+    const period = 26 + 14 * hash01(c.seed, i, 9), life = ((c.frame + hash01(c.seed, i, 10) * period) % period) / period;
+    if (life < .7) {
+      const s = 1 - life / .7, fx = t.tip[0] + lean * H * .2 * life, fy = t.tip[1] - H * .35 * life;
+      outer.push(tongue([fx, fy], W / n * .28 * s, H * tall * .3 * s, lean * .3, -curl, c.frame, c.seed + i * 17).outer);
+    }
   }
-  out.push({ t: "fill", d: outer.join(""), fill: "shu", outline: lw, outlineColor: "kogecha", union: true });
-  out.push({ t: "fill", d: inner.join(""), fill: "tan", union: true }, { t: "fill", d: cores.join(""), fill: "ki", union: true });
+  out.push({ t: "fill", d: outer.join(""), fill: { type: "linear", angle: 90, stops: [[0, "beni", 1], [.5, "shu", 1], [1, "tan", 1]] }, outline: lw, outlineColor: "kogecha", union: true });
+  out.push({ t: "fill", d: inner.join(""), fill: "tan", union: true }, { t: "fill", d: cores.join(""), fill: { type: "linear", angle: 90, stops: [[0, "ki", 1], [1, "gofun", 1]] }, union: true });
   // Embers lifting off the flames and drifting with the smoke.
   const em: string[] = [];
   for (let i = 0; i < 22; i++) {

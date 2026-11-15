@@ -29,6 +29,12 @@ export interface UkiyoeParticleSpec {
   opacity?: number;
   /** Fireworks and spray bursts. */
   bursts?: readonly UkiyoeBurst[];
+  /** Rain: `long` (default) draws Hiroshige's sky-crossing lines, `short` the old dashes. */
+  style?: "long" | "short";
+  /** Rain: how much the sky darkens at the top of the area (0–1, default .3), as in a sudden-shower print. */
+  veil?: number;
+  /** Rain and snow: the ground line (local y) where drops splash and flakes settle. */
+  ground?: number;
 }
 
 const wrap = (v: number, lo: number, len: number) => lo + ((((v - lo) % len) + len) % len);
@@ -43,7 +49,35 @@ export function drawParticles(spec: UkiyoeParticleSpec, frame: number, wind: num
     case "foxfire": return foxfire(n, [ax, ay, aw, ah], frame, seed, size);
     case "bubbles": return bubbles(n, [ax, ay, aw, ah], frame, seed, size);
     case "whirlwind": return whirlwind([ax, ay, aw, ah], frame, seed, size, (spec.count ?? 0) > 0);
-    case "rain": {
+    case "rain": if (spec.style !== "short") {
+      // After Hiroshige's *Sudden Shower over Shin-Ōhashi*: long fine lines crossing the whole sky, cut on two blocks —
+      // a dark one and a grey one at a slightly different angle — over a sky that darkens toward the top.
+      const speed = spec.speed ?? 38, families: string[] = ["", "", ""], veil = spec.veil ?? .3;
+      if (veil > 0) out.push({ t: "fill", d: `M${ax} ${ay}h${aw}v${ah}h${-aw}Z`, fill: { type: "linear", angle: 90, stops: [[0, "sumi", veil], [.55, "sumi", veil * .25], [1, "sumi", 0]] }, noPrint: true });
+      for (let i = 0; i < n; i++) {
+        const fam = i % 3 === 0 ? 0 : i % 3 === 1 ? 1 : 2, ang = ((spec.angle ?? 4) + (fam === 1 ? 3 : fam === 2 ? -1.2 : 0) + wind * 9) * DEG;
+        const len = ah * (.35 + .6 * hash01(seed, i, 1)) * size;
+        const travel = frame * speed * (.85 + .3 * hash01(seed, i, 2));
+        const y = wrap(ay - len + hash01(seed, i, 3) * (ah + len) + travel, ay - len, ah + len * 1.05);
+        const x = wrap(ax + hash01(seed, i, 4) * aw + Math.tan(ang) * (y - ay), ax - 60, aw + 120);
+        families[fam] += `M${x.toFixed(1)} ${y.toFixed(1)}l${(Math.sin(ang) * len).toFixed(1)} ${(Math.cos(ang) * len).toFixed(1)}`;
+      }
+      out.push({ t: "stroke", d: families[0], color: spec.color ?? "sumi", width: 1.2 * size, opacity: (spec.opacity ?? .7), cap: "butt" });
+      out.push({ t: "stroke", d: families[1], color: spec.color ?? "usuzumi", width: 1 * size, opacity: (spec.opacity ?? .7) * .85, cap: "butt" });
+      out.push({ t: "stroke", d: families[2], color: spec.color ?? "sumi", width: .7 * size, opacity: (spec.opacity ?? .7) * .55, cap: "butt" });
+      if (spec.ground !== undefined) {
+        // Splashes where the drops strike: tiny crowns of upward ticks that flash for a few frames.
+        const ticks: string[] = [];
+        for (let i = 0; i < Math.round(n * .35); i++) {
+          const period = 9 + 9 * hash01(seed, i, 21), life = ((frame + hash01(seed, i, 22) * period) % period) / period;
+          if (life > .5) continue;
+          const sx = ax + hash01(seed, i + Math.floor((frame + hash01(seed, i, 22) * period) / period) * 7, 23) * aw, sy = spec.ground + hash01(seed, i, 24) * 30, h = (3 + 6 * life) * size;
+          ticks.push(`M${(sx - h).toFixed(1)} ${(sy - h * .3).toFixed(1)}L${sx.toFixed(1)} ${sy.toFixed(1)}L${(sx + h).toFixed(1)} ${(sy - h * .3).toFixed(1)}M${sx.toFixed(1)} ${(sy - h).toFixed(1)}L${sx.toFixed(1)} ${sy.toFixed(1)}`);
+        }
+        out.push({ t: "stroke", d: ticks.join(""), color: "gofun", width: .9 * size, opacity: .65 });
+      }
+      return out;
+    } else {
       // Two families of lines at slightly different angles, like the two rain blocks of a sudden-shower print.
       const speed = spec.speed ?? 34, families: string[] = ["", ""];
       for (let i = 0; i < n; i++) {
@@ -59,14 +93,19 @@ export function drawParticles(spec: UkiyoeParticleSpec, frame: number, wind: num
       return out;
     }
     case "snow": case "embers": {
-      const dots: string[] = [], speed = spec.speed ?? (spec.type === "snow" ? 1.4 : -1.6);
+      // Three depths, as in Hiroshige's snow: many small faint flakes far off falling slowly, fewer nearer, and a few
+      // large soft flakes close to the lens drifting faster and swaying wider.
+      const layers: string[][] = [[], [], []], speed = spec.speed ?? (spec.type === "snow" ? 1.4 : -1.6), snow = spec.type === "snow";
       for (let i = 0; i < n; i++) {
-        const r = (1.6 + 3.4 * hash01(seed, i, 1) ** 2) * size, depth = .5 + r / (5 * size);
+        const u = hash01(seed, i, 1), layer = snow ? (u < .6 ? 0 : u < .9 ? 1 : 2) : 1, depth = [.55, 1, 1.7][layer];
+        const r = (snow ? [1.8, 3, 5.6][layer] * (.8 + .4 * hash01(seed, i, 5)) : 1.6 + 3.4 * u ** 2) * size;
         const y = wrap(ay + hash01(seed, i, 2) * ah + frame * speed * depth, ay - 10, ah + 20);
-        const x = wrap(ax + hash01(seed, i, 3) * aw + Math.sin(frame / (30 + 30 * hash01(seed, i, 4)) + i) * 14 + wind * frame * 2.2 * depth, ax - 10, aw + 20);
-        dots.push(circleD(x, y, r));
+        const x = wrap(ax + hash01(seed, i, 3) * aw + Math.sin(frame / (30 + 30 * hash01(seed, i, 4)) + i) * 14 * depth + wind * frame * 2.2 * depth, ax - 10, aw + 20);
+        layers[layer].push(circleD(x, y, r));
       }
-      out.push({ t: "dots", d: dots.join(""), color: spec.color ?? (spec.type === "snow" ? "gofun" : "tan"), opacity: spec.opacity ?? .95 });
+      const color = spec.color ?? (snow ? "gofun" : "tan"), op = spec.opacity ?? .95;
+      out.push({ t: "dots", d: layers[0].join(""), color, opacity: op * (snow ? .7 : 1) }, { t: "dots", d: layers[1].join(""), color, opacity: op * (snow ? .9 : 1) });
+      if (layers[2].length) out.push({ t: "dots", d: layers[2].join(""), color, opacity: op });
       return out;
     }
     case "petals": case "leaves": {

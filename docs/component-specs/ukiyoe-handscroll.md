@@ -426,6 +426,17 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
 
   Storybook **Parades** plays them.
 
+### Print-quality weather and fire
+
+- **Rain.** After Hiroshige's *Sudden Shower over Shin-Ōhashi*: long fine lines crossing most of the sky, on three
+  blocks (a dark one, a grey one at a slightly different angle, a faint one) over a `veil` that darkens the sky toward
+  the top. `ground` adds splash crowns where drops strike. `style: "short"` keeps the earlier dashes.
+- **Snow.** Three depths: many small faint far flakes falling slowly, nearer ones, and a few large near flakes drifting
+  faster and swaying wider.
+- **Fire.** Each flame tongue rises along a swaying spine, bends over near the top and curls back into a hooked tip,
+  red above and orange at the base, with a hot core. Flamelets break from the tips and rise into smoke, which is darkest
+  just above the fire.
+
 ### Follow-through and idle life
 
 - **Sleeves and hems.** They swing on a damped spring driven by the wrists' and the body's recent motion. They trail a

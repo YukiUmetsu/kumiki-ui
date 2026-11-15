@@ -1596,6 +1596,39 @@ channels' history. No external reference was used for this slice.
 - No weight shift while standing.
 - Nobody has done a human review at playback speed.
 
+## Weather and fire (quality slice Q4, 2026-11-15)
+
+**Sources** (all Met, CC0):
+
+- Hiroshige's *Sudden Shower over Shin-Ōhashi and Atake* (55433);
+- *Sudden Shower at Shōno* (36521);
+- *Night Rain at Karasaki* (36531);
+- *Evening Snow at Kanbara* (56915), studied for E1.
+
+**What they show.**
+
+- **Rain.** Hundreds of long, fine, straight lines, some crossing the whole sky, cut on two blocks: a dark sumi block
+  and a grey block at a slightly different angle. The sky darkens toward the top, and the far bank greys out behind
+  the rain.
+- **Snow.** Flakes of very different sizes; the near ones are large and soft.
+- **Fire.** In the scrolls and prints, fire is drawn as tongues that curl over into hooked tips, not as cones.
+
+**Before.** The rain was short, sparse scratches. The snow was uniform dots. The fire was flat zigzag cones under grey
+blobs.
+
+**Review.**
+
+- Close stills of rain and snow over a walking woman.
+- The Night Ferry squall.
+- Three frames of the burning field (flicker, flamelets, curls).
+
+**Not done.**
+
+- No rain-darkened ground or wet sheen.
+- No lantern light pools.
+- Smoke billows have no inner curls.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
