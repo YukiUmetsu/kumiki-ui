@@ -59,3 +59,16 @@
 5. Only when these pass may a character be rebuilt for gallery/production; otherwise preserve this test specimen in \`!dev\` and keep PR #281 draft.
 
 **Artist review notes from previous native portrait screenshot:** Oversized doll-like eyes, undifferentiated nose plane, almost invisible mouth volume, oversized broad head/neck attachment, short and overly rectangular sleeve arcs. New B1 specimen addresses the lack of a body-level construction reference but **does not repair F1 facial likeness** or prove wax-crayon fidelity.
+
+
+## Post-implementation native-browser image review (evidence, not approval)
+
+Actual 669x1000 Chromium screenshots after short-hair and textile-density revisions are preserved under [ArtCraft browser proof run 43712409681](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43712409681): `crayon-body-source-study-painted-299.png`, `crayon-body-source-study-construction-299.png`, and partial frame `crayon-body-source-study-painted-155.png`. The same run includes 540x960 CC0 eye screenshots. Tests passed, proving renderability and scene contract, NOT likeness or medium authenticity.
+
+- **Body reference match:** The original B1 photo has short, irregular head hair and a relaxed pose. The old candidate had a shoulder-length bob that visibly contradicted the source. Revised geometry uses a short rooted cap, two sideburn masses and hair flow; actual downloaded PNG confirms that the bob is gone. This is a silhouette correction, not individual identity likeness.
+- **Body artistic deficiencies:** Cuffs, collar leaves, pocket flaps, buttons, full hands, separately constructed jeans and sneakers all appear at correct approximate positions; however, hands remain mitt-shaped, torso folds resemble decorative squiggles, pants have mechanically scratched cross-hatching, and sneakers are overly symmetric. Native artwork remains unsuitable for release.
+- **Wax material:** Lowering uncontrolled material contrast helps recover directional shirt pinstripes but the wax still resembles broken digital hatching, not rubbed wax with connected pressure accumulation. No genuine physical redeposition or source-aligned crayon microtexture evidence exists. Material fidelity REJECTED.
+- **CC0 face:** The isolated F1 source eye now uses a darker iris and extra rooted brow fibers, but actual native renders still show a broadly symmetric white eye and oversized violet socket unlike the narrower source. Eye artistic gate FAIL. Never graft F1 eye onto separate B1 identity.
+- **Source caution:** Wikimedia Commons describes B1 as a *boy standing*. Age cannot be established precisely by the current art study, so do not claim this is an adult identity. The study is labeled a standing figure; source photo remains remotely linked with Irawanthea92 credit and CC BY-SA 4.0. No source pixels shipped.
+
+**Gate:** Keep this work in one Storybook `!dev` laboratory and leave PR #281 **draft**. It is not a production-ready crayon character. Next steps: a legally usable high-resolution face/body source of one subject, accurate registered landmarks and connected anatomy, actual wax stroke-micrograph baseline, and independent artist acceptance of native screenshots and moving poses.
