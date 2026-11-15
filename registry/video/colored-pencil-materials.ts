@@ -8,7 +8,7 @@ import type { PencilObjectInput, PencilRegion, PencilTrace } from "./colored-pen
  */
 export const PENCIL_MATERIALS = [
   "petal", "leaf", "citrus", "glass", "metal",
-  "masonry", "fabric", "wood", "stone", "fur",
+  "masonry", "fabric", "wood", "stone", "fur", "cast-shadow",
 ] as const;
 export type PencilSurface = typeof PENCIL_MATERIALS[number];
 type Mark = "hatch" | "fiber" | "stipple";
@@ -58,6 +58,9 @@ const RECIPES: Record<PencilSurface, Recipe> = {
   fur: { density:"dense", marks:["hatch","fiber","fiber"], tone:"core",
     flow:29, direction:17, underpaintOpacity:.78, support:true,
     clipDetails:true, contourOpacity:.5 },
+  "cast-shadow": { density:"soft", marks:["hatch","hatch","stipple"], tone:"core",
+    flow:0, direction:4, underpaintOpacity:.15, support:false,
+    clipDetails:true, contourOpacity:.14 },
 };
 export interface PencilMaterialInput {
   surface: PencilSurface;
@@ -107,7 +110,8 @@ export function createPencilMaterialRegion(input: PencilMaterialInput): PencilRe
       ...layer, texture:recipe.marks[index],
       // Every pass deposits physically separate marks. Glass avoids the
       // opaque matte and keeps light, low-pressure pigment at its edges.
-      pressure:input.surface === "glass" ? layer.pressure * .65 : layer.pressure,
+      pressure:input.surface === "glass" ? layer.pressure * .65 :
+        input.surface === "cast-shadow" ? layer.pressure * .55 : layer.pressure,
     })),
   };
 }
