@@ -6,7 +6,7 @@ import {RisoPrint} from "../../registry/video/print-plates-react";
 import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import {COURIER} from "./riso-character-demo";
 import {PAPER_ARTIST} from "./riso-human-ensemble";
-import {RISO30_ANAT1_HAND,inspectRisoHandArtcraft} from "./riso-hand-artcraft";
+import {RISO30_ANAT1_HAND,inspectRisoHandArtcraft,layoutRisoHandArtcraft} from "./riso-hand-artcraft";
 import type {RisoHandSide} from "./riso-hand-artcraft";
 
 type PlateMode="both"|"blue"|"red";
@@ -42,14 +42,17 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     p.id.startsWith(side+"-glove")||p.id===side+"-finger-joint-lines"||
     p.id==="cuff-"+side||p.id===side+"-forearm").map(p=>p.id),[actor,side]);
   const region=inspectRisoHandArtcraft(actor,frame,side);
-  const x=aspect.width*.50-palm.x*zoom;
-  // Fifth fingertip remains within the real print crop: forearm terminates
-  // above, distal nail-bed marks below. No artificial source clipping.
-  const y=aspect.height*.44-palm.y*zoom;
+  // Frame the real articulated five-finger and forearm envelope: the
+  // Artist's hand rotates almost horizontally at 160f, so wrist-centering
+  // alone clipped source fingertips even though the actor had them.
+  const camera=layoutRisoHandArtcraft(pose,side,zoom,aspect.width,aspect.height);
+  const {x,y}=camera;
   return <article data-km-riso30-hand={actor.id+"-"+side}
     data-km-riso30-hand-frame={frame}
     data-km-riso30-hand-parts={region.sourceCount}
     data-km-riso30-hand-artcraft={String(region.actuallyEngraved)}
+    data-km-riso30-crop-margin={camera.marginX.toFixed(2)}
+    data-km-riso30-effective-scale={camera.scale.toFixed(2)}
     style={{border:"1px solid #CBB9A4",borderRadius:7,padding:13,background:"#FFF7E9"}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:8,marginBottom:9}}>
       <strong style={{fontSize:16}}>{actor.id==="courier"?"Courier · donor":"Paper Artist · receiver"}</strong>
@@ -64,14 +67,14 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
         foregroundLayers={[{
           id:actor.id+"-"+side+"-anatomy",
           knockout:<RisoCharacterKnockout spec={actor} frame={frame}
-            x={x} y={y} scale={zoom} spread={1.2}
+            x={x} y={y} scale={camera.scale} spread={1.2}
             onlyPartIds={inkPartIds}/>,
           artworks:{
             blue:paint=><RisoCharacterInk spec={actor} frame={frame}
-              plateId="blue" x={x} y={y} scale={zoom} paint={paint}
+              plateId="blue" x={x} y={y} scale={camera.scale} paint={paint}
               showRig={showRig} onlyPartIds={inkPartIds}/>,
             red:paint=><RisoCharacterInk spec={actor} frame={frame}
-              plateId="red" x={x} y={y} scale={zoom} paint={paint}
+              plateId="red" x={x} y={y} scale={camera.scale} paint={paint}
               onlyPartIds={inkPartIds}/>,
           },
         }]}
