@@ -8,6 +8,7 @@ import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
 import { realmScene, UKIYOE_REALM_SCENES } from "../registry/video/ukiyoe/ukiyoe-realms";
 import { paradeScene, UKIYOE_PARADE_SCENES } from "../registry/video/ukiyoe/ukiyoe-parade";
+import { faceTraits } from "../registry/video/ukiyoe/ukiyoe-face";
 import { inspectUkiyoeEpisode, ukiyoeCaptionLines, ukiyoeEpisode, ukiyoeEpisodeSrt, ukiyoeTitleCard } from "../registry/video/ukiyoe/ukiyoe-episode";
 import { KASA_JIZO_EPISODE } from "../src/video/ukiyoe-kasa-jizo";
 import { URASHIMA_EPISODE } from "../src/video/ukiyoe-urashima";
@@ -184,7 +185,9 @@ describe("UKIYO1 figures", () => {
     const flat = (ps: P[]): P[] => ps.flatMap(p => p.t === "group" || p.t === "clip" ? flat(p.prims ?? []) : [p]);
     const look = { hair: "shimada" as const, robe: "beni", under: "ki" }, walk = [{ type: "walk" as const, start: 0, end: 100, to: 300 }];
     const draw = (view?: "front" | "back") => drawFigure({ look: { ...look, view }, actions: walk }, 25, 0, 3);
-    const eyes = (view?: "front" | "back") => flat(draw(view).prims as P[]).filter(p => p.t === "dots" && p.color === "sumi").length;
+    // Each open eye draws its iris clipped to the lids.
+    const irises = (ps: P[]): number => ps.reduce((n, p) => n + ((p as { key?: string }).key === "iris" ? 1 : p.prims ? irises(p.prims) : 0), 0);
+    const eyes = (view?: "front" | "back") => irises(draw(view).prims as P[]);
     expect(eyes("front")).toBe(2);
     expect(eyes("back")).toBe(0);
     const [pro, front, back] = [undefined, "front", "back"].map(v => JSON.stringify(draw(v as never).prims));
@@ -206,7 +209,9 @@ describe("UKIYO1 oiran", () => {
     const draw = (view: "profile" | "three-quarter" | "front" | "back") => drawFigure({ look: { ...UKIYOE_OIRAN_LOOKS.oiran, view } }, 20, 0, 3).prims as P[];
     const all = (["profile", "three-quarter", "front", "back"] as const).map(v => JSON.stringify(draw(v)));
     expect(new Set(all).size).toBe(4);
-    const eyes = (v: "front" | "back") => flat(draw(v)).filter(p => p.t === "dots" && p.color === "sumi").length;
+    type Q = { key?: string; prims?: Q[] };
+    const irises = (ps: Q[]): number => ps.reduce((n, p) => n + (p.key === "iris" ? 1 : p.prims ? irises(p.prims) : 0), 0);
+    const eyes = (v: "front" | "back") => irises(drawFigure({ look: { ...UKIYOE_OIRAN_LOOKS.oiran, view: v } }, 10, 0, 3).prims as Q[]);
     expect(eyes("front")).toBe(2);
     expect(eyes("back")).toBe(0);
     // The clogs (black teeth from the side, lacquered blocks from the front) reach the ground within a pixel or two,
@@ -1045,5 +1050,22 @@ describe("UKIYO1 Kaguya-hime", () => {
     const stalk = (progress: number) => JSON.stringify(drawMotif("takegiri", { rises: 1 }, { frame: 0, wind: 0, seed: 1, progress }));
     expect(stalk(0)).not.toContain("takegiri-girl");
     expect(stalk(1)).toContain("takegiri-girl");
+  });
+});
+
+describe("UKIYO1 faces", () => {
+  it("draws expressions, keeps one face per character across views and props, and gives different looks different faces", () => {
+    const head = (look: object, actions: unknown[] = []) => JSON.stringify(drawFigure({ look, actions } as never, 20, 0, 3).prims.find(p => p.t === "group" && /scale\(/.test(p.transform ?? "")));
+    const woman = { hair: "shimada", robe: "beni" };
+    const calm = head(woman);
+    for (const mood of ["smile", "laugh", "sad", "cry", "surprise", "angry", "fear", "shy"]) expect(head(woman, [{ type: "emote", mood, start: 0, end: 100, blend: 1 }]), mood).not.toBe(calm);
+    // Same identity, different prop: the same face traits.
+    const a = faceTraits({ ...woman, prop: "umbrella", view: "front" } as object, true), b = faceTraits(woman, true);
+    expect(a).toEqual(b);
+    // Twelve different townsmen: the trait sets are not all the same.
+    const men = ["ai", "cha", "kusa", "beni", "murasaki", "kogecha", "sora", "ki", "sumi", "matsu", "tan", "usuzumi"].map(robe => JSON.stringify(faceTraits({ hair: "chonmage", robe } as object, false)));
+    expect(new Set(men).size).toBeGreaterThan(6);
+    // Women are powdered white unless the look gives a skin.
+    expect(JSON.stringify(drawFigure({ look: woman } as never, 0, 0, 1).prims)).toContain('"fill":"gofun"');
   });
 });

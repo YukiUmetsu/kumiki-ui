@@ -1485,6 +1485,57 @@ Storybook has **Parades**.
 - No video render yet.
 - Nobody has done a human visual review yet.
 
+## Faces (quality slice Q1, 2026-11-15)
+
+**Sources** (all Met, CC0), studied in close crops:
+
+- Kitagawa Utamaro's *A Young Woman Reading a Letter* (36626);
+- *Okita of the Naniwa-ya Teahouse* (55867);
+- *Hanaōgi of the Gomeirō* (53654);
+- *Hanazuma of Hyōgoya* (54862);
+- *Yamauba Blackening her Teeth* (40244).
+
+**What they show.**
+
+- **The face.** Cut with the finest line on the block.
+- **The eye.** A single long upper-lid line with a slight lift at the outer end. A small black iris hangs from it,
+  partly hidden. There is almost no lower lid.
+- **The brows.** Grey smudges set high, with a darker lower edge.
+- **The nose.** In three-quarter, one line from between the brows to a small hook at the nostril.
+- **The mouth.** Tiny: a red upper lip and a fuller lower lip, parted by a dark line.
+- **The hairline.** Hundreds of fine combed strands (kewari) that fade into the skin. The hairline over the brow is the
+  Fuji shape, dipping to a point.
+- **The hair.** The side locks are combed into thin, see-through wings. The knot is bound with a red cloth and a paper
+  tie. A tortoiseshell comb sits before the knot, with a bar through it and pins with dangling strips.
+
+**What was built.**
+
+- `ukiyoe-face.ts`: features, expressions and traits.
+- The profile and front shimada, rebuilt.
+- The front-view women's face, narrowed.
+- Powdered skin for women.
+
+**Review rounds.**
+
+1. **Before.** Every face was a dot eye and a dash brow under a helmet of hair, and men and women differed only in
+   their hair.
+2. **First pass.** The hairline strands were heavy grey smears, the iris too big, and the face line too heavy. All were
+   thinned.
+3. **Front view.**
+   - The strands were drawn in profile units, so they ran down over the whole face. They now take a unit scale.
+   - The crown polygon covered the forehead.
+   - The front shimada was a bowl. It is now wings, a puff, the knot, a comb and pins.
+4. **Tests.**
+   - The face hash first included the view, so a figure turning from profile changed face. It now hashes identity only.
+   - Eye-count tests now count iris clips.
+
+**Not done.**
+
+- Hands are still simple.
+- Men's hair in front view is unchanged.
+- Hyōgo, Heian and maiko hairstyles keep their earlier hairlines without kewari.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
