@@ -312,8 +312,8 @@ export function paperBotanicalSpec(
   for(const sign of [-1,1] as const){
     const bx=vertical?sign*21:sign*450,by=vertical?sign*450:sign*22;
     const stem=vertical?
-      leaf(p,bx,by-sign*75,bx,by+sign*58,3.8):
-      leaf(p,bx-sign*78,by,bx+sign*53,by,3.8);
+      leaf(p,bx,by-sign*165,bx,by+sign*58,3.8):
+      leaf(p,bx-sign*165,by,bx+sign*53,by,3.8);
     add("aspect-spray-"+(sign<0?"a":"b"),c.stem,4,stem,{
       enterFrame:22,durationFrames:40});
     const bloomX=vertical?bx:bx-sign*24,bloomY=vertical?by-sign*26:by;

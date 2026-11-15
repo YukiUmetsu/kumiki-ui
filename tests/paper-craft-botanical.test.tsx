@@ -17,6 +17,16 @@ describe("PAPER1 ArtCraft botanical construction", () => {
         expect(spec.layers.length).toBeGreaterThan(60);
         expect(spec.layers.length).toBeLessThanOrEqual(80);
         expect(new Set(spec.layers.map(l=>l.id)).size).toBe(spec.layers.length);
+        // The peripheral floral sprays must overlap the round cardstock disk,
+        // not float independently in either aspect.
+        for(const name of ["aspect-spray-a","aspect-spray-b"]){
+          const spray=spec.layers.find(l=>l.id===name)!;
+          const start=/^M(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/.exec(spray.path);
+          expect(start).not.toBeNull();
+          const radius=Math.hypot(Number(start![1])-spec.width/2,
+            Number(start![2])-spec.height/2);
+          expect(radius).toBeLessThan(322*Math.min(spec.width,spec.height)/720);
+        }
         expect(spec.layers.filter(l=>l.id.startsWith("flower-"))).toHaveLength(20);
         expect(spec.layers.find(l=>l.id==="flower-0-top")?.holes).toHaveLength(9);
         expect(spec.layers.find(l=>l.id==="moth-left-fore")?.holes).toHaveLength(13);

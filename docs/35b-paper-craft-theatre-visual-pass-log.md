@@ -72,3 +72,10 @@ A second original subject was built to avoid relying on palette changes alone. T
 Reviewed successful Chromium captures and both original FilmStage output formats from [initial botanical proof](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43655908826). Source-generated images confirmed the scene is coherent, that both palettes show paper depth, and that portrait proportions are correct. **Critical visual weakness:** the butterfly fore/hind wings were broad nearly featureless drops, materially much simpler than the reference craftsmanship. Ivory paper relief was especially low-detail.
 
 Code correction: replace smooth oval wing outlines with multi-scalloped continuous cuts, increase genuine forewing perforations to 13 per side and hindwing perforations to 8 per side, add four different tapered vein bands to each forewing and three to each hindwing, emboss nine fine petal cuts per inner flower corolla, perforate the moth abdomen, and mirror wing swing directions. Memoize the costly scene geometry during Storybook playback. Verify the new screenshots before release; the first run is no longer sufficient evidence.
+
+
+## ArtCraft pass 11 — physical continuity and efficient CI
+
+Reviewed production and Storybook images from the revised wing/perforation pass (the prior approval evidence is visually superseded). New detail is clearly legible in color and ivory, with correct portrait proportions and no translucent subject stock. The aspect-only flower sprays, however, stopped just outside the circular papercraft mat. The rachis now begins **inside** the medallion radius so the flower and stem have a visible physical bridge to the main relief in both 16:9 and 9:16. A regression asserts this geometric overlap.
+
+The expensive browser/film CI job now tests only the latest botanical studies and new three-scene film; older paper art browser suites remain in source for local runs. It captures a two-aspect native film frame and a 108-frame true production-slot preview. The cheaper targeted workflow still runs all paper unit tests and validates both older and newer JSON film documents.
