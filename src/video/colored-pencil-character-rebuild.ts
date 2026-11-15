@@ -277,7 +277,7 @@ export function createKingfisherActor():PencilActorSpec {
         trace("M35 106 Q79 102 99 104","#182536",.95,249),
       ]}),
     part({id:"feet",material:"keratin",colors:["#A76854","#624951","#E1A085"],
-      parent:"torso",pivot:[129,186],
+      parent:"torso",pivot:[129,186],freeDetails:true,
       path:KINGFISHER_PERCHING_FEET.path,
       bounds:KINGFISHER_PERCHING_FEET.bounds,direction:69,
       details:KINGFISHER_PERCHING_FEET.details}),
