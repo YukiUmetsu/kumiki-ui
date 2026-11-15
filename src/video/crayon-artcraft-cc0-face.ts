@@ -304,26 +304,26 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "C277 591 239 587 215 571Q190 560 185 520Z",
     rect(177,466,159,127),["#986d75","#55434f","#b78c91"],[89,197],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.64,spacing:6.8,markStrength:.39,blendRadius:10});
+      pressure:.54,spacing:7.1,markStrength:.27,blendRadius:13});
   wax("socket-far",
     "M390 474Q406 447 435 443Q457 441 471 460"+
     "Q483 484 480 523Q469 549 434 544Q398 539 390 507Z",
     rect(384,435,104,118),["#936f79","#594851","#b58b91"],[94,199],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.61,spacing:6.8,markStrength:.34,blendRadius:8.2});
+      pressure:.55,spacing:7,markStrength:.24,blendRadius:11});
   wax("brow-superciliary-near",
     "M201 496C223 477 250 463 278 462"+
     "C300 458 315 470 324 478Q303 470 281 474"+
     "C252 474 224 492 201 496Z",
     rect(196,453,133,50),["#795753","#493a3e","#aa8576"],[118,224],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.62,spacing:6.3,markStrength:.42,blendRadius:5});
+      pressure:.52,spacing:7.1,markStrength:.29,blendRadius:7.5});
   wax("brow-superciliary-far",
     "M393 465Q412 445 444 437Q461 435 473 440"+
     "Q458 443 441 451Q418 460 393 465Z",
     rect(388,433,91,38),["#765751","#493b3c","#a8837c"],[120,223],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.56,spacing:6.2,markStrength:.35,blendRadius:4.2});
+      pressure:.49,spacing:7.2,markStrength:.27,blendRadius:6.5});
   // F1 upper orbital fat/eyelash attachment is an irregular asymmetric
   // skin plane, not a hard oval or freehand floating eyebrow.
   wax("eye-orbital-undercut-near",
@@ -333,14 +333,14 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(202,499,117,53),
     ["#906b74","#5c4b57","#ba9293"],[127,225],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.61,spacing:6.3,markStrength:.38,blendRadius:6.4});
+      pressure:.5,spacing:7.2,markStrength:.25,blendRadius:9});
   wax("eye-orbital-undercut-far",
     "M403 522Q410 502 430 491Q451 481 470 504"+
     "Q452 492 438 502Q414 510 403 522Z",
     rect(398,480,77,47),
     ["#8c6972","#554750","#ad858a"],[133,230],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.6,spacing:6.3,markStrength:.35,blendRadius:5.6});
+      pressure:.51,spacing:7.2,markStrength:.24,blendRadius:8.3});
   // F1 photographed three-quarter eye topology, 608×1082 crop.
   // Near canthi x218..322; upper iris is occluded by lash margin.
   // Far eye x405..474 is narrower and hair-occluded, not mirrored.
@@ -450,16 +450,16 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "M281 535 C282 532 282 530 283 529 "+
     "M289 537 C291 534 292 532 293 531 "+
     "M298 540 C301 538 303 536 305 535",
-    "#31282d",.33,[219,299],.87,"face-outline",
-    {waxContact:"dry-wax",waxPressure:.76});
+    "#45363a",.24,[219,299],.7,"face-outline",
+    {waxContact:"dry-wax",waxPressure:.56});
   mark("lash-contact-far",
     "M418 517 C415 514 413 511 411 509 "+
     "M426 511 C423 508 422 505 422 503 "+
     "M433 507 C432 504 431 501 431 500 "+
     "M441 505 C442 502 442 500 443 499 "+
     "M451 505 C453 503 454 501 455 500",
-    "#2e252b",.3,[220,299],.82,"face-outline",
-    {waxContact:"dry-wax",waxPressure:.73});
+    "#3b3035",.24,[220,299],.67,"face-outline",
+    {waxContact:"dry-wax",waxPressure:.53});
   // Lower tarsal lip and infraorbital shadow: separate adjacent
   // 3D planes, not another complete thin oval under the eye.
   wax("lower-lid-near",
@@ -467,7 +467,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "C315 561 299 579 274 582Q237 591 213 574Z",
     rect(207,538,120,57),["#a87577","#684f56","#d09a92"],[184,276],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.58,spacing:6.8,markStrength:.36,blendRadius:5.8});
+      pressure:.51,spacing:7.5,markStrength:.27,blendRadius:7.8});
   wax("lower-lid-far",
     "M404 526Q421 539 442 533Q467 529 474 511"+
     "Q471 544 449 550Q422 550 406 536Z",
@@ -493,7 +493,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(212,546,110,48),
     ["#a67777","#74575b","#cfa19a"],[214,299],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.46,spacing:7.7,markStrength:.27,blendRadius:4.4});
+      pressure:.43,spacing:7.9,markStrength:.2,blendRadius:6.2});
   wax("lower-lid-margin-far",
     "M408 532Q430 548 450 539Q464 535 471 518"+
     "Q469 549 449 553Q426 556 408 532Z",
@@ -920,8 +920,8 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   ] as const;
   for(let i=0;i<Math.round(eyebrowFiberGroups.length*detail);i++)
     mark("brow-fibers-"+i,eyebrowFiberGroups[i],
-      "#5c403e",.48,[201,298],.71,"face-outline",
-      {waxContact:"dry-wax",waxPressure:.68});
+      "#69504c",.25,[201,298],.51,"face-outline",
+      {waxContact:"dry-wax",waxPressure:.48});
   // Source lids, lashes, and meniscus are layered before hair occlusion.
   // No late floating digital line marks over the eyelid or dark curtain.
   // Alar relief and labial commissures are deposited in their anatomical
