@@ -577,7 +577,12 @@ export function Bestiary() {
   const [wind, setWind] = useState(.3);
   const [cadence, setCadence] = useState<1 | 2 | 3 | 4>(2);
   const [chosen, setChosen] = useState<Record<string, string>>(() => Object.fromEntries(BESTIARY.map(b => [b.id, b.actions[0]])));
+  const [view, setView] = useState<"profile" | "three-quarter">("profile");
   const clock = usePlayback(240, 30, 1, true, true);
+  // The View switch turns every animal and figure three-quarters toward the viewer (creatures: body, far legs, head;
+  // figures: face, torso and limbs).
+  const turn = (n: UkiyoeNode): UkiyoeNode => view === "profile" || (n.kind !== "creature" && n.kind !== "figure") ? n
+    : ({ ...n, look: { ...(n.look ?? {}), view } } as UkiyoeNode);
   const specs = useMemo(() => BESTIARY.map((b): UkiyoeSceneSpec => ({
     version: 1, id: "best-" + b.id, width: 600, height: 400, durationFrames: 240, seed: 70 + b.id.length, cadence, wind: { base: wind, turbulence: .4 },
     palette: { preset: b.sky === "storm" ? "edo" : "spring" },
@@ -587,10 +592,11 @@ export function Bestiary() {
         : b.sky === "night" ? { id: "sky", kind: "motif", motif: "sky", params: { width: 600, height: 400, top: "yoru", mid: "ai", band: .7, horizon: "murasaki" } }
         : { id: "sky", kind: "motif", motif: "sky", params: { width: 600, height: 400, band: .35, horizon: "beni" } },
       ...(b.sky === "storm" ? [] : [{ id: "ground", kind: "block", x: 300, y: 365, shape: { type: "rect", width: 620, height: 90 }, fill: b.sky === "night" ? { type: "linear", angle: 90, stops: [[0, "ai", 1], [1, "yoru", 1]] } : { type: "linear", angle: 90, stops: [[0, "kusa", .8], [1, "matsu", .9]] }, grain: .8, line: 1 } as UkiyoeNode]),
-      b.node(chosen[b.id]),
+      turn(b.node(chosen[b.id])),
       { id: "t", kind: "text", style: "caption", depth: 0, x: 300, y: 394, text: b.label, size: 20 },
     ],
-  })), [wind, cadence, chosen]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  })), [wind, cadence, chosen, view]);
   return <div style={page}>
     <Header kicker="UKIYO1 · Folktale bestiary" title="Animals, spirits and the things of old stories">
       <p style={{ margin: 0 }}>Creature rigs drawn as the animal prints of Koson and Kuniyoshi draw them: one coat silhouette whose
@@ -611,6 +617,7 @@ export function Bestiary() {
     <section aria-label="Bestiary controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
       <Slider name="Wind" value={wind} min={-2} max={2} step={.1} onChange={setWind} format={v => v.toFixed(1)} />
       <Select name="Cadence" value={cadence} options={[1, 2, 3, 4] as const} onChange={setCadence} labels={{ 1: "On ones", 2: "On twos", 3: "On threes", 4: "On fours" }} />
+      <Select name="View" value={view} options={["profile", "three-quarter"] as const} onChange={setView} labels={{ profile: "Profile", "three-quarter": "Three-quarter" }} />
     </section>
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
       {specs.map((s, i) => {

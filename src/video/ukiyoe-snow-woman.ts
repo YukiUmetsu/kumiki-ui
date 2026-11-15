@@ -36,7 +36,7 @@ const pass: UkiyoeShot = { id: "pass", title: "The mountain pass", sound: { soun
       { id: "road", kind: "block", depth: 1, x: 960, y: road + 70, shape: { type: "polygon", points: [[-1400, -40], [1400, -70], [1400, 60], [-1400, 90]] }, fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [1, "usuzumi", .35]] }, grain: .6, line: 0 } as UkiyoeNode,
       motif("jizo", "jizo", 1500, road + 30, { height: 120, count: 5, cap: true, snow: 1, moss: .3 }, { depth: 1 }),
       // A fox trots across the snow, stops and looks back at the traveller.
-      creature("fox", "fox", 1900, road + 110, { depth: 1, scale: .9, actions: [{ type: "walk", start: 10, end: 140, to: -520 }, { type: "look", start: 140, end: 200, angle: -30 }, { type: "run", start: 200, end: dur, to: -1500 }] }),
+      creature("fox", "fox", 1900, road + 110, { depth: 1, scale: .9, look: { view: "three-quarter" }, actions: [{ type: "walk", start: 10, end: 140, to: -520 }, { type: "look", start: 140, end: 200, angle: -30 }, { type: "run", start: 200, end: dur, to: -1500 }] }),
       creature("crow-a", "crow", 1800, 230, { depth: .5, scale: .8, actions: [{ type: "fly", start: 0, end: dur, to: -1300, toY: -40 }] }),
       creature("crow-b", "crow", 2050, 300, { depth: .5, scale: .65, actions: [{ type: "fly", start: 20, end: dur, to: -1500, toY: -80 }] }),
       // On the far road a nurikabe has crouched across the way, a wall where no wall should be.

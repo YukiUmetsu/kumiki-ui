@@ -74,7 +74,7 @@ const road: UkiyoeShot = { id: "road", title: "The road of old stories", sound: 
       // The companions: a dog, a monkey and a pheasant, the boy with his peach.
       creature("pheasant", "pheasant", 2150, gy + 90, { scale: 1.1, facing: "left", actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
       creature("monkey", "monkey", 2250, gy + 100, { scale: 1.15, facing: "left", actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
-      creature("dog", "dog", 2350, gy + 110, { scale: 1.1, facing: "left", actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
+      creature("dog", "dog", 2350, gy + 110, { scale: 1.1, facing: "left", look: { view: "three-quarter" }, actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
       fig("momo", "momo", 2600, gy + 110, { scale: .85, facing: "left", actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
       creature("cranes", "crane", 2400, gy + 60, { scale: .9, facing: "right", actions: [{ type: "dance", start: 0, end: dur }] }),
       // A kappa at the edge of the paddy bows to the travellers, spilling its dish; a packhorse waits with its load.

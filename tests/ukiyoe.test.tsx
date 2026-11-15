@@ -144,6 +144,10 @@ describe("UKIYO1 figures", () => {
     const underLines = (spec: Parameters<typeof drawFigure>[0]) => drawFigure(spec, 20, 0, 3).prims.filter(p => p.t === "line" && p.color === "ki").length;
     const woman = { hair: "shimada" as const, under: "ki", robe: "beni" };
     expect(underLines({ look: { ...woman, view: "three-quarter" } })).toBeGreaterThanOrEqual(underLines({ look: woman }) + 2);
+    // Limbs turn too: the stride's sideways spread foreshortens (the feet sit closer together in x mid-step).
+    const span = (spec: Parameters<typeof drawFigure>[0]) => { const xs = drawFigure(spec, 25, 0, 3).prims.filter(p => p.t === "fill" && /^M/.test(p.d)).flatMap(p => (p.t === "fill" ? p.d : "").match(/-?\d+(\.\d+)?/g)!.map(Number).filter((_, i) => i % 2 === 0)); return Math.max(...xs) - Math.min(...xs); };
+    const walker = { hair: "chonmage" as const, lower: "tucked" as const }, walk = [{ type: "walk" as const, start: 0, end: 100, to: 400 }];
+    expect(span({ look: { ...walker, view: "three-quarter" }, actions: walk })).toBeLessThan(span({ look: walker, actions: walk }));
     const oni = { look: CAST["oni-red"] };
     expect(head({ ...oni, actions: [{ type: "face" as const, start: 0, end: 60 }] }, 30)).toEqual(head(oni, 30));
   });
@@ -228,6 +232,15 @@ describe("UKIYO1 folktale creatures", () => {
       if (!["transform", "appear", "vanish"].includes(type)) expect(a.prims.length, species + "/" + type).toBeGreaterThan(3);
     }
     expect(creatureTravel([{ type: "fly", start: 0, end: 40, to: -300, toY: -50 }], 40)).toMatchObject({ x: -300, y: -50, dir: -1 });
+  });
+  it("turns an animal three-quarters: a shorter body and the far legs set back and higher", () => {
+    const xs = (look: Record<string, unknown>) => { const d = drawCreature({ species: "fox", look, actions: [{ type: "walk", start: 0, end: 60, to: 100 }] }, 20, 0, 5); return JSON.stringify(d.prims); };
+    const pro = xs({}), tq = xs({ view: "three-quarter" });
+    expect(tq).not.toEqual(pro);
+    expect(tq).toMatch(/"t":"group","transform":"translate\(-[\d.]+ -[\d.]+\)"/);           // far legs moved back and up
+    const crane = JSON.stringify(drawCreature({ species: "crane", look: { view: "three-quarter" }, actions: [{ type: "stand", start: 0, end: 60 }] }, 20, 0, 5).prims);
+    expect(crane).toMatch(/"t":"group","transform":"translate\(-[\d.]+ -[\d.]+\)"/);
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "c", kind: "creature", species: "fox", look: { view: "sideways" } } as never] })).map(i => i.path)).toContain("$.nodes[0].look.view");
   });
   it("vanishes a creature in a henge puff and keeps it gone", () => {
     const spec = { species: "tanuki" as const, actions: [{ type: "transform" as const, start: 10, end: 30 }] };
