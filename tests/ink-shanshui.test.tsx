@@ -500,6 +500,24 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect([...internal,...satellites].every(path=>
         path.startsWith("M")&&path.includes(" Q")&&
         !/NaN|undefined|Infinity/.test(path))).toBe(true);
+      // Dry-brush hairs must remove pigment through local SVG luminance masks.
+      // A pale overlay path was a false fei-bai simulation in earlier passes.
+      const masks=[...full.matchAll(/<mask id="(kmbamboo[^"]+)" /g)]
+        .map(m=>m[1]);
+      expect(masks).toHaveLength(165); // 102 loaded + 63 satellites
+      expect(new Set(masks).size).toBe(masks.length);
+      const primaryPaint=[...full.matchAll(
+        /data-km-shanshui-bamboo-leaf=""[^>]*fill="url\(#([^"]+)\)" mask="url\(#([^"]+)\)"/g,
+      )];
+      expect(primaryPaint).toHaveLength(102);
+      const echoPaint=[...full.matchAll(
+        /data-km-bamboo-satellite-leaf=""[^>]*fill="url\(#([^"]+)\)" mask="url\(#([^"]+)\)"/g,
+      )];
+      expect(echoPaint).toHaveLength(63);
+      expect(primaryPaint.concat(echoPaint).every(([,gradient,mask])=>
+        full.includes('id="'+gradient+'"')&&full.includes('id="'+mask+'"')))
+        .toBe(true);
+      expect(full).toContain('maskType:luminance');
       expect(full).not.toMatch(/NaN|Infinity|undefined/);
       const sparse=renderToStaticMarkup(createElement(InkShanshuiStage,{
         frame:153,controls:{...DEFAULT_SHANSHUI,scene,detail:.35},
@@ -509,6 +527,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(sparse).not.toContain("data-km-bamboo-dry-lift");
       expect(sparse).not.toContain("data-km-bamboo-internal-bristle");
       expect(sparse).not.toContain("data-km-bamboo-satellite-bristle");
+      expect(sparse).not.toContain("<mask id=\"kmbamboo");
     }
   });
 
