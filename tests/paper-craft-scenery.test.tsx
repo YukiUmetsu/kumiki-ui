@@ -167,6 +167,45 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
       expect(evaluatePaperCraft(dense,218)).toEqual(evaluatePaperCraft(same,218));
     }
   });
+  it("Alpine crests use asymmetrical knife-cut geology and pierced snow stock",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const palette of PAPER_SCENERY_PALETTES){
+        const dense=paperScenerySpec("layered",aspect,{
+          scenery:"alpine-lake",palette,detail:1,seed:37});
+        const repeat=paperScenerySpec("layered",aspect,{
+          scenery:"alpine-lake",palette,detail:1,seed:37});
+        expect(inspectPaperCraft(dense)).toEqual([]);
+        expect(dense.layers.length).toBeLessThanOrEqual(MAX_PAPER_LAYERS);
+        for(let i=0;i<3;i++){
+          const crest=dense.layers.find(l=>l.id==="alpine-peak-"+i)!;
+          const snow=dense.layers.find(l=>l.id==="alpine-snowcap-"+i)!;
+          const folds=dense.layers.find(l=>l.id==="alpine-ridge-folds-"+i)!;
+          expect((crest.path.match(/L/g)??[]).length).toBeGreaterThan(20);
+          expect(crest.path).toContain("C");
+          expect((snow.path.match(/L/g)??[]).length).toBeGreaterThan(14);
+          expect(snow.holes).toHaveLength(2);
+          expect(snow.holes?.every(h=>h.startsWith("M")&&h.endsWith("Z"))).toBe(true);
+          expect((folds.path.match(/M/g)??[])).toHaveLength(2);
+          expect(crest.depth).toBeLessThan(snow.depth);
+          expect(folds.depth).toBeGreaterThan(snow.depth);
+          expect(crest.color).toMatch(/^#[a-fA-F0-9]{6}$/);
+        }
+        expect(dense).toEqual(repeat);
+        const html=renderToStaticMarkup(React.createElement(PaperCraftStage,{
+          spec:dense,frame:221,tooth:.6,shadowStrength:.8,
+        }));
+        expect(html).not.toContain('fill-opacity="0.');
+        expect(html).toContain('data-km-paper-layer="alpine-ridge-folds-0"');
+        expect(html).toContain('clip-rule="evenodd"');
+      }
+    }
+    const seeded=paperScenerySpec("layered","landscape",{
+      scenery:"alpine-lake",detail:1,seed:38});
+    const original=paperScenerySpec("layered","landscape",{
+      scenery:"alpine-lake",detail:1,seed:37});
+    expect(seeded.layers.find(l=>l.id==="alpine-peak-1")?.path)
+      .not.toEqual(original.layers.find(l=>l.id==="alpine-peak-1")?.path);
+  });
   it("alpine water is genuinely open and mountain faces carry relief plates",()=>{
     const world=paperScenerySpec("layered","landscape",{
       scenery:"alpine-lake",palette:"moonlight",detail:1,seed:44});

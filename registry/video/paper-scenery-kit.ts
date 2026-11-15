@@ -478,6 +478,58 @@ function scenicBloom(p:P,x:number,y:number,radius:number,
   return {petals,center};
 }
 
+/** Original, knife-cut Alpine crest. One rooted, contiguous mountain sheet.
+ * A tiny seeded adjustment varies the ledges without changing the summit or
+ * breaking its silhouette during absolute-frame film seeking.
+ */
+function alpineCrestStock(p:P,m:{cx:number;peak:number;r:number;h:number},seed:number){
+  const ledges:readonly (readonly [number,number])[]=[
+    [-1,1],[-.91,.91],[-.84,.86],[-.80,.90],[-.69,.69],
+    [-.64,.72],[-.53,.57],[-.47,.61],[-.36,.36],[-.29,.41],
+    [-.18,.23],[-.13,.26],[-.06,.09],[0,0],[.10,.16],
+    [.17,.14],[.27,.32],[.35,.29],[.44,.49],[.51,.45],
+    [.66,.68],[.73,.65],[.85,.86],[.90,.82],[1,1],
+  ];
+  const foot=m.peak+m.h;
+  return [
+    p.M(m.cx-m.r,foot+6),
+    ...ledges.slice(1,-1).map(([u,v],i)=>
+      p.L(m.cx+m.r*u,m.peak+m.h*(v+(u===0?0:(paperHash(seed,i,503)-.5)*.018)))),
+    p.L(m.cx+m.r,foot+6),
+    p.C(m.cx+m.r*.69,foot+m.h*.15,m.cx-m.r*.66,foot+m.h*.21,m.cx-m.r,foot+6),
+    p.Z,
+  ].join(" ");
+}
+/** Ice cap follows the same summit and stepped shoulder points as its rock.
+ * Holes are actual knife-cut openings through the white stock to the rock
+ * beneath. Their cuttable bridge widths remain above a few stage pixels.
+ */
+function alpineSnowStock(p:P,m:{cx:number;peak:number;r:number;h:number}){
+  const site=(u:number,v:number):[number,number]=>
+    [m.cx+u*m.r,m.peak+v*m.h];
+  const path=p.poly([
+    site(-.36,.36),site(-.29,.41),site(-.18,.23),site(-.13,.26),
+    site(-.06,.09),site(0,0),site(.10,.16),site(.17,.14),
+    site(.27,.32),site(.23,.38),site(.17,.35),site(.12,.43),
+    site(.045,.32),site(-.015,.37),site(-.095,.30),
+    site(-.16,.43),site(-.21,.33),site(-.30,.47),
+  ]);
+  const holes=[
+    p.poly([site(-.14,.285),site(-.115,.26),site(-.095,.283),site(-.118,.322)]),
+    p.poly([site(.058,.24),site(.086,.225),site(.113,.271),site(.083,.297)]),
+  ];
+  return {path,holes};
+}
+/** Two small inset paper folds sit below the glacier, never texture filters. */
+function alpineRidgeFolds(p:P,m:{cx:number;peak:number;r:number;h:number}){
+  const site=(u:number,v:number):[number,number]=>
+    [m.cx+u*m.r,m.peak+v*m.h];
+  return [
+    p.poly([site(-.20,.43),site(-.49,.72),site(-.40,.71),site(-.13,.53)]),
+    p.poly([site(.22,.44),site(.55,.75),site(.47,.75),site(.12,.56)]),
+  ].join(" ");
+}
+
 /** Folded clipped glacial sediment, never uniformly tiled triangles. */
 function alpineStratum(p:P,cx:number,peak:number,span:number,offset:number,side:number){
   const rootX=cx+side*span*.14,rootY=peak+offset;
@@ -694,21 +746,15 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
     {cx:x*.81,peak:-y*.64,r:x*.48,h:y*.55,col:c.middle},
   ];
   for(const [i,m] of mountains.entries()){
-    const left=m.cx-m.r,right=m.cx+m.r,foot=m.peak+m.h;
-    add("alpine-peak-"+i,m.col,5+i,[
-      p.M(left,foot+6),p.C(left+m.r*.19,foot-13,m.cx-m.r*.31,m.peak+y*.14,m.cx,m.peak),
-      p.C(m.cx+m.r*.16,m.peak+y*.15,right-m.r*.19,foot-6,right,foot+6),
-      // Real mountain sheet ends in an irregular hidden foothill contour,
-      // never a rectangular full-stage extension with visible vertical seams.
-      p.C(right-m.r*.31,foot+y*.17,left+m.r*.31,foot+y*.24,left,foot+6),p.Z].join(" "),{
-        enterFrame:31+i*8,durationFrames:51,curl:.55});
-    add("alpine-snowcap-"+i,c.snow,8+i,
-      p.poly([[m.cx-m.r*.19,m.peak+y*.2],[m.cx-m.r*.095,m.peak+y*.14],
-        [m.cx,m.peak],[m.cx+m.r*.095,m.peak+y*.145],
-        [m.cx+m.r*.18,m.peak+y*.22],[m.cx+m.r*.10,m.peak+y*.185],
-        [m.cx+m.r*.04,m.peak+y*.25],[m.cx-m.r*.045,m.peak+y*.2],
-        [m.cx-m.r*.11,m.peak+y*.26]]),{
-          enterFrame:50+i*6,durationFrames:31,curl:.64});
+    // The pale summit is matched to the same broken rock ridge: a real
+    // layered cardstock snow sheet, not an independent generic triangle.
+    const ice=alpineSnowStock(p,m);
+    add("alpine-peak-"+i,m.col,5+i,alpineCrestStock(p,m,seed+i*193),{
+      enterFrame:31+i*8,durationFrames:51,curl:.55});
+    add("alpine-snowcap-"+i,c.snow,8+i,ice.path,{
+      holes:ice.holes,enterFrame:50+i*6,durationFrames:31,curl:.64});
+    add("alpine-ridge-folds-"+i,c.bark,11,alpineRidgeFolds(p,m),{
+      enterFrame:63+i*5,durationFrames:31,curl:.54});
     for(let j=0;j<2;j++){
       const side=j?1:-1;
       add("alpine-rock-facet-"+i+"-"+j,j?c.middle:c.mist,12,

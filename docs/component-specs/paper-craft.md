@@ -231,3 +231,10 @@ The existing Detail slider controls 5–18 true punched upper-canopy openings, u
 The existing Video production / Film Looks / Paper Craft / Scenery story uses multilevel cut-paper canopies rather than radial leaf spokes. canopyBranchLace constructs 5–9 parent branches per side, and each has 2–3 connected twig forks with asymmetric paired leaves. nestedLeafCrown constructs 3–5 leaders for each existing foreground bough and adds 2–3 connected twig junctions with real terminal leaves. Each network is authored as grouped opaque cut paper SVG geometry; no floating stickers or alpha effects.
 
 No new API, external asset, story folder, renderer or dependency. Existing detail scales real cut density; seed is frame-invariant; breeze retains coherent whole-stock hinge motion. All five media, palette/aspect controls, native FilmStage scene presets and the global 128-layer limit are preserved. Updated unit and Playwright checks assert topology density, unchanged stock count and repeatability.
+
+
+## Pass 26 — Alpine Lake die-cut ridge reconstruction
+
+The existing **Video production / Film Looks / Paper Craft / Scenery** page now uses an original connected knife-cut mountain silhouette instead of smooth convex domes. Each peak has a seeded but fixed asymmetric sequence of shoulders, ledges and sharp crest breaks. Its fitted snow stock shares summit and shoulder stations with the rock beneath rather than floating as a generic triangular sticker. Two actual cut-through snow apertures per summit reveal the underlying rock, with deliberate bridges between the openings and the outer snow edge. A companion raised cardstock sheet carries two facing folded rock planes per peak.
+
+The public `paperScenerySpec` contract is unchanged. All six Alpine combinations (two aspects × three palettes) retain deterministic absolute-frame motion, opaque cut paper, two valid punched holes per snowcap, and the 128-layer budget. No additional Storybook page, package, raster reference or animation technique was introduced. The shape-led ArtCraft review remains conditional on actual browser screenshots and native film frames, rather than path-count tests alone.

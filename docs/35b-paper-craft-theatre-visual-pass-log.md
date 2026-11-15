@@ -232,3 +232,10 @@ Render acceptance requires actual native FilmStage and Storybook screenshots at 
 ### Pass 25b — visual correction after actual R06 film capture
 
 The first R06 16:9 and 9:16 native frames verified that the new second-generation branches read as denser, better-rooted arbor forms and the sky/river remained open. However, bright pale green cardstock on the *entire upper branch lattice* made its numerous thin subpaths look like chalk-line ornament rather than dense forest silhouette, especially in tall portrait. This was a color-hierarchy mistake, not a lack of branches. The corrective pass changes only the two canopy-rib stocks to the darker leaf pigment, retaining brighter leafwork on middle-distance arbors and selected foreground leaves, while leaving cut geometry, depth and animation unchanged. Actual final-head rendering and browser checks are required again before merge.
+
+
+## Pass 26 — reference-led Alpine Lake ridge correction
+
+Study: Erin Ziter's sculpted glacier topography (NPS), Remy Glock's nested Tahoe relief and Christina Peressini's hand-cut landscape layers (see `docs/research/paper-craft-scenery-artcraft-study.md`). Replaced the three repeated dome mountains with physically contiguous ledged ridge cuts, registered the snow cap to each summit, added two true pierced snow windows per peak and a paired inset rock-fold stock. Reused the single existing Paper Craft → Scenery Storybook page and all existing style, seed, aspect, lighting and relief controls. Added cross-aspect/palette regression checks for geometry, stock order, deterministic seeking and layer limits. **Artwork is original code, not an image trace.**
+
+**Pending visual acceptance:** review final-head browser captures and native film evidence for true crest readability and cut-bridge survival; a green unit or TypeScript check cannot certify the craftsmanship.
