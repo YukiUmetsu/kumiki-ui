@@ -293,12 +293,12 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
                 while disjoint pressure-shaped ribbons catch paper ridges. */}
             <path d={progress>=1?mark.nibD:crayonNibPath(mark,progress)}
               fill={colors[mark.tone]}
-              opacity={pigmentContact*(strokeBuilt?.13+.12*mark.pressure:
+              opacity={pigmentContact*(strokeBuilt?.29+.15*mark.pressure:
                 coverage==="opaque"?.10+.13*mark.pressure:.06+.10*mark.pressure)}
               data-km-crayon-dry-binder="" />
             <path d={progress>=1?dryMarks[i]:crayonDryNibPath(mark,progress)}
               fill={colors[mark.tone]}
-              opacity={pigmentContact*(strokeBuilt?.57+.29*mark.pressure:
+              opacity={pigmentContact*(strokeBuilt?.49+.23*mark.pressure:
                 coverage==="opaque"?.48+.38*mark.pressure:.37+.29*mark.pressure)}
               data-km-crayon-dry-ribbons="" />
           </g> : nibStyle==="tapered" ?
