@@ -240,7 +240,10 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(bones).toHaveLength(24);
       expect(bones.every(m=>m[1].includes(" Q")&&m[1].endsWith(" Z"))).toBe(true);
       expect((full.match(/data-km-pine-lateral-lift=""/g)??[]).length).toBe(24);
-      expect((full.match(/data-km-pine-lateral-crotch=""/g)??[]).length).toBe(24);
+      const crotches=[...full.matchAll(/data-km-pine-lateral-crotch="" d="([^"]+)"/g)];
+      expect(crotches).toHaveLength(24);
+      expect(crotches.every(m=>!m[1].includes("--")&&m[1].includes(" q")))
+        .toBe(true);
       expect((full.match(/data-km-pine-bough-bark-root="[^"]+"/g)??[]).length).toBe(72);
       expect((full.match(/data-km-pine-bark-fissure=""/g)??[]).length)
         .toBeGreaterThanOrEqual(12);
