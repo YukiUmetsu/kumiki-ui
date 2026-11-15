@@ -1533,9 +1533,9 @@ function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
  * These are original compositional curves. All 5 bases are sampled from
  * exactly the same fractured ridge stations that draw the mountain.
  */
-function CliffPineGrove({stations,scene,seed,detail,mist}:{
+function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
   stations:readonly P[];scene:ShanshuiScene;seed:number;
-  detail:number;mist:number;
+  detail:number;mist:number;school:InkRockSchool;
 }){
   if(detail<.58)return null;
   const center=scene==="mountain-trail"?620:
@@ -1548,6 +1548,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
     {dx:33,height:42,bow:-6},
   ] as const;
   const shade=(1-.17*mist);
+  const crab=school==="early-spring";
   return <g data-km-cliff-pine-grove=""
     data-km-cliff-pine-scene={scene}>
     {distribution.map(({dx,height,bow},i)=>{
@@ -1574,13 +1575,21 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
         const direction=(j%2===0?-1:1)*(i%3===0?-1:1);
         const distance=(i===2?24:17)+
           13*s(seed+1763,i*19+j*17);
+        // Guo Xi's crab-claw old pines hook downward, not twenty
+        // equivalent up-pointing antenna shelves. The *same rooted*
+        // four boughs now travel over a lifted arch and drop irregular
+        // terminal ends, while retaining every bark/needle/pad detail.
         const tip:P=[
           origin[0]+direction*distance,
-          origin[1]-(3.2+9.8*s(seed+1777,i*13+j*23)),
+          crab
+            ?origin[1]+(3.4+8.7*s(seed+1777,i*13+j*23))
+            :origin[1]-(3.2+9.8*s(seed+1777,i*13+j*23)),
         ];
         const control:P=[
-          origin[0]+direction*distance*.34,
-          origin[1]+(j%3===0?3:-4)-3*s(seed+1789,i*23+j),
+          origin[0]+direction*distance*(crab?.48:.34),
+          crab
+            ?origin[1]-(6+7*s(seed+1789,i*23+j))
+            :origin[1]+(j%3===0?3:-4)-3*s(seed+1789,i*23+j),
         ];
         const bone=rockLoadedRibbon(origin,control,tip,
           1.12*(1-.12*j),seed+1801+i*17+j*37);
@@ -1682,7 +1691,26 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
             k===0?.88:.71,seed+1973+i*97+j*31+k*17);
           return {r,d,ridge,lobes:lobeCount};
         });
-        return {origin,bone,foliage,pads,inkIslands};
+        // Source-specific younger hooks: true child of the same bough
+        // at two exact quadratic stations, not random floating marks.
+        const crabClaws=crab?([.71,.9] as const).map((at,k)=>{
+          const attach=quadraticPoint(origin,control,tip,at);
+          const hand=(j+k+i)%3===1?-direction:direction;
+          const span=(k===0?6.5:4.3)*(1+
+            .34*s(seed+6121,i*13+j*29+k*17));
+          const fall=(k===0?11:7)*(1+
+            .29*s(seed+6133,i*31+j*11+k*23));
+          const cx1:P=[attach[0]+hand*span*.26,
+            attach[1]-(3+.72*k)];
+          const cx2:P=[attach[0]+hand*span*1.06,
+            attach[1]+fall*.57];
+          const tipClaw:P=[attach[0]+hand*span*.72,
+            attach[1]+fall];
+          return {attach,body:rockLoadedCubicRibbon(
+            attach,cx1,cx2,tipClaw,k===0?1.1:.79,
+            seed+6143+i*47+j*19+k*37),bend:k};
+        }):[];
+        return {origin,bone,foliage,pads,inkIslands,crabClaws};
       });
       return <g key={i} data-km-cliff-pine=""
         data-km-cliff-pine-root={f(root[0])+","+f(root[1])}
@@ -1693,7 +1721,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
         <path data-km-cliff-pine-bark="" d={bark}
           stroke="#a18b70" fill="none" strokeWidth=".48"
           strokeLinecap="round" opacity={f(.47*shade)}/>
-        {boughs.map(({origin,bone,foliage,pads,inkIslands},j)=>
+        {boughs.map(({origin,bone,foliage,pads,inkIslands,crabClaws},j)=>
           <g key={j} data-km-cliff-pine-bough=""
             data-km-cliff-pine-bough-root={f(origin[0])+","+f(origin[1])}>
             <path data-km-cliff-pine-bough-bone="" d={bone}
@@ -1710,6 +1738,12 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
                 fill={k===0?"#2e2925":"#39342d"}
                 opacity={f(.77*shade)}/>
             </g>)}
+            {crabClaws.map(({attach,body,bend},k)=><path key={"claw"+k}
+              data-km-cliff-pine-crab-claw=""
+              data-km-cliff-pine-crab-claw-root={f(attach[0])+","+f(attach[1])}
+              data-km-cliff-pine-crab-claw-bend={bend}
+              d={body} fill="#3c342c"
+              opacity={f((k===0?.73:.65)*shade)}/>)}
             {pads.map(({root:padRoot,path},k)=><path key={"pad"+k}
               data-km-cliff-pine-pad=""
               data-km-cliff-pine-pad-root={f(padRoot[0])+","+f(padRoot[1])}
@@ -1902,7 +1936,7 @@ function Mountains({scene,seed,detail,mist,ink,school,ids}:{
             pine clusters disappear at 960×540 playback. */}
         {band===1&&<g opacity={f(.85*ink)}>
           <CliffPineGrove stations={stations} scene={scene}
-            seed={seed+1819} detail={detail} mist={mist}/>
+            seed={seed+1819} detail={detail} mist={mist} school={school}/>
         </g>}
       </g>;
     })}
