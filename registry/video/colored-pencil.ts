@@ -99,9 +99,9 @@ const validTrace = (trace: PencilTrace): boolean =>
   /^[Mm]/.test(trace.path) && HEX.test(trace.color) &&
   Number.isFinite(trace.width) && trace.width >= .2 && trace.width <= 10 &&
   (trace.opacity === undefined || (Number.isFinite(trace.opacity) && trace.opacity >= 0 && trace.opacity <= 1)) &&
-  (trace.id === undefined || (typeof trace.id === "string" && /^[A-Za-z][\\w-]{0,40}$/.test(trace.id))) &&
+  (trace.id === undefined || (typeof trace.id === "string" && /^[A-Za-z][\w-]{0,40}$/.test(trace.id))) &&
   (trace.transform === undefined || (typeof trace.transform === "string" &&
-    trace.transform.length <= 300 && /^[\\w .(),+\\-]+$/.test(trace.transform))) &&
+    trace.transform.length <= 300 && /^[\w .(),+\-]+$/.test(trace.transform))) &&
   Number.isSafeInteger(trace.startFrame) && trace.startFrame >= 0 &&
   Number.isSafeInteger(trace.durationFrames) && trace.durationFrames >= 1;
 export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
