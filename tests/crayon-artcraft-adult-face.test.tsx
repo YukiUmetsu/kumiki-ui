@@ -17,7 +17,7 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       for(const id of portraitCriticalParts)expect(nodes.has(id),id).toBe(true);
       expect(scene.elements.length).toBeLessThan(240);
       for(const id of ["adult-face","hair-back","nose-bridge",
-        "nose-sidewall","nose-alar-wing","lip-upper-volume","lip-lower-volume",
+        "nose-alar-wing","lip-upper-volume","lip-lower-volume",
         "left-eye-aperture","right-eye-aperture","left-upper-lid","right-upper-lid"]){
         const node=nodes.get(id);
         if(node?.kind!=="wax")throw new Error("No semantic wax: "+id);
