@@ -99,6 +99,44 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       n+(t.path.match(/M/g)??[]).length,0)).toBe(6);
   });
 
+  it("builds an asymmetrical fox rostrum and a rooted, short-fibre cheek instead of round mask stickers",()=>{
+    const regions=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"}).regions;
+    const parts=new Map(regions.map(region=>[region.id,region]));
+    const nose=parts.get("nose")!,near=parts.get("eye-near")!;
+    const far=parts.get("eye-far")!,muzzle=parts.get("muzzle")!;
+    const bridge=parts.get("rostrum-bridge")!,cheek=parts.get("cheek-ruff")!;
+    expect(regions.length).toBeLessThanOrEqual(24);
+    expect(nose.bounds[0]+nose.bounds[2]).toBeLessThan(far.bounds[0]);
+    expect(far.bounds[0]+far.bounds[2]).toBeLessThan(near.bounds[0]);
+    expect(near.bounds[2]).toBeGreaterThan(far.bounds[2]*1.20);
+    expect(muzzle.bounds[2]).toBeGreaterThan(155);
+    expect(muzzle.bounds[3]).toBeLessThan(80);
+    expect(bridge.opaqueSupport).toBe(false); // dry glaze, no paper-backed sticker
+    expect(cheek.opaqueSupport).toBe(true);
+    const nearEar=parts.get("ear-near")!,farEar=parts.get("ear-far")!;
+    expect(nearEar.bounds[3]).toBeLessThan(107);
+    expect(farEar.bounds[3]).toBeLessThan(100);
+    for(const region of regions.filter(r=>r.craft?.kind==="fur")){
+      expect(region.layers.every(layer=>layer.texture==="fiber")).toBe(true);
+      expect(region.layers.every(layer=>layer.tipWidth<1.55)).toBe(true);
+    }
+    expect(parts.get("mask")!.bounds[3]).toBeLessThanOrEqual(46);
+    for(const id of ["head-main","muzzle","cheek-ruff"]){
+      const region=parts.get(id)!;
+      const fibres=region.details!.filter(x=>x.id?.startsWith("fibre-"));
+      expect(fibres.length).toBeGreaterThanOrEqual(6);
+      for(const trace of fibres){
+        const strokes=trace.path.match(/M/g)??[];
+        expect(strokes.length).toBeGreaterThanOrEqual(12);
+        expect(strokes.length).toBeLessThanOrEqual(36);
+        expect(trace.path).toMatch(/ Q/);
+        expect(trace.path).not.toMatch(/NaN|Infinity/);
+        expect(trace.width).toBeLessThanOrEqual(.65);
+      }
+    }
+    expect(parts.get("whisker-roots")!.clipDetails).toBe(false);
+  });
+
   it("separates distant from close pines, reflected water, river rock and bank foliage",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"valley",aspect:"landscape"});
     const parts=new Map(drawing.regions.map(region=>[region.id,region]));

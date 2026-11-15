@@ -28,7 +28,6 @@ export function PencilLivingAtelier() {
   const [frame,setFrame]=useState(325);
   const [tooth,setTooth]=useState(.76);
   const [pressure,setPressure]=useState(1);
-  const [renderMode,setRenderMode]=useState<"layered"|"legacy">("layered");
   const [burnish,setBurnish]=useState(.72);
   const [seed,setSeed]=useState(271);
   const [speed,setSpeed]=useState(1);
@@ -39,10 +38,9 @@ export function PencilLivingAtelier() {
   const drawing=useMemo(()=>{
     const base=pencilLivingStudyDrawing({subject,aspect,paperTooth:tooth,pressure,seed});
     return {...base,regions:base.regions.map(region=>({
-      ...region,craft:renderMode==="legacy"?undefined:region.craft?
-        {...region.craft,burnish}:undefined,
+      ...region,craft:region.craft?{...region.craft,burnish}:undefined,
     }))};
-  },[subject,aspect,tooth,pressure,seed,renderMode,burnish]);
+  },[subject,aspect,tooth,pressure,seed,burnish]);
   useEffect(()=>{
     if (!playing||reduce) return;
     const started=performance.now(),offset=frame;
@@ -63,11 +61,14 @@ export function PencilLivingAtelier() {
   const anchor=subject==="portrait"?
     (faceDetail==="eyes"?[226,207]:faceDetail==="nose"?[239,262]:[238,304]):
     subject==="fox"?
-      (faceDetail==="eyes"?[210,196]:faceDetail==="nose"?[211,236]:[211,256]):
+      (faceDetail==="eyes"?[235,189]:faceDetail==="nose"?[121,230]:[184,250]):
       meta.anchor;
   const coord=landscape?{
     x:441+1.06*anchor[0],y:35+1.06*anchor[1],w:960,h:540,
-  }:{x:35+1.06*anchor[0],y:253+1.06*anchor[1],w:540,h:960};
+  }:{x:(subject==="valley"?-16: -31)+
+      (subject==="valley"?1.31:1.38)*anchor[0],
+    y:(subject==="valley"?154:145)+(subject==="valley"?1.31:1.38)*anchor[1],
+    w:540,h:960};
   const zoom=subject==="portrait"?3.1:subject==="fox"?2.8:2.25;
   const detailStyle=focus?{
     transform:"translate("+ (50-100*zoom*coord.x/coord.w).toFixed(3)+"%, "+
@@ -103,14 +104,6 @@ export function PencilLivingAtelier() {
         <select aria-label="Living aspect" style={selectStyle} value={aspect}
           onChange={e=>{setPlaying(false);setAspect(e.target.value as PencilAspect);}}>
           <option value="landscape">16:9</option><option value="portrait">9:16</option>
-        </select>
-      </label>
-      <label style={labelStyle}>Medium reconstruction
-        <select aria-label="Living craft rendering" value={renderMode}
-          style={selectStyle}
-          onChange={e=>setRenderMode(e.target.value as typeof renderMode)}>
-          <option value="layered">Layered pencil (new)</option>
-          <option value="legacy">Flat vector (old / compare)</option>
         </select>
       </label>
       <label style={labelStyle}>Pigment burnish · {Math.round(burnish*100)}%
@@ -175,7 +168,7 @@ export function PencilLivingAtelier() {
             fontSize={landscape?15:14} fill="#687B79">{meta.subtitle}</text>
           <text x={landscape?53:45} y={landscape?507:909}
             fontFamily="Arial, sans-serif" fontSize={11} letterSpacing={1.1}
-            fill="#78817B">ORIGINAL ART · CP1 · STUDY {subject.toUpperCase()}</text>
+            fill="#78817B">ORIGINAL ART · CP-F1 · STUDY {subject.toUpperCase()}</text>
         </g>
       </PencilDrawing>
     </div>
@@ -197,9 +190,9 @@ export function PencilLivingAtelier() {
     <p style={{margin:0,maxWidth:920,fontSize:13,color:"#697B78"}}>
       Select Eyes, Nose, or Mouth to scrutinize anatomical contours at 3×. Paper tooth,
       pressure, pigment burnishing and absolute frames remain editable. Neither the
-      face-inspection zoom nor its controls enter exported scenes. The legacy comparison
-      changes material deposition only, not face construction. Artist-grade realism still
-      requires independent visual reference comparison at normal film size.
+      face-inspection zoom nor its controls enter exported scenes. Every new drawing
+      uses the validated CP-F1 foundation, without an unqualified flat-vector bypass.
+      Artist-grade realism still requires visual reference comparison at film size.
     </p>
   </main>;
 }
