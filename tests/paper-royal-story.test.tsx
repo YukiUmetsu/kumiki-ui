@@ -140,6 +140,27 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
       }
     }
   });
+  it("keeps preview-study profiles anatomy-led rather than cartoon eye wedges",()=>{
+    const width=(path:string)=>{
+      const values=Array.from(path.matchAll(/-?\d+(?:\.\d+)?/g),v=>Number(v[0]));
+      const xs=values.filter((_,index)=>index%2===0);
+      return Math.max(...xs)-Math.min(...xs);
+    };
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const phase of [0,1,2]){
+        const s=paperRoyalStoryScene("layered",aspect,phase,37,.85);
+        const get=(id:string)=>s.layers.find(layer=>layer.id===id)!;
+        for(const who of ["princess","prince"] as const){
+          const relative=width(get(who+"-eye-white").path)/width(get(who+"-head").path);
+          expect(relative,who+" pupil aperture vs head width").toBeGreaterThan(.10);
+          expect(relative,who+" pupil aperture vs head width").toBeLessThan(.20);
+          expect(get(who+"-face-planes").path.match(/M/g)?.length)
+            .toBeGreaterThanOrEqual(who==="princess"?4:3);
+          expect(get(who+"-face-planes").parentId).toBe(who+"-head");
+        }
+      }
+    }
+  });
   it("is deterministic, has meaningful body/arm motion and supports a static reduced-motion pose",()=>{
     const spec=paperRoyalStoryScene("layered","landscape",2,37,1);
     const a=evaluatePaperCraft(spec,44);
