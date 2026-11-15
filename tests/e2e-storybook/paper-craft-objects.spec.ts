@@ -26,10 +26,15 @@ test("Paper Craft objects render five sculpted subjects and a portrait without b
     const find=part==="kingfisher"?"kingfisher-head":part;
     await expect(art.locator('[data-km-paper-layer="'+find+'"]')).toBeVisible();
     await expect(art.locator('[data-km-paper-layer="stage-frame"]')).toBeVisible();
-    const fill=await layers.locator('path[fill-rule="evenodd"]').evaluateAll(nodes=>
+    const stock=await layers.evaluateAll(nodes=>nodes.map(el=>
+      el.getAttribute("data-km-paper-stock")));
+    expect(stock.every(v=>typeof v==="string"&&/^#[0-9A-Fa-f]{6}$/.test(v))).toBe(true);
+    expect(new Set(stock).size).toBeGreaterThan(8);
+    const colored=await layers.locator('path[fill-rule="evenodd"]').evaluateAll(nodes=>
       nodes.map(el=>el.getAttribute("fill")));
-    expect(fill.every(v=>typeof v==="string"&&/^#[0-9A-Fa-f]{6}$/.test(v))).toBe(true);
-    expect(new Set(fill).size).toBeGreaterThan(8);
+    expect(colored.every(v=>typeof v==="string"&&(
+      /^#[0-9A-Fa-f]{6}$/.test(v)||/^url\(#paper[a-zA-Z0-9_-]+\)$/.test(v)
+    ))).toBe(true);
     await art.screenshot({animations:"disabled",path:info.outputPath(slug+".png")});
   }
   expect(errors).toEqual([]);
@@ -41,4 +46,45 @@ test("Paper Craft objects frame-seek and reduced-motion presentation stays valid
   await page.getByRole("button",{name:"Restart"}).click();
   await expect(stage).toHaveAttribute("data-km-paper-frame","0");
   await expect(stage.locator('[data-km-paper-layer="kingfisher-head"]')).toHaveAttribute("opacity","0");
+});
+
+test("Paper Craft curled stock stays opaque and all wing pieces flap together on seek",async({page},info)=>{
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  for(const {slug,group} of [
+    {slug:"paper-craft-feather-rig",group:"kingfisher-wing"},
+    {slug:"paper-craft-dragonfly-flutter",group:"dragonfly-wing-0"},
+  ]){
+    await page.goto(base+slug+"&viewMode=story");
+    const svg=page.locator("svg[data-km-paper-craft]");
+    await expect(svg).toBeVisible();
+    const rig=svg.locator('[data-km-paper-rig="'+group+'"]');
+    expect(await rig.count()).toBeGreaterThan(2);
+    const curves=svg.locator("linearGradient[data-km-paper-curl]");
+    expect(await curves.count()).toBeGreaterThan(8);
+    const stops=curves.locator("stop");
+    const colors=await stops.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("stop-color")));
+    expect(colors.every(s=>typeof s==="string"&&/^#[0-9A-Fa-f]{6}$/.test(s))).toBe(true);
+    const initial=await rig.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("transform")));
+    const unique0=await rig.evaluateAll(nodes=>new Set(nodes.map(n=>
+      /rotate\((-?[0-9.]+)\)/.exec(n.getAttribute("transform")||"")?.[1])).size);
+    expect(unique0).toBe(1);
+    const slider=page.getByRole("slider",{name:"Scrub film frame"});
+    await slider.evaluate(node=>{
+      const el=node as HTMLInputElement;
+      const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+      if(!setter)throw new Error("Native frame setter unavailable");
+      setter.call(el,"204");
+      el.dispatchEvent(new Event("input",{bubbles:true}));
+      el.dispatchEvent(new Event("change",{bubbles:true}));
+    });
+    await expect(svg).toHaveAttribute("data-km-paper-frame","204");
+    const after=await rig.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("transform")));
+    expect(after).not.toEqual(initial);
+    const unique1=await rig.evaluateAll(nodes=>new Set(nodes.map(n=>
+      /rotate\((-?[0-9.]+)\)/.exec(n.getAttribute("transform")||"")?.[1])).size);
+    expect(unique1).toBe(1);
+    await svg.screenshot({animations:"disabled",path:info.outputPath(slug+"-curled.png")});
+  }
+  expect(errors).toEqual([]);
 });

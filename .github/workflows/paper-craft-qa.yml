@@ -6,6 +6,7 @@ on:
       - 'src/video/paper-craft*'
       - 'registry/video/paper-object-kit.ts'
       - 'tests/paper-craft-objects.test.tsx'
+      - 'tests/paper-craft-material-rigs.test.tsx'
       - 'tests/e2e-storybook/paper-craft-objects.spec.ts'
       - 'examples/film/paper-craft-objects.film.json'
       - 'src/film/film-slots.tsx'
@@ -27,6 +28,6 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run typecheck
-      - run: npx vitest run --project unit tests/paper-craft-objects.test.tsx
+      - run: npx vitest run --project unit tests/paper-craft.test.tsx tests/paper-craft-objects.test.tsx tests/paper-craft-material-rigs.test.tsx
       - run: npm run prestorybook
       - run: npm run film:check -- examples/film/paper-craft-objects.film.json
