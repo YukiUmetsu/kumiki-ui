@@ -350,6 +350,7 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
         <canvas ref={canvasRef} width={size.width} height={size.height}
           aria-label="Code-rendered coloured-pencil reconstruction"
           data-km-pencil-photo={study?"ready":"source-pending"}
+          data-km-pencil-foundation={study?.foundationVersion}
           style={{width:"100%",maxWidth:900,
             height:"auto",aspectRatio:aspect==="landscape"?"16 / 9":"9 / 16",
             background:"#FAF5ED",boxShadow:"0 15px 40px #5A554E34"}}/>

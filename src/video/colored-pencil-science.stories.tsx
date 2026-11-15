@@ -16,6 +16,7 @@ import { PencilScene } from "../../registry/video/colored-pencil-scene-react";
 import { PencilObjectAtelier } from "./colored-pencil-object-studio";
 import { PencilLivingAtelier } from "./colored-pencil-living-studio";
 import { ReferencePencilAtelier } from "./colored-pencil-reference-atelier";
+import { PencilFoundationStudio } from "./colored-pencil-foundation-studio";
 
 const meta = {
   title: "Video Production/Film Looks/Colour-pencil",
@@ -530,4 +531,11 @@ export const ReferenceGuidedFaces: StoryObj<typeof meta> = {
   name:"ArtCraft · Realistic fox and human faces (CC0 photo-guided)",
   args:{aspect:"landscape",subject:"leaf",frame:325},
   render:()=> <ReferencePencilAtelier initialSample="woman"/>,
+};
+
+/** The one canonical drawing-system entry point under the existing Colour-pencil root. */
+export const DrawingFoundation: StoryObj<typeof meta> = {
+  name:"Foundation · Reference, form, pigment, stroke and finish",
+  args:{aspect:"landscape",subject:"leaf",frame:335},
+  render:()=> <PencilFoundationStudio/>,
 };

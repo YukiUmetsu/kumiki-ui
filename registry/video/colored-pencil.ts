@@ -1,4 +1,5 @@
 import type { PencilCraftFinish } from "./colored-pencil-craft";
+import type { PencilFoundationManifest } from "./colored-pencil-foundation";
 
 /** CP1: deterministic, data-only coloured-pencil geometry. No frame clock, renderer or source assets.
  * Each stroke retains its own pressure, direction and drying-independent paper position.
@@ -65,6 +66,8 @@ export interface PencilRegion {
 }
 export interface PencilDrawingSpec {
   version: 1;
+  /** CP-F1 reference/structure/material contract. Optional only for legacy CP1 consumers. */
+  foundation?: PencilFoundationManifest;
   width: number;
   height: number;
   seed: number;
