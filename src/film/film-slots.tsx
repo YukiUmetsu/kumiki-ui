@@ -20,9 +20,6 @@ import type { CrayonDragonVillageOptions } from "../video/crayon-dragon-village-
 import { WetStudyPage, wetPaperDemo } from "../video/watercolour-wet-paper-demo";
 import { WatercolourIllustration } from "../../registry/video/watercolour-illustration";
 import { watercolorWetlandSpec } from "../video/watercolour-art-director-demo";
-import { watercolorPortraitSpec } from "../video/watercolour-portrait-demo";
-import { watercolorPortraitEnsembleSpec } from "../video/watercolour-portrait-ensemble";
-import type { WatercolourPortraitCastMember } from "../video/watercolour-portrait-ensemble";
 import { WatercolourMasterStudyPage, watercolourStudySpec, WATERCOLOUR_STUDIES } from "../video/watercolour-master-studies";
 import type { WatercolourStudy } from "../video/watercolour-master-studies";
 import { PaintedTravellerPage } from "../video/watercolour-actor-demo";
@@ -803,35 +800,20 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           camera={paintedCameraAt(context.frame, context.reducedMotion)}/>;
       }
       case "watercolour-illustration": {
-        const seed = props.seed ?? 83;
-        if (!Number.isSafeInteger(seed) || typeof seed !== "number" ||
-          seed < 0 || seed > 2147483647)
-          throw new RangeError("watercolour-illustration requires a nonnegative 31-bit seed.");
-        const output = context.width > context.height ? "landscape" : "portrait";
-        const subject = props.subject ?? "heron-wetland";
-        if (subject !== "heron-wetland" && subject !== "person-portrait")
-          throw new RangeError("watercolour-illustration subject must be heron-wetland or person-portrait.");
-        const sitter = props.sitter ?? "sitter-a";
-        if (subject === "person-portrait" && sitter !== "sitter-a" && sitter !== "sitter-b")
-          throw new RangeError("watercolour-illustration portrait sitter must be sitter-a or sitter-b.");
-        const illustration = subject === "person-portrait"
-          ? watercolorPortraitSpec(output,seed,sitter as "sitter-a"|"sitter-b")
-          : watercolorWetlandSpec(output,seed);
-        return <WatercolourIllustration spec={illustration}
-          frame={context.frame} reducedMotion={context.reducedMotion}/>;
-      }
-      case "watercolour-portrait-ensemble": {
         const seed=props.seed??83;
         if(typeof seed!=="number"||!Number.isSafeInteger(seed)||seed<0||seed>2147483647)
-          throw new RangeError("watercolour-portrait-ensemble requires a nonnegative 31-bit seed.");
+          throw new RangeError("watercolour-illustration requires a nonnegative 31-bit seed.");
+        const subject=props.subject??"heron-wetland";
+        // Retire all previously rejected human face designs rather than
+        // silently generating them from historic portable film JSON.
+        if(subject!=="heron-wetland")
+          throw new RangeError("Watercolor portraits are retired pending an approved reference-led rebuild; use heron-wetland.");
         const output=context.width>context.height?"landscape":"portrait";
-        // Untrusted JSON is validated inside watercolorPortraitEnsembleSpec.
-        // Absent cast means an output-specific pair with deliberate timing.
-        const cast=props.cast as readonly WatercolourPortraitCastMember[]|undefined;
-        const painting=watercolorPortraitEnsembleSpec(output,seed,cast);
-        return <WatercolourIllustration spec={painting} frame={context.frame}
-          reducedMotion={context.reducedMotion}/>;
+        return <WatercolourIllustration spec={watercolorWetlandSpec(output,seed)}
+          frame={context.frame} reducedMotion={context.reducedMotion}/>;
       }
+      case "watercolour-portrait-ensemble":
+        throw new RangeError("The rejected watercolor portrait ensemble is retired pending a new approved design.");
       case "watercolour-master-study": {
         const raw = props.study;
         if (typeof raw !== "string" || !WATERCOLOUR_STUDIES.some(study => study === raw))
