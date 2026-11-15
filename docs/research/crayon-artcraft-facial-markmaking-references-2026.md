@@ -2,19 +2,26 @@
 
 **Status:** Experimental. Source geometry is authored in code. No artwork or reference image is embedded, traced or distributed. The adult face remains an unapproved `!dev` Storybook workbench, under the existing **Video production / Film Looks / Crayon** root.
 
-## Selected reference comparisons
+## Verified craft references (distinguish pastel media)
 
-| Reference | Observation | Specific implementation decision |
+| Reference | Verified observation | Implementation implication |
 | --- | --- | --- |
-| [Naomi Duben — Oil Pastel Drawings](https://www.naomiduben.com/oil-pastel-drawings) | Eye close-up: distinct upper lid weight, cool iris and warm facial plane; strokes turn with the form instead of a repeated grid | Separate, asymmetric near/far orbital and tear-trough stroke fields; preserve existing painted sclera, iris and limbal rings |
-| [Caran d'Ache NeoArt portrait in progress](https://community.hwabang.net/painters/%EA%B9%8C%EB%A0%8C%EB%8B%A4%EC%89%AC-%EB%84%A4%EC%98%A4%EC%95%84%ED%8A%B8-6901%EC%98%A4%EC%9D%BC%ED%8C%8C%EC%8A%A4%ED%85%94-%EC%9D%B8%EB%AC%BC%ED%99%94/2145) | Soft, luminous facial volume with colored planes and visibly directional drawing marks in hair and neck | Introduce controlled intermediate-value hatching rather than more high-contrast outlines |
-| [Caran d'Ache Neocolor II creative portrait](https://www.jerrysartarama.com/caran-d-ache-neocolor-ii-water-soluble-artists-wax-pastels) | Bold chroma and dense pigment layer contrast against less worked paper | Retain opaque parent undercoat and clip surface strokes to the face; no transparency leaks |
-| [J. A. Barhydt, *Crayon Portraiture*](https://www.gutenberg.org/cache/epub/30248/pg30248-images.html) | Traditional instruction emphasizes direction-sensitive face strokes, graduated shadows and preserved lights | Place philtrum, lip and chin strokes locally rather than a generic face overlay |
-| [Philadelphia Museum of Art, *Descriptive Terminology for Works of Art on Paper*](https://legacyweb.philamuseum.org/doc_downloads/conservation/DescriptiveTerminologyforArtonPaper.pdf) | Wax marks show uneven, cohesive deposits; consistent solid digital lines alone do not imitate the medium | Reuse seeded `crayonFormHatching` with broken local marks; keep native wax layers |
+| [The Met: Henry Williams, *Mrs. Ichabod M. Cushman*](https://www.metmuseum.org/art/collection/search/13323) | Museum describes carefully blended pigment under directional pink pastel strokes on brow and cheek, and separate white strokes emphasizing ruffled fabric. | Compare blended undercoat against **selective** skin hatching, and preserve the difference between soft skin and coarse cloth. |
+| [The Met: Maurice Quentin de La Tour, *Préparation for a Portrait of Louis XV*](https://www.metmuseum.org/art/collection/search/367557) | Museum describes an actual study of skull form, complexion and expression; different preparatory views were used before the final portrait. | Build expression/angle studies on the same coherent skull, not disconnected painted symbols. |
+| [The Met: Clara D. Davidson, *Portrait of a Woman*](https://www.metmuseum.org/art/collection/search/17578) | Museum records a portrait executed in red chalk, oil pastel and chalk on toned paper. | Material overlap is a useful comparator, but no claim of wax-only or digital matching is warranted. |
+| [J. A. Barhydt, *Crayon Portraiture*](https://www.gutenberg.org/cache/epub/30248/pg30248-images.html) | Public-domain historical guidance and portrait illustrations (including stipple face and broken background strokes). | Preserve a face/background stroke hierarchy rather than uniformly overlaying hatch marks. |
+| [Naomi Duben, oil pastel portfolio](https://www.naomiduben.com/oil-pastel-drawings) | Artist describes layered vibrant oil-pastel artworks and shadow play. **Not verified as an eye-anatomy portrait reference.** | Use for layered wax appearance only, not for facial morphology claims. |
+| [Caran d'Ache Neocolor II product documentation](https://www.jerrysartarama.com/caran-d-ache-neocolor-ii-water-soluble-artists-wax-pastels) | Describes a water-soluble wax pastel that can be used wet or dry. **This is not a portrait image reference.** | Reference material behavior only. Wet technique differs from dry CRAYON1 and must not be conflated. |
+
+The previously cited third-party NeoArt portrait page could not be verified at review time and is not used as visual evidence. Dry powdered pastel, oil pastel and water-soluble wax pastel are related but **not interchangeable physical materials**.
+
+## Native browser inspection — technical CI is not artistic approval
+
+Inspected original source-rendered Chromium captures from [Crayon ArtCraft portrait proof, run 43669733186](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43669733186). Both aspects rendered, but the illustrated human is **not release-quality**: the nose reads as a faint symbol rather than bridged facial volume, the lips form a weak isolated loop, the facial mass is mask-like, the neck-to-jaw junction is abrupt, and the upper body ends in visibly truncated sleeves. The new direction-aware hatching is a *local medium correction*, not a remedy for those anatomy and garment problems. Do not expose this character as a production gallery example.
 
 ## Implemented
 
-Seven new, deterministic `crayonFormHatching` beds: near/far brow-orbit planes, near/far under-eye troughs, philtrum, lower lip and chin. These are semantic contour elements parent-clipped to the real, opaque face, with separate seeds and density driven by ArtCraft `detail`. They follow both 16:9 and 9:16 character placement without new Storybook groups or runtime dependencies.
+Seven new, deterministic `crayonFormHatching` beds with explicit **degree** angles: near/far brow-orbit planes, near/far under-eye troughs, philtrum, lower lip and chin. These are semantic contour elements parent-clipped to the real, opaque face, with separate seeds and density driven by ArtCraft `detail`. They follow both 16:9 and 9:16 character placement without new Storybook groups or runtime dependencies.
 
 ## Remaining artistic gates
 
