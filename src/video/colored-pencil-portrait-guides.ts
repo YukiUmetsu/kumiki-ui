@@ -105,7 +105,7 @@ export function createPortraitEyeAperture(
   const center=guides[near?"eyeNearCenter":"eyeFarCenter"];
   const dx=end[0]-start[0],dy=end[1]-start[1];
   const span=Math.hypot(dx,dy);
-  if(!Number.isFinite(span)||span<2)
+  if(!Number.isFinite(span)||span<2||Math.abs(dx)<2)
     throw new RangeError("Degenerate measured eyelid aperture");
   const normal:Point=[dy/span,-dx/span];
   const middle:Point=[(start[0]+end[0])*.5,(start[1]+end[1])*.5];
@@ -287,6 +287,8 @@ export function createPencilPortraitFeatureMarks(
     1.1,.22,.51,1,.28);
   const l=guides.lipLeft,r=guides.lipRight,upper=guides.lipCupid,
     lower=guides.lipLower;
+  if(Math.abs(r[0]-l[0])<2)
+    throw new RangeError("Degenerate measured mouth span");
   const seamControl:Point=[(l[0]+r[0])*.5,
     upper[1]*.47+lower[1]*.53];
   // A mouth seam must remain a continuous anatomical boundary.
