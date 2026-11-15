@@ -1787,6 +1787,85 @@ Frame checks:
   - a market crowd.
 - Each needs a recording that passes earshot.
 
+## Boar and bear (2026-11-15)
+
+The owner asked to compare the boar and the bear with references and fix them.
+
+**References.** All are public domain or CC0, from Wikimedia Commons.
+
+| Animal | Reference | Rights |
+| --- | --- | --- |
+| Boar | *Fauna Japonica*, Mammalia pl. 20, *Sus leucomystax* (the Japanese wild boar) | PD |
+| Boar | Tachibana Morikuni, *Wild boars running, on cliffs, and near pine trees* (Library of Congress, LCCN 2008660987) | PD |
+| Boar | Utagawa Kuniyoshi, Nitta no Shirō Tadatsune and the boar (British Museum 2008,3037.21407) | PD |
+| Boar | Stefano della Bella, *A wild boar running* (Met DP833249) | CC0 |
+| Bear | Tanaka Yoshio, *Dōbutsu kunmō*, "Tibet bear" (1875) | PD |
+| Bear | Two Okuhida specimens of tsukinowaguma | CC0 photos |
+| Bear | A wild bear on Mount Kurai | CC0 photo |
+| Bear | Hokusai, *Sakata Kintoki Riding on Bear's Back* (Met 56.121.16) | PD |
+| Bear | Torii Kiyomasu I, *Kintoki Wrestling with a Black Bear* | PD |
+| Bear | Kuniyoshi, Shigekiyo fighting a black bear in the snow | PD |
+
+**What was wrong.** Both reused the generic quadruped head, a pointed muzzle stretched by a snout factor.
+
+The boar:
+- It had round bear ears and a rat's snout.
+- Its legs were 36 against a body 64 deep, and the belly fringe hid them, so it had neither legs nor hooves.
+- A dark throat band read as a stripe.
+- Head-on it had a bear's face.
+
+The bear:
+- It had a narrow mole's muzzle.
+- The shared "ruff" colour gave it a brown bib.
+- The crescent sat behind the fore leg.
+- Long tufts all round made a hedgehog outline.
+- From behind it read as a box.
+
+**Changes.**
+
+The boar:
+- **Head:** its own profile head, a long deep wedge with a straight forehead line. It ends in the flat snout disc with its nostril, and the mouth line turns up at the corner.
+- **Face details:**
+  - the lower tusk curves up and back;
+  - the eye is small and high, with heavy folds;
+  - the ears are small, pointed and laid back;
+  - bristles stand on the crown;
+  - the pale jaw stripe (*leucomystax*, "white whiskers") is clipped to the head.
+- **Body:**
+  - high withers with a crest of uneven bristle locks lying back;
+  - slender legs (50) on cloven hooves with dewclaws;
+  - a short coat;
+  - the thin tail hangs, with a tuft.
+- **Head-on:** the face narrows to the round disc with two nostrils, with tusks from the mouth corners, pale jaw stripes and bristles on the brow.
+
+The bear:
+- **Head:** its own profile head: a broad domed skull, big round ears set high and back, a short tan muzzle, a large black nose, a small eye, and long black hair under the jaw.
+- **Carriage:** the head is carried low.
+- **Body and legs:** a heavier body, thick legs, broad paws with long curved claws, and a finer coat edge.
+- **Crescent:** the white crescent across the throat and upper chest, ahead of the fore leg.
+- **Head-on:** a round face with a tan muzzle and a broad white V on the chest.
+- **Flanks, front and back:** locks lying downward on both flanks. Pale hairlines show on the black coat.
+
+Shared changes:
+- Cloven hooves now show the split and dewclaws on the deer and the ox too.
+- Black coats get visible hairlines head-on and from behind.
+
+**Review.** Profile, three-quarter, front, back, walking and running stills were compared against the references over
+five rounds, at 0.6× and 1.2×. The fixes in later rounds:
+- the boar's grey bib went;
+- its sawtooth crest became uneven locks;
+- its jaw stripe had poked out past the head as a white blade, read as a grin, and moved off the lip;
+- the bear's spiky jaw ruff over its crescent read as fangs;
+- the bear's front and back edges were spiky on one flank only.
+
+The mountain habitat scene (bear walking, boar charging) renders cleanly.
+
+**Not matched yet.**
+- The boar's run is the generic bounding gait, not Morikuni's stretched gallop with the legs flung out.
+- The bear's back is flatter than the arched hump in Tanaka's plate.
+- Both animals rear up on the generic `stand` action, which a boar never does.
+- No human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
