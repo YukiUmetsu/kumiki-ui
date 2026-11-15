@@ -58,6 +58,11 @@ describe("strict native Crayon drawing grammar",()=>{
         // The ground contact must be derived from the actual transformed pear
         // contour, not a separate aspect-ratio magic number (prevents floating
         // portrait fruit and sunken landscape fruit).
+        const paperRubbing=nodes.get("paper-ground");
+        if(paperRubbing?.kind!=="wax")throw new Error("Missing atmospheric rubbing");
+        // Blurred open grain prevents a hard-edged screen-space oval sticker.
+        expect(paperRubbing.coverage).toBe("open");
+        expect(paperRubbing.blendRadius).toBeGreaterThanOrEqual(12);
         const shadow=nodes.get("cast-shadow");
         if(pear?.kind!=="wax"||shadow?.kind!=="wax"||
           !pear.placement||typeof pear.placement.scale!=="number"||
