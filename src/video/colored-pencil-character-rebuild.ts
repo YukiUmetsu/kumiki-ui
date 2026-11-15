@@ -143,9 +143,9 @@ function fox():PencilActorSpec {
       ]}),
     // The light tip is a genuine connected tail-colour region, not a random
     // white sticker crossing the coat. It inherits every swing of the rump tail.
-    part({id:"tail-tip",material:"fur",colors:foxLight,parent:"tail",
+    part({id:"tail-tip",material:"fur",colors:["#D9C5AA","#8D7168","#F7E6C8"],parent:"tail",
       pivot:[-35,120],direction:17,flow:25,
-      path:"M-48 106 Q-35 115 -28 136 Q-21 144 -11 150 Q-30 147 -43 136 Q-54 121 -48 106 Z",
+      path:"M-48 105 C-44 109 -39 114 -35 120 Q-32 126 -28 135 C-24 143 -16 146 -11 150 Q-19 149 -25 147 L-31 145 Q-36 142 -39 137 Q-45 135 -47 129 Q-53 122 -49 116 Q-52 111 -48 105 Z",
       bounds:[-55,102,47,52],
       details:[...strokeFox([[-44,113,-21,144,-39,130,16,8]],1241,"#FFF5DE",.59),
         trace("M-47 111 Q-43 126 -29 141","#F5D2BA",.75,228)]}),
@@ -184,7 +184,7 @@ function fox():PencilActorSpec {
         trace("M166 209 Q170 214 179 215","#D0B6A7",.8,238)]}),
     part({id:"ruff",material:"fur",colors:foxLight,parent:"torso",pivot:[168,131],
       detailTracks:foxRuffFibre.tracks,
-      path:"M160 117 Q178 107 195 116 Q201 126 194 142 L191 152 L202 155 L182 164 L184 176 L168 169 L159 180 L157 166 L144 165 Q147 150 153 139 Z",
+      path:"M160 117 C171 109 187 110 194 122 Q198 131 192 139 Q193 144 201 151 L195 154 Q199 159 203 161 L191 164 Q192 170 188 174 L179 168 Q179 176 173 181 L168 172 Q163 180 159 177 L157 167 Q150 170 145 165 Q150 157 152 151 Q149 146 153 139 Q152 130 160 117 Z",
       bounds:[141,103,65,81],direction:67,flow:31,
       details:[...strokeFox([[159,118,178,157,149,151,25,11],
         [178,119,193,155,189,139,21,10]],1373,"#FFF4D9",.66),
@@ -211,11 +211,11 @@ function fox():PencilActorSpec {
         [212,47,205,72,207,61,13,6]],1439,"#DCA68F",.54)}),
     part({id:"muzzle",material:"fur",colors:foxLight,parent:"head",pivot:[210,118],
       freeDetails:true,
-      path:"M184 112 Q205 103 228 108 Q243 106 248 115 Q240 132 214 140 Q197 141 183 128 Z",
+      path:"M185 118 C192 113 206 109 218 108 Q231 105 247 113 Q251 115 249 120 C243 127 234 132 222 135 Q205 139 193 132 Q185 129 185 118 Z",
       bounds:[179,100,72,45],direction:18,flow:18,
       details:[
         ...strokeFox([[192,116,219,132,207,126,18,9]],1477,"#FAF1D9",.52,235),
-        trace("M196 133 Q217 138 235 122 M232 124 Q236 127 239 125",
+        trace("M192 131 Q202 136 213 135 Q227 133 238 124 M231 123 Q236 126 240 123",
           "#3D434C",1.0,250),
         // Whiskers have real cheek roots and project outside the painted muzzle.
         // They must not be truncated by the solid region clipPath.
@@ -314,7 +314,7 @@ export function createKingfisherActor():PencilActorSpec {
     part({id:"wing-coverts",material:"feather",colors:birdBlue,
       parent:"near-wing",pivot:[142,133],direction:39,flow:24,
       detailTracks:birdCovertFibre.tracks,
-      path:"M133 114 Q156 107 171 125 Q167 145 150 156 Q134 155 125 139 Z",
+      path:"M134 115 C143 110 155 112 164 123 Q168 130 164 136 Q160 140 158 144 Q155 151 150 151 Q146 154 141 150 Q135 152 132 145 Q125 142 125 137 Q124 125 134 115 Z",
       bounds:[122,104,53,56],
       details:[
         ...strokeFox([[134,121,148,151,127,139,18,8],
@@ -328,7 +328,7 @@ export function createKingfisherActor():PencilActorSpec {
       detailTracks:birdCrownFibre.tracks,
       keys:[key(0),key(177),key(199,0,-2,6),key(227,0,-1,-4),
         key(269),key(319)],
-      path:"M95 108 C92 90 98 72 111 65 Q127 56 147 64 Q162 72 165 91 Q161 113 146 122 Q117 128 95 108 Z",
+      path:"M95 105 C90 98 92 83 99 74 C108 63 121 58 137 61 Q158 62 168 82 C175 94 167 108 150 117 C137 123 121 122 109 116 Q99 112 95 105 Z",
       bounds:[91,55,78,77],direction:39,flow:25,
       details:[
         ...strokeFox([[106,68,145,66,120,48,22,12],
@@ -344,13 +344,13 @@ export function createKingfisherActor():PencilActorSpec {
         ...birdCrownFibre.details,
       ]}),
     part({id:"cheek",material:"feather",colors:birdOrange,parent:"head",pivot:[127,111],
-      path:"M97 100 Q112 95 123 100 Q135 103 154 93 Q151 105 132 116 Q110 119 98 108 Z",
+      path:"M99 102 C109 97 120 98 128 100 Q140 101 158 93 C153 105 145 113 134 117 Q117 122 105 112 Q100 109 99 102 Z",
       bounds:[95,91,63,29],direction:24,
       details:[trace("M101 102 Q121 111 141 103","#FFF1D8",1.25,233)]}),
     part({id:"beak",material:"keratin",colors:["#4C6370","#192A3B","#9EA6A4"],
       parent:"head",pivot:[100,100],
       keys:[key(0),key(202),key(224,0,1,3),key(248),key(319)],
-      path:"M100 94 Q72 91 10 98 Q47 105 102 108 L112 103 Z",
+      path:"M102 95 Q77 93 49 96 Q25 97 11 99 Q8 100 7 101 Q42 102 73 106 C92 109 103 110 112 103 Z",
       bounds:[7,89,109,23],direction:1,flow:5,
       details:[
         trace("M26 99 Q64 94 100 98","#CAC8B9",.62,244),
