@@ -289,12 +289,14 @@ export function createPencilPortraitFeatureMarks(
     lower=guides.lipLower;
   const seamControl:Point=[(l[0]+r[0])*.5,
     upper[1]*.47+lower[1]*.53];
-  // Find the darkest connected mouth-opening pixels around a guided
-  // vermilion seam. The CC0 mouth is partly open with visible teeth; a
-  // purely quadratic line flattened it into a cartoon football.
+  // A mouth seam must remain a continuous anatomical boundary.
+  // Earlier independent darkest-pixel selection jumped between teeth, hair
+  // and nostril shadows and produced an unacceptable jagged sawtooth.
+  // Sample close to the source-observed seam, regularize over neighbouring
+  // x positions, then bound deviations from the attached lip construction.
   const mouthCount=clamp(Math.ceil(Math.hypot(
     r[0]-l[0],r[1]-l[1])/.87),8,140);
-  const mouthRange=clamp(Math.abs(r[0]-l[0])*.068,1.5,8);
+  const mouthRange=clamp(Math.abs(r[0]-l[0])*.035,1,3.5);
   const mouthLum=(x:number,y:number)=>{
     const sx=clamp(Math.round(x),0,source.width-1);
     const sy=clamp(Math.round(y),0,source.height-1);
@@ -302,24 +304,37 @@ export function createPencilPortraitFeatureMarks(
     return (.2126*source.data[k]+.7152*source.data[k+1]+
       .0722*source.data[k+2])/255;
   };
-  let prior:Point|null=null;
+  const seamSamples:Array<{x:number;baseline:number;y:number}>=[];
   for(let i=0;i<=mouthCount;i++){
     const t=i/mouthCount;
-    const [x,y]=bezier(l,seamControl,r,t);
-    let chosen=y,best=Number.POSITIVE_INFINITY;
-    for(let k=-6;k<=6;k++){
-      const candidate=y+k*mouthRange/6;
-      const score=mouthLum(x,candidate)+Math.abs(k)*.006;
+    const [x,baseline]=bezier(l,seamControl,r,t);
+    let chosen=baseline,best=Number.POSITIVE_INFINITY;
+    for(let k=-5;k<=5;k++){
+      const candidate=baseline+k*mouthRange/5;
+      const score=mouthLum(x,candidate)+Math.abs(k)*.041;
       if(score<best){best=score;chosen=candidate;}
     }
-    // Do not let a single dark lash/hair pixel make the mouth zigzag.
-    const aligned:Point=[x,prior?prior[1]*.24+chosen*.76:chosen];
-    if(prior){
-      add("lip-opening",prior[0],prior[1],
-        aligned[0]-prior[0],aligned[1]-prior[1],
-        .25+.17*(1-best),.57,0,.42,i+4000);
+    seamSamples.push({x,baseline,y:chosen});
+  }
+  let previous:Point|null=null;
+  const maxDeviation=clamp(Math.abs(r[0]-l[0])*.023,.8,2.4);
+  for(let i=0;i<=mouthCount;i++){
+    const sample=seamSamples[i],t=i/mouthCount;
+    let average=0,weightSum=0;
+    for(let j=Math.max(0,i-5);j<=Math.min(mouthCount,i+5);j++){
+      const weight=6-Math.abs(i-j);
+      average+=seamSamples[j].y*weight;weightSum+=weight;
     }
-    prior=aligned;
+    const deviation=clamp(average/weightSum-sample.baseline,
+      -maxDeviation,maxDeviation);
+    const y=sample.baseline+deviation*Math.sin(Math.PI*t);
+    const point:Point=[sample.x,y];
+    if(previous){
+      add("lip-opening",previous[0],previous[1],
+        point[0]-previous[0],point[1]-previous[1],
+        .32,.57,0,.42,i+4000);
+    }
+    previous=point;
   }
   for(let i=0;i<100;i++){
     const t=(i+.5)/100;
