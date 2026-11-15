@@ -552,6 +552,64 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           seed+4681+i*41+k*19);
         return {root,path,cap,gradient:tone+"rockbank"+k};
       });
+      // Huang Gongwang's Fuchun ridges (NPM): rounded boulders form
+      // positive interlocking *hill backs* BEFORE the long hemp fibres.
+      // Without these six connected rock cheeks the existing stroke
+      // families looked like free black wires on a flat tan triangle.
+      // Each new mass begins on an independently painted parent stratum,
+      // follows a rounded/saddle contour and dries toward a paper channel.
+      // All existing alum caps, fine fibres and source marks remain.
+      const fuchunHillbacks=isHuang?([.24,.63] as const).map((station,k)=>{
+        const supportingStratum=stratum[(i*2+k*3)%stratum.length];
+        const root=quadraticPoint(supportingStratum.top,
+          supportingStratum.bend,supportingStratum.tip,station);
+        const sign=direction*((i+k)%2===0?1:-1);
+        const extent=(k===0?43:32)*
+          (.86+.32*s(seed+5431,i*41+k*19));
+        const rise=(k===0?16:10)*
+          (.84+.32*s(seed+5441,i*29+k*37));
+        const fall=(k===0?64:49)*
+          (.82+.29*s(seed+5449,i*31+k*23));
+        const crown:P=[root[0]+sign*extent*.42,root[1]-rise];
+        const ledge:P=[root[0]+sign*extent*.89,root[1]-rise*.13];
+        const shoulder:P=[root[0]+sign*extent*.75,
+          root[1]+fall*.37];
+        const heel:P=[root[0]+sign*extent*.53,
+          root[1]+fall*.93];
+        const inner:P=[root[0]+sign*extent*.13,
+          root[1]+fall*.74];
+        // A six-turn closed geological body, not a triangular sticker
+        // or a generic stamp. The enclosing parent face clips all pigment.
+        const d="M"+f(root[0])+" "+f(root[1])+
+          " C"+f(root[0]+sign*extent*.08)+" "+f(root[1]-rise*.76)+
+          " "+f(crown[0]-sign*extent*.2)+" "+f(crown[1]-rise*.12)+
+          " "+f(crown[0])+" "+f(crown[1])+
+          " C"+f(crown[0]+sign*extent*.19)+" "+f(crown[1]-rise*.21)+
+          " "+f(ledge[0]-sign*extent*.15)+" "+
+          f(ledge[1]-rise*.25)+" "+f(ledge[0])+" "+f(ledge[1])+
+          " C"+f(ledge[0]+sign*extent*.13)+" "+f(ledge[1]+fall*.24)+
+          " "+f(shoulder[0]+sign*extent*.08)+" "+
+          f(shoulder[1]-fall*.19)+" "+f(shoulder[0])+" "+
+          f(shoulder[1])+
+          " C"+f(shoulder[0]-sign*extent*.06)+" "+
+          f(shoulder[1]+fall*.29)+" "+
+          f(heel[0]+sign*extent*.16)+" "+f(heel[1]-fall*.21)+
+          " "+f(heel[0])+" "+f(heel[1])+
+          " C"+f(heel[0]-sign*extent*.36)+" "+
+          f(heel[1]+fall*.09)+" "+
+          f(inner[0]+sign*extent*.14)+" "+f(inner[1]+fall*.17)+
+          " "+f(inner[0])+" "+f(inner[1])+
+          " C"+f(root[0]-sign*extent*.13)+" "+
+          f(root[1]+fall*.4)+" "+f(root[0]+sign*extent*.08)+
+          " "+f(root[1]+fall*.12)+" "+f(root[0])+" "+f(root[1])+" Z";
+        const lip=rockLoadedCubicRibbon(root,
+          [root[0]+sign*extent*.1,root[1]-rise*.87],
+          [ledge[0]-sign*extent*.15,ledge[1]-rise*.14],ledge,
+          (k===0?3.7:2.6)*(.84+.24*s(seed+5461,i*17+k*43)),
+          seed+5471+i*71+k*29);
+        return {root,d,lip,gradient:tone+"fuchunhillback"+k,
+          form:k===0?"round":"saddle" as const};
+      }):[];
       // Wang Meng's moss stipple is a separate brush-particle class,
       // semantically owned by the shaded rock, not a disconnected rock.
       // Dabs gather near the 5 existing stone folds with irregular
@@ -800,6 +858,32 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         </defs>
         <path data-km-master-mass="" d={mass}
           fill={"url(#"+tone+")"} opacity={f((isFan?.96:isWang?.94:.87)*(1-.16*mist))}/>
+        {isHuang&&<g clipPath={"url(#"+clip+")"}
+          data-km-master-fuchun-hillback-field="">
+          {fuchunHillbacks.map(({root,d,lip,gradient,form},k)=><g
+            key={k} data-km-master-fuchun-hillback=""
+            data-km-master-fuchun-hillback-root={f(root[0])+","+f(root[1])}
+            data-km-master-fuchun-hillback-form={form}>
+            <defs>
+              <linearGradient id={gradient} x1={k===0?"8%":"24%"} y1="0%"
+                x2={k===0?"79%":"52%"} y2="100%">
+                <stop offset="0" stopColor="#39332d"
+                  stopOpacity={k===0?.79:.71}/>
+                <stop offset=".24" stopColor="#4f4335"
+                  stopOpacity={k===0?.69:.59}/>
+                <stop offset=".61" stopColor="#81705a"
+                  stopOpacity={k===0?.33:.28}/>
+                <stop offset=".89" stopColor="#a98e71" stopOpacity=".09"/>
+                <stop offset="1" stopColor="#b4a18b" stopOpacity="0"/>
+              </linearGradient>
+            </defs>
+            <path data-km-master-fuchun-hillback-wash="" d={d}
+              fill={"url(#"+gradient+")"}
+              opacity={f((k===0?.88:.79)*(1-.2*mist))}/>
+            <path data-km-master-fuchun-hillback-lip="" d={lip}
+              fill="#3f362e" opacity={f((k===0?.62:.49)*(1-.2*mist))}/>
+          </g>)}
+        </g>}
         {(isHuang||isWang)&&<g clipPath={"url(#"+clip+")"}
           data-km-master-rock-bank-field={school}>
           {stoneBanks.map(({root,path,cap,gradient},k)=><g key={k}
