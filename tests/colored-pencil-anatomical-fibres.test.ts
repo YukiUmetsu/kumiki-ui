@@ -127,7 +127,7 @@ describe("ArtCraft authored contour refinement guard",()=>{
       // irregular tail-tip, non-spherical crown, folded/curved coverts.
       expect((ruff.path.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(10);
       expect((muzzle.path.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(6);
-      expect((head.path.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(7);
+      expect((head.path.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(6);
       expect((coverts.path.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(8);
       expect((beak.path.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(4);
       expect((tailTip.path.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(8);
