@@ -803,23 +803,29 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
   return <g data-km-shanshui-bamboo=""
     transform={"translate("+x+" "+y+") scale("+scale+")"}>
     {[-32,0,25].map((x0,i)=>{
-      const h=315+i*53,tipX=x0-38-i*13;
-      const from:P=[x0,0],control:P=[x0-6,-h*.48],tip:P=[tipX,-h];
-      const half=4.25-i*.35;
-      const culm="M"+f(x0-half)+" 1 Q"+f(x0-6-half)+" "+f(-h*.48)+
-        " "+f(tipX)+" "+f(-h)+
-        " Q"+f(x0-6+half)+" "+f(-h*.48)+" "+f(x0+half)+" 1 Z";
+      // Nonparallel bamboo columns: one strong black stalk and two quieter
+      // ink companions receding on either side, after Zheng Xie's groves.
+      const h=[317,391,356][i],tipX=[-84,-7,64][i];
+      const from:P=[x0,0],tip:P=[tipX,-h];
+      const control:P=[x0+(tipX-x0)*.19,-h*.52];
+      const half=[3.25,4.15,2.9][i];
+      const culm="M"+f(x0-half)+" 1 Q"+f(control[0]-half)+" "+
+        f(control[1])+" "+f(tipX)+" "+f(-h)+
+        " Q"+f(control[0]+half)+" "+f(control[1])+
+        " "+f(x0+half)+" 1 Z";
       // Each collar belongs to the same curved culm, but natural internodes
       // are not seven identical evenly-spaced ruler marks.
       const nodes=Array.from({length:7},(_,j)=>
         quadraticPoint(from,control,tip,clamp((j+1)/8+
           (s(seed+193,i*43+j*17)-.5)*.026,.05,.96)));
       return <g key={i} data-km-shanshui-bamboo-stem={i}>
-        <path d={culm} fill="#66513d" stroke="#43382d"
-          strokeWidth=".78" opacity=".91"/>
-        <path d={"M"+f(x0-.75)+" 0 Q"+f(x0-7)+" "+f(-h*.48)+
-          " "+f(tipX-.6)+" "+f(-h+12)}
-          stroke="#dfc29b" strokeWidth="1.05" fill="none" opacity=".57"/>
+        <path d={culm} fill={["#917b64","#5c4839","#a38b6c"][i]}
+          stroke={i===1?"#3e332a":"#65513f"}
+          strokeWidth={i===1?.82:.63} opacity={i===1?.96:.83}/>
+        <path d={"M"+f(x0-.75)+" 0 Q"+f(control[0]-.75)+" "+
+          f(control[1])+" "+f(tipX-.6)+" "+f(-h+12)}
+          stroke="#dfc29b" strokeWidth={i===1?.9:.67}
+          fill="none" opacity={i===1?.45:.29}/>
         {nodes.map(([cx,cy],j)=>{
           // Sparse, asymmetric calligraphic fans, not alternating rulers.
           const fan=s(seed+211,i*37+j*5)>.47?1:-1;
@@ -913,13 +919,27 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
           </g>;
         })}
         {/* The collar and all branch roots share exact sampled joint centres. */}
-        {nodes.map(([nx,ny],j)=>
-          <path key={j} data-km-bamboo-node={f(nx)+","+f(ny)}
-            d={"M"+f(nx-4.2)+" "+f(ny+1.05)+
-              " Q"+f(nx)+" "+f(ny-2.75)+" "+f(nx+4.5)+" "+f(ny+.35)}
-            stroke={j%3===0?"#2f281f":"#443426"}
-            strokeWidth={j%3===0?1.8:1.34} fill="none"
-            strokeLinecap="round"/>)}
+        {nodes.map(([nx,ny],j)=>{
+          const t=clamp((j+1)/8+
+            (s(seed+193,i*43+j*17)-.5)*.026,.05,.96);
+          const dx=2*(1-t)*(control[0]-from[0])+
+            2*t*(tip[0]-control[0]);
+          const dy=2*(1-t)*(control[1]-from[1])+
+            2*t*(tip[1]-control[1]);
+          const length=Math.max(1,Math.hypot(dx,dy));
+          const normal:P=[-dy/length,dx/length];
+          const radius=half*(1-t*.43);
+          return <path key={j} data-km-bamboo-node={f(nx)+","+f(ny)}
+            d={"M"+f(nx-normal[0]*radius)+" "+
+              f(ny-normal[1]*radius)+
+              " Q"+f(nx)+" "+f(ny-1.2)+
+              " "+f(nx+normal[0]*radius)+" "+
+              f(ny+normal[1]*radius)}
+            stroke={j%3===0?"#3b3026":"#514132"}
+            strokeWidth={f(.94+.4*s(seed+1209,i*31+j))}
+            opacity={f(.59+.28*s(seed+1229,i*17+j))}
+            fill="none" strokeLinecap="round"/>;
+        })}
       </g>;
     })}
   </g>;
