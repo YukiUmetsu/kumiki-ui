@@ -63,6 +63,10 @@ describe("RISO17 source-driven anatomical grip occlusion",()=>{
 
   it("orders existing full humans, actual opaque sheet, then finger and thumb prints",()=>{
     const html=renderToStaticMarkup(createElement(RisoHumanEnsembleStudio));
+    // Previous RISO17 two-front-grip pose is still the default Storybook frame,
+    // even though the new RISO18 scene subsequently transfers ownership.
+    expect(html).toContain('data-km-riso-handoff-phase="shared"');
+    expect(html).toContain('data-km-riso-handoff-owner="both"');
     const index=(layer:string)=>html.indexOf('data-km-riso-paper-knockout="'+layer+'"');
     expect(index("courier")).toBeGreaterThan(-1);
     expect(index("paper-artist")).toBeGreaterThan(index("courier"));

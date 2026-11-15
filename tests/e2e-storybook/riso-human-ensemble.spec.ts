@@ -26,7 +26,7 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
     const containerBox=await container.boundingBox();
     expect(containerBox).not.toBeNull();
     expect(Math.abs(containerBox!.height-artBox!.height)).toBeLessThan(6);
-    for(const frame of [0,92,142,160,198,239]){
+    for(const frame of [0,92,142,160,177,189,202,239]){
       const slider=page.getByRole("slider",{name:"RISO ensemble film frame"});
       await slider.evaluate((node,value)=>{
         const input=node as HTMLInputElement;
@@ -57,9 +57,16 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
       // Only authored fingertips sit in front of the paper, and only after
       // the advancing sheet reaches each contact root.
       await expect(stage.locator('[data-km-riso-paper-knockout="courier-grip"]'))
-        .toHaveCount(frame>=142?1:0);
+        .toHaveCount(frame>=142&&frame<=177?1:0);
       await expect(stage.locator('[data-km-riso-paper-knockout="artist-grip"]'))
         .toHaveCount(frame>=160?1:0);
+      if(frame===142)await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","unfurl");
+      if(frame===160)await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","shared");
+      if(frame===189)await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","release");
+      if(frame>=202){
+        await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","received");
+        await expect(stage).toHaveAttribute("data-km-riso-handoff-owner","receiver");
+      }
       await stage.screenshot({path:info.outputPath(aspect+"-two-humans-"+frame+".png"),
         animations:"disabled"});
     }
@@ -67,6 +74,9 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
   await expect(stage.locator('[data-km-riso-transfer-plate="blue"]')).toHaveCount(1);
   await expect(stage.locator('[data-km-riso-transfer-plate="red"]')).toHaveCount(1);
   // The opaque paper and both ink masters must share one deformable contour.
+  // The donor is no longer an upper paper overlay once the print transfers.
+  await expect(stage.locator('[data-km-riso-paper-knockout="courier-grip"]')).toHaveCount(0);
+  await expect(stage.locator('[data-km-riso-paper-knockout="artist-grip"]')).toHaveCount(1);
   const initialPaper=await stage.locator("[data-km-riso-human-ensemble-sheet]").getAttribute("d");
   expect(initialPaper).toMatch(/^M.+Z$/);
   const setRange=async(name:string,value:string)=>{
@@ -79,6 +89,11 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
       input.dispatchEvent(new Event("change",{bubbles:true}));
     },value);
   };
+  await setRange("RISO ensemble donor release frame","172");
+  await setRange("RISO ensemble transfer duration","20");
+  await setRange("RISO ensemble receiver paper tilt","-58");
+  await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","received");
+  await expect(stage).toHaveAttribute("data-km-riso-handoff-owner","receiver");
   await setRange("RISO ensemble paper curl","9");
   await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-paper-curl","9");
   const curvedPaper=await stage.locator("[data-km-riso-human-ensemble-sheet]").getAttribute("d");

@@ -280,3 +280,38 @@ The [source-anchored two-human study](../research/riso14-human-ensemble-study.md
 It reuses the native `RisoPrint` spot-ink renderer and offers portrait/landscape, timeline play/pause, blue/red plate separation, halftone cell, registration and paper grain controls, plus visual contact-anchor diagnostics. All shape/sample evaluation is absolute-frame deterministic; UI playback is only a frame driver.
 
 **Not a final artist-approved film:** side/three-quarter views, full digit knuckle chains, dynamic printed-sheet physics, realistic human contact and calibrated physical Riso color/ink proofing remain open.
+
+
+## RISO18 — deterministic multi-actor paper ownership
+
+**Reusable source API:** `registry/video/riso-prop-handoff.ts`, authored physical contour in
+`registry/video/riso-transfer-sheet.tsx`. See the
+[reference-led handoff study](../research/riso18-transfer-ownership-artcraft.md) and
+the unchanged Storybook **Video production → Film Looks → Risograph** folder.
+
+The RISO14–17 film used a paper ribbon indefinitely bound between two animated wrist roots, even after the receiving hand should have taken possession. RISO18 separates **actual actor hands** from **material endpoints** and defines four predictable phases: `unfurl`, `shared`, `release`, and `received`. The final paper start/end are receiver-relative, without any dependence on the donor's current coordinates after `releaseEnd`.
+
+```ts
+import { evaluateRisoPropHandoff, RISO_HANDOFF_DEFAULTS }
+  from "../../registry/video/riso-prop-handoff";
+import { evaluateRisoTransferSheet }
+  from "../../registry/video/riso-transfer-sheet";
+
+const handoff = evaluateRisoPropHandoff(
+  absoluteFrame,
+  sourceHandNow, receiverHandNow,
+  sourceHandAtReleaseStart, receiverHandAtReleaseStart,
+  RISO_HANDOFF_DEFAULTS,
+);
+const geometry = evaluateRisoTransferSheet(
+  handoff.paperStart, handoff.paperEnd, handoff.progress,
+  { curl: 3, gripPinch: .5,
+    sourceGrip: handoff.sourceGrip, receiverGrip: handoff.receiverGrip },
+);
+```
+
+**Time and control:** source and receiver hand coordinates are evaluated in one common stage coordinate system from each original `RisoCharacterSpec`; the two *atReleaseStart* reference roots must be sampled at the **absolute release-start frame**, never captured from previous playback state. The schedule defaults to unfold frame 126, contact 160, release start 178, recipient ownership 202 and receiver relative tilt −45°. `unfoldStart < contactFrame < releaseStart < releaseEnd` is validated, as are all anchor coordinates and bounded tilt. Authoring can customize the schedule; source timing is not tied to wall-clock playback.
+
+**Material topology:** `geometry.outline` is used both for the opaque letter knockout and the blue-plate outline. `sourceGrip` and `receiverGrip` independently compress each end's physical edge while preserving the already authored inset, three ruling lines, folds, hatching, red cancellation stamp and spot-ink material. Only original selected **closed finger pads** provide physical front clearances; blue finger engravings are ink, not white-filled masks.
+
+**Studio:** the RISO18 Storybook sample exposes frame, aspect ratio, blue/red plate, ink registration, paper fibres, sheet curl, pinch strength, release frame, transfer duration and final tilt. A compact cue sheet displays current beat, owner and two pressure values. Existing RISO17 double-grip staging is preserved. The result is a mechanically validated demonstration, **not** artist-approved face animation, fully simulated flexible paper, collision forces or a verified feature-length filmmaking system.

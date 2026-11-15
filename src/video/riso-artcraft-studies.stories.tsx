@@ -311,9 +311,9 @@ export const CourierHumanAnatomy:StoryObj<typeof meta>={
   render:()=> <CourierAnatomyComparison/>,
 };
 
-/** RISO17: authored fingertips print in front of the shared opaque paper. */
+/** RISO18: gesture-driven paper ownership through release and receiver settle. */
 export const HumanEnsembleActing:StoryObj<typeof meta>={
-  name:"RISO17 · Anatomical Print Handoff",
+  name:"RISO18 · Hand-Drawn Paper Transfer",
   args:{actor:"courier"},
   render:()=> <RisoHumanEnsembleStudio/>,
 };
