@@ -301,12 +301,25 @@ Not done: three-quarter views. Every rig is still a profile, mirrored to turn.
 
   It reads in standing, walking and waving poses. The Night Ferry's mother and the crowd's three-quarter townswomen use it. Creatures are still profile rigs.
 
+## Three-quarter limbs and animals (owner request, 2026-11-14)
+
+- **Figures.**
+  - **Limbs.** A three-quarter figure's limbs now turn with its torso. The turn is applied to the solved joints, so every action keeps working. The sideways reach of a swinging limb foreshortens by cos 45°, the far leg and arm stand back and higher (further away), the near ones come forward, and the feet shorten on the diagonal.
+  - **Gait.** The walk cycle shortens by the same factor, so the stance foot stays planted. Measured on the lowest point of the figure, the drift per frame is 3.16 px both in profile and turned.
+  - **Where it shows.** The Night Ferry's mother and the crowd's three-quarter townswomen.
+- **Animals.**
+  - **Four-legged rig.** `look.view: "three-quarter"` foreshortens the body to 80% and sets the far legs back and higher, so all four feet read in depth. The head turns to us: the muzzle shortens, the far eye shows beyond the bridge of the nose with the stop between the eyes, and the horse shows only the far eye's upper rim over its long head.
+  - **Birds.** The far leg and wing are set back and higher.
+  - **In the films.** Momotarō's dog on the folktale road, and the fox that stops to look back in *The Snow Woman*'s pass.
+  - **In Storybook.** The Bestiary has a **View** switch that turns every animal and figure.
+- **Not done.** No back views or full front views; dragons and yōkai keep their own drawings.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
 - Faces are a single profile design per hairstyle. There are no three-quarter turns or expressive brow and eye shapes yet.
 - The wave's foam is procedural. It is now one connected white like the print's, but every claw is built from the same palm-and-talon unit, so it lacks the print's hand-drawn variety of claw sizes and the long lace trailing over the back.
 - The wave breaks one way only: a plunging breaker. There is no spilling breaker for the small background waves, and the falling curtain has no motion smear at its fastest frames.
-- Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Faces and torsos turn three-quarter, but limbs and creatures are profile rigs that mirror to turn.
+- Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Figures and animals turn three-quarter as well as profile, but there are no back or full front views.
 - Sound is recorded ambience beds (river, stream, wind, rain, surf, distant fireworks, crickets). There is no music and no hits timed to frames (a crash on the wave's break, each firework). Nobody has listened to the mix yet.
 - Human normal-speed review of the film has **not** been recorded.

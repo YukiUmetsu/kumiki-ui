@@ -165,7 +165,10 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
     const t = frame - a.start, len = Math.max(1, a.end - a.start), target: Partial<FigurePose> = {};
     switch (a.type) {
       case "walk": case "run": {
-        const run = a.type === "run", cycle = height * (run ? 1.25 : .62) * (a.amount ?? 1);
+        // A three-quarter figure's stride is foreshortened (see turnSkeleton), so its legs cycle faster for the same
+        // ground covered and the stance foot stays planted.
+        const turned = spec.look.view === "three-quarter" && spec.look.face !== "oni";
+        const run = a.type === "run", cycle = height * (run ? 1.25 : .62) * (a.amount ?? 1) * (turned ? .72 : 1);
         const ph = tr.dist / cycle * Math.PI * 2;
         const A = run ? 30 : 17, s = Math.sin(ph), c = Math.cos(ph);
         target.hipF = A * s + 2; target.hipB = -A * s + 2;
@@ -243,6 +246,27 @@ interface Skeleton {
 const lerp2 = (a: Pt, b: Pt, t: number): Pt => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
 const dirDown = (deg: number): Pt => [Math.sin(deg * DEG), Math.cos(deg * DEG)];
 const along = (p: Pt, deg: number, len: number): Pt => { const d = dirDown(deg); return [p[0] + d[0] * len, p[1] + d[1] * len]; };
+
+/**
+ * A three-quarter figure's limbs: the body is turned about 45° toward the viewer, so a limb swinging forward or back
+ * swings partly toward or away from us and its sideways reach shrinks (foreshortening, × cos 45°); the far leg and arm
+ * stand a little back and higher on the page (further away), the near ones a little forward; the feet shorten on the
+ * diagonal. Applied to the solved joints, so every action keeps working.
+ */
+function turnSkeleton(s: Skeleton): Skeleton {
+  const H = s.H, k = .72;
+  const chain = (root: Pt, pts: Pt[], dx: number, dy: number): Pt[] => {
+    const out: Pt[] = [];
+    let prevSrc = root, prevDst: Pt = [root[0] + dx, root[1] + dy];
+    for (const q of pts) { const d: Pt = [prevDst[0] + (q[0] - prevSrc[0]) * k, prevDst[1] + (q[1] - prevSrc[1])]; out.push(d); prevSrc = q; prevDst = d; }
+    return out;
+  };
+  const [knF, anF] = chain(s.hip, [s.knF, s.anF], H * .012, 0), [knB, anB] = chain(s.hip, [s.knB, s.anB], -H * .034, -H * .014);
+  const foot = (an: Pt, toe: Pt, srcAn: Pt): Pt => [an[0] + (toe[0] - srcAn[0]) * .74, an[1] + (toe[1] - srcAn[1]) * .9];
+  const shF: Pt = [s.shF[0] + H * .012, s.shF[1]], shB: Pt = [s.shB[0] - H * .03, s.shB[1] - H * .008];
+  const [elF, wrF] = chain(s.shF, [s.elF, s.wrF], H * .012, 0), [elB, wrB] = chain(s.shB, [s.elB, s.wrB], -H * .03, -H * .008);
+  return { ...s, knF, anF, toeF: foot(anF, s.toeF, s.anF), knB, anB, toeB: foot(anB, s.toeB, s.anB), shF, elF, wrF, shB, elB, wrB };
+}
 
 function skeleton(pose: FigurePose, H: number, build: UkiyoeBuild): Skeleton {
   const child = build === "child";
@@ -540,7 +564,8 @@ export function figureHeight(look: UkiyoeFigureLook): number {
 export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, seed: number): DrawnFigure {
   const look = spec.look, H = figureHeight(look), build = look.build ?? "average";
   const pose = figurePose(spec, frame, seed, H), prev = figurePose(spec, frame - 2, seed, H);
-  const s = skeleton(pose, H, build), sp = skeleton(prev, H, build);
+  const turned = look.view === "three-quarter" && look.face !== "oni";
+  const s0 = skeleton(pose, H, build), sp0 = skeleton(prev, H, build), s = turned ? turnSkeleton(s0) : s0, sp = turned ? turnSkeleton(sp0) : sp0;
   const { dir, squeeze } = facingAt(spec, frame);
   const tr = travelAt(spec.actions ?? [], frame);
   // Wind in the figure's own frame: blowing toward its back raises sleeves behind it.

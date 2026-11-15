@@ -40,6 +40,9 @@ export interface UkiyoeCreatureLook {
   pearl?: boolean;
   /** Horse: harness, saddle cloth and pack (a Tōkaidō packhorse). */
   tack?: boolean;
+  /** Turned three-quarters toward the viewer: a foreshortened body, the far legs (and wing) set back and higher, the
+   * head turned to us with a shorter muzzle and the far eye showing. Four-legged animals and birds. */
+  view?: "profile" | "three-quarter";
 }
 export interface UkiyoeCreatureAction { type: UkiyoeCreatureActionType; start: number; end: number; to?: number; toY?: number; via?: readonly (readonly [number, number])[]; angle?: number; amount?: number; blend?: number }
 export interface UkiyoeCreatureSpec { species: UkiyoeSpecies; look?: UkiyoeCreatureLook; actions?: readonly UkiyoeCreatureAction[]; facing?: "left" | "right" }
@@ -229,7 +232,9 @@ function tufted(pts: readonly Pt[], depth: (u: number) => number, side: 1 | -1, 
 function beastHead(b: Beast, species: string, hs: number, open: number, blink: boolean, look: UkiyoeCreatureLook, seed: number): Prim[] {
   const P = (x: number, y: number): Pt => [x * hs, y * hs];
   const color = look.color ?? b.color, belly = look.belly ?? b.belly, dark = look.dark ?? b.dark, out: Prim[] = [];
-  const sn = b.snout, ruff = look.belly ?? b.ruff, longMuzzle = species === "fox" || species === "dog";
+  const tq = look.view === "three-quarter";
+  // Turned toward the viewer, the muzzle foreshortens (the horse's long head the most).
+  const sn = b.snout * (tq ? .66 : 1), ruff = look.belly ?? b.ruff, longMuzzle = species === "fox" || species === "dog";
   // Ears behind the skull: a curved front edge, a dark back (fox), the inner ear pale with long hairs.
   const ear = (dx: number, tall: number, wide: number, tip: number, back: boolean): Prim[] => {
     const base: Pt[] = [P(dx - wide, -.5), P(dx - wide * .55 + tip * .4, -.55 - tall * .6), P(dx + tip, -.55 - tall), P(dx + wide * .7, -.62 - tall * .35), P(dx + wide, -.48)];
@@ -327,6 +332,20 @@ function beastHead(b: Beast, species: string, hs: number, open: number, blink: b
     out.push({ t: "line", d: carvedLine([P(ex - ew * 1.05, ey - .01), P(ex - ew * .1, ey - eh * 1.05), P(ex + ew * 1.1, ey - .03)], hs * .045, { taper: "both", minRatio: .3, smooth: true }), color: "sumi" });
   }
   out.push({ t: "stroke", d: [0, 1, 2].map(i => { const a = P(ex - .06 + i * .09, ey - .16), e = P(ex - .12 + i * .1, ey - .28 - i * .02); return `M${a[0].toFixed(1)} ${a[1].toFixed(1)}L${e[0].toFixed(1)} ${e[1].toFixed(1)}`; }).join(""), color: dark, width: .7, opacity: .6 });
+  if (tq && species !== "horse") {
+    // The far eye, foreshortened by the turn of the head, just inside the far edge of the face beyond the bridge of the
+    // nose; and the stop between the eyes as a short line.
+    const fx = ex + .34 + .1 * sn, fw = ew * .55, fy = ey - .02;
+    if (blink) out.push({ t: "line", d: carvedLine([P(fx - fw, fy), P(fx, fy + .03), P(fx + fw, fy - .01)], hs * .045, { taper: "both", minRatio: .4 }), color: "sumi" });
+    else {
+      out.push({ t: "fill", d: smoothD([P(fx - fw, fy + .01), P(fx - fw * .1, fy - eh * .85), P(fx + fw, fy - .01), P(fx, fy + eh * .7)], true, .5), fill: look.accent ?? b.iris, outline: 1 });
+      out.push(b.slit ? { t: "fill", d: ellipseD((fx + .01) * hs, fy * hs, hs * .018, hs * eh * .65), fill: "sumi" } : { t: "dots", d: circleD((fx + .01) * hs, fy * hs, hs * eh * .45), color: "sumi" });
+    }
+    out.push({ t: "line", d: carvedLine([P(ex + .2, ey - .08), P(ex + .26, ey + .06)], hs * .03, { taper: "both", minRatio: .3 }), color: dark, opacity: .6 });
+  } else if (tq) {
+    // The horse's far eye sits round the side of its long head: only its upper rim shows over the forehead.
+    out.push({ t: "line", d: carvedLine([P(ex + .3, ey - .06), P(ex + .38, ey - .1), P(ex + .46, ey - .06)], hs * .04, { taper: "both", minRatio: .3 }), color: "sumi" });
+  }
   // Whisker pads and whiskers.
   if (species !== "horse" && species !== "monkey") out.push({ t: "dots", d: [0, 1, 2].map(i => circleD((.36 + .42 * sn + i * .05) * hs, (.14 + (i % 2) * .05) * hs, hs * .018)).join(""), color: "sumi" });
   if (species === "cat" || species === "rabbit" || species === "tanuki" || species === "fox")
@@ -336,7 +355,9 @@ function beastHead(b: Beast, species: string, hs: number, open: number, blink: b
 
 function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number, wind: number, seed: number): Prim[] {
   const b = BEASTS[species], look = spec.look ?? {}, k = (look.size ?? b.L) / b.L;
-  const L = b.L * k, leg = b.leg * k, bh = b.bh * k, hs = b.head * k, fur = bh * b.fur;
+  // Three-quarter: the body foreshortens along its length; the far legs stand back and higher (see below).
+  const tq = look.view === "three-quarter";
+  const L = b.L * k * (tq ? .8 : 1), leg = b.leg * k, bh = b.bh * k, hs = b.head * k, fur = bh * b.fur;
   const color = look.color ?? b.color, belly = look.belly ?? b.belly, dark = look.dark ?? b.dark;
   const stocking = look.color ? undefined : b.stocking;
   const st = actionState(spec.actions ?? [], frame), tr = creatureTravel(spec.actions ?? [], frame);
@@ -534,7 +555,8 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
   const open = Math.max(howl * (.6 + .3 * Math.sin(frame / 3)), roar);
   const out: Prim[] = [];
   out.push({ t: "fill", d: ellipseD(hip[0] + L * .15, 2, L * .5 * (1 - leapH / (leg * 6)), L * .05), fill: "sumi", opacity: .1, noPrint: true });
-  out.push(...legPrims(false), ...tailPrims);
+  const farLegs = legPrims(false);
+  out.push(...(tq ? [{ t: "group" as const, transform: `translate(${(-L * .07).toFixed(1)} ${(-bh * .2).toFixed(1)})`, prims: farLegs }] : farLegs), ...tailPrims);
   // Neck and coat: one silhouette with one key line. The neck sweeps up from the withers and the chest to the nape and
   // the throat; long-coated animals carry a pale throat ruff from the cheeks down to the chest.
   const hp = (x: number, y: number) => add(headC, rot([x * hs, y * hs], headRot, [0, 0]));
@@ -771,7 +793,10 @@ function bird(species: keyof typeof BIRDS, spec: UkiyoeCreatureSpec, frame: numb
     return res;
   };
   out.push({ t: "fill", d: ellipseD(0, 1, B * .6 * (1 - fly), B * .06), fill: "sumi", opacity: .1 * (1 - fly), noPrint: true });
-  out.push(...legPrim(false), ...wingPrims(false));
+  // Three-quarter: the far leg and wing stand back and higher on the page.
+  const tqB = look.view === "three-quarter";
+  const farB = [...legPrim(false), ...wingPrims(false)];
+  out.push(...(tqB ? [{ t: "group" as const, transform: `translate(${(-B * .12).toFixed(1)} ${(-B * .14).toFixed(1)})`, prims: farB }] : farB));
   // Tail: a fan of feathers (barred on the pheasant); the crane's black bustle of plumes droops over it.
   const tailA = Math.atan2(tailTip[1] - tailBase[1], tailTip[0] - tailBase[0]) / DEG, tl = Math.hypot(tailTip[0] - tailBase[0], tailTip[1] - tailBase[1]);
   const tailF: string[] = [];
