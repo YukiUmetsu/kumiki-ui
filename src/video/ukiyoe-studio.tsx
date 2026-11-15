@@ -22,6 +22,7 @@ import { UKIYOE_SQUARE_VIEW_SPECIES } from "../../registry/video/ukiyoe/ukiyoe-c
 import { UKIYOE_MAIKO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-maiko";
 import { samuraiDuel, samuraiKata, UKIYOE_KAMAE, UKIYOE_SAMURAI_LOOK } from "../../registry/video/ukiyoe/ukiyoe-katana";
 import { oniFight, UKIYOE_MOMOTARO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-oni";
+import { castleTown } from "../../registry/video/ukiyoe/ukiyoe-town";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -424,6 +425,10 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "castle", label: "Castle · white keep, walls, moat", params: { width: 400, tiers: 5 }, y: 306 },
   { motif: "castle", label: "Castle · black, snow, night", params: { width: 420, tiers: 4, style: "black", snow: 1, night: 1 }, y: 306 },
   { motif: "castle", label: "Castle keep alone (distance)", params: { width: 380, tiers: 3, walls: false }, y: 350 },
+  { motif: "shop", label: "Merchant shop · noren, sign", params: { width: 300, height: 230 }, y: 330 },
+  { motif: "kura", label: "Storehouse · namako base", params: { width: 160, height: 220 }, y: 330 },
+  { motif: "yashiki", label: "Samurai residence · gatehouse", params: { width: 540, height: 150, pines: 3 }, y: 330 },
+  { motif: "firetower", label: "Fire-watch tower · bell", params: { height: 300 }, y: 350 },
 ];
 
 export function MotifGallery() {
@@ -577,6 +582,30 @@ export function SamuraiDuel() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="Two samurai dueling in a moonlit field" /></Fit>
     <Transport clock={clock} total={620} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Duel frame" />
+  </div>;
+}
+
+// ---- Castle town ------------------------------------------------------------------------------------------------------------------
+
+/** A castle town as one handscroll, panned from the keep down through the town. */
+export function CastleTown() {
+  const [snow, setSnow] = useState(false);
+  const spec = useMemo(() => castleTown({ snow: snow ? 1 : 0 }), [snow]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Castle town" title="From the keep down through the town">
+      <p style={{ margin: 0 }}>Built by <code>castleTown</code>: one handscroll 6,400 px wide, panned with holds at four stations, mist bands
+        drifting across as in the picture scrolls. The castle on its grassy hill above the moat; the samurai quarter, residence walls and
+        gatehouses under pines, retainers passing; the canal under an arched bridge, a boat below; the merchant street, shops with crested
+        indigo noren and standing signs, storehouses with namako bases, a busy crowd, the fire-watch tower over the roofs. The new motifs
+        (<code>shop</code>, <code>kura</code>, <code>yashiki</code>, <code>firetower</code>) share the castle's storeys and roofs; the
+        walkers keep to the street.</p>
+    </Header>
+    <section aria-label="Castle town controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Check name="Snow" value={snow} onChange={setSnow} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="A castle town handscroll panning from the castle to the merchant street" /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Scroll frame" />
   </div>;
 }
 

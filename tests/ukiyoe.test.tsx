@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { cameraAt, carvedLine, ease, loopOffsets, scrollPan, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
+import { cameraAt, carvedLine, ease, loopOffsets, scrollPan, seedOf, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
 import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES } from "../registry/video/ukiyoe/ukiyoe-creatures";
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
+import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
 import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
 import { expandCrowd } from "../registry/video/ukiyoe/ukiyoe-crowd";
@@ -410,6 +411,28 @@ describe("UKIYO1 castle", () => {
     expect(draw({ wall: "dobei" }).length).not.toBe(base.length);
     expect(JSON.stringify(drawMotif("castle", { width: 900 }, { frame: 0, wind: 0, seed: 7, progress: 1 }))).toContain("scale(1 -0.62)");
     expect(inspectUkiyoeScene(scene({ nodes: [{ id: "c", kind: "motif", motif: "castle", params: { tiers: 4, style: "black" } }] }))).toEqual([]);
+  });
+});
+
+describe("UKIYO1 castle town", () => {
+  it("validates, draws its four town motifs, pans from the castle to the street, and keeps every walker off the canal", () => {
+    const spec = castleTown();
+    expect(inspectUkiyoeScene(spec)).toEqual([]);
+    for (const m of ["shop", "kura", "yashiki", "firetower"] as const) expect(drawMotif(m, {}, { frame: 0, wind: .3, seed: 3, progress: 1 }).length, m).toBeGreaterThan(8);
+    const cam = (f: number) => cameraAt(spec.camera, f, spec.width, spec.height).x;
+    expect(cam(0)).toBeLessThan(1200);                                                            // starts at the castle
+    expect(cam(spec.durationFrames - 1)).toBeGreaterThan(5000);                                 // ends in the merchant street
+    // The canal's water runs between x 3680 and 4220; no walker may ever stand there.
+    for (const n of spec.nodes.filter(x => x.kind === "crowd")) {
+      const c = n as Extract<typeof n, { kind: "crowd" }>;
+      // Expanded exactly as the renderer expands it (scene seed ^ node id); travel is in the figure's scaled frame.
+      for (const m of expandCrowd({ ...c, frames: c.frames ?? spec.durationFrames }, (spec.seed ^ seedOf(c.id)) >>> 0)) for (let f = 0; f < spec.durationFrames; f += 15) {
+        const x = (c.x ?? 0) + m.x + travelAt(m.actions, f).x * m.scale;
+        expect(x < 3680 || x > 4220, `${m.id} at frame ${f}: x ${x.toFixed(0)}`).toBe(true);
+      }
+    }
+    // No text in the scroll, so nothing for captions to collide with.
+    expect(spec.nodes.some(n => n.kind === "text")).toBe(false);
   });
 });
 

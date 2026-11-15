@@ -564,6 +564,41 @@ They showed five things the motif lacked, all now built:
 - No film uses the castle yet.
 - Nobody has done a human visual review yet.
 
+## Castle town (roadmap U6, owner request, 2026-11-15)
+
+**Sources.**
+
+- Hiroshige's *One Hundred Famous Views of Edo* no. 8, *Suruga-chō* (Wikimedia Commons, public domain).
+- From the Met: Hiroshige's *Asakusa Kaminarimon*, *Twilight Moon at Ryōgoku Bridge* and *Sudden Shower over Shin-Ōhashi*.
+- Beato's *View of Yedo* (public domain).
+- Yoshitoshi's Yaoya Oshichi climbing a fire-watch tower (public domain).
+- A photograph of a surviving hinomi-yagura (CC BY 2.1 JP; studied only, not redistributed).
+
+**What they show.**
+
+- **Merchant streets.** Lines of big shops under heavy tiled roofs, indigo noren with white crests across the fronts, standing signs and slit windows above, crowds on the street, mist bands, Fuji beyond.
+- **Samurai quarters.** Long white walls with gatehouses, pines behind, moats with grassy banks.
+- **Bridges.** Long wooden bridges on piles, boats below.
+- **Fire-watch towers.** Tapering timber legs, a lashed ladder, a platform with a bell under a little roof.
+
+**What was built.** `ukiyoe-town.ts` adds the `shop`, `kura`, `yashiki` and `firetower` motifs and the `castleTown()` scene (6,400 px, four stations). Storybook has **Castle town**, and the Motifs gallery has the four new motifs.
+
+**Review rounds.**
+
+1. **First pass.**
+   - The keep's top was cut off, and the castle floated over a band of sky. The town now has one ground that rises to the castle's hill, and the castle is smaller.
+   - The street covered the bridge. The street is now split, with the canal water, stone banks, the bridge over it and a boat in it.
+   - The residence pines were spindly and have been shortened.
+2. **Tracking the crowds frame by frame** showed walkers would wade into the canal. They are now placed and directed so none ever stands on the water; the test checks every walker every 15 frames.
+3. **Distant range.** A hard white snow line on the range in the snowless version was removed.
+
+**Not done.**
+
+- Walkers do not cross the bridge.
+- The street is seen from the side, not in Suruga-chō's deep perspective.
+- No night version.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
