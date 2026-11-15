@@ -11,6 +11,7 @@ import type {CharacterShapeAsset,CharacterPathShape} from
 import type {ShanshuiScene} from "../../registry/video/ink-shanshui";
 import {shanshuiFacialCraft} from "./ink-shanshui-fine-craft";
 import {scrollReaderFacePortrait} from "./ink-shanshui-reader-face";
+import {shanshuiOtherFaceCraft} from "./ink-shanshui-other-face-craft";
 const p=(d:string,fill="none",stroke="$ink",strokeWidth=1,
   opacity=1):CharacterPathShape=>({type:"path",d,fill,stroke,strokeWidth,opacity});
 const art=(...shapes:CharacterPathShape[]):CharacterShapeAsset=>({
@@ -192,8 +193,11 @@ export function shanshuiFaceAssets(
   // The same fitted child pivots and animation channels are retained. Lines
   // belong to their respective facial pieces, so blink/speech stays coherent.
   const strokes=shanshuiFacialCraft(scene,detail);
+  const identity=shanshuiOtherFaceCraft(scene,detail);
   return Object.fromEntries(Object.entries(original).map(([key,asset])=>{
     if(asset.kind!=="shapes")return [key,asset];
-    return [key,{...asset,shapes:[...asset.shapes,...(strokes[key]??[])]}];
+    return [key,{...asset,shapes:[
+      ...asset.shapes,...(strokes[key]??[]),...(identity[key]??[]),
+    ]}];
   }));
 }
