@@ -8,7 +8,7 @@
 
 ## Ground-contact correction and source-native ArtCraft A/B (2026-11-14)
 
-The single **Crayon / Materials / Drawing System** Storybook page now offers a
+The existing **Video production / Film Looks / Crayon / Drawing System** Storybook page offers a
 `comparison: single | tooth` control. With `tooth`, it displays the same
 source botanical study, deterministic film seed, exact frame, native inspection
 camera and original wax geometry side by side, with `underpaintTooth=0` versus
