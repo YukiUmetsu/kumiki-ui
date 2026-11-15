@@ -118,6 +118,8 @@ export function ReferencePencilAtelier({
   const storyboardRefs=useRef<(HTMLCanvasElement|null)[]>([]);
   const boundarySourceRef=useRef<HTMLCanvasElement>(null);
   const boundaryPencilRef=useRef<HTMLCanvasElement>(null);
+  const featureSourceRef=useRef<HTMLCanvasElement>(null);
+  const featureDryRef=useRef<HTMLCanvasElement>(null);
   const underpaint=useRef<HTMLCanvasElement|null>(null);
   const progress=useRef<{study:PencilPhotoStudy;frame:number;drawn:number;wash:number}|null>(null);
   const localObjectUrl=useRef<string|null>(null);
@@ -148,6 +150,10 @@ export function ReferencePencilAtelier({
   const [showStoryboard,setShowStoryboard]=useState(initialStoryboard);
   const [showHairContact,setShowHairContact]=useState(initialStoryboard);
   const [headScumble,setHeadScumble]=useState(.65);
+  const [featureDepth,setFeatureDepth]=useState(.85);
+  const [showFeatureAtlas,setShowFeatureAtlas]=useState(initialStoryboard);
+  const [featureFocus,setFeatureFocus]=
+    useState<"eyes"|"nose"|"lips">("lips");
   const [headToneComparison,setHeadToneComparison]=
     useState<PencilToneComparison|null>(null);
   const [headOcclusion,setHeadOcclusion]=
@@ -225,8 +231,9 @@ export function ReferencePencilAtelier({
   // Opt-in research plate; expensive full-head mark construction is never
   // computed for ordinary video exports or for unrelated photos/characters.
   const headPlate=useMemo(()=>raw&&faceGuides&&showFullHead?
-    createDryPencilHeadPlate(raw,faceGuides,options.seed,headScumble):null,
-    [raw,faceGuides,showFullHead,options.seed,headScumble]);
+    createDryPencilHeadPlate(raw,faceGuides,options.seed,
+      headScumble,featureDepth):null,
+    [raw,faceGuides,showFullHead,options.seed,headScumble,featureDepth]);
   // The static precomputed tone layer is cached: seeking/speed does not
   // recompute pixels, gradients, stochastic paper or stroke directions.
   useEffect(()=>{
@@ -335,6 +342,33 @@ export function ReferencePencilAtelier({
       target.setAttribute("data-km-pencil-contact-rendered","ready");
     }
   },[showHairContact,headPlate,raw]);
+  useEffect(()=>{
+    if(!showFeatureAtlas||!headPlate)return;
+    const from=fullHeadSourceRef.current,to=fullHeadRef.current;
+    const sourceDetail=featureSourceRef.current;
+    const pencilDetail=featureDryRef.current;
+    if(!from||!to||!sourceDetail||!pencilDetail)return;
+    // The coordinate registration is the actual 285×318 Chromium CC0
+    // proof screenshot, not an invented vector face. Every crop is simply
+    // an observation of the finished source/mark canvas; it never adds
+    // photographic pixels to the rendered dry-pencil artwork.
+    const centres={eyes:[155,121],nose:[179,152],lips:[186,189]} as const;
+    const [cx,cy]=centres[featureFocus];
+    const sx=(cx-60)/285*540,sy=(cy-43)/318*600;
+    const sw=120/285*540,sh=86/318*600;
+    for(const [original,detail] of [
+      [from,sourceDetail],[to,pencilDetail],
+    ] as const){
+      const ctx=detail.getContext("2d");if(!ctx)continue;
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.clearRect(0,0,detail.width,detail.height);
+      ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";
+      ctx.imageSmoothingEnabled=true;
+      ctx.drawImage(original,sx,sy,sw,sh,
+        0,0,detail.width,detail.height);
+      detail.setAttribute("data-km-pencil-anatomy-rendered",featureFocus);
+    }
+  },[showFeatureAtlas,featureFocus,headPlate,raw]);
   // Each storyboard panel reuses the EXACT paper-only full-head strokes,
   // chronologically filtered by construction material and immutable pass.
   // Small stage canvases render at 1/2 scale without any bitmap shortcut.
@@ -484,6 +518,12 @@ export function ReferencePencilAtelier({
         <input aria-label="Pencil portrait scumble" type="range"
           min="0" max="1" step=".05" value={headScumble}
           onChange={e=>setHeadScumble(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Facial-plane pigment · {Math.round(featureDepth*100)}%
+        <input aria-label="Pencil measured face pigment depth"
+          type="range" min="0" max="1" step=".05" value={featureDepth}
+          onChange={e=>setFeatureDepth(Number(e.target.value))}/>
       </label>}
       {faceGuides&&showFullHead&&<label style={{
         ...control,alignSelf:"end",display:"flex",alignItems:"center",
@@ -735,6 +775,63 @@ export function ReferencePencilAtelier({
           </section>}
           <label style={{display:"flex",alignItems:"center",gap:8,
             marginTop:13,fontSize:13}}>
+            <input aria-label="Inspect CC0 eye nose and lip detail atlas"
+              type="checkbox" checked={showFeatureAtlas}
+              onChange={e=>setShowFeatureAtlas(e.target.checked)}/>
+            Compare CC0 facial anatomy at 3×
+          </label>
+          {showFeatureAtlas&&<section
+            aria-label="Source measured coloured pencil facial detail atlas"
+            data-km-pencil-anatomy-atlas=""
+            style={{marginTop:12}}>
+            <h3 style={{font:"600 18px Georgia,serif",margin:"0 0 6px"}}>
+              Eye · nasal cartilage · lips / source-matched optical study
+            </h3>
+            <label style={{...control,maxWidth:310,marginBottom:11}}>
+              Anatomy inspection crop
+              <select aria-label="CC0 measured face crop"
+                value={featureFocus}
+                onChange={e=>setFeatureFocus(
+                  e.target.value as "eyes"|"nose"|"lips")}
+                style={field}>
+                <option value="eyes">Eyebrow and eyelids</option>
+                <option value="nose">Nasal alae and bridge</option>
+                <option value="lips">Upper and lower vermilion</option>
+              </select>
+            </label>
+            <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+              <figure style={{margin:0,flex:"1 1 220px",maxWidth:390}}>
+                <figcaption style={{fontSize:12,marginBottom:5}}>
+                  Licensed source · measured anatomy
+                </figcaption>
+                <canvas ref={featureSourceRef} width={420} height={300}
+                  data-km-pencil-anatomy-source=""
+                  aria-label="Licensed CC0 source enlarged facial region"
+                  style={{display:"block",width:"100%",height:"auto",
+                    background:"#FAF5ED",border:"1px solid #B8AEA1"}}/>
+              </figure>
+              <figure style={{margin:0,flex:"1 1 220px",maxWidth:390}}>
+                <figcaption style={{fontSize:12,marginBottom:5}}>
+                  Dry pencil · drawn optical planes, no photo underpaint
+                </figcaption>
+                <canvas ref={featureDryRef} width={420} height={300}
+                  data-km-pencil-anatomy-dry=""
+                  data-km-pencil-raster-underpaint="none"
+                  aria-label="Paper-only pencil enlarged matching facial region"
+                  style={{display:"block",width:"100%",height:"auto",
+                    background:"#FAF5ED",border:"1px solid #B8AEA1"}}/>
+              </figure>
+            </div>
+            <p style={{fontSize:12,margin:"8px 0 0",color:"#53665E"}}>
+              Measured vermilion pigment: {" "+
+                headPlate.facialPlaneCounts["lip-vermilion"]} fibres.
+              Nasal alar gradients: {" "+
+                headPlate.facialPlaneCounts["nasal-alar"]} fibres.
+              Research only, independent likeness and artistry NOT APPROVED.
+            </p>
+          </section>}
+          <label style={{display:"flex",alignItems:"center",gap:8,
+            marginTop:13,fontSize:13}}>
             <input aria-label="Inspect portrait hairline contact at three times scale"
               type="checkbox" checked={showHairContact}
               onChange={e=>setShowHairContact(e.target.checked)}/>
@@ -785,7 +882,8 @@ export function ReferencePencilAtelier({
             {" "+headPlate.fiveValueCounts.join(" / ")}.
             Face deposits: {" "+(headPlate.materialCounts["face-value"]+
               headPlate.materialCounts["face-chroma"]+
-              headPlate.materialCounts["face-form"])}.
+              headPlate.materialCounts["face-form"]+
+              headPlate.materialCounts["facial-planes"])}.
             Hair mass / hair shadow / hair fibres:
             {" "+headPlate.materialCounts["hair-mass"]+
               " / "+headPlate.materialCounts["hair-occlusion"]+
