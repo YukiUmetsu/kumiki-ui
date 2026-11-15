@@ -166,6 +166,62 @@ function pencilContourFringe(
   return marks;
 }
 
+
+/**
+ * Authored soft-dermis pencil passes. Each tiny dry contact grows along a
+ * measured convex facial plane, not Cartesian image noise or blurred photos.
+ * Pigment layering stays translucent and distinct under optional tonal
+ * support. Five independently authored guides preserve facial flow:
+ * forehead, left/right malar, chin and lateral temple.
+ */
+type DermalGuide=readonly [number,number,number,number,number,number,number,number];
+function pencilDermalGlaze(
+  guides:readonly DermalGuide[],seed:number,palette:PencilPalette,
+  startFrame=235,
+):PencilTrace[]{
+  if(guides.length<1||guides.length>7||
+     !Number.isSafeInteger(seed)||seed<0||seed>2147483647||
+     palette.some(color=>!/^#[0-9A-F]{6}$/i.test(color)))
+    throw new RangeError("Invalid dermal pencil atlas");
+  const traces:PencilTrace[]=[];
+  for(let layer=0;layer<3;layer++){
+    const pieces:string[]=[];
+    guides.forEach(([x0,y0,x1,y1,cx,cy,count,spread],group)=>{
+      if(![x0,y0,x1,y1,cx,cy,count,spread].every(Number.isFinite)||
+         !Number.isSafeInteger(count)||count<32||count>100||
+         spread<0||spread>20||Math.hypot(x1-x0,y1-y0)<9)
+        throw new RangeError("Dermal plane requires bounded anatomical tangent");
+      for(let i=0;i<count;i++){
+        const key=group*131+layer*43+i;
+        const t=Math.max(.015,Math.min(.985,
+          (i+.5+(pencilHash(seed,key,71)-.5)*.6)/count));
+        const u=1-t;
+        const bx=u*u*x0+2*u*t*cx+t*t*x1;
+        const by=u*u*y0+2*u*t*cy+t*t*y1;
+        const tx=2*u*(cx-x0)+2*t*(x1-cx);
+        const ty=2*u*(cy-y0)+2*t*(y1-cy);
+        const size=Math.hypot(tx,ty);
+        if(size<.001)continue;
+        const dx=tx/size,dy=ty/size,nx=-dy,ny=dx;
+        const offset=(pencilHash(seed,key,72)-.5)*spread;
+        const jitter=(pencilHash(seed,key,73)-.5)*2.0;
+        const len=(2.9+5.6*pencilHash(seed,key,74))*(layer===2?.74:1);
+        const x=bx+nx*offset,y=by+ny*offset;
+        const midx=x+dx*len*.51+nx*jitter;
+        const midy=y+dy*len*.51+ny*jitter;
+        const ex=x+dx*len+nx*jitter*.35;
+        const ey=y+dy*len+ny*jitter*.35;
+        pieces.push("M"+fmt(x)+" "+fmt(y)+" Q"+
+          fmt(midx)+" "+fmt(midy)+" "+fmt(ex)+" "+fmt(ey));
+      }
+    });
+    traces.push({...mark(pieces.join(" "),palette[layer],
+      [.39,.30,.25][layer],startFrame+layer*9,
+      [.34,.27,.25][layer]),id:"dermis-"+layer});
+  }
+  return traces;
+}
+
 function face():PencilSubjectPart[] {
   const skin:PencilPalette=["#DDA58F","#906277","#F4CEB0"];
   const lit:PencilPalette=["#F2C6AA","#B78082","#FFE0BF"];
@@ -206,6 +262,16 @@ function face():PencilSubjectPart[] {
         ...flowBundles([
           [160,246,175,291,158,276,13,8],[274,251,293,283,301,270,11,9],
         ],1449,"#BA8580",.27,247),
+        // Five source-observed, locally tangent convex skin volumes.
+        // Short optical pigment contacts remain when SVG tonal support is
+        // removed; this is original pencil geometry, not a photo edit.
+        ...pencilDermalGlaze([
+          [159,148,294,157,225,124,80,9],
+          [149,219,193,295,140,261,76,12],
+          [286,219,257,315,298,260,80,12],
+          [191,307,269,321,230,339,78,8],
+          [147,176,166,236,141,203,66,8],
+        ],2661,["#CB9585","#A67580","#F2CFB1"],237),
       ]},
     {id:"temple-light",material:"glaze",palette:lit,
       path:"M145 145 C163 121 185 123 200 135 Q177 151 170 182 Q152 187 143 172 Z",
