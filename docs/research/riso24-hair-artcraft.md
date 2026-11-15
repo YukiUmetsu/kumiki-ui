@@ -42,6 +42,16 @@ The **original 2D head material** is deliberately preserved; this is not a new 3
 
 Because the knockout contour uses original `head` matrices, there are no freely positioned moving stickers and no anchor drift as the head turns or blinks. The face's previous opaque paper clearance is untouched, the original silhouettes/expressions are unchanged, and every ink survives isolated blue/red printing.
 
+## First real RISO24 render → rejected → second crafted iteration
+
+Actual head/face/hair PNGs were produced in [Chromium run 43739673937](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43739673937) (`riso24-landscape-paper-artist-46-engraved.png`, `riso24-landscape-paper-artist-46-legacy.png`, `riso24-landscape-courier-46-engraved.png`, `riso24-full-face-stress.png`). The first candidate clearly differed from baseline but **was not visually accepted**.
+
+- **Artist bob failure:** Three broad white/pink crown arcs overlapped very wide black/red strokes and made the front scalp resemble an ornamental striped helmet; this is too repetitive and large relative to the painted hair mass. Vertical red engravings ran beyond the cobalt silhouette at the temples, so they read as detached ink bleed rather than strands.
+- **Courier cap failure:** Overlarge, high-contrast white slashes produced a striped hat-like decoration instead of the reference works' hierarchical, tapering hair/crown flow.
+- **Cause:** The paper-channel path offsets and red root engraving ribbons were wider than their parent scalp locks, and the side strip was too close to the outer silhouette. Adding more noise or changing the film material would not repair the topology.
+
+**Second candidate repairs:** Narrow all three crown paper channels and their seven red companion ribbons; shift side engravings inward toward existing blue side hair; reduce scalp-temple screened outside bleed; thin the Courier white cap reserves and six red path wedges. Preserve the *same exact subpath counts*, actual knockout ink order and original source face/cap/bob silhouette. The next real Chromium pass must compare equal-view legacy/engraved screenshots to verify cleaner, rooted flow. Passing source tests alone cannot certify this correction.
+
 ## Storybook and evidence gates
 
 No new Storybook folder or page. The existing **Video production / Film Looks / Risograph / OcularPrintCraft** story gains:
