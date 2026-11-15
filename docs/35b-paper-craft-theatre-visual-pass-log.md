@@ -132,3 +132,14 @@ The Film Looks sidebar had expanded to 25 Paper Craft stories, duplicating nearl
 All five media remain selectable in the on-stage selector; aspect, palette, detail, color-layer density, curl, motion, relief, surface tooth, shadows, edges, frame scrubbing and seed remain available through relevant Storybook controls. Subject identity is fixed per object page. Legacy preview story URLs change to the consolidated folder; native FilmStage contracts and paper-sculpture IDs do not.
 
 E2E browser proofs were revised to vary Storybook URL arguments and exercise dynamic media buttons rather than maintaining repeated preview stories. Verify the current commit in Chromium: seven URLs, five distinct objects, both aspects, opaque cardstock, feather-hinge alignment, coordinated motion, botanical palettes, gallery media and console errors. Tests cannot replace independent visual craft review.
+
+
+## Pass 20 — scenery reference-to-contour foundation
+
+New landscape ArtCraft references studied: Hari & Deepti's illuminated nested shadow boxes, Helen Musselwhite's cut-paper woodland illustration, Eiko Ojala's restrained vertical landscapes and Louise Jenkins's stacked countryside paper. See `docs/research/paper-craft-scenery-artcraft-study.md` for technique-specific observations and copyright boundary.
+
+Added `paperScenerySpec`: two original scenes (woodland stream and alpine lake) with individually cut trunks, boughs, canopies, notched pines, mountains and snow, real lake/stream surfaces, ferns, smaller botanicals, true oval die-cut mat and multi-plane shading. Seeded microdetail is actual geometry, not a transparent visual filter. Both landscapes and all 3 palettes share the exact PAPER1 runtime, 128-sheet bound and absolute-frame motion contract. No unlicensed image files, new runtime dependencies or extra Storybook folder.
+
+One **Scenery** page joins the existing `Video production/Film Looks/Paper Craft` group; choose scenery, palette, detail, breeze and aspect through controls. The `paper-craft-study` FilmStage slot now accepts `artwork:"scenery"` and has a two-scene landscape/portrait film.
+
+Verification gate: focused unit tests for paths/holes, opaque stock, seeded detail and seeks, FilmStage compile and both aspects, Chromium captures and native film render. Run these against the final PR SHA. ArtCraft structural analysis does not substitute for direct image comparison, and no unmeasured quantitative fidelity is asserted.
