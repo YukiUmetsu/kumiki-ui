@@ -114,7 +114,11 @@ export function createPhotometricSkinGlaze(
       local[2]*.91+237*.09,
     ]);
     const pressure=.91+.18*pencilHash(seed,key,1602);
-    const alpha=clamp(strength*(.115+.22*shade)*pressure,.001,.34);
+    // Calibrated against BOTH photographed 285×318 portrait views:
+    // full unrestrained glaze decreased tooth noise but overshot real
+    // forehead/malar/jaw pigment by ≈10–14 grey levels. Recover the
+    // actual warm light-mass instead of chasing smoothness alone.
+    const alpha=clamp(strength*(.047+.092*shade)*pressure,.001,.17);
     const width=m.width*(3.65+1.25*shade)*
       (.91+.16*pencilHash(seed,key,1603));
     const wiggle=(pencilHash(seed,key,1604)-.5)*m.width*.27;
