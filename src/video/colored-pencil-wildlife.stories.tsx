@@ -80,8 +80,8 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
         The Blue Kingfisher — ArtCraft Study
       </h1>
       <p style={{margin:0,maxWidth:820}}>
-        Rebuilt original kingfisher with ten authored anatomical regions: long tapered
-        beak, short crown fibres, copper breast, separate layered wings, eye, tail and
+        Rebuilt original kingfisher with eleven authored anatomical regions: long tapered
+        beak, short crown fibres, copper breast, overlapping feather coverts, layered wings, eye, tail and
         planted feet. The old round bird and copper songbird are no longer rendered.
         All pigment remains fixed in paper coordinates during frame seeking.
       </p>
