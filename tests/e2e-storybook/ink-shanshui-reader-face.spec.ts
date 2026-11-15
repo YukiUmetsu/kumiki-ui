@@ -49,6 +49,33 @@ test("reader's only reworked part is a complete asymmetric face with independent
       animations:"disabled"});
   });
 
+test("ArtCraft 6x face study exposes live asymmetric iris, nasal planes and viseme controls",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
+    const close=page.getByTestId("reader-anatomy-closeup");
+    await expect(close).toBeVisible();
+    await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("open");
+    for(const id of ["base-face","eye-apertures","near-iris","far-iris","lip-planes"]){
+      await expect(close.locator('[data-ink-anatomy-feature="'+id+'"]'))
+        .toHaveCount(1);
+    }
+    await expect.poll(()=>close.locator(
+      '[data-ink-anatomy-feature="eye-apertures"] path').count())
+      .toBeGreaterThan(8);
+    await expect.poll(()=>close.locator(
+      '[data-ink-anatomy-feature="near-iris"] path').count())
+      .toBeGreaterThanOrEqual(3);
+    await close.screenshot({animations:"disabled",
+      path:info.outputPath("reader-artcraft-eye-nose-lips-open.png")});
+    await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("closed");
+    await expect(close.locator('[data-ink-anatomy-feature="near-iris"]'))
+      .toHaveCount(0);
+    await expect(close.locator('[data-ink-anatomy-feature="far-iris"]'))
+      .toHaveCount(0);
+    await close.screenshot({animations:"disabled",
+      path:info.outputPath("reader-artcraft-eye-nose-lips-closed.png")});
+  });
+
 test("source teacher reference image overlays locally without committing image pixels",
   async({page})=>{
     await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
