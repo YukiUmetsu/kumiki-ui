@@ -227,8 +227,14 @@ export function layoutRisoHandArtcraft(
   // conservative digit/forearm extents at every authored gesture.
   box(j("elbow"),-12,-5,12,7); // skinned forearm root
   box(j("hand"),-12,-6,12,22); // widest metacarpal/palm wedge
-  for(const [name,endY] of Object.entries({index:21,middle:23,ring:21,pinky:17}))
+  for(const [name,endY] of Object.entries({index:21,middle:23,ring:21,pinky:17})){
     box(j(name),-4,-4,5,endY);
+    // A real bend may project beyond the formerly straight MCP finger
+    // proxy. Use the actual moving PIP and DIP bones for the studio crop.
+    const source=RISO31_GEOMETRY[name as keyof typeof RISO31_GEOMETRY];
+    box(j(name+"-pip"),-4,-3,5,source.intermediate+3);
+    box(j(name+"-dip"),-4,-3,5,source.distal+2.5);
+  }
   box(j("thumb"),-12,-8,12,6); // radial opposition, both handednesses
   const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
   const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
