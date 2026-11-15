@@ -450,6 +450,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       }));
       expect(empty).toContain('data-km-shanshui-bamboo-stem="0"');
       expect(empty).not.toContain('data-km-shanshui-bamboo-leaf');
+      expect(empty).not.toContain('data-km-bamboo-pressure-twig');
     }
   });
 
@@ -472,8 +473,9 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(roots).toHaveLength(21);
       expect(nodes).toHaveLength(21);
       expect(new Set(roots)).toEqual(new Set(nodes));
+      // Source bare internodes are actually bare, not empty branch lines.
       expect((full.match(/data-km-bamboo-pressure-twig=""/g)??[]))
-        .toHaveLength(21);
+        .toHaveLength(18);
       expect((full.match(/data-km-bamboo-dry-lift=""/g)??[]))
         .toHaveLength(39);
       // A real painted fan uses more than one curve/ink weight. It is

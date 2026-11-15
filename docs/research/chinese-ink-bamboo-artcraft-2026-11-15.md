@@ -430,3 +430,33 @@ This pass intentionally avoids changing the human face: ArtCraft v7 requires
 a rights-cleared measured human source and independently reviewed anatomy before
 portrait edits. If the branch conflicts with newer main, resolve with scoped
 conflict analysis before merging; never silently replace other open art PRs.
+
+
+## Tenth pass — remove phantom twigs from intentional paper-reserve nodes
+
+**Actual inspected predecessor:** [native browser evidence from successful exact
+head `8a73e9ef`](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43711313634);
+both 2.15× bamboo motif crops and 960×540 misty-hermit view were reviewed,
+alongside the earlier `c3021a` screenshots. The new asymmetric pressure/ink
+gradients visibly soften the former flat-filled blades and the masked bristles
+appear as genuine internal reserves. However the canopy still looks sparse
+and stylized, with unnecessary pale branch twigs crossing empty regions.
+
+**Source morphology correction:** unlike genuine Wu Zhen's bamboo groups,
+the earlier implementation always rendered a painted primary twig at all 21
+culm joints, even though three deliberately authored joints had **zero**
+foliage. These were not negative-space pauses; they were phantom lines.
+The main branch is now rendered **only when it carries at least one visible
+leaf**. The seven internode samples, collar root geometry, 102 full-detail
+blades, 63 satellites, closed pressure shape, paper-reserve masks, and all
+existing wind paths stay intact. At full detail, 18 true painted twigs remain;
+at detail zero, no branch twig survives. No artist texture is removed from a
+live painted branch.
+
+Visual hypothesis: this will recover open paper channels near the stems and
+reduce the 'spidery wireframe' impression. It is not a full remedy for
+unconvincing foliage silhouettes or the schematic background mountains.
+**Release still requires a new exact-head render and independent ArtCraft
+comparison.** Unit/browser tests assert both the 18 live branches and the
+zero-detail omission. This is structural deletion of incorrectly floating
+motifs, not general shape simplification.

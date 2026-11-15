@@ -147,6 +147,7 @@ test("brushwork study shows native rooted foliage and uneven rock deposition",as
   await density.press("Home");
   await expect(density).toHaveValue("0");
   await expect(study.locator("[data-km-pine-needle-cluster]")).toHaveCount(0);
+  await expect(study.locator("[data-km-bamboo-pressure-twig]")).toHaveCount(0);
 });
 
 test("one Shanshui Storybook folder also exposes the real three-phase garment study",async({page},info)=>{

@@ -953,8 +953,8 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
           return <g key={j} data-km-bamboo-branch-root={f(cx)+","+f(cy)}
             data-km-bamboo-cluster-budget={clusterBudget}
             transform={"rotate("+f(wind*.6)+" "+f(cx)+" "+f(cy)+")"}>
-            <path data-km-bamboo-pressure-twig="" d={branch}
-              fill="#685541" opacity=".87"/>
+            {visibleLeaves>0&&<path data-km-bamboo-pressure-twig="" d={branch}
+              fill="#685541" opacity=".87"/>}
             {spurs.slice(0,visibleSpurs).map((spur,k)=>{
               const root=spur.root,bend=spur.bend,tip=spur.tip;
               const side=k===0?-fan:fan;
