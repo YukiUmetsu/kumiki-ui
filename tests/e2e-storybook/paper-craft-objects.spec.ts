@@ -43,6 +43,25 @@ test("All five Paper Craft subjects share one Storybook folder and support portr
   expect(errors).toEqual([]);
 });
 
+test("Garden and Botanical render inside the consolidated Paper Craft folder",async({page},info)=>{
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  await page.goto(scene("gallery"));
+  const gallery=page.locator("svg[data-km-paper-craft]");
+  await expect(gallery).toHaveAttribute("data-km-paper-style","layered");
+  await page.locator('[data-paper-medium-link="kirigami"]').click();
+  await expect(gallery).toHaveAttribute("data-km-paper-style","kirigami");
+  await gallery.screenshot({animations:"disabled",path:info.outputPath("garden-kirigami.png")});
+  await page.goto(scene("botanical","aspect:portrait;palette:rainforest;colorLayers:1;detail:1"));
+  const botanical=page.locator("svg[data-km-paper-craft]");
+  await expect(botanical).toHaveAttribute("viewBox","0 0 540 960");
+  const cuts=botanical.locator("[data-km-paper-layer]");
+  expect(await cuts.count()).toBeGreaterThan(106);
+  await expect(botanical.locator('[data-km-paper-layer="moth-left-fore-panel"]')).toBeVisible();
+  await botanical.screenshot({animations:"disabled",path:info.outputPath("botanical-rainforest-portrait.png")});
+  expect(errors).toEqual([]);
+});
+
 test("Kingfisher supports frame seeking without a separate storyboard duplicate",async({page})=>{
   await page.goto(scene("kingfisher"));
   const stage=page.locator("svg[data-km-paper-craft]");
