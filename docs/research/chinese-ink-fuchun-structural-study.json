@@ -51,7 +51,8 @@
       "3 parent-rooted cubic hill terraces with 6 attached alum-head caps and 40 dense dry/wet hemp fibres",
       "25-point irregular summit/shoulder ridge replacing previous mountain-trail middle-band needle peak",
       "three bone-rooted positive 5-cubic crag masses with scoped ink-load gradients",
-      "six parent-attached crag alum-head caps and nine erosion grooves"
+      "six parent-attached crag alum-head caps and nine erosion grooves",
+      "33 face-bounded long-hemp pressure gestures with clipped material density, budgeted 14/11/8"
     ],
     "edges": [
       "crest root -> bone",
@@ -61,7 +62,8 @@
       "4 vertical branches -> 8 sub-fibres, 2 each",
       "crease and shadow pockets layer over supported paint, not detached",
       "bone stations .09/.29/.51 -> cubic hill backs -> 2 caps and 13/16/11 fibre children",
-      "middle ridge crest -> hero bone -> mass roots .12/.31/.55 -> local cap and erosion sampled roots"
+      "middle ridge crest -> hero bone -> mass roots .12/.31/.55 -> local cap and erosion sampled roots",
+      "three parent face contours -> 33 station-sampled ink paths -> 3 unique clip boundaries and 6+ dry-lift tails"
     ],
     "intentional_voids": [
       "between three off-axis rounded backs",
@@ -156,5 +158,15 @@
       "visual": "Reject artificial rubber-stamp lobes and schematic stringy dark ribs even if tests pass; inspect native 960x540 and enlarged aligned 1.75x, 2.4x, 3.45x crops.",
       "release_state": "draft; awaits independent exact-head native visual review"
     }
+  },
+  "face_hemp_revision": {
+    "feature": "33 individual source-oriented ink fibre gestures, clipped within three original parent cheek volumes",
+    "technique": "long-hemp and lifted ink, Huang Gongwang c.1350, National Palace Museum, source technique guidance not traced",
+    "hierarchy": "ridge crest > quadratic rock bone > positive stone face > clipped curved face boundary > 14/11/8 independent tip-pressure strokes",
+    "dry_wet": "6 or more selectively depleted parent-local strokes among dark and dilute clusters, two concentration windows separated by paper",
+    "linework": "rockLoadedRibbon 14 pressure stations with curvature, load/tip asymmetry, nominal width 0.46-1.7 stage units, no disconnected decals",
+    "no_copy": "All curve geometry and textures hand authored, keyed to parent shape and time frame; no source image pixels imported.",
+    "rejection": "Reject fine parallel rain or combs, repeated starburst marks or flat topological stickers even with structural tests passing.",
+    "status": "draft until native reference-guided review"
   }
 }
