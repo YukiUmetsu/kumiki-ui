@@ -62,3 +62,31 @@ test("wildlife animation preserves opaque bird parts under seek and aspect switc
     expect(await body.evaluate(node => node.outerHTML)).toBe(original);
   }
 });
+
+test("new Colour-pencil feather macro stays in the existing Wildlife group and seeks deterministically", async ({ page }, info) => {
+  await page.goto("/iframe.html?id=video-colored-pencil-wildlife--feather-construction&viewMode=story");
+  const stage=page.locator("svg[data-km-pencil-scene]");
+  await expect(stage).toBeVisible();
+  await expect(page.getByRole("combobox",{name:"Wildlife inspection"})).toHaveValue("wing");
+  await expect(stage).toHaveAttribute("style",/scale\(2\.85\)/);
+  const nearWing=stage.locator('[data-km-pencil-region="kingfisher-near-wing"]');
+  await expect(nearWing).toHaveCount(1);
+  await expect(stage).toHaveAttribute("data-km-pencil-scene-frame","285");
+  const original=await nearWing.evaluate(node=>node.outerHTML);
+  const slider=page.getByRole("slider",{name:"Wildlife frame"});
+  const seek=async(frame:number)=>{
+    await slider.evaluate((node,value)=>{
+      const input=node as HTMLInputElement;
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set?.call(input,String(value));
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+      input.dispatchEvent(new Event("change",{bubbles:true}));
+    },frame);
+    await expect(stage).toHaveAttribute("data-km-pencil-scene-frame",String(frame));
+  };
+  await seek(210);
+  await seek(285);
+  await expect(stage).toHaveAttribute("data-km-pencil-scene-frame","285");
+  expect(await nearWing.evaluate(node=>node.outerHTML)).toBe(original);
+  await stage.locator("xpath=..").screenshot({animations:"disabled",
+    path:info.outputPath("pencil-feather-rachis-and-vane-macro.png")});
+});
