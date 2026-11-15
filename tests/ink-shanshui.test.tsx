@@ -103,6 +103,37 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     })));
   });
 
+  it("constructs pine canopies as root-connected, pressure-tapered needle clusters",()=>{
+    for(const scene of ["mountain-trail","misty-hermit"] as const){
+      const controls={...DEFAULT_SHANSHUI,scene,detail:1};
+      const full=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:144,controls,
+      }));
+      const sprays=(full.match(/data-km-pine-spray=""/g)??[]).length;
+      const rosettes=[...full.matchAll(
+        /data-km-pine-needle-cluster="" data-km-pine-needles="(\\d+)" data-km-pine-twig-root="([^"]+)"/g,
+      )];
+      expect(sprays).toBeGreaterThan(25);
+      expect(rosettes.length).toBeGreaterThan(sprays*2);
+      expect(rosettes.length).toBeLessThan(sprays*5);
+      const needles=rosettes.reduce((sum,match)=>sum+Number(match[1]),0);
+      expect(needles).toBeGreaterThan(800);
+      expect(new Set(rosettes.map(match=>match[1])).size).toBeGreaterThan(2);
+      expect(rosettes.every(match=>match[2].includes(","))).toBe(true);
+      const bark=(full.match(/data-km-pine-bark=""/g)??[]).length;
+      expect(bark).toBeGreaterThanOrEqual(20);
+      expect(full).not.toMatch(/NaN|Infinity|undefined/);
+      expect(full).toEqual(renderToStaticMarkup(createElement(
+        InkShanshuiStage,{frame:144,controls},
+      )));
+      const bare=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:144,controls:{...controls,detail:0},
+      }));
+      expect(bare).toContain('data-km-shanshui-pine=""');
+      expect(bare).not.toContain('data-km-pine-needle-cluster');
+    }
+  });
+
   it("places cunfa roots under the same curved ridge actually painted",()=>{
     for(const scene of SHANSHUI_SCENES){
       const controls={...DEFAULT_SHANSHUI,scene};
