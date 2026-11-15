@@ -234,6 +234,37 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         expect((shade[1].match(/ C/g)??[]).length).toBeGreaterThanOrEqual(5);
         expect(html).toContain('id="'+shade[2]+'"');
       }
+      // The source comparison originally stuck every cun mark to the
+      // *top* of the mountain and left its lower face blank. Each of the
+      // three face masses now has five independent, physically drawn
+      // supporting ink strata; every child names a real parent bank.
+      const connected=[...html.matchAll(
+        /data-km-master-stratum="" data-km-master-stratum-root="([^"]+)" data-km-master-stratum-index="([0-4])"/g,
+      )];
+      expect(connected).toHaveLength(15);
+      expect(connected.map(m=>Number(m[2]))).toEqual([
+        0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,
+      ]);
+      expect(connected.every(([,r])=>r.split(",").length===2&&
+        r.split(",").every(v=>Number.isFinite(Number(v))))).toBe(true);
+      const wash=[...html.matchAll(
+        /data-km-master-stratum-wash="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      expect(wash).toHaveLength(15);
+      expect(wash.every((d,k)=>d.startsWith(
+        "M"+connected[k][1].replace(","," "))&&
+        (d.match(/ C/g)??[]).length>=22&&d.endsWith(" Z"))).toBe(true);
+      expect((html.match(/data-km-master-stratum-lip=""/g)??[]))
+        .toHaveLength(15);
+      const brushParents=[...html.matchAll(
+        /data-km-master-stroke="" data-km-master-stroke-style="[^"]+" data-km-master-stroke-root="([^"]+)" data-km-master-stroke-dry="(dry|wet)" data-km-master-stroke-bank="([0-4])"/g,
+      )];
+      expect(brushParents).toHaveLength(count);
+      expect(new Set(brushParents.map(m=>m[3])).size).toBe(5);
+      // Four historical schools must not receive the same inherited
+      // Fuchun-only downward ridge gouges.
+      expect(html.includes('data-km-rock-hero-fold=""'))
+        .toBe(school==="fuchun");
       const marks=[...html.matchAll(
         /data-km-master-stroke="" data-km-master-stroke-style="([^"]+)" data-km-master-stroke-root="([^"]+)" data-km-master-stroke-dry="(dry|wet)"/g,
       )];
