@@ -164,6 +164,7 @@ test("RISO25 original-ear and midface craft: two identities, states and ratios",
   const crop=page.getByRole("combobox",{name:"RISO24 feature focus"});
   const aspectCtrl=page.getByRole("combobox",{name:"RISO21 crop aspect"});
   const pose=page.getByRole("combobox",{name:"RISO21 expression pose"});
+  await expect(face).toBeVisible({timeout:12000});
 
   for(const aspect of ["landscape","portrait"] as const){
     await aspectCtrl.selectOption(aspect);
@@ -171,6 +172,17 @@ test("RISO25 original-ear and midface craft: two identities, states and ratios",
       await pose.selectOption(frame);
       for(const focus of ["ear","midface"] as const){
         await crop.selectOption(focus);
+        // A source-bound small ear in 9:16 once requested >30x scale and
+        // crashed the physical press placement contract. Verify bounded
+        // camera scale on every actor *before* the expensive screenshot loop.
+        for(const actor of ["courier","paper-artist"] as const){
+          const subject=page.locator('[data-km-riso21-actor="'+actor+'"]');
+          await expect(subject).toBeVisible({timeout:12000});
+          const scale=Number(await subject.getAttribute("data-km-riso25-crop-scale"));
+          expect(Number.isFinite(scale)&&scale>0&&scale<=29,
+            actor+" "+aspect+" "+focus+" has a valid real-print camera scale").toBe(true);
+        }
+        await expect(face).toBeVisible({timeout:12000});
         await face.selectOption("legacy");
         const before=new Map<string,Buffer>();
         for(const actor of ["courier","paper-artist"] as const){
