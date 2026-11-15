@@ -144,11 +144,21 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
   const volumeId=clip+"-volume";
   const darkToothMask=clip+"-undercoat-dark";
   const lightToothMask=clip+"-undercoat-light";
-  // Physical stroke-built artwork has a flat buried wax body (never see-through)
-  // with value carried by overlaid pigment. Avoid glossy airbrush gradients.
-  const underpaintFill=strokeBuilt
+  // Physical wax can be burnished into continuous light-to-shadow mass:
+  // when the author specifies a *volumetric* layer, keep its values under
+  // dry fibers and the shared relief mask. The old stroke-built renderer
+  // accidentally ignored underpaintGradient and flattened all face planes.
+  // Tint each stop toward the paper at the same physical pressure instead
+  // of inserting an unrelated glossy radial highlight over the finished wax.
+  // No gradient remains the unchanged uniform stroke-built undercoat.
+  const paperUnderpaint=strokeBuilt
     ? crayonPaperTintedWaxBase(colors[0],paperColor,pressure)
-    : underpaintGradient ? "url(#"+volumeId+")" : colors[0];
+    : colors[0];
+  const underpaintFill=underpaintGradient
+    ? "url(#"+volumeId+")" : paperUnderpaint;
+  const volumeStop=(pigment:string)=>strokeBuilt
+    ? crayonPaperTintedWaxBase(pigment,paperColor,pressure)
+    : pigment;
   // Contact pressure changes the opacity of raised paper-grain interruptions.
   // This remains a detail mask for the wax layer, never for opaque underpaint.
   const reliefContact = Number((.26 + (1-pressure)*.67).toFixed(4));
@@ -192,7 +202,8 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
   return <g data-km-crayon-region="" data-km-crayon-seed={seed} data-km-crayon-build={phase}
     data-km-crayon-coverage={coverage}
     data-km-crayon-deposition={deposition}
-    data-km-crayon-paper-base={strokeBuilt?underpaintFill:undefined}
+    data-km-crayon-paper-base={strokeBuilt?paperUnderpaint:undefined}
+    data-km-crayon-volume-burnish={strokeBuilt&&underpaintGradient?"wax":undefined}
     data-km-crayon-exposure={redraw ? exposure : undefined}
     data-km-crayon-stroke-order={strokeOrder}
     data-km-crayon-mark-length={markLength}
@@ -201,15 +212,16 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
     data-km-crayon-underpaint-tooth={underpaintTooth>0?underpaintTooth:undefined}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
-      {underpaintGradient && !strokeBuilt && <radialGradient id={volumeId}
+      {underpaintGradient && <radialGradient id={volumeId}
         cx={(100*underpaintGradient.focusX).toFixed(2)+"%"}
         cy={(100*underpaintGradient.focusY).toFixed(2)+"%"}
         r={(100*underpaintGradient.radius).toFixed(2)+"%"}
         gradientUnits="objectBoundingBox"
-        data-km-crayon-underpaint-gradient="">
-        <stop offset="0%" stopColor={underpaintGradient.light}/>
-        <stop offset="48%" stopColor={colors[0]}/>
-        <stop offset="100%" stopColor={underpaintGradient.shadow}/>
+        data-km-crayon-underpaint-gradient=""
+        data-km-crayon-pressure-tinted={strokeBuilt?"true":undefined}>
+        <stop offset="0%" stopColor={volumeStop(underpaintGradient.light)}/>
+        <stop offset="48%" stopColor={volumeStop(colors[0])}/>
+        <stop offset="100%" stopColor={volumeStop(underpaintGradient.shadow)}/>
       </radialGradient>}
       {coverage==="opaque"&&underpaintTooth>0&&(["dark","light"] as const).map((kind)=>(
         <mask key={kind} id={kind==="dark"?darkToothMask:lightToothMask}
