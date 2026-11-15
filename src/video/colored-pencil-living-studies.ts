@@ -376,55 +376,58 @@ function fox():PencilSubjectPart[] {
           [219,265,238,305,227,284,29,12],
         ],1939,["#D7C3AC","#766D68","#FFF1D6"],244),
       ]},
-    {id:"ear-far",material:"fur",palette:["#AF6B52","#714B49","#E1A47B"],
-      // Ear-to-skull proportion: broad cartilage base, shorter tapered tip.
-      path:"M175 189 C167 169 159 146 159 124 Q160 105 168 105 C181 107 195 129 205 158 Q197 171 186 188 Z",
-      bounds:[154,100,55,94],direction:67,start:114,
+    {id:"ear-far",material:"fur",palette:["#AD6B54","#704E49","#D8A17E"],
+      // Foreshortened far auricle: maintain positive skull overlap and
+      // inner cartilage nested within the parent, not a distant ear sticker.
+      path:"M176 190 C168 177 162 158 163 139 Q162 127 170 124 "+
+        "C183 129 196 151 205 166 Q201 181 187 191 Z",
+      bounds:[158,122,54,72],direction:68,start:114,
       details:[
-        mark("M159 132 Q154 105 164 77 Q180 97 186 123",
-          "#524647",.78,241,.74),
-        ...pencilRootedFur([[164,111,187,169,171,141,18,8]],642,
-          ["#D4A282","#6D5653","#F1BFA2"],252),
-      ]},
-    {id:"ear-far-inner",material:"fur",palette:["#A17E73","#6A555B","#C9AD9A"],
-      path:"M174 158 C168 143 165 129 168 116 Q175 120 182 137 Q190 151 191 161 Q186 153 181 159 Z",
-      bounds:[160,111,44,57],direction:72,start:131,
-      details:[
-        mark("M166 97 C163 115 174 140 186 151","#D4B29B",.48,245,.73),
-        mark("M163 92 Q165 85 171 94 M180 116 Q188 127 191 144",
-          "#42383C",.63,254,.78),
+        mark("M170 128 Q171 148 183 173 M176 135 Q187 154 193 174",
+          "#5D504D",.48,241,.58),
         ...pencilRootedFur([
-          [169,124,185,154,174,139,28,6],
-          [171,134,185,161,176,148,22,8],
-        ],1683,["#C69C86","#514248","#ECD2B0"],256),
+          [168,136,189,174,174,154,30,8],
+          [174,148,197,185,181,166,25,9],
+        ],642,["#D7A58B","#665055","#F0D0B0"],252),
       ]},
-    {id:"ear-near",material:"fur",palette:["#B87658","#724F4A","#E4AA7F"],
-      path:"M246 183 C255 156 267 125 283 102 Q295 89 301 97 C310 120 301 157 291 186 Q270 191 246 183 Z",
-      bounds:[243,87,68,105],direction:-66,start:115,
+    {id:"ear-far-inner",material:"fur",palette:["#94786E","#5D5054","#C8AA94"],
+      path:"M173 164 C170 153 169 143 171 134 Q183 144 191 164 "+
+        "Q193 178 185 180 Q178 172 173 164 Z",
+      bounds:[167,132,28,49],direction:75,start:131,
       details:[
-        mark("M266 128 Q279 91 301 69 Q305 105 284 143",
-          "#55474B",.83,247,.80),
-        ...pencilRootedFur([[293,116,277,169,288,143,21,7]],661,
-          ["#E2AD88","#6B5556","#F5C9A6"],252),
-      ]},
-    {id:"ear-near-inner",material:"fur",palette:["#A37C6E","#68545C","#D9B39A"],
-      path:"M263 171 C273 149 284 121 296 109 Q298 127 288 156 Q280 174 276 177 Z",
-      bounds:[260,104,44,76],direction:-68,start:131,
-      details:[
-        mark("M294 91 C284 111 279 140 270 164",
-          "#E8CAB0",.54,248,.74),
-        mark("M297 76 C304 102 293 132 281 159",
-          "#4D4146",.71,251,.77),
+        mark("M172 137 Q176 153 186 169 M176 145 Q186 157 188 171",
+          "#594A4D",.44,245,.64),
         ...pencilRootedFur([
-          [293,113,274,165,288,140,33,8],
-          [284,135,270,170,281,153,26,8],
-        ],1711,["#BE9B86","#51474B","#F1D7BA"],252),
+          [173,141,187,171,174,156,29,5],
+          [176,151,187,177,181,163,25,5],
+        ],1683,["#C69C86","#50474B","#EBD2BB"],256),
       ]},
-    // ArtCraft: one continuous source-free *anatomy* study, not a photo
-    // extraction. The dark fox eye is embedded in brow bone and the cheek
-    // skin/fur plane; disconnected socket stickers made this face mask-like.
-    // Fine fibers originate from curved orbital ridges, turn into tear
-    // tracts and vanish into malar fur at three different pressures.
+    {id:"ear-near",material:"fur",palette:["#B67558","#765049","#E4A984"],
+      // One continuous auricle tapering into upper cheek and cranium.
+      // Perspective keeps the near ear taller than the occluded far ear.
+      path:"M245 184 C254 157 270 129 288 113 Q297 105 301 113 "+
+        "C309 134 301 161 289 187 Q268 193 245 184 Z",
+      bounds:[241,105,70,90],direction:-69,start:115,
+      details:[
+        mark("M292 115 Q292 137 276 171 M299 118 Q302 144 287 174",
+          "#645050",.48,248,.62),
+        ...pencilRootedFur([
+          [294,120,272,177,287,145,29,7],
+          [297,138,282,182,296,164,26,7],
+        ],661,["#E0AB8C","#665357","#F2CBAB"],252),
+      ]},
+    {id:"ear-near-inner",material:"fur",palette:["#A17A71","#62525A","#D5B4A0"],
+      path:"M262 171 C271 147 283 127 295 116 Q297 135 287 160 "+
+        "Q280 178 274 181 Z",
+      bounds:[259,114,41,69],direction:-66,start:131,
+      details:[
+        mark("M292 123 Q288 145 274 175 M296 124 Q295 150 282 172",
+          "#4D4248",.52,247,.72),
+        ...pencilRootedFur([
+          [292,127,272,170,284,146,31,7],
+          [286,141,276,178,284,160,26,7],
+        ],1711,["#C4A088","#4F464D","#EFDBC1"],256),
+      ]},
     {id:"head-main",material:"fur",palette:["#B66C4E","#724849","#EBAE79"],
       // Three-quarter fox: skull widens behind the near orbit and narrows into
       // an oblique snout; avoid the old round bilateral mask.
