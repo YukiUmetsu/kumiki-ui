@@ -62,7 +62,7 @@ describe("strict native Crayon drawing grammar",()=>{
         if(pear?.kind!=="wax"||shadow?.kind!=="wax"||
           !pear.placement||typeof pear.placement.scale!=="number")
           throw new Error("Missing source ground-contact geometry");
-        const shadowOrigin=/^M(-?[\\d.]+) (-?[\\d.]+) C/.exec(shadow.d);
+        const shadowOrigin=/^M(-?[0-9.]+) (-?[0-9.]+) C/.exec(shadow.d);
         expect(shadowOrigin).not.toBeNull();
         expect(Number(shadowOrigin?.[2])+3).toBeCloseTo(
           pear.placement.y+180*pear.placement.scale,5);
