@@ -40,7 +40,7 @@ interface ObjectShape {
 function material(shape: ObjectShape, seed: number, transform: string): PencilRegion {
   const input: PencilMaterialInput = {
     ...shape, seed, transform,
-    startFrame:shape.startFrame ?? 25, durationFrames:170,
+    startFrame:shape.startFrame ?? 25, durationFrames:170,craft:true,
   };
   return createPencilMaterialRegion(input);
 }
