@@ -28,7 +28,18 @@ test("Two fully opaque Paper Craft landscapes render as one configurable Storybo
         const crown=svg.locator('[data-km-paper-layer="woodland-lace-canopy-0"]');
         const cutPath=await crown.locator("path[fill-rule='evenodd']").getAttribute("d");
         expect((cutPath?.match(/C/g)??[]).length).toBeGreaterThanOrEqual(6);
-        expect((cutPath?.match(/Z/g)??[]).length).toBeGreaterThanOrEqual(9);
+        expect((cutPath?.match(/Z/g)??[]).length).toBeGreaterThanOrEqual(19);
+        for(const side of [0,1]){
+          const shadow=svg.locator('[data-km-paper-layer="woodland-arched-arbor-shadow-'+side+'"]');
+          const branch=svg.locator('[data-km-paper-layer="woodland-arched-arbor-'+side+'"]');
+          const leaves=svg.locator('[data-km-paper-layer="woodland-arched-arbor-leaves-'+side+'"]');
+          await expect(shadow).toBeVisible();
+          await expect(branch).toBeVisible();
+          await expect(leaves).toBeVisible();
+          const path=await branch.locator('path[fill-rule="evenodd"]').getAttribute("d");
+          expect((path?.match(/C/g)??[]).length).toBeGreaterThan(12);
+          expect(path).not.toBe(await shadow.locator('path[fill-rule="evenodd"]').getAttribute("d"));
+        }
       }
       const prefix=subject==="woodland"?"woodland":"alpine";
       const herb=svg.locator('[data-km-paper-layer="'+prefix+'-herb-0-0"]');
