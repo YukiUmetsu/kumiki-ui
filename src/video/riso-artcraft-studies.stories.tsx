@@ -26,7 +26,7 @@ const panelDefinitions={
   "paper-bird":[
     {title:"01 / Wing silhouette and coverts",regions:["left-wing","right-wing","body","head"],focus:"left-wing"},
     {title:"02 / Beak, eye and cheek",regions:["head","beak","eye","eye-ring","beak-divider"],focus:"beak"},
-    {title:"03 / Tail, breast and feather flow",regions:["tail","body","breast-plumage","body-feather-hatching"],focus:"tail"},
+    {title:"03 / Tail, breast and feather flow",regions:["tail","body","breast-plumage","body-feather-hatching","breast-contour-feathers","tail-feather-barbs"],focus:"tail"},
   ],
 };
 function sourceBounds(regions:readonly RisoMeshFrameRegion[],ids:readonly string[]){
@@ -42,6 +42,8 @@ function ArtcraftStudio({actor}:ArtcraftProps){
   const spec: RisoCharacterSpec=bird?PAPER_BIRD:COURIER;
   const sheet: RisoCharacterMeshSheet=bird?RISO_PAPER_BIRD_SHEET:RISO_COURIER_SHEET;
   const [frame,setFrame]=useState(bird?84:46);
+  const poseStops=bird?[[0,"Wings high"],[84,"Mid flap"],[160,"Flight"],[239,"Finish"]] as const
+    :[[46,"Walking"],[78,"Blink"],[160,"Speaking"],[198,"Smiling"]] as const;
   const [plates,setPlates]=useState<PlateMode>("both");
   const [mesh,setMesh]=useState(false);
   const [zoom,setZoom]=useState(1);
@@ -112,7 +114,7 @@ function ArtcraftStudio({actor}:ArtcraftProps){
   }
   return <main style={{background:"#F3E8D4",padding:18,font:"14px system-ui,sans-serif",color:"#294A60",minHeight:"100vh"}}>
     <div style={{maxWidth:1290,margin:"0 auto"}}>
-      <div style={{letterSpacing:3,fontSize:12,fontWeight:800}}>ARTCRAFT / REFERENCE-LED RISO9</div>
+      <div style={{letterSpacing:3,fontSize:12,fontWeight:800}}>ARTCRAFT / REFERENCE-LED RISO11</div>
       <h2 style={{font:"700 28px Georgia,serif",margin:"6px 0"}}>
         {bird?"Paper Bird — Anatomical Feather & Face Studies":"Paper Courier — Facial & Costume Construction"}
       </h2>
@@ -134,9 +136,16 @@ function ArtcraftStudio({actor}:ArtcraftProps){
         {panel(1,789,20,371,337)}
         {panel(2,789,378,371,337)}
         <text x={27} y={730} fontSize={11} fontFamily="ui-monospace,monospace" fill="#557080">
-          SOURCE IMAGE CRAFT: face geometry / cloth articulation / feather root continuity
+          SOURCE IMAGE CRAFT: expression / tailored cloth / tapered feather engraving
         </text>
       </svg>
+      <div role="group" aria-label="ArtCraft pose checkpoints" style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:12}}>
+        {poseStops.map(([at,label])=><button key={at} type="button"
+          aria-pressed={frame===at} onClick={()=>setFrame(at)}
+          style={{padding:"7px 12px",border:"1px solid #A9A39B",borderRadius:5,
+            background:frame===at?"#284F6E":"#FCF6EB",color:frame===at?"#FFF":"#294A60",
+            font:"700 12px system-ui",cursor:"pointer"}}>{label} · {at}</button>)}
+      </div>
       <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:14,padding:"16px 0 10px"}}>
         <label style={{display:"grid",gap:4,fontSize:12,fontWeight:700}}>Animation frame · {frame}
           <input aria-label="ArtCraft animation frame" type="range" min={0} max={239}
@@ -178,10 +187,10 @@ const meta={title:"Video production/Film Looks/Risograph",
 export default meta;
 type Story=StoryObj<typeof meta>;
 export const CourierArtcraftDetail:Story={
-  name:"RISO9 · Courier ArtCraft Detail",
+  name:"RISO11 · Courier ArtCraft Detail",
   args:{actor:"courier"},
 };
 export const BirdArtcraftDetail:Story={
-  name:"RISO9 · Bird ArtCraft Detail",
+  name:"RISO11 · Bird ArtCraft Detail",
   args:{actor:"paper-bird"},
 };
