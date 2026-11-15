@@ -46,6 +46,9 @@ export interface RigBone {
   rotate?: number;
   /** Length along local +y; used by IK, chains and painters. */
   length?: number;
+  /** false: follow the parent's position and rotation but not its scale (a forearm whose upper arm is foreshortened
+   * into depth keeps its own length and shape). */
+  inheritScale?: boolean;
 }
 
 export interface RigPart {
@@ -302,6 +305,7 @@ export function inspectRig(input: unknown): string[] {
     if (!fin(b.x) || !fin(b.y)) out.push(p + " needs finite x, y");
     if (b.rotate !== undefined && !fin(b.rotate)) out.push(p + ".rotate must be finite");
     if (b.length !== undefined && (!fin(b.length) || b.length < 0)) out.push(p + ".length must be ≥ 0");
+    if (b.inheritScale !== undefined && typeof b.inheritScale !== "boolean") out.push(p + ".inheritScale must be true or false");
     if (b.parent !== undefined && !bones.has(b.parent)) out.push(p + ".parent \"" + b.parent + "\" must be an earlier bone");
     bones.set(b.id, b);
   });
