@@ -282,3 +282,35 @@ passing geometry counts is not visual sign-off.
 The source painting's exact landscape and pixel positions were not
 recreated, so raw whole-image SSIM would be misleading. Do not merge
 on this research note or unit tests alone.
+
+
+## Ma Yuan water/rock attachment — fourth ArtCraft pass
+
+**Artwork studied:** [Ma Yuan, *Scholar Viewing a Waterfall*,
+Metropolitan Museum of Art, accession 1973.120.9](https://www.metmuseum.org/art/collection/search/40086).
+The cascade in the album leaf is a narrow reserve of light silk enclosed
+by dark, structurally connected rock cuts. Water gathers at a visible
+ledge and agitates the pool; the surrounding crags, not an isolated
+white zigzag, establish that the stream falls down an actual cliff.
+
+**Failed render:** in the prior 960×540 browser capture, the
+mountain-trail waterfall comprised two large, bright white, detached
+tube-like strokes. Its top was unanchored, its bottom did not visibly
+strike a pool, and its uniform width competed with the scholar.
+
+**Implementation:** replaced the two strokes with an original code-drawn
+InkWaterfall layer: two asymmetric closed ink-cut banks, an overhanging
+rock shelf, one contiguous warm paper-reserve water mass, three thin
+internal water rhythms and receiving-pool ripples. Small broken impact
+flicks derive only from the absolute-frame water phase, preserving
+deterministic seeking, replay and reduced motion. The cascade is present
+in mountain-trail only; the existing Storybook Gallery page controls
+it without another sidebar folder.
+
+**Required review:** at 960×540 and enlarged browser crop, verify that
+the waterfall has one plausible source, continuous downward negative
+space and a credible impact on water. Reject a painted white ribbon,
+two parallel tubes, disconnected splash confetti or an ungrounded
+noisy pool. Structural tests verify layers and deterministic content,
+not the quality of the artwork. Source image is used for study only;
+no artwork pixels are embedded in the repository.
