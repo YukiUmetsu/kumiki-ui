@@ -34,6 +34,8 @@ import type { UkiyoeKamiScene } from "../../registry/video/ukiyoe/ukiyoe-kami";
 import { kamiScene, UKIYOE_KAMI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-kami";
 import type { UkiyoeBushiScene } from "../../registry/video/ukiyoe/ukiyoe-bushi";
 import { bushiScene, UKIYOE_BUSHI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-bushi";
+import type { UkiyoeAnimalHabitat } from "../../registry/video/ukiyoe/ukiyoe-critters";
+import { animalScene, UKIYOE_ANIMAL_HABITATS } from "../../registry/video/ukiyoe/ukiyoe-critters";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -791,6 +793,30 @@ export function Warriors() {
   </div>;
 }
 
+// ---- Animals II ---------------------------------------------------------------------------------------------------------------------
+
+const HABITAT_LABELS: Readonly<Record<UkiyoeAnimalHabitat, string>> = { mountain: "Mountain: bear, boar, stag, wolf", pond: "Pond: carp, ducks, frog, snake", shore: "Shore: crab, turtle, octopus", farm: "Farm: ox, hawk, mice" };
+
+/** The folktale animals in their places. */
+export function Animals() {
+  const [kind, setKind] = useState<UkiyoeAnimalHabitat>("mountain");
+  const spec = useMemo(() => animalScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Animals" title="Bear, boar, deer, ox, wolf, mouse and the small creatures">
+      <p style={{ margin: 0 }}>The four-legged rig gains the moon bear with its crescent, the tusked boar, the spotted sika stag with antlers,
+        the horned black ox, the wolf and the mouse, all with front and back views; the bird rig gains the hawk and the mandarin ducks. New
+        rigs for the crab (sideways scuttle, snapping claws), the minogame turtle (rowing flippers, seaweed tail), the snake (slither, coil),
+        the frog (hop, croak), the carp (swim, leap) and the octopus (curling arms).</p>
+    </Header>
+    <section aria-label="Animal controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Habitat" value={kind} options={UKIYOE_ANIMAL_HABITATS} onChange={setKind} labels={HABITAT_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={HABITAT_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Animals frame" />
+  </div>;
+}
+
 // ---- Oni fight ----------------------------------------------------------------------------------------------------------------------
 
 /** A hero (samurai or Momotarō) fights an oni with an iron club on a rocky shore at dusk. */
@@ -982,7 +1008,7 @@ export function SceneEditor() {
 // ---- 6. Bestiary ---------------------------------------------------------------------------------------------------------------------------
 
 interface Specimen { id: string; label: string; actions: readonly string[]; node: (action: string) => UkiyoeNode; sky?: "day" | "night" | "storm" }
-const travel = (type: string) => ["walk", "run", "fly", "hop"].includes(type) ? { to: 0 } : {};
+const travel = (type: string) => ["walk", "run", "fly", "hop", "float"].includes(type) ? { to: 0 } : {};
 const SPIRITS = new Set(["yukionna", "yurei", "rokurokubi", "kasaobake", "chochinobake", "hitodama", "nue", "nurikabe", "tsuchigumo"]);
 const beast = (id: string, species: string, label: string, actions: string[], look: Record<string, unknown> = {}, scale = 1.25, y = 330): Specimen => ({
   id, label, actions, ...(SPIRITS.has(species) ? { sky: "night" as const } : {}),
@@ -1021,6 +1047,20 @@ const BESTIARY: readonly Specimen[] = [
   beast("kasaobake", "kasaobake", "Kasa-obake, the umbrella spirit", ["hop", "stand", "look"], {}, 1.3, 350),
   beast("chochinobake", "chochinobake", "Chōchin-obake, the lantern spirit", ["stand", "look"], {}, 1.2, 360),
   beast("hitodama", "hitodama", "Hitodama, soul-flames", ["stand"], {}, 1.6, 330),
+  beast("bear", "bear", "Moon bear (tsukinowaguma)", ["walk", "run", "sit", "stand", "look"], {}, 1.2),
+  beast("boar", "boar", "Wild boar (inoshishi)", ["run", "walk", "look"], {}, 1.25),
+  beast("deer", "deer", "Sika stag (shika)", ["walk", "run", "look", "leap"], {}, 1.2, 345),
+  beast("ox", "ox", "Black ox (ushi)", ["walk", "look", "sit"], {}, .95, 345),
+  beast("wolf", "wolf", "Wolf (ōkami)", ["walk", "run", "sit", "howl"], {}, 1.2),
+  beast("mouse", "mouse", "Mouse (nezumi)", ["run", "walk", "sit", "look"], {}, 2.2),
+  beast("hawk", "hawk", "Hawk (taka)", ["stand", "fly", "look"], {}, 2, 340),
+  beast("oshidori", "oshidori", "Mandarin ducks (oshidori)", ["float", "stand", "fly"], {}, 2.2, 340),
+  beast("crab", "crab", "Crab (kani), claws snapping", ["walk", "dance"], {}, 2.6, 340),
+  beast("turtle", "turtle", "Minogame turtle", ["walk", "float"], {}, 1.8, 340),
+  beast("snake", "snake", "Snake (hebi)", ["walk", "coil"], {}, 1.4, 340),
+  beast("frog", "frog", "Frog (kaeru), croaking", ["hop", "howl", "sit"], {}, 2.6, 340),
+  beast("carp", "carp", "Carp (koi), leaping", ["float", "leap"], {}, 1.8, 330),
+  beast("octopus", "octopus", "Octopus (tako)", ["dance", "walk"], {}, 1.8, 345),
   { id: "peach", label: "Peach (momo) splitting open", actions: ["open", "float"], sky: "day",
     node: action => ({ id: "c", kind: "motif", motif: "peach", x: 300, y: 250, params: { size: 90, ...(action === "open" ? { openAt: 60, openDuration: 34 } : {}) }, loops: [{ kind: "rock", amplitude: 1.2, period: 60 }] } as UkiyoeNode) },
 ];

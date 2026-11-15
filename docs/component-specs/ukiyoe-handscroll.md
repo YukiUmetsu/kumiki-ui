@@ -20,6 +20,7 @@
 - `ukiyoe-effects.ts`: fire, halo, smoke, lightning, ash and fox-fire effects, and `effectScene()`.
 - `ukiyoe-kami.ts`: gods and heavenly beings, the auspicious cloud, and `kamiScene()`.
 - `ukiyoe-bushi.ts`: armour, helmet, bow and naginata, and `bushiScene()`.
+- `ukiyoe-critters.ts`: crab, turtle, snake, frog, carp and octopus, and `animalScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -267,6 +268,26 @@ Most women in the ghost stories look alive until the story turns, so they are fi
 - **Naginata.** Prop `naginata`: the glaive carried across the body in both hands.
 - **Motif `mato`.** An archery target.
 - **`bushiScene(kind)`.** Builds `archer` (three shots into the target), `bridge` (the warrior-monk and the young swordsman on a bridge by moonlight) or `armour` (four views). Storybook **Warriors** plays them.
+
+### Animals II
+
+- **Four-legged species.** The rig gains six species, each with front and back views:
+  - `bear`: the moon bear, with its white crescent and a brown muzzle;
+  - `boar`: tusked;
+  - `deer`: the sika stag, with antlers, white spots and hooves;
+  - `ox`: the black ox, with short curved horns;
+  - `wolf`;
+  - `mouse`: big pink ears and a long tail.
+- **New `Beast` options.** `horns: "antler" | "ox"`, `tusks`, `spots` and `crescent`.
+- **Birds.** The bird rig gains the `hawk` and the `oshidori` mandarin drake (a plain duck with `look.color`).
+- **Critters.** New rigs in `ukiyoe-critters.ts`:
+  - `crab`: scuttles sideways on eight jointed legs; its claws snap on `dance` or `roar`.
+  - `turtle`: the minogame; its flippers row when it moves, and its seaweed tail streams.
+  - `snake`: slithers in a travelling S, its tongue flickers, and `coil` winds it into a spiral.
+  - `frog`: `hop` flings out its legs, and `howl` swells its throat.
+  - `carp`: Gakutei's netted scales and ribbed fins; it swims, and `leap` arcs it out of the water.
+  - `octopus`: eight curling arms with suckers.
+- **`animalScene(kind)`.** Builds `mountain`, `pond` (the carp swim under a translucent surface), `shore` or `farm`. Storybook **Animals** plays them, and the Bestiary has every new species.
 
 ### Transition
 

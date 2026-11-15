@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { animalScene, UKIYOE_ANIMAL_HABITATS, UKIYOE_CRITTERS } from "../registry/video/ukiyoe/ukiyoe-critters";
 import { bushiScene, shootAt, UKIYOE_BUSHI_SCENES } from "../registry/video/ukiyoe/ukiyoe-bushi";
 import { kamiScene, UKIYOE_KAMI_LOOKS, UKIYOE_KAMI_SCENES } from "../registry/video/ukiyoe/ukiyoe-kami";
 import { effectScene, UKIYOE_EFFECT_DEMOS } from "../registry/video/ukiyoe/ukiyoe-effects";
@@ -601,6 +602,25 @@ describe("UKIYO1 warriors", () => {
     // Armour draws in every view.
     for (const view of ["profile", "three-quarter", "front", "back"] as const)
       expect(JSON.stringify(drawFigure({ look: { armor: "beni", hat: "kabuto", view } }, 0, 0, 1).prims), view).toContain("shima");
+  });
+});
+
+describe("UKIYO1 animals II", () => {
+  it("draws every new animal moving (four-legged ones in all views), and each critter's motion changes over time", () => {
+    for (const k of UKIYOE_ANIMAL_HABITATS) expect(inspectUkiyoeScene(animalScene(k)), k).toEqual([]);
+    for (const sp of ["bear", "boar", "deer", "ox", "wolf", "mouse"] as const) for (const view of ["profile", "three-quarter", "front", "back"] as const)
+      expect(drawCreature({ species: sp, look: { view }, actions: [{ type: "walk", start: 0, end: 100, to: 100 }] }, 30, 0, 1).prims.length, `${sp} ${view}`).toBeGreaterThan(5);
+    for (const sp of ["hawk", "oshidori"] as const) expect(drawCreature({ species: sp, actions: [{ type: "fly", start: 0, end: 100, to: 100 }] }, 30, 0, 1).prims.length, sp).toBeGreaterThan(5);
+    const motion: Record<string, string> = { crab: "walk", turtle: "float", snake: "walk", frog: "hop", carp: "float", octopus: "dance" };
+    for (const sp of UKIYOE_CRITTERS) {
+      const acts = [{ type: motion[sp], start: 0, end: 200, ...(motion[sp] === "dance" ? {} : { to: 150 }) }] as Parameters<typeof drawCreature>[0]["actions"];
+      const a = JSON.stringify(drawCreature({ species: sp, actions: acts }, 20, 0, 1).prims), b = JSON.stringify(drawCreature({ species: sp, actions: acts }, 32, 0, 1).prims);
+      expect(a.length, sp).toBeGreaterThan(200);
+      expect(a === b, `${sp} moves between frames`).toBe(false);
+    }
+    // The coiled snake is more compact than the slithering one.
+    const xs = (type: string) => { const nums = [...JSON.stringify(drawCreature({ species: "snake", actions: [{ type, start: 0, end: 100 }] as Parameters<typeof drawCreature>[0]["actions"] }, 80, 0, 1).prims).matchAll(/M(-?[\d.]+) /g)].map(m => Number(m[1])); return Math.max(...nums) - Math.min(...nums); };
+    expect(xs("coil")).toBeLessThan(xs("walk"));
   });
 });
 
