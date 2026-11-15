@@ -1,6 +1,6 @@
 import type {CrayonColor,CrayonContourElement,CrayonSceneSpec,CrayonWaxElement} from "../../registry/video/materials/crayon-scene";
 import {crayonDirectionalStrokes} from "../../registry/video/materials/crayon-art-direction";
-import type {CrayonDrawingPlan,CrayonDrawingPhase,CrayonPaintRole,CrayonPartRule} from "../../registry/video/materials/crayon-art-direction";
+import type {CrayonDrawingPlan,CrayonDrawingPhase,CrayonPartRule} from "../../registry/video/materials/crayon-art-direction";
 
 export type CrayonDrawingAspect="landscape"|"portrait";
 export interface CrayonDrawingSettings{
@@ -64,7 +64,7 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     "Q4 -165 -5 -132 Z";
   // World-space paper impression and atmospheric ground. These intentionally
   // remain open wax: only physically solid focal subjects need full opacity.
-  const root={x:width/2,y:height*(portrait?.72:.87)};
+  const root={x:width/2,y:height*(portrait?.68:.87)};
   const ground:CrayonWaxElement={
     kind:"wax",id:"paper-ground",d:
       "M"+(root.x-235)+" "+(root.y+3)+" Q"+root.x+" "+(root.y-37)+" "+
@@ -95,13 +95,13 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
       placement:place,underpaintGradient:{
         light:"#f0d58a",shadow:"#677756",focusX:.30,focusY:.27,radius:1.15},
       markStrength:.55,spacing:9.4,edgeRoughness:.29,
-    },8);
+    },6);
   addWax("leaf-body",leafD,rect(8,-243,178,111),
     ["#6b925e","#345d4e","#b0b979"],"blocking","solid",{start:28,end:105},{
       parentId:"pear-body",underpaintGradient:{
         light:"#b6c68c",shadow:"#31564e",focusX:.35,focusY:.2,radius:1.1},
       markStrength:.62,spacing:6.2,edgeRoughness:.3,
-    },4);
+    },3);
   addWax("stem-body",stemD,rect(-25,-192,52,70),
     ["#7a5846","#433e40","#b08566"],"blocking","solid",{start:32,end:113},{
       parentId:"pear-body",markStrength:.76,spacing:4.8,edgeRoughness:.32,
@@ -114,7 +114,7 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     ["#798357","#58715a","#adb274"],"value","glaze",{start:68,end:156},{
       parentId:"pear-body",clipToParent:true,blendRadius:10,
       pressure:pressure*.65,spacing:8.9,markStrength:.32,outlineOpacity:0,
-    },7);
+    },4);
   addWax("leaf-fold-shadow",
     "M20 -174 Q105 -186 172 -208 C136 -155 83 -146 44 -163 Z",
     rect(16,-219,164,79),
