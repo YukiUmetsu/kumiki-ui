@@ -111,7 +111,11 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
     // Body shadow should stay convincing even when salience fails at a
     // dark back crossing the image border. Focus mutes *extra noise* outside
     // the subject more than it erases the source's actual value anatomy.
-    const coverage=limit(base*(.72+.28*active)+
+    // No matter how quiet the salience classifier thinks the backdrop is,
+    // retain a minimum fraction of real source pigment for chromatic fidelity.
+    // High-frequency details are still governed separately by focus.
+    const pigmentFloor=.30+darkness*.38;
+    const coverage=limit(Math.max(base*(.72+.28*active),pigmentFloor)+
       options.focus*subject*.18+
       darkness*.15*(1-options.focus*.5)+
       // Dense dry-pencil passes over a previously dried pale wash: deepen
