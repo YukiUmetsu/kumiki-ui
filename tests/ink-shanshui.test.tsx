@@ -460,6 +460,13 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       }));
       const roots=[...full.matchAll(/data-km-bamboo-branch-root="([^"]+)"/g)]
         .map(m=>m[1]);
+      const budgets=[...full.matchAll(/data-km-bamboo-cluster-budget="([0-9]+)"/g)]
+        .map(m=>Number(m[1]));
+      expect(budgets).toHaveLength(21);
+      const profiles=[budgets.slice(0,7),budgets.slice(7,14),budgets.slice(14,21)];
+      expect(profiles.map(p=>p.reduce((a,b)=>a+b,0))).toEqual([34,34,34]);
+      expect(new Set(profiles.map(p=>p.join(","))).size).toBe(3);
+      expect(profiles.every(p=>p.some(b=>b===0)&&p.some(b=>b===10))).toBe(true);
       const nodes=[...full.matchAll(/data-km-bamboo-node="([^"]+)"/g)]
         .map(m=>m[1]);
       expect(roots).toHaveLength(21);
