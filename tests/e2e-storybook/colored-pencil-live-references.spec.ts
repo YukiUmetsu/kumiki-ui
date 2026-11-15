@@ -166,6 +166,36 @@ for(const sample of ["woman","man"] as const){
         expect(await output.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
+        // ArtCraft v12: source-observed *dark* lid ridges, distinct
+        // from generic almond-eye contours. The 0% comparison must be
+        // byte-identical to old code-rendered anatomy; 100% must be
+        // visibly distinct for this actually photographed woman.
+        const lid=page.getByLabel("Pencil photo-measured eyelid anatomy");
+        await lid.focus();
+        await lid.press("Home");
+        await expect(lid).toHaveValue("0");
+        await expect(full).toHaveAttribute("data-km-pencil-eyelid-depth","0");
+        await expect(full).toHaveAttribute("data-km-pencil-eyelid-nibs","0");
+        const noLid=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-optical-lids-legacy.png")});
+        await lid.press("End");
+        await expect(lid).toHaveValue("1");
+        await expect(full).toHaveAttribute("data-km-pencil-eyelid-depth","1");
+        const nibs=Number(await full.getAttribute("data-km-pencil-eyelid-nibs"));
+        const evidence=Number(await full.getAttribute(
+          "data-km-pencil-eyelid-source-pixels"));
+        expect(nibs).toBeGreaterThan(8);
+        expect(evidence).toBeGreaterThan(8);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(noLid);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-optical-lids-source-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Actual licensed source, ALL four chronologically composited
         // Storybook shots. Stage 1..4 must contain increasing genuine
         // pencil marks; the exported film bitmap must not be affected.

@@ -181,6 +181,7 @@ export function ReferencePencilAtelier({
   const [headScumble,setHeadScumble]=useState(.65);
   const [headDryTooth,setHeadDryTooth]=useState(.75);
   const [fibreFlow,setFibreFlow]=useState(1);
+  const [lidAnatomy,setLidAnatomy]=useState(.72);
   const [featureDepth,setFeatureDepth]=useState(.85);
   const [skinCoverage,setSkinCoverage]=useState(.70);
   const [showFeatureAtlas,setShowFeatureAtlas]=useState(initialStoryboard);
@@ -272,9 +273,9 @@ export function ReferencePencilAtelier({
   // computed for ordinary video exports or for unrelated photos/characters.
   const headPlate=useMemo(()=>raw&&faceGuides&&showFullHead?
     createDryPencilHeadPlate(raw,faceGuides,options.seed,
-      headScumble,featureDepth,skinCoverage,fibreFlow):null,
+      headScumble,featureDepth,skinCoverage,fibreFlow,lidAnatomy):null,
     [raw,faceGuides,showFullHead,options.seed,headScumble,featureDepth,
-      skinCoverage,fibreFlow]);
+      skinCoverage,fibreFlow,lidAnatomy]);
   // The static precomputed tone layer is cached: seeking/speed does not
   // recompute pixels, gradients, stochastic paper or stroke directions.
   useEffect(()=>{
@@ -345,6 +346,11 @@ export function ReferencePencilAtelier({
     paintDryHeadRange(ink,headPlate.strokes,0,headPlate.strokes.length,
       headDryTooth);
     dry.setAttribute("data-km-pencil-full-head-rendered","true");
+    dry.setAttribute("data-km-pencil-eyelid-depth",String(headPlate.eyelidDepth));
+    dry.setAttribute("data-km-pencil-eyelid-nibs",String(
+      headPlate.observedEyelidCounts.upper+headPlate.observedEyelidCounts.lower));
+    dry.setAttribute("data-km-pencil-eyelid-source-pixels",
+      String(headPlate.observedEyelidCounts.sourceSupported));
     dry.setAttribute("data-km-pencil-dry-contact",String(headDryTooth));
     const temp=document.createElement("canvas");
     temp.width=raw.width;temp.height=raw.height;
@@ -579,6 +585,12 @@ export function ReferencePencilAtelier({
         <input aria-label="Pencil anatomy-connected fibre flow" type="range"
           min="0" max="1" step=".05" value={fibreFlow}
           onChange={e=>setFibreFlow(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Photo-observed eyelid rims · {Math.round(lidAnatomy*100)}%
+        <input aria-label="Pencil photo-measured eyelid anatomy" type="range"
+          min="0" max="1" step=".04" value={lidAnatomy}
+          onChange={e=>setLidAnatomy(Number(e.target.value))}/>
       </label>}
       {faceGuides&&showFullHead&&<label style={control}>
         Skin pigment coverage · {Math.round(skinCoverage*100)}%
@@ -1022,6 +1034,11 @@ export function ReferencePencilAtelier({
             {" "+headPlate.materialCounts["hair-mass"]+
               " / "+headPlate.materialCounts["hair-occlusion"]+
               " / "+headPlate.materialCounts["hair-fibre"]}.
+            Observed eyelid nibs (upper/lower/source ridge pixels):
+            {" "+headPlate.observedEyelidCounts.upper+" / "+
+              headPlate.observedEyelidCounts.lower+" / "+
+              headPlate.observedEyelidCounts.sourceSupported}.
+            Eyelid source strength: {" "+Math.round(headPlate.eyelidDepth*100)}%.
             Dry pencil nib contact: {" "+Math.round(headDryTooth*100)}%.
             Fibre direction: {" "+Math.round(headPlate.fibreFlowStrength*100)}%
             anatomy-connected; set 0% for the legacy ruled-grain A/B comparison.

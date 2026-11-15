@@ -17,6 +17,7 @@ import type {PencilPhotoPixels,PencilPhotoMark} from "./colored-pencil-photo";
 import type {PortraitFeatureMap} from "./colored-pencil-portrait-guides";
 import {createPencilPortraitFeatureMarks} from "./colored-pencil-portrait-guides";
 import {createFacialOpticalPlanes} from "./colored-pencil-facial-planes";
+import {createOpticalEyelidFibres} from "./colored-pencil-optical-eyelids";
 
 type Point=readonly[number,number];
 const PAPER="#FAF5ED";
@@ -170,6 +171,8 @@ export interface DryPencilHeadPlate {
   readonly featureDepth:number;
   readonly skinCoverage:number;
   readonly fibreFlowStrength:number;
+  readonly eyelidDepth:number;
+  readonly observedEyelidCounts:Readonly<{upper:number;lower:number;sourceSupported:number}>;
   readonly facialPlaneCounts:Readonly<{
     "lip-vermilion":number;"nasal-alar":number;
   }>;
@@ -264,7 +267,7 @@ const isHairColour=(rgb:readonly number[])=>{
 export const createDryPencilHeadPlate=(
   source:PencilPhotoPixels,guides:PortraitFeatureMap,seed=271,
   scumbleStrength=.65,featureDepth=.85,skinCoverage=.70,
-  fibreFlowStrength=1,
+  fibreFlowStrength=1,eyelidDepth=.72,
 ):DryPencilHeadPlate=>{
   positiveSafeSource(source,seed);
   if(!Number.isFinite(scumbleStrength)||
@@ -277,8 +280,14 @@ export const createDryPencilHeadPlate=(
   if(!Number.isFinite(fibreFlowStrength)||
     fibreFlowStrength<0||fibreFlowStrength>1)
     throw new RangeError("Invalid colored-pencil fibre flow strength");
+  if(!Number.isFinite(eyelidDepth)||eyelidDepth<0||eyelidDepth>1)
+    throw new RangeError("Invalid source-registered coloured pencil eyelid strength");
   // Require the entire, already-audited 25-landmark source map.
   const details=createPencilPortraitFeatureMarks(source,guides,seed);
+  // A/B paper-native, source-supported micro-occlusion; 0 is exact
+  // legacy mark construction, no new geometry and no raster underpaint.
+  const opticallyObservedLids=createOpticalEyelidFibres(
+    source,guides,seed,eyelidDepth);
   const geometry=projectMeasuredHeadContours(guides);
   const eyeDist=length(guides.eyeNearCenter,guides.eyeFarCenter);
   const cropWidth=eyeDist*4.55;
@@ -850,7 +859,7 @@ export const createDryPencilHeadPlate=(
   }
   // Add verified source-aligned anatomical marks only within the face or
   // hair structure. Never paste the original photographic background.
-  for(const m of details.marks){
+  for(const m of [...details.marks,...opticallyObservedLids.marks]){
     const p:Point=[m.x,m.y];
     if(classify(p)==="background")continue;
     const a=screen(p),b=screen([m.endX,m.endY]);
@@ -866,13 +875,21 @@ export const createDryPencilHeadPlate=(
     });
     materialCounts["measured-features"]++;
   }
+  const observedEyelidCounts={
+    upper:opticallyObservedLids.traces.filter(t=>t.rim==="upper")
+      .reduce((sum,t)=>sum+t.marks,0),
+    lower:opticallyObservedLids.traces.filter(t=>t.rim==="lower")
+      .reduce((sum,t)=>sum+t.marks,0),
+    sourceSupported:opticallyObservedLids.traces.reduce(
+      (sum,t)=>sum+t.sourceSupported,0),
+  };
   marks.sort((a,b)=>a.pass-b.pass);
   return {
     width:SIZE.width,height:SIZE.height,paperColor:PAPER,
     crop:{left,top,width:cropWidth,height:cropHeight},
     strokes:marks,rasterUnderpainting:false,geometry,
     scumbleStrength,featureDepth,skinCoverage,fibreFlowStrength,
-    facialPlaneCounts,
+    eyelidDepth,observedEyelidCounts,facialPlaneCounts,
     fiveValueCounts,materialCounts,
   };
 };
