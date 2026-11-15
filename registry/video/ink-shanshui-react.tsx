@@ -25,6 +25,13 @@ const quadraticPoint=(a:P,b:P,c:P,t:number):P=>{
   return [u*u*a[0]+2*u*t*b[0]+t*t*c[0],
     u*u*a[1]+2*u*t*b[1]+t*t*c[1]];
 };
+const cubicPoint=(a:P,b:P,c:P,d:P,t:number):P=>{
+  const u=1-t;
+  return [
+    u*u*u*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],
+    u*u*u*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1],
+  ];
+};
 /** Curved rock profiles have local fracture variation and non-regular slope
  * transitions, unlike polygons that look like paper triangles. The silhouette
  * is stable for a seed and its exact x stations are also used by cunfa strokes.
@@ -570,60 +577,64 @@ function OldPine({x,y,scale,wind,seed,detail}:{
         [root[0]+reach*.63,b.y+b.secondDy],
         tip,
       ];
-      // Short continuous quadratic sections describe an angular *tree*,
-      // not a straight rod: source-derived elbow locations are immutable
-      // regardless of detail level, wind or animation frame.
-      const curveControls=knots.slice(0,-1).map((p,k):P=>{
-        const q=knots[k+1],dx=q[0]-p[0],dy=q[1]-p[1];
-        const len=Math.hypot(dx,dy)||1;
-        const bend=(k===0?3.9:k===1?-5.6:2.9)*
-          (i%2===0?1:-1);
-        return [(p[0]+q[0])*.5-dy/len*bend,
-          (p[1]+q[1])*.5+dx/len*bend];
+      // A connected Catmull–Rom-like ink skeleton *passes through*
+      // the authored crooks but rounds the wood, rather than joining
+      // angled strips with sharp artificial corners.
+      const handles=knots.slice(0,-1).map((p,k)=>{
+        const q=knots[k+1];
+        const before=knots[Math.max(0,k-1)];
+        const after=knots[Math.min(3,k+2)];
+        const a:P=[
+          p[0]+(q[0]-before[0])*.17,
+          p[1]+(q[1]-before[1])*.17,
+        ];
+        const b:P=[
+          q[0]-(after[0]-p[0])*.17,
+          q[1]-(after[1]-p[1])*.17,
+        ];
+        return [a,b] as const;
       });
       const boughPoint=(t:number):P=>{
         const u=clamp(t,0,1);
         const index=Math.min(2,Math.floor(u*3));
-        return quadraticPoint(knots[index],curveControls[index],
-          knots[index+1],index===2&&u===1?1:u*3-index);
+        const [a,b]=handles[index];
+        return cubicPoint(knots[index],a,b,knots[index+1],
+          index===2&&u===1?1:u*3-index);
       };
       const pointText=(p:P)=>f(p[0])+" "+f(p[1]);
-      const normal=(k:number):P=>{
-        const a=knots[Math.max(k-1,0)];
-        const b=knots[Math.min(k+1,3)];
-        const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy)||1;
-        return [-dy/len,dx/len];
-      };
-      const radii=[4.4,3.35,2.18,.12];
-      const upper=knots.map((p,k):P=>[
-        p[0]+normal(k)[0]*radii[k],p[1]+normal(k)[1]*radii[k],
-      ]);
-      const lower=knots.map((p,k):P=>[
-        p[0]-normal(k)[0]*radii[k],p[1]-normal(k)[1]*radii[k],
-      ]);
-      const upperCtl=curveControls.map((p,k):P=>[
-        p[0]+normal(k)[0]*(radii[k]+radii[k+1])*.5,
-        p[1]+normal(k)[1]*(radii[k]+radii[k+1])*.5,
-      ]);
-      const lowerCtl=curveControls.map((p,k):P=>[
-        p[0]-normal(k)[0]*(radii[k]+radii[k+1])*.5,
-        p[1]-normal(k)[1]*(radii[k]+radii[k+1])*.5,
-      ]);
-      const bone="M"+pointText(upper[0])+
-        upperCtl.map((p,k)=>" Q"+pointText(p)+" "+pointText(upper[k+1])).join("")+
-        " L"+pointText(lower[3])+
-        [2,1,0].map(k=>" Q"+pointText(lowerCtl[k])+" "+
-          pointText(lower[k])).join("")+" Z";
-      const inner="M"+pointText(boughPoint(.045))+
-        [0,1,2].map(k=>" Q"+pointText(curveControls[k])+" "+
-          pointText(knots[k+1])).join("");
+      const spineCurve="M"+pointText(root)+
+        handles.map(([a,b],k)=>" C"+pointText(a)+" "+pointText(b)+
+          " "+pointText(knots[k+1])).join("");
+      // Subpixel curve sampling gives one smooth, pressure-tapered
+      // silhouette with local unevenness. No pointy quad joints.
+      const stationCount=37;
+      const upper:P[]=[],lower:P[]=[];
+      for(let k=0;k<stationCount;k++){
+        const u=k/(stationCount-1);
+        const p=boughPoint(u);
+        const before=boughPoint(Math.max(0,u-.006));
+        const after=boughPoint(Math.min(1,u+.006));
+        const dx=after[0]-before[0],dy=after[1]-before[1];
+        const len=Math.hypot(dx,dy)||1;
+        const width=(3.7*Math.pow(1-u,.68)+.14)*
+          (1+.075*Math.sin(6.5*Math.PI*u+i*.7));
+        const nx=-dy/len,ny=dx/len;
+        upper.push([p[0]+nx*width,p[1]+ny*width]);
+        lower.push([p[0]-nx*width,p[1]-ny*width]);
+      }
+      const bone="M"+upper.map(pointText).join(" L")+
+        " L"+lower.reverse().map(pointText).join(" L")+" Z";
+      const inner=spineCurve;
       const count=Math.round((3+(i%3))*detail);
       return <g key={i} data-km-pine-bough=""
         data-km-pine-bough-root={f(root[0])+","+f(root[1])}
         data-km-pine-bough-tip={f(tip[0])+","+f(tip[1])}>
-        {/* A closed *multi-elbow* ink bone. All young stems, fissures
+        {/* A pressure-tapered, smoothly curved multi-elbow ink bone.
+            Sampled contour normals avoid sharp folded wooden strips.
+            All young stems, fissures
             and needles inherit this same changing centerline. */}
         <path data-km-pine-bough-shape="" d={bone}
+          data-km-pine-bough-stations={stationCount}
           fill="#594733" opacity=".91" stroke="#3e3228"
           strokeWidth=".42" strokeLinejoin="round"/>
         <path data-km-pine-bough-light="" d={inner}
