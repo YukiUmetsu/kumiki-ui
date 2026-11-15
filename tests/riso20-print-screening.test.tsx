@@ -1,7 +1,7 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { createRisoScreenGeometry, type RisoScreenOptions } from "../registry/video/riso-screening";
+import { createRisoScreenGeometry, wrapRisoScreenDots, type RisoScreenOptions } from "../registry/video/riso-screening";
 import { RisoPrint } from "../registry/video/print-plates-react";
 import { risoExampleArtworks, risoExampleSpec } from "../src/video/riso-print-demo";
 
@@ -41,6 +41,16 @@ describe("RISO20: physical plate screening", () => {
     expect(createRisoScreenGeometry({ ...base, plateIndex: 1 })).not.toEqual(lower);
   });
 
+  it("wraps every edge-crossing FM droplet onto the opposite side of the tile", () => {
+    const full = createRisoScreenGeometry({ ...options, mode: "fm", density: 1, dotGain: 1 });
+    const wrapped = wrapRisoScreenDots(full);
+    expect(full.dots).toHaveLength(64);
+    expect(wrapped.length).toBeGreaterThan(64);
+    expect(wrapped.some(dot => dot.x > full.tileSize || dot.y > full.tileSize || dot.x < 0 || dot.y < 0)).toBe(true);
+    expect(wrapRisoScreenDots(full)).toEqual(wrapped);
+    expect(wrapRisoScreenDots(createRisoScreenGeometry(options))).toEqual(createRisoScreenGeometry(options).dots);
+  });
+
   it("rejects invalid print materials instead of silently substituting a style", () => {
     for (const patch of [
       { dotGain: -0.1 }, { dotGain: Number.NaN }, { density: Infinity },
@@ -63,8 +73,9 @@ describe("RISO20: physical plate screening", () => {
     expect(svg).toContain('mix-blend-mode:multiply');
     const screenTiles = svg.match(/<pattern[^>]+>.*?<\/pattern>/g) ?? [];
     expect(screenTiles).toHaveLength(2);
-    expect((screenTiles[0].match(/<circle /g) ?? [])).toHaveLength(32);
-    expect((screenTiles[1].match(/<circle /g) ?? [])).toHaveLength(32);
+    // Repeated pattern tiles add mirrored sites wherever an ink droplet crosses a tile edge.
+    expect((screenTiles[0].match(/<circle /g) ?? []).length).toBeGreaterThanOrEqual(32);
+    expect((screenTiles[1].match(/<circle /g) ?? []).length).toBeGreaterThanOrEqual(32);
     expect(svg).toContain('maskUnits="userSpaceOnUse"');
     expect(svg).not.toContain("feGaussianBlur");
     const defaultMarkup = renderToStaticMarkup(<RisoPrint spec={spec} frame={240} artworks={artwork}/>);
