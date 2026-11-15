@@ -119,6 +119,20 @@ test("brushwork study shows native rooted foliage and uneven rock deposition",as
     .toBeGreaterThan(0);
   await expect.poll(()=>study.locator("[data-km-bamboo-satellite-leaf]").count())
     .toBeGreaterThan(0);
+  await expect.poll(()=>study.locator("mask[id^='kmbamboo']").count())
+    .toBeGreaterThan(150);
+  await expect.poll(()=>study.locator(
+    '[data-km-shanshui-bamboo-leaf][mask]'
+  ).count()).toBeGreaterThan(100);
+  await page.getByRole("button",{name:"Dry lifted brush · breeze"}).click();
+  await expect(page.getByRole("slider",{name:"Brushwork detail"}))
+    .toHaveValue("0.85");
+  await expect(page.getByRole("slider",{name:"Brushwork seed"}))
+    .toHaveCount(0); // source seed is separately labelled
+  await expect(page.getByRole("slider",{name:"Source seed"})).toHaveValue("87");
+  await page.getByRole("button",{name:"Wet loaded brush · still"}).click();
+  await expect(page.getByRole("slider",{name:"Brushwork detail"}))
+    .toHaveValue("1");
   const ink=page.getByRole("slider",{name:"Brushwork ink"});
   await ink.focus();
   await ink.press("Home");
