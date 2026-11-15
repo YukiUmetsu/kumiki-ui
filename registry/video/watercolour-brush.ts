@@ -45,6 +45,11 @@ export interface PaintSurfaceSpec {
   /** Artist-defined unpainted paper in original SVG coordinates. The real WM1
    * brush deposits MUST respect these shapes, including later glazes. */
   reservePaths?: readonly string[];
+  /** 0..1 microscopic sediment variation INSIDE true brush ribbons.
+   * Opt-in: existing authored paintings remain pixel-identical by default.
+   * This does not apply film-wide noise or invent brush marks.
+   */
+  pigmentGranulation?: number;
 }
 export interface PaintIssue { code: string; path: string; message: string }
 export interface BrushSample { x: number; y: number; pressure: number; speed: number; radius: number }
@@ -75,6 +80,10 @@ export function inspectPaintSurface(spec: PaintSurfaceSpec): PaintIssue[] {
   if (!ints(spec.seed, 0, 2147483647)) add("seed", "/seed", "Use a nonnegative 31-bit seed.");
   if (!spec.paper || !HEX.test(spec.paper.color)) add("paper", "/paper/color", "Paper requires a six-digit hex color.");
   if (!spec.paper || !valid(spec.paper.tooth, 0, 1)) add("tooth", "/paper/tooth", "Paper tooth must be 0..1.");
+  if (spec.pigmentGranulation !== undefined &&
+      !valid(spec.pigmentGranulation, 0, 1))
+    add("pigment-granulation", "/pigmentGranulation",
+      "Pigment sediment variation must be in the 0..1 range.");
   const legalReserve = (path: unknown) => typeof path === "string" &&
     path.length >= 4 && path.length <= 65536 && /^[Mm]\s*[-+.\d]/.test(path) &&
     /^[MmLlHhVvCcSsQqTtAaZz0-9eE,\s.+-]+$/.test(path);
