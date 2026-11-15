@@ -275,6 +275,37 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(fanMasses.every((d,k)=>
         d[1].startsWith("M"+fanFaces[k][1].replace(","," "))&&
         html.includes('id="'+d[2]+'"'))).toBe(true);
+      // Guo Xi (NPM Early Spring): a cloud-head is a ROLLED POSITIVE
+      // stone cheek with a shaded throat, not a bare S-shaped scratch.
+      // Four irregular connected banks per main face, never a global
+      // floating motif that can invade paper mist.
+      const cloudBanks=[...html.matchAll(
+        /data-km-master-cloud-bank="" data-km-master-cloud-bank-root="([^"]+)" data-km-master-cloud-bank-index="(\d+)"/g,
+      )];
+      const cloudBodies=[...html.matchAll(
+        /data-km-master-cloud-mass="" d="([^"]+)" fill="url\(#([^"]+)\)"/g,
+      )];
+      const cloudCount=school==="early-spring"?12:0;
+      expect(cloudBanks).toHaveLength(cloudCount);
+      expect(cloudBodies).toHaveLength(cloudCount);
+      expect((html.match(/data-km-master-cloud-crown=""/g)??[]))
+        .toHaveLength(cloudCount);
+      expect((html.match(/data-km-master-cloud-recess=""/g)??[]))
+        .toHaveLength(cloudCount);
+      if(school==="early-spring"){
+        expect(cloudBanks.map(m=>Number(m[2]))).toEqual([
+          0,1,2,3,0,1,2,3,0,1,2,3,
+        ]);
+        expect(new Set(cloudBanks.map(m=>m[1])).size).toBe(12);
+        for(let index=0;index<12;index++){
+          const [,root]=cloudBanks[index];
+          const [,d,id]=cloudBodies[index];
+          expect(d.startsWith("M"+root.replace(","," "))).toBe(true);
+          expect((d.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(5);
+          expect(d.endsWith(" Z")).toBe(true);
+          expect(html).toContain('id="'+id+'"');
+        }
+      }
       const softBanks=[...html.matchAll(
         /data-km-master-rock-bank="" data-km-master-rock-bank-root="([^"]+)" data-km-master-rock-bank-index="(\d+)"/g,
       )];
