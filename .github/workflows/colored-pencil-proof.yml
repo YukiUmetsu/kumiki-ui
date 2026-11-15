@@ -25,7 +25,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Focused deterministic pencil material tests
-        run: npx vitest run --project unit tests/colored-pencil-science.test.tsx tests/colored-pencil-scene.test.tsx tests/colored-pencil-actor.test.tsx
+        run: npx vitest run --project unit tests/colored-pencil-science.test.tsx tests/colored-pencil-scene.test.tsx tests/colored-pencil-actor.test.tsx tests/colored-pencil-materials.test.tsx
       - name: Verify portable film schema
         run: |
           npm run film:check -- examples/film/colored-pencil-science.film.json
@@ -33,7 +33,7 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Frame-level browser layout, pencil geometry and out-of-order seek
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-science.spec.ts tests/e2e-storybook/colored-pencil-actor.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-science.spec.ts tests/e2e-storybook/colored-pencil-actor.spec.ts tests/e2e-storybook/colored-pencil-materials.spec.ts
       - name: Install FFmpeg for actual film capture
         run: |
           sudo apt-get update -qq

@@ -13,6 +13,7 @@ import { pencilDemoScene } from "./colored-pencil-demo-scenes";
 import { pencilCharacterScene } from "./colored-pencil-character-scenes";
 import type { PencilDemoSubject } from "./colored-pencil-demo-scenes";
 import { PencilScene } from "../../registry/video/colored-pencil-scene-react";
+import { PencilObjectAtelier } from "./colored-pencil-object-studio";
 
 const meta = {
   title: "Video Production/Film Looks/Colour-pencil",
@@ -440,4 +441,11 @@ export const MarkMakingLaboratory: StoryObj<typeof meta> = {
   name: "Mark-making · Hatches, fibres and stipples",
   args: { aspect: "landscape", subject: "leaf", frame: 275 },
   render: () => <PencilMarkLaboratory/>,
+};
+
+/** One more story in the existing Colour-pencil root; never a second sidebar folder. */
+export const ObjectMaterialAtelier: StoryObj<typeof meta> = {
+  name: "Objects · Rose, glass, masonry and fabric",
+  args: {aspect:"landscape",subject:"leaf",frame:325},
+  render: () => <PencilObjectAtelier/>,
 };
