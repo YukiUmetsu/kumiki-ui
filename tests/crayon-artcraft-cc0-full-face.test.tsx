@@ -592,7 +592,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       });
     }
     expect(scene.elements.filter(e=>e.kind==="wax"&&e.featherContacts))
-      .toHaveLength(soft.length+extra.length+3);
+      .toHaveLength(soft.length+extra.length+5);
     for(const id of ["face-outline","hair-back","sclera-near","sclera-far"]){
       expect(scene.elements.find(e=>e.id===id)).toMatchObject({
         kind:"wax",coverage:"opaque",
@@ -601,9 +601,9 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     }
     const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>);
     expect(html.match(/data-km-crayon-feather-contacts="open-wax"/g))
-      .toHaveLength(soft.length+extra.length+3);
+      .toHaveLength(soft.length+extra.length+5);
     expect(html.match(/data-km-crayon-contact-feather-mask=""/g))
-      .toHaveLength(soft.length+extra.length+3);
+      .toHaveLength(soft.length+extra.length+5);
     expect(html.match(/data-km-crayon-paper-contact-wax=""/g)?.length)
       .toBeGreaterThan(40);
     // The feather mask must leave the wax-grain deposits sharp and apply
