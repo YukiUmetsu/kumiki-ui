@@ -63,10 +63,27 @@ describe("WC14 watercolor identity and multi-character film",()=>{
       expect(svg).toContain('data-km-watercolour-part="b-face-foundation"');
       expect(svg).toContain('data-km-watercolour-composite="normal"');
       expect(svg).toContain('data-km-watercolour-optical-glaze="a-face-foundation"');
+      expect(svg).toContain('result="soft-paper-grain"');
+      expect(svg).toContain('result="soft-grain-tint"');
+      expect(svg).toContain('in="soft-pigment" in2="soft-grain-tint"');
+      // Lost-edge washes must have paper-locked tooth instead of becoming
+      // uniformly smooth gradients; no change to the original alpha.
+
       expect(svg).toMatch(/<clipPath id="[^"]+-clip-a-near-eye-inset"/);
       expect(svg).toMatch(/<clipPath id="[^"]+-clip-b-near-eye-inset"/);
     });
   }
+  it("can disable softened-wash granulation without changing character opacity",()=>{
+    const spec=watercolorPortraitEnsembleSpec("landscape");
+    const smooth={...spec,paper:{...spec.paper,granulation:0}};
+    expect(inspectWatercolourArtwork(smooth)).toEqual([]);
+    const html=renderToStaticMarkup(<WatercolourIllustration spec={smooth} frame={255}/>);
+    expect(html).not.toContain('result="soft-grain-tint"');
+    for(const id of ["a-face-foundation","b-face-foundation"]){
+      expect(html).toContain('data-km-watercolour-part="'+id+'"');
+    }
+    expect(html).toContain('data-km-watercolour-composite="normal"');
+  });
   it("does not synchronize eyelid closures when a second actor is offset",()=>{
     const at=(frame:number)=>asSvg("landscape",frame);
     const firstBlink=at(185);
