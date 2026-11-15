@@ -118,7 +118,7 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
     initialSample==="woman"||initialSample==="man"
       ? {...PENCIL_PHOTO_DEFAULTS,focus:.63,paper:.21,saturation:.89,edges:.53,density:1.35}
       : {...PENCIL_PHOTO_DEFAULTS});
-  const [wash,setWash]=useState(initialSample==="woman"||initialSample==="man"?.91:.84);
+  const [wash,setWash]=useState((initialSample==="woman"||initialSample==="man") ? .91 : .84);
   const [showReference,setShowReference]=useState(false);
   const [uploaded,setUploaded]=useState(false);
   const size=aspect==="landscape"?{width:900,height:506}:{width:506,height:900};
