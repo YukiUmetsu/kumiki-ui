@@ -347,6 +347,10 @@ export function ReferencePencilAtelier({
       headDryTooth);
     dry.setAttribute("data-km-pencil-full-head-rendered","true");
     dry.setAttribute("data-km-pencil-eyelid-depth",String(headPlate.eyelidDepth));
+    dry.setAttribute("data-km-pencil-eyelid-nibs",String(
+      headPlate.observedEyelidCounts.upper+headPlate.observedEyelidCounts.lower));
+    dry.setAttribute("data-km-pencil-eyelid-source-pixels",
+      String(headPlate.observedEyelidCounts.sourceSupported));
     dry.setAttribute("data-km-pencil-dry-contact",String(headDryTooth));
     const temp=document.createElement("canvas");
     temp.width=raw.width;temp.height=raw.height;
