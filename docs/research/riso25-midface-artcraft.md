@@ -35,6 +35,19 @@ Every new subpart is authored in `head` source coordinates and maps to an existi
 
 **One existing Storybook folder/page:** `Video production / Film Looks / Risograph / OcularPrintCraft`, now labeled RISO25; with original RISO24 hair material settings, `Ear / concha` and `Nose, cheek and mouth` source-cropped feature focuses, and a separate `RISO25 facial craft comparison` drop-down. Side-by-side 16:9 and 9:16, 4 poses, real ink separations, source-bound before/after. Existing story ID is stable.
 
+## RISO25 first live Chromium pass — rejected and reconstructed
+
+The first real [Chromium proof run 43742637974](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43742637974), built from commit `a2aa6c9`, passed browser mechanical checks and produced 16:9/9:16, before/after ear and midface close-ups for both actors plus the full-face speech frame. **Actual image inspection rejected several details.**
+
+- `riso25-landscape-midface-courier-46-after.png`: the full-height **red nasal-sidewall-line** ran from nose bridge to cheek, reading as an unrelated red smear. `nasal-ala-fold` became a dangling red hook below the nostril and nasal-lip junction rather than a small anatomical ala.
+- `riso25-landscape-midface-paper-artist-46-after.png`: similarly detached red ala/upper lip ink distorted the original identity. A wide, high-contrast blue `upper-lip-engraving` resembled a heavy moustache rather than a fine vermilion edge.
+- `riso25-full-face-speech-portrait.png`: the new Courier C-plus-inner-ring ear reads like a dark spiral; the concha shadow looks like an oversized colored earring. The Artist ear is mostly covered by the bob as intended, but the visible concha relief still needs proportional control.
+- Both faces retain their original recognizability, and full-head speech/portrait is unclipped. Therefore **do not change hair, entire face, camera or registered inks** to mask the local flaws.
+
+**Second candidate:** Reauthor ear shell/helix and concha to tuck the darker internal contours into the pinna; narrow and shorten the nasal-sidewall and ala at actual source coordinates, make red nasolabial passages shorter, thin blue upper and lower lip engravings and preserve the existing original red mouth. All nine source-part IDs and speech/smile subpath counts remain unchanged; physical ink separations stay the same. Add regression **source-space nasal bounding-box limits** to reject the coarse red bridge stripe/hook even if browser DOM checks pass.
+
+**Independent visual gate:** inspect new neutral/speech/cropped renders, at 1× and close zoom, before accepting this revision. The underlying RISO24 human portrait likeness is still not certified.
+
 ## Independent technical/visual release plan
 
 - `tests/riso25-midface-artcraft.test.tsx`: valid source spec/mesh, 9 semantic parts per actor, ear extent, face-region containment, two ink masters, 46/78/160/198 frame continuity, mouth expression redrawing and deterministic seek.
