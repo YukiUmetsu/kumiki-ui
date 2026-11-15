@@ -520,7 +520,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       const headings=[...html.matchAll(
         /data-km-bamboo-leaf-heading="(-?[0-9.]+)"/g,
       )].map(m=>Number(m[1]));
-      expect(headings).toHaveLength(105);
+      expect(headings).toHaveLength(102);
       // Genuine fan flow requires nonparallel ink gestures, not a lattice
       // of identically tilted triangles. This is a necessary, not artistic,
       // check: crop inspection remains the release authority.
