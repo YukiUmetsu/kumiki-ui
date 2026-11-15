@@ -3778,6 +3778,11 @@
           "target": "components/video/ukiyoe/ukiyoe-bushi.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-critters.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-critters.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"

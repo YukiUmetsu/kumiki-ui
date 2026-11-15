@@ -842,6 +842,52 @@ Storybook has **Warriors**.
 - The ghostly Heike army.
 - Nobody has done a human visual review yet.
 
+## Animals II (folktale queue F4, 2026-11-15)
+
+**Sources** (the Met, public domain):
+
+- Yashima Gakutei's *Red Carp Ascending a Waterfall* (54158);
+- Hokusai's *Crab and Rice Plant* (54091);
+- Teisai Hokuba's fans with crane and minogame (54177).
+
+The four-legged rig itself follows the Koson and Kuniyoshi studies earlier in this document. No new bear, boar, deer, ox or wolf print was studied for this slice.
+
+**What they show.**
+
+- **The carp.** Deep-bodied, its scales a net of crossing diagonals with each diamond a scale. Large fins ribbed with rays, a gold eye, the body spotted.
+- **The crab.** A round pale carapace, thin jointed legs, and furry "mitten" claws held up.
+- **The minogame.** Its long fan of seaweed trails behind the shell.
+
+**What was built.**
+
+- Six four-legged species and two birds, from the parameter tables.
+- Six critter rigs.
+- `animalScene()` with four habitats.
+- Storybook **Animals**, and 14 new Bestiary specimens.
+
+**Review rounds.**
+
+1. **Menagerie sheet.**
+   - The bear's legs vanished in its fur, so they are longer now.
+   - The boar's tusks were too small to see and have been enlarged.
+   - The ox looked like a black dog. It now has bigger horns, a blunter muzzle and no grey cheek.
+   - The carp was a thin sardine; it is now deeper.
+2. **Front views.** The bear's face was black on black and now has a brown muzzle.
+3. **Habitats.**
+   - The hawk floated in mid-air and is now on a post.
+   - The carp sat on top of the pond and now swim under a translucent surface.
+   - The mice ran through the ox and now run in front of it.
+4. **Against Gakutei.** The carp's scale pattern was replaced with his net of diagonals, and ribbed pectoral and pelvic fins were added under the belly. They first came out on the back and were moved.
+
+**Not done.**
+
+- Bear, boar, deer and ox prints have not been studied.
+- The crab's furry mittens.
+- The hawk's hooked beak.
+- The critters, hawk and duck have no front or back views.
+- Centipede and giant toad (F12).
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
