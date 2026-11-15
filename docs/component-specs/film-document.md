@@ -46,6 +46,13 @@ npm run film:ad     -- examples/ads/desk-before-after.ad.json # an ad brief beco
 - **`appearance`** defaults to `dark`, because scene recipes are drawn for dark. In `light`, their text can be dark on a dark image.
 - **`drift`** is a slow push-in across each scene, as a share of its size. `0.04` is 4%. The best short explainers are never still, and this is the cheapest way to get there. Reduced motion drops it.
 - **`captions`** use film frames, and their timing source is required. An object-story scene draws its own captions, so do not cover it with film captions.
+  - `captions.style` sets how they look. The default is short-form: `4.8cqw` type at the bottom.
+    - `size` is a CSS length (`cqw`, `px`, `em` or `rem`), or one per output id, such as `{ "landscape": "2.6cqw", "portrait": "3.9cqw" }`. A share of the width reads very differently at 16:9 and 9:16. `film:check` refuses a size that is not a length.
+    - `font` is a CSS font stack.
+    - `anchor` is `bottom` or `top`.
+  - `cqw` is a share of the output frame: the caption layer is its own size container. Before 2026-11-15 it fell back to the page's viewport, so a preview in a wide browser drew captions too large.
+  - With a platform `preset`, captions keep to that preset's safe area (YouTube: 10% at the bottom; Shorts: 19%).
+  - Text is measured in layout pixels, so a preview scaled to fit its column wraps and backs captions exactly as the render does.
 - **`audio`** holds lanes, sounds and links. `assetRef` is relative to the film file. `film:render` mixes them with FFmpeg. A link can name `<scene id>/focus`, `/reveal`, `/resolve` or `<scene id>/<beat id>`.
 - **Asset paths** are relative to the film file. Every image needs a `licenseRef`. The exporter refuses an image without one, so the checker reports it first.
 - **`art`** in an object story is `finance:<kind>`, `technology:<kind>` or `business:<kind>` in the capture page. An object with no art draws a word card. In your own app, pass `renderObject` to `FilmStage`.

@@ -1225,6 +1225,63 @@ Storybook has **Parades**.
 - The night parade has no dancing or hopping beyond the umbrella.
 - Nobody has done a human visual review yet.
 
+## YouTube episode template and Kasa Jizō (folktale queue F17, 2026-11-15)
+
+**Sources**:
+
+- Hiroshige's *Evening Snow at Kanbara* (Met 56915, CC0);
+- the netsuke *Daikoku and Bag on Rice Bale* (Met 59066, CC0).
+
+**What they show.**
+
+- **Kanbara.** Travellers bend under wide, shallow straw kasa. The ribs run from the crown to the brim, and the hat is
+  much wider than the shoulders. Thatch carries thick, rounded snow caps. Snow falls as scattered dots over a grey sky
+  that darkens at the top.
+- **The rice bale.** A barrel-shaped tawara with straw running lengthwise under rope bands. Its round end cap is
+  puckered into a centre knot.
+
+**What was built.**
+
+- `ukiyoe-village.ts`: hats, bales, the loaded sled, and hat and cloth for the jizō.
+- `ukiyoe-episode.ts`: the episode template.
+- `ukiyoe-film-slot.tsx`: moved from `src` into the pack.
+- `src/video/ukiyoe-kasa-jizo.ts`: the episode.
+
+**Review rounds.**
+
+1. **Art sheet.** The hats sit on the jizō heads, one mid-drop and the cloth on the sixth, and the bales read with
+   their ropes and end caps.
+2. **First stills.**
+   - The end card's vertical cartouche covered the seal and hid the next-story line. They now stand beside it.
+   - The night snowfield read as a lake. It is now pale snow.
+   - The market and jizō shots were small in frame. Their cameras moved closer.
+   - The hats at the hearth sat on its rim.
+3. **Portrait stills.**
+   - The house was cut at the left of the end card.
+   - The old woman fell out of the hearth frame.
+   - At the night shot's open, the jizō were still off-frame. The camera now follows the lead jizō to the door.
+4. **`film:review`, first runs.** It found three faults in shared code, each fixed where it starts:
+   - **Caption plates in a scaled preview.** The plates were 0.59 of the text's width, because text was measured in
+     screen pixels while the lane was in layout pixels. Text is now measured in layout pixels.
+   - **Caption type size.** `cqw` caption sizes fell back to the page's viewport, so captions were 55 px instead of
+     42 px in Storybook. The caption layer is now a size container.
+   - **Safe area.** Captions sat below YouTube's bottom safe area. They now keep to the preset's safe area.
+5. **Caption length.** Five narration lines needed three lines on 9:16. They were split, and the script check now
+   estimates the two-line fit itself.
+6. **Final check.**
+   - `film:check` passed with no warnings.
+   - `film:review` of both outputs found 0 errors and 12 warnings: the last frame faded to black, the mist crossing the
+     title, and the seal's contrast. The audit reads an SVG text's CSS colour, not its fill, so the seal reads as 1:1
+     though its light glyphs stand on red.
+
+**Not done.**
+
+- No voice yet. The captions are script estimates until a narration is recorded and aligned.
+- The sound is wind beds only, with no hearth crackle or footsteps.
+- No full render (a low-res draft is next, on request).
+- The jizō walk as small grey figures, not carved stone.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

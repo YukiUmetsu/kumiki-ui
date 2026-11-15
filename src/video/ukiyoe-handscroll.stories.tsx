@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { AnimalYokai, Animals, Bestiary, CastLab, CastleTown, CrowdLab, Effects, FolkWork, FolkYokai, FolktaleFilmPlayer, Giants, HeianCourt, Interiors, Kami, MaikoDance, MotifGallery, NightFerryPlayer, OiranProcession, OniFight, Parades, PrintersProof, Realms, SamuraiDuel, SamuraiKata, SceneEditor, SnowWomanFilmPlayer, Temples, Trees, Tsukumogami, Warriors, WomenGhosts } from "./ukiyoe-studio";
+import { AnimalYokai, Animals, Bestiary, CastLab, CastleTown, CrowdLab, Effects, EpisodePlayer, FolkWork, FolkYokai, FolktaleFilmPlayer, Giants, HeianCourt, Interiors, Kami, MaikoDance, MotifGallery, NightFerryPlayer, OiranProcession, OniFight, Parades, PrintersProof, Realms, SamuraiDuel, SamuraiKata, SceneEditor, SnowWomanFilmPlayer, Temples, Trees, Tsukumogami, Warriors, WomenGhosts } from "./ukiyoe-studio";
 
 const meta = {
   title: "Video Production/Film Looks/Ukiyo-e Handscroll",
@@ -17,6 +17,7 @@ export const FolktaleBestiary: Story = { name: "UKIYO1 · Folktale bestiary", re
 export const PrintersProofLab: Story = { name: "UKIYO1 · Printer's proof", render: () => <PrintersProof /> };
 export const Crowds: Story = { name: "UKIYO1 · Crowds", render: () => <CrowdLab /> };
 export const Worlds: Story = { name: "UKIYO1 · Realms", render: () => <Realms /> };
+export const Episode: Story = { name: "UKIYO1 · Episode (Kasa Jizō)", render: () => <EpisodePlayer /> };
 export const Processions: Story = { name: "UKIYO1 · Parades", render: () => <Parades /> };
 export const Objects: Story = { name: "UKIYO1 · Tsukumogami", render: () => <Tsukumogami /> };
 export const Monsters: Story = { name: "UKIYO1 · Giants", render: () => <Giants /> };
