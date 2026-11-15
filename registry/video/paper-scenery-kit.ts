@@ -127,8 +127,8 @@ function portal(p:P,add:Add,x:number,y:number,c:Stock){
 }
 /** Woodland: luminous opening, 5 landscape planes and physically attached trees. */
 function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:number,seed:number){
-  add("woodland-sun-halo",c.mist,2,p.oval(x*.12,-y*.55,72,72),{
-    holes:[p.oval(x*.12,-y*.55,62,62)],enterFrame:16,durationFrames:35,motion:"rise"});
+  add("woodland-sun-halo",c.mist,2,p.oval(x*.12,-y*.55,66,66),{
+    enterFrame:16,durationFrames:35,motion:"rise"});
   add("woodland-sun",c.sun,3,p.oval(x*.12,-y*.55,57,57),{enterFrame:20,durationFrames:33});
   for(let i=0;i<3;i++){
     const cy=-y*.62+i*30,cx=-x*.41+i*23;
@@ -171,16 +171,20 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
   add("woodland-far-pines",c.middle,15,farPines.join(" "),{enterFrame:85,curl:.3});
   // Two asymmetric framing trees with branches rooted in the actual trunks.
   for(const [i,sign] of [-1,1].entries()){
-    const tx=sign*x*.79,ground=y*.92,height=y*1.74;
-    const tree=silhouetteTree(p,tx,ground,height,sign===-1?33:27,-sign*27);
+    const tx=sign*x*.73,ground=y*.91,height=y*1.79;
+    const tree=silhouetteTree(p,tx,ground,height,sign===-1?43:37,-sign*29);
     add("woodland-trunk-"+i,c.trunk,20,tree.path,{enterFrame:89+i*5,curl:.61});
     add("woodland-trunk-grain-"+i,c.bark,21,
       p.band(tx-sign*5,ground-26,tree.tipX-sign*1,tree.top+42,1.8),{
         enterFrame:100+i*5,curl:.4});
+    // Broad, branching crown forms the foreground theatre proscenium.
+    // Inward boughs meet the negative-space opening rather than just
+    // decorating the aperture's side walls.
     const forks=[
-      {t:.39,d:-sign*84,len:54},
-      {t:.57,d:sign*77,len:58},
-      {t:.76,d:-sign*94,len:45},
+      {t:.37,d:-sign*x*.36,len:height*.17},
+      {t:.56,d:sign*x*.14,len:height*.14},
+      {t:.75,d:-sign*x*.51,len:height*.12},
+      {t:.88,d:-sign*x*.31,len:height*.07},
     ];
     for(const [j,f] of forks.entries()){
       const by=ground-height*f.t,bx=tx+(tree.tipX-tx)*f.t;
@@ -190,9 +194,12 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
           p.C(bx+f.d*.62,ey+36,bx+f.d*.19,by-9,bx+6,by+10),p.Z].join(" "),{
           enterFrame:107+i*5+j*3,curl:.4});
       // Each bough carries a single grouped paper canopy with real leaf tips.
-      const packets=Array.from({length:3+Math.round(detail*3)},(_,k)=>{
-        const fx=ex+(k-(2+Math.round(detail*3))/2)*16,fy=ey+(k%2)*9;
-        return p.leaf(fx,fy,21+(k%3)*4,sign*(18+k*17)-95,6.5);
+      const leafCount=6+Math.round(detail*7);
+      const packets=Array.from({length:leafCount},(_,k)=>{
+        const theta=(k-(leafCount-1)/2)/(leafCount-1)*Math.PI*1.1;
+        const fx=ex+Math.sin(theta)*49,fy=ey-Math.cos(theta)*25+(k%3)*9;
+        return p.band(ex,ey,fx,fy,1.7)+" "+
+          p.leaf(fx,fy,27+(k%4)*6,sign*(30+k*14)-108,8.4);
       });
       add("woodland-foliage-"+i+"-"+j,j%2?c.leaf:c.leafLight,23,
         packets.join(" "),{
@@ -209,27 +216,39 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
   add("woodland-bank",c.soil,25,ridge(p,x,y+30,y*.76,13,2.36),{
     enterFrame:119,curl:.32});
   // Lace foliage is built as cut rachises with paired attached leaflets.
-  for(let i=0;i<9+Math.round(detail*5);i++){
-    const side=i%2?-1:1,px=side*(x*.37+i*x*.039),py=y*.89+(i%3)*8;
+  for(let i=0;i<11+Math.round(detail*7);i++){
+    const side=i%2?-1:1,px=side*(x*(.08+(i%6)*.059)),py=y*(.81+(i%3)*.018);
     add("woodland-fern-"+i,i%3===0?c.leafLight:c.leaf,26,
-      smallFern(p,px,py,36+(i%4)*7,side,detail),{
+      smallFern(p,px,py,60+(i%5)*13,side,detail),{
         enterFrame:124+i*2,durationFrames:24,curl:.62});
+  }
+  // Foreground water remains visible through the overlapping bank,
+  // widening into a joined hand-cut paper channel.
+  add("woodland-stream-tail",c.water,26,[
+    p.M(-x*.09,y*.51),p.C(-x*.18,y*.69,-x*.3,y*.77,-x*.14,y+.05*y),
+    p.L(x*.1,y+.05*y),p.C(-x*.03,y*.83,x*.06,y*.69,-x*.09,y*.51),p.Z
+  ].join(" "),{enterFrame:125,curl:.7});
+  for(let i=0;i<7;i++){
+    const bx=-x*.16+(i%3)*x*.07,by=y*(.64+i*.048);
+    add("woodland-bank-pebble-"+i,i%2?c.bark:c.mist,27,
+      p.oval(bx,by,3+(i%3)*2,2+(i%2)),{enterFrame:138+i*2,curl:.3});
   }
   // Tiny die-cut wildflower constellations, anchored by visible stems.
   for(let i=0;i<4+Math.round(detail*5);i++){
-    const side=i%2?-1:1,x0=side*(x*.28+(i%4)*32),y0=y*.89,tip=y0-17-(i%3)*4;
-    add("woodland-flower-stem-"+i,c.leafLight,27,p.band(x0,y0,x0+side*6,tip,1.8),{
-      enterFrame:142+i*2});
+    const side=i%2?-1:1,x0=side*(x*(.13+(i%3)*.085)),y0=y*.83,tip=y0-29-(i%3)*8;
+    add("woodland-flower-stem-"+i,c.leafLight,27,
+      [p.M(x0-1.6,y0),p.C(x0+side*5,y0-19,x0+side*9,tip+8,x0+side*11,tip),
+        p.L(x0+side*13,tip),p.C(x0+side*11,tip+8,x0+side*8,y0-18,x0+1.6,y0),p.Z].join(" "),{
+        enterFrame:142+i*2});
     add("woodland-flower-"+i,i%3?c.accent:c.light,28,
-      Array.from({length:5},(_,j)=>p.leaf(x0+side*6,tip,6,j*72,2)).join(" "),{
+      Array.from({length:7},(_,j)=>p.leaf(x0+side*12,tip,13,j*360/7,4.5)).join(" "),{
         enterFrame:150+i*2,curl:.4});
   }
 }
 /** Alpine: cut-silhouette peaks, individual snow shelf plates, depth-spaced pines. */
 function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:number,seed:number){
   const sunX=-x*.38,sunY=-y*.60;
-  add("alpine-sun-halo",c.mist,2,p.oval(sunX,sunY,67,67),{
-    holes:[p.oval(sunX,sunY,58,58)],enterFrame:15});
+  add("alpine-sun-halo",c.mist,2,p.oval(sunX,sunY,61,61),{enterFrame:15});
   add("alpine-sun",c.sun,3,p.oval(sunX,sunY,51,51),{enterFrame:19});
   const mountains=[
     {cx:-x*.65,peak:-y*.83,r:x*.52,h:y*.6,col:c.mist},
@@ -241,7 +260,9 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
     add("alpine-peak-"+i,m.col,5+i,[
       p.M(left,foot+6),p.C(left+m.r*.19,foot-13,m.cx-m.r*.31,m.peak+y*.14,m.cx,m.peak),
       p.C(m.cx+m.r*.16,m.peak+y*.15,right-m.r*.19,foot-6,right,foot+6),
-      p.L(right,y+12),p.L(left,y+12),p.Z].join(" "),{
+      // Real mountain sheet ends in an irregular hidden foothill contour,
+      // never a rectangular full-stage extension with visible vertical seams.
+      p.C(right-m.r*.31,foot+y*.17,left+m.r*.31,foot+y*.24,left,foot+6),p.Z].join(" "),{
         enterFrame:31+i*8,durationFrames:51,curl:.55});
     add("alpine-snowcap-"+i,c.snow,8+i,
       p.poly([[m.cx-m.r*.19,m.peak+y*.2],[m.cx-m.r*.095,m.peak+y*.14],
@@ -250,6 +271,14 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
         [m.cx+m.r*.04,m.peak+y*.25],[m.cx-m.r*.045,m.peak+y*.2],
         [m.cx-m.r*.11,m.peak+y*.26]]),{
           enterFrame:50+i*6,durationFrames:31,curl:.64});
+    for(let j=0;j<2;j++){
+      const side=j?1:-1;
+      add("alpine-rock-facet-"+i+"-"+j,j?c.middle:c.mist,12,
+        p.poly([[m.cx,m.peak+y*.17],[m.cx+side*m.r*.11,m.peak+y*.25],
+          [m.cx+side*m.r*.32,m.peak+y*.55],[m.cx+side*m.r*.22,m.peak+y*.43],
+          [m.cx+side*m.r*.09,m.peak+y*.39]]),{
+          enterFrame:64+i*5+j*3,curl:.83});
+    }
     // More detail adds small *physical paper* moraine cuts, not texture noise.
     for(let j=0;j<Math.round(detail*3);j++){
       const xx=m.cx-m.r*.21+j*m.r*.14,yy=m.peak+y*(.24+j*.085);
@@ -281,12 +310,13 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
   // Front escarpments frame the water on two separate material planes.
   for(const [i,side] of [-1,1].entries()){
     const hx=side*x;
-    const rock=p.poly([[hx-side*x*.60,y*.95],[hx-side*x*.44,y*.65],
-      [hx-side*x*.37,y*.58],[hx-side*x*.19,y*.81],
-      [hx-side*x*.07,y*.72],[hx,y*.8],[hx,y+18]]);
+    const rock=p.poly([[side*x*.28,y*.90],[side*x*.32,y*.69],
+      [side*x*.38,y*.53],[side*x*.49,y*.57],
+      [side*x*.64,y*.37],[side*x*.82,y*.43],
+      [hx,y*.45],[hx,y+18],[side*x*.24,y+18]]);
     add("alpine-ledge-"+i,i?c.soil:c.near,19,rock,{enterFrame:102+i*6,curl:.76});
     for(let j=0;j<3+Math.round(detail*3);j++){
-      const px=side*(x*.41+j*x*.087),py=y*(.7+(j%3)*.045);
+      const px=side*(x*(.24+j*.064)),py=y*(.66+(j%3)*.038);
       add("alpine-pine-"+i+"-"+j,j%3===0?c.trunk:c.leaf,22,
         p.pine(px,py,56+paperHash(seed,j+i*17,22)*50,17+(j%3)*4),{
           enterFrame:112+i*9+j*3,curl:.48,
@@ -300,12 +330,12 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
       }
     }
   }
-  add("alpine-foreground",c.soil,25,ridge(p,x,y+20,y*.89,12,1.8),{
+  add("alpine-foreground",c.soil,25,ridge(p,x,y+20,y*.85,14,1.8),{
     enterFrame:132});
   for(let i=0;i<9+Math.round(detail*5);i++){
-    const side=i%2?-1:1,px=side*(x*.28+(i%5)*x*.1),py=y*.95;
+    const side=i%2?-1:1,px=side*(x*(.1+(i%5)*.065)),py=y*(.78+(i%3)*.016);
     add("alpine-moss-"+i,i%3?c.leaf:c.leafLight,26,
-      smallFern(p,px,py,19+(i%3)*8,side,detail),{
+      smallFern(p,px,py,46+(i%4)*12,side,detail),{
         enterFrame:139+i*2,curl:.43});
   }
   // A small flight in the open distance gives scale without opaque sprites.
