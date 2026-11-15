@@ -37,6 +37,15 @@ describe("Paper sculpture objects: original reference-led cut-stock construction
           teacup:["tea-handle-back","tea-cup-body","tea-liquid","tea-citrus-segment-0","tea-spoon-bowl"],
         };
         for(const id of expected[object])expect(markup).toContain('data-km-paper-layer="'+id+'"');
+        if(object==="kingfisher"){
+          expect(spec.layers.filter(x=>x.id.startsWith("head-crown-feather-")).length).toBe(10);
+          expect(spec.layers.filter(x=>x.id.startsWith("breast-scale-")).length).toBe(12);
+        }
+        if(object==="teacup"){
+          const deco=spec.layers.find(x=>x.id==="tea-botanical-emblem-rim")!;
+          const cup=spec.layers.find(x=>x.id==="tea-cup-body")!;
+          expect(deco.depth).toBeGreaterThan(cup.depth);
+        }
       });
     }
   }

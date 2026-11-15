@@ -102,17 +102,17 @@ function geometry(w:number,h:number){
 }
 type P=ReturnType<typeof geometry>;
 type Add=(id:string,color:string,depth:number,path:string,rest?:Partial<PaperCutLayer>)=>void;
-const flower=(p:P,add:Add,id:string,x:number,y:number,r:number,c:Stock,seed:number,count=9)=>{
+const flower=(p:P,add:Add,id:string,x:number,y:number,r:number,c:Stock,seed:number,count=9,depth=11)=>{
   const rng=(i:number)=>paperHash(seed,i,12);
-  add(id+"-under",c.coral,11,Array.from({length:count},(_,i)=>
+  add(id+"-under",c.coral,depth,Array.from({length:count},(_,i)=>
     p.petal(x,y,r*(.9+.13*rng(i)),i*360/count-90,r*.29)).join(" "),{
       enterFrame:65,durationFrames:32,motion:"unfold",pivot:[p.cx+x*p.s,p.cy+y*p.s]
     });
-  add(id+"-rim",c.pink,12,Array.from({length:count},(_,i)=>
+  add(id+"-rim",c.pink,depth+1,Array.from({length:count},(_,i)=>
     p.petal(x,y,r*.71,i*360/count-90+12,r*.2)).join(" "),{
       enterFrame:73,durationFrames:32,motion:"unfold",pivot:[p.cx+x*p.s,p.cy+y*p.s]
     });
-  add(id+"-eye",c.gold,13,p.disk(x,y,r*.19),{
+  add(id+"-eye",c.gold,depth+2,p.disk(x,y,r*.19),{
     holes:Array.from({length:6},(_,i)=>p.disk(x+Math.cos(rad(i*60))*r*.10,
       y+Math.sin(rad(i*60))*r*.10,Math.max(1.3,r*.018))),
     enterFrame:91,durationFrames:23});
@@ -190,6 +190,14 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
     add("breast-feather-"+i,i%3===0?c.gold:c.coral,17,
       p.taper(x,y,x-7,y+22,2.8),{enterFrame:75+i*2,durationFrames:22});
   }
+  // Repeated overlapping cut-card feather tips create a real scale rhythm,
+  // instead of a single flat painted orange breast region.
+  for(let i=0;i<12;i++){
+    const col=i%4,row=Math.floor(i/4);
+    const x=-67+col*19+row*4,y=-17+row*30+(col%2)*4;
+    add("breast-scale-"+i,i%3===0?c.gold:i%2?c.coral:c.cream,17,
+      p.petal(x,y,23,77+row*6,5.5),{enterFrame:76+i*2,durationFrames:24});
+  }
   // Head separates mask, crest, cap and eye; no translucent overlays.
   add("kingfisher-head",c.blue,19,[
     p.M(-20,-116),p.C(6,-156,80,-158,117,-108),
@@ -201,6 +209,11 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
   for(let i=0;i<9;i++){
     add("head-crest-"+i,i%2?c.blueLight:c.ink,21,
       p.taper(8+i*10,-123,25+i*10,-148-5*Math.sin(i*.5),4.2),{enterFrame:104+i*2,durationFrames:20});
+  }
+  for(let i=0;i<10;i++){
+    const x=-8+i*11,y=-104+Math.sin(i*.41)*8;
+    add("head-crown-feather-"+i,i%3===0?c.white:c.blueLight,22,
+      p.taper(x,y,x+10,y-24,2.8,1),{enterFrame:111+i*2,durationFrames:20});
   }
   add("kingfisher-eye-mask",c.ink,22,p.oval(87,-86,16,11),{enterFrame:112});
   add("kingfisher-eye",c.white,23,p.disk(88,-89,5),{enterFrame:116,durationFrames:22});
@@ -441,7 +454,7 @@ function teacup(p:P,add:Add,c:Stock,detail:number,seed:number){
   add("tea-liquid",c.coral,17,p.oval(0,-92,131,22),{enterFrame:84});
   add("tea-rim-glint",c.white,20,p.taper(-106,-103,108,-104,1.8),{enterFrame:108});
   // Raised three-dimensional paper decal is attached to the cup body.
-  flower(p,add,"tea-botanical-emblem",-20,21,46,c,seed,8);
+  flower(p,add,"tea-botanical-emblem",-20,21,46,c,seed,8,20);
   for(let i=0;i<7;i++){
     const x=-103+i*31;
     add("tea-cup-embossed-leaf-"+i,i%2?c.green:c.greenLight,20,

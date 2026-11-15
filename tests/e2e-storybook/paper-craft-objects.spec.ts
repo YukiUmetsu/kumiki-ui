@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 const base="/iframe.html?id=video-production-film-looks--";
 const entries=[
   ["paper-craft-object-kingfisher","kingfisher","landscape"],
-  ["paper-craft-object-dragonfly","dragonfly","landscape"],
+  ["paper-craft-object-dragonfly","dragonfly-head","landscape"],
   ["paper-craft-object-canal-houses","house-center-roof","landscape"],
   ["paper-craft-object-camera","camera-lens-ring-6","landscape"],
   ["paper-craft-object-teacup","tea-cup-body","landscape"],
