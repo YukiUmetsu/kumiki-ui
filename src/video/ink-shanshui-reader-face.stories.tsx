@@ -250,10 +250,18 @@ function ReaderFaceStudio(){
             const scaleX=actorFit.headRest.scaleX??1;
             const scaleY=actorFit.headRest.scaleY??1;
             const centerX=139+(143-139)*scaleX+(actorFit.headRest.x??0);
-            // Include the full wrapped crown and bun above y=24.
-            // Previous comparison camera cropped all three head ornaments.
-            const topY=124+(4-124)*scaleY+(actorFit.headRest.y??0);
-            const portraitWidth=94*scaleX,portraitHeight=174*scaleY;
+            // Inspect the true source-fitted topknot, not the hair-group
+            // bounding rect: the latter includes intentional flying ribbons
+            // outside this tight *face* crop.
+            const hairRest=actorFit.facialRest.hair;
+            const crownSourceY=scene==="river-scholar"?5:
+              scene==="misty-hermit"?35:28;
+            const crownLocalY=74+(crownSourceY-74)*
+              (hairRest.scaleY??1)+(hairRest.y??0);
+            const cameraTopY=Math.min(4,crownLocalY-16);
+            const topY=124+(cameraTopY-124)*scaleY+(actorFit.headRest.y??0);
+            const portraitWidth=94*scaleX;
+            const portraitHeight=(183-cameraTopY)*scaleY;
             const portraitBox=[
               centerX-portraitWidth*.5,topY,
               portraitWidth,portraitHeight,
@@ -272,6 +280,8 @@ function ReaderFaceStudio(){
                   "Mountain traveler · windward eyes"}
               </div>
               <svg data-km-scene-face={scene}
+                data-km-camera-crown={Number(crownLocalY.toFixed(3))}
+                data-km-camera-top={Number(cameraTopY.toFixed(3))}
                 role="img" aria-label={"Original "+scene+" ink portrait"}
                 viewBox={portraitBox}
                 style={{width:"100%",height:335,background:"#f6ead4",
