@@ -32,6 +32,7 @@ export function PencilFoundationStudio(){
   const [seed,setSeed]=useState(291);
   const [zoom,setZoom]=useState(false);
   const [reduced,setReduced]=useState(false);
+  const [showTonalSupport,setShowTonalSupport]=useState(true);
   const drawing=useMemo(()=>{
     const base=specimen==="rose"||specimen==="architecture"||specimen==="fabric"?
       pencilObjectStudyDrawing({subject:specimen,aspect,pressure,paperTooth:tooth,seed}):
@@ -109,6 +110,11 @@ export function PencilFoundationStudio(){
           onChange={e=>setZoom(e.target.checked)}/> Inspect at 2.15×
       </label>
       <label style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
+        <input aria-label="Foundation pigment-only audit" type="checkbox"
+          checked={!showTonalSupport} onChange={e=>setShowTonalSupport(!e.target.checked)}/>
+        Inspect pigment strokes without tonal support
+      </label>
+      <label style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
         <input aria-label="Foundation reduced motion" type="checkbox" checked={reduced}
           onChange={e=>setReduced(e.target.checked)}/> Reduced motion
       </label>
@@ -130,6 +136,7 @@ export function PencilFoundationStudio(){
     <div style={{maxWidth:aspect==="landscape"?960:540,width:"100%",overflow:"hidden",
       background:drawing.paper,boxShadow:"0 16px 48px #4A50462B"}}>
       <PencilDrawing drawing={drawing} frame={frame} reducedMotion={reduced}
+        showTonalSupport={showTonalSupport}
         style={zoomStyle} label={specimenMeta[specimen].title+" original coloured pencil study"}/>
     </div>
     <section aria-label="Pencil foundation timeline" style={{maxWidth:960,display:"grid",gap:7}}>
@@ -150,6 +157,7 @@ export function PencilFoundationStudio(){
         {drawing.regions.length} named material regions ·
         {drawing.regions.filter(r=>r.opaqueSupport).length} opaque supports ·
         {drawing.regions.filter(r=>!r.opaqueSupport).length} light/transparent passes ·
+        {showTonalSupport?"authored tonal supports enabled":"PIGMENT-ONLY NEGATIVE CONTROL: no gradient tonal supports"} ·
         technical contract passed, independent artistic fidelity review remains open
       </p>
     </section>
