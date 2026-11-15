@@ -466,7 +466,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const [view,setView]=useState<"wax"|"anatomy">("wax");
   const [showReference,setShowReference]=useState(true);
   const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
-  const [eyeContact,setEyeContact]=useState<"source-shade"|"baseline">("source-shade");
+  const [eyeContact,setEyeContact]=useState<"source-shade"|"source-value"|"baseline">("source-shade");
   const [midfaceForm,setMidfaceForm]=useState<"source-volume"|"baseline">("baseline");
   const [jawNeckForm,setJawNeckForm]=useState<"source-contour"|"baseline">("baseline");
   const [lashFinish,setLashFinish]=useState<"sparse"|"rooted">("sparse");
@@ -577,8 +577,9 @@ export function Cc0SourceRegisteredFaceWorkbench({
       <label>Source eye anatomy and wax{" "}
         <select aria-label="F1 source eye anatomy" value={eyeContact}
           onChange={e=>setEyeContact(e.target.value as
-            "source-shade"|"baseline")}>
+            "source-shade"|"source-value"|"baseline")}>
           <option value="source-shade">Source-led iris, lids and root wax (experiment)</option>
+          <option value="source-value">Deeper source-measured wax eye values (experiment)</option>
           <option value="baseline">Unchanged previous eye (negative control)</option>
         </select>
       </label>
