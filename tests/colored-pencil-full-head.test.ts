@@ -146,6 +146,36 @@ describe("ArtCraft anatomy-connected colored-pencil fibre flow",()=>{
     expect(()=>pencilSkinFibreFlow(near,guides,0,0))
       .toThrow(RangeError);
   });
+  it("provides deterministic 0–100% Storybook fibre A/B without changing the anatomy",()=>{
+    const photo=source(),copy=new Uint8ClampedArray(photo.data);
+    const legacy=createDryPencilHeadPlate(photo,guides,271,.65,.85,.7,0);
+    const woven=createDryPencilHeadPlate(photo,guides,271,.65,.85,.7,1);
+    expect(legacy.fibreFlowStrength).toBe(0);
+    expect(woven.fibreFlowStrength).toBe(1);
+    expect(legacy.geometry).toEqual(woven.geometry);
+    expect(legacy.materialCounts).toEqual(woven.materialCounts);
+    expect(legacy.strokes.length).toBe(woven.strokes.length);
+    const skin=(p:typeof legacy)=>p.strokes.filter(m=>
+      m.zone==="face-value"||m.zone==="face-chroma"||
+      m.zone==="face-scumble");
+    expect(skin(legacy).length).toBeGreaterThan(250);
+    expect(skin(legacy).some((m,i)=>
+      m.controlX!==skin(woven)[i].controlX||
+      m.controlY!==skin(woven)[i].controlY)).toBe(true);
+    const hair=(p:typeof legacy)=>p.strokes.filter(m=>
+      m.zone==="hair-mass"||m.zone==="hair-fibre"||
+      m.zone==="hair-occlusion");
+    expect(hair(legacy)).toEqual(hair(woven));
+    expect(photo.data).toEqual(copy);
+    expect(createDryPencilHeadPlate(photo,guides,271,.65,.85,.7,1))
+      .toEqual(woven);
+    expect(()=>createDryPencilHeadPlate(photo,guides,271,.65,.85,.7,NaN))
+      .toThrow(RangeError);
+    expect(()=>createDryPencilHeadPlate(photo,guides,271,.65,.85,.7,-.1))
+      .toThrow(RangeError);
+    expect(()=>createDryPencilHeadPlate(photo,guides,271,.65,.85,.7,1.1))
+      .toThrow(RangeError);
+  },20000);
   it("retains separate dry marks and monotonic four-shot reveals",()=>{
     const plate=createDryPencilHeadPlate(source(),guides,271,.85);
     for(const zone of ["face-value","face-chroma","face-scumble"] as const){
