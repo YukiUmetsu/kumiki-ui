@@ -52,3 +52,35 @@ Native baseline: `reader-face-three-quarter-rest.png` from Shanshui browser evid
 Compare rendered before/after screenshots under **the same scene, frame, face crop, color and final dimensions**. Extra path count is a guard against a blank mockup, **not** an art score. A style-guided original scene should not be assessed with unaligned pixel SSIM versus a different museum work. Review natural gaze direction, soft line pressure, junctions, eyebrow expression, nostril/ear placement and the face's visual age, both at enlarged crop and native 960×540 film size.
 
 Still open even after the reader passes: the hermit and mountain walker have distinct older face plates that require separate identity-preserving craft studies, the production actor may have little facial screen area at wide landscape shots, and head-turn animation needs view-specific artwork rather than just rotating a single planar face. Do not merge based solely on typecheck/CI success.
+
+
+## First actual browser proof and second artistic correction
+
+Initial scoped run `43661553129` completed the portrait Storybook tests,
+including explicit iris visibility during open/closed eyelids and the normal
+960×540 film exporter. The actual screenshots
+`reader-face-three-quarter-rest.png` and
+`reader-artcraft-eye-nose-lips-open.png` were inspected at their native
+delivered pixel sizes. This is not a self-reported generator score.
+
+**Observed:** The new eye apertures and curved irises read much better than
+the previous hairline slits; nostril/alar distinction is visible and the
+cheek has more depth. However, the macro-crop was improperly centered and
+cut across the upper face while leaving excessive blank area. The mouth
+still curved upward toward the far corner, incorrectly suggesting a smile
+in a quiet reading pose.
+
+**Correction:** Adjust the actual face microcamera to a tight
+`112 71 48 34` head-space viewBox (266px tall) to account for the
+source-fitted head-rest transform. Flatten the closed **rest** mouth's far
+corner and rebalance its tinted relief; preserve a separate expressive
+smile cel, its visemes and head rig. The reader model revision is
+incremented to v9 for downstream asset identity.
+
+**Unresolved:** the original teacher painting and external museum works
+have different scales/compositions, so neither pixel similarity nor the
+test's path counts prove source-fidelity. Reassess expression and eye
+detail at both the corrected close-up and at 960×540; the scholar's head
+occupies only a small fraction of a panoramic composition. A genuinely
+cinematic figure shot still requires camera reframing, body-and-head turn
+cel variants and tailored acting, not just extra paths.
