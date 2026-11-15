@@ -19,7 +19,7 @@ describe("ArtCraft rebuilt kingfisher wildlife illustration",()=>{
       expect(full.actors).toHaveLength(1);
       expect(full.actors![0].id).toBe("kingfisher");
       expect(full.actors![0].parts.map(p=>p.id)).toEqual(KINGFISHER_REBUILT_PARTS);
-      expect(full.actors![0].parts).toHaveLength(10);
+      expect(full.actors![0].parts).toHaveLength(11);
       expect(full.drawing.regions).toHaveLength(4);
       expect(full.drawing.regions.map(r=>r.id)).toEqual([
         "perch-bark","branch-twig","leaf-upper","leaf-lower",
@@ -76,6 +76,8 @@ describe("ArtCraft rebuilt kingfisher wildlife illustration",()=>{
     const torso=posed.find(p=>p.id==="kingfisher-torso")!;
     const front=posed.find(p=>p.id==="kingfisher-near-wing")!;
     expect(front.transform).toContain(torso.transform+" translate(0 0) rotate(");
+    const coverts=posed.find(p=>p.id==="kingfisher-wing-coverts")!;
+    expect(coverts.transform).toContain(front.transform+" translate(0 0) rotate(0");
   });
 
   it("uses paper support for all solid bird parts and real graphite timing",()=>{
