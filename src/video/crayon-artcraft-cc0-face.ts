@@ -5,6 +5,8 @@ import {CRAYON_PORTRAIT_AUDIT}
 import {crayonHash} from "../../registry/video/materials/crayon";
 import {crayonF1ReconstructEyes} from "./crayon-artcraft-f1-ocular-geometry";
 import {crayonF1ReconstructMidface} from "./crayon-artcraft-f1-midface-geometry";
+import {crayonF1AddRootedLashes,type CrayonF1LashFinish}
+  from "./crayon-artcraft-f1-lash-clusters";
 
 /**
  * ArtCraft v7: independently source-registered native-crayon facial
@@ -37,7 +39,7 @@ export type Cc0FaceView="wax"|"anatomy";
 /** Source-registered ocular pigment experiment; baseline is an unchanged negative control. */
 export type Cc0EyeContact="baseline"|"source-shade";
 export type Cc0MidfaceForm="baseline"|"source-volume";
-export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView;fiberMaterial?:"line"|"dry-wax";eyeContact?:Cc0EyeContact;midfaceForm?:Cc0MidfaceForm}
+export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView;fiberMaterial?:"line"|"dry-wax";eyeContact?:Cc0EyeContact;midfaceForm?:Cc0MidfaceForm;lashFinish?:CrayonF1LashFinish}
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
 type Ink=Extract<CrayonElement,{kind:"contour"}>;
 const rect=(x:number,y:number,width:number,height:number)=>
@@ -108,11 +110,13 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   // Source-aligned mouth/nasal experiment failed native visual review.
   // Preserve the previous baseline by default until strict ArtCraft passes.
   const midfaceForm=options.midfaceForm??"baseline";
+  const lashFinish=options.lashFinish??"sparse";
   if(!Number.isFinite(detail)||detail<.2||detail>1||
     !["wax","anatomy"].includes(view)||
     !["line","dry-wax"].includes(fiberMaterial)||
     !["baseline","source-shade"].includes(eyeContact)||
-    !["baseline","source-volume"].includes(midfaceForm))
+    !["baseline","source-volume"].includes(midfaceForm)||
+    !["sparse","rooted"].includes(lashFinish))
     throw new RangeError("Invalid ArtCraft F1 face controls");
   const elements:CrayonElement[]=[];
   const wax=(id:string,d:string,bounds:ReturnType<typeof rect>,
@@ -1150,8 +1154,12 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   // the original CRAYON1 absolute-frame timing, paper and camera.
   const ocular=eyeContact==="source-shade"?
     crayonF1ReconstructEyes(elements):elements;
+  // The sparse/original lashes are the negative control for photographic
+  // lash density. Rooted dense fibers are never silently promoted.
+  const lashed=eyeContact==="source-shade"?
+    crayonF1AddRootedLashes(ocular,lashFinish):ocular;
   const studied=midfaceForm==="source-volume"?
-    crayonF1ReconstructMidface(ocular):ocular;
+    crayonF1ReconstructMidface(lashed):lashed;
   return {version:1,id:"crayon-artcraft-cc0-portrait-"+view,
     width:608,height:1082,durationFrames:300,seed:441501,
     paper:C.paper,paperTooth:.79,
