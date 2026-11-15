@@ -342,6 +342,38 @@ for(const sample of ["woman","man"] as const){
         expect(await output.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
+        // ArtCraft v16: transparent photograph-measured skin pigment is
+        // rendered under every real colored-pencil value/hair/iris stroke.
+        // Zero means EXACT original v15, 100 means new optical glaze.
+        const glaze=page.getByLabel("Pencil photo-measured soft skin glazing");
+        await glaze.focus();await glaze.press("Home");
+        await expect(glaze).toHaveValue("0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-photometric-glaze","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-glaze-strokes","0");
+        const unglazed=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-skin-glaze-legacy-0.png")});
+        await glaze.press("End");
+        await expect(glaze).toHaveValue("1");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-photometric-glaze","1");
+        const glazeNibs=Number(await full.getAttribute(
+          "data-km-pencil-glaze-strokes"));
+        const preserved=Number(await full.getAttribute(
+          "data-km-pencil-glaze-protected"));
+        expect(glazeNibs).toBeGreaterThan(800);
+        expect(preserved).toBeGreaterThan(0);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(unglazed);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-skin-glaze-source-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Actual licensed source, ALL four chronologically composited
         // Storybook shots. Stage 1..4 must contain increasing genuine
         // pencil marks; the exported film bitmap must not be affected.
