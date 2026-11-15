@@ -157,3 +157,8 @@ These are visible-construction changes, not global noise, random transparency or
 ### Pass 20c — mountain footing continuity
 
 The revised browser proof removed the previous box-like mountain geometry but still showed a conspicuous sky-colored horizontal gap beneath the mountain bases. Added two continuous, irregular cut-paper foothill terraces **behind** the pine line and front lake, physically bridging the peak feet to the shore. This resolves the major depth-plane discontinuity without drawing flat rectangular backgrounds or transparent filler. New current-commit captures supersede the earlier proof.
+
+
+### Catalog parity gate (pre-existing repository-wide blocker)
+
+The PR's optional full `npm run catalog:check` step was executed and **failed** with purpose-group/story-ID gaps spanning older watercolour, ink, risograph and paper packs (13 legacy registry items, including the existing `paper-craft` catalog entry). These are not syntax errors in the new scenery generator or its Storybook page. The paper-targeted CI retains `npm run registry:validate`, source typecheck, focused unit tests, Chromium and native video checks. Global catalog parity remains a separate repo-wide cleanup, **not** a passed release gate.
