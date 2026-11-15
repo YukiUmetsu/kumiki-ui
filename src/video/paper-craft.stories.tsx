@@ -147,13 +147,13 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
 /** The PAPER-D1 film director is a single, independently customizable page
  * inside the existing Film Looks / Paper Craft Storybook folder.
  */
-function PaperDirectorLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMotion,curtains,pageTurn}:Controls) {
+function PaperDirectorLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMotion,curtains,pageTurn,frame}:Controls) {
   const film=useMemo(()=>paperDirectorDemo(medium,seed,motion,curtains,pageTurn?"page-turn":"curtain"),
     [medium,seed,motion,curtains,pageTurn]);
   const plan=useMemo(()=>compilePaperDirector(film),[film]);
-  const [playhead,setPlayhead]=useState(350),[playing,setPlaying]=useState(false);
+  const [playhead,setPlayhead]=useState(frame),[playing,setPlaying]=useState(false);
   const anchor=useRef<{time:number;frame:number}|null>(null);
-  useEffect(()=>{setPlayhead(350);setPlaying(false);anchor.current=null;},[film,aspect]);
+  useEffect(()=>{setPlayhead(frame);setPlaying(false);anchor.current=null;},[film,aspect,frame]);
   useEffect(()=>{
     if(!playing||reducedMotion)return;
     let request=0;
@@ -328,13 +328,14 @@ export const Teacup: Story = {
 export const Director: Story = {
   name:"Film Director · Four Chapters",
   args:{medium:"layered",aspect:"landscape",seed:37,motion:.7,tooth:.7,
-    shadow:.9,edge:.55,reducedMotion:false,curtains:true,pageTurn:false},
+    shadow:.9,edge:.55,reducedMotion:false,curtains:true,pageTurn:false,frame:350},
   render:args=><PaperDirectorLab {...args}/>,
   argTypes:{
     artwork:hideControl,scenery:hideControl,sceneryPalette:hideControl,breeze:hideControl,
     treeVariety:hideControl,object:hideControl,objectPalette:hideControl,
     palette:hideControl,detail:hideControl,colorLayers:hideControl,curl:hideControl,
-    relief:hideControl,frame:hideControl,
+    relief:hideControl,
+    frame:{control:{type:"range",min:0,max:959,step:1},table:{disable:false}},
     curtains:{control:"boolean",table:{disable:false}},
     pageTurn:{control:"boolean",table:{disable:false}},
   },
