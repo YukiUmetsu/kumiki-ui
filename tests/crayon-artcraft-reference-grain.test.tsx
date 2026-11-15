@@ -34,7 +34,7 @@ describe("Crayon reference-led orbital and mouth wax hatching",()=>{
       const orbital=spec.elements.find(n=>n.id==="near-orbital-plane-hatching");
       if(phi?.kind!=="contour"||orbital?.kind!=="contour")throw Error("Missing angle evidence");
       const firstDirection=(d:string)=>{
-        const coords=d.match(/^M(-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?) Q-?\\d+(?:\\.\\d+)? -?\\d+(?:\\.\\d+)? (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/);
+        const coords=d.match(/^M(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?) Q-?\d+(?:\.\d+)? -?\d+(?:\.\d+)? (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/);
         if(!coords)throw Error("Unexpected authored Q stroke format");
         return {dx:Number(coords[3])-Number(coords[1]),dy:Number(coords[4])-Number(coords[2])};
       };
