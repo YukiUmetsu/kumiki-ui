@@ -43,9 +43,11 @@ if (needsFile && files.length !== 1) throw Error("Give exactly one film file.");
 const filmPath = needsFile ? resolve(files[0]) : undefined, filmDir = needsFile ? dirname(filmPath) : undefined;
 
 const viteBase = { configFile: false, root: ROOT, cacheDir: "node_modules/.vite-film", server: { fs: { strict: false } } };
-/** Load registry TypeScript through Vite, which resolves its extensionless imports. */
+/** Load registry TypeScript through Vite, which resolves its extensionless imports. Its own cache folder: this server stays open
+ * while the capture page's server starts, and two optimizers with different settings in one folder each clear and rewrite the
+ * other's pre-bundled dependencies, so a page could load two copies of React on a slow machine. */
 async function loadRegistry() {
-  const server = await createServer({ ...viteBase, logLevel: "error", appType: "custom", server: { ...viteBase.server, middlewareMode: true, hmr: false, ws: false }, optimizeDeps: { noDiscovery: true } });
+  const server = await createServer({ ...viteBase, cacheDir: "node_modules/.vite-film-registry", logLevel: "error", appType: "custom", server: { ...viteBase.server, middlewareMode: true, hmr: false, ws: false }, optimizeDeps: { noDiscovery: true } });
   const load = id => server.ssrLoadModule(id);
   return { film: await load("/registry/video/film-document.ts"), audio: await load("/registry/video/audio-visual-cue.ts"), design: await load("/registry/video/sound-design.ts"), mastering: await load("/registry/video/sound-mastering.ts"), timewarp: await load("/registry/video/sound-timewarp.ts"), sonic: await load("/registry/video/film-sonic.ts"), examples: await load("/registry/video/scene-template-examples.ts"), close: () => server.close() };
 }
