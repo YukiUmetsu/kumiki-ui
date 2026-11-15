@@ -2,7 +2,7 @@ import type {Meta,StoryObj} from "@storybook/react-vite";
 import {CrayonPlayground} from "./crayon-scene-playground";
 import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-story-config";
 
-/** General-purpose authoring playground; themed films live in dedicated folders. */
+/** General-purpose authoring playground; themed films have distinct pages in the same Crayon folder. */
 const meta={
   title:"Video production/Film Looks/Crayon/Scene Engine",
   id:"video-crayon-scene-engine",
