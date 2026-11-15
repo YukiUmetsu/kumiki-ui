@@ -402,6 +402,37 @@ for(const view of ["wax","anatomy"] as const){
           animations:"disabled"});
       }
     }
+    if(view==="wax"){
+      // Immutable source-space evidence: each eye cropped independently
+      // through a fixed camera at native 608×1082 resolution. Rendering
+      // a source-registered path ≠ art-director approval.
+      for(const item of [
+        {name:"near",x:269,y:546,zoom:3.35},
+        {name:"far",x:437,y:516,zoom:3.5},
+      ] as const){
+        const focused={...spec,camera:[
+          {frame:0,focusX:item.x,focusY:item.y,zoom:item.zoom},
+          {frame:299,focusX:item.x,focusY:item.y,zoom:item.zoom},
+        ]};
+        for(const frame of item.name==="near"?[210,299]:[299]){
+          const html=renderToStaticMarkup(createElement(CrayonScene,{
+            spec:focused,frame,
+          }));
+          await page.setContent("<!doctype html><html><body style='margin:0'>"+
+            html+"</body></html>");
+          const svg=page.locator("svg[data-km-crayon-scene]");
+          for(const id of ["iris-"+item.name,"pupil-"+item.name,
+            "upper-lid-"+item.name,"lash-root-"+item.name,
+            "lash-contact-"+item.name,"lower-lid-"+item.name]){
+            await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+              .toBeAttached();
+          }
+          await svg.screenshot({path:info.outputPath(
+            "crayon-f1-source-"+item.name+"-eye-macro-"+frame+".png"),
+            animations:"disabled"});
+        }
+      }
+    }
     expect(exceptions).toEqual([]);
   });
 }
