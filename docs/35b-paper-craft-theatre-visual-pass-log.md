@@ -114,3 +114,12 @@ Studied Diana Beltrán Herrera's original physical bird feathers. Added renderer
 ## Pass 18 — kingfisher anatomy rebuilt from actual bird and handmade paper references
 
 Focus on a genuinely better bird rather than arbitrary effect layers. Reconstructed the entire original `kingfisher` geometry while preserving its contract, consistent wing rig and 18 real lifted feather tips. Changed skull-to-body connection, wing/body volume, blue and chestnut color tracts, crown markings, eye and cheek arrangement, short rectrices, bill wedge and perch-clinging tarsi. Added 12 compound layers containing fine individual paper feather contours. **Artistic validation:** inspect both exact browser screenshot ratios and native film frames, with no unmeasured ArtCraft score claims.
+
+
+## Pass 19 — fine vane cutwork from paper-bird construction
+
+References: [Diana Beltrán Herrera's paper bird collection](https://www.dianabeltranherrera.com/projects/birds) and [the photographed hand-assembled feather detail](https://www.creativeboom.com/work/paper-birds-delicate-feathered-friends-crafted-entirely-from-coloured-paper/). Individual overlapping feathers have deliberate taper, close-fitting lateral barbs and fine irregular hand-cut margins. Previously, the Kumiki kingfisher's 18 feather vanes were largely smooth geometric capsules despite the revised anatomy.
+
+**Correction:** author the primary's visible front and back vane edges as actual contours with shallow seeded, symmetric-in-count but asymmetric-in-placement V-shaped notches. Maintain the rounded root, 18 physical individual feather blades, 18 independently hinged opaque tips, all coherent anatomical rig pivots and 128-layer budget. The detail control changes real cuts rather than color/noise. No third-party pixels or outlines are copied.
+
+**Release evidence:** focused geometry/rig tests plus native landscape/portrait Storybook screenshots and FilmStage renders from the PR visual proof. Do not claim matched ArtCraft scores or manual visual approval based only on passing mechanical tests.
