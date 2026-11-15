@@ -612,19 +612,24 @@ function fox():PencilSubjectPart[] {
           "#BD7C69",.65,265,.68),
       ]},
     {id:"cheek-ruff",material:"fur",palette:["#B8A58F","#70645E","#E5D0B5"],
-      // Irregular roots turn into neck ruff. Avoid a detached parallelogram.
-      path:"M255 224 C267 229 279 239 283 250 Q289 261 279 273 L272 266 Q269 277 262 282 L259 270 Q250 284 246 289 Q250 272 246 260 C249 246 251 232 255 224 Z",
-      bounds:[232,211,63,82],direction:64,start:150,
+      // Malar feathering remains attached to the eye/upper-jaw crest and
+      // continues down into the white throat. No isolated gray cheek oval.
+      path:"M253 222 C266 229 276 239 279 252 "+
+        "C285 262 282 273 274 281 C267 290 260 294 253 299 "+
+        "C247 302 238 307 232 310 C238 301 240 291 240 284 "+
+        "C247 271 245 252 250 239 C251 232 252 226 253 222 Z",
+      bounds:[228,217,62,100],direction:64,start:150,
       details:[
         ...pencilRootedFur([
-          [249,230,280,254,276,228,30,10],
-          [247,248,254,282,281,262,27,8],
+          [252,231,270,273,268,245,31,10],
+          [249,253,238,303,262,280,35,9],
+          [261,267,240,305,249,294,30,10],
         ],765,["#CDAA8C","#705B56","#F6DBC0"],257),
-        mark("M262 272 Q277 255 283 246 M249 278 Q260 269 268 262",
+        mark("M262 272 Q277 255 283 246 M247 287 Q259 278 267 267",
           "#E7C6A8",.52,279,.71),
         ...pencilContourFringe([
-          [256,235,277,263,277,242,30,-1],
-          [278,262,250,280,267,284,28,-1],
+          [258,230,279,258,274,239,30,-1],
+          [276,276,235,306,262,297,29,-1],
         ],905,["#CFB198","#726763","#F7DDC0"],255),
       ]},
     {id:"eye-far",material:"glaze",palette:["#786151","#584E49","#AC8A70"],
