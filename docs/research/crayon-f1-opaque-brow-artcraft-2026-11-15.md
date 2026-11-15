@@ -35,7 +35,7 @@ RGB observations here diagnose the **missing mass**; photo-to-crayon histogram a
 - Full `crayonCc0FaceStudy()` keeps original F1 photo-specific 18 landmark records, 608×1082 native camera, 300 frames, seed 441501, and independent eye/lash/midface/jaw controls. All other wax and contour elements are exact negative-control objects.
 - Existing **Crayon / ArtCraft Adult Face Lab** Storybook folder exposes the eyebrow comparison dropdown and original source zooms; no new Storybook folder.
 - `tests/crayon-artcraft-f1-brow.test.tsx`: missing/duplicate anatomy, parent root, dry wax contact, 20+9 curved irregular fibers, geometry hierarchy, undeformed original scene, low-detail/anatomy modes and actual SVG generation.
-- Chromium source-matched camera (focus x265,y481, zoom 3.05, frame299), **baseline and candidate actual screenshots** via `tests/e2e-artcraft/crayon-adult-face.spec.ts`. Pixel difference establishes a real rendered material change, not photographic or art acceptance.
+- Chromium source-matched camera (focus x265,y481, zoom 3×, frame299), **baseline and candidate actual screenshots** via `tests/e2e-artcraft/crayon-adult-face.spec.ts`. Pixel difference establishes a real rendered material change, not photographic or art acceptance.
 
 ## Independent lip study — V3 after prior native visual rejection
 
@@ -53,6 +53,6 @@ V3 `source-volume` adds **two tissue-shaped opaque crayon undercoats**, in front
 
 ## Next and non-negotiable release blockers
 
-Actual-brow screenshot and v9 portrait/human-anatomy/structural-fidelity independent source/render masks still required. The existing frozen photo vs prior native full-frame v9 portrait gate **failed**: SSIM **0.3727** vs ≥0.85, edge difference ratio **2.9013** vs ≤0.2, edge XOR **29,173** vs ≤6000, histogram correlation **−0.2085** vs ≥0.92. These are deliberately strict literal-photo scores and cannot alone judge wax style, but they **block claiming literal source fidelity**. Do not lower thresholds to pass. Verify the actual candidate, not a promise of improved code. Inspect eyebrow 1× and 3.05× before any artistic promotion, then fix largest remaining jaw, nostril and dental issues; validate moving animation frames and 9:16/16:9 delivery later.
+Actual-brow screenshot and v9 portrait/human-anatomy/structural-fidelity independent source/render masks still required. The existing frozen photo vs prior native full-frame v9 portrait gate **failed**: SSIM **0.3727** vs ≥0.85, edge difference ratio **2.9013** vs ≤0.2, edge XOR **29,173** vs ≤6000, histogram correlation **−0.2085** vs ≥0.92. These are deliberately strict literal-photo scores and cannot alone judge wax style, but they **block claiming literal source fidelity**. Do not lower thresholds to pass. Verify the actual candidate, not a promise of improved code. Inspect eyebrow 1× and 3×× before any artistic promotion, then fix largest remaining jaw, nostril and dental issues; validate moving animation frames and 9:16/16:9 delivery later.
 
 **Decision:** source-grounded and type-testable but **not artist approved**, keep PR #281 **draft** and unmerged.
