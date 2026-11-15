@@ -1,4 +1,4 @@
-import type {CrayonElement} from "../../registry/video/materials/crayon-scene";
+import type {CrayonColor,CrayonElement} from "../../registry/video/materials/crayon-scene";
 
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
 type Contour=Extract<CrayonElement,{kind:"contour"}>;
@@ -27,7 +27,7 @@ type Contour=Extract<CrayonElement,{kind:"contour"}>;
 const arch:Readonly<Record<string,{
   id:string;d:string;bounds:{x:number;y:number;width:number;height:number};
   colors:Wax["colors"];gradient:NonNullable<Wax["underpaintGradient"]>;
-  strokes:string;strokeColor:string;strokeWidth:number;strokePressure:number;
+  strokes:string;strokeColor:CrayonColor;strokeWidth:number;strokePressure:number;
 }>>={
   "brow-superciliary-near":{
     id:"source-brow-wax-near",
