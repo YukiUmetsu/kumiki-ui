@@ -116,7 +116,8 @@ export const projectMeasuredHeadContours=(guides:PortraitFeatureMap):HeadContour
   };
 };
 export type HeadMaterialZone="face-value"|"face-chroma"|"face-form"|
-  "face-scumble"|"hair-mass"|"hair-fibre"|"measured-features";
+  "face-scumble"|"hair-mass"|"hair-occlusion"|"hair-fibre"|
+  "measured-features";
 export interface PortraitHeadStroke extends PencilPhotoMark {
   readonly zone:HeadMaterialZone;
 }
@@ -124,7 +125,7 @@ export interface PortraitHeadStroke extends PencilPhotoMark {
 export const HEAD_STORYBOARD_PHASES=[
   {id:"value",label:"01 · Structure",description:"Value and connected hair mass"},
   {id:"pigment",label:"02 · Local chroma",description:"Warm/cool pencil layering"},
-  {id:"form",label:"03 · Form and scumble",description:"Skin planes, orbital depth and optical circles"},
+  {id:"form",label:"03 · Form and scumble",description:"Skin planes, eye sockets and attached hair shadows"},
   {id:"detail",label:"04 · Likeness details",description:"Lashes, lips and rooted hair fibres"},
 ] as const;
 export type HeadStoryboardPhase=typeof HEAD_STORYBOARD_PHASES[number]["id"];
@@ -200,7 +201,8 @@ export const createDryPencilHeadPlate=(
   const fiveValueCounts:[number,number,number,number,number]=[0,0,0,0,0];
   const materialCounts:Record<HeadMaterialZone,number>={
     "face-value":0,"face-chroma":0,"face-form":0,
-    "face-scumble":0,"hair-mass":0,"hair-fibre":0,
+    "face-scumble":0,"hair-mass":0,"hair-occlusion":0,
+    "hair-fibre":0,
     "measured-features":0,
   };
   const screen=(p:Point):Point=>[(p[0]-left)*scale,(p[1]-top)*scale];
@@ -244,8 +246,16 @@ export const createDryPencilHeadPlate=(
       // Black hair often has near-neutral RGB: require a coherent warm
       // connected neighbourhood before filling a dark strand. The CC0
       // garden background is also dark, but it is chromatically green.
+      // A real near-black strand may have no remaining reddish chroma.
+      // Requiring warm pixels on *both* sides erased the photographed
+      // ear-to-hair occlusion and exposed an ivory-paper white fracture.
+      // Only recover this dark material INSIDE the measured head/hair
+      // envelope and close to the measured face. Never generalize it to
+      // arbitrary background darkness (e.g. green garden/shadow).
+      const value=lum(rgb);
+      const closeToFace=distanceToEdge(p,geometry.face)<eyeDist*.24;
       const hair=isHairColour(rgb)?around>=1:
-        lum(rgb)<.16&&around>=2;
+        value<.16&&(around>=2||closeToFace);
       if(hair&&!paperWhite(source,p[0],p[1]))return "hair";
     }
     return "background";
@@ -518,6 +528,42 @@ export const createDryPencilHeadPlate=(
         pigment,(shadeCore?.48:pass===0?.41:.34)*fade*(.48+.9*(1-v)),
         shadeCore?1.37:pass===0?1.65:1.27,pass,
         (pencilHash(seed,k,40)-.5)*.16);
+    }
+  }
+  // Construct shadow adjacency BEFORE individual loose hair fibres.
+  // The source has a dark connected ear/temple/collar lock. Earlier
+  // pencil passes left a conspicuous pale ring at this boundary because
+  // the achromatic black strand was mistaken for background. Local dense
+  // sharpened pencil strokes now join hair and skin where *actual source*
+  // values support a dark edge, without a solid painted region.
+  {
+    const step=eyeDist*.011;
+    const nx=Math.ceil(cropWidth/step),ny=Math.ceil(cropHeight/step);
+    for(const layer of [0,1] as const){
+      for(let iy=0;iy<ny;iy++)for(let ix=0;ix<nx;ix++){
+        const k=layer*190117+iy*nx+ix;
+        const px=left+(ix+.5+(pencilHash(seed,k,301)-.5)*.30)*step;
+        const py=top+(iy+.5+(pencilHash(seed,k,302)-.5)*.30)*step;
+        const p:Point=[px,py];
+        if(classify(p)!=="hair")continue;
+        const distance=distanceToEdge(p,geometry.face);
+        if(distance>eyeDist*.20)continue;
+        const value=photoValue(source,px,py);
+        if(value>.36)continue;
+        const ink=photoRGB(source,px,py);
+        const depth=clamp((.40-value)/.36,0,1);
+        if(pencilHash(seed,k,303)>.60+.40*depth)continue;
+        const side=Math.sign(px-guides.noseBridge[0])||1;
+        const theta=Math.PI*.49-side*.18+
+          (pencilHash(seed,k,304)-.5)*.34+(layer===1?.25:0);
+        const lengthPx=step*(1.42+.40*pencilHash(seed,k,305));
+        push("hair-occlusion",p,
+          [Math.cos(theta)*lengthPx,Math.sin(theta)*lengthPx],
+          color([ink[0]*.70+22*.30,ink[1]*.71+17*.29,
+            ink[2]*.72+17*.28]),
+          (.35+.21*depth),layer===0?.92:.74,2,
+          (pencilHash(seed,k,306)-.5)*.12);
+      }
     }
   }
   // Root-aligned fine strands: quadratic clumps from the actual parting
