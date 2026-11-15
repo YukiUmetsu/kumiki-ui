@@ -327,14 +327,26 @@ export const COURIER: RisoCharacterSpec = {
     },
     // Blue iris stays the primary silhouette; red ink is a small independent
     // screened glancing-light facet that never paints over the paper sclera.
-    { id: "eye-iris-grain", joint: "head", plate: "red", paint: "screen",
+    { id: "eye-iris-grain", joint: "head", plate: "red", paint: "solid",
       d: "M-17.4 -8.4 Q-16.2 -9.7 -15.1 -8.6 Q-16.4 -8.8 -17.0 -6.8 Q-17.9 -7.5 -17.4 -8.4 Z M16.8 -9.6 Q18.1 -11.1 19.1 -9.2 Q18.0 -9.5 17.5 -7.5 Q16.6 -8.0 16.8 -9.6 Z",
       expressions:{blink:"M-17.0 -6.9 Q-16.2 -7.3 -15.7 -6.8 L-15.8 -6.5 Q-16.4 -6.7 -17 -6.5 Z M17.0 -7.8 Q18.0 -8.2 18.6 -7.7 L18.5 -7.4 Q17.9 -7.6 17 -7.5 Z"},
     },
-    { id: "eye-lower-orbit-engraving", joint: "head", plate: "red", paint: "screen",
+    { id: "eye-lower-orbit-engraving", joint: "head", plate: "red", paint: "solid",
       d: "M-22 -2.1 Q-19 -1.2 -17.1 -1.6 Q-19 -0.8 -21.9 -.9 Z M-16.2 -1.5 Q-13.8 -1.7 -12.1 -3.1 Q-13.5 -1.1 -16 -0.7 Z M-20.8 .6 Q-18.4 1.2 -17.2 .7 Q-18.7 1.6 -20.6 1.2 Z M11.6 -3.4 Q15 -1.5 17.5 -2 Q15.4 -.8 12.5 -2 Z M18.2 -2.0 Q20.4 -2.3 22.0 -4.1 Q21.4 -2.0 18.7 -1.3 Z M13.1 .2 Q16 1 18.8 .1 Q16.5 1.6 13.4 1.0 Z",
       expressions:{blink:"M-22 -3.2 Q-20.5 -2.7 -18.5 -3.0 Q-20.4 -2.3 -21.9 -2.6 Z M-18.2 -3.1 Q-15.3 -2.7 -12.1 -4.2 Q-14.2 -2.4 -17.6 -2.5 Z M-20.4 -1.1 Q-18.4 -.8 -17.2 -1.2 Q-18.5 -.4 -20.2 -.6 Z M11.1 -4.6 Q14 -3.1 17.1 -3.5 Q15.3 -2.8 12 -3.9 Z M18.2 -3.9 Q20.8 -3.9 22 -5.4 Q20.7 -3.3 18.6 -3.2 Z M13.4 -2.0 Q16.2 -1.6 18.8 -2.4 Q16.6 -1.0 13.8 -1.4 Z"},
     },
+
+    // RISO23 / actual Chromium RISO22 critique: 1–2px eye engravings were
+    // sparsely sampled by the 6-unit plate screen and became disconnected
+    // bright-red chips. Fine details now print solid; ONLY sufficiently wide
+    // facial shadow planes use physically discrete screened dots.
+    // Each zone follows brow/zygomatic anatomy in the *original* head frame.
+    { id: "orbital-tone-planes", joint: "head", plate: "red", paint: "screen",
+      d: "M-27 -25 C-22 -29 -14 -28 -9 -24 Q-16 -23 -21 -17 Q-26 -15 -27 -25 Z M7 -25 C14 -31 24 -29 29 -20 Q28 -14 23 -15 Q20 -23 13 -22 Z" },
+    { id: "zygomatic-tone-planes", joint: "head", plate: "red", paint: "screen",
+      d: "M-29 -7 C-29 2 -27 10 -19 16 Q-22 5 -21 -5 Q-25 -11 -29 -7 Z M21 -6 Q27 -11 31 -5 C32 4 28 13 21 18 Q27 6 24 -2 Z" },
+    { id: "jaw-shadow-planing", joint: "head", plate: "red", paint: "screen",
+      d: "M-28 10 Q-23 24 -8 31 C-16 27 -22 20 -25 12 Z M31 -5 Q34 13 17 31 Q27 18 29 -3 Z" },
     { id: "iris-left", joint: "head", plate: "blue", paint: "solid",
       d: "M-18 -9 Q-15 -11 -14 -8 Q-14 -5 -17 -5 Q-19 -7 -18 -9 Z",
       expressions: {blink:"M-18 -7 L-15 -7 L-15 -6 L-18 -6 Z"},

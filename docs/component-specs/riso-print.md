@@ -81,3 +81,9 @@ The initial implementation includes `tests/riso-overprint.test.tsx` for frame/se
 The relevant process-reference board is [35A](../35a-material-native-style-reference-gallery.md) (Risograph). Compare *ink order, fixed registration, overprint color, paper handling, caption legibility and continuity*, not the story or artwork of a third-party reference. A true ink absorption simulation, nonlinear spectral pigment mixing and automated photographic separation are out of scope.
 
 **Next roadmap slice:** Phase 3's authored stroke geometry and dry-brush splintering; Phase 2's separate nonessential registration-kick, density and full browser/art validation tasks remain open.
+
+## RISO23 — source-resolution-aware screen pitch
+
+The native `PrintPlate.dotCell` and `createRisoScreenGeometry({cell})` minimum is now **2** instead of **3** design units (maximum remains **36**). This is a backward-compatible expansion needed by fine anatomically authored facial halftone at film/output stage resolution; previously a 6-unit pitch across a ~70-unit face turned intended print volume into large disconnected freckles. It does **not** change the default for any existing film scene or add RGB postprocessing.
+
+For RISO23 the Storybook production-native two-portrait crop starts at `dotCell: 2` per plate; the interactive screen-pitch slider can compare 2..6 with genuine separate spot masters and independent registration. Values below 2, non-finite cells and values above 36 are still rejected. Verify on an actual rendered output at intended resolution because at low output scale dots may visually merge or alias.

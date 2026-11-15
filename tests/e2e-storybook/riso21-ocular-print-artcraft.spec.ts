@@ -36,6 +36,10 @@ test("RISO21 both original faces: 16:9/9:16, anatomy states, distinct inks",asyn
         await expect(svg.locator('[data-km-riso-part="eye-lash-wedges"]')).toHaveCount(1);
         await expect(svg.locator('[data-km-riso-part="eye-iris-grain"]')).toHaveCount(1);
         await expect(svg.locator('[data-km-riso-part="eye-lower-orbit-engraving"]')).toHaveCount(1);
+        // RISO23: each head now exposes three physical wide-screen tonal
+        // masses, instead of relying on undersampled pinprick red details.
+        for(const id of ["orbital-tone-planes","zygomatic-tone-planes","jaw-shadow-planing"])
+          await expect(svg.locator('[data-km-riso-part="'+id+'"]')).toHaveCount(1);
       }
       // Every actor is a separate rendered proof. A multi-match locator's
       // screenshot() is a Playwright strictness error and had never been run.
@@ -49,6 +53,23 @@ test("RISO21 both original faces: 16:9/9:16, anatomy states, distinct inks",asyn
       });
     }
   }
+  // ArtCraft negative control from the first RISO23 screenshot: a 6-unit
+  // halftone over a ~70-unit face produces cartoon-sized isolated red freckles.
+  // The default is a genuinely fine screen; retain a coarse-pitch comparison.
+  const pitch=page.getByRole("slider",{name:"RISO23 screen pitch"});
+  await expect(pitch).toHaveValue("2");
+  const narrowTiles=await page.locator('svg[data-km-riso-print]').first()
+    .locator('pattern').evaluateAll(elements=>elements.map(el=>Number(el.getAttribute("width"))));
+  expect(narrowTiles).toHaveLength(2);
+  expect(narrowTiles.every(value=>value>=2&&value<=2.2)).toBe(true);
+  await pitch.fill("6");
+  await page.locator("main").screenshot({
+    path:info.outputPath("negative-control-coarse-6-unit-screen.png"),animations:"disabled",
+  });
+  await pitch.fill("2");
+  await page.locator("main").screenshot({
+    path:info.outputPath("recovered-fine-2-unit-screen.png"),animations:"disabled",
+  });
   // A plate-separated physical print must be inspectable, not just asserted.
   await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("blue");
   await page.locator("main").screenshot({
@@ -65,6 +86,11 @@ test("RISO21 both original faces: 16:9/9:16, anatomy states, distinct inks",asyn
   await expect(page.locator('[data-km-riso-screen-mode="fm"]')).toHaveCount(2);
   await page.getByRole("slider",{name:"RISO21 dot gain"}).fill("0.5");
   await expect(page.locator('svg[data-km-riso-dot-gain="0.5"]')).toHaveCount(2);
+  await page.getByRole("slider",{name:"RISO23 screen coverage"}).fill("0.4");
+  await expect(page.locator('svg[data-km-riso-screen-density="0.4"]')).toHaveCount(2);
+  await page.locator("main").screenshot({
+    path:info.outputPath("screened-face-40-percent.png"),animations:"disabled",
+  });
   await page.getByRole("checkbox",{name:"RISO21 region IDs"}).check();
   await expect(page.getByText(/iris-screen-left/)).toBeVisible();
   expect(errors).toEqual([]);
