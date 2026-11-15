@@ -335,6 +335,29 @@ for(const view of ["wax","anatomy"] as const){
         "crayon-f1-cc0-source-registered-"+view+"-"+frame+".png"),
         animations:"disabled"});
     }
+    if(view==="wax"){
+      // Actual Chromium crops: inspect source-space curvature at the
+      // cheek-root and lower locks. These are evidence, NOT art signoff.
+      for(const [name,focusX,focusY] of [
+        ["left",75,670],["right",513,670],
+      ] as const){
+        const focused={...spec,camera:[
+          {frame:0,focusX,focusY,zoom:2.15},
+          {frame:299,focusX,focusY,zoom:2.15},
+        ]};
+        const html=renderToStaticMarkup(createElement(CrayonScene,{
+          spec:focused,frame:299,
+        }));
+        await page.setContent("<!doctype html><html><body style='margin:0'>"+
+          html+"</body></html>");
+        const svg=page.locator("svg[data-km-crayon-scene]");
+        await expect(svg.locator('[data-km-crayon-element^="hair-rooted-"]'))
+          .toHaveCount(18);
+        await svg.screenshot({path:info.outputPath(
+          "crayon-f1-source-rooted-hair-"+name+"-macro-299.png"),
+          animations:"disabled"});
+      }
+    }
     expect(exceptions).toEqual([]);
   });
 }
