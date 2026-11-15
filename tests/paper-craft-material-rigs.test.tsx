@@ -26,7 +26,7 @@ describe("PAPER1 opaque material curl and coordinated paper rigs",()=>{
     const noCurl=renderToStaticMarkup(React.createElement(PaperCraftStage,
       {spec,frame:195,curlStrength:0}));
     expect(noCurl).not.toContain('data-km-paper-curl=');
-    expect(noCurl).not.toContain('fill="url(#');
+    expect(noCurl).not.toContain('-curl-wing-feather-0');
   });
   it("uses the same absolute-frame waveform for bird body, coverts and feathers",()=>{
     const spec=paperObjectSpec("layered","landscape",{

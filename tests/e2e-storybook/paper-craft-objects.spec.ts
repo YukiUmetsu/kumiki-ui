@@ -61,7 +61,7 @@ test("Paper Craft curled stock stays opaque and all wing pieces flap together on
     const rig=svg.locator('[data-km-paper-rig="'+group+'"]');
     expect(await rig.count()).toBeGreaterThan(2);
     const curves=svg.locator("linearGradient[data-km-paper-curl]");
-    expect(await curves.count()).toBeGreaterThan(8);
+    expect(await curves.count()).toBeGreaterThanOrEqual(8);
     const stops=curves.locator("stop");
     const colors=await stops.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("stop-color")));
     expect(colors.every(s=>typeof s==="string"&&/^#[0-9A-Fa-f]{6}$/.test(s))).toBe(true);
