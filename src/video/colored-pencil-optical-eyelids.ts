@@ -215,6 +215,74 @@ export const createOpticalEyelidFibres=(
           }
         }
       }
+      // ArtCraft source-constrained orbital tone: the sparse ridge marks
+      // alone changed <0.1% of the source-size plate in the actual Chromium
+      // A/B. A proper colored-pencil eye requires interlocked *skin volume*
+      // adjacent to that line, not a darker digital eyeliner. Deposit many
+      // short, pressure-varied warm/cool dry fibres ONLY on photographed
+      // shadow outside the canthus chord and preserve photographed sclera.
+      // This entire family fails closed if the source eye contains no ridge.
+      if(supported>Math.max(4,Math.floor(steps*.16))){
+        const columns=clamp(Math.ceil(lid.span/1.12),12,90);
+        const rows=clamp(Math.ceil(lid.span*.25/1.14),5,28);
+        for(let row=0;row<rows;row++)for(let column=0;column<columns;column++){
+          const n=column+columns*row+(eye==="near"?0:190003)+
+            (rim==="upper"?0:90011);
+          const t=(column+.5+(pencilHash(seed,n,650)-.5)*.43)/columns;
+          const x=lerp(lid.start[0],lid.end[0],t);
+          const chordY=lerp(lid.start[1],lid.end[1],t);
+          const u=(row+.5+(pencilHash(seed,n,651)-.5)*.34)/rows;
+          const offset=rim==="upper"?lerp(-.075,-.295,u):
+            lerp(.115,.35,u);
+          const y=chordY+offset*lid.span;
+          if(x<4||x>source.width-5||y<6||y>source.height-7)
+            continue;
+          const v=luminance(source,x,y);
+          if(v<.14||v>.83)continue;
+          const colorSource=rgb(source,x,y);
+          if(colorSource[1]>colorSource[0]*1.18&&
+            colorSource[1]>colorSource[2]*1.13)continue;
+          // The shade MUST really be darker than nearby skin of this
+          // exact sitter, not an invented orbital dark oval or full-face
+          // material wash. On a uniform synthetic image, contrast=0.
+          const ambient=Math.max(
+            luminance(source,x,chordY-lid.span*.47),
+            luminance(source,x,chordY+lid.span*.47));
+          const contrast=ambient-v;
+          if(contrast<.075)continue;
+          const probability=clamp((contrast-.055)*2.05,.03,.81)*
+            (.72+.28*Math.sin(Math.PI*u));
+          if(pencilHash(seed,n,652)>probability)continue;
+          const delta=clamp(lid.span*.022,1,1.8);
+          const gx=luminance(source,x+delta,y)-
+            luminance(source,x-delta,y);
+          const gy=luminance(source,x,y+delta)-
+            luminance(source,x,y-delta);
+          const edge=Math.hypot(gx,gy);
+          const chordTheta=Math.atan2(
+            lid.end[1]-lid.start[1],lid.end[0]-lid.start[0]);
+          const heading=(edge>.060?Math.atan2(-gx,gy):
+            chordTheta+(rim==="upper"?-.24:.19))+
+            (pencilHash(seed,n,653)-.5)*.19;
+          const len=lid.span*(.024+.016*pencilHash(seed,n,654));
+          const dx=Math.cos(heading)*len,dy=Math.sin(heading)*len;
+          const warm=clamp(.14+.13*contrast,.12,.22);
+          const ink=hex([
+            lerp(colorSource[0],77,warm),
+            lerp(colorSource[1],48,warm),
+            lerp(colorSource[2],55,warm),
+          ]);
+          const pressure=clamp((.13+.34*contrast)*
+            (.68+.36*pencilHash(seed,n,655))*strength,.004,.45);
+          marks.push({
+            x,y,controlX:x+dx*.5-dy*.04,
+            controlY:y+dy*.5+dx*.04,
+            endX:x+dx,endY:y+dy,
+            color:ink,alpha:pressure,
+            width:.38+.26*pencilHash(seed,n,656),pass:2,
+          });
+        }
+      }
       traces.push({eye,rim,opticalCandidates:points.length,
         sourceSupported:supported,marks:marks.length-before});
     }
