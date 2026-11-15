@@ -10,6 +10,7 @@ import type { ShodoGlyph } from "../../registry/video/shodo/shodo-glyphs";
 import { planShodoWriting, shodoBrushPose } from "../../registry/video/shodo/shodo-hand";
 import { ShodoInkSurface } from "../../registry/video/shodo/shodo-ink";
 import { kenteiSheet } from "../../registry/video/shodo/shodo-paper";
+import { SHODO_KANKA_RULES, shodoKankaRulesFor } from "../../registry/video/shodo/shodo-structure";
 import { ShodoBrushProfile, ShodoCanvas } from "../../registry/video/shodo/shodo-react";
 import { shodoFerruleHeight } from "../../registry/video/shodo/shodo-brush";
 import { DEFAULT_SHODO_STYLE, SHODO_INKS, resolveShodoStyle } from "../../registry/video/shodo/shodo-style";
@@ -245,6 +246,8 @@ export function ShodoFilmShot() {
 // ── Character gallery: any text through the general pipeline ──────────────────────
 
 /** Write any text (kanji and kana) from KanjiVG stroke data. */
+const KANKA_TERM = Object.fromEntries(SHODO_KANKA_RULES.map(rule => [rule.id, rule.term]));
+
 export function ShodoCharacterGallery({ initialText = "道永書和夢心東京花風春愛あのふア" }: { initialText?: string }) {
   const [text, setText] = useState(initialText);
   const [bundled, setBundled] = useState(false);
@@ -275,7 +278,7 @@ export function ShodoCharacterGallery({ initialText = "道永書和夢心東京�
       <label style={{ display: "grid", gap: 4, fontWeight: 600, fontSize: 12.5 }}>Text (up to 24 characters)
         <input value={text} onChange={e => setText(e.target.value)} aria-label="Text" style={{ minHeight: 36, font: "20px serif", width: 420 }} />
       </label>
-      <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 600, fontSize: 12.5 }}><input type="checkbox" checked={structure} onChange={e => setStructure(e.target.checked)} />Teacher layout rules (結構法)</label>
+      <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 600, fontSize: 12.5 }}><input type="checkbox" checked={structure} onChange={e => setStructure(e.target.checked)} />Teacher layout rules (間架結構法)</label>
       <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 600, fontSize: 12.5 }}><input type="checkbox" checked={bundled} onChange={e => setBundled(e.target.checked)} />Prefer bundled originals</label>
     </div>
     {error ? <div role="alert">{error}</div> : null}
@@ -284,9 +287,22 @@ export function ShodoCharacterGallery({ initialText = "道永書和夢心東京�
         paperweight="none" label={`Brush calligraphy of ${chars.join("")}`} /> : <div style={{ padding: 24 }}>Loading strokes…</div>}
     </div>
     <ShodoTransport frame={frame} last={last} playing={playing} onPlaying={setPlaying} onFrame={setFrame} />
+    {structure && glyphs?.some(g => g.source === "kanjivg") ? <section aria-label="間架結構 rules" style={{ display: "grid", gap: 8, maxWidth: 980 }}>
+      <ul style={{ display: "flex", flexWrap: "wrap", gap: "6px 16px", margin: 0, padding: 0, listStyle: "none", fontSize: 13 }}>
+        {glyphs.filter(g => g.source === "kanjivg").map((g, i) => <li key={i}>
+          <span style={{ font: "18px serif", marginRight: 4 }}>{g.char}</span>{shodoKankaRulesFor(g).map(id => KANKA_TERM[id]).join(" · ") || "no rule"}
+        </li>)}
+      </ul>
+      <dl style={{ display: "grid", gridTemplateColumns: "max-content 1fr", gap: "2px 12px", margin: 0, fontSize: 12.5 }}>
+        {SHODO_KANKA_RULES.map(rule => <div key={rule.id} style={{ display: "contents" }}>
+          <dt style={{ fontWeight: 700 }}>{rule.term} <span style={{ fontWeight: 400, color: "#6b5a4a" }}>{rule.reading}</span></dt>
+          <dd style={{ margin: 0 }}>{rule.summary}</dd>
+        </div>)}
+      </dl>
+    </section> : null}
     <p style={{ margin: 0, fontSize: 12.5, maxWidth: 980 }}>
-      Kanji and kana are read from KanjiVG stroke data. Layout rules measured on 411 teacher models
-      (taller 冠/脚 and single characters, compact top/bottom parts) and kaisho brush rules are applied.
+      Kanji and kana are read from KanjiVG stroke data. The 間架結構法 layout rules, measured on 411 teacher
+      models, and the kaisho brush rules are applied.
       {usesKanjiVg ? <> {SHODO_KANJIVG_CREDIT}. Credit KanjiVG in any film made from it.</> : null}
     </p>
   </div>;

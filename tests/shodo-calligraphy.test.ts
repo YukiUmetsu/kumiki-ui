@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SHODO_GLYPHS, parseKanjiVgSvg, shodoKaishoForm } from "../registry/video/shodo/shodo-glyphs";
 import type { ShodoGlyph } from "../registry/video/shodo/shodo-glyphs";
 import { loadShodoGlyph } from "../registry/video/shodo/shodo-glyph-source";
-import { shodoLayout, shodoStructure } from "../registry/video/shodo/shodo-structure";
+import { shodoKankaRulesFor, shodoLayout, shodoStructure } from "../registry/video/shodo/shodo-structure";
 import { planShodoWriting, shodoBrushPose, shodoRestLean } from "../registry/video/shodo/shodo-hand";
 import { shodoFerruleHeight } from "../registry/video/shodo/shodo-brush";
 import { ShodoInkSurface } from "../registry/video/shodo/shodo-ink";
@@ -148,7 +148,7 @@ describe("SHO1 shodō calligraphy", () => {
     expect(shodoLayout(glyph)).toBe("enclosure");
   });
 
-  it("applies the measured layout rules: taller 冠/脚, unchanged 偏/旁, originals untouched", () => {
+  it("applies the 間架結構 rules: taller 冠/脚, 左短右長 for 偏/旁, originals untouched", () => {
     const stack: ShodoGlyph = { char: "旦", source: "kanjivg", strokes: [
       { kind: "horizontal", points: [[300, 200], [700, 200]] }, { kind: "horizontal", points: [[300, 450], [700, 450]] },
       { kind: "horizontal", points: [[150, 800], [850, 800]] },
@@ -156,10 +156,18 @@ describe("SHO1 shodō calligraphy", () => {
     const out = shodoStructure(stack);
     const width = (g: ShodoGlyph, i: number) => g.strokes[i].points[1][0] - g.strokes[i].points[0][0];
     expect(width(out, 2)).toBeLessThan(width(stack, 2) * .9);          // narrower overall and in the 脚
+    expect(shodoKankaRulesFor(stack)).toEqual(["jougeNoMa", "gaikei"]);
     expect(out.strokes[2].points[0][1]).toBe(800);                      // the base line stays
-    const pair: ShodoGlyph = { ...stack, char: "明", parts: { strokes: [0, 1, 2], children: [
+    // 左短右長: a 偏/旁 character keeps its widths, and the left part's foot ends higher.
+    const pair: ShodoGlyph = { char: "明", source: "kanjivg", strokes: [
+      { kind: "vertical", points: [[250, 250], [250, 800]] }, { kind: "vertical", points: [[500, 150], [500, 900]] },
+      { kind: "vertical", points: [[850, 150], [850, 900]] },
+    ], parts: { strokes: [0, 1, 2], children: [
       { position: "left", strokes: [0], children: [] }, { position: "right", strokes: [1, 2], children: [] }] } };
-    expect(shodoStructure(pair).strokes).toEqual(pair.strokes);
+    const paired = shodoStructure(pair);
+    expect(paired.strokes[0].points[1][1]).toBeLessThan(800);           // the left foot rises
+    expect(paired.strokes[0].points[0]).toEqual([250, 250]);            // its top stays
+    expect(paired.strokes.slice(1)).toEqual(pair.strokes.slice(1));     // the right part and all widths stay
     expect(shodoKaishoForm(SHODO_GLYPHS["永"]).strokes[0].points).toEqual(shodoKaishoForm(SHODO_GLYPHS["永"], { structure: false }).strokes[0].points);
     expect(shodoKaishoForm(stack, { structure: false }).strokes[2].points[0][0]).toBeLessThan(shodoKaishoForm(stack).strokes[2].points[0][0]);
   });
