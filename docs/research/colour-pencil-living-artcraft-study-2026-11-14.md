@@ -24,7 +24,7 @@ The image pages do not grant reuse rights. Observations describe visible form an
 
 ## Source / anatomy / topology plan
 
-### Human original portrait, 20 regions
+### Human original portrait, 22 regions
 Authored object-local landmarks (not source-derived ratios): far eye (~178,205), nearer eye (~268,205), nose bridge (~238,237), alar accents (~237,265), lip center (~236,301), chin (~244,344), and skull top (~y90). A near-eye aperture is wider to describe a mild three-quarter orientation. The region manifest names back hair, coat, neck, ear, main facial plane, temple, cheek, eye whites, irises, eyebrows, nose, upper/lower lips, crown, left/right hair locks and collars. Skin gets an opaque paper-support layer and its own low-pressure stipple. Iris transparent recipe overlaps a fully opaque white, so the background cannot appear through the face. Curved hair shafts are locally rooted, contiguous paths, with independent scalp and side clumps rather than dozens of disconnected lines.
 
 **Limits:** no genuine face likeness, normalized turnaround, precise nasolabial planes, individually articulated expression, full-body gesture, hands or fabric-contact simulation. A stylized portrait study is not human portrait photorealism.
@@ -41,15 +41,20 @@ Sky, cool far skyline (peaks around y119–200), nearer mountains, layered fores
 
 ## Reusable craft API and negative controls
 
-Existing generic material recipe API now offers four additional semantic, opaque profiles: skin, hair, foliage and water. Its former eleven surfaces retain their prior defaults. The separate flowBundles utility takes authored root, control, tip, bounded count and spread. It rejects degenerate and non-finite guides, and emits seeded curved SVG pencil marks without timing jitter.
+Existing generic material recipe API now offers four additional semantic, opaque profiles: skin, hair, foliage and water. Its former eleven surfaces retain their prior defaults. A sixteenth non-occluding glaze was added after visual-risk review, preventing paper-white face patches. The separate flowBundles utility takes authored root, control, tip, bounded count and spread. It rejects degenerate and non-finite guides, and emits seeded curved SVG pencil marks without timing jitter.
 
 **Rejected shortcuts:** circles for eyes without eyelids, straight identical hair fans, uniformly spaced toe-like fox fur, detached whisker dots, tree-shaped green triangles without rooted branches, uniform high-frequency landscape noise, and a single global texture pasted over every material. Use geometry hierarchy first; texture second.
 
 ## Verification and remaining ArtCraft gates
 
-- Regression unit tests: six landscape/portrait compositions, 15 material profiles, face landmarks/part inventory, animal part hierarchy, conifer branch topology, bounded deterministic strokes, mixed transparent/opaque regions and invalid inputs. Existing object and wildlife tests remain unchanged except where material count extends.
+- Regression unit tests: six landscape/portrait compositions, 16 material profiles, face landmarks/part inventory, animal part hierarchy, conifer branch topology, bounded deterministic strokes, mixed transparent/opaque regions and invalid inputs. Existing object and wildlife tests remain unchanged except where material count extends.
 - Existing Storybook root: Video Production / Film Looks / Colour-pencil. One interactive **ArtCraft · Portrait, fox and landscape** story with aspect, study, pigment pressure, grain, seed, speed, absolute frame, reduced motion and local macro focus. No extra Storybook folder.
 - Browser suite (manual/opt-in): six full-size and six macro screenshots, shuffled frame seek and opacity checks. The proof workflow retains manual dispatch rather than increasing routine CI cost.
 - Open **ArtCraft v6 acceptance**: source and candidate crops at matched resolution, five-axis semantic masks (topology, curvature, stroke-width, motif spacing, texture frequency), independently inspected rendered contact sheet, full-speed video exports, user-independent visual review and explicit defect/fix loops. A green test run is **technical implementation only**.
 
 Next target: revise the face's eyelid depth/nostril topology after actual macro crops; animate a complete character body with proper hand and clothing geometry; add species-specific tail/whisker direction; repair pine/river depth and sunlight in a full filmed sequence.
+
+
+### ArtCraft correction during code review
+
+The first portrait pass used the same fully opaque skin recipe for temple and cheek highlights. That would deposit a separate paper-coloured matte, risking the exact pale sticker artifacts seen in oversimplified procedural portraits. A new light-pressure **glaze** recipe has no opaque support and low opacity; the cheek and temple remain softly overpainted while the underlying solid face stays opaque. Near/far irises now contain separate pupil masses (22 named portrait parts) and small physically anchored catchlights. In the fox scene, a cast shadow was incorrectly under the opaque earth and would be erased; it has been moved above the earth and under the animal. The nose now lies over the light whisker-root muzzle patch, protecting its dark form. These repairs are code-reviewed improvements; real visual acceptance is still pending.
