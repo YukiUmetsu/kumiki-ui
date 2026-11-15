@@ -304,26 +304,26 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "C277 591 239 587 215 571Q190 560 185 520Z",
     rect(177,466,159,127),["#986d75","#55434f","#b78c91"],[89,197],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.54,spacing:7.1,markStrength:.27,blendRadius:13});
+      pressure:.54,spacing:7.1,markStrength:.27,blendRadius:13featherContacts:true,});
   wax("socket-far",
     "M390 474Q406 447 435 443Q457 441 471 460"+
     "Q483 484 480 523Q469 549 434 544Q398 539 390 507Z",
     rect(384,435,104,118),["#936f79","#594851","#b58b91"],[94,199],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.55,spacing:7,markStrength:.24,blendRadius:11});
+      pressure:.55,spacing:7,markStrength:.24,blendRadius:11featherContacts:true,});
   wax("brow-superciliary-near",
     "M201 496C223 477 250 463 278 462"+
     "C300 458 315 470 324 478Q303 470 281 474"+
     "C252 474 224 492 201 496Z",
     rect(196,453,133,50),["#795753","#493a3e","#aa8576"],[118,224],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.52,spacing:7.1,markStrength:.29,blendRadius:7.5});
+      pressure:.52,spacing:7.1,markStrength:.29,blendRadius:7.5featherContacts:true,});
   wax("brow-superciliary-far",
     "M393 465Q412 445 444 437Q461 435 473 440"+
     "Q458 443 441 451Q418 460 393 465Z",
     rect(388,433,91,38),["#765751","#493b3c","#a8837c"],[120,223],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.49,spacing:7.2,markStrength:.27,blendRadius:6.5});
+      pressure:.49,spacing:7.2,markStrength:.27,blendRadius:6.5featherContacts:true,});
   // F1 upper orbital fat/eyelash attachment is an irregular asymmetric
   // skin plane, not a hard oval or freehand floating eyebrow.
   wax("eye-orbital-undercut-near",
@@ -333,14 +333,14 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(202,499,117,53),
     ["#906b74","#5c4b57","#ba9293"],[127,225],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.5,spacing:7.2,markStrength:.25,blendRadius:9});
+      pressure:.5,spacing:7.2,markStrength:.25,blendRadius:9featherContacts:true,});
   wax("eye-orbital-undercut-far",
     "M403 522Q410 502 430 491Q451 481 470 504"+
     "Q452 492 438 502Q414 510 403 522Z",
     rect(398,480,77,47),
     ["#8c6972","#554750","#ad858a"],[133,230],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.51,spacing:7.2,markStrength:.24,blendRadius:8.3});
+      pressure:.51,spacing:7.2,markStrength:.24,blendRadius:8.3featherContacts:true,});
   // F1 photographed three-quarter eye topology, 608×1082 crop.
   // Near canthi x218..322; upper iris is occluded by lash margin.
   // Far eye x405..474 is narrower and hair-occluded, not mirrored.
@@ -467,13 +467,13 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "C315 561 299 579 274 582Q237 591 213 574Z",
     rect(207,538,120,57),["#a87577","#684f56","#d09a92"],[184,276],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.51,spacing:7.5,markStrength:.27,blendRadius:7.8});
+      pressure:.51,spacing:7.5,markStrength:.27,blendRadius:7.8featherContacts:true,});
   wax("lower-lid-far",
     "M404 526Q421 539 442 533Q467 529 474 511"+
     "Q471 544 449 550Q422 550 406 536Z",
     rect(399,507,80,49),["#a97c7e","#775e65","#cfa5a2"],[186,274],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.46,spacing:7.2,markStrength:.22,blendRadius:6.1});
+      pressure:.46,spacing:7.2,markStrength:.22,blendRadius:6.1featherContacts:true,});
   // All orbit details follow the eye UNDER the later hair curtain.
   wax("upper-lid-crease-near",
     "M206 547C221 521 240 517 260 517C286 511 310 522 326 540"+
@@ -493,13 +493,13 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(212,546,110,48),
     ["#a67777","#74575b","#cfa19a"],[214,299],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.43,spacing:7.9,markStrength:.2,blendRadius:6.2});
+      pressure:.43,spacing:7.9,markStrength:.2,blendRadius:6.2featherContacts:true,});
   wax("lower-lid-margin-far",
     "M408 532Q430 548 450 539Q464 535 471 518"+
     "Q469 549 449 553Q426 556 408 532Z",
     rect(403,513,72,45),["#a47b7b","#775b62","#c69f99"],[214,298],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.39,spacing:8,markStrength:.16,blendRadius:4.6});
+      pressure:.39,spacing:8,markStrength:.16,blendRadius:4.6featherContacts:true,});
   wax("tear-canthus-near",
     "M307 543Q317 535 321 542Q322 551 312 554Z",
     rect(303,535,23,23),["#c99e9a","#937478","#e2b4ac"],[224,299],
