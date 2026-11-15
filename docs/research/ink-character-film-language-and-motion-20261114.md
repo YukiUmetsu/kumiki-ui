@@ -1,5 +1,8 @@
 # Chinese Ink Character Animation: Reference Study and Roadmap
 
+> **Archived integration review — November 14, 2026.** This is a source-study and historical gap analysis, not a list of current bugs. The supported character director already exists in `registry/video/ink-actor-director.ts` with its modern route/foot-contact API, `auditInkWalkContacts`, Storybook demos and 16:9 / 9:16 film proofs. The active actor presentation path is `registry/video/ink-wash-character-react.tsx` using the shared CharacterPresenter. The former `ink-wash-actor.ts(x)` standalone prototype is intentionally **not restored**: it duplicates the supported animation and presentation stack. The table below records research priorities as of the original review; assess each against current tests and demos before starting new implementation work.
+
+
 **Research date:** 2026-11-14. **Evidence status:** Sources, descriptions and accessible previews inspected; external streaming films not decoded frame-by-frame. Actual original Kumiki browser screenshots and encoded clips from PR #156 were separately available for inspection. These links are references, not artwork licenses.
 
 ## Videos to study for production decisions
@@ -31,7 +34,7 @@ China's animation museum describes the historical multi-cel method: one animated
 
 **Design correction:** A character can be articulated yet visually inferior if its silhouettes are a flat opaque polygon with a crisp uniform outline. INK3 currently inherits character SVG fills and contours with optional paper edge treatments. A future **native ink-cel compositor** must author independently articulated multi-tone plates per part (four or five densities, not copied film cels), with registered soft boundaries, local edge drag, directional grain, and preserved facial definition. Grouping a few blurred duplicates of a flat vector does not alone recreate the original cel-exposure effect. A final filmmaker should inspect its original authored output against real reference principles.
 
-## Verified missing features
+## Historical gap inventory (at original study date)
 
 | Priority | Missing point | Required capability |
 |---|---|---|

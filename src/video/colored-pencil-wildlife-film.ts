@@ -1,0 +1,68 @@
+import type { FilmDocument } from "../../registry/video/film-document";
+
+/** Exact same authored 420-frame, 30fps 16:9/9:16 proof as the portable FD1 JSON. */
+export const COLOR_PENCIL_WILDLIFE_FILM: FilmDocument = {
+  "schemaVersion": 1,
+  "id": "colored-pencil-wildlife",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "graphite-and-pigment",
+      "recipeId": "slot",
+      "durationFrames": 160,
+      "content": {
+        "slot": "colored-pencil-wildlife",
+        "label": "Original kingfisher reconstructed with fine cobalt feather and graphite layers",
+        "props": {
+          "offsetFrame": 0
+        }
+      }
+    },
+    {
+      "id": "layered-feathers",
+      "recipeId": "slot",
+      "durationFrames": 130,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "colored-pencil-wildlife",
+        "label": "Layered kingfisher plumage, copper breast and high-contrast eye",
+        "props": {
+          "offsetFrame": 160
+        }
+      }
+    },
+    {
+      "id": "quiet-movement",
+      "recipeId": "slot",
+      "durationFrames": 130,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "colored-pencil-wildlife",
+        "label": "Kingfisher wing flex, head tilt, blink and foot contact on branch",
+        "props": {
+          "offsetFrame": 290
+        }
+      }
+    }
+  ]
+};

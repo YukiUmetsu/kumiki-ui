@@ -2,10 +2,17 @@
  * All art is independently authored for Kumiki; the native 2.5D presenter
  * retains expressions, gaze, mouth articulation and painterly part materials.
  */
+import { useMemo } from "react";
 import type { CharacterAsset, CharacterDefinition, CharacterInstance } from "../../registry/character/definition";
+import { inkCraftAsset, DEFAULT_INK_FIGURE_CRAFT } from "../../registry/video/ink-figure-craft";
+import { bakeInkClothCorrections } from "../../registry/video/ink-figure-motion";
+import type { InkFigureCraftControls } from "../../registry/video/ink-figure-craft";
+import { INK_TRAVELLER_FOLDS } from "./ink-figure-classical-art";
+export { INK_TRAVELLER_FOLDS } from "./ink-figure-classical-art";
 import { InkCharacter } from "../../registry/video/ink-wash-character-react";
 import { InkWashScene } from "../../registry/video/ink-wash-story-react";
 import type { InkShot } from "../../registry/video/ink-wash-story";
+import type { InkWashSpec, InkStroke } from "../../registry/video/ink-wash";
 import { inkExampleSpec } from "./ink-wash-demo";
 import { INK_TRAVELLER, TRAVELLER_INSTANCE, TRAVELLER_CUES } from "./ink-wash-performer";
 import {
@@ -18,14 +25,14 @@ const art=(...shapes:NonNullable<Extract<CharacterAsset,{kind:"shapes"}>["shapes
   kind:"shapes",width:260,height:340,shapes,
   provenance:{license:"original code-drawn demonstration art",source:"Original Kumiki-UI INK4 segmented-leg demonstration"},
 });
-const poly=(d:string,fill:string,stroke="#29302B",strokeWidth=1.6)=>({
-  type:"path" as const,d,fill,stroke,strokeWidth,
+const poly=(d:string,fill:string,stroke="#29302B",strokeWidth=1.6,opacity=1)=>({
+  type:"path" as const,d,fill,stroke,strokeWidth,opacity,
 });
 /** The only difference from INK3's approved original traveler: add four anatomical leg
  * joint parts so world-locked inverse kinematics has actual knees to animate. */
-export const INK_WALKING_TRAVELLER: CharacterDefinition={
+const WALKING_TRAVELLER_BASE: CharacterDefinition={
   ...INK_TRAVELLER,
-  revision:"ink-actor-ink4-walk-v1",
+  revision:"ink-actor-ink6-walk-v1",
   assets:{
     ...INK_TRAVELLER.assets,
     "far-upper":art(
@@ -42,6 +49,31 @@ export const INK_WALKING_TRAVELLER: CharacterDefinition={
       poly("M148 288 Q151 310 143 322 L164 328 Q167 313 159 291 Z","#39453d"),
       poly("M143 323 Q159 316 171 325 Q178 333 156 330 L141 329 Z","#283029"),
       poly("M154 302 Q155 307 157 312","none","#8b958a",1.1)),
+    // Fine interior cloth planes: independent from the fixed robe outline.
+    // Each one remains attached to the corresponding body/sleeve joint.
+    "hem-drape-art":art(
+      poly("M84 291 Q104 297 126 301 Q156 306 193 294 L195 300 Q157 310 121 305 Q104 302 83 297 Z",
+        "#7c8a7c","none",0,.22),
+      poly("M89 293 Q112 299 135 300 Q165 302 189 295","none","#435348",1.25,.68),
+      poly("M105 292 Q119 299 135 301","none","#e0e0d5",1.0,.50),
+      poly("M154 299 Q167 296 180 292","none","#404f45",1.1,.51)),
+    "far-cuff-art":art(
+      poly("M44 242 Q58 247 77 245 Q85 243 88 238","none","#30382e",1.2,.75),
+      poly("M49 239 Q58 241 72 240","none","#e4e1d2",1.6,.55),
+      poly("M73 238 Q77 242 76 247","none","#606b61",.85,.55)),
+    "near-cuff-art":art(
+      poly("M188 242 Q201 251 216 248 Q227 245 231 238","none","#30382e",1.25,.79),
+      poly("M194 243 Q204 247 213 245","none","#e4e1d2",1.5,.57),
+      poly("M212 245 Q220 243 224 239","none","#5c655a",.9,.48)),
+    // These two overlapping articulated fingers are IN FRONT of the brush
+    // shaft; the parent hand still owns its existing action, and the prop
+    // remains correctly attached during the greeting and painting gestures.
+    "near-brush-grip-art":art(
+      poly("M227 235 Q232 232 237 235 Q240 239 236 241 L232 239 Q231 242 227 244 L223 241 Q224 237 227 235 Z",
+        "#d8cab0","#695f50",.75,.96),
+      poly("M229 236 Q231 234 234 236 M226 241 Q229 243 231 241","none","#a99b88",.82,.85),
+      poly("M234 239 Q239 239 238 243 Q235 245 231 244","none","#776b5a",.77,.85),
+      poly("M229 239 Q231 240 232 241","none","#eee4d5",.8,.72)),
   },
   // The source's old two-sprite step action targets the removed single-piece legs.
   // This rig uses source-authored IK correction tracks instead.
@@ -52,9 +84,35 @@ export const INK_WALKING_TRAVELLER: CharacterDefinition={
     {id:"far-shin",asset:"far-lower",parent:"far-thigh",channel:"walk",pivot:{x:106,y:292},z:3},
     {id:"near-thigh",asset:"near-upper",channel:"walk",pivot:{x:145,y:255},z:3},
     {id:"near-shin",asset:"near-lower",parent:"near-thigh",channel:"walk",pivot:{x:153,y:290},z:4},
+    {id:"hem-drape",asset:"hem-drape-art",parent:"body",channel:"body",pivot:{x:139,y:292},z:14},
+    {id:"far-cuff",asset:"far-cuff-art",parent:"far-sleeve",channel:"arms",pivot:{x:63,y:243},z:8},
+    {id:"near-cuff",asset:"near-cuff-art",parent:"near-sleeve",channel:"arms",pivot:{x:211,y:243},z:18},
+    {id:"brush-grip",asset:"near-brush-grip-art",parent:"near-hand",channel:"prop",pivot:{x:232,y:239},z:23},
   ],
-  capabilities:[...INK_TRAVELLER.capabilities,"world-foot-contact","two-bone-ik"],
+  capabilities:[...INK_TRAVELLER.capabilities,"world-foot-contact","two-bone-ik","cloth-follow-through","prop-finger-occlusion"],
 };
+/**
+ * Part-attached, original costume drawings. Traditional Chinese figure-painting
+ * line languages suggest flowing silk-thread contours, iron-wire folds and dry,
+ * interrupted bristle marks. The paths are authored in the EXISTING art's
+ * 260 × 340 design coordinates and therefore move with parent limb joints.
+ */
+export function makeInkWalkingTraveller(
+  controls:InkFigureCraftControls=DEFAULT_INK_FIGURE_CRAFT,
+):CharacterDefinition {
+  // Only original SVG shapes are augmented. Pivot, channels, facial layers,
+  // acting cues, asset rights and all authored rig limits remain untouched.
+  const assets={...WALKING_TRAVELLER_BASE.assets};
+  for(const [key,folds] of Object.entries(INK_TRAVELLER_FOLDS)){
+    const asset=assets[key];
+    if(!asset||asset.kind!=="shapes")
+      throw new RangeError("INK5 expected the approved vector costume asset "+key);
+    assets[key]=inkCraftAsset(asset,folds,controls);
+  }
+  return {...WALKING_TRAVELLER_BASE,assets};
+}
+export const INK_WALKING_TRAVELLER:CharacterDefinition=makeInkWalkingTraveller();
+
 export function inkDirectorRoute(aspect:DirectorAspect):InkRoutePlan {
   const portrait=aspect==="portrait", y=portrait?810:484;
   return {
@@ -71,7 +129,7 @@ export function inkDirectorRoute(aspect:DirectorAspect):InkRoutePlan {
 export function inkDirectorGait(aspect:DirectorAspect):InkWalkPlan {
   return {
     route:inkDirectorRoute(aspect),startFrame:0,endFrame:218,
-    cycleFrames:45,stanceFraction:.61,hipHeight:70,
+    cycleFrames:24,stanceFraction:.58,hipHeight:70,
     upperLength:38,lowerLength:36,footLift:11,footSeparation:3,bodyBob:1.7,
     parts:{
       leftUpper:"far-thigh",leftLower:"far-shin",
@@ -82,10 +140,50 @@ export function inkDirectorGait(aspect:DirectorAspect):InkWalkPlan {
     },
   };
 }
-export function inkDirectorInstance(aspect:DirectorAspect):CharacterInstance {
+/**
+ * Story-specific, original dry-brush footpath. Character movement is sampled
+ * independently of the settled backdrop, as in traditional multiplane acting.
+ * Its three pigment passes trace the EXACT authored ground route rather than
+ * painting a floating decorative wave beneath a walking figure.
+ */
+export function inkDirectorBackdrop(aspect:DirectorAspect):InkWashSpec {
+  const base=inkExampleSpec("landscape",aspect);
+  const portrait=aspect==="portrait";
+  const path=portrait
+    ? [[55,813,.06],[135,810,.29],[220,801,.46],[288,795,.30],[432,794,.04]]
+    : [[60,484,.05],[150,484,.33],[360,481,.49],[572,472,.32],[795,473,.04]];
+  const add=(id:string,width:number,tone:number,water:number,load:number,
+    offset:number,brush:"upright"|"oblique"):InkStroke=>({
+    id,points:path.map(([x,y,pressure])=>({x,y:y+offset,pressure})),
+    width,tone,water,load,brush,tipInk:brush==="oblique"?.42:.7,
+    drag:brush==="oblique"?.24:.86,startFrame:0,
+    drawFrames:2,spreadFrames:18,dryFrames:35,
+  });
+  return {
+    ...base,
+    strokes:[
+      ...base.strokes,
+      add("traveler-ground-dilute",30,.20,.94,.66,9,"oblique"),
+      add("traveler-ground-edge",5,.60,.19,.83,6,"upright"),
+      add("traveler-ground-fibers",2.3,.37,.12,.73,13,"upright"),
+    ],
+  };
+}
+
+/** INK6 clothes have independent parts; a zero amount restores their neutral
+ * shapes without changing the approved gait or near-hand/brush joint ancestry.
+ */
+export function inkDirectorInstance(aspect:DirectorAspect,clothAmount=.75):CharacterInstance {
   return {
     ...TRAVELLER_INSTANCE,revision:INK_WALKING_TRAVELLER.revision,
-    corrections:bakeInkWalkCorrections(inkDirectorGait(aspect),1),
+    corrections:{
+      ...bakeInkWalkCorrections(inkDirectorGait(aspect),1),
+      ...bakeInkClothCorrections({
+        route:inkDirectorRoute(aspect),endFrame:419,cycleFrames:24,
+        amount:clothAmount,
+        parts:{hem:"hem-drape",nearCuff:"near-cuff",farCuff:"far-cuff"},
+      }),
+    },
   };
 }
 export const INK_DIRECTOR_SHOT:InkShot={
@@ -94,23 +192,40 @@ export const INK_DIRECTOR_SHOT:InkShot={
   durationFrames:420,
   layers:[{id:"traveler",startFrame:0,durationFrames:1,reveal:"instant",interactive:false}],
 };
-export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false}:{
+export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false,
+  foldDetail=1,foldContrast=.85,clothAmount=.75}:{
   frame:number;aspect?:DirectorAspect;reducedMotion?:boolean;
+  foldDetail?:number;foldContrast?:number;clothAmount?:number;
 }) {
+  const definition=useMemo(()=>makeInkWalkingTraveller({
+    ...DEFAULT_INK_FIGURE_CRAFT,detail:foldDetail,contrast:foldContrast,
+  }),[foldDetail,foldContrast]);
   const route=inkDirectorRoute(aspect);
   const track=bakeInkActorTrack(route);
-  const spec=inkExampleSpec("landscape",aspect);
-  const instance=inkDirectorInstance(aspect);
+  const spec=inkDirectorBackdrop(aspect);
+  const instance=useMemo(()=>inkDirectorInstance(aspect,clothAmount),[aspect,clothAmount]);
   const fpsFrame=Math.max(0,Math.min(419,Math.floor(frame)));
   // The source's old step action is disabled so new IK motion is not overlaid on
   // a simultaneous conflicting original gait; all other face/gesture cues survive.
   const cues=TRAVELLER_CUES.filter(c=>!(c.kind==="action"&&c.name==="step"));
   return <InkWashScene spec={spec} shot={INK_DIRECTOR_SHOT} frame={fpsFrame}
+    paintFrame={419}
     reducedMotion={reducedMotion} label="Painted landscape with a walking articulated ink character"
-    renderLayer={()=> <InkCharacter definition={INK_WALKING_TRAVELLER} instance={instance}
+    renderLayer={()=> <InkCharacter definition={definition} instance={instance}
       track={track} cues={cues} frame={reducedMotion?419:fpsFrame}
       reducedMotion={reducedMotion} label="Ink traveler with planted feet, separate knees and expressive face"
-      absorption={.67} grain={.59}
+      absorption={.73} grain={.70}
+      partFinish={{
+        body:{bleed:.91}, "far-sleeve":{bleed:1}, "near-sleeve":{bleed:1},
+        "hem-drape":{bleed:.73}, "far-cuff":{bleed:.42}, "near-cuff":{bleed:.42},
+        "brush-grip":{bleed:0,dryContour:true},
+        "far-thigh":{bleed:.45}, "near-thigh":{bleed:.45},
+        head:{bleed:.12,dryContour:true},hair:{bleed:.25,dryContour:true},
+        eyes:{bleed:0,dryContour:true},brows:{bleed:0,dryContour:true},
+        mouth:{bleed:0,dryContour:true},
+        brush:{bleed:0,dryContour:true},
+      }}
+      style={{marginTop:10}}
       />}>
     <div data-km-ink-directed-caption="" style={{position:"absolute",
       left:aspect==="portrait"?33:42,top:aspect==="portrait"?76:50,

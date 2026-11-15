@@ -1,0 +1,68 @@
+import type { FilmDocument } from "../../registry/video/film-document";
+
+/** Original, reference-informed three-scene craft film with a shared WM4 surface. */
+export const WATERCOLOUR_MASTER_STUDIES_FILM: FilmDocument = {
+  "schemaVersion": 1,
+  "id": "watercolour-master-studies",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "watercolour-botanical-study",
+      "recipeId": "slot",
+      "durationFrames": 420,
+      "content": {
+        "slot": "watercolour-master-study",
+        "label": "botanical observation",
+        "props": {
+          "study": "botanical"
+        }
+      }
+    },
+    {
+      "id": "watercolour-estuary-study",
+      "recipeId": "slot",
+      "durationFrames": 420,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "watercolour-master-study",
+        "label": "luminous estuary",
+        "props": {
+          "study": "estuary"
+        }
+      }
+    },
+    {
+      "id": "watercolour-courtyard-study",
+      "recipeId": "slot",
+      "durationFrames": 420,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "watercolour-master-study",
+        "label": "architectural light",
+        "props": {
+          "study": "courtyard"
+        }
+      }
+    }
+  ]
+};

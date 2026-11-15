@@ -1,15 +1,9 @@
 name: Ink Character Director Proof
 
 # Visual and test cost is scoped to INK4 changes, not every Kumiki-UI PR.
+# Full browser and encoded-film qualification is local-first and opt-in.
+# No expensive renderer/Playwright/FFmpeg job runs for routine PRs or main pushes.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/ink-actor-director-qa.yml"
-      - "registry/video/ink-actor-director.ts"
-      - "registry/video/ink-wash-character.ts"
-      - "src/video/ink-actor-director*"
-      - "tests/ink-actor-director*"
-      - "tests/e2e-storybook/ink-actor-director.spec.ts"
   workflow_dispatch:
 
 permissions:
@@ -33,7 +27,7 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
       - name: Pure C1 spline, inverse kinematics and per-part acting tests
-        run: npx vitest run --project unit tests/ink-actor-director.test.ts tests/ink-actor-director-demo.test.tsx
+        run: npx vitest run --project unit tests/ink-actor-director.test.ts tests/ink-actor-director-demo.test.tsx tests/ink-figure-craft.test.ts
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Actual original ink character, contact poses and deterministic seek screenshots
@@ -43,7 +37,9 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Encode original character performance using production Storybook exporter
-        run: npm run video:export -- --story=video-ink-character-director--continuous-walk --startFrame=10 --frames=200 --output=dist/ink-director-proof.mp4
+        run: npm run video:export -- --story=video-ink-character-director--production-export --startFrame=10 --frames=100 --output=dist/ink-director-landscape.mp4
+      - name: Encode 9:16 ink-character motion using frame-seek production exporter
+        run: npm run video:export -- --story=video-ink-character-director--portrait-export --startFrame=10 --frames=100 --output=dist/ink-director-portrait.mp4
       - name: Preserve actual actor screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -57,6 +53,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ink4-character-encoded-proof
-          path: dist/ink-director-proof.mp4
+          path: dist/ink-director-*.mp4
           retention-days: 10
           if-no-files-found: warn

@@ -17,7 +17,7 @@ const buttonStyle = { border: "1px solid #B4B0A3", background: "#FAF8F3",
 const labelStyle = { display: "grid", gap: 5, minWidth: 160,
   font: "600 13px system-ui", color: "#393D36" } as const;
 
-function Painting({ spec, subject, frame, absorption, grain, reducedMotion }: {
+export function Painting({ spec, subject, frame, absorption, grain, reducedMotion }: {
   spec: InkWashSpec; subject: InkSubject; frame: number; absorption: number; grain: number; reducedMotion: boolean;
 }) {
   const portrait = spec.height > spec.width;
@@ -162,8 +162,10 @@ function InkWashStudio() {
   </main>;
 }
 
-const meta = { title: "Video production/Material-native film", id: "video-ink-wash",
-  component: InkWashStudio, parameters: { layout: "fullscreen" } } satisfies Meta<typeof InkWashStudio>;
+const meta = { title: "Video production/Film Looks/Chinese Ink/Ink Wash Film Stage", id: "video-ink-wash",
+  component: InkWashStudio, parameters: { layout: "fullscreen" },
+  // Shared material surface, not a story: exporting it without this exclusion renders it with no spec.
+  excludeStories: ["Painting"] } satisfies Meta<typeof InkWashStudio>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const ChineseInkWash: Story = { name: "Chinese ink wash · Film Stage" };

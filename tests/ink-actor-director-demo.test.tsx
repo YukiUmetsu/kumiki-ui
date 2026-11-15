@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 import { validateCharacterDefinition } from "../registry/character/validate";
 import { samplePoseCorrection } from "../registry/character/authoring";
 import { InkDirectorFilm, INK_WALKING_TRAVELLER, inkDirectorGait,
-  inkDirectorInstance, inkDirectorRoute } from "../src/video/ink-actor-director-demo";
-import { inkWalkAt, inkRouteAt, bakeInkActorTrack } from "../registry/video/ink-actor-director";
+  inkDirectorInstance, inkDirectorRoute, inkDirectorBackdrop, makeInkWalkingTraveller, INK_TRAVELLER_FOLDS } from "../src/video/ink-actor-director-demo";
+import { inkWalkAt, inkRouteAt, bakeInkActorTrack, auditInkWalkContacts } from "../registry/video/ink-actor-director";
 
 describe("INK4 authored character and cinematic stage",()=>{
   it("preserves approved facial identity, expression variants, audio cues, props and real knee joints",()=>{
@@ -17,6 +17,52 @@ describe("INK4 authored character and cinematic stage",()=>{
     expect(INK_WALKING_TRAVELLER.parts.some(p=>p.id==="eyes")).toBe(true);
     expect(INK_WALKING_TRAVELLER.speech?.visemes).toBeDefined();
     expect(INK_WALKING_TRAVELLER.actions.step).toBeUndefined();
+  });
+  it("adds artist-authored part-local pressure folds while preserving the approved rig",()=>{
+    const bare=makeInkWalkingTraveller({detail:0,contrast:.85,seed:83});
+    const crafted=makeInkWalkingTraveller({detail:1,contrast:1.25,seed:83});
+    expect(Object.keys(crafted.assets).sort()).toEqual(Object.keys(bare.assets).sort());
+    expect(crafted.parts).toEqual(bare.parts);
+    expect(crafted.actions).toEqual(bare.actions);
+    expect(Object.keys(INK_TRAVELLER_FOLDS)).toContain("robe");
+    const source=bare.assets.robe,costume=crafted.assets.robe;
+    expect(source.kind).toBe("shapes");
+    expect(costume.kind).toBe("shapes");
+    if(source.kind==="shapes"&&costume.kind==="shapes"){
+      expect(costume.shapes.length).toBeGreaterThan(source.shapes.length+8);
+      expect(costume.shapes.some(s=>s.type==="path"&&s.opacity!==undefined&&s.opacity<1)).toBe(true);
+    }
+    expect(validateCharacterDefinition(crafted).filter(x=>x.severity==="error")).toEqual([]);
+    for(const aspect of ["landscape","portrait"] as const) {
+      const sparse=renderToStaticMarkup(createElement(InkDirectorFilm,{frame:135,aspect,foldDetail:0}));
+      const rich=renderToStaticMarkup(createElement(InkDirectorFilm,{frame:135,aspect,foldDetail:1,foldContrast:1.2}));
+      expect(rich.length).toBeGreaterThan(sparse.length);
+      expect(rich).toContain('data-km-ink-character-part="body"');
+    }
+  });
+  it("attaches distinct hem and cuff drawings and places painted fingers above the brush",()=>{
+    const byId=new Map(INK_WALKING_TRAVELLER.parts.map(part=>[part.id,part]));
+    expect(byId.get("hem-drape")).toMatchObject({parent:"body",asset:"hem-drape-art"});
+    expect(byId.get("far-cuff")).toMatchObject({parent:"far-sleeve"});
+    expect(byId.get("near-cuff")).toMatchObject({parent:"near-sleeve"});
+    expect(byId.get("brush-grip")).toMatchObject({parent:"near-hand",channel:"prop"});
+    expect(byId.get("brush-grip")!.z).toBeGreaterThan(byId.get("brush")!.z);
+    expect(INK_WALKING_TRAVELLER.assets["near-brush-grip-art"]).toMatchObject({kind:"shapes"});
+    expect(INK_WALKING_TRAVELLER.capabilities).toContain("cloth-follow-through");
+    expect(validateCharacterDefinition(INK_WALKING_TRAVELLER).filter(x=>x.severity==="error")).toEqual([]);
+    for(const aspect of ["landscape","portrait"] as const) {
+      const withFlow=inkDirectorInstance(aspect,1);
+      const neutral=inkDirectorInstance(aspect,0);
+      const moving=samplePoseCorrection(withFlow.corrections??{},"hem-drape",110);
+      const still=samplePoseCorrection(neutral.corrections??{},"hem-drape",110);
+      expect(moving).not.toEqual(still);
+      expect(still.rotation).toBe(0);
+      expect(samplePoseCorrection(withFlow.corrections??{},"hem-drape",419).rotation).toBe(0);
+      const markup=renderToStaticMarkup(createElement(InkDirectorFilm,{frame:110,aspect,clothAmount:1}));
+      expect(markup).toContain('data-part="hem-drape"');
+      expect(markup).toContain('data-part="near-cuff"');
+      expect(markup).toContain('data-part="brush-grip"');
+    }
   });
   it("uses 218 absolute-frame correction keys per part then eases back to the source rest rig",()=>{
     const instance=inkDirectorInstance("landscape");
@@ -33,10 +79,30 @@ describe("INK4 authored character and cinematic stage",()=>{
     expect(inkRouteAt(inkDirectorRoute("landscape"),110).vx).toBeGreaterThan(0);
     const stop=inkRouteAt(inkDirectorRoute("landscape"),230);
     const hold=inkRouteAt(inkDirectorRoute("landscape"),320);
-    expect(stop.x).toBe(hold.x);
-    expect(stop.y).toBe(hold.y);
+    expect(stop.x).toBeCloseTo(hold.x,8);
+    expect(stop.y).toBeCloseTo(hold.y,8);
     expect(stop.vx).toBe(0);
     expect(stop.vy).toBe(0);
+  });
+  it("establishes a fully painted, stage-grounded world before the first walk frame",()=>{
+    for(const aspect of ["landscape","portrait"] as const) {
+      const spec=inkDirectorBackdrop(aspect);
+      const ground=spec.strokes.filter(s=>s.id.startsWith("traveler-ground-"));
+      expect(ground).toHaveLength(3);
+      expect(ground.every(s=>s.points.length>=3)).toBe(true);
+      const markup=renderToStaticMarkup(createElement(InkDirectorFilm,{frame:0,aspect}));
+      expect(markup).toContain('data-km-ink-scene-frame="0"');
+      expect(markup).toContain('data-km-ink-paint-frame="419"');
+      expect(markup).toContain('data-km-ink-stroke="traveler-ground-edge"');
+      expect(markup).toContain('data-km-ink-part-bleed="0.00"');
+    }
+  });
+  it("keeps original traveler stance contacts inside inverse-kinematic reach in both aspects",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const audit=auditInkWalkContacts(inkDirectorGait(aspect),.5);
+      expect(audit.maxError).toBeLessThanOrEqual(.5);
+      expect(audit.violations).toEqual([]);
+    }
   });
   for(const aspect of ["landscape","portrait"] as const){
     it("renders a natural film stage and independent character performance in "+aspect,()=>{

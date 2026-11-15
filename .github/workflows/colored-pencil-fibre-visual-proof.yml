@@ -1,0 +1,58 @@
+name: ArtCraft Pencil Fibre Browser Proof
+
+# Narrow QA: only animated colour-pencil actor fibre/rig changes.
+# No unnecessary FFmpeg/whole-repo CI.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'registry/video/colored-pencil-actor.ts'
+      - 'registry/video/colored-pencil-react.tsx'
+      - 'registry/video/colored-pencil.ts'
+      - 'src/video/colored-pencil-character-rebuild.ts'
+      - 'src/video/colored-pencil-living-studies.ts'
+      - 'src/video/colored-pencil-living-studio.tsx'
+      - 'tests/colored-pencil-living-studies.test.tsx'
+      - 'tests/colored-pencil-ocular-detail.test.tsx'
+      - 'tests/e2e-storybook/colored-pencil-living-studies.spec.ts'
+      - 'src/video/colored-pencil-anatomical-fibres.ts'
+      - 'src/video/colored-pencil-anatomy-detail.ts'
+      - 'src/video/colored-pencil-wildlife.stories.tsx'
+      - 'tests/colored-pencil-anatomy-detail.test.tsx'
+      - 'tests/e2e-storybook/colored-pencil-wildlife.spec.ts'
+      - 'src/video/colored-pencil-science.stories.tsx'
+      - 'tests/e2e-storybook/colored-pencil-anatomical-fibres.spec.ts'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: artcraft-pencil-fibres-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fibre-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Verify rooted feather anatomy
+        run: npx vitest run --project unit tests/colored-pencil-anatomy-detail.test.tsx tests/colored-pencil-living-studies.test.tsx tests/colored-pencil-ocular-detail.test.tsx
+      - name: Chromium for actual pencil geometry and posed screenshots
+        run: npx playwright install --with-deps chromium
+      - name: Inspect independently animated fur and feather art
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-anatomical-fibres.spec.ts tests/e2e-storybook/colored-pencil-wildlife.spec.ts tests/e2e-storybook/colored-pencil-living-studies.spec.ts
+      - name: Retain frame and macro crop evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artcraft-pencil-animated-fibre-evidence
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn

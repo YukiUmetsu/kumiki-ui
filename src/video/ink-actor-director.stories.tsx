@@ -3,6 +3,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { compileFilm } from "../../registry/video/film-document";
 import type { FilmDocument } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
+import { VideoExportStage } from "../../registry/video/video-export-stage";
+import type { VideoExportManifest } from "../../registry/video/video-export-stage";
 import { InkDirectorFilm } from "./ink-actor-director-demo";
 import type { DirectorAspect } from "./ink-actor-director-demo";
 
@@ -18,6 +20,9 @@ function Laboratory(){
   const [frame,setFrame]=useState(244);
   const [playing,setPlaying]=useState(false);
   const [reduce,setReduce]=useState(false);
+  const [foldDetail,setFoldDetail]=useState(1);
+  const [foldContrast,setFoldContrast]=useState(.85);
+  const [clothAmount,setClothAmount]=useState(.75);
   const compiled=useMemo(()=>compileFilm(document,{outputId:aspect}),[aspect]);
   useEffect(()=>{
     if(!playing||reduce)return;
@@ -62,13 +67,35 @@ function Laboratory(){
         Reduced motion
       </label>
     </div>
+    <div style={{display:"flex",gap:15,flexWrap:"wrap",alignItems:"center",maxWidth:890}}>
+      <label style={{display:"grid",gap:4,fontWeight:600,fontSize:13}}>
+        Garment brush detail: {Math.round(foldDetail*100)}%
+        <input aria-label="Garment brush detail" type="range" min="0" max="1" step=".05"
+          value={foldDetail} onChange={e=>{setPlaying(false);setFoldDetail(Number(e.target.value))}}/>
+      </label>
+      <label style={{display:"grid",gap:4,fontWeight:600,fontSize:13}}>
+        Fold pigment density: {Math.round(foldContrast*100)}%
+        <input aria-label="Fold pigment density" type="range" min="0" max="2" step=".05"
+          value={foldContrast} onChange={e=>{setPlaying(false);setFoldContrast(Number(e.target.value))}}/>
+      </label>
+      <label style={{display:"grid",gap:4,fontWeight:600,fontSize:13}}>
+        Cloth follow-through: {Math.round(clothAmount*100)}%
+        <input aria-label="Cloth follow-through" type="range" min="0" max="1" step=".05"
+          value={clothAmount} onChange={e=>{setPlaying(false);setClothAmount(Number(e.target.value))}}/>
+      </label>
+      <span style={{fontSize:12,color:"#526056",maxWidth:330}}>
+        Original pressure-shaped fabric contours follow the articulated robe and sleeves;
+        facial expressions stay on the sharp, dry drawing layer.
+      </span>
+    </div>
     <div style={{width:film.width*scale,height:film.height*scale,maxWidth:"100%",overflow:"hidden",
       background:"#F3EFE3",boxShadow:"0 16px 34px #403a2d25"}}>
       <FilmStage film={film} frame={frame} renderObject={()=>null} reducedMotion={reduce}
         renderSlot={(content,context)=>{
           if(content.slot!=="ink4-traveler")throw new Error("Unexpected ink director scene: "+content.slot);
           return <InkDirectorFilm aspect={aspect} frame={context.frame}
-            reducedMotion={context.reducedMotion}/>;
+            reducedMotion={context.reducedMotion} foldDetail={foldDetail} foldContrast={foldContrast}
+            clothAmount={clothAmount}/>
         }} style={{transform:"scale("+scale+")",transformOrigin:"top left"}}/>
     </div>
     <div style={{maxWidth:960,display:"grid",gap:9}}>
@@ -93,11 +120,41 @@ function Laboratory(){
     </p>
   </main>;
 }
-const meta={title:"Video production/Film Art Styles/Chinese Ink/Character Director",
+
+/** Real export surface: the encoder seeks this one film frame rather than capturing
+ * the interactive studio's independent, local Play button state. */
+function InkDirectorExport({aspect}:{aspect:DirectorAspect}) {
+  const [frame,setFrame]=useState(0);
+  const compiled=useMemo(()=>compileFilm(document,{outputId:aspect}),[aspect]);
+  if(!compiled.ok)return <pre role="alert">{compiled.diagnostics.map(d=>d.message).join("\n")}</pre>;
+  const portrait=aspect==="portrait";
+  const manifest:VideoExportManifest={
+    schemaVersion:1,id:"ink-director-"+aspect,
+    width:portrait?540:960,height:portrait?960:540,
+    durationFrames:420,fps:{num:30,den:1},
+  };
+  return <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
+    <FilmStage film={compiled.film} frame={frame} renderObject={()=>null}
+      renderSlot={(content,context)=>{
+        if(content.slot!=="ink4-traveler")throw new Error("Unexpected ink director export: "+content.slot);
+        return <InkDirectorFilm aspect={aspect} frame={context.frame}
+          reducedMotion={context.reducedMotion}/>;
+      }}/>
+  </VideoExportStage>;
+}
+
+const meta={title:"Video production/Film Looks/Chinese Ink/Character Director",
   id:"video-ink-character-director",component:InkDirectorFilm,parameters:{layout:"fullscreen"}} satisfies Meta<typeof InkDirectorFilm>;
 export default meta;
 export const ContinuousWalk:StoryObj<typeof meta>={
   name:"Continuous walk, grounded limbs and expressive hold",
   args:{frame:244,aspect:"landscape"},
   render:()=> <Laboratory/>,
+};
+
+export const ProductionExport:StoryObj<typeof InkDirectorExport>={
+  name:"INK4 · 16:9 frame-exact video export",render:()=> <InkDirectorExport aspect="landscape"/>,
+};
+export const PortraitExport:StoryObj<typeof InkDirectorExport>={
+  name:"INK4 · 9:16 frame-exact video export",render:()=> <InkDirectorExport aspect="portrait"/>,
 };

@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "id": "paper-craft-object-gallery",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "bird-perched",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Original kingfisher paper sculpture",
+        "props": {
+          "artwork": "object",
+          "object": "kingfisher",
+          "objectPalette": "jewel",
+          "detail": 1,
+          "seed": 37,
+          "medium": "layered",
+          "curl": 1,
+          "motion": 1,
+          "relief": 1
+        }
+      }
+    },
+    {
+      "id": "dragonfly-meadow",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Paper dragonfly cutwork",
+        "props": {
+          "artwork": "object",
+          "object": "dragonfly",
+          "objectPalette": "jewel",
+          "detail": 1,
+          "seed": 37,
+          "medium": "layered",
+          "curl": 1,
+          "motion": 1,
+          "relief": 1
+        }
+      }
+    },
+    {
+      "id": "canal-neighborhood",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Pastel paper canal houses",
+        "props": {
+          "artwork": "object",
+          "object": "canal-houses",
+          "objectPalette": "pastel",
+          "detail": 1,
+          "seed": 37,
+          "medium": "layered",
+          "curl": 1,
+          "motion": 1,
+          "relief": 1
+        }
+      }
+    },
+    {
+      "id": "folded-camera",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Heritage paper camera",
+        "props": {
+          "artwork": "object",
+          "object": "camera",
+          "objectPalette": "heritage",
+          "detail": 1,
+          "seed": 37,
+          "medium": "layered",
+          "curl": 1,
+          "motion": 1,
+          "relief": 1
+        }
+      }
+    },
+    {
+      "id": "tea-ritual",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Teacup and citrus paper sculpture",
+        "props": {
+          "artwork": "object",
+          "object": "teacup",
+          "objectPalette": "pastel",
+          "detail": 1,
+          "seed": 37,
+          "medium": "layered",
+          "curl": 1,
+          "motion": 1,
+          "relief": 1
+        }
+      }
+    }
+  ]
+}

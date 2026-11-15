@@ -1,0 +1,106 @@
+name: Crayon Storybook browser and film qualification
+
+# All browser and encoded-video proofs are manual-only. Select the reel on demand.
+# Full browser and encoded-film qualification is local-first and opt-in.
+# No expensive renderer/Playwright/FFmpeg job runs for routine PRs or main pushes.
+on:
+  workflow_dispatch:
+    inputs:
+      film:
+        description: "Which original crayon full-film proof to render?"
+        type: choice
+        default: storybook
+        options:
+          - storybook
+          - characters
+          - wildlife
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crayon-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-film-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Full multi-frame browser art qualification
+        if: github.event_name == 'workflow_dispatch'
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/crayon-storybook.spec.ts tests/e2e-storybook/crayon-scene.spec.ts tests/e2e-storybook/crayon-artcraft-review.spec.ts
+      - name: Validate exported film document
+        run: |
+          npm run film:check -- examples/film/crayon-storybook.film.json
+          npm run film:check -- examples/film/crayon-scene-three-subjects.film.json
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Capture material beats in both aspects
+        if: github.event_name == 'workflow_dispatch' && inputs.film == 'storybook'
+        run: |
+          for frame in 0 90 156 270 360 419; do
+            npm run film:frame -- examples/film/crayon-storybook.film.json --frame=$frame --only=landscape --out=dist/crayon-film-proof
+            npm run film:frame -- examples/film/crayon-storybook.film.json --frame=$frame --only=portrait --out=dist/crayon-film-proof
+          done
+      - name: Render full 14-second encoded film
+        if: github.event_name == 'workflow_dispatch' && inputs.film == 'storybook'
+        run: |
+          npm run film:render -- examples/film/crayon-storybook.film.json --frames=420 --only=landscape --out=dist/crayon-film-proof
+          npm run film:render -- examples/film/crayon-storybook.film.json --frames=420 --only=portrait --out=dist/crayon-film-proof
+      - name: Validate complete character and dragon film
+        if: github.event_name == 'workflow_dispatch' && inputs.film == 'characters'
+        run: npm run film:check -- examples/film/crayon-character-performances.film.json
+      - name: Capture character/dragon motion beats in both aspects
+        if: github.event_name == 'workflow_dispatch' && inputs.film == 'characters'
+        run: |
+          for frame in 0 72 90 176 245 269 270 382 430 477 560 599; do
+            npm run film:frame -- examples/film/crayon-character-performances.film.json --frame=$frame --only=landscape --out=dist/crayon-film-proof
+            npm run film:frame -- examples/film/crayon-character-performances.film.json --frame=$frame --only=portrait --out=dist/crayon-film-proof
+          done
+      - name: Render 20-second original character and dragon film
+        if: github.event_name == 'workflow_dispatch' && inputs.film == 'characters'
+        run: |
+          npm run film:render -- examples/film/crayon-character-performances.film.json --frames=600 --only=landscape --out=dist/crayon-film-proof
+          npm run film:render -- examples/film/crayon-character-performances.film.json --frames=600 --only=portrait --out=dist/crayon-film-proof
+      - name: Validate naturalistic wildlife portrait film
+        if: github.event_name == 'workflow_dispatch' && inputs.film == 'wildlife'
+        run: npm run film:check -- examples/film/crayon-wildlife-portrait.film.json
+      - name: Capture wildlife art and motion beats in both aspects
+        if: github.event_name == 'workflow_dispatch' && inputs.film == 'wildlife'
+        run: |
+          for frame in 0 42 86 96 142 168 207 239; do
+            npm run film:frame -- examples/film/crayon-wildlife-portrait.film.json --frame=$frame --only=landscape --out=dist/crayon-film-proof
+            npm run film:frame -- examples/film/crayon-wildlife-portrait.film.json --frame=$frame --only=portrait --out=dist/crayon-film-proof
+          done
+      - name: Render full 8-second original wildlife film
+        if: github.event_name == 'workflow_dispatch' && inputs.film == 'wildlife'
+        run: |
+          npm run film:render -- examples/film/crayon-wildlife-portrait.film.json --frames=240 --only=landscape --out=dist/crayon-film-proof
+          npm run film:render -- examples/film/crayon-wildlife-portrait.film.json --frames=240 --only=portrait --out=dist/crayon-film-proof
+      - name: Preserve encoded video and frame proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crayon-production-film-proof
+          path: dist/crayon-film-proof/
+          retention-days: 10
+          if-no-files-found: warn
+      - name: Preserve browser stills and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crayon-browser-proof
+          path: test-results/
+          retention-days: 10
+          if-no-files-found: warn

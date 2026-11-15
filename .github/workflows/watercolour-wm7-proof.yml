@@ -1,0 +1,57 @@
+name: Watercolour WM7 masterwork material proof
+# Full review was qualified in https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43644599942
+# After proof, expensive Chromium and FFmpeg work must be manual-only.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: watercolour-wm7-material-proof
+  cancel-in-progress: true
+jobs:
+  artist-material-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Validate film fixture before expensive browser tasks
+        run: npm run film:check -- examples/film/watercolour-master-studies-art-only.film.json
+      - name: Install chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture all 3 studies with and without material depth at both ratios
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-wm7-material.spec.ts
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Capture 3 real film frames landscape and portrait
+        run: |
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=355 --only=landscape --out=dist/wm7-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=775 --only=landscape --out=dist/wm7-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=1195 --only=landscape --out=dist/wm7-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=355 --only=portrait --out=dist/wm7-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=775 --only=portrait --out=dist/wm7-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=1195 --only=portrait --out=dist/wm7-proof
+      - name: Encode original film preview
+        run: npm run film:render -- examples/film/watercolour-master-studies-art-only.film.json --frames=45 --only=landscape --out=dist/wm7-proof
+      - name: Save complete browser before-after frame evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wm7-art-material-browser
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Save film production frames and preview
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wm7-art-material-film
+          path: dist/wm7-proof/
+          retention-days: 7
+          if-no-files-found: warn

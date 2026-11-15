@@ -69,6 +69,11 @@ export interface InkWashSceneProps {
   /** Consumer-authored paint substrate; may contain zero strokes for media-only stories. */
   spec: InkWashSpec;
   frame: number;
+  /** Independent absolute paint frame for a pre-painted background while actors still move.
+   * Defaults to the shot-local frame; use this to hold mature pigment through an acting shot.
+   * Does not affect camera, layer reveals, sound, or character animation clocks.
+   */
+  paintFrame?: number;
   /** Frame and layers local to one FD1 shot, not a parallel film timeline. */
   shot: InkShot;
   /** Any media or live UI is provided by the host, never downloaded by this component. */
@@ -84,7 +89,7 @@ export interface InkWashSceneProps {
   style?: CSSProperties;
 }
 export function InkWashScene({
-  spec, frame, shot, renderLayer, reducedMotion = false, children, paintOrder = "under",
+  spec, frame, paintFrame = frame, shot, renderLayer, reducedMotion = false, children, paintOrder = "under",
   label = "Ink wash composition", className, style,
 }: InkWashSceneProps) {
   // The shot is a local scene plan; validate once through the same contract as FD1.
@@ -94,11 +99,13 @@ export function InkWashScene({
   assertInkFilm(plan);
   if (!Number.isSafeInteger(frame) || frame < 0 || frame >= shot.durationFrames)
     throw new RangeError("INK2 scene frame is outside the shot duration.");
+  if (!Number.isSafeInteger(paintFrame) || paintFrame < 0 || paintFrame > 360000)
+    throw new RangeError("INK2 independent paint frame must be a nonnegative bounded integer.");
   const camera = inkCameraAt(shot.camera, reducedMotion ? shot.durationFrames - 1 : frame);
-  const paint = <div data-km-ink-paint="" style={{ position: "absolute", inset: 0, width: spec.width, height: spec.height,
+  const paint = <div data-km-ink-paint="" data-km-ink-paint-frame={paintFrame} style={{ position: "absolute", inset: 0, width: spec.width, height: spec.height,
     transform: "translate(" + camera.x.toFixed(3) + "px," + camera.y.toFixed(3) + "px) scale(" + camera.zoom.toFixed(5) + ")",
     transformOrigin: "50% 50%" }}>
-    <InkWash spec={spec} frame={frame} reducedMotion={reducedMotion} label={label} />
+    <InkWash spec={spec} frame={paintFrame} reducedMotion={reducedMotion} label={label} />
   </div>;
   return <div className={className} role="group" aria-label={label}
     data-km-ink-scene="" data-km-ink-scene-frame={frame}

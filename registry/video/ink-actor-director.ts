@@ -178,8 +178,11 @@ export interface InkWalkPlan {
   parts:InkGaitParts;
 }
 export interface InkFootState {
+  /** Authored world-space contact target; compare with the actual IK endpoint. */
   x:number;y:number;planted:boolean;
   hipAngle:number;kneeAngle:number;
+  /** Stage-space distance between target and reachable endpoint, in pixels. */
+  contactError:number;
 }
 export interface InkWalkState {
   left:InkFootState;right:InkFootState;
@@ -240,7 +243,10 @@ export function inkWalkAt(plan:InkWalkPlan,frame:number):InkWalkState {
     const targetX=(x-current.x)/current.scale;
     const targetY=(y-current.y)/current.scale+plan.hipHeight;
     const solved=solveInkLimb(targetX,targetY,plan.upperLength,plan.lowerLength,bend);
-    return {x,y,planted:phase<stance,hipAngle:solved.upper,kneeAngle:solved.lower};
+    const reachedX=current.x+current.scale*solved.reached[0];
+    const reachedY=current.y-current.scale*plan.hipHeight+current.scale*solved.reached[1];
+    const contactError=Math.hypot(x-reachedX,y-reachedY);
+    return {x,y,planted:phase<stance,hipAngle:solved.upper,kneeAngle:solved.lower,contactError};
   };
   const left=foot(0,1,-1),right=foot(.5,-1,1);
   const phase=(t-plan.startFrame)/cycle;
@@ -253,6 +259,40 @@ export function inkWalkAt(plan:InkWalkPlan,frame:number):InkWalkState {
     armLeftAngle:arm,armRightAngle:-arm,
     sleeveLeftAngle:Math.sin(phase*2*Math.PI-.65)*5.5,
     sleeveRightAngle:-Math.sin(phase*2*Math.PI-.65)*5.5};
+}
+export interface InkContactViolation {
+  frame:number;
+  foot:"left"|"right";
+  error:number;
+}
+export interface InkContactAudit {
+  /** Maximum unreachable error for any planted foot, in paper/stage pixels. */
+  maxError:number;
+  violations:InkContactViolation[];
+}
+/** Validate the actual 2-bone endpoint, not just the target's planted flag.
+ * Finite and deterministic; sample every film frame unless a coarser audit is requested.
+ * This proves kinematic reach, not visual alignment of an artist's foot-tip assets.
+ */
+export function auditInkWalkContacts(plan:InkWalkPlan,tolerance=.5,stepFrames=1):InkContactAudit {
+  assertInkWalk(plan);
+  if(!bound(tolerance,0,100)||!Number.isSafeInteger(stepFrames)||stepFrames<1||stepFrames>12)
+    throw new RangeError("INK4 contact audit requires a 0..100 pixel tolerance and 1..12 frame step.");
+  let maxError=0;
+  const violations:InkContactViolation[]=[];
+  const frames:number[]=[];
+  for(let f=plan.startFrame;f<plan.endFrame;f+=stepFrames)frames.push(f);
+  frames.push(plan.endFrame);
+  for(const frame of frames) {
+    const pose=inkWalkAt(plan,frame);
+    for(const foot of ["left","right"] as const) {
+      const contact=pose[foot];
+      if(!contact.planted)continue;
+      maxError=Math.max(maxError,contact.contactError);
+      if(contact.contactError>tolerance)violations.push({frame,foot,error:contact.contactError});
+    }
+  }
+  return {maxError,violations};
 }
 export function inkWalkPose(plan:InkWalkPlan,frame:number):Record<string,CharacterPoseDelta> {
   const at=inkWalkAt(plan,frame),p=plan.parts;
@@ -294,7 +334,7 @@ export function bakeInkWalkCorrections(plan:InkWalkPlan,stepFrames=2):CharacterP
   // naturally back to rig-neutral, rather than freezing at an arbitrary stride.
   const recoveryFrame=Math.min(360000,plan.endFrame+12);
   if(recoveryFrame>plan.endFrame){
-    for(const [part,keys] of Object.entries(tracks)){
+    for(const keys of Object.values(tracks)){
       const last=keys[keys.length-1].pose;
       const identity:CharacterPoseDelta={};
       for(const name of Object.keys(last) as (keyof CharacterPoseDelta)[]){
