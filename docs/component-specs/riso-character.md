@@ -430,3 +430,14 @@ Both original rigged front-facing human characters now have an independently aut
 No additional Storybook folder or page: `OcularPrintCraft` in the existing Risograph category gains source-derived **Ear** and **Midface** close-ups, a reversible **RISO25 facial craft comparison** that uses the exact original ear path, and retains independently adjustable hair, physical AM/FM ink screens, density, dot gain, pose and 16:9 / 9:16. Existing story ID and tests remain backward compatible.
 
 Technical acceptance: `tests/riso25-midface-artcraft.test.tsx` and the targeted Chromium `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`. **Human identity/portrait reference fidelity is NOT certified** without independently observed landmark/mask/view evidence, and unchanged frontal geometry must never be described as a real 3/4 or side head.
+
+
+## RISO27 — source-accurate 24fps film acting review
+
+[Animated Risograph contact-sheet reference dossier](../research/riso27-sequential-acting-reference-study.json) · [Full 240-frame part/pose/source structure](../research/riso27-sequential-acting-character-structure.json)
+
+The existing **HumanEnsembleActing** Storybook story (same ID and Risograph folder) now has nine named edit-room frames, plus -1/+1 source-frame stepping and a 24fps film player. Its engine uses `requestAnimationFrame` wall time to sample the absolute 240-frame source. Unlike the earlier chained 41.67ms intervals, slow SVG rendering does not reduce playback speed. **Playback holds frame 239** rather than looping into a dissimilar opening shot; playing again explicitly resets to frame 0.
+
+No new character source shapes, armatures, facial geometry, inks or fake paper silhouettes. Both original actors retain all physical paper/ink mask channels, RISO26 material grading and authored finger-over-sheet contact geometry. A real 16:9 and 9:16 film browser proof captures opening, anticipation, first contact, release and receiving at source frames including 125/126, 159/160, 177/178 and 201/202. The native red and blue ink masters are captured independently. A separate unit test evaluates **every single 0–239 frame** at both aspect families and compares receiver-relative post-release paper positions.
+
+**Release caveat:** These checks demonstrate deterministic source animation and available physical preview; independent ArtCraft human landmark/mask comparison and authored 3/4/profile source views are still unavailable. Approval of the motion aesthetics requires a direct review of the generated contact sheets, not just a green test.
