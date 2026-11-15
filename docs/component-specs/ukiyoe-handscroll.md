@@ -14,6 +14,7 @@
 - `ukiyoe-scenery.ts`: mountain ranges, thatched farmhouses, jizō and komainu.
 - `ukiyoe-castle.ts`: the castle motif.
 - `ukiyoe-town.ts`: the castle-town motifs and the `castleTown()` scene.
+- `ukiyoe-interior.ts`: rooms and their furnishings, and the `interiorScene()` recipes.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -169,6 +170,33 @@ The oni's weapon and fighting (`ukiyoe-oni.ts`) are drawn after iron-shod kanab�
 4. The merchant street: shops and storehouses, a busy crowd, the fire-watch tower over the roofs.
 
 Mist bands drift across as in the picture scrolls. The crowds are placed so no walker ever enters the canal; the retainers stop short of it and the townsfolk walk away from it. The scroll carries no text. Storybook **Castle town** plays it, with a Snow switch, and the Motifs gallery shows each town motif.
+
+### Interiors
+
+A room is drawn as the prints draw it: the front wall taken away, the floor in parallel oblique projection (one unit back moves `skew` units right), the back wall seen through the opening up to the front lintel.
+
+- **`room`.** `width`, `height` (the opening), `depth` and `skew` set the box.
+  - `kind`: `tatami`, `boards` or `farmhouse` (an earthen floor a step below raised boards, its share set by `doma`). The tatami lie in columns front to back, with joints staggered so four corners never meet. Cloth borders (`heri`) run along the long sides, and fine rush lines run across.
+  - `back`: a list of bays.
+    - `fusuma`: painted paper with round pulls; `art` is `bamboo`, `clouds`, `waves`, `pine` or `plain`.
+    - `shoji`: paper over the lattice.
+    - `tokonoma`: a raised alcove with a natural post, a hanging scroll (`scroll` is `mountain`, `crane` or `moon`) and a vase of plum (`flower`).
+    - `tana`: staggered shelves with cupboards.
+    - `wall`, `marumado` (round window), `open` (the dark next room) and `garden` (with `snow` falling at night).
+  - `side`: the bay kind of the left side wall.
+  - `slide`: `[{ bay, open, start, frames, from }]` moves the right panel of a sliding bay behind the left one. A slid panel reveals `beyond` (`dark` or `garden`).
+  - `torn` bursts lattice cells open, leaving scraps of paper hanging. `night` sinks the room into blue dark: lamps drawn after the room glow through it, and the shoji turn grey-blue (or warm, for front shoji lit from inside).
+  - `veranda` (px) adds an engawa with its crawlspace. `eave` is `tile`, `thatch` or `none`. `frontShoji: [left, right]` closes front panels.
+  - `part: "back" | "front"` splits the room so figures stand between the floor and the front posts, lintel and eave. Add the room twice, once with each part.
+- **`andon`.** A standing paper lamp (`height`, `lit`) whose light flickers.
+- **`irori`.** A sunken hearth: `size`, `fire` (curling flame tongues with a key line), `pot` (`kettle`, `pot` or `none`), `hook` (the jizai-kagi's length, with its fish-shaped crosspiece) and `steam`.
+- **`futon`.** `layer: "under"` draws the mattress and pillow; `layer: "over"` draws the quilted cover with its velvet collar, mounded over a `sleeper`. Draw the under layer before a sleeping figure and the cover after it.
+- **`loom`.** A treadle loom in oblique view. The shed flips each pick, the beater swings to the fell, the shuttle crosses while the beater is back, and the cloth winds onto the beam.
+- **`byobu`.** A folding screen of gold leaf in zigzag (`panels`, `art`); its painting runs across the panels, and each face is shaded by its angle.
+- **Figure actions.**
+  - `sleep` lies the figure on its back with its eyes closed.
+  - `weave` kneels at the loom. Given `aim` (the loom's `loomGrip`, relative to the figure) and `amount` (`LOOM_BEATER_PULL × height`), the near hand holds the beater bar by IK and pulls it in on the beat, and the far hand works the shuttle. Both the loom and the action run on `weaveBeat(frame)`, so they agree on every frame.
+- **`interiorScene(kind)`.** Builds a complete room scene: `inn` (Hiroshige's Akasaka at night), `weaver` (the crane wife), `hearth` (an old couple at a farmhouse irori) or `bedroom` (a sleeper; a shoji slides open on the snow). Storybook **Interiors** plays them, and the Motifs gallery shows each motif.
 
 ### Transition
 

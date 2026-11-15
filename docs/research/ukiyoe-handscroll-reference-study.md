@@ -599,6 +599,49 @@ They showed five things the motif lacked, all now built:
 - No night version.
 - Nobody has done a human visual review yet.
 
+## Interiors (folktale queue F1, 2026-11-15)
+
+**Sources** (public domain; the Met open-access collection unless noted).
+
+- Hiroshige's *Akasaka: Inn with Serving Maids* (Tōkaidō, ca. 1834, 36958).
+- Harunobu's *Night Rain at the Double-Shelf Stand* from *Eight Parlor Views* (37145) and his parlour prints.
+- Utamaro's *A Woman Weaving, Seated at a Hand Loom* (36631), *Women Weaving Silk Cloth* (36627) and *Kitchen Scene* (37325).
+- Kiyonaga's *Three Geishas of Tachibana Street in Their Room* (57090).
+- Kuniyoshi's *The Okazaki Cat Demon* (45282).
+- The *Genji Monogatari Emaki*, Azumaya (Wikimedia Commons).
+
+**What they show.**
+
+- **The open front.** Hiroshige's inn is seen from the garden with the front wall open: ochre posts and lintels, white shoji with their grid, silver-grey fusuma painted with bamboo, green tatami with black borders, a veranda of planks with posts beneath, a thatched eave cut by the top of the print, a square paper lamp, bedding stacked. The Genji scroll's roofless rooms (fukinuki yatai) look down at an angle and frame figures with posts, blinds and screens.
+- **Projection.** The floor recedes in parallel oblique, never toward a vanishing point. The tatami joints and borders carry the depth.
+- **Furniture.** Harunobu's parlour has a round window with a bamboo lattice and staggered lacquered shelves. Kiyonaga's room has a lattice screen and a black-lacquer mirror stand.
+- **The loom.** Utamaro's loom is pale wood blocks with key lines. The warp is a sheet of fine threads, the reed is a comb in a frame, and an overhead arm carries the cord. The weaver kneels close, one hand on the beater.
+- **Kitchen and hearth.** Utamaro's kitchen: wooden tubs bound with cord, an iron kettle with its spout, smoke rising in curling bands.
+
+**What was built.** `ukiyoe-interior.ts` adds the `room`, `andon`, `irori`, `futon`, `loom` and `byobu` motifs, the `sleep` and `weave` actions, and `interiorScene()` with four rooms. Storybook has **Interiors**, and the Motifs gallery has eight new tiles.
+
+**Review rounds.**
+
+1. **First renders.**
+   - The tatami borders were twice as heavy as the prints' and have been thinned to a line.
+   - The hearth flames were plain triangles. They are now curling tongues with yellow hearts and a key line.
+   - The quilt was a shapeless blob. It is now a thick cover with a mound over the body, a draped front and a collar band across the head end.
+   - The loom was a spindly scaffold. Its timbers are now outlined wood blocks, and the warp is a translucent sheet.
+2. **Torn shoji.** Random holes with radial marks read as insects. Tears now burst whole lattice cells, with a scrap of paper still hanging from the top of each, as in the ghost prints.
+3. **Night paper.** At night the shoji paper was translucent, so the garden showed through it like glass. The paper is now opaque grey-blue, or warm when a lamp is behind it (the inn's front shoji).
+4. **Painted fusuma.** Each panel repeated the same painting. The painting now runs across both panels of a bay and moves with the sliding panel.
+5. **The sleeper.** The figure first lay on the floor in front of the futon, then hidden under the cover. Its heels are now placed so the head rests on the pillow, which was checked at full size with and without the cover.
+6. **Tracking the weaver frame by frame** over a full pick (44 frames). Her hands floated short of the beater, and the beater swung half the loom's length. The beater now swings a hand's width. The `weave` action puts the near hand on the beater bar by IK, using the loom's own `loomGrip` and swing, and the weaver kneels with her knees under the cloth beam. On every frame the hand is on the bar, and the shuttle shows only while the beater is back.
+7. **The maid.** The carry pose read as scratching her head. She now holds her hands before her as she walks in, then kneels and bows.
+
+**Not done.**
+
+- Smoke-blackened rafters for the farmhouse.
+- A tray, teacups and other hand props (queued for F15).
+- The fusuma do not open by a figure's hand.
+- Interiors have no three-quarter or deep-perspective view.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

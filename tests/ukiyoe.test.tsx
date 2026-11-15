@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { interiorScene, LOOM_BEATER_PULL, loomGrip, UKIYOE_INTERIOR_KINDS, UKIYOE_WEAVE_PERIOD, weaveBeat } from "../registry/video/ukiyoe/ukiyoe-interior";
 import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
 import { expandCrowd } from "../registry/video/ukiyoe/ukiyoe-crowd";
@@ -433,6 +434,53 @@ describe("UKIYO1 castle town", () => {
     }
     // No text in the scroll, so nothing for captions to collide with.
     expect(spec.nodes.some(n => n.kind === "text")).toBe(false);
+  });
+});
+
+describe("UKIYO1 interiors", () => {
+  const ctx = (frame = 0) => ({ frame, wind: 0, seed: 5, progress: 1 });
+  it("builds four valid rooms, splits a room into back and front, and slides a panel open on its track", () => {
+    for (const k of UKIYOE_INTERIOR_KINDS) {
+      const spec = interiorScene(k);
+      expect(inspectUkiyoeScene(spec), k).toEqual([]);
+      // The room's back part is drawn first and its front part last, with every figure between them.
+      const ids = spec.nodes.map(n => n.id), figs = spec.nodes.filter(n => n.kind === "figure").map(n => ids.indexOf(n.id));
+      expect(Math.min(...figs), k).toBeGreaterThan(ids.indexOf("room"));
+      expect(Math.max(...figs), k).toBeLessThan(ids.indexOf("room-front"));
+      expect(renderToStaticMarkup(<UkiyoeScene spec={spec} frame={90} />).length, k).toBeGreaterThan(1000);
+    }
+    const back = JSON.stringify(drawMotif("room", { part: "back", eave: "thatch" }, ctx())), front = JSON.stringify(drawMotif("room", { part: "front", eave: "thatch" }, ctx()));
+    expect(back).toContain("room-5");                                                            // the clipped interior
+    expect(front).not.toContain("room-5");
+    expect(front.length).toBeLessThan(back.length);
+    // A fusuma bay sliding open: the right panel's painting moves left with it, by up to half the bay.
+    const slide = { back: ["fusuma"], slide: [{ bay: 0, open: 1, start: 10, frames: 30 }] };
+    const offset = (f: number) => Math.min(...[...JSON.stringify(drawMotif("room", { ...slide, side: "wall" }, ctx(f))).matchAll(/translate\((-?[\d.]+) 0\)/g)].map(m => Number(m[1])));
+    expect(offset(0)).toBe(0);
+    expect(offset(25)).toBeLessThan(0);
+    expect(offset(40)).toBeLessThan(offset(25));
+    expect(offset(80)).toBe(offset(40));
+    // Torn shoji show the dark through burst cells; an untorn wall has none.
+    const holes = (torn: number) => JSON.stringify(drawMotif("room", { back: ["shoji", "shoji"], torn }, ctx())).length;
+    expect(holes(.8)).toBeGreaterThan(holes(0));
+  });
+  it("times the loom and the weaver together: one beat per pick, the shed flipping, the hand on the beater", () => {
+    let beats = 0, prev = 0;
+    for (let f = 0; f < UKIYOE_WEAVE_PERIOD * 4; f++) {
+      const w = weaveBeat(f);
+      expect(w.beat).toBeGreaterThanOrEqual(0); expect(w.beat).toBeLessThanOrEqual(1);
+      expect(w.pass > 0 && w.beat > 0, `frame ${f}: the shuttle crosses only while the beater is back`).toBe(false);
+      if (w.beat > .99 && prev <= .99) beats++;
+      prev = w.beat;
+    }
+    expect(beats).toBe(4);
+    expect(Math.sign(weaveBeat(2).shed)).toBe(-Math.sign(weaveBeat(UKIYOE_WEAVE_PERIOD + 2).shed));
+    // The weaver's aim is the loom's grip, and the beat pulls it in by the loom's own swing.
+    const spec = interiorScene("weaver"), loom = spec.nodes.find(n => n.id === "loom")!, weaver = spec.nodes.find(n => n.id === "weaver") as Extract<UkiyoeSceneSpec["nodes"][number], { kind: "figure" }>;
+    const h = (loom as unknown as { params: { height: number } }).params.height, g = loomGrip(h), act = weaver.actions![0];
+    expect((weaver.x ?? 0) + act.aim![0]).toBeCloseTo((loom.x ?? 0) + g[0], 3);
+    expect((weaver.y ?? 0) + act.aim![1]).toBeCloseTo((loom.y ?? 0) + g[1], 3);
+    expect(act.amount! / h).toBeCloseTo(LOOM_BEATER_PULL, 2);
   });
 });
 

@@ -23,6 +23,8 @@ import { UKIYOE_MAIKO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-maiko";
 import { samuraiDuel, samuraiKata, UKIYOE_KAMAE, UKIYOE_SAMURAI_LOOK } from "../../registry/video/ukiyoe/ukiyoe-katana";
 import { oniFight, UKIYOE_MOMOTARO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../../registry/video/ukiyoe/ukiyoe-town";
+import type { UkiyoeInteriorKind } from "../../registry/video/ukiyoe/ukiyoe-interior";
+import { interiorScene, UKIYOE_INTERIOR_KINDS } from "../../registry/video/ukiyoe/ukiyoe-interior";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -429,6 +431,14 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "kura", label: "Storehouse · namako base", params: { width: 160, height: 220 }, y: 330 },
   { motif: "yashiki", label: "Samurai residence · gatehouse", params: { width: 540, height: 150, pines: 3 }, y: 330 },
   { motif: "firetower", label: "Fire-watch tower · bell", params: { height: 300 }, y: 350 },
+  { motif: "room", label: "Room · fusuma, tokonoma, shelves", params: { width: 480, height: 250, depth: 80 }, y: 320 },
+  { motif: "room", label: "Farmhouse · earthen floor, thatch", params: { width: 480, height: 250, depth: 80, kind: "farmhouse", eave: "thatch" }, y: 320 },
+  { motif: "room", label: "Room at night · torn shoji", params: { width: 480, height: 250, depth: 80, back: ["shoji", "shoji", "marumado"], night: 1, torn: .8 }, y: 320 },
+  { motif: "andon", label: "Andon lamp", params: { height: 220 }, y: 340 },
+  { motif: "irori", label: "Irori hearth · kettle", params: { size: 260, hook: 320 }, y: 330 },
+  { motif: "futon", label: "Futon · mattress, quilt", params: { length: 420, sleeper: false }, y: 290 },
+  { motif: "loom", label: "Loom · beater, shed, cloth", params: { height: 230 }, y: 340 },
+  { motif: "byobu", label: "Byōbu folding screen", params: { height: 220, art: "pine" }, y: 330 },
 ];
 
 export function MotifGallery() {
@@ -606,6 +616,32 @@ export function CastleTown() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="A castle town handscroll panning from the castle to the merchant street" /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Scroll frame" />
+  </div>;
+}
+
+// ---- Interiors ----------------------------------------------------------------------------------------------------------------------
+
+const INTERIOR_LABELS: Readonly<Record<UkiyoeInteriorKind, string>> = {
+  inn: "Inn at night: guests by the lamp, a maid arriving", weaver: "The weaver at her loom", hearth: "Farmhouse hearth", bedroom: "Bedroom on a snowy night",
+};
+
+/** Rooms with the front wall taken away, as the prints draw them, with their figures at work and at rest. */
+export function Interiors() {
+  const [kind, setKind] = useState<UkiyoeInteriorKind>("inn");
+  const spec = useMemo(() => interiorScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Interiors" title="Rooms seen through the open front">
+      <p style={{ margin: 0 }}>Built by <code>interiorScene</code> from the <code>room</code> motif after Hiroshige's Akasaka inn and Harunobu's
+        parlours: tatami in staggered columns with their cloth borders, fusuma with painted bamboo or gold clouds, shoji, a tokonoma with a
+        hanging scroll, chigaidana shelves, a veranda. The room comes in two parts so the figures sit between the floor and the front posts.
+        The lamp flickers, the hearth burns and steams, the weaver's hand stays on the beater as it swings, a shoji slides open on the snow.</p>
+    </Header>
+    <section aria-label="Interior controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Room" value={kind} options={UKIYOE_INTERIOR_KINDS} onChange={setKind} labels={INTERIOR_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={INTERIOR_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Room frame" />
   </div>;
 }
 

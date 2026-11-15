@@ -17,6 +17,7 @@ import { darariSide, maiogi, OKOBO_HEIGHT, okoboSide, wareshinobuSide } from "./
 import type { SquareSword, UkiyoeKamae } from "./ukiyoe-katana";
 import { BLADE, katana, mon, reachArm, saya, swordAt, swordGeometry, swordSmear } from "./ukiyoe-katana";
 import { CLUB, clubAt, clubGeometry, groundCrack, kanabo, usesClub } from "./ukiyoe-oni";
+import { weaveBeat } from "./ukiyoe-interior";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 
 export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild" | "hyogo" | "kamuro" | "wareshinobu";
@@ -93,9 +94,9 @@ export interface UkiyoeFigureLook {
 
 export type UkiyoeActionType =
   | "walk" | "run" | "bow" | "wave" | "point" | "talk" | "look" | "kneel" | "pole" | "row" | "brace" | "dance"
-  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu" | "kyomai" | "draw" | "kamae" | "cut" | "sheathe" | "parry" | "recoil" | "drop" | "fall" | "smash" | "swing" | "evade";
+  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu" | "kyomai" | "draw" | "kamae" | "cut" | "sheathe" | "parry" | "recoil" | "drop" | "fall" | "smash" | "swing" | "evade" | "sleep" | "weave";
 export const UKIYOE_ACTIONS: readonly UkiyoeActionType[] = [
-  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu", "kyomai", "draw", "kamae", "cut", "sheathe", "parry", "recoil", "drop", "fall", "smash", "swing", "evade",
+  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu", "kyomai", "draw", "kamae", "cut", "sheathe", "parry", "recoil", "drop", "fall", "smash", "swing", "evade", "sleep", "weave",
 ];
 export interface UkiyoeAction {
   type: UkiyoeActionType;
@@ -113,7 +114,8 @@ export interface UkiyoeAction {
   back?: boolean;
   /** kamae: the guard — chūdan (middle), jōdan (overhead), hassō (upright by the shoulder) or waki (low, behind). */
   form?: UkiyoeKamae;
-  /** cut/parry in a duel: the point (local px, facing right, feet at the origin) the blade passes through on the
+  /** weave: the loom's beater bar at rest (local px, facing right, feet at the origin); `amount` is how far the beat
+   * pulls it in. cut/parry in a duel: the point (local px, facing right, feet at the origin) the blade passes through on the
    * `contact` frame, so two figures' blades cross exactly there; `parried` stops a cut on the other blade. */
   aim?: readonly [number, number];
   contact?: number;
@@ -238,6 +240,17 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
       case "evade": { const u = span(frame, a.start, a.end), k = Math.sin(Math.PI * u); target.crouch = .18 * k + .06; target.lean = -4 * k; target.lift = k * height * .03; target.hipF = 6; target.hipB = -6; target.knF = 12; target.knB = 10; break; }
       // Topple back about the heels: slowly at first, then all at once (and it stays down).
       case "fall": target.fall = span(frame, a.start, a.end) ** 2; break;
+      // Asleep: lying on the back (the fall pose, held), eyes closed, arms along the body, breathing slowly.
+      case "sleep": target.fall = 1; target.blink = 1; target.shF = 6 + 2 * Math.sin(t / 40); target.elF = 14; target.shB = 4; target.elB = 10; target.hipF = 2; target.hipB = -2; target.knF = 4; target.knB = 4; break;
+      // Weaving at a loom, kneeling: the near hand pulls the beater in on the beat, the far hand throws the shuttle
+      // while the shed is open. Timed by the absolute frame with the loom motif (weaveBeat), so the two agree.
+      case "weave": {
+        const w = weaveBeat(frame);
+        target.kneel = 1; target.lean = 8 + 6 * w.beat; target.tilt = 10;
+        target.shF = 62 - 20 * w.beat; target.elF = 40 + 30 * w.beat;
+        target.shB = 54 + 18 * w.pass; target.elB = 70 - 40 * w.pass;
+        break;
+      }
       case "recoil": { const k = Math.sin(Math.PI * span(frame, a.start, a.start + Math.min(14, len))) * .4 + span(frame, a.start, a.start + 8) * .6; target.lean = -16 * k; target.tilt = -20 * k; target.crouch = .2 * k; target.shF = 18; target.elF = 24; target.shB = 6; target.elB = 20; break; }
       case "kyomai": {
         // Kyōmai, the Kyoto dance: slow, held poses with the fan, each flowing into the next. A — the fan raised high to
@@ -707,6 +720,16 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     const gripR: Pt = [geo.tsuba[0] - u[0] * H * .03, geo.tsuba[1] - u[1] * H * .03], gripL: Pt = [geo.tsuba[0] - u[0] * H * .12, geo.tsuba[1] - u[1] * H * .12];
     [s.elF, s.wrF] = reachArm(s.shF, lerp2(s.wrF, gripR, w), up, fore, 1);
     [s.elB, s.wrB] = reachArm(s.shB, lerp2(s.wrB, lerp2(add(geo.koi, [H * .012, H * .012]), gripL, sword.grip), w), up, fore, 1);
+  }
+  // Weaving with an `aim` (the beater's top bar at rest, in the figure's frame): the near hand holds the bar and pulls
+  // it in on the beat, the far hand works the shuttle just behind it, both placed by IK so they stay on the loom.
+  const weave = (spec.actions ?? []).find(a => a.type === "weave" && a.aim && frame >= a.start && frame <= a.end);
+  if (weave?.aim) {
+    const wb = weaveBeat(frame), pull = weave.amount ?? H * .06, up = H * .165, fore = H * .15;
+    const gF: Pt = [weave.aim[0] - pull * wb.beat, weave.aim[1]];
+    const gB: Pt = [gF[0] - H * .03 - H * .025 * wb.pass, weave.aim[1] + H * .05 - H * .015 * wb.pass];
+    [s.elF, s.wrF] = reachArm(s.shF, gF, up, fore, 1);
+    [s.elB, s.wrB] = reachArm(s.shB, gB, up, fore, 1);
   }
   const { dir, squeeze } = facingAt(spec, frame);
   const tr = travelAt(spec.actions ?? [], frame);
