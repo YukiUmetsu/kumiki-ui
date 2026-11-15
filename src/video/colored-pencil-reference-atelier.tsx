@@ -13,10 +13,11 @@ import {
 } from "./colored-pencil-full-head";
 import {
   compareCC0PortraitTones,compareCC0HairOcclusion,
+  compareCC0Vermilion,
   CC0_HAIR_OCCLUSION_PROBE,
 } from "./colored-pencil-full-head-tone-proof";
 import type {
-  PencilToneComparison,CC0HairOcclusionResult,
+  PencilToneComparison,CC0HairOcclusionResult,CC0VermilionResult,
 } from "./colored-pencil-full-head-tone-proof";
 
 /**
@@ -158,6 +159,8 @@ export function ReferencePencilAtelier({
     useState<PencilToneComparison|null>(null);
   const [headOcclusion,setHeadOcclusion]=
     useState<CC0HairOcclusionResult|null>(null);
+  const [vermilionEvidence,setVermilionEvidence]=
+    useState<CC0VermilionResult|null>(null);
   const [faceMacroRegion,setFaceMacroRegion]=useState<"eyes"|"lips">("eyes");
   const [applyFaceCraft,setApplyFaceCraft]=useState(true);
   const [uploaded,setUploaded]=useState(false);
@@ -318,6 +321,7 @@ export function ReferencePencilAtelier({
     const rendered=ink.getImageData(0,0,dry.width,dry.height);
     setHeadToneComparison(compareCC0PortraitTones(original,rendered));
     setHeadOcclusion(compareCC0HairOcclusion(original,rendered));
+    setVermilionEvidence(compareCC0Vermilion(original,rendered));
   },[headPlate,raw]);
   useEffect(()=>{
     if(!showHairContact||!headPlate)return;
@@ -829,6 +833,22 @@ export function ReferencePencilAtelier({
                 headPlate.facialPlaneCounts["nasal-alar"]} fibres.
               Research only, independent likeness and artistry NOT APPROVED.
             </p>
+            {vermilionEvidence&&<p
+              data-km-pencil-vermilion-proof="ready"
+              data-km-pencil-vermilion-upper-deficit={
+                vermilionEvidence.regions[0].lightnessDeficit.toFixed(1)}
+              data-km-pencil-vermilion-lower-deficit={
+                vermilionEvidence.regions[1].lightnessDeficit.toFixed(1)}
+              style={{fontSize:12,margin:"6px 0 0"}}>
+              Licensed source → actual dry pencil, 7×7 luma (0 dark,
+              255 ivory):
+              {" "+vermilionEvidence.regions.map(
+                r=>r.name+" "+r.sourceLuminance.toFixed(1)+"→"+
+                  r.drawnLuminance.toFixed(1)).join(" · ")}.
+              Negative gate: {" "+(vermilionEvidence.missingVermilionPigment?
+                "MISSING PIGMENT / FAIL":"TECHNICAL THRESHOLD ONLY")}.
+              No independent ArtCraft artistic approval.
+            </p>}
           </section>}
           <label style={{display:"flex",alignItems:"center",gap:8,
             marginTop:13,fontSize:13}}>
