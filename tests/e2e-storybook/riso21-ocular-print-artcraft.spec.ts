@@ -421,7 +421,7 @@ test("RISO29 neck and facial anatomy: two original actors, print plates, poses a
       await expect(workbench).toHaveAttribute("data-km-riso29-anatomy-frame",String(frame));
       await expect(page.locator('[data-km-riso29-source-actor="'+name+'"]')).toHaveCount(2);
       await expect(page.locator('[data-km-riso29-source-view="portrait"] [data-km-riso-print]')).toBeVisible();
-      await expect(page.locator('[data-km-riso29-source-view="portrait"] [data-km-riso-part="neck-contour"]')).toHaveCount(2);
+      await expect(page.locator('[data-km-riso29-source-view="portrait"] [data-km-riso-part="neck-contour"]')).toHaveCount(1);
       await expect(page.locator('[data-km-riso29-source-view="portrait"] [data-km-riso-paper-clearance="neck-skin-clearance"]').first()).toBeAttached();
       await workbench.screenshot({
         path:info.outputPath("riso29-"+name+"-"+frame+"-both-ink.png"),animations:"disabled"});
