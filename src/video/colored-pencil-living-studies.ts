@@ -1187,8 +1187,12 @@ export function pencilLivingStudyDrawing({
         tonalSupportWeight:.64,
       }:region.craft,
       clipDetails:part.id==="whisker-roots"||
+        // Fox guard hairs explicitly rooted on the tail perimeter must be
+        // permitted to lift *outside* the opaque caudal silhouette. The
+        // previous generic fur clip cut off these external brush ends and
+        // made the tail an unnaturally smooth sausage in actual Chromium.
         (subject==="fox"&&(part.id==="nose"||part.id==="muzzle"||
-          ["chest","neck-ruff","cheek-ruff"].includes(part.id)))||
+          ["chest","neck-ruff","cheek-ruff","tail-back","tail-tip"].includes(part.id)))||
         (subject==="portrait"&&
           ["brows","eye-white-far","eye-white-near"].includes(part.id))?
         false:region.clipDetails, layers:region.layers.map((layer,index)=>({
