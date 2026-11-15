@@ -467,6 +467,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const [showReference,setShowReference]=useState(true);
   const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
   const [eyeContact,setEyeContact]=useState<"source-shade"|"source-value"|"baseline">("source-shade");
+  const [browForm,setBrowForm]=useState<"baseline"|"source-rooted">("baseline");
   const [midfaceForm,setMidfaceForm]=useState<"source-volume"|"baseline">("baseline");
   const [jawNeckForm,setJawNeckForm]=useState<"source-contour"|"baseline">("baseline");
   const [lashFinish,setLashFinish]=useState<"sparse"|"rooted">("sparse");
@@ -474,8 +475,8 @@ export function Cc0SourceRegisteredFaceWorkbench({
     "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|
     "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right">("full");
   const spec=useMemo(()=>crayonCc0FaceStudy({
-    detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,midfaceForm,jawNeckForm,lashFinish,
-  }),[detail,view,fiberMaterial,eyeContact,midfaceForm,jawNeckForm,lashFinish]);
+    detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish,
+  }),[detail,view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish]);
   const framed=useMemo(()=>{
     if(inspection==="full")return spec;
     const focus={
@@ -581,6 +582,13 @@ export function Cc0SourceRegisteredFaceWorkbench({
           <option value="source-shade">Source-led iris, lids and root wax (experiment)</option>
           <option value="source-value">Deeper source-measured wax eye values (experiment)</option>
           <option value="baseline">Unchanged previous eye (negative control)</option>
+        </select>
+      </label>
+      <label>Source eyebrow pigment roots{" "}
+        <select aria-label="F1 source-brow wax" value={browForm}
+          onChange={e=>setBrowForm(e.target.value as "baseline"|"source-rooted")}>
+          <option value="baseline">Previous diffuse eyebrow wash (negative control)</option>
+          <option value="source-rooted">Connected opaque wax brow and irregular rooted fibers (experiment)</option>
         </select>
       </label>
       <label>Source eyelash root density{" "}
