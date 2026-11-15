@@ -100,7 +100,7 @@ export function riso32ThumbParts(side:Riso32Hand,actor:"courier"|"paper-artist")
     id:name,joint,plate:"blue",paint:"screen",screenTone:"light",d,
   });
   const dir=handed(side);
-  const edge=(w:number,y:number)=>rounded(w*dir);
+  const edge=(w:number)=>rounded(w*dir);
   return [
     solid(prefix,names[0],thumbPath(side,"proximal",actor)),
     solid(prefix+"-mcp-phalanx",names[1],thumbPath(side,"middle",actor)),
@@ -108,10 +108,10 @@ export function riso32ThumbParts(side:Riso32Hand,actor:"courier"|"paper-artist")
     // Both are real independently moving anatomical crease paths, refined
     // as light-coverage cobalt ink to avoid a heavy black ring on red hands.
     blue(prefix+"-mcp-crease",names[1],
-      `M${edge(-.95,0)} -2.7 Q0 -3.15 ${edge(1.05,0)} -2.65 L${edge(1.1,0)} -2.22 Q0 -2.65 ${edge(-.92,0)} -2.25 Z
-M${edge(-.72,0)} 2.02 Q0 1.78 ${edge(.72,0)} 2.05 L${edge(.73,0)} 2.36 Q0 2.12 ${edge(-.73,0)} 2.34 Z`),
+      `M${edge(-.95)} -2.7 Q0 -3.15 ${edge(1.05)} -2.65 L${edge(1.1)} -2.22 Q0 -2.65 ${edge(-.92)} -2.25 Z
+M${edge(-.72)} 2.02 Q0 1.78 ${edge(.72)} 2.05 L${edge(.73)} 2.36 Q0 2.12 ${edge(-.73)} 2.34 Z`),
     blue(prefix+"-ip-crease",names[2],
-      `M${edge(-.9,0)} -2.45 Q0 -2.88 ${edge(.9,0)} -2.38 L${edge(.85,0)} -2.0 Q0 -2.46 ${edge(-.87,0)} -2.05 Z`),
+      `M${edge(-.9)} -2.45 Q0 -2.88 ${edge(.9)} -2.38 L${edge(.85)} -2.0 Q0 -2.46 ${edge(-.87)} -2.05 Z`),
   ];
 }
 export const riso32ThumbForegroundIds=(side:Riso32Hand):readonly string[]=>[
