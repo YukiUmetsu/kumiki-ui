@@ -105,7 +105,9 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   const detail=options.detail??1,view=options.view??"wax";
   const fiberMaterial=options.fiberMaterial??"dry-wax";
   const eyeContact=options.eyeContact??"source-shade";
-  const midfaceForm=options.midfaceForm??"source-volume";
+  // Source-aligned mouth/nasal experiment failed native visual review.
+  // Preserve the previous baseline by default until strict ArtCraft passes.
+  const midfaceForm=options.midfaceForm??"baseline";
   if(!Number.isFinite(detail)||detail<.2||detail>1||
     !["wax","anatomy"].includes(view)||
     !["line","dry-wax"].includes(fiberMaterial)||
