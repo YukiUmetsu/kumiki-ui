@@ -268,6 +268,40 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("roots irregular bamboo brush fans at the same real painted culm joints",()=>{
+    for(const scene of SHANSHUI_SCENES){
+      const full=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:153,controls:{...DEFAULT_SHANSHUI,scene,detail:1},
+      }));
+      const roots=[...full.matchAll(/data-km-bamboo-branch-root="([^"]+)"/g)]
+        .map(m=>m[1]);
+      const nodes=[...full.matchAll(/data-km-bamboo-node="([^"]+)"/g)]
+        .map(m=>m[1]);
+      expect(roots).toHaveLength(21);
+      expect(nodes).toHaveLength(21);
+      expect(new Set(roots)).toEqual(new Set(nodes));
+      expect((full.match(/data-km-bamboo-pressure-twig=""/g)??[]))
+        .toHaveLength(21);
+      expect((full.match(/data-km-bamboo-dry-lift=""/g)??[]))
+        .toHaveLength(42);
+      // A real painted fan uses more than one curve/ink weight. It is
+      // not a repeated identical triangular leaf clip-art template.
+      const blades=[...full.matchAll(
+        /data-km-shanshui-bamboo-leaf="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      expect(blades).toHaveLength(105);
+      expect(new Set(blades).size).toBeGreaterThan(100);
+      expect(blades.every(d=>d.includes(" C")&&d.endsWith(" Z"))).toBe(true);
+      expect(full).not.toMatch(/NaN|Infinity|undefined/);
+      const sparse=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:153,controls:{...DEFAULT_SHANSHUI,scene,detail:.35},
+      }));
+      expect((sparse.match(/data-km-shanshui-bamboo-leaf=""/g)??[]))
+        .toHaveLength(42);
+      expect(sparse).not.toContain("data-km-bamboo-dry-lift");
+    }
+  });
+
   it("samples the same final absolute frame for reduced-motion scenery and actor",()=>{
     for(const requestedFrame of [0,88,200,299]){
       const html=renderToStaticMarkup(createElement(InkShanshuiFilm,{
