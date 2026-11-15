@@ -1,0 +1,54 @@
+# ArtCraft failure analysis and new coloured-pencil medium path
+
+Date: 2026-11-14. **Status: implementation prototype, not aesthetic acceptance.**
+
+## User-facing problem — the earlier previews are not acceptable
+
+The actual displayed fox and kingfisher proofs from the preceding PR were smooth, flat vector cartoons with sparse decorative lines. Even after a local isolated 900×506 material proof introduced gradient-like hatching and paper grain, the animals still looked cartoonish: oversized, oversimplified silhouettes did not encode the eye, skull, feather, fur or limb forms found in good colour-pencil drawings. This is a **geometry/shape fidelity failure** and a **pigment medium failure**, not solved by layering more random marks on the same geometry. The prior proof is not a final artistic demonstration.
+
+**Quality principle:** for an editable hand-authored scene, improve anatomy and local topology first; for any photograph-driven realistic illustration, preserve the input's actual anatomy/contours as a source-conditioned tone and mark field instead of trying to reconstruct a full realistic face from eight rectangles. The latter needs permission to use the input photographs. Neither branch claims arbitrary realistic scene synthesis from a text prompt.
+
+## Research
+
+- [Janie Gildow, coloured pencil layering](https://janiegildow.com/): Light pressure in layers, paper tooth, value transitions and selective burnishing matter more than outlines. Avoid solid flood fills with thin decoration.
+- [Faber-Castell Polychromos](https://www.faber-castell.com/): multiple translucent layers, dry pencil marks and tooth make luminous colour; opaque underpainting should be used sparingly.
+- [Claire Milligan, original wildlife artworks](https://www.clairemilliganart.com/originalsforsale): observational fur/feather form, coherent eye/nose geometry, complex local hair orientation, and paper-grain contrast. Her artworks are **not** available for redistribution and were not copied.
+- [Matsui et al. (2004), coloured-pencil strokes directed by region boundaries](https://www.jstage.jst.go.jp/article/aiieej/32vc/0/32vc_0_43/_article/-char/en): supports direction-consistent marking at boundaries.
+- [Lu et al. (2012), synthesis of tonal pencil drawings](https://www.cse.cuhk.edu.hk/leojia/projects/pencilsketch/npar12_pencil.pdf): tone and structural contours are distinct stylization problems.
+- [Wang et al. (2023), feature-preserving colour-pencil drawings](https://link.springer.com/article/10.1007/s41095-022-0320-6): source-feature preservation, lifted luminosity, reduced saturation. The implementation below is a **new limited heuristic**, not a paper reproduction or the authors' source code.
+- [Li et al., Im2Pencil (CVPR 2019)](https://mlanthology.org/cvpr/2019/li2019cvpr-im2pencil/): an illustration-conditioned transformation requires a substantially stronger learned style model for high artistic fidelity; the prototype is not equivalent to such a system.
+
+## Implementation route A — opt-in material-native vector rendering
+
+Files: `registry/video/colored-pencil-craft.ts`, `registry/video/colored-pencil.ts`, `registry/video/colored-pencil-react.tsx`, `registry/video/colored-pencil-materials.ts`.
+
+Adds an optional per-region `craft` profile (medium family, burnish, light, tooth) to CP1. Only opted-in solids receive translucent highlight/midtone/shadow colour gradient; the paper-backed occlusion base remains. A separate 64-unit repeating grain tile uses 850 deterministic pores. Additional seeded grain-stabilized short quadratic micro marks are arranged in three color families, capped to 2100 marks per region for SSR/export control. Opaque transparency behavior of glass/shadows remains unchanged. Heavy graphite contours and broad CAD hatch are attenuated only in craft mode. Previous callers with no `craft` retain their existing rendering.
+
+Enabled in source code for original fox/kingfisher, portrait/landscape and rose/fabric/architecture materials, but **still limited** by those authored silhouettes. Storybook Living Subjects adds an explicit **Layered pencil (new) / Flat vector (old)** A/B selector and burnish slider; both use the identical input geometry so morphology deficiencies remain visible.
+
+## Implementation route B — reference-image-conditioned anatomy-first rendering
+
+Files: `src/video/colored-pencil-photo.ts` and `src/video/colored-pencil-reference-atelier.tsx`.
+
+A second source-conditioned pipeline uses an actual photograph (via user upload or confirmed public-domain test images), producing an RGBA paper-lifted pigment buffer, local Sobel image-gradient vectors, tangent-oriented short colour-pencil strokes, three deterministic mark passes and an absolute frame-to-mark-count timeline. Its options include paper lift, hue/saturation, contour strength, tooth and mark density. **This preserves human/wildlife anatomy already present in the input**, instead of calling a flat oval a fox's skull.
+
+The new **ArtCraft · Reference-guided real anatomy (experimental)** Storybook story lives in the original `Video Production/Film Looks/Colour-pencil` root, no new folder. The browser offers landscape/portrait, two license-checked example wildlife photographs, local PNG/JPEG/WebP upload, drawing playback, frame seek and client-only PNG export. No source image is sent to a project backend.
+
+Public domain sources and attribution:
+- **Red fox photograph**: Sarvis John, U.S. Fish and Wildlife Service (public-domain US government work), [Wikimedia Commons file and license](https://commons.wikimedia.org/wiki/File:Red_fox_detailed_photo.jpg). Example image only loaded by direct URL at runtime; bytes are not committed.
+- **Kingfisher photograph**: Vincent van Zalinge, prior Unsplash CC0 release (2015), [Wikimedia Commons file and license history](https://commons.wikimedia.org/wiki/File:Perched_blue_and_orange_bird_(Unsplash).jpg). Public-domain/CC0 status belongs to the original upload; do not assume all modern Unsplash images carry the same rights.
+
+An externally hosted reference image can deny cross-origin canvas reads. In this case the atelier reports an error and supports local uploading instead of silently exporting blank pixels. Local File object URLs are revoked after replacement and unmount; 16 MB limit and MIME type allowlist apply. Users should only upload imagery they own or have permission to transform.
+
+## Tests and honesty boundaries
+
+`tests/colored-pencil-craft.test.tsx` guards opt-in backward compatibility, high-density mark bounds, tooth reproducibility, multi-color gradient and all original material studies. `tests/colored-pencil-photo.test.ts` uses a generated synthetic source with orange and blue regions plus a dark eye-shaped feature to validate colour separation, feature-conditioned stroke directions, seed/frame determinism and input bounds. Optional `tests/e2e-storybook/colored-pencil-photo.spec.ts` creates its input image in-browser (no external CORS or test-image download), reads finished canvas pixels and captures both aspects at middle and complete frames. Existing manual-only proof workflow includes the new browser and unit tests; routine pull requests remain on the smaller CI contract.
+
+**Open gates before calling it actual coloured-pencil artwork:** browser screenshots of real USFWS fox and CC0 kingfisher (not just synthetic fixture), 2–4× hair and feather crops, measuring grain/gaps and dark eye legibility, full-speed animated video and source/target five-axis ArtCraft comparison. The heuristic conditioned mode may still look like a filtered photograph with decorative strokes. A true realistic-pencil art engine may require artist-authored detailed anatomy, a licensed reference-driven training dataset, or a local image-to-image model. That is an unresolved visual challenge, not fixed by green unit tests.
+
+## Next craft iteration after this code foundation
+
+1. Use one licensed reference wildlife photograph and manually inspect **the same image** before/after at 1× and 4× for pigment density, stroke alignment, paper exposure and eye clarity.
+2. Separate background/foreground segmentation for paper void, material-specific hatching (muzzle fine whiskers vs long fur), accurate local form direction using tensor field rather than only Sobel tangent, true multi-stage deposit order and a temporal stroke construction sequence.
+3. Compare source-conditioned output against human-created coloured-pencil artwork by macro-scale semantics, local topology, curvature, stroke widths, micro texture and values (only when rights permit).
+4. Review actual 16:9/9:16 exports for frames per second and memory; cap worst-case Canvas reprocessing, and avoid expensive full-frame rerender when only a transport advances one frame.

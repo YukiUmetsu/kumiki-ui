@@ -1,3 +1,5 @@
+import type { PencilCraftFinish } from "./colored-pencil-craft";
+
 /** CP1: deterministic, data-only coloured-pencil geometry. No frame clock, renderer or source assets.
  * Each stroke retains its own pressure, direction and drying-independent paper position.
  */
@@ -52,6 +54,10 @@ export interface PencilRegion {
    * Opt-in, preserving exterior construction and guide marks in legacy drawings.
    */
   clipDetails?: boolean;
+  /** Opt-in paper tooth, tonal deposition and densely layered microstrokes.
+   * It does not infer or replace authored anatomy/contours.
+   */
+  craft?: PencilCraftFinish;
 }
 export interface PencilDrawingSpec {
   version: 1;
@@ -131,6 +137,13 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
       issues.push(at + ".opaqueSupport: expected a boolean.");
     if (region.clipDetails !== undefined && typeof region.clipDetails !== "boolean")
       issues.push(at + ".clipDetails: expected a boolean.");
+    if (region.craft !== undefined) {
+      const c=region.craft;
+      if(!c || !["fur","feather","skin","hair","foliage","wood","fabric",
+        "stone","metal","water","keratin","ocular","general"].includes(c.kind) ||
+        ![c.burnish,c.light,c.tooth].every(n=>Number.isFinite(n)&&n>=0&&n<=1))
+        issues.push(at+".craft: finite medium profile required.");
+    }
     if (!validTrace(region.contour)) issues.push(at + ".contour: invalid graphite stroke.");
     if (!Array.isArray(region.layers) || region.layers.length < 1 || region.layers.length > 6) {
       issues.push(at + ".layers: require 1–6 pigment passes.");

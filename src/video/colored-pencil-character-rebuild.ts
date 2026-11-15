@@ -61,9 +61,14 @@ function part(input:PartInput):PencilActorPart {
       id:input.id,path:input.path,bounds:input.bounds,palette:input.colors,
       surface:input.material,seed,startFrame:input.startFrame??36,durationFrames:158,
       direction:input.direction,flow:input.flow,details:input.details,
+      craft:true,
     });
+  const craft = input.material==="feather"?{
+    kind:"feather" as const,burnish:.67,light:.20,tooth:.85,
+  }:region.craft;
+  const crafted={...region,craft};
   return {id:input.id,parent:input.parent,pivot:input.pivot,keys:input.keys??neutral,
-    region:input.freeDetails?{...region,clipDetails:false}:region};
+    region:input.freeDetails?{...crafted,clipDetails:false}:crafted};
 }
 const strokeFox=(guides:Parameters<typeof flowBundles>[0],seed:number,
   color="#F8D0A4",width=.62,start=205)=>flowBundles(guides,seed,color,width,start);

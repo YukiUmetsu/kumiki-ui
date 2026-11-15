@@ -28,14 +28,20 @@ export function PencilLivingAtelier() {
   const [frame,setFrame]=useState(325);
   const [tooth,setTooth]=useState(.76);
   const [pressure,setPressure]=useState(1);
+  const [renderMode,setRenderMode]=useState<"layered"|"legacy">("layered");
+  const [burnish,setBurnish]=useState(.72);
   const [seed,setSeed]=useState(271);
   const [speed,setSpeed]=useState(1);
   const [focus,setFocus]=useState(false);
   const [reduce,setReduce]=useState(false);
   const [playing,setPlaying]=useState(false);
-  const drawing=useMemo(()=>pencilLivingStudyDrawing({
-    subject,aspect,paperTooth:tooth,pressure,seed,
-  }),[subject,aspect,tooth,pressure,seed]);
+  const drawing=useMemo(()=>{
+    const base=pencilLivingStudyDrawing({subject,aspect,paperTooth:tooth,pressure,seed});
+    return {...base,regions:base.regions.map(region=>({
+      ...region,craft:renderMode==="legacy"?undefined:region.craft?
+        {...region.craft,burnish}:undefined,
+    }))};
+  },[subject,aspect,tooth,pressure,seed,renderMode,burnish]);
   useEffect(()=>{
     if (!playing||reduce) return;
     const started=performance.now(),offset=frame;
@@ -91,6 +97,18 @@ export function PencilLivingAtelier() {
           onChange={e=>{setPlaying(false);setAspect(e.target.value as PencilAspect);}}>
           <option value="landscape">16:9</option><option value="portrait">9:16</option>
         </select>
+      </label>
+      <label style={labelStyle}>Medium reconstruction
+        <select aria-label="Living craft rendering" value={renderMode}
+          style={selectStyle}
+          onChange={e=>setRenderMode(e.target.value as typeof renderMode)}>
+          <option value="layered">Layered pencil (new)</option>
+          <option value="legacy">Flat vector (old / compare)</option>
+        </select>
+      </label>
+      <label style={labelStyle}>Pigment burnish · {Math.round(burnish*100)}%
+        <input aria-label="Living burnish" type="range" min=".2" max="1" step=".05"
+          value={burnish} onChange={e=>setBurnish(Number(e.target.value))}/>
       </label>
       <label style={labelStyle}>Pigment strength · {Math.round(pressure*100)}%
         <input aria-label="Living pressure" type="range" min=".2" max="1.2"
@@ -162,9 +180,11 @@ export function PencilLivingAtelier() {
       </nav>
     </div>
     <p style={{margin:0,maxWidth:920,fontSize:13,color:"#697B78"}}>
-      These are original construction and material studies. The macro lens is Storybook-only.
-      They are not claimed to match any specific artist's composition or to demonstrate photorealism.
-      Final browser pixel inspection and real-time animation acceptance are separate quality gates.
+      Compare the earlier flat underpaint with the new layered, dry-to-burnished
+      paper-tooth pigment renderer using the medium selector. The same original
+      anatomy/geometry is retained in both modes: richer pigment does not fix
+      a simplified silhouette. Macro zoom is Storybook-only. Reference-matched
+      realism, final Chromium crop review and full-speed film acceptance remain open.
     </p>
   </main>;
 }
