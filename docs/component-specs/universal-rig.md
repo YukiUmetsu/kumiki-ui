@@ -2,7 +2,7 @@
 
 **Registry pack:** `universal-rig` (depends on `motion-track`, `crayon-storybook`)
 **Files:** `registry/rig/rig-spec.ts` (contract + validation), `rig-evaluate.ts` (pure evaluator), `rig-kit.ts` (authoring
-builder and shape helpers), `rig-presets-living.ts`, `rig-presets-machines.ts`, `rig-presets.ts` (catalogue and re-exports),
+builder and shape helpers), `rig-presets-living.ts`, `rig-presets-machines.ts`, `rig-presets-nature.ts` (frog, snake, leaf, petals), `rig-presets-actions.ts` (person actions with props), `rig-flutter.ts` (falling-plate kinematics), `rig-presets.ts` (catalogue and re-exports),
 `rig-react.tsx` (six painters, `RigScene`, `RigFigure`, `RigLayer`, `followCamera`)
 **Storybook:** Video production → Film Looks → Universal Rig → **One rig, any film look**, **Action sheet**, **Rig parade**,
 **Rigs inside a collage film**
@@ -47,6 +47,12 @@ draws the same pose.
   | `clock` | Hour/minute/second hands from clock-time keys; seconds can tick once a second with a settle. |
   | `emitter` | Recycled particles (smoke, fire, tyre smoke) born at a bone and left behind in the world as the root moves. |
   | `variant` | Seeded blinks, keyed drawings, talking mouth on a syllable rhythm. |
+  | `serpent` | Lateral undulation: the chain (head first) lies on a sine track fixed to the ground and slides along it as the root travels, so every point of the body passes where the head was, with no sideways slip; the head swings less than the body (`head`). |
+  | `drift` | Flat particles (petals, leaves, snow, confetti) released in an area, carried by gusty wind and falling in the flutter or tumble regime of a light plate (`rig-flutter.ts`), recycled after `life` frames. |
+- Tracks also take `shear`, so a flat part (a leaf, a petal, a pancake) can be projected tilted in depth with rotate, scale
+  and shear. A part's `backColor` shows when its bone is mirrored (the paler underside of a flipped leaf), and `side`
+  draws a part only on the front or the back face (veins on top, raised pale veins underneath).
+- `shadows` lists bones that cast a soft ground shadow straight below them (a frog in mid-leap, a skittering leaf).
 - `inspectRig(input)` returns every problem with its path; painters throw on an invalid rig.
 
 ## Presets
@@ -57,7 +63,11 @@ or is staged on screen:
 
 | Subject | Motions |
 | --- | --- |
-| Person | idle, walk (heel-to-toe, body lowest in double support), run (flight phase), wave, talk, cheer, sit (on a chair, gestures while talking), sit-down and stand-up (hip hinge, feet step, hands to knees), jump (crouch, arm swing, knee tuck, land and absorb), point, think, clap, bow, dance (120 bpm), phone |
+| Person | idle, walk (heel-to-toe, body lowest in double support), run (flight phase), wave, talk, cheer, sit (on a chair, gestures while talking), sit-down and stand-up (hip hinge, feet step, hands to knees), jump (crouch, arm swing, knee tuck, land and absorb), point, think, clap, bow, dance (120 bpm), phone, shoot (draw from the hip, bladed two-hand stance, three shots with muzzle rise, flash and ejected casings, lower to ready), box (guard, jab–jab–cross with the body leaning into the cross, duck), kick (front snap kick: chamber, snap, rechamber), sword (two-handed overhead cut: raise, step in, cut in a few frames with a swoosh, dead stop, zanshin, back to the middle guard), chop (rocking knife at a counter, slices tipping over, guiding knuckles walking along), pan-toss (pan shaken and see-sawed over a gas flame, then a flip: push, jerk back with the lip rising, pancake turning over in the air, steam) |
+| Frog | idle (throat pumping, blinks), hop (long leaps: take-off off planted toes, legs trailing in flight, forelegs land first, hind legs fold back), croak (throat sac fills with the mouth shut, flanks squeeze, calls in bouts) |
+| Snake | slither (lateral undulation seen from a raised camera, tongue flicks), idle (coiled, neck raised in an S, tongue flicks), strike (cocks, lunges a third of its length in two frames gaping, holds, recoils) |
+| Leaf | sway (on a twig, fluttering and flashing undersides in gusts), fall (zigzag flutter with a tumble, settles flat), fall-water (lands on a pond, floats and turns, ripples spread), blow (skitters along the ground in three gusts, flipping end over end) |
+| Cherry-blossom petals | blow (a stream of petals on a gusty breeze, tumbling and fluttering), fall (a slow petal rain) |
 | Dog, cat | idle, walk (lateral sequence), trot (diagonal with suspension), canter (three-beat), gallop (rotary, spine flexing between extended and gathered suspensions), sit |
 | Horse | idle, walk, trot, canter, gallop (transverse, timed from Muybridge's 15-frame stride: hinds land at 0 and .1, fores at .27 and .4, ~30% gathered suspension; straight stance columns on sinking fetlocks, legs folded under in the suspension, reaching straight before landing; pitch, bob and head nod locked to the footfalls; neck lengthening with pace) |
 | Songbird | fly (projected wingbeat), glide, perch, hop, peck |
@@ -158,11 +168,37 @@ Source: Muybridge, *Animal Locomotion*, [Plate 533, "Movement of the hand; clasp
 | The clap swings the hands apart across the body, which is invisible in pure profile. | Apart pose cheats depth: the near hand comes toward the camera (scale 1.1, fanned −14°, lifted); the far hand recedes (scale 0.94, +10°). |
 | About three claps a second, fast into the hit and slower out, with the body answering each hit. | 10-frame beat: ease-in to contact with a one-frame squash, ease-out apart. The torso, head and pelvis jolt on each contact, the head a frame late. |
 
+## Reference study: frog jump
+
+Source: Li et al., [frame sequence of a *Rana dybowskii* jump](https://commons.wikimedia.org/wiki/File:Frame-Sequence-of-Rana-dybowskii-Jump.jpg) (CC BY 4.0, side and top views). Landing mechanics: Nauwelaerts & Aerts, "Take-off and landing forces in jumping frogs", *J Exp Biol* 209 (2006).
+
+| Observation | Construction rule |
+| --- | --- |
+| Crouch: the hind leg folds in a Z (thigh forward, shank back, long foot forward under the chest); forelegs prop the chest; the back slopes up to the head with a sacral hump. | Body pitched −22° about the hip; the thigh and shank are solved by IK from the hip to a planted ankle; tarsus and toes lie flat forward. |
+| Take-off: the leg straightens until hip, knee, ankle and toes form one line about 30–40° below horizontal; the toes leave last. | The toe tip stays planted while the hip travels to the end of the straight leg; the hip and knee extend first and the foot rolls off its toes late (proximal to distal). |
+| Flight: the legs trail straight behind, in line with the body; the forelegs swing from hanging to reaching down and forward. | Leg angles follow the body axis with a decreasing droop; the body follows a parabola timed from the take-off speed. |
+| Landing: forelegs fully extended touch first, the body pitched nose-down, the hind legs still high behind; then they fold forward and the frog settles back into the crouch. | Hands are planted at the next crouch's spot by IK; the hind legs pass through a tuck (thighs up and back, feet up) over 12 frames and land in the crouch. |
+
+## Reference study: boxing, shooting, sword and kitchen actions
+
+Boxing source: Muybridge, [Athletes boxing](https://commons.wikimedia.org/wiki/File:Athletes_boxing.gif) (*The Attitudes of Animals in Motion*, public domain), studied frame by frame. Snake strike timing: Penning, Sawvel & Moon, "Debunking the viper's strike", *Biology Letters* (2016), ~70 ms to contact. Pan: Ko & Hu, "The physics of tossing fried rice", *J R Soc Interface* (2020). Falling plates: Belmonte, Eisenberg & Moses (PRL 1998), Pesavento & Wang (PRL 2004, JFM 2005), Auguste, Magnaudet & Fabre (JFM 2013).
+
+| Observation | Construction rule |
+| --- | --- |
+| Boxers stand wide and staggered, knees bent; the punching arm goes fully straight at shoulder height while the other fist stays at the face; on a straight rear-hand punch the body leans ~20° and the rear leg drives straight. | Guard fists at the jaw and eye line; jabs snap out in 3 frames and back in 5; the cross turns the torso to 20° and slides the pelvis forward over planted feet. |
+| A snake strike reaches the target in 50–90 ms with the mouth opening on the way. | Two frames out (30 fps), a three-frame gape hold, an eight-frame recoil into the S. |
+| Wok and pan tossing is a double pendulum: the pan slides and see-saws about a radian out of phase, ~2.7 times a second, pivoting on the stove. | Shake cycle of 11 frames with a 1-radian lag between slide and tilt; a flip pushes forward, then jerks back with the far lip rising; the pan dips to catch. |
+| Falling plates flutter (level mid-swing, pitched up at the ends of each swing, rising briefly) or tumble (autorotation with sideways drift), with slow precession. | `flutterState` in closed form plus `projectPlate` (camera 29° above): leaves narrow, shear and show their back face as they turn. |
+
+Every prop is a keyed bone and the hands reach for its grip points, so a test can check that no hand leaves the gun, sword, knife or pan.
+
 ## Limits
 
 - Side-on 2D rigs: no full turnarounds. Turns in depth extrude the side outline across the figure's width (an
   orthographic solid): good to about ±30° of yaw; beyond that a real 3/4 drawing is needed.
-- No mesh deformation (parts are rigid); wings and membranes are planar.
+- No mesh deformation (parts are rigid); wings and membranes are planar. Snake bodies are capsule chains, so outlines
+  show faint seams in looks that stroke every part.
+- Leaves, petals and food turn in depth by projection of a flat plate; they have no thickness or curl.
 - Gaits assume flat ground at `ground`; no slopes or stairs. Quadruped legs are two-segment chains with a curling foot.
 - Older style-specific character systems (crayon, ink, watercolour, riso characters, the collage puppet) are not
   migrated; RIG1 is the recommended base for new work.

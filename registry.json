@@ -3546,6 +3546,21 @@
           "target": "components/rig/rig-presets-machines.ts"
         },
         {
+          "path": "registry/rig/rig-presets-nature.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-presets-nature.ts"
+        },
+        {
+          "path": "registry/rig/rig-presets-actions.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-presets-actions.ts"
+        },
+        {
+          "path": "registry/rig/rig-flutter.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-flutter.ts"
+        },
+        {
           "path": "registry/rig/rig-presets.ts",
           "type": "registry:ui",
           "target": "components/rig/rig-presets.ts"
