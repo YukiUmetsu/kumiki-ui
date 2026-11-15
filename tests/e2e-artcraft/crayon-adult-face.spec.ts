@@ -163,3 +163,36 @@ for(const mode of [{aspect:"landscape",width:960,height:540},
     expect(errors).toEqual([]);
   });
 }
+
+/** Same CRAYON1 engine, geometry and seed in both panels.
+ * Only the opt-in contact finish changes. Native Chromium pixels are required:
+ * DOM assertions and green test status are not artistic validation.
+ */
+test("ArtCraft two-up hand-laid crayon wax versus polished wax reference",
+  async({page},info)=>{
+    const smooth=crayonCc0NearEyeStudy("landscape",1,"smooth");
+    const hand=crayonCc0NearEyeStudy("landscape",1,"stroke-built");
+    await page.setViewportSize({width:1300,height:780});
+    const panel=(name:string,spec:typeof hand,frame:number)=>
+      createElement("figure",{style:{margin:0,width:"620px"}},
+        createElement("figcaption",{style:{font:"bold 16px Arial",padding:"10px"}},name),
+        createElement("div",{style:{width:"620px",height:"349px"}},
+          createElement(CrayonScene,{spec,frame})));
+    const markup=renderToStaticMarkup(createElement("main",
+      {style:{display:"flex",gap:"12px",background:"#f7ecdc",padding:"12px"}},
+      panel("Legacy smooth wax",smooth,299),
+      panel("Stroke-built crayon contacts",hand,299)));
+    const errors:string[]=[];
+    page.on("pageerror",error=>errors.push(error.message));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+
+      markup+"</body></html>");
+    await expect(page.locator('g[data-km-crayon-deposition="smooth"]').first()).toBeAttached();
+    await expect(page.locator('g[data-km-crayon-deposition="stroke-built"]').first()).toBeAttached();
+    await expect(page.locator('g[data-km-crayon-cross-contact="second"]').first()).toBeAttached();
+    await expect(page.locator('[data-km-crayon-underpaint="opaque"]').first()).toBeAttached();
+    const captures=page.locator("svg[data-km-crayon-scene]");
+    await expect(captures).toHaveCount(2);
+    await page.locator("main").screenshot({
+      path:info.outputPath("crayon-wax-contact-before-after.png"),animations:"disabled"});
+    expect(errors).toEqual([]);
+  });
