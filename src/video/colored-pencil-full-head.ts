@@ -169,6 +169,7 @@ export interface DryPencilHeadPlate {
   readonly scumbleStrength:number;
   readonly featureDepth:number;
   readonly skinCoverage:number;
+  readonly fibreFlowStrength:number;
   readonly facialPlaneCounts:Readonly<{
     "lip-vermilion":number;"nasal-alar":number;
   }>;
@@ -189,6 +190,63 @@ const positiveSafeSource=(src:PencilPhotoPixels,seed:number)=>{
 };
 const toneBand=(value:number)=>value<.18?0:value<.34?1:value<.50?2:
   value<.73?3:4;
+/**
+ * V7 malar/nasal optical material rule: a photograph's light-toned skin
+ * is not blank paper. Return dry-pencil support intensity, not raster data.
+ * At source Y≈202/255 (.79) preserve warm/cool fibers; only near
+ * Y≈237/255 (.93) is paper actually a plausible unpigmented reserve.
+ */
+export const observedLightSkinSupport=(value:number):Readonly<{
+  density:number;opacity:number;
+}>=>{
+  if(!Number.isFinite(value)||value<0||value>1)
+    throw new RangeError("Source luminance must be finite in 0..1");
+  const reserve=clamp((value-.79)/.14,0,1);
+  return {density:.72-.55*reserve,opacity:.85-.50*reserve};
+};
+/**
+ * Anatomy-attached, continuous fibre flow. The orbital/cheek, nasal and jaw
+ * directions transition smoothly rather than switching between ruled
+ * diagonals. Chromatic passes cross the grain, with slow spatial undulations
+ * for coherent pencil scumbling rather than disconnected random marks.
+ * Angles use radians. Geometry, photographed pigments and paper reserves
+ * remain untouched.
+ */
+export const pencilSkinFibreFlow=(
+  p:readonly[number,number],g:PortraitFeatureMap,eyeDistance:number,
+  pass:0|1|2,
+):Readonly<{angle:number;curvature:number}>=>{
+  if(!Number.isFinite(eyeDistance)||eyeDistance<=0||
+    !p.every(Number.isFinite))
+    throw new RangeError("Invalid source-space skin fibre coordinates");
+  const [x,y]=p;
+  const side=clamp((x-g.noseBridge[0])/(eyeDistance*.28),-1,1);
+  const lateral=Math.abs(x-g.noseBridge[0])/eyeDistance;
+  const jaw=clamp((y-g.noseTip[1])/
+    Math.max(1,g.chin[1]-g.noseTip[1]),0,1);
+  const forehead=clamp((g.forehead[1]-y)/(eyeDistance*1.3),-1,1);
+  const smooth=(a:number,b:number,v:number)=>{
+    const t=clamp((v-a)/(b-a),0,1);
+    return t*t*(3-2*t);
+  };
+  const turn=(a:number,b:number,t:number)=>
+    a+Math.atan2(Math.sin(b-a),Math.cos(b-a))*t;
+  const cheek=-.20+side*.33+forehead*.20;
+  const bridge=1.42+side*.17;
+  const lower=.16+side*.36+jaw*.33;
+  const bridgeWeight=(1-smooth(.17,.49,lateral))*
+    (1-smooth(-.06,.23,(y-g.noseTip[1])/eyeDistance));
+  const jawWeight=smooth(.43,.76,jaw);
+  const plane=turn(turn(cheek,bridge,bridgeWeight),lower,jawWeight);
+  const u=(x-g.noseBridge[0])/eyeDistance;
+  const v=(y-g.eyeNearCenter[1])/eyeDistance;
+  const warp=.17*Math.sin(u*2.6+v*1.4)+
+    .10*Math.cos(v*2.9-u*1.5);
+  return {
+    angle:plane+warp+(pass===0?0:pass===1?.61:-.34),
+    curvature:(pass===1?-.10:.09)+.11*Math.sin(u*2.1-v*2.4),
+  };
+};
 const paperWhite=(src:PencilPhotoPixels,x:number,y:number)=>
   photoValue(src,x,y)>.93;
 const isHairColour=(rgb:readonly number[])=>{
@@ -206,6 +264,7 @@ const isHairColour=(rgb:readonly number[])=>{
 export const createDryPencilHeadPlate=(
   source:PencilPhotoPixels,guides:PortraitFeatureMap,seed=271,
   scumbleStrength=.65,featureDepth=.85,skinCoverage=.70,
+  fibreFlowStrength=1,
 ):DryPencilHeadPlate=>{
   positiveSafeSource(source,seed);
   if(!Number.isFinite(scumbleStrength)||
@@ -215,6 +274,9 @@ export const createDryPencilHeadPlate=(
     throw new RangeError("Invalid coloured-pencil measured feature depth");
   if(!Number.isFinite(skinCoverage)||skinCoverage<0||skinCoverage>1)
     throw new RangeError("Invalid colored-pencil skin coverage");
+  if(!Number.isFinite(fibreFlowStrength)||
+    fibreFlowStrength<0||fibreFlowStrength>1)
+    throw new RangeError("Invalid colored-pencil fibre flow strength");
   // Require the entire, already-audited 25-landmark source map.
   const details=createPencilPortraitFeatureMarks(source,guides,seed);
   const geometry=projectMeasuredHeadContours(guides);
@@ -291,8 +353,6 @@ export const createDryPencilHeadPlate=(
     }
     return "background";
   };
-  const forehead=guides.forehead,chin=guides.chin;
-  const foreheadScale=eyeDist*1.3;
   // Reference-measured face tonal masses: three distinct low-pressure
   // layers. No flat face polygon, ellipse or 1:1 photographic pixel stamps.
   for(const pass of [0,1,2] as const){
@@ -307,6 +367,15 @@ export const createDryPencilHeadPlate=(
       const rgb=photoRGB(source,px,py),value=photoValue(source,px,py);
       const band=toneBand(value);
       if(pass===0)fiveValueCounts[band]++;
+      // Paper white is NOT the same as photographed light skin.
+      // In the licensed portrait, the malar face and nose bridge have
+      // luminance ≈.79, yet v7's paper-bin cutoff was .73: 72% of
+      // foundational marks were discarded and the surviving strokes
+      // were weakened again by 48%. This made a source ≈202/255 cheek
+      // render as ≈241/255 ivory. Replenish optical translucency only
+      // while actual source brightness remains below the true paper
+      // shoulder (.91+). Preserve 100% original fine features/hair.
+      const lightSkin=band===4?observedLightSkinSupport(value):null;
       if(band===4&&pass===2)continue;
       const edge=distanceToEdge(p,geometry.face);
       // A bright unpigmented rim around the face read as a sticker or
@@ -314,17 +383,23 @@ export const createDryPencilHeadPlate=(
       const fade=.62+.38*clamp(edge/(eyeDist*.043),0,1);
       // Build soft orbital, malar and nasal values following cranium shape,
       // not as rectangles pasted onto skin or a uniform global diagonal.
+      const flow=pencilSkinFibreFlow(p,guides,eyeDist,pass);
+      // The opt-in A/B control retains the exact legacy ruled grain at 0,
+      // allowing source-vs-render comparisons against connected fibre at 1.
       const toNose=Math.abs(px-guides.noseBridge[0])/eyeDist;
       const toJaw=clamp((py-guides.noseTip[1])/
-        Math.max(1,chin[1]-guides.noseTip[1]),0,1);
-      const toForehead=clamp((forehead[1]-py)/foreheadScale,-1,1);
+        Math.max(1,guides.chin[1]-guides.noseTip[1]),0,1);
+      const toForehead=clamp((guides.forehead[1]-py)/(eyeDist*1.3),-1,1);
       const cheekSide=Math.sign(px-guides.noseBridge[0]);
-      const heading=toJaw>.62?
+      const oldHeading=toJaw>.62?
         .16+cheekSide*.36+toJaw*.33:
         toNose<.29&&py<guides.noseTip[1]?
           1.42+cheekSide*.17:
           -.20+cheekSide*.33+toForehead*.20;
-      let theta=heading+(pass===1?.48:pass===2?-.35:0)+
+      const oldAngle=oldHeading+(pass===1?.48:pass===2?-.35:0);
+      let theta=oldAngle+fibreFlowStrength*
+        Math.atan2(Math.sin(flow.angle-oldAngle),
+          Math.cos(flow.angle-oldAngle))+
         (pencilHash(seed,hashBase,12)-.5)*.32;
       let gradientStrength=0;
       if(pass===2){
@@ -354,7 +429,8 @@ export const createDryPencilHeadPlate=(
       const pressure=pass===0?.22+.34*shade:
         pass===1?.18+.30*shade:
           .14+.30*shade+.28*clamp((gradientStrength-.045)*3.4,0,1);
-      const density=(band===4?.28:band===3?.95:1);
+      const density=(band===4?
+        lightSkin!.density:band===3?.95:1);
       if(pencilHash(seed,hashBase,14)>density)continue;
       // Subtle warm/cool layers are derived from the person's actual
       // captured pigments, not a globally assumed skin-color preset.
@@ -365,10 +441,13 @@ export const createDryPencilHeadPlate=(
           color([rgb[0]*.75+62*.25,rgb[1]*.73+50*.27,rgb[2]*.80+60*.20]);
       push(pass===0?"face-value":pass===1?"face-chroma":"face-form",
         p,[Math.cos(theta)*len,Math.sin(theta)*len],pigment,
-        pressure*(1+.11*opticalCoverage)*fade*(band===4?.52:1),
+        pressure*(1+.11*opticalCoverage)*fade*
+          (band===4?lightSkin!.opacity:1),
         pass===0?1.30+1.12*opticalCoverage:
           pass===1?1.04+.82*opticalCoverage:.82,pass,
-        (pencilHash(seed,hashBase,15)-.5)*.19);
+        (1-fibreFlowStrength)*(pencilHash(seed,hashBase,15)-.5)*.19+
+          fibreFlowStrength*(flow.curvature+
+            (pencilHash(seed,hashBase,15)-.5)*.13));
     }
   }
   // Optical grisaille: finish the *value* structure after the first
@@ -446,7 +525,13 @@ export const createDryPencilHeadPlate=(
       // and the deep eye/cheek planes, with bounded deterministic density.
       if(pencilHash(seed,i,273)>scumbleStrength*(.22+.72*shade))continue;
       const rgb=photoRGB(source,px,py);
-      const angle=(pencilHash(seed,i,274)-.5)*Math.PI*1.4;
+      // Tiny elliptical scumbles follow the same continuous anatomy field,
+      // but with local opposed curls and less angular disorder.
+      const flow=pencilSkinFibreFlow(p,guides,eyeDist,2);
+      const oldAngle=(pencilHash(seed,i,274)-.5)*Math.PI*1.4;
+      const newAngle=flow.angle+(pencilHash(seed,i,274)-.5)*1.08;
+      const angle=oldAngle+fibreFlowStrength*
+        Math.atan2(Math.sin(newAngle-oldAngle),Math.cos(newAngle-oldAngle));
       const radius=step*(.23+.17*pencilHash(seed,i,275));
       const vector:Point=[Math.cos(angle)*radius,Math.sin(angle)*radius*.68];
       const ink=color([rgb[0]*.82+93*.18,rgb[1]*.83+59*.17,
@@ -454,7 +539,10 @@ export const createDryPencilHeadPlate=(
       push("face-scumble",p,vector,ink,
         (.10+.15*shade)*scumbleStrength,
         .58+.23*pencilHash(seed,i,276),2,
-        .34+.18*pencilHash(seed,i,277));
+        (1-fibreFlowStrength)*(.34+.18*pencilHash(seed,i,277))+
+          fibreFlowStrength*(flow.curvature+
+            (.22+.24*pencilHash(seed,i,277))*
+            (pencilHash(seed,i,278)<.5?-1:1)));
     }
   }
   // ArtCraft source-dependent facial contour hierarchy: use optical
@@ -685,7 +773,8 @@ export const createDryPencilHeadPlate=(
     width:SIZE.width,height:SIZE.height,paperColor:PAPER,
     crop:{left,top,width:cropWidth,height:cropHeight},
     strokes:marks,rasterUnderpainting:false,geometry,
-    scumbleStrength,featureDepth,skinCoverage,facialPlaneCounts,
+    scumbleStrength,featureDepth,skinCoverage,fibreFlowStrength,
+    facialPlaneCounts,
     fiveValueCounts,materialCounts,
   };
 };

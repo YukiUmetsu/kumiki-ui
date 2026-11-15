@@ -1,6 +1,7 @@
 import {describe,expect,it} from "vitest";
 import {
   createDryPencilHeadPlate,projectMeasuredHeadContours,
+  observedLightSkinSupport,pencilSkinFibreFlow,
   HEAD_STORYBOARD_PHASES,selectHeadStoryboardStrokes,
 } from "../src/video/colored-pencil-full-head";
 import {mapCC0WomanPortraitFeatures} from "../src/video/colored-pencil-portrait-guides";
@@ -110,6 +111,104 @@ describe("Source-measured ArtCraft full-head geometry (experimental)",()=>{
 });
 
 
+describe("ArtCraft anatomy-connected colored-pencil fibre flow",()=>{
+  it("transitions across measured facial planes without a ruled diagonal",()=>{
+    const d=Math.hypot(
+      guides.eyeNearCenter[0]-guides.eyeFarCenter[0],
+      guides.eyeNearCenter[1]-guides.eyeFarCenter[1]);
+    const near:readonly[number,number]=[
+      guides.noseBridge[0]+d*.16,guides.noseBridge[1]+d*.11,
+    ];
+    const other:readonly[number,number]=[
+      near[0]+d*.004,near[1]+d*.004,
+    ];
+    const first=pencilSkinFibreFlow(near,guides,d,0);
+    const neighbour=pencilSkinFibreFlow(other,guides,d,0);
+    const chroma=pencilSkinFibreFlow(near,guides,d,1);
+    const form=pencilSkinFibreFlow(near,guides,d,2);
+    expect(Math.abs(first.angle-neighbour.angle)).toBeLessThan(.12);
+    expect(chroma.angle-first.angle).toBeCloseTo(.61,9);
+    expect(form.angle-first.angle).toBeCloseTo(-.34,9);
+    expect(chroma.curvature).toBeLessThan(first.curvature);
+    const cheek=pencilSkinFibreFlow([
+      guides.noseBridge[0]-d*.7,guides.noseBridge[1]+d*.3,
+    ],guides,d,0);
+    const bridge=pencilSkinFibreFlow([
+      guides.noseBridge[0],guides.noseBridge[1]+d*.15,
+    ],guides,d,0);
+    expect(Math.abs(cheek.angle-bridge.angle)).toBeGreaterThan(.45);
+    expect([first,neighbour,chroma,form,cheek,bridge].every(v=>
+      Number.isFinite(v.angle)&&Number.isFinite(v.curvature)&&
+      Math.abs(v.curvature)<.25)).toBe(true);
+    expect(pencilSkinFibreFlow(near,guides,d,0)).toEqual(first);
+    expect(()=>pencilSkinFibreFlow([NaN,2],guides,d,0))
+      .toThrow(RangeError);
+    expect(()=>pencilSkinFibreFlow(near,guides,0,0))
+      .toThrow(RangeError);
+  });
+  it("provides deterministic 0–100% Storybook fibre A/B without changing the anatomy",()=>{
+    const photo=source(),copy=new Uint8ClampedArray(photo.data);
+    const legacy=createDryPencilHeadPlate(photo,guides,271,.65,.85,.7,0);
+    const woven=createDryPencilHeadPlate(photo,guides,271,.65,.85,.7,1);
+    expect(legacy.fibreFlowStrength).toBe(0);
+    expect(woven.fibreFlowStrength).toBe(1);
+    expect(legacy.geometry).toEqual(woven.geometry);
+    expect(legacy.materialCounts).toEqual(woven.materialCounts);
+    expect(legacy.strokes.length).toBe(woven.strokes.length);
+    const skin=(p:typeof legacy)=>p.strokes.filter(m=>
+      m.zone==="face-value"||m.zone==="face-chroma"||
+      m.zone==="face-scumble");
+    expect(skin(legacy).length).toBeGreaterThan(250);
+    expect(skin(legacy).some((m,i)=>
+      m.controlX!==skin(woven)[i].controlX||
+      m.controlY!==skin(woven)[i].controlY)).toBe(true);
+    const hair=(p:typeof legacy)=>p.strokes.filter(m=>
+      m.zone==="hair-mass"||m.zone==="hair-fibre"||
+      m.zone==="hair-occlusion");
+    expect(hair(legacy)).toEqual(hair(woven));
+    expect(photo.data).toEqual(copy);
+    expect(createDryPencilHeadPlate(photo,guides,271,.65,.85,.7,1))
+      .toEqual(woven);
+    expect(()=>createDryPencilHeadPlate(photo,guides,271,.65,.85,.7,NaN))
+      .toThrow(RangeError);
+    expect(()=>createDryPencilHeadPlate(photo,guides,271,.65,.85,.7,-.1))
+      .toThrow(RangeError);
+    expect(()=>createDryPencilHeadPlate(photo,guides,271,.65,.85,.7,1.1))
+      .toThrow(RangeError);
+  },20000);
+  it("retains separate dry marks and monotonic four-shot reveals",()=>{
+    const plate=createDryPencilHeadPlate(source(),guides,271,.85);
+    for(const zone of ["face-value","face-chroma","face-scumble"] as const){
+      const marks=plate.strokes.filter(m=>m.zone===zone);
+      expect(marks.length).toBeGreaterThan(50);
+      expect(marks.every(m=>m.alpha>0&&m.alpha<=.56&&
+        m.width>0&&Number.isFinite(m.controlX)&&
+        Number.isFinite(m.controlY))).toBe(true);
+    }
+    expect(plate.rasterUnderpainting).toBe(false);
+    const stages=HEAD_STORYBOARD_PHASES.map(p=>
+      selectHeadStoryboardStrokes(plate.strokes,p.id));
+    for(let i=1;i<stages.length;i++)
+      expect(stages[i].length).toBeGreaterThan(stages[i-1].length);
+  },15000);
+});
+describe("ArtCraft source-observed luminous skin is not unpigmented paper",()=>{
+  it("preserves real light-face pigment while reserving actual ivory highlights",()=>{
+    const malar=observedLightSkinSupport(202/255);
+    const nasal=observedLightSkinSupport(199/255);
+    const paper=observedLightSkinSupport(242/255);
+    expect(malar.density).toBeGreaterThan(.68);
+    expect(malar.opacity).toBeGreaterThan(.81);
+    expect(nasal.density).toBeGreaterThan(malar.density);
+    expect(paper.density).toBeLessThan(.2);
+    expect(paper.opacity).toBeLessThan(.38);
+    expect(observedLightSkinSupport(.79)).toEqual(
+      {density:.72,opacity:.85});
+    expect(observedLightSkinSupport(.94).density).toBeCloseTo(.17,8);
+    for(const x of [-.01,1.01,NaN,Infinity])
+      expect(()=>observedLightSkinSupport(x)).toThrow(RangeError);
+  });
+});
 describe("ArtCraft four-shot production storyboard and pencil scumbling",()=>{
   it("constructs four chronological, strictly increasing paper-only mark families",()=>{
     const plate=createDryPencilHeadPlate(source(),guides,271,.85);

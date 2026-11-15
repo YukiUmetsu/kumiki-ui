@@ -126,6 +126,25 @@ for(const sample of ["woman","man"] as const){
           "true",{timeout:90000});
         await expect(headSource).toHaveAttribute(
           "data-km-pencil-full-head-source","ready",{timeout:90000});
+        // Actual Chromium 0% legacy vs 100% anatomy-connected fibre A/B:
+        // capture BOTH complete pencil plates for honest 1×/3× review.
+        const fibreSlider=page.getByLabel("Pencil anatomy-connected fibre flow");
+        await expect(fibreSlider).toHaveValue("1");
+        const fibreMetrics=page.locator("[data-km-pencil-head-proof-metrics]");
+        await fibreSlider.focus();
+        await fibreSlider.press("Home");
+        await expect(fibreSlider).toHaveValue("0");
+        await expect(fibreMetrics).toContainText("0% anatomy-connected");
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-legacy-ruled-fibre.png")});
+        await fibreSlider.press("End");
+        await expect(fibreSlider).toHaveValue("1");
+        await expect(fibreMetrics).toContainText("100% anatomy-connected");
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-anatomy-fibre.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Actual licensed source, ALL four chronologically composited
         // Storybook shots. Stage 1..4 must contain increasing genuine
         // pencil marks; the exported film bitmap must not be affected.
@@ -197,6 +216,22 @@ for(const sample of ["woman","man"] as const){
         expect(lipNumbers.lower).toBeLessThan(36);
         await expect(lipEvidence).toContainText(
           "No independent ArtCraft artistic approval");
+        const lightSkin=page.locator(
+          '[data-km-pencil-light-skin-proof="ready"]');
+        await expect(lightSkin).toHaveCount(1);
+        const lit=await lightSkin.evaluate(node=>({
+          malar:Number(node.getAttribute(
+            "data-km-pencil-malar-deficit")),
+          bridge:Number(node.getAttribute(
+            "data-km-pencil-bridge-deficit")),
+        }));
+        // The CC0 photo is luminous but NOT blank white at these measured
+        // points; prior mechanical paper reserve discarded its pigment.
+        // Never treat passing technical optics as artist approval.
+        expect(lit.malar).toBeLessThan(30);
+        expect(lit.bridge).toBeLessThan(32);
+        await expect(lightSkin).toContainText(
+          "Independent likeness and artistry NOT APPROVED");
         const skinEvidence=page.locator(
           '[data-km-pencil-skin-proof="ready"]');
         await expect(skinEvidence).toHaveCount(1);

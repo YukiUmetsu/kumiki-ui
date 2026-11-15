@@ -14,11 +14,12 @@ import {
 import {
   compareCC0PortraitTones,compareCC0HairOcclusion,
   compareCC0Vermilion,compareCC0SoftSkin,
+  compareCC0LuminousSkin,
   CC0_HAIR_OCCLUSION_PROBE,
 } from "./colored-pencil-full-head-tone-proof";
 import type {
   PencilToneComparison,CC0HairOcclusionResult,CC0VermilionResult,
-  CC0SoftSkinResult,
+  CC0SoftSkinResult,CC0LuminousSkinResult,
 } from "./colored-pencil-full-head-tone-proof";
 
 /**
@@ -152,6 +153,7 @@ export function ReferencePencilAtelier({
   const [showStoryboard,setShowStoryboard]=useState(initialStoryboard);
   const [showHairContact,setShowHairContact]=useState(initialStoryboard);
   const [headScumble,setHeadScumble]=useState(.65);
+  const [fibreFlow,setFibreFlow]=useState(1);
   const [featureDepth,setFeatureDepth]=useState(.85);
   const [skinCoverage,setSkinCoverage]=useState(.70);
   const [showFeatureAtlas,setShowFeatureAtlas]=useState(initialStoryboard);
@@ -165,6 +167,8 @@ export function ReferencePencilAtelier({
     useState<CC0VermilionResult|null>(null);
   const [skinEvidence,setSkinEvidence]=
     useState<CC0SoftSkinResult|null>(null);
+  const [lightSkinEvidence,setLightSkinEvidence]=
+    useState<CC0LuminousSkinResult|null>(null);
   const [faceMacroRegion,setFaceMacroRegion]=useState<"eyes"|"lips">("eyes");
   const [applyFaceCraft,setApplyFaceCraft]=useState(true);
   const [uploaded,setUploaded]=useState(false);
@@ -239,9 +243,9 @@ export function ReferencePencilAtelier({
   // computed for ordinary video exports or for unrelated photos/characters.
   const headPlate=useMemo(()=>raw&&faceGuides&&showFullHead?
     createDryPencilHeadPlate(raw,faceGuides,options.seed,
-      headScumble,featureDepth,skinCoverage):null,
+      headScumble,featureDepth,skinCoverage,fibreFlow):null,
     [raw,faceGuides,showFullHead,options.seed,headScumble,featureDepth,
-      skinCoverage]);
+      skinCoverage,fibreFlow]);
   // The static precomputed tone layer is cached: seeking/speed does not
   // recompute pixels, gradients, stochastic paper or stroke directions.
   useEffect(()=>{
@@ -328,6 +332,7 @@ export function ReferencePencilAtelier({
     setHeadOcclusion(compareCC0HairOcclusion(original,rendered));
     setVermilionEvidence(compareCC0Vermilion(original,rendered));
     setSkinEvidence(compareCC0SoftSkin(original,rendered));
+    setLightSkinEvidence(compareCC0LuminousSkin(original,rendered));
   },[headPlate,raw]);
   useEffect(()=>{
     if(!showHairContact||!headPlate)return;
@@ -530,6 +535,12 @@ export function ReferencePencilAtelier({
         <input aria-label="Pencil portrait scumble" type="range"
           min="0" max="1" step=".05" value={headScumble}
           onChange={e=>setHeadScumble(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Anatomical fibre flow · {Math.round(fibreFlow*100)}%
+        <input aria-label="Pencil anatomy-connected fibre flow" type="range"
+          min="0" max="1" step=".05" value={fibreFlow}
+          onChange={e=>setFibreFlow(Number(e.target.value))}/>
       </label>}
       {faceGuides&&showFullHead&&<label style={control}>
         Skin pigment coverage · {Math.round(skinCoverage*100)}%
@@ -911,6 +922,21 @@ export function ReferencePencilAtelier({
               {" "}in the 285×318 licensed source Storybook crop.
             </p>
           </section>}
+          {lightSkinEvidence&&<p
+            data-km-pencil-light-skin-proof="ready"
+            data-km-pencil-malar-deficit={
+              lightSkinEvidence.regions[0].lightnessDeficit.toFixed(1)}
+            data-km-pencil-bridge-deficit={
+              lightSkinEvidence.regions[1].lightnessDeficit.toFixed(1)}
+            style={{fontSize:12,margin:"11px 0 0",color:"#53665E"}}>
+            Photographed luminous cheek and nasal bridge:
+            {" "+lightSkinEvidence.regions.map(r=>
+              r.name+" "+r.sourceLuminance.toFixed(1)+"→"+
+                r.drawnLuminance.toFixed(1)).join(" · ")}.
+            Material negative gate: {" "+(lightSkinEvidence.missingPhotographedLightSkin?
+              "WHITE PATCH / FAIL":"TECHNICAL THRESHOLD ONLY")}.
+            Independent likeness and artistry NOT APPROVED.
+          </p>}
           {skinEvidence&&<p
             data-km-pencil-skin-proof="ready"
             data-km-pencil-skin-cheek-deficit={
@@ -941,6 +967,8 @@ export function ReferencePencilAtelier({
             {" "+headPlate.materialCounts["hair-mass"]+
               " / "+headPlate.materialCounts["hair-occlusion"]+
               " / "+headPlate.materialCounts["hair-fibre"]}.
+            Fibre direction: {" "+Math.round(headPlate.fibreFlowStrength*100)}%
+            anatomy-connected; set 0% for the legacy ruled-grain A/B comparison.
             Independent likeness and material approval: NOT PASSED.
           </p>
         </section>}
