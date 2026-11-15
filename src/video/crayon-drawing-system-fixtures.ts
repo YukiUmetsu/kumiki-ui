@@ -7,6 +7,7 @@ export type CrayonDrawingAspect="landscape"|"portrait";
 export interface CrayonDrawingSettings{
   aspect:CrayonDrawingAspect;detail:number;pressure:number;paperTooth:number;
   nibStyle?:CrayonNibStyle;
+  underpaintTooth?:number;
 }
 type Palette=readonly [CrayonColor,CrayonColor,CrayonColor];
 const phases={
@@ -25,11 +26,12 @@ const rect=(x:number,y:number,width:number,height:number)=>({x,y,width,height});
 export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
   scene:CrayonSceneSpec;plan:CrayonDrawingPlan;
 }{
-  const {aspect,detail,pressure,paperTooth,nibStyle="dry"}=settings;
+  const {aspect,detail,pressure,paperTooth,nibStyle="dry",underpaintTooth=.82}=settings;
   if(!["landscape","portrait"].includes(aspect)||
     ![detail,pressure,paperTooth].every(Number.isFinite)||
     detail<.2||detail>1||pressure<.2||pressure>1||
-    paperTooth<0||paperTooth>1||!["rounded","tapered","dry"].includes(nibStyle))
+    paperTooth<0||paperTooth>1||!["rounded","tapered","dry"].includes(nibStyle)||
+    !Number.isFinite(underpaintTooth)||underpaintTooth<0||underpaintTooth>1)
     throw new RangeError("Invalid crayon drawing settings");
   const portrait=aspect==="portrait",width=portrait?540:960,height=portrait?960:540;
   const elements:CrayonSceneSpec["elements"][number][]=[];
@@ -120,16 +122,19 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
       placement:place,underpaintGradient:{
         light:"#f6d991",shadow:"#756d6c",focusX:.23,focusY:.23,radius:1.3},
       markStrength:.23,spacing:7.7,edgeRoughness:.38,
+      underpaintTooth,
     },6);
   addWax("leaf-body",leafD,rect(8,-243,178,111),
     ["#718c55","#3d624c","#b7be78"],"blocking","solid",{start:28,end:105},{
       parentId:"pear-body",underpaintGradient:{
         light:"#c7c887",shadow:"#2c5248",focusX:.3,focusY:.18,radius:1.1},
       markStrength:.32,spacing:6.1,edgeRoughness:.35,
+      underpaintTooth:underpaintTooth*.76,
     },3);
   addWax("stem-body",stemD,rect(-25,-192,52,70),
     ["#7a5846","#433e40","#b08566"],"blocking","solid",{start:32,end:113},{
       parentId:"pear-body",markStrength:.5,spacing:4.8,edgeRoughness:.3,
+      underpaintTooth:underpaintTooth*.54,
     },3);
   // The stalk sits in an indented, pigmented well with its own light falloff.
   // That depression is attached to pear flesh, never a free-floating brown disk.
