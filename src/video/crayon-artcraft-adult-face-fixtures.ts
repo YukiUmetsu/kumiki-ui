@@ -374,31 +374,36 @@ export function crayonAdultFaceStudy(
       outlineOpacity:.12,
       timing:{start:133,end:187}});
   wax("left-eye-iris",
-    "M-59 -170Q-50 -173 -45 -164Q-42 -152 -49 -145"+
-    "Q-57 -146 -59 -158Q-60 -164 -59 -170Z",
-    box(-64,-179,26,40),colors.iris,"anatomy",
+    "M-63 -160C-63 -169 -57 -172 -51 -171"+
+    "C-45 -171 -42 -166 -42 -160"+
+    "C-42 -153 -46 -149 -52 -149"+
+    "C-59 -149 -63 -154 -63 -160Z",
+    box(-67,-175,29,30),colors.iris,"anatomy",
     {parentId:"adult-face",markStrength:.42,spacing:4.2,
       underpaintGradient:{light:"#b8a989",shadow:"#405154",
         focusX:.31,focusY:.21,radius:.9},
       outlineOpacity:0,
       timing:{start:169,end:229}});
   wax("right-eye-iris",
-    "M66 -164Q75 -169 80 -160Q83 -152 77 -146"+
-    "Q70 -145 67 -151Q65 -158 66 -164Z",
-    box(61,-176,27,39),colors.iris,"anatomy",
+    "M66 -156C66 -163 71 -167 76 -166"+
+    "C82 -165 84 -159 82 -153"+
+    "C79 -148 72 -147 68 -151"+
+    "C66 -153 66 -156 66 -156Z",
+    box(62,-170,26,28),colors.iris,"anatomy",
     {parentId:"adult-face",markStrength:.42,spacing:4.2,
       underpaintGradient:{light:"#b8a989",shadow:"#405154",
         focusX:.31,focusY:.21,radius:.9},
       outlineOpacity:0,
       timing:{start:169,end:229}});
-  wax("left-eye-pupil","M-54 -165Q-51 -169 -49 -162Q-48 -156 -52 -153"+
-    "Q-55 -156 -54 -165Z",
-    box(-58,-172,14,24),colors.pupil,"anatomy",
+  wax("left-eye-pupil","M-58 -159Q-58 -165 -53 -166"+
+    "Q-48 -166 -48 -160"+
+    "Q-48 -154 -53 -153Q-58 -154 -58 -159Z",
+    box(-61,-169,16,20),colors.pupil,"anatomy",
     {parentId:"adult-face",markStrength:.42,spacing:4,outlineOpacity:0,
       timing:{start:198,end:246}});
-  wax("right-eye-pupil","M72 -161Q75 -166 77 -160Q78 -154 74 -153"+
-    "Q71 -156 72 -161Z",
-    box(69,-169,13,20),colors.pupil,"anatomy",
+  wax("right-eye-pupil","M71 -157Q71 -163 75 -163Q79 -162 79 -157"+
+    "Q78 -152 75 -152Q71 -153 71 -157Z",
+    box(68,-166,15,17),colors.pupil,"anatomy",
     {parentId:"adult-face",markStrength:.42,spacing:4,outlineOpacity:0,
       timing:{start:198,end:246}});
   // The lids cast a warm, soft occlusion into the *real sclera*.
@@ -489,11 +494,11 @@ export function crayonAdultFaceStudy(
   // These source-bounded fibers are irregular seeded strokes,
   // clipped to painted iris anatomy, not unconnected spoke clip art.
   const irisNear=crayonIrisFlecks({
-    seed:8821,cx:-51.5,cy:-158.5,rx:8.8,ry:12.2,
+    seed:8821,cx:-52,cy:-160,rx:10.5,ry:10.6,
     count:Math.round(42*detail),minRadius:.39,maxRadius:.94,
   });
   const irisFar=crayonIrisFlecks({
-    seed:8822,cx:73.6,cy:-155.5,rx:7.4,ry:10.4,
+    seed:8822,cx:74.3,cy:-157,rx:8.0,ry:8.9,
     count:Math.round(29*detail),minRadius:.43,maxRadius:.91,
   });
   if(irisNear)ink("iris-fibers-near",irisNear,"#d7c59d",.58,"detail",
@@ -505,27 +510,30 @@ export function crayonAdultFaceStudy(
   const browNear=crayonFurFlow({
     guide:[{x:-90,y:-190},{x:-69,y:-211},
       {x:-49,y:-202},{x:-29,y:-186}],
-    seed:8823,count:Math.round(72*detail),
+    seed:8823,count:Math.round(43*detail),
     spread:2.6,length:7.2,curvature:.14,forkRate:0,
   });
   const browFar=crayonFurFlow({
     guide:[{x:44,y:-190},{x:58,y:-207},
       {x:85,y:-197},{x:102,y:-184}],
-    seed:8824,count:Math.round(51*detail),
+    seed:8824,count:Math.round(30*detail),
     spread:2.1,length:6.2,curvature:.15,forkRate:0,
   });
-  if(browNear)ink("brow-fibers-near",browNear,"#77534e",.64,"detail",
-    {parentId:"adult-face",clipToParent:true,opacity:.72});
-  if(browFar)ink("brow-fibers-far",browFar,"#7b5951",.6,"detail",
-    {parentId:"adult-face",clipToParent:true,opacity:.65});
+  if(browNear)ink("brow-fibers-near",browNear,"#87645b",.52,"detail",
+    {parentId:"adult-face",clipToParent:true,opacity:.58});
+  if(browFar)ink("brow-fibers-far",browFar,"#87665a",.5,"detail",
+    {parentId:"adult-face",clipToParent:true,opacity:.55});
   ink("near-iris-limbal-ring",
-    "M-58 -168Q-52 -174 -47 -166Q-43 -154 -49 -146"+
-    "Q-57 -145 -59 -156Q-61 -163 -58 -168Z",
+    "M-63 -161C-64 -170 -57 -174 -51 -172"+
+    "C-44 -171 -40 -166 -41 -160"+
+    "C-41 -152 -46 -148 -52 -148"+
+    "C-59 -148 -63 -154 -63 -161Z",
     "#415251",1.12,"detail",
     {parentId:"left-eye-iris",clipToParent:true,opacity:.74});
   ink("far-iris-limbal-ring",
-    "M66 -165Q74 -170 80 -161Q84 -150 76 -145"+
-    "Q68 -146 66 -155Q64 -162 66 -165Z",
+    "M65 -156C65 -164 70 -169 76 -167"+
+    "C82 -166 85 -160 83 -153"+
+    "C80 -147 71 -146 67 -151Q65 -154 65 -156Z",
     "#424d4b",.93,"detail",
     {parentId:"right-eye-iris",clipToParent:true,opacity:.69});
   ink("iris-catchlights",

@@ -45,6 +45,12 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(far.bounds.width/face.bounds.width).toBeLessThan(.23);
       expect(nodes.get("near-iris-radials")?.parentId).toBe("left-eye-iris");
       expect(nodes.get("far-iris-radials")?.parentId).toBe("right-eye-iris");
+      for(const id of ["left-eye-iris","right-eye-iris"]){
+        const iris=nodes.get(id);
+        if(iris?.kind!=="wax")throw new Error("Missing rounded human iris");
+        expect(iris.bounds.width/iris.bounds.height).toBeGreaterThan(.85);
+        expect(iris.bounds.width/iris.bounds.height).toBeLessThan(1.1);
+      }
       for(const [id,parent] of [
         ["eye-cast-shadow-near","left-eye-aperture"],
         ["eye-cast-shadow-far","right-eye-aperture"],

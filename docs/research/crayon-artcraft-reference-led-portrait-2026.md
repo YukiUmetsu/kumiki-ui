@@ -64,3 +64,7 @@ Source-authoring changes (independent of paper/noise shader):
 - Iris uses local dark underpaint at the outer/rim plane with warm focus light; no screenshot references are copied into the shipped runtime.
 
 Verification scope: semantic path/clip/hue hierarchy, original serializable wax contract and source-native Chromium 16:9/9:16 eye crops. The eye's **anatomy/appeal and reference-level mark density remain artistically unapproved**. Full body, hands, profile and rigging remain out of scope for this pass.
+
+### Second browser eye critique and repair
+
+[Proof 43665804412](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43665804412) showed improved radial iris pigment and anatomically rooted brows, **but eye shapes still looked overly vertical and pupil-like slits**. Corrected original iris and pupil C/Q contours to near-circular projected forms in both eyes, refit near/far fleck distribution centers and radius, and thinned the excessive brow fiber stroke count. A geometric near-unity iris bounding ratio (0.85–1.1) is a **minimum geometry guard**, not a clinical anatomical target or a visual acceptance certificate.
