@@ -6,6 +6,9 @@ import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-stor
 const meta={
   title:"Video production/Film Looks/Crayon/Characters/The Blue Coat / Draw-In Construction",
   id:"video-crayon-draw-in",
+  // ArtCraft v6: reject the legacy gallery until actual 16:9/9:16 crops,
+  // rig extrema and reference-led visual acceptance are verified.
+  tags:["!dev"],
   component:CrayonPlayground,
   args:{...crayonSceneDefaultArgs,subject:"draw-in",startFrame:190},
   argTypes:crayonDirectorArgTypes("draw-in",449),

@@ -6,6 +6,9 @@ import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-stor
 const meta={
   title:"Video production/Film Looks/Crayon/Characters/The Blue Coat / Portrait Atelier",
   id:"video-crayon-acting",
+  // ArtCraft v6: reject the legacy gallery until actual 16:9/9:16 crops,
+  // rig extrema and reference-led visual acceptance are verified.
+  tags:["!dev"],
   component:CrayonPlayground,
   args:{...crayonSceneDefaultArgs,subject:"performance",startFrame:176},
   argTypes:crayonDirectorArgTypes("acting",269),

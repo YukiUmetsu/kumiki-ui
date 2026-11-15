@@ -44,6 +44,9 @@ describe("Crayon Storybook organization",()=>{
        expect(story.args?.startFrame??meta.args.startFrame).toBeLessThanOrEqual(449);
      }
    }
+   for(const unapproved of [actingMeta,walkMeta,drawMeta,dragonMeta,wildlifeMeta]){
+     expect(unapproved.tags).toContain("!dev");
+   }
    expect(legacyMeta.tags).toContain("!dev");
    expect(materialMeta.tags).toContain("!dev");
    expect(crayonSceneDefaultArgs.wildlifeCrop).toBe("composition");
@@ -162,5 +165,23 @@ describe("Crayon Storybook organization",()=>{
      expect(args.seed.if).toEqual({arg:"paperRecipe",eq:"custom"});
      expect(args.paperTooth.if).toEqual({arg:"paperRecipe",eq:"custom"});
    }
+ });
+ it("never overlays unmeasured editorial SVG copy on portrait art",()=>{
+   const science=renderToStaticMarkup(<CrayonPlayground {...crayonSceneDefaultArgs}
+     subject="water-cycle" aspect="portrait" startFrame={239} reducedMotion/>);
+   expect(science).toContain('data-km-crayon-scene="');
+   expect(science).not.toContain('data-km-crayon-lettering="headline"');
+   expect(science).not.toContain('data-km-crayon-lettering="subtitle"');
+   expect(science).not.toContain('data-km-crayon-element="footer"');
+   const actor=renderToStaticMarkup(<CrayonPlayground {...crayonSceneDefaultArgs}
+     subject="performance" aspect="portrait" startFrame={239} reducedMotion/>);
+   expect(actor).toContain('data-km-crayon-element="face"');
+   expect(actor).not.toContain('data-km-crayon-lettering="headline"');
+   expect(actor).not.toContain('data-km-crayon-element="subtitle"');
+   // Storybook still labels the film in accessible HTML, outside the artwork.
+   expect(actor).toContain("The Blue Coat / Portrait Atelier");
+   const wide=renderToStaticMarkup(<CrayonPlayground {...crayonSceneDefaultArgs}
+     subject="performance" aspect="landscape" startFrame={239} reducedMotion/>);
+   expect(wide).toContain('data-km-crayon-element="headline"');
  });
 });

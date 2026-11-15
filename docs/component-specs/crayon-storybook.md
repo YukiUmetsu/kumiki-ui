@@ -6,6 +6,30 @@
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
 
+## ArtCraft v6: character quality quarantine and portrait-safe previews
+
+Following direct review of the reference board and premium human portrait,
+the previous child, wildlife and fantasy/dragon character art does **not**
+meet the user's required craftsmanship. **Acting, Walk, Draw-In, Wildlife,
+and Dragon** Storybook pages are hidden with `tags:["!dev"]` until genuine
+image-based ArtCraft review passes. Core exported CRAYON1 film and rig code
+is intentionally preserved to avoid breaking consumer projects.
+
+All **portrait** Crayon playgrounds now suppress *screen-space SVG editorial
+copy* while retaining the accessible external HTML film title. This is a
+fail-closed interim fix for observed in-frame text/art overlap; character
+safe-area placement should only return after measured text bounds, person
+silhouette bounds, 9:16 browser screenshots and adverse language/font cases
+are validated. Landscape editorial behavior is unchanged. No SVG source
+nodes are removed, so wax seeds remain deterministic and film exports are
+not altered by this Storybook presentation policy.
+
+The acceptance bar is now a source-led, region-specific release gate in
+`docs/research/crayon-character-artcraft-premium-gate-2026.md`.
+Do not re-expose the character galleries merely because TypeScript/unit
+tests pass. The ArtCraft v6 release gate requires rendered proof, semantic
+source/render crops and independent review; currently **blocked**.
+
 ## ArtCraft illustrated-character rebuild (current)
 
 Historical cartoon actor pages under **Classics** and the old schematic
