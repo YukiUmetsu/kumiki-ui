@@ -131,8 +131,11 @@ export function crayonWaxFiberContacts(
       const scale=(exposed-t0)/3;
       const aCtl={x:a.x+a.tx*scale,y:a.y+a.ty*scale};
       const bCtl={x:b.x-b.tx*scale,y:b.y-b.ty*scale};
-      const thickness=width*(.53+.8*pressure)*
-        (.55+.72*paper+.28*crayonHash(seed,k*79+i,14));
+      // The *side* of a wax nib is materially wider than the fine
+      // guide centerline. Preserve jagged fiber-height microedges, but
+      // make the cohesive contact visible at the actual 1x film scale.
+      const thickness=width*(1.45+2*pressure)*
+        (.76+.53*paper+.16*crayonHash(seed,k*79+i,14));
       const start=thickness*(.72+.22*crayonHash(seed,k*77+i,15));
       const end=thickness*(.55+.48*crayonHash(seed,k*73+i,16));
       const left=(p:typeof a,w:number)=>pair(p.x+p.nx*w,p.y+p.ny*w);
