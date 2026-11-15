@@ -152,6 +152,36 @@ for(const [scene,story] of [
 }
 
 
+// ArtCraft source-to-render causality audit. The old Fuchun screenshot
+// reads as a fan of very dark slashes. We need to distinguish the
+// mountain's old hero strata from its 78 named contemporary ink fibres,
+// not guess at opacity and destroy valid micro-element craftsmanship.
+test("Fuchun ink layer differential QA identifies actual dark-spoke producer",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const card=page.locator('[data-km-master-study="fuchun"]');
+  await expect(card).toBeVisible();
+  const hero=card.locator("[data-km-rock-hero-cliff]");
+  const master=card.locator("[data-km-master-rock-art]");
+  await expect(hero).toHaveCount(1);
+  await expect(master).toHaveCount(1);
+  const baseline=await card.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-layer-full.png")});
+  for(const [name,selector] of [
+    ["without-hero",'[data-km-rock-hero-cliff]'],
+    ["without-master",'[data-km-master-rock-art]'],
+  ] as const){
+    const style=await page.addStyleTag({content:
+      '[data-km-master-study="fuchun"] '+selector+
+      '{visibility:hidden!important}'});
+    const filtered=await card.screenshot({animations:"disabled",
+      path:info.outputPath("fuchun-layer-"+name+".png")});
+    expect(hash(filtered)).not.toBe(hash(baseline));
+    await style.evaluate(n=>n.remove());
+  }
+  const after=await card.screenshot({animations:"disabled"});
+  expect(hash(after)).toBe(hash(baseline));
+});
+
 test("four distinct historical ink schools paint separate real rooted rock structures at one film frame",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-master-ink-study");
