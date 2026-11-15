@@ -83,14 +83,14 @@ export function crayonArtcraftBodyStudy(options:BodyStudyOptions={}):CrayonScene
     const opaque=more.coverage!=="open";
     elements.push({kind:"wax",id,d,bounds,colors,
       timing:{start:phase[0],end:phase[1]},
-      coverage:"opaque",deposition:"stroke-built",pressure:.77,
+      deposition:"stroke-built",pressure:.77,
       nibStyle:"dry",strokeOrder:"patches",markLength:"long",
-      spacing:9,underpaintTooth:.67,markStrength:.64,
+      spacing:9,markStrength:.64,
       edgeRoughness:.17,outlineOpacity:.08,
       ...more,
       // Underpainting must not accidentally create see-through limbs.
-      ...(opaque?{coverage:"opaque" as const}:
-        {coverage:"open" as const,underpaintTooth:0}),
+      coverage:opaque?"opaque":"open",
+      underpaintTooth:opaque?(more.underpaintTooth??.67):0,
     });
   };
   const line=(id:string,d:string,color:CrayonColor,width:number,
