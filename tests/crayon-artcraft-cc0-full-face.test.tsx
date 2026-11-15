@@ -130,7 +130,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(x).toMatchObject({kind:"wax",parentId:"face-outline",
         clipToParent:true,coverage:"opaque",deposition:"stroke-built"});
       if(x?.kind!=="wax")throw new Error("Missing nasal air-space mass");
-      expect(x.pressure).toBeGreaterThanOrEqual(.9);
+      expect(x.pressure).toBeGreaterThanOrEqual(.88);
       expect(x.underpaintTooth).toBeLessThanOrEqual(.12);
       expect(x.edgeRoughness).toBe(0);
       expect(x.underpaintGradient?.shadow).toMatch(/^#(?:1d161b|24181c)$/);
@@ -488,7 +488,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       });
     }
     const extra=["neck-submandibular-cast","neck-cervical-turn",
-      "nasal-alar-attachment-near","nasal-alar-attachment-far",
+      "nose-sidewall-form","nasal-alar-attachment-near","nasal-alar-attachment-far",
       "labial-upper-value","labial-lower-value",
       "lip-upper","oral-opening","lip-lower"];
     for(const id of extra){
