@@ -51,12 +51,12 @@ jobs:
       - name: Render new scenery in both output formats
         run: |
           for output in landscape portrait; do
-            for frame in 174 354; do
+            for frame in 218 458; do
               npm run film:frame -- examples/film/paper-craft-scenery.film.json --frame="$frame" --only="$output" --out=dist/paper-scenery-proof
             done
           done
       - name: Encode a real native scenery film clip
-        run: npm run film:render -- examples/film/paper-craft-scenery.film.json --frames=54 --only=landscape --out=dist/paper-scenery-proof
+        run: npm run film:render -- examples/film/paper-craft-scenery.film.json --startFrame=160 --frames=60 --only=landscape --out=dist/paper-scenery-proof
       - name: Keep actual rendered browser captures
         if: always()
         uses: actions/upload-artifact@v4
