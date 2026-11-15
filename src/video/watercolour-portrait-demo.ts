@@ -88,6 +88,7 @@ function eye(side:"near"|"far",p:Palette):WatercolourArtPart {
       " Q"+(cx-20)+" "+(cy+25)+" "+(left-8)+" "+(cy+2)+" Z",
       p.reflected,.18,luminous(p.light,p.shade,.86,0),102,55),
     group(side+"-open-eye",[
+      group(side+"-eye-inset",[
       wash(side+"-sclera",aperture,"#F1DDD0",.98,
         luminous("#FCEDDD","#BDAAA2",.12,.04),0,0,"normal"),
       group(side+"-moving-gaze",[
@@ -106,6 +107,7 @@ function eye(side:"near"|"far",p:Palette):WatercolourArtPart {
           undefined,0,0,"normal"),
       ],[key(0),key(150),key(253,-2,0),key(283,2,0),key(359)],
       {x:cx,y:cy}),
+      ],undefined,undefined,0,0,aperture),
       mark(side+"-upper-lid",
         "M"+left+" "+cy+" Q"+(cx-12)+" "+(cy-16)+" "+cx+" "+(cy-12)+
         " Q"+(cx+10)+" "+(cy-13)+" "+right+" "+(cy-1),
@@ -115,7 +117,7 @@ function eye(side:"near"|"far",p:Palette):WatercolourArtPart {
         p.shade,1.08,.55,154),
       mark(side+"-outer-canthus",
         "M"+right+" "+(cy-1)+" q5 -2 8 1",p.brow,1,.7,155),
-    ],open,{x:cx,y:cy},0,0,aperture),
+    ],open,{x:cx,y:cy}),
     group(side+"-closed-eye",[
       mark(side+"-blink-mark",
         "M"+left+" "+(cy+2)+" Q"+cx+" "+(cy+9)+" "+right+" "+(cy+1),
