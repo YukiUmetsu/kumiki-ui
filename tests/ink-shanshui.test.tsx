@@ -165,6 +165,32 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("varies rock texture into long, broken and lateral side-brush gestures",()=>{
+    for(const scene of SHANSHUI_SCENES){
+      const svg=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:168,controls:{...DEFAULT_SHANSHUI,scene,detail:1},
+      }));
+      const styles=[...svg.matchAll(/data-km-cunfa-style="([^"]+)"/g)]
+        .map(match=>match[1]);
+      const family=(name:string)=>styles.filter(x=>x===name).length;
+      expect(family("long-hemp")).toBeGreaterThan(20);
+      expect(family("short-hemp")).toBeGreaterThan(8);
+      expect(family("side-axe")).toBeGreaterThan(0);
+      expect(family("long-hemp")+family("short-hemp")+
+        family("side-axe")).toBe(styles.length);
+      expect((svg.match(/data-km-cunfa-dry-brush=""/g)??[]).length)
+        .toBeGreaterThan(15);
+      const xRoots=[...svg.matchAll(/data-km-cunfa-root-x="([^"]+)"/g)]
+        .map(m=>Number(m[1]));
+      expect(xRoots).toHaveLength(styles.length);
+      expect(xRoots.every(Number.isFinite)).toBe(true);
+      const bucketCounts=Array.from({length:10},(_,i)=>
+        xRoots.filter(x=>x>=i*100&&x<(i+1)*100).length);
+      expect(bucketCounts.filter(x=>x===0).length).toBeGreaterThan(0);
+      expect(bucketCounts.filter(x=>x>0).length).toBeGreaterThan(4);
+    }
+  });
+
   it("keeps calligraphic bamboo stems tapered and leaves attached at any art detail",()=>{
     for(const scene of SHANSHUI_SCENES){
       const controls={...DEFAULT_SHANSHUI,scene,detail:1};
