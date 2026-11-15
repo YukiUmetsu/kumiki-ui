@@ -321,13 +321,13 @@ export function crayonAdultFaceStudy(
     "Q31 -35 25 -33Q12 -38 8 -57"+
     "Q2 -84 -2 -135Z",
     box(-14,-151,52,130),colors.warm,"anatomy",
-    {parentId:"adult-face",coverage:"open",clipToParent:true,blendRadius:7,
-      markStrength:.14,pressure:.38,spacing:11,outlineOpacity:0,edgeRoughness:0});
+    {parentId:"adult-face",coverage:"open",clipToParent:true,blendRadius:6,
+      markStrength:.33,pressure:.58,spacing:8.5,outlineOpacity:0,edgeRoughness:0});
   wax("nose-sidewall",
     "M-7 -100Q-14 -75 -19 -53Q-29 -39 -18 -30"+
     "Q-6 -38 -1 -58Z",
     box(-34,-111,43,92),colors.noseShade,"anatomy",
-    {parentId:"adult-face",coverage:"open",clipToParent:true,markStrength:.16,blendRadius:9,pressure:.38,spacing:7.5,outlineOpacity:0,edgeRoughness:0});
+    {parentId:"adult-face",coverage:"open",clipToParent:true,markStrength:.36,blendRadius:6,pressure:.63,spacing:7.5,outlineOpacity:0,edgeRoughness:0});
   wax("nose-alar-wing",
     "M25 -39Q38 -44 48 -32Q52 -22 41 -19"+
     "Q32 -19 21 -26Q20 -33 25 -39Z",
@@ -342,7 +342,7 @@ export function crayonAdultFaceStudy(
       outlineOpacity:0,edgeRoughness:0});
   ink("nose-dorsal-soft-edge",
     "M8 -87Q12 -61 18 -48",
-    "#b48775",.9,"detail",{parentId:"adult-face",opacity:.43});
+    "#b48775",.9,"detail",{parentId:"adult-face",opacity:.63});
   ink("nose-alar-undercut",
     "M22 -23Q28 -18 35 -20M39 -26Q45 -31 51 -27",
     "#a4716c",1.15,"detail",{parentId:"adult-face",opacity:.69});
@@ -354,7 +354,7 @@ export function crayonAdultFaceStudy(
     "Q24 -25 17 -29Z",
     box(8,-54,41,35),colors.noseShade,"anatomy",
     {parentId:"adult-face",coverage:"open",clipToParent:true,
-      blendRadius:8,markStrength:.1,pressure:.36,spacing:13,
+      blendRadius:6,markStrength:.26,pressure:.54,spacing:10,
       outlineOpacity:0,edgeRoughness:0});
   wax("nose-root-sunlight",
     "M1 -122Q11 -132 19 -116Q15 -91 18 -70"+
