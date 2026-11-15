@@ -78,7 +78,9 @@ export const CRAYON_F1_FACE_PARTS=[
   "chin-plane","jaw-underside","cheek-malar-cast",
   "cheek-malar-bounce","nose-sidewall-form","nose-subalar-contact",
   "nose-alar-undercut-near","nose-alar-undercut-far",
-  "nose-tip-reflected-light","hair-left-curtain",
+  "nose-tip-reflected-light","naris-shadow-near","naris-shadow-far",
+   "mouth-aperture-depth","dental-surface-left","dental-surface-center",
+   "dental-surface-far","hair-left-curtain",
   "hair-right-curtain",
 ] as const;
 
@@ -667,6 +669,29 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     ["#a4827a","#80605e","#c69c91"],[234,299],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       pressure:.38,spacing:7.4,markStrength:.12,blendRadius:2.5});
+  // F1 6x source: x390..423/y619..649 large oblique dark naris;
+  // x444..462/y612..643 smaller foreshortened vertical naris.
+  // Independently shaded attached wax masses, NOT matching black ovals.
+  wax("naris-shadow-near",
+    "M391 636C394 627 400 622 407 620"+
+    "C417 617 422 624 421 632Q418 639 411 641"+
+    "Q406 645 402 649Q392 647 391 636Z",
+    rect(387,615,40,40),["#453130","#21171c","#77504c"],[236,299],
+    {parentId:"face-outline",clipToParent:true,
+      pressure:.96,spacing:3.1,markStrength:.4,
+      edgeRoughness:0,outlineOpacity:0,underpaintTooth:.10,
+      underpaintGradient:{light:"#674642",shadow:"#1d161b",
+        focusX:.7,focusY:.26,radius:.82}});
+  wax("naris-shadow-far",
+    "M445 633C444 625 447 619 451 615"+
+    "Q457 611 460 616Q463 622 459 633"+
+    "Q454 645 448 643Q445 641 445 633Z",
+    rect(440,607,25,43),["#563938","#291d23","#80605a"],[236,299],
+    {parentId:"face-outline",clipToParent:true,
+      pressure:.91,spacing:3.4,markStrength:.29,
+      edgeRoughness:0,outlineOpacity:0,underpaintTooth:.12,
+      underpaintGradient:{light:"#79524c",shadow:"#24181c",
+        focusX:.38,focusY:.28,radius:.83}});
   // Mouth's natural perspective slopes upwards toward the occluded far
   // cheek. Separate vermilion volumes, dark oral slit and visible tooth
   // interruption are sourced from F1 x348..490/y681..775, not a U glyph.
