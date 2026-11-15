@@ -308,6 +308,10 @@ for(const view of ["painted","construction"] as const){
 for(const view of ["wax","anatomy"] as const){
   test("ArtCraft native source-registered F1 full-face "+view,
     async({page},info)=>{
+    // This intentionally captures eleven distinct production-frame and
+    // macro inspection proofs (each re-renders thousands of wax contacts).
+    // Avoid a false 60-second timeout on a passing, deterministic suite.
+    if(view==="wax")test.slow();
     const spec=crayonCc0FaceStudy({view,detail:1});
     await page.setViewportSize({width:608,height:1082});
     const exceptions:string[]=[];
@@ -580,6 +584,48 @@ test("F1 near-eye wax lash roots sparse vs clustered 1:1 source-native Chromium"
     captures.push(await svg.screenshot({path:info.outputPath(
       "crayon-f1-native-near-lashes-"+lashFinish+"-299.png"
     ),animations:"disabled"}));
+  }
+  expect(Buffer.compare(Buffer.from(captures[0]),Buffer.from(captures[1])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** ArtCraft 9.1: screenshot evidence for actual jaw silhouette / neck cast.
+ * The review is intentionally against the SAME frame 299 and camera.
+ * This pixel difference is NOT a likeness or artistry approval gate.
+ */
+test("F1 source jaw-neck wax vs exact prior contour native A/B",async({page},info)=>{
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const focus={focusX:312,focusY:871,zoom:2.4};
+  const captures:Uint8Array[]=[];
+  for(const jawNeckForm of ["baseline","source-contour"] as const){
+    const original=crayonCc0FaceStudy({
+      view:"wax",eyeContact:"baseline",midfaceForm:"baseline",
+      lashFinish:"sparse",jawNeckForm,
+    });
+    const spec={...original,camera:[
+      {frame:0,...focus},{frame:299,...focus},
+    ]};
+    const html=renderToStaticMarkup(createElement(CrayonScene,{
+      spec,frame:299,
+    }));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+
+      html+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    for(const id of ["face-outline","jaw-underside","chin-plane",
+      "neck-attached","neck-submandibular-cast","neck-cervical-turn"]){
+      await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+        .toBeAttached();
+    }
+    await expect(svg.locator(
+      '[data-km-crayon-element="neck-submandibular-cast"] '+
+      '[data-km-crayon-feather-contacts="open-wax"]')).toHaveCount(1);
+    captures.push(await svg.screenshot({path:info.outputPath(
+      "crayon-f1-jaw-neck-"+jawNeckForm+"-299.png"),
+      animations:"disabled"}));
   }
   expect(Buffer.compare(Buffer.from(captures[0]),Buffer.from(captures[1])))
     .not.toBe(0);
