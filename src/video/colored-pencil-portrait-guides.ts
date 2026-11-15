@@ -268,21 +268,33 @@ export function createPencilPortraitFeatureMarks(
   curve("nose-alar-far","noseBridge","noseAlaFar","noseTip",
     1.9,.20,.48,1,.16);
   // Separately traced vermilion curves, plus short vertical lip grains.
+  // The licensed source has gently PARTED lips; a closed football-shaped
+  // vermilion outline incorrectly erases the oral opening and its volume.
+  // Separate the soft upper/lower vermilion edges from the darker mouth seam.
   curve("lip-top","lipLeft","lipCupid","lipRight",
-    1.1,.34,.68,0,.36);
+    1.1,.25,.58,0,.32);
   curve("lip-bottom","lipLeft","lipLower","lipRight",
-    1.1,.29,.60,0,.34);
+    1.1,.22,.51,1,.28);
   const l=guides.lipLeft,r=guides.lipRight,upper=guides.lipCupid,
     lower=guides.lipLower;
+  const seamControl:Point=[(l[0]+r[0])*.5,
+    upper[1]*.47+lower[1]*.53];
+  curvePoints("lip-opening",l,seamControl,r,
+    .80,.38,.64,0,.49);
   for(let i=0;i<100;i++){
     const t=(i+.5)/100;
     const x=mix(l[0],r[0],t);
-    const midY=bezier(l,upper,r,t)[1];
+    const upperY=bezier(l,upper,r,t)[1];
+    const seamY=bezier(l,seamControl,r,t)[1];
     const lowY=bezier(l,lower,r,t)[1];
-    const centerY=mix(midY,lowY,.38+.18*pencilHash(seed,i,80));
-    const length=clamp(Math.abs(lowY-midY)*.3,1,4.5);
+    // Lip fibres are discontinuous and weighted toward the lower pillow,
+    // not a uniform hatch drawn across the photographed tooth opening.
+    const above=(i%4)===0;
+    const centerY=above?mix(upperY,seamY,.58):
+      mix(seamY,lowY,.18+.49*pencilHash(seed,i,80));
+    const length=clamp(Math.abs(above?seamY-upperY:lowY-seamY)*.24,1,3.1);
     add("lip-grain",x,centerY,(pencilHash(seed,i,81)-.5)*.5,
-      length,.24,.52,2,.23,i+2200);
+      length,.21,.48,2,.20,i+2200);
   }
   // Crosshatched form, not just contours: gentle colour-pencil strokes follow
   // each actual photographed cheek/forehead/nasal/chin plane. A photo-local
