@@ -551,7 +551,7 @@ function scenery(w:number,h:number,aspect:PaperDirectorAspect,phase:number,seed:
         p.band(...tip(a,b),...tip(c,d),thick,sign*2.1)),
     ].join(" ");
     add("forest-"+side+"-wood","#324B54",16,limb);
-    const leaves=boughs.map(([a,b,c,d],i)=>{
+    const leaves=boughs.map(([, ,c,d],i)=>{
       const [x,y]=tip(c,d);
       const spread=sign===-1?[-130,-41]:[-141,-41];
       return spread.map((angle,j)=>p.leaf(x,y,12+i%4*3,
@@ -559,7 +559,7 @@ function scenery(w:number,h:number,aspect:PaperDirectorAspect,phase:number,seed:
     }).join(" ");
     add("forest-"+side+"-foliage",c.leaf,17,leaves);
     add("forest-"+side+"-highlights",c.trim,18,
-      boughs.filter((_,i)=>i%2===0).map(([a,b,dx,dy],i)=>{
+      boughs.filter((_,i)=>i%2===0).map(([, ,dx,dy],i)=>{
         const [x,y]=tip(dx,dy);
         return p.leaf(x,y,7+i%3,sign===-1?-36:-135,2.7);
       }).join(" "));
