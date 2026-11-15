@@ -51,6 +51,23 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
             .getContext("2d")!;
           const cranium=path("head-main");
           const far=path("ear-far"),near=path("ear-near");
+          // On the intentionally profile-biased drawing the far canthus
+          // must be hidden INSIDE the cranium, not float over paper after
+          // shrinking the skull. Extract its actual SVG region clip path.
+          const regionNodes=Array.from(
+            root.querySelectorAll("[data-km-pencil-region]"));
+          const farIndex=regionNodes.findIndex(r=>
+            r.getAttribute("data-km-pencil-region")==="eye-far");
+          const farClip=Array.from(root.querySelectorAll("clipPath"))[farIndex]
+            ?.querySelector("path")?.getAttribute("d");
+          if(!farClip)throw new Error("Missing far canthus geometry");
+          const hiddenCanthus=new Path2D(farClip);
+          let farEyeArea=0,eyeInsideCranium=0;
+          for(let y=180;y<204;y++)for(let x=185;x<220;x++){
+            if(!ctx.isPointInPath(hiddenCanthus,x,y))continue;
+            farEyeArea++;
+            if(ctx.isPointInPath(cranium,x,y))eyeInsideCranium++;
+          }
           let farOverlap=0,nearOverlap=0;
           // Independent actual 2D topology: ears must physically overlap
           // skull, not merely display visually adjacent beige triangles.
@@ -59,10 +76,13 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
             if(ctx.isPointInPath(far,x,y))farOverlap++;
             if(ctx.isPointInPath(near,x,y))nearOverlap++;
           }
-          return {farOverlap,nearOverlap};
+          return {farOverlap,nearOverlap,farEyeArea,eyeInsideCranium};
         });
         expect(attachment.farOverlap).toBeGreaterThan(12);
         expect(attachment.nearOverlap).toBeGreaterThan(12);
+        expect(attachment.farEyeArea).toBeGreaterThan(12);
+        expect(attachment.eyeInsideCranium/attachment.farEyeArea)
+          .toBeGreaterThan(.75);
       }
       if(["rose","fox","portrait"].includes(item)){
         await svg.screenshot({animations:"disabled",
