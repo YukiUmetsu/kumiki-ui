@@ -135,18 +135,30 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
     "M164 116 Q168 113 174 117 Q170 123 165 123 Q162 120 164 116Z",
     rect(160,111,17,16),palettes.tear,[174,253],{
       parentId:"eye-skin",pressure:.67,markStrength:.4,spacing:4.2,outlineOpacity:0});
+  // Source contact: the upper lid covers the top of the iris, rather
+  // than merely outlining the full exposed eye.
   wax("upper-lid-overhang",
-    "M61 122 C74 103 94 96 116 96 C138 97 156 105 168 115"+
-    "Q149 107 135 106 C106 102 82 110 61 122Z",
-    rect(58,93,113,34),palettes.eyelid,[168,249],{
-      parentId:"eye-skin",spacing:5.3,markStrength:.39,pressure:.82,
-      underpaintGradient:{light:"#dbb2ab",shadow:"#805e63",
-        focusX:.45,focusY:.12,radius:1.1},outlineOpacity:0});
+    "M62 123 C75 107 96 100 116 102 C140 104 156 107 169 115"+
+    "Q154 113 136 113 C119 108 98 109 79 117 Q69 120 62 123Z",
+    rect(59,99,114,28),palettes.eyelid,[168,249],{
+      parentId:"eye-skin",spacing:5.3,markStrength:.37,pressure:.81,
+      underpaintGradient:{light:"#c49c97",shadow:"#745258",
+        focusX:.42,focusY:.13,radius:1.05},outlineOpacity:0});
+  // Dense, attached lash-root underplane: overlies the iris at the
+  // upper edge without drawing a detached black eyelash decal.
+  wax("upper-lash-root-shadow",
+    "M63 123 C81 109 99 105 118 106 C138 108 154 110 169 116"+
+    "Q147 117 129 116 C110 113 87 118 74 126Z",
+    rect(61,103,111,27),
+    ["#63474a","#45353a","#947375"],[192,263],{
+      parentId:"eye-skin",clipToParent:true,coverage:"open",
+      spacing:4.6,pressure:.63,markStrength:.37,
+      blendRadius:1.7,outlineOpacity:0});
   wax("lower-lid-flesh",
-    "M66 123 C83 141 100 148 118 145 C138 143 156 127 166 118"+
-    "C159 141 140 155 119 159 C91 161 75 149 66 123Z",
-    rect(62,116,108,47),palettes.eyelid,[174,262],{
-      parentId:"eye-skin",spacing:5.3,markStrength:.34,pressure:.73,outlineOpacity:0});
+    "M66 123 C88 139 103 143 119 140 C140 139 157 128 167 117"+
+    "C156 143 137 153 118 154 C94 156 73 146 66 123Z",
+    rect(62,115,110,43),palettes.eyelid,[174,262],{
+      parentId:"eye-skin",spacing:5.3,markStrength:.27,pressure:.63,outlineOpacity:0});
   wax("lower-lid-groove",
     "M72 135 C88 149 106 153 122 151 Q146 148 163 130"+
     "Q145 167 115 167 C92 166 75 155 72 135Z",
@@ -154,14 +166,14 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
       parentId:"eye-skin",clipToParent:true,coverage:"open",
       blendRadius:4,pressure:.58,markStrength:.34,outlineOpacity:0});
   line("upper-crease",
-    "M60 106 C75 83 101 78 123 80 C146 82 159 93 164 102",
-    "#875e63",.74,[214,290],"eye-skin",.57);
+    "M60 106 C75 88 96 85 119 88 C138 89 153 97 164 106",
+    "#875e63",.56,[214,290],"eye-skin",.36);
   line("lid-margin",
     "M68 122 C81 105 100 101 116 103 M121 103 C144 105 156 110 166 116",
     "#684950",.87,[206,287],"eye-skin",.76);
   line("lower-lid-light",
-    "M83 146 Q98 151 117 148 C136 147 151 137 161 125",
-    "#f1c1b1",.8,[216,290],"lower-lid-flesh",.63);
+    "M84 140 Q99 148 116 145 C134 143 151 135 161 125",
+    "#efc5b5",.55,[216,290],"lower-lid-flesh",.44);
 
   // Six unequal curved lash roots replace a regularly spaced vertical fan.
   line("upper-lashes",
@@ -170,10 +182,9 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
     " M139 107 Q145 101 147 101 M155 111 Q160 109 162 107",
     "#4b353d",.48,[220,296],"eye-skin",.68);
   line("lower-lashes",
-    "M83 145 Q80 151 76 155 M92 149 Q90 154 87 157"+
-    " M105 151 Q105 157 103 160 M124 150 Q126 156 129 158"+
-    " M137 145 Q140 151 143 152",
-    "#885e61",.4,[239,295],"eye-skin",.55);
+    "M84 141 Q82 145 79 146 M110 146 Q111 149 112 151"+
+    " M146 134 Q150 137 152 136",
+    "#885e61",.34,[239,295],"eye-skin",.37);
 
   const follicles=crayonFurFlow({
     seed:2084,guide:[{x:25,y:88},{x:59,y:67},{x:102,y:47},{x:161,y:61}],
