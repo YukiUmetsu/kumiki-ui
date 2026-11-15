@@ -117,13 +117,30 @@ function princess(p:Pen,add:Add,phase:number,motion:number){
   add("princess-bodice-panel","#8F607F",21,[
     p.M(-7,-117),p.Q(0,-99,-7,-80),p.Q(0,-72,6,-80),
     p.Q(8,-104,3,-117),p.Z].join(" "),attach(root,0,-103));
+  // The lace collar hides the underside of the short neck and overlaps
+  // the two shoulder pin areas: no isolated throat tube at extreme poses.
   add("princess-collar","#FFF0DD",23,[
-    p.M(-18,-132),p.Q(-6,-141,1,-126),p.Q(13,-141,21,-131),
-    p.Q(11,-121,3,-122),p.Q(-7,-124,-18,-132),p.Z].join(" "),attach(root,0,-123));
+    p.M(-19,-133),p.Q(-14,-143,-6,-137),
+    p.Q(-3,-133,0,-132),p.Q(5,-141,11,-138),
+    p.Q(16,-137,22,-131),p.C(17,-126,12,-122,5,-122),
+    p.Q(0,-125,-5,-124),p.Q(-13,-121,-19,-133),p.Z].join(" "),
+    attach(root,0,-128));
+  add("princess-collar-filigree","#E7D1BC",24,[
+    p.band(-17,-132,-9,-128,1.35),p.band(-3,-129,4,-127,1.2),
+    p.band(10,-130,19,-131,1.25)].join(" "),attach(root,0,-130));
   add("princess-gold-seams","#F6D7A4",23,[
     p.band(-18,-95,-6,-80,1.3),p.band(17,-95,8,-80,1.3),
     p.leaf(-4,-106,9,-85,1.4),p.leaf(3,-104,8,-95,1.2)].join(" "),
     attach(root,0,-101));
+  add("princess-waist-seam","#E7C89F",24,[
+    p.M(-19,-82),p.Q(-2,-75,19,-82),
+    p.Q(14,-76,-1,-73),p.Q(-12,-75,-19,-82),p.Z,
+    p.leaf(0,-82,8,-92,3.2)].join(" "),attach(root,0,-83));
+  add("princess-gown-pleats","#E4AFBA",19,[
+    p.band(-29,-60,-43,0,2.1,-.7),
+    p.band(-9,-67,-16,8,1.65,.3),
+    p.band(12,-66,23,9,1.9,-.3),
+    p.band(30,-55,51,1,1.6,.5)].join(" "),attach(root,0,-77));
   add("princess-left-sleeve","#E9A9B7",20,[
     p.M(-22,-128),p.C(-37,-138,-45,-117,-42,-109),
     p.C(-39,-99,-47,-92,-49,-83),p.C(-40,-77,-32,-79,-27,-86),
@@ -140,10 +157,23 @@ function princess(p:Pen,add:Add,phase:number,motion:number){
   add("princess-right-cuff","#FFEBD5",25,
     p.band(55,-87,62,-80,5),
     attach("princess-right-sleeve",55,-86));
+  // One anatomically shaped hand silhouette: sleeve-to-palm joint, thumb
+  // opposition, four tapering digits and negative-space knuckle relief.
   add("princess-right-hand","#E4B998",26,[
-    p.M(58,-82),p.C(63,-81,68,-80,69,-74),
-    p.Q(70,-68,66,-67),p.Q(62,-73,58,-77),p.Z].join(" "),
+    p.M(57,-82),p.C(61,-85,64,-83,66,-80),
+    p.Q(69,-79,69,-76),p.L(72,-72),
+    p.Q(74,-70,73,-69),p.Q(71,-68,69,-71),
+    p.Q(71,-67,69,-66),p.Q(67,-66,66,-69),
+    p.Q(66,-66,64,-67),p.Q(62,-67,63,-72),
+    p.Q(59,-74,57,-78),p.Z].join(" "),
     attach("princess-right-sleeve",60,-79));
+  add("princess-left-hand","#DFAF95",26,[
+    p.M(-43,-81),p.Q(-48,-81,-51,-78),
+    p.Q(-54,-76,-54,-73),p.L(-58,-68),
+    p.Q(-59,-66,-57,-65),p.Q(-55,-65,-52,-70),
+    p.Q(-54,-66,-51,-65),p.Q(-49,-65,-49,-68),
+    p.Q(-45,-71,-42,-75),p.Z].join(" "),
+    attach("princess-left-sleeve",-46,-79));
   // Source-guided adult cranial proportion: crown-to-chin shortened while
   // the jaw is brought down into the collar instead of a long exposed neck.
   const h=p.sub(.84,0,-185,0,20);
@@ -233,11 +263,13 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
       p.Q(x+7,10,x-19,8),p.Q(x-25,1,x-13,-13),p.Z].join(" "),
       attach("prince-"+n+"-leg",x,-4));
   }
+  // Wider clavicle span and tapered jacket sides. Shoulder outer widths
+  // remain anchored beneath the sleeves; head scale stays independent.
   add("prince-coat","#4D7189",19,[
-    p.M(-26,-131),p.C(-38,-123,-35,-104,-27,-94),
-    p.L(-33,-70),p.C(-16,-60,18,-59,33,-72),
-    p.L(28,-96),p.C(40,-116,28,-131,15,-134),
-    p.Q(-4,-123,-26,-131),p.Z].join(" "),
+    p.M(-29,-132),p.C(-40,-123,-38,-108,-29,-94),
+    p.L(-33,-70),p.C(-18,-58,18,-59,33,-72),
+    p.L(29,-96),p.C(41,-116,31,-129,17,-133),
+    p.Q(0,-125,-29,-132),p.Z].join(" "),
     {pivot:p.xy(0,-110),poseKeys:travel});
   add("prince-coat-tail","#365F79",20,[
     p.M(-28,-77),p.C(-34,-53,-43,-42,-49,-28),
@@ -256,6 +288,15 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
     p.band(-23,-90,-14,-80,2),p.band(23,-90,15,-80,2),
     p.oval(4,-105,2.1,2.8),p.oval(4,-94,2.1,2.8),p.oval(4,-82,2.1,2.8)].join(" "),
     attach(root,0,-100));
+  // Physical stitching and reinforced coat seams follow lapel/shoulder
+  // grain direction instead of uniform oval buttons.
+  add("prince-tailor-seams","#C0C2B5",25,[
+    p.band(-29,-124,-25,-111,1.3),
+    p.band(28,-123,26,-112,1.3),
+    p.band(-18,-113,-16,-91,1.2),
+    p.band(16,-113,17,-92,1.1),
+    p.band(-29,-72,-13,-68,1.2),
+    p.band(16,-70,28,-74,1.2)].join(" "),attach(root,0,-103));
   add("prince-belt","#354957",26,p.band(-25,-81,26,-81,5),attach(root,0,-82));
   add("prince-belt-clasp","#F4D9A2",27,p.oval(4,-81,6,4),
     { ...attach(root,0,-81),holes:[p.oval(4,-81,3.3,2)]});
@@ -267,8 +308,11 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
   add("prince-left-cuff","#E7D2AB",25,
     p.band(-62,-86,-48,-80,6),attach("prince-left-arm",-54,-84));
   add("prince-left-hand","#E8BD9F",26,[
-    p.M(-61,-84),p.Q(-68,-86,-69,-79),p.Q(-69,-72,-63,-72),
-    p.Q(-58,-77,-61,-84),p.Z].join(" "),
+    p.M(-58,-85),p.C(-64,-88,-68,-86,-71,-83),
+    p.Q(-74,-80,-73,-77),p.L(-76,-74),
+    p.Q(-78,-71,-76,-70),p.Q(-74,-70,-72,-74),
+    p.Q(-74,-70,-72,-69),p.Q(-69,-69,-68,-72),
+    p.Q(-66,-69,-64,-72),p.Q(-61,-76,-58,-78),p.Z].join(" "),
     attach("prince-left-arm",-60,-81));
   add("prince-right-arm","#426781",21,[
     p.M(22,-130),p.C(38,-132,45,-118,45,-105),
@@ -278,8 +322,11 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
   add("prince-right-cuff","#E1C69E",24,
     p.band(49,-85,59,-78,6),attach("prince-right-arm",53,-83));
   add("prince-right-hand","#EAC2A1",25,[
-    p.M(55,-79),p.Q(63,-83,67,-78),p.Q(70,-72,66,-68),
-    p.Q(61,-72,55,-74),p.Z].join(" "),
+    p.M(54,-81),p.Q(63,-83,66,-79),
+    p.Q(69,-77,69,-74),p.L(73,-71),
+    p.Q(74,-69,72,-68),p.Q(70,-68,68,-72),
+    p.Q(69,-67,67,-67),p.Q(65,-67,65,-71),
+    p.Q(63,-69,61,-71),p.Q(57,-74,54,-75),p.Z].join(" "),
     attach("prince-right-arm",56,-78));
   // Neck joins the jaw to the waistcoat/coat collar continuously.
   // The prince shares a separate but measured cranial scale. Every face
@@ -653,7 +700,7 @@ export function paperRoyalStoryScene(
     ground=h/2+(aspect==="portrait"?244:169),
     distance=aspect==="portrait"
       ? (phase===0?122:phase===1?108:92)
-      : (phase===0?194:phase===1?163:132),
+      : (phase===0?194:phase===1?163:120),
     actorScale=aspect==="portrait"?1.16:1.03;
   const layers:PaperCutLayer[]=[];
   const add:Add=(id,color,depth,path,rest={})=>{
