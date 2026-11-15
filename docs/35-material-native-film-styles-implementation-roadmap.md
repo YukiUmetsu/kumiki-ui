@@ -1,5 +1,8 @@
 # 35 — Material-native film styles: step-by-step implementation roadmap
 
+> **WC16 watercolor portrait retirement (2026-11-14):** Human face demos from WC11–WC15 were rejected and removed. No face should be considered a shipped feature. See [reference atlas and rebuild gate](research/watercolour-portrait-masterwork-reference-atlas.md). Watercolor landscapes, other artwork, materials, and film infrastructure remain active.
+
+
 **Prepared:** 2026-11-13  
 **Status:** Active implementation roadmap. Functional implementation, automated validation, exported-proof evidence and explicit human visual acceptance are tracked separately below.  
 **Target:** `YukiUmetsu/kumiki-ui`, with a separate ContentGen integration after native Kumiki proof.  
