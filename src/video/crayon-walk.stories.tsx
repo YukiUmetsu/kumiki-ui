@@ -2,9 +2,9 @@ import type { Meta,StoryObj } from "@storybook/react-vite";
 import {CrayonPlayground} from "./crayon-scene-playground";
 import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-story-config";
 
-/** Original SVG-native CRAYON1 artwork; stories share one animation player. */
+/** Remade illustrated protagonist; old independent film fixtures are not deleted. */
 const meta={
-  title:"Video production/Film Looks/Crayon/Characters/Walk & Rigging",
+  title:"Video production/Film Looks/Crayon/Characters/The Blue Coat / Walk & Rigging",
   id:"video-crayon-walk",
   component:CrayonPlayground,
   args:{...crayonSceneDefaultArgs,subject:"walk",startFrame:156},

@@ -5,7 +5,7 @@ import {crayonSceneDefaultArgs,crayonSceneArgTypes} from "../src/video/crayon-sc
 import {crayonWildlifePortraitScene} from "../src/video/crayon-wildlife-portrait-fixtures";
 import sceneMeta,{WaterCycle,WaterCyclePortrait,StorybookTown,IllustratedData} from "../src/video/crayon-scene.stories";
 import wildlifeMeta,{WildlifeHarePortrait,WildlifeHarePortraitVertical,WildlifeHareEyeMacro,WildlifeHareFurMacro,WildlifeHareMuzzleMacro,WildlifeHareEarMacro} from "../src/video/crayon-wildlife.stories";
-import actingMeta,{CharacterPerformance,CharacterPerformancePortrait} from "../src/video/crayon-acting.stories";
+import actingMeta,{CharacterPerformance,CharacterPerformancePortrait,CharacterFaceMacro,CharacterCostumeMacro,CharacterCuriousPortrait,CharacterConcernedPortrait} from "../src/video/crayon-acting.stories";
 import walkMeta,{CharacterWalkCycle,CharacterWalkPortrait,CharacterTwoBoneIK,CharacterTwoBoneIKPortrait} from "../src/video/crayon-walk.stories";
 import drawMeta,{CharacterDrawIn,CharacterDrawInPortrait} from "../src/video/crayon-draw-in.stories";
 import dragonMeta,{DragonVillage,DragonVillagePortrait,DragonVillageDuo,DragonAnatomyDetail,DragonAnatomyDetailPortrait,CastleMasonryDetail,DragonHandRedraw,DragonWingMorph} from "../src/video/crayon-dragon.stories";
@@ -29,12 +29,12 @@ describe("Crayon Storybook organization",()=>{
    const groups=[
      {meta:sceneMeta,stories:[WaterCycle,WaterCyclePortrait,StorybookTown,IllustratedData]},
      {meta:wildlifeMeta,stories:[WildlifeHarePortrait,WildlifeHarePortraitVertical,WildlifeHareEyeMacro,WildlifeHareFurMacro,WildlifeHareMuzzleMacro,WildlifeHareEarMacro]},
-     {meta:actingMeta,stories:[CharacterPerformance,CharacterPerformancePortrait]},
+     {meta:actingMeta,stories:[CharacterPerformance,CharacterPerformancePortrait,CharacterFaceMacro,CharacterCostumeMacro,CharacterCuriousPortrait,CharacterConcernedPortrait]},
      {meta:walkMeta,stories:[CharacterWalkCycle,CharacterWalkPortrait,CharacterTwoBoneIK,CharacterTwoBoneIKPortrait]},
      {meta:drawMeta,stories:[CharacterDrawIn,CharacterDrawInPortrait]},
      {meta:dragonMeta,stories:[DragonVillage,DragonVillagePortrait,DragonVillageDuo,DragonAnatomyDetail,DragonAnatomyDetailPortrait,CastleMasonryDetail,DragonHandRedraw,DragonWingMorph]},
    ];
-   expect(groups.flatMap(x=>x.stories)).toHaveLength(26);
+   expect(groups.flatMap(x=>x.stories)).toHaveLength(30);
    const expected=["seed","paperTooth","aspect","playbackRate","loop","startFrame","reducedMotion"];
    for(const {meta,stories} of groups){
      expect(stories.length).toBeGreaterThan(1);
@@ -44,8 +44,11 @@ describe("Crayon Storybook organization",()=>{
        expect(story.args?.startFrame??meta.args.startFrame).toBeLessThanOrEqual(449);
      }
    }
+   expect(legacyMeta.tags).toContain("!dev");
+   expect(materialMeta.tags).toContain("!dev");
    expect(crayonSceneDefaultArgs.wildlifeCrop).toBe("composition");
    expect(crayonSceneDefaultArgs.paperRecipe).toBe("authored");
+   expect(crayonSceneDefaultArgs.atelierCrop).toBe("composition");
    expect(CrayonPlayground).toBeTypeOf("function");
  });
  it("the new close-ups use the original composable scene renderer, not raster screenshots",()=>{
@@ -77,7 +80,7 @@ describe("Crayon Storybook organization",()=>{
    const groups=[
      {meta:sceneMeta,shown:["subject","paperTooth"],hidden:["wingPower","wildlifeCrop","rig","waxGlaze"]},
      {meta:wildlifeMeta,shown:["wildlifeDetail","wildlifeCrop","wildlifeEarMotion"],hidden:["wingPower","stride","editorialDetail","drawOrder"]},
-     {meta:actingMeta,shown:["editorialDetail"],hidden:["wildlifeCrop","rig","wingPower"]},
+     {meta:actingMeta,shown:["editorialDetail","atelierExpression","atelierCrop"],hidden:["wildlifeCrop","rig","wingPower"]},
      {meta:walkMeta,shown:["rig","stride","stepLift"],hidden:["wildlifeDetail","cast","drawOrder"]},
      {meta:drawMeta,shown:["drawOrder","outlineFraction","waxGlaze"],hidden:["rig","wingPower","wildlifeCrop"]},
      {meta:dragonMeta,shown:["wingPower","villageDetail","shot","cast"],hidden:["wildlifeCrop","stepLift","editorialDetail"]},

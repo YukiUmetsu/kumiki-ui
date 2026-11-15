@@ -6,6 +6,33 @@
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
 
+## ArtCraft illustrated-character rebuild (current)
+
+Historical cartoon actor pages under **Classics** and the old schematic
+animal heads under **Materials** have also been hidden from the Storybook
+navigation (`!dev`); their independent source implementations and regression
+tests remain intact. None of the old character artwork is presented as a new
+premium character showcase.
+
+The visible **Acting, Walk and Draw-In** examples have been replaced by a
+new child protagonist, "The Blue Coat", without deleting any previous
+CRAYON1 source film factories or breaking their APIs. All stories remain in
+the single **Video production / Film Looks / Crayon** hierarchy.
+
+The new source is `src/video/crayon-character-atelier-fixtures.ts`.
+It includes separate eyes and iris layers, eyebrows, nose and lip drawings,
+painted blink occlusion, multiple hair masses, a tailored blue coat,
+coat stitchwork, a plaid scarf, an embroidered dress, leather boots,
+satchel and hand, all in native editable wax. Acting has configurable
+**Expression**, **Detail** and **Crop (composition / face / costume)**
+controls; walk exposes stride, lift and true optional two-bone knee IK.
+Draw-In keeps outline/fill order and explicit pigment deposition windows.
+
+See `docs/research/crayon-character-atelier-2026.md` for the reference
+matrix, proportion guide, known limitations and required 16:9 / 9:16
+visual evidence. Changed unit tests are **structural**, not a declaration
+that the illustration already matches the supplied art direction.
+
 ## Opaque pigment and Storybook organization (2026-11-14)
 
 All crayon videos and material demos live under **Video production →
