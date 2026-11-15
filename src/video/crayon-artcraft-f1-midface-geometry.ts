@@ -200,7 +200,7 @@ export function crayonF1ReconstructMidface(
         colors:["#5d4545","#39252d","#785555"],
         timing:{start:217,end:292},
         pressure:.8,spacing:5.2,markStrength:.11,
-        opaqueBurnish:.82,underpaintTooth:.13,
+        opaqueBurnish:.82,underpaintTooth:.08,
         parentId:"mouth-aperture-depth",clipToParent:true,
       };
       out.push(dental);
