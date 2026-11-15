@@ -19,6 +19,7 @@ import {createPencilPortraitFeatureMarks} from "./colored-pencil-portrait-guides
 import {createFacialOpticalPlanes} from "./colored-pencil-facial-planes";
 import {createOpticalEyelidFibres} from "./colored-pencil-optical-eyelids";
 import {createOpticalIrisPencil} from "./colored-pencil-iris-optics";
+import {createPencilSkinOpticalWeave} from "./colored-pencil-skin-weave";
 
 type Point=readonly[number,number];
 const PAPER="#FAF5ED";
@@ -135,7 +136,7 @@ export const projectMeasuredHeadContours=(guides:PortraitFeatureMap):HeadContour
     uncertaintySourcePixels:4,
   };
 };
-export type HeadMaterialZone="face-value"|"face-chroma"|"face-form"|
+export type HeadMaterialZone="face-value"|"face-chroma"|"face-form"|"face-optical-weave"|
   "face-scumble"|"facial-planes"|"hair-mass"|"hair-occlusion"|
   "hair-fibre"|"measured-features";
 export interface PortraitHeadStroke extends PencilPhotoMark {
@@ -174,6 +175,11 @@ export interface DryPencilHeadPlate {
   readonly fibreFlowStrength:number;
   readonly eyelidDepth:number;
   readonly irisDepth:number;
+  readonly skinWeaveDepth:number;
+  readonly skinWeaveEvidence:Readonly<{
+    pigments:number;protectedHighlights:number;protectedEdges:number;
+    protectedAnatomy:number;
+  }>;
   readonly observedIrisCounts:Readonly<{
     near:number;far:number;glintReserves:number;sourceContrastNear:number;
     sourceContrastFar:number;
@@ -274,6 +280,7 @@ export const createDryPencilHeadPlate=(
   source:PencilPhotoPixels,guides:PortraitFeatureMap,seed=271,
   scumbleStrength=.65,featureDepth=.85,skinCoverage=.70,
   fibreFlowStrength=1,eyelidDepth=.72,irisDepth=.72,
+  skinWeaveDepth=.70,
 ):DryPencilHeadPlate=>{
   positiveSafeSource(source,seed);
   if(!Number.isFinite(scumbleStrength)||
@@ -290,6 +297,8 @@ export const createDryPencilHeadPlate=(
     throw new RangeError("Invalid source-registered coloured pencil eyelid strength");
   if(!Number.isFinite(irisDepth)||irisDepth<0||irisDepth>1)
     throw new RangeError("Invalid source-registered coloured pencil iris strength");
+  if(!Number.isFinite(skinWeaveDepth)||skinWeaveDepth<0||skinWeaveDepth>1)
+    throw new RangeError("Invalid photographed optical skin pigment layering");
   // Require the entire, already-audited 25-landmark source map.
   const details=createPencilPortraitFeatureMarks(source,guides,seed);
   // A/B paper-native, source-supported micro-occlusion; 0 is exact
@@ -309,6 +318,7 @@ export const createDryPencilHeadPlate=(
   const fiveValueCounts:[number,number,number,number,number]=[0,0,0,0,0];
   const materialCounts:Record<HeadMaterialZone,number>={
     "face-value":0,"face-chroma":0,"face-form":0,
+    "face-optical-weave":0,
     "face-scumble":0,"facial-planes":0,
     "hair-mass":0,"hair-occlusion":0,
     "hair-fibre":0,
@@ -867,6 +877,34 @@ export const createDryPencilHeadPlate=(
       mark.color,mark.alpha,mark.width,2,mark.curvature);
     facialPlaneCounts[mark.kind]++;
   }
+  // Fine optical skin is drawn as pressure-varied overlapping pencil
+  // loops, after value/colour/form, but UNDER the independent sharpened
+  // lashes, iris and lip details. This is a reversible source-conditioned
+  // material layer, NOT a filter on the finished portrait.
+  const skinWeave=createPencilSkinOpticalWeave(
+    source,guides,geometry.face,seed,skinWeaveDepth);
+  for(const m of skinWeave.marks){
+    const p:Point=[m.x,m.y];
+    if(classify(p)!=="skin")continue;
+    const a=screen(p),b=screen([m.endX,m.endY]);
+    const control=screen([m.controlX,m.controlY]);
+    if(a[0]<0||a[0]>SIZE.width||a[1]<0||a[1]>SIZE.height)continue;
+    marks.push({
+      ...m,zone:"face-optical-weave",x:a[0],y:a[1],
+      endX:clamp(b[0],0,SIZE.width),endY:clamp(b[1],0,SIZE.height),
+      controlX:clamp(control[0],0,SIZE.width),
+      controlY:clamp(control[1],0,SIZE.height),
+      width:m.width*scale,
+      alpha:clamp(m.alpha,.005,.56),
+    });
+    materialCounts["face-optical-weave"]++;
+  }
+  const skinWeaveEvidence={
+    pigments:materialCounts["face-optical-weave"],
+    protectedHighlights:skinWeave.protectedHighlights,
+    protectedEdges:skinWeave.protectedEdges,
+    protectedAnatomy:skinWeave.protectedAnatomy,
+  };
   // Add verified source-aligned anatomical marks only within the face or
   // hair structure. Never paste the original photographic background.
   for(const m of [...details.marks,...opticallyObservedLids.marks,
@@ -913,6 +951,7 @@ export const createDryPencilHeadPlate=(
     strokes:marks,rasterUnderpainting:false,geometry,
     scumbleStrength,featureDepth,skinCoverage,fibreFlowStrength,
     eyelidDepth,observedEyelidCounts,irisDepth,observedIrisCounts,
+    skinWeaveDepth,skinWeaveEvidence,
     facialPlaneCounts,
     fiveValueCounts,materialCounts,
   };
