@@ -176,7 +176,7 @@ test("Fuchun ink layer differential QA identifies actual dark-spoke producer",as
     const filtered=await card.screenshot({animations:"disabled",
       path:info.outputPath("fuchun-layer-"+name+".png")});
     expect(hash(filtered)).not.toBe(hash(baseline));
-    await style.evaluate(n=>n.remove());
+    await style.evaluate(n=>(n as HTMLStyleElement).remove());
   }
   // SVG filter rasters may differ at the subpixel level after hiding
   // and restoring layers. The scene must restore *visible group
