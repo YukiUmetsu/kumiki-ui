@@ -481,6 +481,35 @@ The counts of kanzashi and the weights given vary between sources and were not u
 - No film uses a duel yet.
 - Nobody has done a human visual review yet.
 
+## Oni weapons and fighting (roadmap U4, owner request, 2026-11-15)
+
+**Sources.**
+
+- Wikimedia Commons museum photographs of kanabō: *Antique Japanese kanabo 12*, *Kanabo tetsubo*, *Kanabo with handle* (CC BY-SA 3.0, studied only and not redistributed).
+- Public-domain prints: Kuniyoshi's *Imperial Bodyguard Fighting with a Demon* and *Kidōmaru*, and Utagawa Toyoharu's *Momotarō no oni-taiji*.
+- The Met's open-access search gave little on the club.
+
+**What they show.**
+
+- **The club.** A long iron-shod club, thickening toward the head, its striking half set with rows of iron studs, iron bands, a wrapped grip and an iron ring at the butt.
+- **The oni.** Wild hair, sinewy limbs and big diagonal action; defeated oni bow to Momotarō.
+
+**Measured.**
+
+- **Smashes.** The head lands within 0.0 px of the ground at both smashes. It had first sunk about 30 px into the ground when the aim ignored the crouching body; the angle is now solved from the actual hands. It lands at least 40 px clear of the hero, who springs back.
+- **Club against blade.** Club and blade meet within 0.6 px at both parries, and the sparks sit on both.
+- **Final cut.** Its tip lands inside the oni's body.
+- **Dust.** Placed by the recipe, the dust was about 100 px from the actual impact. It is now drawn by the figure at the club's head.
+- **Shake.** The first camera shake was about 98 px and 5° and showed the page edge. It is now about 11 px and half a degree.
+- The tests check the ground contact, the clearance, the club-on-blade meetings, the final cut, the fall and the dropped club.
+
+**Not done.**
+
+- The oni's fall seen square on is a foreshortened collapse, not a drawn pose.
+- No oni weapons other than the kanabō.
+- No film uses the fight yet.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
