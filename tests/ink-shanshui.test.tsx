@@ -287,11 +287,14 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect((full.match(/data-km-pine-bough-light=""/g)??[])).toHaveLength(8);
       const shapes=[...full.matchAll(/data-km-pine-bough-shape="" d="([^"]+)"/g)];
       expect(shapes).toHaveLength(8);
-      // Three curve segments on each edge. Old shelf geometry used
-      // one cubic for the entire limb, causing flat ruler silhouettes.
+      // Smooth sampled normals form a continuous taper without the
+      // sharp folded-cardboard joints of the first draft.
+      expect((full.match(/data-km-pine-bough-stations="37"/g)??[]))
+        .toHaveLength(8);
       for(const shape of shapes){
-        expect((shape[1].match(/ Q/g)??[])).toHaveLength(6);
+        expect((shape[1].match(/ L/g)??[]).length).toBeGreaterThanOrEqual(70);
         expect(shape[1].endsWith(" Z")).toBe(true);
+        expect(shape[1]).not.toMatch(/NaN|Infinity|--[0-9]/);
       }
       expect((full.match(/data-km-pine-lateral-parent-pt="[^"]+"/g)??[]))
         .toHaveLength(24);
