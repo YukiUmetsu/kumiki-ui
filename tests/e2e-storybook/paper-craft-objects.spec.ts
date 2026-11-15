@@ -124,3 +124,30 @@ test("Crafted feather tips are separate opaque hinged shapes in both aspect rati
   }
   expect(errors).toEqual([]);
 });
+
+test("Reference rebuilt kingfisher preserves anatomy, opaque feather tracts and glued body",async({page},info)=>{
+  const browserErrors:string[]=[];
+  page.on("pageerror",e=>browserErrors.push(e.message));
+  for(const [slug,aspect] of [
+    ["paper-craft-kingfisher-reference-rebuild","landscape"],
+    ["paper-craft-kingfisher-reference-portrait","portrait"],
+  ] as const){
+    await page.goto(base+slug+"&viewMode=story");
+    const svg=page.locator("svg[data-km-paper-craft]");
+    await expect(svg).toHaveAttribute("viewBox",aspect==="portrait"?"0 0 540 960":"0 0 960 540");
+    await expect(svg).toHaveAttribute("data-km-paper-frame","215");
+    const pieces=svg.locator("[data-km-paper-layer]");
+    const ids=await pieces.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("data-km-paper-layer")));
+    for(const id of ["kingfisher-head","kingfisher-throat","kingfisher-cheek",
+      "kingfisher-belly-russet","kingfisher-wing-coverts","kingfisher-beak-upper",
+      "kingfisher-crown-bar-2","back-shingles-2","kingfisher-breast-tract-2",
+      "kingfisher-talon-1-2"]){expect(ids).toContain(id)}
+    expect(ids.filter(id=>id?.startsWith("wing-feather-")).length).toBe(18);
+    const folded=svg.locator("[data-km-paper-lift-tip^='wing-feather-']");
+    await expect(folded).toHaveCount(18);
+    const colors=await pieces.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("data-km-paper-stock")));
+    expect(colors.every(c=>!!c&&/^#[0-9A-Fa-f]{6}$/.test(c))).toBe(true);
+    await svg.screenshot({animations:"disabled",path:info.outputPath(slug+"-complete.png")});
+  }
+  expect(browserErrors).toEqual([]);
+});

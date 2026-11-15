@@ -126,3 +126,15 @@ const spec=paperObjectSpec("layered","landscape",{
 Eighteen individually shaped primary feather bases and tips use distinct contours and joined authored hinges; the same primitive adds eave lip folds to three houses and a corner fold to the teacup's napkin. `relief` (0–1) is validated in object generation and FilmStage. Two additional landscape/portrait Storybook examples remain directly inside **Video production / Film Looks**; the existing stories are retained. The design stays under the 128-layer budget because the distal piece belongs to its parent cut. Source study and candid limitations: `docs/research/paper-craft-lifted-tip-study.md`.
 
 This is hinge-projecting 2.5D paper construction, **not** a continuous elastic 3D curved sheet or cutter-ready pattern.
+
+## Pass 18: anatomically credible sculpted paper kingfisher
+
+The original kingfisher has been rebuilt after comparing real *Alcedo atthis* side profiles against handmade layered paper kingfishers. The previous circular head, oversized white stomach, very long tail strands, wire-like wing feathers and human-like legs were anatomically weak. The new construction has a **compact joined body and head**, layered chestnut breast and tiny cream belly inset, discrete white throat and orange cheek, reduced tapered bill, red gripping toes, short tail, and overlapping blue-green wing plumage.
+
+A full rebuild of `kingfisher(...)` in `paper-object-kit.ts` keeps the public object/rig API, 18 lifted primary-tip pieces, 10 crown strips, 12 breast scales, seeded absolute-frame motion and both aspect modes. The shape now adds twelve packed multi-contour layers for fine covert, back, crown and breast feather tracts—many dozens of small true paper cuts without exceeding PAPER1's 128-layer budget. All paper colors remain fully opaque, and the wing still uses one shared hinge. The 9:16 portrait uses uniform scales.
+
+New art-direction examples in existing **Video production / Film Looks**:
+- Paper Craft · Kingfisher Anatomy Study
+- Paper Craft · Kingfisher Anatomy Portrait
+
+This is artistic reference-guided code generation, not a copy of Diana Beltrán Herrera's sculpture, and not a 3D bird scan or physics model.

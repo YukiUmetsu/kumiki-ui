@@ -59,8 +59,8 @@ const STOCKS:Record<PaperObjectPalette,Stock>={
 const clamp=(n:number)=>Math.min(1,Math.max(0,n));
 const num=(v:number)=>Number(v.toFixed(3));
 const rad=(d:number)=>d*Math.PI/180;
-function geometry(w:number,h:number){
-  const s=Math.min(w,h)/720,cx=w/2,cy=h/2;
+function geometry(w:number,h:number,scale=1){
+  const s=Math.min(w,h)/720*scale,cx=w/2,cy=h/2;
   const pt=(x:number,y:number)=>num(cx+s*x)+" "+num(cy+s*y);
   const M=(x:number,y:number)=>"M"+pt(x,y);
   const L=(x:number,y:number)=>"L"+pt(x,y);
@@ -173,99 +173,216 @@ function setting(p:P,add:Add,aspect:PaperObjectAspect,c:Stock,seed:number){
   void seed;
 }
 /** Kingfisher anatomy: perched feet, throat, beak, folded coverts, individual feather stock. */
+/** Reference-led common kingfisher, facing right and quietly gripping a willow perch.
+ * Species proportions and color-zone placements follow reference photographs;
+ * individual cut-stock contours and actual art are original rather than traced.
+ * The body is one integrated compact silhouette, never a circular toy head on sticks.
+ */
 function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
-  add("bird-branch-shadow",c.dark,7,p.taper(-344,177,319,148,24,-11),{enterFrame:18});
-  add("bird-branch",c.paper,8,p.taper(-332,166,303,137,17,-9),{enterFrame:24});
-  add("bird-bark",c.cream,9,p.taper(-293,164,-75,154,2),{enterFrame:35,motion:"still"});
+  const wingHinge:[number,number]=[p.cx-83*p.s,p.cy-58*p.s];
+  const rig={motion:"flutter" as const,rigGroup:"kingfisher-wing",
+    swingDegrees:3.6,flapHz:.48,flapPhase:0,pivot:wingHinge};
+  const variation=(i:number,ch:number)=>paperHash(seed,i,ch);
+  // Creek-side perch: warm interlocking bark sheets, thin twigs and four leaves.
+  add("bird-branch-shadow",c.deep,6,p.taper(-345,180,325,153,24,-7),{enterFrame:18});
+  add("bird-branch",c.paper,8,[
+    p.M(-342,159),p.C(-206,150,-74,154,42,147),
+    p.C(158,141,251,135,326,139),p.C(302,151,215,155,92,164),
+    p.C(-73,179,-208,183,-342,174),p.Z].join(" "),{enterFrame:22,curl:.35});
+  add("bird-bark",c.cream,9,[
+    p.taper(-320,164,-122,164,2.2,1),
+    p.taper(-89,160,67,154,1.3),
+    p.taper(140,149,276,145,1.8,1),
+    p.taper(-265,175,-167,173,1.2)].join(" "),{enterFrame:27});
+  add("bird-branch-knot",c.dark,10,p.oval(-235,163,11,6),{
+    holes:[p.oval(-235,163,6,3)],enterFrame:31});
+  for(const [i,x] of [-270,205,283].entries()){
+    const y=163-(x+260)*.035,top=i%2?-1:1;
+    add("branch-leaf-"+i,i%2?c.green:c.greenLight,10,
+      p.taper(x,y,x+(i%2?18:-14),y+top*39,11,5),{
+        enterFrame:35+i*6,curl:.55});
+  }
+  // Nine short rectrices rather than an anatomically implausible fan of long wires.
   for(let i=0;i<7;i++){
-    const x=-290+i*78,by=164-(x+300)*.045,up=i%2===0?-1:1;
-    add("branch-leaf-"+i,i%3===0?c.gold:i%2?c.greenLight:c.green,10,
-      p.taper(x,by,x-18,by+up*(29+i%3*7),10,4),{enterFrame:28+i*5});
+    const d=i-3;
+    add("kingfisher-tail-"+i,i%3===0?c.blueLight:i%2?c.blue:c.ink,11,
+      p.taper(-99+d*.9,65,-146+d*2.8,143+Math.abs(d)*1.6,7.5,1.8),{
+        enterFrame:36+i*2,curl:.54});
   }
-  // Tail feathers tuck beneath the body and overlap the branch in the same plane.
-  for(let i=0;i<9;i++){
-    add("kingfisher-tail-"+i,i%3===0?c.blueLight:i%2?c.ink:c.blue,11,
-      p.taper(-111,-1,-224+i*7,156+i*2,7.5,4),{enterFrame:30+i*3,curl:.45});
-  }
-  add("kingfisher-body-shadow",c.dark,12,[
-    p.M(-125,-77),p.C(-84,-135,-10,-116,43,-66),p.C(65,-20,37,86,-24,132),
-    p.C(-85,175,-157,93,-125,-77),p.Z].join(" "),{enterFrame:36});
+  // One stout, pitched forward silhouette with blue upperparts and chestnut belly.
+  add("kingfisher-body-shadow",c.deep,12,[
+    p.M(-126,-74),p.C(-107,-115,-33,-119,8,-88),
+    p.C(52,-67,70,-7,62,58),p.C(56,110,25,141,-26,147),
+    p.C(-71,145,-108,116,-128,68),
+    p.C(-149,15,-150,-36,-126,-74),p.Z].join(" "),{enterFrame:39});
   add("kingfisher-orange-breast",c.coral,13,[
-    p.M(-79,-67),p.C(-22,-105,54,-53,49,17),p.C(44,93,-3,143,-51,133),
-    p.C(-96,107,-114,11,-79,-67),p.Z].join(" "),{enterFrame:41});
-  add("kingfisher-white-belly",c.cream,14,[
-    p.M(-29,-47),p.C(11,-55,42,-24,35,32),p.C(26,88,5,111,-26,107),
-    p.C(-42,87,-54,-11,-29,-47),p.Z].join(" "),{enterFrame:47});
+    p.M(-30,-80),p.C(12,-91,48,-56,60,-12),
+    p.C(74,45,48,125,9,132),
+    p.C(-34,148,-69,117,-83,73),
+    p.C(-98,28,-73,-62,-30,-80),p.Z].join(" "),{enterFrame:45,curl:.3});
+  add("kingfisher-belly-russet",paperTint(c.coral,c.dark,.21),14,[
+    p.M(-76,80),p.C(-53,126,-7,144,17,124),
+    p.C(-17,151,-54,128,-76,80),p.Z].join(" "),{enterFrame:49});
+  add("kingfisher-white-belly",c.cream,15,[
+    p.M(18,98),p.C(32,109,35,120,19,131),
+    p.C(6,133,-7,131,-13,126),p.C(3,116,12,108,18,98),p.Z].join(" "),{enterFrame:54});
   add("kingfisher-back",c.blue,15,[
-    p.M(-132,-75),p.C(-99,-125,-25,-116,5,-83),p.C(-58,-66,-46,56,-105,100),
-    p.C(-153,82,-167,-2,-132,-75),p.Z].join(" "),{enterFrame:48});
-  add("kingfisher-wing-base",c.ink,16,[
-    p.M(-107,-64),p.C(-80,-94,-33,-79,-14,-43),p.C(-26,15,-68,79,-112,99),
-    p.C(-139,50,-147,-19,-107,-64),p.Z].join(" "),{
-      enterFrame:61,motion:"flutter",swingDegrees:5,flapHz:.65,flapPhase:0,
-      rigGroup:"kingfisher-wing",curl:.5,pivot:[p.cx-85*p.s,p.cy-55*p.s]});
-  add("kingfisher-wing-coverts",c.blueLight,17,[
-    p.M(-112,-54),p.C(-68,-90,-35,-63,-34,-20),p.C(-59,28,-88,49,-113,69),
-    p.C(-128,33,-139,-20,-112,-54),p.Z].join(" "),{
-      enterFrame:67,motion:"flutter",swingDegrees:5,flapHz:.65,flapPhase:0,
-      rigGroup:"kingfisher-wing",curl:.7,pivot:[p.cx-85*p.s,p.cy-55*p.s]});
-  const feathers=11+Math.round(detail*7);
-  for(let i=0;i<feathers;i++){
-    const t=i/(feathers-1),x=-105+64*t,y=-34+62*t;
-    const card=p.feather(x,y,x-16-21*t,y+42+17*t,5.4+(i%3)*.65);
-    add("wing-feather-"+i,i%3===0?c.gold:i%2?c.blue:c.blueLight,18,
-      card.base,{
-        liftedTip:{path:card.tip,hinge:card.hinge,
-          rotateDegrees:(i%2?-1:1)*(9+(i%4)*2.5),lift:5+(i%3)*2},
-        enterFrame:69+i*2,durationFrames:25,motion:"flutter",swingDegrees:5,flapHz:.65,
-        flapPhase:0,rigGroup:"kingfisher-wing",curl:.92,
-        pivot:[p.cx-85*p.s,p.cy-55*p.s]});
+    p.M(-132,-72),p.C(-106,-113,-53,-121,-15,-94),
+    p.C(-46,-75,-41,8,-69,88),
+    p.C(-95,109,-139,70,-140,12),
+    p.C(-147,-23,-140,-57,-132,-72),p.Z].join(" "),{enterFrame:56,curl:.55});
+  // Fine back feather rows use stacked rather than giant flat blue cards.
+  for(let row=0;row<3;row++){
+    const patches=Array.from({length:3+Math.round(detail*4)},(_,j)=>{
+      const x=-119+j*12+row*4,y=-68+row*29+j*3.5;
+      return p.petal(x,y,15+variation(j+row*10,21)*3,73,4.5);
+    }).join(" ");
+    add("back-shingles-"+row,row===1?c.blueLight:row===2?c.green:c.blue,16,
+      patches,{enterFrame:58+row*8,durationFrames:25,curl:.6});
+  }
+  // Wing: physically connected shoulder, coverts and 18 distinct two-part
+  // flight feathers. Every segment follows the same anatomical hinge.
+  add("kingfisher-wing-base",c.deep,16,[
+    p.M(-110,-75),p.C(-82,-99,-24,-82,-10,-37),
+    p.C(-25,9,-55,89,-110,112),
+    p.C(-141,65,-145,-33,-110,-75),p.Z].join(" "),{
+      enterFrame:62,curl:.54,...rig});
+  add("kingfisher-wing-coverts",c.blue,17,[
+    p.M(-113,-65),p.C(-74,-94,-29,-62,-26,-30),
+    p.C(-40,13,-68,72,-111,94),
+    p.C(-137,44,-137,-37,-113,-65),p.Z].join(" "),{
+      enterFrame:67,curl:.83,...rig});
+  // Three staggered feather columns, six rows. Cardstock edges are nested;
+  // no straight comb of bright yellow lines.
+  for(let i=0;i<18;i++){
+    const col=i%3,row=Math.floor(i/3);
+    const sx=-106+col*22+row*1.6,sy=-56+row*22+col*4;
+    const tx=sx-6+col*1.6,ty=sy+37+row*.9;
+    const card=p.feather(sx,sy,tx,ty,9.1+(i%3)*.75);
+    const colors=[c.blueLight,c.blue,c.green,c.ink,c.blue];
+    // Tiny physical slit, oriented along the rachis and entirely within
+    // the feather's broad opaque root. This is real negative space, not ink.
+    const slit=p.taper(sx+(tx-sx)*.27,sy+(ty-sy)*.27,
+      sx+(tx-sx)*.56,sy+(ty-sy)*.56,.78);
+    add("wing-feather-"+i,colors[(row+col)%colors.length],18,card.base,{
+      holes:[slit],
+      liftedTip:{path:card.tip,hinge:card.hinge,
+        rotateDegrees:(i%2?-1:1)*(7+row*.6),lift:5+col*1.5},
+      enterFrame:72+i,durationFrames:23,curl:.9,...rig});
+  }
+  // Delicate covert stipples form 3 rows of hand-cut teardrop scales, rather
+  // than a featureless painted wing disc.
+  for(let row=0;row<3;row++){
+    const shards=Array.from({length:11+Math.round(detail*7)},(_,j)=>{
+      const col=j%6,line=Math.floor(j/6),x=-109+12.5*col+row*2.5;
+      const y=-56+row*24+line*13+col*3.8;
+      return p.taper(x,y,x-3.7,y+13+variation(j+row*13,29)*4,1.3,.7);
+    }).join(" ");
+    add("kingfisher-wing-spot-"+row,row===1?c.blueLight:c.green,19,
+      shards,{enterFrame:88+row*7,curl:.72,...rig});
+  }
+  // Chestnut breast has close-spaced feathers with no giant white oval.
+  for(let row=0;row<3;row++){
+    const plume=Array.from({length:8+Math.round(detail*6)},(_,col)=>{
+      const x=-35+col*6.3+row*3,y=-34+row*38+(col%3)*9;
+      return p.taper(x,y,x+4+variation(col+row*8,36)*4,y+20,1.4,1);
+    }).join(" ");
+    add("kingfisher-breast-tract-"+row,row===1?paperTint(c.coral,c.dark,.14):paperTint(c.coral,c.cream,.15),17,
+      plume,{enterFrame:74+row*8,curl:.38});
   }
   for(let i=0;i<10;i++){
-    const x=-30+i*4.7,y=58+i%2*7;
-    add("breast-feather-"+i,i%3===0?c.gold:c.coral,17,
-      p.taper(x,y,x-7,y+22,2.8),{enterFrame:75+i*2,durationFrames:22});
+    const col=i%5,row=Math.floor(i/5);
+    add("breast-feather-"+i,i%5===0?c.gold:c.coral,18,
+      p.petal(-20+col*12+row*3,29+row*52+col*3,16,85,3.6),{
+        enterFrame:82+i*2,curl:.32});
   }
-  // Repeated overlapping cut-card feather tips create a real scale rhythm,
-  // instead of a single flat painted orange breast region.
   for(let i=0;i<12;i++){
-    const col=i%4,row=Math.floor(i/4);
-    const x=-67+col*19+row*4,y=-17+row*30+(col%2)*4;
-    add("breast-scale-"+i,i%3===0?c.gold:i%2?c.coral:c.cream,17,
-      p.petal(x,y,23,77+row*6,5.5),{enterFrame:76+i*2,durationFrames:24,curl:.8});
+    const col=i%4,row=Math.floor(i/4),x=-38+col*19+row*2,y=1+row*36+(col%2)*4;
+    add("breast-scale-"+i,i%5===0?paperTint(c.coral,c.cream,.2):i%3===0?paperTint(c.coral,c.dark,.14):paperTint(c.coral,c.cream,.11),
+      18,p.petal(x,y,17+variation(i,37)*2.5,86,3.2),{
+        enterFrame:87+i*2,curl:.6});
   }
-  // Head separates mask, crest, cap and eye; no translucent overlays.
-  add("kingfisher-head",c.blue,19,[
-    p.M(-20,-116),p.C(6,-156,80,-158,117,-108),
-    p.C(131,-73,107,-24,68,-16),p.C(19,-10,-22,-48,-20,-116),p.Z].join(" "),{enterFrame:94});
-  add("kingfisher-face-band",c.cream,20,[
-    p.M(45,-70),p.C(65,-56,100,-52,113,-65),
-    p.C(109,-42,91,-37,57,-44),p.C(43,-48,40,-57,45,-70),p.Z].join(" "),{enterFrame:103});
-  add("kingfisher-cheek",c.coral,21,p.taper(71,-56,115,-50,11),{enterFrame:106});
-  for(let i=0;i<9;i++){
-    add("head-crest-"+i,i%2?c.blueLight:c.ink,21,
-      p.taper(8+i*10,-123,25+i*10,-148-5*Math.sin(i*.5),4.2),{enterFrame:104+i*2,durationFrames:20});
+  // Crown and head are an irregular, compact skull, properly joined to nape.
+  add("kingfisher-head",c.blue,20,[
+    p.M(-19,-102),p.C(-15,-131,20,-151,63,-146),
+    p.C(91,-145,115,-123,122,-98),
+    p.C(128,-81,116,-62,93,-55),
+    p.C(53,-47,14,-65,-19,-102),p.Z].join(" "),{
+      enterFrame:94,curl:.72});
+  add("kingfisher-head-brow",c.ink,21,[
+    p.M(56,-130),p.C(91,-129,112,-115,119,-99),
+    p.C(105,-115,82,-119,56,-130),p.Z].join(" "),{enterFrame:98});
+  // Nine tiny nape barbs point backwards, never a clownish upright crest.
+  for(let i=0;i<7;i++){
+    const x=-13+i*13,y=-112-10*Math.sin((i+1)/8*Math.PI);
+    add("head-crest-"+i,i%3===0?c.green:c.blue,22,
+      p.petal(x,y,11,-151,3.4),{enterFrame:99+i,durationFrames:20,curl:.6});
   }
+  // Scalloped crown rows and cyan/ink checker marks mimic handmade paper
+  // feather craftsmanship while preserving a believable head anatomy.
   for(let i=0;i<10;i++){
-    const x=-8+i*11,y=-104+Math.sin(i*.41)*8;
-    add("head-crown-feather-"+i,i%3===0?c.white:c.blueLight,22,
-      p.taper(x,y,x+10,y-24,2.8,1),{enterFrame:111+i*2,durationFrames:20,curl:.88});
+    const col=i%5,row=Math.floor(i/5),x=0+col*19+row*7;
+    const y=-127+row*18+Math.sin(col*.7)*5;
+    add("head-crown-feather-"+i,i%3===0?c.green:i%2?c.blueLight:c.ink,23,
+      p.taper(x,y,x+10,y-12-(i%3)*2,2.6,.5),{
+        enterFrame:104+i,durationFrames:22,curl:.86});
   }
-  add("kingfisher-eye-mask",c.ink,22,p.oval(87,-86,16,11),{enterFrame:112});
-  add("kingfisher-eye",c.white,23,p.disk(88,-89,5),{enterFrame:116,durationFrames:22});
-  add("kingfisher-pupil",c.ink,24,p.disk(91,-89,2.7),{enterFrame:120});
-  add("kingfisher-beak-lower",c.coral,21,p.poly([[112,-67],[278,-74],[129,-58]]),{enterFrame:107});
-  add("kingfisher-beak-upper",c.deep,23,p.poly([[109,-77],[278,-76],[124,-61]]),{enterFrame:111});
-  add("beak-light-strip",c.blueLight,24,p.taper(130,-73,251,-74,1.7),{enterFrame:117});
-  // Toes join the branch. Each foot has a visible ankle.
-  for(const [i,x] of [-29,13].entries()){
-    add("kingfisher-ankle-"+i,c.gold,21,p.band(x,112,x-5,160,5.3),{enterFrame:112});
+  for(let row=0;row<3;row++){
+    add("kingfisher-crown-bar-"+row,row===1?c.ink:c.blueLight,24,
+      Array.from({length:6+Math.round(detail*5)},(_,j)=>{
+        const x=10+j*8.6+row*5,y=-136+row*13+Math.sin(j*.5)*3;
+        return p.taper(x,y,x+6.5,y-7-(j%3),1.0,.3);
+      }).join(" "),{enterFrame:108+row*3});
+  }
+  // Golden-orange auricular patch, separated clean white cheek and throat.
+  // Auricular patch stays behind the eye, not under the bill like a smile.
+  add("kingfisher-cheek",c.coral,24,[
+    p.M(32,-89),p.C(48,-91,65,-82,72,-71),
+    p.C(58,-62,44,-65,32,-72),
+    p.C(29,-78,30,-84,32,-89),p.Z].join(" "),{enterFrame:118});
+  // White nape streak lies to the left of the orange ear, while the throat
+  // curves into the breast immediately beneath the beak's lower mandible.
+  add("kingfisher-face-band",c.cream,25,[
+    p.M(15,-70),p.C(27,-68,42,-67,52,-60),
+    p.C(47,-51,35,-48,17,-54),
+    p.C(11,-59,11,-63,15,-70),p.Z].join(" "),{enterFrame:120});
+  add("kingfisher-throat",c.white,23,[
+    p.M(94,-63),p.C(90,-49,75,-43,53,-35),
+    p.C(49,-47,60,-59,77,-66),
+    p.C(85,-66,90,-66,94,-63),p.Z].join(" "),{enterFrame:122});
+  add("kingfisher-eye-mask",c.ink,26,p.oval(90,-102,10.3,8.8),{
+    enterFrame:117});
+  add("kingfisher-eye",c.deep,27,p.oval(90,-103,6.6,6.5),{enterFrame:122});
+  add("kingfisher-pupil",c.white,28,p.disk(88.4,-105.4,1.7),{enterFrame:126});
+  // Tapered two-piece adult bill: dark narrow ridge with a colored mandibular
+  // seam rather than a parallel pair of cartoon whiskers.
+  add("kingfisher-beak-lower",c.ink,24,[
+    p.M(112,-93),p.C(151,-100,211,-105,242,-101),
+    p.C(202,-96,148,-91,113,-88),p.Z].join(" "),{enterFrame:112});
+  add("kingfisher-beak-upper",c.deep,26,[
+    p.M(111,-101),p.C(149,-111,210,-107,244,-101),
+    p.C(188,-103,148,-100,112,-94),p.Z].join(" "),{enterFrame:116,curl:.4});
+  add("beak-light-strip",c.blueLight,27,p.taper(123,-103,211,-104,1.15),{enterFrame:123});
+  add("kingfisher-nostril",c.ink,28,p.oval(124,-96,3.3,1.7),{enterFrame:125});
+  // Short orange tarsi curve around the upper side of the continuous branch.
+  // Toes curl to the front and rear, not standing like two human legs.
+  for(const [i,x] of [-31,3].entries()){
+    add("kingfisher-ankle-"+i,c.coral,20,
+      p.taper(x,122,x-6,158,6,1.3),{enterFrame:120});
     for(let j=0;j<3;j++){
-      add("kingfisher-talon-"+i+"-"+j,c.coral,22,p.taper(x-5,158,x-23+j*16,169,4),{
-        enterFrame:119+j*3,durationFrames:26});
+      const sx=x-7,tx=sx+(j-1)*14;
+      add("kingfisher-talon-"+i+"-"+j,j===1?c.coral:c.gold,21,
+        p.taper(sx,156,tx,165+(j===1?4:0),3.6,2),{enterFrame:126+j*3});
     }
   }
-  void seed;
+}
+/** Original fully opaque pigment interpolation for subtle biological shingle grading. */
+function paperTint(a:string,b:string,amount:number):string{
+  const t=Math.max(0,Math.min(1,amount));
+  const channel=(n:number)=>Math.round(
+    parseInt(a.slice(n,n+2),16)*(1-t)+parseInt(b.slice(n,n+2),16)*t)
+    .toString(16).padStart(2,"0");
+  return "#"+channel(1)+channel(3)+channel(5);
 }
 /** Four anatomically separated wings and segmented abdomen with true windows. */
 function dragonfly(p:P,add:Add,c:Stock,detail:number,seed:number){
@@ -548,7 +665,7 @@ export function paperObjectSpec(
   };
   setting(p,add,aspect,c,seed);
   switch(object){
-    case "kingfisher":kingfisher(p,add,c,detail,seed);break;
+    case "kingfisher":kingfisher(geometry(w,h,1.18),add,c,detail,seed);break;
     case "dragonfly":dragonfly(p,add,c,detail,seed);break;
     case "canal-houses":houses(p,add,c,detail,seed);break;
     case "camera":camera(p,add,c,detail,seed);break;
