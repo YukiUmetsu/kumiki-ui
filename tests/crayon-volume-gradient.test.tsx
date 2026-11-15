@@ -3,10 +3,11 @@ import {renderToStaticMarkup} from "react-dom/server";
 import {WaxRegion} from "../registry/video/materials/crayon-react";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
+import type {CrayonVolumeGradient} from "../registry/video/materials/crayon-scene";
 import {crayonAdultFaceStudy} from "../src/video/crayon-artcraft-adult-face-fixtures";
 import {crayonDemoScene} from "../src/video/crayon-scene-fixtures";
 
-const lighting={light:"#f4cfb3",shadow:"#865e68",focusX:.31,focusY:.21,radius:1.1};
+const lighting:CrayonVolumeGradient={light:"#f4cfb3",shadow:"#865e68",focusX:.31,focusY:.21,radius:1.1};
 const swatch=(gradient?:typeof lighting,coverage:"opaque"|"open"="opaque")=>
   renderToStaticMarkup(<svg><WaxRegion
     d="M0 0Q100 -30 160 70Q120 170 0 100Z"
