@@ -834,6 +834,35 @@ function bambooBrushBlade(root:P,tip:P,width:number,seed:number){
   }
   return path.join(" ")+" Z";
 }
+/** Fei-bai (flying-white) is *inside* a loaded brush gesture. Each
+ * short skip follows the same curved stroke axis as its dark silhouette:
+ * never add detached canvas noise or a parallel hatch grid.
+ * See Asian Art Museum, Introduction to Chinese Brushpainting Techniques.
+ */
+function bambooDryBristles(root:P,tip:P,width:number,seed:number){
+  const dx=tip[0]-root[0],dy=tip[1]-root[1];
+  const length=Math.max(.01,Math.hypot(dx,dy));
+  const nx=-dy/length,ny=dx/length;
+  const curvature=(s(seed,17)-.5)*length*.19;
+  const point=(t:number,offset:number):P=>{
+    // Keep the dry bristles in the pressure-loaded central belly.
+    const p=Math.sin(Math.PI*t);
+    const shift=curvature*p+width*offset*p;
+    return [root[0]+dx*t+nx*shift,root[1]+dy*t+ny*shift];
+  };
+  return Array.from({length:3},(_,i)=>{
+    const start=.26+.23*s(seed+191,i*31+5);
+    const finish=Math.min(.87,start+.19+.17*s(seed+193,i*17+11));
+    const offset=(i-1)*.16+.08*(s(seed+197,i*23)-.5);
+    const a=point(start,offset),mid=point((start+finish)*.5,
+      offset+.045*(s(seed+199,i*17)-.5)),b=point(finish,offset);
+    return {
+      d:"M"+f(a[0])+" "+f(a[1])+" Q"+f(mid[0])+" "+f(mid[1])+
+        " "+f(b[0])+" "+f(b[1]),
+      width:f(.18+.22*s(seed+211,i*19)),
+    };
+  });
+}
 /** Bamboo is a calligraphic plant, not uniform fence-post lines. The
  * centerline of each tapered culm also supplies the positions of its branch
  * nodes; each broad leaf begins on its own painted branching centerline.
@@ -983,6 +1012,12 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
               const satellite=bambooBrushBlade(echoRoot,echoTip,
                 wide*(.59+.19*s(seed+1381,i*17+j*11+k)),
                 seed+1409+i*31+j*23+k*37);
+              const bristles=detail>.6?bambooDryBristles(
+                [bx,by],[leafTipX,leafTipY],wide,
+                seed+i*1009+j*41+k*17):[];
+              const echoBristles=echo&&detail>.85?bambooDryBristles(
+                echoRoot,echoTip,wide*.65,
+                seed+1409+i*31+j*23+k*37):[];
               return <g key={k}>
                 <path data-km-shanshui-bamboo-leaf="" d={blade}
                   data-km-bamboo-leaf-root={f(bx)+","+f(by)}
@@ -991,11 +1026,20 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
                   fill={k%5===0||j%5===0?"#8b7963":"#282a25"}
                   opacity={f((k%5===0||j%5===0 ? .68 : .85)+
                     .14*s(seed,k+i*31+j*7))}/>
+                {bristles.map((bristle,b)=> <path key={"dry"+b}
+                  data-km-bamboo-internal-bristle="" d={bristle.d}
+                  stroke={k%5===0||j%5===0?"#342f2a":"#e7d7bd"}
+                  strokeWidth={bristle.width} opacity=".57" fill="none"
+                  strokeLinecap="round"/>)}
                 {echo&&<path data-km-bamboo-satellite-leaf=""
                   data-km-bamboo-satellite-root={f(echoRoot[0])+","+f(echoRoot[1])}
                   d={satellite} data-km-bamboo-satellite-heading={f(echoAngle)}
                   fill={k===4?"#675442":"#8b765c"}
                   opacity={f(.62+.18*s(seed+1459,i*13+j*7+k))}/>}
+                {echoBristles.map((bristle,b)=> <path key={"echoDry"+b}
+                  data-km-bamboo-satellite-bristle="" d={bristle.d}
+                  stroke="#e6d4b8" strokeWidth={bristle.width}
+                  opacity=".5" fill="none" strokeLinecap="round"/>)}
                 {detail>.77&&(motif===1||motif===3)&&
                   <path data-km-bamboo-dry-lift=""
                     d={"M"+f(bx+(leafTipX-bx)*.2)+" "+
