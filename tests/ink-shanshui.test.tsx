@@ -296,6 +296,12 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         expect(cloudBanks.map(m=>Number(m[2]))).toEqual([
           0,1,2,3,0,1,2,3,0,1,2,3,
         ]);
+        const cloudMorphs=[...html.matchAll(
+          /data-km-master-cloud-morph="([0-3])"/g,
+        )].map(m=>Number(m[1]));
+        expect(cloudMorphs).toEqual([0,1,2,3,2,3,0,1,0,1,2,3]);
+        for(const index of [0,1,2,3])
+          expect(cloudMorphs.filter(m=>m===index)).toHaveLength(3);
         expect(new Set(cloudBanks.map(m=>m[1])).size).toBe(12);
         for(let index=0;index<12;index++){
           const [,root]=cloudBanks[index];
