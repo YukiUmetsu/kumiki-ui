@@ -30,7 +30,13 @@
 - Uses `WatercolourWetPaper` with actual `WetPigmentDrop.path`, water, load, 14-pixel wet grid, flow and irreversible sediment for underpainting (WM4).
 - Built-in pressure taper, brush speed, bristle breakup, local paper flecks and bloom effect come from the existing library engines, not a substitute postfilter.
 - Skin/eye parts are **not** represented by a fake SVG `<circle>` or filled `<path>` in any WC19 source component. Every visible mark comes from the real watercolor renderer.
-- Reserve iris highlights and fold sparkles as **paper gaps** using WM4 paper masks. WM1 marks may overlap the reserve, so this is still a **material limitation** requiring actual visual check, not guaranteed paper protection across both engines.
+- Reserve iris highlights and fold sparkles as **paper gaps through both WM1 and WM4**. WC19 extends the actual WM1 brush type with validated `reservePaths` and masks the brush deposition, rather than drawing an artificial white circle over a dark pupil. It must be verified from actual screenshots.
+
+## Visual QA iteration record
+
+**Pass 1 (actual 640×480 Chromium dry frame, rejected):** The proof showed a green iris disk rather than an integrated eye, a heavy lower-lid V/almond silhouette, an overly solid eyebrow, extremely regular eyelash spacing, and a flat cream background without cotton-paper fibers. Macro shape was not convincing despite real WM1/WM4 operation. Source proof: [WC19 workflow run](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43674746215), screenshot `wc19-dry-eye-native.png`.
+
+**Pass 2 (source changes under browser review):** reduced iris/pupil mark widths, lightened the lower waterline and eyebrow mass, pulled the lower lid up to better overlap the iris, broke uniform lash spacing, made WM4 draw actual paper fibers, and added **WM1 paper-reserve masks** to retain the catchlight across every pressure-brush pass. This does not guarantee artistic improvement; compare the second native render and 3× crops before promoting the painting.
 
 ## Production / ArtCraft acceptance blockers
 
