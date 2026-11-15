@@ -152,9 +152,10 @@ export function ReferencePencilAtelier({
   const [showHairContact,setShowHairContact]=useState(initialStoryboard);
   const [headScumble,setHeadScumble]=useState(.65);
   const [featureDepth,setFeatureDepth]=useState(.85);
+  const [skinCoverage,setSkinCoverage]=useState(.70);
   const [showFeatureAtlas,setShowFeatureAtlas]=useState(initialStoryboard);
   const [featureFocus,setFeatureFocus]=
-    useState<"eyes"|"nose"|"lips">("lips");
+    useState<"eyes"|"nose"|"lips"|"skin">("lips");
   const [headToneComparison,setHeadToneComparison]=
     useState<PencilToneComparison|null>(null);
   const [headOcclusion,setHeadOcclusion]=
@@ -235,8 +236,9 @@ export function ReferencePencilAtelier({
   // computed for ordinary video exports or for unrelated photos/characters.
   const headPlate=useMemo(()=>raw&&faceGuides&&showFullHead?
     createDryPencilHeadPlate(raw,faceGuides,options.seed,
-      headScumble,featureDepth):null,
-    [raw,faceGuides,showFullHead,options.seed,headScumble,featureDepth]);
+      headScumble,featureDepth,skinCoverage):null,
+    [raw,faceGuides,showFullHead,options.seed,headScumble,featureDepth,
+      skinCoverage]);
   // The static precomputed tone layer is cached: seeking/speed does not
   // recompute pixels, gradients, stochastic paper or stroke directions.
   useEffect(()=>{
@@ -356,7 +358,9 @@ export function ReferencePencilAtelier({
     // proof screenshot, not an invented vector face. Every crop is simply
     // an observation of the finished source/mark canvas; it never adds
     // photographic pixels to the rendered dry-pencil artwork.
-    const centres={eyes:[155,121],nose:[179,152],lips:[186,189]} as const;
+    const centres={
+      eyes:[155,121],nose:[179,152],lips:[186,189],skin:[151,151],
+    } as const;
     const [cx,cy]=centres[featureFocus];
     const sx=(cx-60)/285*540,sy=(cy-43)/318*600;
     const sw=120/285*540,sh=86/318*600;
@@ -522,6 +526,12 @@ export function ReferencePencilAtelier({
         <input aria-label="Pencil portrait scumble" type="range"
           min="0" max="1" step=".05" value={headScumble}
           onChange={e=>setHeadScumble(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Skin pigment coverage · {Math.round(skinCoverage*100)}%
+        <input aria-label="Pencil skin coverage" type="range"
+          min="0" max="1" step=".05" value={skinCoverage}
+          onChange={e=>setSkinCoverage(Number(e.target.value))}/>
       </label>}
       {faceGuides&&showFullHead&&<label style={control}>
         Facial-plane pigment · {Math.round(featureDepth*100)}%
@@ -789,18 +799,19 @@ export function ReferencePencilAtelier({
             data-km-pencil-anatomy-atlas=""
             style={{marginTop:12}}>
             <h3 style={{font:"600 18px Georgia,serif",margin:"0 0 6px"}}>
-              Eye · nasal cartilage · lips / source-matched optical study
+              Eye · skin · nasal cartilage · lips / source-matched optical study
             </h3>
             <label style={{...control,maxWidth:310,marginBottom:11}}>
               Anatomy inspection crop
               <select aria-label="CC0 measured face crop"
                 value={featureFocus}
                 onChange={e=>setFeatureFocus(
-                  e.target.value as "eyes"|"nose"|"lips")}
+                  e.target.value as "eyes"|"nose"|"lips"|"skin")}
                 style={field}>
                 <option value="eyes">Eyebrow and eyelids</option>
                 <option value="nose">Nasal alae and bridge</option>
                 <option value="lips">Upper and lower vermilion</option>
+                <option value="skin">Cheek and nasal bridge tonal fields</option>
               </select>
             </label>
             <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
