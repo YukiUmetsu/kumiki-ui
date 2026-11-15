@@ -167,6 +167,89 @@ function silhouetteTree(p:P,x:number,ground:number,height:number,width:number,le
   return {path,top,tipX};
 }
 
+/**
+ * Original middle-distance forest arbor, built as a continuous silhouette
+ * of trunk + tapering bifurcating forks rather than a flat canopy decal.
+ * All side shoots grow out of real wood-stock junctions, and leaf bunches
+ * sit at the *ends* of the forks rather than at arbitrary positions.
+ *
+ * Two separate stock planes (wood, foliage) share one deterministic skeleton.
+ */
+function wovenArbor(p:P,x:number,ground:number,height:number,
+  hand:-1|1,seed:number,detail:number):{wood:string;foliage:string}{
+  // Use the portal x-extent to cap inward lean in tall portrait frames:
+  // the two trees arch toward each other without closing the central light.
+  const tipX=x-hand*Math.min(Math.abs(x)*.30,height*.17),top=ground-height;
+  const wood=[
+    p.M(x-11.2,ground+9),
+    p.C(x-8.8,ground-height*.27,tipX-7,top+height*.25,tipX-2.5,top),
+    p.L(tipX+2.5,top),
+    p.C(tipX+7.5,top+height*.28,x+8.8,ground-height*.28,x+11.2,ground+9),
+    p.L(x+4.4,ground+11),p.L(x,ground-8),p.L(x-5.2,ground+11),p.Z,
+  ];
+  const leaves:string[]=[];
+  const tierCount=5+Math.round(detail*3);
+  for(let j=0;j<tierCount;j++){
+    const t=(j+1)/(tierCount+1);
+    const by=ground-height*t,bx=x+(tipX-x)*t;
+    // Most branches arch into the clearing; occasional outside forks give
+    // irregular botanical silhouettes without closing the distant view.
+    const dir=(j%4===1?hand:-hand) as -1|1;
+    const h=paperHash(seed,j,311);
+    // Portrait portals are tall: limit lateral branch reaches by the actual
+    // root distance to the image center rather than blindly by tree height.
+    const reach=Math.min(height*(.16+.11*h),Math.abs(x)*(.42+.11*h))*
+      (1-t*.29);
+    const ex=bx+dir*reach,ey=by-height*(.08+.055*paperHash(seed,j,313));
+    const rootWidth=2.4+2.3*(1-t),elbow=bx+dir*reach*.42;
+    wood.push([
+      p.M(bx-rootWidth,by+rootWidth*1.4),
+      p.C(bx+dir*reach*.14,by-height*.04,elbow,ey+height*.08,ex,ey),
+      p.C(elbow+dir*2.5,ey+height*.11,bx+dir*reach*.12,by+rootWidth*.4,
+        bx+rootWidth,by+rootWidth*1.4),p.Z,
+    ].join(" "));
+    for(let k=0;k<2+Math.round(detail);k++){
+      const q=(k+1)/(3+Math.round(detail));
+      const px=bx+(ex-bx)*q,py=by+(ey-by)*q;
+      const twigDir=k%2===0?-dir:dir;
+      const tx=px+twigDir*(14+9*paperHash(seed,j*9+k,317));
+      const ty=py-14-9*paperHash(seed,j*9+k,319);
+      // A tapered secondary fork always begins on its parent branch.
+      wood.push(p.band(px,py,tx,ty,1.65));
+      const a=twigDir>0?-66:-114;
+      leaves.push(p.band(tx,ty,tx+twigDir*8,ty-10,1.9));
+      const length=20+8*paperHash(seed,j*9+k,321);
+      const wide=5.9+2.1*paperHash(seed,j*9+k,323);
+      leaves.push(p.leaf(tx+twigDir*4,ty+2,length,a,wide));
+      // The smaller opposing blade makes each fork legible as botanical
+      // stock rather than an unconnected pale comma at a branch tip.
+      leaves.push(p.leaf(tx,ty,9+4*paperHash(seed,j*9+k,325),
+        a+(twigDir>0?-52:52),wide*.66));
+    }
+  }
+  return {wood:wood.join(" "),foliage:leaves.join(" ")};
+}
+/** A collection of offset bark engravings cut from a contrasting thin sheet,
+ * rather than a single full-height straight highlight resembling a metal rod. */
+function treeBarkScores(p:P,x:number,ground:number,height:number,lean:number,
+  hand:-1|1,seed:number){
+  const strips:string[]=[];
+  for(let i=0;i<5;i++){
+    const t=.13+i*.145,yy=ground-height*t,
+      bx=x+lean*t+hand*(i%2?3.4:-3.2);
+    const dy=height*(.09+paperHash(seed,i,331)*.045),
+      bend=hand*(1.5+2.9*paperHash(seed,i,333));
+    strips.push([
+      p.M(bx-1.15,yy+1),
+      p.C(bx+bend*.4,yy-dy*.25,bx+bend,yy-dy*.68,bx+bend*.73,yy-dy),
+      p.L(bx+bend*.73+1,yy-dy+1.5),
+      p.C(bx+bend+1.3,yy-dy*.66,bx+bend*.6+1.4,yy-dy*.28,bx+1.15,yy+1),
+      p.Z,
+    ].join(" "));
+  }
+  return strips.join(" ");
+}
+
 /** Continuous die-cut crown (never a collection of floating stickers).
  * The broad cardstock mass is anchored over the foreground tree top. Its
  * smaller eye-shaped *physical holes* transmit light through negative space.
@@ -186,15 +269,21 @@ function laceCanopy(p:P,x:number,y:number,side:number,detail:number,seed:number)
     p.C(sx(x*.89),-y*.29,sx(x*.97),-y*.21,sx(x*1.12),-y*.10),
     p.L(sx(x*1.12),-y*1.10),p.Z
   ].join(" ");
+  // All stations lie inside the scalloped contour. The placement is designed
+  // against the actual *visible oval*, not the bounding rectangle.
   const sites=[
     [.39,.72],[.48,.69],[.58,.62],[.68,.52],[.80,.36],
-    [.45,.54],[.56,.48],[.69,.40],[.81,.30]
+    [.45,.54],[.56,.48],[.69,.40],[.81,.34],
+    [.42,.83],[.51,.80],[.62,.72],[.71,.64],[.77,.52],
+    [.50,.61],[.61,.57],[.72,.46],[.85,.39]
   ] as const;
-  const holes=Array.from({length:4+Math.round(detail*5)},(_,k)=>{
+  const holes=Array.from({length:5+Math.round(detail*13)},(_,k)=>{
     const h=paperHash(seed,k+(side>0?60:0),91);
     const [nx,ny]=sites[k];
     const px=sx(x*nx),py=-y*ny;
-    return p.leaf(px,py,17+9*h,side*(k%2?53:-36)-88,5.5+2*h);
+    // Knife-cut ovals are intentionally small to leave sound cardstock
+    // bridges around their edges, not paper-thin disconnected islands.
+    return p.leaf(px,py,11+7*h,side*(k%2?55:-32)-90,3.8+1.5*h);
   });
   return {path,holes};
 }
@@ -371,6 +460,24 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
     return p.conifer(px,py,tall,wide,species,seed+i*127,detail);
   });
   add("woodland-far-pines",c.near,15,farPines.join(" "),{enterFrame:85,curl:.3});
+  // Two intermediate planes form a real arched forest rather than trees that
+  // appear only as perpendicular side-wall sticks. Each shadow stock is offset
+  // in physical geometry; the visible upper tree and its terminal leaves are
+  // separate opaque cut sheets at different depth, so the lightbox can cast
+  // genuinely spaced shadows and parallax.
+  for(const [i,hand] of [-1,1].entries()){
+    const rootX=hand*x*.53,rootY=y*.43,height=y*1.24;
+    const branches=wovenArbor(p,rootX,rootY,height,hand as -1|1,
+      seed+101+i*173,detail);
+    const under=wovenArbor(p,rootX+hand*6,rootY+7,height,
+      hand as -1|1,seed+101+i*173,detail);
+    add("woodland-arched-arbor-shadow-"+i,c.soil,16,under.wood,{
+      enterFrame:90+i*6,curl:.26});
+    add("woodland-arched-arbor-"+i,c.trunk,18,branches.wood,{
+      enterFrame:96+i*6,curl:.62});
+    add("woodland-arched-arbor-leaves-"+i,c.leafLight,19,
+      branches.foliage,{enterFrame:113+i*5,curl:.64});
+  }
   // Two asymmetrical solid cardstock canopy shells frame the distant sky.
   // Cut-through eye apertures, not transparent fake leaf silhouettes.
   for(const [i,side] of [-1,1].entries()){
@@ -393,8 +500,9 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
     const tree=silhouetteTree(p,tx,ground,height,sign===-1?43:37,-sign*29);
     add("woodland-trunk-"+i,c.trunk,20,tree.path,{enterFrame:89+i*5,curl:.61});
     add("woodland-trunk-grain-"+i,c.bark,21,
-      p.band(tx-sign*5,ground-26,tree.tipX-sign*1,tree.top+42,1.8),{
-        enterFrame:100+i*5,curl:.4});
+      treeBarkScores(p,tx,ground,height,tree.tipX-tx,
+        sign as -1|1,seed+i*71),{
+        enterFrame:100+i*5,curl:.3});
     // Broad, branching crown forms the foreground theatre proscenium.
     // Inward boughs meet the negative-space opening rather than just
     // decorating the aperture's side walls.

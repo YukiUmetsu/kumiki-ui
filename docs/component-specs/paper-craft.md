@@ -217,3 +217,10 @@ The original PAPER1 128-layer cap, all five media, scene identifiers, and determ
 The same Scenery Storybook page now renders broadleaf understory plants with sculpted closed cardstock serrations, continuous rooted stems, lateral forks and a raised opaque vein plane; woodland adds eight and alpine adds six high-detail herb sheets. Flowers gain seed-specific asymmetrical petals and physical contrasting centers. These details are formed from code-authored contours, not noise or translucent collage overlays. The scene generator's existing detail control governs actual cut density, and seed governs repeatable plant morphology.
 
 No new public property, Storybook folder, renderer or film slot. The native two-aspect film, five PAPER1 material styles, existing options and 128-layer budget remain supported. New unit/browser checks cover geometry complexity, physical layering, palette opacity and deterministic frame seeking.
+
+
+## Pass 24 — actual arched tree stock and canopy filigree
+
+The existing Video production / Film Looks / Paper Craft → Scenery story includes two new middle-distance arched trees in the woodland preset. Their real closed paper contours form a continuous root/trunk, 5–8 attached main boughs, further secondary forks and leaf tips; a darker underlayer casts offset stock depth. Material layering is shadow sheet (depth 16), wood body (depth 18), lighter terminal leaf stock (depth 19). Existing foreground trunks have several short bark-score cuts instead of one straight full-height stripe.
+
+The existing Detail slider controls 5–18 true punched upper-canopy openings, under the 32-hole per-layer contract. No new user-facing controls, Storybook folder, film slot, dependency or renderer. All existing seed, five media, lightbox, physical relief, landscape/portrait export and 128-sheet safety rules remain in force. New unit/browser tests verify actual cut geometry, shadow-stock hierarchy, stable IDs, fully opaque cardstock and deterministic absolute-frame rendering.

@@ -101,3 +101,19 @@ Reference-led observations, not copied source compositions:
 Implementation: notchedBotanicalLeaf creates closed, axis-directed serrated cut-stock contours; scenicHerb draws a continuous curved stem, connected lateral forks and several asymmetrically notched leaves, with bright midrib scores on a separate cardstock plane; scenicBloom makes seeded petal fans and separate opaque contrasting pistils. At full detail woodland gains 8 rooted herb sheets and Alpine Lake 6; one common lighter stock sheet carries all vein detail per scene. Existing flowers grow larger, with unequal petal contours and visible centers. The original cut paper shapes and material colors are not copies of any referenced work.
 
 Reject the negative controls: detached foliage, perfectly repeated identical leaf icons, daisy-like dots with no pistils, flowers outside the land, all foliage obscuring water, and shadow-line/edge artifacts outweighing paper stock. Passing M/L/C/Z closed-path validation is not artistic approval; inspect real film frames and browser crops at final resolution.
+
+
+## Pass 24 — arched forest branches, punched canopy light
+
+Reference-to-code lessons; no artwork is traced or bundled:
+
+- [Hari & Deepti layered forest lightboxes](https://www.designswan.com/archives/enchanting-paper-cut-art-by-hari-deepti-a-world-of-light-and-mystery.html): attached networks of large/secondary branches form coherent arches with clear light-filled sky. Build topology and 3D separation before adding ornament.
+- [Hari & Deepti materials interview](https://gbps.org.uk/information/downloads/magazines/philatelic-bulletin/pdfs/Philatelic%20Bulletin%2057-4.pdf): independently knife-cut watercolor paper 140–300 gsm in LED-illuminated shadowboxes suggests physically separated stock, not flattened textured SVG overlays.
+- [Helen Musselwhite paper forest](https://www.designswan.com/archives/from-graphic-design-to-paper-magic-the-art-of-helen-musselwhite.html): distinct tree sizes, sculpted branch junctions and negative space make the portal composition credible.
+- [Helen Musselwhite on thumbnail-to-layer design](https://helenmusselwhite.com/about/): lock a balanced proportion and color-order of each layer before micro-detail.
+
+**Current visible failure:** the Pass 23 woodland still had two pole-like trunks and a broad flat upper canopy. Its sparse radial branch network did not make the nested arches in the references. Colors, grain and random leaf dots cannot repair missing branching topology.
+
+**Original geometric construction:** wovenArbor generates two middle-distance rooted saplings with tapering trunk stock, 5–8 curved main forks, 2–3 secondary twig forks per arm and leaf clusters at terminal junctions. The dark geometrically offset stock (depth 16) lies behind visible wood (depth 18), then paper leaf tips (depth 19), not copied semitransparent sprites. The scalloped overhead canopy now punches 5–18 small leaf-shaped clearances (under the 32-hole max). Short asymmetrical curved bark scoring replaces a single conspicuous straight pale rod.
+
+**Quality invariants:** each twig begins inside a parent bough; silhouette touches its terrain; all cut cardstock colors are opaque; the sky/sun and river remain visible; real holes remain within the canopy; seed and absolute-frame seeking are deterministic; scene never exceeds 128 paper layers. The source assets are newly authored and derivative-free. Render actual browser and native film frames at 16:9 and 9:16 before considering the iteration visually validated.
