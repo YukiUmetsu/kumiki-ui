@@ -5,7 +5,7 @@ import {inspectWetPaper,evaluateWetPaper} from "../registry/video/watercolour-we
 import {
   WC19_EYE_GESTURES,WC19_EYE_LANDMARKS,experimentalWatercolourEyeBrush,
 } from "../src/video/experimental/watercolour-eye-brush-study";
-import {ExperimentalWatercolourEyeBrushPage}
+import {ExperimentalWatercolourEyeBrushPage,WC19_EYE_APERTURE}
   from "../src/video/experimental/watercolour-eye-brush-page";
 
 describe("WC19 — actual natural-media eye study, not a gradient vector painting",()=>{
@@ -70,6 +70,15 @@ describe("WC19 — actual natural-media eye study, not a gradient vector paintin
   it("actually renders pressure deposition, blooming, physically wet paper and dry fibers",()=>{
     const markup=renderToStaticMarkup(<ExperimentalWatercolourEyeBrushPage frame={420}/>);
     expect(markup).toContain('data-km-watercolour-eye-status="unapproved"');
+    // The iris no longer sits as an unoccluded circular sticker over the
+    // drawn eye. Its real WM1 deposition is clipped by two authored lids.
+    expect(markup).toContain('data-km-brush-painted-iris-occluded=""');
+    expect(markup).toContain('data-km-eye-anatomical-occlusion=""');
+    expect(markup).toContain('data-km-eyelid-iris-occlusion="source-derived"');
+    expect(markup).toContain("clip-path=");
+    expect(WC19_EYE_APERTURE).toMatch(/^M.*C.*Z$/);
+    expect(WC19_EYE_APERTURE).not.toMatch(/[Aa]/);
+
     expect(markup).toContain('data-km-wet-paper=""');
     expect(markup).toContain('data-km-wet-pigment-field=""');
     expect(markup).toContain('data-km-watercolour=""');
