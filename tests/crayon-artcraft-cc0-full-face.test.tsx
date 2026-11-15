@@ -1,6 +1,7 @@
 import {describe,it,expect} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
+import {crayonPaperTintedWaxBase} from "../registry/video/materials/crayon-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
 import {CRAYON_PORTRAIT_AUDIT}
   from "../src/video/crayon-artcraft-portrait-audit";
@@ -551,6 +552,46 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(html).toContain('data-km-crayon-element="oral-opening"');
     expect(html).toContain('data-km-crayon-underpaint="opaque"');
     expect(html).toBe(renderToStaticMarkup(<CrayonScene spec={wax} frame={299}/>));
+  });
+  it("uses physically layered high-pressure dark wax for irises and nostrils only",()=>{
+    const scene=crayonCc0FaceStudy({view:"wax"});
+    const dark=["iris-near","iris-far","pupil-near","pupil-far",
+      "naris-shadow-near","naris-shadow-far","mouth-aperture-depth"];
+    for(const id of dark){
+      const e=scene.elements.find(e=>e.id===id);
+      expect(e).toMatchObject({kind:"wax",coverage:"opaque",
+        deposition:"stroke-built"});
+      if(e?.kind!=="wax")throw Error("Missing saturated wax");
+      expect(e.opaqueBurnish).toBeGreaterThanOrEqual(.83);
+      expect(e.opaqueBurnish).toBeLessThanOrEqual(1);
+      expect(e.underpaintTooth).toBeLessThanOrEqual(.12);
+    }
+    expect(scene.elements.filter(e=>e.kind==="wax"&&(e.opaqueBurnish??0)>0))
+      .toHaveLength(dark.length);
+    const paper="#f4e6d3",pigment="#21171c",pressure=.96;
+    const baseline=crayonPaperTintedWaxBase(pigment,paper,pressure);
+    expect(baseline).toBe(crayonPaperTintedWaxBase(pigment,paper,pressure,0));
+    const saturated=crayonPaperTintedWaxBase(pigment,paper,pressure,1);
+    for(const i of [1,3,5]){
+      expect(parseInt(saturated.slice(i,i+2),16))
+        .toBeLessThan(parseInt(baseline.slice(i,i+2),16));
+    }
+    expect(()=>crayonPaperTintedWaxBase(pigment,paper,pressure,1.01)).toThrow();
+    expect(()=>crayonPaperTintedWaxBase(pigment,paper,pressure,NaN)).toThrow();
+    const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>);
+    expect(html.match(/data-km-crayon-opaque-burnish="/g)).toHaveLength(7);
+    expect(inspectCrayonScene(scene)).toEqual([]);
+    const near=scene.elements.find(e=>e.id==="iris-near");
+    if(near?.kind!=="wax")throw Error("Missing source eye");
+    for(const invalid of [
+      {...near,opaqueBurnish:1.5},
+      {...near,coverage:"open" as const},
+      {...near,deposition:"smooth" as const},
+    ]){
+      const mutated={...scene,elements:scene.elements.map(e=>
+        e.id===near.id?invalid:e)};
+      expect(inspectCrayonScene(mutated).join(" ")).toMatch(/opaqueBurnish/);
+    }
   });
   it("aligns Storybook original photo crop to exact scene camera at all F1 source regions",()=>{
     const source=crayonCc0FaceStudy({view:"wax"});
