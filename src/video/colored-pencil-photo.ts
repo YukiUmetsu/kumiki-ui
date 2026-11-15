@@ -34,9 +34,11 @@ export interface PencilPhotoOptions {
   density:number;
   /** Suppress backdrop scratches and preserve colourful anatomical subject. */
   focus:number;
+  /** Selective dark-pigment build-up for skin, sockets, fur and hair. 0...1. */
+  depth:number;
 }
 export const PENCIL_PHOTO_DEFAULTS:Readonly<PencilPhotoOptions> = {
-  seed:1024,paper:.22,saturation:.90,edges:.72,tooth:.73,density:1.15,focus:.86,
+  seed:1024,paper:.22,saturation:.90,edges:.72,tooth:.73,density:1.15,focus:.86,depth:0,
 };
 export interface PencilPhotoMark {
   x:number;y:number;
@@ -62,7 +64,7 @@ const check=(p:PencilPhotoPixels,o:PencilPhotoOptions)=>{
     !(p.data instanceof Uint8ClampedArray)||
     p.data.length!==p.width*p.height*4)throw new RangeError("Invalid source image pixels");
   if(!Number.isSafeInteger(o.seed)||o.seed<0||o.seed>2147483647||
-    ![o.paper,o.saturation,o.edges,o.tooth,o.focus].every(v=>Number.isFinite(v)&&v>=0&&v<=1)||
+    ![o.paper,o.saturation,o.edges,o.tooth,o.focus,o.depth].every(v=>Number.isFinite(v)&&v>=0&&v<=1)||
     !Number.isFinite(o.density)||o.density<.2||o.density>2)
     throw new RangeError("Invalid photo-to-pencil options");
 };
@@ -109,9 +111,16 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
     // Body shadow should stay convincing even when salience fails at a
     // dark back crossing the image border. Focus mutes *extra noise* outside
     // the subject more than it erases the source's actual value anatomy.
-    const coverage=limit(base*(.72+.28*active)+
+    // No matter how quiet the salience classifier thinks the backdrop is,
+    // retain a minimum fraction of real source pigment for chromatic fidelity.
+    // High-frequency details are still governed separately by focus.
+    const pigmentFloor=.30+darkness*.38;
+    const coverage=limit(Math.max(base*(.72+.28*active),pigmentFloor)+
       options.focus*subject*.18+
-      darkness*.15*(1-options.focus*.5),.03,.99);
+      darkness*.15*(1-options.focus*.5)+
+      // Dense dry-pencil passes over a previously dried pale wash: deepen
+      // brow/eye/hair shadows without filling pale highlights with flat ink.
+      options.depth*darkness*.36,.03,.99);
     for(let c=0;c<3;c++){
       const mixed=paper[c]+(toned[i*3+c]-paper[c])*coverage;
       const contour=mixed*(1-edge*.13);

@@ -1,5 +1,7 @@
 # ArtCraft study — portrait, people, animals and scenery (2026-11-14)
 
+> **2026-11-14 facial construction iteration:** See [ArtCraft fox and human face research](colour-pencil-fox-human-face-research-2026-11-14.md) for updated original eye, muzzle/nose, jaw/lip and brow construction, watercolour-pencil technique studies, new in-Storybook macro controls and independent visual acceptance gates. Earlier proportions and inventories below describe the preceding candidate.
+
 Reference mode: **style-guided**. These are artist-owned artworks, studied for craft. No third-party image assets, extracted contours or copied paintings are checked into the repository. Source-rights approval for redistributing high-resolution crops is unavailable, so use the linked pages as the reference board rather than importing them.
 
 ## Reference board (primary sources where possible)

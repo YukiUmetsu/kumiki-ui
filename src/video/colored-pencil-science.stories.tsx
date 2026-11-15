@@ -513,7 +513,7 @@ export const ObjectMaterialAtelier: StoryObj<typeof meta> = {
 
 /** Same Video Production/Film Looks/Colour-pencil group, no new Storybook folder. */
 export const LivingSubjectsAtelier: StoryObj<typeof meta> = {
-  name: "ArtCraft · Portrait, fox and landscape",
+  name: "ArtCraft · Stylized vector faces and landscape (construction study)",
   args: {aspect:"landscape",subject:"leaf",frame:325},
   render: () => <PencilLivingAtelier/>,
 };
@@ -523,4 +523,11 @@ export const ReferenceGuidedPencil: StoryObj<typeof meta> = {
   name: "ArtCraft · Reference-guided real anatomy (experimental)",
   args: {aspect:"landscape",subject:"leaf",frame:325},
   render:()=> <ReferencePencilAtelier/>,
+};
+
+/** Dedicated real-anatomy study inside the SAME existing Colour-pencil folder. */
+export const ReferenceGuidedFaces: StoryObj<typeof meta> = {
+  name:"ArtCraft · Realistic fox and human faces (CC0 photo-guided)",
+  args:{aspect:"landscape",subject:"leaf",frame:325},
+  render:()=> <ReferencePencilAtelier initialSample="woman"/>,
 };

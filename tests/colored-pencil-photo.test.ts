@@ -86,6 +86,25 @@ describe("source-guided colour-pencil reconstruction",()=>{
     expect(dry.strokes.every(s=>/^#[0-9a-f]{6}$/.test(s.color))).toBe(true);
   });
 
+  it("deepens source facial shadows with selective layered pencil pigment, preserving stable anatomy",()=>{
+    const photo=synthetic();
+    const pale=createPencilPhotoStudy(photo,{depth:0});
+    const rich=createPencilPhotoStudy(photo,{depth:.95});
+    const pixel=(study:typeof pale,x:number,y:number)=>
+      (y*study.width+x)*4;
+    // Dark eyebrow/eye and form planes deepen while light skin remains on paper.
+    const darkPlane=pixel(rich,70,22),cheek=pixel(rich,23,22);
+    // Black pupils may be fully saturated even at depth=0. Select a darker
+    // face plane with room for additional dry-pencil deposition instead.
+    expect(rich.pigment[darkPlane]).toBeLessThan(pale.pigment[darkPlane]-12);
+    expect(rich.pigment[cheek+1]).toBeLessThanOrEqual(pale.pigment[cheek+1]);
+    expect(rich.pigment).not.toEqual(pale.pigment);
+    expect(rich.strokes).toEqual(pale.strokes); // same underlying anatomy/oriented marks
+    expect(createPencilPhotoStudy(photo,{depth:.95}).pigment).toEqual(rich.pigment);
+    expect(()=>createPencilPhotoStudy(photo,{depth:Infinity})).toThrow(RangeError);
+    expect(()=>createPencilPhotoStudy(photo,{depth:1.1})).toThrow(RangeError);
+  });
+
   it("enforces bounded source dimensions and settings before allocating a full frame",()=>{
     const input=synthetic();
     expect(()=>createPencilPhotoStudy({...input,width:0})).toThrow(RangeError);

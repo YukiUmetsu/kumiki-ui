@@ -33,6 +33,7 @@ export function PencilLivingAtelier() {
   const [seed,setSeed]=useState(271);
   const [speed,setSpeed]=useState(1);
   const [focus,setFocus]=useState(false);
+  const [faceDetail,setFaceDetail]=useState<"eyes"|"nose"|"mouth">("eyes");
   const [reduce,setReduce]=useState(false);
   const [playing,setPlaying]=useState(false);
   const drawing=useMemo(()=>{
@@ -58,9 +59,15 @@ export function PencilLivingAtelier() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[playing,speed,reduce]);
   const landscape=aspect==="landscape",meta=descriptive[subject];
+  // ArtCraft face close-ups are selectable without modifying any export frames.
+  const anchor=subject==="portrait"?
+    (faceDetail==="eyes"?[226,207]:faceDetail==="nose"?[239,262]:[238,304]):
+    subject==="fox"?
+      (faceDetail==="eyes"?[210,196]:faceDetail==="nose"?[211,236]:[211,256]):
+      meta.anchor;
   const coord=landscape?{
-    x:441+1.06*meta.anchor[0],y:35+1.06*meta.anchor[1],w:960,h:540,
-  }:{x:35+1.06*meta.anchor[0],y:253+1.06*meta.anchor[1],w:540,h:960};
+    x:441+1.06*anchor[0],y:35+1.06*anchor[1],w:960,h:540,
+  }:{x:35+1.06*anchor[0],y:253+1.06*anchor[1],w:540,h:960};
   const zoom=subject==="portrait"?3.1:subject==="fox"?2.8:2.25;
   const detailStyle=focus?{
     transform:"translate("+ (50-100*zoom*coord.x/coord.w).toFixed(3)+"%, "+
@@ -77,8 +84,8 @@ export function PencilLivingAtelier() {
         Living subjects: Portrait · Wildlife · Landscape
       </h1>
       <p style={{maxWidth:880,margin:0}}>
-        Separate anatomy, natural fibre flow, skin colour layers, needle-branch hierarchy,
-        and river perspective. Inspired by studied pencil craftsmanship without tracing artist images.
+        Reference-guided facial planes, natural fur and hair flow, subtle layered skin
+        colour and landscape drawing. Original geometry, not traced artist images.
       </p>
     </header>
     <section aria-label="Living pencil atelier controls"
@@ -132,6 +139,14 @@ export function PencilLivingAtelier() {
           <option value="1.5">1.5×</option><option value="2">2×</option>
         </select>
       </label>
+      {subject!=="valley"&&<label style={labelStyle}>Facial construction
+        <select aria-label="Living facial detail" style={selectStyle} value={faceDetail}
+          onChange={e=>{setPlaying(false);setFaceDetail(e.target.value as typeof faceDetail);}}>
+          <option value="eyes">Eyes & eyelids</option>
+          <option value="nose">Nose & alar / muzzle</option>
+          <option value="mouth">Lips & jaw / whiskers</option>
+        </select>
+      </label>}
       <label style={{display:"flex",minHeight:40,alignItems:"center",gap:7}}>
         <input aria-label="Living inspect macro" type="checkbox" checked={focus}
           onChange={e=>setFocus(e.target.checked)}/> Inspect macro
@@ -180,11 +195,11 @@ export function PencilLivingAtelier() {
       </nav>
     </div>
     <p style={{margin:0,maxWidth:920,fontSize:13,color:"#697B78"}}>
-      Compare the earlier flat underpaint with the new layered, dry-to-burnished
-      paper-tooth pigment renderer using the medium selector. The same original
-      anatomy/geometry is retained in both modes: richer pigment does not fix
-      a simplified silhouette. Macro zoom is Storybook-only. Reference-matched
-      realism, final Chromium crop review and full-speed film acceptance remain open.
+      Select Eyes, Nose, or Mouth to scrutinize anatomical contours at 3×. Paper tooth,
+      pressure, pigment burnishing and absolute frames remain editable. Neither the
+      face-inspection zoom nor its controls enter exported scenes. The legacy comparison
+      changes material deposition only, not face construction. Artist-grade realism still
+      requires independent visual reference comparison at normal film size.
     </p>
   </main>;
 }

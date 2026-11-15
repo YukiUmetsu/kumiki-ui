@@ -58,6 +58,13 @@ describe("ArtCraft mammal ocular and kingfisher beak/feather micro-craft",()=>{
     const muzzle=fox.parts.find(p=>p.id==="muzzle")!.region;
     const eye=fox.parts.find(p=>p.id==="eye")!.region;
     const head=fox.parts.find(p=>p.id==="head")!.region;
+    // Independent eye socket, brow, nasal and whisker construction on the
+    // animated side-view animal, not only the static living-subject plate.
+    expect(eye.details!.length).toBeGreaterThanOrEqual(9);
+    expect(head.details!.length).toBeGreaterThanOrEqual(11);
+    expect(muzzle.details!.length).toBeGreaterThanOrEqual(6);
+    expect(fox.parts.find(p=>p.id==="nose")!.region.details!.length)
+      .toBeGreaterThanOrEqual(3);
     expect(muzzle.clipDetails).toBe(false);
     expect(muzzle.opaqueSupport).toBe(true);
     expect(head.clipDetails).toBe(true);
