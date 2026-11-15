@@ -261,12 +261,12 @@ function canopyBranchLace(p:P,x:number,y:number,side:-1|1,
       const fx=tx+outward*len*.78;
       const fy=ty-len*(.58+.18*paperHash(seed,i*19+j,411));
       stock.push(p.band(tx,ty,fx,fy,1.65));
-      stock.push(p.leaf(fx-outward*2,fy+3,
+      stock.push(p.leaf(fx,fy,
         19+8*paperHash(seed,i*19+j,413),
         outward>0?-41:-139,5.8+2.5*paperHash(seed,i*19+j,415)));
       // The opposing leaflet is smaller so growth does not resemble a
       // repeated symmetrical row of machine-cut crosses.
-      stock.push(p.leaf(fx,fy+2,11+5*paperHash(seed,i*19+j,417),
+      stock.push(p.leaf(fx,fy,11+5*paperHash(seed,i*19+j,417),
         outward>0?-115:-65,4.2));
     }
   }
@@ -300,12 +300,12 @@ function nestedLeafCrown(p:P,x:number,y:number,detail:number,
       shapes.push(p.band(fromX,fromY,endX,endY,1.95));
       const leafLen=24+11*paperHash(seed,i*11+j,427);
       const leafWidth=8.7+2.7*paperHash(seed,i*11+j,429);
-      shapes.push(p.leaf(endX-flip*2,endY+2,leafLen,
+      shapes.push(p.leaf(endX,endY,leafLen,
         flip>0?-46:-134,leafWidth));
-      shapes.push(p.leaf(endX,endY+1,leafLen*.62,
+      shapes.push(p.leaf(endX,endY,leafLen*.62,
         flip>0?-113:-67,leafWidth*.64));
     }
-    shapes.push(p.leaf(mainX,mainY+2,23+9*noise,-90+u*32,8.4));
+    shapes.push(p.leaf(mainX,mainY,23+9*noise,-90+u*32,8.4));
   }
   return shapes.join(" ");
 }
