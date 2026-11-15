@@ -35,6 +35,10 @@ test("reference-guided pencil renders locally loaded colour/edge structure in bo
         el.dispatchEvent(new Event("change",{bubbles:true}));
       },n);
     };
+    // The fixture deliberately contains TWO equal subjects. Disable the
+    // optional one-foreground salience heuristic for this color-preservation
+    // check; both cyan and russet areas must remain visible.
+    await setSlider("Pencil photo focus",0);
     for(const aspect of ["landscape","portrait"] as const){
       await page.getByRole("combobox",{name:"Pencil photo aspect"}).selectOption(aspect);
       await expect(canvas).toHaveAttribute("data-km-pencil-photo","ready",{timeout:20000});
