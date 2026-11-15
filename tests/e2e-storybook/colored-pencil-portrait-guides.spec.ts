@@ -51,8 +51,12 @@ test("face feature guides are opt-in, stay aligned on aspect changes and never l
       path:info.outputPath("portrait-guided-portrait-schematic-only.png")});
     // Debug overlay must not become part of rendered artwork:
     // Canvas screenshot unaffected by toggling feature pin visibility.
-    const before=await drawing.screenshot();
+    // Compare actual unchanged canvas bitmap, not browser PNG screenshot bytes:
+    // element.screenshot() can differ in encoder/compositing by one byte when
+    // SVG-overlay visibility changes even when export pixels are identical.
+    const before=await drawing.evaluate(node=>(node as HTMLCanvasElement).toDataURL("image/png"));
     await page.getByRole("checkbox",{name:"Show source-measured face guides"}).uncheck();
-    expect(Buffer.compare(before,await drawing.screenshot())).toBe(0);
+    expect(await drawing.evaluate(node=>(node as HTMLCanvasElement).toDataURL("image/png")))
+      .toBe(before);
     await expect(guides).toHaveCount(0);
   });
