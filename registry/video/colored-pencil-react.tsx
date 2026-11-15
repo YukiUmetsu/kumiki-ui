@@ -89,6 +89,8 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
     role="img" aria-label={label} className={className}
     data-km-colored-pencil="" data-km-pencil-frame={frame}
     data-km-pencil-foundation={drawing.foundation?"CP-F1":undefined}
+    data-km-pencil-render-method="authored-vector-pigment"
+    data-km-pencil-photo-pixels="none"
     style={{ width: "100%", height: "100%", display: "block", overflow: "hidden", isolation: "isolate", ...style }}>
     <defs>
       <pattern id={uid + "-paper"} width={1024} height={1024} patternUnits="userSpaceOnUse">
