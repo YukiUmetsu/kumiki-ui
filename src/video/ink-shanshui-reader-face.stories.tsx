@@ -38,8 +38,8 @@ function ReaderFaceStudio(){
     "translate("+pivotX+" "+pivotY+") rotate("+(rest.rotation??0)+") "+
     "scale("+(rest.scaleX??1)+" "+(rest.scaleY??1)+") "+
     "translate(-"+pivotX+" -"+pivotY+")";
-  const shapes=(key:string)=>{
-    const asset=parts[key];
+  const shapesFor=(assets:ReturnType<typeof shanshuiFaceAssets>,key:string)=>{
+    const asset=assets[key];
     return asset?.kind==="shapes"?asset.shapes.map((shape,index)=>{
       if(shape.type==="path")return <path key={index} d={shape.d}
         fill={colour(shape.fill)} stroke={colour(shape.stroke)}
@@ -55,6 +55,7 @@ function ReaderFaceStudio(){
         strokeWidth={shape.strokeWidth??1} opacity={shape.opacity??1}/>;
     }):null;
   };
+  const shapes=(key:string)=>shapesFor(parts,key);
   const facePart=(id:string,key:string,pivot:[number,number])=>
     <g data-ink-reader-part={id}
       transform={pose(fit.facialRest[id as keyof typeof fit.facialRest],...pivot)}>
@@ -226,6 +227,62 @@ function ReaderFaceStudio(){
         </p>
       </section>
     </div>
+    <section data-testid="shanshui-portrait-lineage"
+      style={{marginTop:24,maxWidth:1160}}>
+      <h2 style={{font:"500 24px Georgia,serif",margin:"0 0 7px"}}>
+        Three distinct portrait identities · same animation controls
+      </h2>
+      <p style={{fontSize:12,color:"#6e5a44",maxWidth:930}}>
+        Independent hermit, reader and traveler anatomy. These are the real
+        original source-fitted face assets with the existing head pivots,
+        not three recolored copies or reference-image cutouts. Change the
+        eyelids, mouth and brush detail above to test all three.
+      </p>
+      <div style={{display:"grid",gap:14,
+        gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))"}}>
+        {(["misty-hermit","river-scholar","mountain-trail"] as const)
+          .map(scene=>{
+            const actorArt=shanshuiFaceAssets(scene,detail);
+            const actorFit=shanshuiBodyFit(scene);
+            const part=(id:keyof typeof actorFit.facialRest,
+              key:string,pivot:[number,number])=>
+              <g data-km-portrait-part={id}
+                transform={pose(actorFit.facialRest[id],...pivot)}>
+                {shapesFor(actorArt,key)}
+              </g>;
+            return <article key={scene} style={{background:"#f8efdc",
+              padding:12,border:"1px solid #d4c3a8",borderRadius:6}}>
+              <div style={{font:"600 13px system-ui",marginBottom:8}}>
+                {scene==="misty-hermit"?"Old hermit · deep-set eyes":
+                  scene==="river-scholar"?"Young reader · lowered gaze":
+                  "Mountain traveler · windward eyes"}
+              </div>
+              <svg data-km-scene-face={scene}
+                role="img" aria-label={"Original "+scene+" ink portrait"}
+                viewBox="96 24 94 145"
+                style={{width:"100%",height:335,background:"#f6ead4",
+                  border:"1px solid #e2d2ba",borderRadius:3}}>
+                <g transform={pose(actorFit.headRest,139,124)}>
+                  <g data-km-portrait-part="face">
+                    {shapesFor(actorArt,"face")}
+                  </g>
+                  {part("hair","hair",[140,74])}
+                  {scene==="river-scholar"&&
+                    shapesFor(actorArt,"reader-ear")}
+                  {part("brows","brow",[140,94])}
+                  {part("eyes","eyes-"+eyes,[140,102])}
+                  {eyes!=="closed"&&<g data-km-portrait-irises="">
+                    {part("pupil-left","pupil-left",[128,102])}
+                    {part("pupil-right","pupil-right",[156,102])}
+                  </g>}
+                  {part("mouth","mouth-"+mouth,[142,124])}
+                  {part("beard","beard",[139,135])}
+                </g>
+              </svg>
+            </article>;
+          })}
+      </div>
+    </section>
     <p style={{fontSize:12,color:"#76614a",maxWidth:1100}}>
       Teacher-image coordinates are manually interpreted. This is original
       vector portrait design, not a traced photograph. The exact head and
