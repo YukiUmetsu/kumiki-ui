@@ -305,6 +305,49 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(childFibres.every(([,root,d])=>
         d.startsWith("M"+root.replace(","," "))&&d.includes(" Q")))
         .toBe(true);
+      // Source-structured five-tree grove is planted ON the same
+      // middle ridge visible in the underlying geological scene.
+      const groves=(full.match(/data-km-cliff-pine-grove=""/g)??[]).length;
+      const rooted=[...full.matchAll(
+        /data-km-cliff-pine="" data-km-cliff-pine-root="([^"]+)" data-km-cliff-pine-crest="([^"]+)" data-km-cliff-pine-height="([^"]+)"/g,
+      )];
+      const boughs=[...full.matchAll(
+        /data-km-cliff-pine-bough="" data-km-cliff-pine-bough-root="([^"]+)"/g,
+      )];
+      const bones=[...full.matchAll(
+        /data-km-cliff-pine-bough-bone="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      const needles=[...full.matchAll(
+        /data-km-cliff-pine-needle="" data-km-cliff-pine-needle-root="([^"]+)" d="([^"]+)"/g,
+      )];
+      const trunkPaths=[...full.matchAll(
+        /data-km-cliff-pine-trunk="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      expect(groves).toBe(1);
+      expect(rooted).toHaveLength(5);
+      for(const [,root,crest,height] of rooted){
+        const coords=root.split(",").map(Number);
+        expect(coords.every(Number.isFinite)).toBe(true);
+        expect(coords[1]-Number(crest)).toBeGreaterThanOrEqual(2.79);
+        expect(coords[1]-Number(crest)).toBeLessThanOrEqual(2.81);
+        expect(Number(height)).toBeGreaterThan(30);
+      }
+      expect(trunkPaths).toHaveLength(5);
+      expect(trunkPaths.every((d,i)=>d.startsWith("M"+
+        rooted[i][1].replace(","," "))&&
+        (d.match(/ C/g)??[]).length>=22&&d.endsWith(" Z")))
+        .toBe(true);
+      expect(boughs).toHaveLength(20);
+      expect(bones).toHaveLength(20);
+      expect(bones.every((d,i)=>d.startsWith("M"+
+        boughs[i][1].replace(","," "))&&d.endsWith(" Z")))
+        .toBe(true);
+      expect(needles).toHaveLength(310);
+      expect(needles.every(([,root,d])=>
+        d.startsWith("M"+root.replace(","," "))&&d.includes(" Q")))
+        .toBe(true);
+      expect(new Set(needles.map(m=>m[1])).size)
+        .toBeGreaterThan(275);
       expect((full.match(/<clipPath id="[^"]*-rock-[0-2]-clip"/g)??[]))
         .toHaveLength(3);
       expect(draw(1)).toBe(full);
@@ -313,6 +356,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(sparse).not.toContain('data-km-rock-shoulder-vein=""');
       expect(sparse).not.toContain('data-km-rock-hero-cliff=""');
       expect(sparse).not.toContain('data-km-rock-pima-stroke=""');
+      expect(sparse).not.toContain('data-km-cliff-pine-grove=""');
       expect(draw(1,73)).not.toBe(full);
     }
   });

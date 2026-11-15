@@ -594,6 +594,114 @@ function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
     </g>
   </g>;
 }
+/** Five related mid-distance ink pines perched on the *painted* ridge.
+ * ArtCraft v7 structural reference: Huang Gongwang's "Dwelling in the
+ * Fuchun Mountains" (NPM, tree-and-fisherman detail, illustrated by
+ * Smarthistory). The visual motif is slender independent trunk ink bones,
+ * forked branches, short irregular dark brush commas and visible paper
+ * gaps—not a row of triangular Christmas tree silhouettes.
+ *
+ * These are original compositional curves. All 5 bases are sampled from
+ * exactly the same fractured ridge stations that draw the mountain.
+ */
+function CliffPineGrove({stations,scene,seed,detail,mist}:{
+  stations:readonly P[];scene:ShanshuiScene;seed:number;
+  detail:number;mist:number;
+}){
+  if(detail<.58)return null;
+  const center=scene==="mountain-trail"?653:
+    scene==="river-scholar"?596:536;
+  const distribution=[
+    {dx:-33,height:35,bow:-6},
+    {dx:-17,height:52,bow:7},
+    {dx:-2,height:66,bow:-5},
+    {dx:18,height:47,bow:10},
+    {dx:33,height:32,bow:-6},
+  ] as const;
+  const shade=(1-.17*mist);
+  return <g data-km-cliff-pine-grove=""
+    data-km-cliff-pine-scene={scene}>
+    {distribution.map(({dx,height,bow},i)=>{
+      const x=center+dx+(s(seed+1703,i*31)-.5)*3.2;
+      const crest=ridgeHeight(stations,x);
+      const root:P=[x,crest+2.8];
+      const trunkControl:P=[
+        x+bow*.48,root[1]-height*.57,
+      ];
+      const crown:P=[
+        x+bow,root[1]-height,
+      ];
+      const trunk=rockLoadedRibbon(root,trunkControl,crown,
+        i===2?1.63:1.08,seed+1711+i*29);
+      const barkFrom=quadraticPoint(root,trunkControl,crown,.13);
+      const barkTo=quadraticPoint(root,trunkControl,crown,.89);
+      const bark="M"+f(barkFrom[0])+" "+f(barkFrom[1])+
+        " Q"+f(trunkControl[0]-1.4)+" "+f(trunkControl[1])+
+        " "+f(barkTo[0])+" "+f(barkTo[1]);
+      const boughs=([.31,.5,.67,.84] as const).map((t,j)=>{
+        // Every branch root is *on* its own winding trunk, while the
+        // ink-loaded terminal twigs carry their own fine foliage tips.
+        const origin=quadraticPoint(root,trunkControl,crown,t);
+        const direction=(j%2===0?-1:1)*(i%3===0?-1:1);
+        const distance=(i===2?24:17)+
+          13*s(seed+1763,i*19+j*17);
+        const tip:P=[
+          origin[0]+direction*distance,
+          origin[1]-(3.2+9.8*s(seed+1777,i*13+j*23)),
+        ];
+        const control:P=[
+          origin[0]+direction*distance*.34,
+          origin[1]+(j%3===0?3:-4)-3*s(seed+1789,i*23+j),
+        ];
+        const bone=rockLoadedRibbon(origin,control,tip,
+          1.12*(1-.12*j),seed+1801+i*17+j*37);
+        const touchCount=[13,18,14,17][j];
+        const foliage=Array.from({length:touchCount},(_,k)=>{
+          const at=clamp(.48+(k+.35)/(touchCount+.9)*.5+
+            (s(seed+1811,i*301+j*47+k*19)-.5)*.025,.43,.985);
+          const attach=quadraticPoint(origin,control,tip,at);
+          const lean=(s(seed+1823,i*131+j*29+k*7)-.5);
+          const reach=3.1+7.8*s(seed+1831,i*43+j*11+k*31);
+          const side=(k%7===0?-1:1);
+          const tipX=attach[0]+direction*(1.4+3.3*lean)+
+            side*(s(seed+1847,i*53+j*13+k)-.5)*3.6;
+          const tipY=attach[1]-reach*(k%5===1?.56:1)+
+            (k%9===0?reach*.64:0);
+          const path="M"+f(attach[0])+" "+f(attach[1])+
+            " Q"+f(attach[0]+(tipX-attach[0])*.38+lean*1.8)+
+            " "+f(attach[1]+(tipY-attach[1])*.46)+
+            " "+f(tipX)+" "+f(tipY);
+          return {attach,path,loaded:k%6===0};
+        });
+        return {origin,bone,foliage};
+      });
+      return <g key={i} data-km-cliff-pine=""
+        data-km-cliff-pine-root={f(root[0])+","+f(root[1])}
+        data-km-cliff-pine-crest={f(crest)}
+        data-km-cliff-pine-height={height}>
+        <path data-km-cliff-pine-trunk="" d={trunk}
+          fill="#37332d" opacity={f(.91*shade)}/>
+        <path data-km-cliff-pine-bark="" d={bark}
+          stroke="#a18b70" fill="none" strokeWidth=".48"
+          strokeLinecap="round" opacity={f(.47*shade)}/>
+        {boughs.map(({origin,bone,foliage},j)=>
+          <g key={j} data-km-cliff-pine-bough=""
+            data-km-cliff-pine-bough-root={f(origin[0])+","+f(origin[1])}>
+            <path data-km-cliff-pine-bough-bone="" d={bone}
+              fill={j%2===0?"#3d352d":"#554638"}
+              opacity={f(.88*shade)}/>
+            {foliage.map(({attach,path,loaded},k)=><path key={k}
+              data-km-cliff-pine-needle=""
+              data-km-cliff-pine-needle-root={f(attach[0])+","+f(attach[1])}
+              d={path} stroke={loaded?"#282922":"#3c362b"}
+              strokeWidth={f(loaded?1.13:.54+.39*s(seed+1877,i*13+j*29+k))}
+              opacity={f((loaded?.9:.65+.23*s(seed+1889,i*71+j*19+k))*shade)}
+              strokeLinecap="round" fill="none"/>)}
+          </g>)}
+      </g>;
+    })}
+  </g>;
+}
 function Mountains({scene,seed,detail,mist,ink,ids}:{
   scene:ShanshuiScene;seed:number;detail:number;mist:number;ink:number;
   ids:{far:string;mid:string;near:string;grain:string};
@@ -613,6 +721,11 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
           id={ids.grain+"-rock-"+band}/>
         <RockInkPlanes stations={stations} seed={seed+band*181} band={band}
           detail={detail} mist={mist}/>
+        {/* Ink grove must be AFTER the mountain silhouette and OUTSIDE
+            the cliff-plane clipping group, so all crown strokes appear
+            over the ridge while each trunk enters painted terrain. */}
+        {band===1&&<CliffPineGrove stations={stations} scene={scene}
+          seed={seed+1819} detail={detail} mist={mist}/>} 
         {/* Reference-led rock painting: cluster different brush pressures
             over local geology. Leave quiet paper between texture families,
             rather than repeating parallel grooves across all the mountains. */}

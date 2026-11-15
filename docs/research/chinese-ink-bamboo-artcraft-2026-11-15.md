@@ -745,3 +745,12 @@ exact-seed determinism, and actual Chromium Storybook rendering.
 No portrait edits were made (portrait evidence gate remains blocking).
 Artistic fidelity is *pending* actual new film/crop inspection; passing
 these tests does not demonstrate source parity.
+
+
+## Twentieth pass — ridge-rooted pine grove (2026-11-15)
+
+**ArtCraft v7 source study:** Huang Gongwang, *Dwelling in the Fuchun Mountains* (1350), [real pine/riverbank detail](https://smarthistory.org/wp-content/uploads/2023/06/National-Palace_lrg-det-3.jpeg), examined at the available 500×500 resolution, plus the [National Palace Museum full-scroll collection](https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975). Source features: interlaced uneven dark grove clusters, upright and crooked fine wood, small brush deposits at branch terminals, strong air gaps. The previous candidate had pale midground slopes and almost no conspicuous dense ink flora.
+
+**Implementation:** introduce one scene-specific **five-tree middle-distance grove**, with roots sampled at each current painted ridgeHeight + 2.8, individual heights 32–66, single pressure-tapered trunks, four genuinely rooted fork branches per trunk and 310 independent terminal brush gestures. Deliberately render after the ridge-fill clipping group: canopy crosses the ridge/sky boundary, while all roots disappear into the land. Detail = 0 removes the entire grove; seed and camera-frame remain deterministic. Do not turn these into flat needle wedges or conifer triangles. This is original source-informed geometry, not a third-party trace. Full structural ledger: `docs/research/chinese-ink-pine-grove-structural.json`.
+
+**Review gate:** run the exact-head TypeScript/unit suite and 2.15× Storybook geological crop and 960×540 scene/export. Check overlap, roots, scale, dark-to-paper rhythm and temporal determinism, and keep PR draft unless the actual crop meaningfully resembles the museum detail. Remaining work: fuller cliff depth and botanically credible pines, then bamboo facial/anatomical art with mandatory authorized portrait-measurement gate.
