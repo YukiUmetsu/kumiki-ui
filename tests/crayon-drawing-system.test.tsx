@@ -65,7 +65,8 @@ describe("strict native Crayon drawing grammar",()=>{
       parts:first.parts.filter(p=>p.nodeId!=="leaf-body")}]};
     expect(inspectCrayonDrawingPlan(scene,noLeaf).some(x=>x.includes("untracked scene element leaf-body"))).toBe(true);
     const transparent:CrayonSceneSpec={...scene,elements:scene.elements.map(n=>
-      n.id==="pear-body"&&n.kind==="wax"?{...n,coverage:"open" as const}:n)};
+      n.id==="pear-body"&&n.kind==="wax"?
+      {...n,coverage:"open" as const,underpaintGradient:undefined}:n)};
     expect(inspectCrayonDrawingPlan(transparent,plan).some(x=>x.includes("root must be"))).toBe(true);
     const unclipped:CrayonSceneSpec={...scene,elements:scene.elements.map(n=>
       n.id==="pear-blush"&&n.kind==="wax"?{...n,clipToParent:false}:n)};
