@@ -90,6 +90,37 @@ describe("Common kingfisher ArtCraft anatomy reconstruction",()=>{
       object:"kingfisher",detail:1,curl:1,relief:1,motion:.5,seed:37,
     })).toEqual(intricate);
   });
+  it("adds source-aligned feather shafts, ear coverts and two-sided vane barbs without breaking the cardstock budget",()=>{
+    const detailed=make();
+    const simple=paperObjectSpec("layered","landscape",{
+      object:"kingfisher",palette:"jewel",detail:0,curl:1,relief:1,motion:.5,seed:37,
+    });
+    expect(detailed.layers.length).toBeLessThanOrEqual(MAX_PAPER_LAYERS);
+    expect(detailed.layers.length).toBe(simple.layers.length);
+    for(const key of ["kingfisher-tail-shafts","kingfisher-auricular-feathers"]){
+      const full=detailed.layers.find(layer=>layer.id===key);
+      const plain=simple.layers.find(layer=>layer.id===key);
+      expect(full?.color).toMatch(/^#[a-fA-F0-9]{6}$/);
+      expect(full?.path.endsWith("Z")).toBe(true);
+      expect((full?.path.match(/M/g)||[]).length)
+        .toBeGreaterThan((plain?.path.match(/M/g)||[]).length);
+    }
+    expect((detailed.layers.find(l=>l.id==="kingfisher-tail-shafts")?.path.match(/M/g)||[]))
+      .toHaveLength(28); // 7 rectrices × four direction-following paper shafts
+    for(let col=0;col<3;col++){
+      const name="kingfisher-wing-spot-"+col;
+      const rich=detailed.layers.find(l=>l.id===name)!;
+      const quiet=simple.layers.find(l=>l.id===name)!;
+      expect(rich.rigGroup).toBe("kingfisher-wing");
+      expect(rich.pivot).toEqual(detailed.layers.find(l=>l.id==="wing-feather-0")!.pivot);
+      expect((rich.path.match(/M/g)||[]).length)
+        .toBeGreaterThan((quiet.path.match(/M/g)||[]).length+20);
+      expect(rich.path).not.toMatch(/NaN|Infinity/);
+    }
+    for(const aspect of ["landscape","portrait"] as const){
+      expect(inspectPaperCraft(make(aspect))).toEqual([]);
+    }
+  });
   it("supports jewel, pastel and heritage sheets with equal silhouette topology",()=>{
     const jewel=make("portrait","jewel");
     for(const p of ["pastel","heritage"] as const){
