@@ -207,9 +207,9 @@ export function watercolourArtPoseAt(part: WatercolourArtPart, frame: number,
   return neutral;
 }
 
-function ArtPart({ part, frame, reducedMotion, washFilter, dryFilter, uid }: {
+function ArtPart({ part, frame, reducedMotion, washFilter, dryFilter, softWashFilters, uid }: {
   part: WatercolourArtPart; frame: number; reducedMotion: boolean;
-  washFilter: string; dryFilter: string; uid: string;
+  washFilter: string; dryFilter: string; softWashFilters: readonly [string,string,string]; uid: string;
 }) {
   const pose = watercolourArtPoseAt(part, frame, reducedMotion);
   const start = part.startFrame ?? 0;
@@ -222,34 +222,51 @@ function ArtPart({ part, frame, reducedMotion, washFilter, dryFilter, uid }: {
   const pigmentId = uid + "-pigment-" + part.id;
   const opacity = part.kind === "path" ? (part.opacity ?? 1) : 1;
   const hasGradient = Boolean(material?.highlight || material?.shadow);
+  const soft = material?.edgeSoftness ?? 0;
+  const effectiveWashFilter = soft > 0
+    ? softWashFilters[Math.min(2,Math.ceil(soft*3)-1)] : washFilter;
+  const clipId = uid + "-clip-" + part.id;
+  const descendants = part.kind === "group" ? part.children.map(child =>
+    <ArtPart key={child.id} part={child} frame={frame}
+      reducedMotion={reducedMotion} washFilter={washFilter} dryFilter={dryFilter}
+      softWashFilters={softWashFilters} uid={uid}/>) : null;
   return <g data-km-watercolour-part={part.id} transform={transform}
     opacity={pose.opacity * visible}>
-    {part.kind === "group"
-      ? part.children.map(child => <ArtPart key={child.id} part={child} frame={frame}
-          reducedMotion={reducedMotion} washFilter={washFilter} dryFilter={dryFilter}
-          uid={uid}/>)
-      : <>
+    {part.kind === "group" ? <>
+        {part.clipPath && <defs>
+          <clipPath id={clipId}><path d={part.clipPath}/></clipPath>
+        </defs>}
+        {part.clipPath ? <g clipPath={`url(#${clipId})`}>{descendants}</g>
+          : descendants}
+      </> : <>
         {hasGradient && <defs>
-          <linearGradient id={pigmentId} x1="9%" y1="3%" x2="85%" y2="96%">
-            <stop offset="0" stopColor={material?.highlight ?? part.fill}/>
-            <stop offset=".54" stopColor={part.fill}/>
-            <stop offset="1" stopColor={material?.shadow ?? part.fill}/>
-          </linearGradient>
+          {material?.gradient === "radial" ?
+            <radialGradient id={pigmentId} cx="37%" cy="34%" r="81%" fx="30%" fy="27%">
+              <stop offset="0" stopColor={material?.highlight ?? part.fill}/>
+              <stop offset=".51" stopColor={part.fill}/>
+              <stop offset="1" stopColor={material?.shadow ?? part.fill}/>
+            </radialGradient> :
+            <linearGradient id={pigmentId} x1="9%" y1="3%" x2="85%" y2="96%">
+              <stop offset="0" stopColor={material?.highlight ?? part.fill}/>
+              <stop offset=".54" stopColor={part.fill}/>
+              <stop offset="1" stopColor={material?.shadow ?? part.fill}/>
+            </linearGradient>}
         </defs>}
         <path d={part.path} fill={hasGradient ? `url(#${pigmentId})` : (part.fill ?? "none")}
           stroke={part.stroke ?? "none"} strokeWidth={part.strokeWidth ?? 1}
           strokeLinecap="round" strokeLinejoin="round" opacity={opacity}
-          filter={part.technique === "wash" ? washFilter
+          filter={part.technique === "wash" ? effectiveWashFilter
             : part.technique === "drybrush" ? dryFilter : undefined}
           style={{ mixBlendMode: part.composite ??
             (part.technique === "line" ? "normal" : "multiply") }}
           data-km-watercolour-technique={part.technique}
           data-km-watercolour-composite={part.composite ??
-            (part.technique === "line" ? "normal" : "multiply")}/>
+            (part.technique === "line" ? "normal" : "multiply")}
+          data-km-watercolour-edge-softness={material?.edgeSoftness ?? 0}/>
         {material?.glaze && material.glaze.opacity > 0 && <path
           d={part.path} fill={material.glaze.pigment}
           opacity={opacity * material.glaze.opacity}
-          filter={washFilter} style={{ mixBlendMode: "multiply" }}
+          filter={effectiveWashFilter} style={{ mixBlendMode: "multiply" }}
           data-km-watercolour-optical-glaze={part.id}/>}
         {material?.edgePooling && material.edgePooling > 0 && <path
           d={part.path} fill="none"
@@ -257,7 +274,7 @@ function ArtPart({ part, frame, reducedMotion, washFilter, dryFilter, uid }: {
           strokeWidth={.7 + 2.2 * material.edgePooling}
           strokeLinejoin="round" strokeLinecap="round"
           opacity={opacity * material.edgePooling * .29}
-          filter={washFilter} style={{ mixBlendMode: "multiply" }}
+          filter={effectiveWashFilter} style={{ mixBlendMode: "multiply" }}
           data-km-watercolour-edge-pooling={part.id}/>}
       </>}
   </g>;
@@ -312,6 +329,18 @@ export function WatercolourIllustration({ spec, frame, reducedMotion = false, ..
             k1={1} k2={0} k3={0} k4={0}/>
         </>}
       </filter>
+      {/* Artist-directed lost edges are applied to the local painted region,
+          not to the entire portrait or crisp eye/pencil structure. */}
+      {([1.2,2.5,4.1] as const).map((blur,index)=>
+        <filter key={index} id={id + "-soft-" + (index+1)}
+          x="-16%" y="-16%" width="132%" height="132%"
+          colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency=".021 .037" numOctaves={3}
+            seed={1 + spec.seed % 997} result="bleed"/>
+          <feDisplacementMap in="SourceGraphic" in2="bleed" result="wet-edge"
+            scale={2.4*spec.paper.tooth} xChannelSelector="R" yChannelSelector="G"/>
+          <feGaussianBlur in="wet-edge" stdDeviation={blur*spec.paper.tooth}/>
+        </filter>)}
       <filter id={id + "-dry"} x="-3%" y="-3%" width="106%" height="106%"
         colorInterpolationFilters="sRGB">
         <feTurbulence type="fractalNoise" baseFrequency=".13 .075" numOctaves={2}
@@ -326,6 +355,8 @@ export function WatercolourIllustration({ spec, frame, reducedMotion = false, ..
       transparentPaper/>}
     {spec.parts.map(part => <ArtPart key={part.id} part={part} frame={frame}
       reducedMotion={reducedMotion} washFilter={`url(#${id}-wash)`}
-      dryFilter={`url(#${id}-dry)`} uid={id}/>)}
+      dryFilter={`url(#${id}-dry)`} softWashFilters={[
+        `url(#${id}-soft-1)`,`url(#${id}-soft-2)`,`url(#${id}-soft-3)`
+      ]} uid={id}/>)}
   </svg>;
 }
