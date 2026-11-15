@@ -21,7 +21,7 @@ The existing `ReferenceGuidedFaces` camera produces a canvas of 900×506. Earlie
 - Iris: tiny radial pigment strokes at the photographed iris position while preserving photographed catchlights.
 - Nose: soft, low-pressure bridge-to-alar marks; never an opaque nasal wedge.
 - Lips: upper and lower vermilion edge traces with separate vertical fine-grain deposits; reuses photographed boundary.
-- Facial volume: 5 localized skin planes (near/far cheek, forehead, nose and chin) receive sparse, fanned, paper-grain deposits matched to local photo-derived material colour instead of hatching across the entire scene. No complexion assumption or global skin segmentation is used.\n- Every mark: source-local sampled RGB → controlled earth pencil chroma, deterministic seed and CP-F1 chronological pass, clipped to page.
+- Facial volume: 5 localized skin planes (near/far cheek, forehead, nose and chin) receive layered, visibly sized fanned paper-grain deposits matched to local photo-derived material colour instead of hatching across the entire scene. No complexion assumption or global skin segmentation is used.\n- Every mark: source-local sampled RGB → controlled earth pencil chroma, deterministic seed and CP-F1 chronological pass, clipped to page.
 - **Fidelity boundary:** the photographed value map stays unchanged by guide introduction, guaranteeing geometry/skin volume cannot shift because of overlaid marks. No guide data applies to uploaded user photographs, a man portrait or wildlife.
 
 These source-derived paths are **not universal facial recognition** and do not magically make a true high-end pencil painting. They are a more reliable basis for a later face drawing engine than the rejected hand-invented human SVG.
