@@ -1,5 +1,6 @@
 import { createPencilRegion } from "./colored-pencil";
 import type { PencilObjectInput, PencilRegion, PencilTrace } from "./colored-pencil";
+import type { PencilCraftKind } from "./colored-pencil-craft";
 
 /**
  * Material-native coloured-pencil recipes. These are mark/deposition presets,
@@ -103,6 +104,8 @@ export interface PencilMaterialInput {
   details?: readonly PencilTrace[];
   /** SVG transform in the same coordinate system as the silhouette. */
   transform?: string;
+  /** Opt into dense, shaded paper-tooth pigment rather than flat underpaint. */
+  craft?: boolean;
 }
 
 /**
@@ -126,8 +129,19 @@ export function createPencilMaterialRegion(input: PencilMaterialInput): PencilRe
     details:input.details, transform:input.transform,
     contourColor:recipe.support ? "#424149" : "#67767A",
   } satisfies PencilObjectInput);
+  const craftKind: PencilCraftKind =
+    input.surface==="petal" || input.surface==="citrus"?"general":
+    input.surface==="cast-shadow" || input.surface==="glass" ||
+    input.surface==="glaze"?"general":input.surface;
   return {
     ...region,
+    ...(input.craft && recipe.support?{craft:{
+      kind:craftKind,
+      burnish:input.surface==="ocular"?.91:
+        input.surface==="fur"||input.surface==="feather"?.68:.79,
+      light:.22,
+      tooth:input.surface==="skin"?.35:.77,
+    }}:{}),
     contour:{...region.contour, opacity:recipe.contourOpacity,
       width:input.surface === "glass" ? 1.08 :
         input.surface === "keratin" ? .72 : 1.2},
