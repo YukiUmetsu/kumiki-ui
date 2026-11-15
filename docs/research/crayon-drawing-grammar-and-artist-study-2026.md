@@ -158,3 +158,17 @@ professional approval. The new nib does not implement actual physical paper
 height sampling, multicolor Kubelka–Munk scattering or pigment scraping and
 transfer. A/B screenshots should be inspected for clumping, continuity and
 paper contact before declaring this mode artistically superior.
+
+### Browser A/B critique and micro-band correction
+
+Native 960×540 and 540×960 macro crops showed `dry` replacing some
+large soft ribbons with fine pigmented strips; however, the first dry model
+painted **three overly parallel hairlines**. The follow-up now varies each
+band's lateral contact at four sample points with bounded, seed-stable
+paper-friction drift and independently modulated thickness. The authored
+quadratic centerline is unchanged; this is a cheap approximation to
+contact variation, not a claim of physically simulated microscopic paper.
+
+The dry-mode geometry remains bounded (at most six lifted pieces per arc),
+monotonic in absolute exposure and evaluated only when dry mode is chosen.
+This study remains `!dev`; compare actual crops rather than only green CI.
