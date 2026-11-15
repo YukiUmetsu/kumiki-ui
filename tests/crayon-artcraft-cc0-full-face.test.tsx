@@ -100,6 +100,35 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(el.parentId).toBe("face-outline");
     }
   });
+  it("builds hair fibers along source scalp and gravity instead of global scratch grid",()=>{
+    const scene=crayonCc0FaceStudy({detail:1});
+    const ids=scene.elements.map(e=>e.id);
+    const n=(prefix:string)=>ids.filter(id=>id.startsWith(prefix)).length;
+    expect(n("hair-rooted-left-")).toBe(85);
+    expect(n("hair-rooted-right-")).toBe(130);
+    expect(n("hair-rooted-crown-")).toBe(52);
+    const d=scene.elements.filter(x=>x.id.startsWith("hair-rooted-"));
+    expect(d).toHaveLength(267);
+    for(const el of d){
+      expect(el.kind).toBe("contour");
+      if(el.kind!=="contour")throw new Error("Missing source hair fiber");
+      expect(el.clipToParent).toBe(true);
+      expect(["hair-left-curtain","hair-right-curtain","hair-back"])
+        .toContain(el.parentId);
+      expect(el.width).toBeGreaterThan(.25);
+      expect(el.width).toBeLessThan(1.3);
+      expect(el.opacity).toBeGreaterThan(.2);
+      expect(el.opacity).toBeLessThan(.8);
+      expect(el.d).toMatch(/^M-?[0-9]+/);
+      expect(el.d).toContain(" C");
+    }
+    // Source artifacts scale down total detail coherently without allowing
+    // bright or dark strands to move between identical frame addresses.
+    const sparse=crayonCc0FaceStudy({detail:.5});
+    expect(sparse.elements.filter(x=>x.id.startsWith("hair-rooted-")).length)
+      .toBeLessThan(150);
+    expect(crayonCc0FaceStudy({detail:1})).toEqual(scene);
+  });
   it("keeps an exact independent source graph only in explicit anatomy mode",()=>{
     const wax=crayonCc0FaceStudy({view:"wax",detail:.5});
     const construction=crayonCc0FaceStudy({view:"anatomy",detail:.5});
