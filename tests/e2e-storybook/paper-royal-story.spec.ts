@@ -33,7 +33,7 @@ for(const aspect of ["landscape","portrait"] as const){
     // A story-level review loupe magnifies the same actual art, without
     // creating a parallel screenshot/mock character implementation.
     for(const who of ["princess","prince"] as const){
-      await page.getByRole("button",{name:new RegExp("Inspect "+who)}).click();
+      await page.getByRole("button",{name:who==="princess"?"Inspect princess · 3×":"Inspect prince · 3×",exact:true}).click();
       const loupe=page.locator('[data-royal-inspection-target="'+who+'"]');
       await expect(loupe).toHaveCSS("transform",/matrix/);
       await loupe.screenshot({path:info.outputPath("royal-face-review-"+who+"-"+aspect+".png"),
