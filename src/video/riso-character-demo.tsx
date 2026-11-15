@@ -4,6 +4,7 @@ import type { RisoCharacterSpec, RisoJoint } from "../../registry/video/riso-cha
 import type { RisoPrintSpec } from "../../registry/video/print-plates";
 import type { RisoPaint, RisoArtwork } from "../../registry/video/print-plates-react";
 import type { ReactNode } from "react";
+import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
 
 export type RisoPerformanceAspect = "landscape" | "portrait";
 // RISO28: arm pendulum tracks the same 54-frame alternating contact
@@ -75,7 +76,13 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 198, y: 0, rotate: 0, easing: "ease" },
       { frame: 239, y: 0, rotate: 0 },
     ] },
-    { id: "head", parent: "body", x: 0, y: -68, keys: [
+    // ANAT1 cervical → atlas → cranium hierarchy. The old head pivot sat
+    // inside the chest and the chin completely hid a straight, blue "neck".
+    // This distinct neck joint follows the thorax yet leaves a visible
+    // sternomastoid/clavicle connection beneath the smaller skull.
+    { id: "neck", parent: "body", x: 0, y: RISO29_ANAT1.neckY },
+    { id: "head", parent: "neck", x: 0, y: RISO29_ANAT1.headNeckOffsetY,
+      scale: RISO29_ANAT1.headScale, keys: [
       { frame: 0, rotate: -3, easing: "ease" },
       { frame: 77, rotate: 3, easing: "ease" },
       { frame: 154, rotate: -8, easing: "ease" },
@@ -225,8 +232,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-25 -12 Q-16 -14 -7 -12 L-7 -10 Q-16 -11 -25 -9 Z" },
     { id: "coat-buttons", joint: "body", plate: "red", paint: "solid",
       d: "M4 -37 L8 -40 L12 -36 L8 -33 Z M6 -13 L10 -16 L14 -12 L10 -9 Z" },
-    { id: "neck", joint: "body", plate: "blue", paint: "solid",
-      d: "M-10 -83 H9 V-56 H-10 Z" },
+    ...risoAnatomicalNeckParts("courier"),
     { id: "left-upper-sleeve", joint: "left-arm", plate: "blue", paint: "solid",
       skin: { tipJoint: "left-elbow", baseWidth: 21, tipWidth: 18, overlap: 3, bow: -1.3 },
       d: "M-9 0 Q-18 16 -10 30 Q0 36 9 27 Q8 7 4 0 Z" },
@@ -410,11 +416,14 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-26 7 Q-22 5 -18 7 L-19 8 Q-23 7 -25 9 Z" },
     { id: "cheek-plane", joint: "head", plate: "red", paint: "solid",
       d: "M19 8 Q24 7 26 10 L25 11 Q23 9 20 10 Z" },
+    // ANAT1 lip loop: defined upper vermilion border, gentle parted volume,
+    // and two independently authored corner trajectories. Retain the
+    // nasolabial, philtrum and sublabial source engraving underneath.
     { id: "mouth", joint: "head", plate: "red", paint: "solid",
-      d: "M-7 17 Q-1 20 6 16 L6 18 Q0 22 -7 19 Z",
+      d: "M-7 17.3 C-4 19.3 -1 19.8 1 18.7 Q4 18.0 7 16 L6.7 18.1 Q3 21.4 -1 21.3 Q-5 20.7 -7 17.3 Z",
       expressions: {
-        speak: "M-4 15 C-2 13 3 13 5 16 Q6 21 1 22 Q-4 21 -4 15 Z",
-        smile: "M-9 15 Q0 22 9 14 Q6 23 0 24 Q-7 22 -9 15 Z",
+        speak: "M-3.6 15 C-2.1 13.6 1.5 13.5 4 15.8 Q5.1 18.8 2.5 21 Q-.3 21.9 -3 19 Q-4.3 17 -3.6 15 Z",
+        smile: "M-9 15.1 C-3.8 20.4 3 21.9 9 14.2 C6.1 20.5 2.8 23.1 -1.2 22.9 Q-6.6 21.9 -9 15.1 Z",
       },
     },
     { id: "mouth-corner-creases", joint: "head", plate: "blue", paint: "solid",
