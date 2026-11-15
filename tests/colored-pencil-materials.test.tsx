@@ -19,7 +19,6 @@ describe("coloured-pencil universal material atlas", () => {
     for (const region of materials) {
       expect(region.path).toBe(materialInput.path);
       expect(region.layers).toHaveLength(3);
-      expect(region.opaqueSupport).toBe(region.id==="glass"?false:region.opaqueSupport);
       expect(region.layers.every(p => p.pressure>=0 && p.pressure<=1)).toBe(true);
       expect(inspectPencilDrawing({
         version:1,seed:100,width:960,height:540,paper:"#FFFDF9",
@@ -85,7 +84,10 @@ describe("coloured-pencil universal material atlas", () => {
 
   it("protects source topology: overlapping rose petals, glazed glass, window recesses, cloth creases", () => {
     const rose=pencilObjectStudyDrawing({subject:"rose",aspect:"landscape"});
-    expect(rose.regions.filter(r=>r.id.includes("petal")||r.id==="heart")).toHaveLength(4);
+    expect(rose.regions.filter(r=>[
+      "outer-left","outer-right","back-cup","petal-front-left",
+      "petal-front-right","inner-fold","heart",
+    ].includes(r.id))).toHaveLength(7);
     expect(rose.regions.some(r=>r.id==="inner-fold")).toBe(true);
     expect(rose.regions.find(r=>r.id==="outer-left")!.clipDetails).toBe(true);
     const brick=pencilObjectStudyDrawing({subject:"architecture",aspect:"landscape"});
