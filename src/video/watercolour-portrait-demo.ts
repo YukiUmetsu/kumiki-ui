@@ -48,10 +48,10 @@ const portraitFigure = ():WatercolourArtPart => {
         glaze:{pigment:"#687A90",opacity:.13},edgePooling:.29},38,108),
     wash("left-seam-shadow",
       "M164 531 Q123 550 102 620 Q91 679 112 762 L244 780 Q245 657 258 594 Q208 549 164 531 Z",
-      "#455D72",.63,{highlight:"#95A2A0",shadow:"#2D4152"},61,99),
+      "#596D7D",.46,{highlight:"#A4B1AB",shadow:"#405267",edgeSoftness:.63},61,99),
     wash("right-seam-shadow",
       "M357 508 Q429 526 474 567 Q506 638 501 769 L348 780 Q356 628 357 508 Z",
-      "#40586C",.63,{highlight:"#82939D",shadow:"#2F3C50"},71,112),
+      "#516A78",.47,{highlight:"#9DABA6",shadow:"#3C4E63",edgeSoftness:.57},71,112),
     wash("collar-ochre",
       "M240 481 Q271 518 315 523 Q337 501 354 482 Q384 502 398 526 Q353 560 324 617 Q301 566 281 548 Q248 529 213 523 Z",
       "#B4A18E",.78,{highlight:"#E6CEB0",shadow:"#817986",
@@ -70,7 +70,7 @@ const portraitFigure = ():WatercolourArtPart => {
       "#5C6370",1.25,.44,152),
     line("cloth-folds",
       "M120 621 Q157 621 177 644 M113 678 Q147 662 173 698 M420 615 Q464 607 483 650 M193 693 Q225 691 242 728",
-      "#E6DDD1",2,.32,166),
+      "#E8E0D2",1.55,.42,166),
     wash("left-cloth-soft-crease",
       "M126 615 Q152 615 181 646 Q159 649 137 634 Z",
       "#9DA9AD",.17,{highlight:"#CBD0C5",shadow:"#6B7789",
@@ -216,32 +216,32 @@ const portraitFigure = ():WatercolourArtPart => {
         gradient:"radial",edgeSoftness:.80},145,54),
     wash("nose-side-plane",
       "M316 258 Q323 280 325 296 Q334 310 330 318 Q322 316 318 307 Q319 287 316 258 Z",
-      "#BA9996",.15,{highlight:"#E2B9AA",shadow:"#94848B",
-        edgeSoftness:.75},147,57),
+      "#AD8D91",.27,{highlight:"#DDB7AE",shadow:"#83767F",
+        edgeSoftness:.78,gradient:"radial"},147,57),
     wash("nose-tip",
       "M298 304 C306 299 319 299 323 307 Q327 321 317 322 Q303 321 298 304 Z",
-      "#D8A995",.34,{highlight:"#F5D5B7",shadow:"#B98B87",
-        gradient:"radial",edgeSoftness:.5},157,42),
+      "#D5A28F",.43,{highlight:"#F5D5B7",shadow:"#A57A77",
+        gradient:"radial",edgeSoftness:.50},157,42),
     line("nose-alar-and-nostrils",
       "M288 310 Q293 323 304 323 M321 321 Q332 316 335 322",
-      "#805F67",1.22,.48,176),
+      "#805F67",1.10,.65,176),
     line("philtrum",
       "M304 332 Q305 342 302 347 M317 334 Q318 341 315 345",
-      "#AC8584",.75,.39,184),
+      "#AC8584",.80,.49,184),
     wash("upper-lip",
       "M273 365 C282 361 293 359 301 360 Q308 354 315 358 C328 354 338 360 342 362 Q327 372 310 371 Q285 369 273 365 Z",
-      "#B98381",.51,{highlight:"#DFAEA1",shadow:"#9D777B",
+      "#B98381",.59,{highlight:"#DFAEA1",shadow:"#9D777B",
         gradient:"radial",edgeSoftness:.32,edgePooling:.06},163,49),
     wash("lower-lip",
       "M282 371 Q300 378 318 374 Q334 370 341 364 Q330 383 308 383 Q291 380 282 371 Z",
-      "#C99993",.36,{highlight:"#EEC4B1",shadow:"#B28C8D",
+      "#C99993",.44,{highlight:"#EEC4B1",shadow:"#B28C8D",
         gradient:"radial",edgeSoftness:.48},176,47),
     line("mouth-corners",
       "M270 365 Q281 367 290 369 M330 371 Q339 366 344 362",
-      "#765A63",.85,.53,185),
+      "#765A63",.82,.62,185),
     line("under-eye-and-cheek",
       "M225 252 Q246 263 273 248 M328 244 Q348 254 369 239 M210 324 Q221 348 236 357 M363 335 Q357 353 346 363",
-      "#AC8388",.9,.31,176),
+      "#AC8388",.78,.38,176),
     line("brow-root-near",
       "M220 214 Q244 199 273 210 M228 208 Q250 204 267 208",
       "#5E515D",2.2,.66,153),
@@ -298,7 +298,7 @@ const portraitFigure = ():WatercolourArtPart => {
       "#A77F7C",.33,{highlight:"#E0AC96",shadow:"#645B6A"},102,71),
     line("hair-flow-not-a-wig",
       "M208 131 Q239 76 313 53 M233 129 Q282 66 329 63 M355 83 Q393 132 392 199 M175 226 Q173 293 196 342 M382 197 Q393 244 380 279",
-      "#C1A299",1.15,.41,160),
+      "#C1A299",1.2,.61,160),
     line("hair-separated-locks",
       "M217 107 Q248 75 265 69 M291 68 Q314 62 341 72 M377 105 Q402 153 405 193 M183 186 Q178 232 182 266",
       "#323440",1.1,.49,188),
@@ -311,32 +311,32 @@ const portraitFigure = ():WatercolourArtPart => {
     // are tapered wet brush paths, not a repeated uniform vector stripe.
     wash("crown-copper-sweep",
       "M202 123 C227 76 267 54 304 48 Q282 63 270 86 C248 92 232 114 217 142 Z",
-      "#B09590",.20,{highlight:"#DAC0AD",shadow:"#6B5B6B",
+      "#B09590",.36,{highlight:"#DAC0AD",shadow:"#6B5B6B",
         gradient:"radial",edgeSoftness:.48},142,62),
     wash("hair-ribbon-near-face",
       "M190 192 C186 234 185 269 200 311 Q200 326 212 347 C195 319 178 289 178 249 Q175 214 190 192 Z",
-      "#928183",.19,{highlight:"#C3A8A2",shadow:"#514754",
+      "#928183",.31,{highlight:"#C3A8A2",shadow:"#514754",
         edgeSoftness:.39},169,62),
     wash("hair-ribbon-far-temple",
       "M386 111 Q409 143 409 178 C406 215 399 241 390 262 Q397 206 394 171 Q394 141 386 111 Z",
-      "#B59797",.18,{highlight:"#CFAB9E",shadow:"#5D586A",
+      "#B59797",.31,{highlight:"#CFAB9E",shadow:"#5D586A",
         edgeSoftness:.48},172,55),
     line("fine-upper-hair-fibre-flow",
       Array.from({length:26},(_,i)=>{
         const x=207+i*5, y=112-Math.sin(i/25*Math.PI)*47;
         return "M"+x.toFixed(1)+" "+y.toFixed(1)+
           " q"+(13+i%4)+" -"+(9+i%3*3)+" "+(21+i%4)+" -"+(13+i%3*3);
-      }).join(" "), "#D0AC9E",.55,.23,208),
+      }).join(" "), "#D0AC9E",.75,.48,208),
     line("fine-temple-hair-flow",
       Array.from({length:14},(_,i)=>{
         const x=374+i%4*5, y=137+i*12;
         return "M"+x+" "+y+" q"+(7+i%3)+" 11 "+(4+i%4)+" 24";
-      }).join(" "), "#C1A1A3",.54,.27,212),
+      }).join(" "), "#C1A1A3",.76,.46,212),
     line("lower-hair-lift-lines",
       Array.from({length:10},(_,i)=>{
         const x=161+i%4*7,y=337+i*11;
         return "M"+x+" "+y+" q"+(i%2?-4:2)+" 16 "+(i%2?-8:1)+" 29";
-      }).join(" "), "#A98E96",.45,.20,215),
+      }).join(" "), "#A98E96",.65,.38,215),
   ],[pose(0),pose(170,0,0,-.35),pose(275,0,0,.65),pose(359)],
     {x:288,y:69},50,100);
 
@@ -377,7 +377,9 @@ export function watercolorPortraitSpec(output:PortraitOutput,seed=83):Watercolou
     flow:.68,granulation:.84,dryFrames:185,cellSize:30,edgePooling:.2,
     drops:source.map(([id,x,y,radius,pigment,load,water,startFrame]):WetPigmentDrop=>
       ({id,x,y,radius,pigment,load,water,startFrame}))};
-  const placement=upright?{x:-28,y:85,scale:1.04}:{x:271,y:-9,scale:.75};
+  // Portrait is a deliberately closer head study, not a full bust poster.
+  // Face fills the vertical field while garment edges naturally crop on paper.
+  const placement=upright?{x:-78,y:20,scale:1.2}:{x:271,y:-9,scale:.75};
   const artwork:WatercolourArtPart[]=[
     wash("loose-atmosphere",
       upright?
