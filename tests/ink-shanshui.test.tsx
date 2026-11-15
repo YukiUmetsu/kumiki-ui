@@ -476,6 +476,31 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       // Source bare internodes are actually bare, not empty branch lines.
       expect((full.match(/data-km-bamboo-pressure-twig=""/g)??[]))
         .toHaveLength(18);
+      // Nine major nodes support their own calligraphic seven-leaf brush
+      // group. Each painted tip starts on a continuous rooted secondary
+      // curve and exposes paper through its own stencil reserve.
+      const heroGroups=[...full.matchAll(
+        /data-km-bamboo-hero-spray="" data-km-bamboo-hero-parent="([^"]+)" data-km-bamboo-hero-plan="([^"]+)"/g,
+      )];
+      expect(heroGroups).toHaveLength(9);
+      expect(heroGroups.every(([,root,n])=>
+        root.split(",").every(x=>Number.isFinite(Number(x)))&&n==="7"))
+        .toBe(true);
+      const heroLeaves=[...full.matchAll(
+        /data-km-bamboo-hero-leaf="" d="([^"]+)" data-km-bamboo-hero-root="([^"]+)" data-km-bamboo-hero-heading="([^"]+)" data-km-bamboo-hero-station="([^"]+)"/g,
+      )];
+      expect(heroLeaves).toHaveLength(63);
+      expect(heroLeaves.every(([,d,root,heading,station])=>
+        d.startsWith("M"+root.replace(","," "))&&
+        d.includes(" C")&&d.endsWith(" Z")&&
+        Number.isFinite(Number(heading))&&
+        Number(station)>.12&&Number(station)<.96)).toBe(true);
+      expect((full.match(/data-km-bamboo-hero-mask=""/g)??[]))
+        .toHaveLength(63);
+      expect((full.match(/data-km-bamboo-hero-bristle=""/g)??[]))
+        .toHaveLength(126);
+      expect((full.match(/data-km-bamboo-hero-twig=""/g)??[]))
+        .toHaveLength(9);
       expect((full.match(/data-km-bamboo-dry-lift=""/g)??[]))
         .toHaveLength(39);
       // A real painted fan uses more than one curve/ink weight. It is
@@ -529,6 +554,8 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(sparse).not.toContain("data-km-bamboo-dry-lift");
       expect(sparse).not.toContain("data-km-bamboo-internal-bristle");
       expect(sparse).not.toContain("data-km-bamboo-satellite-bristle");
+      expect(sparse).not.toContain("data-km-bamboo-hero-leaf");
+      expect(sparse).not.toContain("data-km-bamboo-hero-twig");
       expect(sparse).not.toContain("<mask id=\"kmbamboo");
     }
   });
