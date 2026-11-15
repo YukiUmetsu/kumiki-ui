@@ -158,7 +158,8 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
           <path data-km-pencil-craft-base="" d={region.path}
             fill={"url(#"+uid+"-tone-"+index+")"}
             mask={"url(#"+uid+"-craft-mask-"+index+")"}
-            opacity={( .76 + .20*region.craft.burnish) * evaluatePencilMark(frame,{
+            opacity={( .76 + .20*region.craft.burnish) *
+              (region.craft.tonalSupportWeight??1) * evaluatePencilMark(frame,{
               startFrame:region.layers[0].startFrame,
               durationFrames:Math.max(45,Math.floor(region.layers[0].durationFrames*.64)),
             },reducedMotion)}/>}
