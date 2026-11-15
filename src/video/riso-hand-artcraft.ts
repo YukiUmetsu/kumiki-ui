@@ -30,7 +30,7 @@ export const RISO30_ANAT1_HAND = {
   relaxedPose:HAND_POSES.relaxed(".R"),
   // Source 2D print units; measured against the original wrist-local
   // geometric hand contours, NOT asserted as population anthropometry.
-  authoredFingerTipUnits:{index:18,middle:19,ring:17,thumb:10},
+  authoredFingerTipUnits:{index:18,middle:21,ring:18,pinky:14,thumb:10},
   engravingWidthUnits:1.15,
 } as const;
 
@@ -42,8 +42,8 @@ export type RisoHandSide="left"|"right";
  * of a messenger, while Artist has a softer hand-sketch/readability rhythm.
  */
 const groove=(actor:RisoHandActor, side:RisoHandSide)=>{
-  const hand=side+"-hand";
-  const i=side+"-index",m=side+"-middle",r=side+"-ring",t=side+"-thumb";
+  const hand=side+"-palm-surface";
+  const i=side+"-index",m=side+"-middle",r=side+"-ring",p=side+"-pinky",t=side+"-thumb";
   const courier=actor==="courier";
   const red=(id:string,joint:string,d:string):RisoCharacterPart=>({
     id:side+"-glove-"+id,joint,plate:"red",paint:"screen",screenTone:"light",d,
@@ -56,16 +56,20 @@ const groove=(actor:RisoHandActor, side:RisoHandSide)=>{
     // smaller ulna-side contour. Irregular hand-drawn contour, not straight
     // parallel metacarpal stripes.
     blue("knuckle-arc",hand,courier
-      ?"M-7.2 -2.4 Q-4.8 -4.6 -2.7 -3.7 Q-.8 -5.1 1.7 -3.1 Q4.4 -3.6 6 -1.5 L5.6 -.7 Q4 -2.3 1.7 -2.1 Q-.9 -3.7 -2.7 -2.3 Q-5.2 -3.3 -6.8 -1.3 Z"
-      :"M-7.0 -2.8 Q-5.2 -4.7 -2.6 -3.9 Q-.2 -5.3 1.7 -3.8 Q4 -3.8 5.8 -2.1 L6 -1.4 Q3.4 -2.8 1.4 -2.4 Q-1 -4 -2.8 -2.8 Q-5.1 -3.8 -6.5 -2.0 Z"),
+      ?"M-8.1 4.6 Q-5.7 2.3 -3.7 3.8 Q-.4 1.9 1.6 3.5 Q4.2 3 7.5 5.8 L7.2 6.5 Q4.0 4.5 1.8 4.6 Q-.7 3 -3.7 4.9 Q-5.4 3.5 -7.9 5.6 Z"
+      :"M-8.0 4.6 Q-5.5 2.8 -3.4 4.1 Q-.5 2.3 1.8 3.7 Q4.7 3.5 7.7 5.9 L7.3 6.4 Q4.4 4.7 1.5 4.7 Q-.5 3.3 -3.5 5.2 Q-5.6 3.9 -7.6 5.5 Z"),
     // Thumb origin is the fleshy, directional thenar triangular pad, not
     // an extra stick attached to a circular palm.
-    red("thenar-plane",hand,courier
-      ?"M-7.6 -6.6 C-8.4 -2.5 -5.1 1 -2.4 3.7 Q-1.7 4.8 .3 5 Q-3.2 5.6 -5.3 3.7 C-8.5 1.8 -9 -2.7 -7.6 -6.6 Z"
-      :"M-7.3 -6 Q-7.7 -2.2 -4.6 1.7 C-2.6 4.1 -1 4.4 .4 5 Q-4.2 5 -6.5 1.6 Q-8.8 -1.9 -7.3 -6 Z"),
-    blue("thenar-fold",hand,courier
-      ?"M-6.9 -5.6 C-5.8 -2.5 -4 0 -2 1.8 Q-3.7 1.1 -5.5 -.5 Q-7 -2.6 -6.9 -5.6 Z"
-      :"M-6.8 -5.2 Q-5.8 -2.0 -3.7 .1 Q-3 1 -1.7 1.8 Q-4.2 .7 -5.6 -1 Q-7 -2.8 -6.8 -5.2 Z"),
+    red("thenar-plane",hand,side==="right"
+      ?(courier?"M7.6 -6.6 C8.4 -2.5 5.1 1 2.4 3.7 Q1.7 4.8 -.3 5 Q3.2 5.6 5.3 3.7 C8.5 1.8 9 -2.7 7.6 -6.6 Z"
+        :"M7.3 -6 Q7.7 -2.2 4.6 1.7 C2.6 4.1 1 4.4 -.4 5 Q4.2 5 6.5 1.6 Q8.8 -1.9 7.3 -6 Z")
+      :(courier?"M-7.6 -6.6 C-8.4 -2.5 -5.1 1 -2.4 3.7 Q-1.7 4.8 .3 5 Q-3.2 5.6 -5.3 3.7 C-8.5 1.8 -9 -2.7 -7.6 -6.6 Z"
+        :"M-7.3 -6 Q-7.7 -2.2 -4.6 1.7 C-2.6 4.1 -1 4.4 .4 5 Q-4.2 5 -6.5 1.6 Q-8.8 -1.9 -7.3 -6 Z")),
+    blue("thenar-fold",hand,side==="right"
+      ?(courier?"M6.9 -5.6 C5.8 -2.5 4 0 2 1.8 Q3.7 1.1 5.5 -.5 Q7 -2.6 6.9 -5.6 Z"
+        :"M6.8 -5.2 Q5.8 -2 3.7 .1 Q3 1 1.7 1.8 Q4.2 .7 5.6 -1 Q7 -2.8 6.8 -5.2 Z")
+      :(courier?"M-6.9 -5.6 C-5.8 -2.5 -4 0 -2 1.8 Q-3.7 1.1 -5.5 -.5 Q-7 -2.6 -6.9 -5.6 Z"
+        :"M-6.8 -5.2 Q-5.8 -2.0 -3.7 .1 Q-3 1 -1.7 1.8 Q-4.2 .7 -5.6 -1 Q-7 -2.8 -6.8 -5.2 Z")),
     blue("wrist-crease",hand,courier
       ?"M-7.8 -8.2 Q-2.9 -6.8 2.4 -8.1 Q4.1 -8.5 6.7 -7.3 L6.3 -6.6 Q4.1 -7.7 2.3 -7.2 Q-3.3 -5.9 -7.5 -7.3 Z"
       :"M-7.9 -7.8 Q-3.2 -7.2 .1 -7.7 Q3.9 -8.7 6.7 -7.2 L6.5 -6.5 Q3.6 -7.7 .2 -7 Q-3.6 -6.3 -7.5 -6.9 Z"),
@@ -73,17 +77,19 @@ const groove=(actor:RisoHandActor, side:RisoHandSide)=>{
     // source blue contours retain eccentric highlights at 4× crop without
     // becoming giant circles at native 1.1× film.
     blue("index-nail",i,courier
-      ?"M.8 13.6 Q2.1 12.9 3.3 14.0 L3.4 16.3 Q2 16.9 .8 15.9 Z"
-      :"M.7 13.7 Q2.1 13.1 3.2 14.2 Q3.5 15.9 2.6 16.8 Q1.3 17.0 .8 15.8 Z"),
+      ?"M-.3 14.8 Q1.2 13.7 2.7 14.2 L2.8 14.8 Q1.1 14.4 -.3 15.5 Z"
+      :"M-.3 14.9 Q1.1 13.8 2.6 14.4 L2.7 15 Q1.3 14.5 -.2 15.6 Z"),
     blue("middle-nail",m,courier
-      ?"M-.8 13.7 Q.8 13 2.4 14.1 Q3 16.4 1.7 17.1 Q.2 17.5 -.7 16.2 Z"
-      :"M-.8 13.6 Q.8 12.9 2.2 14.0 Q2.8 16.1 1.4 17 Q0 17.2 -.7 16.2 Z"),
+      ?"M-1 15.3 Q.6 14.1 2.4 15.2 L2.4 15.8 Q.6 14.8 -.8 16.1 Z"
+      :"M-1 15.4 Q.5 14.2 2.3 15.3 L2.4 15.8 Q.5 14.9 -.9 16.2 Z"),
     blue("ring-nail",r,courier
-      ?"M-.7 12.4 Q.7 11.9 2.1 12.9 L2 15.3 Q.4 16 -.7 14.7 Z"
-      :"M-.7 12.3 Q.6 11.7 1.7 12.7 Q2.2 14.3 1.5 15.3 Q-.1 15.7 -.6 14.4 Z"),
-    blue("thumb-nail",t,courier
-      ?"M3.2 -5.3 Q6.2 -5.6 8.1 -3.5 Q8.2 -2.3 7 -1.8 Q5.9 -3.8 3.2 -4.1 Z"
-      :"M3.4 -5.6 Q6 -5.4 7.8 -3.7 Q8 -2.4 6.9 -2.1 Q5.8 -4.2 3.4 -4.3 Z"),
+      ?"M-.7 13.3 Q.4 12.5 2.1 13.2 L2 13.8 Q.4 13.2 -.6 14 Z"
+      :"M-.7 13.3 Q.4 12.6 2 13.2 L2 13.7 Q.3 13.2 -.5 14 Z"),
+    blue("thumb-nail",t,side==="right"
+      ?(courier?"M3.0 -4.4 Q5.9 -4.9 7.9 -3.4 L7.4 -2.8 Q5.7 -4.2 3.0 -3.6 Z"
+        :"M3.0 -4.5 Q5.8 -5.0 7.6 -3.5 L7.1 -2.9 Q5.4 -4.2 3.0 -3.7 Z")
+      :(courier?"M-3.0 -4.4 Q-5.9 -4.9 -7.9 -3.4 L-7.4 -2.8 Q-5.7 -4.2 -3.0 -3.6 Z"
+        :"M-3.0 -4.5 Q-5.8 -5.0 -7.6 -3.5 L-7.1 -2.9 Q-5.4 -4.2 -3.0 -3.7 Z")),
     // PIP/DIP bending architecture is encoded in independent source finger
     // paths today; these asymmetric joint folds follow the original digit
     // pivots. Full independent phalange bones are the next rig milestone.
@@ -93,9 +99,15 @@ const groove=(actor:RisoHandActor, side:RisoHandSide)=>{
     blue("middle-joint-crease",m,courier
       ?"M-1.7 5.1 Q.5 4.4 3 5.3 L2.9 6 Q.4 5.2 -1.5 5.9 Z M-1.5 11.1 Q.5 10.3 3.1 11.3 L2.9 12 Q.5 11.2 -1.4 11.8 Z"
       :"M-1.6 5.4 Q.6 4.5 3 5.5 L2.9 6.1 Q.3 5.5 -1.5 6 Z M-1.5 11.4 Q.7 10.4 3 11.4 L2.8 12 Q.5 11.3 -1.4 12 Z"),
+    blue("pinky-nail",p,courier
+      ?"M-.4 9.4 Q.5 8.7 1.7 9.4 L1.7 10 Q.4 9.3 -.3 10.1 Z"
+      :"M-.4 9.4 Q.5 8.8 1.6 9.4 L1.6 10 Q.4 9.3 -.3 10.2 Z"),
     blue("ring-joint-crease",r,courier
       ?"M-1.7 5.6 Q.5 4.9 2.5 5.7 L2.4 6.3 Q.2 5.7 -1.5 6.2 Z M-1.4 10.8 Q.4 10.1 2.5 10.9 L2.3 11.5 Q.3 10.9 -1.3 11.5 Z"
       :"M-1.7 5.6 Q.4 4.9 2.5 5.9 L2.4 6.4 Q.3 5.8 -1.5 6.4 Z M-1.4 10.8 Q.4 10.2 2.5 10.9 L2.3 11.5 Q.1 10.9 -1.3 11.5 Z"),
+    blue("pinky-joint-crease",p,courier
+      ?"M-1.4 4.4 Q.3 3.8 2.1 4.5 L2 5 Q.4 4.6 -1.3 5.1 Z M-1.2 7.7 Q.4 7.2 2.1 7.8 L2.0 8.3 Q.3 7.8 -1.1 8.4 Z"
+      :"M-1.3 4.5 Q.3 3.9 2 4.5 L1.9 5.1 Q.3 4.5 -1.2 5.2 Z M-1.2 7.7 Q.4 7.2 2 7.8 L1.9 8.4 Q.3 7.8 -1.1 8.4 Z"),
     red("dorsal-tendon",hand,courier
       ?"M-2 -3 C-1 0 .7 3.5 1.2 6 Q1.8 6.9 2.1 7.6 Q1.2 5 -1 2 Q-2.7 -.9 -2 -3 Z"
       :"M-2.7 -2.9 Q-2 1.5 .5 5.5 Q1.4 7 1.8 7.7 Q-.4 5.6 -2.3 1.7 Q-3.5 -1.1 -2.7 -2.9 Z"),
@@ -108,9 +120,9 @@ export function risoHandArtcraftParts(actor:RisoHandActor,side:RisoHandSide):rea
 }
 export const RISO30_GRIP_FOREGROUND_IDS=(side:RisoHandSide):readonly string[]=>[
   side+"-glove-index-nail",side+"-glove-middle-nail",side+"-glove-ring-nail",
-  side+"-glove-thumb-nail",
+  side+"-glove-thumb-nail",side+"-glove-pinky-nail",
   side+"-glove-index-joint-crease",side+"-glove-middle-joint-crease",
-  side+"-glove-ring-joint-crease",
+  side+"-glove-ring-joint-crease",side+"-glove-pinky-joint-crease",
 ];
 
 /** Production inspection: hand region topology, data-backed referent and
@@ -124,7 +136,7 @@ export function inspectRisoHandArtcraft(spec:RisoCharacterSpec,frame:number,side
     return j;
   };
   const palm=joint(side+"-hand");
-  const digits=(["thumb","index","middle","ring"] as const).map(id=>joint(side+"-"+id));
+  const digits=(["thumb","index","middle","ring","pinky"] as const).map(id=>joint(side+"-"+id));
   const len=(a:RisoJointFrame,b:RisoJointFrame)=>Math.hypot(a.x-b.x,a.y-b.y);
   const source=spec.parts.filter(p=>p.id.startsWith(side+"-glove"));
   const layers=new Set(source.map(p=>p.plate));
