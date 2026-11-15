@@ -71,6 +71,9 @@ test("ArtCraft botanical sheets have connected detail, real holes and correct tw
     {id:"paper-craft-botanical-nocturne",aspect:"landscape"},
     {id:"paper-craft-botanical-ivory",aspect:"landscape"},
     {id:"paper-craft-botanical-portrait",aspect:"portrait"},
+    {id:"paper-craft-chromatic-rainforest",aspect:"landscape"},
+    {id:"paper-craft-chromatic-wildflower",aspect:"landscape"},
+    {id:"paper-craft-chromatic-portrait",aspect:"portrait"},
   ] as const){
     await page.goto(scene(id));
     const svg=page.locator("svg[data-km-paper-craft]");
@@ -79,12 +82,16 @@ test("ArtCraft botanical sheets have connected detail, real holes and correct tw
     const layers=svg.locator("[data-km-paper-layer]");
     const count=await layers.count();
     expect(count).toBeGreaterThan(60);
-    expect(count).toBeLessThanOrEqual(80);
+    expect(count).toBeGreaterThan(106);
+    expect(count).toBeLessThanOrEqual(128);
     const ids=await layers.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("data-km-paper-layer")));
     expect(new Set(ids).size).toBe(count);
-    for(const id of ["fern-0","flower-0-top","moth-left-fore","moth-right-fore","moth-thorax"]){
+    for(const id of ["fern-0","fern-0-chroma","flower-0-outer-stock","flower-0-top","flower-0-inner-stock","moth-left-fore-lining","moth-left-fore","moth-left-fore-panel","moth-right-fore-panel","moth-right-fore","moth-thorax"]){
       await expect(svg.locator('[data-km-paper-layer="'+id+'"]')).toBeVisible();
     }
+    const colors=await layers.locator('path[fill-rule="evenodd"]').evaluateAll(nodes=>
+      [...new Set(nodes.map(n=>n.getAttribute("fill")))]);
+    expect(colors.length).toBeGreaterThan(18);
     await svg.screenshot({animations:"disabled",path:info.outputPath(id+".png")});
   }
   expect(errors).toEqual([]);

@@ -6545,7 +6545,7 @@
       "name": "paper-craft",
       "type": "registry:ui",
       "title": "Paper Craft Theatre",
-      "description": "Frame-addressable layered, kirigami, pop-up, lightbox and shadow-puppet paper. Includes original reusable butterfly botanical sculpture with independently cut petals, fern venation, opaque wing apertures, animation pivots and physical sheet separation.",
+      "description": "Deterministic multi-layer paper craft with genuine cutouts, deep cardstock shadows, four botanical stock palettes, colorful independent floral paper tiers, butterfly wing linings and up to 128 adjustable cut sheets.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [

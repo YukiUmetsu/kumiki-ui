@@ -945,17 +945,21 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         if (artwork !== "garden" && artwork !== "botanical")
           throw new RangeError("paper-craft-study artwork must be garden or botanical.");
         const palette = props.palette ?? "nocturne";
-        if (palette !== "nocturne" && palette !== "ivory")
-          throw new RangeError("paper-craft-study palette must be nocturne or ivory.");
+        if (!["nocturne","ivory","rainforest","wildflower"].includes(palette as string))
+          throw new RangeError("paper-craft-study palette must be nocturne, ivory, rainforest or wildflower.");
         const detail = props.detail ?? .82;
         if (typeof detail !== "number" || !Number.isFinite(detail) || detail < 0 || detail > 1)
           throw new RangeError("paper-craft-study detail must be finite between 0 and 1.");
+        const colorLayers = props.colorLayers ?? 1;
+        if (typeof colorLayers !== "number" || !Number.isFinite(colorLayers) ||
+            colorLayers < 0 || colorLayers > 1)
+          throw new RangeError("paper-craft-study colorLayers must be between 0 and 1.");
         const seed = props.seed ?? 37;
         if (typeof seed !== "number" || !Number.isSafeInteger(seed))
           throw new RangeError("paper-craft-study seed must be a safe integer.");
         const paper = artwork === "botanical"
           ? paperBotanicalSpec(raw as PaperStyle, aspect, {
-            palette: palette as PaperBotanicalPalette, detail, seed })
+            palette: palette as PaperBotanicalPalette, detail, colorLayers, seed })
           : paperCraftExampleSpec(raw as PaperStyle, aspect, seed);
         const absoluteFrame = offset + context.frame;
         if (!Number.isSafeInteger(absoluteFrame)) throw new RangeError("Invalid paper frame.");

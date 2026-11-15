@@ -84,3 +84,15 @@ The expensive browser/film CI job now tests only the latest botanical studies an
 ## ArtCraft pass 12 — real output rejects straight-line supports
 
 The actual 16:9 and 9:16 production images of pass 11 revealed a striking failure: the connected peripheral asters were now tethered by thin straight horizontal/vertical lines, which read as technical crosshairs rather than believable paper vines. Replaced each line with one closed S-curved ribbon and four individually tapered leaf blades built from the true ribbon Bézier anchors. The vine ends at its flower center and starts inside the circular medallion; nothing extends uselessly past the blossom. This is the topology-plus-craft correction required before merge.
+
+## Chromatic paper craft pass 13 — dimensional color study
+
+Researched saturated layered botanical and butterfly relief by Helen Musselwhite, multi-layer flowers by Maud Vantours, and nested cut-paper color rhythm by Jen Stark. Expanded the installable paper cut budget from 80 to 128 stable opaque sheets and created two saturated palettes: rainforest and wildflower. The new `colorLayers` control changes real cut-stock count; additional sheets include attached fern accents, outer/inner flower crowns, seed beads, punched-wing backings, peripheral floral tiers and a decorative ring.
+
+Focused tests now assert color variety, 30+ extra paper layers, physical hole/shape order, 128-layer abuse rejection and unchanged reduced-motion/seed behavior. Storybook's existing Film Looks section receives three configurable examples; the 16:9/9:16 native three-shot film is portable. **Do not merge until actual screenshots and native export at the current commit pass manual visual review.**
+
+## Chromatic ArtCraft pass 14 — corrections after real screenshot critique
+
+Manually opened successful FilmStage 16:9 rainforest/wildflower and 9:16 rainforest frames from PR #251's first visual proof. The new saturated stocks and construction are visible, but the primary flowers still read as pointed starbursts and the moth upper/lower wing bodies contain large uninterrupted color fields. The early fern-overprint roots also did not exactly follow the original rachis curve.
+
+**Changes implemented:** Broad rounded lips formed with four closed cubic arcs on the outer and under-petal crowns, separately colored inner vs outer cardstock on each flower, stronger physically layered dark/light contrast, four new colored cut-panel shapes on the moth's fore/hind wings, and six accent leaflets per frond repositioned along the actual rachis line. The wing color panels have explicit shared shoulder/abdomen pivots and remain distinct cut pieces. Follow the current-commit screenshot and native-film proof, not the superseded first-pass captures.

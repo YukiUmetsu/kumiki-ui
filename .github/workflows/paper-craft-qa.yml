@@ -7,6 +7,7 @@ on:
       - 'src/film/film-slots.tsx'
       - 'tests/paper-craft.test.tsx'
       - 'tests/paper-craft-botanical.test.tsx'
+      - 'examples/film/paper-craft-chromatic.film.json'
       - 'registry.json'
       - '.github/workflows/paper-craft-qa.yml'
   workflow_dispatch:
@@ -26,3 +27,4 @@ jobs:
       - run: npm run prestorybook
       - run: npm run film:check -- examples/film/paper-craft-garden.film.json
       - run: npm run film:check -- examples/film/paper-craft-botanical.film.json
+      - run: npm run film:check -- examples/film/paper-craft-chromatic.film.json

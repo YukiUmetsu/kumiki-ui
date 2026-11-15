@@ -58,6 +58,8 @@ export interface PaperCraftFrame {
 }
 export interface PaperIssue { path: string; message: string }
 export const PAPER_STYLES: readonly PaperStyle[] = ["layered", "kirigami", "pop-up", "lightbox", "shadow-puppet"];
+/** Bounded detailed cut-stock budget; the renderer remains deterministic and exportable. */
+export const MAX_PAPER_LAYERS = 128;
 const hex = /^#[0-9a-fA-F]{6}$/;
 const finite = (n: number) => Number.isFinite(n);
 /** Closed, numeric SVG paths only: user data is never interpreted as SVG markup or CSS. */
@@ -88,7 +90,7 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
   if (!Number.isInteger(spec.durationFrames) || spec.durationFrames < 1 || spec.durationFrames > 36000) bad("durationFrames", "duration must be 1–36000");
   if (!Number.isSafeInteger(spec.seed)) bad("seed", "seed must be a safe integer");
   if (!hex.test(spec.backing) || !hex.test(spec.light)) bad("paper", "paper colours must be opaque six-digit hex");
-  if (!Array.isArray(spec.layers) || spec.layers.length < 1 || spec.layers.length > 80) bad("layers", "provide 1–80 separate cut-outs");
+  if (!Array.isArray(spec.layers) || spec.layers.length < 1 || spec.layers.length > MAX_PAPER_LAYERS) bad("layers", "provide 1–128 separate cut-outs");
   const seen = new Set<string>();
   const layers: readonly PaperCutLayer[] = Array.isArray(spec.layers) ? spec.layers : [];
   for (const [i, layer] of layers.entries()) {
