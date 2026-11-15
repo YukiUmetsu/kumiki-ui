@@ -77,6 +77,9 @@ describe("RISO14 second authored human / joint-anchored exchange",()=>{
       expect(before.progress).toBeLessThan(1);
       const contact=evaluateRisoHumanEnsemble(160,aspect);
       expect(contact.progress).toBe(1);
+      expect(contact.phase).toBe("shared");
+      expect(contact.owner).toBe("both");
+      expect(evaluateRisoHumanEnsemble(202,aspect).owner).toBe("receiver");
       expect(contact.propEnd.x).toBeCloseTo(contact.receiver.x,8);
       expect(contact.propEnd.y).toBeCloseTo(contact.receiver.y,8);
       expect(contact.source.x).not.toBe(contact.receiver.x);
