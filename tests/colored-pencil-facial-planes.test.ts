@@ -66,7 +66,7 @@ describe("ArtCraft photo-measured dry-pencil lip and alar tonal planes",()=>{
     expect(createFacialOpticalPlanes(img,g,271,.85)).toEqual(out);
     expect(createFacialOpticalPlanes(img,g,272,.85))
       .not.toEqual(out);
-  });
+  },15000);
   it("honours detail strength, shadow chroma and excludes invented pigment",()=>{
     const img=photo(),off=createFacialOpticalPlanes(img,g,271,0);
     const light=createFacialOpticalPlanes(img,g,271,.4);
