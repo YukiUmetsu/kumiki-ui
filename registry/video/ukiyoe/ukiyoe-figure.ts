@@ -240,6 +240,7 @@ interface Skeleton {
   knF: Pt; anF: Pt; toeF: Pt; knB: Pt; anB: Pt; toeB: Pt;
   H: number; lean: number;
 }
+const lerp2 = (a: Pt, b: Pt, t: number): Pt => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
 const dirDown = (deg: number): Pt => [Math.sin(deg * DEG), Math.cos(deg * DEG)];
 const along = (p: Pt, deg: number, len: number): Pt => { const d = dirDown(deg); return [p[0] + d[0] * len, p[1] + d[1] * len]; };
 
@@ -614,6 +615,12 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     // The parted front: under-robe shows between the legs when the stride opens.
     const open = clamp01((s.knF[0] - s.knB[0]) / (H * .2)) * (lower === "robe" ? 1 : .4) * (1 - kneel);
     out.push({ t: "fill", d: skirtD, fill: robe, outline: lw, pattern: look.robePattern, grain: .25 });
+    // Three-quarter: the front panel's edge (okumi) runs down from the obi to the hem, a sliver of the under-robe beside it.
+    if (look.view === "three-quarter" && look.face !== "oni" && kneel < .5) {
+      const top: Pt = [lerp(s.waistB[0], s.waistF[0], .62), lerp(s.waistB[1], s.waistF[1], .62) + H * .03], bot: Pt = [lerp(hemB[0], hemF[0], .72), hemY - H * .004];
+      out.push({ t: "line", d: carvedLine([top, lerp2(top, bot, .5), bot], H * .012, { taper: "start", minRatio: .3 }), color: under, opacity: .9 });
+      out.push({ t: "line", d: carvedLine([add(top, [-H * .006, 0]), add(lerp2(top, bot, .5), [-H * .006, 0]), add(bot, [-H * .006, 0])], lw * .9, { taper: "start", minRatio: .3 }), color: "sumi", opacity: .6 });
+    }
     if (open > .15) {
       const tipX = lerp(hemF[0], s.knF[0], .5);
       out.push({ t: "fill", d: polyD([[s.waistF[0] - H * .005, s.waistF[1] + H * .03], [hemF[0] - H * .005, hemF[1]], [tipX - H * .05 * open, hemY + H * .01]]), fill: under, outline: lw * .8 });
@@ -633,9 +640,12 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     }
   }
 
-  // Torso (jacket or robe), obi, collar.
-  const nb = add(s.neck, [-H * .035, H * .006]), nf = add(s.neck, [H * .02, H * .012]);
-  const chestF = add(s.shF, [H * .045 * stout, H * .06]), backTop = add(s.shB, [-H * .055 * stout, H * .03]);
+  // Torso (jacket or robe), obi, collar. A three-quarter figure (look.view) turns its torso toward the viewer, as the
+  // prints draw it while the limbs stay in profile: a broader chest with the far shoulder showing, the crossed collar
+  // seen from the front as a V (left over right), and the robe's front panel running down from it.
+  const tqBody = look.view === "three-quarter" && !bare && look.face !== "oni";
+  const nb = add(s.neck, [-H * (tqBody ? .045 : .035), H * .006]), nf = add(s.neck, [H * (tqBody ? .03 : .02), H * .012]);
+  const chestF = add(s.shF, [H * (tqBody ? .055 : .045) * stout, H * .06]), backTop = add(s.shB, [-H * (tqBody ? .07 : .055) * stout, H * (tqBody ? .012 : .03)]);
   const brute = build === "brute";
   const torsoD = smoothD(brute
     ? [nb, nf, add(chestF, [H * .02, 0]), add(s.waistF, [H * .075, -H * .07]), add(s.waistF, [H * .05, H * .03]), [s.waistB[0] - H * .02, s.waistB[1] + H * .02], add(backTop, [-H * .02, 0])]
@@ -646,8 +656,13 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     out.push({ t: "line", d: carvedLine(quad(add(s.waistF, [-H * .005, -H * .07]), add(s.waistF, [H * .015, -H * .04]), add(s.waistF, [-H * .01, -H * .01]), 6), lw, { taper: "both" }), color: "sumi", opacity: .45 });
   } else {
     out.push({ t: "fill", d: torsoD, fill: robe, outline: lw, pattern: look.robePattern, grain: .25 });
-    out.push({ t: "line", d: carvedLine([add(s.neck, [-H * .01, H * .004]), add(s.neck, [H * .022, H * .04]), [s.waistF[0] - H * .012, s.waistF[1] - H * .02]], H * .014, { taper: "end" }), color: under });
-    out.push({ t: "line", d: carvedLine([add(s.neck, [-H * .006, H * .008]), add(s.neck, [H * .018, H * .042]), [s.waistF[0] - H * .02, s.waistF[1] - H * .02]], lw * .9, { taper: "end" }), color: "sumi", opacity: .7 });
+    if (tqBody) {
+      // The far shoulder's seam, where the back of the robe turns away.
+      out.push({ t: "line", d: carvedLine(quad(add(backTop, [H * .012, H * .01]), add(backTop, [H * .008, H * .06]), add(s.waistB, [H * .018, -H * .02]), 6), lw * .8, { taper: "both" }), color: "sumi", opacity: .35 });
+    } else {
+      out.push({ t: "line", d: carvedLine([add(s.neck, [-H * .01, H * .004]), add(s.neck, [H * .022, H * .04]), [s.waistF[0] - H * .012, s.waistF[1] - H * .02]], H * .014, { taper: "end" }), color: under });
+      out.push({ t: "line", d: carvedLine([add(s.neck, [-H * .006, H * .008]), add(s.neck, [H * .018, H * .042]), [s.waistF[0] - H * .02, s.waistF[1] - H * .02]], lw * .9, { taper: "end" }), color: "sumi", opacity: .7 });
+    }
   }
   if (coat) {
     const hemCoat: Pt = [lerp(s.waistF[0], s.knF[0], .55) + H * .03, lerp(s.waistF[1], s.knF[1], .55)], hemCoatB: Pt = [s.waistB[0] - H * .05, hemCoat[1] + H * .01];
@@ -657,6 +672,11 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   const wn = dirDown(90 - s.lean), up: Pt = [Math.sin(s.lean * DEG), -Math.cos(s.lean * DEG)];
   const o1 = add(s.waistB, [-wn[0] * H * .01, 0]), o2 = add(s.waistF, [wn[0] * H * .01, 0]);
   out.push({ t: "fill", d: polyD([add(o1, [up[0] * obiH * .5, up[1] * obiH * .5]), add(o2, [up[0] * obiH * .5, up[1] * obiH * .5]), add(o2, [-up[0] * obiH * .5, -up[1] * obiH * .5]), add(o1, [-up[0] * obiH * .5, -up[1] * obiH * .5])]), fill: obiC, outline: lw, grain: .3 });
+  if (tqBody) {
+    // Worn toward the viewer, the obi shows its cord (obijime) across the front.
+    const c1 = lerp2(o1, o2, .15), c2 = lerp2(o1, o2, .95);
+    out.push({ t: "line", d: carvedLine([c1, c2], H * .008, { taper: "none" }), color: look.accent ?? (obiC === "kincha" ? "beni" : "kincha") });
+  }
   if (look.hair === "shimada" || look.hair === "long") {
     // Taiko knot: a big folded box at the back.
     const kb = add(s.waistB, [-H * .02, -H * .01]);
@@ -680,6 +700,20 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     out.push({ t: "fill", d: hand(s.wrF, s.elF, H), fill: skin, outline: lw * .8 });
     out.push({ t: "fill", d: fs.d, fill: sleeveC, outline: lw, pattern: coat ? look.coatPattern : look.robePattern, grain: .25 });
     out.push({ t: "line", d: carvedLine(quad(add(s.shF, [0, H * .02]), add(s.elF, [H * .01, H * .03]), add(fs.cuff, [0, H * .05]), 6), lw * .9, { taper: "both" }), color: "sumi", opacity: .4 });
+  }
+  // Three-quarter: the breast stands in front of the near shoulder, so its panel and the crossed collar (a V, the
+  // wearer's left edge over the right) are drawn over the top of the near sleeve.
+  if (tqBody) {
+    const top: Pt = add(s.neck, [H * .002, H * .012]), front: Pt = add(chestF, [-H * .004, H * .012]), low: Pt = add(s.shF, [H * .04 * stout, H * .14]);
+    const inner: Pt = add(s.shF, [-H * .012, H * .06]), back2: Pt = add(s.neck, [-H * .028, H * .02]);
+    const breast = smoothD([back2, top, add(lerp2(top, front, .5), [H * .006, -H * .004]), front, low, inner], true, .3);
+    out.push({ t: "fill", d: breast, fill: coat ?? robe, pattern: coat ? look.coatPattern : look.robePattern, grain: .25 });
+    out.push({ t: "line", d: carvedLine([front, low, inner], lw, { taper: "both", minRatio: .3, smooth: true }), color: "sumi", opacity: .8 });
+    const vPt: Pt = lerp2(low, front, .35), farEdge: Pt[] = [add(back2, [H * .006, -H * .002]), lerp2(back2, vPt, .5), vPt], nearEdge: Pt[] = [add(top, [H * .006, 0]), lerp2(top, vPt, .55), add(vPt, [-H * .004, H * .006])];
+    for (const edge of [nearEdge, farEdge]) {
+      out.push({ t: "line", d: carvedLine(edge, H * .017, { taper: "end", minRatio: .35, smooth: true }), color: under });
+      out.push({ t: "line", d: carvedLine(edge.map(q => add(q, [H * .007, H * .004])), lw * .9, { taper: "end", minRatio: .3 }), color: "sumi", opacity: .8 });
+    }
   }
   out.push(...propPrims(look, pose, s, wl, frame, "over"));
 

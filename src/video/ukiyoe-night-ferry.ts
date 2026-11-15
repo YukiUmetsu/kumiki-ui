@@ -11,7 +11,11 @@ import type { UkiyoePresetName } from "../../registry/video/ukiyoe/ukiyoe-pigmen
 
 export type UkiyoeAspect = "landscape" | "portrait";
 /** A shot: its scene builder and, optionally, the recorded ambience that plays under it (a looping catalog sound). */
-export interface UkiyoeShot { id: string; title: string; build: (aspect: UkiyoeAspect, tweaks?: UkiyoeFilmTweaks) => UkiyoeSceneSpec; sound?: FilmSceneSound }
+export interface UkiyoeShot {
+  id: string; title: string; build: (aspect: UkiyoeAspect, tweaks?: UkiyoeFilmTweaks) => UkiyoeSceneSpec; sound?: FilmSceneSound;
+  /** More recorded beds layered over this shot (rain over the wind, crickets under the fireworks). */
+  layers?: readonly FilmSceneSound[];
+}
 /** Whole-film overrides exposed in Storybook. Every value is an input to the real renderer. */
 export interface UkiyoeFilmTweaks {
   preset?: UkiyoePresetName;
@@ -256,7 +260,7 @@ const SEA_RISING = [{ frame: 0, progress: .12 }, { frame: 170, progress: 1, ease
 /** The great wave's even pace (px per frame) across the squall. */
 const WAVE_SPEED = 1.6;
 
-const squall: UkiyoeShot = { id: "squall", title: "The squall", sound: { sound: "bed-wind-mountain", gainDb: -6 }, build: (aspect, t = {}) => {
+const squall: UkiyoeShot = { id: "squall", title: "The squall", sound: { sound: "bed-wind-mountain", gainDb: -8 }, layers: [{ sound: "bed-rain-heavy", gainDb: -9 }], build: (aspect, t = {}) => {
   const P = aspect === "portrait", hz = 520, by = 880, dur = 400, breakAt = 252, caught = 190;
   // The ferryman poles on until the wave catches the boat; the water then draws it up the face, the crest breaks,
   // and the collapse throws the boat back before he can pole again.
@@ -305,7 +309,7 @@ const squall: UkiyoeShot = { id: "squall", title: "The squall", sound: { sound: 
 
 // ---- 5. Moonrise and fireworks -----------------------------------------------------------------------------------------------------
 
-const fireworks: UkiyoeShot = { id: "fireworks", title: "Moonrise and fireworks", sound: { sound: "bed-stream-close", gainDb: -20 }, build: (aspect, t = {}) => {
+const fireworks: UkiyoeShot = { id: "fireworks", title: "Moonrise and fireworks", sound: { sound: "bed-fireworks-distant", gainDb: -10 }, layers: [{ sound: "bed-crickets-night", gainDb: -19 }], build: (aspect, t = {}) => {
   const P = aspect === "portrait", hz = 560, by = 900, dur = 360, rest = 112;
   const go = poled(1330, 0, rest, 2.4, 70, true);
   const bursts = [
@@ -344,7 +348,7 @@ const fireworks: UkiyoeShot = { id: "fireworks", title: "Moonrise and fireworks"
 
 // ---- 6. Arrival ----------------------------------------------------------------------------------------------------------------------
 
-const arrival: UkiyoeShot = { id: "arrival", title: "Arrival", sound: { sound: "bed-stream-close", gainDb: -15 }, build: (aspect, t = {}) => {
+const arrival: UkiyoeShot = { id: "arrival", title: "Arrival", sound: { sound: "bed-stream-close", gainDb: -15 }, layers: [{ sound: "bed-crickets-night", gainDb: -20 }], build: (aspect, t = {}) => {
   const P = aspect === "portrait", [w, h] = DIM[aspect], hz = 520, by = 860, dur = 366, landed = 150;
   // The ferry glides in alongside the far landing stage; nobody steps off until it lies still against the pier.
   const BY = by + 10, pierTop = -52, go = poled(1320, 0, landed, 2.6, 56, true), BX = go.restX, docked = landed + 56;
