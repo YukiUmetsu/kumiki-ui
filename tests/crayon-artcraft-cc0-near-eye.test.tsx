@@ -127,11 +127,11 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
     const complete=crayonStableNibStops(lo,hi,1);
     // Every previously completed station survives a forward seek byte-for-byte;
     // the final sample is the temporary moving front, not a previous deposit.
-    expect(first.at(-1)).toBe(.4);
-    expect(next.at(-1)).toBe(.56);
+    expect(first[first.length-1]).toBe(.4);
+    expect(next[next.length-1]).toBe(.56);
     expect(next.slice(0,first.length-1)).toEqual(first.slice(0,-1));
     expect(complete.slice(0,next.length-1)).toEqual(next.slice(0,-1));
-    expect(complete.at(-1)).toBe(hi);
+    expect(complete[complete.length-1]).toBe(hi);
     expect(crayonStableNibStops(lo,hi,0)).toEqual([]);
     expect(()=>crayonStableNibStops(1,.5,.2)).toThrow();
     expect(()=>crayonStableNibStops(lo,hi,NaN)).toThrow();
