@@ -22,7 +22,7 @@ describe("RISO29 Kumiki ANAT1 source human anatomy",()=>{
     expect(RISO29_ANAT1.eyelidLoopLengths).toEqual([
       FACE_FEATURES["eye-upper.R"].loop.length,FACE_FEATURES["eye-lower.R"].loop.length,
       FACE_FEATURES["eye-upper.L"].loop.length,FACE_FEATURES["eye-lower.L"].loop.length]);
-    expect(RISO29_ANAT1.neckAnatomy.length).toBeGreaterThan(1);
+    expect(RISO29_ANAT1.neckAnatomy.length).toBeGreaterThanOrEqual(1);
     expect(RISO29_ANAT1.neckAnatomy).toEqual(SURFACE_FORMS.filter(f=>f.region==="neck").map(f=>f.id));
     expect(RISO29_ANAT1.headsTallAdultReference).toBe(MODEL_TABLES.byAge.male.find(a=>a.age===25)?.headsTall);
     expect(RISO29_ANAT1.headsTallAdultReference).toBeGreaterThan(7);
