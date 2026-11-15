@@ -6,6 +6,7 @@ import {crayonAdultFaceStudy} from "../../src/video/crayon-artcraft-adult-face-f
 import {crayonCc0NearEyeStudy} from "../../src/video/crayon-artcraft-cc0-near-eye";
 import {crayonPaperContactSwatches} from "../../src/video/crayon-artcraft-paper-contact-fixtures";
 import {crayonArtcraftBodyStudy} from "../../src/video/crayon-artcraft-body-study";
+import {crayonCc0FaceStudy} from "../../src/video/crayon-artcraft-cc0-face";
 import {AdultFaceArtcraftWorkbench} from "../../src/video/crayon-artcraft-adult-face.stories";
 
 /** Only exact React-native CRAYON1 renders may serve as visual evidence.
@@ -296,4 +297,44 @@ for(const view of ["painted","construction"] as const){
       }
       expect(errors).toEqual([]);
     });
+}
+
+
+/**
+ * CC0 source-space anatomical reconstruction. Native 608x1082 portrait at
+ * frames 120 (planes), 210 (iris/nose) and 299 (all drawn). The source
+ * photo is independently reviewed; browser capture is NOT an approval.
+ */
+for(const view of ["wax","anatomy"] as const){
+  test("ArtCraft native source-registered F1 full-face "+view,
+    async({page},info)=>{
+    const spec=crayonCc0FaceStudy({view,detail:1});
+    await page.setViewportSize({width:608,height:1082});
+    const exceptions:string[]=[];
+    page.on("pageerror",e=>exceptions.push(e.message));
+    for(const frame of view==="wax"?[120,210,299]:[299]){
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toHaveAttribute("data-km-crayon-frame",String(frame));
+      await expect(svg.locator('[data-km-crayon-element="face-outline"]'))
+        .toBeAttached();
+      if(frame===299){
+        for(const id of ["iris-near","iris-far","nose-alar-near",
+          "nose-alar-far","oral-opening","hair-right-curtain",
+          "lip-upper","lip-lower"]){
+          await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+            .toBeAttached();
+        }
+      }
+      await expect(svg.locator(
+        '[data-km-crayon-element^="source-face-landmark-"]'))
+        .toHaveCount(view==="anatomy"?18:0);
+      await svg.screenshot({path:info.outputPath(
+        "crayon-f1-cc0-source-registered-"+view+"-"+frame+".png"),
+        animations:"disabled"});
+    }
+    expect(exceptions).toEqual([]);
+  });
 }
