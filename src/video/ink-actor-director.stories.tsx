@@ -122,7 +122,8 @@ function Laboratory(){
             if(content.slot!=="ink4-traveler")throw new Error("Unexpected ink director scene: "+content.slot);
             return <InkDirectorFilm aspect={aspect} frame={context.frame}
               reducedMotion={context.reducedMotion} foldDetail={foldDetail}
-              foldContrast={foldContrast} clothAmount={clothAmount}/>;
+              foldContrast={foldContrast} clothAmount={clothAmount}
+              showCaption={framing==="wide"}/>;
           }}/>
       </div>
     </div>
