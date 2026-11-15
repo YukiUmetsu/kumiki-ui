@@ -13,7 +13,18 @@
 
 **Structural continuity:** Both nose additions are children of `face-outline` and are parent-clipped; subalar, near/far wing and septal planes overlap without detached glyphs. Both lip additions are children of the same face and keep the source mouth-corner/tubercles perspective. All previous semantic eye, ear, hair, skull and scalp assets remain; no unrelated reference identity was introduced, no polygon flattening, no global face blur or generic 3D primitive replacement.
 
-**Medium:** The volume hierarchy uses open pressure-built crayon glazes atop opaque source-specific facial blocking, preserving uneven pigment and paper relief. These are visible paint masses, not random cross-hatches. The original `oral-opening` and `mouth-teeth` IDs remain for compatibility, but the fake oversized enamel strip is reduced to an interrupted low-contrast local reflection. Real-source alignment of actual teeth is unresolved.
+**Medium:** The volume hierarchy uses open pressure-built crayon glazes atop opaque source-specific facial blocking, preserving uneven pigment and paper relief. These are visible paint masses, not random cross-hatches. The `oral-opening` remains as a parent-clipped, open, pressure-built seam; the fabricated `mouth-teeth` wax element is now removed after true Chromium proved that even its shrunk, muted 37×11 undercoat read as a conspicuous white enamel slash. The source photograph does not visibly require enamel.
+
+## Native 1×/2.65× visual rejection and corrective second pass
+
+The first nose/lip pass passed technical CI (changed typecheck/unit suite, full CRAYON1 grammar and native Chromium screenshot proof) on `6c5f26221661432a682c5f47af28864b44e15f0c`. **Artistically rejected** after actual 608×1082 full-face and 2.65× source-space nose/mouth macro at final frame 299:
+
+- The near and far alae still read as two separated colored circles; the thin dark root remains a long flat vertical stripe with no source-connected tip cartilage.
+- Although the opaque enamel shape was reduced to 37×11 SVG units, its low-pressure opaque undercoat picked up the pale paper color and produced a **bright slanted tooth slash**, unsupported by the photographed near-closed F1 mouth.
+- Both opaque lip masses still read like flat pastel capsule stickers over skin rather than the upper/cupid and inferior vermilion blending into the surrounding facial plane.
+- Native macro reveals algorithmic overlapping strokes in areas that should be smooth topology with irregular crayon micro-contact; this is still not a faithful portrait.
+
+The corrective pass therefore widens and curves the lateral sidewall all the way to the nasal bulb, replaces near/far round alar components with flattened asymmetric planes and diminishes dark nostril accent weight. It removes the fabricated enamel element **entirely** and changes upper/lower lip and oral seam from opaque filled patches to parent-clipped, open layered medium-native wax planes. It keeps the actual mouth left/right anchors and the independent eyelid/hair topology unchanged. These are geometry/material corrections, not additions of random decorative detail. The full face remains **REJECT** until the new native-pixel and independent-source review.
 
 ## Proof / ArtCraft gates
 
