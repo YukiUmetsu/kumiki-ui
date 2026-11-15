@@ -237,10 +237,10 @@ const sharedLimbs=[
   "right-thigh","right-shin","right-boot","right-boot-detail",
   "left-thigh","left-shin","left-boot","left-boot-detail",
   "left-upper-sleeve","left-forearm","sleeve-left-fold","cuff-left",
-  "left-glove","left-glove-index","left-glove-middle","left-glove-ring","left-glove-thumb",
+  "left-glove","left-glove-index","left-glove-middle","left-glove-ring","left-glove-pinky","left-glove-thumb",
   "left-glove-detail","left-glove-thumb-fold","left-finger-joint-lines",
   "right-upper-sleeve","right-forearm","sleeve-right-fold","cuff-right",
-  "right-glove","right-glove-index","right-glove-middle","right-glove-ring","right-glove-thumb",
+  "right-glove","right-glove-index","right-glove-middle","right-glove-ring","right-glove-pinky","right-glove-thumb",
   "right-glove-detail","right-glove-thumb-fold","right-finger-joint-lines",
 ];
 const legs=sharedLimbs.slice(0,8).map(id=>take(id));
@@ -301,7 +301,7 @@ const personPoint=(spec:RisoCharacterSpec,frame:number,joint:string,x:number,y:n
  * This is depth ordering, not a fake sticker or alpha-blended actor.
  */
 const risoGripParts=(side:"left"|"right"):readonly string[]=>[
-  side+"-glove-index",side+"-glove-middle",side+"-glove-ring",side+"-glove-thumb",
+  side+"-glove-index",side+"-glove-middle",side+"-glove-ring",side+"-glove-pinky",side+"-glove-thumb",
   side+"-finger-joint-lines",side+"-glove-detail",side+"-glove-thumb-fold",
   ...RISO30_GRIP_FOREGROUND_IDS(side),
 ];
@@ -433,9 +433,9 @@ export function RisoHumanEnsembleStudio(){
   const gripLayer=(spec:RisoCharacterSpec,stage:{x:number;y:number;scale:number},
     side:"left"|"right",id:string):RisoForegroundLayer=>{
     const onlyPartIds=risoGripParts(side);
-    // Actual ink scratches are open contours. Only four closed, authored red
+    // Actual ink scratches are open contours. Only five closed, authored red
     // glove digit masses may cut paper; blue hatch/knuckle lines print on top.
-    const solidDigits=onlyPartIds.slice(0,4);
+    const solidDigits=onlyPartIds.slice(0,5);
     return {
       id,
       knockout:<g data-km-riso-grip-occlusion={id}>
