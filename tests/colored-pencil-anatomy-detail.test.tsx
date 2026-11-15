@@ -34,7 +34,7 @@ describe("ArtCraft coloured-pencil anatomical fidelity contract",()=>{
     expect(tracks).toEqual(vaneTracts(KINGFISHER_FOLDED_WING_AXES,"#C7DAD8",226));
     const stations=[.16,.24,.32,.405,.48,.56,.64,.72,.80,.875] as const;
     for(const [i,trace] of tracks.entries()){
-      const groups=[...trace.path.matchAll(/M(-?\\d+\\.\\d+) (-?\\d+\\.\\d+) Q(-?\\d+\\.\\d+) (-?\\d+\\.\\d+) (-?\\d+\\.\\d+) (-?\\d+\\.\\d+)/g)];
+      const groups=[...trace.path.matchAll(/M(-?\d+\.\d+) (-?\d+\.\d+) Q(-?\d+\.\d+) (-?\d+\.\d+) (-?\d+\.\d+) (-?\d+\.\d+)/g)];
       expect(groups).toHaveLength(21); // one rachis + ten attached opposing barb pairs
       const axis=KINGFISHER_FOLDED_WING_AXES[i];
       const first=groups[0].slice(1).map(Number);
