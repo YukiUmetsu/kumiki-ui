@@ -122,6 +122,11 @@ describe("RIG1 motion", () => {
     expect(end.root.scale).toBeLessThan(.7);
     expect(mid.parts.find(p => p.id === "shell")!.farMatrix!.e).toBeLessThan(mid.parts.find(p => p.id === "shell")!.matrix.e - 40);
     expect(renderToStaticMarkup(<RigScene look="flat" width={1600} height={900} ground={700} frame={138} rigs={[spec]} />)).toContain('data-km-rig-part="shell-face-');
+    // Turning toward the camera: the nose shows grille and lamps, the tyres their tread, the bonnet top (raised camera).
+    const toward = modernCarRig({ motion: "turn-toward", start: 0, end: 240, from: 0, to: 1600, y: 700 });
+    const html = renderToStaticMarkup(<RigScene look="flat" width={1600} height={900} ground={700} frame={128} rigs={[toward]} />);
+    for (const id of ["front-grille", "front-lamp-far", "wheel-f-tread-face-", "shell-face-"]) expect(html).toContain(`data-km-rig-part="${id}`);
+    expect(renderToStaticMarkup(<RigScene look="flat" width={1600} height={900} ground={700} frame={10} rigs={[toward]} />)).not.toContain("front-grille");
     // Turning away is a left turn: the far (left) indicators blink, the near ones stay dark.
     const blink = evaluateRig(spec, 50).parts.map(p => p.id);
     expect(blink).toContain("ind-r-far");
