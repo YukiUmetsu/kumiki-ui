@@ -6,6 +6,7 @@ import { drawFigure, facingAt, figurePose, travelAt } from "../registry/video/uk
 import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
 import { expandCrowd } from "../registry/video/ukiyoe/ukiyoe-crowd";
+import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../registry/video/ukiyoe/ukiyoe-oiran";
 import { palette, resolvePaint } from "../registry/video/ukiyoe/ukiyoe-pigments";
 import { nodeState, UkiyoeScene } from "../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeSceneSpec } from "../registry/video/ukiyoe/ukiyoe-scene";
@@ -164,6 +165,51 @@ describe("UKIYO1 figures", () => {
     // Walking toward or away from us still travels along the road.
     expect(draw("front").x).toBeCloseTo(draw().x, 5);
     expect(inspectUkiyoeScene(scene({ nodes: [{ id: "f", kind: "figure", look: { view: "back" } } as never] }))).toEqual([]);
+  });
+});
+
+describe("UKIYO1 oiran", () => {
+  type P = { t: string; d?: string; fill?: unknown; color?: unknown; transform?: string; noPrint?: boolean; prims?: P[] };
+  const flat = (ps: P[], dy = 0): (P & { dy: number })[] => ps.flatMap(p => {
+    if (p.t !== "group" && p.t !== "clip") return [{ ...p, dy }];
+    const m = /translate\(([-\d.]+) ([-\d.]+)\)/.exec(p.transform ?? "");
+    return flat(p.prims ?? [], dy + (m ? +m[2] : 0));
+  });
+  it("dresses the oiran in every view: both eyes from the front, none from behind, the clogs standing on the ground", () => {
+    const draw = (view: "profile" | "three-quarter" | "front" | "back") => drawFigure({ look: { ...UKIYOE_OIRAN_LOOKS.oiran, view } }, 20, 0, 3).prims as P[];
+    const all = (["profile", "three-quarter", "front", "back"] as const).map(v => JSON.stringify(draw(v)));
+    expect(new Set(all).size).toBe(4);
+    const eyes = (v: "front" | "back") => flat(draw(v)).filter(p => p.t === "dots" && p.color === "sumi").length;
+    expect(eyes("front")).toBe(2);
+    expect(eyes("back")).toBe(0);
+    // The clogs (black teeth from the side, lacquered blocks from the front) reach the ground within a pixel or two,
+    // though the figure stands on them.
+    const black = (f: unknown) => f === "sumi" || (f as { stops?: unknown[][] })?.stops?.[0]?.[1] === "sumi";
+    for (const v of ["profile", "front"] as const) {
+      const lows = flat(draw(v)).filter(p => p.t === "fill" && black(p.fill) && !p.noPrint).map(p => { const n = p.d!.match(/-?\d+(\.\d+)?/g)!.map(Number); const xs = n.filter((_, i) => i % 2 === 0), ys = n.filter((_, i) => i % 2 === 1); return { w: Math.max(...xs) - Math.min(...xs), y: Math.max(...ys) + p.dy }; }).filter(q => q.w < 24 && q.y > -20);
+      expect(lows.length, v).toBeGreaterThan(0);
+      for (const q of lows) expect(Math.abs(q.y), v).toBeLessThan(3);
+    }
+  });
+  it("walks the figure-eight procession step without sliding the planted clog", () => {
+    const spec = { look: UKIYOE_OIRAN_LOOKS.oiran, actions: [{ type: "dochu" as const, start: 0, end: 600, to: 120 }] };
+    const clogX = (f: number) => { const d = drawFigure(spec, f, 0, 5); const teeth = flat(d.prims as P[]).filter(p => p.t === "fill" && p.fill === "sumi" && !p.noPrint).map(p => { const n = p.d!.match(/-?\d+(\.\d+)?/g)!.map(Number); const xs = n.filter((_, i) => i % 2 === 0); return { w: Math.max(...xs) - Math.min(...xs), x: (Math.max(...xs) + Math.min(...xs)) / 2 + d.x }; }).filter(q => q.w < 12); return teeth[0].x; };
+    // The first clog is planted from the first step's end until the second step lifts it (about frames 10–110 here).
+    const xs = [16, 40, 64, 88, 108].map(clogX);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeLessThan(1.5);
+    expect(drawFigure(spec, 300, 0, 5).x).toBeGreaterThan(drawFigure(spec, 100, 0, 5).x);
+  });
+  it("builds the procession, keeps everyone at her pace and halts them all while she looks back", () => {
+    const nodes = oiranProcession({ id: "p", x: 500, y: 900, start: 0, end: 600, distance: 300, lookBackAt: 250, lookFor: 90 });
+    expect(nodes.map(n => n.id)).toEqual(["p-kamuro-far", "p-lantern", "p-shinzo", "p-parasol", "p-oiran", "p-kamuro-near"]);
+    expect(inspectUkiyoeScene(scene({ durationFrames: 600, nodes }))).toEqual([]);
+    const at = (f: number) => nodes.map(n => travelAt(n.actions ?? [], f).x);
+    expect(at(600)).toEqual(nodes.map(() => 300));
+    expect(at(260)).toEqual(at(330));                              // halted together
+    const oiran = nodes.find(n => n.id === "p-oiran")!;
+    expect(figurePose({ look: oiran.look, actions: oiran.actions }, 290, 1, 250).headBack).toBeGreaterThan(.5);
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "o", kind: "figure", look: { ...UKIYOE_OIRAN_LOOKS.oiran, obiTie: "side" as never, layers: ["nope" as never] } }] })).map(i => i.path))
+      .toEqual(expect.arrayContaining(["$.nodes[0].look.obiTie", "$.nodes[0].look.layers[0]"]));
   });
 });
 

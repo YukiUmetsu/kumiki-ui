@@ -3688,6 +3688,11 @@
           "target": "components/video/ukiyoe/ukiyoe-figure-front.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-oiran.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-oiran.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"
