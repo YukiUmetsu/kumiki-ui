@@ -170,7 +170,9 @@ for(const sample of ["woman","man"] as const){
         const anatomySelect=page.getByRole("combobox",{
           name:"CC0 measured face crop",
         });
-        for(const region of ["lips","nose","eyes"] as const){
+        await expect(page.getByLabel("Pencil skin coverage"))
+          .toHaveValue("0.7");
+        for(const region of ["lips","nose","eyes","skin"] as const){
           await anatomySelect.selectOption(region);
           await expect(anatomySource).toHaveAttribute(
             "data-km-pencil-anatomy-rendered",region,{timeout:90000});
@@ -195,6 +197,25 @@ for(const sample of ["woman","man"] as const){
         expect(lipNumbers.lower).toBeLessThan(36);
         await expect(lipEvidence).toContainText(
           "No independent ArtCraft artistic approval");
+        const skinEvidence=page.locator(
+          '[data-km-pencil-skin-proof="ready"]');
+        await expect(skinEvidence).toHaveCount(1);
+        const skinPlanes=await skinEvidence.evaluate(node=>({
+          cheek:Number(node.getAttribute(
+            "data-km-pencil-skin-cheek-deficit")),
+          orbital:Number(node.getAttribute(
+            "data-km-pencil-skin-undereye-deficit")),
+          chin:Number(node.getAttribute(
+            "data-km-pencil-skin-chin-deficit")),
+        }));
+        // A formerly almost-white cheek/under-eye/chin should never
+        // pass as a reference-matched dry-pencil surface merely because
+        // the global five-value test still has a wide threshold.
+        expect(skinPlanes.cheek).toBeLessThan(30);
+        expect(skinPlanes.orbital).toBeLessThan(26);
+        expect(skinPlanes.chin).toBeLessThan(29);
+        await expect(skinEvidence).toContainText(
+          "Independent realism and artist approval: NOT PASSED");
         const currentSource=await anatomySource.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png"));
         const currentDry=await anatomyDry.evaluate(node=>

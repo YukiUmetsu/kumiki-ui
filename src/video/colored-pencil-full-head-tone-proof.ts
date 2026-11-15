@@ -166,3 +166,46 @@ export const compareCC0Vermilion=(
       CC0_VERMILION_PROBES[index].lightnessLimit);
   return {regions,missingVermilionPigment,artisticApproval:false};
 };
+
+/**
+ * Three PHOTO-registered facial planes that were too chalk-white in
+ * the prior PR #365 output. Coordinates refer to the same 285×318 CC0
+ * browser crop and never to a guessed generic head or stock painting.
+ * Negative-only acceptance cannot certify realistic skin material.
+ */
+export const CC0_SKIN_COVERAGE_PROBES=[
+  {name:"cheek",x:119/285,y:164/318,r:3/285,
+    sourceLimit:230,lightnessLimit:30},
+  {name:"under-eye",x:136/285,y:118/318,r:3/285,
+    sourceLimit:150,lightnessLimit:26},
+  {name:"chin",x:163/285,y:215/318,r:3/285,
+    sourceLimit:210,lightnessLimit:29},
+] as const;
+export interface CC0SoftSkinResult {
+  readonly regions:readonly{
+    name:"cheek"|"under-eye"|"chin";
+    sourceLuminance:number;
+    drawnLuminance:number;
+    lightnessDeficit:number;
+  }[];
+  readonly missingOpticalCoverage:boolean;
+  readonly artisticApproval:false;
+}
+export const compareCC0SoftSkin=(
+  source:PencilTonePixelGrid,drawing:PencilTonePixelGrid,
+):CC0SoftSkinResult=>{
+  validate(source);validate(drawing);
+  if(source.width!==drawing.width||source.height!==drawing.height)
+    throw new RangeError("Soft-skin regions require matching photo and drawing canvases");
+  const regions=CC0_SKIN_COVERAGE_PROBES.map(p=>{
+    const sourceLuminance=sample(source,p.x,p.y,p.r);
+    const drawnLuminance=sample(drawing,p.x,p.y,p.r);
+    return {name:p.name,sourceLuminance,drawnLuminance,
+      lightnessDeficit:drawnLuminance-sourceLuminance};
+  });
+  const missingOpticalCoverage=regions.some((r,index)=>
+    r.sourceLuminance>=CC0_SKIN_COVERAGE_PROBES[index].sourceLimit||
+    r.lightnessDeficit>=
+      CC0_SKIN_COVERAGE_PROBES[index].lightnessLimit);
+  return {regions,missingOpticalCoverage,artisticApproval:false};
+};

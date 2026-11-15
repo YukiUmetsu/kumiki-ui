@@ -56,6 +56,7 @@ describe("Source-measured ArtCraft full-head geometry (experimental)",()=>{
     expect(plate.rasterUnderpainting).toBe(false);
     expect(plate.paperColor).toBe("#FAF5ED");
     expect(plate.featureDepth).toBe(.85);
+    expect(plate.skinCoverage).toBe(.70);
     expect(plate.facialPlaneCounts["lip-vermilion"]).toBeGreaterThanOrEqual(0);
     expect(plate.facialPlaneCounts["nasal-alar"]).toBeGreaterThanOrEqual(0);
     expect(plate.materialCounts["facial-planes"]).toBe(
@@ -135,6 +136,30 @@ describe("ArtCraft four-shot production storyboard and pencil scumbling",()=>{
     expect(()=>selectHeadStoryboardStrokes(plate.strokes,
       "nonsense" as never)).toThrow(RangeError);
   });
+  it("face coverage softens pencil tooth without touching hair, geometry or source",()=>{
+    const img=source(),copy=new Uint8ClampedArray(img.data);
+    const unblended=createDryPencilHeadPlate(img,guides,271,.65,.85,0);
+    const blended=createDryPencilHeadPlate(img,guides,271,.65,.85,.9);
+    const mean=(p:typeof unblended,zone:string)=>
+      p.strokes.filter(mark=>mark.zone===zone)
+        .reduce((sum,mark,_,all)=>sum+mark.width/all.length,0);
+    expect(blended.strokes.length).toBe(unblended.strokes.length);
+    expect(mean(blended,"face-value")).toBeGreaterThan(
+      mean(unblended,"face-value")+.20);
+    expect(mean(blended,"face-chroma")).toBeGreaterThan(
+      mean(unblended,"face-chroma")+.15);
+    expect(mean(blended,"measured-features")).toBeCloseTo(
+      mean(unblended,"measured-features"),7);
+    expect(blended.materialCounts).toEqual(unblended.materialCounts);
+    expect(blended.geometry).toEqual(unblended.geometry);
+    expect(img.data).toEqual(copy);
+    expect(createDryPencilHeadPlate(img,guides,271,.65,.85,.9))
+      .toEqual(blended);
+    expect(()=>createDryPencilHeadPlate(img,guides,271,.65,.85,-.01))
+      .toThrow(RangeError);
+    expect(()=>createDryPencilHeadPlate(img,guides,271,.65,.85,1.01))
+      .toThrow(RangeError);
+  },15000);
   it("scumble is controllable, deterministic, doesn't mutate photo pixels",()=>{
     const img=source(),original=new Uint8ClampedArray(img.data);
     const raw=createDryPencilHeadPlate(img,guides,271,0);

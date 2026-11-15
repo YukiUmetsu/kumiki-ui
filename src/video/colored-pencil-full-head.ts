@@ -168,6 +168,7 @@ export interface DryPencilHeadPlate {
   readonly strokes:readonly PortraitHeadStroke[];
   readonly scumbleStrength:number;
   readonly featureDepth:number;
+  readonly skinCoverage:number;
   readonly facialPlaneCounts:Readonly<{
     "lip-vermilion":number;"nasal-alar":number;
   }>;
@@ -204,7 +205,7 @@ const isHairColour=(rgb:readonly number[])=>{
  */
 export const createDryPencilHeadPlate=(
   source:PencilPhotoPixels,guides:PortraitFeatureMap,seed=271,
-  scumbleStrength=.65,featureDepth=.85,
+  scumbleStrength=.65,featureDepth=.85,skinCoverage=.70,
 ):DryPencilHeadPlate=>{
   positiveSafeSource(source,seed);
   if(!Number.isFinite(scumbleStrength)||
@@ -212,6 +213,8 @@ export const createDryPencilHeadPlate=(
     throw new RangeError("Invalid coloured pencil scumble strength");
   if(!Number.isFinite(featureDepth)||featureDepth<0||featureDepth>1)
     throw new RangeError("Invalid coloured-pencil measured feature depth");
+  if(!Number.isFinite(skinCoverage)||skinCoverage<0||skinCoverage>1)
+    throw new RangeError("Invalid colored-pencil skin coverage");
   // Require the entire, already-audited 25-landmark source map.
   const details=createPencilPortraitFeatureMarks(source,guides,seed);
   const geometry=projectMeasuredHeadContours(guides);
@@ -336,8 +339,17 @@ export const createDryPencilHeadPlate=(
         if(gradientStrength>.052)theta=Math.atan2(-gx,gy)+
           (pencilHash(seed,hashBase,12)-.5)*.18;
       }
+      // Artist-quality skin does not resemble a loose field of equally
+      // thin mechanical hatches. Increase the *coverage* of the original
+      // low-pressure warm/cool strokes in halftones (not a photo bitmap
+      // or painted face fill), shortening them as neighbouring fibres
+      // meet. The untouched paper reserve remains where the source
+      // actually contains a nearly white reflection.
+      const opticalCoverage=pass===2?0:
+        skinCoverage*clamp((.955-value)/.16,0,1);
       const len=step*(pass===0?1.56:pass===1?1.43:.94)*
-        (.75+.40*pencilHash(seed,hashBase,13));
+        (.75+.40*pencilHash(seed,hashBase,13))*
+        (1-.14*opticalCoverage);
       const shade=1-value;
       const pressure=pass===0?.22+.34*shade:
         pass===1?.18+.30*shade:
@@ -353,8 +365,9 @@ export const createDryPencilHeadPlate=(
           color([rgb[0]*.75+62*.25,rgb[1]*.73+50*.27,rgb[2]*.80+60*.20]);
       push(pass===0?"face-value":pass===1?"face-chroma":"face-form",
         p,[Math.cos(theta)*len,Math.sin(theta)*len],pigment,
-        pressure*fade*(band===4?.52:1),
-        pass===0?1.30:pass===1?1.04:.82,pass,
+        pressure*(1+.11*opticalCoverage)*fade*(band===4?.52:1),
+        pass===0?1.30+1.12*opticalCoverage:
+          pass===1?1.04+.82*opticalCoverage:.82,pass,
         (pencilHash(seed,hashBase,15)-.5)*.19);
     }
   }
@@ -672,7 +685,7 @@ export const createDryPencilHeadPlate=(
     width:SIZE.width,height:SIZE.height,paperColor:PAPER,
     crop:{left,top,width:cropWidth,height:cropHeight},
     strokes:marks,rasterUnderpainting:false,geometry,
-    scumbleStrength,featureDepth,facialPlaneCounts,
+    scumbleStrength,featureDepth,skinCoverage,facialPlaneCounts,
     fiveValueCounts,materialCounts,
   };
 };
