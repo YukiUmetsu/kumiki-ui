@@ -110,3 +110,19 @@ const spec = paperObjectSpec("layered", "landscape", {
 ```
 
 `artwork:"object"` FilmStage props `curl` and `motion` accept finite 0–1 numbers and reject untrusted malformed values. Storybook maintains **one existing Film Looks section** and now exposes `curl`/`motion` alongside other material controls, including separate motion-focused kingfisher and dragonfly scenes. The five-scene portable `examples/film/paper-craft-objects.film.json` renders at both 16:9 and 9:16, with frame-exact dynamics. No 3D fold rig, extrusion, material thickness solver or die-ready cut templates are claimed.
+
+## Pass 17 — real separate hinged terminal cardstock
+
+`PaperCutLayer.liftedTip?: PaperLiftedTip` is a separate closed die-cut shape (not a filter or texture), with sheet-space `hinge`, `rotateDegrees` (±25°) and `lift` (0–18 px). The parent and terminal surfaces share the same rigid motion rig, yet the distal stock receives its own projected rotation, fully opaque underside color and contact shadow. Unlike the older gradient-only `curl` hint, this moves actual visible geometry outside the base mask.
+
+```tsx
+const spec=paperObjectSpec("layered","landscape",{
+  object:"kingfisher",detail:1,curl:1,motion:.45,relief:1,seed:37
+});
+<PaperCraftStage spec={spec} frame={198} liftStrength={1}
+  shadowStrength={.95} edgeStrength={.75}/>;
+```
+
+Eighteen individually shaped primary feather bases and tips use distinct contours and joined authored hinges; the same primitive adds eave lip folds to three houses and a corner fold to the teacup's napkin. `relief` (0–1) is validated in object generation and FilmStage. Two additional landscape/portrait Storybook examples remain directly inside **Video production / Film Looks**; the existing stories are retained. The design stays under the 128-layer budget because the distal piece belongs to its parent cut. Source study and candid limitations: `docs/research/paper-craft-lifted-tip-study.md`.
+
+This is hinge-projecting 2.5D paper construction, **not** a continuous elastic 3D curved sheet or cutter-ready pattern.

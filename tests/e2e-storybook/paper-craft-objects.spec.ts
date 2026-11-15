@@ -88,3 +88,39 @@ test("Paper Craft curled stock stays opaque and all wing pieces flap together on
   }
   expect(errors).toEqual([]);
 });
+
+test("Crafted feather tips are separate opaque hinged shapes in both aspect ratios",async({page},info)=>{
+  const errors:string[]=[];
+  page.on("pageerror",error=>errors.push(error.message));
+  for(const [slug,aspect] of [
+    ["paper-craft-feather-relief-macro","landscape"],
+    ["paper-craft-feather-relief-portrait","portrait"],
+  ] as const){
+    await page.goto(base+slug+"&viewMode=story");
+    const svg=page.locator("svg[data-km-paper-craft]");
+    await expect(svg).toBeVisible();
+    await expect(svg).toHaveAttribute("viewBox",aspect==="landscape"?"0 0 960 540":"0 0 540 960");
+    const tips=svg.locator('[data-km-paper-lift-tip^="wing-feather-"]');
+    await expect(tips).toHaveCount(18);
+    expect(Number(await tips.first().getAttribute("data-km-paper-fold-angle"))).not.toBe(0);
+    const colors=await tips.locator("path[fill-rule=evenodd]").evaluateAll(nodes=>
+      nodes.map(el=>el.getAttribute("fill")));
+    expect(colors).toHaveLength(18);
+    expect(colors.every(v=>/^#[a-fA-F0-9]{6}$/.test(v??""))).toBe(true);
+    const wing=svg.locator('[data-km-paper-layer="wing-feather-0"]');
+    const before=await wing.getAttribute("transform");
+    const slider=page.getByRole("slider",{name:"Scrub film frame"});
+    await slider.evaluate(node=>{
+      const input=node as HTMLInputElement;
+      const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+      if(!setter)throw Error("Missing input setter");
+      setter.call(input,"222");
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+      input.dispatchEvent(new Event("change",{bubbles:true}));
+    });
+    await expect(svg).toHaveAttribute("data-km-paper-frame","222");
+    expect(await wing.getAttribute("transform")).not.toBe(before);
+    await svg.screenshot({animations:"disabled",path:info.outputPath(slug+"-final.png")});
+  }
+  expect(errors).toEqual([]);
+});
