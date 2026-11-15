@@ -17,6 +17,7 @@
 - `ukiyoe-interior.ts`: rooms and their furnishings, and the `interiorScene()` recipes.
 - `ukiyoe-onna.ts`: the women of the ghost stories (faces, props, the candle crown) and `onnaScene()`.
 - `ukiyoe-folk.ts`: folk work, tools and props, and `folkScene()`.
+- `ukiyoe-effects.ts`: fire, halo, smoke, lightning, ash and fox-fire effects, and `effectScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -227,6 +228,17 @@ Most women in the ghost stories look alive until the story turns, so they are fi
 - **Props and hat.** `onigiri` (a rice ball in the hand), `firewood` (a lashed bundle on the back) and `hat: "hachi"` (Hachikazuki's great black bowl, in every view).
 - **`folkScene(kind)`.** Builds `woodcutter`, `farmer` (his wife brings a rice ball), `mochi`, `washing` (Hachikazuki at the tub) or `luck`. Storybook **Folk work** plays them, and the Motifs gallery shows the block, mortar and tub.
 - **Square views.** Tools and the mallet are drawn in profile and three-quarter only. Seen square on, the body works but the tool is not shown.
+
+### Effects and magic
+
+- **`fire` motif.** Tongues of vermilion with yellow hearts and a key line, varied in height and streaming with the wind, over a warm glow. Smoke rolls away in outlined cloud billows, and embers rise. Params: `width`, `height`, `intensity`, `smoke`, `lean`.
+- **`halo` motif.** Gold rays of two lengths around a ring, slowly breathing.
+- **Particles.**
+  - `smoke`: a henge puff of curling cloud scrolls at each burst. The creature `transform` puff is now one outlined cloud as well.
+  - `lightning`: a forked bolt from the sky to each burst point, with a flash of the frame. Pair it with a camera shake for the thunder.
+  - `ash`: a plume poured from each burst point (`launchFrom` = how long it pours) and carried downwind.
+  - `foxfire`: teardrop flames, yellow within and red at the rim, bobbing in the area.
+- **`effectScene(kind)`.** Builds `fire`, `henge` (a fox walks into the smoke; a woman node `from` the moment it is gone walks out), `storm`, `blossom` (ash, then the sakura `progress` keyed from bare to full bloom), `foxfire` or `halo`. Storybook **Effects** plays them.
 
 ### Transition
 

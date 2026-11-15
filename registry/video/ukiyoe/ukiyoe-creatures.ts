@@ -1198,7 +1198,8 @@ function puff(frame: number, a: UkiyoeCreatureAction, size: number, seed: number
     const c = polar([0, -size * .5], a2, size * .45 * grow);
     blobs.push(ellipseD(c[0], c[1], r, r * .85));
   }
-  return { prims: [{ t: "fill", d: blobs.join(""), fill: "gofun", opacity: fade, outline: 1.2, outlineColor: "usuzumi", noPrint: true }], cover: Math.sin(Math.PI * t) };
+  // One outlined cloud (the blobs' outline drawn under the fill, so inner edges vanish), faded as a whole.
+  return { prims: [{ t: "group", opacity: fade, prims: [{ t: "fill", d: blobs.join(""), fill: "gofun", outline: 1.2, outlineColor: "usuzumi", union: true, noPrint: true }] }], cover: Math.sin(Math.PI * t) };
 }
 
 export function drawCreature(spec: UkiyoeCreatureSpec, frame: number, wind: number, seed: number): DrawnCreature {

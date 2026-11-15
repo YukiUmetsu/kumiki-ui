@@ -3763,6 +3763,11 @@
           "target": "components/video/ukiyoe/ukiyoe-folk.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-effects.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-effects.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"
