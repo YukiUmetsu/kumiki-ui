@@ -42,6 +42,9 @@ export interface PaintSurfaceSpec {
   seed: number;
   paper: { color: string; tooth: number };
   strokes: readonly PaintStroke[];
+  /** Artist-defined unpainted paper in original SVG coordinates. The real WM1
+   * brush deposits MUST respect these shapes, including later glazes. */
+  reservePaths?: readonly string[];
 }
 export interface PaintIssue { code: string; path: string; message: string }
 export interface BrushSample { x: number; y: number; pressure: number; speed: number; radius: number }
@@ -72,6 +75,13 @@ export function inspectPaintSurface(spec: PaintSurfaceSpec): PaintIssue[] {
   if (!ints(spec.seed, 0, 2147483647)) add("seed", "/seed", "Use a nonnegative 31-bit seed.");
   if (!spec.paper || !HEX.test(spec.paper.color)) add("paper", "/paper/color", "Paper requires a six-digit hex color.");
   if (!spec.paper || !valid(spec.paper.tooth, 0, 1)) add("tooth", "/paper/tooth", "Paper tooth must be 0..1.");
+  const legalReserve = (path: unknown) => typeof path === "string" &&
+    path.length >= 4 && path.length <= 65536 && /^[Mm]\s*[-+.\d]/.test(path) &&
+    /^[MmLlHhVvCcSsQqTtAaZz0-9eE,\s.+-]+$/.test(path);
+  if (spec.reservePaths !== undefined &&
+    (!Array.isArray(spec.reservePaths) || spec.reservePaths.length > 32 ||
+      spec.reservePaths.some(path => !legalReserve(path))))
+    add("paper-reserves", "/reservePaths", "Use up to 32 safe paper-reserve paths.");
   if (!Array.isArray(spec.strokes) || spec.strokes.length < 1 || spec.strokes.length > 120) {
     add("strokes", "/strokes", "Provide 1..120 authored strokes.");
     return issues;
