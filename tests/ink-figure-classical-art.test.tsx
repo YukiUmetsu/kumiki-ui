@@ -79,7 +79,7 @@ describe("INK6 classical figure brushwork", () => {
       "pupil-left","pupil-right","mouth-rest","mouth-aa","mouth-oh",
       "mouth-mm","mouth-smile","beard","robe",
     ];
-    expect(masterParts.every(id=>Object.hasOwn(MASTER_PORTRAIT_STUDY,id)||id==="robe")).toBe(true);
+    expect(masterParts.every(id=>Object.prototype.hasOwnProperty.call(MASTER_PORTRAIT_STUDY,id)||id==="robe")).toBe(true);
     expect(MASTER_ROBE_STUDY).toHaveLength(15);
     for(const part of masterParts){
       const basic=plain.assets[part],rich=painted.assets[part];
