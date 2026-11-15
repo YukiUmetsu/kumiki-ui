@@ -132,14 +132,24 @@ const facePieces:readonly RisoCharacterPart[]=[
     d:"M-22.7 -9.4 Q-24.6 -11.8 -25.6 -11.6 Q-24.5 -10.0 -21.8 -8.6 Z M-19.6 -11.0 Q-20.5 -12.8 -21.4 -13.0 Q-20.9 -11.3 -19.1 -10.4 Z M23.6 -11.9 Q25.3 -14.2 26.2 -14.0 Q25.5 -11.9 24.6 -10.1 Z M21.3 -13 Q22.9 -14.1 23.3 -14.4 Q22.9 -12.5 21.8 -11.7 Z",
     expressions:{blink:"M-22.8 -7.4 Q-24.3 -8.6 -25 -9 Q-23.4 -7.8 -21.8 -7 Z M-20.2 -7.8 Q-21.5 -8.6 -22 -8.8 Q-21.2 -7.9 -19.7 -7.5 Z M23.3 -9.1 Q24.9 -10.6 25.6 -10.8 Q24.6 -9.2 23.9 -8.6 Z M20.9 -9.4 Q22.4 -10.4 23 -10.6 Q22.6 -9.4 21.4 -9.0 Z"},
   },
-  {id:"eye-iris-grain",joint:"head",plate:"red",paint:"screen",
+  {id:"eye-iris-grain",joint:"head",plate:"red",paint:"solid",
     d:"M-16.7 -8.5 Q-15.3 -10.3 -13.5 -8.2 Q-15.0 -8.5 -15.2 -5.4 Q-17.5 -6.1 -16.7 -8.5 Z M16.2 -9.8 Q17.5 -12.3 19.5 -9.7 Q17.7 -9.5 17.7 -6.3 Q15.8 -7.2 16.2 -9.8 Z",
     expressions:{blink:"M-16.3 -5.3 Q-14.7 -5.8 -13.7 -5.4 L-13.8 -4.9 Q-15.3 -5.1 -16.3 -4.9 Z M16.4 -6.2 Q18 -6.7 19.2 -6.2 L19.1 -5.7 Q17.5 -5.9 16.4 -5.7 Z"},
   },
-  {id:"eye-lower-orbit-engraving",joint:"head",plate:"red",paint:"screen",
+  {id:"eye-lower-orbit-engraving",joint:"head",plate:"red",paint:"solid",
     d:"M-22 -2.0 Q-19.5 -.6 -17 -.9 Q-19 -.1 -21.8 -.8 Z M-16 -.9 Q-13.0 -1.3 -10.5 -3.0 Q-13.2 -.4 -15.8 .0 Z M-20.8 1.4 Q-18 2.2 -16.2 1.2 Q-18.3 2.7 -20.5 2.0 Z M10.7 -2.2 Q13.8 -.8 16.2 -1.4 Q14.2 .1 11.3 -1.2 Z M17.2 -1.5 Q20.9 -1.1 22.6 -3.4 Q21.4 -0.3 17.4 -.6 Z M13.8 1.5 Q17.6 2.5 20.8 1.1 Q17.4 3.2 14.0 2.3 Z",
     expressions:{blink:"M-22 -3.1 Q-19.5 -2.5 -17.4 -2.8 Q-19 -2.0 -21.8 -2.4 Z M-16.7 -2.7 Q-13.1 -2.3 -10.3 -3.8 Q-13.4 -1.7 -16.2 -2.0 Z M-20.8 -1.3 Q-18 -.9 -16.5 -1.5 Q-18 -.4 -20.4 -.6 Z M10 -4.3 Q13 -2.8 15.9 -3.1 Q13.6 -2 10.8 -3.6 Z M16.8 -3.0 Q20.4 -2.9 23 -4.7 Q21 -2 17.3 -2.3 Z M14 -1.4 Q17 -1.0 20.4 -1.9 Q17.5 -.2 14.5 -.7 Z"},
   },
+
+  // RISO23: Paper Artist's own facial topography, not a mirrored Courier
+  // stencil. Wide tonal masses carry the physical Riso screen, narrow
+  // under-lid/iris engravings remain printable on the solid red master.
+  {id:"orbital-tone-planes",joint:"head",plate:"red",paint:"screen",
+    d:"M-26 -26 C-20 -31 -12 -29 -6 -23 Q-13 -22 -19 -18 Q-25 -17 -26 -26 Z M6 -24 C13 -32 23 -29 29 -20 Q27 -14 23 -14 Q18 -22 11 -21 Z"},
+  {id:"zygomatic-tone-planes",joint:"head",plate:"red",paint:"screen",
+    d:"M-28 -8 C-28 3 -25 13 -18 19 Q-22 7 -19 -5 Q-24 -11 -28 -8 Z M20 -9 Q25 -12 29 -6 C29 4 25 14 18 20 Q24 5 22 -4 Z"},
+  {id:"jaw-shadow-planing",joint:"head",plate:"red",paint:"screen",
+    d:"M-27 9 Q-22 22 -6 29 C-14 26 -21 19 -24 10 Z M12 29 C22 25 29 10 29 -7 Q29 11 19 25 Z"},
   {id:"nose-bridge",joint:"head",plate:"blue",paint:"solid",
     d:"M1 -12 Q4 -7 3 -1 Q0 5 3 7 Q6 9 9 6 L9 8 Q6 11 2 9 Q-2 7 0 3 Q2 -4 1 -12 Z"},
   {id:"cheek-tones",joint:"head",plate:"red",paint:"screen",
