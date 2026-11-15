@@ -32,6 +32,7 @@ Every contact sample in a plan reports `phase` (`kihitsu`, `sohitsu`, `tensetsu`
 |---|---|
 | `shodo-style.ts` | `ShodoStyle`: hand, technique, brush, ink and paper groups; presets; `resolveShodoStyle`; path-specific `inspectShodoStyle` |
 | `shodo-glyphs.ts` | Glyph format, original offline glyphs (一 二 三 永 道 山 心), `parseKanjiVgSvg`, `shodoKaishoForm` (右上がり, weight by length, 主画, longer sweeps, 懸針, 右払い feet, kana curves), `shodoJoinStrokes` (接筆) |
+| `shodo-structure.ts` | The 間架結構法 rule book: `shodoStructure`, `shodoLayout`, `shodoKankaRulesFor`, `SHODO_KANKA_RULES`, `SHODO_STRUCTURE_RULES`, measured on 411 teacher models |
 | `shodo-glyph-source.ts` | `loadShodoGlyph` / `loadShodoText`: bundled first, otherwise KanjiVG from the pinned release, cached, with form rules |
 | `shodo-textures.ts` | Scanned CC0 bamboo cane and wood textures (ambientCG), embedded |
 | `shodo-hand.ts` | `planShodoWriting` (strokes, air moves, ink dips) and `shodoBrushPose(plan, seconds)` |
@@ -45,11 +46,20 @@ Every contact sample in a plan reports `phase` (`kihitsu`, `sohitsu`, `tensetsu`
 ## Writing any character
 
 1. `loadShodoGlyph(char)` reads the character from KanjiVG (stroke order and centrelines) at the pinned release, or returns a bundled original when asked to prefer them. Kanji and kana both work.
-2. `shodoKaishoForm` trims KanjiVG's entry and exit curls and gives the skeleton brush habits: 右上がり as a shear (verticals stay vertical, joints stay closed), weight by stroke length, a longer main horizontal (主画), longer sweeps, 懸針 on a hanging final vertical, a foot on every 右払い, a pressed head on the 辶 sweep (平捺), and flowing curves for kana.
+2. `shodoKaishoForm` first applies `shodoStructure`, the 間架結構法 rule book measured on 411 finished models by one teacher. `shodoLayout` finds the layout from KanjiVG's component tree, and `shodoKankaRulesFor` lists the rules that apply, in this order:
+   - 天覆: a covering crown (宀, 雨, 亠, 人…) keeps its width over the body.
+   - 草冠: 艹 stays compact.
+   - 上下の間: 冠/脚 parts are a little narrower, with more air between them.
+   - 左短右長: the left part (偏) ends higher than the right part.
+   - 外形: 冠/脚 and single-part characters are about 13% taller than KanjiVG, enclosures and roofs a little taller; 偏/旁 keep their width.
+
+   `SHODO_KANKA_RULES` gives each rule's term, reading and summary for captions. Each amount can be changed in the `structure` option, and `structure: false` turns the rules off. Bundled originals are not changed.
+
+   Then `shodoKaishoForm` trims KanjiVG's entry and exit curls and gives the skeleton brush habits: 右上がり as a shear (verticals stay vertical, joints stay closed), weight by stroke length, a longer main horizontal (主画), longer sweeps, 懸針 on a hanging final vertical, a foot on every 右払い, a pressed head on the 辶 sweep (平捺), and flowing curves for kana.
 3. `shodoJoinStrokes` finds ends that meet an earlier stroke (the inner lines of 口, 目, 日) and marks them as joins: a small head and a quiet stop that hide inside the other line.
 4. The hand writes the result with the ten basics. Stop knobs scale with the stroke's length: big on main strokes, quiet on short ones.
 
-Weight is calibrated against 20 finished models by one teacher: mean ink coverage is within 5% of the teacher's. An earlier version fitted strokes to a locally installed kaisho font; it made the writing worse and was removed.
+Weight is calibrated against finished models by one teacher: mean ink coverage is within 5% of the teacher's. Over 411 characters the layout rules raise the mean overlap with the teacher's models from 0.423 to 0.454 (kanji), and the gain holds on held-out characters; 10% of kanji get slightly worse (simple characters such as 人, 口 and 心 that this teacher writes wider than average). An earlier version fitted strokes to a locally installed kaisho font; it made the writing worse and was removed.
 
 ## Brush motion
 
@@ -83,5 +93,5 @@ The hand leans and lifts the brush as it writes, after side-view teaching videos
 ## Evidence and limits
 
 - Storybook stories: Studio, Start/turn/stop/end, Kanji study card, Brush close-up, Brush motion (top and side), Film shot (16:9 and 9:16), Character gallery (any text).
-- `tests/shodo-calligraphy.test.ts`: style validation, deterministic plans, the ten basics pass their checks, seek-independent ink, brush and ink share the contact, KanjiVG adapter, kaisho form rules and joins, kana curves, the cached loader, brush lean and height dynamics, and frame-to-frame smoothness.
+- `tests/shodo-calligraphy.test.ts`: style validation, deterministic plans, the ten basics pass their checks, seek-independent ink, brush and ink share the contact, KanjiVG adapter and component tree, the layout rules, kaisho form rules and joins, kana curves, the cached loader, brush lean and height dynamics, and frame-to-frame smoothness.
 - The ink model is a deterministic approximation, not a fluid simulation. The glyph set is small, with proportions judged by eye against teaching models. There is no hand or arm. Human visual review at normal playback speed is still required before a film is called finished.

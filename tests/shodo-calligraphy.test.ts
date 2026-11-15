@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SHODO_GLYPHS, parseKanjiVgSvg, shodoKaishoForm } from "../registry/video/shodo/shodo-glyphs";
 import type { ShodoGlyph } from "../registry/video/shodo/shodo-glyphs";
 import { loadShodoGlyph } from "../registry/video/shodo/shodo-glyph-source";
+import { shodoKankaRulesFor, shodoLayout, shodoStructure } from "../registry/video/shodo/shodo-structure";
 import { planShodoWriting, shodoBrushPose, shodoRestLean } from "../registry/video/shodo/shodo-hand";
 import { shodoFerruleHeight } from "../registry/video/shodo/shodo-brush";
 import { ShodoInkSurface } from "../registry/video/shodo/shodo-ink";
@@ -135,5 +136,39 @@ describe("SHO1 shodō calligraphy", () => {
     }
     expect(worstLean).toBeLessThan(9);
     expect(worstHeight).toBeLessThan(.3 * L);
+  });
+
+  it("reads KanjiVG components, merging a part split around another one", () => {
+    const glyph = parseKanjiVgSvg(`<svg viewBox="0 0 109 109"><g kvg:element="回">
+      <g kvg:element="囗" kvg:part="1" kvg:position="kamae"><path d="M20,20 L20,90"/><path d="M20,20 L90,20 L90,90"/></g>
+      <g kvg:element="口"><path d="M40,40 L40,70"/><path d="M40,40 L70,40 L70,70"/><path d="M40,70 L70,70"/></g>
+      <g kvg:element="囗" kvg:part="2" kvg:position="kamae"><path d="M20,90 L90,90"/></g></g></svg>`);
+    const kids = glyph.parts!.children;
+    expect(kids.map(k => [k.element, k.position, k.strokes])).toEqual([["囗", "kamae", [0, 1, 5]], ["口", undefined, [2, 3, 4]]]);
+    expect(shodoLayout(glyph)).toBe("enclosure");
+  });
+
+  it("applies the 間架結構 rules: taller 冠/脚, 左短右長 for 偏/旁, originals untouched", () => {
+    const stack: ShodoGlyph = { char: "旦", source: "kanjivg", strokes: [
+      { kind: "horizontal", points: [[300, 200], [700, 200]] }, { kind: "horizontal", points: [[300, 450], [700, 450]] },
+      { kind: "horizontal", points: [[150, 800], [850, 800]] },
+    ], parts: { strokes: [0, 1, 2], children: [{ position: "top", strokes: [0, 1], children: [] }, { position: "bottom", strokes: [2], children: [] }] } };
+    const out = shodoStructure(stack);
+    const width = (g: ShodoGlyph, i: number) => g.strokes[i].points[1][0] - g.strokes[i].points[0][0];
+    expect(width(out, 2)).toBeLessThan(width(stack, 2) * .9);          // narrower overall and in the 脚
+    expect(shodoKankaRulesFor(stack)).toEqual(["jougeNoMa", "gaikei"]);
+    expect(out.strokes[2].points[0][1]).toBe(800);                      // the base line stays
+    // 左短右長: a 偏/旁 character keeps its widths, and the left part's foot ends higher.
+    const pair: ShodoGlyph = { char: "明", source: "kanjivg", strokes: [
+      { kind: "vertical", points: [[250, 250], [250, 800]] }, { kind: "vertical", points: [[500, 150], [500, 900]] },
+      { kind: "vertical", points: [[850, 150], [850, 900]] },
+    ], parts: { strokes: [0, 1, 2], children: [
+      { position: "left", strokes: [0], children: [] }, { position: "right", strokes: [1, 2], children: [] }] } };
+    const paired = shodoStructure(pair);
+    expect(paired.strokes[0].points[1][1]).toBeLessThan(800);           // the left foot rises
+    expect(paired.strokes[0].points[0]).toEqual([250, 250]);            // its top stays
+    expect(paired.strokes.slice(1)).toEqual(pair.strokes.slice(1));     // the right part and all widths stay
+    expect(shodoKaishoForm(SHODO_GLYPHS["永"]).strokes[0].points).toEqual(shodoKaishoForm(SHODO_GLYPHS["永"], { structure: false }).strokes[0].points);
+    expect(shodoKaishoForm(stack, { structure: false }).strokes[2].points[0][0]).toBeLessThan(shodoKaishoForm(stack).strokes[2].points[0][0]);
   });
 });

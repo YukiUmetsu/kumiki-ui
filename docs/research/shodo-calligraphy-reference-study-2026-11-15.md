@@ -134,6 +134,89 @@ Frame by frame in V15: the loaded brush comes down tilted with the tuft straight
 
 **Model.** The hand computes a lean vector for every contact sample (`shodoHandLean`): the resting lean toward the writer (`hand.lean`, `hand.leanAzimuth`), reduced as the press grows (standing up), plus a lean toward the travel that grows with speed and with `hand.sideBrush` (直筆 → 側筆), plus follow-through on 払い, a throw toward the hook on 撥ね, and a lean against the motion on a pushed 逆筆 entry. A low-pass filter (85 ms) stands for the fingers and wrist. In the renderer, the free hair runs from the belly on the paper to the ferrule along a chord between the handle and the lying part; the ferrule height falls with press from about 0.9 to 0.45 tuft lengths. In the air the brush lifts almost straight up, travels high (a third to two thirds of a tuft length) and comes straight down onto its next start; the lean relaxes to the resting hold. The story *Brush motion (top and side)* shows both views and traces lean and height over time.
 
+## 2.8 Fourth study round: structure rules (結構法) from 411 teacher models
+
+**Question.** Can new characters get calligrapher-like proportions without a reference for each one? KanjiVG gives every character's strokes and its components with their positions (偏 left, 旁 right, 冠 top, 脚 bottom, 構 enclosure, 垂 hanging roof, 繞 bottom-left wrap). If a teacher handles each kind of component in a consistent way, that habit can be measured once and applied to every character.
+
+**Data.** The same teacher as §2.7 (松本松栄堂 書道教室) publishes one short video per character. All 419 single-character kaisho model videos on the channel were listed; 412 were downloaded at 360p and the final frame of each was turned into an ink mask (411 usable: 365 kanji, 46 kana). The frames and masks stay outside the repository.
+
+**Method.** Each character was written by our pipeline from KanjiVG (all earlier rules, no structure rules). Then:
+1. The whole skeleton was fitted to the teacher's ink (move and scale on each axis), so framing differences are removed.
+2. Each top-level component was fitted again on its own; the residual move and scale were recorded by component position.
+3. The overall proportion (height over width of the ink) was compared by layout, and the band widths (top fifth to bottom fifth) were compared.
+4. Every candidate rule was applied to all 411 characters and scored by the overlap of the normalized ink (IoU) with the teacher's model. A rule was kept only if it helped on both halves of the characters (even and odd code points), so it is not tuned to particular characters.
+
+**Findings.**
+- **Proportion is the biggest difference.** Teachers write 冠/脚 (top/bottom) and single-part characters about 13% taller than KanjiVG (median ink height/width teacher ÷ ours: 1.14–1.16 and 1.08–1.14), enclosures and roofs about 4–7% taller, and 偏/旁 (left/right) characters at KanjiVG's proportion (0.98).
+- **冠/脚 parts.** Both parts are a little narrower (top 0.97, bottom 0.94) and the bottom part is a little flatter (0.95), which leaves more air between them. This added +0.022 IoU for top/bottom characters on both halves, and 78% of them improved.
+- **偏/旁 parts already match.** The left part's box and the right part's box are within a few percent of KanjiVG's. Part rules there added +0.0075 IoU with more regressions, so none are applied. (The often-taught "narrow left part" is already built into KanjiVG's layout.)
+- **Rejected after testing:** a top taper (teachers' top fifth is narrower relative to the full width; applying it squeezed boxes such as 口, 四, 同, 円 and doubled the clear regressions), a relief for spreading sweeps, a broader "reaches both sides" relief, and an aspect model that depends on each character's own proportion (no better than one constant per layout on held-out characters). Enclosure, roof and 辶 part rules had too few characters (14, 11, 5) to show a consistent effect; those layouts keep only their proportion factor.
+
+**Result (all 411 characters).**
+
+| | Before | After |
+|---|---|---|
+| Kanji IoU with the teacher, mean / median | 0.423 / 0.404 | 0.454 / 0.445 |
+| Kanji height/width, ours ÷ teacher (median) | 0.935 | 1.014 |
+| Held-out halves (gain) | | +0.027 / +0.034 |
+| Kanji better / unchanged / worse | | 53% / 37% / 10% |
+
+The unchanged group is the left/right characters. Ten kanji lose clearly (IoU drop over 0.05): 人, 元, 兄, 刀, 口, 小, 市, 心, 水, 皿. These simple characters are written wider than average by this teacher; individual characters vary about ±13% around the rules, which no general rule can predict.
+
+**Model.** `shodoStructure` (`registry/video/shodo/shodo-structure.ts`) holds the kept medians. `parseKanjiVgSvg` now reads the component tree (`glyph.parts`), merging a component that KanjiVG splits around another one (囗 in 国). `shodoKaishoForm` applies the structure rules first, to KanjiVG glyphs only; bundled originals keep their drawn proportions. `structure: false` turns the rules off. The *Character gallery* story has a toggle to compare. §2.9 replaces this rule set with a named rule book.
+
+## 2.9 Fifth study round: the 間架結構法 rule book
+
+**Question.** Can the layout rules have the names that teachers use? Then a person can read each rule, check it on a character and add a new rule without a video for each character.
+
+**The classical frame.** 間架結構法 is the study of how the parts of a character are spaced (間架) and built together (結構). 歐陽詢's 結字三十六法 names habits such as 天覆 (the top covers what is below) and 地載 (the bottom carries what is above). Later lists such as 黄自元's 間架結構九十二法 give one rule for each kind of component. Japanese school 書写 teaches the same habits as 字形の整え方: the outer shape (外形), the left part shorter than the right part (左短右長), and the space between the parts.
+
+| Source | Grade | Used for |
+|---|---|---|
+| [古今圖書集成 字學典 卷83 (Wikisource)](https://zh.wikisource.org/wiki/%E6%AC%BD%E5%AE%9A%E5%8F%A4%E4%BB%8A%E5%9C%96%E6%9B%B8%E9%9B%86%E6%88%90/%E7%90%86%E5%AD%B8%E5%BD%99%E7%B7%A8/%E5%AD%97%E5%AD%B8%E5%85%B8/%E7%AC%AC083%E5%8D%B7) | A — the classical text | The names of the 三十六法 rules, such as 天覆 and 地載 |
+| [Hong Kong EDB: calligraphy teaching notes on 間架結構](https://www.edb.gov.hk/attachment/tc/curriculum-development/kla/chi-edu/resources/primary/lang/calligraphy%202.pdf) | B — a school curriculum | How each structure rule is taught, with example characters |
+| [仙台市 書写研究会: 書写授業の基本](https://sendai-c.ed.jp/~shoshaken/bunnsyo/r3syosyajyugyounokihonn.pdf) | B — a Japanese teachers' guide | 字形の整え方 in Japanese school 書写 |
+| [art-virtue.com: 歐陽詢](https://www.art-virtue.com/history/tang/OhYangSheun/) | C — a teaching site | Background on 歐陽詢 and his kaisho |
+
+**Method.** The data and the test are the same as in §2.8: 411 models by one teacher, the overlap (IoU) of the normalized ink, and a rule is kept only if it helps both halves (even and odd code points). Each rule was first measured on its own, on the characters that it applies to. The teacher frames and masks stay outside the repository.
+
+**The rules that were kept.** They are applied in this order.
+
+| Rule | Applies to | What the teacher does (measured) | Change | Alone: chars, IoU gain, halves, better / worse |
+|---|---|---|---|---|
+| 天覆 tenpuku | 冠/脚 with a covering crown (宀 冖 雨 人 亠 穴 癶) | The crown is wider than the body: crown ÷ body width 1.12 (KanjiVG 0.93). The gap under the crown is +0.04 of the height (KanjiVG −0.02). | The crown keeps its width (×1.032 against the other tops) | 19, +0.016, +0.013 / +0.019, 89% / 5% |
+| 草冠 sōkanmuri | 冠/脚 with 艹 | 艹 is about 0.95 of KanjiVG's width | ×0.95 | 10, +0.004, +0.000 / +0.005, 50% / 10% (weak evidence) |
+| 上下の間 jōge no ma | All 冠/脚 | Both parts are narrower, and the bottom part is flatter | Top ×0.94, bottom ×0.94, bottom height ×0.92 on its base line | 118, +0.039, +0.034 / +0.043, 86% / 13% |
+| 左短右長 sachō uchō | All 偏/旁 | The left part ends 0.033 of the height above the right part (KanjiVG 0.009) | The left foot rises by 0.03 of the height; its top stays | 125, +0.005, +0.007 / +0.004, 48% / 34% |
+| 外形 gaikei | Every character | 冠/脚 and single characters are taller than KanjiVG; 偏/旁 already match | Width × 0.905 (冠/脚), 0.885 (single), 0.955 (構), 0.95 (垂), 0.93 (繞), 0.93 (kana), 1 (偏/旁) | 365, +0.022, +0.017 / +0.025, 54% / 10% |
+
+"Better" and "worse" mean a change of more than 0.005 IoU.
+
+**Measured, but no rule.** 地載: the bottom parts that carry a character (皿, 心, 灬) already have KanjiVG's width relative to the top. Per-element 偏 rules (木, 亻, 糸): the data was noisy, and a visual check did not show a clear habit.
+
+**Rejected after testing.** Crowns wider than the measured median (×1.06 and ×1.10) scored worse. The rules rejected in §2.8 (top taper, sweep reliefs, a per-character aspect model, enclosure, roof and 辶 part rules) stay rejected.
+
+**Result (all rules, all 411 characters).**
+
+| | Before | After |
+|---|---|---|
+| Kanji IoU with the teacher, mean / median | 0.423 / 0.404 | 0.457 / 0.449 |
+| Held-out halves (gain) | | +0.030 / +0.036 |
+| Kanji better / worse | | 68% / 20% |
+| Kana IoU, mean | 0.360 | 0.367 |
+
+| Layout | Chars | IoU before → after | Better / worse |
+|---|---|---|---|
+| 冠/脚 top/bottom | 118 | 0.388 → 0.455 | 86% / 8% |
+| Single part | 92 | 0.466 → 0.502 | 75% / 23% |
+| 偏/旁 left/right | 125 | 0.429 → 0.434 | 45% / 31% |
+| 構 垂 繞 enclosure, roof, wrap | 30 | 0.406 → 0.424 | 73% / 13% |
+| Kana | 46 | 0.360 → 0.367 | 50% / 39% |
+
+The same ten kanji lose clearly (IoU drop over 0.05): 人, 元, 兄, 刀, 口, 小, 市, 心, 水, 皿. This teacher writes these simple characters wider than any general rule predicts.
+
+**How a new character is laid out.** KanjiVG gives the strokes and the component tree. `shodoLayout` finds the top-level layout. `shodoKankaRulesFor` lists the rules that apply. `shodoStructure` applies them. No video of the character is necessary. `SHODO_KANKA_RULES` gives each rule's term, reading and summary for captions and teaching views. To add a rule, measure it on the teacher set, apply it to all characters, and keep it only if both halves improve.
+
 ## 3. From observation to model
 
 | Observation | Model decision |
@@ -147,6 +230,7 @@ Frame by frame in V15: the loaded brush comes down tilted with the tuft straight
 | Brush empties over strokes | `ink.decay` spends load per em of stroke. `ink.redipBelow` inserts a dip. |
 | Pools at pauses, bleed at pools | Deposit is time-weighted: a pause deposits more pigment and water, so it bleeds more and stays glossy longer. |
 | Fibrous edge, not blur | The bleed is gated by a fixed paper-fibre field, so ink creeps out along fibres. |
+| Teachers write 冠/脚 and single characters taller; 冠/脚 parts compact; crowns cover; the left part ends higher | `shodoStructure`: five named 間架結構 rules (外形, 天覆, 草冠, 上下の間, 左短右長), measured on 411 models |
 | Upright handle, perspective from above | The brush is a 3D object under a top-down pinhole camera with a cast shadow; a side camera shows it in profile. |
 | Brush stands up to press, leans into travel, lifts straight | `shodoHandLean` per contact sample; ferrule height from press; vertical lift and descent in air moves. |
 | Faint vermilion grid | `ShodoSheet` paper layer with mesh, cells, centre marks and an optional name column. |

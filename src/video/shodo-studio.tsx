@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { SHODO_GLYPHS } from "../../registry/video/shodo/shodo-glyphs";
+import type { ShodoFormOptions } from "../../registry/video/shodo/shodo-glyphs";
 import { SHODO_KANJIVG_CREDIT, loadShodoGlyph } from "../../registry/video/shodo/shodo-glyph-source";
 import type { ShodoGlyph } from "../../registry/video/shodo/shodo-glyphs";
 import { planShodoWriting, shodoBrushPose } from "../../registry/video/shodo/shodo-hand";
@@ -22,12 +23,12 @@ export type ShodoGlyphMode = "kanjivg" | "bundled";
  * "bundled": the original offline set first. Falls back to a bundled glyph when stroke
  * data cannot be loaded.
  */
-export function useShodoGlyphs(chars: readonly string[], mode: ShodoGlyphMode) {
+export function useShodoGlyphs(chars: readonly string[], mode: ShodoGlyphMode, form: ShodoFormOptions = {}) {
   const [state, setState] = useState<{ key: string; glyphs: ShodoGlyph[]; error: string | null } | null>(null);
-  const key = chars.join("") + "|" + mode;
+  const key = chars.join("") + "|" + mode + "|" + JSON.stringify(form);
   useEffect(() => {
     let live = true;
-    Promise.all(chars.map(c => loadShodoGlyph(c, { preferBundled: mode === "bundled" }).catch((e: unknown) => {
+    Promise.all(chars.map(c => loadShodoGlyph(c, { ...form, preferBundled: mode === "bundled" }).catch((e: unknown) => {
       if (SHODO_GLYPHS[c]) return SHODO_GLYPHS[c];
       throw e;
     }))).then(glyphs => { if (live) setState({ key, glyphs, error: null }); })
