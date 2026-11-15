@@ -223,6 +223,22 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
     return p.pine(px,py,43+paperHash(seed,i,4)*26,11+paperHash(seed,i,5)*6);
   });
   add("woodland-far-pines",c.middle,15,farPines.join(" "),{enterFrame:85,curl:.3});
+  // Two asymmetrical solid cardstock canopy shells frame the distant sky.
+  // Cut-through eye apertures, not transparent fake leaf silhouettes.
+  for(const [i,side] of [-1,1].entries()){
+    const crown=laceCanopy(p,x,y,side,detail,seed);
+    add("woodland-lace-canopy-"+i,i?c.leaf:c.near,19,crown.path,{
+      holes:crown.holes,enterFrame:101+i*4,durationFrames:42,curl:.65});
+    const twigX=side*x*.72,twigY=-y*.94;
+    const fronds=Array.from({length:5+Math.round(detail*5)},(_,j)=>{
+      const ex=side*x*(.43+(j%4)*.11);
+      const ey=-y*(.79+Math.floor(j/4)*.045);
+      return p.band(twigX,twigY,ex,ey,1.6)+
+        " "+p.leaf(ex,ey,25+(j%3)*5,side*(j%2?72:132),6.4);
+    });
+    add("woodland-canopy-ribs-"+i,c.leafLight,21,fronds.join(" "),{
+      enterFrame:112+i*4,curl:.52});
+  }
   // Two asymmetric framing trees with branches rooted in the actual trunks.
   for(const [i,sign] of [-1,1].entries()){
     const tx=sign*x*.73,ground=y*.91,height=y*1.79;
@@ -287,6 +303,25 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
     add("woodland-bank-pebble-"+i,i%2?c.bark:c.mist,27,
       p.oval(bx,by,3+(i%3)*2,2+(i%2)),{enterFrame:138+i*2,curl:.3});
   }
+  // Wide-scale irregular paper undergrowth breaks up the bare fern comb:
+  // each blade has a connected paper rachis, but a different slant/height.
+  for(const [i,side] of [-1,1].entries()){
+    for(let j=0;j<4;j++){
+      const cx=side*x*(.38+j*.14);
+      const cy=y*(.78+(j%3)*.028);
+      add("woodland-understory-"+i+"-"+j,j%3?c.leaf:c.leafLight,28,
+        understoryCluster(p,cx,cy,side,detail,seed+i*37+j*11),{
+          enterFrame:151+j*2,curl:.64});
+    }
+  }
+  // Rounded die-cut current strips sit above (not hidden under) the bank.
+  const riverLight=Array.from({length:9+Math.round(detail*5)},(_,i)=>{
+    const yy=y*(.62+i*.021);
+    const xx=-x*.10+x*.042*Math.sin(i*1.91);
+    return p.band(xx-9+(i%2)*4,yy,xx+10+(i%3)*6,yy-1.8,1.1+(i%3)*.4);
+  }).join(" ");
+  add("woodland-stream-surface-highlights",c.ripple,28,riverLight,{
+    enterFrame:155,durationFrames:27,curl:.4});
   // Tiny die-cut wildflower constellations, anchored by visible stems.
   for(let i=0;i<4+Math.round(detail*5);i++){
     const side=i%2?-1:1,x0=side*(x*(.13+(i%3)*.085)),y0=y*.83,tip=y0-29-(i%3)*8;
@@ -333,6 +368,15 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
           [m.cx+side*m.r*.09,m.peak+y*.39]]),{
           enterFrame:64+i*5+j*3,curl:.83});
     }
+    // Three graded hand-cut horizontal terraces cross the light-facing slope.
+    // Not a repeated bitmap texture: each has its own contour and depth.
+    for(let j=0;j<2+Math.round(detail*2);j++){
+      const sx=j%2?-1:1;
+      add("alpine-folded-stratum-"+i+"-"+j,
+        j%3===0?c.snow:(j%3===1?c.far:c.bark),11,
+        alpineStratum(p,m.cx,m.peak,m.r,y*(.23+j*.09),sx),{
+          enterFrame:68+i*4+j*2,curl:.72});
+    }
     // More detail adds small *physical paper* moraine cuts, not texture noise.
     for(let j=0;j<Math.round(detail*3);j++){
       const xx=m.cx-m.r*.21+j*m.r*.14,yy=m.peak+y*(.24+j*.085);
@@ -358,8 +402,14 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
     p.M(-x,y*.41),p.C(-x*.36,y*.38,x*.38,y*.35,x,y*.43),
     p.L(x,y*.91),p.C(x*.47,y*.81,-x*.4,y*.82,-x,y*.97),p.Z
   ].join(" "),{enterFrame:92,curl:.48});
-  add("alpine-lake-far-shore",c.near,16,
-    ridge(p,x,y+11,y*.42,12,.7),{enterFrame:98});
+  // A narrow horizontal cut bank must NOT be a filled-to-bottom ridge:
+  // the old full-height polygon occluded most of the intended blue lake.
+  add("alpine-lake-far-shore",c.near,16,[
+    p.M(-x,y*.405),p.C(-x*.62,y*.39,-x*.18,y*.425,x*.12,y*.414),
+    p.C(x*.43,y*.406,x*.72,y*.40,x,y*.422),
+    p.L(x,y*.465),p.C(x*.61,y*.457,x*.26,y*.466,x*.08,y*.47),
+    p.C(-x*.25,y*.466,-x*.63,y*.466,-x,y*.472),p.Z
+  ].join(" "),{enterFrame:98,curl:.36});
   for(let i=0;i<10+Math.round(detail*5);i++){
     const yy=y*(.52+i*.028),w=20+(i%4)*18;
     const xx=-x*.64+(i%6)*x*.26;
@@ -367,6 +417,26 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
       p.band(xx,yy,xx+w,yy-1.7,1.45+(i%3)*.3),{
         enterFrame:113+i*2,curl:.22});
   }
+  // A shallow curved sheet follows the wave field, restoring depth without
+  // a universal gradient or raster overlay.
+  add("alpine-lake-current",c.water,18,[
+    p.M(-x*.66,y*.605),
+    p.C(-x*.42,y*.59,-x*.18,y*.62,x*.10,y*.60),
+    p.C(x*.34,y*.58,x*.46,y*.635,x*.63,y*.61),
+    p.C(x*.45,y*.66,x*.19,y*.64,-x*.05,y*.666),
+    p.C(-x*.38,y*.68,-x*.53,y*.645,-x*.66,y*.605),p.Z
+  ].join(" "),{enterFrame:121,curl:.53});
+  // An island of solid cardstock and narrow bank cuts creates middle distance.
+  add("alpine-lake-islet",c.soil,19,[
+    p.M(-x*.50,y*.73),p.C(-x*.37,y*.69,-x*.23,y*.7,-x*.19,y*.747),
+    p.C(-x*.28,y*.768,-x*.43,y*.78,-x*.50,y*.73),p.Z
+  ].join(" "),{enterFrame:125,curl:.78});
+  add("alpine-islet-reeds",c.leaf,20,
+    Array.from({length:5+Math.round(detail*4)},(_,i)=>{
+      const rx=-x*(.44-i*.026),ry=y*.728;
+      return p.band(rx,ry,rx+(i%2?3:-4),ry-15-(i%3)*5,1.75)+
+        " "+p.leaf(rx,ry-11,12,i%2?-42:-132,3.4);
+    }).join(" "),{enterFrame:131,curl:.7});
   // Front escarpments frame the water on two separate material planes.
   for(const [i,side] of [-1,1].entries()){
     const hx=side*x;
@@ -398,6 +468,24 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
       smallFern(p,px,py,46+(i%4)*12,side,detail),{
         enterFrame:139+i*2,curl:.43});
   }
+  // Foreground botanical silhouettes form a crafted scenic frame, not random
+  // noise: rooted stems, attached calyces and uneven five-petaled heads.
+  for(const [i,side] of [-1,1].entries()){
+    const stalks=Array.from({length:5+Math.round(detail*3)},(_,j)=>{
+      const xx=side*x*(.19+(j%4)*.07);
+      const ground=y*(.82+(j%3)*.021);
+      const tip=ground-(33+(j%3)*14);
+      return p.band(xx,ground,xx+side*5,tip,2.4)+
+        " "+p.leaf(xx+side*5,tip+13,15,side>0?-152:-28,4.7)+
+        " "+p.leaf(xx+side*4,tip+10,13,side>0?-27:-150,4.3);
+    });
+    add("alpine-meadow-grass-"+i,c.leaf,27,stalks.join(" "),{
+      enterFrame:149+i*3,curl:.68});
+    const seedX=side*x*.33,seedY=y*.69;
+    add("alpine-meadow-bloom-"+i,c.accent,28,
+      Array.from({length:7},(_,j)=>p.leaf(seedX,seedY,10,j*360/7,3.8)).join(" "),{
+        enterFrame:157+i*2,curl:.62});
+  }
   // A small flight in the open distance gives scale without opaque sprites.
   for(let i=0;i<3+Math.round(detail*3);i++){
     const bx=x*.05+i*28,by=-y*.66+(i%3)*11;
@@ -428,17 +516,18 @@ export function paperScenerySpec(
   if(aspect!=="landscape"&&aspect!=="portrait")throw new RangeError("Unknown paper scenery aspect.");
   const seed=options.seed??37;
   if(!Number.isSafeInteger(seed))throw new RangeError("Paper scenery seed must be a safe integer.");
-  for(const [name,value] of [["detail",options.detail],["breeze",options.breeze]] as const){
+  for(const [name,value] of [["detail",options.detail],["breeze",options.breeze],["relief",options.relief]] as const){
     if(value!==undefined&&(!Number.isFinite(value)||value<0||value>1))
       throw new RangeError("Paper scenery "+name+" must be finite in [0,1].");
   }
-  const detail=clamp(options.detail??.9),breeze=clamp(options.breeze??.5);
+  const detail=clamp(options.detail??.9),breeze=clamp(options.breeze??.5),
+    relief=clamp(options.relief??1);
   const w=aspect==="portrait"?540:960,h=aspect==="portrait"?960:540;
   const p=paperGeometry(w,h),c=STOCK[palette],x=aspect==="portrait"?316:517,
     y=aspect==="portrait"?514:292;
   const layers:PaperCutLayer[]=[];
   const add:Add=(id,color,depth,path,rest={})=>{
-    layers.push({id,color,depth,path,motion:"rise",
+    layers.push({id,color,depth:Math.round(depth*relief),path,motion:"rise",
       enterFrame:Math.min(160,8+layers.length*2),durationFrames:34,...rest});
   };
   portal(p,add,x,y,c);
