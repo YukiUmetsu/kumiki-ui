@@ -219,9 +219,10 @@ export function shanshuiFacialCraft(scene:ShanshuiScene,detail=1):
       const x=124+i*2.3,baseY=132+(i%3)*2;
       beard.push(inkPressureStroke({
         from:vec(x,baseY),c1:vec(x+2,145),
-        c2:vec(139+i*.35,161),to:vec(141+i*.29,168+(i%4)*1.4),
-        width:.35+(i%3)*.11,ink:i%4===0?"$paper":"$ink",
-        opacity:i%4===0?.5:.53,seed:i+99,samples:15,
+        c2:vec(137+(i-5)*.75,153+(i%3)*1.9),
+        to:vec(139+(i-5)*1.05,163+3*Math.sin(i*.82)),
+        width:.26+(i%3)*.12,ink:i%4===0?"$paper":"$ink",
+        opacity:i%4===0?.28:.54,seed:i+99,samples:15,
       }));
     }
     face.push(
