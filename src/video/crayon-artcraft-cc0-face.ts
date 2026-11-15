@@ -708,9 +708,10 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "Q439 698 454 701Q470 697 483 706Q487 710 485 713"+
     "Q464 716 439 727Q412 739 383 743Q369 746 354 741Z",
     rect(349,690,141,59),
-    ["#c49790","#97767a","#deb2a8"],[166,260],
+    ["#b17676","#734650","#d39d96"],[166,260],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.53,spacing:8.2,markStrength:.27,blendRadius:5.4});
+      featherContacts:true,
+      pressure:.64,spacing:7.3,markStrength:.25,blendRadius:7.4});
   // The source F1 expression is nearly closed, oblique and asymmetric.
   // Keep an actual narrow internal opening, not a broad smile/teeth slot.
   wax("lip-cupid-tubercles",
@@ -720,26 +721,64 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(382,693,97,42),C.lipLight,[181,268],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       blendRadius:5.1,pressure:.39,spacing:7,markStrength:.22});
+  // Source F1 lips are parted: the cropped photograph plainly
+  // shows three shadowed upper incisors, unlike the earlier assumption.
+  // The aperture is a perspective wedge anchored at near x355/y743.
   wax("oral-opening",
-    "M355 742C383 733 406 726 430 720"+
-    "C452 714 474 710 484 713"+
-    "C464 718 446 723 431 727"+
-    "C407 734 383 741 355 742Z",
-    rect(350,708,139,38),
-    ["#9f7977","#775b5d","#bf9690"],[194,279],
+    "M355 742C382 734 404 726 430 720"+
+    "C455 712 477 708 484 713"+
+    "C488 719 484 724 476 724"+
+    "Q452 729 433 730C403 738 380 744 355 746Z",
+    rect(348,706,143,43),
+    ["#805156","#4e3139","#a16a6e"],[194,279],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      blendRadius:2.7,pressure:.47,spacing:7.9,markStrength:.24});
-  // The actual CC0 face does not visibly show teeth. The prior 37×11
-  // muted "enamel" still rendered as a conspicuous white paper stripe,
-  // so remove the fabricated layer instead of endlessly shrinking it.
+      featherContacts:true,
+      blendRadius:3.4,pressure:.64,spacing:6.5,markStrength:.33});
+  // Deep oral interior under a separately visible source tooth surface:
+  // opaque wax is not a WHITE slab; depth color is near-black claret.
+  wax("mouth-aperture-depth",
+    "M355 744Q383 733 409 725Q445 713 481 714"+
+    "Q484 718 483 724Q457 730 434 731"+
+    "Q390 741 356 746Z",
+    rect(349,709,139,42),
+    ["#5b363e","#281e27","#89535a"],[206,286],
+    {parentId:"oral-opening",clipToParent:true,
+      pressure:.89,spacing:4,markStrength:.24,underpaintTooth:.12,
+      edgeRoughness:0,outlineOpacity:0,
+      underpaintGradient:{light:"#70474c",shadow:"#281d25",
+        focusX:.57,focusY:.34,radius:.9}});
+  // In 5x reference crop, dental shapes x390..460/y711..739 are
+  // tiny, low-value uneven upper incisors; no artificial bright bar.
+  wax("dental-surface-left",
+    "M389 726Q400 722 411 719Q413 724 413 731"+
+    "Q405 737 393 738Q389 734 389 726Z",
+    rect(385,714,31,29),["#a69d96","#6b6263","#bbb1a8"],[224,294],
+    {parentId:"mouth-aperture-depth",clipToParent:true,
+      pressure:.77,spacing:4.3,markStrength:.12,underpaintTooth:.08,
+      edgeRoughness:0,outlineOpacity:0});
+  wax("dental-surface-center",
+    "M411 719Q421 716 433 715Q437 721 435 728"+
+    "Q427 732 415 731Q411 727 411 719Z",
+    rect(407,710,34,26),["#b1a6a0","#6d6566","#c3b3ab"],[228,295],
+    {parentId:"mouth-aperture-depth",clipToParent:true,
+      pressure:.81,spacing:4.1,markStrength:.14,underpaintTooth:.08,
+      edgeRoughness:0,outlineOpacity:0});
+  wax("dental-surface-far",
+    "M436 715Q443 712 452 713Q459 714 461 718"+
+    "Q453 721 443 723Q438 722 436 715Z",
+    rect(432,710,33,18),["#aba39f","#706568","#bdb1ab"],[232,296],
+    {parentId:"mouth-aperture-depth",clipToParent:true,
+      pressure:.79,spacing:3.8,markStrength:.1,underpaintTooth:.08,
+      edgeRoughness:0,outlineOpacity:0});
   wax("lip-lower",
     "M358 744Q386 749 416 741Q456 730 485 716"+
     "Q487 732 474 742Q446 762 415 763"+
     "Q385 765 368 754Z",
     rect(352,710,138,60),
-    ["#d0a19a","#a47f82","#e8beb0"],[199,286],
+    ["#cd9596","#956b73","#e9b5ad"],[199,286],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.51,spacing:8,markStrength:.25,blendRadius:5.0});
+      featherContacts:true,
+      pressure:.61,spacing:8,markStrength:.23,blendRadius:6.2});
   // The inferior vermilion turns back into the chin as a wide *open*
   // value plane. This is not an opaque digital smile capsule.
   wax("lip-lower-core-shadow",
@@ -750,6 +789,17 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     ["#b48b88","#8b676a","#deb0a5"],[217,291],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       pressure:.42,spacing:7.8,markStrength:.23,blendRadius:6.2});
+  // Directional, rough wax sheen follows the curved lower vermilion.
+  mark("lip-lower-wax-ribs",
+    "M376 752 Q375 753 374 757"+
+    " M385 754 Q386 757 386 760"+
+    " M395 751 Q396 755 397 758"+
+    " M408 747 Q408 751 408 756"+
+    " M421 743 Q422 748 423 752"+
+    " M436 740 Q436 743 436 747"+
+    " M448 734 Q449 738 449 740",
+    "#e2b6b1",.3,[239,298],.37,"lip-lower",
+    {waxContact:"dry-wax",waxPressure:.44});
   // Oblique commissures are tiny pressure-built depressions embedded in
   // the vermilion, not two unrelated pure-ink cartoon brackets.
   wax("lip-commissure-left",
