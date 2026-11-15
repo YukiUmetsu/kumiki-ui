@@ -1,0 +1,29 @@
+# ArtCraft v12 — Photograph-registered eyelids, rims and sparse lash roots
+
+Date: 2026-11-15. **Experimental human likeness — not artist-approved.**
+
+## Study / source hierarchy
+
+**Licensed source:** Christopher Campbell, [*Brunette woman portrait (Unsplash)*, CC0 / Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Brunette_woman_portrait_(Unsplash).jpg). The same 25 normalized landmarks, 608×343 measured frame and 540×600 dry-paper study from ArtCraft v7–v11 are retained; no third-party drawing or photo bitmap is pasted into the final plate. Actual local 285×318 Chromium source and v11 independently drawn pencil plates were examined at **6× nearest-neighbour** in both directions. Source near-eye upper lid is an oblique, interrupted dark rim anchored at both canthi; the opposite eye is more occluded by hair. Code's old generic arcs lacked this underlying **source-conditioned micro-occlusion**.
+
+**Technique-only (compare craftsmanship, not geometry to trace):**
+- [Elena Pancorbo — original portraits](https://www.elenapancorbo.com/): dark eyebrow hairs integrate with soft orbital skin volumes, while upper lids and tear ducts receive locally sharpened pigment, not continuous eyeliner.
+- [Veronica Winters, *Realistic Colored Pencil Portrait Drawing Guide*](https://veronicasart.com/realistic-colored-pencil-portrait-drawing-guide/): upper lid shadow sits *over* an iris and sclera, fine radial iris marks leave reflected white paper visible, shadow/crease/skin planes are distinct.
+- [Kerry Brooks, *How to Draw Lively Eyes with Colored Pencil*](https://www.artistsacademy.com/video/how-to-draw-lively-eyes-with-colored-pencil-030411): actual sitter's aperture is not a generic almond; sclera are never all uniform pure white and the gaze/catchlight must stay registered.
+- [Spiros Felonis, *Coloring an Eye*](https://plaidonline.com/inspire-and-create/article/coloring-an-eye-with-spiros-felonis): warm-brown lower waterline and value deepening in the upper orbital plane precede sharp, selective eyelashes.
+
+## Geometry, connectivity and optical rules
+
+**Structural input:** the photo-reprojected near/far canthi, iris centers and separate analytic upper/lower lid controls, NOT a pupil point used as an eyelid Bézier control. Each current eyelid aperture is sampled at 14–96 positions; candidate ridges are searched only in a 1.2–4.0 source-pixel band around that photo-registration prior. A candidate must be (a) locally dark **compared with pixels on both sides**, (b) optically darker than Y=.73, and (c) not a green background impostor. Root-candidate support remains an explicit data field; no ridge = no additional marks. A strictly bounded three-point smoothing of *ridge offsets*, not RGB, prevents jagged offset jumps without retouching source colors.
+
+**Topology:** independently pen-observed Bézier lid families remain intact, keeping continuity of near/far lid-to-canthus and pupil occlusion. Only adjacent registered ridge samples are connected, with gap rejection at discontinuities. A few further individual lashes originate from photo-confirmed dark root neighborhoods; no repeated artificial black fan/ellipse. Endpoints and canthi remain within source/image/540×600 paper bounds. New details sit in the existing `measured-features` material zone, pass 2, preserve deterministic mark orders in all four storyboard phases, and are **never rendered as a bitmap**.
+
+**Color and material:** each dry stroke samples the legal reference local sepia/shadow, uses a darkened earth-color pencil with bounded pressure and subpixel width, and is separate from the existing dry-paper tooth deposition. Source-pixel light glints and hair occlusion are explicit negative gates. The source evidence structure reports per-eye/per-lid visible ridges and actual ink marks.
+
+**A/B and production isolation:** `createDryPencilHeadPlate(...,eyelidDepth)` takes a final 0–1 option; 0 provides exact original marks. A corresponding slider under the **existing single** Colour Pencil Reference Atelier exposes both 0% and 100% and reports the actual paper-geometry and photographic support count. Regular photo-to-pencil exported videos stay unchanged until source proof and artist review approve promotion.
+
+## Verification / rejection criteria
+
+- Pure Vitest source fixtures: blank uniformly shaded photo produces **zero** optical lids; manufactured licensed-local dark upper and lower ridges produce visible deterministic near/far nibs; input remains immutable; no raster pigment is returned; out-of-frame and malformed source samples fail closed.
+- Native Chromium 16:9 + 9:16: real CC0 reference, original pen strokes, full-head experimental optics 0 vs 100%, dry-contact and four storyboard shots compared; source/film export is bit-identical. The source-ray nib counts must be **non-zero** or the whole PR fails, rather than silently claiming eyelid progress.
+- **Independent visual failure criteria:** source photographed iris highlight must not be painted over; no invented eye liner, mascara-fan, toy eye, generic black almond, straight black ruler line, or hair treated as pupil. The source eye aperture must be more recognizable at 1× and at 6×; local eye brightness must not be monotonically darkened in bright sclera. If either real-source eye still looks distorted, retain research label and do not claim an approved character model.
