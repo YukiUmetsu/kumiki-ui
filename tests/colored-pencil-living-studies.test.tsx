@@ -417,6 +417,24 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("recedes the far orbit under the bridge and eliminates black-disc eyes and round nose",()=>{
+    const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
+    const map=new Map(drawing.regions.map(r=>[r.id,r]));
+    const orbital=map.get("mask")!,far=map.get("eye-far")!;
+    const near=map.get("eye-near")!,nose=map.get("nose")!;
+    // In original wildlife pencil references the upper socket is a shallow
+    // shadow wedge, not a separate circular black sticker on the temple.
+    expect(orbital.bounds[2]).toBeLessThanOrEqual(76);
+    expect(orbital.bounds[3]).toBeLessThanOrEqual(28);
+    expect((orbital.path.match(/M/g)??[]).length).toBe(2);
+    expect(far.bounds[3]).toBeLessThanOrEqual(8);
+    expect(near.bounds[3]).toBeLessThanOrEqual(13);
+    expect(near.bounds[2]).toBeGreaterThan(far.bounds[2]*1.2);
+    expect(nose.bounds[3]).toBeLessThanOrEqual(20);
+    expect((nose.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(5);
+    expect(map.get("cheek-ruff")!.layers[0].color).not.toBe("#CEB79B");
+  });
+
   it("renders original CP-F1 fox anatomy from authored pencil vectors with zero photo pixels",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     expect(drawing.foundation?.subject).toBe("wildlife");
