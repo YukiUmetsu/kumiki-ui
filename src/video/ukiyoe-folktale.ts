@@ -102,7 +102,7 @@ const road: UkiyoeShot = { id: "road", title: "The road of old stories", sound: 
 
 // ---- 3. The island of the oni --------------------------------------------------------------------------------------------------------------
 
-const island: UkiyoeShot = { id: "island", title: "The island of the oni", sound: { sound: "bed-wind-mountain", gainDb: -12 }, build: (aspect, t = {}) => {
+const island: UkiyoeShot = { id: "island", title: "The island of the oni", sound: { sound: "bed-surf-beach", gainDb: -9 }, layers: [{ sound: "bed-wind-mountain", gainDb: -20 }], build: (aspect, t = {}) => {
   const P = aspect === "portrait", [w] = DIM[aspect as UkiyoeAspect], hz = 520, dur = 360, by = 880;
   return base("island", aspect, dur, t, "edo", {
     camera: { keys: [{ frame: 0, x: 900, y: P ? 600 : 540, zoom: P ? 1.15 : 1 }, { frame: 200, x: 1100, y: P ? 600 : 540, zoom: P ? 1.15 : 1.04, ease: "inOut" }, { frame: dur - 1, x: 1180, y: P ? 560 : 520, zoom: P ? 1.1 : 1, ease: "inOut" }] },

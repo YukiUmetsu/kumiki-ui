@@ -140,6 +140,10 @@ describe("UKIYO1 figures", () => {
     expect(head(turned, 40)).toEqual(head({ look: { ...look, view: "three-quarter" } }, 40));   // three-quarter while held
     expect(head(turned, 40)).not.toEqual(head({ look }, 40));
     expect(head(turned, 80)).toEqual(head({ look }, 80));                     // back to profile after the blend
+    // The body turns too: a three-quarter figure shows the collar's V (both under-collar edges) and the robe's front panel.
+    const underLines = (spec: Parameters<typeof drawFigure>[0]) => drawFigure(spec, 20, 0, 3).prims.filter(p => p.t === "line" && p.color === "ki").length;
+    const woman = { hair: "shimada" as const, under: "ki", robe: "beni" };
+    expect(underLines({ look: { ...woman, view: "three-quarter" } })).toBeGreaterThanOrEqual(underLines({ look: woman }) + 2);
     const oni = { look: CAST["oni-red"] };
     expect(head({ ...oni, actions: [{ type: "face" as const, start: 0, end: 60 }] }, 30)).toEqual(head(oni, 30));
   });

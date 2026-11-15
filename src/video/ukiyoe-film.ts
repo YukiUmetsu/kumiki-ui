@@ -42,7 +42,12 @@ export function ukiyoeFilm(shots: readonly UkiyoeShot[] = NIGHT_FERRY_SHOTS, twe
     outputs: [{ id: "landscape", width: 1920, height: 1080 }, { id: "portrait", width: 1080, height: 1920 }],
     scenes,
     // Recorded ambience from the sound catalog (CC0 field recordings), one bed per shot, crossfading at the cuts.
-    ...(shots.some(shot => shot.sound) ? { audio: { lanes: [], licenseRef: "kumiki-sound-catalog", master: { profile: "youtube", limit: true } } } : {}),
+    ...(shots.some(shot => shot.sound) ? { audio: { lanes: [], licenseRef: "kumiki-sound-catalog", master: { profile: "youtube", limit: true },
+      // Layers ride over their shot's frames as film beds (the mist into the shot included), fading in and out.
+      beds: shots.flatMap((shot, i) => (shot.layers ?? []).map((layer, k) => {
+        const start = ukiyoeShotStarts(shots)[i], duration = shot.build("landscape", tweaks).durationFrames;
+        return { id: `${shot.id}-layer-${k}`, sound: layer.sound, gainDb: layer.gainDb, startFrame: start, durationFrames: duration, fadeSeconds: 1, ...(layer.lowpassHz ? { lowpassHz: layer.lowpassHz } : {}) };
+      })) } } : {}),
   } as unknown as FilmDocument;
 }
 

@@ -261,12 +261,52 @@ Not done: three-quarter views. Every rig is still a profile, mirrored to turn.
   - The beds were chosen from the catalog's descriptions and have not been listened to in context. There are no event sounds yet (no surf crash, no fireworks): the catalog has no recorded ones.
 - **Fingered claws.** In the print, a big claw's hook ends in two or three small curled fingers, like a bird's foot (see the claw crop of the 3840 px scan). Hooks on the larger claws now split near the tip into a smaller twin curling the same way, and the biggest sometimes into two. Small claws stay single hooks, so the lace keeps its rhythm. The first version, thin backward ticks, read as hair, not fingers, and was redrawn. It is limited to the larger claws because the first version cost the squall 2–3 fps; it now plays at 27.5–29 fps.
 
+## Event sounds and three-quarter bodies (owner request, 2026-11-14)
+
+- **New recordings.** Four CC0 field recordings from Freesound were found through Openverse. The CC0 licence was read on each source page before import, and each went through the repo's importer (trim, seamless loop, level-matched to −23 LUFS, sha256, rights):
+
+  | Bed | Source |
+  | --- | --- |
+  | `bed-rain-heavy` | Kinoton, [393560](https://freesound.org/people/Kinoton/sounds/393560) |
+  | `bed-surf-beach` | kyles, [177698](https://freesound.org/people/kyles/sounds/177698) |
+  | `bed-fireworks-distant` | monotraum, [212673](https://freesound.org/people/monotraum/sounds/212673) |
+  | `bed-crickets-night` | PhilllChabbb, [245834](https://freesound.org/people/PhilllChabbb/sounds/245834) |
+
+- **Sections chosen with earshot** (find, describe, realness). The final loops were measured again:
+
+  | Bed | Match | Real (p_real) | Voices (voice z) |
+  | --- | --- | --- | --- |
+  | Rain | heavy rain, z +3.9 | 0.96 | 1.2 |
+  | Surf | ocean waves, z +5.7 | 0.87 | 1.5 |
+  | Distant fireworks | fireworks exploding, z +4.3 (tag +5.2) | 0.94 | 2.0 |
+  | Crickets | crickets at night, z +4.1 | 0.93 | 1.5 |
+
+  None reaches the 2.5 voice threshold, so no voices are heard.
+- **Rejected candidates:**
+  - A crickets recording with audible distant village voices (AudioSet "Speech").
+  - A surf recording whose best trims read as underwater bubbles.
+  - A temple bell whose strikes all start inside the previous ring.
+  - The first surf section, which failed the importer's loop-seam check at −2.9 dB. A 12 s section passed.
+- **In the films:**
+  - Rain is layered over the storm's wind.
+  - The fireworks shot plays distant fireworks with crickets under them. The first mix had a faint stream too: earshot heard it as "being underwater" and the fireworks only weakly (z +2.4), so the stream was dropped and the levels set again. Fireworks z +4.4 and crickets +3.4, both strong.
+  - Crickets play under the arrival.
+  - Surf with a little wind on the oni island (ocean waves +4.8, wind +3.0).
+- **Shot `layers`.** A shot can now carry extra beds, written as film beds over its frames; the Storybook players play them too. Event sounds (a crash on the break, single bursts on each firework) are still beds, not hits timed to frames.
+- **Three-quarter bodies.** Prints often draw a figure's limbs in profile while the torso and face turn toward the viewer. A figure with `view: "three-quarter"` now gets:
+  - a broader chest, with the far shoulder's seam showing;
+  - a breast panel over the near sleeve, carrying the crossed collar as a V (the wearer's left edge over the right);
+  - the robe's front panel (okumi) edge running down to the hem, with a sliver of the under-robe;
+  - the obi cord across the front.
+
+  It reads in standing, walking and waving poses. The Night Ferry's mother and the crowd's three-quarter townswomen use it. Creatures are still profile rigs.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
 - Faces are a single profile design per hairstyle. There are no three-quarter turns or expressive brow and eye shapes yet.
 - The wave's foam is procedural. It is now one connected white like the print's, but every claw is built from the same palm-and-talon unit, so it lacks the print's hand-drawn variety of claw sizes and the long lace trailing over the back.
 - The wave breaks one way only: a plunging breaker. There is no spilling breaker for the small background waves, and the falling curtain has no motion smear at its fastest frames.
-- Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Faces turn three-quarter, but bodies and creatures are profile rigs that mirror to turn.
-- Sound is ambience beds only (river, stream, wind). There is no music, no surf or fireworks foley, and no rain recording, because the catalog has none.
+- Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Faces and torsos turn three-quarter, but limbs and creatures are profile rigs that mirror to turn.
+- Sound is recorded ambience beds (river, stream, wind, rain, surf, distant fireworks, crickets). There is no music and no hits timed to frames (a crash on the wave's break, each firework). Nobody has listened to the mix yet.
 - Human normal-speed review of the film has **not** been recorded.
