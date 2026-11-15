@@ -180,6 +180,42 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(html).not.toMatch(/NaN|Infinity|undefined/);
   });
 
+  it("paints willow as varied sparse curved ink strands rather than a repeated vertical lattice",()=>{
+    const controls={...DEFAULT_SHANSHUI,scene:"river-scholar" as const,detail:1};
+    const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:145,controls,
+    }));
+    const strands=[...html.matchAll(
+      /data-km-willow-frond="" data-km-willow-frond-root="([^"]+)" data-km-willow-frond-tip="([^"]+)" data-km-willow-frond-drift="([^"]+)" data-km-willow-frond-leaves="(\d+)"/g,
+    )];
+    expect(strands).toHaveLength(39);
+    const drifts=strands.map(x=>Number(x[3]));
+    expect(drifts.every(Number.isFinite)).toBe(true);
+    expect(drifts.some(x=>x>15)).toBe(true);
+    expect(drifts.some(x=>x< -15)).toBe(true);
+    expect(new Set(drifts.map(x=>x.toFixed(1))).size).toBeGreaterThan(26);
+    expect(strands.filter(x=>Number(x[4])===0)).toHaveLength(5);
+    expect(strands.every(x=>x[1].includes(",")&&x[2].includes(",")))
+      .toBe(true);
+    const ribbons=[...html.matchAll(/data-km-willow-pressure-strand="" d="([^"]+)"/g)];
+    expect(ribbons).toHaveLength(39);
+    expect(ribbons.every(x=>x[1].endsWith(" Z")&&
+      (x[1].match(/ L/g)??[]).length>=20)).toBe(true);
+    expect((html.match(/data-km-willow-dry-release=""/g)??[])).toHaveLength(10);
+    const leafCount=strands.reduce((sum,x)=>sum+Number(x[4]),0);
+    expect(leafCount).toBeGreaterThan(150);
+    expect((html.match(/data-km-willow-leaf=""/g)??[])).toHaveLength(leafCount);
+    expect(html).not.toMatch(/NaN|Infinity|undefined|--[0-9]/);
+    expect(html).toBe(renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:145,controls,
+    })));
+    const sparse=renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:145,controls:{...controls,detail:0},
+    }));
+    expect(sparse).not.toContain('data-km-willow-pressure-strand');
+    expect((sparse.match(/data-km-willow-tapered-branch=""/g)??[])).toHaveLength(6);
+  });
+
   it("finesses old-pine bough taper and connected foliage ink masses",()=>{
     const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
       frame:125,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",detail:1},
