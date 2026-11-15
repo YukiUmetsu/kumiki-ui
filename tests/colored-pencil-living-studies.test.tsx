@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PencilDrawing } from "../registry/video/colored-pencil-react";
+import { pencilPortraitAnatomy } from "../registry/video/colored-pencil-anatomy";
 import { inspectPencilDrawing, hatchPencilRegion } from "../registry/video/colored-pencil";
 import {
   PENCIL_LIVING_STUDIES, flowBundles, pencilLivingStudyDrawing,
@@ -28,6 +29,37 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
         expect(hatchPencilRegion(base,base.layers[0]))
           .toEqual(hatchPencilRegion(base,base.layers[0]));
       }
+    }
+  });
+
+  it("constructs human eyes, oral ring and head oval from Kumiki ANAT1 measured 3D landmarks",()=>{
+    const atlas=pencilPortraitAnatomy();
+    const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
+    const parts=new Map(drawing.regions.map(region=>[region.id,region]));
+    expect(atlas.source).toContain("MediaPipe");
+    expect(atlas.metrics.enEn).toBeGreaterThan(23);
+    expect(atlas.metrics.enEn).toBeLessThan(42);
+    expect(atlas.metrics.alAl).toBeGreaterThan(24);
+    expect(atlas.metrics.alAl).toBeLessThan(48);
+    expect(atlas.landmarks["pronasale"][1]).toBeGreaterThan(
+      atlas.landmarks["sellion"][1]+35);
+    expect(atlas.landmarks["menton"][1]).toBeGreaterThan(
+      atlas.landmarks["subnasale"][1]+55);
+    expect(atlas.features["eye-upper.R"].path).toMatch(/C/);
+    expect(atlas.features["eye-lower.L"].path).toMatch(/C/);
+    expect(parts.get("face-main")!.path).toBe(atlas.features.oval.path);
+    expect(parts.get("eye-white-far")!.path).toBe(atlas.eyes.R.path);
+    expect(parts.get("eye-white-near")!.path).toBe(atlas.eyes.L.path);
+    expect(parts.get("brows")!.details?.some(t=>t.id==="anat-brow-R")).toBe(true);
+    expect(parts.get("brows")!.details?.some(t=>t.id==="anat-brow-L")).toBe(true);
+    expect(parts.get("nose-bridge")!.details?.some(t=>t.id==="anat-nose-base")).toBe(true);
+    expect(parts.get("lip-upper")!.path).toBe(atlas.lips.upper);
+    expect(parts.get("lip-lower")!.path).toBe(atlas.lips.lower);
+    // Five-axis gate: no floating guessed eye coordinates. The mouth and
+    // nasal landmarks derive from one shared, posed cranial model.
+    for(const region of ["eye-white-far","eye-white-near","lip-upper","lip-lower"]){
+      expect(parts.get(region)!.path).not.toMatch(/NaN|Infinity/);
+      expect(parts.get(region)!.path.length).toBeGreaterThan(60);
     }
   });
 
