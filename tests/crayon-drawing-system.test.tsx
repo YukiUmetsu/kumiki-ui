@@ -59,7 +59,7 @@ describe("strict native Crayon drawing grammar",()=>{
         const leafMidrib=nodes.get("leaf-midrib-undertone");
         expect(leafMidrib?.parentId).toBe("leaf-body");
         for(const group of ["pear-chromatic-scumble","pear-blush-broken-wax",
-          "leaf-second-pass"]){
+          "leaf-second-pass","pear-light-binder","pear-cool-binder"]){
           const marks=scene.elements.filter(node=>node.id.startsWith(group+"-"));
           expect(marks.length).toBeGreaterThanOrEqual(Math.round(17*detail));
           expect(marks.every(n=>n.kind==="contour"&&n.clipToParent&&
