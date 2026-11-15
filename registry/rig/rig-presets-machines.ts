@@ -169,13 +169,15 @@ export function carRig(o: RigPresetOptions = {}): RigSpec {
 export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
   const size = o.size ?? 440, u = size / 100, rig = new Rig(u), m = o.motion ?? "drive", R = 8.6;
   const palette: Partial<Record<RigRole, string>> = {
-    paint: "#2f5f8f", "paint-dark": "#1f4266", metal: "#c9ced3", "metal-dark": "#2a2d33", rubber: "#17181b", glass: "#9db7c6", light: "#f6f1df",
+    paint: "#2f5f8f", "paint-dark": "#1f4266", metal: "#c9ced3", "metal-dark": "#2a2d33", rubber: "#17181b", glass: "#5f7686", light: "#f6f1df",
     accent: "#8e1b1b", skin: "#c98d6a", hair: "#2b211c", cloth: "#d9d4c6", detail: "#16202b", smoke: "#d6d2c8",
   };
   rig.bone("root", undefined, 0, 0);
   rig.bone("body", "root", 0, -R - 1);
   // Full silhouette behind everything: roof, pillars, hood, hatch; wheel arches cut out of the sill line.
   rig.part("shell", "body", path("M48.5 4.2L50.6 2.4Q51.6 -.4 51.2 -4.8L49.4 -7.4Q44 -9.4 30 -11.2L22.5 -12L8.6 -22.4Q6.6 -23.9 3 -24L-12 -24.4Q-22 -24.2 -30 -22.6L-35.4 -20.6L-44.6 -12.4Q-46.8 -10.2 -47.4 -6L-47.6 -1L-46.4 3.6L-41.52 4.2A11 11 0 0 1 -20.48 4.2L20.48 4.2A11 11 0 0 1 41.52 4.2Z"), "paint", 4, { extrude: true });
+  // Shadow under the sill and overhangs (the dark gap between body and road on every real car).
+  rig.part("underbody", "body", path("M-21 3.6L21 3.6Q22 5 20.6 6.2L-20.6 6.2Q-22 5 -21 3.6Z M42 3.6L48.6 3.6Q49.2 4.8 47.6 5.6L42.6 5.6Z M-42 3.6L-46.4 3.6Q-47.2 4.8 -45.8 5.6L-42.6 5.6Z"), "detail", 3.8, { color: "#26292e" });
   rig.part("well-r", "body", ell(-31, 1, 10.4, 10.4), "metal-dark", 3.9);
   rig.part("well-f", "body", ell(31, 1, 10.4, 10.4), "metal-dark", 3.9);
   rig.part("cabin", "body", poly([[21, -12.8], [8.4, -21.8], [3.6, -23.2], [-12, -23.6], [-24, -23], [-38.4, -14.8]]), "detail", 4.1, { extrude: true, faceRole: "glass" });
@@ -197,7 +199,8 @@ export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
   rig.part("glass-f", "glass-f", poly([[19.6, -13.3], [8.2, -21.5], [4, -22.6], [-3, -22.9], [-3, -13.6]]), "glass", 4.3);
   rig.part("glass-r", "body", poly([[-5, -13.7], [-5, -22.95], [-14, -23.1], [-21.5, -22.5], [-23.5, -14]]), "glass", 4.3);
   rig.part("glass-q", "body", poly([[-25.4, -14.1], [-23.6, -22.1], [-29.6, -21.4], [-37.4, -15.1]]), "glass", 4.3);
-  rig.part("glass-sheen", "body", poly([[14, -14], [9.4, -17.6], [-14, -18.6], [-16, -16.4]]), "light", 4.31, { color: "#c4d6df" });
+  rig.part("glass-sheen", "body", poly([[13.6, -14.4], [9.6, -17.8], [2, -18.6], [-1.2, -16.4]]), "light", 4.31, { color: "#a9bdc9" });
+  rig.part("glass-sheen-r", "body", poly([[-7, -15.2], [-9.4, -19.6], [-15, -20], [-13.4, -15.6]]), "light", 4.31, { color: "#93a9b7" });
   rig.part("b-pillar", "body", rect(-5, -23.2, 2, 9.8, .4), "rubber", 4.42);
   // Roof rail over the cabin: keeps heads and headrests inside the glasshouse.
   rig.part("roof-rail", "body", path("M8.6 -22.4Q6.6 -23.9 3 -24L-12 -24.4Q-22 -24.2 -30 -22.6L-35.4 -20.6L-37.4 -15.1L-29.6 -21.4Q-21 -23.1 -12 -23.3L3 -22.9Q5.8 -22.7 8.2 -21.5Z"), "paint", 4.44);
@@ -245,16 +248,42 @@ export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
     for (const q of rig.parts.filter(q => q.bone === id.replace("-far", ""))) rig.parts.push({ ...q, id: q.id.replace(id.replace("-far", ""), id), bone: id, far3d: "over" });
     farInd.push(id);
   }
-  // End faces for turns in depth.
-  // Wheels: tyre, brake disc, alloy; calipers ride with the body.
-  const wheels: string[] = [];
+  // End faces for turns in depth (after real cars seen from three-quarter front and rear): headlamps wrapping both
+  // corners, a wide dark grille low between them, a blank plate, a full-width lower intake and fog-lamp pockets; at the
+  // tail, lamps at both corners, plate and a dark bumper band. They ride the extruded nose and tail as the car yaws.
+  const D = 42;
+  rig.bone("front-face", "body", 50.6, 0);
+  rig.part("front-intake", "front-face", rect(6, 1, 30, 2.8, 1.2), "rubber", 3.9996);
+  rig.part("front-grille", "front-face", rect(11, -6.6, 20, 4.6, 1.8), "metal-dark", 3.9996);
+  rig.part("front-grille-slats", "front-face", path("M12.4 -5.2H29.6M12.2 -3.8H29.8M12.6 -2.5H29.4"), "metal", 3.9997, { line: true, lineWidth: .3, color: "#4a4e56" });
+  rig.part("front-plate", "front-face", rect(15.5, -1.5, 11, 2.6, .4), "light", 3.9997, { color: "#ecebe6" });
+  for (const [k, x0, x1] of [["near", .6, 10.6], ["far", D - 10.6, D - .6]] as const) {
+    rig.part(`front-lamp-${k}`, "front-face", poly(k === "near" ? [[x0, -8.2], [x1, -7.4], [x1 - .4, -5], [x0 + .6, -4.8]] : [[x0, -7.4], [x1, -8.2], [x1 - .6, -4.8], [x0 + .4, -5]]), "glass", 3.9997, { color: "#d4dfe4" });
+    rig.part(`front-drl-${k}`, "front-face", path(`M${x0 + 1.2} -6.9L${x1 - 1.2} -6.6`), "light", 3.9998, { line: true, lineWidth: .55, color: "#ffffff" });
+    rig.part(`front-fog-${k}`, "front-face", ell(k === "near" ? 3.6 : D - 3.6, 1.8, 1.9, 1.2), "metal-dark", 3.9997);
+  }
+  rig.bone("rear-face", "body", -47.3, 0);
+  rig.part("rear-bumper-band", "rear-face", rect(-41, .8, 40, 2.8, 1.2), "rubber", 3.9996);
+  rig.part("rear-plate", "rear-face", rect(-26.5, -6.2, 11, 2.6, .4), "light", 3.9997, { color: "#ecebe6" });
+  rig.part("rear-lamp-near", "rear-face", poly([[-.4, -11.4], [-8.4, -11], [-8, -8.6], [-.6, -8.4]]), "accent", 3.9997);
+  rig.part("rear-lamp-far", "rear-face", poly([[-D + .4, -11.4], [-D + 8.4, -11], [-D + 8, -8.6], [-D + .6, -8.4]]), "accent", 3.9997);
+  rig.part("rear-lamp-bar", "rear-face", rect(-D + 8.4, -10.4, D - 16.8, .8, .3), "accent", 3.9997, { color: "#6e1717" });
+  // Wheels, after real tyres: a non-rotating tyre with a sidewall that bulges flat where it meets the road and a tread
+  // band that shows as the car turns; the recessed rim, brake disc and alloy turn inside it; calipers ride the body.
+  const wheels: string[] = [], flat = Math.sqrt(2 * R * .55 - .3025);
+  const tyre = path(`M${-flat} ${R - .55}A${R} ${R} 0 1 1 ${flat} ${R - .55}Z`);
   for (const [id, x] of [["wheel-r", -31], ["wheel-f", 31]] as const) {
-    rig.bone(id, "root", x, -R);
+    rig.bone(id + "-axle", "root", x, -R);
+    rig.part(id + "-tread", id + "-axle", tyre, "rubber", 4.98, { extrude: true, extrudeDepth: .22 });
+    rig.part(id + "-tyre", id + "-axle", path(`M${-flat} ${R - .55}A${R} ${R} 0 1 1 ${flat} ${R - .55}Z M-5.5 0A5.5 5.5 0 1 1 5.5 0A5.5 5.5 0 1 1 -5.5 0Z`), "rubber", 5);
+    rig.part(id + "-sidewall", id + "-axle", ring(7.9, 5.8), "metal-dark", 5.01, { color: "#26282c" });
+    rig.part(id + "-sidewall-hi", id + "-axle", path("M-6.9 -3.4A7.7 7.7 0 0 1 3.4 -6.9L3.2 -6.5A7.3 7.3 0 0 0 -6.5 -3.2Z"), "metal-dark", 5.015, { color: "#3a3d42" });
+    rig.bone(id, id + "-axle", 0, 0);
     wheels.push(id);
-    rig.part(id + "-tyre", id, ring(R, 6.1), "rubber", 5);
-    rig.part(id + "-sidewall", id, ring(7.9, 6.3), "metal-dark", 5.01);
-    rig.part(id + "-disc", id, ell(0, 0, 5, 5), "metal", 5.02, { color: "#8d9298" });
-    rig.part(id + "-alloy", id, path(alloyPath(6.2, 5)), "metal", 5.1);
+    rig.part(id + "-lip", id, ring(5.7, 5.25), "metal", 5.02, { color: "#b9bec4" });
+    rig.part(id + "-dish", id, ring(5.25, 4.6), "metal-dark", 5.025, { color: "#4a4e55" });
+    rig.part(id + "-disc", id, ell(0, 0, 4.5, 4.5), "metal", 5.03, { color: "#7c8188" });
+    rig.part(id + "-alloy", id, path(alloyPath(5.4, 5)), "metal", 5.1);
     rig.part(id + "-nut", id, ell(0, 0, 1.3, 1.3), "metal-dark", 5.12);
     rig.part(id + "-caliper", "body", path(`M${x - 4.6} -2.4Q${x - 5.6} 1 ${x - 4.2} 4L${x - 2.8} 3.4Q${x - 4} 1 ${x - 3.2} -1.8Z`), "accent", 5.05, { color: "#b8322a" });
     rig.bone(id + "-contact", "root", x, 0);
@@ -262,7 +291,8 @@ export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
   rig.drivers.push({ type: "wheel", bones: wheels, radius: R * u },
     { type: "oscillate", bone: "body", property: "y", amplitude: .35 * u, period: 9, wobble: .6, bySpeed: true },
     { type: "oscillate", bone: "body", property: "y", amplitude: .05 * u, period: 3 },
-    { type: "oscillate", bone: "driver-head", property: "rotate", amplitude: 3, period: 70, wobble: .5 });
+    { type: "oscillate", bone: "driver-head", property: "rotate", amplitude: 3, period: 70, wobble: .5 },
+    { type: "turn", front: ["front-face"], rear: ["rear-face"] });
   rig.track("glass-f", [{ frame: 0, opacity: .62 }]);
   rig.part("glass-r-tint", "body", poly([[-5, -13.7], [-5, -22.95], [-14, -23.1], [-21.5, -22.5], [-23.5, -14]]), "detail", 4.29);
   const puffs: string[] = [];
@@ -272,14 +302,14 @@ export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
   // The beam and flash are lights, but the beam is a translucent cone: its bone carries a lower opacity.
   rig.track("beam", [{ frame: 0, opacity: .38 }]);
   farCopy(rig, ["wheel-r-tyre", "wheel-r-sidewall", "wheel-r-disc", "wheel-r-alloy", "wheel-f-tyre", "wheel-f-sidewall", "wheel-f-disc", "wheel-f-alloy"], "under");
-  farCopy(rig, ["headlamp", "drl", "taillamp", "brake", "brake-glow", "reverse"], "over");
+  farCopy(rig, ["brake", "brake-glow", "reverse"], "over");
   rig.drivers.push(lightsOff(["brake", "reverse", ...ind, ...farInd, "beam", "flash"]));
   const root = carAction(rig, o, m, {
     u, body: "body", wheels, head: "driver-head", brake: ["brake"], reverse: ["reverse"], indicators: ind, farIndicators: farInd, beam: ["beam", "flash"],
     glass: "glass-f", arm: "driver-arm", hand: "driver-hand", smoke: ["wheel-r-contact", "wheel-f-contact"],
   }, size);
   if (m !== "open-window") rig.track("driver-arm", [{ frame: 0, opacity: 0 }]);
-  return { ...finish("modern-car", "car", rig, root, palette, { x: -52 * u, y: -40 * u, width: 110 * u, height: 42 * u }, o), depth3d: Math.round(42 * u * 100) / 100 };
+  return { ...finish("modern-car", "car", rig, root, palette, { x: -52 * u, y: -40 * u, width: 110 * u, height: 42 * u }, o), depth3d: Math.round(D * u * 100) / 100, depth3dTilt: .22 };
 }
 
 // ---- Bicycle ---------------------------------------------------------------------------------------------------------------------

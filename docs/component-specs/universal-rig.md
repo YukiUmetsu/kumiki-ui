@@ -132,6 +132,21 @@ Supporting biomechanics:
 | Break-over: the heel lifts and the hoof pivots on the planted toe. The pastern turns with it, and at lift-off hoof and pastern stand in line, sole facing back. | The last 28% of stance rotates hoof and pastern together about the toe, up to 64°. | Test: the hoof passes 40° with its toe on the ground; then lands flat. |
 | Swing: the fetlock flexes and the hoof hangs in line with the pastern, sole facing back, never upside down. The leg then straightens and sets the hoof down flat. | Hoof kept in line with the pastern in swing; fetlock curl 44° fore and 26° hind (peak hoof angle about 120°). Landing blends to the loaded, flat pose. | Swing hoof angle 118–126°; landing flat. |
 
+## Reference study: modern car front and wheels
+
+Sources (study only; nothing copied or traced):
+- [Honda Civic Hybrid, right front view](https://commons.wikimedia.org/wiki/File:Honda_Civic_Hybrid_(2022,_Europe)_IAA_2023_1X7A0545_(2).jpg), by Alexander-93, CC BY-SA 4.0.
+- [VW Golf hatchback, front three-quarter](https://commons.wikimedia.org/wiki/File:2017_Volkswagen_Golf_(5G_MY17)_1.4_SE_TSI_hatchback_(2017-08-30).jpg), by Allie_Caulfield, CC BY 2.0.
+
+The rig's design stays original, with no brand marks.
+
+| Observation | Construction rule |
+| --- | --- |
+| From three-quarter front, the bonnet top, windscreen and roof read as surfaces, because the camera sits above bonnet height. | `depth3dTilt` (0.22): as the car yaws, the far side also rises by depth·tilt·\|sin yaw\|, so up-facing faces of the extruded shell and cabin show. Cabin faces use glass (`faceRole`). |
+| Headlamps wrap both front corners, with a wide dark grille low between them, a plate below, a full-width lower intake and fog-lamp pockets. At the tail: lamps at both corners, a plate and a dark bumper band. | Front and rear face bones are scaled by the `turn` driver and sheared to follow the raised far edge, so the decals sit exactly on the extruded nose and tail. |
+| Tyres are cylinders with thick sidewalls (about 35% of tyre radius on a 55-profile tyre). The sidewall flattens where it meets the road, and the rim and spokes are recessed. | A non-rotating tyre with a flat contact patch and a tread band extruded at 22% of car width (`extrudeDepth`). A rim lip and dark dish recess the alloy, which turns inside it. |
+| Dark gap under the sill and overhangs; tinted glass with sky reflections. | Underbody shadow strip; darker glass with sheen streaks. |
+
 ## Reference study: clapping in profile
 
 Source: Muybridge, *Animal Locomotion*, [Plate 533, "Movement of the hand; clasping hands"](https://commons.wikimedia.org/wiki/File:Animal_locomotion._Plate_533_(Boston_Public_Library).jpg) (1887, public domain). Its top rows show two open hands meeting palm to palm, seen from the side.

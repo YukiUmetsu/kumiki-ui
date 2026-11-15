@@ -22,9 +22,10 @@ const mul = (p: AffineMatrix, q: AffineMatrix): AffineMatrix => ({ // p ∘ q: a
   a: p.a * q.a + p.c * q.b, b: p.b * q.a + p.d * q.b, c: p.a * q.c + p.c * q.d, d: p.b * q.c + p.d * q.d,
   e: p.a * q.e + p.c * q.f + p.e, f: p.b * q.e + p.d * q.f + p.f,
 });
-const local = (x: number, y: number, deg: number, sx: number, sy: number): AffineMatrix => {
+/** Bone-local matrix: translate · rotate · (scale with an optional vertical shear `ky`, y += ky·x). */
+const local = (x: number, y: number, deg: number, sx: number, sy: number, ky = 0): AffineMatrix => {
   const r = deg * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
-  return { a: c * sx, b: s * sx, c: -s * sy, d: c * sy, e: x, f: y };
+  return { a: c * sx - s * ky * sx, b: s * sx + c * ky * sx, c: -s * sy, d: c * sy, e: x, f: y };
 };
 const apply = (m: AffineMatrix, x: number, y: number): [number, number] => [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f];
 const invert = (m: AffineMatrix): AffineMatrix => {
@@ -142,7 +143,7 @@ function velocityAt(keys: readonly RigRootKey[], frame: number) {
 
 // ---- Pose ------------------------------------------------------------------------------------------------------------------------
 
-interface Pose { x: number; y: number; rotate: number; sx: number; sy: number; opacity: number }
+interface Pose { x: number; y: number; rotate: number; sx: number; sy: number; opacity: number; ky?: number }
 
 function trackAt(keys: readonly RigKey[] | undefined, frame: number): Partial<Pose> {
   if (!keys?.length) return {};
@@ -326,11 +327,15 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
         break;
       }
       case "turn": {
-        // End faces of a body turning in depth: the root foreshortens the side by cos(yaw); a face opens by sin(yaw).
-        const yaw = rootForPose.yaw / DEG, c = Math.max(.2, Math.cos(yaw));
-        for (const [ids, open] of [[d.rear, Math.sin(yaw)], [d.front, -Math.sin(yaw)]] as const) for (const id of ids ?? []) {
+        // End-face bones of a body turning in depth: the root foreshortens the side by cos(yaw); a face opens by
+        // sin(yaw). With a solid (`depth3d`) and a raised camera (`depth3dTilt`), the face's far edge also rises, so the
+        // face bone shears to stay on the extruded nose or tail it decorates.
+        const yaw = rootForPose.yaw / DEG, c = Math.max(.2, Math.cos(yaw)), D = spec.depth3d ?? 0;
+        const rise = -D * (spec.depth3dTilt ?? 0) * Math.abs(Math.sin(yaw));
+        for (const [ids, open, side] of [[d.rear, Math.sin(yaw), -1], [d.front, -Math.sin(yaw), 1]] as const) for (const id of ids ?? []) {
           const q = P(id);
-          if (open > .01) q.sx *= open / c; else q.opacity = 0;
+          if (open > .01) { const sx = open / c; q.sx *= sx; if (D > 0) q.ky = side * rise / (sx * D); }
+          else q.opacity = 0;
         }
         break;
       }
@@ -386,7 +391,7 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
   const world = new Map<string, AffineMatrix>(), alpha = new Map<string, number>();
   const solve = () => {
     for (const b of order) {
-      const p = pose.get(b.id)!, m = local(p.x, p.y, p.rotate, p.sx, p.sy);
+      const p = pose.get(b.id)!, m = local(p.x, p.y, p.rotate, p.sx, p.sy, p.ky);
       const parent = b.parent ? world.get(b.parent)! : IDENT;
       world.set(b.id, mul(parent, m));
       alpha.set(b.id, (b.parent ? alpha.get(b.parent)! : 1) * p.opacity);
@@ -498,20 +503,23 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
   const toScene = mul(local(root.x, root.y, root.rotate, 1, 1), local(0, 0, 0, root.facing * root.scale * yawC, root.scale));
   // Solid figures turning in depth: the far side sits depth·tan(yaw) behind the near side (in root space, before the
   // cos(yaw) foreshortening of `toScene`).
-  const farShift = spec.depth3d ? -spec.depth3d * Math.tan(clamp(root.yaw, -80, 80) / DEG) : 0;
-  const farScene = mul(toScene, local(farShift, 0, 0, 1, 1));
+  // A raised camera (`depth3dTilt`) also lifts the far side as the body turns, revealing bonnet and roof tops.
+  const yawR = clamp(root.yaw, -80, 80) / DEG, farShift = spec.depth3d ? -spec.depth3d * Math.tan(yawR) : 0;
+  const farRise = spec.depth3d ? -spec.depth3d * (spec.depth3dTilt ?? 0) * Math.abs(Math.sin(yawR)) : 0;
+  const farAt = (k: number) => mul(toScene, local(farShift * k, farRise * k, 0, 1, 1));
+  const farScene = farAt(1);
   const parts: RigPartFrame[] = spec.parts.map((q: RigPart) => {
     const v = variants.get(q.id);
     return {
       id: q.id, bone: q.bone, role: q.role, z: q.z, color: q.color, line: q.line, lineWidth: q.lineWidth, variant: v, far: q.far,
       shape: v && q.variants?.[v] ? q.variants[v] : q.shape,
       matrix: mul(q.far3d ? farScene : toScene, world.get(q.bone)!), opacity: alpha.get(q.bone)!,
-      extrude: q.extrude || undefined, far3d: q.far3d, faceRole: q.faceRole, farMatrix: q.extrude ? mul(farScene, world.get(q.bone)!) : undefined,
+      extrude: q.extrude || undefined, far3d: q.far3d, faceRole: q.faceRole, farMatrix: q.extrude ? mul(farAt(q.extrudeDepth ?? 1), world.get(q.bone)!) : undefined,
     };
   }).filter(p => p.opacity > .003).sort((a, b) => a.z - b.z);
   const bones = new Map<string, RigBoneFrame>(spec.bones.map((b: RigBone) => {
     const p = pose.get(b.id)!;
-    return [b.id, { id: b.id, local: local(p.x, p.y, p.rotate, p.sx, p.sy), world: mul(toScene, world.get(b.id)!), opacity: alpha.get(b.id)!, length: b.length ?? 0 }];
+    return [b.id, { id: b.id, local: local(p.x, p.y, p.rotate, p.sx, p.sy, p.ky), world: mul(toScene, world.get(b.id)!), opacity: alpha.get(b.id)!, length: b.length ?? 0 }];
   }));
   return { frame: f, root, toScene, bones, parts, contacts: contacts.map(([x, y]) => apply(toScene, x, y)) };
 }
