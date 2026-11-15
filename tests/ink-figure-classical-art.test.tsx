@@ -77,7 +77,7 @@ describe("INK6 classical figure brushwork", () => {
     const masterParts=[
       "face","hair","brow","eyes-open","eyes-soft","eyes-closed",
       "pupil-left","pupil-right","mouth-rest","mouth-aa","mouth-oh",
-      "mouth-mm","mouth-smile","beard","robe",
+      "mouth-mm","mouth-smile","beard","robe","hand-far","hand-near",
     ];
     expect(masterParts.every(id=>Object.prototype.hasOwnProperty.call(MASTER_PORTRAIT_STUDY,id)||id==="robe")).toBe(true);
     expect(MASTER_ROBE_STUDY).toHaveLength(15);
@@ -99,6 +99,8 @@ describe("INK6 classical figure brushwork", () => {
       expect(plain.assets[name]).toEqual(INK_TRAVELLER.assets[name]);
     }
     expect(painted.parts).toBe(INK_TRAVELLER.parts);
+    expect(painted.poses.rest.head).toMatchObject({scaleX:.87,scaleY:.90});
+    expect(plain.poses).toBe(INK_TRAVELLER.poses);
     expect(painted.anchors).toBe(INK_TRAVELLER.anchors);
     expect(painted.speech).toBe(INK_TRAVELLER.speech);
     expect(validateCharacterDefinition(painted).filter(d=>d.severity==="error")).toEqual([]);
