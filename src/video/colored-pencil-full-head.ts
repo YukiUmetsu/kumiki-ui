@@ -189,6 +189,20 @@ const positiveSafeSource=(src:PencilPhotoPixels,seed:number)=>{
 };
 const toneBand=(value:number)=>value<.18?0:value<.34?1:value<.50?2:
   value<.73?3:4;
+/**
+ * V7 malar/nasal optical material rule: a photograph's light-toned skin
+ * is not blank paper. Return dry-pencil support intensity, not raster data.
+ * At source Y≈202/255 (.79) preserve warm/cool fibers; only near
+ * Y≈237/255 (.93) is paper actually a plausible unpigmented reserve.
+ */
+export const observedLightSkinSupport=(value:number):Readonly<{
+  density:number;opacity:number;
+}>=>{
+  if(!Number.isFinite(value)||value<0||value>1)
+    throw new RangeError("Source luminance must be finite in 0..1");
+  const reserve=clamp((value-.79)/.14,0,1);
+  return {density:.72-.55*reserve,opacity:.85-.50*reserve};
+};
 const paperWhite=(src:PencilPhotoPixels,x:number,y:number)=>
   photoValue(src,x,y)>.93;
 const isHairColour=(rgb:readonly number[])=>{
@@ -315,7 +329,7 @@ export const createDryPencilHeadPlate=(
       // render as ≈241/255 ivory. Replenish optical translucency only
       // while actual source brightness remains below the true paper
       // shoulder (.91+). Preserve 100% original fine features/hair.
-      const reserve=clamp((value-.79)/.14,0,1);
+      const lightSkin=band===4?observedLightSkinSupport(value):null;
       if(band===4&&pass===2)continue;
       const edge=distanceToEdge(p,geometry.face);
       // A bright unpigmented rim around the face read as a sticker or
@@ -364,7 +378,7 @@ export const createDryPencilHeadPlate=(
         pass===1?.18+.30*shade:
           .14+.30*shade+.28*clamp((gradientStrength-.045)*3.4,0,1);
       const density=(band===4?
-        (.72-.55*reserve):band===3?.95:1);
+        lightSkin!.density:band===3?.95:1);
       if(pencilHash(seed,hashBase,14)>density)continue;
       // Subtle warm/cool layers are derived from the person's actual
       // captured pigments, not a globally assumed skin-color preset.
@@ -376,7 +390,7 @@ export const createDryPencilHeadPlate=(
       push(pass===0?"face-value":pass===1?"face-chroma":"face-form",
         p,[Math.cos(theta)*len,Math.sin(theta)*len],pigment,
         pressure*(1+.11*opticalCoverage)*fade*
-          (band===4?.85-.50*reserve:1),
+          (band===4?lightSkin!.opacity:1),
         pass===0?1.30+1.12*opticalCoverage:
           pass===1?1.04+.82*opticalCoverage:.82,pass,
         (pencilHash(seed,hashBase,15)-.5)*.19);
