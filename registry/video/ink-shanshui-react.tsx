@@ -809,8 +809,11 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
       const culm="M"+f(x0-half)+" 1 Q"+f(x0-6-half)+" "+f(-h*.48)+
         " "+f(tipX)+" "+f(-h)+
         " Q"+f(x0-6+half)+" "+f(-h*.48)+" "+f(x0+half)+" 1 Z";
+      // Each collar belongs to the same curved culm, but natural internodes
+      // are not seven identical evenly-spaced ruler marks.
       const nodes=Array.from({length:7},(_,j)=>
-        quadraticPoint(from,control,tip,(j+1)/8));
+        quadraticPoint(from,control,tip,clamp((j+1)/8+
+          (s(seed+193,i*43+j*17)-.5)*.026,.05,.96)));
       return <g key={i} data-km-shanshui-bamboo-stem={i}>
         <path d={culm} fill="#66513d" stroke="#43382d"
           strokeWidth=".78" opacity=".91"/>
@@ -820,39 +823,80 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
         {nodes.map(([cx,cy],j)=>{
           // Sparse, asymmetric calligraphic fans, not alternating rulers.
           const fan=s(seed+211,i*37+j*5)>.47?1:-1;
-          const reach=(34+34*s(seed,i*11+j))*fan;
+          const reach=(28+45*s(seed+239,i*17+j*13))*fan;
+          const lift=14+25*s(seed+101,i*9+j);
           const base:P=[cx,cy];
-          const turn:P=[cx+reach*.44,cy-12-8*s(seed+101,i*9+j)];
-          const end:P=[cx+reach,cy-20-16*s(seed+139,j*11+i)];
+          const turn:P=[cx+reach*(.29+.08*s(seed+231,i*23+j)),
+            cy-lift*.56];
+          const end:P=[cx+reach,cy-lift];
           const branch="M"+f(cx-.95)+" "+f(cy+.4)+
             " Q"+f(turn[0]-fan*.8)+" "+f(turn[1]-.9)+
             " "+f(end[0])+" "+f(end[1])+
             " Q"+f(turn[0]+fan*.55)+" "+f(turn[1]+.85)+
             " "+f(cx+1.05)+" "+f(cy+1.35)+" Z";
+          // Zheng Xie's bamboo distinguishes the principal branch from
+          // little lateral shoots. Both child shoots start on the exact
+          // painted parent curve; their leaves must use those curves too.
+          const spurs=([.35,.69] as const).map((at,k)=>{
+            const root=quadraticPoint(base,turn,end,at);
+            const side=fan*(k===0?-1:1);
+            const reach=9+12*s(seed+1021,i*53+j*19+k*7);
+            const tip:P=[root[0]+side*reach,
+              root[1]-(9+13*s(seed+1051,i*71+j*13+k*11))];
+            const bend:P=[root[0]+side*reach*.37,
+              root[1]-(7+5*s(seed+1061,i*19+j*37+k*3))];
+            return {root,bend,tip};
+          });
           return <g key={j} data-km-bamboo-branch-root={f(cx)+","+f(cy)}
             transform={"rotate("+f(wind*.6)+" "+f(cx)+" "+f(cy)+")"}>
             <path data-km-bamboo-pressure-twig="" d={branch}
               fill="#685541" opacity=".87"/>
+            {spurs.map((spur,k)=>{
+              const root=spur.root,bend=spur.bend,tip=spur.tip;
+              const side=k===0?-fan:fan;
+              const d="M"+f(root[0]-side*.47)+" "+f(root[1]+.35)+
+                " Q"+f(bend[0]-side*.31)+" "+f(bend[1]+.35)+
+                " "+f(tip[0])+" "+f(tip[1])+
+                " Q"+f(bend[0]+side*.37)+" "+f(bend[1]-.35)+
+                " "+f(root[0]+side*.47)+" "+f(root[1]-.35)+" Z";
+              return <path key={k} data-km-bamboo-secondary-shoot=""
+                data-km-bamboo-secondary-root={f(root[0])+","+f(root[1])}
+                d={d} fill={k===0?"#62513e":"#514438"}
+                opacity={k===0?.78:.65}/>;
+            })}
             {Array.from({length:Math.round(detail*5)},(_,k)=>{
-              // Leaf insertion points follow the same drawn twig curve.
-              const along=[.13,.31,.49,.68,.86][k]+
-                (s(seed+71,i*43+j*11+k)-.5)*.035;
-              const [bx,by]=quadraticPoint(base,turn,end,along);
-              const side=k%2===0?1:-1;
-              const len=(17+18*s(seed,i*50+j*9+k))*(k===4?.77:1);
-              const leafDir=side*.85+fan*.22;
+              const spurIndex=k===1?0:k===4?1:-1;
+              const origin=spurIndex<0
+                ?{root:base,bend:turn,tip:end}
+                :spurs[spurIndex];
+              const along=spurIndex<0?[.16,0,.51,.73,0][k]
+                :k===1?.59:.54;
+              const t=clamp(along+
+                (s(seed+71,i*43+j*11+k)-.5)*.047,.06,.91);
+              const [bx,by]=quadraticPoint(origin.root,origin.bend,
+                origin.tip,t);
+              const side=(k===0||k===3?-1:1)*
+                (s(seed+1081,i*29+j*17+k)>.34?1:-1);
+              const len=(15+22*s(seed,i*50+j*9+k))*
+                (k===4?.78:1);
+              const leafDir=side*.81+fan*.25;
               const leafTipX=bx+leafDir*len;
-              const leafTipY=by-len*(.39+.26*s(seed+5,k+i*23+j));
-              const wide=3.1+3.6*s(seed+11,k+i*13+j);
+              const leafTipY=by-len*(.33+.4*s(seed+5,k+i*23+j));
+              const wide=1.8+3.3*s(seed+11,k+i*13+j);
+              // A pressure-loaded brush blade: narrow insertion, full belly,
+              // then a needle release. Dark/soft blades share a live shoot.
               const blade="M"+f(bx)+" "+f(by)+
-                " C"+f(bx+leafDir*len*.16)+" "+f(by-wide*.94)+
-                " "+f(bx+leafDir*len*.63)+" "+f(leafTipY+len*.13)+
+                " C"+f(bx+leafDir*len*.19)+" "+f(by-wide*.94)+
+                " "+f(bx+leafDir*len*.57)+" "+f(leafTipY+len*.17)+
                 " "+f(leafTipX)+" "+f(leafTipY)+
-                " C"+f(bx+leafDir*len*.66)+" "+f(leafTipY+len*.33)+
-                " "+f(bx+leafDir*len*.17)+" "+f(by+wide*.92)+
+                " C"+f(bx+leafDir*len*.78)+" "+f(leafTipY+len*.32)+
+                " "+f(bx+leafDir*len*.14)+" "+f(by+wide*.84)+
                 " "+f(bx)+" "+f(by)+" Z";
               return <g key={k}>
-                <path data-km-shanshui-bamboo-leaf="" d={blade}
+                <path data-km-shanshui-bamboo-leaf=""
+                  data-km-bamboo-leaf-root={f(bx)+","+f(by)}
+                  data-km-bamboo-leaf-parent={spurIndex<0?"main":"spur-"+spurIndex}
+                  d={blade}
                   fill={k===0||j%5===0?"#89765c":"#40392b"}
                   opacity={f(.63+.24*s(seed,k+i*31+j*7))}/>
                 {detail>.77&&(k===1||k===3)&&
