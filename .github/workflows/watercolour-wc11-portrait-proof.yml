@@ -1,12 +1,8 @@
 name: WC11 watercolor naturalist human portrait art and film proof
-# Branch-scoped only for one qualifying visual run; manual-only after acceptance.
+# Manual-only ArtCraft browser/FFmpeg proof after qualifying source renders.
+# Regular PRs keep only changed-code tests, not expensive film exports.
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feat/watercolour-wc11-naturalist-portrait
-    paths:
-      - docs/research/wc11-portrait-proof-trigger.md
 permissions:
   contents: read
 concurrency:
