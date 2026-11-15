@@ -15,7 +15,8 @@ original CRAYON1 scenes with two stationary native camera keys, not CSS
 magnification or reference bitmaps. This retains semantic IDs, material
 seeds, timing, and rig geometry; portrait and landscape crop positions are
 independently authored. All stories remain in the existing single Crayon
-Storybook root with `!dev`. Structural tests are **not** artistic approval;
+Storybook root with `!dev`. Focused Chromium 16:9/9:16 region screenshots and two-up non-overlap assertions
+must be reviewed alongside structural tests. Structural tests are **not** artistic approval;
 inspect actual source-rendered face and fabric crops before acceptance.
 
 ## ArtCraft v6: character quality quarantine and portrait-safe previews

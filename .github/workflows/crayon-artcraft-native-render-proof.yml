@@ -6,6 +6,8 @@ on:
   pull_request:
     paths:
       - src/video/crayon-artcraft-adult-face-fixtures.ts
+      - src/video/crayon-artcraft-adult-face.stories.tsx
+      - tests/e2e-artcraft/crayon-expression-comparison.spec.ts
       - tests/e2e-artcraft/crayon-adult-face.spec.ts
       - playwright.artcraft.config.ts
       - .github/workflows/crayon-artcraft-native-render-proof.yml
@@ -31,8 +33,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Install browser runtime
         run: npx playwright install --with-deps chromium
-      - name: Capture two source-native CRAYON1 image proofs
-        run: npx playwright test -c playwright.artcraft.config.ts tests/e2e-artcraft/crayon-adult-face.spec.ts
+      - name: Capture source-native portrait and synchronized inspection proofs
+        run: npx playwright test -c playwright.artcraft.config.ts tests/e2e-artcraft/crayon-adult-face.spec.ts tests/e2e-artcraft/crayon-expression-comparison.spec.ts
       - name: Save native screenshots and failures
         if: always()
         uses: actions/upload-artifact@v4
