@@ -235,7 +235,7 @@ function BrushworkDetail(){
     {label:"柳 · Hanging willow foliage",scene:"river-scholar",
       x:196,y:174,note:"Compare Mei Qing: 39 differently swept pressure-tapered silk strands, five bare paper reserves and asymmetrical angled leaves"},
     {label:"竹 · Pressure-brush bamboo",scene:"misty-hermit",
-      x:875,y:365,note:"Node-rooted asymmetric leaf fans, pressure-loaded blades and dry-brush lifts; compare low and high detail"},
+      x:875,y:365,note:"Compare Zheng Xie and the National Palace Museum: unequal culm joints, two connected lateral shoots per branch, three parent and two shoot-born leaves, ink-loaded blade bellies and fine release tips; check negative space at low and high detail"},
   ];
   const cropScale=2.15;
   return <main data-testid="shanshui-brushwork-studio"
