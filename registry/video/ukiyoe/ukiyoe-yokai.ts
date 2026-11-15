@@ -19,9 +19,11 @@ import type { Prim } from "./ukiyoe-prims";
 import { circleD, ellipseD } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 import { akaname } from "./ukiyoe-folkyokai";
+import type { UkiyoeGiant } from "./ukiyoe-giants";
+import { drawGiant, UKIYOE_GIANTS } from "./ukiyoe-giants";
 
-export type UkiyoeYokai = "yukionna" | "yurei" | "rokurokubi" | "kasaobake" | "chochinobake" | "hitodama" | "kappa" | "tengu" | "karasutengu" | "nurikabe" | "tsuchigumo" | "okiku" | "akaname";
-export const UKIYOE_YOKAI: readonly UkiyoeYokai[] = ["yukionna", "yurei", "rokurokubi", "kasaobake", "chochinobake", "hitodama", "kappa", "tengu", "karasutengu", "nurikabe", "tsuchigumo", "okiku", "akaname"];
+export type UkiyoeYokai = "yukionna" | "yurei" | "rokurokubi" | "kasaobake" | "chochinobake" | "hitodama" | "kappa" | "tengu" | "karasutengu" | "nurikabe" | "tsuchigumo" | "okiku" | "akaname" | UkiyoeGiant;
+export const UKIYOE_YOKAI: readonly UkiyoeYokai[] = ["yukionna", "yurei", "rokurokubi", "kasaobake", "chochinobake", "hitodama", "kappa", "tengu", "karasutengu", "nurikabe", "tsuchigumo", "okiku", "akaname", ...UKIYOE_GIANTS];
 
 /** What the yōkai drawing needs to know about the creature's actions at this frame. */
 export interface YokaiState {
@@ -743,6 +745,7 @@ export function drawYokai(kind: UkiyoeYokai, look: YokaiLook, s: YokaiState, fra
     case "kasaobake": prims = kasaObake(look, s, frame, wind, seed); break;
     case "okiku": prims = okiku(look, s, frame, wind, seed); break;
     case "akaname": prims = akaname(look.size ?? 120, frame, s.moving, s.dist, seed); break;
+    case "gashadokuro": case "umibozu": case "orochi": case "omukade": case "namazu": case "jasei": prims = drawGiant(kind, look, s.w, s, frame, seed); break;
     case "chochinobake": prims = chochinObake(look, s, frame, wind, seed); break;
     case "hitodama": {
       const H = look.size ?? 40, c: Pt = [Math.sin(frame / 27 + seed) * H * .4, -H * 2 - Math.cos(frame / 33 + seed) * H * .3];

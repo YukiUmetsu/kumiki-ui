@@ -45,6 +45,8 @@ import type { UkiyoeHeianScene } from "../../registry/video/ukiyoe/ukiyoe-heian"
 import { heianScene, UKIYOE_HEIAN_SCENES } from "../../registry/video/ukiyoe/ukiyoe-heian";
 import type { UkiyoeFolkYokaiScene } from "../../registry/video/ukiyoe/ukiyoe-folkyokai";
 import { folkYokaiScene, UKIYOE_FOLK_YOKAI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-folkyokai";
+import type { UkiyoeGiantScene } from "../../registry/video/ukiyoe/ukiyoe-giants";
+import { giantScene, UKIYOE_GIANT_SCENES } from "../../registry/video/ukiyoe/ukiyoe-giants";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -957,6 +959,29 @@ export function FolkYokai() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={FY_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Yokai frame" />
+  </div>;
+}
+
+// ---- Giant monsters -----------------------------------------------------------------------------------------------------------------
+
+const GIANT_LABELS: Readonly<Record<UkiyoeGiantScene, string>> = { skeleton: "Gashadokuro, the skeleton spectre", seamonk: "Umibōzu, the sea monk", orochi: "Yamata no Orochi", centipede: "The giant centipede", namazu: "The earthquake catfish", dojoji: "Kiyohime round the bell", toad: "Jiraiya's giant toad", daidara: "Daidarabotchi" };
+
+/** Monsters far bigger than people. */
+export function Giants() {
+  const [kind, setKind] = useState<UkiyoeGiantScene>("skeleton");
+  const spec = useMemo(() => giantScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Giants" title="The skeleton spectre, the sea monk, the eight-headed serpent">
+      <p style={{ margin: 0 }}>After Kuniyoshi's <em>Takiyasha</em> skeleton and <em>Kuwana</em> sea monk, Yoshitoshi's Orochi and the Kashima namazu-e.
+        New yōkai species <code>gashadokuro</code>, <code>umibozu</code>, <code>orochi</code>, <code>omukade</code>, <code>namazu</code> and <code>jasei</code>
+        (the serpent round the bell), each against people or buildings for scale; the toad and the daidarabotchi are built from the frog and the figure.</p>
+    </Header>
+    <section aria-label="Giant controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Monster" value={kind} options={UKIYOE_GIANT_SCENES} onChange={setKind} labels={GIANT_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={GIANT_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Giant frame" />
   </div>;
 }
 

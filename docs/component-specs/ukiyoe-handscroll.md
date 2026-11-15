@@ -25,6 +25,7 @@
 - `ukiyoe-trees.ts`: bamboo, persimmon, the sacred tree and the face tree, and `treeScene()`.
 - `ukiyoe-heian.ts`: the Heian court (hair, cap, props, ox-cart, blinds, curtain screen, palace veranda) and `heianScene()`.
 - `ukiyoe-folkyokai.ts`: household and road yōkai (gourd head, straw cape, eyes, bean basket, the throw, the akaname) and `folkYokaiScene()`.
+- `ukiyoe-giants.ts`: the giant monsters and `giantScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -350,6 +351,19 @@ Most women in the ghost stories look alive until the story turns, so they are fi
 - **Action `throw`.** A wind-up over the shoulder and a fling forward. From the `contact` frame, sand flies from where the hand released it and falls, over 40 frames.
 - **Yōkai `akaname`.** After Sekien: a crouching red imp with a wild mane, one-toed claws and a licking tongue; it walks with `walk`.
 - **Looks and scenes.** `UKIYOE_FOLK_YOKAI_LOOKS` has `zashikiwarashi`, `amanojaku`, `azukiarai`, `konakijiji`, `sunakakebaba`, `nurarihyon`, `yukinko` and `dodomeki`. `folkYokaiScene(kind)` builds `house`, `stream`, `bath`, `road` or `snow`. Storybook **Folk yōkai** plays them.
+
+### Giant monsters
+
+New yōkai species, drawn from the ground or sea line, each with `size` as its overall height:
+
+- **`gashadokuro`.** After Kuniyoshi's *Takiyasha*. The skeleton rises to the waist out of heaped grave earth (`appear`); it has a great anatomical skull with sockets, nasal cavity and teeth, and a jaw that works on `roar`. Ribs curve off a vertebral spine, and the near arm's hand of finger bones reaches forward on `stretch`.
+- **`umibozu`.** The sea monk's smooth black head and shoulders rise from the water (`appear`), water streaming off, two small white eyes.
+- **`orochi`.** Eight serpent heads on swaying necks, each red-eyed with fangs and a flicking tongue, rising from a coiled mass; `roar` rears them.
+- **`omukade`.** The giant centipede: overlapping plates, a pair of rippling legs per segment, waving antennae, opening fangs. It travels by `walk`, and `roar` rears the head end.
+- **`namazu`.** The earthquake catfish thrashes, its whiskers swinging. Pair it with a camera shake.
+- **`jasei`.** Kiyohime's serpent coils round a bell (`size` = the bell's height), its horned head raised and flames licking up.
+
+`giantScene(kind)` builds `skeleton`, `seamonk`, `orochi`, `centipede`, `namazu`, `dojoji` or `toad`, plus `daidara`, where a figure is scaled up over a hill range in mist. Storybook **Giants** plays them.
 
 ### Transition
 

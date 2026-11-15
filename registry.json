@@ -3803,6 +3803,11 @@
           "target": "components/video/ukiyoe/ukiyoe-folkyokai.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-giants.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-giants.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"

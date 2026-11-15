@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { giantScene, UKIYOE_GIANT_SCENES, UKIYOE_GIANTS } from "../registry/video/ukiyoe/ukiyoe-giants";
 import { folkYokaiScene, UKIYOE_FOLK_YOKAI_LOOKS, UKIYOE_FOLK_YOKAI_SCENES } from "../registry/video/ukiyoe/ukiyoe-folkyokai";
 import { heianScene, UKIYOE_HEIAN_LOOKS, UKIYOE_HEIAN_SCENES } from "../registry/video/ukiyoe/ukiyoe-heian";
 import { treeScene, UKIYOE_TREE_SCENES } from "../registry/video/ukiyoe/ukiyoe-trees";
@@ -703,6 +704,22 @@ describe("UKIYO1 folk yokai", () => {
     expect(sand(80)).toBe(false);
     const ak = (f: number) => JSON.stringify(drawCreature({ species: "akaname", actions: [{ type: "stand", start: 0, end: 100 }] }, f, 0, 1).prims);
     expect(ak(2) === ak(12)).toBe(false);
+  });
+});
+
+describe("UKIYO1 giants", () => {
+  it("builds each giant scene; each giant moves, the skeleton and sea monk rise out of the ground and the sea", () => {
+    for (const k of UKIYOE_GIANT_SCENES) expect(inspectUkiyoeScene(giantScene(k)), k).toEqual([]);
+    for (const g of UKIYOE_GIANTS) {
+      const d = (f: number) => JSON.stringify(drawCreature({ species: g, actions: [{ type: "roar", start: 0, end: 300 }] }, f, 0, 1).prims);
+      expect(d(10).length, g).toBeGreaterThan(500);
+      expect(d(10) === d(25), `${g} moves`).toBe(false);
+    }
+    // Rising: halfway through `appear` the top of the giant is lower than when fully risen.
+    for (const g of ["gashadokuro", "umibozu"] as const) {
+      const top = (f: number) => Math.min(...[...JSON.stringify(drawCreature({ species: g, look: { size: 600 }, actions: [{ type: "appear", start: 0, end: 300 }] }, f, 0, 1).prims).matchAll(/[ML]-?[\d.]+ (-?[\d.]+)/g)].map(m => Number(m[1])));
+      expect(top(60), g).toBeGreaterThan(top(295));
+    }
   });
 });
 
