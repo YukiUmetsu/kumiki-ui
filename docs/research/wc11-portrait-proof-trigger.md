@@ -5,3 +5,5 @@ Run the scoped Chromium + production FilmStage proof once, compare actual images
 Second proof — corrected opaque skin and sclera compositing, softer facial plane pigments, actual production animation frames 210–245.
 
 Third pass: local pigment grain, directional hair fibres, softer nose/eye highlights, and encoded real portrait animation frames 210–245. Confirm browser source markup and native frames both outputs.
+
+Fourth ArtCraft proof: rebalance grain around neutral pigment (avoid dirty skin), narrow eye aperture and position iris within lids. Recheck source frames and animation.
