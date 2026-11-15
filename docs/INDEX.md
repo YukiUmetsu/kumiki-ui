@@ -52,6 +52,8 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [Asset Sourcing](ASSET_SOURCING.md) | Choosing and licensing third-party 3D and image assets |
 | [Component Status](component-status.md) | **Generated.** Every pack with its spec, story and review state, every other spec, and every verification report |
 
+**Coloured-pencil authors:** [CP-F1 — mandatory reference-led drawing foundation](research/colour-pencil-foundation-2026-11-14.md) defines the single shared paper, contour, material, pigment and review contract for all *new* pencil drawings. Existing demo legacy art is not automatically qualified.
+
 Find a component with `npm run catalog:find`, not by reading this file. Add a spec or a verification report, then run `npm run docs:status`.
 
 **Skills:** [make a film](../skills/kumiki-content/SKILL.md) · [build or review a component](../skills/kumiki-ui/SKILL.md). **Other:** [agent instructions](../AGENTS.md) · [spec template](../templates/component-spec.md) · [sample tokens](../examples/neutral.tokens.json) · [example film](../examples/film/billing-gap.film.json)
