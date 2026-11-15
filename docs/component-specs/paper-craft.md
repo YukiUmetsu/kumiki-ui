@@ -138,3 +138,14 @@ New art-direction examples in existing **Video production / Film Looks**:
 - Paper Craft · Kingfisher Anatomy Portrait
 
 This is artistic reference-guided code generation, not a copy of Diana Beltrán Herrera's sculpture, and not a 3D bird scan or physics model.
+
+
+## Pass 19 — hand-snipped feather vane edges
+
+The kingfisher's 18 primary feathers now carry a detail-responsive, true die-cut vane-edge microstructure, based on observing individually hand-trimmed feather sheets in Diana Beltrán Herrera's paper birds. Each feather retains a smooth Bézier root, the same separately hinged raised tip, underlying shaft aperture, and shared wing rig. At full detail, each closed root contour has five shallow asymmetric V-snips per side following the taper of the paper vane. These are cuts in the cardstock silhouette, not painted strokes, alpha effects, translucency or procedural noise.
+
+The detail control varies true incision count from zero to five per side. Fixed seeded grain subtly varies notches across different feathers without adding frame-dependent randomness. Landscape and portrait are uniformly scaled; the bounded cardstock-layer count and the palette-independent silhouettes are unchanged.
+
+A new "Paper Craft · Kingfisher Fine Vane Cutwork" study remains in the existing Video production/Film Looks Storybook section. Focused construction tests check edge geometry at minimum and maximum detail, physical tip/hinge continuity, rig identity, deterministic frames and paper validation. The existing PR-scoped visual workflow captures real Storybook and native film images.
+
+**Limit:** This is original 2.5D reference-guided cut-paper illustration, not manufacturing geometry or a reconstruction of another artist's protected sculpture. Browser-capture review and independent artistic inspection are still needed before asserting visual parity.
