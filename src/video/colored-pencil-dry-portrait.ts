@@ -62,7 +62,7 @@ export function createDryPortraitPlate(source:PencilPhotoPixels,
   // colour family at a crossing angle, then local edge-driven dark detail.
   // Short overlapping arcs resemble deposited pencil, not bitmap stippling.
   for(const pass of [0,1,2] as const){
-    const step=pass===0?2.65:pass===1?2.45:1.85;
+    const step=pass===0?2.25:pass===1?2.1:1.6;
     const cols=Math.ceil(120/step),rows=Math.ceil(80/step);
     for(let iy=0;iy<rows;iy++)for(let ix=0;ix<cols;ix++){
       const j=iy*cols+ix;
@@ -83,9 +83,20 @@ export function createDryPortraitPlate(source:PencilPhotoPixels,
       const gy=luminance(bottomRGB)-luminance(topRGB);
       const gradient=Math.hypot(gx,gy);
       const tangent=Math.atan2(-gx,gy);
-      const theta=pass===2&&gradient>.075?tangent:
-        pass===0?-.44+iy/rows*.20:.54-ix/cols*.16;
-      const grain=(pencilHash(seed,j+pass*22201,65)-.5)*.23;
+      // Curve the fiber field around the eye socket and across the lower
+      // lip pillow. Global diagonal screen-space hatching looked like a
+      // crosshatched filter, not construction around anatomical volume.
+      const u=(sx-anchor[0])/(region==="eyes"?44:52);
+      const v=(sy-anchor[1])/(region==="eyes"?27:25);
+      const radius=Math.hypot(u,v);
+      const arc=Math.atan2(v,u)+Math.PI/2;
+      const anatomy=region==="eyes"?
+        -.34+(arc+.34)*clamp(radius/.5,0,1)*.72:
+        Math.PI*.46-u*.26+v*.09;
+      const theta=pass===2&&gradient>.065?tangent:
+        pass===0?anatomy:
+          anatomy+.54;
+      const grain=(pencilHash(seed,j+pass*22201,65)-.5)*.32;
       const angle=theta+grain;
       // Value layers are separated from chroma layers: a broad quiet
       // midtone is followed by warm/cool accents, then sharper edges.
@@ -96,10 +107,10 @@ export function createDryPortraitPlate(source:PencilPhotoPixels,
           color(rgb[0]*.72+40*.28,rgb[1]*.74+30*.26,rgb[2]*.77+31*.23);
       const contrast=clamp(gradient*2.4,0,1);
       const alpha=pass===0?
-        (.12+.21*depth):
-        pass===1?(.10+.27*depth):
-          (.05+.35*depth+.16*contrast);
-      const length=(pass===0?8.3:pass===1?9.0:5.8)*
+        (.11+.22*depth):
+        pass===1?(.09+.25*depth):
+          (.05+.34*depth+.17*contrast);
+      const length=(pass===0?6.8:pass===1?7.9:4.8)*
         (.7+.65*pencilHash(seed,j+pass*22201,66));
       const startX=(sx-left)*3,startY=(sy-top)*3;
       // Root-aligned, pressure-bounded, short laid pencil fibres.
@@ -112,7 +123,7 @@ export function createDryPortraitPlate(source:PencilPhotoPixels,
         controlY:clamp(startY+vy*.5+Math.cos(angle)*bow,0,240),
         endX,endY,color:palette,
         alpha:clamp(alpha,0,.60),
-        width:pass===0?1.17:pass===1?.90:.67,
+        width:pass===0?.96:pass===1?.78:.59,
         pass,
       });
       counts[pass]++;
