@@ -181,3 +181,7 @@ Applied across foreground alpine ledges, a darker, more readable far lake treeli
 The existing single Scenery Storybook page exposes Tree variety (0 = spruce, 1 = mixed species) alongside palette, detail, breeze and depth. Native FilmStage's existing paper-craft-study slot and its 2-scene film example accept the same option. No new Storybook folders or dependencies.
 
 **Validation gates:** existing global 128-layer ceiling, seeded deterministic seeks, per-tree continuous closed path, species-specific vertex topology, both aspect formats, full opacity, browser captures and a native encoded video proof. CI passing is not a substitute for scrutinizing the final renders.
+
+### Pass 22b — real render critique: thick solid evergreen cards
+
+Inspected the first pass-22 real 16:9 native film and Storybook screenshots. Mixed-species trees were distinguishable, but fir/larch shelves remained too narrow and appeared as glowing lined wire trees because their stroke/edge width overwhelmed the filled card. This passes technical checks but **does not meet the art bar**. The correction reduces tier count per species, expands fir/spruce/airy-larch crown width and deepens the filled tier notches; near alpine stands now have much wider bases, far treeline height and lateral spread are less rigid, and the native scenic cut-edge highlight is reduced separately from object and botanical stages. Full final-commit renders are required to verify the correction. No fidelity score is asserted from reference images.
