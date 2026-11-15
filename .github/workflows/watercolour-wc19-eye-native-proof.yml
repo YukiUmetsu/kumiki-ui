@@ -1,0 +1,40 @@
+name: WC19 native watercolor eye art proof
+# Focused, private anatomical/paint proof. Do not promote unapproved portraits
+# or spend credits exporting full film clips on routine changes.
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/video/experimental/watercolour-eye-brush-*'
+      - 'tests/watercolour-eye-brush-study.test.tsx'
+      - 'scripts/watercolour-eye-native-proof.mjs'
+      - '.github/workflows/watercolour-wc19-eye-native-proof.yml'
+permissions:
+  contents: read
+concurrency:
+  group: wc19-eye-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-paint-and-crops:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.15.0'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Validate actual brush and wet pigment deposition
+        run: npx vitest run --project unit tests/watercolour-eye-brush-study.test.tsx
+      - run: npx playwright install --with-deps chromium
+      - name: Capture native paper, wet/dry stroke progression and 3x feature crops
+        run: node scripts/watercolour-eye-native-proof.mjs --out=dist/wc19-native-eye
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wc19-unapproved-real-brush-art
+          path: dist/wc19-native-eye/
+          retention-days: 7
+          if-no-files-found: warn
