@@ -77,7 +77,10 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     "C-2 -158 -5 -146 -10 -132 Z";
   // World-space paper impression and atmospheric ground. These intentionally
   // remain open wax: only physically solid focal subjects need full opacity.
-  const root={x:width/2,y:height*(portrait?.68:.87)};
+  // ArtCraft contact anchor: the pear's actual lower contour reaches local
+  // y≈180 (not an aspect-dependent guessed ground line). Keep the cast shadow,
+  // thin umbra and paper rubbing at the same world-space contact point.
+  const root={x:place.x,y:place.y+180*place.scale};
   const ground:CrayonWaxElement={
     kind:"wax",id:"paper-ground",d:
       "M"+(root.x-163)+" "+(root.y+7)+" C"+(root.x-113)+" "+(root.y-17)+" "+
