@@ -31,3 +31,34 @@ Both compose within an oval die-cut stage opening that adapts geometrically (no 
 ## Remaining visual priorities
 
 Inspect full-resolution captures for tree/bough attachment under extreme breeze, distant vs foreground contrast, edge detail readability in portrait, true negative-space breathing room and whether snowcap irregularity avoids manufactured zigzag repetition. Next passes: tactile cardstock edge fibers, more expressive botanical species and foreground water segmentation, camera-controllable depth/parallax, richer custom scenery DSL and multiple moving subjects. No fabricated per-axis image-fidelity score is asserted without registered matched masks.
+
+## Pass 21 — structural cutwork study (2026-11-14)
+
+### Reference-scale observations and negative controls
+
+- **Helen Musselwhite**, [*A Walk Through the Woods* material and botanical construction](https://www.creativeboom.com/work/helen-musselwhite/) and [layered forest examples](https://makezine.com/article/maker-news/3d-paper-dioramas/): large upper paper foliage cards, carefully lit setbacks, fine joined fronds, recognizable botanical species and actual projected shadows. Scale hierarchy: big canopy masses, rooted stems, overlapping middle-distance fronds, cut botanical microdetail. **Negative control:** two skinny tree trunks with floating postage-stamp leaves and rows of equally sized ferns.
+- **Hari & Deepti**, [illuminated multi-depth forest shadowboxes](https://www.designswan.com/archives/enchanting-paper-cut-art-by-hari-deepti-a-world-of-light-and-mystery.html): dark outer aperture, branching arch and lace holes; the distant light must remain readable. **Negative control:** ring of leaves pasted on a flat backing, detached branches, light represented by an opaque white rectangle or translucent whole-tree sprites.
+- **Folded mountain-paper examples**, [cut alpine valley compositions](https://www.designswan.com/archives/from-graphic-design-to-paper-magic-the-art-of-helen-musselwhite.html) and countryside papercraft: snow shelf follows summit form, folded-face triangles lead down peaks, treeline is separated from lake and shore. **Negative control:** three identical triangles, a straight shallow water stripe, full-height bank hiding the lake or texture-only depth.
+
+### Before/after structural diagnosis
+
+The pass-20 finished browser captures show **woodland's bare high-altitude branches with too-small foliage**, a clear negative-space mismatch with detailed forest art, and **alpine's lake mostly covered by a full-bottom "far shore" polygon**. A color change or larger paper grain cannot fix these topology errors.
+
+Pass 21 therefore authors:
+1. Two **solid upper crown cards**, shaped as asymmetric scalloped silhouettes and pierced by 4–9 actual elongated leaf cutouts. No alpha shortcuts. Connected leaf-rib subshapes branch from continuous anchor paths.
+2. Two joined sets of irregular ground vegetation, 8 grouped thickets, finer correctly oriented fern leaflets and a real hand-cut current with individual river-light pieces; original large shapes remain behind this detail.
+3. A **narrow shore** that leaves open glacial water instead of filling the entire bottom half of the frame, with a new shaped water-current sheet, paper islet and explicitly rooted reeds.
+4. Folded glacial strata oriented to the mountain geometry and joined foreground flowers/calyces; sheet count remains bounded by the PAPER1 128-layer physical-cardstock contract.
+5. A \`relief:0..1\` control that directly changes stock depth/shadow offsets (and lightbox parallax), *not* image transparency or global filters. Depth compression preserves the same authored contours.
+
+### Structural map and fidelity constraints
+
+| Region | Main mass | Attached feature graph | Aperture/negative space | Unacceptable shortcut |
+| --- | --- | --- | --- | --- |
+| Overhead woodland | Continuous cardstock scalloped crown | Trunk→bough→rib→leaf | 4–9 nested leaf-shaped holes within upper paper | Detached dots/leaf stickers |
+| Ground ferns | Solid rachis | Alternating left/right lanceolate leaflets, tapered by height | Real inter-leaf gaps | Thin duplicated strokes |
+| Alpine mountains | Three distinct closed cardstock peaks | Separate folded stone/snow strata on slopes | Visible foothill–lake separation | Full-height "mountain rectangle" |
+| Lake | Broad water sheet | Overlaid irregular islet/reeds and curved white bands | Uncovered visible teal region | Fully masked thin stripe |
+| Foreground | Solid earth edge | Rachis/rock/flower rooted in bank | Small pockets between tips | Uniform texture speckling |
+
+The technique and craft principles are reference-led; **the shapes, arrangement and palettes are newly authored**, not image traced. No reference source images are redistributed in the library. A browser screenshot showing many paths is necessary but not sufficient for visual equivalence: review full view, cropped topology and real film frames separately. Compare actual pixels before claiming improvement.
