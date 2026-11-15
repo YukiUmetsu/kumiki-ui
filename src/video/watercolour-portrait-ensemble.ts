@@ -62,14 +62,17 @@ export function inspectPortraitCast(value:unknown):string[] {
  * never cross between actors. Absolute frame keys stay independent per sitter.
  */
 function namespacePart(part:WatercolourArtPart,prefix:string,delay:number):WatercolourArtPart {
-  const shared={
-    ...part,id:prefix+part.id,
-    ...(part.keys?{keys:part.keys.map((k:WatercolourArtKey)=>({...k,frame:k.frame+delay}))}:{}),
-    ...(part.startFrame!==undefined?{startFrame:part.startFrame+delay}:{}),
-  };
-  return part.kind==="group"
-    ? {...shared,kind:"group",children:part.children.map(c=>namespacePart(c,prefix,delay))}
-    : {...shared,kind:"path"};
+  const keys=part.keys?.map((k:WatercolourArtKey)=>({...k,frame:k.frame+delay}));
+  const startFrame=part.startFrame!==undefined?part.startFrame+delay:undefined;
+  if(part.kind==="group"){
+    return {...part,id:prefix+part.id,
+      ...(keys?{keys}:{}),
+      ...(startFrame!==undefined?{startFrame}:{}),
+      children:part.children.map(c=>namespacePart(c,prefix,delay))};
+  }
+  return {...part,id:prefix+part.id,
+    ...(keys?{keys}:{}),
+    ...(startFrame!==undefined?{startFrame}:{})};
 }
 const painted=(id:string,path:string,fill:string,opacity:number,startFrame:number):WatercolourArtPart=>({
   id,kind:"path",path,fill,opacity,technique:"wash",composite:"multiply",
