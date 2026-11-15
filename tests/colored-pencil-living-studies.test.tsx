@@ -71,6 +71,34 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("builds soft three-quarter human eye and nasal planes without hard iris or brow stickers",()=>{
+    const regions=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"}).regions;
+    const parts=new Map(regions.map(r=>[r.id,r]));
+    const nose=parts.get("nose-bridge")!;
+    expect(nose.opaqueSupport).toBe(false);
+    expect(nose.craft).toBeUndefined();
+    const eyebrow=parts.get("brows")!;
+    expect(eyebrow.bounds[3]).toBeLessThan(18);
+    expect(eyebrow.layers.every(l=>l.texture==="fiber")).toBe(true);
+    for(const [eye,iris,pupil] of [
+      ["eye-white-far","iris-far","pupil-far"],
+      ["eye-white-near","iris-near","pupil-near"],
+    ] as const){
+      const sclera=parts.get(eye)!,colour=parts.get(iris)!,dark=parts.get(pupil)!;
+      expect(sclera.bounds[3]).toBeLessThanOrEqual(23);
+      expect(colour.bounds[1]).toBeGreaterThanOrEqual(sclera.bounds[1]);
+      expect(colour.bounds[1]+colour.bounds[3])
+        .toBeLessThanOrEqual(sclera.bounds[1]+sclera.bounds[3]+2);
+      expect(dark.bounds[2]).toBeLessThan(colour.bounds[2]);
+      expect(sclera.layers[0].color).not.toBe("#FFFFFF");
+    }
+    const skin=regions.filter(r=>r.craft?.kind==="skin");
+    expect(skin.length).toBeGreaterThan(5);
+    expect(skin.every(r=>r.layers[0].texture==="stipple")).toBe(true);
+    expect(regions.filter(r=>r.craft?.kind==="hair")
+      .every(r=>r.layers.every(layer=>layer.texture==="fiber"))).toBe(true);
+  });
+
   it("constructs a fox with distinct ear inserts, ruff, four facial feature masses and rooted fur",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"portrait"});
     const parts=new Map(drawing.regions.map(region=>[region.id,region]));
