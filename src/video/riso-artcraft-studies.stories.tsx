@@ -374,7 +374,12 @@ function RisoEyeCrop({actor,sheet,frame,aspect,plate,focus,hairStudy,faceStudy,s
     : actor.parts;
   const renderSpec:RisoCharacterSpec=sourceParts===actor.parts
     ? actor:{...actor,parts:sourceParts};
-  const scale=Math.min((width-52)/Math.max(1,envelope.width),(height-56)/Math.max(1,envelope.height));
+  // A close-up of the narrowly authored ear may mathematically request a
+  // >30x scale in portrait output. The production RisoCharacterInk/
+  // RisoCharacterKnockout placement contract explicitly caps scale at 30.
+  // Do not let a crop control crash Storybook with a non-rendering story.
+  const scale=Math.min(29,(width-52)/Math.max(1,envelope.width),
+    (height-56)/Math.max(1,envelope.height));
   const x=width/2-(envelope.x+envelope.width/2)*scale;
   const y=height/2-(envelope.y+envelope.height/2)*scale;
   const partIds=renderSpec.parts.filter(part=>part.joint==="head").map(part=>part.id);
@@ -387,7 +392,7 @@ function RisoEyeCrop({actor,sheet,frame,aspect,plate,focus,hairStudy,faceStudy,s
     ],
   };
   return <div data-km-riso21-actor={actor.id} data-km-riso21-frame={frame} data-km-riso21-aspect={aspect}
-    data-km-riso24-focus={focus} data-km-riso24-study={hairStudy} data-km-riso25-face-study={faceStudy}>
+    data-km-riso24-focus={focus} data-km-riso24-study={hairStudy} data-km-riso25-face-study={faceStudy}\n    data-km-riso25-crop-scale={scale.toFixed(3)}>
     <div style={{font:"700 16px Georgia,serif",marginBottom:8}}>{actor.id==="courier"?"Paper Courier":"Paper Artist"} · source head</div>
     <RisoPrint spec={inkSpec} frame={239} artworks={{blue:()=>null,red:()=>null}}
       paperGrain={.45} misregistration={.25} screenMode={screenMode} screenDensity={screenDensity} dotGain={dotGain}
