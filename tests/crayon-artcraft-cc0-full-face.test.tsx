@@ -385,10 +385,13 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       const before=baseline.elements.find(e=>e.id===id);
       const after=candidate.elements.find(e=>e.id===id);
       expect(after).toBeDefined();
-      expect(after?.kind).toBe(before?.kind);
-      expect(after?.parentId).toBe(before?.parentId);
-      expect(after?.clipToParent).toBe(before?.clipToParent);
-      expect(after?.d).not.toBe(before?.d);
+      if(!before||!after||!("d" in before)||!("d" in after)||
+        !("clipToParent" in before)||!("clipToParent" in after))
+        throw new Error("Missing comparable source-constructed wax/lash "+id);
+      expect(after.kind).toBe(before.kind);
+      expect(after.parentId).toBe(before.parentId);
+      expect(after.clipToParent).toBe(before.clipToParent);
+      expect(after.d).not.toBe(before.d);
     }
     expect(candidate.elements.length).toBe(baseline.elements.length+3);
     expect(inspectCrayonScene(candidate)).toEqual([]);
