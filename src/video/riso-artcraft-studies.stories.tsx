@@ -331,7 +331,7 @@ function RisoEyeCrop({actor,sheet,frame,aspect,plate,showGuides,screenMode,dotGa
   actor:RisoCharacterSpec;sheet:RisoCharacterMeshSheet;frame:number;aspect:EyeAspect;
   plate:PlateMode;showGuides:boolean;screenMode:"am"|"fm";dotGain:number;
 }){
-  const portrait=aspect==="portrait",width=portrait?360:480,height=portrait?480:360;
+  const portrait=aspect==="portrait",width=portrait?360:640,height=portrait?640:360;
   const mesh=evaluateRisoCharacterMesh(actor,sheet,frame,{maxEdgeLength:8});
   const face=mesh.regions.filter(region=>region.category==="face"||region.category==="hair"||region.category==="headwear");
   const envelope=risoMeshBounds(face.flatMap(region=>region.outline));
