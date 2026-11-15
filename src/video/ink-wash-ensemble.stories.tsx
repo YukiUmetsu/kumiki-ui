@@ -5,7 +5,8 @@ import { VideoExportStage } from "../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../registry/video/video-export-stage";
 import type { InkShot } from "../../registry/video/ink-wash-story";
 import { InkEnsemble } from "../../registry/video/ink-wash-ensemble-react";
-import { inkEnsembleAt, auditInkEnsembleHands } from "../../registry/video/ink-wash-ensemble";
+import { inkEnsembleAt, auditInkEnsembleHands, inkDesignToPaper } from "../../registry/video/ink-wash-ensemble";
+import { evaluateCharacter } from "../../registry/character/evaluate";
 import { inkEnsembleBackdrop } from "./ink-wash-ensemble-backdrop";
 import { inkDuet } from "./ink-wash-ensemble-demo";
 import type { InkDuetAspect } from "./ink-wash-ensemble-demo";
@@ -199,14 +200,28 @@ function FigureBrushworkLab() {
   const [detail,setDetail]=useState(1);
   const [contrast,setContrast]=useState(.85);
   const [reduced,setReduced]=useState(false);
-  const duet=useMemo(()=>inkDuet(aspect),[aspect]);
+  const duet=useMemo(()=>inkDuet(aspect,{
+    ...DEFAULT_INK_FIGURE_CRAFT,detail,contrast,
+  }),[aspect,detail,contrast]);
   const performerId=focus==="master-face"?"master":focus;
   const actor=inkEnsembleAt(duet.plan,frame,reduced).actors.find(p=>p.id===performerId);
   const portrait=aspect==="portrait";
   const viewport=portrait?{w:405,h:700}:{w:850,h:490};
   const zoom=focus==="wide"?(portrait?.73:.9):focus==="master-face"?4.1:2.15;
-  const centerX=actor?.pose.x??duet.width/2;
-  const centerY=actor?actor.pose.y-actor.pose.scale*(focus==="master-face"?235:155):duet.height/2;
+  // A bow rotates the head around a moving body pivot. Following only the
+  // actor's foot root cropped half the face out of the portrait study.
+  // Derive the real painted eye anchor from the production pose instead.
+  const cast=duet.cast.find(member=>member.trackId===performerId);
+  const eyes=actor&&cast?evaluateCharacter(cast.definition,
+    reduced?{...cast.instance,reducedMotion:true}:cast.instance,
+    cast.cues,frame).anchors.eyes:undefined;
+  const headCenter=eyes&&actor&&cast
+    ? inkDesignToPaper(actor.pose,cast.definition.design,eyes):undefined;
+  const isFace=focus==="master-face";
+  const centerX=isFace?(headCenter?.x??actor?.pose.x??duet.width/2)
+    :(actor?.pose.x??duet.width/2);
+  const centerY=isFace?(headCenter?.y??duet.height/2)
+    :(actor?actor.pose.y-actor.pose.scale*155:duet.height/2);
   const dx=viewport.w/2-centerX*zoom,dy=viewport.h/2-centerY*zoom;
   return <main style={{padding:24,background:"#E8E5DD",minHeight:"100vh",
     color:"#27322D",font:"14px/1.45 system-ui",display:"grid",gap:14,justifyItems:"start"}}>
