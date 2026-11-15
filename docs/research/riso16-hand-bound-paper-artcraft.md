@@ -25,7 +25,7 @@ No external images, characters, scans or SVG paths imported. All outlines and li
 
 ## Precise testable contracts
 
-- `evaluateRisoTransferSheet(source,end,progress,{curl,gripPinch})` is a pure, bounded evaluator. `curl`: 0–12 stage units; `gripPinch`: 0–1. Invalid or nonfinite values throw. Before deployment or when the chord is shorter than 28 units, all SVG geometries are empty.
+- `evaluateRisoTransferSheet(source,end,progress,{curl,gripPinch})` is a pure, bounded evaluator. `curl`: 0–12 stage units; `gripPinch`: 0–1. Invalid or nonfinite values throw. Before deployment or for a sub-half-unit degenerate chord, all SVG geometries are empty. Between 0.5 and 28 units, paper thickness scales continuously with chord length so the opening letter never teleports into a full-width shape.
 - One `outline` is supplied to **both** sheet knockout and blue-plate contour; no secondary silhouette/corner code in the ensemble.
 - Longitudinal projection of the leading edge midpoint onto the tangent must be approximately zero; normal projection retains original paper thickness even when either hand moves vertically.
 - No editor-only texture, no per-frame seeded random, no copied source artworks.
