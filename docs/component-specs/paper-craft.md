@@ -64,3 +64,28 @@ At full density, the generator adds more than 30 differently colored independent
 Use Storybook's existing **Video production / Film Looks** controls to compare the color sets and adjust `colorLayers`, `detail`, `tooth`, `edge`, `shadow`, `seed`, paper medium and aspect ratio. The original garden and earlier botanical stories remain available without any new Storybook sidebar folder. The native dual-output, three-scene film is `examples/film/paper-craft-chromatic.film.json`.
 
 These are expressive cinema cutouts; they are **not** manufacturer-ready laser/cutter paths, real physical pleating or calibrated 3D foam-board spacing.
+
+## Reusable object sculptures
+
+The installable Paper Craft registry includes a second reusable generator, `registry/video/paper-object-kit.ts`, for five ORIGINAL subjects, developed from actual cut-paper references rather than copying image geometry.
+
+- **Kingfisher:** individual feathers, orange/blue anatomical body plates, crest, pierced eye and long folded beak, tail and gripping toes on a continuous branch
+- **Dragonfly:** four separate window-punched wings, paper vein filigree, 12 segmented abdomen plates, compound eyes, legs and grounded flowering reeds
+- **Canal houses:** three differentiated pastel facades, layered gables, pierced windows with joinery/crossbars, roof oculi, arched doors, continuous street, fences, canal and lamp
+- **Camera:** separate cardboard slabs, rolled-look seven-ring lens with physical openings, viewfinder, dials, stitched seams and punched paper strap
+- **Teacup and citrus:** physically hollow handle and cup rim, raised paper botanical decal, folded napkin, saucer, spoon and segmented citrus slice
+
+```tsx
+import { paperObjectSpec } from "./components/video/paper-object-kit";
+import { PaperCraftStage } from "./components/video/paper-craft-react";
+const spec = paperObjectSpec("layered", "landscape",
+  { object: "kingfisher", palette: "jewel", detail: 1, seed: 37 });
+<PaperCraftStage spec={spec} frame={195} shadowStrength={.9}
+  tooth={.55} edgeStrength={.6} />;
+```
+
+Controls: `object` = kingfisher | dragonfly | canal-houses | camera | teacup; `palette` = jewel | pastel | heritage; `detail` = 0–1; `seed` integer. All cut pieces are bounded opaque cardstock; depth is integer 0–32. The entire original material scene stays within 128 paper layers. The exact same geometry is composed in 16:9 and 9:16 without distorting object proportions, and supports arbitrary absolute-frame seeking and reduced-motion presentation.
+
+Use `artwork:"object"`, `object`, and `objectPalette` on the existing `paper-craft-study` FilmStage slot. See `examples/film/paper-craft-objects.film.json` (five cuts and dual output formats). Six more interactive studies are kept **directly within Video production / Film Looks**; no new sidebar folder. For original reference links, design audits and remaining work, read `docs/research/paper-craft-objects-study.md`.
+
+This produces cinematographic 2.5D cardstock illustrations, **not** physically folded and dimensionally manufactured 3D objects, die templates or articulated skeleton rigs.
