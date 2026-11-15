@@ -114,8 +114,14 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(A.nose.path).toContain("C");
     expect(nose.details?.some(d=>d.id==="anat-nose-base")).toBe(true);
     expect(A.lips.bounds[3]).toBeLessThanOrEqual(23);
-    expect(upper.opaqueSupport).toBe(true);
-    expect(lower.opaqueSupport).toBe(true);
+    // Anatomical lip tissue cannot sit on white-paper cutouts of the face:
+    // the parent facial plane must show through both tinted pencil layers.
+    expect(upper.opaqueSupport).toBe(false);
+    expect(lower.opaqueSupport).toBe(false);
+    expect(upper.craft?.kind).toBe("skin");
+    expect(lower.craft?.kind).toBe("skin");
+    expect(upper.layers).toHaveLength(3);
+    expect(lower.layers).toHaveLength(3);
     expect(upper.details?.some(d=>d.id==="anat-mouth-seam")).toBe(true);
   });
 
