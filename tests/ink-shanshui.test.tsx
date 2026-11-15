@@ -198,6 +198,31 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(html).not.toMatch(/NaN|Infinity|undefined/);
   });
 
+  it("breaks repeated pine shelf silhouettes with source-led bough crooks and fan pitch",()=>{
+    const controls={...DEFAULT_SHANSHUI,scene:"mountain-trail" as const,detail:1};
+    const markup=renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:125,controls,
+    }));
+    const turns=[...markup.matchAll(/data-km-pine-fan-turn="([^"]+)"/g)]
+      .map(m=>Number(m[1]));
+    expect(turns.length).toBeGreaterThan(80);
+    expect(turns.every(Number.isFinite)).toBe(true);
+    expect(new Set(turns).size).toBeGreaterThan(50);
+    expect(Math.max(...turns)-Math.min(...turns)).toBeGreaterThan(.95);
+    expect(Math.min(...turns)).toBeLessThan(-.3);
+    expect(Math.max(...turns)).toBeGreaterThan(.3);
+    const boughs=[...markup.matchAll(/data-km-pine-bough-shape="" d="([^"]+)"/g)];
+    expect(boughs).toHaveLength(8);
+    expect(new Set(boughs.map(m=>m[1])).size).toBe(8);
+    expect(markup).toEqual(renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:125,controls,
+    })));
+    const sparse=renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:125,controls:{...controls,detail:0},
+    }));
+    expect(sparse).not.toContain("data-km-pine-fan-turn");
+  });
+
   it("varies rock texture into long, broken and lateral side-brush gestures",()=>{
     for(const scene of SHANSHUI_SCENES){
       const svg=renderToStaticMarkup(createElement(InkShanshuiStage,{
