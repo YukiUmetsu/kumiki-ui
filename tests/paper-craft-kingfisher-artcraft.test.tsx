@@ -124,11 +124,11 @@ describe("Common kingfisher ArtCraft anatomy reconstruction",()=>{
   it("keeps beak a filled chisel, crown compact and primaries diagonally shingled in native sheet coordinates",()=>{
     const spec=make();
     const layer=(id:string)=>spec.layers.find(item=>item.id===id)!;
-    const numeric=(path:string)=>(path.match(/-?\\d+(?:\\.\\d+)?/g)||[]).map(Number);
+    const numeric=(path:string)=>(path.match(/-?\d+(?:\.\d+)?/g)||[]).map(Number);
     const beakYs=numeric(layer("kingfisher-beak-lower").path).filter((_,i)=>i%2===1);
     expect(Math.max(...beakYs)-Math.min(...beakYs)).toBeGreaterThan(20);
     const primary=layer("wing-feather-0");
-    const firstX=Number(/^M(-?\\d+(?:\\.\\d+)?)/.exec(primary.path)?.[1]);
+    const firstX=Number(/^M(-?\d+(?:\.\d+)?)/.exec(primary.path)?.[1]);
     expect(firstX-primary.liftedTip!.hinge[0]).toBeGreaterThan(8);
     for(let i=0;i<7;i++){
       const rectrix=layer("kingfisher-tail-"+i);
