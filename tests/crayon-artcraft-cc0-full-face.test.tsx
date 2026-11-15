@@ -63,6 +63,43 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(meta.tags).toContain("!dev");
     expect(Cc0RegisteredFullFace.name).toMatch(/ArtCraft experiment/);
   });
+  it("regresses the inspected smile-slot, isolated nostril rings and scratched wig",()=>{
+    const spec=crayonCc0FaceStudy({view:"wax"});
+    const get=(id:string)=>spec.elements.find(e=>e.id===id);
+    const slit=get("oral-opening");
+    const teeth=get("mouth-teeth");
+    const upper=get("lip-upper");
+    const lower=get("lip-lower");
+    const back=get("hair-back");
+    const left=get("hair-left-curtain");
+    const right=get("hair-right-curtain");
+    for(const el of [slit,teeth,upper,lower,back,left,right])
+      expect(el?.kind).toBe("wax");
+    if(!slit||slit.kind!=="wax"||!teeth||teeth.kind!=="wax"||
+      !upper||upper.kind!=="wax"||!lower||lower.kind!=="wax")
+      throw new Error("ArtCraft facial value volume missing");
+    // Actual Chromium V1 rendered a broad white tooth slash. Keep a small
+    // undercut interrupted by muted teeth rather than a geometry sticker.
+    expect(slit.bounds.height).toBeLessThan(50);
+    expect(teeth.bounds.height).toBeLessThan(27);
+    expect(upper.bounds.height).toBeLessThan(70);
+    expect(lower.bounds.height).toBeLessThan(65);
+    expect(teeth.parentId).toBe("oral-opening");
+    expect(teeth.clipToParent).toBe(true);
+    for(const el of [back,left,right]){
+      if(el?.kind!=="wax")throw new Error("Missing rooted hair mass");
+      expect(el.markStrength).toBeLessThan(.3);
+      expect(el.coverage).toBe("opaque");
+    }
+    for(const id of ["nostril-contact-near","nostril-contact-far"]){
+      const el=get(id);
+      expect(el?.kind).toBe("contour");
+      if(el?.kind!=="contour")throw new Error("Unattached nostril");
+      expect(el.d).not.toContain("Z");
+      expect(el.d).not.toContain("z");
+      expect(el.parentId).toBe("face-outline");
+    }
+  });
   it("keeps an exact independent source graph only in explicit anatomy mode",()=>{
     const wax=crayonCc0FaceStudy({view:"wax",detail:.5});
     const construction=crayonCc0FaceStudy({view:"anatomy",detail:.5});
