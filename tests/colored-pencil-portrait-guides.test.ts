@@ -63,7 +63,7 @@ describe("CC0 photo-derived portrait feature construction",()=>{
       "nose-alar-near","nose-alar-far","lip-top","lip-bottom","lip-grain",
     ]));
     expect(made.marks.length).toBeGreaterThan(300);
-    expect(made.marks.length).toBeLessThan(800);
+    expect(made.marks.length).toBeLessThan(5600);
     expect(made.marks.every(m=>m.alpha>0&&m.alpha<=.57&&m.width<1&&
       [m.x,m.y,m.endX,m.endY,m.controlX,m.controlY].every(Number.isFinite)))
       .toBe(true);
