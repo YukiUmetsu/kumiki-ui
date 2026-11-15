@@ -285,6 +285,76 @@ export const createDryPencilHeadPlate=(
         (pencilHash(seed,hashBase,15)-.5)*.19);
     }
   }
+  // ArtCraft source-dependent facial contour hierarchy: use optical
+  // gradient measurements only around real orbits, nasal cartilage and
+  // the two lip pillows. Unlike generic SVG outlines these tangent marks
+  // are laid where the actual licensed photograph contains a value edge.
+  const accents=[
+    {name:"near-orbit",center:guides.eyeNearCenter,rx:.43,ry:.29},
+    {name:"far-orbit",center:guides.eyeFarCenter,rx:.34,ry:.25},
+    {name:"nasal-cartilage",center:guides.noseTip,rx:.36,ry:.42},
+    {name:"vermilion",center:guides.lipCupid,rx:.45,ry:.29},
+  ] as const;
+  for(const [region,accent] of accents.entries()){
+    const step=eyeDist*.015;
+    const rx=eyeDist*accent.rx,ry=eyeDist*accent.ry;
+    const cols=Math.ceil(rx*2/step),rows=Math.ceil(ry*2/step);
+    for(let iy=0;iy<rows;iy++)for(let ix=0;ix<cols;ix++){
+      const j=region*200000+iy*cols+ix;
+      const px=accent.center[0]-rx+(ix+.5)*step+
+        (pencilHash(seed,j,71)-.5)*step*.27;
+      const py=accent.center[1]-ry+(iy+.5)*step+
+        (pencilHash(seed,j,72)-.5)*step*.27;
+      const u=(px-accent.center[0])/rx;
+      const v=(py-accent.center[1])/ry;
+      const radius=u*u+v*v;
+      const p:Point=[px,py];
+      if(radius>=1||classify(p)!=="skin")continue;
+      const delta=eyeDist*.010;
+      const gx=photoValue(source,px+delta,py)-
+        photoValue(source,px-delta,py);
+      const gy=photoValue(source,px,py+delta)-
+        photoValue(source,px,py-delta);
+      const edge=Math.hypot(gx,gy);
+      const value=photoValue(source,px,py);
+      if(edge<.039||value>.88)continue;
+      const theta=Math.atan2(-gx,gy)+
+        (pencilHash(seed,j,73)-.5)*.16;
+      const len=eyeDist*(.016+.025*pencilHash(seed,j,74));
+      const rgb=photoRGB(source,px,py);
+      const optical=clamp((edge-.030)*3.2,0,1);
+      const pressure=(.15+.35*optical)*Math.pow(1-radius,.45);
+      const ink=color([rgb[0]*.61+56*.39,
+        rgb[1]*.63+39*.37,rgb[2]*.67+38*.33]);
+      push("face-form",p,[Math.cos(theta)*len,Math.sin(theta)*len],
+        ink,pressure,.43+.33*pencilHash(seed,j,75),2,
+        (pencilHash(seed,j,76)-.5)*.12);
+    }
+  }
+  // A face cannot float inside a white sticker-outline against the hair.
+  // The observed jaw/temple contour is made of short earthen pencil fibres
+  // softened by the true local source value, never a solid black SVG path.
+  for(let i=0;i<geometry.face.length;i++){
+    const start=geometry.face[i];
+    const finish=geometry.face[(i+1)%geometry.face.length];
+    const span=length(start,finish);
+    const segments=Math.max(2,Math.ceil(span/(eyeDist*.024)));
+    for(let k=0;k<segments;k++){
+      const t=(k+.25)/segments;
+      const p:Point=[interp(start[0],finish[0],t),
+        interp(start[1],finish[1],t)];
+      if(!onPhoto(source,p[0],p[1]))continue;
+      const rgb=photoRGB(source,p[0],p[1]);
+      const value=photoValue(source,p[0],p[1]);
+      if(value>.91)continue;
+      const dx=(finish[0]-start[0])/segments;
+      const dy=(finish[1]-start[1])/segments;
+      push("face-form",p,[dx*.72,dy*.72],
+        color([rgb[0]*.74+69*.26,rgb[1]*.73+48*.27,
+          rgb[2]*.76+44*.24]),.13+.18*(1-value),
+        .43,2,(pencilHash(seed,i*1000+k,77)-.5)*.06);
+    }
+  }
   // Hair as connected MASSES first. The physical photographic reference
   // has auburn locks surrounding the head; green garden is NOT a hair mask.
   // Hair is a separate material and cannot inadvertently flatten the face.
