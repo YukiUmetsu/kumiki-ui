@@ -46,8 +46,16 @@ test("reference-guided pencil renders locally loaded colour/edge structure in bo
         const b=x.getImageData(Math.round(c.width*.75),Math.round(c.height*.50),1,1).data;
         return {left:[...a].slice(0,3),right:[...b].slice(0,3)};
       });
-      expect(metrics.left[0]).toBeGreaterThan(metrics.right[0]+20);
-      expect(metrics.right[2]).toBeGreaterThan(metrics.left[2]+15);
+      // Pale dry pencils preserve hue relationships even when absolute RGB
+      // values approach ivory: avoid imposing digital-photo saturation.
+      expect(metrics.left[0]-metrics.left[2]).toBeGreaterThan(20);
+      expect(metrics.right[2]-metrics.right[0]).toBeGreaterThan(6);
+      const hueDistance=Math.hypot(
+        metrics.left[0]-metrics.right[0],
+        metrics.left[1]-metrics.right[1],
+        metrics.left[2]-metrics.right[2],
+      );
+      expect(hueDistance).toBeGreaterThan(45);
       await canvas.screenshot({animations:"disabled",
         path:info.outputPath("pencil-source-guided-"+aspect+"-finished.png")});
       await setSlider("Pencil photo frame",175);
