@@ -48,7 +48,10 @@
       "8 primary fracture child veins",
       "dark recess",
       "surrounding blank paper",
-      "3 parent-rooted cubic hill terraces with 6 attached alum-head caps and 40 dense dry/wet hemp fibres"
+      "3 parent-rooted cubic hill terraces with 6 attached alum-head caps and 40 dense dry/wet hemp fibres",
+      "25-point irregular summit/shoulder ridge replacing previous mountain-trail middle-band needle peak",
+      "three bone-rooted positive 5-cubic crag masses with scoped ink-load gradients",
+      "six parent-attached crag alum-head caps and nine erosion grooves"
     ],
     "edges": [
       "crest root -> bone",
@@ -57,7 +60,8 @@
       "bone stations .08/.25/.43/.62 -> 4 vertical branches",
       "4 vertical branches -> 8 sub-fibres, 2 each",
       "crease and shadow pockets layer over supported paint, not detached",
-      "bone stations .09/.29/.51 -> cubic hill backs -> 2 caps and 13/16/11 fibre children"
+      "bone stations .09/.29/.51 -> cubic hill backs -> 2 caps and 13/16/11 fibre children",
+      "middle ridge crest -> hero bone -> mass roots .12/.31/.55 -> local cap and erosion sampled roots"
     ],
     "intentional_voids": [
       "between three off-axis rounded backs",
@@ -126,5 +130,31 @@
       "status": "candidate; needs independent head screenshot/film inspection"
     },
     "rights": "No original museum image pixels, contours or scans embedded in library."
+  },
+  "rounded_mass_revision": {
+    "artcraft_skill": "ArtCraft v9.1, reference-led structural study and material study",
+    "source": "Huang Gongwang, Dwelling in the Fuchun Mountains (c.1350), National Palace Museum, Smarthistory close-up; source pixels remain external",
+    "observations": {
+      "macro": "The source mountain crown is an irregular rounded saddle with connected rock tiers, not a single long regular triangle.",
+      "meso": "Interlocking rock cheek planes contain short alum-head lobes and recessed eroded folds. Subordinate faces should connect to real mountain bones.",
+      "micro": "Ink underpainting carries a load gradient, stronger dark clusters by ledges, dry-fibre attenuation and deliberately unpainted paper gaps."
+    },
+    "candidate": {
+      "scene": "mountain-trail",
+      "mountain_band": "1 (middle)",
+      "contour": "Middle mountain ridge nodes changed from one narrow apex to twenty-five individually positioned shoulder/summit/saddle nodes, with original Catmull interpolation and seeded fracture retained.",
+      "attachments": "3 positive face masses attach to stations 0.12/0.31/0.55 along the hero's real quadratic bone; 2 alum-head pressure caps per mass and 3 erosion grooves per mass attach at sampled face geometry.",
+      "material": "Each mass uses a unique scoped multi-stop gradient with irregular five-cubic outer boundary, root-dark/wet to depleted dry tail.",
+      "preservation": "Original ridge depth bands, 3 cubic back contours, 6 terrace caps, 40 hemp fibres, 24 pima fibres, pine grove, bamboo and film clock remain.",
+      "intended_negative_space": "Paper above actual crest, through the gaps between the three landform masses, and in the undersides of the gradated shapes."
+    },
+    "quality_gates": {
+      "topology": "3 finite supported mass roots, 6 attached caps and 9 erosion children; no mass at detail 0; all gradients id-scoped across adjacent Storybook stages",
+      "flow": "No two sides identical, 25 summit/shoulder nodes, triple ink mass alternates sides and has multi-curved outer contour",
+      "rhythm": "Reviewer must see three distinct positive rock zones and natural broad voids without repeated oval scallops",
+      "material": "4 gradient stops per mass, varying cap weights and locally bounded erosion pressure",
+      "visual": "Reject artificial rubber-stamp lobes and schematic stringy dark ribs even if tests pass; inspect native 960x540 and enlarged aligned 1.75x, 2.4x, 3.45x crops.",
+      "release_state": "draft; awaits independent exact-head native visual review"
+    }
   }
 }
