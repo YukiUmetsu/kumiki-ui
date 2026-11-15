@@ -328,6 +328,40 @@ function fox():PencilSubjectPart[] {
       bounds:[154,235,108,85],direction:59,start:104,
       details:flowBundles([[174,247,206,306,176,291,20,14],
         [210,248,237,295,225,278,19,14]],557,"#F8E7C6",.67)},
+    {id:"ear-far",material:"fur",palette:["#AF6B52","#714B49","#E1A47B"],
+      // Ear-to-skull proportion: broad cartilage base, shorter tapered tip.
+      path:"M172 184 C161 153 155 118 160 91 C163 75 170 72 178 84 C192 105 203 131 205 158 Q190 166 184 181 Q178 186 172 184 Z",
+      bounds:[143,63,62,94],direction:67,start:114,
+      details:[
+        mark("M159 132 Q154 105 164 77 Q180 97 186 123",
+          "#524647",.78,241,.74),
+        ...pencilRootedFur([[158,87,177,126,163,110,18,8]],642,
+          ["#D4A282","#6D5653","#F1BFA2"],252),
+      ]},
+    {id:"ear-far-inner",material:"fur",palette:["#A17E73","#6A555B","#C9AD9A"],
+      path:"M162 127 Q155 105 160 89 C166 83 176 105 187 124 Q177 127 162 127 Z",
+      bounds:[154,78,35,53],direction:72,start:131,
+      details:[
+        mark("M164 96 Q164 115 178 120","#D4B29B",.44,245,.71),
+      ]},
+    {id:"ear-near",material:"fur",palette:["#B87658","#724F4A","#E4AA7F"],
+      path:"M246 181 C251 150 265 102 284 72 Q301 51 308 64 C317 84 310 133 294 177 Q281 191 265 186 Q253 186 246 181 Z",
+      bounds:[246,55,71,102],direction:-66,start:115,
+      details:[
+        mark("M266 128 Q279 91 301 69 Q305 105 284 143",
+          "#55474B",.83,247,.80),
+        ...pencilRootedFur([[296,78,278,133,294,110,21,7]],661,
+          ["#E2AD88","#6B5556","#F5C9A6"],252),
+      ]},
+    {id:"ear-near-inner",material:"fur",palette:["#A37C6E","#68545C","#D9B39A"],
+      path:"M267 126 C273 105 286 80 298 72 Q303 90 297 111 Q291 128 285 140 Q275 132 267 126 Z",
+      bounds:[265,71,41,71],direction:-68,start:131,
+      details:[mark("M291 94 Q282 107 282 127","#E8CAB0",.50,246,.73)]},
+    // ArtCraft: one continuous source-free *anatomy* study, not a photo
+    // extraction. The dark fox eye is embedded in brow bone and the cheek
+    // skin/fur plane; disconnected socket stickers made this face mask-like.
+    // Fine fibers originate from curved orbital ridges, turn into tear
+    // tracts and vanish into malar fur at three different pressures.
     {id:"head-main",material:"fur",palette:["#B66C4E","#724849","#EBAE79"],
       // Three-quarter fox: skull widens behind the near orbit and narrows into
       // an oblique snout; avoid the old round bilateral mask.
@@ -361,40 +395,6 @@ function fox():PencilSubjectPart[] {
         mark("M167 220 Q185 235 205 242 M234 239 Q248 237 259 228",
           "#7B5350",.55,257,.54),
       ]},
-    {id:"ear-far",material:"fur",palette:["#AF6B52","#714B49","#E1A47B"],
-      // Ear-to-skull proportion: broad cartilage base, shorter tapered tip.
-      path:"M159 155 C150 134 147 108 153 89 C156 74 161 68 168 72 C179 82 192 105 198 133 C184 137 173 144 159 155 Z",
-      bounds:[143,63,62,94],direction:67,start:114,
-      details:[
-        mark("M159 132 Q154 105 164 77 Q180 97 186 123",
-          "#524647",.78,241,.74),
-        ...pencilRootedFur([[158,87,177,126,163,110,18,8]],642,
-          ["#D4A282","#6D5653","#F1BFA2"],252),
-      ]},
-    {id:"ear-far-inner",material:"fur",palette:["#A17E73","#6A555B","#C9AD9A"],
-      path:"M162 127 Q155 105 160 89 C166 83 176 105 187 124 Q177 127 162 127 Z",
-      bounds:[154,78,35,53],direction:72,start:131,
-      details:[
-        mark("M164 96 Q164 115 178 120","#D4B29B",.44,245,.71),
-      ]},
-    {id:"ear-near",material:"fur",palette:["#B87658","#724F4A","#E4AA7F"],
-      path:"M247 138 C256 117 267 92 284 69 Q302 50 309 62 C317 78 308 121 294 155 C275 145 262 140 247 138 Z",
-      bounds:[246,55,71,102],direction:-66,start:115,
-      details:[
-        mark("M266 128 Q279 91 301 69 Q305 105 284 143",
-          "#55474B",.83,247,.80),
-        ...pencilRootedFur([[296,78,278,133,294,110,21,7]],661,
-          ["#E2AD88","#6B5556","#F5C9A6"],252),
-      ]},
-    {id:"ear-near-inner",material:"fur",palette:["#A37C6E","#68545C","#D9B39A"],
-      path:"M267 126 C273 105 286 80 298 72 Q303 90 297 111 Q291 128 285 140 Q275 132 267 126 Z",
-      bounds:[265,71,41,71],direction:-68,start:131,
-      details:[mark("M291 94 Q282 107 282 127","#E8CAB0",.50,246,.73)]},
-    // ArtCraft: one continuous source-free *anatomy* study, not a photo
-    // extraction. The dark fox eye is embedded in brow bone and the cheek
-    // skin/fur plane; disconnected socket stickers made this face mask-like.
-    // Fine fibers originate from curved orbital ridges, turn into tear
-    // tracts and vanish into malar fur at three different pressures.
     {id:"periocular-form",material:"glaze",
       palette:["#B97959","#785047","#E4B28B"],
       path:"M151 187 C162 176 174 176 188 183 Q192 187 185 191 C175 185 163 185 152 195 Z "+
