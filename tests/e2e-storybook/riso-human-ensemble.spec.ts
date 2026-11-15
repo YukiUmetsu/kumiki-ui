@@ -10,6 +10,8 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
   await page.evaluate(()=>document.fonts.ready);
   const stage=page.locator("svg[data-km-riso-human-ensemble-frame]");
   await expect(stage).toBeVisible();
+  await expect(stage).toHaveAttribute("data-km-riso-print","");
+  await expect(stage.locator("[data-km-riso-foot-contact]")).toHaveCount(4);
   for(const aspect of ["landscape","portrait"] as const){
     await page.getByRole("combobox",{name:"RISO ensemble aspect"}).selectOption(aspect);
     await expect(stage).toHaveAttribute("viewBox",aspect==="portrait"?"0 0 540 960":"0 0 960 540");
@@ -42,6 +44,26 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
   await stage.screenshot({path:info.outputPath("dual-actor-anchor-debug.png"),
     animations:"disabled"});
   await page.getByRole("checkbox",{name:"RISO ensemble contact anchors"}).uncheck();
+  const cell=page.getByRole("slider",{name:"RISO ensemble screen cell"});
+  await cell.evaluate(node=>{
+    const input=node as HTMLInputElement;
+    const set=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    if(!set)throw new Error("Missing range setter");
+    set.call(input,"9");input.dispatchEvent(new Event("input",{bubbles:true}));
+    input.dispatchEvent(new Event("change",{bubbles:true}));
+  });
+  await expect(page.getByText("Screen cell · 9px")).toBeVisible();
+  await expect(stage.locator('pattern[width="9"]')).toHaveCount(2);
+  await page.getByRole("slider",{name:"RISO ensemble paper grain"}).evaluate(node=>{
+    const input=node as HTMLInputElement;
+    const set=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    if(!set)throw new Error("Missing range setter");
+    set.call(input,"0.75");input.dispatchEvent(new Event("input",{bubbles:true}));
+    input.dispatchEvent(new Event("change",{bubbles:true}));
+  });
+  await expect(page.getByText("Paper fibres · 0.75")).toBeVisible();
+  await stage.screenshot({path:info.outputPath("two-human-native-ink-paper-calibration.png"),
+    animations:"disabled"});
   expect(pageErrors).toEqual([]);
   expect(consoleErrors).toEqual([]);
 });
