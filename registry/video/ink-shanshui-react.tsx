@@ -623,17 +623,53 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
             f(belly[1]+drop*.1)+" "+f(root[0]-sign*reach*.12)+
             " "+f(root[1]+drop*.22)+" "+
             f(root[0])+" "+f(root[1])+" Z";
+        // Early Spring's cloud-head is a *rolled boulder with a
+        // receding, internally shaded undercut*. Its paper cutout and
+        // shadow are intrinsic to its own positive face, not just a
+        // free-hanging S-mark traced over beige mountain wash.
+        const foldLip:P=[root[0]+sign*reach*
+            ([.62,.74,.51,.8][motif]),
+          root[1]+drop*([.19,.14,.27,.23][motif])];
         const curl=rockLoadedCubicRibbon(root,
           [root[0]+sign*reach*.08,root[1]-rise*.77],
           [lip[0]-sign*reach*.17,lip[1]-rise*.34],lip,
-          2.1+1.9*s(seed+5077,i*31+k*19),
+          1.8+1.5*s(seed+5077,i*31+k*19),
           seed+5083+i*103+k*23);
         const recess=rockLoadedCubicRibbon(throat,
           [throat[0]-sign*reach*.19,throat[1]-drop*.23],
           [belly[0]+sign*reach*.21,belly[1]-drop*.16],belly,
-          1.7+1.8*s(seed+5101,i*47+k*13),
+          1.4+1.6*s(seed+5101,i*47+k*13),
           seed+5107+i*53+k*37);
-        return {root,outline,curl,recess,tonal:tone+"cloud"+k,motif};
+        // Four distinct concave-to-convex turning patterns. The
+        // inner negative paper throat is defined by the contour,
+        // while the underside is a loaded ochre-to-paper recess.
+        const undercut="M"+f(foldLip[0])+" "+f(foldLip[1])+
+          " C"+f(foldLip[0]-sign*reach*.06)+" "+
+            f(foldLip[1]+drop*.15)+" "+
+            f(throat[0]+sign*reach*.11)+" "+
+            f(throat[1]-drop*.19)+" "+
+            f(throat[0])+" "+f(throat[1])+
+          " C"+f(throat[0]-sign*reach*.17)+" "+
+            f(throat[1]+drop*.12)+" "+
+            f(belly[0]+sign*reach*.15)+" "+
+            f(belly[1]-drop*.16)+" "+
+            f(belly[0])+" "+f(belly[1])+
+          " C"+f(belly[0]+sign*reach*.33)+" "+
+            f(belly[1]-drop*.14)+" "+
+            f(lip[0]-sign*reach*.16)+" "+
+            f(lip[1]+drop*.26)+" "+
+            f(lip[0])+" "+f(lip[1])+
+          " Q"+f(lip[0]-sign*reach*.12)+" "+
+            f(lip[1]-drop*.1)+" "+
+            f(foldLip[0])+" "+f(foldLip[1])+" Z";
+        const shelf=rockLoadedCubicRibbon(
+          foldLip,
+          [foldLip[0]+sign*reach*.04,foldLip[1]+drop*.14],
+          [throat[0]+sign*reach*.1,throat[1]-drop*.18],
+          throat,1.1+1.8*s(seed+5119,i*13+k*29),
+          seed+5129+i*67+k*41);
+        return {root,outline,curl,recess,undercut,shelf,
+          tonal:tone+"cloud"+k,motif};
       }):[];
       // Wang Meng / Forest Chamber Grotto: nested rock walls are not
       // monochrome hair on a triangular ridge. The historic work has
@@ -823,7 +859,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         </g>}
         {isGuo&&<g clipPath={"url(#"+clip+")"}
           data-km-master-cloud-geology="">
-          {cloudBanks.map(({root,outline,curl,recess,tonal,motif},k)=>
+          {cloudBanks.map(({root,outline,curl,recess,undercut,shelf,tonal,motif},k)=>
             <g key={k} data-km-master-cloud-bank=""
               data-km-master-cloud-bank-root={f(root[0])+","+f(root[1])}
               data-km-master-cloud-bank-index={k}
@@ -838,7 +874,13 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
               </defs>
               <path data-km-master-cloud-mass="" d={outline}
                 fill={"url(#"+tonal+")"}
-                opacity={f((k===1?.61:.49)*(1-.17*mist))}/>
+                opacity={f((k===1?.74:.62)*(1-.17*mist))}/>
+              <path data-km-master-cloud-undercut="" d={undercut}
+                fill="#4d4035"
+                opacity={f((k%3===1?.43:.34)*(1-.22*mist))}/>
+              <path data-km-master-cloud-shelf="" d={shelf}
+                fill="#4a3c31"
+                opacity={f((k%2===0?.65:.48)*(1-.18*mist))}/>
               <path data-km-master-cloud-crown="" d={curl}
                 fill="#39322b"
                 opacity={f((k%2===0?.48:.39)*(1-.21*mist))}/>
