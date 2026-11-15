@@ -28,6 +28,7 @@
         "label": "An original watercolor human portrait",
         "props": {
           "subject": "person-portrait",
+        "sitter": "sitter-a",
           "seed": 83
         }
       }
