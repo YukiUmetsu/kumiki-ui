@@ -155,6 +155,34 @@ for(const sample of ["woman","man"] as const){
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
         await boardToggle.uncheck();
+        const contactToggle=page.getByRole("checkbox",{
+          name:"Inspect portrait hairline contact at three times scale",
+        });
+        await contactToggle.check();
+        const contact=page.locator(
+          '[data-km-pencil-portrait-contact-inspector]');
+        await expect(contact).toHaveCount(1);
+        const images=contact.locator("canvas[data-km-pencil-contact-image]");
+        await expect(images).toHaveCount(2);
+        for(const image of await images.all())
+          await expect(image).toHaveAttribute(
+            "data-km-pencil-contact-rendered","ready",{timeout:90000});
+        await contact.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-hairline-occlusion-3x.png")});
+        const shadowEvidence=page.locator(
+          '[data-km-pencil-hair-occlusion="ready"]');
+        await expect(shadowEvidence).toHaveCount(1,{timeout:90000});
+        const shadow=await shadowEvidence.evaluate(node=>({
+          source:Number(node.getAttribute(
+            "data-km-pencil-hair-occlusion-source")),
+          drawn:Number(node.getAttribute(
+            "data-km-pencil-hair-occlusion-drawn")),
+        }));
+        // Actual CC0 dark-ear lock was 3/255 in the photographic source
+        // but 113/255 in v6's dry plate. Do not let an ivory seam return.
+        expect(shadow.source).toBeLessThan(30);
+        expect(shadow.drawn).toBeLessThan(105);
+        await contactToggle.uncheck();
         const toneEvidence=page.locator(
           '[data-km-pencil-tonal-comparison="ready"]');
         await expect(toneEvidence).toHaveCount(1,{timeout:90000});

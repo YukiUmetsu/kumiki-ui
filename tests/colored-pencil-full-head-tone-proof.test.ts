@@ -1,6 +1,7 @@
 import {describe,expect,it} from "vitest";
 import {
   CC0_FACE_VALUE_REGIONS,compareCC0PortraitTones,
+  CC0_HAIR_OCCLUSION_PROBE,compareCC0HairOcclusion,
 } from "../src/video/colored-pencil-full-head-tone-proof";
 import type {PencilTonePixelGrid} from "../src/video/colored-pencil-full-head-tone-proof";
 
@@ -20,6 +21,27 @@ const paint=(image:PencilTonePixelGrid,x:number,y:number,value:number)=>{
     image.data[index]=image.data[index+1]=image.data[index+2]=value;
   }
 };
+describe("source-registered ear/hair shadow continuity (negative-only)",()=>{
+  it("rejects a lost dark lock and accepts measured dark-pencil depth without artwork approval",()=>{
+    const source=make(245),washed=make(250),ink=make(250);
+    paint(source,CC0_HAIR_OCCLUSION_PROBE.x,
+      CC0_HAIR_OCCLUSION_PROBE.y,3);
+    paint(ink,CC0_HAIR_OCCLUSION_PROBE.x,
+      CC0_HAIR_OCCLUSION_PROBE.y,58);
+    const missing=compareCC0HairOcclusion(source,washed);
+    expect(missing.missingDarkLock).toBe(true);
+    expect(missing.sourceLuminance).toBeCloseTo(3,0);
+    const repaired=compareCC0HairOcclusion(source,ink);
+    expect(repaired.missingDarkLock).toBe(false);
+    expect(repaired.drawnLuminance).toBeCloseTo(58,0);
+    expect(repaired.artisticApproval).toBe(false);
+    expect(()=>compareCC0HairOcclusion(source,{
+      ...ink,width:400,
+    })).toThrow(RangeError);
+    const moved=compareCC0HairOcclusion(make(220),ink);
+    expect(moved.missingDarkLock).toBe(true);
+  });
+});
 describe("source-aligned ArtCraft facial tone evidence (negative gate only)",()=>{
   it("measures five matching real-image regions, preserves contrast and never approves art",()=>{
     const source=make(245),dry=make(250);

@@ -85,3 +85,39 @@ export const compareCC0PortraitTones=(
       meanAbsoluteValueError>55,
     artisticApproval:false};
 };
+
+/**
+ * The near-black photographed left ear/hair lock was missing in v6:
+ * source ≈3/255, output ≈113/255 at (75,230) in 285×318 Storybook.
+ * This exact reference-registered negative gate prevents an ivory seam.
+ * It is independent of the five facial-tone rectangles and never
+ * approves a portrait's likeness, neck anatomy or pencil material.
+ */
+export const CC0_HAIR_OCCLUSION_PROBE={
+  x:75/285,y:230/318,r:3/285,
+} as const;
+export interface CC0HairOcclusionResult {
+  sourceLuminance:number;
+  drawnLuminance:number;
+  lightnessDeficit:number;
+  /** A false value does NOT imply professional artistic approval. */
+  missingDarkLock:boolean;
+  artisticApproval:false;
+}
+export const compareCC0HairOcclusion=(
+  source:PencilTonePixelGrid,drawing:PencilTonePixelGrid,
+):CC0HairOcclusionResult=>{
+  validate(source);validate(drawing);
+  if(source.width!==drawing.width||source.height!==drawing.height)
+    throw new RangeError("Hair occlusion samples need matched canvas sizes");
+  const {x,y,r}=CC0_HAIR_OCCLUSION_PROBE;
+  const sourceLuminance=sample(source,x,y,r);
+  const drawnLuminance=sample(drawing,x,y,r);
+  // If a future source crop moved, reject an invalid proof; an ivory
+  // seam should not be excused by a mismatched bright reference.
+  const missingDarkLock=sourceLuminance>=30||drawnLuminance>=105||
+    drawnLuminance-sourceLuminance>95;
+  return {sourceLuminance,drawnLuminance,
+    lightnessDeficit:drawnLuminance-sourceLuminance,
+    missingDarkLock,artisticApproval:false};
+};
