@@ -47,7 +47,8 @@
       "9 folding hill-back child cracks",
       "8 primary fracture child veins",
       "dark recess",
-      "surrounding blank paper"
+      "surrounding blank paper",
+      "3 parent-rooted cubic hill terraces with 6 attached alum-head caps and 40 dense dry/wet hemp fibres"
     ],
     "edges": [
       "crest root -> bone",
@@ -55,7 +56,8 @@
       "3 curved backs -> 9 child cracks, 3 each",
       "bone stations .08/.25/.43/.62 -> 4 vertical branches",
       "4 vertical branches -> 8 sub-fibres, 2 each",
-      "crease and shadow pockets layer over supported paint, not detached"
+      "crease and shadow pockets layer over supported paint, not detached",
+      "bone stations .09/.29/.51 -> cubic hill backs -> 2 caps and 13/16/11 fibre children"
     ],
     "intentional_voids": [
       "between three off-axis rounded backs",
@@ -100,5 +102,29 @@
   "comparison": {
     "status": "source study completed; native full-resolution rendered candidate comparison pending",
     "not_source_parity": true
+  },
+  "terrace_revision": {
+    "study_date": "2026-11-15",
+    "artcraft_version": "9.1",
+    "reference": "National Palace Museum Fuchun Mountains and Smarthistory detail-6",
+    "issue": "Current native 960x540 hero's smooth triangle dominates sparse, near-linear cliff strokes. The original painting's dark nested hill-backs and crowded hemp-fibre texture are missing.",
+    "source_interpretation": {
+      "macro": "Interlocking, overlapping hill-backs with changing curvature and broad blank gullies; secondary crests descend from a single mountain parent.",
+      "meso": "Three non-identical loaded curved backs, opposite turns, short grouped alum-head cap shadows and two unequal hemp-fibre concentrations on each parent.",
+      "micro": "Width-modulated pigment belly, thin dry tails, 40 source-oriented attached fibres and intentionally unmarked midstation gaps."
+    },
+    "attachment_graph": {
+      "main_parent": "painted middle-ridge hero crest -> quadratic mountain bone",
+      "primary": "three hill backs at parent bone stations 0.09/0.29/0.51",
+      "secondary": "two alum-head caps sampled from cubic parent at stations 0.24/0.67",
+      "tertiary": "13/16/11 long- and short-hemp strokes sampled from their own cubic parent positions; no floating entries",
+      "preserved": "previous four descending fracture ribs, three wide rolling folds, twenty-four pima bundles, pine grove and paper reserve"
+    },
+    "acceptance": {
+      "technical": "3 loaded parent cubic ribbons, 6 rooted caps, 40 rooted pressure-variable brush gestures; deterministic per frame/seed; no detail-0 residue",
+      "visual": "Evaluate 960x540 frames and 2.4x three-condition Storybook geology crop against institutional Fuchun detailed scan; reject readable symmetric arced stamps, regularly spaced parallel rain or flat triangle.",
+      "status": "candidate; needs independent head screenshot/film inspection"
+    },
+    "rights": "No original museum image pixels, contours or scans embedded in library."
   }
 }
