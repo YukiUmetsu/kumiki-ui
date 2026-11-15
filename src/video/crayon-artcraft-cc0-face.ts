@@ -70,8 +70,10 @@ export const CRAYON_F1_FACE_PARTS=[
   "upper-lid-near","upper-lid-far",
   "lash-root-near","lash-root-far","lower-lid-near","lower-lid-far",
   "malar-cheek-near","cheek-far","nose-root","nose-dorsum",
-  "nose-tip","nose-alar-near","nose-alar-far",
-  "philtrum","lip-upper","lip-lower","oral-opening",
+  "nose-tip","nose-septal-transition","nose-tip-underlight",
+  "nose-alar-near","nose-alar-far",
+  "philtrum","lip-upper","lip-cupid-tubercles","lip-lower",
+  "lip-lower-core-shadow","oral-opening",
   "chin-plane","jaw-underside","cheek-malar-cast",
   "cheek-malar-bounce","nose-sidewall-form","nose-subalar-contact",
   "nose-alar-undercut-near","nose-alar-undercut-far",
@@ -418,6 +420,17 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(375,584,61,56),C.noseLight,[141,240],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       blendRadius:6.4,pressure:.51,spacing:5.2,markStrength:.25});
+  // F1 source plane bridge: tip, columella, and alar wings remain a
+  // single overlapping cartilaginous wedge rather than isolated dark dots.
+  // The slanted oblique tip centers on source F1 nose_tip=(411,631).
+  wax("nose-septal-transition",
+    "M404 606C414 610 422 623 427 633"+
+    "Q438 637 445 621Q445 639 432 649"+
+    "Q418 656 408 645Q402 632 404 606Z",
+    rect(398,600,54,59),
+    ["#ba8f80","#8e6c68","#ddb19f"],[149,252],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.41,spacing:7.1,markStrength:.23,blendRadius:8});
   wax("nose-alar-near",
     "M380 616Q389 607 404 616Q411 625 406 642"+
     "Q390 651 381 639Z",
@@ -441,28 +454,30 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     ["#a57b76","#71565c","#cfa292"],[136,246],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       blendRadius:7,pressure:.7,markStrength:.3,spacing:6});
+  // The shadow is an irregular under-plane, not a dark U surrounding a
+  // round nose glyph. Raised wax follows the source's turning cartilage.
   wax("nose-subalar-contact",
-    "M371 626Q380 627 388 638Q400 648 413 636"+
-    "Q426 627 434 630Q428 651 405 659"+
-    "Q383 660 371 644Z",
-    rect(365,622,75,43),
-    ["#996b65","#624449","#c19381"],[157,259],
+    "M372 629Q387 640 400 643Q416 644 429 634"+
+    "Q436 628 444 627Q438 647 420 654"+
+    "Q393 659 372 644Z",
+    rect(367,622,81,43),
+    ["#b4867a","#856865","#d5a99b"],[157,259],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      blendRadius:4,pressure:.69,markStrength:.39,spacing:5.5});
+      blendRadius:6.5,pressure:.5,markStrength:.26,spacing:7.8});
   wax("nose-alar-undercut-near",
-    "M379 631Q385 620 397 626Q406 631 404 640"+
-    "Q393 647 381 640Z",
-    rect(374,616,37,34),
-    ["#8a5550","#4d3539","#ad7d71"],[176,269],
+    "M378 635Q386 641 397 642Q407 644 411 635"+
+    "Q409 649 399 649Q384 647 378 635Z",
+    rect(373,629,44,27),
+    ["#b18479","#815e5a","#c89e8c"],[176,269],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      blendRadius:2,pressure:.76,markStrength:.55,spacing:4.3});
+      blendRadius:4.5,pressure:.53,markStrength:.28,spacing:6.5});
   wax("nose-alar-undercut-far",
-    "M441 617Q450 608 459 615Q466 622 455 632"+
-    "Q446 635 441 626Z",
-    rect(437,605,34,34),
-    ["#90645a","#5b3d3d","#b98b7c"],[173,268],
+    "M440 626Q450 625 457 614Q464 617 458 626"+
+    "Q451 633 440 628Z",
+    rect(435,609,32,29),
+    ["#b18375","#876663","#cca496"],[173,268],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      blendRadius:2,pressure:.72,markStrength:.49,spacing:4.2});
+      blendRadius:4.1,pressure:.48,markStrength:.24,spacing:7.1});
   wax("nose-tip-reflected-light",
     "M382 611Q392 597 409 599Q426 602 431 612"+
     "Q422 622 406 622Q390 624 382 611Z",
@@ -470,6 +485,15 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     ["#edc8ae","#b89283","#ffe0ba"],[174,271],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       blendRadius:7,pressure:.54,markStrength:.17,spacing:8.1});
+  // Reflected pressure-built color ties the columella to the alar
+  // undercut, while leaving a small air gap beneath each nostril.
+  wax("nose-tip-underlight",
+    "M390 627Q403 630 416 634Q430 638 442 625"+
+    "Q437 646 421 652Q401 651 390 627Z",
+    rect(385,622,64,36),
+    ["#d7a995","#af8179","#efc3ab"],[195,277],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      blendRadius:7.8,pressure:.37,spacing:8,markStrength:.18});
   // Mouth's natural perspective slopes upwards toward the occluded far
   // cheek. Separate vermilion volumes, dark oral slit and visible tooth
   // interruption are sourced from F1 x348..490/y681..775, not a U glyph.
@@ -487,19 +511,31 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(350,692,140,61),C.lip,[166,260],
     {parentId:"face-outline",pressure:.55,spacing:7.2,
       markStrength:.25,underpaintTooth:.24});
+  // The source F1 expression is nearly closed, oblique and asymmetric.
+  // Keep an actual narrow internal opening, not a broad smile/teeth slot.
+  wax("lip-cupid-tubercles",
+    "M386 723Q401 711 415 706Q425 700 434 704"+
+    "Q445 699 456 700Q466 701 475 704"+
+    "Q450 711 430 720Q408 729 386 723Z",
+    rect(382,693,97,42),C.lipLight,[181,268],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      blendRadius:5.1,pressure:.39,spacing:7,markStrength:.22});
   wax("oral-opening",
-    "M356 742Q384 729 409 721Q439 715 465 711"+
-    "Q478 708 486 713Q467 728 439 734"+
-    "Q392 748 357 747Z",
-    rect(351,705,140,47),C.mouth,[194,279],
-    {parentId:"face-outline",pressure:.71,spacing:5.3,
-      markStrength:.35,underpaintTooth:.27});
+    "M353 742C377 734 407 725 429 719"+
+    "C451 713 474 708 486 713"+
+    "C466 716 453 721 432 727"+
+    "C407 734 378 745 355 744Z",
+    rect(350,705,140,43),C.mouth,[194,279],
+    {parentId:"face-outline",pressure:.52,spacing:7.1,
+      markStrength:.23,underpaintTooth:.21});
+  // Soft enamel/inner-lip reflection: tightly interrupted, without the
+  // unsupported high-contrast 61×25 white teeth slash.
   wax("mouth-teeth",
-    "M415 727Q437 717 454 715Q463 713 468 715"+
-    "Q448 725 420 730Z",
-    rect(412,710,61,25),["#ad9894","#7d6b6d","#cab4aa"],[207,284],
-    {parentId:"oral-opening",clipToParent:true,pressure:.31,
-      markStrength:.08,spacing:8.1,underpaintTooth:.12});
+    "M426 723Q439 720 452 717Q457 716 459 717"+
+    "Q447 723 429 726Z",
+    rect(424,715,37,11),["#a28a82","#7d6867","#bba39a"],[207,284],
+    {parentId:"oral-opening",clipToParent:true,pressure:.28,
+      markStrength:.05,spacing:9.3,underpaintTooth:.08});
   wax("lip-lower",
     "M363 744Q386 747 412 739Q447 731 484 717"+
     "Q488 735 475 747Q446 766 414 766"+
@@ -507,6 +543,16 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(357,713,134,60),C.lipLight,[199,286],
     {parentId:"face-outline",pressure:.49,spacing:8.4,
       markStrength:.18,underpaintTooth:.18});
+  // The inferior vermilion turns back into the chin as a wide *open*
+  // value plane. This is not an opaque digital smile capsule.
+  wax("lip-lower-core-shadow",
+    "M364 746Q388 754 415 747Q457 737 482 716"+
+    "Q481 737 461 748Q433 767 399 763"+
+    "Q377 763 364 746Z",
+    rect(359,713,130,57),
+    ["#b48b88","#8b676a","#deb0a5"],[217,291],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.42,spacing:7.8,markStrength:.23,blendRadius:6.2});
   // Silhouette-order lock: hair curtains lie on TOP of the face on right
   // and behind left cheek, selectively masking the far pupil's outer edge.
   wax("hair-left-curtain",
@@ -721,12 +767,14 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   mark("nose-alar-crease-far",
     "M446 622Q450 613 455 613",
     "#86564c",.96,[231,298],.61,"face-outline");
+  // Nostrils are short dark OCCLUSIONS beneath the alar wings, not
+  // independent closed circles outlined against pale unmodeled skin.
   mark("nostril-contact-near",
-    "M383 635Q390 625 399 629Q402 631 403 635",
-    "#5a3433",2.3,[235,299],.78,"face-outline");
+    "M388 640Q396 642 404 639",
+    "#674b4a",1.06,[235,299],.52,"face-outline");
   mark("nostril-contact-far",
-    "M447 623Q449 613 455 615Q457 619 455 623",
-    "#69423d",1.4,[234,299],.66,"face-outline");
+    "M448 626Q452 622 457 620",
+    "#795756",.78,[234,299],.47,"face-outline");
   mark("lip-commissure-left",
     "M351 744Q357 735 365 733",
     "#663841",1.18,[243,298],.78,"face-outline");
