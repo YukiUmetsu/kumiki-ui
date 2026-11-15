@@ -50,6 +50,18 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(parts.get("pupil-far")!.opaqueSupport).toBe(true);
     expect(parts.get("temple-light")!.opaqueSupport).toBe(false);
     expect(parts.get("cheek-light")!.opaqueSupport).toBe(false);
+    // Source-led face construction: narrow natural apertures, layered sockets,
+    // cartilage/naris detail, and short directional brow hairs, not doll eyes.
+    for(const eye of ["eye-white-far","eye-white-near"]){
+      const r=parts.get(eye)!;
+      expect(r.bounds[3]).toBeLessThanOrEqual(30);
+      expect(r.details!.length).toBeGreaterThanOrEqual(3);
+      expect(r.path.match(/C|Q/g)?.length).toBeGreaterThanOrEqual(2);
+    }
+    expect(parts.get("face-main")!.details!.length).toBeGreaterThanOrEqual(8);
+    expect(parts.get("brows")!.details!.length).toBeGreaterThanOrEqual(3);
+    expect(parts.get("nose-bridge")!.details!.length).toBeGreaterThanOrEqual(4);
+    expect(parts.get("lip-upper")!.details!.length).toBeGreaterThanOrEqual(2);
     expect(parts.get("eye-white-near")!.bounds[2])
       .toBeGreaterThan(parts.get("eye-white-far")!.bounds[2]);
     expect(parts.get("lip-upper")!.path).not.toBe(parts.get("lip-lower")!.path);
@@ -57,6 +69,34 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       const r=parts.get(id)!;
       expect(r.details!.some(x=>(x.path.match(/ Q/g)??[]).length>=15)).toBe(true);
     }
+  });
+
+  it("builds soft three-quarter human eye and nasal planes without hard iris or brow stickers",()=>{
+    const regions=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"}).regions;
+    const parts=new Map(regions.map(r=>[r.id,r]));
+    const nose=parts.get("nose-bridge")!;
+    expect(nose.opaqueSupport).toBe(false);
+    expect(nose.craft).toBeUndefined();
+    const eyebrow=parts.get("brows")!;
+    expect(eyebrow.bounds[3]).toBeLessThan(18);
+    expect(eyebrow.layers.every(l=>l.texture==="fiber")).toBe(true);
+    for(const [eye,iris,pupil] of [
+      ["eye-white-far","iris-far","pupil-far"],
+      ["eye-white-near","iris-near","pupil-near"],
+    ] as const){
+      const sclera=parts.get(eye)!,colour=parts.get(iris)!,dark=parts.get(pupil)!;
+      expect(sclera.bounds[3]).toBeLessThanOrEqual(23);
+      expect(colour.bounds[1]).toBeGreaterThanOrEqual(sclera.bounds[1]);
+      expect(colour.bounds[1]+colour.bounds[3])
+        .toBeLessThanOrEqual(sclera.bounds[1]+sclera.bounds[3]+2);
+      expect(dark.bounds[2]).toBeLessThan(colour.bounds[2]);
+      expect(sclera.layers[0].color).not.toBe("#FFFFFF");
+    }
+    const skin=regions.filter(r=>r.craft?.kind==="skin");
+    expect(skin.length).toBeGreaterThan(5);
+    expect(skin.every(r=>r.layers[0].texture==="stipple")).toBe(true);
+    expect(regions.filter(r=>r.craft?.kind==="hair")
+      .every(r=>r.layers.every(layer=>layer.texture==="fiber"))).toBe(true);
   });
 
   it("constructs a fox with distinct ear inserts, ruff, four facial feature masses and rooted fur",()=>{
@@ -68,11 +108,61 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       "ear-near","ear-near-inner","mask","muzzle","eye-far","eye-near",
       "nose","whisker-roots","tail-tip",
     ])expect(parts.has(id)).toBe(true);
-    expect(parts.get("head-main")!.details!.length).toBe(3);
+    // The old broad continuous raccoon band must resolve into socket shadows.
+    expect((parts.get("mask")!.path.match(/M/g)??[]).length).toBe(2);
+    expect(parts.get("head-main")!.details!.length).toBeGreaterThanOrEqual(4);
+    for(const eye of ["eye-far","eye-near"]){
+      expect(parts.get(eye)!.details!.length).toBeGreaterThanOrEqual(3);
+      expect(parts.get(eye)!.bounds[3]).toBeLessThanOrEqual(26);
+    }
+    expect(parts.get("muzzle")!.details!.length).toBeGreaterThanOrEqual(3);
+    expect(parts.get("nose")!.details!.length).toBeGreaterThanOrEqual(3);
     expect(parts.get("chest")!.details!.length).toBe(2);
     expect(parts.get("ground-shadow")!.opaqueSupport).toBe(false);
     expect(parts.get("muzzle")!.opaqueSupport).toBe(true);
-    expect(parts.get("whisker-roots")!.details![0].path.match(/M/g)!.length).toBe(4);
+    const whisker=parts.get("whisker-roots")!;
+    expect(whisker.clipDetails).toBe(false);
+    expect(whisker.opaqueSupport).toBe(true);
+    expect(whisker.details!.slice(0,2).reduce((n,t)=>
+      n+(t.path.match(/M/g)??[]).length,0)).toBe(6);
+  });
+
+  it("builds an asymmetrical fox rostrum and a rooted, short-fibre cheek instead of round mask stickers",()=>{
+    const regions=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"}).regions;
+    const parts=new Map(regions.map(region=>[region.id,region]));
+    const nose=parts.get("nose")!,near=parts.get("eye-near")!;
+    const far=parts.get("eye-far")!,muzzle=parts.get("muzzle")!;
+    const bridge=parts.get("rostrum-bridge")!,cheek=parts.get("cheek-ruff")!;
+    expect(regions.length).toBeLessThanOrEqual(24);
+    expect(nose.bounds[0]+nose.bounds[2]).toBeLessThan(far.bounds[0]);
+    expect(far.bounds[0]+far.bounds[2]).toBeLessThan(near.bounds[0]);
+    expect(near.bounds[2]).toBeGreaterThan(far.bounds[2]*1.20);
+    expect(muzzle.bounds[2]).toBeGreaterThan(155);
+    expect(muzzle.bounds[3]).toBeLessThan(80);
+    expect(bridge.opaqueSupport).toBe(false); // dry glaze, no paper-backed sticker
+    expect(cheek.opaqueSupport).toBe(true);
+    const nearEar=parts.get("ear-near")!,farEar=parts.get("ear-far")!;
+    expect(nearEar.bounds[3]).toBeLessThan(107);
+    expect(farEar.bounds[3]).toBeLessThan(100);
+    for(const region of regions.filter(r=>r.craft?.kind==="fur")){
+      expect(region.layers.every(layer=>layer.texture==="fiber")).toBe(true);
+      expect(region.layers.every(layer=>layer.tipWidth<1.55)).toBe(true);
+    }
+    expect(parts.get("mask")!.bounds[3]).toBeLessThanOrEqual(46);
+    for(const id of ["head-main","muzzle","cheek-ruff"]){
+      const region=parts.get(id)!;
+      const fibres=region.details!.filter(x=>x.id?.startsWith("fibre-"));
+      expect(fibres.length).toBeGreaterThanOrEqual(6);
+      for(const trace of fibres){
+        const strokes=trace.path.match(/M/g)??[];
+        expect(strokes.length).toBeGreaterThanOrEqual(12);
+        expect(strokes.length).toBeLessThanOrEqual(36);
+        expect(trace.path).toMatch(/ Q/);
+        expect(trace.path).not.toMatch(/NaN|Infinity/);
+        expect(trace.width).toBeLessThanOrEqual(.65);
+      }
+    }
+    expect(parts.get("whisker-roots")!.clipDetails).toBe(false);
   });
 
   it("separates distant from close pines, reflected water, river rock and bank foliage",()=>{

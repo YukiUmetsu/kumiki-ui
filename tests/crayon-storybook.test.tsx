@@ -72,7 +72,11 @@ describe("material-native wax-crayon storybook", () => {
       expect(mid).toContain('data-km-crayon-region=""');
       expect(end).toContain('data-km-crayon-paper=""');
       expect(end).toContain('stroke-dasharray="100"');
-      expect(end).toContain('data-km-crayon-title=""');
+      if (aspect==="landscape") expect(end).toContain('data-km-crayon-title=""');
+      else {
+        expect(end).not.toContain('data-km-crayon-title=""');
+        expect(end).not.toContain(">WAX CRAYON   /");
+      }
       expect(end).toContain(aspect==="portrait"?'viewBox="0 0 540 960"':'viewBox="0 0 960 540"');
       expect(mid).not.toBe(first);
       expect(end).not.toBe(mid);
@@ -83,6 +87,16 @@ describe("material-native wax-crayon storybook", () => {
       expect(render(419,23,false,0)).not.toBe(end);
     });
   }
+
+  it("keeps portrait editorial opt-in while allowing explicit title experiments",()=>{
+    const portrait=renderToStaticMarkup(<CrayonStorybook frame={419} aspect="portrait"/>);
+    const optIn=renderToStaticMarkup(<CrayonStorybook frame={419} aspect="portrait" showEditorial/>);
+    const forcedOff=renderToStaticMarkup(<CrayonStorybook frame={419} aspect="landscape" showEditorial={false}/>);
+    expect(portrait).not.toContain('data-km-crayon-title=""');
+    expect(optIn).toContain('data-km-crayon-title=""');
+    expect(optIn).toContain("WAX CRAYON");
+    expect(forcedOff).not.toContain('data-km-crayon-title=""');
+  });
 
   it("preserves the existing FilmStage timeline with portable, dual-aspect proof and renderable slots", async () => {
     expect(portable).toEqual(CRAYON_STORYBOOK_FILM);

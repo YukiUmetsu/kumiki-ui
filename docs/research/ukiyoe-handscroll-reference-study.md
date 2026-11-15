@@ -261,12 +261,173 @@ Not done: three-quarter views. Every rig is still a profile, mirrored to turn.
   - The beds were chosen from the catalog's descriptions and have not been listened to in context. There are no event sounds yet (no surf crash, no fireworks): the catalog has no recorded ones.
 - **Fingered claws.** In the print, a big claw's hook ends in two or three small curled fingers, like a bird's foot (see the claw crop of the 3840 px scan). Hooks on the larger claws now split near the tip into a smaller twin curling the same way, and the biggest sometimes into two. Small claws stay single hooks, so the lace keeps its rhythm. The first version, thin backward ticks, read as hair, not fingers, and was redrawn. It is limited to the larger claws because the first version cost the squall 2–3 fps; it now plays at 27.5–29 fps.
 
+## Event sounds and three-quarter bodies (owner request, 2026-11-14)
+
+- **New recordings.** Four CC0 field recordings from Freesound were found through Openverse. The CC0 licence was read on each source page before import, and each went through the repo's importer (trim, seamless loop, level-matched to −23 LUFS, sha256, rights):
+
+  | Bed | Source |
+  | --- | --- |
+  | `bed-rain-heavy` | Kinoton, [393560](https://freesound.org/people/Kinoton/sounds/393560) |
+  | `bed-surf-beach` | kyles, [177698](https://freesound.org/people/kyles/sounds/177698) |
+  | `bed-fireworks-distant` | monotraum, [212673](https://freesound.org/people/monotraum/sounds/212673) |
+  | `bed-crickets-night` | PhilllChabbb, [245834](https://freesound.org/people/PhilllChabbb/sounds/245834) |
+
+- **Sections chosen with earshot** (find, describe, realness). The final loops were measured again:
+
+  | Bed | Match | Real (p_real) | Voices (voice z) |
+  | --- | --- | --- | --- |
+  | Rain | heavy rain, z +3.9 | 0.96 | 1.2 |
+  | Surf | ocean waves, z +5.7 | 0.87 | 1.5 |
+  | Distant fireworks | fireworks exploding, z +4.3 (tag +5.2) | 0.94 | 2.0 |
+  | Crickets | crickets at night, z +4.1 | 0.93 | 1.5 |
+
+  None reaches the 2.5 voice threshold, so no voices are heard.
+- **Rejected candidates:**
+  - A crickets recording with audible distant village voices (AudioSet "Speech").
+  - A surf recording whose best trims read as underwater bubbles.
+  - A temple bell whose strikes all start inside the previous ring.
+  - The first surf section, which failed the importer's loop-seam check at −2.9 dB. A 12 s section passed.
+- **In the films:**
+  - Rain is layered over the storm's wind.
+  - The fireworks shot plays distant fireworks with crickets under them. The first mix had a faint stream too: earshot heard it as "being underwater" and the fireworks only weakly (z +2.4), so the stream was dropped and the levels set again. Fireworks z +4.4 and crickets +3.4, both strong.
+  - Crickets play under the arrival.
+  - Surf with a little wind on the oni island (ocean waves +4.8, wind +3.0).
+- **Shot `layers`.** A shot can now carry extra beds, written as film beds over its frames; the Storybook players play them too. Event sounds (a crash on the break, single bursts on each firework) are still beds, not hits timed to frames.
+- **Three-quarter bodies.** Prints often draw a figure's limbs in profile while the torso and face turn toward the viewer. A figure with `view: "three-quarter"` now gets:
+  - a broader chest, with the far shoulder's seam showing;
+  - a breast panel over the near sleeve, carrying the crossed collar as a V (the wearer's left edge over the right);
+  - the robe's front panel (okumi) edge running down to the hem, with a sliver of the under-robe;
+  - the obi cord across the front.
+
+  It reads in standing, walking and waving poses. The Night Ferry's mother and the crowd's three-quarter townswomen use it. Creatures are still profile rigs.
+
+## Three-quarter limbs and animals (owner request, 2026-11-14)
+
+- **Figures.**
+  - **Limbs.** A three-quarter figure's limbs now turn with its torso. The turn is applied to the solved joints, so every action keeps working. The sideways reach of a swinging limb foreshortens by cos 45°, the far leg and arm stand back and higher (further away), the near ones come forward, and the feet shorten on the diagonal.
+  - **Gait.** The walk cycle shortens by the same factor, so the stance foot stays planted. Measured on the lowest point of the figure, the drift per frame is 3.16 px both in profile and turned.
+  - **Where it shows.** The Night Ferry's mother and the crowd's three-quarter townswomen.
+- **Animals.**
+  - **Four-legged rig.** `look.view: "three-quarter"` foreshortens the body to 80% and sets the far legs back and higher, so all four feet read in depth. The head turns to us: the muzzle shortens, the far eye shows beyond the bridge of the nose with the stop between the eyes, and the horse shows only the far eye's upper rim over its long head.
+  - **Birds.** The far leg and wing are set back and higher.
+  - **In the films.** Momotarō's dog on the folktale road, and the fox that stops to look back in *The Snow Woman*'s pass.
+  - **In Storybook.** The Bestiary has a **View** switch that turns every animal and figure.
+- **Not done.** No back views or full front views; dragons and yōkai keep their own drawings.
+
+## Back views and full front views (owner request, 2026-11-14)
+
+Prints often show a figure from behind: a traveller walking away down the road, a woman whose back is turned to show her nape and her obi's knot. They also show a figure square on, facing out of the print. Figures and four-legged animals now take `look.view: "front"` and `"back"`.
+
+- **Figures** (`ukiyoe-figure-front.ts`). The drawing is driven by the same pose channels as the profile rig, so every action works.
+  - **Legs.** They stand side by side. A stride lifts the swinging foot and bends its knee toward us, so the shin shortens.
+  - **Arms.** They hang at the sides. A profile shoulder angle becomes a sideways lift, reaching straight overhead at the top of a cheer. A forward reach foreshortens, and a folded forearm (praying, cradling) comes in to the chest. A punt pole stands upright at one side, held in both hands one above the other, and the hands climb and drop with the stroke.
+  - **Bow.** A bow shortens the torso and drops the head.
+  - **Kneeling.** Seiza folds the knees into a wide base.
+  - **From the front.** Both eyes and brows, the nose and mouth, the crossed collar (left over right), the front panel and the obi cord.
+  - **From behind.** The back of each hairstyle, the nape (the women's collar pulled low, emon-nuki), the taiko knot and the centre-back seam.
+  - **Oni.** Horns, fangs and the glaring eyes face out; from behind, only the wild hair and the horns.
+  - **Props.** The umbrella leans over the head without crossing the face, the staff or kanabō stands at the side, the lantern hangs from the hand, and the fan is held up.
+- **Four-legged animals** (`quadFrontBack` in `ukiyoe-creatures.ts`). The fox, tanuki, dog, cat, rabbit, monkey, horse and nue take these views.
+  - **From the front.** The face square on (both ears, both eyes, the muzzle toward us with the nose leather at its tip, each species' markings), the chest ruff, the front legs side by side, and the hind legs behind them.
+  - **From behind.** The backs of the ears, the rump with the tail down its middle, and the hind legs.
+  - **Horse.** From behind, its head stands high on the neck with the mane down it.
+  - **Sitting.** The haunches spread at the base.
+  - **Kyūbi.** Its nine tails fan out behind it, with the foxfire circling.
+  - **Drumming tanuki.** It stands upright, beating its belly with both paws, with the hat and the sake bottle.
+  - **Nue.** Its snake tail rears up over the back and looks at us.
+- **In Storybook.** The Bestiary's View switch offers Front and Back (birds, the dragon and the yōkai stay in profile), and the Cast lab has a View switch for each figure.
+- **Not done.**
+  - Birds, the dragon and the yōkai have no front or back drawing.
+  - No film uses these views yet.
+  - The turn between views is a cut, not an animated turn.
+
+## Oiran (roadmap U1, owner request, 2026-11-14)
+
+**Sources.** Public-domain prints from the Metropolitan Museum's open-access collection, studied at full resolution:
+
+- Torii Kiyonaga, *An Oiran Accompanied by Two Kamuro* (Met 56034)
+- Chōbunsai Eishi, *Karakoto of Chōjiya on Parade* (52000) and *Oiran and Attendants at the Ō Mon of the Yoshiwara* (36662)
+- Katsukawa Shunchō, *The Oiran Shirayu of Wakanaya attended by Two Kamuro and Shinzo* (54819)
+- Chōkōsai Eishō, a large-head portrait of Hanaogi of Ōgiya (36664), for the hair
+- Katsushika Taito II, *Courtesan on Parade* (57069), for the back view
+
+Accounts of the procession step and the costume, which agree in outline and differ in detail:
+
+- uncannyjapan.com and japlanease.com: soto-hachimonji, the foot tracing an 8
+- oldtokyo.com: the skater-like crossing step; three-toothed lacquered clogs about 8 inches tall; the order of the procession
+- Wikipedia "Oiran" and tsunagujapan.com: the date-hyōgo hairstyle, the manaita obi tied in front, the unbelted uchikake
+
+The counts of kanzashi and the weights given vary between sources and were not used as targets.
+
+**What the prints show.**
+
+- **Hair.** Wide, translucent side-wings with fine combed lines and a bun at the nape. Large loops on top with a broad tortoiseshell comb in front, and long pins radiating out on both sides, tipped with coral beads and flat ornaments.
+- **Collars.** Several collars layered at the neck (white, red, yellow).
+- **Obi.** A huge padded obi bundle at the belly in a gold tortoiseshell-hexagon weave, its ends hanging long.
+- **Over-robe.** A black uchikake with large motifs, its hems pooling and flaring over the coloured hems of the robes beneath, with a fat padded roll at the bottom.
+- **Clogs.** Tall black clogs peeking out under the hem.
+- **Attendants.** Two kamuro in matching red with flower pins, walking at her side or ahead.
+- **Parasol.** A manservant behind holding a big long-handled parasol over her.
+
+**What was built.** `ukiyoe-oiran.ts` holds the hyōgo hair (side and square views), the kamuro bob, the koma-geta (side and square), the padded hem, the kasane bands, the mae-obi (side and front), the chrysanthemum roundels and the parasol. The `dochu` step, `UKIYOE_OIRAN_LOOKS` and `oiranProcession` complete it. Storybook has **Oiran procession**: a pleasure-quarter street at dusk with cherry trees, lanterns and onlookers, plus the oiran in four views. The Cast lab includes the oiran.
+
+**Measured, not eyeballed.**
+
+- Tracking the clog teeth frame by frame first found the clogs drawn upward into the foot. The teeth sat 21 px above the ground; that is fixed, and the teeth now reach the ground within 1 px.
+- The planted clog slid about 8 px a step. The sweep is now ±10° at an even (triangle-wave) rate, and the planted clog holds within 0.3 px over a step.
+- The tests check both (within 3 px and within 1.5 px).
+
+**Not done.**
+
+- The uchikake's motifs are roundels, not the painted cranes, phoenixes or waves of the prints.
+- The turn between views is a cut.
+- The look-back mirrors the head; the body does not twist.
+- Kneeling in the uchikake is a rough mound.
+- No film uses the procession yet.
+- Nobody has done a human visual review yet.
+
+## Maiko (roadmap U2, owner request, 2026-11-14)
+
+**Sources.** The maiko dress as now known (the darari obi, okobo, the wareshinobu) is late Edo to Meiji and later, so prints are few; the Met's open-access search found none. Studied instead, from Wikimedia Commons:
+
+- Kuroda Seiki, *Maiko* (1893, public domain)
+- Licensed photographs, studied only and not redistributed:
+  - *Darari.jpg* (CC BY-SA 2.0), a black-and-white back view of a darari obi
+  - *Gion Higashi maiko Hinayū in Seirai-in Temple 05/06* (CC BY-SA 2.0), the bun and the darari from behind
+  - *Okobo.JPG* (CC BY 3.0)
+  - *Maiko-henshin-fullheight.jpg* (CC BY-SA 3.0)
+  - *Two young maiko in Seirai-in Temple 01* (CC BY-SA 2.0)
+  - *Toshimana dancing 03* (CC BY-SA 2.0), dance with two fans
+
+**What they show.**
+
+- **Darari.** Two long ends hang from a high folded knot nearly to the hem, side by side, patterned and weighted with a crest at the tip.
+- **Hair.** A split bun on the crown with red tie-dyed silk in the split, a cluster of silk flowers at the temple with strands hanging, and a silver pin.
+- **Make-up and dress.** White make-up stopping in points at the nape, a red collar, long sleeves and a trailing hem over red layers.
+- **Okobo.** A tall unlacquered wooden block with the toe cut back in a slope and a red thong.
+- **Dance.** Held poses with an open gold fan, arms extended, the sleeves hanging from them, knees softly bent.
+
+**What was built.** `ukiyoe-maiko.ts` holds the wareshinobu (side and square views), the hana-kanzashi with swinging strands, the silver pin, the eri-ashi, the darari (side and back), the front obiage and pocchiri, the okobo (side and square) and the maiōgi. It also adds the `kyomai` action, okobo steps in `walk`, and `UKIYOE_MAIKO_LOOK`. Storybook has **Maiko dance**; the Cast lab's maiko uses the new look and dances the kyōmai.
+
+**Measured.**
+
+- Tracking the okobo frame by frame found the planted clog skating 4–7 px a step with the ordinary (sine) gait. On okobo the stance leg now sweeps at an even rate (triangle wave), and the clog holds within about 1 px.
+- The tests check that it holds within 1.5 px over a step. They also check that the kyōmai is still within a hold, never jumps more than 8° a frame in a transition, and opens the fan to dance.
+
+**Not done.**
+
+- The kyōmai is four poses, not a choreographed piece.
+- In the front view an arm swept back hangs instead of opening to the side.
+- Kneeling lets the darari hang to the floor instead of lying on it.
+- No film uses her yet.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
-- Faces are a single profile design per hairstyle. There are no three-quarter turns or expressive brow and eye shapes yet.
+- Faces have one design per hairstyle in each view. There are no expressive brow and eye shapes yet.
 - The wave's foam is procedural. It is now one connected white like the print's, but every claw is built from the same palm-and-talon unit, so it lacks the print's hand-drawn variety of claw sizes and the long lace trailing over the back.
 - The wave breaks one way only: a plunging breaker. There is no spilling breaker for the small background waves, and the falling curtain has no motion smear at its fastest frames.
-- Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Faces turn three-quarter, but bodies and creatures are profile rigs that mirror to turn.
-- Sound is ambience beds only (river, stream, wind). There is no music, no surf or fireworks foley, and no rain recording, because the catalog has none.
+- Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Figures and animals turn three-quarter, and figures and four-legged animals can face front or back. Birds, the dragon and the yōkai cannot, and there is no animated turn between views.
+- Sound is recorded ambience beds (river, stream, wind, rain, surf, distant fireworks, crickets). There is no music and no hits timed to frames (a crash on the wave's break, each firework). Nobody has listened to the mix yet.
 - Human normal-speed review of the film has **not** been recorded.

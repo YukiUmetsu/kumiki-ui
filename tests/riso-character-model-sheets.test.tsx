@@ -92,9 +92,12 @@ describe("Source-anchored Riso character proportional construction sheets",()=>{
     const ids=RISO_PAPER_BIRD_SHEET.regions.map(r=>r.id);
     expect(ids).toEqual(["head","head-nape","eye-ring","eye-brow","eye","beak",
       "beak-divider","beak-nostril","body","breast-plumage","body-feather-hatching",
+      "breast-contour-feathers",
       "left-wing","left-wing-feather-division","wing-left-coverts","wing-left-quills",
+      "wing-left-barbs","wing-left-covert-row",
       "right-wing","right-wing-feather-division","wing-right-coverts","wing-right-quills",
-      "tail","tail-feather-shaft"]);
+      "wing-right-barbs","wing-right-covert-row",
+      "tail","tail-feather-shaft","tail-feather-barbs"]);
     expect(RISO_PAPER_BIRD_SHEET.regions.some(r=>r.category==="sleeve")).toBe(false);
   });
   it("IK-solved thigh and sleeve cage vertices move between pose frames",()=>{

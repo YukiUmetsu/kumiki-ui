@@ -1,5 +1,8 @@
 # 35 — Material-native film styles: step-by-step implementation roadmap
 
+> **WC16 watercolor portrait retirement (2026-11-14):** Human face demos from WC11–WC15 were rejected and removed. No face should be considered a shipped feature. See [reference atlas and rebuild gate](research/watercolour-portrait-masterwork-reference-atlas.md). Watercolor landscapes, other artwork, materials, and film infrastructure remain active.
+
+
 **Prepared:** 2026-11-13  
 **Status:** Active implementation roadmap. Functional implementation, automated validation, exported-proof evidence and explicit human visual acceptance are tracked separately below.  
 **Target:** `YukiUmetsu/kumiki-ui`, with a separate ContentGen integration after native Kumiki proof.  
@@ -439,3 +442,7 @@ Sizes are **relative complexity**, not a promised schedule. Split an L task furt
 7. Open a focused PR with source, tests, scene fixture, stills/review, and an explicit remaining-work list.
 
 **Next after that:** multi-plate print transitions → brush/ink engine → watercolor → character-performance styles → paper theatre/scientific visualizations → curated cross-style library → ContentGen integration and normal-speed QA.
+
+### PAPER-D1 — film director and reusable shot engine
+
+A generalized cut-paper director is implemented over PAPER1 instead of making more scene presets. It supports arbitrary original closed contours, true holes, short bounded pose and camera keyframe tracks, native 16:9/9:16 art direction, scene schedules, four unrelated production film subjects, Storybook frame scrubbing and FD1 film-slot integration. Future authoring must still supply original high-quality illustrations, and sophisticated physical folds, IK/character acting, automatic reference-to-art construction and full cinematic proof remain open. [Film director specification](component-specs/paper-craft.md#paper-d1--reusable-shot-based-paper-film-framework-artcraft-v7).

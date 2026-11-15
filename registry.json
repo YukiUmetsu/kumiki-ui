@@ -3296,6 +3296,11 @@
           "path": "registry/video/materials/crayon-scene-react.tsx",
           "type": "registry:ui",
           "target": "components/video/materials/crayon-scene-react.tsx"
+        },
+        {
+          "path": "registry/video/materials/crayon-art-direction.ts",
+          "type": "registry:ui",
+          "target": "components/video/materials/crayon-art-direction.ts"
         }
       ]
     },
@@ -3541,6 +3546,21 @@
           "target": "components/rig/rig-presets-machines.ts"
         },
         {
+          "path": "registry/rig/rig-presets-nature.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-presets-nature.ts"
+        },
+        {
+          "path": "registry/rig/rig-presets-actions.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-presets-actions.ts"
+        },
+        {
+          "path": "registry/rig/rig-flutter.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-flutter.ts"
+        },
+        {
           "path": "registry/rig/rig-presets.ts",
           "type": "registry:ui",
           "target": "components/rig/rig-presets.ts"
@@ -3678,6 +3698,21 @@
           "target": "components/video/ukiyoe/ukiyoe-figure.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-figure-front.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-figure-front.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-oiran.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-oiran.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-maiko.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-maiko.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"
@@ -3731,6 +3766,28 @@
           "path": "registry/video/film-look-react.tsx",
           "type": "registry:ui",
           "target": "components/video/film-look-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ink-shanshui-landscape",
+      "type": "registry:ui",
+      "title": "Chinese Ink Shanshui Landscape Animator",
+      "description": "Code-drawn 16:9 Chinese ink landscapes with layered sepia mountain washes, cunfa cliff lines, original pine, willow and bamboo art, arched bridges, water, mist and parallax; three compositional presets, deterministic absolute-frame animation, no raster references or external runtime dependencies.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-actor-director"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-shanshui.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-shanshui.ts"
+        },
+        {
+          "path": "registry/video/ink-shanshui-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-shanshui-react.tsx"
         }
       ]
     },
@@ -6580,7 +6637,7 @@
       "name": "paper-craft",
       "type": "registry:ui",
       "title": "Paper Craft Theatre",
-      "description": "Frame-exact cut-paper film engine: garden, botanical relief and five reusable sculptures (kingfisher, dragonfly, canal houses, camera, teacup). Multiple opaque paper layers, real apertures, 3 stock palettes, landscape/portrait, full Stage controls.",
+      "description": "Frame-exact paper film framework: reusable authored cutouts, nested paper rigs, arbitrary 16:9/9:16 multi-shot direction, strict pose and camera keyframes, accessible Storybook, five physical material styles, and FD1 output.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -6595,6 +6652,16 @@
           "target": "components/video/paper-craft-react.tsx"
         },
         {
+          "path": "registry/video/paper-director.ts",
+          "type": "registry:ui",
+          "target": "components/video/paper-director.ts"
+        },
+        {
+          "path": "registry/video/paper-director-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/paper-director-react.tsx"
+        },
+        {
           "path": "registry/video/paper-botanical-kit.ts",
           "type": "registry:ui",
           "target": "components/video/paper-botanical-kit.ts"
@@ -6603,6 +6670,38 @@
           "path": "registry/video/paper-object-kit.ts",
           "type": "registry:ui",
           "target": "components/video/paper-object-kit.ts"
+        },
+        {
+          "path": "registry/video/paper-scenery-kit.ts",
+          "type": "registry:ui",
+          "target": "components/video/paper-scenery-kit.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-cinematic-landscape",
+      "type": "registry:ui",
+      "title": "Cinematic Chinese Ink Landscape",
+      "description": "Original code-painted shan-shui animation engine: typed scene/motif DSL, pressure-native mountains, pine and willow, cliffs, stone river, bridge, pavilion, atmosphere, scholar gestures, absolute-frame camera and 16:9/9:16 compositing.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-wash-core"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-cinematic-scene.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-cinematic-scene.ts"
+        },
+        {
+          "path": "registry/video/ink-cinematic-scholar-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-cinematic-scholar-react.tsx"
+        },
+        {
+          "path": "registry/video/ink-cinematic-scene-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-cinematic-scene-react.tsx"
         }
       ]
     }

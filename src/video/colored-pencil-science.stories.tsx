@@ -16,6 +16,7 @@ import { PencilScene } from "../../registry/video/colored-pencil-scene-react";
 import { PencilObjectAtelier } from "./colored-pencil-object-studio";
 import { PencilLivingAtelier } from "./colored-pencil-living-studio";
 import { ReferencePencilAtelier } from "./colored-pencil-reference-atelier";
+import { PencilFoundationStudio } from "./colored-pencil-foundation-studio";
 
 const meta = {
   title: "Video Production/Film Looks/Colour-pencil",
@@ -180,8 +181,10 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
   const [pressure, setPressure] = useState(1);
   const [flow, setFlow] = useState(0);
   const [cameraEnabled, setCameraEnabled] = useState(true);
+  const [fibreMode,setFibreMode] = useState<"animated"|"fixed"|"hidden">("animated");
   const [characterInspection,setCharacterInspection] = useState<
-    "composition" | "fox-eye" | "fox-paw" | "kingfisher-bill" | "kingfisher-wing"
+    "composition" | "fox-eye" | "fox-paw" | "fox-ruff" |
+    "kingfisher-bill" | "kingfisher-wing" | "kingfisher-coverts"
   >("composition");
   const scene = useMemo(() => {
     const authored = subject === "characters" ? pencilCharacterScene(aspect) : pencilDemoScene(subject, aspect);
@@ -190,8 +193,15 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
       camera: cameraEnabled ? authored.camera : undefined,
       actors: authored.actors?.map(actor => ({
         ...actor, parts: actor.parts.map(part => ({
-          ...part, region: {
-            ...part.region, layers: part.region.layers.map(layer => ({
+          ...part,
+          detailTracks:fibreMode==="animated"?part.detailTracks:undefined,
+          region: {
+            ...part.region,
+            details:fibreMode==="hidden"?
+              part.region.details?.filter(trace=>
+                !part.detailTracks?.some(track=>track.id===trace.id)):
+              part.region.details,
+            layers: part.region.layers.map(layer => ({
               ...layer, pressure: Math.min(1, layer.pressure * pressure), flow: (layer.flow ?? 0) + flow,
             })),
           },
@@ -208,7 +218,7 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
         })),
       },
     };
-  }, [subject, aspect, paperTooth, pressure, flow, cameraEnabled]);
+  }, [subject, aspect, paperTooth, pressure, flow, cameraEnabled, fibreMode]);
   useEffect(() => {
     if (!playing) return;
     const origin = performance.now(), offset = frame;
@@ -229,14 +239,17 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
   const inspection = subject==="characters"?characterInspection:"composition";
   const focus = inspection==="fox-eye"?[213,105]:
     inspection==="fox-paw"?[171,218]:
-    inspection==="kingfisher-bill"?[65,102]:[148,154];
-  const foxFocus = inspection==="fox-eye"||inspection==="fox-paw";
+    inspection==="fox-ruff"?[172,148]:
+    inspection==="kingfisher-bill"?[65,102]:
+    inspection==="kingfisher-coverts"?[145,132]:[148,154];
+  const foxFocus = inspection==="fox-eye"||inspection==="fox-paw"||inspection==="fox-ruff";
   const shift = aspect==="landscape" ?
     foxFocus?[487,226,1.08]:[768,221,.99]:
     foxFocus?[58,513,.97]:[301,496,.94];
   const stageSize = aspect==="landscape"?[960,540]:[540,960];
   const zoom = inspection==="fox-paw"?3.85:inspection==="kingfisher-wing"?3.45:
-    inspection==="fox-eye"?4.2:3.25;
+    inspection==="fox-eye"?4.2:inspection==="fox-ruff"?4.0:
+    inspection==="kingfisher-coverts"?4.6:3.25;
   const artworkStyle = inspection==="composition"?undefined:{
     transform:"translate("+(50-100*zoom*(shift[0]+shift[2]*focus[0])/stageSize[0]).toFixed(3)+
       "%, "+(50-100*zoom*(shift[1]+shift[2]*focus[1])/stageSize[1]).toFixed(3)+
@@ -253,7 +266,8 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
       </h1>
       <p style={{ margin: 0, maxWidth: 850 }}>
         Original illustrated worlds and two independently animated characters share pressure-sensitive pigment, local stroke fans,
-        natural keratin bills, glossy ocular surfaces, layered paper, and frame-addressable animation.
+        natural keratin bills, glossy ocular surfaces, layered paper, independently
+        articulated root-to-tip fibre groups, and frame-addressable animation.
         Nothing is inferred as a real measurement.
       </p>
     </header>
@@ -296,8 +310,19 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
           <option value="composition">Whole composition</option>
           <option value="fox-eye">Fox eyelid, cheek and whiskers</option>
           <option value="fox-paw">Fox digits and floor contact</option>
+          <option value="fox-ruff">Fox rooted hair groups and ruff</option>
           <option value="kingfisher-bill">Kingfisher beak and iris</option>
           <option value="kingfisher-wing">Kingfisher rachis and coverts</option>
+          <option value="kingfisher-coverts">Kingfisher fine feather coverts</option>
+        </select>
+      </label>}
+      {subject==="characters"&&<label style={label}>Editable fine-fibre animation
+        <select aria-label="Character fine fibres" value={fibreMode}
+          onChange={e=>{setPlaying(false);
+            setFibreMode(e.target.value as typeof fibreMode);}}>
+          <option value="animated">Independent tuft / feather poses</option>
+          <option value="fixed">Fixed marks, parent motion only</option>
+          <option value="hidden">Hide authored fibre tracts</option>
         </select>
       </label>}
     </div>
@@ -489,7 +514,7 @@ export const ObjectMaterialAtelier: StoryObj<typeof meta> = {
 
 /** Same Video Production/Film Looks/Colour-pencil group, no new Storybook folder. */
 export const LivingSubjectsAtelier: StoryObj<typeof meta> = {
-  name: "ArtCraft · Portrait, fox and landscape",
+  name: "ArtCraft · Stylized vector faces and landscape (construction study)",
   args: {aspect:"landscape",subject:"leaf",frame:325},
   render: () => <PencilLivingAtelier/>,
 };
@@ -499,4 +524,18 @@ export const ReferenceGuidedPencil: StoryObj<typeof meta> = {
   name: "ArtCraft · Reference-guided real anatomy (experimental)",
   args: {aspect:"landscape",subject:"leaf",frame:325},
   render:()=> <ReferencePencilAtelier/>,
+};
+
+/** Dedicated real-anatomy study inside the SAME existing Colour-pencil folder. */
+export const ReferenceGuidedFaces: StoryObj<typeof meta> = {
+  name:"ArtCraft · Human face from CC0 anatomy (craft research)",
+  args:{aspect:"landscape",subject:"leaf",frame:325},
+  render:()=> <ReferencePencilAtelier initialSample="woman"/>,
+};
+
+/** The one canonical drawing-system entry point under the existing Colour-pencil root. */
+export const DrawingFoundation: StoryObj<typeof meta> = {
+  name:"Foundation · Reference, form, pigment, stroke and finish",
+  args:{aspect:"landscape",subject:"leaf",frame:335},
+  render:()=> <PencilFoundationStudio/>,
 };

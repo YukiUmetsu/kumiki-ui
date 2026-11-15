@@ -13,6 +13,8 @@
  * Nothing accumulates between calls, so any frame can be rendered alone.
  */
 import { evaluateEasing } from "../motion/easing";
+import { flutterState, projectPlate, seeded } from "./rig-flutter";
+import type { FlutterParams } from "./rig-flutter";
 import type { AffineMatrix, EasingSpec } from "../motion/types";
 import type { RigBone, RigKey, RigLeg, RigPart, RigRole, RigRootKey, RigShape, RigSpec, RigWindow } from "./rig-spec";
 
@@ -22,9 +24,10 @@ const mul = (p: AffineMatrix, q: AffineMatrix): AffineMatrix => ({ // p ∘ q: a
   a: p.a * q.a + p.c * q.b, b: p.b * q.a + p.d * q.b, c: p.a * q.c + p.c * q.d, d: p.b * q.c + p.d * q.d,
   e: p.a * q.e + p.c * q.f + p.e, f: p.b * q.e + p.d * q.f + p.f,
 });
-const local = (x: number, y: number, deg: number, sx: number, sy: number): AffineMatrix => {
+/** Bone-local matrix: translate · rotate · (scale with an optional vertical shear `ky`, y += ky·x). */
+const local = (x: number, y: number, deg: number, sx: number, sy: number, ky = 0): AffineMatrix => {
   const r = deg * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
-  return { a: c * sx, b: s * sx, c: -s * sy, d: c * sy, e: x, f: y };
+  return { a: c * sx - s * ky * sx, b: s * sx + c * ky * sx, c: -s * sy, d: c * sy, e: x, f: y };
 };
 const apply = (m: AffineMatrix, x: number, y: number): [number, number] => [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f];
 const invert = (m: AffineMatrix): AffineMatrix => {
@@ -142,12 +145,12 @@ function velocityAt(keys: readonly RigRootKey[], frame: number) {
 
 // ---- Pose ------------------------------------------------------------------------------------------------------------------------
 
-interface Pose { x: number; y: number; rotate: number; sx: number; sy: number; opacity: number }
+interface Pose { x: number; y: number; rotate: number; sx: number; sy: number; opacity: number; ky?: number }
 
 function trackAt(keys: readonly RigKey[] | undefined, frame: number): Partial<Pose> {
   if (!keys?.length) return {};
   const out: Partial<Pose> = {};
-  const channels: [keyof RigKey, keyof Pose][] = [["x", "x"], ["y", "y"], ["rotate", "rotate"], ["scaleX", "sx"], ["scaleY", "sy"], ["opacity", "opacity"]];
+  const channels: [keyof RigKey, keyof Pose][] = [["x", "x"], ["y", "y"], ["rotate", "rotate"], ["scaleX", "sx"], ["scaleY", "sy"], ["opacity", "opacity"], ["shear", "ky"]];
   for (const [kc, pc] of channels) {
     let prev: RigKey | undefined, next: RigKey | undefined;
     for (const k of keys) { if (k[kc] === undefined) continue; if (k.frame <= frame) prev = k; else { next = k; break; } }
@@ -178,7 +181,7 @@ export interface RigBoneFrame { id: string; local: AffineMatrix; world: AffineMa
 export interface RigPartFrame {
   id: string; bone: string; role: RigRole; shape: RigShape; matrix: AffineMatrix; z: number; color?: string; opacity: number; line?: boolean; lineWidth?: number; variant?: string; far?: boolean;
   /** For `extrude` parts: the far side's matrix (the faces span from `matrix` to it). For `far3d` parts it replaces `matrix`. */
-  farMatrix?: AffineMatrix; extrude?: boolean; far3d?: "under" | "over";
+  farMatrix?: AffineMatrix; extrude?: boolean; far3d?: "under" | "over"; faceRole?: RigRole;
 }
 export interface RigFrame {
   frame: number;
@@ -200,7 +203,7 @@ export interface RigEvaluateOptions {
   reducedMotion?: boolean;
 }
 
-const POSE_DRIVERS_IN_REDUCED = new Set(["clock", "reach", "turn", "flash"]);
+const POSE_DRIVERS_IN_REDUCED = new Set(["clock", "reach", "turn", "flash", "serpent", "drift"]);
 
 /** Evaluate a rig at a frame. Pure: no state survives between calls. */
 export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOptions = {}): RigFrame {
@@ -215,7 +218,7 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
   const pose = new Map<string, Pose>();
   for (const b of spec.bones) {
     const t = trackAt(spec.tracks?.[b.id], f);
-    pose.set(b.id, { x: b.x + (t.x ?? 0), y: b.y + (t.y ?? 0), rotate: (b.rotate ?? 0) + (t.rotate ?? 0), sx: t.sx ?? 1, sy: t.sy ?? 1, opacity: t.opacity ?? 1 });
+    pose.set(b.id, { x: b.x + (t.x ?? 0), y: b.y + (t.y ?? 0), rotate: (b.rotate ?? 0) + (t.rotate ?? 0), sx: t.sx ?? 1, sy: t.sy ?? 1, opacity: t.opacity ?? 1, ky: t.ky });
   }
   const drivers = reduced ? (spec.drivers ?? []).filter(d => POSE_DRIVERS_IN_REDUCED.has(d.type) || d.type === "variant" && d.mode === "keys") : spec.drivers ?? [];
   const variants = new Map<string, string>();
@@ -326,11 +329,15 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
         break;
       }
       case "turn": {
-        // End faces of a body turning in depth: the root foreshortens the side by cos(yaw); a face opens by sin(yaw).
-        const yaw = rootForPose.yaw / DEG, c = Math.max(.2, Math.cos(yaw));
-        for (const [ids, open] of [[d.rear, Math.sin(yaw)], [d.front, -Math.sin(yaw)]] as const) for (const id of ids ?? []) {
+        // End-face bones of a body turning in depth: the root foreshortens the side by cos(yaw); a face opens by
+        // sin(yaw). With a solid (`depth3d`) and a raised camera (`depth3dTilt`), the face's far edge also rises, so the
+        // face bone shears to stay on the extruded nose or tail it decorates.
+        const yaw = rootForPose.yaw / DEG, c = Math.max(.2, Math.cos(yaw)), D = spec.depth3d ?? 0;
+        const rise = -D * (spec.depth3dTilt ?? 0) * Math.abs(Math.sin(yaw));
+        for (const [ids, open, side] of [[d.rear, Math.sin(yaw), -1], [d.front, -Math.sin(yaw), 1]] as const) for (const id of ids ?? []) {
           const q = P(id);
-          if (open > .01) q.sx *= open / c; else q.opacity = 0;
+          if (open > .01) { const sx = open / c; q.sx *= sx; if (D > 0) q.ky = side * rise / (sx * D); }
+          else q.opacity = 0;
         }
         break;
       }
@@ -369,6 +376,43 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
         }
         break;
       }
+      case "drift": {
+        const life = d.life, vary = d.vary ?? .35, base = d.flutter, fade = d.fade ?? 10, s0 = d.start ?? 0;
+        d.bones.forEach((id, i) => {
+          const r = seeded((d.seed ?? 1) * 7919 + i * 104729), jitter = (v: number | undefined) => v === undefined ? undefined : v * (1 + vary * (r() * 2 - 1));
+          const offset = r() * life, rx = r(), ry = r(), tumbles = r() < (d.tumble ?? .4), roll = (d.roll ?? 0) * (r() * 2 - 1), headingJ = (r() * 2 - 1) * .6;
+          const params: FlutterParams = { ...base, fall: jitter(base.fall)!, wind: jitter(base.wind), swing: jitter(base.swing), period: jitter(base.period), tilt: jitter(base.tilt),
+            lift: jitter(base.lift), heading: (base.heading ?? .9) + headingJ, phase: r() * Math.PI * 2,
+            spin: tumbles ? (base.spin ?? .18) * (.6 + .8 * r()) * (r() < .25 ? -1 : 1) : undefined };
+          const age = (((f - s0 + offset) % life) + life) % life, st = flutterState(params, age, f), k = projectPlate(st.pitch, st.heading, roll * age);
+          const q = P(id), b = byId.get(id)!;
+          q.x = b.x + d.area[0] + rx * d.area[2] + st.x * w; q.y = b.y + d.area[1] + ry * d.area[3] + st.y * w;
+          q.rotate += k.rotate; q.sx *= k.scaleX; q.sy *= k.scaleY; q.ky = k.shear;
+          q.opacity *= w * Math.min(1, age / fade, (life - age) / fade);
+        });
+        break;
+      }
+      case "serpent": {
+        // Track y(x) = A·sin(2π(x + s)/λ + φ) in the first bone's parent space, s = distance travelled: fixed to the ground.
+        const s = rootForPose.travel, k = 2 * Math.PI / d.wavelength, ph = d.phase ?? 0, b0 = byId.get(d.bones[0])!;
+        const x0 = b0.x, headA = d.head ?? .6;
+        const amp = (x: number) => d.amplitude * (headA + (1 - headA) * clamp((x0 - x) / (d.wavelength * .35), 0, 1));
+        const yAt = (x: number) => amp(x) * Math.sin(k * (x + s) + ph);
+        let x = x0, y = yAt(x0), prev = 0;
+        P(d.bones[0]).y += w * y;
+        d.bones.forEach(id => {
+          const L = byId.get(id)!.length ?? 0;
+          // The next joint is where the track is exactly L away (bisection: steep stretches defeat fixed-point steps).
+          let lo = x - L, hi = x;
+          for (let it = 0; it < 22; it++) { const mid = (lo + hi) / 2, dy = yAt(mid) - y; if ((x - mid) ** 2 + dy * dy > L * L) lo = mid; else hi = mid; }
+          const nx = (lo + hi) / 2;
+          const ny = yAt(nx), worldAngle = Math.atan2(-(nx - x), ny - y) * DEG;
+          const q = P(id);
+          q.rotate += w * angleDelta(q.rotate, worldAngle - prev);
+          prev = worldAngle; x = nx; y = ny;
+        });
+        break;
+      }
       case "bank": {
         const angle = Math.atan2(rootForPose.vy, Math.max(.01, rootForPose.speed)) * DEG;
         root.rotate += clamp(angle * d.amount + (d.lean ?? 0) * rootForPose.velocity, -(d.max ?? 35), d.max ?? 35) * w;
@@ -386,7 +430,7 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
   const world = new Map<string, AffineMatrix>(), alpha = new Map<string, number>();
   const solve = () => {
     for (const b of order) {
-      const p = pose.get(b.id)!, m = local(p.x, p.y, p.rotate, p.sx, p.sy);
+      const p = pose.get(b.id)!, m = local(p.x, p.y, p.rotate, p.sx, p.sy, p.ky);
       const parent = b.parent ? world.get(b.parent)! : IDENT;
       world.set(b.id, mul(parent, m));
       alpha.set(b.id, (b.parent ? alpha.get(b.parent)! : 1) * p.opacity);
@@ -488,6 +532,7 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
       solve();
     }
   }
+  for (const id of spec.shadows ?? []) contacts.push([apply(world.get(id)!, 0, 0)[0], spec.ground ?? 0]);
   for (const d of drivers) if (d.type === "wheel" && d.radius > 0) for (const id of d.bones) {
     const [x] = apply(world.get(id)!, 0, 0);
     contacts.push([x, spec.ground ?? 0]);
@@ -498,20 +543,24 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
   const toScene = mul(local(root.x, root.y, root.rotate, 1, 1), local(0, 0, 0, root.facing * root.scale * yawC, root.scale));
   // Solid figures turning in depth: the far side sits depth·tan(yaw) behind the near side (in root space, before the
   // cos(yaw) foreshortening of `toScene`).
-  const farShift = spec.depth3d ? -spec.depth3d * Math.tan(clamp(root.yaw, -80, 80) / DEG) : 0;
-  const farScene = mul(toScene, local(farShift, 0, 0, 1, 1));
+  // A raised camera (`depth3dTilt`) also lifts the far side as the body turns, revealing bonnet and roof tops.
+  const yawR = clamp(root.yaw, -80, 80) / DEG, farShift = spec.depth3d ? -spec.depth3d * Math.tan(yawR) : 0;
+  const farRise = spec.depth3d ? -spec.depth3d * (spec.depth3dTilt ?? 0) * Math.abs(Math.sin(yawR)) : 0;
+  const farAt = (k: number) => mul(toScene, local(farShift * k, farRise * k, 0, 1, 1));
+  const farScene = farAt(1);
   const parts: RigPartFrame[] = spec.parts.map((q: RigPart) => {
-    const v = variants.get(q.id);
+    const v = variants.get(q.id), m = world.get(q.bone)!, back = m.a * m.d - m.b * m.c < 0;
     return {
-      id: q.id, bone: q.bone, role: q.role, z: q.z, color: q.color, line: q.line, lineWidth: q.lineWidth, variant: v, far: q.far,
+      id: q.id, bone: q.bone, role: q.role, z: q.z, color: back && q.backColor ? q.backColor : q.color, line: q.line, lineWidth: q.lineWidth, variant: v, far: q.far,
+      hidden: q.side !== undefined && (q.side === "back") !== back,
       shape: v && q.variants?.[v] ? q.variants[v] : q.shape,
       matrix: mul(q.far3d ? farScene : toScene, world.get(q.bone)!), opacity: alpha.get(q.bone)!,
-      extrude: q.extrude || undefined, far3d: q.far3d, farMatrix: q.extrude ? mul(farScene, world.get(q.bone)!) : undefined,
+      extrude: q.extrude || undefined, far3d: q.far3d, faceRole: q.faceRole, farMatrix: q.extrude ? mul(farAt(q.extrudeDepth ?? 1), world.get(q.bone)!) : undefined,
     };
-  }).filter(p => p.opacity > .003).sort((a, b) => a.z - b.z);
+  }).filter(p => p.opacity > .003 && !p.hidden).map(p => { const { hidden, ...rest } = p; void hidden; return rest as RigPartFrame; }).sort((a, b) => a.z - b.z);
   const bones = new Map<string, RigBoneFrame>(spec.bones.map((b: RigBone) => {
     const p = pose.get(b.id)!;
-    return [b.id, { id: b.id, local: local(p.x, p.y, p.rotate, p.sx, p.sy), world: mul(toScene, world.get(b.id)!), opacity: alpha.get(b.id)!, length: b.length ?? 0 }];
+    return [b.id, { id: b.id, local: local(p.x, p.y, p.rotate, p.sx, p.sy, p.ky), world: mul(toScene, world.get(b.id)!), opacity: alpha.get(b.id)!, length: b.length ?? 0 }];
   }));
   return { frame: f, root, toScene, bones, parts, contacts: contacts.map(([x, y]) => apply(toScene, x, y)) };
 }
@@ -548,9 +597,10 @@ function fetlockFor(H: [number, number], P: number, J: [number, number], s: numb
   const a = (P * P - s * s + d * d) / (2 * d), h = Math.sqrt(Math.max(0, P * P - a * a)), mx = H[0] + a * dx / d, my = H[1] + a * dy / d;
   const p1: [number, number] = [mx + h * dy / d, my - h * dx / d], p2: [number, number] = [mx - h * dy / d, my + h * dx / d];
   const F = p1[0] < p2[0] ? p1 : p2;
-  // A pastern never flattens past ~15° above the ground; then the knee takes the rest.
-  const minUp = Math.sin(15 / DEG) * P;
-  return H[1] - F[1] >= minUp ? F : [H[0] - Math.cos(15 / DEG) * P, H[1] - minUp];
+  // A pastern stays steep: it never flattens past ~38° above the ground (lower and it reads as a foot bent the wrong
+  // way); beyond that the knee takes the compression.
+  const minUp = Math.sin(38 / DEG) * P;
+  return H[1] - F[1] >= minUp ? F : [H[0] - Math.cos(38 / DEG) * P, H[1] - minUp];
 }
 /** Bone `rotate` (0 = pointing down) whose +y points from p to q. */
 const directionAngle = (p: [number, number], q: [number, number]) => Math.atan2(-(q[0] - p[0]), q[1] - p[1]) * DEG;
@@ -576,56 +626,63 @@ function pasternLeg(leg: RigLeg, cycle: number, stance: number, stride: number, 
   // Unloaded, the pastern continues the line of the leg (it points at the hip); loaded, the fetlock sinks onto the
   // pastern so the leg above stays straight. The load comes on just after touchdown and goes off before push-off.
   const unloaded = (H: [number, number]): [number, number] => { const dx = J[0] - H[0], dy = J[1] - H[1], d = Math.hypot(dx, dy) || 1; return [H[0] + P * dx / d, H[1] + P * dy / d]; };
-  /** Between two fetlock positions on the pastern's circle around the hoof: blend the angle, so the pastern keeps its length. */
-  const onPastern = (H: [number, number], A: [number, number], B: [number, number], k: number): [number, number] => {
-    const a = Math.atan2(A[1] - H[1], A[0] - H[0]), b = Math.atan2(B[1] - H[1], B[0] - H[0]), d = Math.atan2(Math.sin(b - a), Math.cos(b - a)), g = a + d * k;
-    return [H[0] + P * Math.cos(g), H[1] + P * Math.sin(g)];
+  // Hoof and pastern "in line": the hoof keeps its standing relation to the pastern (hoofRest), as it does in the air
+  // and at break-over; planted, the hoof lies flat whatever the pastern does.
+  const hoofRest = leg.hoof ? byId.get(leg.hoof)!.rotate ?? 0 : 0, restAngle = -hoofRest, toe = leg.toe ?? P * .6;
+  const along = (theta: number): [number, number] => [-Math.sin(theta / DEG), Math.cos(theta / DEG)];
+  const fromHoof = (H: [number, number], theta: number): [number, number] => { const [dx, dy] = along(theta); return [H[0] - P * dx, H[1] - P * dy]; };
+  const lerpAngle = (x: number, y: number, k: number) => x + angleDelta(x, y) * k;
+  /** Break-over (Muybridge's walk plates; slow-motion gallop studies measure ~90°): at the end of stance the heel lifts
+   * and the hoof pivots on its planted toe, the pastern turning with it, so at lift-off hoof and pastern stand in line,
+   * sole facing back. Returns the hoof origin, its world angle and the pastern angle at stance fraction k. */
+  const BREAK_START = .72, BREAK = 64;
+  const breakover = (Hplant: [number, number], k: number, loadedAngle: number) => {
+    const b = smooth((k - BREAK_START) / (1 - BREAK_START)), phi = BREAK * b, tip: [number, number] = [Hplant[0] + toe, Hplant[1]];
+    const Hb: [number, number] = [tip[0] - toe * Math.cos(phi / DEG), tip[1] - toe * Math.sin(phi / DEG)];
+    return { H: Hb, tip, phi, pastern: lerpAngle(loadedAngle, restAngle, b) + phi, active: b > 0 };
   };
-  let F: [number, number], aim: [number, number], footAngle: number, hoofLocal = 0, lw = 1, contact: [number, number] | undefined;
+  let F: [number, number], aim: [number, number], footAngle: number, hoofLocal = 0, lw = 1, hoofWorld: number | undefined, contact: [number, number] | undefined;
   if (!swing) {
-    // Loaded through the stance (the leg stays a straight column on the sinking fetlock); only at break-over, as the
-    // hoof peels off, does the pastern straighten.
-    const H = hoofAt(rel), k = t / stance, load = w < 1 ? 1 : 1 - smooth((k - .86) / .14);
-    const Fu = unloaded(H), Fl = fetlockFor(H, P, J, reachS);
-    F = onPastern(H, Fu, Fl, load); aim = H;
-    contact = H;
+    // Loaded through the stance: the leg stays a straight column on the sinking fetlock, then breaks over the toe.
+    const H = hoofAt(rel), k = w < 1 ? 0 : t / stance, Fl = fetlockFor(H, P, J, reachS), br = breakover(H, k, directionAngle(Fl, H));
+    if (br.active) { F = fromHoof(br.H, br.pastern); aim = br.H; hoofWorld = br.phi; contact = br.tip; }
+    else { F = Fl; aim = H; hoofWorld = 0; contact = H; }
   } else {
-    // The hoof travels from lift-off to landing on a ground-speed-matched arc: it folds high early (tucked up under the
-    // body), then unfolds so the last third is the leg reaching forward and down, straight, before it lands.
+    // The hoof leaves standing on its toe, folds high under the body (the fetlock flexes, sole facing back), then the
+    // leg unfolds so the last third of the swing is a straight reach that sets the hoof down flat.
     const fold = Math.max(s < .35 ? Math.sin(Math.PI / 2 * s / .35) : Math.cos(Math.PI / 2 * Math.min(1, (s - .35) / .42)) ** 2, .28 * Math.sqrt(Math.sin(Math.PI * s)));
-    const H: [number, number] = [hx + rel * w, ground - L * w * fold];
-    // Unloaded in mid-swing (the hoof hangs in line with the leg); reaching for the landing the leg straightens and the
-    // pastern takes its loaded angle, so the leg lands as a straight column.
-    const Fu = unloaded(H), Fl = fetlockFor(H, P, J, reachS);
-    lw = Math.max(1 - smooth(s / .25), smooth((s - .6) / .4));
-    F = onPastern(H, Fu, Fl, lw); aim = H;
+    const lift0 = hoofAt(relStance(stance)), end = breakover(lift0, 1, restAngle), fade = 1 - smooth(s / .3);
+    const H: [number, number] = [hx + rel * w + (end.H[0] - lift0[0]) * fade, ground - L * w * fold + (end.H[1] - lift0[1]) * fade];
+    const Fl = fetlockFor(H, P, J, reachS), hang = directionAngle(unloaded(H), H), land = directionAngle(Fl, H);
+    lw = smooth((s - .6) / .4);
+    const theta = s < .3 ? lerpAngle(end.pastern, hang, smooth(s / .3)) : lerpAngle(hang, land, lw);
+    F = fromHoof(H, theta); aim = H;
   }
   solveTwoBone(leg.upper, leg.lower, leg.bend, F, byId, pose, world, 1);
   solve();
   const shinAngle = angleOf(world.get(leg.lower)!);
   // Aim the pastern from the fetlock the IK actually reached at the hoof's intended point. Planted, it may stretch by a
-  // few percent so the hoof sits exactly where it landed even at full reach; swinging, the hoof keeps to its arc.
+  // few percent so the hoof (and at break-over its toe) sits exactly where it landed even at full reach.
   const lm = world.get(leg.lower)!, Fa: [number, number] = [lm.c * lower.length! + lm.e, lm.d * lower.length! + lm.f];
   footAngle = directionAngle(Fa, aim);
   if (contact) {
-    hoofLocal = -footAngle;
-    const stretch = clamp(Math.hypot(contact[0] - Fa[0], contact[1] - Fa[1]) / P, .85, 1.15);
+    hoofLocal = hoofWorld! - footAngle;
+    const stretch = clamp(Math.hypot(aim[0] - Fa[0], aim[1] - Fa[1]) / P, .85, 1.15);
     pose.get(leg.foot!)!.sy *= stretch;
     if (leg.hoof) pose.get(leg.hoof)!.sy /= stretch;
-  } else hoofLocal = -footAngle * lw;
+  } else hoofLocal = lerpAngle(hoofRest, -footAngle, lw);
   if (swing && leg.curl !== undefined) {
-    // The hoof flips back with the folding cannon at the top of the swing, then reaches for the ground.
-    // Done by three quarters of the swing, so the reaching leg comes down clean with the hoof on its arc.
+    // The fetlock flexes at the top of the swing: pastern and hoof flip back together, done by three quarters of the
+    // swing so the reaching leg comes down clean.
     const bump = Math.sin(Math.PI * clamp(s / .75, 0, 1)) * w;
     footAngle = footAngle + angleDelta(footAngle, shinAngle + leg.curl) * bump;
-    hoofLocal = hoofLocal * (1 - bump);
   }
   if (swing) {
     // A swinging hoof never dips through the ground: tilt the pastern forward until it just clears.
-    const lm = world.get(leg.lower)!, Fy = lm.d * lower.length! + lm.f, drop = Fy + P * Math.cos(footAngle / DEG);
+    const Fy = lm.d * lower.length! + lm.f, drop = Fy + P * Math.cos(footAngle / DEG);
     if (drop > ground && ground - Fy < P) {
       const tilt = Math.acos(clamp((ground - Fy) / P, -1, 1)) * DEG * (footAngle < 0 ? -1 : 1);
-      hoofLocal += footAngle - tilt; footAngle = tilt;
+      footAngle = tilt;
     }
   }
   pose.get(leg.foot!)!.rotate = footAngle - shinAngle;

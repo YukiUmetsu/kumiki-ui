@@ -76,7 +76,7 @@ export interface CrayonWaxElement extends CrayonBase {
   spacing?: number;
   /** Authored wax-rubbing direction in degrees. */
   angle?: number;
-  /** Pressure-shaped contact (default) or legacy rounded line renderer. */
+  /** Pressure-shaped tapered contact (default), optional fractured dry wax or legacy rounded line. */
   nibStyle?: CrayonNibStyle;
   /** Physically localized hand-coloring progress or historic scanline order. */
   strokeOrder?: CrayonStrokeOrder;
@@ -92,6 +92,9 @@ export interface CrayonWaxElement extends CrayonBase {
    * Lower values leave opaque underpaint intact; the artist can layer
    * explicit anatomy and form-directed marks on top instead of noise. */
   markStrength?: number;
+  /** Optical wax-undercoat contact with the shared paper relief (0..1).
+   * Never changes alpha coverage of a solid character or scene object. */
+  underpaintTooth?: number;
   /** Smooth underlying side-nib mass, combined with full-opacity silhouette
    * and explicit pressure-shaped wax scratches; never a global object blur. */
   underpaintGradient?:CrayonVolumeGradient;
@@ -344,12 +347,17 @@ export function inspectCrayonScene(input: unknown): string[] {
         if (node.markStrength !== undefined && (!finite(node.markStrength)||
           node.markStrength<0||node.markStrength>1))
           errors.push(p + ".markStrength must be within [0,1]");
+        if (node.underpaintTooth !== undefined &&
+          (!finite(node.underpaintTooth) || node.underpaintTooth<0 ||
+            node.underpaintTooth>1 ||
+            (node.underpaintTooth>0 && node.coverage!=="opaque")))
+          errors.push(p + ".underpaintTooth must be 0..1 on opaque wax");
         if (node.clipToParent !== undefined && typeof node.clipToParent!=="boolean")
           errors.push(p + ".clipToParent must be a boolean");
         if (node.clipToParent && !node.parentId)
           errors.push(p + ".clipToParent requires a parent wax element");
-        if (node.nibStyle !== undefined && node.nibStyle !== "rounded" && node.nibStyle !== "tapered")
-          errors.push(p + ".nibStyle must be rounded or tapered");
+        if (node.nibStyle !== undefined && node.nibStyle !== "rounded" && node.nibStyle !== "tapered" && node.nibStyle !== "dry")
+          errors.push(p + ".nibStyle must be rounded, tapered or dry");
         if (node.strokeOrder !== undefined && node.strokeOrder !== "scanline" && node.strokeOrder !== "patches")
           errors.push(p + ".strokeOrder must be scanline or patches");
         if (node.markLength !== undefined && node.markLength !== "long" && node.markLength !== "short")

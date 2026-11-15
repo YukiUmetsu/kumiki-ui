@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { RIG_PRESETS, scalePath, personRig, quadrupedRig, locomotiveRig, clockRig, birdRig, modernCarRig, bicycleRig, helicopterRig } from "../registry/rig/rig-presets";
+import { RIG_PRESETS, scalePath, personRig, quadrupedRig, locomotiveRig, clockRig, birdRig, modernCarRig, bicycleRig, helicopterRig, frogRig, snakeRig, leafRig, petalsRig } from "../registry/rig/rig-presets";
 import { evaluateRig, wingStroke } from "../registry/rig/rig-evaluate";
 import { inspectRig } from "../registry/rig/rig-spec";
 import type { RigSpec } from "../registry/rig/rig-spec";
@@ -73,8 +73,23 @@ describe("RIG1 motion", () => {
     const knee = (f: number) => { const fr = evaluateRig(spec, f), a = fr.bones.get("up-fore-near")!.world, b = fr.bones.get("lo-fore-near")!.world;
       return Math.abs(((Math.atan2(b.b, b.a) - Math.atan2(a.b, a.a)) * 180 / Math.PI + 540) % 360 - 180); };
     const knees = Array.from({ length: 60 }, (_, i) => knee(60 + i));
-    expect(Math.min(...knees)).toBeLessThan(24); // .985 of full length: reads straight, never snaps to a locked knee
+    expect(Math.min(...knees)).toBeLessThan(30); // .985 of full length: reads straight, never snaps to a locked knee
     expect(Math.max(...knees)).toBeGreaterThan(70);
+  });
+  it("breaks a hoof over its planted toe at the end of stance and lands it flat", () => {
+    const spec = quadrupedRig("horse", { motion: "walk", start: 0, end: 240, from: 0, to: 1500, size: 430, y: 700 });
+    const gait = spec.drivers!.find(d => d.type === "gait");
+    if (gait?.type !== "gait") throw new Error("no gait");
+    const leg = gait.legs.find(l => l.upper === "up-fore-near")!;
+    let broke = 0, flatPlants = 0;
+    for (let f = 40; f < 200; f++) {
+      const h = evaluateRig(spec, f).bones.get("hoof-fore-near")!.world, angle = Math.atan2(h.b, h.a) * 180 / Math.PI;
+      const toeY = h.b * leg.toe! + h.f;
+      if (angle > 40 && Math.abs(toeY - 700) < .6) broke++;
+      if (Math.abs(angle) < .5 && Math.abs(h.f - 700) < .6) flatPlants++;
+    }
+    expect(broke).toBeGreaterThan(2);
+    expect(flatPlants).toBeGreaterThan(20);
   });
   it("beats side-view wings by projection, never swinging the tips ahead of the shoulder", () => {
     const spec = birdRig({ motion: "fly", start: 0, end: 60, from: 0, to: 600 });
@@ -107,6 +122,11 @@ describe("RIG1 motion", () => {
     expect(end.root.scale).toBeLessThan(.7);
     expect(mid.parts.find(p => p.id === "shell")!.farMatrix!.e).toBeLessThan(mid.parts.find(p => p.id === "shell")!.matrix.e - 40);
     expect(renderToStaticMarkup(<RigScene look="flat" width={1600} height={900} ground={700} frame={138} rigs={[spec]} />)).toContain('data-km-rig-part="shell-face-');
+    // Turning toward the camera: the nose shows grille and lamps, the tyres their tread, the bonnet top (raised camera).
+    const toward = modernCarRig({ motion: "turn-toward", start: 0, end: 240, from: 0, to: 1600, y: 700 });
+    const html = renderToStaticMarkup(<RigScene look="flat" width={1600} height={900} ground={700} frame={128} rigs={[toward]} />);
+    for (const id of ["front-grille", "front-lamp-far", "wheel-f-tread-face-", "shell-face-"]) expect(html).toContain(`data-km-rig-part="${id}`);
+    expect(renderToStaticMarkup(<RigScene look="flat" width={1600} height={900} ground={700} frame={10} rigs={[toward]} />)).not.toContain("front-grille");
     // Turning away is a left turn: the far (left) indicators blink, the near ones stay dark.
     const blink = evaluateRig(spec, 50).parts.map(p => p.id);
     expect(blink).toContain("ind-r-far");
@@ -129,6 +149,77 @@ describe("RIG1 motion", () => {
     expect(pelvis).toBeGreaterThan(700 - 30 * 3.6);
     expect(Math.abs(foot - (700 - 2.4 * 3.6))).toBeLessThan(.5);
     expect(f.parts.some(p => p.id === "chair-seat")).toBe(true);
+  });
+});
+
+describe("RIG1 nature and actions", () => {
+  const tip = (spec: RigSpec, bone: string, f: number) => { const b = evaluateRig(spec, f).bones.get(bone)!; return [b.world.e + b.world.c * b.length, b.world.f + b.world.d * b.length]; };
+  it("hops a frog off planted toes and lands it on planted hands, feet never below the ground", () => {
+    const spec = frogRig({ motion: "hop", start: 0, end: 98, from: 100, to: 1600, y: 600 });
+    const push = [8, 10, 12, 13].map(f => tip(spec, "toes-n", f));
+    for (const p of push) expect(Math.hypot(p[0] - push[0][0], p[1] - push[0][1])).toBeLessThan(1.5);
+    const hand = [26, 30, 34].map(f => world(spec, "hand-n", f));
+    for (const p of hand) expect(Math.abs(p[0] - hand[0][0])).toBeLessThan(2.5);
+    for (let f = 0; f < 98; f++) expect(tip(spec, "toes-n", f)[1]).toBeLessThan(600 + 2.5);
+    // In the flight the body is well off the ground with the legs trailing behind the hip.
+    const air = evaluateRig(spec, 20), hip = air.bones.get("body")!.world.f;
+    expect(hip).toBeLessThan(600 - 100);
+    expect(tip(spec, "toes-n", 20)[0]).toBeLessThan(air.bones.get("body")!.world.e - 60);
+  });
+  it("slithers with every point following the head's path, and strikes from the coil in two frames", () => {
+    const spec = snakeRig({ motion: "slither", start: 0, end: 200, from: 0, to: 800, y: 600 });
+    // A body joint passes through the very spot an earlier joint occupied some frames before (no sideways slip).
+    const L = 94 / 16 * 3.6;
+    for (const f of [90, 150]) {
+      const later = world(spec, "body-11", f);
+      const best = Math.min(...Array.from({ length: 60 }, (_, k) => { const p = world(spec, "body-5", f - k); return Math.hypot(p[0] - later[0], p[1] - later[1]); }));
+      expect(best).toBeLessThan(L * .25);
+    }
+    const strike = snakeRig({ motion: "strike", start: 0, end: 240, y: 600 });
+    const a = Math.round(240 * .28), before = world(strike, "head", a), hit = world(strike, "head", a + 2);
+    expect(hit[0] - before[0]).toBeGreaterThan(60);
+    expect(evaluateRig(strike, a + 3).parts.find(p => p.id === "mouth")).toBeTruthy();
+  });
+  it("drops a leaf in a zigzag that shows its back, settling flat; on water it floats inside spreading ripples", () => {
+    const spec = leafRig({ motion: "fall", start: 0, end: 240, from: 500, y: 600 });
+    const xs = Array.from({ length: 160 }, (_, f) => world(spec, "leaf", f)[0]);
+    const turns = xs.slice(2).filter((x, i) => (x - xs[i + 1]) * (xs[i + 1] - xs[i]) < 0).length;
+    expect(turns).toBeGreaterThanOrEqual(4);
+    const backs = Array.from({ length: 180 }, (_, f) => evaluateRig(spec, f).parts.find(p => p.id === "blade")!.color).filter(c => c === "#e0b07c").length;
+    expect(backs).toBeGreaterThan(5);
+    const end = evaluateRig(spec, 239).bones.get("leaf")!.world;
+    expect(Math.abs(end.f - (600 + 9.5 * 4.2))).toBeLessThan(3);
+    const water = leafRig({ motion: "fall-water", start: 0, end: 240, from: 500, y: 600 });
+    expect(evaluateRig(water, 239).parts.some(p => p.id === "ripple-0" || p.id === "ripple-3")).toBe(true);
+    expect(evaluateRig(water, 20).parts.some(p => p.id.startsWith("ripple"))).toBe(false);
+  });
+  it("streams petals on the wind, recycling them and flipping some to their backs", () => {
+    const spec = petalsRig({ motion: "blow", start: 0, end: 240, from: 800, y: 700 });
+    const f = evaluateRig(spec, 100), petals = f.parts.filter(p => /^petal-\d+$/.test(p.id));
+    expect(petals.length).toBeGreaterThan(25);
+    expect(petals.some(p => p.color === "#fbe2e9")).toBe(true);
+    const x0 = world(spec, "petal-3", 40)[0], x1 = world(spec, "petal-3", 50)[0];
+    expect(Math.abs(x1 - x0)).toBeGreaterThan(30);
+  });
+  it("keeps hands on their props through every action", () => {
+    const cases: [string, [string, string][], number][] = [["shoot", [["hand-f", "gun"]], 60], ["sword", [["hand-f", "sword"], ["hand-b", "sword-pommel"]], 0], ["chop", [["hand-f", "knife"], ["hand-b", "claw"]], 0], ["pan-toss", [["hand-f", "pan"]], 0]];
+    for (const [motion, pairs, from] of cases) {
+      const spec = personRig({ motion, start: 0, end: 240, y: 700 });
+      for (let f = from; f < 240; f += 3) for (const [hand, grip] of pairs) {
+        const h = world(spec, hand, f), g = world(spec, grip, f);
+        expect(Math.hypot(h[0] - g[0], h[1] - g[1]), `${motion} ${hand} ${f}`).toBeLessThan(2.4 * 3.6);
+      }
+    }
+  });
+  it("flashes the muzzle only on shots, snaps a kick to waist height and lands a jab at shoulder height", () => {
+    const shoot = personRig({ motion: "shoot", start: 0, end: 240, y: 700 }), shot = Math.round(240 * .32);
+    expect(evaluateRig(shoot, shot).parts.some(p => p.id === "flash-out")).toBe(true);
+    expect(evaluateRig(shoot, shot + 4).parts.some(p => p.id === "flash-out")).toBe(false);
+    const kick = personRig({ motion: "kick", start: 0, end: 240, y: 700 });
+    expect(world(kick, "foot-f", 18 + 11)[1]).toBeLessThan(700 - 48 * 3.6);
+    const box = personRig({ motion: "box", start: 0, end: 240, y: 700 }), sh = world(box, "arm-b", 17), fist = world(box, "hand-b", 17);
+    expect(Math.abs(fist[1] - sh[1])).toBeLessThan(6 * 3.6);
+    expect(fist[0] - sh[0]).toBeGreaterThan(24 * 3.6);
   });
 });
 

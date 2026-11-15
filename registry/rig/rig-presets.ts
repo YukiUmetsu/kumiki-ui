@@ -9,14 +9,16 @@
 import type { RigSpec } from "./rig-spec";
 import type { RigPresetOptions } from "./rig-kit";
 import { BIRD_MOTIONS, DRAGON_MOTIONS, PERSON_MOTIONS, PERSON_PACE, QUADRUPED_MOTIONS, birdRig, butterflyRig, dragonRig, fishRig, personRig, quadPace, quadrupedRig } from "./rig-presets-living";
+import { FROG_MOTIONS, LEAF_MOTIONS, PETAL_MOTIONS, SNAKE_MOTIONS, frogRig, leafRig, petalsRig, snakeRig } from "./rig-presets-nature";
 import { BALLOON_MOTIONS, BICYCLE_MOTIONS, CAR_MOTIONS, CAR_STAGED, HELICOPTER_MOTIONS, MODERN_CAR_MOTIONS, balloonRig, bicyclePace, bicycleRig, carPace, carRig, clockRig, helicopterRig, locomotiveRig, modernCarRig, planeRig, shipRig } from "./rig-presets-machines";
 
 export type { RigPresetOptions } from "./rig-kit";
 export { scalePath } from "./rig-kit";
 export * from "./rig-presets-living";
 export * from "./rig-presets-machines";
+export * from "./rig-presets-nature";
 
-export type RigPresetGroup = "people" | "animals" | "creatures" | "vehicles" | "objects";
+export type RigPresetGroup = "people" | "animals" | "creatures" | "nature" | "vehicles" | "objects";
 export interface RigPresetEntry {
   id: string; label: string; group: RigPresetGroup; motions: readonly string[];
   /** Whether the motion moves across the scene. */
@@ -32,7 +34,7 @@ export interface RigPresetEntry {
   staged?: (motion: string) => boolean;
 }
 
-const inPlace = new Set(["idle", "wave", "talk", "cheer", "sit", "sit-down", "stand-up", "jump", "point", "think", "clap", "bow", "dance", "phone"]);
+const inPlace = new Set(["idle", "wave", "talk", "cheer", "sit", "sit-down", "stand-up", "jump", "point", "think", "clap", "bow", "dance", "phone", "shoot", "box", "kick", "sword", "chop", "pan-toss"]);
 /** Every preset with its motions. */
 export const RIG_PRESETS: readonly RigPresetEntry[] = [
   { id: "person", label: "Person", group: "people", motions: PERSON_MOTIONS, size: 360, travels: m => !inPlace.has(m), build: personRig, pace: (m, s) => (PERSON_PACE[m] ?? 0) * s / 100 },
@@ -43,8 +45,12 @@ export const RIG_PRESETS: readonly RigPresetEntry[] = [
     pace: (m, s) => m === "fly" ? s * .055 : m === "glide" ? s * .06 : m === "hop" ? s * .014 : 0, airborne: m => m === "fly" || m === "glide" },
   { id: "butterfly", label: "Butterfly", group: "animals", motions: ["flutter"], size: 150, travels: () => true, build: butterflyRig, pace: (_m, s) => s * .02, airborne: () => true },
   { id: "fish", label: "Koi", group: "animals", motions: ["swim"], size: 300, travels: () => true, build: fishRig, pace: (_m, s) => s * .012, airborne: () => true },
+  { id: "frog", label: "Frog", group: "animals", motions: FROG_MOTIONS, size: 160, travels: m => m === "hop", build: frogRig, pace: (m, s) => m === "hop" ? 234 * (s / 60) / 49 : 0 },
+  { id: "snake", label: "Snake", group: "animals", motions: SNAKE_MOTIONS, size: 360, travels: m => m === "slither", build: snakeRig, pace: (m, s) => m === "slither" ? s * .011 : 0 },
   { id: "dragon", label: "Dragon", group: "creatures", motions: DRAGON_MOTIONS, size: 620, travels: m => m !== "roar", build: dragonRig,
     pace: (m, s) => m === "fly" ? s * .02 : m === "glide" ? s * .024 : m === "walk" ? s * .006 : 0, airborne: m => m === "fly" || m === "glide" },
+  { id: "leaf", label: "Leaf", group: "nature", motions: LEAF_MOTIONS, size: 420, travels: () => false, build: leafRig, staged: m => m !== "sway" },
+  { id: "petals", label: "Cherry-blossom petals", group: "nature", motions: PETAL_MOTIONS, size: 500, travels: () => false, build: petalsRig },
   { id: "modern-car", label: "Modern car", group: "vehicles", motions: MODERN_CAR_MOTIONS, size: 470, travels: m => !["open-window", "flash-lights", "hazards"].includes(m), build: modernCarRig, pace: carPace, staged: m => CAR_STAGED.has(m) },
   { id: "car", label: "Vintage car", group: "vehicles", motions: CAR_MOTIONS, size: 440, travels: () => true, build: carRig, pace: carPace, staged: m => CAR_STAGED.has(m) },
   { id: "bicycle", label: "Bicycle", group: "vehicles", motions: BICYCLE_MOTIONS, size: 380, travels: () => true, build: bicycleRig, pace: bicyclePace, staged: m => m === "stop" || m === "sudden-stop" },

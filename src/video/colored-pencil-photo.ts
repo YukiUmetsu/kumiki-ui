@@ -12,8 +12,11 @@
  * lighter/less-saturated chromatic pencil.
  */
 import { pencilHash } from "../../registry/video/colored-pencil";
+import { PENCIL_PHOTO_FOUNDATION } from "../../registry/video/colored-pencil-foundation";
 import { createPencilFlowField } from "./colored-pencil-flow-field";
 import { createPencilSalience } from "./colored-pencil-salience";
+import { createPencilPortraitFeatureMarks } from "./colored-pencil-portrait-guides";
+import type { PortraitFeatureMap } from "./colored-pencil-portrait-guides";
 
 export interface PencilPhotoPixels {
   width:number;
@@ -34,9 +37,11 @@ export interface PencilPhotoOptions {
   density:number;
   /** Suppress backdrop scratches and preserve colourful anatomical subject. */
   focus:number;
+  /** Selective dark-pigment build-up for skin, sockets, fur and hair. 0...1. */
+  depth:number;
 }
 export const PENCIL_PHOTO_DEFAULTS:Readonly<PencilPhotoOptions> = {
-  seed:1024,paper:.22,saturation:.90,edges:.72,tooth:.73,density:1.15,focus:.86,
+  seed:1024,paper:.22,saturation:.90,edges:.72,tooth:.73,density:1.15,focus:.86,depth:0,
 };
 export interface PencilPhotoMark {
   x:number;y:number;
@@ -47,28 +52,35 @@ export interface PencilPhotoMark {
   pass:0|1|2;
 }
 export interface PencilPhotoStudy {
+  /** Every image-conditioned drawing uses the same pencil studio foundation. */
+  foundationVersion:"CP-F1";
+  foundationPasses:typeof PENCIL_PHOTO_FOUNDATION.markOrder;
   width:number;height:number;
   /** 8-bit RGBA, fully opaque. */
   pigment:Uint8ClampedArray;
   strokes:readonly PencilPhotoMark[];
   seed:number;
+  /** Source-photo-guided mark counts. No artist-level approval is implied. */
+  portraitFeatures?:Readonly<Record<string,number>>;
 }
 const limit=(n:number,lo:number,hi:number)=>Math.max(lo,Math.min(hi,n));
 const hex=(r:number,g:number,b:number):string=>"#"+[r,g,b].map(x=>
   limit(Math.round(x),0,255).toString(16).padStart(2,"0")).join("");
 const check=(p:PencilPhotoPixels,o:PencilPhotoOptions)=>{
   if(!Number.isSafeInteger(p.width)||!Number.isSafeInteger(p.height)||
-    p.width<8||p.height<8||p.width>2048||p.height>2048||
+    p.width<8||p.height<8||p.width>PENCIL_PHOTO_FOUNDATION.sourcePixelLimit||
+    p.height>PENCIL_PHOTO_FOUNDATION.sourcePixelLimit||
     !(p.data instanceof Uint8ClampedArray)||
     p.data.length!==p.width*p.height*4)throw new RangeError("Invalid source image pixels");
   if(!Number.isSafeInteger(o.seed)||o.seed<0||o.seed>2147483647||
-    ![o.paper,o.saturation,o.edges,o.tooth,o.focus].every(v=>Number.isFinite(v)&&v>=0&&v<=1)||
+    ![o.paper,o.saturation,o.edges,o.tooth,o.focus,o.depth].every(v=>Number.isFinite(v)&&v>=0&&v<=1)||
     !Number.isFinite(o.density)||o.density<.2||o.density>2)
     throw new RangeError("Invalid photo-to-pencil options");
 };
 /** Paint from authorized input pixels; all calculations are deterministic and local. */
 export function createPencilPhotoStudy(source:PencilPhotoPixels,
-  settings:Partial<PencilPhotoOptions>={}):PencilPhotoStudy {
+  settings:Partial<PencilPhotoOptions>={},
+  portraitGuides?:PortraitFeatureMap):PencilPhotoStudy {
   const options={...PENCIL_PHOTO_DEFAULTS,...settings};
   check(source,options);
   const {width:w,height:h,data}=source;
@@ -109,9 +121,16 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
     // Body shadow should stay convincing even when salience fails at a
     // dark back crossing the image border. Focus mutes *extra noise* outside
     // the subject more than it erases the source's actual value anatomy.
-    const coverage=limit(base*(.72+.28*active)+
+    // No matter how quiet the salience classifier thinks the backdrop is,
+    // retain a minimum fraction of real source pigment for chromatic fidelity.
+    // High-frequency details are still governed separately by focus.
+    const pigmentFloor=.30+darkness*.38;
+    const coverage=limit(Math.max(base*(.72+.28*active),pigmentFloor)+
       options.focus*subject*.18+
-      darkness*.15*(1-options.focus*.5),.03,.99);
+      darkness*.15*(1-options.focus*.5)+
+      // Dense dry-pencil passes over a previously dried pale wash: deepen
+      // brow/eye/hair shadows without filling pale highlights with flat ink.
+      options.depth*darkness*.36,.03,.99);
     for(let c=0;c<3;c++){
       const mixed=paper[c]+(toned[i*3+c]-paper[c])*coverage;
       const contour=mixed*(1-edge*.13);
@@ -125,7 +144,9 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
   const strokes:PencilPhotoMark[]=[];
   const step=limit(Math.round(4.2/options.density),2,11);
   const gridW=Math.ceil(w/step), gridH=Math.ceil(h/step);
-  const max=36000;
+  // Reserve a bounded feature budget so global hatching never crowds out
+  // measured eye/lip/alar detail on dense photographs.
+  const max=PENCIL_PHOTO_FOUNDATION.maxStrokes-(portraitGuides?14000:0);
   for(let gy=0;gy<gridH;gy++)for(let gx=0;gx<gridW;gx++){
     if(strokes.length>=max)break;
     const j=gy*gridW+gx;
@@ -171,9 +192,17 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
       alpha,pass,
     });
   }
+  // A guide is supplied ONLY for the matching rights-verified source; do
+  // not apply sample coordinates to unrelated photographs or user uploads.
+  const detail=portraitGuides?
+    createPencilPortraitFeatureMarks(source,portraitGuides,options.seed):null;
+  if(detail)strokes.push(...detail.marks.slice(
+    0,PENCIL_PHOTO_FOUNDATION.maxStrokes-strokes.length));
   // Stable chronological grouping; no need to store frames or mutable clocks.
   strokes.sort((a,b)=>a.pass-b.pass);
-  return {width:w,height:h,pigment,strokes,seed:options.seed};
+  return {foundationVersion:"CP-F1",foundationPasses:PENCIL_PHOTO_FOUNDATION.markOrder,
+    width:w,height:h,pigment,strokes,seed:options.seed,
+    ...(detail?{portraitFeatures:detail.featureCounts}:{})};
 }
 export function pencilPhotoStrokeCount(study:PencilPhotoStudy,frame:number,total=350):number {
   if(!Number.isSafeInteger(frame)||frame<0||

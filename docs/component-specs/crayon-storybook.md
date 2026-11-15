@@ -6,6 +6,100 @@
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
 
+## Ground-contact correction and source-native ArtCraft A/B (2026-11-14)
+
+The existing **Video production / Film Looks / Crayon / Drawing System** Storybook page offers a
+`comparison: single | tooth` control. With `tooth`, it displays the same
+source botanical study, deterministic film seed, exact frame, native inspection
+camera and original wax geometry side by side, with `underpaintTooth=0` versus
+the selected strength. In regular `single` mode the extra native rendering is
+not constructed. Both aspect ratios use responsive side-by-side media with
+captions outside the SVG. This is a material **inspection**, not a second
+artwork, new Storybook folder, or evidence of aesthetic approval.
+
+The pear's cast-shadow, paper rubbing and contact umbra are now positioned
+from the physical painted lower-contour coordinate (local y≈180 transformed by
+placement), replacing an independently guessed height percentage. Regression
+checks assert world-space contact in both 960×540 and 540×960 source films.
+The first browser contact crops showed an over-regular brown oval beneath the
+fruit; its open-wax paper rubbing was reduced, and the cast-shadow penumbra
+was reshaped and feathered. The darker, smaller contact wedge remains
+separate to express weight. A new native visual review is required before
+calling even this shadow correction visually accepted.
+The studio remains `!dev` until source-native screenshot and independent
+ArtCraft aesthetic review. The reference craftsmanship study is in
+[Crayon drawing grammar](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+
+## Page-seeded pigment tooth on solid Crayon underpainting
+
+`underpaintTooth: 0..1` introduces opt-in, shared paper-relief
+chromatic variation on opaque wax undercoats without punching alpha
+holes. It is exposed on the existing **Drawing System** Storybook page
+with its own strength control; all prior scenes default to zero.
+Six batched micro-strand compound paths are shared per paper sheet.
+The existing CRAYON1 marker, form curves and dry nib remain unchanged.
+Source-native 16:9 and 9:16 browser A/B evidence and deterministic
+tests are required before artistic approval. Detailed study:
+[Crayon material grammar](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+
+## Fractured dry-wax nib for Crayon (2026-11-14)
+
+The material engine now has opt-in `nibStyle: "dry"`. This deposits
+bounded pressure-dependent bands of fragmented wax inside the **existing**
+authored nib arcs, with shared paper-space relief and unchanged solid
+underpaint. The original `rounded`/`tapered` nibs remain valid and
+unchanged. The existing `Crayon / Materials / Drawing System` and
+`Crayon / Materials / Wax & Pigment` Storybook pages expose A/B controls.
+No new Storybook root/folder was created. Source-rendered 16:9 and 9:16
+closeup comparisons are part of the targeted browser QA. See
+[technical drawing/material study](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+The demonstration remains `!dev` pending artistic review.
+
+## Source-led botanical wax refinement (2026-11-14)
+
+The existing `Crayon / Materials / Drawing System` Storybook page now has a
+native-camera inspection control (`full`, `surface`, `stalk-leaf`,
+`contact`) in **both aspects**. These are **not** separate folders or
+new artwork variants; the original scene element list and seed are retained.
+The pear study includes an inset stem well, a cooler turn, lower umbra,
+sunlit wax shoulder, layered blush and branched leaf veins. See the
+[artist/reference-based review](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+Keep its `!dev` tag pending direct visual approval.
+
+## Crayon drawing grammar (2026-11-14)
+
+A new strict, reference-informed **construction system** checks real CRAYON1
+source scenes before artistic review. See
+[artist study, medium boundaries, and four-pass drawing contract](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+
+- **Core:** `registry/video/materials/crayon-art-direction.ts`, also included in the installable `crayon-storybook` registry pack, validates
+  physical part hierarchies, opaque subject masses, phase timing,
+  clipped glazes, clipped strokes, source-specific curved-path minimums,
+  attached world-space endpoints throughout source motion and untracked elements.
+- **Authoring example:** `src/video/crayon-drawing-system-fixtures.ts`
+  constructs original fruit, stem, leaf, tonal wax, clipped grain and
+  an explicit auditable plan using the existing CRAYON1 renderer.
+- **Workbench:** `Video production / Film Looks / Crayon / Materials /
+  Drawing System`. There is **no new Crayon Storybook root**. Both 16:9
+  and 9:16, source frames, directional detail, nib pressure and paper tooth
+  are configurable; all explanatory text stays outside the SVG.
+- **Release gate:** this study remains `!dev` until real source-native
+  screenshots and independent aesthetic review. Geometry tests alone do
+  not constitute accepted art.
+
+## ArtCraft native-camera facial inspection (2026-11-14)
+
+The hidden `Video production / Film Looks / Crayon / Characters / ArtCraft Adult Face Lab`
+has an **Inspection** control for `full`, `face`, `eyes`, `nose-mouth`,
+and `garment`, plus matched warm/neutral eye macro comparison. Crops use
+original CRAYON1 scenes with two stationary native camera keys, not CSS
+magnification or reference bitmaps. This retains semantic IDs, material
+seeds, timing, and rig geometry; portrait and landscape crop positions are
+independently authored. All stories remain in the existing single Crayon
+Storybook root with `!dev`. Focused Chromium 16:9/9:16 region screenshots and two-up non-overlap assertions
+must be reviewed alongside structural tests. Structural tests are **not** artistic approval;
+inspect actual source-rendered face and fabric crops before acceptance.
+
 ## ArtCraft v6: character quality quarantine and portrait-safe previews
 
 Following direct review of the reference board and premium human portrait,

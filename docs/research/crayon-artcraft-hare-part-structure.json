@@ -44,7 +44,11 @@
     "muzzle-light",
     "nose",
     "whisker-follicles",
-    "maxillary-junction"
+    "maxillary-junction",
+    "eye-bone-light-shelf",
+    "eye-upper-lid-overhang",
+    "eye-lower-fur-fold",
+    "eye-medial-canthus"
   ],
   "parts": [
     {
@@ -761,5 +765,97 @@
   ],
   "negative_control": "Exposed paper between whisker pad and head is a failed connected-component/topology gate even when total wax stroke count is high.",
   "render_evidence_state": "ArtCraft isolated static preview inspected/rejected twice: disconnected muzzle paper hole repaired with maxillary-junction; excessively long fox-like nose shortened to hare-appropriate proportions. Latest CRAYON1 native export still uninspected.",
-  "release_verdict": "BLOCKED — ArtCraft v6 strict source-image, five-axis and normal-speed film acceptance not available in this execution."
+  "release_verdict": "BLOCKED — ArtCraft v6 strict source-image, five-axis and normal-speed film acceptance not available in this execution.",
+  "eye_artcraft_v7": {
+    "source_feature_id": "eye",
+    "method": "style_guided",
+    "status": "unapproved source-qualitative construction, source-relative numerical crop fidelity blocked",
+    "local_landmarks": {
+      "limbus_left": [
+        -81,
+        -61
+      ],
+      "limbus_top": [
+        -55,
+        -83
+      ],
+      "limbus_right": [
+        -31,
+        -55
+      ],
+      "limbus_bottom": [
+        -60,
+        -38
+      ],
+      "iris_center": [
+        -55,
+        -58
+      ],
+      "iris_radius": [
+        16.2,
+        16
+      ],
+      "pupil_center": [
+        -53,
+        -58
+      ],
+      "eyelid_medial": [
+        -81,
+        -58
+      ]
+    },
+    "topology": [
+      {
+        "node": "eye-socket",
+        "parent": "head",
+        "role": "supporting orbital wax"
+      },
+      {
+        "node": "eye-bone-light-shelf",
+        "parent": "head",
+        "role": "attached upper brow support"
+      },
+      {
+        "node": "eye-dark-rim",
+        "parent": "head",
+        "role": "thin near-black limbal boundary"
+      },
+      {
+        "node": "eye-amber-iris",
+        "parent": "head",
+        "role": "opaque amber globe"
+      },
+      {
+        "node": "eye-upper-lid-overhang",
+        "parent": "head",
+        "role": "opaque eyelid over globe"
+      },
+      {
+        "node": "eye-lower-fur-fold",
+        "parent": "head",
+        "role": "opaque lower hair-lined crescent"
+      },
+      {
+        "node": "eye-lower-fur-fibers",
+        "parent": "eye-lower-fur-fold",
+        "role": "clipped curved pigment strokes"
+      },
+      {
+        "node": "eye-medial-canthus",
+        "parent": "head",
+        "role": "connected tear corner"
+      },
+      {
+        "node": "eyelid-painted-occlusion",
+        "parent": "head",
+        "role": "opaque blink covers iris and highlights"
+      }
+    ],
+    "evidence": "docs/research/crayon-hare-eye-artcraft-v7-study.md",
+    "withheld_release_checks": [
+      "source/photo pixel masks",
+      "five-axis source-render comparisons",
+      "independent 1x and 3x optical review"
+    ]
+  }
 }

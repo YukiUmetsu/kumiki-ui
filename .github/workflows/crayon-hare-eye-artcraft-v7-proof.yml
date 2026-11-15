@@ -1,0 +1,41 @@
+name: Crayon hare eye ArtCraft native proof
+
+# Narrow reference-led proof only; avoids whole Storybook/video suites.
+on:
+  pull_request:
+    paths:
+      - src/video/crayon-wildlife-portrait-fixtures.ts
+      - tests/crayon-artcraft-hare-anatomy.test.tsx
+      - tests/e2e-artcraft/crayon-hare-eye-v7.spec.ts
+      - .github/workflows/crayon-hare-eye-artcraft-v7-proof.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crayon-hare-artcraft-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hare-eye-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Capture full-res source-native ocular geometry and blink
+        run: npx playwright test -c playwright.artcraft.config.ts tests/e2e-artcraft/crayon-hare-eye-v7.spec.ts
+      - name: Preserve source-rendered proofs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crayon-hare-eye-artcraft-v7
+          path: test-results/
+          retention-days: 10
+          if-no-files-found: warn

@@ -14,7 +14,7 @@ import type { RigLook } from "../registry/rig/rig-react";
 
 const [subject = "horse", motion = "gallop", out = "sheet.png", first = "60", count = "16", step = "1", look = "flat", ...flags] = process.argv.slice(2);
 const entry = RIG_PRESETS.find(p => p.id === subject)!;
-const W = 1600, H = 900, GROUND = 720, D = 240;
+const W = 1600, H = 900, GROUND = 720, D = 240, ZOOM = Number(process.env.ZOOM || 0);
 const follow = flags.includes("--follow"), bones = flags.includes("--bones");
 const air = entry.airborne?.(motion) ?? false, pace = entry.pace?.(motion, entry.size) ?? 0;
 const y = air ? 400 : GROUND;
@@ -24,10 +24,13 @@ const to = staged ? (motion === "reverse" ? W * .32 : motion.includes("brake") |
 const spec = entry.build({ size: entry.size, motion, start: 0, end: D, y, from, to });
 const frames = Array.from({ length: Number(count) }, (_, i) => Number(first) + i * Number(step));
 const cells = frames.map(f => {
-  const zoom = flags.includes("--zoom") ? (entry.size < 250 ? 4.5 : 2.2) : 1;
-  const camera = follow || zoom > 1 ? followCamera(spec, f, { y: zoom > 1 ? (air ? y : GROUND - entry.size * .4) : H / 2, zoom }) : undefined;
+  const feet = flags.includes("--feet"), zoom = ZOOM || (feet ? 4 : flags.includes("--zoom") ? (entry.size < 250 ? 4.5 : 2.2) : 1);
+  const hands = flags.includes("--hands");
+  const camera = follow || zoom > 1 || hands ? followCamera(spec, f, { y: hands ? GROUND - entry.size * .62 : feet ? GROUND - entry.size * .1 : zoom > 1 ? (air ? y : GROUND - entry.size * .4) : H / 2, zoom: hands ? 4.5 : zoom }) : undefined;
+  if (camera && hands) camera.x += entry.size * .1;
   if (camera && !follow) camera.x = W / 2;
   if (camera && zoom > 1 && air) camera.y = rootState(spec, f).y;
+  if (camera && process.env.CY) camera.y = GROUND + Number(process.env.CY);
   const svg = renderToStaticMarkup(createElement(RigScene, { look: look as RigLook, width: W, height: H, ground: motion === "turn-away" ? GROUND - entry.size * .5 : GROUND, frame: f, rigs: [spec], camera, showBones: bones }));
   return `<figure><div class="c">${svg}</div><figcaption>${f}</figcaption></figure>`;
 });

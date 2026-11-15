@@ -3,9 +3,12 @@ import { PencilDrawing } from "../../registry/video/colored-pencil-react";
 import type { PencilAspect } from "../../registry/video/colored-pencil";
 import { pencilLivingStudyDrawing, PENCIL_LIVING_STUDIES } from "./colored-pencil-living-studies";
 import type { PencilLivingStudy } from "./colored-pencil-living-studies";
+import { PENCIL_PORTRAIT_ART_STATUS,PENCIL_PORTRAIT_ART_REASON,
+  PENCIL_PORTRAIT_LANDMARKS,PENCIL_PORTRAIT_LANDMARK_KEYS,
+} from "./colored-pencil-portrait-art-review";
 
 const descriptive:Record<PencilLivingStudy,{title:string; subtitle:string; material:string; anchor:readonly[number,number]}> = {
-  portrait:{title:"A PORTRAIT IN PENCIL",subtitle:"Light across skin · fine hair · living eyes",
+  portrait:{title:"PORTRAIT STUDY",subtitle:"Unapproved · anatomy and value structure need reconstruction",
     material:"SKIN / HAIR / FABRIC",anchor:[262,208]},
   fox:{title:"RED FOX AT REST",subtitle:"Direction of fur · layered ruff · bright eyes",
     material:"FUR / EYE / EAR",anchor:[232,194]},
@@ -28,20 +31,20 @@ export function PencilLivingAtelier() {
   const [frame,setFrame]=useState(325);
   const [tooth,setTooth]=useState(.76);
   const [pressure,setPressure]=useState(1);
-  const [renderMode,setRenderMode]=useState<"layered"|"legacy">("layered");
   const [burnish,setBurnish]=useState(.72);
   const [seed,setSeed]=useState(271);
   const [speed,setSpeed]=useState(1);
   const [focus,setFocus]=useState(false);
+  const [anatomy,setAnatomy]=useState(false);
+  const [faceDetail,setFaceDetail]=useState<"eyes"|"nose"|"mouth">("eyes");
   const [reduce,setReduce]=useState(false);
   const [playing,setPlaying]=useState(false);
   const drawing=useMemo(()=>{
     const base=pencilLivingStudyDrawing({subject,aspect,paperTooth:tooth,pressure,seed});
     return {...base,regions:base.regions.map(region=>({
-      ...region,craft:renderMode==="legacy"?undefined:region.craft?
-        {...region.craft,burnish}:undefined,
+      ...region,craft:region.craft?{...region.craft,burnish}:undefined,
     }))};
-  },[subject,aspect,tooth,pressure,seed,renderMode,burnish]);
+  },[subject,aspect,tooth,pressure,seed,burnish]);
   useEffect(()=>{
     if (!playing||reduce) return;
     const started=performance.now(),offset=frame;
@@ -58,9 +61,18 @@ export function PencilLivingAtelier() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[playing,speed,reduce]);
   const landscape=aspect==="landscape",meta=descriptive[subject];
+  // ArtCraft face close-ups are selectable without modifying any export frames.
+  const anchor=subject==="portrait"?
+    (faceDetail==="eyes"?[226,207]:faceDetail==="nose"?[239,262]:[238,304]):
+    subject==="fox"?
+      (faceDetail==="eyes"?[235,189]:faceDetail==="nose"?[121,230]:[184,250]):
+      meta.anchor;
   const coord=landscape?{
-    x:441+1.06*meta.anchor[0],y:35+1.06*meta.anchor[1],w:960,h:540,
-  }:{x:35+1.06*meta.anchor[0],y:253+1.06*meta.anchor[1],w:540,h:960};
+    x:441+1.06*anchor[0],y:35+1.06*anchor[1],w:960,h:540,
+  }:{x:(subject==="valley"?-16: -31)+
+      (subject==="valley"?1.31:1.38)*anchor[0],
+    y:(subject==="valley"?154:145)+(subject==="valley"?1.31:1.38)*anchor[1],
+    w:540,h:960};
   const zoom=subject==="portrait"?3.1:subject==="fox"?2.8:2.25;
   const detailStyle=focus?{
     transform:"translate("+ (50-100*zoom*coord.x/coord.w).toFixed(3)+"%, "+
@@ -77,17 +89,30 @@ export function PencilLivingAtelier() {
         Living subjects: Portrait · Wildlife · Landscape
       </h1>
       <p style={{maxWidth:880,margin:0}}>
-        Separate anatomy, natural fibre flow, skin colour layers, needle-branch hierarchy,
-        and river perspective. Inspired by studied pencil craftsmanship without tracing artist images.
+        Reference-guided facial planes, natural fur and hair flow, subtle layered skin
+        colour and landscape drawing. Original geometry, not traced artist images.
       </p>
     </header>
+    {subject==="portrait"&&
+      <aside role="status" data-km-portrait-quality={PENCIL_PORTRAIT_ART_STATUS}
+        style={{maxWidth:960,border:"1px solid #AF8472",background:"#FFF9F0",
+          padding:12,borderRadius:5}}>
+        <strong>Experimental anatomy blockout — failed reference-quality review.</strong>
+        <p style={{margin:"6px 0 0"}}>{PENCIL_PORTRAIT_ART_REASON}</p>
+        <p style={{margin:"6px 0 0",fontSize:13}}>
+          No artist-level realism is claimed. Enable output landmarks to inspect
+          the existing drawing's geometry; these are not measured source landmarks.
+          Rebuild requires a rights-verified photo, independent source/output annotations,
+          a tonal gate and actual 1×/3× reviewer acceptance before new art is promoted.
+        </p>
+      </aside>}
     <section aria-label="Living pencil atelier controls"
       style={{display:"flex",flexWrap:"wrap",alignItems:"end",gap:13,maxWidth:1020}}>
       <label style={labelStyle}>Study
         <select aria-label="Living subject" style={selectStyle} value={subject}
           onChange={e=>{setPlaying(false);setSubject(e.target.value as PencilLivingStudy);}}>
           {PENCIL_LIVING_STUDIES.map(s=><option key={s} value={s}>{
-            s==="portrait"?"Original human portrait":s==="fox"?"Red fox with layered fur":
+            s==="portrait"?"Human portrait · unapproved blockout":s==="fox"?"Red fox with layered fur":
             "Mountain, pines and river"
           }</option>)}
         </select>
@@ -96,14 +121,6 @@ export function PencilLivingAtelier() {
         <select aria-label="Living aspect" style={selectStyle} value={aspect}
           onChange={e=>{setPlaying(false);setAspect(e.target.value as PencilAspect);}}>
           <option value="landscape">16:9</option><option value="portrait">9:16</option>
-        </select>
-      </label>
-      <label style={labelStyle}>Medium reconstruction
-        <select aria-label="Living craft rendering" value={renderMode}
-          style={selectStyle}
-          onChange={e=>setRenderMode(e.target.value as typeof renderMode)}>
-          <option value="layered">Layered pencil (new)</option>
-          <option value="legacy">Flat vector (old / compare)</option>
         </select>
       </label>
       <label style={labelStyle}>Pigment burnish · {Math.round(burnish*100)}%
@@ -132,15 +149,40 @@ export function PencilLivingAtelier() {
           <option value="1.5">1.5×</option><option value="2">2×</option>
         </select>
       </label>
+      {subject!=="valley"&&<label style={labelStyle}>Facial construction
+        <select aria-label="Living facial detail" style={selectStyle} value={faceDetail}
+          onChange={e=>{setPlaying(false);setFaceDetail(e.target.value as typeof faceDetail);}}>
+          <option value="eyes">Eyes & eyelids</option>
+          <option value="nose">Nose & alar / muzzle</option>
+          <option value="mouth">Lips & jaw / whiskers</option>
+        </select>
+      </label>}
       <label style={{display:"flex",minHeight:40,alignItems:"center",gap:7}}>
         <input aria-label="Living inspect macro" type="checkbox" checked={focus}
           onChange={e=>setFocus(e.target.checked)}/> Inspect macro
       </label>
+      {subject==="portrait"&&<label style={{display:"flex",minHeight:40,alignItems:"center",gap:7}}>
+        <input aria-label="Living show output landmarks" type="checkbox" checked={anatomy}
+          onChange={e=>setAnatomy(e.target.checked)}/>
+        Show measured output anchors (NOT source-approved)
+      </label>}
       <label style={{display:"flex",minHeight:40,alignItems:"center",gap:7}}>
         <input aria-label="Living reduced motion" type="checkbox" checked={reduce}
           onChange={e=>{setReduce(e.target.checked);setPlaying(false);}}/> Reduced motion
       </label>
     </section>
+    {subject==="portrait"&&anatomy&&<div
+      data-km-portrait-landmark-index=""
+      aria-label="Output anatomy anchor index"
+      style={{maxWidth:960,background:"#FFFDF6",padding:12,border:"1px solid #B4A89A",
+        borderRadius:5}}>
+      <strong>Output-only landmark index · not reference-measured</strong>
+      <ol style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",
+        gap:"4px 14px",margin:"8px 0 0",paddingLeft:25,fontSize:12}}>
+        {PENCIL_PORTRAIT_LANDMARK_KEYS.map((id,i)=>
+          <li key={id} value={i+1}>{id}</li>)}
+      </ol>
+    </div>}
     <div data-km-living-subject={subject}
       style={{maxWidth:landscape?960:540,width:"100%",
         aspectRatio:landscape?"16 / 9":"9 / 16",
@@ -148,6 +190,23 @@ export function PencilLivingAtelier() {
         boxShadow:"0 16px 50px #54534d32"}}>
       <PencilDrawing drawing={drawing} frame={frame} reducedMotion={reduce}
         style={detailStyle} label={meta.title+" in coloured pencil"}>
+        {subject==="portrait"&&anatomy&&
+          <g data-km-portrait-output-landmarks=""
+            aria-label="Output-only portrait geometry diagnostic"
+            transform={landscape?"translate(441 35) scale(1.06)":
+              "translate(-31 145) scale(1.38)"}>
+            {PENCIL_PORTRAIT_LANDMARK_KEYS.map((id,i)=>{
+              const [x,y]=PENCIL_PORTRAIT_LANDMARKS[id];
+              return <g key={id}>
+                <circle cx={x} cy={y} r={4.1} stroke="#FAF9E6" strokeWidth={.9}
+                  fill="#A63124"/>
+                <text x={x} y={y+1.9} fontSize={5.5} textAnchor="middle"
+                  fill="#FFFFFF" fontWeight={700} fontFamily="Arial,sans-serif">
+                  {i+1}
+                </text>
+              </g>;
+            })}
+          </g>}
         <g fontFamily="Georgia, serif" fill="#3D4B50">
           <text x={landscape?54:45} y={landscape?80:77}
             fontSize={13} fontFamily="Arial, sans-serif" fontWeight={600}
@@ -160,7 +219,7 @@ export function PencilLivingAtelier() {
             fontSize={landscape?15:14} fill="#687B79">{meta.subtitle}</text>
           <text x={landscape?53:45} y={landscape?507:909}
             fontFamily="Arial, sans-serif" fontSize={11} letterSpacing={1.1}
-            fill="#78817B">ORIGINAL ART · CP1 · STUDY {subject.toUpperCase()}</text>
+            fill="#78817B">ORIGINAL ART · CP-F1 · STUDY {subject.toUpperCase()}</text>
         </g>
       </PencilDrawing>
     </div>
@@ -180,11 +239,13 @@ export function PencilLivingAtelier() {
       </nav>
     </div>
     <p style={{margin:0,maxWidth:920,fontSize:13,color:"#697B78"}}>
-      Compare the earlier flat underpaint with the new layered, dry-to-burnished
-      paper-tooth pigment renderer using the medium selector. The same original
-      anatomy/geometry is retained in both modes: richer pigment does not fix
-      a simplified silhouette. Macro zoom is Storybook-only. Reference-matched
-      realism, final Chromium crop review and full-speed film acceptance remain open.
+      Select Eyes, Nose, or Mouth to scrutinize anatomical contours at 3×.
+      The human study is a rejected experimental construction, not an approved
+      realistic portrait. Output-only anchors do not imply source-image fidelity. Paper tooth,
+      pressure, pigment burnishing and absolute frames remain editable. Neither the
+      face-inspection zoom nor its controls enter exported scenes. Every new drawing
+      uses the validated CP-F1 foundation, without an unqualified flat-vector bypass.
+      Artist-grade realism still requires visual reference comparison at film size.
     </p>
   </main>;
 }

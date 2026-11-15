@@ -1,6 +1,6 @@
 import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
-import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
+import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonDryNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
 import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction, CrayonSgraffito } from "./crayon";
 import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
@@ -16,6 +16,8 @@ export interface CrayonStorybookProps extends Omit<SVGProps<SVGSVGElement>, "wid
   pressure?: number;
   paperTooth?: number;
   reducedMotion?: boolean;
+  /** Whether to paint lettering over the art. Auto-hide in portrait until safe-area proof exists. */
+  showEditorial?: boolean;
   style?: CSSProperties;
 }
 export type WaxProps = {
@@ -31,6 +33,9 @@ export type WaxProps = {
   markStrength?: number;
   /** Surface-integrated, opaque multi-pigment underpaint, not flat vector fill. */
   underpaintGradient?:CrayonVolumeGradient;
+  /** 0..1 optical paper-tooth color variation on *opaque* wax.
+   * Samples page-seeded relief without making the subject transparent. */
+  underpaintTooth?:number;
   /** After the drawing completes, repaint small wax daubs on discrete held exposures. */
   redraw?: CrayonRedrawOptions;
   /** Fragmented wax nib trace around the visible outline, 0..1. */
@@ -49,7 +54,7 @@ export type WaxProps = {
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient,
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient, underpaintTooth = 0,
   redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
@@ -64,10 +69,13 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   ))throw new RangeError("crayon underpaintGradient is invalid");
   if (!Number.isFinite(markStrength)||markStrength<0||markStrength>1)
     throw new RangeError("crayon markStrength must be 0..1");
+  if (!Number.isFinite(underpaintTooth)||underpaintTooth<0||underpaintTooth>1||
+    (underpaintTooth>0&&coverage!=="opaque"))
+    throw new RangeError("crayon underpaintTooth must be 0..1 for opaque wax");
   if (!Number.isFinite(blendRadius)||blendRadius<0||blendRadius>18||
     (blendRadius>0&&coverage!=="open"))
     throw new RangeError("crayon blendRadius must be 0..18 for open wax");
-  if (nibStyle !== "rounded" && nibStyle !== "tapered")
+  if (nibStyle !== "rounded" && nibStyle !== "tapered" && nibStyle !== "dry")
     throw new RangeError("crayon nib style must be rounded or tapered");
   if (strokeOrder !== "scanline" && strokeOrder !== "patches")
     throw new RangeError("crayon stroke order must be scanline or patches");
@@ -106,6 +114,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const deposit = clip + "-deposit";
   const blendId = clip + "-soft-glaze";
   const volumeId=clip+"-volume";
+  const darkToothMask=clip+"-undercoat-dark";
+  const lightToothMask=clip+"-undercoat-light";
   const underpaintFill=underpaintGradient ? "url(#"+volumeId+")" : colors[0];
   // Contact pressure changes the opacity of raised paper-grain interruptions.
   // This remains a detail mask for the wax layer, never for opaque underpaint.
@@ -121,6 +131,11 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   // while the drawing is still in progress. Do not reveal it with a vertical
   // rectangle: pigment arrives where the crayon nib actually traveled.
   const depositMarks = useMemo(() => marks.slice(0, Math.ceil(marks.length / 2)), [marks]);
+  // Dry-contact fragments are computed only for requested dry wax art.
+  // Legacy tapered/rounded scenes pay no extra allocation or SVG cost.
+  const dryMarks=useMemo(()=>nibStyle==="dry"
+    ? marks.map(mark=>crayonDryNibPath(mark)):[],
+    [marks,nibStyle]);
   // The final very thin leveling pass closes tooth gaps gradually; the completed
   // silhouette is solid and never permits background objects to ghost through.
   const settlingCoat = pigmentProgress > .82 && pigmentProgress < 1
@@ -137,7 +152,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     data-km-crayon-stroke-order={strokeOrder}
     data-km-crayon-mark-length={markLength}
     data-km-crayon-outline-opacity={outlineOpacity}
-    data-km-crayon-mark-strength={markStrength}>
+    data-km-crayon-mark-strength={markStrength}
+    data-km-crayon-underpaint-tooth={underpaintTooth>0?underpaintTooth:undefined}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
       {underpaintGradient && <radialGradient id={volumeId}
@@ -150,6 +166,16 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         <stop offset="48%" stopColor={colors[0]}/>
         <stop offset="100%" stopColor={underpaintGradient.shadow}/>
       </radialGradient>}
+      {coverage==="opaque"&&underpaintTooth>0&&(["dark","light"] as const).map((kind)=>(
+        <mask key={kind} id={kind==="dark"?darkToothMask:lightToothMask}
+          maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
+          x={bounds.x-25} y={bounds.y-25}
+          width={bounds.width+50} height={bounds.height+50}>
+          <rect x={bounds.x-25} y={bounds.y-25}
+            width={bounds.width+50} height={bounds.height+50}
+            fill={"url(#"+tooth+"-pigment-"+kind+")"}/>
+        </mask>
+      ))}
       {blendRadius>0 && <filter id={blendId} filterUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB"
         x={bounds.x-3*blendRadius} y={bounds.y-3*blendRadius}
@@ -205,6 +231,19 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
       {settlingCoat>0 && <path d={d} fill={underpaintFill}
         opacity={settlingCoat} clipPath={"url(#"+clip+")"}
         data-km-crayon-settling-coat="" />}
+      {/* Luminance-masked pigment shows undercoat paper-contact variation
+          without cutting see-through holes in the solid wax mass.
+          The same deposit mask preserves exact partial drawing coverage. */}
+      {underpaintTooth>0 && <g clipPath={"url(#"+clip+")"}
+        mask={pigmentProgress<1?"url(#"+deposit+")":undefined}
+        data-km-crayon-underpaint-grain="">
+        <path d={d} fill={colors[1]} mask={"url(#"+darkToothMask+")"}
+          opacity={underpaintTooth*(.28+.16*(1-pressure))}
+          data-km-crayon-undercoat-pits="" />
+        <path d={d} fill={colors[2]} mask={"url(#"+lightToothMask+")"}
+          opacity={underpaintTooth*(.32+.17*(1-pressure))}
+          data-km-crayon-undercoat-ridges="" />
+      </g>}
     </>}
     {/* The rubbed-over skin tone is feathered before local tooth strokes.
         Parent clipping in CrayonScene prevents any blur from escaping a face. */}
@@ -222,7 +261,18 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         const progress = crayonStrokeProgress(frame, fillFirst, fillLast, i, marks.length, strokeOrder, reduced);
         if (progress <= 0) return null;
         return <g key={i} fill="none" strokeLinecap="round">
-          {nibStyle==="tapered" ?
+          {nibStyle==="dry" ? <g data-km-crayon-nib="dry">
+            {/* A weak wide under-rub holds the colored contact together,
+                while disjoint pressure-shaped ribbons catch paper ridges. */}
+            <path d={progress>=1?mark.nibD:crayonNibPath(mark,progress)}
+              fill={colors[mark.tone]}
+              opacity={markStrength*(coverage==="opaque"?.10+.13*mark.pressure:.06+.10*mark.pressure)}
+              data-km-crayon-dry-binder="" />
+            <path d={progress>=1?dryMarks[i]:crayonDryNibPath(mark,progress)}
+              fill={colors[mark.tone]}
+              opacity={markStrength*(coverage==="opaque"?.48+.38*mark.pressure:.37+.29*mark.pressure)}
+              data-km-crayon-dry-ribbons="" />
+          </g> : nibStyle==="tapered" ?
             <path d={progress>=1 ? mark.nibD : crayonNibPath(mark, progress)} fill={colors[mark.tone]}
               data-km-crayon-nib="tapered"
               opacity={markStrength*(coverage==="opaque" ? .32+mark.pressure*.34 : .2+mark.pressure*.24)} /> :
@@ -231,8 +281,9 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
               data-km-crayon-nib="rounded"
               opacity={markStrength*(coverage==="opaque" ? .32+mark.pressure*.34 : .2+mark.pressure*.24)} />}
           {progress > .8 && <path d={mark.scumble} stroke={colors[(mark.tone + 1) % 3]}
-            strokeWidth={1.3 + mark.pressure * 2.3} opacity={markStrength*(coverage==="opaque"?.41:.31)} />}
-          {progress >= 1 && <path d={mark.scrape} stroke="#faefd6"
+            strokeWidth={1.3 + mark.pressure * 2.3}
+            opacity={markStrength*(nibStyle==="dry"?.17:coverage==="opaque"?.41:.31)} />}
+          {progress >= 1 && nibStyle!=="dry" && <path d={mark.scrape} stroke="#faefd6"
             strokeWidth={.6 + (1 - mark.pressure) * 1.4} opacity={markStrength*.29} />}
         </g>;
       })}
@@ -279,7 +330,10 @@ export function WaxLine({ d, color, width, frame, first, last, reduced, seed, op
       strokeDasharray={100} strokeDashoffset={100 * (1 - reveal)} opacity={.14 + wiggle * .08} />
   </g>;
 }
-export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" }: { width: number; height: number; seed: number; tooth: string; strength: number; color?: string }) {
+export function Paper({ width, height, seed, tooth, strength, color = "#faf1da", pigmentRelief = false }: {
+  width: number; height: number; seed: number; tooth: string;
+  strength: number; color?: string; pigmentRelief?: boolean;
+}) {
   const fibers = useMemo(() => Array.from({ length: 480 }, (_, i) => ({
     x: crayonHash(seed, i, 1) * width, y: crayonHash(seed, i, 2) * height,
     dx: 1 + crayonHash(seed, i, 3) * 14, dy: (crayonHash(seed, i, 4) - .5) * 4,
@@ -296,8 +350,43 @@ export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" 
     width:.45+crayonHash(seed, i, 105)*1.55,
     depth:.55+crayonHash(seed, i, 106)*.45,
   })),[seed]);
+  // Paper ridges are shared by every wax region, so independently painted
+  // parts don't receive unrelated stochastic texture. The dark and light
+  // cohorts occupy separate paper-contact islands and never cut alpha holes.
+  // Batch subpixel-scale paper tooth into six SVG compound paths.
+  // Rendering legacy scenes adds six small pattern paths rather than hundreds
+  // of per-mark DOM elements. Geometry is fixed to paper seed and strength.
+  const pigmentTexture=useMemo(()=>(
+    pigmentRelief ? (["dark","light"] as const).map(kind=>{
+      const dark=kind==="dark",total=Math.round(strength*(dark?860:650));
+      const marks:[string[],string[],string[]]=[[],[],[]];
+      const base=dark?1400:1500;
+      for(let i=0;i<total;i++){
+        const band=Math.floor(crayonHash(seed,i,base+7)*3);
+        const x=crayonHash(seed,i,base+1)*176;
+        const y=crayonHash(seed,i,base+2)*176;
+        const dx=(dark ? .35 : .25)+crayonHash(seed,i,base+3)*(dark ? 1.85 : 1.25);
+        const dy=(crayonHash(seed,i,base+4)-.5)*(dark?1.6:1.05);
+        marks[band].push("M"+x.toFixed(2)+" "+y.toFixed(2)+
+          "l"+dx.toFixed(2)+" "+dy.toFixed(2));
+      }
+      return {kind,paths:marks.map((parts,band)=>({
+        d:parts.join(" "),width:(dark ? .31 : .24)+band*(dark ? .17 : .14),
+        opacity:.50+band*.17,
+      }))};
+    }) : []
+  ),[seed,strength,pigmentRelief]);
   return <>
     <defs>
+      {pigmentTexture.map(({kind,paths})=><pattern key={kind}
+        id={tooth+"-pigment-"+kind} width={176} height={176}
+        patternUnits="userSpaceOnUse" data-km-crayon-pigment-paper={kind}>
+        <rect width={176} height={176} fill="#000"/>
+        <g fill="none" stroke="#fff" strokeLinecap="round">
+          {paths.map((f,i)=>f.d&&<path key={i} d={f.d}
+            opacity={f.opacity} strokeWidth={f.width}/>)}
+        </g>
+      </pattern>)}
       <pattern id={tooth + "-relief"} width={144} height={144}
         patternUnits="userSpaceOnUse" data-km-crayon-paper-relief="">
         {/* Transparent outside dark contact-resistant ridges. No bright dots
@@ -472,7 +561,7 @@ function StoryTitle({ width, height, portrait, day, frame, reduced }: { width:nu
   </g>;
 }
 export function CrayonStorybook({frame, story = "lantern", aspect = "landscape", seed = 23,
-  pressure = .87, paperTooth = .58, reducedMotion = false, style, ...props}: CrayonStorybookProps) {
+  pressure = .87, paperTooth = .58, reducedMotion = false, showEditorial, style, ...props}: CrayonStorybookProps) {
   if (!Number.isSafeInteger(frame) || frame < 0) throw new RangeError("crayon frame must be a nonnegative integer");
   if (!Number.isSafeInteger(seed)) throw new RangeError("crayon seed must be a safe integer");
   if (!Number.isFinite(pressure) || pressure < 0 || pressure > 1) throw new RangeError("crayon pressure must be in [0,1]");
@@ -480,6 +569,10 @@ export function CrayonStorybook({frame, story = "lantern", aspect = "landscape",
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("unknown crayon aspect");
   if (story !== "lantern" && story !== "garden") throw new RangeError("unknown crayon story");
   const portrait = aspect === "portrait", day = story === "garden";
+  // In 9:16 the fixed title and tagline can cover the drawn subject or sun.
+  // Editorial is opt-in there until a measured composition-specific text
+  // safe area exists; 16:9 retains the authored title for compatibility.
+  const showStoryEditorial = showEditorial ?? !portrait;
   const W = portrait ? 540 : 960, H = portrait ? 960 : 540;
   const raw = useId(), tooth = "crayonpaper-" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
   const groundY = H * (portrait ? .76 : .78);
@@ -526,8 +619,8 @@ export function CrayonStorybook({frame, story = "lantern", aspect = "landscape",
         color="#caa990" width={9} seed={seed+140} frame={totalFrame} first={220} last={340} reduced={reducedMotion} opacity={.56}/>
     </>}
     <MeadowDetails width={W} height={H} seed={seed+172} frame={totalFrame} reduced={reducedMotion} day={day}/>
-    <StoryTitle width={W} height={H} portrait={portrait} day={day} frame={totalFrame} reduced={reducedMotion}/>
-    {portrait && <g fill={day?"#365265":"#f9ebd2"} fontSize="17" fontFamily="Georgia,serif" letterSpacing="2" opacity=".86">
+    {showStoryEditorial && <StoryTitle width={W} height={H} portrait={portrait} day={day} frame={totalFrame} reduced={reducedMotion}/>}
+    {portrait && showStoryEditorial && <g fill={day?"#365265":"#f9ebd2"} fontSize="17" fontFamily="Georgia,serif" letterSpacing="2" opacity=".86">
       <path d={"M33 " + (H-70) + " H" + (W-33)} stroke={day?"#365265":"#f9ebd2"} strokeWidth="1.5" fill="none"/>
       <text x={34} y={H-36}>WAX CRAYON   /   {day?"002":"001"}</text>
     </g>}

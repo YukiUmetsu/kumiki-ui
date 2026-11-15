@@ -4,7 +4,7 @@ import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-stor
 
 /** The remade ArtCraft child is constructed by authentic editable wax marks. */
 const meta={
-  title:"Video production/Film Looks/Crayon/Characters/The Blue Coat / Draw-In Construction",
+  title:"Video production/Film Looks/Crayon/Blue Coat — Draw-In Construction",
   id:"video-crayon-draw-in",
   // ArtCraft v6: reject the legacy gallery until actual 16:9/9:16 crops,
   // rig extrema and reference-led visual acceptance are verified.

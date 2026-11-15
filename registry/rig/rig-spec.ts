@@ -11,6 +11,7 @@
  * and every frame is a pure function of the spec, so frames render the same in any seek order.
  */
 import type { EasingSpec } from "../motion/types";
+import type { FlutterParams } from "./rig-flutter";
 
 export const RIG_SCHEMA_VERSION = 1 as const;
 
@@ -70,13 +71,24 @@ export interface RigPart {
    * are drawn, shaded by the way they face.
    */
   extrude?: boolean;
+  /** Material of the extruded faces when it differs from the outline's (a dark cabin whose windscreen faces are glass). */
+  faceRole?: RigRole;
+  /** Extrusion depth as a fraction of the figure's `depth3d` (a tyre's tread width), default 1. */
+  extrudeDepth?: number;
   /** Sits on the far side of a solid figure (far wheels, the other headlamp, far indicators): drawn shifted by the
    * depth when the figure yaws; `under` paints below the extruded faces, `over` on top of them. */
   far3d?: "under" | "over";
+  /** Colour of the part's back face, shown when its bone is mirrored (a leaf or petal flipping over shows its paler
+   * underside). */
+  backColor?: string;
+  /** Draw only while this face is toward the camera (veins on the top of a leaf, a different pattern underneath). */
+  side?: "front" | "back";
 }
 
 /** Keyframed local overrides for one bone (added to rest and drivers). */
-export interface RigKey { frame: number; x?: number; y?: number; rotate?: number; scaleX?: number; scaleY?: number; opacity?: number; ease?: EasingSpec }
+export interface RigKey { frame: number; x?: number; y?: number; rotate?: number; scaleX?: number; scaleY?: number; opacity?: number;
+  /** Vertical shear in bone space (y += shear·x): with scale and rotation, any flat part seen tilted in depth. */
+  shear?: number; ease?: EasingSpec }
 
 /** Root motion through the scene. `x`/`y` are absolute scene positions; facing flips the whole figure. */
 export interface RigRootKey {
@@ -204,6 +216,19 @@ export type RigDriver = RigWindow & (
   /** Tilt the root to follow its own path (planes climbing, dragons diving, cars on hills); `lean` adds degrees per
    * unit of forward speed (a helicopter noses down to fly forward). */
   | { type: "bank"; amount: number; max?: number; lean?: number }
+  /** Lateral undulation (snakes, eels on land): the chain, head first, lies on a sine track fixed to the ground and slides
+   * along it as the root travels, so every point of the body follows the head's path without slipping sideways.
+   * The first bone's joint rides the track across; its parent's x axis is the direction of travel. */
+  | { type: "serpent"; bones: readonly string[]; amplitude: number; wavelength: number; phase?: number;
+      /** Amplitude at the head as a fraction of `amplitude` (heads swing less than the body), default .6. */ head?: number }
+  /** Drifting flakes (petals, leaves, snow, confetti): each bone is a flat particle released somewhere in `area` (parent
+   * space: x, y, width, height), carried by the wind and falling in the flutter or tumble regime of a light plate, then
+   * recycled after `life` frames. Parts are drawn along local +x; a mirrored frame shows their back face. */
+  | { type: "drift"; bones: readonly string[]; area: readonly [number, number, number, number]; life: number; flutter: FlutterParams;
+      /** Share of particles that tumble instead of fluttering (0..1), default .4. */ tumble?: number;
+      /** Random spread of speeds, swing and timing (0..1), default .35. */ vary?: number;
+      /** Roll about the particle's own length, radians per frame (petals curl and twist as they fall). */ roll?: number;
+      /** Fade in and out over this many frames, default 10. */ fade?: number; seed?: number }
 );
 export type RigDriverType = RigDriver["type"];
 
@@ -225,6 +250,10 @@ export interface RigSpec {
   bounds: { x: number; y: number; width: number; height: number };
   /** Width of the figure across the picture (design px), for `extrude` and `far3d` parts when it yaws. */
   depth3d?: number;
+  /** Camera height for solid turns: the far side also rises by depth·tilt·|sin(yaw)|, so tops (bonnet, roof) show. */
+  depth3dTilt?: number;
+  /** Bones that cast a soft shadow on the ground straight below them (a hopping frog, a leaf skittering along). */
+  shadows?: readonly string[];
   /** Provenance of the design (original rigs say so). */
   provenance: { license: string; source: string };
 }
@@ -288,6 +317,9 @@ export function inspectRig(input: unknown): string[] {
     if (!fin(q.z)) out.push(p + ".z must be finite");
     if (q.color !== undefined && !HEX.test(q.color)) out.push(p + ".color must be a 6-digit hex colour");
     if (q.far3d !== undefined && q.far3d !== "under" && q.far3d !== "over") out.push(p + ".far3d must be under or over");
+    if (q.faceRole !== undefined && !RIG_ROLES.includes(q.faceRole)) out.push(p + ".faceRole is not a rig role");
+    if (q.side !== undefined && q.side !== "front" && q.side !== "back") out.push(p + ".side must be front or back");
+    if (q.extrudeDepth !== undefined && !(fin(q.extrudeDepth) && q.extrudeDepth > 0 && q.extrudeDepth <= 1)) out.push(p + ".extrudeDepth must be in (0, 1]");
     if ((q.extrude || q.far3d) && !(fin(r.depth3d) && r.depth3d! > 0)) out.push(p + " needs the rig's depth3d");
     shapeIssues(q.shape, p + ".shape", out);
     for (const [name, v] of Object.entries(q.variants ?? {})) shapeIssues(v as RigShape, p + ".variants." + name, out);
@@ -367,6 +399,13 @@ export function inspectRig(input: unknown): string[] {
         break;
       }
       case "bank": if (!fin(d.amount)) out.push(p + ".amount must be finite"); break;
+      case "drift": if (!Array.isArray(d.bones) || !d.bones.length) out.push(p + ".bones must not be empty"); else d.bones.forEach((b, j) => bone(b, p + ".bones[" + j + "]"));
+        if (!Array.isArray(d.area) || d.area.length !== 4 || !d.area.every(fin)) out.push(p + ".area must be [x, y, width, height]");
+        if (!(fin(d.life) && d.life >= 4)) out.push(p + ".life must be ≥ 4");
+        if (!d.flutter || !fin(d.flutter.fall)) out.push(p + ".flutter.fall must be finite"); break;
+      case "serpent": if (!Array.isArray(d.bones) || d.bones.length < 2) out.push(p + ".bones needs at least two bones"); else d.bones.forEach((b, j) => {
+          bone(b, p + ".bones[" + j + "]"); if (!((bones.get(b)?.length ?? 0) > 0)) out.push(p + " bone \"" + b + "\" needs a length"); });
+        if (!fin(d.amplitude) || !fin(d.wavelength) || d.wavelength <= 0) out.push(p + " needs amplitude and wavelength > 0"); break;
       default: out.push(p + ".type is unknown");
     }
   });
@@ -375,6 +414,7 @@ export function inspectRig(input: unknown): string[] {
     let prev = -Infinity;
     keys.forEach((k, j) => { if (!int(k.frame) || k.frame <= prev) out.push("tracks." + id + "[" + j + "].frame must increase"); prev = k.frame; });
   }
+  (r.shadows ?? []).forEach((b, j) => bone(b, "shadows[" + j + "]"));
   let prevRoot = -Infinity;
   (r.root ?? []).forEach((k, j) => {
     if (!int(k.frame) || k.frame <= prevRoot || !fin(k.x)) out.push("root[" + j + "] needs increasing frame and x");

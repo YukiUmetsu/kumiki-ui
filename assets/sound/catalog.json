@@ -66,6 +66,38 @@
    "verifiedAt": "2026-11-08"
   },
   {
+   "id": "bed-crickets-night",
+   "path": "recorded/bed-crickets-night.wav",
+   "sha256": "2317b1c8b62067a8eb9cd886c5f6c087dba03a965a7bc467db95f5eea56cf893",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 384000,
+   "peakSeconds": 0,
+   "loudnessLufs": -23,
+   "tags": [
+    "ambience",
+    "loop",
+    "crickets",
+    "insects",
+    "night",
+    "field",
+    "outdoor",
+    "recorded"
+   ],
+   "description": "Crickets chirping in a quiet field at night, no voices.",
+   "sourceUrl": "https://freesound.org/people/PhilllChabbb/sounds/245834",
+   "author": "PhilllChabbb",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
    "id": "bed-drone-low",
    "path": "kumiki/tech/bed-drone-low.wav",
    "sha256": "e8982adcdc0fea0700dcaf66a6c24a2f73e23ff27141673baa6aef4ac2781d1d",
@@ -97,6 +129,37 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-12"
+  },
+  {
+   "id": "bed-fireworks-distant",
+   "path": "recorded/bed-fireworks-distant.wav",
+   "sha256": "f5e73042322adcf5747828d42ffd9cc550d8208cf6bea3b4414399b583c3554e",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 384000,
+   "peakSeconds": 0,
+   "loudnessLufs": -23,
+   "tags": [
+    "ambience",
+    "loop",
+    "fireworks",
+    "celebration",
+    "night",
+    "outdoor",
+    "recorded"
+   ],
+   "description": "Fireworks bursting at a distance, a slow run of booms and crackles.",
+   "sourceUrl": "https://freesound.org/people/monotraum/sounds/212673",
+   "author": "monotraum",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
   },
   {
    "id": "bed-pulse-tick",
@@ -131,6 +194,37 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-12"
+  },
+  {
+   "id": "bed-rain-heavy",
+   "path": "recorded/bed-rain-heavy.wav",
+   "sha256": "67dec3c4c3ea54c725a28a19418d1ca11b12c2ac378beec028b917b69711e188",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 384000,
+   "peakSeconds": 0,
+   "loudnessLufs": -23,
+   "tags": [
+    "ambience",
+    "loop",
+    "rain",
+    "weather",
+    "storm",
+    "outdoor",
+    "recorded"
+   ],
+   "description": "Heavy, steady rain outdoors, with a distant roll of thunder in the bed.",
+   "sourceUrl": "https://freesound.org/people/Kinoton/sounds/393560",
+   "author": "Kinoton",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
   },
   {
    "id": "bed-river-fast",
@@ -192,6 +286,38 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-08"
+  },
+  {
+   "id": "bed-surf-beach",
+   "path": "recorded/bed-surf-beach.wav",
+   "sha256": "1b77d799ec59a287b182ccdcdf16c75ac1d3f3952232d65a950945f789ba7b01",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 576000,
+   "peakSeconds": 0,
+   "loudnessLufs": -23,
+   "tags": [
+    "ambience",
+    "loop",
+    "water",
+    "sea",
+    "surf",
+    "waves",
+    "outdoor",
+    "recorded"
+   ],
+   "description": "Ocean waves breaking on a beach from nearby, frothy surf.",
+   "sourceUrl": "https://freesound.org/people/kyles/sounds/177698",
+   "author": "kyles",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
   },
   {
    "id": "bed-underwater",

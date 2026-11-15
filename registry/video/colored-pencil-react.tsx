@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { evaluatePencilMark, hatchPencilRegion, inspectPencilDrawing, pencilHash } from "./colored-pencil";
 import type { PencilDrawingSpec, PencilTrace, PencilRegion, PencilPigmentLayer } from "./colored-pencil";
 import { pencilMicroDeposit, pencilGrainTile } from "./colored-pencil-craft";
+import { inspectPencilFoundationDrawing } from "./colored-pencil-foundation";
 
 export interface PencilDrawingProps {
   drawing: PencilDrawingSpec;
@@ -53,6 +54,7 @@ function CraftDeposit({region,frame,reducedMotion}:{
 function Trace({ trace, frame, reducedMotion = false }: { trace: PencilTrace; frame: number; reducedMotion?: boolean }) {
   const progress = evaluatePencilMark(frame, trace, reducedMotion);
   return <path d={trace.path} fill="none" stroke={trace.color} strokeWidth={trace.width}
+    data-km-pencil-trace={trace.id} transform={trace.transform}
     strokeLinecap="round" strokeLinejoin="round" opacity={trace.opacity ?? .85}
     pathLength={1} strokeDasharray={progress.toFixed(5) + " 1"} />;
 }
@@ -64,7 +66,8 @@ function Trace({ trace, frame, reducedMotion = false }: { trace: PencilTrace; fr
  */
 export function PencilDrawing({ drawing, frame, reducedMotion = false,
   label = "Coloured-pencil scientific illustration", className, style, children }: PencilDrawingProps) {
-  const issues = inspectPencilDrawing(drawing);
+  const issues = drawing.foundation
+    ? inspectPencilFoundationDrawing(drawing) : inspectPencilDrawing(drawing);
   if (issues.length) throw new RangeError("Invalid pencil drawing: " + issues.join("; "));
   // Reject before laying out hundreds of brush marks.
   evaluatePencilMark(frame, { startFrame: 0, durationFrames: 1 }, reducedMotion);
@@ -85,6 +88,7 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
   return <svg xmlns="http://www.w3.org/2000/svg" viewBox={"0 0 " + drawing.width + " " + drawing.height}
     role="img" aria-label={label} className={className}
     data-km-colored-pencil="" data-km-pencil-frame={frame}
+    data-km-pencil-foundation={drawing.foundation?"CP-F1":undefined}
     style={{ width: "100%", height: "100%", display: "block", overflow: "hidden", isolation: "isolate", ...style }}>
     <defs>
       <pattern id={uid + "-paper"} width={1024} height={1024} patternUnits="userSpaceOnUse">

@@ -1,0 +1,57 @@
+name: ArtCraft Coloured-Pencil Foundation Proof
+
+# Only the new CP-F1 contract and its consumers. Full legacy suites run locally.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'registry/video/colored-pencil-foundation.ts'
+      - 'registry/video/colored-pencil-materials.ts'
+      - 'registry/video/colored-pencil-react.tsx'
+      - 'registry/video/colored-pencil.ts'
+      - 'src/video/colored-pencil-foundation-studio.tsx'
+      - 'src/video/colored-pencil-science.stories.tsx'
+      - 'src/video/colored-pencil-object-studies.ts'
+      - 'src/video/colored-pencil-living-studies.ts'
+      - 'src/video/colored-pencil-photo.ts'
+      - 'src/video/colored-pencil-reference-atelier.tsx'
+      - 'src/video/colored-pencil-portrait-guides.ts'
+      - 'tests/colored-pencil-foundation.test.tsx'
+      - 'tests/colored-pencil-portrait-guides.test.ts'
+      - 'tests/e2e-storybook/colored-pencil-foundation.spec.ts'
+      - 'tests/e2e-storybook/colored-pencil-portrait-guides.spec.ts'
+      - '.github/workflows/colored-pencil-foundation-proof.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: artcraft-pencil-foundation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  foundation-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Validate CP-F1 material contract and backward compatibility
+        run: npx vitest run --project unit tests/colored-pencil-foundation.test.tsx tests/colored-pencil-craft.test.tsx tests/colored-pencil-photo.test.ts tests/colored-pencil-portrait-guides.test.ts
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Check original drawing stages and 16:9 / 9:16 hero pixels
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-foundation.spec.ts tests/e2e-storybook/colored-pencil-portrait-guides.spec.ts
+      - name: Keep only the focused ArtCraft evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pencil-cp-f1-foundation-proof
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn

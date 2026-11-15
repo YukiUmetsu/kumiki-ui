@@ -110,3 +110,144 @@ Research: reference bird cutwork and feather edge craft in Diana Beltrán Herrer
 ## Pass 17 — separately hinged, opaque feather tips
 
 Studied Diana Beltrán Herrera's original physical bird feathers. Added renderer support for attached second contours with bounded fold pivots and contact shadows. The kingfisher now has 18 two-part wing-feather pieces; eaves and napkin folds also gain small raised tips. Added `relief` 0–1, independent of earlier color-shading `curl`. Regression gates: 128 budget, root/tip attachment, reduced motion and seeded seek, opaque closed paths, invalid negative/infinite displacements, actual Chromium landscape/portrait captures and native-film exports. This is not manufactured 3D paper.
+
+## Pass 18 — kingfisher anatomy rebuilt from actual bird and handmade paper references
+
+Focus on a genuinely better bird rather than arbitrary effect layers. Reconstructed the entire original `kingfisher` geometry while preserving its contract, consistent wing rig and 18 real lifted feather tips. Changed skull-to-body connection, wing/body volume, blue and chestnut color tracts, crown markings, eye and cheek arrangement, short rectrices, bill wedge and perch-clinging tarsi. Added 12 compound layers containing fine individual paper feather contours. **Artistic validation:** inspect both exact browser screenshot ratios and native film frames, with no unmeasured ArtCraft score claims.
+
+
+## Pass 19 — fine vane cutwork from paper-bird construction
+
+References: [Diana Beltrán Herrera's paper bird collection](https://www.dianabeltranherrera.com/projects/birds) and [the photographed hand-assembled feather detail](https://www.creativeboom.com/work/paper-birds-delicate-feathered-friends-crafted-entirely-from-coloured-paper/). Individual overlapping feathers have deliberate taper, close-fitting lateral barbs and fine irregular hand-cut margins. Previously, the Kumiki kingfisher's 18 feather vanes were largely smooth geometric capsules despite the revised anatomy.
+
+**Correction:** author the primary's visible front and back vane edges as actual contours with shallow seeded, symmetric-in-count but asymmetric-in-placement V-shaped notches. Maintain the rounded root, 18 physical individual feather blades, 18 independently hinged opaque tips, all coherent anatomical rig pivots and 128-layer budget. The detail control changes real cuts rather than color/noise. No third-party pixels or outlines are copied.
+
+**Release evidence:** focused geometry/rig tests plus native landscape/portrait Storybook screenshots and FilmStage renders from the PR visual proof. Do not claim matched ArtCraft scores or manual visual approval based only on passing mechanical tests.
+
+
+## Storybook consolidation — one object, one configurable page
+
+The Film Looks sidebar had expanded to 25 Paper Craft stories, duplicating nearly identical subject renders for portrait, stock, feather relief, animation and revised anatomy. Consolidated all of them under **Video production / Film Looks / Paper Craft** as seven pages: Garden, Botanical & Butterfly, Kingfisher, Dragonfly, Canal Houses, Camera and Teacup & Citrus.
+
+All five media remain selectable in the on-stage selector; aspect, palette, detail, color-layer density, curl, motion, relief, surface tooth, shadows, edges, frame scrubbing and seed remain available through relevant Storybook controls. Subject identity is fixed per object page. Legacy preview story URLs change to the consolidated folder; native FilmStage contracts and paper-sculpture IDs do not.
+
+E2E browser proofs were revised to vary Storybook URL arguments and exercise dynamic media buttons rather than maintaining repeated preview stories. Verify the current commit in Chromium: seven URLs, five distinct objects, both aspects, opaque cardstock, feather-hinge alignment, coordinated motion, botanical palettes, gallery media and console errors. Tests cannot replace independent visual craft review.
+
+
+## Pass 20 — scenery reference-to-contour foundation
+
+New landscape ArtCraft references studied: Hari & Deepti's illuminated nested shadow boxes, Helen Musselwhite's cut-paper woodland illustration, Eiko Ojala's restrained vertical landscapes and Louise Jenkins's stacked countryside paper. See `docs/research/paper-craft-scenery-artcraft-study.md` for technique-specific observations and copyright boundary.
+
+Added `paperScenerySpec`: two original scenes (woodland stream and alpine lake) with individually cut trunks, boughs, canopies, notched pines, mountains and snow, real lake/stream surfaces, ferns, smaller botanicals, true oval die-cut mat and multi-plane shading. Seeded microdetail is actual geometry, not a transparent visual filter. Both landscapes and all 3 palettes share the exact PAPER1 runtime, 128-sheet bound and absolute-frame motion contract. No unlicensed image files, new runtime dependencies or extra Storybook folder.
+
+One **Scenery** page joins the existing `Video production/Film Looks/Paper Craft` group; choose scenery, palette, detail, breeze and aspect through controls. The `paper-craft-study` FilmStage slot now accepts `artwork:"scenery"` and has a two-scene landscape/portrait film.
+
+Verification gate: focused unit tests for paths/holes, opaque stock, seeded detail and seeks, FilmStage compile and both aspects, Chromium captures and native film render. Run these against the final PR SHA. ArtCraft structural analysis does not substitute for direct image comparison, and no unmeasured quantitative fidelity is asserted.
+
+
+### Pass 20b — actual rendered-frame critique and corrections
+
+Inspected the genuine Chromium screenshots and FilmStage 16:9/9:16 images (initial PR #296 proof artifacts, not an independent mockup). Initial woodland output **failed artistic readiness**: trees were skinny poles with microscopic isolated leaves and most ferns/flowers fell outside the elliptical frame; the stream disappeared behind the front bank. Initial alpine output **failed structural readiness**: mountain base polygons extended to the stage bottom, leaving obvious vertical seams, while ledges/moss were clipped off-frame. Sunrise halos read as target circles.
+
+**Corrections implemented:** grow each rooted tree into four natural boughs with spatially connected veined canopy packets; increase independently cut foliage and reposition ferns/flowers into the actual oval view aperture; re-expose a true foreground water sheet and pebble detail. Recut alpine mountains as independent closed paper peaks ending in curved foothills rather than rectangular full-stage extensions, add directional snow/rock facets, pull pines/ledges/moss into visible space and remove hard annular sun rings.
+
+These are visible-construction changes, not global noise, random transparency or a claim of photorealism. Regenerate fresh final-commit browser/film captures: the first proof images are superseded and cannot certify this correction.
+
+
+### Pass 20c — mountain footing continuity
+
+The revised browser proof removed the previous box-like mountain geometry but still showed a conspicuous sky-colored horizontal gap beneath the mountain bases. Added two continuous, irregular cut-paper foothill terraces **behind** the pine line and front lake, physically bridging the peak feet to the shore. This resolves the major depth-plane discontinuity without drawing flat rectangular backgrounds or transparent filler. New current-commit captures supersede the earlier proof.
+
+
+### Catalog parity gate (pre-existing repository-wide blocker)
+
+The PR's optional full `npm run catalog:check` step was executed and **failed** with purpose-group/story-ID gaps spanning older watercolour, ink, risograph and paper packs (13 legacy registry items, including the existing `paper-craft` catalog entry). These are not syntax errors in the new scenery generator or its Storybook page. The paper-targeted CI retains `npm run registry:validate`, source typecheck, focused unit tests, Chromium and native video checks. Global catalog parity remains a separate repo-wide cleanup, **not** a passed release gate.
+
+## Pass 21 — scenic die-cut botanical density and water topology
+
+The previous original browser renders exposed three specific craftsmanship gaps: an overly empty top woodland, ferns reading as thin whiskers rather than full lanceolate papercut, and an alpine water area cropped to a skinny bar by an incorrectly full-height far-shore layer.
+
+This pass introduces: real asymmetric upper canopy cards with 4–9 punched leaf apertures, rib-and-leaf cardstock; 8 non-uniform, joined understory clusters; denser and correctly oriented fern leaflets; actual cut paper stream highlights; 12 separate mountain sediment/snow terraces at full detail; an exposed wide lake, a small islet and attached reeds, plus rooted alpine flowers. Rebalanced default cut-edge strength on the single existing Storybook Scenery page. Added \`relief\` (0–1) to Storybook, film slot and generator, controlling actual stock separation, never ghost opacity. New tests inspect holes, density, exact controls, opacity, portrait outputs and motion seeking.
+
+Art-direction reference and negative controls: \`docs/research/paper-craft-scenery-artcraft-study.md\`. Final render screenshots and film clips are required to judge whether canopy topology and lake visibility now work. Do not promote art to "reference-matching" based on tests alone.
+
+
+## Pass 22 — replace cloned alpine treelines with botanical species cuts
+
+The actual Pass 21 landscape/portrait renders exposed repetitive tree silhouettes and a too-uniform fern row. This pass replaces a generic six-tier pine with **three independent connected cardstock contour grammars**: dense spruce, flat-tier fir and airy larch. Branch orientation, tip notches, left/right asymmetry and crown taper are species-specific.
+
+Applied across foreground alpine ledges, a darker, more readable far lake treeline and distant woodland trees. Height, trunk footprint and placement vary without requiring additional paper layers. Fern leaflets and broadleaf branch packets now have location-seeded contour asymmetry.
+
+The existing single Scenery Storybook page exposes Tree variety (0 = spruce, 1 = mixed species) alongside palette, detail, breeze and depth. Native FilmStage's existing paper-craft-study slot and its 2-scene film example accept the same option. No new Storybook folders or dependencies.
+
+**Validation gates:** existing global 128-layer ceiling, seeded deterministic seeks, per-tree continuous closed path, species-specific vertex topology, both aspect formats, full opacity, browser captures and a native encoded video proof. CI passing is not a substitute for scrutinizing the final renders.
+
+### Pass 22b — real render critique: thick solid evergreen cards
+
+Inspected the first pass-22 real 16:9 native film and Storybook screenshots. Mixed-species trees were distinguishable, but fir/larch shelves remained too narrow and appeared as glowing lined wire trees because their stroke/edge width overwhelmed the filled card. This passes technical checks but **does not meet the art bar**. The correction reduces tier count per species, expands fir/spruce/airy-larch crown width and deepens the filled tier notches; near alpine stands now have much wider bases, far treeline height and lateral spread are less rigid, and the native scenic cut-edge highlight is reduced separately from object and botanical stages. Full final-commit renders are required to verify the correction. No fidelity score is asserted from reference images.
+
+
+## Pass 23 — cut botanical foreground, stem architecture and floral centers
+
+Visual concern from pass 22: a sparsely detailed, repetitive fern understory and several flower heads that looked like tiny circular icons. Based on study of Helen Musselwhite's paper wreaths and Su Blackwell's multi-scale branch topology, Pass 23 creates an original morphology grammar.
+
+- Notched botanical leaves use genuinely irregular enclosed die-cut edges and seed-specific asymmetric widths.
+- Each sculpted herb has a continuous stalk, geometrically joined lateral growth, and fine midrib scores as a distinct physical paper sheet.
+- Add 8 woodland and 6 alpine plants at full detail; existing blossom heads now use unequal petals with contrasting cut centers.
+- The foreground is still behind the punched oval aperture, and scene depth/shadows are inherited from PAPER1, never fake alpha sheets. No additional Storybook page, style folder or dependency.
+- Unit and real-browser tests verify new layer identity, vertex density, 16:9 and 9:16 materials, physical stock depth and frame-exact determinism.
+
+Do not claim stylistic parity or a world-class art bar from path-count tests alone: inspect actual rendered browser screenshots and native film frames before merge.
+
+### Pass 23b — corrected paper mass from actual film-frame inspection
+
+Inspected the first real 960×540 woodland/alpine frames and both 540×960 portraits. The new foliage has more detailed cuts and real flower heads, but its near-camera leaf blades still read too much like fine drawn lines, particularly when rendered against dark alpine banks. The fix adds **two broad rooted, physically cut basal blades** per herb and their scored cut-paper midribs; it increases the width/volume of lateral leaves while maintaining genuine hand-cut serration and open lake/river sightlines. Changed tests now require over 14 individually defined stock contour starts per high-detail herb instead of merely checking that a valid SVG exists. This is a concrete second real-render art review, not a generic noise pass.
+
+
+## Pass 24 — rooted nested forest and sculpted cast shadows
+
+Critique of actual previous film frames: the woodland scene looked compositionally readable but the near trunks were still poles and its broad upper card had relatively few visible punched voids. Detailed paper forest references emphasize rooted trees with nested primary/secondary branch tiers, irregular gaps and separated dark stock.
+
+Implemented two additional woodland arbors, each with real tapering trunk, 5–8 curved main branches, attached secondary twigs and terminal leaf stock; separate opaque offset understock creates deliberate near/far cast shadows. The overhead canopy now has 5–18 physical punch holes scaled with existing Detail. Foreground bark gains several short, curved cut highlights instead of linear full-height bars. No new art folder, API property or external assets.
+
+Visual QA gates: inspect actual native 960×540 and 540×960 frames. Reject unattached branches, light leaks at frame edges, forest obstructing sun/river, ghost opacity, flat pale overlay or excessive edge strokes even if structural tests pass.
+
+
+### Pass 24b — actual browser and native-film silhouette correction
+
+Inspected the first 960×540 landscape and 540×960 portrait native captures of Pass 24. The additional forest layers and punched cutouts rendered correctly, but the new interstitial arbors remained **too straight and pole-like**, with tiny pale end leaves. This is a structural art-direction miss despite passing type, unit and browser checks.
+
+Correction: give each tapered wood-stock trunk a stronger inward lean while constraining its tip by its root's actual distance to center; branch reach is similarly bounded by the portal width in portrait so the sky/sun and winding river stay clear. Enlarge trunk mass and terminal leaf stock, add an attached, smaller opposed leaf at every secondary twig, and relocate intermediate roots to produce distinct silhouettes from the near framing trunks. No new layers or alpha overlays. Both landscape and portrait must be re-rendered from the final head before merge.
+
+
+## Pass 25 — replace radial starburst foliage with connected cut-branch networks
+
+The remaining main weakness in Pass 24's actual code-rendered woodland film was crown geometry: thin rays radiated from a single dot; denser count would still look like a machine-made fan. Reference study of Hari & Deepti's lightboxes and Guild papercut silhouette design suggested replacing the geometry hierarchy rather than changing filters.
+
+Implemented two original reusable helpers for joint-based canopy growth. The two existing upper rib stock sheets now contain branching trees with parent → elbow → secondary forks → attached paired terminal leaves. All eight existing foreground foliage stock sheets use 3–5 independently rooted leaders with secondary twig junctions. No additional material planes, no new Storybook folder, no opacity adjustments, and no external reference images bundled.
+
+Render acceptance requires actual native FilmStage and Storybook screenshots at 16:9 and 9:16. Keep the illuminated sky, river and canopy openings readable; avoid isolated/mirrored twigs, fussy noise and overdraw.
+
+
+### Pass 25b — visual correction after actual R06 film capture
+
+The first R06 16:9 and 9:16 native frames verified that the new second-generation branches read as denser, better-rooted arbor forms and the sky/river remained open. However, bright pale green cardstock on the *entire upper branch lattice* made its numerous thin subpaths look like chalk-line ornament rather than dense forest silhouette, especially in tall portrait. This was a color-hierarchy mistake, not a lack of branches. The corrective pass changes only the two canopy-rib stocks to the darker leaf pigment, retaining brighter leafwork on middle-distance arbors and selected foreground leaves, while leaving cut geometry, depth and animation unchanged. Actual final-head rendering and browser checks are required again before merge.
+
+
+## Pass 26 — reference-led Alpine Lake ridge correction
+
+Study: Erin Ziter's sculpted glacier topography (NPS), Remy Glock's nested Tahoe relief and Christina Peressini's hand-cut landscape layers (see `docs/research/paper-craft-scenery-artcraft-study.md`). Replaced the three repeated dome mountains with physically contiguous ledged ridge cuts, registered the snow cap to each summit, added two true pierced snow windows per peak and a paired inset rock-fold stock. Reused the single existing Paper Craft → Scenery Storybook page and all existing style, seed, aspect, lighting and relief controls. Added cross-aspect/palette regression checks for geometry, stock order, deterministic seeking and layer limits. **Artwork is original code, not an image trace.**
+
+**Pending visual acceptance:** review final-head browser captures and native film evidence for true crest readability and cut-bridge survival; a green unit or TypeScript check cannot certify the craftsmanship.
+
+## ArtCraft PAPER-D1 — general-purpose film composition pass
+
+The source-first film framework now reuses original high-detail woodland, botanical, architecture and device assets in one four-shot sequence, with independent aspect-specific physical construction. New PAPER1 pose keyframes, bounded overhead camera keys, deterministic easing and editable shot scheduling make authoring unrelated subjects possible without adding a new paper renderer. A general-purpose film slot accepts authored JSON storyboards, while the supplied film fixture demonstrates a reusable 32-second production path. Existing Storybook subjects remain in the single Paper Craft folder.
+
+ArtCraft risks / open release gates: actual native 16:9 and 9:16 production frames, 1× subject and hinge crops, montage/full-speed edit review, and an artistic approval decision. Preserve connected moth parts, opaque material stacks, actual holes, no alpha crossfades, and mathematically deterministic shuffled frame seeking. Ref: [PAPER-D1 film study](research/paper-director-artcraft-film-study.md).
+
+## PAPER-D1 director: first native visual gate (ArtCraft v7)
+
+The first generated native film and both 16:9/9:16 chapter captures were inspected, not inferred from green test results. A hard cut from fully assembled woodland into a *blank* botanical scene was visibly unacceptable. The director now opts into a validated `startAssembled` state for finished chapter sets, preserving material opacity and independent motion. Existing assembly demos keep their original behavior. New Vitest/browser assertions reject any first-cut film state where a paper stock's progress or opacity is not 1.
+
+**Critical:** the initial evidence is superseded by this fix. Artistic QA must use new CI PNGs and an encoded cut spanning f239→240. Source-faithful full-speed art approval remains open.

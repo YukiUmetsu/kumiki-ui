@@ -1,12 +1,13 @@
 import { useId } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Paper, WaxLine, WaxRegion } from "../../registry/video/materials/crayon-react";
+import type {CrayonNibStyle} from "../../registry/video/materials/crayon";
 
 /** Original two-character optical study: same character and wax, different underpainting. */
 interface MaterialStudyProps {
   frame:number; pressure:number; paperTooth:number; left:"open"|"opaque";
   right:"open"|"opaque"; underlay:"cobalt"|"coral";
-  leftNib:"rounded"|"tapered"; rightNib:"rounded"|"tapered";
+  leftNib:CrayonNibStyle; rightNib:CrayonNibStyle;
   strokeOrder:"scanline"|"patches";
   pressureSplit:boolean;
   /** A/B comparison: left uses historic scanline, right uses local hand strokes. */
@@ -34,7 +35,7 @@ export function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,lef
     pressureSplit ? "Light contact catches the ridges; firm contact fills more of the paper." :
     leftLength!==rightLength ? "Long gestural rubbing reduces isolated digital flecks, keeping the page grain." :
     "Open scumble suits the atmosphere; solid wax blocks scenery without losing hand-laid texture.";
-  const character=(cx:number,coverage:"open"|"opaque",seed:number,nibStyle:"rounded"|"tapered",markLength:"long"|"short")=>(
+  const character=(cx:number,coverage:"open"|"opaque",seed:number,nibStyle:CrayonNibStyle,markLength:"long"|"short")=>(
     <g key={cx} transform={"translate("+cx+" 295)"} data-km-crayon-optics-actor={coverage}>
       <WaxRegion d={headD} bounds={{x:-120,y:-158,width:250,height:266}}
         colors={["#e4a271","#a76f72","#f7cf97"]}
@@ -83,9 +84,9 @@ export function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,lef
       <rect x="92" y="453" width="352" height="46" rx="5" fill="#fff4e3"/>
       <rect x="518" y="453" width="352" height="46" rx="5" fill="#fff4e3"/>
       <text x="268" y="483" fill="#46576b" fontFamily="Georgia,serif"
-        fontWeight={700} fontSize={19} textAnchor="middle">{sgraffitoComparison?"INTACT TOP WAX":compareStrokeOrder?"SCANLINE REVEAL":pressureSplit?"SOFT WAX · TOOTH":leftLength!==rightLength?(leftLength==="short"?"SHORT WAX FLECKS":"LONG WAX RUBBING"):left==="open"?"OPEN SCRUMBLE":leftNib==="rounded"?"OPAQUE · ROUND":"OPAQUE · TAPERED"}</text>
+        fontWeight={700} fontSize={19} textAnchor="middle">{sgraffitoComparison?"INTACT TOP WAX":compareStrokeOrder?"SCANLINE REVEAL":pressureSplit?"SOFT WAX · TOOTH":leftLength!==rightLength?(leftLength==="short"?"SHORT WAX FLECKS":"LONG WAX RUBBING"):left==="open"?"OPEN SCRUMBLE":leftNib==="rounded"?"OPAQUE · ROUND":leftNib==="dry"?"OPAQUE · DRY WAX":"OPAQUE · TAPERED"}</text>
       <text x="694" y="483" fill="#46576b" fontFamily="Georgia,serif"
-        fontWeight={700} fontSize={19} textAnchor="middle">{sgraffitoComparison?"CARVED / BURIED COLOR":compareStrokeOrder?"HAND-PAINTED PATCHES":pressureSplit?"FIRM WAX · TOOTH":leftLength!==rightLength?(rightLength==="short"?"SHORT WAX FLECKS":"LONG WAX RUBBING"):right==="open"?"OPEN SCRUMBLE":rightNib==="rounded"?"OPAQUE · ROUND":"OPAQUE · TAPERED"}</text>
+        fontWeight={700} fontSize={19} textAnchor="middle">{sgraffitoComparison?"CARVED / BURIED COLOR":compareStrokeOrder?"HAND-PAINTED PATCHES":pressureSplit?"FIRM WAX · TOOTH":leftLength!==rightLength?(rightLength==="short"?"SHORT WAX FLECKS":"LONG WAX RUBBING"):right==="open"?"OPEN SCRUMBLE":rightNib==="rounded"?"OPAQUE · ROUND":rightNib==="dry"?"OPAQUE · DRY WAX":"OPAQUE · TAPERED"}</text>
     </svg>
     <p style={{fontSize:12,color:"#67717b",margin:"12px 0 0"}}>
       The solid body is built from a fully occluding color layer and separately masked strokes. Frame scrubbing, tooth and pressure are deterministic.
@@ -93,7 +94,7 @@ export function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,lef
   </div>;
 }
 const meta={
-  title:"Video production/Film Looks/Crayon/Materials/Wax & Pigment",
+  title:"Video production/Film Looks/Crayon/Wax & Pigment",
   id:"video-crayon-material-studies",
   // Keep the historical schematic animal heads for A/B regression only; do
   // not present this primitive study as premium character artwork.
@@ -109,8 +110,8 @@ const meta={
     paperTooth:{control:{type:"range",min:0,max:1,step:.05}},
     left:{control:"inline-radio",options:["open","opaque"]},
     right:{control:"inline-radio",options:["open","opaque"]},
-    leftNib:{control:"inline-radio",options:["rounded","tapered"]},
-    rightNib:{control:"inline-radio",options:["rounded","tapered"]},
+    leftNib:{control:"inline-radio",options:["rounded","tapered","dry"]},
+    rightNib:{control:"inline-radio",options:["rounded","tapered","dry"]},
     strokeOrder:{control:"inline-radio",options:["patches","scanline"]},
     pressureSplit:{control:"boolean"},
     compareStrokeOrder:{control:"boolean"},
@@ -163,4 +164,10 @@ export const SgraffitoCarvedWaxVsIntact:Story={
   args:{left:"opaque",right:"opaque",frame:117,sgraffitoComparison:true,
     leftNib:"tapered",rightNib:"tapered",strokeOrder:"patches",
     leftLength:"long",rightLength:"long",paperTooth:.83,pressure:.9},
+};
+
+/** Exact same source geometry and seed, only the dry-contact material differs. */
+export const DryWaxNibContactComparison:Story={
+  args:{frame:115,left:"opaque",right:"opaque",leftNib:"tapered",rightNib:"dry",
+    pressure:.8,paperTooth:.86,underlay:"coral"},
 };

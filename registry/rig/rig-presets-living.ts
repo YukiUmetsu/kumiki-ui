@@ -14,6 +14,8 @@
 import type { RigDriver, RigLeg, RigRole, RigSpec } from "./rig-spec";
 import { Rig, arc, at, cap, ell, finish, path, poly, rect, sampledPath, travel, tube } from "./rig-kit";
 import type { Pt, RigPresetOptions } from "./rig-kit";
+import { ACTION_MOTIONS, ACTION_PALETTE, addPersonAction } from "./rig-presets-actions";
+import type { ActionMotion } from "./rig-presets-actions";
 
 // ---- People ----------------------------------------------------------------------------------------------------------------------
 
@@ -21,7 +23,7 @@ const PERSON_PALETTE: Partial<Record<RigRole, string>> = {
   skin: "#d39b76", hair: "#2b211c", cloth: "#3b6fb6", "cloth-dark": "#2d3142", shoe: "#1f1b18", eye: "#1d1715", mouth: "#3b1714", detail: "#1d1715",
   accent: "#c8342b", wood: "#8a5a36", "metal-dark": "#24262b",
 };
-export const PERSON_MOTIONS = ["idle", "walk", "run", "wave", "talk", "cheer", "sit", "sit-down", "stand-up", "jump", "point", "think", "clap", "bow", "dance", "phone"] as const;
+export const PERSON_MOTIONS = ["idle", "walk", "run", "wave", "talk", "cheer", "sit", "sit-down", "stand-up", "jump", "point", "think", "clap", "bow", "dance", "phone", ...ACTION_MOTIONS] as const;
 export const PERSON_PACE: Record<string, number> = { walk: 1.62, run: 4.6 };
 
 /**
@@ -73,7 +75,11 @@ export function addPersonBody(rig: Rig, parent: string, px: number, py: number, 
     rig.part("fore-" + side, "fore-" + side, cap(13.5, 5.2, 4.4), "cloth", z, { far });
     rig.part("cuff-" + side, "fore-" + side, rect(-2.3, 11.6, 4.6, 1.8, .6), "skin", z + .03, { far });
     rig.part("hand-" + side, "hand-" + side, ell(0, 0, 3, 3.3), "skin", z + .1, {
-      far, variants: { point: path("M-3 0A3 3.3 0 1 0 3 0A3 3.3 0 1 0 -3 0Z M-.9 1.2L.9 1.2L.8 8.6Q0 9.4 -.8 8.6Z"), open: path("M-3.2 -.4A3.2 3.4 0 1 0 3.2 -.4L2.6 5.6L1.4 6.8L.2 5.4L-1 6.8L-2.2 5.6L-3.2 4Z") },
+      far, variants: { point: path("M-3 0A3 3.3 0 1 0 3 0A3 3.3 0 1 0 -3 0Z M-.9 1.2L.9 1.2L.8 8.6Q0 9.4 -.8 8.6Z"), open: path("M-3.2 -.4A3.2 3.4 0 1 0 3.2 -.4L2.6 5.6L1.4 6.8L.2 5.4L-1 6.8L-2.2 5.6L-3.2 4Z"),
+        // Open hand held flat, fingers together along the bone, thumb along the upper edge (clapping, waving off).
+        flat: path("M-1.9 -.6Q-2.6 2 -2.4 4.2L-2.1 7.4Q-1.9 8.4 -1.3 8.1L-1 7.6L-.8 8.7Q-.3 9.4 .1 8.6L.3 8L.6 8.8Q1.1 9.2 1.4 8.4L1.5 7.9L1.7 8.3Q2.2 8 2.1 6.9L2.1 4.6L2.6 3Q3.8 4.4 4.2 4.1Q4.3 3.6 3.2 1.6Q2.6 .4 1.9 -.6Z"),
+        // Closed fist or grip: knuckles squared off at the end, thumb wrapped over the front.
+        fist: path("M-2.7 -1.2Q-3.1 1.6 -2.6 3.2Q-1.6 4.3 .2 4.2Q2.4 4.1 3 2.8Q3.4 .6 2.7 -1.4Q1.4 -2.7 -.2 -2.6Q-2 -2.4 -2.7 -1.2Z") },
     });
   }
   if (options.phone) {
@@ -127,9 +133,9 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
   /** Plant both feet with IK at root-space spots (x keyed in u) over a window. */
   /** Plant both feet with IK at root-space spots over a window; keys are [frame, x (u), lift (u)] so a foot that moves
    * steps (lifts and sets down) instead of sliding. */
-  const plant = (from: number, to: number, keysF: [number, number, number?][], keysB: [number, number, number?][], ramp = 6) => {
-    for (const [side, keys] of [["f", keysF], ["b", keysB]] as const)
-      rig.drivers.push({ type: "reach", start: from, end: to, ramp, upper: "thigh-" + side, lower: "shin-" + side, tip: "foot-" + side, tipAngle: 0, bend: 1,
+  const plant = (from: number, to: number, keysF: [number, number, number?][] | null, keysB: [number, number, number?][] | null, ramp = 6) => {
+    for (const [side, keys] of [["f", keysF], ["b", keysB]] as const) if (keys)
+      rig.drivers.push({ type: "reach", start: from, end: to >= end ? end + 60 : to, ramp, upper: "thigh-" + side, lower: "shin-" + side, tip: "foot-" + side, tipAngle: 0, bend: 1,
         target: keys.map(([frame, x, lift]) => ({ frame, x: x * u, y: -sole - (lift ?? 0) * u, ease: "ease-in-out-cubic" as const })) });
   };
   /** A step from x0 to x1 between frames a and b (lifting mid-way). */
@@ -235,22 +241,42 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
       { type: "variant", part: "mouth", mode: "keys", keys: [{ frame: t(.82), name: "smile" }] });
   }
   if (m === "clap") {
-    const tf: { frame: number; x: number; y: number; ease?: "ease-in-quad" | "ease-out-quad" }[] = [], tb: typeof tf = [];
-    const s0 = t(.1), s1 = t(.85);
-    tf.push({ frame: start, x: 6 * u, y: -46 * u }, { frame: s0, x: 13 * u, y: -57 * u });
-    tb.push({ frame: start, x: 1 * u, y: -46 * u }, { frame: s0, x: 21 * u, y: -59 * u });
-    for (let f = s0 + 5; f <= s1; f += 10) {
-      tf.push({ frame: f, x: 17.6 * u, y: -57.6 * u, ease: "ease-in-quad" }, { frame: f + 5, x: 13 * u, y: -57 * u, ease: "ease-out-quad" });
-      tb.push({ frame: f, x: 18.6 * u, y: -58.6 * u, ease: "ease-in-quad" }, { frame: f + 5, x: 21.5 * u, y: -59 * u, ease: "ease-out-quad" });
+    // After Muybridge's plate 533 (hands meeting in profile): forearms angle up from bent elbows, open hands rise to chest
+    // height with the fingers pointing up and forward, and the back of the near hand closes flat over the far palm, the
+    // far fingertips peeking past it. A clap swings the hands apart across the body; in profile that reads as the near
+    // hand coming toward the camera (a little larger, fanned open) and snapping back flat. About three claps a second,
+    // fast into contact, slower out, with a small jolt through the shoulders and head on each hit.
+    type K = { frame: number; x: number; y: number; ease?: "ease-in-quad" | "ease-out-quad" | "ease-in-out-cubic" | "ease-out-back" };
+    const tf: K[] = [], tb: K[] = [], s0 = t(.1), s1 = t(.85), beat = 10;
+    const P = (frame: number, x: number, y: number, ease?: K["ease"]): K => ({ frame, x: x * u, y: y * u, ease });
+    const NEAR = { contact: [14.6, -60.4], apart: [13.4, -62.8] } as const, FAR = { contact: [15.4, -60.8], apart: [16.6, -59.2] } as const;
+    const raise = Math.max(start + 1, Math.min(s0 - 1, s0 - 6));
+    tf.push(P(start, 6, -46), P(raise, 12, -54, "ease-in-out-cubic"), P(s0, NEAR.apart[0], NEAR.apart[1], "ease-out-back"));
+    tb.push(P(start, 1, -46), P(raise, 13, -55, "ease-in-out-cubic"), P(s0, FAR.apart[0], FAR.apart[1], "ease-out-back"));
+    const nearHand: { frame: number; rotate?: number; scaleX?: number; scaleY?: number; ease?: K["ease"] }[] = [{ frame: s0, rotate: -14, scaleX: 1.1, scaleY: 1.1 }];
+    const farHand: typeof nearHand = [{ frame: s0, rotate: 10, scaleX: .94, scaleY: .94 }];
+    const torso: { frame: number; rotate: number }[] = [{ frame: s0, rotate: 0 }], head: typeof torso = [{ frame: start, rotate: 0 }, { frame: s0, rotate: -3 }];
+    const pelvis: { frame: number; y: number }[] = [{ frame: s0, y: 0 }];
+    let last = s0;
+    for (let f = s0 + 5; f + 5 <= s1; f += beat) {
+      tf.push(P(f, NEAR.contact[0], NEAR.contact[1], "ease-in-quad"), P(f + 5, NEAR.apart[0], NEAR.apart[1], "ease-out-quad"));
+      tb.push(P(f, FAR.contact[0], FAR.contact[1], "ease-in-quad"), P(f + 5, FAR.apart[0], FAR.apart[1], "ease-out-quad"));
+      nearHand.push({ frame: f, rotate: 0, scaleX: .95, scaleY: 1.02, ease: "ease-in-quad" }, { frame: f + 1, scaleX: 1, scaleY: 1 }, { frame: f + 5, rotate: -14, scaleX: 1.1, scaleY: 1.1, ease: "ease-out-quad" });
+      farHand.push({ frame: f, rotate: 0, scaleX: 1, scaleY: 1, ease: "ease-in-quad" }, { frame: f + 5, rotate: 10, scaleX: .94, scaleY: .94, ease: "ease-out-quad" });
+      torso.push({ frame: f, rotate: 1.4 }, { frame: f + 4, rotate: 0 });
+      head.push({ frame: f + 1, rotate: -.5 }, { frame: f + 5, rotate: -3 });
+      pelvis.push({ frame: f + 1, y: .5 * u }, { frame: f + 5, y: 0 });
+      last = f + 5;
     }
-    const last = tf[tf.length - 1].frame;
-    tf.push({ frame: last + 12, x: 6 * u, y: -46 * u }); tb.push({ frame: last + 12, x: 1 * u, y: -46 * u });
-    rig.drivers.push({ type: "reach", start, end: last + 12, upper: "arm-f", lower: "fore-f", bend: -1, target: tf, ramp: 6 },
-      { type: "reach", start, end: last + 12, upper: "arm-b", lower: "fore-b", bend: -1, target: tb, ramp: 6 },
-      { type: "variant", part: "hand-f", mode: "keys", keys: [{ frame: s0 - 2, name: "open" }, { frame: last + 6, name: null }] },
-      { type: "variant", part: "mouth", mode: "keys", keys: [{ frame: s0, name: "smile" }] },
-      { type: "oscillate", start: s0, end: last, bone: "pelvis", property: "y", amplitude: .8 * u, period: 10, ramp: 6 });
-    rig.track("head", [{ frame: start, rotate: 0 }, { frame: s0, rotate: -3 }, { frame: last, rotate: -2 }, { frame: last + 12, rotate: 0 }]);
+    tf.push(P(last + 14, 6, -46, "ease-in-out-cubic")); tb.push(P(last + 14, 1, -46, "ease-in-out-cubic"));
+    nearHand.push({ frame: last + 8, rotate: 0, scaleX: 1, scaleY: 1 }); farHand.push({ frame: last + 8, rotate: 0, scaleX: 1, scaleY: 1 });
+    rig.drivers.push({ type: "reach", start, end: last + 14, upper: "arm-f", lower: "fore-f", bend: -1, target: tf, ramp: 6 },
+      { type: "reach", start, end: last + 14, upper: "arm-b", lower: "fore-b", bend: -1, target: tb, ramp: 6 },
+      { type: "variant", part: "hand-f", mode: "keys", keys: [{ frame: s0 - 6, name: "flat" }, { frame: last + 8, name: null }] },
+      { type: "variant", part: "hand-b", mode: "keys", keys: [{ frame: s0 - 6, name: "flat" }, { frame: last + 8, name: null }] },
+      { type: "variant", part: "mouth", mode: "keys", keys: [{ frame: s0, name: "smile" }] });
+    rig.track("hand-f", nearHand); rig.track("hand-b", farHand); rig.track("torso", torso); rig.track("pelvis", pelvis);
+    rig.track("head", [...head, { frame: last + 14, rotate: 0 }]);
   }
   if (m === "bow") {
     const B = (f: number, v: number) => ({ frame: t(f), rotate: v, ease: "ease-in-out-cubic" as const });
@@ -285,7 +311,9 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
     rig.track("fore-b", [{ frame: start, rotate: 0 }, { frame: t(.3), rotate: -64 }, { frame: t(.5), rotate: -20 }, { frame: t(.7), rotate: -70 }, { frame: t(.9), rotate: -24 }]);
     rig.drivers.push({ type: "oscillate", start: t(.1), end, bone: "pelvis", property: "x", amplitude: .9 * u, period: 96, wobble: .4, ramp: 20 });
   }
-  return finish("person", "biped", rig, travel(o, start, end, moving ? "linear" : undefined), PERSON_PALETTE, { x: -16 * u, y: -100 * u, width: 32 * u, height: 102 * u }, o);
+  const action = (ACTION_MOTIONS as readonly string[]).includes(m);
+  if (action) addPersonAction(rig, m as ActionMotion, { u, start, end, t, plant });
+  return finish("person", "biped", rig, travel(o, start, end, moving ? "linear" : undefined), action ? { ...PERSON_PALETTE, ...ACTION_PALETTE } : PERSON_PALETTE, { x: -16 * u, y: -100 * u, width: 32 * u, height: 102 * u }, o);
 }
 
 // ---- Four-legged animals ---------------------------------------------------------------------------------------------------------
@@ -296,7 +324,7 @@ interface QuadDef { palette: Partial<Record<RigRole, string>>; H: number; neck: 
   /** Pastern length and its standing angle above the ground (degrees). */ pastern: number; pasternAngle: number; flex: number; curlFore: number; curlHind: number }
 const QUAD: Record<QuadKind, QuadDef> = {
   dog: { palette: { fur: "#b5793f", "fur-dark": "#7d4f27", belly: "#e9c99a", eye: "#1d1715", detail: "#2b1d14", mouth: "#3b1714", horn: "#2b1d14" }, H: 40, neck: 13, neckAngle: -132, legW: 7.5, tail: 7, tailAngle: 140, head: 1, pastern: 5, pasternAngle: 68, flex: 9, curlFore: 50, curlHind: 30 },
-  horse: { palette: { fur: "#7a4a2c", "fur-dark": "#4f2e1a", belly: "#8d5a38", hair: "#24170f", eye: "#1d1715", detail: "#24170f", horn: "#3a3a3a", mouth: "#24170f" }, H: 55, neck: 30, neckAngle: -132, legW: 7, tail: 9, tailAngle: 48, head: 1.25, pastern: 7.5, pasternAngle: 56, flex: 2.5, curlFore: 80, curlHind: 46 },
+  horse: { palette: { fur: "#7a4a2c", "fur-dark": "#4f2e1a", belly: "#8d5a38", hair: "#24170f", eye: "#1d1715", detail: "#24170f", horn: "#3a3a3a", mouth: "#24170f" }, H: 55, neck: 30, neckAngle: -132, legW: 7, tail: 9, tailAngle: 48, head: 1.25, pastern: 9.5, pasternAngle: 56, flex: 2.5, curlFore: 44, curlHind: 26 },
   cat: { palette: { fur: "#8b8f97", "fur-dark": "#5e626a", belly: "#d9dade", eye: "#c9a227", detail: "#2a2b2e", mouth: "#4a2a2a", horn: "#2a2b2e" }, H: 31, neck: 9, neckAngle: -122, legW: 5.6, tail: 9, tailAngle: 120, head: .9, pastern: 4, pasternAngle: 70, flex: 12, curlFore: 40, curlHind: 26 },
 };
 /**
@@ -308,16 +336,16 @@ interface GaitDef { phases: readonly number[]; stance: number; stride: number; l
 // hips steadier so the planted legs visibly sweep from forward-sloping to back-sloping.
 const GAITS: Record<string, GaitDef> = {
   // Lateral-sequence walk: LH, LF, RH, RF a quarter apart; the head nods twice per stride.
-  walk: { phases: [0, .75, .5, .25], stance: .64, stride: 1.02, lift: .13, bob: .6, bobPhase: .2, bobH: 2, pitch: 0, pitchPhase: 0, sink: 2.2, neck: 3, neckH: 2, neckPhase: .15, flex: .25, flexPhase: .2 },
+  walk: { phases: [0, .75, .5, .25], stance: .64, stride: 1.02, lift: .13, bob: .6, bobPhase: .2, bobH: 2, pitch: 0, pitchPhase: 0, sink: .6, neck: 3, neckH: 2, neckPhase: .15, flex: .25, flexPhase: .2 },
   // Trot: diagonal pairs with a short suspension between them; the body is highest in the suspension.
-  trot: { phases: [0, .5, .5, 0], stance: .4, stride: 1.95, lift: .22, bob: 1.8, bobPhase: .45, bobH: 2, pitch: .8, pitchPhase: .2, sink: 3.2, neck: 2, neckH: 2, neckPhase: .3, flex: .3, flexPhase: .2 },
+  trot: { phases: [0, .5, .5, 0], stance: .4, stride: 1.95, lift: .22, bob: 1.8, bobPhase: .45, bobH: 2, pitch: .8, pitchPhase: .2, sink: 1.2, neck: 2, neckH: 2, neckPhase: .3, flex: .3, flexPhase: .2 },
   // Canter: three beats (outside hind, diagonal pair, leading fore) and a suspension; the body rocks once per stride.
-  canter: { phases: [0, .7, .7, .5], stance: .42, stride: 2.2, lift: .26, bob: 2.4, bobPhase: .96, bobH: 1, pitch: 3.4, pitchPhase: .7, sink: 3.6, neck: 5, neckH: 1, neckPhase: .3, flex: .6, flexPhase: .1 },
+  canter: { phases: [0, .7, .7, .5], stance: .42, stride: 2.2, lift: .26, bob: 2.4, bobPhase: .96, bobH: 1, pitch: 3.4, pitchPhase: .7, sink: 1.5, neck: 5, neckH: 1, neckPhase: .3, flex: .6, flexPhase: .1 },
   // Transverse gallop, timed from Muybridge's 15-frame stride: hinds land at 0 and .1, fores at .27 and .4, each foot
   // down for ~30%, then ~30% gathered suspension with the legs folded under the body.
-  gallop: { phases: [0, .73, .9, .6], stance: .3, stride: 3.5, lift: .38, bob: 3, bobPhase: .86, bobH: 1, pitch: 4, pitchPhase: .55, sink: 3.4, neck: 7, neckH: 1, neckPhase: .43, flex: 1, flexPhase: .1 },
+  gallop: { phases: [0, .73, .9, .6], stance: .3, stride: 3.2, lift: .38, bob: 1.8, bobPhase: .86, bobH: 1, pitch: 4, pitchPhase: .55, sink: 1.6, neck: 7, neckH: 1, neckPhase: .43, flex: 1, flexPhase: .1 },
   // Rotary gallop (dogs, cats): LH, RH, RF, LF; extended and gathered suspensions, the spine flexing between them.
-  rotary: { phases: [0, .46, .92, .56], stance: .27, stride: 3.1, lift: .3, bob: 2.5, bobPhase: .9, bobH: 1, pitch: 3, pitchPhase: .55, sink: 3, neck: 3, neckH: 1, neckPhase: .45, flex: 1, flexPhase: .1 },
+  rotary: { phases: [0, .46, .92, .56], stance: .27, stride: 3.1, lift: .3, bob: 2.5, bobPhase: .9, bobH: 1, pitch: 3, pitchPhase: .55, sink: 1.4, neck: 3, neckH: 1, neckPhase: .45, flex: 1, flexPhase: .1 },
 };
 const CYCLE: Record<QuadKind, Record<string, number>> = {
   dog: { walk: 26, trot: 16, canter: 14, gallop: 11 }, horse: { walk: 34, trot: 22, canter: 19, gallop: 15 }, cat: { walk: 28, trot: 16, canter: 13, gallop: 10 },
@@ -378,12 +406,19 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
       rig.part("up-" + l.id, "up-" + l.id, poly([[-w * 1.4, -5], [w * 1.5, -6], [w * 1.05, up * .55], [w * .55, up], [-w * .62, up + 1.4], [-w * 1.05, up * .62]]), role, z, { far: l.far });
       rig.part("lo-" + l.id, "lo-" + l.id, cap(lo, w * .82, w * .6), role, z, { far: l.far });
     }
-    rig.part("fetlock-" + l.id, "paw-" + l.id, ell(0, .4, w * .42, w * .46), role, z + .03, { far: l.far });
-    rig.part("pastern-" + l.id, "paw-" + l.id, cap(P, w * .5, w * .4), role, z + .04, { far: l.far });
+    // Fetlock: a small bulge at the back of the joint; the pastern ends inside the hoof (no knob below the sole).
+    // Lower leg after Muybridge's plates: cannon, a fetlock bulging at the back, a sloping pastern about as long as the
+    // hoof is tall, and a hoof whose front wall continues the pastern's slope (the hoof–pastern axis).
+    rig.part("fetlock-" + l.id, "paw-" + l.id, ell(-w * .16, .6, w * .38, w * .44), role, z + .03, { far: l.far });
+    rig.part("pastern-" + l.id, "paw-" + l.id, cap(P - (horse ? 2.8 : 1.6), w * .46, w * .42), role, z + .04, { far: l.far });
     // Hoof (or paw) with its sole on the ground line at the bone's origin.
-    rig.part("hoof-" + l.id, "hoof-" + l.id, horse ? poly([[-2.6, -4.6], [2, -5], [3.4, -2.4], [4.8, 0], [-2.8, 0]]) : ell(1.6, -1.5, w * .66, 1.7), horse ? "horn" : role, z + .1, { far: l.far });
-    if (horse) rig.part("coronet-" + l.id, "hoof-" + l.id, poly([[-2.8, -4.4], [2.2, -4.8], [2.6, -3.8], [-2.8, -3.4]]), "hair", z + .11, { far: l.far });
-    legs.push({ upper: "up-" + l.id, lower: "lo-" + l.id, foot: "paw-" + l.id, hoof: "hoof-" + l.id, pastern: P * u, straight: l.front ? FORE_STRAIGHT : HIND_STRAIGHT, phase: 0, bend: l.front ? 1 : -1,
+    // Hoof about half the fetlock's standing height, so the pastern shows above it.
+    rig.part("hoof-" + l.id, "hoof-" + l.id, horse ? poly([[4.2, 0], [1.7, -3.7], [-1, -3.3], [-3.6, -2.1], [-4.1, -.9], [-3.5, 0]]) : ell(1.6, -1.5, w * .66, 1.7), horse ? "horn" : role, z + .1, { far: l.far });
+    if (horse) {
+      rig.part("coronet-" + l.id, "hoof-" + l.id, poly([[1.9, -3.95], [-3.8, -2.3], [-3.5, -1.65], [1.5, -3.25]]), "hair", z + .11, { far: l.far });
+      rig.part("hoof-wall-" + l.id, "hoof-" + l.id, path("M3.2 -.5L1.3 -3.1"), "detail", z + .12, { far: l.far, line: true, lineWidth: .35, color: "#5a5a5a" });
+    }
+    legs.push({ upper: "up-" + l.id, lower: "lo-" + l.id, foot: "paw-" + l.id, hoof: "hoof-" + l.id, pastern: P * u, toe: (horse ? 4.2 : kind === "dog" ? 2.6 : 2) * u, straight: l.front ? FORE_STRAIGHT : HIND_STRAIGHT, phase: 0, bend: l.front ? 1 : -1,
       lift: l.front ? 1.25 : .9, curl: l.front ? q.curlFore : q.curlHind, swingHip: l.front ? .16 : .12 });
   }
   // Neck and head.
