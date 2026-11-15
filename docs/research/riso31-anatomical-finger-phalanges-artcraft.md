@@ -29,6 +29,12 @@
 - Original `RISO_COURIER_SHEET` plus automatically derived `RISO_PAPER_ARTIST_SHEET` expose PIP/DIP source regions for silhouette and topology QA; `layoutRisoHandArtcraft` includes all posed PIP and DIP extrema before choosing the safe physical-print crop.
 - **Same Storybook page:** extended 0/46/126/144/160/166/178/186/198/239 source frames, original dual cobalt/vermilion spot separation, screen density, zoom, mirrored original actor hands. Native per-hand `data-km-riso31-actual-flexion`, segment count and source crop attributes enable actual browser regression evidence.
 
+## Actual Chromium artist rejection and correction
+
+- **First f46 / f160 / f166 RISO31 native render** (run `43767520304`, 16:9 and 9:16 continuity browser suite passed) demonstrated genuine independent PIP/DIP bends. However the enlarged 6.2× hands **visually failed artistry**: each digit accumulated two broad fully cobalt PIP bars plus two broad fully cobalt DIP bars, making a robotic tiger-stripe hand; a double-deposited cobalt sleeve/vermilion wrist generated a heavy almost-black rectangular cuff.
+- **Corrective source pass:** retained every individually curved PIP and DIP micro-stroke but reduced the physical PIP path width and thickness, moved the **DIP microfold to the RisoPrint light cobalt dot master** (real physical screen density, *not* RGBA transparency), and narrowed source skin-overlap **2.9→0.9 units**. The red hand itself begins closer to the true forearm contact with its entire asymmetrical palm, thumb, fingernail and five-finger mass unchanged.
+- **Explicit re-review:** inspect new source f0/f46/f160/f166/f178/f198 at 1× and native 6.2×. A single purposeful PIP crease should remain visible, the DIP microfold should read as material fine grain rather than solid black sash, and the arm/glove junction should not be a deep black rectangle. If this still looks like a rubber glove or stray dot/sticker, do **not** certify it as final human drawing.
+
 ## Release gates / limitations
 
 1. **Structural:** `npx tsc --noEmit`; `tests/riso31-phalange-artcraft.test.tsx` evaluates every even source frame against real actor PIP/DIP lengths, red source part names, independent clinical-limited transforms and named overprinted ink. Older RISO28–RISO30 continuity tests must remain passing.
