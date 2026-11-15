@@ -170,7 +170,9 @@ for(const sample of ["woman","man"] as const){
         const anatomySelect=page.getByRole("combobox",{
           name:"CC0 measured face crop",
         });
-        for(const region of ["lips","nose","eyes"] as const){
+        await expect(page.getByLabel("Pencil skin coverage"))
+          .toHaveValue("0.7");
+        for(const region of ["lips","nose","eyes","skin"] as const){
           await anatomySelect.selectOption(region);
           await expect(anatomySource).toHaveAttribute(
             "data-km-pencil-anatomy-rendered",region,{timeout:90000});
