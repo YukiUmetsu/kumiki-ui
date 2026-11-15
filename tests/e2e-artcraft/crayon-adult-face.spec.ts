@@ -324,9 +324,9 @@ for(const view of ["wax","anatomy"] as const){
         // Browser proof of the real V4 failure: wax contact clumps were
         // clipped at the polygon while its under-glaze feathered.
         await expect(svg.locator(
-          '[data-km-crayon-feather-contacts="open-wax"]')).toHaveCount(23);
+          '[data-km-crayon-feather-contacts="open-wax"]')).toHaveCount(25);
         await expect(svg.locator(
-          '[data-km-crayon-contact-feather-mask]')).toHaveCount(23);
+          '[data-km-crayon-contact-feather-mask]')).toHaveCount(25);
         await expect(svg.locator(
           '[data-km-crayon-opaque-burnish]')).toHaveCount(7);
         for(const id of ["socket-near","socket-far",
@@ -501,7 +501,7 @@ test("F1 source sclera contact vs exact baseline at native near-eye camera",asyn
     await expect(shade).toHaveCount(eyeContact==="source-shade"?3:0);
     await expect(svg.locator(
       '[data-km-crayon-contact-feather-mask]')).toHaveCount(
-        eyeContact==="source-shade"?23:20);
+        eyeContact==="source-shade"?25:20);
     shots.push(await svg.screenshot({path:info.outputPath(
       "crayon-f1-sclera-"+eyeContact+"-near-299.png"),
       animations:"disabled"}));
