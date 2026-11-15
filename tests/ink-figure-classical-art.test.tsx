@@ -12,6 +12,7 @@ import {
 } from "../src/video/ink-figure-classical-art";
 import { inkDuet } from "../src/video/ink-wash-ensemble-demo";
 import { InkEnsemble } from "../registry/video/ink-wash-ensemble-react";
+import { MASTER_PORTRAIT_STUDY, MASTER_ROBE_STUDY } from "../src/video/ink-master-portrait-art";
 
 describe("INK6 classical figure brushwork", () => {
   const orchid: InkFigureStroke = {
@@ -68,6 +69,50 @@ describe("INK6 classical figure brushwork", () => {
       expect(original.assets.robe).toEqual(plain.assets.robe);
     });
   }
+  it("rebuilds an adult master face with original attached strokes and unchanged acting anchors",()=>{
+    const plain=makeClassicalInkFigure(INK_TRAVELLER,"master",
+      {...DEFAULT_INK_FIGURE_CRAFT,detail:0});
+    const painted=makeClassicalInkFigure(INK_TRAVELLER,"master",
+      {...DEFAULT_INK_FIGURE_CRAFT,detail:1});
+    const masterParts=[
+      "face","hair","brow","eyes-open","eyes-soft","eyes-closed",
+      "pupil-left","pupil-right","mouth-rest","mouth-aa","mouth-oh",
+      "mouth-mm","mouth-smile","beard","robe",
+    ];
+    expect(masterParts.every(id=>Object.hasOwn(MASTER_PORTRAIT_STUDY,id)||id==="robe")).toBe(true);
+    expect(MASTER_ROBE_STUDY).toHaveLength(15);
+    for(const part of masterParts){
+      const basic=plain.assets[part],rich=painted.assets[part];
+      expect(basic.kind).toBe("shapes");
+      expect(rich.kind).toBe("shapes");
+      if(basic.kind!=="shapes"||rich.kind!=="shapes")throw Error("not shape asset");
+      expect(rich.shapes.length,part).toBeGreaterThan(basic.shapes.length);
+      expect(rich.provenance,part).toBe(basic.provenance);
+      for(const shape of rich.shapes){
+        if(shape.type==="path"){
+          expect(shape.d).not.toMatch(/NaN|Infinity|<|>/);
+          expect(shape.d.length).toBeLessThan(2000);
+        }
+      }
+    }
+    for(const name of ["face","hair","robe"]){
+      expect(plain.assets[name]).toEqual(INK_TRAVELLER.assets[name]);
+    }
+    expect(painted.parts).toBe(INK_TRAVELLER.parts);
+    expect(painted.anchors).toBe(INK_TRAVELLER.anchors);
+    expect(painted.speech).toBe(INK_TRAVELLER.speech);
+    expect(validateCharacterDefinition(painted).filter(d=>d.severity==="error")).toEqual([]);
+    const newFace=painted.assets.face;
+    if(newFace.kind==="shapes")
+      expect(newFace.shapes.some(shape=>shape.type==="path"&&shape.d.includes("C122 66"))).toBe(true);
+    for(const aspect of ["landscape","portrait"] as const){
+      const duet=inkDuet(aspect);
+      expect(duet.cast[0].definition.assets.face).toEqual(painted.assets.face);
+      const first=evaluateCharacter(duet.cast[0].definition,duet.cast[0].instance,duet.cast[0].cues,188);
+      expect(first.diagnostics.filter(d=>d.severity==="error")).toEqual([]);
+    }
+  });
+
   it("reuses the director's actual master fold atlas, with separate apprentice art", () => {
     expect(INK_TRAVELLER_FOLDS.robe.length).toBeGreaterThan(8);
     expect(INK_APPRENTICE_FOLDS.robe.length).toBeGreaterThan(8);
