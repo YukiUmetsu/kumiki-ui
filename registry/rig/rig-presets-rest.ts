@@ -60,18 +60,21 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
       rig.part("pillow", "mat", path(`M-58 ${-g}Q-59 ${-g - 6.4} -51 ${-g - 6.8}Q-43 ${-g - 7} -42.6 ${-g - 1}Q-50 ${-g + .2} -58 ${-g}Z`), "cloth", 3.95, { color: "#f4f0e6" });
       rig.part("pillow-seam", "mat", path(`M-56.6 ${-g - 4.6}Q-50 ${-g - 6} -44 ${-g - 4}`), "detail", 3.96, { line: true, lineWidth: .25, color: "#cfc6b4" });
       rig.bone("blanket", "root", 39, -g);
-      // Drawn over the lying body from the feet (0) to the chest (−64): toes, shins, knees, hips, chest, turned-down hem.
-      rig.part("blanket", "blanket", path("M0 0L.4 -10.4Q-3.4 -13.6 -8 -13Q-14 -11.6 -20 -12Q-28 -13.4 -34 -15.4Q-42 -18.4 -50 -20.4Q-56 -21.6 -62 -21.6L-64 0Z"),
+      // Drawn over the lying body from the feet (0) to the chest (−64): toes, straight legs, hips, chest, turned-down hem.
+      rig.part("blanket", "blanket", path("M0 0L.4 -10.4Q-3.4 -13.8 -8 -13.2Q-11.6 -11.2 -16 -11.4L-40 -15.4Q-46 -18.6 -52 -20.6Q-57 -21.6 -62 -21.6L-64 0Z"),
         "cloth", 6.5, { color: "#7d9bb8" });
       rig.part("blanket-hem", "blanket", path("M-62 -21.6Q-58.6 -22.4 -55.6 -21.2L-57.6 0L-64 0Z"), "cloth", 6.51, { color: "#a9c0d4" });
-      rig.part("blanket-fold", "blanket", path("M-30 -14.2Q-24 -6 -26 0M-46 -19.2Q-41 -9 -44 0"), "detail", 6.52, { line: true, lineWidth: .3, color: "#5f7d99" });
+      rig.part("blanket-fold", "blanket", path("M-28 -13.4Q-23 -6 -25 0M-46 -18.8Q-41 -9 -44 0"), "detail", 6.52, { line: true, lineWidth: .3, color: "#5f7d99" });
       rig.bone("blanket-edge", "blanket", -61, -19);
       rig.drivers.push({ type: "oscillate", bone: "blanket", property: "scaleY", amplitude: .018, period: 84, phase: .25 });
     }
     const lyingFeet = (from: number, to: number, ramp: number, near: Pt, far: Pt) => {
       leg("f", from, to, ramp, [pt(from, near[0], near[1])], -90); leg("b", from, to, ramp, [pt(from, far[0], far[1])], -90);
     };
-    const ankleN: Pt = [LIE.x + 40, -3 - g], ankleF: Pt = [LIE.x + 38.6, -3.4 - g];
+    // Lying, the legs lie out straight (a relaxed knee, ~4° short of locked): each heel rests on the ground a full leg
+    // length from its hip. With the hips turned a quarter round, the near hip sits 2.2 above the pelvis joint, the far 1.4 below.
+    const LEG = 21.5 + 21 - .05, heel = (hipY: number, y: number): Pt => [LIE.x + Math.sqrt(LEG * LEG - (y - hipY) ** 2), y];
+    const ankleN = heel(LIE.y - 2.2, -3 - g), ankleF = heel(LIE.y + 1.4, -3.2 - g);
     if (m === "sleep") {
       // Asleep from the first frame: breathing slow and deep, one stir and a settle half way.
       P(start, LIE.x, LIE.y, LIE.r); T(start, 0); H(start, 6);
@@ -124,9 +127,8 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
         H(e0, 4); H(e0 + 30, 9);
         rig.drivers.push({ type: "oscillate", start: e0, end: LATE, ramp: 30, bone: "torso", property: "scaleX", amplitude: .022, period: 84 });
       } else {
-        // Awake on the back, hands behind the head; later one knee comes up and the foot plants.
+        // Awake on the back, legs out straight, hands behind the head; the head settles.
         const k0 = Math.max(t(.72), l1 + 4);
-        leg("f", k0, LATE, 12, [pt(k0, ankleN[0], ankleN[1]), pt(k0 + 16, LIE.x + 30, -SOLE)], 0);
         H(k0, 4); H(k0 + 20, 1);
       }
     }
