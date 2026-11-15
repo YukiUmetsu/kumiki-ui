@@ -655,6 +655,21 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       )];
       expect(ribs).toHaveLength(4);
       expect(ribFaces).toHaveLength(4);
+      // Fuchun should contain dry continuous parent brushwork AND
+      // independently loaded, curved sub-marks, instead of four
+      // solid dark arrow-like spines with one uniform value.
+      const deposits=[...full.matchAll(
+        /data-km-rock-hero-rib-deposit="" data-km-rock-hero-rib-deposit-root="([^"]+)" data-km-rock-hero-rib-deposit-stage="([0-2])" d="([^"]+)"/g,
+      )];
+      expect(deposits).toHaveLength(12);
+      expect(deposits.map(m=>Number(m[2]))).toEqual([
+        0,1,2,0,1,2,0,1,2,0,1,2,
+      ]);
+      expect(deposits.every(([,root,,d])=>
+        d.startsWith("M"+root.replace(","," "))&&
+        (d.match(/ C/g)??[]).length>=34&&d.endsWith(" Z")))
+        .toBe(true);
+      expect(new Set(deposits.map(m=>m[3])).size).toBe(12);
       const folds=[...full.matchAll(
         /data-km-rock-hero-fold="" data-km-rock-hero-fold-root="([^"]+)" data-km-rock-hero-fold-station="([^"]+)"/g,
       )];
