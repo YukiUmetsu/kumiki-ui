@@ -91,7 +91,7 @@ export function createPencilSkinOpticalWeave(
   // Preserve the existing <120k whole-head pencil mark budget.
   // Dense optical coverage comes from broader, softly overlapping loops
   // rather than expensive fields of tiny uniform individual stipples.
-  const step=clamp(eyeDist*.035,1.5,6.5);
+  const step=clamp(eyeDist*.046,2.1,7.8);
   const minX=Math.max(3,Math.min(...face.map(p=>p[0])));
   const maxX=Math.min(source.width-4,Math.max(...face.map(p=>p[0])));
   const minY=Math.max(3,Math.min(...face.map(p=>p[1])));
