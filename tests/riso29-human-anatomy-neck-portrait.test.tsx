@@ -85,7 +85,11 @@ describe("RISO29 Kumiki ANAT1 source human anatomy",()=>{
     for(const aspect of ["landscape","portrait"] as const)
       for(const frame of [0,24,76,160,165,178,198,239]){
         const state=evaluateRisoHumanEnsemble(frame,aspect);
-        expect(state.sheet).toBeTruthy();
+        // Before the original f126 unfurl the physical transfer sheet is
+        // intentionally absent. Test its true phase instead of requiring a
+        // paper shape before any character has drawn it.
+        if(frame<126)expect(state.sheet).toBe("");
+        else expect(state.sheet).not.toBe("");
         expect(Number.isFinite(state.source.x)).toBe(true);
         expect(Number.isFinite(state.receiver.y)).toBe(true);
         expect(evaluateRisoCharacter(COURIER,frame).ik.every(k=>k.reachable)).toBe(true);
