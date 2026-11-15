@@ -378,6 +378,30 @@ for(const view of ["wax","anatomy"] as const){
         }
       }
     }
+    if(view==="wax"){
+      // Native 608×1082 F1 anatomical source coordinates; zoom is a
+      // camera crop only and never changes wax geometry or source anchors.
+      const anatomical={...spec,camera:[
+        {frame:0,focusX:415,focusY:675,zoom:2.65},
+        {frame:299,focusX:415,focusY:675,zoom:2.65},
+      ]};
+      for(const frame of [210,299]){
+        const html=renderToStaticMarkup(createElement(CrayonScene,{
+          spec:anatomical,frame,
+        }));
+        await page.setContent("<!doctype html><html><body style='margin:0'>"+
+          html+"</body></html>");
+        const svg=page.locator("svg[data-km-crayon-scene]");
+        for(const id of ["nose-septal-transition","nose-tip-underlight",
+          "lip-cupid-tubercles","lip-lower-core-shadow"]){
+          await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+            .toBeAttached();
+        }
+        await svg.screenshot({path:info.outputPath(
+          "crayon-f1-source-alar-mouth-macro-"+frame+".png"),
+          animations:"disabled"});
+      }
+    }
     expect(exceptions).toEqual([]);
   });
 }
