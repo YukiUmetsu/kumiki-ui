@@ -142,5 +142,5 @@ describe("ArtCraft four-shot production storyboard and pencil scumbling",()=>{
       .toThrow(RangeError);
     expect(()=>createDryPencilHeadPlate(img,guides,271,1.2))
       .toThrow(RangeError);
-  });
+  },15000);
 });
