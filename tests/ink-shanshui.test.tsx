@@ -552,6 +552,14 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       )];
       expect(folds).toHaveLength(3); // One hero, not repetitive rock stamps
       expect(folds.map(m=>Number(m[2]))).toEqual([.13,.36,.59]);
+      const foldRoots=folds.map(m=>m[1].split(",").map(Number));
+      // A single origin made a mechanically radial black comb. Each
+      // rounded primary stone back is now planted on a DIFFERENT
+      // verified connected crest station, so the full silhouette has
+      // a left bank, a true central bank and a right subordinate bank.
+      expect(Math.max(...foldRoots.map(p=>p[0]))-
+        Math.min(...foldRoots.map(p=>p[0]))).toBeGreaterThan(90);
+      expect(foldRoots.every(p=>p.every(Number.isFinite))).toBe(true);
       expect(pressurePaths).toHaveLength(3);
       expect(pressurePaths.every((d,i)=>
         d.startsWith("M"+folds[i][1].replace(","," "))&&
@@ -596,6 +604,10 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       )];
       expect(terraces).toHaveLength(3);
       expect(terraces.map(m=>Number(m[2]))).toEqual([-1,1,-1]);
+      const terraceRoots=terraces.map(m=>m[1].split(",").map(Number));
+      expect(Math.max(...terraceRoots.map(p=>p[0]))-
+        Math.min(...terraceRoots.map(p=>p[0]))).toBeGreaterThan(95);
+      expect(terraceRoots.every(p=>p.every(Number.isFinite))).toBe(true);
       expect(new Set(terraces.map(m=>m[1])).size).toBe(3);
       const backs=[...full.matchAll(
         /data-km-rock-terrace-back="" d="([^"]+)"/g,
