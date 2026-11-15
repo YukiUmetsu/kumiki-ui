@@ -44,14 +44,14 @@ const clusters:Record<string,{paths:readonly string[];width:number;
       "M291 538 C294 536 296 534 297 536",
       "M296 539 C299 537 301 537 303 538",
       "M300 540 C303 538 306 539 308 540",
-      "M305 543 C307 540 309 541 311 542",
+      "M305 541 C307 540 309 541 311 542",
       // Fine roots weave through the main clump; not random field noise.
       "M232 548 C231 546 230 544 229 543",
       "M246 540 C244 538 243 537 243 535",
       "M261 537 C260 535 260 534 260 533",
       "M274 537 C275 535 276 534 278 534",
       "M287 538 C290 536 292 536 293 537",
-      "M304 542 C306 542 308 543 309 543",
+      "M304 540 C306 542 308 543 309 543",
       "M224 552 C222 552 220 550 219 549",
       "M252 538 C252 537 252 535 253 533",
     ],
@@ -69,10 +69,10 @@ const clusters:Record<string,{paths:readonly string[];width:number;
       "M432 506 C432 503 433 500 434 500",
       "M437 505 C438 502 440 501 441 500",
       "M442 504 C444 502 446 501 447 502",
-      "M447 505 C449 503 451 503 453 503",
-      "M453 506 C455 504 457 504 458 506",
+      "M447 502 C449 503 451 503 453 503",
+      "M453 503 C455 504 457 504 458 506",
       "M421 514 C419 512 419 511 419 510",
-      "M439 506 C440 504 442 504 444 503",
+      "M439 503 C440 504 442 504 444 503",
     ],
     width:.25,opacity:.62,waxPressure:.52,
   },
@@ -94,6 +94,82 @@ function depositTowardRoot(path:string):string{
   return "M"+x3+" "+y3+" C"+x2+" "+y2+" "+x1+" "+y1+" "+x0+" "+y0;
 }
 
+/**
+ * ArtCraft topology gate for the opt-in F1 rooted lash construction.
+ * Five-axis source deconstruction: these are two *different* photographed
+ * upper-rim rails, not mirrored face-template curves. Check the deposited
+ * thick end of EACH cubic (which is at the end after reversal) against that
+ * anatomical root. A correct stroke count cannot detect floating lashes.
+ *
+ * Numerical source-space proximity is a necessary connectivity check, not
+ * a pixel-fidelity, wax-realism or human-art-approval certificate.
+ */
+type Point=readonly [number,number];
+type Cubic=readonly [Point,Point,Point,Point];
+const sourceUpperRims:Readonly<Record<"near"|"far",readonly Cubic[]>>={
+  near:[
+    [[216,559],[231,545],[245,537],[264,535]],
+    [[264,535],[288,533],[307,537],[318,544]],
+  ],
+  far:[
+    [[404,529],[416,506],[435,500],[449,499]],
+    [[449,499],[464,499],[474,506],[479,513]],
+  ],
+} as const;
+const rootPoint=(c:Cubic,t:number):Point=>{
+  const u=1-t;
+  return [
+    u*u*u*c[0][0]+3*u*u*t*c[1][0]+3*u*t*t*c[2][0]+t*t*t*c[3][0],
+    u*u*u*c[0][1]+3*u*u*t*c[1][1]+3*u*t*t*c[2][1]+t*t*t*c[3][1],
+  ];
+};
+function distanceToSourceRim(side:"near"|"far",point:Point):number{
+  let best=Infinity;
+  // Fixed sampling density is sufficient at 608×1082 source resolution;
+  // all returned distances remain source pixels, independent of film camera.
+  for(const curve of sourceUpperRims[side]){
+    for(let i=0;i<=120;i++){
+      const p=rootPoint(curve,i/120);
+      best=Math.min(best,Math.hypot(point[0]-p[0],point[1]-p[1]));
+    }
+  }
+  return best;
+}
+const depositedRoots=(d:string):Point[]=>{
+  const number="-?\\d+(?:\\.\\d+)?";
+  const re=new RegExp("M("+number+") ("+number+") C("+number+") ("+
+    number+") ("+number+") ("+number+") ("+number+") ("+number+")","g");
+  const points=Array.from(d.matchAll(re),match=>
+    [Number(match[7]),Number(match[8])] as const);
+  if(points.length===0||points.length!==(d.match(/M/g)??[]).length)
+    throw new RangeError("Malformed source-rooted lash cubic");
+  return points;
+};
+export interface CrayonF1LashRootAudit {
+  readonly near:{count:number;maximumDistance:number;meanDistance:number;detached:number};
+  readonly far:{count:number;maximumDistance:number;meanDistance:number;detached:number};
+}
+export function auditCrayonF1LashRootContinuity(
+  elements:readonly CrayonElement[],tolerance=5.5,
+):CrayonF1LashRootAudit{
+  if(!Number.isFinite(tolerance)||tolerance<=0||tolerance>20)
+    throw new RangeError("Invalid lash-to-tarsal tolerance");
+  const report=(side:"near"|"far")=>{
+    const matches=elements.filter(e=>e.id==="lash-contact-"+side);
+    if(matches.length!==1||matches[0].kind!=="contour")
+      throw new RangeError("Missing or duplicated F1 "+side+" eyelash contour");
+    const roots=depositedRoots(matches[0].d);
+    const distances=roots.map(p=>distanceToSourceRim(side,p));
+    return {
+      count:roots.length,
+      maximumDistance:Math.max(...distances),
+      meanDistance:distances.reduce((a,b)=>a+b,0)/distances.length,
+      detached:distances.filter(d=>d>tolerance).length,
+    };
+  };
+  return {near:report("near"),far:report("far")};
+}
+
 /** Preserve all original elements exactly unless the opt-in rooted finish
  * is requested; the global scene still uses the same absolute timing,
  * paper seed, outline clipping and semantic eye parents.
@@ -103,13 +179,17 @@ export function crayonF1AddRootedLashes(elements:readonly CrayonElement[],
   if(!["sparse","rooted"].includes(finish))
     throw new RangeError("Invalid F1 native rooted lash finish");
   if(finish==="sparse")return [...elements];
-  return elements.map(e=>{
+  const result=elements.map(e=>{
     if(e.kind!=="contour")return e;
     const group=clusters[e.id];
     return group?{...e,d:group.paths.map(depositTowardRoot).join(" "),
       width:group.width,opacity:group.opacity,
       waxContact:"dry-wax",waxPressure:group.waxPressure} satisfies Contour:e;
   });
+  const audit=auditCrayonF1LashRootContinuity(result);
+  if(audit.near.detached||audit.far.detached)
+    throw new RangeError("Source F1 lash roots detached from tarsal rim");
+  return result;
 }
 
 export const CRAYON_F1_LASH_CLUSTER_COUNTS=Object.freeze({
