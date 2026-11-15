@@ -6,6 +6,12 @@ on:
   pull_request:
     paths:
       - ".github/workflows/riso22-ocular-browser-proof.yml"
+      # Explicitly isolated to the two original Risograph face source files.
+      - "src/video/riso-character-demo.tsx"
+      - "src/video/riso-human-ensemble.tsx"
+      - "src/video/riso-artcraft-studies.stories.tsx"
+      - "tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts"
+      - "tests/riso23-anatomical-ink-planes.test.tsx"
   workflow_dispatch:
 
 permissions:
