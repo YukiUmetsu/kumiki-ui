@@ -88,6 +88,7 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
       <h1 style={{...text, fontSize:"clamp(32px,4.7vw,62px)", fontWeight:400, lineHeight:1.09, margin:"16px 0 7px"}}>
         {artwork === "botanical" ? "A butterfly in a paper garden."
           : artwork === "scenery" ? "A landscape carved in layers of light."
+          : artwork === "object" && object === "kingfisher" ? "A kingfisher, cut feather by feather."
           : artwork === "object" ? "Objects made from layered paper." : "The garden, made of paper."}
       </h1>
       <p style={{font:"14px/1.65 Arial,sans-serif",maxWidth:650,color:"#bbb7ae",marginBottom:24}}>
@@ -96,7 +97,9 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
           : artwork === "scenery"
             ? "Layered paper scenery: arched woodland canopies and Alpine Lake's jagged cut-paper crests, pierced ice caps and raised rock folds. Adjust foliage, palette, depth and real cardstock detail."
           : artwork === "object"
-            ? "Five independently constructed studies — kingfisher, dragonfly, canal houses, camera and teacup. Each uses actual opaque cut shapes, layered assembly and paper apertures."
+            ? object === "kingfisher"
+              ? "A sculpted bird in real cut-stock layers: small overlapping coverts, root-to-tip feather barbs, pierced flight vanes, inset ear feathers and a short anatomical tail. Explore detail, palettes, curl, articulated wing motion, and portrait framing."
+              : "Five independently constructed studies — kingfisher, dragonfly, canal houses, camera and teacup. Each uses actual opaque cut shapes, layered assembly and paper apertures."
             : "One illustrated world, five physical paper techniques. Separate cut cards, open apertures, anchored fibres, hinged motion and transmitted light. Scrub every frame."}
       </p>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(245px,1fr))",gap:"clamp(20px,3vw,46px)",alignItems:"start"}}>
