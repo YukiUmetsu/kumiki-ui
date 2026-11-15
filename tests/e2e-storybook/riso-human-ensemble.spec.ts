@@ -58,9 +58,19 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
         animations:"disabled"});
     }
   }
+  await expect(stage.locator('[data-km-riso-transfer-plate="blue"]')).toHaveCount(1);
+  await expect(stage.locator('[data-km-riso-transfer-plate="red"]')).toHaveCount(1);
+  await expect(stage.locator("[data-km-riso-transfer-postmark]")).toHaveCount(1);
+  await page.getByRole("checkbox",{name:"RISO ensemble fine printed-sheet detail"}).uncheck();
+  await expect(stage.locator("[data-km-riso-transfer-postmark]")).toHaveCount(0);
+  await expect(stage.locator('[data-km-riso-transfer-plate="blue"]')).toHaveCount(1);
+  await page.getByRole("checkbox",{name:"RISO ensemble fine printed-sheet detail"}).check();
+  await expect(stage.locator("[data-km-riso-transfer-postmark]")).toHaveCount(1);
   await page.getByRole("combobox",{name:"RISO ensemble ink plate"}).selectOption("blue");
+  await expect(stage.locator('[data-km-riso-transfer-plate="red"]')).toHaveCount(0);
   await expect(stage.locator('[data-km-riso-part="mouth"]')).toHaveCount(0);
   await page.getByRole("combobox",{name:"RISO ensemble ink plate"}).selectOption("red");
+  await expect(stage.locator('[data-km-riso-transfer-plate="blue"]')).toHaveCount(0);
   await expect(stage.locator('[data-km-riso-part="mouth"]')).toHaveCount(2);
   await page.getByRole("combobox",{name:"RISO ensemble ink plate"}).selectOption("both");
   await page.getByRole("checkbox",{name:"RISO ensemble contact anchors"}).check();
