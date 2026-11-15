@@ -383,6 +383,35 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         " "+f(a[0])+" "+f(a[1])+" Z";
       const clip="kmrk"+id+"m"+i;
       const tone=clip+"tone";
+      // The previous 495 marks all began on the *upper* rock edge:
+      // at native film scale they resembled a dark fringe above an
+      // otherwise blank tan triangle. In true layered cunfa, the face
+      // contains attached internal strata. These five pressure-loaded
+      // curved spines span the vertical rock mass; descendants start
+      // on their actual sampled curves, never at arbitrary screen pixels.
+      const density=[.15,.31,.49,.67,.83] as const;
+      const stratum=density.map((at,k)=>{
+        const top=quadraticPoint(a,crown,shoulder,at);
+        const bottom=quadraticPoint(a,inner,outer,at);
+        const drift=direction*((k%2?1:-1)*(2+
+          4*s(seed+4327,i*29+k*11)));
+        const tip:P=[top[0]*.18+bottom[0]*.82+drift,
+          top[1]*.17+bottom[1]*.83];
+        const bend:P=[top[0]*.52+tip[0]*.48+
+          direction*(5+3*s(seed+4337,i*23+k*19)),
+          top[1]*.57+tip[1]*.43+(k%3===1?-7:3)];
+        const load=(school==="travelers"?8.2:
+          school==="forest-grotto"?5.4:
+          school==="early-spring"?6:3.6)*
+          (.66+.49*s(seed+4343,i*41+k*31));
+        const body=rockLoadedRibbon(top,bend,tip,load,
+          seed+4357+i*109+k*37);
+        const lip=rockLoadedRibbon(top,
+          [top[0]+direction*(8+k),top[1]+(k%2?-6:-3)],
+          [top[0]+direction*(18+k*1.5),top[1]+(7+k%3*4)],
+          Math.max(1.1,load*.32),seed+4373+i*73+k*17);
+        return {top,bend,tip,body,lip,load};
+      });
       const qty=Math.round(strokes[school][i]*detail);
       const brush=Array.from({length:qty},(_,j)=>{
         const budget=strokes[school][i];
@@ -395,7 +424,14 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           :.57+(j-first)*(.31/Math.max(1,budget-first-1))+
             (s(seed+4127,j*37+i*29)-.5)*.014;
         const at=clamp(t,.1,.9);
-        const entry=quadraticPoint(a,crown,shoulder,at);
+        const bank=(j*17+Math.floor(j/13))%stratum.length;
+        const upperBank=stratum[bank];
+        // Compress alternating deposits and introduce intentional gaps
+        // without adding independent decoration to the blank paper.
+        const depth=clamp(.12+.78*(at-.1)/.8+
+          (s(seed+4411,j*23+i*37)-.5)*.09,.08,.92);
+        const entry=quadraticPoint(upperBank.top,upperBank.bend,
+          upperBank.tip,depth);
         const jitter=(s(seed+4153,j*31+i*19)-.5);
         // Source vocabularies differ in geometry, loaded width, cadence,
         // and curve direction. They must not be the same stamp with opacity.
@@ -439,7 +475,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         const dryPath="M"+f(cut[0])+" "+f(cut[1])+
           " Q"+f((cut[0]+lift[0])*.5+direction*.7)+" "+
           f((cut[1]+lift[1])*.5)+" "+f(lift[0])+" "+f(lift[1]);
-        return {entry,pressure,dry,dryPath};
+        return {entry,pressure,dry,dryPath,bank};
       });
       const isFan=school==="travelers",isGuo=school==="early-spring";
       const isWang=school==="forest-grotto";
@@ -464,12 +500,27 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         </defs>
         <path data-km-master-mass="" d={mass}
           fill={"url(#"+tone+")"} opacity={f((isFan?.96:isWang?.94:.87)*(1-.16*mist))}/>
+        <g clipPath={"url(#"+clip+")"} data-km-master-stratum-field="">
+          {stratum.map(({top,body,lip,load},k)=><g key={k}
+            data-km-master-stratum=""
+            data-km-master-stratum-root={f(top[0])+","+f(top[1])}
+            data-km-master-stratum-index={k}>
+            <path data-km-master-stratum-wash="" d={body}
+              fill={isFan?"#312c27":isWang?"#4c4034":"#5c4e3e"}
+              opacity={f((isFan?.49:isWang?.35:isGuo?.29:.19)*
+                (1-.18*mist))}/>
+            <path data-km-master-stratum-lip="" d={lip}
+              fill={isFan?"#2b2925":"#4a3b31"}
+              opacity={f(Math.min(.83,.37+load*.027)*(1-.18*mist))}/>
+          </g>)}
+        </g>
         <g data-km-master-brush-field="" data-km-master-field-count={qty}
           clipPath={"url(#"+clip+")"}>
-          {brush.map(({entry,pressure,dry,dryPath},j)=><g key={j}
+          {brush.map(({entry,pressure,dry,dryPath,bank},j)=><g key={j}
             data-km-master-stroke="" data-km-master-stroke-style={label[school]}
             data-km-master-stroke-root={f(entry[0])+","+f(entry[1])}
-            data-km-master-stroke-dry={dry?"dry":"wet"}>
+            data-km-master-stroke-dry={dry?"dry":"wet"}
+            data-km-master-stroke-bank={bank}>
             <path data-km-master-stroke-loaded="" d={pressure}
               fill={isFan?"#2a2623":isWang?"#322d29":isGuo?"#392f28":"#44382f"}
               opacity={f((dry?.35:isFan?.83:isWang?.68:isGuo?.72:.62)*
@@ -1376,9 +1427,10 @@ function Mountains({scene,seed,detail,mist,ink,school,ids}:{
           <g clipPath={"url(#"+ids.grain+"-hero-"+band+"-clip)"}>
             <MasterRockBrush root={[heroPeak[0],ridgeHeight(stations,heroPeak[0])+2.5]}
               seed={seed+band*251+777} mist={mist} detail={detail} school={school}/>
-            <MountainHeroCliff
+            {school==="fuchun"&&<MountainHeroCliff
               root={[heroPeak[0],ridgeHeight(stations,heroPeak[0])+2.5]}
-              seed={seed+band*251+777} mist={mist} detail={detail}/>
+              seed={seed+band*251+777} mist={mist} detail={detail}/>}
+
           </g>
         </g>}
         {/* Independently loaded foreground-to-midground brush layer.
