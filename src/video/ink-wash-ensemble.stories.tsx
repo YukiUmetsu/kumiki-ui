@@ -81,7 +81,9 @@ export function InkEnsembleFilm({frame,aspect="landscape",reducedMotion=false,
   </InkWashScene>;
 }
 function Studio(){
-  const [frame,setFrame]=useState(0),[playing,setPlaying]=useState(false);
+  // Open on the actual two-person performance rather than blank unrevealed
+  // frame-0 paper. Users can still scrub to the original first frame.
+  const [frame,setFrame]=useState(117),[playing,setPlaying]=useState(false);
   const [aspect,setAspect]=useState<InkDuetAspect>("landscape");
   const [reduced,setReduced]=useState(false);
   const [absorption,setAbsorption]=useState(.72);
