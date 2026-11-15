@@ -206,24 +206,24 @@ function paintedFaceValues(p:Palette,subject:PortraitSubject):WatercolourArtPart
       p.shade,.29,luminous(p.light,p.shade,.47,.08),117,59),
     wash("malar-light-uneven-brush",
       older
-        ?"M226 286 C247 265 277 276 300 295 Q286 302 281 313"+
-          " Q261 307 247 321 L221 315 Q240 306 226 286 Z"
-        :"M224 285 Q245 267 277 281 L302 290 Q287 294 282 312"+
-          " Q268 301 248 321 Q228 323 219 315 Z",
-      p.cheek,.37,luminous("#EDB1A0",p.cheek,.48,.10),133,73),
+        ?"M238 303 C249 296 271 294 284 301"+
+          " Q272 302 262 312 Q247 316 237 314 Z"
+        :"M234 302 Q252 293 278 296 L288 300"+
+          " Q270 306 257 315 Q242 319 231 311 Z",
+      p.cheek,.22,luminous("#EDB1A0",p.cheek,.68,.05),133,73),
     wash("cheek-cool-broken-plane",
       older
         ?"M220 319 Q239 326 246 353 Q261 371 287 384"+
           " Q261 373 250 352 Q238 347 224 341 Z"
         :"M214 319 C226 328 241 345 248 361"+
           " Q261 386 288 402 Q260 392 242 369 L219 341 Z",
-      p.reflected,.36,luminous(p.skin,p.reflected,.38,.03),145,64),
+      p.reflected,.23,luminous(p.skin,p.reflected,.58,.02),145,64),
     wash("malar-second-colour-note",
       older
         ?"M366 291 Q384 277 393 294 L385 317 Q369 329 354 334"+
           " Q368 315 366 291 Z"
         :"M369 289 Q391 275 394 294 L390 319 Q382 328 360 332 Z",
-      p.cheek,.30,luminous(p.light,p.cheek,.42,.07),143,60),
+      p.cheek,.19,luminous(p.light,p.cheek,.64,.04),143,60),
     wash("nose-saddle-left-plane",
       older
         ?"M302 246 Q316 265 321 287 L320 319"+
@@ -235,7 +235,7 @@ function paintedFaceValues(p:Palette,subject:PortraitSubject):WatercolourArtPart
         ?"M313 320 Q326 328 330 339 Q319 349 306 337"+
           " Q307 324 313 320 Z"
         :"M318 314 Q329 321 330 331 Q315 340 311 331 Z",
-      p.cheek,.43,luminous(p.light,p.shade,.21,.09),174,44),
+      p.cheek,.27,luminous(p.light,p.shade,.43,.05),174,44),
     wash("nasolabial-edge-falloff",
       older
         ?"M365 334 C378 343 379 360 369 378"+
@@ -248,7 +248,7 @@ function paintedFaceValues(p:Palette,subject:PortraitSubject):WatercolourArtPart
           " Q354 450 328 454 Q299 439 279 408 Z"
         :"M287 399 Q310 423 337 428 Q365 420 378 396"+
           " Q363 441 331 443 Q302 426 287 399 Z",
-      p.reflected,.26,luminous(p.skin,p.reflected,.59,.02),173,66),
+      p.reflected,.18,luminous(p.skin,p.reflected,.72,.02),173,66),
     wash("jaw-luminous-wet-gap",
       older
         ?"M233 359 Q250 405 280 424 Q264 416 256 393 Z"
