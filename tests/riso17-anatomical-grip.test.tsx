@@ -17,7 +17,7 @@ describe("RISO17 source-driven anatomical grip occlusion",()=>{
       spec:COURIER,frame:160
     }));
     const contact=renderToStaticMarkup(createElement(RisoCharacterKnockout,{
-      spec:COURIER,frame:160,onlyPartIds:ids
+      spec:COURIER,frame:160,...{onlyPartIds:ids}
     }));
     expect(full).toContain('data-km-riso-knockout-part="coat"');
     expect(contact).toContain('data-km-riso-knockout-part="right-glove-thumb"');
@@ -26,7 +26,7 @@ describe("RISO17 source-driven anatomical grip occlusion",()=>{
     expect(contact).not.toContain('data-km-riso-knockout-part="face"');
     expect((contact.match(/data-km-riso-knockout-part=/g)||[]).length).toBe(ids.length);
     expect(contact).toBe(renderToStaticMarkup(createElement(RisoCharacterKnockout,{
-      spec:COURIER,frame:160,onlyPartIds:ids
+      spec:COURIER,frame:160,...{onlyPartIds:ids}
     })));
   });
 
@@ -39,7 +39,7 @@ describe("RISO17 source-driven anatomical grip occlusion",()=>{
       ] as const){
         const art=renderToStaticMarkup(createElement(RisoCharacterInk,{
           spec,frame:160,plateId,paint:{solid:"#22619b",dots:"url(#screen)"},
-          onlyPartIds:ids,
+          ...{onlyPartIds:ids},
         }));
         expect(art).toContain('data-km-riso-part="'+expected+'"');
         expect(art).not.toContain('data-km-riso-part="'+excluded+'"');
@@ -52,11 +52,11 @@ describe("RISO17 source-driven anatomical grip occlusion",()=>{
   it("rejects missing, duplicate and invalid per-character part selections",()=>{
     for(const ids of [["missing-part"],["right-glove-thumb","right-glove-thumb"],[]]){
       expect(()=>renderToStaticMarkup(createElement(RisoCharacterKnockout,{
-        spec:COURIER,frame:160,onlyPartIds:ids,
+        spec:COURIER,frame:160,...{onlyPartIds:ids},
       }))).toThrow(RangeError);
       expect(()=>renderToStaticMarkup(createElement(RisoCharacterInk,{
         spec:COURIER,frame:160,plateId:"red",paint:{solid:"#123",dots:"url(#dots)"},
-        onlyPartIds:ids,
+        ...{onlyPartIds:ids},
       }))).toThrow(RangeError);
     }
   });
