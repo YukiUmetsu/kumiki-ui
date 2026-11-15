@@ -122,6 +122,14 @@ const groove=(actor:RisoHandActor, side:RisoHandSide)=>{
     const prefix=side+"-glove-";
     if(!part.id.startsWith(prefix))return part;
     const id=part.id.slice(prefix.length);
+    if(id==="thumb-nail"){
+      // This nail is now genuinely carried by the moving IP pad, not
+      // a static blue sticker on the root during paper pinch.
+      return {...part,joint:side+"-thumb-ip",
+        d:side==="right"
+          ?"M3.1 1.3 Q4 .9 4.8 1.2 L4.9 1.9 Q4.1 1.55 3.2 2 Z"
+          :"M-3.2 1.4 Q-4 .85 -4.9 1.3 L-4.7 2 Q-4 1.5 -3.1 2.05 Z"};
+    }
     const nail=/^(index|middle|ring|pinky)-nail$/.exec(id);
     if(nail){
       const digit=nail[1] as keyof typeof RISO31_GEOMETRY;
@@ -154,7 +162,12 @@ M${Number((-width*.76).toFixed(2))} .75 Q0 .40 ${Number((width*.76).toFixed(2))}
 M${Number((-width*.78).toFixed(2))} .65 Q.05 .38 ${Number((width*.70).toFixed(2))} .76 L${Number((width*.70).toFixed(2))} 1.06 Q0 .74 ${Number((-width*.78).toFixed(2))} 1.05 Z`),
       paint:"screen" as const,screenTone:"light" as const};
   });
-  return [...adjusted,...distalInk];
+  const thumbIpInk={...blue("thumb-ip-crease",side+"-thumb-ip",
+    side==="right"
+      ?"M-1.3 -1.2 Q-.6 -1.55 .4 -.9 L.2 -.62 Q-.45 -1.18 -1.27 -.78 Z"
+      :"M1.3 -1.18 Q.45 -1.56 -.45 -.94 L-.3 -.62 Q.5 -1.1 1.3 -.77 Z"),
+    paint:"screen" as const,screenTone:"light" as const};
+  return [...adjusted,...distalInk,thumbIpInk];
 };
 
 /** Source-only new art; never mutates or rewrites original expression keys. */
@@ -163,6 +176,7 @@ export function risoHandArtcraftParts(actor:RisoHandActor,side:RisoHandSide):rea
 }
 export const RISO30_GRIP_FOREGROUND_IDS=(side:RisoHandSide):readonly string[]=>[
   side+"-glove-index-nail",side+"-glove-middle-nail",side+"-glove-ring-nail",
+  side+"-glove-thumb-ip-crease",
   side+"-glove-thumb-nail",side+"-glove-pinky-nail",
   side+"-glove-index-joint-crease",side+"-glove-middle-joint-crease",
   side+"-glove-ring-joint-crease",side+"-glove-pinky-joint-crease",
@@ -240,6 +254,7 @@ export function layoutRisoHandArtcraft(
     box(j(name+"-dip"),-4,-3,5,source.distal+2.5);
   }
   box(j("thumb"),-12,-8,12,6); // radial opposition, both handednesses
+  box(j("thumb-ip"),-6,-4,6,5); // independently printed distal thumb
   const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
   const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
   const centerX=(left+right)/2,centerY=(top+bottom)/2;
