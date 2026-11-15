@@ -50,7 +50,7 @@ export function inspectPortraitCast(value:unknown):string[] {
     if(!validNumber(person.x,-500,1600))issues.push(root+"/x");
     if(!validNumber(person.y,-500,1600))issues.push(root+"/y");
     if(!validNumber(person.scale,.25,1.5))issues.push(root+"/scale");
-    if(!Number.isSafeInteger(person.delayFrames)||!validNumber(person.delayFrames,0,120))
+    if(!validNumber(person.delayFrames,0,120)||!Number.isSafeInteger(person.delayFrames))
       issues.push(root+"/delayFrames");
     if(Object.keys(person).some(k=>!["id","sitter","x","y","scale","delayFrames"].includes(k)))
       issues.push(root+"/extra");
