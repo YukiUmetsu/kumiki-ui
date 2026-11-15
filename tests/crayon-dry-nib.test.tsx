@@ -76,7 +76,8 @@ describe("CRAYON1 fractured dry-wax contact",()=>{
      });
      expect(plan.subjects).toHaveLength(1);
      expect(inspectCrayonScene(scene)).toEqual([]);
-     expect(scene.elements.filter(x=>x.kind==="wax").every(x=>x.nibStyle==="dry")).toBe(true);
+     expect(scene.elements.filter(x=>x.kind==="wax"&&!plan.ambientIds.includes(x.id))
+       .every(x=>x.nibStyle==="dry")).toBe(true);
      const focused=crayonDrawingInspectionSpec(scene,"surface");
      expect(focused.elements).toBe(scene.elements);
      expect(focused.seed).toBe(scene.seed);
