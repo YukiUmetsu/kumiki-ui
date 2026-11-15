@@ -1,0 +1,47 @@
+import { test,expect } from "@playwright/test";
+
+test("the single Colour-pencil foundation story uses the same pipeline for all subjects",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
+  const scene=page.locator("[data-km-foundation-studio]");
+  const svg=page.locator("svg[data-km-colored-pencil]");
+  const subject=page.getByRole("combobox",{name:"Foundation subject"});
+  const aspect=page.getByRole("combobox",{name:"Foundation aspect"});
+  await expect(scene).toBeVisible();
+  await expect(svg).toHaveAttribute("data-km-pencil-foundation","CP-F1");
+  await expect(scene).toHaveAttribute("data-km-foundation-stage","review");
+  await expect(svg.locator("[data-km-pencil-craft-base]").first()).toBeVisible();
+  for(const format of ["landscape","portrait"] as const){
+    await aspect.selectOption(format);
+    await expect(svg).toHaveAttribute("viewBox",format==="landscape"?"0 0 960 540":"0 0 540 960");
+    for(const item of ["rose","fox","portrait","architecture","fabric","valley"] as const){
+      await subject.selectOption(item);
+      await expect(svg).toHaveAttribute("data-km-pencil-foundation","CP-F1");
+      await expect(svg.locator("[data-km-pencil-region]").first()).toBeVisible();
+      if(["rose","fox","portrait"].includes(item)){
+        await svg.screenshot({animations:"disabled",
+          path:info.outputPath("pencil-foundation-"+item+"-"+format+".png")});
+      }
+    }
+  }
+  // Precise stage checkpoints must correspond to actual addressable drawing frames.
+  await aspect.selectOption("landscape");
+  await subject.selectOption("rose");
+  for(const [name,frame,stage] of [
+    ["1. Reference & structure",0,"observe"],
+    ["2. Contour and silhouette",52,"outline"],
+    ["3. Light value map",106,"undertone"],
+    ["4. Cross-layer colour",168,"layer"],
+    ["5. Rooted texture & edges",254,"detail"],
+    ["6. Burnish and visual audit",335,"review"],
+  ] as const){
+    await page.getByRole("button",{name:new RegExp(name.replace(".","\\.") )}).click();
+    await expect(svg).toHaveAttribute("data-km-pencil-frame",String(frame));
+    await expect(scene).toHaveAttribute("data-km-foundation-stage",stage);
+  }
+  await page.getByRole("checkbox",{name:"Foundation inspect macro"}).check();
+  await expect(svg).toHaveAttribute("style",/scale\(2.15\)/);
+  await page.getByRole("checkbox",{name:"Foundation inspect macro"}).uncheck();
+  await page.getByRole("slider",{name:"Foundation burnish"}).fill("0.45");
+  await page.getByRole("slider",{name:"Foundation paper tooth"}).fill("0.5");
+  await expect(svg).toHaveAttribute("data-km-pencil-foundation","CP-F1");
+});
