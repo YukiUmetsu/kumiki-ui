@@ -33,6 +33,7 @@ export function crayonDrawingInspectionSpec(
 
 interface DrawingStudioProps {
   aspect:CrayonDrawingAspect;detail:number;pressure:number;paperTooth:number;
+  nibStyle:"tapered"|"dry";
   startFrame:number;playbackRate:number;loop:boolean;
   inspection?:CrayonDrawingInspection;
 }
@@ -47,11 +48,11 @@ const steps=[
  * A source-native, single-subject drawing workbench, not a quality-approved
  * illustration. Text and interactive controls stay outside the film SVG.
  */
-export function CrayonDrawingStudio({aspect,detail,pressure,paperTooth,
+export function CrayonDrawingStudio({aspect,detail,pressure,paperTooth,nibStyle="dry",
   startFrame,playbackRate,loop,inspection="full"}:DrawingStudioProps){
   const {scene,plan}=useMemo(()=>crayonBotanicalDrawing({
-    aspect,detail,pressure,paperTooth,
-  }),[aspect,detail,pressure,paperTooth]);
+    aspect,detail,pressure,paperTooth,nibStyle,
+  }),[aspect,detail,pressure,paperTooth,nibStyle]);
   const errors=useMemo(()=>inspectCrayonDrawingPlan(scene,plan),[scene,plan]);
   const framed=useMemo(()=>crayonDrawingInspectionSpec(scene,inspection),[scene,inspection]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
@@ -126,7 +127,7 @@ const meta={
   // native-resolution reference-matched artistic review.
   tags:["!dev"],
   args:{aspect:"landscape",detail:1,pressure:.88,paperTooth:.78,
-    startFrame:239,playbackRate:1.25,loop:false,inspection:"full"},
+    startFrame:239,playbackRate:1.25,loop:false,inspection:"full",nibStyle:"dry"},
   argTypes:{
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
     inspection:{control:"select",options:["full","surface","stalk-leaf","contact"],
@@ -134,6 +135,8 @@ const meta={
     detail:{control:{type:"range",min:.2,max:1,step:.05}},
     pressure:{control:{type:"range",min:.2,max:1,step:.05}},
     paperTooth:{control:{type:"range",min:0,max:1,step:.05}},
+    nibStyle:{control:"inline-radio",options:["tapered","dry"],
+      description:"Compare the original smooth nib with fractured dry-wax paper contact"},
     startFrame:{control:{type:"range",min:0,max:239,step:1}},
     playbackRate:{control:{type:"range",min:.25,max:2,step:.25}},
     loop:{control:"boolean"},
