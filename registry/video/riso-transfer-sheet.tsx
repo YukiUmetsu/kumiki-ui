@@ -57,7 +57,7 @@ export function evaluateRisoTransferSheet(
   };
   // The contour is a truly connected ribbon. Both pinched short edges
   // have their midpoints on the sampled hand contacts, even in tilted poses.
-  const upper = -17 + pinch * 4, lower = 20 - pinch * 4;
+  const upper = -20 + pinch * 4, lower = 20 - pinch * 4;
   const outline = "M" + xy(at(0, upper)) +
     " C" + xy(at(.12, -22)) + " " + xy(at(.33, -21)) + " " + xy(at(.51, -18)) +
     " C" + xy(at(.7, -17)) + " " + xy(at(.89, -20)) + " " + xy(at(1, upper)) +
