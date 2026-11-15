@@ -113,6 +113,16 @@ describe("PAPER-D1 reusable paper director",()=>{
       i===0?{...s,transitionOut:{kind:"paper-curtain" as const,
         durationFrames:25,color:"#FFFFFF",direction:"left-to-right" as const}}:s)};
     expect(inspectPaperDirector(malformed).some(e=>e.path.includes("transitionOut"))).toBe(true);
+    // Incomplete authored storyboard must return diagnostic paths, not crash.
+    const invalidShots={...film,shots:[film.shots[0],null as never,film.shots[2]]};
+    expect(()=>inspectPaperDirector(invalidShots)).not.toThrow();
+    expect(inspectPaperDirector(invalidShots).some(e=>e.path==="shots[1]")).toBe(true);
+    const brief={...film.shots[1],scenes:{
+      landscape:{...film.shots[1].scenes.landscape,durationFrames:6},
+      portrait:{...film.shots[1].scenes.portrait,durationFrames:6},
+    }};
+    const tooBrief={...film,shots:[film.shots[0],brief,...film.shots.slice(2)]};
+    expect(inspectPaperDirector(tooBrief).some(e=>e.message.includes("shorter than its opening curtain"))).toBe(true);
     expect(inspectPaperDirector({...film,shots:film.shots.map((s,i)=>
       i===3?{...s,transitionOut:film.shots[0].transitionOut}:s)})
       .some(e=>e.message.includes("final shot"))).toBe(true);

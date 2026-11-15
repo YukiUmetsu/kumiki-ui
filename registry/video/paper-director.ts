@@ -102,6 +102,10 @@ export function inspectPaperDirector(film: unknown): PaperIssue[] {
       if (i === f.shots!.length-1) bad(where+".transitionOut","final shot cannot transition out");
       if (land && transition?.durationFrames >= land.durationFrames)
         bad(where+".transitionOut","transition duration must fit shot");
+      const nextDuration=f.shots![i+1]?.scenes?.landscape?.durationFrames;
+      if (Number.isSafeInteger(transition?.durationFrames) &&
+          typeof nextDuration==="number" && nextDuration < transition.durationFrames/2)
+        bad(where+".transitionOut","incoming shot is shorter than its opening curtain");
     }
     if (land?.durationFrames !== port?.durationFrames)
       bad(where+".durationFrames","both aspect shots must have the same duration");
@@ -110,9 +114,11 @@ export function inspectPaperDirector(film: unknown): PaperIssue[] {
   });
   // Both halves of adjacent curtains must not compete for the same paper frame.
   for(let i=1;i<f.shots.length-1;i++) {
-    const left=f.shots[i-1].transitionOut?.durationFrames??0;
-    const right=f.shots[i].transitionOut?.durationFrames??0;
-    const duration=f.shots[i].scenes?.landscape?.durationFrames??0;
+    // Invalid JSON shot entries have already been reported above: error
+    // aggregation must never turn into an uncaught null dereference.
+    const left=f.shots[i-1]?.transitionOut?.durationFrames??0;
+    const right=f.shots[i]?.transitionOut?.durationFrames??0;
+    const duration=f.shots[i]?.scenes?.landscape?.durationFrames??0;
     if ((left+right)/2 >= duration)
       bad("shots["+i+"].transitionOut","incoming/outgoing curtain beats overlap");
   }
