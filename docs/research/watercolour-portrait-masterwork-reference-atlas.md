@@ -1,5 +1,7 @@
 # WC16 — Rejected watercolor portrait retirement and masterwork reference atlas
 
+**WC17 update:** [strict seven-region numerical acceptance gate and rejected private prototype](wc17-watercolour-face-strict-acceptance.md). The research atlas remains the only public portrait Storybook item. No new human face has been approved.
+
 **Date:** 2026-11-14  
 **Status:** REJECTED SOURCE ART REMOVED. No replacement character is approved, and no old face should render in production or Storybook. This document is a **research specification**, not a visual-quality certification.
 

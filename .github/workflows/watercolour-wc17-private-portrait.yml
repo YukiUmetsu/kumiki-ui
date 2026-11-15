@@ -1,0 +1,27 @@
+name: WC17 strict watercolor face evidence gate
+# Only the numeric gate and its negative controls are accepted in this PR.
+# The rejected flat-vector face and its browser preview were removed.
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/watercolour-portrait-quality-gate.py'
+      - 'tests/watercolour-portrait-quality-gate.test.py'
+      - 'docs/research/wc17-*'
+      - '.github/workflows/watercolour-wc17-private-portrait.yml'
+permissions:
+  contents: read
+jobs:
+  strict-numeric-negative-controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned image-analysis dependencies
+        run: pip install numpy==2.3.5 Pillow==12.3.0 opencv-python-headless==4.13.0.92 scikit-image==0.26.0
+      - name: Run all face-quality positive and adversarial negative controls
+        run: python tests/watercolour-portrait-quality-gate.test.py -v
