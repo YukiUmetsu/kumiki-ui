@@ -1,5 +1,7 @@
 import {describe,expect,it} from "vitest";
-import {createFacialOpticalPlanes} from "../src/video/colored-pencil-facial-planes";
+import {
+  createFacialOpticalPlanes,observedVermilionEnvelope,
+} from "../src/video/colored-pencil-facial-planes";
 import {mapCC0WomanPortraitFeatures} from "../src/video/colored-pencil-portrait-guides";
 import type {PencilPhotoPixels} from "../src/video/colored-pencil-photo";
 
@@ -10,10 +12,8 @@ const g=mapCC0WomanPortraitFeatures({
 const lipMask=(x:number,y:number)=>{
   const left=g.lipLeft,right=g.lipRight,t=(x-left[0])/(right[0]-left[0]);
   if(t<=0||t>=1)return false;
-  const q=(a:number,b:number,c:number)=>
-    (1-t)*(1-t)*a+2*(1-t)*t*b+t*t*c;
-  return y>=q(left[1],g.lipCupid[1],right[1])&&
-    y<=q(left[1],g.lipLower[1],right[1]);
+  const observed=observedVermilionEnvelope(g,t);
+  return y>=observed.upper&&y<=observed.lower;
 };
 const photo=(withFeatures=true):PencilPhotoPixels=>{
   const width=900,height=506,data=new Uint8ClampedArray(width*height*4);
@@ -29,6 +29,24 @@ const photo=(withFeatures=true):PencilPhotoPixels=>{
   return {width,height,data};
 };
 describe("ArtCraft photo-measured dry-pencil lip and alar tonal planes",()=>{
+  it("interpolates through the observed cupid AND lower lip, not half-way handles",()=>{
+    const left=g.lipLeft,right=g.lipRight;
+    const span=right[0]-left[0];
+    const tUpper=(g.lipCupid[0]-left[0])/span;
+    const tLower=(g.lipLower[0]-left[0])/span;
+    const upper=observedVermilionEnvelope(g,tUpper);
+    const lower=observedVermilionEnvelope(g,tLower);
+    expect(upper.x).toBeCloseTo(g.lipCupid[0],5);
+    expect(upper.upper).toBeCloseTo(g.lipCupid[1],5);
+    expect(lower.x).toBeCloseTo(g.lipLower[0],5);
+    expect(lower.lower).toBeCloseTo(g.lipLower[1],5);
+    expect(upper.upper).toBeLessThan(upper.lower);
+    expect(lower.lower).toBeGreaterThan(lower.upper);
+    expect(()=>observedVermilionEnvelope(g,-.01)).toThrow(RangeError);
+    expect(()=>observedVermilionEnvelope({
+      ...g,lipCupid:[g.lipLeft[0],g.lipCupid[1]],
+    },.5)).toThrow(RangeError);
+  });
   it("separately builds source-supported lip, alar fibres on plain paper",()=>{
     const img=photo(),before=new Uint8ClampedArray(img.data);
     const out=createFacialOpticalPlanes(img,g,271,.85);
