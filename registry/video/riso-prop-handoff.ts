@@ -79,8 +79,12 @@ export function evaluateRisoPropHandoff(
     x:receiver.x+dx*Math.cos(rad)-dy*Math.sin(rad),
     y:receiver.y+dx*Math.sin(rad)+dy*Math.cos(rad),
   };
-  const paperStart=phase==="unfurl"||phase==="shared" ? {...source}
-    :interpolate(source,receivedFreeEnd,releaseProgress);
+  // Use the receiver-relative target *directly* after takeover. A
+  // mathematically equivalent lerp(source,target,1) leaks sub-ULP donor
+  // dependence through rounding and can perturb exact-seek frame exports.
+  const paperStart=phase==="received"?receivedFreeEnd:
+    phase==="unfurl"||phase==="shared"?{...source}:
+    interpolate(source,receivedFreeEnd,releaseProgress);
   const paperEnd=phase==="unfurl"?interpolate(source,receiver,progress):{...receiver};
   // The recipient begins closing a real finger grip as the sheet approaches.
   const receiverGrip=clamp((progress-.94)/.06);
