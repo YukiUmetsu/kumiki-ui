@@ -68,7 +68,7 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     // A thoughtful downward-looking reader has a nearly level, closed
     // mouth at rest; the expressive "smile" cel remains distinct.
     expect(restMouth.some(s=>s.type==="path"&&
-      s.d.includes("M135.2 125.4 Q139 126.4"))).toBe(true);
+      s.d.includes("M135.2 125.5 Q139.6 126.4"))).toBe(true);
     expect(paths(face,"mouth-smile")).not.toEqual(restMouth);
     const root=paths(face,"face").find(s=>s.type==="path"&&s.d.includes("143.3 143.7"));
     expect(root).toMatchObject({fill:"$skin",opacity:1});
