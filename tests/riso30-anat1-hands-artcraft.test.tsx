@@ -40,7 +40,7 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
     expect(actor.cadence).toBe(2);
     for(const side of sides){
       const parts=risoHandArtcraftParts(actor.id as "courier"|"paper-artist",side);
-      expect(parts).toHaveLength(14);
+      expect(parts).toHaveLength(18);
       const names=parts.map(p=>p.id);
       expect(new Set(names).size).toBe(names.length);
       const specNames=actor.parts.map(p=>p.id);
@@ -122,10 +122,10 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
   it("new nail beds and finger-fold engravings print ABOVE the real paper at the exact handhold, not as a separate sticker",()=>{
     for(const side of sides){
       const layerIds=RISO30_GRIP_FOREGROUND_IDS(side);
-      expect(layerIds).toHaveLength(9);
+      expect(layerIds).toHaveLength(13);
       expect(layerIds.every(id=>id.startsWith(side+"-glove"))).toBe(true);
       expect(layerIds.filter(id=>id.includes("nail"))).toHaveLength(5);
-      expect(layerIds.filter(id=>id.includes("crease"))).toHaveLength(4);
+      expect(layerIds.filter(id=>id.includes("crease"))).toHaveLength(8);
       for(const actor of actors)expect(layerIds.every(id=>
         actor.parts.some(p=>p.id===id&&p.plate==="blue"&&p.paint==="solid"))).toBe(true);
     }
