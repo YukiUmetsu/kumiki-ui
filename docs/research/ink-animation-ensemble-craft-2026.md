@@ -97,10 +97,12 @@ hand anchors were separated by about **96 px (landscape)** and **70 px
 characters blindly closer in both aspects *worsened portrait contact*
 because the mirrored hand anchors crossed through one another;
 a regression test measured **105.62 px** instead of the expected
-improvement. Rather than weaken the test, the portrait actors are now
-blocked with a wider, carefully planted root separation and approach
-motion. Both aspects must be verified using the actual pose-evaluated
-hands, not coarse root radii.
+improvement. Rather than weaken the test, the apprentice now reciprocates the
+teacher's actual sleeve gesture at frame 154 and portrait root positions
+are adjusted to preserve coarse stage reach without interpenetrating
+feet. The reciprocal arm cue resolved an otherwise excessive vertical
+hand gap in the unit-rendered pose. Both aspects must be verified with
+actual pose-evaluated hand anchors, not coarse root radii.
 
 A dedicated, path-filtered Storybook QA job now catches browser
 exceptions at start/onset/exchange/parting, captures real screenshots,
