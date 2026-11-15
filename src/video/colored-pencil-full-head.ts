@@ -172,7 +172,7 @@ export const createDryPencilHeadPlate=(
     "face-value":0,"face-chroma":0,"face-form":0,
     "hair-mass":0,"hair-fibre":0,"measured-features":0,
   };
-  const screen=(p:Point):Point=[(p[0]-left)*scale,(p[1]-top)*scale];
+  const screen=(p:Point):Point=>[(p[0]-left)*scale,(p[1]-top)*scale];
   const push=(zone:HeadMaterialZone,p:Point,vector:Point,ink:string,
     alpha:number,width:number,pass:0|1|2,twist:number)=>{
     if(alpha<=0||!Number.isFinite(alpha)||!onPhoto(source,p[0],p[1]))return;
