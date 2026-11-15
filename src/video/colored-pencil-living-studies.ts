@@ -237,15 +237,6 @@ function pencilDermalGlaze(
  * facial topology. This is a 2D pencil painter, not a mesh screenshot.
  */
 const PENCIL_PORTRAIT_ANAT1=pencilPortraitAnatomy();
-const anatomicalBounds=(...names:string[]):readonly [number,number,number,number]=>{
-  const items=names.map(n=>PENCIL_PORTRAIT_ANAT1.features[n]?.bounds);
-  if(items.some(item=>!item))throw new RangeError("Unknown ANAT1 face feature");
-  const xs=items.map(item=>item![0]),ys=items.map(item=>item![1]);
-  const rights=items.map(item=>item![0]+item![2]);
-  const bottoms=items.map(item=>item![1]+item![3]);
-  const x=Math.min(...xs),y=Math.min(...ys);
-  return [x,y,Math.max(...rights)-x,Math.max(...bottoms)-y];
-};
 function applyPortraitAnatomy(part:PencilSubjectPart):PencilSubjectPart{
   const A=PENCIL_PORTRAIT_ANAT1;
   if(part.id==="face-main"){
@@ -292,19 +283,37 @@ function applyPortraitAnatomy(part:PencilSubjectPart):PencilSubjectPart{
         "#C3A08E",.27,245,.42),id:"anat-brow-underfur"},
     ]};
   if(part.id==="nose-bridge")return {...part,
-    details:[...(part.details??[]),
-      {...mark(A.features["nose-bridge"].path,"#AA7876",.53,244,.48),
+    path:A.nose.path,bounds:A.nose.bounds,
+    // Nasal projection, soft alar fold and subnasale now agree in depth.
+    // These pencil marks sit on a single measured ANAT1 cartilage plane.
+    details:[
+      {...mark(A.features["nose-bridge"].path,"#D9A691",.54,229,.58),
         id:"anat-nose-bridge"},
-      {...mark(A.features["nose-base"].path,"#946A69",.48,246,.64),
+      {...mark(A.features["nose-base"].path,"#956F72",.45,242,.60),
         id:"anat-nose-base"},
+      {...mark(A.features["nose-base"].path,"#F6CCB5",.28,251,.43),
+        id:"anat-alar-reflection"},
+      {...mark(A.features["nose-bridge"].path,"#987275",.31,259,.32),
+        id:"anat-nose-terminator"},
     ]};
   if(part.id==="lip-upper")return {...part,
-    path:A.lips.upper,bounds:anatomicalBounds("lips-upper","mouth-line"),
-    details:[...(part.details??[]),
-      {...mark(A.features["mouth-line"].path,"#7B5660",.50,246,.61),
-        id:"anat-mouth-seam"}]};
+    palette:["#CDA99D","#A38382","#E9C8B6"],
+    path:A.lips.upper,bounds:A.lips.bounds,
+    details:[
+      {...mark(A.features["mouth-line"].path,"#835D66",.48,240,.57),
+        id:"anat-mouth-seam"},
+      {...mark(A.features["lips-upper"].path,"#EBC1AD",.35,249,.47),
+        id:"anat-cupid-bow"},
+    ]};
   if(part.id==="lip-lower")return {...part,
-    path:A.lips.lower,bounds:anatomicalBounds("lips-lower","mouth-line")};
+    palette:["#D4ADA3","#AE8888","#EFCBBC"],
+    path:A.lips.lower,bounds:A.lips.bounds,
+    details:[
+      {...mark(A.features["lips-lower"].path,"#E3BAAF",.31,241,.48),
+        id:"anat-lower-lip"},
+      {...mark(A.features["mouth-line"].path,"#AC7D7B",.24,250,.34),
+        id:"anat-labial-contact"},
+    ]};
   return part;
 }
 
@@ -1081,12 +1090,14 @@ export function pencilLivingStudyDrawing({
     return {...region,
       // Whiskers are fine, floating pencil contacts from visible follicles;
       // never flood the chin with an opaque region or gradient undercoat.
-      opaqueSupport:subject==="fox"&&part.id==="whisker-roots"?
+      opaqueSupport:subject==="fox"&&part.id==="whisker-roots"||
+        (subject==="portrait"&&part.id.startsWith("lip-"))?
         false:region.opaqueSupport,
       underpaint:subject==="fox"&&part.id==="whisker-roots"?
         undefined:region.underpaint,
       underpaintOpacity:subject==="fox"&&part.id==="whisker-roots"?
-        undefined:region.underpaintOpacity,
+        undefined:subject==="portrait"&&part.id.startsWith("lip-")?
+        .14:region.underpaintOpacity,
       // The fox iris has its own traced upper eyelid and pupil. Suppress
       // only the enclosing glass-vector ring, not the separate pencil marks.
       contour:subject==="fox"&&part.id==="whisker-roots"?
