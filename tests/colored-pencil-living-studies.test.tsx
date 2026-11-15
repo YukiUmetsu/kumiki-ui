@@ -453,6 +453,24 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(boundaryRoots.every(t=>t.path.includes(" Q"))).toBe(true);
   });
 
+  it("separates brush-tail growth direction from a round pompom and keeps the pale tip attached",()=>{
+    const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
+    const tail=drawing.regions.find(r=>r.id==="tail-back")!;
+    const tip=drawing.regions.find(r=>r.id==="tail-tip")!;
+    expect(tail.bounds[2]).toBeGreaterThanOrEqual(190);
+    expect(tail.bounds[3]).toBeLessThanOrEqual(100);
+    expect(tail.bounds[2]/tail.bounds[3]).toBeGreaterThan(2.15);
+    expect(tail.bounds[0]+tail.bounds[2]).toBeGreaterThan(185);
+    expect(tip.bounds[0]).toBeLessThan(tail.bounds[0]+10);
+    expect(tip.bounds[0]+tip.bounds[2]).toBeGreaterThan(tail.bounds[0]+18);
+    expect(tail.layers[0].angle).toBeGreaterThanOrEqual(143);
+    expect((tail.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(7);
+    const rootFurs=tail.details!.filter(t=>t.id?.startsWith("fibre-"));
+    expect(rootFurs.length).toBeGreaterThan(12);
+    expect(rootFurs.every(t=>t.path.includes(" Q"))).toBe(true);
+    expect(tail.details!.some(t=>t.id?.startsWith("fringe-"))).toBe(true);
+  });
+
   it("renders original CP-F1 fox anatomy from authored pencil vectors with zero photo pixels",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     expect(drawing.foundation?.subject).toBe("wildlife");
