@@ -26,7 +26,7 @@ jobs:
       - name: Install pinned ArtCraft image-analysis dependencies
         run: pip install numpy==2.3.5 Pillow==12.3.0 opencv-python-headless==4.13.0.92 scikit-image==0.26.0
       - name: All numeric quality gate positive and negative controls
-        run: python -m unittest discover -s tests -p 'watercolour-portrait-quality-gate.test.py' -v
+        run: python tests/watercolour-portrait-quality-gate.test.py -v
   private-static-portrait-proof:
     runs-on: ubuntu-latest
     timeout-minutes: 18
