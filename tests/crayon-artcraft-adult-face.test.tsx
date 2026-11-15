@@ -37,6 +37,35 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       const face=nodes.get("adult-face");
       if(face?.kind!=="wax")throw new Error("No adult cranium");
       expect(face.bounds.height/face.bounds.width).toBeGreaterThan(1.45);
+      // ArtCraft rejected the elongated forehead/cheek/chin macro silhouette.
+      // Test the actual rigged world geometry, not only untransformed bounds.
+      expect(face.placement?.scaleY).toBeCloseTo(.82);
+      expect(face.pivot).toEqual({x:0,y:-140});
+      const skullTop=crayonWorldPoint(scene,face,299,{x:15,y:-290});
+      const chin=crayonWorldPoint(scene,face,299,{x:27,y:99});
+      const faceLeft=crayonWorldPoint(scene,face,299,{x:-128,y:-92});
+      const faceRight=crayonWorldPoint(scene,face,299,{x:128,y:-92});
+      const screenRatio=(chin.y-skullTop.y)/(faceRight.x-faceLeft.x);
+      expect(screenRatio).toBeGreaterThan(1.15);
+      expect(screenRatio).toBeLessThan(1.4);
+      const uncompressed=crayonAdultFaceStudy(aspect,{headScaleY:1});
+      const oldFace=uncompressed.elements.find(n=>n.id==="adult-face");
+      if(!oldFace)throw new Error("Missing uncompressed head");
+      const oldTop=crayonWorldPoint(uncompressed,oldFace,299,{x:15,y:-290});
+      const oldChin=crayonWorldPoint(uncompressed,oldFace,299,{x:27,y:99});
+      expect(chin.y-skullTop.y).toBeCloseTo(.82*(oldChin.y-oldTop.y),4);
+      // Eyes, nose, hair and face are one shared facial rig, not
+      // independently shifted/hand-aligned sticker layers.
+      for(const id of ["left-eye-aperture","right-eye-iris","nose-bridge",
+        "lip-upper-volume","hair-crown-part","forelock-loose-curl"]){
+        const n=nodes.get(id);
+        if(!n)throw Error("Missing attached structure "+id);
+        const v=crayonWorldPoint(scene,n,299,{x:0,y:0});
+        const u=crayonWorldPoint(uncompressed,
+          uncompressed.elements.find(x=>x.id===id)!,299,{x:0,y:0});
+        expect(v.x).toBeCloseTo(u.x,4);
+        expect(v.y).not.toBeNaN();
+      }
       const near=nodes.get("left-eye-aperture");
       const far=nodes.get("right-eye-aperture");
       if(near?.kind!=="wax"||far?.kind!=="wax")throw new Error("Missing eyes");
@@ -105,6 +134,18 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(nodes.get("hair-nape-sweep")?.kind).toBe("wax");
       expect(nodes.get("tailored-scarf-wrap")?.parentId).toBe("coat-silhouette");
       expect(nodes.get("tailored-scarf-weft")?.parentId).toBe("tailored-scarf-wrap");
+      const neck=nodes.get("neck-under-jaw");
+      const scarf=nodes.get("tailored-scarf-wrap");
+      const collarShadow=nodes.get("neck-jaw-cast-shadow");
+      if(neck?.kind!=="wax"||scarf?.kind!=="wax"||collarShadow?.kind!=="wax")
+        throw new Error("Missing neck anatomy or connected garment");
+      expect(neck.markStrength).toBeLessThan(.4);
+      expect(neck.underpaintGradient).toBeDefined();
+      expect(scarf.bounds.y).toBeLessThan(95);
+      expect(scarf.bounds.y).toBeLessThan(neck.bounds.y+neck.bounds.height-45);
+      expect(collarShadow.parentId).toBe("neck-under-jaw");
+      expect(collarShadow.coverage).toBe("open");
+      expect(collarShadow.clipToParent).toBe(true);
       expect(nodes.get("nose-dorsal-soft-edge")?.kind).toBe("contour");
       for(const id of ["cheek-malar-glow","far-cheek-reflection",
         "freckles-near","freckles-far","forelock-woodgrain",
@@ -201,6 +242,9 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
   it("rejects invalid detail and animates wax at separate stages",()=>{
     expect(()=>crayonAdultFaceStudy("landscape",{detail:-.1})).toThrow();
     expect(()=>crayonAdultFaceStudy("portrait",{detail:NaN})).toThrow();
+    expect(()=>crayonAdultFaceStudy("landscape",{headScaleY:.71})).toThrow();
+    expect(()=>crayonAdultFaceStudy("portrait",{headScaleY:1.001})).toThrow();
+    expect(()=>crayonAdultFaceStudy("portrait",{headScaleY:NaN})).toThrow();
     const scene=crayonAdultFaceStudy("landscape",{detail:.7});
     expect(inspectCrayonScene(scene)).toEqual([]);
     const start=renderToStaticMarkup(<CrayonScene spec={scene} frame={3}/>);

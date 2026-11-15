@@ -11,7 +11,9 @@ export type PortraitStudyAspect="landscape"|"portrait";
 /** Static ArtCraft expression studies; not yet approved animated visemes. */
 export type PortraitStudyExpression="warm"|"neutral";
 export interface PortraitStudyOptions { detail?:number; frameLength?:300;
-  expression?:PortraitStudyExpression }
+  expression?:PortraitStudyExpression;
+  /** Cranial vertical compression around the brow/jaw balance point, 0.72..1. */
+  headScaleY?:number }
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
 type Ink=Extract<CrayonElement,{kind:"contour"}>;
 type Rect={x:number;y:number;width:number;height:number};
@@ -51,6 +53,7 @@ export const portraitCriticalParts=[
   "coat-collar-left","coat-collar-right",
   "tailored-scarf-wrap","tailored-scarf-tail",
   "nose-tip-underpaint","cheek-warm-pigment","tear-trough-value",
+  "neck-jaw-cast-shadow",
   "cheek-malar-crayon-red","cheek-far-crayon-red",
   "forelock-loose-curl","nose-septum-alar",
 ] as const;
@@ -61,8 +64,10 @@ export function crayonAdultFaceStudy(
   aspect:PortraitStudyAspect,options:PortraitStudyOptions={},
 ):CrayonSceneSpec{
   const detail=options.detail??1,expression=options.expression??"warm";
+  const headScaleY=options.headScaleY??.82;
   if(!["warm","neutral"].includes(expression)||!["landscape","portrait"].includes(aspect)||
      !Number.isFinite(detail)||detail<0||detail>1||
+     !Number.isFinite(headScaleY)||headScaleY<.72||headScaleY>1||
      (options.frameLength!==undefined&&options.frameLength!==300))
     throw new RangeError("Invalid ArtCraft facial study");
   const portrait=aspect==="portrait",W=portrait?540:960,H=portrait?960:540;
@@ -135,10 +140,20 @@ export function crayonAdultFaceStudy(
       underpaintGradient:{light:"#718899",shadow:"#304355",focusX:.35,focusY:.1,radius:1.2},
       outlineOpacity:0});
   wax("neck-under-jaw",
-    "M-36 56Q-39 100 -74 122Q-42 146 11 147"+
-    "Q59 139 85 117Q49 95 42 55Z",
-    box(-87,46,180,113),colors.neck,"base",
-    {parentId:"coat-silhouette",outlineOpacity:0});
+    "M-36 56Q-32 86 -67 119Q-39 136 11 137"+
+    "Q53 133 72 117Q43 92 42 55Z",
+    box(-78,48,158,101),colors.neck,"base",
+    {parentId:"coat-silhouette",markStrength:.27,spacing:11.5,
+      underpaintGradient:{light:"#d7a58b",shadow:"#8d6866",
+        focusX:.34,focusY:.26,radius:1.15},
+      outlineOpacity:0});
+  wax("neck-jaw-cast-shadow",
+    "M-34 59Q-2 62 40 57Q45 74 35 84"+
+    "Q7 89 -27 76Z",
+    box(-43,49,96,45),colors.cool,"value",
+    {parentId:"neck-under-jaw",coverage:"open",clipToParent:true,
+      blendRadius:5,pressure:.38,markStrength:.12,spacing:11,
+      outlineOpacity:0,edgeRoughness:0});
   wax("hair-back",
     "M-132 -177C-156 -243 -127 -304 -54 -323"+
     "Q-3 -344 55 -314Q124 -310 147 -238"+
@@ -162,7 +177,13 @@ export function crayonAdultFaceStudy(
     "C-80 43 -103 7 -108 -42"+
     "Q-127 -133 -94 -208Z",
     box(-137,-312,272,446),colors.flesh,"value",
-    {parentId:"neck-under-jaw",spacing:9.8,markStrength:.2,
+    {parentId:"neck-under-jaw",
+      // The old character had a 1.64:1 face and an unattached looking
+      // chin. Compress the *entire* inherited head hierarchy, including
+      // lids, cheek planes, nose, brows and rooted hair, so coordinates
+      // cannot drift apart or open a gap at the neck.
+      placement:{scaleY:headScaleY},pivot:{x:0,y:-140},
+      spacing:9.8,markStrength:.2,
       underpaintGradient:{light:"#f3ccab",shadow:"#ad7e78",focusX:.34,focusY:.28,radius:1.06},
       outlineOpacity:.07,
       edgeRoughness:.17});
@@ -657,25 +678,28 @@ export function crayonAdultFaceStudy(
   // Wrapped textile has separate rolled band and hanging tail with
   // grain following cloth direction. No flat screen-space tartan overlay.
   wax("tailored-scarf-wrap",
-    "M-80 120Q-43 136 0 142Q41 139 78 118"+
-    "Q90 132 68 158Q28 182 -17 167Q-58 166 -87 143Z",
-    box(-97,107,191,82),colors.scarf,"anatomy",
+    "M-81 107Q-51 92 -18 104Q10 111 38 104"+
+    "Q59 92 78 104Q88 122 72 138"+
+    "Q47 152 8 150Q-31 159 -65 144"+
+    "Q-86 130 -81 107Z",
+    box(-94,88,184,78),colors.scarf,"anatomy",
     {parentId:"coat-silhouette",spacing:5.6,markStrength:.62,
       edgeRoughness:.43,outlineOpacity:.06});
   wax("tailored-scarf-tail",
-    "M30 169Q53 187 53 215Q56 248 43 264"+
-    "L19 268Q30 236 18 181Z",
-    box(9,158,60,127),colors.scarfShadow,"anatomy",
+    "M27 144Q49 152 55 179Q62 213 51 239"+
+    "Q46 260 33 269L13 255"+
+    "Q28 214 18 161Z",
+    box(9,135,67,143),colors.scarfShadow,"anatomy",
     {parentId:"coat-silhouette",spacing:6,markStrength:.65,
       edgeRoughness:.36,outlineOpacity:.05});
   ink("tailored-scarf-weft",
-    "M-80 136Q-25 154 71 133M-78 150Q-11 167 65 147"+
-    "M-35 127Q-34 150 -26 163M13 135Q18 159 26 167"+
-    "M54 130Q60 148 58 161",
+    "M-73 119Q-31 137 64 116M-68 136Q-12 151 62 134"+
+    "M-39 104Q-37 126 -28 145M10 113Q17 137 26 149"+
+    "M53 105Q57 127 59 140",
     "#e2ae8d",1.85,"detail",
     {parentId:"tailored-scarf-wrap",clipToParent:true,opacity:.91});
   ink("tailored-scarf-tail-stitch",
-    "M25 181Q45 218 36 260M36 178Q51 224 44 249",
+    "M24 166Q45 209 35 255M38 161Q52 211 44 242",
     "#dda087",1.2,"detail",
     {parentId:"tailored-scarf-tail",clipToParent:true,opacity:.8});
   wax("coat-shoulder-shadow-left",
@@ -829,9 +853,9 @@ export function crayonAdultFaceStudy(
     "#a5a5a2",1.1,"detail",
     {parentId:"coat-silhouette",clipToParent:true,opacity:.63});
   ink("scarf-woven-check-diagonal",
-    "M-67 128Q-49 148 -36 164M-42 126Q-21 153 -13 167"+
-    "M-14 133Q-2 154 7 166M20 136Q33 155 44 162"+
-    "M46 131Q58 145 61 157",
+    "M-67 109Q-49 131 -36 149M-42 107Q-23 134 -13 151"+
+    "M-14 109Q0 139 8 151M20 109Q34 136 45 148"+
+    "M46 105Q59 127 63 140",
     "#f2c5a0",.97,"detail",
     {parentId:"tailored-scarf-wrap",clipToParent:true,opacity:.92});
   ink("scarf-edge-broken-fringe",

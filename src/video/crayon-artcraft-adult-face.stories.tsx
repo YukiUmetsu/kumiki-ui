@@ -6,13 +6,13 @@ import {useCrayonStoryPlayback} from "./crayon-story-playback";
 /** ArtCraft unapproved evidence bench; not a public character showcase. */
 interface StudyProps {
   aspect:"landscape"|"portrait";
-  detail:number;expression:"warm"|"neutral";
+  detail:number;expression:"warm"|"neutral";headScaleY:number;
   startFrame:number;playbackRate:number;loop:boolean;
 }
-export function AdultFaceArtcraftWorkbench({aspect,detail,expression,startFrame,playbackRate,loop}:StudyProps){
-  const spec=crayonAdultFaceStudy(aspect,{detail,expression});
+export function AdultFaceArtcraftWorkbench({aspect,detail,expression,headScaleY,startFrame,playbackRate,loop}:StudyProps){
+  const spec=crayonAdultFaceStudy(aspect,{detail,expression,headScaleY});
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
-    startFrame,spec.durationFrames,"adult-face-artcraft:"+aspect+":"+expression,playbackRate,loop);
+    startFrame,spec.durationFrames,"adult-face-artcraft:"+aspect+":"+expression+":"+headScaleY,playbackRate,loop);
   return <div style={{maxWidth:1040,margin:"auto",padding:16,color:"#34333d",
     background:"#efe7db",fontFamily:"system-ui",boxSizing:"border-box"}}>
     <div style={{fontSize:18,fontWeight:700}}>ArtCraft — adult facial anatomy (unapproved)</div>
@@ -42,10 +42,12 @@ const meta={
   id:"video-crayon-artcraft-adult-face",
   tags:["!dev"],
   component:AdultFaceArtcraftWorkbench,
-  args:{aspect:"landscape",detail:1,expression:"warm",startFrame:299,playbackRate:1,loop:false},
+  args:{aspect:"landscape",detail:1,expression:"warm",headScaleY:.82,startFrame:299,playbackRate:1,loop:false},
   argTypes:{aspect:{control:"inline-radio",options:["landscape","portrait"]},
     detail:{control:{type:"range",min:0,max:1,step:.05}},
     expression:{control:"inline-radio",options:["warm","neutral"]},
+    headScaleY:{control:{type:"range",min:.72,max:1,step:.01},
+      description:"ArtCraft skull proportion: 1 reproduces the rejected elongated head"},
     startFrame:{control:{type:"range",min:0,max:299,step:1}},
     playbackRate:{control:{type:"range",min:.25,max:2,step:.25}},
     loop:{control:"boolean"}},
