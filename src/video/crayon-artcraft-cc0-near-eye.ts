@@ -124,8 +124,8 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
     rect(95,104,26,26),palettes.pupil,[157,231],{
       parentId:"eye-iris",spacing:4.2,markStrength:.38,pressure:.96,outlineOpacity:0});
   const irisFlecks=crayonIrisFlecks({seed:1407,cx:108,cy:120,
-    rx:20,ry:20,count:Math.round(26*detail),minRadius:.46,maxRadius:.94});
-  if(irisFlecks)line("iris-dark-radials",irisFlecks,"#493f36",.55,[171,271],"eye-iris",.77);
+    rx:20,ry:20,count:Math.round(18*detail),minRadius:.46,maxRadius:.91});
+  if(irisFlecks)line("iris-dark-radials",irisFlecks,"#493f36",.37,[171,271],"eye-iris",.49);
   wax("sclera-reflection",
     "M131 111 Q151 107 162 115 Q153 123 135 130Z",
     rect(128,106,38,27),palettes.sclera,[172,246],{
@@ -162,13 +162,13 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
   line("lower-lid-light",
     "M83 146 Q98 151 117 148 C136 147 151 137 161 125",
     "#f1c1b1",.8,[216,290],"lower-lid-flesh",.63);
+
+  // Six unequal curved lash roots replace a regularly spaced vertical fan.
   line("upper-lashes",
-    "M72 117 Q68 111 65 107 M78 112 Q74 104 73 100"+
-    " M87 108 Q85 99 84 95 M96 105 Q94 97 94 94"+
-    " M104 104 Q104 96 102 94 M114 104 Q114 98 113 94"+
-    " M124 104 Q127 97 128 94 M134 106 Q139 99 140 96"+
-    " M144 109 Q150 103 154 100 M154 112 Q160 108 163 106",
-    "#4b353d",.69,[220,296],"eye-skin",.78);
+    "M72 116 Q69 112 67 110 M81 112 Q76 105 74 104"+
+    " M92 108 Q90 103 89 101 M118 104 Q119 100 119 98"+
+    " M139 107 Q145 101 147 101 M155 111 Q160 109 162 107",
+    "#4b353d",.48,[220,296],"eye-skin",.68);
   line("lower-lashes",
     "M83 145 Q80 151 76 155 M92 149 Q90 154 87 157"+
     " M105 151 Q105 157 103 160 M124 150 Q126 156 129 158"+
