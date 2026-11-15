@@ -351,3 +351,82 @@ cannot approve painterly authenticity. If the underlying arrow-shaped
 silhouette persists, adjust the **pressure contour shape**, not add
 further pigment noise. This PR stays in draft until independent visual
 approval.
+
+
+## Ninth pass — shape-first press / drag / lift, subtractive dry brush
+
+### Museum source observations (2026-11-15)
+
+These are observed museum images, studied as visual/technical benchmarks only.
+They are not embedded in the repository or traced:
+
+| Source and canonical image | Structural observation | Prohibited shortcut |
+| --- | --- | --- |
+| [Wu Zhen, *Manual of Ink Bamboo*, NPM album, 1350](https://theme.npm.edu.tw/exh105/oversized10/en/index.html), especially [leaf 20](https://theme.npm.edu.tw/exh105/oversized10/common/images/selection/img1_1_20s.jpg) | One rooted brush trajectory per leaf; alternating dense dark junctions and long empty twig lengths; leaf belly load and release are directional, with dilute stalks behind heavier ink | Repeating identical geometric arrowheads with decorative gray scratch marks on top |
+| [Wu Zhen album bending bamboo, NPM image](https://theme.npm.edu.tw/exh105/oversized10/common/images/selection/img1_1_12s.jpg) | Long loaded blade groups bend with their supporting branch; sparse terminal shoots do not crowd every joint equally | Disconnected or consistently vertical leaf shapes unaffected by supporting twig tangent |
+| [Zheng Xie, *Orchids and Bamboo*, 1742, Met object 49244](https://www.metmuseum.org/art/collection/search/49244), [detail](https://images.metmuseum.org/CRDImages/as/original/DP204894.jpg) | A few dense triangular *group silhouettes* are composed from many independent yet interlocking brush gestures. Sharp contact regions are balanced against soft partially depleted trailing edges | Single sharp triangles repeated at the same angle for each botanical cluster |
+| [NGV curator essay on Wu Zhen’s *Bamboo in Spring Rain*](https://www.ngv.vic.gov.au/essay/wu-zhens-bamboo-in-spring-rain/) | Distinct negative-space windows between wet and wind-bent leaves, and calligraphic one-pull stroke order | Applying uniform all-over noise as a substitute for the stroke hierarchy |
+
+Source usage: **style-guided** construction and artwork provenance; the linked
+images remain third-party material. No pixel matching or externally downloaded
+raster art is claimed. The previous actual native [2.15× canopy/node inspection](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43693088562)
+demonstrated black flat-filled arrow-like bamboo leaves and lighter discrete
+decorative lines; both are materially at odds with the cited source.
+
+### Structure before surface
+
+The canonical unit is **parent painted twig → pressure-loaded leaf trajectory
+→ ink-filled outline with taper → optional split-bristle reserve**.
+Branch roots, shared culm nodes, wind transforms, multi-seed determinism,
+21 rhythmic budgets, 102 primary leaves, and 63 satellite leaves are preserved.
+
+The new continuous stroke kernel uses fifteen press/drag/lift pressure samples
+rather than ten, three **different** contact and release families, unequal
+left/right ink load, and a small seeded second-order wrist curve. All 28+
+spline segments belong to **one closed deposited stroke**. Source geometry
+is only a qualitative reference; all contours are authored procedural shapes,
+not copied paths from a museum artwork.
+
+For each visible blade the renderer now adds an **axially oriented, per-stroke
+ink-concentration gradient** with wet dark contact and dilute/drying release.
+This is a shading approximation, not a fluid solver. In the detailed state,
+three short centreline-following bristle splits are **black negative space in a
+luminance mask** against a white leaf silhouette: the paper/backdrop remains
+visible through real holes instead of using light-colored stroke overlays.
+Masks have per-component stable React IDs and explicit user-space bounds
+to avoid cross-scene collisions and crop clipping. The existing outer
+instance-scoped fibre-absorption filter is preserved. Dark silhouettes remain
+materially legible; this is not arbitrary entire-character transparency.
+
+### Five-axis review
+
+- **Topology:** compare each branch/root intersection and local split-bristle
+  mask. Added deterministic assertions for named parent attachments, 165
+  uniquely addressed negative-space masks and gradient references.
+- **Flow:** the new stroke's centerline and its reserved bristles share one
+  computed wrist-curve offset. Inspect mixed wind poses; reject stray white
+  dots in the negative space unrelated to stroke pressure.
+- **Pressure:** three hand-designed sampled profiles vary early load, belly
+  and lift. The 15 stations are a geometry instrument, not a craftsmanship
+  score; reject blob/arrow silhouettes on actual renders.
+- **Optical spacing:** budgets intentionally include empty culm joints;
+  inspect overlap in the native frame, not count 102 leaves as a visual pass.
+- **Microtexture:** masked paper reserves, gradient and retained organic
+  fibre filter. Verify that bristles can be seen in the final film without
+  becoming bright uniformly spaced stripes.
+
+### Evidence and release gate
+
+Browser: existing five Storybook crop cards plus three working material
+presets for high-load, dry-lift and sparse geometry, retaining existing
+**Video production / Film Looks / Chinese Ink** story IDs and folder.
+Static code tests are expanded for mask count/IDs and live gradient use.
+Chromium must inspect actual material masks and interactive presets.
+
+**Unapproved until the final head's native evidence is inspected.** Typecheck,
+unit tests, Playwright screenshots from both source seeds, detailed/zero state,
+and 960×540 normal-speed encoded MP4 are separate from visual art approval.
+This pass intentionally avoids changing the human face: ArtCraft v7 requires
+a rights-cleared measured human source and independently reviewed anatomy before
+portrait edits. If the branch conflicts with newer main, resolve with scoped
+conflict analysis before merging; never silently replace other open art PRs.
