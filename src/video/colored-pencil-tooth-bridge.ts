@@ -81,7 +81,7 @@ const validate=(source:PencilPhotoPixels,drawing:PencilPhotoPixels,
     Object.values(guides).some(p=>!Array.isArray(p)||p.length!==2||
       p.some(n=>!Number.isFinite(n)))||
     !Array.isArray(face)||face.length<3||face.length>256||
-    face.some(p=>p.length!==2||p.some(n=>!Number.isFinite(n)))||
+    face.some(p=>p.length!==2||p.some((n:number)=>!Number.isFinite(n)))||
     !crop||![crop.left,crop.top,crop.width,crop.height]
       .every(Number.isFinite)||crop.width<=0||crop.height<=0||
     !Number.isFinite(strength)||strength<0||strength>1||
