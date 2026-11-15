@@ -185,6 +185,23 @@ export function buildBrushRibbon(stroke: PaintStroke, progress: number, growth =
   }
   if (centerline.length < 2) return { path: "", centerline };
   const left: string[] = [], right: string[] = [];
+  // Arc-length-anchored, continuously interpolated pigment-front waviness.
+  // The old per-sample hash introduced a completely new random edge width at
+  // each 2–4px point, making a broad wet brush look like a saw blade.
+  // Use the COMPLETE gesture, not the visible prefix, for seek-safe edges.
+  const distance = new Float64Array(full.length);
+  for (let i = 1; i < full.length; i++)
+    distance[i] = distance[i-1] + Math.hypot(full[i].x-full[i-1].x,
+      full[i].y-full[i-1].y);
+  const pitch = Math.max(9, stroke.width * (stroke.water > .7 ? .52 : .36));
+  const coherentEdge = (along: number, salt: number) => {
+    const t = along / pitch;
+    const index = Math.floor(t), phase = t - index;
+    const weight = phase * phase * (3 - 2 * phase);
+    const a = paintHash(seed + salt, index, 31);
+    const b = paintHash(seed + salt, index + 1, 31);
+    return (a + (b - a) * weight - .5) * 2;
+  };
   for (let i = 0; i < centerline.length; i++) {
     const pt = centerline[i], prev = centerline[Math.max(0, i - 1)], next = centerline[Math.min(i + 1, centerline.length - 1)];
     const dx = next.x - prev.x, dy = next.y - prev.y, length = Math.max(.0001, Math.hypot(dx, dy));
@@ -195,12 +212,18 @@ export function buildBrushRibbon(stroke: PaintStroke, progress: number, growth =
     const broadWash = stroke.width > 55 && stroke.water >= .68;
     const end = broadWash ? .48 : .065;
     const tip = Math.min(1, end + u * 15, end + (1 - u) * 15, end + liveTail * 15);
-    // Each edge has its own stationary granulated contour, plus a low-frequency wobble.
-    // A single mirrored radius makes wide washes look like machine-cut lozenges.
-    const roughL = (paintHash(seed + 17, Math.floor(pt.x * .78), Math.floor(pt.y * 1.21)) - .5) * .19;
-    const roughR = (paintHash(seed + 71, Math.floor(pt.x * 1.17), Math.floor(pt.y * .83)) - .5) * .19;
-    const wavL = Math.sin(u * 24.6 + seed * .13) * .055 + Math.sin(u * 47.7 + seed * .04) * .026;
-    const wavR = Math.sin(u * 18.9 + seed * .09) * .069 + Math.cos(u * 38.3 + seed * .06) * .031;
+    // A wet brush's contact meniscus is coherent along the stroke.
+    // Fine paper granulation is applied locally by the rendering material,
+    // not by turning the *entire contour* into independent random zigzags.
+    const along = distance[Math.min(i,full.length-1)];
+    const wet = stroke.water;
+    const amplitude = .03 + .065 * stroke.dryBrush + .025 * (1-wet);
+    const roughL = amplitude * (.75 * coherentEdge(along,17) +
+      .25 * coherentEdge(along*.52,71));
+    const roughR = amplitude * (.77 * coherentEdge(along,89) +
+      .23 * coherentEdge(along*.57,131));
+    const wavL = Math.sin(u * 10.7 + seed * .13) * .025;
+    const wavR = Math.cos(u * 9.3 + seed * .09) * .029;
     const scale = Math.max(.65, 1 + growth);
     const rL = pt.radius * tip * scale * Math.max(.67, 1 + roughL + wavL);
     const rR = pt.radius * tip * scale * Math.max(.67, 1 + roughR + wavR);
