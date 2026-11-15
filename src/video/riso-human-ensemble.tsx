@@ -14,6 +14,7 @@ import {COURIER} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts,RISO30_GRIP_FOREGROUND_IDS} from "./riso-hand-artcraft";
 import {riso31SegmentIds} from "./riso31-finger-phalanges";
+import {riso32ThumbParts,riso32ThumbForegroundIds} from "./riso32-thumb-opposition";
 
 /** RISO14: a second authored human, not a color-inverted Courier.
  * Reuse a mechanically compatible limb/digit rig, not the Courier face, hair,
@@ -249,7 +250,11 @@ const sharedLimbs=[
   ...riso31SegmentIds("right"),
 ];
 const legs=sharedLimbs.slice(0,8).map(id=>take(id));
-const arms=sharedLimbs.slice(8).map(id=>take(id));
+// The Artist's thumb is now individually authored: don't inherit the
+// Courier's original thumb or its two new surface bones when printing.
+const arms=sharedLimbs.slice(8).map(id=>take(id)).filter(p=>
+  !p.id.endsWith("-glove-thumb") &&
+  !/(?:left|right)-glove-thumb-(?:mcp|ip)-(?:phalanx|crease)$/.test(p.id));
 export const PAPER_ARTIST:RisoCharacterSpec={
   version:1,id:"paper-artist",durationFrames:240,cadence:2,
   joints:COURIER.joints.map(staticLeg),
@@ -260,6 +265,8 @@ export const PAPER_ARTIST:RisoCharacterSpec={
     {frame:81,name:"neutral"},{frame:156,name:"speak"},
     {frame:180,name:"neutral"},{frame:198,name:"smile"}],
   parts:[...legs,...coatPieces,...arms,
+    ...riso32ThumbParts("left","paper-artist"),
+    ...riso32ThumbParts("right","paper-artist"),
     ...risoHandArtcraftParts("paper-artist","left"),
     ...risoHandArtcraftParts("paper-artist","right"),
     ...facePieces],
@@ -310,6 +317,7 @@ const personPoint=(spec:RisoCharacterSpec,frame:number,joint:string,x:number,y:n
  */
 const risoGripParts=(side:"left"|"right"):readonly string[]=>[
   side+"-glove-index",side+"-glove-middle",side+"-glove-ring",side+"-glove-pinky",side+"-glove-thumb",
+  ...riso32ThumbForegroundIds(side),
   // Physically deposited moving PIP/DIP sections belong above the letter.
   ...riso31SegmentIds(side),
   side+"-finger-joint-lines",side+"-glove-detail",side+"-glove-thumb-fold",
