@@ -235,7 +235,7 @@ function BrushworkDetail(){
     {label:"柳 · Hanging willow foliage",scene:"river-scholar",
       x:196,y:174,note:"Compare Mei Qing: 39 differently swept pressure-tapered silk strands, five bare paper reserves and asymmetrical angled leaves"},
     {label:"竹葉 · Bamboo leaf canopy",scene:"misty-hermit",
-      x:884,y:263,note:"Compare Wu Zhen: close terminal sprays now alternate long and short brush leaves, with nested rooted secondary shoots and shared tangent flow; check whether negative-space channels persist between overlapping groups. Inspect actual pigment reserve, not uniform starbursts"},
+      x:884,y:263,note:"Compare Wu Zhen's NPM bamboo album: selected major twig ends now carry a seven-gesture dark/dilute spray with attached branch roots, competing stroke lengths, directional pressure, open paper windows and true dry-bristle reserve. Inspect the actual 960×540 silhouette: reject generic radial stars, uniformly dark leaf blobs or detached tips"},
     {label:"竹節 · Bamboo nodes and branches",scene:"misty-hermit",
       x:875,y:365,note:"Compare Zheng Xie: three fanned culms with unequal joint intervals, selective rooted shoots and intentional bare joints, narrow pressure collars, dark and dilute ink. Verify attachment at high and low detail"},
   ];
