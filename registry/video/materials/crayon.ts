@@ -31,8 +31,6 @@ export interface CrayonMark {
   nibArcs: readonly CrayonNibArc[];
   /** Cached full-contact geometry for repeated film frames. */
   nibD: string;
-  /** Precomputed fractured side-nib deposition; stable under frame seeking. */
-  dryNibD: string;
 }
 export interface CrayonOptions {
   seed: number; pressure: number; spacing?: number; passes?: number;
@@ -164,12 +162,11 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
         const p = Math.min(1, Math.max(.14, options.pressure * (.65 + rand(7) * .52)));
         const toneSample = rand(14);
         const mark: CrayonMark = {
-          d, scumble, scrape, nibArcs, nibD:"", dryNibD:"", index, pressure: p,
+          d, scumble, scrape, nibArcs, nibD:"", index, pressure: p,
           tone: toneSample < .73 ? 0 : toneSample < .94 ? 1 : 2,
           width: 2.1 + p * 3.9 + rand(15) * 1.1,
         };
         mark.nibD = crayonNibPath(mark);
-        mark.dryNibD = crayonDryNibPath(mark);
         marks.push(mark);
       }
     }
