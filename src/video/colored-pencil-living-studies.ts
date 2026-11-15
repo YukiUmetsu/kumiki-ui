@@ -58,8 +58,6 @@ function face():PencilSubjectPart[] {
   const skin:PencilPalette=["#DDA58F","#906277","#F4CEB0"];
   const lit:PencilPalette=["#F2C6AA","#B78082","#FFE0BF"];
   const hair:PencilPalette=["#684F50","#282E40","#B18471"];
-  const dark:PencilPalette=["#4D4050","#23283B","#8A6A66"];
-  const iris:PencilPalette=["#627D81","#263D53","#A2ADB4"];
   const shirt:PencilPalette=["#718E9C","#384F73","#CCD9D3"];
   return [
     {id:"hair-back",material:"hair",palette:hair,
