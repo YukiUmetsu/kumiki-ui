@@ -26,17 +26,18 @@ import { courtProp, heianHairSide, kanmuriSide } from "./ukiyoe-heian";
 import { arrow, kabutoSide, naginata, oyoroiSide, shootAt, yumi } from "./ukiyoe-bushi";
 import { ancientHairSide, kamiProp, magatama, riceBag, stole, zukin } from "./ukiyoe-kami";
 import { dragonCrownSide, tamatebakoHeld, tamatebakoPrims } from "./ukiyoe-ryugu";
+import { dangoProp, noboriProp } from "./ukiyoe-treasure";
 import { drawTool, firewood, hachiSide, kozuchi, onigiri, strikeBits, toolAt, toolBody, toolContact, treasure } from "./ukiyoe-folk";
 import { babyBundle, faceOutline, ghostFaceSide, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 
 export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild" | "hyogo" | "kamuro" | "wareshinobu" | "mizura" | "tenko" | "heian" | "gourd";
 export type UkiyoeHat = "none" | "kasa" | "conical" | "eboshi" | "hood" | "headband" | "gotoku" | "hachi" | "zukin" | "kabuto" | "kanmuri" | "dragon";
-export type UkiyoeProp = "none" | "staff" | "umbrella" | "lantern" | "fan" | "pole" | "basket-pole" | "bundle" | "fishing-rod" | "scroll" | "pipe" | "kanabo" | "peach" | "parasol" | "maiogi" | "peony-lantern" | "baby" | "kozuchi" | "onigiri" | "firewood" | "mirror" | "tsurugi" | "hoko" | "tai" | "yumi" | "naginata" | "shaku" | "hiogi" | "zaru" | "tamatebako";
+export type UkiyoeProp = "none" | "staff" | "umbrella" | "lantern" | "fan" | "pole" | "basket-pole" | "bundle" | "fishing-rod" | "scroll" | "pipe" | "kanabo" | "peach" | "parasol" | "maiogi" | "peony-lantern" | "baby" | "kozuchi" | "onigiri" | "firewood" | "mirror" | "tsurugi" | "hoko" | "tai" | "yumi" | "naginata" | "shaku" | "hiogi" | "zaru" | "tamatebako" | "nobori" | "dango";
 export type UkiyoeBuild = "slim" | "average" | "stout" | "child" | "brute";
 export const UKIYOE_HAIRS: readonly UkiyoeHair[] = ["chonmage", "shimada", "child", "bald", "long", "elder", "topknot", "wild", "hyogo", "kamuro", "wareshinobu", "mizura", "tenko", "heian", "gourd"];
 export const UKIYOE_HATS: readonly UkiyoeHat[] = ["none", "kasa", "conical", "eboshi", "hood", "headband", "gotoku", "hachi", "zukin", "kabuto", "kanmuri", "dragon"];
-export const UKIYOE_PROPS: readonly UkiyoeProp[] = ["none", "staff", "umbrella", "lantern", "fan", "pole", "basket-pole", "bundle", "fishing-rod", "scroll", "pipe", "kanabo", "peach", "parasol", "maiogi", "peony-lantern", "baby", "kozuchi", "onigiri", "firewood", "mirror", "tsurugi", "hoko", "tai", "yumi", "naginata", "shaku", "hiogi", "zaru", "tamatebako"];
+export const UKIYOE_PROPS: readonly UkiyoeProp[] = ["none", "staff", "umbrella", "lantern", "fan", "pole", "basket-pole", "bundle", "fishing-rod", "scroll", "pipe", "kanabo", "peach", "parasol", "maiogi", "peony-lantern", "baby", "kozuchi", "onigiri", "firewood", "mirror", "tsurugi", "hoko", "tai", "yumi", "naginata", "shaku", "hiogi", "zaru", "tamatebako", "nobori", "dango"];
 export const UKIYOE_BUILDS: readonly UkiyoeBuild[] = ["slim", "average", "stout", "child", "brute"];
 
 export interface UkiyoeFigureLook {
@@ -689,6 +690,8 @@ function propPrims(look: UkiyoeFigureLook, pose: FigurePose, s: Skeleton, wind: 
       case "shaku": case "hiogi": out.push(...courtProp(prop, w, H, lw, frame)); break;
       case "zaru": out.push(...zaru([(s.wrF[0] + s.wrB[0]) / 2, (s.wrF[1] + s.wrB[1]) / 2], H, lw, frame)); break;
       case "tamatebako": out.push(...tamatebakoPrims(tamatebakoHeld(s.wrF, s.wrB, H), H * .17, lw)); break;
+      case "nobori": out.push(...noboriProp(w, H, lw, wind, frame)); break;
+      case "dango": out.push(...dangoProp(w, H, lw)); break;
       case "kozuchi": {
         // Held up by the handle, pointing on along the forearm; shaken, it pours out treasure.
         const a = Math.atan2(w[1] - s.elF[1], w[0] - s.elF[0]) / DEG;

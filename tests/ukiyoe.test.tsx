@@ -11,6 +11,7 @@ import { paradeScene, UKIYOE_PARADE_SCENES } from "../registry/video/ukiyoe/ukiy
 import { inspectUkiyoeEpisode, ukiyoeCaptionLines, ukiyoeEpisode, ukiyoeEpisodeSrt, ukiyoeTitleCard } from "../registry/video/ukiyoe/ukiyoe-episode";
 import { KASA_JIZO_EPISODE } from "../src/video/ukiyoe-kasa-jizo";
 import { URASHIMA_EPISODE } from "../src/video/ukiyoe-urashima";
+import { MOMOTARO_EPISODE } from "../src/video/ukiyoe-momotaro";
 import { tamatebakoSmoke, TAMATEBAKO_THICKEST } from "../registry/video/ukiyoe/ukiyoe-ryugu";
 import { tsukumoScene, UKIYOE_TSUKUMO, UKIYOE_TSUKUMO_SCENES } from "../registry/video/ukiyoe/ukiyoe-tsukumo";
 import { giantScene, UKIYOE_GIANT_SCENES, UKIYOE_GIANTS } from "../registry/video/ukiyoe/ukiyoe-giants";
@@ -1021,5 +1022,17 @@ describe("UKIYO1 Urashima Tarō", () => {
     expect(young.to).toBe(old.from);
     // The box is drawn in hands and on the ground, and the dragon crown in both views.
     for (const view of ["profile", "front"]) expect(JSON.stringify(drawFigure({ look: { hat: "dragon", view, prop: "tamatebako" } } as never, 0, 0, 1).prims)).toContain("kin");
+  });
+});
+
+describe("UKIYO1 Momotarō", () => {
+  it("passes the script check, matches its example, and draws the banner, dumplings, treasure and cart", () => {
+    expect(inspectUkiyoeEpisode(MOMOTARO_EPISODE)).toEqual([]);
+    expect(JSON.parse(readFileSync("examples/film/ukiyoe-momotaro.film.json", "utf8"))).toEqual(JSON.parse(JSON.stringify(ukiyoeEpisode(MOMOTARO_EPISODE))));
+    for (const prop of ["nobori", "dango"]) expect(drawFigure({ look: { prop } } as never, 0, 0, 1).prims.length).toBeGreaterThan(drawFigure({ look: {} } as never, 0, 0, 1).prims.length);
+    expect(drawMotif("takara", {}, { frame: 0, wind: 0, seed: 1, progress: 0 }).length).toBeGreaterThan(5);
+    // The cart's wheels turn with its keyed travel.
+    const cart = (progress: number) => JSON.stringify(drawMotif("kuruma", { travel: 500 }, { frame: 0, wind: 0, seed: 1, progress }));
+    expect(cart(0)).not.toBe(cart(.5));
   });
 });
