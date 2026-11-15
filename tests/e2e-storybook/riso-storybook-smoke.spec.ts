@@ -16,6 +16,7 @@ const stories=[
   ["Courier ArtCraft detail","video-riso-artcraft-studies--courier-artcraft-detail"],
   ["Bird ArtCraft detail","video-riso-artcraft-studies--bird-artcraft-detail"],
   ["Human anatomy pose comparison","video-riso-artcraft-studies--courier-human-anatomy"],
+  ["Human ensemble print exchange","video-riso-artcraft-studies--human-ensemble-acting"],
 ] as const;
 for(const [name,id] of stories){
   test(`Risograph Storybook runtime: ${name}`,async({page},info)=>{
