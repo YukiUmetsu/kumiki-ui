@@ -288,6 +288,55 @@ export function crayonPaperHeight(x:number,y:number,paperSeed:number):number{
     .37*field(88,4122)+.24*field(352,4123)));
 }
 
+/** Real wax catches raised paper fibers and forms small cohesive clumps.
+ * Generates a few compound SVG paths rather than arbitrary alpha noise.
+ * Coordinates and deposition are fixed by the page seed; locally drawn
+ * regions contribute only placement/angle/pressure and pigment palette.
+ * This intentionally does NOT claim to model the full plastic wax volume.
+ */
+export function crayonWaxContactClumps(
+  bounds:CrayonBounds,seed:number,paperSeed:number,pressure:number,angle=0,
+):ReadonlyArray<{tone:1|2;width:number;count:number;d:string}>{
+  if(![bounds.x,bounds.y,bounds.width,bounds.height,pressure,angle].every(Number.isFinite)||
+    bounds.width<=0||bounds.height<=0||bounds.width>4096||bounds.height>4096||
+    pressure<.2||pressure>1||angle< -89||angle>89||
+    !Number.isSafeInteger(seed)||!Number.isSafeInteger(paperSeed))
+    throw new RangeError("Invalid crayon wax contact clump parameters");
+  const area=bounds.width*bounds.height;
+  const cell=Math.max(2.8,Math.sqrt(area/660));
+  const cols=Math.ceil(bounds.width/cell),rows=Math.ceil(bounds.height/cell);
+  const buckets=[[],[],[],[],[],[]] as string[][];
+  const fmt=(v:number)=>v.toFixed(2);
+  for(let j=0;j<rows;j++){
+    for(let i=0;i<cols;i++){
+      const k=j*cols+i,rand=(ch:number)=>crayonHash(seed,k,4440+ch);
+      const x=bounds.x+(i+.12+.74*rand(1))*bounds.width/cols;
+      const y=bounds.y+(j+.12+.74*rand(2))*bounds.height/rows;
+      const paper=crayonPaperHeight(x,y,paperSeed);
+      // A light nib skips valleys; increased pressure sticks to lower fiber
+      // heights. This gives the same page tactile identity across colors.
+      if(paper+pressure*.25<.48)continue;
+      const tone:1|2=rand(3)<.61?1:2;
+      const band=Math.min(2,Math.floor(rand(4)*3));
+      const theta=(angle+(rand(5)-.5)*42)*Math.PI/180;
+      const length=(1.1+2.3*paper+pressure*2.3)*(.55+.8*rand(6));
+      const dx=Math.cos(theta)*length,dy=Math.sin(theta)*length;
+      const bow=(rand(7)-.5)*1.9;
+      const cx=x+dx*.52-Math.sin(theta)*bow;
+      const cy=y+dy*.52+Math.cos(theta)*bow;
+      const path="M"+fmt(x)+" "+fmt(y)+"Q"+fmt(cx)+" "+fmt(cy)+
+        " "+fmt(x+dx)+" "+fmt(y+dy);
+      buckets[(tone-1)*3+band].push(path);
+    }
+  }
+  return buckets.map((parts,index)=>({
+    tone:(Math.floor(index/3)+1) as 1|2,
+    width:(index%3)*.25+.46+pressure*.28,
+    count:parts.length,
+    d:parts.join(" "),
+  }));
+}
+
 export function crayonDryNibPath(
   mark:CrayonMark,progress=1,contact:"legacy"|"hand"="legacy",
   paperSeed=0,
