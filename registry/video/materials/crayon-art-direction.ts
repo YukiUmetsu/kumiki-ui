@@ -181,12 +181,21 @@ export function crayonDirectionalStrokes(o:CrayonDirectionalStrokeField):CrayonC
     const off=(crayonHash(o.seed,i,12)-.5)*o.spread;
     const n={x:-v.y,y:v.x};
     const l=o.length*(.55+.45*crayonHash(o.seed,i,13));
-    const bend=(crayonHash(o.seed,i,14)-.5)*.22*l;
-    const cx=p.x+n.x*off,cy=p.y+n.y*off;
+    // Follow source cubic arc-length approximately. A rigid straight nib dash
+    // tangent at a single point ignores the curvature of leaf/cheek surfaces.
+    const lo=at(o.guide,Math.max(0,t-.003));
+    const hi=at(o.guide,Math.min(1,t+.003));
+    const speed=Math.max(1,Math.hypot(hi.x-lo.x,hi.y-lo.y)/.006);
+    const dt=Math.min(.19,l/(2*speed));
+    const t0=Math.max(.001,t-dt),t1=Math.min(.999,t+dt);
+    const a=at(o.guide,t0),b=at(o.guide,t1);
+    const va=tangent(o.guide,t0),vb=tangent(o.guide,t1);
+    const bend=(crayonHash(o.seed,i,14)-.5)*.2*l;
+    const cx=p.x+n.x*(off+bend),cy=p.y+n.y*(off+bend);
     const format=(x:number)=>x.toFixed(2);
-    const d="M"+format(cx-v.x*l*.5)+" "+format(cy-v.y*l*.5)+
-      " Q"+format(cx+n.x*bend)+" "+format(cy+n.y*bend)+" "+
-      format(cx+v.x*l*.5)+" "+format(cy+v.y*l*.5);
+    const d="M"+format(a.x-va.y*off)+" "+format(a.y+va.x*off)+
+      " Q"+format(cx)+" "+format(cy)+" "+
+      format(b.x-vb.y*off)+" "+format(b.y+vb.x*off);
     marks.push({kind:"contour",id:o.prefix+"-"+(i+1),
       d,color:o.color,width:o.width*(.48+.52*o.pressure)*
       (.78+.22*crayonHash(o.seed,i,15)),
