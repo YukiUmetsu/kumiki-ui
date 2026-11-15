@@ -369,6 +369,28 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       trace.path.includes(" Q"))).toBe(true);
   });
 
+  it("gives each weight-bearing fox paw four attached toe furrows, subtle nails and a tapered metacarpal transition",()=>{
+    const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
+    for(const id of ["foreleg-left","foreleg-right"]){
+      const paw=drawing.regions.find(r=>r.id===id)!;
+      for(const feature of ["toe-furrows","claw-tips","wrist-tendons"]){
+        const mark=paw.details?.find(trace=>trace.id===feature);
+        expect(mark,id+" "+feature).toBeDefined();
+        expect(mark!.width).toBeLessThan(.8);
+        expect(mark!.path).not.toMatch(/NaN|Infinity/);
+        const strokes=mark!.path.match(/M-?\\d+(?:\\.\\d+)? -?\\d+(?:\\.\\d+)?/g)??[];
+        expect(strokes.length,id+" "+feature).toBe(4);
+        if(feature!=="claw-tips")expect(mark!.path).toContain(" Q");
+      }
+      const crease=paw.details!.find(trace=>trace.id==="toe-furrows")!;
+      const coordinates=Array.from(crease.path.matchAll(/M(-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/g),
+        match=>[Number(match[1]),Number(match[2])]);
+      expect(coordinates.every(([x,y])=>
+        x>=paw.bounds[0]&&x<=paw.bounds[0]+paw.bounds[2]&&
+        y>=paw.bounds[1]+paw.bounds[3]-19&&y<=paw.bounds[1]+paw.bounds[3])).toBe(true);
+    }
+  });
+
   it("fox weight-bearing forelegs taper to articulated toes rather than uniform black boots",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     const parts=new Map(drawing.regions.map(r=>[r.id,r]));
