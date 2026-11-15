@@ -126,6 +126,25 @@ for(const sample of ["woman","man"] as const){
           "true",{timeout:90000});
         await expect(headSource).toHaveAttribute(
           "data-km-pencil-full-head-source","ready",{timeout:90000});
+        // Actual Chromium 0% legacy vs 100% anatomy-connected fibre A/B:
+        // capture BOTH complete pencil plates for honest 1×/3× review.
+        const fibreSlider=page.getByLabel("Pencil anatomy-connected fibre flow");
+        await expect(fibreSlider).toHaveValue("1");
+        const fibreMetrics=page.locator("[data-km-pencil-head-proof-metrics]");
+        await fibreSlider.focus();
+        await fibreSlider.press("Home");
+        await expect(fibreSlider).toHaveValue("0");
+        await expect(fibreMetrics).toContainText("0% anatomy-connected");
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-legacy-ruled-fibre.png")});
+        await fibreSlider.press("End");
+        await expect(fibreSlider).toHaveValue("1");
+        await expect(fibreMetrics).toContainText("100% anatomy-connected");
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-anatomy-fibre.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Actual licensed source, ALL four chronologically composited
         // Storybook shots. Stage 1..4 must contain increasing genuine
         // pencil marks; the exported film bitmap must not be affected.
