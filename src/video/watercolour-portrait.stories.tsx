@@ -27,6 +27,7 @@ function PortraitAtelier(){
   const [playing,setPlaying]=useState(false);
   const [seed,setSeed]=useState(83);
   const [tooth,setTooth]=useState(.81);
+  const [grain,setGrain]=useState(.77);
   const [showGlazing,setShowGlazing]=useState(true);
   const [showDetail,setShowDetail]=useState(true);
   const [reduced,setReduced]=useState(false);
@@ -34,10 +35,10 @@ function PortraitAtelier(){
   const compiled=useMemo(()=>compileFilm(WATERCOLOUR_PORTRAIT_FILM,{outputId:output}),[output]);
   const authored=useMemo(()=>{
     const scene=watercolorPortraitSpec(output,seed);
-    return {...scene,paper:{...scene.paper,tooth},
-      wetPaper:scene.wetPaper?{...scene.wetPaper,
+    return {...scene,paper:{...scene.paper,tooth,granulation:grain},
+      wetPaper:scene.wetPaper?{...scene.wetPaper,granulation:grain,
         paper:{...scene.wetPaper.paper,tooth}}:undefined};
-  },[output,seed,tooth]);
+  },[output,seed,tooth,grain]);
   const raw=custom??authored;
   const painting=useMemo<WatercolourArtwork>(()=>{
     if(showGlazing&&showDetail)return raw;
@@ -111,6 +112,8 @@ function PortraitAtelier(){
       </label>
       <WatercolourSlider label="Portrait paper tooth" value={tooth} step={.05}
         onChange={v=>{setPlaying(false);setCustom(null);setTooth(v);}}/>
+      <WatercolourSlider label="Local pigment granulation" value={grain} step={.05}
+        onChange={v=>{setPlaying(false);setCustom(null);setGrain(v);}}/>
       {([
         {label:"Optical portrait glazing",checked:showGlazing,set:setShowGlazing},
         {label:"Fine facial details",checked:showDetail,set:setShowDetail},
