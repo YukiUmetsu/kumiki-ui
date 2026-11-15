@@ -52,14 +52,17 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     elements.push(n);parts.push({nodeId:id,phase,role:"stroke",minCurves});
   };
   const place={x:width/2,y:height*(portrait?.44:.54),scale:portrait?1.25:1.07};
+  // Narrow neck and fuller asymmetric lower lobe: never an egg-shaped
+  // fruit merely decorated with a paper grain overlay.
   const rootD=
-    "M-15 -138 C-51 -162 -77 -153 -87 -128 "+
-    "C-105 -97 -117 -51 -120 9 C-132 86 -85 159 -23 174 "+
-    "C31 189 102 145 117 71 C129 14 110 -51 76 -94 "+
-    "C50 -127 15 -117 -15 -138 Z";
+    "M-15 -141 C-38 -148 -62 -129 -70 -95 "+
+    "C-75 -66 -102 -30 -111 18 C-130 89 -91 159 -24 175 "+
+    "C29 187 103 147 116 75 C126 21 102 -38 74 -69 "+
+    "C55 -92 50 -118 19 -133 C7 -141 -1 -135 -15 -141 Z";
   const leafD=
-    "M18 -175 C63 -234 127 -236 174 -208 "+
-    "C152 -158 108 -138 49 -161 Q31 -167 18 -175 Z";
+    "M18 -175 C56 -227 98 -239 130 -228 Q143 -231 150 -219 "+
+    "C164 -217 172 -211 174 -208 C145 -164 108 -143 73 -160 "+
+    "Q39 -162 18 -175 Z";
   const stemD="M-19 -140 Q-17 -159 0 -182 Q12 -189 21 -180 "+
     "Q4 -165 -5 -132 Z";
   // World-space paper impression and atmospheric ground. These intentionally
@@ -67,14 +70,15 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
   const root={x:width/2,y:height*(portrait?.68:.87)};
   const ground:CrayonWaxElement={
     kind:"wax",id:"paper-ground",d:
-      "M"+(root.x-235)+" "+(root.y+3)+" Q"+root.x+" "+(root.y-37)+" "+
-      (root.x+238)+" "+(root.y+9)+" Q"+root.x+" "+(root.y+62)+" "+
-      (root.x-235)+" "+(root.y+3)+"Z",
-    bounds:rect(root.x-250,root.y-52,500,135),
+      "M"+(root.x-163)+" "+(root.y+7)+" C"+(root.x-113)+" "+(root.y-17)+" "+
+      (root.x+120)+" "+(root.y-19)+" "+(root.x+164)+" "+(root.y+4)+
+      " C"+(root.x+123)+" "+(root.y+29)+" "+(root.x-111)+" "+(root.y+29)+" "+
+      (root.x-163)+" "+(root.y+7)+"Z",
+    bounds:rect(root.x-169,root.y-22,338,57),
     colors:["#cfb18d","#aa8b85","#eee0bd"],
     timing:{start:1,end:80},coverage:"open",pressure:.36,spacing:17,
     nibStyle:"tapered",strokeOrder:"patches",markLength:"long",
-    outlineOpacity:0,markStrength:.35,
+    outlineOpacity:0,markStrength:.20,
   };
   elements.push(ground);
   const shadow:CrayonWaxElement={
@@ -87,24 +91,24 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     colors:["#a18e88","#827b83","#c0a998"],
     timing:{start:35,end:140},coverage:"open",pressure:.48,spacing:13,
     nibStyle:"tapered",strokeOrder:"patches",markLength:"long",outlineOpacity:0,
-    blendRadius:11,markStrength:.32,
+    blendRadius:11,markStrength:.23,
   };
   elements.push(shadow);
   addWax("pear-body",rootD,rect(-138,-166,269,356),
     ["#d4aa5d","#8c8155","#e7c87a"],"blocking","solid",{start:9,end:89},{
       placement:place,underpaintGradient:{
         light:"#f0d58a",shadow:"#677756",focusX:.30,focusY:.27,radius:1.15},
-      markStrength:.55,spacing:9.4,edgeRoughness:.29,
+      markStrength:.24,spacing:8.5,edgeRoughness:.24,
     },6);
   addWax("leaf-body",leafD,rect(8,-243,178,111),
     ["#6b925e","#345d4e","#b0b979"],"blocking","solid",{start:28,end:105},{
       parentId:"pear-body",underpaintGradient:{
         light:"#b6c68c",shadow:"#31564e",focusX:.35,focusY:.2,radius:1.1},
-      markStrength:.62,spacing:6.2,edgeRoughness:.3,
+      markStrength:.3,spacing:6.2,edgeRoughness:.28,
     },3);
   addWax("stem-body",stemD,rect(-25,-192,52,70),
     ["#7a5846","#433e40","#b08566"],"blocking","solid",{start:32,end:113},{
-      parentId:"pear-body",markStrength:.76,spacing:4.8,edgeRoughness:.32,
+      parentId:"pear-body",markStrength:.5,spacing:4.8,edgeRoughness:.3,
     },3);
   // The value range describes light turning into shadow, not arbitrary flecks.
   addWax("pear-turn-shadow",
@@ -113,7 +117,7 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     rect(0,-128,143,311),
     ["#798357","#58715a","#adb274"],"value","glaze",{start:68,end:156},{
       parentId:"pear-body",clipToParent:true,blendRadius:10,
-      pressure:pressure*.65,spacing:8.9,markStrength:.32,outlineOpacity:0,
+      pressure:pressure*.65,spacing:8.9,markStrength:.21,outlineOpacity:0,
     },4);
   addWax("leaf-fold-shadow",
     "M20 -174 Q105 -186 172 -208 C136 -155 83 -146 44 -163 Z",
@@ -136,7 +140,7 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     rect(-118,-118,123,149),
     ["#cc855d","#a65d59","#e2a46c"],"colour","glaze",{start:124,end:185},{
       parentId:"pear-body",clipToParent:true,blendRadius:9,
-      pressure:pressure*.6,spacing:6.8,markStrength:.51,outlineOpacity:0,
+      pressure:pressure*.6,spacing:6.8,markStrength:.32,outlineOpacity:0,
     },3);
   addWax("leaf-rim-light",
     "M31 -173 C64 -219 126 -226 166 -209 Q108 -213 62 -176 Z",
@@ -151,22 +155,31 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
   // Directional grain is correlated to the studied skin curvature, never random
   // full-frame noise. All marks remain clipped to opaque fruit/leaf shapes.
   collect(crayonDirectionalStrokes({
-    prefix:"pear-wax-turn",parentId:"pear-body",seed:391,count:Math.max(1,Math.round(38*detail)),
+    prefix:"pear-wax-turn",parentId:"pear-body",seed:391,count:Math.max(1,Math.round(55*detail)),
     guide:[{x:-80,y:-92},{x:-123,y:14},{x:-61,y:141},{x:35,y:156}],
     spread:48,length:19,width:1.24,pressure,color:"#aa8459",
     startFrame:164,endFrame:235,
   }),"detail");
   collect(crayonDirectionalStrokes({
-    prefix:"pear-wax-shadow",parentId:"pear-body",seed:481,count:Math.max(1,Math.round(31*detail)),
+    prefix:"pear-wax-shadow",parentId:"pear-body",seed:481,count:Math.max(1,Math.round(44*detail)),
     guide:[{x:66,y:-88},{x:97,y:-9},{x:109,y:86},{x:42,y:143}],
     spread:33,length:16,width:1.42,pressure,color:"#658064",
     startFrame:169,endFrame:235,
   }),"detail");
   collect(crayonDirectionalStrokes({
-    prefix:"leaf-wax-veins",parentId:"leaf-body",seed:582,count:Math.max(1,Math.round(23*detail)),
+    prefix:"leaf-wax-veins",parentId:"leaf-body",seed:582,count:Math.max(1,Math.round(32*detail)),
     guide:[{x:28,y:-174},{x:75,y:-196},{x:129,y:-202},{x:165,y:-208}],
     spread:27,length:15,width:.82,pressure,color:"#c4ce9c",
     startFrame:172,endFrame:235,
+  }),"detail");
+  // Sparse lenticels are distinct short stippled side-nib contacts, not
+  // uniform noise or opaque printed circles.
+  collect(crayonDirectionalStrokes({
+    prefix:"pear-lenticels",parentId:"pear-body",seed:739,
+    count:Math.max(1,Math.round(19*detail)),
+    guide:[{x:-43,y:-81},{x:-96,y:-2},{x:-28,y:80},{x:43,y:117}],
+    spread:77,length:3.7,width:.74,pressure:pressure*.79,
+    color:"#a58f65",startFrame:190,endFrame:237,
   }),"detail");
   addLine("leaf-main-vein",
     "M23 -175 Q91 -188 165 -208 M68 -185 Q81 -207 97 -218 "+
