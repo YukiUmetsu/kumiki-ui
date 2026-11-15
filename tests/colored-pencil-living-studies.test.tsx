@@ -379,6 +379,28 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("scales ears against cranial depth and joins a narrow white-grey cervical chest",()=>{
+    const parts=new Map(pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"})
+      .regions.map(r=>[r.id,r]));
+    const head=parts.get("head-main")!,near=parts.get("ear-near")!;
+    const far=parts.get("ear-far")!,chest=parts.get("chest")!;
+    const neck=parts.get("neck-ruff")!,body=parts.get("body")!;
+    // Authentic sitting fox photographs: each auricle is substantially
+    // shorter than the entire skull, unlike the original rabbit-like fins.
+    expect(near.bounds[3]).toBeLessThanOrEqual(79);
+    expect(far.bounds[3]).toBeLessThanOrEqual(61);
+    expect(far.bounds[3]).toBeLessThanOrEqual(near.bounds[3]*.8);
+    expect(near.bounds[1]+near.bounds[3]).toBeGreaterThan(head.bounds[1]+70);
+    // Chest is a narrow, root-connected ventral plane, not a flared
+    // paper-white neckerchief hiding both shoulders.
+    expect(chest.bounds[2]).toBeLessThanOrEqual(107);
+    expect(neck.bounds[2]).toBeLessThanOrEqual(97);
+    expect(chest.bounds[1]+chest.bounds[3]).toBeGreaterThan(365);
+    expect(chest.bounds[0]+chest.bounds[2]).toBeLessThan(body.bounds[0]+body.bounds[2]);
+    expect(chest.layers[1].color).not.toBe("#887B78");
+    expect(chest.details!.filter(t=>t.id?.startsWith("fringe-"))).toHaveLength(3);
+  });
+
   it("renders original CP-F1 fox anatomy from authored pencil vectors with zero photo pixels",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     expect(drawing.foundation?.subject).toBe("wildlife");
