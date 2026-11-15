@@ -26,6 +26,11 @@ test("ArtCraft portraits, fox anatomy and alpine landscape preserve final frames
       await expect(page.locator("[data-km-living-subject]"))
         .toHaveAttribute("data-km-living-subject",item);
       await seek(330);
+      await expect(svg).toHaveAttribute("data-km-pencil-foundation","CP-F1");
+      await expect(page.getByRole("combobox",{name:"Living craft rendering"})).toHaveCount(0);
+      if(output==="portrait"&&item!=="valley")
+        await expect(svg.locator('[data-km-pencil-region="head-main"], [data-km-pencil-region="face-main"]'))
+          .toHaveAttribute("transform",/scale\(1\.38\)/);
       await expect(svg.locator("[data-km-pencil-region]")).not.toHaveCount(0);
       await svg.screenshot({animations:"disabled",
         path:info.outputPath("artcraft-living-"+item+"-"+output+".png")});
