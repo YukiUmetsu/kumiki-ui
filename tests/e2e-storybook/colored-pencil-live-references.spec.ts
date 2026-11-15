@@ -75,3 +75,43 @@ for(const sample of ["fox","kingfisher"] as const){
       }
     });
 }
+
+
+/** Real CC0 portrait pixels: facial landmarks must survive close framing and redraw. */
+for(const sample of ["woman","man"] as const){
+  test("ArtCraft realistic "+sample+" face is source-conditioned in both frames",async({page},info)=>{
+    await page.goto("/iframe.html?id=video-colored-pencil-science--reference-guided-faces&viewMode=story");
+    await page.getByRole("combobox",{name:"Pencil photo source"}).selectOption(sample);
+    const output=page.locator("canvas[data-km-pencil-photo]");
+    await expect(output).toHaveAttribute("data-km-pencil-photo","ready",{timeout:60000});
+    await expect(page.getByRole("alert")).toHaveCount(0);
+    const framing=page.getByRole("combobox",{name:"Pencil portrait framing"});
+    await expect(framing).toHaveValue("focus");
+    await page.getByRole("checkbox",{name:"Show pencil source comparison"}).check();
+    for(const aspect of ["landscape","portrait"] as const){
+      await page.getByRole("combobox",{name:"Pencil photo aspect"}).selectOption(aspect);
+      await expect(output).toHaveAttribute("data-km-pencil-photo","ready",{timeout:60000});
+      const source=page.locator("canvas[data-km-pencil-reference]");
+      await expect(source).toHaveCount(1);
+      // The face is a genuine cropped photographic source, not a generated
+      // vector face with oversized eye/nose primitives.
+      const metrics=await output.evaluate(node=>{
+        const canvas=node as HTMLCanvasElement;
+        const {data}=canvas.getContext("2d")!.getImageData(0,0,canvas.width,canvas.height);
+        let variance=0,mean=0,n=0;
+        for(let i=0;i<data.length;i+=32){const v=(data[i]+data[i+1]+data[i+2])/3;
+          mean+=v;variance+=v*v;n++;}
+        mean/=n;return {variance:variance/n-mean*mean,width:canvas.width,height:canvas.height};
+      });
+      expect(metrics.variance).toBeGreaterThan(100);
+      await output.screenshot({animations:"disabled",
+        path:info.outputPath("artcraft-portrait-"+sample+"-"+aspect+"-pencil.png")});
+      await source.screenshot({animations:"disabled",
+        path:info.outputPath("artcraft-portrait-"+sample+"-"+aspect+"-source.png")});
+    }
+    await framing.selectOption("fit");
+    await expect(output).toHaveAttribute("data-km-pencil-photo","ready");
+    await framing.selectOption("focus");
+    await expect(output).toHaveAttribute("data-km-pencil-photo","ready");
+  });
+}
