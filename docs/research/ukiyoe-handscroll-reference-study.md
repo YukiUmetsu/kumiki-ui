@@ -925,6 +925,38 @@ The well came earlier, with F3. Storybook has **Temples**, and the Motifs galler
 - The Rashōmon's ruin has no broken rafters.
 - Nobody has done a human visual review yet.
 
+## Animal yōkai (folktale queue F6, 2026-11-15)
+
+**Sources** (public domain, Wikimedia Commons): Toriyama Sekien's *Kamaitachi* and Hokusai's *Baku*.
+
+**What they show.**
+
+- **Kamaitachi.** The whirlwind is a great flat spiral of grey bands seen face on, weasels curled in its turns and leaves caught along it.
+- **Baku.** A shaggy, densely hatched tawny beast with a long curling trunk, small tusks, clawed paws and a bushy tail, crouching with its head low.
+
+**What was built.**
+
+- Two-tailed cats, the towel, glowing eyes and the carried key, jewel or scroll.
+- The `weasel`, `baku` and `ape` species.
+- The `whirlwind` particle.
+- `animalYokaiScene()` with six scenes.
+- Storybook **Animal yōkai**.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - The whirlwind was a few faint ellipses round the weasels. It is now Sekien's spiral with leaves on its bands; one weasel sleeps at the heart and two are carried round.
+   - The baku was a grey striped boar, closer to the charm pictures than to Hokusai. It is now shaggy and tawny, with a long fur coat and a bushy tail.
+2. **Scenes.** The two-tailed nekomata, the dancing towelled cats with glowing eyes, the following wolves' eyes and the messenger fox's key were all checked on stills.
+
+**Not done.**
+
+- No transformation from a cat into a woman.
+- No inugami.
+- The satori ape does not speak its mind-reading lines.
+- The yamabiko has no echo effect.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

@@ -35,7 +35,8 @@ import { kamiScene, UKIYOE_KAMI_SCENES } from "../../registry/video/ukiyoe/ukiyo
 import type { UkiyoeBushiScene } from "../../registry/video/ukiyoe/ukiyoe-bushi";
 import { bushiScene, UKIYOE_BUSHI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-bushi";
 import type { UkiyoeAnimalHabitat } from "../../registry/video/ukiyoe/ukiyoe-critters";
-import { animalScene, UKIYOE_ANIMAL_HABITATS } from "../../registry/video/ukiyoe/ukiyoe-critters";
+import type { UkiyoeAnimalYokaiScene } from "../../registry/video/ukiyoe/ukiyoe-critters";
+import { animalScene, animalYokaiScene, UKIYOE_ANIMAL_HABITATS, UKIYOE_ANIMAL_YOKAI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-critters";
 import type { UkiyoeTempleScene } from "../../registry/video/ukiyoe/ukiyoe-temple";
 import { templeScene, UKIYOE_TEMPLE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-temple";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
@@ -847,6 +848,30 @@ export function Temples() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={TEMPLE_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Temple frame" />
+  </div>;
+}
+
+// ---- Animal yōkai --------------------------------------------------------------------------------------------------------------------
+
+const AY_LABELS: Readonly<Record<UkiyoeAnimalYokaiScene, string>> = { bakeneko: "Bakeneko dance, nekomata", kamaitachi: "Kamaitachi in the whirlwind", okuriinu: "Okuri-inu following", baku: "The baku eats a nightmare", messenger: "Inari's messenger foxes", satori: "The mind-reading ape" };
+
+/** Shape-shifting and supernatural animals. */
+export function AnimalYokai() {
+  const [kind, setKind] = useState<UkiyoeAnimalYokaiScene>("bakeneko");
+  const spec = useMemo(() => animalYokaiScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Animal yōkai" title="Cats that dance, weasels in the wind, the dream-eater">
+      <p style={{ margin: 0 }}>After Sekien's kamaitachi and Hokusai's baku. Cats stand and dance with a <code>towel</code> on the head, and take
+        two <code>tails</code> as nekomata; <code>glowEyes</code> light the dark; the messenger fox <code>carry</code>s a key or a jewel. New species: the
+        <code>weasel</code>, the <code>baku</code> with its trunk and the great <code>ape</code>. The <code>whirlwind</code> particle is Sekien's spiral,
+        with sickle-flashes.</p>
+    </Header>
+    <section aria-label="Animal yokai controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={UKIYOE_ANIMAL_YOKAI_SCENES} onChange={setKind} labels={AY_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={AY_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Yokai frame" />
   </div>;
 }
 

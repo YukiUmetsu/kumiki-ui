@@ -6,7 +6,7 @@ import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
 import { bellStrike, templeScene, UKIYOE_TEMPLE_SCENES } from "../registry/video/ukiyoe/ukiyoe-temple";
-import { animalScene, UKIYOE_ANIMAL_HABITATS, UKIYOE_CRITTERS } from "../registry/video/ukiyoe/ukiyoe-critters";
+import { animalScene, animalYokaiScene, UKIYOE_ANIMAL_HABITATS, UKIYOE_ANIMAL_YOKAI_SCENES, UKIYOE_CRITTERS } from "../registry/video/ukiyoe/ukiyoe-critters";
 import { bushiScene, shootAt, UKIYOE_BUSHI_SCENES } from "../registry/video/ukiyoe/ukiyoe-bushi";
 import { kamiScene, UKIYOE_KAMI_LOOKS, UKIYOE_KAMI_SCENES } from "../registry/video/ukiyoe/ukiyoe-kami";
 import { effectScene, UKIYOE_EFFECT_DEMOS } from "../registry/video/ukiyoe/ukiyoe-effects";
@@ -639,6 +639,23 @@ describe("UKIYO1 temples", () => {
     expect(st(55).ring).toBe(5);
     // A ruined gate grows grass on its roofs; a lantern hangs only when it is not in ruin.
     expect(JSON.stringify(drawMotif("gate", { ruin: 1, lantern: true }, { frame: 0, wind: 0, seed: 3, progress: 1 }))).toContain("kusa");
+  });
+});
+
+describe("UKIYO1 animal yokai", () => {
+  it("builds each scene; the nekomata has two tails, towels and glowing eyes and carried keys draw, the whirlwind turns", () => {
+    for (const k of UKIYOE_ANIMAL_YOKAI_SCENES) expect(inspectUkiyoeScene(animalYokaiScene(k)), k).toEqual([]);
+    const len = (look: Record<string, unknown>, sp: "cat" | "fox" = "cat") => JSON.stringify(drawCreature({ species: sp, look, actions: [{ type: "sit", start: 0, end: 100 }] }, 30, 0, 1).prims).length;
+    const tailKeys = (look: Record<string, unknown>) => (JSON.stringify(drawCreature({ species: "cat", look, actions: [{ type: "sit", start: 0, end: 100 }] }, 30, 0, 1).prims).match(/"key":"tail\d"/g) ?? []).length;
+    expect(tailKeys({ tails: 2 })).toBe(2);
+    expect(tailKeys({})).toBe(1);
+    expect(len({ towel: "ai" })).toBeGreaterThan(len({}));
+    expect(len({ glowEyes: true })).toBeGreaterThan(len({}));
+    expect(len({ carry: "key" }, "fox")).toBeGreaterThan(len({}, "fox"));
+    for (const sp of ["weasel", "baku", "ape"] as const) for (const view of ["profile", "front"] as const)
+      expect(drawCreature({ species: sp, look: { view }, actions: [{ type: "walk", start: 0, end: 100, to: 80 }] }, 30, 0, 1).prims.length, `${sp} ${view}`).toBeGreaterThan(5);
+    const w = (f: number) => JSON.stringify(drawParticles({ type: "whirlwind", area: [0, 0, 600, 600], count: 1 }, f, 0, 3));
+    expect(w(10) === w(14)).toBe(false);
   });
 });
 
