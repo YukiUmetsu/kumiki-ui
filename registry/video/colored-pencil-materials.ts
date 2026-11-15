@@ -9,7 +9,7 @@ import type { PencilObjectInput, PencilRegion, PencilTrace } from "./colored-pen
 export const PENCIL_MATERIALS = [
   "petal", "leaf", "citrus", "glass", "metal",
   "masonry", "fabric", "wood", "stone", "fur", "cast-shadow",
-  "skin", "hair", "water", "foliage", "glaze",
+  "skin", "hair", "water", "foliage", "glaze", "keratin",
 ] as const;
 export type PencilSurface = typeof PENCIL_MATERIALS[number];
 type Mark = "hatch" | "fiber" | "stipple";
@@ -77,6 +77,10 @@ const RECIPES: Record<PencilSurface, Recipe> = {
   glaze: { density:"soft", marks:["hatch","fiber","stipple"], tone:"rim",
     flow:14, direction:-24, underpaintOpacity:.07, support:false,
     clipDetails:true, contourOpacity:.09 },
+  // Keratin claws and bird toes need harder edges; fur-like fibres look wrong.
+  keratin: { density:"layered", marks:["hatch","hatch","stipple"], tone:"core",
+    flow:4, direction:77, underpaintOpacity:.93, support:true,
+    clipDetails:true, contourOpacity:.76 },
 };
 export interface PencilMaterialInput {
   surface: PencilSurface;
