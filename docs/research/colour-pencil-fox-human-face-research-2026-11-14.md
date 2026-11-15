@@ -51,3 +51,24 @@ Rights: these artworks and tutorials are **viewing references only**. No source 
 **Technical gates:** `tests/colored-pencil-living-studies.test.tsx` and `tests/colored-pencil-ocular-detail.test.tsx` check structure, finite valid regions, solid face support, deterministic seek and actor inheritance. Existing Storybook `Video Production/Film Looks/Colour-pencil` keeps all pages, with a new Face area selector *inside* the existing Living Subjects atelier. Browser screenshots must show landscape and portrait heroes, plus eyes/nose/mouth macros for fox and person.
 
 **Visual blockers to judge separately:** skin could remain too vector-clean; eye expression, fox muzzle depth and hair clumps may be below real illustration quality. Compare rendered 1× scene and 3× macros with linked visual references, not line count. Do not claim photorealism without independent normal-speed film and crop review.
+
+## ArtCraft visual rejection and source-conditioned correction
+
+**Visual QA of the first candidate (PR #297, browser job 43673481941):** Real Chromium PNGs of the human and fox at 960×540 and 540×960, including isolated eye/nose/mouth macros, reveal unacceptable illustration construction despite valid units/Storybook tests. The human face has eye disks, thick sticker-like brows, a stark triangular nose highlight and flat hair masses; the fox has two oversized dark eye patches and cream muzzle that read as a separate mask. Drawing additional contours to these primitives did not reproduce Elena Pancorbo's sculpted skin and Claire Milligan's realistic fur. **The vector characters are explicitly demoted to stylised construction studies, not accepted realistic art.**
+
+### Better production route: reconstruct licensed face photos with code
+
+The existing source-conditioned `ReferencePencilAtelier` engine uses actual photographic anatomy, a structure tensor to orient marks to image edges, graded opaque-to-translucent foundation pigment, paper grain and three deterministic dry-mark passes. It is an honest, reusable photo-to-colour-pencil drawing system, not an autonomous vector anatomy generator.
+
+Two additional 2015–2016 pre-licensing-change Wikimedia-verified **CC0** portrait photos now serve as in-browser face samples, without image assets or artist painting pixels committed into the repo:
+
+- **Woman, varied skin, lips, warm copper hair:** [Christopher Campbell, *Brunette woman portrait*](https://commons.wikimedia.org/wiki/File:Brunette_woman_portrait_(Unsplash).jpg). Original 5184×3456; source-pixel zoom around normalized face focal (.52,.25).
+- **Man, facial hair, eyelid and nasal detail:** [William Stitt, *Face portrait*](https://commons.wikimedia.org/wiki/File:Face_portrait_(Unsplash).jpg). Original 5184×3456; focal (.50,.43). Source was published under Unsplash's **pre-5 June 2017** CC0 terms. Both Commons records document the original license and creator.
+
+Code uses existing `createPencilPhotoStudy` and runtime loading with `crossOrigin=anonymous`; subject-selectable palettes/density/saturation/structure gradients and wet-to-dry timed marks remain editable. A source/illustration compare view and close/fit crop exist at both formats. If browser CORS fails the UI reports a source failure and offers local PNG/JPEG/WebP upload. A locally uploaded photo never leaves the browser.
+
+**Watercolour-pencil specificity:** early broad tonal deposition is a *watercolour-like visual wash*, then contour-hatched pencil marks. No pigment fluid simulation, re-wet edge diffusion, or truly hand-drawn physical performance is claimed. The face-likeness information comes from pixels, not a reusable face mesh.
+
+**Storybook taxonomy:** `Video Production/Film Looks/Colour-pencil` retains one existing folder. The previous Living Subjects page is named *Stylized vector faces and landscape (construction study)*; a new sibling story is *ArtCraft · Realistic fox and human faces (CC0 photo-guided)*, using the same existing renderer and controls. Original Storybook IDs remain unchanged, and no new nested folder was created.
+
+**Acceptance:** source-specific human/fox landscape+portrait screenshots must show recognizable real facial anatomy and pencil texture at 1×/macro. Inspect the actual output against its source and hand-crafted pencil references, reject photographic filter look where present, and retain the limitation. An editable rigged **realistic** human or fox remains a separate unsolved artistic feature; don't claim this photo-conditioned pass delivers it.
