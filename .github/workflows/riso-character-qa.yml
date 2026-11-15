@@ -1,4 +1,4 @@
-name: Risograph character film browser QA
+name: One-time RISO13 human anatomy and film qualification
 
 # RISO11 film and ArtCraft qualification completed on PR #289; manual-only thereafter.
 # Lightweight unit, typecheck and registry tests remain automatic in visual-contracts.yml.
@@ -6,6 +6,15 @@ name: Risograph character film browser QA
 # No expensive renderer/Playwright/FFmpeg job runs for routine PRs or main pushes.
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/video/riso-character-demo.tsx"
+      - "src/video/riso-character-mesh-sheets.ts"
+      - "src/video/riso-artcraft-studies.stories.tsx"
+      - "tests/riso13-anatomy.test.tsx"
+      - "tests/e2e-storybook/riso-human-anatomy.spec.ts"
+      - ".github/workflows/riso-character-qa.yml"
 
 permissions:
   contents: read
@@ -28,7 +37,7 @@ jobs:
       - name: Strict typecheck and focused motion contracts
         run: |
           npm run typecheck
-          npm run test -- tests/riso-character-paper-clearance.test.tsx tests/riso11-ink-craft.test.ts tests/riso-artcraft-characters.test.tsx tests/riso-character.test.tsx tests/riso-rig-ik.test.tsx tests/riso-nested-ik.test.ts tests/riso-joint-skin.test.ts tests/riso-opaque-characters.test.tsx tests/riso-character-model-sheets.test.tsx
+          npm run test -- tests/riso13-anatomy.test.tsx tests/riso-character-paper-clearance.test.tsx tests/riso11-ink-craft.test.ts tests/riso-artcraft-characters.test.tsx tests/riso-character.test.tsx tests/riso-rig-ik.test.tsx tests/riso-nested-ik.test.ts tests/riso-joint-skin.test.ts tests/riso-opaque-characters.test.tsx tests/riso-character-model-sheets.test.tsx
       - name: Clean independent registry consumer install
         run: node scripts/registry-fixture.js --item=riso-character
       - name: Build production Storybook
@@ -36,7 +45,7 @@ jobs:
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Actual 16:9 and 9:16 Storybook actor/browser screenshots
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-characters.spec.ts tests/e2e-storybook/riso-rig-ik.spec.ts tests/e2e-storybook/riso-opaque-print.spec.ts tests/e2e-storybook/riso-character-model-sheets.spec.ts tests/e2e-storybook/riso-artcraft-studies.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-characters.spec.ts tests/e2e-storybook/riso-rig-ik.spec.ts tests/e2e-storybook/riso-opaque-print.spec.ts tests/e2e-storybook/riso-character-model-sheets.spec.ts tests/e2e-storybook/riso-artcraft-studies.spec.ts tests/e2e-storybook/riso-human-anatomy.spec.ts tests/e2e-storybook/riso-storybook-smoke.spec.ts
       - name: Validate source-portable Film Document
         run: npm run film:check -- examples/film/riso-character-performance.film.json
       - name: Install FFmpeg for true production MP4
