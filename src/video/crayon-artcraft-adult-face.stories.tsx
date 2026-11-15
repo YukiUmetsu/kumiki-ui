@@ -468,12 +468,13 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
   const [eyeContact,setEyeContact]=useState<"source-shade"|"baseline">("source-shade");
   const [midfaceForm,setMidfaceForm]=useState<"source-volume"|"baseline">("baseline");
+  const [lashFinish,setLashFinish]=useState<"sparse"|"rooted">("sparse");
   const [inspection,setInspection]=useState<
     "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|
     "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right">("full");
   const spec=useMemo(()=>crayonCc0FaceStudy({
-    detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,midfaceForm,
-  }),[detail,view,fiberMaterial,eyeContact,midfaceForm]);
+    detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,midfaceForm,lashFinish,
+  }),[detail,view,fiberMaterial,eyeContact,midfaceForm,lashFinish]);
   const framed=useMemo(()=>{
     if(inspection==="full")return spec;
     const focus={
@@ -578,6 +579,13 @@ export function Cc0SourceRegisteredFaceWorkbench({
             "source-shade"|"baseline")}>
           <option value="source-shade">Source-led iris, lids and root wax (experiment)</option>
           <option value="baseline">Unchanged previous eye (negative control)</option>
+        </select>
+      </label>
+      <label>Source eyelash root density{" "}
+        <select aria-label="F1 native wax eyelash clusters" value={lashFinish}
+          onChange={e=>setLashFinish(e.target.value as "sparse"|"rooted")}>
+          <option value="sparse">Previous sparse wax lashes (negative control)</option>
+          <option value="rooted">Unequal clustered native wax fibers (experiment)</option>
         </select>
       </label>
       <label>Source nose and lip volumes{" "}
