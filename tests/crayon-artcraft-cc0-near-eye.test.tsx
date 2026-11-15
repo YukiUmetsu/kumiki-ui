@@ -2,7 +2,7 @@ import {describe,it,expect} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
-import {crayonDryNibPath,crayonMarks,crayonPaperHeight} from "../registry/video/materials/crayon";
+import {crayonDryNibPath,crayonMarks,crayonPaperHeight,crayonWaxContactClumps} from "../registry/video/materials/crayon";
 import {crayonCc0NearEyeStudy} from "../src/video/crayon-artcraft-cc0-near-eye";
 import {crayonPaperContactSwatches} from "../src/video/crayon-artcraft-paper-contact-fixtures";
 import faceMeta,{SourceMeasuredCc0Eye,SourceMeasuredCc0EyePortrait}
@@ -37,6 +37,24 @@ describe("Crayon pressure-and-paper contact material studies",()=>{
   });
 });
 describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
+  it("accumulates colored wax clumps on shared raised paper under pressure",()=>{
+    const bounds={x:15,y:-20,width:174,height:90};
+    const low=crayonWaxContactClumps(bounds,18,974,.24,-8);
+    const high=crayonWaxContactClumps(bounds,18,974,.92,-8);
+    expect(low).toHaveLength(6);
+    expect(high).toHaveLength(6);
+    const total=(rows:typeof low)=>rows.reduce((sum,x)=>sum+x.count,0);
+    expect(total(high)).toBeGreaterThan(total(low));
+    expect(total(high)).toBeLessThan(1200);
+    expect(high.map(x=>x.d)).toEqual(
+      crayonWaxContactClumps(bounds,18,974,.92,-8).map(x=>x.d));
+    expect(high.map(x=>x.d)).not.toEqual(
+      crayonWaxContactClumps(bounds,18,975,.92,-8).map(x=>x.d));
+    expect(high.filter(x=>x.count>0).every(x=>x.width>0&&x.d.includes("Q")))
+      .toBe(true);
+    expect(()=>crayonWaxContactClumps({...bounds,width:0},18,974,.92)).toThrow();
+    expect(()=>crayonWaxContactClumps(bounds,18,974,.01)).toThrow();
+  });
   it("samples deterministic, shared paper-height ridges across strokes",()=>{
     const height=crayonPaperHeight(27.2,-13.4,974);
     expect(height).toBe(crayonPaperHeight(27.2,-13.4,974));
@@ -93,6 +111,7 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
       expect(html).not.toContain('data-km-crayon-underpaint-gradient=""');
       expect(old).toContain('data-km-crayon-deposition="smooth"');
       expect(html).toContain('data-km-crayon-paper-contact="height"');
+      expect(html).toContain('data-km-crayon-contact-clumps="wax"');
       expect(old).toContain('data-km-crayon-paper-contact="legacy"');
       expect(old).toContain('data-km-crayon-underpaint-gradient=""');
       expect(old).not.toContain('data-km-crayon-cross-contact=');
