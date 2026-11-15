@@ -84,6 +84,87 @@ const RIDGES:Record<ShanshuiScene,readonly (readonly P[])[]>={
     [[-60,430],[78,359],[160,405],[275,298],[338,361],[427,304],[530,235],[586,274],[713,340],[812,295],[1050,383]],
   ],
 };
+/** Long, ridge-rooted hemp-fibre families with small alum-head rock
+ * shelves. Huang Gongwang's contours accumulate in linked geological
+ * groups; independent random raindrops would make the cliff look wet.
+ *
+ * Unlike the paper tint/gradient, every mark is rooted to the SAME
+ * fractured ridge geometry as the outer silhouette. */
+function RockInkPlanes({stations,seed,band,detail,mist}:{
+  stations:readonly P[];seed:number;band:number;detail:number;mist:number;
+}){
+  const anchors=band===0?[116,255,564,755,890]:[82,247,345,532,711,857];
+  const count=Math.round((band===0?7:band===1?12:17)*detail);
+  return <g data-km-rock-plane-family={band}>
+    {Array.from({length:count},(_,i)=>{
+      const x=anchors[i%anchors.length]+
+        (s(seed+band*491,i*17+41)-.5)*(band===0?48:74);
+      const crest=ridgeHeight(stations,x);
+      const rootY=crest+3.5+4*s(seed+91,i*11+band);
+      const slope=clamp((ridgeHeight(stations,x+24)-
+        ridgeHeight(stations,x-24))/48,-1.6,1.6);
+      const length=(band===0?28:band===1?47:67)*
+        (.72+.43*s(seed+317,i*11+9));
+      const drift=clamp(slope*length*.5+
+        (s(seed+409,i*7+band)-.5)*length*.22,
+        -length*.49,length*.49);
+      const inkWidth=(band===0?3.4:band===1?5.8:8.3)*
+        (.62+.72*s(seed+503,i*23+1));
+      const flex=(s(seed+521,i*29+17)-.5)*inkWidth*1.5;
+      const opacity=(band===0?.19:band===1?.29:.37)*
+        (1-.28*mist)*(.75+.35*s(seed+571,i*11+7));
+      const vx=x+drift;
+      const top="M"+f(x)+" "+f(rootY);
+      // A soft, pressure-loaded shadow plane retreats to a narrow tail.
+      const plane=top+
+        " C"+f(x+flex*.31)+" "+f(rootY+length*.21)+
+        " "+f(x+drift*.45-inkWidth*.35)+" "+f(rootY+length*.43)+
+        " "+f(vx)+" "+f(rootY+length*.9)+
+        " C"+f(x+drift*.58+inkWidth*.65)+" "+f(rootY+length*.63)+
+        " "+f(x+flex+inkWidth)+" "+f(rootY+length*.23)+
+        " "+f(x+inkWidth*.28)+" "+f(rootY+2.3)+" Z";
+      // Dry lifted lines are interrupted; an uninterrupted long band
+      // would instead read as computer-generated vertical rainfall.
+      const fibre=top+
+        " C"+f(x-inkWidth*.65)+" "+f(rootY+length*.17)+
+        " "+f(x+drift*.38+flex*.3)+" "+f(rootY+length*.29)+
+        " "+f(x+drift*.44)+" "+f(rootY+length*.45)+
+        " M"+f(x+drift*.59+1.7)+" "+f(rootY+length*.57)+
+        " Q"+f(vx+3)+" "+f(rootY+length*.72)+
+        " "+f(vx)+" "+f(rootY+length*.88);
+      const shelf="M"+f(x-inkWidth*.95)+" "+f(rootY+5)+
+        " Q"+f(x+inkWidth*.44)+" "+f(rootY-4.5)+
+        " "+f(x+inkWidth*1.55)+" "+f(rootY+2)+
+        " Q"+f(x+inkWidth*.75)+" "+f(rootY+8)+
+        " "+f(x+inkWidth*.23)+" "+f(rootY+9);
+      return <g key={i} data-km-rock-ink-plane=""
+        data-km-rock-plane-root={f(x)+","+f(rootY)}
+        data-km-rock-plane-crest={f(crest)}
+        data-km-rock-plane-style={i%3===0?"alum-head":"hemp-fibre"}>
+        <path d={plane} fill={band===0?"#806c58":"#5b4837"}
+          opacity={f(opacity)}/>
+        <path d={fibre} fill="none"
+          stroke={i%4===0?"#4b392d":"#796149"}
+          strokeWidth={f(.63+1.18*s(seed+597,i*19))}
+          strokeLinecap="round" opacity={f(.42+.31*s(seed+607,i*7))}/>
+        <path d={shelf} fill="none"
+          stroke="#5a4838" strokeWidth={f(.6+.6*s(seed+617,i*5))}
+          opacity={f(opacity*1.6)} strokeLinecap="round"/>
+        {/* Small non-uniform crest moss pockets grow where rock shelves
+            catch moisture; their location derives from this same root. */}
+        {band>0&&Array.from({length:i%3===0?5:3},(_,j)=>{
+          const dx=(j-2)*2.1+1.6*(s(seed+641,i*17+j)-.5);
+          const dy=5.4+(j%2)*1.3+s(seed+659,i*19+j)*3;
+          return <ellipse key={j} data-km-rock-moss-pocket=""
+            cx={f(x+dx)} cy={f(rootY+dy)}
+            rx={f(.57+1.25*s(seed+673,i*23+j))}
+            ry={f(.38+.75*s(seed+691,i*29+j))}
+            fill="#493f30" opacity={f((.33+.28*s(seed+709,i*31+j))*(1-.23*mist))}/>;
+        })}
+      </g>;
+    })}
+  </g>;
+}
 function Mountains({scene,seed,detail,mist,ink,ids}:{
   scene:ShanshuiScene;seed:number;detail:number;mist:number;ink:number;
   ids:{far:string;mid:string;near:string;grain:string};
@@ -94,10 +175,12 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
       const stations=ridgeStations(ridge,seed,band);
       const count=Math.round((band===0?27:band===1?48:67)*detail);
       return <g key={band} data-km-shanshui-ridge={band}
-        opacity={(band===0?.32:band===1?.58:.73)*ink}>
+        opacity={(band===0?.32:band===1?.65:.86)*ink}>
         <path data-km-shanshui-ridge-contour={band} d={ridgePath(stations)}
           fill={"url(#"+([ids.far,ids.mid,ids.near][band])+")"}
-          stroke={band===2?"#816b51":"#ac9070"} strokeWidth={band===2?.85:.55}/>
+          stroke={band===2?"#765e48":"#ac9070"} strokeWidth={band===2?1.05:.55}/>
+        <RockInkPlanes stations={stations} seed={seed+band*181} band={band}
+          detail={detail} mist={mist}/>
         {/* Reference-led rock painting: cluster different brush pressures
             over local geology. Leave quiet paper between texture families,
             rather than repeating parallel grooves across all the mountains. */}
@@ -117,7 +200,7 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
           const dx=clamp(slope*length*.54+
             (s(seed+29,i*5+band)-.5)*length*.3,
             -length*.56,length*.56);
-          const opacity=(.18+.47*s(seed+8,i*11+band))*(1-.55*mist);
+          const opacity=(.27+.55*s(seed+8,i*11+band))*(1-.38*mist);
           const axe=band>0&&Math.abs(slope)>.5&&
             s(seed+band*47,i*13+19)>.29;
           const style=axe?"side-axe":short?"short-hemp":"long-hemp";
