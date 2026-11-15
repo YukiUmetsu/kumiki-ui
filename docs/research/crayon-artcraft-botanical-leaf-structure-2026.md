@@ -26,3 +26,12 @@ External **technique/morphology** studies (distinct from an identity reference; 
 **Technical checks:** `npx vitest run --project unit tests/crayon-drawing-system.test.tsx`, `npm run typecheck`, `npm run build-storybook`, `npm run catalog:check`; Chromium native proof when available. Require 960×540, 540×960 and `stalk-leaf` crops in both aspects. Compare the previous proof run above to new proof artifacts. Inspect the leaf root, tip, serrations, vein termination and negative spaces at 1× and 3×. Check that patches remain clipped to an opaque leaf at first/middle/final frames.
 
 **Unmet ArtCraft strict release evidence:** no high-res source crop or independently traced semantic mask was available to the source renderer in this run; therefore source-relative five-axis values, pixel fidelity scores and final artistic acceptance are **not claimed**. The remaining source/target mask and independent visual gate must be completed before removing `!dev`. The user-requested human face remains separately blocked by ArtCraft v7's *measured authorized-photo portrait gate*; do not polish its invented anatomy.
+
+
+## Native Chromium comparison — iteration 1 rejected for line dominance
+
+Run [43681980567](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43681980567) passed automated drawing proof; actual 960×540 and 540×960 full frames and `stalk-leaf` macros were opened and compared side by side with earlier evidence [43681171537](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43681171537).
+
+Observed improvement: blade outline is slightly more asymmetrical, petiole throat reads integrated, veins become separate branches. **Still rejected as finished art:** eight near-equidistant bright, straight-looking diagonals dominate the tiny leaf; the lower blade contour shows an almost decorative scallop sequence. These are local art-direction failures which CI does not detect.
+
+Iteration 2 addresses the causes rather than adding noise: compound cubic turns for every lateral vein, lower saturated/white vein contrast, finer stroke width, and an unequal lower blade edge. A new native-browser proof and 1×/3× comparison remain required for any stronger artistic claim.
