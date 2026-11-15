@@ -32,7 +32,7 @@ function tongue(base: Pt, w: number, h: number, lean: number, curl: number, fram
 }
 
 /** A smoke billow: a cluster of round lobes (drawn as one outlined union), the way the scrolls draw smoke and cloud. */
-function billow(c: Pt, r: number, seed: number): string {
+export function billow(c: Pt, r: number, seed: number): string {
   const lobes: string[] = [circleD(c[0], c[1], r * .7)];
   for (let i = 0; i < 6; i++) {
     const a = (i / 6 + hash01(seed, i, 1) * .08) * Math.PI * 2, d = r * (.55 + .15 * hash01(seed, i, 2)), rr = r * (.42 + .16 * hash01(seed, i, 3));

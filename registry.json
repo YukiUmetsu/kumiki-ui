@@ -3913,6 +3913,11 @@
           "target": "components/video/ukiyoe/ukiyoe-parade.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-ryugu.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-ryugu.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-village.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-village.ts"

@@ -26,6 +26,7 @@ import { ANIMATED_TSUKUMO, TSUKUMO_MOTIFS } from "./ukiyoe-tsukumo";
 import { ANIMATED_REALMS, REALM_MOTIFS } from "./ukiyoe-realms";
 import { ANIMATED_PARADE, PARADE_MOTIFS } from "./ukiyoe-parade";
 import { ANIMATED_VILLAGE, VILLAGE_MOTIFS } from "./ukiyoe-village";
+import { ANIMATED_RYUGU, RYUGU_MOTIFS } from "./ukiyoe-ryugu";
 
 export interface MotifContext { frame: number; wind: number; seed: number; progress: number }
 type P = Readonly<Record<string, unknown>>;
@@ -1460,15 +1461,15 @@ export type UkiyoeMotifName =
   | "room" | "andon" | "irori" | "futon" | "loom" | "byobu" | "well" | "stump" | "usu" | "tarai" | "fire" | "halo" | "kumo" | "mato"
   | "belfry" | "hondo" | "gate" | "hokora" | "graves" | "toro" | "hut" | "bamboo" | "kaki" | "shinboku" | "jinmenju"
   | "gissha" | "sudare" | "kicho" | "shinden" | "ikou"
-  | "ryugu" | "seabed" | "lightrays" | "moonpalace" | "amanogawa" | "magpies" | "iwato" | "onigashima" | "sasa" | "kago" | "kasa" | "tawara" | "sori";
+  | "ryugu" | "seabed" | "lightrays" | "moonpalace" | "amanogawa" | "magpies" | "iwato" | "onigashima" | "sasa" | "kago" | "kasa" | "tawara" | "sori" | "tamatebako";
 export const UKIYOE_MOTIFS: readonly UkiyoeMotifName[] = [
   "sky", "mountain", "hills", "sea", "wave", "pine", "sakura", "willow", "reeds", "rock", "cloud", "sun", "moon",
   "house", "pagoda", "torii", "bridge", "boat", "lantern", "field", "pier", "peach", "ricefield",
   "range", "minka", "jizo", "komainu", "castle", "shop", "kura", "yashiki", "firetower",
-  "room", "andon", "irori", "futon", "loom", "byobu", "well", "stump", "usu", "tarai", "fire", "halo", "kumo", "mato", "belfry", "hondo", "gate", "hokora", "graves", "toro", "hut", "bamboo", "kaki", "shinboku", "jinmenju", "gissha", "sudare", "kicho", "shinden", "ikou", "ryugu", "seabed", "lightrays", "moonpalace", "amanogawa", "magpies", "iwato", "onigashima", "sasa", "kago", "kasa", "tawara", "sori",
+  "room", "andon", "irori", "futon", "loom", "byobu", "well", "stump", "usu", "tarai", "fire", "halo", "kumo", "mato", "belfry", "hondo", "gate", "hokora", "graves", "toro", "hut", "bamboo", "kaki", "shinboku", "jinmenju", "gissha", "sudare", "kicho", "shinden", "ikou", "ryugu", "seabed", "lightrays", "moonpalace", "amanogawa", "magpies", "iwato", "onigashima", "sasa", "kago", "kasa", "tawara", "sori", "tamatebako",
 ];
 /** Motifs whose drawing depends on the frame or wind (others are drawn once and cached). */
-export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "reeds", "lantern", "peach", "ricefield", "boat", "range", "minka", ...ANIMATED_TOWN, ...ANIMATED_INTERIOR, ...ANIMATED_FOLK, ...ANIMATED_EFFECTS, ...ANIMATED_KAMI, ...ANIMATED_TEMPLE, ...ANIMATED_TREES, ...ANIMATED_HEIAN, ...ANIMATED_TSUKUMO, ...ANIMATED_REALMS, ...ANIMATED_PARADE, ...ANIMATED_VILLAGE] as UkiyoeMotifName[]);
+export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "reeds", "lantern", "peach", "ricefield", "boat", "range", "minka", ...ANIMATED_TOWN, ...ANIMATED_INTERIOR, ...ANIMATED_FOLK, ...ANIMATED_EFFECTS, ...ANIMATED_KAMI, ...ANIMATED_TEMPLE, ...ANIMATED_TREES, ...ANIMATED_HEIAN, ...ANIMATED_TSUKUMO, ...ANIMATED_REALMS, ...ANIMATED_PARADE, ...ANIMATED_VILLAGE, ...ANIMATED_RYUGU] as UkiyoeMotifName[]);
 
 const MOTIFS: Readonly<Record<UkiyoeMotifName, (p: P, c: MotifContext) => Prim[]>> = {
   sky, mountain, hills, sea, wave, pine, sakura, willow, reeds, rock, cloud, sun, moon, house, pagoda, torii, bridge, boat, lantern, field, pier, peach, ricefield,
@@ -1487,6 +1488,7 @@ const MOTIFS: Readonly<Record<UkiyoeMotifName, (p: P, c: MotifContext) => Prim[]
   ...REALM_MOTIFS,
   ...PARADE_MOTIFS,
   ...VILLAGE_MOTIFS,
+  ...RYUGU_MOTIFS,
 };
 
 export function drawMotif(name: UkiyoeMotifName, params: P, context: MotifContext): Prim[] {
