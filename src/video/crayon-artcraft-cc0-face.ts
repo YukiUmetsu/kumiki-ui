@@ -80,7 +80,8 @@ export const CRAYON_F1_FACE_PARTS=[
   "nose-alar-undercut-near","nose-alar-undercut-far",
   "nose-tip-reflected-light","nasal-alar-attachment-near",
    "nasal-alar-attachment-far","naris-shadow-near","naris-shadow-far",
-   "mouth-aperture-depth","dental-surface-left","dental-surface-center",
+   "mouth-aperture-depth","labial-upper-value","labial-lower-value",
+   "dental-surface-left","dental-surface-center",
    "dental-surface-far","hair-left-curtain",
   "hair-right-curtain",
 ] as const;
@@ -739,6 +740,19 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(382,693,97,42),C.lipLight,[181,268],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       blendRadius:5.1,pressure:.39,spacing:7,markStrength:.22});
+  // High-value anatomical source discrepancy: the photo upper lip
+  // is a much darker, three-dimensional red-violet structure than the
+  // old pale single open glaze. A second *directional wax application*
+  // deepens its sampled color without substituting an ink cartoon rim.
+  wax("labial-upper-value",
+    "M356 738Q376 716 403 704Q422 693 442 696"+
+    "Q463 692 482 701Q488 705 483 714"+
+    "Q451 714 424 723Q389 737 356 738Z",
+    rect(349,687,144,59),
+    ["#95585f","#56343d","#b9797b"],[178,268],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      featherContacts:true,pressure:.72,spacing:6.8,
+      blendRadius:7.7,markStrength:.27});
   // Source F1 lips are parted: the cropped photograph plainly
   // shows three shadowed upper incisors, unlike the earlier assumption.
   // The aperture is a perspective wedge anchored at near x355/y743.
@@ -768,25 +782,25 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   // In 5x reference crop, dental shapes x390..460/y711..739 are
   // tiny, low-value uneven upper incisors; no artificial bright bar.
   wax("dental-surface-left",
-    "M389 726Q400 722 411 719Q413 724 413 731"+
-    "Q405 737 393 738Q389 734 389 726Z",
-    rect(385,714,31,29),["#a69d96","#6b6263","#bbb1a8"],[224,294],
+    "M398 729Q404 723 410 723Q413 726 413 730"+
+    "Q408 734 400 735Z",
+    rect(395,719,22,19),["#6f6967","#4d4648","#948983"],[224,294],
     {parentId:"mouth-aperture-depth",clipToParent:true,
-      pressure:.77,spacing:4.3,markStrength:.12,underpaintTooth:.08,
+      pressure:.91,spacing:4.3,markStrength:.12,underpaintTooth:.08,
       edgeRoughness:0,outlineOpacity:0});
   wax("dental-surface-center",
-    "M411 719Q421 716 433 715Q437 721 435 728"+
-    "Q427 732 415 731Q411 727 411 719Z",
-    rect(407,710,34,26),["#b1a6a0","#6d6566","#c3b3ab"],[228,295],
+    "M415 723Q425 715 435 716Q435 722 432 728"+
+    "Q424 730 415 728Z",
+    rect(412,713,27,20),["#736c6c","#484247","#9c8f8a"],[228,295],
     {parentId:"mouth-aperture-depth",clipToParent:true,
-      pressure:.81,spacing:4.1,markStrength:.14,underpaintTooth:.08,
+      pressure:.94,spacing:4.1,markStrength:.13,underpaintTooth:.08,
       edgeRoughness:0,outlineOpacity:0});
   wax("dental-surface-far",
-    "M436 715Q443 712 452 713Q459 714 461 718"+
-    "Q453 721 443 723Q438 722 436 715Z",
-    rect(432,710,33,18),["#aba39f","#706568","#bdb1ab"],[232,296],
+    "M437 717Q448 714 456 715Q458 716 457 719"+
+    "Q446 723 437 720Z",
+    rect(433,711,28,15),["#7c7270","#514a4f","#a29891"],[232,296],
     {parentId:"mouth-aperture-depth",clipToParent:true,
-      pressure:.79,spacing:4.0,markStrength:.1,underpaintTooth:.08,
+      pressure:.89,spacing:4.0,markStrength:.1,underpaintTooth:.08,
       edgeRoughness:0,outlineOpacity:0});
   wax("lip-lower",
     "M358 744Q386 749 416 741Q456 730 485 716"+
@@ -797,6 +811,15 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       featherContacts:true,
       pressure:.61,spacing:8,markStrength:.23,blendRadius:6.2});
+  wax("labial-lower-value",
+    "M356 743Q383 750 407 745Q450 733 484 716"+
+    "Q487 738 472 750Q444 773 409 770"+
+    "Q377 769 356 743Z",
+    rect(350,709,140,70),
+    ["#bd8286","#8a555f","#e4a5a6"],[209,289],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      featherContacts:true,pressure:.63,spacing:7.2,
+      blendRadius:8.2,markStrength:.26});
   // The inferior vermilion turns back into the chin as a wide *open*
   // value plane. This is not an opaque digital smile capsule.
   wax("lip-lower-core-shadow",
