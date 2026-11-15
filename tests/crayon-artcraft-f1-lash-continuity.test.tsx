@@ -48,10 +48,11 @@ describe("ArtCraft F1 wax lash root attachment to photographed tarsal rim",()=>{
       for(const id of lashNames){
         const before=sparse.elements.find(e=>e.id===id);
         const after=rooted.elements.find(e=>e.id===id);
-        expect(after?.kind).toBe("contour");
-        expect(after?.timing).toEqual(before?.timing);
-        expect(after?.parentId).toBe(before?.parentId);
-        expect(after?.d).not.toBe(before?.d);
+        if(before?.kind!=="contour"||after?.kind!=="contour")
+          throw new Error("Missing wax contour "+id);
+        expect(after.timing).toEqual(before.timing);
+        expect(after.parentId).toBe(before.parentId);
+        expect(after.d).not.toBe(before.d);
       }
     }
   });
