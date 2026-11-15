@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { cameraAt, carvedLine, ease, loopOffsets, scrollPan, seedOf, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
@@ -7,6 +8,8 @@ import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
 import { realmScene, UKIYOE_REALM_SCENES } from "../registry/video/ukiyoe/ukiyoe-realms";
 import { paradeScene, UKIYOE_PARADE_SCENES } from "../registry/video/ukiyoe/ukiyoe-parade";
+import { inspectUkiyoeEpisode, ukiyoeCaptionLines, ukiyoeEpisode, ukiyoeEpisodeSrt, ukiyoeTitleCard } from "../registry/video/ukiyoe/ukiyoe-episode";
+import { KASA_JIZO_EPISODE } from "../src/video/ukiyoe-kasa-jizo";
 import { tsukumoScene, UKIYOE_TSUKUMO, UKIYOE_TSUKUMO_SCENES } from "../registry/video/ukiyoe/ukiyoe-tsukumo";
 import { giantScene, UKIYOE_GIANT_SCENES, UKIYOE_GIANTS } from "../registry/video/ukiyoe/ukiyoe-giants";
 import { folkYokaiScene, UKIYOE_FOLK_YOKAI_LOOKS, UKIYOE_FOLK_YOKAI_SCENES } from "../registry/video/ukiyoe/ukiyoe-folkyokai";
@@ -966,5 +969,38 @@ describe("UKIYO1 parades", () => {
     }
     const fox = JSON.stringify(drawFigure({ look: { animal: "fox", robe: "gofun" } } as any, 0, 0, 1).prims);
     expect(fox).toContain("tan");
+  });
+});
+
+describe("UKIYO1 episode template", () => {
+  it("compiles Kasa Jizō for YouTube and Shorts with captions sized per output, an .srt, and a clean script check", () => {
+    expect(inspectUkiyoeEpisode(KASA_JIZO_EPISODE)).toEqual([]);
+    const doc = ukiyoeEpisode(KASA_JIZO_EPISODE);
+    // The checked-in example is this episode, compiled (regenerate it when the episode changes).
+    expect(JSON.parse(readFileSync("examples/film/ukiyoe-kasa-jizo.film.json", "utf8"))).toEqual(JSON.parse(JSON.stringify(doc)));
+    for (const output of ["landscape", "portrait"]) {
+      const c = compileFilm(doc, { outputId: output });
+      expect(c.ok, output).toBe(true);
+      if (c.ok) expect(c.film.captions?.style?.size).toBe(output === "landscape" ? "2.6cqw" : "3.9cqw");
+    }
+    const srt = ukiyoeEpisodeSrt(KASA_JIZO_EPISODE);
+    expect(srt.startsWith("1\n00:00:01,667 --> ")).toBe(true);
+    expect(srt.split("\n\n").length).toBe(doc.captions!.cues.length);
+    // A caption too long for two lines on 9:16, and scene text inside the caption band, are both caught before rendering.
+    expect(ukiyoeCaptionLines("All they had were five straw hats they had woven, and a little rice, and nothing more.", "portrait")).toBeGreaterThan(2);
+    const bad = { ...KASA_JIZO_EPISODE, shots: [ukiyoeTitleCard({ title: "T", backdrop: a => ({ ...KASA_JIZO_EPISODE.shots[0].build(a), nodes: [{ id: "low", kind: "text", style: "plain", text: "Low", x: 400, y: a === "portrait" ? 1500 : 900, size: 40 }] }) as never,
+      narration: [{ text: "A line.", from: 10, to: 80 }] }), KASA_JIZO_EPISODE.shots[5]] };
+    expect(inspectUkiyoeEpisode(bad).some(i => i.message.includes("caption band"))).toBe(true);
+  });
+
+  it("puts each hat on its jizō as the key runs, and rejects a caption size that is not a CSS length", () => {
+    const jizo = (progress: number) => JSON.stringify(drawMotif("jizo", { kasa: true, kasaDrop: true }, { frame: 0, wind: 0, seed: 1, progress }));
+    expect(jizo(0)).not.toBe(jizo(1));
+    expect(jizo(1)).toContain("translate(0 0.0)");
+    for (const m of ["kasa", "tawara", "sori"] as const) expect(drawMotif(m, {}, { frame: 0, wind: 0, seed: 1, progress: 0 }).length).toBeGreaterThan(0);
+    const doc = ukiyoeEpisode(KASA_JIZO_EPISODE) as unknown as { captions: { style: { size: unknown } } };
+    doc.captions.style.size = { landscape: "huge", portrait: "3cqw" };
+    const c = compileFilm(doc, { outputId: "landscape" });
+    expect(c.diagnostics.some(d => d.code === "caption-style-size")).toBe(true);
   });
 });

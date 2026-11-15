@@ -6,6 +6,7 @@
 import type { Pt } from "./ukiyoe-core";
 import { carvedLine, clamp, clamp01, fbm1, hash01, hashSigned, lerp, noise1, polar, polyD, smoothD } from "./ukiyoe-core";
 import type { Prim } from "./ukiyoe-prims";
+import { kasaDrop, kasaHat } from "./ukiyoe-village";
 import { circleD, ellipseD, rectD } from "./ukiyoe-prims";
 const lerp2 = (a: Pt, b: Pt, t: number): Pt => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
 import type { UkiyoePaint } from "./ukiyoe-pigments";
@@ -338,11 +339,15 @@ function weathering(d: string, w: number, h: number, seed: number, moss: number)
 /**
  * Roadside jizō: a small stone monk, bald, eyes closed in a faint smile, robed, holding a jewel (or a ringed staff),
  * on a lotus pedestal. Villagers dress them in a red bib (`bib`) and a knitted cap (`cap`); `snow` puts snow on the
- * head and shoulders. `count` lines up a row of them, each a little different, as at a temple path.
+ * head and shoulders. `count` lines up a row of them, each a little different, as at a temple path. `kasa` puts a straw
+ * hat on the head and `tenugui` (true or a colour) ties a cloth over it, as in Kasa Jizō; with `kasaDrop` the hat or
+ * cloth comes down onto the head as the node's progress runs 0 → 1, so a scene can key the moment it is given.
  */
 export function jizo(p: P, c: SceneryContext): Prim[] {
   const h = num(p, "height", 120), count = clamp(Math.round(num(p, "count", 1)), 1, 9), seed = c.seed + num(p, "variant", 0) * 7;
   const stone = paint(p, "stone", "usuzumi"), bib = typeof p.bib === "string" ? p.bib as string : bool(p, "bib", true) ? "shu" : undefined;
+  const kasaOn = bool(p, "kasa", false), drop = bool(p, "kasaDrop", false) ? kasaDrop(c.progress) : 1;
+  const tenugui = typeof p.tenugui === "string" ? p.tenugui as UkiyoePaint : bool(p, "tenugui", false) ? "ai" : undefined;
   const cap = bool(p, "cap", false), snow = clamp01(num(p, "snow", 0)), staff = bool(p, "staff", false), moss = clamp01(num(p, "moss", .5));
   const out: Prim[] = [];
   for (let n = 0; n < count; n++) {
@@ -381,6 +386,13 @@ export function jizo(p: P, c: SceneryContext): Prim[] {
       out.push({ t: "fill", d: smoothD([T(-.44, -.56), T(-.36, -.66 - .04 * snow), T(-.2, -.68), T(-.24, -.62)], true, .4) + smoothD([T(.44, -.56), T(.36, -.66 - .04 * snow), T(.2, -.68), T(.24, -.62)], true, .4), fill: "gofun", opacity: .95 });
       out.push({ t: "fill", d: smoothD([T(-.66, -.08), T(-.5, -.17 - .03 * snow), T(.5, -.17 - .03 * snow), T(.66, -.08), T(0, -.12)], true, .4), fill: "gofun", opacity: .95 });
     }
+    // The gift: a straw hat, or a cloth tied over the head, lowered into place.
+    const lift = (1 - drop) * hh * .7;
+    if (kasaOn && drop > 0) out.push({ t: "group", transform: `translate(0 ${(-lift).toFixed(1)})`, prims: kasaHat(...T(0, -.93), w * .64, 1.6, lean) });
+    if (tenugui && drop > 0) out.push({ t: "group", transform: `translate(0 ${(-lift).toFixed(1)})`, opacity: Math.min(1, drop * 3), prims: [
+      { t: "fill", d: smoothD([T(-.3, -.8), T(-.27, -.96), T(0, -1.03), T(.27, -.96), T(.3, -.8), T(.2, -.86), T(0, -.9), T(-.2, -.86)], true, .4), fill: tenugui, outline: .9, grain: .5, pattern: { type: "kanoko", color: "gofun", scale: .35, opacity: .7 } },
+      { t: "fill", d: smoothD([T(.26, -.84), T(.42, -.8), T(.5, -.7), T(.4, -.72), T(.3, -.76)], true, .3) + smoothD([T(.28, -.82), T(.36, -.68), T(.32, -.6), T(.27, -.7)], true, .3), fill: tenugui, outline: .8 },
+    ] });
   }
   return out;
 }

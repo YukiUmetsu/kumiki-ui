@@ -29,6 +29,9 @@
 - `ukiyoe-tsukumo.ts`: the tsukumogami (object spirits), the kimono rack and `tsukumoScene()`.
 - `ukiyoe-realms.ts`: the other realms (sea palace, moon, Milky Way, rock cave, oni island) and `realmScene()`.
 - `ukiyoe-parade.ts`: animal heads and tails for `look.animal`, the `kago` palanquin, `procession()` and `paradeScene()`.
+- `ukiyoe-village.ts`: New Year village goods (straw hats, rice bales, a loaded sled) and the walking jizō look.
+- `ukiyoe-film-slot.tsx`: the `ukiyoe-scene` and `ukiyoe-kasumi` slots, so film documents render UKIYO1 shots in Storybook, `film:review` and `film:render`.
+- `ukiyoe-episode.ts` (registry item `ukiyoe-episode`, which also needs `film-document`): the YouTube episode template.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -420,6 +423,52 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
   - `mousewedding`: the same order at dusk, with mice and a red palanquin.
 
   Storybook **Parades** plays them.
+
+### Village goods
+
+- **`kasaHat(cx, cy, r, lw, tilt)`.** One straw kasa: a shallow cone seen a little from above, its ribs running from
+  the crown knob to the brim, the darker underside at the back.
+- **Motif `kasa`.** A pile of hats for sale. Params `count` (1–8), `size`, `tilt`.
+- **Motif `tawara`.** Rice bales: barrel-shaped, straw running lengthwise under rope bands, the round end cap gathered
+  into a knot. `count` (1–10) stacks them in a pyramid.
+- **Motif `sori`.** A wooden sled on runners that curl up in front, loaded with bales (`bales`), a stand of mirror
+  rice cakes (`mochi`) and wrapped bundles (`bundles`). `rope` runs the pull rope forward to `ropeY`. Use `flip` to
+  pull it leftward.
+- **Jizō params.** `kasa` puts a straw hat on the statue; `tenugui` (true or a colour) ties a cloth over its head.
+  With `kasaDrop`, the hat or cloth comes down into place as the node's progress runs 0 → 1, so a scene keys the moment
+  it is given.
+- **`UKIYOE_JIZO_LOOK`.** A figure look for a jizō that walks: stone grey, shaven, red at the collar, wearing its hat.
+
+### Episode template
+
+`ukiyoeEpisode(spec)` turns a folktale, written as shots and the narration over each, into one film document.
+
+- **Shots.** Each shot is `{ id, title, build(aspect), narration?, kasumi?, sound? }`.
+  - `build` returns a UKIYO1 scene at 1920×1080 or 1080×1920.
+  - `narration` lines are in the shot's own frames.
+  - `kasumi` sweeps gold mist out of the previous shot for that many frames.
+- **Title card.** `ukiyoeTitleCard({ title, titleJa, seal, backdrop })` prints the backdrop block by block, then stamps
+  the cartouche and seal inside the safe area's upper right.
+- **End card.** `ukiyoeEndCard({ closing, next, seal, backdrop })` stamps the closing cartouche in the upper left, with
+  the next story and the seal beside it. The lower and right parts stay free of text for YouTube's end-screen elements.
+  It holds at least five seconds.
+- **Outputs.** `youtube` (16:9) and `youtube-shorts` (9:16).
+- **Captions.** The narration becomes the film's caption track, with `script-estimate` timing until a voice is aligned.
+  It is drawn by the film's caption performer inside each preset's safe area, at 2.6cqw (50 px) on 16:9 and 3.9cqw
+  (42 px) on 9:16, in a Mincho serif. Scenes carry no subtitle text of their own.
+- **`ukiyoeEpisodeSrt(spec)`.** The same captions as SubRip, for upload, so viewers can switch them off or translate them.
+- **`inspectUkiyoeEpisode(spec)`.** Checks before anything is rendered:
+  - each scene is valid and the right size;
+  - captions stay inside their shot, with gaps between them;
+  - every caption has enough frames to be read, using the film's own reading rule;
+  - every caption fits two lines on each output (greedy word wrap at 0.6 em);
+  - no scene text sits in the caption band while a caption shows;
+  - the end card is at least five seconds.
+
+  After that, `film:check` checks the document, and `film:review` measures the real rendered text boxes for collisions
+  and clipping.
+- **Example.** `src/video/ukiyoe-kasa-jizo.ts` (compiled to `examples/film/ukiyoe-kasa-jizo.film.json`, with its `.srt`) is a complete episode: *Kasa Jizō*, six shots, 73 s. Storybook
+  **Episode (Kasa Jizō)** plays it in either output, with the script check and an .srt download.
 
 ### Transition
 
