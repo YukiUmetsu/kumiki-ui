@@ -167,27 +167,33 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
           if(ry>=ridge[i][1]||ry>=ridge[i+2][1]||detail===0)return [];
           const crest=ridgeHeight(stations,rx);
           const rootY=crest+6;
-          const len=(band===0?29:band===1?66:84)*
-            (.77+.33*s(seed+band*31,i*15+19));
-          const drift=(s(seed+band*7,i*11+37)-.5)*len*.4;
+          const len=(band===0?25:band===1?43:56)*
+            (.8+.31*s(seed+band*31,i*15+19));
+          const drift=(s(seed+band*7,i*11+37)-.5)*len*.68;
+          const lateral=(s(seed+band*19,i*7+41)-.5)*len*.28;
+          // Three short pressure marks with real paper gaps. A single long
+          // line read like leaking paint rather than a fractured cliff.
           const d="M"+f(rx)+" "+f(rootY)+
-            " Q"+f(rx+drift*.12)+" "+f(rootY+len*.26)+
-            " "+f(rx+drift*.55)+" "+f(rootY+len*.48)+
-            " M"+f(rx+drift*.58+3)+" "+f(rootY+len*.53)+
-            " Q"+f(rx+drift*.91)+" "+f(rootY+len*.8)+
-            " "+f(rx+drift)+" "+f(rootY+len);
+            " Q"+f(rx+lateral*.12)+" "+f(rootY+len*.12)+
+            " "+f(rx+lateral*.45)+" "+f(rootY+len*.23)+
+            " M"+f(rx+lateral*.55+1.7)+" "+f(rootY+len*.35)+
+            " Q"+f(rx+lateral+drift*.26)+" "+f(rootY+len*.47)+
+            " "+f(rx+lateral+drift*.46)+" "+f(rootY+len*.59)+
+            " M"+f(rx+lateral+drift*.58+1.2)+" "+f(rootY+len*.73)+
+            " Q"+f(rx+lateral+drift*.82)+" "+f(rootY+len*.82)+
+            " "+f(rx+lateral+drift)+" "+f(rootY+len*.92);
           return [<g key={"spine-"+i}>
             <path data-km-rock-spine="" data-km-rock-spine-root-y={f(crest)}
               d={d} fill="none"
               stroke={band===0?"#685b4c":INK}
-              strokeWidth={band===0?.82:band===1?1.25:1.65}
+              strokeWidth={band===0?.72:band===1?.96:1.22}
               strokeLinecap="round"
-              opacity={f((band===0?.43:.66)*(1-.35*mist))}/>
-            <path d={"M"+f(rx+3)+" "+f(rootY+len*.17)+
-              " Q"+f(rx+drift*.35+5)+" "+f(rootY+len*.34)+
-              " "+f(rx+drift*.7+4)+" "+f(rootY+len*.65)}
-              fill="none" stroke="#d1bb96" strokeWidth=".95"
-              opacity=".37"/>
+              opacity={f((band===0?.32:.54)*(1-.35*mist))}/>
+            <path d={"M"+f(rx+lateral*.5+3)+" "+f(rootY+len*.35)+
+              " Q"+f(rx+drift*.26+3)+" "+f(rootY+len*.45)+
+              " "+f(rx+drift*.3+3)+" "+f(rootY+len*.52)}
+              fill="none" stroke="#d1bb96" strokeWidth=".64"
+              opacity=".28"/>
           </g>];
         })}
         {/* Moss dots cling to the actual crest rather than being random screen confetti. */}
@@ -365,21 +371,19 @@ function NeedleSpray({x,y,scale,seed,wind}:{
         " "+f(tx)+" "+f(ty);
       const spreadX=(10+4*s(seed+j*13,31))*scale;
       const spreadY=(3+3*s(seed+j*17,39))*scale;
-      const cloud="M"+f(tx-spreadX)+" "+f(ty+1.5*scale)+
-        " Q"+f(tx-spreadX*.9)+" "+f(ty-spreadY*.85)+
-        " "+f(tx)+" "+f(ty-spreadY)+
-        " Q"+f(tx+spreadX*.85)+" "+f(ty-spreadY*.72)+
-        " "+f(tx+spreadX)+" "+f(ty+1.7*scale)+
-        " Q"+f(tx+spreadX*.22)+" "+f(ty+3*scale)+
-        " "+f(tx-spreadX)+" "+f(ty+1.5*scale)+" Z";
       return <g key={j} data-km-pine-needle-cluster=""
         data-km-pine-needles={count}
         data-km-pine-twig-root={f(x)+","+f(y)}>
         <path d={twig} stroke="#6a5339"
           strokeWidth={f(1.05*scale)} fill="none" strokeLinecap="round"/>
         {/* Capillary ink underwash must never replace the needles' tips. */}
-        <path data-km-pine-foliage-wash="" d={cloud}
-          fill="#59503d" opacity={f(.10+.07*s(seed+j*29,47))}/>
+        <path data-km-pine-foliage-wash=""
+          d={"M"+f(tx-spreadX)+" "+f(ty+1.5*scale)+
+            " Q"+f(tx)+" "+f(ty-spreadY*.7)+
+            " "+f(tx+spreadX)+" "+f(ty+1.6*scale)}
+          fill="none" stroke="#665840"
+          strokeWidth={f(1.4*scale)}
+          opacity={f(.24+.10*s(seed+j*29,47))}/>
         <path d={wet.join(" ")} fill="#332c23" opacity=".86"/>
         <path d={middle.join(" ")} fill="#675741" opacity=".78"/>
         <path d={dry.join(" ")} fill="#a18b6a" opacity=".52"/>
