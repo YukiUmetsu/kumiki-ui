@@ -198,6 +198,31 @@ test("ArtCraft two-up hand-laid crayon wax versus polished wax reference",
     expect(errors).toEqual([]);
   });
 
+/** Absolute film frames for a fixed paper-contact source: inspect the SAME
+ * genuine CRAYON1 SVG, not an animated CSS or regenerated stand-in. Each
+ * capture records pigment shape continuity at an unchanged camera/seed.
+ * Passing DOM checks does not assert authentic crayon craftsmanship.
+ */
+test("ArtCraft wax nib partial-contact timeline at native resolution",
+  async({page},info)=>{
+    const spec=crayonPaperContactSwatches(.82,974);
+    const errors:string[]=[];
+    page.on("pageerror",error=>errors.push(error.message));
+    await page.setViewportSize({width:960,height:318});
+    for(const frame of [62,92,122,158] as const){
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toHaveAttribute("data-km-crayon-frame",String(frame));
+      await expect(svg.locator('[data-km-crayon-deposition="stroke-built"]'))
+        .toHaveCount(5);
+      await svg.screenshot({path:info.outputPath(
+        "crayon-wax-contact-timeline-"+frame+".png"),animations:"disabled"});
+    }
+    expect(errors).toEqual([]);
+  });
+
 /** Source-independent paper material contact bench: actual native Chromium
  * captures at light and firm pressure, on light and dark layered grounds.
  */
