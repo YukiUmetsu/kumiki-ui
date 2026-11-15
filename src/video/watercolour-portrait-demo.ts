@@ -469,6 +469,34 @@ function hair(p:Palette,subject:PortraitSubject):[WatercolourArtPart,Watercolour
         :"M390 109 Q419 154 423 219 Q418 269 405 308"+
           " Q411 222 390 176 Z",
       p.hairDeep,.70,luminous(p.hair,p.hairDeep,.35,.17),93,83),
+    wash("crown-unbroken-light-ribbon",
+      mature
+        ?"M225 160 C242 117 271 93 298 94 Q263 128 251 166"+
+          " Q243 178 231 189 Q244 153 225 160 Z"
+        :"M211 159 C234 95 271 69 303 57 Q265 92 250 146"+
+          " Q238 155 217 176 Z",
+      p.hairLight,.23,luminous("#D7B9A3",p.hair,.40,.05),146,57),
+    wash("crown-shadow-broken-ribbon",
+      mature
+        ?"M319 85 Q370 85 399 131 Q410 157 404 177"+
+          " Q391 129 369 112 Q355 99 319 85 Z"
+        :"M342 57 C380 67 418 110 424 157"+
+          " Q410 134 399 115 Q375 79 342 57 Z",
+      p.hairDeep,.59,luminous(p.hair,p.hairDeep,.25,.06),149,55),
+    wash("temple-reflected-warm-pigment",
+      mature
+        ?"M224 177 Q213 195 220 243 Q222 263 225 278"+
+          " Q229 233 244 211 Z"
+        :"M205 173 Q181 214 191 270 Q192 294 188 321"+
+          " Q210 285 209 246 Z",
+      p.hairLight,.33,luminous("#B89C86",p.hairDeep,.48,.04),168,49),
+    mark("root-following-gouache-dry-runs",
+      mature
+        ?"M226 154 Q241 115 274 99 M244 149 C254 123 270 108 292 105"+
+          " M316 94 Q351 97 371 118 M374 122 Q400 152 400 190"
+        :"M218 165 Q239 103 277 71 M243 145 Q264 100 300 73"+
+          " M293 76 Q330 53 354 74 M379 89 Q409 125 414 155",
+      p.hairLight,1.38,.49,205),
     mark("locks-follow-the-scalp",
       mature
         ?"M227 153 Q266 83 315 84 M247 159 Q277 105 313 103"+
@@ -525,6 +553,28 @@ function garment(p:Palette,subject:PortraitSubject):WatercolourArtPart {
       "M396 510 Q476 540 509 601 Q530 672 531 773 L394 779"+
       " Q403 615 396 510 Z",
       p.garmentDeep,.37,luminous(p.garmentLight,p.garmentDeep,.69,.08),99,86),
+    // Bold, anatomically placed fabric washes replace noisy all-over texture.
+    // Tapered edges describe actual sleeve fall and collar weight.
+    wash("shoulder-left-bloom",
+      "M159 558 Q115 581 102 639 Q116 627 134 626"+
+      " Q160 613 176 631 Q164 599 159 558 Z",
+      p.garmentLight,.29,luminous("#B7AEA0",p.garment,.45,.06),115,84),
+    wash("shoulder-right-broken-violet",
+      "M415 527 Q483 557 506 610 Q493 598 477 610"+
+      " Q454 603 432 589 Q444 565 415 527 Z",
+      p.reflected,.24,luminous(p.garmentLight,p.reflected,.69,.02),126,80),
+    wash("chest-suggestion-of-fabric-weight",
+      "M255 617 Q274 634 286 674 Q285 725 295 765"+
+      " Q266 725 268 698 Q268 648 255 617 Z",
+      p.garmentDeep,.23,luminous(p.garment,p.garmentDeep,.47,.03),150,83),
+    wash("lapel-reserved-lift",
+      "M188 542 Q235 517 263 509 Q278 536 289 556"+
+      " Q250 544 235 564 Q205 557 188 542 Z",
+      p.garmentLight,.29,luminous("#E1D0B9",p.garment,.32,.07),152,71),
+    wash("right-lapel-tail-glaze",
+      "M395 517 Q437 535 459 561 Q428 565 405 593"+
+      " Q419 550 395 517 Z",
+      p.garmentDeep,.27,luminous(p.garment,p.garmentDeep,.38,.07),161,62),
     wash("inner-shirt-reserved",
       "M268 491 Q302 520 333 532 Q357 517 379 493"+
       " Q366 555 335 661 Q316 569 268 491 Z",
@@ -541,9 +591,14 @@ function garment(p:Palette,subject:PortraitSubject):WatercolourArtPart {
       " M382 641 Q409 600 466 568",
       p.garmentDeep,1.38,.6,190),
     mark("fabric-fold-gesture",
-      "M115 646 Q151 624 177 661 M126 707 Q154 702 168 730"+
-      " M430 622 Q467 620 490 658 M424 703 Q469 691 498 719",
-      p.garmentLight,2,.47,211),
+      "M107 654 Q131 621 157 638 M124 706 Q143 700 159 722"+
+      " M435 609 Q461 603 484 637 M430 703 Q451 692 482 713",
+      p.garmentLight,1.7,.38,211),
+    mark("sewn-fabric-broken-drybrush",
+      "M148 557 Q118 595 121 612 M163 551 Q154 570 155 590"+
+      " M400 532 Q435 544 445 564 M385 631 Q394 648 395 672"+
+      " M314 664 Q322 691 313 710",
+      p.garmentDeep,1.25,.36,226),
     ...(mature?[
       wash("collared-shirt-v-notch",
         "M277 489 Q318 537 342 531 L338 597 Q311 558 277 489 Z",
@@ -583,6 +638,14 @@ function matureBeard(p:Palette):WatercolourArtPart {
       " Q370 438 390 391 Q392 360 382 348"+
       " Q369 389 343 413 Q319 429 293 411 Q249 389 223 351 Z",
       p.hair,.39,luminous(p.hairLight,p.hairDeep,.73,.08),151,78),
+    wash("beard-sculpted-side-volume",
+      "M239 367 Q250 385 274 398 Q294 416 311 423"+
+      " Q289 412 271 410 Q250 398 239 367 Z",
+      p.hairDeep,.38,luminous(p.hairLight,p.hairDeep,.42,.07),166,64),
+    wash("beard-chin-salt-pigment",
+      "M308 418 Q326 425 336 428 Q349 420 365 413"+
+      " Q361 438 340 451 Q314 438 308 418 Z",
+      p.hair,.56,luminous("#A29B96",p.hairDeep,.37,.10),177,60),
     wash("chin-shadow-through-beard",
       "M279 406 Q307 425 335 432 Q360 421 383 386"+
       " Q367 451 331 465 Q299 453 279 406 Z",
