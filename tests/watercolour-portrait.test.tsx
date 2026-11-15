@@ -27,6 +27,8 @@ describe("WC11 original watercolour human portrait",()=>{
         "left-lapel","right-lapel","rooted-shoulders-and-clothing",
       ]) expect(html).toContain('data-km-watercolour-part="'+id+'"');
       expect(html).toContain('data-km-watercolour-optical-glaze="opaque-face-volume"');
+      expect(html).toContain('result="granuleTint"');
+      expect(html).toContain('operator="arithmetic"');
       expect(html).toContain('data-km-watercolour-edge-pooling="opaque-face-volume"');
       expect(html).not.toContain("NaN");
       expect(html).not.toContain("Infinity");
@@ -36,6 +38,15 @@ describe("WC11 original watercolour human portrait",()=>{
       expect(html).not.toEqual(splash);
     });
   }
+
+  it("bounds source-controlled granulation without changing the original film schema",()=>{
+    const art=watercolorPortraitSpec("portrait");
+    expect(art.paper.granulation).toBeGreaterThan(.5);
+    expect(inspectWatercolourArtwork({...art,paper:{...art.paper,granulation:4}}))
+      .toContain("/paper/granulation");
+    expect(inspectWatercolourArtwork({...art,paper:{...art.paper,granulation:0}}))
+      .toEqual([]);
+  });
 
   it("uses opaque underpainting for real human skin rather than multiplying dark hair through it",()=>{
     const art=watercolorPortraitSpec("portrait");
