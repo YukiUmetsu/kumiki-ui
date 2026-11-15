@@ -6822,7 +6822,7 @@
       "name": "paper-craft",
       "type": "registry:ui",
       "title": "Paper Craft Theatre",
-      "description": "Frame-exact paper film framework: original authored cutouts, connected parent-child puppet rigs, opaque deckled curtain transitions, two-aspect multi-shot direction, pose and camera keyframes, five physical paper styles, Storybook and FD1 output.",
+      "description": "Frame-exact paper film framework: original opaque cutouts, connected puppet rigs, native deckled curtains and hinged printed-page turns, two-aspect scene direction, deterministic pose/camera keyframes, five cardstock styles, Storybook and FD1 output.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [

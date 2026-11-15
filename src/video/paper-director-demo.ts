@@ -7,7 +7,7 @@ import { paperScenerySpec } from "../../registry/video/paper-scenery-kit";
 import { paperBotanicalSpec } from "../../registry/video/paper-botanical-kit";
 import { paperObjectSpec } from "../../registry/video/paper-object-kit";
 import type { PaperStyle, PaperCraftSpec, PaperCutLayer, PaperPoseKey } from "../../registry/video/paper-craft";
-import type { PaperDirectorFilm, PaperDirectorAspect } from "../../registry/video/paper-director";
+import type { PaperDirectorFilm, PaperDirectorAspect, PaperDirectorTransition } from "../../registry/video/paper-director";
 
 const pose=(intensity:number):readonly PaperPoseKey[]=>[
   {frame:0,x:-14*intensity,y:5*intensity,angle:0,ease:"smooth"},
@@ -51,11 +51,14 @@ function animate(spec:PaperCraftSpec,kind:"woodland"|"botanical"|"houses"|"camer
 /** A reusable director film: four material subjects, four edits, two orientations. */
 export function paperDirectorDemo(
   medium:PaperStyle="layered",seed=37,motionIntensity=.7,curtains=true,
+  transitionStyle:"curtain"|"page-turn"="curtain",
 ):PaperDirectorFilm {
   if (!Number.isSafeInteger(seed))throw new RangeError("Director demo seed must be safe integer");
   if (!Number.isFinite(motionIntensity)||motionIntensity<0||motionIntensity>1)
     throw new RangeError("Director demo motion intensity must be finite 0–1");
   if(typeof curtains!=="boolean")throw new RangeError("Director paper curtains must be boolean");
+  if(transitionStyle!=="curtain"&&transitionStyle!=="page-turn")
+    throw new RangeError("Director requires a known paper transition style");
   const specs=(kind:"woodland"|"botanical"|"houses"|"camera")=>{
     const per=(aspect:PaperDirectorAspect):PaperCraftSpec=>{
       const base=kind==="woodland"
@@ -68,13 +71,13 @@ export function paperDirectorDemo(
     };
     return {landscape:per("landscape"),portrait:per("portrait")};
   };
+  const edit=(color:string,direction:"left-to-right"|"right-to-left"):PaperDirectorTransition|undefined=>
+    curtains?{kind:transitionStyle==="page-turn"?"paper-page-turn":"paper-curtain",
+      durationFrames:24,color,direction}:undefined;
   return {version:1,id:"material-paper-tour",shots:[
-    {id:"woodland-light",scenes:specs("woodland"),...(curtains?{transitionOut:{
-      kind:"paper-curtain" as const,durationFrames:24,color:"#E8CEAA",direction:"left-to-right" as const}}:{})},
-    {id:"botanical-wing",scenes:specs("botanical"),...(curtains?{transitionOut:{
-      kind:"paper-curtain" as const,durationFrames:24,color:"#A5C7AE",direction:"right-to-left" as const}}:{})},
-    {id:"city-layering",scenes:specs("houses"),...(curtains?{transitionOut:{
-      kind:"paper-curtain" as const,durationFrames:24,color:"#F1D0BB",direction:"left-to-right" as const}}:{})},
+    {id:"woodland-light",scenes:specs("woodland"),transitionOut:edit("#E8CEAA","left-to-right")},
+    {id:"botanical-wing",scenes:specs("botanical"),transitionOut:edit("#A5C7AE","right-to-left")},
+    {id:"city-layering",scenes:specs("houses"),transitionOut:edit("#F1D0BB","left-to-right")},
     {id:"constructed-device",scenes:specs("camera")},
   ]};
 }
