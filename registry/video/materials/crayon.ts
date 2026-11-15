@@ -261,13 +261,19 @@ export function crayonNibPath(mark: CrayonMark, progress = 1): string {
  * Completed geometry is memoized only by dry-mode regions; partial frames
  * regenerate only the active nib and never rearrange painted marks.
  */
-export function crayonDryNibPath(mark:CrayonMark,progress=1):string{
+export function crayonDryNibPath(
+  mark:CrayonMark,progress=1,contact:"legacy"|"hand"="legacy",
+):string{
+  if(contact!=="legacy"&&contact!=="hand")
+    throw new RangeError("Invalid dry nib contact style");
+  const handmade=contact==="hand";
   if(!Number.isFinite(progress)||progress<0||progress>1)
     throw new RangeError("crayon dry nib progress must be in [0,1]");
   if(progress===0||mark.nibArcs.length===0)return "";
   const fmt=(n:number)=>n.toFixed(2);
   const result:string[]=[];
-  const bands=mark.pressure>=.78?3:mark.pressure>=.42?2:1;
+  const bands=handmade?(mark.pressure>=.78?4:mark.pressure>=.42?3:2):
+    mark.pressure>=.78?3:mark.pressure>=.42?2:1;
   for(let arc=0;arc<mark.nibArcs.length;arc++){
     const exposed=Math.min(1,Math.max(0,progress*mark.nibArcs.length-arc));
     if(exposed<=0)continue;
@@ -281,7 +287,8 @@ export function crayonDryNibPath(mark:CrayonMark,progress=1):string{
       const len=Math.max(1e-6,Math.hypot(tx,ty));
       return {x,y,nx:-ty/len,ny:tx/len};
     };
-    const laneIds=bands===1?[1]:bands===2?[0,2]:[0,1,2];
+    const laneIds=bands===1?[1]:bands===2?[0,2]:
+      bands===3?[0,1,2]:[0,1,2,3];
     for(const lane of laneIds){
       const seed=arc*23+lane;
       const liftStart=.035+.12*crayonHash(mark.index,seed,3102);
@@ -290,23 +297,30 @@ export function crayonDryNibPath(mark:CrayonMark,progress=1):string{
       const gapStart=.43+.04*crayonHash(mark.index,seed,3105);
       const gapEnd=gapStart+.08+.06*crayonHash(mark.index,seed,3106);
       const ranges=lifted?[[liftStart,gapStart],[gapEnd,liftEnd]]:[[liftStart,liftEnd]];
-      const offset=(lane-1)*.28*mark.width+
-        (crayonHash(mark.index,seed,3107)-.5)*mark.width*.095;
+      const offset=(lane-(bands===4?1.5:1))*(handmade?.22:.28)*mark.width+
+        (crayonHash(mark.index,seed,3107)-.5)*mark.width*(handmade?.14:.095);
       for(const [lo,hi] of ranges){
         const end=Math.min(exposed,hi);
         if(end<=lo+.008)continue;
         const left:string[]=[],right:string[]=[];
-        const fractions=[0,.3,.68,1] as const;
+        const fractions=handmade?[0,.12,.26,.41,.59,.73,.86,1]:
+          [0,.3,.68,1];
         for(const [j,fraction] of fractions.entries()){
           const t=lo+(end-lo)*fraction;
           const pos=point(t);
           // Paper friction makes wax break and veer *within* each contact.
           // No three perfectly parallel ribbons or identical edge thicknesses.
+          const edge=j===0||j===fractions.length-1;
           const drift=(crayonHash(mark.index,seed*11+j,3110)-.5)*
-            mark.width*((j===0||j===3)?0.10:0.22);
-          const taper=(j===0||j===3)?0.43:1;
-          const relief=.59+.57*crayonHash(mark.index,seed+j,3108);
-          const thickness=mark.width*(.065+.043*mark.pressure)*taper*relief;
+            mark.width*(handmade?(edge?.14:.29):(edge?.10:.22));
+          // A real worn crayon end touches intermittently; height changes
+          // along its side, making long contacts lumpy, not polygonal rulers.
+          const taper=edge?(handmade?.23+.25*crayonHash(mark.index,seed+j,3111):.43):1;
+          const relief=handmade?
+            .36+.94*crayonHash(mark.index,seed+j,3108):
+            .59+.57*crayonHash(mark.index,seed+j,3108);
+          const thickness=mark.width*(handmade?.08+.052*mark.pressure:
+            .065+.043*mark.pressure)*taper*relief;
           const x=pos.x+pos.nx*(offset+drift);
           const y=pos.y+pos.ny*(offset+drift);
           left.push(fmt(x+pos.nx*thickness)+" "+fmt(y+pos.ny*thickness));
