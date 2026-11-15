@@ -430,6 +430,77 @@ for(const sample of ["woman","man"] as const){
         expect(await output.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
+        // ArtCraft v17: the *source* is dark, connected neck skin
+        // below the jaw while a previous authored hair-root split
+        // accidentally exposed a 1–3px vertical bright paper channel.
+        // Measure genuine licensed-photo evidence, not screenshots
+        // invented by a test fixture or a smoothing filter.
+        const neck=page.getByLabel(
+          "Pencil photo-observed neck contact closure");
+        const observedNeck=async()=>full.evaluate(node=>{
+          const reference=document.querySelector<HTMLCanvasElement>(
+            "canvas[data-km-pencil-full-head-source]");
+          if(!reference)throw Error("Missing independently observed CC0 source");
+          const values=(canvas:HTMLCanvasElement)=>{
+            const sample=document.createElement("canvas");
+            sample.width=285;sample.height=318;
+            const ctx=sample.getContext("2d")!;
+            ctx.drawImage(canvas,0,0,285,318);
+            const data=ctx.getImageData(0,0,285,318).data;
+            return Float32Array.from({length:285*318},(_,i)=>{
+              const k=i*4;
+              return .2126*data[k]+.7152*data[k+1]+.0722*data[k+2];
+            });
+          };
+          const drawn=values(node as HTMLCanvasElement);
+          const photographic=values(reference);
+          let deficit=0,mae=0,n=0;
+          // Actual registered 285x318 lower-neck seam (relative to
+          // the existing original CC0 photo and fixed 540x600 plate).
+          for(let y=240;y<279;y++)for(let x=136;x<=144;x++){
+            const i=y*285+x;
+            if(photographic[i]>185)continue;
+            const delta=drawn[i]-photographic[i];
+            deficit+=Math.max(0,delta);
+            mae+=Math.abs(delta);
+            n++;
+          }
+          const safe=[
+            [135,130],[183,190],[20,20],[75,230],
+          ].map(([x,y])=>Math.round(drawn[y*285+x]*100)/100);
+          return {deficit:deficit/n,mae:mae/n,safe,n};
+        });
+        await neck.focus();await neck.press("Home");
+        await expect(neck).toHaveValue("0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-neck-contact","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-neck-contact-nibs","0");
+        const noNeck=await observedNeck();
+        expect(noNeck.n).toBeGreaterThan(250);
+        const legacyNeck=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-neck-legacy-gap-0.png")});
+        await neck.press("End");
+        await expect(neck).toHaveValue("1");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-neck-contact","1");
+        const contacts=Number(await full.getAttribute(
+          "data-km-pencil-neck-contact-nibs"));
+        expect(contacts).toBeGreaterThan(100);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(legacyNeck);
+        const repairedNeck=await observedNeck();
+        expect(repairedNeck.deficit).toBeLessThan(noNeck.deficit-.8);
+        expect(repairedNeck.mae).toBeLessThan(noNeck.mae+1.5);
+        expect(repairedNeck.safe).toEqual(noNeck.safe);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-neck-photo-contact-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Actual licensed source, ALL four chronologically composited
         // Storybook shots. Stage 1..4 must contain increasing genuine
         // pencil marks; the exported film bitmap must not be affected.
