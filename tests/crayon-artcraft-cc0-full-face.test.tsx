@@ -173,7 +173,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     const scene=crayonCc0FaceStudy({detail:1});
     const origins=(prefix:string)=>scene.elements
       .filter(el=>el.kind==="contour"&&el.id.startsWith(prefix))
-      .flatMap(el=>[...el.d.matchAll(/M(-?\\d+(?:\\.\\d+)?)\\s+(-?\\d+(?:\\.\\d+)?)\\s+C/g)]
+      .flatMap(el=>[...el.d.matchAll(/M(-?[0-9]+(?:[.][0-9]+)?) +(-?[0-9]+(?:[.][0-9]+)?) +C/g)]
         .map(match=>({x:Number(match[1]),y:Number(match[2])})));
     const right=origins("hair-rooted-right-").filter(p=>p.y>=780);
     const left=origins("hair-rooted-left-").filter(p=>p.y>=750);
