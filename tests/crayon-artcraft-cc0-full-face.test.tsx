@@ -5,6 +5,8 @@ import {crayonPaperTintedWaxBase} from "../registry/video/materials/crayon-react
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
 import {CRAYON_PORTRAIT_AUDIT}
   from "../src/video/crayon-artcraft-portrait-audit";
+import {CRAYON_F1_LASH_CLUSTER_COUNTS}
+  from "../src/video/crayon-artcraft-f1-lash-clusters";
 import {CRAYON_F1_RECONSTRUCTED_MIDFACE_IDS}
   from "../src/video/crayon-artcraft-f1-midface-geometry";
 import {CRAYON_F1_RECONSTRUCTED_OCULAR_IDS}
@@ -629,6 +631,46 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(baseline.elements.find(e=>e.id==="lash-contact-far"))
       .toMatchObject({kind:"contour",waxPressure:.53});
     expect(inspectCrayonScene(scene)).toEqual([]);
+  });
+  it("preserves exactly two semantic ocular wax fibers under source-cluster opt-in without uniform eyelash ticks",()=>{
+    const sparse=crayonCc0FaceStudy({eyeContact:"source-shade",lashFinish:"sparse",
+      midfaceForm:"baseline"});
+    const rooted=crayonCc0FaceStudy({eyeContact:"source-shade",lashFinish:"rooted",
+      midfaceForm:"baseline"});
+    const changed=new Set(["lash-contact-near","lash-contact-far"]);
+    expect(rooted.elements.filter(e=>!changed.has(e.id)))
+      .toEqual(sparse.elements.filter(e=>!changed.has(e.id)));
+    expect(rooted.elements.length).toBe(sparse.elements.length);
+    for(const side of ["near","far"] as const){
+      const name="lash-contact-"+side;
+      const before=sparse.elements.find(e=>e.id===name);
+      const after=rooted.elements.find(e=>e.id===name);
+      if(before?.kind!=="contour"||after?.kind!=="contour")
+        throw new Error("Missing source-rooted lash material "+side);
+      expect(after).toMatchObject({
+        kind:"contour",parentId:"face-outline",clipToParent:true,
+        waxContact:"dry-wax",
+      });
+      expect(after.d).not.toBe(before.d);
+      expect(after.timing).toEqual(before.timing);
+      const count=(after.d.match(/M[0-9]+ /g)??[]).length;
+      expect(count).toBe(CRAYON_F1_LASH_CLUSTER_COUNTS[side]);
+      expect(count).toBeGreaterThan((before.d.match(/M[0-9]+ /g)??[]).length);
+      expect((after.d.match(/C/g)??[]).length).toBe(count);
+      expect(after.d).not.toMatch(/[QqZz]/);
+      expect(after.width).toBeLessThan(.36);
+      expect(after.opacity).toBeLessThanOrEqual(.70);
+      expect(after.waxPressure).toBeLessThanOrEqual(.60);
+    }
+    expect(inspectCrayonScene(sparse)).toEqual([]);
+    expect(inspectCrayonScene(rooted)).toEqual([]);
+    expect(crayonCc0FaceStudy({eyeContact:"baseline",lashFinish:"rooted"}))
+      .toEqual(crayonCc0FaceStudy({eyeContact:"baseline",lashFinish:"sparse"}));
+    expect(()=>crayonCc0FaceStudy({lashFinish:"unknown" as "rooted"}))
+      .toThrow(RangeError);
+    const html=renderToStaticMarkup(<CrayonScene spec={rooted} frame={299}/>);
+    expect(html).toContain('data-km-crayon-element="lash-contact-near"');
+    expect(html).toContain('data-km-crayon-fiber-contact="dry-wax"');
   });
   it("feathers directional wax pigment contacts rather than clipping a polygonal orbital sticker",()=>{
     const scene=crayonCc0FaceStudy({view:"wax"});
