@@ -73,7 +73,9 @@ export function addPersonBody(rig: Rig, parent: string, px: number, py: number, 
     rig.part("fore-" + side, "fore-" + side, cap(13.5, 5.2, 4.4), "cloth", z, { far });
     rig.part("cuff-" + side, "fore-" + side, rect(-2.3, 11.6, 4.6, 1.8, .6), "skin", z + .03, { far });
     rig.part("hand-" + side, "hand-" + side, ell(0, 0, 3, 3.3), "skin", z + .1, {
-      far, variants: { point: path("M-3 0A3 3.3 0 1 0 3 0A3 3.3 0 1 0 -3 0Z M-.9 1.2L.9 1.2L.8 8.6Q0 9.4 -.8 8.6Z"), open: path("M-3.2 -.4A3.2 3.4 0 1 0 3.2 -.4L2.6 5.6L1.4 6.8L.2 5.4L-1 6.8L-2.2 5.6L-3.2 4Z") },
+      far, variants: { point: path("M-3 0A3 3.3 0 1 0 3 0A3 3.3 0 1 0 -3 0Z M-.9 1.2L.9 1.2L.8 8.6Q0 9.4 -.8 8.6Z"), open: path("M-3.2 -.4A3.2 3.4 0 1 0 3.2 -.4L2.6 5.6L1.4 6.8L.2 5.4L-1 6.8L-2.2 5.6L-3.2 4Z"),
+        // Open hand held flat, fingers together along the bone, thumb along the upper edge (clapping, waving off).
+        flat: path("M-1.9 -.6Q-2.6 2 -2.4 4.2L-2.1 7.4Q-1.9 8.4 -1.3 8.1L-1 7.6L-.8 8.7Q-.3 9.4 .1 8.6L.3 8L.6 8.8Q1.1 9.2 1.4 8.4L1.5 7.9L1.7 8.3Q2.2 8 2.1 6.9L2.1 4.6L2.6 3Q3.8 4.4 4.2 4.1Q4.3 3.6 3.2 1.6Q2.6 .4 1.9 -.6Z") },
     });
   }
   if (options.phone) {
@@ -235,22 +237,42 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
       { type: "variant", part: "mouth", mode: "keys", keys: [{ frame: t(.82), name: "smile" }] });
   }
   if (m === "clap") {
-    const tf: { frame: number; x: number; y: number; ease?: "ease-in-quad" | "ease-out-quad" }[] = [], tb: typeof tf = [];
-    const s0 = t(.1), s1 = t(.85);
-    tf.push({ frame: start, x: 6 * u, y: -46 * u }, { frame: s0, x: 13 * u, y: -57 * u });
-    tb.push({ frame: start, x: 1 * u, y: -46 * u }, { frame: s0, x: 21 * u, y: -59 * u });
-    for (let f = s0 + 5; f <= s1; f += 10) {
-      tf.push({ frame: f, x: 17.6 * u, y: -57.6 * u, ease: "ease-in-quad" }, { frame: f + 5, x: 13 * u, y: -57 * u, ease: "ease-out-quad" });
-      tb.push({ frame: f, x: 18.6 * u, y: -58.6 * u, ease: "ease-in-quad" }, { frame: f + 5, x: 21.5 * u, y: -59 * u, ease: "ease-out-quad" });
+    // After Muybridge's plate 533 (hands meeting in profile): forearms angle up from bent elbows, open hands rise to chest
+    // height with the fingers pointing up and forward, and the back of the near hand closes flat over the far palm, the
+    // far fingertips peeking past it. A clap swings the hands apart across the body; in profile that reads as the near
+    // hand coming toward the camera (a little larger, fanned open) and snapping back flat. About three claps a second,
+    // fast into contact, slower out, with a small jolt through the shoulders and head on each hit.
+    type K = { frame: number; x: number; y: number; ease?: "ease-in-quad" | "ease-out-quad" | "ease-in-out-cubic" | "ease-out-back" };
+    const tf: K[] = [], tb: K[] = [], s0 = t(.1), s1 = t(.85), beat = 10;
+    const P = (frame: number, x: number, y: number, ease?: K["ease"]): K => ({ frame, x: x * u, y: y * u, ease });
+    const NEAR = { contact: [14.6, -60.4], apart: [13.4, -62.8] } as const, FAR = { contact: [15.4, -60.8], apart: [16.6, -59.2] } as const;
+    const raise = Math.max(start + 1, Math.min(s0 - 1, s0 - 6));
+    tf.push(P(start, 6, -46), P(raise, 12, -54, "ease-in-out-cubic"), P(s0, NEAR.apart[0], NEAR.apart[1], "ease-out-back"));
+    tb.push(P(start, 1, -46), P(raise, 13, -55, "ease-in-out-cubic"), P(s0, FAR.apart[0], FAR.apart[1], "ease-out-back"));
+    const nearHand: { frame: number; rotate?: number; scaleX?: number; scaleY?: number; ease?: K["ease"] }[] = [{ frame: s0, rotate: -14, scaleX: 1.1, scaleY: 1.1 }];
+    const farHand: typeof nearHand = [{ frame: s0, rotate: 10, scaleX: .94, scaleY: .94 }];
+    const torso: { frame: number; rotate: number }[] = [{ frame: s0, rotate: 0 }], head: typeof torso = [{ frame: start, rotate: 0 }, { frame: s0, rotate: -3 }];
+    const pelvis: { frame: number; y: number }[] = [{ frame: s0, y: 0 }];
+    let last = s0;
+    for (let f = s0 + 5; f + 5 <= s1; f += beat) {
+      tf.push(P(f, NEAR.contact[0], NEAR.contact[1], "ease-in-quad"), P(f + 5, NEAR.apart[0], NEAR.apart[1], "ease-out-quad"));
+      tb.push(P(f, FAR.contact[0], FAR.contact[1], "ease-in-quad"), P(f + 5, FAR.apart[0], FAR.apart[1], "ease-out-quad"));
+      nearHand.push({ frame: f, rotate: 0, scaleX: .95, scaleY: 1.02, ease: "ease-in-quad" }, { frame: f + 1, scaleX: 1, scaleY: 1 }, { frame: f + 5, rotate: -14, scaleX: 1.1, scaleY: 1.1, ease: "ease-out-quad" });
+      farHand.push({ frame: f, rotate: 0, scaleX: 1, scaleY: 1, ease: "ease-in-quad" }, { frame: f + 5, rotate: 10, scaleX: .94, scaleY: .94, ease: "ease-out-quad" });
+      torso.push({ frame: f, rotate: 1.4 }, { frame: f + 4, rotate: 0 });
+      head.push({ frame: f + 1, rotate: -.5 }, { frame: f + 5, rotate: -3 });
+      pelvis.push({ frame: f + 1, y: .5 * u }, { frame: f + 5, y: 0 });
+      last = f + 5;
     }
-    const last = tf[tf.length - 1].frame;
-    tf.push({ frame: last + 12, x: 6 * u, y: -46 * u }); tb.push({ frame: last + 12, x: 1 * u, y: -46 * u });
-    rig.drivers.push({ type: "reach", start, end: last + 12, upper: "arm-f", lower: "fore-f", bend: -1, target: tf, ramp: 6 },
-      { type: "reach", start, end: last + 12, upper: "arm-b", lower: "fore-b", bend: -1, target: tb, ramp: 6 },
-      { type: "variant", part: "hand-f", mode: "keys", keys: [{ frame: s0 - 2, name: "open" }, { frame: last + 6, name: null }] },
-      { type: "variant", part: "mouth", mode: "keys", keys: [{ frame: s0, name: "smile" }] },
-      { type: "oscillate", start: s0, end: last, bone: "pelvis", property: "y", amplitude: .8 * u, period: 10, ramp: 6 });
-    rig.track("head", [{ frame: start, rotate: 0 }, { frame: s0, rotate: -3 }, { frame: last, rotate: -2 }, { frame: last + 12, rotate: 0 }]);
+    tf.push(P(last + 14, 6, -46, "ease-in-out-cubic")); tb.push(P(last + 14, 1, -46, "ease-in-out-cubic"));
+    nearHand.push({ frame: last + 8, rotate: 0, scaleX: 1, scaleY: 1 }); farHand.push({ frame: last + 8, rotate: 0, scaleX: 1, scaleY: 1 });
+    rig.drivers.push({ type: "reach", start, end: last + 14, upper: "arm-f", lower: "fore-f", bend: -1, target: tf, ramp: 6 },
+      { type: "reach", start, end: last + 14, upper: "arm-b", lower: "fore-b", bend: -1, target: tb, ramp: 6 },
+      { type: "variant", part: "hand-f", mode: "keys", keys: [{ frame: s0 - 6, name: "flat" }, { frame: last + 8, name: null }] },
+      { type: "variant", part: "hand-b", mode: "keys", keys: [{ frame: s0 - 6, name: "flat" }, { frame: last + 8, name: null }] },
+      { type: "variant", part: "mouth", mode: "keys", keys: [{ frame: s0, name: "smile" }] });
+    rig.track("hand-f", nearHand); rig.track("hand-b", farHand); rig.track("torso", torso); rig.track("pelvis", pelvis);
+    rig.track("head", [...head, { frame: last + 14, rotate: 0 }]);
   }
   if (m === "bow") {
     const B = (f: number, v: number) => ({ frame: t(f), rotate: v, ease: "ease-in-out-cubic" as const });
