@@ -1422,7 +1422,42 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
             (k===1?2.85:1.95)*(1+.18*s(seed+1907,i*31+j*23+k)),
             seed+1921+i*41+j*11+k*19)};
         });
-        return {origin,bone,foliage,pads};
+        // Historic rocky hillside pines are inked as irregular, joined
+        // fan-crown masses, not bare ribs with several identical needle
+        // combs. Two unequal tiered islands grow from actual locations
+        // on each of the 20 trunk-connected boughs. The old 60 loaded
+        // pads and 310 thin needle tapers are preserved on TOP.
+        const inkIslands=([.61,.86] as const).map((station,k)=>{
+          const r=quadraticPoint(origin,control,tip,station);
+          const reach=(k===0?12:9)*(1+
+            .48*s(seed+1951,i*19+j*37+k*13));
+          const crest=(k===0?6:4.4)*(1+
+            .39*s(seed+1957,i*11+j*41+k*23));
+          const sweep=direction*(k===0?1:-1);
+          const crown:P=[r[0]+sweep*reach*.5,r[1]-crest];
+          const outside:P=[r[0]+sweep*reach,r[1]-crest*.48];
+          const underside:P=[r[0]+sweep*reach*.77,
+            r[1]+crest*.39];
+          const d="M"+f(r[0])+" "+f(r[1])+
+            " C"+f(r[0]+sweep*reach*.08)+" "+f(r[1]-crest*.51)+
+            " "+f(crown[0]-sweep*reach*.15)+" "+f(crown[1]-crest*.24)+
+            " "+f(crown[0])+" "+f(crown[1])+
+            " C"+f(crown[0]+sweep*reach*.19)+" "+f(crown[1]-crest*.08)+
+            " "+f(outside[0]-sweep*reach*.08)+" "+f(outside[1]-crest*.38)+
+            " "+f(outside[0])+" "+f(outside[1])+
+            " C"+f(outside[0]+sweep*reach*.07)+" "+f(outside[1]+crest*.4)+
+            " "+f(underside[0]+sweep*reach*.13)+" "+f(underside[1])+
+            " "+f(underside[0])+" "+f(underside[1])+
+            " C"+f(r[0]+sweep*reach*.38)+" "+f(r[1]+crest*.32)+
+            " "+f(r[0]+sweep*reach*.22)+" "+f(r[1]+crest*.05)+
+            " "+f(r[0])+" "+f(r[1])+" Z";
+          const ridge=rockLoadedRibbon(r,
+            [r[0]+sweep*reach*.35,r[1]-crest*.87],
+            [outside[0]-sweep*reach*.18,outside[1]-crest*.24],
+            k===0?1.23:1.06,seed+1973+i*97+j*31+k*17);
+          return {r,d,ridge};
+        });
+        return {origin,bone,foliage,pads,inkIslands};
       });
       return <g key={i} data-km-cliff-pine=""
         data-km-cliff-pine-root={f(root[0])+","+f(root[1])}
@@ -1433,12 +1468,22 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
         <path data-km-cliff-pine-bark="" d={bark}
           stroke="#a18b70" fill="none" strokeWidth=".48"
           strokeLinecap="round" opacity={f(.47*shade)}/>
-        {boughs.map(({origin,bone,foliage,pads},j)=>
+        {boughs.map(({origin,bone,foliage,pads,inkIslands},j)=>
           <g key={j} data-km-cliff-pine-bough=""
             data-km-cliff-pine-bough-root={f(origin[0])+","+f(origin[1])}>
             <path data-km-cliff-pine-bough-bone="" d={bone}
               fill={j%2===0?"#3d352d":"#554638"}
               opacity={f(.88*shade)}/>
+            {inkIslands.map(({r,d,ridge},k)=><g key={"island"+k}
+              data-km-cliff-pine-ink-island=""
+              data-km-cliff-pine-ink-island-root={f(r[0])+","+f(r[1])}>
+              <path data-km-cliff-pine-ink-canopy="" d={d}
+                fill={k===0?"#332f29":"#484036"}
+                opacity={f((k===0?.76:.69)*shade)}/>
+              <path data-km-cliff-pine-ink-edge="" d={ridge}
+                fill={k===0?"#2e2925":"#39342d"}
+                opacity={f(.77*shade)}/>
+            </g>)}
             {pads.map(({root:padRoot,path},k)=><path key={"pad"+k}
               data-km-cliff-pine-pad=""
               data-km-cliff-pine-pad-root={f(padRoot[0])+","+f(padRoot[1])}
