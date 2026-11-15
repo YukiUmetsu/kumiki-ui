@@ -3,6 +3,14 @@ import type { SVGProps } from "react";
 import { evaluatePaperCraft, paperHash } from "./paper-craft";
 import type { PaperCraftSpec, PaperCutLayer } from "./paper-craft";
 
+/** Mix opaque RGB paper pigments without CSS filters or translucent fill layers. */
+export function paperShade(hex: string, amount: number): string {
+  const t = Math.max(-1, Math.min(1, Number.isFinite(amount) ? amount : 0));
+  const rgb = [1,3,5].map(i => parseInt(hex.slice(i,i+2),16));
+  return "#" + rgb.map(c => Math.round(t >= 0 ? c + (255-c)*t : c*(1+t))
+    .toString(16).padStart(2,"0")).join("").toUpperCase();
+}
+
 export interface PaperCraftStageProps extends Omit<SVGProps<SVGSVGElement>, "children" | "viewBox" | "width" | "height"> {
   spec: PaperCraftSpec;
   /** Absolute parent FilmStage/Storybook frame, never a local timer. */
@@ -14,13 +22,15 @@ export interface PaperCraftStageProps extends Omit<SVGProps<SVGSVGElement>, "chi
   shadowStrength?: number;
   /** 0–1 subtle highlight along physically cut cardstock edges. */
   edgeStrength?: number;
+  /** 0–1 intensity of opaque cardstock curvature shading (not transparency). */
+  curlStrength?: number;
   label?: string;
 }
 /** Five distinct native assemblages, using the same real cut-outs and physical pivot information.
  * All SVG masks, patterns, fibres and shadows are sheet-anchored and stable across seeks.
  */
 export function PaperCraftStage({
-  spec, frame, reducedMotion = false, tooth = .55, shadowStrength = .7, edgeStrength = .55,
+  spec, frame, reducedMotion = false, tooth = .55, shadowStrength = .7, edgeStrength = .55, curlStrength = .85,
   label = "Layered cut-paper illustration", style, ...props
 }: PaperCraftStageProps) {
   const state = evaluatePaperCraft(spec, frame, reducedMotion);
@@ -28,6 +38,7 @@ export function PaperCraftStage({
   const grain = Math.max(0, Math.min(1, Number.isFinite(tooth) ? tooth : 0));
   const strength = Math.max(0, Math.min(1, Number.isFinite(shadowStrength) ? shadowStrength : 0));
   const edge = Math.max(0, Math.min(1, Number.isFinite(edgeStrength) ? edgeStrength : 0));
+  const bend = Math.max(0, Math.min(1, Number.isFinite(curlStrength) ? curlStrength : 0));
   const fibres = useMemo(() => Array.from({ length: 64 }, (_, i) => ({
     x: paperHash(spec.seed, i, 71) * 83,
     y: paperHash(spec.seed, i, 73) * 83,
@@ -61,6 +72,17 @@ export function PaperCraftStage({
         clipPathUnits="userSpaceOnUse">
         <path d={[layer.path, ...(layer.holes ?? [])].join(" ")} clipRule="evenodd"/>
       </clipPath>)}
+      {bend > 0 && prepared.filter(({layer}) => (layer.curl ?? 0) > 0).map(({layer}) => {
+        const k = (layer.curl ?? 0) * bend;
+        return <linearGradient key={layer.id} id={uid + "-curl-" + layer.id}
+          x1="0%" y1="0%" x2="100%" y2="45%" data-km-paper-curl={layer.id}>
+          <stop offset="0%" stopColor={paperShade(layer.color, .14*k)} />
+          <stop offset="22%" stopColor={paperShade(layer.color, .32*k)} />
+          <stop offset="51%" stopColor={layer.color} />
+          <stop offset="84%" stopColor={paperShade(layer.color, -.2*k)} />
+          <stop offset="100%" stopColor={paperShade(layer.color, -.08*k)} />
+        </linearGradient>;
+      })}
     </defs>
     <rect width={spec.width} height={spec.height} fill={isLamp ? `url(#${uid}-lamp)` : spec.backing}/>
     {/* The substrate retains visible deckled tooth independently of all moving parts. */}
@@ -81,10 +103,12 @@ export function PaperCraftStage({
       const shadow = `drop-shadow(${q.shadowX.toFixed(2)}px ${q.shadowY.toFixed(2)}px ${q.shadowBlur.toFixed(2)}px rgba(33,24,22,${(strength * (puppet ? .44 : .23)).toFixed(3)}))`;
       const clip = `url(#${uid}-cut-${layer.id})`;
       const cut = [layer.path, ...(layer.holes ?? [])].join(" ");
+      const curved = bend > 0 && (layer.curl ?? 0) > 0;
       return <g key={layer.id} data-km-paper-layer={layer.id} data-km-paper-progress={q.progress.toFixed(4)}
+        data-km-paper-stock={layer.color} data-km-paper-rig={layer.rigGroup}
         transform={transform} opacity={q.opacity} style={{ filter: layer.id === "die-cut-border" ? "none" : shadow }}>
         <g clipPath={clip}>
-          <path d={cut} fill={layer.color} fillRule="evenodd"
+          <path d={cut} fill={curved ? `url(#${uid}-curl-${layer.id})` : layer.color} fillRule="evenodd"
             stroke={puppet ? "#422c28" : "#695447"} strokeWidth={puppet ? 1.55 : .7}
             strokeLinejoin="round" strokeOpacity={puppet ? .6 : .22}
             opacity={1} />

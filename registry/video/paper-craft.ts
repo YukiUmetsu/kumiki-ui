@@ -4,7 +4,7 @@
  * Pure absolute-frame evaluation; no timers, global RNG or second timeline.
  */
 export type PaperStyle = "layered" | "kirigami" | "pop-up" | "lightbox" | "shadow-puppet";
-export type PaperMotion = "rise" | "swing" | "unfold" | "still";
+export type PaperMotion = "rise" | "swing" | "unfold" | "still" | "flutter";
 export interface PaperCutLayer {
   id: string;
   /** Authored paper contour, in output-sheet coordinates. */
@@ -19,6 +19,14 @@ export interface PaperCutLayer {
   motion?: PaperMotion;
   /** Optional authored maximum swing, in degrees (bounded to 30). */
   swingDegrees?: number;
+  /** 0–1 authored curvature cue for opaque graded cardstock (not a 3D mesh). */
+  curl?: number;
+  /** Stable named rig: connected wing pieces share a hinge, waveform and phase. */
+  rigGroup?: string;
+  /** Frequency of a fluttering rig, cycles per second (0.1–8). */
+  flapHz?: number;
+  /** Wing-beat phase in degrees (0–360). */
+  flapPhase?: number;
   /** Local entry cue, absolute frames within this scene. */
   enterFrame?: number;
   /** Duration of local assembly beat (frames). */
@@ -92,6 +100,7 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
   if (!hex.test(spec.backing) || !hex.test(spec.light)) bad("paper", "paper colours must be opaque six-digit hex");
   if (!Array.isArray(spec.layers) || spec.layers.length < 1 || spec.layers.length > MAX_PAPER_LAYERS) bad("layers", "provide 1–128 separate cut-outs");
   const seen = new Set<string>();
+  const rigs = new Map<string, PaperCutLayer>();
   const layers: readonly PaperCutLayer[] = Array.isArray(spec.layers) ? spec.layers : [];
   for (const [i, layer] of layers.entries()) {
     const base = `layers[${i}]`;
@@ -107,9 +116,31 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
       bad(base + ".holes", "each hole must be an SVG contour; maximum 32 holes");
     if (layer.pivot && (!Array.isArray(layer.pivot) || layer.pivot.length !== 2 || layer.pivot.some((n: number) => !finite(n) || n < -4096 || n > 8192)))
       bad(base + ".pivot", "finite sheet-coordinate hinge required");
-    if (layer.motion && !["rise", "swing", "unfold", "still"].includes(layer.motion)) bad(base + ".motion", "unknown material motion");
+    if (layer.motion && !["rise", "swing", "unfold", "still", "flutter"].includes(layer.motion)) bad(base + ".motion", "unknown material motion");
     if (layer.swingDegrees !== undefined && (!finite(layer.swingDegrees) || Math.abs(layer.swingDegrees) > 30))
       bad(base + ".swingDegrees", "swing must be within ±30 degrees");
+    if (layer.curl !== undefined && (!finite(layer.curl) || layer.curl < 0 || layer.curl > 1))
+      bad(base + ".curl", "curl must be finite 0–1");
+    if (layer.flapHz !== undefined && (!finite(layer.flapHz) || layer.flapHz < .1 || layer.flapHz > 8))
+      bad(base + ".flapHz", "flapHz must be finite 0.1–8");
+    if (layer.flapPhase !== undefined && (!finite(layer.flapPhase) || layer.flapPhase < 0 || layer.flapPhase > 360))
+      bad(base + ".flapPhase", "flapPhase must be finite 0–360 degrees");
+    if (layer.rigGroup !== undefined) {
+      if (!/^[a-zA-Z0-9_-]{1,64}$/.test(layer.rigGroup))
+        bad(base + ".rigGroup", "rigGroup must be a stable short ASCII identifier");
+      if (layer.motion !== "flutter")
+        bad(base + ".rigGroup", "named paper rigs require flutter motion");
+      const previous = rigs.get(layer.rigGroup);
+      if (previous) {
+        const samePivot = previous.pivot && layer.pivot &&
+          previous.pivot[0] === layer.pivot[0] && previous.pivot[1] === layer.pivot[1];
+        if (!samePivot ||
+            (previous.flapHz ?? 1.4) !== (layer.flapHz ?? 1.4) ||
+            (previous.flapPhase ?? 0) !== (layer.flapPhase ?? 0) ||
+            (previous.swingDegrees ?? 8) !== (layer.swingDegrees ?? 8))
+          bad(base + ".rigGroup", "all sheets in one rig must share pivot and waveform");
+      } else rigs.set(layer.rigGroup, layer);
+    }
     if (layer.enterFrame !== undefined && (!Number.isInteger(layer.enterFrame) || layer.enterFrame < 0 || layer.enterFrame >= spec.durationFrames))
       bad(base + ".enterFrame", "entry must be inside the scene");
     if (layer.durationFrames !== undefined && (!Number.isInteger(layer.durationFrames) || layer.durationFrames < 1 || layer.durationFrames > spec.durationFrames))
@@ -129,10 +160,18 @@ export function evaluatePaperCraft(spec: PaperCraftSpec, frame: number, reducedM
     const age = Math.max(0, (frame - start) / spec.fps);
     const swing = reducedMotion || progress <= 0 ? 0 : (layer.swingDegrees ?? 8) *
       Math.exp(-age * .9) * Math.sin(age * 5.6 + paperHash(spec.seed, i, 11) * .6);
+    // Rig components use absolute film time, NOT local assembly age:
+    // every feather/vein remains in phase despite differing enterFrame values.
+    const flutterWave = motion === "flutter" && !reducedMotion && progress > 0
+      ? Math.sin(2 * Math.PI * frame / spec.fps * (layer.flapHz ?? 1.4) +
+        (layer.flapPhase ?? 0) * Math.PI / 180)
+      : 0;
     const fold = motion === "unfold" || (spec.style === "kirigami" && motion === "still");
     const rise = motion === "rise" || (spec.style === "pop-up" && motion === "still");
     // Kirigami uses a hinged projection. Pop-up rises from a paper crease.
-    const rotation = motion === "swing" ? swing :
+    const rotation = motion === "flutter"
+      ? (layer.swingDegrees ?? 8) * flutterWave * progress
+      : motion === "swing" ? swing :
       spec.style === "layered" ? (1 - progress) * (i % 2 ? -3.5 : 3.5) : 0;
     const depth = layer.depth;
     // A reduced-motion frame must be static regardless of the requested seek position.
@@ -144,7 +183,7 @@ export function evaluatePaperCraft(spec: PaperCraftSpec, frame: number, reducedM
       translateY: rise ? (1 - progress) * (24 + depth * 1.5) :
         spec.style === "layered" ? (1 - progress) * 24 : 0,
       rotation,
-      scaleX: fold ? Math.max(.015, progress) : 1,
+      scaleX: fold ? Math.max(.015, progress) : motion === "flutter" ? 1 - .1 * Math.abs(flutterWave) * progress : 1,
       scaleY: rise ? Math.max(.015, progress) : 1,
       shadowX: 1.8 + depth * (spec.style === "lightbox" ? 1.05 : .55),
       shadowY: 2 + depth * (spec.style === "lightbox" ? 1.65 : .8),
