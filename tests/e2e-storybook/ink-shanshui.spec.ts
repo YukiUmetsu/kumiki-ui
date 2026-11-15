@@ -296,6 +296,40 @@ test("four distinct historical ink schools paint separate real rooted rock struc
     .toHaveCount(78+52+187+178);
 });
 
+
+test("four-master ArtCraft gallery can inspect full native film and macro/meso/micro without replacing film stages",async({page})=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const stages=lab.locator("[data-km-master-study]");
+  const cameras=lab.locator("[data-km-master-camera-view]");
+  await expect(stages).toHaveCount(4);
+  await expect(cameras).toHaveCount(4);
+  await expect(cameras.first()).toHaveAttribute("data-km-master-camera-view","crop");
+  await page.getByRole("button",{name:"Full film · 16:9"}).click();
+  await expect(cameras.first()).toHaveAttribute("data-km-master-camera-view","film");
+  const transform=await cameras.first().locator("> div").getAttribute("style");
+  expect(transform).toContain("scale(0.4375)");
+  // No second test renderer or cached screenshot is substituted for the real film.
+  for(const school of ["fuchun","early-spring","travelers","forest-grotto"]){
+    const card=lab.locator('[data-km-master-study="'+school+'"]');
+    await expect(card.locator("[data-km-shanshui-scene]")).toHaveCount(1);
+    await expect(card.locator("image")).toHaveCount(0);
+  }
+  await page.getByRole("button",{name:"Rock strata · meso"}).click();
+  await expect(cameras.first()).toHaveAttribute("data-km-master-camera-view","crop");
+  await expect(page.getByRole("slider",{name:"Master zoom"})).toHaveValue("2.4");
+  await page.getByRole("button",{name:"Brush edge · micro"}).click();
+  await expect(page.getByRole("slider",{name:"Master zoom"})).toHaveValue("3.35");
+  await page.getByRole("button",{name:"Summit · macro"}).click();
+  await expect(page.getByRole("slider",{name:"Master zoom"})).toHaveValue("1.65");
+  await page.getByRole("slider",{name:"Master frame"}).fill("215");
+  await expect(lab.locator("[data-km-master-study='fuchun'] [data-km-shanshui-scene]"))
+    .toHaveAttribute("data-km-shanshui-frame","215");
+  await page.getByRole("button",{name:"Reset all four studies"}).click();
+  await expect(page.getByRole("slider",{name:"Master frame"})).toHaveValue("145");
+  await expect(cameras.first()).toHaveAttribute("data-km-master-camera-view","crop");
+});
+
 test("artist school choices are live film renderer modes, not a cosmetic Storybook filter",async({page})=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
   const input=page.getByRole("combobox",{name:"Shanshui ink school"});
