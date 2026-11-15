@@ -179,11 +179,11 @@ export function crayonAdultFaceStudy(
         focusX:.28,focusY:.23,radius:1.11},
       outlineOpacity:.025,edgeRoughness:.23});
   wax("neck-under-jaw",
-    "M-38 43Q-31 52 -24 72Q-41 96 -59 116"+
+    "M-42 34Q-34 49 -24 72Q-41 96 -59 116"+
     "Q-33 132 3 136Q48 136 70 118"+
-    "Q44 94 37 73Q42 57 46 42"+
-    "Q22 62 -2 60Q-24 58 -38 43Z",
-    box(-78,37,160,110),colors.neck,"base",
+    "Q44 94 37 73Q42 49 48 34"+
+    "Q23 52 -2 52Q-26 51 -42 34Z",
+    box(-78,28,160,119),colors.neck,"base",
     {parentId:"coat-silhouette",markStrength:.27,spacing:11.5,
       underpaintGradient:{light:"#d7a58b",shadow:"#8d6866",
         focusX:.34,focusY:.26,radius:1.15},
@@ -362,7 +362,7 @@ export function crayonAdultFaceStudy(
   // Directional nose-side wax anchors the volume to the cheek instead
   // of adding a second nostril glyph or a blurred circular highlight.
   grain("nose-sidewall-form-hatching","adult-face",8932,
-    -15,-55,14,32,75,38,"#a87972");
+    -11,-55,9,15,67,12,"#c49a91");
   ink("nose-dorsal-soft-edge",
     "M8 -87Q12 -61 18 -48",
     "#b48775",.9,"detail",{parentId:"adult-face",opacity:.63});
@@ -377,7 +377,7 @@ export function crayonAdultFaceStudy(
     "Q24 -25 17 -29Z",
     box(8,-54,41,35),colors.noseShade,"anatomy",
     {parentId:"adult-face",coverage:"open",clipToParent:true,
-      blendRadius:5,markStrength:.32,pressure:.59,spacing:8.8,
+      blendRadius:8,markStrength:.28,pressure:.52,spacing:9.2,
       outlineOpacity:0,edgeRoughness:0});
   wax("nose-root-sunlight",
     "M1 -122Q11 -132 19 -116Q15 -91 18 -70"+
@@ -440,7 +440,7 @@ export function crayonAdultFaceStudy(
     11,86,35,12,22,32,"#b78b80");
   ink("chin-silhouette-light",
     "M-9 88Q12 94 29 83",
-    "#d5aaa1",1.0,"detail",{parentId:"adult-face",opacity:.43});
+    "#b58e83",.8,"detail",{parentId:"adult-face",opacity:.23});
   // Independent eyelid/sclera/iris systems; lid shadows lie over irises.
   wax("left-eye-aperture",
     "M-77 -163Q-61 -176 -44 -169Q-29 -166 -22 -153"+
