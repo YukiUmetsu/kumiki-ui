@@ -6,7 +6,7 @@ import {crayonAdultFaceStudy} from "../../src/video/crayon-artcraft-adult-face-f
 import {crayonCc0NearEyeStudy} from "../../src/video/crayon-artcraft-cc0-near-eye";
 import {crayonPaperContactSwatches} from "../../src/video/crayon-artcraft-paper-contact-fixtures";
 import {crayonArtcraftBodyStudy} from "../../src/video/crayon-artcraft-body-study";
-import {crayonCc0FaceStudy} from "../../src/video/crayon-artcraft-cc0-face";
+import {crayonCc0FaceStudy,CRAYON_F1_EYE_INSPECTION} from "../../src/video/crayon-artcraft-cc0-face";
 import {AdultFaceArtcraftWorkbench} from "../../src/video/crayon-artcraft-adult-face.stories";
 
 /** Only exact React-native CRAYON1 renders may serve as visual evidence.
@@ -407,12 +407,12 @@ for(const view of ["wax","anatomy"] as const){
       // through a fixed camera at native 608×1082 resolution. Rendering
       // a source-registered path ≠ art-director approval.
       for(const item of [
-        {name:"near",x:269,y:546,zoom:3.35},
-        {name:"far",x:437,y:516,zoom:3.5},
+        {name:"near",...CRAYON_F1_EYE_INSPECTION.near},
+        {name:"far",...CRAYON_F1_EYE_INSPECTION.far},
       ] as const){
         const focused={...spec,camera:[
-          {frame:0,focusX:item.x,focusY:item.y,zoom:item.zoom},
-          {frame:299,focusX:item.x,focusY:item.y,zoom:item.zoom},
+          {frame:0,focusX:item.focusX,focusY:item.focusY,zoom:item.zoom},
+          {frame:299,focusX:item.focusX,focusY:item.focusY,zoom:item.zoom},
         ]};
         for(const frame of item.name==="near"?[210,299]:[299]){
           const html=renderToStaticMarkup(createElement(CrayonScene,{
