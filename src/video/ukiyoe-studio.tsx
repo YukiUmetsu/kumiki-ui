@@ -26,6 +26,8 @@ import { castleTown } from "../../registry/video/ukiyoe/ukiyoe-town";
 import type { UkiyoeInteriorKind } from "../../registry/video/ukiyoe/ukiyoe-interior";
 import { interiorScene, UKIYOE_INTERIOR_KINDS } from "../../registry/video/ukiyoe/ukiyoe-interior";
 import { onnaScene } from "../../registry/video/ukiyoe/ukiyoe-onna";
+import type { UkiyoeFolkWork } from "../../registry/video/ukiyoe/ukiyoe-folk";
+import { folkScene, UKIYOE_FOLK_WORK } from "../../registry/video/ukiyoe/ukiyoe-folk";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -441,6 +443,9 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "loom", label: "Loom · beater, shed, cloth", params: { height: 230 }, y: 340 },
   { motif: "byobu", label: "Byōbu folding screen", params: { height: 220, art: "pine" }, y: 330 },
   { motif: "well", label: "Well · ivy, pulley", params: { radius: 90, pulley: true }, y: 340 },
+  { motif: "stump", label: "Chopping block · split wood", params: { size: 200 }, y: 320 },
+  { motif: "usu", label: "Mochi mortar", params: { size: 220 }, y: 330 },
+  { motif: "tarai", label: "Wash tub · cloth", params: { radius: 160 }, y: 320 },
 ];
 
 export function MotifGallery() {
@@ -672,6 +677,32 @@ export function WomenGhosts() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={kind === "lineup" ? "Eight women of the ghost stories revealing what they are" : "Okiku rising from the well"} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Ghost frame" />
+  </div>;
+}
+
+// ---- Folk work ----------------------------------------------------------------------------------------------------------------------
+
+const FOLK_LABELS: Readonly<Record<UkiyoeFolkWork, string>> = {
+  woodcutter: "Splitting firewood", farmer: "Hoeing, a rice ball brought", mochi: "Pounding mochi", washing: "Hachikazuki washing", luck: "The mallet of luck",
+};
+
+/** Everyday work the folktales turn on: the tools swing on their own timeline and land on their marks. */
+export function FolkWork() {
+  const [kind, setKind] = useState<UkiyoeFolkWork>("woodcutter");
+  const spec = useMemo(() => folkScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Folk work" title="Axe, hoe, pestle, tub and the mallet of luck">
+      <p style={{ margin: 0 }}>After the screen <em>Farmers' Lives in the Twelve Months</em> (the Met). <code>chop</code>, <code>hoe</code> and <code>pound</code> swing their tool
+        up over the shoulder, hold, and bring it down fast onto its contact point, where the chopping block, the furrows and the mortar are
+        placed; chips, clods and mochi fly. Both hands stay on the handle. <code>wash</code> scrubs the cloth in the tub, <code>shake</code> pours
+        treasure from the mallet of luck. Props: firewood on the back, a rice ball, Hachikazuki's bowl.</p>
+    </Header>
+    <section aria-label="Folk work controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Work" value={kind} options={UKIYOE_FOLK_WORK} onChange={setKind} labels={FOLK_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={FOLK_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Work frame" />
   </div>;
 }
 
