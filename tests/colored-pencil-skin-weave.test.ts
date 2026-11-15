@@ -19,12 +19,16 @@ const photo=(brightPatch=false):PencilPhotoPixels=>{
     const k=(y*width+x)*4;
     const v=clamp(Math.round(204+(x/width-0.5)*35-
       Math.min(92,Math.abs(y-250)*.22)),55,235);
-    const highlight=brightPatch&&
-      Math.hypot((x-guides.cheekLeft[0])/.76,
-        y-guides.cheekLeft[1])<17;
-    data[k]=highlight?252:v;
-    data[k+1]=highlight?250:Math.round(v*.83);
-    data[k+2]=highlight?247:Math.round(v*.77);
+    const cheekRadius=Math.hypot((x-guides.cheekLeft[0])/.76,
+      y-guides.cheekLeft[1]);
+    const highlight=brightPatch&&cheekRadius<17;
+    // The test's original synthetic portrait had no photographed light-skin
+    // values: all pixels under the face were dark. Include a distinct
+    // warm non-white malar plane around the reserved paper-white glint.
+    const observedLight=brightPatch&&cheekRadius>=19&&cheekRadius<72;
+    data[k]=highlight?252:observedLight?230:v;
+    data[k+1]=highlight?250:observedLight?203:Math.round(v*.83);
+    data[k+2]=highlight?247:observedLight?183:Math.round(v*.77);
     data[k+3]=255;
   }
   return {width,height,data};
