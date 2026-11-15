@@ -22,7 +22,7 @@
     {
       "id": "woodland-diorama",
       "recipeId": "slot",
-      "durationFrames": 180,
+      "durationFrames": 240,
       "content": {
         "slot": "paper-craft-study",
         "label": "Original hand-cut woodland paper landscape",
@@ -40,7 +40,7 @@
     {
       "id": "alpine-lake-diorama",
       "recipeId": "slot",
-      "durationFrames": 180,
+      "durationFrames": 240,
       "transition": {
         "kind": "cut"
       },
