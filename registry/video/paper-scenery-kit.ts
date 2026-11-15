@@ -287,6 +287,12 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
           enterFrame:72+j*3});
     }
   }
+  // Mountain feet settle behind continuous cut-paper foothill terraces;
+  // no empty white stripe separates the peaks from the pine line.
+  add("alpine-continuous-foothills",c.middle,12,
+    ridge(p,x,y+20,-y*.10,28,1.38),{enterFrame:77,curl:.62});
+  add("alpine-foothill-terrace",c.near,13,
+    ridge(p,x,y+20,y*.145,14,.86),{enterFrame:80,curl:.44});
   add("alpine-distant-pines",c.near,13,
     Array.from({length:10+Math.round(detail*7)},(_,i)=>{
       const xx=-x*.9+i*(x*1.83)/(9+Math.round(detail*7));
