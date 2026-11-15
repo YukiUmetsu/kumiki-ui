@@ -74,8 +74,8 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(A.nose.path).toContain("C");
     expect(nose.details?.some(d=>d.id==="anat-nose-base")).toBe(true);
     expect(A.lips.bounds[3]).toBeLessThanOrEqual(23);
-    expect(upper.opaqueSupport).toBe(false);
-    expect(lower.opaqueSupport).toBe(false);
+    expect(upper.opaqueSupport).toBe(true);
+    expect(lower.opaqueSupport).toBe(true);
     expect(upper.details?.some(d=>d.id==="anat-mouth-seam")).toBe(true);
   });
 
