@@ -89,3 +89,32 @@ head-angle sprite selection and physically simplified sleeve/hand joints.
 Fine path count alone cannot earn a world-class artistic label. The release
 gate must separately assess 1× acting silhouette, face anatomy and paint
 texture after the new render.
+
+
+### Second-pass native render verdict
+
+The revised browser evidence from run `43691413609` **passed** TypeScript,
+source-contract unit tests and full Chromium Storybook QA. Visually inspected
+actual 850×490 landscape and 405×700 portrait 4.1× crops, including bow poses,
+and the full-resolution Character Director still (960×540).
+
+**Confirmed improvement:** reducing the master head parent gives a more
+plausible adult body proportion, and the new eye-anchor-driven portrait crop
+retains the entire turning face during the bow. The added finger contours
+remain attached to the same real hand pivots; no floating fingers or clipped
+SVG limb edges were observed in the inspected frames. The direct baseline
+comparison clearly changes the master brow, eyelids, nasal relief and hairline.
+
+**Remaining art weaknesses:** the adult master still has a mostly filled
+dark hair-cap silhouette, a stylized simplified mouth and limited plane
+graduation. In the whole-frame still, garments are broad 2.5D puppet shapes;
+the hair-to-neck/ear transition and live sleeve mechanics are less nuanced
+than Liang Kai's original painterly work. Further original source-led
+portrait profiles, wash loading and authentic full-speed acting remain
+necessary. This PR is a scoped craftsmanship increment, **not** a
+claim of world-class finished traditional ink animation.
+
+A new browser assertion checks the master eye bounds stay inside the
+landscape/portrait face-inspection viewport after a bow. It is
+deliberately independent of path-count checks, which cannot detect
+a cropped face.
