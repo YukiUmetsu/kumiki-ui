@@ -211,3 +211,10 @@ Critique of actual previous film frames: the woodland scene looked compositional
 Implemented two additional woodland arbors, each with real tapering trunk, 5–8 curved main branches, attached secondary twigs and terminal leaf stock; separate opaque offset understock creates deliberate near/far cast shadows. The overhead canopy now has 5–18 physical punch holes scaled with existing Detail. Foreground bark gains several short, curved cut highlights instead of linear full-height bars. No new art folder, API property or external assets.
 
 Visual QA gates: inspect actual native 960×540 and 540×960 frames. Reject unattached branches, light leaks at frame edges, forest obstructing sun/river, ghost opacity, flat pale overlay or excessive edge strokes even if structural tests pass.
+
+
+### Pass 24b — actual browser and native-film silhouette correction
+
+Inspected the first 960×540 landscape and 540×960 portrait native captures of Pass 24. The additional forest layers and punched cutouts rendered correctly, but the new interstitial arbors remained **too straight and pole-like**, with tiny pale end leaves. This is a structural art-direction miss despite passing type, unit and browser checks.
+
+Correction: give each tapered wood-stock trunk a stronger inward lean while constraining its tip by its root's actual distance to center; branch reach is similarly bounded by the portal width in portrait so the sky/sun and winding river stay clear. Enlarge trunk mass and terminal leaf stock, add an attached, smaller opposed leaf at every secondary twig, and relocate intermediate roots to produce distinct silhouettes from the near framing trunks. No new layers or alpha overlays. Both landscape and portrait must be re-rendered from the final head before merge.
