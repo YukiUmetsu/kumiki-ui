@@ -6580,7 +6580,7 @@
       "name": "paper-craft",
       "type": "registry:ui",
       "title": "Paper Craft Theatre",
-      "description": "Frame-exact cut-paper film engine: garden, botanical relief and five reusable sculptures (kingfisher, dragonfly, canal houses, camera, teacup). Multiple opaque paper layers, real apertures, 3 stock palettes, landscape/portrait, full Stage controls.",
+      "description": "Frame-exact cut-paper film engine: garden, botanical relief, five object sculptures and two reference-led scenery worlds (woodland, alpine lake). Opaque cutout foliage, layered relief, real apertures, palettes, two output aspects and Stage controls.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -6603,6 +6603,11 @@
           "path": "registry/video/paper-object-kit.ts",
           "type": "registry:ui",
           "target": "components/video/paper-object-kit.ts"
+        },
+        {
+          "path": "registry/video/paper-scenery-kit.ts",
+          "type": "registry:ui",
+          "target": "components/video/paper-scenery-kit.ts"
         }
       ]
     }
