@@ -45,6 +45,21 @@ test("One Garden page supports all five paper media without duplicate Storybook 
   expect(errors).toEqual([]);
 });
 
+test("Garden controls one wing edge without changing neighboring stock",async({page},info)=>{
+  await page.goto(scene("gallery"));
+  const wing=page.locator('[data-km-paper-layer="bird-wing"] > g');
+  const body=page.locator('[data-km-paper-layer="bird-body"] > g');
+  await expect(wing.locator("path")).toHaveCount(2);
+  await page.getByRole("slider",{name:"Wing cut edge"}).fill("0");
+  await expect(wing.locator("path")).toHaveCount(1);
+  await expect(wing.locator("path").first()).toHaveAttribute("stroke-opacity","0");
+  await expect(body.locator("path")).toHaveCount(2);
+  await page.locator('svg[data-km-paper-craft]').screenshot({animations:"disabled",path:info.outputPath("paper-wing-edge-zero.png")});
+  await page.getByRole("slider",{name:"Wing cut edge"}).fill("1");
+  await expect(wing.locator("path")).toHaveCount(2);
+  await page.locator('svg[data-km-paper-craft]').screenshot({animations:"disabled",path:info.outputPath("paper-wing-edge-full.png")});
+});
+
 test("Garden page portrait, frame seek and reduced-motion assembly",async({page},info)=>{
   const errors:string[]=[];
   page.on("pageerror",err=>errors.push(err.message));

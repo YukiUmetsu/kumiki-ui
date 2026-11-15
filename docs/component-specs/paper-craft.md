@@ -328,3 +328,7 @@ The FD1 slot `paper-craft-director` adds `transitionStyle:"page-turn"|"curtain"`
 During a page turn, assistive technology receives one illustration: the outgoing shot before the edit and the incoming shot after it. The consumer's label and `aria-hidden` setting continue to apply throughout the transition.
 
 This is a **rigid leaf with one spine**, not a V-fold engine or dynamic bending-paper finite-element solver. The artist-authored next scene must be preassembled for a seamless edit. ArtCraft research/limitations: [PAPER-D3 physical page study](../research/paper-page-turn-artcraft-study.md).
+
+### Sheet-specific cut-edge intensity
+
+`PaperCutLayer.edgeIntensity?: number` scales the authored sheet's existing dark cut line and illuminated edge (finite 0–1; omitted defaults to 1). The stage's `edgeStrength` still controls the global highlight; the sheet multiplier applies in addition to it. At zero, that sheet has neither the base cut line nor the highlight, while its opaque fill, holes, fibre, shadow, geometry and animation remain unchanged. Other sheets retain their own edges; an independently rendered `liftedTip` keeps its own tip edge. This is a rendering control, not a thickness or contact simulation; split semantic pieces into separate sheets when they need different treatments. The existing Garden Storybook page exposes **Wing cut edge** for comparison.

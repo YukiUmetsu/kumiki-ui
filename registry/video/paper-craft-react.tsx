@@ -114,6 +114,7 @@ export function PaperCraftStage({
       const clip = `url(#${uid}-cut-${layer.id})`;
       const cut = [layer.path, ...(layer.holes ?? [])].join(" ");
       const curved = bend > 0 && (layer.curl ?? 0) > 0;
+      const sheetEdge = layer.edgeIntensity ?? 1;
       return <g key={layer.id} data-km-paper-layer={layer.id} data-km-paper-progress={q.progress.toFixed(4)}
         data-km-paper-stock={layer.color} data-km-paper-rig={layer.rigGroup}
         data-km-paper-parent={layer.parentId}
@@ -121,11 +122,11 @@ export function PaperCraftStage({
         <g clipPath={clip}>
           <path d={cut} fill={curved ? `url(#${uid}-curl-${layer.id})` : layer.color} fillRule="evenodd"
             stroke={puppet ? "#422c28" : "#695447"} strokeWidth={puppet ? 1.55 : .7}
-            strokeLinejoin="round" strokeOpacity={puppet ? .6 : .22}
+            strokeLinejoin="round" strokeOpacity={(puppet ? .6 : .22) * sheetEdge}
             opacity={1} />
           {/* Opaque cardstock; preserve punched holes while catching light on the cut rim. */}
-          {edge > 0 && <path d={cut} fill="none" stroke={puppet ? "#ffe2b6" : "#fff5e1"}
-            strokeWidth={.6 + edge * 2} strokeOpacity={edge * (puppet ? .28 : .49)}
+          {edge > 0 && sheetEdge > 0 && <path d={cut} fill="none" stroke={puppet ? "#ffe2b6" : "#fff5e1"}
+            strokeWidth={.6 + edge * 2} strokeOpacity={edge * sheetEdge * (puppet ? .28 : .49)}
             strokeLinejoin="round" pointerEvents="none" />}
           {grain > 0 && <rect width={spec.width} height={spec.height}
             fill={`url(#${uid}-fibre)`} opacity={grain * (puppet ? .48 : .8)}/>}

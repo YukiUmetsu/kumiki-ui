@@ -51,6 +51,8 @@ export interface PaperCutLayer {
   swingDegrees?: number;
   /** 0–1 authored curvature cue for opaque graded cardstock (not a 3D mesh). */
   curl?: number;
+  /** 0–1 multiplier for this sheet’s base cut line and edge highlight; default 1. */
+  edgeIntensity?: number;
   /** Independently sculpted and shadowed opaque stock, attached to main cut. */
   liftedTip?: PaperLiftedTip;
   /** Stable named rig: connected wing pieces share a hinge, waveform and phase. */
@@ -230,6 +232,8 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
       bad(base + ".swingDegrees", "swing must be within ±30 degrees");
     if (layer.curl !== undefined && (!finite(layer.curl) || layer.curl < 0 || layer.curl > 1))
       bad(base + ".curl", "curl must be finite 0–1");
+    if (layer.edgeIntensity !== undefined && (!finite(layer.edgeIntensity) || layer.edgeIntensity < 0 || layer.edgeIntensity > 1))
+      bad(base + ".edgeIntensity", "edgeIntensity must be finite 0–1");
     if (layer.liftedTip !== undefined) {
       const tip = layer.liftedTip;
       if (!tip || typeof tip !== "object" || !isPaperCutContour(tip.path))
