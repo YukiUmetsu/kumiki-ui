@@ -237,7 +237,7 @@ function BrushworkDetail(){
     {label:"竹葉 · Bamboo leaf canopy",scene:"misty-hermit",
       x:884,y:263,note:"Compare Wu Zhen: leaf directions follow the twig tangent, with asymmetric tip clusters, thick-to-thin loaded bellies, subtle paper-fibre absorption, and deliberate paper gaps. Inspect for repeated arrow tips"},
     {label:"竹節 · Bamboo nodes and branches",scene:"misty-hermit",
-      x:875,y:365,note:"Compare Zheng Xie: three fanned culms with unequal joint intervals, two root-connected lateral shoots, narrow pressure collars, dark and dilute ink. Verify attachment at high and low detail"},
+      x:875,y:365,note:"Compare Zheng Xie: three fanned culms with unequal joint intervals, selective rooted shoots and intentional bare joints, narrow pressure collars, dark and dilute ink. Verify attachment at high and low detail"},
   ];
   const cropScale=2.15;
   return <main data-testid="shanshui-brushwork-studio"
