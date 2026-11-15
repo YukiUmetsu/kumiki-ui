@@ -194,13 +194,25 @@ export const createDryPencilHeadPlate=(
     // Keep hair topologically disjoint from the skin support, including
     // subpixel feature boundaries where round-to-nearest colour sampling
     // could otherwise steal pale facial pixels into the outer hair mass.
-    const inset=eyeDist*.035;
+    const inset=eyeDist*.018;
     if(inside(p,geometry.hairOuter)&&
-      distanceToEdge(p,geometry.face)>inset&&
-      isHairColour(photoRGB(source,p[0],p[1]))&&
-      isHairColour(photoRGB(source,p[0]-inset,p[1]))&&
-      isHairColour(photoRGB(source,p[0]+inset,p[1]))&&
-      !paperWhite(source,p[0],p[1]))return "hair";
+      distanceToEdge(p,geometry.face)>inset){
+      const rgb=photoRGB(source,p[0],p[1]);
+      const r=eyeDist*.090;
+      let around=0;
+      for(const [dx,dy] of [[-r,0],[r,0],[0,-r],[0,r],
+        [-r*.7,-r*.7],[r*.7,r*.7]]){
+        const q:Point=[p[0]+dx,p[1]+dy];
+        if(!inside(q,geometry.face)&&
+          isHairColour(photoRGB(source,q[0],q[1])))around++;
+      }
+      // Black hair often has near-neutral RGB: require a coherent warm
+      // connected neighbourhood before filling a dark strand. The CC0
+      // garden background is also dark, but it is chromatically green.
+      const hair=isHairColour(rgb)?around>=1:
+        lum(rgb)<.16&&around>=2;
+      if(hair&&!paperWhite(source,p[0],p[1]))return "hair";
+    }
     return "background";
   };
   const forehead=guides.forehead,chin=guides.chin;
@@ -221,7 +233,9 @@ export const createDryPencilHeadPlate=(
       if(pass===0)fiveValueCounts[band]++;
       if(band===4&&pass===2)continue;
       const edge=distanceToEdge(p,geometry.face);
-      const fade=clamp(edge/(eyeDist*.056),0,1);
+      // A bright unpigmented rim around the face read as a sticker or
+      // cutout in v2. Preserve a connected coloured boundary instead.
+      const fade=.62+.38*clamp(edge/(eyeDist*.043),0,1);
       // Build soft orbital, malar and nasal values following cranium shape,
       // not as rectangles pasted onto skin or a uniform global diagonal.
       const toNose=Math.abs(px-guides.noseBridge[0])/eyeDist;
@@ -234,13 +248,27 @@ export const createDryPencilHeadPlate=(
         toNose<.29&&py<guides.noseTip[1]?
           1.42+cheekSide*.17:
           -.20+cheekSide*.33+toForehead*.20;
-      const theta=heading+(pass===1?.48:pass===2?-.35:0)+
+      let theta=heading+(pass===1?.48:pass===2?-.35:0)+
         (pencilHash(seed,hashBase,12)-.5)*.32;
+      let gradientStrength=0;
+      if(pass===2){
+        const delta=eyeDist*.018;
+        const gx=photoValue(source,px+delta,py)-
+          photoValue(source,px-delta,py);
+        const gy=photoValue(source,px,py+delta)-
+          photoValue(source,px,py-delta);
+        gradientStrength=Math.hypot(gx,gy);
+        // Anchor the final dark pencil deposits to real eyelid, nasal,
+        // lip and jaw value edges rather than uniformly crosshatching.
+        if(gradientStrength>.052)theta=Math.atan2(-gx,gy)+
+          (pencilHash(seed,hashBase,12)-.5)*.18;
+      }
       const len=step*(pass===0?1.56:pass===1?1.43:.94)*
         (.75+.40*pencilHash(seed,hashBase,13));
       const shade=1-value;
       const pressure=pass===0?.22+.34*shade:
-        pass===1?.18+.30*shade:.14+.30*shade;
+        pass===1?.18+.30*shade:
+          .14+.30*shade+.28*clamp((gradientStrength-.045)*3.4,0,1);
       const density=(band===4?.28:band===3?.95:1);
       if(pencilHash(seed,hashBase,14)>density)continue;
       // Subtle warm/cool layers are derived from the person's actual
@@ -278,7 +306,7 @@ export const createDryPencilHeadPlate=(
       const t=clamp((py-guides.hairline[1])/(eyeDist*3.6),0,1);
       // Hair mass tangent must follow its root-to-end clump direction:
       // image-left hair travels left as it falls; image-right travels right.
-      const heading=Math.PI*.49-side*(.22+.33*t);
+      const heading=Math.PI*.49-side*(.38+.19*t);
       const theta=heading+(pass===1?.17:0)+
         (pencilHash(seed,k,38)-.5)*.20;
       const len=step*(1.60+.48*pencilHash(seed,k,39));
