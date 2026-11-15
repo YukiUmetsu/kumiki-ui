@@ -30,3 +30,10 @@
 This study is a **hypothesis**, not proven improvement. Need inspect real sparse/rooted Chromium PNGs side-by-side with the source 1×/3× and independently annotate actual rendered lash-root continuity, lid coverage, contact-tube width variability and iris preservation. Apply ArtCraft 9.1 portrait/human-anatomy/pixel gates without weakening thresholds. Reject the grouped variant if it reads as a comb of parallel marks or damages eye realism; revert to sparse by keeping the existing default. Source-matched full face, nose, lips and neck remain unfinished regardless.
 
 **Priority after visual verification:** true source-tarsal lid shape, subtle negative-space sclera, irregular fine lash-root clumps, chin-to-neck continuity and animation extremes; whole face remains `!dev` and PR #281 unmerged.
+
+
+## Native V1 screenshot rejection and root-direction repair
+
+Actual first Chromium screenshot [run 43759097205](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43759097205) at 608×1082 and source 2.95× showed that simply increasing count from 16 to 33 near-eye curves was **not** professional lash craft: almost every free strand terminated in a tiny vertical dot, making a regular comb. Source photo tips taper into skin while pigment volume collects at the rooted lash margin. This is a deposition-direction error, not a lack of random noise. Do **not** accept V1 on the basis of increased detail count.
+
+**V2 causal correction:** the original manually authored cubic coordinates are preserved exactly, but the deposition direction is reversed *per cubic segment*: `M root C c1 c2 tip` becomes `M tip C c2 c1 root`. CRAYON1's terminal wax pickup now accumulates at the attached lash rim instead of forming a square black bead at each floating tip. This preserves tangent, curved silhouette, count (33/14), timing, clip and paper-height sampling; it does not delete any strand or substitute a fake texture. New structural tests freeze the exact first cubic endpoints for both eyes and reject malformed path grammar. The actual post-fix render and exact source alignment still require independent review; keep the `"sparse"` default until approved.
