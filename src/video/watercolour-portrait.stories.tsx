@@ -29,6 +29,7 @@ function PortraitAtelier(){
   const [tooth,setTooth]=useState(.81);
   const [grain,setGrain]=useState(.77);
   const [showGlazing,setShowGlazing]=useState(true);
+  const [showWetEdges,setShowWetEdges]=useState(true);
   const [showDetail,setShowDetail]=useState(true);
   const [reduced,setReduced]=useState(false);
   const [custom,setCustom]=useState<WatercolourArtwork|null>(null);
@@ -41,14 +42,20 @@ function PortraitAtelier(){
   },[output,seed,tooth,grain]);
   const raw=custom??authored;
   const painting=useMemo<WatercolourArtwork>(()=>{
-    if(showGlazing&&showDetail)return raw;
+    if(showGlazing&&showDetail&&showWetEdges)return raw;
     const detail=/(-glint$|-pupil$|hair-separated|flyaway|philtrum|nose-alar|cloth-folds|mouth-corners|earring)/;
     const transform=(node:WatercolourArtPart):WatercolourArtPart|null=>{
       if(!showDetail&&detail.test(node.id))return null;
       if(node.kind==="path"){
-        if(showGlazing||!node.wash)return node;
-        const {wash:_wash,...plain}=node;
-        return plain;
+        if(!node.wash)return node;
+        if(!showGlazing){
+          const {wash:_wash,...plain}=node;
+          return plain;
+        }
+        if(!showWetEdges&&node.wash.edgeSoftness){
+          return {...node,wash:{...node.wash,edgeSoftness:0}};
+        }
+        return node;
       }
       const children=node.children.map(transform).filter(
         (item):item is WatercolourArtPart=>item!==null);
@@ -56,7 +63,7 @@ function PortraitAtelier(){
     };
     return {...raw,parts:raw.parts.map(transform).filter(
       (part):part is WatercolourArtPart=>part!==null)};
-  },[raw,showGlazing,showDetail]);
+  },[raw,showGlazing,showDetail,showWetEdges]);
 
   useEffect(()=>{
     if(!playing)return;
@@ -81,16 +88,16 @@ function PortraitAtelier(){
     fontFamily:"system-ui,sans-serif"}}>
     <header style={{maxWidth:940}}>
       <div style={{fontSize:12,fontWeight:750,letterSpacing:2.2,color:"#966D67"}}>
-        WC11 / ARTCRAFT — ORIGINAL HUMAN PORTRAIT
+        WC12 / PORTRAIT MATERIAL STUDIES
       </div>
       <h1 style={{font:"italic 500 39px/1.12 Georgia,serif",margin:"7px 0 9px"}}>
         Where the light touches the face
       </h1>
       <p style={{fontSize:14,lineHeight:1.65,maxWidth:840,margin:0}}>
-        A painted adult sitter with constructed skull, eye sockets and lids, nose planes,
-        lip values, ear cartilage, hair roots and clothed shoulders. The old toy-like
-        traveller is no longer a Storybook example. Study one portrait in native 16:9
-        and 9:16, with editable pigments, individual curves and frame-pure expressions.
+        Study original portrait anatomy alongside wet-on-wet softness and light:
+        facial values melt into translucent cheek and temple washes while the eyelids,
+        iris, hair roots and mouth stay structurally precise. Toggle soft edges and
+        optical glazing independently; inspect the same face in 16:9 and 9:16.
       </p>
     </header>
     <div style={{display:"flex",alignItems:"end",flexWrap:"wrap",gap:13}}>
@@ -116,6 +123,7 @@ function PortraitAtelier(){
         onChange={v=>{setPlaying(false);setCustom(null);setGrain(v);}}/>
       {([
         {label:"Optical portrait glazing",checked:showGlazing,set:setShowGlazing},
+        {label:"Soft wet-on-wet portrait edges",checked:showWetEdges,set:setShowWetEdges},
         {label:"Fine facial details",checked:showDetail,set:setShowDetail},
         {label:"Reduced motion",checked:reduced,set:setReduced},
       ] as const).map(t=><label key={t.label} style={{display:"flex",

@@ -123,7 +123,7 @@ const run = (bin, args) => new Promise((ok, fail) => {
 async function openFilm(browser, url) {
   const page = await browser.newPage({ deviceScaleFactor: 1, viewport: { width: 1400, height: 900 } });
   const errors = [];
-  page.on("pageerror", error => errors.push(error.message));
+  page.on("pageerror", error => errors.push(error.stack || error.message));
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 });
   try {
     await page.waitForFunction(() => window.__kmFilm?.failed || typeof window.__kmVideoExport?.seek === "function", null, { timeout: 120000 });

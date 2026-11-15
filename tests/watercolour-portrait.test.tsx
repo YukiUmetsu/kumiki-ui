@@ -96,8 +96,55 @@ describe("WC11 original watercolour human portrait",()=>{
       expect(x(418)).toBeLessThan(spec.width-10);
       expect(y(60)).toBeGreaterThan(0);
       expect(y(432)).toBeLessThan(spec.height-50);
-      if(output==="portrait")expect(y(783)).toBeLessThan(920);
+      if(output==="portrait"){
+        expect(y(60)).toBeLessThan(120); // head fills the editorial close-up
+        expect(y(783)).toBeLessThan(960); // coat naturally reaches canvas edge
+        expect(k.scale).toBeGreaterThan(1.15);
+      }
     }
+  });
+
+  it("contains both irises within hand-authored eyelids and renders radial skin washes",()=>{
+    for(const output of ["portrait","landscape"] as const){
+      const spec=watercolorPortraitSpec(output);
+      expect(inspectWatercolourArtwork(spec)).toEqual([]);
+      const markup=renderToStaticMarkup(<WatercolourIllustration spec={spec} frame={255}/>);
+      expect(markup).toContain('data-km-watercolour-part="near-iris-gaze"');
+      expect(markup).toContain('data-km-watercolour-part="far-iris-gaze"');
+      expect(markup).toMatch(/<clipPath id="[^"]+-clip-near-open-eyelids"/);
+      expect(markup).toMatch(/<clipPath id="[^"]+-clip-far-open-eyelids"/);
+      expect(markup).toContain("<radialGradient");
+      expect(markup).toContain('data-km-watercolour-part="warm-near-cheek"');
+      expect(markup).toContain('data-km-watercolour-edge-softness="1"');
+      expect(markup).toContain("-soft-3)");
+    }
+  });
+
+  it("bounds edge softness, radial lighting modes and secure eye clip paths",()=>{
+    const original=watercolorPortraitSpec("portrait");
+    const stroke={
+      kind:"path" as const,id:"material-proof",
+      path:"M10 10 Q20 2 30 10 Z",
+      fill:"#E2B5A9",technique:"wash" as const,
+      wash:{highlight:"#F9DBCF",shadow:"#AE868A",
+        gradient:"radial" as const,edgeSoftness:.8},
+    };
+    expect(inspectWatercolourArtwork({...original,parts:[stroke]})).toEqual([]);
+    expect(inspectWatercolourArtwork({...original,
+      parts:[{...stroke,wash:{...stroke.wash,edgeSoftness:1.3}}]}))
+      .toContain("/parts/0/wash/edgeSoftness");
+    expect(inspectWatercolourArtwork({...original,
+      parts:[{...stroke,wash:{...stroke.wash,gradient:"conic"}} as unknown as typeof stroke]}))
+      .toContain("/parts/0/wash/gradient");
+    const group={
+      kind:"group" as const,id:"eye-clip",
+      clipPath:"M0 0 L1 0 L1 1 Z",
+      children:[stroke],
+    };
+    expect(inspectWatercolourArtwork({...original,parts:[group]})).toEqual([]);
+    expect(inspectWatercolourArtwork({...original,parts:[{
+      ...group,clipPath:'M0 0 " onload=alert(1)'}]}))
+      .toContain("/parts/0/clipPath");
   });
 
   it("blinks, changes gaze and subtly turns the head with deterministic frame keys",()=>{
