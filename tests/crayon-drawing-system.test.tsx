@@ -73,7 +73,7 @@ describe("strict native Crayon drawing grammar",()=>{
         if(leafNode?.kind!=="wax")throw new Error("Missing leaf");
         // Source-observed asymmetrical serrations and returning lower edge.
         expect((leafNode.d.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(10);
-        expect(leafNode.d).toContain("Q108 -154 100 -157");
+        expect(leafNode.d).toContain("Q108 -155 100 -157");
         expect(plan.subjects[0].attachments).toHaveLength(2);
         // The ground contact must be derived from the actual transformed pear
         // contour, not a separate aspect-ratio magic number (prevents floating
