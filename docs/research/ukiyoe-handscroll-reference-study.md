@@ -1536,6 +1536,45 @@ Storybook has **Parades**.
 - Hyōgo, Heian and maiko hairstyles keep their earlier hairlines without kewari.
 - Nobody has done a human visual review yet.
 
+## Wardrobe (quality slice Q2, 2026-11-15)
+
+**Sources** (all Met, CC0):
+
+- the Edo kosode 2001.428.44, .47, .48 and .52, and 45187;
+- the summer robe with irises at Yatsuhashi (813665);
+- Torii Kiyonaga's *A Young Woman with a Dog* (51998);
+- Kiyonaga's *Three Women on a Riverbank* (39725).
+
+**What they show.**
+
+- **Commoners' robes.** Plain indigo, faintly checked or ikat-marked, with family crests on the back and sleeves.
+- **The summer robe.** The design rises from the hem over a pale ground, densest at the bottom.
+- **Kiyonaga's young woman.** A vermilion robe with large chrysanthemum heads on the skirt, a black obi with gold
+  roundels, layered collars, and a long white under-robe at the hem.
+- **The riverbank.** Vermilion, grey and black robes side by side: the colour of a street comes from many people.
+
+**What was built.**
+
+- Eleven patterns.
+- Hem designs.
+- Four obi knots and obi designs.
+- `ukiyoe-wardrobe.ts`, with roles and seasons.
+- Crowds dressed from it.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - The key-fret read as brickwork and is now drawn finer.
+   - Old women wore the men's shaved style. They now wear a grey shimada, with age lines and unpowdered skin.
+2. **Scenes.** The castle-town crowd now varies in pattern and colour. The Night Ferry's fixed cast is unchanged apart
+   from its faces.
+
+**Not done.**
+
+- No crests on men's robes outside the kamishimo.
+- No haori patterns beyond kikko.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

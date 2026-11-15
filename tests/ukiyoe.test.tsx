@@ -9,6 +9,7 @@ import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
 import { realmScene, UKIYOE_REALM_SCENES } from "../registry/video/ukiyoe/ukiyoe-realms";
 import { paradeScene, UKIYOE_PARADE_SCENES } from "../registry/video/ukiyoe/ukiyoe-parade";
 import { faceTraits } from "../registry/video/ukiyoe/ukiyoe-face";
+import { UKIYOE_ROLES_LIST, UKIYOE_SEASONS, ukiyoeWardrobe } from "../registry/video/ukiyoe/ukiyoe-wardrobe";
 import { inspectUkiyoeEpisode, ukiyoeCaptionLines, ukiyoeEpisode, ukiyoeEpisodeSrt, ukiyoeTitleCard } from "../registry/video/ukiyoe/ukiyoe-episode";
 import { KASA_JIZO_EPISODE } from "../src/video/ukiyoe-kasa-jizo";
 import { URASHIMA_EPISODE } from "../src/video/ukiyoe-urashima";
@@ -1067,5 +1068,23 @@ describe("UKIYO1 faces", () => {
     expect(new Set(men).size).toBeGreaterThan(6);
     // Women are powdered white unless the look gives a skin.
     expect(JSON.stringify(drawFigure({ look: woman } as never, 0, 0, 1).prims)).toContain('"fill":"gofun"');
+  });
+});
+
+describe("UKIYO1 wardrobe", () => {
+  it("dresses every role for every season, deterministically and with variety; hems, knots and new patterns draw", () => {
+    for (const season of UKIYOE_SEASONS) for (const role of UKIYOE_ROLES_LIST) expect(ukiyoeWardrobe(role, 3, season)).toEqual(ukiyoeWardrobe(role, 3, season));
+    const maidens = Array.from({ length: 16 }, (_, i) => JSON.stringify(ukiyoeWardrobe("maiden", i * 13, "spring")));
+    expect(new Set(maidens).size).toBeGreaterThan(12);
+    expect(maidens.some(m => m.includes('"hem"'))).toBe(true);
+    const fig = (look: object) => JSON.stringify(drawFigure({ look } as never, 10, 0, 3).prims);
+    const woman = { hair: "shimada", robe: "sora" };
+    expect(fig({ ...woman, hem: { type: "ayame", color: "ai", scale: 1 } })).toContain('"key":"hem"');
+    const knots = ["taiko", "tateya", "bunko", "kichiya"].map(obiKnot => fig({ ...woman, obiKnot }));
+    expect(new Set(knots).size).toBe(4);
+    for (const type of ["koshi", "tachiwaki", "kiku", "ume", "momiji", "shippo", "kasuri", "hishi", "sayagata", "kumo", "ayame"]) {
+      const html = renderToStaticMarkup(<UkiyoeScene spec={{ version: 1, id: "p", width: 100, height: 100, durationFrames: 2, seed: 1, nodes: [{ id: "b", kind: "block", x: 50, y: 50, shape: { type: "rect", width: 100, height: 100 }, fill: "ai", pattern: { type, color: "gofun" } }] } as never} frame={0} />);
+      expect(html, type).toContain("<pattern");
+    }
   });
 });

@@ -27,7 +27,7 @@ import { arrow, kabutoSide, naginata, oyoroiSide, shootAt, yumi } from "./ukiyoe
 import { ancientHairSide, kamiProp, magatama, riceBag, stole, zukin } from "./ukiyoe-kami";
 import { dragonCrownSide, tamatebakoHeld, tamatebakoPrims } from "./ukiyoe-ryugu";
 import type { UkiyoeFaceFeatures, UkiyoeMood } from "./ukiyoe-face";
-import { faceProfile, faceThreeQuarter, faceTraits, hairSheen, kewari, profileOutline } from "./ukiyoe-face";
+import { faceProfile, faceThreeQuarter, faceTraits, hairSheen, kewari, lookHash, profileOutline } from "./ukiyoe-face";
 import { dangoProp, noboriProp } from "./ukiyoe-treasure";
 import { drawTool, firewood, hachiSide, kozuchi, onigiri, strikeBits, toolAt, toolBody, toolContact, treasure } from "./ukiyoe-folk";
 import { babyBundle, faceOutline, ghostFaceSide, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
@@ -59,6 +59,15 @@ export interface UkiyoeFigureLook {
   /** Haori jacket over the robe (also colours the sleeves). */
   coat?: UkiyoePaint;
   coatPattern?: UkiyoePattern;
+  /**
+   * A design rising from the hem (suso-moyō), as on Edo kosode: large motifs over the lower skirt, its top edge rolling
+   * like a hillside; `ground` recolours that band (default the robe), `height` is its share of the figure (default .22).
+   */
+  hem?: UkiyoePattern & { ground?: UkiyoePaint; height?: number };
+  /** The bow at the back of a woman's obi (default from the look). */
+  obiKnot?: "taiko" | "tateya" | "bunko" | "kichiya";
+  /** A woven design on the obi and its knot. */
+  obiDesign?: UkiyoePattern;
   /** `robe`: full length. `tucked`: hitched to the knee over leggings (travellers, porters). `hakama`: pleated trousers. */
   lower?: "robe" | "tucked" | "hakama" | "loincloth";
   /** `bare`: no kimono top — bare muscular torso and arms (oni, wrestlers, labourers). */
@@ -526,6 +535,42 @@ const FACE3: Pt[] = [
   [2, 25], [-6, 25], [-8, 15], [-14.5, 6], [-16, -4], [-13, -14], [-7, -19],
 ];
 
+/**
+ * The bow at the back of a woman's obi, seen from the side (behind = −x), after the prints: `taiko` a folded drum box,
+ * `tateya` the standing bow set on the diagonal with one wing up and one down, `bunko` a flat bow with its wings
+ * sticking out behind and two ends hanging, `kichiya` the long ends hanging down the back and swinging. Default from
+ * the look, so a woman keeps her knot.
+ */
+function obiKnot(look: UkiyoeFigureLook, waistB: Pt, H: number, lw: number, obiC: UkiyoePaint, frame: number, move: number, wind: number): Prim[] {
+  const kind = look.obiKnot ?? (["taiko", "tateya", "bunko", "kichiya"] as const)[Math.floor(hash01(lookHash(look) % 100003, 3, 77) * 4)];
+  const kb = add(waistB, [-H * .02, -H * .01]), P = (x: number, y: number): Pt => add(kb, [x * H, y * H]);
+  const design = look.obiDesign ?? { type: "kikko" as const, color: "kin", scale: .25, opacity: .7 };
+  const fill = (pts: Pt[], t = .25): Prim => ({ t: "fill", d: smoothD(pts, true, t), fill: obiC, outline: lw, pattern: design, grain: .3 });
+  const sw = Math.sin(frame / 9) * .006 * move - wind * .01, out: Prim[] = [];
+  switch (kind) {
+    case "taiko":
+      out.push(fill([P(.01, -.075), P(-.055, -.08), P(-.065, .025), P(.005, .03)], .2));
+      out.push({ t: "stroke", d: `M${P(-.005, -.03)[0].toFixed(1)} ${P(-.005, -.03)[1].toFixed(1)}L${P(-.06, -.03)[0].toFixed(1)} ${P(-.06, -.03)[1].toFixed(1)}`, color: "sumi", width: lw * .6, opacity: .6 });
+      break;
+    case "tateya":
+      out.push(fill([P(.0, -.02), P(-.03, -.09), P(-.075 + sw, -.135), P(-.095 + sw, -.11), P(-.035, -.005)], .3));
+      out.push(fill([P(-.01, .0), P(-.045, .045), P(-.09 + sw, .085), P(-.1 + sw, .055), P(-.03, -.01)], .3));
+      out.push({ t: "fill", d: smoothD([P(.005, -.03), P(-.03, -.035), P(-.035, .01), P(.005, .015)], true, .3), fill: obiC, outline: lw, grain: .3 });
+      break;
+    case "bunko":
+      out.push(fill([P(-.01, -.05), P(-.06, -.085), P(-.085, -.06), P(-.06, -.02), P(-.085, .015), P(-.06, .04), P(-.01, .01)], .3));
+      out.push(fill([P(-.025, .0), P(-.045 + sw, .1), P(-.03 + sw, .105), P(-.012, .01)], .2), fill([P(-.035, .0), P(-.065 + sw * 1.3, .085), P(-.05 + sw * 1.3, .09), P(-.022, .01)], .2));
+      out.push({ t: "fill", d: smoothD([P(-.005, -.025), P(-.03, -.03), P(-.03, .005), P(-.005, .01)], true, .3), fill: obiC, outline: lw, grain: .3 });
+      break;
+    case "kichiya":
+      out.push(fill([P(.0, -.04), P(-.04, -.06), P(-.05, -.01), P(-.005, .015)], .3));
+      out.push(fill([P(-.015, -.01), P(-.06 + sw, .12), P(-.085 + sw * 1.6, .25), P(-.06 + sw * 1.6, .26), P(-.04 + sw, .13), P(-.005, .0)], .25));
+      out.push(fill([P(-.03, -.03), P(-.09 + sw, .06), P(-.12 + sw * 1.4, .16), P(-.1 + sw * 1.4, .175), P(-.07 + sw, .07), P(-.02, -.01)], .25));
+      break;
+  }
+  return out;
+}
+
 /** Hair styles worn by women (and girls): their faces are drawn in the bijin manner. */
 export function isFemaleHair(hair: string | undefined): boolean {
   return hair === "shimada" || hair === "long" || hair === "hyogo" || hair === "kamuro" || hair === "wareshinobu" || hair === "heian" || hair === "tenko";
@@ -963,6 +1008,13 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     // The parted front: under-robe shows between the legs when the stride opens.
     const open = clamp01((s.knF[0] - s.knB[0]) / (H * .2)) * (lower === "robe" ? 1 : .4) * (1 - kneel);
     out.push({ t: "fill", d: skirtD, fill: robe, outline: lw, pattern: look.robePattern, grain: .25 });
+    if (look.hem) {
+      // Suso-moyō: the design rises from the hem, its upper edge rolling like a hillside, clipped to the skirt.
+      const top = kneel > .5 ? -H * .11 : hemY - H * (look.hem.height ?? .22), x0 = Math.min(hemB[0], s.waistB[0]) - H * .2, x1 = Math.max(hemF[0], s.waistF[0]) + H * .2, edge: Pt[] = [];
+      for (let i = 0; i <= 10; i++) edge.push([lerp(x0, x1, i / 10), top + Math.sin(i * 1.7 + seed % 7) * H * .018 + (i % 3 === 0 ? -H * .012 : 0)]);
+      const band = smoothD([...edge, [x1, hemY + H * .1], [x0, hemY + H * .1]], true, .35), { ground, height: _h, ...hp } = look.hem;
+      out.push({ t: "clip", d: skirtD, key: "hem", prims: [{ t: "fill", d: band, fill: ground ?? robe, pattern: hp, grain: .25 }] });
+    }
     // Three-quarter: the front panel's edge (okumi) runs down from the obi to the hem, a sliver of the under-robe beside it.
     if (look.view === "three-quarter" && look.face !== "oni" && kneel < .5) {
       const top: Pt = [lerp(s.waistB[0], s.waistF[0], .62), lerp(s.waistB[1], s.waistF[1], .62) + H * .03], bot: Pt = [lerp(hemB[0], hemF[0], .72), hemY - H * .004];
@@ -1062,7 +1114,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   const o1 = add(s.waistB, [-wn[0] * H * .01, 0]), o2 = add(s.waistF, [wn[0] * H * .01, 0]);
   const maeObi = look.obiTie === "front";
   if (maeObi) out.push(...maeObiSide(s.waistF, s.waistB, H, lw, obiC, look.obiPattern ?? "kin", Math.sin(frame / 9) * (tr.moving ? 1 : .3) - wl * .6));
-  else out.push({ t: "fill", d: polyD([add(o1, [up[0] * obiH * .5, up[1] * obiH * .5]), add(o2, [up[0] * obiH * .5, up[1] * obiH * .5]), add(o2, [-up[0] * obiH * .5, -up[1] * obiH * .5]), add(o1, [-up[0] * obiH * .5, -up[1] * obiH * .5])]), fill: obiC, outline: lw, grain: .3 });
+  else out.push({ t: "fill", d: polyD([add(o1, [up[0] * obiH * .5, up[1] * obiH * .5]), add(o2, [up[0] * obiH * .5, up[1] * obiH * .5]), add(o2, [-up[0] * obiH * .5, -up[1] * obiH * .5]), add(o1, [-up[0] * obiH * .5, -up[1] * obiH * .5])]), fill: obiC, pattern: look.obiDesign, outline: lw, grain: .3 });
   if (tqBody && !maeObi) {
     // Worn toward the viewer, the obi shows its cord (obijime) across the front.
     const c1 = lerp2(o1, o2, .15), c2 = lerp2(o1, o2, .95);
@@ -1074,11 +1126,8 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     const swing = H * ((tr.moving ? .035 : 0) + Math.sin(frame / 11 + seed) * (tr.moving ? .012 : .005)) + wl * H * .03 + Math.abs(lagF) * H * .0006;
     out.push(...darariSide(add(s.waistB, [-H * .008, -H * .035]), hemY - H * .03, H, lw, obiC, look.obiPattern ?? "kin", swing, tqBody));
   }
-  if ((look.hair === "shimada" || look.hair === "long") && !maeObi && !darari) {
-    // Taiko knot: a big folded box at the back.
-    const kb = add(s.waistB, [-H * .02, -H * .01]);
-    out.push({ t: "fill", d: smoothD([add(kb, [H * .01, -H * .075]), add(kb, [-H * .055, -H * .08]), add(kb, [-H * .065, H * .025]), add(kb, [H * .005, H * .03])], true, .2), fill: obiC, outline: lw, pattern: { type: "kikko", color: "kin", scale: .25, opacity: .6 } });
-  }
+  if ((look.hair === "shimada" || look.hair === "long") && !maeObi && !darari) out.push(...obiKnot(look, s.waistB, H, lw, obiC, frame, tr.moving ? 1 : .3, wl));
+
 
   // Thrown sand: from where the hand was at the release, flying forward and falling.
   for (const a of spec.actions ?? []) if (a.type === "throw") {

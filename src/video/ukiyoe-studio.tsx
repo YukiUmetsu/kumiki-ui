@@ -54,6 +54,8 @@ import { realmScene, UKIYOE_REALM_SCENES } from "../../registry/video/ukiyoe/uki
 import type { UkiyoeParadeScene } from "../../registry/video/ukiyoe/ukiyoe-parade";
 import { paradeScene, UKIYOE_PARADE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-parade";
 import { UKIYOE_MOODS } from "../../registry/video/ukiyoe/ukiyoe-face";
+import type { UkiyoeRole, UkiyoeSeason } from "../../registry/video/ukiyoe/ukiyoe-wardrobe";
+import { UKIYOE_SEASONS, ukiyoeWardrobe } from "../../registry/video/ukiyoe/ukiyoe-wardrobe";
 import type { UkiyoeEpisodeAspect, UkiyoeEpisodeSpec } from "../../registry/video/ukiyoe/ukiyoe-episode";
 import { inspectUkiyoeEpisode, ukiyoeEpisode, ukiyoeEpisodeSrt, ukiyoeEpisodeStarts } from "../../registry/video/ukiyoe/ukiyoe-episode";
 import { KASA_JIZO_EPISODE } from "./ukiyoe-kasa-jizo";
@@ -424,6 +426,35 @@ const ACTION_HINT: Partial<Record<UkiyoeActionType, Partial<UkiyoeAction>>> = { 
 
 const CAST_NAMES = ["traveller", "mother", "child", "ferryman", "merchant", "maiko", "oni-red", "monk", "oiran", "samurai"] as const;
 const CAST_LOOKS: Readonly<Record<string, UkiyoeFigureLook>> = { ...CAST, maiko: UKIYOE_MAIKO_LOOK, oiran: UKIYOE_OIRAN_LOOKS.oiran, samurai: UKIYOE_SAMURAI_LOOK };
+
+/** Wardrobe: people of every role dressed for a season by `ukiyoeWardrobe`, with patterns, hem designs and obi knots. */
+export function WardrobeLab() {
+  const [season, setSeason] = useState<UkiyoeSeason>("spring");
+  const [seed, setSeed] = useState(11);
+  const [view, setView] = useState<"profile" | "three-quarter">("profile");
+  const roles: UkiyoeRole[] = ["maiden", "maiden", "maiden", "wife", "wife", "elder-woman", "girl", "merchant", "artisan", "laborer", "samurai", "elder-man"];
+  const spec: UkiyoeSceneSpec = useMemo(() => ({
+    version: 1, id: "wardrobe-lab", width: 1920, height: 1080, durationFrames: 120, seed: 5, palette: { preset: "edo" }, mount: { kind: "print" },
+    nodes: [
+      { id: "bg", kind: "block", x: 960, y: 540, shape: { type: "rect", width: 1920, height: 1080 }, fill: "paper", line: 0 },
+      ...roles.map((r, i) => ({ id: "f" + i, kind: "figure", look: { ...ukiyoeWardrobe(r, seed + i * 5, season), prop: undefined, view }, x: 95 + i * 157, y: 990, scale: 2.5, facing: i % 3 === 2 ? "left" : "right" } as UkiyoeNode)),
+      ...roles.map((r, i) => ({ id: "t" + i, kind: "text", style: "plain", text: r, x: 95 + i * 157, y: 70, size: 22, color: "sumi" } as UkiyoeNode)),
+    ],
+  }), [season, seed, view]);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Wardrobe" title="Townsfolk dressed for the season">
+      <p style={{ margin: 0 }}>After the Met's Edo kosode and Kiyonaga's beauties. <code>ukiyoeWardrobe(role, seed, season)</code> chooses the robe's dye
+        and pattern (stripes, plaids, ikat, key-fret, plum, maple, chrysanthemum, iris, rising steam…), a design rising from the hem for young women,
+        the obi colour, design and knot (taiko, tateya, bunko, kichiya), the under-collar, layers, hair and footwear. Crowds draw their people from it.</p>
+    </Header>
+    <section aria-label="Wardrobe controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="Season" value={season} options={UKIYOE_SEASONS} onChange={setSeason} />
+      <Select name="View" value={view} options={["profile", "three-quarter"] as const} onChange={setView} />
+      <button type="button" style={button} onClick={() => setSeed(s => s + 97)}>Dress them again</button>
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={30} style={{ width: "100%", height: "100%" }} aria-label="Townsfolk wardrobe" /></Fit>
+  </div>;
+}
 
 /** Faces: the bijin face after Utamaro, eight expressions, and the face traits that make every character different. */
 export function FaceLab() {

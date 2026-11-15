@@ -53,7 +53,7 @@ export interface FaceTraits { eye: number; eyeTilt: number; browW: number; browA
  * A stable number for a look's identity: hair, build, skin and the main robe and sash — not the view, props, hats or
  * other changeable things, so the face stays the same when a character turns, picks something up or puts on a cloak.
  */
-function lookHash(look: object): number {
+export function lookHash(look: object): number {
   const l = look as Record<string, unknown>;
   const s = JSON.stringify([l.hair, l.hairColor, l.build, l.skin, l.beard, l.robe, l.robePattern, l.obi, l.under, l.lower, l.face]);
   let h = 2166136261;
