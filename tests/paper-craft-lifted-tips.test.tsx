@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { evaluatePaperCraft, inspectPaperCraft, MAX_PAPER_LAYERS } from "../registry/video/paper-craft";
+import type { PaperLiftedTip } from "../registry/video/paper-craft";
 import { PaperCraftStage } from "../registry/video/paper-craft-react";
 import { paperObjectSpec } from "../registry/video/paper-object-kit";
 
@@ -84,7 +85,8 @@ describe("Paper lifted stock: genuine separated hinged cutout",()=>{
     ];
     for(const replacement of tests){
       const layers=[...spec.layers];
-      layers[i]={...base,liftedTip:{...base.liftedTip!,...replacement}};
+      // Deliberately submit malformed runtime input to the validator.
+      layers[i]={...base,liftedTip:{...base.liftedTip!,...replacement} as unknown as PaperLiftedTip};
       expect(inspectPaperCraft({...spec,layers}).some(x=>x.path.includes("liftedTip"))).toBe(true);
     }
   });
