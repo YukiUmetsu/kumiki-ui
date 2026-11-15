@@ -236,9 +236,16 @@ function princess(p:Pen,add:Add,phase:number,motion:number){
     h.M(10,-187),h.C(12,-190,16,-190,18,-186),
     h.Q(15,-183,10,-187),h.Z].join(" "),
     attachHead(face,14,-186));
-  add("princess-lashes","#524050",28,
-    [h.M(9,-187),h.Q(14,-191,19,-186),h.Q(15,-184,9,-187),h.Z,
-      h.oval(14.2,-186,1.35,2.1),h.leaf(11,-185,2.7,-79,.7)].join(" "),
+  // Separate iris stock prevents overlapping even-odd subpaths from
+  // punching a pale opening through the dark eye; the upper lid covers it.
+  add("princess-iris","#524050",28,[
+    h.M(13,-187),h.C(13.5,-188.2,15,-188.2,15.7,-187.1),
+    h.C(16,-186.2,15.5,-185.7,14.9,-185.4),
+    h.C(13.9,-185.2,13.1,-185.8,13,-187),h.Z].join(" "),
+    attachHead(face,14,-186,{edgeIntensity:0}));
+  add("princess-lashes","#524050",29,
+    [h.M(9,-187),h.Q(14,-191,19,-186),h.Q(15,-187.4,11.6,-186.9),
+      h.Q(11.5,-185.8,11,-185),h.Q(10.6,-186,10.4,-186.9),h.L(9,-187),h.Z].join(" "),
     attachHead(face,11,-186));
   add("princess-lips","#B86E81",28,[
     h.M(17,-167),h.Q(21,-168,23,-166),h.Q(21,-165,18,-165),h.Z].join(" "),

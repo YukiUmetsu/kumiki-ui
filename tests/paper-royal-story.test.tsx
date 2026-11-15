@@ -65,6 +65,27 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
       }
     }
   });
+  it("keeps the princess iris and upper lid on separate, attached sheets",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const phase of [0,1,2]){
+        const scene=paperRoyalStoryScene("layered",aspect,phase,37,.85);
+        const aperture=scene.layers.find(layer=>layer.id==="princess-eye-white")!;
+        const iris=scene.layers.find(layer=>layer.id==="princess-iris");
+        const lid=scene.layers.find(layer=>layer.id==="princess-lashes")!;
+        expect(iris?.parentId).toBe("princess-head");
+        expect(iris!.depth).toBeGreaterThan(aperture.depth);
+        expect(iris!.depth).toBeLessThan(lid.depth);
+        expect(scene.layers.length).toBeLessThanOrEqual(MAX_PAPER_LAYERS);
+        expect(inspectPaperCraft(scene)).toEqual([]);
+        const headIndex=scene.layers.findIndex(layer=>layer.id==="princess-head");
+        const irisIndex=scene.layers.findIndex(layer=>layer.id==="princess-iris");
+        for(const frame of [0,120,239]){
+          const pose=evaluatePaperCraft(scene,frame);
+          expect(pose.layers[irisIndex].worldMatrix).toEqual(pose.layers[headIndex].worldMatrix);
+        }
+      }
+    }
+  });
   it("keeps the princess ear separately edged and attached to the head",()=>{
     for(const aspect of ["landscape","portrait"] as const){
       for(const phase of [0,1,2]){
