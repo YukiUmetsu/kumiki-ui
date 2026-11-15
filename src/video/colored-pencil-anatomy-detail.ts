@@ -45,31 +45,52 @@ const normal=(a:FeatherAxis,t:number):readonly[number,number]=>{
   return [-dy/mag,dx/mag];
 };
 
-/** Anatomically authored shaft/control/tip, with each barb attached to the same quadratic. */
+/** Quietly irregular stations are authored to avoid an evenly spaced rake. */
+const vaneStations=[.16,.24,.32,.405,.48,.56,.64,.72,.80,.875] as const;
+
+/**
+ * Every barb begins exactly on an authored feather shaft. A projected,
+ * asymmetric vane curves forwards toward the tip, rather than radiating
+ * at right angles like a fish skeleton. The soft outer barb tips and
+ * sharper inner rachis share one local rig transform and opaque clip.
+ *
+ * This is editable geometry, not a sampled texture or copied artwork.
+ */
 export function vaneTracts(axes:readonly FeatherAxis[],color:string,startFrame=223):PencilTrace[] {
   if(axes.length<1||axes.length>14||!/^#[0-9a-fA-F]{6}$/.test(color)||
     !Number.isSafeInteger(startFrame)||startFrame<0||startFrame>350)
     throw new RangeError("Invalid feather family");
   return axes.map((a,j)=>{
-    if(a.length!==7||a.some(n=>!Number.isFinite(n)) ||
+    if(a.length!==7||a.some(n=>!Number.isFinite(n)||Math.abs(n)>4096) ||
       a[6]<=.3||a[6]>9||Math.hypot(a[4]-a[0],a[5]-a[1])<9)
       throw new RangeError("Invalid feather shaft");
     const [x0,y0,cx,cy,x1,y1,w]=a;
+    // A reversing control handle creates a cusp and flips the barbs across
+    // the shaft. Reject it before producing disconnected / inverted vanes.
+    if((cx-x0)*(x1-cx)+(cy-y0)*(y1-cy)<0)
+      throw new RangeError("Reversing feather rachis control handle");
     const cmd=["M"+fixed(x0)+" "+fixed(y0)+" Q"+fixed(cx)+" "+fixed(cy)+" "+fixed(x1)+" "+fixed(y1)];
-    for(const [i,t]of [.25,.43,.61,.78].entries()){
+    for(const [k,t] of vaneStations.entries()){
       const [x,y]=point(a,t),[nx,ny]=normal(a,t);
-      const width=w*(1-.48*t)*(i%2===0?1:.91);
-      for(const side of [-1,1]){
-        const sw=width*(side>0?.77:1);
-        const tx=x+nx*side*sw,ty=y+ny*side*sw;
-        const xc=x+nx*side*sw*.6+(x1-x0)*.045;
-        const yc=y+ny*side*sw*.6+(y1-y0)*.045;
-        cmd.push("M"+fixed(x)+" "+fixed(y)+" Q"+fixed(xc)+" "+
-          fixed(yc)+" "+fixed(tx)+" "+fixed(ty));
+      // Plump at the median vane, narrowing toward the proximal and
+      // distal ends. Slight hand-authored station variation avoids a comb.
+      const envelope=(.19+.92*Math.sin(Math.PI*t))*(1-.20*t);
+      const irregularity=1- Math.abs((k%4)-1.5)*.028;
+      for(const side of [-1,1] as const){
+        const span=w*envelope*irregularity*(side<0?1:.72);
+        const sweep=span*(.55+.15*t);
+        const tx=x+nx*side*span+ny*sweep;
+        const ty=y+ny*side*span-nx*sweep;
+        const mx=x+nx*side*span*.40+ny*sweep*.21;
+        const my=y+ny*side*span*.40-nx*sweep*.21;
+        cmd.push("M"+fixed(x)+" "+fixed(y)+" Q"+fixed(mx)+" "+
+          fixed(my)+" "+fixed(tx)+" "+fixed(ty));
       }
     }
-    return {path:cmd.join(" "),color,width:j%3===0?.64:.5,
-      startFrame:startFrame+j*2,durationFrames:48,opacity:j%3===0?.84:.75};
+    const path=cmd.join(" ");
+    if(path.length>12000)throw new RangeError("Feather SVG exceeds CP1 trace budget");
+    return {path,color,width:j%3===0?.53:.44,
+      startFrame:startFrame+j*2,durationFrames:48,opacity:j%3===0?.81:.73};
   });
 }
 
