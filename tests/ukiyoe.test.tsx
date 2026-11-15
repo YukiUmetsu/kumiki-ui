@@ -7,9 +7,11 @@ import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/v
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
 import { expandCrowd } from "../registry/video/ukiyoe/ukiyoe-crowd";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../registry/video/ukiyoe/ukiyoe-oiran";
+import { UKIYOE_MAIKO_LOOK } from "../registry/video/ukiyoe/ukiyoe-maiko";
 import { palette, resolvePaint } from "../registry/video/ukiyoe/ukiyoe-pigments";
 import { nodeState, UkiyoeScene } from "../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeSceneSpec } from "../registry/video/ukiyoe/ukiyoe-scene";
+import type { UkiyoeAction } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { inspectUkiyoeScene } from "../registry/video/ukiyoe/ukiyoe-scene";
 import { kasumiBand } from "../registry/video/ukiyoe/ukiyoe-transitions";
 import { compileFilm } from "../registry/video/film-document";
@@ -210,6 +212,46 @@ describe("UKIYO1 oiran", () => {
     expect(figurePose({ look: oiran.look, actions: oiran.actions }, 290, 1, 250).headBack).toBeGreaterThan(.5);
     expect(inspectUkiyoeScene(scene({ nodes: [{ id: "o", kind: "figure", look: { ...UKIYOE_OIRAN_LOOKS.oiran, obiTie: "side" as never, layers: ["nope" as never] } }] })).map(i => i.path))
       .toEqual(expect.arrayContaining(["$.nodes[0].look.obiTie", "$.nodes[0].look.layers[0]"]));
+  });
+});
+
+describe("UKIYO1 maiko", () => {
+  type P = { t: string; d?: string; fill?: unknown; color?: unknown; transform?: string; noPrint?: boolean; prims?: P[]; pattern?: { type: string } };
+  const flat = (ps: P[], dy = 0): (P & { dy: number })[] => ps.flatMap(p => {
+    if (p.t !== "group" && p.t !== "clip") return [{ ...p, dy }];
+    const m = /translate\(([-\d.]+) ([-\d.]+)\)/.exec(p.transform ?? "");
+    return flat(p.prims ?? [], dy + (m ? +m[2] : 0));
+  });
+  const draw = (view: "profile" | "three-quarter" | "front" | "back", actions: UkiyoeAction[] = [], f = 20) => flat(drawFigure({ look: { ...UKIYOE_MAIKO_LOOK, view }, actions }, f, 0, 3).prims as P[]);
+  it("dresses the maiko in every view, the darari's crested ends behind her and the jewelled clasp in front", () => {
+    const all = (["profile", "three-quarter", "front", "back"] as const).map(v => JSON.stringify(draw(v)));
+    expect(new Set(all).size).toBe(4);
+    // A crest is the gold five-petalled plum woven into each end.
+    const crests = (v: "front" | "back") => draw(v).filter(p => p.t === "fill" && p.fill === "kin" && (p.d!.match(/M/g) ?? []).length === 5).length;
+    expect(crests("back")).toBe(2);
+    expect(crests("front")).toBe(0);
+    expect(draw("front").some(p => p.t === "fill" && p.fill === "matsu")).toBe(true);           // the clasp's stone
+    expect(draw("back").some(p => p.t === "fill" && p.fill === "hada")).toBe(true);             // eri-ashi at the nape
+    expect(draw("back").filter(p => p.t === "dots" && p.color === "sumi").length).toBe(0);
+  });
+  it("opens the fan to dance and closes it at rest; the kyōmai flows between held poses", () => {
+    const spread = (actions: UkiyoeAction[], f: number) => { const fan = draw("profile", actions, f).find(p => p.t === "fill" && JSON.stringify(p.fill).includes("\"kin\"") && JSON.stringify(p.fill).includes("radial")); const n = fan!.d!.match(/-?\d+(\.\d+)?/g)!.map(Number); const xs = n.filter((_, i) => i % 2 === 0), ys = n.filter((_, i) => i % 2 === 1); return Math.hypot(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)); };
+    const dance = [{ type: "kyomai" as const, start: 0, end: 600 }];
+    expect(spread(dance, 20)).toBeGreaterThan(spread([], 20) * 2);
+    // Within a hold the pose is still; across the transition it changes, frame by frame without jumps.
+    const pose = (f: number) => figurePose({ look: UKIYOE_MAIKO_LOOK, actions: dance }, f, 3, 250);
+    expect(Math.abs(pose(20).shF - pose(26).shF)).toBeLessThan(2);
+    let worst = 0;
+    for (let f = 30; f < 64; f++) worst = Math.max(worst, Math.abs(pose(f + 1).shF - pose(f).shF));
+    expect(worst).toBeLessThan(8);
+    expect(Math.abs(pose(70).shF - pose(20).shF)).toBeGreaterThan(40);
+  });
+  it("walks on okobo with short steps, the planted clog holding still", () => {
+    const actions = [{ type: "walk" as const, start: 0, end: 600, to: 200 }];
+    const clog = (f: number) => { const d = drawFigure({ look: { ...UKIYOE_MAIKO_LOOK, prop: "none" }, actions }, f, 0, 5); const b = flat(d.prims as P[]).filter(p => p.t === "fill" && (p.fill as { stops?: unknown[][] })?.stops?.[0]?.[1] === "ki" && !p.noPrint).map(p => Math.min(...p.d!.match(/-?\d+(\.\d+)?/g)!.map(Number).filter((_, i) => i % 2 === 0)) + d.x); return b[0]; };
+    const xs = [9, 21, 33, 45, 54].map(clog);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeLessThan(1.5);
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "m", kind: "figure", look: UKIYOE_MAIKO_LOOK, actions: [{ type: "kyomai", start: 0, end: 50 }] }] }))).toEqual([]);
   });
 });
 

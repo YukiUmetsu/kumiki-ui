@@ -278,8 +278,8 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
         for (const k of ["skin", "hairColor", "hatColor", "robe", "under", "obi", "coat", "hakama", "legs", "propColor", "accent", "lips", "uchikake", "lining", "obiPattern"] as const) if (l[k] !== undefined) paint(`${p}.look.${k}`, l[k]);
         if (l.motif !== undefined && l.motif !== "none") paint(`${p}.look.motif`, l.motif);
         (l.layers ?? []).forEach((c, j) => paint(`${p}.look.layers[${j}]`, c));
-        if (l.obiTie !== undefined && l.obiTie !== "front" && l.obiTie !== "back") bad(p + ".look.obiTie", "must be front or back");
-        if (l.feet !== undefined && !["waraji", "geta", "tabi", "bare", "koma-geta"].includes(l.feet)) bad(p + ".look.feet", "must be waraji, geta, tabi, bare or koma-geta");
+        if (l.obiTie !== undefined && !["front", "back", "darari"].includes(l.obiTie)) bad(p + ".look.obiTie", "must be front, back or darari");
+        if (l.feet !== undefined && !["waraji", "geta", "tabi", "bare", "koma-geta", "okobo"].includes(l.feet)) bad(p + ".look.feet", "must be waraji, geta, tabi, bare, koma-geta or okobo");
         for (const k of ["robePattern", "coatPattern", "uchikakePattern"] as const) if (l[k]) { if (!UKIYOE_PATTERNS.includes(l[k]!.type)) bad(`${p}.look.${k}.type`, "unknown pattern"); paint(`${p}.look.${k}.color`, l[k]!.color); }
         range(p + ".look.height", l.height, 40, 2000);
         if (l.view !== undefined && !["profile", "three-quarter", "front", "back"].includes(l.view)) bad(p + ".look.view", "must be profile, three-quarter, front or back");

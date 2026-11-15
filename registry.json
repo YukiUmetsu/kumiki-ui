@@ -3708,6 +3708,11 @@
           "target": "components/video/ukiyoe/ukiyoe-oiran.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-maiko.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-maiko.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"
