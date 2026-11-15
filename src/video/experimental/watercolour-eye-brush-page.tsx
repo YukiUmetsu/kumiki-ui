@@ -16,7 +16,7 @@ export function ExperimentalWatercolourEyeBrushPage({
     style={{position:"relative",width:brush.width,height:brush.height,
       background:brush.paper.color,overflow:"hidden",...style}}>
     <WatercolourWetPaper spec={wet} frame={frame}
-      reducedMotion={reducedMotion} transparentPaper aria-hidden
+      reducedMotion={reducedMotion} aria-hidden
       style={{position:"absolute",inset:0,width:"100%",height:"100%"}}/>
     <WatercolourSurface spec={brush} frame={frame}
       reducedMotion={reducedMotion} transparentPaper
