@@ -1,0 +1,44 @@
+# ArtCraft v7 — real wax-crayon stroke and pickup study
+
+**Research date:** 2026-11-15. **Subject:** actual wax-crayon marks at 1× and macro scale, rather than complete portraits. **Status:** construction experiment only; **artistic release FAIL**. This document dissects observed medium features before any claims of fidelity. Third-party pictures are linked for observation, **never embedded, traced, or redistributed** in the renderer.
+
+## Reference evidence and provenance
+
+| ID | Source / actual observable | Rights / confidence | Observation (distinguish facts from hypotheses) |
+| --- | --- | --- | --- |
+| M1 | [Philadelphia Museum of Art, *Descriptive Terminology for Works of Art on Paper*, Fig. 49, p. 44 (2014)](https://legacyweb.philamuseum.org/doc_downloads/conservation/DescriptiveTerminologyforArtonPaper.pdf). A conservator's photomicrograph of wax crayon, field ~19×19 mm | Publication copyrighted; observation only. Confidence **high** in reported conservation characterization; embedded photograph could not be extracted as independent licensed pixels | Wax marks can **clump or pick up at the end of a drawn line** and leave deposits with visible cohesive edges. They are not chalky dust or uniformly thick paint. |
+| M2 | [Stockmar, *Wax Crayons: Techniques and Tips*, pp. 2–3](https://www.stockmar.de/dk/service/brochurer/?cid=1367&file=files%2FContents%2FDownloads%2FKreativtipps%2FEN%2FSTOCKMAR_wax+crayons_techniques-and-tips_work-material_EN.pdf). Samples of wax on smooth vs. grainy paper and overlapped colors | Manufacturer copyright; observational only. Confidence **high** for broad process difference; optical features from document not statistically measured | **Fine paper** yields fuller color; coarse paper leaves lighter, airier **paper gaps**; overlaid colors remain discernible; crossing stroke directions changes color mixing. |
+| M3 | [Rudolf, Mould & Neufeld (2005), *A Bidirectional Deposition Model of Wax Crayons*](https://doi.org/10.1111/j.1467-8659.2005.00826.x) and [author PDF](https://people.scs.carleton.ca/~mould/papers/crayon-cgf.pdf) | Academic work; text/figures for study, no direct algorithm or artwork copy. Confidence high for stated mechanism, **not** proof that our approximation is physically accurate | Deposition depends on nib profile, paper-height field, pressure, friction and deposited wax. Later strokes **smear or redeposit previously laid wax**. |
+| P1 | Photographed [orange wax-crayon mark, paper macro](https://www.gettyimages.com/photos/orange-crayon-texture) (stock search; query *orange wax crayon texture paper macro*) | Commercial stock; reference thumbnail only, no machine-authorized original data | Broad **predominantly horizontal** strokes form irregular ridges/white channels. A solid orange fill + tiny independent random flecks does not match the observed stroke-driven structure. |
+| P2 | Photographed [orange individual broken crayon marks](https://www.gettyimages.com/photos/crayon-strokes-on-paper) (stock search; query *orange crayon strokes textured paper*) | Commercial stock; reference thumbnail only | Pale gaps run **with** the gesture, contact breaks interrupt one ribbon, and the ends are blunt, feathery or picked up—not a perfect ellipse. |
+| P3 | Photographed [overlapping red-black wax marks](https://www.gettyimages.com/photos/red-black-crayon-drawing) (stock search; query *red black crayon overlapping paper*) | Commercial stock; observation only | Color patches form distinct, interconnected clusters at different orientations; overlaps affect apparent value. The lower layer remains recognizable rather than becoming a single radial gradient. |
+| P4 | Photographed [blue crayon dense rubbed patch](https://www.gettyimages.com/photos/blue-crayon-stroke) (stock search; query *blue wax crayon scribble paper close-up*) | Commercial stock; observation only | Moderate/high force covers more tooth; negative spaces are *correlated along* the stroke instead of equally likely independent dots. |
+
+**Provenance limit:** images P1–P4 are visually studied web thumbnails rather than downloaded originals or verified licensed high-resolution pixel baselines. The named stock-search URLs do not identify a specific licensed image and therefore are **not image-level provenance**. Treat micro-statistics and visual similarity as unverified. This medium study can inform a code experiment but does not satisfy the ArtCraft image-fidelity release gate.
+
+## Three-scale decomposition
+
+**Macro:** a crayon-drawn fill is an accumulation of visible gestures moving in one dominant direction and crossing in targeted areas. A convincing patch has intentionally varying density—quiet paper on its light side, forceful deposits in shadow—not a vector flat fill colored under stochastic marks.
+
+**Meso:** a broad side-nib rub spans **unequal** ribbon bands, broken by raised paper fibers and wear on the nib. Contact spreads under pressure. As the crayon advances, wax may accumulate at the front/lift end, while the early contact has a lighter edge. Repeated passes share the paper grain but create new pigment masks.
+
+**Micro:** tiny wax islands are **connected to or aligned with their parent gesture**; paper shows through *within strokes*, not as an independent image-wide stipple. Pickup at the tail forms an irregular, lumpy terminus. No rule demands sharp flicks everywhere—worn, broad contact can produce dense patches.
+
+## Feature → construction → acceptance matrix
+
+| Reference | Source-observed feature | Implementation rule | Required native evidence | Known failure / hard stop |
+| --- | --- | --- | --- | --- |
+| M1 | Terminal wax pickup | \`crayonStrokeEndPickup(mark,paperSeed,progress)\` is built at the *actual end* of authored nib arcs, pressure/height-controlled and revealed after most of each mark | Single stroke, halfway draw-in and completed stroke close-up; compare edge silhouette with M1 | A uniform ring of separate dots or random shape-wide flecks |
+| M2 P1 P2 | Coherent broken contact | \`crayonDryNibPath(...,"hand",paperSeed)\` samples **the same paper field** as other strokes and splits contact when pressure cannot bridge a valley | Stroke along and across fiber, weak/strong force screenshots; compare directional holes | White speckles that ignore stroke direction, hard parallel vector striping |
+| M2 P3 | Layered chroma | Native \`WaxRegion\` patches use explicit different pigments and directions. Avoid an all-purpose airbrush blur | Two colored crossed swatches and dark-ground layering | Always identical RGB average or bright transparent ghosts |
+| M3 | Already deposited wax affects later strokes | Deferred: deposition-state accumulation/smear/redeposition across sequential contact events | Temporal film; rerender at frame extremes, compare accumulated pigment | Existing code is **not** a true material-state solver; do not claim this is done |
+| P1 P4 | Pressure maps to coverage and edge buildup | Multiple independent widths and occupancy levels, not only opacity; preserve solid silhouette for animated characters | Light/firm swatches at same seed and camera, both normal and 3× | Strong pressure only darkens a blurred fill |
+| P2 | Contact ends asymmetrically | Local tangent + paper-height force controls wax pickup and broken tail; no stock image trace | Close-up compare source thumb vs exact native capture | Generic caps/ovals, isolated blob copy-paste |
+
+## Implementation limits and visual QA requirement
+
+The existing renderer has a synthetic 176-unit paper-height tile, broken hand nibs, four Storybook swatches and shape-wide clumps. The existing screenshots [first swatches](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43689019683), [paper-height variation](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43689355214) and [shape-wide clump pass](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43689687030) show a persistent **digital vector fill with distributed scratch marks**. This disagrees with M1–P4.
+
+Next source-led experiment integrates local wax pickup at the *end of the underlying authored quadratic strokes*; it must not create an unrelated new procedural noise field. It does **not** fix the separate unauthorized/synthetic face geometry. The frozen portrait gate remains **17 of 18 failed landmarks and four of five failed tonal regions**.
+
+**Review protocol:** source photo at available resolution → named semantic stroke crops → 1× and 3× native browser screenshot → hand compare connectedness, directional gap frequency, terminal clump shape, local color overlap and pressure variation → reject or refine. Full release still requires an actual legally usable high-resolution physical-stroke photo, measurable aligned source regions, and independent visual approval. Do not approve using GitHub CI green status alone.
