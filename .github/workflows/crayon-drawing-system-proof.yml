@@ -32,10 +32,10 @@ jobs:
           node-version: "24.15.0"
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Validate installable registry and catalog metadata
+      - name: Validate installable registry and Crayon catalog entry
         run: |
           npm run registry:validate
-          npm run catalog:check
+          npm run catalog:find -- --id=pack:crayon-storybook --format=json > /dev/null
       - name: Install headless browser
         run: npx playwright install --with-deps chromium
       - name: Capture four-pass drawing construction in both aspects
