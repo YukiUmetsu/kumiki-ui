@@ -14,6 +14,7 @@ import type {CharacterPathShape,CharacterShapeAsset} from
   "../../registry/character/definition";
 import {inkPressureStroke} from "./ink-shanshui-fine-craft";
 import {readerCrownShapes} from "./ink-shanshui-reader-crown";
+import {readerFaceAnatomy} from "./ink-shanshui-reader-anatomy";
 
 const p=(d:string,fill="none",stroke="$ink",strokeWidth=1,
   opacity=1):CharacterPathShape=>({
@@ -64,6 +65,7 @@ export function scrollReaderFacePortrait(detail=1):
   if(!Number.isFinite(detail)||detail<0||detail>1)
     throw new RangeError("Reader face detail must be between 0 and 1");
   const medium=detail>=.45,high=detail>=.8;
+  const anatomy=readerFaceAnatomy(detail);
   const face:CharacterPathShape[]=[
     // Ear is behind the cheek; unlike the former oval its lobe projects
     // past the hairline. Separate flesh planes keep it legible at thumbnail.
@@ -89,10 +91,8 @@ export function scrollReaderFacePortrait(detail=1):
       1.35,52,"$shadow",.76),
     // Subtle, anatomically placed nose bridge and nostril. The earlier
     // big S-shaped nose looked like a cartoon cheek curl.
-    pressure([148.6,96],[150.2,102.3],[150.1,110.3],[153.8,112.6],
-      .7,53,"$shadow",.54),
-    pressure([153.8,112.6],[155.3,115.1],[153.6,117.2],[150.6,117.3],
-      .86,54,"$shadow",.83),
+    // Nose-tip, alar and nostril anatomy is constructed in the separate
+    // independently testable ArtCraft face-anatomy layer.
     p("M149.4 116.7 Q152 118.1 153.6 116.7",
       "none","$skinshade",.54,.43),
     // Orbital shadows sit below the eyelids, not as symmetrical smile arcs.
@@ -123,8 +123,11 @@ export function scrollReaderFacePortrait(detail=1):
       "none","$paper",.59,.52),
   );
 
-  // ArtCraft source-to-contour study: replaces the helmet-like cap, not
-  // the face, eyes, mouth, head pivots, or body rig.
+  // Layer the original facial planes by anatomy instead of decorating
+  // the surface with equally spaced noise. Keep the opaque base silhouette.
+  face.push(...anatomy.planes,...anatomy.nose);
+
+  // The crown remains its independently constructed rigged part.
   const hair=readerCrownShapes(detail);
 
   const brow:CharacterPathShape[]=[
@@ -141,42 +144,14 @@ export function scrollReaderFacePortrait(detail=1):
     pressure([119.6,92.9],[125.1,90.9],[130.5,92.3],[134.6,95.2],
       .43,83,"$deep",.55),
   );
-  const eyesOpen:CharacterPathShape[]=[
-    // Gentle downward reading gaze: one long tapered eyelid and a smaller
-    // foreshortened eyelid, separated by the bridge of the nose.
-    pressure([118.2,103],[125,103.2],[130.4,107],[135.2,104.4],
-      1.86,91,"$ink",.96),
-    pressure([149.2,103.7],[154.3,103.5],[160.3,104.2],[163.2,102.1],
-      1.65,92,"$ink",.96),
-    p("M119 105.4 Q126.6 108.7 134.3 107",
-      "none","$shadow",.69,.57),
-    p("M150.2 105.6 Q157.1 107.8 163.3 103.9",
-      "none","$shadow",.55,.51),
-    // Tiny actual upper lashes at ends, not circles/emoji eyes.
-    pressure([118.7,102.8],[118.2,104],[117.7,105.1],[116.9,106],
-      .45,93,"$ink",.71),
-    pressure([162.2,103],[163.7,103.7],[164.4,104.3],[165.1,104.8],
-      .38,94,"$ink",.63),
-  ];
-  if(medium)eyesOpen.push(
-    p("M121 107.8 Q125.2 109.1 129 108",
-      "none","$skinshade",.5,.48),
-  );
-  const eyesSoft:CharacterPathShape[]=[
-    pressure([117.8,105.4],[124.9,106.6],[129.9,109.9],[135.3,106.7],
-      1.24,95,"$ink",.93),
-    pressure([149.3,105],[155.1,106.2],[159.7,106.3],[163.3,103.9],
-      1.09,96,"$ink",.88),
-    p("M119.4 107.5 Q126.6 110.5 133.5 108.9",
-      "none","$skinshade",.53,.46),
-  ];
-  const eyesClosed:CharacterPathShape[]=[
-    pressure([117.9,107.2],[124.9,108.3],[130.4,109.9],[135.5,107.6],
-      1.18,97,"$ink",.95),
-    pressure([149.2,106.6],[154.8,107.9],[160,107.4],[163.5,105.4],
-      1.02,98,"$ink",.91),
-  ];
+  brow.push(...anatomy.brow);
+  // Three exclusive lid cels: eye relief is painted, the pupil remains a
+  // separate gaze target. No overlaid legacy open-eye ellipses are retained.
+  const eyesOpen:CharacterPathShape[]=[...anatomy.eyesOpen];
+  const eyesSoft:CharacterPathShape[]=[...anatomy.eyesSoft];
+  const eyesClosed:CharacterPathShape[]=[...anatomy.eyesClosed];
   const mouthAsset=(state:keyof typeof mouth)=>asset("mouth-"+state,[
+    ...(state==="aa"||state==="oh"?anatomy.lips.slice(2):anatomy.lips),
     p(mouth[state],state==="aa"||state==="oh"?"$shadow":"none",
       "$shadow",state==="mm"?1.14:.99,state==="aa"?.85:.94),
     p(state==="aa"?"M139.2 130.8 Q143.4 132.4 146 129.9":
@@ -188,10 +163,12 @@ export function scrollReaderFacePortrait(detail=1):
   // Tiny independent pupils remain bound to the existing gaze rig, but
   // are tiny ink lashes BELOW the upper lids, not centred round eyes.
   const pupilLeft=asset("near-pupil",[
+    ...anatomy.nearPupil,
     p("M129 105.4 Q129.3 106.1 129.2 106.8",
       "none","$ink",.86,.8),
   ]);
   const pupilRight=asset("far-pupil",[
+    ...anatomy.farPupil,
     p("M156.3 104.3 l.2 1.1","none","$ink",.66,.64),
   ]);
   // The near ear needs its own OVER-HAIR plane. In the source painting
@@ -206,6 +183,7 @@ export function scrollReaderFacePortrait(detail=1):
       "none","$shadow",.86,.71),
     p("M111.1 102.4 Q110.6 109.2 114 114.4",
       "none","$paper",.54,.55),
+    ...anatomy.ear,
   ]);
   return {
     "reader-ear":visibleEar,
