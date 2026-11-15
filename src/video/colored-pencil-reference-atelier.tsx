@@ -566,7 +566,11 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
             </div>
           </div>
           {headToneComparison&&<div style={{marginTop:10}}
-            data-km-pencil-tonal-comparison="ready">
+            data-km-pencil-tonal-comparison="ready"
+            data-km-pencil-mean-value-error={
+              headToneComparison.meanAbsoluteValueError.toFixed(2)}
+            data-km-pencil-contrast-retention={
+              headToneComparison.contrastRetention.toFixed(3)}>
             <p style={{fontSize:12,margin:"0 0 6px"}}>
               Five source-matched colour-pencil value probes, based on the
               actual rendered output (0 = black, 255 = paper white).
