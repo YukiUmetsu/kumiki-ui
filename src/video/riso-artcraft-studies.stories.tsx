@@ -327,9 +327,9 @@ export const HumanEnsembleActing:StoryObj<typeof meta>={
  * instead of duplicating drawings, characters, clocks or material shaders.
  */
 type EyeAspect="landscape"|"portrait";
-function RisoEyeCrop({actor,sheet,frame,aspect,plate,showGuides,screenMode,dotGain}:{
+function RisoEyeCrop({actor,sheet,frame,aspect,plate,showGuides,screenMode,screenDensity,dotGain}:{
   actor:RisoCharacterSpec;sheet:RisoCharacterMeshSheet;frame:number;aspect:EyeAspect;
-  plate:PlateMode;showGuides:boolean;screenMode:"am"|"fm";dotGain:number;
+  plate:PlateMode;showGuides:boolean;screenMode:"am"|"fm";screenDensity:number;dotGain:number;
 }){
   const portrait=aspect==="portrait",width=portrait?360:640,height=portrait?640:360;
   const mesh=evaluateRisoCharacterMesh(actor,sheet,frame,{maxEdgeLength:8});
@@ -350,7 +350,7 @@ function RisoEyeCrop({actor,sheet,frame,aspect,plate,showGuides,screenMode,dotGa
   return <div data-km-riso21-actor={actor.id} data-km-riso21-frame={frame} data-km-riso21-aspect={aspect}>
     <div style={{font:"700 16px Georgia,serif",marginBottom:8}}>{actor.id==="courier"?"Paper Courier":"Paper Artist"} · source head</div>
     <RisoPrint spec={inkSpec} frame={239} artworks={{blue:()=>null,red:()=>null}}
-      paperGrain={.45} misregistration={.25} screenMode={screenMode} screenDensity={.33} dotGain={dotGain}
+      paperGrain={.45} misregistration={.25} screenMode={screenMode} screenDensity={screenDensity} dotGain={dotGain}
       visiblePlateIds={plate==="both"?undefined:[plate]}
       label={actor.id+" head print, anatomical eye engravings"}
       foregroundLayers={[{
@@ -377,14 +377,15 @@ function RisoEyeCraftLab(){
   const [plate,setPlate]=useState<PlateMode>("both");
   const [screenMode,setScreenMode]=useState<"am"|"fm">("am");
   const [dotGain,setDotGain]=useState(0);
+  const [screenDensity,setScreenDensity]=useState(.33);
   const [showGuides,setShowGuides]=useState(false);
   return <main style={{padding:20,minHeight:"100vh",background:"#EEE2CD",color:"#294A60",font:"14px system-ui,sans-serif"}}>
     <div style={{maxWidth:1120,margin:"0 auto",display:"grid",gap:14}}>
       <header>
-        <div style={{fontSize:12,fontWeight:800,letterSpacing:2}}>RISOGRAPH / ARTCRAFT V9 · RISO21</div>
+        <div style={{fontSize:12,fontWeight:800,letterSpacing:2}}>RISOGRAPH / ARTCRAFT V9 · RISO23</div>
         <h2 style={{font:"700 29px Georgia,serif",margin:"6px 0"}}>Two identities · orbital print craftsmanship</h2>
-        <p style={{fontSize:13,lineHeight:1.5,maxWidth:920}}>Original rigged face masters, expression-aware canthi
-          and tapered eyelash contours, red screened iris facets and below-lid engraved planes.
+        <p style={{fontSize:13,lineHeight:1.5,maxWidth:920}}>Original rigged faces with independent eyelids, fine solid iris/lash engravings,
+          and broad anatomical red halftone planes across sockets, cheeks and jaw.
           Paper remains opaque; this is a construction study, not a certified likeness or print scan.</p>
       </header>
       <div style={{display:"flex",flexWrap:"wrap",gap:18,alignItems:"end"}}>
@@ -409,6 +410,10 @@ function RisoEyeCraftLab(){
             onChange={e=>setScreenMode(e.target.value as "am"|"fm")} style={{display:"block",marginTop:5,minHeight:36}}>
             <option value="am">AM halftone</option><option value="fm">FM droplets</option>
           </select></label>
+        <label>Screen coverage · {Math.round(screenDensity*100)}%
+          <input aria-label="RISO23 screen coverage" type="range" min={.15} max={.65} step={.025}
+            value={screenDensity} onChange={e=>setScreenDensity(Number(e.target.value))}
+            style={{display:"block",marginTop:9}}/></label>
         <label>Ink gain · {Math.round(dotGain*100)}%
           <input aria-label="RISO21 dot gain" type="range" min={0} max={1} step={.05}
             value={dotGain} onChange={e=>setDotGain(Number(e.target.value))}
@@ -420,7 +425,7 @@ function RisoEyeCraftLab(){
         {[{actor:COURIER,sheet:RISO_COURIER_SHEET},{actor:PAPER_ARTIST,sheet:RISO_PAPER_ARTIST_SHEET}].map(({actor,sheet})=>
           <section key={actor.id} style={{padding:14,border:"1px solid #C9B8A1",borderRadius:8,background:"#FCF5E7"}}>
             <RisoEyeCrop actor={actor} sheet={sheet} frame={frame} aspect={aspect} plate={plate}
-              showGuides={showGuides} screenMode={screenMode} dotGain={dotGain}/>
+              showGuides={showGuides} screenMode={screenMode} screenDensity={screenDensity} dotGain={dotGain}/>
           </section>)}
       </div>
       <p style={{fontSize:12,lineHeight:1.5,maxWidth:940}}>ArtCraft source studies:
@@ -432,7 +437,7 @@ function RisoEyeCraftLab(){
   </main>;
 }
 export const OcularPrintCraft:StoryObj<typeof meta>={
-  name:"RISO21 · Eye and Portrait Craft",
+  name:"RISO23 · Eye and Portrait Craft",
   args:{actor:"courier"},
   render:()=> <RisoEyeCraftLab/>,
 };
