@@ -1,7 +1,7 @@
 /**
  * "The Peach and the Oni" — an original three-shot UKIYO1 folktale homage (after the public-domain Momotarō tradition):
  * a peach comes down the river past ripe rice terraces and splits open; a handscroll pan along the road of old stories
- * (a fox wedding with foxfire, a drumming tanuki, cranes, a rabbit, a dog and a pheasant, the oni gate, a dragon in
+ * (a fox wedding with foxfire, a drumming tanuki, cranes, a rabbit, a kappa, a packhorse, tengu, the dog, monkey and pheasant, the oni gate, a dragon in
  * the clouds); and the island of the oni in a great-wave sea, where the oni lay down their clubs.
  */
 import { scrollPan } from "../../registry/video/ukiyoe/ukiyoe-core";
@@ -71,11 +71,18 @@ const road: UkiyoeShot = { id: "road", title: "The road of old stories", build: 
       fig("monk", "monk", 2880, gy + 80, { scale: .85, facing: "right", from: 281, enter: { preset: "mist", frame: 281, duration: 10 }, actions: [{ type: "bow", start: 300, end: 360, angle: 30 }, { type: "walk", start: 370, end: dur, to: -500 }] }),
       creature("cat", "cat", 3560, gy + 30, { scale: 1, facing: "left", actions: [{ type: "sit", start: 0, end: dur }, { type: "look", start: 120, end: 300, angle: -14 }] }),
       creature("rabbit", "rabbit", 2500, gy + 120, { scale: 1, facing: "left", actions: [{ type: "hop", start: 40, end: 400, to: -700 }] }),
-      // The companions: a dog, a pheasant, the boy with his peach.
+      // The companions: a dog, a monkey and a pheasant, the boy with his peach.
       creature("pheasant", "pheasant", 2150, gy + 90, { scale: 1.1, facing: "left", actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
+      creature("monkey", "monkey", 2250, gy + 100, { scale: 1.15, facing: "left", actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
       creature("dog", "dog", 2350, gy + 110, { scale: 1.1, facing: "left", actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
       fig("momo", "momo", 2600, gy + 110, { scale: .85, facing: "left", actions: [{ type: "walk", start: 0, end: dur, to: -620 }] }),
       creature("cranes", "crane", 2400, gy + 60, { scale: .9, facing: "right", actions: [{ type: "dance", start: 0, end: dur }] }),
+      // A kappa at the edge of the paddy bows to the travellers, spilling its dish; a packhorse waits with its load.
+      creature("kappa", "kappa", 2000, gy + 40, { scale: 1, facing: "right", actions: [{ type: "stand", start: 0, end: 330 }, { type: "bow", start: 330, end: 400 }, { type: "dance", start: 400, end: dur }] }),
+      creature("horse", "horse", 3900, gy + 110, { scale: .8, facing: "left", look: { tack: true }, actions: [{ type: "look", start: 60, end: 160, angle: 12 }] }),
+      // A tengu watches from the pine, fanning up the wind; a karasu-tengu circles over the temple.
+      creature("tengu", "tengu", 3300, gy - 300, { depth: .95, scale: .7, facing: "left", actions: [{ type: "fly", start: 0, end: dur, to: 0 }, { type: "fan", start: 140, end: 230 }] }),
+      creature("karasu", "karasutengu", 3900, 260, { depth: .8, scale: .55, facing: "left", actions: [{ type: "fly", start: 0, end: dur, to: -900, toY: 60 }] }),
       // The oni gate.
       { id: "gate", kind: "motif", motif: "torii", x: 1500, y: gy + 20, params: { width: 380, height: 420, color: "sumi" } },
       fig("oni-a", "oni-red", 1300, gy + 70, { scale: .95, facing: "right", actions: [{ type: "hold", start: 0, end: dur, angle: 60, amount: 70 }, { type: "talk", start: 380, end: dur }] }),

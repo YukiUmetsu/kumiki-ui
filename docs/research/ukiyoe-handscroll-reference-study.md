@@ -197,12 +197,48 @@ What changed:
   - The old shrine at night, with komainu, the lantern and umbrella spirits and a yūrei.
   - The snowfield where the snow woman breathes on the traveller and vanishes.
 
+## Monkey, horse, kappa, tengu and rokurokubi (owner request, 2026-11-14)
+
+The missing pieces from the previous round. Sources (all public domain, Wikimedia Commons):
+
+| Source | What it gave |
+| --- | --- |
+| [Ohara Koson, *Monkey with her child*](https://commons.wikimedia.org/wiki/File:Koson_-_monkey-with-her-child.jpg) | The macaque's grey-brown shaggy coat, bare red face, small side ears and stub tail |
+| [Hiroshige, *Totsuka* (Tōkaidō, Rijksmuseum)](https://commons.wikimedia.org/wiki/File:Totsuka_No._6._Totsuka_one_of_the_fifty-three_noted_places_from_Tokaido._Painted_by_Hiroshige._(titel_op_object)_De_T%C3%B4kaid%C3%B4_van_Hiroshige_(serietitel)_Hiroshige_no_fude_T%C3%B4kaid%C3%B4_(serietitel_op_object),_RP-P-2010-310-95-6.jpg) | The packhorse: red harness and crupper, saddle cloth and load |
+| [Toriyama Sekien, *Kappa*](https://commons.wikimedia.org/wiki/File:Kappa_jap_myth.jpg) | Crouching body, shell, the dish of water ringed by hair, webbed hands, beak |
+| [Toriyama Sekien, *Tengu*](https://commons.wikimedia.org/wiki/File:SekienTengu.jpg) | The bird-headed tengu: beak, feathered head, wings |
+| [Toriyama Sekien, *Rokurokubi*](https://commons.wikimedia.org/wiki/File:SekienRokurokubi.jpg) and [Hokusai](https://commons.wikimedia.org/wiki/File:Hokusai_Rokurokubi.jpg) | The neck as a long thin line rising from a still body, the head dressed |
+
+What was built:
+- **`monkey`:**
+  - Longer legs and a forward head.
+  - A heart-shaped red face mask under a heavy brow, with forward eyes, nostrils and small side ears.
+  - Dark hands and a stub tail.
+- **`horse`:**
+  - Its own head: a flat forehead and straight nose, a deep blunt muzzle, the round jowl, nostril, forelock and tall pointed ears.
+  - A long arched neck with a mane falling in locks.
+  - Hooves with fetlocks, black stockings, and a tail of hair strands that falls and swings.
+  - `tack` adds the Tōkaidō harness, saddle cloth and pack.
+- **`kappa`:**
+  - A crouching, frog-legged body with a shell of plates and a ringed belly.
+  - Webbed hands and feet, a beak and staring eyes.
+  - The hair fringe round the dish of water. `bow` tips the head and the water spills and splashes.
+- **`tengu` and `karasutengu`:**
+  - Yamabushi dress: checked suzukake, a pom-pom sash, wide hakama, one-toothed geta and the little tokin cap.
+  - Great feathered wings, half folded at rest and beating in `fly`.
+  - The feather fan: `fan` swings it and sends out streaks of wind.
+  - The red tengu has the long nose, white mane and beard; the karasu-tengu has a crow's head and beak.
+- **`rokurokubi`:** a living woman in a kanoko kimono and shimada hair with kanzashi. `stretch` raises her head on a long, swaying S of neck.
+- **In the films:** Momotarō's monkey now walks with the dog and pheasant, and a kappa bows at the paddy, spilling its dish. A packhorse waits by the temple, and two tengu watch over the folktale road. A rokurokubi appears at the shrine in *The Snow Woman*.
+
+Not done: three-quarter views. Every rig is still a profile, mirrored to turn.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
 - Faces are a single profile design per hairstyle. There are no three-quarter turns or expressive brow and eye shapes yet.
 - The wave's foam is procedural. It is now one connected white like the print's, but every claw is built from the same palm-and-talon unit, so it lacks the print's hand-drawn variety of claw sizes and the long lace trailing over the back.
 - The wave breaks one way only: a plunging breaker. There is no spilling breaker for the small background waves, and the falling curtain has no motion smear at its fastest frames.
-- Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. There is no monkey, horse or kappa rig, and no rokurokubi or tengu yet.
+- Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Every rig is a profile, so there are no three-quarter turns yet.
 - No soundtrack yet (shakuhachi and koto beds, rain and surf foley).
 - Human normal-speed review of the film has **not** been recorded.

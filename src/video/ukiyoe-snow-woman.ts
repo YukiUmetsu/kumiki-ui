@@ -70,10 +70,12 @@ const shrine: UkiyoeShot = { id: "shrine", title: "The old shrine at night", bui
       creature("flame-a", "hitodama", 420, gy - 60, { depth: .95, scale: 1.1, actions: [{ type: "float", start: 0, end: dur, to: 520, toY: -60 }] }),
       creature("flame-b", "hitodama", 1600, gy - 120, { depth: .95, scale: .9, actions: [{ type: "float", start: 0, end: dur, to: -380, toY: 40 }] }),
       creature("yurei", "yurei", P ? 690 : 300, gy + 40, { depth: .9, scale: 1.05, facing: "right", actions: [{ type: "appear", start: ghostAt, end: ghostAt + 40 }, { type: "stand", start: ghostAt, end: dur }, { type: "vanish", start: dur - 50, end: dur - 5 }] }),
+      // Behind the right-hand guardian a woman stands in the dark; as he passes, her neck begins to stretch.
+      creature("rokuro", "rokurokubi", 1610, gy + 40, { depth: .93, scale: .95, facing: "left", actions: [{ type: "appear", start: 120, end: 150 }, { type: "stand", start: 120, end: 200 }, { type: "stretch", start: 200, end: dur }] }),
       fig("traveller", "traveller", 1950, gy + 70, { depth: 1, scale: 1, facing: "left", actions: [{ type: "walk", start: 0, end: hop + 60, to: -700 }, { type: "startle", start: hop + 62, end: hop + 90 }, { type: "look", start: hop + 90, end: ghostAt + 30, angle: 10 }, { type: "run", start: ghostAt + 40, end: dur, to: -1500 }] }),
       { id: "fireflies", kind: "particles", type: "fireflies", depth: 1, area: [0, gy - 400, 1920, 380], count: 14, size: 1.2 } as UkiyoeNode,
       ...caption("cap-shrine-1", aspect, "On the way he passed the old shrine. Things moved there at night.", 20, 160, t),
-      ...caption("cap-shrine-2", aspect, "An umbrella hopped by on one leg. Someone stood among the pines.", 170, dur, t),
+      ...caption("cap-shrine-2", aspect, "An umbrella hopped by. A ghost stood in the pines. A woman's neck grew long.", 170, dur, t),
     ],
   });
 } };

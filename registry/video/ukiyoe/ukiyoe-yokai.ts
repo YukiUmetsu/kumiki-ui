@@ -19,8 +19,8 @@ import type { Prim } from "./ukiyoe-prims";
 import { circleD, ellipseD } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 
-export type UkiyoeYokai = "yukionna" | "yurei" | "kasaobake" | "chochinobake" | "hitodama";
-export const UKIYOE_YOKAI: readonly UkiyoeYokai[] = ["yukionna", "yurei", "kasaobake", "chochinobake", "hitodama"];
+export type UkiyoeYokai = "yukionna" | "yurei" | "rokurokubi" | "kasaobake" | "chochinobake" | "hitodama" | "kappa" | "tengu" | "karasutengu";
+export const UKIYOE_YOKAI: readonly UkiyoeYokai[] = ["yukionna", "yurei", "rokurokubi", "kasaobake", "chochinobake", "hitodama", "kappa", "tengu", "karasutengu"];
 
 /** What the yōkai drawing needs to know about the creature's actions at this frame. */
 export interface YokaiState {
@@ -79,19 +79,21 @@ function snowSwirl(c: Pt, rx: number, ry: number, n: number, frame: number, seed
  * the face in profile with its front hair, then the near sleeve and hand. `kind` decides the robe's end (snow tendrils
  * or a fade), the hair (streaming back or hanging forward), the arms and the face.
  */
-function spiritWoman(kind: "yukionna" | "yurei", look: YokaiLook, s: YokaiState, frame: number, wind: number, seed: number): Prim[] {
+function spiritWoman(kind: "yukionna" | "yurei" | "rokurokubi", look: YokaiLook, s: YokaiState, frame: number, wind: number, seed: number): Prim[] {
   const H = look.size ?? 190, out: Prim[] = [], line = Math.max(.8, H / 190 * 1.1);
-  const robe = look.color ?? "gofun", shade = look.accent ?? (kind === "yukionna" ? "sora" : "usuzumi"), skin = "gofun";
+  const rk = kind === "rokurokubi";
+  const robe = look.color ?? (rk ? "beni" : "gofun"), shade = look.accent ?? (kind === "yukionna" ? "sora" : rk ? "murasaki" : "usuzumi"), skin = rk ? "hada" : "gofun";
   const snowW = kind === "yukionna";
-  const hover = H * .1 + Math.sin(frame / 22 + seed) * H * .018, sway = Math.sin(frame / 31 + seed) * 1.4 + wind * 2.5;
+  // The rokurokubi is a living woman who stands on the ground; the spirits hover.
+  const hover = rk ? 0 : H * .1 + Math.sin(frame / 22 + seed) * H * .018, sway = (Math.sin(frame / 31 + seed) * 1.4 + wind * 2.5) * (rk ? .3 : 1);
   const blow = s.w("blow"), beckonW = s.w("beckon").w;
   // Authored in heights: u across (facing right), v up from the hem line (negative), the figure leaning with the sway.
   const P = (u: number, v: number): Pt => [u * H + (-v) * sway * .012 * H, -hover + v * H];
   const gust = snowW ? clamp01(Math.abs(wind) * .5 + .45) : .08, wv = (u: number, k = 1) => Math.sin(frame / 11 - u * 5 + seed) * u * .03 * k;
   if (snowW) out.push({ t: "glow", cx: P(0, -.6)[0], cy: P(0, -.6)[1], r: H * .7, color: "sora", opacity: .3 });
   // ---- Hair behind: a full mass from the crown down the back; the snow woman's lifts and streams on the wind into
-  // separate locks, the ghost's hangs heavy and straight.
-  {
+  // separate locks, the ghost's hangs heavy and straight. (The rokurokubi's hair is dressed up, and goes with her head.)
+  if (!rk) {
     const L: Pt[] = [], R2: Pt[] = [];
     for (let i = 0; i <= 14; i++) {
       const t = i / 14, lift = snowW ? gust * t ** 1.6 : 0;
@@ -129,19 +131,22 @@ function spiritWoman(kind: "yukionna" | "yurei", look: YokaiLook, s: YokaiState,
   // Arm poses: the snow woman's hands rest together at the breast, lift to her lips to breathe, or reach out; the
   // ghost's forearms are raised before her, the hands hanging limp from the wrists.
   const rest: Pt = [.12, -.63], toLips: Pt = [.115, -.8], reachOut: Pt = [.2, -.66], ghostArm: Pt = [.2, -.69];
-  let cuffN = snowW ? lerp2(lerp2(rest, toLips, blow.w), reachOut, beckonW) : ghostArm;
+  let cuffN = snowW || rk ? lerp2(lerp2(rest, toLips, blow.w), reachOut, beckonW) : ghostArm;
   cuffN = [cuffN[0] + wv(.4) * .3, cuffN[1]];
-  const elbowN: Pt = snowW ? lerp2([.06, -.6], [.07, -.64], blow.w) : [.08, -.66];
+  const elbowN: Pt = snowW || rk ? lerp2([.06, -.6], [.07, -.64], blow.w) : [.08, -.66];
   const far = drape(P(-.03, -.745), P(elbowN[0] - .06, elbowN[1] + .01), P(cuffN[0] - .055, cuffN[1] + .01), .17, .015 + gust * .02);
   out.push({ t: "fill", d: far.d, fill: robe, outline: line }, { t: "fill", d: far.d, fill: shade, opacity: .4, noPrint: true });
   // ---- Robe: an S-curve from the collar over the breast, in at the waist, sweeping out over the hips and down; the
   // snow woman's hem tears into tendrils of snow trailing on the wind, the ghost's fades away.
   const front: Pt[] = [P(.035, -.775), P(.075, -.735), P(.1, -.66), P(.086, -.56), P(.098, -.46), P(.112, -.34), P(.11, -.24)];
   const backL: Pt[] = [P(-.105 - gust * .03, -.22), P(-.1, -.36), P(-.088, -.48), P(-.082, -.58), P(-.08, -.68), P(-.055, -.75)];
-  const robeD = snowW ? smoothD([...front, P(.04, -.19), P(-.05, -.2), ...backL], true, .4) : smoothD([...front, P(.1, -.06), P(-.08, -.05), ...backL], true, .4);
-  const fade = snowW ? [[0, robe, 1], [.6, robe, 1], [.9, shade, .85], [1, shade, .6]] : [[0, robe, .96], [.4, robe, .92], [.72, robe, .35], [1, robe, 0]];
-  out.push({ t: "stroke", d: robeD, color: "sumi", width: line * 2, opacity: snowW ? 1 : .5 });
-  out.push({ t: "fill", d: robeD, fill: { type: "linear", angle: 90, stops: fade as [number, UkiyoePaint, number][] }, noPrint: true });
+  // The rokurokubi's kimono reaches the ground, the hem flaring a little over the feet.
+  const robeD = rk ? smoothD([...front, P(.12, -.12), P(.14, -.01), P(.06, 0), P(-.1, 0), P(-.11, -.1), ...backL], true, .4)
+    : snowW ? smoothD([...front, P(.04, -.19), P(-.05, -.2), ...backL], true, .4) : smoothD([...front, P(.1, -.06), P(-.08, -.05), ...backL], true, .4);
+  const fade = rk ? [[0, robe, 1], [1, robe, 1]] : snowW ? [[0, robe, 1], [.6, robe, 1], [.9, shade, .85], [1, shade, .6]] : [[0, robe, .96], [.4, robe, .92], [.72, robe, .35], [1, robe, 0]];
+  out.push({ t: "stroke", d: robeD, color: "sumi", width: line * 2, opacity: snowW || rk ? 1 : .5 });
+  out.push({ t: "fill", d: robeD, fill: { type: "linear", angle: 90, stops: fade as [number, UkiyoePaint, number][] }, noPrint: !rk, ...(rk ? { pattern: { type: "kanoko" as const, color: "gofun", scale: .55, opacity: .8 }, grain: .4 } : {}) });
+  if (rk) out.push({ t: "fill", d: smoothD([P(.06, -.02), P(.13, -.02), P(.15, .0), P(.05, .0)], true, .4) + smoothD([P(-.02, -.015), P(.05, -.015), P(.06, 0), P(-.03, 0)], true, .4), fill: "gofun", outline: line * .7 });
   if (snowW) {
     const tendrils: string[] = [];
     for (let k = 0; k < 7; k++) {
@@ -158,31 +163,52 @@ function spiritWoman(kind: "yukionna" | "yurei", look: YokaiLook, s: YokaiState,
   out.push({ t: "stroke", d: folds.join(""), color: snowW ? "ai" : "usuzumi", width: .7, opacity: snowW ? .45 : .3 });
   out.push({ t: "line", d: carvedLine([P(.083, -.6), P(.09, -.46), P(.106, -.3), P(.108, -.22)], H * .012, { taper: "end", minRatio: .2, smooth: true }), color: shade, opacity: .8 });
   // The living close the robe left over right; the dead, right over left.
-  out.push({ t: "line", d: carvedLine(snowW ? [P(.058, -.765), P(.06, -.7), P(.098, -.62)] : [P(-.005, -.77), P(.05, -.71), P(.098, -.62)], H * .015, { taper: "both", minRatio: .3, smooth: true }), color: snowW ? "hanada" : "usuzumi", opacity: .75 });
-  out.push({ t: "fill", d: smoothD([P(-.086, -.575), P(.088, -.585), P(.09, -.515), P(-.085, -.505)], true, .3), fill: snowW ? "sora" : "gofun", outline: line * .8, opacity: snowW ? 1 : .85 });
+  out.push({ t: "line", d: carvedLine(snowW || rk ? [P(.058, -.765), P(.06, -.7), P(.098, -.62)] : [P(-.005, -.77), P(.05, -.71), P(.098, -.62)], H * .015, { taper: "both", minRatio: .3, smooth: true }), color: snowW ? "hanada" : rk ? "gofun" : "usuzumi", opacity: .75 });
+  out.push({ t: "fill", d: smoothD([P(-.086, -.575), P(.088, -.585), P(.09, -.515), P(-.085, -.505)], true, .3), fill: snowW ? "sora" : rk ? "kin" : "gofun", outline: line * .8, opacity: snowW || rk ? 1 : .85, ...(rk ? { pattern: { type: "asanoha" as const, color: "kincha", scale: .4, opacity: .7 } } : {}) });
   // ---- Head and neck: a long neck, the long oval face of a bijin in profile — small nose, a long narrow eye, small
   // lips; the ghost gaunt and grey with the paper triangle on her brow.
-  const neck = ribbon([P(.04, -.83), P(.036, -.77)], H * .042, H * .048);
-  out.push({ t: "fill", d: neck, fill: skin, outline: line * .7 });
-  const F = (u: number, v: number): Pt => P(.03 + u, -.885 + v);
+  // The rokurokubi's neck stretches: the head rises on a thin, swaying S of neck, turning to look down and about.
+  const stretch = s.w("stretch"), len = rk ? H * .85 * smooth(clamp01(stretch.t / Math.max(1, stretch.len * .45))) * stretch.w : 0;
+  const Dh: Pt = len > .5 ? [Math.sin(frame / 23 + seed) * len * .3 + len * .25, -len * .8 + Math.cos(frame / 29 + seed) * len * .06] : [0, 0];
+  const F = (u: number, v: number): Pt => add(P(.03 + u, -.885 + v), Dh);
+  if (len > .5) {
+    const base = P(.04, -.77), top = F(0, .05), c1 = add(lerp2(base, top, .33), [Math.sin(frame / 17 + seed) * len * .35, 0]), c2 = add(lerp2(base, top, .7), [-Math.sin(frame / 17 + seed + 1.3) * len * .3, 0]);
+    const spine: Pt[] = [];
+    for (let i = 0; i <= 24; i++) { const t2 = i / 24, u = 1 - t2; spine.push([u * u * u * base[0] + 3 * u * u * t2 * c1[0] + 3 * u * t2 * t2 * c2[0] + t2 * t2 * t2 * top[0], u * u * u * base[1] + 3 * u * u * t2 * c1[1] + 3 * u * t2 * t2 * c2[1] + t2 * t2 * t2 * top[1]]); }
+    out.push({ t: "fill", d: ribbon(spine, H * .05, H * .04, u => u < .1 ? 1.15 - u * 1.5 : 1), fill: skin, outline: line * .8 });
+    out.push({ t: "stroke", d: smoothD(spine.slice(2, -2).map(q => add(q, [-H * .01, 0])), false, .4), color: "cha", width: .7, opacity: .3 });
+  } else {
+    const neck = ribbon([P(.04, -.83), P(.036, -.77)], H * .042, H * .048);
+    out.push({ t: "fill", d: neck, fill: skin, outline: line * .7 });
+  }
+  if (rk) {
+    // Dressed hair: the shimada bun behind and above, the side wings, a comb and hairpins (kanzashi).
+    out.push({ t: "fill", d: smoothD([F(-.075, .0), F(-.095, -.035), F(-.07, -.065), F(-.03, -.06), F(-.03, -.01)], true, .4), fill: "sumi", outline: line * .5 });
+    out.push({ t: "fill", d: smoothD([F(-.06, -.07), F(-.045, -.115), F(.0, -.125), F(.03, -.1), F(.0, -.075)], true, .45), fill: "sumi", outline: line * .5 });
+    out.push({ t: "fill", d: smoothD([F(-.035, -.078), F(.025, -.083), F(.022, -.07), F(-.03, -.066)], true, .3), fill: "beni", outline: line * .5 });
+    out.push({ t: "line", d: carvedLine([F(-.08, -.11), F(.04, -.125)], Math.max(.8, H * .005), { taper: "none" }), color: "kin" });
+    out.push({ t: "dots", d: circleD(...F(.045, -.127), H * .007) + circleD(...F(-.085, -.108), H * .006), color: "beni" });
+  }
   const face: Pt[] = [F(-.03, -.07), F(.025, -.064), F(.05, -.042), F(.064, -.012), F(.072, .006), F(.066, .014), F(.069, .024), F(.064, .03), F(.067, .037), F(.06, .048), F(.045, .058), F(.015, .062), F(-.025, .045), F(-.04, 0)];
   out.push({ t: "fill", d: smoothD(face, true, .32), fill: skin });
   out.push({ t: "line", d: carvedLine(smoothPtsY(face.slice(0, 12)), Math.max(.7, H * .005), { taper: "both", minRatio: .3, smooth: true }), color: "sumi" });
-  if (snowW) out.push({ t: "fill", d: smoothD([F(-.02, .03), F(.03, .04), F(.01, .06)], true, .5), fill: "sora", opacity: .35, noPrint: true });
+  if (snowW || rk) out.push({ t: "fill", d: smoothD([F(-.02, .03), F(.03, .04), F(.01, .06)], true, .5), fill: rk ? "sakura" : "sora", opacity: .35, noPrint: true });
   else out.push({ t: "fill", d: smoothD([F(0, .0), F(.045, .02), F(.035, .05), F(-.005, .045)], true, .5), fill: "usuzumi", opacity: .25, noPrint: true });
   const blink = ((frame + seed * 7) % 160) < 6, ex = .037, ey = -.012, ew = .022;
   out.push({ t: "line", d: carvedLine([F(ex - ew * .7, ey - .001), F(ex, ey - (blink ? .0005 : .004)), F(ex + ew * .55, ey + .003)], Math.max(.8, H * .0055), { taper: "both", minRatio: .25, smooth: true }), color: "sumi" });
   if (!blink) out.push({ t: "fill", d: ellipseD(...F(ex + .004, ey + .002), H * .005, H * .0028), fill: "sumi", opacity: snowW ? .95 : .7 });
   out.push({ t: "line", d: carvedLine([F(ex - ew * .6, ey - .02), F(ex + ew * .1, ey - .025), F(ex + ew * .55, ey - .02)], Math.max(.5, H * .003), { taper: "both" }), color: "sumi", opacity: .6 });
-  if (snowW) out.push({ t: "fill", d: ellipseD(...F(.066, .032), H * .0055, H * .0035), fill: "beni", noPrint: true });
+  if (snowW || rk) out.push({ t: "fill", d: ellipseD(...F(.066, .032), H * .0055, H * .0035), fill: "beni", noPrint: true });
   else out.push({ t: "line", d: carvedLine([F(.056, .032), F(.066, .034)], Math.max(.5, H * .003)), color: "sumi", opacity: .8 });
   // Front hair: the forelock over the brow and side locks falling in front of the shoulder; the ghost's falls forward
   // in a curtain across her cheek.
-  const fh: Pt[] = snowW
+  const fh: Pt[] = rk
+    ? [F(-.045, -.03), F(-.03, -.08), F(.02, -.082), F(.05, -.055), F(.03, -.05), F(.005, -.045), F(-.008, -.01), F(-.015, .03), F(-.035, .04)]
+    : snowW
     ? [F(-.045, -.03), F(-.03, -.08), F(.02, -.082), F(.05, -.055), F(.03, -.05), F(.005, -.045), F(-.008, -.01), F(-.012, .04), P(.03 + wv(.3), -.76), P(.045 + wv(.4), -.7), P(.025 + wv(.4), -.71), P(.0, -.79), F(-.035, .04)]
     : [F(-.045, -.03), F(-.03, -.085), F(.025, -.085), F(.058, -.05), F(.05, .0), F(.042, .04), P(.085 + wv(.4, .3), -.7), P(.078 + wv(.5, .3), -.64), P(.06, -.66), F(.012, .04), F(-.01, .0), F(-.03, .04)];
   out.push({ t: "fill", d: smoothD(fh, true, .32), fill: "sumi", outline: line * .5 });
-  if (!snowW) {
+  if (!snowW && !rk) {
     out.push({ t: "fill", d: polyD([F(.006, -.07), F(.03, -.118), F(.052, -.064)]), fill: "gofun", outline: line * .7 });
     const wisps: string[] = [];
     for (let k = 0; k < 7; k++) { const a = F(.02 + k * .006, -.05 + k * .012), b = add(a, [H * (.012 + .012 * hash01(seed, k, 21)) + Math.sin(frame / 15 + k) * H * .004, H * (.06 + .06 * hash01(seed, k, 22))]); wisps.push(carvedLine(curve(a, add(lerp2(a, b, .5), [H * .006, 0]), b, 5), Math.max(.5, H * .0035), { taper: "end", minRatio: .1 })); }
@@ -194,7 +220,7 @@ function spiritWoman(kind: "yukionna" | "yurei", look: YokaiLook, s: YokaiState,
   out.push({ t: "fill", d: near.d, fill: { type: "linear", angle: 90, stops: [[0, shade, 0], [.6, shade, .15], [1, shade, .4]] }, noPrint: true });
   out.push({ t: "stroke", d: near.folds, color: snowW ? "ai" : "usuzumi", width: .7, opacity: .45 });
   const cuffW = P(...cuffN);
-  if (snowW) {
+  if (snowW || rk) {
     const handA = blow.w > .3 ? -70 : beckonW > .3 ? 20 : -10, tip = polar(cuffW, handA, H * .04);
     out.push({ t: "fill", d: ribbon(curve(cuffW, lerp2(cuffW, tip, .5), tip, 5), H * .022, H * .008), fill: skin, outline: line * .6 });
   } else {
@@ -220,7 +246,7 @@ function spiritWoman(kind: "yukionna" | "yurei", look: YokaiLook, s: YokaiState,
     out.push({ t: "dots", d: puffs.join(""), color: "gofun", opacity: .95 * blow.w }, { t: "stroke", d: streaks.join(""), color: "sora", width: .9, opacity: .8 * blow.w });
   }
   if (snowW) out.push(snowSwirl(P(0, -.5), H * .55, H * .45, 36, frame, seed + 3, .85));
-  else for (let f = 0; f < (look.flames ?? 2); f++) {
+  else if (!rk) for (let f = 0; f < (look.flames ?? 2); f++) {
     const a = frame / 34 + f * Math.PI, c: Pt = P(Math.cos(a) * .22 + .04, -.55 + Math.sin(a * 1.4) * .12);
     out.push(...soulFlame(c, H * .03, frame, seed + f * 9));
   }
@@ -342,11 +368,182 @@ function chochinObake(look: YokaiLook, s: YokaiState, frame: number, wind: numbe
   return out;
 }
 
+// ---- Kappa ------------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * The kappa of the river, after Sekien: a crouching, child-sized creature, green and mottled, a turtle's shell on its
+ * back and plates on its belly, webbed hands and feet, a beak, round staring eyes, and on its head the dish of water
+ * (sara) ringed by a fringe of hair. It waddles (`walk`), dances (`dance`), and — as in the old stories — bows politely
+ * (`bow`), spilling the water from its dish.
+ */
+function kappa(look: YokaiLook, s: YokaiState, frame: number, seed: number): Prim[] {
+  const H = look.size ?? 110, out: Prim[] = [], line = Math.max(.9, H / 110 * 1.1), skin = look.color ?? "kusa", shellC = look.accent ?? "cha";
+  const walk = s.w("walk").w * (s.moving ? 1 : 0), dance = s.w("dance").w, bowA = s.w("bow"), bow = bowA.w * Math.sin(Math.PI * clamp01(bowA.t / Math.max(1, bowA.len)));
+  const ph = s.dist / (H * .5) * Math.PI * 2, idle = Math.sin(frame / 18 + seed);
+  const waddle = walk * Math.sin(ph) * 5, lift = (side: number) => walk * Math.max(0, Math.sin(ph + side * Math.PI)) * H * .07;
+  const tilt = 22 + bow * 50 + waddle + dance * Math.sin(frame / 6) * 6, hip: Pt = [0, -H * (.3 + .015 * idle) + walk * Math.abs(Math.sin(ph)) * H * -.02];
+  const T = (x: number, y: number): Pt => { const a = tilt * Math.PI / 180, px = x * H, py = -y * H; return [hip[0] + px * Math.cos(a) - py * Math.sin(a), hip[1] + px * Math.sin(a) + py * Math.cos(a)]; };
+  const leg = (side: number, near: boolean): Prim[] => {
+    // Frog-legged crouch: the thigh forward, the knee high, the shin back down to a broad webbed foot.
+    const foot: Pt = [H * (.08 + side * .07) + walk * Math.sin(ph + side * Math.PI) * H * .08, -lift(side)], knee: Pt = [H * (.17 + side * .05), -H * .2 - lift(side) * .5], root = T(.02, .02);
+    const d = ribbon(curve(root, add(knee, [H * .03, -H * .02]), knee, 6), H * .1, H * .065) + ribbon(curve(knee, add(lerp2(knee, foot, .5), [H * .03, 0]), foot, 6), H * .065, H * .045);
+    const toes = [-10, 15, 40].map(a => ribbon([foot, polar(foot, a, H * .08)], H * .03, H * .015)).join("");
+    const web = polyD([foot, polar(foot, -10, H * .075), polar(foot, 15, H * .07), polar(foot, 40, H * .065)]);
+    return [{ t: "fill", d: d + toes, fill: skin, outline: line, opacity: near ? 1 : .9 }, { t: "fill", d: web, fill: skin, opacity: .8 }, ...(near ? [] : [{ t: "fill" as const, d: d, fill: "sumi", opacity: .2 }])];
+  };
+  const arm = (near: boolean): Prim[] => {
+    const sh = T(.06, .3), up = dance > .05 ? -60 + Math.sin(frame / 7 + (near ? 0 : 2)) * 40 : bow > .2 ? 70 : 55 + idle * 6 + walk * Math.sin(ph + (near ? 0 : Math.PI)) * 18;
+    const el = polar(sh, up + tilt * .3, H * .14), wr = polar(el, up + tilt * .3 + (dance > .05 ? -40 : 30), H * .13);
+    const fingers = [-25, 0, 25].map(a => ribbon([wr, polar(wr, up + tilt * .3 + 40 + a, H * .06)], H * .025, H * .012)).join("");
+    const web = polyD([wr, polar(wr, up + tilt * .3 + 15, H * .055), polar(wr, up + tilt * .3 + 40, H * .058), polar(wr, up + tilt * .3 + 65, H * .055)]);
+    return [{ t: "fill", d: ribbon(curve(sh, lerp2(sh, el, .6), el, 5), H * .06, H * .045) + ribbon(curve(el, lerp2(el, wr, .5), wr, 5), H * .045, H * .035) + fingers, fill: skin, outline: line, opacity: near ? 1 : .9 },
+      { t: "fill", d: web, fill: skin, opacity: .8 }];
+  };
+  out.push({ t: "fill", d: ellipseD(H * .1, 1, H * .22, H * .03), fill: "sumi", opacity: .12, noPrint: true });
+  out.push(...leg(-1, false), ...arm(false));
+  // Shell (back) and body: the shell a dome of plates with a rim, the belly plates in front.
+  const body = smoothD([T(-.06, -.02), T(.12, .02), T(.17, .15), T(.15, .3), T(.08, .38), T(-.04, .36), T(-.1, .2)], true, .45);
+  const shell = smoothD([T(-.02, .0), T(-.14, .06), T(-.2, .2), T(-.15, .36), T(-.02, .42), T(.04, .36), T(-.04, .2)], true, .45);
+  out.push({ t: "fill", d: body, fill: skin, outline: line, grain: .4 });
+  out.push({ t: "clip", d: body, key: "kbelly", prims: [{ t: "fill", d: smoothD([T(.06, .0), T(.18, .08), T(.18, .3), T(.08, .32), T(.04, .15)], true, .4), fill: "ki", opacity: .9 },
+    { t: "stroke", d: [.08, .15, .22, .28].map(y => `M${T(.06, y)[0].toFixed(1)} ${T(.06, y)[1].toFixed(1)}L${T(.2, y)[0].toFixed(1)} ${T(.2, y)[1].toFixed(1)}`).join(""), color: "kincha", width: .8, opacity: .8 },
+    { t: "dots", d: Array.from({ length: 14 }, (_, i) => circleD(...T(-.06 + hash01(seed, i, 1) * .14, .02 + hash01(seed, i, 2) * .34), H * (.006 + .01 * hash01(seed, i, 3)))).join(""), color: "matsu", opacity: .6 }] });
+  out.push({ t: "fill", d: shell, fill: { type: "linear", angle: 0, stops: [[0, "kogecha", 1], [1, shellC, 1]] }, outline: line * 1.1, grain: .6 });
+  out.push({ t: "clip", d: shell, key: "kshell", prims: [{ t: "stroke", d: [[-.09, .12], [-.12, .25], [-.06, .33]].map(([x, y]) => polyD(Array.from({ length: 6 }, (_, k) => T(x + Math.cos(k * Math.PI / 3) * .04, y + Math.sin(k * Math.PI / 3) * .05)))).join(""), color: "sumi", width: .9, opacity: .7 },
+    { t: "stroke", d: smoothD([T(-.02, .02), T(-.16, .1), T(-.19, .25), T(-.12, .38)], false, .4), color: "ki", width: H * .012, opacity: .6 }] });
+  out.push(...leg(1, true));
+  // Head: round, with the beak, the staring eye, the fringe of hair round the dish of water on top.
+  const hc = T(.1, .5), hr = H * .13, ha = tilt * .6 + bow * 30;
+  const HP = (x: number, y: number): Pt => { const a = ha * Math.PI / 180, px = x * hr, py = y * hr; return [hc[0] + px * Math.cos(a) - py * Math.sin(a), hc[1] + px * Math.sin(a) + py * Math.cos(a)]; };
+  out.push({ t: "fill", d: smoothD([HP(-.9, .1), HP(-.7, -.7), HP(.1, -.95), HP(.8, -.55), HP(1, .1), HP(.6, .75), HP(-.3, .85)], true, .45), fill: skin, outline: line, grain: .3 });
+  out.push({ t: "fill", d: smoothD([HP(.6, -.05), HP(1.75, .1), HP(.75, .55)], true, .25), fill: "ki", outline: line });
+  out.push({ t: "line", d: carvedLine([HP(.7, .26), HP(1.5, .17)], Math.max(.7, hr * .05), { taper: "end" }), color: "sumi", opacity: .7 });
+  out.push({ t: "fill", d: ellipseD(...HP(.32, -.18), hr * .3, hr * .28), fill: "gofun", outline: line * .9 }, { t: "dots", d: circleD(...HP(.38, -.16), hr * .15), color: "sumi" }, { t: "dots", d: circleD(...HP(.42, -.22), hr * .05), color: "gofun" });
+  // The hair fringe: short spiky locks hanging round the dish.
+  const fringe: Pt[] = [];
+  for (let i = 0; i <= 14; i++) { const u = i / 14, a = Math.PI * (1.1 + .8 * u); fringe.push(HP(Math.cos(a) * .95, Math.sin(a) * .7 - .15), HP(Math.cos(a) * (1.25 + .1 * hash01(seed, i, 5)), Math.sin(a) * .7 + .25 + .15 * hash01(seed, i, 6))); }
+  out.push({ t: "fill", d: polyD([HP(-.95, -.25), ...fringe, HP(.85, -.4), HP(.6, -.75), HP(-.6, -.75)]), fill: "sumi", outline: line * .5 });
+  // The dish, with water in it catching the light.
+  const dish = ellipseD(...HP(-.05, -.8), hr * .62, hr * .22);
+  out.push({ t: "fill", d: dish, fill: "gofun", outline: line * .9 }, { t: "fill", d: ellipseD(...HP(-.05, -.82), hr * .5, hr * .14), fill: "sora", opacity: .9 * (1 - bow * .8) }, { t: "fill", d: ellipseD(...HP(-.2, -.86), hr * .15, hr * .04), fill: "gofun", opacity: .9 });
+  // Bowing spills the water: drops fall from the dish's front lip and splash on the ground.
+  if (bow > .15) {
+    const lip = HP(.5, -.8), drops: string[] = [];
+    for (let i = 0; i < 9; i++) { const life = (frame / 10 + i / 9) % 1, x = lip[0] + H * .02 * i % (H * .06) + life * H * .04, y = lip[1] + (0 - lip[1]) * life ** 1.6; drops.push(ellipseD(x, y, H * .008, H * .014)); }
+    out.push({ t: "fill", d: drops.join(""), fill: "sora", opacity: .9 * bow, outline: .5, outlineColor: "hanada" });
+  }
+  out.push(...arm(true));
+  return out;
+}
+
+// ---- Tengu ------------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * The tengu of the mountains, dressed as a yamabushi: the checked robe with the pom-pom sash (yuigesa), wide trousers,
+ * a tall one-toothed geta, the little black cap (tokin), great feathered wings, and the feather fan that raises a gale.
+ * `variant` "red" is the long-nosed daitengu (red face, white mane and beard); "crow" the karasu-tengu with a bird's
+ * head and beak. `fly` beats the wings and lifts it; `fan` sweeps the fan and sends out wind.
+ */
+function tengu(variant: "red" | "crow", look: YokaiLook, s: YokaiState, frame: number, wind: number, seed: number): Prim[] {
+  const H = look.size ?? 200, out: Prim[] = [], line = Math.max(1, H / 200 * 1.2), crow = variant === "crow";
+  const robe = look.color ?? "gofun", trousers = look.accent ?? "ai", skin = crow ? "ai" : "shu";
+  const fly = s.w("fly").w, fanA = s.w("fan"), fanW = fanA.w, idle = Math.sin(frame / 20 + seed);
+  const walk = s.w("walk").w * (s.moving ? 1 : 0), ph = s.dist / (H * .55) * Math.PI * 2;
+  const beat = (frame / 5 + seed) % (Math.PI * 2), flap = fly > 0 ? .5 - .5 * Math.cos(beat) : .5 + idle * .05;
+  const rise = fly * (H * .35 + Math.sin(frame / 14) * H * .03);
+  const P = (u: number, v: number): Pt => [u * H, -rise + v * H];
+  // Wings behind: rows of long dark feathers fanning from the shoulders, half open at rest, beating in flight.
+  const wing = (near: boolean): Prim[] => {
+    // Half folded at rest, the wings sweep back and up behind the shoulders; in flight they beat through a wide arc.
+    const sh = P(-.06 + (near ? .0 : -.02), -.74), open = lerp(.6, 1, fly) * (near ? 1 : .9), up = lerp(fly > 0 ? -175 : -168, fly > 0 ? -45 : -150, flap) + (near ? 0 : -10);
+    const fea: string[] = [], cov: string[] = [];
+    for (let i = 0; i < 11; i++) { const u = i / 10, a = up + lerp(-15, 70, u) * open, l = H * (.55 - .22 * u) * lerp(.6, 1, open); fea.push(featherY(polar(sh, a + 90, H * .02 * u), a, l, H * .07)); }
+    for (let i = 0; i < 7; i++) { const u = i / 6, a = up + lerp(0, 75, u) * open; cov.push(featherY(sh, a, H * (.26 - .06 * u) * lerp(.6, 1, open), H * .08)); }
+    return [{ t: "fill", d: fea.join(""), fill: "sumi", outline: line * .6, outlineColor: "usuzumi", opacity: near ? 1 : .85 },
+      { t: "stroke", d: fea.join(""), color: "usuzumi", width: .5, opacity: .5 },
+      { t: "fill", d: cov.join(""), fill: crow ? "sumi" : "kogecha", outline: line * .6, opacity: near ? 1 : .85 }];
+  };
+  out.push({ t: "fill", d: ellipseD(0, 1, H * .16 * (1 - fly * .6), H * .02), fill: "sumi", opacity: .12, noPrint: true });
+  out.push(...wing(false), ...wing(true));
+  // Legs in hakama, on one-toothed geta; walking swings them; in flight they hang.
+  const legs: Prim[] = [];
+  for (const near of [false, true]) {
+    const sw = walk * Math.sin(ph + (near ? 0 : Math.PI)) * .06, foot: Pt = P(.02 + sw + (near ? .02 : -.02), -.05 + fly * .02), knee: Pt = P(.01 + sw * .5, -.27);
+    const hk = ribbon(curve(P(near ? .03 : -.02, -.5), knee, add(foot, [0, -H * .03]), 6), H * .2, H * .16);
+    legs.push({ t: "fill", d: hk, fill: trousers, outline: line, opacity: near ? 1 : .85, grain: .4 }, { t: "stroke", d: [-.03, .02].map(dx => smoothD([add(P(dx, -.48), [0, 0]), add(knee, [dx * H, 0]), add(foot, [dx * H * .5, -H * .05])], false, .4)).join(""), color: "sumi", width: .7, opacity: .35 });
+    legs.push({ t: "fill", d: polyD([add(foot, [-H * .05, -H * .03]), add(foot, [H * .07, -H * .03]), add(foot, [H * .07, -H * .015]), add(foot, [-H * .05, -H * .015])]), fill: "cha", outline: line * .8 },
+      { t: "fill", d: polyD([add(foot, [0, -H * .015]), add(foot, [H * .02, -H * .015]), add(foot, [H * .018, H * .05]), add(foot, [H * .003, H * .05])]), fill: "kogecha", outline: line * .6 });
+  }
+  out.push(...legs);
+  // Robe: the suzukake with its checked pattern, the sleeves, the yuigesa sash with its six pom-poms down the chest.
+  const torso = smoothD([P(-.1, -.48), P(-.12, -.64), P(-.09, -.77), P(.0, -.81), P(.09, -.77), P(.13, -.64), P(.12, -.48), P(.0, -.45)], true, .4);
+  out.push({ t: "fill", d: torso, fill: robe, outline: line, pattern: { type: "ichimatsu", color: "sora", scale: .45, opacity: .5 }, grain: .4 });
+  out.push({ t: "fill", d: smoothD([P(-.09, -.52), P(.105, -.53), P(.1, -.49), P(-.085, -.48)], true, .3), fill: "kogecha", outline: line * .7 });
+  out.push({ t: "line", d: carvedLine([P(-.03, -.79), P(.04, -.7), P(.08, -.6)], H * .022, { taper: "none", smooth: true }), color: "kincha" });
+  out.push(...[0, 1, 2, 3, 4, 5].map((i): Prim => { const q = P(-.0 + i * .016, -.77 + i * .035); return { t: "fill", d: smoothD(Array.from({ length: 8 }, (_, k) => polar(q, k * 45, H * (.022 + .004 * Math.sin(k * 2 + i)))), true, .5), fill: i % 2 ? "kin" : "beni", outline: line * .6 }; }));
+  // The arm with the fan: at rest it holds the fan up before the chest; `fan` sweeps it forward and down, and a gust
+  // of wind lines streams out from the fan's face.
+  const sweep = fanW > 0 ? Math.sin(Math.PI * 2 * clamp01(fanA.t / Math.max(1, fanA.len)) * 2) : 0;
+  // At rest the fan is held out at chest height; `fan` swings it up and over in big strokes.
+  const sh = P(.06, -.76), handA = lerp(48, -30, (sweep + 1) / 2 * fanW) + idle * 3 - fly * 20, el = polar(sh, 75 - fly * 30, H * .14), hand = polar(el, handA - 50, H * .13);
+  const sleeve = smoothD([sh, el, hand, add(hand, [-H * .02, H * .06]), add(lerp2(el, hand, .5), [-H * .03, H * .14]), add(el, [-H * .06, H * .1]), add(sh, [-H * .06, H * .05])], true, .3);
+  out.push({ t: "fill", d: sleeve, fill: robe, outline: line, pattern: { type: "ichimatsu", color: "sora", scale: .45, opacity: .5 } });
+  const fanAng = handA - 80;
+  const fanD: string[] = [];
+  for (let i = 0; i < 9; i++) fanD.push(featherY(polar(hand, fanAng, H * .03), fanAng + (i - 4) * 9, H * (.2 - Math.abs(i - 4) * .012), H * .06));
+  out.push({ t: "line", d: carvedLine([hand, polar(hand, fanAng, H * .05)], H * .015, { taper: "none" }), color: "beni" });
+  out.push({ t: "fill", d: fanD.join(""), fill: "gofun", outline: line * .7 }, { t: "stroke", d: fanD.join(""), color: "usuzumi", width: .5, opacity: .5 });
+  out.push({ t: "fill", d: ribbon([hand, polar(hand, handA, H * .03)], H * .03, H * .025), fill: crow ? "ai" : "shu", outline: line * .6 });
+  if (fanW > .1) {
+    const gust: string[] = [], tipF = polar(hand, fanAng, H * .2);
+    for (let i = 0; i < 9; i++) { const life = (fanA.t / 14 + i / 9) % 1, y = (i - 4) * H * .03; const a = add(tipF, [life * H * .9, y + Math.sin(life * 6 + i) * H * .02]); gust.push(carvedLine([a, add(a, [H * .2 * (1 - life), Math.sin(life * 5 + i) * H * .02])], H * .008 * (1 - life), { taper: "both", minRatio: .2 })); }
+    out.push({ t: "fill", d: gust.join(""), fill: "gofun", opacity: .85 * fanW, noPrint: true }, { t: "stroke", d: gust.join(""), color: "usuzumi", width: .5, opacity: .5 * fanW });
+  }
+  // Head: the red daitengu with its long nose, fierce brow, white mane and beard; or the crow-headed karasu-tengu.
+  const hc = P(.03, -.89), r = H * .074;
+  const HQ = (x: number, y: number): Pt => [hc[0] + x * r, hc[1] + y * r];
+  if (crow) {
+    out.push({ t: "fill", d: smoothD([HQ(-1, .4), HQ(-.9, -.6), HQ(0, -1.05), HQ(.9, -.5), HQ(1.1, .3), HQ(.4, 1.1), HQ(-.6, .9)], true, .45), fill: "sumi", outline: line });
+    out.push({ t: "stroke", d: Array.from({ length: 12 }, (_, i) => { const a = HQ(-.8 + (i % 4) * .4, -.6 + Math.floor(i / 4) * .5); return `M${a[0].toFixed(1)} ${a[1].toFixed(1)}q${(r * .2).toFixed(1)} ${(r * .2).toFixed(1)} ${(-r * .1).toFixed(1)} ${(r * .4).toFixed(1)}`; }).join(""), color: "usuzumi", width: .6, opacity: .6 });
+    out.push({ t: "fill", d: smoothD([HQ(.7, -.3), HQ(2.4, .25), HQ(1.6, .3), HQ(.8, .5)], true, .2), fill: "ki", outline: line }, { t: "fill", d: smoothD([HQ(.8, .45), HQ(2.0, .38), HQ(.9, .75)], true, .2), fill: "kincha", outline: line });
+    out.push({ t: "fill", d: ellipseD(...HQ(.4, -.25), r * .3, r * .26), fill: "ki", outline: line * .8 }, { t: "dots", d: circleD(...HQ(.45, -.25), r * .14), color: "sumi" });
+  } else {
+    // Mane behind, streaming in the wind.
+    const mane: Pt[] = [HQ(-.3, -1.1)];
+    for (let i = 0; i <= 8; i++) { const u = i / 8; mane.push(HQ(-1.2 - u * 1.4 - Math.abs(wind) * u * .6, -1 + u * 2.6 + Math.sin(frame / 9 + i) * .15), HQ(-1 - u * 1.2, -.7 + u * 2.6)); }
+    mane.push(HQ(-.2, 1.2));
+    out.push({ t: "fill", d: polyD(mane), fill: "gofun", outline: line * .7 });
+    out.push({ t: "fill", d: smoothD([HQ(-.9, .3), HQ(-.8, -.7), HQ(0, -1.05), HQ(.85, -.6), HQ(1, .1), HQ(.7, .8), HQ(-.2, 1), HQ(-.8, .8)], true, .4), fill: skin, outline: line, grain: .3 });
+    // The long nose, straight out from the face.
+    out.push({ t: "fill", d: smoothD([HQ(.7, -.3), HQ(2.9, -.12), HQ(3.0, .05), HQ(2.8, .16), HQ(.8, .2)], true, .25), fill: skin, outline: line });
+    out.push({ t: "dots", d: circleD(...HQ(2.7, .1), r * .06), color: "sumi" });
+    out.push({ t: "fill", d: ellipseD(...HQ(.35, -.32), r * .22, r * .16), fill: "gofun", outline: line * .8 }, { t: "dots", d: circleD(...HQ(.42, -.3), r * .1), color: "sumi" });
+    out.push({ t: "fill", d: smoothD([HQ(-.1, -.55), HQ(.6, -.75), HQ(.9, -.5), HQ(.3, -.5)], true, .3), fill: "gofun", outline: line * .7 });
+    // Beard.
+    const beard: Pt[] = [HQ(.7, .45)];
+    for (let i = 0; i <= 6; i++) { const u = i / 6; beard.push(HQ(.8 - u * 1.2 + Math.sin(frame / 11 + i) * .08, 1.4 + .5 * Math.sin(u * Math.PI)), HQ(.6 - u * 1.2, 1)); }
+    beard.push(HQ(-.6, .6));
+    out.push({ t: "fill", d: polyD(beard), fill: "gofun", outline: line * .7 });
+    out.push({ t: "line", d: carvedLine([HQ(.5, .55), HQ(.85, .5)], r * .1, { taper: "both" }), color: "sumi" });
+  }
+  // The tokin: a little black cap on the brow, tied under the chin.
+  out.push({ t: "fill", d: polyD([HQ(-.2, -.9), HQ(.15, -1.55), HQ(.6, -1.35), HQ(.55, -.85), HQ(.15, -.75)]), fill: "sumi", outline: line * .8 });
+  out.push({ t: "stroke", d: smoothD([HQ(-.15, -.82), HQ(-.4, .2), HQ(-.1, .9)], false, .4), color: "sumi", width: Math.max(.8, r * .06), opacity: .8 });
+  return out;
+}
+/** A long feather: a narrow leaf from its base to its tip. */
+function featherY(base: Pt, angle: number, len: number, width: number): string {
+  const tip = polar(base, angle, len), mid = polar(base, angle, len * .5), n = (angle + 90) * Math.PI / 180, nx = Math.cos(n), ny = Math.sin(n);
+  return smoothD([[base[0] + nx * width * .25, base[1] + ny * width * .25], [mid[0] + nx * width * .5, mid[1] + ny * width * .5], tip, [mid[0] - nx * width * .4, mid[1] - ny * width * .4], [base[0] - nx * width * .25, base[1] - ny * width * .25]], true, .4);
+}
+
 /** Draws a yōkai. */
 export function drawYokai(kind: UkiyoeYokai, look: YokaiLook, s: YokaiState, frame: number, wind: number, seed: number): Prim[] {
   let prims: Prim[];
   switch (kind) {
-    case "yukionna": case "yurei": prims = spiritWoman(kind, look, s, frame, wind, seed); break;
+    case "yukionna": case "yurei": case "rokurokubi": prims = spiritWoman(kind, look, s, frame, wind, seed); break;
+    case "kappa": prims = kappa(look, s, frame, seed); break;
+    case "tengu": case "karasutengu": prims = tengu(kind === "tengu" ? "red" : "crow", look, s, frame, wind, seed); break;
     case "kasaobake": prims = kasaObake(look, s, frame, wind, seed); break;
     case "chochinobake": prims = chochinObake(look, s, frame, wind, seed); break;
     case "hitodama": {
