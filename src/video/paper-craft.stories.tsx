@@ -17,6 +17,7 @@ type Controls = {
   scenery: PaperScenery;
   sceneryPalette: PaperSceneryPalette;
   breeze: number;
+  treeVariety: number;
   object: PaperObject;
   objectPalette: PaperObjectPalette;
   palette: PaperBotanicalPalette;
@@ -41,12 +42,12 @@ const labels: Record<PaperStyle, string> = {
   lightbox: "04 · Backlit lightbox",
   "shadow-puppet": "05 · Shadow puppetry",
 };
-function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, object, objectPalette, palette, detail, colorLayers, curl, motion, relief, medium, aspect, frame, tooth, shadow, edge, seed, reducedMotion }: Controls) {
+function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, object, objectPalette, palette, detail, colorLayers, curl, motion, relief, medium, aspect, frame, tooth, shadow, edge, seed, reducedMotion }: Controls) {
   const [liveFrame, setLiveFrame] = useState(frame), [playing, setPlaying] = useState(false);
   const [selected, setSelected] = useState<PaperStyle>(medium);
   useEffect(() => setSelected(medium), [medium]);
   const anchor = useRef<{ time: number; frame: number } | null>(null);
-  useEffect(() => { setLiveFrame(frame); anchor.current = null; }, [frame, selected, aspect, artwork, scenery, sceneryPalette, breeze, object, objectPalette, palette, detail, colorLayers, curl, motion, relief, seed]);
+  useEffect(() => { setLiveFrame(frame); anchor.current = null; }, [frame, selected, aspect, artwork, scenery, sceneryPalette, breeze, treeVariety, object, objectPalette, palette, detail, colorLayers, curl, motion, relief, seed]);
   useEffect(() => {
     if (!playing || reducedMotion) return;
     let raf = 0;
@@ -64,11 +65,11 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, object, objec
   const spec = useMemo(() => artwork === "botanical"
     ? paperBotanicalSpec(selected, aspect, {palette, detail, colorLayers, seed})
     : artwork === "scenery"
-      ? paperScenerySpec(selected, aspect, {scenery, palette: sceneryPalette, detail, breeze, relief, seed})
+      ? paperScenerySpec(selected, aspect, {scenery, palette: sceneryPalette, detail, breeze, treeVariety, relief, seed})
     : artwork === "object"
       ? paperObjectSpec(selected, aspect, {object, palette: objectPalette, detail, curl, motion, relief, seed})
       : paperCraftExampleSpec(selected, aspect, seed),
-    [artwork, scenery, sceneryPalette, breeze, object, objectPalette, selected, aspect, palette, detail, colorLayers, curl, motion, relief, seed]);
+    [artwork, scenery, sceneryPalette, breeze, treeVariety, object, objectPalette, selected, aspect, palette, detail, colorLayers, curl, motion, relief, seed]);
   const current = reducedMotion ? spec.durationFrames : liveFrame;
   const text: CSSProperties = { fontFamily: "'Newsreader',Georgia,serif", color: "#f3eddf" };
   const small: CSSProperties = { font: "11px/1.5 Arial,sans-serif", letterSpacing: "2px", textTransform: "uppercase", color: "#bfb6a8" };
@@ -90,7 +91,7 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, object, objec
         {artwork === "botanical"
           ? "Original sculptural paper garden: vibrant individually cut paper stocks, multi-level flowers, fern leaflets and luminous butterfly apertures. Change the real color-layer count and scrub every frame."
           : artwork === "scenery"
-            ? "Original woodland and alpine-lake shadowboxes: cut mountains, light-filled horizons, lace branches, rooted ferns, water and deep cast shadows. Change the composition, not just a color filter."
+            ? "Botanical paper theatre with three individually cut conifer grammars, uneven treelines, branched foliage, layered mountains and rivers. Control actual species diversity, cut density and paper relief."
           : artwork === "object"
             ? "Five independently constructed studies — kingfisher, dragonfly, canal houses, camera and teacup. Each uses actual opaque cut shapes, layered assembly and paper apertures."
             : "One illustrated world, five physical paper techniques. Separate cut cards, open apertures, anchored fibres, hinged motion and transmitted light. Scrub every frame."}
@@ -142,12 +143,13 @@ const meta = {
   // All Paper Craft studies share one Storybook folder under Film Looks.
   title: "Video production/Film Looks/Paper Craft",
   component: PaperCraftLab,
-  args: { artwork:"garden", scenery:"woodland", sceneryPalette:"sage", breeze:.5, object:"kingfisher", objectPalette:"jewel", palette:"nocturne", detail:.82, colorLayers:1, curl:.85, motion:1, relief:1, medium:"layered", aspect:"landscape", frame:182, tooth:.55, shadow:.7, edge:.55, seed:27, reducedMotion:false },
+  args: { artwork:"garden", scenery:"woodland", sceneryPalette:"sage", breeze:.5, treeVariety:.9, object:"kingfisher", objectPalette:"jewel", palette:"nocturne", detail:.82, colorLayers:1, curl:.85, motion:1, relief:1, medium:"layered", aspect:"landscape", frame:182, tooth:.55, shadow:.7, edge:.55, seed:27, reducedMotion:false },
   argTypes: {
     artwork:{control:"select",options:["garden","botanical","object","scenery"]},
     scenery:{control:"select",options:["woodland","alpine-lake"]},
     sceneryPalette:{control:"select",options:["sage","ember","moonlight"]},
     breeze:{control:{type:"range",min:0,max:1,step:.05}},
+    treeVariety:{control:{type:"range",min:0,max:1,step:.05}},
     object:{control:"select",options:["kingfisher","dragonfly","canal-houses","camera","teacup"]},
     objectPalette:{control:"select",options:["jewel","pastel","heritage"]},
     palette:{control:"select",options:["nocturne","ivory","rainforest","wildflower"]},
@@ -174,14 +176,14 @@ type Story = StoryObj<typeof meta>;
 const hideControl = {control:false,table:{disable:true}} as const;
 const objectControls = {
   artwork:hideControl,object:hideControl,palette:hideControl,colorLayers:hideControl,
-  scenery:hideControl,sceneryPalette:hideControl,breeze:hideControl,
+  scenery:hideControl,sceneryPalette:hideControl,breeze:hideControl,treeVariety:hideControl,
 };
 export const Gallery: Story = {
   name:"Garden",
   args:{artwork:"garden",medium:"layered",frame:182},
   argTypes:{artwork:hideControl,object:hideControl,objectPalette:hideControl,
     palette:hideControl,detail:hideControl,colorLayers:hideControl,
-    scenery:hideControl,sceneryPalette:hideControl,breeze:hideControl,
+    scenery:hideControl,sceneryPalette:hideControl,breeze:hideControl,treeVariety:hideControl,
     curl:hideControl,motion:hideControl,relief:hideControl},
 };
 export const Botanical: Story = {
@@ -189,14 +191,14 @@ export const Botanical: Story = {
   args:{artwork:"botanical",palette:"rainforest",colorLayers:1,
     detail:1,medium:"layered",frame:198,seed:37,shadow:.92,edge:.65},
   argTypes:{artwork:hideControl,object:hideControl,objectPalette:hideControl,
-    scenery:hideControl,sceneryPalette:hideControl,breeze:hideControl,
+    scenery:hideControl,sceneryPalette:hideControl,breeze:hideControl,treeVariety:hideControl,
     curl:hideControl,motion:hideControl,relief:hideControl},
 };
 export const Scenery: Story = {
   name:"Scenery",
-  args:{artwork:"scenery",scenery:"woodland",sceneryPalette:"sage",breeze:.45,relief:1,
+  args:{artwork:"scenery",scenery:"woodland",sceneryPalette:"sage",breeze:.45,relief:1,treeVariety:.9,
     detail:1,medium:"layered",aspect:"landscape",frame:214,tooth:.72,
-    shadow:1,edge:.47,seed:37},
+    shadow:1,edge:.36,seed:37},
   argTypes:{artwork:hideControl,object:hideControl,objectPalette:hideControl,
     palette:hideControl,colorLayers:hideControl,curl:hideControl,
     motion:hideControl},

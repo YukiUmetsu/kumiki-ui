@@ -62,3 +62,29 @@ Pass 21 therefore authors:
 | Foreground | Solid earth edge | Rachis/rock/flower rooted in bank | Small pockets between tips | Uniform texture speckling |
 
 The technique and craft principles are reference-led; **the shapes, arrangement and palettes are newly authored**, not image traced. No reference source images are redistributed in the library. A browser screenshot showing many paths is necessary but not sufficient for visual equivalence: review full view, cropped topology and real film frames separately. Compare actual pixels before claiming improvement.
+
+
+## Pass 22 — botanical tree taxonomy and silhouette grammar
+
+**Problem in actual Pass 21 renders:** the alpine middle-distance treeline reads as a repeating row of thin, outlined copy-paste triangles. Woodland background pines repeated the same profile; ferns shared identical left/right leaf shapes. Merely increasing small details does not repair silhouette credibility.
+
+**Reference study** (principles only; no traced or bundled art):
+
+- [Helen Musselwhite, botanical paper scenes and A Walk Through the Woods](https://www.creativeboom.com/work/helen-musselwhite/): individual woody crowns and recognizable flora create depth through multiple cut/curled sheets, not repeated icons.
+- [Hari & Deepti, luminous forest papercut](https://www.designswan.com/archives/enchanting-paper-cut-art-by-hari-deepti-a-world-of-light-and-mystery.html): foreground boughs, dark silhouette arches, canopy apertures and distant illuminated clearings.
+- [Pippa Dyrlaga, botanical single-sheet cutting](https://mymodernmet.com/paper-cutting-art-pippa-dyrlaga-interview/): dense leaf and vein detailing keeps the structural integrity of a single sheet.
+- [Maude White, detailed papercut flora and fauna](https://www.thisiscolossal.com/2023/01/maude-white-nature-paper-cuts/): individual cuts remain coherent with broader parent form; ornament is not random image noise.
+
+### Three distinct cut evergreen grammars
+
+| Form | Crown shape | Branch rhythm | Visual difference |
+| --- | --- | --- | --- |
+| Spruce | Dense 9–12 rows, sharply drooping whorls, compact taper | Tight short return notches | Full conical foliage |
+| Fir | 6–9 broad shelves and slower outer-width taper | Wide intervals and nearly horizontal tips | Distinct wide tiers |
+| Larch | 7–10 open boughs with narrow center spar | Deep return notches | Light and airy foliage |
+
+Every evergreen is one connected closed cardstock silhouette. Left and right branch asymmetry is individually seeded, fixed across time. Height, width, natural treeline gaps and root landings vary independently. These are paper-illustration conventions, not botanical scans.
+
+A 0–1 treeVariety option controls the use of the three species and composition jitter: 0 is a homogeneous spruce stand, 1 a mixed stand. The seed controls reproducible variation, never per-frame flicker. Deciduous branch tips and fern rachises now receive location-seeded growth variation.
+
+**Negative controls:** identical topology across a mixed treeline, disconnected branch roots, floating trunks, masking the central lake with foreground branches, and frame-to-frame path changes. The unit tests inspect per-species path vertex counts, one contour per tree, seed variation, opacity, portrait/landscape parity and the 128-stock budget. Review actual browser images separately; passing tests cannot establish aesthetic parity.

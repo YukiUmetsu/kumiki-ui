@@ -83,3 +83,23 @@ test("Scenery relief controls actual paper-shadow separation, not opacity",async
   const raised=await shadow(1);
   expect(flat).not.toEqual(raised);
 });
+
+
+test("Alpine paper pines change cut contour when choosing spruce, fir and larch diversity",async({page})=>{
+  const source=async(variety:number)=>{
+    await page.goto(root+"&args=scenery:alpine-lake;sceneryPalette:moonlight;treeVariety:"+variety+";detail:1;frame:214");
+    const stage=page.locator("svg[data-km-paper-craft]");
+    await expect(stage).toBeVisible();
+    const treeLayer=stage.locator('[data-km-paper-layer^="alpine-pine-"]');
+    const paths=await treeLayer.evaluateAll(nodes=>nodes.map(node=>
+      node.querySelector('path[fill-rule="evenodd"]')?.getAttribute("d")??""));
+    expect(paths.length).toBeGreaterThan(10);
+    expect(paths.every(path=>path.startsWith("M")&&path.endsWith("Z"))).toBe(true);
+    return paths;
+  };
+  const regular=await source(0);
+  const varied=await source(1);
+  expect(regular).not.toEqual(varied);
+  expect(new Set(regular.map(path=>(path.match(/L/g)??[]).length)).size).toBe(1);
+  expect(new Set(varied.map(path=>(path.match(/L/g)??[]).length)).size).toBeGreaterThan(1);
+});

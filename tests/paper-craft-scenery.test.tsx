@@ -3,7 +3,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { evaluatePaperCraft, inspectPaperCraft, MAX_PAPER_LAYERS, PAPER_STYLES } from "../registry/video/paper-craft";
 import { PaperCraftStage } from "../registry/video/paper-craft-react";
-import { PAPER_SCENERIES, PAPER_SCENERY_PALETTES, paperScenerySpec } from "../registry/video/paper-scenery-kit";
+import { PAPER_SCENERIES, PAPER_SCENERY_PALETTES, PAPER_CONIFER_SPECIES, paperScenerySpec } from "../registry/video/paper-scenery-kit";
 import { compileFilm } from "../registry/video/film-document";
 import { loadFilmSlots } from "../src/film/film-slots";
 import film from "../examples/film/paper-craft-scenery.film.json";
@@ -118,6 +118,63 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
       expect(html).not.toContain('fill-opacity="0.');
     }
   });
+  it("sculpts three conifer species with distinct rooted silhouette grammars",()=>{
+    expect(PAPER_CONIFER_SPECIES).toEqual(["spruce","fir","larch"]);
+    for(const aspect of ["landscape","portrait"] as const){
+      const regular=paperScenerySpec("layered",aspect,{
+        scenery:"alpine-lake",detail:1,treeVariety:0,seed:37});
+      const wild=paperScenerySpec("layered",aspect,{
+        scenery:"alpine-lake",detail:1,treeVariety:1,seed:37});
+      expect(inspectPaperCraft(regular)).toEqual([]);
+      expect(inspectPaperCraft(wild)).toEqual([]);
+      const trees=(scene:typeof wild)=>scene.layers.filter(layer=>/^alpine-pine-[01]-[0-9]+$/.test(layer.id));
+      const plain=trees(regular),varied=trees(wild);
+      expect(plain).toHaveLength(varied.length);
+      expect(plain.length).toBeGreaterThanOrEqual(8);
+      // Every tree is a single rooted cut (one M + one Z), not disconnected
+      // silhouettes pasted onto a generic triangular tree trunk.
+      expect(varied.every(layer=>(layer.path.match(/M/g)??[]).length===1 &&
+        (layer.path.match(/Z/g)??[]).length===1)).toBe(true);
+      const vertexCounts=(layers:typeof varied)=>new Set(layers.map(
+        layer=>(layer.path.match(/L/g)??[]).length));
+      expect(vertexCounts(plain).size).toBe(1);
+      expect(vertexCounts(varied).size).toBeGreaterThanOrEqual(2);
+      expect(varied.some((layer,i)=>layer.path!==plain[i].path)).toBe(true);
+      expect(wild.layers.map(layer=>layer.id)).toEqual(regular.layers.map(layer=>layer.id));
+      expect(wild.layers.map(layer=>layer.color)).toEqual(regular.layers.map(layer=>layer.color));
+      expect(wild.layers.length).toBeLessThanOrEqual(MAX_PAPER_LAYERS);
+      expect(paperScenerySpec("layered",aspect,{
+        scenery:"alpine-lake",detail:1,treeVariety:1,seed:37})).toEqual(wild);
+    }
+  });
+  it("introduces species variation in the full woodland tree line without frame randomness",()=>{
+    const mono=paperScenerySpec("layered","landscape",{
+      scenery:"woodland",detail:1,treeVariety:0,seed:41});
+    const mixed=paperScenerySpec("layered","landscape",{
+      scenery:"woodland",detail:1,treeVariety:1,seed:41});
+    const forest=(scene:typeof mixed)=>scene.layers.find(layer=>layer.id==="woodland-far-pines")!;
+    expect((forest(mixed).path.match(/M/g)??[]).length).toBeGreaterThanOrEqual(13);
+    expect((forest(mixed).path.match(/Z/g)??[]).length)
+      .toBe((forest(mixed).path.match(/M/g)??[]).length);
+    expect(forest(mixed).path).not.toEqual(forest(mono).path);
+    expect(inspectPaperCraft(mixed)).toEqual([]);
+    const frame=evaluatePaperCraft(mixed,211);
+    evaluatePaperCraft(mixed,63);
+    expect(evaluatePaperCraft(mixed,211)).toEqual(frame);
+  });
+  it("gives ferns and deciduous branches seeded structural diversity",()=>{
+    const first=paperScenerySpec("layered","landscape",{
+      scenery:"woodland",seed:11,detail:1,treeVariety:1});
+    const second=paperScenerySpec("layered","landscape",{
+      scenery:"woodland",seed:62,detail:1,treeVariety:1});
+    const fern=(scene:typeof first)=>scene.layers.find(layer=>layer.id==="woodland-fern-0")!;
+    const bough=(scene:typeof first)=>scene.layers.find(layer=>layer.id==="woodland-foliage-0-0")!;
+    expect(fern(first).path).not.toEqual(fern(second).path);
+    expect(bough(first).path).not.toEqual(bough(second).path);
+    expect((fern(first).path.match(/C/g)??[]).length).toBeGreaterThan(15);
+    expect((bough(first).path.match(/C/g)??[]).length).toBeGreaterThan(20);
+    expect(first.layers.every(layer=>/^#[a-fA-F0-9]{6}$/.test(layer.color))).toBe(true);
+  });
   it("detail changes actual geometry, while frame seeks are deterministic",()=>{
     for(const scenery of PAPER_SCENERIES){
       const sparse=paperScenerySpec("layered","landscape",{scenery,detail:0,breeze:.3,seed:12});
@@ -159,6 +216,9 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
     expect(()=>paperScenerySpec("layered","landscape",{breeze:1.1})).toThrow(RangeError);
     expect(()=>paperScenerySpec("layered","landscape",{relief:-.01})).toThrow(RangeError);
     expect(()=>paperScenerySpec("layered","landscape",{relief:1.01})).toThrow(RangeError);
+    expect(()=>paperScenerySpec("layered","landscape",{treeVariety:NaN})).toThrow(RangeError);
+    expect(()=>paperScenerySpec("layered","landscape",{treeVariety:-.01})).toThrow(RangeError);
+    expect(()=>paperScenerySpec("layered","landscape",{treeVariety:1.01})).toThrow(RangeError);
   });
   it("renders both film landscape subjects through native FilmStage in both outputs",async()=>{
     for(const outputId of ["landscape","portrait"]){
@@ -170,7 +230,7 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
       for(const scenery of PAPER_SCENERIES){
         const html=renderToStaticMarkup(React.createElement(React.Fragment,null,
           renderer({slot:"paper-craft-study",label:scenery,props:{
-            artwork:"scenery",scenery,sceneryPalette:"moonlight",detail:1,breeze:.3,relief:.75,
+            artwork:"scenery",scenery,sceneryPalette:"moonlight",detail:1,breeze:.3,relief:.75,treeVariety:.91,
             medium:"lightbox",seed:37,
           }},{frame:220,durationFrames:240,fps:{num:30,den:1},
              width:outputId==="landscape"?960:540,

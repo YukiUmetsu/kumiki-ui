@@ -979,6 +979,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         const scenery = props.scenery ?? "woodland";
         const sceneryPalette = props.sceneryPalette ?? "sage";
         const breeze = props.breeze ?? .5;
+        const treeVariety = props.treeVariety ?? .9;
         if (artwork === "scenery") {
           if (typeof scenery !== "string" || !PAPER_SCENERIES.includes(scenery as PaperScenery))
             throw new RangeError("paper-craft-study scenery must be woodland or alpine-lake.");
@@ -987,6 +988,8 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
             throw new RangeError("paper-craft-study sceneryPalette must be sage, ember or moonlight.");
           if (typeof breeze !== "number" || !Number.isFinite(breeze) || breeze < 0 || breeze > 1)
             throw new RangeError("paper-craft-study breeze must be finite between 0 and 1.");
+          if (typeof treeVariety !== "number" || !Number.isFinite(treeVariety) || treeVariety < 0 || treeVariety > 1)
+            throw new RangeError("paper-craft-study treeVariety must be finite between 0 and 1.");
         }
         const paper = artwork === "botanical"
           ? paperBotanicalSpec(raw as PaperStyle, aspect, {
@@ -994,7 +997,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           : artwork === "scenery"
             ? paperScenerySpec(raw as PaperStyle, aspect, {
               scenery: scenery as PaperScenery, palette: sceneryPalette as PaperSceneryPalette,
-              detail, breeze: breeze as number, relief:relief as number, seed })
+              detail, breeze: breeze as number, treeVariety:treeVariety as number, relief:relief as number, seed })
           : artwork === "object"
             ? paperObjectSpec(raw as PaperStyle, aspect, {
               object: object as PaperObject, palette: objectPalette as PaperObjectPalette, detail, curl:curl as number, motion:motion as number, relief:relief as number, seed })
@@ -1003,7 +1006,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         if (!Number.isSafeInteger(absoluteFrame)) throw new RangeError("Invalid paper frame.");
         return <PaperCraftStage spec={paper}
           frame={absoluteFrame} reducedMotion={context.reducedMotion}
-          tooth={.62} shadowStrength={.92} edgeStrength={.68} curlStrength={1} liftStrength={1}/>
+          tooth={.62} shadowStrength={.92} edgeStrength={artwork === "scenery" ? .34 : .68} curlStrength={1} liftStrength={1}/>
       }
 
       default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-character-film, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, watercolour-wet-paper, watercolour-master-study, painted-composition, watercolour-actor, collage-scene, collage-tear.`);

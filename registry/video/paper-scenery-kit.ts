@@ -20,6 +20,8 @@ export interface PaperSceneryOptions {
   breeze?: number;
   /** Physical paper-depth separation, 0 = flat sheets, 1 = full relief. */
   relief?: number;
+  /** Variation in real tree species, branching and canopy profiles (0–1). */
+  treeVariety?: number;
   seed?: number;
 }
 type Stock = Readonly<{
@@ -44,6 +46,17 @@ const STOCK:Record<PaperSceneryPalette,Stock>={
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
 const fixed=(v:number)=>Number(v.toFixed(3));
 const radians=(degrees:number)=>degrees*Math.PI/180;
+/** Species have independent hand-cut bough grammars, not a stretched generic pine. */
+export const PAPER_CONIFER_SPECIES=["spruce","fir","larch"] as const;
+export type PaperConiferSpecies=(typeof PAPER_CONIFER_SPECIES)[number];
+function speciesFor(seed:number,i:number,variety:number):PaperConiferSpecies{
+  // Zero variety = a regular spruce stand. Higher values introduce genuinely
+  // different bough contours and silhouette densities, deterministically.
+  const families=1+Math.min(2,Math.floor(variety*2.999+1e-8));
+  return PAPER_CONIFER_SPECIES[Math.min(families-1,
+    Math.floor(paperHash(seed,i,97)*families))];
+}
+
 function paperGeometry(w:number,h:number) {
   const scale=Math.min(w,h)/720,cx=w/2,cy=h/2;
   const point=(x:number,y:number)=>fixed(cx+x*scale)+" "+fixed(cy+y*scale);
@@ -71,20 +84,44 @@ function paperGeometry(w:number,h:number) {
     return [M(...sample(0,0)),C(...sample(.23,.85),...sample(.7,1.05),...sample(1,0)),
       C(...sample(.7,-1.05),...sample(.23,-.85),...sample(0,0)),Z].join(" ");
   };
-  const pine=(x:number,foot:number,height:number,wide:number)=>{
-    // Repeated staggered cuts are a continuous outline, not separate floating triangles.
-    const left:[number,number][]=[],right:[number,number][]=[];
-    const rows=6;
-    for(let i=0;i<rows;i++){
-      const y=foot-i*height/rows;
-      const span=wide*(1-i/rows);
-      left.push([x-span*.63,y],[x-span,y-height/rows*.24]);
-      right.push([x+span,y-height/rows*.24],[x+span*.63,y]);
-    }
-    return poly([[x-wide*.1,foot+height*.09],...left,[x,foot-height],
-      ...right.reverse(),[x+wide*.1,foot+height*.09]]);
+  /**
+   * A single connected, closed cardstock tree, rooted at the ground.
+   *
+   * SPRUCE: dense, sharply drooping needle tiers.
+   * FIR: broader, flatter and more widely spaced tiered boughs.
+   * LARCH: open, tapering boughs and a slender central spar.
+   *
+   * Each tree has its own seeded left/right branch asymmetry, whorl count,
+   * crown taper and local tip notches; all variation is fixed across frames.
+   */
+  const conifer=(x:number,foot:number,height:number,wide:number,
+    species:PaperConiferSpecies,treeSeed:number,detail:number)=>{
+    const rows=(species==="spruce"?8:species==="fir"?5:6)+Math.round(detail*2);
+    const rise=height/rows;
+    const exponent=species==="larch"?.57:species==="fir"?.72:.68;
+    const notch=species==="larch"?.18:species==="fir"?.31:.42;
+    const droop=species==="fir"?.115:species==="larch"?.095:.235;
+    const arms=(side:-1|1):[number,number][]=>{
+      const segments:[number,number][]=[];
+      for(let row=0;row<rows;row++){
+        const t=row/rows, yy=foot-height*t;
+        const asym=.78+.40*paperHash(treeSeed,row,side===-1?103:109);
+        const span=wide*Math.pow(1-t,exponent)*asym;
+        // All outlines grow upward monotonically; the cut-back step produces
+        // actual clear sky between whorls instead of a smooth triangle.
+        segments.push(
+          [x+side*span*notch,yy],
+          [x+side*span,yy-rise*droop],
+          [x+side*span*(species==="fir"?.72:.77),yy-rise*(droop+(species==="fir"?.34:.26))],
+          [x+side*span*notch*.85,yy-rise*.82]);
+      }
+      return segments;
+    };
+    return poly([[x-wide*.115,foot+height*.055],...arms(-1),
+      [x,foot-height],...arms(1).reverse(),
+      [x+wide*.115,foot+height*.055]]);
   };
-  return {scale,cx,cy,M,L,C,Q,Z,poly,oval,band,leaf,pine};
+  return {scale,cx,cy,M,L,C,Q,Z,poly,oval,band,leaf,conifer};
 }
 type P=ReturnType<typeof paperGeometry>;
 type Add=(id:string,color:string,depth:number,path:string,rest?:Partial<PaperCutLayer>)=>void;
@@ -100,21 +137,23 @@ function ridge(p:P,xExtent:number,yFloor:number,level:number,amplitude:number,ph
     }),
     p.L(xExtent+10,yFloor+20),p.L(-xExtent-10,yFloor+20),p.Z].join(" ");
 }
-function smallFern(p:P,x:number,y:number,height:number,side:number,detail:number){
-  // A continuous slanting rachis and every leaflet overlaps its stem.
-  // The paired fronds fan *perpendicularly* to the main growth axis.
-  const tipX=x+side*height*.31,tipY=y-height;
+function smallFern(p:P,x:number,y:number,height:number,side:number,detail:number,seed=31){
+  // Each fern is a connected slanting rachis, but its leaflet pairs have
+  // a distinct growth rhythm, irregular lengths and alternating asymmetry.
+  const tipX=x+side*height*(.21+paperHash(seed,2,121)*.23),tipY=y-height;
   const bits=[p.band(x,y,tipX,tipY,2.15)];
-  const direction=-90+side*17;
+  const direction=-90+side*15;
   const count=5+Math.round(detail*5);
   for(let i=1;i<=count;i++){
-    const t=i/(count+1),bx=x+(tipX-x)*t,by=y-height*t;
-    const size=(1-t*.62)*height*.36;
-    const width=Math.max(3.4,size*.23);
-    bits.push(p.leaf(bx,by,size,direction-64+(i%3)*4,width));
-    bits.push(p.leaf(bx,by,size*.86,direction+64-(i%3)*5,width*.92));
+    const stagger=(paperHash(seed,i,123)-.5)*.30;
+    const t=(i+stagger)/(count+1),bx=x+(tipX-x)*t,by=y-height*t;
+    const size=(1-t*.68)*height*(.27+.13*paperHash(seed,i,125));
+    const width=Math.max(3.1,size*(.16+.08*paperHash(seed,i,127)));
+    bits.push(p.leaf(bx,by,size,direction-65+(i%3)*4,width));
+    bits.push(p.leaf(bx,by,size*(.76+.17*paperHash(seed,i,129)),
+      direction+65-(i%3)*5,width*.92));
   }
-  bits.push(p.leaf(tipX-1.5,tipY+2,12,direction,3.2));
+  bits.push(p.leaf(tipX-1.5,tipY+2,9+paperHash(seed,0,133)*7,direction,3.2));
   return bits.join(" ");
 }
 function silhouetteTree(p:P,x:number,ground:number,height:number,width:number,lean:number){
@@ -188,7 +227,7 @@ function portal(p:P,add:Add,x:number,y:number,c:Stock){
   add("scenery-sky",c.light,1,p.oval(0,0,x,y),{motion:"still",enterFrame:0});
 }
 /** Woodland: luminous opening, 5 landscape planes and physically attached trees. */
-function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:number,seed:number){
+function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:number,seed:number,treeVariety:number){
   add("woodland-sun-halo",c.light,2,p.oval(x*.12,-y*.55,66,66),{
     enterFrame:16,durationFrames:35,motion:"rise"});
   add("woodland-sun",c.sun,3,p.oval(x*.12,-y*.55,57,57),{enterFrame:20,durationFrames:33});
@@ -225,12 +264,17 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
       p.band(xx-17,yy,xx+14+i*2,yy-2,1.3),{enterFrame:89+i*3});
   }
   // Midground conifers have distinct scalloped notch outlines and a shared footing.
-  const farPines=Array.from({length:7+Math.round(detail*5)},(_,i)=>{
-    const px=-x*.81+(i/(6+Math.round(detail*5)))*x*1.66;
-    const py=y*(.15+.08*Math.sin(i*2.1));
-    return p.pine(px,py,43+paperHash(seed,i,4)*26,11+paperHash(seed,i,5)*6);
+  const farTreeCount=9+Math.round(detail*6);
+  const farPines=Array.from({length:farTreeCount},(_,i)=>{
+    const jitter=(paperHash(seed,i,64)-.5)*treeVariety;
+    const px=-x*.89+i*x*1.78/(farTreeCount-1)+jitter*x*.063;
+    const py=y*(.16+.057*Math.sin(i*1.64)+jitter*.035);
+    const species=speciesFor(seed,i+17,treeVariety);
+    const tall=55+paperHash(seed,i,4)*57;
+    const wide=22+paperHash(seed,i,5)*16;
+    return p.conifer(px,py,tall,wide,species,seed+i*127,detail);
   });
-  add("woodland-far-pines",c.middle,15,farPines.join(" "),{enterFrame:85,curl:.3});
+  add("woodland-far-pines",c.near,15,farPines.join(" "),{enterFrame:85,curl:.3});
   // Two asymmetrical solid cardstock canopy shells frame the distant sky.
   // Cut-through eye apertures, not transparent fake leaf silhouettes.
   for(const [i,side] of [-1,1].entries()){
@@ -274,11 +318,16 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
       // Each bough carries a single grouped paper canopy with real leaf tips.
       const leafCount=9+Math.round(detail*8);
       const packets=Array.from({length:leafCount},(_,k)=>{
-        const theta=(k-(leafCount-1)/2)/(leafCount-1)*Math.PI*1.23;
-        const fx=ex+Math.sin(theta)*66,fy=ey-Math.cos(theta)*34+(k%4)*9;
-        const angle=sign*(34+k*12)-109;
-        return p.band(ex,ey,fx,fy,2.4)+" "+
-          p.leaf(fx,fy,35+(k%5)*7,angle,11+(k%3)*2);
+        const hash=paperHash(seed,k+i*59+j*31,161);
+        const theta=(k-(leafCount-1)/2)/(leafCount-1)*Math.PI*1.23+
+          treeVariety*(hash-.5)*.29;
+        const radius=56+treeVariety*hash*26;
+        const fx=ex+Math.sin(theta)*radius,
+          fy=ey-Math.cos(theta)*(28+hash*16)+(k%4)*9;
+        const angle=sign*(34+k*12)-109+treeVariety*(hash-.5)*27;
+        return p.band(ex,ey,fx,fy,2.1+hash*.8)+" "+
+          p.leaf(fx,fy,30+(k%4)*6+treeVariety*hash*11,
+            angle,9+(k%3)*2+hash*2);
       });
       add("woodland-foliage-"+i+"-"+j,j%3?c.leaf:c.leafLight,23,
         packets.join(" "),{
@@ -298,7 +347,7 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
   for(let i=0;i<11+Math.round(detail*7);i++){
     const side=i%2?-1:1,px=side*(x*(.08+(i%6)*.059)),py=y*(.81+(i%3)*.018);
     add("woodland-fern-"+i,i%3===0?c.leafLight:c.leaf,26,
-      smallFern(p,px,py,60+(i%5)*13,side,detail),{
+      smallFern(p,px,py,55+(i%5)*13,side,detail,seed+i*73),{
         enterFrame:124+i*2,durationFrames:24,curl:.62});
   }
   // Foreground water remains visible through the overlapping bank,
@@ -344,7 +393,7 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
   }
 }
 /** Alpine: cut-silhouette peaks, individual snow shelf plates, depth-spaced pines. */
-function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:number,seed:number){
+function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:number,seed:number,treeVariety:number){
   const sunX=-x*.38,sunY=-y*.60;
   add("alpine-sun-halo",c.light,2,p.oval(sunX,sunY,61,61),{enterFrame:15});
   add("alpine-sun",c.sun,3,p.oval(sunX,sunY,51,51),{enterFrame:19});
@@ -400,11 +449,17 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
     ridge(p,x,y+20,-y*.10,28,1.38),{enterFrame:77,curl:.62});
   add("alpine-foothill-terrace",c.near,13,
     ridge(p,x,y+20,y*.145,14,.86),{enterFrame:80,curl:.44});
-  add("alpine-distant-pines",c.near,13,
-    Array.from({length:10+Math.round(detail*7)},(_,i)=>{
-      const xx=-x*.9+i*(x*1.83)/(9+Math.round(detail*7));
-      return p.pine(xx,y*.22+Math.sin(i*1.8)*9,45+paperHash(seed,i,7)*31,14);
-    }).join(" "),{enterFrame:82,curl:.3});
+  const distantTreeCount=12+Math.round(detail*6);
+  add("alpine-distant-pines",c.soil,14,
+    Array.from({length:distantTreeCount},(_,i)=>{
+      const k=i/(distantTreeCount-1);
+      const jitter=(paperHash(seed,i,48)-.5)*treeVariety;
+      const xx=-x*.92+(x*1.84)*k+jitter*x*.067;
+      const yy=y*(.23+.036*Math.sin(i*1.38)+jitter*.04);
+      const species=speciesFor(seed,i+37,treeVariety);
+      return p.conifer(xx,yy,58+paperHash(seed,i,7)*62,
+        20+paperHash(seed,i,51)*15,species,seed+i*113,detail);
+    }).join(" "),{enterFrame:82,curl:.37});
   add("alpine-lake-bank",c.middle,14,
     ridge(p,x,y+12,y*.3,26,2.1),{enterFrame:86,durationFrames:34});
   add("alpine-lake",c.water,15,[
@@ -455,9 +510,14 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
       [hx,y*.45],[hx,y+18],[side*x*.24,y+18]]);
     add("alpine-ledge-"+i,i?c.soil:c.near,19,rock,{enterFrame:102+i*6,curl:.76});
     for(let j=0;j<3+Math.round(detail*3);j++){
-      const px=side*(x*(.24+j*.064)),py=y*(.66+(j%3)*.038);
+      const pineSeed=seed+i*173+j*41;
+      const offset=(paperHash(seed,i*11+j,43)-.5)*treeVariety;
+      const px=side*(x*(.245+j*.084+offset*.042));
+      const py=y*(.69+(j%3)*.047+offset*.025);
+      const species=speciesFor(seed,j+i*79+127,treeVariety);
       add("alpine-pine-"+i+"-"+j,j%3===0?c.trunk:c.leaf,22,
-        p.pine(px,py,56+paperHash(seed,j+i*17,22)*50,17+(j%3)*4),{
+        p.conifer(px,py,74+paperHash(seed,j+i*17,22)*92,
+          32+paperHash(seed,j+i*17,32)*27,species,pineSeed,detail),{
           enterFrame:112+i*9+j*3,curl:.48,
           motion:"flutter",swingDegrees:breeze*.3,flapHz:.19+j*.01,
           pivot:[p.cx+px*p.scale,p.cy+py*p.scale]});
@@ -474,7 +534,7 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
   for(let i=0;i<9+Math.round(detail*5);i++){
     const side=i%2?-1:1,px=side*(x*(.1+(i%5)*.065)),py=y*(.78+(i%3)*.016);
     add("alpine-moss-"+i,i%3?c.leaf:c.leafLight,26,
-      smallFern(p,px,py,46+(i%4)*12,side,detail),{
+      smallFern(p,px,py,43+(i%4)*12,side,detail,seed+11+i*83),{
         enterFrame:139+i*2,curl:.43});
   }
   // Foreground botanical silhouettes form a crafted scenic frame, not random
@@ -525,12 +585,12 @@ export function paperScenerySpec(
   if(aspect!=="landscape"&&aspect!=="portrait")throw new RangeError("Unknown paper scenery aspect.");
   const seed=options.seed??37;
   if(!Number.isSafeInteger(seed))throw new RangeError("Paper scenery seed must be a safe integer.");
-  for(const [name,value] of [["detail",options.detail],["breeze",options.breeze],["relief",options.relief]] as const){
+  for(const [name,value] of [["detail",options.detail],["breeze",options.breeze],["relief",options.relief],["treeVariety",options.treeVariety]] as const){
     if(value!==undefined&&(!Number.isFinite(value)||value<0||value>1))
       throw new RangeError("Paper scenery "+name+" must be finite in [0,1].");
   }
   const detail=clamp(options.detail??.9),breeze=clamp(options.breeze??.5),
-    relief=clamp(options.relief??1);
+    relief=clamp(options.relief??1),treeVariety=clamp(options.treeVariety??.9);
   const w=aspect==="portrait"?540:960,h=aspect==="portrait"?960:540;
   const p=paperGeometry(w,h),c=STOCK[palette],x=aspect==="portrait"?316:517,
     y=aspect==="portrait"?514:292;
@@ -540,8 +600,8 @@ export function paperScenerySpec(
       enterFrame:Math.min(160,8+layers.length*2),durationFrames:34,...rest});
   };
   portal(p,add,x,y,c);
-  if(scenery==="woodland")woodland(p,add,c,x,y,detail,breeze,seed);
-  else alpine(p,add,c,x,y,detail,breeze,seed);
+  if(scenery==="woodland")woodland(p,add,c,x,y,detail,breeze,seed,treeVariety);
+  else alpine(p,add,c,x,y,detail,breeze,seed,treeVariety);
   matFrame(p,add,w,h,x,y,c);
   if(layers.length>MAX_PAPER_LAYERS)throw new RangeError("Paper scenery exceeded 128 cut layers.");
   return {version:1,id:"paper-scenery-"+scenery+"-"+aspect+"-"+palette,style,

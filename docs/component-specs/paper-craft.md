@@ -199,3 +199,14 @@ The **same Scenery story** has deeper hand-made morphology in both presets, with
 Physical shape budgets remain within the existing 128 independent cardstock layers even with detail=1. The paper's microdetail is **contour-authored** inside groups, not repeated raster stickers. Tests enforce punched canopy apertures, island/reed geometry, no fully hidden lake, both outputs, all media, deterministic frame evaluation, relief geometry invariance and no ghost layers.
 
 Example: \`paperScenerySpec("lightbox","portrait",{scenery:"alpine-lake",palette:"moonlight",detail:1,breeze:.25,relief:.9,seed:37})\`.
+
+
+## Pass 22 — mixed conifer species and naturally varied foliage
+
+The Scenery generator now constructs *spruce, fir and larch* as separately authored tree grammars instead of resizing a generic pine. Each tree is a connected, closed cutout with whorl-specific shape, left/right asymmetry, distinctive needle gaps, species-specific taper and seeded stature. The alpine and woodland tree stands have less uniform spacing, stature and leaf/fern contours.
+
+API: paperScenerySpec(style, aspect, { scenery, palette, detail, breeze, relief, treeVariety, seed }).
+
+treeVariety must be finite between 0 and 1 (default 0.9). Zero gives a consistent spruce stand; one mixes three species with stronger placement variation. This changes actual cardstock path geometry, not opacity or texture noise. Only the existing Scenery page exposes this control; unrelated Paper Craft pages hide it. The FilmStage paper-craft-study slot passes it through for both 16:9 and 9:16 outputs.
+
+The original PAPER1 128-layer cap, all five media, scene identifiers, and deterministic seek contract remain unchanged.
