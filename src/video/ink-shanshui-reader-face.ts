@@ -34,7 +34,7 @@ const asset=(name:string,shapes:CharacterPathShape[]):CharacterShapeAsset=>({
     source:"Original Kumiki scroll-reader three-quarter portrait: "+name},
 });
 const mouth={
-  rest:"M135.2 125.4 Q139 126.4 142.3 126 Q146 126.2 148.8 125.1",
+  rest:"M135.2 125.5 Q139.6 126.4 142.8 127 Q146.4 127.2 149 126.9",
   aa:"M135.5 124.8 Q141.7 127.3 147.9 124.4 Q144.2 133.8 139.9 131.4 Q136.2 129.1 135.5 124.8 Z",
   oh:"M141.3 125.2 Q145.2 125.1 145.8 128.5 Q145.5 132.1 142 131.7 Q139.4 129.5 141.3 125.2 Z",
   mm:"M135.6 125.7 Q141 125.4 148.5 124.5",
@@ -85,16 +85,14 @@ export function scrollReaderFacePortrait(detail=1):
       "$skinshade","none",0,.14),
     p("M117.8 111.6 C121.9 124.4 128.3 132.9 141.6 136.6 C135.5 135.5 123.9 132.4 118.4 126.4 Z",
       "$skinshade","none",0,.16),
-    pressure([117.7,114.8],[119.2,127.9],[132.5,141.6],[142,140],
-      1.3,51,"$shadow",.65),
-    pressure([142,140],[151.5,136.5],[160,123.9],[162.1,118.4],
-      1.35,52,"$shadow",.76),
+    // No additional heavy jaw-tracing strokes: the solid face outline
+    // already describes the young chin. Extra lines aged this reader.
     // Subtle, anatomically placed nose bridge and nostril. The earlier
     // big S-shaped nose looked like a cartoon cheek curl.
     // Nose-tip, alar and nostril anatomy is constructed in the separate
     // independently testable ArtCraft face-anatomy layer.
     p("M149.4 116.7 Q152 118.1 153.6 116.7",
-      "none","$skinshade",.54,.43),
+      "none","$skinshade",.47,.21),
     // Orbital shadows sit below the eyelids, not as symmetrical smile arcs.
     p("M119.2 105.4 Q127.7 108.8 135.7 105.1",
       "none","$skinshade",.49,.4),
