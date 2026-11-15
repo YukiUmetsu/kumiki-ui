@@ -514,6 +514,15 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(leaves.filter(m=>m[3]==="main")).toHaveLength(63);
       expect(leaves.filter(m=>m[3]==="spur-0")).toHaveLength(21);
       expect(leaves.filter(m=>m[3]==="spur-1")).toHaveLength(21);
+      const headings=[...html.matchAll(
+        /data-km-bamboo-leaf-heading="(-?[0-9.]+)"/g,
+      )].map(m=>Number(m[1]));
+      expect(headings).toHaveLength(105);
+      // Genuine fan flow requires nonparallel ink gestures, not a lattice
+      // of identically tilted triangles. This is a necessary, not artistic,
+      // check: crop inspection remains the release authority.
+      expect(new Set(headings).size).toBeGreaterThan(85);
+      expect(Math.max(...headings)-Math.min(...headings)).toBeGreaterThan(3);
       const satellites=[...html.matchAll(
         /data-km-bamboo-satellite-leaf="" data-km-bamboo-satellite-root="([^"]+)" d="([^"]+)"/g,
       )];
