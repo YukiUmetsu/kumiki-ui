@@ -46,6 +46,9 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
       crayonPaperHeight(i*.67,13.3,974));
     expect(new Set(samples.map(x=>x.toFixed(4))).size).toBeGreaterThan(20);
     expect(crayonPaperHeight(27.2,-13.4,975)).not.toBe(height);
+    // Paper pattern repeats every 176 units, including negative coordinates:
+    // both wax-contact nibs and pigment masks must sample the same relief.
+    expect(crayonPaperHeight(27.2+176,-13.4+176,974)).toBeCloseTo(height,10);
     expect(()=>crayonPaperHeight(Number.NaN,5,1)).toThrow();
     expect(()=>crayonPaperHeight(0,0,1.5)).toThrow();
     const mark=crayonMarks({x:0,y:0,width:72,height:42},
@@ -89,6 +92,8 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
       expect(html).toContain('data-km-crayon-undercoat-pits=""');
       expect(html).not.toContain('data-km-crayon-underpaint-gradient=""');
       expect(old).toContain('data-km-crayon-deposition="smooth"');
+      expect(html).toContain('data-km-crayon-paper-contact="height"');
+      expect(old).toContain('data-km-crayon-paper-contact="legacy"');
       expect(old).toContain('data-km-crayon-underpaint-gradient=""');
       expect(old).not.toContain('data-km-crayon-cross-contact=');
       const support=hand.elements.find(x=>x.id==="eye-skin");
