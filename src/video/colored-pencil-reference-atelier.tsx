@@ -84,7 +84,10 @@ export function ReferencePencilAtelier(){
   // Kingfisher is the preferred first artwork: saturated feather detail gives
   // better immediate source-vs-pencil feedback than a shaded fox background.
   const [sample,setSample]=useState<Sample>("kingfisher");
-  const [sourceUrl,setSourceUrl]=useState<string>(photos.kingfisher.url);
+  // Defer initial source assignment until after the first Storybook mount.
+  // Explicit selections already load reliably; this avoids the premature
+  // first image request being orphaned by Storybook/StrictMode setup.
+  const [sourceUrl,setSourceUrl]=useState<string>("");
   const [reload,setReload]=useState(0);
   const [raw,setRaw]=useState<PencilPhotoPixels|null>(null);
   const [aspect,setAspect]=useState<"landscape"|"portrait">("landscape");
@@ -96,6 +99,7 @@ export function ReferencePencilAtelier(){
   const [showReference,setShowReference]=useState(false);
   const [uploaded,setUploaded]=useState(false);
   const size=aspect==="landscape"?{width:900,height:506}:{width:506,height:900};
+  useEffect(()=>setSourceUrl(prev=>prev||photos.kingfisher.url),[]);
 
   // Browser-created object URLs are explicitly revoked on replace/unmount,
   // without affecting the in-flight load of the newly selected source.
@@ -179,17 +183,26 @@ export function ReferencePencilAtelier(){
       URL.revokeObjectURL(localObjectUrl.current);localObjectUrl.current=null;
     }
     setSample(subject);setSourceUrl(photos[subject].url);
+    // A curated photograph's auto-salience is not a general segmentation
+    // model. Fox's dark back reaches the source border: lower focus retains it.
+    // Kingfisher's bright body against green bokeh supports stronger emphasis.
+    setOptions(prev=>({...prev,
+      focus:subject==="fox"?.38:.91,
+      paper:subject==="fox"?.18:.20,
+      saturation:subject==="fox"?.92:.96,
+    }));
+    setWash(subject==="fox"?.94:.90);
     setUploaded(false);setPlaying(false);setRaw(null);setFrame(350);
   };
   return <main style={{background:"#E7E5DC",minHeight:"100vh",
     padding:24,font:"14px/1.5 system-ui",color:"#34464C",
     display:"grid",gap:16,alignContent:"start"}}>
-    <img key={sourceUrl+"-"+reload} ref={sourceImage}
+    {sourceUrl&&<img key={sourceUrl+"-"+reload} ref={sourceImage}
       src={sourceUrl} crossOrigin="anonymous" alt=""
       aria-hidden="true" style={{display:"none"}}
       onLoad={e=>captureSource(e.currentTarget)}
       onError={()=>{setRaw(null);setError(
-        "Reference unavailable. Retry, or choose a local image.");}}/>
+        "Reference unavailable. Retry, or choose a local image.");}}/>}
     <header style={{maxWidth:1000}}>
       <div style={{letterSpacing:2,color:"#687A71",fontSize:12,fontWeight:700}}>
         ARTCRAFT / SOURCE-CONDITIONED COLOUR-PENCIL
@@ -229,7 +242,9 @@ export function ReferencePencilAtelier(){
             const url=URL.createObjectURL(file);
             localObjectUrl.current=url;
             setError("");setRaw(null);setUploaded(true);setSourceUrl(url);
-            setPlaying(false);setFrame(350);
+            // Arbitrary uploads should not inherit fox/bird preset segmentation.
+            setOptions(prev=>({...prev,focus:.60}));
+            setWash(.88);setPlaying(false);setFrame(350);
             // Object URL stays in the browser; no network submission.
           }}/>
       </label>
