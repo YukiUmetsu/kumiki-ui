@@ -4,6 +4,7 @@ import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonMar
 import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction, CrayonSgraffito } from "./crayon";
 import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
+import type { CrayonVolumeGradient } from "./crayon-scene";
 
 export type CrayonStory = "lantern" | "garden";
 export type CrayonAspect = "landscape" | "portrait";
@@ -28,6 +29,8 @@ export type WaxProps = {
   blendRadius?: number;
   /** Opacity of generic tooth marks; zero preserves blocking underpaint. */
   markStrength?: number;
+  /** Surface-integrated, opaque multi-pigment underpaint, not flat vector fill. */
+  underpaintGradient?:CrayonVolumeGradient;
   /** After the drawing completes, repaint small wax daubs on discrete held exposures. */
   redraw?: CrayonRedrawOptions;
   /** Fragmented wax nib trace around the visible outline, 0..1. */
@@ -46,9 +49,19 @@ export type WaxProps = {
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long" }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient,
+  redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
+  if (underpaintGradient && (
+    coverage!=="opaque" ||
+    ![underpaintGradient.focusX,underpaintGradient.focusY,underpaintGradient.radius].every(Number.isFinite)||
+    underpaintGradient.focusX<0||underpaintGradient.focusX>1||
+    underpaintGradient.focusY<0||underpaintGradient.focusY>1||
+    underpaintGradient.radius<.2||underpaintGradient.radius>1.5||
+    !/^#[0-9a-fA-F]{6}$/.test(underpaintGradient.light)||
+    !/^#[0-9a-fA-F]{6}$/.test(underpaintGradient.shadow)
+  ))throw new RangeError("crayon underpaintGradient is invalid");
   if (!Number.isFinite(markStrength)||markStrength<0||markStrength>1)
     throw new RangeError("crayon markStrength must be 0..1");
   if (!Number.isFinite(blendRadius)||blendRadius<0||blendRadius>18||
@@ -92,6 +105,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   const pores = clip + "-tooth";
   const deposit = clip + "-deposit";
   const blendId = clip + "-soft-glaze";
+  const volumeId=clip+"-volume";
+  const underpaintFill=underpaintGradient ? "url(#"+volumeId+")" : colors[0];
   // Contact pressure changes the opacity of raised paper-grain interruptions.
   // This remains a detail mask for the wax layer, never for opaque underpaint.
   const reliefContact = Number((.26 + (1-pressure)*.67).toFixed(4));
@@ -125,6 +140,16 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     data-km-crayon-mark-strength={markStrength}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
+      {underpaintGradient && <radialGradient id={volumeId}
+        cx={(100*underpaintGradient.focusX).toFixed(2)+"%"}
+        cy={(100*underpaintGradient.focusY).toFixed(2)+"%"}
+        r={(100*underpaintGradient.radius).toFixed(2)+"%"}
+        gradientUnits="objectBoundingBox"
+        data-km-crayon-underpaint-gradient="">
+        <stop offset="0%" stopColor={underpaintGradient.light}/>
+        <stop offset="48%" stopColor={colors[0]}/>
+        <stop offset="100%" stopColor={underpaintGradient.shadow}/>
+      </radialGradient>}
       {blendRadius>0 && <filter id={blendId} filterUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB"
         x={bounds.x-3*blendRadius} y={bounds.y-3*blendRadius}
@@ -174,10 +199,10 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         tooth mask. Paper/tooth breaks the pigmented highlights, never punches
         transparent holes through a finished character or foreground prop. */}
     {coverage==="opaque" && pigmentProgress>0 && <>
-      <path d={d} fill={colors[0]} clipPath={"url(#"+clip+")"}
+      <path d={d} fill={underpaintFill} clipPath={"url(#"+clip+")"}
         mask={pigmentProgress<1 ? "url(#"+deposit+")" : undefined}
         data-km-crayon-underpaint="opaque" />
-      {settlingCoat>0 && <path d={d} fill={colors[0]}
+      {settlingCoat>0 && <path d={d} fill={underpaintFill}
         opacity={settlingCoat} clipPath={"url(#"+clip+")"}
         data-km-crayon-settling-coat="" />}
     </>}
