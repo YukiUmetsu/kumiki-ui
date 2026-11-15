@@ -175,5 +175,14 @@ export function makeClassicalInkFigure(
       throw new RangeError("INK figure crafts require approved vector art: "+key);
     assets[key]=inkCraftAsset(existing,marks,controls);
   }
-  return {...base, revision:base.revision+"-classical-v1", assets};
+  // The previous round-headed master read as a child at film scale.
+  // Narrow the complete *parent* head (not each detached facial sprite):
+  // the hair, face, eyes, nose, mouth and beard stay in one continuous rig,
+  // and the authored eye anchor remains geometrically correct after acting.
+  const poses=role==="master"&&controls.detail>=.55
+    ? {...base.poses,rest:{...base.poses.rest,head:{
+        ...base.poses.rest?.head,scaleX:.87,scaleY:.90,
+      }}}
+    : base.poses;
+  return {...base, revision:base.revision+"-classical-v1", assets,poses};
 }
