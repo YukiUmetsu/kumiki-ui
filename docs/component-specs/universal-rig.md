@@ -132,6 +132,17 @@ Supporting biomechanics:
 | Break-over: the heel lifts and the hoof pivots on the planted toe. The pastern turns with it, and at lift-off hoof and pastern stand in line, sole facing back. | The last 28% of stance rotates hoof and pastern together about the toe, up to 64°. | Test: the hoof passes 40° with its toe on the ground; then lands flat. |
 | Swing: the fetlock flexes and the hoof hangs in line with the pastern, sole facing back, never upside down. The leg then straightens and sets the hoof down flat. | Hoof kept in line with the pastern in swing; fetlock curl 44° fore and 26° hind (peak hoof angle about 120°). Landing blends to the loaded, flat pose. | Swing hoof angle 118–126°; landing flat. |
 
+## Reference study: clapping in profile
+
+Source: Muybridge, *Animal Locomotion*, [Plate 533, "Movement of the hand; clasping hands"](https://commons.wikimedia.org/wiki/File:Animal_locomotion._Plate_533_(Boston_Public_Library).jpg) (1887, public domain). Its top rows show two open hands meeting palm to palm, seen from the side.
+
+| Observation | Construction rule |
+| --- | --- |
+| Forearms angle up from bent elbows. The open hands rise to chest height with the fingers together, pointing up and forward. | IK reach places the wrists about 14u ahead of the shoulders at chest height. A `flat` hand drawing has the fingers together, separated fingertips, and the thumb along the upper edge. |
+| At contact, the back of the near hand covers the far palm and the far fingertips peek past it. | Contact wrist targets sit about 1u apart, the far hand slightly ahead. |
+| The clap swings the hands apart across the body, which is invisible in pure profile. | Apart pose cheats depth: the near hand comes toward the camera (scale 1.1, fanned −14°, lifted); the far hand recedes (scale 0.94, +10°). |
+| About three claps a second, fast into the hit and slower out, with the body answering each hit. | 10-frame beat: ease-in to contact with a one-frame squash, ease-out apart. The torso, head and pelvis jolt on each contact, the head a frame late. |
+
 ## Limits
 
 - Side-on 2D rigs: no full turnarounds. Turns in depth extrude the side outline across the figure's width (an
