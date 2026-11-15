@@ -152,3 +152,8 @@ Inspected the genuine Chromium screenshots and FilmStage 16:9/9:16 images (initi
 **Corrections implemented:** grow each rooted tree into four natural boughs with spatially connected veined canopy packets; increase independently cut foliage and reposition ferns/flowers into the actual oval view aperture; re-expose a true foreground water sheet and pebble detail. Recut alpine mountains as independent closed paper peaks ending in curved foothills rather than rectangular full-stage extensions, add directional snow/rock facets, pull pines/ledges/moss into visible space and remove hard annular sun rings.
 
 These are visible-construction changes, not global noise, random transparency or a claim of photorealism. Regenerate fresh final-commit browser/film captures: the first proof images are superseded and cannot certify this correction.
+
+
+### Pass 20c — mountain footing continuity
+
+The revised browser proof removed the previous box-like mountain geometry but still showed a conspicuous sky-colored horizontal gap beneath the mountain bases. Added two continuous, irregular cut-paper foothill terraces **behind** the pine line and front lake, physically bridging the peak feet to the shore. This resolves the major depth-plane discontinuity without drawing flat rectangular backgrounds or transparent filler. New current-commit captures supersede the earlier proof.
