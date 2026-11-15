@@ -75,10 +75,10 @@ export function vaneTracts(axes:readonly FeatherAxis[],color:string,startFrame=2
       // Plump at the median vane, narrowing toward the proximal and
       // distal ends. Slight hand-authored station variation avoids a comb.
       const envelope=(.19+.92*Math.sin(Math.PI*t))*(1-.20*t);
-      const irregularity=1- Math.abs((k%4)-1.5)*.028;
+      const irregularity=.73+.25*(.5+.5*Math.sin((k+2)*(j+3)*2.39));
       for(const side of [-1,1] as const){
-        const span=w*envelope*irregularity*(side<0?1:.72);
-        const sweep=span*(.55+.15*t);
+        const span=w*envelope*irregularity*(side<0?1:.47);
+        const sweep=span*(.75+.19*t);
         const tx=x+nx*side*span+ny*sweep;
         const ty=y+ny*side*span-nx*sweep;
         const mx=x+nx*side*span*.40+ny*sweep*.21;
@@ -89,8 +89,8 @@ export function vaneTracts(axes:readonly FeatherAxis[],color:string,startFrame=2
     }
     const path=cmd.join(" ");
     if(path.length>12000)throw new RangeError("Feather SVG exceeds CP1 trace budget");
-    return {path,color,width:j%3===0?.53:.44,
-      startFrame:startFrame+j*2,durationFrames:48,opacity:j%3===0?.81:.73};
+    return {path,color,width:j%3===0?.41:.34,
+      startFrame:startFrame+j*2,durationFrames:48,opacity:j%3===0?.48:.38};
   });
 }
 
