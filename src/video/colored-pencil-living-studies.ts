@@ -3,6 +3,7 @@ import type { PencilAspect, PencilDrawingSpec, PencilRegion, PencilTrace } from 
 import { createPencilMaterialRegion } from "../../registry/video/colored-pencil-materials";
 import { createPencilFoundationDrawing } from "../../registry/video/colored-pencil-foundation";
 import type { PencilSurface } from "../../registry/video/colored-pencil-materials";
+import { pencilPortraitAnatomy } from "../../registry/video/colored-pencil-anatomy";
 
 /**
  * Original, authored anatomy studies based on observation of pencil technique,
@@ -228,12 +229,91 @@ function pencilDermalGlaze(
   return traces;
 }
 
+/**
+ * ANAT1 is the *construction source*, not a decoration on the portrait.
+ * Every eye, both canthi, the eyebrow folds and the labial ring are projected
+ * from one 468-vertex calibrated face, then expressed in the CP-F1 dry pencil
+ * vocabulary. The previous hand-guessed feature stickers no longer decide
+ * facial topology. This is a 2D pencil painter, not a mesh screenshot.
+ */
+const PENCIL_PORTRAIT_ANAT1=pencilPortraitAnatomy();
+const anatomicalBounds=(...names:string[]):readonly [number,number,number,number]=>{
+  const items=names.map(n=>PENCIL_PORTRAIT_ANAT1.features[n]?.bounds);
+  if(items.some(item=>!item))throw new RangeError("Unknown ANAT1 face feature");
+  const xs=items.map(item=>item![0]),ys=items.map(item=>item![1]);
+  const rights=items.map(item=>item![0]+item![2]);
+  const bottoms=items.map(item=>item![1]+item![3]);
+  const x=Math.min(...xs),y=Math.min(...ys);
+  return [x,y,Math.max(...rights)-x,Math.max(...bottoms)-y];
+};
+function applyPortraitAnatomy(part:PencilSubjectPart):PencilSubjectPart{
+  const A=PENCIL_PORTRAIT_ANAT1;
+  if(part.id==="face-main"){
+    return {...part,path:A.features.oval.path,
+      bounds:A.features.oval.bounds};
+  }
+  const eye=part.id==="eye-white-far"?"R":
+    part.id==="eye-white-near"?"L":undefined;
+  if(eye){
+    const upper=A.features["eye-upper."+eye].path;
+    const lower=A.features["eye-lower."+eye].path;
+    return {...part,path:A.eyes[eye].path,bounds:A.eyes[eye].bounds,
+      // Contact pressure follows the *actual* upper orbital rim, while
+      // the inferior lid is a soft turning plane, not a complete black ring.
+      details:[
+        {...mark(upper,"#624F56",.84,201,.82),id:"anat-upper-lid-"+eye},
+        {...mark(lower,"#B68D8A",.48,221,.56),id:"anat-lower-lid-"+eye},
+        {...mark(upper,"#D8B4A4",.28,248,.43),id:"anat-orbital-fold-"+eye},
+      ]};
+  }
+  const iris=part.id==="iris-far"?"R":
+    part.id==="iris-near"?"L":undefined;
+  if(iris)return {...part,path:A.irises[iris].path,
+    bounds:A.irises[iris].bounds,details:[
+      {...mark(A.irises[iris].path,"#667C7E",.27,235,.61),
+        id:"anat-iris-fibre-"+iris},
+    ]};
+  const pupil=part.id==="pupil-far"?"R":
+    part.id==="pupil-near"?"L":undefined;
+  if(pupil)return {...part,path:A.pupils[pupil].path,
+    bounds:A.pupils[pupil].bounds,details:[
+      {...mark("M"+(A.pupils[pupil].bounds[0]+3.4).toFixed(2)+" "+
+        (A.pupils[pupil].bounds[1]+2.2).toFixed(2)+" l.32 -.38",
+        "#F4EBDF",.32,246,.65),id:"anat-catchlight-"+pupil},
+    ]};
+  if(part.id==="brows")return {...part,
+    path:A.browMass.path,bounds:A.browMass.bounds,
+    details:[
+      {...mark(A.browInk.R.path,"#75615C",.49,228,.71),
+        id:"anat-brow-R"},
+      {...mark(A.browInk.L.path,"#735B59",.50,228,.70),
+        id:"anat-brow-L"},
+      {...mark(A.browInk.L.path+" "+A.browInk.R.path,
+        "#C3A08E",.27,245,.42),id:"anat-brow-underfur"},
+    ]};
+  if(part.id==="nose-bridge")return {...part,
+    details:[...(part.details??[]),
+      {...mark(A.features["nose-bridge"].path,"#AA7876",.53,244,.48),
+        id:"anat-nose-bridge"},
+      {...mark(A.features["nose-base"].path,"#946A69",.48,246,.64),
+        id:"anat-nose-base"},
+    ]};
+  if(part.id==="lip-upper")return {...part,
+    path:A.lips.upper,bounds:anatomicalBounds("lips-upper","mouth-line"),
+    details:[...(part.details??[]),
+      {...mark(A.features["mouth-line"].path,"#7B5660",.50,246,.61),
+        id:"anat-mouth-seam"}]};
+  if(part.id==="lip-lower")return {...part,
+    path:A.lips.lower,bounds:anatomicalBounds("lips-lower","mouth-line")};
+  return part;
+}
+
 function face():PencilSubjectPart[] {
   const skin:PencilPalette=["#DDA58F","#906277","#F4CEB0"];
   const lit:PencilPalette=["#F2C6AA","#B78082","#FFE0BF"];
   const hair:PencilPalette=["#684F50","#282E40","#B18471"];
   const shirt:PencilPalette=["#718E9C","#384F73","#CCD9D3"];
-  return [
+  const parts:PencilSubjectPart[]=[
     {id:"hair-back",material:"hair",palette:hair,
       path:"M113 161 C100 102 146 56 212 50 C276 35 339 80 354 143 Q375 207 354 300 C367 348 343 401 309 426 Q286 388 280 310 L143 311 Q151 373 120 418 C94 370 101 306 100 253 Q95 202 113 161 Z",
       bounds:[94,35,283,395],direction:67,flow:32,start:30,
@@ -394,6 +474,7 @@ function face():PencilSubjectPart[] {
       bounds:[253,339,92,95],direction:55,start:188,
       details:[mark("M297 354 Q305 387 291 414","#D7E2D8",1.55,244)]},
   ];
+  return parts.map(applyPortraitAnatomy);
 }
 
 function fox():PencilSubjectPart[] {
