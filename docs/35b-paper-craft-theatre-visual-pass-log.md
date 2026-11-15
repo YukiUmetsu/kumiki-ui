@@ -143,3 +143,12 @@ Added `paperScenerySpec`: two original scenes (woodland stream and alpine lake) 
 One **Scenery** page joins the existing `Video production/Film Looks/Paper Craft` group; choose scenery, palette, detail, breeze and aspect through controls. The `paper-craft-study` FilmStage slot now accepts `artwork:"scenery"` and has a two-scene landscape/portrait film.
 
 Verification gate: focused unit tests for paths/holes, opaque stock, seeded detail and seeks, FilmStage compile and both aspects, Chromium captures and native film render. Run these against the final PR SHA. ArtCraft structural analysis does not substitute for direct image comparison, and no unmeasured quantitative fidelity is asserted.
+
+
+### Pass 20b — actual rendered-frame critique and corrections
+
+Inspected the genuine Chromium screenshots and FilmStage 16:9/9:16 images (initial PR #296 proof artifacts, not an independent mockup). Initial woodland output **failed artistic readiness**: trees were skinny poles with microscopic isolated leaves and most ferns/flowers fell outside the elliptical frame; the stream disappeared behind the front bank. Initial alpine output **failed structural readiness**: mountain base polygons extended to the stage bottom, leaving obvious vertical seams, while ledges/moss were clipped off-frame. Sunrise halos read as target circles.
+
+**Corrections implemented:** grow each rooted tree into four natural boughs with spatially connected veined canopy packets; increase independently cut foliage and reposition ferns/flowers into the actual oval view aperture; re-expose a true foreground water sheet and pebble detail. Recut alpine mountains as independent closed paper peaks ending in curved foothills rather than rectangular full-stage extensions, add directional snow/rock facets, pull pines/ledges/moss into visible space and remove hard annular sun rings.
+
+These are visible-construction changes, not global noise, random transparency or a claim of photorealism. Regenerate fresh final-commit browser/film captures: the first proof images are superseded and cannot certify this correction.
