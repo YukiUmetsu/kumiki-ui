@@ -6,6 +6,8 @@ import type { PencilSceneSpec } from "../../registry/video/colored-pencil-scene"
 import { createPencilRegion } from "../../registry/video/colored-pencil";
 import { pencilDemoScene } from "./colored-pencil-demo-scenes";
 import { flowBundles } from "./colored-pencil-living-studies";
+import { KINGFISHER_PERCHING_FEET, KINGFISHER_FOLDED_WING_AXES,
+  KINGFISHER_COVERT_AXES, vaneTracts } from "./colored-pencil-anatomy-detail";
 
 /**
  * Rebuilt from an empty character authoring slate (2026-11-14).
@@ -41,6 +43,8 @@ interface PartInput {
   flow?:number;
   details?:readonly PencilTrace[];
   startFrame?:number;
+  /** Preserve intentionally projecting whiskers while pigment stays shape-clipped. */
+  freeDetails?:boolean;
 }
 /** Shape / silhouette first, independent pigment region and child joints second. */
 function part(input:PartInput):PencilActorPart {
@@ -58,7 +62,8 @@ function part(input:PartInput):PencilActorPart {
       surface:input.material,seed,startFrame:input.startFrame??36,durationFrames:158,
       direction:input.direction,flow:input.flow,details:input.details,
     });
-  return {id:input.id,parent:input.parent,pivot:input.pivot,keys:input.keys??neutral,region};
+  return {id:input.id,parent:input.parent,pivot:input.pivot,keys:input.keys??neutral,
+    region:input.freeDetails?{...region,clipDetails:false}:region};
 }
 const strokeFox=(guides:Parameters<typeof flowBundles>[0],seed:number,
   color="#F8D0A4",width=.62,start=205)=>flowBundles(guides,seed,color,width,start);
@@ -90,9 +95,12 @@ function fox():PencilActorSpec {
       details:[...strokeFox([[-44,113,-21,144,-39,130,16,8]],1241,"#FFF5DE",.59),
         trace("M-47 111 Q-43 126 -29 141","#F5D2BA",.75,228)]}),
     part({id:"far-foreleg",material:"fur",colors:foxDark,pivot:[159,147],
-      path:"M148 145 Q157 143 166 152 Q168 171 162 191 L161 209 Q167 216 179 222 L142 222 Q146 215 147 206 Q140 175 148 145 Z",
-      bounds:[138,141,44,85],direction:83,
-      details:strokeFox([[154,158,150,209,156,190,15,10]],1251,"#BCA697",.62)}),
+      path:"M148 145 Q157 143 166 152 Q168 171 162 191 L161 209 Q167 216 179 222 L142 222 Q146 215 147 206 Q140 175 148 145 Z M81 158 Q89 155 96 162 Q92 183 89 205 Q91 215 101 220 L70 220 Q76 213 77 204 L74 177 Z",
+      bounds:[67,141,115,85],direction:83,
+      details:[...strokeFox([[154,158,150,209,156,190,15,10],
+        [84,171,83,215,81,194,13,8]],1251,"#BCA697",.62),
+        trace("M77 217 Q85 220 97 218 M146 219 Q159 221 172 219",
+          "#453B44",.75,225)]}),
     part({id:"torso",material:"fur",colors:foxRust,pivot:[106,139],
       path:"M58 115 C78 99 120 95 159 111 Q183 115 190 137 Q187 159 167 177 Q139 186 106 179 Q80 185 60 168 Q46 147 58 115 Z",
       bounds:[44,94,150,95],direction:19,flow:21,
@@ -107,14 +115,18 @@ function fox():PencilActorSpec {
       path:"M68 154 Q89 149 101 163 Q100 180 91 193 L88 209 Q102 214 108 220 Q110 225 105 225 L98 223 Q94 226 89 224 Q83 228 78 224 L55 224 Q63 217 72 205 L67 190 Q56 173 68 154 Z",
       bounds:[53,148,60,83],direction:77,
       details:[...strokeFox([[69,161,76,208,58,192,17,11]],1321,"#F0BC89",.59),
-        trace("M63 219 Q78 223 101 220","#463B43",1.15,222)]}),
+        trace("M64 218 Q76 222 84 220 M86 221 Q90 224 95 221 M98 221 Q104 224 107 222",
+          "#463B43",.92,222),
+        trace("M82 211 Q89 217 96 216","#F4D2AE",.78,235)]}),
     part({id:"near-foreleg",material:"fur",colors:foxDark,parent:"torso",pivot:[154,158],
       keys:[key(0),key(171),key(199,0,0,-12),key(223,0,-3,-22),
         key(251,0,-1,-11),key(283),key(319)],
       path:"M147 150 Q161 144 171 151 Q176 166 170 184 L168 203 Q169 211 179 214 Q188 215 192 220 Q195 224 190 225 Q185 222 181 223 Q178 226 174 223 Q168 227 165 224 L145 224 Q150 214 154 207 L148 176 Q143 164 147 150 Z",
       bounds:[143,141,56,89],direction:82,
       details:[...strokeFox([[160,161,164,211,149,191,18,9]],1343,"#B0A8A0",.61),
-        trace("M151 217 Q168 222 186 221","#373540",1.3,228)]}),
+        trace("M151 217 Q164 222 174 220 M176 219 Q181 222 184 220 M186 220 Q190 223 193 222",
+          "#373540",.92,228),
+        trace("M166 209 Q170 214 179 215","#D0B6A7",.8,238)]}),
     part({id:"ruff",material:"fur",colors:foxLight,parent:"torso",pivot:[168,131],
       path:"M160 117 Q178 107 195 116 Q201 126 194 142 L191 152 L202 155 L182 164 L184 176 L168 169 L159 180 L157 166 L144 165 Q147 150 153 139 Z",
       bounds:[141,103,65,81],direction:67,flow:31,
@@ -139,13 +151,19 @@ function fox():PencilActorSpec {
       details:strokeFox([[168,44,169,70,172,55,13,6],
         [212,47,205,72,207,61,13,6]],1439,"#DCA68F",.54)}),
     part({id:"muzzle",material:"fur",colors:foxLight,parent:"head",pivot:[210,118],
+      freeDetails:true,
       path:"M184 112 Q205 103 228 108 Q243 106 248 115 Q240 132 214 140 Q197 141 183 128 Z",
       bounds:[179,100,72,45],direction:18,flow:18,
       details:[
         ...strokeFox([[192,116,219,132,207,126,18,9]],1477,"#FAF1D9",.52,235),
-        trace("M196 132 Q217 136 233 119","#3D434C",1.4,250),
-        trace("M190 121 Q182 118 172 115 M191 128 Q182 132 167 135",
-          "#C9B6AE",.62,248),
+        trace("M196 133 Q217 138 235 122 M232 124 Q236 127 239 125",
+          "#3D434C",1.0,250),
+        // Whiskers have real cheek roots and project outside the painted muzzle.
+        // They must not be truncated by the solid region clipPath.
+        trace("M232 122 Q249 116 263 113 M234 126 Q253 128 270 124 M227 130 Q241 141 257 142",
+          "#D8C8BE",.63,247,.86),
+        trace("M227 121 Q233 121 238 118 M226 127 Q233 129 238 129",
+          "#92776F",.57,255),
       ]}),
     part({id:"nose",material:"fur",colors:["#41414C","#1D2836","#8F7A70"],
       parent:"head",pivot:[239,114],
@@ -164,6 +182,8 @@ function fox():PencilActorSpec {
         trace("M206 95 Q210 95 211 100 Q211 106 207 106 Q204 102 206 95",
           "#182737",2.4,253),
         trace("M207 96 L208 98","#FFF4D9",1.25,263),
+        trace("M198 97 Q203 91 210 93 M201 105 Q207 108 213 103",
+          "#382C37",.82,248),
       ]}),
   ];
   return {id:"fox",parts};
@@ -217,6 +237,7 @@ export function createKingfisherActor():PencilActorSpec {
         trace("M136 133 Q151 153 159 174 M142 126 Q158 144 167 162",
           "#193C62",1.45,226),
         trace("M132 155 Q146 171 152 187","#D3E6DC",.83,239),
+        ...vaneTracts(KINGFISHER_FOLDED_WING_AXES,"#C7DAD8",226),
       ]}),
     // The overlapping shoulder coverts are a separate pigmented feather plane.
     // The neutral animation inherits near-wing only once, even at wing extremes.
@@ -229,6 +250,7 @@ export function createKingfisherActor():PencilActorSpec {
           [146,117,161,144,158,127,16,7]],1819,"#C0E3DA",.57),
         trace("M130 132 Q143 151 151 151 M147 121 Q160 133 166 136",
           "#1D5A73",.9,241),
+        ...vaneTracts(KINGFISHER_COVERT_AXES,"#CBE7DB",229),
       ]}),
     part({id:"head",material:"feather",colors:birdBlue,parent:"torso",pivot:[130,113],
       keys:[key(0),key(177),key(199,0,-2,6),key(227,0,-1,-4),
@@ -254,12 +276,11 @@ export function createKingfisherActor():PencilActorSpec {
         trace("M26 100 Q68 96 101 99","#D2C9B7",.8,244),
         trace("M35 106 Q79 102 99 104","#182536",.95,249),
       ]}),
-    part({id:"feet",material:"fur",colors:["#A76854","#624951","#E1A085"],
-      parent:"torso",pivot:[129,186],
-      path:"M115 182 Q122 179 125 185 L122 206 Q128 213 137 217 L133 220 Q126 217 119 213 Q114 220 107 222 L105 219 L116 205 Z M143 183 Q150 183 152 190 L147 207 Q158 212 165 217 L162 220 Q153 217 146 213 Q140 223 133 224 L131 221 L141 207 Z",
-      bounds:[102,178,68,50],direction:69,
-      details:[trace("M117 206 Q121 212 132 215 M145 207 Q148 214 160 216",
-        "#583C48",1.1,246)]}),
+    part({id:"feet",material:"keratin",colors:["#A76854","#624951","#E1A085"],
+      parent:"torso",pivot:[129,186],freeDetails:true,
+      path:KINGFISHER_PERCHING_FEET.path,
+      bounds:KINGFISHER_PERCHING_FEET.bounds,direction:69,
+      details:KINGFISHER_PERCHING_FEET.details}),
     part({id:"eye",material:"fur",colors:["#455362","#151F30","#B7B8A3"],
       parent:"head",pivot:[111,94],
       keys:[key(0),key(200),key(208,0,0,0,1,.12),key(216),

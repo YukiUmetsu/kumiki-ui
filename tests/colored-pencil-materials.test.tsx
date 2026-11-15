@@ -11,8 +11,8 @@ const materialInput = {
   seed:42,startFrame:30,durationFrames:135,
 };
 describe("coloured-pencil universal material atlas", () => {
-  it("exposes sixteen bounded semantic material recipes to arbitrary authored SVG geometry", () => {
-    expect(PENCIL_MATERIALS).toHaveLength(16);
+  it("exposes seventeen bounded semantic material recipes to arbitrary authored SVG geometry", () => {
+    expect(PENCIL_MATERIALS).toHaveLength(17);
     const materials = PENCIL_MATERIALS.map(surface => createPencilMaterialRegion({
       ...materialInput,surface,
     }));
@@ -26,7 +26,7 @@ describe("coloured-pencil universal material atlas", () => {
       })).toEqual([]);
     }
     expect(materials[3].opaqueSupport).toBe(false); // clear glass
-    expect(materials.filter(region=>region.opaqueSupport)).toHaveLength(13);
+    expect(materials.filter(region=>region.opaqueSupport)).toHaveLength(14);
     expect(materials[10].opaqueSupport).toBe(false);
     expect(materials[10].layers[2].texture).toBe("stipple");
     expect(materials[11].layers[2].texture).toBe("stipple"); // skin pore texture
@@ -36,6 +36,10 @@ describe("coloured-pencil universal material atlas", () => {
     expect(materials.slice(11,15).every(region=>region.opaqueSupport)).toBe(true);
     expect(materials[15].opaqueSupport).toBe(false);
     expect(materials[15].layers.every(layer=>layer.pressure<.8)).toBe(true);
+    expect(materials[16].opaqueSupport).toBe(true); // scaled keratin
+    expect(materials[16].clipDetails).toBe(true);
+    expect(materials[16].layers[1].texture).toBe("hatch");
+    expect(materials[16].layers[2].texture).toBe("stipple");
     expect(materials[0].clipDetails).toBe(true);
     expect(materials[3].clipDetails).toBe(false);
     expect(materials[4].layers[2].texture).toBe("fiber");

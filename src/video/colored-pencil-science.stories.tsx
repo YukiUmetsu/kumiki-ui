@@ -179,6 +179,9 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
   const [pressure, setPressure] = useState(1);
   const [flow, setFlow] = useState(0);
   const [cameraEnabled, setCameraEnabled] = useState(true);
+  const [characterInspection,setCharacterInspection] = useState<
+    "composition" | "fox-eye" | "fox-paw" | "kingfisher-bill" | "kingfisher-wing"
+  >("composition");
   const scene = useMemo(() => {
     const authored = subject === "characters" ? pencilCharacterScene(aspect) : pencilDemoScene(subject, aspect);
     return {
@@ -220,6 +223,25 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
     // Playback adopts the frame on play, not on every RAF update.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing]);
+  // Visual QA zoom lives solely in Storybook, never in CP3 material or film exports.
+  // Coordinates are measured from the same actor-local points used by the joint rig.
+  const inspection = subject==="characters"?characterInspection:"composition";
+  const focus = inspection==="fox-eye"?[213,105]:
+    inspection==="fox-paw"?[171,218]:
+    inspection==="kingfisher-bill"?[65,102]:[148,154];
+  const foxFocus = inspection==="fox-eye"||inspection==="fox-paw";
+  const shift = aspect==="landscape" ?
+    foxFocus?[487,226,1.08]:[768,221,.99]:
+    foxFocus?[58,513,.97]:[301,496,.94];
+  const stageSize = aspect==="landscape"?[960,540]:[540,960];
+  const zoom = inspection==="fox-paw"?3.85:inspection==="kingfisher-wing"?3.45:
+    inspection==="fox-eye"?4.2:3.25;
+  const artworkStyle = inspection==="composition"?undefined:{
+    transform:"translate("+(50-100*zoom*(shift[0]+shift[2]*focus[0])/stageSize[0]).toFixed(3)+
+      "%, "+(50-100*zoom*(shift[1]+shift[2]*focus[1])/stageSize[1]).toFixed(3)+
+      "%) scale("+zoom+")",
+    transformOrigin:"top left",
+  };
   return <main style={page}>
     <header style={{ maxWidth: 930 }}>
       <div style={{ fontSize: 12, letterSpacing: 2, fontWeight: 700, color: "#6c795c" }}>
@@ -266,11 +288,23 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
         <input aria-label="World camera" type="checkbox" checked={cameraEnabled}
           onChange={e => setCameraEnabled(e.target.checked)}/> Gentle camera move
       </label>
+      {subject==="characters"&&<label style={label}>ArtCraft anatomy crop
+        <select aria-label="Character inspection" value={characterInspection}
+          onChange={e=>{setPlaying(false);setCharacterInspection(
+            e.target.value as typeof characterInspection);}}>
+          <option value="composition">Whole composition</option>
+          <option value="fox-eye">Fox eyelid, cheek and whiskers</option>
+          <option value="fox-paw">Fox digits and floor contact</option>
+          <option value="kingfisher-bill">Kingfisher beak and iris</option>
+          <option value="kingfisher-wing">Kingfisher rachis and coverts</option>
+        </select>
+      </label>}
     </div>
     <div style={{ width: "100%", maxWidth: aspect === "landscape" ? 960 : 510, background: "#F8F2E6",
       aspectRatio: aspect === "landscape" ? "16/9" : "9/16",
-      boxShadow: "0 16px 44px #514d3d26" }}>
-      <PencilScene scene={scene} frame={frame} label={"Original illustrated " + subject + " story"}/>
+      boxShadow: "0 16px 44px #514d3d26", overflow:"hidden" }}>
+      <PencilScene scene={scene} frame={frame} style={artworkStyle}
+        label={"Original illustrated " + subject + " story"}/>
     </div>
     <div style={{ display: "grid", maxWidth: 960, gap: 8 }}>
       <label style={{ ...label, width: "100%" }}>World frame · {frame} / 320

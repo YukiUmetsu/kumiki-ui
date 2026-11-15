@@ -25,7 +25,7 @@ test("wildlife animation preserves opaque bird parts under seek and aspect switc
     }
     // Macros inspect real animated pencil geometry, never a replacement raster thumbnail.
     await page.getByRole("combobox", { name: "Wildlife inspection" }).selectOption("wing");
-    await expect(stage).toHaveAttribute("style", /scale\(2\.5\)/);
+    await expect(stage).toHaveAttribute("style", /scale\(2\.85\)/);
     await stage.locator("xpath=..").screenshot({ animations: "disabled",
       path: info.outputPath("pencil-wing-macro-" + aspect + ".png") });
     await page.getByRole("combobox", { name: "Wildlife inspection" }).selectOption("breast");
@@ -33,9 +33,17 @@ test("wildlife animation preserves opaque bird parts under seek and aspect switc
     await stage.locator("xpath=..").screenshot({ animations: "disabled",
       path: info.outputPath("pencil-breast-macro-" + aspect + ".png") });
     await page.getByRole("combobox", { name: "Wildlife inspection" }).selectOption("foot");
-    await expect(stage).toHaveAttribute("style", /scale\(4\.2\)/);
+    await expect(stage).toHaveAttribute("style", /scale\(4\.8\)/);
     await stage.locator("xpath=..").screenshot({ animations: "disabled",
       path: info.outputPath("pencil-foot-perch-macro-" + aspect + ".png") });
+    await page.getByRole("combobox", { name: "Wildlife inspection" }).selectOption("beak");
+    await expect(stage).toHaveAttribute("style", /scale\(3\.2\)/);
+    await stage.locator("xpath=..").screenshot({ animations: "disabled",
+      path: info.outputPath("pencil-bill-macro-" + aspect + ".png") });
+    await page.getByRole("combobox", { name: "Wildlife inspection" }).selectOption("crown");
+    await expect(stage).toHaveAttribute("style", /scale\(4\)/);
+    await stage.locator("xpath=..").screenshot({ animations: "disabled",
+      path: info.outputPath("pencil-crown-macro-" + aspect + ".png") });
     await page.getByRole("combobox", { name: "Wildlife inspection" }).selectOption("eye");
     await expect(stage).toHaveAttribute("style", /scale\(3\.4\)/);
     await stage.locator("xpath=..").screenshot({ animations: "disabled",

@@ -42,3 +42,7 @@ The former **8-part upright fox** (round head, humanlike arm, simple brown face 
 Focused typecheck, Storybook source preflight, actor/wildlife Vitest and original FilmStage portable JSON equality are automated PR gates. Local opt-in Playwright now captures full-stage 16:9 and 9:16 frames and macro crops for eye and wings; no costly CI browser requirement has been added.
 
 Open craft priorities: independently inspect actual 1x/4x rasterized character art, refine fox paw digits and muzzle, add depth-correct feather coverts at extreme poses, capture full-speed video, measure ArtCraft topology/detail axes against user-licensed source crops, and verify portrait overlays in both formats. **Not artistically approved yet.**
+
+## Follow-up: anatomical detail integration (2026-11-14)
+
+The earlier rebuilt side-view animals remain the source-of-truth; the new fourth fox leg is housed as a separate occluded path in the planted far-leg pigment region, the open muzzle detail carries rooted whiskers beyond the fur clip, and bird feet now have syndactyl structure with keratin scales and small hallux/anterior hooks. The near wing has seven individually authored quadratic rachis+barb families; four more live in the separate coverts. This changes **details, not CP3 part count**. The macro and reference evidence ledger is [ArtCraft micro-anatomy](colour-pencil-anatomy-microdetail-artcraft-2026-11-14.md). This work improves anatomical logic but does not certify resemblance to any source artwork.
