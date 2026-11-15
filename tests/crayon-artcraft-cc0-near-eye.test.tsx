@@ -58,6 +58,34 @@ describe("Crayon pressure-and-paper contact material studies",()=>{
   });
 });
 describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
+  it("retains measured iris occlusion, a narrow orbital hollow and attached asymmetric lashes",()=>{
+    const spec=crayonCc0NearEyeStudy("portrait",1,"stroke-built");
+    const wax=(id:string)=>spec.elements.find(n=>n.id===id&&n.kind==="wax");
+    const lash=spec.elements.find(n=>n.id==="upper-lashes");
+    const iris=wax("eye-iris");
+    const hollow=wax("lower-orbital-hollow");
+    const lower=wax("lower-lid-flesh");
+    expect(iris?.kind).toBe("wax");
+    expect(hollow?.kind).toBe("wax");
+    expect(lower?.kind).toBe("wax");
+    if(iris?.kind!=="wax"||hollow?.kind!=="wax"||lower?.kind!=="wax")
+      throw new Error("ArtCraft eye structure was removed");
+    expect(iris.bounds.width).toBeLessThan(50);
+    expect(iris.bounds.height).toBeLessThan(45);
+    expect(hollow.bounds.height).toBeLessThan(50);
+    expect(lower.bounds.height).toBeLessThan(42);
+    expect(iris.parentId).toBe("eye-sclera");
+    expect(iris.clipToParent).toBe(true);
+    const lid=spec.elements.find(n=>n.id==="upper-lid-overhang");
+    expect(lid?.kind).toBe("wax");
+    expect(lid&&lid.timing.start).toBeGreaterThan(iris.timing.start);
+    expect(lash?.kind).toBe("contour");
+    if(lash?.kind!=="contour")throw new Error("Missing rooted eyelid fibers");
+    expect((lash.d.match(/M/g)??[]).length).toBeGreaterThanOrEqual(15);
+    expect(lash.parentId).toBe("eye-skin");
+    expect(lash.clipToParent).toBe(true);
+  });
+
   it("anchors wax buildup to stroke lift-off rather than scattering loose stickers",()=>{
     const marks=crayonMarks({x:0,y:0,width:166,height:65},
       {seed:392,pressure:.91,spacing:7,passes:2,strokeOrder:"patches"});
