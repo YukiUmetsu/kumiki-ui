@@ -1070,6 +1070,44 @@ Storybook has **Folk yōkai**.
 - The akaname has no front view.
 - Nobody has done a human visual review yet.
 
+## Giant monsters (folktale queue F12, 2026-11-15)
+
+**Sources** (public domain, Wikimedia Commons):
+
+- Kuniyoshi's *Takiyasha the Witch and the Skeleton Spectre*;
+- his *Kuwana* sea monk;
+- Yoshitoshi's *Susanoo slays Yamata no Orochi*;
+- the *Kashima kaname-ishi* namazu-e.
+
+**What they show.**
+
+- **The skeleton.** It leans in through the ruined palace. Its huge skull fills the frame, the ribs are drawn bone by bone, and one hand of long finger bones reaches toward the warriors.
+- **The sea monk.** A vast smooth black head looms over a cargo boat in the waves, with tiny white eyes.
+- **Orochi.** Dark coils in breaking surf.
+- **The catfish.** A great black catfish with long whiskers, pinned by the god with the keystone.
+
+**What was built.** `ukiyoe-giants.ts`:
+- six giant species;
+- `giantScene()` with eight scenes.
+
+The toad uses the frog rig at large size, and the daidarabotchi uses the figure rig scaled up. Storybook has **Giants**.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - The skeleton's skull was cut off at the top and too small for Kuniyoshi's; it is now larger and lower.
+   - The sea monk's boat was a sliver with a full-size sailor on it. It is now a proper boat with a small boatman, and the streaming water is subtler.
+   - The catfish's dorsal fin read as a shark's and is now small and rounded. A house sat on its body, and later floated; it now stands on the ground behind.
+   - The serpent on a bell hanging in the belfry was too small. The bell is now down on the ground, with the serpent coiled round it, as in the story.
+
+**Not done.**
+
+- The nure-onna and funayūrei are not built.
+- The gashadokuro has no legs; it always rises from the ground.
+- Orochi's heads do not drink from the sake vats.
+- The catfish has no keystone and no god.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
