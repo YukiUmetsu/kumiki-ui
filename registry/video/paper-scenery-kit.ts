@@ -18,6 +18,8 @@ export interface PaperSceneryOptions {
   detail?: number;
   /** Strength of small shared-hinge foliage motion (0–1). */
   breeze?: number;
+  /** Physical paper-depth separation, 0 = flat sheets, 1 = full relief. */
+  relief?: number;
   seed?: number;
 }
 type Stock = Readonly<{
@@ -99,15 +101,20 @@ function ridge(p:P,xExtent:number,yFloor:number,level:number,amplitude:number,ph
     p.L(xExtent+10,yFloor+20),p.L(-xExtent-10,yFloor+20),p.Z].join(" ");
 }
 function smallFern(p:P,x:number,y:number,height:number,side:number,detail:number){
+  // A continuous slanting rachis and every leaflet overlaps its stem.
+  // The paired fronds fan *perpendicularly* to the main growth axis.
   const tipX=x+side*height*.31,tipY=y-height;
-  const bits=[p.band(x,y,tipX,tipY,1.8)];
-  const count=4+Math.round(detail*4);
+  const bits=[p.band(x,y,tipX,tipY,2.15)];
+  const direction=-90+side*17;
+  const count=5+Math.round(detail*5);
   for(let i=1;i<=count;i++){
     const t=i/(count+1),bx=x+(tipX-x)*t,by=y-height*t;
-    const size=(1-t*.7)*height*.34;
-    bits.push(p.leaf(bx,by,size,-160+side*12,3.2));
-    bits.push(p.leaf(bx,by,size*.84,-20+side*14,2.8));
+    const size=(1-t*.62)*height*.36;
+    const width=Math.max(3.4,size*.23);
+    bits.push(p.leaf(bx,by,size,direction-64+(i%3)*4,width));
+    bits.push(p.leaf(bx,by,size*.86,direction+64-(i%3)*5,width*.92));
   }
+  bits.push(p.leaf(tipX-1.5,tipY+2,12,direction,3.2));
   return bits.join(" ");
 }
 function silhouetteTree(p:P,x:number,ground:number,height:number,width:number,lean:number){
@@ -120,6 +127,61 @@ function silhouetteTree(p:P,x:number,ground:number,height:number,width:number,le
     p.L(x-width*.35,ground+7),p.Z].join(" ");
   return {path,top,tipX};
 }
+
+/** Continuous die-cut crown (never a collection of floating stickers).
+ * The broad cardstock mass is anchored over the foreground tree top. Its
+ * smaller eye-shaped *physical holes* transmit light through negative space.
+ */
+function laceCanopy(p:P,x:number,y:number,side:number,detail:number,seed:number){
+  const sx=(v:number)=>side*v;
+  // The earlier top-only arc lay outside the actual ellipse. At normalized
+  // x=.7 the visible opening starts around y=-.714; the new scalloped
+  // lower silhouette extends to y≈-.25 so that cutwork is truly visible.
+  const path=[
+    p.M(sx(x*1.12),-y*1.10),
+    p.C(sx(x*.93),-y*1.07,sx(x*.76),-y*1.02,sx(x*.63),-y*.965),
+    p.C(sx(x*.52),-y*1.02,sx(x*.36),-y*.96,sx(x*.31),-y*.84),
+    p.C(sx(x*.22),-y*.72,sx(x*.295),-y*.58,sx(x*.38),-y*.605),
+    p.C(sx(x*.40),-y*.48,sx(x*.49),-y*.41,sx(x*.57),-y*.51),
+    p.C(sx(x*.60),-y*.37,sx(x*.71),-y*.30,sx(x*.78),-y*.42),
+    p.C(sx(x*.89),-y*.29,sx(x*.97),-y*.21,sx(x*1.12),-y*.10),
+    p.L(sx(x*1.12),-y*1.10),p.Z
+  ].join(" ");
+  const sites=[
+    [.39,.72],[.48,.69],[.58,.62],[.68,.52],[.80,.36],
+    [.45,.54],[.56,.48],[.69,.40],[.81,.30]
+  ] as const;
+  const holes=Array.from({length:4+Math.round(detail*5)},(_,k)=>{
+    const h=paperHash(seed,k+(side>0?60:0),91);
+    const [nx,ny]=sites[k];
+    const px=sx(x*nx),py=-y*ny;
+    return p.leaf(px,py,17+9*h,side*(k%2?53:-36)-88,5.5+2*h);
+  });
+  return {path,holes};
+}
+/** Tapered paired blades form a joined, asymmetric thicket with openings.
+ * This is all one cardstock color, but can be cut from a single sheet.
+ */
+function understoryCluster(p:P,x:number,y:number,side:number,detail:number,seed:number){
+  const parts=[p.band(x,y,x+side*7,y-19,3.2)];
+  const blades=5+Math.round(detail*6);
+  for(let i=0;i<blades;i++){
+    const h=28+paperHash(seed,i+Math.round(x),107)*32;
+    const dx=side*(i-(blades-1)/2)*5.8;
+    const tilt=-95+(i-(blades-1)/2)*10+(paperHash(seed,i,108)-.5)*9;
+    parts.push(p.leaf(x+dx,y-h*.16,h,tilt,5+(i%3)*2));
+  }
+  return parts.join(" ");
+}
+/** Folded clipped glacial sediment, never uniformly tiled triangles. */
+function alpineStratum(p:P,cx:number,peak:number,span:number,offset:number,side:number){
+  const rootX=cx+side*span*.14,rootY=peak+offset;
+  return p.poly([[rootX,rootY],[rootX+side*span*.22,rootY+offset*.26],
+    [rootX+side*span*.41,rootY+offset*.52],
+    [rootX+side*span*.29,rootY+offset*.45],
+    [rootX+side*span*.14,rootY+offset*.54]]);
+}
+
 /** A filled paper-world within a physical matted aperture. */
 function portal(p:P,add:Add,x:number,y:number,c:Stock){
   add("scenery-mat",c.mat,0,p.oval(0,0,x+13,y+13),{motion:"still",enterFrame:0});
@@ -127,7 +189,7 @@ function portal(p:P,add:Add,x:number,y:number,c:Stock){
 }
 /** Woodland: luminous opening, 5 landscape planes and physically attached trees. */
 function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:number,seed:number){
-  add("woodland-sun-halo",c.mist,2,p.oval(x*.12,-y*.55,66,66),{
+  add("woodland-sun-halo",c.light,2,p.oval(x*.12,-y*.55,66,66),{
     enterFrame:16,durationFrames:35,motion:"rise"});
   add("woodland-sun",c.sun,3,p.oval(x*.12,-y*.55,57,57),{enterFrame:20,durationFrames:33});
   for(let i=0;i<3;i++){
@@ -169,6 +231,22 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
     return p.pine(px,py,43+paperHash(seed,i,4)*26,11+paperHash(seed,i,5)*6);
   });
   add("woodland-far-pines",c.middle,15,farPines.join(" "),{enterFrame:85,curl:.3});
+  // Two asymmetrical solid cardstock canopy shells frame the distant sky.
+  // Cut-through eye apertures, not transparent fake leaf silhouettes.
+  for(const [i,side] of [-1,1].entries()){
+    const crown=laceCanopy(p,x,y,side,detail,seed);
+    add("woodland-lace-canopy-"+i,i?c.leaf:c.near,19,crown.path,{
+      holes:crown.holes,enterFrame:101+i*4,durationFrames:42,curl:.65});
+    const twigX=side*x*.72,twigY=-y*.65;
+    const fronds=Array.from({length:5+Math.round(detail*5)},(_,j)=>{
+      const ex=side*x*(.43+(j%4)*.11);
+      const ey=-y*(.48+Math.floor(j/4)*.047);
+      return p.band(twigX,twigY,ex,ey,1.6)+
+        " "+p.leaf(ex,ey,25+(j%3)*5,side*(j%2?72:132),6.4);
+    });
+    add("woodland-canopy-ribs-"+i,c.leafLight,21,fronds.join(" "),{
+      enterFrame:112+i*4,curl:.52});
+  }
   // Two asymmetric framing trees with branches rooted in the actual trunks.
   for(const [i,sign] of [-1,1].entries()){
     const tx=sign*x*.73,ground=y*.91,height=y*1.79;
@@ -194,14 +272,15 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
           p.C(bx+f.d*.62,ey+36,bx+f.d*.19,by-9,bx+6,by+10),p.Z].join(" "),{
           enterFrame:107+i*5+j*3,curl:.4});
       // Each bough carries a single grouped paper canopy with real leaf tips.
-      const leafCount=6+Math.round(detail*7);
+      const leafCount=9+Math.round(detail*8);
       const packets=Array.from({length:leafCount},(_,k)=>{
-        const theta=(k-(leafCount-1)/2)/(leafCount-1)*Math.PI*1.1;
-        const fx=ex+Math.sin(theta)*49,fy=ey-Math.cos(theta)*25+(k%3)*9;
-        return p.band(ex,ey,fx,fy,1.7)+" "+
-          p.leaf(fx,fy,27+(k%4)*6,sign*(30+k*14)-108,8.4);
+        const theta=(k-(leafCount-1)/2)/(leafCount-1)*Math.PI*1.23;
+        const fx=ex+Math.sin(theta)*66,fy=ey-Math.cos(theta)*34+(k%4)*9;
+        const angle=sign*(34+k*12)-109;
+        return p.band(ex,ey,fx,fy,2.4)+" "+
+          p.leaf(fx,fy,35+(k%5)*7,angle,11+(k%3)*2);
       });
-      add("woodland-foliage-"+i+"-"+j,j%2?c.leaf:c.leafLight,23,
+      add("woodland-foliage-"+i+"-"+j,j%3?c.leaf:c.leafLight,23,
         packets.join(" "),{
           enterFrame:119+i*5+j*3,durationFrames:28,curl:.72,
           motion:"flutter",swingDegrees:1.35*breeze,flapHz:.24+j*.025,
@@ -233,6 +312,25 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
     add("woodland-bank-pebble-"+i,i%2?c.bark:c.mist,27,
       p.oval(bx,by,3+(i%3)*2,2+(i%2)),{enterFrame:138+i*2,curl:.3});
   }
+  // Wide-scale irregular paper undergrowth breaks up the bare fern comb:
+  // each blade has a connected paper rachis, but a different slant/height.
+  for(const [i,side] of [-1,1].entries()){
+    for(let j=0;j<4;j++){
+      const cx=side*x*(.32+j*.145);
+      const cy=y*(.69+(j%3)*.025);
+      add("woodland-understory-"+i+"-"+j,j%3?c.leaf:c.leafLight,28,
+        understoryCluster(p,cx,cy,side,detail,seed+i*37+j*11),{
+          enterFrame:151+j*2,curl:.64});
+    }
+  }
+  // Rounded die-cut current strips sit above (not hidden under) the bank.
+  const riverLight=Array.from({length:9+Math.round(detail*5)},(_,i)=>{
+    const yy=y*(.62+i*.021);
+    const xx=-x*.10+x*.042*Math.sin(i*1.91);
+    return p.band(xx-9+(i%2)*4,yy,xx+10+(i%3)*6,yy-1.8,1.1+(i%3)*.4);
+  }).join(" ");
+  add("woodland-stream-surface-highlights",c.ripple,28,riverLight,{
+    enterFrame:155,durationFrames:27,curl:.4});
   // Tiny die-cut wildflower constellations, anchored by visible stems.
   for(let i=0;i<4+Math.round(detail*5);i++){
     const side=i%2?-1:1,x0=side*(x*(.13+(i%3)*.085)),y0=y*.83,tip=y0-29-(i%3)*8;
@@ -248,7 +346,7 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
 /** Alpine: cut-silhouette peaks, individual snow shelf plates, depth-spaced pines. */
 function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:number,seed:number){
   const sunX=-x*.38,sunY=-y*.60;
-  add("alpine-sun-halo",c.mist,2,p.oval(sunX,sunY,61,61),{enterFrame:15});
+  add("alpine-sun-halo",c.light,2,p.oval(sunX,sunY,61,61),{enterFrame:15});
   add("alpine-sun",c.sun,3,p.oval(sunX,sunY,51,51),{enterFrame:19});
   const mountains=[
     {cx:-x*.65,peak:-y*.83,r:x*.52,h:y*.6,col:c.mist},
@@ -279,6 +377,15 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
           [m.cx+side*m.r*.09,m.peak+y*.39]]),{
           enterFrame:64+i*5+j*3,curl:.83});
     }
+    // Three graded hand-cut horizontal terraces cross the light-facing slope.
+    // Not a repeated bitmap texture: each has its own contour and depth.
+    for(let j=0;j<2+Math.round(detail*2);j++){
+      const sx=j%2?-1:1;
+      add("alpine-folded-stratum-"+i+"-"+j,
+        j%3===0?c.far:(j%3===1?c.middle:c.bark),11,
+        alpineStratum(p,m.cx,m.peak,m.r,y*(.23+j*.09),sx),{
+          enterFrame:68+i*4+j*2,curl:.72});
+    }
     // More detail adds small *physical paper* moraine cuts, not texture noise.
     for(let j=0;j<Math.round(detail*3);j++){
       const xx=m.cx-m.r*.21+j*m.r*.14,yy=m.peak+y*(.24+j*.085);
@@ -304,8 +411,14 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
     p.M(-x,y*.41),p.C(-x*.36,y*.38,x*.38,y*.35,x,y*.43),
     p.L(x,y*.91),p.C(x*.47,y*.81,-x*.4,y*.82,-x,y*.97),p.Z
   ].join(" "),{enterFrame:92,curl:.48});
-  add("alpine-lake-far-shore",c.near,16,
-    ridge(p,x,y+11,y*.42,12,.7),{enterFrame:98});
+  // A narrow horizontal cut bank must NOT be a filled-to-bottom ridge:
+  // the old full-height polygon occluded most of the intended blue lake.
+  add("alpine-lake-far-shore",c.near,16,[
+    p.M(-x,y*.405),p.C(-x*.62,y*.39,-x*.18,y*.425,x*.12,y*.414),
+    p.C(x*.43,y*.406,x*.72,y*.40,x,y*.422),
+    p.L(x,y*.465),p.C(x*.61,y*.457,x*.26,y*.466,x*.08,y*.47),
+    p.C(-x*.25,y*.466,-x*.63,y*.466,-x,y*.472),p.Z
+  ].join(" "),{enterFrame:98,curl:.36});
   for(let i=0;i<10+Math.round(detail*5);i++){
     const yy=y*(.52+i*.028),w=20+(i%4)*18;
     const xx=-x*.64+(i%6)*x*.26;
@@ -313,6 +426,26 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
       p.band(xx,yy,xx+w,yy-1.7,1.45+(i%3)*.3),{
         enterFrame:113+i*2,curl:.22});
   }
+  // A shallow curved sheet follows the wave field, restoring depth without
+  // a universal gradient or raster overlay.
+  add("alpine-lake-current",c.water,18,[
+    p.M(-x*.66,y*.605),
+    p.C(-x*.42,y*.59,-x*.18,y*.62,x*.10,y*.60),
+    p.C(x*.34,y*.58,x*.46,y*.635,x*.63,y*.61),
+    p.C(x*.45,y*.66,x*.19,y*.64,-x*.05,y*.666),
+    p.C(-x*.38,y*.68,-x*.53,y*.645,-x*.66,y*.605),p.Z
+  ].join(" "),{enterFrame:121,curl:.53});
+  // An island of solid cardstock and narrow bank cuts creates middle distance.
+  add("alpine-lake-islet",c.soil,19,[
+    p.M(-x*.50,y*.73),p.C(-x*.37,y*.69,-x*.23,y*.7,-x*.19,y*.747),
+    p.C(-x*.28,y*.768,-x*.43,y*.78,-x*.50,y*.73),p.Z
+  ].join(" "),{enterFrame:125,curl:.78});
+  add("alpine-islet-reeds",c.leaf,20,
+    Array.from({length:5+Math.round(detail*4)},(_,i)=>{
+      const rx=-x*(.44-i*.026),ry=y*.728;
+      return p.band(rx,ry,rx+(i%2?3:-4),ry-15-(i%3)*5,1.75)+
+        " "+p.leaf(rx,ry-11,12,i%2?-42:-132,3.4);
+    }).join(" "),{enterFrame:131,curl:.7});
   // Front escarpments frame the water on two separate material planes.
   for(const [i,side] of [-1,1].entries()){
     const hx=side*x;
@@ -344,6 +477,24 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
       smallFern(p,px,py,46+(i%4)*12,side,detail),{
         enterFrame:139+i*2,curl:.43});
   }
+  // Foreground botanical silhouettes form a crafted scenic frame, not random
+  // noise: rooted stems, attached calyces and uneven five-petaled heads.
+  for(const [i,side] of [-1,1].entries()){
+    const stalks=Array.from({length:5+Math.round(detail*3)},(_,j)=>{
+      const xx=side*x*(.19+(j%4)*.07);
+      const ground=y*(.82+(j%3)*.021);
+      const tip=ground-(33+(j%3)*14);
+      return p.band(xx,ground,xx+side*5,tip,2.4)+
+        " "+p.leaf(xx+side*5,tip+13,15,side>0?-152:-28,4.7)+
+        " "+p.leaf(xx+side*4,tip+10,13,side>0?-27:-150,4.3);
+    });
+    add("alpine-meadow-grass-"+i,c.leaf,27,stalks.join(" "),{
+      enterFrame:149+i*3,curl:.68});
+    const seedX=side*x*.33,seedY=y*.69;
+    add("alpine-meadow-bloom-"+i,c.accent,28,
+      Array.from({length:7},(_,j)=>p.leaf(seedX,seedY,10,j*360/7,3.8)).join(" "),{
+        enterFrame:157+i*2,curl:.62});
+  }
   // A small flight in the open distance gives scale without opaque sprites.
   for(let i=0;i<3+Math.round(detail*3);i++){
     const bx=x*.05+i*28,by=-y*.66+(i%3)*11;
@@ -374,17 +525,18 @@ export function paperScenerySpec(
   if(aspect!=="landscape"&&aspect!=="portrait")throw new RangeError("Unknown paper scenery aspect.");
   const seed=options.seed??37;
   if(!Number.isSafeInteger(seed))throw new RangeError("Paper scenery seed must be a safe integer.");
-  for(const [name,value] of [["detail",options.detail],["breeze",options.breeze]] as const){
+  for(const [name,value] of [["detail",options.detail],["breeze",options.breeze],["relief",options.relief]] as const){
     if(value!==undefined&&(!Number.isFinite(value)||value<0||value>1))
       throw new RangeError("Paper scenery "+name+" must be finite in [0,1].");
   }
-  const detail=clamp(options.detail??.9),breeze=clamp(options.breeze??.5);
+  const detail=clamp(options.detail??.9),breeze=clamp(options.breeze??.5),
+    relief=clamp(options.relief??1);
   const w=aspect==="portrait"?540:960,h=aspect==="portrait"?960:540;
   const p=paperGeometry(w,h),c=STOCK[palette],x=aspect==="portrait"?316:517,
     y=aspect==="portrait"?514:292;
   const layers:PaperCutLayer[]=[];
   const add:Add=(id,color,depth,path,rest={})=>{
-    layers.push({id,color,depth,path,motion:"rise",
+    layers.push({id,color,depth:Math.round(depth*relief),path,motion:"rise",
       enterFrame:Math.min(160,8+layers.length*2),durationFrames:34,...rest});
   };
   portal(p,add,x,y,c);

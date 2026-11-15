@@ -162,3 +162,11 @@ The revised browser proof removed the previous box-like mountain geometry but st
 ### Catalog parity gate (pre-existing repository-wide blocker)
 
 The PR's optional full `npm run catalog:check` step was executed and **failed** with purpose-group/story-ID gaps spanning older watercolour, ink, risograph and paper packs (13 legacy registry items, including the existing `paper-craft` catalog entry). These are not syntax errors in the new scenery generator or its Storybook page. The paper-targeted CI retains `npm run registry:validate`, source typecheck, focused unit tests, Chromium and native video checks. Global catalog parity remains a separate repo-wide cleanup, **not** a passed release gate.
+
+## Pass 21 — scenic die-cut botanical density and water topology
+
+The previous original browser renders exposed three specific craftsmanship gaps: an overly empty top woodland, ferns reading as thin whiskers rather than full lanceolate papercut, and an alpine water area cropped to a skinny bar by an incorrectly full-height far-shore layer.
+
+This pass introduces: real asymmetric upper canopy cards with 4–9 punched leaf apertures, rib-and-leaf cardstock; 8 non-uniform, joined understory clusters; denser and correctly oriented fern leaflets; actual cut paper stream highlights; 12 separate mountain sediment/snow terraces at full detail; an exposed wide lake, a small islet and attached reeds, plus rooted alpine flowers. Rebalanced default cut-edge strength on the single existing Storybook Scenery page. Added \`relief\` (0–1) to Storybook, film slot and generator, controlling actual stock separation, never ghost opacity. New tests inspect holes, density, exact controls, opacity, portrait outputs and motion seeking.
+
+Art-direction reference and negative controls: \`docs/research/paper-craft-scenery-artcraft-study.md\`. Final render screenshots and film clips are required to judge whether canopy topology and lake visibility now work. Do not promote art to "reference-matching" based on tests alone.

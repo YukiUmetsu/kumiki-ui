@@ -42,7 +42,9 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
     for(const part of ["woodland-hill-0","woodland-hill-4","woodland-stream",
       "woodland-trunk-0","woodland-trunk-1","woodland-bough-0-1",
       "woodland-foliage-1-2","woodland-far-pines","woodland-fern-0",
-      "woodland-flower-0","woodland-stream-tail","woodland-bank-pebble-0","scenery-frame"]){
+      "woodland-flower-0","woodland-stream-tail","woodland-bank-pebble-0",
+      "woodland-lace-canopy-0","woodland-canopy-ribs-1",
+      "woodland-understory-0-0","woodland-stream-surface-highlights","scenery-frame"]){
       expect(names).toContain(part);
     }
     expect(names.filter(id=>id.startsWith("woodland-fern-")).length).toBeGreaterThan(8);
@@ -61,10 +63,60 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
       "alpine-lake","alpine-lake-bank","alpine-distant-pines",
       "alpine-continuous-foothills","alpine-foothill-terrace",
       "alpine-ledge-0","alpine-ledge-1","alpine-reflection-0",
-      "alpine-moss-0","alpine-bird-0","alpine-rock-facet-1-0","scenery-frame"]){
+      "alpine-moss-0","alpine-bird-0","alpine-rock-facet-1-0",
+      "alpine-folded-stratum-0-1","alpine-lake-current","alpine-lake-islet",
+      "alpine-islet-reeds","alpine-meadow-bloom-1","scenery-frame"]){
       expect(names).toContain(part);
     }
     expect(names.filter(id=>id.startsWith("alpine-reflection-")).length).toBeGreaterThan(10);
+  });
+  it("woodland includes real lace canopy openings and attached leafwork",()=>{
+    const sparse=paperScenerySpec("layered","landscape",{
+      scenery:"woodland",palette:"sage",detail:0,seed:44});
+    const dense=paperScenerySpec("layered","landscape",{
+      scenery:"woodland",palette:"sage",detail:1,seed:44});
+    const crown=(spec:typeof dense)=>spec.layers.find(layer=>layer.id==="woodland-lace-canopy-0")!;
+    expect(crown(sparse).holes).toHaveLength(4);
+    expect(crown(dense).holes).toHaveLength(9);
+    expect(crown(dense).path).toMatch(/C/g);
+    expect(crown(dense).color).toMatch(/^#[0-9a-fA-F]{6}$/);
+    const leafRibs=dense.layers.filter(layer=>layer.id.startsWith("woodland-canopy-ribs-"));
+    expect(leafRibs).toHaveLength(2);
+    expect(leafRibs.every(layer=>(layer.path.match(/C/g)??[]).length>12)).toBe(true);
+    // Cardstock includes distinct attached leaflet contours, not detached dots.
+    const understory=dense.layers.filter(layer=>layer.id.startsWith("woodland-understory-"));
+    expect(understory).toHaveLength(8);
+    expect(understory.every(layer=>(layer.path.match(/C/g)??[]).length>10)).toBe(true);
+  });
+  it("alpine water is genuinely open and mountain faces carry relief plates",()=>{
+    const world=paperScenerySpec("layered","landscape",{
+      scenery:"alpine-lake",palette:"moonlight",detail:1,seed:44});
+    const shore=world.layers.find(layer=>layer.id==="alpine-lake-far-shore")!;
+    const water=world.layers.find(layer=>layer.id==="alpine-lake")!;
+    expect(water.depth).toBeLessThan(shore.depth);
+    // Thin hand-cut bank has cubic curves, not a filled-to-bottom ridge.
+    expect((shore.path.match(/C/g)??[]).length).toBeGreaterThanOrEqual(4);
+    expect(shore.path).not.toContain("V");
+    expect(world.layers.filter(layer=>layer.id.startsWith("alpine-folded-stratum-"))).toHaveLength(12);
+    expect(world.layers.filter(layer=>layer.id.startsWith("alpine-meadow-grass-"))).toHaveLength(2);
+    expect(world.layers.find(layer=>layer.id==="alpine-islet-reeds")?.path).toContain("C");
+  });
+  it("scenery relief adjusts physical z-separation without modifying contours",()=>{
+    for(const scenery of PAPER_SCENERIES){
+      const flat=paperScenerySpec("lightbox","portrait",{scenery,detail:1,relief:0,seed:27});
+      const medium=paperScenerySpec("lightbox","portrait",{scenery,detail:1,relief:.5,seed:27});
+      const raised=paperScenerySpec("lightbox","portrait",{scenery,detail:1,relief:1,seed:27});
+      expect(inspectPaperCraft(flat)).toEqual([]);
+      expect(flat.layers.every(layer=>layer.depth===0)).toBe(true);
+      expect(raised.layers.some(layer=>layer.depth>=25)).toBe(true);
+      expect(medium.layers.some(layer=>layer.depth>0&&layer.depth<raised.layers.find(
+        raisedLayer=>raisedLayer.id===layer.id)!.depth)).toBe(true);
+      expect(flat.layers.map(layer=>({id:layer.id,path:layer.path,holes:layer.holes,color:layer.color})))
+        .toEqual(raised.layers.map(layer=>({id:layer.id,path:layer.path,holes:layer.holes,color:layer.color})));
+      // Equal paper thickness does not imply semi-transparent paper.
+      const html=renderToStaticMarkup(React.createElement(PaperCraftStage,{spec:flat,frame:220}));
+      expect(html).not.toContain('fill-opacity="0.');
+    }
   });
   it("detail changes actual geometry, while frame seeks are deterministic",()=>{
     for(const scenery of PAPER_SCENERIES){
@@ -105,6 +157,8 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
     expect(()=>paperScenerySpec("layered","landscape",{detail:Infinity})).toThrow(RangeError);
     expect(()=>paperScenerySpec("layered","landscape",{breeze:-.1})).toThrow(RangeError);
     expect(()=>paperScenerySpec("layered","landscape",{breeze:1.1})).toThrow(RangeError);
+    expect(()=>paperScenerySpec("layered","landscape",{relief:-.01})).toThrow(RangeError);
+    expect(()=>paperScenerySpec("layered","landscape",{relief:1.01})).toThrow(RangeError);
   });
   it("renders both film landscape subjects through native FilmStage in both outputs",async()=>{
     for(const outputId of ["landscape","portrait"]){
@@ -116,7 +170,7 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
       for(const scenery of PAPER_SCENERIES){
         const html=renderToStaticMarkup(React.createElement(React.Fragment,null,
           renderer({slot:"paper-craft-study",label:scenery,props:{
-            artwork:"scenery",scenery,sceneryPalette:"moonlight",detail:1,breeze:.3,
+            artwork:"scenery",scenery,sceneryPalette:"moonlight",detail:1,breeze:.3,relief:.75,
             medium:"lightbox",seed:37,
           }},{frame:220,durationFrames:240,fps:{num:30,den:1},
              width:outputId==="landscape"?960:540,

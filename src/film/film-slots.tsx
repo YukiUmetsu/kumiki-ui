@@ -960,8 +960,8 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         const curl = props.curl ?? .85;
         const motion = props.motion ?? 1;
         const relief = props.relief ?? 1;
-        if (artwork === "object") {
-          for(const [key,value] of [["curl",curl],["motion",motion],["relief",relief]] as const)
+        if (artwork === "object" || artwork === "scenery") {
+          for(const [key,value] of (artwork === "scenery" ? [["relief",relief]] : [["curl",curl],["motion",motion],["relief",relief]]) as (readonly [string, unknown])[])
             if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1)
               throw new RangeError("paper-craft-study "+key+" must be finite between 0 and 1.");
         }
@@ -994,7 +994,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           : artwork === "scenery"
             ? paperScenerySpec(raw as PaperStyle, aspect, {
               scenery: scenery as PaperScenery, palette: sceneryPalette as PaperSceneryPalette,
-              detail, breeze: breeze as number, seed })
+              detail, breeze: breeze as number, relief:relief as number, seed })
           : artwork === "object"
             ? paperObjectSpec(raw as PaperStyle, aspect, {
               object: object as PaperObject, palette: objectPalette as PaperObjectPalette, detail, curl:curl as number, motion:motion as number, relief:relief as number, seed })

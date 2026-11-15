@@ -189,3 +189,13 @@ The **single Scenery page** in `Video production / Film Looks / Paper Craft` exp
 Native FilmStage supports `artwork:"scenery"` with `scenery`, `sceneryPalette`, `detail`, `breeze`, `seed` and `medium` in the existing `paper-craft-study` slot. A complete two-scene dual-aspect film is `examples/film/paper-craft-scenery.film.json`. The research and honest limitations are recorded at `docs/research/paper-craft-scenery-artcraft-study.md`.
 
 This is premium-intent **2.5D illustrative paper theatre**, not a photogrammetric 3D world, laser cutter-ready contour plan, or validated reproduction of another artist's work. Rendered browser and video evidence must be reviewed before artistic quality sign-off.
+
+## Pass 21 — architectural botanical cutwork and scenic relief
+
+The **same Scenery story** has deeper hand-made morphology in both presets, with **no new Storybook folder**. The woodland now includes full scalloped canopy-card silhouettes with real punched leaf-shaped negative space, attached crown ribs, irregular grouped understory stems, and longer naturally fanning fern leaflets. The alpine scene features a continuous **visible lake**, narrow die-cut shore, physical islet and reeds, mountain-specific folded cardstock shelves, and uneven foreground wildflowers rather than generic texture overlays.
+
+\`paperScenerySpec(style,aspect,{scenery,palette,detail,breeze,relief,seed})\` adds \`relief\` (finite 0–1, default 1). It scales actual integer layer separation, shadow offset and lightbox parallax without changing closed geometry, color or opacity. A value of \`0\` is a flat but still fully opaque stacked paper illustration; \`1\` is maximum existing depth. Storybook exposes the **Relief** slider alongside scene, palette, detail, breeze, medium, orientation and frame; FilmStage accepts the same control on \`paper-craft-study\`. Values outside 0–1 throw \`RangeError\`.
+
+Physical shape budgets remain within the existing 128 independent cardstock layers even with detail=1. The paper's microdetail is **contour-authored** inside groups, not repeated raster stickers. Tests enforce punched canopy apertures, island/reed geometry, no fully hidden lake, both outputs, all media, deterministic frame evaluation, relief geometry invariance and no ghost layers.
+
+Example: \`paperScenerySpec("lightbox","portrait",{scenery:"alpine-lake",palette:"moonlight",detail:1,breeze:.25,relief:.9,seed:37})\`.
