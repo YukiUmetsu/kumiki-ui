@@ -55,7 +55,7 @@ export function crayonCc0NearEyeStudy(aspect:"landscape"|"portrait",detail=1):Cr
     "C187 330 12 333 -126 326 C-134 157 -136 -22 -125 -115Z",
     rect(-140,-129,467,467),palettes.skin,[1,76],{
       placement:place,underpaintGradient:{light:"#f6d8c2",shadow:"#9b7879",
-        focusX:.27,focusY:.20,radius:1.65},underpaintTooth:.79,
+        focusX:.27,focusY:.20,radius:1.35},underpaintTooth:.79,
       markStrength:.11,spacing:15.2,outlineOpacity:0});
   // The brow and eye do not share a smooth cartoon capsule. Each root and
   // local value plane is an individually connected wax silhouette.
