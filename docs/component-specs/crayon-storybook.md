@@ -6,6 +6,18 @@
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
 
+## Page-seeded pigment tooth on solid Crayon underpainting
+
+`underpaintTooth: 0..1` introduces opt-in, shared paper-relief
+chromatic variation on opaque wax undercoats without punching alpha
+holes. It is exposed on the existing **Drawing System** Storybook page
+with its own strength control; all prior scenes default to zero.
+Six batched micro-strand compound paths are shared per paper sheet.
+The existing CRAYON1 marker, form curves and dry nib remain unchanged.
+Source-native 16:9 and 9:16 browser A/B evidence and deterministic
+tests are required before artistic approval. Detailed study:
+[Crayon material grammar](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+
 ## Fractured dry-wax nib for Crayon (2026-11-14)
 
 The material engine now has opt-in `nibStyle: "dry"`. This deposits
