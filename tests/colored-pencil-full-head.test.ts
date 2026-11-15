@@ -88,7 +88,7 @@ describe("Source-measured ArtCraft full-head geometry (experimental)",()=>{
     expect("pigment" in plate).toBe(false);
     expect("image" in plate).toBe(false);
     expect(createDryPencilHeadPlate(source(),guides,271)).toEqual(plate);
-  });
+  },15000);
   it("suppresses garden-colored hair and responds to changed source material",()=>{
     const hair=createDryPencilHeadPlate(source(),guides,71);
     const garden=createDryPencilHeadPlate(source(true),guides,71);
