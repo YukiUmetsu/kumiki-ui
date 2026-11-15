@@ -144,11 +144,19 @@ function princess(p:Pen,add:Add,phase:number,motion:number){
     p.C(-38,-135,-53,-120,-36,-107),p.C(-21,-111,-16,-137,-18,-152),
     p.C(13,-158,29,-176,21,-200),p.C(9,-220,-10,-224,-25,-206),p.Z].join(" "),
     attach(root,-6,-172));
+  // One opaque, continuous neck stock bridges the chin and the high
+  // gown collar. This prevents a detached 'floating paper face' at 1×.
+  add("princess-neck","#E5B89A",22,[
+    p.M(-12,-167),p.Q(-1,-163,11,-166),p.L(14,-125),
+    p.Q(0,-119,-15,-125),p.Z].join(" "),attach(root,0,-142));
+  // Jaw structure: temple, pronounced cheekbone, subtle profile nose,
+  // rounded mouth and chin, and actual visible skin-plane material.
   add("princess-head","#EDC3A5",24,[
-    p.M(-22,-206),p.C(-15,-219,8,-219,19,-201),
-    p.Q(26,-193,24,-179),p.L(30,-175),
-    p.Q(26,-168,21,-169),p.C(16,-153,7,-150,-3,-153),
-    p.C(-18,-157,-24,-171,-25,-188),p.Z].join(" "),
+    p.M(-22,-206),p.C(-12,-217,8,-219,17,-202),
+    p.C(22,-197,22,-191,21,-185),p.Q(24,-182,26,-180),
+    p.L(31,-175),p.Q(31,-172,25,-172),p.L(23,-170),
+    p.C(21,-161,13,-156,5,-155),p.Q(-3,-157,-5,-161),
+    p.C(-16,-164,-24,-175,-25,-188),p.Z].join(" "),
     attach(root,-6,-177,{poseKeys:keys(0,0,0,-1,phase===2?-4:1,motion)}));
   add("princess-forelock","#51415D",27,[
     p.M(-23,-200),p.C(-24,-223,9,-227,21,-201),
@@ -162,9 +170,20 @@ function princess(p:Pen,add:Add,phase:number,motion:number){
   add("princess-braid-stitches","#C59A9D",28,
     [p.band(-31,-161,-23,-157,1.7),p.band(-32,-151,-23,-147,1.7),
       p.band(-32,-140,-24,-136,1.7)].join(" "),attach(face,-20,-170));
+  // Physically stacked value planes of the cheek and upper orbital rim.
+  // Every contour is locally attached to the head, not floating in stage space.
+  add("princess-face-planes","#F4D4B9",25,[
+    p.M(7,-183),p.Q(13,-182,19,-178),p.Q(17,-169,13,-165),
+    p.Q(7,-164,3,-172),p.Q(4,-177,7,-183),p.Z,
+    p.M(-12,-190),p.Q(-8,-202,2,-202),p.Q(2,-195,-4,-187),
+    p.Q(-9,-186,-12,-190),p.Z].join(" "),attach(face,7,-177));
+  add("princess-eye-white","#FAE8D7",27,[
+    p.M(8,-187),p.Q(15,-193,21,-186),p.Q(16,-181,8,-187),p.Z].join(" "),
+    attach(face,14,-186));
   add("princess-lashes","#524050",28,
     [p.M(8,-187),p.Q(16,-191,21,-184),p.Q(16,-183,8,-187),p.Z,
-      p.leaf(11,-185,4,-79,1.1)].join(" "),attach(face,11,-186));
+      p.oval(15,-186,2,2.8),p.leaf(11,-185,4,-79,1.1)].join(" "),
+    attach(face,11,-186));
   add("princess-lips","#B86E81",28,[
     p.M(17,-168),p.Q(22,-166,26,-168),p.Q(22,-162,17,-168),p.Z].join(" "),
     attach(face,15,-170));
@@ -245,13 +264,16 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
     p.M(55,-79),p.Q(63,-83,67,-78),p.Q(70,-72,66,-68),
     p.Q(61,-72,55,-74),p.Z].join(" "),
     attach("prince-right-arm",56,-78));
-  add("prince-neck","#E3BD9F",22,
-    p.poly([[-7,-137],[9,-137],[12,-119],[-11,-118]]),
-    attach(root,0,-128));
+  // Neck joins the jaw to the waistcoat/coat collar continuously.
+  add("prince-neck","#E3BD9F",22,[
+    p.M(-10,-165),p.Q(1,-160,12,-164),p.L(14,-122),
+    p.Q(2,-115,-12,-120),p.Z].join(" "),attach(root,0,-140));
   add("prince-head","#E6C2A5",24,[
-    p.M(-19,-207),p.C(-7,-217,15,-215,25,-199),
-    p.Q(28,-189,24,-180),p.L(30,-177),p.Q(28,-171,22,-173),
-    p.C(20,-160,8,-151,-5,-156),p.C(-19,-161,-25,-176,-25,-192),p.Z].join(" "),
+    p.M(-20,-205),p.C(-10,-215,10,-218,21,-202),
+    p.C(26,-195,25,-191,24,-185),p.Q(25,-181,29,-178),
+    p.L(33,-175),p.Q(30,-172,25,-171),
+    p.C(23,-163,15,-156,7,-157),
+    p.Q(-4,-159,-7,-164),p.C(-19,-168,-25,-181,-24,-191),p.Z].join(" "),
     attach(root,0,-176,{poseKeys:keys(0,0,0,0,phase===1?-5:2,motion)}));
   add("prince-hair","#3B4359",27,[
     p.M(-23,-195),p.C(-36,-214,-11,-231,8,-224),
@@ -261,9 +283,17 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
   add("prince-hair-strands","#687183",28,[
     p.leaf(-15,-212,16,-13,1.6),p.leaf(-2,-215,15,5,1.3),
     p.leaf(12,-216,14,28,1.1)].join(" "),attach(face,0,-204));
+  add("prince-face-planes","#F4D7BD",25,[
+    p.M(5,-182),p.Q(11,-186,21,-181),p.Q(23,-169,16,-166),
+    p.Q(7,-163,4,-171),p.Z,
+    p.M(-10,-194),p.Q(-4,-202,3,-201),p.Q(5,-195,-2,-188),
+    p.Q(-9,-187,-10,-194),p.Z].join(" "),attach(face,9,-177));
+  add("prince-eye-white","#FFF1D8",28,[
+    p.M(9,-187),p.Q(17,-191,23,-185),p.Q(19,-181,9,-187),p.Z].join(" "),
+    attach(face,16,-185));
   add("prince-eye-brow","#4B4858",29,
     [p.M(9,-187),p.Q(17,-191,23,-185),p.Q(17,-186,9,-187),p.Z,
-      p.oval(17,-184,2.1,2.6)].join(" "),attach(face,16,-187));
+      p.oval(17,-184,2.1,2.6),p.leaf(-8,-175,7,40,1.2)].join(" "),attach(face,16,-187));
   add("prince-mouth","#9A7172",28,[
     p.M(17,-167),p.Q(23,-165,26,-167),p.Q(22,-163,17,-167),p.Z].join(" "),
     attach(face,19,-166));
@@ -298,6 +328,12 @@ function fox(p:Pen,add:Add,phase:number,motion:number){
       p.Q(x+3,3,x-12,2),p.Q(x-15,-5,x-9,-27),p.Z].join(" "),
       attach(root,x,-24));
   }
+  // Attached flank fur follows the spine rather than randomly distributed dots.
+  add("fox-fur-shingles","#E7B58C",19,
+    Array.from({length:5},(_,i)=>{
+      const x=-30+i*12,y=-43-Math.sin(i*.7)*3;
+      return p.leaf(x,y,12,68,2);
+    }).join(" "),attach(root,-18,-39));
   add("fox-chest","#E9D5B9",19,[
     p.M(21,-41),p.Q(30,-31,33,-11),
     p.Q(26,-6,18,-14),p.Q(14,-29,21,-41),p.Z].join(" "),attach(root,20,-32));
