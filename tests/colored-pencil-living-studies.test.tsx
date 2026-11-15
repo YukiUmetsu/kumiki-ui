@@ -241,6 +241,7 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       expect(isolated).toContain('data-km-pencil-tonal-support="off"');
       expect(defaultArt).toContain('data-km-pencil-craft-base');
       expect(isolated).not.toContain('data-km-pencil-craft-base');
+      expect(isolated).not.toContain("<linearGradient");
       expect(isolated).toContain('data-km-pencil-micro');
       expect(isolated).toContain('data-km-pigment-layer="2"');
       expect(isolated.match(/data-km-pencil-region=/g)?.length)
