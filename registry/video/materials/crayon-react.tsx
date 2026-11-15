@@ -146,7 +146,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     [marks,nibStyle]);
   // Cross-grain gestures are deterministic per source region, not per frame.
   const crossAngle=strokeBuilt
-    ? (crayonHash(seed,7,1921)<.5 ? -1 : 1)*(17+crayonHash(seed,8,1922)*15)
+    ? (crayonHash(seed,7,1921)<.5 ? -1 : 1)*(9+crayonHash(seed,8,1922)*11)
     : 0;
   const waxStrength=strokeBuilt ? Math.min(1,markStrength*1.22) : markStrength;
   // The final very thin leveling pass closes tooth gaps gradually; the completed
@@ -263,8 +263,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         Parent clipping in CrayonScene prevents any blur from escaping a face. */}
     {coverage==="open" && blendRadius>0 && fillProgress>0 &&
       <path d={d} fill={colors[0]}
-        opacity={fillProgress*(construction?.glaze??.58)*(strokeBuilt?.22:1)}
-        filter={strokeBuilt?undefined:"url(#"+blendId+")"}
+        opacity={fillProgress*(construction?.glaze??.58)*(strokeBuilt?.36:1)}
+        filter={"url(#"+blendId+")"}
         data-km-crayon-soft-glaze={strokeBuilt?undefined:blendRadius} />}
     <g clipPath={"url(#" + clip + ")"} mask={"url(#" + pores + ")"} data-km-crayon-wax="">
       {coverage==="open" && blendRadius===0 && <path d={d} fill={colors[0]}
@@ -279,6 +279,9 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         // The second rubbed pass turns around the local contact centroid.
         // No global camera changes, moving flecks or tile-wide strokes.
         const arc=mark.nibArcs[0];
+        // Exposed pale wax is a rare, light-pressure edge catch, never
+        // bright chalk-like bars uniformly stamped over the skin.
+        const pigmentContact=waxStrength*(strokeBuilt&&mark.tone===2?.4:1);
         const secondPass=strokeBuilt && mark.index>=marks.length/2;
         const pivot=arc ? [(arc[0]+arc[4])/2,(arc[1]+arc[5])/2] : [cx,cy];
         const turn=secondPass ? "rotate("+crossAngle.toFixed(2)+" "+
@@ -290,12 +293,12 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
                 while disjoint pressure-shaped ribbons catch paper ridges. */}
             <path d={progress>=1?mark.nibD:crayonNibPath(mark,progress)}
               fill={colors[mark.tone]}
-              opacity={waxStrength*(strokeBuilt?.13+.12*mark.pressure:
+              opacity={pigmentContact*(strokeBuilt?.13+.12*mark.pressure:
                 coverage==="opaque"?.10+.13*mark.pressure:.06+.10*mark.pressure)}
               data-km-crayon-dry-binder="" />
             <path d={progress>=1?dryMarks[i]:crayonDryNibPath(mark,progress)}
               fill={colors[mark.tone]}
-              opacity={waxStrength*(strokeBuilt?.62+.31*mark.pressure:
+              opacity={pigmentContact*(strokeBuilt?.57+.29*mark.pressure:
                 coverage==="opaque"?.48+.38*mark.pressure:.37+.29*mark.pressure)}
               data-km-crayon-dry-ribbons="" />
           </g> : nibStyle==="tapered" ?
