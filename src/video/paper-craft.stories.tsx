@@ -290,7 +290,7 @@ function PaperRoyalStoryLab({medium,aspect,seed,motion,tooth,shadow,edge,reduced
         display:"flex",flexWrap:"wrap",gap:8,marginBottom:14}}>
         {plan.shots.map((chapter,i)=><button key={chapter.id} type="button"
           style={{...control,background:shot.shotIndex===i?"#825775":"#2E334A"}}
-          aria-pressed={shot.shotIndex===i} onClick={()=>selectBeat(chapter.startFrame)}>
+          aria-pressed={shot.shotIndex===i} onClick={()=>selectBeat(chapter.startFrame+(i===0?0:18))}>
           {String(i+1).padStart(2,"0")} · {ROYAL_STORY_BEATS[i].title}
         </button>)}
       </div>
