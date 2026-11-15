@@ -11,6 +11,10 @@ on:
       - 'registry/video/colored-pencil.ts'
       - 'src/video/colored-pencil-character-rebuild.ts'
       - 'src/video/colored-pencil-anatomical-fibres.ts'
+      - 'src/video/colored-pencil-anatomy-detail.ts'
+      - 'src/video/colored-pencil-wildlife.stories.tsx'
+      - 'tests/colored-pencil-anatomy-detail.test.tsx'
+      - 'tests/e2e-storybook/colored-pencil-wildlife.spec.ts'
       - 'src/video/colored-pencil-science.stories.tsx'
       - 'tests/e2e-storybook/colored-pencil-anatomical-fibres.spec.ts'
   workflow_dispatch:
@@ -33,10 +37,12 @@ jobs:
           node-version: "24.15.0"
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - name: Verify rooted feather anatomy
+        run: npx vitest run --project unit tests/colored-pencil-anatomy-detail.test.tsx
       - name: Chromium for actual pencil geometry and posed screenshots
         run: npx playwright install --with-deps chromium
       - name: Inspect independently animated fur and feather art
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-anatomical-fibres.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-anatomical-fibres.spec.ts tests/e2e-storybook/colored-pencil-wildlife.spec.ts
       - name: Retain frame and macro crop evidence
         if: always()
         uses: actions/upload-artifact@v4
