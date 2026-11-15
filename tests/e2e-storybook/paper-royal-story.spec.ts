@@ -75,7 +75,7 @@ test("portrait fox is visible and clear of the prince's boots",async({page})=>{
   await page.goto(path+"&args=aspect:portrait;motion:0.75;medium:layered");
   const stage=page.locator('svg[data-km-paper-director="the-moonlit-lantern"]');
   const slider=page.getByRole("slider",{name:"Scrub fairy tale"});
-  for(const frame of [130,370,610]){
+  for(const frame of [30,130,270,370,510,610,710]){
     await slider.fill(String(frame));
     const bounds=await stage.boundingBox();
     const fox=await stage.locator('[data-km-paper-layer="fox-body"] > g > path').first().boundingBox();
@@ -99,7 +99,7 @@ test("portrait deer body stays clear of the prince's coat in early scenes",async
   await page.goto(path+"&args=aspect:portrait;motion:0.75;medium:layered");
   const stage=page.locator('svg[data-km-paper-director="the-moonlit-lantern"]');
   const slider=page.getByRole("slider",{name:"Scrub fairy tale"});
-  for(const frame of [130,370]){
+  for(const frame of [30,130,270,370]){
     await slider.fill(String(frame));
     const deer=await stage.locator('[data-km-paper-layer="deer-body"] > g > path').first().boundingBox();
     const coat=await stage.locator('[data-km-paper-layer="prince-coat"] > g > path').first().boundingBox();
