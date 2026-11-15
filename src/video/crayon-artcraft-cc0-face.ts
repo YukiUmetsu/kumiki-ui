@@ -3,6 +3,7 @@ import type {CrayonColor,CrayonElement,CrayonSceneSpec}
 import {CRAYON_PORTRAIT_AUDIT}
   from "./crayon-artcraft-portrait-audit";
 import {crayonHash} from "../../registry/video/materials/crayon";
+import {crayonF1ReconstructEyes} from "./crayon-artcraft-f1-ocular-geometry";
 
 /**
  * ArtCraft v7: independently source-registered native-crayon facial
@@ -1140,7 +1141,8 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   }
   return {version:1,id:"crayon-artcraft-cc0-portrait-"+view,
     width:608,height:1082,durationFrames:300,seed:441501,
-    paper:C.paper,paperTooth:.79,elements,
+    paper:C.paper,paperTooth:.79,
+    elements:eyeContact==="source-shade"?crayonF1ReconstructEyes(elements):elements,
     camera:[{frame:0,focusX:304,focusY:541,zoom:1},
       {frame:299,focusX:304,focusY:541,zoom:1}]};
 }
