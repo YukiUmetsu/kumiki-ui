@@ -59,3 +59,22 @@ export function createRisoScreenGeometry(options: RisoScreenOptions): RisoScreen
     dots: sites.slice(0, count).map(site => ({ x: site.x, y: site.y, r: radius })),
   };
 }
+
+/** Copy only edge-crossing droplets into the opposite side of an SVG pattern tile.
+ * SVG patterns clip children at their tile edge; wrapping removes the otherwise visible seams.
+ * Base dot sites and their identifiers remain unchanged for deterministic density comparisons.
+ */
+export function wrapRisoScreenDots(geometry: RisoScreenGeometry): readonly RisoScreenDot[] {
+  const result: RisoScreenDot[] = [];
+  const size = geometry.tileSize;
+  for (const dot of geometry.dots) {
+    const dx = [0], dy = [0];
+    if (dot.x - dot.r < 0) dx.push(size);
+    if (dot.x + dot.r > size) dx.push(-size);
+    if (dot.y - dot.r < 0) dy.push(size);
+    if (dot.y + dot.r > size) dy.push(-size);
+    for (const x of dx) for (const y of dy)
+      result.push({ x: dot.x + x, y: dot.y + y, r: dot.r });
+  }
+  return result;
+}
