@@ -13,6 +13,14 @@ export interface PencilPoseKey {
   /** Independent axes allow blinks, squash, stretch and mouth visemes. */
   scale: readonly [number, number];
 }
+/** A separately poseable, named pigment path inside a parent anatomical part.
+ *  Detail tracks do not create new opaque regions, page budget or actor bones.
+ */
+export interface PencilActorDetailTrack {
+  id: string;
+  pivot: readonly [number, number];
+  keys: readonly PencilPoseKey[];
+}
 export interface PencilActorPart {
   id: string;
   /** Parents must precede children, making evaluation bounded and cycle-free. */
@@ -22,6 +30,8 @@ export interface PencilActorPart {
   /** At least one absolute-frame pose. Interpolation is independent of seeking order. */
   keys: readonly PencilPoseKey[];
   region: PencilRegion;
+  /** Independent ear hairs, ruff, feather shafts and facial accents. */
+  detailTracks?: readonly PencilActorDetailTrack[];
 }
 export interface PencilActorSpec {
   id: string;
@@ -46,6 +56,7 @@ export function inspectPencilActors(actors: readonly PencilActorSpec[]): string[
   const issues: string[] = [];
   const actorIds = new Set<string>();
   let totalParts = 0;
+  let totalDetailTracks = 0;
   for (const [a, actor] of actors.entries()) {
     const at = "actors[" + a + "]";
     if (!actor || typeof actor !== "object") {issues.push(at + ": invalid rig."); continue;}
@@ -73,6 +84,29 @@ export function inspectPencilActors(actors: readonly PencilActorSpec[]): string[
         issues.push(here + ".keys: require 1–48 ordered bounded absolute-frame poses.");
       const drawn = part.region;
       if (!drawn || !Array.isArray(drawn.bounds)) {issues.push(here + ".region: missing artwork."); continue;}
+      if (part.detailTracks !== undefined) {
+        if (!Array.isArray(part.detailTracks) || part.detailTracks.length > 12) {
+          issues.push(here + ".detailTracks: maximum 12 authored detail groups."); 
+        } else {
+          totalDetailTracks += part.detailTracks.length;
+          const detailNames = new Set<string>();
+          const sourceIds = new Set(drawn.details?.map(trace => trace.id).filter(Boolean));
+          for (const [index, track] of part.detailTracks.entries()) {
+            const place = here + ".detailTracks[" + index + "]";
+            if (!track || typeof track !== "object" ||
+              typeof track.id !== "string" || !/^[A-Za-z][\\w-]{0,40}$/.test(track.id) ||
+              detailNames.has(track.id) || !sourceIds.has(track.id))
+              issues.push(place + ".id: unique identifier must match an authored detail trace.");
+            if (track?.id) detailNames.add(track.id);
+            if (!valid2(track?.pivot, 4096))
+              issues.push(place + ".pivot: invalid detail anchor.");
+            if (!Array.isArray(track?.keys) || track.keys.length<1 || track.keys.length>24 ||
+              track.keys.some((key: PencilPoseKey,k:number) => !validKey(key) ||
+                (k>0 && key.frame<=track.keys[k-1].frame)))
+              issues.push(place + ".keys: invalid finite sorted absolute-frame poses.");
+          }
+        }
+      }
       issues.push(...inspectPencilDrawing({
         version: 1, width: 960, height: 960, seed: 0,
         paper: "#FFFDF9", paperTooth: 0, regions: [drawn],
@@ -80,6 +114,7 @@ export function inspectPencilActors(actors: readonly PencilActorSpec[]): string[
     }
   }
   if (totalParts > 23) issues.push("actors: at most 23 component regions per page.");
+  if (totalDetailTracks > 48) issues.push("actors: at most 48 independently animated detail paths.");
   return issues;
 }
 
@@ -122,7 +157,23 @@ export function evaluatePencilActorRegions(actor: PencilActorSpec, frame: number
     const parent = part.parent ? full.get(part.parent) + " " : (actor.transform ?? "") + " ";
     const transform = parent + local;
     full.set(part.id, transform);
-    return { ...part.region, id: actor.id + "-" + part.id,
+    const tracks = new Map(part.detailTracks?.map(track => [track.id,track]) ?? []);
+    const details = part.region.details?.map(detail => {
+      const track = detail.id ? tracks.get(detail.id) : undefined;
+      if (!track) return detail;
+      const pose = evaluatePencilPose(track.keys, reducedMotion ?
+        track.keys[track.keys.length-1].frame : frame);
+      const [tx,ty]=pose.translate,[ax,ay]=track.pivot,[xs,ys]=pose.scale;
+      // One local deformation per named trace, after the parent part's motion.
+      // Rendering stays in the part's original clipping and pigment z-layer.
+      const detailTransform = "translate(" + pretty(tx) + " " + pretty(ty) +
+        ") rotate(" + pretty(pose.rotation) + " " + pretty(ax) + " " + pretty(ay) +
+        ") translate(" + pretty(ax) + " " + pretty(ay) + ") scale(" +
+        pretty(xs) + " " + pretty(ys) + ") translate(" +
+        pretty(-ax) + " " + pretty(-ay) + ")";
+      return {...detail, transform:(detail.transform?detail.transform+" ":"")+detailTransform};
+    });
+    return { ...part.region, id: actor.id + "-" + part.id, details,
       transform: transform + (part.region.transform ? " " + part.region.transform : "") };
   });
 }
