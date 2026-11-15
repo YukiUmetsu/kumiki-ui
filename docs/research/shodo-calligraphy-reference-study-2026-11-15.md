@@ -134,6 +134,37 @@ Frame by frame in V15: the loaded brush comes down tilted with the tuft straight
 
 **Model.** The hand computes a lean vector for every contact sample (`shodoHandLean`): the resting lean toward the writer (`hand.lean`, `hand.leanAzimuth`), reduced as the press grows (standing up), plus a lean toward the travel that grows with speed and with `hand.sideBrush` (直筆 → 側筆), plus follow-through on 払い, a throw toward the hook on 撥ね, and a lean against the motion on a pushed 逆筆 entry. A low-pass filter (85 ms) stands for the fingers and wrist. In the renderer, the free hair runs from the belly on the paper to the ferrule along a chord between the handle and the lying part; the ferrule height falls with press from about 0.9 to 0.45 tuft lengths. In the air the brush lifts almost straight up, travels high (a third to two thirds of a tuft length) and comes straight down onto its next start; the lean relaxes to the resting hold. The story *Brush motion (top and side)* shows both views and traces lean and height over time.
 
+## 2.8 Fourth study round: structure rules (結構法) from 411 teacher models
+
+**Question.** Can new characters get calligrapher-like proportions without a reference for each one? KanjiVG gives every character's strokes and its components with their positions (偏 left, 旁 right, 冠 top, 脚 bottom, 構 enclosure, 垂 hanging roof, 繞 bottom-left wrap). If a teacher handles each kind of component in a consistent way, that habit can be measured once and applied to every character.
+
+**Data.** The same teacher as §2.7 (松本松栄堂 書道教室) publishes one short video per character. All 419 single-character kaisho model videos on the channel were listed; 412 were downloaded at 360p and the final frame of each was turned into an ink mask (411 usable: 365 kanji, 46 kana). The frames and masks stay outside the repository.
+
+**Method.** Each character was written by our pipeline from KanjiVG (all earlier rules, no structure rules). Then:
+1. The whole skeleton was fitted to the teacher's ink (move and scale on each axis), so framing differences are removed.
+2. Each top-level component was fitted again on its own; the residual move and scale were recorded by component position.
+3. The overall proportion (height over width of the ink) was compared by layout, and the band widths (top fifth to bottom fifth) were compared.
+4. Every candidate rule was applied to all 411 characters and scored by the overlap of the normalized ink (IoU) with the teacher's model. A rule was kept only if it helped on both halves of the characters (even and odd code points), so it is not tuned to particular characters.
+
+**Findings.**
+- **Proportion is the biggest difference.** Teachers write 冠/脚 (top/bottom) and single-part characters about 13% taller than KanjiVG (median ink height/width teacher ÷ ours: 1.14–1.16 and 1.08–1.14), enclosures and roofs about 4–7% taller, and 偏/旁 (left/right) characters at KanjiVG's proportion (0.98).
+- **冠/脚 parts.** Both parts are a little narrower (top 0.97, bottom 0.94) and the bottom part is a little flatter (0.95), which leaves more air between them. This added +0.022 IoU for top/bottom characters on both halves, and 78% of them improved.
+- **偏/旁 parts already match.** The left part's box and the right part's box are within a few percent of KanjiVG's. Part rules there added +0.0075 IoU with more regressions, so none are applied. (The often-taught "narrow left part" is already built into KanjiVG's layout.)
+- **Rejected after testing:** a top taper (teachers' top fifth is narrower relative to the full width; applying it squeezed boxes such as 口, 四, 同, 円 and doubled the clear regressions), a relief for spreading sweeps, a broader "reaches both sides" relief, and an aspect model that depends on each character's own proportion (no better than one constant per layout on held-out characters). Enclosure, roof and 辶 part rules had too few characters (14, 11, 5) to show a consistent effect; those layouts keep only their proportion factor.
+
+**Result (all 411 characters).**
+
+| | Before | After |
+|---|---|---|
+| Kanji IoU with the teacher, mean / median | 0.423 / 0.404 | 0.454 / 0.445 |
+| Kanji height/width, ours ÷ teacher (median) | 0.935 | 1.014 |
+| Held-out halves (gain) | | +0.027 / +0.034 |
+| Kanji better / unchanged / worse | | 53% / 37% / 10% |
+
+The unchanged group is the left/right characters. Ten kanji lose clearly (IoU drop over 0.05): 人, 元, 兄, 刀, 口, 小, 市, 心, 水, 皿. These simple characters are written wider than average by this teacher; individual characters vary about ±13% around the rules, which no general rule can predict.
+
+**Model.** `shodoStructure` (`registry/video/shodo/shodo-structure.ts`) holds the kept medians. `parseKanjiVgSvg` now reads the component tree (`glyph.parts`), merging a component that KanjiVG splits around another one (囗 in 国). `shodoKaishoForm` applies the structure rules first, to KanjiVG glyphs only; bundled originals keep their drawn proportions. `structure: false` turns the rules off. The *Character gallery* story has a toggle to compare.
+
 ## 3. From observation to model
 
 | Observation | Model decision |
@@ -147,6 +178,7 @@ Frame by frame in V15: the loaded brush comes down tilted with the tuft straight
 | Brush empties over strokes | `ink.decay` spends load per em of stroke. `ink.redipBelow` inserts a dip. |
 | Pools at pauses, bleed at pools | Deposit is time-weighted: a pause deposits more pigment and water, so it bleeds more and stays glossy longer. |
 | Fibrous edge, not blur | The bleed is gated by a fixed paper-fibre field, so ink creeps out along fibres. |
+| Teachers write 冠/脚 and single characters taller; 冠/脚 parts compact | `shodoStructure`: one width factor per layout and three 冠/脚 part factors, measured on 411 models |
 | Upright handle, perspective from above | The brush is a 3D object under a top-down pinhole camera with a cast shadow; a side camera shows it in profile. |
 | Brush stands up to press, leans into travel, lifts straight | `shodoHandLean` per contact sample; ferrule height from press; vertical lift and descent in air moves. |
 | Faint vermilion grid | `ShodoSheet` paper layer with mesh, cells, centre marks and an optional name column. |

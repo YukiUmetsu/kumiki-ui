@@ -7,8 +7,8 @@
  * credit KanjiVG (http://kanjivg.tagaini.net) and keep the share-alike terms. Every
  * loaded glyph keeps `source: "kanjivg"` so hosts can show the credit.
  *
- * `shodoKaishoForm` then gives the skeleton brush habits (右上がり, weight by length,
- * 懸針, 右払い feet, kana curves).
+ * `shodoKaishoForm` then applies the teacher-measured layout rules (結構法, `shodoStructure`)
+ * and brush habits (右上がり, weight by length, 懸針, 右払い feet, kana curves).
  */
 import { SHODO_GLYPHS, kanjiVgFileName, parseKanjiVgSvg, shodoKaishoForm } from "./shodo-glyphs";
 import type { ShodoFormOptions, ShodoGlyph } from "./shodo-glyphs";
@@ -34,7 +34,8 @@ export function loadShodoGlyph(char: string, options: ShodoGlyphLoadOptions = {}
   if (!c || !c.trim()) return Promise.reject(new RangeError("A non-space character is required."));
   if (options.preferBundled !== false && SHODO_GLYPHS[c]) return Promise.resolve(SHODO_GLYPHS[c]);
   const base = options.baseUrl ?? SHODO_KANJIVG_BASE;
-  const key = base + "|" + c + "|" + (options.rise ?? "");
+  // Every form option changes the result, so all of them are part of the cache key.
+  const key = [base, c, options.rise, options.sweep, options.main, JSON.stringify(options.structure ?? null)].join("|");
   const hit = cache.get(key);
   if (hit) return hit;
   const fetcher = options.fetcher ?? ((url: string) => fetch(url));

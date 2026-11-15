@@ -9,6 +9,8 @@
  * reference study). KanjiVG data is never bundled: `parseKanjiVgSvg` reads a file the
  * host supplies, and that output carries KanjiVG's CC BY-SA 3.0 terms.
  */
+import { shodoStructure } from "./shodo-structure";
+import type { ShodoStructureRules } from "./shodo-structure";
 
 /** 点画 families. They choose the default start and end technique. */
 export type ShodoStrokeKind =
@@ -57,11 +59,28 @@ export interface ShodoStrokeSpec {
   joinEnd?: boolean;
 }
 
+/**
+ * Where a component sits in its character (KanjiVG's labels): 偏 left, 旁 right, 冠 top,
+ * 脚 bottom, 構 enclosure (kamae) and its content (kamaec), 垂 hanging roof (tare) and
+ * its content (tarec), 繞 wrap from the bottom-left (nyo, as 辶) and its content (nyoc).
+ */
+export type ShodoPartPosition = "left" | "right" | "top" | "bottom" | "kamae" | "kamaec" | "tare" | "tarec" | "nyo" | "nyoc";
+
+/** One component of a character, with the strokes it owns (writing order) and its own parts. */
+export interface ShodoPart {
+  element?: string;
+  position?: ShodoPartPosition;
+  strokes: readonly number[];
+  children: readonly ShodoPart[];
+}
+
 export interface ShodoGlyph {
   char: string;
   strokes: readonly ShodoStrokeSpec[];
   /** Data provenance; `kanjivg` output must be credited to KanjiVG (CC BY-SA 3.0). */
   source: "original" | "kanjivg";
+  /** Component tree (from KanjiVG groups), used by the structure rules (結構法). */
+  parts?: ShodoPart;
 }
 
 export const SHODO_DEFAULT_START: Record<ShodoStrokeKind, ShodoStart> = {
@@ -333,7 +352,7 @@ export function strokeFromCentreline(raw: Vec[], kvgType = "", kana = false): Sh
     // presses, and an end that lifts while moving unless the stroke is a dot or a hook.
     const dot = kind === "dot";
     return { kind: dot ? "dot" : turns.length || points.length > 3 ? "curve" : kind, points: rounded,
-      start: dot ? "uchikomi" : "roho", ...(dot ? {} : { end: hook ? "hane" : "nuki" }), ...(hook ? { hook } : {}), weight: .86 };
+      start: dot ? "uchikomi" : "roho", ...(dot ? {} : { end: hook ? "hane" : "nuki" }), ...(hook ? { hook } : {}), weight: .96 };
   }
   return { kind, points: rounded, ...(flatSweep ? { start: "uchikomi" as const } : {}),
     ...(turns.length ? { turns } : {}), ...(end ? { end } : {}), ...(hook ? { hook } : {}) };
@@ -352,18 +371,61 @@ export function parseKanjiVgSvg(svg: string, char?: string): ShodoGlyph {
   const strokes: ShodoStrokeSpec[] = [];
   const named = char ?? /kvg:element="([^"]+)"/.exec(svg)?.[1] ?? "";
   const kana = isKanaChar(named);
-  const pathTag = /<path\b([^>]*)>/g;
-  for (let m = pathTag.exec(svg); m; m = pathTag.exec(svg)) {
-    const attrs = m[1];
+  // Walk the groups in document order: strokes come in writing order, and each group
+  // records the component (element) and where it sits (position).
+  const root: RawPart = { strokes: [], children: [] };
+  const stack: RawPart[] = [root];
+  const tag = /<(\/?)(g|path)\b([^>]*)>/g;
+  for (let m = tag.exec(svg); m; m = tag.exec(svg)) {
+    const [, close, name, attrs] = m;
+    if (name === "g") {
+      if (close) { if (stack.length > 1) stack.pop(); continue; }
+      const element = /kvg:element="([^"]+)"/.exec(attrs)?.[1];
+      const position = /kvg:position="([^"]+)"/.exec(attrs)?.[1] as ShodoPartPosition | undefined;
+      const partNo = /kvg:part="([^"]+)"/.exec(attrs)?.[1];
+      const node: RawPart = { element, position, partNo, strokes: [], children: [] };
+      stack[stack.length - 1].children.push(node);
+      if (!attrs.trimEnd().endsWith("/")) stack.push(node);
+      continue;
+    }
+    if (close) continue;
     const d = /\sd="([^"]+)"/.exec(attrs)?.[1];
     if (!d) continue;
     const type = /kvg:type="([^"]*)"/.exec(attrs)?.[1] ?? "";
     const raw = samplePathData(d).map(([x, y]) => [(x - vx) * scale, (y - vy) * scale] as Vec);
+    const index = strokes.length;
     strokes.push(strokeFromCentreline(raw, type, kana));
+    for (const node of stack) node.strokes.push(index);
   }
   if (!strokes.length) throw new RangeError("The KanjiVG document has no stroke paths.");
   const element = /kvg:element="([^"]+)"/.exec(svg)?.[1];
-  return { char: char ?? element ?? "?", source: "kanjivg", strokes };
+  return { char: char ?? element ?? "?", source: "kanjivg", strokes, parts: tidyParts(root) };
+}
+
+type RawPart = { element?: string; position?: ShodoPartPosition; partNo?: string; strokes: number[]; children: RawPart[] };
+
+/**
+ * Turn raw KanjiVG groups into a component tree: drop empty and wrapper groups, and merge a
+ * component that KanjiVG splits around another one (囗 part 1 and part 2 around 玉).
+ */
+function tidyParts(root: RawPart): ShodoPart {
+  const visit = (n: RawPart): ShodoPart => {
+    let kids = n.children.filter(k => k.strokes.length > 0);
+    // A single wrapper child adds nothing: descend into it.
+    while (kids.length === 1 && !kids[0].position && kids[0].strokes.length === n.strokes.length)
+      kids = kids[0].children.filter(k => k.strokes.length > 0);
+    const merged: RawPart[] = [];
+    for (const k of kids) {
+      const twin = k.partNo ? merged.find(m => m.partNo && m.element === k.element && m.position === k.position) : undefined;
+      if (twin) { twin.strokes = [...twin.strokes, ...k.strokes].sort((a, b) => a - b); twin.children = [...twin.children, ...k.children]; }
+      else merged.push({ ...k, strokes: [...k.strokes], children: [...k.children] });
+    }
+    return {
+      ...(n.element ? { element: n.element } : {}), ...(n.position ? { position: n.position } : {}),
+      strokes: n.strokes, children: merged.map(visit),
+    };
+  };
+  return visit(root);
 }
 
 const polyDistance = (points: readonly ShodoPoint[], q: ShodoPoint): { d: number; at: ShodoPoint } => {
@@ -419,18 +481,26 @@ export interface ShodoFormOptions {
   sweep?: number;
   /** Length factor for the main horizontal (主画), about its centre. 1..1.3. */
   main?: number;
+  /**
+   * Component layout (結構法) measured on a teacher's models, see `shodoStructure`. Pass
+   * `false` to keep KanjiVG's layout, or override single rules.
+   */
+  structure?: false | Partial<ShodoStructureRules>;
 }
 
 /**
  * Give a typeface-like skeleton (for example KanjiVG) the habits of brush kaisho:
+ * - the teacher-measured layout (結構法, `shodoStructure`), for KanjiVG glyphs only;
  * - 右上がり as a gentle shear, so verticals stay vertical and joints stay closed;
  * - weight from length, so main strokes carry the character and short ones stay light;
  * - 懸針 for a final vertical that hangs below the rest of the character;
  * - a pressed foot on every 右払い.
  * Kana keep their curves and get only half the rise.
  */
-export function shodoKaishoForm(glyph: ShodoGlyph, options: ShodoFormOptions = {}): ShodoGlyph {
-  const kana = isKanaChar(glyph.char);
+export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = {}): ShodoGlyph {
+  const kana = isKanaChar(source.char);
+  // Bundled originals were drawn with their own proportions; only KanjiVG skeletons get the layout rules.
+  const glyph = options.structure === false || source.source !== "kanjivg" ? source : shodoStructure(source, options.structure ?? {});
   const length = (st: ShodoStrokeSpec) => st.points.reduce((a, p, i) => i ? a + Math.hypot(p[0] - st.points[i - 1][0], p[1] - st.points[i - 1][1]) : 0, 0);
   const rise = Math.tan((options.rise ?? 3.5) * (kana ? .5 : 1) * Math.PI / 180);
   const sweep = kana ? 1 : options.sweep ?? 1.16;

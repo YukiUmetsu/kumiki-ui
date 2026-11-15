@@ -248,8 +248,10 @@ export function ShodoFilmShot() {
 export function ShodoCharacterGallery({ initialText = "道永書和夢心東京花風春愛あのふア" }: { initialText?: string }) {
   const [text, setText] = useState(initialText);
   const [bundled, setBundled] = useState(false);
+  const [structure, setStructure] = useState(true);
   const chars = useMemo(() => [...text].filter(c => c.trim()).slice(0, 24), [text]);
-  const loaded = useShodoGlyphs(chars, bundled ? "bundled" : "kanjivg");
+  const form = useMemo(() => structure ? {} : { structure: false as const }, [structure]);
+  const loaded = useShodoGlyphs(chars, bundled ? "bundled" : "kanjivg", form);
   const glyphs = loaded?.glyphs ?? null, error = loaded?.error ?? null;
   const cols = 8, cell = 150, gap = 6;
   const rows = Math.max(1, Math.ceil(chars.length / cols));
@@ -273,6 +275,7 @@ export function ShodoCharacterGallery({ initialText = "道永書和夢心東京�
       <label style={{ display: "grid", gap: 4, fontWeight: 600, fontSize: 12.5 }}>Text (up to 24 characters)
         <input value={text} onChange={e => setText(e.target.value)} aria-label="Text" style={{ minHeight: 36, font: "20px serif", width: 420 }} />
       </label>
+      <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 600, fontSize: 12.5 }}><input type="checkbox" checked={structure} onChange={e => setStructure(e.target.checked)} />Teacher layout rules (結構法)</label>
       <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 600, fontSize: 12.5 }}><input type="checkbox" checked={bundled} onChange={e => setBundled(e.target.checked)} />Prefer bundled originals</label>
     </div>
     {error ? <div role="alert">{error}</div> : null}
@@ -282,7 +285,8 @@ export function ShodoCharacterGallery({ initialText = "道永書和夢心東京�
     </div>
     <ShodoTransport frame={frame} last={last} playing={playing} onPlaying={setPlaying} onFrame={setFrame} />
     <p style={{ margin: 0, fontSize: 12.5, maxWidth: 980 }}>
-      Kanji and kana are read from KanjiVG stroke data and written by the brush with kaisho form rules.
+      Kanji and kana are read from KanjiVG stroke data. Layout rules measured on 411 teacher models
+      (taller 冠/脚 and single characters, compact top/bottom parts) and kaisho brush rules are applied.
       {usesKanjiVg ? <> {SHODO_KANJIVG_CREDIT}. Credit KanjiVG in any film made from it.</> : null}
     </p>
   </div>;

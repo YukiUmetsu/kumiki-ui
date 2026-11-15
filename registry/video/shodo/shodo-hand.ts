@@ -448,8 +448,8 @@ function strokeProgram(spec: ShodoStrokeSpec, style: ShodoStyle, seed: number, s
   const kindPress = spec.kind === "horizontal" ? .84 : 1;
   // Dense characters are written with a lighter hand so their counters stay open.
   const density = clamp(1.16 - .04 * strokeCount, .6, 1.06);
-  // Base press calibrated so ink coverage matches teachers' kaisho models (20 characters).
-  const pt = clamp(.285 * style.hand.pressure * weight * kindPress * density, .05, .92);
+  // Base press calibrated so ink coverage matches a teacher's kaisho models (411 characters).
+  const pt = clamp(.27 * style.hand.pressure * weight * kindPress * density, .05, .92);
   const w = D * shodoContactWidth(pt, style.brush.stiffness);
   const ctx: StrokeContext = { style, pt, w, seed };
   const start = resolveStart(spec), end = resolveEnd(spec);

@@ -3513,7 +3513,7 @@
       "name": "shodo-calligraphy",
       "type": "registry:ui",
       "title": "Shodō Brush Calligraphy (SHO1)",
-      "description": "Japanese brush calligraphy written by a simulated hand and brush: every stroke is 始筆 (打ち込み, 蔵鋒, 露鋒) → 送筆 with 転折 turns → 終筆 (止め/垂露, 懸針, 撥ね, 払い) and 点, each a generated move with tunable press, hold and reach; measured technique checks on the rendered ink; configurable script (kaisho, gyōsho, sōsho), speed, pressure, width, width decay, entry angle, tremor and hairline links; brush size, hair spring and bristle lanes; ink colour, strength, colour-strength decay, water, load and re-dipping, per-stroke vermilion 朱墨; deterministic paper raster with contact-saturating deposit, dwell pooling, bristle-lane kasure, fibre-gated nijimi and wet sheen; hanshi with a faint vermilion kentei grid; a 3D bamboo fude whose lean and height follow the writing (stands up to press, leans into travel, lifts straight; 直筆 to 側筆), with a bending, ink-soaked tuft, cast shadow, motion blur and a side-view profile; any kanji or kana from pinned KanjiVG stroke data loaded at run time (not bundled) with kaisho form rules and joins (接筆); original offline glyphs; scanned CC0 bamboo and wood textures and a FilmStage slot. Pure absolute-frame evaluation.",
+      "description": "Japanese brush calligraphy written by a simulated hand and brush: every stroke is 始筆 (打ち込み, 蔵鋒, 露鋒) → 送筆 with 転折 turns → 終筆 (止め/垂露, 懸針, 撥ね, 払い) and 点, each a generated move with tunable press, hold and reach; measured technique checks on the rendered ink; configurable script (kaisho, gyōsho, sōsho), speed, pressure, width, width decay, entry angle, tremor and hairline links; brush size, hair spring and bristle lanes; ink colour, strength, colour-strength decay, water, load and re-dipping, per-stroke vermilion 朱墨; deterministic paper raster with contact-saturating deposit, dwell pooling, bristle-lane kasure, fibre-gated nijimi and wet sheen; hanshi with a faint vermilion kentei grid; a 3D bamboo fude whose lean and height follow the writing (stands up to press, leans into travel, lifts straight; 直筆 to 側筆), with a bending, ink-soaked tuft, cast shadow, motion blur and a side-view profile; any kanji or kana from pinned KanjiVG stroke data loaded at run time (not bundled) with layout rules measured on 411 teacher models (結構法), kaisho form rules and joins (接筆); original offline glyphs; scanned CC0 bamboo and wood textures and a FilmStage slot. Pure absolute-frame evaluation.",
       "dependencies": [],
       "registryDependencies": [
         "ink-brush"
@@ -3528,6 +3528,11 @@
           "path": "registry/video/shodo/shodo-glyphs.ts",
           "type": "registry:ui",
           "target": "components/video/shodo/shodo-glyphs.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-structure.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-structure.ts"
         },
         {
           "path": "registry/video/shodo/shodo-hand.ts",
