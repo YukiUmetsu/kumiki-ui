@@ -233,6 +233,42 @@ describe("RIG1 nature and actions", () => {
     }
     for (const f of [14, 30, 84]) { const h = world(draw, "hand-b", f), g = world(draw, "saya-grip", f); expect(Math.hypot(h[0] - g[0], h[1] - g[1]), `scabbard ${f}`).toBeLessThan(2.4 * 3.6); }
   });
+  it("lies down onto the back, sleeps under a blanket, rolls forward and back, and lifts a box", () => {
+    const lie = personRig({ motion: "lie-down", start: 0, end: 240, y: 700 }), f = evaluateRig(lie, 200);
+    const pel = f.bones.get("pelvis")!.world, angle = Math.atan2(pel.b, pel.a) * 180 / Math.PI;
+    expect(Math.abs(angle + 90)).toBeLessThan(3);
+    expect(700 - pel.f).toBeLessThan(12 * 3.6);
+    for (const foot of ["foot-f", "foot-b"]) expect(Math.abs(world(lie, foot, 150)[1] - (700 - 3 * 3.6))).toBeLessThan(2.5 * 3.6);
+    const sleep = personRig({ motion: "sleep", start: 0, end: 240, y: 700 }), sf = evaluateRig(sleep, 60);
+    expect(sf.parts.find(p => p.id === "eye")!.variant).toBe("shut");
+    expect(sf.parts.some(p => p.id === "blanket")).toBe(true);
+    const roll = personRig({ motion: "roll", start: 0, end: 240, y: 700 });
+    let turned = 0, prev = 0;
+    for (let k = 0; k < 240; k++) { const m = evaluateRig(roll, k).bones.get("pelvis")!.world, a = Math.atan2(m.b, m.a) * 180 / Math.PI; if (k) turned += ((a - prev + 540) % 360) - 180; prev = a; }
+    expect(Math.abs(turned)).toBeLessThan(40);
+    const mid = evaluateRig(roll, 12 + 14 + 6 + 13).bones.get("pelvis")!.world;
+    expect(Math.abs(Math.atan2(mid.b, mid.a) * 180 / Math.PI)).toBeGreaterThan(90);
+    expect(world(roll, "pelvis", 239)[0]).toBeCloseTo(world(roll, "pelvis", 0)[0], -1);
+    const pick = personRig({ motion: "pick-up", start: 0, end: 240, y: 700 });
+    expect(700 - world(pick, "box", 120)[1]).toBeGreaterThan(45 * 3.6);
+    for (const k of [60, 100, 140]) { const h = world(pick, "hand-f", k), g = world(pick, "box-grip-f", k); expect(Math.hypot(h[0] - g[0], h[1] - g[1]), `box ${k}`).toBeLessThan(2.4 * 3.6); }
+  });
+  it("draws an arrow from the quiver, draws the bow with the string on the nock, and looses the arrow downrange", () => {
+    const spec = personRig({ motion: "archery", start: 0, end: 240, y: 700 }), u = 3.6;
+    // Full draw: the string's two segments meet at the draw hand, the bow hand holds the grip.
+    const drawn = 8 + 32 + 6 + 12 + 14 + 10;
+    const f = evaluateRig(spec, drawn), endOf = (id: string) => { const b = f.bones.get(id)!; return [b.world.e + b.world.c * b.length, b.world.f + b.world.d * b.length]; };
+    const hand = world(spec, "hand-f", drawn), up = endOf("string-up"), down = endOf("string-down");
+    expect(Math.hypot(up[0] - down[0], up[1] - down[1])).toBeLessThan(.6);
+    expect(Math.hypot(up[0] - hand[0], up[1] - hand[1])).toBeLessThan(2.4 * u);
+    const grip = world(spec, "bow", drawn), bowHand = world(spec, "hand-b", drawn);
+    expect(Math.hypot(grip[0] - bowHand[0], grip[1] - bowHand[1])).toBeLessThan(2.4 * u);
+    // Release: the arrow leaves fast along its line.
+    const rel = drawn + 12, a0 = world(spec, "arrow", rel + 1)[0], a1 = world(spec, "arrow", rel + 3)[0];
+    expect(a1 - a0).toBeGreaterThan(60 * u);
+    // Taking an arrow: the hand goes up behind the head to the quiver.
+    expect(world(spec, "hand-f", 8 + 12)[1]).toBeLessThan(700 - 80 * u);
+  });
   it("flashes the muzzle only on shots, snaps a kick to waist height and lands a jab at shoulder height", () => {
     const shoot = personRig({ motion: "shoot", start: 0, end: 240, y: 700 }), shot = Math.round(240 * .32);
     expect(evaluateRig(shoot, shot).parts.some(p => p.id === "flash-out")).toBe(true);

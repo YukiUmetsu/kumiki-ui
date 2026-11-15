@@ -20,6 +20,8 @@ export * from "./rig-presets-machines";
 export * from "./rig-presets-nature";
 export * from "./rig-presets-actions";
 export * from "./rig-presets-sword";
+export * from "./rig-presets-archery";
+export * from "./rig-presets-rest";
 
 export type RigPresetGroup = "people" | "animals" | "creatures" | "nature" | "vehicles" | "objects";
 export interface RigPresetEntry {
