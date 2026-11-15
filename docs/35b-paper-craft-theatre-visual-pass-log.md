@@ -218,3 +218,17 @@ Visual QA gates: inspect actual native 960×540 and 540×960 frames. Reject unat
 Inspected the first 960×540 landscape and 540×960 portrait native captures of Pass 24. The additional forest layers and punched cutouts rendered correctly, but the new interstitial arbors remained **too straight and pole-like**, with tiny pale end leaves. This is a structural art-direction miss despite passing type, unit and browser checks.
 
 Correction: give each tapered wood-stock trunk a stronger inward lean while constraining its tip by its root's actual distance to center; branch reach is similarly bounded by the portal width in portrait so the sky/sun and winding river stay clear. Enlarge trunk mass and terminal leaf stock, add an attached, smaller opposed leaf at every secondary twig, and relocate intermediate roots to produce distinct silhouettes from the near framing trunks. No new layers or alpha overlays. Both landscape and portrait must be re-rendered from the final head before merge.
+
+
+## Pass 25 — replace radial starburst foliage with connected cut-branch networks
+
+The remaining main weakness in Pass 24's actual code-rendered woodland film was crown geometry: thin rays radiated from a single dot; denser count would still look like a machine-made fan. Reference study of Hari & Deepti's lightboxes and Guild papercut silhouette design suggested replacing the geometry hierarchy rather than changing filters.
+
+Implemented two original reusable helpers for joint-based canopy growth. The two existing upper rib stock sheets now contain branching trees with parent → elbow → secondary forks → attached paired terminal leaves. All eight existing foreground foliage stock sheets use 3–5 independently rooted leaders with secondary twig junctions. No additional material planes, no new Storybook folder, no opacity adjustments, and no external reference images bundled.
+
+Render acceptance requires actual native FilmStage and Storybook screenshots at 16:9 and 9:16. Keep the illuminated sky, river and canopy openings readable; avoid isolated/mirrored twigs, fussy noise and overdraw.
+
+
+### Pass 25b — visual correction after actual R06 film capture
+
+The first R06 16:9 and 9:16 native frames verified that the new second-generation branches read as denser, better-rooted arbor forms and the sky/river remained open. However, bright pale green cardstock on the *entire upper branch lattice* made its numerous thin subpaths look like chalk-line ornament rather than dense forest silhouette, especially in tall portrait. This was a color-hierarchy mistake, not a lack of branches. The corrective pass changes only the two canopy-rib stocks to the darker leaf pigment, retaining brighter leafwork on middle-distance arbors and selected foreground leaves, while leaving cut geometry, depth and animation unchanged. Actual final-head rendering and browser checks are required again before merge.

@@ -229,6 +229,87 @@ function wovenArbor(p:P,x:number,ground:number,height:number,
   }
   return {wood:wood.join(" "),foliage:leaves.join(" ")};
 }
+/**
+ * Build a visually connected branch network under the cut-paper canopy card.
+ * Secondary twigs branch from measured stations on actual parent stems: no
+ * independent starburst of leaf stickers from a shared root.
+ *
+ * Every leaf attaches to an endpoint and remains a closed piece of the same
+ * opaque stock. Multiple subpaths are grouped in a single physical sheet.
+ */
+function canopyBranchLace(p:P,x:number,y:number,side:-1|1,
+  detail:number,seed:number){
+  const stock:string[]=[];
+  const baseX=side*x*.76,baseY=-y*.70;
+  const stems=5+Math.round(detail*4);
+  for(let i=0;i<stems;i++){
+    const h=paperHash(seed,i,407);
+    const t=i/(stems-1);
+    const endX=side*x*(.38+t*.35)+side*(h-.5)*x*.035;
+    const endY=-y*(.49+.20*t)+y*(h-.5)*.04;
+    // Intentionally joined through two branch joints; a narrow cuttable
+    // interleaf span remains between neighboring branchlets.
+    const jointX=baseX+(endX-baseX)*(.52+.08*h);
+    const jointY=baseY+(endY-baseY)*(.44+.12*h);
+    stock.push(p.band(baseX,baseY,jointX,jointY,3.2));
+    stock.push(p.band(jointX,jointY,endX,endY,2.0));
+    for(let j=0;j<2+Math.round(detail);j++){
+      const jt=(j+1)/(3+Math.round(detail));
+      const tx=jointX+(endX-jointX)*jt,ty=jointY+(endY-jointY)*jt;
+      const outward=(j%2===0?1:-1)*side;
+      const len=(12+11*paperHash(seed,i*19+j,409))*(.83+.16*detail);
+      const fx=tx+outward*len*.78;
+      const fy=ty-len*(.58+.18*paperHash(seed,i*19+j,411));
+      stock.push(p.band(tx,ty,fx,fy,1.65));
+      stock.push(p.leaf(fx,fy,
+        19+8*paperHash(seed,i*19+j,413),
+        outward>0?-41:-139,5.8+2.5*paperHash(seed,i*19+j,415)));
+      // The opposing leaflet is smaller so growth does not resemble a
+      // repeated symmetrical row of machine-cut crosses.
+      stock.push(p.leaf(fx,fy,11+5*paperHash(seed,i*19+j,417),
+        outward>0?-115:-65,4.2));
+    }
+  }
+  return stock.join(" ");
+}
+/**
+ * Fine terminal crown grammar for a foreground wood bough. Three connected
+ * leading forks produce fine lateral twigs and paper leaves at their tips.
+ * Crucially, the branchlets grow from different joints along the wood, not
+ * radial spokes that all begin at one starburst center.
+ */
+function nestedLeafCrown(p:P,x:number,y:number,detail:number,
+  seed:number,hand:-1|1){
+  const shapes:string[]=[];
+  const leaders=3+Math.round(detail*2);
+  for(let i=0;i<leaders;i++){
+    const u=(i-(leaders-1)/2)/Math.max(1,(leaders-1)/2);
+    const noise=paperHash(seed,i,419);
+    const a=radians(u*(48+8*noise));
+    const reach=43+19*paperHash(seed,i,421);
+    const mainX=x+Math.sin(a)*reach,mainY=y-Math.cos(a)*reach*.68;
+    const midX=x+(mainX-x)*.51,midY=y+(mainY-y)*.51;
+    shapes.push(p.band(x,y,midX,midY,3.7));
+    shapes.push(p.band(midX,midY,mainX,mainY,2.75));
+    for(let j=0;j<2+Math.round(detail);j++){
+      const t=(j+.85)/(2.8+Math.round(detail));
+      const fromX=midX+(mainX-midX)*t,fromY=midY+(mainY-midY)*t;
+      const flip=(j%2===0?1:-1)*hand;
+      const span=16+13*paperHash(seed,i*11+j,423);
+      const endX=fromX+flip*span,endY=fromY-span*(.43+.20*paperHash(seed,i*11+j,425));
+      shapes.push(p.band(fromX,fromY,endX,endY,1.95));
+      const leafLen=24+11*paperHash(seed,i*11+j,427);
+      const leafWidth=8.7+2.7*paperHash(seed,i*11+j,429);
+      shapes.push(p.leaf(endX,endY,leafLen,
+        flip>0?-46:-134,leafWidth));
+      shapes.push(p.leaf(endX,endY,leafLen*.62,
+        flip>0?-113:-67,leafWidth*.64));
+    }
+    shapes.push(p.leaf(mainX,mainY,23+9*noise,-90+u*32,8.4));
+  }
+  return shapes.join(" ");
+}
+
 /** A collection of offset bark engravings cut from a contrasting thin sheet,
  * rather than a single full-height straight highlight resembling a metal rod. */
 function treeBarkScores(p:P,x:number,ground:number,height:number,lean:number,
@@ -484,14 +565,9 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
     const crown=laceCanopy(p,x,y,side,detail,seed);
     add("woodland-lace-canopy-"+i,i?c.leaf:c.near,19,crown.path,{
       holes:crown.holes,enterFrame:101+i*4,durationFrames:42,curl:.65});
-    const twigX=side*x*.72,twigY=-y*.65;
-    const fronds=Array.from({length:5+Math.round(detail*5)},(_,j)=>{
-      const ex=side*x*(.43+(j%4)*.11);
-      const ey=-y*(.48+Math.floor(j/4)*.047);
-      return p.band(twigX,twigY,ex,ey,1.6)+
-        " "+p.leaf(ex,ey,25+(j%3)*5,side*(j%2?72:132),6.4);
-    });
-    add("woodland-canopy-ribs-"+i,c.leafLight,21,fronds.join(" "),{
+    const filigree=canopyBranchLace(p,x,y,side as -1|1,
+      detail,seed+i*173);
+    add("woodland-canopy-ribs-"+i,c.leaf,21,filigree,{
       enterFrame:112+i*4,curl:.52});
   }
   // Two asymmetric framing trees with branches rooted in the actual trunks.
@@ -519,22 +595,12 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
         [p.M(bx-6,by+10),p.C(bx+f.d*.24,by-17,bx+f.d*.58,ey+24,ex,ey),
           p.C(bx+f.d*.62,ey+36,bx+f.d*.19,by-9,bx+6,by+10),p.Z].join(" "),{
           enterFrame:107+i*5+j*3,curl:.4});
-      // Each bough carries a single grouped paper canopy with real leaf tips.
-      const leafCount=9+Math.round(detail*8);
-      const packets=Array.from({length:leafCount},(_,k)=>{
-        const hash=paperHash(seed,k+i*59+j*31,161);
-        const theta=(k-(leafCount-1)/2)/(leafCount-1)*Math.PI*1.23+
-          treeVariety*(hash-.5)*.29;
-        const radius=56+treeVariety*hash*26;
-        const fx=ex+Math.sin(theta)*radius,
-          fy=ey-Math.cos(theta)*(28+hash*16)+(k%4)*9;
-        const angle=sign*(34+k*12)-109+treeVariety*(hash-.5)*27;
-        return p.band(ex,ey,fx,fy,2.1+hash*.8)+" "+
-          p.leaf(fx,fy,30+(k%4)*6+treeVariety*hash*11,
-            angle,9+(k%3)*2+hash*2);
-      });
+      // Hierarchical branchlets grow from real bough junctions. Their
+      // terminal leaves form connected cut-paper crowns, not radial stickers.
+      const crown=nestedLeafCrown(p,ex,ey,detail,
+        seed+i*557+j*89,sign as -1|1);
       add("woodland-foliage-"+i+"-"+j,j%3?c.leaf:c.leafLight,23,
-        packets.join(" "),{
+        crown,{
           enterFrame:119+i*5+j*3,durationFrames:28,curl:.72,
           motion:"flutter",swingDegrees:1.35*breeze,flapHz:.24+j*.025,
           pivot:[p.cx+ex*p.scale,p.cy+ey*p.scale]});

@@ -133,6 +133,40 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
       expect(evaluatePaperCraft(dense,196)).toEqual(evaluatePaperCraft(again,196));
     }
   });
+  it("canopy filigree uses multilevel connected branchlets rather than radial spokes",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const sparse=paperScenerySpec("layered",aspect,{
+        scenery:"woodland",detail:0,seed:67,treeVariety:1});
+      const dense=paperScenerySpec("layered",aspect,{
+        scenery:"woodland",detail:1,seed:67,treeVariety:1});
+      expect(inspectPaperCraft(dense)).toEqual([]);
+      const id=(prefix:string,i:number)=>prefix+i;
+      for(const side of [0,1]){
+        const rib=id("woodland-canopy-ribs-",side);
+        const sparseRib=sparse.layers.find(layer=>layer.id===rib)!;
+        const denseRib=dense.layers.find(layer=>layer.id===rib)!;
+        // Every lead has multiple forked twig tips and paired leaf cards.
+        expect((denseRib.path.match(/M/g)??[]).length).toBeGreaterThan(90);
+        expect((denseRib.path.match(/C/g)??[]).length).toBeGreaterThan(50);
+        expect((sparseRib.path.match(/M/g)??[]).length)
+          .toBeLessThan((denseRib.path.match(/M/g)??[]).length);
+        expect(denseRib.color).toMatch(/^#[0-9a-fA-F]{6}$/);
+      }
+      const crowns=dense.layers.filter(l=>l.id.startsWith("woodland-foliage-"));
+      expect(crowns).toHaveLength(8);
+      expect(crowns.every(layer=>(layer.path.match(/M/g)??[]).length>45)).toBe(true);
+      expect(crowns.every(layer=>(layer.path.match(/C/g)??[]).length>55)).toBe(true);
+      expect(crowns.every(layer=>layer.motion==="flutter"&&!!layer.pivot)).toBe(true);
+      expect(dense.layers.length).toBeLessThanOrEqual(MAX_PAPER_LAYERS);
+      // Cut detail changes underlying contours without adding excessive layers.
+      expect(dense.layers.filter(l=>l.id.startsWith("woodland-foliage-")).length)
+        .toBe(sparse.layers.filter(l=>l.id.startsWith("woodland-foliage-")).length);
+      const same=paperScenerySpec("layered",aspect,{
+        scenery:"woodland",detail:1,seed:67,treeVariety:1});
+      expect(dense).toEqual(same);
+      expect(evaluatePaperCraft(dense,218)).toEqual(evaluatePaperCraft(same,218));
+    }
+  });
   it("alpine water is genuinely open and mountain faces carry relief plates",()=>{
     const world=paperScenerySpec("layered","landscape",{
       scenery:"alpine-lake",palette:"moonlight",detail:1,seed:44});
