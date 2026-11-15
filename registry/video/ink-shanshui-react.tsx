@@ -822,12 +822,16 @@ function bambooBrushBlade(root:P,tip:P,width:number,seed:number){
  * centerline of each tapered culm also supplies the positions of its branch
  * nodes; each broad leaf begins on its own painted branching centerline.
  */
-function Bamboo({x,y,scale,wind,seed,detail}:{
+function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
   x:number;y:number;scale:number;wind:number;seed:number;detail:number;
+  ink:number;materialId:string;
 }){
   // Gongbi bamboo paintings place branches at visible culm joints. Sharing
   // node samples between collars and twigs prevents floating leaf clusters.
   return <g data-km-shanshui-bamboo=""
+    data-km-bamboo-ink-load={f(ink)}
+    filter={"url(#"+materialId+")"}
+    opacity={f(.48+.52*ink)}
     transform={"translate("+x+" "+y+") scale("+scale+")"}>
     {[-32,0,25].map((x0,i)=>{
       // Nonparallel bamboo columns: one strong black stalk and two quieter
@@ -1202,26 +1206,26 @@ function Grass({x,y,seed,scale=1}:{x:number;y:number;seed:number;scale?:number})
     })}
   </g>;
 }
-function Foreground({scene,seed,detail,wind}:{scene:ShanshuiScene;seed:number;detail:number;wind:number}){
+function Foreground({scene,seed,detail,wind,ink,materialId}:{scene:ShanshuiScene;seed:number;detail:number;wind:number;ink:number;materialId:string}){
   if(scene==="river-scholar")return <g data-km-shanshui-foreground="">
     <Rock x={15} y={540} w={175} h={98} seed={seed+91} detail={detail}/>
     <Rock x={899} y={544} w={151} h={83} seed={seed+47} detail={detail}/>
     <Grass x={360} y={521} seed={seed} scale={1.1}/>
     <Grass x={746} y={510} seed={seed+3}/>
-    <Bamboo x={925} y={510} scale={.55} seed={seed+79} detail={detail} wind={wind}/>
+    <Bamboo x={925} y={510} scale={.55} seed={seed+79} detail={detail} wind={wind} ink={ink} materialId={materialId}/>
   </g>;
   if(scene==="misty-hermit")return <g data-km-shanshui-foreground="">
     <Rock x={23} y={557} w={171} h={96} seed={seed} detail={detail}/>
     <Rock x={873} y={548} w={184} h={83} seed={seed+8} detail={detail}/>
     <OldPine x={74} y={522} scale={1.28} seed={seed+47} detail={detail} wind={wind}/>
-    <Bamboo x={908} y={538} scale={1.07} seed={seed+55} detail={detail} wind={wind}/>
+    <Bamboo x={908} y={538} scale={1.07} seed={seed+55} detail={detail} wind={wind} ink={ink} materialId={materialId}/>
     <Grass x={344} y={510} seed={seed} scale={.8}/>
   </g>;
   return <g data-km-shanshui-foreground="">
     <Rock x={76} y={568} w={218} h={168} seed={seed+7} detail={detail}/>
     <Rock x={885} y={567} w={205} h={162} seed={seed+13} detail={detail}/>
     <OldPine x={65} y={540} scale={1.43} seed={seed+9} detail={detail} wind={wind}/>
-    <Bamboo x={914} y={535} scale={.9} seed={seed+10} detail={detail} wind={wind}/>
+    <Bamboo x={914} y={535} scale={.9} seed={seed+10} detail={detail} wind={wind} ink={ink} materialId={materialId}/>
     <Grass x={366} y={522} seed={seed+10}/>
     <Grass x={758} y={499} seed={seed+35} scale={1.17}/>
   </g>;
@@ -1243,7 +1247,7 @@ export function InkShanshuiStage({frame,controls={
     far:"kmshan"+rawId+"far",mid:"kmshan"+rawId+"mid",
     near:"kmshan"+rawId+"near",grain:"kmshan"+rawId+"grain",
     paper:"kmshan"+rawId+"paper",mist:"kmshan"+rawId+"mist",
-    path:"kmshan"+rawId+"path",
+    path:"kmshan"+rawId+"path",brush:"kmshan"+rawId+"brush",
   }),[rawId]);
   const river=controls.scene==="river-scholar";
   const seed=controls.seed;
@@ -1291,6 +1295,18 @@ export function InkShanshuiStage({frame,controls={
         <filter id={ids.mist} x="-40%" y="-80%" width="180%" height="260%">
           <feGaussianBlur stdDeviation="28"/>
         </filter>
+        <filter id={ids.brush} x="-8%" y="-8%" width="116%" height="116%"
+          colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency=".13" numOctaves="2"
+            seed={seed%997+1} result="fibres"/>
+          <feDisplacementMap in="SourceGraphic" in2="fibres" scale=".9"
+            xChannelSelector="R" yChannelSelector="G" result="absorbed"/>
+          <feGaussianBlur in="absorbed" stdDeviation=".42" result="fringe"/>
+          <feComponentTransfer in="fringe" result="wick">
+            <feFuncA type="linear" slope=".24"/>
+          </feComponentTransfer>
+          <feMerge><feMergeNode in="wick"/><feMergeNode in="absorbed"/></feMerge>
+        </filter>
         <linearGradient id={ids.path} x1="0" y1="0" x2=".6" y2="1">
           <stop offset="0" stopColor="#b29371" stopOpacity=".15"/>
           <stop offset="1" stopColor="#8f7055" stopOpacity=".7"/>
@@ -1332,7 +1348,7 @@ export function InkShanshuiStage({frame,controls={
           </div>
         </foreignObject>
         <Foreground scene={controls.scene} seed={seed} detail={controls.detail}
-          wind={at.breeze}/>
+          wind={at.breeze} ink={controls.ink} materialId={ids.brush}/>
       </g>
       <rect width={W} height={H} filter={"url(#"+ids.grain+")"} opacity=".42"
         style={{mixBlendMode:"multiply",pointerEvents:"none"}}/>
