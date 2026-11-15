@@ -28,7 +28,7 @@ export const COLOR_PENCIL_WILDLIFE_FILM: FilmDocument = {
       "durationFrames": 160,
       "content": {
         "slot": "colored-pencil-wildlife",
-        "label": "Original songbird constructed with graphite and feather-coloured pencil",
+        "label": "Original kingfisher reconstructed with fine cobalt feather and graphite layers",
         "props": {
           "offsetFrame": 0
         }
@@ -43,7 +43,7 @@ export const COLOR_PENCIL_WILDLIFE_FILM: FilmDocument = {
       },
       "content": {
         "slot": "colored-pencil-wildlife",
-        "label": "Opaque layered plumage and eye detail",
+        "label": "Layered kingfisher plumage, copper breast and high-contrast eye",
         "props": {
           "offsetFrame": 160
         }
@@ -58,7 +58,7 @@ export const COLOR_PENCIL_WILDLIFE_FILM: FilmDocument = {
       },
       "content": {
         "slot": "colored-pencil-wildlife",
-        "label": "Head turn, blink, beak and tail motion on a grounded branch",
+        "label": "Kingfisher wing flex, head tilt, blink and foot contact on branch",
         "props": {
           "offsetFrame": 290
         }
