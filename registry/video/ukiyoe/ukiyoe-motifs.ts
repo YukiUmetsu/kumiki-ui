@@ -200,7 +200,7 @@ function hills(p: P, c: MotifContext): Prim[] {
 function sea(p: P, c: MotifContext): Prim[] {
   const w = num(p, "width", 1920), h = num(p, "height", 420), rows = clamp(Math.round(num(p, "rows", 14)), 2, 40);
   const color = paint(p, "color", "bero"), light = paint(p, "light", "sora"), foam = clamp01(num(p, "foam", .4));
-  const speed = num(p, "speed", .6), swell = num(p, "swell", 1), t = c.frame;
+  const speed = num(p, "speed", .6), swell = num(p, "swell", 1), t = c.frame, rough = clamp01(num(p, "rough", 0) * c.progress);
   // Bokashi in absolute depth below the horizon: pale at the far water, a deep band ~`deepAt` px down.
   const deep = clamp01(num(p, "deepAt", 520) / h);
   const out: Prim[] = [{ t: "fill", d: rectD(0, 0, w, h), grain: .8, fill: { type: "linear", angle: 90, stops: [[0, color, .82], [deep * .6, color, .92], [Math.min(1, deep), color, 1], [1, color, 1]] } },
@@ -224,8 +224,52 @@ function sea(p: P, c: MotifContext): Prim[] {
       }
     }
   }
-  out.push({ t: "stroke", d: lines.join(""), color: light, width: 1.6, opacity: .85 });
-  if (hooks.length) out.push({ t: "fill", d: hooks.join(""), fill: paint(p, "foamColor", "gofun"), outline: .8, outlineColor: color });
+  out.push({ t: "stroke", d: lines.join(""), color: light, width: 1.6, opacity: .85, ...(rough > 0 ? { opacity: .85 * (1 - rough) } : {}) });
+  if (hooks.length && rough < 1) out.push({ t: "fill", d: hooks.join(""), fill: paint(p, "foamColor", "gofun"), outline: .8, outlineColor: color, ...(rough > 0 ? { opacity: 1 - rough } : {}) });
+  if (rough > 0) out.push(...roughSea(p, c, w, h, rows, rough));
+  return out;
+}
+
+/**
+ * A rising sea: as `rough` × the node's progress grows, the flat wave lines become rows of travelling swells, as in the
+ * background seas of the great-wave prints. Each row is a filled band whose top is a Gerstner (trochoidal) profile:
+ * sharp crests, broad troughs. Nearer rows are bigger and are painted over farther ones, so the swells overlap in
+ * depth. Swells come in groups that travel at half the speed of their crests (deep-water group velocity), so the sea
+ * is never a uniform pattern; the biggest crests of each group grow white caps that curl the way the sea runs. Every
+ * cap belongs to its crest and grows with it (nothing pops in). `direction` 1 runs the sea to the right, -1 to the left.
+ */
+function roughSea(p: P, c: MotifContext, w: number, h: number, rows: number, rough: number): Prim[] {
+  const color = paint(p, "color", "bero"), mid = paint(p, "roughLight", "ai"), light = paint(p, "crestColor", "sora"), foamC = paint(p, "foamColor", "gofun");
+  const dir = num(p, "direction", 1) >= 0 ? 1 : -1, drift = num(p, "drift", 1.4), t = c.frame, R = rough;
+  const out: Prim[] = [], crests: string[] = [], caps: string[] = [];
+  for (let r = 1; r <= rows; r++) {
+    const k = r / rows, y = h * k ** 1.55, s = .25 + k * 1.25, next = h * Math.min(1, (r + 1.6) / rows) ** 1.55;
+    const wl = 70 * s * (1 + 1.8 * R), amp = (2 + 28 * R) * s, v = drift * s * (.6 + .8 * R);
+    const shift = dir * v * t + hash01(c.seed, r, 201) * wl, gShift = dir * v * .5 * t + hash01(c.seed, r, 202) * wl * 7;
+    const env = (x: number) => .35 + .65 * (.5 + .5 * Math.sin(2 * Math.PI * (x - gShift) / (wl * 6.5)));
+    const sharp = Math.min(.8, .2 + .6 * R) / (2 * Math.PI / wl);   // Gerstner steepness, kept below a loop
+    const pts: Pt[] = [], step = Math.max(6, wl / 9);
+    for (let a = -wl * 1.5; a <= w + wl * 1.5; a += step) {
+      const th = 2 * Math.PI * (a - shift) / wl, A = amp * env(a);
+      pts.push([a - sharp * (A / amp) * Math.sin(th), y - A * (Math.cos(th) * .5 + .5) + A * .15]);   // points gather under each crest
+    }
+    const band = smoothD([...pts, [w + wl * 1.5, next + 2], [-wl * 1.5, next + 2]], true, .4);
+    // The face under each crest is in shadow, fading toward the next crest: the sea's own bokashi shows through.
+    out.push({ t: "fill", d: band, fill: { type: "linear", angle: 90, stops: [[0, mid, .5 * R], [.35, color, .32 * R], [1, color, 0]] } });
+    crests.push(smoothD(pts, false, .4));
+    // White caps on the crests that stand highest in their group, grown with the crest (each crest has an identity).
+    if (k > .25) {
+      const n0 = Math.floor((-wl * 1.5 - shift) / wl), n1 = Math.ceil((w + wl * 1.5 - shift) / wl);
+      for (let n = n0; n <= n1; n++) {
+        const cx = shift + n * wl, A = amp * env(cx), grow = smooth(span(A / amp * R, .4, .85)) * (.7 + .5 * hash01(c.seed, r * 997 + n, 203));
+        if (grow < .05) continue;
+        const hs = 12 * s * grow, hy = y - A + A * .15;
+        caps.push(`M${cx - dir * hs * 1.1} ${hy + hs * .45}Q${cx - dir * hs * .1} ${hy - hs * 1.2} ${cx + dir * hs} ${hy - hs * .05}Q${cx + dir * hs * .25} ${hy - hs * .15} ${cx + dir * hs * .15} ${hy + hs * .55}Z`);
+      }
+    }
+  }
+  out.push({ t: "stroke", d: crests.join(""), color: light, width: 1.6, opacity: .6 + .3 * R });
+  if (caps.length) out.push({ t: "fill", d: caps.join(""), fill: foamC, outline: .8, outlineColor: color });
   return out;
 }
 
@@ -282,7 +326,9 @@ function waveState(p: P, c: MotifContext) {
   // The fall takes 40% off the crest; the roller then sinks to `settleTo` of the risen wave (flat water by default).
   const H = Hmax * (.12 + .88 * rise) * (1 - .4 * sink) * (1 - (1 - settleTo / .6) * settle) * (1 + breathe * (1 - settle));
   // Forward travel (negative x: the wave curls left): half while rising, the rest through the break and the roll-on.
-  const dx = -num(p, "travel", 0) * W * (.5 * rise + .3 * smooth(b) + .2 * settle);
+  // `speed` (px per frame) keeps it moving at an even pace from the scene's first frame, through the break and the roll-on:
+  // a wave never stands still while it only changes shape.
+  const dx = -num(p, "travel", 0) * W * (.5 * rise + .3 * smooth(b) + .2 * settle) - num(p, "speed", 0) * c.frame;
   // As the lip falls the whole water mass pitches forward and down after it (the column leans toward the impact, more
   // the higher it is), rather than sinking in place. It holds through the settle (water never slides back) while the
   // height goes to nothing.
