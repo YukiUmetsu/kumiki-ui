@@ -31,7 +31,7 @@ export function crayonPaperContactSwatches(
       "C153 219 79 193 38 209 Q26 187 32 161Z",
       {x:26,y:145,width:206,height:78},
       ["#c97455","#824d46","#ebaf72"],9,117,
-      {spacing:6,pressure:pressure*.92,markStrength:.8}),
+      {spacing:6,pressure:Math.max(.2,pressure*.92),markStrength:.8}),
     make("crossed-lower-ochre",
       "M268 202 C318 168 383 162 461 166 Q456 180 451 195"+
       "C383 200 329 212 279 232Z",
@@ -43,7 +43,7 @@ export function crayonPaperContactSwatches(
       "C379 233 323 203 280 177Z",
       {x:277,y:153,width:176,height:90},
       ["#4d617d","#323e61","#8d91a9"],112,207,
-      {angle:22,pressure:Math.min(1,pressure*.96),spacing:6.3}),
+      {angle:22,pressure:Math.max(.2,Math.min(1,pressure*.96)),spacing:6.3}),
     make("opaque-layered-ochre",
       "M512 166 C541 139 609 130 672 155 Q698 174 680 226"+
       "C655 250 563 254 520 235 Q501 209 512 166Z",
