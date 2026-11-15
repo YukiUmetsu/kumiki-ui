@@ -52,7 +52,7 @@ export interface WatercolourArtwork {
   width: number;
   height: number;
   seed: number;
-  paper: { color: string; tooth: number };
+  paper: { color: string; tooth: number; granulation?: number };
   /** Original, hand-authored or procedurally built subject geometry. */
   parts: readonly WatercolourArtPart[];
   /** Optional shared-pigment atmospheric underpainting; same paper dimensions. */
@@ -87,6 +87,8 @@ export function inspectWatercolourArtwork(spec: WatercolourArtwork): string[] {
   if (!integer(spec.seed, 0, 2147483647)) problems.push("/seed");
   if (!spec.paper || !hex.test(spec.paper.color) || !bounded(spec.paper.tooth, 0, 1))
     problems.push("/paper");
+  if (spec.paper && spec.paper.granulation !== undefined &&
+    !bounded(spec.paper.granulation, 0, 1)) problems.push("/paper/granulation");
   if (!Array.isArray(spec.parts) || spec.parts.length < 1 || spec.parts.length > 128)
     return [...problems, "/parts"];
   if (spec.wetPaper) {
@@ -273,7 +275,27 @@ export function WatercolourIllustration({ spec, frame, reducedMotion = false, ..
         <feTurbulence type="fractalNoise" baseFrequency=".019 .041" numOctaves={3}
           seed={1 + spec.seed % 997} result="paper"/>
         <feDisplacementMap in="SourceGraphic" in2="paper"
-          scale={2.3 * spec.paper.tooth} xChannelSelector="R" yChannelSelector="G"/>
+          scale={2.3 * spec.paper.tooth} xChannelSelector="R" yChannelSelector="G"
+          result="displaced"/>
+        {(spec.paper.granulation ?? 0) > 0 && <>
+          <feTurbulence type="fractalNoise" baseFrequency=".14 .11"
+            numOctaves={2} seed={1 + spec.seed % 661} result="granules"/>
+          <feColorMatrix in="granules" type="saturate" values="0" result="granuleMono"/>
+          <feComponentTransfer in="granuleMono" result="granuleTint">
+            <feFuncR type="linear" slope={.36 * (spec.paper.granulation ?? 0)}
+              intercept={1 - .33 * (spec.paper.granulation ?? 0)}/>
+            <feFuncG type="linear" slope={.36 * (spec.paper.granulation ?? 0)}
+              intercept={1 - .33 * (spec.paper.granulation ?? 0)}/>
+            <feFuncB type="linear" slope={.36 * (spec.paper.granulation ?? 0)}
+              intercept={1 - .33 * (spec.paper.granulation ?? 0)}/>
+            <feFuncA type="linear" slope={0} intercept={1}/>
+          </feComponentTransfer>
+          {/* Arithmetic multiplication modulates pigment RGB while preserving its
+              alpha. Overlay blending here would incorrectly double opacity and
+              turn translucent watercolor washes into solid cartoon patches. */}
+          <feComposite in="displaced" in2="granuleTint" operator="arithmetic"
+            k1={1} k2={0} k3={0} k4={0}/>
+        </>}
       </filter>
       <filter id={id + "-dry"} x="-3%" y="-3%" width="106%" height="106%"
         colorInterpolationFilters="sRGB">
