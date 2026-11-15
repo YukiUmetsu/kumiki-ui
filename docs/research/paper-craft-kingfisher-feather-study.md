@@ -31,3 +31,18 @@ Do not treat randomized dashes as a feather map; the rib vectors must be local t
 Technical QA: `npm run typecheck`, `npm run registry:validate`, focused paper Vitest, Storybook browser image captures, native FilmStage kingfisher f175 in 16:9 and 9:16, no JS exceptions, real opaque paper layers.
 
 **Artistic QA not self-approved:** inspect the *current-commit* rendered images at 1× and 3×, score wing barcode/floating-detail risk, test tail bridge legibility against dark backing, check cheek does not look beaded, re-render after each corrective modification, and evaluate normal-speed wing motion. The v7 pixel-matched source audit is not applicable to this original style-guided scene; independent visual comparison remains required.
+
+## ArtCraft native frame review R1 → R2 structural correction
+
+**Inspected:** actual code-rendered browser kingfisher landscape/portrait, native `paper-kingfisher-proof/landscape-f00175.png` and `portrait-f00175.png`, and 3× local crops of face, wing, tail/branch from PR #341's first visual proof run. Browser and render CI were green, but the artistic gate **failed**.
+
+| Region | Observed defect in real pixels | Structural cause | R2 correction (pending re-render) |
+| --- | --- | --- | --- |
+| Bill | three separate near-horizontal gray threads instead of a filled chisel | both stocks squeezed to narrow curves plus a bright narrow ridge | broad opaque basal wedge; closely registered dark upper ridge; muted sub-pixel color highlight |
+| Crown | pale thin spikes rise above smooth blue dome | upwards-pointing crest feathers and near-vertical flecks | shorten, rotate and narrow paper crests; sweep existing flecks across the skull tangent |
+| Wing | vertically tiled turquoise/green “eggs” instead of feather fan | 3×6 short mostly upright ovals, high-contrast color lottery | longer overlapping, diagonally back-swept feather construction; lower-chroma cobalt family; use one `flightVane` map to register slit, cut, raised tip, and attached vane ribs |
+| Tail | cyan straight wire lines extend too far past body | 80-unit narrow primary rectrix geometry | 50-unit broader seven rectrices; subordinate along-axis shaft flecks |
+
+The above corrections change *contours and composition*, not a color filter. The single existing Kingfisher Storybook page and fixed 128-layer maximum remain. All reference artwork stays externally linked for private study; no unlicensed image is packaged.
+
+**R2 release status:** not approved until the new latest-head 960×540 and 540×960 render crops are inspected at 1× and 3×, the bill reads in silhouette, the wing reads as joined overlapping vanes rather than beads, and the tail preserves a short compact field. Automated tests alone cannot pass this.
