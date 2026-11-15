@@ -5,6 +5,7 @@ import {
 import type {
   PencilPhotoPixels,PencilPhotoOptions,PencilPhotoStudy,
 } from "./colored-pencil-photo";
+import {mapCC0WomanPortraitFeatures} from "./colored-pencil-portrait-guides";
 
 /**
  * Source-backed pencil renderer. The default images are demonstrably public
@@ -120,6 +121,8 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
       : {...PENCIL_PHOTO_DEFAULTS});
   const [wash,setWash]=useState((initialSample==="woman"||initialSample==="man") ? .91 : .84);
   const [showReference,setShowReference]=useState(false);
+  const [showFaceGuides,setShowFaceGuides]=useState(false);
+  const [applyFaceCraft,setApplyFaceCraft]=useState(true);
   const [uploaded,setUploaded]=useState(false);
   const size=aspect==="landscape"?{width:900,height:506}:{width:506,height:900};
   const faceSource=!uploaded&&(sample==="woman"||sample==="man");
@@ -166,8 +169,23 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
       "Reference still loading. Retry, or choose a local photograph."),16000);
     return()=>window.clearTimeout(timer);
   },[raw,error,sourceUrl,reload]);
-  const study=useMemo(()=>raw?createPencilPhotoStudy(raw,options):null,
-    [raw,options]);
+  // Reproject photo-source landmarks into every canvas crop; never reuse
+  // this woman's face coordinates on the other licensed images or uploads.
+  const faceGuides=useMemo(()=>{
+    if(!raw||uploaded||sample!=="woman")return undefined;
+    const image=sourceImage.current;
+    if(!image?.naturalWidth||!image.naturalHeight)return undefined;
+    return mapCC0WomanPortraitFeatures({
+      width:raw.width,height:raw.height,
+      naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,
+      mode,focal,zoom:faceSource?faceZoom:1,
+    });
+  },[raw,uploaded,sample,mode,focal[0],focal[1],faceSource,faceZoom]);
+  // Actual render A/B. Source pixels and crop remain identical; only
+  // source-aligned feature and facial-plane pencil passes are toggled.
+  const study=useMemo(()=>raw?createPencilPhotoStudy(
+    raw,options,applyFaceCraft?faceGuides:undefined):null,
+    [raw,options,faceGuides,applyFaceCraft]);
   // The static precomputed tone layer is cached: seeking/speed does not
   // recompute pixels, gradients, stochastic paper or stroke directions.
   useEffect(()=>{
@@ -312,6 +330,20 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
             setWash(Number(e.target.value));setPlaying(false);
           }}/>
       </label>
+      {faceGuides&&<label style={{...control,alignSelf:"end",minHeight:40,
+        display:"flex",flexDirection:"row",alignItems:"center",gap:9}}>
+        <input aria-label="Apply source-based portrait pencil marks" type="checkbox"
+          checked={applyFaceCraft} onChange={e=>{
+            setApplyFaceCraft(e.target.checked);setPlaying(false);
+          }}/>
+        Draw anatomy-aligned pencil passes
+      </label>}
+      {faceGuides&&<label style={{...control,alignSelf:"end",minHeight:40,
+        display:"flex",flexDirection:"row",alignItems:"center",gap:9}}>
+        <input aria-label="Show source-measured face guides" type="checkbox"
+          checked={showFaceGuides} onChange={e=>setShowFaceGuides(e.target.checked)}/>
+        Source face landmarks (diagnostic)
+      </label>}
       <label style={{...control,alignSelf:"end",minHeight:40,
         display:"flex",flexDirection:"row",alignItems:"center",gap:9}}>
         <input aria-label="Show pencil source comparison" type="checkbox"
@@ -347,13 +379,35 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
         <figcaption style={{fontSize:13,fontWeight:700,marginBottom:7}}>
           Coloured-pencil rendition · code-generated mark layers
         </figcaption>
-        <canvas ref={canvasRef} width={size.width} height={size.height}
-          aria-label="Code-rendered coloured-pencil reconstruction"
-          data-km-pencil-photo={study?"ready":"source-pending"}
-          data-km-pencil-foundation={study?.foundationVersion}
-          style={{width:"100%",maxWidth:900,
-            height:"auto",aspectRatio:aspect==="landscape"?"16 / 9":"9 / 16",
-            background:"#FAF5ED",boxShadow:"0 15px 40px #5A554E34"}}/>
+        <div style={{position:"relative",width:"100%"}}>
+          <canvas ref={canvasRef} width={size.width} height={size.height}
+            aria-label="Code-rendered coloured-pencil reconstruction"
+            data-km-pencil-photo={study?"ready":"source-pending"}
+            data-km-pencil-foundation={study?.foundationVersion}
+            data-km-portrait-features={study?.portraitFeatures?"source-guided":"none"}
+            style={{display:"block",width:"100%",maxWidth:900,
+              height:"auto",aspectRatio:aspect==="landscape"?"16 / 9":"9 / 16",
+              background:"#FAF5ED",boxShadow:"0 15px 40px #5A554E34"}}/>
+          {faceGuides&&showFaceGuides&&<svg
+            aria-label="CC0 photo-source aligned facial anchors"
+            data-km-face-guide-overlay=""
+            viewBox={`0 0 ${size.width} ${size.height}`}
+            style={{position:"absolute",inset:0,width:"100%",height:"100%",
+              pointerEvents:"none",overflow:"hidden"}}>
+            {Object.entries(faceGuides).map(([key,[x,y]])=>
+              <circle key={key} cx={x} cy={y} r={3}
+                fill="#D2EF80" stroke="#24332D" strokeWidth={1.05}>
+                <title>{key}</title>
+              </circle>)}
+          </svg>}
+        </div>
+        {study?.portraitFeatures&&<p
+          data-km-portrait-craft-evidence=""
+          style={{fontSize:12,color:"#687A71",margin:"8px 0 0"}}>
+          Experimental CC0 source-matched construction: {Object.values(study.portraitFeatures)
+            .reduce((sum,n)=>sum+n,0)} additional eye, brow, nose, lip and form-following skin pencil marks.
+          Landmark alignment is manually reviewed, not independent artistic sign-off.
+        </p>}
       </figure>
       {showReference&&<figure style={{margin:0,flex:"1 1 380px",maxWidth:900}}>
         <figcaption style={{fontSize:13,fontWeight:700,marginBottom:7}}>
