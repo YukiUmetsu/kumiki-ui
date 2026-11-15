@@ -182,6 +182,13 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
         }
       }
     }
+    const hermitBeard=paths(shanshuiFaceAssets("misty-hermit",1),"beard")[0];
+    expect(hermitBeard.type).toBe("path");
+    if(hermitBeard.type!=="path")throw new Error("Painted beard must be a path");
+    // A scholar's beard is layered hair with changing curvature, not
+    // a straight-edged hanging triangle.
+    expect((hermitBeard.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(8);
+    expect(hermitBeard.d).not.toContain("L143 169");
     expect(hermit.face).not.toEqual(walker.face);
     expect(shanshuiOtherFaceCraft("misty-hermit",1)).toEqual(hermit);
     expect(shanshuiOtherFaceCraft("mountain-trail",1)).toEqual(walker);
