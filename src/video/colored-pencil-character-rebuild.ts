@@ -306,7 +306,7 @@ export function createKingfisherActor():PencilActorSpec {
         trace("M136 133 Q151 153 159 174 M142 126 Q158 144 167 162",
           "#193C62",1.45,226),
         trace("M132 155 Q146 171 152 187","#D3E6DC",.83,239),
-        ...vaneTracts(KINGFISHER_FOLDED_WING_AXES,"#C7DAD8",226),
+        ...vaneTracts(KINGFISHER_FOLDED_WING_AXES,"#86A8B8",226),
         ...birdWingFibre.details,
       ]}),
     // The overlapping shoulder coverts are a separate pigmented feather plane.
@@ -321,7 +321,7 @@ export function createKingfisherActor():PencilActorSpec {
           [146,117,161,144,158,127,16,7]],1819,"#C0E3DA",.57),
         trace("M130 132 Q143 151 151 151 M147 121 Q160 133 166 136",
           "#1D5A73",.9,241),
-        ...vaneTracts(KINGFISHER_COVERT_AXES,"#CBE7DB",229),
+        ...vaneTracts(KINGFISHER_COVERT_AXES,"#8DB9C0",229),
         ...birdCovertFibre.details,
       ]}),
     part({id:"head",material:"feather",colors:birdBlue,parent:"torso",pivot:[130,113],
