@@ -547,6 +547,40 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("makes foreground bamboo ink-load controls functional with instance-scoped paper absorption",()=>{
+    const draw=(ink:number)=>renderToStaticMarkup(createElement(
+      InkShanshuiStage,{frame:145,controls:{
+        ...DEFAULT_SHANSHUI,scene:"misty-hermit",ink,detail:1,
+      }},
+    ));
+    const weak=draw(0),strong=draw(1);
+    expect(weak).toContain('data-km-bamboo-ink-load="0"');
+    expect(strong).toContain('data-km-bamboo-ink-load="1"');
+    expect(strong).toContain('feDisplacementMap');
+    expect(strong).toContain('feTurbulence');
+    expect(strong).not.toMatch(/NaN|Infinity|undefined/);
+    const extract=(html:string)=>html.match(
+      /data-km-shanshui-bamboo="" data-km-bamboo-ink-load="[01]" filter="url\\(#([^"]+)\\)"/,
+    )?.[1];
+    const id=extract(strong);
+    expect(id).toBeTruthy();
+    expect(strong).toContain('id="'+id+'"');
+    expect(weak).not.toEqual(strong);
+    // Multiple paintings in Storybook must not share a document-global SVG filter.
+    const doubled=renderToStaticMarkup(createElement("div",{},
+      createElement(InkShanshuiStage,{frame:145,controls:{
+        ...DEFAULT_SHANSHUI,scene:"misty-hermit",ink:1,
+      }}),
+      createElement(InkShanshuiStage,{frame:145,controls:{
+        ...DEFAULT_SHANSHUI,scene:"river-scholar",ink:.6,
+      }}),
+    ));
+    const filterIds=[...doubled.matchAll(/<filter id="([^"]*brush)"/g)]
+      .map(m=>m[1]);
+    expect(filterIds).toHaveLength(2);
+    expect(filterIds[0]).not.toBe(filterIds[1]);
+  });
+
   it("attaches the reserve-paper cascade to a cliff lip and a receiving pool",()=>{
     const controls={...DEFAULT_SHANSHUI,scene:"mountain-trail" as const};
     const stage=(frame:number,detail=1)=>renderToStaticMarkup(createElement(
