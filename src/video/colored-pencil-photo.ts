@@ -12,6 +12,8 @@
  * lighter/less-saturated chromatic pencil.
  */
 import { pencilHash } from "../../registry/video/colored-pencil";
+import { createPencilFlowField } from "./colored-pencil-flow-field";
+import { createPencilSalience } from "./colored-pencil-salience";
 
 export interface PencilPhotoPixels {
   width:number;
@@ -30,9 +32,11 @@ export interface PencilPhotoOptions {
   tooth:number;
   /** Number of strokes relative to the paper dimensions, .2...2. */
   density:number;
+  /** Suppress backdrop scratches and preserve colourful anatomical subject. */
+  focus:number;
 }
 export const PENCIL_PHOTO_DEFAULTS:Readonly<PencilPhotoOptions> = {
-  seed:1024,paper:.30,saturation:.76,edges:.59,tooth:.69,density:1,
+  seed:1024,paper:.22,saturation:.90,edges:.72,tooth:.73,density:1.15,focus:.86,
 };
 export interface PencilPhotoMark {
   x:number;y:number;
@@ -58,23 +62,10 @@ const check=(p:PencilPhotoPixels,o:PencilPhotoOptions)=>{
     !(p.data instanceof Uint8ClampedArray)||
     p.data.length!==p.width*p.height*4)throw new RangeError("Invalid source image pixels");
   if(!Number.isSafeInteger(o.seed)||o.seed<0||o.seed>2147483647||
-    ![o.paper,o.saturation,o.edges,o.tooth].every(v=>Number.isFinite(v)&&v>=0&&v<=1)||
+    ![o.paper,o.saturation,o.edges,o.tooth,o.focus].every(v=>Number.isFinite(v)&&v>=0&&v<=1)||
     !Number.isFinite(o.density)||o.density<.2||o.density>2)
     throw new RangeError("Invalid photo-to-pencil options");
 };
-const sample=(lum:Float32Array,w:number,h:number,x:number,y:number):number=>
-  lum[limit(y,0,h-1)*w+limit(x,0,w-1)];
-const derivatives=(lum:Float32Array,w:number,h:number,x:number,y:number):readonly[number,number]=>{
-  // 3x3 Sobel, normalized into a 0...1 brightness gradient. This conserves
-  // eyelids, fur direction, bill/branch contours rather than a global hatch.
-  const a=sample(lum,w,h,x-1,y-1),b=sample(lum,w,h,x,y-1),
-    c=sample(lum,w,h,x+1,y-1),d=sample(lum,w,h,x-1,y),
-    e=sample(lum,w,h,x+1,y),f=sample(lum,w,h,x-1,y+1),
-    g=sample(lum,w,h,x,y+1),i=sample(lum,w,h,x+1,y+1);
-  return [(c+2*e+i-a-2*d-f)/8,
-    (f+2*g+i-a-2*b-c)/8];
-};
-
 /** Paint from authorized input pixels; all calculations are deterministic and local. */
 export function createPencilPhotoStudy(source:PencilPhotoPixels,
   settings:Partial<PencilPhotoOptions>={}):PencilPhotoStudy {
@@ -97,17 +88,33 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
       toned[i*3+c]=lifted;
     }
   }
+  // A locally averaged structure tensor orients colour-pencil strokes along
+  // the photographic fur/feather/bill edge, not against a one-pixel Sobel sign.
+  const field=createPencilFlowField(lum,w,h);
+  const attention=createPencilSalience(source,field).attention;
   const pigment=new Uint8ClampedArray(data.length);
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
     const i=y*w+x;
-    const [gx,gy]=derivatives(lum,w,h,x,y);
-    const edge=limit(Math.hypot(gx,gy)*5.5,0,1)*options.edges;
-    // Preserve near-white paper and reserve dark strokes for actual source edges.
+    const edge=field.edge[i]*options.edges;
+    // Dark form accepts more pencil. Highlights remain near paper-white.
+    // Fine and coarse grain follow fixed paper positions, not redraw timing.
+    const darkness=1-lum[i];
     const dry=(pencilHash(options.seed,i,72)-.5)*options.tooth;
-    const coverage=limit(.76-options.paper*.19+edge*.10+dry*.25,.32,.96);
+    const coarse=(pencilHash(options.seed,
+      Math.floor(x/3)+Math.ceil(w/3)*Math.floor(y/3),73)-.5)*options.tooth;
+    const base=limit(.15+.58*Math.pow(darkness,.74)+edge*.12+
+      dry*.23+coarse*.16,.10,.92);
+    const subject=attention[i];
+    const active=1-options.focus*(1-subject);
+    // Body shadow should stay convincing even when salience fails at a
+    // dark back crossing the image border. Focus mutes *extra noise* outside
+    // the subject more than it erases the source's actual value anatomy.
+    const coverage=limit(base*(.72+.28*active)+
+      options.focus*subject*.18+
+      darkness*.15*(1-options.focus*.5),.03,.99);
     for(let c=0;c<3;c++){
       const mixed=paper[c]+(toned[i*3+c]-paper[c])*coverage;
-      const contour=mixed*(1-edge*.20);
+      const contour=mixed*(1-edge*.13);
       pigment[4*i+c]=limit(Math.round(contour),0,255);
     }
     pigment[4*i+3]=255;
@@ -116,44 +123,51 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
   // Layered jittered cells avoid grid/moire; seed and source values never change
   // with frame or elapsed time. All dimensions are capped to avoid browser stalls.
   const strokes:PencilPhotoMark[]=[];
-  const step=limit(Math.round(5/options.density),3,11);
+  const step=limit(Math.round(4.2/options.density),2,11);
   const gridW=Math.ceil(w/step), gridH=Math.ceil(h/step);
-  const max=30000;
+  const max=36000;
   for(let gy=0;gy<gridH;gy++)for(let gx=0;gx<gridW;gx++){
     if(strokes.length>=max)break;
     const j=gy*gridW+gx;
     const px=limit(Math.floor((gx+pencilHash(options.seed,j,91)) *step),1,w-2);
     const py=limit(Math.floor((gy+pencilHash(options.seed,j,92)) *step),1,h-2);
     const i=py*w+px;
-    const [dx,dy]=derivatives(lum,w,h,px,py);
-    const strength=limit(Math.hypot(dx,dy)*6,0,1);
+    const strength=field.edge[i];
+    const coherence=field.coherence[i];
     const darkness=1-lum[i];
     const contrast=darkness*.64+strength*.36;
     // Blank paper/highlights need fewer strokes; don't make random dark dots.
     const threshold=.16+.70*contrast;
-    if(pencilHash(options.seed,j,93)>threshold)continue;
-    const pass:(0|1|2)=strength>.24?0:
-      darkness>.42?1:2;
-    const tangent=Math.atan2(dy,dx)+Math.PI/2;
-    const angle=strength>.045?tangent:
-      (pass===1?-.58:.42)+
-      (pencilHash(options.seed,j,94)-.5)*.5;
-    const length=(pass===0?6.5:pass===1?9:4)*
-      (.64+.74*pencilHash(options.seed,j,95));
+    // Keep repeated strokes near actual anatomy, not a uniform background
+    // diagonal crosshatch that competes with fine feather or fur structure.
+    if(pencilHash(options.seed,j,93)>
+      threshold*(1-options.focus*(1-attention[i])*.94))continue;
+    const pass:(0|1|2)=strength>.25&&coherence>.4?0:
+      darkness>.43?1:2;
+    // Structural marks follow the stable local tangent. Flat paper areas
+    // receive two subtle crossing hatch directions, not random black noise.
+    const angle=strength>.065&&coherence>.34?
+      field.tangent[i]+(pencilHash(options.seed,j,94)-.5)*.24:
+      (pass===1?-.58:.48)+(pencilHash(options.seed,j,94)-.5)*.4;
+    const length=(pass===0?7.2:pass===1?13.2:8.1)*
+      (.57+.78*pencilHash(options.seed,j,95))*
+      (coherence>.7?1.12:.9);
     const vx=Math.cos(angle)*length,vy=Math.sin(angle)*length;
     const bow=(pencilHash(options.seed,j,96)-.5)*length*.12;
-    const cr=paper[0]+(toned[i*3]-paper[0])*.78;
-    const cg=paper[1]+(toned[i*3+1]-paper[1])*.78;
-    const cb=paper[2]+(toned[i*3+2]-paper[2])*.78;
+    const pigmentFactor=.35+.65*attention[i];
+    const cr=paper[0]+(toned[i*3]-paper[0])*pigmentFactor;
+    const cg=paper[1]+(toned[i*3+1]-paper[1])*pigmentFactor;
+    const cb=paper[2]+(toned[i*3+2]-paper[2])*pigmentFactor;
     // Each stroke is a colour pencil pigment, never a uniform black outline.
-    const alpha=limit((.17+.30*contrast)*
-      (pass===0?1.06:pass===1?.83:.67),.09,.51);
+    const alpha=limit((.18+.37*contrast)*
+      (pass===0?1.03:pass===1?.90:.72)*
+      (.30+attention[i]*.78+(1-options.focus)*.20),.08,.65);
     strokes.push({
       x:px,y:py,controlX:px+vx*.5-Math.sin(angle)*bow,
       controlY:py+vy*.5+Math.cos(angle)*bow,
       endX:px+vx,endY:py+vy,
       color:hex(cr*(1-.26*contrast),cg*(1-.26*contrast),cb*(1-.26*contrast)),
-      width:pass===0?.58:pass===1?.72:.36,
+      width:pass===0?.48:pass===1?.68:.40,
       alpha,pass,
     });
   }

@@ -35,8 +35,18 @@ test("reference-guided pencil renders locally loaded colour/edge structure in bo
         el.dispatchEvent(new Event("change",{bubbles:true}));
       },n);
     };
+    // The fixture deliberately contains TWO equal subjects. Disable the
+    // optional one-foreground salience heuristic for this color-preservation
+    // check; both cyan and russet areas must remain visible.
+    await setSlider("Pencil photo focus",0);
     for(const aspect of ["landscape","portrait"] as const){
       await page.getByRole("combobox",{name:"Pencil photo aspect"}).selectOption(aspect);
+      if(aspect==="portrait"){
+        // The synthetic fixture contains TWO equal subjects, so compare the
+        // complete image rather than applying the default single-subject crop.
+        await page.getByRole("combobox",{name:"Pencil portrait framing"})
+          .selectOption("fit");
+      }
       await expect(canvas).toHaveAttribute("data-km-pencil-photo","ready",{timeout:20000});
       await setSlider("Pencil photo frame",350);
       const metrics=await canvas.evaluate(node=>{
@@ -46,8 +56,16 @@ test("reference-guided pencil renders locally loaded colour/edge structure in bo
         const b=x.getImageData(Math.round(c.width*.75),Math.round(c.height*.50),1,1).data;
         return {left:[...a].slice(0,3),right:[...b].slice(0,3)};
       });
-      expect(metrics.left[0]).toBeGreaterThan(metrics.right[0]+20);
-      expect(metrics.right[2]).toBeGreaterThan(metrics.left[2]+15);
+      // Pale dry pencils preserve hue relationships even when absolute RGB
+      // values approach ivory: avoid imposing digital-photo saturation.
+      expect(metrics.left[0]-metrics.left[2]).toBeGreaterThan(20);
+      expect(metrics.right[2]-metrics.right[0]).toBeGreaterThan(6);
+      const hueDistance=Math.hypot(
+        metrics.left[0]-metrics.right[0],
+        metrics.left[1]-metrics.right[1],
+        metrics.left[2]-metrics.right[2],
+      );
+      expect(hueDistance).toBeGreaterThan(45);
       await canvas.screenshot({animations:"disabled",
         path:info.outputPath("pencil-source-guided-"+aspect+"-finished.png")});
       await setSlider("Pencil photo frame",175);
