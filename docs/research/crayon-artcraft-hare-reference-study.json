@@ -121,6 +121,36 @@
         "microdetail": "Directional comb-like scratches and contrasting underpainting",
         "light": "Layer-driven value contrast"
       }
+    },
+    {
+      "id": "licensed-anatomy-eye",
+      "url": "https://commons.wikimedia.org/wiki/File:Lepus_europaeus_(eye).jpg",
+      "title": "Lepus europaeus (eye), Hans Hillewaert, 2013",
+      "creator": "Hans Hillewaert",
+      "rights": "CC BY-SA 4.0; reference visually inspected online; image not redistributed or raster-downloaded for source-relative numerical audit",
+      "medium": "wildlife photograph",
+      "view": "close-up European hare eye",
+      "deep_study": true,
+      "visual_resolution": "Wikimedia lists original 4352x3264; observed online preview only; local pixel-measurement gate unavailable",
+      "analysis": {
+        "construction": "Amber globe sits in curved dark limbus, with upper lid overhang, pale lower fur-fold, compact medial corner",
+        "material": "Source is photographic anatomy ONLY; use Kokorina for pastel technique and separate wax material sources",
+        "microdetail": "Sparse directional pale fur adjacent to lower lid, narrow specular highlight, uneven copper iris rays",
+        "light": "Upper lid casts a shadow across the eye; pale eyelid fold separates the globe from warmer cheek"
+      },
+      "crops": [
+        {
+          "feature": "eye-and-lid",
+          "bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "observation": "Preview-based whole-file qualitative eye inspection; bbox only a placeholder extent, NOT a verified high-resolution anatomical crop",
+          "implementation_rule": "Bound aperture; separate overlapping upper/lower lids, medial canthus, iris and blink occlusion before any general fur texture"
+        }
+      ]
     }
   ],
   "feature_targets": [
@@ -144,21 +174,29 @@
     {
       "id": "eye",
       "reference_ids": [
+        "licensed-anatomy-eye",
         "anatomy-side",
         "pastel-character",
         "pencil-detail"
       ],
       "critical": true,
-      "geometry_rule": "Dark ring and separate brow/tear duct around an amber iris and opaque held blinking",
-      "source_observation": "Small glossy eye set below robust brow with inner corner",
+      "geometry_rule": "Compact dark limbus with near-round amber iris; anatomically curved supporting brow and upper/lower opaque lid volumes; connected medial canthus and true held-frame opaque blink",
+      "source_observation": "Reference has iris occupying much of the dark rim, upper overhang, lower fur-colored crescent; original output was an oversized black almond with a small gold sticker",
       "part_ids": [
-        "eye-brow-bone",
-        "eye-tear-duct",
+        "eye-socket",
+        "eye-bone-light-shelf",
+        "eye-dark-rim",
         "eye-amber-iris",
+        "iris-deep-radials",
+        "iris-gold-radials",
         "eye-pupil",
+        "eye-upper-lid-overhang",
+        "eye-lower-fur-fold",
+        "eye-lower-fur-fibers",
+        "eye-medial-canthus",
         "eyelid-painted-occlusion"
       ],
-      "test_view": "eye macro at frame 89, 95, 203 and 237",
+      "test_view": "native CRAYON1 960x540 and 540x960 eye-closeup at 3x, blink 89 and full pigment 237; source semantic photo masks and release axis metrics remain unavailable",
       "detail_critical": true
     },
     {
@@ -207,7 +245,10 @@
     "Circular eye sticker with isolated white point but no orbit or tear corner",
     "Peanut-shaped muzzle with black dot nose and no maxillary pad",
     "Two identical tapered ear triangles without attached canal and folded lip",
-    "Global random noise or uniform-angle hatching used instead of anatomical pigment boundaries"
+    "Global random noise or uniform-angle hatching used instead of anatomical pigment boundaries",
+    "Entire dark eye filled as a graphic almond while only a tiny amber round sticker remains",
+    "Opaque painted eyelid replaced by a line so that blink leaves the iris visible",
+    "Unverified web thumbnail promoted to numerical ArtCraft source-fidelity proof"
   ],
-  "evidence_state": "Source works inspected through web image search, no locally stored reference crops. ArtCraft strict v6 pixel/axis release gate remains BLOCKED; do not label source-faithful."
+  "evidence_state": "ArtCraft v7 source-observed animal eye; source-numerical five-axis/matched crop and independent aesthetic release checks NOT complete, wildlife gallery remains !dev"
 }
