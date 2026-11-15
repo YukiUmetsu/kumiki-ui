@@ -20,6 +20,7 @@ describe("strict native Crayon drawing grammar",()=>{
     expect(VerticalDrawingStudy.args?.aspect).toBe("portrait");
     expect(FourPassWaxConstruction.args??{}).toEqual({});
     expect(studioMeta.argTypes?.inspection).toBeDefined();
+    expect(studioMeta.argTypes?.comparison).toBeDefined();
   });
   for(const aspect of ["landscape","portrait"] as const){
     for(const detail of [.2,1]){
@@ -54,6 +55,17 @@ describe("strict native Crayon drawing grammar",()=>{
         if(vein?.kind==="contour")
           expect((vein.d.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(5);
         expect(plan.subjects[0].attachments).toHaveLength(2);
+        // The ground contact must be derived from the actual transformed pear
+        // contour, not a separate aspect-ratio magic number (prevents floating
+        // portrait fruit and sunken landscape fruit).
+        const shadow=nodes.get("cast-shadow");
+        if(pear?.kind!=="wax"||shadow?.kind!=="wax"||
+          !pear.placement||typeof pear.placement.scale!=="number")
+          throw new Error("Missing source ground-contact geometry");
+        const shadowOrigin=/^M(-?[\\d.]+) (-?[\\d.]+) C/.exec(shadow.d);
+        expect(shadowOrigin).not.toBeNull();
+        expect(Number(shadowOrigin?.[2])+3).toBeCloseTo(
+          pear.placement.y+180*pear.placement.scale,5);
         expect(plan.ambientIds).toContain("fruit-contact-umbra");
         expect(nodes.get("fruit-contact-umbra")?.kind).toBe("wax");
         const leafMidrib=nodes.get("leaf-midrib-undertone");
@@ -89,6 +101,17 @@ describe("strict native Crayon drawing grammar",()=>{
         expect(html).toContain('data-km-crayon-element="pear-body"');
         expect(html).toContain("Structure passes");
       }
+    });
+    it("provides matched and responsive native optical-tooth A/B at "+aspect,()=>{
+      const html=renderToStaticMarkup(<CrayonDrawingStudio {...params(aspect)}
+        comparison="tooth" underpaintTooth={.82} inspection="surface"
+        startFrame={239} playbackRate={1} loop={false}/>);
+      expect(html).toContain('data-km-crayon-material-ab=""');
+      expect(html).toContain("Opaque wax without tooth");
+      expect(html).toContain("Opaque wax with tooth");
+      expect((html.match(/data-km-crayon-scene=/g)??[])).toHaveLength(3);
+      expect(html).toContain('data-km-crayon-underpaint-tooth="0.82"');
+      expect(html).toContain('data-km-crayon-inspection="surface"');
     });
     it("provides a responsive, descriptive SVG workbench at "+aspect,()=>{
       const html=renderToStaticMarkup(<CrayonDrawingStudio {...params(aspect)}
