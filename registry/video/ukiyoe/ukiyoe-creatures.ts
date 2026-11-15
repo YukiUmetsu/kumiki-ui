@@ -15,12 +15,12 @@ import type { UkiyoeYokai } from "./ukiyoe-yokai";
 import { drawYokai, UKIYOE_YOKAI } from "./ukiyoe-yokai";
 import type { UkiyoeFill, UkiyoePaint } from "./ukiyoe-pigments";
 
-export type UkiyoeSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "crane" | "heron" | "crow" | "pheasant" | "sparrow" | "dragon" | UkiyoeYokai;
-export const UKIYOE_SPECIES: readonly UkiyoeSpecies[] = ["fox", "tanuki", "dog", "cat", "rabbit", "crane", "heron", "crow", "pheasant", "sparrow", "dragon", ...UKIYOE_YOKAI];
+export type UkiyoeSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse" | "crane" | "heron" | "crow" | "pheasant" | "sparrow" | "dragon" | UkiyoeYokai;
+export const UKIYOE_SPECIES: readonly UkiyoeSpecies[] = ["fox", "tanuki", "dog", "cat", "rabbit", "monkey", "horse", "crane", "heron", "crow", "pheasant", "sparrow", "dragon", ...UKIYOE_YOKAI];
 export type UkiyoeCreatureActionType = "walk" | "run" | "fly" | "hop" | "float" | "sit" | "stand" | "look" | "leap" | "howl" | "drum" | "peck" | "dance" | "coil" | "roar" | "transform" | "sleep"
-  | "beckon" | "blow" | "vanish" | "appear";
+  | "beckon" | "blow" | "vanish" | "appear" | "bow" | "fan" | "stretch";
 export const UKIYOE_CREATURE_ACTIONS: readonly UkiyoeCreatureActionType[] = ["walk", "run", "fly", "hop", "float", "sit", "stand", "look", "leap", "howl", "drum", "peck", "dance", "coil", "roar", "transform", "sleep",
-  "beckon", "blow", "vanish", "appear"];
+  "beckon", "blow", "vanish", "appear", "bow", "fan", "stretch"];
 
 export interface UkiyoeCreatureLook {
   color?: UkiyoePaint;
@@ -38,6 +38,8 @@ export interface UkiyoeCreatureLook {
   bottle?: boolean;
   /** Dragon: the flaming pearl it chases. */
   pearl?: boolean;
+  /** Horse: harness, saddle cloth and pack (a Tōkaidō packhorse). */
+  tack?: boolean;
 }
 export interface UkiyoeCreatureAction { type: UkiyoeCreatureActionType; start: number; end: number; to?: number; toY?: number; via?: readonly (readonly [number, number])[]; angle?: number; amount?: number; blend?: number }
 export interface UkiyoeCreatureSpec { species: UkiyoeSpecies; look?: UkiyoeCreatureLook; actions?: readonly UkiyoeCreatureAction[]; facing?: "left" | "right" }
@@ -92,13 +94,16 @@ const rot = (p: Pt, deg: number, about: Pt): Pt => { const r = deg * DEG, c = Ma
 
 interface Beast {
   L: number; bh: number; leg: number; color: UkiyoePaint; belly: UkiyoePaint; dark: UkiyoePaint; head: number; tail: number; tailW: number;
-  ears: "fox" | "round" | "cat" | "rabbit" | "dog"; snout: number;
+  ears: "fox" | "round" | "cat" | "rabbit" | "dog" | "horse" | "monkey"; snout: number;
+  /** Neck length (× the usual), head tilt (deg, + turns the face down), mane colour, hooves, bare-skinned face colour. */
+  neck?: number; headTilt?: number; mane?: UkiyoePaint; hoof?: boolean; face?: UkiyoePaint;
   /** Belly tuck (+ up at the waist, − sagging), chest depth, fur length (fraction of body height), hairline density. */
   tuck: number; chest: number; fur: number; hairs: number;
   /** Long-coat colour for ruff, cheeks and belly fringe; lower-leg colour ("stockings"); eye iris; slit pupil. */
   ruff: UkiyoePaint; stocking?: UkiyoePaint; iris: UkiyoePaint; slit: boolean; tailTip?: UkiyoePaint;
 }
-const BEASTS: Readonly<Record<"fox" | "tanuki" | "dog" | "cat" | "rabbit", Beast>> = {
+type QuadSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse";
+const BEASTS: Readonly<Record<QuadSpecies, Beast>> = {
   fox: { L: 150, bh: 46, leg: 54, color: "tan", belly: "gofun", dark: "kogecha", head: 34, tail: 118, tailW: 36, ears: "fox", snout: 1.25,
     tuck: .2, chest: .14, fur: .2, hairs: 1, ruff: "gofun", stocking: "sumi", iris: "ki", slit: true, tailTip: "gofun" },
   tanuki: { L: 128, bh: 60, leg: 34, color: "cha", belly: "kincha", dark: "kogecha", head: 32, tail: 70, tailW: 32, ears: "round", snout: .75,
@@ -109,6 +114,12 @@ const BEASTS: Readonly<Record<"fox" | "tanuki" | "dog" | "cat" | "rabbit", Beast
     tuck: .1, chest: .08, fur: .07, hairs: .6, ruff: "gofun", iris: "ki", slit: true },
   rabbit: { L: 86, bh: 48, leg: 26, color: "gofun", belly: "gofun", dark: "usuzumi", head: 26, tail: 14, tailW: 14, ears: "rabbit", snout: .6,
     tuck: 0, chest: .04, fur: .14, hairs: .8, ruff: "gofun", iris: "beni", slit: false },
+  // The Japanese macaque of Koson's prints: shaggy grey-brown coat, a bare red face, small ears at the side, a stub tail.
+  monkey: { L: 92, bh: 44, leg: 64, head: 30, tail: 16, tailW: 12, ears: "monkey", snout: .25, tuck: .06, chest: .1, fur: .12, hairs: 1.3,
+    color: "usuzumi", belly: "usuzumi", dark: "kogecha", ruff: "usuzumi", iris: "cha", slit: false, face: "beni", headTilt: 6, neck: .2 },
+  // A bay packhorse: long legs, a long arched neck and long head, black mane, tail and stockings, hooves.
+  horse: { L: 200, bh: 76, leg: 118, head: 40, tail: 110, tailW: 30, ears: "horse", snout: 1.75, tuck: .1, chest: .18, fur: .03, hairs: .45,
+    color: "cha", belly: "cha", dark: "kogecha", ruff: "cha", stocking: "sumi", iris: "kogecha", slit: false, neck: 2.3, headTilt: 48, mane: "sumi", hoof: true },
 };
 
 const lerp2 = (a: Pt, b: Pt, t: number): Pt => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
@@ -125,6 +136,15 @@ function smoothPts(points: readonly Pt[], per = 6, closed = true): Pt[] {
   }
   if (!closed) out.push(points[n - 1]);
   return out;
+}
+/** A ribbon along a spine, tapering from w0 to w1, as a closed path. */
+function ribbonQ(spine: readonly Pt[], w0: number, w1: number): string {
+  const L: Pt[] = [], Rr: Pt[] = [];
+  spine.forEach((q, i) => {
+    const a = spine[Math.max(0, i - 1)], c = spine[Math.min(spine.length - 1, i + 1)], l = Math.hypot(c[0] - a[0], c[1] - a[1]) || 1, w = lerp(w0, w1, i / Math.max(1, spine.length - 1)) / 2;
+    L.push([q[0] - (c[1] - a[1]) / l * w, q[1] + (c[0] - a[0]) / l * w]); Rr.push([q[0] + (c[1] - a[1]) / l * w, q[1] - (c[0] - a[0]) / l * w]);
+  });
+  return smoothD([...L, ...Rr.reverse()], true, .35);
 }
 /** Tangent (unit) of a polyline at arc length s. */
 function tangentAt(pts: readonly Pt[], s: number): Pt {
@@ -219,7 +239,19 @@ function beastHead(b: Beast, species: string, hs: number, open: number, blink: b
   else if (b.ears === "cat") out.push(...ear(-.36, .6, .32, -.02, true), ...ear(.12, .64, .3, .06, false));
   else if (b.ears === "round") out.push({ t: "fill", d: ellipseD(-.46 * hs, -.6 * hs, .27 * hs, .25 * hs) + ellipseD(.08 * hs, -.72 * hs, .25 * hs, .23 * hs), fill: dark, outline: 1.1 },
     { t: "fill", d: ellipseD(-.44 * hs, -.58 * hs, .14 * hs, .12 * hs) + ellipseD(.09 * hs, -.69 * hs, .13 * hs, .11 * hs), fill: belly, opacity: .7, noPrint: true });
-  else if (b.ears === "rabbit") {
+  else if (b.ears === "horse") {
+    // Tall, narrow, pointed ears on top of the poll, turning a little now and then.
+    const flick = Math.sin(seed + 1) * .08;
+    const hEar = (dx: number, lean: number): Prim[] => {
+      const base: Pt[] = [P(dx - .13, -.62), P(dx - .12 + lean, -1.05), P(dx + .02 + lean * 1.4, -1.32), P(dx + .1 + lean, -1.02), P(dx + .14, -.6)];
+      return [{ t: "fill", d: smoothD(base, true, .3), fill: color, outline: 1.1 }, { t: "fill", d: smoothD([P(dx - .05, -.68), P(dx - .03 + lean, -1.05), P(dx + .02 + lean * 1.3, -1.22), P(dx + .06 + lean, -1.0), P(dx + .07, -.66)], true, .3), fill: dark, opacity: .8, noPrint: true }];
+    };
+    out.push(...hEar(-.42, -.06 + flick), ...hEar(-.22, .05 - flick));
+  } else if (b.ears === "monkey") {
+    // Small, rounded, nearly bare ears low at the side of the head.
+    out.push({ t: "fill", d: smoothD([P(-.42, -.32), P(-.58, -.42), P(-.68, -.22), P(-.6, -.02), P(-.44, -.06)], true, .5), fill: b.face ?? "hada", outline: 1, opacity: .95 },
+      { t: "stroke", d: smoothD([P(-.5, -.3), P(-.6, -.22), P(-.54, -.1)], false, .5), color: "kogecha", width: .7, opacity: .7 });
+  } else if (b.ears === "rabbit") {
     const flop = Math.sin(seed) * .1;
     const longEar = (x0: number, x1: number, tipX: number, tipY: number): Prim[] => {
       const outerE: Pt[] = [P(x0, -.5), P(x0 - .22 + flop, -1.3), P(tipX + flop, tipY), P(x1 + .1 + flop * .5, -1.3), P(x1, -.52)];
@@ -230,17 +262,34 @@ function beastHead(b: Beast, species: string, hs: number, open: number, blink: b
     out.push(...longEar(-.52, -.18, -.5, -2.0), ...longEar(-.16, .14, .1, -2.05));
   }
   // Skull: occiput, crown, forehead, the stop between the eyes, the muzzle down to the nose, the jaw and the throat.
-  const skull: Pt[] = [P(-.72, .08), P(-.62, -.5), P(-.2, -.72), P(.24, -.62), P(.46, -.4), P(.5 + .62 * sn, -.12), P(.6 + .72 * sn, .04), P(.56 + .66 * sn, .16),
-    P(.44 + .5 * sn, .26), P(.12, .44), P(-.36, .52)];
+  // The horse's head is its own shape: a flat forehead and a straight nose, a deep rounded muzzle and chin, and the
+  // big round jowl at the back of the jaw.
+  const skull: Pt[] = species === "horse"
+    ? [P(-.62, .02), P(-.5, -.5), P(-.15, -.62), P(.4, -.52), P(1.1, -.36), P(1.6, -.22), P(1.78, -.02), P(1.74, .22), P(1.56, .36), P(1.36, .36), P(1.2, .44), P(.75, .42), P(.15, .6), P(-.3, .55)]
+    : [P(-.72, .08), P(-.62, -.5), P(-.2, -.72), P(.24, -.62), P(.46, -.4), P(.5 + .62 * sn, -.12), P(.6 + .72 * sn, .04), P(.56 + .66 * sn, .16),
+      P(.44 + .5 * sn, .26), P(.12, .44), P(-.36, .52)];
   // No key line under the skull, where the head flows into the neck: the line runs from the nape over the crown and down
   // the face to the jaw.
   out.push({ t: "fill", d: smoothD(skull, true, .36), fill: color, grain: .2 });
-  const faceLine = smoothPts(skull.slice(0, 10), 5, false);
+  const faceLine = smoothPts(skull.slice(0, species === "horse" ? 13 : 10), 5, false);
   out.push({ t: "line", d: carvedLine(faceLine, hs * .05, { taper: "both", minRatio: .25, smooth: true }), color: "sumi" });
   // Pale muzzle and cheek (fox, dog: urajiro), or a dark mask (tanuki).
   if (longMuzzle || species === "cat" || species === "rabbit")
     out.push({ t: "fill", d: smoothD([P(-.5, .38), P(-.1, .06), P(.3, .04), P(.5 + .6 * sn, .06), P(.56 + .66 * sn, .16), P(.42 + .48 * sn, .28), P(.1, .45), P(-.36, .52)], true, .4), fill: ruff, noPrint: true });
   if (species === "tanuki") out.push({ t: "fill", d: smoothD([P(-.38, -.28), P(-.05, -.44), P(.36, -.32), P(.62, -.08), P(.42, .14), P(.1, .04), P(-.25, .14), P(-.45, .02)], true, .45), fill: dark, opacity: .95 });
+  if (b.face) {
+    // The macaque's bare red face: a heart-shaped mask from the brow over the eyes and muzzle, ringed by grey fur.
+    out.push({ t: "fill", d: smoothD([P(.12, -.42), P(.38, -.48), P(.62, -.32), P(.72, -.04), P(.64, .22), P(.42, .36), P(.2, .3), P(.1, .06), P(.04, -.2)], true, .4), fill: b.face, outline: .8, grain: .3 });
+    out.push({ t: "fill", d: smoothD([P(.06, -.42), P(.34, -.5), P(.6, -.34), P(.36, -.36)], true, .4), fill: "sumi", opacity: .18, noPrint: true });
+  }
+  if (species === "horse") {
+    // The long face: the cheek's round jowl, the bony line down the nose, the soft muzzle and the chin.
+    out.push({ t: "line", d: carvedLine(smoothPts([P(-.35, -.1), P(-.25, .3), P(.1, .5), P(.5, .35), P(.6, .1)], 5, false), hs * .035, { taper: "both", minRatio: .2, smooth: true }), color: "sumi", opacity: .7 });
+    out.push({ t: "fill", d: smoothD([P(1.25, -.3), P(1.6, -.22), P(1.78, -.02), P(1.74, .22), P(1.56, .36), P(1.3, .3)], true, .4), fill: "sumi", opacity: .32, noPrint: true });
+    out.push({ t: "line", d: carvedLine([P(.15, -.48), P(.8, -.36), P(1.3, -.24)], hs * .02, { taper: "both", minRatio: .3, smooth: true }), color: dark, opacity: .5 });
+    out.push({ t: "line", d: carvedLine([P(1.72, .22), P(1.5, .26), P(1.34, .3)], hs * .035, { taper: "end", minRatio: .3, smooth: true }), color: "sumi" });
+    out.push({ t: "fill", d: smoothD([P(-.5, -.5), P(-.25, -.75), P(.05, -.72), P(.1, -.5), P(-.1, -.38)], true, .4), fill: b.mane ?? "sumi", outline: .7 });
+  }
   // Cheek ruff: long fur flaring back from the jaw (fox, tanuki, rabbit).
   if (b.fur > .1) {
     // A pale lobe of long hair from the cheek back under the ear, its edge breaking into locks lying back.
@@ -254,12 +303,16 @@ function beastHead(b: Beast, species: string, hs: number, open: number, blink: b
   // Mouth: the jaw opens below a black lip line that runs from the nose back to the corner of the mouth.
   if (open > .05) out.push({ t: "fill", d: smoothD([P(.16, .24), P(.5 + .6 * sn, .14), P(.44 + .48 * sn, .26 + .36 * open), P(.1, .34 + .1 * open)], true, .3), fill: "shu", outline: 1 },
     { t: "fill", d: polyD([P(.38 + .46 * sn, .15), P(.42 + .5 * sn, .25), P(.34 + .42 * sn, .17)]), fill: "gofun", noPrint: true });
-  out.push({ t: "line", d: carvedLine([P(.58 + .68 * sn, .12), P(.4 + .45 * sn, .24), P(.14, .26)], hs * .05, { taper: "end", minRatio: .3, smooth: true }), color: "sumi" });
+  if (species !== "horse") out.push({ t: "line", d: carvedLine([P(.58 + .68 * sn, .12), P(.4 + .45 * sn, .24), P(.14, .26)], hs * .05, { taper: "end", minRatio: .3, smooth: true }), color: "sumi" });
   // Nose leather with a nostril, and a line up the bridge of the muzzle.
-  out.push({ t: "fill", d: smoothD([P(.52 + .66 * sn, -.04), P(.63 + .74 * sn, .0), P(.62 + .72 * sn, .1), P(.53 + .64 * sn, .1)], true, .4), fill: species === "rabbit" ? "sakura" : "sumi", outline: .6 });
-  out.push({ t: "line", d: carvedLine([P(.42, -.36), P(.52 + .6 * sn, -.12)], hs * .03, { taper: "both", minRatio: .3 }), color: dark, opacity: .55 });
+  if (species === "horse") out.push({ t: "fill", d: smoothD([P(1.5, -.06), P(1.66, -.06), P(1.64, .06), P(1.52, .05)], true, .5), fill: "sumi", opacity: .85 });
+  else if (species === "monkey") out.push({ t: "dots", d: circleD((.56 + .7 * sn) * hs, .06 * hs, hs * .035) + circleD((.5 + .7 * sn) * hs, .08 * hs, hs * .035), color: "sumi" });
+  else out.push({ t: "fill", d: smoothD([P(.52 + .66 * sn, -.04), P(.63 + .74 * sn, .0), P(.62 + .72 * sn, .1), P(.53 + .64 * sn, .1)], true, .4), fill: species === "rabbit" ? "sakura" : "sumi", outline: .6 });
+  if (species !== "horse") out.push({ t: "line", d: carvedLine([P(.42, -.36), P(.52 + .6 * sn, -.12)], hs * .03, { taper: "both", minRatio: .3 }), color: dark, opacity: .55 });
   // Eye: dark rim (heavier on the upper lid), iris, pupil (slit for fox and cat), catchlight; brow hairs above it.
-  const ex = species === "tanuki" ? .14 : .1, ey = -.24, ew = species === "rabbit" ? .13 : .16, eh = species === "rabbit" ? .11 : .09;
+  // The monkey's eyes look forward from under a heavy brow; the horse's sit high and far back on its long head.
+  const ex = species === "tanuki" ? .14 : species === "monkey" ? .36 : species === "horse" ? .04 : .1, ey = species === "horse" ? -.3 : species === "monkey" ? -.22 : -.24;
+  const ew = species === "rabbit" ? .13 : species === "monkey" ? .12 : .16, eh = species === "rabbit" ? .11 : species === "monkey" ? .1 : .09;
   if (blink) out.push({ t: "line", d: carvedLine([P(ex - ew, ey), P(ex, ey + .05), P(ex + ew * 1.05, ey - .01)], hs * .055, { taper: "both", minRatio: .4 }), color: "sumi" });
   else {
     const almond = smoothD([P(ex - ew, ey + .02), P(ex - ew * .2, ey - eh), P(ex + ew * 1.05, ey - .02), P(ex + ew * .1, ey + eh * .85)], true, .5);
@@ -270,13 +323,13 @@ function beastHead(b: Beast, species: string, hs: number, open: number, blink: b
   }
   out.push({ t: "stroke", d: [0, 1, 2].map(i => { const a = P(ex - .06 + i * .09, ey - .16), e = P(ex - .12 + i * .1, ey - .28 - i * .02); return `M${a[0].toFixed(1)} ${a[1].toFixed(1)}L${e[0].toFixed(1)} ${e[1].toFixed(1)}`; }).join(""), color: dark, width: .7, opacity: .6 });
   // Whisker pads and whiskers.
-  out.push({ t: "dots", d: [0, 1, 2].map(i => circleD((.36 + .42 * sn + i * .05) * hs, (.14 + (i % 2) * .05) * hs, hs * .018)).join(""), color: "sumi" });
+  if (species !== "horse" && species !== "monkey") out.push({ t: "dots", d: [0, 1, 2].map(i => circleD((.36 + .42 * sn + i * .05) * hs, (.14 + (i % 2) * .05) * hs, hs * .018)).join(""), color: "sumi" });
   if (species === "cat" || species === "rabbit" || species === "tanuki" || species === "fox")
     out.push({ t: "stroke", d: [0, 1, 2].map(i => `M${((.38 + .44 * sn) * hs).toFixed(1)} ${((.15 + i * .05) * hs).toFixed(1)}q${(hs * .4).toFixed(1)} ${(hs * (i - 1) * .05).toFixed(1)} ${(hs * .8).toFixed(1)} ${(hs * ((i - 1) * .16 + .04)).toFixed(1)}`).join(""), color: "sumi", width: .7, opacity: .55 });
   return out;
 }
 
-function quadruped(species: "fox" | "tanuki" | "dog" | "cat" | "rabbit", spec: UkiyoeCreatureSpec, frame: number, wind: number, seed: number): Prim[] {
+function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number, wind: number, seed: number): Prim[] {
   const b = BEASTS[species], look = spec.look ?? {}, k = (look.size ?? b.L) / b.L;
   const L = b.L * k, leg = b.leg * k, bh = b.bh * k, hs = b.head * k, fur = bh * b.fur;
   const color = look.color ?? b.color, belly = look.belly ?? b.belly, dark = look.dark ?? b.dark;
@@ -366,9 +419,17 @@ function quadruped(species: "fox" | "tanuki" | "dog" | "cat" | "rabbit", spec: U
       // Stockings: the dark lower leg of the fox.
       if (stocking) out.push({ t: "fill", d: carvedLine([[lerp(knee[0], joint[0], .55), lerp(knee[1], joint[1], .55)], joint, paw], w0 * .44, { taper: "end", minRatio: .6, smooth: true }), fill: stocking, opacity: .92 });
       // Paw with toes.
-      const pawD = smoothD([[paw[0] - w1 * .9, paw[1] - w1 * .3], [paw[0] + w1 * .2, paw[1] - w1 * .85], [paw[0] + w1 * 1.9, paw[1] - w1 * .3], [paw[0] + w1 * 1.7, paw[1] + w1 * .45], [paw[0] - w1 * .7, paw[1] + w1 * .45]], true, .45);
-      out.push({ t: "fill", d: pawD, fill: stocking ?? legColor, outline: 1 });
-      out.push({ t: "stroke", d: [.55, 1.15].map(f => `M${(paw[0] + w1 * f).toFixed(1)} ${(paw[1] + w1 * .45).toFixed(1)}l${(-w1 * .15).toFixed(1)} ${(-w1 * .55).toFixed(1)}`).join(""), color: "sumi", width: .8, opacity: .8 });
+      if (b.hoof) {
+        // A hoof: the fetlock's tuft over a dark horn cap, wider at the ground, the toe forward.
+        const hw = w1 * 1.25;
+        out.push({ t: "fill", d: polyD([[paw[0] - hw * .8, paw[1] - hw * 1.3], [paw[0] + hw * .7, paw[1] - hw * 1.3], [paw[0] + hw * 1.25, paw[1] + hw * .35], [paw[0] - hw * 1, paw[1] + hw * .35]]), fill: "sumi", outline: 1 });
+        out.push({ t: "fill", d: smoothD([[paw[0] - hw * 1.1, paw[1] - hw * 1.2], [paw[0] - hw * .3, paw[1] - hw * 2.2], [paw[0] + hw * .9, paw[1] - hw * 1.5], [paw[0] + hw * .2, paw[1] - hw * 1.1]], true, .4), fill: stocking ?? legColor, noPrint: true });
+        out.push({ t: "stroke", d: `M${(paw[0] - hw * .6).toFixed(1)} ${(paw[1] - hw * .4).toFixed(1)}l${(hw * 1.4).toFixed(1)} 0`, color: "usuzumi", width: .7, opacity: .6 });
+      } else {
+        const pawD = smoothD([[paw[0] - w1 * .9, paw[1] - w1 * .3], [paw[0] + w1 * .2, paw[1] - w1 * .85], [paw[0] + w1 * 1.9, paw[1] - w1 * .3], [paw[0] + w1 * 1.7, paw[1] + w1 * .45], [paw[0] - w1 * .7, paw[1] + w1 * .45]], true, .45);
+        out.push({ t: "fill", d: pawD, fill: species === "monkey" ? "kogecha" : stocking ?? legColor, outline: 1 });
+        out.push({ t: "stroke", d: (species === "monkey" ? [.3, .75, 1.2] : [.55, 1.15]).map(f => `M${(paw[0] + w1 * f).toFixed(1)} ${(paw[1] + w1 * .45).toFixed(1)}l${(-w1 * .15).toFixed(1)} ${(-w1 * .55).toFixed(1)}`).join(""), color: "sumi", width: .8, opacity: .8 });
+      }
       // Hairlines down the leg.
       out.push({ t: "stroke", d: (near ? furAlong([massTop, root, knee], w0 * 1.4, Math.round(16 * b.hairs), bh * .13, seed + (hind ? 1 : 2)) : "") + furAlong([knee, joint, paw], w0 * .45, Math.round(6 * b.hairs), bh * .09, seed + 3), color: dark, width: .55, opacity: .42 });
       if (!near) out.push({ t: "fill", d: upper + lower, fill: "sumi", opacity: .22, noPrint: true });
@@ -382,14 +443,26 @@ function quadruped(species: "fox" | "tanuki" | "dog" | "cat" | "rabbit", spec: U
   for (let t = 0; t < tails; t++) {
     const fan = tails > 1 ? (t / (tails - 1) - .5) * 110 : 0;
     const pts: Pt[] = [tailRoot];
-    let a = (species === "dog" ? -60 : species === "rabbit" ? -150 : species === "cat" ? -120 : -165) + fan + pitch * .6, at = tailRoot;
+    let a = (species === "dog" ? -60 : species === "rabbit" ? -150 : species === "cat" ? -120 : species === "horse" ? -178 : species === "monkey" ? -140 : -165) + fan + pitch * .6, at = tailRoot;
     const segs = 10, len = b.tail * k;
     for (let i = 0; i < segs; i++) {
       const u = i / segs;
-      a += (species === "dog" ? -24 : species === "cat" ? 6 + Math.sin(frame / 14 + t) * 10 : 3) + Math.sin(frame / 9 + i * .6 + t + seed) * (4 + 8 * u) * (1 + moving)
+      a += (species === "dog" ? -24 : species === "cat" ? 6 + Math.sin(frame / 14 + t) * 10 : species === "horse" ? -13 * (1 - u * .5) + (moving ? 2 : 0) : 3) + Math.sin(frame / 9 + i * .6 + t + seed) * (4 + 8 * u) * (1 + moving)
         - wind * 8 * u * (species === "rabbit" ? 0 : 1) + (sit * 12);
       at = polar(at, a, len / segs);
       pts.push(at);
+    }
+    if (species === "horse") {
+      // A horse's tail: a short dock, then a long fall of hair in strands, swinging and parting as it moves.
+      const strands: string[] = [];
+      for (let k2 = 0; k2 < 9; k2++) {
+        const off = (k2 - 4) / 4, sp: Pt[] = pts.map((q, i) => { const u = i / (pts.length - 1); return add(q, [off * b.tailW * k * .25 * u + Math.sin(frame / 10 + k2 + u * 3) * b.tailW * k * .08 * u, off * b.tailW * k * .1 * u]); });
+        strands.push(ribbonQ(sp.slice(1), b.tailW * k * .32, b.tailW * k * .03));
+      }
+      tailPrims.push({ t: "fill", d: carvedLine(pts.slice(0, 3), b.tailW * k * .45, { taper: "end", minRatio: .6, smooth: true }), fill: color, outline: 1 });
+      tailPrims.push({ t: "stroke", d: strands.join(""), color: "sumi", width: 1.6 }, { t: "fill", d: strands.join(""), fill: b.mane ?? "sumi" });
+      tailPrims.push({ t: "stroke", d: strands.join(""), color: "usuzumi", width: .5, opacity: .35 });
+      continue;
     }
     if (species === "rabbit") {
       const puffD = furEdge(Array.from({ length: 13 }, (_, i) => polar([tailRoot[0] - 4 * k, tailRoot[1]], i * 30, b.tailW * k * .45)), b.tailW * k * .3, 1, 1, seed + 51);
@@ -421,8 +494,9 @@ function quadruped(species: "fox" | "tanuki" | "dog" | "cat" | "rabbit", spec: U
   // Head on the neck: pitch for howl/look, lowered for sleep.
   const howl = st("howl").w, lk = st("look"), roar = st("roar").w;
   const headPitch = -55 * howl + (lk.a?.angle ?? -10) * lk.w + 30 * sleep + 10 * sit - pitch * .55;
-  const neck = R([L * .44, top + bh * .05]);
-  const headC = add(neck, rot([hs * .9, -hs * (.55 - .8 * sleep)], -headPitch * .3 + pitch * .45, [0, 0]));
+  const neck = R([L * .44, top + bh * .05]), nl = b.neck ?? 1, headRot = headPitch + (b.headTilt ?? 0) * (1 - .6 * sleep);
+  // A long neck (the horse's) rises steeply from the withers; the head hangs from its end, tilted face-down.
+  const headC = add(neck, rot([hs * .9 * (nl > 1 ? .55 * nl : 1), -hs * (.55 - .8 * sleep) * (nl > 1 ? 1.25 * nl : nl)], -headPitch * .3 + pitch * .45, [0, 0]));
   const blink = (frame + (seed % 97)) % 97 < 4 || sleep > .5;
   const open = Math.max(howl * (.6 + .3 * Math.sin(frame / 3)), roar);
   const out: Prim[] = [];
@@ -430,7 +504,7 @@ function quadruped(species: "fox" | "tanuki" | "dog" | "cat" | "rabbit", spec: U
   out.push(...legPrims(false), ...tailPrims);
   // Neck and coat: one silhouette with one key line. The neck sweeps up from the withers and the chest to the nape and
   // the throat; long-coated animals carry a pale throat ruff from the cheeks down to the chest.
-  const hp = (x: number, y: number) => add(headC, rot([x * hs, y * hs], headPitch, [0, 0]));
+  const hp = (x: number, y: number) => add(headC, rot([x * hs, y * hs], headRot, [0, 0]));
   const withers = R([L * .28, top - bh * .05]), chestFront = R([L * .5, hip[1] + bh * .05]), nape = hp(-.5, -.42), throat = hp(-.05, .42);
   const throatEdge = smoothPts([throat, add(lerp2(throat, chestFront, .5), rot([bh * .08, 0], pitch, [0, 0])), chestFront], 4, false);
   const throatTufts = fur > 1.2 ? tufted(throatEdge, u => fur * .8 * Math.sin(Math.PI * Math.min(1, u * 1.2 + .1)) ** .5, -1, () => 1, seed + 77) : throatEdge;
@@ -459,7 +533,27 @@ function quadruped(species: "fox" | "tanuki" | "dog" | "cat" | "rabbit", spec: U
     { t: "fill", d: smoothD([R([L * .22, top]), R([L * .42, top + bh * .05]), R([L * .38, top + bh * .3]), R([L * .25, top + bh * .3])], true, .5), fill: "ki", opacity: .9 }] });
   if (species === "tanuki") out.push({ t: "clip", d: coatD, key: "tbelly", prims: [{ t: "fill", d: ellipseD(...R([L * .05, by - bh * .1]), L * .3, bh * .38), fill: belly, opacity: .9 }] });
   out.push(...legPrims(true));
-  out.push({ t: "group", transform: `translate(${headC[0].toFixed(1)} ${headC[1].toFixed(1)}) rotate(${(headPitch).toFixed(1)})`, prims: beastHead(b, species, hs, open, blink, look, seed) });
+  // The horse's mane falls from the crest of the neck in long locks over its side, the forelock between the ears.
+  if (b.mane) {
+    const crest = smoothPts([lerp2(withers, nape, .02), lerp2(withers, nape, .5), lerp2(nape, hp(-.1, -.62), .6)], 6, false);
+    const fall = crest.map((q, i) => { const u = i / (crest.length - 1); return add(q, [-hs * (.18 + .1 * Math.sin(frame / 13 + u * 5)) - wind * hs * .1, hs * (.5 - .2 * u) + (moving ? Math.sin(ph + u * 3) * hs * .06 : 0)]); });
+    const locks = tufted(fall, () => hs * .2, 1, () => 1, seed + 91);
+    const maneD = polyD([...crest, ...locks.slice().reverse()]);
+    out.push({ t: "fill", d: maneD, fill: b.mane, outline: .8, grain: .3 }, { t: "stroke", d: crest.slice(1, -1).map((q, i) => { const e = fall[i + 1]; return `M${q[0].toFixed(1)} ${q[1].toFixed(1)}L${lerp(q[0], e[0], .9).toFixed(1)} ${lerp(q[1], e[1], .9).toFixed(1)}`; }).join(""), color: "usuzumi", width: .6, opacity: .5 });
+  }
+  if (look.tack && species === "horse") {
+    // Harness of the packhorses on the Tōkaidō: a red breast strap and crupper, a striped saddle cloth, a pack on top.
+    const strap = (pts: Pt[], w: number) => carvedLine(pts, w, { taper: "none", smooth: true });
+    out.push({ t: "fill", d: smoothD([R([-L * .22, top - bh * .02]), R([L * .2, top - bh * .04]), R([L * .22, top + bh * .62]), R([-L * .24, top + bh * .62])], true, .2), fill: "ai", outline: 1, pattern: { type: "shima", color: "gofun", scale: .5, opacity: .7 } });
+    out.push({ t: "fill", d: smoothD([R([-L * .14, top - bh * .32]), R([L * .12, top - bh * .34]), R([L * .16, top + bh * .05]), R([-L * .18, top + bh * .06])], true, .3), fill: "kincha", outline: 1, grain: .7 });
+    out.push({ t: "stroke", d: [-.08, 0, .08].map(f => `M${R([L * f, top - bh * .33])[0].toFixed(1)} ${R([L * f, top - bh * .33])[1].toFixed(1)}L${R([L * (f + .02), top + bh * .05])[0].toFixed(1)} ${R([L * (f + .02), top + bh * .05])[1].toFixed(1)}`).join(""), color: "cha", width: 1, opacity: .7 });
+    out.push({ t: "fill", d: strap([R([L * .2, top + bh * .1]), R([L * .5, hip[1] - bh * .02]), R([L * .48, by - bh * .1])], bh * .08) + strap([R([-L * .22, top + bh * .1]), R([-L * .48, hip[1] - bh * .1]), R([-L * .44, hip[1] + bh * .2])], bh * .08), fill: "shu", outline: .7 });
+    out.push({ t: "dots", d: [R([L * .38, hip[1] - bh * .12]), R([L * .46, hip[1] + bh * .02]), R([-L * .38, hip[1] - bh * .14])].map(q => circleD(q[0], q[1], bh * .05)).join(""), color: "kin" });
+  }
+  out.push({ t: "group", transform: `translate(${headC[0].toFixed(1)} ${headC[1].toFixed(1)}) rotate(${headRot.toFixed(1)})`, prims: beastHead(b, species, hs, open, blink, look, seed) });
+  if (look.tack && species === "horse") out.push({ t: "group", transform: `translate(${headC[0].toFixed(1)} ${headC[1].toFixed(1)}) rotate(${headRot.toFixed(1)})`, prims: [
+    { t: "stroke", d: `M${(-.35 * hs).toFixed(1)} ${(-.55 * hs).toFixed(1)}Q${(-.2 * hs).toFixed(1)} ${(.1 * hs).toFixed(1)} ${(-.1 * hs).toFixed(1)} ${(.45 * hs).toFixed(1)}M${(-.15 * hs).toFixed(1)} ${(-.1 * hs).toFixed(1)}L${(1.6 * hs).toFixed(1)} ${(.02 * hs).toFixed(1)}`, color: "shu", width: Math.max(1.5, hs * .07) },
+    { t: "dots", d: circleD(-.15 * hs, -.1 * hs, hs * .06), color: "kin" }] });
   if (species === "tanuki" && look.hat) out.push({ t: "group", transform: `translate(${headC[0].toFixed(1)} ${(headC[1] - hs * .7).toFixed(1)}) rotate(${(headPitch - 8).toFixed(1)})`,
     prims: [{ t: "fill", d: smoothD([[-hs * 1.4, hs * .2], [0, -hs * .7], [hs * 1.4, hs * .15], [0, hs * .05]], true, .2), fill: "kincha", outline: 1.2, grain: .7 },
       { t: "stroke", d: [-.9, -.45, 0, .45, .9].map(f => `M${(f * hs * .3).toFixed(1)} ${(-hs * .62).toFixed(1)}L${(f * hs * 1.35).toFixed(1)} ${(hs * .16).toFixed(1)}`).join(""), color: "cha", width: .7, opacity: .6 }] });
@@ -839,9 +933,9 @@ export function drawCreature(spec: UkiyoeCreatureSpec, frame: number, wind: numb
   for (const a of spec.actions ?? []) { if (a.start > frame) break; if (TRAVEL.has(a.type) && a.to !== undefined && a.to !== x) { dir = a.to > x ? 1 : -1; x = a.to; } }
   let prims: Prim[];
   switch (spec.species) {
-    case "fox": case "tanuki": case "dog": case "cat": case "rabbit": prims = quadruped(spec.species, spec, frame, wind * dir, seed); break;
+    case "fox": case "tanuki": case "dog": case "cat": case "rabbit": case "monkey": case "horse": prims = quadruped(spec.species, spec, frame, wind * dir, seed); break;
     case "dragon": prims = dragon(spec, frame, wind * dir, seed); break;
-    case "yukionna": case "yurei": case "kasaobake": case "chochinobake": case "hitodama": {
+    case "yukionna": case "yurei": case "rokurokubi": case "kasaobake": case "chochinobake": case "hitodama": case "kappa": case "tengu": case "karasutengu": {
       const acts = spec.actions ?? [], st = actionState(acts, frame);
       const w = (type: string) => { const e = st(type as UkiyoeCreatureActionType); return { w: e.w, t: e.t, len: e.a ? e.a.end - e.a.start : 1 }; };
       // A spirit with an `appear` is unseen until it first appears; after a `vanish` has run it stays gone (until the next
