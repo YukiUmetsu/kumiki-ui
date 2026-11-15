@@ -467,7 +467,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const [showReference,setShowReference]=useState(true);
   const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
   const [eyeContact,setEyeContact]=useState<"source-shade"|"baseline">("source-shade");
-  const [midfaceForm,setMidfaceForm]=useState<"source-volume"|"baseline">("source-volume");
+  const [midfaceForm,setMidfaceForm]=useState<"source-volume"|"baseline">("baseline");
   const [inspection,setInspection]=useState<
     "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|
     "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right">("full");
