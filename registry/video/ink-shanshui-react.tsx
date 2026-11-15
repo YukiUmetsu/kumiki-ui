@@ -635,6 +635,68 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           seed+5107+i*53+k*37);
         return {root,outline,curl,recess,tonal:tone+"cloud"+k,motif};
       }):[];
+      // Wang Meng / Forest Chamber Grotto: nested rock walls are not
+      // monochrome hair on a triangular ridge. The historic work has
+      // tightly coiled, INTERLOCKING dark stone gullies beneath its
+      // fine dry ox-tail marks. These three individually drafted bank
+      // recesses arise at measured sites on the same five stratum bones
+      // as all of their children and stay strictly inside the rock mass.
+      const wangGullies=isWang?([.17,.43,.74] as const).map((at,k)=>{
+        const bank=stratum[(k+i*2)%stratum.length];
+        const source=quadraticPoint(bank.top,bank.bend,bank.tip,
+          clamp(at+(s(seed+5203,i*41+k*31)-.5)*.034,.12,.83));
+        const sign=direction*((k+i)%3===1?-1:1);
+        const span=([27,43,31][k])*
+          (.78+.39*s(seed+5209,i*43+k*17));
+        const fall=([64,47,73][k])*
+          (.73+.41*s(seed+5227,i*19+k*23));
+        const lift=([11,7,17][k])*
+          (.8+.29*s(seed+5231,i*31+k*29));
+        const brow:P=[source[0]+sign*span*.3,source[1]-lift];
+        const outer:P=[source[0]+sign*span*.91,
+          source[1]+fall*(k===1?.29:.39)];
+        const heel:P=[source[0]+sign*span*.67,
+          source[1]+fall*.91];
+        const inner:P=[source[0]+sign*span*.12,
+          source[1]+fall*.75];
+        const shape="M"+f(source[0])+" "+f(source[1])+
+          " C"+f(source[0]+sign*span*.16)+" "+
+            f(source[1]-lift*.83)+" "+
+            f(brow[0]-sign*span*.17)+" "+
+            f(brow[1]-lift*.26)+" "+
+            f(brow[0])+" "+f(brow[1])+
+          " C"+f(brow[0]+sign*span*.24)+" "+
+            f(brow[1]-lift*.2)+" "+
+            f(outer[0]-sign*span*.22)+" "+
+            f(outer[1]-fall*.24)+" "+
+            f(outer[0])+" "+f(outer[1])+
+          " C"+f(outer[0]+sign*span*.09)+" "+
+            f(outer[1]+fall*.19)+" "+
+            f(heel[0]+sign*span*.14)+" "+
+            f(heel[1]-fall*.23)+" "+
+            f(heel[0])+" "+f(heel[1])+
+          " C"+f(heel[0]-sign*span*.32)+" "+
+            f(heel[1]+fall*.06)+" "+
+            f(inner[0]+sign*span*.15)+" "+
+            f(inner[1]+fall*.17)+" "+
+            f(inner[0])+" "+f(inner[1])+
+          " C"+f(source[0]-sign*span*.14)+" "+
+            f(source[1]+fall*.46)+" "+
+            f(source[0]+sign*span*.13)+" "+
+            f(source[1]+fall*.2)+" "+
+            f(source[0])+" "+f(source[1])+" Z";
+        const outerEdge=rockLoadedCubicRibbon(source,
+          [source[0]+sign*span*.13,source[1]-lift*.9],
+          [outer[0]-sign*span*.22,outer[1]-fall*.11],outer,
+          (k===1?2.7:1.8)*(1+.36*s(seed+5249,i*17+k*43)),
+          seed+5273+i*83+k*19);
+        const hollowEdge=rockLoadedCubicRibbon(brow,
+          [brow[0]+sign*span*.2,brow[1]+fall*.28],
+          [inner[0]+sign*span*.41,inner[1]-fall*.11],inner,
+          (k===2?1.9:1.3)*(1+.28*s(seed+5281,i*23+k*37)),
+          seed+5303+i*97+k*29);
+        return {source,shape,outerEdge,hollowEdge,gradient:tone+"gully"+k,k};
+      }):[];
       // Fan Kuan's original monumental rock has grouped cliff *mass*:
       // two asymmetrically carved dark recesses attach to EACH positive
       // stone face. These are broad angular geologic facets, not more
@@ -727,6 +789,32 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
             data-km-master-moss-wet={wet?"wet":"dry"}
             d={d} fill={wet?"#342c28":"#554638"}
             opacity={f((wet?.8:.55)*(1-.2*mist))}/>)}
+        </g>}
+        {isWang&&<g clipPath={"url(#"+clip+")"}
+          data-km-master-wang-gully-family="">
+          {wangGullies.map(({source,shape,outerEdge,hollowEdge,gradient,k})=>
+            <g key={k} data-km-master-wang-gully=""
+              data-km-master-wang-gully-root={f(source[0])+","+f(source[1])}
+              data-km-master-wang-gully-kind={k}>
+              <defs>
+                <linearGradient id={gradient} x1={k%2?"77%":"13%"}
+                  y1="3%" x2={k%2?"22%":"86%"} y2="100%">
+                  <stop offset="0" stopColor="#302a27" stopOpacity=".89"/>
+                  <stop offset=".26" stopColor="#3e342f" stopOpacity=".74"/>
+                  <stop offset=".67" stopColor="#665343" stopOpacity=".37"/>
+                  <stop offset="1" stopColor="#8e765c" stopOpacity=".01"/>
+                </linearGradient>
+              </defs>
+              <path data-km-master-wang-gully-shadow="" d={shape}
+                fill={"url(#"+gradient+")"}
+                opacity={f((k===1?.83:.68)*(1-.17*mist))}/>
+              <path data-km-master-wang-gully-rim="" d={outerEdge}
+                fill="#42382f"
+                opacity={f((k===1?.67:.55)*(1-.2*mist))}/>
+              <path data-km-master-wang-gully-fold="" d={hollowEdge}
+                fill="#5f4b3b"
+                opacity={f((k===1?.48:.58)*(1-.23*mist))}/>
+            </g>)}
         </g>}
         {isGuo&&<g clipPath={"url(#"+clip+")"}
           data-km-master-cloud-geology="">
