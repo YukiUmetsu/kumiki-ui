@@ -637,7 +637,7 @@ export const createDryPencilHeadPlate=(
       // exterior neighbour must be corroborated by actual source pigment.
       // In synthetic no-hair photos the garden is green outside the face;
       // then no jaw repair is permitted anywhere on that contour.
-      const hasExteriorHair=[-1,1].some(side=>{
+      const exteriorSide=([-1,1] as const).find(side=>{
         const outer:Point=[c[0]+nx*eyeDist*.046*side,
           c[1]+ny*eyeDist*.046*side];
         return onPhoto(source,outer[0],outer[1])&&
@@ -645,7 +645,45 @@ export const createDryPencilHeadPlate=(
           photoValue(source,outer[0],outer[1])<.55&&
           isHairColour(photoRGB(source,outer[0],outer[1]));
       });
-      if(!hasExteriorHair)continue;
+      if(exteriorSide===undefined)continue;
+      // Crossing rather than tracing: short irregular nibs weave the
+      // photographed near-black lock into the pale pigmented cheek, with
+      // hair and skin nibs independently sampled on opposite sides of the
+      // observed edge. Their uneven contact avoids a hard sticker outline.
+      // These are pressure-variable pencil gestures, never a flat mask.
+      const crossId=i*69017+k;
+      if(pencilHash(seed,crossId,407)>.13){
+        const out:Point=[c[0]+nx*eyeDist*.029*exteriorSide,
+          c[1]+ny*eyeDist*.029*exteriorSide];
+        const inn:Point=[c[0]-nx*eyeDist*.029*exteriorSide,
+          c[1]-ny*eyeDist*.029*exteriorSide];
+        const outRGB=photoRGB(source,out[0],out[1]);
+        const outValue=photoValue(source,out[0],out[1]);
+        if(outValue<.55&&isHairColour(outRGB)){
+          const depth=clamp((.55-outValue)/.44,0,1);
+          push("hair-occlusion",out,
+            [-nx*exteriorSide*eyeDist*.059,
+              -ny*exteriorSide*eyeDist*.059],
+            color([outRGB[0]*.78+35*.22,
+              outRGB[1]*.78+26*.22,outRGB[2]*.8+27*.2]),
+            (.16+.22*depth)*(.74+.26*pencilHash(seed,crossId,408)),
+            .57+.49*pencilHash(seed,crossId,409),2,
+            (pencilHash(seed,crossId,410)-.5)*.31);
+        }
+        const insideValue=photoValue(source,inn[0],inn[1]);
+        if(inside(inn,geometry.face)&&insideValue<.90){
+          const skin=photoRGB(source,inn[0],inn[1]);
+          push("face-form",inn,
+            [nx*exteriorSide*eyeDist*.037,
+              ny*exteriorSide*eyeDist*.037],
+            color([skin[0]*.85+74*.15,
+              skin[1]*.84+53*.16,skin[2]*.85+53*.15]),
+            (.10+.11*(1-insideValue))*
+              (.69+.31*pencilHash(seed,crossId,411)),
+            .54+.51*pencilHash(seed,crossId,412),2,
+            (pencilHash(seed,crossId,413)-.5)*.25);
+        }
+      }
       for(let band=-1;band<=1;band++){
         const id=i*500003+k*11+band+1;
         const shift=eyeDist*.016*(band+
