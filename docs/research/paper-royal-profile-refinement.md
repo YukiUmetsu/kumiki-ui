@@ -38,3 +38,13 @@ Character system is **original 2.5D papercut illustration**, not photorealistic 
 4. For a **portrait-quality** release, obtain a rights-cleared image, save its unmodified bytes and SHA, annotate 18 visible landmarks and tonal crops for source/candidate, run `portrait_fidelity_gate.py`, inspect overlay, and obtain independent review. Automated PAPER1/Storybook success is not a portrait-quality substitute.
 
 **Remaining art priorities:** facial light-shape modeling, small hand anatomy, foot-contact/leg perspective, profile views from both directions, expression variation, and full-speed character gesture critique. 
+
+## Actual R3 frame review and second face pass
+
+First R3 artifacts are from [Paper Craft visual film proof #43690958235](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43690958235). The native act-three 960×540 frame shows substantially shortened exposed neck segments, no floating head, and consistently reattached crowns/eyes. **This is a genuine structural improvement, not a final facial-art approval.**
+
+At 4× face crops, however, the princess's eye still reads like a generic white wedge and her lipstick projects beyond the nasal–chin contour. The prince's iris and eyebrow also appear like a mechanical dot under a thick horizontal stripe; the nasal tip and lip remain too exaggerated, and the side profile lacks a real ear silhouette.
+
+Second contour correction on the same PR head: add a separate tapered princess brow, tighten sclera and pupil, recede both lips inside the closed facial outline, smooth both nasal tips, place a prince ear helix behind the sideburn, and re-register every new component to the face hinge. These are original stylized papercut contours. All are structural topology changes, not artificial microtexture or whole-frame filters.
+
+**R3b evidence pending:** inspect new exact-head 3× royal faces and a normal-speed act transition after focused tests; withhold any high-fidelity/source-matched claim until actual licensed source bytes, source/candidate hashes, 18 individual landmarks, and the independent ArtCraft v7 portrait gate can be supplied.
