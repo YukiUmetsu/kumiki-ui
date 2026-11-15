@@ -105,36 +105,41 @@ export function createPhotometricSkinGlaze(
       luma(average(source,x,y-1.8));
     if(Math.hypot(dx,dy)>.070){highContrastProtected++;continue;}
     const shade=clamp((.93-value)/.72,0,1);
-    // Broad translucent base plus an individually curved narrow
-    // optical tone: the original, sharply cut pencil hatch remains
-    // painted on top and the true camera highlights remain paper.
+    // Paired displaced low-pressure fills follow the direction of the
+    // ALREADY observed base pencil fibre. Place each one in the adjacent
+    // exposed paper TOOTH, not directly over the dark original hatch:
+    // otherwise a centered broad glaze doubles the dark core and makes
+    // the whole face over-brown. This is a source-colored interstitial
+    // optical layer, not a global wash or a digital smoothing filter.
     const pigment=hex([
       local[0]*.91+249*.09,
       local[1]*.91+245*.09,
       local[2]*.91+237*.09,
     ]);
     const pressure=.91+.18*pencilHash(seed,key,1602);
-    // Calibrated against BOTH photographed 285×318 portrait views:
-    // full unrestrained glaze decreased tooth noise but overshot real
-    // forehead/malar/jaw pigment by ≈10–14 grey levels. Recover the
-    // actual warm light-mass instead of chasing smoothness alone.
-    const alpha=clamp(strength*(.064+.123*shade)*pressure,.001,.21);
-    const width=m.width*(3.65+1.25*shade)*
-      (.91+.16*pencilHash(seed,key,1603));
-    const wiggle=(pencilHash(seed,key,1604)-.5)*m.width*.27;
-    marks.push({
-      ...m,pass:0,color:pigment,
-      controlX:m.controlX+wiggle,controlY:m.controlY-wiggle,
-      alpha,width,
-    });
-    // Complementary sharp translucent pigment strand gives real tooth
-    // directional detail under the retained dark hatching, without
-    // photographic pixels or synthesized freckle/mottle noise.
-    marks.push({
-      ...m,pass:0,color:pigment,
-      alpha:clamp(alpha*.49,.001,.22),
-      width:width*.47,
-    });
+    const shadePressure=clamp(
+      strength*(.083+.19*shade)*pressure,.001,.30);
+    const dx0=m.endX-m.x,dy0=m.endY-m.y;
+    const segment=Math.hypot(dx0,dy0);
+    if(segment<.05)continue;
+    const sideX=-dy0/segment,sideY=dx0/segment;
+    const offset=m.width*(1.10+.46*shade);
+    const nibWidth=m.width*(1.30+.34*shade);
+    for(const sign of [-1,1]){
+      const i=sign===-1?0:1;
+      const spread=sign*offset*
+        (.91+.18*pencilHash(seed,key,1604+i));
+      const x=sideX*spread,y=sideY*spread;
+      marks.push({
+        ...m,pass:0,color:pigment,
+        x:m.x+x,y:m.y+y,
+        controlX:m.controlX+x,controlY:m.controlY+y,
+        endX:m.endX+x,endY:m.endY+y,
+        alpha:clamp(shadePressure*
+          (.79+.17*pencilHash(seed,key,1606+i)),.001,.28),
+        width:nibWidth*(.91+.15*pencilHash(seed,key,1608+i)),
+      });
+    }
     accepted++;
   }
   return {marks,accepted,highlighted,anatomyProtected,highContrastProtected,
