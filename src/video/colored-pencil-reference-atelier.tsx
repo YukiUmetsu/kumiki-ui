@@ -7,6 +7,7 @@ import type {
 } from "./colored-pencil-photo";
 import {mapCC0WomanPortraitFeatures} from "./colored-pencil-portrait-guides";
 import {createDryPortraitPlate} from "./colored-pencil-dry-portrait";
+import {createDryPencilHeadPlate} from "./colored-pencil-full-head";
 
 /**
  * Source-backed pencil renderer. The default images are demonstrably public
@@ -100,6 +101,8 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
   const canvasRef=useRef<HTMLCanvasElement>(null);
   const faceMacroRef=useRef<HTMLCanvasElement>(null);
   const dryFaceRef=useRef<HTMLCanvasElement>(null);
+  const fullHeadRef=useRef<HTMLCanvasElement>(null);
+  const fullHeadSourceRef=useRef<HTMLCanvasElement>(null);
   const underpaint=useRef<HTMLCanvasElement|null>(null);
   const progress=useRef<{study:PencilPhotoStudy;frame:number;drawn:number;wash:number}|null>(null);
   const localObjectUrl=useRef<string|null>(null);
@@ -126,6 +129,7 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
   const [showReference,setShowReference]=useState(false);
   const [showFaceGuides,setShowFaceGuides]=useState(false);
   const [showFaceMacro,setShowFaceMacro]=useState(false);
+  const [showFullHead,setShowFullHead]=useState(false);
   const [faceMacroRegion,setFaceMacroRegion]=useState<"eyes"|"lips">("eyes");
   const [applyFaceCraft,setApplyFaceCraft]=useState(true);
   const [uploaded,setUploaded]=useState(false);
@@ -196,6 +200,11 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
   const dryPlate=useMemo(()=>raw&&faceGuides&&showFaceMacro?
     createDryPortraitPlate(raw,faceGuides,faceMacroRegion,options.seed):null,
     [raw,faceGuides,showFaceMacro,faceMacroRegion,options.seed]);
+  // Opt-in research plate; expensive full-head mark construction is never
+  // computed for ordinary video exports or for unrelated photos/characters.
+  const headPlate=useMemo(()=>raw&&faceGuides&&showFullHead?
+    createDryPencilHeadPlate(raw,faceGuides,options.seed):null,
+    [raw,faceGuides,showFullHead,options.seed]);
   // The static precomputed tone layer is cached: seeking/speed does not
   // recompute pixels, gradients, stochastic paper or stroke directions.
   useEffect(()=>{
@@ -255,6 +264,28 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
     paintMarkRange(ctx,dryPlate,0,dryPlate.strokes.length);
     canvas.setAttribute("data-km-pencil-dry-rendered-region",faceMacroRegion);
   },[dryPlate,faceMacroRegion]);
+  useEffect(()=>{
+    const dry=fullHeadRef.current,sourceCanvas=fullHeadSourceRef.current;
+    if(!headPlate||!raw||!dry||!sourceCanvas)return;
+    const ink=dry.getContext("2d"),reference=sourceCanvas.getContext("2d");
+    if(!ink||!reference)return;
+    ink.globalAlpha=1;ink.globalCompositeOperation="source-over";
+    ink.fillStyle=headPlate.paperColor;
+    ink.fillRect(0,0,dry.width,dry.height);
+    paintMarkRange(ink,headPlate,0,headPlate.strokes.length);
+    dry.setAttribute("data-km-pencil-full-head-rendered","true");
+    const temp=document.createElement("canvas");
+    temp.width=raw.width;temp.height=raw.height;
+    const tempCtx=temp.getContext("2d");if(!tempCtx)return;
+    tempCtx.putImageData(new ImageData(new Uint8ClampedArray(raw.data),
+      raw.width,raw.height),0,0);
+    const crop=headPlate.crop;
+    reference.fillStyle=headPlate.paperColor;
+    reference.fillRect(0,0,sourceCanvas.width,sourceCanvas.height);
+    reference.drawImage(temp,crop.left,crop.top,crop.width,crop.height,
+      0,0,sourceCanvas.width,sourceCanvas.height);
+    sourceCanvas.setAttribute("data-km-pencil-full-head-source","ready");
+  },[headPlate,raw]);
   useEffect(()=>{
     if(!playing)return;
     const began=performance.now(),offset=frame;
@@ -369,6 +400,12 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
         <input aria-label="Inspect portrait detail at three times scale" type="checkbox"
           checked={showFaceMacro} onChange={e=>setShowFaceMacro(e.target.checked)}/>
         Inspect eye / lip pencil details (3×)
+      </label>}
+      {faceGuides&&<label style={{...control,alignSelf:"end",minHeight:40,
+        display:"flex",flexDirection:"row",alignItems:"center",gap:9}}>
+        <input aria-label="Inspect full pencil head anatomy" type="checkbox"
+          checked={showFullHead} onChange={e=>setShowFullHead(e.target.checked)}/>
+        Full head · five-value and rooted-hair proof (experimental)
       </label>}
       {faceGuides&&showFaceMacro&&<label style={control}>Facial crop
         <select aria-label="Pencil face detail region" value={faceMacroRegion}
@@ -488,6 +525,51 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
             artist-grade facial anatomy or likeness.
           </p>
         </figure>}
+        {showFullHead&&headPlate&&<section aria-label="Full-head source-measured coloured pencil study"
+          style={{margin:"16px 0 0",padding:"12px",background:"#F3F0E9",
+            border:"1px solid #ADA89A"}}>
+          <h2 style={{font:"600 19px Georgia,serif",margin:"0 0 7px"}}>
+            Full-head construction · measured silhouette & five values
+          </h2>
+          <p style={{fontSize:12,margin:"0 0 10px",maxWidth:850}}>
+            Experimental only, not an artist-approved character. The licensed CC0
+            source has manually observed head and hair contours with ±4 review-pixel
+            uncertainty. Source pixels inform shape, local pigment and light; the
+            dry plate is made exclusively of pencil strokes on ivory paper.
+          </p>
+          <div style={{display:"flex",flexWrap:"wrap",gap:12}}>
+            <div style={{flex:"1 1 250px"}}>
+              <p style={{fontSize:12,margin:"0 0 4px"}}>Licensed source · same measured crop</p>
+              <canvas ref={fullHeadSourceRef} width={540} height={600}
+                data-km-pencil-full-head-reference=""
+                aria-label="Original CC0 full-head source crop for visual anatomy comparison"
+                style={{display:"block",width:"100%",height:"auto",
+                  border:"1px solid #A8A39A",maxWidth:540,aspectRatio:"9 / 10"}}/>
+            </div>
+            <div style={{flex:"1 1 250px"}}>
+              <p style={{fontSize:12,margin:"0 0 4px"}}>
+                Paper + value-first handlike marks · NO photographic underpaint
+              </p>
+              <canvas ref={fullHeadRef} width={540} height={600}
+                data-km-pencil-full-head-dry=""
+                data-km-pencil-raster-underpaint="none"
+                aria-label="Experimental full-head coloured pencil geometry and hair constructed from strokes"
+                style={{display:"block",width:"100%",height:"auto",
+                  border:"1px solid #A8A39A",maxWidth:540,aspectRatio:"9 / 10"}}/>
+            </div>
+          </div>
+          <p style={{fontSize:12,margin:"9px 0 0",color:"#53665E"}}
+            data-km-pencil-head-proof-metrics="">
+            Five values (deepest → reserved paper):
+            {" "+headPlate.fiveValueCounts.join(" / ")}.
+            Face deposits: {" "+(headPlate.materialCounts["face-value"]+
+              headPlate.materialCounts["face-chroma"]+
+              headPlate.materialCounts["face-form"])}.
+            Hair mass / hair fibres: {" "+headPlate.materialCounts["hair-mass"]+
+              " / "+headPlate.materialCounts["hair-fibre"]}.
+            Independent likeness and material approval: NOT PASSED.
+          </p>
+        </section>}
         {study?.portraitFeatures&&<p
           data-km-portrait-craft-evidence=""
           style={{fontSize:12,color:"#687A71",margin:"8px 0 0"}}>

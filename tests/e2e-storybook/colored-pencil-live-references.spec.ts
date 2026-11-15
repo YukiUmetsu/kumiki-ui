@@ -109,6 +109,66 @@ for(const sample of ["woman","man"] as const){
       await source.screenshot({animations:"disabled",
         path:info.outputPath("artcraft-portrait-"+sample+"-"+aspect+"-source.png")});
       if(sample==="woman"){
+        // Full-head paper-only art: actual CC0 material and measured hairline,
+        // not a screenshot made from fabricated synthetic portrait geometry.
+        // The independent studio output MUST be bit-identical after viewing.
+        const originalExport=await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        const fullHeadToggle=page.getByRole("checkbox",{
+          name:"Inspect full pencil head anatomy",
+        });
+        await fullHeadToggle.check();
+        const full=page.locator("canvas[data-km-pencil-full-head-dry]");
+        const headSource=page.locator(
+          "canvas[data-km-pencil-full-head-reference]");
+        await expect(full).toHaveAttribute("data-km-pencil-raster-underpaint","none");
+        await expect(full).toHaveAttribute("data-km-pencil-full-head-rendered",
+          "true",{timeout:90000});
+        await expect(headSource).toHaveAttribute(
+          "data-km-pencil-full-head-source","ready",{timeout:90000});
+        const headMetrics=await full.evaluate(node=>{
+          const canvas=node as HTMLCanvasElement;
+          const data=canvas.getContext("2d")!.getImageData(
+            0,0,canvas.width,canvas.height).data;
+          let painted=0,highContrast=0;
+          for(let i=0;i<data.length;i+=4){
+            const delta=Math.abs(data[i]-250)+Math.abs(data[i+1]-245)+
+              Math.abs(data[i+2]-237);
+            if(delta>18)painted++;
+            if(delta>125)highContrast++;
+          }
+          return {painted,highContrast};
+        });
+        expect(headMetrics.painted).toBeGreaterThan(18000);
+        expect(headMetrics.highContrast).toBeGreaterThan(150);
+        // Independent CC0 black-hair continuity gate. v1/v2 left an
+        // actual near-black root/lock completely unpainted (paper white).
+        // Check a small neighbourhood, not a lucky stroke-covered pixel.
+        const darkLock=await Promise.all([headSource,full].map(node=>
+          node.evaluate(canvasNode=>{
+            const canvas=canvasNode as HTMLCanvasElement;
+            const ctx=canvas.getContext("2d")!;
+            const cx=Math.floor(canvas.width*.281);
+            const cy=Math.floor(canvas.height*.691);
+            const pixels=ctx.getImageData(cx-4,cy-4,9,9).data;
+            let r=0,g=0,b=0,n=0;
+            for(let i=0;i<pixels.length;i+=4){
+              r+=pixels[i];g+=pixels[i+1];b+=pixels[i+2];n++;
+            }
+            return [r/n,g/n,b/n] as const;
+          })));
+        expect(darkLock[0][0]).toBeLessThan(70);
+        expect(darkLock[1][0]).toBeLessThan(237);
+        expect(darkLock[1][0]).toBeGreaterThan(darkLock[0][0]);
+        await headSource.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-full-head-source.png")});
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-full-head-dry-only.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
+        await fullHeadToggle.uncheck();
+        await expect(full).toHaveCount(0);
         // Actual CC0 photographic facial values, not the synthetic fixture:
         // capture the no-underpaint code-mark proof in both film aspects.
         const inspect=page.getByRole("checkbox",{
