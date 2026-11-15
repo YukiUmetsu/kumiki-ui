@@ -815,3 +815,12 @@ independent ArtCraft v9 anatomy and portrait gates.
 **Structural validation:** docs/research/chinese-ink-fuchun-structural-study.json now records the shape graph and all five ArtCraft axes. Unit tests assert exact parent-root alignment, 34+ cubic contour segments, 6 cap origins, 40 finite individual paint-path roots and zero sparse-detail residue; Playwright verifies native Storybook rendering across conditions and view presets.
 
 **Visual release status: HOLD.** Before final approval inspect the *exact CI head* native film, the macro + meso + micro crop, and the 960x540 mountain frame. If arcs still look like identical neat scallops or the smooth triangle overwhelms the ink, reconstruct macro terrain topology rather than increasing procedural noise. Portrait/anatomy work stays separate and gated.
+
+
+## Twenty-fourth pass — restore full ink load to crest-rooted rock study
+
+The exact-head pass-23 Chromium macro crop and 960×540 frame were directly inspected. **Not artist-approved**: the three new curved folds improve structural attachment and rhythm, but remain too pale and nearly invisible under the tan mountain polygon. Root cause: the whole geological group inherited 0.65×ink opacity from the mid-range wash, while each loaded gesture was further attenuated internally. Compare this to the strong dark-to-paper rhythm in the National Palace Museum Fuchun close-up: barely visible new grooves cannot satisfy the intended source contrast.
+
+**Correction to the same hero, no geometry reduction:** Retain all three cubic terraces, forty connected stroke contours, six caps, twenty-four pima strokes, previous mountain washes and paper reserve. Render exactly one MountainHeroCliff as an independent paint layer **after** the mountain wash but before the five-tree grove and next ridge, at 0.98×ink (rather than inherited 0.65×ink). Clip to the exact same ridgePath(stations) as the ink mountain; it is not allowed to float into sky. Add DOM-browser test asserting genuine independent paint hierarchy, stable clipPath and preserved ink-only comparison. The structural and material dependency remains unchanged.
+
+**Release: still on hold**, pending the new final-head native Chromium proof and side-by-side judgement. If newly visible lines still resemble wires drawn on a smooth polygon, the next priority is a broader, interlocking hill-back **terrain silhouette** replacement with deeper painted wet/dry mass transitions, not additional independent rain lines.
