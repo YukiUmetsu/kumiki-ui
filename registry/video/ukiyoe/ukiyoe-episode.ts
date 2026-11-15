@@ -7,7 +7,10 @@
  *   then resumes where the mist left it, so no frame repeats;
  * - the narration becomes the film's caption track (`script-estimate` timing until a voice is aligned), sized per output
  *   and drawn by the film's caption performer inside the platform's safe area, never as text inside the scene;
- * - outputs use the `youtube` and `youtube-shorts` presets, and each shot's recorded bed crossfades at the cuts.
+ * - outputs use the `youtube` and `youtube-shorts` presets, and each shot's recorded bed crossfades at the cuts;
+ * - a shot's `ambience` lays further recorded beds under it (a hearth, a bamboo grove), and its `sounds` place recorded
+ *   effects on what the picture does (steps, blows, bowstrings, bells), panned and distanced from where their source
+ *   stands on screen (see `ukiyoe-sound.ts`); the scroll and print transitions carry a quiet paper sound of their own.
  *
  * `ukiyoeTitleCard()` prints the title onto an opening scene, key block first, in a cartouche with a seal.
  * `ukiyoeEndCard()` holds a closing scene for YouTube's end screen: the closing line in the upper left, the rest of
@@ -21,6 +24,8 @@ import type { FilmDocument } from "../film-document";
 import type { FilmSceneSound } from "../film-split-edits";
 import type { UkiyoeIssue, UkiyoeNode, UkiyoeSceneSpec } from "./ukiyoe-scene";
 import type { UkiyoeTransitionKind } from "./ukiyoe-transitions";
+import type { UkiyoeShotSound } from "./ukiyoe-sound";
+import { ukiyoeShotCues } from "./ukiyoe-sound";
 import { inspectUkiyoeScene } from "./ukiyoe-scene";
 import { cameraAt } from "./ukiyoe-core";
 import { figureHeight, travelAt } from "./ukiyoe-figure";
@@ -56,7 +61,12 @@ export interface UkiyoeEpisodeShot {
   transition?: UkiyoeTransitionKind;
   /** The recorded bed under the shot, from the sound catalog. */
   sound?: FilmSceneSound;
+  /** More recorded beds under the whole shot (mist included), fading in and out with it. */
+  ambience?: readonly UkiyoeShotAmbience[];
+  /** Recorded effects on the shot's moments. */
+  sounds?: readonly UkiyoeShotSound[];
 }
+export interface UkiyoeShotAmbience { sound: string; gainDb?: number; lowpassHz?: number; fadeSeconds?: number }
 export interface UkiyoeEpisodeSpec {
   id: string;
   title: string;
@@ -70,7 +80,15 @@ export interface UkiyoeEpisodeSpec {
   lang?: string;
   /** Frames the film fades to black at its end (0 for none). Default 24. */
   fadeOut?: number;
+  /** The accent kit folder, relative to the film file, that sound cues need. @default "assets/sfx" */
+  soundKit?: string;
 }
+
+/** The paper sound a transition makes: the scroll's sheet sliding as it unrolls, the fresh sheet laid on the block. */
+const TRANSITION_SOUND: Partial<Record<UkiyoeTransitionKind, { sound: string; at: number; gainDb: number }>> = {
+  scroll: { sound: "paper-sheet-slide", at: .5, gainDb: -14 },
+  print: { sound: "paper-sheet-lay", at: .3, gainDb: -19 },
+};
 
 const SERIF = "'Shippori Mincho', 'Noto Serif JP', 'Hiragino Mincho ProN', Georgia, serif";
 
@@ -113,7 +131,17 @@ export function ukiyoeEpisode(spec: UkiyoeEpisodeSpec): FilmDocument {
       content: { slot: "ukiyoe-scene", label: shot.title, props: { scenes: { landscape, portrait }, startFrame: mist } },
     });
   });
-  const size = { ...UKIYOE_CAPTION_SIZE, ...spec.captionSize }, fadeOut = spec.fadeOut ?? 24;
+  const size = { ...UKIYOE_CAPTION_SIZE, ...spec.captionSize }, fadeOut = spec.fadeOut ?? 24, starts = ukiyoeEpisodeStarts(spec);
+  const cues = built.flatMap(({ shot, landscape }, i) => {
+    const mist = i > 0 ? Math.max(0, Math.round(shot.kasumi ?? 0)) : 0, paper = mist && shot.transition ? TRANSITION_SOUND[shot.transition] : undefined;
+    const sounds: UkiyoeShotSound[] = [...paper ? [{ sound: paper.sound, at: Math.round(mist * paper.at), gainDb: paper.gainDb, pan: 0, distance: 1.5, room: "dry" as const }] : [], ...shot.sounds ?? []];
+    return ukiyoeShotCues(shot.id, landscape, sounds, mist);
+  });
+  const beds = built.flatMap(({ shot, landscape }, i) => (shot.ambience ?? []).map((a, k) => ({
+    id: `${shot.id}-${k + 1}`, sound: a.sound, startFrame: starts[i], durationFrames: landscape.durationFrames, fadeSeconds: a.fadeSeconds ?? .8,
+    ...a.gainDb !== undefined ? { gainDb: a.gainDb } : {}, ...a.lowpassHz ? { lowpassHz: a.lowpassHz } : {},
+  })));
+  const sounded = spec.shots.some(shot => shot.sound) || cues.length > 0 || beds.length > 0;
   return {
     schemaVersion: 1,
     id: spec.id,
@@ -123,7 +151,11 @@ export function ukiyoeEpisode(spec: UkiyoeEpisodeSpec): FilmDocument {
     scenes,
     captions: { timing: { source: "script-estimate", reference: `${spec.id} narration script` }, cues: ukiyoeEpisodeCues(spec), style: { size, font: spec.captionFont ?? SERIF } },
     ...fadeOut ? { fade: { out: fadeOut, color: "#000000" } } : {},
-    ...spec.shots.some(shot => shot.sound) ? { audio: { lanes: [], licenseRef: "kumiki-sound-catalog", master: { profile: "youtube", limit: true } } } : {},
+    ...sounded ? { audio: {
+      lanes: [], licenseRef: "kumiki-sound-catalog", master: { profile: "youtube", limit: true },
+      ...cues.length ? { accents: { kit: spec.soundKit ?? "assets/sfx", gainDb: 0, on: "moves" }, cues } : {},
+      ...beds.length ? { beds } : {},
+    } } : {},
   } as unknown as FilmDocument;
 }
 
@@ -241,6 +273,8 @@ export interface UkiyoeCardOptions {
   seal?: string;
   kasumi?: number;
   sound?: FilmSceneSound;
+  ambience?: readonly UkiyoeShotAmbience[];
+  sounds?: readonly UkiyoeShotSound[];
   narration?: readonly UkiyoeEpisodeLine[];
 }
 
@@ -250,7 +284,7 @@ export interface UkiyoeCardOptions {
  */
 export function ukiyoeTitleCard(o: UkiyoeCardOptions & { title: string; titleJa?: string }): UkiyoeEpisodeShot {
   return {
-    id: o.id ?? "title", title: o.title, kasumi: o.kasumi, sound: o.sound, narration: o.narration,
+    id: o.id ?? "title", title: o.title, kasumi: o.kasumi, sound: o.sound, ambience: o.ambience, sounds: o.sounds, narration: o.narration,
     build: aspect => {
       const scene = o.backdrop(aspect), [w] = UKIYOE_EPISODE_SIZE[aspect], P = aspect === "portrait", safe = UKIYOE_EPISODE_SAFE[aspect];
       const right = w * (1 - safe.right) - 10, top = UKIYOE_EPISODE_SIZE[aspect][1] * safe.top + 10;
@@ -272,7 +306,7 @@ export function ukiyoeTitleCard(o: UkiyoeCardOptions & { title: string; titleJa?
  */
 export function ukiyoeEndCard(o: UkiyoeCardOptions & { closing: string; next?: string }): UkiyoeEpisodeShot {
   return {
-    id: o.id ?? "end", title: "End card", kasumi: o.kasumi ?? 30, sound: o.sound, narration: o.narration,
+    id: o.id ?? "end", title: "End card", kasumi: o.kasumi ?? 30, sound: o.sound, ambience: o.ambience, sounds: o.sounds, narration: o.narration,
     build: aspect => {
       const scene = o.backdrop(aspect), [w, h] = UKIYOE_EPISODE_SIZE[aspect], P = aspect === "portrait", safe = UKIYOE_EPISODE_SAFE[aspect];
       const left = w * safe.left + 10, top = h * safe.top + 10, at = (o.kasumi ?? 30) + 12;

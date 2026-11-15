@@ -2,6 +2,62 @@
  "schemaVersion": 1,
  "sounds": [
   {
+   "id": "bark-dog-1",
+   "path": "recorded/bark-dog-1.wav",
+   "sha256": "6f2a238ad6b1906b8335c337efd30525e9984e28da26e5429bfde676f0388566",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 20319,
+   "peakSeconds": 0.02,
+   "loudnessLufs": -25.3,
+   "tags": [
+    "dog",
+    "bark",
+    "animal",
+    "recorded"
+   ],
+   "description": "A dog barking once, close.",
+   "sourceUrl": "https://freesound.org/people/felix.blume/sounds/199261/",
+   "author": "felix.blume",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "bark-dog-2",
+   "path": "recorded/bark-dog-2.wav",
+   "sha256": "8b640cae14ce3bb58fe009e05072a5baff3764273da0cd3434d87b936c7ad5ea",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 35228,
+   "peakSeconds": 0.02,
+   "loudnessLufs": -20.4,
+   "tags": [
+    "dog",
+    "bark",
+    "animal",
+    "recorded"
+   ],
+   "description": "A dog barking twice, close.",
+   "sourceUrl": "https://freesound.org/people/felix.blume/sounds/199261/",
+   "author": "felix.blume",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
    "id": "bass-rumble-short",
    "path": "wyzowl/booms-and-bass/bass-rumble-short.wav",
    "sha256": "53920f72a9a30088543be3993fbc601f6a02c0704514590dcaa362e872c0adf2",
@@ -33,6 +89,39 @@
    ],
    "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
    "verifiedAt": "2026-11-07"
+  },
+  {
+   "id": "bed-birds-uguisu",
+   "path": "recorded/bed-birds-uguisu.wav",
+   "sha256": "fd7c17a3f72a32cd9797c0702ffbf4efda0864ef1276c3f5a41bd628be430b5b",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 480000,
+   "peakSeconds": 0,
+   "loudnessLufs": -23,
+   "tags": [
+    "ambience",
+    "loop",
+    "birds",
+    "uguisu",
+    "warbler",
+    "spring",
+    "japan",
+    "outdoor",
+    "recorded"
+   ],
+   "description": "A Japanese bush warbler (uguisu) singing in spring, with small birds around it.",
+   "sourceUrl": "https://freesound.org/people/warukunai/sounds/524526/",
+   "author": "warukunai",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
   },
   {
    "id": "bed-cave-air",
@@ -98,6 +187,37 @@
    "verifiedAt": "2026-11-15"
   },
   {
+   "id": "bed-crows-day",
+   "path": "recorded/bed-crows-day.wav",
+   "sha256": "4f938c6853c89d8388b39b15bb4dff956bd874f19cf093410ed28069e51bb534",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 480000,
+   "peakSeconds": 0,
+   "loudnessLufs": -23,
+   "tags": [
+    "ambience",
+    "loop",
+    "crows",
+    "birds",
+    "caw",
+    "outdoor",
+    "recorded"
+   ],
+   "description": "Crows cawing in the trees by day, near and far.",
+   "sourceUrl": "https://freesound.org/people/kactus23/sounds/121142/",
+   "author": "kactus23",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
    "id": "bed-drone-low",
    "path": "kumiki/tech/bed-drone-low.wav",
    "sha256": "e8982adcdc0fea0700dcaf66a6c24a2f73e23ff27141673baa6aef4ac2781d1d",
@@ -129,6 +249,37 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-12"
+  },
+  {
+   "id": "bed-fire-hearth",
+   "path": "recorded/bed-fire-hearth.wav",
+   "sha256": "57768f2d59e19fc565dd03058e997d32c2509d34769d94a3fa7a3e118e3c72e4",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 480000,
+   "peakSeconds": 0,
+   "loudnessLufs": -24.1,
+   "tags": [
+    "ambience",
+    "loop",
+    "fire",
+    "hearth",
+    "crackle",
+    "interior",
+    "recorded"
+   ],
+   "description": "A wood fire burning in a hearth, close: steady crackle and soft pops.",
+   "sourceUrl": "https://freesound.org/people/kyles/sounds/454016/",
+   "author": "kyles",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
   },
   {
    "id": "bed-fireworks-distant",
@@ -412,6 +563,70 @@
    "verifiedAt": "2026-11-08"
   },
   {
+   "id": "bell-temple-large",
+   "path": "recorded/bell-temple-large.wav",
+   "sha256": "66aa44d6bc91f7ac6c0637824116d2c5542850eb8060d7e10718f24032cb0ccc",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 496732,
+   "peakSeconds": 0.02,
+   "loudnessLufs": -26.7,
+   "tags": [
+    "bell",
+    "temple",
+    "bonsho",
+    "gong",
+    "struck",
+    "japan",
+    "ring",
+    "recorded"
+   ],
+   "description": "A large temple bell struck once with a beam: a deep hum around B2 ringing out for ten seconds (Valley of the Temples, Oahu).",
+   "sourceUrl": "https://freesound.org/people/Mista%20Bumpy/sounds/232333/",
+   "author": "Mista Bumpy",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "bells-suzu",
+   "path": "recorded/bells-suzu.wav",
+   "sha256": "6f74aa0f748b824f5e3ef8d2eaf392abe8da0ef9986b375db08facdceccdf251",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 123323,
+   "peakSeconds": 0.02,
+   "loudnessLufs": -25.4,
+   "tags": [
+    "bell",
+    "suzu",
+    "shrine",
+    "jingle",
+    "shimmer",
+    "japan",
+    "magic",
+    "recorded"
+   ],
+   "description": "Small Japanese suzu bells shaken once: a bright jingle that rings away.",
+   "sourceUrl": "https://freesound.org/people/DiSK/sounds/519190/",
+   "author": "DiSK",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
    "id": "boom-drop-soft",
    "path": "wyzowl/booms-and-bass/boom-drop-soft.wav",
    "sha256": "5b4d86ae8253938caa399ebcd17a14cad43d3c88a45bc3dff1da5719985dce9a",
@@ -478,6 +693,245 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-12"
+  },
+  {
+   "id": "call-gull-1",
+   "path": "recorded/call-gull-1.wav",
+   "sha256": "ffd372d45e74de5ca901ea927c5941f4c4c0823f9d978d8ee986692c5e07621d",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 72000,
+   "peakSeconds": 1.1769,
+   "loudnessLufs": -19.2,
+   "tags": [
+    "bird",
+    "gull",
+    "seagull",
+    "call",
+    "sea",
+    "recorded"
+   ],
+   "description": "A seagull calling over the shore.",
+   "sourceUrl": "https://freesound.org/people/Soojay/sounds/462462/",
+   "author": "Soojay",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "call-gull-2",
+   "path": "recorded/call-gull-2.wav",
+   "sha256": "dedb7bdf20981495a52e611714110fe4345822abab29a5e7d63fb75594e58249",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 93120,
+   "peakSeconds": 1.4107,
+   "loudnessLufs": -20.1,
+   "tags": [
+    "bird",
+    "gull",
+    "seagull",
+    "call",
+    "sea",
+    "recorded"
+   ],
+   "description": "A seagull calling, others farther off.",
+   "sourceUrl": "https://freesound.org/people/Soojay/sounds/462462/",
+   "author": "Soojay",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "chop-axe-1",
+   "path": "recorded/chop-axe-1.wav",
+   "sha256": "91df413ad2728dc47e6eaca6c63cbf61ba83f41010339aae93bafe5d20e30ec5",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 37790,
+   "peakSeconds": 0.02,
+   "loudnessLufs": -24.8,
+   "tags": [
+    "chop",
+    "axe",
+    "wood",
+    "hollow",
+    "impact",
+    "recorded"
+   ],
+   "description": "An axe biting into hollow wood: one solid chop.",
+   "sourceUrl": "https://freesound.org/people/kyles/sounds/452553/",
+   "author": "kyles",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "chop-axe-2",
+   "path": "recorded/chop-axe-2.wav",
+   "sha256": "01fd4281825b63cff0ef4b6e5af43f987da0901aa7e12284501ef9881827343a",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 21109,
+   "peakSeconds": 0.02,
+   "loudnessLufs": -26.5,
+   "tags": [
+    "chop",
+    "axe",
+    "wood",
+    "hollow",
+    "impact",
+    "recorded"
+   ],
+   "description": "An axe biting into hollow wood: a sharper chop.",
+   "sourceUrl": "https://freesound.org/people/kyles/sounds/452553/",
+   "author": "kyles",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "clash-sword-1",
+   "path": "recorded/clash-sword-1.wav",
+   "sha256": "a0fa619c0e3735a471293a9fcdc50cf1b4395b2e5fff56a652ef61bc0eaa701d",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 25959,
+   "peakSeconds": 0.02,
+   "loudnessLufs": -19.9,
+   "tags": [
+    "sword",
+    "clash",
+    "metal",
+    "fight",
+    "impact",
+    "recorded"
+   ],
+   "description": "Two blades meeting: one bright steel clang.",
+   "sourceUrl": "https://freesound.org/people/Christopherderp/sounds/364529/",
+   "author": "Christopherderp",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "clash-sword-2",
+   "path": "recorded/clash-sword-2.wav",
+   "sha256": "6248812b0fec13ec4a775e95ce3ad1651a867fe3c1ab1c78d3c9c0e2d4b13531",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 74400,
+   "peakSeconds": 0.0109,
+   "loudnessLufs": -34.1,
+   "tags": [
+    "sword",
+    "clash",
+    "metal",
+    "fight",
+    "slide",
+    "recorded"
+   ],
+   "description": "Two blades meeting and sliding apart: a clang and a scrape.",
+   "sourceUrl": "https://freesound.org/people/Christopherderp/sounds/342393/",
+   "author": "Christopherderp",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "creak-wood",
+   "path": "recorded/creak-wood.wav",
+   "sha256": "910b155e1afc5d11ed9260e57149fdbee4e1dde966b98cca29da954c097405e9",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 76800,
+   "peakSeconds": 0.6052,
+   "loudnessLufs": -17,
+   "tags": [
+    "creak",
+    "wood",
+    "boat",
+    "hull",
+    "recorded"
+   ],
+   "description": "A wooden hull creaking as it moves against its mooring.",
+   "sourceUrl": "https://freesound.org/people/craigsmith/sounds/675784/",
+   "author": "craigsmith",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "draw-sword",
+   "path": "recorded/draw-sword.wav",
+   "sha256": "8bde2c0c6d87a5a1c0cc674743c69ad906358647522c30d0439229afd4db4b49",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 65520,
+   "peakSeconds": 1.0285,
+   "loudnessLufs": -18.8,
+   "tags": [
+    "sword",
+    "draw",
+    "unsheathe",
+    "scrape",
+    "metal",
+    "recorded"
+   ],
+   "description": "A sword drawn from its scabbard: a rising metal scrape.",
+   "sourceUrl": "https://freesound.org/people/ihitokage/sounds/395364/",
+   "author": "ihitokage",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
   },
   {
    "id": "drop-water-bright",
@@ -598,6 +1052,97 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-08"
+  },
+  {
+   "id": "fall-body",
+   "path": "recorded/fall-body.wav",
+   "sha256": "d5e2457446ccbd15a7b19ac0951595fb0f02395a309917333bdfb5ffa7d060f5",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 78960,
+   "peakSeconds": 0.5121,
+   "loudnessLufs": -24.5,
+   "tags": [
+    "impact",
+    "fall",
+    "body",
+    "ground",
+    "cloth",
+    "fight",
+    "recorded"
+   ],
+   "description": "A body falling heavily to the ground, clothes slapping down with it.",
+   "sourceUrl": "https://freesound.org/people/craigsmith/sounds/675925/",
+   "author": "craigsmith",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "flap-wings-1",
+   "path": "recorded/flap-wings-1.wav",
+   "sha256": "94fe8951c9dcf07689737c70a2cd50d689b4e1fe2a6129fd61383390c12c5f69",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 91200,
+   "peakSeconds": 0.2159,
+   "loudnessLufs": -28.1,
+   "tags": [
+    "bird",
+    "wings",
+    "flap",
+    "flutter",
+    "takeoff",
+    "recorded"
+   ],
+   "description": "A medium-sized bird beating its wings as it takes off.",
+   "sourceUrl": "https://freesound.org/people/craigsmith/sounds/675959/",
+   "author": "craigsmith",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "flap-wings-2",
+   "path": "recorded/flap-wings-2.wav",
+   "sha256": "aafc9108f23c33f31cb7104764efdfda03a8e6eeaa94517f0f49ecc5d7ec4592",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 76560,
+   "peakSeconds": 0.3467,
+   "loudnessLufs": -24.5,
+   "tags": [
+    "bird",
+    "wings",
+    "flap",
+    "flutter",
+    "takeoff",
+    "recorded"
+   ],
+   "description": "A medium-sized bird beating its wings.",
+   "sourceUrl": "https://freesound.org/people/craigsmith/sounds/675959/",
+   "author": "craigsmith",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
   },
   {
    "id": "foley-card-slide",
@@ -984,6 +1529,36 @@
    "verifiedAt": "2026-11-07"
   },
   {
+   "id": "hiss-smoke",
+   "path": "recorded/hiss-smoke.wav",
+   "sha256": "696bb65b788848a959e6de08a1a7b7acac3ead251224e32f75f3911f2001302b",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 62400,
+   "peakSeconds": 0.4341,
+   "loudnessLufs": -17.7,
+   "tags": [
+    "hiss",
+    "steam",
+    "smoke",
+    "puff",
+    "air",
+    "recorded"
+   ],
+   "description": "A puff of steam or smoke hissing out.",
+   "sourceUrl": "https://freesound.org/people/JustineOu/sounds/569449/",
+   "author": "JustineOu",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
    "id": "hit-transient",
    "path": "kumiki/tech/hit-transient.wav",
    "sha256": "8edde0ac2a21667870ffad41e09910c8b32963e95e458e3cf61259a4410a0b00",
@@ -1015,6 +1590,34 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-12"
+  },
+  {
+   "id": "howl-dog",
+   "path": "recorded/howl-dog.wav",
+   "sha256": "641b8cb0418f6b62245f66cb0b75ec9320c2c9c83fb267c06d23cd791e065c0d",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 163200,
+   "peakSeconds": 0.0618,
+   "loudnessLufs": -17.7,
+   "tags": [
+    "dog",
+    "howl",
+    "animal",
+    "recorded"
+   ],
+   "description": "A dog howling, then a short whine.",
+   "sourceUrl": "https://freesound.org/people/Latranz/sounds/518566/",
+   "author": "Latranz",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
   },
   {
    "id": "ice-fracture-long",
@@ -1455,6 +2058,36 @@
    "verifiedAt": "2026-11-07"
   },
   {
+   "id": "lid-box-wood",
+   "path": "recorded/lid-box-wood.wav",
+   "sha256": "ee9a5da421d5520315ae6d28954cc77039ee865d11423e9d1db836c8f34b2d66",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 31565,
+   "peakSeconds": 0.02,
+   "loudnessLufs": -31.6,
+   "tags": [
+    "box",
+    "lid",
+    "wood",
+    "open",
+    "foley",
+    "recorded"
+   ],
+   "description": "A small wooden box's lid lifted: a light wooden knock.",
+   "sourceUrl": "https://freesound.org/people/arduenn/sounds/676420/",
+   "author": "arduenn",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
    "id": "mechanical-latch-heavy",
    "path": "wyzowl/mechanical/mechanical-latch-heavy.wav",
    "sha256": "11e11c062b5cb8be8079000faeac50934eb56547868c5c9c89130ec63b5ecd53",
@@ -1610,6 +2243,66 @@
    ],
    "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
    "verifiedAt": "2026-11-07"
+  },
+  {
+   "id": "paper-sheet-lay",
+   "path": "recorded/paper-sheet-lay.wav",
+   "sha256": "c57b9235ff81d79bbdd7ae62918551d176009eb72f3bc1fbde1d11aa589bc663",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 72000,
+   "peakSeconds": 0.6088,
+   "loudnessLufs": -30.7,
+   "tags": [
+    "foley",
+    "paper",
+    "sheet",
+    "page",
+    "lay",
+    "recorded"
+   ],
+   "description": "A sheet of paper turned and laid flat.",
+   "sourceUrl": "https://freesound.org/people/paulocorona/sounds/334994/",
+   "author": "paulocorona",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "paper-sheet-slide",
+   "path": "recorded/paper-sheet-slide.wav",
+   "sha256": "e65524bb9fc876c42155e2d0ee6d4e90de3007ce350842fae4c4161fc59c6650",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 89040,
+   "peakSeconds": 0.924,
+   "loudnessLufs": -33.1,
+   "tags": [
+    "foley",
+    "paper",
+    "sheet",
+    "slide",
+    "rustle",
+    "recorded"
+   ],
+   "description": "A large paper sheet lifted and swept across: a soft rustle.",
+   "sourceUrl": "https://freesound.org/people/kyles/sounds/450043/",
+   "author": "kyles",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
   },
   {
    "id": "props-book-close",
@@ -1868,6 +2561,36 @@
    "verifiedAt": "2026-11-07"
   },
   {
+   "id": "sheathe-sword",
+   "path": "recorded/sheathe-sword.wav",
+   "sha256": "39ae0ba89dc92086d96c21169c3ef11eb34dc8c97eb7e8cf8fb22296647d4d48",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 81120,
+   "peakSeconds": 1.3878,
+   "loudnessLufs": -24.3,
+   "tags": [
+    "sword",
+    "sheathe",
+    "scabbard",
+    "click",
+    "metal",
+    "recorded"
+   ],
+   "description": "A sword slid home into its scabbard, ending on a click.",
+   "sourceUrl": "https://freesound.org/people/ihitokage/sounds/395371/",
+   "author": "ihitokage",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
    "id": "step-gravel-1",
    "path": "recorded/step-gravel-1.wav",
    "sha256": "f56ed159ff61eab7c21d7d2d8cc15fc1513fdb182c20f8cf7b343e66025841fc",
@@ -1990,6 +2713,250 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-08"
+  },
+  {
+   "id": "step-sand-1",
+   "path": "recorded/step-sand-1.wav",
+   "sha256": "5d087541d199a92065b47b4ad4ae29a9e27b9d8281a574a506b3ccfcdebf893b",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 22320,
+   "peakSeconds": 0.0375,
+   "loudnessLufs": -22.3,
+   "tags": [
+    "step",
+    "footstep",
+    "walk",
+    "contact",
+    "sand",
+    "beach",
+    "recorded"
+   ],
+   "description": "One footstep on dry sand: a soft scuff.",
+   "sourceUrl": "https://freesound.org/people/kessir/sounds/264124/",
+   "author": "kessir",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "step-sand-2",
+   "path": "recorded/step-sand-2.wav",
+   "sha256": "b76726a2d51d3f72068dd6f1b9d13b5c1e347a8a61ff57d68bcb4f64cf03cb1a",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 27600,
+   "peakSeconds": 0.0194,
+   "loudnessLufs": -25.2,
+   "tags": [
+    "step",
+    "footstep",
+    "walk",
+    "contact",
+    "sand",
+    "beach",
+    "recorded"
+   ],
+   "description": "One footstep on dry sand: a soft scuff.",
+   "sourceUrl": "https://freesound.org/people/kessir/sounds/264124/",
+   "author": "kessir",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "step-sand-3",
+   "path": "recorded/step-sand-3.wav",
+   "sha256": "5720300a70538a8b22ee47713038386f1a092c282c5952c7ba284c30312b4cad",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 23280,
+   "peakSeconds": 0.268,
+   "loudnessLufs": -16.7,
+   "tags": [
+    "step",
+    "footstep",
+    "walk",
+    "contact",
+    "sand",
+    "beach",
+    "recorded"
+   ],
+   "description": "One footstep on dry sand: a soft scuff.",
+   "sourceUrl": "https://freesound.org/people/kessir/sounds/264124/",
+   "author": "kessir",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "step-sand-4",
+   "path": "recorded/step-sand-4.wav",
+   "sha256": "610d8efb34ede7e0d38d3e2649bb274d064845faaf6410a0ad57225046171ac2",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 27120,
+   "peakSeconds": 0.0228,
+   "loudnessLufs": -28.3,
+   "tags": [
+    "step",
+    "footstep",
+    "walk",
+    "contact",
+    "sand",
+    "beach",
+    "recorded"
+   ],
+   "description": "One footstep on dry sand: a soft scuff.",
+   "sourceUrl": "https://freesound.org/people/kessir/sounds/264124/",
+   "author": "kessir",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "step-snow-1",
+   "path": "recorded/step-snow-1.wav",
+   "sha256": "62583539966304b9f5caff2fdbd2a40d8b3e0ac660bd4188e280f313e8f8af69",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 17760,
+   "peakSeconds": 0.1946,
+   "loudnessLufs": -70,
+   "tags": [
+    "step",
+    "footstep",
+    "walk",
+    "contact",
+    "snow",
+    "recorded"
+   ],
+   "description": "One footstep in snow: a soft, short crunch.",
+   "sourceUrl": "https://freesound.org/people/morganpurkis/sounds/369777/",
+   "author": "morganpurkis",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "step-snow-2",
+   "path": "recorded/step-snow-2.wav",
+   "sha256": "43686000f28bf8c12ad46b9de474963238a6dfca1fdf0a596f73bd41bcb3c9c7",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 17836,
+   "peakSeconds": 0.1856,
+   "loudnessLufs": -70,
+   "tags": [
+    "step",
+    "footstep",
+    "walk",
+    "contact",
+    "snow",
+    "recorded"
+   ],
+   "description": "One footstep in snow: a soft, short crunch.",
+   "sourceUrl": "https://freesound.org/people/morganpurkis/sounds/369778/",
+   "author": "morganpurkis",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "step-snow-3",
+   "path": "recorded/step-snow-3.wav",
+   "sha256": "b34458e87e1bf2082b31685e7e42d2696676b50e566cf7e1bcd5ad71e5f7ca9b",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 15922,
+   "peakSeconds": 0.1086,
+   "loudnessLufs": -70,
+   "tags": [
+    "step",
+    "footstep",
+    "walk",
+    "contact",
+    "snow",
+    "recorded"
+   ],
+   "description": "One footstep in snow: a soft, short crunch.",
+   "sourceUrl": "https://freesound.org/people/morganpurkis/sounds/369779/",
+   "author": "morganpurkis",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "step-snow-4",
+   "path": "recorded/step-snow-4.wav",
+   "sha256": "c2c7b60a70e0019f98efc3a134a89c6a4fd5e69daf95e99b047915862dfba8e3",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 25200,
+   "peakSeconds": 0.0595,
+   "loudnessLufs": -26.8,
+   "tags": [
+    "step",
+    "footstep",
+    "walk",
+    "contact",
+    "snow",
+    "recorded"
+   ],
+   "description": "One footstep in snow: heel and sole pressing a crunch.",
+   "sourceUrl": "https://freesound.org/people/cabled_mess/sounds/384424/",
+   "author": "cabled_mess",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
   },
   {
    "id": "step-stone-1",
@@ -2342,6 +3309,36 @@
    "verifiedAt": "2026-11-12"
   },
   {
+   "id": "swing-sword",
+   "path": "recorded/swing-sword.wav",
+   "sha256": "5d60cdb6f28eb90220ba118704a28d5d563e2458208b5e98e19e9e7132a9df70",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 23760,
+   "peakSeconds": 0.1555,
+   "loudnessLufs": -18.7,
+   "tags": [
+    "sword",
+    "swing",
+    "swish",
+    "whoosh",
+    "fight",
+    "recorded"
+   ],
+   "description": "A blade swung fast through the air: a short swish.",
+   "sourceUrl": "https://freesound.org/people/qubodup/sounds/60024/",
+   "author": "qubodup",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
    "id": "tech-activate",
    "path": "kumiki/tech/tech-activate.wav",
    "sha256": "362f22df986941a27548d107e35be1e6cdec16dc49dbbaea13cf13de9a5bd951",
@@ -2532,6 +3529,70 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-08"
+  },
+  {
+   "id": "thud-club-1",
+   "path": "recorded/thud-club-1.wav",
+   "sha256": "fe1631e3425de0567c02e0289b4e68de27c7bf9c63b8f5ccdabff4921204a8db",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 20033,
+   "peakSeconds": 0.02,
+   "loudnessLufs": -27.6,
+   "tags": [
+    "impact",
+    "thud",
+    "club",
+    "ground",
+    "dirt",
+    "heavy",
+    "fight",
+    "recorded"
+   ],
+   "description": "Something heavy slammed into packed earth: a deep thud.",
+   "sourceUrl": "https://freesound.org/people/burbujafilms/sounds/392008/",
+   "author": "burbujafilms",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "thud-club-2",
+   "path": "recorded/thud-club-2.wav",
+   "sha256": "b009537e875be7d8994710f3e4e9413ea35adbb04f426a8dfcb96e2e6743fd90",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 24444,
+   "peakSeconds": 0.02,
+   "loudnessLufs": -26.3,
+   "tags": [
+    "impact",
+    "thud",
+    "club",
+    "ground",
+    "dirt",
+    "heavy",
+    "fight",
+    "recorded"
+   ],
+   "description": "Something heavy slammed into packed earth: a deep thud.",
+   "sourceUrl": "https://freesound.org/people/burbujafilms/sounds/392008/",
+   "author": "burbujafilms",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-15"
   },
   {
    "id": "tone-ding-low",

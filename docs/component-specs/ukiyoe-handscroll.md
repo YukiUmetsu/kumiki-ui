@@ -565,7 +565,7 @@ Storybook **Faces** shows the moods for a woman, maiko, oiran, man or elder in e
 
 `ukiyoeEpisode(spec)` turns a folktale, written as shots and the narration over each, into one film document.
 
-- **Shots.** Each shot is `{ id, title, build(aspect), narration?, kasumi?, sound? }`.
+- **Shots.** Each shot is `{ id, title, build(aspect), narration?, kasumi?, transition?, sound?, ambience?, sounds? }`.
   - `build` returns a UKIYO1 scene at 1920×1080 or 1080×1920.
   - `narration` lines are in the shot's own frames.
   - `kasumi` sweeps gold mist out of the previous shot for that many frames.
@@ -592,6 +592,33 @@ Storybook **Faces** shows the moods for a woman, maiko, oiran, man or elder in e
   and clipping.
 - **Examples.** `src/video/ukiyoe-kaguya.ts` (*Kaguya-hime*, eight shots, 95 s, `examples/film/ukiyoe-kaguya-hime.film.json`), `src/video/ukiyoe-momotaro.ts` (*Momotarō*, eight shots, 100 s, `examples/film/ukiyoe-momotaro.film.json`), `src/video/ukiyoe-urashima.ts` (*Urashima Tarō*, eight shots, 106 s, `examples/film/ukiyoe-urashima-taro.film.json`) and `src/video/ukiyoe-kasa-jizo.ts` (compiled to `examples/film/ukiyoe-kasa-jizo.film.json`, with its `.srt`) are complete episodes: *Kasa Jizō*, six shots, 73 s. Storybook
   **Episode (Kasa Jizō)** plays it in either output, with the script check and an .srt download.
+
+### Sound
+
+`ukiyoe-sound.ts` places recorded effects on what the picture does.
+
+A shot's `sounds` lists catalog sounds and their moments:
+- shot frames, or `{ node, on }` for what a figure does;
+- `on` is `step` (every foot set down in a walk, run or procession step), `strike` (each blow of an axe, hoe or
+  mallet), `release` (an arrow loosed), `contact` (a blade or club meeting its mark), `land`, `fall`, `drop`, or the
+  `start` / `end` of an action;
+- creatures give `start` and `end`;
+- `figureMoments(spec, moment)` reads these from the rig, on the drawings that show them.
+
+How each sound is placed:
+- **Pan and distance.** The source's place on screen pans it, within ±0.7. Its height on screen sets its distance: a
+  figure half the frame tall is 2 m away, one a tenth of it about 7 m. Sources hidden, or more than a quarter-frame off
+  screen, are not heard.
+- **Takes.** Several takes rotate without repeating, and steps vary ±1.5 dB.
+- **Alignment.** Steps, strikes and contacts land their start on the frame (FD1 `align: "start"`). Swishes and bells
+  land their peak.
+
+The shot's `ambience` lays further recorded beds under it.
+
+`ukiyoeEpisode` compiles all of this to FD1 sound cues, using the `assets/sfx` accent kit, and to audio beds. The scroll
+and print transitions add a quiet recorded paper sound.
+
+`STEPS` in `src/video/ukiyoe-episode-kit.ts` lists the recorded footsteps for snow, sand, gravel, wood and stone.
 
 ### Transition
 

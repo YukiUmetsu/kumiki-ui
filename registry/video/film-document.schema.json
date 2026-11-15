@@ -21216,6 +21216,13 @@
     "distance": {
      "type": "number",
      "description": "Metres from the camera. Farther is quieter, duller and wetter."
+    },
+    "align": {
+     "enum": [
+      "start",
+      "peak"
+     ],
+     "description": "What meets the moment: the sound's peak (a whoosh's apex, a ring), or its start (a footstep or a knock, whose contact begins it)."
     }
    },
    "required": [

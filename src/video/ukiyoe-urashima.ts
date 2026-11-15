@@ -12,12 +12,14 @@ import { ukiyoeEndCard, ukiyoeTitleCard } from "../../registry/video/ukiyoe/ukiy
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import { agedLook, TAMATEBAKO_THICKEST, UKIYOE_OTOHIME_LOOK, UKIYOE_RYUJIN_LOOK, UKIYOE_URASHIMA_LOOK } from "../../registry/video/ukiyoe/ukiyoe-ryugu";
 import { base, CAST } from "./ukiyoe-night-ferry";
-import { cam, creature, figure, motif } from "./ukiyoe-episode-kit";
+import { cam, creature, figure, motif, STEPS } from "./ukiyoe-episode-kit";
 
 type A = UkiyoeEpisodeAspect;
 const TARO = UKIYOE_URASHIMA_LOOK, OLD_TARO: UkiyoeFigureLook = agedLook(UKIYOE_URASHIMA_LOOK);
 const OLD_WOMAN: UkiyoeFigureLook = { ...CAST.grandmother, hair: "elder", hairColor: "gofun" };
 const HZ = 520, BEACH = 800;
+/** Gulls over the shore, far off, one side and then the other. */
+const gulls = (frames: number[], gainDb = -12) => frames.map((at, k) => ({ sound: ["call-gull-1", "call-gull-2"][k % 2], at, gainDb, pan: k % 2 ? -.45 : .4, distance: 25 }));
 
 /** The shore: sky, the sea out to an island, the sand. `night`/`dusk` change the light; `later` builds the changed village. */
 function shore(o: { dusk?: boolean; later?: boolean; boat?: boolean } = {}): UkiyoeNode[] {
@@ -56,6 +58,7 @@ const villageBackdrop = (a: A): UkiyoeSceneSpec => {
 };
 const title = ukiyoeTitleCard({
   title: "Urashima Tarō", titleJa: "浦島太郎", seal: "組木", backdrop: villageBackdrop, sound: { sound: "bed-surf-beach", gainDb: -16 },
+  sounds: [{ sound: STEPS.sand, at: { node: "taro", on: "step" }, gainDb: -11 }, ...gulls([36, 168])],
   narration: [{ text: "Long ago, in a fishing village by the sea,", from: 44, to: 136 }, { text: "there lived a kind young fisherman, Urashima Tarō.", from: 142, to: 236 }],
 });
 
@@ -64,6 +67,8 @@ const title = ukiyoeTitleCard({
 const poke = (offset: number): UkiyoeAction[] => [0, 1, 2, 3].map(i => ({ type: "point", start: offset + i * 52, end: offset + i * 52 + 22 } as UkiyoeAction));
 const turtleShore: UkiyoeEpisodeShot = {
   id: "turtle", title: "The turtle on the beach", kasumi: 36, transition: "scroll", sound: { sound: "bed-surf-beach", gainDb: -14 },
+  // Tarō walks up the sand; the children run off when he speaks to them.
+  sounds: [{ sound: STEPS.sand, at: { node: "taro", on: "step" }, gainDb: -8 }, ...["child-a", "child-b", "child-c"].map(node => ({ sound: STEPS.sand, at: { node, on: "step" as const }, gainDb: -13 })), ...gulls([70])],
   narration: [
     { text: "One day he found children poking a turtle on the sand.", from: 36, to: 156 },
     { text: "'Stop that,' he said, and sent them home.", from: 166, to: 286 },
@@ -139,6 +144,8 @@ function palaceStage(): UkiyoeNode[] {
 const FLOOR = 930;
 const palace: UkiyoeEpisodeShot = {
   id: "palace", title: "Princess Otohime", kasumi: 30, sound: { sound: "bed-underwater", gainDb: -20 },
+  // Small bells as the princess begins her dance, heard through the water.
+  sounds: [{ sound: "bells-suzu", at: 172, gainDb: -10, room: "underwater", source: "otohime" }, { sound: "bells-suzu", at: 330, gainDb: -12, room: "underwater", source: "otohime" }],
   narration: [
     { text: "Princess Otohime welcomed him to the palace.", from: 34, to: 150 },
     { text: "There were feasts, music and dancing fish.", from: 164, to: 304 },
@@ -166,6 +173,8 @@ const palace: UkiyoeEpisodeShot = {
 
 const gift: UkiyoeEpisodeShot = {
   id: "gift", title: "The jewelled box", kasumi: 30, sound: { sound: "bed-underwater", gainDb: -20 },
+  // The lacquered box set into his hands.
+  sounds: [{ sound: "lid-box-wood", at: 210, gainDb: -8, room: "underwater", source: "taro-2" }],
   narration: [
     { text: "But Tarō missed his home and his mother.", from: 34, to: 150 },
     { text: "The princess gave him a jewelled box.", from: 164, to: 284 },
@@ -194,6 +203,8 @@ const gift: UkiyoeEpisodeShot = {
 
 const returnShore: UkiyoeEpisodeShot = {
   id: "return", title: "Three hundred years", kasumi: 40, transition: "ink", sound: { sound: "bed-surf-beach", gainDb: -14 },
+  // Up from the shore into a village of strangers, on its packed gravel road.
+  sounds: [{ sound: STEPS.gravel, at: { node: "taro", on: "step" }, gainDb: -8 }, ...["stranger-a", "stranger-b"].map(node => ({ sound: STEPS.gravel, at: { node, on: "step" as const }, gainDb: -14 }))],
   narration: [
     { text: "Back on the shore, nothing was as he had left it.", from: 44, to: 168 },
     { text: "No one knew him. His house was gone.", from: 176, to: 300 },
@@ -220,6 +231,12 @@ const returnShore: UkiyoeEpisodeShot = {
 const OPEN_AT = 120, OPEN_FOR = 220, SWAP = OPEN_AT + Math.round(OPEN_FOR * TAMATEBAKO_THICKEST);
 const opening: UkiyoeEpisodeShot = {
   id: "box", title: "The box is opened", kasumi: 30, sound: { sound: "bed-surf-beach", gainDb: -18, lowpassHz: 1600 },
+  // The lid lifts (the first fifth of the opening), then the smoke hisses out and billows over him.
+  sounds: [
+    { sound: "lid-box-wood", at: OPEN_AT + 4, source: "box", distance: 2.5, gainDb: -7 },
+    { sound: "hiss-smoke", at: OPEN_AT + 30, source: "box", distance: 2.5, gainDb: -7 },
+    { sound: "hiss-smoke", at: OPEN_AT + 96, source: "box", distance: 4, gainDb: -13 },
+  ],
   narration: [
     { text: "In his sorrow, Tarō untied the cord.", from: 30, to: 140 },
     { text: "White smoke poured out of the box,", from: 152, to: 280 },
@@ -256,6 +273,7 @@ const duskBackdrop = (a: A): UkiyoeSceneSpec => {
 };
 const end = ukiyoeEndCard({
   closing: "おしまい", next: "Next: Momotarō", seal: "組木", backdrop: duskBackdrop, kasumi: 30, sound: { sound: "bed-surf-beach", gainDb: -20 },
+  sounds: gulls([60, 230], -14),
   narration: [{ text: "He sat by the sea he loved, watching the waves.", from: 44, to: 190 }],
 });
 

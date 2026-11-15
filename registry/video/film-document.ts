@@ -357,6 +357,9 @@ export interface FilmSoundCue {
   pan?: number;
   /** Metres from the camera. Farther is quieter, duller and wetter. */
   distance?: number;
+  /** What meets the moment: the sound's peak (a whoosh's apex, a ring), or its start (a footstep or a knock, whose contact begins
+   * it). @default "peak" */
+  align?: "peak" | "start";
 }
 /** `kit.json` of an accent kit. `peakSeconds` is where the sound peaks, so the peak can land on its frame. */
 export interface FilmAccentKit { sounds: Readonly<Record<string, { file: string; peakSeconds: number; gainDb?: number; catalogId?: string }>> }
@@ -1108,6 +1111,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   (doc.audio?.cues ?? []).forEach((cue, index) => {
     const [sceneId, cueId] = cue.at.split("/"), scene = compiled.find(item => item.id === sceneId);
     if (!doc.audio?.accents) report("error", "sound-cue-no-kit", `/audio/cues/${index}`, "A sound cue needs `audio.accents.kit`.");
+    if (cue.align !== undefined && cue.align !== "peak" && cue.align !== "start") report("error", "sound-cue-align", `/audio/cues/${index}/align`, "A cue aligns its \"peak\" or its \"start\" on the moment.");
     if (cue.room !== undefined && !hasKey(SOUND_ROOMS, cue.room)) report("error", "sound-cue-room", `/audio/cues/${index}/room`, `"${cue.room}" is not a room.`, `Rooms: ${Object.keys(SOUND_ROOMS).join(", ")}.`);
     if (cue.pan !== undefined && !(cue.pan >= -1 && cue.pan <= 1)) report("error", "sound-cue-room", `/audio/cues/${index}/pan`, "Pan runs from -1 to 1.");
     if (cue.distance !== undefined && !(cue.distance >= 1 && cue.distance <= 200)) report("error", "sound-cue-room", `/audio/cues/${index}/distance`, "Distance runs from 1 to 200 metres.");
@@ -1301,8 +1305,8 @@ const DROP_SECONDS = .015;
  * that the kit does not have gets no `assetRef`, and the compiler reports it. */
 function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: FilmAudio, quiet: ReadonlySet<string>,
   authored: ReadonlyMap<string, FilmTransition["accent"]> = new Map()): SoundEvent[] {
-  const place = (id: string, sound: string, peakFrame: number, extraDb = 0): SoundEvent => {
-    const found = kit.sounds[sound], lead = (found?.peakSeconds ?? 0) * fps.num / fps.den, start = peakFrame - lead, frame = Math.max(0, Math.floor(start));
+  const place = (id: string, sound: string, peakFrame: number, extraDb = 0, align: FilmSoundCue["align"] = "peak"): SoundEvent => {
+    const found = kit.sounds[sound], lead = align === "start" ? 0 : (found?.peakSeconds ?? 0) * fps.num / fps.den, start = peakFrame - lead, frame = Math.max(0, Math.floor(start));
     return { id: `${id}/${sound}`, laneId: ACCENT_LANE, frame, subframeOffset: start > 0 ? start - frame : 0,
       assetRef: found && request.accents!.kit + "/" + found.file, gainDb: (request.accents!.gainDb ?? -8) + (found?.gainDb ?? 0) + extraDb };
   };
@@ -1318,7 +1322,7 @@ function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPla
       return [];
     }),
     ...scenes.flatMap(scene => scene.turnFrame === undefined ? [] : TURN[scene.story?.turnAccent ?? "soft"].map(sound => place(`accent/${scene.id}`, sound, scene.turnFrame!))),
-    ...(request.cues ?? []).flatMap(cue => { const frame = moment(cue.at); return frame === undefined ? [] : [place(`cue/${cue.id}`, cue.sound, frame + (cue.offsetFrames ?? 0), cue.gainDb ?? 0)]; }),
+    ...(request.cues ?? []).flatMap(cue => { const frame = moment(cue.at); return frame === undefined ? [] : [place(`cue/${cue.id}`, cue.sound, frame + (cue.offsetFrames ?? 0), cue.gainDb ?? 0, cue.align)]; }),
   ];
 }
 
