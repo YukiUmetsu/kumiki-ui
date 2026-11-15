@@ -252,7 +252,7 @@ function WorldStudio({ initialSubject = "terrain" }: { initialSubject?: PencilDe
       </h1>
       <p style={{ margin: 0, maxWidth: 850 }}>
         Original illustrated worlds and two independently animated characters share pressure-sensitive pigment, local stroke fans,
-        layered paper, a frame-addressable camera and screen-safe annotations.
+        natural keratin bills, glossy ocular surfaces, layered paper, and frame-addressable animation.
         Nothing is inferred as a real measurement.
       </p>
     </header>
