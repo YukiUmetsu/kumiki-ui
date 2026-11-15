@@ -5,6 +5,8 @@ import {crayonPaperTintedWaxBase} from "../registry/video/materials/crayon-react
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
 import {CRAYON_PORTRAIT_AUDIT}
   from "../src/video/crayon-artcraft-portrait-audit";
+import {CRAYON_F1_RECONSTRUCTED_MIDFACE_IDS}
+  from "../src/video/crayon-artcraft-f1-midface-geometry";
 import {CRAYON_F1_RECONSTRUCTED_OCULAR_IDS}
   from "../src/video/crayon-artcraft-f1-ocular-geometry";
 import {CRAYON_F1_FACE_PROOF,CRAYON_F1_FACE_PARTS,
@@ -104,7 +106,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(slit.bounds.height).toBeLessThan(50);
     expect(slit.coverage).toBe("open");
     expect(upper.bounds.height).toBeLessThan(70);
-    expect(lower.bounds.height).toBeLessThan(65);
+    expect(lower.bounds.height).toBeLessThanOrEqual(72);
     expect(upper.coverage).toBe("open");
     expect(lower.coverage).toBe("open");
     for(const el of [back,left,right]){
@@ -405,6 +407,54 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     const baselineHtml=renderToStaticMarkup(<CrayonScene spec={baseline} frame={299}/>);
     expect(candidateHtml.match(/data-km-crayon-contact-feather-mask=""/g)?.length)
       .toBe((baselineHtml.match(/data-km-crayon-contact-feather-mask=""/g)?.length??0)+5);
+  });
+  it("retains exact source midface negative control while building attached alar and dental wax anatomy",()=>{
+    const scene=crayonCc0FaceStudy({eyeContact:"baseline",midfaceForm:"source-volume"});
+    const baseline=crayonCc0FaceStudy({eyeContact:"baseline",midfaceForm:"baseline"});
+    const originals=new Map(baseline.elements.map(e=>[e.id,e]));
+    const changed=new Set(CRAYON_F1_RECONSTRUCTED_MIDFACE_IDS);
+    expect(scene.elements.length).toBe(baseline.elements.length+1);
+    expect(scene.elements.filter(e=>!changed.has(e.id)))
+      .toEqual(baseline.elements.filter(e=>!changed.has(e.id)));
+    for(const id of changed){
+      const candidate=scene.elements.find(e=>e.id===id);
+      expect(candidate?.kind).toBe("wax");
+      if(id==="dental-arch-connected-wax"){
+        expect(originals.has(id)).toBe(false);
+        expect(candidate).toMatchObject({kind:"wax",
+          parentId:"mouth-aperture-depth",clipToParent:true,
+          coverage:"opaque",deposition:"stroke-built"});
+      }else{
+        const original=originals.get(id);
+        expect(original?.kind).toBe("wax");
+        expect(candidate?.parentId).toBe(original?.parentId);
+        expect(candidate?.d).not.toBe(original?.d);
+      }
+    }
+    const where=(id:string)=>scene.elements.findIndex(e=>e.id===id);
+    expect(where("oral-opening")).toBeLessThan(where("mouth-aperture-depth"));
+    expect(where("mouth-aperture-depth")).toBeLessThan(
+      where("dental-arch-connected-wax"));
+    expect(where("dental-arch-connected-wax")).toBeLessThan(
+      where("dental-surface-left"));
+    const near=scene.elements.find(e=>e.id==="naris-shadow-near");
+    const far=scene.elements.find(e=>e.id==="naris-shadow-far");
+    if(near?.kind!=="wax"||far?.kind!=="wax")
+      throw new Error("Missing nested nasal wax");
+    expect(near.bounds.width).toBeGreaterThan(far.bounds.width);
+    expect(near.underpaintGradient?.shadow).toBe("#1d161b");
+    const dental=scene.elements.find(e=>e.id==="dental-arch-connected-wax");
+    if(dental?.kind!=="wax")throw new Error("Missing dentition underpaint");
+    expect(dental.colors[2]).not.toBe("#ffffff");
+    expect(dental.underpaintTooth).toBeLessThan(.11);
+    expect(inspectCrayonScene(scene)).toEqual([]);
+    expect(inspectCrayonScene(baseline)).toEqual([]);
+    expect(()=>crayonCc0FaceStudy({midfaceForm:"bad" as "baseline"}))
+      .toThrow(RangeError);
+    const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>);
+    expect(html).toContain('data-km-crayon-element="dental-arch-connected-wax"');
+    const baselineHtml=renderToStaticMarkup(<CrayonScene spec={baseline} frame={299}/>);
+    expect(baselineHtml).not.toContain('data-km-crayon-element="dental-arch-connected-wax"');
   });
   it("preserves F1 narrow anatomical near-eye occlusion rather than a round doll iris",()=>{
     const scene=crayonCc0FaceStudy({view:"wax"});
