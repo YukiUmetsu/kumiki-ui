@@ -92,7 +92,11 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(parts.get("chest")!.details!.length).toBe(2);
     expect(parts.get("ground-shadow")!.opaqueSupport).toBe(false);
     expect(parts.get("muzzle")!.opaqueSupport).toBe(true);
-    expect(parts.get("whisker-roots")!.details![0].path.match(/M/g)!.length).toBe(4);
+    const whisker=parts.get("whisker-roots")!;
+    expect(whisker.clipDetails).toBe(false);
+    expect(whisker.opaqueSupport).toBe(true);
+    expect(whisker.details!.slice(0,2).reduce((n,t)=>
+      n+(t.path.match(/M/g)??[]).length,0)).toBe(6);
   });
 
   it("separates distant from close pines, reflected water, river rock and bank foliage",()=>{
