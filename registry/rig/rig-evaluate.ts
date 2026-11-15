@@ -577,56 +577,63 @@ function pasternLeg(leg: RigLeg, cycle: number, stance: number, stride: number, 
   // Unloaded, the pastern continues the line of the leg (it points at the hip); loaded, the fetlock sinks onto the
   // pastern so the leg above stays straight. The load comes on just after touchdown and goes off before push-off.
   const unloaded = (H: [number, number]): [number, number] => { const dx = J[0] - H[0], dy = J[1] - H[1], d = Math.hypot(dx, dy) || 1; return [H[0] + P * dx / d, H[1] + P * dy / d]; };
-  /** Between two fetlock positions on the pastern's circle around the hoof: blend the angle, so the pastern keeps its length. */
-  const onPastern = (H: [number, number], A: [number, number], B: [number, number], k: number): [number, number] => {
-    const a = Math.atan2(A[1] - H[1], A[0] - H[0]), b = Math.atan2(B[1] - H[1], B[0] - H[0]), d = Math.atan2(Math.sin(b - a), Math.cos(b - a)), g = a + d * k;
-    return [H[0] + P * Math.cos(g), H[1] + P * Math.sin(g)];
+  // Hoof and pastern "in line": the hoof keeps its standing relation to the pastern (hoofRest), as it does in the air
+  // and at break-over; planted, the hoof lies flat whatever the pastern does.
+  const hoofRest = leg.hoof ? byId.get(leg.hoof)!.rotate ?? 0 : 0, restAngle = -hoofRest, toe = leg.toe ?? P * .6;
+  const along = (theta: number): [number, number] => [-Math.sin(theta / DEG), Math.cos(theta / DEG)];
+  const fromHoof = (H: [number, number], theta: number): [number, number] => { const [dx, dy] = along(theta); return [H[0] - P * dx, H[1] - P * dy]; };
+  const lerpAngle = (x: number, y: number, k: number) => x + angleDelta(x, y) * k;
+  /** Break-over (Muybridge's walk plates; slow-motion gallop studies measure ~90°): at the end of stance the heel lifts
+   * and the hoof pivots on its planted toe, the pastern turning with it, so at lift-off hoof and pastern stand in line,
+   * sole facing back. Returns the hoof origin, its world angle and the pastern angle at stance fraction k. */
+  const BREAK_START = .72, BREAK = 64;
+  const breakover = (Hplant: [number, number], k: number, loadedAngle: number) => {
+    const b = smooth((k - BREAK_START) / (1 - BREAK_START)), phi = BREAK * b, tip: [number, number] = [Hplant[0] + toe, Hplant[1]];
+    const Hb: [number, number] = [tip[0] - toe * Math.cos(phi / DEG), tip[1] - toe * Math.sin(phi / DEG)];
+    return { H: Hb, tip, phi, pastern: lerpAngle(loadedAngle, restAngle, b) + phi, active: b > 0 };
   };
-  let F: [number, number], aim: [number, number], footAngle: number, hoofLocal = 0, lw = 1, contact: [number, number] | undefined;
+  let F: [number, number], aim: [number, number], footAngle: number, hoofLocal = 0, lw = 1, hoofWorld: number | undefined, contact: [number, number] | undefined;
   if (!swing) {
-    // Loaded through the stance (the leg stays a straight column on the sinking fetlock); only at break-over, as the
-    // hoof peels off, does the pastern straighten.
-    const H = hoofAt(rel), k = t / stance, load = w < 1 ? 1 : 1 - smooth((k - .86) / .14);
-    const Fu = unloaded(H), Fl = fetlockFor(H, P, J, reachS);
-    F = onPastern(H, Fu, Fl, load); aim = H;
-    contact = H;
+    // Loaded through the stance: the leg stays a straight column on the sinking fetlock, then breaks over the toe.
+    const H = hoofAt(rel), k = w < 1 ? 0 : t / stance, Fl = fetlockFor(H, P, J, reachS), br = breakover(H, k, directionAngle(Fl, H));
+    if (br.active) { F = fromHoof(br.H, br.pastern); aim = br.H; hoofWorld = br.phi; contact = br.tip; }
+    else { F = Fl; aim = H; hoofWorld = 0; contact = H; }
   } else {
-    // The hoof travels from lift-off to landing on a ground-speed-matched arc: it folds high early (tucked up under the
-    // body), then unfolds so the last third is the leg reaching forward and down, straight, before it lands.
+    // The hoof leaves standing on its toe, folds high under the body (the fetlock flexes, sole facing back), then the
+    // leg unfolds so the last third of the swing is a straight reach that sets the hoof down flat.
     const fold = Math.max(s < .35 ? Math.sin(Math.PI / 2 * s / .35) : Math.cos(Math.PI / 2 * Math.min(1, (s - .35) / .42)) ** 2, .28 * Math.sqrt(Math.sin(Math.PI * s)));
-    const H: [number, number] = [hx + rel * w, ground - L * w * fold];
-    // Unloaded in mid-swing (the hoof hangs in line with the leg); reaching for the landing the leg straightens and the
-    // pastern takes its loaded angle, so the leg lands as a straight column.
-    const Fu = unloaded(H), Fl = fetlockFor(H, P, J, reachS);
-    lw = Math.max(1 - smooth(s / .25), smooth((s - .6) / .4));
-    F = onPastern(H, Fu, Fl, lw); aim = H;
+    const lift0 = hoofAt(relStance(stance)), end = breakover(lift0, 1, restAngle), fade = 1 - smooth(s / .3);
+    const H: [number, number] = [hx + rel * w + (end.H[0] - lift0[0]) * fade, ground - L * w * fold + (end.H[1] - lift0[1]) * fade];
+    const Fl = fetlockFor(H, P, J, reachS), hang = directionAngle(unloaded(H), H), land = directionAngle(Fl, H);
+    lw = smooth((s - .6) / .4);
+    const theta = s < .3 ? lerpAngle(end.pastern, hang, smooth(s / .3)) : lerpAngle(hang, land, lw);
+    F = fromHoof(H, theta); aim = H;
   }
   solveTwoBone(leg.upper, leg.lower, leg.bend, F, byId, pose, world, 1);
   solve();
   const shinAngle = angleOf(world.get(leg.lower)!);
   // Aim the pastern from the fetlock the IK actually reached at the hoof's intended point. Planted, it may stretch by a
-  // few percent so the hoof sits exactly where it landed even at full reach; swinging, the hoof keeps to its arc.
+  // few percent so the hoof (and at break-over its toe) sits exactly where it landed even at full reach.
   const lm = world.get(leg.lower)!, Fa: [number, number] = [lm.c * lower.length! + lm.e, lm.d * lower.length! + lm.f];
   footAngle = directionAngle(Fa, aim);
   if (contact) {
-    hoofLocal = -footAngle;
-    const stretch = clamp(Math.hypot(contact[0] - Fa[0], contact[1] - Fa[1]) / P, .85, 1.15);
+    hoofLocal = hoofWorld! - footAngle;
+    const stretch = clamp(Math.hypot(aim[0] - Fa[0], aim[1] - Fa[1]) / P, .85, 1.15);
     pose.get(leg.foot!)!.sy *= stretch;
     if (leg.hoof) pose.get(leg.hoof)!.sy /= stretch;
-  } else hoofLocal = -footAngle * lw;
+  } else hoofLocal = lerpAngle(hoofRest, -footAngle, lw);
   if (swing && leg.curl !== undefined) {
-    // The hoof flips back with the folding cannon at the top of the swing, then reaches for the ground.
-    // Done by three quarters of the swing, so the reaching leg comes down clean with the hoof on its arc.
+    // The fetlock flexes at the top of the swing: pastern and hoof flip back together, done by three quarters of the
+    // swing so the reaching leg comes down clean.
     const bump = Math.sin(Math.PI * clamp(s / .75, 0, 1)) * w;
     footAngle = footAngle + angleDelta(footAngle, shinAngle + leg.curl) * bump;
-    hoofLocal = hoofLocal * (1 - bump);
   }
   if (swing) {
     // A swinging hoof never dips through the ground: tilt the pastern forward until it just clears.
-    const lm = world.get(leg.lower)!, Fy = lm.d * lower.length! + lm.f, drop = Fy + P * Math.cos(footAngle / DEG);
+    const Fy = lm.d * lower.length! + lm.f, drop = Fy + P * Math.cos(footAngle / DEG);
     if (drop > ground && ground - Fy < P) {
       const tilt = Math.acos(clamp((ground - Fy) / P, -1, 1)) * DEG * (footAngle < 0 ? -1 : 1);
-      hoofLocal += footAngle - tilt; footAngle = tilt;
+      footAngle = tilt;
     }
   }
   pose.get(leg.foot!)!.rotate = footAngle - shinAngle;

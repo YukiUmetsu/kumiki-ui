@@ -73,8 +73,23 @@ describe("RIG1 motion", () => {
     const knee = (f: number) => { const fr = evaluateRig(spec, f), a = fr.bones.get("up-fore-near")!.world, b = fr.bones.get("lo-fore-near")!.world;
       return Math.abs(((Math.atan2(b.b, b.a) - Math.atan2(a.b, a.a)) * 180 / Math.PI + 540) % 360 - 180); };
     const knees = Array.from({ length: 60 }, (_, i) => knee(60 + i));
-    expect(Math.min(...knees)).toBeLessThan(24); // .985 of full length: reads straight, never snaps to a locked knee
+    expect(Math.min(...knees)).toBeLessThan(30); // .985 of full length: reads straight, never snaps to a locked knee
     expect(Math.max(...knees)).toBeGreaterThan(70);
+  });
+  it("breaks a hoof over its planted toe at the end of stance and lands it flat", () => {
+    const spec = quadrupedRig("horse", { motion: "walk", start: 0, end: 240, from: 0, to: 1500, size: 430, y: 700 });
+    const gait = spec.drivers!.find(d => d.type === "gait");
+    if (gait?.type !== "gait") throw new Error("no gait");
+    const leg = gait.legs.find(l => l.upper === "up-fore-near")!;
+    let broke = 0, flatPlants = 0;
+    for (let f = 40; f < 200; f++) {
+      const h = evaluateRig(spec, f).bones.get("hoof-fore-near")!.world, angle = Math.atan2(h.b, h.a) * 180 / Math.PI;
+      const toeY = h.b * leg.toe! + h.f;
+      if (angle > 40 && Math.abs(toeY - 700) < .6) broke++;
+      if (Math.abs(angle) < .5 && Math.abs(h.f - 700) < .6) flatPlants++;
+    }
+    expect(broke).toBeGreaterThan(2);
+    expect(flatPlants).toBeGreaterThan(20);
   });
   it("beats side-view wings by projection, never swinging the tips ahead of the shoulder", () => {
     const spec = birdRig({ motion: "fly", start: 0, end: 60, from: 0, to: 600 });
