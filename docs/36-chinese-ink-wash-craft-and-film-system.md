@@ -23,6 +23,8 @@ Reference material was used to study *technique and motion*, not to copy scenes,
 
 **Licensing:** The linked demonstrations are references, not reusable assets. The in-repo mountain photograph used for the generic proof is an existing licensed asset; see the repository's third-party asset manifest.
 
+**Historical character-film reference study:** [ink animation, character motion and production research](research/ink-character-film-language-and-motion-20261114.md). This is an archived reference and initial gap list; the supported current implementation is `registry/video/ink-actor-director.ts` and its shared-character presentation pipeline, not a separate legacy ink actor renderer.
+
 ## 2. Material direction: what must be true
 
 Chinese ink painting is not monochrome film grading. An authentic stylized shot has *a source of marks*, local tonal contrast and paper behavior.
