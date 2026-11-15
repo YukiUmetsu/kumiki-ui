@@ -232,3 +232,25 @@ The first *actual browser screenshot* showed four school styles with recognizabl
 **ArtCraft pass criteria:** 4 rooted continuous parent ribs, 12 reloads at exact root coordinates, 8 root-sampled child fibres and unique pressure-contour paths; 3 parent macro hills and all existing micro detail unchanged. Source eye test: no solid arrow-like four-rib comb, no four repeated geometric hooks, dry/loaded transitions visible at true 960×540 and 2–3× macro; Fuchun still must read as a *mountain assembled from overlapping boulder ridges* rather than a fan of strings. **Artist approval still withheld** pending exact-head screenshots and full motion proof. No museum pixels are used in production art.
 
 **Technical negative controls:** Unit/Chromium asserts twelve child deposits (stages 0,1,2 for each parent), exact 34+ cubic curve segments and start/end continuity, seed determinism and inherited canopy/film frame contracts; the other schools must show zero legacy Fuchun rib geometry. All four variants continue to be selectable within the same native Storybook folder.
+
+
+## ArtCraft Storybook inspection-camera update — 2026-11-15
+
+**Institutional reference reaffirmed:** National Palace Museum, [Guo Xi, *Early Spring* (1072)](https://digitalarchive.npm.gov.tw/Collection/Detail?dep=P&id=47). The institution describes pressure variation in the outlined boulders, stronger trunks fading into vapor, winding rock continuity, and hooked crab-claw trees. Those are joint structural/optical phenomena, not a single global color preset. The four source-specific studies above remain separate; do not silently blend techniques.
+
+**Visual defect this QA change targets:** the 1.65× cropped four-school comparison can hide defects visible at the complete 960×540 film scale — large smooth tan cliff masses, missing foreground-to-distance transitions, false botanical scale and overfilled white-space reservoirs. Conversely a small full-frame preview can hide disconnected rock grooves and repetitive micro-edge textures.
+
+**Existing Storybook location:** `Video production / Film Looks / Chinese Ink / Shanshui Film Gallery` → `Four masters · brushwork source comparisons`. No new folder, no extra painter, no flattened source image.
+
+| Preset | Actual renderer/camera | Release-rejection criterion |
+| --- | --- | --- |
+| Full film · 16:9 | Entire original 960×540 SVG stage fitted into 420×308 inspection frame, 0.4375× with vertical letterbox | Broken macro silhouette, absent mist separation, tree/rock scale mismatch, no navigable paper space |
+| Summit · macro | 1.65× from film-coordinate (549,151) | Same triangle for all masters or unconnected summit/fold mass |
+| Rock strata · meso | 2.4× from (552,177) | Floating/repeating rock banks, parallel comb-like fibres, unsupported dark recess |
+| Brush edge · micro | 3.35× from (553,207) | Non-calligraphic constant-width paths, plastic smooth masks, mechanically repeated dry tips |
+
+All four views remain linked to the same canonical `InkShanshuiStage` renderers; toggling only changes outer CSS camera transforms. Film frame (0–299), seed, detail, mist and ink controls remain active in all modes; Reset restores frame 145 / seed 71 / detail 1 / mist 0.35 / ink 0.9 / 1.65× macro. Browser regression verifies the four real film stages remain present, the full-fit transform and each camera preset, frame seek and reset. Native screenshot/film review is *still necessary* before any artistic approval.
+
+**Five-axis review:** (1) attached topology at rock/bough roots; (2) brush vector flow along credible terrain; (3) wet-to-dry ink load, locally clipped to parent stone; (4) nonuniform clusters and deliberate empty paper windows; (5) broken/split bristle edges. These five checks must be evaluated at their appropriate film scale. Increasing detail counters alone is not a pass.
+
+**Gate:** draft remains on artistic hold. This is an inspection/Storybook improvement, **not** a claim that the current four mountains, grove, bamboo or scholar meet the source fidelity bar. Do not merge until exact-head CI and native images/videos are actually reviewed against each primary reference.
