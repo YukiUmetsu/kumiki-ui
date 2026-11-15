@@ -564,8 +564,6 @@ function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
   // Only the dominant peak of the middle mountain layer receives the
   // authored hero rock anatomy. Repeating it at every peak would erase
   // the handscroll's deliberate sparse/dense geographic rhythm.
-  const heroPeak=band===1&&peaks.length
-    ?peaks.reduce((best,p)=>p[1]<best[1]?p:best,peaks[0]):null;
   const ridgeClip=id+"-clip",washFilter=id+"-paper-absorption";
   return <g data-km-rock-shoulder-family={band}>
     <defs>
@@ -694,9 +692,6 @@ function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
           <path data-km-rock-shoulder-wash=""
             d={wash} fill={"url(#"+washId+")"}
             filter={"url(#"+washFilter+")"}/>
-          {heroPeak&&heroPeak[0]===x&&detail>.7&&
-            <MountainHeroCliff root={[x,crest+2.5]}
-              seed={seed+777} mist={mist}/>} 
           {shelves.map(({root,face,rim},j)=><g key={"ledge"+j}
             data-km-rock-alum-ledge=""
             data-km-rock-alum-ledge-root={f(root[0])+","+f(root[1])}>
@@ -870,6 +865,12 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
       const width=band===0?1.1:band===1?1.3:1.8;
       const stations=ridgeStations(ridge,seed,band);
       const count=Math.round((band===0?27:band===1?48:67)*detail);
+      // Select the original mid-range root before painting; a loaded
+      // geometric crag must not be faded again by the parent slope wash.
+      const peaks=ridge.slice(1,-1).flatMap(([px,py],i)=>
+        py<ridge[i][1]&&py<ridge[i+2][1] ? [[px,py] as P] : []);
+      const heroPeak=band===1&&peaks.length
+        ?peaks.reduce((best,p)=>p[1]<best[1]?p:best,peaks[0]):null;
       return <g key={band}>
         <g data-km-shanshui-ridge={band}
           opacity={(band===0?.32:band===1?.65:.86)*ink}>
@@ -996,6 +997,25 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
             fill={INK} opacity={.17+.36*s(seed,i*7+3)}/>;
         })}
         </g>
+        {/* The fine calligraphic hero is a sibling of the broad mountain
+            wash, not its opacity child. Retain the identical ridge-space
+            clip so not one pixel paints into the sky. Like the separate
+            pine layer this rescues true dark ink deposits without replacing
+            the source-structured geometry with a flat contrast filter. */}
+        {heroPeak&&detail>.7&&<g data-km-rock-hero-paint-layer=""
+          opacity={f(.98*ink)}>
+          <defs>
+            <clipPath id={ids.grain+"-hero-"+band+"-clip"}
+              clipPathUnits="userSpaceOnUse">
+              <path d={ridgePath(stations)}/>
+            </clipPath>
+          </defs>
+          <g clipPath={"url(#"+ids.grain+"-hero-"+band+"-clip)"}>
+            <MountainHeroCliff
+              root={[heroPeak[0],ridgeHeight(stations,heroPeak[0])+2.5]}
+              seed={seed+band*251+777} mist={mist}/>
+          </g>
+        </g>}
         {/* Independently loaded foreground-to-midground brush layer.
             Keep BEFORE near ridge (it can occlude lower trunks), but
             remove the middle mountain's .65× opacity that made black
