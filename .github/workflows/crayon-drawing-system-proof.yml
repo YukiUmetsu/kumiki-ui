@@ -1,0 +1,50 @@
+name: Crayon drawing grammar native proof
+
+# Only the new authoring framework triggers this isolated visual smoke proof.
+# Legacy film/video and full Storybook builds remain local/on-demand.
+on:
+  pull_request:
+    paths:
+      - registry.json
+      - registry/video/materials/crayon-art-direction.ts
+      - src/video/crayon-drawing-system-fixtures.ts
+      - src/video/crayon-drawing-system.stories.tsx
+      - tests/crayon-drawing-system.test.tsx
+      - tests/e2e-artcraft/crayon-drawing-system.spec.ts
+      - .github/workflows/crayon-drawing-system-proof.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crayon-drawing-grammar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-grammar-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Validate installable registry and Crayon catalog entry
+        run: |
+          npm run registry:validate
+          npm run catalog:find -- --id=pack:crayon-storybook --format=json > /dev/null
+      - name: Install headless browser
+        run: npx playwright install --with-deps chromium
+      - name: Capture four-pass drawing construction in both aspects
+        run: npx playwright test -c playwright.artcraft.config.ts tests/e2e-artcraft/crayon-drawing-system.spec.ts
+      - name: Save source-native evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crayon-drawing-grammar-native
+          path: test-results/
+          retention-days: 10
+          if-no-files-found: warn

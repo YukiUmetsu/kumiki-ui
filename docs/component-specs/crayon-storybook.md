@@ -6,6 +6,27 @@
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
 
+## Crayon drawing grammar (2026-11-14)
+
+A new strict, reference-informed **construction system** checks real CRAYON1
+source scenes before artistic review. See
+[artist study, medium boundaries, and four-pass drawing contract](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+
+- **Core:** `registry/video/materials/crayon-art-direction.ts`, also included in the installable `crayon-storybook` registry pack, validates
+  physical part hierarchies, opaque subject masses, phase timing,
+  clipped glazes, clipped strokes, source-specific curved-path minimums,
+  attached world-space endpoints throughout source motion and untracked elements.
+- **Authoring example:** `src/video/crayon-drawing-system-fixtures.ts`
+  constructs original fruit, stem, leaf, tonal wax, clipped grain and
+  an explicit auditable plan using the existing CRAYON1 renderer.
+- **Workbench:** `Video production / Film Looks / Crayon / Materials /
+  Drawing System`. There is **no new Crayon Storybook root**. Both 16:9
+  and 9:16, source frames, directional detail, nib pressure and paper tooth
+  are configurable; all explanatory text stays outside the SVG.
+- **Release gate:** this study remains `!dev` until real source-native
+  screenshots and independent aesthetic review. Geometry tests alone do
+  not constitute accepted art.
+
 ## ArtCraft native-camera facial inspection (2026-11-14)
 
 The hidden `Video production / Film Looks / Crayon / Characters / ArtCraft Adult Face Lab`
