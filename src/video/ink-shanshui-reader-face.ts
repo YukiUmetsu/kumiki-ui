@@ -77,14 +77,16 @@ export function scrollReaderFacePortrait(detail=1):
       "none","$shadow",.83,.67),
     // Three-quarter temple -> tapered cheek -> defined chin. The right
     // cheek reaches forwards; jaw narrows rapidly below the visible ear.
-    p("M119 77.6 C129.2 68.6 147.4 66.8 157.7 73.3 C165.2 79.1 167.4 87.7 166.4 101.5 C165.3 109.8 163.4 117.1 156.6 125.6 C151.8 130.7 147.4 138.5 143.3 143.7 C139.5 145.1 135.2 142.6 130.6 139.4 C124.6 135.8 120.1 130.8 118.8 126.2 C115.5 120.2 114.9 116.8 114.2 106.2 C113.7 93.4 115.2 84.7 119 77.6 Z",
-      "$skin","$shadow",1.48),
+    p("M119 77.6 C129.2 68.6 147.4 66.8 157.7 73.3 C163.3 78.4 166.2 87.5 165.8 97.7 C165.5 107 162.7 114.6 157.3 122.8 C154.8 126.2 152.7 128.7 150.8 131 C148.4 133.7 146.4 137.6 145.5 139.1 C144.7 140.8 144.3 142.8 143.3 143.7 C141.8 144.6 138.6 143.5 135.9 141.8 C132.1 139.5 127.9 136.8 124.9 133.1 C121.1 128.8 118.9 124.8 117.3 120.1 C115.9 116 115 112.3 114.6 106.8 C113.7 100.3 113.9 95.1 114.4 90.5 C114.7 86.8 116 81.3 119 77.6 Z",
+      "$skin","$shadow",1.12),
     // Soft anatomical planes are placed along the jaw and nose and never
     // replace the opaque skin silhouette (no see-through heads).
     p("M154.1 85.5 C160.8 91 162.7 100 160.1 107.8 C158.6 111.8 155.8 113.1 153 115.4 C160 113.4 163.2 108.6 163.8 103.4 C164.8 97 162.6 88.8 154.1 85.5 Z",
       "$skinshade","none",0,.14),
-    p("M117.8 111.6 C121.9 124.4 128.3 132.9 141.6 136.6 C135.5 135.5 123.9 132.4 118.4 126.4 Z",
-      "$skinshade","none",0,.16),
+    // A light embedded cheek plane follows the malar arch, not the
+    // old long striped jaw hatch. Preserve unpainted skin for the light.
+    p("M118.2 113.6 C120.5 121.8 127.6 126.8 133.1 130.1 C129 125.3 123.6 122.6 119.5 116.3 Z",
+      "$skinshade","none",0,.115),
     // No additional heavy jaw-tracing strokes: the solid face outline
     // already describes the young chin. Extra lines aged this reader.
     // Subtle, anatomically placed nose bridge and nostril. The earlier
@@ -132,11 +134,11 @@ export function scrollReaderFacePortrait(detail=1):
     // Asymmetry is essential: the near brow is long and the far one is
     // short with a visible gap at the frontal turn.
     pressure([117.8,94.4],[124.1,91.3],[130.4,92.5],[135.8,96.3],
-      2.55,81,"$ink",.98),
+      1.62,81,"$ink",.93),
     pressure([149.2,95.5],[154.4,92.6],[159.4,92.9],[162.9,95.1],
-      2.03,82,"$ink",.91),
-    p("M118.4 93.2 Q126.6 89.8 135 94.8",
-      "none","$shadow",.65,.45),
+      1.32,82,"$ink",.89),
+    p("M118.4 93.2 Q126.6 90.5 135 94.8",
+      "none","$shadow",.46,.29),
   ];
   if(medium)brow.push(
     pressure([119.6,92.9],[125.1,90.9],[130.5,92.3],[134.6,95.2],
