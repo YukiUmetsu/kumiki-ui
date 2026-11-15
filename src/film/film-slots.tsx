@@ -809,8 +809,11 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         const subject = props.subject ?? "heron-wetland";
         if (subject !== "heron-wetland" && subject !== "person-portrait")
           throw new RangeError("watercolour-illustration subject must be heron-wetland or person-portrait.");
+        const sitter = props.sitter ?? "sitter-a";
+        if (subject === "person-portrait" && sitter !== "sitter-a" && sitter !== "sitter-b")
+          throw new RangeError("watercolour-illustration portrait sitter must be sitter-a or sitter-b.");
         const illustration = subject === "person-portrait"
-          ? watercolorPortraitSpec(output,seed)
+          ? watercolorPortraitSpec(output,seed,sitter as "sitter-a"|"sitter-b")
           : watercolorWetlandSpec(output,seed);
         return <WatercolourIllustration spec={illustration}
           frame={context.frame} reducedMotion={context.reducedMotion}/>;
