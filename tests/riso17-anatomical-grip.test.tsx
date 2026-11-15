@@ -72,5 +72,13 @@ describe("RISO17 source-driven anatomical grip occlusion",()=>{
     expect(html).toContain('data-km-riso-foreground-layer="courier-grip"');
     expect(html).toContain('data-km-riso-foreground-layer="artist-grip"');
     expect(html).toContain('data-km-riso-human-ensemble-sheet=');
+    // A physical cutout contains only the four filled finger pads.
+    // Blue knuckle lines are printed in ink, never white paper masks.
+    for(const name of ["courier-grip","artist-grip"]){
+      const layer=html.match(new RegExp('<g data-km-riso-grip-occlusion="'+name+'">([\\s\\S]*?)<\\/g>'))?.[1]??"";
+      expect((layer.match(/data-km-riso-knockout-part=/g)||[]).length).toBe(4);
+      expect(layer).not.toContain("finger-joint-lines");
+      expect(layer).not.toContain("glove-detail");
+    }
   });
 });
