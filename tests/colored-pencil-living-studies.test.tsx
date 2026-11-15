@@ -326,6 +326,19 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("anchors the fox cheek-ruff from orbital jaw into the chest instead of an isolated oval patch",()=>{
+    const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
+    const cheek=drawing.regions.find(region=>region.id==="cheek-ruff")!;
+    const neck=drawing.regions.find(region=>region.id==="neck-ruff")!;
+    expect(cheek.bounds[1]+cheek.bounds[3]).toBeGreaterThanOrEqual(310);
+    expect((cheek.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(5);
+    expect((cheek.path.match(/ L/g)??[]).length).toBe(0);
+    expect(cheek.bounds[0]).toBeLessThan(neck.bounds[0]+neck.bounds[2]);
+    expect(cheek.clipDetails).toBe(false);
+    expect(cheek.details!.filter(t=>t.id?.startsWith("fringe-")))
+      .toHaveLength(3);
+  });
+
   it("renders original CP-F1 fox anatomy from authored pencil vectors with zero photo pixels",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     expect(drawing.foundation?.subject).toBe("wildlife");
