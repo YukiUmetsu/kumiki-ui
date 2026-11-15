@@ -90,6 +90,17 @@ test("the same Chinese Ink folder displays three separately drawn face identitie
       elements=>elements.map(el=>el.getAttribute("viewBox")),
     );
     expect(new Set(windows).size).toBeGreaterThan(1);
+    const capMargins=await review.locator("[data-km-scene-face]").evaluateAll(
+      paintings=>paintings.map(painting=>{
+        const crown=painting.querySelector('[data-km-portrait-part="hair"]');
+        return crown?crown.getBoundingClientRect().top-
+          painting.getBoundingClientRect().top:-999;
+      }),
+    );
+    // Compare all three crowns in the actual browser viewport, not solely
+    // SVG path count: no wrapped cap or topknot should escape the top edge.
+    expect(capMargins.every(px=>px>=-2)).toBe(true);
+
 
     await review.screenshot({animations:"disabled",
       path:info.outputPath("shanshui-three-portrait-identity-review.png")});
