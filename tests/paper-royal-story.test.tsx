@@ -113,10 +113,10 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
           ["princess-right-hand","princess-right-sleeve"],
           ["prince-left-hand","prince-left-arm"],
           ["prince-right-hand","prince-right-arm"],
-          ["princess-waist-seam","princess-bodice"],
-          ["princess-gown-pleats","princess-bodice"],
-          ["princess-collar-filigree","princess-bodice"],
-          ["prince-tailor-seams","prince-coat"],
+          ["princess-gold-seams","princess-bodice"],
+          ["princess-dress-inset","princess-bodice"],
+          ["princess-collar","princess-bodice"],
+          ["prince-gold-braid","prince-coat"],
         ] as const){
           const part=sheets.get(name);
           expect(part,name).toBeDefined();
@@ -127,6 +127,13 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
           // never one triangular joint placeholder.
           expect(part?.path.includes("C")||part?.path.includes("Q"),name).toBe(true);
         }
+        // Rich details are independent closed contours on existing opaque
+        // sheets rather than extra semi-transparent layers.
+        const collar=sheets.get("princess-collar")!;
+        expect(collar.holes).toHaveLength(3);
+        expect(sheets.get("princess-dress-inset")!.path.match(/M/g)?.length).toBeGreaterThan(3);
+        expect(sheets.get("princess-gold-seams")!.path.match(/M/g)?.length).toBeGreaterThan(4);
+        expect(sheets.get("prince-gold-braid")!.path.match(/M/g)?.length).toBeGreaterThan(9);
         const opening=evaluatePaperCraft(spec,0),mid=evaluatePaperCraft(spec,120);
         const handIndex=spec.layers.findIndex(l=>l.id==="princess-right-hand");
         expect(opening.layers[handIndex].worldMatrix).not.toEqual(mid.layers[handIndex].worldMatrix);
