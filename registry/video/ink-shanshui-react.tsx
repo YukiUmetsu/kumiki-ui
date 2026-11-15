@@ -267,53 +267,74 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
  * visible twig roots in the parent branch point and needle root meets a twig.
  * Keep all brush deposition seek-stable and preserve paper between clusters.
  */
+/** A pine tuft is a damp ink mass punctuated by scores of individually
+ * tapering dry needles. Short compact fans and deliberate gaps prevent the
+ * large 'firework spikes on a ruler' appearance of the previous rendering.
+ */
 function NeedleSpray({x,y,scale,seed,wind}:{
   x:number;y:number;scale:number;seed:number;wind:number;
 }){
   const sprigs=[
-    {dx:-23,dy:-6,tilt:-.28},{dx:4,dy:-17,tilt:.10},
-    {dx:25,dy:-8,tilt:.38},
+    {dx:-19,dy:-6,tilt:-.24},{dx:0,dy:-11,tilt:.03},
+    {dx:19,dy:-5,tilt:.25},
   ];
   return <g data-km-pine-spray=""
-    transform={"rotate("+f(wind*1.25)+" "+f(x)+" "+f(y)+")"}>
+    transform={"rotate("+f(wind*.85)+" "+f(x)+" "+f(y)+")"}>
     {sprigs.map((sprig,j)=>{
-      const offset=(s(seed+67,j*5)-.5)*5*scale;
+      const offset=(s(seed+67,j*5)-.5)*4*scale;
       const tx=x+(sprig.dx+offset)*scale;
       const ty=y+sprig.dy*scale+(s(seed,j*17)-.5)*3*scale;
-      const count=10+Math.floor(6*s(seed+17,j*11+1));
+      const count=17+Math.floor(10*s(seed+17,j*11+1));
       const wet:string[]=[],dry:string[]=[],middle:string[]=[];
       for(let k=0;k<count;k++){
         const spread=(k-(count-1)*.5)/((count-1)*.5);
-        const angle=-Math.PI/2+spread*1.18+sprig.tilt*.28;
-        const len=(11+14*s(seed+j*73,k*17+7))*scale*
-          (1-.20*Math.abs(spread));
-        const rx=tx+spread*2.6*scale;
-        const ry=ty+.9*scale*s(seed+j*13,k+17);
+        const angle=-Math.PI/2+spread*.99+sprig.tilt*.35;
+        const len=(7.5+9*s(seed+j*73,k*17+7))*scale*
+          (1-.26*Math.abs(spread));
+        const rx=tx+spread*2.1*scale;
+        const ry=ty+.7*scale*s(seed+j*13,k+17);
         const ex=rx+Math.cos(angle)*len;
         const ey=ry+Math.sin(angle)*len;
         const nx=-(ey-ry)/len,ny=(ex-rx)/len;
-        const width=(.48+1.13*s(seed+j*31,k*19+3))*scale;
+        const width=(.27+.52*s(seed+j*31,k*19+3))*scale;
         const d="M"+f(rx)+" "+f(ry)+
-          " Q"+f(rx+(ex-rx)*.37+nx*width)+" "+
-          f(ry+(ey-ry)*.37+ny*width)+
+          " Q"+f(rx+(ex-rx)*.32+nx*width)+" "+
+          f(ry+(ey-ry)*.32+ny*width)+
           " "+f(ex)+" "+f(ey)+
-          " Q"+f(rx+(ex-rx)*.31-nx*width*.45)+" "+
-          f(ry+(ey-ry)*.31-ny*width*.45)+
+          " Q"+f(rx+(ex-rx)*.29-nx*width*.4)+" "+
+          f(ry+(ey-ry)*.29-ny*width*.4)+
           " "+f(rx)+" "+f(ry)+" Z";
-        (k%6===0?dry:k%3===0?middle:wet).push(d);
+        (k%7===0?dry:k%4===0?middle:wet).push(d);
       }
+      const twig="M"+f(x)+" "+f(y)+
+        " Q"+f((x+tx)*.5)+" "+f((y+ty)*.5-2*scale)+
+        " "+f(tx)+" "+f(ty);
+      const spreadX=(10+4*s(seed+j*13,31))*scale;
+      const spreadY=(3+3*s(seed+j*17,39))*scale;
+      const cloud="M"+f(tx-spreadX)+" "+f(ty+1.5*scale)+
+        " Q"+f(tx-spreadX*.9)+" "+f(ty-spreadY*.85)+
+        " "+f(tx)+" "+f(ty-spreadY)+
+        " Q"+f(tx+spreadX*.85)+" "+f(ty-spreadY*.72)+
+        " "+f(tx+spreadX)+" "+f(ty+1.7*scale)+
+        " Q"+f(tx+spreadX*.22)+" "+f(ty+3*scale)+
+        " "+f(tx-spreadX)+" "+f(ty+1.5*scale)+" Z";
       return <g key={j} data-km-pine-needle-cluster=""
         data-km-pine-needles={count}
         data-km-pine-twig-root={f(x)+","+f(y)}>
-        <path d={"M"+f(x)+" "+f(y)+
-          " Q"+f((x+tx)*.5)+" "+f((y+ty)*.5-3*scale)+
-          " "+f(tx)+" "+f(ty)}
-          stroke="#4c3c2b" strokeWidth={f(1.6*scale)}
-          fill="none" strokeLinecap="round"/>
-        {/* Dark pigment, dilute secondary strokes, dry lifted highlights. */}
-        <path d={wet.join(" ")} fill="#332c23" opacity=".88"/>
-        <path d={middle.join(" ")} fill="#675741" opacity=".75"/>
-        <path d={dry.join(" ")} fill="#a18b6a" opacity=".58"/>
+        <path d={twig} stroke="#6a5339"
+          strokeWidth={f(1.05*scale)} fill="none" strokeLinecap="round"/>
+        {/* Capillary ink underwash must never replace the needles' tips. */}
+        <path data-km-pine-foliage-wash="" d={cloud}
+          fill="#59503d" opacity={f(.25+.14*s(seed+j*29,47))}/>
+        <path d={wet.join(" ")} fill="#332c23" opacity=".86"/>
+        <path d={middle.join(" ")} fill="#675741" opacity=".78"/>
+        <path d={dry.join(" ")} fill="#a18b6a" opacity=".52"/>
+        <path data-km-pine-foliage-wash=""
+          d={"M"+f(tx-spreadX*.72)+" "+f(ty+2*scale)+
+            " Q"+f(tx)+" "+f(ty-spreadY*.55)+
+            " "+f(tx+spreadX*.55)+" "+f(ty+1.5*scale)}
+          fill="none" stroke="#7d6a50" strokeWidth={f(1.6*scale)}
+          opacity=".36"/>
       </g>;
     })}
   </g>;
@@ -371,13 +392,22 @@ function OldPine({x,y,scale,wind,seed,detail}:{
       const count=Math.round((4+(i%3))*detail);
       return <g key={i} data-km-pine-bough=""
         data-km-pine-bough-root={f(root[0])+","+f(root[1])}>
-        <path d={"M"+f(root[0])+" "+f(root[1])+
-          " C"+f(c1[0])+" "+f(c1[1])+" "+f(c2[0])+" "+f(c2[1])+
+        {/* Trunk-rooted, pressure-loaded thick start to hairline release,
+            not a uniform ruler-width horizontal stick. */}
+        <path data-km-pine-bough-shape=""
+          d={"M"+f(root[0])+" "+f(root[1]-3.4)+
+            " C"+f(c1[0])+" "+f(c1[1]-3)+
+            " "+f(c2[0])+" "+f(c2[1]-1.7)+
+            " "+f(tip[0])+" "+f(tip[1])+
+            " C"+f(c2[0])+" "+f(c2[1]+1.2)+
+            " "+f(c1[0])+" "+f(c1[1]+2.6)+
+            " "+f(root[0])+" "+f(root[1]+3.4)+" Z"}
+          fill="#65503a" opacity=".94"/>
+        <path d={"M"+f(root[0]+1)+" "+f(root[1]-1.8)+
+          " C"+f(c1[0])+" "+f(c1[1]-1.8)+
+          " "+f(c2[0])+" "+f(c2[1]-1)+
           " "+f(tip[0])+" "+f(tip[1])}
-          stroke="#51402c" strokeWidth={7-i*.48} fill="none" strokeLinecap="round"/>
-        <path d={"M"+f(root[0])+" "+f(root[1]-2)+
-          " Q"+f(c2[0])+" "+f(c2[1]-2)+" "+f(tip[0])+" "+f(tip[1]-1)}
-          stroke="#c2a080" strokeWidth="1.4" fill="none" opacity=".7"/>
+          stroke="#c2a080" strokeWidth=".7" fill="none" opacity=".56"/>
         {Array.from({length:count},(_,j)=>{
           const u=.45+.51*(j+.35)/(count+.25);
           const point=cubicPoint(root,c1,c2,tip,u);
