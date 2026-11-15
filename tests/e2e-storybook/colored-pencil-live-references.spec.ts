@@ -14,6 +14,10 @@ for(const sample of ["fox","kingfisher"] as const){
       await target.selectOption(sample);
       const canvas=page.locator('canvas[data-km-pencil-photo]');
       await expect(canvas).toHaveAttribute("data-km-pencil-photo","ready",{timeout:60000});
+      await expect(canvas).toHaveAttribute(
+        "data-km-pencil-render-method","photo-underpaint-plus-strokes");
+      await expect(canvas).toHaveAttribute(
+        "data-km-pencil-photo-underpaint","enabled");
       await expect(page.getByRole("alert")).toHaveCount(0);
       const sourceBox=page.getByRole("checkbox",{name:"Show pencil source comparison"});
       await sourceBox.check();
@@ -53,7 +57,7 @@ for(const sample of ["fox","kingfisher"] as const){
         expect(metrics.nonPaper/metrics.total).toBeGreaterThan(.025);
         expect(metrics.variance).toBeGreaterThan(150);
         expect(metrics.max-metrics.min).toBeGreaterThan(65);
-        await page.getByText("Coloured-pencil rendition · code-generated mark layers").screenshot({
+        await page.getByText("Photo-to-pencil preview · photograph used as translucent underpainting").screenshot({
           path:info.outputPath("pencil-"+sample+"-"+aspect+"-label.png"),
         });
         await canvas.screenshot({animations:"disabled",
@@ -288,6 +292,10 @@ for(const sample of ["woman","man"] as const){
         await expect(bridge).toHaveValue("0");
         await expect(full).toHaveAttribute(
           "data-km-pencil-tooth-bridge","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-render-method","cc0-measured-dry-strokes");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-photo-underpaint","none");
         await expect(full).toHaveAttribute(
           "data-km-pencil-tooth-bridge-nibs","0");
         const bridgeLegacy=await full.evaluate(node=>
