@@ -17,6 +17,11 @@ export interface PencilCraftFinish {
   light: number;
   /** 0 = minimal grain, 1 = pronounced visible paper tooth. */
   tooth: number;
+  /** Optional physical overlap budget for authored hair/fur, 0..1.
+   * At zero/missing all existing material output stays byte-identical.
+   * This adds independent original pencil paths; it is NOT a photo blur.
+   */
+  pigmentDensity?: number;
 }
 export interface PencilMicroGroup {
   path: string;
@@ -35,7 +40,10 @@ export const isPencilCraftFinish=(value:unknown):value is PencilCraftFinish=>{
   return typeof v.kind==="string"&&pencilCraftKinds.includes(v.kind as PencilCraftKind)&&
     typeof v.burnish==="number"&&Number.isFinite(v.burnish)&&v.burnish>=0&&v.burnish<=1&&
     typeof v.light==="number"&&Number.isFinite(v.light)&&v.light>=0&&v.light<=1&&
-    typeof v.tooth==="number"&&Number.isFinite(v.tooth)&&v.tooth>=0&&v.tooth<=1;
+    typeof v.tooth==="number"&&Number.isFinite(v.tooth)&&v.tooth>=0&&v.tooth<=1&&
+    (v.pigmentDensity===undefined||
+      (typeof v.pigmentDensity==="number"&&Number.isFinite(v.pigmentDensity)&&
+        v.pigmentDensity>=0&&v.pigmentDensity<=1));
 };
 const clamp=(x:number,min:number,max:number)=>Math.max(min,Math.min(max,x));
 const coordinate=(x:number)=>x.toFixed(2);
@@ -59,7 +67,13 @@ export function pencilMicroDeposit(region:Pick<PencilRegion,"bounds"|"layers">,
   const area=w*h;
   const hairlike=["fur","hair","feather","foliage"].includes(craft.kind);
   const tiny=["skin","ocular","keratin"].includes(craft.kind);
-  const count=clamp(Math.floor(area*(hairlike?.11:tiny?.14:.075)),18,2100);
+  const baseline=clamp(Math.floor(area*(hairlike?.11:tiny?.14:.075)),18,2100);
+  // ArtCraft source-free physical pencil layering. Never increase wax
+  // density for all consumers implicitly: high-detail hair/coat artists
+  // must author this profile explicitly after checking form topology.
+  const density=craft.pigmentDensity??0;
+  const count=density===0?baseline:
+    clamp(Math.floor(baseline*(1+density*2.2)),18,5500);
   const groupSize=[Math.floor(count*.40),Math.floor(count*.35)];
   groupSize.push(count-groupSize[0]-groupSize[1]);
   const palette=region.layers.map(l=>l.color);
