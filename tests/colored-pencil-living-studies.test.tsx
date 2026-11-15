@@ -294,7 +294,7 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
   it("rejects long decorative fur slashes in favor of short anatomically rooted dry-pencil contacts",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     const parts=new Map(drawing.regions.map(r=>[r.id,r]));
-    const pattern=/M(-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?) Q-?\\d+(?:\\.\\d+)? -?\\d+(?:\\.\\d+)? (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/g;
+    const pattern=/M(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?) Q-?\d+(?:\.\d+)? -?\d+(?:\.\d+)? (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g;
     for(const id of ["tail-back","body","rear-leg","foreleg-left","foreleg-right"]){
       const region=parts.get(id)!;
       const multiline=region.details!.filter(t=>(t.path.match(/M/g)??[]).length>=10);
