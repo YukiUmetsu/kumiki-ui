@@ -6,6 +6,7 @@ import type { RisoPaint, RisoArtwork } from "../../registry/video/print-plates-r
 import type { ReactNode } from "react";
 import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
+import {riso31PhalanxJoints,riso31FingerParts} from "./riso31-finger-phalanges";
 
 export type RisoPerformanceAspect = "landscape" | "portrait";
 // RISO28: arm pendulum tracks the same 54-frame alternating contact
@@ -125,6 +126,8 @@ export const COURIER: RisoCharacterSpec = {
       {frame:0,rotate:4,easing:"ease"},{frame:144,rotate:-4,easing:"ease"},
       {frame:160,rotate:7,easing:"ease"},{frame:198,rotate:3},{frame:239,rotate:3},
     ] },
+    // RISO31: full original printed phalanges are a bone hierarchy.
+    ...riso31PhalanxJoints("left"),
     { id: "right-arm", parent: "body", x: 24, y: -44, keys: [
       { frame: 0, rotate: 14, easing: "ease" }, { frame: 65, rotate: -9, easing: "ease" },
       { frame: 137, rotate: 25, easing: "ease" }, { frame: 187, rotate: 42, easing: "ease" },
@@ -167,6 +170,7 @@ export const COURIER: RisoCharacterSpec = {
       {frame:0,rotate:-5,easing:"ease"},{frame:144,rotate:5,easing:"ease"},
       {frame:160,rotate:-7,easing:"ease"},{frame:198,rotate:-3},{frame:239,rotate:-3},
     ] },
+    ...riso31PhalanxJoints("right"),
     { id: "satchel", parent: "body", x: 29, y: 0, keys: [
       { frame: 0, rotate: -5, easing: "ease" }, { frame: 25, rotate: 6, easing: "ease" },
       { frame: 49, rotate: -5, easing: "ease" }, { frame: 90, rotate: 7, easing: "ease" },
@@ -266,14 +270,10 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-7 17 Q0 19 7 17 L8 20 Q1 23 -8 20 Z" },
     { id: "left-glove", joint: "left-hand", plate: "red", paint: "solid",
       d: "M-6.5 -3.7 C-9.4 -4 -10.4 .9 -9.6 5.3 Q-10.2 11.2 -8.3 15.5 Q-6.1 19.6 -1.5 19.4 Q4 20.5 7.3 18.6 Q9.4 16.9 9.5 12.0 Q10.2 6 8.3 1 Q7 -3.9 4 -3.4 Q0 -4.4 -3 -3.6 Z" },
-    { id: "left-glove-index", joint: "left-index", plate: "red", paint: "solid",
-      d: "M-2.2 -2.1 Q0 -3.1 2 -1.7 C3.5 2.5 3.8 8.9 3.2 14.7 Q2.8 18.2 .7 18.7 Q-1.8 18.4 -2.1 15.1 Q-3 7 -2.2 -2.1 Z" },
-    { id: "left-glove-middle", joint: "left-middle", plate: "red", paint: "solid",
-      d: "M-2.2 -2 Q0 -3.6 2.2 -2 C3.8 2 4.1 10 3.2 16.5 Q2.7 20.5 .4 20.8 Q-2 20.7 -2.2 17 C-3.4 9.2 -3.1 2 -2.2 -2 Z" },
-    { id: "left-glove-ring", joint: "left-ring", plate: "red", paint: "solid",
-      d: "M-2 -2.1 Q0 -3 1.6 -1.7 C3.1 1.4 3.5 7.4 2.8 13.1 Q2.5 17.3 .5 17.9 Q-1.8 18 -2.2 14.1 Q-3 6.2 -2 -2.1 Z" },
-    { id: "left-glove-pinky", joint: "left-pinky", plate: "red", paint: "solid",
-      d: "M-1.7 -1.7 Q.3 -2.8 1.8 -1.4 C3.1 1.6 3.0 6.7 2.2 10.7 Q1.9 14 .2 14.2 Q-1.7 14.1 -2 11 Q-2.7 5.1 -1.7 -1.7 Z" },
+    ...riso31FingerParts("left","index"),
+    ...riso31FingerParts("left","middle"),
+    ...riso31FingerParts("left","ring"),
+    ...riso31FingerParts("left","pinky"),
     { id: "left-glove-thumb", joint: "left-thumb", plate: "red", paint: "solid",
       d: "M2.1 -3.6 Q-.5 -6 -3.2 -5.2 Q-6.3 -4.4 -9.5 -.6 Q-10.8 2.5 -8 3.5 Q-5.5 3.4 -3 1.6 Q-.5 .3 1.7 2.2 Z" },
     { id: "left-finger-joint-lines", joint: "left-middle", plate: "blue", paint: "solid",
@@ -295,14 +295,10 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-7 18 Q0 20 7 18 L8 21 Q0 24 -8 21 Z" },
     { id: "right-glove", joint: "right-hand", plate: "red", paint: "solid",
       d: "M-6.5 -3.7 C-9.4 -4 -10.4 .9 -9.6 5.3 Q-10.2 11.2 -8.3 15.5 Q-6.1 19.6 -1.5 19.4 Q4 20.5 7.3 18.6 Q9.4 16.9 9.5 12.0 Q10.2 6 8.3 1 Q7 -3.9 4 -3.4 Q0 -4.4 -3 -3.6 Z" },
-    { id: "right-glove-index", joint: "right-index", plate: "red", paint: "solid",
-      d: "M-2.2 -2.1 Q0 -3.1 2 -1.7 C3.5 2.5 3.8 8.9 3.2 14.7 Q2.8 18.2 .7 18.7 Q-1.8 18.4 -2.1 15.1 Q-3 7 -2.2 -2.1 Z" },
-    { id: "right-glove-middle", joint: "right-middle", plate: "red", paint: "solid",
-      d: "M-2.2 -2 Q0 -3.6 2.2 -2 C3.8 2 4.1 10 3.2 16.5 Q2.7 20.5 .4 20.8 Q-2 20.7 -2.2 17 C-3.4 9.2 -3.1 2 -2.2 -2 Z" },
-    { id: "right-glove-ring", joint: "right-ring", plate: "red", paint: "solid",
-      d: "M-2 -2.1 Q0 -3 1.6 -1.7 C3.1 1.4 3.5 7.4 2.8 13.1 Q2.5 17.3 .5 17.9 Q-1.8 18 -2.2 14.1 Q-3 6.2 -2 -2.1 Z" },
-    { id: "right-glove-pinky", joint: "right-pinky", plate: "red", paint: "solid",
-      d: "M-1.7 -1.7 Q.3 -2.8 1.8 -1.4 C3.1 1.6 3.0 6.7 2.2 10.7 Q1.9 14 .2 14.2 Q-1.7 14.1 -2 11 Q-2.7 5.1 -1.7 -1.7 Z" },
+    ...riso31FingerParts("right","index"),
+    ...riso31FingerParts("right","middle"),
+    ...riso31FingerParts("right","ring"),
+    ...riso31FingerParts("right","pinky"),
     { id: "right-glove-thumb", joint: "right-thumb", plate: "red", paint: "solid",
       d: "M-2 -3.6 Q.8 -6.2 3.5 -5.5 Q7 -4.9 9.8 -.5 Q11.1 2.1 8.2 3.4 Q5.4 3.5 3.2 1.5 Q1 -.1 -1.7 2.0 Z" },
     { id: "right-finger-joint-lines", joint: "right-index", plate: "blue", paint: "solid",
