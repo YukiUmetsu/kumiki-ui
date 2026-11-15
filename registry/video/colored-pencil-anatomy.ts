@@ -13,6 +13,7 @@ import {
 } from "../anatomy/anatomy-face";
 import { smoothPath } from "../anatomy/anatomy-view";
 import { faceHair } from "../anatomy/anatomy-hair";
+import { pencilHash } from "./colored-pencil";
 
 export interface PencilAnatomyCurve {
   path: string;
@@ -39,6 +40,7 @@ export interface PencilPortraitAnatomy {
   lips: {upper:string;lower:string;bounds:readonly [number,number,number,number]};
   nose:PencilAnatomyCurve;
   hair:Record<string,{path:string;count:number}>;
+  pigment:readonly {id:string;path:string;color:string;width:number;opacity:number}[];
 }
 
 const round=(x:number)=>Math.round(x*100)/100;
@@ -180,6 +182,81 @@ export function pencilPortraitAnatomy(
     if(path.length>12000)throw new RangeError("ANAT1 hair trace exceeds CP-F1 budget");
     hair[name]={path,count:paths.length};
   }
+
+  // The eye / nose / cheek pieces above share one ANAT1 camera. Surface
+  // light must share their geometry too. Instead of a single digital flat
+  // facial gradient, build real tiny dry-pencil contacts in the tangent
+  // field of the calibrated 3D face triangles. A mark has an independent
+  // pigment family, pressure, paper location and fixed animation timing.
+  const families={
+    middle:{color:"#B87B70",width:.62,opacity:.43,paths:[] as string[]},
+    shadow:{color:"#806575",width:.55,opacity:.49,paths:[] as string[]},
+    light:{color:"#E1AD91",width:.48,opacity:.37,paths:[] as string[]},
+  };
+  const P=face.vertices,F=face.mesh.faces;
+  const sun:[number,number,number]=[-.45,.60,.66];
+  for(let tri=0;tri<F.length;tri+=3){
+    const a=P[F[tri]],b=P[F[tri+1]],c=P[F[tri+2]];
+    const ab=[b[0]-a[0],b[1]-a[1],b[2]-a[2]];
+    const ac=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];
+    const nn:[number,number,number]=[
+      ab[1]*ac[2]-ab[2]*ac[1],
+      ab[2]*ac[0]-ab[0]*ac[2],
+      ab[0]*ac[1]-ab[1]*ac[0],
+    ];
+    const mag=Math.hypot(...nn);
+    if(mag<.0001)continue;
+    const n=nn.map(v=>v/mag);
+    const facing=n[0]*Math.sin(theta)+n[2]*Math.cos(theta);
+    if(facing<.12)continue;
+    const illumination=n[0]*sun[0]+n[1]*sun[1]+n[2]*sun[2];
+    const shades:readonly [keyof typeof families,number][]=[
+      ["middle",4],["shadow",illumination<.84?2:0],
+      ["light",illumination>.31?1:0],
+    ];
+    // Root contacts live *inside* the original triangle in 3D and are
+    // projected to the paper. No shape detection, photos or screen noise.
+    for(const [kind,count] of shades){
+      for(let k=0;k<count;k++){
+        const key=tri*11+k*3+(kind==="shadow"?101:kind==="light"?207:0);
+        const u=Math.sqrt(pencilHash(9061,key,41));
+        const v=pencilHash(9061,key,42);
+        const q:[number,number,number]=[
+          1-u,u*(1-v),u*v,
+        ];
+        const point:[number,number,number]=[
+          a[0]*q[0]+b[0]*q[1]+c[0]*q[2],
+          a[1]*q[0]+b[1]*q[1]+c[1]*q[2],
+          a[2]*q[0]+b[2]*q[1]+c[2]*q[2],
+        ];
+        const [x,y]=project(point);
+        // Tangents rotate with the cheek normal and fade on the light
+        // front plane. No identical parallel hatch across all anatomy.
+        const angle=Math.atan2(.18-.45*n[0],.75+.27*n[1])+
+          (pencilHash(9061,key,43)-.5)*.44;
+        const step=(2.4+4.9*pencilHash(9061,key,44))*
+          (kind==="light"?.72:1);
+        const dx=Math.cos(angle)*step,dy=Math.sin(angle)*step;
+        const bow=(pencilHash(9061,key,45)-.5)*.65;
+        const x2=x+dx,y2=y+dy;
+        const cx=x+dx*.5-Math.sin(angle)*bow;
+        const cy=y+dy*.5+Math.cos(angle)*bow;
+        families[kind].paths.push("M"+fmt(x)+" "+fmt(y)+" Q"+
+          fmt(cx)+" "+fmt(cy)+" "+fmt(x2)+" "+fmt(y2));
+      }
+    }
+  }
+  const pigment:PencilPortraitAnatomy["pigment"]=[];
+  for(const [family,source]of Object.entries(families)){
+    // A bounded independent pencil stroke family is the export unit;
+    // each 140-stroke SVG brush remains comfortably under 12K chars.
+    for(let i=0;i<source.paths.length;i+=140){
+      const path=source.paths.slice(i,i+140).join(" ");
+      if(path.length>12000)throw new RangeError("ANAT1 skin brush too long");
+      pigment.push({id:"anat-skin-"+family+"-"+(i/140),
+        path,color:source.color,width:source.width,opacity:source.opacity});
+    }
+  }
   const landmarks:Record<string,readonly [number,number]>={};
   for(const [name,index]of Object.entries(FACE_LANDMARKS))
     landmarks[name]=project(face.vertices[index]);
@@ -187,6 +264,6 @@ export function pencilPortraitAnatomy(
     source:FACE_MESH_SOURCE.name,
     metrics:measureFace(face.vertices),
     landmarks,features,eyes,irises,pupils,browInk,browMass,
-    nose,hair,lips:{upper:curve(upper,true),lower:curve(lower,true),bounds:lipsBounds},
+    nose,hair,pigment,lips:{upper:curve(upper,true),lower:curve(lower,true),bounds:lipsBounds},
   };
 }
