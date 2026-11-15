@@ -11,7 +11,9 @@
  * Elena Pancorbo's orbital, cheek and lip plane hierarchy.
  */
 import {pencilHash} from "../../registry/video/colored-pencil";
-import {createPencilPortraitFeatureMarks} from "./colored-pencil-portrait-guides";
+import {
+  createPencilPortraitFeatureMarks,createPortraitEyeAperture,
+} from "./colored-pencil-portrait-guides";
 import type {PortraitFeatureMap} from "./colored-pencil-portrait-guides";
 import type {PencilPhotoMark,PencilPhotoPixels} from "./colored-pencil-photo";
 
@@ -36,6 +38,8 @@ const read=(source:PencilPhotoPixels,x:number,y:number)=>{
 };
 const luminance=(rgb:readonly number[])=>
   (.2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2])/255;
+const quadratic=(a:number,b:number,c:number,t:number)=>
+  (1-t)*(1-t)*a+2*(1-t)*t*b+t*t*c;
 
 /** Paint a 120×80 source-grounded face crop on a 360×240 dry-paper plate.
  * Values are reconstructed through bounded pressure and drawn hatches, not
@@ -56,6 +60,8 @@ export function createDryPortraitPlate(source:PencilPhotoPixels,
   const authored=createPencilPortraitFeatureMarks(source,guides,seed);
   const anchor=region==="eyes"?guides.eyeNearCenter:guides.lipCupid;
   const left=anchor[0]-60,top=anchor[1]-40;
+  const lid=createPortraitEyeAperture(guides,"near");
+  const mouthLeft=guides.lipLeft,mouthRight=guides.lipRight;
   const marks:PencilPhotoMark[]=[];
   const counts:[number,number,number]=[0,0,0];
   // Value-first architecture: broad soft diagonal undertone, second optical
@@ -106,6 +112,35 @@ export function createDryPortraitPlate(source:PencilPhotoPixels,
           color(rgb[0]*.91+31*.09,rgb[1]*.89+38*.11,rgb[2]*.86+60*.14):
           color(rgb[0]*.72+40*.28,rgb[1]*.74+30*.26,rgb[2]*.77+31*.23);
       const contrast=clamp(gradient*2.4,0,1);
+      // Value passes should reveal actual eyelid depth and the separate
+      // upper/lower vermilion pillows. A uniform crosshatched skin rectangle
+      // cannot substitute for those anatomical masses.
+      let volume=1;
+      if(region==="eyes"){
+        const t=clamp((sx-lid.start[0])/(lid.end[0]-lid.start[0]),0,1);
+        const upperY=quadratic(lid.start[1],lid.upper[1],lid.end[1],t);
+        const lowerY=quadratic(lid.start[1],lid.lower[1],lid.end[1],t);
+        if(sx>=lid.start[0]&&sx<=lid.end[0]&&
+          sy>upperY&&sy<lowerY){
+          volume=1.26+.56*(1-lum);
+        }
+      }else{
+        const t=clamp((sx-mouthLeft[0])/
+          (mouthRight[0]-mouthLeft[0]),0,1);
+        const topY=quadratic(mouthLeft[1],guides.lipCupid[1],
+          mouthRight[1],t);
+        const bottomY=quadratic(mouthLeft[1],guides.lipLower[1],
+          mouthRight[1],t);
+        if(sx>mouthLeft[0]&&sx<mouthRight[0]&&
+          sy>topY&&sy<bottomY){
+          // Richer, curved red-brown pencil deposits inside the observed
+          // lips, softly fading toward their corners and contour edges.
+          const across=Math.pow(Math.sin(Math.PI*t),.65);
+          const between=Math.pow(Math.sin(Math.PI*clamp(
+            (sy-topY)/Math.max(1,bottomY-topY),0,1)),.55);
+          volume=1+.95*across*between;
+        }
+      }
       const alpha=pass===0?
         (.11+.22*depth):
         pass===1?(.09+.25*depth):
@@ -122,7 +157,7 @@ export function createDryPortraitPlate(source:PencilPhotoPixels,
         controlX:clamp(startX+vx*.5-Math.sin(angle)*bow,0,360),
         controlY:clamp(startY+vy*.5+Math.cos(angle)*bow,0,240),
         endX,endY,color:palette,
-        alpha:clamp(alpha,0,.60),
+        alpha:clamp(alpha*volume,0,.60),
         width:pass===0?.96:pass===1?.78:.59,
         pass,
       });
