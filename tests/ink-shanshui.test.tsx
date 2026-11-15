@@ -275,6 +275,41 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(fanMasses.every((d,k)=>
         d[1].startsWith("M"+fanFaces[k][1].replace(","," "))&&
         html.includes('id="'+d[2]+'"'))).toBe(true);
+      // ArtCraft five-axis Fuchun pass: nested positive hill-backs should
+      // carry the root-connected ink into the pale central face, instead
+      // of leaving the long hemp marks as standalone black wires.
+      const hillbacks=[...html.matchAll(
+        /data-km-master-fuchun-hillback="" data-km-master-fuchun-hillback-root="([^"]+)" data-km-master-fuchun-hillback-form="(round|saddle)"/g,
+      )];
+      const backMasses=[...html.matchAll(
+        /data-km-master-fuchun-hillback-wash="" d="([^"]+)" fill="url\\(#([^"]+)\\)"/g,
+      )];
+      const backContours=[...html.matchAll(
+        /data-km-master-fuchun-hillback-lip="" d="([^"]+)"/g,
+      )];
+      expect(hillbacks).toHaveLength(school==="fuchun"?6:0);
+      expect(backMasses).toHaveLength(hillbacks.length);
+      expect(backContours).toHaveLength(hillbacks.length);
+      if(school==="fuchun"){
+        expect(hillbacks.filter(m=>m[2]==="round")).toHaveLength(3);
+        expect(hillbacks.filter(m=>m[2]==="saddle")).toHaveLength(3);
+        expect(backMasses.every((m,k)=>
+          m[1].startsWith("M"+hillbacks[k][1].replace(","," "))&&
+          (m[1].match(/ C/g)??[]).length>=5&&m[1].endsWith(" Z")&&
+          html.includes('id="'+m[2]+'"'))).toBe(true);
+        expect(backContours.every((m,k)=>
+          m[1].startsWith("M"+hillbacks[k][1].replace(","," "))&&
+          (m[1].match(/ C/g)??[]).length>=30&&m[1].endsWith(" Z")))
+          .toBe(true);
+        expect(new Set(backMasses.map(m=>m[1])).size).toBe(6);
+        expect(paint(school,0)).not.toContain("data-km-master-fuchun-hillback");
+        // Ink dilution changes pigment only, never supported stone paths.
+        const weak=paint(school,1,.28);
+        const weakPaths=[...weak.matchAll(
+          /data-km-master-fuchun-hillback-wash="" d="([^"]+)"/g,
+        )].map(m=>m[1]);
+        expect(weakPaths).toEqual(backMasses.map(m=>m[1]));
+      }
       // Guo Xi (NPM Early Spring): a cloud-head is a ROLLED POSITIVE
       // stone cheek with a shaded throat, not a bare S-shaped scratch.
       // Four irregular connected banks per main face, never a global
