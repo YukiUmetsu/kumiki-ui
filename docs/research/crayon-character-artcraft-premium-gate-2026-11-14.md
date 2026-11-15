@@ -90,8 +90,16 @@ legacy characters merely because new paths were added.
 
 ## Ordered next build
 
-First reconstruct and render **one** adult human eye/nose/mouth region
-with attached planes; then whole head/hair; then articulated garment
+**First code construction completed, visual approval pending:**
+`src/video/crayon-artcraft-adult-face-fixtures.ts` and its deliberately
+hidden Storybook workbench now implement a distinct adult, three-quarter
+face with independent jaw, cheek, nose, lips, sclera, iris, tear ducts,
+upper/lower lids and rooted hair flow, plus basic tailored collar planes.
+This is a prototype, **not an approved person character**, and has not
+been reviewed against actual browser-rendered source crops.
+
+Next, independently render and inspect its actual eye/nose/mouth region,
+then refine whole head/hair; then articulated garment
 and hands/feet; only then multi-view and rigging. A highly detailed
 face must pass visual review before expanding to new characters.
 Keep all work within Video production / Film Looks / Crayon.
