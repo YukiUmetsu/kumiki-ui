@@ -1,6 +1,7 @@
 import {useMemo,useState} from "react";
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
+import {crayonCamera} from "../../registry/video/materials/crayon-scene";
 import type {CrayonSceneSpec} from "../../registry/video/materials/crayon-scene";
 import {crayonAdultFaceStudy} from "./crayon-artcraft-adult-face-fixtures";
 import {crayonCc0NearEyeStudy} from "./crayon-artcraft-cc0-near-eye";
@@ -448,6 +449,17 @@ export const SourceMeasuredBodyStudy:Story={
  * existing synthetic adult bust, it does not invent a different identity.
  * It remains an unpublished experimental artifact pending pixel-gate review.
  */
+/** Synchronize the actual reference PHOTO camera with native SVG
+ * without losing grain or relying on an unaligned full-height preview.
+ * CSS translate percentages operate on original 608×1082 image size. */
+export function crayonF1SourceCssCamera(spec:CrayonSceneSpec,frame:number){
+  const camera=crayonCamera(spec,frame);
+  return "translate("+
+    (100*camera.x/spec.width).toFixed(4)+"%, "+
+    (100*camera.y/spec.height).toFixed(4)+"%) scale("+
+    camera.scale.toFixed(4)+")";
+}
+
 export function Cc0SourceRegisteredFaceWorkbench({
   detail,startFrame,playbackRate,loop,
 }:StudyProps){
@@ -455,7 +467,8 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const [showReference,setShowReference]=useState(true);
   const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
   const [inspection,setInspection]=useState<
-    "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|"hair-left"|"hair-right">("full");
+    "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|
+    "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right">("full");
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,
   }),[detail,view,fiberMaterial]);
@@ -467,6 +480,9 @@ export function Cc0SourceRegisteredFaceWorkbench({
       "near-eye":CRAYON_F1_EYE_INSPECTION.near,
       "far-eye":CRAYON_F1_EYE_INSPECTION.far,
       "nose-mouth":{focusX:415,focusY:675,zoom:2.65},
+      nose:{focusX:416,focusY:622,zoom:3},
+      mouth:{focusX:417,focusY:734,zoom:3},
+      "jaw-neck":{focusX:312,focusY:871,zoom:2.4},
       "hair-left":{focusX:75,focusY:670,zoom:2.15},
       "hair-right":{focusX:513,focusY:670,zoom:2.15},
     }[inspection];
@@ -478,6 +494,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,
     "crayon-source-registered-face:"+view+":"+detail,playbackRate,loop);
+  const sourceCamera=crayonF1SourceCssCamera(framed,frame);
   return <section data-km-crayon-f1-registered-face=""
     style={{maxWidth:1160,margin:"auto",padding:16,background:"#f3e9da",
       boxSizing:"border-box",fontFamily:"system-ui",color:"#352b30"}}>
@@ -500,16 +517,22 @@ export function Cc0SourceRegisteredFaceWorkbench({
           Original CC0 photograph · source geometry
         </figcaption>
         <a href={CRAYON_F1_FACE_PROOF.url} target="_blank"
-          rel="noopener noreferrer">
+          rel="noopener noreferrer"
+          data-km-crayon-f1-source-camera={sourceCamera}
+          style={{display:"block",width:"100%",aspectRatio:"608 / 1082",
+            position:"relative",overflow:"hidden",background:"#262023"}}>
           <img loading="lazy" src={CRAYON_PORTRAIT_AUDIT.source.preview}
             alt="CC0 photographed source identity and facial anatomy"
-            style={{width:"100%",display:"block",aspectRatio:"608/1082",
-              objectFit:"cover",background:"#d8ceba"}}/>
+            style={{width:"100%",height:"100%",display:"block",
+              position:"absolute",top:0,left:0,objectFit:"cover",
+              transform:sourceCamera,transformOrigin:"0 0",
+              background:"#d8ceba"}}/>
         </a>
         <figcaption style={{fontSize:11,lineHeight:1.5,marginTop:8}}>
           Christopher Campbell, 2015 · CC0 1.0. The measurement baseline
           is a real 608×1082 screenshot (not the original camera JPEG).
-          This remote preview is not packaged with the original wax drawing.
+          The source preview uses the same zoom/pan as the native rendering.
+          This remote image is not packaged with the wax drawing.
         </figcaption>
       </figure>}
       <figure style={{margin:0,minWidth:0}}>
@@ -557,13 +580,17 @@ export function Cc0SourceRegisteredFaceWorkbench({
       <label>Inspect source region{" "}
         <select aria-label="CC0 source anatomy inspection" value={inspection}
           onChange={e=>setInspection(e.target.value as
-            "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|"hair-left"|"hair-right")}>
+            "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|
+            "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right")}>
           <option value="full">Full portrait</option>
           <option value="face">Face planes (1.6×)</option>
           <option value="eyes">Both eyes (2.12×)</option>
           <option value="near-eye">Near eyelid/iris (2.95×)</option>
           <option value="far-eye">Far eyelid/iris (3×)</option>
           <option value="nose-mouth">Nose and lips (2.65×)</option>
+          <option value="nose">Asymmetric nostrils (3×)</option>
+          <option value="mouth">Shadowed lips and incisors (3×)</option>
+          <option value="jaw-neck">Jaw-to-neck attachment (2.4×)</option>
           <option value="hair-left">Left rooted hair (2.15×)</option>
           <option value="hair-right">Right rooted hair (2.15×)</option>
         </select>
