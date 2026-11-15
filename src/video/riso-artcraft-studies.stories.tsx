@@ -311,9 +311,9 @@ export const CourierHumanAnatomy:StoryObj<typeof meta>={
   render:()=> <CourierAnatomyComparison/>,
 };
 
-/** RISO16: two original human rigs sharing one curved hand-bound paper surface. */
+/** RISO17: authored fingertips print in front of the shared opaque paper. */
 export const HumanEnsembleActing:StoryObj<typeof meta>={
-  name:"RISO16 · Two-Human Printed Exchange",
+  name:"RISO17 · Anatomical Print Handoff",
   args:{actor:"courier"},
   render:()=> <RisoHumanEnsembleStudio/>,
 };
