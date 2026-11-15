@@ -83,6 +83,38 @@ const bezier=(start:Point,control:Point,end:Point,t:number):[number,number]=>{
     i*i*start[1]+2*i*t*control[1]+t*t*end[1],
   ];
 };
+export interface PortraitEyeAperture {
+  readonly which:"near"|"far";
+  readonly start:Point;
+  readonly end:Point;
+  readonly center:Point;
+  readonly upper:Point;
+  readonly lower:Point;
+  readonly span:number;
+}
+/** Reconstruct curved lid planes independently from the observed pupil.
+ * The pupil landmark is not a lid control point. This is a construction
+ * estimate; independent photo/actual-render review is still required.
+ */
+export function createPortraitEyeAperture(
+  guides:PortraitFeatureMap,which:"near"|"far",
+):PortraitEyeAperture {
+  const near=which==="near";
+  const start=guides[near?"eyeNearLeft":"eyeFarLeft"];
+  const end=guides[near?"eyeNearRight":"eyeFarRight"];
+  const center=guides[near?"eyeNearCenter":"eyeFarCenter"];
+  const dx=end[0]-start[0],dy=end[1]-start[1];
+  const span=Math.hypot(dx,dy);
+  if(!Number.isFinite(span)||span<2)
+    throw new RangeError("Degenerate measured eyelid aperture");
+  const normal:Point=[dy/span,-dx/span];
+  const middle:Point=[(start[0]+end[0])*.5,(start[1]+end[1])*.5];
+  const upper:Point=[middle[0]+normal[0]*span*.54,
+    middle[1]+normal[1]*span*.54];
+  const lower:Point=[middle[0]-normal[0]*span*.29,
+    middle[1]-normal[1]*span*.29];
+  return {which,start,end,center,upper,lower,span};
+}
 const hex=(r:number,g:number,b:number)=>"#"+[r,g,b].map(v=>
   clamp(Math.round(v),0,255).toString(16).padStart(2,"0")).join("");
 const localPigment=(src:PencilPhotoPixels,x:number,y:number,deep:number)=>{
@@ -187,23 +219,12 @@ export function createPencilPortraitFeatureMarks(
   // controls, drawing a flat line through each pupil. Restore the two
   // anatomical apertures from observed eye corners and a separate lid arch.
   const eyeLids=(["near","far"] as const).map((which)=>{
-    const near=which==="near";
-    const start=guides[near?"eyeNearLeft":"eyeFarLeft"];
-    const end=guides[near?"eyeNearRight":"eyeFarRight"];
-    const center=guides[near?"eyeNearCenter":"eyeFarCenter"];
-    const dx=end[0]-start[0],dy=end[1]-start[1];
-    const span=Math.hypot(dx,dy);
-    const normal:Point=[dy/span,-dx/span];
-    const middle:Point=[(start[0]+end[0])*.5,(start[1]+end[1])*.5];
-    const upper:Point=[middle[0]+normal[0]*span*.54,
-      middle[1]+normal[1]*span*.54];
-    const lower:Point=[middle[0]-normal[0]*span*.29,
-      middle[1]-normal[1]*span*.29];
-    curvePoints(which+"-eye-upper",start,upper,end,
-      .88,near?.38:.34,near?.72:.64,0,.40);
-    curvePoints(which+"-eye-lower",start,lower,end,
-      1.2,near?.22:.19,.53,1,.27);
-    return {which,start,end,center,upper,lower,span};
+    const lid=createPortraitEyeAperture(guides,which);
+    curvePoints(which+"-eye-upper",lid.start,lid.upper,lid.end,
+      .88,which==="near"?.38:.34,which==="near"?.72:.64,0,.40);
+    curvePoints(which+"-eye-lower",lid.start,lid.lower,lid.end,
+      1.2,which==="near"?.22:.19,.53,1,.27);
+    return lid;
   });
   // Fine root-aligned eyebrow fibres; no rectangular dark brow patches.
   const brow=(name:string,start:PortraitFeatureName,peak:PortraitFeatureName,
