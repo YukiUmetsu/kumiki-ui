@@ -43,7 +43,9 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     p.id==="cuff-"+side||p.id===side+"-forearm").map(p=>p.id),[actor,side]);
   const region=inspectRisoHandArtcraft(actor,frame,side);
   const x=aspect.width*.50-palm.x*zoom;
-  const y=aspect.height*.52-palm.y*zoom;
+  // Fifth fingertip remains within the real print crop: forearm terminates
+  // above, distal nail-bed marks below. No artificial source clipping.
+  const y=aspect.height*.44-palm.y*zoom;
   return <article data-km-riso30-hand={actor.id+"-"+side}
     data-km-riso30-hand-frame={frame}
     data-km-riso30-hand-parts={region.sourceCount}
@@ -76,7 +78,7 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
         style={{display:"block",width:"100%",height:"auto"}}/>
     </div>
     <p style={{fontSize:12,margin:"9px 0 0",color:"#55727E",lineHeight:1.5}}>
-      {region.sourceCount} original hand source paths; {region.fingers.length} separate digit roots;
+      {region.sourceCount} original hand source paths; {region.fingers.length} separate digit roots,
       cobalt nail beds and knuckle folds printed directly on vermilion hand masses.
     </p>
   </article>;
