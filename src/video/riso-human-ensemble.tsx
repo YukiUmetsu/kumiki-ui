@@ -264,7 +264,7 @@ function category(part:RisoCharacterPart):RisoMeshCategory{
   if(part.joint==="head")return "face";
   if(part.id.includes("boot"))return "foot";
   if(part.id.includes("thigh")||part.id.includes("shin"))return "leg";
-  if(part.joint.endsWith("hand")||["thumb","index","middle","ring"].some(d=>part.joint.endsWith("-"+d)))return "hand";
+  if(part.joint.endsWith("hand")||part.joint.endsWith("-palm-surface")||["thumb","index","middle","ring","pinky"].some(d=>part.joint.endsWith("-"+d)))return "hand";
   if(part.joint.includes("arm")||part.joint.includes("elbow"))return "arm";
   if(part.id==="scarf"||part.id.includes("pocket"))return "accessory";
   return "torso";
