@@ -49,22 +49,20 @@ describe("RISO16 physically linked two-hand print surface",()=>{
 
   it("keeps optional authored bow and grip compression frame-pure without losing detail",()=>{
     const a={x:30,y:55},b={x:230,y:115};
-    const straight=evaluateRisoTransferSheet(a,b,1) as Detailed;
-    const sculpted=evaluateRisoTransferSheet(a,b,1,{
-      curl:9,gripPinch:.7,
-    } as never) as Detailed;
+    const sample = evaluateRisoTransferSheet as (source:{x:number;y:number},end:{x:number;y:number},p:number,
+      options?:{curl?:number;gripPinch?:number})=>Detailed;
+    const straight=sample(a,b,1);
+    const sculpted=sample(a,b,1,{curl:9,gripPinch:.7});
     expect(sculpted.outline).not.toBe(straight.outline);
     expect(sculpted.ruling).toHaveLength(3);
     expect(sculpted.fold).toMatch(/^M/);
     expect(sculpted.postmark).toMatch(/^M/);
     expect(sculpted.hatching).toMatch(/^M/);
-    expect(sculpted).toEqual(evaluateRisoTransferSheet(a,b,1,{
-      curl:9,gripPinch:.7,
-    } as never));
+    expect(sculpted).toEqual(sample(a,b,1,{curl:9,gripPinch:.7}));
     for(const options of [
       {curl:-1,gripPinch:.5},{curl:13,gripPinch:0},
       {curl:3,gripPinch:-.1},{curl:3,gripPinch:1.1},
       {curl:NaN},{curl:Infinity},{gripPinch:NaN},
-    ])expect(()=>evaluateRisoTransferSheet(a,b,1,options as never)).toThrow(RangeError);
+    ])expect(()=>sample(a,b,1,options)).toThrow(RangeError);
   });
 });
