@@ -16,8 +16,8 @@ describe("ArtCraft F1 source-brow wax construction",()=>{
   it("retains an exact negative control and every unstudied anatomical element",()=>{
     const old=crayonCc0FaceStudy({...settings,browForm:"baseline"});
     const next=crayonCc0FaceStudy({...settings,browForm:"source-rooted"});
-    expect(CRAYON_F1_BROW_IDS).toHaveLength(6);
-    expect(next.elements).toHaveLength(old.elements.length+6);
+    expect(CRAYON_F1_BROW_IDS).toHaveLength(8);
+    expect(next.elements).toHaveLength(old.elements.length+8);
     expect(next.seed).toBe(old.seed);
     expect(next.paper).toBe(old.paper);
     expect(next.paperTooth).toBe(old.paperTooth);
@@ -38,8 +38,12 @@ describe("ArtCraft F1 source-brow wax construction",()=>{
     for(const side of ["near","far"] as const){
       const core=elements.find(e=>e.id==="source-brow-wax-"+side);
       const halo=elements.find(e=>e.id==="source-brow-feather-"+side);
+      const vein=elements.find(e=>e.id==="source-brow-vein-"+side);
       const overlay=elements.find(e=>e.id==="brow-superciliary-"+side);
       expect(core).toMatchObject({kind:"wax",parentId:"face-outline",
+        clipToParent:true,coverage:"open",deposition:"stroke-built",
+        featherContacts:true,outlineOpacity:0});
+      expect(vein).toMatchObject({kind:"wax",parentId:"face-outline",
         clipToParent:true,coverage:"opaque",deposition:"stroke-built",
         featherContacts:false,outlineOpacity:0});
       expect(overlay).toMatchObject({kind:"wax",coverage:"open",
@@ -49,16 +53,25 @@ describe("ArtCraft F1 source-brow wax construction",()=>{
         parentId:"face-outline",outlineOpacity:0,
         underpaintTooth:0});
       if(core?.kind!=="wax")throw Error("Missing connected wax brow "+side);
-      expect(core.underpaintGradient?.shadow).toMatch(/^#[0-9a-f]{6}$/i);
-      expect(core.underpaintTooth).toBeGreaterThan(.15);
-      expect(core.markStrength).toBeLessThan(.15);
+      expect(core.underpaintGradient).toBeUndefined();
+      expect(core.underpaintTooth).toBe(0);
+      expect(core.blendRadius).toBeGreaterThan(3.5);
+      expect(core.markStrength).toBeLessThan(.3);
       expect(core.pressure).toBeGreaterThan(.8);
       expect(core.spacing).toBeLessThan(5.1);
+      if(vein?.kind!=="wax")throw Error("Missing dark paper-burnished eyebrow root");
+      expect(vein.underpaintGradient?.shadow).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(vein.underpaintTooth).toBeGreaterThan(.15);
+      expect(vein.bounds.width).toBeLessThan(core.bounds.width);
+      expect(vein.bounds.height).toBeLessThan(core.bounds.height);
+      expect(vein.markStrength).toBeLessThan(.15);
       expect((core.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(4);
       expect(names.indexOf("face-outline")).toBeLessThan(names.indexOf(core.id));
       expect(names.indexOf("source-brow-feather-"+side)).toBeLessThan(
         names.indexOf(core.id));
       expect(names.indexOf(core.id)).toBeLessThan(
+        names.indexOf("source-brow-vein-"+side));
+      expect(names.indexOf("source-brow-vein-"+side)).toBeLessThan(
         names.indexOf("brow-superciliary-"+side));
     }
   });
