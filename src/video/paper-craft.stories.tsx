@@ -91,7 +91,7 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
         {artwork === "botanical"
           ? "Original sculptural paper garden: vibrant individually cut paper stocks, multi-level flowers, fern leaflets and luminous butterfly apertures. Change the real color-layer count and scrub every frame."
           : artwork === "scenery"
-            ? "Botanical paper theatre with three individually cut conifer grammars, uneven treelines, branched foliage, layered mountains and rivers. Control actual species diversity, cut density and paper relief."
+            ? "Hand-cut scenic paper theatre: botanical spruce/fir/larch, sculpted fern fronds, serrated broadleaf herbs, layered wildflowers, mountains and luminous water. Control species diversity, cut density and paper relief."
           : artwork === "object"
             ? "Five independently constructed studies — kingfisher, dragonfly, canal houses, camera and teacup. Each uses actual opaque cut shapes, layered assembly and paper apertures."
             : "One illustrated world, five physical paper techniques. Separate cut cards, open apertures, anchored fibres, hinged motion and transmitted light. Scrub every frame."}
