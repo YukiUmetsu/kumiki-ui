@@ -7,6 +7,7 @@
  * are a neutral default palette that every film-look painter restyles.
  */
 import type { RigSpec } from "./rig-spec";
+import { ACTION_MOTIONS } from "./rig-presets-actions";
 import type { RigPresetOptions } from "./rig-kit";
 import { BIRD_MOTIONS, DRAGON_MOTIONS, PERSON_MOTIONS, PERSON_PACE, QUADRUPED_MOTIONS, birdRig, butterflyRig, dragonRig, fishRig, personRig, quadPace, quadrupedRig } from "./rig-presets-living";
 import { FROG_MOTIONS, LEAF_MOTIONS, PETAL_MOTIONS, SNAKE_MOTIONS, frogRig, leafRig, petalsRig, snakeRig } from "./rig-presets-nature";
@@ -17,6 +18,8 @@ export { scalePath } from "./rig-kit";
 export * from "./rig-presets-living";
 export * from "./rig-presets-machines";
 export * from "./rig-presets-nature";
+export * from "./rig-presets-actions";
+export * from "./rig-presets-sword";
 
 export type RigPresetGroup = "people" | "animals" | "creatures" | "nature" | "vehicles" | "objects";
 export interface RigPresetEntry {
@@ -34,7 +37,7 @@ export interface RigPresetEntry {
   staged?: (motion: string) => boolean;
 }
 
-const inPlace = new Set(["idle", "wave", "talk", "cheer", "sit", "sit-down", "stand-up", "jump", "point", "think", "clap", "bow", "dance", "phone", "shoot", "box", "kick", "sword", "chop", "pan-toss"]);
+const inPlace = new Set<string>(["idle", "wave", "talk", "cheer", "sit", "sit-down", "stand-up", "jump", "point", "think", "clap", "bow", "dance", "phone", ...ACTION_MOTIONS]);
 /** Every preset with its motions. */
 export const RIG_PRESETS: readonly RigPresetEntry[] = [
   { id: "person", label: "Person", group: "people", motions: PERSON_MOTIONS, size: 360, travels: m => !inPlace.has(m), build: personRig, pace: (m, s) => (PERSON_PACE[m] ?? 0) * s / 100 },
