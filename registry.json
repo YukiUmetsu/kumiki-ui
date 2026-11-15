@@ -6637,7 +6637,7 @@
       "name": "paper-craft",
       "type": "registry:ui",
       "title": "Paper Craft Theatre",
-      "description": "Frame-exact cut-paper film engine: garden, botanical relief, five object sculptures and two reference-led scenery worlds (woodland, alpine lake). Opaque cutout foliage, layered relief, real apertures, palettes, two output aspects and Stage controls.",
+      "description": "Frame-exact paper film framework: reusable authored cutouts, nested paper rigs, arbitrary 16:9/9:16 multi-shot direction, strict pose and camera keyframes, accessible Storybook, five physical material styles, and FD1 output.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -6650,6 +6650,16 @@
           "path": "registry/video/paper-craft-react.tsx",
           "type": "registry:ui",
           "target": "components/video/paper-craft-react.tsx"
+        },
+        {
+          "path": "registry/video/paper-director.ts",
+          "type": "registry:ui",
+          "target": "components/video/paper-director.ts"
+        },
+        {
+          "path": "registry/video/paper-director-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/paper-director-react.tsx"
         },
         {
           "path": "registry/video/paper-botanical-kit.ts",

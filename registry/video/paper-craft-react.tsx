@@ -99,6 +99,8 @@ export function PaperCraftStage({
       <path d={`M${spec.width / 2} ${(spec.height * .72).toFixed(2)} V${spec.height}`}
         stroke="#fff0db" strokeWidth="2" strokeOpacity=".33"/>
     </g>}
+    <g data-km-paper-camera=""
+      transform={`translate(${(spec.width/2+state.camera.x).toFixed(3)} ${(spec.height/2+state.camera.y).toFixed(3)}) scale(${state.camera.zoom.toFixed(4)}) translate(${(-spec.width/2).toFixed(3)} ${(-spec.height/2).toFixed(3)})`}>
     {prepared.map(({ layer, i }) => {
       const q = state.layers[i];
       const pivot = layer.pivot ?? [spec.width / 2, spec.height / 2];
@@ -159,6 +161,7 @@ export function PaperCraftStage({
         </g>}
       </g>;
     })}
+    </g>
     {/* A slight edge vignette belongs to the screen/cut-card stack, not a generic film grade. */}
     {isLamp && <rect width={spec.width} height={spec.height} fill="none"
       stroke="#2f241c" strokeWidth={spec.style === "lightbox" ? 12 : 19} opacity=".12"/>}

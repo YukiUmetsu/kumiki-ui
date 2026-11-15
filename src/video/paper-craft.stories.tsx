@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PaperCraftStage } from "../../registry/video/paper-craft-react";
+import { PaperDirectorStage } from "../../registry/video/paper-director-react";
+import { compilePaperDirector, resolvePaperDirector } from "../../registry/video/paper-director";
+import { paperDirectorDemo } from "./paper-director-demo";
 import type { PaperStyle } from "../../registry/video/paper-craft";
 import { paperCraftExampleSpec } from "./paper-craft-demo";
 import { paperBotanicalSpec } from "../../registry/video/paper-botanical-kit";
@@ -139,6 +142,88 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
     </div>
   </main>;
 }
+/** The PAPER-D1 film director is a single, independently customizable page
+ * inside the existing Film Looks / Paper Craft Storybook folder.
+ */
+function PaperDirectorLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMotion}:Controls) {
+  const film=useMemo(()=>paperDirectorDemo(medium,seed,motion),[medium,seed,motion]);
+  const plan=useMemo(()=>compilePaperDirector(film),[film]);
+  const [playhead,setPlayhead]=useState(350),[playing,setPlaying]=useState(false);
+  const anchor=useRef<{time:number;frame:number}|null>(null);
+  useEffect(()=>{setPlayhead(350);setPlaying(false);anchor.current=null;},[film,aspect]);
+  useEffect(()=>{
+    if(!playing||reducedMotion)return;
+    let request=0;
+    const tick=(now:number)=>{
+      if(!anchor.current)anchor.current={time:now,frame:playhead};
+      const elapsed=Math.floor((now-anchor.current.time)*plan.fps/1000);
+      setPlayhead((anchor.current.frame+elapsed)%plan.durationFrames);
+      request=requestAnimationFrame(tick);
+    };
+    request=requestAnimationFrame(tick);
+    return ()=>cancelAnimationFrame(request);
+  },[playing,reducedMotion,plan]);
+  const currentFrame=reducedMotion?plan.durationFrames-1:playhead;
+  const current=resolvePaperDirector(plan,currentFrame,aspect);
+  const chapter=(start:number)=>{setPlaying(false);anchor.current=null;setPlayhead(start);};
+  const control:CSSProperties={border:"1px solid #bea889",background:"#2f3437",color:"#f5ead6",
+    padding:"9px 14px",borderRadius:4,cursor:"pointer",font:"600 13px Arial,sans-serif"};
+  return <main style={{minHeight:"100vh",background:"#171d23",color:"#efe6d6",
+    padding:"22px clamp(15px,4vw,54px) 45px",fontFamily:"Arial,sans-serif"}}>
+    <div style={{maxWidth:1160,margin:"auto"}}>
+      <p style={{fontSize:11,letterSpacing:2.5,color:"#c1a991"}}>PAPER-D1 · CODE-DIRECTED FILM</p>
+      <h1 style={{font:"normal clamp(30px,4vw,52px)/1.1 Georgia,serif",margin:"9px 0 12px"}}>
+        Four chapters, one physical paper vocabulary.
+      </h1>
+      <p style={{maxWidth:780,fontSize:14,lineHeight:1.7,color:"#c5c3bd"}}>
+        A 32-second editable paper-film study: forest, cut botanical, layered canal architecture,
+        and an engineered camera. Independent 16:9/9:16 construction, frame-exact paper-pose
+        keys, nested cutstock and restrained overhead-camera choreography. Transitions are solid
+        editorial cuts, not ghosted alpha dissolves.
+      </p>
+      <div style={{display:"flex",gap:9,flexWrap:"wrap",margin:"20px 0 12px"}}
+        role="group" aria-label="Select film chapter">
+        {plan.shots.map((shot,i)=><button key={shot.id} type="button"
+          style={{...control,background:current.shotId===shot.id?"#8b664a":"#2f3437"}}
+          aria-pressed={current.shotId===shot.id} onClick={()=>chapter(shot.startFrame)}>
+          {String(i+1).padStart(2,"0")} · {["Woodland","Botanical","Canal houses","Camera"][i]}
+        </button>)}
+      </div>
+      <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap",padding:"10px 0"}}>
+        <button type="button" style={control} disabled={reducedMotion}
+          onClick={()=>{anchor.current=null;setPlaying(v=>!v);}}>
+          {playing?"Pause":"Play film"}
+        </button>
+        <button type="button" style={control}
+          onClick={()=>{setPlaying(false);anchor.current=null;setPlayhead(0);}}>
+          Restart
+        </button>
+        <span style={{fontSize:12,color:"#d1b998"}}>{String(playhead).padStart(3,"0")} / {plan.durationFrames-1} · 30 FPS · {current.shotId}</span>
+      </div>
+      <label style={{display:"block",paddingBottom:16,fontSize:12,color:"#c9b9aa"}}>
+        Scrub complete paper film
+        <input type="range" min={0} max={plan.durationFrames-1} step={1}
+          value={playhead} aria-label="Scrub complete paper film"
+          onChange={e=>{setPlaying(false);anchor.current=null;setPlayhead(Number(e.currentTarget.value));}}
+          style={{display:"block",width:"100%",accentColor:"#d7a16e",marginTop:9}}/>
+      </label>
+      <div style={{display:"flex",justifyContent:"center"}}>
+        <div style={{width:"100%",maxWidth:aspect==="portrait"?440:960,
+          aspectRatio:aspect==="portrait"?"9 / 16":"16 / 9",
+          border:"9px solid #464037",boxShadow:"0 12px 52px #0008",overflow:"hidden"}}>
+          <PaperDirectorStage film={film} aspect={aspect} frame={currentFrame}
+            reducedMotion={reducedMotion} tooth={tooth} shadowStrength={shadow}
+            edgeStrength={edge} curlStrength={1} liftStrength={1}
+            label={"Code-directed paper film: "+current.shotId}
+            data-testid="paper-director-stage"/>
+        </div>
+      </div>
+      <p style={{textAlign:"center",fontSize:12,letterSpacing:1.1,color:"#c4b5a0"}}>
+        {aspect==="portrait"?"9:16":"16:9"} · {medium.toUpperCase()} · SHOT {current.shotIndex+1}/4 · OPAQUE CUT STOCK
+      </p>
+    </div>
+  </main>;
+}
 const meta = {
   // All Paper Craft studies share one Storybook folder under Film Looks.
   title: "Video production/Film Looks/Paper Craft",
@@ -232,4 +317,18 @@ export const Teacup: Story = {
   args:{artwork:"object",object:"teacup",objectPalette:"pastel",detail:1,
     curl:1,relief:1,motion:1,medium:"layered",frame:195,shadow:.92,edge:.55,seed:37},
   argTypes:objectControls,
+};
+
+/** One page, many subjects: this does not create a new Storybook folder. */
+export const Director: Story = {
+  name:"Film Director · Four Chapters",
+  args:{medium:"layered",aspect:"landscape",seed:37,motion:.7,tooth:.7,
+    shadow:.9,edge:.55,reducedMotion:false},
+  render:args=><PaperDirectorLab {...args}/>,
+  argTypes:{
+    artwork:hideControl,scenery:hideControl,sceneryPalette:hideControl,breeze:hideControl,
+    treeVariety:hideControl,object:hideControl,objectPalette:hideControl,
+    palette:hideControl,detail:hideControl,colorLayers:hideControl,curl:hideControl,
+    relief:hideControl,frame:hideControl,
+  },
 };

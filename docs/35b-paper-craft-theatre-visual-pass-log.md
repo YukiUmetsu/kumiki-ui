@@ -239,3 +239,15 @@ The first R06 16:9 and 9:16 native frames verified that the new second-generatio
 Study: Erin Ziter's sculpted glacier topography (NPS), Remy Glock's nested Tahoe relief and Christina Peressini's hand-cut landscape layers (see `docs/research/paper-craft-scenery-artcraft-study.md`). Replaced the three repeated dome mountains with physically contiguous ledged ridge cuts, registered the snow cap to each summit, added two true pierced snow windows per peak and a paired inset rock-fold stock. Reused the single existing Paper Craft → Scenery Storybook page and all existing style, seed, aspect, lighting and relief controls. Added cross-aspect/palette regression checks for geometry, stock order, deterministic seeking and layer limits. **Artwork is original code, not an image trace.**
 
 **Pending visual acceptance:** review final-head browser captures and native film evidence for true crest readability and cut-bridge survival; a green unit or TypeScript check cannot certify the craftsmanship.
+
+## ArtCraft PAPER-D1 — general-purpose film composition pass
+
+The source-first film framework now reuses original high-detail woodland, botanical, architecture and device assets in one four-shot sequence, with independent aspect-specific physical construction. New PAPER1 pose keyframes, bounded overhead camera keys, deterministic easing and editable shot scheduling make authoring unrelated subjects possible without adding a new paper renderer. A general-purpose film slot accepts authored JSON storyboards, while the supplied film fixture demonstrates a reusable 32-second production path. Existing Storybook subjects remain in the single Paper Craft folder.
+
+ArtCraft risks / open release gates: actual native 16:9 and 9:16 production frames, 1× subject and hinge crops, montage/full-speed edit review, and an artistic approval decision. Preserve connected moth parts, opaque material stacks, actual holes, no alpha crossfades, and mathematically deterministic shuffled frame seeking. Ref: [PAPER-D1 film study](research/paper-director-artcraft-film-study.md).
+
+## PAPER-D1 director: first native visual gate (ArtCraft v7)
+
+The first generated native film and both 16:9/9:16 chapter captures were inspected, not inferred from green test results. A hard cut from fully assembled woodland into a *blank* botanical scene was visibly unacceptable. The director now opts into a validated `startAssembled` state for finished chapter sets, preserving material opacity and independent motion. Existing assembly demos keep their original behavior. New Vitest/browser assertions reject any first-cut film state where a paper stock's progress or opacity is not 1.
+
+**Critical:** the initial evidence is superseded by this fix. Artistic QA must use new CI PNGs and an encoded cut spanning f239→240. Source-faithful full-speed art approval remains open.

@@ -1,4 +1,7 @@
 import { PaperCraftStage } from "../../registry/video/paper-craft-react";
+import { compilePaperDirector, resolvePaperDirector } from "../../registry/video/paper-director";
+import type { PaperDirectorFilm, PaperDirectorPlan } from "../../registry/video/paper-director";
+import { paperDirectorDemo } from "../video/paper-director-demo";
 import { PAPER_STYLES } from "../../registry/video/paper-craft";
 import type { PaperStyle } from "../../registry/video/paper-craft";
 import { paperCraftExampleSpec } from "../video/paper-craft-demo";
@@ -701,6 +704,8 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
   const pencilCharacterSheets = new Map<"landscape" | "portrait", ReturnType<typeof pencilCharacterScene>>();
   const pencilWildlifeSheets = new Map<"landscape" | "portrait", ReturnType<typeof pencilWildlifeScene>>();
   const paintedWorlds = new Map<string, ReturnType<typeof paintedDemoSpec>>();
+  const authoredPaperFilms = new WeakMap<object, PaperDirectorPlan>();
+  const samplePaperFilms = new Map<string, PaperDirectorPlan>();
   return (content, context) => {
     const props = content.props ?? {};
     switch (content.slot) {
@@ -934,6 +939,57 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         return <RisoPrint spec={spec} artworks={risoSecondSheetArtworks(aspect)}
           frame={completedRisoFrame(spec)} misregistration={.25} paperGrain={.55}
           reducedMotion={context.reducedMotion}/>;
+      }
+
+      case "paper-craft-director": {
+        // This reusable slot accepts a complete paper-cut storyboard object.
+        // The optional study preset is an app-level example, not a library
+        // style constraint. In either mode FilmStage retains the master clock.
+        if (props.storyboard !== undefined && props.preset !== undefined)
+          throw new RangeError("paper-craft-director takes either storyboard or preset");
+        let plan: PaperDirectorPlan;
+        if (props.storyboard !== undefined) {
+          const raw = props.storyboard;
+          if (!raw || typeof raw !== "object" || Array.isArray(raw))
+            throw new RangeError("paper-craft-director storyboard must be an object");
+          const cached = authoredPaperFilms.get(raw);
+          if (cached) plan = cached;
+          else {
+            plan = compilePaperDirector(raw as PaperDirectorFilm);
+            authoredPaperFilms.set(raw, plan);
+          }
+        } else {
+          if (props.preset !== "four-chapters")
+            throw new RangeError("paper-craft-director requires a storyboard or known study preset");
+          const medium = props.medium ?? "layered", seed = props.seed ?? 37;
+          const motion = props.motion ?? .7;
+          if (typeof medium !== "string" || !PAPER_STYLES.includes(medium as PaperStyle))
+            throw new RangeError("paper-craft-director requires a known medium");
+          if (typeof seed !== "number" || !Number.isSafeInteger(seed))
+            throw new RangeError("paper-craft-director requires a safe integer seed");
+          if (typeof motion !== "number" || !Number.isFinite(motion) || motion < 0 || motion > 1)
+            throw new RangeError("paper-craft-director motion must be finite in [0,1]");
+          const key = medium+":"+seed+":"+motion;
+          const cached = samplePaperFilms.get(key);
+          if (cached) plan = cached;
+          else {
+            plan = compilePaperDirector(paperDirectorDemo(medium as PaperStyle,seed,motion));
+            if (samplePaperFilms.size > 12) samplePaperFilms.clear();
+            samplePaperFilms.set(key,plan);
+          }
+        }
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        if (plan.fps * context.fps.den !== context.fps.num)
+          throw new RangeError("paper-craft-director FPS must match FilmStage");
+        if (plan.durationFrames !== context.durationFrames)
+          throw new RangeError("paper-craft-director FilmStage scene must cover all authored shots");
+        const current = resolvePaperDirector(plan,context.frame,aspect);
+        if (current.spec.width !== context.width || current.spec.height !== context.height)
+          throw new RangeError("paper-craft-director output dimensions must match the authored aspect");
+        return <PaperCraftStage spec={current.spec} frame={current.localFrame}
+          reducedMotion={context.reducedMotion} tooth={.72}
+          shadowStrength={.92} edgeStrength={.57} curlStrength={1} liftStrength={1}
+          data-km-paper-director={plan.id} data-km-paper-shot={current.shotId}/>;
       }
 
       case "paper-craft-study": {
