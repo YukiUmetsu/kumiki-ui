@@ -466,12 +466,13 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const [view,setView]=useState<"wax"|"anatomy">("wax");
   const [showReference,setShowReference]=useState(true);
   const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
+  const [eyeContact,setEyeContact]=useState<"source-shade"|"baseline">("source-shade");
   const [inspection,setInspection]=useState<
     "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|
     "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right">("full");
   const spec=useMemo(()=>crayonCc0FaceStudy({
-    detail:Math.max(.2,detail),view,fiberMaterial,
-  }),[detail,view,fiberMaterial]);
+    detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,
+  }),[detail,view,fiberMaterial,eyeContact]);
   const framed=useMemo(()=>{
     if(inspection==="full")return spec;
     const focus={
@@ -570,6 +571,14 @@ export function Cc0SourceRegisteredFaceWorkbench({
         onClick={()=>setShowReference(s=>!s)}>
         {showReference?"Hide source":"Compare source"}
       </button>
+      <label>Eye-white wax contact{" "}
+        <select aria-label="F1 source sclera contact" value={eyeContact}
+          onChange={e=>setEyeContact(e.target.value as
+            "source-shade"|"baseline")}>
+          <option value="source-shade">Source-registered wax shadow (experimental)</option>
+          <option value="baseline">Prior exposed sclera (negative control)</option>
+        </select>
+      </label>
       <label>Hair mark material{" "}
         <select aria-label="CC0 hair mark material" value={fiberMaterial}
           onChange={e=>setFiberMaterial(e.target.value as "line"|"dry-wax")}>
