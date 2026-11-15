@@ -21,6 +21,19 @@ for(const sample of ["fox","kingfisher"] as const){
       for(const aspect of ["landscape","portrait"] as const){
         await page.getByRole("combobox",{name:"Pencil photo aspect"}).selectOption(aspect);
         await expect(canvas).toHaveAttribute("data-km-pencil-photo","ready",{timeout:60000});
+        if(aspect==="portrait"){
+          await expect(page.getByRole("combobox",{name:"Pencil portrait framing"}))
+            .toHaveValue("focus");
+          const source=page.locator("canvas[data-km-pencil-reference]");
+          const margins=await source.evaluate(node=>{
+            const c=node as HTMLCanvasElement,ctx=c.getContext("2d")!;
+            const top=ctx.getImageData(Math.floor(c.width*.5),Math.floor(c.height*.06),1,1).data;
+            const bottom=ctx.getImageData(Math.floor(c.width*.5),Math.floor(c.height*.94),1,1).data;
+            return [[...top].slice(0,3),[...bottom].slice(0,3)];
+          });
+          // No cream letterbox bars after switching to a close-up portrait.
+          for(const rgb of margins)expect(rgb).not.toEqual([250,245,237]);
+        }
         const metrics=await canvas.evaluate(output=>{
           const c=output as HTMLCanvasElement;
           const ctx=c.getContext("2d")!;
