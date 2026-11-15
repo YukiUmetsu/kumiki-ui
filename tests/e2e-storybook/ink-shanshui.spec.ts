@@ -115,6 +115,8 @@ test("brushwork study shows native rooted foliage and uneven rock deposition",as
     .toBeGreaterThan(0);
   await expect.poll(()=>study.locator("[data-km-bamboo-leaf-parent='spur-0']").count())
     .toBeGreaterThan(0);
+  await expect.poll(()=>study.locator("[data-km-bamboo-satellite-leaf]").count())
+    .toBeGreaterThan(0);
   await study.screenshot({animations:"disabled",
     path:info.outputPath("shanshui-native-brush-detail-study.png")});
   const density=page.getByRole("slider",{name:"Brushwork detail"});
