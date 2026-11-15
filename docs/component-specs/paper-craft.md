@@ -316,3 +316,13 @@ Use separate real artwork and hidden joint overlaps for expressive actors. This 
 Sample film `examples/film/paper-craft-director.film.json` enables paper curtains by default. In Storybook **Film Director · Four Chapters**, `curtains` toggles them without moving the page to a new folder. FD1's preset accepts `curtains:boolean` (default true); a custom author-provided `storyboard` embeds each shot's transition settings directly. Its existing clock/labels/audio remain untouched. Material details stay with the underlying PAPER1 renderer.
 
 **ArtCraft:** [rig and curtain source/structure study](../research/paper-puppet-curtain-artcraft-study.md). Reference previews were linked rather than redistributed: source image rights and reliable frame-accurate video examples were not established. Qualitative construction, not claim of pixel-match fidelity.
+
+## PAPER-D3 — hinged printed page as a film transition
+
+An authored director shot can select `transitionOut:{kind:"paper-page-turn",durationFrames:24,color:"#E8CEAA",direction:"right-to-left"}`. This is a **real two-sided paper leaf with artwork on its front**, rotating about a fixed book gutter in browser 3D. During the outgoing 12-frame half it carries the previous paper scene (including all its real holes and materials) while revealing the already constructed *next* scene underneath. During the incoming half its reverse stock finishes the turn. The previous scene remains available across the edit even though the primary shot ID has switched. No illustrated content is blended with alpha.
+
+`PaperDirectorFrame.pageTurn` exposes outgoing/incoming specs and local frame numbers for deterministic external renderers. It is distinct from `curtain` (which stays backward-compatible). Validation rejects unknown kinds, invalid material colors/directions, odd/out-of-range frame counts, missing final shot destinations and too-short incoming windows.
+
+The FD1 slot `paper-craft-director` adds `transitionStyle:"page-turn"|"curtain"` for its four-chapter preset; existing documents default to curtain. An authored `storyboard` uses the per-shot `kind` directly and needs no separate setting. [Portable page-turn film example](../../examples/film/paper-craft-page-turn.film.json). The existing Storybook **Film Director · Four Chapters** page adds `pageTurn` and frame-range controls without introducing a new folder or changing existing studies.
+
+This is a **rigid leaf with one spine**, not a V-fold engine or dynamic bending-paper finite-element solver. The artist-authored next scene must be preassembled for a seamless edit. ArtCraft research/limitations: [PAPER-D3 physical page study](../research/paper-page-turn-artcraft-study.md).
