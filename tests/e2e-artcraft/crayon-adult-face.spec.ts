@@ -40,5 +40,21 @@ for(const item of [
     // QA agent from GitHub job logs without copying third-party source art.
     // The full resolution capture is retained as the workflow artifact.
     console.log("ARTCRAFT_RENDER_JPEG:"+item.aspect+":"+shot.toString("base64"));
+    // Semantic, source-framed evidence for ArtCraft eye construction and
+    // pigment-blend review; do not infer quality from attached DOM elements.
+    const eyeCrop=item.aspect==="landscape"?
+      {x:380,y:112,width:198,height:119}:
+      {x:119,y:171,width:300,height:158};
+    const eyes=await page.screenshot({clip:eyeCrop,type:"jpeg",quality:84,
+      path:info.outputPath("artcraft-eyes-"+item.aspect+"-299.jpg"),
+      animations:"disabled"});
+    console.log("ARTCRAFT_EYE_JPEG:"+item.aspect+":"+eyes.toString("base64"));
+    const featureCrop=item.aspect==="landscape"?
+      {x:415,y:216,width:132,height:112}:
+      {x:167,y:351,width:215,height:234};
+    const nasal=await page.screenshot({clip:featureCrop,type:"jpeg",quality:84,
+      path:info.outputPath("artcraft-nose-mouth-"+item.aspect+"-299.jpg"),
+      animations:"disabled"});
+    console.log("ARTCRAFT_NOSE_JPEG:"+item.aspect+":"+nasal.toString("base64"));
   });
 }

@@ -49,10 +49,10 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
   // Fur and other detail contours can be clipped to the true moving outline
   // of their wax parent. Unlike a static rectangle mask, this remains correct
   // after a hand-redrawn silhouette changes on a held source frame.
-  const clipParent = node.kind==="contour" && node.clipToParent
+  const clipParent = (node.kind==="contour" || node.kind==="wax") && node.clipToParent
     ? spec.elements.find(candidate=>candidate.id===node.parentId) : undefined;
-  if (node.kind==="contour" && node.clipToParent && clipParent?.kind!=="wax")
-    throw new RangeError("clipped crayon contour must have a wax parent");
+  if ((node.kind==="contour" || node.kind==="wax") && node.clipToParent && clipParent?.kind!=="wax")
+    throw new RangeError("clipped crayon pigment must have a wax parent");
   const clipId = clipParent?.kind==="wax" ? tooth+"-anatomy-"+node.id : undefined;
   const contactPhase = node.contacts ? crayonContactPhase(node,frame,spec.durationFrames,reducedMotion) : null;
   const at=reducedMotion?spec.durationFrames-1:frame;
@@ -64,14 +64,25 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
     data-km-crayon-motion-lag={node.motionLagFrames ?? undefined}
     data-km-crayon-exit={node.exitFade ? (at<node.exitFade.start ? "visible" : fading<=0 ? "finished" : "fading") : undefined}
     opacity={node.exitFade ? fading : undefined} transform={transform}>
-    {node.kind === "wax" ? <WaxRegion d={drawing!.d} bounds={drawing!.bounds!} colors={node.colors}
-      seed={seed} pressure={node.pressure ?? .84} spacing={node.spacing ?? 9} angle={node.angle ?? 0}
-      tooth={tooth} frame={frame} first={node.timing.start} last={node.timing.end}
-      construction={node.construction} coverage={node.coverage} nibStyle={node.nibStyle}
-      strokeOrder={node.strokeOrder} markLength={node.markLength}
-      redraw={node.redraw} edgeRoughness={node.edgeRoughness}
-      outlineOpacity={node.outlineOpacity} sgraffito={node.sgraffito}
-      reduced={reducedMotion} /> :
+    {node.kind === "wax" ? <>
+        {clipParent?.kind==="wax" && <defs><clipPath id={clipId} clipPathUnits="userSpaceOnUse"
+          data-km-crayon-anatomical-mask={clipParent.id}>
+          <path d={crayonDrawingAt(clipParent,frame,reducedMotion,spec.durationFrames).d}/>
+        </clipPath></defs>}
+        <g clipPath={clipId ? "url(#"+clipId+")" : undefined}
+          data-km-crayon-clipped-to={clipParent?.id}>
+          <WaxRegion d={drawing!.d} bounds={drawing!.bounds!} colors={node.colors}
+            seed={seed} pressure={node.pressure ?? .84} spacing={node.spacing ?? 9} angle={node.angle ?? 0}
+            tooth={tooth} frame={frame} first={node.timing.start} last={node.timing.end}
+            construction={node.construction} coverage={node.coverage}
+            blendRadius={node.blendRadius} markStrength={node.markStrength}
+            nibStyle={node.nibStyle}
+            strokeOrder={node.strokeOrder} markLength={node.markLength}
+            redraw={node.redraw} edgeRoughness={node.edgeRoughness}
+            outlineOpacity={node.outlineOpacity} sgraffito={node.sgraffito}
+            reduced={reducedMotion} />
+        </g>
+      </> :
       node.kind === "contour" ? <>
         {clipParent?.kind==="wax" && <defs>
           <clipPath id={clipId} clipPathUnits="userSpaceOnUse"

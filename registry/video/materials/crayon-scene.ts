@@ -75,6 +75,15 @@ export interface CrayonWaxElement extends CrayonBase {
   /** Opaque, silhouette-blocking wax underpaint for characters and solid props;
    * default open retains translucent scenery and older CRAYON1 documents. */
   coverage?: "open" | "opaque";
+  /** Edge blending radius (0..18 SVG units) for painted open wax glazes.
+   * Finished subjects remain opaque because their own underpaint is separate. */
+  blendRadius?: number;
+  /** 0..1 artistic density of medium-native random tooth marks.
+   * Lower values leave opaque underpaint intact; the artist can layer
+   * explicit anatomy and form-directed marks on top instead of noise. */
+  markStrength?: number;
+  /** Confine a tonal glaze to the animated parent wax silhouette. */
+  clipToParent?: boolean;
   /** Held, small-patch reworking of wax pigment; frame-deterministic. */
   redraw?: CrayonRedrawOptions;
   /** Optional broken nib accents on opaque silhouettes (0..1). */
@@ -305,6 +314,16 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".angle must be in [-89,89]");
         if (node.coverage !== undefined && node.coverage !== "open" && node.coverage !== "opaque")
           errors.push(p + ".coverage must be open or opaque");
+        if (node.blendRadius !== undefined && (!finite(node.blendRadius)||node.blendRadius<0||
+          node.blendRadius>18||node.coverage!=="open"))
+          errors.push(p + ".blendRadius must be 0..18 on open wax");
+        if (node.markStrength !== undefined && (!finite(node.markStrength)||
+          node.markStrength<0||node.markStrength>1))
+          errors.push(p + ".markStrength must be within [0,1]");
+        if (node.clipToParent !== undefined && typeof node.clipToParent!=="boolean")
+          errors.push(p + ".clipToParent must be a boolean");
+        if (node.clipToParent && !node.parentId)
+          errors.push(p + ".clipToParent requires a parent wax element");
         if (node.nibStyle !== undefined && node.nibStyle !== "rounded" && node.nibStyle !== "tapered")
           errors.push(p + ".nibStyle must be rounded or tapered");
         if (node.strokeOrder !== undefined && node.strokeOrder !== "scanline" && node.strokeOrder !== "patches")
