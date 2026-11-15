@@ -129,7 +129,7 @@ export function createPencilPortraitFeatureMarks(
     // not turn a pale source pixel into a pupil-shaped digital stamp.
     // The decision samples the whole short pencil gesture, not just its root.
     if(kind.startsWith("iris-")){
-      const onHighlight=([px,py]:readonly[number,number])=>{
+      const onHighlight=([px,py]:readonly number[])=>{
         const sx=clamp(Math.round(px),0,source.width-1);
         const sy=clamp(Math.round(py),0,source.height-1);
         const k=4*(sy*source.width+sx);
