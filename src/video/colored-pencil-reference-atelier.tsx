@@ -116,7 +116,7 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
   const [error,setError]=useState("");
   const [options,setOptions]=useState<PencilPhotoOptions>(() =>
     initialSample==="woman"||initialSample==="man"
-      ? {...PENCIL_PHOTO_DEFAULTS,focus:.63,paper:.21,saturation:.89,edges:.53,density:1.35}
+      ? {...PENCIL_PHOTO_DEFAULTS,focus:.63,paper:.14,saturation:.96,edges:.53,density:1.35,depth:.88}
       : {...PENCIL_PHOTO_DEFAULTS});
   const [wash,setWash]=useState((initialSample==="woman"||initialSample==="man") ? .91 : .84);
   const [showReference,setShowReference]=useState(false);
@@ -226,10 +226,11 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
     const face=subject==="woman"||subject==="man";
     setOptions(prev=>({...prev,
       focus:face?.63:subject==="fox"?.38:.91,
-      paper:face?.21:subject==="fox"?.18:.20,
-      saturation:face?.89:subject==="fox"?.92:.96,
+      paper:face?.14:subject==="fox"?.18:.20,
+      saturation:face?.96:subject==="fox"?.92:.96,
       edges:face?.53:PENCIL_PHOTO_DEFAULTS.edges,
       density:face?1.35:PENCIL_PHOTO_DEFAULTS.density,
+      depth:face?.88:0,
     }));
     setWash(face?.91:subject==="fox"?.94:.90);
     setFraming("focus");
@@ -287,7 +288,7 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
             setError("");setRaw(null);setReload(0);
             setUploaded(true);setSourceUrl(url);
             // Arbitrary uploads should not inherit fox/bird preset segmentation.
-            setOptions(prev=>({...prev,focus:.60}));
+            setOptions(prev=>({...prev,focus:.60,depth:0}));
             setWash(.88);setPlaying(false);setFrame(350);
             // Object URL stays in the browser; no network submission.
           }}/>
@@ -324,6 +325,7 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
         ["tooth","Paper tooth",0,1,.05],
         ["density","Drawing density",.2,2,.1],
         ["focus","Foreground pigment / background restraint",0,1,.05],
+        ["depth","Deep dry-pencil form shading",0,1,.05],
       ] as const).map(([key,label,min,max,step])=><label key={key} style={control}>
         {label} · {options[key].toFixed(2)}
         <input aria-label={"Pencil photo "+key} type="range"
