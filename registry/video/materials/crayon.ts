@@ -330,8 +330,13 @@ export function crayonDryNibPath(
       for(const [lo,hi] of ranges){
         const end=Math.min(exposed,hi);
         if(end<=lo+.008)continue;
-        const left:string[]=[],right:string[]=[];
-        const fractions=handmade?[0,.12,.26,.41,.59,.73,.86,1]:
+        let left:string[]=[],right:string[]=[];
+        const flush=()=>{
+          if(left.length>=2)
+            result.push("M"+left.join("L")+"L"+right.reverse().join("L")+"Z");
+          left=[];right=[];
+        };
+        const fractions=handmade?[0,.08,.17,.26,.36,.47,.58,.69,.79,.89,1]:
           [0,.3,.68,1];
         for(const [j,fraction] of fractions.entries()){
           const t=lo+(end-lo)*fraction;
@@ -349,6 +354,14 @@ export function crayonDryNibPath(
           // Adjacent crayon passes sample the SAME paper relief. A high peak
           // receives thicker wax while valleys interrupt side-of-nib contact.
           const paper=handmade?crayonPaperHeight(x,y,paperSeed):1;
+          // Low ridges cannot contact a worn nib at light pressure; the
+          // paper shows through as short in-stroke discontinuities. Strong
+          // pressure bridges more valleys. Only the hand profile uses this.
+          const contactFloor=.24+.21*(1-mark.pressure);
+          if(handmade&&!edge&&paper<contactFloor){
+            flush();
+            continue;
+          }
           const relief=handmade?
             .12+1.44*paper:
             .59+.57*crayonHash(mark.index,seed+j,3108);
@@ -359,7 +372,7 @@ export function crayonDryNibPath(
           left.push(fmt(x+pos.nx*contactWidth)+" "+fmt(y+pos.ny*contactWidth));
           right.push(fmt(x-pos.nx*contactWidth)+" "+fmt(y-pos.ny*contactWidth));
         }
-        result.push("M"+left.join("L")+"L"+right.reverse().join("L")+"Z");
+        flush();
       }
     }
   }
