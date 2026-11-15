@@ -331,6 +331,9 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     const cheek=drawing.regions.find(region=>region.id==="cheek-ruff")!;
     const neck=drawing.regions.find(region=>region.id==="neck-ruff")!;
     expect(cheek.bounds[1]+cheek.bounds[3]).toBeGreaterThanOrEqual(310);
+    // Narrow malar transition: a broad filled triangular cheek becomes an
+    // anatomically detached cardboard flap in native film screenshots.
+    expect(cheek.bounds[2]).toBeLessThanOrEqual(49);
     expect((cheek.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(5);
     expect((cheek.path.match(/ L/g)??[]).length).toBe(0);
     expect(cheek.bounds[0]).toBeLessThan(neck.bounds[0]+neck.bounds[2]);
