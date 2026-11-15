@@ -7,6 +7,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import "@fontsource-variable/newsreader";
 import { compileFilm } from "../../registry/video/film-document";
+import type { CompiledSceneSound } from "../../registry/video/film-split-edits";
 import { FilmStage } from "../../registry/video/film-stage";
 import type { UkiyoeAction, UkiyoeActionType, UkiyoeFigureLook, UkiyoeHair, UkiyoeHat, UkiyoeProp } from "../../registry/video/ukiyoe/ukiyoe-figure";
 import { UKIYOE_ACTIONS, UKIYOE_HAIRS, UKIYOE_HATS, UKIYOE_PROPS } from "../../registry/video/ukiyoe/ukiyoe-figure";
@@ -15,6 +16,8 @@ import type { UkiyoePresetName } from "../../registry/video/ukiyoe/ukiyoe-pigmen
 import { palette, UKIYOE_PRESETS, UKIYOE_ROLES } from "../../registry/video/ukiyoe/ukiyoe-pigments";
 import type { UkiyoePatternType } from "../../registry/video/ukiyoe/ukiyoe-prims";
 import { UKIYOE_PATTERNS } from "../../registry/video/ukiyoe/ukiyoe-prims";
+import type { UkiyoeCrowdMood } from "../../registry/video/ukiyoe/ukiyoe-crowd";
+import { UKIYOE_CROWD_MOODS } from "../../registry/video/ukiyoe/ukiyoe-crowd";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import { inspectUkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -86,6 +89,44 @@ export function usePlayback(durationFrames: number, initial = 0, rate = 1, loop 
     return () => cancelAnimationFrame(raf);
   }, [playing, rate, loop, durationFrames, last]);
   return { frame, playing, seek: (f: number) => { setPlaying(false); setFrame(Math.max(0, Math.min(last, Math.round(f)))); }, toggle: () => setPlaying(p => !p), restart: () => { setFrame(0); setPlaying(true); } };
+}
+
+// ---- Sound -------------------------------------------------------------------------------------------------------------------------
+
+const BED_PREVIEWS = import.meta.glob("../../assets/sound/lab/catalog/bed-*.m4a", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+/**
+ * Plays the compiled film's scene sounds (the same recorded beds the film renders with) on the player's frame clock:
+ * each bed loops while the playhead is inside it, its level following the compiled gain and the crossfades at the cuts.
+ * Audio starts only from the viewer's Play press and stops on pause, seek past it, or when sound is switched off. The
+ * preview leaves out the render's low-pass filter and mastering.
+ */
+function useSceneSound(sounds: readonly CompiledSceneSound[], frame: number, playing: boolean, rate: number, enabled: boolean, fps = 30) {
+  const audios = useRef(new Map<string, HTMLAudioElement>());
+  useEffect(() => () => { audios.current.forEach(a => a.pause()); audios.current.clear(); }, []);
+  useEffect(() => {
+    const live = new Set<string>();
+    if (enabled && playing) for (const item of sounds) {
+      if (frame < item.startFrame || frame >= item.endFrame) continue;
+      const url = BED_PREVIEWS[`../../assets/sound/lab/catalog/${item.sound}.m4a`];
+      if (!url) continue;
+      const key = item.sceneId;
+      live.add(key);
+      let audio = audios.current.get(key);
+      if (!audio) {
+        audio = new Audio(url);
+        audio.loop = true;
+        audio.currentTime = ((frame - item.startFrame) / fps) % 8;
+        audios.current.set(key, audio);
+        // Media playback started by the viewer's Play press.
+        void HTMLMediaElement.prototype.play.call(audio).catch(() => undefined);
+      }
+      const fadeIn = item.fadeInFrames > 0 ? Math.min(1, (frame - item.startFrame) / item.fadeInFrames) : 1;
+      const fadeOut = item.fadeOutFrames > 0 ? Math.min(1, (item.endFrame - frame) / item.fadeOutFrames) : 1;
+      audio.volume = Math.max(0, Math.min(1, 10 ** ((item.gainDb ?? 0) / 20) * fadeIn * fadeOut));
+      audio.playbackRate = rate;
+    }
+    for (const [key, audio] of audios.current) if (!live.has(key)) { audio.pause(); audios.current.delete(key); }
+  }, [sounds, frame, playing, rate, enabled, fps]);
 }
 
 function Transport({ clock, total, rate, setRate, loop, setLoop, name }: { clock: ReturnType<typeof usePlayback>; total: number; rate: number; setRate: (v: number) => void; loop: boolean; setLoop: (v: boolean) => void; name: string }) {
@@ -173,6 +214,7 @@ function UkiyoeFilmPlayer({ shots, kasumi, filmId, title, kicker, description, i
   const [cadence, setCadence] = useState<1 | 2 | 3 | 4>(2);
   const [wind, setWind] = useState(0);
   const [captions, setCaptions] = useState(true);
+  const [sound, setSound] = useState(true);
   const tweaks: UkiyoeFilmTweaks = useMemo(() => ({ preset: preset === "per-shot" ? undefined : preset, registration, mottle, grain, line, fibre, cadence, wind, captions }),
     [preset, registration, mottle, grain, line, fibre, cadence, wind, captions]);
   const doc = useMemo(() => ukiyoeFilm(shots, tweaks, { id: filmId, kasumi }), [shots, tweaks, filmId, kasumi]);
@@ -180,6 +222,7 @@ function UkiyoeFilmPlayer({ shots, kasumi, filmId, title, kicker, description, i
   const starts = useMemo(() => ukiyoeShotStarts(shots), [shots]);
   const total = compiled.ok ? compiled.film.durationFrames : 1;
   const clock = usePlayback(total, initialFrame, rate, loop);
+  useSceneSound(compiled.ok ? compiled.film.sceneSounds : [], clock.frame, clock.playing, rate, sound);
   if (!compiled.ok) return <pre role="alert">{compiled.diagnostics.map(d => d.path + ": " + d.message).join("\n")}</pre>;
   const film = compiled.film, shotIndex = starts.reduce((found, s, i) => s <= clock.frame ? i : found, 0);
   return <div style={page}>
@@ -208,8 +251,12 @@ function UkiyoeFilmPlayer({ shots, kasumi, filmId, title, kicker, description, i
       <Select name="Figure cadence" value={cadence} options={[1, 2, 3, 4] as const} onChange={setCadence} labels={{ 1: "On ones", 2: "On twos (default)", 3: "On threes", 4: "On fours" }} />
       <Slider name="Extra wind" value={wind} min={-1.5} max={1.5} step={.1} onChange={setWind} format={v => (v > 0 ? "+" : "") + v.toFixed(1)} />
       <Check name="Captions" value={captions} onChange={setCaptions} />
+      <Check name="Ambient sound (recorded beds)" value={sound} onChange={setSound} />
       <Check name="Reduced motion (settled frames)" value={reducedMotion} onChange={setReducedMotion} />
     </section>
+    <p style={{ fontSize: 13, margin: 0, opacity: .8, maxWidth: 900 }}>Sound: each shot plays a recorded CC0 field recording from the sound catalog (river,
+      stream or mountain wind), crossfading at the cuts. The same beds are written into the film document, so a render carries them with
+      its low-pass filter and mastering; the preview here plays them plainly.</p>
     <p style={{ fontSize: 13, margin: 0, opacity: .8, maxWidth: 900 }}>Every frame is a pure function of the frame number, so scrubbing, seeking backwards and
       jumping between shots are exact. All artwork is generated by the engine: no photographs, no third-party prints and no traced
       compositions. Ukiyo-e and emaki conventions (bokashi, kentō registration, suyari-gasumi, fukinuki-yatai) are public-domain techniques.</p>
@@ -388,6 +435,43 @@ export function MotifGallery() {
         <UkiyoeScene spec={s} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={GALLERY[i].label} />
       </div>)}
     </div>
+  </div>;
+}
+
+// ---- Crowds ------------------------------------------------------------------------------------------------------------------------
+
+export function CrowdLab() {
+  const [mood, setMood] = useState<UkiyoeCrowdMood>("stroll");
+  const [count, setCount] = useState(24);
+  const [rows, setRows] = useState(3);
+  const [direction, setDirection] = useState<"both" | "left" | "right">("both");
+  const [seed, setSeed] = useState(12);
+  const clock = usePlayback(480, 0, 1, true, true);
+  const spec = useMemo((): UkiyoeSceneSpec => ({
+    version: 1, id: "crowd-lab", width: 1920, height: 1080, durationFrames: 480, seed, wind: { base: .25 }, palette: { preset: "twilight" },
+    nodes: [
+      { id: "sky", kind: "motif", motif: "sky", params: { width: 1920, height: 1080, band: .35, horizon: "beni" } },
+      { id: "street", kind: "block", x: 960, y: 900, shape: { type: "rect", width: 1960, height: 400 }, fill: { type: "linear", angle: 90, stops: [[0, "ki", .8], [1, "kincha", .9]] }, line: 0, grain: .8 },
+      { id: "houses", kind: "motif", motif: "house", x: 960, y: 640, params: { width: 1900, height: 200, noren: "ai", stories: 2, doors: 9 } },
+      { id: "crowd", kind: "crowd", x: 960, y: 960, width: 1800, count, rows, rowGap: 70, mood, direction, scale: .9 },
+    ],
+  }), [mood, count, rows, direction, seed]);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Crowds" title="Street life from one node">
+      <p style={{ margin: 0 }}>A <code>crowd</code> node fills a strip of road with townsfolk in depth rows, each a full figure with its own look,
+        pace and behaviour, seeded so the same crowd is the same people on every frame. <code>stroll</code>: most walk, some stop to look,
+        others stand talking or bowing. <code>busy</code>: porters and hurrying walkers. <code>festival</code>: dancing, cheering, waving.{" "}
+        <code>procession</code>: everyone walks one way in file. Pass a <code>cast</code> of looks to choose who is in it.</p>
+    </Header>
+    <section aria-label="Crowd controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="Mood" value={mood} options={UKIYOE_CROWD_MOODS} onChange={setMood} />
+      <Slider name="People" value={count} min={1} max={80} step={1} onChange={setCount} format={v => String(v)} />
+      <Slider name="Depth rows" value={rows} min={1} max={4} step={1} onChange={setRows} format={v => String(v)} />
+      <Select name="Direction" value={direction} options={["both", "left", "right"] as const} onChange={setDirection} />
+      <Slider name="Seed" value={seed} min={1} max={60} step={1} onChange={setSeed} format={v => String(v)} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={`A ${mood} crowd of ${count}`} /></Fit>
+    <Transport clock={clock} total={480} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Frame" />
   </div>;
 }
 

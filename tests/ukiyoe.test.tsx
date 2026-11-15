@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figurePose, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
+import { expandCrowd } from "../registry/video/ukiyoe/ukiyoe-crowd";
 import { palette, resolvePaint } from "../registry/video/ukiyoe/ukiyoe-pigments";
 import { nodeState, UkiyoeScene } from "../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeSceneSpec } from "../registry/video/ukiyoe/ukiyoe-scene";
@@ -141,6 +142,27 @@ describe("UKIYO1 figures", () => {
     expect(head(turned, 80)).toEqual(head({ look }, 80));                     // back to profile after the blend
     const oni = { look: CAST["oni-red"] };
     expect(head({ ...oni, actions: [{ type: "face" as const, start: 0, end: 60 }] }, 30)).toEqual(head(oni, 30));
+  });
+});
+
+describe("UKIYO1 crowds", () => {
+  it("expands a crowd into the same seeded people every time, in depth rows, back rows first", () => {
+    const spec = { id: "c", width: 1200, count: 18, rows: 3, mood: "stroll" as const };
+    const a = expandCrowd(spec, 9);
+    expect(expandCrowd(spec, 9)).toEqual(a);
+    expect(a).toHaveLength(18);
+    expect(new Set(a.map(m => m.id)).size).toBe(18);
+    expect(a.map(m => m.row)).toEqual([...a.map(m => m.row)].sort((x, y) => y - x));            // drawn back to front
+    expect(Math.min(...a.filter(m => m.row === 2).map(m => -m.y))).toBeGreaterThan(Math.max(...a.filter(m => m.row === 0).map(m => -m.y)));
+    expect(expandCrowd(spec, 10)).not.toEqual(a);
+    const file = expandCrowd({ id: "p", width: 1200, count: 10, mood: "procession" }, 3);
+    expect(file.every(m => m.facing === "left" && m.actions[0].type === "walk" && (m.actions[0].to ?? 0) < 0)).toBe(true);
+  });
+  it("renders a crowd node as figures and rejects a bad one", () => {
+    const html = renderToStaticMarkup(<UkiyoeScene spec={scene({ nodes: [{ id: "c", kind: "crowd", x: 320, y: 300, width: 600, count: 5 }] })} frame={10} />);
+    expect((html.match(/data-node="c-\d+"/g) ?? []).length).toBe(5);
+    const issues = inspectUkiyoeScene(scene({ nodes: [{ id: "c", kind: "crowd", width: 600, count: 500, mood: "riot" } as never] })).map(i => i.path);
+    expect(issues).toEqual(expect.arrayContaining(["$.nodes[0].count", "$.nodes[0].mood"]));
   });
 });
 

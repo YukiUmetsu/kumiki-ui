@@ -5,11 +5,13 @@
  */
 import type { UkiyoeFigureLook } from "../../registry/video/ukiyoe/ukiyoe-figure";
 import { scrollPan } from "../../registry/video/ukiyoe/ukiyoe-core";
+import type { FilmSceneSound } from "../../registry/video/film-split-edits";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import type { UkiyoePresetName } from "../../registry/video/ukiyoe/ukiyoe-pigments";
 
 export type UkiyoeAspect = "landscape" | "portrait";
-export interface UkiyoeShot { id: string; title: string; build: (aspect: UkiyoeAspect, tweaks?: UkiyoeFilmTweaks) => UkiyoeSceneSpec }
+/** A shot: its scene builder and, optionally, the recorded ambience that plays under it (a looping catalog sound). */
+export interface UkiyoeShot { id: string; title: string; build: (aspect: UkiyoeAspect, tweaks?: UkiyoeFilmTweaks) => UkiyoeSceneSpec; sound?: FilmSceneSound }
 /** Whole-film overrides exposed in Storybook. Every value is an input to the real renderer. */
 export interface UkiyoeFilmTweaks {
   preset?: UkiyoePresetName;
@@ -78,7 +80,7 @@ function riverWorld(opts: { horizon: number; storm?: boolean; night?: boolean; w
 
 // ---- 1. Title: printed block by block ---------------------------------------------------------------------------------------------
 
-const title: UkiyoeShot = { id: "title", title: "The print", build: (aspect, t = {}) => {
+const title: UkiyoeShot = { id: "title", title: "The print", sound: { sound: "bed-river-fast", gainDb: -20 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", [w] = DIM[aspect], hz = 640;
   return base("title", aspect, 180, t, "twilight", {
     mount: { kind: "print" },
@@ -104,7 +106,7 @@ const title: UkiyoeShot = { id: "title", title: "The print", build: (aspect, t =
 
 // ---- 2. The riverside town: a handscroll pan ---------------------------------------------------------------------------------------
 
-const town: UkiyoeShot = { id: "town", title: "The riverside town", build: (aspect, t = {}) => {
+const town: UkiyoeShot = { id: "town", title: "The riverside town", sound: { sound: "bed-stream-close", gainDb: -16 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", gy = 840, dur = 390;
   const camY = P ? 470 : 560;
   const keys = scrollPan({ from: P ? 4950 : 4700, to: P ? 1010 : 1050, y: camY, start: 0, end: dur - 1, zoom: P ? 1.15 : 1,
@@ -146,7 +148,10 @@ const town: UkiyoeShot = { id: "town", title: "The riverside town", build: (aspe
       { id: "landing-reeds", kind: "motif", motif: "reeds", x: 1470, y: gy + 150, params: { width: 150, height: 110, count: 12 } },
       { id: "pier", kind: "motif", motif: "pier", x: 700, y: gy + 40, params: { length: 800, depth: 60 } },
       ...ferry("boat", 1050, gy + 70, [fig("ferryman", "ferryman", SEAT.ferryman, DECK, { scale: .78, facing: "left", actions: [{ type: "hold", start: 0, end: 330, angle: 70, amount: 30 }, { type: "bow", start: 336, end: dur, angle: 26 }] })], { loops: [{ kind: "rock", amplitude: .5, period: 90 }] }),
-      // Street life on twos; the traveller walks the whole scroll (continuous narration).
+      // The evening crowd along the shop fronts (a crowd node: strollers, talkers and porters in two rows behind the
+      // story's people), then the named street life on twos; the traveller walks the whole scroll (continuous narration).
+      { id: "crowd-shops", kind: "crowd", x: 3480, y: gy + 30, width: 1500, count: 12, rows: 2, rowGap: 22, mood: "stroll", scale: .66, frames: dur } as UkiyoeNode,
+      { id: "crowd-shrine", kind: "crowd", x: 1850, y: gy + 30, width: 700, count: 6, rows: 2, rowGap: 22, mood: "stroll", direction: "left", scale: .66, frames: dur } as UkiyoeNode,
       fig("porter", "porter", 3950, gy + 40, { scale: .82, facing: "left", actions: [{ type: "walk", start: 10, end: 300, to: -980 }] }),
       fig("elder", "elder", 2470, gy + 44, { scale: .8, facing: "right", actions: [{ type: "talk", start: 140, end: 210 }, { type: "bow", start: 214, end: 270, angle: 30 }] }),
       fig("merchant", "merchant", 2650, gy + 44, { scale: .8, facing: "left", actions: [{ type: "bow", start: 150, end: 205, angle: 36 }, { type: "talk", start: 210, end: 270 }] }),
@@ -208,7 +213,7 @@ function poled(fromX: number, start: number, end: number, speed = 2.5, glide = 5
 
 // ---- 3. Boarding ------------------------------------------------------------------------------------------------------------------
 
-const boarding: UkiyoeShot = { id: "boarding", title: "Boarding", build: (aspect, t = {}) => {
+const boarding: UkiyoeShot = { id: "boarding", title: "Boarding", sound: { sound: "bed-river-fast", gainDb: -15 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", hz = 520, by = 860, dur = 300, depart = 196;
   // The ferry lies alongside the landing stage: the pier runs behind it, a step above its deck.
   const BX = 1000, BY = by + 10, pierTop = -52, go = poled(BX, depart, dur + 40);
@@ -251,7 +256,7 @@ const SEA_RISING = [{ frame: 0, progress: .12 }, { frame: 170, progress: 1, ease
 /** The great wave's even pace (px per frame) across the squall. */
 const WAVE_SPEED = 1.6;
 
-const squall: UkiyoeShot = { id: "squall", title: "The squall", build: (aspect, t = {}) => {
+const squall: UkiyoeShot = { id: "squall", title: "The squall", sound: { sound: "bed-wind-mountain", gainDb: -6 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", hz = 520, by = 880, dur = 400, breakAt = 252, caught = 190;
   // The ferryman poles on until the wave catches the boat; the water then draws it up the face, the crest breaks,
   // and the collapse throws the boat back before he can pole again.
@@ -300,7 +305,7 @@ const squall: UkiyoeShot = { id: "squall", title: "The squall", build: (aspect, 
 
 // ---- 5. Moonrise and fireworks -----------------------------------------------------------------------------------------------------
 
-const fireworks: UkiyoeShot = { id: "fireworks", title: "Moonrise and fireworks", build: (aspect, t = {}) => {
+const fireworks: UkiyoeShot = { id: "fireworks", title: "Moonrise and fireworks", sound: { sound: "bed-stream-close", gainDb: -20 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", hz = 560, by = 900, dur = 360, rest = 112;
   const go = poled(1330, 0, rest, 2.4, 70, true);
   const bursts = [
@@ -339,7 +344,7 @@ const fireworks: UkiyoeShot = { id: "fireworks", title: "Moonrise and fireworks"
 
 // ---- 6. Arrival ----------------------------------------------------------------------------------------------------------------------
 
-const arrival: UkiyoeShot = { id: "arrival", title: "Arrival", build: (aspect, t = {}) => {
+const arrival: UkiyoeShot = { id: "arrival", title: "Arrival", sound: { sound: "bed-stream-close", gainDb: -15 }, build: (aspect, t = {}) => {
   const P = aspect === "portrait", [w, h] = DIM[aspect], hz = 520, by = 860, dur = 366, landed = 150;
   // The ferry glides in alongside the far landing stage; nobody steps off until it lies still against the pier.
   const BY = by + 10, pierTop = -52, go = poled(1320, 0, landed, 2.6, 56, true), BX = go.restX, docked = landed + 56;

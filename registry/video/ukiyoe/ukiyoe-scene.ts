@@ -18,6 +18,8 @@ import type { UkiyoeFill, UkiyoePaint, UkiyoePresetName } from "./ukiyoe-pigment
 import { palette, UKIYOE_PRESETS } from "./ukiyoe-pigments";
 import type { UkiyoePattern } from "./ukiyoe-prims";
 import { UKIYOE_PATTERNS } from "./ukiyoe-prims";
+import type { UkiyoeCrowdSpec } from "./ukiyoe-crowd";
+import { UKIYOE_CROWD_MOODS } from "./ukiyoe-crowd";
 
 export interface UkiyoeBase {
   id: string;
@@ -121,7 +123,13 @@ export interface UkiyoeTextNode extends UkiyoeBase {
   align?: "start" | "middle" | "end";
 }
 
-export type UkiyoeNode = UkiyoeBlockNode | UkiyoeLineNode | UkiyoeGroupNode | UkiyoeMotifNode | UkiyoeParticlesNode | UkiyoeFigureNode | UkiyoeCreatureNode | UkiyoeTextNode;
+/**
+ * A crowd of townsfolk filling a strip of road: strollers, talkers, porters, children, dancers or a procession, in depth
+ * rows, each a full figure with its own look and timing (seeded). It expands into figures before rendering.
+ */
+export interface UkiyoeCrowdNode extends UkiyoeBase, Omit<UkiyoeCrowdSpec, "id"> { kind: "crowd" }
+
+export type UkiyoeNode = UkiyoeBlockNode | UkiyoeLineNode | UkiyoeGroupNode | UkiyoeMotifNode | UkiyoeParticlesNode | UkiyoeFigureNode | UkiyoeCreatureNode | UkiyoeTextNode | UkiyoeCrowdNode;
 
 export interface UkiyoeSceneSpec {
   version: 1;
@@ -149,7 +157,7 @@ export interface UkiyoeSceneSpec {
 // ---- Validation --------------------------------------------------------------------------------------------------------------------
 
 export interface UkiyoeIssue { path: string; message: string }
-const KINDS = ["block", "line", "group", "motif", "particles", "figure", "creature", "text"] as const;
+const KINDS = ["block", "line", "group", "motif", "particles", "figure", "creature", "text", "crowd"] as const;
 const SAFE_PATH = /^[MmLlHhVvCcSsQqTtAaZz0-9eE+\-.,\s]*$/;
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const isInt = (v: unknown): v is number => Number.isSafeInteger(v);
@@ -292,6 +300,22 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
         });
         break;
       }
+      case "crowd":
+        if (!isNum(n.width) || n.width <= 0 || n.width > 40000) bad(p + ".width", "must be a positive width in px");
+        if (!isInt(n.count) || n.count < 1 || n.count > 80) bad(p + ".count", "must be an integer 1..80");
+        if (n.rows !== undefined && (!isInt(n.rows) || n.rows < 1 || n.rows > 4)) bad(p + ".rows", "must be 1..4");
+        range(p + ".rowGap", n.rowGap, 0, 400);
+        range(p + ".scale", n.scale, .1, 10);
+        if (n.frames !== undefined && (!isInt(n.frames) || n.frames < 30 || n.frames > 108000)) bad(p + ".frames", "must be an integer 30..108000");
+        if (n.mood !== undefined && !UKIYOE_CROWD_MOODS.includes(n.mood)) bad(p + ".mood", "must be " + UKIYOE_CROWD_MOODS.join(", "));
+        if (n.direction !== undefined && !["left", "right", "both"].includes(n.direction)) bad(p + ".direction", "must be left, right or both");
+        (n.cast ?? []).forEach((l, j) => {
+          if (l.hair && !UKIYOE_HAIRS.includes(l.hair)) bad(`${p}.cast[${j}].hair`, "unknown hair");
+          if (l.hat && !UKIYOE_HATS.includes(l.hat)) bad(`${p}.cast[${j}].hat`, "unknown hat");
+          if (l.prop && !UKIYOE_PROPS.includes(l.prop)) bad(`${p}.cast[${j}].prop`, "unknown prop");
+          for (const k of ["skin", "hairColor", "hatColor", "robe", "under", "obi", "coat", "hakama", "legs", "propColor", "accent", "lips"] as const) if (l[k] !== undefined) paint(`${p}.cast[${j}].${k}`, l[k]);
+        });
+        break;
       case "text":
         if (!["cartouche", "caption", "seal", "plain"].includes(n.style)) bad(p + ".style", "must be cartouche, caption, seal or plain");
         if (typeof n.text !== "string" || !n.text.length || n.text.length > 400) bad(p + ".text", "must be 1..400 characters");
