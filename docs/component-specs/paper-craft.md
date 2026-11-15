@@ -224,3 +224,10 @@ No new public property, Storybook folder, renderer or film slot. The native two-
 The existing Video production / Film Looks / Paper Craft → Scenery story includes two new middle-distance arched trees in the woodland preset. Their real closed paper contours form a continuous root/trunk, 5–8 attached main boughs, further secondary forks and leaf tips; a darker underlayer casts offset stock depth. Material layering is shadow sheet (depth 16), wood body (depth 18), lighter terminal leaf stock (depth 19). Existing foreground trunks have several short bark-score cuts instead of one straight full-height stripe.
 
 The existing Detail slider controls 5–18 true punched upper-canopy openings, under the 32-hole per-layer contract. No new user-facing controls, Storybook folder, film slot, dependency or renderer. All existing seed, five media, lightbox, physical relief, landscape/portrait export and 128-sheet safety rules remain in force. New unit/browser tests verify actual cut geometry, shadow-stock hierarchy, stable IDs, fully opaque cardstock and deterministic absolute-frame rendering.
+
+
+## Pass 25 — native woodland leafwork with structural branch tiers
+
+The existing Video production / Film Looks / Paper Craft / Scenery story uses multilevel cut-paper canopies rather than radial leaf spokes. canopyBranchLace constructs 5–9 parent branches per side, and each has 2–3 connected twig forks with asymmetric paired leaves. nestedLeafCrown constructs 3–5 leaders for each existing foreground bough and adds 2–3 connected twig junctions with real terminal leaves. Each network is authored as grouped opaque cut paper SVG geometry; no floating stickers or alpha effects.
+
+No new API, external asset, story folder, renderer or dependency. Existing detail scales real cut density; seed is frame-invariant; breeze retains coherent whole-stock hinge motion. All five media, palette/aspect controls, native FilmStage scene presets and the global 128-layer limit are preserved. Updated unit and Playwright checks assert topology density, unchanged stock count and repeatability.
