@@ -311,9 +311,9 @@ export const CourierHumanAnatomy:StoryObj<typeof meta>={
   render:()=> <CourierAnatomyComparison/>,
 };
 
-/** RISO18: gesture-driven paper ownership through release and receiver settle. */
+/** RISO19: press-bound hand pressure crescents, individual crease fans and transfer. */
 export const HumanEnsembleActing:StoryObj<typeof meta>={
-  name:"RISO18 · Hand-Drawn Paper Transfer",
+  name:"RISO19 · Pressed Paper Contact",
   args:{actor:"courier"},
   render:()=> <RisoHumanEnsembleStudio/>,
 };
