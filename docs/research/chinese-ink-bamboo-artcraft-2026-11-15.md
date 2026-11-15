@@ -624,3 +624,37 @@ geometric and compositional: the lower slope remains too smooth,
 supporting stones too simplified, and terrain has too many
 repeated curving sweep motifs. The final head **must** be re-rendered
 and reviewed before applying any 'approved' status or merging.
+
+
+## Fifteenth pass — alum-head shape anatomy, not more wash transparency
+
+The [v14 native browser and encoded film evidence](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43729839428)
+was directly reviewed at original 960×540 and 2.15× rock-crop scale.
+The filter produced a soft watercolor shoulder but still changed fewer
+than 1.2% of pixels in the geology crop by more than 6/255, while
+the major mountains remained overly schematic. **Art failure
+remains structural**; stronger blur and random texture would not fix it.
+
+Compare the [labeled Huang Gongwang alum-head/hemp-fibre
+crop](https://smarthistory.org/wp-content/uploads/2023/10/National_Palace_brushstroke_labeled-copy.jpg).
+Its key motif is a small **rough cap over a darker recessed plane**,
+attached to a larger geological root and surrounded by near-white paper
+areas. The existing algorithm had ledge *lines* but almost no physical
+outcrop thickness. Under ArtCraft structure-first rules, a new
+`shelves` graph now grows **1/2/3 selective small uneven
+rock faces** from the existing root-to-foot bone on far/middle/near
+peaks, respectively. Every lip is a separately authored,
+rounded/unequal convex+concave silhouette (two cubically smoothed
+crest sections and two rear loading sections) rather than a
+generic dark triangle or a random rock particle. Its root is on
+the existing quadratic bone at t≈.24/.445/.65, and a dark material
+fill has a narrow rim stroke at the same source coordinates.
+
+This is a hypothesized *construction grammar*, not a traced museum
+contour. Tests independently verify ledge count, attached root
+coordinates, closed finite faces and individually painted rims.
+The scene retains interstitial paper, existing distinct far/middle/near
+band inks, unchanged animation and artistically necessary gaps.
+Native re-render is mandatory to determine whether this meaningfully
+improves volume without creating code-drawn generic pebbles.
+Do not call it source parity or merge solely because the tests pass.

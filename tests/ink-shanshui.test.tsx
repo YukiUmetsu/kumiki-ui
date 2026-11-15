@@ -210,6 +210,20 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(fibres.length).toBeGreaterThan(masses.length*3);
       expect(fibres.every(([,root,d])=>d.startsWith("M"+
         root.replace(","," "))&&d.includes(" Q"))).toBe(true);
+      const ledges=[...full.matchAll(
+        /data-km-rock-alum-ledge="" data-km-rock-alum-ledge-root="([^"]+)"/g,
+      )];
+      const faces=[...full.matchAll(
+        /data-km-rock-alum-face="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      const rims=(full.match(/data-km-rock-alum-rim=""/g)??[]).length;
+      expect(ledges.length).toBeGreaterThan(masses.length);
+      expect(ledges.length).toBeLessThanOrEqual(masses.length*3);
+      expect(faces.length).toBe(ledges.length);
+      expect(rims).toBe(ledges.length);
+      expect(faces.every((d,i)=>d.startsWith("M"+
+        ledges[i][1].replace(","," "))&&
+        d.includes(" Q")&&d.endsWith(" Z"))).toBe(true);
       expect((full.match(/<clipPath id="[^"]*-rock-[0-2]-clip"/g)??[]))
         .toHaveLength(3);
       expect(draw(1)).toBe(full);
