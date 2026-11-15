@@ -28,29 +28,35 @@ describe("ArtCraft coloured-pencil anatomical fidelity contract",()=>{
     expect(toes.path).not.toMatch(/NaN|Infinity/);
   });
 
-  it("roots every barb on its own curved rachis at four known shaft parameters",()=>{
+  it("roots twenty asymmetric feather barbs on ten sampled shaft stations",()=>{
     const tracks=vaneTracts(KINGFISHER_FOLDED_WING_AXES,"#C7DAD8",226);
     expect(tracks).toHaveLength(7);
-    const again=vaneTracts(KINGFISHER_FOLDED_WING_AXES,"#C7DAD8",226);
-    expect(tracks).toEqual(again);
-    for(const [i,t]of tracks.entries()){
-      const groups=[...t.path.matchAll(/M(-?\d+\.\d+) (-?\d+\.\d+) Q(-?\d+\.\d+) (-?\d+\.\d+) (-?\d+\.\d+) (-?\d+\.\d+)/g)];
-      expect(groups).toHaveLength(9); // rachis + 4 opposing vane pairs
-      const a=KINGFISHER_FOLDED_WING_AXES[i];
+    expect(tracks).toEqual(vaneTracts(KINGFISHER_FOLDED_WING_AXES,"#C7DAD8",226));
+    const stations=[.16,.24,.32,.405,.48,.56,.64,.72,.80,.875] as const;
+    for(const [i,trace] of tracks.entries()){
+      const groups=[...trace.path.matchAll(/M(-?\\d+\\.\\d+) (-?\\d+\\.\\d+) Q(-?\\d+\\.\\d+) (-?\\d+\\.\\d+) (-?\\d+\\.\\d+) (-?\\d+\\.\\d+)/g)];
+      expect(groups).toHaveLength(21); // one rachis + ten attached opposing barb pairs
+      const axis=KINGFISHER_FOLDED_WING_AXES[i];
       const first=groups[0].slice(1).map(Number);
-      expect(first[0]).toBeCloseTo(a[0],2);
-      expect(first[1]).toBeCloseTo(a[1],2);
-      expect(first[4]).toBeCloseTo(a[4],2);
-      expect(first[5]).toBeCloseTo(a[5],2);
-      for(const [k,u]of [.25,.43,.61,.78].entries()){
-        const [x,y]=bezier(a,u);
-        for(const part of groups.slice(1+k*2,3+k*2)){
-          expect(Math.abs(Number(part[1])-x)).toBeLessThan(.011);
-          expect(Math.abs(Number(part[2])-y)).toBeLessThan(.011);
+      expect(first[0]).toBeCloseTo(axis[0],2);
+      expect(first[1]).toBeCloseTo(axis[1],2);
+      expect(first[4]).toBeCloseTo(axis[4],2);
+      expect(first[5]).toBeCloseTo(axis[5],2);
+      for(const [k,t] of stations.entries()){
+        const [x,y]=bezier(axis,t);
+        const [left,right]=groups.slice(1+k*2,3+k*2);
+        for(const barb of [left,right]){
+          expect(Math.abs(Number(barb[1])-x)).toBeLessThan(.011);
+          expect(Math.abs(Number(barb[2])-y)).toBeLessThan(.011);
+          expect(barb.slice(1).map(Number).every(Number.isFinite)).toBe(true);
         }
+        const lx=Number(left[5]),ly=Number(left[6]);
+        const rx=Number(right[5]),ry=Number(right[6]);
+        expect(Math.hypot(lx-rx,ly-ry)).toBeGreaterThan(.2);
       }
-      expect(t.path).not.toMatch(/NaN|Infinity/);
-      expect(t.startFrame).toBe(226+i*2);
+      expect(trace.path).not.toMatch(/NaN|Infinity/);
+      expect(trace.path.length).toBeLessThan(12000);
+      expect(trace.startFrame).toBe(226+i*2);
     }
     expect(vaneTracts(KINGFISHER_COVERT_AXES,"#CBE7DB",229)).toHaveLength(4);
   });
