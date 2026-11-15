@@ -47,3 +47,28 @@ test("ArtCraft portraits, fox anatomy and alpine landscape preserve final frames
   await seek(0);
   await expect(svg.locator('[data-km-pencil-support="face-main"]')).toHaveCount(1);
 });
+
+
+test("human and fox faces expose editable anatomical macro checkpoints without a new Storybook folder",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-colored-pencil-science--living-subjects-atelier&viewMode=story");
+  const drawing=page.locator("svg[data-km-colored-pencil]");
+  const subject=page.getByRole("combobox",{name:"Living subject"});
+  const part=page.getByRole("combobox",{name:"Living facial detail"});
+  await expect(drawing).toBeVisible();
+  for(const item of ["portrait","fox"] as const){
+    await subject.selectOption(item);
+    await page.getByRole("checkbox",{name:"Living inspect macro"}).check();
+    const appearances:string[]=[];
+    for(const area of ["eyes","nose","mouth"] as const){
+      await part.selectOption(area);
+      await expect(drawing).toHaveAttribute("style",/scale\(/);
+      appearances.push((await drawing.getAttribute("style"))??"");
+      await drawing.locator("xpath=..").screenshot({animations:"disabled",
+        path:info.outputPath("artcraft-facial-"+item+"-"+area+".png")});
+    }
+    expect(new Set(appearances).size).toBe(3);
+    await page.getByRole("checkbox",{name:"Living inspect macro"}).uncheck();
+  }
+  await subject.selectOption("valley");
+  await expect(part).toHaveCount(0);
+});
