@@ -40,6 +40,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [33 — Film looks and style anchors](33-film-looks-and-style-anchors.md) | How Kumiki makes films in different styles: a film-wide `look` (grade, film or video texture, cadence, lens, lighting mood, camera language, type, sound) resolved from presets and mood words, with a starting library of twelve looks (plan only) |
 | [35A — Material-native film style reference gallery](35a-material-native-style-reference-gallery.md) | Playable example films, still previews, shot timestamps and independent craft sources for each proposed artistic style; reference-based normal-speed QA rubric |
 | [35 — Material-native film styles implementation roadmap](35-material-native-film-styles-implementation-roadmap.md) | Ordered build plan for printmaking, ink and watercolor, stylized character acting, paper theatre, scientific observation, complete style recipes, ContentGen integration and qualification gates (proposed, not shipped) |
+| [36 — Chinese Ink Wash Craft and Film System](36-chinese-ink-wash-craft-and-film-system.md) | Research-backed brush/paper direction, general film grammar, reusable native reveals and shot recipes |
 | [34 — Promo motion and sound gaps](34-promo-motion-and-sound-gaps.md) | What award, trailer and showcase films use that Kumiki lacks: air gaps, drop-outs, swells, braams, dips, flash cuts, shape wipes, panels, rapid word flash, type walls and more, each with references, before/after and how to build it (plan only) |
 | [29 — Shader effects in practice](29-shader-fx-in-practice.md) | Deciding when a shader effect earns its place: how studios and brands use each one, and the patterns that repeat |
 | [Ray Worlds and Film Gallery](component-specs/ray-world.md) | Ray-traced cinematic worlds, the film wall in Storybook, and how to find them |
@@ -50,6 +51,8 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [Visual Production Contract](visual-production-contract.md) | Semantic subject contracts, measured text placement, event timing and narrative gates |
 | [Asset Sourcing](ASSET_SOURCING.md) | Choosing and licensing third-party 3D and image assets |
 | [Component Status](component-status.md) | **Generated.** Every pack with its spec, story and review state, every other spec, and every verification report |
+
+**Coloured-pencil authors:** [CP-F1 — mandatory reference-led drawing foundation](research/colour-pencil-foundation-2026-11-14.md) defines the single shared paper, contour, material, pigment and review contract for all *new* pencil drawings. Existing demo legacy art is not automatically qualified.
 
 Find a component with `npm run catalog:find`, not by reading this file. Add a spec or a verification report, then run `npm run docs:status`.
 

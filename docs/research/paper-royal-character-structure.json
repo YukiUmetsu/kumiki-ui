@@ -1,0 +1,223 @@
+{
+  "schema_version": 3,
+  "project": "PAPER-R1 Royal puppet construction and motion",
+  "coordinate_system": {
+    "sheet": "960×540 landscape or 540×960 portrait, viewport center plus independently placed grounded actor positions",
+    "axis": "x increases right, y increases down; actor rest pose uses (0,0) at planted feet",
+    "actor_scale": "1.03 landscape, 0.91 portrait; uniform, never stretch aspect",
+    "start_state": "fully assembled opaque physical paper cards per director cut",
+    "duration": "3 × 240 frames @30fps; stable seed and absolute-frame posing"
+  },
+  "actors": [
+    {
+      "id": "princess",
+      "role": "princess in layered plum-violet gown",
+      "root": "princess-bodice",
+      "pose": [
+        "step inward",
+        "turn toward prince",
+        "raise right sleeve"
+      ],
+      "anatomy": {
+        "face": [
+          "princess-head",
+          "princess-lashes",
+          "princess-lips",
+          "princess-forelock",
+          "princess-hair-braid"
+        ],
+        "clothing": [
+          "princess-back-cloak",
+          "princess-skirt",
+          "princess-skirt-shadow",
+          "princess-dress-inset",
+          "princess-gown-gold-hem",
+          "princess-collar",
+          "princess-gold-seams"
+        ],
+        "joints": [
+          "princess-left-sleeve",
+          "princess-right-sleeve",
+          "princess-right-hand"
+        ],
+        "regalia": [
+          "princess-tiara",
+          "princess-tiara-jewels"
+        ]
+      },
+      "contacts": [
+        "gown ground at y=0",
+        "right cuff to hand no detachable gap"
+      ]
+    },
+    {
+      "id": "prince",
+      "role": "prince in teal-blue folded coat",
+      "root": "prince-coat",
+      "pose": [
+        "follow fox",
+        "step toward princess",
+        "offer hand"
+      ],
+      "anatomy": {
+        "face": [
+          "prince-head",
+          "prince-hair",
+          "prince-eye-brow",
+          "prince-mouth"
+        ],
+        "clothing": [
+          "prince-cape",
+          "prince-coat-tail",
+          "prince-waistcoat",
+          "prince-lapels",
+          "prince-gold-braid",
+          "prince-belt"
+        ],
+        "joints": [
+          "prince-left-arm",
+          "prince-left-cuff",
+          "prince-left-hand",
+          "prince-right-arm",
+          "prince-right-cuff",
+          "prince-right-hand",
+          "prince-left-leg",
+          "prince-right-leg"
+        ],
+        "regalia": [
+          "prince-crown",
+          "prince-crown-stones"
+        ]
+      },
+      "contacts": [
+        "two boots at ground",
+        "left cuff to hand under sleeve"
+      ]
+    },
+    {
+      "id": "fox",
+      "role": "guide",
+      "root": "fox-body",
+      "anatomy": {
+        "body": [
+          "fox-back",
+          "fox-chest"
+        ],
+        "face": [
+          "fox-head",
+          "fox-eye",
+          "fox-face-patch"
+        ],
+        "joints": [
+          "fox-tail",
+          "fox-tail-tip",
+          "fox-front-legs",
+          "fox-rear-legs"
+        ]
+      },
+      "pose": [
+        "hop",
+        "look back",
+        "tail wag"
+      ]
+    },
+    {
+      "id": "rabbit",
+      "role": "forest helper",
+      "root": "rabbit-body",
+      "anatomy": {
+        "body": [
+          "rabbit-hind-leg",
+          "rabbit-tail"
+        ],
+        "face": [
+          "rabbit-head",
+          "rabbit-face",
+          "rabbit-whiskers"
+        ],
+        "joints": [
+          "rabbit-ear-left",
+          "rabbit-ear-inner-left",
+          "rabbit-ear-right",
+          "rabbit-ear-inner-right"
+        ]
+      },
+      "pose": [
+        "short hop",
+        "ear swivel"
+      ]
+    },
+    {
+      "id": "deer",
+      "role": "guardian",
+      "root": "deer-body",
+      "anatomy": {
+        "body": [
+          "deer-neck",
+          "deer-rear-legs",
+          "deer-front-legs"
+        ],
+        "face": [
+          "deer-head",
+          "deer-face"
+        ],
+        "joints": [
+          "deer-antlers",
+          "deer-ears"
+        ]
+      },
+      "pose": [
+        "bow"
+      ]
+    },
+    {
+      "id": "owl",
+      "role": "night singer",
+      "root": "owl-body",
+      "anatomy": {
+        "body": [
+          "owl-chest"
+        ],
+        "face": [
+          "owl-eye-left",
+          "owl-eye-right",
+          "owl-pupil-left",
+          "owl-pupil-right"
+        ],
+        "joints": [
+          "owl-wing-left",
+          "owl-wing-right"
+        ]
+      },
+      "pose": [
+        "breathe",
+        "open wings"
+      ]
+    }
+  ],
+  "attachment_rules": {
+    "root_motion": "All visible character parts share the parent root's rigid world transform while retaining their own hinge pivot",
+    "joint_overlaps": "Keep artist-authored hidden overlaps beneath neck, sleeves, wing base and tail root; keep opaque material color",
+    "bounded_axes": "No unbounded affine translation, no alpha crossfades, no unconnected appendages",
+    "known_limits": "2.5D cut-paper profile with rigid hinge animation, not full IK, realistic perspective, six-angle human character model, or lip-synced dialogue"
+  },
+  "camera": {
+    "presets": [
+      "forest establishing",
+      "fox guides",
+      "lantern restoration"
+    ],
+    "zoom_range": [
+      1.02,
+      1.05
+    ],
+    "cadence": "deliberate hold, soft pan, hold"
+  },
+  "deliverables": [
+    "Storybook single page",
+    "FilmStage 2-aspect example film",
+    "three-act per-region stills",
+    "animated 30 frame edit clip",
+    "tests and visual critique log"
+  ]
+}

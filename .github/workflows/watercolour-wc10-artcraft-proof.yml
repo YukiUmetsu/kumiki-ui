@@ -1,0 +1,54 @@
+name: WC10 watercolor glazing and naturalist film proof
+# Manual-only browser/FFmpeg proof: avoid recurring GitHub Action credits.
+# Routine pull requests run only changed-unit tests and TypeScript checks.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: wc10-optical-glazing-proof
+  cancel-in-progress: true
+jobs:
+  art-and-film:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Validate native 12-second source film
+        run: npm run film:check -- examples/film/watercolour-art-director.film.json
+      - run: npx playwright install --with-deps chromium
+      - name: Capture art and glazing on/off in Storybook, 16:9 and 9:16
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-art-director.spec.ts
+      - name: Install FFmpeg for actual MP4 film export
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Capture full-resolution FilmStage native frames in both ratios
+        run: |
+          npm run film:frame -- examples/film/watercolour-art-director.film.json --frame=135 --only=landscape --out=dist/wc10-proof
+          npm run film:frame -- examples/film/watercolour-art-director.film.json --frame=265 --only=landscape --out=dist/wc10-proof
+          npm run film:frame -- examples/film/watercolour-art-director.film.json --frame=135 --only=portrait --out=dist/wc10-proof
+          npm run film:frame -- examples/film/watercolour-art-director.film.json --frame=265 --only=portrait --out=dist/wc10-proof
+      - name: Encode short actual animation in both ratios
+        run: |
+          npm run film:render -- examples/film/watercolour-art-director.film.json --frames=36 --only=landscape --out=dist/wc10-proof
+          npm run film:render -- examples/film/watercolour-art-director.film.json --frames=36 --only=portrait --out=dist/wc10-proof
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wc10-watercolour-storybook
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wc10-watercolour-film
+          path: dist/wc10-proof/
+          retention-days: 7
+          if-no-files-found: warn

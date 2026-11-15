@@ -46,6 +46,10 @@ for (const [subject, aspect, storyId] of [
     await expect(svg).toHaveAttribute("data-km-crayon-story",subject);
     await expect(svg.locator("[data-km-crayon-paper]")).toHaveCount(1);
     await expect(svg.locator("[data-km-crayon-wax]").first()).toBeAttached();
+    // No unmeasured SVG copy over the painting in 9:16; the accessible HTML
+    // Storybook title stays outside the artwork. Wide film keeps its title.
+    if(aspect==="portrait") await expect(svg.locator("text")).toHaveCount(0);
+    else await expect(svg.locator("[data-km-crayon-title]")).toHaveCount(1);
     await page.evaluate(()=>document.fonts.ready);
 
     const chapters=[

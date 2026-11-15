@@ -1,0 +1,68 @@
+import type { FilmDocument } from "../../registry/video/film-document";
+
+/** Original two-actor proof; all keyframes are addressed by the existing FD1 film frame. */
+export const COLOR_PENCIL_CHARACTER_FILM: FilmDocument = {
+  "schemaVersion": 1,
+  "id": "colored-pencil-character-story",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "field-construction",
+      "recipeId": "slot",
+      "durationFrames": 105,
+      "content": {
+        "slot": "colored-pencil-character",
+        "label": "Rebuilt red fox and kingfisher drawn in layered coloured pencil",
+        "props": {
+          "offsetFrame": 0
+        }
+      }
+    },
+    {
+      "id": "meeting-and-gesture",
+      "recipeId": "slot",
+      "durationFrames": 110,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "colored-pencil-character",
+        "label": "Fox head tilt and raised paw, kingfisher wing and head motion",
+        "props": {
+          "offsetFrame": 105
+        }
+      }
+    },
+    {
+      "id": "perform-and-hold",
+      "recipeId": "slot",
+      "durationFrames": 105,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "colored-pencil-character",
+        "label": "Fur, feather and eye blink gestures with stationary foot contact",
+        "props": {
+          "offsetFrame": 215
+        }
+      }
+    }
+  ]
+};

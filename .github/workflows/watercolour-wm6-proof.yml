@@ -1,0 +1,60 @@
+name: Watercolour WM6 observational detail proof
+# Manual-only after the scoped PR art check. No costly browser or FFmpeg
+# tasks on ordinary pull requests or main pushes.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: watercolour-wm6-visual
+  cancel-in-progress: true
+
+jobs:
+  wm6-observational-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Validate portable watercolor art-only film
+        run: npm run film:check -- examples/film/watercolour-master-studies-art-only.film.json
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Browser capture fine anatomy and painterly detail in both ratios
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-wm6-detail.spec.ts
+      - name: FFmpeg for original production film frames
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Capture all three art-only studies in landscape and portrait
+        run: |
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=355 --only=landscape --out=dist/wm6-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=775 --only=landscape --out=dist/wm6-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=1195 --only=landscape --out=dist/wm6-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=355 --only=portrait --out=dist/wm6-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=775 --only=portrait --out=dist/wm6-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=1195 --only=portrait --out=dist/wm6-proof
+      - name: Encode an actual art-only preview
+        run: npm run film:render -- examples/film/watercolour-master-studies-art-only.film.json --frames=40 --only=landscape --out=dist/wm6-proof
+      - name: Upload browser art captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wm6-storybook-detail-captures
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Upload actual film frames and preview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wm6-production-proof
+          path: dist/wm6-proof/
+          retention-days: 7
+          if-no-files-found: warn

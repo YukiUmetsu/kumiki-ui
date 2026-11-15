@@ -1,0 +1,419 @@
+/**
+ * Source-measured marks for one verified CC0 photographic portrait.
+ *
+ * Source: Christopher Campbell, 2015, "Brunette woman portrait (Unsplash)".
+ * https://commons.wikimedia.org/wiki/File:Brunette_woman_portrait_(Unsplash).jpg
+ * First published before the Unsplash licence change, CC0.
+ *
+ * These coordinates were manually observed in a 608×343 browser capture
+ * of the existing 900×506 canvas at focus (.52,.25), zoom 2.05.
+ * Converted back to intrinsic SOURCE-photo normalized coordinates.
+ * They describe the actual person in that photograph, not an invented
+ * generic face and not a traced copyrighted coloured-pencil artwork.
+ *
+ * Expected limitations: coarse 1× browser measurements, two eyes partly
+ * occluded by hair. This is an EXPERIMENTAL anatomical guide, not an
+ * artist-approved professional portrait or universal face detector.
+ */
+import {pencilHash} from "../../registry/video/colored-pencil";
+import type {PencilPhotoMark,PencilPhotoPixels} from "./colored-pencil-photo";
+
+export type PortraitFeatureName =
+  "eyeNearLeft"|"eyeNearCenter"|"eyeNearRight"|
+  "eyeFarLeft"|"eyeFarCenter"|"eyeFarRight"|
+  "browNearLeft"|"browNearMiddle"|"browNearRight"|
+  "browFarLeft"|"browFarMiddle"|"browFarRight"|
+  "noseBridge"|"noseAlaNear"|"noseTip"|"noseAlaFar"|
+  "lipLeft"|"lipCupid"|"lipRight"|"lipLower"|
+  "cheekLeft"|"cheekRight"|"forehead"|"chin"|"hairline";
+type Point=readonly[number,number];
+export type PortraitFeatureMap=Readonly<Record<PortraitFeatureName,Point>>;
+export const CC0_WOMAN_PORTRAIT_SOURCE_FEATURES:PortraitFeatureMap={
+  eyeNearLeft:[.49192,.25660],eyeNearCenter:[.50716,.25180],
+  eyeNearRight:[.52401,.24700],
+  eyeFarLeft:[.54728,.24100],eyeFarCenter:[.56092,.23621],
+  eyeFarRight:[.57295,.23981],
+  browNearLeft:[.48711,.23501],browNearMiddle:[.50556,.22062],
+  browNearRight:[.52722,.22181],
+  browFarLeft:[.54487,.22301],browFarMiddle:[.55931,.21462],
+  browFarRight:[.57215,.21822],
+  noseBridge:[.53524,.24940],noseAlaNear:[.54327,.29498],
+  noseTip:[.55049,.29018],noseAlaFar:[.56413,.29018],
+  lipLeft:[.53203,.33695],lipCupid:[.55771,.32016],
+  lipRight:[.57777,.33216],lipLower:[.55530,.34895],
+  cheekLeft:[.48791,.32496],cheekRight:[.57375,.31417],
+  forehead:[.52401,.15945],chin:[.55209,.39572],
+  hairline:[.51037,.14266],
+};
+export interface PortraitPhotoCapture {
+  width:number;height:number;
+  naturalWidth:number;naturalHeight:number;
+  mode:"fit"|"focus";
+  focal:Point;zoom:number;
+}
+export const mapCC0WomanPortraitFeatures=(capture:PortraitPhotoCapture):PortraitFeatureMap=>{
+  const {width,height,naturalWidth,naturalHeight,mode,focal,zoom}=capture;
+  if(![width,height,naturalWidth,naturalHeight,zoom].every(v=>
+    Number.isFinite(v)&&v>0)||width>2048||height>2048||
+    naturalWidth<8||naturalHeight<8||
+    !focal.every(v=>Number.isFinite(v)&&v>=0&&v<=1)||
+    zoom>8||(mode!=="focus"&&mode!=="fit"))
+    throw new RangeError("Invalid photograph framing for portrait feature guides");
+  const cover=mode==="focus";
+  const scale=(cover?
+    Math.max(width/naturalWidth,height/naturalHeight):
+    Math.min(width/naturalWidth,height/naturalHeight))*(cover?zoom:1);
+  const renderWidth=naturalWidth*scale,renderHeight=naturalHeight*scale;
+  const dx=cover?Math.max(width-renderWidth,Math.min(0,width*.5-renderWidth*focal[0])):
+    (width-renderWidth)*.5;
+  const dy=cover?Math.max(height-renderHeight,Math.min(0,height*.5-renderHeight*focal[1])):
+    (height-renderHeight)*.5;
+  return Object.fromEntries(
+    Object.entries(CC0_WOMAN_PORTRAIT_SOURCE_FEATURES).map(([key,[x,y]])=>
+      [key,[x*renderWidth+dx,y*renderHeight+dy] as const]),
+  ) as PortraitFeatureMap;
+};
+
+const clamp=(value:number,a:number,b:number)=>Math.max(a,Math.min(b,value));
+const mix=(a:number,b:number,t:number)=>a*(1-t)+b*t;
+const bezier=(start:Point,control:Point,end:Point,t:number):[number,number]=>{
+  const i=1-t;
+  return [
+    i*i*start[0]+2*i*t*control[0]+t*t*end[0],
+    i*i*start[1]+2*i*t*control[1]+t*t*end[1],
+  ];
+};
+export interface PortraitEyeAperture {
+  readonly which:"near"|"far";
+  readonly start:Point;
+  readonly end:Point;
+  readonly center:Point;
+  readonly upper:Point;
+  readonly lower:Point;
+  readonly span:number;
+}
+/** Reconstruct curved lid planes independently from the observed pupil.
+ * The pupil landmark is not a lid control point. This is a construction
+ * estimate; independent photo/actual-render review is still required.
+ */
+export function createPortraitEyeAperture(
+  guides:PortraitFeatureMap,which:"near"|"far",
+):PortraitEyeAperture {
+  const near=which==="near";
+  const start=guides[near?"eyeNearLeft":"eyeFarLeft"];
+  const end=guides[near?"eyeNearRight":"eyeFarRight"];
+  const center=guides[near?"eyeNearCenter":"eyeFarCenter"];
+  const dx=end[0]-start[0],dy=end[1]-start[1];
+  const span=Math.hypot(dx,dy);
+  if(!Number.isFinite(span)||span<2||Math.abs(dx)<2)
+    throw new RangeError("Degenerate measured eyelid aperture");
+  const normal:Point=[dy/span,-dx/span];
+  const middle:Point=[(start[0]+end[0])*.5,(start[1]+end[1])*.5];
+  const upper:Point=[middle[0]+normal[0]*span*.54,
+    middle[1]+normal[1]*span*.54];
+  const lower:Point=[middle[0]-normal[0]*span*.29,
+    middle[1]-normal[1]*span*.29];
+  return {which,start,end,center,upper,lower,span};
+}
+const hex=(r:number,g:number,b:number)=>"#"+[r,g,b].map(v=>
+  clamp(Math.round(v),0,255).toString(16).padStart(2,"0")).join("");
+const localPigment=(src:PencilPhotoPixels,x:number,y:number,deep:number)=>{
+  const ix=clamp(Math.round(x),0,src.width-1);
+  const iy=clamp(Math.round(y),0,src.height-1);
+  const n=(iy*src.width+ix)*4;
+  // Source-derived local earth pigments; NOT a flat uniform eye/eyebrow.
+  const r=src.data[n],g=src.data[n+1],b=src.data[n+2];
+  return hex(mix(r,72,deep),mix(g,47,deep),mix(b,43,deep));
+};
+export interface PortraitStrokeEvidence {
+  readonly sampledSourceFeatures:PortraitFeatureMap;
+  readonly marks:readonly PencilPhotoMark[];
+  readonly featureCounts:Readonly<Record<string,number>>;
+  /** Iris strokes rejected to protect photograph-observed catchlights/paper white. */
+  readonly highlightReserves:number;
+}
+/** Fine dry pigment uses original source-color data at the measured features.
+ * Supports per-shot rescaling/cropping; no arbitrary hand-invented human face.
+ * Off-page features are clipped and cannot scatter strokes into the margins.
+ */
+export function createPencilPortraitFeatureMarks(
+  source:PencilPhotoPixels,
+  guides:PortraitFeatureMap,
+  seed=271,
+):PortraitStrokeEvidence {
+  if(!Number.isSafeInteger(seed)||seed<0||seed>2147483647||
+    !Number.isSafeInteger(source.width)||!Number.isSafeInteger(source.height)||
+    source.width<8||source.height<8||source.width>2048||source.height>2048||
+    !(source.data instanceof Uint8ClampedArray)||
+    source.data.length!==source.width*source.height*4||
+    Object.keys(guides).length!==25||
+    Object.values(guides).some(p=>!Array.isArray(p)||p.length!==2||
+      p.some(v=>!Number.isFinite(v))))
+    throw new RangeError("Invalid source photo, observed portrait guides or seed");
+  const marks:PencilPhotoMark[]=[];
+  const counts:Record<string,number>={};
+  let highlightReserves=0;
+  const add=(kind:string,x:number,y:number,dx:number,dy:number,
+    alpha:number,width:number,pass:0|1|2,deep:number,step:number)=>{
+    // Do not create marks outside actual photo pixels or on empty letterbox.
+    if(x<1||y<1||x>=source.width-2||y>=source.height-2)return;
+    // Preserve the photographed corneal catchlight: a dark iris fibre must
+    // not turn a pale source pixel into a pupil-shaped digital stamp.
+    // The decision samples the whole short pencil gesture, not just its root.
+    if(kind.startsWith("iris-")){
+      const onHighlight=([px,py]:readonly number[])=>{
+        const sx=clamp(Math.round(px),0,source.width-1);
+        const sy=clamp(Math.round(py),0,source.height-1);
+        const k=4*(sy*source.width+sx);
+        return source.data[k+3]<220||
+          (.2126*source.data[k]+.7152*source.data[k+1]+
+            .0722*source.data[k+2])>224;
+      };
+      if([[x,y],[x+dx*.5,y+dy*.5],[x+dx,y+dy]].some(onHighlight)){
+        highlightReserves++;return;
+      }
+    }
+    const palette=localPigment(source,x,y,deep);
+    const wobble=(pencilHash(seed,step,68)-.5)*.35;
+    // Even crop-edge marks stay inside the physical drawing support.
+    const endX=clamp(x+dx,1,source.width-2);
+    const endY=clamp(y+dy,1,source.height-2);
+    const pixel=4*(Math.round(y)*source.width+Math.round(x));
+    const darkness=1-(.2126*source.data[pixel]+
+      .7152*source.data[pixel+1]+.0722*source.data[pixel+2])/255;
+    // Never mute the already faint source-aligned pencil build-up. In real
+    // same-photo browser A/B, sub-unity pressure lost visible craft detail.
+    const pressure=1.02+.10*darkness;
+    marks.push({
+      x,y,controlX:clamp(x+dx*.5-dy*wobble*.1,1,source.width-2),
+      controlY:clamp(y+dy*.5+dx*wobble*.1,1,source.height-2),
+      endX,endY,color:palette,
+      alpha:clamp(alpha*pressure,0,.57),width,pass,
+    });
+    counts[kind]=(counts[kind]??0)+1;
+  };
+  const curvePoints=(kind:string,start:Point,control:Point,end:Point,
+    spacing:number,alpha:number,width:number,pass:0|1|2,deep:number)=>{
+    const length=Math.hypot(end[0]-start[0],end[1]-start[1])+
+      Math.hypot(control[0]-(start[0]+end[0])*.5,
+        control[1]-(start[1]+end[1])*.5);
+    const n=clamp(Math.ceil(length/spacing),4,140);
+    for(let i=0;i<n;i++){
+      const t=(i+.25)/n;
+      const q=bezier(start,control,end,t);
+      const after=bezier(start,control,end,Math.min(1,t+.6/n));
+      const before=bezier(start,control,end,Math.max(0,t-.6/n));
+      const tangent=Math.atan2(after[1]-before[1],after[0]-before[0]);
+      const advance=spacing*(.65+.5*pencilHash(seed,i+marks.length,52));
+      add(kind,q[0],q[1],Math.cos(tangent)*advance,Math.sin(tangent)*advance,
+        alpha*(.8+.3*pencilHash(seed,i+marks.length,53)),
+        width,pass,deep,marks.length+i);
+    }
+  };
+  const curve=(kind:string,a:PortraitFeatureName,b:PortraitFeatureName,
+    c:PortraitFeatureName,spacing:number,alpha:number,width:number,
+    pass:0|1|2,deep:number)=>
+    curvePoints(kind,guides[a],guides[b],guides[c],spacing,alpha,width,pass,deep);
+  // The CC0 'eyeNearCenter' and 'eyeFarCenter' are IRIS landmarks.
+  // The old implementation erroneously used iris centers as eyelid apex
+  // controls, drawing a flat line through each pupil. Restore the two
+  // anatomical apertures from observed eye corners and a separate lid arch.
+  const eyeLids=(["near","far"] as const).map((which)=>{
+    const lid=createPortraitEyeAperture(guides,which);
+    curvePoints(which+"-eye-upper",lid.start,lid.upper,lid.end,
+      .88,which==="near"?.38:.34,which==="near"?.72:.64,0,.40);
+    curvePoints(which+"-eye-lower",lid.start,lid.lower,lid.end,
+      1.2,which==="near"?.22:.19,.53,1,.27);
+    return lid;
+  });
+  // Fine root-aligned eyebrow fibres; no rectangular dark brow patches.
+  const brow=(name:string,start:PortraitFeatureName,peak:PortraitFeatureName,
+    end:PortraitFeatureName,amount:number)=>{
+    const a=guides[start],m=guides[peak],c=guides[end];
+    for(let i=0;i<amount;i++){
+      const t=(i+.2)/amount,p=bezier(a,m,c,t);
+      const theta=-.94+t*.90;
+      const length=1.8+2.9*pencilHash(seed,i+amount,71);
+      const sep=(pencilHash(seed,i+amount,72)-.5)*2.2;
+      add(name,p[0],p[1]+sep,Math.cos(theta)*length,
+        Math.sin(theta)*length,.36,.71,2,.36,i+amount);
+    }
+  };
+  brow("brow-near-fibres","browNearLeft","browNearMiddle","browNearRight",94);
+  brow("brow-far-fibres","browFarLeft","browFarMiddle","browFarRight",56);
+  // Iris fibres are partially OCCLUDED by the upper and lower lids.
+  // No complete exposed stamped circle is allowed on source-matched eyes.
+  for(const lid of eyeLids){
+    const {center,start,end,upper,lower,span}=lid;
+    const rx=clamp(span*(lid.which==="near"?.17:.15),3,15);
+    const ry=clamp(span*(lid.which==="near"?.155:.13),2.4,12);
+    const count=lid.which==="near"?43:28;
+    for(let i=0;i<count;i++){
+      const theta=2*Math.PI*(i+.16*pencilHash(seed,i,79))/count;
+      const x=center[0]+Math.cos(theta)*rx*.49;
+      const y=center[1]+Math.sin(theta)*ry*.49;
+      // Approximate the source-space lid aperture at each fibre root.
+      const t=clamp((x-start[0])/(end[0]-start[0]),0,1);
+      const upperY=bezier(start,upper,end,t)[1];
+      const lowerY=bezier(start,lower,end,t)[1];
+      if(y<=upperY+.75||y>=lowerY-.75)continue;
+      let dx=Math.cos(theta)*rx*.26;
+      let dy=Math.sin(theta)*ry*.26;
+      // A clipped root alone leaves dark fibres sticking through the lower
+      // lid. Contract the WHOLE gesture until the endpoint is occluded too.
+      for(let k=0;k<4;k++){
+        const xt=x+dx,yt=y+dy;
+        const tt=clamp((xt-start[0])/(end[0]-start[0]),0,1);
+        if(yt>bezier(start,upper,end,tt)[1]+.75&&
+          yt<bezier(start,lower,end,tt)[1]-.75)break;
+        dx*=.55;dy*=.55;
+      }
+      add("iris-"+lid.which,x,y,dx,dy,.30,.50,2,.40,i+1000);
+    }
+  }
+  // Directional, soft nasal-plane and alar marks follow the actual
+  // photographed curvature, not a white pointed triangle.
+  curve("nose-alar-near","noseBridge","noseAlaNear","noseTip",
+    1.8,.25,.55,1,.20);
+  curve("nose-alar-far","noseBridge","noseAlaFar","noseTip",
+    1.9,.20,.48,1,.16);
+  // Separately traced vermilion curves, plus short vertical lip grains.
+  // The licensed source has gently PARTED lips; a closed football-shaped
+  // vermilion outline incorrectly erases the oral opening and its volume.
+  // Separate the soft upper/lower vermilion edges from the darker mouth seam.
+  curve("lip-top","lipLeft","lipCupid","lipRight",
+    1.1,.25,.58,0,.32);
+  curve("lip-bottom","lipLeft","lipLower","lipRight",
+    1.1,.22,.51,1,.28);
+  const l=guides.lipLeft,r=guides.lipRight,upper=guides.lipCupid,
+    lower=guides.lipLower;
+  if(Math.abs(r[0]-l[0])<2)
+    throw new RangeError("Degenerate measured mouth span");
+  const seamControl:Point=[(l[0]+r[0])*.5,
+    upper[1]*.47+lower[1]*.53];
+  // A mouth seam must remain a continuous anatomical boundary.
+  // Earlier independent darkest-pixel selection jumped between teeth, hair
+  // and nostril shadows and produced an unacceptable jagged sawtooth.
+  // Sample close to the source-observed seam, regularize over neighbouring
+  // x positions, then bound deviations from the attached lip construction.
+  const mouthCount=clamp(Math.ceil(Math.hypot(
+    r[0]-l[0],r[1]-l[1])/.87),8,140);
+  const mouthRange=clamp(Math.abs(r[0]-l[0])*.035,1,3.5);
+  const mouthLum=(x:number,y:number)=>{
+    const sx=clamp(Math.round(x),0,source.width-1);
+    const sy=clamp(Math.round(y),0,source.height-1);
+    const k=(sy*source.width+sx)*4;
+    return (.2126*source.data[k]+.7152*source.data[k+1]+
+      .0722*source.data[k+2])/255;
+  };
+  const seamSamples:Array<{x:number;baseline:number;y:number}>=[];
+  for(let i=0;i<=mouthCount;i++){
+    const t=i/mouthCount;
+    const [x,baseline]=bezier(l,seamControl,r,t);
+    let chosen=baseline,best=Number.POSITIVE_INFINITY;
+    for(let k=-5;k<=5;k++){
+      const candidate=baseline+k*mouthRange/5;
+      const score=mouthLum(x,candidate)+Math.abs(k)*.041;
+      if(score<best){best=score;chosen=candidate;}
+    }
+    seamSamples.push({x,baseline,y:chosen});
+  }
+  let previous:Point|null=null;
+  const maxDeviation=clamp(Math.abs(r[0]-l[0])*.023,.8,2.4);
+  for(let i=0;i<=mouthCount;i++){
+    const sample=seamSamples[i],t=i/mouthCount;
+    let average=0,weightSum=0;
+    for(let j=Math.max(0,i-5);j<=Math.min(mouthCount,i+5);j++){
+      const weight=6-Math.abs(i-j);
+      average+=seamSamples[j].y*weight;weightSum+=weight;
+    }
+    const deviation=clamp(average/weightSum-sample.baseline,
+      -maxDeviation,maxDeviation);
+    const y=sample.baseline+deviation*Math.sin(Math.PI*t);
+    const point:Point=[sample.x,y];
+    if(previous){
+      add("lip-opening",previous[0],previous[1],
+        point[0]-previous[0],point[1]-previous[1],
+        .32,.57,0,.42,i+4000);
+    }
+    previous=point;
+  }
+  for(let i=0;i<100;i++){
+    const t=(i+.5)/100;
+    const x=mix(l[0],r[0],t);
+    const upperY=bezier(l,upper,r,t)[1];
+    const seamY=bezier(l,seamControl,r,t)[1];
+    const lowY=bezier(l,lower,r,t)[1];
+    // Lip fibres are discontinuous and weighted toward the lower pillow,
+    // not a uniform hatch drawn across the photographed tooth opening.
+    const above=(i%4)===0;
+    const centerY=above?mix(upperY,seamY,.58):
+      mix(seamY,lowY,.18+.49*pencilHash(seed,i,80));
+    const length=clamp(Math.abs(above?seamY-upperY:lowY-seamY)*.24,1,3.1);
+    add("lip-grain",x,centerY,(pencilHash(seed,i,81)-.5)*.5,
+      length,.21,.48,2,.20,i+2200);
+  }
+  // Crosshatched form, not just contours: gentle colour-pencil strokes follow
+  // each actual photographed cheek/forehead/nasal/chin plane. A photo-local
+  // colour gate stops the marks from drifting onto brows, hair or background.
+  // Rendering preserves the untouched photograph-derived value map beneath.
+  const eyeDistance=Math.hypot(
+    guides.eyeFarCenter[0]-guides.eyeNearCenter[0],
+    guides.eyeFarCenter[1]-guides.eyeNearCenter[1],
+  );
+  const scale=clamp(eyeDistance/79,.18,4);
+  const planes=[
+    {name:"form-cheek-left",center:guides.cheekLeft,rx:79,ry:66,
+      angle:-.32,count:4050},
+    {name:"form-cheek-right",center:guides.cheekRight,rx:36,ry:54,
+      angle:-.66,count:1180},
+    {name:"form-forehead",center:guides.forehead,rx:73,ry:53,
+      angle:.18,count:3150},
+    {name:"form-chin",center:guides.chin,rx:57,ry:29,
+      angle:.34,count:1350},
+    {name:"form-nose",center:guides.noseTip,rx:28,ry:39,
+      angle:-1.29,count:1450},
+  ] as const;
+  for(const [planeIndex,plane] of planes.entries()){
+    const center=plane.center;
+    const ix=clamp(Math.round(center[0]),0,source.width-1);
+    const iy=clamp(Math.round(center[1]),0,source.height-1);
+    const offset=(iy*source.width+ix)*4;
+    const rgb=[source.data[offset],source.data[offset+1],source.data[offset+2]];
+    const radiusX=plane.rx*scale,radiusY=plane.ry*scale;
+    for(let i=0;i<plane.count;i++){
+      // Independent jittered low-discrepancy deposits, not uniform parallel
+      // digital hatching. Every mark retains a local source-colour identity.
+      const j=planeIndex*100000+i;
+      const radial=Math.sqrt(pencilHash(seed,j,143))*.96;
+      const polar=2*Math.PI*pencilHash(seed,j,144);
+      const fx=Math.cos(polar)*radial,fy=Math.sin(polar)*radial;
+      const x=center[0]+fx*radiusX,y=center[1]+fy*radiusY;
+      if(x<1||x>=source.width-2||y<1||y>=source.height-2)continue;
+      const pixel=(Math.round(y)*source.width+Math.round(x))*4;
+      const delta=Math.hypot(
+        source.data[pixel]-rgb[0],
+        source.data[pixel+1]-rgb[1],
+        source.data[pixel+2]-rgb[2]);
+      // This is local *same-face* material coherence, not a global skin-tone
+      // detector. It must not encode an assumed human complexion.
+      const material=clamp((119-delta)/74,0,1);
+      if(material<.19)continue;
+      const lum=(.2126*source.data[pixel]+.7152*source.data[pixel+1]+
+        .0722*source.data[pixel+2])/255;
+      // Avoid the 'painted-on oval beard/forehead patch' failure in v2:
+      // a local region is an optical guide, never a hard material boundary.
+      const feather=Math.pow(Math.max(0,1-radial*radial),1.55);
+      const pencilPressure=(.155+.245*Math.pow(1-lum,.66))*feather;
+      const heading=plane.angle+fy*.43+fx*.16+
+        (pencilHash(seed,j,145)-.5)*.36;
+      const length=(2.6+3.4*pencilHash(seed,j,146))*scale;
+      const dx=Math.cos(heading)*length;
+      const dy=Math.sin(heading)*length;
+      add(plane.name,x,y,dx,dy,pencilPressure*material,
+        .42+.28*pencilHash(seed,j,147),i%3===0?1:2,
+        .13+.13*(1-lum),j);
+    }
+  }
+  return {sampledSourceFeatures:guides,marks,featureCounts:counts,highlightReserves};
+}

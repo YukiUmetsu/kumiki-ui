@@ -2,9 +2,296 @@
 
 **Registry ID:** `crayon-storybook`  
 **Source:** `registry/video/materials/crayon.ts`, `crayon-react.tsx`  
-**Storybook:** Video production → Film Art Styles → Crayon Storybook  
+**Storybook:** Video production → Film Looks → Crayon → Classics → Lantern & Garden (and grouped subject studios)  
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
+
+## Ground-contact correction and source-native ArtCraft A/B (2026-11-14)
+
+The existing **Video production / Film Looks / Crayon / Drawing System** Storybook page offers a
+`comparison: single | tooth` control. With `tooth`, it displays the same
+source botanical study, deterministic film seed, exact frame, native inspection
+camera and original wax geometry side by side, with `underpaintTooth=0` versus
+the selected strength. In regular `single` mode the extra native rendering is
+not constructed. Both aspect ratios use responsive side-by-side media with
+captions outside the SVG. This is a material **inspection**, not a second
+artwork, new Storybook folder, or evidence of aesthetic approval.
+
+The pear's cast-shadow, paper rubbing and contact umbra are now positioned
+from the physical painted lower-contour coordinate (local y≈180 transformed by
+placement), replacing an independently guessed height percentage. Regression
+checks assert world-space contact in both 960×540 and 540×960 source films.
+The first browser contact crops showed an over-regular brown oval beneath the
+fruit; its open-wax paper rubbing was reduced, and the cast-shadow penumbra
+was reshaped and feathered. The darker, smaller contact wedge remains
+separate to express weight. A new native visual review is required before
+calling even this shadow correction visually accepted.
+The studio remains `!dev` until source-native screenshot and independent
+ArtCraft aesthetic review. The reference craftsmanship study is in
+[Crayon drawing grammar](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+
+## Page-seeded pigment tooth on solid Crayon underpainting
+
+`underpaintTooth: 0..1` introduces opt-in, shared paper-relief
+chromatic variation on opaque wax undercoats without punching alpha
+holes. It is exposed on the existing **Drawing System** Storybook page
+with its own strength control; all prior scenes default to zero.
+Six batched micro-strand compound paths are shared per paper sheet.
+The existing CRAYON1 marker, form curves and dry nib remain unchanged.
+Source-native 16:9 and 9:16 browser A/B evidence and deterministic
+tests are required before artistic approval. Detailed study:
+[Crayon material grammar](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+
+## Fractured dry-wax nib for Crayon (2026-11-14)
+
+The material engine now has opt-in `nibStyle: "dry"`. This deposits
+bounded pressure-dependent bands of fragmented wax inside the **existing**
+authored nib arcs, with shared paper-space relief and unchanged solid
+underpaint. The original `rounded`/`tapered` nibs remain valid and
+unchanged. The existing `Crayon / Materials / Drawing System` and
+`Crayon / Materials / Wax & Pigment` Storybook pages expose A/B controls.
+No new Storybook root/folder was created. Source-rendered 16:9 and 9:16
+closeup comparisons are part of the targeted browser QA. See
+[technical drawing/material study](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+The demonstration remains `!dev` pending artistic review.
+
+## Source-led botanical wax refinement (2026-11-14)
+
+The existing `Crayon / Materials / Drawing System` Storybook page now has a
+native-camera inspection control (`full`, `surface`, `stalk-leaf`,
+`contact`) in **both aspects**. These are **not** separate folders or
+new artwork variants; the original scene element list and seed are retained.
+The pear study includes an inset stem well, a cooler turn, lower umbra,
+sunlit wax shoulder, layered blush and branched leaf veins. See the
+[artist/reference-based review](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+Keep its `!dev` tag pending direct visual approval.
+
+## Crayon drawing grammar (2026-11-14)
+
+A new strict, reference-informed **construction system** checks real CRAYON1
+source scenes before artistic review. See
+[artist study, medium boundaries, and four-pass drawing contract](../research/crayon-drawing-grammar-and-artist-study-2026.md).
+
+- **Core:** `registry/video/materials/crayon-art-direction.ts`, also included in the installable `crayon-storybook` registry pack, validates
+  physical part hierarchies, opaque subject masses, phase timing,
+  clipped glazes, clipped strokes, source-specific curved-path minimums,
+  attached world-space endpoints throughout source motion and untracked elements.
+- **Authoring example:** `src/video/crayon-drawing-system-fixtures.ts`
+  constructs original fruit, stem, leaf, tonal wax, clipped grain and
+  an explicit auditable plan using the existing CRAYON1 renderer.
+- **Workbench:** `Video production / Film Looks / Crayon / Materials /
+  Drawing System`. There is **no new Crayon Storybook root**. Both 16:9
+  and 9:16, source frames, directional detail, nib pressure and paper tooth
+  are configurable; all explanatory text stays outside the SVG.
+- **Release gate:** this study remains `!dev` until real source-native
+  screenshots and independent aesthetic review. Geometry tests alone do
+  not constitute accepted art.
+
+## ArtCraft native-camera facial inspection (2026-11-14)
+
+The hidden `Video production / Film Looks / Crayon / Characters / ArtCraft Adult Face Lab`
+has an **Inspection** control for `full`, `face`, `eyes`, `nose-mouth`,
+and `garment`, plus matched warm/neutral eye macro comparison. Crops use
+original CRAYON1 scenes with two stationary native camera keys, not CSS
+magnification or reference bitmaps. This retains semantic IDs, material
+seeds, timing, and rig geometry; portrait and landscape crop positions are
+independently authored. All stories remain in the existing single Crayon
+Storybook root with `!dev`. Focused Chromium 16:9/9:16 region screenshots and two-up non-overlap assertions
+must be reviewed alongside structural tests. Structural tests are **not** artistic approval;
+inspect actual source-rendered face and fabric crops before acceptance.
+
+## ArtCraft v6: character quality quarantine and portrait-safe previews
+
+Following direct review of the reference board and premium human portrait,
+the previous child, wildlife and fantasy/dragon character art does **not**
+meet the user's required craftsmanship. **Acting, Walk, Draw-In, Wildlife,
+and Dragon** Storybook pages are hidden with `tags:["!dev"]` until genuine
+image-based ArtCraft review passes. Core exported CRAYON1 film and rig code
+is intentionally preserved to avoid breaking consumer projects.
+
+All **portrait** Crayon playgrounds now suppress *screen-space SVG editorial
+copy* while retaining the accessible external HTML film title. This is a
+fail-closed interim fix for observed in-frame text/art overlap; character
+safe-area placement should only return after measured text bounds, person
+silhouette bounds, 9:16 browser screenshots and adverse language/font cases
+are validated. Landscape editorial behavior is unchanged. No SVG source
+nodes are removed, so wax seeds remain deterministic and film exports are
+not altered by this Storybook presentation policy.
+
+The acceptance bar is now a source-led, region-specific release gate in
+`docs/research/crayon-character-artcraft-premium-gate-2026.md`.
+Do not re-expose the character galleries merely because TypeScript/unit
+tests pass. The ArtCraft v6 release gate requires rendered proof, semantic
+source/render crops and independent review; currently **blocked**.
+
+## ArtCraft illustrated-character rebuild (current)
+
+Historical cartoon actor pages under **Classics** and the old schematic
+animal heads under **Materials** have also been hidden from the Storybook
+navigation (`!dev`); their independent source implementations and regression
+tests remain intact. None of the old character artwork is presented as a new
+premium character showcase.
+
+The visible **Acting, Walk and Draw-In** examples have been replaced by a
+new child protagonist, "The Blue Coat", without deleting any previous
+CRAYON1 source film factories or breaking their APIs. All stories remain in
+the single **Video production / Film Looks / Crayon** hierarchy.
+
+The new source is `src/video/crayon-character-atelier-fixtures.ts`.
+It includes separate eyes and iris layers, eyebrows, nose and lip drawings,
+painted blink occlusion, multiple hair masses, a tailored blue coat,
+coat stitchwork, a plaid scarf, an embroidered dress, leather boots,
+satchel and hand, all in native editable wax. Acting has configurable
+**Expression**, **Detail** and **Crop (composition / face / costume)**
+controls; walk exposes stride, lift and true optional two-bone knee IK.
+Draw-In keeps outline/fill order and explicit pigment deposition windows.
+
+See `docs/research/crayon-character-atelier-2026.md` for the reference
+matrix, proportion guide, known limitations and required 16:9 / 9:16
+visual evidence. Changed unit tests are **structural**, not a declaration
+that the illustration already matches the supplied art direction.
+
+## Opaque pigment and Storybook organization (2026-11-14)
+
+All crayon videos and material demos live under **Video production →
+Film Looks → Crayon**. The curated hierarchy has separate, navigable
+production disciplines rather than one 26-story sidebar:
+
+| Folder | Storybook page | Scope | Story id prefix |
+| --- | --- | --- | --- |
+| **Wildlife** | The Wild Hare | Landscape/portrait, fur/eye/ear/muzzle detail | `video-crayon-wildlife--` |
+| **Characters** | Acting & Expression | Original performance rig | `video-crayon-acting--` |
+| **Characters** | Walk & Rigging | Contact locks, drawn knees, analytical two-bone joints | `video-crayon-walk--` |
+| **Characters** | Draw-In Construction | Drawing-to-performance authoring | `video-crayon-draw-in--` |
+| **Fantasy** | Dragon Village | Dragon, companion cast, architecture and material redraw | `video-crayon-dragon--` |
+| **Scenes** | Scene Engine | Portable multi-subject scene editor, science/town/data demos | `video-crayon-scene-engine--` |
+| **Materials** | Wax & Pigment | Pressure, nib, paper tooth, deposition, sgraffito | `video-crayon-material-studies--` |
+| **Classics** | Lantern & Garden | Original self-contained narrative films | `video-crayon-storybook--` |
+
+### ArtCraft macro / full-film wax identity
+
+CRAYON1 assigns each wax/contour an individual deterministic seed derived from
+its index in the **complete authored scene**. Earlier Storybook macro previews
+deleted screen-space editorial nodes **before** rendering. If those nodes
+preceded wax (as they do in the general Scene Engine), later elements were
+reindexed and could acquire different strokes than the actual film.
+
+Macro previews now retain every source node and pass
+`hideScreenSpace` to `CrayonScene`, which suppresses only its presentation
+of editorial copy **after** indices and seeds have been established. The
+film/JSON source, rig, absolute frame, camera and pigment stay unchanged.
+Tests cover a science scene with early screen-space captions and both wildlife
+aspect ratios. This is a deterministic structural guarantee, **not** a
+substitute for high-resolution image and normal-speed playback comparison.
+
+### Skeptical ArtCraft regression review: source-paper fidelity and draw-on timing
+
+The earlier `authored` wax control only preserved nib, stroke order and mark
+length. It **still overrode every film's source seed and paper-tooth strength**
+using Storybook defaults (`54` and `0.64`). This was a release-blocking
+preview/export comparison error for the wildlife film (source seed `8642`,
+tooth `0.69`), even while the controls suggested no material modification.
+
+The new **Paper recipe** control defaults to `authored`. Seed and paper-tooth
+overrides are conditional on selecting `custom`; the preview does not alter
+the film's source settings until then. The optional experiment is local to
+Storybook and does not change serialized scene data or film exports.
+The nose in the Wax & Pigment study now uses the same native, opaque
+`WaxRegion` draw-on deposition as the surrounding character, rather than a
+fully formed flat SVG triangle that abruptly appeared at frame 86.
+
+**Evidence boundary:** changed-unit and TypeScript CI can protect this
+material contract, but are not proof of a good crayon illustration. ArtCraft
+v6 high-resolution source/render crop comparisons, five-axis masks and
+normal-speed 16:9/9:16 inspection remain blocked until real rendered proof
+is captured and reviewed; do not substitute structural SVG presence.
+
+### ArtCraft medium recipe and construction timing (2026-11-14)
+
+Storybook's Scene Engine previously overwrote **every** source wax patch with
+one global nib, stroke order and mark length, even when the original scene had
+purposefully authored region-specific settings. All three controls now default
+to `authored`, preserving each wax patch (including its own omission/default).
+An explicitly selected alternative acts as a non-destructive A/B preview override.
+No `authored` value is written into CRAYON1's portable JSON schema, which
+still accepts only real nib, stroke-order and mark-length values.
+
+The **Wax & Pigment** A/B scene also no longer reveals its nose detail on
+an otherwise blank frame; the nose begins at frame 86 alongside the
+authored detail contour. The default artist preview descriptions now focus
+on the active subject instead of reciting all unrelated scenes.
+
+**Craft basis:** Faber-Castell's wax-crayon process guidance on layered
+pigment, frottage and scraped upper coats; the Philadelphia Museum of Art's
+conservation terminology on uneven, cohesive wax deposits; and the existing
+ArtCraft hare reference ledger. These guide construction and controls, not
+claims of visual equivalence. A full reference-aligned crop comparison and
+normal-speed film acceptance are still outstanding.
+
+- https://prod-media.coolaustralia.org/wp-content/uploads/2017/09/06163457/Faber-Castell-Product-Knowledge-Manual-V1.pdf
+- https://legacyweb.philamuseum.org/doc_downloads/conservation/DescriptiveTerminologyforArtonPaper.pdf
+
+### Focused director controls (2026-11-14)
+
+Each specialized Crayon director now hides unrelated Storybook Controls entries:
+the wildlife page shows anatomical detail, ear motion and eye/fur/muzzle/ear
+inspection crops; acting shows performance detail; walking shows gait and
+rigging; draw-in shows construction order and glaze; fantasy shows dragon,
+ensemble and architectural direction. Shared canvas, playback and wax/paper
+settings remain available everywhere, grouped by discipline. The general
+Scene Engine restricts its subject picker to the three 240-frame scenes;
+longer films retain their own dedicated directors so the frame slider never
+silently truncates a 330- or 450-frame animation.
+
+This is a **UI and reliability refinement**, not an ArtCraft v6 visual
+release. The existing ArtCraft hare reference ledger and anatomical part
+manifest remain the source of visual critique. Source-aligned high-resolution
+reference crops, independently run five-axis audits and normal-speed dual-aspect
+film inspection remain necessary before approving artistic fidelity.
+
+The Scene Engine, Material Studies and original Storybook retain their
+previous `id` prefixes. The 22 character, dragon and wildlife stories
+moved to separate page ids; browser smoke links and the manual-only ArtCraft
+real-renderer QA use the new URLs. Old character/story deep links are **not**
+redirected; the migration table above is the supported canonical mapping.
+
+All the curated videos import `CrayonPlayground` from
+`src/video/crayon-scene-playground.tsx`, with typed shared settings from
+`crayon-scene-story-config.ts`. The original core CRAYON1 renderer, film
+descriptors and actor animation contracts are **unchanged** by this sidebar
+migration. The controls remain live for each page, while scene-specific
+`startFrame` ranges are bounded by that film's duration so editors do not
+silently clamp impossible preview frames.
+
+The prior wax region's semi-transparent base could make completed animated
+characters ghostlike, showing the buildings, sky and other characters
+behind their bodies. It is **not physically plausible** for a dense
+wax-crayon subject. CRAYON1 now supports an optional `coverage` property:
+
+| Coverage | Underpaint | Paper grain / wax strokes | Use |
+| --- | --- | --- | --- |
+| `"open"` (default) | Legacy transparent colored glaze | Scumble and strokes break over the paper tooth | Atmosphere, skies, distant hills |
+| `"opaque"` | 100%-opacity silhouette, progressively revealed while depositing color | Textured wax, hatches, scrapes and highlights remain on top; tooth only masks the surface strokes | Animals, people, architecture, props, flowers and solid subject regions |
+
+Opaque underpainting does **not** fade after the subject finishes
+construction. The solid silhouette is never masked by the porosity
+filter. Color buildup is animated through the existing fill window,
+including both outline-first and fill-first authoring and reduced motion.
+This is not a new clock or a new independent renderer; the same
+portable scene and FilmStage use the option.
+
+The original fox, the multi-character dragon/forest friend/owl,
+character performance, character construction, walk tests, animals in
+illustrative scenes, town buildings, and chart bars explicitly use
+opaque underpaint; their skies and atmospheres intentionally remain
+open. Wax hatching has also gained original per-part orientation
+matching anatomy and rooftops rather than uniform horizontal bands.
+
+See [material-opacity and craft study](../research/crayon-material-opacity-and-craft-study.md),
+and the Storybook **Material Studies / Layer Coverage Comparison**.
+The browser optics test compares rendered interior pixels across two
+contrasting background palettes, rather than trusting SVG attributes
+alone. Independent human review of full encoded films is not implied.
 
 ## Original visual direction
 
@@ -85,6 +372,415 @@ mouth/eye phonemes, inverse kinematics, foot lock and contact-aware locomotion, 
 smear/erase/redraw transitions, independent depth parallax, and fully reviewed encoded
 proofs with normal-speed human approval. A rig alone does not qualify a shot as visually
 beautiful or production-approved.
+
+### Replacement drawing animation
+
+CRAYON1 now supports optional `drawings` on `wax` and `contour` elements:
+an ordered series of hand-authored replacement SVG paths, keyed to **absolute
+scene frames**. This is a material-native shape replacement, not an attempted
+interpolation between unrelated SVG commands. Each redraw is painted using the
+existing wax/contour material; its `id`, painter order, parent rig, and seeded
+paper/wax treatment remain stable.
+
+```json
+{
+  "id": "character-eye", "kind": "contour", "parentId": "character-head",
+  "d": "M0 0 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0",
+  "color": "#34495e", "width": 3,
+  "timing": {"start": 0, "end": 239}, "poseCadence": 2,
+  "drawings": [
+    {"frame": 90, "d": "M0 0 Q5 4 10 0"},
+    {"frame": 96, "d": "M0 0 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0"}
+  ]
+}
+```
+
+Wax replacements include an additional `bounds` matching each silhouette,
+for correct clipped wax deposition. The initial element path is drawing 0; keys
+must be strictly increasing, start after frame 0, and stay within the scene.
+The same `poseCadence` steps both rig motion and replacement drawing selection.
+Reduced motion samples the final held pose. Malformed keys, paths, and bounds
+are rejected at the JSON scene boundary.
+
+The **town illustration** includes a new original bird built with an articulated
+body/wing and separately redrawn eyelids. This validates the combined workflow,
+but it is not a finished full-character performance reel.
+
+Technique study: [Moonbird (1959), Animate Materials](https://www.animatematerials.org/media/moonbird/)
+documents wax/paper layers and intentionally expressive, imperfect linework.
+[Cláudio Martins on Sebastiana](https://www.toonboom.com/claudio-martins-on-the-making-of-sebastiana)
+describes aligning the character animation with a crayon/pastel visual treatment.
+[Life Drawings production notes](https://thewaltdisneycompany.com/news/disney-animation-short-circuit/)
+describe hand-drawn character motion combined with more dimensional environments.
+These sources support **material and performance principles**, not copying their
+frames, stories, characters, or licensed media. Their full videos were not
+decoded and frame-by-frame compared during this implementation.
+
+**Outstanding:** viseme schedules synchronized to dialogue/audio, blend-aware
+transition staging between redraws, two-handed prop constraints, IK/foot
+contact, and normal-speed encoded dual-aspect proof with human signoff.
+
+### Authored character acting and dialogue exposure sheets
+
+The `CrayonContourElement` API supports **named performance drawings** on top
+of replacement drawing keys. Supply `poses` (stable reusable SVG outlines) and
+`poseCues` (strictly ordered absolute-frame selections), without a second
+animation clock or duplicating a path for every phoneme. The original `d` is
+the reserved `base` pose. This is suitable for mouth visemes, blinks, eye
+expressions, brows, hands, costume folds and other hand-drawn contour acting.
+
+```json
+{
+  "kind": "contour", "id": "mouth", "parentId": "head",
+  "d": "M-9 -64 Q0 -58 9 -64", "color": "#4e4b64", "width": 4,
+  "timing": {"start": 0, "end": 269}, "poseCadence": 2,
+  "poses": [
+    {"id": "mbp", "d": "M-12 -64 Q0 -61 12 -64"},
+    {"id": "ah", "d": "M-11 -65 C-12 -46 12 -45 11 -65Z"},
+    {"id": "oh", "d": "M-7 -63 a7 10 0 1 0 14 0 a7 10 0 1 0 -14 0"}
+  ],
+  "poseCues": [
+    {"frame": 0, "pose": "base"},
+    {"frame": 76, "pose": "mbp"},
+    {"frame": 82, "pose": "ah"},
+    {"frame": 106, "pose": "oh"},
+    {"frame": 138, "pose": "base"}
+  ]
+}
+```
+
+An editor or speech-alignment pipeline must produce `poseCues` from actual
+audio/phoneme timing. **Kumiki does not synthesize voice, infer phonemes from
+written text, analyze a soundtrack, or claim automatic lip-sync.** Every cue
+uses frame positions in the film's existing FPS timeline, which ContentGen
+should derive from its narration/audio metadata. Exposures hold according to
+`poseCadence`, permitting on-twos animation, while camera animation remains
+frame-accurate. Scenes are seek-stable, including out-of-order exports and
+reduced-motion end-state rendering.
+
+`drawings` (sequential anonymous redraws) and `poses` / `poseCues`
+(named reusable redraws) are mutually exclusive on a single contour. Strict
+validation enforces bounded SVG path data, unique pose IDs, defined cue
+references, sorted frame keys, and practical track limits.
+
+**Live example:** Storybook **Video production / Film Looks / Crayon
+Scene Engine / Character Performance** and **Character Performance Portrait**.
+The original little woodland character waves a flower, gives a short performed
+greeting (authored without a soundtrack), blinks, smiles, tilts its head and
+lets its tail follow through. Both aspects use the same semantic
+`src/video/crayon-performance-fixtures.ts` scene factory, with native
+compositions. The performance cue list is a timing study, **not a claim of
+speech synchronization to a real vocal recording**.
+
+**Research and craft targets:**
+- [Walt Disney Animation Studios — Animation process](https://www.disneyanimation.com/process/animation/):
+  anticipation, weight, follow-through and secondary action should drive
+  acting, not independent random wiggling of elements.
+- [Toon Boom — 12 Principles of Animation](https://helpcentre.toonboom.com/hc/en-ca/articles/57087608774931-About-the-12-Principles-of-Animation):
+  structured posing and meaningful overlapping motion.
+- [Figma — Lip Sync Animation](https://www.figma.com/resource-library/lip-sync-animation/):
+  phoneme groups mapped to a small reusable set of visual mouth shapes.
+- [Timing for Animation, lip-sync preview](https://www.oreilly.com/library/view/timing-for-animation/9781000338225/xhtml/80_Chapter70.xhtml):
+  dialogue acting and phonetic exposure timing are related but distinct jobs.
+
+These sources informed the authored craft decisions. Their media were not
+fully frame-decoded and no outside copyrighted artwork or narration is
+bundled with the examples.
+
+**Remaining gates:** true voice-aligned cue import, gesture-directed
+performance authoring, higher-density replacement drawings, foot contact
+and gait control, full encoded 16:9 + 9:16 visual/audio review and independent
+human visual approval. Automated passing tests do not confer artistic
+approval.
+
+### Grounded walking and contact-pinned attachment
+
+The CRAYON1 scene grammar now supports optional **contacts** on a wax, contour,
+or other world-space element. Each contact defines a non-overlapping, inclusive
+frame range and an anchor in that element's *local drawing coordinates*.
+The anchor's world position at the start of the range becomes the fixed contact
+point for its duration. A world-space translation cancels inherited body and
+joint travel at each absolute frame. The rest of the rig, its original drawing,
+paper texture, paint ordering, and camera remain unchanged.
+
+```json
+{
+  "kind": "wax", "id": "left-foot", "parentId": "body",
+  "d": "M-44 90 Q-20 75 -8 90Z",
+  "bounds": {"x": -47, "y": 70, "width": 43, "height": 27},
+  "colors": ["#77748c", "#5f5b79", "#a9a1b0"],
+  "timing": {"start": 0, "end": 269}, "poseCadence": 2,
+  "contacts": [
+    {"start": 0, "end": 38, "anchor": {"x": -29, "y": 93}},
+    {"start": 94, "end": 156, "anchor": {"x": -29, "y": 93}}
+  ]
+}
+```
+
+This is a **single-point stance constraint**, not inverse kinematics or a
+full-sole physics solver. An artist still supplies anticipation, center-of-mass
+travel, step heights, foot rotation, limb drawing changes and the timing of
+lift/plant events. Because there is no mutable simulation, direct seeks to
+frame 156 after frame 0 and after frame 269 give identical planted positions.
+Contacts are expressed in world geometry *before* the film camera; camera
+moves therefore do not break contact. The contact list must be ordered,
+non-overlapping, within the scene duration, have bounded finite anchors, and
+must not apply to screen-space caption overlays.
+
+Storybook now exposes **Video production / Film Looks / Crayon / Scene Engine /
+Character Walk Cycle** and **Character Walk Portrait**. The original "A Little
+Journey" walk places alternating feet on the painted meadow, carries the
+flower as a hand-child prop, and gives the tail/scarf/arms/head coordinated
+follow-through. Its original artwork is derived from the reusable character
+performance scene; these are **two distinct authored performances**, not
+a universal generated gait engine.
+
+**Still required:** multi-point foot-sole deformation, leg-chain IK, floor
+height sampling for arbitrary geometry, automatic gait authoring from
+locomotion velocity, collision/contact timing derived from geometry, smooth
+contact hand-off at every speed, genuine hand-to-hand prop transfer and
+normal-speed 16:9/9:16 encoded visual approval.
+
+### Connected articulated limbs (native crayon connectors)
+
+CRAYON1 supports a new validated `connector` element. It joins two named,
+moving, local-drawing anchors by painting a **dry-wax contour in world space**
+at each absolute source frame. The anchors may belong to independently
+animated hierarchy branches. Each anchor includes contact correction, so
+a hip-to-foot stroke remains joined to a planted foot as the torso advances.
+Connectors preserve the authored painter's order, seeded brush rendering,
+reduced-motion end state and deterministic film seeks.
+
+```json
+{
+  "kind": "connector", "id": "leg-back",
+  "timing": {"start": 0, "end": 26}, "poseCadence": 2,
+  "from": {"elementId": "body", "anchor": {"x": -25, "y": 76}},
+  "to": {"elementId": "foot-back", "anchor": {"x": -29, "y": 103}},
+  "color": "#8b6c80", "width": 12, "opacity": 0.86,
+  "bendKeys": [
+    {"frame": 0, "bend": -5},
+    {"frame": 65, "bend": -28},
+    {"frame": 94, "bend": -8},
+    {"frame": 269, "bend": -5}
+  ]
+}
+```
+
+`bend` supplies a static signed perpendicular control-point offset. Optional
+`bendKeys` smoothly interpolate knee/elbow bend while the attachment points
+move; `poseCadence` holds on twos or threes. No untrusted SVG path is accepted
+from connector references. Validation rejects missing or screen-space
+references, connector-to-connector references, invalid anchors, unsorted or
+nonfinite bend keys, and local transforms that would double-transform the
+world-space path.
+
+The walk examples in **Video production / Film Looks / Crayon / Scene Engine**
+now show two articulated crayon legs joining the original body to alternating
+planted feet, with stronger knee curvature during the swing phase. There are
+landscape and portrait versions and browser evidence for both.
+
+**Limitations:** This solves position continuity with one curved segment per
+leg but does not implement physical two-bone IK, heel/toe rolling, leg volume
+or limb self-occlusion. Full 16:9/9:16 encoded normal-speed artistic signoff
+remains a separate gate.
+
+### Two-bone walking poses and eased contact release
+
+Use the optional analytic `ik` mode on an existing CRAYON1 `connector`
+to draw **two articulated bone segments** between a world-space hip and
+a planted or swinging ankle, rather than an arbitrary quadratic bend. The
+solver uses two preferred bone lengths and an explicit left/right bend
+direction. It produces the same pose from the same absolute frame even after
+backward seeking, while honoring the already-authored world-space contact
+constraints.
+
+```json
+{
+  "kind": "connector",
+  "id": "leg-back",
+  "timing": {"start": 0, "end": 26},
+  "poseCadence": 2,
+  "from": {"elementId": "body", "anchor": {"x": -25, "y": 76}},
+  "to": {"elementId": "foot-back", "anchor": {"x": -29, "y": 103}},
+  "color": "#8b6c80",
+  "width": 12,
+  "ik": {"upperLength": 45, "lowerLength": 43, "bendSide": "left"}
+}
+```
+
+`ik` cannot be combined with the former hand-drawn `bend` or
+`bendKeys` mode on the same connector. Artists can choose either in Storybook,
+without altering their geometry. For reachable targets, preferred upper/lower
+segment lengths are exact; unreachable or overly compressed targets keep
+the stroke connected while the solver reports `extended` or `compressed`.
+This is **2D analytic posing**, not dynamic physics, skeletal skinning or
+collision prevention.
+
+The `contacts` entries also accept optional `releaseFrames` (0–24) to
+fade out the outgoing positional correction after a planted stance ends,
+avoiding the previous sudden jump at takeoff. Transitions remain frame-stable.
+Runtime scene validation rejects a release tail that overlaps the next stance,
+a release beyond the film duration, and conflicting ancestor/descendant
+contact windows. A rendered foot receives
+`data-km-crayon-contact="planted"` or `"releasing"` for browser QA.
+
+The original **A Little Journey** walk now also contains authored shoe/foot
+pitch keys around each sole pivot, and the **Video production / Film Looks /
+Crayon Scene Engine** stories include new **Character Two Bone IK** and
+**Character Two Bone IK Portrait** examples. The Storybook Controls panel
+lets the artist switch between hand-drawn knees and the IK solver and adjust
+walk **stride (0.6–1.6×)** and **lift (0.6–1.8×)**. This is a controllable
+study using hand-authored root and swing timings—not an automatic locomotion
+planner; real heel-to-toe support-pivot switching, uneven-terrain grounding,
+full-sole distortion, smooth gait retiming and contact-aware arm IK remain
+open.
+
+Automated qualification covers two aspect ratios, IK geometry, unreachable
+states, corrupt authored data, the foot-release tail, deterministic out-of-
+order seeking and real Chromium story controls. Normal-speed exported films
+and independent artistic acceptance still require separate review.
+
+### Real-time Storybook playhead (presentation only)
+
+Both interactive Crayon Storybook and the generic Crayon Scene Engine now use
+the same `src/video/crayon-story-playback.ts` clock. The playhead derives
+each absolute source frame from monotonic elapsed time and the authored FPS,
+rather than advancing one frame per `setInterval` callback. Slower browsers
+may drop presented intermediate frames, but **story time does not drift**.
+Scrubbing, pause, restart and switching subject/aspect reset the timebase
+safely, including when the prior scene was longer.
+
+Storybook Controls provide a **0.25×–2× speed slider** and **loop toggle**.
+The pure frame sampler has deterministic unit coverage for irregular browser
+paints, accelerated and slowed playback, repeat boundaries, invalid clocks,
+and end-frame clamping. Chromium tests exercise start/pause/restart in the
+actual Storybook iframe. This playhead lives only in the preview UI: the
+CRAYON1 renderer and FilmDocument export always evaluate absolute frames
+from the film's own timeline, so export timing is unaffected.
+
+This does not guarantee that every individual frame paints in a slow browser
+or that rendered narration/audio are synchronized inside Storybook. For
+production, use the film export pipeline and review the encoded result.
+
+### Crayon drawing as an authored process (CRAYON1 construction)
+
+A handmade-looking scene must reveal **how marks are made**, not simply
+apply a paper texture after a full silhouette fades in. The optional
+`construction` field on any `wax` element now provides a validated,
+deterministic drawing order:
+
+```json
+{
+  "kind": "wax", "id": "original-character-body",
+  "timing": {"start": 138, "end": 276},
+  "construction": {
+    "order": "outline-first",
+    "outlineFraction": 0.31,
+    "glaze": 0.17
+  }
+}
+```
+
+This illustrative partial fragment belongs inside a full valid
+`CrayonWaxElement` with a path, colors and bounds. The native wax contour
+is genuinely traced along its SVG path first, then directional crayon
+patches accumulate in two seeded passes. `glaze` is limited to 0–0.45
+so the drawing does not begin as a solid-colored cutout. `fill-first`
+reverses the explicit sequence and is useful for broader background
+wash/colored studies. Without `construction`, the pre-existing
+`WaxRegion` render contract and scenes remain unchanged.
+
+The optional `exitFade` on a scene element defines a validated
+post-drawing interval to retire temporary sketch guides. It has
+discrete testable states (`visible`, `fading`, `finished`) and does
+not alter the paper substrate or erase real deposited wax.
+
+`src/video/crayon-character-draw-fixtures.ts` authors an original
+450-frame short: **blank paper → light construction axes → tail/ears/body
+contours → directional wax fill → detailed face → soft scenery fill →
+animated character payoff**. Two Film Looks Storybook stories are interactive:
+
+- **Character Draw In** (16:9)
+- **Character Draw In Portrait** (9:16)
+
+Storybook Controls expose outline/fill ordering, outline duration,
+binder/glaze, seed, paper tooth, play speed and loop. The film still uses
+CRAYON1 and FilmDocument: no new renderer or second timeline. For
+verified-making-of comparisons and a prioritized craft backlog, see
+[Crayon drawing and animated characters — research](../research/crayon-drawing-and-character-animation-study.md).
+
+**Limitations:** The guide fade is illustrative, not a simulated physical
+eraser. Character parts still use fixed seeded marks when animated, whereas
+high-end crayon frame-by-frame films redraw and rescan texture on each
+exposure. Hand/tool tracking, per-stroke pressure kinetics, multistroke
+semantic sequencing inside *one* complex outline and whole-video
+normal-speed independent art signoff remain open.
+
+
+### Structural craftsmanship: grouped detail atlas
+
+The Dragon Village cast and observatory now support dense, authored
+**scute, limb, wing, feather, masonry, pitched-roof and carved-stone**
+detail without introducing hundreds of React nodes per object.
+`crayonScaleField`, `crayonMasonryCourses` and
+`crayonRoofCourses` generate deterministic, validated SVG subpaths with
+limits on rows, columns and output complexity. Each generated detail
+region is a single named `CrayonContourElement` attached to the
+appropriate animated rig or building part, preserving actor and camera
+motion. The existing `villageDetail` control varies actual hand-drawn
+geometry density, not just procedural paper noise.
+
+The **Dragon Anatomy Detail**, **Dragon Anatomy Detail Portrait** and
+**Castle Masonry Detail** stories provide original close-up films in
+`Video production / Film Looks / Crayon / Scene Engine`. The new
+`shot` option is `wide | dragon | architecture`. The wide shot retains all actors and copy. Both close-ups hide story lettering. The dragon inspection view isolates the creature against the paper landscape, while the architecture inspection view hides the cast; this avoids visual occlusion. The source rig keys and wax artwork are not modified. Camera framing is
+validated in both native 960×540 and 540×960 sizes, with exact-frame
+seek tests and real Chromium screenshots.
+
+The architectural language and dragon anatomy decisions are
+reference-backed in the
+[creature and architecture study](../research/crayon-dragon-creature-and-architecture-study.md).
+
+### Multi-character creature rigging and sophisticated architecture
+
+**Dragon & The Village** is a 330-frame (11 second), three-actor
+example in the native `Video production / Film Looks / Crayon Scene
+Engine` gallery. The hand-authored scene combines a complex castle-like
+observatory and two different village buildings with a separately
+animated dragon, forest friend and owl. A portrait layout does not
+simply crop the landscape composition.
+
+The new optional CRAYON1 per-element rig fields are:
+
+- `motionLagFrames: 0..24` for deterministic delayed evaluation of
+  independently keyed appendage poses, which makes tail, whisker and
+  feather follow-through visible without frame-order-dependent simulation;
+- `placement.scaleX` / `placement.scaleY` and
+  `motion[].scaleX` / `motion[].scaleY` (0.4..2) for nonuniform,
+  pivot-relative 2D squash-and-stretch, consistently applied to SVG
+  rendering and world-space attachment math.
+
+The scene exposes **dragon wing power (0.5–1.6)**,
+**architecture detail (0.25–1)**, **follow-through (0–18 frames)**,
+**cast (two or three actors)** and **dragon palette (teal/copper/plum)**
+in Storybook Controls. Existing material controls, exact frame seeking,
+video speed and looping remain active. Both this Storybook and the
+original Crayon Storybook default to **1.2× presentation playback**, an
+intentionally modest increase. Native film export still runs at the
+authored frame rate.
+
+The dragon is assembled from independently animated membrane wings,
+vein paths, torso, three tail segments, neck and head, jaw, horn spikes,
+whiskers, scales, four feet and claws; the owl and forest friend have
+their own independent acting cues. The reusable machinery works for
+other fantasy creatures, but this is not a universal automatic
+quadruped-rig generator. Physical flight, advanced foot-ground contact,
+deforming wing skin, procedural building construction, and complete
+normal-speed production approval remain **future work**.
+
+Reference comparisons and visual acceptance notes are in
+[Dragon / creature and architecture study](../research/crayon-dragon-creature-and-architecture-study.md).
 
 ### Production proof
 
@@ -190,3 +886,158 @@ npm run film:render -- examples/film/crayon-scene-three-subjects.film.json --onl
 **What this does not automate:** interpreting arbitrary raster photos into credible wax strokes; inventing or reliably rigging a new character from text; typography line-breaking for arbitrary-length Japanese copy; exact physical wax optics; arbitrary path morphing; and subject-specific story planning. Authors or upstream generation tools must supply original SVG paths/characters, text, values, narrative timing and two aspect-aware layouts. This boundary prevents a generic SVG filter from masquerading as a physically crafted crayon illustration.
 
 **Updated qualification gates:** `tests/crayon-scene.test.tsx` exercises six independent 16:9/9:16 subjects, schema-negative cases, pose/camera seeking and FilmStage integration. The portable film has both outputs. `tests/e2e-storybook/crayon-scene.spec.ts` exercises four actual browser compositions; `.github/workflows/crayon-browser-qa.yml` runs inexpensive on-PR Chromium checks and reserves full encoded-film exports for manual `workflow_dispatch`. The full normal-speed video and independent human art review are still mandatory before marking `accepted`.
+
+
+## Held crayon exposures, anatomical redraws and encoded-film QA (2026-11-14)
+
+**Research:** [crayon-animation-film-technique-study.md](../research/crayon-animation-film-technique-study.md)
+compares seven hand-drawn films and their documented production methods.
+The technical goal is credible handmade imperfection, not arbitrary image
+noise. Materials and animation require three independent channels:
+solid silhouettes and stable paper; held, repainted local marks; and
+independently animated acting / camera.
+
+The optional `CrayonWaxElement.redraw` field is
+`{holdFrames:2|3|4|5|6,strength:0..1,beginFrame?:number}`.
+A 3-frame hold produces approximately 10 distinct wax-pigment
+exposures per second on a 30-fps film. The surface is *not re-randomized
+per frame*: at each exposure transition only 14 scattered local wax
+dabs change, with correlated locations and bounded displacement.
+The silhouette remains opaque and completely unchanged by the material
+redraw. The seed, actor, fixed paper tooth and original fills are
+deterministic in either seek direction. `beginFrame` enables an acting
+figure to start reworking pigment before its complete construction
+timeline ends. For a drawing-in sequence it should start after the
+permanent figure has emerged; the character-draw demo uses frame 408.
+
+`CrayonWaxElement.edgeRoughness` (0..1) introduces staggered,
+fragmented wax deposits that follow the opaque silhouette's rim.
+These accents increase surface irregularity without cutting holes
+through body mass. `coverage:"open"` and old scenes retain their
+original translucent behavior; new metadata is optional.
+
+The Dragon Village scene now supplies explicit hand-redrawn SVG
+silhouettes for the near and far wing membranes, synchronized near-wing
+rib redraws, and re-arched neck contour exposures. The wing still
+inherits the original motion hierarchy; this is **authored shape
+substitution**, not continuous soft-body physics. Storybook
+`Dragon Hand Redraw` and `Dragon Wing Morph` in
+**Video production → Film Looks → Crayon → Scene Engine** expose
+`redrawStrength` and `exposureFrames` Controls. The baseline
+`Dragon Village` keeps its existing URL and 330-frame duration.
+
+**Encoding proof:** `examples/film/crayon-painted-exposure-preview.film.json`
+has a 48-frame, 30-fps original fox excerpt with an offset to the active
+character paint. On crayon PRs the browser workflow encodes an MP4,
+probes its stream, and extracts actual source frames into an artifact.
+The existing on-demand workflow can render the complete 420-frame
+14-second film in landscape and portrait; those full runs are not
+substituted by the brief automated excerpt. After an actual normal-speed
+viewing, record whether frame boil, wing silhouette pops and edge
+flicker pass or fail. Unit and browser CI are structural evidence,
+not independent human artistic acceptance.
+
+**Known remaining work:** true four-legged IK grounding, deformable
+membrane skinning, pigment accumulation/erasure model, calibrated
+physical crayon nib scans with safe rights, and real-time full-film
+normal-speed acceptance. Do not claim those capabilities from a
+short encoded smoke alone.
+
+## Stroke-following opaque build-up (2026-11-14)
+
+During construction, foreground subjects now acquire dense pigment **along their
+existing individual crayon strokes**, not through a vertical rectangular wipe.
+The first pass of original seeded hatching provides the underpainting mask; a
+late, brief settling coat closes remaining pores and yields the same fully opaque
+completed silhouette as before. The tooth-masked decorative strokes remain
+above the backing. This keeps completed actors and buildings solid while making
+their creation look materially drawn rather than digitally revealed.
+
+Use Storybook **Material Studies / Stroke Path Underpainting** at frame 82, then
+scrub through frames 0–120 to compare the incomplete contact patches with the
+finished 100%-opacity body. The old `coverage: "open"` mode and all scene JSON
+contracts stay unchanged. A new deterministic SSR test checks the material mask
+only while construction is incomplete, preventing accidental permanent holes.
+See [the deposition/film follow-up study](../research/crayon-wax-deposition-follow-up-2026.md).
+
+**Still pending:** real nib-contact path sampling, pressure-sensitive paper
+height fields, wax smearing/erasing, deformable wing and torso skin, independent
+normal-speed human visual acceptance in both aspect ratios. This change is an
+engine improvement, not a claim of finished film-quality artwork.
+
+## Variable-pressure wax nib contact (2026-11-14)
+
+CRAYON1 now produces short, physically motivated **tapered ribbon-shaped wax
+deposits**, evaluated from the same seeded quadratic paths as the existing
+crayon marks. Each stroke lands with a narrow tip, broadens under nib
+pressure and narrows as it leaves the paper. Local grain differences are
+pinned to each nib sample, not rerandomized per video frame.
+
+The optional wax-element `nibStyle` is `"tapered"` (default) or
+`"rounded"` (legacy constant-width line, maintained for backward visual
+comparison). It is accepted in serialized scenes and directly in
+`WaxRegion`. The fallback is explicit: old scenes render with the upgraded
+wax contact unless they select `"rounded"`.
+
+Storybook: **Video production → Film Looks → Crayon → Material Studies →
+Nib Contact Comparison** renders both nib styles on the same source art,
+with controls for aspect-independent pressure, paper tooth, frame and
+coverage.
+
+The variable-width ribbon consists of at most five fixed sample intervals
+per short cubic-free quadratic mark. It respects the original marks'
+construction windows, clipping, tooth masks, opacity, seed, painter order,
+and reduced-motion end state; no second renderer, timer or dependency is added.
+
+The ribbon is an economical **contact model**, not wax height-field physics.
+It does not reproduce bidirectional pigment pickup, multi-layer optical
+mixing, or measured real-paper calibration. Actual full-film playback and
+human visual approval are still necessary.
+
+## Hand-guided local coloring order (2026-11-14)
+
+The WaxRegion / CRAYON1 wax scene element now accepts
+`strokeOrder: "patches" | "scanline"`. The new default, `patches`,
+fills small neighboring areas in a serpentine nib path, following a
+two-dimensional locality-preserving tile traversal rather than top-to-bottom
+bands. This is a spatially coherent simulated hand coloring order,
+not a claim of measured human hand movements. `scanline` restores the
+legacy row-major reveal when a particular shot needs it.
+
+The underlying precomputed wax shapes, pressure, colors, masks, pigment
+coverage, and IDs do not change between orders. Only absolute-frame
+**deposit sequencing** changes. In `patches` mode, one nib mark at a time
+has partial progress (a stylized time-lapse exposure); legacy `scanline`
+retains overlapping mark reveals. Generic transition fades are unaffected. The second coating pass follows the same
+order after the first. No editable scene data needs migration.
+
+Both options are exposed in **Video production / Film Looks / Crayon /
+Scene Engine** and in Material Studies. The comparison can be watched
+with the same seed and material settings. Changing this control never
+resets the underlying film or invents a new timeline.
+
+## Paper relief and wax contact (2026-11-14)
+
+The Paper primitive now defines a **world-anchored 144 × 144, transparent,
+seeded relief tile** in addition to its existing fiber texture. Every wax
+region on the page samples the same relief coordinates. Pressing a crayon
+softly creates stronger grain interruptions; pressing firmly deposits wax
+through more of the substrate's valleys. The contact response is derived
+continuously from existing `pressure`, not from a new discrete rendering mode.
+
+Only the **textured wax layer** uses this new relief mask. The opaque
+silhouette's finished underlying color remains unmasked and fully blocking.
+The paper-tooth slider scales the number of relief fragments, including zero
+for a perfectly smooth paper. World anchoring is stable under frame seeking;
+no canvas state, image assets, non-commercial third-party textures, browser
+noise filters or shader dependencies were added.
+
+Storybook: **Video production / Film Looks / Crayon / Material Studies /
+Pressure Against Paper Tooth**, with linked pressure, surface and frame
+controls. The example uses the same original character on both sides, with
+soft and firm contact selected by `pressureSplit`.
+
+**Limits:** this is an efficient optical approximation of pressure and
+raised fiber interactions, not a physical 3D paper height field. Wax erasure,
+directional smearing, layer thickness, specular gloss and true wet transfer
+remain separate research and craftsmanship priorities.

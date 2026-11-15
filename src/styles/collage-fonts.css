@@ -1,0 +1,9 @@
+/* App-level font loading for the editorial collage demos (the library ships font-role stacks only).
+   Anton is SIL OFL 1.1: src/media/thumbnail-examples/Anton-OFL.txt */
+@font-face {
+  font-family: "Anton";
+  src: url("../media/thumbnail-examples/Anton-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+}

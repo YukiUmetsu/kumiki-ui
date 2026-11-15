@@ -1,0 +1,127 @@
+name: Paper Craft visual film proof
+# Scoped to the Paper Craft PR so other material work does not spend browser minutes.
+on:
+  pull_request:
+    paths:
+      - 'tests/e2e-storybook/paper-craft.spec.ts'
+      - 'registry/video/paper-botanical-kit.ts'
+      - 'registry/video/paper-object-kit.ts'
+      - 'registry/video/paper-scenery-kit.ts'
+      - 'tests/paper-craft-scenery.test.tsx'
+      - 'tests/e2e-storybook/paper-craft-scenery.spec.ts'
+      - 'examples/film/paper-craft-scenery.film.json'
+      - 'registry/video/paper-craft.ts'
+      - 'registry/video/paper-director.ts'
+      - 'registry/video/paper-director-react.tsx'
+      - 'src/video/paper-royal-story.ts'
+      - 'tests/paper-royal-story.test.tsx'
+      - 'tests/e2e-storybook/paper-royal-story.spec.ts'
+      - 'examples/film/paper-royal-lantern.film.json'
+      - 'src/video/paper-director-demo.ts'
+      - 'tests/paper-director.test.tsx'
+      - 'tests/e2e-storybook/paper-director.spec.ts'
+      - 'examples/film/paper-craft-director.film.json'
+      - 'registry/video/paper-craft-react.tsx'
+      - 'tests/e2e-storybook/paper-craft-objects.spec.ts'
+      - 'examples/film/paper-craft-objects.film.json'
+      - 'src/video/paper-craft.stories.tsx'
+      - 'src/film/film-slots.tsx'
+      - 'examples/film/paper-craft-chromatic.film.json'
+      - '.github/workflows/paper-craft-visual-proof.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: paper-proof-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Full native Storybook film art screenshots
+        # Earlier paper modes have their own existing regression suite.
+        # Only the current paper-object stories consume Chromium minutes.
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-craft-scenery.spec.ts tests/e2e-storybook/paper-director.spec.ts
+      - name: Current kingfisher wing and anatomical paper browser proof
+        # Two relevant captures; retain the other object suites for local work.
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-craft-objects.spec.ts --grep "Reference-led anatomy persists"
+      - name: Capture three royal tale chapters in existing Storybook Paper Craft folder
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-royal-story.spec.ts
+      - name: Validate paper film for both outputs
+        run: |
+          npm run film:check -- examples/film/paper-craft-objects.film.json
+          npm run film:check -- examples/film/paper-craft-scenery.film.json
+          npm run film:check -- examples/film/paper-craft-director.film.json
+          npm run film:check -- examples/film/paper-royal-lantern.film.json
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Render new scenery in both output formats
+        run: |
+          for output in landscape portrait; do
+            for frame in 218 458; do
+              npm run film:frame -- examples/film/paper-craft-scenery.film.json --frame="$frame" --only="$output" --out=dist/paper-scenery-proof
+            done
+          done
+      - name: Encode a real native scenery film clip
+        run: npm run film:render -- examples/film/paper-craft-scenery.film.json --startFrame=160 --frames=60 --only=landscape --out=dist/paper-scenery-proof
+      - name: Capture actual kingfisher cut-stock anatomy in both orientations
+        run: |
+          for output in landscape portrait; do
+            npm run film:frame -- examples/film/paper-craft-objects.film.json --frame=175 --only="$output" --out=dist/paper-kingfisher-proof
+          done
+      - name: Capture four paper-film chapter compositions
+        run: |
+          for output in landscape portrait; do
+            for frame in 150 390 630 870; do
+              npm run film:frame -- examples/film/paper-craft-director.film.json --frame="$frame" --only="$output" --out=dist/paper-director-proof
+            done
+          done
+      - name: Capture opaque paper-curtain edit in both formats
+        run: |
+          for output in landscape portrait; do
+            for frame in 228 234 239 240 245 251 252; do
+              npm run film:frame -- examples/film/paper-craft-director.film.json --frame="$frame" --only="$output" --out=dist/paper-curtain-proof
+            done
+          done
+      - name: Encode a cross-cut paper film sequence
+        run: npm run film:render -- examples/film/paper-craft-director.film.json --startFrame=226 --frames=30 --only=landscape --out=dist/paper-director-proof
+      - name: Render original royal story chapters in landscape and portrait
+        run: |
+          for output in landscape portrait; do
+            for frame in 130 370 610; do
+              npm run film:frame -- examples/film/paper-royal-lantern.film.json --frame="$frame" --only="$output" --out=dist/paper-royal-story-proof
+            done
+          done
+      - name: Encode real 30-frame royal story curtain transition
+        run: npm run film:render -- examples/film/paper-royal-lantern.film.json --startFrame=227 --frames=30 --only=landscape --out=dist/paper-royal-story-proof
+      - name: Keep actual rendered browser captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper-craft-scenery-storybook-visuals
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Keep production PNG and encoded film
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper-craft-scenery-production-visuals
+          path: |
+            dist/paper-scenery-proof/
+            dist/paper-director-proof/
+            dist/paper-kingfisher-proof/
+            dist/paper-curtain-proof/
+            dist/paper-royal-story-proof/
+          retention-days: 7
+          if-no-files-found: warn

@@ -1,0 +1,45 @@
+name: Crayon ArtCraft adult face browser proof
+
+# Only changes to the new source-led portrait probe trigger this isolated
+# proof. No video/FFmpeg/full Storybook/legacy tests run here.
+on:
+  pull_request:
+    paths:
+      - src/video/crayon-artcraft-adult-face-fixtures.ts
+      - src/video/crayon-artcraft-adult-face.stories.tsx
+      - tests/e2e-artcraft/crayon-expression-comparison.spec.ts
+      - tests/e2e-artcraft/crayon-adult-face.spec.ts
+      - playwright.artcraft.config.ts
+      - .github/workflows/crayon-artcraft-native-render-proof.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crayon-artcraft-portrait-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  portrait-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Install browser runtime
+        run: npx playwright install --with-deps chromium
+      - name: Capture source-native portrait and synchronized inspection proofs
+        run: npx playwright test -c playwright.artcraft.config.ts tests/e2e-artcraft/crayon-adult-face.spec.ts tests/e2e-artcraft/crayon-expression-comparison.spec.ts
+      - name: Save native screenshots and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crayon-artcraft-native-portrait
+          path: test-results/
+          retention-days: 10
+          if-no-files-found: warn

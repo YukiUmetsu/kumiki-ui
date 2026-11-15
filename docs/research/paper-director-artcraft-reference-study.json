@@ -1,0 +1,276 @@
+{
+  "schema_version": 3,
+  "project": "PAPER-D1 general-purpose multi-shot paper film director",
+  "mode": "style-guided-original-construction",
+  "reference_policy": {
+    "min_references": 3,
+    "min_deep_studies": 2
+  },
+  "sources": [
+    {
+      "id": "layered-lightbox",
+      "title": "Kraken LED Light Box",
+      "creator": "Computer Aided Crafting",
+      "url": "https://www.computeraidedcrafting.com/art/kraken-light-box",
+      "rights": "All artwork rights reserved or unverified; visual study only, no copying",
+      "medium": "laser-cut cardstock LED lightbox",
+      "view": "finished frontal illuminated object",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Eight distinct darker front-to-back cardstock silhouette planes; central vehicle and tentacle subject surrounded by framed foreground palms",
+        "material": "Hard opaque dark shape edges with optical color separation from lamps behind physically stacked paper",
+        "microdetail": "Fine tree fronds and tentacle negative-space openings; only small thumbnail was inspected, so precise edge dimensions are unverified",
+        "light": "Bright central moon and warm-cool depth separation; not replicated as a gradient paper filter"
+      },
+      "crops": [
+        {
+          "feature": "stage-and-foreground",
+          "bbox": [
+            0.03,
+            0.02,
+            0.98,
+            0.96
+          ],
+          "observation": "foreground palm framing remains distinct from distant ship and moon",
+          "implementation_rule": "retain independent full-color opaque cutouts, depth and camera motion; do not flatten frame to a single atlas"
+        }
+      ]
+    },
+    {
+      "id": "alice-lightbox",
+      "title": "Enchanted Paper Light Box",
+      "creator": "Aline Maire",
+      "url": "https://mymodernmet.com/paper-light-box-art-aline-maire/",
+      "rights": "Copyrighted artwork; image linked for private study only",
+      "medium": "hand-cut layered paper and transmitted light",
+      "view": "finished frontal lightbox",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Top and side framing branches form attached large and fine networks over a glowing negative-space portal",
+        "material": "Multiple opaque paper silhouettes; large openings pass light through actual physical negative space",
+        "microdetail": "Branch-lace interstices and hanging foliage; source thumbnail does not support measuring micro-thickness",
+        "light": "Backlight separates silhouetted architecture of branches and a focal central moon"
+      },
+      "crops": [
+        {
+          "feature": "branch-portal",
+          "bbox": [
+            0.02,
+            0.02,
+            0.98,
+            0.58
+          ],
+          "observation": "dark twisted branches connected from the edge frame, not random stickers",
+          "implementation_rule": "preserve existing authored branch sheet and never animate its leaves independently from their hinge"
+        }
+      ]
+    },
+    {
+      "id": "cut-film-education",
+      "title": "Film and Animation at Key Stage 2",
+      "creator": "CCEA (Council for the Curriculum, Examinations & Assessment)",
+      "url": "https://ccea.org.uk/downloads/docs/ccea-asset/Resource/Film%20and%20Animation%20at%20Key%20Stage%202.pdf",
+      "rights": "Educational reference only; no pages redistributed",
+      "medium": "paper cutout stop motion and silhouette animation teaching guide",
+      "view": "technique discussion",
+      "deep_study": false,
+      "analysis": {
+        "construction": "Top-down cut-paper work depends on layered parts and visible joints rather than a plastic deformation filter",
+        "material": "Physical cardstock silhouettes remain opaque",
+        "microdetail": "Specific temporal motion frames not inspected",
+        "light": "No quantitative photographic reference"
+      },
+      "crops": []
+    },
+    {
+      "id": "jointed-paper-dog",
+      "title": "Giacomo Balla dog puppet art activity",
+      "creator": "Buffalo AKG Art Museum",
+      "url": "https://buffaloakg.org/learn-discover/kids-families/home-activities-kids-families/family-activity-inspired-giacomo-ballas",
+      "rights": "museum educational content, preview study only; no source pixels committed",
+      "medium": "paper silhouette with metal brad fastener",
+      "view": "photographed constructed puppet",
+      "deep_study": true,
+      "analysis": {
+        "construction": "The cut piece end is overlapped and mechanically pinned by a metal brad; articulated motion takes place around a stationary hole through both sheets",
+        "material": "A flat opaque printed sheet with drawn surface details, physically overlapping limbs",
+        "microdetail": "Small brad heads are visible against differently coloured limb paper; geometry follows its drawn contour rather than cylinder-like procedural limbs",
+        "light": "Soft ambient overhead lighting"
+      },
+      "crops": [
+        {
+          "feature": "articulated-pivot",
+          "bbox": [
+            0.22,
+            0.1,
+            0.75,
+            0.78
+          ],
+          "observation": "a brad sits at a visible cut-paper overlap and anchors rotation without opening an exposed gap",
+          "implementation_rule": "explicit child pivot in shared paper coordinates and inherited parent affine transform, preserving cross-sheet depth order"
+        }
+      ]
+    },
+    {
+      "id": "colored-shadow-puppet",
+      "title": "The Color of Shadows in China",
+      "creator": "MIT International Puppet Museum in Catalonia",
+      "url": "https://www.museudetitelles.com/en/el-color-a-les-ombres-xineses/",
+      "rights": "museum collections rights unverified; visual study only, no pixel copying",
+      "medium": "cut leather shadow puppets and control rods",
+      "view": "frontal articulated performance figures",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Numerous contiguous panels attach arms, garments and legs; rods and joints create a single coherent articulated figure",
+        "material": "Opaque silhouette/rich translucent leather in original medium. Paper demo intentionally uses opaque coloured stock instead of claiming authentic leather transmission",
+        "microdetail": "Tiny decorative carvings and patterned garments preserve meaningful character detail rather than simple oval parts",
+        "light": "Puppet figures read by silhouette and the bright projected curtain"
+      },
+      "crops": [
+        {
+          "feature": "figure-joint-structure",
+          "bbox": [
+            0.04,
+            0.02,
+            0.95,
+            0.96
+          ],
+          "observation": "articulated limbs connect around shoulder/hand contact points; control rods are separate from figure contours",
+          "implementation_rule": "bind pose with attached child pivots, independent motion and consistent z-order; cannot promise human character art from a rig API"
+        }
+      ]
+    },
+    {
+      "id": "paper-editorial-curtain",
+      "title": "Paper transition demonstrations",
+      "creator": "Paper Animators",
+      "url": "https://paperanimators.com/videos/",
+      "rights": "commercial product demo study only; no visual assets or proprietary source reused",
+      "medium": "paper tear and curtain-type editorial reveals",
+      "view": "online demonstration listing, not inspected frame-by-frame",
+      "deep_study": false,
+      "analysis": {
+        "construction": "Transitional opaque paper stock can cover a hard cut and then pull clear",
+        "material": "deckled cut edge and fixed surface grain; exact source material and timing unavailable",
+        "microdetail": "A non-uniform edge reads as hand cut if contour noise remains spatially fixed",
+        "light": "Separation shadow at moving edge, no ghosted incoming scene"
+      },
+      "crops": []
+    }
+  ],
+  "feature_targets": [
+    {
+      "id": "source-native-layering",
+      "reference_ids": [
+        "layered-lightbox",
+        "alice-lightbox"
+      ],
+      "critical": true,
+      "source_observation": "multiple independent solid cut-paper stocks with visible depth and designed openings",
+      "geometry_rule": "reuse PAPER1 closed contour and holes; keep opacity 1 for completed subjects",
+      "microdetails": [
+        "finite cut contours",
+        "true punched holes",
+        "fixed sheet-anchored tooth"
+      ],
+      "test_view": "Storybook landscape and portrait full-frame + close crop",
+      "part_ids": [
+        "scenery-frame",
+        "woodland-lace-canopy-0",
+        "moth-left-fore"
+      ],
+      "detail_critical": true
+    },
+    {
+      "id": "attached-puppet-motion",
+      "reference_ids": [
+        "alice-lightbox",
+        "cut-film-education"
+      ],
+      "critical": true,
+      "source_observation": "parts should remain connected through shared base/joint, not random floating transforms",
+      "geometry_rule": "group moth sheets under identical pose keyframes; preserve existing wing rigs",
+      "microdetails": [
+        "shared x/y key poses",
+        "unchanged cutout color",
+        "rig hinge continuity"
+      ],
+      "test_view": "motion frames before and after butterfly sweep",
+      "part_ids": [
+        "moth-abdomen",
+        "moth-thorax",
+        "moth-left-fore"
+      ],
+      "detail_critical": true
+    },
+    {
+      "id": "camera-and-editing",
+      "reference_ids": [
+        "layered-lightbox",
+        "cut-film-education"
+      ],
+      "critical": true,
+      "source_observation": "physical framing and depth must survive virtual camera moves; paper does not dissolve into ghost alpha",
+      "geometry_rule": "bounded camera keyframes and hard cuts at chapter boundaries; cap movement to keep backing safe",
+      "microdetails": [
+        "controlled zoom maximum 1.18",
+        "no crossfade transparency",
+        "deterministic frame seek"
+      ],
+      "test_view": "film f239/f240, f479/f480, both aspects",
+      "part_ids": [
+        "film-camera",
+        "paper-director-stage"
+      ],
+      "detail_critical": false
+    },
+    {
+      "id": "shared-parent-joint",
+      "reference_ids": [
+        "jointed-paper-dog",
+        "colored-shadow-puppet"
+      ],
+      "critical": true,
+      "source_observation": "metal fastener/rod driven connected parts remain attached across pose extremes",
+      "geometry_rule": "one root paper sheet, explicit child pivots, affine parent inheritance, sorted opaque layered stock, reject cycles",
+      "microdetails": [
+        "joint overlap visible",
+        "local flap unaffected",
+        "attachment landmarks invariant under parent motion"
+      ],
+      "test_view": "botanical f300/f390/f450 in both formats and extreme pose unit tests",
+      "part_ids": [
+        "moth-abdomen",
+        "moth-left-fore",
+        "moth-thorax"
+      ],
+      "detail_critical": true
+    },
+    {
+      "id": "solid-deckled-film-edit",
+      "reference_ids": [
+        "paper-editorial-curtain",
+        "colored-shadow-puppet"
+      ],
+      "critical": true,
+      "source_observation": "a paper sheet obscures a picture edit with a material edge; opaque bodies never dissolve",
+      "geometry_rule": "outgoing cover from edge-to-edge and incoming reveal with paper anchored cut outline and tooth",
+      "microdetails": [
+        "opaque pigment six digit hex",
+        "edge bends from slow swells",
+        "source layers fully constructed at the cut"
+      ],
+      "test_view": "f228/f234/f239/f240/f245/f251 both aspects plus 30-frame encoded cut",
+      "part_ids": [
+        "paper-curtain",
+        "film-camera"
+      ],
+      "detail_critical": true
+    }
+  ],
+  "notes": {
+    "source_gate": "Thumbnail-level viewing only. High-resolution licensed source crops not retained: geometry exact-match gate not claimed.",
+    "scope": "Style-guided generic film framework; original authored paper assets retained from existing PAPER1 packs; no third-party pixels included.",
+    "motion_gate": "No external source motion clip inspected frame-by-frame; timed model based on authored edit rhythm and actual output review. Independent artistic sign-off remains separate."
+  }
+}

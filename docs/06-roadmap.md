@@ -135,6 +135,27 @@ APIs for all three. Current test/install/visual release gates are deferred, not 
 
 All references must include **editable source, pinned assets/fonts, actual artifacts, measured render/performance data, visual review screenshots and machine-readable diagnostics**. Hard failures are not converted to silent fallbacks. Engine-only demos without a complete composition do not satisfy an exit gate.
 
+### Ukiyo-e handscroll (UKIYO1) — owner queue, 2026-11-14
+
+The owner asked for these additions to the [`ukiyoe-handscroll`](component-specs/ukiyoe-handscroll.md) pack. Build them one slice at a time, in this order, and stop after each slice for review. Each slice:
+
+- passes the ArtCraft reference gate first: public-domain prints (Utamaro, Eisen, Kunisada, Hiroshige, Hokusai) and photographs of surviving costume, swords and buildings, with sources recorded in the [reference study](research/ukiyoe-handscroll-reference-study.md);
+- draws every view the rig supports: profile, three-quarter, front and back;
+- tracks each special animation frame by frame (contact, weight, cause and effect) before calling it done;
+- adds a Storybook example (Cast lab, Bestiary or Motifs) and only the related tests.
+
+| Slice | Deliverable | Exit gate |
+|---|---|---|
+| **U1 — Oiran** (delivered 2026-11-14; see the [reference study](research/ukiyoe-handscroll-reference-study.md#oiran-roadmap-u1-owner-request-2026-11-14)) | A highly detailed courtesan figure. Layered uchikake over-robe with a heavy patterned hem, the mae-obi tied in front, the date-hyōgo hairstyle with many kanzashi, kōgai and tortoiseshell combs, tall three-toothed koma-geta. Special animation: the oiran dōchū procession walk (the slow figure-eight hachimonji step), with optional attendants (kamuro, shinzō) and a manservant holding the long-handled umbrella. | All four views read at Cast-lab and close-up sizes; the hachimonji step keeps the planted foot fixed and the hem swings with it; screenshot review. |
+| **U2 — Maiko** (delivered 2026-11-14; see the [reference study](research/ukiyoe-handscroll-reference-study.md#maiko-roadmap-u2-owner-request-2026-11-14)) | A highly detailed apprentice-dancer figure. The darari obi hanging to the ankles (the back view is the hero), the wareshinobu hairstyle with hana-kanzashi, okobo clogs, the trailing hikizuri hem, the red collar. Special animations: a kyōmai dance with a folding fan, sleeve gestures, a formal bow, the short okobo step. | As U1. The darari obi and sleeves follow the motion with lag and stay attached at the waist and shoulder. |
+| **U3a — Samurai and katana** (delivered 2026-11-15; see the [reference study](research/ukiyoe-handscroll-reference-study.md#samurai-and-katana-roadmap-u3a-owner-request-2026-11-15)) | A katana prop drawn in detail: the curved blade with its hamon, the tsuka's diamond wrap, tsuba, saya and sageo, worn as a daishō pair at the hip. A samurai look in kamishimo and hakama. Solo animations: the draw (nukitsuke), stances (chūdan, jōdan, hassō), cuts, and sheathing (nōtō). | The blade stays in the hands through every pose and view; the sword leaves and enters the saya cleanly; a swing has a readable anticipation, cut and follow-through. |
+| **U3b — Duels** (delivered 2026-11-15; see the [reference study](research/ukiyoe-handscroll-reference-study.md#duels-roadmap-u3b-owner-request-2026-11-15)) | Paired fighting between two figures: timed attack and parry with blade contact and sparks, hit reactions, a fall. The contact frames are shared between the two figures so they never drift apart. | Blades meet on the contact frame and never pass through bodies; random seeking matches sequential playback. |
+| **U4 — Oni weapons and fighting** | A detailed studded iron kanabō (and other oni weapons from the prints). Oni fighting: an overhead smash with dust and a ground crack on impact, a sideways swing, a stagger, and a fight against a samurai (and Momotarō) using the U3b contact system. | Impacts land on the frame the weapon reaches the ground or the target; the oni's weight reads in the windup and recovery. |
+| **U5 — Castle** | A castle motif: a multi-tier tenshu keep with chidori and karahafu gables and shachihoko on the ridge, white plaster and black boarding, on a curved ishigaki stone base, with yagura turrets, gates, a moat and bridges. | It reads at a distance and in close-up; parameters (tiers, size, snow, night lights) work in the Motifs gallery. |
+| **U6 — Castle town** | A jōkamachi castle town composed from the castle, townhouses, samurai residences, a merchant street, a fire-watch tower, a canal and bridges, with crowds, as a scene recipe for a handscroll pan from the keep down through the town. | One scene JSON pans from the castle into the streets without text or depth collisions; the crowds walk on the streets. |
+
+Depict the oiran and maiko with dignity, as costume and performance; no sexualised framing. Maiko are often minors.
+
 ## Within each component slice
 
 1. Write the spec from [template](../templates/component-spec.md), including acceptance cases; check whether existing component/spec already covers it.

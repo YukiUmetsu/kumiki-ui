@@ -1,5 +1,7 @@
-import { assertCrayonOptions } from "./crayon";
-import type { CrayonBounds } from "./crayon";
+import { assertCrayonOptions, assertCrayonSgraffito, crayonConstructionWindows } from "./crayon";
+import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction, CrayonSgraffito } from "./crayon";
+import { assertCrayonRedrawOptions } from "./crayon-exposure";
+import type { CrayonRedrawOptions } from "./crayon-exposure";
 
 /**
  * Serializable, medium-native authored scene contract.
@@ -10,16 +12,29 @@ export type CrayonColor = `#${string}`;
 export interface CrayonTiming { start: number; end: number }
 export interface CrayonPlacement {
   x?: number; y?: number; scale?: number; rotate?: number;
+  /** Local nonuniform deformation for soft breathing, wings or landing compression. */
+  scaleX?: number; scaleY?: number;
 }
 /** Animate semantic elements independently while preserving a stable wax stroke seed. */
 export interface CrayonMotionKey {
   frame: number;
   x: number; y: number;
   scale?: number; rotate?: number;
+  scaleX?: number; scaleY?: number;
+}
+/** World-space grip/foot plant: lock a point of the original drawing at its position on start. */
+export interface CrayonContact {
+  start: number; end: number;
+  /** Ease the outgoing plant correction after end, avoiding a discontinuous foot jump. */
+  releaseFrames?: number;
+  /** Anchor expressed in the element's original local drawing coordinates. */
+  anchor: {x:number; y:number};
 }
 export interface CrayonBase {
   id: string;
   timing: CrayonTiming;
+  /** Rendered light construction lines may retire after the finished drawing replaces them. */
+  exitFade?: CrayonTiming;
   placement?: CrayonPlacement;
   screenSpace?: boolean;
   /** Optional articulated parent. Order of artwork stays independent of the rig hierarchy. */
@@ -27,11 +42,33 @@ export interface CrayonBase {
   /** Local rotation/scale pivot in authored drawing coordinates. */
   pivot?: { x: number; y: number };
   motion?: readonly CrayonMotionKey[];
+  /** Delay an appendage’s own pose keys to produce authored overlap; not simulation. */
+  motionLagFrames?: number;
+  /** Authored, non-overlapping stance/hold ranges; leaves the camera and draw order unchanged. */
+  contacts?: readonly CrayonContact[];
   /** Number of held source frames per drawing pose. Camera and brush remain frame-accurate. */
   poseCadence?: 1 | 2 | 3 | 4;
 }
+/** Discrete original redraws; unlike rigging, each key can change the silhouette. */
+export interface CrayonWaxDrawing { frame: number; d: string; bounds: CrayonBounds }
+export interface CrayonContourDrawing { frame: number; d: string }
+/** Reusable original drawings addressed by a semantic acting cue, e.g. "mbp", "oh", "blink". */
+export interface CrayonNamedPose { id: string; d: string }
+export interface CrayonPoseCue { frame: number; pose: string }
+export interface CrayonVolumeGradient {
+  /** First wax pigment deposited near the lit plane. */
+  light:CrayonColor;
+  /** Darker pigment at the boundary far from the light. */
+  shadow:CrayonColor;
+  /** Normalized radial paint focus in the local wax silhouette (0..1). */
+  focusX:number;focusY:number;
+  /** Radius as proportion of the silhouette bounding-box, 0.2..1.5. */
+  radius:number;
+}
 export interface CrayonWaxElement extends CrayonBase {
   kind: "wax";
+  /** Original drawings selected at absolute frames. */
+  drawings?: readonly CrayonWaxDrawing[];
   d: string;
   bounds: CrayonBounds;
   colors: readonly [CrayonColor, CrayonColor, CrayonColor];
@@ -39,13 +76,82 @@ export interface CrayonWaxElement extends CrayonBase {
   spacing?: number;
   /** Authored wax-rubbing direction in degrees. */
   angle?: number;
+  /** Pressure-shaped tapered contact (default), optional fractured dry wax or legacy rounded line. */
+  nibStyle?: CrayonNibStyle;
+  /** Physically localized hand-coloring progress or historic scanline order. */
+  strokeOrder?: CrayonStrokeOrder;
+  /** Long connected rubbed patches or legacy short wax flecks. */
+  markLength?: CrayonMarkLength;
+  /** Opaque, silhouette-blocking wax underpaint for characters and solid props;
+   * default open retains translucent scenery and older CRAYON1 documents. */
+  coverage?: "open" | "opaque";
+  /** Edge blending radius (0..18 SVG units) for painted open wax glazes.
+   * Finished subjects remain opaque because their own underpaint is separate. */
+  blendRadius?: number;
+  /** 0..1 artistic density of medium-native random tooth marks.
+   * Lower values leave opaque underpaint intact; the artist can layer
+   * explicit anatomy and form-directed marks on top instead of noise. */
+  markStrength?: number;
+  /** Optical wax-undercoat contact with the shared paper relief (0..1).
+   * Never changes alpha coverage of a solid character or scene object. */
+  underpaintTooth?: number;
+  /** Smooth underlying side-nib mass, combined with full-opacity silhouette
+   * and explicit pressure-shaped wax scratches; never a global object blur. */
+  underpaintGradient?:CrayonVolumeGradient;
+  /** Confine a tonal glaze to the animated parent wax silhouette. */
+  clipToParent?: boolean;
+  /** Held, small-patch reworking of wax pigment; frame-deterministic. */
+  redraw?: CrayonRedrawOptions;
+  /** Optional broken nib accents on opaque silhouettes (0..1). */
+  edgeRoughness?: number;
+  /** Separate illustrator's drawn outline from opaque wax mass. Zero is valid. */
+  outlineOpacity?: number;
+  /** Scratch the overlying wax to reveal the fully opaque first pigment
+   * layer, rather than painting pale lines over the top. */
+  sgraffito?: CrayonSgraffito;
+  /** Explicit silhouette-outline versus pigment-deposition sequence. */
+  construction?: CrayonWaxConstruction;
 }
 export interface CrayonContourElement extends CrayonBase {
   kind: "contour";
+  /** Restrict drawn fur/hatch marks to the exact animated wax shape of this
+   * contour's anatomical parent (local parent coordinates). Preserves the
+   * opaque underpaint, while preventing stray lines outside the silhouette. */
+  clipToParent?: boolean;
+  /** Chronological redraws without named reuse. Mutually exclusive with poses/poseCues. */
+  drawings?: readonly CrayonContourDrawing[];
+  /** Author-defined visemes/expressions; "base" always means the initial d. */
+  poses?: readonly CrayonNamedPose[];
+  /** Aligned absolute-frame acting/exposure-sheet cues. No audio decoder or clock is implied. */
+  poseCues?: readonly CrayonPoseCue[];
   d: string;
   color: CrayonColor;
   width: number;
   opacity?: number;
+}
+/** Authored drawing anchor on a moving element, prior to camera framing. */
+export interface CrayonAnchorRef { elementId: string; anchor: {x:number; y:number} }
+/** A wax-outline connector follows two independently animated anchors. */
+/** Optional, preferred-length analytic two-bone limb. Unreachable targets stay connected. */
+export interface CrayonTwoBoneIK {
+  upperLength: number;
+  lowerLength: number;
+  /** Anatomical bend side relative to the line from hip to ankle. */
+  bendSide: "left" | "right";
+}
+export interface CrayonConnectorElement extends CrayonBase {
+  kind: "connector";
+  from: CrayonAnchorRef;
+  to: CrayonAnchorRef;
+  color: CrayonColor;
+  width: number;
+  opacity?: number;
+  /** Signed knee/elbow curvature normal to the line between the endpoints. */
+  bend?: number;
+  /** Optional authored knee/elbow bend exposures independent of endpoint motion. */
+  bendKeys?: readonly {frame:number; bend:number}[];
+  /** Alternative to bend/bendKeys: two straight articulated segments with a solved knee. */
+  ik?: CrayonTwoBoneIK;
 }
 export interface CrayonLetteringElement extends CrayonBase {
   kind: "lettering";
@@ -59,7 +165,7 @@ export interface CrayonLetteringElement extends CrayonBase {
   /** Contrast backing for captions against visually complex wax. */
   backing?: { color: CrayonColor; padding: number; width: number; height: number; radius?: number };
 }
-export type CrayonElement = CrayonWaxElement | CrayonContourElement | CrayonLetteringElement;
+export type CrayonElement = CrayonWaxElement | CrayonContourElement | CrayonLetteringElement | CrayonConnectorElement;
 
 export interface CrayonCameraKey {
   frame: number;
@@ -118,18 +224,58 @@ export function inspectCrayonScene(input: unknown): string[] {
       if (typeof node.id !== "string" || !/^[a-z][a-z0-9-]{1,63}$/.test(node.id) || seen.has(node.id)) errors.push(p + ".id must be a unique slug");
       else seen.add(node.id);
       checkTime(node.timing, v.durationFrames ?? 0, p, errors);
+      if (node.exitFade !== undefined) {
+        checkTime(node.exitFade,v.durationFrames ?? 0,p+".exitFade",errors);
+        if (!node.exitFade || node.exitFade.start < node.timing?.end)
+          errors.push(p+".exitFade must begin after construction is drawn");
+      }
       if (node.parentId !== undefined && (typeof node.parentId !== "string" || !/^[a-z][a-z0-9-]{1,63}$/.test(node.parentId)))
         errors.push(p + ".parentId must be an element slug");
       if (node.pivot !== undefined && (!node.pivot || ![node.pivot.x,node.pivot.y].every(finite) ||
         Math.abs(node.pivot.x) > 8192 || Math.abs(node.pivot.y) > 8192))
         errors.push(p + ".pivot must be bounded finite coordinates");
       const place = node.placement;
-      if (place && ([place.x,place.y,place.scale,place.rotate].some(v => v !== undefined && !finite(v)) ||
+      if (place && ([place.x,place.y,place.scale,place.rotate,place.scaleX,place.scaleY]
+        .some(v => v !== undefined && !finite(v)) ||
         (place.scale !== undefined && (place.scale < .05 || place.scale > 15)) ||
+        (place.scaleX !== undefined && (place.scaleX < .4 || place.scaleX > 2)) ||
+        (place.scaleY !== undefined && (place.scaleY < .4 || place.scaleY > 2)) ||
         (place.rotate !== undefined && Math.abs(place.rotate) > 360)))
         errors.push(p + ".placement is out of bounds");
+      if (node.contacts !== undefined) {
+        if (node.screenSpace) errors.push(p + ".contacts require a world-space drawing");
+        if (!Array.isArray(node.contacts) || node.contacts.length < 1 || node.contacts.length > 16)
+          errors.push(p + ".contacts must contain 1..16 non-overlapping ranges");
+        else {
+          let previous=-1;
+          let previousReleaseEnd=-1;
+          for(const [j,contact] of node.contacts.entries()) {
+            const q=p+".contacts["+j+"]";
+            if (!contact || !int(contact.start) || !int(contact.end) ||
+              contact.start < 0 || contact.end < contact.start ||
+              contact.start <= previous || contact.end >= (v.durationFrames ?? 0))
+              errors.push(q+".range must be sorted, non-overlapping and within duration");
+            if(contact && contact.start<=previousReleaseEnd)
+              errors.push(q+".releaseFrames overlap the following plant");
+            if(contact && contact.releaseFrames !== undefined &&
+              (!int(contact.releaseFrames) || contact.releaseFrames<0 ||
+                contact.releaseFrames>24 ||
+                contact.end+contact.releaseFrames >= (v.durationFrames??0)))
+              errors.push(q+".releaseFrames must be 0..24 and within scene duration");
+            previous=contact?.end ?? previous;
+            previousReleaseEnd=(contact?.end??previous)+(contact?.releaseFrames??0);
+            if (!contact || !contact.anchor ||
+              ![contact.anchor.x,contact.anchor.y].every(finite) ||
+              Math.abs(contact.anchor.x)>8192 || Math.abs(contact.anchor.y)>8192)
+              errors.push(q+".anchor must be bounded finite drawing coordinates");
+          }
+        }
+      }
       if (node.poseCadence !== undefined && ![1,2,3,4].includes(node.poseCadence))
         errors.push(p + ".poseCadence must be 1..4");
+      if (node.motionLagFrames !== undefined && (!int(node.motionLagFrames)||
+        node.motionLagFrames<0||node.motionLagFrames>24||!node.motion))
+        errors.push(p+".motionLagFrames must be 0..24 and needs authored motion keys");
       if (node.motion !== undefined) {
         if (!Array.isArray(node.motion) || node.motion.length === 0 || node.motion.length > 40)
           errors.push(p + ".motion must have 1..40 keys");
@@ -140,9 +286,36 @@ export function inspectCrayonScene(input: unknown): string[] {
               key.frame <= previous || ![key.x,key.y].every(finite) ||
               Math.abs(key.x)>8192 || Math.abs(key.y)>8192 ||
               (key.rotate!==undefined && (!finite(key.rotate)||Math.abs(key.rotate)>360)) ||
-              (key.scale!==undefined && (!finite(key.scale)|| (key.scale)<.05 || key.scale>15)))
+              (key.scale!==undefined && (!finite(key.scale)|| (key.scale)<.05 || key.scale>15))||
+              (key.scaleX!==undefined && (!finite(key.scaleX)||key.scaleX<.4||key.scaleX>2))||
+              (key.scaleY!==undefined && (!finite(key.scaleY)||key.scaleY<.4||key.scaleY>2)))
               errors.push(p + ".motion["+keyIndex+"] is invalid or unsorted");
             previous=key?.frame ?? previous;
+          }
+        }
+      }
+      if (node.kind === "wax" || node.kind === "contour") {
+        const drawings=node.drawings;
+        if (drawings !== undefined) {
+          if (!Array.isArray(drawings) || drawings.length < 1 || drawings.length > 48)
+            errors.push(p + ".drawings must contain 1..48 replacement drawings");
+          else {
+            let previous=0;
+            for (const [j,drawing] of drawings.entries()) {
+              const q=p+".drawings["+j+"]";
+              if (!drawing || !int(drawing.frame) || drawing.frame <= previous ||
+                drawing.frame >= (v.durationFrames ?? 0))
+                errors.push(q+".frame must be sorted and within the scene after frame 0");
+              previous=drawing?.frame ?? previous;
+              if (!drawing || typeof drawing.d !== "string" || !pathSafe(drawing.d))
+                errors.push(q+".d must contain a bounded SVG path");
+              const bounds=drawing && "bounds" in drawing ? drawing.bounds : undefined;
+              if (node.kind === "wax" && (!bounds ||
+                ![bounds.x,bounds.y,bounds.width,bounds.height].every(finite) ||
+                bounds.width <= 0 || bounds.height <= 0 ||
+                bounds.width > 4096 || bounds.height > 4096))
+                errors.push(q+".bounds must be finite and positive");
+            }
           }
         }
       }
@@ -155,14 +328,155 @@ export function inspectCrayonScene(input: unknown): string[] {
         else node.colors.forEach((color: string,i: number)=>checkColor(String(color),p + ".colors["+i+"]",errors));
         if (node.angle !== undefined && (!finite(node.angle) || node.angle < -89 || node.angle > 89))
           errors.push(p + ".angle must be in [-89,89]");
+        if (node.coverage !== undefined && node.coverage !== "open" && node.coverage !== "opaque")
+          errors.push(p + ".coverage must be open or opaque");
+        if (node.blendRadius !== undefined && (!finite(node.blendRadius)||node.blendRadius<0||
+          node.blendRadius>18||node.coverage!=="open"))
+          errors.push(p + ".blendRadius must be 0..18 on open wax");
+        if (node.underpaintGradient !== undefined) {
+          const g=node.underpaintGradient;
+          if(!g || node.coverage!=="opaque" || !finite(g.focusX) || !finite(g.focusY) ||
+            !finite(g.radius) || g.focusX<0 || g.focusX>1 || g.focusY<0 || g.focusY>1 ||
+            g.radius<.2 || g.radius>1.5)
+            errors.push(p + ".underpaintGradient is out of bounds or requires opaque wax");
+          if(g){
+            checkColor(String(g.light??""),p+".underpaintGradient.light",errors);
+            checkColor(String(g.shadow??""),p+".underpaintGradient.shadow",errors);
+          }
+        }
+        if (node.markStrength !== undefined && (!finite(node.markStrength)||
+          node.markStrength<0||node.markStrength>1))
+          errors.push(p + ".markStrength must be within [0,1]");
+        if (node.underpaintTooth !== undefined &&
+          (!finite(node.underpaintTooth) || node.underpaintTooth<0 ||
+            node.underpaintTooth>1 ||
+            (node.underpaintTooth>0 && node.coverage!=="opaque")))
+          errors.push(p + ".underpaintTooth must be 0..1 on opaque wax");
+        if (node.clipToParent !== undefined && typeof node.clipToParent!=="boolean")
+          errors.push(p + ".clipToParent must be a boolean");
+        if (node.clipToParent && !node.parentId)
+          errors.push(p + ".clipToParent requires a parent wax element");
+        if (node.nibStyle !== undefined && node.nibStyle !== "rounded" && node.nibStyle !== "tapered" && node.nibStyle !== "dry")
+          errors.push(p + ".nibStyle must be rounded, tapered or dry");
+        if (node.strokeOrder !== undefined && node.strokeOrder !== "scanline" && node.strokeOrder !== "patches")
+          errors.push(p + ".strokeOrder must be scanline or patches");
+        if (node.markLength !== undefined && node.markLength !== "long" && node.markLength !== "short")
+          errors.push(p + ".markLength must be long or short");
+        if(node.edgeRoughness!==undefined && (!finite(node.edgeRoughness)||
+          node.edgeRoughness<0||node.edgeRoughness>1))
+          errors.push(p+".edgeRoughness must be in [0,1]");
+        if(node.outlineOpacity!==undefined && (!finite(node.outlineOpacity)||
+          node.outlineOpacity<0||node.outlineOpacity>1))
+          errors.push(p+".outlineOpacity must be in [0,1]");
+        if(node.sgraffito!==undefined){
+          try {
+            assertCrayonSgraffito(node.sgraffito);
+            if(node.coverage!=="opaque")
+              errors.push(p+".sgraffito requires opaque buried pigment");
+            if(node.sgraffito.first<node.timing.end||
+              node.sgraffito.last>=(v.durationFrames??0))
+              errors.push(p+".sgraffito must follow wax deposition and fit duration");
+          }catch {errors.push(p+".sgraffito must have valid path, width and frames");}
+        }
+        if(node.redraw!==undefined){
+          try{assertCrayonRedrawOptions(node.redraw);}
+          catch{errors.push(p+".redraw must have valid held exposures and strength");}
+        }
+        if (node.construction !== undefined) {
+          try{crayonConstructionWindows(node.timing.start,node.timing.end,node.construction);}
+          catch{errors.push(p+".construction must have a valid outline order, fraction and wax glaze");}
+        }
         try { assertCrayonOptions({seed:0,pressure:node.pressure ?? .84,spacing:node.spacing ?? 9}); }
         catch {errors.push(p + ".pressure/spacing is out of bounds");}
       } else if (node.kind === "contour") {
+        if (node.clipToParent !== undefined && typeof node.clipToParent !== "boolean")
+          errors.push(p + ".clipToParent must be a boolean");
+        if (node.clipToParent === true) {
+          const parent = (v.elements ?? []).find(x => x && x.id === node.parentId);
+          if (!node.parentId || !parent || parent.kind !== "wax")
+            errors.push(p + ".clipToParent requires a wax parent");
+          // Clipping is evaluated in the *parent's local coordinates*.
+          // A separate transform on this contour would disconnect its mask.
+          if (node.placement !== undefined || node.motion !== undefined ||
+            node.contacts !== undefined || node.screenSpace)
+            errors.push(p + ".clipToParent requires untransformed world-space child");
+        }
         if (!pathSafe(node.d)) errors.push(p + ".d must contain a bounded SVG path");
         checkColor(String(node.color),"color for "+p,errors);
         if (!finite(node.width) || node.width <= 0 || node.width > 64) errors.push(p + ".width out of bounds");
         if (node.opacity !== undefined && (!finite(node.opacity) || node.opacity < 0 || node.opacity > 1))
           errors.push(p + ".opacity out of bounds");
+        if (node.poses !== undefined || node.poseCues !== undefined) {
+          if (node.drawings !== undefined)
+            errors.push(p + ".drawings and named poses cannot be combined");
+          if (!Array.isArray(node.poses) || node.poses.length < 1 || node.poses.length > 24)
+            errors.push(p + ".poses must contain 1..24 named paths");
+          if (!Array.isArray(node.poseCues) || node.poseCues.length < 1 || node.poseCues.length > 600)
+            errors.push(p + ".poseCues must contain 1..600 cues");
+          if (Array.isArray(node.poses)) {
+            const ids=new Set<string>(["base"]);
+            for (const [j,pose] of node.poses.entries()) {
+              if (!pose || typeof pose.id !== "string" || !/^[a-z][a-z0-9-]{0,31}$/.test(pose.id) ||
+                ids.has(pose.id)) errors.push(p + ".poses["+j+"].id must be a unique slug (not base)");
+              else ids.add(pose.id);
+              if (!pose || typeof pose.d !== "string" || !pathSafe(pose.d))
+                errors.push(p + ".poses["+j+"].d must contain a bounded SVG path");
+            }
+            if (Array.isArray(node.poseCues)) {
+              let previous=-1;
+              for (const [j,cue] of node.poseCues.entries()) {
+                if (!cue || !int(cue.frame) || cue.frame <= previous ||
+                  cue.frame >= (v.durationFrames ?? 0))
+                  errors.push(p + ".poseCues["+j+"].frame must be sorted and within scene");
+                previous=cue?.frame ?? previous;
+                if (!cue || typeof cue.pose !== "string" || !ids.has(cue.pose))
+                  errors.push(p + ".poseCues["+j+"].pose is not a declared pose");
+              }
+            }
+          }
+        }
+      } else if (node.kind === "connector") {
+        if (node.parentId !== undefined || node.placement !== undefined ||
+          node.motion !== undefined || node.pivot !== undefined || node.contacts !== undefined ||
+          node.screenSpace)
+          errors.push(p + ".connector is evaluated in world-space and cannot inherit local transforms");
+        checkColor(String(node.color),"color for "+p,errors);
+        if (!finite(node.width) || node.width <= 0 || node.width > 64)
+          errors.push(p + ".width out of bounds");
+        if (node.opacity !== undefined && (!finite(node.opacity) || node.opacity < 0 || node.opacity > 1))
+          errors.push(p + ".opacity out of bounds");
+        if (node.bend !== undefined && (!finite(node.bend) || Math.abs(node.bend)>500))
+          errors.push(p + ".bend must be a bounded finite offset");
+        if (node.ik !== undefined) {
+          if (!node.ik || !finite(node.ik.upperLength) || !finite(node.ik.lowerLength) ||
+            node.ik.upperLength < 1 || node.ik.upperLength > 512 ||
+            node.ik.lowerLength < 1 || node.ik.lowerLength > 512 ||
+            !["left","right"].includes(node.ik.bendSide))
+            errors.push(p + ".ik must define bounded upper/lower lengths and a bend side");
+          if (node.bend !== undefined || node.bendKeys !== undefined)
+            errors.push(p + ".ik is mutually exclusive with bend/bendKeys");
+        }
+        if (node.bendKeys !== undefined) {
+          if(!Array.isArray(node.bendKeys)||node.bendKeys.length<1||node.bendKeys.length>40)
+            errors.push(p + ".bendKeys must contain 1..40 authored bend frames");
+          else {
+            let previous=-1;
+            for(const [j,key] of node.bendKeys.entries()){
+              if(!key||!int(key.frame)||key.frame<=previous||
+                key.frame>=(v.durationFrames??0)||!finite(key.bend)||Math.abs(key.bend)>500)
+                errors.push(p + ".bendKeys["+j+"] must be sorted, finite and within scene");
+              previous=key?.frame??previous;
+            }
+          }
+        }
+        for(const end of ["from","to"] as const){
+          const ref=node[end];
+          if(!ref || typeof ref.elementId !== "string" ||
+            !/^[a-z][a-z0-9-]{1,63}$/.test(ref.elementId) ||
+            !ref.anchor || ![ref.anchor.x,ref.anchor.y].every(finite) ||
+            Math.abs(ref.anchor.x)>8192 || Math.abs(ref.anchor.y)>8192)
+            errors.push(p+"."+end+" must reference a bounded drawing anchor");
+        }
       } else if (node.kind === "lettering") {
         if (!Array.isArray(node.lines) || node.lines.length === 0 || node.lines.length > 6 ||
           node.lines.some((line: string) => typeof line !== "string" || line.length < 1 || line.length > 160))
@@ -190,7 +504,16 @@ export function inspectCrayonScene(input: unknown): string[] {
   if (Array.isArray(v.elements)) {
     const byId = new Map(v.elements.filter((e): e is CrayonElement => !!e && typeof e.id === "string").map(e => [e.id,e]));
     for (const [index,node] of v.elements.entries()) {
-      if (!node || typeof node !== "object" || !node.parentId) continue;
+      if (!node || typeof node !== "object") continue;
+      if (node.kind === "connector") {
+        for(const end of ["from","to"] as const){
+          const ref=node[end];
+          const target=ref && typeof ref.elementId==="string" ? byId.get(ref.elementId) : undefined;
+          if (!target || target.kind==="connector" || !!target.screenSpace)
+            errors.push("elements["+index+"]."+end+" must target a world-space non-connector element");
+        }
+      }
+      if (!node.parentId) continue;
       const parent=byId.get(node.parentId);
       if (!parent) { errors.push("elements["+index+"].parentId does not exist"); continue; }
       if (!!parent.screenSpace !== !!node.screenSpace)
@@ -200,6 +523,9 @@ export function inspectCrayonScene(input: unknown): string[] {
       while (cursor) {
         if (visited.has(cursor.id)) { errors.push("elements["+index+"].parentId creates a cycle"); break; }
         visited.add(cursor.id);
+        if (Array.isArray(node.contacts)&&Array.isArray(cursor.contacts) &&
+          node.contacts.some((c:CrayonContact)=>c&&cursor!.contacts!.some((p:CrayonContact)=>p&&c.start<=p.end+(p.releaseFrames??0)&&p.start<=c.end+(c.releaseFrames??0))))
+          errors.push("elements["+index+"].contacts overlap ancestor contacts");
         if (visited.size > 240) break;
         cursor=cursor.parentId ? byId.get(cursor.parentId) : undefined;
       }
@@ -244,11 +570,13 @@ export function crayonCamera(spec: CrayonSceneSpec, frame: number, reducedMotion
 export function crayonElementPlacement(node: CrayonElement, frame: number, reducedMotion = false): Required<CrayonPlacement> {
   if (!int(frame) || frame < 0) throw new RangeError("element frame must be nonnegative safe integer");
   const base = {x:node.placement?.x ?? 0,y:node.placement?.y ?? 0,
-    scale:node.placement?.scale ?? 1,rotate:node.placement?.rotate ?? 0};
+    scale:node.placement?.scale ?? 1,rotate:node.placement?.rotate ?? 0,
+    scaleX:node.placement?.scaleX??1,scaleY:node.placement?.scaleY??1};
   const keys=node.motion;
   if (!keys?.length) return base;
   const sampled = reducedMotion ? keys[keys.length-1].frame :
-    Math.floor(frame/(node.poseCadence ?? 1))*(node.poseCadence ?? 1);
+    Math.max(0,Math.floor(frame/(node.poseCadence ?? 1))*(node.poseCadence ?? 1)-
+      (node.motionLagFrames??0));
   const previous=[...keys].reverse().find(k=>k.frame<=sampled) ?? keys[0];
   const next=keys.find(k=>k.frame>=sampled) ?? keys[keys.length-1];
   const t=previous.frame===next.frame?0:Math.max(0,Math.min(1,(sampled-previous.frame)/(next.frame-previous.frame)));
@@ -257,6 +585,8 @@ export function crayonElementPlacement(node: CrayonElement, frame: number, reduc
     x:base.x+mix(previous.x,next.x),
     y:base.y+mix(previous.y,next.y),
     scale:base.scale*mix(previous.scale ?? 1,next.scale ?? 1),
+    scaleX:base.scaleX*mix(previous.scaleX??1,next.scaleX??1),
+    scaleY:base.scaleY*mix(previous.scaleY??1,next.scaleY??1),
     rotate:base.rotate+mix(previous.rotate ?? 0,next.rotate ?? 0),
   };
 }
@@ -266,26 +596,219 @@ export function crayonElementPlacement(node: CrayonElement, frame: number, reduc
  * DOM paint order remains authored element order, so accessories may appear behind limbs.
  * No incremental physics, mutable animation state or drawing-seed changes on a seek.
  */
-export function crayonElementTransform(
-  spec: CrayonSceneSpec, node: CrayonElement, frame: number, reducedMotion = false,
-): string {
-  const index = new Map(spec.elements.map(e=>[e.id,e]));
+/** Find the root-to-leaf rig path without depending on DOM/painter order. */
+function crayonRigChain(spec: CrayonSceneSpec,node: CrayonElement): CrayonElement[] {
+  const index=new Map(spec.elements.map(e=>[e.id,e]));
   const chain:CrayonElement[]=[];
   const visited=new Set<string>();
-  let cursor:CrayonElement | undefined=node;
+  let cursor:CrayonElement|undefined=node;
   while(cursor) {
-    if(visited.has(cursor.id) || chain.length>=spec.elements.length)
+    if(visited.has(cursor.id)||chain.length>=spec.elements.length)
       throw new RangeError("Invalid CRAYON1 rig: cyclic parentId");
     visited.add(cursor.id);
     chain.unshift(cursor);
-    if(cursor.parentId && !index.has(cursor.parentId))
+    if(cursor.parentId&&!index.has(cursor.parentId))
       throw new RangeError("Invalid CRAYON1 rig: missing parentId");
-    cursor=cursor.parentId ? index.get(cursor.parentId) : undefined;
+    cursor=cursor.parentId?index.get(cursor.parentId):undefined;
   }
-  return chain.map(part=>{
+  return chain;
+}
+
+/**
+ * Resolve a local anchor to camera-independent world coordinates.
+ * Reverse-apply the same translate / pivot / rotate / scale operations as SVG.
+ * Absolute evaluation means backward seeks and browser/film exports agree.
+ */
+export function crayonWorldPoint(
+  spec:CrayonSceneSpec,node:CrayonElement,frame:number,
+  point:Readonly<{x:number;y:number}>,reducedMotion=false,
+): {x:number;y:number} {
+  if(!Number.isFinite(point.x)||!Number.isFinite(point.y))
+    throw new RangeError("Crayon world point must be finite");
+  let x=point.x,y=point.y;
+  const chain=crayonRigChain(spec,node);
+  for(let i=chain.length-1;i>=0;i--) {
+    const part=chain[i],placement=crayonElementPlacement(part,frame,reducedMotion);
+    const cx=part.pivot?.x??0,cy=part.pivot?.y??0;
+    const a=placement.rotate*Math.PI/180,co=Math.cos(a),si=Math.sin(a);
+    const localX=(x-cx)*placement.scale*placement.scaleX;
+    const localY=(y-cy)*placement.scale*placement.scaleY;
+    x=placement.x+cx+localX*co-localY*si;
+    y=placement.y+cy+localX*si+localY*co;
+  }
+  return {x,y};
+}
+
+/** Stable phase report; contact release is visually distinct from an active sole plant. */
+export function crayonContactPhase(
+  node:CrayonElement,frame:number,durationFrames?:number,reducedMotion=false,
+):"planted"|"releasing"|null {
+  if(!int(frame)||frame<0)throw new RangeError("Crayon contact frame must be nonnegative integer");
+  const at=reducedMotion?(durationFrames??0)-1:frame;
+  if(!int(at)||at<0)throw new RangeError("Reduced-motion contact requires scene duration");
+  if(node.contacts?.some(c=>c.start<=at&&at<=c.end))return "planted";
+  if(node.contacts?.some(c=>c.end<at&&at<=c.end+(c.releaseFrames??0)))return "releasing";
+  return null;
+}
+
+/** Absolute world-space correction for a planted foot or its smooth release tail. */
+export function crayonContactOffset(
+  spec:CrayonSceneSpec,node:CrayonElement,frame:number,reducedMotion=false,
+):{x:number;y:number}|null {
+  if(!int(frame)||frame<0)throw new RangeError("Contact frame must be nonnegative integer");
+  const at=reducedMotion?spec.durationFrames-1:frame;
+  let correction:{x:number;y:number}|null=null;
+  for(const part of crayonRigChain(spec,node)){
+    const plant=part.contacts?.find(c=>c.start<=at&&at<=c.end);
+    const release=plant?undefined:part.contacts?.find(c=>c.end<at&&at<=c.end+(c.releaseFrames??0));
+    const contact=plant??release;
+    if(!contact)continue;
+    if(correction)throw new RangeError("Invalid CRAYON1 rig: overlapping nested contacts");
+    const fixed=crayonWorldPoint(spec,part,contact.start,contact.anchor);
+    const sampled=plant?at:contact.end;
+    const moving=crayonWorldPoint(spec,part,sampled,contact.anchor,reducedMotion);
+    const t=release?(at-contact.end)/(release.releaseFrames??1):0;
+    const fade=release?1-t*t*(3-2*t):1;
+    correction={x:(fixed.x-moving.x)*fade,y:(fixed.y-moving.y)*fade};
+  }
+  return correction;
+}
+
+/**
+ * World-space contact correction precedes the articulated transform chain,
+ * so local toe/hand detail and ordinary parent rotation are still applied.
+ * Contact is a single pinned anchor, not full IK or a multi-point sole solver.
+ */
+export function crayonElementTransform(
+  spec: CrayonSceneSpec, node: CrayonElement, frame: number, reducedMotion = false,
+): string {
+  const chain=crayonRigChain(spec,node);
+  const transforms=chain.map(part=>{
     const p=crayonElementPlacement(part,frame,reducedMotion);
-    const cx=part.pivot?.x ?? 0, cy=part.pivot?.y ?? 0;
+    const cx=part.pivot?.x??0,cy=part.pivot?.y??0;
+    const sx=p.scale*p.scaleX, sy=p.scale*p.scaleY;
+    const scale=sx===sy ? String(sx) : sx+" "+sy;
     return "translate("+p.x+" "+p.y+") translate("+cx+" "+cy+") rotate("+p.rotate+
-      ") scale("+p.scale+") translate("+(-cx)+" "+(-cy)+")";
+      ") scale("+scale+") translate("+(-cx)+" "+(-cy)+")";
   }).join(" ");
+  const delta=crayonContactOffset(spec,node,frame,reducedMotion);
+  return delta ? "translate("+delta.x+" "+delta.y+") "+transforms : transforms;
+}
+
+/**
+ * Evaluate replacement artwork from an absolute frame, independent of render order.
+ * The base path is drawing zero; replacements hold until the next authored key.
+ * Joint motion and drawing cadence share the same stepped source-frame sampling.
+ */
+export function crayonDrawingAt<T extends CrayonWaxElement | CrayonContourElement>(
+  node: T, frame: number, reducedMotion = false, durationFrames?: number,
+): { d: string; bounds?: CrayonBounds; index: number; poseId?: string } {
+  if (!int(frame) || frame < 0) throw new RangeError("Drawing frame must be a nonnegative safe integer");
+  if (reducedMotion && (!durationFrames || !int(durationFrames) || durationFrames < 2))
+    throw new RangeError("Reduced motion drawing requires a valid scene duration");
+  const source = reducedMotion ? durationFrames! - 1 : frame;
+  const sampled = Math.floor(source / (node.poseCadence ?? 1)) * (node.poseCadence ?? 1);
+  if (node.kind === "contour" && node.poses && node.poseCues) {
+    let selected:CrayonPoseCue | undefined;
+    let cueIndex=0;
+    for(const cue of node.poseCues) {
+      if(cue.frame>sampled) break;
+      selected=cue;
+      cueIndex++;
+    }
+    if (!selected || selected.pose === "base") return {d:node.d,index:cueIndex,poseId:"base"};
+    const pose=node.poses.find(value=>value.id===selected.pose);
+    if(!pose) throw new RangeError("Unknown CRAYON1 performance pose: "+selected.pose);
+    return {d:pose.d,index:cueIndex,poseId:selected.pose};
+  }
+  const drawings=node.drawings ?? [];
+  let index=0;
+  for (let i=0;i<drawings.length;i++) {
+    if (drawings[i].frame > sampled) break;
+    index=i+1;
+  }
+  const selected=index ? drawings[index-1] : node;
+  return {d:selected.d, bounds:node.kind==="wax" ?
+    (index ? (selected as CrayonWaxDrawing).bounds : node.bounds) : undefined, index};
+}
+
+
+/** Camera-independent anchor position including inherited planted-parent offsets. */
+export function crayonVisiblePoint(
+  spec:CrayonSceneSpec,node:CrayonElement,frame:number,anchor:Readonly<{x:number;y:number}>,
+  reducedMotion=false,
+):{x:number;y:number}{
+  const raw=crayonWorldPoint(spec,node,frame,anchor,reducedMotion);
+  const delta=crayonContactOffset(spec,node,frame,reducedMotion);
+  return {x:raw.x+(delta?.x??0),y:raw.y+(delta?.y??0)};
+}
+
+/** Smooth authored knee/elbow curvature without frame-order dependent state. */
+export function crayonConnectorBendAt(
+  node:CrayonConnectorElement,frame:number,reducedMotion=false,durationFrames?:number,
+):number{
+  if(!int(frame)||frame<0)throw new RangeError("Connector bend frame must be nonnegative integer");
+  const keys=node.bendKeys;
+  if(!keys?.length)return node.bend??0;
+  const source=reducedMotion ? (durationFrames??0)-1 : frame;
+  if(!int(source)||source<0)throw new RangeError("Reduced connector bend requires duration");
+  const t=reducedMotion?source:Math.floor(source/(node.poseCadence??1))*(node.poseCadence??1);
+  const prev=[...keys].reverse().find(k=>k.frame<=t)??keys[0];
+  const next=keys.find(k=>k.frame>=t)??keys[keys.length-1];
+  const fraction=prev.frame===next.frame?0:Math.max(0,Math.min(1,(t-prev.frame)/(next.frame-prev.frame)));
+  const smooth=fraction*fraction*(3-2*fraction);
+  return prev.bend+(next.bend-prev.bend)*smooth;
+}
+
+/** Pure two-bone IK solution with exact endpoint attachment and preferred bone lengths.
+ * Unreachable targets straighten/compress gracefully and are reported, not discarded.
+ */
+export function crayonTwoBoneSolve(
+  from:Readonly<{x:number;y:number}>,to:Readonly<{x:number;y:number}>,
+  ik:CrayonTwoBoneIK,
+):{knee:{x:number;y:number};reach:"inside"|"extended"|"compressed"} {
+  if(![from.x,from.y,to.x,to.y,ik.upperLength,ik.lowerLength].every(Number.isFinite) ||
+    ik.upperLength<=0 || ik.lowerLength<=0 || !["left","right"].includes(ik.bendSide))
+    throw new RangeError("Invalid CRAYON1 two-bone IK inputs");
+  const dx=to.x-from.x,dy=to.y-from.y,dist=Math.hypot(dx,dy);
+  const upper=ik.upperLength,lower=ik.lowerLength;
+  const max=upper+lower,min=Math.abs(upper-lower);
+  const reach=dist>max?"extended":dist<min?"compressed":"inside";
+  const effective=Math.max(min+1e-8,Math.min(max-1e-8,dist));
+  const along=(upper*upper-lower*lower+effective*effective)/(2*effective);
+  const rise=Math.sqrt(Math.max(0,upper*upper-along*along));
+  const ux=dist>1e-9?dx/dist:0,uy=dist>1e-9?dy/dist:1;
+  const side=ik.bendSide==="left"?1:-1;
+  return {knee:{
+    x:from.x+ux*along-uy*rise*side,
+    y:from.y+uy*along+ux*rise*side,
+  },reach};
+}
+
+/**
+ * Material-native connecting contour between any two authored character parts.
+ * Curvature is a signed, fixed-size perpendicular offset; no implicit IK solver,
+ * mutable physics integration or SVG injection from source data.
+ */
+export function crayonConnectorPath(
+  spec:CrayonSceneSpec,node:CrayonConnectorElement,frame:number,reducedMotion=false,
+):string{
+  if(!int(frame)||frame<0)throw new RangeError("Connector frame must be nonnegative integer");
+  const byId=new Map(spec.elements.map(x=>[x.id,x]));
+  const a=byId.get(node.from.elementId),b=byId.get(node.to.elementId);
+  if(!a||!b||a.kind==="connector"||b.kind==="connector")
+    throw new RangeError("Crayon connector requires two valid source anchors");
+  const at=reducedMotion?spec.durationFrames-1:
+    Math.floor(frame/(node.poseCadence??1))*(node.poseCadence??1);
+  const from=crayonVisiblePoint(spec,a,at,node.from.anchor,reducedMotion);
+  const to=crayonVisiblePoint(spec,b,at,node.to.anchor,reducedMotion);
+  if(node.ik){
+    const {knee}=crayonTwoBoneSolve(from,to,node.ik);
+    return "M"+from.x+" "+from.y+" L"+knee.x+" "+knee.y+" L"+to.x+" "+to.y;
+  }
+  const dx=to.x-from.x,dy=to.y-from.y,dist=Math.hypot(dx,dy);
+  const bend=crayonConnectorBendAt(node,at,reducedMotion,spec.durationFrames);
+  const midX=(from.x+to.x)/2+(dist>0?-dy/dist*bend:0);
+  const midY=(from.y+to.y)/2+(dist>0?dx/dist*bend:0);
+  return "M"+from.x+" "+from.y+" Q"+midX+" "+midY+" "+to.x+" "+to.y;
 }

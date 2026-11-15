@@ -1,0 +1,163 @@
+{
+  "schema_version": 3,
+  "project": "PAPER1 kingfisher anatomical feather relief — source-guided originals",
+  "mode": "style-guided-original-construction",
+  "reference_policy": {
+    "min_references": 3,
+    "min_deep_studies": 2
+  },
+  "sources": [
+    {
+      "id": "herrera-birds",
+      "title": "Hand-cut paper birds",
+      "creator": "Diana Beltrán Herrera",
+      "url": "https://www.dianabeltranherrera.com/projects/birds",
+      "rights": "Artist-owned copyrighted imagery; linked for technique study only; no asset or traced contour included",
+      "medium": "sculpted layered paper",
+      "view": "three-quarter bird sculpture, search-preview imagery inspected",
+      "deep_study": true,
+      "analysis": {
+        "construction": "distinct body scaffold, short anatomically directed feather overlaps and visible branch/feet contact",
+        "material": "opaque teal, blue and orange individual cut stocks with natural depth relief",
+        "microdetail": "short directional vane ribs arranged along feathers, not regular all-over dots",
+        "light": "light catches folded feather edges; color remains material-bound"
+      },
+      "crops": [
+        {
+          "feature": "forewing",
+          "bbox": [
+            0.19,
+            0.28,
+            0.75,
+            0.79
+          ],
+          "observation": "Vanes step root-to-tip and remain linked at shoulder",
+          "implementation_rule": "preserve wing rig and add angled short tapered vane barbs that share the existing hinge; do not use drifting decoration"
+        }
+      ]
+    },
+    {
+      "id": "dyrlaga-kingfisher",
+      "title": "Kingfisher hand-cut paper",
+      "creator": "Pippa Dyrlaga",
+      "url": "https://www.pippadyrlaga.com/2023-2024",
+      "rights": "Artist-owned copyrighted imagery; inspected only; no copying or distribution",
+      "medium": "single-sheet fine paper cutting",
+      "view": "frontal papercut bird composition, search-preview image inspected",
+      "deep_study": true,
+      "analysis": {
+        "construction": "one readable bird silhouette with intricate cut marks that follow anatomical regions",
+        "material": "fine high-contrast paper stock; void and solid balance must keep cut bridges",
+        "microdetail": "tail vane marks, curving cheek feather rhythms, wing feather shafts move in local feather direction",
+        "light": "high-contrast negative-space marks require opaque neighboring paper"
+      },
+      "crops": [
+        {
+          "feature": "tail-and-face",
+          "bbox": [
+            0.12,
+            0.2,
+            0.85,
+            0.9
+          ],
+          "observation": "short tail texture and head markings are subordinate to the continuous species silhouette",
+          "implementation_rule": "add restrained tail shaft cuts and small nested cheek coverts; preserve throat and eye shape"
+        }
+      ]
+    },
+    {
+      "id": "musselwhite-nature",
+      "title": "Paper nature scene and sculpted paper birds",
+      "creator": "Helen Musselwhite",
+      "url": "https://helenmusselwhite.com/about/",
+      "rights": "Artist-owned; style study only, no embedded work",
+      "medium": "layered dimensional paper diorama",
+      "view": "paper bird and botanical arrangements at preview scale",
+      "deep_study": false,
+      "analysis": {
+        "construction": "layer hierarchy and framing guide attention; not every surface receives uniformly bright motifs",
+        "material": "solid colorful card and physically plausible edge shadows",
+        "microdetail": "near vs far layer detail density varies",
+        "light": "restrained depth highlights without alpha ghosting"
+      },
+      "crops": []
+    }
+  ],
+  "feature_targets": [
+    {
+      "id": "wing-vanes",
+      "reference_ids": [
+        "herrera-birds",
+        "dyrlaga-kingfisher"
+      ],
+      "critical": true,
+      "source_observation": "Repeated fine feather details align with each feather's growth axis and remain attached to shared wing",
+      "geometry_rule": "two-sided short curving closed-stock ribs per primary, each computed in primary's root-to-tip coordinate system; grouped in the three existing wing-spot stocks with shared hinge",
+      "microdetails": [
+        "short opposed barbs",
+        "root-to-tip directional field",
+        "cardstock boundary clearance"
+      ],
+      "test_view": "Kingfisher 960×540 and 540×960 at f175 with motion seek f222",
+      "part_ids": [
+        "wing-feather-0",
+        "kingfisher-wing-spot-0",
+        "kingfisher-wing-spot-1",
+        "kingfisher-wing-spot-2"
+      ],
+      "detail_critical": true
+    },
+    {
+      "id": "tail",
+      "reference_ids": [
+        "dyrlaga-kingfisher",
+        "herrera-birds"
+      ],
+      "critical": true,
+      "source_observation": "Kingfisher tail is short and discreet, with thin directional marks rather than a long decorative spray",
+      "geometry_rule": "seven unchanged short rectrices, one restrained close-tone stock with tapered medial shafts",
+      "microdetails": [
+        "twenty-eight subdued shaft flecks at full detail",
+        "distinct toe/tail clearance"
+      ],
+      "test_view": "Full and 3× tail/branch crop",
+      "part_ids": [
+        "kingfisher-tail-0",
+        "kingfisher-tail-shafts"
+      ],
+      "detail_critical": true
+    },
+    {
+      "id": "auricular",
+      "reference_ids": [
+        "dyrlaga-kingfisher"
+      ],
+      "critical": true,
+      "source_observation": "Warm ear covert region reads as part of the compact skull, not as a cartoon smile",
+      "geometry_rule": "four to seven tapered flecks inside existing orange cheek region, same opaque paper material",
+      "microdetails": [
+        "short feather directions",
+        "unbroken eye/beak/white throat"
+      ],
+      "test_view": "1× and 3× head and throat crops",
+      "part_ids": [
+        "kingfisher-cheek",
+        "kingfisher-auricular-feathers",
+        "kingfisher-throat"
+      ],
+      "detail_critical": true
+    }
+  ],
+  "notes": {
+    "reference_gate": "Source visuals studied at available image-preview scale; no permission to bundle artist crops. Linked crop bboxes are coarse focus suggestions, not calibrated source masks. Pixel-matched ArtCraft scores are not claimed.",
+    "style_policy": "Original paths with anatomical rules; never reproduce a copyrighted piece or copy shape silhouettes.",
+    "art_gate": "Native browser/FilmStage frames and independent 1×/3× critique are required before artistic approval. CI green is technical only.",
+    "rejected_shortcuts": [
+      "transparency film filters",
+      "identical radial whiskers for all feathers",
+      "floating wing ribs with independent motion",
+      "long decorative tail fan",
+      "unconnected cut fibers"
+    ]
+  }
+}

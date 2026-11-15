@@ -10,10 +10,20 @@ export interface RisoPaint {
   dots: string;
 }
 export type RisoArtwork = (paint: RisoPaint) => ReactNode;
+/** A later print layer may first knock out earlier inks with unprinted paper. */
+export interface RisoForegroundLayer {
+  id: string;
+  /** Opaque paper-shaped artwork; use a character's evaluated union silhouette. */
+  knockout?: ReactNode;
+  /** Foreground spot-ink masters, rendered in press order after the knockout. */
+  artworks: Readonly<Record<string, RisoArtwork>>;
+}
 export interface RisoPrintProps extends Omit<SVGProps<SVGSVGElement>, "children" | "viewBox" | "width" | "height"> {
   spec: RisoPrintSpec;
   frame: number;
   artworks: Readonly<Record<string, RisoArtwork>>;
+  /** Optional ordered layers: print background, cut away its ink under subjects, then print subjects. */
+  foregroundLayers?: readonly RisoForegroundLayer[];
   misregistration?: number;
   paperGrain?: number;
   reducedMotion?: boolean;
@@ -39,7 +49,7 @@ export function printRevealPath(width: number, height: number, progress: number,
 
 /** Separate ink layers over fixed paper; no local clocks, image downloads, or WebGL. */
 export function RisoPrint({
-  spec, frame, artworks, misregistration = 0, paperGrain = .5, reducedMotion = false,
+  spec, frame, artworks, foregroundLayers = [], misregistration = 0, paperGrain = .5, reducedMotion = false,
   transparentPaper = false, visiblePlateIds, label = "Two-color Risograph print", style, ...svgProps
 }: RisoPrintProps) {
   const issues = inspectRisoPrint(spec);
@@ -48,6 +58,18 @@ export function RisoPrint({
   if (missing.length) throw new Error(`Missing vector artwork for plate: ${missing.map(plate => plate.id).join(", ")}`);
   if (visiblePlateIds && (visiblePlateIds.length === 0 || visiblePlateIds.some(id => !spec.plates.some(p => p.id === id))))
     throw new Error("RISO1 visiblePlateIds must refer to one or more declared plate IDs.");
+  if (!Array.isArray(foregroundLayers) || foregroundLayers.length > 24)
+    throw new Error("Risograph foreground requires no more than 24 ordered layers.");
+  const layerNames = new Set<string>();
+  for (const layer of foregroundLayers) {
+    if (!layer || typeof layer.id !== "string" || !/^[a-z][a-z0-9-]{0,47}$/.test(layer.id) || layerNames.has(layer.id))
+      throw new Error("Risograph foreground layer IDs must be unique slugs.");
+    layerNames.add(layer.id);
+    if (spec.plates.some(plate => typeof layer.artworks?.[plate.id] !== "function"))
+      throw new Error("Risograph foreground layer requires an artwork callback for every spot plate.");
+    if (transparentPaper && layer.knockout != null)
+      throw new Error("Paper knockouts are incompatible with transparentPaper output.");
+  }
   const activePlateIds = visiblePlateIds ? new Set(visiblePlateIds) : null;
   const frameState = evaluateRisoPrint(spec, frame, reducedMotion);
   const rawId = useId();
@@ -65,6 +87,20 @@ export function RisoPrint({
     y: printHash(spec.seed + 41, i, 3) * spec.height,
     r: .35 + printHash(spec.seed + 41, i, 9) * 1.7,
   })), [spec.seed, spec.width, spec.height]);
+  const inkPass = (i: number, artwork: RisoArtwork, layerId?: string) => {
+    const plate = spec.plates[i];
+    const [dx, dy] = plateRegistration(spec, i, misregistration);
+    const paint: RisoPaint = {solid: plate.color, dots: `url(#${uid}-dots-${i})`};
+    return <g key={plate.id} data-km-riso-plate={layerId ? undefined : plate.id}
+      data-km-riso-foreground-plate={layerId ? plate.id : undefined}
+      data-km-riso-foreground-layer={layerId}
+      style={{ mixBlendMode: "multiply" }} opacity={plate.opacity}
+      clipPath={`url(#${uid}-clip-${i})`} mask={`url(#${uid}-tooth)`}>
+      <g transform={`translate(${dx.toFixed(3)} ${dy.toFixed(3)})`} fill={plate.color} stroke="none">
+        {artwork(paint)}
+      </g>
+    </g>;
+  };
 
   return <svg {...svgProps} role={svgProps["aria-hidden"] ? undefined : "img"}
     aria-label={svgProps["aria-hidden"] ? undefined : label}
@@ -92,16 +128,18 @@ export function RisoPrint({
       {sheet.map((p, i) => <path key={i} opacity={p.opacity * grain}
         d={`M${p.x.toFixed(1)} ${p.y.toFixed(1)} l${p.vertical ? "0.8" : p.length.toFixed(1)} ${p.vertical ? p.length.toFixed(1) : "0.8"}`} />)}
     </g>}
-    {spec.plates.map((plate, i) => {
-      if (activePlateIds && !activePlateIds.has(plate.id)) return null;
-      const [dx, dy] = plateRegistration(spec, i, misregistration);
-      const paint = { solid: plate.color, dots: `url(#${uid}-dots-${i})` };
-      return <g key={plate.id} data-km-riso-plate={plate.id} style={{ mixBlendMode: "multiply" }} opacity={plate.opacity}
-        clipPath={`url(#${uid}-clip-${i})`} mask={`url(#${uid}-tooth)`}>
-        <g transform={`translate(${dx.toFixed(3)} ${dy.toFixed(3)})`} fill={plate.color} stroke="none">
-          {artworks[plate.id](paint)}
-        </g>
-      </g>;
-    })}
+    {spec.plates.map((plate, i) => activePlateIds && !activePlateIds.has(plate.id)
+      ? null : inkPass(i, artworks[plate.id]))}
+    {/* The paper knockout is applied only *after* all backdrop inks and *before*
+        every foreground ink. Inking a translucent character over the old
+        backdrop without this stage makes an apparently see-through character. */}
+    {foregroundLayers.map(layer => <Fragment key={layer.id}>
+      {layer.knockout != null && <g data-km-riso-paper-knockout={layer.id}
+        pointerEvents="none" fill={spec.paper} stroke={spec.paper}>
+        {layer.knockout}
+      </g>}
+      {spec.plates.map((plate, i) => activePlateIds && !activePlateIds.has(plate.id)
+        ? null : inkPass(i, layer.artworks[plate.id], layer.id))}
+    </Fragment>)}
   </svg>;
 }

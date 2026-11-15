@@ -48,3 +48,22 @@ test("bad local import has an actionable module path", () =>
     assert.ok(result.issues.some(d=>d.message.includes('Unresolved local import "./does-not-exist"')));
   })
 );
+
+test("video Storybook preflight checks nested Crayon directories", () => {
+  const root=mkdtempSync(join(tmpdir(),"kumiki-story-crayon-"));
+  try{
+    const dir=join(root,"src/video");
+    mkdirSync(dir,{recursive:true});
+    writeFileSync(join(dir,"crayon-wildlife.stories.tsx"),
+      'import { CrayonPlayground } from "./crayon-scene-playground"; export const Wildlife = { render:()=> <CrayonPlayground/> };');
+    writeFileSync(join(dir,"crayon-scene-playground.tsx"),
+      'export const CrayonPlayground=()=> <svg><path d="M0 0"/></svg>;');
+    const ok=reviewStorybookSyntax(root,["src/components/video","src/video"]);
+    assert.equal(ok.issues.length,0);
+    assert.equal(ok.files.length,2);
+    writeFileSync(join(dir,"crayon-scene-playground.tsx"),
+      'export const CrayonPlayground=()=> <svg><path d="M0 0"</svg>;');
+    const broken=reviewStorybookSyntax(root,["src/components/video","src/video"]);
+    assert.ok(broken.issues.some(x=>x.file==="src/video/crayon-scene-playground.tsx"));
+  }finally{rmSync(root,{recursive:true,force:true});}
+});

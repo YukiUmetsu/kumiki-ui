@@ -1,0 +1,194 @@
+import {expect,test} from "@playwright/test";
+import {createHash} from "node:crypto";
+const hash=(b:Buffer)=>createHash("sha256").update(b).digest("hex");
+async function seek(page:import("@playwright/test").Page,frame:number){
+  const input=page.getByRole("slider",{name:"Shanshui frame"});
+  await input.evaluate((node,value)=>{
+    const el=node as HTMLInputElement;
+    const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    if(!setter)throw new Error("Input setter unavailable");
+    setter.call(el,String(value));
+    el.dispatchEvent(new Event("input",{bubbles:true}));
+    el.dispatchEvent(new Event("change",{bubbles:true}));
+  },frame);
+  await expect(input).toHaveValue(String(frame));
+}
+test("reference-inspired code-driven mountain, river and hermit compositions are real drawable scene layers",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
+  const stage=page.getByTestId("shanshui-preview");
+  await expect(stage).toBeVisible();
+  const landscape=page.locator("[data-km-shanshui-scene]");
+  const actor=page.locator("[data-km-ink-character-frame]");
+  for(const scene of ["mountain-trail","river-scholar","misty-hermit"] as const){
+    await page.getByRole("combobox",{name:"Shanshui composition"}).selectOption(scene);
+    await seek(page,125);
+    await expect(landscape).toHaveAttribute("data-km-shanshui-scene",scene);
+    await expect(landscape).toHaveAttribute("data-km-shanshui-frame","125");
+    await expect(page.locator("[data-km-shanshui-mountains]")).toHaveCount(1);
+    await expect(page.locator("[data-km-shanshui-birds]")).toHaveCount(1);
+    await expect(page.locator("[data-km-shanshui-foreground]")).toHaveCount(1);
+    await expect.poll(()=>page.locator("[data-km-shanshui-bamboo-leaf]").count())
+      .toBeGreaterThan(70);
+    await expect(actor).toHaveCount(1);
+    // Ink material renders a set of individual named paths inside the same
+    // canonical body part; one actor is not one DOM path.
+    await expect.poll(()=>page.locator('[data-km-ink-character-part="body"]').count())
+      .toBeGreaterThan(1);
+    if(scene==="river-scholar"){
+      await expect(page.locator("[data-km-shanshui-willow]")).toHaveCount(1);
+      await expect(page.locator("[data-km-shanshui-bridge]")).toHaveCount(1);
+      await expect(page.locator("[data-km-shanshui-water]")).toHaveCount(1);
+    }else{
+      await expect(page.locator("[data-km-shanshui-pine]")).toHaveCount(1);
+    }
+    await stage.screenshot({animations:"disabled",
+      path:info.outputPath("shanshui-"+scene+"-125.png")});
+    await seek(page,210);
+    await stage.screenshot({animations:"disabled",
+      path:info.outputPath("shanshui-"+scene+"-210.png")});
+    await seek(page,125);
+    const first=await stage.screenshot({animations:"disabled"});
+    await seek(page,31);
+    await seek(page,125);
+    const again=await stage.screenshot({animations:"disabled"});
+    expect(hash(first)).toBe(hash(again));
+  }
+});
+test("real paper/ink controls change geometry and the reduce-motion contract freezes foliage",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
+  const stage=page.getByTestId("shanshui-preview");
+  await seek(page,166);
+  const before=await stage.screenshot({animations:"disabled"});
+  const detail=page.getByRole("slider",{name:"Shanshui detail"});
+  await detail.evaluate(node=>{
+    const el=node as HTMLInputElement;
+    const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    if(!setter)throw new Error("input setter missing");
+    setter.call(el,"0");
+    el.dispatchEvent(new Event("input",{bubbles:true}));
+    el.dispatchEvent(new Event("change",{bubbles:true}));
+  });
+  await expect(detail).toHaveValue("0");
+  const after=await stage.screenshot({animations:"disabled",
+    path:info.outputPath("shanshui-sparse-detail.png")});
+  expect(hash(before)).not.toBe(hash(after));
+  await page.getByRole("checkbox",{name:"Reduced motion"}).check();
+  await expect(page.locator("[data-km-ink-character-frame]"))
+    .toHaveAttribute("data-km-ink-character-frame","299");
+  const original=await page.locator("[data-km-shanshui-birds]").getAttribute("data-km-shanshui-bird-x");
+  await seek(page,38);
+  await expect(page.locator("[data-km-shanshui-birds]")).toHaveAttribute("data-km-shanshui-bird-x",original!);
+  await page.getByRole("checkbox",{name:"Show scholar"}).uncheck();
+  await expect(page.locator("[data-km-ink-character-frame]")).toHaveCount(0);
+});
+for(const [scene,story] of [
+  ["mountain-trail","mountain-trail-export"],
+  ["river-scholar","river-scholar-export"],
+  ["misty-hermit","misty-hermit-export"],
+] as const){
+  test("the "+scene+" film can seek true production frames through the shared exporter",async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-shanshui--"+story+"&viewMode=story");
+    await expect.poll(()=>page.evaluate(()=>Boolean(window.__kmVideoExport))).toBe(true);
+    const manifest=await page.evaluate(()=>window.__kmVideoExport!.manifest);
+    expect(manifest.width).toBe(960);
+    expect(manifest.height).toBe(540);
+    expect(manifest.durationFrames).toBe(300);
+    await page.evaluate(async()=>window.__kmVideoExport!.seek(168));
+    await expect(page.locator("[data-km-shanshui-scene]")).toHaveAttribute("data-km-shanshui-scene",scene);
+    await expect(page.locator("[data-km-shanshui-frame]")).toHaveAttribute("data-km-shanshui-frame","168");
+    await page.screenshot({animations:"disabled",
+      path:info.outputPath("shanshui-export-"+scene+".png")});
+  });
+}
+
+
+test("brushwork study shows native rooted foliage and uneven rock deposition",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--brushwork-detail-studio&viewMode=story");
+  const study=page.getByTestId("shanshui-brushwork-studio");
+  await expect(study).toBeVisible();
+  await expect(page.locator("[data-km-brush-study-card]")).toHaveCount(4);
+  await expect.poll(()=>study.locator("[data-km-pine-needle-cluster]").count())
+    .toBeGreaterThan(80);
+  await expect.poll(()=>study.locator("[data-km-cunfa-style]").count())
+    .toBeGreaterThan(100);
+  await study.screenshot({animations:"disabled",
+    path:info.outputPath("shanshui-native-brush-detail-study.png")});
+  const density=page.getByRole("slider",{name:"Brushwork detail"});
+  await density.focus();
+  await density.press("Home");
+  await expect(density).toHaveValue("0");
+  await expect(study.locator("[data-km-pine-needle-cluster]")).toHaveCount(0);
+});
+
+test("one Shanshui Storybook folder also exposes the real three-phase garment study",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--garment-motion-studio&viewMode=story");
+  await expect(page.getByTestId("shanshui-garment-studio")).toBeVisible();
+  await expect(page.locator("[data-gait-study-frame]")).toHaveCount(3);
+  await expect(page.locator('[data-gait-study-frame="60"]')).toHaveCount(1);
+  await expect(page.locator('[data-gait-study-frame="73"]')).toHaveCount(1);
+  await expect(page.locator('[data-gait-study-frame="86"]')).toHaveCount(1);
+  await expect(page.locator('[data-km-ink-character-frame="60"]')).toHaveCount(1);
+  await expect(page.locator('[data-km-ink-character-frame="73"]')).toHaveCount(1);
+  await expect(page.locator('[data-km-ink-character-frame="86"]')).toHaveCount(1);
+  await page.getByTestId("shanshui-garment-studio").screenshot({
+    animations:"disabled",path:info.outputPath("shanshui-garment-three-phases.png"),
+  });
+});
+
+test("opaque hem panels remain attached to the walking scholar through two gait poses",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
+  const stage=page.getByTestId("shanshui-preview");
+  const left=page.locator('[data-km-ink-character-part="hem-panel-left"]');
+  const right=page.locator('[data-km-ink-character-part="hem-panel-right"]');
+  await expect.poll(()=>left.count()).toBeGreaterThanOrEqual(4);
+  await expect.poll(()=>right.count()).toBeGreaterThanOrEqual(4);
+  await seek(page,60);
+  await stage.screenshot({animations:"disabled",
+    path:info.outputPath("shanshui-hem-contact-frame60.png")});
+  await seek(page,73);
+  await stage.screenshot({animations:"disabled",
+    path:info.outputPath("shanshui-hem-contact-frame73.png")});
+  await seek(page,86);
+  await stage.screenshot({animations:"disabled",
+    path:info.outputPath("shanshui-hem-contact-frame86.png")});
+  await expect(left.first()).toBeAttached();
+  await expect(right.first()).toBeAttached();
+});
+
+test("the gallery opens on a painted walking pose and plays forward",async({page})=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
+  const slider=page.getByRole("slider",{name:/Shanshui frame/});
+  await expect(slider).toHaveValue("84");
+  await page.getByRole("button",{name:"Play film"}).click();
+  await expect.poll(async()=>Number(await slider.inputValue())).toBeGreaterThan(90);
+  await page.getByRole("button",{name:"Pause film"}).click();
+  await expect(page.getByRole("button",{name:"Play film"})).toBeVisible();
+});
+
+test("gallery restarts playback from frame zero after the final frame",async({page})=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
+  await seek(page,299);
+  await page.getByRole("button",{name:"Play film"}).click();
+  const frame=page.getByRole("slider",{name:/Shanshui frame/});
+  await expect.poll(async()=>Number(await frame.inputValue()),{
+    timeout:12000,
+  }).toBeLessThan(299);
+  await expect(page.getByRole("button",{name:"Pause film"})).toBeVisible();
+  await page.getByRole("button",{name:"Pause film"}).click();
+  await expect(page.getByRole("button",{name:"Play film"})).toBeVisible();
+});
+
+
+test("reduced-motion gallery stays static and does not present a nonfunctional player",async({page})=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
+  const frame=page.getByRole("slider",{name:/Shanshui frame/});
+  await seek(page,180);
+  await page.getByRole("checkbox",{name:"Reduced motion"}).check();
+  const play=page.getByRole("button",{name:"Play film"});
+  await expect(play).toBeDisabled();
+  await expect(frame).toHaveValue("180");
+  await page.waitForTimeout(150);
+  await expect(frame).toHaveValue("180");
+  await page.getByRole("checkbox",{name:"Reduced motion"}).uncheck();
+  await expect(play).toBeEnabled();
+});

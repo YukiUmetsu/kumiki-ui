@@ -1,29 +1,23 @@
-name: Risograph Character Animation QA
+name: Risograph character film browser QA
 
-# Focused one-time visual proof for the reusable RISC1 actor engine. Restore
-# manual-only after new animation and consumer-install evidence is inspected.
+# Full RISO13 source, browser, and encoded-film qualification completed on PR #302; manual-only thereafter.
+# Lightweight unit, typecheck and registry tests remain automatic in visual-contracts.yml.
+# Full browser and encoded-film qualification is local-first and opt-in.
+# No expensive renderer/Playwright/FFmpeg job runs for routine PRs or main pushes.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "registry/video/riso-performance.ts"
-      - "registry/video/riso-performance-react.tsx"
-      - "src/video/riso-performance.stories.tsx"
-      - "src/video/riso-performance-fixtures.ts"
-      - "tests/e2e-storybook/riso-performance.spec.ts"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: riso-characters-${{ github.ref }}
+  group: riso-character-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  browser-and-film:
+  native-riso-acting:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,45 +25,46 @@ jobs:
           node-version: "24.15.0"
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: TypeScript and original character contracts
+      - name: Strict typecheck and focused motion contracts
         run: |
           npm run typecheck
-          npm run test -- tests/riso-performance.test.tsx
-      - name: Isolated native Risograph registry installation
+          npm run test -- tests/riso13-anatomy.test.tsx tests/riso-character-paper-clearance.test.tsx tests/riso11-ink-craft.test.ts tests/riso-artcraft-characters.test.tsx tests/riso-character.test.tsx tests/riso-rig-ik.test.tsx tests/riso-nested-ik.test.ts tests/riso-joint-skin.test.ts tests/riso-opaque-characters.test.tsx tests/riso-character-model-sheets.test.tsx
+      - name: Clean independent registry consumer install
         run: node scripts/registry-fixture.js --item=riso-character
+      - name: Build production Storybook
+        run: npm run build-storybook
       - name: Chromium
         run: npx playwright install --with-deps chromium
-      - name: Storybook film acting and deterministic seeking
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-performance.spec.ts
-      - name: Validate both native FilmStage film documents
-        run: |
-          npm run film:check -- examples/film/riso-animated-characters.film.json
-          npm run film:check -- examples/film/riso-animated-garden.film.json
-      - name: Production FFmpeg
+      - name: Actual 16:9 and 9:16 Storybook actor/browser screenshots
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-characters.spec.ts tests/e2e-storybook/riso-rig-ik.spec.ts tests/e2e-storybook/riso-opaque-print.spec.ts tests/e2e-storybook/riso-character-model-sheets.spec.ts tests/e2e-storybook/riso-artcraft-studies.spec.ts tests/e2e-storybook/riso-human-anatomy.spec.ts tests/e2e-storybook/riso-storybook-smoke.spec.ts
+      - name: Validate source-portable Film Document
+        run: npm run film:check -- examples/film/riso-character-performance.film.json
+      - name: Install FFmpeg for true production MP4
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends ffmpeg
-      - name: Export genuine production character videos in both aspects
+      - name: Export original 8-second animation and portrait proof frame
         run: |
-          npm run film:frame -- examples/film/riso-animated-characters.film.json --frame=160 --only=landscape --out=dist/riso-character-proof
-          npm run film:frame -- examples/film/riso-animated-characters.film.json --frame=420 --only=portrait --out=dist/riso-character-proof
-          npm run film:render -- examples/film/riso-animated-characters.film.json --frames=180 --only=landscape --out=dist/riso-character-proof
-          npm run film:render -- examples/film/riso-animated-garden.film.json --frames=180 --only=portrait --out=dist/riso-garden-proof
-      - name: Preserve playable film and native frame evidence
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=157 --only=landscape --out=dist/riso-character-proof
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=157 --only=portrait --out=dist/riso-character-proof
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=46 --only=landscape --out=dist/riso-character-proof
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=46 --only=portrait --out=dist/riso-character-proof
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=198 --only=landscape --out=dist/riso-character-proof
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=198 --only=portrait --out=dist/riso-character-proof
+          npm run film:render -- examples/film/riso-character-performance.film.json --frames=240 --only=landscape --out=dist/riso-character-proof
+      - name: Preserve real animation MP4 and production frames
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: riso-characters-production
-          path: |
-            dist/riso-character-proof/
-            dist/riso-garden-proof/
+          name: riso-character-production-proof
+          path: dist/riso-character-proof/
           retention-days: 10
           if-no-files-found: warn
-      - name: Preserve actual browser frame captures and traces
+      - name: Preserve original Chromium screenshots and traces
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: riso-characters-browser
+          name: riso-character-browser-proof
           path: test-results/
           retention-days: 10
           if-no-files-found: warn

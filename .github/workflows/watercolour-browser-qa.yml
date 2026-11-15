@@ -1,0 +1,61 @@
+name: Watercolour brush visual QA
+# Full browser and encoded-film qualification is local-first and opt-in.
+# No expensive renderer/Playwright/FFmpeg job runs for routine PRs or main pushes.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: watercolour-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  material-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Browser paint and paper checks
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-brush.spec.ts tests/e2e-storybook/watercolour-actor.spec.ts tests/e2e-storybook/watercolour-film-looks.spec.ts
+      - name: Validate portable film
+        run: |
+          npm run film:check -- examples/film/watercolour-brush-study.film.json
+          npm run film:check -- examples/film/watercolour-character.film.json
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          command -v ffmpeg && command -v ffprobe
+      - name: Export actual production slot frames and an encoded motion proof
+        run: |
+          npm run film:frame -- examples/film/watercolour-brush-study.film.json --frame=350 --only=landscape --out=dist/watercolour-proof
+          npm run film:frame -- examples/film/watercolour-brush-study.film.json --frame=760 --only=portrait --out=dist/watercolour-proof
+          npm run film:render -- examples/film/watercolour-brush-study.film.json --frames=48 --only=landscape --out=dist/watercolour-proof
+          npm run film:frame -- examples/film/watercolour-character.film.json --frame=336 --only=landscape --out=dist/watercolour-proof/actor
+          npm run film:frame -- examples/film/watercolour-character.film.json --frame=336 --only=portrait --out=dist/watercolour-proof/actor
+          npm run film:render -- examples/film/watercolour-character.film.json --frames=40 --only=landscape --out=dist/watercolour-proof/actor
+      - name: Preserve captured browser comparisons
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: watercolour-browser-frames
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Preserve actual frame and video exports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: watercolour-production-film
+          path: dist/watercolour-proof/
+          retention-days: 14
+          if-no-files-found: warn

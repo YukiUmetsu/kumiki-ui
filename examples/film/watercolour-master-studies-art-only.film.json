@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "watercolour-master-studies-art-only",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "watercolour-botanical-study",
+      "recipeId": "slot",
+      "durationFrames": 420,
+      "content": {
+        "slot": "watercolour-master-study",
+        "label": "botanical observation",
+        "props": {
+          "study": "botanical",
+          "artOnly": true
+        }
+      }
+    },
+    {
+      "id": "watercolour-estuary-study",
+      "recipeId": "slot",
+      "durationFrames": 420,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "watercolour-master-study",
+        "label": "luminous estuary",
+        "props": {
+          "study": "estuary",
+          "artOnly": true
+        }
+      }
+    },
+    {
+      "id": "watercolour-courtyard-study",
+      "recipeId": "slot",
+      "durationFrames": 420,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "watercolour-master-study",
+        "label": "architectural light",
+        "props": {
+          "study": "courtyard",
+          "artOnly": true
+        }
+      }
+    }
+  ]
+}
