@@ -198,7 +198,7 @@ export const Scenery: Story = {
   name:"Scenery",
   args:{artwork:"scenery",scenery:"woodland",sceneryPalette:"sage",breeze:.45,relief:1,treeVariety:.9,
     detail:1,medium:"layered",aspect:"landscape",frame:214,tooth:.72,
-    shadow:1,edge:.47,seed:37},
+    shadow:1,edge:.36,seed:37},
   argTypes:{artwork:hideControl,object:hideControl,objectPalette:hideControl,
     palette:hideControl,colorLayers:hideControl,curl:hideControl,
     motion:hideControl},
