@@ -127,7 +127,10 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
       expect(layerIds.filter(id=>id.includes("nail"))).toHaveLength(5);
       expect(layerIds.filter(id=>id.includes("crease"))).toHaveLength(8);
       for(const actor of actors)expect(layerIds.every(id=>
-        actor.parts.some(p=>p.id===id&&p.plate==="blue"&&p.paint==="solid"))).toBe(true);
+        actor.parts.some(p=>p.id===id&&p.plate==="blue"&&
+          (id.endsWith("-dip-crease")
+            ? p.paint==="screen"&&p.screenTone==="light"
+            : p.paint==="solid")))).toBe(true);
     }
     for(const aspect of ["landscape","portrait"] as const){
       const first=evaluateRisoHumanEnsemble(160,aspect);
