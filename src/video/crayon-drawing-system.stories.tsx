@@ -83,13 +83,13 @@ export function CrayonDrawingStudio({aspect,detail,pressure,paperTooth,nibStyle=
     </p>
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(min(100%, 270px), 1fr))",
       gap:16,alignItems:"start"}}>
-      <div style={{width:"100%",maxWidth:aspect==="portrait"?420:undefined,margin:"0 auto",
+      {comparison==="single"&&<div style={{width:"100%",maxWidth:aspect==="portrait"?420:undefined,margin:"0 auto",
         aspectRatio:aspect==="portrait"?"540 / 960":"960 / 540",
         background:"#fff5e4",border:"8px solid #fff9ef",boxSizing:"border-box"}}>
         <CrayonScene spec={framed} frame={frame}
           aria-label="Original wax-crayon still life being drawn in four stages"
           style={{width:"100%",height:"100%",display:"block"}}/>
-      </div>
+      </div>}
       <aside aria-label="Drawing contract and construction phases"
         style={{minWidth:0,background:"#f7efe3",padding:15,borderRadius:5}}>
         <div style={{fontWeight:700,fontSize:15,marginBottom:11}}>
