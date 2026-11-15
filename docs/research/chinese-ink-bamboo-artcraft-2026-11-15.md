@@ -265,9 +265,12 @@ of stroke length, followed by a gradually thinning release. Slight
 independent edge irregularity follows the local stroke tangent normal.
 
 The 21 culm collars are retained but no longer all carry a uniform
-five-leaf star. The seven-level cluster budget `[0, 3, 8, 1, 10, 2, 10]`
-gives **102** brush leaves across three culms: deliberate bare nodes,
-small transitional pairs, and loaded dark masses toward the crown.
+five-leaf star. The three seven-level cluster budgets `[0,3,8,1,10,2,10]`,
+`[10,0,3,10,1,8,2]`, and `[2,10,1,8,0,10,3]` provide
+**102** pressure-painted leaves across three culms. Each stem has
+34 leaves, but its heavy clusters and silent joints occur at different
+heights; they deliberately avoid three synchronized comb-like
+crowns. The unit test asserts all three distinct rhythms.
 Spur attachment counts, sparse detail and finite path contracts
 were updated to match this design instead of preserving a uniformity
 bug through test expectations. Roots and branch hierarchy remain
