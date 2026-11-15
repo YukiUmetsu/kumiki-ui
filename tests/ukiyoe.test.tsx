@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { cameraAt, carvedLine, ease, loopOffsets, scrollPan, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
 import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES } from "../registry/video/ukiyoe/ukiyoe-creatures";
-import { drawFigure, facingAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
+import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
+import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
 import { expandCrowd } from "../registry/video/ukiyoe/ukiyoe-crowd";
@@ -341,6 +342,46 @@ describe("UKIYO1 duels", () => {
     expect(lying(hit.contact! + 200)).toBe(1);
     expect(swordAt(A.actions, hit.contact! + 200).held).toBe(false);                               // the victor has sheathed
     expect(inspectUkiyoeScene(scene({ durationFrames: 640, nodes: nodes as never }))).toEqual([]);
+  });
+});
+
+describe("UKIYO1 oni fight", () => {
+  type Fig = { x: number; y: number; scale: number; facing: "left" | "right"; look: never; actions: UkiyoeAction[] };
+  const fight = oniFight({ id: "f", x: 760, y: 900, scale: 1.3 });
+  const [oni, hero] = fight.nodes as unknown as [Fig, Fig];
+  const sparks = (fight.nodes[2] as unknown as { bursts: { frame: number; x: number; y: number }[] }).bursts;
+  /** A weapon in world coordinates: the grip (or guard) and the far end. */
+  const weapon = (n: Fig, f: number, kind: "club" | "sword") => {
+    const spec = { look: n.look, actions: n.actions, facing: n.facing };
+    const w = kind === "club" ? figureClubAt(spec, f)! : figureSwordAt(spec, f)!, p = "grip" in w ? w.grip : w.tsuba, dir = n.facing === "left" ? -1 : 1, tr = travelAt(n.actions, f);
+    const t: [number, number] = [n.x + dir * (p[0] + tr.x) * n.scale, n.y + (p[1] + tr.y) * n.scale], a = (n.facing === "left" ? 180 - w.a : w.a) * Math.PI / 180;
+    const L = (kind === "club" ? CLUB * 300 : BLADE * 250) * n.scale;
+    return { t, tip: [t[0] + Math.cos(a) * L, t[1] + Math.sin(a) * L] as [number, number] };
+  };
+  const near = (p: [number, number], q: [number, number], r: [number, number], s2: [number, number]) => {
+    let best = Infinity;
+    for (let i = 0; i <= 80; i++) for (let j = 0; j <= 80; j++) { const u = i / 80, v = j / 80; best = Math.min(best, Math.hypot(p[0] + (q[0] - p[0]) * u - r[0] - (s2[0] - r[0]) * v, p[1] + (q[1] - p[1]) * u - r[1] - (s2[1] - r[1]) * v)); }
+    return best;
+  };
+  it("brings the smash's head down exactly on the ground, clear of the hero who sprang back", () => {
+    for (const a of oni.actions.filter(x => x.type === "smash")) {
+      const c = weapon(oni, a.contact!, "club"), heroFeet = hero.x + travelAt(hero.actions, a.contact!).x * hero.scale;
+      expect(Math.abs(c.tip[1] - oni.y), `frame ${a.contact}`).toBeLessThan(1);
+      expect(c.tip[0] - heroFeet, `frame ${a.contact}`).toBeGreaterThan(40);                   // lands in front of him
+    }
+  });
+  it("meets blade and club exactly at the sparks, and the last cut reaches the oni", () => {
+    expect(sparks.length).toBe(2);
+    for (const b of sparks) {
+      const c = weapon(oni, b.frame, "club"), s2 = weapon(hero, b.frame, "sword");
+      expect(near(c.t, c.tip, s2.t, s2.tip), `frame ${b.frame}`).toBeLessThan(2);
+      expect(near(s2.t, s2.tip, [b.x, b.y], [b.x, b.y])).toBeLessThan(2);
+    }
+    const fin = hero.actions.find(a => a.type === "cut" && a.parried === false)!, tip = weapon(hero, fin.contact!, "sword").tip;
+    expect(Math.abs(tip[0] - oni.x)).toBeLessThan(.12 * 300 * oni.scale);                       // inside the oni's body
+    expect(figurePose({ look: oni.look, actions: oni.actions, facing: "left" }, fin.contact! + 80, 0, 300).fall).toBe(1);
+    expect(figureClubAt({ look: oni.look, actions: oni.actions, facing: "left" }, fin.contact! + 80)!.dropped).toBe(1);
+    expect(inspectUkiyoeScene(scene({ durationFrames: 640, camera: { shake: fight.shake }, nodes: fight.nodes as never }))).toEqual([]);
   });
 });
 

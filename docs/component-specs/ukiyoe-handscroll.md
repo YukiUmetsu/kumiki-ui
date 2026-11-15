@@ -139,6 +139,22 @@ The swords and formal dress (`ukiyoe-katana.ts`) are drawn after the Met's mount
   - **Recipe:** `samuraiDuel({ id, x, y, scale, gap, start, exchanges, a, b })` returns both fighters and the sparks. Both draw, each exchange is timed on its contact frame and aimed in front of the defender's brow, and a final unparried cut ends it, with the victor sheathing. Storybook **Samurai duel** shows it in a moonlit field of pampas grass.
 - **Look and kata.** `UKIYOE_SAMURAI_LOOK` is a generic look, and `samuraiKata(start)` builds the solo kata: draw, jōdan, cut, hassō, waki, chūdan, sheathe, bow. Storybook **Samurai kata** shows it in a raked-gravel courtyard with a View switch, and the four guards labelled. The Cast lab includes the samurai.
 
+### Oni fighting
+
+The oni's weapon and fighting (`ukiyoe-oni.ts`) are drawn after iron-shod kanabō in museum photographs and Kuniyoshi's and Toyoharu's oni prints.
+
+- **The kanabō.** A long shaft swells toward the head, with rows of iron studs over the striking half (cones on the edges, round heads down the middle), iron bands, a cord-wrapped grip and an iron ring at the butt.
+- **When the timeline applies.** When a figure with `prop: "kanabo"` uses any of `smash`, `swing`, `parry` or `drop`, the club follows its own timeline (`clubAt`) and both hands hold it by IK. Otherwise it stays the simple hand-held prop, so existing films are unchanged.
+- **The club's moves.**
+  - **Rest:** over the shoulder; once fighting it is held before the body.
+  - **`smash`** (with `aim` on the ground and `contact`): a long wind-up overhead, then the club comes down so its head stops exactly on the ground, whatever the body has done to the hands. Dust and pebbles burst and the ground cracks where it landed; the cracks fade over about five seconds.
+  - **`swing`:** wound back low and swept through `aim`; parried, it stops on the blade.
+  - **`parry`:** blocks a cut at `aim`.
+  - **`drop`:** lets the club fall to lie on the ground, where it stays when the oni falls.
+- **Body.** The body throws itself into the smash and turns into the swing. `evade` springs back (or in) without turning round.
+- **Square views.** The club is projected like the sword, and a `fall` seen square on foreshortens to the ground.
+- **Looks and recipe.** `UKIYOE_ONI_LOOK` and `UKIYOE_MOMOTARO_LOOK` are generic looks. `oniFight({ id, x, y, scale, start, hero, oni })` returns the nodes and camera shakes of a hero-versus-oni fight. Contacts are aimed as in the duels, and the smashes shake the camera. Storybook **Oni fight** shows it on a rocky shore, choosing a samurai or Momotarō and a red or blue oni.
+
 ### Transition
 
 `UkiyoeKasumi` sweeps stepped gold mist bands (gradient, wood grain, sunago gold dust and kirikane flakes) from right to left across the frame. The incoming scene is revealed behind each band's trailing edge. The FilmStage slot is `ukiyoe-kasumi`; the incoming shot then resumes where the transition left it.

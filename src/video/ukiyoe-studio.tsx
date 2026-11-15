@@ -21,6 +21,7 @@ import { UKIYOE_CROWD_MOODS } from "../../registry/video/ukiyoe/ukiyoe-crowd";
 import { UKIYOE_SQUARE_VIEW_SPECIES } from "../../registry/video/ukiyoe/ukiyoe-creatures";
 import { UKIYOE_MAIKO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-maiko";
 import { samuraiDuel, samuraiKata, UKIYOE_KAMAE, UKIYOE_SAMURAI_LOOK } from "../../registry/video/ukiyoe/ukiyoe-katana";
+import { oniFight, UKIYOE_MOMOTARO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-oni";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -573,6 +574,46 @@ export function SamuraiDuel() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="Two samurai dueling in a moonlit field" /></Fit>
     <Transport clock={clock} total={620} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Duel frame" />
+  </div>;
+}
+
+// ---- Oni fight ----------------------------------------------------------------------------------------------------------------------
+
+/** A hero (samurai or Momotarō) fights an oni with an iron club on a rocky shore at dusk. */
+export function OniFight() {
+  const [hero, setHero] = useState<"samurai" | "momotaro">("samurai");
+  const [oni, setOni] = useState<"red" | "blue">("red");
+  const clock = usePlayback(640, 0, 1, true, true);
+  const spec = useMemo((): UkiyoeSceneSpec => {
+    const f = oniFight({ id: "fight", x: 720, y: 960, scale: 1.4, hero: hero === "momotaro" ? UKIYOE_MOMOTARO_LOOK : undefined,
+      oni: oni === "blue" ? { ...CAST["oni-blue"] } : undefined });
+    return {
+      version: 1, id: "oni-fight", width: 1920, height: 1080, durationFrames: 640, seed: 41, wind: { base: .4, turbulence: .4 }, palette: { preset: "edo" }, camera: { shake: f.shake },
+      nodes: [
+        { id: "sky", kind: "motif", motif: "sky", params: { width: 1920, height: 1080, band: .5, horizon: "beni" } },
+        { id: "sea", kind: "motif", motif: "sea", x: 0, y: 640, params: { width: 1920, height: 200 } },
+        { id: "rock-l", kind: "motif", motif: "rock", x: 200, y: 830, scale: 1.6, params: { width: 380, height: 220 } },
+        { id: "rock-r", kind: "motif", motif: "rock", x: 1720, y: 820, scale: 1.4, params: { width: 340, height: 200, variant: 2 } },
+        { id: "shore", kind: "block", x: 960, y: 900, shape: { type: "rect", width: 1960, height: 360 }, fill: { type: "linear", angle: 90, stops: [[0, "kincha", .9], [1, "cha", 1]] }, line: 0, grain: 1 },
+        ...f.nodes,
+      ],
+    };
+  }, [hero, oni]);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Oni" title="The oni's iron club">
+      <p style={{ margin: 0 }}>Built by <code>oniFight</code>. The kanabō is drawn in detail: a long iron-shod shaft swelling toward the head,
+        rows of iron studs over the striking half, iron bands, a cord-wrapped grip and an iron ring at the butt. At rest it lies over the
+        oni's shoulder. He smashes where the hero stood: a long wind-up overhead, the club brought down so its head stops exactly on the
+        ground, dust and pebbles bursting, the ground cracking, the picture shaking. The hero springs back; cuts, and the oni blocks with
+        the club; the oni swings at his chest and is parried, blade on iron, sparks at the one point both are aimed at. A second smash
+        misses; the hero closes and strikes home: the club drops, and the oni topples back to lie beside it.</p>
+    </Header>
+    <section aria-label="Fight controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="Hero" value={hero} options={["samurai", "momotaro"] as const} onChange={setHero} labels={{ samurai: "Samurai", momotaro: "Momotarō" }} />
+      <Select name="Oni" value={oni} options={["red", "blue"] as const} onChange={setOni} labels={{ red: "Red oni", blue: "Blue oni" }} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="A hero fighting an oni with an iron club" /></Fit>
+    <Transport clock={clock} total={640} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Fight frame" />
   </div>;
 }
 

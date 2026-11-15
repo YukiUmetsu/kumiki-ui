@@ -3723,6 +3723,11 @@
           "target": "components/video/ukiyoe/ukiyoe-katana.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-oni.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-oni.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"
