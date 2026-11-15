@@ -149,6 +149,16 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       expect(region.layers.every(layer=>layer.tipWidth<1.55)).toBe(true);
     }
     expect(parts.get("mask")!.bounds[3]).toBeLessThanOrEqual(46);
+    const orbit=parts.get("periocular-form")!;
+    expect(orbit.opaqueSupport).toBe(false);
+    expect(orbit.craft).toBeUndefined();
+    expect((orbit.path.match(/M/g)??[]).length).toBe(3);
+    expect(orbit.details!.filter(d=>d.id?.startsWith("fibre-"))).toHaveLength(9);
+    expect(orbit.details!.every(d=>d.path.includes("Q")||
+      d.path.includes("C"))).toBe(true);
+    expect(parts.get("eye-near")!.details!.length)
+      .toBeGreaterThan(parts.get("eye-far")!.details!.length);
+    expect(parts.get("eye-near")!.bounds[3]).toBeLessThanOrEqual(24);
     for(const id of ["head-main","muzzle","cheek-ruff"]){
       const region=parts.get(id)!;
       const fibres=region.details!.filter(x=>x.id?.startsWith("fibre-"));
@@ -190,6 +200,24 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(()=>flowBundles([[0,0,0,0,0,0,0,0]],10,"#AABBCC")).toThrow(RangeError);
     expect(()=>flowBundles([[0,0,5,7,3,4,38,2]],10,"#AABBCC")).toThrow(RangeError);
     expect(()=>flowBundles(input,-1,"#AABBCC")).toThrow(RangeError);
+  });
+
+  it("renders original CP-F1 fox anatomy from authored pencil vectors with zero photo pixels",()=>{
+    const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
+    expect(drawing.foundation?.subject).toBe("wildlife");
+    const original=renderToStaticMarkup(
+      <PencilDrawing drawing={drawing} frame={335}/>);
+    expect(original).toContain('data-km-pencil-render-method="authored-vector-pigment"');
+    expect(original).toContain('data-km-pencil-photo-pixels="none"');
+    expect(original).toContain('data-km-pencil-region="periocular-form"');
+    expect(original).toContain('data-km-pencil-region="eye-near"');
+    expect(original).toContain('data-km-pencil-region="eye-far"');
+    expect(original).toContain('data-km-pencil-micro=""');
+    expect(original).toContain('data-km-pigment-layer="2"');
+    expect(original).not.toMatch(/<(?:image|foreignObject|feImage)\\b/i);
+    expect(original).not.toMatch(/data:image\\//);
+    expect(renderToStaticMarkup(
+      <PencilDrawing drawing={drawing} frame={335}/>)).toBe(original);
   });
 
   it("renders opaque face masses without leaking paper through skin and preserves frame seeking",()=>{
