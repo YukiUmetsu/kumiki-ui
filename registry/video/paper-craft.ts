@@ -34,6 +34,9 @@ export interface PaperCameraKey {
 }
 export interface PaperCutLayer {
   id: string;
+  /** Parent sheet in the same authored world-space bind pose.
+   * Its rigid transform is inherited without changing global draw order. */
+  parentId?: string;
   /** Authored paper contour, in output-sheet coordinates. */
   path: string;
   /** Holes are empty physical cut-outs. They never receive the layer's fill. */
@@ -81,8 +84,22 @@ export interface PaperCraftSpec {
   /** Optional overhead-camera key poses. A bounded, solid-stock push/pan only. */
   cameraKeys?: readonly PaperCameraKey[];
 }
+/** SVG affine [a,b,c,d,e,f], in global paper-sheet coordinates. */
+export type PaperAffine = readonly [number,number,number,number,number,number];
+export function paperAffineMultiply(a:PaperAffine,b:PaperAffine):PaperAffine {
+  return [
+    a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],
+    a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],
+    a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5],
+  ];
+}
+export function paperAffinePoint(a:PaperAffine,p:readonly [number,number]):readonly [number,number] {
+  return [a[0]*p[0]+a[2]*p[1]+a[4],a[1]*p[0]+a[3]*p[1]+a[5]];
+}
 export interface PaperLayerFrame {
   id: string;
+  /** Full inherited sheet transform. Every cut remains a separately sorted opaque plane. */
+  worldMatrix?: PaperAffine;
   /** Static once the cut-out is assembled. */
   progress: number;
   opacity: number;
@@ -186,12 +203,19 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
     ["x","y","zoom"], name => name === "zoom" ? [1,1.18] : [-Math.max(spec.width, spec.height)*.12,Math.max(spec.width,spec.height)*.12]);
   const seen = new Set<string>();
   const rigs = new Map<string, PaperCutLayer>();
+  const parents = new Map<string,string>();
   const layers: readonly PaperCutLayer[] = Array.isArray(spec.layers) ? spec.layers : [];
   for (const [i, layer] of layers.entries()) {
     const base = `layers[${i}]`;
     if (!layer || typeof layer !== "object") { bad(base, "cutout must be an object"); continue; }
     if (!layer.id || !/^[a-zA-Z0-9_-]+$/.test(layer.id) || seen.has(layer.id)) bad(base + ".id", "unique stable id required");
     seen.add(layer.id);
+    if (layer.parentId !== undefined) {
+      if (typeof layer.parentId !== "string" || !/^[a-zA-Z0-9_-]{1,64}$/.test(layer.parentId))
+        bad(base+".parentId","parent id must be a stable ASCII sheet id");
+      else parents.set(layer.id,layer.parentId);
+      if (!layer.pivot) bad(base+".pivot","attached cutout requires an explicit hinge pivot");
+    }
     if (!isPaperCutContour(layer.path))
       bad(base + ".path", "provide a closed bounded SVG cut contour");
     if (!hex.test(layer.color)) bad(base + ".color", "colour must be opaque hex");
@@ -245,6 +269,19 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
     if (layer.durationFrames !== undefined && (!Number.isInteger(layer.durationFrames) || layer.durationFrames < 1 || layer.durationFrames > spec.durationFrames))
       bad(base + ".durationFrames", "entry duration must be 1–durationFrames");
   }
+  const idIndex=new Map(layers.map((l,i)=>[l.id,i]));
+  for(const [child,parent] of parents) {
+    if (!seen.has(parent)) bad("layers["+idIndex.get(child)+"].parentId","parent sheet does not exist");
+    let cursor=child; const walked=new Set<string>();
+    while(parents.has(cursor)) {
+      if(walked.has(cursor)) {
+        bad("layers["+idIndex.get(child)+"].parentId","paper rig cannot contain a cycle");
+        break;
+      }
+      walked.add(cursor);
+      cursor=parents.get(cursor)!;
+    }
+  }
   return issues;
 }
 export function evaluatePaperCraft(spec: PaperCraftSpec, frame: number, reducedMotion = false): PaperCraftFrame {
@@ -295,11 +332,32 @@ export function evaluatePaperCraft(spec: PaperCraftSpec, frame: number, reducedM
       shadowBlur: 2.2 + depth * (spec.style === "lightbox" ? 1.9 : .85),
     };
   });
+  // Parent-first rigid affine composition, independent of scene-wide Z ordering.
+  // Artwork is specified in a common rest sheet, so inherited rotations carry
+  // every attached paper piece without duplicated motion-key authoring.
+  const byId=new Map(spec.layers.map((layer,i)=>[layer.id,i]));
+  const cache=new Map<number,PaperAffine>();
+  const matrixAt=(i:number):PaperAffine=>{
+    const cached=cache.get(i);
+    if(cached)return cached;
+    const layer=spec.layers[i], pose=layers[i];
+    const pivot=layer.pivot ?? [spec.width/2,spec.height/2];
+    const rad=pose.rotation*Math.PI/180, cs=Math.cos(rad), sn=Math.sin(rad);
+    const a=cs*pose.scaleX,b=sn*pose.scaleX,c=-sn*pose.scaleY,d=cs*pose.scaleY;
+    const local:PaperAffine=[a,b,c,d,
+      pose.translateX+pivot[0]-a*pivot[0]-c*pivot[1],
+      pose.translateY+pivot[1]-b*pivot[0]-d*pivot[1]];
+    const parent=layer.parentId;
+    const result=parent===undefined?local:paperAffineMultiply(matrixAt(byId.get(parent)!),local);
+    cache.set(i,result);
+    return result;
+  };
+  const riggedLayers=layers.map((layer,i):PaperLayerFrame=>({...layer,worldMatrix:matrixAt(i)}));
   const cameraFrame = reducedMotion ? spec.durationFrames - 1 : frame;
   const camera = spec.cameraKeys ? {
     x: paperKeySample(spec.cameraKeys,cameraFrame,k=>k.x),
     y: paperKeySample(spec.cameraKeys,cameraFrame,k=>k.y),
     zoom: paperKeySample(spec.cameraKeys,cameraFrame,k=>k.zoom),
   } : {x:0,y:0,zoom:1};
-  return { frame, layers, camera };
+  return { frame, layers:riggedLayers, camera };
 }
