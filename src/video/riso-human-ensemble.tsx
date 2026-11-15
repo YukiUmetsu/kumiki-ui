@@ -1,4 +1,4 @@
-import {useMemo,useState} from "react";
+import {useEffect,useMemo,useState} from "react";
 import {evaluateRisoCharacter} from "../../registry/video/riso-character";
 import type {RisoCharacterPart,RisoCharacterSpec,RisoJoint} from "../../registry/video/riso-character";
 import {RisoCharacterInk,RisoCharacterKnockout} from "../../registry/video/riso-character-react";
@@ -220,12 +220,20 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
 }
 export function RisoHumanEnsembleStudio(){
   const [frame,setFrame]=useState(176);
+  const [playing,setPlaying]=useState(false);
   const [aspect,setAspect]=useState<EnsembleAspect>("landscape");
   const [plate,setPlate]=useState<EnsemblePlate>("both");
   const [anchors,setAnchors]=useState(false);
   const [grain,setGrain]=useState(.45);
   const [misregistration,setMisregistration]=useState(.25);
   const [dotCell,setDotCell]=useState(6);
+  // Playback is a Storybook convenience. Production frames stay pure: a
+  // film exporter passes an absolute frame to evaluateRisoHumanEnsemble.
+  useEffect(()=>{
+    if(!playing)return;
+    const id=window.setInterval(()=>setFrame(current=>(current+1)%240),1000/24);
+    return ()=>window.clearInterval(id);
+  },[playing]);
   const state=useMemo(()=>evaluateRisoHumanEnsemble(frame,aspect),[frame,aspect]);
   const printSpec:RisoPrintSpec={
     version:1,width:state.width,height:state.height,paper,seed:38,
@@ -276,6 +284,12 @@ export function RisoHumanEnsembleStudio(){
         Real RisoPrint spot-ink screens, print registration, paper pores and fibres are used.
       </p>
       <div style={{display:"flex",flexWrap:"wrap",gap:20,alignItems:"center",padding:"12px 0"}}>
+        <button type="button" aria-label={playing?"Pause Risograph ensemble":"Play Risograph ensemble"}
+          aria-pressed={playing} onClick={()=>setPlaying(value=>!value)}
+          style={{border:"1px solid #426079",borderRadius:4,color:"#FFF",background:"#244D6C",
+            fontWeight:700,padding:"8px 12px",cursor:"pointer"}}>
+          {playing?"Pause":"Play scene"}
+        </button>
         <label>Frame · {frame} <input type="range" min={0} max={239} value={frame}
           aria-label="RISO ensemble film frame" onChange={e=>setFrame(Number(e.target.value))}/></label>
         <label>Output <select value={aspect} aria-label="RISO ensemble aspect"
