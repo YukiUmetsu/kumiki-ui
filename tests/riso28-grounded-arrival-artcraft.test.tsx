@@ -33,6 +33,23 @@ describe("RISO28 original courier grounded arrival",()=>{
     expect(COURIER.parts.filter(p=>p.joint==="head").length).toBeGreaterThan(35);
   });
 
+  it("enters upright on loaded legs instead of the original airborne-looking squat",()=>{
+    const first=evaluateRisoCharacter(COURIER,0);
+    const hip=(side:"left"|"right")=>first.joints.find(j=>j.id===side+"-leg");
+    const boot=(side:"left"|"right")=>first.joints.find(j=>j.id===side+"-ankle");
+    for(const side of ["left","right"] as const){
+      const h=hip(side),b=boot(side);
+      expect(h).toBeDefined();
+      expect(b).toBeDefined();
+      // Original f0 hip-to-shoe projection was only 62 units of the 76-unit
+      // limb and posed as a deep, implausible opening squat. Preserve the
+      // same 40+36 bone segments while beginning weight-bearing and upright.
+      expect(b!.y-h!.y,side+" knee is folded on first cel").toBeGreaterThan(70);
+      expect(Math.abs(b!.x-h!.x)).toBeLessThan(1);
+    }
+    expect(evaluateRisoCharacter(COURIER,0)).toEqual(first);
+  });
+
   it("never flies with both boots lifted through original walk source",()=>{
     const {left,right}=feet();
     expect(left.cycleFrames).toBe(54);
