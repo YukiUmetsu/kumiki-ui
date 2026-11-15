@@ -13,6 +13,19 @@ const firstPoint = (path: string): {x:number;y:number} => {
 };
 
 describe("RISO16 physically linked two-hand print surface",()=>{
+  it("unfurls from a narrow stroke rather than teleporting a full-height card at 28 units",()=>{
+    const source={x:40,y:60};
+    const tiny=evaluateRisoTransferSheet(source,{x:52,y:60},.4);
+    const fully=evaluateRisoTransferSheet(source,{x:80,y:60},.8);
+    expect(tiny.outline).toMatch(/^M.+Z$/);
+    expect(fully.outline).toMatch(/^M.+Z$/);
+    const narrowTop=firstPoint(tiny.outline);
+    const wideTop=firstPoint(fully.outline);
+    expect(Math.abs(narrowTop.y-source.y)).toBeGreaterThan(2);
+    expect(Math.abs(narrowTop.y-source.y)).toBeLessThan(Math.abs(wideTop.y-source.y));
+    expect(evaluateRisoTransferSheet(source,source,0).outline).toBe("");
+  });
+
   it("constructs one continuous path from contact-aligned paper edge, not screen-aligned tape",()=>{
     for(const [source,end] of [
       [{x:40,y:60},{x:230,y:60}],
