@@ -41,6 +41,12 @@ test("reference-guided pencil renders locally loaded colour/edge structure in bo
     await setSlider("Pencil photo focus",0);
     for(const aspect of ["landscape","portrait"] as const){
       await page.getByRole("combobox",{name:"Pencil photo aspect"}).selectOption(aspect);
+      if(aspect==="portrait"){
+        // The synthetic fixture contains TWO equal subjects, so compare the
+        // complete image rather than applying the default single-subject crop.
+        await page.getByRole("combobox",{name:"Pencil portrait framing"})
+          .selectOption("fit");
+      }
       await expect(canvas).toHaveAttribute("data-km-pencil-photo","ready",{timeout:20000});
       await setSlider("Pencil photo frame",350);
       const metrics=await canvas.evaluate(node=>{
