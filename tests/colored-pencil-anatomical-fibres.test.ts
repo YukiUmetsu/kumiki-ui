@@ -103,3 +103,39 @@ describe("ArtCraft independent anatomical pencil fibre performance",()=>{
     }).join(" ")).toContain("details");
   });
 });
+
+
+describe("ArtCraft authored contour refinement guard",()=>{
+  it("keeps more anatomical curved landmarks than simplified first-generation cartoon blocks",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const scene=pencilCharacterScene(aspect);
+      expect(inspectPencilScene(scene)).toEqual([]);
+      const fox=scene.actors![0],bird=scene.actors![1];
+      const region=(actor:typeof fox,id:string)=>{
+        const match=actor.parts.find(p=>p.id===id);
+        expect(match).toBeDefined();
+        return match!.region;
+      };
+      const ruff=region(fox,"ruff");
+      const muzzle=region(fox,"muzzle");
+      const tailTip=region(fox,"tail-tip");
+      const head=region(bird,"head");
+      const cheek=region(bird,"cheek");
+      const beak=region(bird,"beak");
+      const coverts=region(bird,"wing-coverts");
+      // New growth-compatible volumes: curved ruff/collar, tapered muzzle,
+      // irregular tail-tip, non-spherical crown, folded/curved coverts.
+      expect((ruff.path.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(10);
+      expect((muzzle.path.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(6);
+      expect((head.path.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(6);
+      expect((coverts.path.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(8);
+      expect((beak.path.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(4);
+      expect((tailTip.path.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(8);
+      expect(cheek.path.startsWith("M99 102")).toBe(true);
+      expect(tailTip.layers[0].color).not.toBe("#E7D0B7");
+      expect(fox.parts.flatMap(p=>p.detailTracks??[])).toHaveLength(9);
+      expect(bird.parts.flatMap(p=>p.detailTracks??[])).toHaveLength(12);
+      expect(scene.drawing.regions.length+fox.parts.length+bird.parts.length).toBe(24);
+    }
+  });
+});
