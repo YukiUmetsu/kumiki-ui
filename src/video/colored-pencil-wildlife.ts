@@ -24,7 +24,7 @@ function scenery(transform:string):PencilRegion[] {
       id:"perch-bark",surface:"wood",palette:wood,seed:1707,
       path:"M-9 215 C53 208 106 216 165 216 Q255 208 342 202 L419 199 L419 209 Q322 222 258 222 C175 235 94 226 -9 231 Z",
       bounds:[-12,193,434,43],direction:6,flow:9,startFrame:40,
-      durationFrames:168,transform,
+      durationFrames:168,transform,craft:true,
       details:[
         trace("M5 221 Q71 216 140 224 Q215 230 308 209 M188 222 Q274 219 410 204",
           "#574744",1.3,195),
@@ -36,7 +36,7 @@ function scenery(transform:string):PencilRegion[] {
       id:"branch-twig",surface:"wood",palette:wood,seed:1733,
       path:"M260 215 Q304 184 342 145 Q362 123 386 116 L397 118 Q360 149 348 165 Q319 206 276 219 Z",
       bounds:[254,111,146,114],direction:-49,flow:14,startFrame:55,
-      durationFrames:152,transform,
+      durationFrames:152,transform,craft:true,
       details:[
         trace("M278 214 Q335 172 379 122 M316 187 Q342 155 354 147",
           "#DCC7AA",.8,208),
@@ -46,7 +46,7 @@ function scenery(transform:string):PencilRegion[] {
       id:"leaf-upper",surface:"leaf",palette:leaf,seed:1811,
       path:"M337 158 Q314 121 328 89 Q361 112 363 154 Q357 168 337 158 Z M356 156 Q363 116 400 105 Q391 142 367 161 Z",
       bounds:[309,85,96,82],direction:35,flow:30,startFrame:75,
-      durationFrames:154,transform,
+      durationFrames:154,transform,craft:true,
       details:[
         trace("M342 155 Q334 118 330 96 M362 154 Q377 124 395 109",
           "#416F61",.96,216),
@@ -57,7 +57,7 @@ function scenery(transform:string):PencilRegion[] {
       id:"leaf-lower",surface:"leaf",palette:leaf,seed:1837,
       path:"M294 197 Q273 178 276 149 Q308 164 316 193 Z M363 181 Q371 150 403 143 Q393 177 375 187 Z",
       bounds:[267,138,140,56],direction:-23,flow:26,startFrame:92,
-      durationFrames:154,transform,
+      durationFrames:154,transform,craft:true,
       details:[
         trace("M301 191 Q283 163 279 155 M369 181 Q388 152 398 148",
           "#3C6E60",.88,225),
