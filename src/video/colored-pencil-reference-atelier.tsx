@@ -3,13 +3,16 @@ import {
   createPencilPhotoStudy,pencilPhotoStrokeCount,PENCIL_PHOTO_DEFAULTS,
 } from "./colored-pencil-photo";
 import type {
-  PencilPhotoPixels,PencilPhotoOptions,PencilPhotoStudy,
+  PencilPhotoPixels,PencilPhotoOptions,PencilPhotoStudy,PencilPhotoMark,
 } from "./colored-pencil-photo";
 import {mapCC0WomanPortraitFeatures} from "./colored-pencil-portrait-guides";
 import {
   buildColoredPencilDryContact,isPencilSkinContactZone,
 } from "./colored-pencil-dry-contact";
-import type {PortraitHeadStroke} from "./colored-pencil-full-head";
+import type {PortraitHeadStroke,DryPencilHeadPlate} from "./colored-pencil-full-head";
+import {
+  buildPencilNeedlepointSkinContact,isPencilNeedlepointZone,
+} from "./colored-pencil-needlepoint";
 import {createDryPortraitPlate} from "./colored-pencil-dry-portrait";
 import {
   createDryPencilHeadPlate,HEAD_STORYBOARD_PHASES,
@@ -105,18 +108,39 @@ function paintMarkRange(ctx:CanvasRenderingContext2D,
  * Fine eye/lip/hair marks are untouched.
  */
 function paintDryHeadRange(ctx:CanvasRenderingContext2D,
-  strokes:readonly PortraitHeadStroke[],from:number,to:number,tooth:number){
+  strokes:readonly PortraitHeadStroke[],from:number,to:number,tooth:number,
+  needlepoint:number,plate:DryPencilHeadPlate){
   ctx.lineCap="round";ctx.lineJoin="round";
+  // Source-measured face polygon clips ONLY the extra needle contacts,
+  // never existing hair, pupil, lip, skin value or root pigment.
+  const faceClip=new Path2D();
+  const ratio=plate.width/plate.crop.width;
+  for(const [i,p] of plate.geometry.face.entries()){
+    const x=(p[0]-plate.crop.left)*ratio;
+    const y=(p[1]-plate.crop.top)*ratio;
+    if(i===0)faceClip.moveTo(x,y);else faceClip.lineTo(x,y);
+  }
+  faceClip.closePath();
+  const paintNib=(mark:PencilPhotoMark)=>{
+    ctx.beginPath();ctx.moveTo(mark.x,mark.y);
+    ctx.quadraticCurveTo(mark.controlX,mark.controlY,mark.endX,mark.endY);
+    ctx.strokeStyle=mark.color;ctx.lineWidth=mark.width;
+    ctx.globalAlpha=mark.alpha;ctx.stroke();
+  };
   for(let i=from;i<to;i++){
     const source=strokes[i];
+    if(needlepoint>0&&isPencilNeedlepointZone(source.zone)){
+      const contacts=buildPencilNeedlepointSkinContact(source,needlepoint);
+      if(contacts.length>1){
+        ctx.save();ctx.clip(faceClip);
+        // Finely spaced optical contacts under the original sharp line.
+        for(let j=0;j<contacts.length-1;j++)paintNib(contacts[j]);
+        ctx.restore();
+      }
+    }
     const marks=tooth>0&&isPencilSkinContactZone(source.zone)?
       buildColoredPencilDryContact(source,tooth):[source];
-    for(const mark of marks){
-      ctx.beginPath();ctx.moveTo(mark.x,mark.y);
-      ctx.quadraticCurveTo(mark.controlX,mark.controlY,mark.endX,mark.endY);
-      ctx.strokeStyle=mark.color;ctx.lineWidth=mark.width;
-      ctx.globalAlpha=mark.alpha;ctx.stroke();
-    }
+    for(const mark of marks)paintNib(mark);
   }
   ctx.globalAlpha=1;
 }
@@ -184,6 +208,7 @@ export function ReferencePencilAtelier({
   const [lidAnatomy,setLidAnatomy]=useState(.72);
   const [irisAnatomy,setIrisAnatomy]=useState(.78);
   const [skinWeave,setSkinWeave]=useState(.70);
+  const [needlepoint,setNeedlepoint]=useState(.72);
   const [featureDepth,setFeatureDepth]=useState(.85);
   const [skinCoverage,setSkinCoverage]=useState(.70);
   const [showFeatureAtlas,setShowFeatureAtlas]=useState(initialStoryboard);
@@ -347,11 +372,15 @@ export function ReferencePencilAtelier({
     ink.fillStyle=headPlate.paperColor;
     ink.fillRect(0,0,dry.width,dry.height);
     paintDryHeadRange(ink,headPlate.strokes,0,headPlate.strokes.length,
-      headDryTooth);
+      headDryTooth,needlepoint,headPlate);
     dry.setAttribute("data-km-pencil-full-head-rendered","true");
     dry.setAttribute("data-km-pencil-eyelid-depth",String(headPlate.eyelidDepth));
     dry.setAttribute("data-km-pencil-iris-depth",String(headPlate.irisDepth));
     dry.setAttribute("data-km-pencil-skin-weave",String(headPlate.skinWeaveDepth));
+    dry.setAttribute("data-km-pencil-needlepoint-depth",String(needlepoint));
+    dry.setAttribute("data-km-pencil-needlepoint-fibres",
+      String(headPlate.skinWeaveEvidence.pigments*
+        Math.floor(needlepoint*8+.001)));
     dry.setAttribute("data-km-pencil-skin-weave-nibs",
       String(headPlate.skinWeaveEvidence.pigments));
     dry.setAttribute("data-km-pencil-skin-weave-highlight-reserves",
@@ -386,7 +415,7 @@ export function ReferencePencilAtelier({
     setSkinEvidence(compareCC0SoftSkin(original,rendered));
     setLightSkinEvidence(compareCC0LuminousSkin(original,rendered));
     setJawEvidence(compareCC0JawContact(original,rendered));
-  },[headPlate,raw,headDryTooth]);
+  },[headPlate,raw,headDryTooth,needlepoint]);
   useEffect(()=>{
     if(!showHairContact||!headPlate)return;
     const src=fullHeadSourceRef.current,dry=fullHeadRef.current;
@@ -409,7 +438,7 @@ export function ReferencePencilAtelier({
         0,0,target.width,target.height);
       target.setAttribute("data-km-pencil-contact-rendered","ready");
     }
-  },[showHairContact,headPlate,raw]);
+  },[showHairContact,headPlate,raw,needlepoint]);
   useEffect(()=>{
     if(!showFeatureAtlas||!headPlate)return;
     const from=fullHeadSourceRef.current,to=fullHeadRef.current;
@@ -438,7 +467,7 @@ export function ReferencePencilAtelier({
         0,0,detail.width,detail.height);
       detail.setAttribute("data-km-pencil-anatomy-rendered",featureFocus);
     }
-  },[showFeatureAtlas,featureFocus,headPlate,raw]);
+  },[showFeatureAtlas,featureFocus,headPlate,raw,needlepoint]);
   // Each storyboard panel reuses the EXACT paper-only full-head strokes,
   // chronologically filtered by construction material and immutable pass.
   // Small stage canvases render at 1/2 scale without any bitmap shortcut.
@@ -455,13 +484,14 @@ export function ReferencePencilAtelier({
       ctx.fillStyle=headPlate.paperColor;
       ctx.fillRect(0,0,headPlate.width,headPlate.height);
       const stageMarks=selectHeadStoryboardStrokes(headPlate.strokes,phase.id);
-      paintDryHeadRange(ctx,stageMarks,0,stageMarks.length,headDryTooth);
+      paintDryHeadRange(ctx,stageMarks,0,stageMarks.length,
+        headDryTooth,needlepoint,headPlate);
       ctx.setTransform(1,0,0,1,0,0);
       canvas.setAttribute("data-km-pencil-storyboard-rendered",phase.id);
       canvas.setAttribute("data-km-pencil-storyboard-strokes",
         String(stageMarks.length));
     }
-  },[showStoryboard,headPlate,headDryTooth]);
+  },[showStoryboard,headPlate,headDryTooth,needlepoint]);
   useEffect(()=>{
     if(!playing)return;
     const began=performance.now(),offset=frame;
@@ -618,6 +648,12 @@ export function ReferencePencilAtelier({
         <input aria-label="Pencil overlapping skin optical weave" type="range"
           min="0" max="1" step=".05" value={skinWeave}
           onChange={e=>setSkinWeave(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Needlepoint skin optical fill · {Math.round(needlepoint*100)}%
+        <input aria-label="Pencil needlepoint skin optical fill" type="range"
+          min="0" max="1" step=".04" value={needlepoint}
+          onChange={e=>setNeedlepoint(Number(e.target.value))}/>
       </label>}
       {faceGuides&&showFullHead&&<label style={control}>
         Skin pigment coverage · {Math.round(skinCoverage*100)}%
@@ -1080,6 +1116,11 @@ export function ReferencePencilAtelier({
               headPlate.skinWeaveEvidence.protectedEdges+" / "+
               headPlate.skinWeaveEvidence.protectedAnatomy}.
             Skin optical weave: {" "+Math.round(headPlate.skinWeaveDepth*100)}%.
+            Fine needlepoint skin fibres: {" "+
+              headPlate.skinWeaveEvidence.pigments*
+              Math.floor(needlepoint*8+.001)}.
+            Fine needlepoint optical fill strength: {" "+
+              Math.round(needlepoint*100)}%.
             Dry pencil nib contact: {" "+Math.round(headDryTooth*100)}%.
             Fibre direction: {" "+Math.round(headPlate.fibreFlowStrength*100)}%
             anatomy-connected; set 0% for the legacy ruled-grain A/B comparison.
