@@ -202,3 +202,12 @@ Do not claim stylistic parity or a world-class art bar from path-count tests alo
 ### Pass 23b — corrected paper mass from actual film-frame inspection
 
 Inspected the first real 960×540 woodland/alpine frames and both 540×960 portraits. The new foliage has more detailed cuts and real flower heads, but its near-camera leaf blades still read too much like fine drawn lines, particularly when rendered against dark alpine banks. The fix adds **two broad rooted, physically cut basal blades** per herb and their scored cut-paper midribs; it increases the width/volume of lateral leaves while maintaining genuine hand-cut serration and open lake/river sightlines. Changed tests now require over 14 individually defined stock contour starts per high-detail herb instead of merely checking that a valid SVG exists. This is a concrete second real-render art review, not a generic noise pass.
+
+
+## Pass 24 — rooted nested forest and sculpted cast shadows
+
+Critique of actual previous film frames: the woodland scene looked compositionally readable but the near trunks were still poles and its broad upper card had relatively few visible punched voids. Detailed paper forest references emphasize rooted trees with nested primary/secondary branch tiers, irregular gaps and separated dark stock.
+
+Implemented two additional woodland arbors, each with real tapering trunk, 5–8 curved main branches, attached secondary twigs and terminal leaf stock; separate opaque offset understock creates deliberate near/far cast shadows. The overhead canopy now has 5–18 physical punch holes scaled with existing Detail. Foreground bark gains several short, curved cut highlights instead of linear full-height bars. No new art folder, API property or external assets.
+
+Visual QA gates: inspect actual native 960×540 and 540×960 frames. Reject unattached branches, light leaks at frame edges, forest obstructing sun/river, ghost opacity, flat pale overlay or excessive edge strokes even if structural tests pass.
