@@ -103,7 +103,7 @@ const facePieces:readonly RisoCharacterPart[]=[
   {id:"ear-helix-fold",joint:"head",plate:"blue",paint:"solid",
     d:"M-34.2 -10 C-37.1 -8 -38 -4.5 -36.6 -1.8 Q-35.7 -4.5 -34 -8.5 Z"},
   {id:"ear-concha-pocket",joint:"head",plate:"red",paint:"solid",
-    d:"M-34.8 -6 Q-32.3 -7.8 -31 -5.3 Q-31 -3.3 -33 -3 Q-35.2 -3.3 -34.8 -6 Z"},
+    d:"M-33.0 -5.3 Q-32.1 -6.1 -31.2 -4.9 Q-31.4 -3.7 -32.4 -3.9 Q-33.3 -4.3 -33.0 -5.3 Z"},
   {id:"ear-tragus-root",joint:"head",plate:"blue",paint:"solid",
     d:"M-30.6 -2.2 Q-32 -.8 -31.6 .8 Q-30.2 .9 -29.9 -.7 Z"},
   {id:"ear-lobule-seam",joint:"head",plate:"red",paint:"solid",
