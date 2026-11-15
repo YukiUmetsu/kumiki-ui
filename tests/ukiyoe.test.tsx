@@ -1,11 +1,21 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { cameraAt, carvedLine, ease, loopOffsets, scrollPan, seedOf, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
 import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES } from "../registry/video/ukiyoe/ukiyoe-creatures";
-import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
+import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, settledPose, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
 import { realmScene, UKIYOE_REALM_SCENES } from "../registry/video/ukiyoe/ukiyoe-realms";
+import { paradeScene, UKIYOE_PARADE_SCENES } from "../registry/video/ukiyoe/ukiyoe-parade";
+import { faceTraits } from "../registry/video/ukiyoe/ukiyoe-face";
+import { UKIYOE_ROLES_LIST, UKIYOE_SEASONS, ukiyoeWardrobe } from "../registry/video/ukiyoe/ukiyoe-wardrobe";
+import { inspectUkiyoeEpisode, ukiyoeCaptionLines, ukiyoeEpisode, ukiyoeEpisodeSrt, ukiyoeTitleCard } from "../registry/video/ukiyoe/ukiyoe-episode";
+import { KASA_JIZO_EPISODE } from "../src/video/ukiyoe-kasa-jizo";
+import { URASHIMA_EPISODE } from "../src/video/ukiyoe-urashima";
+import { MOMOTARO_EPISODE } from "../src/video/ukiyoe-momotaro";
+import { KAGUYA_EPISODE } from "../src/video/ukiyoe-kaguya";
+import { tamatebakoSmoke, TAMATEBAKO_THICKEST } from "../registry/video/ukiyoe/ukiyoe-ryugu";
 import { tsukumoScene, UKIYOE_TSUKUMO, UKIYOE_TSUKUMO_SCENES } from "../registry/video/ukiyoe/ukiyoe-tsukumo";
 import { giantScene, UKIYOE_GIANT_SCENES, UKIYOE_GIANTS } from "../registry/video/ukiyoe/ukiyoe-giants";
 import { folkYokaiScene, UKIYOE_FOLK_YOKAI_LOOKS, UKIYOE_FOLK_YOKAI_SCENES } from "../registry/video/ukiyoe/ukiyoe-folkyokai";
@@ -176,7 +186,9 @@ describe("UKIYO1 figures", () => {
     const flat = (ps: P[]): P[] => ps.flatMap(p => p.t === "group" || p.t === "clip" ? flat(p.prims ?? []) : [p]);
     const look = { hair: "shimada" as const, robe: "beni", under: "ki" }, walk = [{ type: "walk" as const, start: 0, end: 100, to: 300 }];
     const draw = (view?: "front" | "back") => drawFigure({ look: { ...look, view }, actions: walk }, 25, 0, 3);
-    const eyes = (view?: "front" | "back") => flat(draw(view).prims as P[]).filter(p => p.t === "dots" && p.color === "sumi").length;
+    // Each open eye draws its iris clipped to the lids.
+    const irises = (ps: P[]): number => ps.reduce((n, p) => n + ((p as { key?: string }).key === "iris" ? 1 : p.prims ? irises(p.prims) : 0), 0);
+    const eyes = (view?: "front" | "back") => irises(draw(view).prims as P[]);
     expect(eyes("front")).toBe(2);
     expect(eyes("back")).toBe(0);
     const [pro, front, back] = [undefined, "front", "back"].map(v => JSON.stringify(draw(v as never).prims));
@@ -198,7 +210,9 @@ describe("UKIYO1 oiran", () => {
     const draw = (view: "profile" | "three-quarter" | "front" | "back") => drawFigure({ look: { ...UKIYOE_OIRAN_LOOKS.oiran, view } }, 20, 0, 3).prims as P[];
     const all = (["profile", "three-quarter", "front", "back"] as const).map(v => JSON.stringify(draw(v)));
     expect(new Set(all).size).toBe(4);
-    const eyes = (v: "front" | "back") => flat(draw(v)).filter(p => p.t === "dots" && p.color === "sumi").length;
+    type Q = { key?: string; prims?: Q[] };
+    const irises = (ps: Q[]): number => ps.reduce((n, p) => n + (p.key === "iris" ? 1 : p.prims ? irises(p.prims) : 0), 0);
+    const eyes = (v: "front" | "back") => irises(drawFigure({ look: { ...UKIYOE_OIRAN_LOOKS.oiran, view: v } }, 10, 0, 3).prims as Q[]);
     expect(eyes("front")).toBe(2);
     expect(eyes("back")).toBe(0);
     // The clogs (black teeth from the side, lacquered blocks from the front) reach the ground within a pixel or two,
@@ -950,5 +964,158 @@ describe("UKIYO1 boats, boarding and riding a wave", () => {
     expect(loopOffsets({ kind: "rock", period: 40, start: 100, fade: 20 }, 100, 0).y).toBeCloseTo(0, 6);
     expect(ease("inQuad", .5)).toBe(.25);
     expect(ease("outQuad", .5)).toBe(.75);
+  });
+});
+
+describe("UKIYO1 parades", () => {
+  it("builds each parade; the line keeps its order and gaps, and the palanquin rides between its bearers", () => {
+    for (const k of UKIYOE_PARADE_SCENES) expect(inspectUkiyoeScene(paradeScene(k)), k).toEqual([]);
+    const s = paradeScene("foxwedding"), node = (id: string) => s.nodes.find(n => n.id === id) as any;
+    const at = (id: string, f: number) => { const n = node(id); return n.kind === "motif" ? nodeState(n, f, s.cadence ?? 1).pose.x : n.x + travelAt(n.actions, f).x; };
+    for (const f of [0, 120, 240, s.durationFrames - 1]) {
+      const b0 = at("bearer0", f), b1 = at("bearer1", f), k = at("kago", f);
+      expect(k, `kago at ${f}`).toBeGreaterThan(b0 + 60); expect(k).toBeLessThan(b1 - 60);
+      expect(at("lantern2", f)).toBeLessThan(b0); expect(at("bride", f)).toBeGreaterThan(b1);
+    }
+    const fox = JSON.stringify(drawFigure({ look: { animal: "fox", robe: "gofun" } } as any, 0, 0, 1).prims);
+    expect(fox).toContain("tan");
+  });
+});
+
+describe("UKIYO1 episode template", () => {
+  it("compiles Kasa Jizō for YouTube and Shorts with captions sized per output, an .srt, and a clean script check", () => {
+    expect(inspectUkiyoeEpisode(KASA_JIZO_EPISODE)).toEqual([]);
+    const doc = ukiyoeEpisode(KASA_JIZO_EPISODE);
+    // The checked-in example is this episode, compiled (regenerate it when the episode changes).
+    expect(JSON.parse(readFileSync("examples/film/ukiyoe-kasa-jizo.film.json", "utf8"))).toEqual(JSON.parse(JSON.stringify(doc)));
+    for (const output of ["landscape", "portrait"]) {
+      const c = compileFilm(doc, { outputId: output });
+      expect(c.ok, output).toBe(true);
+      if (c.ok) expect(c.film.captions?.style?.size).toBe(output === "landscape" ? "2.6cqw" : "3.9cqw");
+    }
+    const srt = ukiyoeEpisodeSrt(KASA_JIZO_EPISODE);
+    expect(srt.startsWith("1\n00:00:01,667 --> ")).toBe(true);
+    expect(srt.split("\n\n").length).toBe(doc.captions!.cues.length);
+    // A caption too long for two lines on 9:16, and scene text inside the caption band, are both caught before rendering.
+    expect(ukiyoeCaptionLines("All they had were five straw hats they had woven, and a little rice, and nothing more.", "portrait")).toBeGreaterThan(2);
+    const bad = { ...KASA_JIZO_EPISODE, shots: [ukiyoeTitleCard({ title: "T", backdrop: a => ({ ...KASA_JIZO_EPISODE.shots[0].build(a), nodes: [{ id: "low", kind: "text", style: "plain", text: "Low", x: 400, y: a === "portrait" ? 1500 : 900, size: 40 }] }) as never,
+      narration: [{ text: "A line.", from: 10, to: 80 }] }), KASA_JIZO_EPISODE.shots[5]] };
+    expect(inspectUkiyoeEpisode(bad).some(i => i.message.includes("caption band"))).toBe(true);
+  });
+
+  it("puts each hat on its jizō as the key runs, and rejects a caption size that is not a CSS length", () => {
+    const jizo = (progress: number) => JSON.stringify(drawMotif("jizo", { kasa: true, kasaDrop: true }, { frame: 0, wind: 0, seed: 1, progress }));
+    expect(jizo(0)).not.toBe(jizo(1));
+    expect(jizo(1)).toContain("translate(0 0.0)");
+    for (const m of ["kasa", "tawara", "sori"] as const) expect(drawMotif(m, {}, { frame: 0, wind: 0, seed: 1, progress: 0 }).length).toBeGreaterThan(0);
+    const doc = ukiyoeEpisode(KASA_JIZO_EPISODE) as unknown as { captions: { style: { size: unknown } } };
+    doc.captions.style.size = { landscape: "huge", portrait: "3cqw" };
+    const c = compileFilm(doc, { outputId: "landscape" });
+    expect(c.diagnostics.some(d => d.code === "caption-style-size")).toBe(true);
+  });
+});
+
+describe("UKIYO1 Urashima Tarō", () => {
+  it("passes the script check, matches its example, and hides the ageing under the box's thickest smoke", () => {
+    expect(inspectUkiyoeEpisode(URASHIMA_EPISODE)).toEqual([]);
+    expect(JSON.parse(readFileSync("examples/film/ukiyoe-urashima-taro.film.json", "utf8"))).toEqual(JSON.parse(JSON.stringify(ukiyoeEpisode(URASHIMA_EPISODE))));
+    // The smoke is up and at full strength where the young figure hands over to the old one, and gone by the end.
+    const plume = (u: number) => JSON.stringify(tamatebakoSmoke([0, 0], 50, 300, u, 1));
+    expect(plume(0)).toBe("[]");
+    expect(plume(TAMATEBAKO_THICKEST)).toContain('"opacity":1');
+    expect(plume(1)).toContain('"opacity":0');
+    const box = URASHIMA_EPISODE.shots.find(s => s.id === "box")!.build("landscape");
+    const young = box.nodes.find(n => n.id === "taro")!, old = box.nodes.find(n => n.id === "taro-old")!;
+    expect(young.to).toBe(old.from);
+    // The box is drawn in hands and on the ground, and the dragon crown in both views.
+    for (const view of ["profile", "front"]) expect(JSON.stringify(drawFigure({ look: { hat: "dragon", view, prop: "tamatebako" } } as never, 0, 0, 1).prims)).toContain("kin");
+  });
+});
+
+describe("UKIYO1 Momotarō", () => {
+  it("passes the script check, matches its example, and draws the banner, dumplings, treasure and cart", () => {
+    expect(inspectUkiyoeEpisode(MOMOTARO_EPISODE)).toEqual([]);
+    expect(JSON.parse(readFileSync("examples/film/ukiyoe-momotaro.film.json", "utf8"))).toEqual(JSON.parse(JSON.stringify(ukiyoeEpisode(MOMOTARO_EPISODE))));
+    for (const prop of ["nobori", "dango"]) expect(drawFigure({ look: { prop } } as never, 0, 0, 1).prims.length).toBeGreaterThan(drawFigure({ look: {} } as never, 0, 0, 1).prims.length);
+    expect(drawMotif("takara", {}, { frame: 0, wind: 0, seed: 1, progress: 0 }).length).toBeGreaterThan(5);
+    // The cart's wheels turn with its keyed travel.
+    const cart = (progress: number) => JSON.stringify(drawMotif("kuruma", { travel: 500 }, { frame: 0, wind: 0, seed: 1, progress }));
+    expect(cart(0)).not.toBe(cart(.5));
+  });
+});
+
+describe("UKIYO1 Kaguya-hime", () => {
+  it("passes the script check, matches its example, and lets the girl rise in the cut stalk", () => {
+    expect(inspectUkiyoeEpisode(KAGUYA_EPISODE)).toEqual([]);
+    expect(JSON.parse(readFileSync("examples/film/ukiyoe-kaguya-hime.film.json", "utf8"))).toEqual(JSON.parse(JSON.stringify(ukiyoeEpisode(KAGUYA_EPISODE))));
+    const stalk = (progress: number) => JSON.stringify(drawMotif("takegiri", { rises: 1 }, { frame: 0, wind: 0, seed: 1, progress }));
+    expect(stalk(0)).not.toContain("takegiri-girl");
+    expect(stalk(1)).toContain("takegiri-girl");
+  });
+});
+
+describe("UKIYO1 faces", () => {
+  it("draws expressions, keeps one face per character across views and props, and gives different looks different faces", () => {
+    const head = (look: object, actions: unknown[] = []) => JSON.stringify(drawFigure({ look, actions } as never, 20, 0, 3).prims.find(p => p.t === "group" && /scale\(/.test(p.transform ?? "")));
+    const woman = { hair: "shimada", robe: "beni" };
+    const calm = head(woman);
+    for (const mood of ["smile", "laugh", "sad", "cry", "surprise", "angry", "fear", "shy"]) expect(head(woman, [{ type: "emote", mood, start: 0, end: 100, blend: 1 }]), mood).not.toBe(calm);
+    // Same identity, different prop: the same face traits.
+    const a = faceTraits({ ...woman, prop: "umbrella", view: "front" } as object, true), b = faceTraits(woman, true);
+    expect(a).toEqual(b);
+    // Twelve different townsmen: the trait sets are not all the same.
+    const men = ["ai", "cha", "kusa", "beni", "murasaki", "kogecha", "sora", "ki", "sumi", "matsu", "tan", "usuzumi"].map(robe => JSON.stringify(faceTraits({ hair: "chonmage", robe } as object, false)));
+    expect(new Set(men).size).toBeGreaterThan(6);
+    // Women are powdered white unless the look gives a skin.
+    expect(JSON.stringify(drawFigure({ look: woman } as never, 0, 0, 1).prims)).toContain('"fill":"gofun"');
+  });
+});
+
+describe("UKIYO1 wardrobe", () => {
+  it("dresses every role for every season, deterministically and with variety; hems, knots and new patterns draw", () => {
+    for (const season of UKIYOE_SEASONS) for (const role of UKIYOE_ROLES_LIST) expect(ukiyoeWardrobe(role, 3, season)).toEqual(ukiyoeWardrobe(role, 3, season));
+    const maidens = Array.from({ length: 16 }, (_, i) => JSON.stringify(ukiyoeWardrobe("maiden", i * 13, "spring")));
+    expect(new Set(maidens).size).toBeGreaterThan(12);
+    expect(maidens.some(m => m.includes('"hem"'))).toBe(true);
+    const fig = (look: object) => JSON.stringify(drawFigure({ look } as never, 10, 0, 3).prims);
+    const woman = { hair: "shimada", robe: "sora" };
+    expect(fig({ ...woman, hem: { type: "ayame", color: "ai", scale: 1 } })).toContain('"key":"hem"');
+    const knots = ["taiko", "tateya", "bunko", "kichiya"].map(obiKnot => fig({ ...woman, obiKnot }));
+    expect(new Set(knots).size).toBe(4);
+    for (const type of ["koshi", "tachiwaki", "kiku", "ume", "momiji", "shippo", "kasuri", "hishi", "sayagata", "kumo", "ayame"]) {
+      const html = renderToStaticMarkup(<UkiyoeScene spec={{ version: 1, id: "p", width: 100, height: 100, durationFrames: 2, seed: 1, nodes: [{ id: "b", kind: "block", x: 50, y: 50, shape: { type: "rect", width: 100, height: 100 }, fill: "ai", pattern: { type, color: "gofun" } }] } as never} frame={0} />);
+      expect(html, type).toContain("<pattern");
+    }
+  });
+});
+
+describe("UKIYO1 follow-through and idle life", () => {
+  it("lets the arm overshoot and settle after a gesture, leaves contact actions exact, half-closes the lids and glances", () => {
+    const woman = { look: { hair: "shimada" as const, robe: "beni" }, actions: [{ type: "wave" as const, start: 10, end: 40 }] };
+    const rest = figurePose(woman, 80, 3, 262).shF;
+    const after = Array.from({ length: 20 }, (_, i) => settledPose(woman, 41 + i, 3, 262).shF);
+    expect(Math.min(...after)).toBeLessThan(rest - 3);                    // swings past the rest pose
+    expect(Math.abs(settledPose(woman, 80, 3, 262).shF - rest)).toBeLessThan(.5); // and settles
+    const fighter = { look: { hair: "chonmage" as const }, actions: [{ type: "cut" as const, start: 10, end: 60, contact: 30, aim: [100, -200] as [number, number] }] };
+    for (const f of [20, 30, 45]) expect(settledPose(fighter, f, 3, 250)).toEqual(figurePose(fighter, f, 3, 250));
+    const blinks = new Set(Array.from({ length: 400 }, (_, f) => figurePose({ look: {} }, f, 7, 250).blink));
+    expect([...blinks].some(b => b > 0 && b < 1)).toBe(true);
+    const gazes = new Set(Array.from({ length: 600 }, (_, f) => Math.round(figurePose({ look: {} }, f, 7, 250).gaze * 10)));
+    expect(gazes.size).toBeGreaterThan(2);
+  });
+});
+
+describe("UKIYO1 print-quality effects", () => {
+  it("draws Hiroshige's long rain with a veil and splashes, snow in three depths, and hooked flame tongues", () => {
+    const rain = drawParticles({ type: "rain", count: 90, ground: 900 }, 30, 0, 3);
+    const lens = (rain.find(p => p.t === "stroke") as { d: string }).d.split("M").filter(Boolean).map(seg => { const n = seg.match(/-?\d+(\.\d+)?/g)!.map(Number); return Math.hypot(n[2], n[3]); });
+    expect(Math.min(...lens)).toBeGreaterThan(1080 * .3);                    // lines cross much of the sky
+    expect(JSON.stringify(rain)).toContain('"noPrint":true');                // the darkening veil
+    expect(rain.filter(p => p.t === "stroke").length).toBe(4);               // three rain blocks and the splashes
+    expect(drawParticles({ type: "rain", count: 90, style: "short" }, 30, 0, 3).filter(p => p.t === "stroke").length).toBe(2);
+    const snow = drawParticles({ type: "snow", count: 200 }, 30, 0, 3).filter(p => p.t === "dots");
+    expect(snow.length).toBe(3);
+    const fire = (f: number) => JSON.stringify(drawMotif("fire", {}, { frame: f, wind: 0, seed: 2, progress: 0 }));
+    expect(fire(10)).not.toBe(fire(14));                                     // the flames flicker
   });
 });

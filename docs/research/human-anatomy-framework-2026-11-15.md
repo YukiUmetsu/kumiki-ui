@@ -17,6 +17,20 @@ model output.
 | [MediaPipe canonical face model](https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/modules/face_geometry/data/canonical_face_model.obj) | 468-point average face surface, feature loops | Apache-2.0 (licence copied to `data/`) | S |
 | Wikimedia Commons plates (Richer 1890, Gray 1918, Duchenne 1862, Leonardo c.1490, Muybridge 1887) | 22 reference images, licence read per file from the Commons API | Public domain / CC0 | — |
 
+### Hair and colour (increment 2)
+
+| Source | What we use | Grade |
+|---|---|---|
+| Leerunyakul & Suchonwanit 2020, *Clin Cosmet Investig Dermatol* 13:309 (PMC7187942), Table 1 summarising Loussouarn 2005, Franbourg 2003 et al. | hair density, cross-sectional area, growth rate by broad group (numbers only; article is CC BY-NC) | M (secondary) |
+| Franbourg et al. 2003 as converted in later reviews | ellipticity ≈ 1.75 / 1.35 / 1.25 (African / European / Asian) | M (secondary) |
+| Schmidt et al. 2008 (PMC5848856); NF1 case-control control group | parietal whorl ≈ 84% clockwise; right 56% / left 30% / midline 14% | M |
+| de la Mettrie et al., *Human Biology* 2007 | eight curl-type classification method (curve diameter, curl index, waves); per-type geometry here is estimated | B / E |
+| Monk Skin Tone scale (Wikipedia listing of the official swatches) | ten hex values, CC BY 4.0 | M |
+| Jensen et al. 2001, SIGGRAPH (paper PDF, Fig. 5b) | skin1/skin2 σs′, σa, diffuse reflectance, η = 1.3; g ≈ 0.85, albedo ≈ 0.95 | M |
+| pbrt-v3 `hair.cpp` and pbrt-v4 file-format docs | melanin σa constants, reflectance inverse, blonde 0.3 / brown 1.3 / black 8, βm = βn = 0.3, α = 2°, η = 1.55 | B |
+| Marschner et al. 2003 | highlight lobe shifts and widths | B |
+| Chardon et al. 1991 | ITA° categories | B |
+
 Commonly cited values not re-verified against a primary table (grade B): shoulder internal/external rotation 70/90°,
 hip rotation 45/45°, wrist radial/ulnar deviation 20/30°, ankle inversion/eversion 35/15°, trunk flexion/extension/side
 bend/rotation 80/25/35/45°, horizontal visible iris diameter ≈ 11.7 mm, adult ear growth ≈ 0.22 mm/year (Heathcote,

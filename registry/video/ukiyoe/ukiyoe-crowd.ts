@@ -8,6 +8,8 @@
 import { hash01, hashSigned } from "./ukiyoe-core";
 import type { UkiyoeAction, UkiyoeFigureLook } from "./ukiyoe-figure";
 import type { UkiyoePatternType } from "./ukiyoe-prims";
+import type { UkiyoeSeason } from "./ukiyoe-wardrobe";
+import { ukiyoeTownsfolk } from "./ukiyoe-wardrobe";
 
 export type UkiyoeCrowdMood = "stroll" | "busy" | "festival" | "procession";
 export const UKIYOE_CROWD_MOODS: readonly UkiyoeCrowdMood[] = ["stroll", "busy", "festival", "procession"];
@@ -34,6 +36,8 @@ export interface UkiyoeCrowdSpec {
   cast?: readonly UkiyoeFigureLook[];
   /** Figure scale of the front row (default 1). */
   scale?: number;
+  /** The season the townsfolk are dressed for, when no `cast` is given (default spring). */
+  season?: UkiyoeSeason;
 }
 
 /** One person the crowd expands into: a figure node's fields, local to the crowd node. */
@@ -63,7 +67,7 @@ export const UKIYOE_TOWNSFOLK: readonly UkiyoeFigureLook[] = [
 export function expandCrowd(spec: UkiyoeCrowdSpec, seed: number): UkiyoeCrowdMember[] {
   const n = Math.max(1, Math.min(80, Math.round(spec.count))), rows = Math.max(1, Math.min(4, Math.round(spec.rows ?? 2)));
   const W = spec.width, gap = spec.rowGap ?? 34, mood = spec.mood ?? "stroll", frames = Math.max(30, Math.round(spec.frames ?? 600));
-  const cast = spec.cast?.length ? spec.cast : UKIYOE_TOWNSFOLK, base = spec.scale ?? 1;
+  const cast = spec.cast?.length ? spec.cast : ukiyoeTownsfolk(seed, 28, spec.season ?? "spring"), base = spec.scale ?? 1;
   const out: UkiyoeCrowdMember[] = [];
   for (let i = 0; i < n; i++) {
     const r = (k: number) => hash01(seed, i, 700 + k);

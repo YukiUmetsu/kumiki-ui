@@ -51,6 +51,17 @@ import type { UkiyoeTsukumoScene } from "../../registry/video/ukiyoe/ukiyoe-tsuk
 import { tsukumoScene, UKIYOE_TSUKUMO_SCENES } from "../../registry/video/ukiyoe/ukiyoe-tsukumo";
 import type { UkiyoeRealmScene } from "../../registry/video/ukiyoe/ukiyoe-realms";
 import { realmScene, UKIYOE_REALM_SCENES } from "../../registry/video/ukiyoe/ukiyoe-realms";
+import type { UkiyoeParadeScene } from "../../registry/video/ukiyoe/ukiyoe-parade";
+import { paradeScene, UKIYOE_PARADE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-parade";
+import { UKIYOE_MOODS } from "../../registry/video/ukiyoe/ukiyoe-face";
+import type { UkiyoeRole, UkiyoeSeason } from "../../registry/video/ukiyoe/ukiyoe-wardrobe";
+import { UKIYOE_SEASONS, ukiyoeWardrobe } from "../../registry/video/ukiyoe/ukiyoe-wardrobe";
+import type { UkiyoeEpisodeAspect, UkiyoeEpisodeSpec } from "../../registry/video/ukiyoe/ukiyoe-episode";
+import { inspectUkiyoeEpisode, ukiyoeEpisode, ukiyoeEpisodeSrt, ukiyoeEpisodeStarts } from "../../registry/video/ukiyoe/ukiyoe-episode";
+import { KASA_JIZO_EPISODE } from "./ukiyoe-kasa-jizo";
+import { URASHIMA_EPISODE } from "./ukiyoe-urashima";
+import { MOMOTARO_EPISODE } from "./ukiyoe-momotaro";
+import { KAGUYA_EPISODE } from "./ukiyoe-kaguya";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -305,6 +316,60 @@ function UkiyoeFilmPlayer({ shots, kasumi, filmId, title, kicker, description, i
   </div>;
 }
 
+// ---- Episode template ----------------------------------------------------------------------------------------------------------------
+
+/** A folktale episode built with `ukiyoeEpisode()`: title card, narrated shots with mist transitions, end card, captions and .srt. */
+const EPISODES: readonly UkiyoeEpisodeSpec[] = [KASA_JIZO_EPISODE, URASHIMA_EPISODE, MOMOTARO_EPISODE, KAGUYA_EPISODE];
+const EPISODE_IDS = EPISODES.map(e => e.id);
+const EPISODE_LABELS = Object.fromEntries(EPISODES.map(e => [e.id, e.title]));
+
+export function EpisodePlayer({ initial = KASA_JIZO_EPISODE.id }: { initial?: string }) {
+  const [id, setId] = useState(initial);
+  const episode = EPISODES.find(e => e.id === id) ?? EPISODES[0];
+  const [aspect, setAspect] = useState<UkiyoeEpisodeAspect>("landscape");
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [sound, setSound] = useState(true);
+  const doc = useMemo(() => ukiyoeEpisode(episode), [episode]);
+  const issues = useMemo(() => inspectUkiyoeEpisode(episode), [episode]);
+  const srt = useMemo(() => "data:application/x-subrip;charset=utf-8," + encodeURIComponent(ukiyoeEpisodeSrt(episode)), [episode]);
+  const compiled = useMemo(() => compileFilm(doc, { outputId: aspect }), [doc, aspect]);
+  const starts = useMemo(() => ukiyoeEpisodeStarts(episode), [episode]);
+  const total = compiled.ok ? compiled.film.durationFrames : 1;
+  const clock = usePlayback(total, 120, 1, false);
+  useSceneSound(compiled.ok ? compiled.film.sceneSounds : [], clock.frame, clock.playing, 1, sound);
+  if (!compiled.ok) return <pre role="alert">{compiled.diagnostics.map(d => d.path + ": " + d.message).join("\n")}</pre>;
+  const film = compiled.film, shotIndex = starts.reduce((found, s, i) => s <= clock.frame ? i : found, 0);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Episode template" title={episode.title}>
+      <p style={{ margin: 0 }}>One folktale as a YouTube episode, written as shots and the narration over each. <code>ukiyoeEpisode()</code> prints
+        a title card, joins the shots with gold mist, sizes the narration captions for 16:9 and 9:16 inside the platform safe area, holds an end
+        card clear for the end screen, and writes the same captions as an .srt for upload. Narration timings are script estimates until a voice
+        is recorded and aligned.</p>
+    </Header>
+    <nav aria-label="Shots" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+      {episode.shots.map((shot, i) => <button type="button" key={shot.id} style={i === shotIndex ? pressed : button} aria-pressed={i === shotIndex}
+        onClick={() => clock.seek(starts[i] + (shot.kasumi ?? 0) + 30)}>{i + 1}. {shot.title}</button>)}
+    </nav>
+    <Fit width={film.width} height={film.height} maxHeight={aspect === "landscape" ? 640 : 760}>
+      <FilmStage film={film} frame={clock.frame} reducedMotion={reducedMotion} renderObject={() => null}
+        renderSlot={(content, context) => {
+          const node = renderUkiyoeSlot(content, context);
+          if (node === undefined) throw new Error("Unknown slot " + content.slot);
+          return node;
+        }} />
+    </Fit>
+    <Transport clock={clock} total={total} rate={1} setRate={() => undefined} loop={false} setLoop={() => undefined} name="Episode frame" />
+    <section aria-label="Episode controls" style={panel}>
+      <Select name="Episode" value={id} options={EPISODE_IDS} onChange={(v: string) => { setId(v); clock.seek(120); }} labels={EPISODE_LABELS} />
+      <Select name="Output" value={aspect} options={["landscape", "portrait"] as const} onChange={setAspect} labels={{ landscape: "16:9 YouTube", portrait: "9:16 Shorts" }} />
+      <Check name="Ambient sound (recorded beds)" value={sound} onChange={setSound} />
+      <Check name="Reduced motion (settled frames)" value={reducedMotion} onChange={setReducedMotion} />
+      <a href={srt} download={episode.id + ".srt"} style={{ alignSelf: "end" }}>Download captions (.srt)</a>
+    </section>
+    <p role="status" style={{ fontSize: 13, margin: 0 }}>{issues.length ? `Script check: ${issues.length} problem(s): ` + issues.map(i => i.path + " " + i.message).join("; ") : "Script check: no problems (reading speed, caption gaps, caption band, end card)."}</p>
+  </div>;
+}
+
 // ---- 2. Printer's proof ---------------------------------------------------------------------------------------------------------------
 
 const IMPRESSION_NAMES = ["Key block (sumi line)", "1 · lightest", "2", "3", "4", "5", "6", "7", "8 · darkest"];
@@ -361,6 +426,68 @@ const ACTION_HINT: Partial<Record<UkiyoeActionType, Partial<UkiyoeAction>>> = { 
 
 const CAST_NAMES = ["traveller", "mother", "child", "ferryman", "merchant", "maiko", "oni-red", "monk", "oiran", "samurai"] as const;
 const CAST_LOOKS: Readonly<Record<string, UkiyoeFigureLook>> = { ...CAST, maiko: UKIYOE_MAIKO_LOOK, oiran: UKIYOE_OIRAN_LOOKS.oiran, samurai: UKIYOE_SAMURAI_LOOK };
+
+/** Wardrobe: people of every role dressed for a season by `ukiyoeWardrobe`, with patterns, hem designs and obi knots. */
+export function WardrobeLab() {
+  const [season, setSeason] = useState<UkiyoeSeason>("spring");
+  const [seed, setSeed] = useState(11);
+  const [view, setView] = useState<"profile" | "three-quarter">("profile");
+  const roles: UkiyoeRole[] = ["maiden", "maiden", "maiden", "wife", "wife", "elder-woman", "girl", "merchant", "artisan", "laborer", "samurai", "elder-man"];
+  const spec: UkiyoeSceneSpec = useMemo(() => ({
+    version: 1, id: "wardrobe-lab", width: 1920, height: 1080, durationFrames: 120, seed: 5, palette: { preset: "edo" }, mount: { kind: "print" },
+    nodes: [
+      { id: "bg", kind: "block", x: 960, y: 540, shape: { type: "rect", width: 1920, height: 1080 }, fill: "paper", line: 0 },
+      ...roles.map((r, i) => ({ id: "f" + i, kind: "figure", look: { ...ukiyoeWardrobe(r, seed + i * 5, season), prop: undefined, view }, x: 95 + i * 157, y: 990, scale: 2.5, facing: i % 3 === 2 ? "left" : "right" } as UkiyoeNode)),
+      ...roles.map((r, i) => ({ id: "t" + i, kind: "text", style: "plain", text: r, x: 95 + i * 157, y: 70, size: 22, color: "sumi" } as UkiyoeNode)),
+    ],
+  }), [season, seed, view]);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Wardrobe" title="Townsfolk dressed for the season">
+      <p style={{ margin: 0 }}>After the Met's Edo kosode and Kiyonaga's beauties. <code>ukiyoeWardrobe(role, seed, season)</code> chooses the robe's dye
+        and pattern (stripes, plaids, ikat, key-fret, plum, maple, chrysanthemum, iris, rising steam…), a design rising from the hem for young women,
+        the obi colour, design and knot (taiko, tateya, bunko, kichiya), the under-collar, layers, hair and footwear. Crowds draw their people from it.</p>
+    </Header>
+    <section aria-label="Wardrobe controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="Season" value={season} options={UKIYOE_SEASONS} onChange={setSeason} />
+      <Select name="View" value={view} options={["profile", "three-quarter"] as const} onChange={setView} />
+      <button type="button" style={button} onClick={() => setSeed(s => s + 97)}>Dress them again</button>
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={30} style={{ width: "100%", height: "100%" }} aria-label="Townsfolk wardrobe" /></Fit>
+  </div>;
+}
+
+/** Faces: the bijin face after Utamaro, eight expressions, and the face traits that make every character different. */
+export function FaceLab() {
+  const [view, setView] = useState<"profile" | "three-quarter" | "front">("three-quarter");
+  const [who, setWho] = useState<"woman" | "maiko" | "oiran" | "man" | "elder">("woman");
+  const [show, setShow] = useState<"expressions" | "crowd">("expressions");
+  const looks: Record<string, UkiyoeFigureLook> = { woman: CAST.mother, maiko: CAST.maiko, oiran: UKIYOE_OIRAN_LOOKS.oiran, man: CAST.merchant, elder: CAST.elder };
+  const moods = ["none", ...UKIYOE_MOODS] as const;
+  const spec: UkiyoeSceneSpec = useMemo(() => ({
+    version: 1, id: "face-lab", width: 1920, height: 1080, durationFrames: 120, seed: 5, palette: { preset: "edo" }, mount: { kind: "print" },
+    nodes: [
+      { id: "bg", kind: "block", x: 960, y: 540, shape: { type: "rect", width: 1920, height: 1080 }, fill: "paper", line: 0 },
+      ...(show === "expressions" ? [
+        // The chosen character in each mood, as busts in two rows.
+        ...moods.map((m, i) => ({ id: "m" + i, kind: "figure", look: { ...looks[who], prop: "none", view }, x: 130 + i * 207, y: 1010, scale: 3.4, facing: "right", actions: m === "none" ? [] : [{ type: "emote", mood: m, start: 0, end: 999, blend: 1 }] } as UkiyoeNode)),
+        ...moods.map((m, i) => ({ id: "t" + i, kind: "text", style: "plain", text: m, x: 130 + i * 207, y: 70, size: 30, color: "sumi" } as UkiyoeNode)),
+      ] : Array.from({ length: 14 }, (_, i) => ({ id: "c" + i, kind: "figure", look: { ...(Object.values(CAST)[i % Object.values(CAST).length]), robe: (["ai", "cha", "kusa", "beni", "murasaki", "kogecha", "sora"] as const)[i % 7], prop: "none", view }, x: 140 + (i % 7) * 270, y: i < 7 ? 520 : 1020, scale: 1.7, facing: "right" } as UkiyoeNode))),
+    ],
+  }), [view, who, show]);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Faces" title="The bijin face, expressions and face traits">
+      <p style={{ margin: 0 }}>After Utamaro's bust portraits: a hair-fine face line, long narrow eyes with the iris hanging from the lid, soft grey
+        brows, the tiny rouged mouth, a hairline of combed strands. The <code>emote</code> action blends eight expressions; <code>look.features</code>
+        (eye, brow, nose, mouth, jaw, age, mole) default from the look's identity, so each character keeps one face and a crowd's faces differ.</p>
+    </Header>
+    <section aria-label="Face controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="Show" value={show} options={["expressions", "crowd"] as const} onChange={setShow} />
+      <Select name="View" value={view} options={["profile", "three-quarter", "front"] as const} onChange={setView} />
+      <Select name="Character" value={who} options={["woman", "maiko", "oiran", "man", "elder"] as const} onChange={setWho} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={30} style={{ width: "100%", height: "100%" }} aria-label="Faces and expressions" /></Fit>
+  </div>;
+}
 
 export function CastLab() {
   const names = CAST_NAMES;
@@ -1040,6 +1167,29 @@ export function Realms() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={REALM_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Realm frame" />
+  </div>;
+}
+
+// ---- Processions and parades ---------------------------------------------------------------------------------------------------
+
+const PARADE_LABELS: Readonly<Record<UkiyoeParadeScene, string>> = { hyakki: "Night parade of a hundred demons", foxwedding: "The fox wedding in a sunshower", mousewedding: "The mouse wedding" };
+
+/** Processions that walk in order across the scroll: the night parade and the animal weddings. */
+export function Parades() {
+  const [kind, setKind] = useState<UkiyoeParadeScene>("foxwedding");
+  const spec = useMemo(() => paradeScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Parades" title="The night parade, the fox wedding, the mouse wedding">
+      <p style={{ margin: 0 }}>After the Shinjuan <em>Night Parade of One Hundred Demons</em>, the Met's fox-wedding inrō and Yamamoto Shōun's fox
+        wedding. <code>procession()</code> lines up yōkai, object spirits and figures one after another, all travelling the same distance so
+        nobody walks into anyone. Figures with <code>look.animal</code> walk as foxes or mice; two bearers carry the <code>kago</code> between them.</p>
+    </Header>
+    <section aria-label="Parade controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Parade" value={kind} options={UKIYOE_PARADE_SCENES} onChange={setKind} labels={PARADE_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={PARADE_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Parade frame" />
   </div>;
 }
 

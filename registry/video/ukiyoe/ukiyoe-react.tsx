@@ -84,6 +84,37 @@ function patternTile(p: UkiyoePattern, color: string): { w: number; h: number; b
       const petals = [0, 72, 144, 216, 288].map(a => <ellipse key={a} cx={s / 2} cy={s / 2 - s * .16} rx={s * .1} ry={s * .16} fill={color} transform={`rotate(${a} ${s / 2} ${s / 2})`} />);
       return { w: s * 1.6, h: s * 1.6, body: <>{petals}</> };
     }
+    // Kōshi: a plaid of thick and thin lines (the townsmen's checked cotton).
+    case "koshi": return { w: s * 1.4, h: s * 1.4, body: <path d={`M${s * .2} 0V${s * 1.4}M${s * .34} 0V${s * 1.4}M0 ${s * .2}H${s * 1.4}M0 ${s * .34}H${s * 1.4}M${s * .9} 0V${s * 1.4}M0 ${s * .9}H${s * 1.4}`} fill="none" stroke={color} strokeWidth={Math.max(.5, s * .06)} /> };
+    // Tachiwaki: rising steam, two wavy lines swelling apart and pinching together.
+    case "tachiwaki": return { w: s * 1.2, h: s * 2, body: <path d={`M${s * .2} 0C${s * .55} ${s * .5} ${s * .55} ${s * 1.5} ${s * .2} ${s * 2}M${s * .7} 0C${s * .35} ${s * .5} ${s * .35} ${s * 1.5} ${s * .7} ${s * 2}`} fill="none" stroke={color} strokeWidth={Math.max(.5, s * .08)} /> };
+    // Kiku: chrysanthemum heads of many narrow petals.
+    case "kiku": {
+      const flower = (cx: number, cy: number, r: number) => Array.from({ length: 16 }, (_, i) => <ellipse key={`${cx}-${i}`} cx={cx} cy={cy - r * .55} rx={r * .1} ry={r * .45} fill={color} transform={`rotate(${i * 22.5} ${cx} ${cy})`} />);
+      return { w: s * 2.4, h: s * 2.4, body: <>{flower(s * .7, s * .7, s * .62)}{flower(s * 1.8, s * 1.85, s * .5)}<circle cx={s * .7} cy={s * .7} r={s * .12} fill={color} /></> };
+    }
+    // Ume: five round petals and a dotted heart.
+    case "ume": {
+      const flower = (cx: number, cy: number, r: number) => [0, 72, 144, 216, 288].map(a => <circle key={`${cx}-${a}`} cx={cx + Math.sin(a * Math.PI / 180) * r * .5} cy={cy - Math.cos(a * Math.PI / 180) * r * .5} r={r * .38} fill={color} />);
+      return { w: s * 2, h: s * 2, body: <>{flower(s * .55, s * .55, s * .55)}{flower(s * 1.5, s * 1.45, s * .4)}</> };
+    }
+    // Momiji: maple leaves of five pointed lobes.
+    case "momiji": {
+      const leaf = (cx: number, cy: number, r: number, rot: number) => <path key={`${cx}`} transform={`rotate(${rot} ${cx} ${cy})`} fill={color} d={[0, 1, 2, 3, 4].map(i => { const a = (-90 + (i - 2) * 38) * Math.PI / 180, b = a - .3, c = a + .3; return `M${cx} ${cy}L${cx + Math.cos(b) * r * .45} ${cy + Math.sin(b) * r * .45}L${cx + Math.cos(a) * r} ${cy + Math.sin(a) * r}L${cx + Math.cos(c) * r * .45} ${cy + Math.sin(c) * r * .45}Z`; }).join("") + `M${cx} ${cy}L${cx + r * .05} ${cy + r * .5}`} />;
+      return { w: s * 2.2, h: s * 2.2, body: <>{leaf(s * .6, s * .7, s * .6, -15)}{leaf(s * 1.6, s * 1.7, s * .5, 25)}</> };
+    }
+    // Shippō: interlocking circles.
+    case "shippo": return { w: s, h: s, body: <><circle cx={0} cy={s / 2} r={s / 2} {...st} /><circle cx={s} cy={s / 2} r={s / 2} {...st} /><circle cx={s / 2} cy={0} r={s / 2} {...st} /><circle cx={s / 2} cy={s} r={s / 2} {...st} /></> };
+    // Kasuri: splashed ikat marks, short broken dashes in staggered rows.
+    case "kasuri": return { w: s * 1.6, h: s * 1.6, body: <path d={`M${s * .1} ${s * .3}h${s * .22}M${s * .38} ${s * .3}h${s * .1}M${s * .9} ${s * 1.1}h${s * .24}M${s * 1.2} ${s * 1.1}h${s * .08}M${s * .3} ${s * .3}v${s * .14}M${s * 1.05} ${s * 1.1}v${s * .14}`} fill="none" stroke={color} strokeWidth={Math.max(.6, s * .1)} strokeLinecap="square" /> };
+    // Hishi: a lattice of diamonds.
+    case "hishi": return { w: s, h: s * 1.4, body: <path d={`M${s / 2} 0L${s} ${s * .7}L${s / 2} ${s * 1.4}L0 ${s * .7}Z`} {...st} /> };
+    // Sayagata: the interlocking key-fret of manji.
+    case "sayagata": { const u = s / 4; return { w: s, h: s, body: <path d={`M0 ${u}H${u * 3}V${u * 4}M${u} ${u * 2}V${u * 3}H${u * 4}M${u * 2} 0V${u}M${u * 3} ${u * 2}H${u * 4}M0 ${u * 3}H${u}`} fill="none" stroke={color} strokeWidth={Math.max(.4, s * .045)} /> }; }
+    // Kumo: drifting cloud scrolls.
+    case "kumo": return { w: s * 2.4, h: s * 1.4, body: <path d={`M${s * .2} ${s * .9}Q${s * .2} ${s * .4} ${s * .7} ${s * .5}Q${s * .9} ${s * .1} ${s * 1.3} ${s * .45}Q${s * 1.8} ${s * .3} ${s * 1.8} ${s * .8}Q${s * 2.1} ${s * 1} ${s * 1.7} ${s * 1.05}H${s * .4}Q${s * .1} ${s * 1.05} ${s * .2} ${s * .9}Z`} {...st} /> };
+    // Ayame: iris leaves rising in a clump with a flower.
+    case "ayame": return { w: s * 2, h: s * 2.4, body: <><path d={`M${s * .7} ${s * 2.4}Q${s * .55} ${s * 1.4} ${s * .3} ${s * .7}M${s * .8} ${s * 2.4}Q${s * .9} ${s * 1.3} ${s * 1.2} ${s * .9}M${s * .75} ${s * 2.4}V${s * .9}`} fill="none" stroke={color} strokeWidth={Math.max(.6, s * .08)} /><path d={`M${s * .75} ${s * .9}Q${s * .45} ${s * .5} ${s * .6} ${s * .3}Q${s * .75} ${s * .55} ${s * .75} ${s * .9}Q${s * 1.05} ${s * .5} ${s * .9} ${s * .3}Q${s * .75} ${s * .55} ${s * .75} ${s * .9}`} fill={color} /></> };
   }
 }
 

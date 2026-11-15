@@ -267,7 +267,22 @@ export interface FilmPanelsScene extends FilmSceneBase { recipeId: "panels"; con
 /** A scene inside a panel: any scene but another panels scene, with no transition of its own. */
 export type FilmPanel = Omit<Exclude<FilmScene, FilmPanelsScene>, "transition" | "id"> & { id?: string };
 export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene | FilmScreenDemoScene | FilmMotionChartScene | FilmChartMorphScene | FilmAnnotateScene | FilmDrawOnScene | FilmTitleSequenceScene | FilmFootageScene | FilmSlotScene | FilmPanelsScene;
-export interface FilmCaptions { timing: CaptionTrack["timing"]; cues: readonly CaptionCue[]; speakers?: CaptionTrack["speakers"] }
+/** How film captions look. The default is short-form: large type at the bottom. Long-form narration wants smaller type. */
+export interface FilmCaptionStyle {
+  /**
+   * CSS font size in `cqw` (share of the output width), `px`, `em` or `rem`, such as `"2.4cqw"`, or one per output id
+   * (`{ "landscape": "2.6cqw", "portrait": "4.6cqw" }`), since a share of the width reads very differently at 16:9 and
+   * 9:16. Default `4.8cqw`.
+   */
+  size?: string | Readonly<Record<string, string>>;
+  /** CSS font stack. Default: the film's body type. */
+  font?: string;
+  /** Where the block sits in the safe lane. Default `bottom`. */
+  anchor?: "bottom" | "top";
+}
+/** A caption style resolved for one output. */
+export type ResolvedFilmCaptionStyle = Omit<FilmCaptionStyle, "size"> & { size?: string };
+export interface FilmCaptions { timing: CaptionTrack["timing"]; cues: readonly CaptionCue[]; speakers?: CaptionTrack["speakers"]; style?: FilmCaptionStyle }
 export interface FilmAudio {
   /** Each `assetRef` is relative to the film file. */
   lanes: readonly AudioLane[];
@@ -471,7 +486,7 @@ export interface CompiledFilm {
   fade?: CompiledFade;
   /** Shader transitions, by incoming scene ID. */
   transitionFx: Readonly<Record<string, ShaderFxSpec>>;
-  captions?: CaptionTrack;
+  captions?: CaptionTrack & { style?: ResolvedFilmCaptionStyle };
   audio?: AudioCueSheet;
   /** Each scene's own sound, where it plays: its edges, fades, and any J- or L-cut. */
   sceneSounds: readonly CompiledSceneSound[];
@@ -1048,7 +1063,12 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     const index = doc.scenes.findIndex(scene => scene.id === item.shotId);
     report(item.severity, item.code, index >= 0 ? `/scenes/${index}/transition` : "/scenes", item.message);
   }
-  const captions: CaptionTrack | undefined = doc.captions && { ...doc.captions, id: doc.id + "-captions", fps };
+  const rawSize = doc.captions?.style?.size, captionSize = typeof rawSize === "object" && rawSize ? rawSize[output.id] : rawSize;
+  const captions: (CaptionTrack & { style?: ResolvedFilmCaptionStyle }) | undefined = doc.captions && { timing: doc.captions.timing, cues: doc.captions.cues, ...doc.captions.speakers ? { speakers: doc.captions.speakers } : {},
+    id: doc.id + "-captions", fps, ...doc.captions.style ? { style: { ...doc.captions.style, size: captionSize } } : {} };
+  for (const [key, value] of typeof rawSize === "object" && rawSize ? Object.entries(rawSize) : rawSize === undefined ? [] : [["", rawSize] as const])
+    if (!/^\d+(\.\d+)?(cqw|px|em|rem)$/.test(value))
+      report("error", "caption-style-size", "/captions/style/size" + (key ? "/" + key : ""), `Caption size "${value}" is not a CSS length.`, 'Use a length such as "2.4cqw" or "40px".');
   if (captions && !hasProblem("/captions")) for (const item of validateCaptionTrack(captions, { durationFrames })) {
     const index = doc.captions!.cues.findIndex(cue => cue.id === item.cueId);
     report(item.severity, item.code, "/captions" + (index >= 0 ? "/cues/" + index : ""), item.message);

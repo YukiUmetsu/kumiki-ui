@@ -4,6 +4,7 @@ import { risoSecondSheetArtworks, risoSecondSheetImprintArt } from "./riso-print
 import { RISO_SHEET_FEED_FILM, RISO_OVERPRINT_FILM, RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "./riso-print-film";
 import { useEffect, useMemo, useState } from "react";
 import { RisoPrint } from "../../registry/video/print-plates-react";
+import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
 import type { RisoAspect, RisoLayer } from "./riso-print-demo";
@@ -30,6 +31,9 @@ function RisoLab() {
   const [seed, setSeed] = useState(23);
   const [registration, setRegistration] = useState(3);
   const [grain, setGrain] = useState(.55);
+  const [screenMode, setScreenMode] = useState<RisoScreenMode>("am");
+  const [screenDensity, setScreenDensity] = useState(.32);
+  const [dotGain, setDotGain] = useState(0);
   const [reduce, setReduce] = useState(false);
   const spec = useMemo(() => {
     const base = risoExampleSpec(aspect, seed);
@@ -64,13 +68,14 @@ function RisoLab() {
       </div>
       <h1 style={{ margin: 0, font: "600 clamp(23px, 3vw, 35px)/1.16 Georgia, serif" }}>Risograph · Two-Ink Printing</h1>
       <p style={{ margin: 0, color: "var(--km-text-secondary, #56616B)", maxWidth: 760 }}>
-        Independent spot-ink artwork, transparent overprint, press-feed reveals, fixed registration and paper grain.
+        Independent spot-ink artwork, AM/FM ink screens, variable dot gain, transparent overprint, fixed registration and paper grain.
         The poster is an original neutral illustration—not a photograph processed with a filter.
       </p>
     </header>
     <div style={{ width: "100%", maxWidth: aspect === "landscape" ? 960 : 470, boxShadow: "0 10px 40px rgba(49,38,27,.13)" }}>
       <RisoPrint spec={spec} frame={mode === "both" ? frame : 240} artworks={artworks}
         misregistration={registration / 12} paperGrain={grain} reducedMotion={reduce}
+        screenMode={screenMode} screenDensity={screenDensity} dotGain={dotGain}
         label="Original Risograph-style editorial poster: ocean currents in cobalt and vermilion ink" />
     </div>
     <div aria-live="polite" style={{ maxWidth: 960, display: "flex", gap: 14, justifyContent: "space-between", flexWrap: "wrap" }}>
@@ -109,6 +114,21 @@ function RisoLab() {
       <label style={risoUi.label}>Paper texture · {Math.round(grain * 100)}%
         <input type="range" min={0} max={1} step={.05} value={grain} onChange={e => setGrain(Number(e.target.value))} />
       </label>
+      <label style={risoUi.label}>Screening method
+        <select aria-label="Screening method" value={screenMode}
+          onChange={e => setScreenMode(e.target.value as RisoScreenMode)} style={{ minHeight: 38, font: "inherit" }}>
+          <option value="am">AM · variable-size halftone</option>
+          <option value="fm">FM · dispersed ink dots</option>
+        </select>
+      </label>
+      <label style={risoUi.label}>Screen tone · {Math.round(screenDensity * 100)}%
+        <input aria-label="Screen tone" type="range" min={0} max={1} step={.02} value={screenDensity}
+          onChange={e => setScreenDensity(Number(e.target.value))} />
+      </label>
+      <label style={risoUi.label}>Dot gain · {Math.round(dotGain * 100)}%
+        <input aria-label="Dot gain" type="range" min={0} max={1} step={.05} value={dotGain}
+          onChange={e => setDotGain(Number(e.target.value))} />
+      </label>
       <label style={risoUi.label}>Print seed
         <input type="number" min={0} max={2147483647} step={1} value={seed} style={{ minHeight: 38, font: "inherit" }}
           onChange={e => setSeed(Math.max(0, Math.min(2147483647, Math.floor(Number(e.target.value) || 0))))} />
@@ -118,8 +138,9 @@ function RisoLab() {
       </label>
     </div>
     <p style={{ margin: 0, maxWidth: 850, fontSize: 13, color: "var(--km-text-secondary, #56616B)" }}>
-      Distinct from Film Look filters: each ink is a separate vector plate with its own screen and reveal.
-      The second print multiplies with the first to make a third, darker overprint color.
+      RISO20 screen study: AM dots grow with tone; FM disperses seeded, paper-locked individual deposits.
+      Dot gain expands ink deposition rather than applying a whole-image filter. This is a digital print model,
+      not a measured scanner or drum profile. Plate-registered details and overprint are preserved.
     </p>
   </div>;
 }

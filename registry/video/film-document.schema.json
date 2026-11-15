@@ -20692,6 +20692,9 @@
       ],
       "additionalProperties": false
      }
+    },
+    "style": {
+     "$ref": "#/$defs/FilmCaptionStyle"
     }
    },
    "required": [
@@ -20774,6 +20777,40 @@
     "startFrame",
     "endFrame"
    ],
+   "additionalProperties": false
+  },
+  "FilmCaptionStyle": {
+   "type": "object",
+   "properties": {
+    "size": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "object",
+       "properties": {},
+       "required": [],
+       "additionalProperties": {
+        "type": "string"
+       }
+      }
+     ],
+     "description": "CSS font size in `cqw` (share of the output width), `px`, `em` or `rem`, such as `\"2.4cqw\"`, or one per output id (`{ \"landscape\": \"2.6cqw\", \"portrait\": \"4.6cqw\" }`), since a share of the width reads very differently at 16:9 and 9:16. Default `4.8cqw`."
+    },
+    "font": {
+     "type": "string",
+     "description": "CSS font stack. Default: the film's body type."
+    },
+    "anchor": {
+     "enum": [
+      "bottom",
+      "top"
+     ],
+     "description": "Where the block sits in the safe lane. Default `bottom`."
+    }
+   },
+   "required": [],
    "additionalProperties": false
   },
   "FilmAudio": {

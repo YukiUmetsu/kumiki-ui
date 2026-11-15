@@ -81,3 +81,22 @@ The initial implementation includes `tests/riso-overprint.test.tsx` for frame/se
 The relevant process-reference board is [35A](../35a-material-native-style-reference-gallery.md) (Risograph). Compare *ink order, fixed registration, overprint color, paper handling, caption legibility and continuity*, not the story or artwork of a third-party reference. A true ink absorption simulation, nonlinear spectral pigment mixing and automated photographic separation are out of scope.
 
 **Next roadmap slice:** Phase 3's authored stroke geometry and dry-brush splintering; Phase 2's separate nonessential registration-kick, density and full browser/art validation tasks remain open.
+
+## RISO23 — source-resolution-aware screen pitch
+
+The native `PrintPlate.dotCell` and `createRisoScreenGeometry({cell})` minimum is now **2** instead of **3** design units (maximum remains **36**). This is a backward-compatible expansion needed by fine anatomically authored facial halftone at film/output stage resolution; previously a 6-unit pitch across a ~70-unit face turned intended print volume into large disconnected freckles. It does **not** change the default for any existing film scene or add RGB postprocessing.
+
+For RISO23 the Storybook production-native two-portrait crop starts at `dotCell: 2` per plate; the interactive screen-pitch slider can compare 2..6 with genuine separate spot masters and independent registration. Values below 2, non-finite cells and values above 36 are still rejected. Verify on an actual rendered output at intended resolution because at low output scale dots may visually merge or alias.
+
+
+## RISO26 — source-authored graduated stencil values on one spot plate
+
+[Full ArtCraft reference and Chromium gate](../research/riso26-tonal-master-artcraft.md)
+
+`RisoPaint` now optionally provides `lightDots` and `midDots` alongside existing `solid` and `dots`. The renderer produces the two additional *physical* screen patterns with the **same existing ink color, dot pitch, press angle, plate seed, plate registration and frame-independent paper space**. Only deposited dot area varies: light `screenDensity × .22`, mid `screenDensity × .55`, normal the original global `screenDensity`. AM varies circle radius; FM varies deterministic stable ranked dot occupancy. The original global screen density, ink gain and 2..36 screen-cell slider remain supported.
+
+A character source part may set `screenTone:"light"|"mid"` only when `paint:"screen"`; this is validated before animation. `RisoCharacterInk` binds that region to the matching actual stencil pattern. Direct/legacy `RisoCharacterInk` with only `RisoPaint.dots` remains supported and safely uses it as fallback. **Do not use CSS opacity, translucent stickers or post-processed RGB highlights as substitute dot values.** Unspecified parts and all solid foreground artwork retain their original physical print appearance.
+
+Original Courier/Paper Artist cheeks, orbital sockets, temples and jaw shadows have **distinct authored local tonal masters** while their original face/eye/lip geometry, rig, color palette and film frames are unchanged. The existing Risograph `OcularPrintCraft` story contains a reversible `RISO26 tonal master comparison` using the unchanged prior facial stencils as baseline; AM/FM, red-only/blue-only, pose, 16:9/9:16, physical pitch and gain all remain interactive.
+
+Technical checks: `tests/riso26-tonal-press-artcraft.test.tsx` and actual `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`. This is a **digital-print simulation**, not empirical calibration of a Riso drum or independent human-likeness certification.

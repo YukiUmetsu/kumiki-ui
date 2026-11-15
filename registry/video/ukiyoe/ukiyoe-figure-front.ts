@@ -18,8 +18,11 @@ import type { SquareSword } from "./ukiyoe-katana";
 import { katana, mon, reachArm, saya } from "./ukiyoe-katana";
 import { kanabo } from "./ukiyoe-oni";
 import { hachiSide } from "./ukiyoe-folk";
+import { dragonCrownSquare } from "./ukiyoe-ryugu";
+import { faceFront, faceTraits, hairSheen, kewari } from "./ukiyoe-face";
 import { courtProp, heianHairSquare, kanmuriSquare } from "./ukiyoe-heian";
 import { armEyes, gourdSquare, minoSquare, zaru } from "./ukiyoe-folkyokai";
+import { animalHeadSquare } from "./ukiyoe-parade";
 import { kabutoSquare, naginata as naginataProp, oyoroiSquare } from "./ukiyoe-bushi";
 import { ancientHairSquare, kamiProp, magatama, stoleSquare, zukin } from "./ukiyoe-kami";
 import { babyBundle, ghostFaceBack, ghostFaceFront, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
@@ -350,13 +353,15 @@ function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: numb
   if (hy) out.push(...hy.behind);
   // Hair behind the face first.
   if (hair === "long") hairBack([P(-1.05, -.4), P(-1.2, .6), P(-1.25 - wind * .1, 2.6), P(-.7, 2.7), P(.7, 2.7), P(1.25 - wind * .1, 2.6), P(1.2, .6), P(1.05, -.4), P(0, -1.2)]);
-  if (hair === "shimada") hairBack([P(-1.35, -.1), P(-1.45, .5), P(-1.0, .75), P(1.0, .75), P(1.45, .5), P(1.35, -.1), P(.9, -1.0), P(0, -1.25), P(-.9, -1.0)]);
+  if (hair === "shimada") hairBack([P(-1.05, -.2), P(-1.0, .45), P(-.7, .6), P(.7, .6), P(1.0, .45), P(1.05, -.2), P(.85, -1.0), P(0, -1.25), P(-.85, -1.0)]);
   if (hair === "wild") { const sp: Pt[] = []; for (let i = 0; i <= 18; i++) { const a = Math.PI * (1.05 + i / 18 * .9 * 2) / 1, rr = 1.25 + (i % 2 ? .4 + .15 * Math.sin(i * 2.3) : 0); sp.push(P(Math.cos(a) * rr, Math.sin(a) * rr * 1.05 - .1)); } hairBack(sp); }
   if (hair === "gourd") out.push(...gourdSquare(P, lw, skin));
   // Face: an oval, a little narrower at the chin; ears at the sides.
   if (hair !== "hyogo" && hair !== "kamuro" && hair !== "wareshinobu") out.push({ t: "fill", d: ellipseD(-r * .95, r * .05, r * .14, r * .22) + ellipseD(r * .95, r * .05, r * .14, r * .22), fill: skin, outline: lw * .7 });
-  out.push({ t: "fill", d: smoothD([P(-.88, -.3), P(-.8, .45), P(-.45, .92), P(0, 1.05), P(.45, .92), P(.8, .45), P(.88, -.3), P(.6, -.95), P(0, -1.08), P(-.6, -.95)], true, .4), fill: skin, outline: lw * .9 });
-  const oni = look.face === "oni", shut = pose.blink > .5, ghost = isGhostFace(look.face) ? look.face : undefined, featStart = out.length;
+  const faceOval = female && look.build !== "child" ? [P(-.8, -.35), P(-.74, .42), P(-.4, .94), P(0, 1.12), P(.4, .94), P(.74, .42), P(.8, -.35), P(.55, -.95), P(0, -1.06), P(-.55, -.95)]
+    : [P(-.88, -.3), P(-.8, .45), P(-.45, .92), P(0, 1.05), P(.45, .92), P(.8, .45), P(.88, -.3), P(.6, -.95), P(0, -1.08), P(-.6, -.95)];
+  out.push({ t: "fill", d: smoothD(faceOval, true, .4), fill: skin, outline: lw * (female ? .42 : .7) });
+  const oni = look.face === "oni", ghost = isGhostFace(look.face) ? look.face : undefined, featStart = out.length;
   if (oni) {
     for (const s of [-1, 1]) {
       out.push({ t: "fill", d: ellipseD(s * r * .38, -r * .08, r * .24, r * .2), fill: "gofun", outline: lw }, { t: "dots", d: circleD(s * r * .36, -r * .06, r * .1), color: "sumi" });
@@ -365,15 +370,8 @@ function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: numb
     out.push({ t: "fill", d: polyD([P(-.35, .55), P(-.25, .85), P(-.15, .55)]) + polyD([P(.15, .55), P(.25, .85), P(.35, .55)]), fill: "gofun", outline: lw * .6 });
     out.push({ t: "line", d: carvedLine([P(-.45, .52), P(0, .62), P(.45, .52)], r * .06, { taper: "both" }), color: "sumi" });
   } else {
-    for (const s of [-1, 1]) {
-      if (shut) out.push({ t: "line", d: carvedLine([P(s * .55, -.08), P(s * .35, .0), P(s * .15, -.06)], r * .06 + .3, { taper: "both" }), color: "sumi" });
-      else { out.push({ t: "line", d: carvedLine([P(s * .58, -.06), P(s * .36, -.15), P(s * .14, -.06)], r * .07 + .3, { taper: "both", minRatio: .3 }), color: "sumi" }); out.push({ t: "dots", d: circleD(s * r * .34, -r * .06, r * .06), color: "sumi" }); }
-      out.push({ t: "line", d: carvedLine([P(s * .62, -.42), P(s * .38, -.5), P(s * .14, -.42)], r * .05 + .25, { taper: "both" }), color: hairC === "usuzumi" ? "usuzumi" : "sumi", opacity: .9 });
-    }
-    out.push({ t: "line", d: carvedLine([P(.02, -.05), P(.06, .3), P(-.06, .36)], r * .045 + .25, { taper: "both", minRatio: .3 }), color: "sumi", opacity: .8 });
-    if (pose.mouth > .08) out.push({ t: "fill", d: ellipseD(0, r * .62, r * .14, r * (.05 + .14 * pose.mouth)), fill: "kogecha", noPrint: true });
-    else if (female || look.lips) out.push({ t: "fill", d: ellipseD(0, r * .6, r * .12, r * .06), fill: look.lips ?? "beni", noPrint: true });
-    else out.push({ t: "line", d: carvedLine([P(-.16, .6), P(0, .63), P(.16, .6)], r * .04 + .25, { taper: "both" }), color: "sumi", opacity: .7 });
+    const moods = { smile: pose.smile, laugh: pose.laugh, sad: pose.sad, cry: pose.cry, surprise: pose.surprise, angry: pose.angry, fear: pose.fear, shy: pose.shy };
+    out.push(...faceFront({ P, k: r, lw, moods, traits: faceTraits(look, female), blink: pose.blink, gaze: pose.gaze * .6, mouth: pose.mouth, hair: hairC === "usuzumi" ? "usuzumi" : "sumi", lips: look.lips }));
     if (look.beard) out.push({ t: "fill", d: smoothD([P(-.5, .55), P(-.3, 1.2), P(0, 1.5), P(.3, 1.2), P(.5, .55), P(0, .85)], true, .4), fill: hairC, outline: lw * .7 });
   }
   // Ghost-story faces: the features smooth away or the bone shows, then the face's own marks.
@@ -389,13 +387,45 @@ function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: numb
       out.push({ t: "fill", d: smoothD([P(-.12, -.98), P(-.14, -1.45), P(0, -1.55), P(.14, -1.45), P(.12, -.98)], true, .4), fill: hairC, outline: lw * .8 });
       break;
     case "topknot": hairBack([P(-.92, -.2), P(-.75, -.95), P(0, -1.18), P(.75, -.95), P(.92, -.2), P(.6, -.62), P(0, -.78), P(-.6, -.62)]); out.push({ t: "fill", d: ellipseD(0, -r * 1.35, r * .3, r * .25), fill: hairC, outline: lw * .8 }); break;
-    case "shimada":
-      hairBack([P(-.95, -.15), P(-.82, -.92), P(0, -1.15), P(.82, -.92), P(.95, -.15), P(.62, -.62), P(0, -.74), P(-.62, -.62)]);
-      out.push({ t: "fill", d: smoothD([P(-.7, -1.0), P(-.55, -1.65), P(0, -1.85), P(.55, -1.65), P(.7, -1.0), P(0, -1.1)], true, .45), fill: hairC, outline: lw * .8 });
-      out.push({ t: "fill", d: smoothD([P(-.35, -1.2), P(0, -1.5), P(.35, -1.2), P(0, -1.15)], true, .4), fill: look.accent ?? "shu", outline: lw * .6 });
-      out.push({ t: "line", d: carvedLine([P(-1.2, -1.35), P(1.2, -1.55)], r * .06 + .4, { taper: "none" }), color: "kin" });
-      out.push({ t: "dots", d: circleD(-1.25 * r, -1.33 * r, r * .1) + circleD(1.25 * r, -1.57 * r, r * .1), color: look.accent ?? "shu" });
+    case "shimada": {
+      // After Utamaro's Hanaōgi and Okita: the Fuji-shaped hairline of fine combed strands dipping to a point at the
+      // centre of the brow, the side locks (bin) combed out into thin wings over the ears, the front puff (maegami), the
+      // knot (mage) in two loops tied with paper and red cloth, a tortoiseshell comb, the bar, two pins with strips.
+      const acc = look.accent ?? "shu", shell = { type: "linear" as const, angle: 90, stops: [[0, "ki", 1], [.6, "kincha", 1], [1, "cha", 1]] as [number, UkiyoePaint, number][] };
+      const line: Pt[] = [[-.84, -.18], [-.66, -.58], [-.34, -.7], [0, -.56], [.34, -.7], [.66, -.58], [.84, -.18]];
+      for (const s of [-1, 1]) {
+        // The bin: a translucent wing combed out over the ear, denser at the root.
+        const wing = [P(s * .78, -.72), P(s * 1.22, -.62), P(s * 1.46, -.2), P(s * 1.38, .28), P(s * 1.06, .44), P(s * .8, .2), P(s * .84, -.18)];
+        out.push({ t: "fill", d: smoothD(wing, true, .42), fill: hairC, opacity: .62 });
+        out.push({ t: "fill", d: smoothD([P(s * .78, -.72), P(s * 1.1, -.58), P(s * 1.2, -.2), P(s * 1.06, .2), P(s * .82, .14), P(s * .84, -.18)], true, .42), fill: hairC, opacity: .9 });
+        out.push(...hairSheen(P, r / 18, [0, 1, 2, 3, 4].map(i => [[s * .84, -.5 + i * .14], [s * (1.15 + .05 * Math.sin(i)), -.45 + i * .17], [s * (1.38 - .02 * i), -.3 + i * .16]] as Pt[])));
+        out.push({ t: "stroke", d: smoothD([P(s * .78, -.72), P(s * 1.22, -.62), P(s * 1.46, -.2), P(s * 1.38, .28), P(s * 1.06, .44)], false, .42), color: "sumi", width: lw * .45, opacity: .7 });
+      }
+      // The crown and the front puff over the hairline.
+      out.push({ t: "fill", d: smoothD([...line.map(q => P(q[0], q[1])), P(.92, -.62), P(.6, -1.12), P(.36, -1.42), P(0, -1.52), P(-.36, -1.42), P(-.6, -1.12), P(-.92, -.62)], true, .38), fill: hairC });
+      out.push({ t: "stroke", d: smoothD([P(.84, -.18), P(.92, -.62), P(.6, -1.12), P(.36, -1.42), P(0, -1.52), P(-.36, -1.42), P(-.6, -1.12), P(-.92, -.62), P(-.84, -.18)], false, .38), color: "sumi", width: lw * .6 });
+      out.push(...hairSheen(P, r / 18, [[[-.5, -.66], [-.42, -1.0], [-.2, -1.38]], [[.5, -.66], [.42, -1.0], [.2, -1.38]], [[-.2, -.62], [-.12, -1.1], [0, -1.45]], [[.2, -.62], [.12, -1.1], [0, -1.45]], [[-.75, -.4], [-.72, -.8], [-.5, -1.2]], [[.75, -.4], [.72, -.8], [.5, -1.2]]]));
+      out.push(...kewari(P, r / 18, line, [0, .1], 7, 3.4, "sumi", 1 / 18));
+      // The knot: two loops over the crown, the red cloth and the white paper tie between them.
+      for (const s of [-1, 1]) out.push({ t: "fill", d: smoothD([P(s * .08, -1.5), P(s * .3, -1.98), P(s * .72, -2.02), P(s * .82, -1.66), P(s * .46, -1.44)], true, .42), fill: hairC, outline: lw * .6 });
+      out.push(...hairSheen(P, r / 18, [[[-.66, -1.8], [-.4, -1.92], [-.16, -1.7]], [[.66, -1.8], [.4, -1.92], [.16, -1.7]]]));
+      out.push({ t: "fill", d: smoothD([P(-.16, -1.5), P(-.12, -1.9), P(.12, -1.9), P(.16, -1.5)], true, .3), fill: acc, outline: lw * .4, pattern: { type: "kanoko", color: "gofun", scale: .25, opacity: .7 } });
+      out.push({ t: "fill", d: smoothD([P(-.05, -1.48), P(-.04, -1.96), P(.04, -1.96), P(.05, -1.48)], true, .2), fill: "gofun", outline: lw * .35 });
+      // The comb, a crescent of tortoiseshell set in the front of the knot.
+      out.push({ t: "fill", d: smoothD([P(-.62, -1.28), P(-.5, -1.52), P(0, -1.62), P(.5, -1.52), P(.62, -1.28), P(.4, -1.36), P(0, -1.42), P(-.4, -1.36)], true, .35), fill: shell, outline: lw * .45 });
+      out.push({ t: "dots", d: [-2, -1, 0, 1, 2].map(i => circleD(i * .22 * r, -1.5 * r + Math.abs(i) * .02 * r, r * .03)).join(""), color: "cha" });
+      // The bar through the knot, and two pins fanned out with their dangling strips.
+      out.push({ t: "line", d: carvedLine([P(-1.18, -1.74), P(1.18, -1.8)], r * .05 + .4, { taper: "none" }), color: "ki" });
+      out.push({ t: "fill", d: ellipseD(-1.2 * r, -1.74 * r, r * .05, r * .07) + ellipseD(1.2 * r, -1.8 * r, r * .05, r * .07), fill: "kincha", outline: lw * .4 });
+      const sway = Math.sin(frame / 11 + r) * .03 + wind * .05;
+      for (const s of [-1, 1]) {
+        const tip = P(s * .98, -2.12);
+        out.push({ t: "line", d: carvedLine([P(s * .36, -1.6), tip], r * .022 + .3, { taper: "end" }), color: "kin" });
+        out.push({ t: "fill", d: circleD(tip[0], tip[1], r * .07), fill: acc, outline: lw * .35 }, { t: "fill", d: circleD(tip[0], tip[1], r * .028), fill: "kin" });
+        out.push({ t: "stroke", d: [-1, 0, 1].map(i => { const q = P(s * .98 + i * .03, -2.06); return `M${q[0].toFixed(1)} ${q[1].toFixed(1)}l${((sway + i * .01) * r).toFixed(1)} ${(r * (.2 + Math.abs(i) * .03)).toFixed(1)}`; }).join(""), color: "kin", width: r * .012 + .2 });
+      }
       break;
+    }
     case "child": hairBack([P(-.95, -.05), P(-.85, -.95), P(0, -1.18), P(.85, -.95), P(.95, -.05), P(.55, -.5), P(0, -.55), P(-.55, -.5)]); break;
     case "long": hairBack([P(-.95, .1), P(-.85, -.95), P(0, -1.15), P(.85, -.95), P(.95, .1), P(.5, -.7), P(0, -.82), P(-.5, -.7)]); break;
     case "wild": hairBack([P(-.95, -.25), P(-.7, -1.0), P(0, -1.2), P(.7, -1.0), P(.95, -.25), P(.5, -.75), P(0, -.85), P(-.5, -.75)]); break;
@@ -407,6 +437,7 @@ function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: numb
     case "bald": break;
   }
   if (look.face === "oni") for (const s of [-1, 1]) out.push({ t: "fill", d: smoothD([P(s * .3, -.85), P(s * .45, -1.7), P(s * .55, -.8)], true, .3), fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [1, "ki", 1]] }, outline: lw });
+  if (look.animal) { out.length = 0; out.push(...animalHeadSquare(look.animal, P, lw, false)); }
   out.push(...hatFront(look, r, lw, wind, frame));
   return out;
 }
@@ -447,6 +478,7 @@ function headBack(look: UkiyoeFigureLook, r: number, lw: number, hairC: UkiyoePa
   }
   if (look.face === "oni") for (const s of [-1, 1]) out.push({ t: "fill", d: smoothD([P(s * .3, -.85), P(s * .45, -1.7), P(s * .55, -.8)], true, .3), fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [1, "ki", 1]] }, outline: lw });
   if (pose && isGhostFace(look.face)) out.push(...ghostFaceBack(look.face, pose.reveal, P, r, lw, frame));
+  if (look.animal) { out.length = 0; out.push(...animalHeadSquare(look.animal, P, lw, true)); }
   out.push(...hatFront(look, r, lw, wind, frame));
   return out;
 }
@@ -456,6 +488,7 @@ function hatFront(look: UkiyoeFigureLook, r: number, lw: number, wind: number, f
   if (look.hat === "hachi") return hachiSide((x, y) => [x * r, y * r], lw, true);
   if (look.hat === "zukin") return zukin((x, y) => [x * r, y * r], lw, true);
   if (look.hat === "kanmuri") return kanmuriSquare((x, y) => [x * r, y * r], lw, false);
+  if (look.hat === "dragon") return dragonCrownSquare((x, y) => [x * r, y * r], lw, false);
   if (look.hat === "kabuto") return kabutoSquare((x, y) => [x * r, y * r], r, lw, look.armor ?? "beni");
   if (look.hat === "gotoku") return gotokuCrown((x, y) => [x * r, y * r], r, lw, frame, 0, true);
   const hat = look.hat ?? "none", hatC = look.hatColor ?? (hat === "eboshi" ? "sumi" : hat === "hood" ? "ai" : "kincha"), P = (x: number, y: number): Pt => [x * r, y * r];

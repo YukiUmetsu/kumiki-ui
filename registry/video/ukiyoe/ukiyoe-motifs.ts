@@ -12,7 +12,7 @@ import type { Prim } from "./ukiyoe-prims";
 import { circleD, ellipseD, rectD, tf } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 import { SCENERY_MOTIFS } from "./ukiyoe-scenery";
-import { CASTLE_MOTIFS } from "./ukiyoe-castle";
+import { CASTLE_MOTIFS, KAWARA_SHEEN, kawaraEave, kawaraRows } from "./ukiyoe-castle";
 import { ANIMATED_TOWN, TOWN_MOTIFS } from "./ukiyoe-town";
 import { ANIMATED_INTERIOR, INTERIOR_MOTIFS } from "./ukiyoe-interior";
 import { ANIMATED_FOLK, FOLK_MOTIFS } from "./ukiyoe-folk";
@@ -24,6 +24,10 @@ import { ANIMATED_TREES, TREE_MOTIFS } from "./ukiyoe-trees";
 import { ANIMATED_HEIAN, HEIAN_MOTIFS } from "./ukiyoe-heian";
 import { ANIMATED_TSUKUMO, TSUKUMO_MOTIFS } from "./ukiyoe-tsukumo";
 import { ANIMATED_REALMS, REALM_MOTIFS } from "./ukiyoe-realms";
+import { ANIMATED_PARADE, PARADE_MOTIFS } from "./ukiyoe-parade";
+import { ANIMATED_VILLAGE, VILLAGE_MOTIFS } from "./ukiyoe-village";
+import { ANIMATED_RYUGU, RYUGU_MOTIFS } from "./ukiyoe-ryugu";
+import { ANIMATED_TREASURE, TREASURE_MOTIFS } from "./ukiyoe-treasure";
 
 export interface MotifContext { frame: number; wind: number; seed: number; progress: number }
 type P = Readonly<Record<string, unknown>>;
@@ -1090,16 +1094,28 @@ function moon(p: P): Prim[] {
 
 // ---- Architecture ------------------------------------------------------------------------------------------------------------------
 
+/**
+ * A town house's tiled roof in elevation, straight-edged as in Hiroshige's street views: a trapezoid from the eave up to
+ * a short ridge, kawara rows down the slope with scalloped courses, the bead of tile ends along the eave, straight hips
+ * and a stacked ridge with small onigawara.
+ */
 function tileRoof(x0: number, x1: number, yTop: number, yEave: number, over: number, color: UkiyoePaint, ridge = true): Prim[] {
-  const pts: Pt[] = [[x0 - over, yEave], [x0 + (x1 - x0) * .1, yTop], [x1 - (x1 - x0) * .1, yTop], [x1 + over, yEave]];
-  const d = polyD([...quad(pts[0], [x0 - over * .3, yEave - (yEave - yTop) * .25], pts[1], 6), pts[2], ...quad(pts[2], [x1 + over * .3, yEave - (yEave - yTop) * .25], pts[3], 6), [x1 + over, yEave + 6], [x0 - over, yEave + 6]]);
-  const rows: string[] = [];
-  for (let i = 1; i < 6; i++) { const t = i / 6, y = lerp(yTop, yEave, t); rows.push(`M${lerp(x0 + (x1 - x0) * .1, x0 - over, t)} ${y}H${lerp(x1 - (x1 - x0) * .1, x1 + over, t)}`); }
-  const cols: string[] = [];
-  for (let x = x0 - over + 8; x < x1 + over; x += 9) cols.push(`M${x} ${yEave + 6}v-6`);
-  const out: Prim[] = [{ t: "fill", d, fill: { type: "linear", angle: 90, stops: [[0, color, 1], [1, "usuzumi", 1]] }, outline: 1.5, grain: .3 },
-    { t: "stroke", d: rows.join("") + cols.join(""), color: "sumi", width: 1, opacity: .55 }];
-  if (ridge) out.push({ t: "fill", d: rectD(x0 + (x1 - x0) * .08, yTop - 7, (x1 - x0) * .84, 8), fill: "sumi" });
+  const a: Pt = [x0 - over, yEave], b: Pt = [x0 + (x1 - x0) * .1, yTop], c: Pt = [x1 - (x1 - x0) * .1, yTop], d: Pt = [x1 + over, yEave];
+  const face = polyD([a, b, c, d]), rh = yEave - yTop, pitch = Math.max(2.2, Math.min(9, rh * .2)), seed = Math.round(x0 * 3 + yTop);
+  const out: Prim[] = [
+    { t: "fill", d: face, fill: { type: "linear", angle: 90, stops: [[0, color, 1], [.6, "sumi", 1], [1, "sumi", 1]] }, outline: 1.5, grain: .6 },
+    { t: "clip", d: face, key: "houseroof", prims: [...kawaraRows([a, d], yTop - 2, pitch, rh, seed, 0), { t: "fill", d: face, fill: KAWARA_SHEEN }] },
+    ...kawaraEave([a, d], pitch, rh, 1.2),
+    { t: "line", d: carvedLine([a, b], Math.max(2, rh * .07), { taper: "none" }), color: "sumi" },
+    { t: "line", d: carvedLine([d, c], Math.max(2, rh * .07), { taper: "none" }), color: "sumi" },
+  ];
+  if (ridge) {
+    const rb = Math.max(5, rh * .14);
+    out.push({ t: "fill", d: rectD(b[0] - rh * .05, yTop - rb, c[0] - b[0] + rh * .1, rb + 1), fill: "sumi", outline: 1.2 });
+    out.push({ t: "stroke", d: [.35, .65].map(k => `M${(b[0] - rh * .03).toFixed(1)} ${(yTop - rb * k).toFixed(1)}H${(c[0] + rh * .03).toFixed(1)}`).join(""), color: "usuzumi", width: 1, opacity: .8 });
+    for (const [x, s] of [[b[0] - rh * .05, -1], [c[0] + rh * .05, 1]] as const)
+      out.push({ t: "fill", d: polyD([[x - s * rh * .02, yTop + 1], [x - s * rh * .03, yTop - rb * 1.7], [x + s * rh * .1, yTop - rb * 1.9], [x + s * rh * .08, yTop + 1]]), fill: "usuzumi", outline: 1 });
+  }
   return out;
 }
 
@@ -1446,15 +1462,15 @@ export type UkiyoeMotifName =
   | "room" | "andon" | "irori" | "futon" | "loom" | "byobu" | "well" | "stump" | "usu" | "tarai" | "fire" | "halo" | "kumo" | "mato"
   | "belfry" | "hondo" | "gate" | "hokora" | "graves" | "toro" | "hut" | "bamboo" | "kaki" | "shinboku" | "jinmenju"
   | "gissha" | "sudare" | "kicho" | "shinden" | "ikou"
-  | "ryugu" | "seabed" | "lightrays" | "moonpalace" | "amanogawa" | "magpies" | "iwato" | "onigashima" | "sasa";
+  | "ryugu" | "seabed" | "lightrays" | "moonpalace" | "amanogawa" | "magpies" | "iwato" | "onigashima" | "sasa" | "kago" | "kasa" | "tawara" | "sori" | "tamatebako" | "takara" | "kuruma" | "takegiri";
 export const UKIYOE_MOTIFS: readonly UkiyoeMotifName[] = [
   "sky", "mountain", "hills", "sea", "wave", "pine", "sakura", "willow", "reeds", "rock", "cloud", "sun", "moon",
   "house", "pagoda", "torii", "bridge", "boat", "lantern", "field", "pier", "peach", "ricefield",
   "range", "minka", "jizo", "komainu", "castle", "shop", "kura", "yashiki", "firetower",
-  "room", "andon", "irori", "futon", "loom", "byobu", "well", "stump", "usu", "tarai", "fire", "halo", "kumo", "mato", "belfry", "hondo", "gate", "hokora", "graves", "toro", "hut", "bamboo", "kaki", "shinboku", "jinmenju", "gissha", "sudare", "kicho", "shinden", "ikou", "ryugu", "seabed", "lightrays", "moonpalace", "amanogawa", "magpies", "iwato", "onigashima", "sasa",
+  "room", "andon", "irori", "futon", "loom", "byobu", "well", "stump", "usu", "tarai", "fire", "halo", "kumo", "mato", "belfry", "hondo", "gate", "hokora", "graves", "toro", "hut", "bamboo", "kaki", "shinboku", "jinmenju", "gissha", "sudare", "kicho", "shinden", "ikou", "ryugu", "seabed", "lightrays", "moonpalace", "amanogawa", "magpies", "iwato", "onigashima", "sasa", "kago", "kasa", "tawara", "sori", "tamatebako", "takara", "kuruma", "takegiri",
 ];
 /** Motifs whose drawing depends on the frame or wind (others are drawn once and cached). */
-export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "reeds", "lantern", "peach", "ricefield", "boat", "range", "minka", ...ANIMATED_TOWN, ...ANIMATED_INTERIOR, ...ANIMATED_FOLK, ...ANIMATED_EFFECTS, ...ANIMATED_KAMI, ...ANIMATED_TEMPLE, ...ANIMATED_TREES, ...ANIMATED_HEIAN, ...ANIMATED_TSUKUMO, ...ANIMATED_REALMS] as UkiyoeMotifName[]);
+export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "reeds", "lantern", "peach", "ricefield", "boat", "range", "minka", ...ANIMATED_TOWN, ...ANIMATED_INTERIOR, ...ANIMATED_FOLK, ...ANIMATED_EFFECTS, ...ANIMATED_KAMI, ...ANIMATED_TEMPLE, ...ANIMATED_TREES, ...ANIMATED_HEIAN, ...ANIMATED_TSUKUMO, ...ANIMATED_REALMS, ...ANIMATED_PARADE, ...ANIMATED_VILLAGE, ...ANIMATED_RYUGU, ...ANIMATED_TREASURE] as UkiyoeMotifName[]);
 
 const MOTIFS: Readonly<Record<UkiyoeMotifName, (p: P, c: MotifContext) => Prim[]>> = {
   sky, mountain, hills, sea, wave, pine, sakura, willow, reeds, rock, cloud, sun, moon, house, pagoda, torii, bridge, boat, lantern, field, pier, peach, ricefield,
@@ -1471,6 +1487,10 @@ const MOTIFS: Readonly<Record<UkiyoeMotifName, (p: P, c: MotifContext) => Prim[]
   ...HEIAN_MOTIFS,
   ...TSUKUMO_MOTIFS,
   ...REALM_MOTIFS,
+  ...PARADE_MOTIFS,
+  ...VILLAGE_MOTIFS,
+  ...RYUGU_MOTIFS,
+  ...TREASURE_MOTIFS,
 };
 
 export function drawMotif(name: UkiyoeMotifName, params: P, context: MotifContext): Prim[] {

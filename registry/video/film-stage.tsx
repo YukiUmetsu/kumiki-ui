@@ -430,7 +430,10 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
     {showBug && <BrandBug brand={film.brand!} width={film.width} height={film.height} safeInset={film.safeInset} />}
     {flash && flash.veil > .01 && <div aria-hidden="true" data-km-film-flash="" style={{ ...LAYER, background: flashSpec!.color, opacity: flash.veil, pointerEvents: "none" }} />}
     {dip && <DipVeil dip={dipSpec!} veil={dip.veil} text={dip.text} width={film.width} height={film.height} />}
-    {film.captions && <CaptionPerformer track={film.captions} frame={state.frame} reducedMotion={reduce} style={LAYER} />}
+    {film.captions && <CaptionPerformer track={film.captions} frame={state.frame} reducedMotion={reduce} anchor={film.captions.style?.anchor}
+      // `cqw` caption sizes mean a share of the output frame, not of whatever page the stage is previewed in.
+      lane={film.safeInset ? { x: film.safeInset.left, y: film.safeInset.top, width: 1 - film.safeInset.left - film.safeInset.right, height: 1 - film.safeInset.top - film.safeInset.bottom } : undefined}
+      style={{ ...LAYER, containerType: "size", ...film.captions.style?.size ? { ["--km-caption-font-size" as string]: film.captions.style.size } : {}, ...film.captions.style?.font ? { ["--km-caption-font" as string]: film.captions.style.font } : {} }} />}
     {faded > 0 && <div aria-hidden="true" data-km-film-fade="" style={{ ...LAYER, background: film.fade!.color, opacity: faded, pointerEvents: "none" }} />}
   </div>;
 });

@@ -177,8 +177,48 @@ The owner wants animated ukiyo-e YouTube films of 100 Japanese folktales. The [f
 | **F12 — Giant monsters** (delivered 2026-11-15; see the [reference study](research/ukiyoe-handscroll-reference-study.md#giant-monsters-folktale-queue-f12-2026-11-15)) | Monsters far bigger than people: the giant centipede, Yamata no Orochi with eight heads, the daidarabotchi, the earthquake catfish, the umibōzu, the gashadokuro, the giant toad, Kiyohime's serpent coiled round the bell. | 10 | Scale reads against people and buildings; the many heads or legs move without tangling. |
 | **F11 — Tsukumogami** (delivered 2026-11-15; see the [reference study](research/ukiyoe-handscroll-reference-study.md#tsukumogami-folktale-queue-f11-2026-11-15)) | Object spirits: the tanuki teakettle, the flying cotton strip, the hands in the kimono, the shōji eyes, the biwa spirit, the flaming wheel wanyūdō, the hazy ox-cart. | 9 | Each object keeps its shape while it comes alive; the burning wheel rolls without sliding. |
 | **F10 — Other realms** (delivered 2026-11-15; see the [reference study](research/ukiyoe-handscroll-reference-study.md#other-realms-folktale-queue-f10-2026-11-15)) | Places beyond the everyday: the Dragon Palace under the sea, the moon and its palace, the heavenly river (the Milky Way) with the magpie bridge, the underworld Yomi, the rock cave of the sun, Onigashima. | 7 | Each realm is a scene recipe with its own light and a transition into and out of it. |
-| **F16 — Processions and parades** | Night parades built on the crowd system: the Hyakki Yagyō with its mix of yōkai and object spirits, the fox wedding in a sunshower, the mouse wedding. | 3 | A mixed crowd walks in order without overlaps; the sunshower rain falls in sunlight. |
-| **F17 — YouTube episode template** | One folktale episode as a reusable recipe: a title card, a narrated act structure, scene changes between handscroll stations, subtitles in safe regions, end card, and the export settings. One complete short episode (Kasa Jizō, which is ready today) proves it. | all | `film:check` passes; captions never collide; a low-res draft is reviewed before any full render. |
+| **F16 — Processions and parades** (delivered 2026-11-15; see the [reference study](research/ukiyoe-handscroll-reference-study.md#processions-and-parades-folktale-queue-f16-2026-11-15)) | Night parades built on the crowd system: the Hyakki Yagyō with its mix of yōkai and object spirits, the fox wedding in a sunshower, the mouse wedding. | 3 | A mixed crowd walks in order without overlaps; the sunshower rain falls in sunlight. |
+| **F17 — YouTube episode template** (delivered 2026-11-15; see the [reference study](research/ukiyoe-handscroll-reference-study.md#youtube-episode-template-and-kasa-jizō-folktale-queue-f17-2026-11-15)) | One folktale episode as a reusable recipe: a title card, a narrated act structure, scene changes between handscroll stations, subtitles in safe regions, end card, and the export settings. One complete short episode (Kasa Jizō, which is ready today) proves it. | all | `film:check` passes; captions never collide; a low-res draft is reviewed before any full render. |
+
+### Ukiyo-e quality queue (UKIYO1) — owner request 2026-11-15
+
+The owner asked to stop adding episodes and raise the craft instead. Slices are taken in this order, each reference-led
+and checked on rendered stills, then on the episodes:
+
+| Slice | Deliverable | State |
+|---|---|---|
+| **Q1 — Faces** | The bijin face after Utamaro (fine face line, narrow eyes with the iris hanging from the lid, grey brows, rouged mouth, combed hairline, powdered skin); front-view shimada; eight expressions (`emote`); face traits per look (`look.features`). | Delivered 2026-11-15 (PR #414). |
+| **Q2 — Clothing variety** | More kimono patterns and dyes (shibori, stripes, plaids, flowers, waves on hems), obi knots, layered collars, a wardrobe generator for women and men by class and season. | Delivered 2026-11-15 (PR #416). |
+| **Q3 — Animation** | Secondary motion (sleeves, hems, hair ornaments), weight shifts, anticipation and settle on actions, head turns. | Delivered 2026-11-15 (PR #417): spring follow-through on sleeves and hems, settle-overshoot on gestures, half-lid blinks, idle glances and head drift. |
+| **Q4 — Effects** | Rain, snow, smoke, fire, water and light at print quality. | Delivered 2026-11-15: Hiroshige's long two-block rain with veil and splashes, snow in three depths, curling hooked flames with flamelets and darker smoke. |
+| **Q5 — Transitions** | Beyond kasumi: scroll wipes, ink bleeds, page turns, shot-matched cuts. | Next. |
+| **Q6 — Sound effects** | Recorded foley and hits chosen and checked with earshot, placed on action frames in the episodes. | Queued. |
+
+### Ukiyo-e folktale episodes (UKIYO1) — episode queue
+
+With F1–F17 delivered, the queue moves from new art to episodes. Each episode is one `ukiyoeEpisode()` spec in
+`src/video/`, with:
+- reference-led art for anything the pack still lacks;
+- stills of every shot in both aspects;
+- `film:check`;
+- `film:review` with no errors;
+- a checked-in example film and .srt;
+- an entry in Storybook **UKIYO1 · Episodes**.
+
+Video renders wait for the owner.
+
+| Episode | Story (CSV #) | State |
+|---|---|---|
+| **E1 — Kasa Jizō** | 12 | Delivered 2026-11-15 (PR #401). |
+| **E2 — Urashima Tarō** | 5 | Delivered 2026-11-15. New: Dragon Palace people and treasures (`ukiyoe-ryugu.ts`). |
+| **E3 — Momotarō** | 1 | Delivered 2026-11-15. New: banner, kibi-dango, treasure heap and handcart (`ukiyoe-treasure.ts`). |
+| **E4 — Kaguya-hime** | 4 | Delivered 2026-11-15. New: the cut stalk with the girl in it (`takegiri`). |
+| **E5 — Tsuru no Ongaeshi** | 6 | Next (Kaguya-hime's end card promises it). Ready: loom (weaving), crane, snowy farmhouse. |
+| **E6 — Hanasaka Jiisan** | 8 | Ready: dog, ash particles, cherry. Needs blossoms bursting on bare trees. |
+| **E7 — Issun-bōshi** | 3 | Needs a tiny hero in a bowl boat with a needle sword. Ready: oni, uchide-no-kozuchi. |
+| **E8 — Bunbuku Chagama** | 11 | Ready: teakettle tanuki, temple. |
+| **E9 — Shita-kiri Suzume** | 10 | Ready: sparrow, baskets (tsuzura need building), yōkai. |
+| **E10 — Kintarō** | 2 | Ready: bear, axe, mountain. |
 
 Treat the gods, ghosts and religious places with respect: no mockery of living faiths.
 

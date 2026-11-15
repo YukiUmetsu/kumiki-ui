@@ -109,7 +109,14 @@ export function RisoCharacterInk({
   }
   const inkPath = (part:RisoPartFrame) => <path key={part.id}
     data-km-riso-part={part.id} d={part.d} transform={part.transform}
-    fill={part.paint === "screen" ? paint.dots : paint.solid}
+    data-km-riso-screen-tone={part.paint==="screen" ? (part.screenTone??"normal"):undefined}
+    // Optional paint handles keep user-authored standalone RisoCharacterInk
+    // backwards compatible. Production RisoPrint always supplies all masters.
+    fill={part.paint === "screen"
+      ? part.screenTone==="light"?(paint.lightDots??paint.dots)
+        :part.screenTone==="mid"?(paint.midDots??paint.dots)
+          :paint.dots
+      :paint.solid}
     opacity={part.opacity}/>;
   if (!spec.parts.some(p => p.plate === plateId))
     throw new RangeError("RISO2 character has no authored ink for plate " + plateId);

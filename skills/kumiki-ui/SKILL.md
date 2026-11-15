@@ -15,6 +15,6 @@ Use this skill for a new component, component modification, registry release or 
 6. Verify clean registry installation for distributable changes. Never claim success for checks you didn't run.
 7. Report exact changes, commands/results, screenshots, dependencies/license impact and unresolved defects; stop after requested scope.
 
-Drawing or reviewing people, faces, hands or poses in any style: follow [kumiki-human-anatomy](../kumiki-human-anatomy/SKILL.md).
+Drawing or reviewing people, faces, hands, poses, hair or skin and eye colour in any style: follow [kumiki-human-anatomy](../kumiki-human-anatomy/SKILL.md).
 
 **Never:** hardcode a specific consuming application; substitute tiny low-contrast text for elegance; add generic glow/gradients by default; ship untested animation or overlays; hide essential information for minimalism; overwrite consumer customization without review.

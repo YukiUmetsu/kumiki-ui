@@ -1,0 +1,289 @@
+{
+  "schema_version": 3,
+  "subject_type": "stylized human 2D original characters",
+  "study": "riso24-hair-reference-study.json",
+  "status": "source-authored head/ink construction only; not independently anatomically certified",
+  "characters": [
+    {
+      "id": "courier",
+      "source_model": "COURIER",
+      "head_joint": "head",
+      "existing_identity_masses": [
+        "hair",
+        "hair-forelock",
+        "hair-temple",
+        "cap",
+        "cap-brim",
+        "face",
+        "face-outline"
+      ],
+      "semantic_regions": [
+        {
+          "id": "cap-paper-ribbons",
+          "ink_role": "paper-recess",
+          "source_part_count": 5,
+          "parent": "head",
+          "paper_knockout": true,
+          "plate": "blue",
+          "local_range": {
+            "x": [
+              -30,
+              36
+            ],
+            "y": [
+              -74,
+              -49
+            ]
+          },
+          "geometry": "five separate closed curved/gouged scalp flow strands; source cap outline retained"
+        },
+        {
+          "id": "cap-brim-paper-welt",
+          "ink_role": "paper-recess",
+          "source_part_count": 2,
+          "parent": "head",
+          "paper_knockout": true,
+          "plate": "blue",
+          "local_range": {
+            "x": [
+              -31,
+              36
+            ],
+            "y": [
+              -51,
+              -44
+            ]
+          },
+          "geometry": "two discontinuous narrow bent reserves following brim fold"
+        },
+        {
+          "id": "cap-crown-engraving",
+          "ink_role": "ink-stroke",
+          "source_part_count": 6,
+          "parent": "head",
+          "paper_knockout": false,
+          "plate": "red",
+          "local_range": {
+            "x": [
+              -30,
+              36
+            ],
+            "y": [
+              -73,
+              -49
+            ]
+          },
+          "geometry": "rooted, varied-length red closed tapered contours over the current scalp and reserved paper strips"
+        },
+        {
+          "id": "cap-brim-engraving",
+          "ink_role": "ink-stroke",
+          "source_part_count": 3,
+          "parent": "head",
+          "paper_knockout": false,
+          "plate": "blue",
+          "local_range": {
+            "x": [
+              -35,
+              40
+            ],
+            "y": [
+              -51,
+              -44
+            ]
+          },
+          "geometry": "curving fold seam and tapered sweep below the brim"
+        }
+      ],
+      "regional_priorities": [
+        "break fully solid overprinted top cap without losing original crown silhouette",
+        "preserve source forelock and face/hair overlap",
+        "clean facial eye, nose, jaw silhouettes in stress frames"
+      ],
+      "known_missing_views": [
+        "true-side",
+        "back",
+        "three-quarter",
+        "top"
+      ]
+    },
+    {
+      "id": "paper-artist",
+      "source_model": "PAPER_ARTIST",
+      "head_joint": "head",
+      "existing_identity_masses": [
+        "hair-back",
+        "hair-fringe",
+        "hair-linework",
+        "face",
+        "face-outline",
+        "ear-left"
+      ],
+      "semantic_regions": [
+        {
+          "id": "hair-paper-crown",
+          "ink_role": "paper-recess",
+          "source_part_count": 3,
+          "parent": "head",
+          "paper_knockout": true,
+          "plate": "blue",
+          "local_range": {
+            "x": [
+              -29,
+              35
+            ],
+            "y": [
+              -77,
+              -49
+            ]
+          },
+          "geometry": "three scalp-following roots with varying inflection before the bangs"
+        },
+        {
+          "id": "hair-paper-side",
+          "ink_role": "paper-recess",
+          "source_part_count": 4,
+          "parent": "head",
+          "paper_knockout": true,
+          "plate": "blue",
+          "local_range": {
+            "x": [
+              -43,
+              41
+            ],
+            "y": [
+              -43,
+              17
+            ]
+          },
+          "geometry": "two long side flow channels plus unequal tapered ends; left/right not exact mirrors"
+        },
+        {
+          "id": "hair-crown-engravings",
+          "ink_role": "ink-stroke",
+          "source_part_count": 7,
+          "parent": "head",
+          "paper_knockout": false,
+          "plate": "red",
+          "local_range": {
+            "x": [
+              -32,
+              36
+            ],
+            "y": [
+              -73,
+              -47
+            ]
+          },
+          "geometry": "seven nonuniform tapered ink paths between hair part and crown; each curve follows its separate local scalp flow"
+        },
+        {
+          "id": "hair-side-engravings",
+          "ink_role": "ink-stroke",
+          "source_part_count": 6,
+          "parent": "head",
+          "paper_knockout": false,
+          "plate": "red",
+          "local_range": {
+            "x": [
+              -43,
+              43
+            ],
+            "y": [
+              -47,
+              20
+            ]
+          },
+          "geometry": "side-root engravings descending toward jaw/nape with different length and curvature"
+        },
+        {
+          "id": "hair-fringe-root-ink",
+          "ink_role": "ink-stroke",
+          "source_part_count": 5,
+          "parent": "head",
+          "paper_knockout": false,
+          "plate": "red",
+          "local_range": {
+            "x": [
+              -27,
+              27
+            ],
+            "y": [
+              -62,
+              -42
+            ]
+          },
+          "geometry": "wedge-like bangs/part roots, preserving the existing forward face silhouette"
+        },
+        {
+          "id": "hair-temple-shadow-masses",
+          "ink_role": "ink-screen",
+          "source_part_count": 2,
+          "parent": "head",
+          "paper_knockout": false,
+          "plate": "red",
+          "local_range": {
+            "x": [
+              -44,
+              44
+            ],
+            "y": [
+              -49,
+              4
+            ]
+          },
+          "geometry": "broad screened side depth is separated from thin solid engraved strands"
+        }
+      ],
+      "regional_priorities": [
+        "reduce flat blue bob interior",
+        "preserve unobstructed eyes/cheek negative paper",
+        "avoid fringes crossing pupils under head animation"
+      ],
+      "known_missing_views": [
+        "true-side",
+        "back",
+        "three-quarter",
+        "top"
+      ]
+    }
+  ],
+  "adjacency_requirements": [
+    {
+      "type": "parent_joint",
+      "from": "cap-crown-engraving",
+      "to": "head"
+    },
+    {
+      "type": "parent_joint",
+      "from": "hair-fringe-root-ink",
+      "to": "head"
+    },
+    {
+      "type": "mask_then_reink",
+      "from": "hair-paper-crown",
+      "to": "hair-crown-engravings"
+    },
+    {
+      "type": "mask_then_reink",
+      "from": "cap-paper-ribbons",
+      "to": "cap-crown-engraving"
+    }
+  ],
+  "source_geometry_lock": "Existing head/hair silhouette paths and all original facial parts remain unchanged. User may veto a nonmatching physical Riso printed effect even if geometric contract passes.",
+  "rendered_review_required": [
+    "full-head 16:9",
+    "full-head 9:16",
+    "hair cropped 16:9",
+    "hair cropped 9:16",
+    "neutral, blink, smile",
+    "red and blue plate separation",
+    "baseline vs new identical settings"
+  ],
+  "blocked_release_gates": [
+    "actual independent view/pose landmarks",
+    "source-licensed face comparison masks",
+    "signed artist review",
+    "normal-speed encoded 240-frame video"
+  ]
+}

@@ -341,3 +341,103 @@ const paper = evaluateRisoTransferSheet(
 `RisoTransferSheetPlate` draws local pressure lines and the two tiny compression pockets **only on the blue press master**; red stamp/hatching remain independent and paper still uses one opaque knockout. `detail=false` and `imprintDepth=0` both yield a simple material-negative control. All crease points use the same rotated, bowed material coordinate transform as the paper sheet, not screen-relative paths or postprocessed gradients. The existing Risograph Storybook folder includes a `Pressed paper creases` slider and two-aspect source/receiving/released frame tests.
 
 [ArtCraft reference and negative controls](../research/riso19-contact-pressure-artcraft.md) document shape topology, localized tangent flow, pressure metrics, real print references, and the *unverified* browser/normal-speed film and pixel-comparison release gates. This is deterministic illustrated paper pressure, **not** physically simulated force feedback or approved artistic likeness.
+
+
+## RISO20 — material-native AM / FM printing and bounded dot gain
+
+The existing print renderer `registry/video/print-plates-react.tsx` now exposes three optional `RisoPrint` props:
+
+- `screenMode?: "am" | "fm"` (default `"am"`): amplitude-modulated variable-area periodic screen or frequency-modulated 8×8 seeded microdot screen.
+- `screenDensity?: number` (0..1): nominal per-plate screen tone; default `Math.PI * .32 * .32` preserves the original `dotCell * .32` halftone radius.
+- `dotGain?: number` (0..1, default 0): increases the actual deposited dot radius without changing original vector outlines, colors, masks, background paper or solid spot ink.
+
+`registry/video/riso-screening.ts` computes pure, frame-independent geometry with distinct seed per plate. The new FM droplet rank order is **nested** across tone settings (raising density adds dots without moving existing ones); droplets crossing the tile edge are wrapped to prevent a print seam. Both methods respect each ink's existing independently rotated screen and all fore-/background ink passes.
+
+The controls are available in the **existing** Risograph Storybook folder under `Risograph · Two-Ink Printing`, in both 16:9 and 9:16. No new gallery path, motion clock, external dependency, raster filter or character simplification was introduced. The detailed [RISO20 ArtCraft reference decomposition](../research/riso20-print-screening-artcraft.md) records authentic material references, five-axis topology/flow/weight/rhythm/texture rules, and negative controls.
+
+**Validation:** run `npm run typecheck`, `npx vitest run --project unit tests/riso20-print-screening.test.tsx tests/print-plates.test.ts tests/riso-print-demo.test.tsx`, then actual Storybook browser and encoded-film QA. This is a digital screen model, **not** measured physical ink gain, licensed photographic scan fidelity, an approved portrait, or independent artistic signoff.
+
+
+## RISO21 — ArtCraft v9 ocular ink and two-actor print proof
+
+Four new original, closed SVG contour ink parts are attached to the existing `head` joint of each identity:
+
+- `eye-canthus-shapes`: independently authored left/right canthus geometry with a blink replacement
+- `eye-lash-wedges`: tapered blue upper-lid roots, including folded/reduced blink shapes
+- `eye-iris-grain`: red **screen**-painted iris light facets inside the original blue iris
+- `eye-lower-orbit-engraving`: six asymmetric short red screened contour fans under the original lower lid, with blink redraw
+
+The Courier and Paper Artist source paths are deliberately **different**, not procedural mirror/copies. Existing face/iris/coat/gloves remain. The Courier mesh sheet maps eight named left/right subcontours; the Paper Artist sheet automatically maps all new authored face parts.
+
+**Storybook:** in the existing `Video production / Film Looks / Risograph` folder, the **RISO21 · Eye and Portrait Craft** story renders both source actors using the production `RisoPrint` spot master with actual `RisoCharacterInk` and `RisoCharacterKnockout`. Pose, true 16:9 / 9:16 aspect, plate isolation, AM/FM screening, gain and semantic region inspection are interactive.
+
+[ArtCraft v9 reference, anatomy structure and blocked release study](../research/riso21-ocular-artcraft.md). Tests: `tests/riso21-ocular-print-artcraft.test.tsx`; optional browser captures: `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`.
+
+**Not artist-approved:** A valid original SVG contour, successful tests or Storybook presentation cannot substitute for measured 18-landmark source-to-render face anatomy, source-specific five-axis/pixel matching, independent 1×/3× full-head critique or encoded-film playback. The existing source is an **original stylized character**, while published reference works are used only for material technique; no artist's face/identity is traced or reproduced.
+
+
+## RISO23 — physically meaningful facial screens after actual Chromium critique
+
+[RISO23 real-screenshot source/art quality study](../research/riso23-facial-screen-artcraft.md)
+
+Both **Courier** and **Paper Artist** gain three asymmetric, head-local semantic `RisoCharacterPart` shapes, each comprising a left and right contour:
+
+- `orbital-tone-planes`: wide red **screen** shapes anchored anatomically above and beside the eyes
+- `zygomatic-tone-planes`: unequal red **screen** contour planes tracking cheekbone volume
+- `jaw-shadow-planing`: bounded red **screen** tapered jaw-form passages
+
+RISO22 Chromium revealed that **thin** eye engraved features were below the period of the 6-unit halftone screen and became separate chip-like pixels. Therefore the existing `eye-iris-grain` and `eye-lower-orbit-engraving` are now deliberate **red solid** engraving paths; their IDs and blink variants remain compatible, not removed. Wider tonal forms continue to use the physical plate `screen`. `RisoPrint` itself and original ink order, print registration, paper opacity, rig identity and whole-film frames remain unchanged.
+
+RISO23's portrait-crop Storybook story exposes native `screenDensity` alongside AM/FM, dot gain, two plates, four expressions and both exact 16:9/9:16 views; it stays inside the same **Risograph** folder.
+
+Regression: `tests/riso23-anatomical-ink-planes.test.tsx`, plus Chromium `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`. These checks do not establish photo-realism or independent ArtCraft human-anatomy/portrait certification.
+
+### RISO23 rendered second-pass screen-frequency correction
+
+Actual [first RISO23 browser screenshots](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43737587182) **failed artistic critique**: large screened cheek/socket/jaw masses looked like cartoon red freckles at the old `dotCell=6` in a ~70-unit-wide head. The source geometry was kept; print-master **frequency**, not global noise or shape simplification, was the issue. The RISO23 Storybook now defaults both independent spot plates to a valid **2-unit** pitch (configurable up to 6), and the production `PrintPlate.dotCell` and screen geometry accept **2..36** without changing older valid values. Actual coarse-vs-fine screenshot negative controls are required before promoting the updated illustration.
+
+[Full real-render ArtCraft revision ledger](../research/riso23-facial-screen-artcraft.md).
+
+
+## RISO24 — ArtCraft v9 scalp-flow hair and true two-spot paper carving
+
+[Real-render hair critique, physical construction and blocked anatomy gates](../research/riso24-hair-artcraft.md)
+
+The original `COURIER` and `PAPER_ARTIST` head shapes, face masks, hair/hat outer silhouettes, blink keys and all IK/FK joints remain intact. New semantic **head-local** details are original artwork, not shader-generated noise.
+
+**Courier cap:** `cap-paper-ribbons` (five actual paper-negative scalp-flow paths), `cap-brim-paper-welt` (two curved paper reserves), `cap-crown-engraving` (six variable-length red engraved locks), and `cap-brim-engraving` (three blue print seams). All are mapped into `RISO_COURIER_SHEET`.
+
+**Paper Artist bob:** `hair-paper-crown` (three paper-negative crown paths), `hair-paper-side` (four scalp-to-nape paper cutouts), `hair-crown-engravings` (seven red root curves), `hair-side-engravings` (six irregular side locks), `hair-fringe-root-ink` (five forehead roots), and `hair-temple-shadow-masses` (two wide red screened masses). Source regions automatically populate `RISO_PAPER_ARTIST_SHEET`.
+
+The `knockoutOnly:true` paths use the existing `RisoCharacterInk` press-mask semantics to subtract real ink from **both** earlier blue and red masters; subsequently painted red/blue paths deposit real ink on the reserved paper. The original source engine `RisoPrint` is reused unchanged. No fake translucent white stickers, blur, enlarged film palette or new dependencies.
+
+In the existing Storybook Risograph `OcularPrintCraft` story, new **RISO24 feature focus** and **RISO24 hair craft comparison** controls select a true source-measured hair close-up and switch only the new named hair parts on/off. Together with aspect, pose and plate isolation, this creates directly comparable legacy/engraved 16:9 and 9:16 proof images in the same story. The story ID is preserved, so existing links and tests remain valid.
+
+Mechanical QA: `tests/riso24-hair-craft-artcraft.test.tsx`; actual Chromium 1x/close-up comparisons in `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`. **Still not artist-certified**: source-reference human portrait landmark masks, profile/3/4 views and independent normal-speed film review are missing.
+
+
+## RISO25 — anatomy-bound ear and expressive facial detail
+
+[Visual ArtCraft v9 reference study, original source geometry and unfinished gates](../research/riso25-midface-artcraft.md)
+
+Both original rigged front-facing human characters now have an independently authored **connected ear shell** and nine named facial subparts. Their IDs are the same **semantic region contract** but all paths are specifically drawn for the Courier and Artist, with independently varying ear proportions, nose directions and lip shape. All new solid ink marks are deposited through the real two-master `RisoCharacterInk` production path and remain attached to the original `head` FK transform:
+
+- Ear: `ear-left` is refined in place. `ear-helix-fold` (blue), `ear-concha-pocket` (red), `ear-tragus-root` (blue), `ear-lobule-seam` (red) add structural helix/concha/lobule hierarchy rather than freckle dots.
+- Nose/cheek: `nasal-sidewall-line`, `nasal-ala-fold`, and two independently shaped islands of `nasolabial-flow` (red) follow the nose-to-mouth facial plane.
+- Mouth: `upper-lip-engraving` and `labiomental-crease` (blue) have **authored neutral, speech, smile** paths rather than algorithmically stretched/repeated features. Blink preserves neutral midface while the actual eyes blink.
+- The existing `RISO_COURIER_SHEET` registers these named source regions, including two independent nasolabial subpaths. The existing Paper Artist mesh maps every original/new source part automatically.
+
+No additional Storybook folder or page: `OcularPrintCraft` in the existing Risograph category gains source-derived **Ear** and **Midface** close-ups, a reversible **RISO25 facial craft comparison** that uses the exact original ear path, and retains independently adjustable hair, physical AM/FM ink screens, density, dot gain, pose and 16:9 / 9:16. Existing story ID and tests remain backward compatible.
+
+Technical acceptance: `tests/riso25-midface-artcraft.test.tsx` and the targeted Chromium `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`. **Human identity/portrait reference fidelity is NOT certified** without independently observed landmark/mask/view evidence, and unchanged frontal geometry must never be described as a real 3/4 or side head.
+
+
+## RISO27 — source-accurate 24fps film acting review
+
+[Animated Risograph contact-sheet reference dossier](../research/riso27-sequential-acting-reference-study.json) · [Full 240-frame part/pose/source structure](../research/riso27-sequential-acting-character-structure.json)
+
+The existing **HumanEnsembleActing** Storybook story (same ID and Risograph folder) now has nine named edit-room frames, plus -1/+1 source-frame stepping and a 24fps film player. Its engine uses `requestAnimationFrame` wall time to sample the absolute 240-frame source. Unlike the earlier chained 41.67ms intervals, slow SVG rendering does not reduce playback speed. **Playback holds frame 239** rather than looping into a dissimilar opening shot; playing again explicitly resets to frame 0.
+
+No new character source shapes, armatures, facial geometry, inks or fake paper silhouettes. Both original actors retain all physical paper/ink mask channels, RISO26 material grading and authored finger-over-sheet contact geometry. A real 16:9 and 9:16 film browser proof captures opening, anticipation, first contact, release and receiving at source frames including 125/126, 159/160, 177/178 and 201/202. The native red and blue ink masters are captured independently. A separate unit test evaluates **every single 0–239 frame** at both aspect families and compares receiver-relative post-release paper positions.
+
+**Release caveat:** These checks demonstrate deterministic source animation and available physical preview; independent ArtCraft human landmark/mask comparison and authored 3/4/profile source views are still unavailable. Approval of the motion aesthetics requires a direct review of the generated contact sheets, not just a green test.

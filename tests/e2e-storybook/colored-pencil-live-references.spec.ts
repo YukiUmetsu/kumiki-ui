@@ -233,6 +233,363 @@ for(const sample of ["woman","man"] as const){
         expect(await output.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
+        // True photograph-conditioned skin scumbling: original vs
+        // curved, layered pigment on the SAME real CC0 pixels. Neither
+        // black iris, eye aperture nor the exported video may change.
+        const weave=page.getByLabel("Pencil overlapping skin optical weave");
+        await weave.focus();
+        await weave.press("Home");
+        await expect(weave).toHaveValue("0");
+        await expect(full).toHaveAttribute("data-km-pencil-skin-weave","0");
+        await expect(full).toHaveAttribute("data-km-pencil-skin-weave-nibs","0");
+        const withoutWeave=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-skin-weave-legacy-0.png")});
+        await weave.press("End");
+        await expect(weave).toHaveValue("1");
+        await expect(full).toHaveAttribute("data-km-pencil-skin-weave","1");
+        const opticalNibCount=Number(
+          await full.getAttribute("data-km-pencil-skin-weave-nibs"));
+        const protectedSkinHighlights=Number(
+          await full.getAttribute("data-km-pencil-skin-weave-highlight-reserves"));
+        expect(opticalNibCount).toBeGreaterThan(300);
+        // Real camera exposure may contain no skin above the calibrated
+        // near-paper reserve threshold. Never fabricate a highlight;
+        // synthetic pure-white source is covered by the dedicated unit gate.
+        expect(Number.isInteger(protectedSkinHighlights)).toBe(true);
+        expect(protectedSkinHighlights).toBeGreaterThanOrEqual(0);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(withoutWeave);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-skin-weave-optical-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
+        // Needle-sharp pigment densification is a reversible render-time
+        // skin material only. It may not touch the photo, hair, iris, lip
+        // or the independent photo-to-pencil video export.
+        const needle=page.getByLabel("Pencil needlepoint skin optical fill");
+        await needle.focus();
+        await needle.press("Home");
+        await expect(needle).toHaveValue("0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-needlepoint-depth","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-needlepoint-fibres","0");
+        // At true 285×318 presentation scale, the v14 source-matched
+        // cheek/forehead still had 3–6× excess high-pass paper grain.
+        // A positive diff PNG alone is NOT proof that it improved.
+        // This observes only the actual final Chromium canvas, never
+        // reads photo pixels into the painted artwork.
+        const measureSkinGrain=async()=>full.evaluate(node=>{
+          const canvas=node as HTMLCanvasElement;
+          const probe=document.createElement("canvas");
+          probe.width=285;probe.height=318;
+          const context=probe.getContext("2d")!;
+          context.imageSmoothingEnabled=true;
+          context.drawImage(canvas,0,0,285,318);
+          const rgba=context.getImageData(0,0,285,318).data;
+          const value=new Float32Array(285*318);
+          for(let i=0;i<value.length;i++){
+            const j=i*4;
+            value[i]=.2126*rgba[j]+.7152*rgba[j+1]+.0722*rgba[j+2];
+          }
+          const patches=[
+            [90,46,175,91],[75,124,160,192],
+            [90,200,180,235],[150,115,210,160],
+          ];
+          let residual=0,count=0;
+          for(const [x0,y0,x1,y1] of patches){
+            for(let y=y0+2;y<y1-2;y++)for(let x=x0+2;x<x1-2;x++){
+              let average=0;
+              for(let yy=-2;yy<=2;yy++)for(let xx=-2;xx<=2;xx++)
+                average+=value[(y+yy)*285+x+xx];
+              const d=value[y*285+x]-average/25;
+              residual+=d*d;count++;
+            }
+          }
+          // Must not alter the real deep iris or photographed lip seam.
+          const protectedPixels=[135+130*285,183+190*285,20+20*285]
+            .map(i=>Math.round(value[i]*100)/100);
+          return {grain:Math.sqrt(residual/count),protectedPixels};
+        });
+        const sparseEvidence=await measureSkinGrain();
+        const sparseSkin=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-needlepoint-sparse-0.png")});
+        await needle.press("End");
+        await expect(needle).toHaveValue("1");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-needlepoint-depth","1");
+        const fineFibres=Number(await full.getAttribute(
+          "data-km-pencil-needlepoint-fibres"));
+        expect(fineFibres).toBeGreaterThan(2000);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(sparseSkin);
+        const denseEvidence=await measureSkinGrain();
+        // A genuinely improved colored-pencil material lowers visible
+        // coarse grain, not merely changes ~6k face pixels. Keep the
+        // invariant as a negative quality gate for future refactors.
+        expect(denseEvidence.grain).toBeLessThan(sparseEvidence.grain-.15);
+        expect(denseEvidence.protectedPixels).toEqual(
+          sparseEvidence.protectedPixels);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-needlepoint-dense-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
+        // ArtCraft v16: transparent photograph-measured skin pigment is
+        // rendered under every real colored-pencil value/hair/iris stroke.
+        // Zero means EXACT original v15, 100 means new optical glaze.
+        const glaze=page.getByLabel("Pencil photo-measured soft skin glazing");
+        await glaze.focus();await glaze.press("Home");
+        await expect(glaze).toHaveValue("0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-photometric-glaze","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-glaze-strokes","0");
+        // Native 285×318 screenshot-scale validation. No image is
+        // modified here: this is browser evidence FROM the finished dry
+        // pencil and the separately displayed licensed reference.
+        const faceMetrics=async()=>full.evaluate(node=>{
+          const source=document.querySelector<HTMLCanvasElement>(
+            'canvas[data-km-pencil-full-head-source]');
+          if(!source)throw Error("Missing observed source proof");
+          const values=(canvas:HTMLCanvasElement)=>{
+            const image=document.createElement("canvas");
+            image.width=285;image.height=318;
+            const ctx=image.getContext("2d")!;
+            ctx.imageSmoothingEnabled=true;
+            ctx.drawImage(canvas,0,0,285,318);
+            const data=ctx.getImageData(0,0,285,318).data;
+            const out=new Float32Array(285*318);
+            for(let i=0;i<out.length;i++){
+              const k=i*4;
+              out[i]=.2126*data[k]+.7152*data[k+1]+.0722*data[k+2];
+            }
+            return out;
+          };
+          const ref=values(source),got=values(node as HTMLCanvasElement);
+          const regions=[
+            [90,46,175,91],[75,124,160,192],
+            [90,200,180,235],[150,115,210,160],
+          ];
+          let residual=0,error=0,n=0;
+          for(const [x0,y0,x1,y1] of regions){
+            for(let y=y0+2;y<y1-2;y++)
+              for(let x=x0+2;x<x1-2;x++){
+                let mean=0;
+                for(let dy=-2;dy<=2;dy++)
+                  for(let dx=-2;dx<=2;dx++)
+                    mean+=got[(y+dy)*285+x+dx];
+                const i=y*285+x;
+                residual+=(got[i]-mean/25)**2;
+                error+=Math.abs(got[i]-ref[i]);n++;
+              }
+          }
+          const protectedPixels=[
+            [135,130],[183,190],[20,20],[75,230],
+          ].map(([x,y])=>Math.round(got[y*285+x]*100)/100);
+          return {mae:error/n,grain:Math.sqrt(residual/n),
+            protectedPixels};
+        });
+        const oldFace=await faceMetrics();
+        const unglazed=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-skin-glaze-legacy-0.png")});
+        await glaze.press("End");
+        await expect(glaze).toHaveValue("1");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-photometric-glaze","1");
+        const glazeNibs=Number(await full.getAttribute(
+          "data-km-pencil-glaze-strokes"));
+        const preserved=Number(await full.getAttribute(
+          "data-km-pencil-glaze-protected"));
+        expect(glazeNibs).toBeGreaterThan(800);
+        expect(preserved).toBeGreaterThan(0);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(unglazed);
+        const newFace=await faceMetrics();
+        // An attractive diff is not enough: full-color glazing must
+        // improve BOTH true source-tonal error and coarse paper grain.
+        // A stronger underlayer initially passed visual-only tests
+        // while DARKENING forehead/cheek by 10-14 grey levels.
+        expect(newFace.mae).toBeLessThan(oldFace.mae-.12);
+        expect(newFace.grain).toBeLessThan(oldFace.grain-.35);
+        for(let i=0;i<oldFace.protectedPixels.length;i++)
+          expect(Math.abs(newFace.protectedPixels[i]-
+            oldFace.protectedPixels[i])).toBeLessThan(2);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-skin-glaze-source-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
+        // ArtCraft v17: the *source* is dark, connected neck skin
+        // below the jaw while a previous authored hair-root split
+        // accidentally exposed a 1–3px vertical bright paper channel.
+        // Measure genuine licensed-photo evidence, not screenshots
+        // invented by a test fixture or a smoothing filter.
+        const neck=page.getByLabel(
+          "Pencil photo-observed neck contact closure");
+        const observedNeck=async()=>full.evaluate(node=>{
+          const reference=document.querySelector<HTMLCanvasElement>(
+            "canvas[data-km-pencil-full-head-source]");
+          if(!reference)throw Error("Missing independently observed CC0 source");
+          const values=(canvas:HTMLCanvasElement)=>{
+            const sample=document.createElement("canvas");
+            sample.width=285;sample.height=318;
+            const ctx=sample.getContext("2d")!;
+            ctx.drawImage(canvas,0,0,285,318);
+            const data=ctx.getImageData(0,0,285,318).data;
+            const out=new Float32Array(285*318);
+            for(let i=0;i<out.length;i++){
+              const k=i*4;
+              out[i]=.2126*data[k]+.7152*data[k+1]+.0722*data[k+2];
+            }
+            return out;
+          };
+          const drawn=values(node as HTMLCanvasElement);
+          const photographic=values(reference);
+          let deficit=0,mae=0,n=0;
+          // Actual registered 285x318 lower-neck seam (relative to
+          // the existing original CC0 photo and fixed 540x600 plate).
+          for(let y=240;y<279;y++)for(let x=136;x<=144;x++){
+            const i=y*285+x;
+            if(photographic[i]>185)continue;
+            const delta=drawn[i]-photographic[i];
+            deficit+=Math.max(0,delta);
+            mae+=Math.abs(delta);
+            n++;
+          }
+          const safe=[
+            [135,130],[183,190],[20,20],[75,230],
+          ].map(([x,y])=>Math.round(drawn[y*285+x]*100)/100);
+          return {deficit:deficit/n,mae:mae/n,safe,n};
+        });
+        await neck.focus();await neck.press("Home");
+        await expect(neck).toHaveValue("0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-neck-contact","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-neck-contact-nibs","0");
+        const noNeck=await observedNeck();
+        expect(noNeck.n).toBeGreaterThan(250);
+        const legacyNeck=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-neck-legacy-gap-0.png")});
+        await neck.press("End");
+        await expect(neck).toHaveValue("1");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-neck-contact","1");
+        const contacts=Number(await full.getAttribute(
+          "data-km-pencil-neck-contact-nibs"));
+        expect(contacts).toBeGreaterThan(100);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(legacyNeck);
+        const repairedNeck=await observedNeck();
+        expect(repairedNeck.deficit).toBeLessThan(noNeck.deficit-.8);
+        expect(repairedNeck.mae).toBeLessThan(noNeck.mae+1.5);
+        expect(repairedNeck.safe).toEqual(noNeck.safe);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-neck-photo-contact-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
+        // CP18: detect false paper-white on the photo-measured jaw
+        // polygon, not merely a changed screenshot. Photo and dry-pencil
+        // visual evidence are both sampled at real 285×318 presentation.
+        // No photograph pixel is copied into the actual pigment artwork.
+        const jawSlider=page.getByLabel("Pencil photo-verified jaw paper-tooth repair");
+        const measuredJaw=async()=>full.evaluate(node=>{
+          const source=document.querySelector<HTMLCanvasElement>(
+            "canvas[data-km-pencil-full-head-source]");
+          if(!source)throw Error("No source photograph comparison");
+          const sample=(canvas:HTMLCanvasElement)=>{
+            const out=document.createElement("canvas");
+            out.width=285;out.height=318;
+            const ctx=out.getContext("2d")!;
+            ctx.drawImage(canvas,0,0,285,318);
+            const data=ctx.getImageData(0,0,285,318).data;
+            const rgb=new Float32Array(285*318);
+            for(let i=0;i<rgb.length;i++){
+              const k=4*i;
+              rgb[i]=.2126*data[k]+.7152*data[k+1]+.0722*data[k+2];
+            }
+            return rgb;
+          };
+          const ref=sample(source),drawn=sample(node as HTMLCanvasElement);
+          // A native screenshot projection of the photographed contour
+          // from face polygon indices 8 to 15. This measures both the
+          // ear-side cheek fold and the lower mandibular arc.
+          const edge=[
+            [204,221],[189,237],[171,246],[146,244],
+            [120,231],[99,211],[84,184],[73,151],
+          ];
+          const positions=new Set<number>();
+          for(let seg=0;seg<edge.length-1;seg++){
+            const [ax,ay]=edge[seg],[bx,by]=edge[seg+1];
+            const dx=bx-ax,dy=by-ay;
+            const len=Math.hypot(dx,dy);
+            for(let j=0;j<Math.ceil(len);j++){
+              const t=(j+.5)/Math.ceil(len);
+              for(const normal of [-1,0,1]){
+                const x=Math.round(ax+t*dx-normal*dy/len);
+                const y=Math.round(ay+t*dy+normal*dx/len);
+                if(x<2||y<2||x>=283||y>=316)continue;
+                positions.add(y*285+x);
+              }
+            }
+          }
+          let gap=0,mae=0,n=0;
+          for(const i of positions){
+            if(ref[i]>185)continue; // true photographed paper lights
+            const d=drawn[i]-ref[i];
+            gap+=Math.max(0,d);mae+=Math.abs(d);n++;
+          }
+          const protect=[
+            [135,130],[183,190],[20,20],[75,230],
+          ].map(([x,y])=>Math.round(drawn[y*285+x]*100)/100);
+          return {gap:gap/n,mae:mae/n,n,protect};
+        });
+        await jawSlider.focus();await jawSlider.press("Home");
+        await expect(jawSlider).toHaveValue("0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-jaw-edge","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-jaw-edge-nibs","0");
+        const oldJaw=await measuredJaw();
+        expect(oldJaw.n).toBeGreaterThan(250);
+        const noJaw=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-jaw-chalk-legacy-0.png")});
+        await jawSlider.press("End");
+        await expect(jawSlider).toHaveValue("1");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-jaw-edge","1");
+        const jawFibres=Number(await full.getAttribute(
+          "data-km-pencil-jaw-edge-nibs"));
+        expect(jawFibres).toBeGreaterThan(80);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(noJaw);
+        const newJaw=await measuredJaw();
+        expect(newJaw.gap).toBeLessThan(oldJaw.gap-1.5);
+        expect(newJaw.mae).toBeLessThan(oldJaw.mae+.9);
+        expect(newJaw.protect).toEqual(oldJaw.protect);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-jaw-photo-tooth-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Actual licensed source, ALL four chronologically composited
         // Storybook shots. Stage 1..4 must contain increasing genuine
         // pencil marks; the exported film bitmap must not be affected.

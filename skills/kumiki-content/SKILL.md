@@ -32,6 +32,8 @@ Write data, not TSX. Read [the film document](../../docs/component-specs/film-do
 
 **Real places.** Look for an openly licensed photograph or footage before you generate a place. Procedural land, caves and water read as computer graphics. Open full-size frames as well as contact sheets, because displacement spikes and blur grids do not show on a sheet. Put a real photograph of the same subject beside your render before you call it realistic. Correct physics does not prove the look: a solved drop still looked like a glass marble until a photograph showed how real drops attach.
 
+**People on screen:** any drawn, painted or rigged human (body, face, hands, pose, hair, skin or eye colour) starts from the human anatomy framework — [kumiki-human-anatomy](../kumiki-human-anatomy/SKILL.md) — so proportions, joint angles and colours come from measured data.
+
 **Stop and ask** if an asset has no clear rights, if a claim has no source, or if no recipe fits a beat. Do not change a recipe to fix one film. Fix an authoring rule or a component once, then use it.
 
 **Never:** put exact text or numbers inside generated imagery, add motion that teaches nothing, repeat a title and a caption, or call a film finished before you watch it.

@@ -6,46 +6,72 @@ import type { RisoPaint, RisoArtwork } from "../../registry/video/print-plates-r
 import type { ReactNode } from "react";
 
 export type RisoPerformanceAspect = "landscape" | "portrait";
+// RISO28: arm pendulum tracks the same 54-frame alternating contact
+// rhythm as the two original boot prints. This is a source joint pose,
+// not an added post-process wobble.
 const waveKeys = (end = 239): RisoJoint["keys"] => [
   { frame: 0, rotate: -10, easing: "ease" },
-  { frame: 16, rotate: 12, easing: "ease" },
-  { frame: 36, rotate: -10, easing: "ease" },
-  { frame: 58, rotate: 12, easing: "ease" },
-  { frame: 83, rotate: -10, easing: "ease" },
-  { frame: 108, rotate: 11, easing: "ease" },
-  { frame: 138, rotate: -9, easing: "ease" },
-  { frame: 163, rotate: 12, easing: "ease" },
-  { frame: 190, rotate: -10, easing: "ease" },
-  { frame: end, rotate: -10 },
+  { frame: 13, rotate: 9, easing: "ease" },
+  { frame: 27, rotate: -10, easing: "ease" },
+  { frame: 40, rotate: 10, easing: "ease" },
+  { frame: 54, rotate: -10, easing: "ease" },
+  { frame: 67, rotate: 9, easing: "ease" },
+  { frame: 81, rotate: -10, easing: "ease" },
+  { frame: 94, rotate: 9, easing: "ease" },
+  { frame: 108, rotate: -10, easing: "ease" },
+  { frame: 121, rotate: 9, easing: "ease" },
+  { frame: 135, rotate: -9, easing: "ease" },
+  { frame: 148, rotate: 8, easing: "ease" },
+  { frame: 162, rotate: -7, easing: "ease" },
+  { frame: 178, rotate: 1, easing: "ease" },
+  { frame: 198, rotate: -3, easing: "ease" },
+  { frame: end, rotate: -3 },
 ];
 /** Original paper messenger — arbitrary joint tree, not a hard-coded humanoid renderer. */
 export const COURIER: RisoCharacterSpec = {
   version: 1, id: "courier", durationFrames: 240, cadence: 2,
   joints: [
     { id: "root", x: 0, y: 0, keys: [
-      { frame: 0, x: 50, y: 0, easing: "ease" },
+      // ArtCraft/Muybridge: entrance starts on extended weight-bearing legs,
+      // not the original f0 bent-knee squat. Raise the source pelvis relative
+      // to two planted boots; toe prints remain at the SAME paper baseline.
+      { frame: 0, x: 50, y: -10, easing: "ease" },
+      // First 27 frames advance the real hip ahead of the swing boot. Without
+      // this crossing key, the raised entrance makes the right ankle
+      // unreachable at f26 even though the static first cel is upright.
+      { frame: 27, x: 70, y: -9, easing: "ease" },
       { frame: 105, x: 125, y: -7, easing: "ease" },
-      // Settle weight upward into a fully extended neutral stance after the
-      // final footfall instead of finishing in a permanent crouch.
+      // RISO28 ArtCraft: source centre-of-mass advances *before* the third
+      // right-boot contact at f135. A paper-contact study found the old root
+      // 8.6 units beyond IK reach at f136, so it clipped the planted shoe.
+      // Low, overlapping ease arcs let the pelvis settle back over two
+      // actual inked soles at f162, preserving the hand/letter release.
+      { frame: 135, x: 152, y: -2, easing: "ease" },
+      { frame: 165, x: 168, y: -11, easing: "ease" },
+      // Settle weight into a fully extended neutral stance after the final
+      // footfall instead of finishing in a permanent crouch.
       { frame: 198, x: 188, y: -13, easing: "ease" },
       { frame: 205, x: 192, y: -12, easing: "ease" },
       { frame: 239, x: 192, y: -12 },
     ] },
     { id: "body", parent: "root", x: 0, y: -72, keys: [
-      // Four rising/falling weight changes per 66-frame gait cycle, synchronized
-      // with alternating foot contacts. Motion settles when locomotion ends.
+      // RISO28: six alternating weight compressions over three complete
+      // 54-frame strides. The penultimate/last frame pair plants both shoes
+      // at f162; the body eases *over still boots* into the handoff by f198.
       { frame: 0, y: 0, rotate: 0, easing: "ease" },
-      { frame: 16, y: -4.5, rotate: 1.3, easing: "ease" },
-      { frame: 33, y: 0, rotate: -1, easing: "ease" },
-      { frame: 49, y: -4.5, rotate: .9, easing: "ease" },
-      { frame: 66, y: 0, rotate: 0, easing: "ease" },
-      { frame: 82, y: -4.5, rotate: 1.3, easing: "ease" },
-      { frame: 99, y: 0, rotate: -1, easing: "ease" },
-      { frame: 115, y: -4.5, rotate: .9, easing: "ease" },
-      { frame: 132, y: 0, rotate: 0, easing: "ease" },
-      { frame: 148, y: -4.5, rotate: 1.3, easing: "ease" },
-      { frame: 165, y: 0, rotate: -1, easing: "ease" },
-      { frame: 181, y: -4.5, rotate: .9, easing: "ease" },
+      { frame: 13, y: -3, rotate: 1.1, easing: "ease" },
+      { frame: 27, y: 0, rotate: -0.9, easing: "ease" },
+      { frame: 40, y: -3.4, rotate: .8, easing: "ease" },
+      { frame: 54, y: 0, rotate: 0, easing: "ease" },
+      { frame: 67, y: -3.2, rotate: 1.1, easing: "ease" },
+      { frame: 81, y: 0, rotate: -0.9, easing: "ease" },
+      { frame: 94, y: -3.4, rotate: .8, easing: "ease" },
+      { frame: 108, y: 0, rotate: 0, easing: "ease" },
+      { frame: 121, y: -3.2, rotate: 1, easing: "ease" },
+      { frame: 135, y: 0, rotate: -0.8, easing: "ease" },
+      { frame: 148, y: -2.2, rotate: .7, easing: "ease" },
+      { frame: 162, y: 0, rotate: 0, easing: "ease" },
+      { frame: 180, y: -1.6, rotate: .5, easing: "ease" },
       { frame: 198, y: 0, rotate: 0, easing: "ease" },
       { frame: 239, y: 0, rotate: 0 },
     ] },
@@ -123,14 +149,19 @@ export const COURIER: RisoCharacterSpec = {
   ik: [
     { id: "left-foot-lock", root: "left-leg", mid: "left-knee", end: "left-ankle",
       bend: 1, endRotation: 0,
-      target: { kind: "walk", startFrame: 0, endFrame: 198, initialX: 35,
-        groundY: 0, stride: 46, cycleFrames: 66, stanceFrames: 38,
+      // Three 54-frame steps end with a left-boot f162 plant. Keeping the
+      // same start/finish stations (35→173) preserves original footprint
+      // and every 2-spot-ink contour; only contact timing is redesigned.
+      target: { kind: "walk", startFrame: 0, endFrame: 165, initialX: 35,
+        groundY: 0, stride: 46, cycleFrames: 54, stanceFrames: 31,
         phaseFrames: 0, lift: 17, footRoll: 12 } },
     { id: "right-foot-lock", root: "right-leg", mid: "right-knee", end: "right-ankle",
       bend: -1, endRotation: 0,
-      target: { kind: "walk", startFrame: 0, endFrame: 198, initialX: 65,
-        groundY: 0, stride: 46, cycleFrames: 66, stanceFrames: 38,
-        phaseFrames: 33, lift: 17, footRoll: 12 } },
+      // Alternating half-cycle right landing at f135; last contact is held
+      // through handoff so the body advances on planted feet, not skating.
+      target: { kind: "walk", startFrame: 0, endFrame: 165, initialX: 65,
+        groundY: 0, stride: 46, cycleFrames: 54, stanceFrames: 31,
+        phaseFrames: 27, lift: 17, footRoll: 12 } },
     { id: "satchel-handhold", root: "right-arm", mid: "right-elbow",
       end: "right-hand", bend: -1, endRotation: -12,
       target: { kind: "follow", joint: "satchel", x: 7, y: 4 } },
@@ -265,8 +296,18 @@ export const COURIER: RisoCharacterSpec = {
     // sufficient; the renderer also subtracts earlier inks under the paper.
     { id: "face", joint: "head", plate: "blue", paint: "solid", knockoutOnly: true,
       d: "M-33 -18 C-37 -45 -21 -61 0 -60 C22 -62 35 -40 36 -19 C39 6 22 31 9 35 Q-12 41 -29 15 Z" },
+    // RISO25 / ArtCraft v9: re-form the actual ear shell rather than painting
+    // decorative dots around the previous detached C-shaped loop.
     { id: "ear-left", joint: "head", plate: "blue", paint: "solid",
-      d: "M-32 -10 Q-39 -12 -40 -2 Q-39 7 -32 7 L-32 5 Q-37 5 -38 -2 Q-38 -8 -32 -7 Z" },
+      d: "M-32 -9.8 C-36 -12.5 -40.5 -10 -40.7 -4 C-41.4 2 -38.3 7.5 -35 7.8 Q-32.2 8 -30.8 5.2 L-32.5 3.9 Q-35 6.3 -37 3 C-39.7 -1.7 -38 -8 -33.3 -8 Z" },
+    { id: "ear-helix-fold", joint: "head", plate: "blue", paint: "solid",
+      d: "M-37.3 -8 C-39 -6 -39.4 -3 -38 -1 Q-37 -4 -36.5 -6.5 Z" },
+    { id: "ear-concha-pocket", joint: "head", plate: "red", paint: "solid",
+      d: "M-35.6 -3.9 Q-33.1 -5 -32.3 -2.1 Q-34.3 -1.9 -34.3 .5 Q-36 -.5 -35.6 -3.9 Z" },
+    { id: "ear-tragus-root", joint: "head", plate: "blue", paint: "solid",
+      d: "M-32.5 -1 Q-34 -.1 -33.6 1.3 Q-32.5 1.7 -31.6 1.5 Z" },
+    { id: "ear-lobule-seam", joint: "head", plate: "red", paint: "solid",
+      d: "M-36 4.7 Q-34.3 6.8 -32.5 5.7 Q-34.7 7.2 -36.2 5.7 Z" },
     { id: "face-outline", joint: "head", plate: "blue", paint: "solid",
       d: "M-33 -15 C-35 -43 -20 -57 -3 -59 C20 -63 34 -42 34 -18 C36 4 24 27 11 33 C-8 41 -27 25 -30 10 L-28 9 C-24 24 -8 36 10 30 C24 22 33 0 31 -18 C30 -40 20 -57 -2 -56 C-20 -56 -31 -41 -31 -15 Z" },
     { id: "hair", joint: "head", plate: "blue", paint: "solid",
@@ -281,9 +322,9 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-35 -48 C-27 -60 -12 -63 -4 -62 L-6 -60 C-20 -60 -28 -51 -33 -45 Z M8 -65 Q27 -58 35 -44 L33 -41 Q25 -55 7 -62 Z" },
     { id: "hair-root-whorls", joint: "head", plate: "red", paint: "screen",
       d: "M-19 -67 Q-12 -71 -3 -67 Q-14 -68 -22 -62 Z M16 -64 Q28 -59 31 -51 Q23 -60 15 -61 Z" },
-    { id: "face-temple-shadow", joint: "head", plate: "red", paint: "screen",
+    { id: "face-temple-shadow", joint: "head", plate: "red", paint: "screen",screenTone:"mid",
       d: "M-29 -26 Q-31 -9 -27 6 Q-31 2 -33 -9 Q-34 -20 -29 -26 Z M30 -17 Q34 -6 31 6 Q35 -4 32 -14 Z" },
-    { id: "eye-socket-planes", joint: "head", plate: "red", paint: "screen",
+    { id: "eye-socket-planes", joint: "head", plate: "red", paint: "screen",screenTone:"mid",
       d: "M-26 -13 Q-18 -18 -9 -12 Q-16 -14 -24 -10 Z M8 -14 Q17 -20 25 -14 Q18 -16 9 -11 Z" },
     { id: "left-eyebrow", joint: "head", plate: "blue", paint: "solid",
       d: "M-24 -20 Q-17 -23 -10 -19 L-10 -18 Q-17 -21 -23 -18 Z",
@@ -313,6 +354,40 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-22 -5 Q-17 -3 -11 -7 L-11 -6 Q-17 -2 -22 -4 Z M11 -7 Q17 -3 22 -8 L22 -7 Q17 -2 11 -6 Z",
       expressions: {blink:"M-22 -6 Q-17 -5 -11 -7 L-11 -6 Q-17 -4 -22 -5 Z M11 -8 Q17 -6 22 -8 L22 -7 Q17 -5 11 -7 Z"},
     },
+
+    // RISO21 / ArtCraft v9: controlled inner/outer canthus and eyelash contours
+    // derived from the current source eye apertures. Both eyes share the
+    // head rig but have independently authored inflections, not mirrored dots.
+    { id: "eye-canthus-shapes", joint: "head", plate: "blue", paint: "solid",
+      d: "M-23.2 -8.7 Q-21.6 -9.2 -20.6 -8.7 Q-21.5 -8.1 -22.4 -7.1 Q-23.4 -7.3 -23.2 -8.7 Z M10.1 -10 Q11.3 -10.8 12.5 -10.3 Q11.6 -9.7 10.8 -8.8 Q9.7 -8.9 10.1 -10 Z",
+      expressions: {blink: "M-23.1 -7.9 Q-21.8 -8.4 -20.7 -8.0 L-21.6 -7.2 Q-22.9 -7.3 -23.1 -7.9 Z M10.0 -9.1 Q11.4 -9.6 12.5 -9.0 L11.2 -8.2 Q10.2 -8.4 10.0 -9.1 Z"},
+    },
+    { id: "eye-lash-wedges", joint: "head", plate: "blue", paint: "solid",
+      d: "M-22.4 -10 Q-23.8 -12.6 -24.5 -12.5 Q-23.8 -10.9 -21.2 -9.3 Z M-20.8 -11.3 Q-21.7 -13.3 -22.6 -13.6 Q-21.8 -11.8 -19.8 -10.6 Z M22.0 -11.1 Q23.1 -13.8 24.4 -14.0 Q24.0 -11.8 22.8 -9.9 Z M19.8 -12.2 Q21.4 -14.0 22.1 -14.5 Q21.7 -12.6 20.2 -11.4 Z",
+      expressions:{blink:"M-22.8 -8.1 Q-24.2 -9.4 -24.4 -10.1 Q-23.0 -9.0 -21.6 -7.8 Z M-20.5 -8.4 Q-21.8 -9.5 -22.7 -9.7 Q-21.8 -8.6 -20.1 -8.1 Z M22.1 -9.3 Q23.5 -10.8 24.2 -11.0 Q23.4 -9.7 22.9 -8.6 Z M20.0 -9.4 Q21.4 -10.6 22.1 -10.9 Q21.6 -9.7 20.4 -9.0 Z"},
+    },
+    // Blue iris stays the primary silhouette; red ink is a small independent
+    // screened glancing-light facet that never paints over the paper sclera.
+    { id: "eye-iris-grain", joint: "head", plate: "red", paint: "solid",
+      d: "M-17.4 -8.4 Q-16.2 -9.7 -15.1 -8.6 Q-16.4 -8.8 -17.0 -6.8 Q-17.9 -7.5 -17.4 -8.4 Z M16.8 -9.6 Q18.1 -11.1 19.1 -9.2 Q18.0 -9.5 17.5 -7.5 Q16.6 -8.0 16.8 -9.6 Z",
+      expressions:{blink:"M-17.0 -6.9 Q-16.2 -7.3 -15.7 -6.8 L-15.8 -6.5 Q-16.4 -6.7 -17 -6.5 Z M17.0 -7.8 Q18.0 -8.2 18.6 -7.7 L18.5 -7.4 Q17.9 -7.6 17 -7.5 Z"},
+    },
+    { id: "eye-lower-orbit-engraving", joint: "head", plate: "red", paint: "solid",
+      d: "M-22 -2.1 Q-19 -1.2 -17.1 -1.6 Q-19 -0.8 -21.9 -.9 Z M-16.2 -1.5 Q-13.8 -1.7 -12.1 -3.1 Q-13.5 -1.1 -16 -0.7 Z M-20.8 .6 Q-18.4 1.2 -17.2 .7 Q-18.7 1.6 -20.6 1.2 Z M11.6 -3.4 Q15 -1.5 17.5 -2 Q15.4 -.8 12.5 -2 Z M18.2 -2.0 Q20.4 -2.3 22.0 -4.1 Q21.4 -2.0 18.7 -1.3 Z M13.1 .2 Q16 1 18.8 .1 Q16.5 1.6 13.4 1.0 Z",
+      expressions:{blink:"M-22 -3.2 Q-20.5 -2.7 -18.5 -3.0 Q-20.4 -2.3 -21.9 -2.6 Z M-18.2 -3.1 Q-15.3 -2.7 -12.1 -4.2 Q-14.2 -2.4 -17.6 -2.5 Z M-20.4 -1.1 Q-18.4 -.8 -17.2 -1.2 Q-18.5 -.4 -20.2 -.6 Z M11.1 -4.6 Q14 -3.1 17.1 -3.5 Q15.3 -2.8 12 -3.9 Z M18.2 -3.9 Q20.8 -3.9 22 -5.4 Q20.7 -3.3 18.6 -3.2 Z M13.4 -2.0 Q16.2 -1.6 18.8 -2.4 Q16.6 -1.0 13.8 -1.4 Z"},
+    },
+
+    // RISO23 / actual Chromium RISO22 critique: 1–2px eye engravings were
+    // sparsely sampled by the 6-unit plate screen and became disconnected
+    // bright-red chips. Fine details now print solid; ONLY sufficiently wide
+    // facial shadow planes use physically discrete screened dots.
+    // Each zone follows brow/zygomatic anatomy in the *original* head frame.
+    { id: "orbital-tone-planes", joint: "head", plate: "red", paint: "screen",screenTone:"mid",
+      d: "M-27 -25 C-22 -29 -14 -28 -9 -24 Q-16 -23 -21 -17 Q-26 -15 -27 -25 Z M7 -25 C14 -31 24 -29 29 -20 Q28 -14 23 -15 Q20 -23 13 -22 Z" },
+    { id: "zygomatic-tone-planes", joint: "head", plate: "red", paint: "screen",screenTone:"light",
+      d: "M-29 -7 C-29 2 -27 10 -19 16 Q-22 5 -21 -5 Q-25 -11 -29 -7 Z M21 -6 Q27 -11 31 -5 C32 4 28 13 21 18 Q27 6 24 -2 Z" },
+    { id: "jaw-shadow-planing", joint: "head", plate: "red", paint: "screen",screenTone:"light",
+      d: "M-28 10 Q-23 24 -8 31 C-16 27 -22 20 -25 12 Z M31 -5 Q34 13 17 31 Q27 18 29 -3 Z" },
     { id: "iris-left", joint: "head", plate: "blue", paint: "solid",
       d: "M-18 -9 Q-15 -11 -14 -8 Q-14 -5 -17 -5 Q-19 -7 -18 -9 Z",
       expressions: {blink:"M-18 -7 L-15 -7 L-15 -6 L-18 -6 Z"},
@@ -321,7 +396,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M16 -10 Q19 -12 20 -9 Q20 -6 17 -6 Q15 -8 16 -10 Z",
       expressions: {blink:"M16 -8 L19 -8 L19 -7 L16 -7 Z"},
     },
-    { id: "nose-bridge-plane", joint: "head", plate: "red", paint: "screen",
+    { id: "nose-bridge-plane", joint: "head", plate: "red", paint: "screen",screenTone:"light",
       d: "M1 -13 Q5 -9 4 -3 Q3 1 2 4 L0 3 Q2 -4 1 -13 Z" },
     { id: "nose", joint: "head", plate: "blue", paint: "solid",
       d: "M1 -10 Q3 -5 2 -1 Q0 3 2 6 Q5 8 7 5 L9 6 Q7 9 3 9 Q-2 8 0 3 Q2 -1 1 -10 Z" },
@@ -349,17 +424,59 @@ export const COURIER: RisoCharacterSpec = {
         smile: "M-11 14 Q-10 17 -9 18 L-10 18 Z M9 14 Q11 12 11 10 L11 15 Z",
       },
     },
-    { id: "chin-plane", joint: "head", plate: "red", paint: "screen",
+    { id: "chin-plane", joint: "head", plate: "red", paint: "screen",screenTone:"light",
       d: "M-7 29 Q3 33 13 28 Q10 32 2 33 Q-3 32 -7 29 Z" },
-    { id: "lip-shadow", joint: "head", plate: "red", paint: "screen",
+    { id: "lip-shadow", joint: "head", plate: "red", paint: "screen",screenTone:"light",
       d: "M-6 23 Q-1 25 5 22 L5 23 Q0 26 -5 24 Z",
       expressions: {speak:"M-5 23 Q0 27 6 22 L5 24 Q0 29 -4 25 Z",
         smile:"M-7 22 Q2 27 9 19 L8 22 Q0 28 -6 24 Z"},
+    },
+    // Ear, nasal sidewall, lip and cheek construction is head-joint local:
+    // individual original curved lines print separately on spot masters.
+    // Blink does NOT distort midface; smile/speech redraw mouth-support forms.
+    { id: "nasal-sidewall-line", joint: "head", plate: "red", paint: "solid",
+      d: "M2.5 -10 Q4 -7.8 3.6 -5.2 Q3.3 -6.8 2.8 -8.6 Z" },
+    { id: "nasal-ala-fold", joint: "head", plate: "red", paint: "solid",
+      d: "M8.5 5 Q10.5 5.8 11 7.4 Q10.5 8.6 9.6 8.4 Q10.4 7.1 8.1 6.1 Z" },
+    { id: "upper-lip-engraving", joint: "head", plate: "blue", paint: "solid",
+      d: "M-7 16.4 Q-4 15.8 -1 16.1 Q1 15.8 3 15.2 Q5 14.8 6.7 15.2 Q4 16 2 16.2 Q-2 16.5 -6 16.9 Z",
+      expressions: {
+        speak:"M-4 14.3 Q-1.8 12.6 1 12.5 Q3.2 12.8 4.2 14.4 Q.7 13 -1.7 13.7 Z",
+        smile:"M-9 14.8 Q-2 19 8.5 13.8 Q3.7 17.7 -4.9 16.7 Z",
+      },
+    },
+    { id: "nasolabial-flow", joint: "head", plate: "red", paint: "solid",
+      d: "M-14.5 7.5 Q-15 10.8 -12.9 13 Q-14.8 11.3 -15.1 9 Z M12.7 7 Q15 9.4 13.4 12.2 Q14 10 12.7 8 Z",
+      expressions: {
+        smile:"M-16 6.6 Q-17 10.3 -13 14 Q-16 12.1 -16.5 8.2 Z M13.8 6.3 Q17 10.1 14.5 14 Q15.4 10 13.5 7.5 Z",
+        speak:"M-14 7.5 Q-16 10 -12.6 12.7 Q-15 10.8 -14.5 8.8 Z M12.8 7.2 Q15.3 9.3 13.5 12 Q14 10 12.7 8 Z",
+      },
+    },
+    { id: "labiomental-crease", joint: "head", plate: "blue", paint: "solid",
+      d: "M-4 25.1 Q.2 27 4.4 24.8 Q1.3 26.3 -2.2 26 Z",
+      expressions: {
+        smile:"M-6 26 Q1 28.6 7 25.4 Q2.5 27.9 -2.8 27.6 Z",
+        speak:"M-4.6 25.2 Q0 28.2 5.4 24.8 Q1.6 27.5 -2.6 26.8 Z",
+      },
     },
     { id: "cap", joint: "head", plate: "red", paint: "solid",
       d: "M-34 -52 C-24 -72 -7 -75 13 -68 C27 -63 35 -57 37 -48 Q-1 -51 -34 -49 Z" },
     { id: "cap-brim", joint: "head", plate: "red", paint: "solid",
       d: "M-38 -50 C-15 -53 17 -50 34 -47 L43 -44 Q10 -43 -38 -46 Z" },
+    // RISO24 / ArtCraft v9: structural crown grain, not an RGB noise overlay.
+    // The original red cap and blue hair made one opaque overprint helmet in
+    // actual Chromium. Narrow negative-paper gouges are *real press knockout*
+    // against BOTH preceding spot masters, then fine hand-authored engraving
+    // re-inks through the local clearances. Direction follows the scalp arc.
+    { id: "cap-paper-ribbons", joint: "head", plate: "blue", paint: "solid", knockoutOnly: true,
+      d: "M-30 -57 C-25 -66 -15 -71 -4 -70 Q-16 -68 -28 -55 Z M-17 -67 C-8 -72 1 -72 12 -67 Q1 -70 -15 -65 Z M10 -69 C19 -67 28 -61 33 -54 Q26 -61 12 -67 Z M-24 -54 C-13 -60 -5 -62 7 -61 Q-11 -60 -23 -52 Z M26 -62 C32 -58 35 -53 36 -49 Q33 -56 28 -60 Z" },
+    { id: "cap-brim-paper-welt", joint: "head", plate: "blue", paint: "solid", knockoutOnly: true,
+      d: "M-31 -48.1 C-15 -50.2 3 -49.8 21 -47.4 Q3 -48.8 -15 -48.7 Q-25 -47.8 -31 -48.1 Z M25 -47.2 Q31 -46.8 36 -45.5 Q30 -46.3 25 -46.8 Z" },
+    { id: "cap-crown-engraving", joint: "head", plate: "red", paint: "solid",
+      d: "M-29 -61 C-23 -68 -13 -70 -6 -69 Q-18 -67 -27 -59 Z M-22 -63 C-14 -69 -3 -70 7 -67 Q-8 -69 -20 -61 Z M-11 -65 C1 -70 13 -68 20 -63 Q9 -67 -8 -64 Z M7 -65 C18 -65 28 -59 32 -52 Q23 -60 11 -63 Z M-30 -54 C-20 -59 -9 -60 -1 -59 Q-16 -57 -28 -52 Z M15 -58 Q25 -55 31 -50 Q23 -54 17 -57 Z" },
+    { id: "cap-brim-engraving", joint: "head", plate: "blue", paint: "solid",
+      d: "M-35 -48 C-18 -51 -1 -49.5 12 -48.6 Q-4 -49 -21 -48.3 Z M16 -47.9 Q29 -47.4 39 -44.7 Q26 -46.1 16 -47.4 Z M-28 -46.3 Q-14 -47.3 -3 -46.5 Q-17 -45.6 -28 -45.8 Z" },
+
   ],
 };
 /** Tiny paper bird: demonstrates that parent rig is anatomy-agnostic. */

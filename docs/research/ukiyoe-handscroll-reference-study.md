@@ -1183,6 +1183,452 @@ Storybook has **Realms**, and the Motifs gallery has five tiles.
 - Yomi's hags do not pursue.
 - Nobody has done a human visual review yet.
 
+## Processions and parades (folktale queue F16, 2026-11-15)
+
+**Sources**:
+
+- Mochizuki Gyokusen's *Copy of Night Parade of One Hundred Demons from the Shinjuan Collection* (Met 816210, CC0);
+- the inrō *Case with Design of Fox Wedding Procession in Rain* (Met 58612, CC0);
+- Yamamoto Shōun's *Fox wedding procession* (Wikimedia Commons, public domain).
+
+**What they show.**
+
+- **The night parade.** Oni, beasts and household objects stride and dance one after another across the scroll. Each
+  figure is spaced by its own size. There is no ground line, only the order of the march.
+- **The fox weddings.** Foxes walk upright in kimono. One carries a lantern on a pole, and two carry the bride's
+  palanquin on a pole between them. Rain slants across the whole scene.
+- **Shōun's print.** Foxes in haori and hakama walk in a line with paper lanterns, heads level.
+
+**What was built.** `ukiyoe-parade.ts`:
+- animal heads and tails for figures (`look.animal`);
+- the `kago` palanquin;
+- `procession()`;
+- `paradeScene()`: three parades.
+
+Storybook has **Parades**.
+
+**Review rounds.**
+
+1. **First sheet.** The night parade bunched up and members overlapped; `procession()` now spaces each member by its
+   width plus a gap.
+2. **Palanquin drift.** The kago's keys eased in and out while the walks ran at a constant pace, so the box slid off its
+   pole between the bearers. Its keys are now linear, with the walk's short acceleration at each end.
+3. **Travel units.** Figure and creature travel is in scene pixels, not scaled with the member. The parade divided
+   travel by scale, so the bearers lagged 230 px behind the palanquin by frame 300. Fixed and checked on a still at frame
+   300: the box hangs between its two bearers.
+
+**Not done.**
+
+- The bearers' hands do not grip the pole.
+- The mouse wedding has no trousseau chest.
+- The sunshower has rain but no rainbow, and the sun does not light the drops.
+- The night parade has no dancing or hopping beyond the umbrella.
+- Nobody has done a human visual review yet.
+
+## YouTube episode template and Kasa Jizō (folktale queue F17, 2026-11-15)
+
+**Sources**:
+
+- Hiroshige's *Evening Snow at Kanbara* (Met 56915, CC0);
+- the netsuke *Daikoku and Bag on Rice Bale* (Met 59066, CC0).
+
+**What they show.**
+
+- **Kanbara.** Travellers bend under wide, shallow straw kasa. The ribs run from the crown to the brim, and the hat is
+  much wider than the shoulders. Thatch carries thick, rounded snow caps. Snow falls as scattered dots over a grey sky
+  that darkens at the top.
+- **The rice bale.** A barrel-shaped tawara with straw running lengthwise under rope bands. Its round end cap is
+  puckered into a centre knot.
+
+**What was built.**
+
+- `ukiyoe-village.ts`: hats, bales, the loaded sled, and hat and cloth for the jizō.
+- `ukiyoe-episode.ts`: the episode template.
+- `ukiyoe-film-slot.tsx`: moved from `src` into the pack.
+- `src/video/ukiyoe-kasa-jizo.ts`: the episode.
+
+**Review rounds.**
+
+1. **Art sheet.** The hats sit on the jizō heads, one mid-drop and the cloth on the sixth, and the bales read with
+   their ropes and end caps.
+2. **First stills.**
+   - The end card's vertical cartouche covered the seal and hid the next-story line. They now stand beside it.
+   - The night snowfield read as a lake. It is now pale snow.
+   - The market and jizō shots were small in frame. Their cameras moved closer.
+   - The hats at the hearth sat on its rim.
+3. **Portrait stills.**
+   - The house was cut at the left of the end card.
+   - The old woman fell out of the hearth frame.
+   - At the night shot's open, the jizō were still off-frame. The camera now follows the lead jizō to the door.
+4. **`film:review`, first runs.** It found three faults in shared code, each fixed where it starts:
+   - **Caption plates in a scaled preview.** The plates were 0.59 of the text's width, because text was measured in
+     screen pixels while the lane was in layout pixels. Text is now measured in layout pixels.
+   - **Caption type size.** `cqw` caption sizes fell back to the page's viewport, so captions were 55 px instead of
+     42 px in Storybook. The caption layer is now a size container.
+   - **Safe area.** Captions sat below YouTube's bottom safe area. They now keep to the preset's safe area.
+5. **Caption length.** Five narration lines needed three lines on 9:16. They were split, and the script check now
+   estimates the two-line fit itself.
+6. **Final check.**
+   - `film:check` passed with no warnings.
+   - `film:review` of both outputs found 0 errors and 12 warnings: the last frame faded to black, the mist crossing the
+     title, and the seal's contrast. The audit reads an SVG text's CSS colour, not its fill, so the seal reads as 1:1
+     though its light glyphs stand on red.
+
+**Not done.**
+
+- No voice yet. The captions are script estimates until a narration is recorded and aligned.
+- The sound is wind beds only, with no hearth crackle or footsteps.
+- No full render (a low-res draft is next, on request).
+- The jizō walk as small grey figures, not carved stone.
+- Nobody has done a human visual review yet.
+
+## Tiled roofs (owner request, 2026-11-15)
+
+**Sources**:
+
+- Hiroshige's *Suruga Street* (Met 37052, CC0);
+- Hokusai's *Nihonbashi in Edo* (Met 56394, CC0);
+- Kusakabe Kimbei's photographs *Honchō-dōri, Yokohama* and *Theatre Street* (public domain);
+- Totoya Hokkei's *Roof Tile and Sparrows* (Met 54171, CC0).
+
+**What they show.**
+
+- **Suruga Street.** Every roof is straight: straight eave, straight hips and verges, level ridge. The tile rows are
+  dense parallel lines down the slope, darker toward the eave. The ridge is a tall layered band, with an onigawara at
+  each end: a tall block with a curl and a round crest tile.
+- **Nihonbashi.** The storehouses are gabled. Their massive ridges stand proud and throw a dark shadow down the roof,
+  and their white gables carry the family mark.
+- **The photographs.** Kawara are silver-grey, not black. Round caps catch the light over dark troughs, and the eave
+  edge is a bead line of round tile ends.
+- **Hokkei.** The onigawara is matte mid-grey, with scroll curls and a stamped tomoe roundel.
+
+**What was built.**
+
+- `roof()` was rebuilt:
+  - kawara rows down the slope, with courses of small arcs, an occasional bright cap and a sheen gradient;
+  - the bead of tile ends with their bosses along the eave;
+  - plaster or wooden rafters under the eave (`soffit`);
+  - stacked ridges with onigawara, layered hips and a heavier ridge for storehouses;
+  - a gabled form (`gable`) with a plaster gable, crest and tiled verge;
+  - snow capping the ridge and onigawara.
+- `kawaraRows`, `kawaraEave` and `KAWARA_SHEEN` are shared with the `house` motif's `tileRoof`.
+
+**Review rounds.**
+
+1. **First pass.** The tile lines fanned toward the ridge, and the roof was a flat dark mass. The rows now run straight
+   down the slope.
+2. **Zoomed in.**
+   - The rows read as corrugated metal. The courses are now arcs.
+   - The storehouse's onigawara looked like ears and are now smaller.
+   - Its hip-and-gable "beak" was replaced by a proper gable.
+   - Its stray gold gable ornament was removed.
+3. **Owner, "those roofs should not have curved outline, compare with references".** They now match: straight by
+   default, with only a gentle `sori` (.3–.35) on castle keeps and temple halls.
+4. **Snow.** The snow sat below the taller ridge. It now caps the ridge and the onigawara.
+
+**Not done.**
+
+- No hand-placed broken or slipped tiles.
+- No moss or weathering.
+- The onigawara have no demon faces.
+- Nobody has done a human visual review yet.
+
+## Urashima Tarō (episode E2, 2026-11-15)
+
+**Sources**:
+
+- Yanagawa Shigenobu's *Hanatsuru as the Dragon Princess Otohime* (Met 845812, CC0);
+- Totoya Hokkei's *Urashima Tarō Going Home on the Back of a Tai* (Met 54029, CC0);
+- Kawanabe Kyōsai's *Urashima Tarō Riding on a Tortoise* (Met 50771, CC0);
+- a lacquered tebako (Met 45492, CC0).
+
+**What they show.**
+
+- **Otohime.** A gold dragon coiled as a crown, long loose black hair, a dark-blue seigaiha robe with coral sprigs over
+  vermilion and green layered collars, a long front panel, striped hems, a fan.
+- **The Dragon King.** A dragon crown, a red robe and a white beard.
+- **Urashima.** A young man with a topknot in a blue jacket with a rod and creel. He rides a minogame, a turtle with a
+  long seaweed tail, which the pack already had. The palace floats far off in mist.
+- **The box.** A deep lid overlapping a box with rounded corners, gold maki-e on lacquer, ring fittings for the cord.
+
+**What was built.**
+
+- `ukiyoe-ryugu.ts`: dragon crown, tamatebako prop and motif with its smoke, looks, `agedLook()`.
+- `src/video/ukiyoe-urashima.ts`: the eight-shot episode, which reuses the realm motifs for the dive and the palace.
+
+**Review rounds.**
+
+1. **Art sheet.**
+   - The crown was too small to read and is now 1.4× larger.
+   - The Dragon King's green coat hid his red robe.
+   - The held box was a speck in one hand. It is now larger and held up in both hands.
+   - The smoke curls stacked into a coiled spring. They are now scroll marks on every other billow.
+2. **First landscape stills.**
+   - Figures were small under a big sky. The shore cameras moved closer.
+   - The turtle was too large next to the children, and a boat stood in its path to the sea.
+   - The palace dwarfed the figures.
+   - The smoke rose beside Tarō instead of over him. It now leans onto him and covers his head at the swap.
+3. **Portrait stills.** Tarō arrived outside the frame on the beach, and he was cut at the palace. Both cameras were re-aimed.
+4. **`film:check`.** Passed.
+5. **`film:review`.** 0 errors on both outputs, and 10 warnings: the seal under the mist, and the last frame faded to black.
+6. **Captions over people.** In Storybook, "and he was an old, old man" sat across the old man. A new script check,
+   `ukiyoeCaptionCovers`, projects every figure through the camera at each cue's middle frame. It flagged 31
+   cue/figure pairs in six shots; Kasa Jizō had none. The cameras were moved until no figure lies more than a third
+   inside the caption band. After that, `film:review` found 0 errors and 11 warnings, all inside the mist transition
+   and the final fade.
+
+**Not done.**
+
+- The palace's four-season rooms.
+- Otohime's front panel and striped hems.
+- The CSV's expansion ideas (the time-dilation palace, the tsunami backstory).
+- A voice.
+- Sound beyond surf and underwater beds.
+- No video render yet.
+- Nobody has done a human visual review yet.
+
+## Momotarō (episode E3, 2026-11-15)
+
+**Sources**:
+
+- Utagawa Toyoharu's *Momotarō and His Animal Friends Conquer the Demons* (Wikimedia Commons, public domain);
+- Yoshitoshi's *Momotarō Goes to Devil's Island* (Commons, public domain);
+- the Momotarō inrō by Kogyoku Tokayo (Met 45583, CC0).
+
+**What they show.**
+
+- **Toyoharu.** The beaten oni crawl and bow, with the treasure heaped on a tray: tied sacks, red coral, the mallet,
+  the hat and straw cloak of invisibility.
+- **Yoshitoshi.** Momotarō in a headband with a sword. The monkey wears a red vest and the dog a red scarf, and a tall
+  nobori banner flies with a small streaming flag at its head.
+- **The inrō.** Momotarō with a pack on his back, the dog sitting before him.
+
+**What was built.**
+
+- `ukiyoe-treasure.ts`: banner, dumplings, treasure heap, handcart.
+- `src/video/ukiyoe-momotaro.ts`: eight shots, reusing the splitting peach, the oni fight, the animal rigs, Onigashima
+  and the boats.
+
+**Review rounds.**
+
+1. **Art sheet.** The dog read as a fox. The episode now draws it white, the folktale dog.
+2. **Landscape stills.**
+   - The peach sat in the fire pit, and the baby was too small.
+   - The country sky was pink to the top.
+   - The monkey never left its tree. For creatures, `leap` is an in-place jump; `hop` travels. It then landed on the
+     dog and now lands on Momotarō's other side, turned to face him.
+   - The grandparents were cut at the end card's edge.
+3. **Portrait stills.** The boat, the surrender and the homecoming lost their subjects at the edge. The cameras now pan
+   with the action.
+4. **Checks.** `film:check` passed. The script check, including caption covers, reports nothing. `film:review` of both
+   outputs found 0 errors.
+
+**Not done.**
+
+- The animals' costumes (vest, scarf).
+- The oni's kneeling loincloth reads as tents.
+- The fight shows the animals' attacks briefly, not Toyoharu's melee.
+- No voice.
+- No video render yet.
+- Nobody has done a human visual review yet.
+
+## Kaguya-hime (episode E4, 2026-11-15)
+
+**Sources**:
+
+- the illustrated *Tale of the Bamboo Cutter*, late 17th century (Met 45361, CC0; 74 page images, studied as contact
+  sheets);
+- Yoshitoshi's *Gekkyū no mukae* (studied for F10).
+
+**What they show.**
+
+- **The book.** Palace interiors seen from above without roofs (fukinuki yatai), green-bordered mats, gold cloud bands
+  framing each scene. Kaguya appears in layered robes with long hair in a raised room, the courtiers kneeling in the
+  garden. On one page, armoured guards with bows mass in the courtyard to wait for the moon people.
+- **Yoshitoshi.** Kaguya rises on clouds with her attendants.
+
+**What was built.**
+
+- The `takegiri` motif.
+- `src/video/ukiyoe-kaguya.ts`, which reuses:
+  - the shining grove;
+  - the Heian veranda, court looks and lords;
+  - the archers' `shoot`;
+  - the gissha as the moon people's flying cart on a cloud;
+  - the tennyo envoys;
+  - the moon palace;
+  - Fuji with smoke.
+
+**Review rounds.**
+
+1. **Script check.**
+   - The motif had never been added: a chained shell command stopped before the edit.
+   - Cameras on the title, guards and ascent put figures under the captions.
+   - One end-card line was too long for Shorts.
+2. **Landscape stills.**
+   - The radiant halo read as a sun emblem, both behind Kaguya and as the moon people's blaze. Her glow is now soft, and
+     the blaze is light rays from above.
+   - The host ended cut off at the top of the frame.
+   - The stalk's twig read as a stick and is now a leaf spray.
+   - The ascent lacked a place. It now has the wall and the kneeling archers.
+   - The cloud's tail covered the old couple.
+3. **Portrait stills.** All held.
+4. **Checks.** `film:check` passed. `film:review` of both outputs found 0 errors and 12 warnings, all in the mist and
+   the final fade.
+
+**Not done.**
+
+- The five treasures are named, not shown.
+- No Emperor on screen.
+- No elixir.
+- No voice.
+- No video render yet.
+- Nobody has done a human visual review yet.
+
+## Faces (quality slice Q1, 2026-11-15)
+
+**Sources** (all Met, CC0), studied in close crops:
+
+- Kitagawa Utamaro's *A Young Woman Reading a Letter* (36626);
+- *Okita of the Naniwa-ya Teahouse* (55867);
+- *Hanaōgi of the Gomeirō* (53654);
+- *Hanazuma of Hyōgoya* (54862);
+- *Yamauba Blackening her Teeth* (40244).
+
+**What they show.**
+
+- **The face.** Cut with the finest line on the block.
+- **The eye.** A single long upper-lid line with a slight lift at the outer end. A small black iris hangs from it,
+  partly hidden. There is almost no lower lid.
+- **The brows.** Grey smudges set high, with a darker lower edge.
+- **The nose.** In three-quarter, one line from between the brows to a small hook at the nostril.
+- **The mouth.** Tiny: a red upper lip and a fuller lower lip, parted by a dark line.
+- **The hairline.** Hundreds of fine combed strands (kewari) that fade into the skin. The hairline over the brow is the
+  Fuji shape, dipping to a point.
+- **The hair.** The side locks are combed into thin, see-through wings. The knot is bound with a red cloth and a paper
+  tie. A tortoiseshell comb sits before the knot, with a bar through it and pins with dangling strips.
+
+**What was built.**
+
+- `ukiyoe-face.ts`: features, expressions and traits.
+- The profile and front shimada, rebuilt.
+- The front-view women's face, narrowed.
+- Powdered skin for women.
+
+**Review rounds.**
+
+1. **Before.** Every face was a dot eye and a dash brow under a helmet of hair, and men and women differed only in
+   their hair.
+2. **First pass.** The hairline strands were heavy grey smears, the iris too big, and the face line too heavy. All were
+   thinned.
+3. **Front view.**
+   - The strands were drawn in profile units, so they ran down over the whole face. They now take a unit scale.
+   - The crown polygon covered the forehead.
+   - The front shimada was a bowl. It is now wings, a puff, the knot, a comb and pins.
+4. **Tests.**
+   - The face hash first included the view, so a figure turning from profile changed face. It now hashes identity only.
+   - Eye-count tests now count iris clips.
+
+**Not done.**
+
+- Hands are still simple.
+- Men's hair in front view is unchanged.
+- Hyōgo, Heian and maiko hairstyles keep their earlier hairlines without kewari.
+- Nobody has done a human visual review yet.
+
+## Wardrobe (quality slice Q2, 2026-11-15)
+
+**Sources** (all Met, CC0):
+
+- the Edo kosode 2001.428.44, .47, .48 and .52, and 45187;
+- the summer robe with irises at Yatsuhashi (813665);
+- Torii Kiyonaga's *A Young Woman with a Dog* (51998);
+- Kiyonaga's *Three Women on a Riverbank* (39725).
+
+**What they show.**
+
+- **Commoners' robes.** Plain indigo, faintly checked or ikat-marked, with family crests on the back and sleeves.
+- **The summer robe.** The design rises from the hem over a pale ground, densest at the bottom.
+- **Kiyonaga's young woman.** A vermilion robe with large chrysanthemum heads on the skirt, a black obi with gold
+  roundels, layered collars, and a long white under-robe at the hem.
+- **The riverbank.** Vermilion, grey and black robes side by side: the colour of a street comes from many people.
+
+**What was built.**
+
+- Eleven patterns.
+- Hem designs.
+- Four obi knots and obi designs.
+- `ukiyoe-wardrobe.ts`, with roles and seasons.
+- Crowds dressed from it.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - The key-fret read as brickwork and is now drawn finer.
+   - Old women wore the men's shaved style. They now wear a grey shimada, with age lines and unpowdered skin.
+2. **Scenes.** The castle-town crowd now varies in pattern and colour. The Night Ferry's fixed cast is unchanged apart
+   from its faces.
+
+**Not done.**
+
+- No crests on men's robes outside the kamishimo.
+- No haori patterns beyond kikko.
+- Nobody has done a human visual review yet.
+
+## Follow-through (quality slice Q3, 2026-11-15)
+
+**Approach.** Classical animation's follow-through and overlapping action, done as a damped spring over the figure's
+own recent poses: the sleeve swing takes the wrists' and the body's velocity history; arm follow-through takes the pose
+channels' history. No external reference was used for this slice.
+
+**Checked frame by frame.**
+
+- **A wave.** The arm drops from 158° and swings past the rest of 9° to −14° (−7° after softening the gain from .55
+  to .4). It comes back to 15° and settles at 9° by about frame 54.
+- **A walk.** Rendered frames 54–112 of a walk, a stop and a wave show sleeves and hem trailing, then swinging forward
+  and settling on the stop. The long sleeve swings past after the wave.
+- **Contact actions.** A `cut` figure's settled pose equals its base pose at every frame tested.
+
+**Not done.**
+
+- No anticipation before a gesture.
+- Hair ornaments other than the shimada pin do not swing.
+- No weight shift while standing.
+- Nobody has done a human review at playback speed.
+
+## Weather and fire (quality slice Q4, 2026-11-15)
+
+**Sources** (all Met, CC0):
+
+- Hiroshige's *Sudden Shower over Shin-Ōhashi and Atake* (55433);
+- *Sudden Shower at Shōno* (36521);
+- *Night Rain at Karasaki* (36531);
+- *Evening Snow at Kanbara* (56915), studied for E1.
+
+**What they show.**
+
+- **Rain.** Hundreds of long, fine, straight lines, some crossing the whole sky, cut on two blocks: a dark sumi block
+  and a grey block at a slightly different angle. The sky darkens toward the top, and the far bank greys out behind
+  the rain.
+- **Snow.** Flakes of very different sizes; the near ones are large and soft.
+- **Fire.** In the scrolls and prints, fire is drawn as tongues that curl over into hooked tips, not as cones.
+
+**Before.** The rain was short, sparse scratches. The snow was uniform dots. The fire was flat zigzag cones under grey
+blobs.
+
+**Review.**
+
+- Close stills of rain and snow over a walking woman.
+- The Night Ferry squall.
+- Three frames of the burning field (flicker, flamelets, curls).
+
+**Not done.**
+
+- No rain-darkened ground or wet sheen.
+- No lantern light pools.
+- Smoke billows have no inner curls.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

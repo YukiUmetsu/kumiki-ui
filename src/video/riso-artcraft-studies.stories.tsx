@@ -6,7 +6,10 @@ import {risoSheetViewBox} from "../../registry/video/riso-character-sheet-react"
 import type {RisoCharacterSpec} from "../../registry/video/riso-character";
 import type {RisoCharacterMeshSheet,RisoMeshFrameRegion,RisoMeshPoint} from "../../registry/video/riso-proportion-mesh";
 import {COURIER,PAPER_BIRD} from "./riso-character-demo";
-import {RisoHumanEnsembleStudio} from "./riso-human-ensemble";
+import {PAPER_ARTIST,RISO_PAPER_ARTIST_SHEET,RisoHumanEnsembleStudio} from "./riso-human-ensemble";
+import {RisoPrint} from "../../registry/video/print-plates-react";
+import {RisoCharacterInk,RisoCharacterKnockout} from "../../registry/video/riso-character-react";
+import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import {RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET} from "./riso-character-mesh-sheets";
 
 type PlateMode="both"|"blue"|"red";
@@ -313,7 +316,212 @@ export const CourierHumanAnatomy:StoryObj<typeof meta>={
 
 /** RISO19: press-bound hand pressure crescents, individual crease fans and transfer. */
 export const HumanEnsembleActing:StoryObj<typeof meta>={
-  name:"RISO19 · Pressed Paper Contact",
+  name:"RISO27 · Full-Film Acting & Physical Contact",
   args:{actor:"courier"},
   render:()=> <RisoHumanEnsembleStudio/>,
+};
+
+
+/** RISO21: same production spot masters, face clearing and authored expression
+ * paths as the complete film. Crops are derived from original evaluated shapes
+ * instead of duplicating drawings, characters, clocks or material shaders.
+ */
+type EyeAspect="landscape"|"portrait";
+type Riso24Focus="head"|"hair"|"eyes"|"ear"|"midface";
+type Riso25FaceStudy="crafted"|"legacy";
+type Riso26ToneStudy="graded"|"flat";
+const RISO25_FACE_DETAILS=new Set(["ear-helix-fold","ear-concha-pocket","ear-tragus-root",
+  "ear-lobule-seam","nasal-sidewall-line","nasal-ala-fold","upper-lip-engraving",
+  "nasolabial-flow","labiomental-crease"]);
+// The exact original RISO24 ear source is included solely as the falsifiable
+// before-art baseline. The production character spec owns the new source path.
+const RISO25_EAR_BASELINES:Readonly<Record<string,string>>={
+  courier:"M-32 -10 Q-39 -12 -40 -2 Q-39 7 -32 7 L-32 5 Q-37 5 -38 -2 Q-38 -8 -32 -7 Z",
+  "paper-artist":"M-28 -11 Q-36 -16 -37 -7 Q-38 3 -30 7 L-28 4 Q-35 0 -33 -6 Q-31 -9 -28 -7 Z",
+};
+type Riso24HairStudy="engraved"|"legacy";
+// Source-authored ink paths, not a global filter or substituted raster effect.
+// The comparison renders the exact old sources with new overlays omitted.
+const RISO24_ENGRAVINGS:Readonly<Record<string,ReadonlySet<string>>>={
+  courier:new Set(["cap-paper-ribbons","cap-brim-paper-welt","cap-crown-engraving","cap-brim-engraving"]),
+  "paper-artist":new Set(["hair-paper-crown","hair-paper-side","hair-crown-engravings",
+    "hair-side-engravings","hair-fringe-root-ink","hair-temple-shadow-masses"]),
+};
+function RisoEyeCrop({actor,sheet,frame,aspect,plate,focus,hairStudy,faceStudy,toneStudy,showGuides,screenMode,screenDensity,screenPitch,dotGain}:{
+  actor:RisoCharacterSpec;sheet:RisoCharacterMeshSheet;frame:number;aspect:EyeAspect;
+  plate:PlateMode;focus:Riso24Focus;hairStudy:Riso24HairStudy;faceStudy:Riso25FaceStudy;toneStudy:Riso26ToneStudy;showGuides:boolean;screenMode:"am"|"fm";screenDensity:number;screenPitch:number;dotGain:number;
+}){
+  const portrait=aspect==="portrait",width=portrait?360:640,height=portrait?640:360;
+  const mesh=evaluateRisoCharacterMesh(actor,sheet,frame,{maxEdgeLength:8});
+  const face=mesh.regions.filter(region=>region.category==="face"||region.category==="hair"||region.category==="headwear");
+  const detailed=focus==="hair"
+    ? mesh.regions.filter(region=>region.category==="hair"||region.category==="headwear")
+    : focus==="eyes"
+      ? face.filter(region=>/eye|iris|brow|orbit/.test(region.id))
+      : focus==="ear"
+        ? mesh.regions.filter(region=>/ear-/.test(region.id))
+        : focus==="midface"
+          ? mesh.regions.filter(region=>/nose|nasal|mouth|lip|philtrum|chin|cheek|nasolabial|labiomental/.test(region.id))
+          : face;
+  // Derive every camera region from the actual source contours. No invented
+  // percentage crop or fixed pixel offset across different character heads.
+  const envelope=risoMeshBounds(detailed.flatMap(region=>region.outline));
+  const sourceParts=hairStudy==="legacy"||faceStudy==="legacy"||toneStudy==="flat"
+    ? actor.parts.filter(part=>
+        !(hairStudy==="legacy"&&RISO24_ENGRAVINGS[actor.id]?.has(part.id)) &&
+        !(faceStudy==="legacy"&&RISO25_FACE_DETAILS.has(part.id)))
+      .map(part=>{
+        const sourceFace=faceStudy==="legacy"&&part.id==="ear-left"
+          ? {...part,d:RISO25_EAR_BASELINES[actor.id]} : part;
+        return toneStudy==="flat"&&sourceFace.screenTone
+          ? {...sourceFace,screenTone:undefined} : sourceFace;
+      })
+    : actor.parts;
+  const renderSpec:RisoCharacterSpec=sourceParts===actor.parts
+    ? actor:{...actor,parts:sourceParts};
+  // A close-up of the narrowly authored ear may mathematically request a
+  // >30x scale in portrait output. The production RisoCharacterInk/
+  // RisoCharacterKnockout placement contract explicitly caps scale at 30.
+  // Do not let a crop control crash Storybook with a non-rendering story.
+  const scale=Math.min(29,(width-52)/Math.max(1,envelope.width),
+    (height-56)/Math.max(1,envelope.height));
+  const x=width/2-(envelope.x+envelope.width/2)*scale;
+  const y=height/2-(envelope.y+envelope.height/2)*scale;
+  const partIds=renderSpec.parts.filter(part=>part.joint==="head").map(part=>part.id);
+  const paperColor="#F6EDDD",blueColor="#255B8E",redColor="#D65641";
+  const inkSpec:RisoPrintSpec={
+    version:1,width,height,paper:paperColor,seed:38,startFrame:0,passFrames:1,gapFrames:0,
+    plates:[
+      {id:"blue",color:blueColor,opacity:1,dotCell:screenPitch,dotAngle:-12,registration:[0,0]},
+      {id:"red",color:redColor,opacity:1,dotCell:screenPitch,dotAngle:17,registration:[.5,-.4]},
+    ],
+  };
+  return <div data-km-riso21-actor={actor.id} data-km-riso21-frame={frame} data-km-riso21-aspect={aspect}
+    data-km-riso24-focus={focus} data-km-riso24-study={hairStudy} data-km-riso25-face-study={faceStudy}
+    data-km-riso25-crop-scale={scale.toFixed(3)} data-km-riso26-tone-study={toneStudy}>
+    <div style={{font:"700 16px Georgia,serif",marginBottom:8}}>{actor.id==="courier"?"Paper Courier":"Paper Artist"} · source head</div>
+    <RisoPrint spec={inkSpec} frame={239} artworks={{blue:()=>null,red:()=>null}}
+      paperGrain={.45} misregistration={.25} screenMode={screenMode} screenDensity={screenDensity} dotGain={dotGain}
+      visiblePlateIds={plate==="both"?undefined:[plate]}
+      label={actor.id+" head print, anatomical eye engravings"}
+      foregroundLayers={[{
+        id:"ocular-actor",
+        knockout:<RisoCharacterKnockout spec={renderSpec} frame={frame} x={x} y={y}
+          scale={scale} spread={1.5} onlyPartIds={partIds}/>,
+        artworks:{
+          blue:paint=><RisoCharacterInk spec={renderSpec} frame={frame} plateId="blue"
+            paint={paint} x={x} y={y} scale={scale} onlyPartIds={partIds}/>,
+          red:paint=><RisoCharacterInk spec={renderSpec} frame={frame} plateId="red"
+            paint={paint} x={x} y={y} scale={scale} onlyPartIds={partIds}/>,
+        },
+      }]}
+      style={{width:"100%",height:"auto",maxHeight:600,background:paperColor}}/>
+    {showGuides&&<div style={{fontSize:12,paddingTop:6,color:"#34576B"}}>
+      {face.filter(region=>region.id.includes("eye")||region.id.includes("iris")||region.id.includes("orbit"))
+        .map(region=>region.id).join(" · ")}
+    </div>}
+  </div>;
+}
+function RisoEyeCraftLab(){
+  const [frame,setFrame]=useState(46);
+  const [aspect,setAspect]=useState<EyeAspect>("landscape");
+  const [plate,setPlate]=useState<PlateMode>("both");
+  const [screenMode,setScreenMode]=useState<"am"|"fm">("am");
+  const [dotGain,setDotGain]=useState(0);
+  const [screenDensity,setScreenDensity]=useState(.33);
+  const [screenPitch,setScreenPitch]=useState(2);
+  const [showGuides,setShowGuides]=useState(false);
+  const [focus,setFocus]=useState<Riso24Focus>("head");
+  const [hairStudy,setHairStudy]=useState<Riso24HairStudy>("engraved");
+  const [faceStudy,setFaceStudy]=useState<Riso25FaceStudy>("crafted");
+  const [toneStudy,setToneStudy]=useState<Riso26ToneStudy>("graded");
+  return <main style={{padding:20,minHeight:"100vh",background:"#EEE2CD",color:"#294A60",font:"14px system-ui,sans-serif"}}>
+    <div style={{maxWidth:1120,margin:"0 auto",display:"grid",gap:14}}>
+      <header>
+        <div style={{fontSize:12,fontWeight:800,letterSpacing:2}}>RISOGRAPH / ARTCRAFT V9 · RISO26</div>
+        <h2 style={{font:"700 29px Georgia,serif",margin:"6px 0"}}>Two identities · sculpted ink-value hierarchy</h2>
+        <p style={{fontSize:13,lineHeight:1.5,maxWidth:920}}>Original eyes, ears, and lip anatomy remain untouched; two co-registered fine screens distinguish eye sockets, cheeks, and jaws.
+          Compare RISO25 flat-density facial halftone against source-authored RISO26 tonal master dots, never alpha overlays.</p>
+      </header>
+      <div style={{display:"flex",flexWrap:"wrap",gap:18,alignItems:"end"}}>
+        <label>Pose
+          <select aria-label="RISO21 expression pose" value={frame}
+            onChange={e=>setFrame(Number(e.target.value))} style={{display:"block",marginTop:5,minHeight:36}}>
+            <option value={46}>Neutral / 46</option><option value={78}>Blink / 78</option>
+            <option value={160}>Speak / 160</option><option value={198}>Smile / 198</option>
+          </select></label>
+        <label>Output
+          <select aria-label="RISO21 crop aspect" value={aspect}
+            onChange={e=>setAspect(e.target.value as EyeAspect)} style={{display:"block",marginTop:5,minHeight:36}}>
+            <option value="landscape">16:9 film family</option><option value="portrait">9:16 film family</option>
+          </select></label>
+        <label>Crop
+          <select aria-label="RISO24 feature focus" value={focus}
+            onChange={e=>setFocus(e.target.value as Riso24Focus)} style={{display:"block",marginTop:5,minHeight:36}}>
+            <option value="head">Whole head</option><option value="hair">Hair close-up</option>
+            <option value="eyes">Eyes close-up</option><option value="ear">Ear / concha close-up</option>
+            <option value="midface">Nose, cheek and mouth close-up</option>
+          </select></label>
+        <label>Hair drawing
+          <select aria-label="RISO24 hair craft comparison" value={hairStudy}
+            onChange={e=>setHairStudy(e.target.value as Riso24HairStudy)} style={{display:"block",marginTop:5,minHeight:36}}>
+            <option value="engraved">RISO24 carved and engraved</option>
+            <option value="legacy">Before · original smooth masses</option>
+          </select></label>
+        <label>Facial construction
+          <select aria-label="RISO25 facial craft comparison" value={faceStudy}
+            onChange={e=>setFaceStudy(e.target.value as Riso25FaceStudy)} style={{display:"block",marginTop:5,minHeight:36}}>
+            <option value="crafted">RISO25 source-anatomy engraving</option>
+            <option value="legacy">Before · RISO24 original face</option>
+          </select></label>
+        <label>Facial halftone values
+          <select aria-label="RISO26 tonal master comparison" value={toneStudy}
+            onChange={e=>setToneStudy(e.target.value as Riso26ToneStudy)} style={{display:"block",marginTop:5,minHeight:36}}>
+            <option value="graded">RISO26 sculpted local stencil dots</option>
+            <option value="flat">Before · same heavy dot radius across all face planes</option>
+          </select></label>
+        <label>Ink
+          <select aria-label="RISO21 ink separation" value={plate}
+            onChange={e=>setPlate(e.target.value as PlateMode)} style={{display:"block",marginTop:5,minHeight:36}}>
+            <option value="both">Both inks</option><option value="blue">Blue only</option><option value="red">Red only</option>
+          </select></label>
+        <label>Screen
+          <select aria-label="RISO21 screening method" value={screenMode}
+            onChange={e=>setScreenMode(e.target.value as "am"|"fm")} style={{display:"block",marginTop:5,minHeight:36}}>
+            <option value="am">AM halftone</option><option value="fm">FM droplets</option>
+          </select></label>
+        <label>Screen pitch · {screenPitch.toFixed(1)} units
+          <input aria-label="RISO23 screen pitch" type="range" min={2} max={6} step={.2}
+            value={screenPitch} onChange={e=>setScreenPitch(Number(e.target.value))}
+            style={{display:"block",marginTop:9}}/></label>
+        <label>Screen coverage · {Math.round(screenDensity*100)}%
+          <input aria-label="RISO23 screen coverage" type="range" min={.15} max={.65} step={.025}
+            value={screenDensity} onChange={e=>setScreenDensity(Number(e.target.value))}
+            style={{display:"block",marginTop:9}}/></label>
+        <label>Ink gain · {Math.round(dotGain*100)}%
+          <input aria-label="RISO21 dot gain" type="range" min={0} max={1} step={.05}
+            value={dotGain} onChange={e=>setDotGain(Number(e.target.value))}
+            style={{display:"block",marginTop:9}}/></label>
+        <label><input aria-label="RISO21 region IDs" type="checkbox"
+          checked={showGuides} onChange={e=>setShowGuides(e.target.checked)}/> Inspect semantic regions</label>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(305px,1fr))",gap:18,alignItems:"start"}}>
+        {[{actor:COURIER,sheet:RISO_COURIER_SHEET},{actor:PAPER_ARTIST,sheet:RISO_PAPER_ARTIST_SHEET}].map(({actor,sheet})=>
+          <section key={actor.id} style={{padding:14,border:"1px solid #C9B8A1",borderRadius:8,background:"#FCF5E7"}}>
+            <RisoEyeCrop actor={actor} sheet={sheet} frame={frame} aspect={aspect} plate={plate}
+              focus={focus} hairStudy={hairStudy} faceStudy={faceStudy} toneStudy={toneStudy} showGuides={showGuides} screenMode={screenMode} screenDensity={screenDensity} screenPitch={screenPitch} dotGain={dotGain}/>
+          </section>)}
+      </div>
+      <p style={{fontSize:12,lineHeight:1.5,maxWidth:940}}>ArtCraft source studies:
+        {" "}<a href="https://fishgutspress.com/collections/frontpage">Fish Guts Press · printed halftone eye</a>
+        {" · "}<a href="https://www.behance.net/gallery/96806545/TAROT-ZINE">Tarot Zine · brow and eye engraving</a>.
+        Third-party prints are reference-only; anatomical likeness and 3/4 identity remain unapproved.
+      </p>
+    </div>
+  </main>;
+}
+export const OcularPrintCraft:StoryObj<typeof meta>={
+  name:"RISO26 · Original Portrait Tone Master Craft",
+  args:{actor:"courier"},
+  render:()=> <RisoEyeCraftLab/>,
 };

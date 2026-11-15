@@ -8,6 +8,9 @@
 import { forwardRef, useEffect, useMemo, useRef } from "react";
 import type { CSSProperties, HTMLAttributes } from "react";
 import type { HumanFrame } from "./anatomy-view";
+import type { HairStrands } from "./anatomy-hair";
+import { renderHairSegments } from "./anatomy-hair";
+import { hairColorHex } from "./anatomy-color";
 import { rasterizeHumanFrame, smoothPath } from "./anatomy-view";
 
 export type HumanSurface = "clay" | "tonal" | "cel" | "silhouette" | "none";
@@ -33,6 +36,10 @@ export interface HumanFigureProps extends Omit<HTMLAttributes<HTMLDivElement>, "
   palette?: Partial<HumanPalette>;
   /** Accessible description of the figure. */
   label?: string;
+  /** Hair grown on the same (posed) body, drawn with depth against the figure; the scalp is tinted under it. */
+  hair?: HairStrands;
+  /** Hair pigment: eumelanin / pheomelanin concentrations and the fraction of grey strands. Default brown (1.3). */
+  hairColor?: { eumelanin?: number; pheomelanin?: number; grey?: number };
 }
 
 const isHex = (s: string) => /^#[0-9a-f]{6}$/i.test(s);
@@ -48,7 +55,7 @@ function resolvePalette(el: Element | null, over?: Partial<HumanPalette>): Human
 }
 
 export const HumanFigure = forwardRef<HTMLDivElement, HumanFigureProps>(function HumanFigure(
-  { frame, surface = "clay", contour = true, terminator = false, wire = false, skeleton = false, landmarks = false, headGrid, lineWidth, palette, label, className, style, ...rest }, ref) {
+  { frame, surface = "clay", contour = true, terminator = false, wire = false, skeleton = false, landmarks = false, headGrid, lineWidth, palette, label, hair, hairColor, className, style, ...rest }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
   const { width, height } = frame;
@@ -65,10 +72,20 @@ export const HumanFigure = forwardRef<HTMLDivElement, HumanFigureProps>(function
     if (surface === "none") return;
     const pal = resolvePalette(hostRef.current, palette);
     const rgb = (h: string): [number, number, number] => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
-    const img = rasterizeHumanFrame(frame, surface, { light: rgb(pal.light), shadow: rgb(pal.shadow), eye: rgb(pal.eye) }, dpr);
+    const hc = hairColor ?? {};
+    const tint = hair ? { mask: hair.scalpMask, color: rgb(hairColorHex(hc.eumelanin ?? 1.3, hc.pheomelanin ?? 0, hc.grey ?? 0)) } : undefined;
+    const img = rasterizeHumanFrame(frame, surface, { light: rgb(pal.light), shadow: rgb(pal.shadow), eye: rgb(pal.eye) }, dpr, undefined, tint);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.putImageData(new ImageData(img.data as Uint8ClampedArray<ArrayBuffer>, img.width, img.height), 0, 0);
-  }, [frame, surface, palette, width, height]);
+    if (hair) {
+      // contours go under the hair, so draw them on the canvas first
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.lineCap = "round"; ctx.lineJoin = "round";
+      if (contour) { ctx.strokeStyle = pal.ink; for (const c of frame.contours) { ctx.lineWidth = base * (c.weight.reduce((x, y) => x + y, 0) / c.weight.length); ctx.stroke(new Path2D(smoothPath(c.points))); } }
+      const segs = renderHairSegments(hair, frame, { ...hc, depth: { data: img.depth, width: img.width, height: img.height, scale: dpr } });
+      for (const g of segs) { ctx.strokeStyle = g.color; ctx.lineWidth = g.width; ctx.beginPath(); ctx.moveTo(g.x1, g.y1); ctx.lineTo(g.x2, g.y2); ctx.stroke(); }
+    }
+  }, [frame, surface, palette, width, height, hair, hairColor, contour, base]);
 
   const paths = useMemo(() => {
     const variable = (line: { points: [number, number][]; weight: number[] }, k: number) => {
@@ -83,10 +100,10 @@ export const HumanFigure = forwardRef<HTMLDivElement, HumanFigureProps>(function
       return out;
     };
     return {
-      contours: contour ? frame.contours.flatMap(l => variable(l, base)) : [],
+      contours: contour && !hair ? frame.contours.flatMap(l => variable(l, base)) : [],
       terminators: terminator ? frame.terminators.map(l => smoothPath(l.points)) : [],
     };
-  }, [frame, contour, terminator, base]);
+  }, [frame, contour, terminator, base, hair]);
 
   const wirePath = useMemo(() => {
     if (!wire) return "";

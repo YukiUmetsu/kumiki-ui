@@ -96,11 +96,21 @@ const facePieces:readonly RisoCharacterPart[]=[
     d:"M-38 -29 C-45 -57 -30 -74 -8 -74 Q15 -81 33 -65 Q46 -53 40 -26 Q46 -4 36 21 Q27 26 24 13 Q34 -5 27 -29 Q22 -46 11 -52 Q-17 -57 -28 -35 Q-29 -8 -26 11 Q-31 23 -40 13 Q-46 2 -38 -29 Z"},
   {id:"face",joint:"head",plate:"blue",paint:"solid",knockoutOnly:true,
     d:"M-29 -38 C-26 -54 -12 -59 5 -56 Q26 -54 30 -35 Q34 -12 25 11 Q16 29 -2 31 Q-23 26 -30 8 Q-34 -10 -29 -38 Z"},
+  // RISO25 Paper Artist: a smaller, tucked helix and concha; distinct source
+  // ear geometry from Courier, with ear/lobule overprinted beneath her bob.
   {id:"ear-left",joint:"head",plate:"blue",paint:"solid",
-    d:"M-28 -11 Q-36 -16 -37 -7 Q-38 3 -30 7 L-28 4 Q-35 0 -33 -6 Q-31 -9 -28 -7 Z"},
+    d:"M-28 -10.8 C-32 -14.4 -37.3 -11.6 -38.1 -6.3 C-39.3 -.7 -36.6 5 -32.6 6.9 Q-29.7 7.4 -28.3 4.8 L-29.4 2.8 Q-32 5 -34.6 .6 C-37.1 -4 -34.4 -9.2 -29.6 -8.3 Z"},
+  {id:"ear-helix-fold",joint:"head",plate:"blue",paint:"solid",
+    d:"M-34.2 -10 C-37.1 -8 -38 -4.5 -36.6 -1.8 Q-35.7 -4.5 -34 -8.5 Z"},
+  {id:"ear-concha-pocket",joint:"head",plate:"red",paint:"solid",
+    d:"M-33.0 -5.3 Q-32.1 -6.1 -31.2 -4.9 Q-31.4 -3.7 -32.4 -3.9 Q-33.3 -4.3 -33.0 -5.3 Z"},
+  {id:"ear-tragus-root",joint:"head",plate:"blue",paint:"solid",
+    d:"M-30.6 -2.2 Q-32 -.8 -31.6 .8 Q-30.2 .9 -29.9 -.7 Z"},
+  {id:"ear-lobule-seam",joint:"head",plate:"red",paint:"solid",
+    d:"M-35 3.5 Q-32.6 6.5 -30.7 5.6 Q-33 7 -35.4 5.2 Z"},
   {id:"face-outline",joint:"head",plate:"blue",paint:"solid",
     d:"M-29 -37 C-27 -51 -14 -58 2 -57 Q23 -56 29 -37 Q35 -13 26 11 C21 24 6 32 -5 30 Q-25 24 -30 8 L-27 7 Q-24 23 -4 27 C10 29 20 18 23 8 Q31 -12 26 -34 Q23 -51 2 -53 Q-17 -55 -25 -34 Z"},
-  {id:"temple-tones",joint:"head",plate:"red",paint:"screen",
+  {id:"temple-tones",joint:"head",plate:"red",paint:"screen",screenTone:"mid",
     d:"M-24 -25 C-29 -12 -28 -2 -21 10 Q-29 3 -29 -9 Z M22 -26 Q30 -14 25 0 Q25 -10 22 -26 Z"},
   {id:"brow-left",joint:"head",plate:"blue",paint:"solid",
     d:"M-23 -18 Q-16 -24 -8 -20 L-9 -18 Q-17 -21 -22 -16 Z",
@@ -122,9 +132,37 @@ const facePieces:readonly RisoCharacterPart[]=[
   {id:"iris-right",joint:"head",plate:"blue",paint:"solid",
     d:"M15 -10 Q19 -12 20 -8 Q20 -4 17 -4 Q14 -6 15 -10 Z",
     expressions:{blink:"M15 -6 L20 -6 L20 -5 L15 -5 Z"}},
+  // RISO21: original Paper Artist eyes retain a narrower, slightly upturned
+  // eyelid grammar than Courier. No pasted mirrored eye graphics.
+  {id:"eye-canthus-shapes",joint:"head",plate:"blue",paint:"solid",
+    d:"M-23.3 -8.1 Q-21.6 -9.5 -20.5 -9.0 Q-21.7 -7.9 -22.5 -6.7 Q-23.6 -7.0 -23.3 -8.1 Z M23.5 -10.2 Q24.5 -10.7 25.4 -9.7 Q24.3 -9.5 23.8 -8.4 Q22.8 -8.9 23.5 -10.2 Z",
+    expressions:{blink:"M-23 -7.1 Q-21.6 -7.6 -20.5 -7 L-21 -6.4 Q-22.5 -6.5 -23 -7.1 Z M23.4 -9.1 Q24.4 -9.6 25.0 -8.8 L24.1 -8.2 Q23.5 -8.5 23.4 -9.1 Z"},
+  },
+  {id:"eye-lash-wedges",joint:"head",plate:"blue",paint:"solid",
+    d:"M-22.7 -9.4 Q-24.6 -11.8 -25.6 -11.6 Q-24.5 -10.0 -21.8 -8.6 Z M-19.6 -11.0 Q-20.5 -12.8 -21.4 -13.0 Q-20.9 -11.3 -19.1 -10.4 Z M23.6 -11.9 Q25.3 -14.2 26.2 -14.0 Q25.5 -11.9 24.6 -10.1 Z M21.3 -13 Q22.9 -14.1 23.3 -14.4 Q22.9 -12.5 21.8 -11.7 Z",
+    expressions:{blink:"M-22.8 -7.4 Q-24.3 -8.6 -25 -9 Q-23.4 -7.8 -21.8 -7 Z M-20.2 -7.8 Q-21.5 -8.6 -22 -8.8 Q-21.2 -7.9 -19.7 -7.5 Z M23.3 -9.1 Q24.9 -10.6 25.6 -10.8 Q24.6 -9.2 23.9 -8.6 Z M20.9 -9.4 Q22.4 -10.4 23 -10.6 Q22.6 -9.4 21.4 -9.0 Z"},
+  },
+  {id:"eye-iris-grain",joint:"head",plate:"red",paint:"solid",
+    d:"M-16.7 -8.5 Q-15.3 -10.3 -13.5 -8.2 Q-15.0 -8.5 -15.2 -5.4 Q-17.5 -6.1 -16.7 -8.5 Z M16.2 -9.8 Q17.5 -12.3 19.5 -9.7 Q17.7 -9.5 17.7 -6.3 Q15.8 -7.2 16.2 -9.8 Z",
+    expressions:{blink:"M-16.3 -5.3 Q-14.7 -5.8 -13.7 -5.4 L-13.8 -4.9 Q-15.3 -5.1 -16.3 -4.9 Z M16.4 -6.2 Q18 -6.7 19.2 -6.2 L19.1 -5.7 Q17.5 -5.9 16.4 -5.7 Z"},
+  },
+  {id:"eye-lower-orbit-engraving",joint:"head",plate:"red",paint:"solid",
+    d:"M-22 -2.0 Q-19.5 -.6 -17 -.9 Q-19 -.1 -21.8 -.8 Z M-16 -.9 Q-13.0 -1.3 -10.5 -3.0 Q-13.2 -.4 -15.8 .0 Z M-20.8 1.4 Q-18 2.2 -16.2 1.2 Q-18.3 2.7 -20.5 2.0 Z M10.7 -2.2 Q13.8 -.8 16.2 -1.4 Q14.2 .1 11.3 -1.2 Z M17.2 -1.5 Q20.9 -1.1 22.6 -3.4 Q21.4 -0.3 17.4 -.6 Z M13.8 1.5 Q17.6 2.5 20.8 1.1 Q17.4 3.2 14.0 2.3 Z",
+    expressions:{blink:"M-22 -3.1 Q-19.5 -2.5 -17.4 -2.8 Q-19 -2.0 -21.8 -2.4 Z M-16.7 -2.7 Q-13.1 -2.3 -10.3 -3.8 Q-13.4 -1.7 -16.2 -2.0 Z M-20.8 -1.3 Q-18 -.9 -16.5 -1.5 Q-18 -.4 -20.4 -.6 Z M10 -4.3 Q13 -2.8 15.9 -3.1 Q13.6 -2 10.8 -3.6 Z M16.8 -3.0 Q20.4 -2.9 23 -4.7 Q21 -2 17.3 -2.3 Z M14 -1.4 Q17 -1.0 20.4 -1.9 Q17.5 -.2 14.5 -.7 Z"},
+  },
+
+  // RISO23: Paper Artist's own facial topography, not a mirrored Courier
+  // stencil. Wide tonal masses carry the physical Riso screen, narrow
+  // under-lid/iris engravings remain printable on the solid red master.
+  {id:"orbital-tone-planes",joint:"head",plate:"red",paint:"screen",screenTone:"mid",
+    d:"M-26 -26 C-20 -31 -12 -29 -6 -23 Q-13 -22 -19 -18 Q-25 -17 -26 -26 Z M6 -24 C13 -32 23 -29 29 -20 Q27 -14 23 -14 Q18 -22 11 -21 Z"},
+  {id:"zygomatic-tone-planes",joint:"head",plate:"red",paint:"screen",screenTone:"light",
+    d:"M-28 -8 C-28 3 -25 13 -18 19 Q-22 7 -19 -5 Q-24 -11 -28 -8 Z M20 -9 Q25 -12 29 -6 C29 4 25 14 18 20 Q24 5 22 -4 Z"},
+  {id:"jaw-shadow-planing",joint:"head",plate:"red",paint:"screen",screenTone:"light",
+    d:"M-28 7 Q-25 22 -7 30 Q-19 28 -26 16 Z M29 -7 Q34 13 12 29 Q24 18 27 -5 Z"},
   {id:"nose-bridge",joint:"head",plate:"blue",paint:"solid",
     d:"M1 -12 Q4 -7 3 -1 Q0 5 3 7 Q6 9 9 6 L9 8 Q6 11 2 9 Q-2 7 0 3 Q2 -4 1 -12 Z"},
-  {id:"cheek-tones",joint:"head",plate:"red",paint:"screen",
+  {id:"cheek-tones",joint:"head",plate:"red",paint:"screen",screenTone:"light",
     d:"M-25 3 Q-20 0 -14 5 Q-20 3 -24 8 Z M17 4 Q24 3 27 10 Q23 7 18 8 Z"},
   {id:"mouth",joint:"head",plate:"red",paint:"solid",
     d:"M-7 15 Q0 18 7 13 L8 16 Q0 22 -7 18 Z",
@@ -134,12 +172,56 @@ const facePieces:readonly RisoCharacterPart[]=[
     d:"M-10 14 L-7 14 L-7 16 Z M8 12 L11 11 L9 15 Z",
     expressions:{speak:"M-8 12 L-5 10 L-6 14 Z M7 12 L10 13 L8 16 Z",
       smile:"M-13 10 Q-12 13 -10 15 L-11 15 Z M11 10 Q15 8 16 5 L15 11 Z"}},
-  {id:"chin-tone",joint:"head",plate:"red",paint:"screen",
+  // RISO25 / expressed midface print masters. This actor's nose, mouth
+  // and cheekbone directions differ from Courier; expressive contours are
+  // redrawn at the two authored visemes, not stretched with a procedural rig.
+  {id:"nasal-sidewall-line",joint:"head",plate:"red",paint:"solid",
+    d:"M1.7 -9.7 Q3.4 -7 3.4 -4.4 Q2.8 -5.7 2.1 -8.1 Z"},
+  {id:"nasal-ala-fold",joint:"head",plate:"red",paint:"solid",
+    d:"M7.9 5.1 Q10.2 5.9 10.7 7.8 Q10.2 8.5 9.4 8.5 Q10.1 7 7.7 6.2 Z"},
+  {id:"upper-lip-engraving",joint:"head",plate:"blue",paint:"solid",
+    d:"M-7.3 13.6 Q-4 12.8 -1 14.4 Q1 14 4.8 12.9 L7.6 13.3 Q4.3 14.5 1 15.2 Q-2.5 14.1 -6.4 14.8 Z",
+    expressions:{
+      speak:"M-6.4 12.7 Q-2 10.3 1.5 10.6 Q4.2 11.2 6 13.2 Q1.4 11.5 -2 11.8 Q-4.5 12.1 -6.4 13.2 Z",
+      smile:"M-11.7 10.6 Q-3 16.8 11.6 10.1 Q6 15 .1 15.7 Q-7.7 14.3 -11.7 11.5 Z",
+    }},
+  {id:"nasolabial-flow",joint:"head",plate:"red",paint:"solid",
+    d:"M-15.6 5.4 Q-16.6 10.2 -13.6 13.2 Q-15.9 11.2 -16.1 7.4 Z M13.0 5.6 Q15.1 9.2 13.5 12.3 Q14.4 9.1 12.7 7.1 Z",
+    expressions:{
+      smile:"M-16.6 4.2 Q-18.1 9.8 -14.3 13.5 Q-17.3 11.1 -17.2 6.8 Z M14.0 4.8 Q16.9 9.7 14.5 13.4 Q15.7 9.4 13.6 6.1 Z",
+      speak:"M-15.6 5.8 Q-17.1 9.1 -13.5 12.7 Q-16 10.8 -16.2 7.8 Z M13.1 6 Q15.8 9.3 13.2 12.1 Q14.1 9.7 12.8 7.2 Z",
+    }},
+  {id:"labiomental-crease",joint:"head",plate:"blue",paint:"solid",
+    d:"M-4.5 24.5 Q1 26.3 6 23.7 Q2.8 26 -2.7 25.8 Z",
+    expressions:{
+      smile:"M-6.5 26.3 Q1 29.1 8 24.8 Q3.2 28.1 -3.1 28.2 Z",
+      speak:"M-5.5 24.8 Q.5 28.2 6.5 24 Q2.5 27.5 -3.1 27.3 Z",
+    }},
+  {id:"chin-tone",joint:"head",plate:"red",paint:"screen",screenTone:"light",
     d:"M-8 25 Q2 29 14 23 Q11 29 1 30 Z"},
   {id:"hair-fringe",joint:"head",plate:"blue",paint:"solid",
     d:"M-29 -40 Q-24 -58 -9 -60 Q12 -67 27 -51 Q29 -45 26 -37 Q20 -44 15 -48 Q13 -39 6 -36 Q8 -46 3 -49 Q-2 -39 -9 -35 Q-8 -46 -14 -48 Q-18 -36 -26 -34 Z"},
   {id:"hair-linework",joint:"head",plate:"red",paint:"screen",
     d:"M-29 -49 Q-24 -60 -9 -62 Q-21 -57 -27 -45 Z M8 -61 Q21 -57 28 -46 Q21 -52 8 -59 Z"},
+  // RISO24 / real two-person Chromium critique: the bob was one undifferentiated
+  // blue helmet even after the eye and cheek work. The crown, part/fringe and
+  // hanging side masses now have distinct flow grammar. Closed paper channels
+  // are actual local master knockouts rather than translucent painted glints.
+  // They remain attached to head in every film pose and preserve both actors'
+  // original outer silhouette and facial identity.
+  {id:"hair-paper-crown",joint:"head",plate:"blue",paint:"solid",knockoutOnly:true,
+    d:"M-29 -58 C-25 -67 -17 -72 -8 -73 Q-17 -71 -23 -63 Q-26 -57 -29 -58 Z M-13 -70 C-2 -76 9 -74 17 -69 Q8 -72 -3 -69 Q-9 -67 -13 -70 Z M14 -71 C24 -68 32 -60 35 -51 Q29 -59 18 -65 Z"},
+  {id:"hair-paper-side",joint:"head",plate:"blue",paint:"solid",knockoutOnly:true,
+    d:"M-36 -41 C-39 -29 -40 -12 -38 4 Q-39 -13 -35 -38 Z M36 -43 C40 -29 40 -13 38 1 Q38 -18 34 -39 Z M-38 3 Q-38 11 -36 16 Q-37 11 -37 6 Z M36 4 Q37 12 35 17 Q35 12 35 8 Z"},
+  {id:"hair-crown-engravings",joint:"head",plate:"red",paint:"solid",
+    d:"M-31 -57 C-26 -66 -17 -71 -11 -72 Q-23 -67 -30 -56 Z M-22 -63 C-16 -69 -8 -70 -2 -70 Q-13 -67 -21 -62 Z M-10 -67 C-3 -71 6 -70 12 -67 Q3 -69 -8 -65 Z M3 -68 C14 -69 23 -64 29 -57 Q20 -64 7 -66 Z M17 -64 C25 -61 32 -54 35 -47 Q29 -56 20 -61 Z M-29 -53 C-24 -59 -17 -62 -11 -62 Q-22 -58 -28 -51 Z M12 -61 Q21 -57 26 -51 Q20 -55 14 -59 Z"},
+  {id:"hair-side-engravings",joint:"head",plate:"red",paint:"solid",
+    d:"M-37 -44 C-40 -31 -40 -11 -37 4 Q-39 -11 -38 -29 Z M-34 -35 C-37 -19 -37 -3 -35 10 Q-36 -4 -35 -23 Z M-37 -8 C-39 2 -37 12 -35 18 Q-37 14 -38 4 Z M36 -47 C40 -29 40 -8 37 8 Q38 -8 37 -28 Z M34 -35 C37 -17 37 0 34 15 Q36 -3 35 -25 Z M35 0 Q39 11 35 20 Q36 12 35 5 Z"},
+  {id:"hair-fringe-root-ink",joint:"head",plate:"red",paint:"solid",
+    d:"M-27 -49 C-23 -55 -17 -59 -10 -59 Q-20 -56 -26 -48 Z M-16 -54 C-10 -60 -4 -62 3 -61 Q-8 -59 -15 -52 Z M-2 -56 C4 -62 11 -61 16 -56 Q7 -59 0 -54 Z M10 -54 C18 -57 24 -52 27 -47 Q20 -52 12 -52 Z M-24 -44 Q-21 -48 -17 -49 Q-21 -46 -23 -43 Z"},
+  {id:"hair-temple-shadow-masses",joint:"head",plate:"red",paint:"screen",
+    d:"M-37 -43 C-40 -30 -40 -14 -38 2 Q-39 -18 -36 -37 Z M35 -47 C40 -32 40 -13 38 4 Q39 -25 35 -47 Z"},
+
 ];
 const sharedLimbs=[
   "right-thigh","right-shin","right-boot","right-boot-detail",
@@ -218,8 +300,14 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
     throw new RangeError("Riso ensemble frame must be an integer 0..239");
   const portrait=aspect==="portrait";
   const width=portrait?540:960,height=portrait?960:540;
-  const first={x:portrait?0:120,y:portrait?705:445,scale:portrait?1.2:1.05};
-  const second={x:portrait?335:520,y:portrait?705:445,scale:portrait?1.2:1.05};
+  // RISO27 / actual Chromium 9:16 contact-sheet rejection: the previous
+  // portrait Courier began clipped at the left page edge (stage x=0) and
+  // by f202 overlapped the Paper Artist (other stage x=335), hiding the
+  // original body and fingertip acting. Give each head/body enough air in
+  // the *real source-space stage*, not by drawing smaller/simpler actors.
+  // Keep both at legible 1.1x, with a dedicated portrait editorial baseline.
+  const first={x:portrait?30:120,y:portrait?705:445,scale:portrait?1.1:1.05};
+  const second={x:portrait?405:520,y:portrait?705:445,scale:portrait?1.1:1.05};
   const a=personPoint(COURIER,frame,"right-hand",first.x,first.y,first.scale);
   const b=personPoint(PAPER_ARTIST,frame,"left-hand",second.x,second.y,second.scale);
   // Absolute reference pose sampled from the same two rigs: no history and
@@ -247,9 +335,28 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
     propEnd:handoff.paperEnd,progress:handoff.progress,
     sheet:printDetails.outline,printDetails};
 }
+/** Immutable motion beats for source-linked Riso film review. */
+export const RISO_ENSEMBLE_MOTION_BEATS=[
+  {frame:0,label:"Opening",intent:"Walking approach"},
+  {frame:76,label:"Blink",intent:"Eye anticipation"},
+  {frame:126,label:"Unfurl",intent:"Sheet emerges"},
+  {frame:144,label:"Reach",intent:"Midair hand to hand"},
+  {frame:160,label:"Contact",intent:"Recipient touches the sheet"},
+  {frame:165,label:"Foot plant",intent:"Both printed boots anchor as weight travels into the exchange"},
+  {frame:178,label:"Release",intent:"Donor opens hand"},
+  {frame:190,label:"Peel",intent:"Paper and hand separate"},
+  {frame:202,label:"Received",intent:"Sheet follows receiver only"},
+  {frame:239,label:"Final hold",intent:"Last authored frame"},
+] as const;
+export const RISO_ENSEMBLE_FILM_FPS=24 as const;
+export function clampRisoEnsembleFilmFrame(value:number){
+  if(!Number.isInteger(value))throw new RangeError("RISO film frame must be integer");
+  return Math.max(0,Math.min(239,value));
+}
 export function RisoHumanEnsembleStudio(){
   const [frame,setFrame]=useState(176);
   const [playing,setPlaying]=useState(false);
+  const [playbackOrigin,setPlaybackOrigin]=useState(0);
   const [aspect,setAspect]=useState<EnsembleAspect>("landscape");
   const [plate,setPlate]=useState<EnsemblePlate>("both");
   const [anchors,setAnchors]=useState(false);
@@ -264,13 +371,32 @@ export function RisoHumanEnsembleStudio(){
   const [releaseStart,setReleaseStart]=useState(178);
   const [releaseDuration,setReleaseDuration]=useState(24);
   const [settleDegrees,setSettleDegrees]=useState(-45);
-  // Playback is a Storybook convenience. Production frames stay pure: a
-  // film exporter passes an absolute frame to evaluateRisoHumanEnsemble.
+  // Real-time playhead: use source frame based on elapsed wall-clock time,
+  // not chained setInterval ticks (which drift under expensive SVG rendering).
+  // End on a held final pose: the source is a story, not a seamless idle loop.
   useEffect(()=>{
     if(!playing)return;
-    const id=window.setInterval(()=>setFrame(current=>(current+1)%240),1000/24);
-    return ()=>window.clearInterval(id);
-  },[playing]);
+    const began=performance.now();
+    let id=0;
+    const tick=(now:number)=>{
+      const elapsed=Math.max(0,Math.floor((now-began)*RISO_ENSEMBLE_FILM_FPS/1000));
+      const sample=clampRisoEnsembleFilmFrame(playbackOrigin+elapsed);
+      setFrame(sample);
+      if(sample>=239){setPlaying(false);return;}
+      id=window.requestAnimationFrame(tick);
+    };
+    id=window.requestAnimationFrame(tick);
+    return ()=>window.cancelAnimationFrame(id);
+  },[playing,playbackOrigin]);
+  const seek=(next:number)=>{
+    setPlaying(false);
+    setFrame(clampRisoEnsembleFilmFrame(next));
+  };
+  const toggleFilm=()=>{
+    if(playing){setPlaying(false);return;}
+    const origin=frame>=239?0:frame;
+    setFrame(origin);setPlaybackOrigin(origin);setPlaying(true);
+  };
   const handoffSchedule:RisoHandoffSchedule={
     ...RISO_HANDOFF_DEFAULTS,
     releaseStart,releaseEnd:releaseStart+releaseDuration,settleDegrees,
@@ -349,8 +475,11 @@ export function RisoHumanEnsembleStudio(){
       : []),
   ];
   return <main style={{background:"#F0E4D1",padding:18,minHeight:"100vh",font:"14px system-ui,sans-serif"}}>
-    <div style={{maxWidth:1320,margin:"0 auto"}}>
-      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO19 / PRESSURE-RESPONSIVE HAND-HELD RISO PAPER</div>
+    <div style={{maxWidth:1320,margin:"0 auto"}} data-km-riso27-film-editor=""
+        data-km-riso27-playing={playing?"yes":"no"} data-km-riso27-fps={RISO_ENSEMBLE_FILM_FPS}
+        data-km-riso27-source-frame={frame}
+        data-km-riso28-footfall={frame>=165?"grounded":"approaching"}>
+      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO27 / 24 FPS HANDOFF FILM · SOURCE CONTACT SHEET</div>
       <h2 style={{font:"700 29px Georgia,serif",margin:"8px 0"}}>Two original figures · a printed-sheet exchange</h2>
       <p style={{fontSize:13,maxWidth:900,lineHeight:1.5}}>
         Distinct coat, bob hair and facial geometry for the Paper Artist; the Courier retains
@@ -361,16 +490,35 @@ export function RisoHumanEnsembleStudio(){
         and tilt are authored; original material-local pressure folds and screened compression
         track the two hand grips. This is not a force-based collision solver.
         Real RisoPrint spot-ink screens, print registration, paper pores and fibres are used.
+        The approach uses complementary grounded strides; both original boots stay planted
+        from frame 165 while the pelvis advances into the handoff.
       </p>
+      <div style={{display:"flex",flexWrap:"wrap",gap:9,alignItems:"center",padding:"8px 0"}}
+        data-km-riso27-acting-beats="">
+        {RISO_ENSEMBLE_MOTION_BEATS.map(beat=><button key={beat.frame} type="button"
+          aria-label={"Seek film to "+beat.label+" at frame "+beat.frame}
+          aria-pressed={frame===beat.frame} title={beat.intent}
+          onClick={()=>seek(beat.frame)} style={{
+            padding:"5px 9px",border:"1px solid #AA9682",borderRadius:4,
+            cursor:"pointer",font:"12px system-ui,sans-serif",
+            background:frame===beat.frame?"#255B8E":"#F8F0E2",
+            color:frame===beat.frame?"#FFF":"#355061",
+          }}>{beat.label} <small>f{beat.frame}</small></button>)}
+        <small style={{color:"#63727A"}}>240 source frames · 24fps · 10 seconds · {frame>=165?"both boots planted":"alternating contacts"}</small>
+      </div>
       <div style={{display:"flex",flexWrap:"wrap",gap:20,alignItems:"center",padding:"12px 0"}}>
         <button type="button" aria-label={playing?"Pause Risograph ensemble":"Play Risograph ensemble"}
-          aria-pressed={playing} onClick={()=>setPlaying(value=>!value)}
+          aria-pressed={playing} onClick={toggleFilm}
           style={{border:"1px solid #426079",borderRadius:4,color:"#FFF",background:"#244D6C",
             fontWeight:700,padding:"8px 12px",cursor:"pointer"}}>
-          {playing?"Pause":"Play scene"}
+          {playing?"Pause":"Play 24fps film"}
         </button>
+        <button type="button" aria-label="RISO27 previous source frame"
+          onClick={()=>seek(frame-1)}>−1 frame</button>
         <label>Frame · {frame} <input type="range" min={0} max={239} value={frame}
-          aria-label="RISO ensemble film frame" onChange={e=>setFrame(Number(e.target.value))}/></label>
+          aria-label="RISO ensemble film frame" onChange={e=>seek(Number(e.target.value))}/></label>
+        <button type="button" aria-label="RISO27 next source frame"
+          onClick={()=>seek(frame+1)}>+1 frame</button>
         <label>Output <select value={aspect} aria-label="RISO ensemble aspect"
           onChange={e=>setAspect(e.target.value as EnsembleAspect)}>
           <option value="landscape">16:9</option><option value="portrait">9:16</option>

@@ -20,7 +20,7 @@ import type { UkiyoePaint } from "./ukiyoe-pigments";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "./ukiyoe-scene";
 
 type P = Readonly<Record<string, unknown>>;
-interface C { seed: number; frame: number; wind: number }
+interface C { seed: number; frame: number; wind: number; progress?: number }
 const num = (p: P, k: string, d: number) => typeof p[k] === "number" && Number.isFinite(p[k]) ? p[k] as number : d;
 const f1 = (n: number) => n.toFixed(1);
 
@@ -63,6 +63,39 @@ export function bamboo(p: P, cx: C): Prim[] {
     }
   }
   out.push({ t: "stroke", d: nodes.join(""), color: "matsu", width: lw * 1.6 }, { t: "fill", d: leaves.join(""), fill: "matsu", opacity: .9 });
+  return out;
+}
+
+/**
+ * The shining stalk, cut (after the Met's illustrated *Tale of the Bamboo Cutter*, 45361): a thick jointed stalk sliced
+ * on the slant above a node, the pale cut face ringed with green, gold light welling from the hollow, and in it the
+ * tiny girl the bamboo cutter found, kneeling in layered red and white with her long hair down her back.
+ * Params: height, girl (0–1 how far she has risen into view; also keyed progress when `rises` is 1), glow (0–1).
+ */
+export function takegiri(p: P, cx: C): Prim[] {
+  const H = num(p, "height", 220), w = H * .14, lw = Math.max(1, H * .008), out: Prim[] = [];
+  const girl = clamp01(num(p, "rises", 0) > 0 ? cx.progress ?? 0 : num(p, "girl", 1)), glow = clamp01(num(p, "glow", 1)) * (.85 + .15 * Math.sin(cx.frame / 9));
+  // The stalk: slanted cut at the top, two nodes below; the cut face an ellipse tilted with the slant.
+  const top = -H, cut = H * .12, body = smoothD([[-w / 2, 0], [-w / 2, top + cut], [w / 2, top], [w / 2, 0]], true, .04);
+  out.push({ t: "glow", cx: 0, cy: top + cut * .4, r: H * .55 * glow, color: "ki", opacity: .75 * glow });
+  out.push({ t: "fill", d: body, fill: { type: "linear", angle: 0, stops: [[0, "matsu", 1], [.45, "kusa", 1], [1, "matsu", 1]] }, outline: lw });
+  out.push({ t: "fill", d: body, fill: "ki", opacity: .35 * glow });
+  out.push({ t: "stroke", d: [-.35, -.72].map(k => `M${f1(-w * .55)} ${f1(H * k)}Q0 ${f1(H * k + w * .12)} ${f1(w * .55)} ${f1(H * k)}`).join(""), color: "matsu", width: lw * 1.8 });
+  // The hollow and the girl inside it (drawn small, the scale of a thumb against the stalk).
+  const cy = top + cut / 2, face = ellipseD(0, cy, w * .5, cut * .62);
+  out.push({ t: "fill", d: face, fill: { type: "radial", stops: [[0, "gofun", 1], [.6, "ki", 1], [1, "kusa", 1]] }, outline: lw });
+  if (girl > 0) {
+    const s = w * .9, gy = cy + s * .1 - s * .55 * girl, g: Prim[] = [];
+    g.push({ t: "fill", d: smoothD([[-s * .32, gy + s * .3], [-s * .2, gy - s * .12], [s * .2, gy - s * .12], [s * .32, gy + s * .3]], true, .3), fill: "beni", outline: lw * .6 });
+    g.push({ t: "fill", d: smoothD([[-s * .18, gy + s * .28], [-s * .1, gy - s * .08], [s * .1, gy - s * .08], [s * .18, gy + s * .28]], true, .3), fill: "gofun" });
+    g.push({ t: "fill", d: smoothD([[-s * .14, gy - s * .25], [0, gy - s * .4], [s * .14, gy - s * .25], [s * .16, gy + s * .2], [-s * .16, gy + s * .2]], true, .4), fill: "sumi" });
+    g.push({ t: "fill", d: ellipseD(0, gy - s * .22, s * .1, s * .12), fill: "hada", outline: lw * .5 });
+    out.push({ t: "clip", d: smoothD([[-w * .5, cy - H], [w * .5, cy - H], [w * .5, cy + cut * .25], [-w * .5, cy + cut * .25]], true, 0), key: "takegiri-girl", prims: g });
+    out.push({ t: "glow", cx: 0, cy: gy - s * .2, r: s * .9, color: "gofun", opacity: .55 * girl });
+  }
+  // A spray of narrow leaves hanging from the upper node.
+  const n0: Pt = [w * .5, -H * .72];
+  out.push({ t: "fill", d: [0, 1, 2, 3].map(i => { const a = (25 + i * 22) * Math.PI / 180, len = H * (.16 + .03 * (i % 2)), tip: Pt = [n0[0] + Math.sin(a) * len, n0[1] + Math.cos(a) * len * .8]; return carvedLine([n0, [(n0[0] + tip[0]) / 2, (n0[1] + tip[1]) / 2 - len * .05], tip], len * .16, { taper: "both" }); }).join(""), fill: "matsu", opacity: .9 });
   return out;
 }
 
@@ -173,8 +206,8 @@ export function jinmenju(p: P, cx: C): Prim[] {
   return out;
 }
 
-export const TREE_MOTIFS = { bamboo, kaki, shinboku, jinmenju };
-export const ANIMATED_TREES = ["bamboo", "kaki", "shinboku", "jinmenju"] as const;
+export const TREE_MOTIFS = { bamboo, kaki, shinboku, jinmenju, takegiri };
+export const ANIMATED_TREES = ["bamboo", "kaki", "shinboku", "jinmenju", "takegiri"] as const;
 
 // ---- Scene recipes -----------------------------------------------------------------------------------------------------------------
 

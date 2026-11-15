@@ -28,6 +28,12 @@
 - `ukiyoe-giants.ts`: the giant monsters and `giantScene()`.
 - `ukiyoe-tsukumo.ts`: the tsukumogami (object spirits), the kimono rack and `tsukumoScene()`.
 - `ukiyoe-realms.ts`: the other realms (sea palace, moon, Milky Way, rock cave, oni island) and `realmScene()`.
+- `ukiyoe-parade.ts`: animal heads and tails for `look.animal`, the `kago` palanquin, `procession()` and `paradeScene()`.
+- `ukiyoe-village.ts`: New Year village goods (straw hats, rice bales, a loaded sled) and the walking jizō look.
+- `ukiyoe-treasure.ts`: the hero's gear and the oni's treasure (`nobori` and `dango` props, `takara` heap, `kuruma` handcart).
+- `ukiyoe-ryugu.ts`: Dragon Palace people and treasures (dragon crown, tamatebako held and opening, Otohime, Dragon King, Urashima, `agedLook()`).
+- `ukiyoe-film-slot.tsx`: the `ukiyoe-scene` and `ukiyoe-kasumi` slots, so film documents render UKIYO1 shots in Storybook, `film:review` and `film:render`.
+- `ukiyoe-episode.ts` (registry item `ukiyoe-episode`, which also needs `film-document`): the YouTube episode template.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -77,8 +83,8 @@ Colours are pigment **roles**: `sumi`, `usuzumi`, `ai`, `bero`, `sora`, `asagi`,
 | `group` | A container. Children (figures in a boat, a whole rig of blocks) ride its transform. |
 | `motif` | A generated subject: `sky`, `mountain`, `hills`, `sea`, `wave`, `pine`, `sakura`, `willow`, `reeds`, `rock`, `cloud` (band or billow), `sun`, `moon`, `house` (tile, thatch, two storeys, noren, **fukinuki-yatai cutaway**), `pagoda`, `torii`, `bridge` (taiko or trestle), `boat` (ferry, sampan, yakata; the hull sits in a waterline band, `wake` × `progress` adds a bow wave and stern streaks, `sail` adds a mast and square sail), `lantern` (paper or stone; `progress` lights it), `field`, `pier`, `peach` (splits open at `openAt`), `ricefield` (terraced paddies: `crop` `young`, `ripe` or `flooded`, swaying in the wind). |
 | `motif` (scenery) | `range`: a mountain range in the Kisokaidō manner. Ridges are stacked in depth (`layers`) with asymmetric peaks and shoulders, shadowed faces, axe-cut rock strokes and ledges, crest cedars and umbrella pines, mist between ranges (`mist`, `mistColor`), `snow` on every upward surface, and an optional `waterfall` from a gorge. `minka`: a thatched farmhouse. `style` is `irimoya` (hip-and-gable, smoke lattice, crossed ridge timbers) or `gassho` (steep, with a gable of stacked windows). It takes `snow` (cap, drip edge, icicles), `smoke` and `light` (glowing paper windows). `jizo`: roadside stone monks in a row (`count`), with a red `bib` and `cap`, a ringed `staff`, `snow` and `moss`. `komainu`: the shrine lion-dog, carved spiral mane and flame tail, mouth open (`a`) or shut (`un`), or a facing `pair`. |
-| `motif` (castle) | `castle`: a castle after Meiji-era photographs of Nagoya, Kumamoto and Himeji and Hiroshige's castle views, seen a little from the side (`depth`, default .4). <ul><li>**Keep:** `tiers` storeys (1–6), each narrower, with deep tiled eaves turning up at the corners and shaded side faces. The roof faces carry chidori gables (drawn in front of the storey above) and one curved karahafu, and gold shachihoko stand on the top ridge.</li><li>**Walls:** white plaster, or `style: "black"` boarding below a plaster band, with rows of barred windows.</li><li>**Stone bases:** curving steeper toward the top (the fan slope), with stones in shrinking courses and long-and-short corner blocks.</li><li>**Before the keep** (`walls`): the outer stone wall topped with a long gallery building (`wall: "tamon"`, the default, as on Edo castle) or a plastered, tiled, loopholed wall (`"dobei"`), umbrella `pines` along the bailey behind it, two corner `turrets`, a `gate` tower over studded doors, a `moat` that mirrors the walls, and a `bridge` coming toward us.</li><li>**Stone and roofs:** stones are irregular blocks, each its own shape and tone and largest at the foot. The top roof is hip-and-gable, its big gable on the receding end face.</li><li>**Weather and light:** `snow` lays white on ridges, roofs and eaves, and `night` lights the windows. `walls: false` gives the keep alone for distant views.</li></ul> The motif stands on the foot of the outer wall at the water line; the moat and bridge lie below it. |
-| `motif` (town) | Built with the castle's storeys and roofs: <ul><li>`shop`: a merchant's two-storey shop. Indigo `noren` with a white `crest` (generic) sway across the open front, with a lattice and a standing `sign` painted with a gold fan (no writing). Slit mushiko windows sit above and firewalls at the roof ends.</li><li>`kura`: a storehouse. Thick plaster over a base of namako tiles (a white lattice on grey), a heavy roof with a crested gable, an iron-clad window standing open.</li><li>`yashiki`: a samurai residence. A long wall of plaster over black boarding, the gatehouse with lattice windows and studded doors, a tiled cap, `pines` behind.</li><li>`firetower`: a fire-watch tower. Tapering timber legs braced with crosses, a lashed ladder, a railed platform under a little roof, the bell (swinging a touch in the wind) and its mallet.</li></ul> All take `snow`. |
+| `motif` (castle) | `castle`: a castle after Meiji-era photographs of Nagoya, Kumamoto and Himeji and Hiroshige's castle views, seen a little from the side (`depth`, default .4). <ul><li>**Keep:** `tiers` storeys (1–6), each narrower, with deep tiled eaves curving gently (`sori`) and shaded side faces. The roof faces carry chidori gables (drawn in front of the storey above) and one curved karahafu, and gold shachihoko stand on the top ridge.</li><li>**Walls:** white plaster, or `style: "black"` boarding below a plaster band, with rows of barred windows.</li><li>**Stone bases:** curving steeper toward the top (the fan slope), with stones in shrinking courses and long-and-short corner blocks.</li><li>**Before the keep** (`walls`): the outer stone wall topped with a long gallery building (`wall: "tamon"`, the default, as on Edo castle) or a plastered, tiled, loopholed wall (`"dobei"`), umbrella `pines` along the bailey behind it, two corner `turrets`, a `gate` tower over studded doors, a `moat` that mirrors the walls, and a `bridge` coming toward us.</li><li>**Stone and roofs:** stones are irregular blocks, each its own shape and tone and largest at the foot. The top roof is hip-and-gable, its big gable on the receding end face.</li><li>**Weather and light:** `snow` lays white on ridges, roofs and eaves, and `night` lights the windows. `walls: false` gives the keep alone for distant views.</li></ul> The motif stands on the foot of the outer wall at the water line; the moat and bridge lie below it. |
+| `motif` (town) | Built with the castle's storeys and roofs: <ul><li>`shop`: a merchant's two-storey shop. Indigo `noren` with a white `crest` (generic) sway across the open front, with a lattice and a standing `sign` painted with a gold fan (no writing). Slit mushiko windows sit above and firewalls at the roof ends.</li><li>`kura`: a storehouse. Thick plaster over a base of namako tiles (a white lattice on grey), a gabled roof with a massive ridge, the family crest on the plaster gable, an iron-clad window standing open.</li><li>`yashiki`: a samurai residence. A long wall of plaster over black boarding, the gatehouse with lattice windows and studded doors, a tiled cap, `pines` behind.</li><li>`firetower`: a fire-watch tower. Tapering timber legs braced with crosses, a lashed ladder, a railed platform under a little roof, the bell (swinging a touch in the wind) and its mallet.</li></ul> All take `snow`. <br>**Roofs.** Town roofs are straight-edged, as in Hiroshige's and Hokusai's street views and the period photographs. Kawara rows run down the slope, with scalloped courses (each tile's lower edge an arc), silver-grey sheen on the upper slope, a bead of round tile ends along the eave, and a stacked ridge with an onigawara at each end. Shops have dark wooden rafters under the eave; castles and storehouses have plaster. The same tiles are on the `house` motif and every `roof()` (castle, temples, gates); only the castle keep and temple halls curve. |
 | `particles` | Closed-form weather and effects: `rain` (two Hiroshige line families), `snow`, `embers`, `petals`, `leaves`, `fireflies`, `birds`, `ripples`, `fireworks` (gold rocket trail, rayed stars, peony, willow or ring), `spray` (ballistic burst). |
 | `figure` | An articulated Edo figure with a `look` and layered `actions`. |
 | `creature` | A folktale animal or spirit (`species`): `fox` (with `tails` 1–9 and `foxfire`), `tanuki` (with `hat` and `bottle`), `dog`, `cat`, `rabbit`, `monkey` (Japanese macaque), `horse` (with `tack`: harness, saddle cloth and pack), `nue` (monkey face, tiger body, snake tail), `crane`, `heron`, `crow`, `pheasant`, `sparrow`, `dragon` (with `pearl`); yōkai `yukionna` (the snow woman; `blow` breathes out the cold, `beckon` reaches), `yurei` (a ghost with soul-flames), `kasaobake` (the one-legged umbrella), `chochinobake` (the grinning lantern), `hitodama` (a soul-flame), `rokurokubi` (`stretch` raises her head on a long swaying neck), `kappa` (`bow` spills the water from its dish; `walk`, `dance`), `tengu` and `karasutengu` (wings, `fly`, and `fan` to raise a gale), `nurikabe` (the wall of the night road: three eyes, `walk`, `roar`), `tsuchigumo` (the earth spider: eight banded legs, `walk`, rears with `roar`). Actions: `walk`, `run`, `fly`, `hop`, `float` (travel to `to`/`toY`), `appear` and `vanish` (fade a spirit in or out; it is unseen before its first `appear` and stays gone after a `vanish`), `sit`, `stand` (upright), `look`, `leap`, `howl`, `drum`, `peck`, `dance`, `coil`, `roar`, `sleep`, `transform` (henge: a smoke puff, after which the creature is gone, so place what it becomes as a new node). |
@@ -400,6 +406,178 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
   - `onigashima`: Momotarō's boat crosses.
 
   Storybook **Realms** plays them, and the Motifs gallery has five tiles.
+
+### Processions and parades
+
+- **Figure look `animal: "fox" | "mouse"`.** The head becomes the animal's in profile, front and back. Hands take the fur
+  colour, and a tail swings behind (a fox's bushy brush with a white tip, a mouse's long thin tail). The figure still
+  walks, carries and holds props like any other.
+- **Motif `kago`.** A palanquin: a lacquered box with a blind and a curved roof, slung from a long pole. Origin: the
+  middle of the pole. Params `width`, `color`.
+- **`procession(members, options)`.** Lines up creatures and figures one after another, spaced by their widths plus a
+  `gap`, in two depth rows (the far row higher, smaller, fainter). Every member travels the same `distance` over the same
+  frames, so the order and the gaps hold. Travel is in scene pixels, whatever the member's scale.
+- **`paradeScene(kind)`.**
+  - `hyakki`: the night parade along a wall under the moon. Oni, beast spirits, the wheel, the biwa, the umbrella, the
+    cotton strip overhead, soul-flames.
+  - `foxwedding`: foxes in haori and hakama through a sunshower. Three lantern bearers, the palanquin carried between two
+    bearers, the bride in white under her hood, two umbrella followers.
+  - `mousewedding`: the same order at dusk, with mice and a red palanquin.
+
+  Storybook **Parades** plays them.
+
+### Print-quality weather and fire
+
+- **Rain.** After Hiroshige's *Sudden Shower over Shin-Ōhashi*: long fine lines crossing most of the sky, on three
+  blocks (a dark one, a grey one at a slightly different angle, a faint one) over a `veil` that darkens the sky toward
+  the top. `ground` adds splash crowns where drops strike. `style: "short"` keeps the earlier dashes.
+- **Snow.** Three depths: many small faint far flakes falling slowly, nearer ones, and a few large near flakes drifting
+  faster and swaying wider.
+- **Fire.** Each flame tongue rises along a swaying spine, bends over near the top and curls back into a hooked tip,
+  red above and orange at the base, with a hot core. Flamelets break from the tips and rise into smoke, which is darkest
+  just above the fire.
+
+### Follow-through and idle life
+
+- **Sleeves and hems.** They swing on a damped spring driven by the wrists' and the body's recent motion. They trail a
+  moving arm or a walking body, swing on past it when it stops, and settle within about ten frames. Everything stays a
+  pure function of the frame: the spring reads the figure's own past poses.
+- **Gestures.** `settledPose()` adds the same follow-through to the arms, lean and head tilt, so a wave or a point
+  overshoots a little and settles. It skips figures with contact actions (sword, club, tools, bow, holding, carrying,
+  rowing) and the square views, so contact frames and authored poses stay exact.
+- **Idle life.** Blinks pass through a half-lid frame. The eyes glance back or forward every few seconds, the iris
+  shifting (`pose.gaze`), and the head drifts a little.
+- **Cost.** The castle-town scroll went from about 58 to 59–71 ms per frame in the same bench.
+
+### Wardrobe
+
+- **Patterns.** Eleven more:
+  - `koshi` (plaid);
+  - `tachiwaki` (rising steam);
+  - `kiku` (chrysanthemum);
+  - `ume` (plum);
+  - `momiji` (maple);
+  - `shippo` (interlocking circles);
+  - `kasuri` (ikat marks);
+  - `hishi` (diamonds);
+  - `sayagata` (key-fret);
+  - `kumo` (clouds);
+  - `ayame` (iris).
+- **`look.hem`.** A design rising from the hem (suso-moyō): any pattern, usually large, clipped to the lower skirt,
+  with a rolling top edge. `ground` recolours the band; `height` is its share of the figure.
+- **`look.obiKnot`.** The bow at the back of a woman's obi: `taiko`, `tateya` (the standing bow on the diagonal),
+  `bunko` (flat wings with two hanging ends) or `kichiya` (long swinging ends). It defaults from the look, so a woman
+  keeps her knot. `look.obiDesign` weaves a pattern into the obi and knot.
+- **`ukiyoeWardrobe(role, seed, season)`.** A complete look for a maiden, wife, elder woman, girl, merchant, artisan,
+  labourer, samurai, elder man or boy:
+  - the robe's dye and pattern from the season's palette and motifs;
+  - hem designs for young women;
+  - the obi, its knot and design;
+  - the under-collar and layers;
+  - hair, footwear and the things people carry.
+- **`ukiyoeTownsfolk(seed, count, season)`.** A mixed street.
+- **Crowds.** With no `cast` given, crowds dress their people this way; `season` picks the dress.
+
+Storybook **Wardrobe** shows every role, by season and view, with a re-dress button.
+
+### Faces
+
+`ukiyoe-face.ts` draws every human face (profile, three-quarter and front):
+
+- **The bijin face, after Utamaro.**
+  - A hair-fine face line.
+  - Long narrow eyes: one upper-lid line lifting at the outer end, the iris hanging from it, clipped to the lids.
+  - Soft grey brows, darker along the lower edge.
+  - One fine nose line with a small hook.
+  - A tiny rouged mouth: a low-M upper lip and a fuller lower lip.
+  - Rouge at the eye's outer corner.
+  - Women are powdered white (`skin` defaults to `gofun` for women's hair styles).
+- **Hair.**
+  - The profile shimada: a hairline of combed strands (`kewari`), sheen lines through the mass, the knot in two loops
+    with its red cloth and paper tie, a tortoiseshell comb, the bar and a pin with dangling strips.
+  - The front shimada: the Fuji-shaped hairline, the side locks combed out into thin wings, the front puff, the knot,
+    the comb and two pins.
+- **Expressions.** The `emote` action (`mood`: smile, laugh, sad, cry, surprise, angry, fear, shy) blends like any
+  action. It moves the brows, the lids and iris, and the mouth; tears run, and the cheeks colour.
+- **Face traits.** `look.features` sets eye, brow, nose, mouth, jaw, age and mole. Whatever is left out comes from a
+  hash of the look's identity (hair, build, skin, robe, sash), not its view or props, so a character keeps one face in
+  every shot while a crowd's faces differ. Age adds lines at the brow, eye and mouth.
+
+Storybook **Faces** shows the moods for a woman, maiko, oiran, man or elder in each view, and a crowd's faces.
+
+### Village goods
+
+- **`kasaHat(cx, cy, r, lw, tilt)`.** One straw kasa: a shallow cone seen a little from above, its ribs running from
+  the crown knob to the brim, the darker underside at the back.
+- **Motif `kasa`.** A pile of hats for sale. Params `count` (1–8), `size`, `tilt`.
+- **Motif `tawara`.** Rice bales: barrel-shaped, straw running lengthwise under rope bands, the round end cap gathered
+  into a knot. `count` (1–10) stacks them in a pyramid.
+- **Motif `sori`.** A wooden sled on runners that curl up in front, loaded with bales (`bales`), a stand of mirror
+  rice cakes (`mochi`) and wrapped bundles (`bundles`). `rope` runs the pull rope forward to `ropeY`. Use `flip` to
+  pull it leftward.
+- **Jizō params.** `kasa` puts a straw hat on the statue; `tenugui` (true or a colour) ties a cloth over its head.
+  With `kasaDrop`, the hat or cloth comes down into place as the node's progress runs 0 → 1, so a scene keys the moment
+  it is given.
+- **`UKIYOE_JIZO_LOOK`.** A figure look for a jizō that walks: stone grey, shaven, red at the collar, wearing its hat.
+
+### Dragon Palace people and treasures
+
+- **Hat `dragon`.** A gold dragon coiled on the head, its head over the brow holding a jewel, in profile and square views.
+- **Prop `tamatebako`.** The jewelled box held in both hands (pair it with `pray`, which holds it up as a gift is held):
+  black lacquer with gold waves, a ring fitting, the red cord crossing the lid and tied in a bow.
+- **Motif `tamatebako`.** The box on the ground. `opens` × keyed progress unties the cord and lifts the lid. The white
+  smoke then rises in cloud billows with scroll curls, swells, leans `toward` whoever opened it, and thins away. Swap a
+  figure for `agedLook(look)` at `TAMATEBAKO_THICKEST` (progress .55), under the smoke.
+- **Looks.** `UKIYOE_OTOHIME_LOOK` (dragon crown, long hair, seigaiha robe over vermilion and green, stole, fan),
+  `UKIYOE_RYUJIN_LOOK` (dragon crown, white hair and beard, red robe), `UKIYOE_URASHIMA_LOOK`.
+
+### The cut bamboo
+
+- **Motif `takegiri`.** The shining stalk after it is cut: a thick jointed stalk sliced on the slant, the pale cut face,
+  gold light from the hollow, and in it the tiny girl kneeling in red and white with long hair. `girl` (0–1), or with
+  `rises` 1 the keyed progress, raises her into view; `glow` sets the light.
+
+### Hero's gear and the oni's treasure
+
+- **Prop `nobori`.** A tall banner held upright: the white cloth tied along the pole, a peach crest in place of lettering,
+  a little streaming flag at the head.
+- **Prop `dango`.** Millet dumplings (kibi-dango) on a fold of paper, held out to be given.
+- **Motif `takara`.** The treasure heap on a lacquered stand: straw cloak and hat of invisibility, sacks, coral, gold
+  coins, the mallet. Params `size`, `stand`.
+- **Motif `kuruma`.** A two-wheeled handcart carrying the heap, shafts forward. Its wheels turn by `roll`, or by
+  `travel` × keyed progress, so they keep pace with the walk it follows.
+
+### Episode template
+
+`ukiyoeEpisode(spec)` turns a folktale, written as shots and the narration over each, into one film document.
+
+- **Shots.** Each shot is `{ id, title, build(aspect), narration?, kasumi?, sound? }`.
+  - `build` returns a UKIYO1 scene at 1920×1080 or 1080×1920.
+  - `narration` lines are in the shot's own frames.
+  - `kasumi` sweeps gold mist out of the previous shot for that many frames.
+- **Title card.** `ukiyoeTitleCard({ title, titleJa, seal, backdrop })` prints the backdrop block by block, then stamps
+  the cartouche and seal inside the safe area's upper right.
+- **End card.** `ukiyoeEndCard({ closing, next, seal, backdrop })` stamps the closing cartouche in the upper left, with
+  the next story and the seal beside it. The lower and right parts stay free of text for YouTube's end-screen elements.
+  It holds at least five seconds.
+- **Outputs.** `youtube` (16:9) and `youtube-shorts` (9:16).
+- **Captions.** The narration becomes the film's caption track, with `script-estimate` timing until a voice is aligned.
+  It is drawn by the film's caption performer inside each preset's safe area, at 2.6cqw (50 px) on 16:9 and 3.9cqw
+  (42 px) on 9:16, in a Mincho serif. Scenes carry no subtitle text of their own.
+- **`ukiyoeEpisodeSrt(spec)`.** The same captions as SubRip, for upload, so viewers can switch them off or translate them.
+- **`inspectUkiyoeEpisode(spec)`.** Checks before anything is rendered:
+  - each scene is valid and the right size;
+  - captions stay inside their shot, with gaps between them;
+  - every caption has enough frames to be read, using the film's own reading rule;
+  - every caption fits two lines on each output (greedy word wrap at 0.6 em);
+  - no scene text sits in the caption band while a caption shows;
+  - no figure on screen is more than a third inside the caption band at the middle of a cue (`ukiyoeCaptionCovers`), through the shot's camera and the figure's parallax depth, so captions fall over ground and water, not people;
+  - the end card is at least five seconds.
+
+  After that, `film:check` checks the document, and `film:review` measures the real rendered text boxes for collisions
+  and clipping.
+- **Examples.** `src/video/ukiyoe-kaguya.ts` (*Kaguya-hime*, eight shots, 95 s, `examples/film/ukiyoe-kaguya-hime.film.json`), `src/video/ukiyoe-momotaro.ts` (*Momotarō*, eight shots, 100 s, `examples/film/ukiyoe-momotaro.film.json`), `src/video/ukiyoe-urashima.ts` (*Urashima Tarō*, eight shots, 106 s, `examples/film/ukiyoe-urashima-taro.film.json`) and `src/video/ukiyoe-kasa-jizo.ts` (compiled to `examples/film/ukiyoe-kasa-jizo.film.json`, with its `.srt`) are complete episodes: *Kasa Jizō*, six shots, 73 s. Storybook
+  **Episode (Kasa Jizō)** plays it in either output, with the script check and an .srt download.
 
 ### Transition
 
