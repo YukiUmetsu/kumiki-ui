@@ -51,12 +51,12 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
   }, [playing, reducedMotion, speed]);
   // Inspection zoom is Storybook-only; FilmStage/export always sees the same art.
   // World coordinates are derived from the existing authored actor placement.
-  const point = inspection === "wing" ? [128, 205] :
-    inspection === "breast" ? [179, 215] :
-    inspection === "foot" ? [190, 314] : [222, 101];
+  const point = inspection === "wing" ? [147, 157] :
+    inspection === "breast" ? [115, 160] :
+    inspection === "foot" ? [134, 213] : [112, 95];
   const placement = aspect === "landscape" ?
-    {x:426 + 1.33 * point[0], y:42 + 1.33 * point[1], w:960, h:540} :
-    {x:-14 + 1.42 * point[0], y:171 + 1.42 * point[1], w:540, h:960};
+    {x:475 + 1.65 * point[0], y:84 + 1.65 * point[1], w:960, h:540} :
+    {x:78 + 1.72 * point[0], y:267 + 1.72 * point[1], w:540, h:960};
   const zoom = inspection === "wing" ? 2.5 : inspection === "breast" ? 3.1 :
     inspection === "foot" ? 4.2 : 3.4;
   const artworkStyle = inspection === "composition" || filmView ? undefined : {
@@ -66,9 +66,9 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
     transformOrigin:"top left",
   };
   const step = frame < 70 ? "Graphite construction" :
-    frame < 188 ? "Progressive feather and copper pigment" :
-    frame < 255 ? "Fine feather engraving" :
-    "Subtle head, eye, beak and tail performance";
+    frame < 188 ? "Cobalt and copper feather deposition" :
+    frame < 255 ? "Rachis, barbs and glass-black eye" :
+    "Head tilt, blink, layered wing and tail performance";
   return <main style={{ minHeight:"100vh", padding:24,
     display:"grid", alignContent:"start", gap:16, background:"#EAE5D9",
     color:"#344750", font:"15px/1.5 system-ui" }}>
@@ -77,13 +77,13 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
         MATERIAL-NATIVE COLOUR PENCIL / ORIGINAL WILDLIFE ART
       </div>
       <h1 style={{font:"600 34px Georgia, serif", margin:"8px 0"}}>
-        A Copper Songbird — Fine Feather Craft
+        The Blue Kingfisher — ArtCraft Study
       </h1>
       <p style={{margin:0,maxWidth:820}}>
-        Twenty anatomical parts: separate feathers, throat, wing coverts, glossy eye,
-        two beak sections, tail and branch-gripping toes. The opaque paper support prevents
-        background strokes from appearing through a solid subject. All pigment remains
-        fixed in paper coordinates during frame seeking.
+        Rebuilt original kingfisher with eleven authored anatomical regions: long tapered
+        beak, short crown fibres, copper breast, overlapping feather coverts, layered wings, eye, tail and
+        planted feet. The old round bird and copper songbird are no longer rendered.
+        All pigment remains fixed in paper coordinates during frame seeking.
       </p>
     </header>
     <section aria-label="Pencil wildlife controls"
@@ -98,8 +98,8 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
       <label style={label}>Illustration details
         <select aria-label="Feather detail" value={detail}
           onChange={e=>setDetail(e.target.value as typeof detail)}>
-          <option value="full">Full feather study</option>
-          <option value="study">Construction study</option>
+          <option value="full">Full fibre and feather study</option>
+          <option value="study">Reduced mark density</option>
         </select>
       </label>
       <label style={label}>Paper tooth · {Math.round(paperTooth*100)}%
@@ -135,7 +135,7 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
           if(frame>=419)setFrame(0);
           setPlaying(previous=>!previous);
         }}>{playing?"Pause":frame>=419?"Replay":"Play the film"}</button>
-        {([["Construction",55],["Colour",172],["Detail",250],["Blink",294],
+        {([["Construction",55],["Colour",172],["Detail",250],["Blink",278],
           ["Hold",419]] as const).map(([text,at])=>
           <button type="button" key={text} style={button} onClick={()=>{
             setPlaying(false);setFrame(at);
@@ -168,9 +168,9 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
           style={artworkStyle}/>} 
     </div>
     <p style={{maxWidth:790,margin:0,fontSize:13,color:"#6D7872"}}>
-      Original hand-authored vector specimen with connected feather shafts/barbs,
-      not a copied reference bird. Inspect Wing, Breast, Foot and Eye at close range
-      without altering exports.
+      Original side-view kingfisher with anatomical fibre tracts and layered feathers,
+      not copied or traced from a source artist. Inspect Wing, Breast, Foot and Eye
+      at close range without altering exports.
       Posed features and pencil deposition are deterministic. Technical tests do not certify
       feature-film illustration quality; review actual exports at full resolution.
     </p>
@@ -178,12 +178,12 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
 }
 
 export const IllustratedWildlife: StoryObj<typeof meta> = {
-  name:"Original songbird · Interactive drawing and performance",
+  name:"Kingfisher · ArtCraft drawing and performance",
   args:{scene:pencilWildlifeScene({aspect:"landscape"}),frame:285},
   render:()=> <WildlifeStudio/>,
 };
 export const FilmStageProof: StoryObj<typeof meta> = {
-  name:"Songbird · FD1 three-shot film proof",
+  name:"Kingfisher · FD1 three-shot film proof",
   args:{scene:pencilWildlifeScene({aspect:"landscape"}),frame:285},
   render:()=> <WildlifeStudio filmView/>,
 };
