@@ -163,6 +163,18 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       x.id.startsWith("hair-fiber-flow-")&&Number(x.id.split("-").pop())<9);
     expect(crownOther.every(x=>x.parentId==="hair-crown-surface"))
       .toBe(true);
+    // The smooth bright hairline is retained as a negative-control A/B,
+    // not silently promoted as physical crayon on the F1 artwork.
+    expect(d.filter(x=>x.id.startsWith("hair-rooted-left-")||
+      x.id.startsWith("hair-rooted-right-"))
+      .every(x=>x.kind==="contour"&&x.waxContact==="dry-wax"&&
+        x.waxPressure===.78)).toBe(true);
+    expect(d.filter(x=>x.id.startsWith("hair-rooted-crown-"))
+      .every(x=>x.kind==="contour"&&x.waxContact===undefined)).toBe(true);
+    const control=crayonCc0FaceStudy({detail:1,fiberMaterial:"line"});
+    expect(inspectCrayonScene(control)).toEqual([]);
+    expect(control.elements.filter(x=>x.id.startsWith("hair-rooted-"))
+      .every(x=>x.kind==="contour"&&x.waxContact===undefined)).toBe(true);
     const sparse=crayonCc0FaceStudy({detail:.5});
     expect(inspectCrayonScene(sparse)).toEqual([]);
     expect(sparse.elements.filter(x=>x.id.startsWith("hair-rooted-")))
@@ -211,5 +223,6 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(()=>crayonCc0FaceStudy({detail:0})).toThrow();
     expect(()=>crayonCc0FaceStudy({detail:1.3})).toThrow();
     expect(()=>crayonCc0FaceStudy({view:"freehand" as "wax"})).toThrow();
+    expect(()=>crayonCc0FaceStudy({fiberMaterial:"gloss" as "line"})).toThrow();
   });
 });
