@@ -1,6 +1,7 @@
 import {describe,it,expect} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
+import {crayonPaperTintedWaxBase} from "../registry/video/materials/crayon-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
 import {crayonDryNibPath,crayonMarks,crayonPaperHeight,crayonWaxContactClumps,crayonStrokeEndPickup} from "../registry/video/materials/crayon";
 import {crayonCc0NearEyeStudy} from "../src/video/crayon-artcraft-cc0-near-eye";
@@ -8,6 +9,26 @@ import {crayonPaperContactSwatches} from "../src/video/crayon-artcraft-paper-con
 import faceMeta,{SourceMeasuredCc0Eye,SourceMeasuredCc0EyePortrait}
   from "../src/video/crayon-artcraft-adult-face.stories";
 describe("Crayon pressure-and-paper contact material studies",()=>{
+  it("builds fully opaque, paper-tinted wax base rather than a flat pigment slab",()=>{
+    const paper="#f7ecd8",pigment="#c97455";
+    const light=crayonPaperTintedWaxBase(pigment,paper,.2);
+    const firm=crayonPaperTintedWaxBase(pigment,paper,.92);
+    expect(light).toMatch(/^#[0-9a-f]{6}$/);
+    expect(firm).toMatch(/^#[0-9a-f]{6}$/);
+    expect(light).not.toBe(firm);
+    const channel=(hex:string)=>parseInt(hex.slice(1,3),16);
+    expect(channel(light)).toBeGreaterThan(channel(firm));
+    expect(crayonPaperTintedWaxBase(pigment,paper,.2)).toBe(light);
+    expect(()=>crayonPaperTintedWaxBase("orange",paper,.6)).toThrow();
+    expect(()=>crayonPaperTintedWaxBase(pigment,paper,NaN)).toThrow();
+    const render=renderToStaticMarkup(<CrayonScene
+      spec={crayonPaperContactSwatches(.82)} frame={239}/>);
+    expect(render).toContain('data-km-crayon-paper-base=');
+    expect(render).toContain('data-km-crayon-underpaint="opaque"');
+    const control=renderToStaticMarkup(<CrayonScene
+      spec={crayonCc0NearEyeStudy("landscape",1,"smooth")} frame={299}/>);
+    expect(control).not.toContain('data-km-crayon-paper-base=');
+  });
   for(const pressure of [.2,.32,.72,1]){
     it("keeps all four material swatches solid at pressure "+pressure,()=>{
       const spec=crayonPaperContactSwatches(pressure,974);
