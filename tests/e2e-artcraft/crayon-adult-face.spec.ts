@@ -653,7 +653,7 @@ test("F1 source-rooted eyebrow wax vs unchanged wash, actual 3x Chromium",async(
   await page.setViewportSize({width:608,height:1082});
   const errors:string[]=[];
   page.on("pageerror",e=>errors.push(e.message));
-  const focus={focusX:265,focusY:481,zoom:3.05};
+  const focus={focusX:265,focusY:481,zoom:3};
   const shots:Uint8Array[]=[];
   for(const browForm of ["baseline","source-rooted"] as const){
     const original=crayonCc0FaceStudy({
