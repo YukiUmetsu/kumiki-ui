@@ -421,6 +421,9 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "minka", label: "Gassho house · snow, lit", params: { width: 220, style: "gassho", snow: 1, light: 1 }, y: 350 },
   { motif: "jizo", label: "Roadside jizō", params: { height: 120, count: 3, cap: true }, y: 340 },
   { motif: "komainu", label: "Komainu pair (a, un)", params: { height: 150, pair: true, gap: 330 }, y: 340 },
+  { motif: "castle", label: "Castle · white keep, walls, moat", params: { width: 400, tiers: 5 }, y: 306 },
+  { motif: "castle", label: "Castle · black, snow, night", params: { width: 420, tiers: 4, style: "black", snow: 1, night: 1 }, y: 306 },
+  { motif: "castle", label: "Castle keep alone (distance)", params: { width: 380, tiers: 3, walls: false }, y: 350 },
 ];
 
 export function MotifGallery() {
