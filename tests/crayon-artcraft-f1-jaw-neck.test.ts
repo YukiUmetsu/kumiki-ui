@@ -73,7 +73,8 @@ describe("ArtCraft v9 F1 photograph-grounded jaw/neck native wax",()=>{
     expect(neck.coverage).toBe("opaque");
     expect(neck.d).toContain("440 827");
     expect(neck.d).toContain("480 1091");
-    expect(neck.underpaintGradient?.shadow).toBe("#392d30");
+    expect(neck.underpaintGradient?.shadow).toBe("#35272b");
+    expect(neck.underpaintGradient?.focusY).toBeGreaterThan(.8);
     for(const id of ["neck-submandibular-cast","neck-cervical-turn"]){
       const e=get(id);
       if(e?.kind!=="wax")throw new Error("Missing jaw-rooted neck "+id);
