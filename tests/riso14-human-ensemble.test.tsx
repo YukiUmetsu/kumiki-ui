@@ -80,8 +80,10 @@ describe("RISO14 second authored human / joint-anchored exchange",()=>{
       expect(contact.propEnd.x).toBeCloseTo(contact.receiver.x,8);
       expect(contact.propEnd.y).toBeCloseTo(contact.receiver.y,8);
       expect(contact.source.x).not.toBe(contact.receiver.x);
-      expect(contact.sheet).toContain("M"+contact.source.x.toFixed(2));
-      expect(contact.sheet).toContain(contact.propEnd.x.toFixed(2));
+      // The physical paper contour is now rotated around both hand anchors.
+      // Its ink and knockout must use this one evaluated silhouette.
+      expect(contact.sheet).toBe(contact.printDetails.outline);
+      expect(contact.sheet).toMatch(/^M.+Z$/);
       expect(evaluateRisoHumanEnsemble(160,aspect)).toEqual(contact);
       evaluateRisoHumanEnsemble(198,aspect);
       expect(evaluateRisoHumanEnsemble(160,aspect)).toEqual(contact);
