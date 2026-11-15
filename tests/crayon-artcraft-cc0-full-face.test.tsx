@@ -5,6 +5,8 @@ import {crayonPaperTintedWaxBase} from "../registry/video/materials/crayon-react
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
 import {CRAYON_PORTRAIT_AUDIT}
   from "../src/video/crayon-artcraft-portrait-audit";
+import {CRAYON_F1_RECONSTRUCTED_OCULAR_IDS}
+  from "../src/video/crayon-artcraft-f1-ocular-geometry";
 import {CRAYON_F1_FACE_PROOF,CRAYON_F1_FACE_PARTS,
   CRAYON_F1_EYE_INSPECTION,crayonCc0FaceStudy} from "../src/video/crayon-artcraft-cc0-face";
 import meta,{Cc0RegisteredFullFace,crayonF1SourceCssCamera}
@@ -370,8 +372,24 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
         positions.indexOf(parent==="sclera-far"?"iris-far":"iris-near"));
       expect(baseline.elements.some(x=>x.id===id)).toBe(false);
     }
-    const untouched=candidate.elements.filter(e=>!ids.includes(e.id));
-    expect(untouched).toEqual(baseline.elements);
+    const reconstructed=new Set(CRAYON_F1_RECONSTRUCTED_OCULAR_IDS);
+    // Source-reconstruction is strictly local to the documented eye parts.
+    // Other facial wax, neck, hair, mouth, body and all frame timelines
+    // must remain bitwise-identical to the previous negative control.
+    const untouched=candidate.elements.filter(e=>
+      !ids.includes(e.id)&&!reconstructed.has(e.id));
+    const originalUntouched=baseline.elements.filter(e=>
+      !reconstructed.has(e.id));
+    expect(untouched).toEqual(originalUntouched);
+    for(const id of reconstructed){
+      const before=baseline.elements.find(e=>e.id===id);
+      const after=candidate.elements.find(e=>e.id===id);
+      expect(after).toBeDefined();
+      expect(after?.kind).toBe(before?.kind);
+      expect(after?.parentId).toBe(before?.parentId);
+      expect(after?.clipToParent).toBe(before?.clipToParent);
+      expect(after?.d).not.toBe(before?.d);
+    }
     expect(candidate.elements.length).toBe(baseline.elements.length+3);
     expect(inspectCrayonScene(candidate)).toEqual([]);
     expect(inspectCrayonScene(baseline)).toEqual([]);
@@ -396,8 +414,8 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     // evenly centered cartoon eye: the black iris is partially lid-held.
     expect(sclera.bounds.width).toBeLessThanOrEqual(116);
     expect(sclera.bounds.height).toBeLessThanOrEqual(59);
-    expect(iris.bounds.x).toBeGreaterThanOrEqual(240);
-    expect(iris.bounds.width).toBeLessThanOrEqual(43);
+    expect(iris.bounds.x).toBeGreaterThanOrEqual(237);
+    expect(iris.bounds.width).toBeLessThanOrEqual(49);
     expect(iris.bounds.height).toBeLessThanOrEqual(42);
     expect(pupil.bounds.width).toBeLessThanOrEqual(23);
     expect(pupil.bounds.width / iris.bounds.width).toBeLessThan(.58);
@@ -417,7 +435,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     const nearLashes=get("lash-contact-near");
     expect(nearLashes).toMatchObject({kind:"contour",
       parentId:"face-outline",clipToParent:true,
-      waxContact:"dry-wax",waxPressure:.56});
+      waxContact:"dry-wax",waxPressure:.49});
     if(nearLashes?.kind!=="contour")throw new Error("Missing near wax fibers");
     expect(nearLashes.d.match(/ M/g)?.length).toBeGreaterThanOrEqual(9);
     expect(nearLashes.d).not.toMatch(/[QqZz]/);
@@ -437,10 +455,12 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     const near=get("iris-near"),far=get("iris-far"),pupil=get("pupil-far");
     if(near?.kind!=="wax"||far?.kind!=="wax"||pupil?.kind!=="wax")
       throw new Error("Missing source F1 eye volume");
-    expect(far.bounds.width).toBeLessThan(near.bounds.width);
-    expect(far.bounds.width).toBeLessThanOrEqual(39);
-    expect(far.bounds.height).toBeLessThanOrEqual(35);
-    expect(pupil.bounds.width).toBeLessThanOrEqual(18);
+    // The photographed far iris is mostly dark under the hair curtain,
+    // not a small circular iris inside a large invented white ellipse.
+    expect(far.bounds.width).toBeGreaterThan(near.bounds.width);
+    expect(far.bounds.width).toBeLessThanOrEqual(63);
+    expect(far.bounds.height).toBeLessThanOrEqual(37);
+    expect(pupil.bounds.width).toBeLessThanOrEqual(22);
     for(const id of ["upper-lid-far","lower-lid-far",
       "upper-lid-crease-far","lower-lid-margin-far"]){
       expect(get(id)).toMatchObject({kind:"wax",
@@ -452,7 +472,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       coverage:"opaque",deposition:"stroke-built"});
     expect(get("lash-contact-far")).toMatchObject({kind:"contour",
       parentId:"face-outline",clipToParent:true,
-      waxContact:"dry-wax",waxPressure:.53});
+      waxContact:"dry-wax",waxPressure:.47});
     const layers=scene.elements.map(e=>e.id);
     expect(layers.indexOf("iris-far")).toBeLessThan(
       layers.indexOf("upper-lid-far"));
@@ -508,6 +528,45 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(e.width).toBeLessThan(.35);
       expect(e.opacity).toBeLessThanOrEqual(.55);
     }
+    expect(inspectCrayonScene(scene)).toEqual([]);
+  });
+  it("uses measured, non-mirrored source eyelid/iris geometry with true native wax root groups",()=>{
+    const scene=crayonCc0FaceStudy({eyeContact:"source-shade"});
+    const baseline=crayonCc0FaceStudy({eyeContact:"baseline"});
+    const find=(id:string)=>scene.elements.find(e=>e.id===id);
+    for(const side of ["near","far"] as const){
+      const sclera=find("sclera-"+side),iris=find("iris-"+side);
+      const lid=find("upper-lid-"+side),root=find("lash-root-"+side);
+      const eyelashes=find("lash-contact-"+side);
+      for(const e of [sclera,iris,lid,root]){
+        expect(e?.kind).toBe("wax");
+        if(e?.kind!=="wax")throw Error("Missing source wax anatomy");
+        expect(e.deposition).toBe("stroke-built");
+        expect(e.d).toMatch(/^M[0-9]+/);
+        expect(e.d).toMatch(/[CQ]/);
+      }
+      expect(eyelashes).toMatchObject({kind:"contour",
+        waxContact:"dry-wax",parentId:"face-outline",clipToParent:true});
+      if(eyelashes?.kind!=="contour")throw Error("No wax lash fibers");
+      const n=(eyelashes.d.match(/M[0-9]+/g)??[]).length;
+      expect(n).toBe(side==="near"?16:8);
+      expect((eyelashes.d.match(/C/g)??[]).length).toBe(n);
+      expect(eyelashes.waxPressure).toBeLessThan(.52);
+    }
+    const near=find("iris-near"),far=find("iris-far");
+    expect(near?.kind).toBe("wax");expect(far?.kind).toBe("wax");
+    if(near?.kind!=="wax"||far?.kind!=="wax")throw Error("Missing iris");
+    // Dark, oblique iris itself now occupies less invented eyeball white
+    // near the source's x240..282 and x408..463 photographic coordinates.
+    expect(near.bounds.x).toBeGreaterThanOrEqual(235);
+    expect(near.bounds.x+near.bounds.width).toBeLessThanOrEqual(290);
+    expect(far.bounds.x).toBeGreaterThanOrEqual(400);
+    expect(far.bounds.x+far.bounds.width).toBeLessThanOrEqual(472);
+    // Existing eyelashes are unaltered in a verifiable negative control.
+    expect(baseline.elements.find(e=>e.id==="lash-contact-near"))
+      .toMatchObject({kind:"contour",waxPressure:.56});
+    expect(baseline.elements.find(e=>e.id==="lash-contact-far"))
+      .toMatchObject({kind:"contour",waxPressure:.53});
     expect(inspectCrayonScene(scene)).toEqual([]);
   });
   it("feathers directional wax pigment contacts rather than clipping a polygonal orbital sticker",()=>{
