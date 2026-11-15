@@ -23,6 +23,7 @@
 - `ukiyoe-critters.ts`: crab, turtle, snake, frog, carp and octopus, and `animalScene()`.
 - `ukiyoe-temple.ts`: belfry, temple hall, gate, shrine, graves, stone lantern and hut, and `templeScene()`.
 - `ukiyoe-trees.ts`: bamboo, persimmon, the sacred tree and the face tree, and `treeScene()`.
+- `ukiyoe-heian.ts`: the Heian court (hair, cap, props, ox-cart, blinds, curtain screen, palace veranda) and `heianScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -324,6 +325,19 @@ Most women in the ghost stories look alive until the story turns, so they are fi
   - `reach` bends the lower branches down and forward like grasping arms with red-tipped fingers, for the vampire tree.
 - **`jinmenju`.** A tree whose fruit are laughing heads swaying on their stems, spread across the crown.
 - **`treeScene(kind)`.** Builds `kaguya` (the bamboo cutter finds the shining stalk), `persimmon` (the monkey up the tree, the crab below), `kodama` (the old couple appear from the sacred tree), `jubokko` (on an old battlefield) or `jinmenju`. Storybook **Trees** plays them, and the Motifs gallery has five tiles.
+
+### Heian court
+
+- **Hair `heian`.** Parted and falling straight down the back to the floor, pooling behind when kneeling, with cheek locks; in every view.
+- **Hat `kanmuri`.** The black court cap with its tail standing up behind.
+- **Props.** `shaku` (the noble's baton) and `hiogi` (the cypress fan with silk streamers).
+- **Looks.** `junihitoe(layers, outer)` gives a court lady: the figure's `layers` over red `hakama`, with Heian hair and the fan. `UKIYOE_HEIAN_LOOKS` has `lady`, `lady2`, `noble`, `courtier` and `attendant`.
+- **Motifs.**
+  - `gissha`: the black-lacquered ox-cart on great spoked wheels, which turn by `roll`, or by `travel` × keyed progress so they keep pace with the cart's keyed movement.
+  - `sudare`: a translucent bamboo blind with a brocade border and tassels, rolling up with `up`.
+  - `kicho`: a curtain screen whose silk panels stir.
+  - `shinden`: the palace veranda on posts, with railing, pillars, blinds and a cypress-bark roof. `part: back | front` puts a figure between the interior and the blinds; `rise` × keyed progress rolls the blinds up.
+- **`heianScene(kind)`.** Builds `veranda` (a lady behind the rising blinds, a noble bowing in the moonlit garden), `oxcart` or `chamber`. Storybook **Heian court** plays them, and the Motifs gallery has four tiles.
 
 ### Transition
 

@@ -19,19 +19,20 @@ import { BLADE, katana, mon, reachArm, saya, swordAt, swordGeometry, swordSmear 
 import { CLUB, clubAt, clubGeometry, groundCrack, kanabo, usesClub } from "./ukiyoe-oni";
 import { weaveBeat } from "./ukiyoe-interior";
 import type { UkiyoeGhostFace } from "./ukiyoe-onna";
+import { courtProp, heianHairSide, kanmuriSide } from "./ukiyoe-heian";
 import { arrow, kabutoSide, naginata, oyoroiSide, shootAt, yumi } from "./ukiyoe-bushi";
 import { ancientHairSide, kamiProp, magatama, riceBag, stole, zukin } from "./ukiyoe-kami";
 import { drawTool, firewood, hachiSide, kozuchi, onigiri, strikeBits, toolAt, toolBody, toolContact, treasure } from "./ukiyoe-folk";
 import { babyBundle, faceOutline, ghostFaceSide, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 
-export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild" | "hyogo" | "kamuro" | "wareshinobu" | "mizura" | "tenko";
-export type UkiyoeHat = "none" | "kasa" | "conical" | "eboshi" | "hood" | "headband" | "gotoku" | "hachi" | "zukin" | "kabuto";
-export type UkiyoeProp = "none" | "staff" | "umbrella" | "lantern" | "fan" | "pole" | "basket-pole" | "bundle" | "fishing-rod" | "scroll" | "pipe" | "kanabo" | "peach" | "parasol" | "maiogi" | "peony-lantern" | "baby" | "kozuchi" | "onigiri" | "firewood" | "mirror" | "tsurugi" | "hoko" | "tai" | "yumi" | "naginata";
+export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild" | "hyogo" | "kamuro" | "wareshinobu" | "mizura" | "tenko" | "heian";
+export type UkiyoeHat = "none" | "kasa" | "conical" | "eboshi" | "hood" | "headband" | "gotoku" | "hachi" | "zukin" | "kabuto" | "kanmuri";
+export type UkiyoeProp = "none" | "staff" | "umbrella" | "lantern" | "fan" | "pole" | "basket-pole" | "bundle" | "fishing-rod" | "scroll" | "pipe" | "kanabo" | "peach" | "parasol" | "maiogi" | "peony-lantern" | "baby" | "kozuchi" | "onigiri" | "firewood" | "mirror" | "tsurugi" | "hoko" | "tai" | "yumi" | "naginata" | "shaku" | "hiogi";
 export type UkiyoeBuild = "slim" | "average" | "stout" | "child" | "brute";
-export const UKIYOE_HAIRS: readonly UkiyoeHair[] = ["chonmage", "shimada", "child", "bald", "long", "elder", "topknot", "wild", "hyogo", "kamuro", "wareshinobu", "mizura", "tenko"];
-export const UKIYOE_HATS: readonly UkiyoeHat[] = ["none", "kasa", "conical", "eboshi", "hood", "headband", "gotoku", "hachi", "zukin", "kabuto"];
-export const UKIYOE_PROPS: readonly UkiyoeProp[] = ["none", "staff", "umbrella", "lantern", "fan", "pole", "basket-pole", "bundle", "fishing-rod", "scroll", "pipe", "kanabo", "peach", "parasol", "maiogi", "peony-lantern", "baby", "kozuchi", "onigiri", "firewood", "mirror", "tsurugi", "hoko", "tai", "yumi", "naginata"];
+export const UKIYOE_HAIRS: readonly UkiyoeHair[] = ["chonmage", "shimada", "child", "bald", "long", "elder", "topknot", "wild", "hyogo", "kamuro", "wareshinobu", "mizura", "tenko", "heian"];
+export const UKIYOE_HATS: readonly UkiyoeHat[] = ["none", "kasa", "conical", "eboshi", "hood", "headband", "gotoku", "hachi", "zukin", "kabuto", "kanmuri"];
+export const UKIYOE_PROPS: readonly UkiyoeProp[] = ["none", "staff", "umbrella", "lantern", "fan", "pole", "basket-pole", "bundle", "fishing-rod", "scroll", "pipe", "kanabo", "peach", "parasol", "maiogi", "peony-lantern", "baby", "kozuchi", "onigiri", "firewood", "mirror", "tsurugi", "hoko", "tai", "yumi", "naginata", "shaku", "hiogi"];
 export const UKIYOE_BUILDS: readonly UkiyoeBuild[] = ["slim", "average", "stout", "child", "brute"];
 
 export interface UkiyoeFigureLook {
@@ -502,9 +503,12 @@ const FACE3: Pt[] = [
 function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: number, wind: number, frame: number, seed: number, tq = false): Prim[] {
   const P = (x: number, y: number): Pt => [x * k, y * k];
   const out: Prim[] = [], lw = lineW(H) * .85, skin = look.skin ?? "hada", hairC = look.hairColor ?? (look.hair === "elder" ? "usuzumi" : "sumi");
-  const hair = look.hair ?? "chonmage", female = hair === "shimada" || hair === "long" || hair === "hyogo" || hair === "kamuro" || hair === "wareshinobu";
+  const hair = look.hair ?? "chonmage", female = hair === "shimada" || hair === "long" || hair === "hyogo" || hair === "kamuro" || hair === "wareshinobu" || hair === "heian" || hair === "tenko";
   const hyogo = hair === "hyogo" ? hyogoSide(P, k, lw, hairC, look.accent ?? "shu", tq) : hair === "wareshinobu" ? wareshinobuSide(P, k, lw, hairC, look, tq, wind * .8 + Math.sin(frame / 9 + seed) * .35) : undefined;
   if (hyogo) out.push(...hyogo.behind);
+  // Heian hair falls straight to the floor (head units: k px each; the feet are about H below the head) and pools when kneeling.
+  const heian = hair === "heian" ? heianHairSide(P, lw, hairC, (H * lerp(.86, .52, pose.kneel)) / k, pose.kneel, wind * 6 + Math.sin(frame / 25 + seed)) : undefined;
+  if (heian) out.push(...heian.behind);
   // Long hair falls behind the head and blows in the wind.
   if (hair === "long") {
     const sway = wind * 10 + Math.sin(frame / 20 + seed) * 2;
@@ -578,6 +582,7 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
     case "hyogo": case "wareshinobu": out.push(...hyogo!.over); break;
     case "kamuro": out.push(...kamuroSide(P, k, lw, hairC, look.accent ?? "beni")); break;
     case "mizura": case "tenko": out.push(...ancientHairSide(hair, P, k, lw, hairC, look.accent ?? "shu")); break;
+    case "heian": out.push(...heian!.over); break;
   }
   if (look.face === "oni") {
     // Glaring round eye, heavy brow, flared nostril, fangs; horns break through the hair.
@@ -600,6 +605,7 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
   if (look.hat === "hachi") out.push(...hachiSide(P, lw));
   if (look.hat === "zukin") out.push(...zukin(P, lw));
   if (look.hat === "kabuto") out.push(...kabutoSide(P, k, lw, look.armor ?? "beni"));
+  if (look.hat === "kanmuri") out.push(...kanmuriSide(P, lw));
   // Hats.
   const hat = look.hat ?? "none", hatC = look.hatColor ?? (hat === "eboshi" ? "sumi" : hat === "hood" ? "ai" : "kincha");
   if (hat === "kasa" || hat === "conical") {
@@ -661,6 +667,7 @@ function propPrims(look: UkiyoeFigureLook, pose: FigurePose, s: Skeleton, wind: 
       case "onigiri": out.push(...onigiri([w[0] + H * .015, w[1] - H * .02], H * .03, lw)); break;
       case "mirror": case "tsurugi": case "hoko": case "tai": out.push(...kamiProp(prop, w, H, lw, frame)); break;
       case "naginata": out.push(...naginata(w, -55, H, lw)); break;
+      case "shaku": case "hiogi": out.push(...courtProp(prop, w, H, lw, frame)); break;
       case "kozuchi": {
         // Held up by the handle, pointing on along the forearm; shaken, it pours out treasure.
         const a = Math.atan2(w[1] - s.elF[1], w[0] - s.elF[0]) / DEG;

@@ -41,6 +41,8 @@ import type { UkiyoeTempleScene } from "../../registry/video/ukiyoe/ukiyoe-templ
 import { templeScene, UKIYOE_TEMPLE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-temple";
 import type { UkiyoeTreeScene } from "../../registry/video/ukiyoe/ukiyoe-trees";
 import { treeScene, UKIYOE_TREE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-trees";
+import type { UkiyoeHeianScene } from "../../registry/video/ukiyoe/ukiyoe-heian";
+import { heianScene, UKIYOE_HEIAN_SCENES } from "../../registry/video/ukiyoe/ukiyoe-heian";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -476,6 +478,10 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "shinboku", label: "Sacred tree · shimenawa", params: { height: 340 }, y: 370 },
   { motif: "shinboku", label: "Jubokko · face, reaching", params: { height: 340, face: 1, reach: 1, rope: false, color: "kogecha" }, y: 370 },
   { motif: "jinmenju", label: "Jinmenju · laughing heads", params: { height: 330 }, y: 370 },
+  { motif: "gissha", label: "Ox-cart (gissha)", params: { width: 300 }, y: 350 },
+  { motif: "sudare", label: "Bamboo blind, half up", params: { width: 200, height: 260, up: .5 }, y: 60 },
+  { motif: "kicho", label: "Curtain screen (kichō)", params: { width: 260, height: 290 }, y: 350 },
+  { motif: "shinden", label: "Palace veranda", params: { width: 480, height: 300, bays: 3, up: .3 }, y: 360 },
 ];
 
 export function MotifGallery() {
@@ -902,6 +908,30 @@ export function Trees() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={TREE_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Tree frame" />
+  </div>;
+}
+
+// ---- Heian court ------------------------------------------------------------------------------------------------------------------
+
+const HEIAN_LABELS: Readonly<Record<UkiyoeHeianScene, string>> = { veranda: "Behind the blinds, by moonlight", oxcart: "The ox-cart on the road", chamber: "Court ladies by a curtain screen" };
+
+/** The Heian court: layered robes, the court cap, blinds and screens, the palace veranda, the ox-cart. */
+export function HeianCourt() {
+  const [kind, setKind] = useState<UkiyoeHeianScene>("veranda");
+  const spec = useMemo(() => heianScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Heian court" title="Twelve layers, the court cap, blinds and the ox-cart">
+      <p style={{ margin: 0 }}>After the Tosa <em>Evening Face</em>, Hokusai's <em>Court Lady</em> and the Genji scroll. Court ladies wear their
+        <code>layers</code> over red hakama with <code>heian</code> hair falling to the floor and the <code>hiogi</code> fan; nobles the
+        <code>kanmuri</code> and the <code>shaku</code>. The <code>shinden</code> veranda splits into back and front so a lady sits behind its
+        translucent <code>sudare</code> as they roll up; the <code>gissha</code>'s wheels turn with its keyed travel.</p>
+    </Header>
+    <section aria-label="Heian controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={UKIYOE_HEIAN_SCENES} onChange={setKind} labels={HEIAN_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={HEIAN_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Heian frame" />
   </div>;
 }
 
