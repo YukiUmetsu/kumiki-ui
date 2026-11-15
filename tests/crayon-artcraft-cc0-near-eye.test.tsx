@@ -3,7 +3,7 @@ import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {crayonPaperTintedWaxBase} from "../registry/video/materials/crayon-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
-import {crayonDryNibPath,crayonMarks,crayonPaperHeight,crayonWaxContactClumps,crayonStrokeEndPickup} from "../registry/video/materials/crayon";
+import {crayonDryNibPath,crayonMarks,crayonPaperHeight,crayonWaxContactClumps,crayonStrokeEndPickup,crayonStableNibStops} from "../registry/video/materials/crayon";
 import {crayonCc0NearEyeStudy} from "../src/video/crayon-artcraft-cc0-near-eye";
 import {crayonPaperContactSwatches} from "../src/video/crayon-artcraft-paper-contact-fixtures";
 import faceMeta,{SourceMeasuredCc0Eye,SourceMeasuredCc0EyePortrait}
@@ -120,6 +120,35 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
     expect(a.length).toBeLessThan(75000);
     expect(()=>crayonDryNibPath(mark,1,"hand",NaN)).toThrow();
   });
+  it("locks previous fiber contacts while the wax nib advances over real paper",()=>{
+    const lo=.05,hi=.92;
+    const first=crayonStableNibStops(lo,hi,.4);
+    const next=crayonStableNibStops(lo,hi,.56);
+    const complete=crayonStableNibStops(lo,hi,1);
+    // Every previously completed station survives a forward seek byte-for-byte;
+    // the final sample is the temporary moving front, not a previous deposit.
+    expect(first.at(-1)).toBe(.4);
+    expect(next.at(-1)).toBe(.56);
+    expect(next.slice(0,first.length-1)).toEqual(first.slice(0,-1));
+    expect(complete.slice(0,next.length-1)).toEqual(next.slice(0,-1));
+    expect(complete.at(-1)).toBe(hi);
+    expect(crayonStableNibStops(lo,hi,0)).toEqual([]);
+    expect(()=>crayonStableNibStops(1,.5,.2)).toThrow();
+    expect(()=>crayonStableNibStops(lo,hi,NaN)).toThrow();
+    expect(()=>crayonStableNibStops(lo,hi,1.2)).toThrow();
+    // Partial and complete wax are deterministic, with no legacy regression.
+    const source=crayonMarks({x:0,y:0,width:85,height:45},
+      {seed:448,pressure:.9,spacing:8,passes:1})[0];
+    const mark={...source,nibArcs:[source.nibArcs[0]]};
+    const a=crayonDryNibPath(mark,.4,"hand",974);
+    const b=crayonDryNibPath(mark,.56,"hand",974);
+    expect(a).toBe(crayonDryNibPath(mark,.4,"hand",974));
+    expect(b).not.toBe(a);
+    expect(b).toBe(crayonDryNibPath(mark,.56,"hand",974));
+    expect(crayonDryNibPath(mark,1,"legacy",974))
+      .toBe(crayonDryNibPath(mark,1,"legacy",975));
+  });
+
   it("models pressure-worn side-of-crayon contacts without changing legacy nibs",()=>{
     const mark=crayonMarks({x:0,y:0,width:85,height:45},
       {seed:448,pressure:.63,spacing:8,passes:1})[0];
