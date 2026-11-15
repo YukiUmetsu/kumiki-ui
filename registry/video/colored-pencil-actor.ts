@@ -94,7 +94,7 @@ export function inspectPencilActors(actors: readonly PencilActorSpec[]): string[
           for (const [index, track] of part.detailTracks.entries()) {
             const place = here + ".detailTracks[" + index + "]";
             if (!track || typeof track !== "object" ||
-              typeof track.id !== "string" || !/^[A-Za-z][\\w-]{0,40}$/.test(track.id) ||
+              typeof track.id !== "string" || !/^[A-Za-z][\w-]{0,40}$/.test(track.id) ||
               detailNames.has(track.id) || !sourceIds.has(track.id))
               issues.push(place + ".id: unique identifier must match an authored detail trace.");
             if (track?.id) detailNames.add(track.id);
