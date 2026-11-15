@@ -12,6 +12,7 @@
  * lighter/less-saturated chromatic pencil.
  */
 import { pencilHash } from "../../registry/video/colored-pencil";
+import { createPencilFlowField } from "./colored-pencil-flow-field";
 
 export interface PencilPhotoPixels {
   width:number;
