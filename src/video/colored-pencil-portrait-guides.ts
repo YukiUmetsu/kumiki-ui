@@ -148,9 +148,9 @@ export function createPencilPortraitFeatureMarks(
   // Anatomy first: independent upper/lower iris rims, without a full
   // black almond outline around the sclera.
   curve("near-eye-upper","eyeNearLeft","eyeNearCenter","eyeNearRight",
-    1.2,.32,.43,0,.43);
+    .88,.42,.76,0,.43);
   curve("far-eye-upper","eyeFarLeft","eyeFarCenter","eyeFarRight",
-    1.1,.25,.38,0,.40);
+    .90,.38,.68,0,.40);
   // Fine root-aligned eyebrow fibres; no rectangular dark brow patches.
   const brow=(name:string,start:PortraitFeatureName,peak:PortraitFeatureName,
     end:PortraitFeatureName,amount:number)=>{
@@ -161,7 +161,7 @@ export function createPencilPortraitFeatureMarks(
       const length=1.8+2.9*pencilHash(seed,i+amount,71);
       const sep=(pencilHash(seed,i+amount,72)-.5)*2.2;
       add(name,p[0],p[1]+sep,Math.cos(theta)*length,
-        Math.sin(theta)*length,.23,.30,2,.30,i+amount);
+        Math.sin(theta)*length,.36,.71,2,.36,i+amount);
     }
   };
   brow("brow-near-fibres","browNearLeft","browNearMiddle","browNearRight",94);
@@ -179,20 +179,20 @@ export function createPencilPortraitFeatureMarks(
       const x=center[0]+Math.cos(theta)*rx*.54;
       const y=center[1]+Math.sin(theta)*ry*.54;
       add(id,x,y,Math.cos(theta)*rx*.32,Math.sin(theta)*ry*.32,
-        .19,.22,2,.45,i+1000);
+        .31,.55,2,.45,i+1000);
     }
   }
   // Directional, soft nasal-plane and alar marks follow the actual
   // photographed curvature, not a white pointed triangle.
   curve("nose-alar-near","noseBridge","noseAlaNear","noseTip",
-    2.3,.14,.30,1,.16);
+    1.8,.25,.55,1,.20);
   curve("nose-alar-far","noseBridge","noseAlaFar","noseTip",
-    2.8,.10,.27,1,.12);
+    1.9,.20,.48,1,.16);
   // Separately traced vermilion curves, plus short vertical lip grains.
   curve("lip-top","lipLeft","lipCupid","lipRight",
-    1.5,.24,.36,0,.31);
+    1.1,.34,.68,0,.36);
   curve("lip-bottom","lipLeft","lipLower","lipRight",
-    1.5,.20,.31,0,.30);
+    1.1,.29,.60,0,.34);
   const l=guides.lipLeft,r=guides.lipRight,upper=guides.lipCupid,
     lower=guides.lipLower;
   for(let i=0;i<100;i++){
@@ -203,7 +203,7 @@ export function createPencilPortraitFeatureMarks(
     const centerY=mix(midY,lowY,.38+.18*pencilHash(seed,i,80));
     const length=clamp(Math.abs(lowY-midY)*.3,1,4.5);
     add("lip-grain",x,centerY,(pencilHash(seed,i,81)-.5)*.5,
-      length,.10,.28,2,.18,i+2200);
+      length,.24,.52,2,.23,i+2200);
   }
   // Crosshatched form, not just contours: gentle colour-pencil strokes follow
   // each actual photographed cheek/forehead/nasal/chin plane. A photo-local
@@ -216,15 +216,15 @@ export function createPencilPortraitFeatureMarks(
   const scale=clamp(eyeDistance/79,.18,4);
   const planes=[
     {name:"form-cheek-left",center:guides.cheekLeft,rx:55,ry:51,
-      angle:-.32,count:1450},
+      angle:-.32,count:4050},
     {name:"form-cheek-right",center:guides.cheekRight,rx:23,ry:37,
-      angle:-.66,count:460},
+      angle:-.66,count:1180},
     {name:"form-forehead",center:guides.forehead,rx:52,ry:34,
-      angle:.18,count:1120},
+      angle:.18,count:3150},
     {name:"form-chin",center:guides.chin,rx:44,ry:19,
-      angle:.34,count:510},
+      angle:.34,count:1350},
     {name:"form-nose",center:guides.noseTip,rx:17,ry:26,
-      angle:-1.29,count:520},
+      angle:-1.29,count:1450},
   ] as const;
   for(const [planeIndex,plane] of planes.entries()){
     const center=plane.center;
@@ -253,15 +253,15 @@ export function createPencilPortraitFeatureMarks(
       if(material<.19)continue;
       const lum=(.2126*source.data[pixel]+.7152*source.data[pixel+1]+
         .0722*source.data[pixel+2])/255;
-      const pencilPressure=.065+.125*Math.pow(1-lum,.66);
+      const pencilPressure=.16+.28*Math.pow(1-lum,.66);
       const heading=plane.angle+fy*.43+fx*.16+
         (pencilHash(seed,j,145)-.5)*.36;
-      const length=(2.4+2.8*pencilHash(seed,j,146))*scale;
+      const length=(3.2+4.5*pencilHash(seed,j,146))*scale;
       const dx=Math.cos(heading)*length;
       const dy=Math.sin(heading)*length;
       add(plane.name,x,y,dx,dy,pencilPressure*material,
-        .22+.16*pencilHash(seed,j,147),i%3===0?1:2,
-        .12+.16*(1-lum),j);
+        .58+.34*pencilHash(seed,j,147),i%3===0?1:2,
+        .20+.22*(1-lum),j);
     }
   }
   return {sampledSourceFeatures:guides,marks,featureCounts:counts};
