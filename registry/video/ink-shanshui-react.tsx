@@ -98,22 +98,31 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
         <path data-km-shanshui-ridge-contour={band} d={ridgePath(stations)}
           fill={"url(#"+([ids.far,ids.mid,ids.near][band])+")"}
           stroke={band===2?"#816b51":"#ac9070"} strokeWidth={band===2?.85:.55}/>
-        {/* Classical rock grammar: broken hemp-fibre strokes follow rounded
-            flanks; short side-brush axe cuts mark steeper cliff planes.
-            Both root at the EXACT painted contour and reserve fog gaps. */}
+        {/* Reference-led rock painting: cluster different brush pressures
+            over local geology. Leave quiet paper between texture families,
+            rather than repeating parallel grooves across all the mountains. */}
         {Array.from({length:count},(_,i)=>{
-          const x=-22+1000*s(seed+band*1201,i*3+3);
+          const centers=band===0?[80,250,570,740,900]:[70,210,350,560,720,890];
+          const pocket=i%centers.length;
+          const x=centers[pocket]+
+            (s(seed+band*1201,i*13+3)-.5)*80+
+            (s(seed+band*79,pocket*3+11)-.5)*12;
           const crest=ridgeHeight(stations,x);
           const y=crest+5+11*s(seed+5,i*19+band);
           const slope=(ridgeHeight(stations,x+14)-ridgeHeight(stations,x-14))/28;
-          const length=(band===0?27:band===1?53:77)*
+          const rawLength=(band===0?27:band===1?53:77)*
             (.32+.73*s(seed+19,i*7+band));
-          const dx=-17+42*s(seed+29,i*5+band)+clamp(slope*13,-13,13);
+          const short=i%4===1||i%5===0;
+          const length=rawLength*(short?.52:1);
+          const dx=clamp(slope*length*.54+
+            (s(seed+29,i*5+band)-.5)*length*.3,
+            -length*.56,length*.56);
           const opacity=(.18+.47*s(seed+8,i*11+band))*(1-.55*mist);
-          const axe=band>0&&Math.abs(slope)>.68&&
-            s(seed+band*47,i*13+19)>.45;
+          const axe=band>0&&Math.abs(slope)>.5&&
+            s(seed+band*47,i*13+19)>.29;
+          const style=axe?"side-axe":short?"short-hemp":"long-hemp";
           const side=(slope>=0?1:-1)*(4+4*s(seed+9,i*5+27));
-          const cut=length*.52;
+          const cut=length*.67;
           const d=axe
             ?"M"+f(x)+" "+f(y)+
               " Q"+f(x+side*.2)+" "+f(y+cut*.05)+
@@ -123,19 +132,41 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
               " "+f(x+side*.11)+" "+f(y+cut*.57)+
               " Q"+f(x-side*.25)+" "+f(y+cut*.34)+
               " "+f(x)+" "+f(y)+" Z"
-            :"M"+f(x)+" "+f(y)+" Q"+f(x+dx*.28)+" "+f(y+length*.3)+
-              " "+f(x+dx*.62)+" "+f(y+length*.63)+
-              " T"+f(x+dx)+" "+f(y+length);
-          return <path key={i} data-km-shanshui-cunfa=""
-            data-km-cunfa-kind={axe?"axe":"hemp"}
-            data-km-cunfa-crest-y={f(crest)} data-km-cunfa-root-y={f(y)}
-            d={d} fill={axe?INK:"none"} stroke={axe?"none":band===2?INK:STONE}
-            strokeWidth={f(width*(.48+s(seed+11,i+band)))}
-            strokeLinecap="round" opacity={f(opacity*(axe?.77:1))}/>;
+            :short
+            ?"M"+f(x)+" "+f(y)+
+              " Q"+f(x+dx*.15+2)+" "+f(y+length*.3)+
+              " "+f(x+dx*.48)+" "+f(y+length*.53)+
+              " M"+f(x+dx*.59)+" "+f(y+length*.64)+
+              " Q"+f(x+dx*.74-2)+" "+f(y+length*.85)+
+              " "+f(x+dx)+" "+f(y+length)
+            :"M"+f(x)+" "+f(y)+
+              " C"+f(x+dx*.11-2)+" "+f(y+length*.22)+
+              " "+f(x+dx*.44+3)+" "+f(y+length*.35)+
+              " "+f(x+dx*.52)+" "+f(y+length*.57)+
+              " S"+f(x+dx*.82-3)+" "+f(y+length*.87)+
+              " "+f(x+dx)+" "+f(y+length);
+          const lift="M"+f(x+dx*.22+1)+" "+f(y+length*.27)+
+            " Q"+f(x+dx*.52+1.5)+" "+f(y+length*.46)+
+            " "+f(x+dx*.75)+" "+f(y+length*.7);
+          return <g key={i} data-km-shanshui-cunfa="">
+            <path data-km-cunfa-kind={axe?"axe":"hemp"}
+              data-km-cunfa-style={style}
+              data-km-cunfa-crest-y={f(crest)} data-km-cunfa-root-y={f(y)}
+              data-km-cunfa-root-x={f(x)} d={d}
+              fill={axe?INK:"none"} stroke={axe?"none":band===2?INK:STONE}
+              strokeWidth={f(width*(.49+s(seed+11,i+band)*.7))}
+              strokeLinecap="round" opacity={f(opacity*(axe?.77:1))}/>
+            {i%3===0&&<path data-km-cunfa-dry-brush=""
+              d={lift} fill="none" stroke="#e0cbb0"
+              strokeWidth={f(.3+width*.28)} opacity={f(opacity*.44)}/>}
+          </g>;
         })}
         {/* Moss dots cling to the actual crest rather than being random screen confetti. */}
         {Array.from({length:Math.round((band===2?52:22)*detail)},(_,i)=>{
-          const x=18+915*s(seed+band*31,i*3+97);
+          const centers=band===0?[80,250,570,740,900]:[70,210,350,560,720,890];
+          const pocket=i%centers.length;
+          const x=centers[pocket]+
+            (s(seed+band*31,i*3+97)-.5)*89;
           const y=ridgeHeight(stations,x)+3+10*s(seed+band*51,i+119);
           return <ellipse key={i} cx={f(x)} cy={f(y)}
             rx={f(.65+1.9*s(seed,i*13+band))}
