@@ -271,6 +271,26 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("keeps fox chest and throat curves connected without cardboard spikes or cartoon eye outline",()=>{
+    const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
+    const parts=new Map(drawing.regions.map(region=>[region.id,region]));
+    const chest=parts.get("chest")!;
+    const throat=parts.get("neck-ruff")!;
+    for(const plane of [chest,throat]){
+      // Form boundaries follow the irregular living pelt: short joined
+      // curvatures instead of folded sharp-corner polygon stickers.
+      expect((plane.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(7);
+      expect((plane.path.match(/ L/g)??[]).length).toBeLessThanOrEqual(1);
+      expect(plane.craft?.kind).toBe("fur");
+    }
+    const eye=parts.get("eye-near")!;
+    // A shaded iris is drawn inside independently articulated upper/lower
+    // lids; the all-around contour should not outline a complete circle.
+    expect(eye.contour.opacity??1).toBeLessThanOrEqual(.23);
+    expect(eye.details?.some(trace=>
+      trace.color==="#242632"&&trace.opacity!==undefined&&trace.opacity>.9)).toBe(true);
+  });
+
   it("renders original CP-F1 fox anatomy from authored pencil vectors with zero photo pixels",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     expect(drawing.foundation?.subject).toBe("wildlife");
