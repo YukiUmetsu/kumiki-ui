@@ -145,6 +145,27 @@ for(const sample of ["woman","man"] as const){
         expect(await output.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
+        // Physical pencil tooth must remain a paper-native operation.
+        // Compare exactly the same licensed CC0 source, original mark
+        // geometry, and four-shot paper construction at 0 and 100%.
+        const nib=page.getByLabel("Pencil dry paper tooth contact");
+        await expect(nib).toHaveValue("0.75");
+        await nib.focus();
+        await nib.press("Home");
+        await expect(nib).toHaveValue("0");
+        await expect(full).toHaveAttribute("data-km-pencil-dry-contact","0");
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-smooth-vector-tooth-0.png")});
+        await nib.press("End");
+        await expect(nib).toHaveValue("1");
+        await expect(full).toHaveAttribute("data-km-pencil-dry-contact","1");
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-broken-contact-tooth-100.png")});
+        // Changing only the research material cannot alter normal movie
+        // output from the original photo-to-pencil rendering pipeline.
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Actual licensed source, ALL four chronologically composited
         // Storybook shots. Stage 1..4 must contain increasing genuine
         // pencil marks; the exported film bitmap must not be affected.
