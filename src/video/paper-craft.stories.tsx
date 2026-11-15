@@ -240,6 +240,11 @@ export const PaperCraftKingfisherReferenceRebuild: Story = {
   args:{artwork:"object",object:"kingfisher",objectPalette:"jewel",detail:1,
     curl:1,relief:1,motion:.35,frame:215,shadow:.96,edge:.65,seed:37},
 };
+export const PaperCraftKingfisherVaneCutwork: Story = {
+  name:"Paper Craft · Kingfisher Fine Vane Cutwork",
+  args:{artwork:"object",object:"kingfisher",objectPalette:"jewel",detail:1,
+    curl:1,relief:1,motion:.25,medium:"layered",frame:218,shadow:1,edge:.82,seed:37},
+};
 export const PaperCraftKingfisherReferencePortrait: Story = {
   name:"Paper Craft · Kingfisher Anatomy Portrait",
   args:{artwork:"object",object:"kingfisher",objectPalette:"jewel",detail:1,
