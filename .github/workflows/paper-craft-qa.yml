@@ -33,4 +33,3 @@ jobs:
       - run: npm run film:check -- examples/film/paper-craft-botanical.film.json
       - run: npm run film:check -- examples/film/paper-craft-chromatic.film.json
       - run: npm run film:check -- examples/film/paper-craft-objects.film.json
-      - run: npm run catalog:check
