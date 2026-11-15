@@ -1183,6 +1183,48 @@ Storybook has **Realms**, and the Motifs gallery has five tiles.
 - Yomi's hags do not pursue.
 - Nobody has done a human visual review yet.
 
+## Processions and parades (folktale queue F16, 2026-11-15)
+
+**Sources**:
+
+- Mochizuki Gyokusen's *Copy of Night Parade of One Hundred Demons from the Shinjuan Collection* (Met 816210, CC0);
+- the inrō *Case with Design of Fox Wedding Procession in Rain* (Met 58612, CC0);
+- Yamamoto Shōun's *Fox wedding procession* (Wikimedia Commons, public domain).
+
+**What they show.**
+
+- **The night parade.** Oni, beasts and household objects stride and dance one after another across the scroll. Each
+  figure is spaced by its own size. There is no ground line, only the order of the march.
+- **The fox weddings.** Foxes walk upright in kimono. One carries a lantern on a pole, and two carry the bride's
+  palanquin on a pole between them. Rain slants across the whole scene.
+- **Shōun's print.** Foxes in haori and hakama walk in a line with paper lanterns, heads level.
+
+**What was built.** `ukiyoe-parade.ts`:
+- animal heads and tails for figures (`look.animal`);
+- the `kago` palanquin;
+- `procession()`;
+- `paradeScene()`: three parades.
+
+Storybook has **Parades**.
+
+**Review rounds.**
+
+1. **First sheet.** The night parade bunched up and members overlapped; `procession()` now spaces each member by its
+   width plus a gap.
+2. **Palanquin drift.** The kago's keys eased in and out while the walks ran at a constant pace, so the box slid off its
+   pole between the bearers. Its keys are now linear, with the walk's short acceleration at each end.
+3. **Travel units.** Figure and creature travel is in scene pixels, not scaled with the member. The parade divided
+   travel by scale, so the bearers lagged 230 px behind the palanquin by frame 300. Fixed and checked on a still at frame
+   300: the box hangs between its two bearers.
+
+**Not done.**
+
+- The bearers' hands do not grip the pole.
+- The mouse wedding has no trousseau chest.
+- The sunshower has rain but no rainbow, and the sun does not light the drops.
+- The night parade has no dancing or hopping beyond the umbrella.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

@@ -19,6 +19,8 @@ import { BLADE, katana, mon, reachArm, saya, swordAt, swordGeometry, swordSmear 
 import { CLUB, clubAt, clubGeometry, groundCrack, kanabo, usesClub } from "./ukiyoe-oni";
 import { weaveBeat } from "./ukiyoe-interior";
 import type { UkiyoeGhostFace } from "./ukiyoe-onna";
+import type { UkiyoeAnimalHead } from "./ukiyoe-parade";
+import { ANIMAL_FUR, animalHeadSide, animalTail } from "./ukiyoe-parade";
 import { armEyes, gourdSide, minoSide, sandSpray, throwPose, zaru } from "./ukiyoe-folkyokai";
 import { courtProp, heianHairSide, kanmuriSide } from "./ukiyoe-heian";
 import { arrow, kabutoSide, naginata, oyoroiSide, shootAt, yumi } from "./ukiyoe-bushi";
@@ -68,6 +70,8 @@ export interface UkiyoeFigureLook {
   beads?: boolean;
   /** Daikoku's rice bag over the shoulder. */
   bag?: boolean;
+  /** An animal walking as a person (the fox and mouse weddings): its head, fur-coloured hands and its tail. */
+  animal?: UkiyoeAnimalHead;
   /** A straw rain cape (mino) over the shoulders and back. */
   mino?: boolean;
   /** Eyes opening along the forearms and hands (Dodomeki). */
@@ -610,6 +614,8 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
       out.push({ t: "stroke", d: [-19, -22, -25].map(y => `M${((x0 - 2) * k).toFixed(1)} ${(y * k).toFixed(1)}l${(4 * k).toFixed(1)} ${(-.6 * k).toFixed(1)}`).join(""), color: "kincha", width: .8 });
     }
   }
+  // An animal's head replaces the face and hair altogether.
+  if (look.animal) { out.length = 0; out.push(...animalHeadSide(look.animal, P, lw, pose.blink > .5)); }
   // The second mouth opens in the back of the head, over the hair.
   if (ghost === "futakuchi") out.push(...ghostFaceSide(ghost, pose.reveal, P, k, lw, skin, pose.mouth, frame, seed, tq, outline));
   if (look.hat === "gotoku") out.push(...gotokuCrown(P, k, lw, frame, seed));
@@ -762,7 +768,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   const H = figureHeight(spec.look), build = spec.look.build ?? "average";
   const pose = figurePose(spec, frame, seed, H), prev = figurePose(spec, frame - 2, seed, H);
   // A skeleton revealed: the hands go to bone with the face.
-  const look: UkiyoeFigureLook = spec.look.face === "skull" && pose.reveal > .6 ? { ...spec.look, skin: "paper" } : spec.look;
+  const look: UkiyoeFigureLook = spec.look.face === "skull" && pose.reveal > .6 ? { ...spec.look, skin: "paper" } : spec.look.animal ? { ...spec.look, skin: ANIMAL_FUR[spec.look.animal] } : spec.look;
   // Square to the viewer, front or back: a symmetric drawing driven by the same pose (see ukiyoe-figure-front).
   if (look.view === "front" || look.view === "back") {
     const tr0 = travelAt(spec.actions ?? [], frame);
@@ -858,6 +864,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
 
   // Back prop and back arm.
   const propLook = club ? { ...look, prop: "none" as const } : look;
+  if (look.animal) out.push(...animalTail(look.animal, add(s.waistB, [-H * .02, H * .02]), H, lw, frame, wl, !!tr.moving));
   // The hagoromo streams behind the body, stretched out when flying.
   if (look.stole) out.push(...stole(s.shF, s.shB, H, look.stole, frame, tr.moving?.type === "fly" ? 1 : tr.moving ? .4 : .1, wl, lw, seed));
   out.push(...propPrims(propLook, pose, s, wl, frame, "back"));
