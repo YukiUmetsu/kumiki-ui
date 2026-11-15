@@ -21,6 +21,11 @@ The pear's cast-shadow, paper rubbing and contact umbra are now positioned
 from the physical painted lower-contour coordinate (local y≈180 transformed by
 placement), replacing an independently guessed height percentage. Regression
 checks assert world-space contact in both 960×540 and 540×960 source films.
+The first browser contact crops showed an over-regular brown oval beneath the
+fruit; its open-wax paper rubbing was reduced, and the cast-shadow penumbra
+was reshaped and feathered. The darker, smaller contact wedge remains
+separate to express weight. A new native visual review is required before
+calling even this shadow correction visually accepted.
 The studio remains `!dev` until source-native screenshot and independent
 ArtCraft aesthetic review. The reference craftsmanship study is in
 [Crayon drawing grammar](../research/crayon-drawing-grammar-and-artist-study-2026.md).
