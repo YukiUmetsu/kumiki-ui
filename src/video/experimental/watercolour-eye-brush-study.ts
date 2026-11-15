@@ -38,10 +38,12 @@ export const WC19_EYE_LANDMARKS={
 // Genuine watercolor palette from observational value groups, not 3D
 // lighting gradients or semantic recoloring of a generic ellipse.
 const C={
-  straw:"#CBA384",warm:"#B8755F",rose:"#A96762",shadow:"#7F5C66",
-  umber:"#6B4B40",sepia:"#433C3B",indigo:"#5F687D",cool:"#8E91A2",
-  earth:"#A27660",skin:"#D6A58C",gold:"#D9BB91",paper:"#E9DAC5",
-  olive:"#77744D",iris:"#8F8764",sclera:"#BBB0A8",
+  // Earth and neutral values sampled as broad pigment families from the
+  // user's owned reference eye. Avoid purple/pink digital cartoon bands.
+  straw:"#B9957E",warm:"#9D6C56",rose:"#AC8574",shadow:"#7A645E",
+  umber:"#654736",sepia:"#3F332E",indigo:"#686666",cool:"#8F8580",
+  earth:"#956F5C",skin:"#C18E72",gold:"#C1A180",paper:"#C1B4A6",
+  olive:"#786B47",iris:"#8B805E",sclera:"#8C817D",
 } as const;
 const G:Gesture[]=[];
 const add=(id:string,layer:Layer,color:string,width:number,
@@ -94,24 +96,24 @@ paint("cheek-lift","skin",C.paper,41,curve([251,344],[339,361],[422,359],[513,37
 
 // 03. Brows are neither a uniformly thick line nor a row of equal strokes.
 // Masses below: their tips are rooted in the supraorbital plane.
-paint("brow-main-root","brow",C.umber,19,curve([187,150],[255,132],[346,118],[443,126]),.62,.58,.48,5);
-paint("brow-main-tail","brow",C.sepia,15,curve([356,121],[418,114],[471,126],[535,155]),.58,.45,.72,5);
+paint("brow-main-root","brow",C.umber,14,curve([187,150],[255,132],[346,118],[443,126]),.56,.67,.49,4);
+paint("brow-main-tail","brow",C.sepia,11,curve([356,121],[418,114],[471,126],[535,155]),.51,.53,.69,4);
 paint("brow-violet-core","brow",C.indigo,17,curve([209,149],[290,122],[353,126],[441,131]),.58,.40,.68,4);
 paint("brow-warm-catching-light","brow",C.straw,19,curve([243,122],[329,111],[420,118],[481,138]),.39,.38,.68,3);
 for(let i=0;i<12;i++){
   const roots=[216,241,263,291,322,344,371,391,424,445,471,500];
   const x=roots[i], y=141-13*Math.sin(i/11*Math.PI)+(i%3-1)*2.9;
   paint("brow-hair-"+i,"brow",i%3===0?C.earth:C.umber,
-    2.2+(i%4)*.5,[[x-7,y+10,.08],[x+(i%3-1)*2,y-4,.69],[x+7+(i%4),y-13+(i%3)*3,.05]],
-    .63,.2,.8,5);
+    1.45+(i%4)*.24,[[x-7,y+10,.08],[x+(i%3-1)*2,y-4,.67],[x+7+(i%4),y-13+(i%3)*3,.05]],
+    .38,.28,.81,4);
 }
 
 // 04. Orbital fold follows the actual turning eyelid plate, with the
 // strongest edge above the iris, not a fully closed dark almond.
 paint("upper-orbit-fold","orbit",C.earth,34,curve([188,220],[266,185],[393,168],[522,193]),.52,.71,.12,4);
-paint("upper-orbit-crease","orbit",C.shadow,16,curve([211,224],[293,199],[407,184],[510,207]),.67,.39,.57,5);
-paint("upper-orbit-crease-broken","orbit",C.umber,9,curve([281,201],[338,185],[414,187],[462,199]),.68,.33,.72,5);
-paint("upper-eyelid-mauve","orbit",C.shadow,32,curve([221,251],[315,232],[413,222],[510,239]),.55,.66,.2,4);
+paint("upper-orbit-crease","orbit",C.shadow,13,curve([211,224],[293,199],[407,184],[510,207]),.49,.51,.48,4);
+paint("upper-orbit-crease-broken","orbit",C.umber,6,curve([281,201],[338,185],[414,187],[462,199]),.49,.36,.7,4);
+paint("upper-eyelid-mauve","orbit",C.shadow,24,curve([221,251],[315,232],[413,222],[510,239]),.47,.77,.18,4);
 paint("upper-eyelid-warm","orbit",C.rose,27,curve([188,262],[292,242],[411,235],[531,246]),.59,.54,.36,4);
 paint("lower-orbit-ochre","orbit",C.earth,49,curve([210,307],[307,319],[398,319],[531,278]),.46,.79,.1,3);
 paint("lower-orbit-blue","orbit",C.cool,29,curve([230,317],[313,327],[421,316],[508,292]),.39,.63,.23,3);
@@ -120,10 +122,10 @@ paint("outer-canthus-violet","orbit",C.shadow,29,curve([164,252],[198,270],[230,
 
 // 05. Sclera is not white; several faint translucent cool/warm touches
 // preserve paper and sit *behind* the lids and iris.
-paint("sclera-cool-body","sclera",C.sclera,31,curve([215,266],[297,258],[403,257],[510,262]),.38,.85,.07,2);
-paint("sclera-amber-body","sclera",C.paper,23,curve([252,269],[319,270],[426,265],[497,267]),.30,.91,.05,2);
+paint("sclera-cool-body","sclera",C.sclera,45,curve([215,266],[297,258],[403,257],[510,262]),.75,.85,.07,3);
+paint("sclera-amber-body","sclera",C.paper,38,curve([252,269],[319,270],[426,265],[497,267]),.62,.88,.05,3);
 paint("sclera-shaded-far","sclera",C.shadow,16,curve([480,260],[501,255],[522,250],[536,246]),.32,.65,.17,3);
-paint("sclera-shadow-top","sclera",C.cool,17,curve([232,253],[323,246],[418,236],[511,251]),.31,.68,.12,3);
+paint("sclera-shadow-top","sclera",C.shadow,22,curve([232,253],[323,246],[418,236],[511,251]),.47,.69,.15,3);
 
 // 06. Iris is observed as a partially occluded, multi-colored volume.
 // Repeated stipples only live INSIDE the iris; no pasted circle sticker.
@@ -148,8 +150,8 @@ for(let i=0;i<14;i++){
 
 // 07. Eyelids: two long unequal-weight arcs plus broken short accents.
 // Avoid painting a complete enclosed black line around the eye.
-paint("lid-upper-broad","lid",C.umber,18,curve([174,259],[297,238],[410,229],[530,247]),.87,.45,.45,5);
-paint("lid-upper-dark-core","lid",C.sepia,7,curve([209,252],[327,234],[416,231],[511,243]),.79,.29,.73,5);
+paint("lid-upper-broad","lid",C.umber,13,curve([174,259],[297,238],[410,229],[530,247]),.63,.51,.49,4);
+paint("lid-upper-dark-core","lid",C.sepia,5,curve([209,252],[327,234],[416,231],[511,243]),.60,.39,.7,5);
 paint("lid-upper-warm-reflection","lid",C.rose,13,curve([213,246],[330,231],[418,230],[519,238]),.59,.36,.53,4);
 paint("lid-lower-waterline","lid",C.rose,9,curve([177,267],[269,282],[411,281],[535,248]),.49,.57,.52,4);
 paint("lid-lower-inner-rim","lid",C.earth,5,curve([222,276],[316,287],[413,279],[497,261]),.45,.34,.67,4);
@@ -165,21 +167,21 @@ for(let i=0;i<16;i++){
   const y=260-24*Math.sin(t*Math.PI*.94)-8*t;
   const len=5+8*Math.sin(t*Math.PI)+(i%4)*1.25;
   const lean=(t-.5)*18;
-  paint("lash-upper-"+i,"lashes",i%3===0?C.umber:C.sepia,2.6+(i%3)*.65,
+  paint("lash-upper-"+i,"lashes",i%3===0?C.umber:C.sepia,1.6+(i%3)*.3,
     [[x,y+3,.09],[x+lean*.28,y-1,.78],
       [x+lean*.66+(i%4-1.5)*1.6,y-len*.64,.44],
       [x+lean+(i%3-1)*2.4,y-len,.025]],
-    .68,.15,.84,5);
+    .38+.23*Math.sin(i/15*Math.PI),.23,.86,4);
 }
 for(let i=0;i<8;i++){
   const offsets=[0,.075,.21,.345,.5,.65,.84,1];
   const t=offsets[i],x=236+t*255;
   const y=284+9*Math.sin(t*Math.PI)-10*t;
-  paint("lash-lower-"+i,"lashes",C.umber,1.3+(i%3)*.3,
+  paint("lash-lower-"+i,"lashes",C.umber,1.0+(i%3)*.2,
     [[x,y,.08],[x+2,y+4,.72],
       [x+4+(i%2)*2,y+9+(i%3),.45],
       [x+6+(i%3)*2,y+13+(i%3),.04]],
-    .34,.17,.85,4);
+    .24,.21,.86,4);
 }
 
 // 09. A few specifically placed micro-gestures; not face-wide random grain.
@@ -259,7 +261,7 @@ export function experimentalWatercolourEyeBrush(seed=83):{
         path:[{x:189,y:292,pressure:.12},{x:331,y:305,pressure:.88},{x:517,y:295,pressure:.10}]},
       {id:"umber-hair-root",x:108,y:126,radius:106,pigment:C.umber,load:.82,water:.79,startFrame:67,
         path:[{x:57,y:57,pressure:.11},{x:107,y:131,pressure:.95},{x:174,y:234,pressure:.10}]},
-      {id:"eyebrow-wet-shadow",x:342,y:136,radius:47,pigment:C.umber,load:.78,water:.71,startFrame:83,
+      {id:"eyebrow-wet-shadow",x:342,y:136,radius:42,pigment:C.umber,load:.55,water:.76,startFrame:83,
         path:[{x:204,y:145,pressure:.09},{x:326,y:112,pressure:.85},{x:500,y:141,pressure:.07}]},
       {id:"iris-first-olive",x:416,y:253,radius:31,pigment:C.olive,load:.54,water:.72,startFrame:101,
         path:[{x:405,y:234,pressure:.10},{x:423,y:253,pressure:.95},{x:431,y:279,pressure:.08}]},
