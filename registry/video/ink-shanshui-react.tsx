@@ -646,19 +646,23 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         const source=quadraticPoint(bank.top,bank.bend,bank.tip,
           clamp(at+(s(seed+5203,i*41+k*31)-.5)*.034,.12,.83));
         const sign=direction*((k+i)%3===1?-1:1);
-        const span=([27,43,31][k])*
+        // v40 rejected: deep 73px opaque gully columns got clipped by
+        // the original parent stone like blunt rectangles. The support
+        // volume must be a *short, tapering* carved recess with a lifted
+        // brush end; the existing ox-tail strata supply long vertical flow.
+        const span=([19,28,22][k])*
           (.78+.39*s(seed+5209,i*43+k*17));
-        const fall=([64,47,73][k])*
+        const fall=([37,31,43][k])*
           (.73+.41*s(seed+5227,i*19+k*23));
-        const lift=([11,7,17][k])*
+        const lift=([8,6,11][k])*
           (.8+.29*s(seed+5231,i*31+k*29));
         const brow:P=[source[0]+sign*span*.3,source[1]-lift];
-        const outer:P=[source[0]+sign*span*.91,
+        const outer:P=[source[0]+sign*span*.83,
           source[1]+fall*(k===1?.29:.39)];
-        const heel:P=[source[0]+sign*span*.67,
-          source[1]+fall*.91];
-        const inner:P=[source[0]+sign*span*.12,
-          source[1]+fall*.75];
+        const heel:P=[source[0]+sign*span*.42,
+          source[1]+fall*.85];
+        const inner:P=[source[0]+sign*span*.31,
+          source[1]+fall*.66];
         const shape="M"+f(source[0])+" "+f(source[1])+
           " C"+f(source[0]+sign*span*.16)+" "+
             f(source[1]-lift*.83)+" "+
@@ -695,7 +699,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           [inner[0]+sign*span*.41,inner[1]-fall*.11],inner,
           (k===2?1.9:1.3)*(1+.28*s(seed+5281,i*23+k*37)),
           seed+5303+i*97+k*29);
-        return {source,shape,outerEdge,hollowEdge,gradient:tone+"gully"+k,k};
+        return {source,shape,outerEdge,hollowEdge,gradient:tone+"gully"+k,k,fall};
       }):[];
       // Fan Kuan's original monumental rock has grouped cliff *mass*:
       // two asymmetrically carved dark recesses attach to EACH positive
@@ -792,25 +796,26 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         </g>}
         {isWang&&<g clipPath={"url(#"+clip+")"}
           data-km-master-wang-gully-family="">
-          {wangGullies.map(({source,shape,outerEdge,hollowEdge,gradient,k})=>
+          {wangGullies.map(({source,shape,outerEdge,hollowEdge,gradient,k,fall})=>
             <g key={k} data-km-master-wang-gully=""
               data-km-master-wang-gully-root={f(source[0])+","+f(source[1])}
-              data-km-master-wang-gully-kind={k}>
+              data-km-master-wang-gully-kind={k}
+              data-km-master-wang-gully-fall={f(fall)}>
               <defs>
                 <linearGradient id={gradient} x1={k%2?"77%":"13%"}
                   y1="3%" x2={k%2?"22%":"86%"} y2="100%">
-                  <stop offset="0" stopColor="#302a27" stopOpacity=".89"/>
-                  <stop offset=".26" stopColor="#3e342f" stopOpacity=".74"/>
-                  <stop offset=".67" stopColor="#665343" stopOpacity=".37"/>
+                  <stop offset="0" stopColor="#40372f" stopOpacity=".7"/>
+                  <stop offset=".26" stopColor="#544639" stopOpacity=".52"/>
+                  <stop offset=".67" stopColor="#79654f" stopOpacity=".23"/>
                   <stop offset="1" stopColor="#8e765c" stopOpacity=".01"/>
                 </linearGradient>
               </defs>
               <path data-km-master-wang-gully-shadow="" d={shape}
                 fill={"url(#"+gradient+")"}
-                opacity={f((k===1?.83:.68)*(1-.17*mist))}/>
+                opacity={f((k===1?.62:.51)*(1-.17*mist))}/>
               <path data-km-master-wang-gully-rim="" d={outerEdge}
                 fill="#42382f"
-                opacity={f((k===1?.67:.55)*(1-.2*mist))}/>
+                opacity={f((k===1?.57:.48)*(1-.2*mist))}/>
               <path data-km-master-wang-gully-fold="" d={hollowEdge}
                 fill="#5f4b3b"
                 opacity={f((k===1?.48:.58)*(1-.23*mist))}/>
