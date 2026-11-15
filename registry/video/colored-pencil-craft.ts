@@ -22,6 +22,9 @@ export interface PencilCraftFinish {
    * This adds independent original pencil paths; it is NOT a photo blur.
    */
   pigmentDensity?: number;
+  /** 0..1 optional multiplier for tonal support. Default 1 preserves every
+   * legacy mark; reduces only SVG fill dominance, never pencil paths. */
+  tonalSupportWeight?: number;
 }
 export interface PencilMicroGroup {
   path: string;
@@ -43,7 +46,11 @@ export const isPencilCraftFinish=(value:unknown):value is PencilCraftFinish=>{
     typeof v.tooth==="number"&&Number.isFinite(v.tooth)&&v.tooth>=0&&v.tooth<=1&&
     (v.pigmentDensity===undefined||
       (typeof v.pigmentDensity==="number"&&Number.isFinite(v.pigmentDensity)&&
-        v.pigmentDensity>=0&&v.pigmentDensity<=1));
+        v.pigmentDensity>=0&&v.pigmentDensity<=1))&&
+    (v.tonalSupportWeight===undefined||
+      (typeof v.tonalSupportWeight==="number"&&
+        Number.isFinite(v.tonalSupportWeight)&&
+        v.tonalSupportWeight>=0&&v.tonalSupportWeight<=1));
 };
 const clamp=(x:number,min:number,max:number)=>Math.max(min,Math.min(max,x));
 const coordinate=(x:number)=>x.toFixed(2);
