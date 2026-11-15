@@ -1,6 +1,7 @@
 import {describe,expect,it} from "vitest";
 import {evaluateRisoHumanEnsemble} from "../src/video/riso-human-ensemble";
 import {evaluateRisoTransferSheet} from "../registry/video/riso-transfer-sheet";
+import {evaluateRisoPropHandoff,RISO_HANDOFF_DEFAULTS} from "../registry/video/riso-prop-handoff";
 
 type Point={x:number;y:number};
 type Owner="source"|"both"|"receiver";
@@ -13,6 +14,37 @@ const at=(frame:number,aspect:"landscape"|"portrait"="landscape")=>
 const distance=(a:Point,b:Point)=>Math.hypot(a.x-b.x,a.y-b.y);
 
 describe("RISO18 deterministic, source-independent paper ownership transfer",()=>{
+  it("has no history or donor-position dependence after completion",()=>{
+    const releaseA={x:130,y:200},releaseB={x:290,y:190};
+    const recipient={x:300,y:215};
+    const held=evaluateRisoPropHandoff(177,{x:123,y:190},recipient,releaseA,releaseB);
+    expect(held.owner).toBe("both");
+    expect(held.sourceTouching).toBe(true);
+    const after=evaluateRisoPropHandoff(208,{x:130,y:200},recipient,releaseA,releaseB);
+    const alternate=evaluateRisoPropHandoff(208,{x:-500,y:400},recipient,releaseA,releaseB);
+    expect(after.phase).toBe("received");
+    expect(after.paperStart).toEqual(alternate.paperStart);
+    expect(after.paperEnd).toEqual(alternate.paperEnd);
+    expect(after.receiverTouching).toBe(true);
+    expect(after.sourceTouching).toBe(false);
+    expect(after).toEqual(evaluateRisoPropHandoff(208,{x:130,y:200},recipient,releaseA,releaseB));
+  });
+
+  it("rejects nonmonotonic timelines, nonsensical tilt and nonfinite anchors",()=>{
+    const a={x:100,y:100},b={x:250,y:100};
+    for(const bad of [
+      {...RISO_HANDOFF_DEFAULTS,contactFrame:126},
+      {...RISO_HANDOFF_DEFAULTS,releaseStart:160},
+      {...RISO_HANDOFF_DEFAULTS,releaseEnd:178},
+      {...RISO_HANDOFF_DEFAULTS,settleDegrees:90},
+      {...RISO_HANDOFF_DEFAULTS,settleDegrees:NaN},
+    ])expect(()=>evaluateRisoPropHandoff(180,a,b,a,b,bad)).toThrow(RangeError);
+    expect(()=>evaluateRisoPropHandoff(180,{x:NaN,y:2},b,a,b)).toThrow(RangeError);
+    expect(()=>evaluateRisoPropHandoff(-1,a,b,a,b)).toThrow(RangeError);
+    expect(()=>evaluateRisoPropHandoff(1.5,a,b,a,b)).toThrow(RangeError);
+  });
+
+
   it("holds both fingertips, releases the donor, then leaves sheet with recipient",()=>{
     for(const aspect of ["landscape","portrait"] as const){
       const unfolding=at(142,aspect), held=at(160,aspect), shared=at(177,aspect);
