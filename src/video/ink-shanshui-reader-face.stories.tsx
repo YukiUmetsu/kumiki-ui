@@ -250,8 +250,10 @@ function ReaderFaceStudio(){
             const scaleX=actorFit.headRest.scaleX??1;
             const scaleY=actorFit.headRest.scaleY??1;
             const centerX=139+(143-139)*scaleX+(actorFit.headRest.x??0);
-            const topY=124+(24-124)*scaleY+(actorFit.headRest.y??0);
-            const portraitWidth=94*scaleX,portraitHeight=145*scaleY;
+            // Include the full wrapped crown and bun above y=24.
+            // Previous comparison camera cropped all three head ornaments.
+            const topY=124+(4-124)*scaleY+(actorFit.headRest.y??0);
+            const portraitWidth=94*scaleX,portraitHeight=174*scaleY;
             const portraitBox=[
               centerX-portraitWidth*.5,topY,
               portraitWidth,portraitHeight,
