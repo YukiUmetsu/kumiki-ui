@@ -240,3 +240,13 @@ The next priorities are dedicated **authorable actions and constraints** (walk c
 No external artwork, footage, soundtrack or proprietary font has been bundled or traced. The linked video references were used to derive craft and production concepts, not assets or copied compositions.
 
 **Acceptance:** require clean standalone registry install, TS/unit validation, browser-recorded acting and plate isolation, 16:9/9:16 print composition, deterministic back-seeking, exported playable MP4, and independent senior review. A small example film cannot certify support for every possible video or sophisticated production character animation.
+
+## RISO11 — ArtCraft figure/feather source refinement (2026-11-14)
+
+The example Courier and Paper Bird keep the same version-1 rig, spot plates, paper knockout and film slots. Reference-led drawing has been refined with curved/tapered, source-mapped feather barbs and covert rows; breast and tail engraving; coat fold tension; individual glove/thumb planes and expression-specific mouth corners. Both actor definition files still use opaque ink silhouettes and deterministic frame evaluation.
+
+- **Storybook:** `Video production / Film Looks / Risograph` → `Courier ArtCraft Detail`, `Bird ArtCraft Detail`, character construction sheets, and the native character film. Pose checkpoint buttons expose face, garment and feather stress frames without changing the production frame clock.
+- **Reference/structural notes:** [RISO11 ArtCraft feather and tailoring study](../research/riso11-feather-and-tailored-ink-artcraft.md).
+- **Regression:** `tests/riso11-ink-craft.test.ts`; existing source-mesh, ArtCraft, opacity and bird wing/face collision tests remain authoritative.
+
+This is a craftsmanship iteration, not a claim that examples are anatomically complete or equivalent to third-party artwork. Final-release artistic acceptance requires actual normal-speed film review, independent human visual judgment and source-relative ArtCraft measurements.
