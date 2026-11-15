@@ -50,3 +50,17 @@ The generator rejects invalid/rootless guides; each semantic trace carries `fibr
 ## Next iteration after rendered review
 
 Compare actual full fox and 3× facial crops with the reference board; reject new defects such as misplaced mouth, too-long jaws, discontinuous fur roots, flat tail/feet, over-transparent eyes and uniform body hatches. Only then consider applying the same tested local fur grammar to the rigged fox; blindly porting 3/4 drawing coordinates into a side-view actor would break animation.
+
+## ArtCraft visual review — iteration 1 rejected; iteration 2 correction
+
+[Actual browser captures, run 43677712650](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43677712650) were opened for landscape and portrait from the real CP-F1 pipeline, not inferred from code. The first rework successfully moved the projected nose far ahead of the orbits and enlarged the portrait hero, but the fox remained a vector-stylised animal. **Visible rejected defects**:
+
+1. Two overly elongated upright ears made the head resemble a rabbit; inner ear planes were flat lavender triangles.
+2. Near cheek ruff looked like an independent quadrilateral sticker laid on top of the neck rather than short-rooted jaw fur.
+3. Entire skull and large body were covered with hard wide diagonal construction hatches; small local fur filaments were not dominating the mark character.
+4. Rust upper-nasal plane was almost entirely hidden *behind* the pale muzzle, leaving the snout with a homogeneous cream strip rather than warm-to-grey dorsal curvature.
+5. Eye socket and eyelid contrast remained too weak relative to actual coloured-pencil wildlife eyes.
+
+**Iteration 2 source-to-cause corrections**: ear tips brought down and broadened into cartilage-root forms; inner ear muted and given a small tactile feather/fur crease; cheek ruff outlined with irregular, differently rooted tines and same fur flow. The *rostrum-bridge* is now a **non-opaque glaze painted after the muzzle**, avoiding flat brown sticker opacity while retaining tonal distinction. Near tear duct receives a real angular shadow cue. All **fox fur** regions now use the medium recipe's bounded short `fiber` stroke vocabulary instead of the original first `hatch` pass. CP-F1 paper backing, pigment chronology, three colour layers and deterministic seeded strokes are preserved.
+
+**Physical fidelity limitation:** the system approximates the optical result of dry coloured-pencil layering and has no physically modeled individual wax particles or solvent activation. More importantly, the full fox body/legs remain geometrically rudimentary and no source-aligned five-axis *measured* reference mask has yet passed. Do not present these as master-level realism.
