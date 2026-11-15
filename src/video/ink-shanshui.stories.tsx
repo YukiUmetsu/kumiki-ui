@@ -2,8 +2,8 @@ import {useEffect,useState} from "react";
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {InkShanshuiFilm} from "./ink-shanshui-film";
 import {InkShanshuiStage} from "../../registry/video/ink-shanshui-react";
-import {DEFAULT_SHANSHUI,SHANSHUI_FRAMES,SHANSHUI_REFERENCE_NOTES} from "../../registry/video/ink-shanshui";
-import type {ShanshuiControls,ShanshuiScene} from "../../registry/video/ink-shanshui";
+import {DEFAULT_SHANSHUI,SHANSHUI_FRAMES,SHANSHUI_REFERENCE_NOTES,INK_ROCK_SCHOOLS} from "../../registry/video/ink-shanshui";
+import type {ShanshuiControls,ShanshuiScene,InkRockSchool} from "../../registry/video/ink-shanshui";
 import {VideoExportStage} from "../../registry/video/video-export-stage";
 import {shanshuiFittedRoute} from "./ink-shanshui-full-body";
 import {inkRouteAt} from "../../registry/video/ink-actor-director";
@@ -72,6 +72,17 @@ function Gallery(){
           <option value="mountain-trail">Mountain trail · waterfall and pines</option>
           <option value="river-scholar">Riverside scholar · willow and bridge</option>
           <option value="misty-hermit">Misty hermit · old pine and bamboo</option>
+        </select>
+      </label>
+      <label style={style.field}>Rock-brush reference school
+        <select aria-label="Shanshui ink school"
+          value={controls.inkSchool??"fuchun"}
+          onChange={e=>change("inkSchool",e.target.value as InkRockSchool)}
+          style={{height:38,background:"#fff8ed",color:"#31281e"}}>
+          <option value="fuchun">Huang Gongwang · long hemp</option>
+          <option value="early-spring">Guo Xi · curled cloud-head</option>
+          <option value="travelers">Fan Kuan · raindrop cun</option>
+          <option value="forest-grotto">Wang Meng · ox-hair dry brush</option>
         </select>
       </label>
       {(["detail","mist","ink","wind"] as const).map(key=>
@@ -470,6 +481,120 @@ function Export({scene}:{scene:ShanshuiScene}){
     <InkShanshuiFilm frame={frame} controls={{...DEFAULT_SHANSHUI,scene}}/>
   </VideoExportStage>;
 }
+/**
+ * ArtCraft source study, not a poster of AI-generated backgrounds:
+ * four registered, simultaneously sampled native film stages with identical
+ * mountain geometry/camera, each painting different historic brush grammar.
+ * The NPM source images are external study links; no source pixels ship.
+ */
+function MasterInkSourceComparison(){
+  const [frame,setFrame]=useState(145);
+  const [seed,setSeed]=useState(71);
+  const [detail,setDetail]=useState(1);
+  const [mist,setMist]=useState(.35);
+  const [ink,setInk]=useState(.9);
+  const [zoom,setZoom]=useState(1.65);
+  const [cropX,setCropX]=useState(549);
+  const [cropY,setCropY]=useState(151);
+  const refs=[
+    {school:"fuchun",title:"Huang Gongwang · long hemp fibre",
+      url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975",
+      observation:"Rounded nested hills, uneven long hemp loaded at the head, bare paper between linked families. Do not confuse with raindrop marks.",
+      target:"Continuously supported long descending calligraphic fibres, irregular two-zone rhythm."},
+    {school:"early-spring",title:"Guo Xi · curled cloud-head",
+      url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000960",
+      observation:"Reversing cloud-head rock rolls, layered ink ranges and open mist; crab-claw pine branching in the source.",
+      target:"Hooking, lateral reversing brush centerlines, not vertical hemp rain."},
+    {school:"travelers",title:"Fan Kuan · monumental raindrop",
+      url:"https://www.npm.gov.tw/Exhibition-Content.aspx?l=2&sno=04006295",
+      observation:"Short loaded raindrop texture embedded in monumental dark stone, deep foreground/midground/distance separation.",
+      target:"Dense short droplets and shaded cliff planes; no generic smooth flat triangle."},
+    {school:"forest-grotto",title:"Wang Meng · ox-tail dry brush",
+      url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000991",
+      observation:"Dense twisted rocky surfaces, fine ox-tail texture, moss and layered washes balanced by a specific open passage.",
+      target:"Multiple densely spaced curving, selectively dry ink fields, controlled gaps."},
+  ] as const;
+  // In the original 960×540 film, the middle peak is centered near 549×151.
+  // We crop only using browser transforms; never paint a second test-only SVG.
+  const width=420,height=308;
+  const camera="translate("+ (width/2-zoom*cropX)+"px,"+
+    (height/2-zoom*cropY)+"px) scale("+zoom+")";
+  return <main data-testid="shanshui-master-ink-study"
+    style={{padding:24,minHeight:"100vh",background:"#e9e2d5",
+      color:"#352c23",font:"14px/1.5 system-ui",display:"grid",
+      gap:16,alignContent:"start"}}>
+    <header style={{maxWidth:1050}}>
+      <h1 style={{font:"400 32px Georgia,serif",margin:"0 0 10px"}}>
+        Four masters · native brushwork reference lab
+      </h1>
+      <p style={{margin:"0 0 10px",maxWidth:1040}}>
+        Four independently constructed historical brush grammars painted
+        by the SAME original film engine and mountain geometry at one
+        absolute frame. Inspect structural rock mass first, then named
+        calligraphic flow, then individual loaded/dry edge details.
+        The masters' museum works are references, not traced image textures.
+      </p>
+    </header>
+    <div data-testid="shanshui-master-controls"
+      style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+      {([
+        ["Master frame",frame,setFrame,0,SHANSHUI_FRAMES-1,1],
+        ["Master seed",seed,setSeed,1,199,1],
+        ["Master detail",detail,setDetail,0,1,.05],
+        ["Master mist",mist,setMist,0,1,.05],
+        ["Master ink",ink,setInk,0,1,.05],
+        ["Master zoom",zoom,setZoom,1,3.4,.05],
+        ["Master crop X",cropX,setCropX,0,960,1],
+        ["Master crop Y",cropY,setCropY,0,540,1],
+      ] as const).map(([name,value,change,min,max,step])=>
+        <label key={name} style={{...style.field,width:158}}>
+          {name} · {value}
+          <input aria-label={name} type="range" min={min} max={max}
+            step={step} value={value}
+            onChange={e=>change(Number(e.target.value))}/>
+        </label>)}
+      <button type="button" style={style.button}
+        onClick={()=>{setFrame(145);setSeed(71);setDetail(1);setMist(.35);
+          setInk(.9);setZoom(1.65);setCropX(549);setCropY(151);}}>
+        Reset all four studies
+      </button>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(440px,1fr))",
+      gap:18,alignItems:"start"}}>
+      {refs.map(ref=>{
+        const controls:ShanshuiControls={
+          ...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:ref.school,seed,detail,mist,ink,
+        };
+        return <section key={ref.school} data-km-master-study={ref.school}
+          style={{display:"grid",gap:8,maxWidth:460}}>
+          <h2 style={{font:"500 19px Georgia,serif",margin:0}}>{ref.title}</h2>
+          <div style={{width,height,position:"relative",overflow:"hidden",
+            border:"1px solid #9b8a74",background:"#f3e6cd"}}>
+            <div style={{position:"absolute",left:0,top:0,
+              transformOrigin:"top left",transform:camera}}>
+              <InkShanshuiStage frame={frame} controls={controls}/>
+            </div>
+          </div>
+          <p style={{margin:0,fontSize:12}}>{ref.observation}</p>
+          <p style={{margin:0,fontSize:12,color:"#725e46"}}>
+            <strong>Code inspection:</strong> {ref.target}
+          </p>
+          <a href={ref.url} target="_blank" rel="noreferrer"
+            style={{fontSize:12,color:"#74573c"}}>
+            Original artwork · museum reference
+          </a>
+        </section>;
+      })}
+    </div>
+    <p style={{margin:0,fontSize:12,maxWidth:1050}}>
+      ArtCraft release hold: historical labels identify observed craftsmanship
+      only. The shapes are newly authored, not paintings copied from the
+      museum. Reject regular repeating scallops, randomly scattered detached
+      marks and false source parity; check the native 960×540 video.
+    </p>
+  </main>;
+}
 const meta={title:"Video production/Film Looks/Chinese Ink/Shanshui Film Gallery",
   id:"video-ink-shanshui",component:Gallery,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof Gallery>;
@@ -480,6 +605,11 @@ export const GalleryStudio:StoryObj<typeof meta>={
 export const BrushworkDetailStudio:StoryObj<typeof BrushworkDetail>={
   name:"Brushwork close-ups · ArtCraft inspection",
   render:()=> <BrushworkDetail/>,
+};
+
+export const FourMastersInkStudio:StoryObj<typeof MasterInkSourceComparison>={
+  name:"Four masters · brushwork source comparisons",
+  render:()=> <MasterInkSourceComparison/>,
 };
 
 export const GeologicalInkStudio:StoryObj<typeof GeologicalInkStudy>={
