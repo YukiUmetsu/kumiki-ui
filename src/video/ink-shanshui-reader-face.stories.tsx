@@ -314,10 +314,112 @@ function ReaderFaceStudio(){
     </p>
   </main>;
 }
+/** Cross-character ArtCraft proof. One source-fitted asset pipeline for
+ * three different identities—no generic face clone, raster overlays, or
+ * new Storybook folder. Same facial layers that ship in the 960x540 film.
+ */
+function ThreeFacesArtCraft(){
+  const [detail,setDetail]=useState(1);
+  const [eyes,setEyes]=useState<Eyes>("open");
+  const [mouth,setMouth]=useState<Mouth>("rest");
+  const all=[
+    {scene:"misty-hermit" as const,title:"Weathered hermit",note:"Sunken asymmetrical eyes, aged cheek planes, beard and restrained mouth"},
+    {scene:"river-scholar" as const,title:"Young scroll reader",note:"Fuller youthful cheeks, open almond lids, delicate nose and wrapped crown"},
+    {scene:"mountain-trail" as const,title:"Focused traveler",note:"Angular windward profile, raised outer brow, compact eye relief"},
+  ];
+  const paint=(scene:"misty-hermit"|"river-scholar"|"mountain-trail")=>{
+    const assets=shanshuiFaceAssets(scene,detail);
+    const fit=shanshuiBodyFit(scene);
+    const paths=(part:string)=>{
+      const asset=assets[part];
+      if(!asset||asset.kind!=="shapes")return null;
+      return asset.shapes.map((shape,k)=>shape.type==="path"
+        ?<path key={part+k} d={shape.d} fill={colour(shape.fill)}
+          stroke={colour(shape.stroke)} strokeWidth={shape.strokeWidth??1}
+          opacity={shape.opacity??1} strokeLinecap="round"
+          strokeLinejoin="round"/>
+        :null);
+    };
+    const joint=(part:string,pivot:[number,number],key=part)=>{
+      const offset=fit.facialRest[part as keyof typeof fit.facialRest];
+      const t="translate("+(offset?.x??0)+" "+(offset?.y??0)+") "+
+        "translate("+pivot.join(" ")+") rotate("+(offset?.rotation??0)+") "+
+        "scale("+(offset?.scaleX??1)+" "+(offset?.scaleY??1)+") "+
+        "translate("+(-pivot[0])+" "+(-pivot[1])+")";
+      return <g data-km-three-face-part={part} transform={t}>{paths(key)}</g>;
+    };
+    return <svg data-km-three-face-scene={scene}
+      viewBox="100 25 80 135" role="img"
+      aria-label={scene+" original fitted code-painted facial anatomy"}
+      style={{width:"100%",height:330,background:"#f5e8d3",border:"1px solid #ceb89a"}}>
+      <g data-km-three-face-paint="">
+        {paths("face")}
+        {joint("hair",[140,74])}
+        {paths("reader-ear")}
+        {joint("brows",[140,94],"brow")}
+        {joint("eyes",[140,102],"eyes-"+eyes)}
+        {eyes!=="closed"&&<>
+          {joint("pupil-left",[128,102])}
+          {joint("pupil-right",[156,102])}
+        </>}
+        {joint("mouth",[142,124],"mouth-"+mouth)}
+        {paths("beard")}
+      </g>
+    </svg>;
+  };
+  return <main data-testid="shanshui-three-faces-studio" style={{padding:26,
+    background:"#ede2cf",minHeight:"100vh",color:"#352b20",
+    font:"14px/1.6 system-ui"}}>
+    <h1 style={{font:"400 32px Georgia,serif",margin:"0 0 8px"}}>
+      Chinese ink · three distinct portrait identities
+    </h1>
+    <p style={{maxWidth:840,margin:"0 0 20px"}}>
+      Original SVG figure paintings from the production film. ArtCraft
+      comparison of facial anatomy, aging, eye expression and line weight.
+      Detail and expression controls affect all three portraits together.
+    </p>
+    <div style={{display:"flex",flexWrap:"wrap",gap:15,marginBottom:22,
+      alignItems:"end"}}>
+      <label style={{display:"grid",gap:6}}>Portrait craftsmanship · {Math.round(detail*100)}%
+        <input aria-label="Three faces detail" type="range" min="0" max="1"
+          step=".05" value={detail}
+          onChange={e=>setDetail(Number(e.target.value))}/>
+      </label>
+      <label style={{display:"grid",gap:6}}>Eye state
+        <select aria-label="Three faces eyelids" value={eyes}
+          onChange={e=>setEyes(e.target.value as Eyes)}>
+          <option value="open">Open</option><option value="soft">Half-lid</option>
+          <option value="closed">Blink closed</option>
+        </select>
+      </label>
+      <label style={{display:"grid",gap:6}}>Mouth
+        <select aria-label="Three faces mouth" value={mouth}
+          onChange={e=>setMouth(e.target.value as Mouth)}>
+          {(["rest","aa","oh","mm","smile"] as const).map(v=>
+            <option key={v} value={v}>{v}</option>)}
+        </select>
+      </label>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",
+      maxWidth:1020,gap:18}}>
+      {all.map(({scene,title,note})=><section key={scene}
+        style={{display:"grid",gap:10,alignContent:"start"}}>
+        <h2 style={{font:"500 22px Georgia,serif",margin:0}}>{title}</h2>
+        {paint(scene)}
+        <p style={{fontSize:12,margin:0,color:"#6b5743"}}>{note}</p>
+      </section>)}
+    </div>
+  </main>;
+}
+
 const meta={title:"Video production/Film Looks/Chinese Ink/Shanshui Reader Face Studio",
   id:"video-ink-reader-face",component:ReaderFaceStudio,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof ReaderFaceStudio>;
 export default meta;
 export const ThreeQuarterFaceStudy:StoryObj<typeof meta>={
   name:"Reader face · anatomy and eyelid/viseme study",
+};
+export const ThreeFacesComparison:StoryObj<typeof meta>={
+  name:"Three figure faces · ArtCraft comparison",
+  render:()=> <ThreeFacesArtCraft/>,
 };
