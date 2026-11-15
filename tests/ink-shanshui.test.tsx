@@ -223,6 +223,45 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(sparse).not.toContain("data-km-pine-fan-turn");
   });
 
+  it("grows each pine lateral from its parent cubic and fractures the old wood",()=>{
+    for(const scene of ["mountain-trail","misty-hermit"] as const){
+      const controls={...DEFAULT_SHANSHUI,scene,detail:1};
+      const full=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:125,controls,
+      }));
+      const laterals=[...full.matchAll(
+        /data-km-pine-lateral="" data-km-pine-lateral-root="([^"]+)" data-km-pine-lateral-parent-pt="([^"]+)" data-km-pine-lateral-side="(-?1)"/g,
+      )];
+      expect(laterals).toHaveLength(8*3);
+      expect(laterals.every(m=>m[1]===m[2])).toBe(true);
+      expect(new Set(laterals.map(m=>m[1])).size).toBeGreaterThan(20);
+      expect(new Set(laterals.map(m=>m[3]))).toEqual(new Set(["-1","1"]));
+      const bones=[...full.matchAll(/data-km-pine-lateral-bone="" d="([^"]+)"/g)];
+      expect(bones).toHaveLength(24);
+      expect(bones.every(m=>m[1].includes(" Q")&&m[1].endsWith(" Z"))).toBe(true);
+      expect((full.match(/data-km-pine-lateral-lift=""/g)??[]).length).toBe(24);
+      const crotches=[...full.matchAll(/data-km-pine-lateral-crotch="" d="([^"]+)"/g)];
+      expect(crotches).toHaveLength(24);
+      expect(crotches.every(m=>!m[1].includes("--")&&m[1].includes(" q")))
+        .toBe(true);
+      expect((full.match(/data-km-pine-bough-bark-root="[^"]+"/g)??[]).length).toBe(72);
+      expect((full.match(/data-km-pine-bark-fissure=""/g)??[]).length)
+        .toBeGreaterThanOrEqual(12);
+      expect((full.match(/data-km-pine-bark=""/g)??[])).toHaveLength(42);
+      expect(full).not.toMatch(/NaN|Infinity|undefined/);
+      expect(renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:125,controls,
+      }))).toBe(full);
+
+      const sparse=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:125,controls:{...controls,detail:0},
+      }));
+      expect(sparse).not.toContain('data-km-pine-bough-bark=""');
+      expect(sparse).not.toContain('data-km-pine-fan-turn');
+      expect(sparse).not.toContain('data-km-pine-bark-fissure');
+    }
+  });
+
   it("constructs ridge-rooted geological brush planes, not floating repeated rain",()=>{
     for(const scene of SHANSHUI_SCENES){
       const controls={...DEFAULT_SHANSHUI,scene,detail:1};

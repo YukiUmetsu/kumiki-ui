@@ -435,7 +435,12 @@ function NeedleSpray({x,y,scale,seed,wind,lean=0}:{
       const fanSpread=.81+.36*s(seed+233,j*29+1);
       const wet:string[]=[],dry:string[]=[],middle:string[]=[];
       for(let k=0;k<count;k++){
-        const spread=(k-(count-1)*.5)/((count-1)*.5);
+        // Needle trajectories do not belong to a regular polar stencil.
+        // Some close into overlapping dark bundles, others expose open
+        // paper sectors; all still grow from the same botanical twig.
+        const radial=(k-(count-1)*.5)/((count-1)*.5);
+        const crowd=(s(seed+1207,j*89+k*13)-.5)*.19;
+        const spread=clamp(radial+crowd-.075*radial*radial,-1.04,1.04);
         const angle=-Math.PI/2+spread*fanSpread+fanTurn;
         const len=(7.5+9*s(seed+j*73,k*17+7))*scale*
           (1-.26*Math.abs(spread))*(.86+.28*s(seed+397,j*31+k));
@@ -528,19 +533,31 @@ function OldPine({x,y,scale,wind,seed,detail}:{
     <path d="M-11 -2 Q-15 -60 10 -93 Q-3 -133 17 -180
       Q35 -233 34 -271 M3 -25 Q-2 -77 12 -115 M6 -140 Q-4 -170 23 -207"
       stroke="#bd9870" strokeWidth="3.3" opacity=".55" fill="none"/>
-    {Array.from({length:28},(_,i)=>{
-      const cy=-8-i*10;
+    {Array.from({length:42},(_,i)=>{
+      const cy=-6-i*6.65+(s(seed+1169,i*11)-.5)*4;
       const x0=trunkX(cy)+(s(seed+3,i*23)-.5)*10;
       const side=i%2===0?1:-1;
       const dx=side*(3+6*s(seed+11,i*9));
       const dy=7+10*s(seed+17,i*7);
-      return <path key={i} data-km-pine-bark=""
-        d={"M"+f(x0)+" "+f(cy)+
-          " Q"+f(x0+dx*.62)+" "+f(cy-dy*.54)+
-          " "+f(x0+dx*.35)+" "+f(cy-dy)}
-        stroke={i%5===0?"#35291e":"#b49471"}
-        strokeWidth={f(i%5===0?1.55:.65)} opacity={f(.38+.4*s(seed,i))}
-        strokeLinecap="round" fill="none"/>;
+      return <g key={i} data-km-pine-bark-grain={i%4}>
+        <path data-km-pine-bark=""
+          d={"M"+f(x0)+" "+f(cy)+
+            " Q"+f(x0+dx*.62)+" "+f(cy-dy*.54)+
+            " "+f(x0+dx*.35)+" "+f(cy-dy)}
+          stroke={i%5===0?"#35291e":"#b49471"}
+          strokeWidth={f(i%5===0?1.55:.65)}
+          opacity={f(.38+.4*s(seed,i))}
+          strokeLinecap="round" fill="none"/>
+        {detail>.58&&i%3===1&&
+          <path data-km-pine-bark-fissure=""
+            d={"M"+f(x0+dx*.14)+" "+f(cy-dy*.23)+
+              " q"+f(dx*.33)+" "+f(-dy*.19)+
+              " "+f(dx*.21)+" "+f(-dy*.39)+
+              " m"+f(-dx*.05)+" "+f(-dy*.17)+
+              " l"+f(-dx*.27)+" "+f(-dy*.23)}
+            stroke="#e2c6a0" strokeWidth=".55" strokeLinecap="round"
+            opacity=".38" fill="none"/>}
+      </g>;
     })}
     {stems.map((b,i)=>{
       const reach=b.len*b.dir;
@@ -552,7 +569,8 @@ function OldPine({x,y,scale,wind,seed,detail}:{
       const tip:P=[root[0]+reach,b.y+b.tipDy];
       const count=Math.round((4+(i%3))*detail);
       return <g key={i} data-km-pine-bough=""
-        data-km-pine-bough-root={f(root[0])+","+f(root[1])}>
+        data-km-pine-bough-root={f(root[0])+","+f(root[1])}
+        data-km-pine-bough-tip={f(tip[0])+","+f(tip[1])}>
         {/* Trunk-rooted, pressure-loaded thick start to hairline release,
             not a uniform ruler-width horizontal stick. */}
         <path data-km-pine-bough-shape=""
@@ -569,6 +587,77 @@ function OldPine({x,y,scale,wind,seed,detail}:{
           " "+f(c2[0])+" "+f(c2[1]-1)+
           " "+f(tip[0])+" "+f(tip[1])}
           stroke="#c2a080" strokeWidth=".7" fill="none" opacity=".56"/>
+        {/* The exposed heartwood is alternately dark/soft and chipped:
+            fractal noise is NOT a replacement for contour-following bark. */}
+        {Array.from({length:Math.round(detail*9)},(_,k)=>{
+          const u=.095+.83*(k+.35)/(9+.2);
+          const at=cubicPoint(root,c1,c2,tip,u);
+          const after=cubicPoint(root,c1,c2,tip,Math.min(u+.055,.995));
+          const tangentX=after[0]-at[0],tangentY=after[1]-at[1];
+          const len=Math.hypot(tangentX,tangentY)||1;
+          const tx=tangentX/len,ty=tangentY/len;
+          const side=(k%3===0?-1:1);
+          const off=side*(.65+1.2*s(seed+1103,i*19+k));
+          const x0=at[0]-ty*off,y0=at[1]+tx*off;
+          const reach=3.2+7.1*s(seed+1117,i*31+k*7);
+          const d="M"+f(x0)+" "+f(y0)+
+            " Q"+f(x0+tx*reach*.48-ty*side*1.1)+" "+
+                f(y0+ty*reach*.48+tx*side*1.1)+
+            " "+f(x0+tx*reach)+" "+f(y0+ty*reach);
+          return <path key={k} data-km-pine-bough-bark=""
+            data-km-pine-bough-bark-root={f(at[0])+","+f(at[1])}
+            d={d} fill="none" stroke={k%4===0?"#3d3026":"#ddbd96"}
+            strokeWidth={f(.44+.72*s(seed+1139,i*17+k))}
+            strokeLinecap="round" opacity={f(.35+.3*s(seed+1151,i*41+k))}/>;
+        })}
+
+        {/* A gnarled pine divides into independent secondary limbs whose
+            roots are exact points ON the primary cubic, not random
+            canopy stickers. Each fork carries its own old-wood ink bone. */}
+        {Array.from({length:3},(_,k)=>{
+          const u=.22+.235*k+.035*(s(seed+911,i*37+k)-.5);
+          const rootFork=cubicPoint(root,c1,c2,tip,u);
+          const flip=(k===1?-1:1)*(s(seed+929,i*13+k)>.55?-1:1);
+          const branchLen=(27+27*s(seed+947,i*17+k))*(k===2?.8:1);
+          const dx=reach>=0?branchLen*.47:-branchLen*.47;
+          const q1:P=[rootFork[0]+dx*.47-flip*7,
+            rootFork[1]-flip*(branchLen*.22)];
+          const q2:P=[rootFork[0]+dx+flip*branchLen*.26,
+            rootFork[1]-flip*branchLen*(.56+.16*s(seed+967,i*11+k))];
+          const half=(2.1+.8*s(seed+981,i*23+k))*(1-.13*k);
+          const inkBone="M"+f(rootFork[0])+" "+f(rootFork[1]-half)+
+            " Q"+f(q1[0])+" "+f(q1[1]-half*.65)+
+            " "+f(q2[0])+" "+f(q2[1])+
+            " Q"+f(q1[0]+half*.6)+" "+f(q1[1]+half*.9)+
+            " "+f(rootFork[0])+" "+f(rootFork[1]+half)+" Z";
+          const veil="M"+f(rootFork[0]+.7)+" "+f(rootFork[1]-half*.52)+
+            " Q"+f(q1[0])+" "+f(q1[1]-half*.42)+
+            " "+f(q2[0])+" "+f(q2[1]);
+          return <g key={k} data-km-pine-lateral=""
+            data-km-pine-lateral-root={f(rootFork[0])+","+f(rootFork[1])}
+            data-km-pine-lateral-parent-pt={f(rootFork[0])+","+f(rootFork[1])}
+            data-km-pine-lateral-side={flip}>
+            <path data-km-pine-lateral-bone="" d={inkBone}
+              fill="#5b4935" opacity={f(.82-.08*k)}/>
+            <path data-km-pine-lateral-lift="" d={veil}
+              stroke="#e0c59f" strokeWidth={f(.48+.11*k)}
+              fill="none" opacity=".5" strokeLinecap="round"/>
+            <path data-km-pine-lateral-crotch=""
+              d={"M"+f(rootFork[0]-3)+" "+f(rootFork[1]+1)+
+                " q"+f(dx*.17)+" "+f(-flip*8)+
+                " "+f(dx*.29)+" "+f(-flip*10)}
+              fill="none" stroke="#392e25" strokeWidth="1.05" opacity=".64"/>
+            {Array.from({length:Math.round(detail)},(_,j)=>{
+              const t=.85;
+              const twig=quadraticPoint(rootFork,q1,q2,t);
+              return <NeedleSpray key={j}
+                x={f(twig[0])} y={f(twig[1])}
+                scale={f(.35+.28*s(seed+997,i*29+k*7+j))}
+                lean={f(flip*.25+.23*(s(seed+1013,i*31+k*5+j)-.5))}
+                wind={wind} seed={seed+1031+i*149+k*31+j*17}/>;
+            })}
+          </g>;
+        })}
         {Array.from({length:count},(_,j)=>{
           const u=clamp(.43+.54*(j+.35)/(count+.25)+
             .1*(s(seed+307,i*53+j*13)-.5),.34,.98);
