@@ -124,7 +124,7 @@ function EnsembleAtelier(){
         if(frame>=duration-1)setFrame(0);
         setPlaying(true);
       }}>{playing?"Pause":"Play two-character film"}</button>
-      {([0,108,185,255,319,359] as const).map(f=>
+      {([0,108,185,231,255,319,359] as const).map(f=>
         <button style={control} type="button" key={f} onClick={()=>{
           setPlaying(false);setFrame(f);
         }}>Frame {f}</button>)}
