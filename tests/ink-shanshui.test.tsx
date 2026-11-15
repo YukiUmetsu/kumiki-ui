@@ -279,6 +279,21 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       // stone cheek with a shaded throat, not a bare S-shaped scratch.
       // Four irregular connected banks per main face, never a global
       // floating motif that can invade paper mist.
+      // Early Spring's old pine boughs need crab-claw terminal arcs
+      // with a second joint, not merely unchanged upward pine shelves.
+      const crabClaws=[...html.matchAll(
+        /data-km-cliff-pine-crab-claw="" data-km-cliff-pine-crab-claw-root="([^"]+)" data-km-cliff-pine-crab-claw-bend="([01])" d="([^"]+)"/g,
+      )];
+      expect(crabClaws).toHaveLength(school==="early-spring"?40:0);
+      if(school==="early-spring"){
+        expect(crabClaws.filter(m=>m[2]==="0")).toHaveLength(20);
+        expect(crabClaws.filter(m=>m[2]==="1")).toHaveLength(20);
+        expect(crabClaws.every(([,root,,d])=>
+          d.startsWith("M"+root.replace(","," "))&&
+          (d.match(/ C/g)??[]).length>=34&&d.endsWith(" Z")))
+          .toBe(true);
+        expect(new Set(crabClaws.map(m=>m[3])).size).toBe(40);
+      }
       const cloudBanks=[...html.matchAll(
         /data-km-master-cloud-bank="" data-km-master-cloud-bank-root="([^"]+)" data-km-master-cloud-bank-index="(\d+)"/g,
       )];
