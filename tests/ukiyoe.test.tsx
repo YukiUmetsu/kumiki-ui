@@ -8,6 +8,7 @@ import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
 import { expandCrowd } from "../registry/video/ukiyoe/ukiyoe-crowd";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../registry/video/ukiyoe/ukiyoe-oiran";
 import { UKIYOE_MAIKO_LOOK } from "../registry/video/ukiyoe/ukiyoe-maiko";
+import { samuraiKata, swordAt, swordGeometry, UKIYOE_SAMURAI_LOOK } from "../registry/video/ukiyoe/ukiyoe-katana";
 import { palette, resolvePaint } from "../registry/video/ukiyoe/ukiyoe-pigments";
 import { nodeState, UkiyoeScene } from "../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeSceneSpec } from "../registry/video/ukiyoe/ukiyoe-scene";
@@ -252,6 +253,45 @@ describe("UKIYO1 maiko", () => {
     const xs = [9, 21, 33, 45, 54].map(clog);
     expect(Math.max(...xs) - Math.min(...xs)).toBeLessThan(1.5);
     expect(inspectUkiyoeScene(scene({ nodes: [{ id: "m", kind: "figure", look: UKIYOE_MAIKO_LOOK, actions: [{ type: "kyomai", start: 0, end: 50 }] }] }))).toEqual([]);
+  });
+});
+
+describe("UKIYO1 samurai and katana", () => {
+  type P = { t: string; d?: string; fill?: unknown; color?: unknown; transform?: string; noPrint?: boolean; opacity?: number; prims?: P[] };
+  const flat = (ps: P[]): P[] => ps.flatMap(p => p.t === "group" || p.t === "clip" ? flat(p.prims ?? []) : [p]);
+  const kata = samuraiKata(0);
+  const steel = (ps: P[]) => ps.filter(p => p.t === "fill" && (p.fill as { stops?: unknown[][] })?.stops?.[1]?.[1] === "gofun" && (p.fill as { stops?: unknown[][] })?.stops?.[0]?.[1] === "usuzumi");
+  it("runs the kata on the sword's own timeline: sheathed, drawn, guards held after their actions, sheathed again", () => {
+    expect(swordAt(kata, 0).held).toBe(false);
+    expect(swordAt(kata, 0).out).toBe(0);
+    expect(swordAt(kata, 40).out).toBeGreaterThan(0);                      // coming out along the scabbard
+    expect(swordAt(kata, 40).free).toBe(0);
+    const jodan = swordAt(kata, 135);                                     // after the kamae ends, the guard holds
+    expect(jodan.held && jodan.free === 1 && jodan.a < -120).toBe(true);
+    expect(swordAt(kata, 255).a).toBeCloseTo(-100, 0);                    // hassō
+    expect(swordAt(kata, 430).held).toBe(false);
+    expect(swordAt(kata, 430).out).toBe(0);
+    // As drawn, every frame continues from the last: only the strike (its fast middle) turns the blade more than 30° a frame.
+    const g = (f: number) => swordGeometry(swordAt(kata, f), [0, -180], [16, -125], 250);
+    for (let f = 1; f < 480; f++) {
+      const p = g(f - 1), q = g(f), da = Math.abs(((q.a - p.a) % 360 + 540) % 360 - 180);
+      expect(da, `frame ${f}`).toBeLessThan(f >= 160 && f <= 170 ? 50 : 30);
+    }
+  });
+  it("draws the blade only when drawn, keeps both hands on the hilt and blurs the fast strike", () => {
+    const draw = (f: number, view?: "front" | "back" | "three-quarter") => flat(drawFigure({ look: { ...UKIYOE_SAMURAI_LOOK, view }, actions: kata }, f, 0, 4).prims as P[]);
+    expect(steel(draw(5)).length).toBe(0);
+    expect(steel(draw(118)).length).toBe(1);
+    for (const v of ["front", "back", "three-quarter"] as const) expect(steel(draw(118, v)).length, v).toBe(1);
+    // Strike frames carry the pale fan of air; a held guard does not.
+    const smear = (f: number) => draw(f).some(p => p.t === "fill" && p.fill === "gofun" && p.noPrint && (p.opacity ?? 1) < .5);
+    expect([161, 163, 165, 167].some(smear)).toBe(true);
+    expect(smear(118)).toBe(false);
+    // The kamishimo's two crests show on the breast from the front.
+    expect(draw(5, "front").filter(p => p.t === "dots" && p.color === "gofun").length).toBeGreaterThanOrEqual(2);
+    expect(inspectUkiyoeScene(scene({ durationFrames: 480, nodes: [{ id: "s", kind: "figure", look: UKIYOE_SAMURAI_LOOK, actions: kata }] }))).toEqual([]);
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "s", kind: "figure", look: { ...UKIYOE_SAMURAI_LOOK, swords: "spear" as never }, actions: [{ type: "kamae", start: 0, end: 9, form: "low" as never }] }] })).map(i => i.path))
+      .toEqual(expect.arrayContaining(["$.nodes[0].look.swords", "$.nodes[0].actions[0].form"]));
   });
 });
 

@@ -3713,6 +3713,11 @@
           "target": "components/video/ukiyoe/ukiyoe-maiko.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-katana.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-katana.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"

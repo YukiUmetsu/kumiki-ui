@@ -422,6 +422,37 @@ The counts of kanzashi and the weights given vary between sources and were not u
 - No film uses her yet.
 - Nobody has done a human visual review yet.
 
+## Samurai and katana (roadmap U3a, owner request, 2026-11-15)
+
+**Sources.** Public-domain objects and prints from the Met's open-access collection, studied at full resolution:
+
+- *Blade and Mounting for a Sword (Katana)* (22101, 21889 by Naotane Taikei)
+- *Blades and Mountings for a Pair of Swords (Daishō)* by Sukemitsu of Bizen (27789)
+- Katsukawa Shunshō, *The Fifth Ichikawa Danjūrō as a Samurai Attired in Ceremonial Kamishimo* (36880)
+- Utagawa Yoshitora, *The Warrior Slaying the Giant White Hihi* (63376)
+
+**What they show.**
+
+- **Hilt.** The silk wrap crosses in diamonds, with the white nodular ray skin showing in the gaps. There is a dark end cap and a metal collar at the guard.
+- **Guard and collar.** A round dark guard, with the gold collar on the blade.
+- **Blade.** It curves gently. The edge carries a frosty band (the temper line) and the ridge line runs to the tip; the tip is cut at an angle (yokote).
+- **Scabbards.** Glossy black lacquer, with a knob for the cord.
+- **Kamishimo and the pair.** The kamishimo's starched wings stand straight out from the shoulders, with crests. The pair is worn through the obi at the left hip, hilts forward and up, scabbards back.
+
+**Measured.**
+
+- The kata was tracked through every frame of the sword's drawn geometry. Moving between guards, the blade first swung hassō→waki 266° round the front. It now turns the short way, 94° back over the shoulder, at most 9.4° a frame.
+- Outside the strike, no frame turns the blade more than 30°. The strike's fast middle reaches 44° a frame.
+- The 158° jumps in the raw state at the draw's release and the sheathe's entry happen while the sword lies along the scabbard, so the drawn sword does not move. The tests check all of this.
+
+**Not done.**
+
+- Duels between two figures (U3b) and armour are not built yet.
+- The square views project the profile sword rather than drawing true front and back poses.
+- The left hand is hidden behind the hilt in profile.
+- No film uses the samurai yet.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
