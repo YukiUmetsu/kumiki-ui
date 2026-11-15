@@ -301,6 +301,26 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(sidewall.bounds.width).toBeGreaterThanOrEqual(78);
     expect(inspectCrayonScene(scene)).toEqual([]);
   });
+  it("attaches shaded source naris and vermilion to continuous parent facial volume",()=>{
+    const scene=crayonCc0FaceStudy({view:"wax"});
+    const lookup=(id:string)=>scene.elements.find(e=>e.id===id);
+    for(const id of ["nasal-alar-attachment-near","nasal-alar-attachment-far",
+      "labial-upper-value","labial-lower-value"]){
+      expect(lookup(id)).toMatchObject({kind:"wax",coverage:"open",
+        parentId:"face-outline",clipToParent:true,
+        deposition:"stroke-built",featherContacts:true});
+    }
+    const i=scene.elements.map(e=>e.id);
+    expect(i.indexOf("nasal-alar-attachment-near")).toBeLessThan(
+      i.indexOf("naris-shadow-near"));
+    expect(i.indexOf("nasal-alar-attachment-far")).toBeLessThan(
+      i.indexOf("naris-shadow-far"));
+    expect(i.indexOf("labial-upper-value")).toBeLessThan(
+      i.indexOf("oral-opening"));
+    expect(i.indexOf("labial-lower-value")).toBeLessThan(
+      i.indexOf("lip-lower-core-shadow"));
+    expect(inspectCrayonScene(scene)).toEqual([]);
+  });
   it("renders the F1 oblique partly opened mouth with only segmented muted upper incisors",()=>{
     const scene=crayonCc0FaceStudy({view:"wax"});
     const get=(id:string)=>scene.elements.find(e=>e.id===id);
@@ -467,6 +487,8 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       });
     }
     const extra=["neck-submandibular-cast","neck-cervical-turn",
+      "nasal-alar-attachment-near","nasal-alar-attachment-far",
+      "labial-upper-value","labial-lower-value",
       "lip-upper","oral-opening","lip-lower"];
     for(const id of extra){
       expect(scene.elements.find(e=>e.id===id)).toMatchObject({
