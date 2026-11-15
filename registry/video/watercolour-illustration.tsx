@@ -44,13 +44,15 @@ export type WatercolourArtPart =
   | (ArtPartBase & { kind: "group"; children: readonly WatercolourArtPart[] })
   | (ArtPartBase & { kind: "path"; path: string; technique: WatercolourTechnique;
       fill?: string; stroke?: string; strokeWidth?: number; opacity?: number;
-      wash?: WatercolourWashTreatment });
+      wash?: WatercolourWashTreatment;
+      /** Normal for opaque light/skin underpainting; multiply for transparent watercolor glaze. */
+      composite?: "normal" | "multiply"; });
 export interface WatercolourArtwork {
   version: 1;
   width: number;
   height: number;
   seed: number;
-  paper: { color: string; tooth: number };
+  paper: { color: string; tooth: number; granulation?: number };
   /** Original, hand-authored or procedurally built subject geometry. */
   parts: readonly WatercolourArtPart[];
   /** Optional shared-pigment atmospheric underpainting; same paper dimensions. */
@@ -85,6 +87,8 @@ export function inspectWatercolourArtwork(spec: WatercolourArtwork): string[] {
   if (!integer(spec.seed, 0, 2147483647)) problems.push("/seed");
   if (!spec.paper || !hex.test(spec.paper.color) || !bounded(spec.paper.tooth, 0, 1))
     problems.push("/paper");
+  if (spec.paper && spec.paper.granulation !== undefined &&
+    !bounded(spec.paper.granulation, 0, 1)) problems.push("/paper/granulation");
   if (!Array.isArray(spec.parts) || spec.parts.length < 1 || spec.parts.length > 128)
     return [...problems, "/parts"];
   if (spec.wetPaper) {
@@ -147,6 +151,8 @@ export function inspectWatercolourArtwork(spec: WatercolourArtwork): string[] {
       problems.push(at + "/strokeWidth");
     if (part.opacity !== undefined && !bounded(part.opacity, 0, 1))
       problems.push(at + "/opacity");
+    if (part.composite !== undefined && part.composite !== "normal" &&
+      part.composite !== "multiply") problems.push(at + "/composite");
     if (part.wash !== undefined) {
       const w = part.wash;
       if (!w || typeof w !== "object" || Array.isArray(w) ||
@@ -223,8 +229,11 @@ function ArtPart({ part, frame, reducedMotion, washFilter, dryFilter, uid }: {
           strokeLinecap="round" strokeLinejoin="round" opacity={opacity}
           filter={part.technique === "wash" ? washFilter
             : part.technique === "drybrush" ? dryFilter : undefined}
-          style={{ mixBlendMode: part.technique === "line" ? "normal" : "multiply" }}
-          data-km-watercolour-technique={part.technique}/>
+          style={{ mixBlendMode: part.composite ??
+            (part.technique === "line" ? "normal" : "multiply") }}
+          data-km-watercolour-technique={part.technique}
+          data-km-watercolour-composite={part.composite ??
+            (part.technique === "line" ? "normal" : "multiply")}/>
         {material?.glaze && material.glaze.opacity > 0 && <path
           d={part.path} fill={material.glaze.pigment}
           opacity={opacity * material.glaze.opacity}
@@ -266,7 +275,30 @@ export function WatercolourIllustration({ spec, frame, reducedMotion = false, ..
         <feTurbulence type="fractalNoise" baseFrequency=".019 .041" numOctaves={3}
           seed={1 + spec.seed % 997} result="paper"/>
         <feDisplacementMap in="SourceGraphic" in2="paper"
-          scale={2.3 * spec.paper.tooth} xChannelSelector="R" yChannelSelector="G"/>
+          scale={2.3 * spec.paper.tooth} xChannelSelector="R" yChannelSelector="G"
+          result="displaced"/>
+        {(spec.paper.granulation ?? 0) > 0 && <>
+          <feTurbulence type="fractalNoise" baseFrequency=".14 .11"
+            numOctaves={2} seed={1 + spec.seed % 661} result="granules"/>
+          <feColorMatrix in="granules" type="saturate" values="0" result="granuleMono"/>
+          <feComponentTransfer in="granuleMono" result="granuleTint">
+            <feFuncR type="linear" slope={.12 * (spec.paper.granulation ?? 0)}
+              intercept={1 - .075 * (spec.paper.granulation ?? 0)}/>
+            <feFuncG type="linear" slope={.12 * (spec.paper.granulation ?? 0)}
+              intercept={1 - .075 * (spec.paper.granulation ?? 0)}/>
+            <feFuncB type="linear" slope={.12 * (spec.paper.granulation ?? 0)}
+              intercept={1 - .075 * (spec.paper.granulation ?? 0)}/>
+            <feFuncA type="linear" slope={0} intercept={1}/>
+          </feComponentTransfer>
+          {/* Grain is a small centered tonal modulation, not a darkening layer:
+              multiple semitransparent watercolor shapes otherwise accumulate
+              into muddy, opaque skin. Preserve hue and alpha. */}
+          {/* Arithmetic multiplication modulates pigment RGB while preserving its
+              alpha. Overlay blending here would incorrectly double opacity and
+              turn translucent watercolor washes into solid cartoon patches. */}
+          <feComposite in="displaced" in2="granuleTint" operator="arithmetic"
+            k1={1} k2={0} k3={0} k4={0}/>
+        </>}
       </filter>
       <filter id={id + "-dry"} x="-3%" y="-3%" width="106%" height="106%"
         colorInterpolationFilters="sRGB">
