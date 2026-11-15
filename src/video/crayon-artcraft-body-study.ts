@@ -102,11 +102,18 @@ export function crayonArtcraftBodyStudy(options:BodyStudyOptions={}):CrayonScene
   };
   // Depth is painted back-to-front. Limbs sit beneath garment/collar, while
   // waist folds bridge pelvis and legs. Hands are independent silhouettes.
+  // B1 photograph: close-cropped, irregular short hair, NOT the former
+  // symmetric shoulder-length bob. Every spike flows into the connected cap.
   wax("hair-back",
-    "M314 94 C308 44 340 6 381 7 C423 8 452 44 446 103"+
-    "Q449 151 426 181 Q395 193 339 182 C306 157 299 120 314 94Z",
-    rect(295,3,165,197),P.hair,[1,74],
-    {pressure:.9,spacing:7,markStrength:.85});
+    "M313 93Q305 81 314 70L310 58Q319 49 317 37"+
+    "Q328 39 339 25L343 13L355 18Q366 2 382 9"+
+    "Q399 3 408 11L420 8Q431 20 435 33"+
+    "L448 41Q445 52 452 63L447 78Q453 88 443 100"+
+    "Q446 121 430 133L425 137Q423 115 422 101"+
+    "Q395 101 367 94Q351 105 335 108"+
+    "Q333 132 319 132Q306 122 313 93Z",
+    rect(303,1,154,141),P.hair,[1,74],
+    {pressure:.91,spacing:6,markStrength:.79,edgeRoughness:.45});
   wax("neck",
     "M361 164Q372 181 367 197Q360 208 348 219"+
     "Q364 235 388 234Q414 234 428 217"+
@@ -128,10 +135,24 @@ export function crayonArtcraftBodyStudy(options:BodyStudyOptions={}):CrayonScene
   // This study explicitly marks the face as UNRESOLVED. An invented nose,
   // dot eyes, etc would fake anatomical completeness and violate ArtCraft.
   wax("hair-forelock",
-    "M321 83Q335 17 382 10C420 11 443 40 445 75"+
-    "Q424 66 409 75Q382 54 354 69Q336 92 323 106Z",
-    rect(314,5,137,112),P.hairTurn,[82,174],
-    {parentId:"hair-back",markStrength:.68,spacing:7});
+    "M315 80Q325 38 350 24Q373 6 390 15"+
+    "Q408 12 425 34Q439 54 435 76"+
+    "Q426 63 414 67Q399 54 387 58"+
+    "Q368 42 348 65Q335 64 323 94"+
+    "Q323 75 315 80Z",
+    rect(307,10,138,95),P.hairTurn,[82,174],
+    {parentId:"hair-back",markStrength:.72,spacing:5.5,
+      pressure:.86,edgeRoughness:.4});
+  wax("left-sideburn",
+    "M314 88Q324 93 337 99L332 119Q326 142 319 139"+
+    "Q313 127 313 111Z",
+    rect(308,84,34,59),P.hair,[95,194],
+    {parentId:"hair-back",pressure:.75,spacing:5,outlineOpacity:0});
+  wax("right-sideburn",
+    "M429 89Q439 83 444 100Q445 120 434 137"+
+    "Q431 132 427 123Z",
+    rect(422,84,28,58),P.hair,[96,192],
+    {parentId:"hair-back",pressure:.74,spacing:5,outlineOpacity:0});
   // The far arm is behind the shirt and hip, not an unattached tube.
   wax("arm-right-forearm",
     "M473 342Q503 345 508 379L504 449"+
@@ -374,11 +395,13 @@ export function crayonArtcraftBodyStudy(options:BodyStudyOptions={}):CrayonScene
     "#5c5354",2.1,[190,299],.82,"shoe-left");
   line("right-shoe-sole","M381 990Q427 1001 471 991",
     "#5a5555",2.1,[190,299],.82,"shoe-right");
+  // Directed forelock/temple marks remain attached to a short-cap mass.
   line("hair-rooted-flow",
-    "M327 77Q351 29 372 33M346 61Q372 18 402 28"+
-    "M392 29Q427 39 436 75M323 104Q314 132 336 159"+
-    "M415 79Q430 107 423 145",
-    "#ad8f7e",1.1,[184,296],.55,"hair-back");
+    "M317 78Q328 51 354 34 M329 80Q351 43 375 26"+
+    "M347 67Q374 34 404 24 M373 43Q390 31 413 40"+
+    "M395 35Q431 47 438 82 M322 110Q314 119 324 131"+
+    "M433 99Q443 116 434 127",
+    "#8e756d",.84,[184,296],.47,"hair-back");
   // Diagnostic bones do not pretend to be a finished body mesh.
   if(view==="construction"){
     const bones=[
