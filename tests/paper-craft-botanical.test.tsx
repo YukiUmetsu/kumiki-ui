@@ -35,6 +35,14 @@ describe("PAPER1 ArtCraft botanical construction", () => {
         expect(spec.layers.find(l=>l.id==="fern-0-chroma")).toBeDefined();
         expect(spec.layers.find(l=>l.id==="moth-left-fore-lining")?.depth)
           .toBeLessThan(spec.layers.find(l=>l.id==="moth-left-fore")!.depth);
+        for(const side of ["left","right"]){
+          const hind=spec.layers.find(l=>l.id==="moth-"+side+"-hind-panel")!;
+          const fore=spec.layers.find(l=>l.id==="moth-"+side+"-fore-panel")!;
+          expect(hind.path).toMatch(/^M/);
+          expect(fore.path).toMatch(/Z$/);
+          expect(fore.pivot).toHaveLength(2);
+          expect(fore.depth).toBeGreaterThan(spec.layers.find(l=>l.id==="moth-"+side+"-fore")!.depth);
+        }
         expect(spec.layers.find(l=>l.id==="flower-0-inner-stock")?.depth)
           .toBeGreaterThan(spec.layers.find(l=>l.id==="flower-0-top")!.depth);
         expect(new Set(spec.layers.map(l=>l.color)).size).toBeGreaterThan(18);

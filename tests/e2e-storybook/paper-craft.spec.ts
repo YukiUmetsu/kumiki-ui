@@ -86,7 +86,7 @@ test("ArtCraft botanical sheets have connected detail, real holes and correct tw
     expect(count).toBeLessThanOrEqual(128);
     const ids=await layers.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("data-km-paper-layer")));
     expect(new Set(ids).size).toBe(count);
-    for(const id of ["fern-0","fern-0-chroma","flower-0-outer-stock","flower-0-top","flower-0-inner-stock","moth-left-fore-lining","moth-left-fore","moth-right-fore","moth-thorax"]){
+    for(const id of ["fern-0","fern-0-chroma","flower-0-outer-stock","flower-0-top","flower-0-inner-stock","moth-left-fore-lining","moth-left-fore","moth-left-fore-panel","moth-right-fore-panel","moth-right-fore","moth-thorax"]){
       await expect(svg.locator('[data-km-paper-layer="'+id+'"]')).toBeVisible();
     }
     const colors=await layers.locator('path[fill-rule="evenodd"]').evaluateAll(nodes=>
