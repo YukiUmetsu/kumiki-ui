@@ -401,6 +401,22 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(chest.details!.filter(t=>t.id?.startsWith("fringe-"))).toHaveLength(3);
   });
 
+  it("keeps all three fur pigment passes tangent to coat growth instead of generic 73-degree crosshatching",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const drawing=pencilLivingStudyDrawing({subject:"fox",aspect});
+      const furs=drawing.regions.filter(r=>r.craft?.kind==="fur");
+      expect(furs.length).toBeGreaterThan(10);
+      for(const region of furs){
+        const angles=region.layers.map(layer=>layer.angle);
+        expect(angles).toHaveLength(3);
+        expect(Math.abs(angles[1]-angles[0]),region.id).toBeLessThanOrEqual(24);
+        expect(Math.abs(angles[2]-angles[0]),region.id).toBeLessThanOrEqual(24);
+        expect(Math.abs(angles[1]-angles[0]),region.id).toBeGreaterThanOrEqual(5);
+        expect(region.layers.every(layer=>layer.texture==="fiber")).toBe(true);
+      }
+    }
+  });
+
   it("renders original CP-F1 fox anatomy from authored pencil vectors with zero photo pixels",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     expect(drawing.foundation?.subject).toBe("wildlife");
