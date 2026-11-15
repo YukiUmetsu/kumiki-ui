@@ -32,7 +32,9 @@ export const CRAYON_F1_FACE_PROOF={
   review:"Unapproved artwork; source anchors alone are not pixel fidelity",
 } as const;
 export type Cc0FaceView="wax"|"anatomy";
-export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView;fiberMaterial?:"line"|"dry-wax"}
+/** Source-registered ocular pigment experiment; baseline is an unchanged negative control. */
+export type Cc0EyeContact="baseline"|"source-shade";
+export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView;fiberMaterial?:"line"|"dry-wax";eyeContact?:Cc0EyeContact}
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
 type Ink=Extract<CrayonElement,{kind:"contour"}>;
 const rect=(x:number,y:number,width:number,height:number)=>
@@ -69,6 +71,8 @@ export const CRAYON_F1_FACE_PARTS=[
   "eye-orbital-undercut-far","sclera-near","sclera-far",
   "iris-near","iris-far","pupil-near","pupil-far",
   "upper-lid-near","upper-lid-far",
+  "sclera-outer-contact-near","sclera-inner-contact-near",
+  "sclera-outer-contact-far",
   "lash-root-near","lash-root-far","lower-lid-near","lower-lid-far",
   "malar-cheek-near","cheek-far","nose-root","nose-dorsum",
   "nose-tip","nose-septal-transition","nose-tip-underlight",
@@ -97,9 +101,11 @@ export const CRAYON_F1_EYE_INSPECTION={
 export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   const detail=options.detail??1,view=options.view??"wax";
   const fiberMaterial=options.fiberMaterial??"dry-wax";
+  const eyeContact=options.eyeContact??"source-shade";
   if(!Number.isFinite(detail)||detail<.2||detail>1||
     !["wax","anatomy"].includes(view)||
-    !["line","dry-wax"].includes(fiberMaterial))
+    !["line","dry-wax"].includes(fiberMaterial)||
+    !["baseline","source-shade"].includes(eyeContact))
     throw new RangeError("Invalid ArtCraft F1 face controls");
   const elements:CrayonElement[]=[];
   const wax=(id:string,d:string,bounds:ReturnType<typeof rect>,
@@ -399,6 +405,40 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
       pressure:.73,spacing:5,markStrength:.17,underpaintTooth:.22,
       underpaintGradient:{light:"#aea5a1",shadow:"#4b464b",
         focusX:.3,focusY:.77,radius:.86}});
+  // F1 eye photograph / anatomical study: the wet limbus and two
+  // source-side tear junctions live INSIDE the opaque scleral body.
+  // These asymmetric pressure-bound deposits break up the oversized
+  // chalk-bright white wedges without shrinking or replacing the iris.
+  // Preserve the previous scene exactly as a blinded A/B negative control.
+  if(eyeContact==="source-shade"){
+    wax("sclera-outer-contact-near",
+      "M216 558C225 546 236 539 247 537"+
+      "C239 543 234 552 239 560Q228 566 216 561Z",
+      rect(212,534,39,34),
+      ["#988782","#60565c","#b7a59b"],[143,237],
+      {parentId:"sclera-near",clipToParent:true,coverage:"open",
+        featherContacts:true,blendRadius:3.8,
+        pressure:.44,spacing:5.8,markStrength:.17,
+        outlineOpacity:0,edgeRoughness:0});
+    wax("sclera-inner-contact-near",
+      "M282 541C295 537 312 538 321 544"+
+      "Q310 547 299 557Q291 563 283 560Z",
+      rect(279,535,45,31),
+      ["#958885","#665d64","#bea9a1"],[145,239],
+      {parentId:"sclera-near",clipToParent:true,coverage:"open",
+        featherContacts:true,blendRadius:3.5,
+        pressure:.39,spacing:6.2,markStrength:.14,
+        outlineOpacity:0,edgeRoughness:0});
+    wax("sclera-outer-contact-far",
+      "M405 527Q413 512 426 507Q421 517 426 529"+
+      "Q413 534 405 527Z",
+      rect(402,503,30,32),
+      ["#81767a","#514b51","#aa9895"],[145,237],
+      {parentId:"sclera-far",clipToParent:true,coverage:"open",
+        featherContacts:true,blendRadius:2.8,
+        pressure:.41,spacing:5.9,markStrength:.15,
+        outlineOpacity:0,edgeRoughness:0});
+  }
   // Near brown iris x245..281, source is 33–37px across, not 53.
   // Both are optically compressed and later partly OVERPAINTED by lid.
   wax("iris-near",
