@@ -799,24 +799,40 @@ function bambooBrushBlade(root:P,tip:P,width:number,seed:number){
   const dx=tip[0]-root[0],dy=tip[1]-root[1];
   const length=Math.max(.01,Math.hypot(dx,dy));
   const nx=-dy/length,ny=dx/length;
-  // Controlled crook along the leaf axis, instead of a single straight
-  // triangle with symmetrical rounded sides. One contour receives more
-  // pigment and a wider belly; the return edge pulls dry toward the base.
-  const bend=(s(seed,17)-.5)*length*.28;
-  const swell=.3+.17*s(seed,31);
-  const at=(t:number,load:number):P=>{
-    const offset=width*load+bend*Math.sin(Math.PI*t);
-    return [root[0]+dx*t+nx*offset,root[1]+dy*t+ny*offset];
-  };
-  const c1=at(.07,.18),c2=at(swell,1.12);
-  const c3=at(.74,-.27),c4=at(.17,-.42);
-  return "M"+f(root[0])+" "+f(root[1])+
-    " C"+f(c1[0])+" "+f(c1[1])+
-    " "+f(c2[0])+" "+f(c2[1])+
-    " "+f(tip[0])+" "+f(tip[1])+
-    " C"+f(c3[0])+" "+f(c3[1])+
-    " "+f(c4[0])+" "+f(c4[1])+
-    " "+f(root[0])+" "+f(root[1])+" Z";
+  // Side-brush stroke: light handle, abrupt loaded belly, then an
+  // increasingly dry release. These pressure stations are not mirrored.
+  // They come from close examination of Wu Zhen's 1350 bamboo studies:
+  // a single wrist gesture, *not* a symmetric leaf pictogram.
+  const stations=[0,.085,.19,.30,.43,.58,.71,.83,.92,1] as const;
+  const pressure=[0,.035,.24,.83,1,.79,.52,.31,.12,0] as const;
+  const curvature=(s(seed,17)-.5)*length*.19;
+  const asymmetry=.35+.22*s(seed,31);
+  const makeSide=(side:number)=>stations.map((t,k):P=>{
+    const ragged=k===0||k===9?0:(s(seed+71,k*23+(side>0?3:17))-.5)*.08;
+    const load=Math.max(0,pressure[k]+ragged);
+    const bend=curvature*Math.sin(Math.PI*t);
+    const shift=bend+side*width*load*(side>0?1.1:asymmetry);
+    return [root[0]+dx*t+nx*shift,root[1]+dy*t+ny*shift];
+  });
+  // Cubic Hermite smoothing across actual sampled brush-pressure stations.
+  // Endpoint interpolation keeps both blades exactly joined at their root
+  // and pointed release; there are no fake detached outline triangles.
+  const outline=[...makeSide(1),...makeSide(-1).slice(1,-1).reverse()];
+  const path=["M"+f(root[0])+" "+f(root[1])];
+  for(let k=0;k<outline.length;k++){
+    const p0=outline[(k-1+outline.length)%outline.length];
+    const p1=outline[k];
+    const p2=outline[(k+1)%outline.length];
+    const p3=outline[(k+2)%outline.length];
+    const c1:P=[p1[0]+(p2[0]-p0[0])*.115,
+      p1[1]+(p2[1]-p0[1])*.115];
+    const c2:P=[p2[0]-(p3[0]-p1[0])*.115,
+      p2[1]-(p3[1]-p1[1])*.115];
+    path.push("C"+f(c1[0])+" "+f(c1[1])+
+      " "+f(c2[0])+" "+f(c2[1])+
+      " "+f(p2[0])+" "+f(p2[1]));
+  }
+  return path.join(" ")+" Z";
 }
 /** Bamboo is a calligraphic plant, not uniform fence-post lines. The
  * centerline of each tapered culm also supplies the positions of its branch
@@ -885,7 +901,12 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
               root[1]-(7+5*s(seed+1061,i*19+j*37+k*3))];
             return {root,bend,tip};
           });
-          const visibleLeaves=Math.round(detail*5);
+          // Wu Zhen's bamboo has unequal masses and long silent internodes.
+          // Author a rhythmic motif rather than cloning five stars at every
+          // one of 21 nodes. The same composition scales deterministically
+          // with the public detail control.
+          const clusterBudget=[0,3,8,1,10,2,10][j];
+          const visibleLeaves=Math.round(detail*clusterBudget);
           const visibleSpurs=visibleLeaves>4?2:visibleLeaves>1?1:0;
           return <g key={j} data-km-bamboo-branch-root={f(cx)+","+f(cy)}
             transform={"rotate("+f(wind*.6)+" "+f(cx)+" "+f(cy)+")"}>
@@ -905,17 +926,18 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
                 opacity={k===0?.78:.65}/>;
             })}
             {Array.from({length:visibleLeaves},(_,k)=>{
-              const spurIndex=k===1?0:k===4?1:-1;
+              const motif=k%5,layer=Math.floor(k/5);
+              const spurIndex=motif===1?0:motif===4?1:-1;
               const origin=spurIndex<0
                 ?{root:base,bend:branchControl,tip:end}
                 :spurs[spurIndex];
               // Wu Zhen's bamboo resolves into terminal brush groups:
               // most leaves emerge from the outer branch section, not
               // evenly-spaced hooks along the entire bare bough.
-              const along=spurIndex<0?[.58,0,.83,.94,0][k]
-                :k===1?.71:.81;
-              const t=clamp(along+
-                (s(seed+71,i*43+j*11+k)-.5)*.047,.06,.91);
+              const along=spurIndex<0?[.66,0,.85,.93,0][motif]
+                :motif===1?.74:.83;
+              const t=clamp(along-layer*.14+
+                (s(seed+71,i*43+j*11+k)-.5)*.056,.09,.96);
               const [bx,by]=quadraticPoint(origin.root,origin.bend,
                 origin.tip,t);
               // Leaf direction is tied to the actual branch tangent.
@@ -927,13 +949,15 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
                   2*t*(origin.tip[1]-origin.bend[1]),
               ];
               const branchAngle=Math.atan2(tangent[1],tangent[0]);
-              const fanAngles=[-.78,-.36,.18,.64,-.57];
-              const direction=branchAngle+fanAngles[k]+
-                (s(seed+1081,i*29+j*17+k)-.5)*.48;
-              const len=(18+19*s(seed,i*50+j*9+k))*(k===4?.85:1);
+              const fanAngles=[-1.03,-.38,.24,1.04,-.72];
+              const direction=branchAngle+fanAngles[motif]*(fan>0?1:-1)+
+                (layer===0?0:-.13*fan)+
+                (s(seed+1081,i*29+j*17+k)-.5)*.42;
+              const len=(22+22*s(seed,i*50+j*9+k))*
+                (motif===4?.74:layer===1?.83:1);
               const leafTipX=bx+Math.cos(direction)*len;
               const leafTipY=by+Math.sin(direction)*len;
-              const wide=2.3+4.15*s(seed+11,k+i*13+j);
+              const wide=2.7+4.8*s(seed+11,k+i*13+j);
               // Orient the brush belly to the blade tangent, not paper Y.
               // Secondary tip releases grow from the same parent wood,
               // but their size and pitch vary rather than forming mirror pairs.
@@ -941,13 +965,13 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
                 wide,seed+i*1009+j*41+k*17);
               // Leaf cluster resolves at a common live twig tip,
               // not at arbitrary positions distributed across empty space.
-              const echo=detail>.62&&k%2===0;
+              const echo=detail>.62&&motif%2===0;
               const echoT=clamp(.79+.08*s(seed+1321,i*59+j*11+k),.05,.94);
               const echoRoot=quadraticPoint(origin.root,origin.bend,
-                origin.tip,echoT);
+                origin.tip,clamp(echoT-layer*.11,.12,.94));
               const echoLen=len*(.59+.2*s(seed+1351,i*71+j*17+k));
               const echoAngle=branchAngle+
-                (k===0?-.56:k===2?.66:-.84)+
+                (motif===0?-.56:motif===2?.66:-.84)*fan+
                 (s(seed+1397,i*13+j*29+k)-.5)*.27;
               const echoTip:P=[echoRoot[0]+Math.cos(echoAngle)*echoLen,
                 echoRoot[1]+Math.sin(echoAngle)*echoLen];
@@ -959,15 +983,15 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
                   data-km-bamboo-leaf-root={f(bx)+","+f(by)}
                   data-km-bamboo-leaf-parent={spurIndex<0?"main":"spur-"+spurIndex}
                   data-km-bamboo-leaf-heading={f(direction)}
-                  fill={k===0||j%5===0?"#89765c":"#40392b"}
-                  opacity={f((k===0||j%5===0 ? .67 : .83)+
-                    .15*s(seed,k+i*31+j*7))}/>
+                  fill={k%5===0||j%5===0?"#8b7963":"#282a25"}
+                  opacity={f((k%5===0||j%5===0 ? .68 : .85)+
+                    .14*s(seed,k+i*31+j*7))}/>
                 {echo&&<path data-km-bamboo-satellite-leaf=""
                   data-km-bamboo-satellite-root={f(echoRoot[0])+","+f(echoRoot[1])}
                   d={satellite} data-km-bamboo-satellite-heading={f(echoAngle)}
                   fill={k===4?"#675442":"#8b765c"}
                   opacity={f(.62+.18*s(seed+1459,i*13+j*7+k))}/>}
-                {detail>.77&&(k===1||k===3)&&
+                {detail>.77&&(motif===1||motif===3)&&
                   <path data-km-bamboo-dry-lift=""
                     d={"M"+f(bx+(leafTipX-bx)*.2)+" "+
                       f(by+(leafTipY-by)*.2)+
