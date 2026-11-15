@@ -487,6 +487,40 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("grows bamboo secondary shoots from painted parent limbs and anchors every leaf",()=>{
+    for(const scene of SHANSHUI_SCENES){
+      const controls={...DEFAULT_SHANSHUI,scene,detail:1,seed:87};
+      const draw=()=>renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:153,controls,
+      }));
+      const html=draw();
+      expect(html).toBe(draw());
+      const shoots=[...html.matchAll(
+        /data-km-bamboo-secondary-shoot="" data-km-bamboo-secondary-root="([^"]+)" d="([^"]+)"/g,
+      )];
+      expect(shoots).toHaveLength(42); // two shoots per each of 21 culm nodes
+      for(const [,root,d] of shoots){
+        const [x,y]=root.split(",").map(Number);
+        const match=d.match(/^M(-?[\d.]+) (-?[\d.]+)/);
+        expect(match).not.toBeNull();
+        expect(Math.abs(Number(match![1])-x)).toBeLessThan(1);
+        expect(Math.abs(Number(match![2])-y)).toBeLessThan(1);
+        expect(d.endsWith(" Z")).toBe(true);
+      }
+      const leaves=[...html.matchAll(
+        /data-km-shanshui-bamboo-leaf="" d="([^"]+)" data-km-bamboo-leaf-root="([^"]+)" data-km-bamboo-leaf-parent="([^"]+)"/g,
+      )];
+      expect(leaves).toHaveLength(105);
+      expect(leaves.filter(m=>m[3]==="main")).toHaveLength(63);
+      expect(leaves.filter(m=>m[3]==="spur-0")).toHaveLength(21);
+      expect(leaves.filter(m=>m[3]==="spur-1")).toHaveLength(21);
+      for(const [,d,root] of leaves){
+        expect(d.startsWith("M"+root.replace(","," "))).toBe(true);
+      }
+      expect(html).not.toMatch(/NaN|Infinity|undefined/);
+    }
+  });
+
   it("attaches the reserve-paper cascade to a cliff lip and a receiving pool",()=>{
     const controls={...DEFAULT_SHANSHUI,scene:"mountain-trail" as const};
     const stage=(frame:number,detail=1)=>renderToStaticMarkup(createElement(
