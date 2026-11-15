@@ -209,3 +209,43 @@ export const compareCC0SoftSkin=(
       CC0_SKIN_COVERAGE_PROBES[index].lightnessLimit);
   return {regions,missingOpticalCoverage,artisticApproval:false};
 };
+
+/**
+ * Reference-measured facial LIGHT plane probes. The source is NOT white:
+ * Y≈202 at malar and ≈199 at nasal bridge. Earlier v7 incorrectly
+ * treated both as unpigmented paper, rendering ≈241/236 respectively.
+ * These are negative-only material observations of Christopher Campbell's
+ * licensed CC0 head, measured in a 285x318 real browser source screenshot.
+ */
+export const CC0_LUMINOUS_SKIN_PROBES=[
+  {name:"malar",x:114/285,y:148/318,r:3/285,
+    sourceMax:225,deficitMax:30},
+  {name:"nasal-bridge",x:176/285,y:142/318,r:3/285,
+    sourceMax:225,deficitMax:32},
+] as const;
+export interface CC0LuminousSkinResult {
+  readonly regions:readonly {
+    name:"malar"|"nasal-bridge";
+    sourceLuminance:number;drawnLuminance:number;
+    lightnessDeficit:number;
+  }[];
+  readonly missingPhotographedLightSkin:boolean;
+  readonly artisticApproval:false;
+}
+export const compareCC0LuminousSkin=(
+  source:PencilTonePixelGrid,drawing:PencilTonePixelGrid,
+):CC0LuminousSkinResult=>{
+  validate(source);validate(drawing);
+  if(source.width!==drawing.width||source.height!==drawing.height)
+    throw new RangeError("Bright facial plane proof requires matching registered canvases");
+  const regions=CC0_LUMINOUS_SKIN_PROBES.map(p=>{
+    const sourceLuminance=sample(source,p.x,p.y,p.r);
+    const drawnLuminance=sample(drawing,p.x,p.y,p.r);
+    return {name:p.name,sourceLuminance,drawnLuminance,
+      lightnessDeficit:drawnLuminance-sourceLuminance};
+  });
+  const missingPhotographedLightSkin=regions.some((region,i)=>
+    region.sourceLuminance>=CC0_LUMINOUS_SKIN_PROBES[i].sourceMax||
+    region.lightnessDeficit>=CC0_LUMINOUS_SKIN_PROBES[i].deficitMax);
+  return {regions,missingPhotographedLightSkin,artisticApproval:false};
+};
