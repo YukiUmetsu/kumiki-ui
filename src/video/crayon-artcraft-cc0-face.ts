@@ -439,24 +439,24 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   // rim; worn wax skips paper valleys and picks up at its terminal.
   // The near source cluster is concentrated x230..288, varied lean.
   mark("lash-contact-near",
-    "M229 547 C227 542 225 536 223 535 "+
-    "M235 542 C233 538 230 534 229 531 "+
-    "M240 540 C238 536 235 530 235 528 "+
-    "M245 539 C243 535 240 531 240 529 "+
-    "M251 537 C250 533 247 530 246 527 "+
-    "M257 537 C255 532 254 529 254 527 "+
-    "M266 535 C264 532 264 529 263 528 "+
-    "M273 534 C272 531 272 529 271 528 "+
-    "M282 535 C281 532 281 529 281 528 "+
-    "M291 538 C291 534 291 531 290 530",
+    "M228 548 C225 544 222 541 221 539 "+
+    "M236 541 C232 538 230 535 228 533 "+
+    "M242 538 C240 536 237 532 236 530 "+
+    "M248 536 C245 534 243 531 241 529 "+
+    "M256 535 C254 533 253 529 252 528 "+
+    "M265 534 C264 532 263 529 263 527 "+
+    "M273 535 C272 532 271 529 271 528 "+
+    "M281 535 C282 532 282 530 283 529 "+
+    "M289 537 C291 534 292 532 293 531 "+
+    "M298 540 C301 538 303 536 305 535",
     "#31282d",.33,[219,299],.87,"face-outline",
     {waxContact:"dry-wax",waxPressure:.76});
   mark("lash-contact-far",
-    "M416 517 C414 513 411 508 411 505 "+
-    "M424 511 C422 507 421 502 422 500 "+
-    "M432 507 C431 503 430 499 431 497 "+
-    "M440 505 C441 501 441 498 442 496 "+
-    "M450 504 C451 501 452 499 453 498",
+    "M418 517 C415 514 413 511 411 509 "+
+    "M426 511 C423 508 422 505 422 503 "+
+    "M433 507 C432 504 431 501 431 500 "+
+    "M441 505 C442 502 442 500 443 499 "+
+    "M451 505 C453 503 454 501 455 500",
     "#2e252b",.3,[220,299],.82,"face-outline",
     {waxContact:"dry-wax",waxPressure:.73});
   // Lower tarsal lip and infraorbital shadow: separate adjacent
@@ -891,17 +891,36 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     crownBands[band].push(d);
   }
   finishHair("crown","hair-crown-surface",186,crownBands);
+  // F1 photo: individual brow fibers root into their asymmetric
+  // brown wax masses, not evenly-spaced digital Bezier arches.
   const eyebrowFiberGroups=[
-    "M202 491Q218 477 232 479 M211 487Q231 472 248 471",
-    "M234 476Q248 462 269 465 M249 470Q268 459 285 467",
-    "M269 467Q288 460 305 468M286 469Q304 470 317 478",
-    "M302 470Q315 471 324 478M310 473Q318 478 324 483",
-    "M397 457Q414 445 425 447M410 454Q423 439 439 442",
-    "M432 444Q450 433 461 441M447 442Q464 439 472 445",
+    "M205 492 C214 486 219 481 224 478 "+
+    "M212 489 C222 483 227 479 235 476 "+
+    "M217 485 C225 477 230 473 241 470",
+    "M228 476 C237 469 246 467 253 466 "+
+    "M231 481 C241 472 250 467 261 466 "+
+    "M239 475 C248 470 253 467 267 465",
+    "M249 472 C258 467 270 465 278 466 "+
+    "M258 473 C270 466 281 466 292 467 "+
+    "M265 468 C279 464 288 466 296 471",
+    "M279 468 C291 466 302 471 308 475 "+
+    "M287 467 C301 468 309 475 315 479 "+
+    "M296 469 C306 471 314 477 320 482",
+    "M303 473 C310 477 315 481 323 486 "+
+    "M310 476 C316 482 321 486 325 490",
+    "M395 461 C406 455 413 448 422 446 "+
+    "M404 459 C414 451 421 447 432 443 "+
+    "M410 454 C420 447 429 441 439 440",
+    "M424 446 C435 441 446 438 452 439 "+
+    "M434 445 C445 439 453 436 462 438 "+
+    "M439 441 C452 437 460 438 468 442",
+    "M448 439 C456 439 466 442 472 446 "+
+    "M453 438 C463 442 468 447 474 450",
   ] as const;
   for(let i=0;i<Math.round(eyebrowFiberGroups.length*detail);i++)
     mark("brow-fibers-"+i,eyebrowFiberGroups[i],
-      "#4e3535",.55,[201,298],.56,"face-outline");
+      "#5c403e",.48,[201,298],.71,"face-outline",
+      {waxContact:"dry-wax",waxPressure:.68});
   // Source lids, lashes, and meniscus are layered before hair occlusion.
   // No late floating digital line marks over the eyelid or dark curtain.
   // Alar relief and labial commissures are deposited in their anatomical
