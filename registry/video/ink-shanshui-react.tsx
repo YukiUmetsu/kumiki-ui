@@ -1343,22 +1343,48 @@ function MountainHeroCliff({root,stations,seed,mist,detail}:{
       const swing=rib.side*(rib.reach+
         (s(seed+401,i*19)-.5)*7);
       const length=rib.len*(.95+.12*s(seed+403,i*23));
-      const bend:P=[r[0]+swing*.24,r[1]+length*.38];
-      const tip:P=[r[0]+swing,r[1]+length];
-      // Both edges follow *the same* supporting centreline; a narrow
-      // calligraphic load must not balloon into a geometrical wedge.
-      const face=rockLoadedRibbon(r,bend,tip,
-        rib.load*.48,seed+1019*i);
-      const mid=quadraticPoint(r,bend,tip,.47);
-      const split=quadraticPoint(r,bend,tip,.55);
+      // The reference uses translucent dry long-hemp tracks with
+      // interrupted, locally re-loaded brush segments. The older
+      // quadratic and uninterrupted dark creases read as four straight
+      // arrow-like slashes from a single computer-drawn apex.
+      // Keep the complete source stroke, and change its *flow* to an
+      // authored over-shoulder cubic with paper breaks and dark inclusions.
+      const c1:P=[r[0]+swing*(i%2===0?.35:.14),
+        r[1]+length*(i%2===0?.07:.21)];
+      const c2:P=[r[0]+swing*(i%3===1?.66:.83),
+        r[1]+length*(i%2===0?.51:.69)];
+      const tip:P=[r[0]+swing,r[1]+length*(i%3===0?.83:.96)];
+      const face=rockLoadedCubicRibbon(r,c1,c2,tip,
+        rib.load*.39,seed+1019*i);
+      const mid=cubicPoint(r,c1,c2,tip,.39);
+      const split=cubicPoint(r,c1,c2,tip,.56);
       const crease="M"+f(r[0])+" "+f(r[1])+
-        " Q"+f(bend[0]-rib.side*2.1)+" "+f(bend[1])+
-          " "+f(mid[0])+" "+f(mid[1])+
+        " C"+f(c1[0]-rib.side*1.9)+" "+f(c1[1])+
+        " "+f(c2[0]-swing*.09)+" "+f(c2[1]-length*.14)+
+        " "+f(mid[0])+" "+f(mid[1])+
         " M"+f(split[0])+" "+f(split[1])+
-        " Q"+f(bend[0]+swing*.12)+" "+f(bend[1]+length*.28)+
-          " "+f(tip[0])+" "+f(tip[1]);
+        " C"+f(c1[0]+swing*.14)+" "+f(c1[1]+length*.26)+
+        " "+f(c2[0]+rib.side*2.2)+" "+f(c2[1])+
+        " "+f(tip[0])+" "+f(tip[1]);
+      // Intermittent wet re-inking at three sampled source-flow
+      // intervals. The full dry backbone remains; no information is
+      // deleted or replaced by a generic screen-wide noise texture.
+      const deposits=([.09,.38,.7] as const).map((at,k)=>{
+        const endAt=Math.min(.97,at+.16+
+          .04*s(seed+5423,i*71+k*31));
+        const a=cubicPoint(r,c1,c2,tip,at);
+        const b=cubicPoint(r,c1,c2,tip,endAt);
+        const control1=cubicPoint(r,c1,c2,tip,
+          at+(endAt-at)*.27);
+        const control2=cubicPoint(r,c1,c2,tip,
+          at+(endAt-at)*.79);
+        const load=(k===0?1.56:k===1?2.07:1.02)*
+          (.79+.39*s(seed+5437,i*43+k*29));
+        return {a,body:rockLoadedCubicRibbon(a,control1,
+          control2,b,load,seed+5459+i*73+k*19)};
+      });
       const branches=([.3,.63] as const).map((station,k)=>{
-        const point=quadraticPoint(r,bend,tip,station);
+        const point=cubicPoint(r,c1,c2,tip,station);
         const side=(i+k)%2===0?-rib.side:rib.side;
         const sideReach=(9+8*s(seed+419,i*17+k*7))*side;
         const tipY=point[1]+(12+13*s(seed+421,i*13+k));
@@ -1372,12 +1398,18 @@ function MountainHeroCliff({root,stations,seed,mist,detail}:{
         data-km-rock-hero-rib-root={f(r[0])+","+f(r[1])}>
         <path data-km-rock-hero-face="" d={face}
           fill={i%2===0?"#504338":"#75614d"}
-          opacity={f((i%2===0?.69:.47)*(1-.19*mist))}/>
+          opacity={f((i%2===0?.39:.32)*(1-.19*mist))}/>
         <path data-km-rock-hero-crease="" d={crease}
           fill="none" stroke={i%2===0?"#40362c":"#6b5744"}
           strokeWidth={f(i%2===0?1.1:.85)}
           strokeLinecap="round"
-          opacity={f(.78*(1-.2*mist))}/>
+          opacity={f(.42*(1-.2*mist))}/>
+        {deposits.map(({a,body},k)=><path key={"load"+k}
+          data-km-rock-hero-rib-deposit=""
+          data-km-rock-hero-rib-deposit-root={f(a[0])+","+f(a[1])}
+          data-km-rock-hero-rib-deposit-stage={k}
+          d={body} fill={k===1?"#41382f":"#56493a"}
+          opacity={f((k===1?.71:.56)*(1-.19*mist))}/>)}
         {branches.map(({point,q},k)=><path key={k}
           data-km-rock-hero-fibre=""
           data-km-rock-hero-fibre-root={f(point[0])+","+f(point[1])}
