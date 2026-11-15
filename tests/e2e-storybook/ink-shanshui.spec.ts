@@ -113,7 +113,10 @@ test("brushwork study shows native rooted foliage and uneven rock deposition",as
     .toBeGreaterThan(100);
   await study.screenshot({animations:"disabled",
     path:info.outputPath("shanshui-native-brush-detail-study.png")});
-  await page.getByRole("slider",{name:"Brushwork detail"}).fill("0");
+  const density=page.getByRole("slider",{name:"Brushwork detail"});
+  await density.focus();
+  await density.press("Home");
+  await expect(density).toHaveValue("0");
   await expect(study.locator("[data-km-pine-needle-cluster]")).toHaveCount(0);
 });
 
