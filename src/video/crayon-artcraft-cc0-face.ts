@@ -406,7 +406,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "C254 568 245 558 245 540Z",
     rect(242,530,42,39),["#352b2d","#1b181d","#544038"],[148,247],
     {parentId:"sclera-near",clipToParent:true,
-      pressure:.92,spacing:4.1,markStrength:.35,underpaintTooth:.12,
+      pressure:.92,spacing:4.1,markStrength:.35,underpaintTooth:.12,opaqueBurnish:0.88,
       underpaintGradient:{light:"#58423d",shadow:"#1d1b20",
         focusX:.54,focusY:.69,radius:.82}});
   wax("pupil-near",
@@ -414,20 +414,20 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "Q256 559 253 550Z",
     rect(251,537,21,23),["#242027","#17151a","#352b2d"],[156,250],
     {parentId:"iris-near",clipToParent:true,pressure:.96,
-      spacing:4,markStrength:.32,underpaintTooth:.08});
+      spacing:4,markStrength:.32,underpaintTooth:.08,opaqueBurnish:1});
   wax("iris-far",
     "M425 512Q432 503 442 504Q459 502 460 515Q460 528 447 532"+
     "Q429 535 425 521Z",
     rect(422,499,38,35),["#30282b","#1a181d","#514038"],[146,245],
     {parentId:"sclera-far",clipToParent:true,
-      pressure:.93,spacing:4.3,markStrength:.31,underpaintTooth:.12,
+      pressure:.93,spacing:4.3,markStrength:.31,underpaintTooth:.12,opaqueBurnish:0.94,
       underpaintGradient:{light:"#53423a",shadow:"#1c191e",
         focusX:.5,focusY:.65,radius:.81}});
   wax("pupil-far",
     "M433 510Q438 506 445 511Q450 518 446 526Q439 528 434 524Z",
     rect(431,507,18,23),["#211d22","#141319","#32282a"],[155,253],
     {parentId:"iris-far",clipToParent:true,pressure:.93,
-      spacing:4.2,markStrength:.28,underpaintTooth:.08});
+      spacing:4.2,markStrength:.28,underpaintTooth:.08,opaqueBurnish:1});
   // Upper skin fold must overlap iris upper third. No long, uniform
   // arch that encloses a round eye like a cartoon symbol.
   wax("upper-lid-near",
@@ -699,7 +699,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(390,620,32,32),["#443031","#21171c","#77504c"],[236,299],
     {parentId:"face-outline",clipToParent:true,
       pressure:.91,spacing:4.2,markStrength:.32,
-      edgeRoughness:0,outlineOpacity:0,underpaintTooth:.10,
+      edgeRoughness:0,outlineOpacity:0,underpaintTooth:.10,opaqueBurnish:0.92,
       underpaintGradient:{light:"#674642",shadow:"#1d161b",
         focusX:.7,focusY:.25,radius:.85}});
   wax("naris-shadow-far",
@@ -708,7 +708,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(445,614,18,34),["#513435","#291d23","#80605a"],[236,299],
     {parentId:"face-outline",clipToParent:true,
       pressure:.89,spacing:4.4,markStrength:.22,
-      edgeRoughness:0,outlineOpacity:0,underpaintTooth:.12,
+      edgeRoughness:0,outlineOpacity:0,underpaintTooth:.12,opaqueBurnish:0.83,
       underpaintGradient:{light:"#79524c",shadow:"#24181c",
         focusX:.38,focusY:.28,radius:.83}});
   // Mouth's natural perspective slopes upwards toward the occluded far
@@ -775,7 +775,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(349,709,139,42),
     ["#5b363e","#281e27","#89535a"],[206,286],
     {parentId:"oral-opening",clipToParent:true,
-      pressure:.89,spacing:4,markStrength:.24,underpaintTooth:.12,
+      pressure:.89,spacing:4,markStrength:.24,underpaintTooth:.12,opaqueBurnish:0.87,
       edgeRoughness:0,outlineOpacity:0,
       underpaintGradient:{light:"#70474c",shadow:"#281d25",
         focusX:.57,focusY:.34,radius:.9}});
