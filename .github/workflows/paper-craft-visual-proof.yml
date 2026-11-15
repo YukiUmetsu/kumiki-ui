@@ -6,6 +6,8 @@ on:
       - 'tests/e2e-storybook/paper-craft.spec.ts'
       - 'registry/video/paper-botanical-kit.ts'
       - 'src/video/paper-craft.stories.tsx'
+      - 'src/film/film-slots.tsx'
+      - 'examples/film/paper-craft-chromatic.film.json'
       - '.github/workflows/paper-craft-visual-proof.yml'
   workflow_dispatch:
 permissions:
@@ -32,6 +34,7 @@ jobs:
       - name: Validate paper film for both outputs
         run: |
           npm run film:check -- examples/film/paper-craft-botanical.film.json
+          npm run film:check -- examples/film/paper-craft-chromatic.film.json
       - name: Install FFmpeg
         run: |
           sudo apt-get update -qq
@@ -42,8 +45,15 @@ jobs:
             npm run film:frame -- examples/film/paper-craft-botanical.film.json --frame=174 --only="$output" --out=dist/paper-botanical-proof
             npm run film:frame -- examples/film/paper-craft-botanical.film.json --frame=354 --only="$output" --out=dist/paper-botanical-proof
           done
+      - name: Capture chromatic stocks in both aspect ratios
+        run: |
+          for output in landscape portrait; do
+            for frame in 174 354; do
+              npm run film:frame -- examples/film/paper-craft-chromatic.film.json --frame="$frame" --only="$output" --out=dist/paper-chromatic-proof
+            done
+          done
       - name: Encode genuine production-slot preview frames
-        run: npm run film:render -- examples/film/paper-craft-botanical.film.json --frames=108 --only=landscape --out=dist/paper-botanical-proof
+        run: npm run film:render -- examples/film/paper-craft-chromatic.film.json --frames=72 --only=landscape --out=dist/paper-chromatic-proof
       - name: Keep actual rendered browser captures
         if: always()
         uses: actions/upload-artifact@v4
@@ -57,6 +67,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: paper-craft-production-visuals
-          path: dist/paper-botanical-proof/
+          path: |
+            dist/paper-botanical-proof/
+            dist/paper-chromatic-proof/
           retention-days: 7
           if-no-files-found: warn

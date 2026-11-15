@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PaperCraftStage } from "../registry/video/paper-craft-react";
-import { evaluatePaperCraft, inspectPaperCraft, PAPER_STYLES } from "../registry/video/paper-craft";
+import { evaluatePaperCraft, inspectPaperCraft, MAX_PAPER_LAYERS, PAPER_STYLES } from "../registry/video/paper-craft";
 import { paperBotanicalSpec } from "../registry/video/paper-botanical-kit";
 import { compileFilm } from "../registry/video/film-document";
 import { loadFilmSlots } from "../src/film/film-slots";
@@ -10,12 +10,13 @@ import film from "../examples/film/paper-craft-botanical.film.json";
 
 describe("PAPER1 ArtCraft botanical construction", () => {
   for(const aspect of ["landscape","portrait"] as const){
-    for(const palette of ["nocturne","ivory"] as const){
+    for(const palette of ["nocturne","ivory","rainforest","wildflower"] as const){
       it("validates original stock and real cutout holes for "+palette+" "+aspect,()=>{
         const spec=paperBotanicalSpec("layered",aspect,{palette,detail:1,seed:37});
         expect(inspectPaperCraft(spec)).toEqual([]);
         expect(spec.layers.length).toBeGreaterThan(60);
-        expect(spec.layers.length).toBeLessThanOrEqual(80);
+        expect(spec.layers.length).toBeLessThanOrEqual(MAX_PAPER_LAYERS);
+        expect(spec.layers.length).toBeGreaterThan(106);
         expect(new Set(spec.layers.map(l=>l.id)).size).toBe(spec.layers.length);
         // The peripheral floral sprays must overlap the round cardstock disk,
         // not float independently in either aspect.
@@ -29,7 +30,13 @@ describe("PAPER1 ArtCraft botanical construction", () => {
           // Four physically cut leaf blades join each soft S-shaped tendril.
           expect((spray.path.match(/M/g)||[]).length).toBe(5);
         }
-        expect(spec.layers.filter(l=>l.id.startsWith("flower-"))).toHaveLength(20);
+        expect(spec.layers.filter(l=>l.id.startsWith("flower-"))).toHaveLength(35);
+        expect(spec.layers.find(l=>l.id==="fern-0-chroma")).toBeDefined();
+        expect(spec.layers.find(l=>l.id==="moth-left-fore-lining")?.depth)
+          .toBeLessThan(spec.layers.find(l=>l.id==="moth-left-fore")!.depth);
+        expect(spec.layers.find(l=>l.id==="flower-0-inner-stock")?.depth)
+          .toBeGreaterThan(spec.layers.find(l=>l.id==="flower-0-top")!.depth);
+        expect(new Set(spec.layers.map(l=>l.color)).size).toBeGreaterThan(18);
         expect(spec.layers.find(l=>l.id==="flower-0-top")?.holes).toHaveLength(9);
         expect(spec.layers.find(l=>l.id==="moth-left-fore")?.holes).toHaveLength(13);
         expect(spec.layers.find(l=>l.id==="moth-right-fore")?.holes).toHaveLength(13);
@@ -46,8 +53,8 @@ describe("PAPER1 ArtCraft botanical construction", () => {
     }
   }
   it("keeps absolute seeks, seed and density deterministic",()=>{
-    const plain=paperBotanicalSpec("layered","landscape",{detail:0,seed:7});
-    const rich=paperBotanicalSpec("layered","landscape",{detail:1,seed:7});
+    const plain=paperBotanicalSpec("layered","landscape",{detail:0,colorLayers:0,seed:7});
+    const rich=paperBotanicalSpec("layered","landscape",{detail:1,colorLayers:1,seed:7});
     expect(plain.layers.length).toBeLessThan(rich.layers.length);
     expect(inspectPaperCraft(plain)).toEqual([]);
     expect(inspectPaperCraft(rich)).toEqual([]);
@@ -56,9 +63,16 @@ describe("PAPER1 ArtCraft botanical construction", () => {
     expect(evaluatePaperCraft(rich,146)).toEqual(same);
     expect(evaluatePaperCraft(rich,0,true).layers)
       .toEqual(evaluatePaperCraft(rich,211,true).layers);
-    expect(paperBotanicalSpec("layered","landscape",{detail:1,seed:7})).toEqual(rich);
-    expect(paperBotanicalSpec("layered","landscape",{detail:1,seed:8}).layers).not.toEqual(rich.layers);
+    expect(paperBotanicalSpec("layered","landscape",{detail:1,colorLayers:1,seed:7})).toEqual(rich);
+    expect(paperBotanicalSpec("layered","landscape",{detail:1,colorLayers:1,seed:8}).layers).not.toEqual(rich.layers);
     expect(()=>paperBotanicalSpec("layered","landscape",{seed:NaN})).toThrow(RangeError);
+    expect(()=>paperBotanicalSpec("layered","landscape",{colorLayers:NaN})).toThrow(RangeError);
+    expect(()=>paperBotanicalSpec("layered","landscape",{palette:"unsafe" as never})).toThrow(RangeError);
+    expect(plain.layers.length).toBeLessThanOrEqual(80);
+    expect(rich.layers.length-plain.layers.length).toBeGreaterThan(30);
+    expect(inspectPaperCraft({...rich,layers:[...rich.layers,...Array.from({length:20},(_,i)=>({
+      ...rich.layers[0],id:"overflow-"+i,
+    }))]}).some(x=>x.path==="layers")).toBe(true);
     for(const medium of PAPER_STYLES)
       expect(inspectPaperCraft(paperBotanicalSpec(medium,"portrait"))).toEqual([]);
   });
@@ -80,3 +94,4 @@ describe("PAPER1 ArtCraft botanical construction", () => {
     }
   });
 });
+
