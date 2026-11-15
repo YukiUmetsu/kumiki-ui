@@ -956,6 +956,13 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         if (typeof colorLayers !== "number" || !Number.isFinite(colorLayers) ||
             colorLayers < 0 || colorLayers > 1)
           throw new RangeError("paper-craft-study colorLayers must be between 0 and 1.");
+        const curl = props.curl ?? .85;
+        const motion = props.motion ?? 1;
+        if (artwork === "object") {
+          for(const [key,value] of [["curl",curl],["motion",motion]] as const)
+            if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1)
+              throw new RangeError("paper-craft-study "+key+" must be finite between 0 and 1.");
+        }
         const seed = props.seed ?? 37;
         if (typeof seed !== "number" || !Number.isSafeInteger(seed))
           throw new RangeError("paper-craft-study seed must be a safe integer.");
@@ -972,13 +979,13 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
             palette: palette as PaperBotanicalPalette, detail, colorLayers, seed })
           : artwork === "object"
             ? paperObjectSpec(raw as PaperStyle, aspect, {
-              object: object as PaperObject, palette: objectPalette as PaperObjectPalette, detail, seed })
+              object: object as PaperObject, palette: objectPalette as PaperObjectPalette, detail, curl:curl as number, motion:motion as number, seed })
             : paperCraftExampleSpec(raw as PaperStyle, aspect, seed);
         const absoluteFrame = offset + context.frame;
         if (!Number.isSafeInteger(absoluteFrame)) throw new RangeError("Invalid paper frame.");
         return <PaperCraftStage spec={paper}
           frame={absoluteFrame} reducedMotion={context.reducedMotion}
-          tooth={.62} shadowStrength={.92} edgeStrength={.68}/>;
+          tooth={.62} shadowStrength={.92} edgeStrength={.68} curlStrength={1}/>
       }
 
       default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-character-film, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, watercolour-wet-paper, watercolour-master-study, painted-composition, watercolour-actor, collage-scene, collage-tear.`);

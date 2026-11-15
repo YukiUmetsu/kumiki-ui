@@ -32,7 +32,9 @@
           "objectPalette": "jewel",
           "detail": 1,
           "seed": 37,
-          "medium": "layered"
+          "medium": "layered",
+          "curl": 1,
+          "motion": 1
         }
       }
     },
@@ -52,7 +54,9 @@
           "objectPalette": "jewel",
           "detail": 1,
           "seed": 37,
-          "medium": "layered"
+          "medium": "layered",
+          "curl": 1,
+          "motion": 1
         }
       }
     },
@@ -72,7 +76,9 @@
           "objectPalette": "pastel",
           "detail": 1,
           "seed": 37,
-          "medium": "layered"
+          "medium": "layered",
+          "curl": 1,
+          "motion": 1
         }
       }
     },
@@ -92,7 +98,9 @@
           "objectPalette": "heritage",
           "detail": 1,
           "seed": 37,
-          "medium": "layered"
+          "medium": "layered",
+          "curl": 1,
+          "motion": 1
         }
       }
     },
@@ -112,7 +120,9 @@
           "objectPalette": "pastel",
           "detail": 1,
           "seed": 37,
-          "medium": "layered"
+          "medium": "layered",
+          "curl": 1,
+          "motion": 1
         }
       }
     }

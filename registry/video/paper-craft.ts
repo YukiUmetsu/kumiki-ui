@@ -183,7 +183,8 @@ export function evaluatePaperCraft(spec: PaperCraftSpec, frame: number, reducedM
       translateY: rise ? (1 - progress) * (24 + depth * 1.5) :
         spec.style === "layered" ? (1 - progress) * 24 : 0,
       rotation,
-      scaleX: fold ? Math.max(.015, progress) : motion === "flutter" ? 1 - .1 * Math.abs(flutterWave) * progress : 1,
+      scaleX: fold ? Math.max(.015, progress) : motion === "flutter"
+        ? 1 - .08 * Math.abs(flutterWave) * progress * Math.abs(layer.swingDegrees ?? 8) / 8 : 1,
       scaleY: rise ? Math.max(.015, progress) : 1,
       shadowX: 1.8 + depth * (spec.style === "lightbox" ? 1.05 : .55),
       shadowY: 2 + depth * (spec.style === "lightbox" ? 1.65 : .8),
