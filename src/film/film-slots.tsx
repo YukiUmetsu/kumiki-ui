@@ -21,6 +21,8 @@ import { WetStudyPage, wetPaperDemo } from "../video/watercolour-wet-paper-demo"
 import { WatercolourIllustration } from "../../registry/video/watercolour-illustration";
 import { watercolorWetlandSpec } from "../video/watercolour-art-director-demo";
 import { watercolorPortraitSpec } from "../video/watercolour-portrait-demo";
+import { watercolorPortraitEnsembleSpec } from "../video/watercolour-portrait-ensemble";
+import type { WatercolourPortraitCastMember } from "../video/watercolour-portrait-ensemble";
 import { WatercolourMasterStudyPage, watercolourStudySpec, WATERCOLOUR_STUDIES } from "../video/watercolour-master-studies";
 import type { WatercolourStudy } from "../video/watercolour-master-studies";
 import { PaintedTravellerPage } from "../video/watercolour-actor-demo";
@@ -817,6 +819,18 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           : watercolorWetlandSpec(output,seed);
         return <WatercolourIllustration spec={illustration}
           frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
+      case "watercolour-portrait-ensemble": {
+        const seed=props.seed??83;
+        if(typeof seed!=="number"||!Number.isSafeInteger(seed)||seed<0||seed>2147483647)
+          throw new RangeError("watercolour-portrait-ensemble requires a nonnegative 31-bit seed.");
+        const output=context.width>context.height?"landscape":"portrait";
+        // Untrusted JSON is validated inside watercolorPortraitEnsembleSpec.
+        // Absent cast means an output-specific pair with deliberate timing.
+        const cast=props.cast as readonly WatercolourPortraitCastMember[]|undefined;
+        const painting=watercolorPortraitEnsembleSpec(output,seed,cast);
+        return <WatercolourIllustration spec={painting} frame={context.frame}
+          reducedMotion={context.reducedMotion}/>;
       }
       case "watercolour-master-study": {
         const raw = props.study;
