@@ -28,7 +28,7 @@ function pen(x0:number,y0:number,s=1){
   const L=(x:number,y:number)=>"L"+pt(x,y);
   const C=(a:number,b:number,c:number,d:number,e:number,f:number)=>
     "C"+pt(a,b)+" "+pt(c,d)+" "+pt(e,f);
-  const Q=(a:number,b:number,c:number,d)=>"Q"+pt(a,b)+" "+pt(c,d);
+  const Q=(a:number,b:number,c:number,d:number)=>"Q"+pt(a,b)+" "+pt(c,d);
   const Z=" Z";
   const poly=(points:readonly (readonly [number,number])[])=>
     points.map(([x,y],i)=>i?L(x,y):M(x,y)).join(" ")+Z;
@@ -403,7 +403,7 @@ function owl(p:Pen,add:Add,phase:number,motion:number){
     add("owl-wing-"+n,"#786F78",19,[
       p.M(sign*18,-47),p.C(sign*35,-45,sign*47,-24,sign*49,-7),
       p.Q(sign*29,-3,sign*19,-17),p.Z].join(" "),
-      attach(root,sign*20,-43,{poseKeys:keys(0,0,0,0,sign*14,motion)}));
+      attach(root,sign*20,-43,{poseKeys:keys(0,0,0,0,phase===2?sign*20:sign*8,motion)}));
     add("owl-eye-"+n,"#F8EAD1",22,p.oval(sign*12,-52,8,9),
       attach(root,sign*12,-52));
     add("owl-pupil-"+n,"#454854",23,p.oval(sign*12+2,-52,2.6,4),
