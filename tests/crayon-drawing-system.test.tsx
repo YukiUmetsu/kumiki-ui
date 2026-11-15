@@ -14,12 +14,13 @@ const params=(aspect:"landscape"|"portrait",detail=1)=>({
 });
 describe("strict native Crayon drawing grammar",()=>{
   it("keeps one original Material drawing page in the existing Storybook folder",()=>{
-    expect(studioMeta.title).toBe("Video production/Film Looks/Crayon/Materials/Drawing System");
+    expect(studioMeta.title).toBe("Video production/Film Looks/Crayon/Drawing System");
     expect(studioMeta.tags).toContain("!dev");
     expect(studioMeta.id).toBe("video-crayon-drawing-system");
     expect(VerticalDrawingStudy.args?.aspect).toBe("portrait");
     expect(FourPassWaxConstruction.args??{}).toEqual({});
     expect(studioMeta.argTypes?.inspection).toBeDefined();
+    expect(studioMeta.argTypes?.comparison).toBeDefined();
   });
   for(const aspect of ["landscape","portrait"] as const){
     for(const detail of [.2,1]){
@@ -54,6 +55,23 @@ describe("strict native Crayon drawing grammar",()=>{
         if(vein?.kind==="contour")
           expect((vein.d.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(5);
         expect(plan.subjects[0].attachments).toHaveLength(2);
+        // The ground contact must be derived from the actual transformed pear
+        // contour, not a separate aspect-ratio magic number (prevents floating
+        // portrait fruit and sunken landscape fruit).
+        const paperRubbing=nodes.get("paper-ground");
+        if(paperRubbing?.kind!=="wax")throw new Error("Missing atmospheric rubbing");
+        // Blurred open grain prevents a hard-edged screen-space oval sticker.
+        expect(paperRubbing.coverage).toBe("open");
+        expect(paperRubbing.blendRadius).toBeGreaterThanOrEqual(12);
+        const shadow=nodes.get("cast-shadow");
+        if(pear?.kind!=="wax"||shadow?.kind!=="wax"||
+          !pear.placement||typeof pear.placement.scale!=="number"||
+          typeof pear.placement.y!=="number")
+          throw new Error("Missing source ground-contact geometry");
+        const shadowOrigin=/^M(-?[0-9.]+) (-?[0-9.]+) C/.exec(shadow.d);
+        expect(shadowOrigin).not.toBeNull();
+        expect(Number(shadowOrigin?.[2])+3).toBeCloseTo(
+          pear.placement.y+180*pear.placement.scale,5);
         expect(plan.ambientIds).toContain("fruit-contact-umbra");
         expect(nodes.get("fruit-contact-umbra")?.kind).toBe("wax");
         const leafMidrib=nodes.get("leaf-midrib-undertone");
@@ -90,6 +108,17 @@ describe("strict native Crayon drawing grammar",()=>{
         expect(html).toContain("Structure passes");
       }
     });
+    it("provides matched and responsive native optical-tooth A/B at "+aspect,()=>{
+      const html=renderToStaticMarkup(<CrayonDrawingStudio {...params(aspect)}
+        comparison="tooth" underpaintTooth={.82} inspection="surface"
+        startFrame={239} playbackRate={1} loop={false}/>);
+      expect(html).toContain('data-km-crayon-material-ab=""');
+      expect(html).toContain("Opaque wax without tooth");
+      expect(html).toContain("Opaque wax with tooth");
+      expect((html.match(/data-km-crayon-scene=/g)??[])).toHaveLength(2);
+      expect(html).toContain('data-km-crayon-underpaint-tooth="0.82"');
+      expect(html).toContain('data-km-crayon-inspection="surface"');
+    });
     it("provides a responsive, descriptive SVG workbench at "+aspect,()=>{
       const html=renderToStaticMarkup(<CrayonDrawingStudio {...params(aspect)}
         startFrame={239} playbackRate={1} loop={false}/>);
@@ -123,7 +152,7 @@ describe("strict native Crayon drawing grammar",()=>{
     expect(inspectCrayonDrawingPlan(scene,noLeaf).some(x=>x.includes("untracked scene element leaf-body"))).toBe(true);
     const transparent:CrayonSceneSpec={...scene,elements:scene.elements.map(n=>
       n.id==="pear-body"&&n.kind==="wax"?
-      {...n,coverage:"open" as const,underpaintGradient:undefined}:n)};
+      {...n,coverage:"open" as const,underpaintGradient:undefined,underpaintTooth:0}:n)};
     expect(inspectCrayonDrawingPlan(transparent,plan).some(x=>x.includes("root must be"))).toBe(true);
     const unclipped:CrayonSceneSpec={...scene,elements:scene.elements.map(n=>
       n.id==="pear-blush"&&n.kind==="wax"?{...n,clipToParent:false}:n)};
