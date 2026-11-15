@@ -87,7 +87,7 @@ const clusters:Record<string,{paths:readonly string[];width:number;
  * control point and the original silhouette, but restores material flow.
  */
 function depositTowardRoot(path:string):string{
-  const m=/^M(-?\\d+) (-?\\d+) C(-?\\d+) (-?\\d+) (-?\\d+) (-?\\d+) (-?\\d+) (-?\\d+)$/
+  const m=/^M(-?\d+) (-?\d+) C(-?\d+) (-?\d+) (-?\d+) (-?\d+) (-?\d+) (-?\d+)$/
     .exec(path);
   if(!m)throw new RangeError("Invalid ArtCraft cubic lash root");
   const [,x0,y0,x1,y1,x2,y2,x3,y3]=m;
