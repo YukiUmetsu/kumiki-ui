@@ -118,7 +118,12 @@ export function carRig(o: RigPresetOptions = {}): RigSpec {
   const palette: Partial<Record<RigRole, string>> = { paint: "#c8342b", "paint-dark": "#8f2219", metal: "#cfd2d4", "metal-dark": "#2a2a2e", rubber: "#1d1b1b", glass: "#bfd8e0", light: "#f2d98a", skin: "#d39b76", hair: "#2b211c", smoke: "#c9c4b6", accent: "#9e1d16" };
   rig.bone("root", undefined, 0, 0);
   rig.bone("body", "root", 0, -R - 2);
-  rig.part("body", "body", path("M-48 -4C-48 -12 -44 -16 -36 -16L-24 -16L-16 -34C-14 -38 -10 -40 -6 -40L16 -40C20 -40 22 -38 24 -34L30 -18L44 -16C50 -15 52 -10 52 -4L52 2C52 4 50 5 48 5L-46 5C-48 5 -48 4 -48 2Z"), "paint", 4, { extrude: true });
+  rig.part("body", "body", path("M-48 -4C-48 -12 -44 -16 -36 -16L-24 -16L-16 -34C-14 -38 -10 -40 -6 -40L16 -40C20 -40 22 -38 24 -34L30 -18L44 -16C50 -15 52 -10 52 -4L52 2C52 4 50 5 48 5L-46 5C-48 5 -48 4 -48 2Z"), "paint", 4);
+  // Solids for turning in depth, hidden under the side outline: the lower body turns paint faces (bonnet, nose,
+  // tail), the cabin turns glass faces (windscreen, rear window) like the side windows. Square roof corners keep the
+  // roof itself out of the glass.
+  rig.part("body-solid", "body", path("M-48 -4C-48 -12 -44 -16 -36 -16L-24 -16L30 -18L44 -16C50 -15 52 -10 52 -4L52 2C52 4 50 5 48 5L-46 5C-48 5 -48 4 -48 2Z"), "paint", 3.98, { extrude: true });
+  rig.part("cabin-solid", "body", poly([[-24, -16.2], [-16, -34], [-13, -40], [19, -40], [24, -34], [30, -18]]), "paint", 3.985, { extrude: true, faceRole: "glass" });
   rig.part("window-back", "body", path("M-14 -18L-8 -34C-7 -36 -5 -37 -3 -37L4 -37L4 -18Z"), "glass", 4.2);
   rig.part("window-front", "body", path("M8 -37L15 -37C17 -37 19 -36 20 -34L26 -18L8 -18Z"), "glass", 4.2);
   rig.part("mudguard-r", "body", path("M-44 4A15 15 0 0 1 -16 4Z"), "paint-dark", 5.2);
