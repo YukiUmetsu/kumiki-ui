@@ -100,3 +100,9 @@ folder and no public character promotion.
 spacing, cheek volume, hair attachment and draped scarf silhouette
 before further texture. The source remains style-guided, not exact
 reference tracing.
+
+### Actual head-compression render: newly exposed neck defect
+
+[Browser proof 43667084536](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43667084536) provides both the old head and a new source-native 540×960 frame. Head compression visibly reduced the stylized horse-like vertical silhouette, but also exposed a skin-colored **stiff elongated neck** with large wax chunks and a bright, disconnected orange scarf ring. The neck, not the head, was the next macro flaw.
+
+Follow-up code fixes: shorten and redraw the sternocleidomastoid/underjaw neck silhouette, add a low-pressure opaque skin undercoat with a soft source-clipped jaw cast shadow, lower coarse wax strokes, and move the existing scarf wrap upward into neck attachment. Rebuild the tail so its cloth roots are contiguous with the scarf; retune woven diagonals to its moved geometry. These are geometry and material edits, not additional random speckles. Browser proof again required; this study remains unpublished.

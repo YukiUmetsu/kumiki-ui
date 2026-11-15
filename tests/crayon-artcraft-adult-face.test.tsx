@@ -134,6 +134,18 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(nodes.get("hair-nape-sweep")?.kind).toBe("wax");
       expect(nodes.get("tailored-scarf-wrap")?.parentId).toBe("coat-silhouette");
       expect(nodes.get("tailored-scarf-weft")?.parentId).toBe("tailored-scarf-wrap");
+      const neck=nodes.get("neck-under-jaw");
+      const scarf=nodes.get("tailored-scarf-wrap");
+      const collarShadow=nodes.get("neck-jaw-cast-shadow");
+      if(neck?.kind!=="wax"||scarf?.kind!=="wax"||collarShadow?.kind!=="wax")
+        throw new Error("Missing neck anatomy or connected garment");
+      expect(neck.markStrength).toBeLessThan(.4);
+      expect(neck.underpaintGradient).toBeDefined();
+      expect(scarf.bounds.y).toBeLessThan(95);
+      expect(scarf.bounds.y).toBeLessThan(neck.bounds.y+neck.bounds.height-45);
+      expect(collarShadow.parentId).toBe("neck-under-jaw");
+      expect(collarShadow.coverage).toBe("open");
+      expect(collarShadow.clipToParent).toBe(true);
       expect(nodes.get("nose-dorsal-soft-edge")?.kind).toBe("contour");
       for(const id of ["cheek-malar-glow","far-cheek-reflection",
         "freckles-near","freckles-far","forelock-woodgrain",
