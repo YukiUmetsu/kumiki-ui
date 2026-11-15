@@ -185,12 +185,24 @@ function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
   const peaks=ridge.slice(1,-1).flatMap(([x,y],i)=>
     y<ridge[i][1]&&y<ridge[i+2][1] ? [[x,y] as P] : []);
   const count=Math.round(peaks.length*detail);
-  const ridgeClip=id+"-clip";
+  const ridgeClip=id+"-clip",washFilter=id+"-paper-absorption";
   return <g data-km-rock-shoulder-family={band}>
     <defs>
       <clipPath id={ridgeClip} clipPathUnits="userSpaceOnUse">
         <path d={ridgePath(stations)}/>
       </clipPath>
+      {/* Distinct wet wash, not a smoothed contour or global scene blur:
+          pigment wicks into paper and loses the hard SVG triangle rim.
+          Bone/child hemp fibres stay crisp and independently editable. */}
+      <filter id={washFilter} x="-19%" y="-19%" width="138%"
+        height="138%" colorInterpolationFilters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency=".052"
+          numOctaves="2" seed={seed%997+1} result="paper"/>
+        <feDisplacementMap in="SourceGraphic" in2="paper"
+          scale="2.1" xChannelSelector="R" yChannelSelector="G"
+          result="absorbed"/>
+        <feGaussianBlur in="absorbed" stdDeviation=".72"/>
+      </filter>
     </defs>
     <g clipPath={"url(#"+ridgeClip+")"}>
       {peaks.slice(0,count).map(([x],i)=>{
@@ -258,29 +270,30 @@ function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
               gradientUnits="userSpaceOnUse"
               x1={f(x)} y1={f(y)}
               x2={f(x+side*spread*.43)} y2={f(y+depth)}>
-              <stop offset="0" stopColor="#41382e"
-                stopOpacity={f((band===0?.22:band===1?.43:.62)*(1-.2*mist))}/>
-              <stop offset=".26" stopColor="#574838"
-                stopOpacity={f((band===0?.17:band===1?.33:.49)*(1-.24*mist))}/>
+              <stop offset="0" stopColor="#39352e"
+                stopOpacity={f((band===0?.28:band===1?.58:.78)*(1-.2*mist))}/>
+              <stop offset=".26" stopColor="#554737"
+                stopOpacity={f((band===0?.23:band===1?.45:.62)*(1-.24*mist))}/>
               <stop offset=".69" stopColor="#79614c"
-                stopOpacity={f((band===0?.09:band===1?.19:.28)*(1-.22*mist))}/>
+                stopOpacity={f((band===0?.13:band===1?.26:.4)*(1-.22*mist))}/>
               <stop offset="1" stopColor="#927d62" stopOpacity="0"/>
             </linearGradient>
           </defs>
           <path data-km-rock-shoulder-wash=""
-            d={wash} fill={"url(#"+washId+")"}/>
+            d={wash} fill={"url(#"+washId+")"}
+            filter={"url(#"+washFilter+")"}/>
           <path data-km-rock-shoulder-bone=""
             d={bone} fill="none" stroke="#4b3d31"
-            strokeWidth={f(band===0?.66:band===1?1.1:1.53)}
+            strokeWidth={f(band===0?.75:band===1?1.28:1.73)}
             strokeLinecap="round"
-            opacity={f((band===0?.19:band===1?.41:.6)*(1-.18*mist))}/>
+            opacity={f((band===0?.23:band===1?.48:.68)*(1-.18*mist))}/>
           {veins.map(({root,d},j)=><path key={j}
             data-km-rock-shoulder-vein=""
             data-km-rock-shoulder-vein-root={f(root[0])+","+f(root[1])}
             d={d} fill="none" stroke={j%3===0?"#574332":"#765b45"}
             strokeWidth={f((band===0?.45:band===1?.7:1.05)*
               (.65+.5*s(seed+223,i*13+j)))}
-            opacity={f((band===0?.23:band===1?.37:.51)*
+            opacity={f((band===0?.28:band===1?.47:.64)*
               (.74+.19*s(seed+227,i*29+j))*(1-.24*mist))}
             strokeLinecap="round"/>)}
         </g>;
