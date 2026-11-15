@@ -281,3 +281,9 @@ The Stage takes the **absolute full-film frame** and resolves shot-local frames;
 Storybook: **Video production → Film Looks → Paper Craft → Film Director · Four Chapters**. It provides chapter buttons, full-length frame scrubbing, play/pause, all five physical media, aspect, camera/prop motion intensity, seed, tooth, shadows and edges. Existing Paper Craft pages and IDs remain unchanged, and there is no new sidebar folder.
 
 ArtCraft source, construction table, rights and non-goals: [PAPER-D1 film study](../research/paper-director-artcraft-film-study.md) and [structured reference ledger](../research/paper-director-artcraft-reference-study.json). Native FilmStage proof of all four subjects/ratios and a cross-cut encoded clip is required before merging. Passing technical tests does not imply finished character art or true engineered folds.
+
+### PAPER-D1 assembled-set entries
+
+Use `PaperCraftSpec.startAssembled: true` when a hard film edit must reveal an entire constructed paper set immediately. This **does not** disable the cut-piece pose keys, flutter hinges, texture, shadows or overhead camera tracks. The default is false, preserving the existing progressive cut-paper assembly demos. PAPER-D1's four sample chapters opt in.
+
+An actual first-run 30-frame film crossing global f239→240 exposed a completely empty purple incoming stage, followed by an isolated paper ellipse. This is a production blocker even though the film encoded and browser tests passed. New tests enforce all paper layers at progress=1 and opacity=1 at the first chapter frame in **both** output aspects. Re-inspect native final-head evidence before release.
