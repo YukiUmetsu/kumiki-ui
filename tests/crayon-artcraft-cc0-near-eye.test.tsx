@@ -2,11 +2,33 @@ import {describe,it,expect} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
-import {crayonDryNibPath,crayonMarks} from "../registry/video/materials/crayon";
+import {crayonDryNibPath,crayonMarks,crayonPaperHeight} from "../registry/video/materials/crayon";
 import {crayonCc0NearEyeStudy} from "../src/video/crayon-artcraft-cc0-near-eye";
 import faceMeta,{SourceMeasuredCc0Eye,SourceMeasuredCc0EyePortrait}
   from "../src/video/crayon-artcraft-adult-face.stories";
 describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
+  it("samples deterministic, shared paper-height ridges across strokes",()=>{
+    const height=crayonPaperHeight(27.2,-13.4,974);
+    expect(height).toBe(crayonPaperHeight(27.2,-13.4,974));
+    expect(height).toBeGreaterThanOrEqual(0);
+    expect(height).toBeLessThanOrEqual(1);
+    const samples=Array.from({length:32},(_,i)=>
+      crayonPaperHeight(i*.67,13.3,974));
+    expect(new Set(samples.map(x=>x.toFixed(4))).size).toBeGreaterThan(20);
+    expect(crayonPaperHeight(27.2,-13.4,975)).not.toBe(height);
+    expect(()=>crayonPaperHeight(Number.NaN,5,1)).toThrow();
+    expect(()=>crayonPaperHeight(0,0,1.5)).toThrow();
+    const mark=crayonMarks({x:0,y:0,width:72,height:42},
+      {seed:448,pressure:.63,spacing:8,passes:1})[0];
+    const a=crayonDryNibPath(mark,1,"hand",974);
+    const b=crayonDryNibPath(mark,1,"hand",975);
+    expect(a).not.toBe(b);
+    expect(a).toBe(crayonDryNibPath(mark,1,"hand",974));
+    expect(crayonDryNibPath(mark,1,"legacy",974))
+      .toBe(crayonDryNibPath(mark,1,"legacy",975));
+    expect(a.length).toBeLessThan(75000);
+    expect(()=>crayonDryNibPath(mark,1,"hand",NaN)).toThrow();
+  });
   it("models pressure-worn side-of-crayon contacts without changing legacy nibs",()=>{
     const mark=crayonMarks({x:0,y:0,width:85,height:45},
       {seed:448,pressure:.63,spacing:8,passes:1})[0];
