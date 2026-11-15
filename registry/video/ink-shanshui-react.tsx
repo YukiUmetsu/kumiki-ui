@@ -918,7 +918,7 @@ function MountainHeroCliff({root,seed,mist,detail}:{
       // travels over the shoulder and drops under its own weight.
       // All 24 pima strokes and 9 tributaries must sample this *same*
       // newly curved cubic parent—no leftover floating children.
-      const bend:P=[r[0]+side*breadth*.57,r[1]-rise];
+
       const c1:P=[r[0]+side*breadth*.19,r[1]-rise*1.18];
       const c2:P=[r[0]+side*breadth*.73,
         r[1]-rise*(i===1?.66:.86)+descend*.17];
