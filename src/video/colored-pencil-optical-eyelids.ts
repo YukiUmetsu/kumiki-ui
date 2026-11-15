@@ -237,6 +237,13 @@ export const createOpticalEyelidFibres=(
           const y=chordY+offset*lid.span;
           if(x<4||x>source.width-5||y<6||y>source.height-7)
             continue;
+          // Do not let the orbital SKIN material displace separately
+          // authored iris fibres, pupil depth and paper-white catchlights.
+          // Upper-lid rim nibs may legitimately meet the pupil boundary;
+          // only the broad surrounding orbital shading uses this reserve.
+          const irisX=(x-lid.center[0])/(lid.span*.19);
+          const irisY=(y-lid.center[1])/(lid.span*.155);
+          if(irisX*irisX+irisY*irisY<1.1)continue;
           const v=luminance(source,x,y);
           if(v<.14||v>.83)continue;
           const colorSource=rgb(source,x,y);
