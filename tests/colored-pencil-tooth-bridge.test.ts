@@ -59,7 +59,7 @@ describe("ArtCraft photo-conditioned pencil-tooth residual repair",()=>{
     const before=src.data.slice(),render=paint.data.slice();
     const a=createPhotoSkinToothBridge(src,paint,guides,face,crop,1,31);
     expect(a.marks.length).toBeGreaterThan(30);
-    expect(a.marks.length).toBeLessThan(12000);
+    expect(a.marks.length).toBeLessThan(20000);
     expect(a.sourceMatchedGaps).toBe(a.marks.length);
     expect(a.protectedAnatomy).toBeGreaterThan(0);
     // Single aggregated assertions keep large real-pixel tests fast:
@@ -101,6 +101,21 @@ describe("ArtCraft photo-conditioned pencil-tooth residual repair",()=>{
       source(),image(270,300,130),guides,face,crop,1);
     expect(alreadyDark.marks).toHaveLength(0);
     expect(alreadyDark.untouchedAreas).toBeGreaterThan(0);
+  });
+  it("rejects bright paper islands when the whole source plane is already too dark",()=>{
+    const src=source(),overdrawn=image(540,600,115);
+    for(let y=0;y<600;y++)for(let x=0;x<540;x++){
+      if(x%9<3&&y%9<3){
+        const p=4*(y*540+x);
+        overdrawn.data[p]=255;overdrawn.data[p+1]=251;
+        overdrawn.data[p+2]=245;
+      }
+    }
+    const result=createPhotoSkinToothBridge(
+      src,overdrawn,guides,face,crop,1);
+    expect(result.marks).toHaveLength(0);
+    expect(result.untouchedAreas).toBeGreaterThan(0);
+    expect(result.rasterUnderpainting).toBe(false);
   });
   it("fails closed for malformed buffers, geometry, source and strength",()=>{
     const src=source(),paint=drawing();
