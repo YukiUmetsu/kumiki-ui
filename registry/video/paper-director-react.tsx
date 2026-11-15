@@ -66,11 +66,80 @@ function PaperCurtain({shot}: {shot:PaperDirectorFrame}) {
     </g>
   </svg>;
 }
+/** A printed paper leaf hinged at the gutter, with a separately cut verso.
+ * Both images remain full-opacity card. Browser 3D projection supplies genuine
+ * foreshortening; never mix the illustrations by alpha. Frame-pure and seekable.
+ */
+function PaperPageTurn({shot,reducedMotion,renderProps}:{
+  shot:PaperDirectorFrame;
+  reducedMotion:boolean;
+  renderProps:Omit<PaperCraftStageProps,"spec"|"frame"|"reducedMotion">;
+}) {
+  const state=shot.pageTurn;
+  if(!state)return null;
+  const {spec,phase,progress,outgoing,outgoingFrame,incoming,incomingFrame}=state;
+  const eased=progress*progress*(3-2*progress);
+  const degrees=phase==="closing"?88.75*eased:91.25+88.75*eased;
+  const right=spec.direction==="left-to-right";
+  const facing=right?degrees:-degrees;
+  const edge=right?"right":"left";
+  const width=outgoing.width, color=spec.color;
+  return <div data-km-paper-page-turn="" data-km-paper-phase={phase}
+    data-km-paper-angle={degrees.toFixed(3)}
+    data-km-paper-progress={progress.toFixed(4)}
+    style={{position:"absolute",inset:0,isolation:"isolate",pointerEvents:"none",
+      perspective:`${Math.round(width*2.1)}px`}}>
+    <div data-km-paper-next-page="" style={{position:"absolute",inset:0}}>
+      <PaperCraftStage {...renderProps} spec={incoming} frame={incomingFrame}
+        reducedMotion={reducedMotion} aria-hidden="true"/>
+    </div>
+    <div data-km-paper-page-leaf="" style={{
+      position:"absolute",inset:0,
+      transformOrigin:`${edge} center`,
+      transform:`rotateY(${facing.toFixed(3)}deg)`,
+      transformStyle:"preserve-3d",
+      backfaceVisibility:"hidden",
+      boxShadow:right?"-3px 1px 22px #241c1e70":"3px 1px 22px #241c1e70",
+    }}>
+      <div data-km-paper-printed-front="" style={{
+        position:"absolute",inset:0,backfaceVisibility:"hidden",
+        backgroundColor:outgoing.backing,
+      }}>
+        <PaperCraftStage {...renderProps} spec={outgoing} frame={outgoingFrame}
+          reducedMotion={reducedMotion} aria-hidden="true"/>
+        {/* Real narrow cardstock edge; no semi-transparent illustration. */}
+        <div aria-hidden="true" style={{
+          position:"absolute",top:0,bottom:0,[right?"right":"left"]:0,
+          width:Math.max(2,width*.006),backgroundColor:paperShade(color,-.16),
+          boxShadow:right?"-2px 0px 6px #291f2638":"2px 0px 6px #291f2638",
+        }}/>
+      </div>
+      <div data-km-paper-leaf-verso="" style={{
+        position:"absolute",inset:0,backgroundColor:color,
+        transform:"rotateY(180deg)",backfaceVisibility:"hidden",
+        boxShadow:"inset 0 0 12px #241c1d1f",
+      }}/>
+    </div>
+    {/* Independently constructed spine remains pinned throughout. */}
+    <div data-km-paper-spine="" aria-hidden="true" style={{
+      position:"absolute",top:0,bottom:0,[edge]:0,
+      width:Math.max(3,width*.006),backgroundColor:paperShade(color,-.25),
+      boxShadow:right?"-2px 0px 6px #1c172454":"2px 0px 6px #1c172454",
+    }}/>
+  </div>;
+}
 /** Safe frame-pure renderer for plans already compiled by the FD1 slot. */
 export function PaperDirectorComposition({
   plan,aspect,frame,reducedMotion=false,...props
 }:PaperDirectorCompositionProps) {
   const shot=resolvePaperDirector(plan,frame,aspect);
+  // A true book leaf requires both painted paper scenes simultaneously.
+  // The previous scene is printed on the turning leaf, not faded above the next.
+  if(!reducedMotion && shot.pageTurn)return <div data-km-paper-film={plan.id}
+    data-km-paper-director={plan.id} data-km-paper-shot={shot.shotId}
+    style={{position:"relative",width:"100%",height:"100%",overflow:"hidden",isolation:"isolate"}}>
+    <PaperPageTurn shot={shot} reducedMotion={reducedMotion} renderProps={props}/>
+  </div>;
   return <div data-km-paper-film={plan.id} style={{
     position:"relative",width:"100%",height:"100%",overflow:"hidden",isolation:"isolate",
   }}>
