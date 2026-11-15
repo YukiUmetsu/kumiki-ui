@@ -69,6 +69,102 @@ export function crayonConstructionWindows(
       outlineStart:last-outlineFrames,outlineEnd:last};
 }
 
+/**
+ * ArtCraft wax-crayon fiber marks: broken, paper-height-dependent pigment
+ * ribbons and attached terminal clumps, never a continuous bright SVG line.
+ * Only the explicit M x y C x y x y x y grammar is supported so malformed
+ * artwork cannot silently become a generic fallback. Compound cubic
+ * paths preserve many individual authored hair gestures under one node.
+ * This is an observable material approximation, not wax-fluid simulation.
+ */
+export function crayonWaxFiberContacts(
+  path:string,width:number,seed:number,paperSeed:number,
+  pressure=.7,progress=1,
+):{body:string;pickup:string;segments:number}{
+  if(typeof path!=="string"||path.length<12||path.length>40000||
+    ![width,pressure,progress].every(Number.isFinite)||
+    width<=0||width>16||pressure<.2||pressure>1||
+    progress<0||progress>1||
+    !Number.isSafeInteger(seed)||!Number.isSafeInteger(paperSeed))
+    throw new RangeError("Invalid CRAYON1 fiber contact input");
+  const compact=path.replace(/[\s,]/g,"");
+  const words=path.match(/[MC]|[+-]?(?:[0-9]+(?:[.][0-9]*)?|[.][0-9]+)/g);
+  if(!words||words.join("")!==compact||words.length%10!==0||
+    words.length>1600)throw new RangeError("Crayon fiber requires compound M/C cubic paths");
+  if(progress===0)return {body:"",pickup:"",segments:0};
+  const fmt=(n:number)=>n.toFixed(2);
+  const pair=(x:number,y:number)=>fmt(x)+" "+fmt(y);
+  const body:string[]=[],pickup:string[]=[];
+  let count=0;
+  for(let k=0;k<words.length;k+=10){
+    if(words[k]!=="M"||words[k+3]!=="C")
+      throw new RangeError("Crayon fiber accepts M/C cubic subpaths only");
+    const v=[words[k+1],words[k+2],words[k+4],words[k+5],
+      words[k+6],words[k+7],words[k+8],words[k+9]].map(Number);
+    if(v.some(n=>!Number.isFinite(n)||Math.abs(n)>8192))
+      throw new RangeError("Unbounded crayon fiber cubic");
+    const [x0,y0,x1,y1,x2,y2,x3,y3]=v;
+    const point=(t:number)=>{
+      const s=1-t;
+      const x=s*s*s*x0+3*s*s*t*x1+3*s*t*t*x2+t*t*t*x3;
+      const y=s*s*s*y0+3*s*s*t*y1+3*s*t*t*y2+t*t*t*y3;
+      const tx=3*s*s*(x1-x0)+6*s*t*(x2-x1)+3*t*t*(x3-x2);
+      const ty=3*s*s*(y1-y0)+6*s*t*(y2-y1)+3*t*t*(y3-y2);
+      const len=Math.hypot(tx,ty)||1;
+      return {x,y,tx,ty,nx:-ty/len,ny:tx/len};
+    };
+    const chord=Math.hypot(x3-x0,y3-y0);
+    const arcLength=(Math.hypot(x1-x0,y1-y0)+
+      Math.hypot(x2-x1,y2-y1)+Math.hypot(x3-x2,y3-y2)+chord)*.5;
+    const steps=Math.min(32,Math.max(3,Math.ceil(arcLength/10)));
+    for(let i=0;i<steps;i++){
+      const t0=i/steps,t1=(i+1)/steps;
+      if(t0>=progress)break;
+      const exposed=Math.min(t1,progress);
+      if(exposed-t0<.012)continue;
+      const mid=point((t0+exposed)*.5);
+      const paper=crayonPaperHeight(mid.x,mid.y,paperSeed);
+      const jitter=crayonHash(seed,k*41+i,33);
+      // A worn crayon catches raised paper and leaves broken lengths.
+      if(.54*paper+.35*pressure+.11*jitter<.28)continue;
+      const a=point(t0),b=point(exposed);
+      const scale=(exposed-t0)/3;
+      const aCtl={x:a.x+a.tx*scale,y:a.y+a.ty*scale};
+      const bCtl={x:b.x-b.tx*scale,y:b.y-b.ty*scale};
+      const thickness=width*(.53+.8*pressure)*
+        (.55+.72*paper+.28*crayonHash(seed,k*79+i,14));
+      const start=thickness*(.72+.22*crayonHash(seed,k*77+i,15));
+      const end=thickness*(.55+.48*crayonHash(seed,k*73+i,16));
+      const left=(p:typeof a,w:number)=>pair(p.x+p.nx*w,p.y+p.ny*w);
+      const right=(p:typeof a,w:number)=>pair(p.x-p.nx*w,p.y-p.ny*w);
+      const n0=left(a,start),n1=left(b,end);
+      const m1=right(b,end),m0=right(a,start);
+      const cp0=pair(aCtl.x+a.nx*start,aCtl.y+a.ny*start);
+      const cp1=pair(bCtl.x+b.nx*end,bCtl.y+b.ny*end);
+      const cq1=pair(bCtl.x-b.nx*end,bCtl.y-b.ny*end);
+      const cq0=pair(aCtl.x-a.nx*start,aCtl.y-a.ny*start);
+      body.push("M"+n0+" C"+cp0+" "+cp1+" "+n1+
+        " Q"+pair(b.x+b.tx/Math.max(1,Math.hypot(b.tx,b.ty))*end*.16,
+          b.y+b.ty/Math.max(1,Math.hypot(b.tx,b.ty))*end*.16)+
+        " "+m1+" C"+cq1+" "+cq0+" "+m0+"Z");
+      count++;
+      // Clumping is physically attached to the *end of a deposited ribbon*,
+      // not decoratively scattered around the character.
+      if(crayonHash(seed,k*101+i,91)<.21+.34*pressure){
+        const lift=end*(.48+.6*paper);
+        const bx=b.x+b.nx*lift*.22,by=b.y+b.ny*lift*.22;
+        pickup.push("M"+pair(bx-b.nx*lift,by-b.ny*lift)+
+          " Q"+pair(bx+b.tx*.012-b.nx*lift*1.36,
+            by+b.ty*.012-b.ny*lift*1.36)+" "+
+          pair(bx+b.tx*.026,by+b.ty*.026)+
+          " Q"+pair(bx+b.nx*lift*1.2,by+b.ny*lift*1.2)+
+          " "+pair(bx-b.nx*lift,by-b.ny*lift)+"Z");
+      }
+    }
+  }
+  return {body:body.join(" "),pickup:pickup.join(" "),segments:count};
+}
+
 export function crayonHash(seed: number, a: number, b = 0): number {
   // Integer mixing keeps renders identical across seeks and JavaScript runtimes.
   let n = (seed | 0) ^ Math.imul(a + 1, 0x9e3779b1) ^ Math.imul(b + 1, 0x85ebca6b);
