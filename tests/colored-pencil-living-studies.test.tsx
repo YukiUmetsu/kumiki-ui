@@ -227,7 +227,10 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(nose.bounds[0]+nose.bounds[2]).toBeLessThan(far.bounds[0]);
     expect(far.bounds[0]+far.bounds[2]).toBeLessThan(near.bounds[0]);
     expect(near.bounds[2]).toBeGreaterThan(far.bounds[2]*1.20);
-    expect(muzzle.bounds[2]).toBeGreaterThan(155);
+    // The older >155px requirement baked a long cartoon beak into QA.
+    // A fox's tapered nasal wedge is now shorter than the cheek-head mass.
+    expect(muzzle.bounds[2]).toBeGreaterThan(135);
+    expect(muzzle.bounds[2]).toBeLessThanOrEqual(152);
     expect(muzzle.bounds[3]).toBeLessThan(80);
     expect(bridge.opaqueSupport).toBe(false); // dry glaze, no paper-backed sticker
     expect(cheek.opaqueSupport).toBe(true);
