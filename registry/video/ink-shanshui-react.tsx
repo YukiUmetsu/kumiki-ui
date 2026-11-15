@@ -733,8 +733,8 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
  * of nested rounded hill-backs, connected long fibres and sparse recesses.
  * These original curves are authored, not traced from museum pixels.
  */
-function MountainHeroCliff({root,seed,mist,detail}:{
-  root:P;seed:number;mist:number;detail:number;
+function MountainHeroCliff({root,stations,seed,mist,detail}:{
+  root:P;stations:readonly P[];seed:number;mist:number;detail:number;
 }){
   const [x,y]=root;
   const boneControl:P=[x-19,y+31];
@@ -905,7 +905,14 @@ function MountainHeroCliff({root,seed,mist,detail}:{
         dark geological spine. Open paper channels are NOT filled with
         an overall shadow. This preserves the sparse/dense handscroll. */}
     {foldPlan.map((fold,i)=>{
-      const r=quadraticPoint(root,boneControl,boneTip,fold.at);
+      // A single common apex produced mechanical radial combs.
+      // The Fuchun handscroll's three related banks belong to
+      // *different* true ridge crest stations, linked by the same
+      // continuous mountain silhouette and shared rock-body wash.
+      const crestOffset=[-58,43,-12][i];
+      const ridgeX=root[0]+crestOffset;
+      const r:P=[ridgeX,ridgeHeight(stations,ridgeX)+
+        (i===1?4.6:3.1)];
       const breadth=fold.reach*(.96+.12*s(seed+501,i*23));
       const side=fold.side;
       const rise=fold.rise*(.91+.17*s(seed+509,i*31));
@@ -1016,7 +1023,14 @@ function MountainHeroCliff({root,seed,mist,detail}:{
         All children attach to cubic stations on this same parent. */}
     <g data-km-rock-terrace-family="">
       {terracePlan.map((terrace,i)=>{
-        const origin=quadraticPoint(root,boneControl,boneTip,terrace.at);
+        // Separate geological shoulder attachments: do not stamp
+        // all rounded landform backs out of the same tiny apex bone.
+        // This is a ridgeline-constrained arrangement, not random
+        // screen-space placement.
+        const crestOffset=[-79,23,-33][i];
+        const ridgeX=root[0]+crestOffset;
+        const origin:P=[ridgeX,ridgeHeight(stations,ridgeX)+
+          (i===0?5.2:3.4)];
         const side=terrace.side;
         const spread=terrace.reach*(.95+.13*s(seed+2091,i*31));
         const high=terrace.rise*(.91+.18*s(seed+2093,i*41));
@@ -1703,7 +1717,8 @@ function Mountains({scene,seed,detail,mist,ink,school,ids}:{
               seed={seed+band*251+777} mist={mist} detail={detail} school={school}/>
             {school==="fuchun"&&<MountainHeroCliff
               root={[heroPeak[0],ridgeHeight(stations,heroPeak[0])+2.5]}
-              seed={seed+band*251+777} mist={mist} detail={detail}/>}
+              stations={stations}
+              seed={seed+band*251+777} mist={mist} detail={detail}/>} 
 
           </g>
         </g>}
