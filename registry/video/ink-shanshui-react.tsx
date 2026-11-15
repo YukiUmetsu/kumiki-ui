@@ -947,6 +947,7 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
                 <path data-km-shanshui-bamboo-leaf="" d={blade}
                   data-km-bamboo-leaf-root={f(bx)+","+f(by)}
                   data-km-bamboo-leaf-parent={spurIndex<0?"main":"spur-"+spurIndex}
+                  data-km-bamboo-leaf-heading={f(direction)}
                   fill={k===0||j%5===0?"#89765c":"#40392b"}
                   opacity={f((k===0||j%5===0?.67:.83)+
                     .15*s(seed,k+i*31+j*7))}/>
