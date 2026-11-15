@@ -791,75 +791,83 @@ function OldPine({x,y,scale,wind,seed,detail}:{
     </>}
   </g>;
 }
-/** Loaded-fibre calligraphic leaf: width follows the local leaf normal,
- * not the screen's vertical axis, and the release converges to a point.
- * Controlled deterministic curvature makes a brush belly rather than
- * a uniform vector triangle. */
+/** One calligraphic wrist pull drives both pigment boundary and dry-bristle
+ * skips. The small secondary turn prevents perfectly mirrored SVG lozenges.
+ * Reference: Wu Zhen, Manual of Ink Bamboo (NPM, 1350), album leaves 12/20.
+ */
+function bambooStrokeOffset(t:number,length:number,seed:number){
+  const bow=(s(seed,17)-.5)*length*.22;
+  const wrist=(s(seed,19)-.5)*length*.075;
+  return bow*Math.sin(Math.PI*t)+wrist*Math.sin(2*Math.PI*t);
+}
+/** Pressure-loaded ink *gesture*, not a filled arrow template.
+ * One-sided width, delayed brush contact and families of press/lift timing
+ * separate a stalk-attached broad leaf from a quick light twig gesture.
+ * Fifteen pressure knots are smoothly interpolated on both fibre edges.
+ */
 function bambooBrushBlade(root:P,tip:P,width:number,seed:number){
   const dx=tip[0]-root[0],dy=tip[1]-root[1];
   const length=Math.max(.01,Math.hypot(dx,dy));
   const nx=-dy/length,ny=dx/length;
-  // Side-brush stroke: light handle, abrupt loaded belly, then an
-  // increasingly dry release. These pressure stations are not mirrored.
-  // They come from close examination of Wu Zhen's 1350 bamboo studies:
-  // a single wrist gesture, *not* a symmetric leaf pictogram.
-  const stations=[0,.085,.19,.30,.43,.58,.71,.83,.92,1] as const;
-  const pressure=[0,.035,.24,.83,1,.79,.52,.31,.12,0] as const;
-  const curvature=(s(seed,17)-.5)*length*.19;
-  const asymmetry=.35+.22*s(seed,31);
-  const makeSide=(side:number)=>stations.map((t,k):P=>{
-    const ragged=k===0||k===9?0:(s(seed+71,k*23+(side>0?3:17))-.5)*.08;
-    const load=Math.max(0,pressure[k]+ragged);
-    const bend=curvature*Math.sin(Math.PI*t);
-    const shift=bend+side*width*load*(side>0?1.1:asymmetry);
+  const stations=[0,.045,.09,.15,.23,.32,.42,.52,.62,.70,.78,.84,.90,.95,1] as const;
+  const pressure=([
+    [0,.14,.44,.82,1,.99,.91,.75,.57,.43,.31,.23,.14,.06,0],
+    [0,.04,.12,.31,.59,.85,1,.95,.80,.66,.49,.35,.19,.07,0],
+    [0,.19,.48,.76,.89,1,.92,.79,.69,.48,.29,.18,.09,.04,0],
+  ] as const)[Math.abs(seed)%3];
+  const dominant=.84+.26*s(seed,47);
+  const recessive=.33+.31*s(seed,31);
+  const makeSide=(side:1|-1)=>stations.map((t,k):P=>{
+    // Edge grain follows brush load; none of it jumps independently in X/Y.
+    const scratch=k===0||k===14?0:
+      (s(seed+71,k*23+(side===1?3:17))-.5)*.085*
+      Math.sin(Math.PI*t);
+    const loaded=Math.max(0,pressure[k]+scratch);
+    const turn=bambooStrokeOffset(t,length,seed);
+    const shift=turn+side*width*loaded*(side===1?dominant:recessive);
     return [root[0]+dx*t+nx*shift,root[1]+dy*t+ny*shift];
   });
-  // Cubic Hermite smoothing across actual sampled brush-pressure stations.
-  // Endpoint interpolation keeps both blades exactly joined at their root
-  // and pointed release; there are no fake detached outline triangles.
   const outline=[...makeSide(1),...makeSide(-1).slice(1,-1).reverse()];
   const path=["M"+f(root[0])+" "+f(root[1])];
+  // Smooth local tangents preserve the pressured edge without angular
+  // polygon vertices or uniform Bézier taper. Both ends return to the axis.
   for(let k=0;k<outline.length;k++){
     const p0=outline[(k-1+outline.length)%outline.length];
-    const p1=outline[k];
-    const p2=outline[(k+1)%outline.length];
+    const p1=outline[k],p2=outline[(k+1)%outline.length];
     const p3=outline[(k+2)%outline.length];
-    const c1:P=[p1[0]+(p2[0]-p0[0])*.115,
-      p1[1]+(p2[1]-p0[1])*.115];
-    const c2:P=[p2[0]-(p3[0]-p1[0])*.115,
-      p2[1]-(p3[1]-p1[1])*.115];
+    const c1:P=[p1[0]+(p2[0]-p0[0])*.13,
+      p1[1]+(p2[1]-p0[1])*.13];
+    const c2:P=[p2[0]-(p3[0]-p1[0])*.13,
+      p2[1]-(p3[1]-p1[1])*.13];
     path.push("C"+f(c1[0])+" "+f(c1[1])+
       " "+f(c2[0])+" "+f(c2[1])+
       " "+f(p2[0])+" "+f(p2[1]));
   }
   return path.join(" ")+" Z";
 }
-/** Fei-bai (flying-white) is *inside* a loaded brush gesture. Each
- * short skip follows the same curved stroke axis as its dark silhouette:
- * never add detached canvas noise or a parallel hatch grid.
- * See Asian Art Museum, Introduction to Chinese Brushpainting Techniques.
+/** Fei-bai (flying-white): paper reserves are cut *out* of the deposited
+ * ink, not bright highlight stickers painted over an opaque dark leaf.
+ * Every short split travels on the exact same loaded calligraphic centerline.
  */
 function bambooDryBristles(root:P,tip:P,width:number,seed:number){
   const dx=tip[0]-root[0],dy=tip[1]-root[1];
   const length=Math.max(.01,Math.hypot(dx,dy));
   const nx=-dy/length,ny=dx/length;
-  const curvature=(s(seed,17)-.5)*length*.19;
   const point=(t:number,offset:number):P=>{
-    // Keep the dry bristles in the pressure-loaded central belly.
-    const p=Math.sin(Math.PI*t);
-    const shift=curvature*p+width*offset*p;
+    const belly=Math.sin(Math.PI*t);
+    const shift=bambooStrokeOffset(t,length,seed)+width*offset*belly;
     return [root[0]+dx*t+nx*shift,root[1]+dy*t+ny*shift];
   };
   return Array.from({length:3},(_,i)=>{
-    const start=.26+.23*s(seed+191,i*31+5);
-    const finish=Math.min(.87,start+.19+.17*s(seed+193,i*17+11));
-    const offset=(i-1)*.16+.08*(s(seed+197,i*23)-.5);
+    const start=.21+.29*s(seed+191,i*31+5);
+    const finish=Math.min(.91,start+.14+.19*s(seed+193,i*17+11));
+    const offset=(i-1)*.17+.08*(s(seed+197,i*23)-.5);
     const a=point(start,offset),mid=point((start+finish)*.5,
-      offset+.045*(s(seed+199,i*17)-.5)),b=point(finish,offset);
+      offset+.04*(s(seed+199,i*17)-.5)),b=point(finish,offset);
     return {
       d:"M"+f(a[0])+" "+f(a[1])+" Q"+f(mid[0])+" "+f(mid[1])+
         " "+f(b[0])+" "+f(b[1]),
-      width:f(.18+.22*s(seed+211,i*19)),
+      width:f(.29+.28*s(seed+211,i*19)),
     };
   });
 }
@@ -871,6 +879,7 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
   x:number;y:number;scale:number;wind:number;seed:number;detail:number;
   ink:number;materialId:string;
 }){
+  const id="kmbamboo"+useId().replace(/[^a-z0-9_-]/gi,"");
   // Gongbi bamboo paintings place branches at visible culm joints. Sharing
   // node samples between collars and twigs prevents floating leaf clusters.
   return <g data-km-shanshui-bamboo=""
@@ -991,7 +1000,8 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
                 (motif===4?.74:layer===1?.83:1);
               const leafTipX=bx+Math.cos(direction)*len;
               const leafTipY=by+Math.sin(direction)*len;
-              const wide=2.7+4.8*s(seed+11,k+i*13+j);
+              const wide=(2.15+4.4*s(seed+11,k+i*13+j))*
+                (motif===0?1.12:motif===3?.83:1);
               // Orient the brush belly to the blade tangent, not paper Y.
               // Secondary tip releases grow from the same parent wood,
               // but their size and pitch vary rather than forming mirror pairs.
@@ -1018,28 +1028,73 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
               const echoBristles=echo&&detail>.85?bambooDryBristles(
                 echoRoot,echoTip,wide*.65,
                 seed+1409+i*31+j*23+k*37):[];
+              const dilute=k%5===0||j%5===0;
+              const leafId=id+"-"+i+"-"+j+"-"+k;
+              const reserve=leafId+"-reserve",pigment=leafId+"-ink";
+              const echoReserve=leafId+"-echo-reserve";
+              const echoPigment=leafId+"-echo-ink";
+              const margin=wide*3.3+2;
+              const bx0=Math.min(bx,leafTipX)-margin,
+                by0=Math.min(by,leafTipY)-margin;
+              const bw=Math.abs(leafTipX-bx)+margin*2,
+                bh=Math.abs(leafTipY-by)+margin*2;
+              const ex0=Math.min(echoRoot[0],echoTip[0])-margin,
+                ey0=Math.min(echoRoot[1],echoTip[1])-margin;
+              const ew=Math.abs(echoTip[0]-echoRoot[0])+margin*2,
+                eh=Math.abs(echoTip[1]-echoRoot[1])+margin*2;
               return <g key={k}>
+                <defs>
+                  <linearGradient id={pigment} gradientUnits="userSpaceOnUse"
+                    x1={f(bx)} y1={f(by)} x2={f(leafTipX)} y2={f(leafTipY)}>
+                    <stop offset="0" stopColor={dilute?"#655c4e":"#272a23"}/>
+                    <stop offset=".19" stopColor={dilute?"#736857":"#20251f"}/>
+                    <stop offset=".54" stopColor={dilute?"#907b66":"#2c3028"}/>
+                    <stop offset=".83" stopColor={dilute?"#a59075":"#515043"}/>
+                    <stop offset="1" stopColor={dilute?"#baa78d":"#706a58"}/>
+                  </linearGradient>
+                  {bristles.length>0&&<mask id={reserve}
+                    maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
+                    x={f(bx0)} y={f(by0)} width={f(bw)} height={f(bh)}
+                    style={{maskType:"luminance"}}>
+                    <path d={blade} fill="#fff"/>
+                    {bristles.map((bristle,b)=><path key={b}
+                      data-km-bamboo-internal-bristle="" d={bristle.d}
+                      stroke="#000" strokeWidth={bristle.width}
+                      strokeLinecap="round" fill="none"/>)}
+                  </mask>}
+                  {echo&&<linearGradient id={echoPigment}
+                    gradientUnits="userSpaceOnUse" x1={f(echoRoot[0])}
+                    y1={f(echoRoot[1])} x2={f(echoTip[0])}
+                    y2={f(echoTip[1])}>
+                    <stop offset="0" stopColor="#544a3b"/>
+                    <stop offset=".46" stopColor="#84725d"/>
+                    <stop offset="1" stopColor="#aa9174"/>
+                  </linearGradient>}
+                  {echoBristles.length>0&&<mask id={echoReserve}
+                    maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
+                    x={f(ex0)} y={f(ey0)} width={f(ew)} height={f(eh)}
+                    style={{maskType:"luminance"}}>
+                    <path d={satellite} fill="#fff"/>
+                    {echoBristles.map((bristle,b)=><path key={b}
+                      data-km-bamboo-satellite-bristle="" d={bristle.d}
+                      stroke="#000" strokeWidth={bristle.width}
+                      strokeLinecap="round" fill="none"/>)}
+                  </mask>}
+                </defs>
                 <path data-km-shanshui-bamboo-leaf="" d={blade}
                   data-km-bamboo-leaf-root={f(bx)+","+f(by)}
                   data-km-bamboo-leaf-parent={spurIndex<0?"main":"spur-"+spurIndex}
                   data-km-bamboo-leaf-heading={f(direction)}
-                  fill={k%5===0||j%5===0?"#8b7963":"#282a25"}
-                  opacity={f((k%5===0||j%5===0 ? .68 : .85)+
-                    .14*s(seed,k+i*31+j*7))}/>
-                {bristles.map((bristle,b)=> <path key={"dry"+b}
-                  data-km-bamboo-internal-bristle="" d={bristle.d}
-                  stroke={k%5===0||j%5===0?"#342f2a":"#e7d7bd"}
-                  strokeWidth={bristle.width} opacity=".57" fill="none"
-                  strokeLinecap="round"/>)}
+                  fill={"url(#"+pigment+")"}
+                  mask={bristles.length>0?"url(#"+reserve+")":undefined}
+                  opacity={f((dilute?.76:.88)+
+                    .1*s(seed,k+i*31+j*7))}/>
                 {echo&&<path data-km-bamboo-satellite-leaf=""
                   data-km-bamboo-satellite-root={f(echoRoot[0])+","+f(echoRoot[1])}
                   d={satellite} data-km-bamboo-satellite-heading={f(echoAngle)}
-                  fill={k===4?"#675442":"#8b765c"}
-                  opacity={f(.62+.18*s(seed+1459,i*13+j*7+k))}/>}
-                {echoBristles.map((bristle,b)=> <path key={"echoDry"+b}
-                  data-km-bamboo-satellite-bristle="" d={bristle.d}
-                  stroke="#e6d4b8" strokeWidth={bristle.width}
-                  opacity=".5" fill="none" strokeLinecap="round"/>)}
+                  fill={"url(#"+echoPigment+")"}
+                  mask={echoBristles.length>0?"url(#"+echoReserve+")":undefined}
+                  opacity={f(.67+.15*s(seed+1459,i*13+j*7+k))}/>}
                 {detail>.77&&(motif===1||motif===3)&&
                   <path data-km-bamboo-dry-lift=""
                     d={"M"+f(bx+(leafTipX-bx)*.2)+" "+
