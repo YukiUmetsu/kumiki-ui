@@ -81,11 +81,17 @@ describe("RISO24 ArtCraft v9 scalp flow and real paper-negative hair",()=>{
         expect(knockout,id).toContain('data-km-riso-knockout-part="'+id+'"');
       }
       for(const id of engrave){
-        expect(red,id).toContain('data-km-riso-part="'+id+'"');
-        expect(blue,id).not.toContain('data-km-riso-part="'+id+'"');
+        const part=actor.parts.find(p=>p.id===id)!;
+        const actual=part.plate==="blue"?blue:red;
+        const other=part.plate==="blue"?red:blue;
+        expect(actual,id).toContain('data-km-riso-part="'+id+'"');
+        expect(other,id).not.toContain('data-km-riso-part="'+id+'"');
       }
+      // Clearance is present only on a plate with actual earlier deposited
+      // ink. Original Paper Artist has hair-back on blue but no red art
+      // earlier than the face, so inventing a red face mask is incorrect.
       expect(blue).toContain('data-km-riso-paper-clearance="face"');
-      expect(red).toContain('data-km-riso-paper-clearance="face"');
+      if(actor.id==="courier")expect(red).toContain('data-km-riso-paper-clearance="face"');
     }
   });
 
