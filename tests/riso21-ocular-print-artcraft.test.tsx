@@ -4,6 +4,7 @@ import {describe,expect,it} from "vitest";
 import {evaluateRisoCharacter,inspectRisoCharacter} from "../registry/video/riso-character";
 import {evaluateRisoCharacterMesh,inspectRisoCharacterMesh,risoMeshBounds} from "../registry/video/riso-proportion-mesh";
 import {RisoCharacterInk,RisoCharacterKnockout} from "../registry/video/riso-character-react";
+import {flattenRisoSvgPath} from "../registry/video/riso-path-geometry";
 import {RisoPrint} from "../registry/video/print-plates-react";
 import type {RisoPrintSpec} from "../registry/video/print-plates";
 import {COURIER} from "../src/video/riso-character-demo";
@@ -84,6 +85,8 @@ describe("RISO21 ArtCraft v9 distinct source-authoring eye features",()=>{
       expect(blink.get(id)!.transform).toBe(blink.get("face-outline")!.transform);
       expect(draw.d).toBe(original.d);
       expect(blink.get(id)!.d,id).not.toBe(original.d);
+      expect(flattenRisoSvgPath(blink.get(id)!.d).length,id+" subpath continuity")
+        .toBe(flattenRisoSvgPath(original.d).length);
     }
     const first=evaluateRisoCharacter(actor,160);
     evaluateRisoCharacter(actor,46);
