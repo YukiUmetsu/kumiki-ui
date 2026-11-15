@@ -21,6 +21,7 @@ import { inspectUkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import { ukiyoeFilm, ukiyoeShotStarts } from "./ukiyoe-film";
 import type { UkiyoeAspect, UkiyoeFilmTweaks, UkiyoeShot } from "./ukiyoe-night-ferry";
 import { FOLKTALE_KASUMI, FOLKTALE_SHOTS } from "./ukiyoe-folktale";
+import { SNOW_WOMAN_KASUMI, SNOW_WOMAN_SHOTS } from "./ukiyoe-snow-woman";
 import { CAST, NIGHT_FERRY_SHOTS } from "./ukiyoe-night-ferry";
 import { renderUkiyoeSlot } from "./ukiyoe-slot";
 
@@ -146,6 +147,16 @@ export function FolktaleFilmPlayer() {
       drumming its belly, another tanuki changing into a monk in a puff of smoke, a cat, a hopping rabbit, a dancing crane, the boy
       with his dog and pheasant, the oni at their gate, and a dragon riding the clouds with its pearl. Finally, the oni island in a
       great-wave sea. Every creature is a rig in the same JSON scene engine.</>} />;
+}
+
+export function SnowWomanFilmPlayer() {
+  return <UkiyoeFilmPlayer shots={SNOW_WOMAN_SHOTS} kasumi={SNOW_WOMAN_KASUMI} filmId="ukiyoe-snow-woman" title="The Snow Woman" kicker="Ukiyo-e yōkai tale · UKIYO1" initialFrame={240} firstShotFrame={150}
+    description={<>An original three-shot yōkai tale after the yuki-onna legend. A traveller crosses a snowbound pass below a
+      Kisokaidō-style mountain range, past thatched and gasshō farmhouses with smoke rising and a row of jizō in red caps, while a
+      fox stops to watch him. At night he passes the old shrine: komainu guard the gate, a paper lantern grins on its hook, an
+      umbrella hops by on one leg, soul-flames drift and a ghost appears among the pines. In the snowfield beyond, a woman in white
+      comes out of the storm, breathes her cold over him and is gone. Every spirit, building and statue is a rig or motif in the
+      same JSON scene engine.</>} />;
 }
 
 function UkiyoeFilmPlayer({ shots, kasumi, filmId, title, kicker, description, initialFrame = 150, firstShotFrame = 40 }: FilmPlayerProps) {
@@ -341,6 +352,12 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "ricefield", label: "Rice terraces · ripe", params: { width: 600, height: 170, crop: "ripe", terraces: 3 }, y: 190 },
   { motif: "ricefield", label: "Rice paddies · young", params: { width: 600, height: 170, crop: "young", terraces: 3 }, y: 190 },
   { motif: "peach", label: "Peach (momo)", params: { size: 80, openAt: 150, openDuration: 30 }, y: 230 },
+  { motif: "range", label: "Mountain range · waterfall", params: { width: 640, height: 300, layers: 4, waterfall: true }, y: 380 },
+  { motif: "range", label: "Mountain range · snow", params: { width: 640, height: 300, layers: 3, snow: .85, variant: 2 }, y: 380 },
+  { motif: "minka", label: "Thatched farmhouse · smoke", params: { width: 300, smoke: 1 }, y: 350 },
+  { motif: "minka", label: "Gassho house · snow, lit", params: { width: 220, style: "gassho", snow: 1, light: 1 }, y: 350 },
+  { motif: "jizo", label: "Roadside jizō", params: { height: 120, count: 3, cap: true }, y: 340 },
+  { motif: "komainu", label: "Komainu pair (a, un)", params: { height: 150, pair: true, gap: 330 }, y: 340 },
 ];
 
 export function MotifGallery() {
@@ -422,8 +439,9 @@ export function SceneEditor() {
 
 interface Specimen { id: string; label: string; actions: readonly string[]; node: (action: string) => UkiyoeNode; sky?: "day" | "night" | "storm" }
 const travel = (type: string) => ["walk", "run", "fly", "hop"].includes(type) ? { to: 0 } : {};
+const SPIRITS = new Set(["yukionna", "yurei", "kasaobake", "chochinobake", "hitodama"]);
 const beast = (id: string, species: string, label: string, actions: string[], look: Record<string, unknown> = {}, scale = 1.25, y = 330): Specimen => ({
-  id, label, actions,
+  id, label, actions, ...(SPIRITS.has(species) ? { sky: "night" as const } : {}),
   node: action => ({ id: "c", kind: "creature", species, x: 300, y, scale, look, actions: [{ type: action, start: 0, end: 239, ...travel(action) }] } as UkiyoeNode),
 });
 const BESTIARY: readonly Specimen[] = [
@@ -445,6 +463,11 @@ const BESTIARY: readonly Specimen[] = [
     node: action => ({ id: "c", kind: "figure", x: 300, y: 370, scale: .95, look: CAST["oni-red"], actions: [{ type: action, start: 0, end: 239, ...travel(action) }] } as UkiyoeNode) },
   { id: "oni-blue", label: "Blue oni", actions: ["talk", "walk", "cheer", "brace", "point"],
     node: action => ({ id: "c", kind: "figure", x: 300, y: 370, scale: .95, facing: "left", look: CAST["oni-blue"], actions: [{ type: action, start: 0, end: 239, ...travel(action), angle: action === "point" ? 85 : undefined }] } as UkiyoeNode) },
+  beast("yukionna", "yukionna", "Yuki-onna, the snow woman", ["stand", "blow", "beckon", "appear", "vanish"], {}, 1.3, 360),
+  beast("yurei", "yurei", "Yūrei, a ghost", ["stand", "appear", "vanish"], {}, 1.3, 360),
+  beast("kasaobake", "kasaobake", "Kasa-obake, the umbrella spirit", ["hop", "stand", "look"], {}, 1.3, 350),
+  beast("chochinobake", "chochinobake", "Chōchin-obake, the lantern spirit", ["stand", "look"], {}, 1.2, 360),
+  beast("hitodama", "hitodama", "Hitodama, soul-flames", ["stand"], {}, 1.6, 330),
   { id: "peach", label: "Peach (momo) splitting open", actions: ["open", "float"], sky: "day",
     node: action => ({ id: "c", kind: "motif", motif: "peach", x: 300, y: 250, params: { size: 90, ...(action === "open" ? { openAt: 60, openDuration: 34 } : {}) }, loops: [{ kind: "rock", amplitude: 1.2, period: 60 }] } as UkiyoeNode) },
 ];
@@ -460,17 +483,23 @@ export function Bestiary() {
     nodes: [
       b.sky === "storm"
         ? { id: "sky", kind: "motif", motif: "sky", params: { width: 600, height: 400, style: "horizon", horizonAt: .9 } }
+        : b.sky === "night" ? { id: "sky", kind: "motif", motif: "sky", params: { width: 600, height: 400, top: "yoru", mid: "ai", band: .7, horizon: "murasaki" } }
         : { id: "sky", kind: "motif", motif: "sky", params: { width: 600, height: 400, band: .35, horizon: "beni" } },
-      ...(b.sky === "storm" ? [] : [{ id: "ground", kind: "block", x: 300, y: 365, shape: { type: "rect", width: 620, height: 90 }, fill: { type: "linear", angle: 90, stops: [[0, "kusa", .8], [1, "matsu", .9]] }, grain: .8, line: 1 } as UkiyoeNode]),
+      ...(b.sky === "storm" ? [] : [{ id: "ground", kind: "block", x: 300, y: 365, shape: { type: "rect", width: 620, height: 90 }, fill: b.sky === "night" ? { type: "linear", angle: 90, stops: [[0, "ai", 1], [1, "yoru", 1]] } : { type: "linear", angle: 90, stops: [[0, "kusa", .8], [1, "matsu", .9]] }, grain: .8, line: 1 } as UkiyoeNode]),
       b.node(chosen[b.id]),
       { id: "t", kind: "text", style: "caption", depth: 0, x: 300, y: 394, text: b.label, size: 20 },
     ],
   })), [wind, cadence, chosen]);
   return <div style={page}>
     <Header kicker="UKIYO1 · Folktale bestiary" title="Animals, spirits and the things of old stories">
-      <p style={{ margin: 0 }}>Creature rigs drawn as prints draw them: flat fills, a fine key line, fur and feather hatching. The
-        four-legged rig covers fox, nine-tailed kitsune with foxfire, tanuki (including the upright, belly-drumming folk tanuki with hat
-        and sake bottle), dog, cat and rabbit. The bird rig covers crane, heron, crow, pheasant and sparrow. The dragon swims through
+      <p style={{ margin: 0 }}>Creature rigs drawn as the animal prints of Koson and Kuniyoshi draw them: one coat silhouette whose
+        long-haired edges break into locks, carved hairlines following the body, jointed legs with hocks, wrists and toes, and faces
+        with a muzzle, lips, nose leather and a rimmed eye. The four-legged rig covers fox, nine-tailed kitsune with foxfire, tanuki
+        (including the upright, belly-drumming folk tanuki with hat and sake bottle), dog, cat and rabbit. Birds have real wings:
+        primaries, secondaries and scalloped coverts that fold along the body and spread in flight, scaled legs and toes. The bird rig
+        covers crane, heron (which flies with its neck drawn in), crow, pheasant and sparrow. Yōkai after Sekien, Ōkyo and Hokusai:
+        the snow woman (her robe trails into snow, she breathes out the cold), a yūrei ghost, the umbrella and lantern spirits, and
+        soul-flames; <code>appear</code> and <code>vanish</code> fade them in and out. The dragon swims through
         the air with whiskers, mane, belly plates and its flaming pearl. Oni are full figures with horns, fangs, a tiger-skin loincloth
         and a kanabō, so they can do every figure action. <code>transform</code> vanishes a creature in a puff of smoke (henge) so a
         new node can appear in its place. Pick an action on any card.</p>

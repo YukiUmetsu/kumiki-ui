@@ -287,7 +287,7 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
         (n.actions ?? []).forEach((a, j) => {
           if (!UKIYOE_CREATURE_ACTIONS.includes(a.type)) bad(`${p}.actions[${j}].type`, "unknown action; use " + UKIYOE_CREATURE_ACTIONS.join(", "));
           if (!isInt(a.start) || !isInt(a.end) || a.end < a.start) bad(`${p}.actions[${j}]`, "needs integer start ≤ end");
-          if (["walk", "run", "fly", "hop"].includes(a.type) && !isNum(a.to)) bad(`${p}.actions[${j}].to`, "travel needs a numeric target x");
+          if (["walk", "run", "fly", "hop", "float"].includes(a.type) && !isNum(a.to)) bad(`${p}.actions[${j}].to`, "travel needs a numeric target x");
           if (a.via !== undefined && (!Array.isArray(a.via) || a.via.length > 64 || a.via.some(q => !Array.isArray(q) || !isNum(q[0]) || !isNum(q[1])))) bad(`${p}.actions[${j}].via`, "must be up to 64 [x, y] waypoints");
         });
         break;

@@ -3696,6 +3696,16 @@
           "path": "registry/video/ukiyoe/ukiyoe-transitions.tsx",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-transitions.tsx"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-scenery.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-scenery.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-yokai.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-yokai.ts"
         }
       ]
     },

@@ -157,12 +157,52 @@ Owner requirements gathered across the review rounds. Items marked (test) are as
 
 Motifs common to Japanese folktales and their prints: kitsune and the fox wedding (*kitsune no yomeiri*, foxes under a sun-shower with foxfire, *kitsunebi*), tanuki (the drumming, sake-carrying folk tanuki), shape-shifting (*henge*), oni (red and blue, horns, tiger-skin loincloth, iron club), Momotarō's peach and companions (dog, pheasant), cranes, dragons chasing the flaming pearl, and rice paddies. All are public-domain folklore. The rigs and the "Peach and the Oni" story are original work.
 
+## Creatures, yōkai and countryside (owner request, 2026-11-14)
+
+The owner asked for more realistic, detailed animals and creatures, Japanese ghosts such as the yuki-onna, stone statues, old country houses and mountain scenery other than Fuji. Sources studied:
+
+| Source | Rights | What it gave |
+| --- | --- | --- |
+| [Ohara Koson, *Fox in the reeds*](https://commons.wikimedia.org/wiki/File:Koson_-_fox-in-the-reeds.jpg) | Public domain | Fox anatomy: a deep chest and tucked waist, the white ruff and cheeks, dark stockings, a brush tail. Fur is carved strokes following the body, and the long-haired edges break into locks. |
+| [Ohara Koson, *Rabbit at full moon*](https://commons.wikimedia.org/wiki/File:Konijn_bij_volle_maan,_RP-P-1999-561.jpg) (Rijksmuseum) | Public domain | Soft fur edge, red eye, pink inner ear, big hind feet |
+| [Ohara Koson, *Cawing crow*](https://commons.wikimedia.org/wiki/File:Cawing_crow_by_Ohara_Koson.jpg) and [*Two herons in flight*](https://commons.wikimedia.org/wiki/File:Koson_-_two-herons-in-flight.jpg) | Public domain | Wings as separate primaries and secondaries under layered coverts, a heavy beak with a gape line, scaled legs and toes. The heron flies with its neck drawn in. |
+| [Utagawa Kuniyoshi, cats](https://commons.wikimedia.org/wiki/File:Kuniyoshi_Utagawa,_For_cats_in_different_poses.jpg) | Public domain | Calico patches, the cat's head |
+| [Toriyama Sekien, *Yuki-onna*](https://commons.wikimedia.org/wiki/File:SekienYukionna.jpg) (1776) | Public domain | Streaming hair; a robe that turns into falling snow, with no feet |
+| [Maruyama Ōkyo (attrib.), the ghost of Oyuki](https://commons.wikimedia.org/wiki/File:Oyuki.jpg) | Public domain | Yūrei: a pale downcast face, loose hair, a robe fading out below |
+| [Katsushika Hokusai, Oiwa-san](https://commons.wikimedia.org/wiki/File:Hokusai,_cento_storie_(di_fantasmi),_il_fantasma_di_Oiwa-san,_1831-32.jpg) | Public-domain artwork (photo CC BY-SA 3.0): studied only | The lantern ghost: ribs across the face, the mouth in the torn paper, wisps of smoke |
+| [Hiroshige, *Mountains and Rivers Along the Kisokaidō*](https://commons.wikimedia.org/wiki/File:%E6%9C%A8%E6%9B%BE%E8%B7%AF%E4%B9%8B%E5%B1%B1%E5%B7%9D-Mountains_and_Rivers_Along_the_Kisokaid%C5%8D_MET_DP121483.jpg) (MET) | CC0 | Stacked cliffs, snow on every upper surface over dark faces, pines along the ridges, the waterfall in its gorge |
+| [Hiroshige, *Fox fires at Ōji*](https://commons.wikimedia.org/wiki/File:Hiroshige-100-views-of-edo-fox-fires.jpg) | Public domain | Thatched farmhouses, the night palette, foxfire |
+
+What changed:
+- **Four-legged animals.**
+  - The torso and neck are one coat silhouette with one key line. Its long-haired stretches (chest ruff, belly fringe, along the back) break into uneven locks.
+  - Inside the body, the thigh and shoulder carry no outline, only a carved contour down their front.
+  - Legs have a hock (hind) and a wrist (fore), slim lower legs, toes, and dark stockings on the fox. Standing legs now reach the ground exactly; before, they floated.
+  - The face has a stop, a pale muzzle (urajiro), a lip line, nose leather, a rimmed eye with iris, pupil (slit for fox and cat) and catchlight, brow hairs, whisker pads and a cheek ruff.
+  - Brush tails are one tufted shape with the white tip inside it. The nine tails of a kyūbi are drawn lighter so they don't tangle.
+- **Birds.**
+  - A wing is real feathers on a bone frame (shoulder, wrist, hand): primaries and secondaries under scalloped coverts.
+  - Folded, the wing covers the flank with the primaries crossing the tail. In flight, the hand lags the wrist through the stroke.
+  - Legs have the backward heel joint, scales, three forward toes and a hind toe.
+  - The heron flies with its neck drawn in. Each species has its own markings: the crane's white nape and black bustle, the sparrow's cheek spot and bib, the pheasant's face wattle and barred tail, and the crow's sheen.
+- **Yōkai** (`ukiyoe-yokai.ts`).
+  - The snow woman: an S-curve robe trailing into tendrils of snow, wind-borne hair ending in locks, a bijin profile with red lips, and the freezing breath (`blow`).
+  - The yūrei: the robe closed right over left as the dead are dressed, the paper triangle, hair falling over the face, limp hands, soul-flames, and a robe fading out below.
+  - The umbrella spirit: one leg in a geta, a squash-and-stretch hop, one eye and a lolling tongue.
+  - The lantern spirit: swaying on its hook, a torn grin, a flickering glow.
+  - Soul-flames. `appear` and `vanish` fade any of them in and out.
+- **Scenery** (`ukiyoe-scenery.ts`): `range`, `minka`, `jizo` and `komainu`, as described in the spec.
+- **A third film, *The Snow Woman*:**
+  - A snowbound pass with a village and jizō.
+  - The old shrine at night, with komainu, the lantern and umbrella spirits and a yūrei.
+  - The snowfield where the snow woman breathes on the traveller and vanishes.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
 - Faces are a single profile design per hairstyle. There are no three-quarter turns or expressive brow and eye shapes yet.
 - The wave's foam is procedural. It is now one connected white like the print's, but every claw is built from the same palm-and-talon unit, so it lacks the print's hand-drawn variety of claw sizes and the long lace trailing over the back.
 - The wave breaks one way only: a plunging breaker. There is no spilling breaker for the small background waves, and the falling curtain has no motion smear at its fastest frames.
-- Creature drawing is simpler than print animals (fur is hatch strokes, not carved texture), and there is no monkey, horse or kappa rig yet.
+- Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. There is no monkey, horse or kappa rig, and no rokurokubi or tengu yet.
 - No soundtrack yet (shakuhachi and koto beds, rain and surf foley).
 - Human normal-speed review of the film has **not** been recorded.

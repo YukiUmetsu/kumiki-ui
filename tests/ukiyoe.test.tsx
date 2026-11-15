@@ -13,6 +13,7 @@ import { kasumiBand } from "../registry/video/ukiyoe/ukiyoe-transitions";
 import { compileFilm } from "../registry/video/film-document";
 import { CAST, NIGHT_FERRY_SHOTS } from "../src/video/ukiyoe-night-ferry";
 import { FOLKTALE_KASUMI, FOLKTALE_SHOTS } from "../src/video/ukiyoe-folktale";
+import { SNOW_WOMAN_SHOTS } from "../src/video/ukiyoe-snow-woman";
 import { KASUMI_INTO, ukiyoeFilm } from "../src/video/ukiyoe-film";
 import { renderUkiyoeSlot } from "../src/video/ukiyoe-slot";
 import { ukiyoeFrameAtElapsed } from "../src/video/ukiyoe-studio";
@@ -186,7 +187,8 @@ describe("UKIYO1 folktale creatures", () => {
       const spec = { species, actions: [{ type, start: 0, end: 60, ...(["walk", "run", "fly", "hop"].includes(type) ? { to: 200 } : {}) }] };
       const a = drawCreature(spec, 30, .4, 5);
       expect(drawCreature(spec, 30, .4, 5), species + "/" + type).toEqual(a);
-      if (type !== "transform") expect(a.prims.length, species + "/" + type).toBeGreaterThan(3);
+      // Mid-transform, mid-appear or mid-vanish a creature is a fading group, not its full set of parts.
+      if (!["transform", "appear", "vanish"].includes(type)) expect(a.prims.length, species + "/" + type).toBeGreaterThan(3);
     }
     expect(creatureTravel([{ type: "fly", start: 0, end: 40, to: -300, toY: -50 }], 40)).toMatchObject({ x: -300, y: -50, dir: -1 });
   });
@@ -214,7 +216,7 @@ describe("UKIYO1 folktale creatures", () => {
     expect(JSON.stringify(drawMotif("mountain", { style: "wash" }, { frame: 0, wind: 0, seed: 1, progress: 1 }))).not.toContain("fuji-rock");
   });
   it("compiles the folktale film in both aspects", () => {
-    for (const shot of FOLKTALE_SHOTS) for (const aspect of ["landscape", "portrait"] as const) expect(inspectUkiyoeScene(shot.build(aspect)), shot.id).toEqual([]);
+    for (const shot of [...FOLKTALE_SHOTS, ...SNOW_WOMAN_SHOTS]) for (const aspect of ["landscape", "portrait"] as const) expect(inspectUkiyoeScene(shot.build(aspect)), shot.id).toEqual([]);
     const doc = ukiyoeFilm(FOLKTALE_SHOTS, {}, { id: "folk", kasumi: FOLKTALE_KASUMI });
     for (const outputId of ["landscape", "portrait"]) expect(compileFilm(doc, { outputId }).ok).toBe(true);
   });

@@ -10,6 +10,8 @@
 - `ukiyoe-particles.ts`
 - `ukiyoe-figure.ts`: Edo figures, including oni.
 - `ukiyoe-creatures.ts`: four-legged animals, birds and the dragon.
+- `ukiyoe-yokai.ts`: yōkai and ghosts (snow woman, yūrei, umbrella and lantern spirits, soul-flames).
+- `ukiyoe-scenery.ts`: mountain ranges, thatched farmhouses, jizō and komainu.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
 - `ukiyoe-transitions.tsx`: `UkiyoeKasumi`.
@@ -57,9 +59,10 @@ Colours are pigment **roles**: `sumi`, `usuzumi`, `ai`, `bero`, `sora`, `asagi`,
 | `line` | A carved key line through points, with taper and draw-on via `progress`. |
 | `group` | A container. Children (figures in a boat, a whole rig of blocks) ride its transform. |
 | `motif` | A generated subject: `sky`, `mountain`, `hills`, `sea`, `wave`, `pine`, `sakura`, `willow`, `reeds`, `rock`, `cloud` (band or billow), `sun`, `moon`, `house` (tile, thatch, two storeys, noren, **fukinuki-yatai cutaway**), `pagoda`, `torii`, `bridge` (taiko or trestle), `boat` (ferry, sampan, yakata; the hull sits in a waterline band, `wake` × `progress` adds a bow wave and stern streaks, `sail` adds a mast and square sail), `lantern` (paper or stone; `progress` lights it), `field`, `pier`, `peach` (splits open at `openAt`), `ricefield` (terraced paddies: `crop` `young`, `ripe` or `flooded`, swaying in the wind). |
+| `motif` (scenery) | `range`: a mountain range in the Kisokaidō manner. Ridges are stacked in depth (`layers`) with asymmetric peaks and shoulders, shadowed faces, axe-cut rock strokes and ledges, crest cedars and umbrella pines, mist between ranges (`mist`, `mistColor`), `snow` on every upward surface, and an optional `waterfall` from a gorge. `minka`: a thatched farmhouse. `style` is `irimoya` (hip-and-gable, smoke lattice, crossed ridge timbers) or `gassho` (steep, with a gable of stacked windows). It takes `snow` (cap, drip edge, icicles), `smoke` and `light` (glowing paper windows). `jizo`: roadside stone monks in a row (`count`), with a red `bib` and `cap`, a ringed `staff`, `snow` and `moss`. `komainu`: the shrine lion-dog, carved spiral mane and flame tail, mouth open (`a`) or shut (`un`), or a facing `pair`. |
 | `particles` | Closed-form weather and effects: `rain` (two Hiroshige line families), `snow`, `embers`, `petals`, `leaves`, `fireflies`, `birds`, `ripples`, `fireworks` (gold rocket trail, rayed stars, peony, willow or ring), `spray` (ballistic burst). |
 | `figure` | An articulated Edo figure with a `look` and layered `actions`. |
-| `creature` | A folktale animal or spirit (`species`): `fox` (with `tails` 1–9 and `foxfire`), `tanuki` (with `hat` and `bottle`), `dog`, `cat`, `rabbit`, `crane`, `heron`, `crow`, `pheasant`, `sparrow`, `dragon` (with `pearl`). Actions: `walk`, `run`, `fly`, `hop` (travel to `to`/`toY`), `sit`, `stand` (upright), `look`, `leap`, `howl`, `drum`, `peck`, `dance`, `coil`, `roar`, `sleep`, `transform` (henge: a smoke puff, after which the creature is gone, so place what it becomes as a new node). |
+| `creature` | A folktale animal or spirit (`species`): `fox` (with `tails` 1–9 and `foxfire`), `tanuki` (with `hat` and `bottle`), `dog`, `cat`, `rabbit`, `crane`, `heron`, `crow`, `pheasant`, `sparrow`, `dragon` (with `pearl`); yōkai `yukionna` (the snow woman; `blow` breathes out the cold, `beckon` reaches), `yurei` (a ghost with soul-flames), `kasaobake` (the one-legged umbrella), `chochinobake` (the grinning lantern), `hitodama` (a soul-flame). Actions: `walk`, `run`, `fly`, `hop`, `float` (travel to `to`/`toY`), `appear` and `vanish` (fade a spirit in or out; it is unseen before its first `appear` and stays gone after a `vanish`), `sit`, `stand` (upright), `look`, `leap`, `howl`, `drum`, `peck`, `dance`, `coil`, `roar`, `sleep`, `transform` (henge: a smoke puff, after which the creature is gone, so place what it becomes as a new node). |
 | `text` | `cartouche` (framed title slip; vertical CJK with the Latin sub set sideways), `caption` (subtitle slip), `seal`, `plain`. `align: "end"` anchors right edges. |
 
 Every node has placement, pivot, parallax `depth` (0 pins it to the frame), visibility window, `enter`/`exit` (`print`, `mist`, `rise`, `sink`, `slide`, `grow`, `unroll`, `stamp`, `fade`), sparse `keys` (x, y, rotate, scale, scaleX, scaleY, opacity, progress), `loops` (`sway`, `bob`, `rock`, `drift`, `flutter`, `breathe`, `spin`, `pulse`, `float`), `cadence`, `flip`, `windScale` and `blend` (`multiply` for dusk washes, `screen` for light).
@@ -112,20 +115,21 @@ const scene = { version: 1, id: "demo", width: 1920, height: 1080, durationFrame
 ## Evidence
 
 ```bash
-npx vitest run --project unit tests/ukiyoe.test.tsx     # 27 tests: contract, purity, motifs, wave (incl. foam drawn as one connected shape with a single outline), particles, figures, oni, creatures, henge, peach, Fuji, print pass, camera, kasumi, both films, slots, playback, and boats (hull advances whenever the pole works, passengers never leave the pier or deck, wave surface is seamless, a rider's per-frame steps stay small)
+npx vitest run --project unit tests/ukiyoe.test.tsx     # 28 tests (all three films' scenes inspected): contract, purity, motifs, wave (incl. foam drawn as one connected shape with a single outline), particles, figures, oni, creatures, henge, peach, Fuji, print pass, camera, kasumi, both films, slots, playback, and boats (hull advances whenever the pole works, passengers never leave the pier or deck, wave surface is seamless, a rider's per-frame steps stay small)
 npx eslint registry/video/ukiyoe src/video/ukiyoe-*.ts* tests/ukiyoe.test.tsx
 npm run registry:validate
 node scripts/registry-fixture.js --item=ukiyoe-handscroll   # clean consumer install + usage typecheck
 ```
 
-**Interactive playback:** in headless Chromium, Storybook played both films at 30 distinct frames per second, sampled over 4 s in the town pan, the squall, the fireworks and the folktale road. The playhead is time-based, so a slow paint drops frames instead of slowing the story.
+**Interactive playback:** in headless Chromium, Storybook played the films at 30 distinct frames per second (The Snow Woman: 30 fps in all three shots), sampled over 4 s in the town pan, the squall, the fireworks and the folktale road. The playhead is time-based, so a slow paint drops frames instead of slowing the story.
 
 **Visual review:** the agent reviewed Chromium captures of every shot (contact sheets at 0.5×), the 2× cast sheet, and the motif gallery in both palettes. Portrait framing was checked on the title shot. **A human normal-speed review has not been recorded**, so the style is `not-reviewed`. No full-length render was made; render a draft only on request.
 
 ## Limits
 
 - SVG renderer: very dense scenes (thousands of figures) will slow interactive playback. Textures are generated PNG tiles (~1.8 MB of data URIs per scene, cached).
-- Creature rigs are stylised profile rigs. Legs are straight-segment chains, dragons follow a sine-wave spine (no path following yet), and there is no monkey or horse rig yet.
+- Creature rigs are profile rigs. Four-legged animals now have a single tufted coat silhouette, jointed legs (hock, wrist, toes) and a detailed face; birds have feathered wings on a bone frame. Turns are a mirror, not a three-quarter view. Dragons follow a sine-wave spine (no path following yet), and there is no monkey or horse rig yet.
+- Yōkai are a small set (snow woman, yūrei, umbrella and lantern spirits, soul-flames). There is no rokurokubi, kappa, tengu or nue yet.
 - Figures are profile rigs with one face design per hairstyle. There is no lip-sync from audio (time `talk` to narration) and no IK; stance feet are approximately planted.
 - Mottle lies in the paper plane, so on far parallax layers it slides against the ink during a pan, as the washi fibres do.
 - `ride` works for top-level nodes in the same parallax layer as the wave. Only `wave` motifs can be ridden; the open `sea` does not lift boats beyond their own `rock` loop.
