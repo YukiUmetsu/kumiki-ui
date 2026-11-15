@@ -225,9 +225,13 @@ export const createDryPencilHeadPlate=(
     // Keep hair topologically disjoint from the skin support, including
     // subpixel feature boundaries where round-to-nearest colour sampling
     // could otherwise steal pale facial pixels into the outer hair mass.
-    // Adjacent hair and skin must touch. The earlier artificial inset
-    // produced a thin white halo around this reference face.
-    if(inside(p,geometry.hairOuter)){
+    // Adjacent hair and skin need near-contiguous optical support, but
+    // round-to-nearest photographic RGB at the polygon boundary can sample
+    // *skin* into the garden. A subpixel registration tolerance prevents
+    // false hair without the previous large white sticker-like inset.
+    const registrationTolerance=eyeDist*.010;
+    if(inside(p,geometry.hairOuter)&&
+      distanceToEdge(p,geometry.face)>registrationTolerance){
       const rgb=photoRGB(source,p[0],p[1]);
       const r=eyeDist*.090;
       let around=0;
