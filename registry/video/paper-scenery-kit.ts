@@ -567,7 +567,7 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
       holes:crown.holes,enterFrame:101+i*4,durationFrames:42,curl:.65});
     const filigree=canopyBranchLace(p,x,y,side as -1|1,
       detail,seed+i*173);
-    add("woodland-canopy-ribs-"+i,c.leafLight,21,filigree,{
+    add("woodland-canopy-ribs-"+i,c.leaf,21,filigree,{
       enterFrame:112+i*4,curl:.52});
   }
   // Two asymmetric framing trees with branches rooted in the actual trunks.
