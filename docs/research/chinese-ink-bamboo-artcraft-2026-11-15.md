@@ -802,3 +802,16 @@ source-appropriate mid- and high-frequency ink density across two
 seeds, a sparse scene, and a short animated film; preserve previous
 bamboo and pine material. Human/face releases still require the
 independent ArtCraft v9 anatomy and portrait gates.
+
+
+## Twenty-third pass — nested cubic landscape, pressure-specific hemp strokes (2026-11-15)
+
+**Reference examined again (ArtCraft v9.1):** [Huang Gongwang, Fuchun Mountains, National Palace Museum](https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975), [museum mountain detail, via Smarthistory](https://smarthistory.org/wp-content/uploads/2023/06/National-Palace_lrg-det-6.jpeg), and [annotated hemp fibre/alum-head example](https://smarthistory.org/wp-content/uploads/2023/10/National_Palace_brushstroke_labeled-copy.jpg). The painting's hills comprise repeated but **not identical** rounded/interlocking backs, darker supported crag pockets, source-flow lines with asymmetrically depleted brush pressure and deliberate interstitial bare paper. Last native Storybook crop showed smooth triangular slopes crossed by sparse isolated long scratches: macro parent topology, not a missing digital grain filter, was the failure.
+
+**Art implementation:** In the existing mountain hero, added three bone-anchored (stations .09/.29/.51) two-edge 19-pressure-station **cubic** terraces alternating left/right and unequal reach/rise/drop. The visible crest remains geometrically continuous with its real mountain parent, rather than starting a separate wedge. Six alum-head short loaded caps and 40 individual pressure-variable dry/loaded hemp fibres attach at sampled parent cubic stations, divided into intentionally unequal concentration clusters and a quiet middle interval. The previous 3 rolling fold groups, 4 fracture ribs, 24 pima strokes, original five-tree grove and all gradient/paper masking stay unchanged. No copied museum image pixels; this is a style-guided original composition.
+
+**Storybook improvement:** Reuses the already-present Chinese Ink / Shanshui Film Gallery / Geological ink three-condition study, with one-click **macro** (1.75x, entire sculpted hill back), **meso** (2.4x, contour and alum-head), and **micro** (3.45x, actual pressure/edge) viewports. Fixed-frame/seed/film renderer preserves the comparison against the detail=0 genuine negative control and ink-only dilution.
+
+**Structural validation:** docs/research/chinese-ink-fuchun-structural-study.json now records the shape graph and all five ArtCraft axes. Unit tests assert exact parent-root alignment, 34+ cubic contour segments, 6 cap origins, 40 finite individual paint-path roots and zero sparse-detail residue; Playwright verifies native Storybook rendering across conditions and view presets.
+
+**Visual release status: HOLD.** Before final approval inspect the *exact CI head* native film, the macro + meso + micro crop, and the 960x540 mountain frame. If arcs still look like identical neat scallops or the smooth triangle overwhelms the ink, reconstruct macro terrain topology rather than increasing procedural noise. Portrait/anatomy work stays separate and gated.
