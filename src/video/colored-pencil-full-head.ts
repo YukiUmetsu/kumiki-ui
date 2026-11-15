@@ -191,7 +191,15 @@ export const createDryPencilHeadPlate=(
   const classify=(p:Point):Region=>{
     if(!onPhoto(source,p[0],p[1]))return "background";
     if(inside(p,geometry.face))return "skin";
-    if(inside(p,geometry.hairOuter)&&isHairColour(photoRGB(source,p[0],p[1]))&&
+    // Keep hair topologically disjoint from the skin support, including
+    // subpixel feature boundaries where round-to-nearest colour sampling
+    // could otherwise steal pale facial pixels into the outer hair mass.
+    const inset=eyeDist*.035;
+    if(inside(p,geometry.hairOuter)&&
+      distanceToEdge(p,geometry.face)>inset&&
+      isHairColour(photoRGB(source,p[0],p[1]))&&
+      isHairColour(photoRGB(source,p[0]-inset,p[1]))&&
+      isHairColour(photoRGB(source,p[0]+inset,p[1]))&&
       !paperWhite(source,p[0],p[1]))return "hair";
     return "background";
   };
