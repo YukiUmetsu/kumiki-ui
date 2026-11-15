@@ -50,6 +50,15 @@ test("Two fully opaque Paper Craft landscapes render as one configurable Storybo
       expect((cutwork?.match(/L/g)??[]).length).toBeGreaterThan(50);
       const pistils=subject==="woodland"?"woodland-flower-centers":"alpine-meadow-bloom-centers";
       await expect(svg.locator('[data-km-paper-layer="'+pistils+'"]')).toBeVisible();
+      if(subject==="woodland"){
+        const canopy=svg.locator('[data-km-paper-layer="woodland-canopy-ribs-0"]');
+        const branches=svg.locator('[data-km-paper-layer="woodland-foliage-0-0"]');
+        const denseCanopy=await canopy.locator('path[fill-rule="evenodd"]').getAttribute("d");
+        const denseBranches=await branches.locator('path[fill-rule="evenodd"]').getAttribute("d");
+        expect((denseCanopy?.match(/M/g)??[]).length).toBeGreaterThan(90);
+        expect((denseBranches?.match(/M/g)??[]).length).toBeGreaterThan(45);
+        expect((denseBranches?.match(/C/g)??[]).length).toBeGreaterThan(55);
+      }
       const stock=await cut.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("data-km-paper-stock")));
       expect(stock.every(c=>/^#[a-fA-F0-9]{6}$/.test(c??""))).toBe(true);
       await svg.screenshot({animations:"disabled",path:info.outputPath(subject+"-"+aspect+".png")});
