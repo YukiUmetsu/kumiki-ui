@@ -658,3 +658,12 @@ band inks, unchanged animation and artistically necessary gaps.
 Native re-render is mandatory to determine whether this meaningfully
 improves volume without creating code-drawn generic pebbles.
 Do not call it source parity or merge solely because the tests pass.
+
+
+## Sixteenth pass — single high-value source-directed massif hero (2026-11-15)
+
+Primary source: [Huang Gongwang, *Dwelling in the Fuchun Mountains* — an actual National Palace Museum painting detail](https://theme.npm.edu.tw/selection/Article.aspx?sNo=04000975), also discussed and illustrated by [Smarthistory](https://smarthistory.org/huang-gongwang-dwelling-in-the-fuchun-mountains/). The source shows nested rounded hill-backs, connected long hemp-fibre sweeps, dark absorbing pockets, contrasting near-white channels and irregular bundled brush motions, **not** parallel rows of cliffs. Reference crops were visually studied only; no third-party image bytes are copied into assets.
+
+From the native previous 2.15x geology crop, the smooth stacked mountain masses lack a continuous, dark, **source-led hero rock face**. The current isolated alum caps and texture strands cannot substitute for this larger form. This pass therefore introduces **exactly one** composed cliff in the mountain's middle ridge band, attached to its highest existing peak. A sampled parent bone descends 116 film units, and four unequal brush-plane ribbons start at 0.08/0.25/0.43/0.62 of that *exact* curve. Their unequal bellies, oppositely bending headings, open-paper channels, split inner creases, eight attached subsidiary cracks and a source-attached recess make a single local mesh-like geometry instead of repetitive random markings. All forms are clipped by the current ridgeline. That crest is chosen from existing peaks, so different scene designs retain their authored landscape hierarchy.
+
+**Adversarial controls:** (1) avoid four identical straight ribbons; (2) avoid detached decorative dark shapes; (3) don't stamp the hero cliff at every ridge; (4) leave the sky and the full sparse-detail terrain unpainted; (5) don't bury the structural fix under more random filter noise. All new paths have root and leaf/crease instrumentation. Real 960×540 film-scale and native 2.15x crop review are still mandatory before any quality claim. These proportions are authored source-guided original shapes, not a pixel match or a quantitative source contour reconstruction.

@@ -231,7 +231,7 @@ function BrushworkDetail(){
     {label:"松針 · Old-pine needle clusters",scene:"mountain-trail",
       x:95,y:161,note:"Eight deliberately crooked two-elbow old-pine branches, exact rooted child forks and narrow directional needle bundles; examine negative space"},
     {label:"皴法 · Geological texture",scene:"mountain-trail",
-      x:568,y:147,note:"Huang Gongwang, Dwelling in the Fuchun Mountains: examine the new peak-connected mountain shoulders, faded wet-fold shadows and dry child fibres against the older ridge-rooted hemp texture. Reject detached rain streaks, dark angular triangles, evenly spaced hatching or completely flattened distant planes"},
+      x:568,y:147,note:"Huang Gongwang: inspect a single nested rock-face hero formation on the dominant middle crest. Four pressure-loaded, crossing hemp ribbons descend from one parent bone, with eight attached fracture fibres, dark recess and paper channels. Reject repetitive wedge silhouettes or hard vertical rain stripes"},
     {label:"柳 · Hanging willow foliage",scene:"river-scholar",
       x:196,y:174,note:"Compare Mei Qing: 39 differently swept pressure-tapered silk strands, five bare paper reserves and asymmetrical angled leaves"},
     {label:"竹葉 · Bamboo leaf canopy",scene:"misty-hermit",

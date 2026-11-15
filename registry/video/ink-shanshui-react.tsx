@@ -177,6 +177,111 @@ function RockInkPlanes({stations,seed,band,detail,mist}:{
  * 2023 detail shows curving densely loaded folds, secondary hemp fibres,
  * alum-head ledges, and deliberate unmarked paper between the slopes.
  */
+/** One deliberately composed folded rock formation, not a collection
+ * of repeated floating pebbles. Its parent bone emerges at a *real*
+ * mid-distance ridge apex; four unequal paper-separated hemp ribs
+ * emerge from sampled stations along that same bowed bone.
+ * Huang Gongwang's Fuchun handscroll (NPM, 1350) supplies the grammar
+ * of nested rounded hill-backs, connected long fibres and sparse recesses.
+ * These original curves are authored, not traced from museum pixels.
+ */
+function MountainHeroCliff({root,seed,mist}:{
+  root:P;seed:number;mist:number;
+}){
+  const [x,y]=root;
+  const boneControl:P=[x-19,y+31];
+  const boneTip:P=[x-56,y+116];
+  const ribPlan=[
+    {at:.08,side:-1,len:62,reach:28,load:5.3},
+    {at:.25,side:1,len:84,reach:35,load:8.6},
+    {at:.43,side:-1,len:71,reach:44,load:6.9},
+    {at:.62,side:1,len:67,reach:39,load:7.8},
+  ] as const;
+  const pool=quadraticPoint(root,boneControl,boneTip,.49);
+  return <g data-km-rock-hero-cliff=""
+    data-km-rock-hero-root={f(x)+","+f(y)}>
+    {/* One broad moving backbone, with a lifted segment at mid-stroke. */}
+    <path data-km-rock-hero-bone=""
+      d={"M"+f(x)+" "+f(y)+
+        " Q"+f(boneControl[0])+" "+f(boneControl[1])+" "+
+        f(quadraticPoint(root,boneControl,boneTip,.43)[0])+" "+
+        f(quadraticPoint(root,boneControl,boneTip,.43)[1])+
+        " M"+f(quadraticPoint(root,boneControl,boneTip,.49)[0])+" "+
+        f(quadraticPoint(root,boneControl,boneTip,.49)[1])+
+        " Q"+f(boneControl[0]-9)+" "+f(boneControl[1]+23)+" "+
+        f(boneTip[0])+" "+f(boneTip[1])}
+      fill="none" stroke="#47382d" strokeWidth="2.35"
+      strokeLinecap="round" opacity={f(.84*(1-.22*mist))}/>
+    {ribPlan.map((rib,i)=>{
+      const r=quadraticPoint(root,boneControl,boneTip,rib.at);
+      const swing=rib.side*(rib.reach+
+        (s(seed+401,i*19)-.5)*7);
+      const length=rib.len*(.95+.12*s(seed+403,i*23));
+      const bend:P=[r[0]+swing*.24,r[1]+length*.38];
+      const tip:P=[r[0]+swing,r[1]+length];
+      // Asymmetric width and concave back keep the pressure footprint
+      // curved and tapered, unlike four straight side-by-side stripes.
+      const face="M"+f(r[0])+" "+f(r[1])+
+        " C"+f(r[0]+swing*.04-rib.side*rib.load*.4)+" "+
+          f(r[1]+length*.18)+" "+
+          f(bend[0]-rib.side*rib.load)+" "+f(bend[1]+length*.06)+
+          " "+f(tip[0])+" "+f(tip[1])+
+        " Q"+f(tip[0]-rib.side*rib.load*.45)+" "+
+          f(tip[1]-length*.13)+" "+
+          f(bend[0]+rib.side*rib.load*.72)+" "+
+          f(bend[1]-length*.15)+
+        " Q"+f(r[0]+rib.side*rib.load*.69)+" "+
+          f(r[1]+length*.12)+" "+f(r[0])+" "+f(r[1])+" Z";
+      const mid=quadraticPoint(r,bend,tip,.47);
+      const split=quadraticPoint(r,bend,tip,.55);
+      const crease="M"+f(r[0])+" "+f(r[1])+
+        " Q"+f(bend[0]-rib.side*2.1)+" "+f(bend[1])+
+          " "+f(mid[0])+" "+f(mid[1])+
+        " M"+f(split[0])+" "+f(split[1])+
+        " Q"+f(bend[0]+swing*.12)+" "+f(bend[1]+length*.28)+
+          " "+f(tip[0])+" "+f(tip[1]);
+      const branches=([.3,.63] as const).map((station,k)=>{
+        const point=quadraticPoint(r,bend,tip,station);
+        const side=(i+k)%2===0?-rib.side:rib.side;
+        const sideReach=(9+8*s(seed+419,i*17+k*7))*side;
+        const tipY=point[1]+(12+13*s(seed+421,i*13+k));
+        const q="M"+f(point[0])+" "+f(point[1])+
+          " Q"+f(point[0]+sideReach*.19)+" "+
+          f(point[1]+(tipY-point[1])*.31)+" "+
+          f(point[0]+sideReach)+" "+f(tipY);
+        return {point,q};
+      });
+      return <g key={i} data-km-rock-hero-rib=""
+        data-km-rock-hero-rib-root={f(r[0])+","+f(r[1])}>
+        <path data-km-rock-hero-face="" d={face}
+          fill={i%2===0?"#504338":"#75614d"}
+          opacity={f((i%2===0?.69:.47)*(1-.19*mist))}/>
+        <path data-km-rock-hero-crease="" d={crease}
+          fill="none" stroke={i%2===0?"#40362c":"#6b5744"}
+          strokeWidth={f(i%2===0?1.1:.85)}
+          strokeLinecap="round"
+          opacity={f(.78*(1-.2*mist))}/>
+        {branches.map(({point,q},k)=><path key={k}
+          data-km-rock-hero-fibre=""
+          data-km-rock-hero-fibre-root={f(point[0])+","+f(point[1])}
+          d={q} stroke={k?"#7b654f":"#443b32"}
+          fill="none" strokeWidth={f(k?.7:.93)}
+          strokeLinecap="round" opacity={f(.57*(1-.18*mist))}/>)}
+      </g>;
+    })}
+    {/* The deepest local junction absorbs pigment while its edges still
+        release into bare paper. Never render it as a detached triangle. */}
+    <path data-km-rock-hero-recess=""
+      d={"M"+f(pool[0]-4.2)+" "+f(pool[1]-3.4)+
+        " Q"+f(pool[0]+7)+" "+f(pool[1]-8.2)+
+        " "+f(pool[0]+12)+" "+f(pool[1]+.8)+
+        " Q"+f(pool[0]+7.9)+" "+f(pool[1]+8)+
+        " "+f(pool[0]-1.6)+" "+f(pool[1]+6.4)+
+        " Q"+f(pool[0]-6.3)+" "+f(pool[1]+2)+
+        " "+f(pool[0]-4.2)+" "+f(pool[1]-3.4)+" Z"}
+      fill="#3c342d" opacity={f(.59*(1-.25*mist))}/>
+  </g>;
+}
 function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
   ridge:readonly P[];stations:readonly P[];seed:number;band:number;
   detail:number;mist:number;id:string;
@@ -185,6 +290,11 @@ function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
   const peaks=ridge.slice(1,-1).flatMap(([x,y],i)=>
     y<ridge[i][1]&&y<ridge[i+2][1] ? [[x,y] as P] : []);
   const count=Math.round(peaks.length*detail);
+  // Only the dominant peak of the middle mountain layer receives the
+  // authored hero rock anatomy. Repeating it at every peak would erase
+  // the handscroll's deliberate sparse/dense geographic rhythm.
+  const heroPeak=band===1&&peaks.length
+    ?peaks.reduce((best,p)=>p[1]<best[1]?p:best,peaks[0]):null;
   const ridgeClip=id+"-clip",washFilter=id+"-paper-absorption";
   return <g data-km-rock-shoulder-family={band}>
     <defs>
@@ -313,6 +423,9 @@ function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
           <path data-km-rock-shoulder-wash=""
             d={wash} fill={"url(#"+washId+")"}
             filter={"url(#"+washFilter+")"}/>
+          {heroPeak&&heroPeak[0]===x&&detail>.7&&
+            <MountainHeroCliff root={[x,crest+2.5]}
+              seed={seed+777} mist={mist}/>} 
           {shelves.map(({root,face,rim},j)=><g key={"ledge"+j}
             data-km-rock-alum-ledge=""
             data-km-rock-alum-ledge-root={f(root[0])+","+f(root[1])}>

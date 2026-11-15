@@ -121,6 +121,10 @@ test("brushwork study shows native rooted foliage and uneven rock deposition",as
     .toBeGreaterThan(120);
   await expect.poll(()=>study.locator("[data-km-rock-alum-ledge]").count())
     .toBeGreaterThan(35);
+  await expect.poll(()=>study.locator("[data-km-rock-hero-cliff]").count())
+    .toBeGreaterThanOrEqual(5);
+  await expect.poll(()=>study.locator("[data-km-rock-hero-rib]").count())
+    .toBeGreaterThanOrEqual(20);
   await expect.poll(()=>study.locator("[data-km-bamboo-secondary-shoot]").count())
     .toBeGreaterThan(0);
   await expect.poll(()=>study.locator("[data-km-bamboo-leaf-parent='spur-0']").count())

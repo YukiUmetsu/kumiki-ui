@@ -224,12 +224,47 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(faces.every((d,i)=>d.startsWith("M"+
         ledges[i][1].replace(","," "))&&
         d.includes(" Q")&&d.endsWith(" Z"))).toBe(true);
+      // A single composed, nested rock formation, rooted on the
+      // geographically highest midrange crest, not stamped across
+      // every peak or floated on top of the sky.
+      const heroRoots=[...full.matchAll(
+        /data-km-rock-hero-cliff="" data-km-rock-hero-root="([^"]+)"/g,
+      )].map(m=>m[1]);
+      expect(heroRoots).toHaveLength(1);
+      const cliffStart=full.match(
+        /data-km-rock-hero-bone="" d="([^"]+)"/,
+      )?.[1];
+      expect(cliffStart).toBeDefined();
+      expect(cliffStart!.startsWith("M"+heroRoots[0].replace(","," ")))
+        .toBe(true);
+      const ribs=[...full.matchAll(
+        /data-km-rock-hero-rib="" data-km-rock-hero-rib-root="([^"]+)"/g,
+      )].map(m=>m[1]);
+      const ribFaces=[...full.matchAll(
+        /data-km-rock-hero-face="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      const childFibres=[...full.matchAll(
+        /data-km-rock-hero-fibre="" data-km-rock-hero-fibre-root="([^"]+)" d="([^"]+)"/g,
+      )];
+      expect(ribs).toHaveLength(4);
+      expect(ribFaces).toHaveLength(4);
+      expect((full.match(/data-km-rock-hero-crease=""/g)??[]))
+        .toHaveLength(4);
+      expect(childFibres).toHaveLength(8);
+      expect((full.match(/data-km-rock-hero-recess=""/g)??[]))
+        .toHaveLength(1);
+      expect(ribFaces.every((d,i)=>d.startsWith("M"+
+        ribs[i].replace(","," "))&&d.endsWith(" Z"))).toBe(true);
+      expect(childFibres.every(([,root,d])=>
+        d.startsWith("M"+root.replace(","," "))&&d.includes(" Q")))
+        .toBe(true);
       expect((full.match(/<clipPath id="[^"]*-rock-[0-2]-clip"/g)??[]))
         .toHaveLength(3);
       expect(draw(1)).toBe(full);
       const sparse=draw(0);
       expect(sparse).not.toContain('data-km-rock-shoulder=""');
       expect(sparse).not.toContain('data-km-rock-shoulder-vein=""');
+      expect(sparse).not.toContain('data-km-rock-hero-cliff=""');
       expect(draw(1,73)).not.toBe(full);
     }
   });
