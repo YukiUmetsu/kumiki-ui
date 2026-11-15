@@ -239,6 +239,13 @@ describe("RIG1 nature and actions", () => {
     expect(Math.abs(angle + 90)).toBeLessThan(3);
     expect(700 - pel.f).toBeLessThan(12 * 3.6);
     for (const foot of ["foot-f", "foot-b"]) expect(Math.abs(world(lie, foot, 150)[1] - (700 - 3 * 3.6))).toBeLessThan(2.5 * 3.6);
+    // Lying and sleeping, the legs lie out straight: thigh and shin nearly in line.
+    for (const [spec, k] of [[lie, 200], [personRig({ motion: "sleep", start: 0, end: 240, y: 700 }), 100], [personRig({ motion: "go-to-sleep", start: 0, end: 240, y: 700 }), 230]] as const)
+      for (const side of ["f", "b"]) {
+        const fr = evaluateRig(spec, k), th = fr.bones.get("thigh-" + side)!.world, sh = fr.bones.get("shin-" + side)!.world;
+        const bend = Math.abs(((Math.atan2(sh.b, sh.a) - Math.atan2(th.b, th.a)) * 180 / Math.PI + 540) % 360 - 180);
+        expect(bend, `${side} knee at ${k}`).toBeLessThan(8);
+      }
     const sleep = personRig({ motion: "sleep", start: 0, end: 240, y: 700 }), sf = evaluateRig(sleep, 60);
     expect(sf.parts.find(p => p.id === "eye")!.variant).toBe("shut");
     expect(sf.parts.some(p => p.id === "blanket")).toBe(true);
