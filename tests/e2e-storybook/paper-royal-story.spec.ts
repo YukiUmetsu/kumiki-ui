@@ -30,6 +30,18 @@ for(const aspect of ["landscape","portrait"] as const){
     await expect(stage).toHaveAttribute("data-km-paper-shot","the-lantern-awakens");
     await expect(stage.locator('[data-km-paper-layer="lantern-star"]')).toBeVisible();
     await stage.screenshot({path:info.outputPath("royal-act3-"+aspect+".png"),animations:"disabled"});
+    // A story-level review loupe magnifies the same actual art, without
+    // creating a parallel screenshot/mock character implementation.
+    for(const who of ["princess","prince"] as const){
+      await page.getByRole("button",{name:new RegExp("Inspect "+who)}).click();
+      const loupe=page.locator('[data-royal-inspection-target="'+who+'"]');
+      await expect(loupe).toHaveCSS("transform",/matrix/);
+      await loupe.screenshot({path:info.outputPath("royal-face-review-"+who+"-"+aspect+".png"),
+        animations:"disabled"});
+    }
+    await page.getByRole("button",{name:"Full stage"}).click();
+    await expect(page.locator('[data-royal-inspection-target="stage"]')).toHaveAttribute(
+      "style",/transform:\s*none/);
     const scrub=page.getByRole("slider",{name:"Scrub fairy tale"});
     await scrub.focus();
     await scrub.press("End");
