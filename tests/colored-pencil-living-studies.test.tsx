@@ -111,8 +111,15 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(near.bounds[2]).toBeGreaterThan(far.bounds[2]*1.20);
     expect(muzzle.bounds[2]).toBeGreaterThan(155);
     expect(muzzle.bounds[3]).toBeLessThan(80);
-    expect(bridge.opaqueSupport).toBe(true);
+    expect(bridge.opaqueSupport).toBe(false); // dry glaze, no paper-backed sticker
     expect(cheek.opaqueSupport).toBe(true);
+    const nearEar=parts.get("ear-near")!,farEar=parts.get("ear-far")!;
+    expect(nearEar.bounds[3]).toBeLessThan(107);
+    expect(farEar.bounds[3]).toBeLessThan(100);
+    for(const region of regions.filter(r=>r.craft?.kind==="fur")){
+      expect(region.layers.every(layer=>layer.texture==="fiber")).toBe(true);
+      expect(region.layers.every(layer=>layer.tipWidth<1.55)).toBe(true);
+    }
     expect(parts.get("mask")!.bounds[3]).toBeLessThanOrEqual(46);
     for(const id of ["head-main","muzzle","cheek-ruff"]){
       const region=parts.get(id)!;
