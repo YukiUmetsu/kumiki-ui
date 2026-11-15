@@ -126,6 +126,14 @@ for(const sample of ["woman","man"] as const){
           "true",{timeout:90000});
         await expect(headSource).toHaveAttribute(
           "data-km-pencil-full-head-source","ready",{timeout:90000});
+        const toneEvidence=page.locator(
+          '[data-km-pencil-tonal-comparison="ready"]');
+        await expect(toneEvidence).toHaveCount(1,{timeout:90000});
+        await expect(toneEvidence.locator("tbody tr")).toHaveCount(5);
+        await expect(toneEvidence).toContainText(
+          "Independent artistic approval: NOT PASSED");
+        await toneEvidence.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-five-source-tone-comparison.png")});
         const headMetrics=await full.evaluate(node=>{
           const canvas=node as HTMLCanvasElement;
           const data=canvas.getContext("2d")!.getImageData(
