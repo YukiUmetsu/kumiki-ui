@@ -1,0 +1,146 @@
+{
+  "schema_version": 6,
+  "subject_type": "stylized human 2D original characters",
+  "reference_mode": "style_guided",
+  "title": "RISO26 controlled facial tone master study — local paper/ink value instead of uniform face freckles",
+  "date": "2026-11-15",
+  "source_of_identity": "Original authored Courier and Paper Artist in this repository; third-party sources are printing/technique comparisons only.",
+  "target": "Physical AM/FM screen-dot area variation for the same original front-face source geometry in RisoPrint (two spot ink plates, paper, no RGB post effect)",
+  "original_render": {
+    "source": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43744268703",
+    "artifact": "riso22-ocular-rendered-proof",
+    "files": [
+      "riso25-full-face-speech-portrait.png",
+      "riso25-landscape-midface-courier-46-after.png",
+      "riso25-landscape-midface-paper-artist-46-after.png"
+    ],
+    "observed": {
+      "macro": "Faces are distinguishable, but all facial planes are filled with visually equal-weight bright-red dots; there is no hierarchy across eye sockets, cheek surfaces and jaw turns.",
+      "meso": "The eyebrow/eye socket screen, the cheekbone screen and far jaw screen use the same apparent dot radius and concentration regardless of local reflected-light hierarchy. This creates a freckle-like polkadot look.",
+      "micro": "Screened dots have crisply separated Riso contact marks but are not independently adjusted per facial depth zone. Existing tiny eye, nose and lip engraving should remain solid ink.",
+      "where": "both front-view original people, across neutral, speech and smile frames",
+      "root_cause": "RisoCharacterInk paints every screened source part using the exact same RisoPaint.dots pattern (global screenDensity and dotCell), not different author-deposited master values."
+    }
+  },
+  "references": [
+    {
+      "id": "fish-guts-eye",
+      "title": "Fish Guts Press close-up of blue/pink halftone eyes",
+      "url": "https://fishgutspress.com/collections/frontpage",
+      "visual_crop_url": "https://fishgutspress.com/cdn/shop/files/25.jpg?v=1745499943&width=533",
+      "rights": "third-party print photo, technical visual study only (not copied/bundled)",
+      "medium": "physically printed risograph",
+      "observations": {
+        "macro": "Facial mark density varies: thin solid eye outline against broad hatching/dot-area fields; the pupil remains a distinct form.",
+        "meso": "Denser blue printed eye/temple value transitions into lighter pink/blue areas; paper still visibly separates cells.",
+        "micro": "Separate locally different circle/raster areas show tonal value rather than a universal surface of identical red dots."
+      },
+      "translated_rule": "Mid-density eye socket and light-density cheek/jaw on same physical spot master, preserving source eye contour and ink placement."
+    },
+    {
+      "id": "tori-kudo-eye",
+      "title": "Tori Kudo — まなこ切る現実 (7-inch eye artwork)",
+      "url": "https://pianola-records.com/products/%E5%B7%A5%E8%97%A4%E5%86%AC%E9%87%8C-tori-kudo-%E3%81%BE%E3%81%AA%E3%81%93%E5%88%87%E3%82%8B%E7%8F%BE%E5%AE%9F-7inch",
+      "visual_crop_url": "https://pianola-records.com/cdn/shop/files/IMG_8471_1200x1200.heic?v=1757673972",
+      "rights": "commercial record/visual owned by its artist and label; technique only",
+      "medium": "Risograph-like eye printed artwork, exact press process not independently verified",
+      "observations": {
+        "macro": "Large continuous eye silhouette is framed by pale irregular background, not a uniform dot mask.",
+        "meso": "Dense ink builds the eye border while sparse dispersed specks remain secondary and not identity-bearing.",
+        "micro": "Local ink density varies with distance from dominant outline."
+      },
+      "translated_rule": "Keep source geometry and solid ocular lines; drop facial shadow-dot area for cheek fields, not by raster-blurring."
+    },
+    {
+      "id": "angela-riso",
+      "title": "Original printed Angela Giarratana portrait, commercial artist print",
+      "url": "https://www.etsy.com/au/listing/1792373016/angela-giarratana-smosh-starkid-a4",
+      "visual_crop_url": "https://i.etsystatic.com/55136614/r/il/48cdd4/7636822181/il_fullxfull.7636822181_5817.jpg",
+      "rights": "copyright holder/creator; observation only, no face/identity tracing",
+      "medium": "printed Risograph portrait",
+      "observations": {
+        "macro": "Readable eyes/nose/mouth preserved against mostly clean large cheek and forehead negative paper.",
+        "meso": "Shading density varies across forehead, face profile and under-chin rather than identical freckles over all planes.",
+        "micro": "Thin eye/nostril/ear shape contours remain sharp and independent from shaded masks."
+      },
+      "translated_rule": "Preserve previously reviewed eye/ear/lip geometry and reserved paper highlights; no fixed 30%-coverage speckles on all facial masses."
+    },
+    {
+      "id": "hot-pink-press",
+      "title": "Hot Pink Press Risograph File Set Up Guide",
+      "url": "https://static1.squarespace.com/static/6536646de87d8241fb0f02dc/t/696fbd3e010b245ddca95ce5/1768930622700/Risograph%2BFile%2BSet%2BUp%2BGuide%2Bby%2BHot%2BPink%2BPress.pdf",
+      "rights": "professional press educational guide, text paraphrase only",
+      "medium": "process",
+      "observations": {
+        "macro": "Each ink color is transferred through its own stencil/master, not arbitrary RGB output.",
+        "meso": "Independent grayscale plate artwork defines deposited stencil ink, including fractional tonal fields.",
+        "micro": "Different dot/halftone areas within one ink master are legitimate local gradations."
+      },
+      "translated_rule": "Three dot-size variants all use exactly the same chosen ink color, physical plate, registration angle, seed and cell."
+    }
+  ],
+  "features": [
+    {
+      "id": "orbital-value",
+      "source_part_id": "orbital-tone-planes",
+      "parent_region": "face",
+      "plate": "red",
+      "desired_tone": "mid",
+      "topology": "unchanged curved brows/orbits anchored to the original head, not a new phantom colored plane",
+      "density_ratio": 0.55,
+      "edge": "crisp same screen cells at smaller dot radius",
+      "negative": "do not bleach/simplify iris, close paper eye, create ghosted duplicated print"
+    },
+    {
+      "id": "malar-value",
+      "source_part_id": "zygomatic-tone-planes",
+      "parent_region": "face",
+      "plate": "red",
+      "desired_tone": "light",
+      "topology": "unchanged two original cheek wing/zygomatic contours and jaw transition",
+      "density_ratio": 0.22,
+      "edge": "fine co-registered screen cell radius",
+      "negative": "keep original contour and nonuniform two cheek wings, not Gaussian blur or hard paint alpha"
+    },
+    {
+      "id": "jaw-value",
+      "source_part_id": "jaw-shadow-planing",
+      "parent_region": "face",
+      "plate": "red",
+      "desired_tone": "light",
+      "topology": "contours remain curved around lateral jaw and below the head",
+      "density_ratio": 0.22,
+      "edge": "light 2-unit AM dot density, no detached red pebbles",
+      "negative": "do not erase jaw line, lighten by alpha, fill whole face uniformly"
+    }
+  ],
+  "mathematical_basis": {
+    "screen_mode": "AM: individual circle radius follows r = cell * sqrt(density/pi) (dotGain adjustment), FM: deterministic ranked sites at fixed radius. Both are real printed ink coverage, not CSS transparency.",
+    "nominal_screen_coverage": "0.33 at Storybook default",
+    "mid_ratio": 0.55,
+    "light_ratio": 0.22,
+    "sample_coverage_at_default": {
+      "light": 0.0726,
+      "mid": 0.1815,
+      "normal": 0.33
+    },
+    "global_pitch_source_units": 2,
+    "registration": "same per-plate transform and pattern angle for all tone levels",
+    "full_print_opacity": "physical ink is opaque in path and uses original RisoPrint multiply blend of spot plates"
+  },
+  "required_artifact": [
+    "before and after matched frames for both identities and both 16:9/9:16",
+    "red-only press separation crop",
+    "one AM and one FM render",
+    "close-up facial field from named source part"
+  ],
+  "independent_artistic_review": {
+    "status": "direct-screen-review-accepted-for-stencil-tone-only",
+    "reason": "Actual Chromium run 43746812507 AM and FM 16:9/9:16 side-by-side crops reviewed at native size. Original source outlines, eyes, ears and lip engraving remain intact; graded cheek/jaw dots shrink and form a clearer value hierarchy, with no evidence of alpha overlays or posterized silhouette loss. Still not source-identity or anatomy certified."
+  },
+  "human_anatomy_fidelity": {
+    "status": "blocked",
+    "reason": "no independently annotated identity-specific source landmarks, full profile or three-quarter source"
+  },
+  "permissions": "No third-party reference images or file assets committed."
+}

@@ -1,0 +1,128 @@
+{
+  "schema_version": 6,
+  "subject_type": "stylized human 2D original characters",
+  "reference_mode": "style_guided",
+  "reference_study": "riso26-tonal-master-reference-study.json",
+  "rig_source": "original 240-frame Courier and Paper Artist, joint=head; no edit to d paths, pivots, expressions, body proportions or camera angles",
+  "topology": "existing RISO25 source geometry preserved byte-for-byte; tonal master changes only the dot radius/count inside named facial planes",
+  "layout_source_units": {
+    "face_wh_approx": [
+      69,
+      91
+    ],
+    "active_screen_pitch": 2,
+    "physical_ink_plates": [
+      "blue",
+      "red"
+    ]
+  },
+  "printable_material": {
+    "screen_tones": [
+      "light",
+      "mid",
+      "normal"
+    ],
+    "value_order": "light < mid < normal",
+    "tone_factors": {
+      "light": 0.22,
+      "mid": 0.55,
+      "normal": 1
+    },
+    "unchanged": [
+      "plate color",
+      "angle",
+      "spot-registration",
+      "screen site/seed",
+      "paper grain",
+      "silhouette masking",
+      "foreground knockout and draw order"
+    ],
+    "independent_control": "original screenDensity knob multiplies individual source tone; dotGain only modifies actual ink dot radius"
+  },
+  "subjects": [
+    {
+      "id": "courier",
+      "region": "head",
+      "tone_regions": {
+        "mid": [
+          "orbital-tone-planes",
+          "face-temple-shadow",
+          "eye-socket-planes"
+        ],
+        "light": [
+          "zygomatic-tone-planes",
+          "jaw-shadow-planing",
+          "nose-bridge-plane",
+          "chin-plane",
+          "lip-shadow"
+        ]
+      },
+      "protected_solid_regions": [
+        "face-outline",
+        "ear-left",
+        "iris-left",
+        "iris-right",
+        "nose",
+        "mouth",
+        "ear-concha-pocket",
+        "upper-lip-engraving"
+      ],
+      "motion_samples": [
+        46,
+        78,
+        160,
+        198
+      ],
+      "view": "original frontal"
+    },
+    {
+      "id": "paper-artist",
+      "region": "head",
+      "tone_regions": {
+        "mid": [
+          "orbital-tone-planes",
+          "temple-tones"
+        ],
+        "light": [
+          "zygomatic-tone-planes",
+          "jaw-shadow-planing",
+          "cheek-tones",
+          "chin-tone"
+        ]
+      },
+      "protected_solid_regions": [
+        "face-outline",
+        "ear-left",
+        "iris-left",
+        "iris-right",
+        "nose-bridge",
+        "mouth",
+        "ear-concha-pocket",
+        "upper-lip-engraving"
+      ],
+      "motion_samples": [
+        46,
+        78,
+        160,
+        198
+      ],
+      "view": "original frontal"
+    }
+  ],
+  "five_axes": {
+    "connectivity": "same outlines, no added or removed SVG part IDs; facial tone paths keep original root parent and transform",
+    "vector_flow": "no shape edits, cheek/jaw/eye source tangents unchanged; only pressure/coverage per master",
+    "stroke_weight": "inserts light and mid physical print dot geometries, normal remains original; solid eyelid and mouth engravings remain opaque",
+    "rhythm": "pattern site locations/rotation remain identical for given plate and seed so no crawling or irregular timing; coverage differs by cell dot radius or FM site rank",
+    "microtexture": "native stencil dot areas, paper pore/edge grain, separate two-color registration remain intact"
+  },
+  "guard_tests": [
+    "tests/riso26-tonal-press-artcraft.test.tsx",
+    "tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts"
+  ],
+  "artcraft_release_gate": {
+    "status": "blocked",
+    "reason": "requires actual RISO26 screenshots, independent inspected source-matched style crops; a human anatomy v9 landmark mask source is unavailable"
+  },
+  "source_rights": "Original code-character geometry; external prints are not redistributed."
+}

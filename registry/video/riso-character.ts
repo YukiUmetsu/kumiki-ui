@@ -9,6 +9,10 @@ import type { RisoIKDiagnostic, RisoTwoBoneIK } from "./riso-rig-ik";
  * and layer ordering are supplied by authors; there is no fixed "person" skeleton.
  */
 export type RisoInkLayer = "solid" | "screen";
+/** Source-authored value separation inside a single physical stencil plate.
+ * Extra tones vary deposited DOT AREA, never artwork opacity or RGB blending.
+ */
+export type RisoScreenTone = "light" | "mid";
 export interface RisoJointKey {
   frame: number;
   x?: number;
@@ -38,6 +42,8 @@ export interface RisoCharacterPart {
   /** Paths for discrete character turns, eyelids, visemes and redraws. */
   expressions?: Readonly<Record<string, string>>;
   paint: RisoInkLayer;
+  /** Optional physically screened finer facial value. Non-screen parts cannot carry it. */
+  screenTone?: RisoScreenTone;
   opacity?: number;
   /** Draw this contour only as paper clearance, not as an ink deposit. */
   knockoutOnly?: boolean;
@@ -63,6 +69,7 @@ export interface RisoPartFrame {
   id: string;
   plate: string;
   paint: RisoInkLayer;
+  screenTone?: RisoScreenTone;
   opacity: number;
   knockoutOnly: boolean;
   d: string;
@@ -168,6 +175,9 @@ export function inspectRisoCharacter(input: unknown, allowedPlates?: readonly st
       (allowedPlates && !allowedPlates.includes(part.plate))) err(p + "/plate", "unknown ink plate");
     if (!part || !pathValid(part.d)) err(p + "/d", "SVG path must be a safe nonempty SVG path");
     if (part?.paint !== "solid" && part?.paint !== "screen") err(p + "/paint", "paint must be solid or screen");
+    if (part?.screenTone !== undefined &&
+        (part.paint !== "screen" || (part.screenTone !== "light" && part.screenTone !== "mid")))
+      err(p + "/screenTone", "screenTone light/mid requires a screened ink part");
     if (part?.opacity !== undefined && !safeNumber(part.opacity, 0, 1))
       err(p + "/opacity", "opacity must be 0..1");
     if (part?.knockoutOnly !== undefined && typeof part.knockoutOnly !== "boolean")
@@ -331,7 +341,7 @@ export function evaluateRisoCharacter(
     parts: spec.parts.map(p => {
       const m = resolve(p.joint);
       return {
-        id: p.id, plate: p.plate, paint: p.paint, opacity: p.opacity ?? 1,
+        id: p.id, plate: p.plate, paint: p.paint, screenTone: p.screenTone, opacity: p.opacity ?? 1,
         knockoutOnly: p.knockoutOnly ?? false,
         // The skin already resolves into world-stage coordinates; a second
         // joint transform would incorrectly rotate or translate it twice.
