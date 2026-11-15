@@ -1143,6 +1143,46 @@ Storybook has **Tsukumogami**, and the Motifs gallery has a rack tile.
 - The biwa does not play.
 - Nobody has done a human visual review yet.
 
+## Other realms (folktale queue F10, 2026-11-15)
+
+**Sources**:
+
+- Kuniyoshi's *Recovering the Stolen Jewel from the Palace of the Dragon King* (Met DP146820, CC0);
+- Shunsai Toshimasa's *Origin of the Cave Door Dance* (Wikimedia Commons, public domain);
+- Yoshitoshi's *Gekkyū no mukae* (Commons, public domain);
+- Hiroshige's *Tanabata Festival* (Met DP121512, CC0).
+
+**What they show.**
+
+- **The Dragon Palace.** Kuniyoshi draws the sea's interior as a mass of blue-green breakers with sea creatures and the dragon.
+- **The rock cave.** Toshimasa fills the cave scene with orange and gold rays, Uzume dancing on a tub and the gods drumming.
+- **The moon.** Yoshitoshi's Kaguya rises on clouds with her attendants and a parasol while the old man reaches after her.
+- **Tanabata.** Hiroshige's bamboo poles carry paper strips, a gourd and streamers over the roofs.
+
+**What was built.** `ukiyoe-realms.ts`:
+- nine motifs;
+- the `bubbles` particle;
+- `realmScene()`: six realms, each with a camera move or keyed event that carries the viewer in.
+
+Storybook has **Realms**, and the Motifs gallery has five tiles.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - The sky behind the dive ran out at the right as the camera moved; it is now wider.
+   - Fish crowded the palace roofs and now swim to its left.
+   - The Tanabata ox stood on nothing; it is now on the cowherd's cloud.
+   - The bamboo pole was taken out of the star sky.
+2. **Checked on stills.** The dive (above the waves, under the surface, at the gate), Kaguya's ascent, the bridge filling, the cave opening and Yomi closing.
+
+**Not done.**
+
+- The sea interior is a calm gradient, not Kuniyoshi's breaking waves.
+- No Otohime, no tamatebako, no dragon in the palace.
+- Kaguya's attendants and parasol are missing.
+- Yomi's hags do not pursue.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

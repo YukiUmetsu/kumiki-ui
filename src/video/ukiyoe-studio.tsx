@@ -49,6 +49,8 @@ import type { UkiyoeGiantScene } from "../../registry/video/ukiyoe/ukiyoe-giants
 import { giantScene, UKIYOE_GIANT_SCENES } from "../../registry/video/ukiyoe/ukiyoe-giants";
 import type { UkiyoeTsukumoScene } from "../../registry/video/ukiyoe/ukiyoe-tsukumo";
 import { tsukumoScene, UKIYOE_TSUKUMO_SCENES } from "../../registry/video/ukiyoe/ukiyoe-tsukumo";
+import type { UkiyoeRealmScene } from "../../registry/video/ukiyoe/ukiyoe-realms";
+import { realmScene, UKIYOE_REALM_SCENES } from "../../registry/video/ukiyoe/ukiyoe-realms";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -489,6 +491,11 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "kicho", label: "Curtain screen (kichō)", params: { width: 260, height: 290 }, y: 350 },
   { motif: "shinden", label: "Palace veranda", params: { width: 480, height: 300, bays: 3, up: .3 }, y: 360 },
   { motif: "ikou", label: "Kimono rack · kosode-no-te", params: { width: 300, height: 280, hands: 1 }, y: 350 },
+  { motif: "ryugu", label: "Dragon Palace (Ryūgū-jō)", params: { width: 460, height: 320 }, y: 360 },
+  { motif: "moonpalace", label: "Moon palace", params: { radius: 130 }, y: 180 },
+  { motif: "iwato", label: "Rock cave, light bursting", params: { width: 420, height: 320, open: .8 }, y: 370 },
+  { motif: "onigashima", label: "Onigashima", params: { width: 520, height: 300 }, y: 360 },
+  { motif: "sasa", label: "Tanabata bamboo", params: { height: 330 }, y: 370 },
 ];
 
 export function MotifGallery() {
@@ -1009,6 +1016,30 @@ export function Tsukumogami() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={TSUKUMO_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Tsukumogami frame" />
+  </div>;
+}
+
+// ---- Other realms -----------------------------------------------------------------------------------------------------------------
+
+const REALM_LABELS: Readonly<Record<UkiyoeRealmScene, string>> = { ryugu: "Down to the Dragon Palace", moon: "Kaguya returns to the moon", tanabata: "The magpie bridge", iwato: "The sun leaves the rock cave", yomi: "Flight from Yomi", onigashima: "Sailing to Onigashima" };
+
+/** Realms beyond the everyday, each with its way in. */
+export function Realms() {
+  const [kind, setKind] = useState<UkiyoeRealmScene>("ryugu");
+  const spec = useMemo(() => realmScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Realms" title="The sea palace, the moon, the river of stars, the cave">
+      <p style={{ margin: 0 }}>After Kuniyoshi's Dragon Palace, Toshimasa's rock cave, Yoshitoshi's moon and Hiroshige's Tanabata. The camera follows
+        Urashima under the waves to the <code>ryugu</code> and rises with Kaguya to the <code>moonpalace</code>; the <code>magpies</code> form their
+        bridge across the <code>amanogawa</code>; the <code>iwato</code> boulder rolls aside and light floods out (or closes on Yomi); the boat crosses to
+        <code>onigashima</code>.</p>
+    </Header>
+    <section aria-label="Realm controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Realm" value={kind} options={UKIYOE_REALM_SCENES} onChange={setKind} labels={REALM_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={REALM_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Realm frame" />
   </div>;
 }
 

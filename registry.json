@@ -3893,6 +3893,11 @@
           "target": "components/video/ukiyoe/ukiyoe-tsukumo.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-realms.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-realms.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"
