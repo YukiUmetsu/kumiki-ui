@@ -67,3 +67,17 @@ rolled burgundy scarf with individually clipped warp/weft pigment strokes.
 Scarf drape is treated as **geometry first**, not an image overlay.
 Re-render and inspect before approving. No source-contour fidelity score is
 asserted, and all character Storybook pages remain hidden.
+
+## Revised close-crop review from live browser proof
+
+The exact native browser screenshots from
+[run 43661894830](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43661894830)
+were reviewed at original 540×960 plus eye and nose/mouth crops:
+the cheeks and face were over-smoothed, bridge/alar anatomy nearly vanished,
+brows looked like two isolated vector arcs and lips lacked clear volume.
+Despite newly added cloth, the portrait remained **artistically rejected**.
+
+Next implementation restores the nose tip, alar volume, eye-socket
+substructure, malar warmth and individual brow hairs with named, clipped
+wax sources. No official release score is claimed. Keep all character
+pages hidden until comparative ArtCraft inspection passes.

@@ -50,6 +50,14 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(nodes.get("tailored-scarf-wrap")?.parentId).toBe("coat-silhouette");
       expect(nodes.get("tailored-scarf-weft")?.parentId).toBe("tailored-scarf-wrap");
       expect(nodes.get("nose-dorsal-soft-edge")?.kind).toBe("contour");
+      for(const feature of ["nose-tip-underpaint","nose-root-sunlight",
+        "cheek-warm-pigment","tear-trough-value"]){
+        const region=nodes.get(feature);
+        if(region?.kind!=="wax")throw new Error("Missing medium-aware face part "+feature);
+        expect(region.coverage).toBe("open");
+        expect(region.clipToParent).toBe(true);
+        expect(region.parentId).toBe("adult-face");
+      }
       const blouse=nodes.get("shirt-linen");
       if(blouse?.kind!=="wax")throw new Error("Missing blouse");
       expect(blouse.bounds.width/blouse.bounds.height).toBeLessThan(.96);
@@ -68,7 +76,8 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
         const patch=nodes.get(tonal);
         if(patch?.kind!=="wax")throw new Error("Missing tonal wax "+tonal);
         expect(patch.coverage).toBe("open");
-        expect(patch.parentId).toBe("adult-face");
+        expect(patch.parentId).toBe(patch.id==="hair-amber-crown-glaze"?
+          "hair-crown-part":"adult-face");
         expect(patch.clipToParent).toBe(true);
         expect(patch.blendRadius).toBeGreaterThan(0);
         expect(patch.blendRadius).toBeLessThanOrEqual(18);

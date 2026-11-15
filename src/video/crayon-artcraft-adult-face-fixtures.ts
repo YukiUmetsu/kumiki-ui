@@ -42,6 +42,7 @@ export const portraitCriticalParts=[
   "hair-back","hair-temple-lock","neck-under-jaw",
   "coat-collar-left","coat-collar-right",
   "tailored-scarf-wrap","tailored-scarf-tail",
+  "nose-tip-underpaint","cheek-warm-pigment","tear-trough-value",
 ] as const;
 const time={base:[1,98],value:[63,173],anatomy:[135,236],detail:[206,288]} as const;
 
@@ -175,6 +176,20 @@ export function crayonAdultFaceStudy(
     "Q-63 -27 -77 -43Z",
     box(-94,-109,78,101),colors.warm,"value",
     {parentId:"adult-face",coverage:"open",clipToParent:true,markStrength:.16,blendRadius:8,pressure:.37,spacing:11.6,outlineOpacity:0,edgeRoughness:0});
+  wax("cheek-warm-pigment",
+    "M-82 -72Q-60 -87 -41 -70Q-25 -49 -45 -29"+
+    "Q-68 -29 -82 -48Z",
+    box(-93,-95,78,74),colors.cheek,"value",
+    {parentId:"adult-face",coverage:"open",clipToParent:true,
+      blendRadius:12,markStrength:.16,pressure:.32,spacing:15,
+      outlineOpacity:0,edgeRoughness:0});
+  wax("tear-trough-value",
+    "M-76 -144Q-55 -128 -31 -140Q-29 -125 -51 -122"+
+    "Q-69 -126 -76 -144Z",
+    box(-84,-150,61,38),colors.cool,"value",
+    {parentId:"adult-face",coverage:"open",clipToParent:true,
+      blendRadius:5,markStrength:.1,pressure:.34,spacing:12,
+      outlineOpacity:0,edgeRoughness:0});
   wax("mandible-plane",
     "M-62 -12Q-24 18 15 23Q52 25 78 -3"+
     "Q70 44 31 85Q-2 100 -28 73Q-55 46 -62 -12Z",
@@ -211,6 +226,23 @@ export function crayonAdultFaceStudy(
   ink("nose-alar-undercut",
     "M22 -23Q28 -18 35 -20M39 -26Q45 -31 51 -27",
     "#a4716c",1.15,"detail",{parentId:"adult-face",opacity:.69});
+  // Anatomical tip and glabella: diffuse color, not a hard nose triangle.
+  // These follow the existing forehead/dorsum underpainting and cannot leak
+  // out of the continuous adult facial silhouette.
+  wax("nose-tip-underpaint",
+    "M8 -35Q21 -48 36 -41Q48 -32 37 -23"+
+    "Q28 -20 15 -24Q11 -28 8 -35Z",
+    box(2,-55,52,44),colors.noseShade,"anatomy",
+    {parentId:"adult-face",coverage:"open",clipToParent:true,
+      blendRadius:4,markStrength:.15,pressure:.47,spacing:11,
+      outlineOpacity:0,edgeRoughness:0});
+  wax("nose-root-sunlight",
+    "M1 -122Q11 -132 19 -116Q15 -91 18 -70"+
+    "Q19 -58 17 -51Q7 -73 1 -122Z",
+    box(-6,-138,35,93),colors.warm,"anatomy",
+    {parentId:"adult-face",coverage:"open",clipToParent:true,
+      blendRadius:6,markStrength:.09,pressure:.38,spacing:13,
+      outlineOpacity:0,edgeRoughness:0});
   ink("nostril-underplane",
     "M14 -27Q19 -22 24 -26M40 -27Q44 -30 48 -29",
     "#865e61",1.08,"detail",{parentId:"adult-face",opacity:.7});
@@ -235,6 +267,11 @@ export function crayonAdultFaceStudy(
   ink("lip-reflected-wax",
     "M-6 60Q10 65 26 57M-12 44Q-5 42 1 43",
     "#d8a199",1.12,"detail",{parentId:"adult-face",opacity:.78});
+  ink("lip-contour-reflected-warmth",
+    "M-16 41Q-7 38 2 40M19 42Q30 39 38 39"+
+    "M-10 65Q7 70 27 62",
+    "#b87575",.88,"detail",
+    {parentId:"adult-face",opacity:.71});
   ink("philtrum-column",
     "M2 14Q3 30 6 33M22 9Q23 23 21 31",
     "#c28b79",1.05,"detail",{parentId:"adult-face"});
@@ -306,6 +343,23 @@ export function crayonAdultFaceStudy(
   ink("brow-structure-right",
     "M45 -190Q66 -202 99 -184",
     "#614a4d",2.2,"detail",{parentId:"adult-face"});
+  // Intermittent brow hairs replace a single graphic arc. Kept thinner
+  // than the tarsal fold; the eye remains shaded under the brow.
+  ink("fine-brow-hairs-near",
+    "M-84 -191l7 -6M-75 -197l5 -4M-64 -200l6 -3"+
+    "M-54 -199l7 2M-43 -194l5 3M-35 -190l3 3",
+    "#76564e",.84,"detail",
+    {parentId:"adult-face",opacity:.79});
+  ink("fine-brow-hairs-far",
+    "M49 -191l6 -4M58 -196l7 -3M69 -196l7 1"+
+    "M82 -193l7 3M91 -188l4 4",
+    "#765950",.79,"detail",
+    {parentId:"adult-face",opacity:.72});
+  ink("eye-upper-iris-shade",
+    "M-58 -165Q-53 -169 -47 -165"+
+    "M68 -162Q74 -166 79 -162",
+    "#564e52",1.03,"detail",
+    {parentId:"adult-face",opacity:.74});
   ink("iris-catchlights",
     "M-54 -166l1.5 -1.8M72 -162l1.2 -1.4",
     "#f5e7d0",1.2,"detail",{parentId:"adult-face"});
