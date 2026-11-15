@@ -12,7 +12,7 @@ function region(grain:number,frame=119,seed=75,pressure=.84,coverage:"open"|"opa
   strength=.9){
  return renderToStaticMarkup(<svg>
    <Paper seed={seed} width={180} height={180}
-     tooth="wax-test-paper" strength={strength}/>
+     tooth="wax-test-paper" strength={strength} pigmentRelief={grain>0}/>
    <rect width="180" height="180" fill="#254868"/>
    <WaxRegion d={d} bounds={bounds} colors={palette}
      pressure={pressure} coverage={coverage}
@@ -25,6 +25,8 @@ describe("opaque wax relief color contact",()=>{
    const before=region(0);
    expect(before).toContain('data-km-crayon-underpaint="opaque"');
    expect(before).not.toContain('data-km-crayon-underpaint-grain=""');
+   expect(before).not.toContain('data-km-crayon-pigment-paper="dark"');
+   expect(before).not.toContain('data-km-crayon-pigment-paper="light"');
    expect(before).not.toContain('data-km-crayon-undercoat-pits=""');
    expect(before).not.toContain('data-km-crayon-undercoat-ridges=""');
    expect(region(0)).toBe(before);
