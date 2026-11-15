@@ -1,6 +1,6 @@
 import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
-import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonDryNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
+import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonPaperHeight, crayonMarks, crayonNibPath, crayonDryNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
 import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction, CrayonSgraffito } from "./crayon";
 import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
@@ -254,10 +254,10 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, pressure, to
         mask={pigmentProgress<1?"url(#"+deposit+")":undefined}
         data-km-crayon-underpaint-grain="">
         <path d={d} fill={colors[1]} mask={"url(#"+darkToothMask+")"}
-          opacity={underpaintTooth*(.28+.16*(1-pressure))}
+          opacity={underpaintTooth*(strokeBuilt?.54+.24*(1-pressure):.28+.16*(1-pressure))}
           data-km-crayon-undercoat-pits="" />
         <path d={d} fill={colors[2]} mask={"url(#"+lightToothMask+")"}
-          opacity={underpaintTooth*(.32+.17*(1-pressure))}
+          opacity={underpaintTooth*(strokeBuilt?.46+.2*(1-pressure):.32+.17*(1-pressure))}
           data-km-crayon-undercoat-ridges="" />
       </g>}
     </>}
@@ -362,9 +362,11 @@ export function WaxLine({ d, color, width, frame, first, last, reduced, seed, op
       strokeDasharray={100} strokeDashoffset={100 * (1 - reveal)} opacity={.14 + wiggle * .08} />
   </g>;
 }
-export function Paper({ width, height, seed, tooth, strength, color = "#faf1da", pigmentRelief = false }: {
+export function Paper({ width, height, seed, tooth, strength, color = "#faf1da", pigmentRelief = false, handContact = false }: {
   width: number; height: number; seed: number; tooth: string;
   strength: number; color?: string; pigmentRelief?: boolean;
+  /** Denser peak-caught wax clumps; defaults off for all legacy films. */
+  handContact?:boolean;
 }) {
   const fibers = useMemo(() => Array.from({ length: 480 }, (_, i) => ({
     x: crayonHash(seed, i, 1) * width, y: crayonHash(seed, i, 2) * height,
@@ -390,24 +392,34 @@ export function Paper({ width, height, seed, tooth, strength, color = "#faf1da",
   // of per-mark DOM elements. Geometry is fixed to paper seed and strength.
   const pigmentTexture=useMemo(()=>(
     pigmentRelief ? (["dark","light"] as const).map(kind=>{
-      const dark=kind==="dark",total=Math.round(strength*(dark?860:650));
+      const dark=kind==="dark",total=Math.round(strength*(handContact?
+        (dark?2900:2500):(dark?860:650)));
       const marks:[string[],string[],string[]]=[[],[],[]];
       const base=dark?1400:1500;
       for(let i=0;i<total;i++){
         const band=Math.floor(crayonHash(seed,i,base+7)*3);
         const x=crayonHash(seed,i,base+1)*176;
         const y=crayonHash(seed,i,base+2)*176;
-        const dx=(dark ? .35 : .25)+crayonHash(seed,i,base+3)*(dark ? 1.85 : 1.25);
-        const dy=(crayonHash(seed,i,base+4)-.5)*(dark?1.6:1.05);
+        // Shared paper height controls where clumped wax can stick. These
+        // are actual colored deposits, not a photographic noise overlay.
+        const h=handContact?crayonPaperHeight(x,y,seed):.5;
+        if(handContact&&(dark?h<.33:h>.67))continue;
+        const dx=(dark ? .35 : .25)+crayonHash(seed,i,base+3)*
+          (handContact?(dark?2.35:1.8):(dark?1.85:1.25));
+        const dy=(crayonHash(seed,i,base+4)-.5)*
+          (handContact?(dark?2.1:1.55):(dark?1.6:1.05));
         marks[band].push("M"+x.toFixed(2)+" "+y.toFixed(2)+
           "l"+dx.toFixed(2)+" "+dy.toFixed(2));
       }
       return {kind,paths:marks.map((parts,band)=>({
-        d:parts.join(" "),width:(dark ? .31 : .24)+band*(dark ? .17 : .14),
-        opacity:.50+band*.17,
+        d:parts.join(" "),
+        width:handContact?
+          (dark?.39:.30)+band*(dark?.23:.20):
+          (dark?.31:.24)+band*(dark?.17:.14),
+        opacity:handContact?.65+band*.12:.50+band*.17,
       }))};
     }) : []
-  ),[seed,strength,pigmentRelief]);
+  ),[seed,strength,pigmentRelief,handContact]);
   return <>
     <defs>
       {pigmentTexture.map(({kind,paths})=><pattern key={kind}

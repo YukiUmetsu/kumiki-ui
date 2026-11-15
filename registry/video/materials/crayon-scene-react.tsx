@@ -135,7 +135,9 @@ export function CrayonScene({spec, frame, reducedMotion = false, hideScreenSpace
     <Paper width={spec.width} height={spec.height} tooth={tooth}
       seed={spec.seed} color={spec.paper} strength={spec.paperTooth ?? .6}
       pigmentRelief={spec.elements.some(n=>n.kind==="wax"&&
-        (n.underpaintTooth??0)>0)} />
+        (n.underpaintTooth??0)>0)}
+      handContact={spec.elements.some(n=>n.kind==="wax"&&
+        n.deposition==="stroke-built")} />
     <g data-km-crayon-camera="" transform={"translate("+camera.x+" "+camera.y+") scale("+camera.scale+")"}>
       {rendered(false)}
     </g>
