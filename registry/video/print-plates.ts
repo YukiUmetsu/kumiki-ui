@@ -11,7 +11,7 @@ export interface PrintPlate {
   color: string;
   /** Spot-ink optical strength, 0..1. */
   opacity: number;
-  /** Halftone cell width in design pixels, 3..36. */
+  /** Halftone cell width in design pixels, 2..36. Fine pitches preserve facial midtones at output resolution. */
   dotCell: number;
   /** Halftone screen angle in degrees, -180..180. */
   dotAngle: number;
@@ -78,7 +78,7 @@ export function inspectRisoPrint(spec: RisoPrintSpec): PrintIssue[] {
     else seen.add(p.id);
     if (!p || !HEX.test(p.color)) error("plate-color", path + "/color", "Ink color must be a six-digit hex color.");
     if (!p || !inRange(p.opacity, 0, 1)) error("plate-opacity", path + "/opacity", "Ink opacity must be between 0 and 1.");
-    if (!p || !inRange(p.dotCell, 3, 36)) error("plate-cell", path + "/dotCell", "Dot cell size must be 3..36 design pixels.");
+    if (!p || !inRange(p.dotCell, 2, 36)) error("plate-cell", path + "/dotCell", "Dot cell size must be 2..36 design pixels.");
     if (!p || !inRange(p.dotAngle, -180, 180)) error("plate-angle", path + "/dotAngle", "Screen angle must be between -180 and 180 degrees.");
     if (!p || !Array.isArray(p.registration) || p.registration.length !== 2 || !p.registration.every((v: number) => inRange(v, -12, 12)))
       error("registration", path + "/registration", "Registration needs a finite [x, y] pair in the range -12..12.");
