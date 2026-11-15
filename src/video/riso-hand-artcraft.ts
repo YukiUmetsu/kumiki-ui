@@ -30,7 +30,7 @@ export const RISO30_ANAT1_HAND = {
   relaxedPose:HAND_POSES.relaxed(".R"),
   // Source 2D print units; measured against the original wrist-local
   // geometric hand contours, NOT asserted as population anthropometry.
-  authoredFingerTipUnits:{index:18,middle:21,ring:18,pinky:14,thumb:10},
+  authoredFingerTipUnits:{index:19,middle:21,ring:18,pinky:14,thumb:10},
   engravingWidthUnits:1.15,
 } as const;
 
