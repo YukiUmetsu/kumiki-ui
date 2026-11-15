@@ -17,12 +17,12 @@ import type { UkiyoeCritter } from "./ukiyoe-critters";
 import { drawCritter, UKIYOE_CRITTERS } from "./ukiyoe-critters";
 import type { UkiyoeFill, UkiyoePaint } from "./ukiyoe-pigments";
 
-export type UkiyoeSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse" | "nue" | "bear" | "boar" | "deer" | "ox" | "wolf" | "mouse" | "crane" | "heron" | "crow" | "pheasant" | "sparrow" | "hawk" | "oshidori" | "dragon" | UkiyoeYokai | UkiyoeCritter;
-export const UKIYOE_SPECIES: readonly UkiyoeSpecies[] = ["fox", "tanuki", "dog", "cat", "rabbit", "monkey", "horse", "nue", "bear", "boar", "deer", "ox", "wolf", "mouse", "crane", "heron", "crow", "pheasant", "sparrow", "hawk", "oshidori", "dragon", ...UKIYOE_YOKAI, ...UKIYOE_CRITTERS];
+export type UkiyoeSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse" | "nue" | "bear" | "boar" | "deer" | "ox" | "wolf" | "mouse" | "weasel" | "baku" | "ape" | "crane" | "heron" | "crow" | "pheasant" | "sparrow" | "hawk" | "oshidori" | "dragon" | UkiyoeYokai | UkiyoeCritter;
+export const UKIYOE_SPECIES: readonly UkiyoeSpecies[] = ["fox", "tanuki", "dog", "cat", "rabbit", "monkey", "horse", "nue", "bear", "boar", "deer", "ox", "wolf", "mouse", "weasel", "baku", "ape", "crane", "heron", "crow", "pheasant", "sparrow", "hawk", "oshidori", "dragon", ...UKIYOE_YOKAI, ...UKIYOE_CRITTERS];
 export type UkiyoeCreatureActionType = "walk" | "run" | "fly" | "hop" | "float" | "sit" | "stand" | "look" | "leap" | "howl" | "drum" | "peck" | "dance" | "coil" | "roar" | "transform" | "sleep"
   | "beckon" | "blow" | "vanish" | "appear" | "bow" | "fan" | "stretch";
 /** Species that can also be seen square on (look.view "front" / "back"); the rest draw in profile or three-quarter. */
-export const UKIYOE_SQUARE_VIEW_SPECIES: readonly UkiyoeSpecies[] = ["fox", "tanuki", "dog", "cat", "rabbit", "monkey", "horse", "nue", "bear", "boar", "deer", "ox", "wolf", "mouse"];
+export const UKIYOE_SQUARE_VIEW_SPECIES: readonly UkiyoeSpecies[] = ["fox", "tanuki", "dog", "cat", "rabbit", "monkey", "horse", "nue", "bear", "boar", "deer", "ox", "wolf", "mouse", "weasel", "baku", "ape"];
 export const UKIYOE_CREATURE_ACTIONS: readonly UkiyoeCreatureActionType[] = ["walk", "run", "fly", "hop", "float", "sit", "stand", "look", "leap", "howl", "drum", "peck", "dance", "coil", "roar", "transform", "sleep",
   "beckon", "blow", "vanish", "appear", "bow", "fan", "stretch"];
 
@@ -44,6 +44,12 @@ export interface UkiyoeCreatureLook {
   pearl?: boolean;
   /** Horse: harness, saddle cloth and pack (a Tōkaidō packhorse). */
   tack?: boolean;
+  /** Bakeneko: a hand towel (tenugui) knotted over the head, for the cats' night dance. */
+  towel?: UkiyoePaint;
+  /** Eyes that glow in the dark (the okuri-inu, the bakeneko). */
+  glowEyes?: boolean;
+  /** Carried in the mouth: Inari's messenger fox holds a key, a jewel or a scroll. */
+  carry?: "key" | "jewel" | "scroll";
   /** Turned three-quarters toward the viewer: a foreshortened body, the far legs (and wing) set back and higher, the
    * head turned to us with a shorter muzzle and the far eye showing. Four-legged animals and birds. */
   view?: "profile" | "three-quarter" | "front" | "back";
@@ -104,6 +110,8 @@ interface Beast {
   ears: "fox" | "round" | "cat" | "rabbit" | "dog" | "horse" | "monkey" | "mouse"; snout: number;
   /** Deer antlers or an ox's horns; a boar's tusks; a fawn's white spots; the moon bear's white crescent on the chest. */
   horns?: "antler" | "ox"; tusks?: boolean; spots?: boolean; crescent?: boolean;
+  /** The baku's elephant trunk hanging from the muzzle. */
+  trunk?: boolean;
   /** Neck length (× the usual), head tilt (deg, + turns the face down), mane colour, hooves, bare-skinned face colour. */
   neck?: number; headTilt?: number; mane?: UkiyoePaint; hoof?: boolean; face?: UkiyoePaint;
   /** Tiger stripes over the coat and legs. */
@@ -113,7 +121,7 @@ interface Beast {
   /** Long-coat colour for ruff, cheeks and belly fringe; lower-leg colour ("stockings"); eye iris; slit pupil. */
   ruff: UkiyoePaint; stocking?: UkiyoePaint; iris: UkiyoePaint; slit: boolean; tailTip?: UkiyoePaint;
 }
-type QuadSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse" | "nue" | "bear" | "boar" | "deer" | "ox" | "wolf" | "mouse";
+type QuadSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse" | "nue" | "bear" | "boar" | "deer" | "ox" | "wolf" | "mouse" | "weasel" | "baku" | "ape";
 const BEASTS: Readonly<Record<QuadSpecies, Beast>> = {
   fox: { L: 150, bh: 46, leg: 54, color: "tan", belly: "gofun", dark: "kogecha", head: 34, tail: 118, tailW: 36, ears: "fox", snout: 1.25,
     tuck: .2, chest: .14, fur: .2, hairs: 1, ruff: "gofun", stocking: "sumi", iris: "ki", slit: true, tailTip: "gofun" },
@@ -150,6 +158,16 @@ const BEASTS: Readonly<Record<QuadSpecies, Beast>> = {
   wolf: { L: 152, bh: 50, leg: 60, color: "usuzumi", belly: "gofun", dark: "sumi", head: 32, tail: 72, tailW: 22, ears: "dog", snout: 1.3, tuck: .22, chest: .16, fur: .18, hairs: 1.1,
     ruff: "gofun", iris: "ki", slit: false },
   // The mouse of the rolling rice ball and the mouse's wedding: small, round-bodied, big thin ears, a long bare tail.
+  // The weasel (itachi) of the kamaitachi: long and low, a slim neck, short legs, a bushy tail.
+  weasel: { L: 110, bh: 30, leg: 22, color: "kincha", belly: "gofun", dark: "cha", head: 24, tail: 60, tailW: 14, ears: "round", snout: .9, tuck: .02, chest: .05, fur: .12, hairs: 1,
+    ruff: "gofun", iris: "sumi", slit: false, neck: 1.2, headTilt: 4 },
+  // The baku, eater of nightmares, after Hokusai's: a shaggy tawny coat, an elephant's curling trunk and tusks, clawed
+  // paws and a bushy tail.
+  baku: { L: 160, bh: 70, leg: 58, color: "kincha", belly: "kincha", dark: "kogecha", head: 38, tail: 70, tailW: 26, ears: "round", snout: 1, tuck: .04, chest: .14, fur: .26, hairs: 1.7,
+    ruff: "kincha", iris: "ki", slit: false, trunk: true, tusks: true, neck: .5, headTilt: 14 },
+  // The great mountain ape of the satori and yamabiko tales: big, long-haired, brown, a bare red face.
+  ape: { L: 120, bh: 66, leg: 82, head: 40, tail: 10, tailW: 10, ears: "monkey", snout: .3, tuck: .06, chest: .12, fur: .3, hairs: 1.6,
+    color: "cha", belly: "kincha", dark: "kogecha", ruff: "kincha", iris: "ki", slit: false, face: "beni", headTilt: 6, neck: .2 },
   mouse: { L: 60, bh: 30, leg: 14, color: "usuzumi", belly: "gofun", dark: "kogecha", head: 22, tail: 72, tailW: 3, ears: "mouse", snout: .9, tuck: 0, chest: .05, fur: .05, hairs: .6,
     ruff: "gofun", iris: "sumi", slit: false },
 };
@@ -253,6 +271,23 @@ function tufted(pts: readonly Pt[], depth: (u: number) => number, side: 1 | -1, 
   return out;
 }
 
+/** Glowing eyes, a towel knotted over the head, something carried in the mouth (profile head units). */
+function headExtras(look: UkiyoeCreatureLook, P: (x: number, y: number) => Pt, hs: number, ex: number, ey: number, sn: number, blink: boolean): Prim[] {
+  const out: Prim[] = [];
+  if (look.glowEyes && !blink) out.push({ t: "glow", cx: (ex + .02) * hs, cy: ey * hs, r: hs * .6, color: "ki", opacity: .7 }, { t: "fill", d: ellipseD((ex + .02) * hs, ey * hs, hs * .1, hs * .07), fill: "ki", opacity: .95 });
+  if (look.towel) {
+    // A tenugui over the head, knotted under the chin's side, its ends flapping: the bakeneko's dancing towel.
+    out.push({ t: "fill", d: smoothD([P(-.72, -.2), P(-.6, -.62), P(-.15, -.82), P(.35, -.7), P(.5, -.42), P(.2, -.48), P(-.3, -.5), P(-.55, -.1)], true, .35), fill: look.towel, outline: 1, pattern: { type: "shima", color: "gofun", scale: .25, opacity: .6 } });
+    out.push({ t: "fill", d: smoothD([P(-.6, -.1), P(-.95, .05), P(-1.05, .3), P(-.8, .2), P(-.62, .12)], true, .3), fill: look.towel, outline: .9 });
+  }
+  if (look.carry) {
+    const m = P(.6 + .7 * sn, .2);
+    if (look.carry === "key") out.push({ t: "stroke", d: `M${(m[0] - hs * .3).toFixed(1)} ${m[1].toFixed(1)}h${(hs * .6).toFixed(1)}`, color: "kin", width: hs * .07 }, { t: "fill", d: ellipseD(m[0] + hs * .35, m[1], hs * .1, hs * .1), fill: "kin", outline: .8 }, { t: "stroke", d: `M${(m[0] - hs * .3).toFixed(1)} ${m[1].toFixed(1)}v${(hs * .14).toFixed(1)}m${(hs * .08).toFixed(1)} 0v${(-hs * .1).toFixed(1)}`, color: "kin", width: hs * .05 });
+    else if (look.carry === "jewel") out.push({ t: "glow", cx: m[0] + hs * .1, cy: m[1], r: hs * .5, color: "ki", opacity: .5 }, { t: "fill", d: smoothD([P(.6 + .7 * sn, .32), P(.48 + .7 * sn, .1), P(.7 + .7 * sn, -.18), P(.84 + .7 * sn, .1)], true, .45), fill: { type: "radial", stops: [[0, "gofun", 1], [1, "ki", 1]] }, outline: .9 });
+    else out.push({ t: "fill", d: smoothD([P(.3 + .7 * sn, .12), P(1.0 + .7 * sn, .12), P(1.0 + .7 * sn, .3), P(.3 + .7 * sn, .3)], true, .1), fill: "gofun", outline: .9 }, { t: "fill", d: ellipseD(m[0] + hs * .38, m[1] + hs * .01, hs * .05, hs * .1), fill: "beni" });
+  }
+  return out;
+}
 /** Antlers (branched, from the crown up and back) or an ox's short curved horns, in profile (head units). */
 function hornsSide(b: Beast, hs: number): Prim[] {
   const P = (x: number, y: number): Pt => [x * hs, y * hs];
@@ -401,6 +436,10 @@ function beastHead(b: Beast, species: string, hs: number, open: number, blink: b
   if (species !== "horse" && species !== "monkey") out.push({ t: "dots", d: [0, 1, 2].map(i => circleD((.36 + .42 * sn + i * .05) * hs, (.14 + (i % 2) * .05) * hs, hs * .018)).join(""), color: "sumi" });
   if (species === "cat" || species === "rabbit" || species === "tanuki" || species === "fox")
     out.push({ t: "stroke", d: [0, 1, 2].map(i => `M${((.38 + .44 * sn) * hs).toFixed(1)} ${((.15 + i * .05) * hs).toFixed(1)}q${(hs * .4).toFixed(1)} ${(hs * (i - 1) * .05).toFixed(1)} ${(hs * .8).toFixed(1)} ${(hs * ((i - 1) * .16 + .04)).toFixed(1)}`).join(""), color: "sumi", width: .7, opacity: .55 });
+  // The baku's trunk: a ringed, tapering trunk hanging from the muzzle and curling at the tip.
+  if (b.trunk) out.push({ t: "fill", d: carvedLine(smoothPts([P(.58 + .66 * sn, .02), P(.8 + .7 * sn, .3), P(.78 + .7 * sn, .75), P(.62 + .66 * sn, 1.0), P(.74 + .66 * sn, 1.1)], 4, false), hs * .2, { taper: "end", minRatio: .35, smooth: true }), fill: look.color ?? b.color, outline: 1.1 },
+    { t: "stroke", d: [.25, .45, .65, .85].map(v => `M${((.68 + .68 * sn) * hs).toFixed(1)} ${(v * hs).toFixed(1)}h${(hs * .16).toFixed(1)}`).join(""), color: "sumi", width: .7, opacity: .5 });
+  out.push(...headExtras(look, P, hs, ex, ey, sn, blink));
   return out;
 }
 
@@ -426,7 +465,7 @@ function quadFrontBack(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: nu
   // The folk tanuki standing (or drumming) is drawn upright square on.
   if (species === "tanuki" && Math.max(st("stand").w, st("drum").w) > .5) return out.concat(tanukiUpright(b, look, k, frame, seed, back, blink, st("drum").w));
   // Foxfire orbs circle the animal; the kyūbi's tails fan out behind it like a spread fan.
-  const tails = species === "fox" ? clamp(Math.round(look.tails ?? 1), 1, 9) : 1;
+  const tails = species === "fox" || species === "cat" ? clamp(Math.round(look.tails ?? 1), 1, 9) : 1;
   const foxfire = (): Prim[] => !(look.foxfire || tails > 1) ? [] : Array.from({ length: 3 + tails }, (_, i): Prim[] => {
     const a = frame / 40 + i * 2.1, c: Pt = [Math.cos(a) * W * (2 + .5 * hash01(seed, i)), bodyTop - bh * .5 + Math.sin(a * 1.3) * bh * .9], fl = .7 + .3 * Math.abs(noise1(seed + i, frame / 4));
     return [{ t: "glow", cx: c[0], cy: c[1], r: hs * 1.6, color: "sora", opacity: .55 * fl },
@@ -729,7 +768,7 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
     return out;
   };
   // Tail(s): a chain swinging with the gait, the wind and its own lag; long-haired tails are tufted at the edges.
-  const tails = species === "fox" ? clamp(Math.round(look.tails ?? 1), 1, 9) : 1;
+  const tails = species === "fox" || species === "cat" ? clamp(Math.round(look.tails ?? 1), 1, 9) : 1;
   const tailPrims: Prim[] = [];
   const tailRoot = R([-L * .48, hip[1] - bh * .22]);
   for (let t = 0; t < tails; t++) {
@@ -1276,7 +1315,7 @@ export function drawCreature(spec: UkiyoeCreatureSpec, frame: number, wind: numb
   let prims: Prim[];
   switch (spec.species) {
     case "fox": case "tanuki": case "dog": case "cat": case "rabbit": case "monkey": case "horse": case "nue":
-    case "bear": case "boar": case "deer": case "ox": case "wolf": case "mouse": prims = quadruped(spec.species, spec, frame, wind * dir, seed); break;
+    case "bear": case "boar": case "deer": case "ox": case "wolf": case "mouse": case "weasel": case "baku": case "ape": prims = quadruped(spec.species, spec, frame, wind * dir, seed); break;
     case "crab": case "turtle": case "snake": case "frog": case "carp": case "octopus": {
       const st = actionState(spec.actions ?? [], frame);
       prims = drawCritter(spec.species, spec.look ?? {}, (type: string) => { const e = st(type as UkiyoeCreatureActionType); return { w: e.w, t: e.t }; }, { moving: !!tr.moving, dist: tr.dist }, frame, wind * dir, seed);

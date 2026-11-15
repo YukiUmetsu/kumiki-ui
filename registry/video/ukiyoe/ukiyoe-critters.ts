@@ -269,3 +269,59 @@ export function animalScene(kind: UkiyoeAnimalHabitat = "mountain", frames = 300
   }
   return { version: 1, id: `animals-${kind}`, width: 1920, height: 1080, durationFrames: frames, seed: 41, cadence: 2, palette: { preset: "edo" }, wind: { base: .3, turbulence: .3 }, nodes };
 }
+
+// ---- Animal yōkai scenes -----------------------------------------------------------------------------------------------------------
+
+export type UkiyoeAnimalYokaiScene = "bakeneko" | "kamaitachi" | "okuriinu" | "baku" | "messenger" | "satori";
+export const UKIYOE_ANIMAL_YOKAI_SCENES: readonly UkiyoeAnimalYokaiScene[] = ["bakeneko", "kamaitachi", "okuriinu", "baku", "messenger", "satori"];
+
+/**
+ * `bakeneko`: cats dancing upright with towels on their heads by lamplight, a two-tailed nekomata watching. `kamaitachi`:
+ * three weasels riding a whirlwind with sickle-flashes. `okuriinu`: a traveller with a lantern on a night road, wolves
+ * with glowing eyes following. `baku`: the baku eating a sleeper's nightmare. `messenger`: Inari's white fox with a key
+ * in its mouth before the torii. `satori`: the great ape crouching by a woodcutter's fire.
+ */
+export function animalYokaiScene(kind: UkiyoeAnimalYokaiScene = "bakeneko", frames = 300): import("./ukiyoe-scene").UkiyoeSceneSpec {
+  type N = import("./ukiyoe-scene").UkiyoeNode;
+  const night = kind !== "kamaitachi" && kind !== "messenger";
+  const nodes: N[] = [{ id: "sky", kind: "motif", motif: "sky", params: { width: 1920, height: 1080, band: .5, ...(night ? { top: "yoru", mid: "ai", horizon: "ai" } : { horizon: "beni" }) } }];
+  const ground = (fill: unknown) => nodes.push({ id: "ground", kind: "block", x: 960, y: 1000, shape: { type: "rect", width: 1920, height: 300 }, fill, line: 0 } as unknown as N);
+  const c = (id: string, species: string, x: number, y: number, scale: number, actions: unknown[], facing: "left" | "right" = "right", look: Record<string, unknown> = {}) =>
+    nodes.push({ id, kind: "creature", species, x, y, scale, facing, look, actions } as unknown as N);
+  const dark = { type: "linear", angle: 90, stops: [[0, "ai", 1], [1, "yoru", 1]] };
+  if (kind === "bakeneko") {
+    ground(dark);
+    nodes.push({ id: "lamp", kind: "motif", motif: "andon", x: 960, y: 900, params: { height: 180 } } as N);
+    c("cat1", "cat", 700, 900, 2, [{ type: "stand", start: 0, end: frames }], "right", { towel: "ai", glowEyes: true });
+    c("cat2", "cat", 1220, 900, 2, [{ type: "stand", start: 0, end: frames }], "left", { towel: "beni", glowEyes: true, color: "sumi", belly: "gofun" });
+    c("neko", "cat", 1600, 940, 1.6, [{ type: "sit", start: 0, end: frames }], "left", { tails: 2, glowEyes: true, color: "kincha" });
+  } else if (kind === "kamaitachi") {
+    nodes.push({ id: "hills", kind: "motif", motif: "hills", x: 960, y: 800, params: { width: 2200, height: 220 } } as N);
+    ground({ type: "linear", angle: 90, stops: [[0, "kusa", 1], [1, "kincha", 1]] });
+    nodes.push({ id: "wind", kind: "particles", type: "whirlwind", area: [560, 160, 800, 760], count: 1 } as unknown as N);
+    // Three weasels riding the spiral: one curled at its heart, two carried round on the bands.
+    c("weasel0", "weasel", 980, 600, 1.5, [{ type: "sleep", start: 0, end: frames }]);
+    for (let i = 1; i < 3; i++) c("weasel" + i, "weasel", 960 + (i === 1 ? -260 : 260), 520 + (i === 1 ? 160 : -120), 1.4, [{ type: "leap", start: i * 30, end: i * 30 + 60 }, { type: "run", start: 100 + i * 10, end: frames, to: 0 }], i % 2 ? "left" : "right");
+  } else if (kind === "okuriinu") {
+    ground(dark);
+    nodes.push({ id: "pines", kind: "motif", motif: "pine", x: 1500, y: 860, params: { height: 580 } } as N);
+    nodes.push({ id: "traveller", kind: "figure", x: 1100, y: 920, scale: 1.7, look: { hair: "chonmage", hat: "kasa", robe: "ai", lower: "tucked", legs: "hada", feet: "waraji", prop: "lantern" }, facing: "right", actions: [{ type: "walk", start: 0, end: frames, to: 300 }] } as unknown as N);
+    for (let i = 0; i < 3; i++) c("wolf" + i, "wolf", 300 + i * 200, 930 - i * 20, 1.2, [{ type: "walk", start: 10 + i * 8, end: frames, to: 320 }], "right", { glowEyes: true, color: "sumi", belly: "usuzumi" });
+  } else if (kind === "baku") {
+    ground(dark);
+    nodes.push({ id: "bed", kind: "motif", motif: "futon", x: 760, y: 920, params: { length: 380, layer: "both", cover: "ai" } } as N);
+    nodes.push({ id: "dream", kind: "motif", motif: "kumo", x: 980, y: 560, params: { width: 380, color: "murasaki" }, exit: { preset: "fade", frame: 120, duration: 100 } } as unknown as N);
+    c("baku", "baku", 1400, 920, 1.5, [{ type: "walk", start: 0, end: 90, to: -180 }, { type: "roar", start: 100, end: 220 }], "left");
+  } else if (kind === "messenger") {
+    ground({ type: "linear", angle: 90, stops: [[0, "kincha", 1], [1, "cha", 1]] });
+    nodes.push({ id: "torii", kind: "motif", motif: "torii", x: 960, y: 960, params: { width: 700, height: 600 } } as N);
+    c("fox", "fox", 960, 950, 1.8, [{ type: "sit", start: 0, end: frames }], "right", { color: "gofun", carry: "key", tails: 1 });
+    c("fox2", "fox", 560, 950, 1.5, [{ type: "sit", start: 0, end: frames }], "right", { color: "gofun", carry: "jewel" });
+  } else {
+    ground(dark);
+    nodes.push({ id: "fire", kind: "motif", motif: "fire", x: 960, y: 940, params: { width: 160, height: 120 } } as N);
+    nodes.push({ id: "woodcutter", kind: "figure", x: 760, y: 950, scale: 1.7, look: { hair: "elder", robe: "cha", lower: "tucked", legs: "hada", feet: "waraji", build: "average", beard: true }, facing: "right", actions: [{ type: "kneel", start: 0, end: frames }] } as unknown as N);
+    c("ape", "ape", 1260, 950, 1.8, [{ type: "sit", start: 0, end: 160 }, { type: "stand", start: 160, end: frames }], "left", { glowEyes: true });
+  }
+  return { version: 1, id: `animal-yokai-${kind}`, width: 1920, height: 1080, durationFrames: frames, seed: 47, cadence: 2, palette: { preset: night ? "night" : "edo" }, wind: { base: .4, turbulence: .5 }, nodes };
+}

@@ -175,6 +175,32 @@ export function foxfire(count: number, area: readonly [number, number, number, n
   return [...glows, { t: "fill", d: outer.join("") || "M0 0", fill: "shu", opacity: .95 }, { t: "fill", d: inner.join("") || "M0 0", fill: "ki" }];
 }
 
+/**
+ * A whirlwind as Sekien draws the kamaitachi's: a great flat spiral of wind bands seen face on, turning, leaves and
+ * twigs caught along the bands; `slashes` adds the sickle-flashes cutting across it.
+ */
+export function whirlwind(area: readonly [number, number, number, number], frame: number, seed: number, size: number, slashes: boolean): Prim[] {
+  const [ax, ay, aw, ah] = area, c: Pt = [ax + aw / 2, ay + ah / 2], R = Math.min(aw, ah) / 2, spin = frame / 14, out: Prim[] = [], bands: string[] = [], leaves: string[] = [];
+  // Three spiral arms, each a band thinning toward the centre.
+  for (let k = 0; k < 3; k++) {
+    const pts: Pt[] = [];
+    for (let j = 0; j <= 40; j++) { const u = j / 40, a = spin + k * 2.1 + u * Math.PI * 3.2, r = R * (1 - u * .85); pts.push([c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r * .8]); }
+    bands.push(carvedLine(pts, R * .12 * size, { taper: "both", minRatio: .15, smooth: true }));
+    for (let j = 4; j < 38; j += 5) { const q = pts[j], s2 = R * (.03 + .015 * hash01(seed, k * 40 + j, 1)) * size; leaves.push(smoothD([[q[0] - s2, q[1]], [q[0], q[1] - s2 * .6], [q[0] + s2, q[1]], [q[0], q[1] + s2 * .6]], true, .4)); }
+  }
+  out.push({ t: "fill", d: bands.join(""), fill: { type: "radial", stops: [[0, "gofun", .95], [1, "usuzumi", .7]] }, outline: 1, outlineColor: "usuzumi", noPrint: true });
+  out.push({ t: "stroke", d: bands.join(""), color: "usuzumi", width: .6, opacity: .5 }, { t: "fill", d: leaves.join(""), fill: "matsu", outline: .6 });
+  if (slashes) {
+    for (let i = 0; i < 3; i++) {
+      const t = (frame + i * 17) % 50;
+      if (t > 8) continue;
+      const a = hash01(seed + Math.floor((frame + i * 17) / 50), i, 3) * Math.PI * 2, q: Pt = [c[0] + Math.cos(a) * R * .55, c[1] + Math.sin(a) * R * .45], r = R * .35;
+      out.push({ t: "fill", d: smoothD([[q[0] - r, q[1]], [q[0], q[1] - r * .45], [q[0] + r, q[1] - r * .05], [q[0], q[1] - r * .3]], true, .5), fill: "gofun", opacity: 1 - t / 8 });
+    }
+  }
+  return out;
+}
+
 // ---- Scene recipes -----------------------------------------------------------------------------------------------------------------
 
 export type UkiyoeEffectDemo = "fire" | "henge" | "storm" | "blossom" | "foxfire" | "halo";

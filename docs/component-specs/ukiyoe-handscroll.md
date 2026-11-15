@@ -303,6 +303,17 @@ Most women in the ghost stories look alive until the story turns, so they are fi
 - **`hut`.** A hermit's thatched hut with a lit window, a brushwood fence and smoke.
 - **`templeScene(kind)`.** Builds `bell`, `graveyard`, `rashomon`, `shrine` or `asakusa`. Storybook **Temples** plays them, and the Motifs gallery has a tile for each.
 
+### Animal yōkai
+
+- **Creature look fields.**
+  - `tails` now works for cats as well as foxes: the two-tailed nekomata.
+  - `towel`: a tenugui knotted over the head, for the bakeneko's dance.
+  - `glowEyes`: eyes lit gold in the dark.
+  - `carry`: `key`, `jewel` or `scroll` held in the mouth, for Inari's messenger fox.
+- **New species.** `weasel`, long and low; `baku`, after Hokusai: a shaggy tawny coat, a ringed trunk and tusks, a bushy tail; and `ape`, the great long-haired mountain ape with a red face. All three have front and back views.
+- **Particle `whirlwind`.** Sekien's spiral of three turning wind bands with leaves along them, seen face on; `count > 0` adds the kamaitachi's sickle-flashes.
+- **`animalYokaiScene(kind)`.** Builds `bakeneko`, `kamaitachi`, `okuriinu` (wolves with glowing eyes following a traveller's lantern), `baku` (the nightmare cloud fades as it eats), `messenger` or `satori`. Storybook **Animal yōkai** plays them.
+
 ### Transition
 
 `UkiyoeKasumi` sweeps stepped gold mist bands (gradient, wood grain, sunago gold dust and kirikane flakes) from right to left across the frame. The incoming scene is revealed behind each band's trailing edge. The FilmStage slot is `ukiyoe-kasumi`; the incoming shot then resumes where the transition left it.
