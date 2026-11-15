@@ -235,6 +235,21 @@ test("four distinct historical ink schools paint separate real rooted rock struc
       for(const motif of [0,1,2,3])
         await expect(card.locator('[data-km-master-cloud-morph="'+motif+'"]'))
           .toHaveCount(3);
+    // Six structural Fuchun back masses (two each in three parent
+    // stone cheeks) must be *painted volumes*, not CSS preset labels.
+    const roundedCount=school==="fuchun"?6:0;
+    await expect(card.locator("[data-km-master-fuchun-hillback]"))
+      .toHaveCount(roundedCount);
+    await expect(card.locator("[data-km-master-fuchun-hillback-wash]"))
+      .toHaveCount(roundedCount);
+    await expect(card.locator("[data-km-master-fuchun-hillback-lip]"))
+      .toHaveCount(roundedCount);
+    if(school==="fuchun"){
+      await expect(card.locator('[data-km-master-fuchun-hillback-form="round"]'))
+        .toHaveCount(3);
+      await expect(card.locator('[data-km-master-fuchun-hillback-form="saddle"]'))
+        .toHaveCount(3);
+    }
     const bankCount=school==="fuchun"?9:school==="forest-grotto"?12:0;
     await expect(card.locator("[data-km-master-rock-bank]"))
       .toHaveCount(bankCount);
