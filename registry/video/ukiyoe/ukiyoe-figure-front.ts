@@ -16,6 +16,7 @@ import { fuki, hyogoSquare, kamuroSquare, kasane, KOMA_GETA_HEIGHT, komaGetaSqua
 import { darariBack, eriAshi, maiogi, obiFront, OKOBO_HEIGHT, okoboSquare, wareshinobuSquare } from "./ukiyoe-maiko";
 import type { SquareSword } from "./ukiyoe-katana";
 import { katana, mon, reachArm, saya } from "./ukiyoe-katana";
+import { kanabo } from "./ukiyoe-oni";
 
 const lerp2 = (a: Pt, b: Pt, t: number): Pt => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
 const ribbon = (a: Pt, b: Pt, w0: number, w1: number): string => {
@@ -43,7 +44,7 @@ function armFront(sh: Pt, side: number, elev: number, bend: number, up: number, 
 }
 
 /** Draws a front or back figure in its local frame (feet at y 0, up negative, centred on x 0). */
-export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H: number, wind: number, frame: number, back: boolean, sword?: SquareSword): Prim[] {
+export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H: number, wind: number, frame: number, back: boolean, sword?: SquareSword, club?: { grip: Pt; a: number; dropped: number }): Prim[] {
   const out: Prim[] = [], lw = Math.max(.9, H * .0062), build = look.build ?? "average", child = build === "child";
   const stout = build === "brute" ? 1.4 : build === "stout" ? 1.14 : build === "slim" ? .93 : 1;
   const skin = look.skin ?? "hada", robe = look.robe ?? "ai", under = look.under ?? "beni", coat = look.coat, uchi = look.uchikake, sleeveC = uchi ?? coat ?? robe;
@@ -152,6 +153,17 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
   // ---- Swords, projected from their profile placement: forward distance becomes depth, so a blade pointing ahead is
   // foreshortened and the hilt is held before the body; the scabbards go back past the left hip.
   const swordPrims: Prim[] = [], sayaPrims: Prim[] = [], sheathedHilts: Prim[] = [], kataginuWings: Prim[] = [];
+  // The oni's club, projected the same way: held before the body, foreshortened when it points ahead.
+  if (club) {
+    const ux = Math.cos(club.a * DEG) * .45 * sF, uy = Math.sin(club.a * DEG), ang = Math.atan2(uy, ux) / DEG, sc = Math.max(.3, Math.hypot(ux, uy));
+    const grip: Pt = [lerp(sF * H * .06, sF * H * .1, club.dropped), lerp(neckY + club.grip[1] * H, -H * .03, club.dropped)];
+    swordPrims.push(...kanabo(grip, club.dropped ? (sF < 0 ? 178 : 2) : ang, H, lw, { scale: club.dropped ? 1 : sc }));
+    if (club.dropped < 1) {
+      const u: Pt = [Math.cos(ang * DEG), Math.sin(ang * DEG)], w = 1 - club.dropped;
+      const [eF, wF] = reachArm(armF[0], lerp2(armF[2], grip, w), up, fore, sF < 0 ? 1 : -1), [eB, wB] = reachArm(armB[0], lerp2(armB[2], [grip[0] + u[0] * H * .1 * sc, grip[1] + u[1] * H * .1 * sc], w), up, fore, sB < 0 ? 1 : -1);
+      armF = [armF[0], eF, wF]; armB = [armB[0], eB, wB];
+    }
+  }
   if (sword && look.swords) {
     const st = sword.st, out0 = -sF, koiSq: Pt = [out0 * sw * .62, waistY + H * .015], sayaAng = out0 > 0 ? 38 : 142, cord = look.accent ?? "ai";
     const proj = (a: number) => { const ux = Math.cos(a * DEG) * .45 * sF, uy = Math.sin(a * DEG); return { ang: Math.atan2(uy, ux) / DEG, sc: Math.max(.25, Math.hypot(ux, uy)) }; };
@@ -281,7 +293,7 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
   } else if (prop === "pole") {
     out.push({ t: "line", d: carvedLine([[poleX, armF[2][1] - H * .55], [poleX, 0]], H * .012, { taper: "none" }), color: propC });
     for (const a of [armF, armB]) out.push({ t: "fill", d: ellipseD(poleX, a[2][1], H * .016, H * .014), fill: look.skin ?? "hada", outline: lw * .8 });
-  } else if (prop === "staff" || prop === "kanabo") {
+  } else if (prop === "staff" || (prop === "kanabo" && !club)) {
     out.push({ t: "line", d: carvedLine([add(hand, [0, -H * (.25)]), add(hand, [0, prop === "kanabo" ? H * .02 : -hand[1]])], H * (prop === "kanabo" ? .04 : .012), { taper: prop === "kanabo" ? "start" : "none" }), color: prop === "kanabo" ? "sumi" : propC });
   } else if (prop === "lantern") {
     out.push({ t: "line", d: carvedLine([hand, add(hand, [0, H * .05])], H * .006, { taper: "none" }), color: "sumi" });
@@ -295,8 +307,11 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
     out.push({ t: "fill", d: smoothD([hand, add(hand, [-H * .05, -H * .06]), add(hand, [0, -H * .075]), add(hand, [H * .05, -H * .06])], true, .3), fill: accent, outline: lw * .8 });
   }
   // Tall clogs: the figure stands gh higher, the clogs reaching the ground.
-  if (gh) return [{ t: "group", transform: `translate(0 ${(-gh).toFixed(2)})`, prims: out }];
-  return out;
+  const res: Prim[] = gh ? [{ t: "group", transform: `translate(0 ${(-gh).toFixed(2)})`, prims: out }] : out;
+  // A fall seen square on topples straight away from us (or toward us from behind): the body foreshortens down to the
+  // ground about the heels, as a figure lying on its back seen from its feet. A dropped club stays at full length.
+  if (pose.fall > 0) return [{ t: "group", transform: `scale(1 ${(1 - .82 * pose.fall).toFixed(3)})`, prims: res.filter(p => !(club && club.dropped >= 1 && swordPrims.includes(p))) }, ...(club && club.dropped >= 1 ? swordPrims : [])];
+  return res;
 }
 
 /** The face from the front: both eyes, brows, the nose as a small hooked line, the mouth; then the hair style. */

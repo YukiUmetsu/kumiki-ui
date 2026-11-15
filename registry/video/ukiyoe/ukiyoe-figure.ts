@@ -16,6 +16,7 @@ import { fuki, hyogoSide, kamuroSide, kasane, KOMA_GETA_HEIGHT, komaGetaSide, ma
 import { darariSide, maiogi, OKOBO_HEIGHT, okoboSide, wareshinobuSide } from "./ukiyoe-maiko";
 import type { SquareSword, UkiyoeKamae } from "./ukiyoe-katana";
 import { BLADE, katana, mon, reachArm, saya, swordAt, swordGeometry, swordSmear } from "./ukiyoe-katana";
+import { CLUB, clubAt, clubGeometry, groundCrack, kanabo, usesClub } from "./ukiyoe-oni";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 
 export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild" | "hyogo" | "kamuro" | "wareshinobu";
@@ -92,9 +93,9 @@ export interface UkiyoeFigureLook {
 
 export type UkiyoeActionType =
   | "walk" | "run" | "bow" | "wave" | "point" | "talk" | "look" | "kneel" | "pole" | "row" | "brace" | "dance"
-  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu" | "kyomai" | "draw" | "kamae" | "cut" | "sheathe";
+  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu" | "kyomai" | "draw" | "kamae" | "cut" | "sheathe" | "parry" | "recoil" | "drop" | "fall" | "smash" | "swing" | "evade";
 export const UKIYOE_ACTIONS: readonly UkiyoeActionType[] = [
-  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu", "kyomai", "draw", "kamae", "cut", "sheathe",
+  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu", "kyomai", "draw", "kamae", "cut", "sheathe", "parry", "recoil", "drop", "fall", "smash", "swing", "evade",
 ];
 export interface UkiyoeAction {
   type: UkiyoeActionType;
@@ -112,6 +113,11 @@ export interface UkiyoeAction {
   back?: boolean;
   /** kamae: the guard — chūdan (middle), jōdan (overhead), hassō (upright by the shoulder) or waki (low, behind). */
   form?: UkiyoeKamae;
+  /** cut/parry in a duel: the point (local px, facing right, feet at the origin) the blade passes through on the
+   * `contact` frame, so two figures' blades cross exactly there; `parried` stops a cut on the other blade. */
+  aim?: readonly [number, number];
+  contact?: number;
+  parried?: boolean;
   /** Blend frames (default 6): in after `start`, out after `end`. */
   blend?: number;
 }
@@ -130,19 +136,21 @@ export interface FigurePose {
   faceView: number;
   /** How far each foot swings out to the side (0..1): the courtesan's figure-eight step, seen in the square views. */
   splayF: number; splayB: number;
+  /** 0 standing → 1 lying on the back: the `fall` action topples the figure about its heels. */
+  fall: number;
 }
 
 const STAND: FigurePose = {
   lean: 2, tilt: 2, crouch: 0, lift: 0,
   shF: 10, elF: 28, shB: -4, elB: 18,
   hipF: 3, knF: 2, hipB: -3, knB: 2, footF: 0, footB: 0,
-  mouth: 0, blink: 0, kneel: 0, headBack: 0, propAngle: 0, squash: 0, faceView: 0, splayF: 0, splayB: 0,
+  mouth: 0, blink: 0, kneel: 0, headBack: 0, propAngle: 0, squash: 0, faceView: 0, splayF: 0, splayB: 0, fall: 0,
 };
 const KEYS = Object.keys(STAND) as (keyof FigurePose)[];
 
 // ---- Travel ----------------------------------------------------------------------------------------------------------------------
 
-const TRAVEL = new Set<UkiyoeActionType>(["walk", "run", "dochu"]);
+const TRAVEL = new Set<UkiyoeActionType>(["walk", "run", "dochu", "evade"]);
 /** Root offset at a frame from the walk/run actions (each starts where the previous left off). */
 export function travelAt(actions: readonly UkiyoeAction[], frame: number): { x: number; y: number; moving?: UkiyoeAction; from: Pt; dir: number; dist: number } {
   let x = 0, y = 0, moving: UkiyoeAction | undefined, from: Pt = [0, 0], dir = 0, dist = 0;
@@ -167,7 +175,8 @@ export function facingAt(spec: UkiyoeFigureSpec, frame: number): { dir: 1 | -1; 
   let dir: 1 | -1 = spec.facing === "left" ? -1 : 1, squeeze = 1, x = 0;
   for (const a of spec.actions ?? []) {
     if (a.start > frame) break;
-    if (TRAVEL.has(a.type)) { const tx = a.to ?? x; if (tx !== x) dir = tx > x ? 1 : -1; x = tx; }
+    // An evade springs back (or in) without turning round.
+    if (TRAVEL.has(a.type)) { const tx = a.to ?? x; if (tx !== x && a.type !== "evade") dir = tx > x ? 1 : -1; x = tx; }
     if (a.type === "turn") {
       const mid = (a.start + a.end) / 2;
       if (frame >= mid) dir = dir === 1 ? -1 : 1;
@@ -219,6 +228,17 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
         target.lift = run ? Math.abs(Math.sin(ph)) * height * .04 : 0;
         break;
       }
+      // Duel body: the cut leans in behind the blade, the parry braces with the knees, a hit staggers the body back.
+      case "cut": { const c = a.contact ?? a.start + len * .46, k = smooth(span(frame, c - 10, c)) * (1 - smooth(span(frame, c + 6, a.end))); target.lean = 3 + 9 * k; target.crouch = .1 * k; target.hipF = 3 + 10 * k; target.hipB = -3 - 8 * k; break; }
+      case "parry": { const c = a.contact ?? a.start + len * .5, k = smooth(span(frame, a.start, c - 4)) * (1 - smooth(span(frame, c + 6, a.end))); target.lean = 2 - 4 * k; target.crouch = .14 * k; target.hipF = 3 + 6 * k; target.hipB = -3 - 9 * k; break; }
+      // Oni blows: the smash leans back into the wind-up and throws the whole body down after the club; the swing turns
+      // in behind it. An evade is a low spring back (or in), knees bent, the body upright.
+      case "smash": { const c = a.contact ?? a.start + len * .5, wind = smooth(span(frame, a.start, c - 7)) * (1 - smooth(span(frame, c - 7, c - 2))), hit = smooth(span(frame, c - 6, c)) * (1 - smooth(span(frame, c + 10, a.end))); target.lean = -7 * wind + 24 * hit; target.tilt = -12 * wind + 16 * hit; target.crouch = .05 * wind + .3 * hit; target.hipF = 3 + 18 * hit; target.hipB = -3 - 14 * hit; target.knF = 3 + 20 * hit; target.mouth = Math.max(wind, hit) * .9; break; }
+      case "swing": { const c = a.contact ?? a.start + len * .5, k = smooth(span(frame, c - 8, c)) * (1 - smooth(span(frame, c + 6, a.end))); target.lean = 4 + 10 * k; target.crouch = .16 * k; target.hipF = 3 + 12 * k; target.hipB = -3 - 10 * k; target.mouth = .7 * k; break; }
+      case "evade": { const u = span(frame, a.start, a.end), k = Math.sin(Math.PI * u); target.crouch = .18 * k + .06; target.lean = -4 * k; target.lift = k * height * .03; target.hipF = 6; target.hipB = -6; target.knF = 12; target.knB = 10; break; }
+      // Topple back about the heels: slowly at first, then all at once (and it stays down).
+      case "fall": target.fall = span(frame, a.start, a.end) ** 2; break;
+      case "recoil": { const k = Math.sin(Math.PI * span(frame, a.start, a.start + Math.min(14, len))) * .4 + span(frame, a.start, a.start + 8) * .6; target.lean = -16 * k; target.tilt = -20 * k; target.crouch = .2 * k; target.shF = 18; target.elF = 24; target.shB = 6; target.elB = 20; break; }
       case "kyomai": {
         // Kyōmai, the Kyoto dance: slow, held poses with the fan, each flowing into the next. A — the fan raised high to
         // the side, the eyes following it; B — the fan brought before the face, the body sinking; C — the arms opened,
@@ -302,6 +322,8 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
     }
     for (const k of KEYS) if (target[k] !== undefined) pose[k] = lerp(pose[k], target[k]!, w);
   }
+  // A fall stays down after its action ends.
+  for (const a of spec.actions ?? []) if (a.type === "fall" && frame > a.end) pose.fall = 1;
   // A parasol bearer keeps both hands up on the pole whatever his legs are doing.
   if (spec.look.prop === "parasol") { pose.shF = 38; pose.elF = 62; pose.shB = 30; pose.elB = 70; }
   // Seeded blinks every few seconds; eyes shut for 4 frames.
@@ -656,7 +678,12 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
       const st = swordAt(spec.actions ?? [], frame), sk = skeleton(pose, H, build), g = swordGeometry(st, sk.neck, add(sk.waistF, [-H * .012, H * .022]), H);
       swordSq = { st, a: g.a, shown: g.shown, sayaA: g.sayaA, tsuba: [(g.tsuba[0] - sk.neck[0]) / H, (g.tsuba[1] - sk.neck[1]) / H], koi: [(g.koi[0] - sk.neck[0]) / H, (g.koi[1] - sk.neck[1]) / H] };
     }
-    return { prims: drawFigureFrontBack(look, pose, H, wind, frame, look.view === "back", swordSq), x: tr0.x, y: tr0.y, dir: 1, squeeze: 1 };
+    let clubSq: { grip: Pt; a: number; dropped: number } | undefined;
+    if (look.prop === "kanabo" && usesClub(spec.actions ?? [])) {
+      const st = clubAt(spec.actions ?? [], frame), sk = skeleton(pose, H, build), g = clubGeometry(st, sk.neck, H);
+      clubSq = { grip: [(g.grip[0] - sk.neck[0]) / H, (g.grip[1] - sk.neck[1]) / H], a: g.a, dropped: st.dropped };
+    }
+    return { prims: drawFigureFrontBack(look, pose, H, wind, frame, look.view === "back", swordSq, clubSq), x: tr0.x, y: tr0.y, dir: 1, squeeze: 1 };
   }
   const turned = look.view === "three-quarter" && look.face !== "oni";
   const s0 = skeleton(pose, H, build), sp0 = skeleton(prev, H, build), s = turned ? turnSkeleton(s0) : s0, sp = turned ? turnSkeleton(sp0) : sp0;
@@ -665,6 +692,15 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   const sword = look.swords ? swordAt(spec.actions ?? [], frame) : undefined, swordPrev = look.swords ? swordAt(spec.actions ?? [], frame - 2) : undefined;
   const geo = sword ? swordGeometry(sword, s.neck, add(s.waistF, [-H * .012, H * .022]), H) : undefined;
   const geoPrev = swordPrev ? swordGeometry(swordPrev, sp.neck, add(sp.waistF, [-H * .012, H * .022]), H) : undefined;
+  // The oni's club on its own timeline (only when the figure fights with it; otherwise the simple hand-held prop).
+  const club = look.prop === "kanabo" && usesClub(spec.actions ?? []) ? clubAt(spec.actions ?? [], frame) : undefined;
+  const clubG = club ? clubGeometry(club, s.neck, H) : undefined, clubP = club ? clubGeometry(clubAt(spec.actions ?? [], frame - 2), sp.neck, H) : undefined;
+  if (club && clubG && club.dropped < 1) {
+    const u: Pt = [Math.cos(clubG.a * DEG), Math.sin(clubG.a * DEG)], w = 1 - club.dropped;
+    const up = H * (build === "child" ? .15 : .165), fore = H * (build === "child" ? .14 : .15);
+    [s.elF, s.wrF] = reachArm(s.shF, lerp2(s.wrF, clubG.grip, w), up, fore, 1);
+    [s.elB, s.wrB] = reachArm(s.shB, lerp2(s.wrB, [clubG.grip[0] + u[0] * H * .1, clubG.grip[1] + u[1] * H * .1], w * club.grip), up, fore, 1);
+  }
   if (sword && geo && (sword.held || sword.reach > 0)) {
     const u: Pt = [Math.cos(geo.a * DEG), Math.sin(geo.a * DEG)], w = sword.held ? 1 : sword.reach;
     const up = H * (build === "child" ? .15 : .165), fore = H * (build === "child" ? .14 : .15);
@@ -689,7 +725,8 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   const back = (c: UkiyoePaint): UkiyoePaint => c;
 
   // Back prop and back arm.
-  out.push(...propPrims(look, pose, s, wl, frame, "back"));
+  const propLook = club ? { ...look, prop: "none" as const } : look;
+  out.push(...propPrims(propLook, pose, s, wl, frame, "back"));
   const bare = look.upper === "bare", skin = look.skin ?? "hada";
   const bareArm = (sh: Pt, el: Pt, wr: Pt, isBack: boolean): Prim[] => {
     const a: Prim[] = [{ t: "fill", d: carvedLine([sh, el, wr], H * .085 * stout, { taper: "end", minRatio: .55, smooth: true }), fill: skin, outline: lw }];
@@ -865,15 +902,20 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     out.push({ t: "fill", d: smoothD([add(kb, [H * .01, -H * .075]), add(kb, [-H * .055, -H * .08]), add(kb, [-H * .065, H * .025]), add(kb, [H * .005, H * .03])], true, .2), fill: obiC, outline: lw, pattern: { type: "kikko", color: "kin", scale: .25, opacity: .6 } });
   }
 
+  if (club && clubG && club.dropped < 1) {
+    if (clubP && Math.abs(((clubG.a - clubP.a) % 360 + 540) % 360 - 180) > 10) out.push(...swordSmear(clubG.grip, clubP.a, clubG.a, H * CLUB / BLADE));
+    out.push(...kanabo(clubG.grip, clubG.a, H, lw));
+  }
   if (sword && geo) {
     // The scabbards through the obi at the left hip: the wakizashi above with its hilt, the katana's below.
     const sway = Math.sin(frame / 13) * (tr.moving ? .6 : .2) - wl * .5;
     if (look.swords === "daisho") {
-      const kw = add(geo.koi, [H * .016, -H * .02]), aw = geo.sayaA + 9;
+      const kw = add(geo.koi, [H * .016, -H * .02]), aw = lerp(geo.sayaA + 9, 108, pose.fall);
       out.push(...saya(kw, aw, BLADE * H * .72, H, lw, look.accent ?? "ai", sway));
       out.push(...katana(add(kw, [Math.cos((aw - 180) * DEG) * H * .01, Math.sin((aw - 180) * DEG) * H * .01]), aw, H, lw, { hiltOnly: true, scale: .72, open: tqBody ? .5 : 0 }));
     }
-    out.push(...saya(geo.koi, geo.sayaA, BLADE * H * 1.03, H, lw, look.accent ?? "ai", sway));
+    // Falling on his back the scabbards swing round to lie along his body, not stab into the ground.
+    out.push(...saya(geo.koi, lerp(geo.sayaA, 100, pose.fall), BLADE * H * 1.03, H, lw, look.accent ?? "ai", sway));
     if (geoPrev && sword.free > .9 && swordPrev!.free > .9) out.push(...swordSmear(geo.tsuba, geoPrev.a, geo.a, H));
     out.push(...katana(geo.tsuba, geo.a, H, lw, { shown: geo.shown, hiltOnly: geo.shown < .01, open: tqBody ? .5 : 0 }));
   }
@@ -887,7 +929,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   out.push({ t: "group", transform: `translate(${s.head[0].toFixed(2)} ${s.head[1].toFixed(2)}) rotate(${(tilt * headFlip).toFixed(2)}) scale(${(headFlip * swing).toFixed(3)} 1)`, prims: headPrims(look, pose, k, H, wl * headFlip, frame, seed, view >= .5) });
 
   // Front arm, sleeve and hand-held prop.
-  out.push(...propPrims(look, pose, s, wl, frame, "front"));
+  out.push(...propPrims(propLook, pose, s, wl, frame, "front"));
   if (bare) out.push(...bareArm(s.shF, s.elF, s.wrF, false));
   else {
     const fs = sleeve(s.shF, s.elF, s.wrF, sleeveDepth, sleeveW, -lagF * .6 - travelLag);
@@ -913,14 +955,43 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
       out.push({ t: "line", d: carvedLine(edge.map(q => add(q, [H * .007, H * .004])), lw * .9, { taper: "end", minRatio: .3 }), color: "sumi", opacity: .8 });
     }
   }
-  out.push(...propPrims(look, pose, s, wl, frame, "over"));
+  out.push(...propPrims(propLook, pose, s, wl, frame, "over"));
 
   // Tall clogs: the drawing stands gh higher, the clogs reaching down to the ground.
   if (gh) out.push({ t: "group", transform: `translate(0 ${(-gh).toFixed(2)})`, prims: out.splice(0) });
+  // A fall turns the whole drawing back about the heels.
+  if (pose.fall > 0) out.push({ t: "group", transform: `rotate(${(-86 * pose.fall).toFixed(2)})`, prims: out.splice(0) });
+  // On the ground, untouched by the fall: the cracks where the club struck, and the club once it is dropped.
+  if (club) {
+    // The crack opens where the club's head came down on the contact frame.
+    for (const a of spec.actions ?? []) if (a.type === "smash" && a.contact !== undefined && frame >= a.contact) {
+      const g = clubGeometry(clubAt(spec.actions ?? [], a.contact), skeleton(figurePose(spec, a.contact, seed, H), H, build).neck, H);
+      out.push(...groundCrack([g.grip[0] + Math.cos(g.a * DEG) * CLUB * H, 0], H, frame - a.contact, seed + a.contact));
+    }
+    if (clubG && club.dropped >= 1) out.push(...kanabo(clubG.grip, clubG.a, H, lw));
+  }
   // Contact shadow: a soft usuzumi smudge (the prints rarely cast shadows; this only grounds the feet).
   const lift = pose.lift;
   out.unshift({ t: "fill", d: ellipseD((s.anF[0] + s.anB[0]) / 2, 2, H * .16 * (1 - clamp01(lift / H * 3) * .5), H * .016), fill: "sumi", opacity: .1 * (1 - clamp01(lift / (H * .3))), noPrint: true });
   return { prims: out, x: tr.x, y: tr.y, dir, squeeze };
+}
+
+/**
+ * Where a figure's katana is at a frame, in the figure's own frame (facing right, feet at the origin, unscaled): the
+ * guard and the blade's angle. Undefined when the figure wears no swords. Used to check duel contact.
+ */
+export function figureSwordAt(spec: UkiyoeFigureSpec, frame: number, seed = 0): { tsuba: Pt; a: number; shown: number } | undefined {
+  if (!spec.look.swords) return undefined;
+  const H = figureHeight(spec.look), sk = skeleton(figurePose(spec, frame, seed, H), H, spec.look.build ?? "average");
+  const g = swordGeometry(swordAt(spec.actions ?? [], frame), sk.neck, add(sk.waistF, [-H * .012, H * .022]), H);
+  return { tsuba: g.tsuba, a: g.a, shown: g.shown };
+}
+
+/** Where an oni's club is at a frame (figure's own frame, facing right, unscaled): the grip and the angle. */
+export function figureClubAt(spec: UkiyoeFigureSpec, frame: number, seed = 0): { grip: Pt; a: number; dropped: number } | undefined {
+  if (spec.look.prop !== "kanabo" || !usesClub(spec.actions ?? [])) return undefined;
+  const H = figureHeight(spec.look), sk = skeleton(figurePose(spec, frame, seed, H), H, spec.look.build ?? "average"), st = clubAt(spec.actions ?? [], frame);
+  return { ...clubGeometry(st, sk.neck, H), dropped: st.dropped };
 }
 
 /** Ease export used by tests to keep the gait easing honest. */

@@ -5,7 +5,8 @@ import { VideoExportStage } from "../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../registry/video/video-export-stage";
 import type { InkShot } from "../../registry/video/ink-wash-story";
 import { InkEnsemble } from "../../registry/video/ink-wash-ensemble-react";
-import { inkEnsembleAt, auditInkEnsembleHands } from "../../registry/video/ink-wash-ensemble";
+import { inkEnsembleAt, auditInkEnsembleHands, inkDesignToPaper } from "../../registry/video/ink-wash-ensemble";
+import { evaluateCharacter } from "../../registry/character/evaluate";
 import { inkEnsembleBackdrop } from "./ink-wash-ensemble-backdrop";
 import { inkDuet } from "./ink-wash-ensemble-demo";
 import type { InkDuetAspect } from "./ink-wash-ensemble-demo";
@@ -81,7 +82,9 @@ export function InkEnsembleFilm({frame,aspect="landscape",reducedMotion=false,
   </InkWashScene>;
 }
 function Studio(){
-  const [frame,setFrame]=useState(0),[playing,setPlaying]=useState(false);
+  // Open on the actual two-person performance rather than blank unrevealed
+  // frame-0 paper. Users can still scrub to the original first frame.
+  const [frame,setFrame]=useState(117),[playing,setPlaying]=useState(false);
   const [aspect,setAspect]=useState<InkDuetAspect>("landscape");
   const [reduced,setReduced]=useState(false);
   const [absorption,setAbsorption]=useState(.72);
@@ -193,17 +196,32 @@ export const InkEnsembleStory:StoryObj<typeof meta>={
 function FigureBrushworkLab() {
   const [frame,setFrame]=useState(188);
   const [aspect,setAspect]=useState<InkDuetAspect>("landscape");
-  const [focus,setFocus]=useState<"master"|"learner"|"wide">("master");
+  const [focus,setFocus]=useState<"master"|"master-face"|"learner"|"wide">("master-face");
   const [detail,setDetail]=useState(1);
   const [contrast,setContrast]=useState(.85);
   const [reduced,setReduced]=useState(false);
-  const duet=useMemo(()=>inkDuet(aspect),[aspect]);
-  const actor=inkEnsembleAt(duet.plan,frame,reduced).actors.find(p=>p.id===focus);
+  const duet=useMemo(()=>inkDuet(aspect,{
+    ...DEFAULT_INK_FIGURE_CRAFT,detail,contrast,
+  }),[aspect,detail,contrast]);
+  const performerId=focus==="master-face"?"master":focus;
+  const actor=inkEnsembleAt(duet.plan,frame,reduced).actors.find(p=>p.id===performerId);
   const portrait=aspect==="portrait";
   const viewport=portrait?{w:405,h:700}:{w:850,h:490};
-  const zoom=focus==="wide"?(portrait?.73:.9):2.15;
-  const centerX=actor?.pose.x??duet.width/2;
-  const centerY=actor?actor.pose.y-actor.pose.scale*155:duet.height/2;
+  const zoom=focus==="wide"?(portrait?.73:.9):focus==="master-face"?4.1:2.15;
+  // A bow rotates the head around a moving body pivot. Following only the
+  // actor's foot root cropped half the face out of the portrait study.
+  // Derive the real painted eye anchor from the production pose instead.
+  const cast=duet.cast.find(member=>member.trackId===performerId);
+  const eyes=actor&&cast?evaluateCharacter(cast.definition,
+    reduced?{...cast.instance,reducedMotion:true}:cast.instance,
+    cast.cues,frame).anchors.eyes:undefined;
+  const headCenter=eyes&&actor&&cast
+    ? inkDesignToPaper(actor.pose,cast.definition.design,eyes):undefined;
+  const isFace=focus==="master-face";
+  const centerX=isFace?(headCenter?.x??actor?.pose.x??duet.width/2)
+    :(actor?.pose.x??duet.width/2);
+  const centerY=isFace?(headCenter?.y??duet.height/2)
+    :(actor?actor.pose.y-actor.pose.scale*155:duet.height/2);
   const dx=viewport.w/2-centerX*zoom,dy=viewport.h/2-centerY*zoom;
   return <main style={{padding:24,background:"#E8E5DD",minHeight:"100vh",
     color:"#27322D",font:"14px/1.45 system-ui",display:"grid",gap:14,justifyItems:"start"}}>
@@ -216,7 +234,7 @@ function FigureBrushworkLab() {
       </h1>
       <p style={{maxWidth:780,margin:0}}>
         Close-up inspection of the actual master/apprentice film. Compare the
-        original figure drawing (detail 0) with layered orchid-leaf strokes,
+        original figure drawing (detail 0) with reconstructed classical face anatomy, beard, hair and orchid-leaf strokes,
         interrupted reed folds, independent robe washes, dry hair and crisp eyes.
       </p>
     </header>
@@ -225,7 +243,8 @@ function FigureBrushworkLab() {
         <select aria-label="Ink figure focus" value={focus}
           onChange={e=>setFocus(e.target.value as typeof focus)}
           style={{display:"block",minHeight:38}}>
-          <option value="master">Teacher close-up</option>
+          <option value="master-face">Master face · ArtCraft 4.1×</option>
+          <option value="master">Teacher full figure</option>
           <option value="learner">Apprentice close-up</option>
           <option value="wide">Full composition</option>
         </select>

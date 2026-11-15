@@ -12,6 +12,8 @@
 - `ukiyoe-creatures.ts`: four-legged animals, birds and the dragon.
 - `ukiyoe-yokai.ts`: yōkai and ghosts (snow woman, yūrei, umbrella and lantern spirits, soul-flames).
 - `ukiyoe-scenery.ts`: mountain ranges, thatched farmhouses, jizō and komainu.
+- `ukiyoe-castle.ts`: the castle motif.
+- `ukiyoe-town.ts`: the castle-town motifs and the `castleTown()` scene.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -61,6 +63,8 @@ Colours are pigment **roles**: `sumi`, `usuzumi`, `ai`, `bero`, `sora`, `asagi`,
 | `group` | A container. Children (figures in a boat, a whole rig of blocks) ride its transform. |
 | `motif` | A generated subject: `sky`, `mountain`, `hills`, `sea`, `wave`, `pine`, `sakura`, `willow`, `reeds`, `rock`, `cloud` (band or billow), `sun`, `moon`, `house` (tile, thatch, two storeys, noren, **fukinuki-yatai cutaway**), `pagoda`, `torii`, `bridge` (taiko or trestle), `boat` (ferry, sampan, yakata; the hull sits in a waterline band, `wake` × `progress` adds a bow wave and stern streaks, `sail` adds a mast and square sail), `lantern` (paper or stone; `progress` lights it), `field`, `pier`, `peach` (splits open at `openAt`), `ricefield` (terraced paddies: `crop` `young`, `ripe` or `flooded`, swaying in the wind). |
 | `motif` (scenery) | `range`: a mountain range in the Kisokaidō manner. Ridges are stacked in depth (`layers`) with asymmetric peaks and shoulders, shadowed faces, axe-cut rock strokes and ledges, crest cedars and umbrella pines, mist between ranges (`mist`, `mistColor`), `snow` on every upward surface, and an optional `waterfall` from a gorge. `minka`: a thatched farmhouse. `style` is `irimoya` (hip-and-gable, smoke lattice, crossed ridge timbers) or `gassho` (steep, with a gable of stacked windows). It takes `snow` (cap, drip edge, icicles), `smoke` and `light` (glowing paper windows). `jizo`: roadside stone monks in a row (`count`), with a red `bib` and `cap`, a ringed `staff`, `snow` and `moss`. `komainu`: the shrine lion-dog, carved spiral mane and flame tail, mouth open (`a`) or shut (`un`), or a facing `pair`. |
+| `motif` (castle) | `castle`: a castle after Meiji-era photographs of Nagoya, Kumamoto and Himeji and Hiroshige's castle views, seen a little from the side (`depth`, default .4). <ul><li>**Keep:** `tiers` storeys (1–6), each narrower, with deep tiled eaves turning up at the corners and shaded side faces. The roof faces carry chidori gables (drawn in front of the storey above) and one curved karahafu, and gold shachihoko stand on the top ridge.</li><li>**Walls:** white plaster, or `style: "black"` boarding below a plaster band, with rows of barred windows.</li><li>**Stone bases:** curving steeper toward the top (the fan slope), with stones in shrinking courses and long-and-short corner blocks.</li><li>**Before the keep** (`walls`): the outer stone wall topped with a long gallery building (`wall: "tamon"`, the default, as on Edo castle) or a plastered, tiled, loopholed wall (`"dobei"`), umbrella `pines` along the bailey behind it, two corner `turrets`, a `gate` tower over studded doors, a `moat` that mirrors the walls, and a `bridge` coming toward us.</li><li>**Stone and roofs:** stones are irregular blocks, each its own shape and tone and largest at the foot. The top roof is hip-and-gable, its big gable on the receding end face.</li><li>**Weather and light:** `snow` lays white on ridges, roofs and eaves, and `night` lights the windows. `walls: false` gives the keep alone for distant views.</li></ul> The motif stands on the foot of the outer wall at the water line; the moat and bridge lie below it. |
+| `motif` (town) | Built with the castle's storeys and roofs: <ul><li>`shop`: a merchant's two-storey shop. Indigo `noren` with a white `crest` (generic) sway across the open front, with a lattice and a standing `sign` painted with a gold fan (no writing). Slit mushiko windows sit above and firewalls at the roof ends.</li><li>`kura`: a storehouse. Thick plaster over a base of namako tiles (a white lattice on grey), a heavy roof with a crested gable, an iron-clad window standing open.</li><li>`yashiki`: a samurai residence. A long wall of plaster over black boarding, the gatehouse with lattice windows and studded doors, a tiled cap, `pines` behind.</li><li>`firetower`: a fire-watch tower. Tapering timber legs braced with crosses, a lashed ladder, a railed platform under a little roof, the bell (swinging a touch in the wind) and its mallet.</li></ul> All take `snow`. |
 | `particles` | Closed-form weather and effects: `rain` (two Hiroshige line families), `snow`, `embers`, `petals`, `leaves`, `fireflies`, `birds`, `ripples`, `fireworks` (gold rocket trail, rayed stars, peony, willow or ring), `spray` (ballistic burst). |
 | `figure` | An articulated Edo figure with a `look` and layered `actions`. |
 | `creature` | A folktale animal or spirit (`species`): `fox` (with `tails` 1–9 and `foxfire`), `tanuki` (with `hat` and `bottle`), `dog`, `cat`, `rabbit`, `monkey` (Japanese macaque), `horse` (with `tack`: harness, saddle cloth and pack), `nue` (monkey face, tiger body, snake tail), `crane`, `heron`, `crow`, `pheasant`, `sparrow`, `dragon` (with `pearl`); yōkai `yukionna` (the snow woman; `blow` breathes out the cold, `beckon` reaches), `yurei` (a ghost with soul-flames), `kasaobake` (the one-legged umbrella), `chochinobake` (the grinning lantern), `hitodama` (a soul-flame), `rokurokubi` (`stretch` raises her head on a long swaying neck), `kappa` (`bow` spills the water from its dish; `walk`, `dance`), `tengu` and `karasutengu` (wings, `fly`, and `fan` to raise a gale), `nurikabe` (the wall of the night road: three eyes, `walk`, `roar`), `tsuchigumo` (the earth spider: eight banded legs, `walk`, rears with `roar`). Actions: `walk`, `run`, `fly`, `hop`, `float` (travel to `to`/`toY`), `appear` and `vanish` (fade a spirit in or out; it is unseen before its first `appear` and stays gone after a `vanish`), `sit`, `stand` (upright), `look`, `leap`, `howl`, `drum`, `peck`, `dance`, `coil`, `roar`, `sleep`, `transform` (henge: a smoke puff, after which the creature is gone, so place what it becomes as a new node). |
@@ -131,7 +135,40 @@ The swords and formal dress (`ukiyoe-katana.ts`) are drawn after the Met's mount
   - `cut`: a slow raise to jōdan, a fast forward diagonal strike with a pale fan of air behind the blade, the follow-through, and a low hold.
   - `sheathe`: the flick (chiburi), the blade brought to the scabbard's mouth, the slow slide home, and the hands letting go.
 - **Hands.** Both hands are put on the hilt by two-bone IK (`reachArm`) in every guard. The square views project the profile placement: a blade pointing ahead is foreshortened, and hassō moves to the right shoulder, clear of the face.
+- **Duels.** A `cut` can take `aim` (a point in the figure's own frame), `contact` (the frame it reaches it) and `parried`. A `parry` takes the same `aim` and `contact`.
+  - **Contact:** on the contact frame both blades are turned to pass through that point, so they cross exactly there.
+  - **Parried or not:** a parried cut stops on the other blade and rebounds; otherwise it follows through.
+  - **Hit and fall:** `recoil` staggers the body back; `drop` lowers the blade (`angle`); `fall` topples the figure back about its heels with an accelerating ease. It stays down, its scabbards swinging round to lie along the body.
+  - **Sparks:** the `sparks` particle bursts in a white flash and short gold streaks.
+  - **Recipe:** `samuraiDuel({ id, x, y, scale, gap, start, exchanges, a, b })` returns both fighters and the sparks. Both draw, each exchange is timed on its contact frame and aimed in front of the defender's brow, and a final unparried cut ends it, with the victor sheathing. Storybook **Samurai duel** shows it in a moonlit field of pampas grass.
 - **Look and kata.** `UKIYOE_SAMURAI_LOOK` is a generic look, and `samuraiKata(start)` builds the solo kata: draw, jōdan, cut, hassō, waki, chūdan, sheathe, bow. Storybook **Samurai kata** shows it in a raked-gravel courtyard with a View switch, and the four guards labelled. The Cast lab includes the samurai.
+
+### Oni fighting
+
+The oni's weapon and fighting (`ukiyoe-oni.ts`) are drawn after iron-shod kanabō in museum photographs and Kuniyoshi's and Toyoharu's oni prints.
+
+- **The kanabō.** A long shaft swells toward the head, with rows of iron studs over the striking half (cones on the edges, round heads down the middle), iron bands, a cord-wrapped grip and an iron ring at the butt.
+- **When the timeline applies.** When a figure with `prop: "kanabo"` uses any of `smash`, `swing`, `parry` or `drop`, the club follows its own timeline (`clubAt`) and both hands hold it by IK. Otherwise it stays the simple hand-held prop, so existing films are unchanged.
+- **The club's moves.**
+  - **Rest:** over the shoulder; once fighting it is held before the body.
+  - **`smash`** (with `aim` on the ground and `contact`): a long wind-up overhead, then the club comes down so its head stops exactly on the ground, whatever the body has done to the hands. Dust and pebbles burst and the ground cracks where it landed; the cracks fade over about five seconds.
+  - **`swing`:** wound back low and swept through `aim`; parried, it stops on the blade.
+  - **`parry`:** blocks a cut at `aim`.
+  - **`drop`:** lets the club fall to lie on the ground, where it stays when the oni falls.
+- **Body.** The body throws itself into the smash and turns into the swing. `evade` springs back (or in) without turning round.
+- **Square views.** The club is projected like the sword, and a `fall` seen square on foreshortens to the ground.
+- **Looks and recipe.** `UKIYOE_ONI_LOOK` and `UKIYOE_MOMOTARO_LOOK` are generic looks. `oniFight({ id, x, y, scale, start, hero, oni })` returns the nodes and camera shakes of a hero-versus-oni fight. Contacts are aimed as in the duels, and the smashes shake the camera. Storybook **Oni fight** shows it on a rocky shore, choosing a samurai or Momotarō and a red or blue oni.
+
+### Castle town
+
+`castleTown({ frames, street, seed, snow })` returns a whole scene: one handscroll 6,400 px wide, panned (`scrollPan`) from the keep down through the town, with holds at four stations.
+
+1. The castle on its grassy hill above the moat.
+2. The samurai quarter: residence walls under pines, retainers passing.
+3. The canal: an arched bridge over the water between stone banks, a boat below.
+4. The merchant street: shops and storehouses, a busy crowd, the fire-watch tower over the roofs.
+
+Mist bands drift across as in the picture scrolls. The crowds are placed so no walker ever enters the canal; the retainers stop short of it and the townsfolk walk away from it. The scroll carries no text. Storybook **Castle town** plays it, with a Snow switch, and the Motifs gallery shows each town motif.
 
 ### Transition
 

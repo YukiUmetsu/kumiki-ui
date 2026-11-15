@@ -16,6 +16,7 @@ import { Rig, arc, at, cap, ell, finish, path, poly, rect, sampledPath, travel, 
 import type { Pt, RigPresetOptions } from "./rig-kit";
 import { ACTION_MOTIONS, ACTION_PALETTE, addPersonAction } from "./rig-presets-actions";
 import type { ActionMotion } from "./rig-presets-actions";
+import { FLOOR_MOTIONS } from "./rig-presets-rest";
 
 // ---- People ----------------------------------------------------------------------------------------------------------------------
 
@@ -128,7 +129,7 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
         { bone: "head", amplitude: 1.4, phase: .25, harmonic: 2 }, { bone: "torso", amplitude: run ? 1.6 : .8, phase: .31, harmonic: 2 }] });
     if (run) { rig.track("torso", [{ frame: start, rotate: 9 }]); rig.track("fore-f", [{ frame: start, rotate: -80 }]); rig.track("fore-b", [{ frame: start, rotate: -84 }]); rig.track("head", [{ frame: start, rotate: -6 }]); }
     else rig.track("torso", [{ frame: start, rotate: 3 }]);
-  } else if (m !== "jump") rig.drivers.push({ type: "gait", body: "pelvis", stride: 52 * u, legs });
+  } else if (m !== "jump" && !FLOOR_MOTIONS.has(m)) rig.drivers.push({ type: "gait", body: "pelvis", stride: 52 * u, legs });
 
   /** Plant both feet with IK at root-space spots (x keyed in u) over a window. */
   /** Plant both feet with IK at root-space spots over a window; keys are [frame, x (u), lift (u)] so a foot that moves

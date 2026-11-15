@@ -3,7 +3,7 @@ import {createPencilPhotoStudy} from "../src/video/colored-pencil-photo";
 import type {PencilPhotoPixels} from "../src/video/colored-pencil-photo";
 import {
   CC0_WOMAN_PORTRAIT_SOURCE_FEATURES,createPencilPortraitFeatureMarks,
-  mapCC0WomanPortraitFeatures,
+  mapCC0WomanPortraitFeatures,createPortraitEyeAperture,
 } from "../src/video/colored-pencil-portrait-guides";
 
 const photo=(width=900,height=506):PencilPhotoPixels=>{
@@ -61,6 +61,22 @@ describe("CC0 photo-derived portrait feature construction",()=>{
     expect(()=>mapCC0WomanPortraitFeatures({...layout,mode:"invalid" as never}))
       .toThrow(RangeError);
   });
+  it("constructs upper and lower lids around, NEVER through, source iris landmarks",()=>{
+    const mapped=mapCC0WomanPortraitFeatures(layout);
+    for(const eye of ["near","far"] as const){
+      const aperture=createPortraitEyeAperture(mapped,eye);
+      const apexUpper=(aperture.start[1]+
+        2*aperture.upper[1]+aperture.end[1])/4;
+      const apexLower=(aperture.start[1]+
+        2*aperture.lower[1]+aperture.end[1])/4;
+      expect(apexUpper).toBeLessThan(aperture.center[1]-3);
+      expect(apexLower).toBeGreaterThan(aperture.center[1]+2);
+      expect(aperture.span).toBeGreaterThan(10);
+      expect(()=>createPortraitEyeAperture({
+        ...mapped,[eye==="near"?"eyeNearRight":"eyeFarRight"]:aperture.start,
+      },eye)).toThrow(RangeError);
+    }
+  });
   it("draws independent iris, eyelid, brow, alar and lip families; never a cartoon eye fill",()=>{
     const input=photo();
     const mapped=mapCC0WomanPortraitFeatures(layout);
@@ -68,7 +84,8 @@ describe("CC0 photo-derived portrait feature construction",()=>{
     expect(Object.keys(made.featureCounts)).toEqual(expect.arrayContaining([
       "near-eye-upper","far-eye-upper","brow-near-fibres",
       "brow-far-fibres","iris-near","iris-far",
-      "nose-alar-near","nose-alar-far","lip-top","lip-bottom","lip-grain",
+      "nose-alar-near","nose-alar-far","lip-top","lip-bottom",
+      "lip-opening","lip-grain","near-eye-lower","far-eye-lower",
     ]));
     expect(made.marks.length).toBeGreaterThan(300);
     expect(made.marks.length).toBeLessThan(14000);
@@ -106,6 +123,9 @@ describe("CC0 photo-derived portrait feature construction",()=>{
     },guides)).toThrow(RangeError);
     expect(()=>createPencilPortraitFeatureMarks(photo(),{
       ...guides,eyeNearCenter:[NaN,22],
+    })).toThrow(RangeError);
+    expect(()=>createPencilPortraitFeatureMarks(photo(),{
+      ...guides,lipRight:guides.lipLeft,
     })).toThrow(RangeError);
   });
   it("applies features ONLY when matching photo guides are explicitly supplied",()=>{

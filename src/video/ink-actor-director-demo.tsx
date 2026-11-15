@@ -4,10 +4,10 @@
  */
 import { useMemo } from "react";
 import type { CharacterAsset, CharacterDefinition, CharacterInstance } from "../../registry/character/definition";
-import { inkCraftAsset, DEFAULT_INK_FIGURE_CRAFT } from "../../registry/video/ink-figure-craft";
+import { DEFAULT_INK_FIGURE_CRAFT } from "../../registry/video/ink-figure-craft";
 import { bakeInkClothCorrections } from "../../registry/video/ink-figure-motion";
 import type { InkFigureCraftControls } from "../../registry/video/ink-figure-craft";
-import { INK_TRAVELLER_FOLDS } from "./ink-figure-classical-art";
+import { makeClassicalInkFigure } from "./ink-figure-classical-art";
 export { INK_TRAVELLER_FOLDS } from "./ink-figure-classical-art";
 import { InkCharacter } from "../../registry/video/ink-wash-character-react";
 import { InkWashScene } from "../../registry/video/ink-wash-story-react";
@@ -100,16 +100,11 @@ const WALKING_TRAVELLER_BASE: CharacterDefinition={
 export function makeInkWalkingTraveller(
   controls:InkFigureCraftControls=DEFAULT_INK_FIGURE_CRAFT,
 ):CharacterDefinition {
-  // Only original SVG shapes are augmented. Pivot, channels, facial layers,
-  // acting cues, asset rights and all authored rig limits remain untouched.
-  const assets={...WALKING_TRAVELLER_BASE.assets};
-  for(const [key,folds] of Object.entries(INK_TRAVELLER_FOLDS)){
-    const asset=assets[key];
-    if(!asset||asset.kind!=="shapes")
-      throw new RangeError("INK5 expected the approved vector costume asset "+key);
-    assets[key]=inkCraftAsset(asset,folds,controls);
-  }
-  return {...WALKING_TRAVELLER_BASE,assets};
+  // Match the richer classical portrait atlas already applied to Ensemble.
+  // Director previously attached only the first generic robe-fold layer,
+  // omitting the authored master face, hair, beard and orchid-leaf volumes.
+  // This preserves all source pivots, IK joints and instance properties.
+  return makeClassicalInkFigure(WALKING_TRAVELLER_BASE,"master",controls);
 }
 export const INK_WALKING_TRAVELLER:CharacterDefinition=makeInkWalkingTraveller();
 
@@ -193,9 +188,9 @@ export const INK_DIRECTOR_SHOT:InkShot={
   layers:[{id:"traveler",startFrame:0,durationFrames:1,reveal:"instant",interactive:false}],
 };
 export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false,
-  foldDetail=1,foldContrast=.85,clothAmount=.75}:{
+  foldDetail=1,foldContrast=.85,clothAmount=.75,showCaption=true}:{
   frame:number;aspect?:DirectorAspect;reducedMotion?:boolean;
-  foldDetail?:number;foldContrast?:number;clothAmount?:number;
+  foldDetail?:number;foldContrast?:number;clothAmount?:number;showCaption?:boolean;
 }) {
   const definition=useMemo(()=>makeInkWalkingTraveller({
     ...DEFAULT_INK_FIGURE_CRAFT,detail:foldDetail,contrast:foldContrast,
@@ -227,7 +222,7 @@ export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false,
       }}
       style={{marginTop:10}}
       />}>
-    <div data-km-ink-directed-caption="" style={{position:"absolute",
+    {showCaption && <div data-km-ink-directed-caption="" style={{position:"absolute",
       left:aspect==="portrait"?33:42,top:aspect==="portrait"?76:50,
       width:aspect==="portrait"?450:720,
       color:"#303832",pointerEvents:"none"}}>
@@ -240,6 +235,6 @@ export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false,
       <div style={{font:"14px/1.5 Arial, sans-serif",marginTop:9,opacity:.7}}>
         Feet settle. Cloth follows. The ink holds.
       </div>
-    </div>
+    </div>}
   </InkWashScene>;
 }

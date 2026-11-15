@@ -1,14 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { cameraAt, carvedLine, ease, loopOffsets, scrollPan, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
+import { cameraAt, carvedLine, ease, loopOffsets, scrollPan, seedOf, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
 import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES } from "../registry/video/ukiyoe/ukiyoe-creatures";
-import { drawFigure, facingAt, figurePose, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
+import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
+import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
+import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
 import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
 import { expandCrowd } from "../registry/video/ukiyoe/ukiyoe-crowd";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../registry/video/ukiyoe/ukiyoe-oiran";
 import { UKIYOE_MAIKO_LOOK } from "../registry/video/ukiyoe/ukiyoe-maiko";
-import { samuraiKata, swordAt, swordGeometry, UKIYOE_SAMURAI_LOOK } from "../registry/video/ukiyoe/ukiyoe-katana";
+import { BLADE, samuraiDuel, samuraiKata, swordAt, swordGeometry, UKIYOE_SAMURAI_LOOK } from "../registry/video/ukiyoe/ukiyoe-katana";
 import { palette, resolvePaint } from "../registry/video/ukiyoe/ukiyoe-pigments";
 import { nodeState, UkiyoeScene } from "../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeSceneSpec } from "../registry/video/ukiyoe/ukiyoe-scene";
@@ -302,6 +304,135 @@ describe("UKIYO1 samurai and katana", () => {
     expect(inspectUkiyoeScene(scene({ durationFrames: 480, nodes: [{ id: "s", kind: "figure", look: UKIYOE_SAMURAI_LOOK, actions: kata }] }))).toEqual([]);
     expect(inspectUkiyoeScene(scene({ nodes: [{ id: "s", kind: "figure", look: { ...UKIYOE_SAMURAI_LOOK, swords: "spear" as never }, actions: [{ type: "kamae", start: 0, end: 9, form: "low" as never }] }] })).map(i => i.path))
       .toEqual(expect.arrayContaining(["$.nodes[0].look.swords", "$.nodes[0].actions[0].form"]));
+  });
+});
+
+describe("UKIYO1 duels", () => {
+  type Fig = { x: number; y: number; scale: number; facing: "left" | "right"; look: never; actions: UkiyoeAction[] };
+  const nodes = samuraiDuel({ id: "d", x: 700, y: 900, scale: 1.4 }) as unknown as [Fig, Fig, { bursts: { frame: number; x: number; y: number }[] }];
+  const [A, B, sparks] = nodes;
+  /** A fighter's blade in world coordinates at a frame: guard and tip. */
+  const blade = (n: Fig, f: number) => {
+    const sw = figureSwordAt({ look: n.look, actions: n.actions, facing: n.facing }, f)!, dir = n.facing === "left" ? -1 : 1;
+    const t: [number, number] = [n.x + dir * sw.tsuba[0] * n.scale, n.y + sw.tsuba[1] * n.scale], a = (n.facing === "left" ? 180 - sw.a : sw.a) * Math.PI / 180, L = BLADE * 250 * n.scale;
+    return { t, tip: [t[0] + Math.cos(a) * L, t[1] + Math.sin(a) * L] as [number, number] };
+  };
+  const nearest = (p: [number, number], q: [number, number], r: [number, number], s2: [number, number]) => {
+    let best = Infinity;
+    for (let i = 0; i <= 80; i++) for (let j = 0; j <= 80; j++) { const u = i / 80, v = j / 80; best = Math.min(best, Math.hypot(p[0] + (q[0] - p[0]) * u - r[0] - (s2[0] - r[0]) * v, p[1] + (q[1] - p[1]) * u - r[1] - (s2[1] - r[1]) * v)); }
+    return best;
+  };
+  it("crosses the two blades exactly on every contact frame, sparks flying from the crossing", () => {
+    expect(sparks.bursts.length).toBe(4);
+    for (const b of sparks.bursts) {
+      const a = blade(A, b.frame), d = blade(B, b.frame);
+      expect(nearest(a.t, a.tip, d.t, d.tip), `frame ${b.frame}`).toBeLessThan(2);                 // the blades touch
+      expect(nearest(a.t, a.tip, [b.x, b.y], [b.x, b.y]), `frame ${b.frame}`).toBeLessThan(2);    // at the spark
+      expect(nearest(d.t, d.tip, [b.x, b.y], [b.x, b.y]), `frame ${b.frame}`).toBeLessThan(2);
+      // A few frames before contact they have not met yet.
+      const a0 = blade(A, b.frame - 8), d0 = blade(B, b.frame - 8);
+      expect(nearest(a0.t, a0.tip, d0.t, d0.tip)).toBeGreaterThan(4);
+    }
+  });
+  it("strikes home with the last cut: the defender's blade drops and he falls and stays down", () => {
+    const hit = A.actions.find(a => a.type === "cut" && a.parried === false)!;
+    expect(B.actions.some(a => a.type === "parry" && a.contact === hit.contact)).toBe(false);
+    const lying = (f: number) => figurePose({ look: B.look, actions: B.actions, facing: "left" }, f, 0, 250).fall;
+    expect(lying(hit.contact! - 1)).toBe(0);
+    expect(lying(hit.contact! + 60)).toBe(1);
+    expect(lying(hit.contact! + 200)).toBe(1);
+    expect(swordAt(A.actions, hit.contact! + 200).held).toBe(false);                               // the victor has sheathed
+    expect(inspectUkiyoeScene(scene({ durationFrames: 640, nodes: nodes as never }))).toEqual([]);
+  });
+});
+
+describe("UKIYO1 oni fight", () => {
+  type Fig = { x: number; y: number; scale: number; facing: "left" | "right"; look: never; actions: UkiyoeAction[] };
+  const fight = oniFight({ id: "f", x: 760, y: 900, scale: 1.3 });
+  const [oni, hero] = fight.nodes as unknown as [Fig, Fig];
+  const sparks = (fight.nodes[2] as unknown as { bursts: { frame: number; x: number; y: number }[] }).bursts;
+  /** A weapon in world coordinates: the grip (or guard) and the far end. */
+  const weapon = (n: Fig, f: number, kind: "club" | "sword") => {
+    const spec = { look: n.look, actions: n.actions, facing: n.facing };
+    const w = kind === "club" ? figureClubAt(spec, f)! : figureSwordAt(spec, f)!, p = "grip" in w ? w.grip : w.tsuba, dir = n.facing === "left" ? -1 : 1, tr = travelAt(n.actions, f);
+    const t: [number, number] = [n.x + dir * (p[0] + tr.x) * n.scale, n.y + (p[1] + tr.y) * n.scale], a = (n.facing === "left" ? 180 - w.a : w.a) * Math.PI / 180;
+    const L = (kind === "club" ? CLUB * 300 : BLADE * 250) * n.scale;
+    return { t, tip: [t[0] + Math.cos(a) * L, t[1] + Math.sin(a) * L] as [number, number] };
+  };
+  const near = (p: [number, number], q: [number, number], r: [number, number], s2: [number, number]) => {
+    let best = Infinity;
+    for (let i = 0; i <= 80; i++) for (let j = 0; j <= 80; j++) { const u = i / 80, v = j / 80; best = Math.min(best, Math.hypot(p[0] + (q[0] - p[0]) * u - r[0] - (s2[0] - r[0]) * v, p[1] + (q[1] - p[1]) * u - r[1] - (s2[1] - r[1]) * v)); }
+    return best;
+  };
+  it("brings the smash's head down exactly on the ground, clear of the hero who sprang back", () => {
+    for (const a of oni.actions.filter(x => x.type === "smash")) {
+      const c = weapon(oni, a.contact!, "club"), heroFeet = hero.x + travelAt(hero.actions, a.contact!).x * hero.scale;
+      expect(Math.abs(c.tip[1] - oni.y), `frame ${a.contact}`).toBeLessThan(1);
+      expect(c.tip[0] - heroFeet, `frame ${a.contact}`).toBeGreaterThan(40);                   // lands in front of him
+    }
+  });
+  it("meets blade and club exactly at the sparks, and the last cut reaches the oni", () => {
+    expect(sparks.length).toBe(2);
+    for (const b of sparks) {
+      const c = weapon(oni, b.frame, "club"), s2 = weapon(hero, b.frame, "sword");
+      expect(near(c.t, c.tip, s2.t, s2.tip), `frame ${b.frame}`).toBeLessThan(2);
+      expect(near(s2.t, s2.tip, [b.x, b.y], [b.x, b.y])).toBeLessThan(2);
+    }
+    const fin = hero.actions.find(a => a.type === "cut" && a.parried === false)!, tip = weapon(hero, fin.contact!, "sword").tip;
+    expect(Math.abs(tip[0] - oni.x)).toBeLessThan(.12 * 300 * oni.scale);                       // inside the oni's body
+    expect(figurePose({ look: oni.look, actions: oni.actions, facing: "left" }, fin.contact! + 80, 0, 300).fall).toBe(1);
+    expect(figureClubAt({ look: oni.look, actions: oni.actions, facing: "left" }, fin.contact! + 80)!.dropped).toBe(1);
+    expect(inspectUkiyoeScene(scene({ durationFrames: 640, camera: { shake: fight.shake }, nodes: fight.nodes as never }))).toEqual([]);
+  });
+});
+
+describe("UKIYO1 castle", () => {
+  type P = { t: string; d?: string; fill?: unknown; color?: unknown; prims?: P[] };
+  const flat = (ps: P[]): P[] => ps.flatMap(p => p.t === "group" || p.t === "clip" ? flat(p.prims ?? []) : [p]);
+  const draw = (params: Record<string, unknown>) => flat(drawMotif("castle", { width: 900, ...params }, { frame: 0, wind: 0, seed: 7, progress: 1 }) as P[]);
+  const shachi = (ps: P[]) => ps.filter(p => p.t === "fill" && p.fill === "kin" && (p.d!.match(/C/g) ?? []).length >= 5).length;
+  it("draws the keep, walls, turrets, gate, moat and bridge, and its parameters change it", () => {
+    const base = draw({});
+    expect(JSON.stringify(draw({}))).toEqual(JSON.stringify(base));                                // deterministic
+    expect(shachi(base)).toBe(2);                                                                     // a pair on the top ridge
+    const roofs = (tiers: number) => draw({ tiers, walls: false }).filter(p => p.t === "line" && p.color === "sumi").length;
+    expect(roofs(5)).toBeGreaterThan(roofs(3));                                                     // more tiers, more roofs
+    expect(draw({ walls: false }).length).toBeLessThan(base.length / 2);                            // the keep alone
+    expect(draw({ style: "black" }).some(p => p.t === "fill" && JSON.stringify(p.fill).includes("kogecha") && JSON.stringify(p.fill).includes("\"angle\":0"))).toBe(true);
+    expect(draw({ night: 1 }).filter(p => p.t === "glow").length).toBeGreaterThan(20);              // lit windows
+    expect(draw({ snow: 1 }).filter(p => p.t === "fill" && p.fill === "gofun").length).toBeGreaterThan(base.filter(p => p.t === "fill" && p.fill === "gofun").length);
+    // Everything stands above the water line except the moat and the bridge in front.
+    const ys = base.filter(p => p.t === "fill" && p.fill !== "gofun" && !/[hva]/.test(p.d!)).flatMap(p => p.d!.match(/-?\d+(\.\d+)?/g)!.map(Number).filter((_, i) => i % 2 === 1));
+    expect(Math.max(...ys)).toBeLessThanOrEqual(900 * .1 + 1);
+    // Long galleries on the walls by default (a dobei wall instead has loopholes), pines along the bailey, the walls
+    // mirrored in the moat.
+    const matsu = (ps: P[]) => ps.filter(p => p.t === "fill" && p.fill === "matsu").length;
+    expect(matsu(base)).toBeGreaterThan(matsu(draw({ pines: 0 })));
+    expect(draw({ wall: "dobei" }).length).not.toBe(base.length);
+    expect(JSON.stringify(drawMotif("castle", { width: 900 }, { frame: 0, wind: 0, seed: 7, progress: 1 }))).toContain("scale(1 -0.62)");
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "c", kind: "motif", motif: "castle", params: { tiers: 4, style: "black" } }] }))).toEqual([]);
+  });
+});
+
+describe("UKIYO1 castle town", () => {
+  it("validates, draws its four town motifs, pans from the castle to the street, and keeps every walker off the canal", () => {
+    const spec = castleTown();
+    expect(inspectUkiyoeScene(spec)).toEqual([]);
+    for (const m of ["shop", "kura", "yashiki", "firetower"] as const) expect(drawMotif(m, {}, { frame: 0, wind: .3, seed: 3, progress: 1 }).length, m).toBeGreaterThan(8);
+    const cam = (f: number) => cameraAt(spec.camera, f, spec.width, spec.height).x;
+    expect(cam(0)).toBeLessThan(1200);                                                            // starts at the castle
+    expect(cam(spec.durationFrames - 1)).toBeGreaterThan(5000);                                 // ends in the merchant street
+    // The canal's water runs between x 3680 and 4220; no walker may ever stand there.
+    for (const n of spec.nodes.filter(x => x.kind === "crowd")) {
+      const c = n as Extract<typeof n, { kind: "crowd" }>;
+      // Expanded exactly as the renderer expands it (scene seed ^ node id); travel is in the figure's scaled frame.
+      for (const m of expandCrowd({ ...c, frames: c.frames ?? spec.durationFrames }, (spec.seed ^ seedOf(c.id)) >>> 0)) for (let f = 0; f < spec.durationFrames; f += 15) {
+        const x = (c.x ?? 0) + m.x + travelAt(m.actions, f).x * m.scale;
+        expect(x < 3680 || x > 4220, `${m.id} at frame ${f}: x ${x.toFixed(0)}`).toBe(true);
+      }
+    }
+    // No text in the scroll, so nothing for captions to collide with.
+    expect(spec.nodes.some(n => n.kind === "text")).toBe(false);
   });
 });
 

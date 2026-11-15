@@ -3561,6 +3561,16 @@
           "target": "components/rig/rig-presets-sword.ts"
         },
         {
+          "path": "registry/rig/rig-presets-archery.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-presets-archery.ts"
+        },
+        {
+          "path": "registry/rig/rig-presets-rest.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-presets-rest.ts"
+        },
+        {
           "path": "registry/rig/rig-flutter.ts",
           "type": "registry:ui",
           "target": "components/rig/rig-flutter.ts"
@@ -3721,6 +3731,21 @@
           "path": "registry/video/ukiyoe/ukiyoe-katana.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-katana.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-oni.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-oni.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-castle.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-castle.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-town.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-town.ts"
         },
         {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",

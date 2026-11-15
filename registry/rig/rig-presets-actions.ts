@@ -22,8 +22,12 @@ import { projectPlate } from "./rig-flutter";
 import { Rig, ell, path, poly, rect } from "./rig-kit";
 import { SWORD_MOTIONS, addSwordAction } from "./rig-presets-sword";
 import type { SwordMotion } from "./rig-presets-sword";
+import { ARCHERY_MOTIONS, addArcheryAction } from "./rig-presets-archery";
+import type { ArcheryMotion } from "./rig-presets-archery";
+import { REST_MOTIONS, addRestAction } from "./rig-presets-rest";
+import type { RestMotion } from "./rig-presets-rest";
 
-export const ACTION_MOTIONS = ["shoot", "box", "kick", ...SWORD_MOTIONS, "chop", "pan-toss"] as const;
+export const ACTION_MOTIONS = ["shoot", "box", "kick", ...SWORD_MOTIONS, ...ARCHERY_MOTIONS, "chop", "pan-toss", ...REST_MOTIONS] as const;
 export type ActionMotion = (typeof ACTION_MOTIONS)[number];
 
 type Ease = RigKey["ease"];
@@ -160,6 +164,8 @@ export function addPersonAction(rig: Rig, m: ActionMotion, c: ActionContext): vo
   }
 
   if ((SWORD_MOTIONS as readonly string[]).includes(m)) { addSwordAction(rig, m as SwordMotion, { u, start, end, plant }); return; }
+  if ((ARCHERY_MOTIONS as readonly string[]).includes(m)) { addArcheryAction(rig, m as ArcheryMotion, { u, start, end, plant }); return; }
+  if ((REST_MOTIONS as readonly string[]).includes(m)) { addRestAction(rig, m as RestMotion, { u, start, end, t, plant }); return; }
 
   // ---- Kitchen ----
   const TOP = -52;

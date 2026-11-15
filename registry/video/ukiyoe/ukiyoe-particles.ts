@@ -9,8 +9,8 @@ import type { Prim } from "./ukiyoe-prims";
 import { circleD } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 
-export type UkiyoeParticleType = "rain" | "snow" | "petals" | "leaves" | "fireflies" | "birds" | "fireworks" | "spray" | "embers" | "ripples";
-export const UKIYOE_PARTICLES: readonly UkiyoeParticleType[] = ["rain", "snow", "petals", "leaves", "fireflies", "birds", "fireworks", "spray", "embers", "ripples"];
+export type UkiyoeParticleType = "rain" | "snow" | "petals" | "leaves" | "fireflies" | "birds" | "fireworks" | "spray" | "embers" | "ripples" | "sparks";
+export const UKIYOE_PARTICLES: readonly UkiyoeParticleType[] = ["rain", "snow", "petals", "leaves", "fireflies", "birds", "fireworks", "spray", "embers", "ripples", "sparks"];
 
 export interface UkiyoeBurst { frame: number; x: number; y: number; radius?: number; color?: UkiyoePaint; count?: number; kind?: "peony" | "willow" | "ring"; launchFrom?: number }
 export interface UkiyoeParticleSpec {
@@ -110,6 +110,25 @@ export function drawParticles(spec: UkiyoeParticleSpec, frame: number, wind: num
         d.push(`M${(cx - r).toFixed(1)} ${cy.toFixed(1)}a${r.toFixed(1)} ${(r * .3).toFixed(1)} 0 1 0 ${(2 * r).toFixed(1)} 0a${r.toFixed(1)} ${(r * .3).toFixed(1)} 0 1 0 ${(-2 * r).toFixed(1)} 0`);
       }
       out.push({ t: "stroke", d: d.join(""), color: spec.color ?? "gofun", width: 1.2, opacity: (spec.opacity ?? .6) });
+      return out;
+    }
+    case "sparks": {
+      // Steel on steel: at each burst a white flash, then short gold streaks fly out from the point of contact and fall,
+      // gone in about half a second. Each streak is drawn from where it was a frame and a half before (its motion).
+      for (const [bi, b] of (spec.bursts ?? []).entries()) {
+        const t = frame - b.frame, s = seed + bi * 131, count = b.count ?? 22, R = b.radius ?? 60;
+        if (t < 0 || t > 16) continue;
+        if (t < 5) out.push({ t: "glow", cx: b.x, cy: b.y, r: R * (.6 + t * .12), color: "gofun", opacity: .85 * (1 - t / 5) });
+        const streaks: string[] = [];
+        for (let i = 0; i < count; i++) {
+          const a = (hash01(s, i, 1) * 360 - 90 + (spec.angle ?? 0)) * DEG, v = R / 7 * (.45 + .8 * hash01(s, i, 2));
+          const at = (u: number): Pt => [b.x + Math.cos(a) * v * u + wind * u * .6, b.y + Math.sin(a) * v * u + .32 * u * u];
+          const p0 = at(Math.max(0, t - 1.5)), p1 = at(t);
+          if (t < 16 - 6 * hash01(s, i, 3)) streaks.push(`M${p0[0].toFixed(1)} ${p0[1].toFixed(1)}L${p1[0].toFixed(1)} ${p1[1].toFixed(1)}`);
+        }
+        out.push({ t: "stroke", d: streaks.join(""), color: b.color ?? "kin", width: 1.6 * size, opacity: 1 - span(t, 8, 16), cap: "round" });
+        out.push({ t: "stroke", d: streaks.join(""), color: "gofun", width: .7 * size, opacity: (1 - span(t, 4, 12)) * .9, cap: "round" });
+      }
       return out;
     }
     case "fireworks": case "spray": {

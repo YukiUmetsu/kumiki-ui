@@ -1,0 +1,188 @@
+{
+  "schema_version": 3,
+  "project": "PAPER-R1 The Moonlit Lantern — original code-authored royal animal fairytale",
+  "mode": "style-guided-original-construction",
+  "reference_policy": {
+    "min_references": 3,
+    "min_deep_studies": 2
+  },
+  "sources": [
+    {
+      "id": "reiniger",
+      "title": "The Adventures of Prince Achmed (1926) — silhouette animation reference",
+      "creator": "Lotte Reiniger",
+      "url": "https://www.designstylebook.com/cinematography/silhouette-animation",
+      "rights": "Historical work and linked documentation; rights of each frame must be checked; no frames or characters copied",
+      "medium": "articulated silhouette cut-outs",
+      "deep_study": true,
+      "view": "silhouette and workflow description",
+      "analysis": {
+        "macro": "Decorative profile characters read at a glance; illuminated cut stock separates figure and stage",
+        "meso": "Separate small joints are pin-registered and follow stylized physical arcs",
+        "micro": "Decorative negative-space cutouts in headdress/clothing; precise source measurements unavailable",
+        "motion": "Moving pieces keep their silhouette; no generalized elastic morph"
+      }
+    },
+    {
+      "id": "swan",
+      "title": "Swan Lake — Paper Theatre",
+      "creator": "Auzou",
+      "url": "https://hupalupa.store/en/auzou-swan-lake-paper-theatre",
+      "rights": "Copyrighted publication photographed for sale; visual study only, no images bundled",
+      "medium": "multi-layer book-paper stage",
+      "deep_study": true,
+      "view": "published theater illustration visible in product preview",
+      "analysis": {
+        "macro": "A crowned figure occupies a forest portal; woodland animals and water carry narrative depth",
+        "meso": "Mid-distance water and trees frame the figure without burying the face",
+        "micro": "Foliage edges and page shadows distinguish physical cut stock",
+        "motion": "Still image; character movement cannot be inferred from source"
+      }
+    },
+    {
+      "id": "knights",
+      "title": "Knight's Stories — A Pop Up Theatre",
+      "creator": "Pop-up theater artist showcase",
+      "url": "https://www.behance.net/gallery/55723629/Knights-Stories-A-Pop-Up-Theatre",
+      "rights": "Artist copyright; reference only, no shapes traced",
+      "medium": "book pop-up scene and folded 2D figures",
+      "deep_study": true,
+      "view": "full-stage photographed paper construction",
+      "analysis": {
+        "macro": "Layered theatrical framing with a discrete hero, forest and animals",
+        "meso": "Visible props, ground contact and cut cardboard edges",
+        "micro": "Costume color fields and cut-paper seams rather than flat transparent cartoons",
+        "motion": "Still image; no verified motion study"
+      }
+    },
+    {
+      "id": "sidekicks",
+      "title": "Disney Sidekick Adventures — Shape & Shadow production",
+      "creator": "Shape & Shadow / Mighty Oak",
+      "url": "https://www.shapeandshadow.com/new-gallery-49/",
+      "rights": "Commercial animated project; cinematography/production study only, no Disney designs reused",
+      "medium": "stop motion down-shooter articulated paper puppets",
+      "deep_study": false,
+      "view": "production description and behind-the-scenes link",
+      "analysis": {
+        "macro": "Miniature stage character blocking and expressive supporting animal parts",
+        "meso": "Replacement cutouts with linked pivots and repeated character identity",
+        "micro": "Independent small paper details in each limb and face",
+        "motion": "Frame-by-frame stop motion reported; footage was not inspected frame by frame"
+      }
+    },
+    {
+      "id": "swanlight",
+      "title": "Paper carving forest lovers lamp",
+      "creator": "Floral Footprint",
+      "url": "https://www.pinkoi.com/product/eQGiDQMK",
+      "rights": "Copyrighted paper-sculpture product; style study only",
+      "medium": "layered paper lightbox",
+      "deep_study": false,
+      "view": "finished photographed relief",
+      "analysis": {
+        "macro": "Two adult figures centered amid animals and detailed framing; balanced luminous negative space",
+        "meso": "Overlapping figures separate from foreground leaves by depth and shadows",
+        "micro": "Pierced details in trees and fabric, while faces remain simple",
+        "motion": "Static physical paper lamp"
+      }
+    }
+  ],
+  "feature_targets": [
+    {
+      "id": "royal-actors",
+      "reference_ids": [
+        "reiniger",
+        "swan",
+        "knights"
+      ],
+      "critical": true,
+      "source_observation": "Human identity reads through crowned profile, distinct garment silhouettes, nested hair and dress/coat folds",
+      "geometry_rule": "Two distinct adult puppet bodies, independent head crowns, eyelids, hair, embroidered seams, flowing gown and tailored coat; hierarchical rigid sheet pivots",
+      "part_ids": [
+        "princess-bodice",
+        "princess-head",
+        "princess-tiara",
+        "princess-hair-braid",
+        "prince-coat",
+        "prince-head",
+        "prince-crown",
+        "prince-left-arm"
+      ],
+      "test_view": "16:9/9:16 chapter f130, f370, f610 1× and 3× head/hands/gown/coat"
+    },
+    {
+      "id": "animals",
+      "reference_ids": [
+        "swan",
+        "knights",
+        "sidekicks"
+      ],
+      "critical": true,
+      "source_observation": "Animals support story with recognizable ears, tails, antlers and wing roots instead of anonymous oval blobs",
+      "geometry_rule": "Fox tail on common body transform, rabbit layered ears on head parent, deer branch antlers, owl hinged wings; separate nontransparent stock per material plane",
+      "part_ids": [
+        "fox-body",
+        "fox-tail",
+        "rabbit-head",
+        "rabbit-ear-left",
+        "deer-head",
+        "deer-antlers",
+        "owl-body",
+        "owl-wing-right"
+      ],
+      "test_view": "Act 1, Act 2 and extreme/settled motion frame"
+    },
+    {
+      "id": "environment",
+      "reference_ids": [
+        "swan",
+        "knights",
+        "swanlight"
+      ],
+      "critical": true,
+      "source_observation": "Real physical depth planes and forest arch protect an illuminated central aperture and legible figures",
+      "geometry_rule": "Root branch lace from frame edges with individually constructed leaf stock; moon, castle, creek and flowers use disjoint depth and opaque materials",
+      "part_ids": [
+        "forest-left-wood",
+        "forest-right-foliage",
+        "moon-face",
+        "castle-walls",
+        "silver-creek",
+        "meadow-stems",
+        "stage-frame"
+      ],
+      "test_view": "Landscape and portrait full frame at f130/f610"
+    },
+    {
+      "id": "motion",
+      "reference_ids": [
+        "reiniger",
+        "sidekicks"
+      ],
+      "critical": true,
+      "source_observation": "Separate cut pieces rotate about common pins while bodies traverse stage; no ghost alpha dissolves",
+      "geometry_rule": "PAPER-D2 parentId and explicit shared rest-sheet pivots for roots/limbs/head/ears/wings; 30 fps frame-absolute keys; opaque 24-frame paper-curtain edit",
+      "part_ids": [
+        "princess-right-sleeve",
+        "prince-left-arm",
+        "fox-tail",
+        "rabbit-ear-left",
+        "owl-wing-right"
+      ],
+      "test_view": "Frame 0,120,239; boundaries 239→240 and 479→480; normal-speed encoded test"
+    }
+  ],
+  "notes": {
+    "rights": "Only original procedural paper geometry is included, not artistic source images or likenesses.",
+    "observational_limits": "Linked online previews studied; no high-resolution rights-cleared reference crops for numeric portrait fidelity, and external motion clips were not frame-sequenced. Qualitative reference-led art, not pixel likeness.",
+    "quality_gate": "Visual inspection and actual chapter playback are required; passing source validator and CI alone cannot prove artist-grade character faces.",
+    "detail_priorities": [
+      "face eyelid and profile shape",
+      "hands attached beneath sleeve",
+      "gown fabric folds",
+      "leg/ground contact and foot-slide avoidance",
+      "deer antler and owl wing continuity"
+    ]
+  }
+}

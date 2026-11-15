@@ -453,6 +453,152 @@ The counts of kanzashi and the weights given vary between sources and were not u
 - No film uses the samurai yet.
 - Nobody has done a human visual review yet.
 
+## Duels (roadmap U3b, owner request, 2026-11-15)
+
+**What was built.**
+
+- **Aimed exchanges.** Contact is solved geometrically, not hoped for. Each exchange names its contact frame. The attacker's cut and the defender's receiving guard are both aimed at one point a quarter-height in front of the defender's brow. On that frame each blade is turned to pass through the point, wherever the figure's neck and hands actually are.
+- **Sparks.** A `sparks` particle bursts from that point.
+- **Parried or not.** A parried cut stops on the blade and rebounds. An unparried cut follows through.
+- **Hit and fall.** The struck figure recoils, and his blade drops. He topples back about his heels (`fall`, accelerating), his sword and scabbards laid along his body so nothing pierces the ground. The victor holds, clears his blade and sheathes it.
+- **Recipe and Storybook.** `samuraiDuel()` builds the whole duel from a list of exchanges. Storybook **Samurai duel** shows it in a moonlit field of pampas grass.
+
+**Measured.**
+
+- On every contact frame of the default duel the two blades cross within 0.2 px: 83% along the attacker's blade and 49% along the defender's. The spark sits on both.
+- Eight frames earlier the blades have not met.
+- Frame tracking of the fall found three defects, all fixed:
+  - the dropped blade spun a full circle the long way;
+  - while kneeling, the lowered blade went into the ground;
+  - lying down, the sword stuck straight up and the scabbards stabbed down.
+- The tests check contact within 2 px, that the defender falls and stays down, and that the victor sheathes.
+
+**Not done.**
+
+- No footwork: the fighters stand their ground.
+- Every cut is the same high diagonal.
+- No armour.
+- No film uses a duel yet.
+- Nobody has done a human visual review yet.
+
+## Oni weapons and fighting (roadmap U4, owner request, 2026-11-15)
+
+**Sources.**
+
+- Wikimedia Commons museum photographs of kanabō: *Antique Japanese kanabo 12*, *Kanabo tetsubo*, *Kanabo with handle* (CC BY-SA 3.0, studied only and not redistributed).
+- Public-domain prints: Kuniyoshi's *Imperial Bodyguard Fighting with a Demon* and *Kidōmaru*, and Utagawa Toyoharu's *Momotarō no oni-taiji*.
+- The Met's open-access search gave little on the club.
+
+**What they show.**
+
+- **The club.** A long iron-shod club, thickening toward the head, its striking half set with rows of iron studs, iron bands, a wrapped grip and an iron ring at the butt.
+- **The oni.** Wild hair, sinewy limbs and big diagonal action; defeated oni bow to Momotarō.
+
+**Measured.**
+
+- **Smashes.** The head lands within 0.0 px of the ground at both smashes. It had first sunk about 30 px into the ground when the aim ignored the crouching body; the angle is now solved from the actual hands. It lands at least 40 px clear of the hero, who springs back.
+- **Club against blade.** Club and blade meet within 0.6 px at both parries, and the sparks sit on both.
+- **Final cut.** Its tip lands inside the oni's body.
+- **Dust.** Placed by the recipe, the dust was about 100 px from the actual impact. It is now drawn by the figure at the club's head.
+- **Shake.** The first camera shake was about 98 px and 5° and showed the page edge. It is now about 11 px and half a degree.
+- The tests check the ground contact, the clearance, the club-on-blade meetings, the final cut, the fall and the dropped club.
+
+**Not done.**
+
+- The oni's fall seen square on is a foreshortened collapse, not a drawn pose.
+- No oni weapons other than the kanabō.
+- No film uses the fight yet.
+- Nobody has done a human visual review yet.
+
+## Castle (roadmap U5, owner request, 2026-11-15)
+
+**Sources.**
+
+- Public-domain Meiji-era photographs on Wikimedia Commons: *Nagoya Castle in 1880s*, *Kumamoto Castle oldphoto 1874*, *Himejicastle-meiji*.
+- Hiroshige's Tōkaidō views with castles from the Met's open-access collection: *Kuwana* (55587), *Odawara* (36931) and *Nihonbashi* (37195).
+
+**What they show.**
+
+- **Keep.** Stacked tiers, each smaller, with deep dark eaves turning up at the corners.
+- **Gables.** Triangular chidori gables and a curved karahafu stand forward on the roof faces.
+- **Walls.** White plaster with rows of small barred windows (Kumamoto: black boarding below).
+- **Ridge.** Gold shachihoko on the top ridge.
+- **Stone base.** A tall base whose faces are shallow at the foot and steep at the top, with long-and-short interlocking corner stones.
+- **Outer works.** Corner turrets and long walled galleries on the stonework, gates, moats.
+
+**What was built.** `ukiyoe-castle.ts` (`motif: "castle"`) draws the keep, the outer wall, the turrets, the gate, the moat and the bridge, seen slightly from the side. It takes `tiers`, `style`, `snow`, `night`, `depth`, and `walls` / `turrets` / `gate` / `moat` / `bridge`. Three examples are in the Motifs gallery.
+
+**Review rounds (screenshots at 0.6× and 1.6×).**
+
+1. **First draft.** The stone base bulged like a dome (the fan curve was inverted). The roofs were thin, and the elevation was flat. The base now flares at the foot and steepens at the top; the roofs are deeper with wider eaves; storeys, roofs and stone bases have shaded side faces.
+2. **Second round.**
+   - The keep base's side face ballooned outward; it is now a straight receding face.
+   - The shachihoko were oversized and have been scaled down.
+3. **Close-up.**
+   - The chidori gables were hidden by the storey above. They are now drawn after the whole tower, standing in front with tiled bargeboards and a gold gegyo.
+   - Hip lines started under the upturned corners and left spikes; they now start at the corners.
+   - The side eave left a notch at the front corner; it now starts from the upturned front corner.
+   - A chidori gable covered the karahafu; that tier now carries only the karahafu.
+
+**Further study (owner request: "study more castle references").** More public-domain Meiji photographs and prints, from Wikimedia Commons:
+
+- Beato's views of Edo castle: *Castle of Yedo, inner moat*, *Yedo castlemoat*, *Tycoon's Palace double bridge*
+- *Matsumoto Castle Old Photograph*
+- *Nijō Castle in Kyoto, before 1902*
+- Hiroshige's *One Hundred Famous Views of Edo* no. 66 and *Soto Sakurada*
+- Hiroshige III's *Kudanzaka Ushigabuchi*
+
+They showed five things the motif lacked, all now built:
+
+- **Stones.** The stones are irregular blocks, not neat courses. They are biggest at the foot and the corners, each with its own tone, and the joints never line up. They are now drawn that way.
+- **Galleries.** The walls carry long white gallery buildings (tamon-yagura) with rows of windows and tiled roofs (Edo). These are the default; the plain loopholed wall is `wall: "dobei"`.
+- **Top roof.** The top roof is hip-and-gable, with a big gable on its end face (Edo's Fujimi turret, Nagoya). It is now drawn on the receding face.
+- **Reflections.** The moats mirror the walls (Matsumoto, Edo); the walls are now reflected, faded, in the moat.
+- **Pines.** Hiroshige crowns castle walls with umbrella pines. Now `pines` stand along the bailey behind the wall.
+
+**Not done.**
+
+- A single fixed angle (left to right); `flip` mirrors it.
+- No second bailey; the grassy earthwork banks (dote) of Edo's outer moats are not drawn.
+- The stone wall runs are frontal.
+- No film uses the castle yet.
+- Nobody has done a human visual review yet.
+
+## Castle town (roadmap U6, owner request, 2026-11-15)
+
+**Sources.**
+
+- Hiroshige's *One Hundred Famous Views of Edo* no. 8, *Suruga-chō* (Wikimedia Commons, public domain).
+- From the Met: Hiroshige's *Asakusa Kaminarimon*, *Twilight Moon at Ryōgoku Bridge* and *Sudden Shower over Shin-Ōhashi*.
+- Beato's *View of Yedo* (public domain).
+- Yoshitoshi's Yaoya Oshichi climbing a fire-watch tower (public domain).
+- A photograph of a surviving hinomi-yagura (CC BY 2.1 JP; studied only, not redistributed).
+
+**What they show.**
+
+- **Merchant streets.** Lines of big shops under heavy tiled roofs, indigo noren with white crests across the fronts, standing signs and slit windows above, crowds on the street, mist bands, Fuji beyond.
+- **Samurai quarters.** Long white walls with gatehouses, pines behind, moats with grassy banks.
+- **Bridges.** Long wooden bridges on piles, boats below.
+- **Fire-watch towers.** Tapering timber legs, a lashed ladder, a platform with a bell under a little roof.
+
+**What was built.** `ukiyoe-town.ts` adds the `shop`, `kura`, `yashiki` and `firetower` motifs and the `castleTown()` scene (6,400 px, four stations). Storybook has **Castle town**, and the Motifs gallery has the four new motifs.
+
+**Review rounds.**
+
+1. **First pass.**
+   - The keep's top was cut off, and the castle floated over a band of sky. The town now has one ground that rises to the castle's hill, and the castle is smaller.
+   - The street covered the bridge. The street is now split, with the canal water, stone banks, the bridge over it and a boat in it.
+   - The residence pines were spindly and have been shortened.
+2. **Tracking the crowds frame by frame** showed walkers would wade into the canal. They are now placed and directed so none ever stands on the water; the test checks every walker every 15 frames.
+3. **Distant range.** A hard white snow line on the range in the snowless version was removed.
+
+**Not done.**
+
+- Walkers do not cross the bridge.
+- The street is seen from the side, not in Suruga-chō's deep perspective.
+- No night version.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

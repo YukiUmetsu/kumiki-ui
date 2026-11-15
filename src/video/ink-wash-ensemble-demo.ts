@@ -56,6 +56,11 @@ export function inkDuet(
       startFrame: 101, endFrame: 247, instanceId: second.instanceId },
     { id: "learner-attend", kind: "expression", name: "attentive",
       startFrame: 135, endFrame: 245, instanceId: second.instanceId },
+    // Receptive arm direction supplies the missing shared action: one
+    // person lifting a sleeve while the other keeps both arms down leaves
+    // the posed hand anchors separated vertically by over 70 paper px.
+    { id: "learner-reciprocate", kind: "action", name: "greet",
+      startFrame: 154, instanceId: second.instanceId },
     { id: "learner-nod", kind: "action", name: "nod",
       startFrame: 194, instanceId: second.instanceId },
     { id: "learner-reply", kind: "speech", startFrame: 223, endFrame: 252,
@@ -65,8 +70,14 @@ export function inkDuet(
     { id: "learner-bow", kind: "action", name: "bow",
       startFrame: 276, instanceId: second.instanceId },
   ];
-  const left = portrait ? [150, 194] : [225, 373];
-  const right = portrait ? [389, 343] : [772, 612];
+  // Keep the staged palm regions near each other without overlapping feet.
+  // Old root positions passed coarse reach yet left 70–96px hand gaps.
+  const left = portrait ? [150, 195] : [225, 410];
+  // 16:9 and 9:16 have different puppet scales. Portrait needs roots
+  // within 65px of the authored exchange reach, but cannot eliminate the
+  // large height mismatch with horizontal blocking alone: the apprentice
+  // must reciprocate the teacher's real near-sleeve gesture.
+  const right = portrait ? [389, 355] : [772, 576];
   const ground = portrait ? 821 : 478;
   const plan: InkEnsemblePlan = {
     actors: [

@@ -30,3 +30,7 @@ Status: **an independently designed second human and blocking study**, not a sig
 `npm run typecheck`; `npx vitest run --project unit tests/riso14-human-ensemble.test.tsx tests/riso13-anatomy.test.tsx tests/riso-character-paper-clearance.test.tsx`; Storybook production build; Playwright screen captures of the ensemble and all Risograph stories in portrait and landscape; encoded 240-frame film where supported.
 
 No copyrighted source imagery is bundled. Initial reference sources: [Uma Joana](https://ogaleria.com/products/lets-look-at-the-trailer-ii-by-uma-joana), [Mina Braun](https://peopleofprint.com/best-of/pop-member-showcase-21-riso-prints/), [Natalie Andrewson](https://www.natalieandrewson.com/products/6-makers-series-risograph-prints).
+
+## RISO15 continuation
+
+The next source-led iteration is implemented in [RISO15 printed ephemera](riso15-printed-prop-edge-study.md). This adds independent ink-master inset, fold, address ruling and cancellation stamp to the existing joint-anchored two-human exchange without changing RISO14's character or opaque-paper construction. Fine-detail control and plate-separated evidence live in the existing Storybook folder.

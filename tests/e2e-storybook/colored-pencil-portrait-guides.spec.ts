@@ -46,11 +46,30 @@ test("face feature guides are opt-in, stay aligned on aspect changes and never l
     }).check();
     const macro=page.locator('canvas[data-km-pencil-face-macro]');
     await expect(macro).toHaveAttribute("data-km-pencil-face-macro","eyes");
+    const dry=page.locator('canvas[data-km-pencil-dry-portrait]');
+    await expect(dry).toHaveAttribute("data-km-pencil-raster-underpaint","none");
+    await expect(dry).toHaveAttribute("data-km-pencil-dry-rendered-region","eyes");
+    const pixels=await dry.evaluate(node=>{
+      const canvas=node as HTMLCanvasElement;
+      const image=canvas.getContext("2d")!.getImageData(0,0,360,240).data;
+      let painted=0;
+      for(let i=0;i<image.length;i+=4){
+        if(Math.abs(image[i]-250)+Math.abs(image[i+1]-245)+
+          Math.abs(image[i+2]-237)>15)painted++;
+      }
+      return painted;
+    });
+    expect(pixels).toBeGreaterThan(1000);
+    await dry.screenshot({animations:"disabled",
+      path:info.outputPath("pencil-only-eye-value-study.png")});
     await macro.screenshot({animations:"disabled",
       path:info.outputPath("pencil-eye-macro-schematic-only.png")});
     await page.getByRole("combobox",{name:"Pencil face detail region"})
       .selectOption("lips");
     await expect(macro).toHaveAttribute("data-km-pencil-face-macro","lips");
+    await expect(dry).toHaveAttribute("data-km-pencil-dry-rendered-region","lips");
+    await dry.screenshot({animations:"disabled",
+      path:info.outputPath("pencil-only-lips-value-study.png")});
     await macro.screenshot({animations:"disabled",
       path:info.outputPath("pencil-lips-macro-schematic-only.png")});
     expect(await drawing.evaluate(node=>

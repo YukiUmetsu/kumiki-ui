@@ -11,6 +11,10 @@ on:
       - 'examples/film/paper-craft-page-turn.film.json'
       - 'tests/e2e-storybook/paper-director.spec.ts'
       - 'examples/film/paper-craft-director.film.json'
+      - 'src/video/paper-royal-story.ts'
+      - 'tests/paper-royal-story.test.tsx'
+      - 'tests/e2e-storybook/paper-royal-story.spec.ts'
+      - 'examples/film/paper-royal-lantern.film.json'
       - 'src/video/paper-craft*'
       - 'registry/video/paper-object-kit.ts'
       - 'registry/video/paper-scenery-kit.ts'
@@ -45,9 +49,10 @@ jobs:
       # Global catalog parity is currently blocked by existing unrelated film packs.
       # Keep this paper PR focused on distributable registry syntax and its tests.
       - run: npm run registry:validate
-      - run: npx vitest run --project unit tests/paper-craft.test.tsx tests/paper-craft-objects.test.tsx tests/paper-craft-material-rigs.test.tsx tests/paper-craft-lifted-tips.test.tsx tests/paper-craft-kingfisher-artcraft.test.tsx tests/paper-craft-scenery.test.tsx tests/paper-director.test.tsx tests/paper-director-page-turn.test.tsx
+      - run: npx vitest run --project unit tests/paper-craft.test.tsx tests/paper-craft-objects.test.tsx tests/paper-craft-material-rigs.test.tsx tests/paper-craft-lifted-tips.test.tsx tests/paper-craft-kingfisher-artcraft.test.tsx tests/paper-craft-scenery.test.tsx tests/paper-director.test.tsx tests/paper-director-page-turn.test.tsx tests/paper-royal-story.test.tsx
       - run: npm run prestorybook
       - run: npm run film:check -- examples/film/paper-craft-objects.film.json
       - run: npm run film:check -- examples/film/paper-craft-scenery.film.json
       - run: npm run film:check -- examples/film/paper-craft-director.film.json
       - run: npm run film:check -- examples/film/paper-craft-page-turn.film.json
+      - run: npm run film:check -- examples/film/paper-royal-lantern.film.json

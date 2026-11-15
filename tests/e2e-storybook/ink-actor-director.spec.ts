@@ -113,7 +113,7 @@ test("ink character director: both aspects, IK legs, frame-exact reverse seek an
       const shots:Record<number,Buffer>={};
       for(const frame of [0,85,135,235,310,419]){
         await seek(page,frame);
-        const png=await page.locator("[data-km-ink-scene]").screenshot({
+        const png=await page.getByTestId("ink-director-viewport").screenshot({
           animations:"disabled",
           path:info.outputPath("ink-director-"+aspect+"-"+String(frame).padStart(3,"0")+".png"),
         });
@@ -122,7 +122,7 @@ test("ink character director: both aspects, IK legs, frame-exact reverse seek an
       expect(sha(shots[0])).not.toEqual(sha(shots[135]));
       expect(sha(shots[135])).not.toEqual(sha(shots[419]));
       await seek(page,135);
-      const replay=await page.locator("[data-km-ink-scene]").screenshot({animations:"disabled"});
+      const replay=await page.getByTestId("ink-director-viewport").screenshot({animations:"disabled"});
       const diff=await pixelDifference(page,shots[135],replay);
       expect(diff,"A repeated absolute ink frame must preserve scene pixels within a tiny raster tolerance").toBeLessThan(.001);
       await page.getByRole("checkbox",{name:"Reduced motion"}).check();
@@ -131,3 +131,24 @@ test("ink character director: both aspects, IK legs, frame-exact reverse seek an
       await page.getByRole("checkbox",{name:"Reduced motion"}).uncheck();
     }
   });
+
+test("Character Director can compare the actual actor crop with the untouched full film",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-character-director--continuous-walk&viewMode=story");
+  const framing=page.getByRole("combobox",{name:"Director preview framing"});
+  await expect(framing).toHaveValue("figure");
+  await expect(page.locator('[data-km-ink-directed-caption]')).toHaveCount(0);
+  await seek(page,244);
+  const stage=page.getByTestId("ink-director-viewport");
+  await expect(stage).toHaveCSS("overflow","hidden");
+  const close=await stage.screenshot({animations:"disabled",
+    path:info.outputPath("ink-director-actor-inspection.png")});
+  await framing.selectOption("wide");
+  await expect(page.locator('[data-km-ink-directed-caption]')).toHaveCount(1);
+  const wide=await stage.screenshot({animations:"disabled",
+    path:info.outputPath("ink-director-full-film.png")});
+  expect(await pixelDifference(page,close,wide)).toBeGreaterThan(.05);
+  await framing.selectOption("figure");
+  await seek(page,244);
+  expect(await pixelDifference(page,close,
+    await stage.screenshot({animations:"disabled"}))).toBeLessThan(.001);
+});

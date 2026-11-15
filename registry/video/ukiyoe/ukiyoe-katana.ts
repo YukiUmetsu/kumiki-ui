@@ -17,6 +17,7 @@ import type { Prim } from "./ukiyoe-prims";
 import { circleD, ellipseD } from "./ukiyoe-prims";
 import type { UkiyoeFill, UkiyoePaint } from "./ukiyoe-pigments";
 import type { UkiyoeAction, UkiyoeFigureLook } from "./ukiyoe-figure";
+import type { UkiyoeNode } from "./ukiyoe-scene";
 
 export type UkiyoeKamae = "chudan" | "jodan" | "hasso" | "waki";
 export const UKIYOE_KAMAE: readonly UkiyoeKamae[] = ["chudan", "jodan", "hasso", "waki"];
@@ -46,9 +47,13 @@ export interface SwordState {
   grip: number;
   /** 0 = the sword lies along the scabbard (`out` of it drawn), 1 = free at `T` and `a`; between, it blends. */
   free: number;
+  /** Aim (duels): the blade is turned to pass through this point (the figure's local px, facing right, feet at the
+   * origin) by `aimW`, so two figures' blades cross exactly there on the contact frame. */
+  aim?: Pt;
+  aimW: number;
 }
 
-export interface SwordAction { type: string; start: number; end: number; form?: UkiyoeKamae }
+export interface SwordAction { type: string; start: number; end: number; form?: UkiyoeKamae; aim?: readonly [number, number]; contact?: number; parried?: boolean; angle?: number }
 
 const FORMS: Readonly<Record<UkiyoeKamae, { T: Pt; a: number }>> = {
   chudan: { T: [.13, .29], a: -16 },
@@ -56,7 +61,7 @@ const FORMS: Readonly<Record<UkiyoeKamae, { T: Pt; a: number }>> = {
   hasso: { T: [.08, .02], a: -100 },
   waki: { T: [-.02, .32], a: 166 },
 };
-const SHEATHED: SwordState = { held: false, reach: 0, out: 0, T: [0, 0], a: SAYA_ANGLE, grip: 0, free: 0 };
+const SHEATHED: SwordState = { held: false, reach: 0, out: 0, T: [0, 0], a: SAYA_ANGLE, grip: 0, free: 0, aimW: 0 };
 /**
  * The blade turns from one angle to the next the short way round (hassō to waki goes back over the shoulder, not round
  * the front), unless `turn` forces the way: +1 forward through the top (the strike), −1 down through the bottom.
@@ -70,13 +75,16 @@ const turnTo = (a: number, b: number, turn: 0 | 1 | -1): number => {
 const mixState = (p: SwordState, q: SwordState, m: number, turn: 0 | 1 | -1 = 0): SwordState => ({
   held: m < .5 ? p.held : q.held, reach: lerp(p.reach, q.reach, m), out: lerp(p.out, q.out, m),
   T: [lerp(p.T[0], q.T[0], m), lerp(p.T[1], q.T[1], m)], a: lerp(p.a, turnTo(p.a, q.a, turn), m), grip: lerp(p.grip, q.grip, m), free: lerp(p.free, q.free, m),
+  aim: q.aim ?? p.aim, aimW: lerp(p.aimW, q.aimW, m),
 });
-const held = (T: Pt, a: number, grip = 1): SwordState => ({ held: true, reach: 1, out: 1, T, a, grip, free: 1 });
+const held = (T: Pt, a: number, grip = 1): SwordState => ({ held: true, reach: 1, out: 1, T, a, grip, free: 1, aimW: 0 });
+/** The guard where a high cut lands (hands out at chin height) and the receiving guard that meets it (hands before the brow). */
+const STRIKE_HIGH: Pt = [.22, .0], PARRY_HIGH: Pt = [.14, -.06];
 
 /** The sword at `frame`, from the sword actions in time order; between actions it holds the last pose. */
 export function swordAt(actions: readonly SwordAction[], frame: number): SwordState {
   let rest: SwordState = SHEATHED;
-  for (const a of [...actions].filter(x => x.type === "draw" || x.type === "kamae" || x.type === "cut" || x.type === "sheathe").sort((p, q) => p.start - q.start)) {
+  for (const a of [...actions].filter(x => x.type === "draw" || x.type === "kamae" || x.type === "cut" || x.type === "parry" || x.type === "drop" || x.type === "sheathe").sort((p, q) => p.start - q.start)) {
     if (frame < a.start) break;
     const len = Math.max(1, a.end - a.start), k = clamp01((frame - a.start) / len), done = frame >= a.end;
     const seg = (k0: number, k1: number) => smooth(clamp01((k - k0) / (k1 - k0)));
@@ -96,6 +104,28 @@ export function swordAt(actions: readonly SwordAction[], frame: number): SwordSt
       // From the low guard behind the hip the blade comes forward low, under, to the middle guard.
       const f = FORMS[a.form ?? "chudan"], target = held(f.T, f.a), turn = a.form === "chudan" && Math.cos(rest.a * DEG) < -.5 && Math.sin(rest.a * DEG) > 0 ? -1 : 0;
       end = target; now = mixState(rest, target, smooth(clamp01((frame - a.start) / Math.min(24, len * .5))), turn);
+    } else if (a.type === "cut" && a.aim) {
+      // An aimed cut (duels): raise into jōdan, strike in the last six frames before `contact` so the blade passes through
+      // `aim` on that frame; parried, it stops on the other blade and rebounds to chūdan; unparried, it follows through.
+      const c = a.contact ?? Math.round(a.start + len * .46), aim: Pt = [a.aim[0], a.aim[1]];
+      const raised = held(FORMS.jodan.T, FORMS.jodan.a), struck: SwordState = { ...held(STRIKE_HIGH, -34), aim, aimW: 1 };
+      const through = held([.25, .38], 44), f = frame;
+      end = chudan;
+      now = f < c - 6 ? mixState(rest, raised, smooth(clamp01((f - a.start) / Math.max(1, c - 6 - a.start))))
+        : f <= c ? mixState(raised, struck, clamp01((f - (c - 6)) / 6) ** 1.6, 1)
+        : a.parried ? (f < c + 6 ? struck : mixState(struck, chudan, smooth(clamp01((f - c - 6) / Math.max(1, a.end - c - 6)))))
+        : f < c + 8 ? mixState(struck, through, smooth((f - c) / 8), 1) : mixState(through, chudan, smooth(clamp01((f - c - 8) / Math.max(1, a.end - c - 8))));
+    } else if (a.type === "drop") {
+      // Struck: the guard breaks and the blade sinks toward the ground (to `angle`, default 18°), held loosely in the right
+      // hand; a second drop laid along the legs (`angle` ≈ 86°) makes it lie flat when he falls.
+      const steep = (a.angle ?? 18) > 60, sunk = held(steep ? [.05, .42] : [.16, .3], a.angle ?? 18, .2);
+      end = sunk; now = mixState(rest, sunk, smooth(clamp01((frame - a.start) / Math.max(1, len))));
+    } else if (a.type === "parry") {
+      // Receive a cut: the blade comes up to meet `aim` a few frames before `contact`, holds through it, then returns.
+      const c = a.contact ?? Math.round(a.start + len * .5), guard: SwordState = { ...held(PARRY_HIGH, -57), aim: a.aim ? [a.aim[0], a.aim[1]] : undefined, aimW: a.aim ? 1 : 0 };
+      end = chudan;
+      now = frame < c - 4 ? mixState(rest, guard, smooth(clamp01((frame - a.start) / Math.max(1, c - 4 - a.start))))
+        : frame < c + 6 ? guard : mixState(guard, chudan, smooth(clamp01((frame - c - 6) / Math.max(1, a.end - c - 6))));
     } else if (a.type === "cut") {
       // Raise slowly into jōdan, strike fast on the diagonal, overshoot a little, hold low.
       const raised = held(FORMS.jodan.T, FORMS.jodan.a), struck = held([.25, .36], 38), over = held([.22, .4], 52);
@@ -218,7 +248,9 @@ export function swordGeometry(st: SwordState, neck: Pt, koi: Pt, H: number): { t
   const pull = st.held ? (1 - st.free) * st.out : 0, sayaA = SAYA_ANGLE - 25 * pull, k: Pt = [koi[0] - H * .09 * pull, koi[1]];
   const d = (sayaA - 180) * DEG, along: Pt = [k[0] + Math.cos(d) * (.012 + BLADE * st.out) * H, k[1] + Math.sin(d) * (.012 + BLADE * st.out) * H];
   const free: Pt = [neck[0] + st.T[0] * H, neck[1] + st.T[1] * H];
-  return { tsuba: [lerp(along[0], free[0], st.free), lerp(along[1], free[1], st.free)], a: lerp(sayaA, st.a, st.free), shown: st.free > 0 ? 1 : st.out, sayaA, koi: k };
+  let aFree = st.a;
+  if (st.aim && st.aimW > 0) { const toAim = Math.atan2(st.aim[1] - free[1], st.aim[0] - free[0]) / DEG; aFree = lerp(st.a, turnTo(st.a, toAim, 0), st.aimW); }
+  return { tsuba: [lerp(along[0], free[0], st.free), lerp(along[1], free[1], st.free)], a: lerp(sayaA, aFree, st.free), shown: st.free > 0 ? 1 : st.out, sayaA, koi: k };
 }
 
 /** The sword handed to the square (front/back) drawing: its state and its profile placement relative to the neck (height units). */
@@ -236,5 +268,75 @@ export function samuraiKata(start = 0): UkiyoeAction[] {
     { type: "draw", start: t(20), end: t(80) }, { type: "kamae", start: t(100), end: t(130), form: "jodan" }, { type: "cut", start: t(140), end: t(200) },
     { type: "kamae", start: t(220), end: t(250), form: "hasso" }, { type: "kamae", start: t(260), end: t(290), form: "waki" },
     { type: "kamae", start: t(300), end: t(320), form: "chudan" }, { type: "sheathe", start: t(330), end: t(420) }, { type: "bow", start: t(436), end: t(476), angle: 26 },
+  ];
+}
+
+// ---- Duels -----------------------------------------------------------------------------------------------------------------------
+
+/** One exchange: who attacks, the frame the blades meet, and whether the other parries (default) or is struck. */
+export interface DuelExchange { attacker: "a" | "b"; contact: number; parried?: boolean }
+
+export interface DuelOptions {
+  id: string;
+  /** Where the left fighter (A, facing right) stands; B faces him `gap` heights away. */
+  x: number;
+  y: number;
+  scale?: number;
+  /** Distance between the two in figure heights (default .8: the blades cross near the tips). */
+  gap?: number;
+  /** Frame both draw (default 0). */
+  start?: number;
+  /** The exchanges, in order (default: four parried cuts, then A strikes B, who falls). */
+  exchanges?: readonly DuelExchange[];
+  /** Fighters' looks (default the samurai look, B in a darker kamishimo). */
+  a?: UkiyoeFigureLook;
+  b?: UkiyoeFigureLook;
+  /** Figure height the looks stand at (default 250, the average build). */
+  height?: number;
+}
+
+/** Where a high cut meets the defender: a quarter height in front of him, at the height of the top of his head. */
+const CONTACT: Pt = [.25, -1.0];
+
+/**
+ * A duel between two figures as scene nodes: A (facing right), B (facing left) and the sparks. Every exchange is timed
+ * on its contact frame and aimed at one point in front of the defender's brow, so the attacker's blade and the
+ * defender's receiving blade cross exactly there on that frame, and the sparks fly from it. An unparried cut strikes
+ * home: the defender recoils, his blade drops and he topples back; the victor holds his guard, clears the blade and
+ * sheathes it.
+ */
+export function samuraiDuel(o: DuelOptions): UkiyoeNode[] {
+  const k = o.scale ?? 1, H = o.height ?? 250, gap = o.gap ?? .8, s = o.start ?? 0;
+  const ex = o.exchanges ?? [
+    { attacker: "a", contact: s + 104 }, { attacker: "b", contact: s + 172 }, { attacker: "a", contact: s + 236 },
+    { attacker: "b", contact: s + 298 }, { attacker: "a", contact: s + 372, parried: false },
+  ];
+  const aimAtt: [number, number] = [(gap - CONTACT[0]) * H, CONTACT[1] * H], aimDef: [number, number] = [CONTACT[0] * H, CONTACT[1] * H];
+  const actA: UkiyoeAction[] = [{ type: "draw", start: s, end: s + 60 }], actB: UkiyoeAction[] = [{ type: "draw", start: s + 6, end: s + 66 }];
+  const bursts: { frame: number; x: number; y: number; radius: number }[] = [];
+  let fallen: "a" | "b" | undefined, last = s + 66;
+  for (const e of ex) {
+    const att = e.attacker === "a" ? actA : actB, def = e.attacker === "a" ? actB : actA, parried = e.parried !== false;
+    att.push({ type: "cut", start: e.contact - 34, end: e.contact + 30, aim: aimAtt, contact: e.contact, parried });
+    if (parried) {
+      def.push({ type: "parry", start: e.contact - 22, end: e.contact + 28, aim: aimDef, contact: e.contact });
+      const defX = e.attacker === "a" ? o.x + gap * H * k : o.x;
+      bursts.push({ frame: e.contact, x: defX + (e.attacker === "a" ? -1 : 1) * CONTACT[0] * H * k, y: o.y + CONTACT[1] * H * k, radius: 60 * k });
+    } else {
+      // Struck: recoil, the blade dropping, then a fall back (the node turns about the heels). The victor holds, then sheathes.
+      def.push({ type: "recoil", start: e.contact, end: e.contact + 400 }, { type: "drop", start: e.contact + 2, end: e.contact + 16 }, { type: "drop", start: e.contact + 18, end: e.contact + 40, angle: 86 });
+      fallen = e.attacker === "a" ? "b" : "a";
+      // He staggers, then topples straight back about his heels.
+      def.push({ type: "fall", start: e.contact + 16, end: e.contact + 40 });
+      att.push({ type: "kamae", start: e.contact + 50, end: e.contact + 80, form: "chudan" }, { type: "sheathe", start: e.contact + 96, end: e.contact + 186 });
+    }
+    last = Math.max(last, e.contact + 30);
+  }
+  if (!fallen) for (const act of [actA, actB]) act.push({ type: "sheathe", start: last + 20, end: last + 110 });
+  const lookA = o.a ?? UKIYOE_SAMURAI_LOOK, lookB = o.b ?? { ...UKIYOE_SAMURAI_LOOK, kataginu: "usuzumi", hakama: "usuzumi", crest: "sumi", robe: "kogecha", accent: "sumi" };
+  return [
+    { id: `${o.id}-a`, kind: "figure", x: o.x, y: o.y, scale: k, look: { ...lookA, view: lookA.view === "three-quarter" ? "three-quarter" : "profile" }, facing: "right", actions: actA },
+    { id: `${o.id}-b`, kind: "figure", x: o.x + gap * H * k, y: o.y, scale: k, look: { ...lookB, view: "profile" }, facing: "left", actions: actB },
+    { id: `${o.id}-sparks`, kind: "particles", type: "sparks", bursts },
   ];
 }

@@ -58,9 +58,41 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
         animations:"disabled"});
     }
   }
+  await expect(stage.locator('[data-km-riso-transfer-plate="blue"]')).toHaveCount(1);
+  await expect(stage.locator('[data-km-riso-transfer-plate="red"]')).toHaveCount(1);
+  // The opaque paper and both ink masters must share one deformable contour.
+  const initialPaper=await stage.locator("[data-km-riso-human-ensemble-sheet]").getAttribute("d");
+  expect(initialPaper).toMatch(/^M.+Z$/);
+  const setRange=async(name:string,value:string)=>{
+    await page.getByRole("slider",{name}).evaluate((node,amount)=>{
+      const input=node as HTMLInputElement;
+      const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+      if(!setter)throw new Error("Missing native range setter");
+      setter.call(input,String(amount));
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+      input.dispatchEvent(new Event("change",{bubbles:true}));
+    },value);
+  };
+  await setRange("RISO ensemble paper curl","9");
+  await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-paper-curl","9");
+  const curvedPaper=await stage.locator("[data-km-riso-human-ensemble-sheet]").getAttribute("d");
+  expect(curvedPaper).not.toEqual(initialPaper);
+  await setRange("RISO ensemble paper grip pinch","0.8");
+  await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-grip-pinch","0.8");
+  const pinchedPaper=await stage.locator("[data-km-riso-human-ensemble-sheet]").getAttribute("d");
+  expect(pinchedPaper).not.toEqual(curvedPaper);
+  await expect(stage.locator("[data-km-riso-transfer-fold-shade]")).toHaveCount(1);
+  await expect(stage.locator("[data-km-riso-transfer-postmark]")).toHaveCount(1);
+  await page.getByRole("checkbox",{name:"RISO ensemble fine printed-sheet detail"}).uncheck();
+  await expect(stage.locator("[data-km-riso-transfer-postmark]")).toHaveCount(0);
+  await expect(stage.locator('[data-km-riso-transfer-plate="blue"]')).toHaveCount(1);
+  await page.getByRole("checkbox",{name:"RISO ensemble fine printed-sheet detail"}).check();
+  await expect(stage.locator("[data-km-riso-transfer-postmark]")).toHaveCount(1);
   await page.getByRole("combobox",{name:"RISO ensemble ink plate"}).selectOption("blue");
+  await expect(stage.locator('[data-km-riso-transfer-plate="red"]')).toHaveCount(0);
   await expect(stage.locator('[data-km-riso-part="mouth"]')).toHaveCount(0);
   await page.getByRole("combobox",{name:"RISO ensemble ink plate"}).selectOption("red");
+  await expect(stage.locator('[data-km-riso-transfer-plate="blue"]')).toHaveCount(0);
   await expect(stage.locator('[data-km-riso-part="mouth"]')).toHaveCount(2);
   await page.getByRole("combobox",{name:"RISO ensemble ink plate"}).selectOption("both");
   await page.getByRole("checkbox",{name:"RISO ensemble contact anchors"}).check();

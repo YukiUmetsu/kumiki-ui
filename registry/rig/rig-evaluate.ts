@@ -432,7 +432,12 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
     for (const b of order) {
       const p = pose.get(b.id)!, m = local(p.x, p.y, p.rotate, p.sx, p.sy, p.ky);
       const parent = b.parent ? world.get(b.parent)! : IDENT;
-      world.set(b.id, mul(parent, m));
+      if (b.inheritScale === false && b.parent) {
+        // Joint placed by the (possibly foreshortened) parent; orientation from the parent's rotation only.
+        const [jx, jy] = apply(parent, p.x, p.y), len = Math.hypot(parent.a, parent.b) || 1, sg = Math.sign(parent.a * parent.d - parent.b * parent.c) || 1;
+        const rot = { a: parent.a / len, b: parent.b / len, c: -parent.b / len * sg, d: parent.a / len * sg, e: 0, f: 0 };
+        world.set(b.id, { ...mul(rot, local(0, 0, p.rotate, p.sx, p.sy, p.ky)), e: jx, f: jy });
+      } else world.set(b.id, mul(parent, m));
       alpha.set(b.id, (b.parent ? alpha.get(b.parent)! : 1) * p.opacity);
     }
   };
@@ -734,9 +739,10 @@ function legTarget(leg: RigLeg, cycle: number, stance: number, stride: number, l
 function solveTwoBone(upperId: string, lowerId: string, bend: 1 | -1, target: [number, number], byId: Map<string, RigBone>,
   pose: Map<string, Pose>, world: Map<string, AffineMatrix>, w: number) {
   const upper = byId.get(upperId)!, lower = byId.get(lowerId)!;
-  const a = upper.length!, b = lower.length!;
   const parentM = upper.parent ? world.get(upper.parent)! : IDENT;
   const up = pose.get(upperId)!, lo = pose.get(lowerId)!;
+  // A limb pointing into depth is drawn shorter (scaleY on its bone): solve with the lengths as drawn.
+  const a = upper.length! * Math.abs(up.sy), b = lower.length! * Math.abs(lo.sy) * (lower.inheritScale === false ? 1 : Math.abs(up.sy));
   const [hx, hy] = apply(parentM, up.x, up.y);
   const dx = target[0] - hx, dy = target[1] - hy;
   const dist = clamp(Math.hypot(dx, dy), Math.abs(a - b) + .001, a + b - .001);

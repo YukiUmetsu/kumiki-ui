@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "moonlit-lantern-royal-paper-story",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "moonlit-royal-story",
+      "recipeId": "slot",
+      "durationFrames": 720,
+      "content": {
+        "slot": "paper-craft-director",
+        "label": "The Moonlit Lantern: an original princess, prince and animal cut-paper fairy tale",
+        "props": {
+          "preset": "royal-lantern",
+          "medium": "layered",
+          "seed": 37,
+          "motion": 0.75
+        }
+      }
+    }
+  ]
+}

@@ -5,7 +5,8 @@ import type { FilmDocument } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
 import { VideoExportStage } from "../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../registry/video/video-export-stage";
-import { InkDirectorFilm } from "./ink-actor-director-demo";
+import { InkDirectorFilm, inkDirectorRoute } from "./ink-actor-director-demo";
+import { inkRouteAt } from "../../registry/video/ink-actor-director";
 import type { DirectorAspect } from "./ink-actor-director-demo";
 
 const document:FilmDocument={
@@ -17,6 +18,7 @@ const document:FilmDocument={
 };
 function Laboratory(){
   const [aspect,setAspect]=useState<DirectorAspect>("landscape");
+  const [framing,setFraming]=useState<"wide"|"figure">("figure");
   const [frame,setFrame]=useState(244);
   const [playing,setPlaying]=useState(false);
   const [reduce,setReduce]=useState(false);
@@ -41,6 +43,15 @@ function Laboratory(){
   },[playing,reduce]);
   if(!compiled.ok)return <pre role="alert">{compiled.diagnostics.map(d=>d.message).join("\n")}</pre>;
   const film=compiled.film,scale=aspect==="landscape"?1:.66;
+  // A viewport crop of the same film: no duplicated actor or separate clock.
+  // Under reduced motion the actor holds the completed frame 419; its
+  // inspection camera must follow that pose rather than frame-0 travel.
+  const cameraPose=inkRouteAt(inkDirectorRoute(aspect),reduce?419:frame);
+  const zoom=framing==="figure"?(aspect==="portrait"?1.65:1.38):1;
+  const visualScale=scale*zoom;
+  const focusX=cameraPose.x,focusY=cameraPose.y-165;
+  const dx=framing==="figure"?film.width*scale*.5-focusX*visualScale:0;
+  const dy=framing==="figure"?film.height*scale*.5-focusY*visualScale:0;
   const keyframes=[["Arrival",0],["First foot plant",24],["Walking",110],
     ["Hill",198],["Stops",232],["Expression",280],["Ink settles",419]] as const;
   return <main style={{minHeight:"100vh",background:"#E9E5DC",color:"#26342E",
@@ -59,6 +70,14 @@ function Laboratory(){
         <select aria-label="Output" value={aspect} onChange={e=>{setPlaying(false);setAspect(e.target.value as DirectorAspect)}}
           style={{padding:"9px",minWidth:150}}>
           <option value="landscape">16:9 landscape</option><option value="portrait">9:16 portrait</option>
+        </select>
+      </label>
+      <label style={{display:"grid",gap:5,fontWeight:600}}>Preview framing
+        <select aria-label="Director preview framing" value={framing}
+          onChange={e=>setFraming(e.target.value as "wide"|"figure")}
+          style={{padding:"9px",minWidth:160}}>
+          <option value="figure">Figure inspection</option>
+          <option value="wide">Full film composition</option>
         </select>
       </label>
       <label style={{display:"flex",gap:8,alignItems:"center",fontWeight:600,marginTop:20}}>
@@ -88,15 +107,25 @@ function Laboratory(){
         facial expressions stay on the sharp, dry drawing layer.
       </span>
     </div>
-    <div style={{width:film.width*scale,height:film.height*scale,maxWidth:"100%",overflow:"hidden",
-      background:"#F3EFE3",boxShadow:"0 16px 34px #403a2d25"}}>
-      <FilmStage film={film} frame={frame} renderObject={()=>null} reducedMotion={reduce}
-        renderSlot={(content,context)=>{
-          if(content.slot!=="ink4-traveler")throw new Error("Unexpected ink director scene: "+content.slot);
-          return <InkDirectorFilm aspect={aspect} frame={context.frame}
-            reducedMotion={context.reducedMotion} foldDetail={foldDetail} foldContrast={foldContrast}
-            clothAmount={clothAmount}/>
-        }} style={{transform:"scale("+scale+")",transformOrigin:"top left"}}/>
+    <div data-testid="ink-director-viewport"
+      style={{width:film.width*scale,height:film.height*scale,maxWidth:"100%",
+        overflow:"hidden",position:"relative",background:"#F3EFE3",
+        boxShadow:"0 16px 34px #403a2d25"}}>
+      {/* The fixed viewport clips the translated film. Transforming FilmStage
+          itself changed its screenshot bounds, pulling Studio UI into the
+          visual-review crop even though the native film was correct. */}
+      <div style={{width:film.width,height:film.height,
+        transform:"translate("+dx+"px,"+dy+"px) scale("+visualScale+")",
+        transformOrigin:"top left"}}>
+        <FilmStage film={film} frame={frame} renderObject={()=>null} reducedMotion={reduce}
+          renderSlot={(content,context)=>{
+            if(content.slot!=="ink4-traveler")throw new Error("Unexpected ink director scene: "+content.slot);
+            return <InkDirectorFilm aspect={aspect} frame={context.frame}
+              reducedMotion={context.reducedMotion} foldDetail={foldDetail}
+              foldContrast={foldContrast} clothAmount={clothAmount}
+              showCaption={framing==="wide"}/>;
+          }}/>
+      </div>
     </div>
     <div style={{maxWidth:960,display:"grid",gap:9}}>
       <label style={{display:"grid",gap:5,fontWeight:600}}>Film frame {frame} / 419

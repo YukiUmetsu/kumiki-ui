@@ -109,6 +109,155 @@ for(const sample of ["woman","man"] as const){
       await source.screenshot({animations:"disabled",
         path:info.outputPath("artcraft-portrait-"+sample+"-"+aspect+"-source.png")});
       if(sample==="woman"){
+        // Full-head paper-only art: actual CC0 material and measured hairline,
+        // not a screenshot made from fabricated synthetic portrait geometry.
+        // The independent studio output MUST be bit-identical after viewing.
+        const originalExport=await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        const fullHeadToggle=page.getByRole("checkbox",{
+          name:"Inspect full pencil head anatomy",
+        });
+        await fullHeadToggle.check();
+        const full=page.locator("canvas[data-km-pencil-full-head-dry]");
+        const headSource=page.locator(
+          "canvas[data-km-pencil-full-head-reference]");
+        await expect(full).toHaveAttribute("data-km-pencil-raster-underpaint","none");
+        await expect(full).toHaveAttribute("data-km-pencil-full-head-rendered",
+          "true",{timeout:90000});
+        await expect(headSource).toHaveAttribute(
+          "data-km-pencil-full-head-source","ready",{timeout:90000});
+        // Actual licensed source, ALL four chronologically composited
+        // Storybook shots. Stage 1..4 must contain increasing genuine
+        // pencil marks; the exported film bitmap must not be affected.
+        const boardToggle=page.getByRole("checkbox",{
+          name:"Inspect four-shot portrait storyboard",
+        });
+        await boardToggle.check();
+        const board=page.locator('[data-km-pencil-portrait-storyboard]');
+        const shots=board.locator("canvas[data-km-pencil-portrait-stage]");
+        await expect(shots).toHaveCount(4);
+        const labels=["value","pigment","form","detail"];
+        const totals:number[]=[];
+        for(let i=0;i<labels.length;i++){
+          await expect(shots.nth(i)).toHaveAttribute(
+            "data-km-pencil-storyboard-rendered",labels[i],
+            {timeout:90000});
+          await expect(shots.nth(i)).toHaveAttribute(
+            "data-km-pencil-raster-underpaint","none");
+          totals.push(Number(await shots.nth(i)
+            .getAttribute("data-km-pencil-storyboard-strokes")));
+        }
+        expect(totals.every(n=>Number.isInteger(n)&&n>500)).toBe(true);
+        expect(totals.every((n,i)=>i===0||n>totals[i-1])).toBe(true);
+        await board.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-portrait-storyboard-four-shots.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
+        await boardToggle.uncheck();
+        const contactToggle=page.getByRole("checkbox",{
+          name:"Inspect portrait hairline contact at three times scale",
+        });
+        await contactToggle.check();
+        const contact=page.locator(
+          '[data-km-pencil-portrait-contact-inspector]');
+        await expect(contact).toHaveCount(1);
+        const images=contact.locator("canvas[data-km-pencil-contact-image]");
+        await expect(images).toHaveCount(2);
+        for(const image of await images.all())
+          await expect(image).toHaveAttribute(
+            "data-km-pencil-contact-rendered","ready",{timeout:90000});
+        await contact.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-hairline-occlusion-3x.png")});
+        const shadowEvidence=page.locator(
+          '[data-km-pencil-hair-occlusion="ready"]');
+        await expect(shadowEvidence).toHaveCount(1,{timeout:90000});
+        const shadow=await shadowEvidence.evaluate(node=>({
+          source:Number(node.getAttribute(
+            "data-km-pencil-hair-occlusion-source")),
+          drawn:Number(node.getAttribute(
+            "data-km-pencil-hair-occlusion-drawn")),
+        }));
+        // Actual CC0 dark-ear lock was 3/255 in the photographic source
+        // but 113/255 in v6's dry plate. Do not let an ivory seam return.
+        expect(shadow.source).toBeLessThan(30);
+        expect(shadow.drawn).toBeLessThan(105);
+        await contactToggle.uncheck();
+        const toneEvidence=page.locator(
+          '[data-km-pencil-tonal-comparison="ready"]');
+        await expect(toneEvidence).toHaveCount(1,{timeout:90000});
+        await expect(toneEvidence.locator("tbody tr")).toHaveCount(5);
+        const toneNumbers=await toneEvidence.evaluate(node=>({
+          meanError:Number(node.getAttribute("data-km-pencil-mean-value-error")),
+          retention:Number(node.getAttribute("data-km-pencil-contrast-retention")),
+        }));
+        // The previous *real* CC0 proof had mean 5-plane lightness
+        // deficit near 63/255. Do not regress back to an optical wash.
+        // This is a negative visual gate, NOT artistic approval.
+        expect(toneNumbers.meanError).toBeLessThan(45);
+        expect(toneNumbers.retention).toBeGreaterThan(.75);
+        await expect(toneEvidence).toContainText(
+          "Independent artistic approval: NOT PASSED");
+        await toneEvidence.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-five-source-tone-comparison.png")});
+        const headMetrics=await full.evaluate(node=>{
+          const canvas=node as HTMLCanvasElement;
+          const data=canvas.getContext("2d")!.getImageData(
+            0,0,canvas.width,canvas.height).data;
+          let painted=0,highContrast=0;
+          for(let i=0;i<data.length;i+=4){
+            const delta=Math.abs(data[i]-250)+Math.abs(data[i+1]-245)+
+              Math.abs(data[i+2]-237);
+            if(delta>18)painted++;
+            if(delta>125)highContrast++;
+          }
+          return {painted,highContrast};
+        });
+        expect(headMetrics.painted).toBeGreaterThan(18000);
+        expect(headMetrics.highContrast).toBeGreaterThan(150);
+        // Independent CC0 black-hair continuity gate. v1/v2 left an
+        // actual near-black root/lock completely unpainted (paper white).
+        // Check a small neighbourhood, not a lucky stroke-covered pixel.
+        const darkLock=await Promise.all([headSource,full].map(node=>
+          node.evaluate(canvasNode=>{
+            const canvas=canvasNode as HTMLCanvasElement;
+            const ctx=canvas.getContext("2d")!;
+            const cx=Math.floor(canvas.width*.281);
+            const cy=Math.floor(canvas.height*.691);
+            const pixels=ctx.getImageData(cx-4,cy-4,9,9).data;
+            let r=0,g=0,b=0,n=0;
+            for(let i=0;i<pixels.length;i+=4){
+              r+=pixels[i];g+=pixels[i+1];b+=pixels[i+2];n++;
+            }
+            return [r/n,g/n,b/n] as const;
+          })));
+        expect(darkLock[0][0]).toBeLessThan(70);
+        expect(darkLock[1][0]).toBeLessThan(237);
+        expect(darkLock[1][0]).toBeGreaterThan(darkLock[0][0]);
+        await headSource.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-full-head-source.png")});
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-full-head-dry-only.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
+        await fullHeadToggle.uncheck();
+        await expect(full).toHaveCount(0);
+        // Actual CC0 photographic facial values, not the synthetic fixture:
+        // capture the no-underpaint code-mark proof in both film aspects.
+        const inspect=page.getByRole("checkbox",{
+          name:"Inspect portrait detail at three times scale",
+        });
+        await inspect.check();
+        const dry=page.locator("canvas[data-km-pencil-dry-portrait]");
+        await expect(dry).toHaveAttribute("data-km-pencil-raster-underpaint","none");
+        const detail=page.getByRole("combobox",{name:"Pencil face detail region"});
+        for(const region of ["eyes","lips"] as const){
+          await detail.selectOption(region);
+          await expect(dry).toHaveAttribute("data-km-pencil-dry-rendered-region",region);
+          await dry.screenshot({animations:"disabled",
+            path:info.outputPath("artcraft-real-cc0-"+aspect+"-"+region+"-dry-only.png")});
+        }
         // Compare the exact same licensed source, crop, knobs and time; only
         // the measured facial-pencil passes change. Never attribute old
         // source/algorithm revisions to this PR.

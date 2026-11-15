@@ -20,7 +20,9 @@ import type { UkiyoeCrowdMood } from "../../registry/video/ukiyoe/ukiyoe-crowd";
 import { UKIYOE_CROWD_MOODS } from "../../registry/video/ukiyoe/ukiyoe-crowd";
 import { UKIYOE_SQUARE_VIEW_SPECIES } from "../../registry/video/ukiyoe/ukiyoe-creatures";
 import { UKIYOE_MAIKO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-maiko";
-import { samuraiKata, UKIYOE_KAMAE, UKIYOE_SAMURAI_LOOK } from "../../registry/video/ukiyoe/ukiyoe-katana";
+import { samuraiDuel, samuraiKata, UKIYOE_KAMAE, UKIYOE_SAMURAI_LOOK } from "../../registry/video/ukiyoe/ukiyoe-katana";
+import { oniFight, UKIYOE_MOMOTARO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-oni";
+import { castleTown } from "../../registry/video/ukiyoe/ukiyoe-town";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -420,6 +422,13 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "minka", label: "Gassho house · snow, lit", params: { width: 220, style: "gassho", snow: 1, light: 1 }, y: 350 },
   { motif: "jizo", label: "Roadside jizō", params: { height: 120, count: 3, cap: true }, y: 340 },
   { motif: "komainu", label: "Komainu pair (a, un)", params: { height: 150, pair: true, gap: 330 }, y: 340 },
+  { motif: "castle", label: "Castle · white keep, walls, moat", params: { width: 400, tiers: 5 }, y: 306 },
+  { motif: "castle", label: "Castle · black, snow, night", params: { width: 420, tiers: 4, style: "black", snow: 1, night: 1 }, y: 306 },
+  { motif: "castle", label: "Castle keep alone (distance)", params: { width: 380, tiers: 3, walls: false }, y: 350 },
+  { motif: "shop", label: "Merchant shop · noren, sign", params: { width: 300, height: 230 }, y: 330 },
+  { motif: "kura", label: "Storehouse · namako base", params: { width: 160, height: 220 }, y: 330 },
+  { motif: "yashiki", label: "Samurai residence · gatehouse", params: { width: 540, height: 150, pines: 3 }, y: 330 },
+  { motif: "firetower", label: "Fire-watch tower · bell", params: { height: 300 }, y: 350 },
 ];
 
 export function MotifGallery() {
@@ -535,6 +544,108 @@ export function SamuraiKata() {
     <Transport clock={clock} total={480} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Kata frame" />
     <h2 style={{ font: "600 18px Newsreader Variable, serif", margin: "8px 0 0" }}>The four guards</h2>
     <Fit width={1920} height={820} maxHeight={520}><UkiyoeScene spec={stances} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="The middle, overhead, upright and low guards" /></Fit>
+  </div>;
+}
+
+// ---- Duel ---------------------------------------------------------------------------------------------------------------------------
+
+/** Two samurai duel in a moonlit field of pampas grass: parried cuts with sparks, then a cut that strikes home. */
+export function SamuraiDuel() {
+  const [view, setView] = useState<"profile" | "three-quarter">("profile");
+  const [ending, setEnding] = useState<"struck" | "parried">("struck");
+  const clock = usePlayback(620, 0, 1, true, true);
+  const spec = useMemo((): UkiyoeSceneSpec => ({
+    version: 1, id: "samurai-duel", width: 1920, height: 1080, durationFrames: 620, seed: 31, wind: { base: .6, turbulence: .5 }, palette: { preset: "edo" },
+    nodes: [
+      { id: "sky", kind: "motif", motif: "sky", params: { width: 1920, height: 1080, top: "yoru", mid: "ai", band: .62, horizon: "murasaki" } },
+      { id: "moon", kind: "motif", motif: "moon", x: 1460, y: 250, params: { radius: 110, halo: .9 } },
+      { id: "hills", kind: "motif", motif: "hills", x: 960, y: 760, params: { width: 2000, height: 180, color: "ai" } },
+      { id: "field", kind: "block", x: 960, y: 900, shape: { type: "rect", width: 1960, height: 360 }, fill: { type: "linear", angle: 90, stops: [[0, "matsu", 1], [1, "yoru", 1]] }, line: 0, grain: .8 },
+      ...[180, 520, 1380, 1720].map((x, i): UkiyoeNode => ({ id: "grass-back" + i, kind: "motif", motif: "reeds", x, y: 800, scale: .9, params: { width: 360, height: 210, count: 26, color: "kincha", variant: i } })),
+      ...(samuraiDuel({ id: "duel", x: 770, y: 960, scale: 1.5, exchanges: ending === "parried" ? [{ attacker: "a", contact: 104 }, { attacker: "b", contact: 172 }, { attacker: "a", contact: 236 }, { attacker: "b", contact: 298 }, { attacker: "a", contact: 372 }] : undefined })
+        .map(n => n.kind === "figure" ? { ...n, look: { ...n.look, view } } : n)),
+      ...[80, 1740].map((x, i): UkiyoeNode => ({ id: "grass-front" + i, kind: "motif", motif: "reeds", x, y: 1080, scale: 1.4, params: { width: 420, height: 260, count: 30, color: "kincha", variant: 7 + i } })),
+      { id: "leaves", kind: "particles", type: "leaves", area: [0, 0, 1920, 1080], count: 26, speed: 2.2, color: "shu", size: .8 },
+    ],
+  }), [view, ending]);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Duel" title="Two swords in a moonlit field">
+      <p style={{ margin: 0 }}>Built by <code>samuraiDuel</code> from a list of exchanges. Both draw; then each cut is timed on its contact frame
+        and aimed at one point in front of the defender's brow, so the attacker's blade and the defender's receiving blade cross exactly
+        there on that frame (within a fraction of a pixel), and sparks fly from it. A parried cut stops on the other blade and rebounds;
+        the last cut strikes home: the defender recoils, his blade drops, and he topples back about his heels, his sword and scabbards
+        coming to lie along him. The victor holds his guard, clears the blade and sheathes it.</p>
+    </Header>
+    <section aria-label="Duel controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="View" value={view} options={["profile", "three-quarter"] as const} onChange={setView} labels={{ profile: "Profile", "three-quarter": "Three-quarter" }} />
+      <Select name="Last cut" value={ending} options={["struck", "parried"] as const} onChange={setEnding} labels={{ struck: "Strikes home", parried: "Parried (both sheathe)" }} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="Two samurai dueling in a moonlit field" /></Fit>
+    <Transport clock={clock} total={620} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Duel frame" />
+  </div>;
+}
+
+// ---- Castle town ------------------------------------------------------------------------------------------------------------------
+
+/** A castle town as one handscroll, panned from the keep down through the town. */
+export function CastleTown() {
+  const [snow, setSnow] = useState(false);
+  const spec = useMemo(() => castleTown({ snow: snow ? 1 : 0 }), [snow]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Castle town" title="From the keep down through the town">
+      <p style={{ margin: 0 }}>Built by <code>castleTown</code>: one handscroll 6,400 px wide, panned with holds at four stations, mist bands
+        drifting across as in the picture scrolls. The castle on its grassy hill above the moat; the samurai quarter, residence walls and
+        gatehouses under pines, retainers passing; the canal under an arched bridge, a boat below; the merchant street, shops with crested
+        indigo noren and standing signs, storehouses with namako bases, a busy crowd, the fire-watch tower over the roofs. The new motifs
+        (<code>shop</code>, <code>kura</code>, <code>yashiki</code>, <code>firetower</code>) share the castle's storeys and roofs; the
+        walkers keep to the street.</p>
+    </Header>
+    <section aria-label="Castle town controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Check name="Snow" value={snow} onChange={setSnow} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="A castle town handscroll panning from the castle to the merchant street" /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Scroll frame" />
+  </div>;
+}
+
+// ---- Oni fight ----------------------------------------------------------------------------------------------------------------------
+
+/** A hero (samurai or Momotarō) fights an oni with an iron club on a rocky shore at dusk. */
+export function OniFight() {
+  const [hero, setHero] = useState<"samurai" | "momotaro">("samurai");
+  const [oni, setOni] = useState<"red" | "blue">("red");
+  const clock = usePlayback(640, 0, 1, true, true);
+  const spec = useMemo((): UkiyoeSceneSpec => {
+    const f = oniFight({ id: "fight", x: 720, y: 960, scale: 1.4, hero: hero === "momotaro" ? UKIYOE_MOMOTARO_LOOK : undefined,
+      oni: oni === "blue" ? { ...CAST["oni-blue"] } : undefined });
+    return {
+      version: 1, id: "oni-fight", width: 1920, height: 1080, durationFrames: 640, seed: 41, wind: { base: .4, turbulence: .4 }, palette: { preset: "edo" }, camera: { shake: f.shake },
+      nodes: [
+        { id: "sky", kind: "motif", motif: "sky", params: { width: 1920, height: 1080, band: .5, horizon: "beni" } },
+        { id: "sea", kind: "motif", motif: "sea", x: 0, y: 640, params: { width: 1920, height: 200 } },
+        { id: "rock-l", kind: "motif", motif: "rock", x: 200, y: 830, scale: 1.6, params: { width: 380, height: 220 } },
+        { id: "rock-r", kind: "motif", motif: "rock", x: 1720, y: 820, scale: 1.4, params: { width: 340, height: 200, variant: 2 } },
+        { id: "shore", kind: "block", x: 960, y: 900, shape: { type: "rect", width: 1960, height: 360 }, fill: { type: "linear", angle: 90, stops: [[0, "kincha", .9], [1, "cha", 1]] }, line: 0, grain: 1 },
+        ...f.nodes,
+      ],
+    };
+  }, [hero, oni]);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Oni" title="The oni's iron club">
+      <p style={{ margin: 0 }}>Built by <code>oniFight</code>. The kanabō is drawn in detail: a long iron-shod shaft swelling toward the head,
+        rows of iron studs over the striking half, iron bands, a cord-wrapped grip and an iron ring at the butt. At rest it lies over the
+        oni's shoulder. He smashes where the hero stood: a long wind-up overhead, the club brought down so its head stops exactly on the
+        ground, dust and pebbles bursting, the ground cracking, the picture shaking. The hero springs back; cuts, and the oni blocks with
+        the club; the oni swings at his chest and is parried, blade on iron, sparks at the one point both are aimed at. A second smash
+        misses; the hero closes and strikes home: the club drops, and the oni topples back to lie beside it.</p>
+    </Header>
+    <section aria-label="Fight controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="Hero" value={hero} options={["samurai", "momotaro"] as const} onChange={setHero} labels={{ samurai: "Samurai", momotaro: "Momotarō" }} />
+      <Select name="Oni" value={oni} options={["red", "blue"] as const} onChange={setOni} labels={{ red: "Red oni", blue: "Blue oni" }} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="A hero fighting an oni with an iron club" /></Fit>
+    <Transport clock={clock} total={640} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Fight frame" />
   </div>;
 }
 

@@ -17,6 +17,10 @@
 
 **First new slice, PR in progress:** Installable `riso-character` pack with arbitrary joint hierarchies, separate character paths per ink plate, explicit blink/viseme/pose redraws, 1–4 frame animation holds and deterministic frame seeking. Original courier-and-bird actors with independent anatomy share a 30fps eight-second FilmStage film in 16:9 and 9:16; Storybook supports playback, actor frames, ink isolation, registration, grain and print seed. [Component contract](component-specs/riso-character.md).
 
+**Risograph implementation correction (2026-11-15):** RISO2–RISO15 from `main` supersede the original provisional RISC1-only scope below. [Merged PR #165](https://github.com/YukiUmetsu/kumiki-ui/pull/165) already supplied the separately inked paper-prop ArtCraft pass. [RISO16 PR #355](https://github.com/YukiUmetsu/kumiki-ui/pull/355) unifies the source→recipient paper silhouette with the ink and physical knockout, follows tilted hand contacts with bounded curl/grip deformation, adds native plate-screened fold shading, keeps both-ratio Storybook controls in the existing Risograph folder and covers absolute-frame topology regression. [RISO16 reference/shape contract](research/riso16-hand-bound-paper-artcraft.md).
+
+**RISO16 onward priorities (remain open even after technical merge):** true independent fingertip–paper occlusion and responsive grip compression; human profile/3-quarter anatomy and nonrepeating facial identities; physical print-scan spot/ink/dot calibration; normal-speed 16:9+9:16 30–60s multi-character narrative and original licensed sound. Passing typecheck and unit tests does not replace direct ArtCraft aligned reference-to-render audits.
+
 **Next missing pieces, prioritized:**
 1. Action clip library and constrained animation: turnarounds, grounded walks/runs, reach/carry, body deformation, reusable mouth/phoneme and secondary motion.
 2. Film scene director: paper-space animated environment, independently staged depth layers, transitions, camera choreography, prop handoffs, multi-actor interactions and authored overlays.

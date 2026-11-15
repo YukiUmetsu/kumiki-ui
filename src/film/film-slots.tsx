@@ -3,6 +3,7 @@ import { PaperDirectorComposition } from "../../registry/video/paper-director-re
 import { compilePaperDirector, resolvePaperDirector } from "../../registry/video/paper-director";
 import type { PaperDirectorFilm, PaperDirectorPlan } from "../../registry/video/paper-director";
 import { paperDirectorDemo } from "../video/paper-director-demo";
+import { paperRoyalLanternFilm } from "../video/paper-royal-story";
 import { PAPER_STYLES } from "../../registry/video/paper-craft";
 import type { PaperStyle } from "../../registry/video/paper-craft";
 import { paperCraftExampleSpec } from "../video/paper-craft-demo";
@@ -960,7 +961,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
             authoredPaperFilms.set(raw, plan);
           }
         } else {
-          if (props.preset !== "four-chapters")
+          if (props.preset !== "four-chapters" && props.preset !== "royal-lantern")
             throw new RangeError("paper-craft-director requires a storyboard or known study preset");
           const medium = props.medium ?? "layered", seed = props.seed ?? 37;
           const motion = props.motion ?? .7, curtains=props.curtains ?? true;
@@ -974,11 +975,13 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
             throw new RangeError("paper-craft-director requires a safe integer seed");
           if (typeof motion !== "number" || !Number.isFinite(motion) || motion < 0 || motion > 1)
             throw new RangeError("paper-craft-director motion must be finite in [0,1]");
-          const key = medium+":"+seed+":"+motion+":"+curtains+":"+transitionStyle;
+          const key = props.preset+":"+medium+":"+seed+":"+motion+":"+curtains+":"+transitionStyle;
           const cached = samplePaperFilms.get(key);
           if (cached) plan = cached;
           else {
-            plan = compilePaperDirector(paperDirectorDemo(medium as PaperStyle,seed,motion,curtains,transitionStyle));
+            plan = compilePaperDirector(props.preset === "royal-lantern"
+              ? paperRoyalLanternFilm(medium as PaperStyle,seed,motion)
+              : paperDirectorDemo(medium as PaperStyle,seed,motion,curtains,transitionStyle));
             if (samplePaperFilms.size > 12) samplePaperFilms.clear();
             samplePaperFilms.set(key,plan);
           }
