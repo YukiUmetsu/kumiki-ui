@@ -1,0 +1,304 @@
+{
+  "schema_version": 3,
+  "study": "riso25-midface-reference-study.json",
+  "subject_type": "stylized human portrait",
+  "stage": "source-anatomy contours completed; browser comparison and independent human gate pending",
+  "model_type": "authored-2D head-joint SVG source",
+  "reused_rig": "unchanged head joint on both original characters; 240 frames at cadence two",
+  "anatomy_reference_grade": "existing authored front-view character, NOT a rights-cleared or medically measured identity target; MediaPipe canonical topology used only as construction vocabulary, not inferred pixels",
+  "paper_logic": "existing RisoPrint + RisoCharacterInk two spot masters; new 1-2 stage-unit lines are solid plate paths, never halftoned at the native two-unit cell",
+  "characters": [
+    {
+      "id": "courier",
+      "head_reference": "COURIER",
+      "head_anchor": "face",
+      "original_ear_path": "M-32 -10 Q-39 -12 -40 -2 Q-39 7 -32 7 L-32 5 Q-37 5 -38 -2 Q-38 -8 -32 -7 Z",
+      "new_shell_path_id": "ear-left",
+      "visible_landmarks_local": {
+        "nasal_bridge": [
+          2,
+          -12
+        ],
+        "nasal_ala": [
+          8,
+          6
+        ],
+        "philtrum": [
+          2,
+          12
+        ],
+        "mouth_mid": [
+          0,
+          18
+        ],
+        "chin": [
+          0,
+          32
+        ],
+        "ear_root": [
+          -32,
+          -10
+        ],
+        "ear_lobule": [
+          -33,
+          7
+        ],
+        "left_eye": [
+          -16,
+          -8
+        ],
+        "right_eye": [
+          18,
+          -8
+        ]
+      },
+      "semantic_regions": [
+        {
+          "id": "ear-helix-fold",
+          "parent": "ear-left",
+          "ink": "blue",
+          "islands": 1,
+          "role": "inner antihelix and outer pinna transition",
+          "must_attach": true
+        },
+        {
+          "id": "ear-concha-pocket",
+          "parent": "ear-left",
+          "ink": "red",
+          "islands": 1,
+          "role": "recessed concha base",
+          "must_attach": true
+        },
+        {
+          "id": "ear-tragus-root",
+          "parent": "ear-left",
+          "ink": "blue",
+          "islands": 1,
+          "role": "tragus projecting into concha",
+          "must_attach": true
+        },
+        {
+          "id": "ear-lobule-seam",
+          "parent": "ear-left",
+          "ink": "red",
+          "islands": 1,
+          "role": "rounded lobe/cheek junction",
+          "must_attach": true
+        },
+        {
+          "id": "nasal-sidewall-line",
+          "parent": "face",
+          "ink": "red",
+          "islands": 1,
+          "role": "nose root-to-alar convex curvature"
+        },
+        {
+          "id": "nasal-ala-fold",
+          "parent": "face",
+          "ink": "red",
+          "islands": 1,
+          "role": "nostril ala-to-cheek inset junction"
+        },
+        {
+          "id": "upper-lip-engraving",
+          "parent": "mouth",
+          "ink": "blue",
+          "islands": 1,
+          "role": "vermilion upper contour",
+          "expressions": [
+            "neutral",
+            "speak",
+            "smile"
+          ]
+        },
+        {
+          "id": "nasolabial-flow",
+          "parent": "nose-bridge-plane",
+          "ink": "red",
+          "islands": 2,
+          "role": "two asymmetrical nasal/cheek lines",
+          "expressions": [
+            "neutral",
+            "speak",
+            "smile"
+          ]
+        },
+        {
+          "id": "labiomental-crease",
+          "parent": "mouth",
+          "ink": "blue",
+          "islands": 1,
+          "role": "lower vermilion-to-chin transition",
+          "expressions": [
+            "neutral",
+            "speak",
+            "smile"
+          ]
+        }
+      ],
+      "views": {
+        "source": "front",
+        "three_quarter": "not authored",
+        "side": "not authored",
+        "back": "not authored"
+      },
+      "style_lock": "Hand-drawn 2D original paper messenger with cap; no traced 3/4 rotation or invented face identity"
+    },
+    {
+      "id": "paper-artist",
+      "head_reference": "PAPER_ARTIST",
+      "head_anchor": "face",
+      "original_ear_path": "M-28 -11 Q-36 -16 -37 -7 Q-38 3 -30 7 L-28 4 Q-35 0 -33 -6 Q-31 -9 -28 -7 Z",
+      "new_shell_path_id": "ear-left",
+      "visible_landmarks_local": {
+        "nasal_bridge": [
+          1,
+          -12
+        ],
+        "nasal_ala": [
+          8,
+          7
+        ],
+        "philtrum": [
+          3,
+          10
+        ],
+        "mouth_mid": [
+          0,
+          16
+        ],
+        "chin": [
+          0,
+          29
+        ],
+        "ear_root": [
+          -28,
+          -11
+        ],
+        "ear_lobule": [
+          -31,
+          6
+        ],
+        "left_eye": [
+          -15,
+          -8
+        ],
+        "right_eye": [
+          18,
+          -9
+        ]
+      },
+      "semantic_regions": [
+        {
+          "id": "ear-helix-fold",
+          "parent": "ear-left",
+          "ink": "blue",
+          "islands": 1,
+          "role": "smaller inner helix partly hair occluded",
+          "must_attach": true
+        },
+        {
+          "id": "ear-concha-pocket",
+          "parent": "ear-left",
+          "ink": "red",
+          "islands": 1,
+          "role": "concha shadow within bob-side head",
+          "must_attach": true
+        },
+        {
+          "id": "ear-tragus-root",
+          "parent": "ear-left",
+          "ink": "blue",
+          "islands": 1,
+          "role": "tragus root and negative paper near hair edge",
+          "must_attach": true
+        },
+        {
+          "id": "ear-lobule-seam",
+          "parent": "ear-left",
+          "ink": "red",
+          "islands": 1,
+          "role": "earlobe joining cheek behind hairstyle",
+          "must_attach": true
+        },
+        {
+          "id": "nasal-sidewall-line",
+          "parent": "face",
+          "ink": "red",
+          "islands": 1,
+          "role": "independently drawn slender nasal bridge transition"
+        },
+        {
+          "id": "nasal-ala-fold",
+          "parent": "face",
+          "ink": "red",
+          "islands": 1,
+          "role": "nasal ala and cheek shadow"
+        },
+        {
+          "id": "upper-lip-engraving",
+          "parent": "mouth",
+          "ink": "blue",
+          "islands": 1,
+          "role": "distinct original lipstick / upper border curve",
+          "expressions": [
+            "neutral",
+            "speak",
+            "smile"
+          ]
+        },
+        {
+          "id": "nasolabial-flow",
+          "parent": "nose-bridge",
+          "ink": "red",
+          "islands": 2,
+          "role": "upturned cheek folds with asymmetry",
+          "expressions": [
+            "neutral",
+            "speak",
+            "smile"
+          ]
+        },
+        {
+          "id": "labiomental-crease",
+          "parent": "mouth",
+          "ink": "blue",
+          "islands": 1,
+          "role": "lower lip-to-chin",
+          "expressions": [
+            "neutral",
+            "speak",
+            "smile"
+          ]
+        }
+      ],
+      "views": {
+        "source": "front",
+        "three_quarter": "not authored",
+        "side": "not authored",
+        "back": "not authored"
+      },
+      "style_lock": "Original front-view Paper Artist with bob; no duplicated Courier paths or ear position"
+    }
+  ],
+  "invariants": [
+    "ear shell modified only in original head source and isolated before/after with original d in Storybook",
+    "all local subfeatures remain on actual head joint",
+    "blink retains neutral nose/lips but eye geometry blinks independently",
+    "speak and smile redraw mouth-support anatomy with stable subpath counts",
+    "both original eyes/hair/limbs and film rig remain intact",
+    "native plate separations render each new detail only on its authored ink"
+  ],
+  "human_fidelity_release": {
+    "status": "blocked",
+    "reasons": [
+      "no rights-cleared identity source for annotated reference landmarks",
+      "no true profile or 3/4 source geometry",
+      "not run independently: art-human-anatomy/scripts/human_anatomy_fidelity_gate.py"
+    ],
+    "must_not_claim": [
+      "anatomical fidelity passed",
+      "source identity certified"
+    ]
+  }
+}
