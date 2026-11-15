@@ -285,6 +285,61 @@ export const createDryPencilHeadPlate=(
         (pencilHash(seed,hashBase,15)-.5)*.19);
     }
   }
+  // Optical grisaille: finish the *value* structure after the first
+  // low-pressure chromatic map but before drawing tiny lashes and hair fibres.
+  // A paper-only portrait with three 1px passes remained 40–80 luminance
+  // points lighter than its source in orbits, nose and vermilion. Build the
+  // shaded source planes from individual, intersecting dry-pencil marks.
+  // White paper is still untouched where the reference is truly luminous.
+  for(const layer of [0,1,2] as const){
+    const step=eyeDist*(layer===0?.027:layer===1?.024:.021);
+    const cols=Math.ceil(cropWidth/step),rows=Math.ceil(cropHeight/step);
+    for(let iy=0;iy<rows;iy++)for(let ix=0;ix<cols;ix++){
+      const j=iy*cols+ix+layer*191513;
+      const px=left+(ix+.5+(pencilHash(seed,j,201)-.5)*.44)*step;
+      const py=top+(iy+.5+(pencilHash(seed,j,202)-.5)*.44)*step;
+      const p:Point=[px,py];
+      if(classify(p)!=="skin")continue;
+      const value=photoValue(source,px,py);
+      // No darkening on source highlights, including corneal reflections.
+      const shadow=clamp((.80-value)/.54,0,1);
+      if(shadow<.08||pencilHash(seed,j,203)>Math.pow(shadow,.72))continue;
+      const rgb=photoRGB(source,px,py);
+      const offset=eyeDist*.016;
+      const gx=photoValue(source,px+offset,py)-
+        photoValue(source,px-offset,py);
+      const gy=photoValue(source,px,py+offset)-
+        photoValue(source,px,py-offset);
+      const edge=Math.hypot(gx,gy);
+      const nearEye=length(p,guides.eyeNearCenter)/eyeDist;
+      const farEye=length(p,guides.eyeFarCenter)/eyeDist;
+      const aroundOrbit=Math.min(nearEye,farEye)<.33;
+      const nearLip=length(p,guides.lipCupid)/eyeDist<.34;
+      const nearNose=length(p,guides.noseTip)/eyeDist<.36;
+      // Planes follow orbital curves, vertical nasal cartilage and lips.
+      // Edge tangents dominate only where the licensed source supports them.
+      const tangent=edge>.06?Math.atan2(-gx,gy):
+        aroundOrbit?-.24+(px-guides.noseBridge[0])/eyeDist*.4:
+        nearNose?1.32:nearLip?.22+(px-guides.lipCupid[0])/eyeDist*.3:
+        .38+(px-guides.noseBridge[0])/eyeDist*.28;
+      const heading=tangent+(layer===1?.53:layer===2?-.39:0)+
+        (pencilHash(seed,j,204)-.5)*.23;
+      const ink=color([
+        rgb[0]*(layer===0?.63:.72)+(layer===0?47:68)*(layer===0?.37:.28),
+        rgb[1]*(layer===0?.62:.72)+(layer===0?36:46)*(layer===0?.38:.28),
+        rgb[2]*(layer===0?.66:.76)+(layer===0?43:57)*(layer===0?.34:.24),
+      ]);
+      const distance=distanceToEdge(p,geometry.face);
+      const feather=.74+.26*clamp(distance/(eyeDist*.055),0,1);
+      const len=step*(layer===0?1.5:layer===1?1.4:1.07)*
+        (.74+.50*pencilHash(seed,j,205));
+      push("face-form",p,
+        [Math.cos(heading)*len,Math.sin(heading)*len],
+        ink,(.25+.31*shadow)*feather,
+        layer===0?1.24:layer===1?.97:.69,2,
+        (pencilHash(seed,j,206)-.5)*.12);
+    }
+  }
   // ArtCraft source-dependent facial contour hierarchy: use optical
   // gradient measurements only around real orbits, nasal cartilage and
   // the two lip pillows. Unlike generic SVG outlines these tangent marks
@@ -358,18 +413,25 @@ export const createDryPencilHeadPlate=(
   // Hair as connected MASSES first. The physical photographic reference
   // has auburn locks surrounding the head; green garden is NOT a hair mask.
   // Hair is a separate material and cannot inadvertently flatten the face.
-  for(const pass of [0,1] as const){
-    const step=eyeDist*(pass===0?.027:.025);
+  for(const layer of [0,1,2,3] as const){
+    const shadeCore=layer>=2;
+    const pass:0|1|2=layer===0?0:layer===1?1:2;
+    const step=eyeDist*(layer===0?.027:layer===1?.025:
+      layer===2?.024:.021);
     const nx=Math.ceil(cropWidth/step),ny=Math.ceil(cropHeight/step);
     for(let iy=0;iy<ny;iy++)for(let ix=0;ix<nx;ix++){
-      const k=iy*nx+ix+pass*49103;
+      const k=iy*nx+ix+layer*49103;
       const px=left+(ix+.5+(pencilHash(seed,k,36)-.5)*.42)*step;
       const py=top+(iy+.5+(pencilHash(seed,k,37)-.5)*.42)*step;
       const p:Point=[px,py];
       if(classify(p)!=="hair")continue;
       const rgb=photoRGB(source,px,py),v=photoValue(source,px,py);
       const band=toneBand(v);
-      if(pass===0)fiveValueCounts[band]++;
+      if(layer===0)fiveValueCounts[band]++;
+      // Deep contiguous strands need more pencil deposits than bright
+      // loose highlights; no black flat filled polygon or photo bitmap.
+      if(shadeCore&&(v>.72||
+        pencilHash(seed,k,41)>clamp((.83-v)/.65,0,1)))continue;
       const fade=clamp(distanceToEdge(p,geometry.hairOuter)/
         (eyeDist*.085),0,1);
       const side=Math.sign(px-guides.hairline[0]);
@@ -380,12 +442,15 @@ export const createDryPencilHeadPlate=(
       const theta=heading+(pass===1?.17:0)+
         (pencilHash(seed,k,38)-.5)*.20;
       const len=step*(1.60+.48*pencilHash(seed,k,39));
-      const pigment=pass===0?color([
-        rgb[0]*.85+51*.15,rgb[1]*.85+35*.15,rgb[2]*.85+28*.15,
-      ]):color([rgb[0]*.9+79*.1,rgb[1]*.9+44*.1,rgb[2]*.9+32*.1]);
+      const pigment=shadeCore?
+        color([rgb[0]*.76+36*.24,rgb[1]*.74+27*.26,
+          rgb[2]*.74+25*.26]):
+        pass===0?color([
+          rgb[0]*.85+51*.15,rgb[1]*.85+35*.15,rgb[2]*.85+28*.15,
+        ]):color([rgb[0]*.9+79*.1,rgb[1]*.9+44*.1,rgb[2]*.9+32*.1]);
       push("hair-mass",p,[Math.cos(theta)*len,Math.sin(theta)*len],
-        pigment,(pass===0?.41:.34)*fade*(.48+.9*(1-v)),
-        pass===0?1.65:1.27,pass,
+        pigment,(shadeCore?.48:pass===0?.41:.34)*fade*(.48+.9*(1-v)),
+        shadeCore?1.37:pass===0?1.65:1.27,pass,
         (pencilHash(seed,k,40)-.5)*.16);
     }
   }
