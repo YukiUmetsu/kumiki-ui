@@ -139,7 +139,7 @@ export function createPencilMaterialRegion(input: PencilMaterialInput): PencilRe
     ...(input.craft && recipe.support?{craft:{
       kind:craftKind,
       burnish:input.surface==="ocular"?.91:
-        input.surface==="fur"||input.surface==="feather"?.68:.79,
+        input.surface==="fur"?.68:.79,
       light:.22,
       tooth:input.surface==="skin"?.35:.77,
     }}:{}),
