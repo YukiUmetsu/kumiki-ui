@@ -30,7 +30,7 @@ test("face feature guides are opt-in, stay aligned on aspect changes and never l
       {timeout:25000});
     await expect(drawing).toHaveAttribute("data-km-portrait-features","source-guided");
     await expect(page.locator("[data-km-portrait-craft-evidence]")).toContainText(
-      "additional eye, brow, alar and lip pencil marks");
+      "additional eye, brow, nose, lip and form-following skin pencil marks");
     await expect(page.getByRole("alert")).toHaveCount(0);
     await page.getByRole("checkbox",{name:"Show source-measured face guides"}).check();
     const guides=page.locator("svg[data-km-face-guide-overlay]");
