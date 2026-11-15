@@ -183,7 +183,7 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     {start:115,end:188},{
       parentId:"pear-body",clipToParent:true,blendRadius:6,
       pressure:pressure*.46,spacing:7.7,markStrength:.4,outlineOpacity:0,
-    },4);
+    },3);
   addWax("pear-blush",
     "M-110 -17 C-111 -82 -64 -115 -31 -91 C5 -63 -5 -11 -49 16 "+
     "Q-93 36 -110 -17 Z",
