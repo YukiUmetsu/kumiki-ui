@@ -31,13 +31,15 @@ const arch:Readonly<Record<string,{
 }>>={
   "brow-superciliary-near":{
     id:"source-brow-wax-near",
-    d:"M198 504 C212 491 231 477 249 471 "+
-      "C265 463 284 465 298 469 "+
-      "C315 474 326 480 331 488 "+
-      "C319 485 304 480 291 480 "+
-      "C267 479 254 484 240 490 "+
-      "C222 498 208 505 198 504Z",
-    bounds:{x:193,y:458,width:142,height:53},
+    // Dark source root is thinner than the broad diffuse shadow halo.
+    // A single filled 27px-tall arch looked like a cut-paper cartoon.
+    d:"M209 499 C228 489 244 479 258 476 "+
+      "C273 471 285 472 298 475 "+
+      "C312 478 321 483 326 489 "+
+      "C315 486 306 483 295 483 "+
+      "C274 481 260 484 244 489 "+
+      "C227 494 216 499 209 499Z",
+    bounds:{x:205,y:468,width:125,height:38},
     colors:["#71514e","#493638","#987369"],
     gradient:{
       light:"#946e63",shadow:"#443238",focusX:.58,focusY:.42,radius:.81,
@@ -68,11 +70,11 @@ const arch:Readonly<Record<string,{
   },
   "brow-superciliary-far":{
     id:"source-brow-wax-far",
-    d:"M397 464 C409 448 430 438 445 436 "+
-      "C459 434 470 439 476 446 "+
-      "C458 442 445 445 433 450 "+
-      "C416 457 402 463 397 464Z",
-    bounds:{x:391,y:429,width:89,height:40},
+    d:"M403 462 C416 451 431 442 446 440 "+
+      "C458 439 467 442 472 447 "+
+      "C456 445 445 448 434 454 "+
+      "C420 459 408 463 403 462Z",
+    bounds:{x:400,y:434,width:77,height:35},
     colors:["#70524f","#49373b","#93736b"],
     gradient:{
       light:"#997871",shadow:"#463538",focusX:.52,focusY:.44,radius:.84,
@@ -92,10 +94,48 @@ const arch:Readonly<Record<string,{
   },
 } as const;
 
-/** Two opaque roots and two irregular paper-contact fiber groups. */
+/**
+ * Source-aligned eyes have soft eyebrow halo and a much tighter dark core.
+ * A separate open wax-edge field avoids a hard vector polygon boundary.
+ * This still deposits real wax marks; it never fades the face itself.
+ */
+const haloD:Readonly<Record<string,string>>={
+  near:"M198 504 C212 491 231 477 249 471 "+
+    "C265 463 284 465 298 469 "+
+    "C315 474 326 480 331 488 "+
+    "C319 485 304 480 291 480 "+
+    "C267 479 254 484 240 490 "+
+    "C222 498 208 505 198 504Z",
+  far:"M397 464 C409 448 430 438 445 436 "+
+    "C459 434 470 439 476 446 "+
+    "C458 442 445 445 433 450 "+
+    "C416 457 402 463 397 464Z",
+};
+
+/** Keeps every source-rooted cubic but shortens individual hairs,
+ * rather than drawing cartoon-length diagonal eyebrow hash marks.
+ * Each control point moves toward its OWN root so local variation is
+ * never replaced by a uniform stamp. */
+function sourceRootedFiberScale(d:string,scale:number):string{
+  const pattern=/M(\d+) (\d+) C(\d+) (\d+) (\d+) (\d+) (\d+) (\d+)/g;
+  let count=0;
+  const result=d.replace(pattern,(_,mx,my,x1,y1,x2,y2,x3,y3)=>{
+    count++;
+    const rx=Number(mx),ry=Number(my);
+    const pos=(x:string,y:string)=>[
+      +(rx+(Number(x)-rx)*scale).toFixed(2),
+      +(ry+(Number(y)-ry)*scale).toFixed(2),
+    ].join(" ");
+    return "M"+rx+" "+ry+" C"+pos(x1,y1)+" "+pos(x2,y2)+" "+pos(x3,y3);
+  });
+  if(count<8||result.includes("undefined"))throw new Error("Bad F1 wax fibers");
+  return result;
+}
+
+/** Two halo glazes, two opaque roots and two distinct dry-wax bundles. */
 export const CRAYON_F1_BROW_IDS=Object.freeze([
-  "source-brow-wax-near","source-brow-fibers-near",
-  "source-brow-wax-far","source-brow-fibers-far",
+  "source-brow-feather-near","source-brow-wax-near","source-brow-fibers-near",
+  "source-brow-feather-far","source-brow-wax-far","source-brow-fibers-far",
 ] as const);
 
 export function crayonF1ReconstructBrows(
@@ -111,26 +151,39 @@ export function crayonF1ReconstructBrows(
     if(seen.has(element.id))throw new RangeError("Duplicate F1 brow "+element.id);
     seen.add(element.id);
     const near=element.id.endsWith("-near");
+    const halo:Wax={
+      ...element,
+      id:near?"source-brow-feather-near":"source-brow-feather-far",
+      d:haloD[near?"near":"far"],
+      colors:near?["#906961","#604646","#aa847b"]:
+        ["#886963","#5d494b","#aa837a"],
+      pressure:near?.57:.54,spacing:near?5.7:6.1,
+      markStrength:near?.12:.11,
+      blendRadius:near?8.5:7.6,featherContacts:true,
+      underpaintTooth:0,
+      outlineOpacity:0,
+    };
     const wax:Wax={
       ...element,
       id:spec.id,d:spec.d,bounds:spec.bounds,
       colors:spec.colors,coverage:"opaque",
       featherContacts:false,blendRadius:undefined,
       pressure:near?.88:.84,
-      spacing:near?4.7:4.9,markStrength:near?.30:.27,
+      spacing:near?4.7:4.9,markStrength:near?.12:.11,
       underpaintTooth:near?.23:.19,
       underpaintGradient:spec.gradient,
-      edgeRoughness:.14,outlineOpacity:0,
+      edgeRoughness:.10,outlineOpacity:0,
     };
-    out.push(wax,element);
+    out.push(halo,wax,element);
     // The texture marks are single continuous native dry wax fibers,
     // not a uniform row of digital strokes or random disconnected dots.
     const fibers:Contour={
       kind:"contour",
       id:near?"source-brow-fibers-near":"source-brow-fibers-far",
-      d:spec.strokes,color:spec.strokeColor,
-      width:spec.strokeWidth,opacity:near?.69:.63,
-      waxContact:"dry-wax",waxPressure:spec.strokePressure,
+      d:sourceRootedFiberScale(spec.strokes,near?.62:.66),
+      color:spec.strokeColor,
+      width:near?.28:.24,opacity:near?.51:.49,
+      waxContact:"dry-wax",waxPressure:near?.52:.49,
       parentId:"face-outline",clipToParent:true,
       timing:{start:199,end:297},
     };
