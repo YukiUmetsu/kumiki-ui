@@ -48,3 +48,9 @@ All edits modify existing region paths or supporting pigments, **not** the actor
 **Storybook:** the new *Feather construction · 2.85× shaft and vane macro* story lives under the existing *Video Production/Film Looks/Colour-pencil/Wildlife* group (no new folder). Existing scene/film IDs remain unchanged. The macro shows real animated source paths and supports portrait switching, paper tooth, frame seeking and reduced motion.
 
 **Next artistic gate:** capture a true 1× encoded film, 2.85× wing/coverts, 4× eye/beak and compare against original reference and prior Chromium proof. If the wing still reads as flat sticker at film scale, change the underlying feather mass and reflected-light planes before adding more barbs. No master-level approval claimed.
+
+### Browser evidence correction — high-contrast comb rejected
+
+The first CI browser capture (ArtCraft Pencil Fibre Browser Proof run 43671657524, landscape/portrait/wing/eye and animated coverts) was visually inspected. The ten-pair implementation was technically rooted but created too many high-contrast ivory herringbone marks on the blue wing. **This frame was rejected**: structural density alone did not equal artistic feather fidelity.
+
+Follow-up pigment pass reduces vane opacity/stroke width, shifts the pale ice-blue shaft marks toward the wing's local darker blue value, shortens trailing barbs and varies their lengths per shaft. The intent is for existing fine filaments and feather masses to remain primary and rachises to support, rather than dominate, the form. This adjustment requires a fresh browser visual check before merge. Head/body mass, scale and whole-character likeness remain future acceptance work.
