@@ -25,9 +25,10 @@
       "durationFrames": 360,
       "content": {
         "slot": "watercolour-illustration",
-        "label": "An original watercolor human portrait",
+        "label": "Original reference-led watercolor human portraits",
         "props": {
           "subject": "person-portrait",
+          "sitter": "sitter-a",
           "seed": 83
         }
       }

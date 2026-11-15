@@ -15,6 +15,6 @@ export const WATERCOLOUR_PORTRAIT_FILM:FilmDocument={
     id:"portrait-painted-in-stages",
     recipeId:"slot",durationFrames:360,
     content:{slot:"watercolour-illustration",
-      label:"An original watercolor human portrait",props:{subject:"person-portrait",seed:83}},
+      label:"Original reference-led watercolor human portraits",props:{subject:"person-portrait",sitter:"sitter-a",seed:83}},
   }],
 };
