@@ -62,6 +62,8 @@ test("RISO20 screened print remains usable in both output aspects and spot separ
     await expect(print.locator('[data-km-riso-plate="red"]')).toHaveAttribute("opacity", "0");
     await page.getByRole("button", { name: "Both inks" }).click();
 
+    await setRange("Screen tone", "0.32");
+    await setRange("Dot gain", "0");
     await page.getByRole("combobox", { name: "Screening method" }).selectOption("am");
     await expect(print).toHaveAttribute("data-km-riso-screen-mode", "am");
     await expect(print.locator("pattern circle")).toHaveCount(2);
