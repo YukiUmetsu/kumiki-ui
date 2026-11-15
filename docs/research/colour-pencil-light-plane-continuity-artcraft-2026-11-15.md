@@ -126,3 +126,24 @@ Five-axis changes now committed on the existing CP-F1 fox/portrait authoring sta
 Unit QA includes the explicit four toe/wrist/nail contracts and independently layered human face pigment contacts. Both native landscape and portrait Storybook frames remain the required evidence; no new folder is introduced.
 
 **Artistic release hold remains.** Testable presence of proper digits and physical pencil contacts does **not** demonstrate reference-equivalent anatomy or painterly realism. Verify the four furrows visually at 1× and 3×; in the portrait inspect for repetitive fibrous freckles, angular cheek masks, inaccurate eye/nose anatomy and poor optical skin integration. Reject these deficiencies rather than increasing background gradients or calling the output finished.
+
+
+## CP-F1 continuation — fox caudal volume and irregular distal guard-hair seam
+
+**Sources inspected:** [Missouri Department of Conservation, red fox field guide](https://mdc.mo.gov/discover-nature/field-guide/red-fox) (bushy circular-cross-section tail, black mixed with red, often white tip); [Lisa Wellwood, *Bashful* original coloured-pencil red fox](https://lisawellwoodartist.com/products/bashful-fox-original-drawing) (directionally layered, local pencil fibre contact); [Red Fox Original Drawing, Etsy](https://www.etsy.com/listing/1407671354/red-fox-original-drawing) (technique and morphology observed only). These are external **technique/anatomy references**; no finished art assets were copied, sampled or packaged. Previously captured 960×540 local Storybook fox still shows a nearly cylindrical tapered tail, a round white cap and uninterrupted diagonal hatch.
+
+**Five-axis source-to-construction specification:**
+
+| Axis | Observation and implementation | Negative control |
+| --- | --- | --- |
+| Topology | Tail emerges behind sitting rump; irregular contour stays a single closed mass, with the distal white coat independently attached atop the orange tail | Detached pompom, floating white decal |
+| Flow | Eight authored caudal root tracts and five tip tracts turn with dorsal/ventral fur growth, with separate light/dark/amber pressure families | Uniform screen-space crosshatch |
+| Weight | Shallow white-cream guard hairs have low-width separated contacts; deeper cool russet underfur remains visible | Opaque flat white wedge |
+| Rhythm | Top and bottom boundary have unequal tufts; upper/underside fans have non-repeating seeded lengths and stagger | Mirrored rows, sawtooth spikes |
+| Texture | Existing paper tooth, original two-scale fur, three pigment families, and native time-based reveal remain. Three small dry-pencil seam arcs soften the tip interface | Blur, raster overlay, gradient smearing |
+
+**Changed** `src/video/colored-pencil-living-studies.ts`: caudal envelope now has bounded irregular roots/tufts while retaining hip insertion and overall tail width; undercoat grew from five to eight 3-pigment families; white tip has an independently irregular boundary, five interleaving families and a fine seam study. Original nose, 4-toe paws, head, eyes, chest, 16:9/9:16 format, frame timing and material controls stay intact.
+
+**Code-only gate** `tests/colored-pencil-living-studies.test.tsx`: tests both camera formats, deterministic output, one continuous caudal volume, 24 tail and 15 tip pigment-path families, short low-pressure marks and no invalid coordinates. These tests do not prove the tail looks natural.
+
+**Release decision: HOLD until current commit browser screenshot/video review.** Re-run real Storybook fox at 960×540 and 540×960, inspect 1×/3× caudal and facial/neck crops, compare with the source above, run art-axis material/structure gate and full animation on final head. Do not promote merely on matching trace counts. The human portrait still has obvious schematic eyelids, scalp/hair mass and neck–collar gaps; the fox still needs better muzzle bone planes, ear cartilage, limb articulation and non-uniform coat direction. The creative release standard remains unmet.
