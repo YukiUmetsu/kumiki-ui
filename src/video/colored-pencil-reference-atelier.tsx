@@ -72,6 +72,7 @@ function paint(ctx:CanvasRenderingContext2D,study:PencilPhotoStudy,
 export function ReferencePencilAtelier(){
   const canvasRef=useRef<HTMLCanvasElement>(null);
   const underpaint=useRef<HTMLCanvasElement|null>(null);
+  const localObjectUrl=useRef<string|null>(null);
   const [sample,setSample]=useState<Sample>("fox");
   const [sourceUrl,setSourceUrl]=useState(photos.fox.url);
   const [raw,setRaw]=useState<PencilPhotoPixels|null>(null);
@@ -83,6 +84,11 @@ export function ReferencePencilAtelier(){
   const [uploaded,setUploaded]=useState(false);
   const size=aspect==="landscape"?{width:900,height:506}:{width:506,height:900};
 
+  // Browser-created object URLs are explicitly revoked on replace/unmount,
+  // without affecting the in-flight load of the newly selected source.
+  useEffect(()=>()=>{if(localObjectUrl.current){
+    URL.revokeObjectURL(localObjectUrl.current);localObjectUrl.current=null;
+  }},[]);
   useEffect(()=>{
     let cancelled=false;
     const image=new Image();image.crossOrigin="anonymous";
@@ -139,8 +145,11 @@ export function ReferencePencilAtelier(){
     setOptions(prev=>({...prev,[key]:val}));setPlaying(false);
   };
   const usePhoto=(subject:Sample)=>{
+    if(localObjectUrl.current){
+      URL.revokeObjectURL(localObjectUrl.current);localObjectUrl.current=null;
+    }
     setSample(subject);setSourceUrl(photos[subject].url);
-    setUploaded(false);setPlaying(false);setRaw(null);
+    setUploaded(false);setPlaying(false);setRaw(null);setFrame(350);
   };
   return <main style={{background:"#E7E5DC",minHeight:"100vh",
     padding:24,font:"14px/1.5 system-ui",color:"#34464C",
@@ -175,12 +184,17 @@ export function ReferencePencilAtelier(){
           accept="image/png,image/jpeg,image/webp" style={field}
           onChange={e=>{
             const file=e.target.files?.[0];if(!file)return;
-            if(!file.type.startsWith("image/")){setError("Use a PNG, JPEG or WebP image.");return;}
+            if(!["image/png","image/jpeg","image/webp"].includes(file.type)||
+              file.size>16*1024*1024){
+              setError("Use a PNG, JPEG or WebP image no larger than 16 MB.");
+              return;
+            }
+            if(localObjectUrl.current)URL.revokeObjectURL(localObjectUrl.current);
             const url=URL.createObjectURL(file);
-            setRaw(null);setUploaded(true);setSourceUrl(url);
+            localObjectUrl.current=url;
+            setError("");setRaw(null);setUploaded(true);setSourceUrl(url);
             setPlaying(false);setFrame(350);
-            // Object URLs are local-only; state transition revokes old object URL.
-            // We do not submit the user's photo to the app or any server.
+            // Object URL stays in the browser; no network submission.
           }}/>
       </label>
       <label style={control}>Page
