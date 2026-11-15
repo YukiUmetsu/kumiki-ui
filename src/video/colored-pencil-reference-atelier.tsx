@@ -183,6 +183,7 @@ export function ReferencePencilAtelier({
   const [fibreFlow,setFibreFlow]=useState(1);
   const [lidAnatomy,setLidAnatomy]=useState(.72);
   const [irisAnatomy,setIrisAnatomy]=useState(.78);
+  const [skinWeave,setSkinWeave]=useState(.70);
   const [featureDepth,setFeatureDepth]=useState(.85);
   const [skinCoverage,setSkinCoverage]=useState(.70);
   const [showFeatureAtlas,setShowFeatureAtlas]=useState(initialStoryboard);
@@ -274,9 +275,10 @@ export function ReferencePencilAtelier({
   // computed for ordinary video exports or for unrelated photos/characters.
   const headPlate=useMemo(()=>raw&&faceGuides&&showFullHead?
     createDryPencilHeadPlate(raw,faceGuides,options.seed,
-      headScumble,featureDepth,skinCoverage,fibreFlow,lidAnatomy,irisAnatomy):null,
+      headScumble,featureDepth,skinCoverage,fibreFlow,lidAnatomy,
+      irisAnatomy,skinWeave):null,
     [raw,faceGuides,showFullHead,options.seed,headScumble,featureDepth,
-      skinCoverage,fibreFlow,lidAnatomy,irisAnatomy]);
+      skinCoverage,fibreFlow,lidAnatomy,irisAnatomy,skinWeave]);
   // The static precomputed tone layer is cached: seeking/speed does not
   // recompute pixels, gradients, stochastic paper or stroke directions.
   useEffect(()=>{
@@ -349,6 +351,11 @@ export function ReferencePencilAtelier({
     dry.setAttribute("data-km-pencil-full-head-rendered","true");
     dry.setAttribute("data-km-pencil-eyelid-depth",String(headPlate.eyelidDepth));
     dry.setAttribute("data-km-pencil-iris-depth",String(headPlate.irisDepth));
+    dry.setAttribute("data-km-pencil-skin-weave",String(headPlate.skinWeaveDepth));
+    dry.setAttribute("data-km-pencil-skin-weave-nibs",
+      String(headPlate.skinWeaveEvidence.pigments));
+    dry.setAttribute("data-km-pencil-skin-weave-highlight-reserves",
+      String(headPlate.skinWeaveEvidence.protectedHighlights));
     dry.setAttribute("data-km-pencil-iris-near",String(
       headPlate.observedIrisCounts.near));
     dry.setAttribute("data-km-pencil-iris-far",String(
@@ -605,6 +612,12 @@ export function ReferencePencilAtelier({
         <input aria-label="Pencil photo-registered iris and pupil" type="range"
           min="0" max="1" step=".02" value={irisAnatomy}
           onChange={e=>setIrisAnatomy(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Photographic skin optical weave · {Math.round(skinWeave*100)}%
+        <input aria-label="Pencil overlapping skin optical weave" type="range"
+          min="0" max="1" step=".05" value={skinWeave}
+          onChange={e=>setSkinWeave(Number(e.target.value))}/>
       </label>}
       {faceGuides&&showFullHead&&<label style={control}>
         Skin pigment coverage · {Math.round(skinCoverage*100)}%
@@ -1060,6 +1073,12 @@ export function ReferencePencilAtelier({
               headPlate.observedIrisCounts.sourceContrastNear.toFixed(2)+" / "+
               headPlate.observedIrisCounts.sourceContrastFar.toFixed(2)}.
             Iris optical strength: {" "+Math.round(headPlate.irisDepth*100)}%.
+            Fine skin weave nibs: {" "+headPlate.skinWeaveEvidence.pigments}.
+            Protected skin highlights / boundaries / features:
+            {" "+headPlate.skinWeaveEvidence.protectedHighlights+" / "+
+              headPlate.skinWeaveEvidence.protectedEdges+" / "+
+              headPlate.skinWeaveEvidence.protectedAnatomy}.
+            Skin optical weave: {" "+Math.round(headPlate.skinWeaveDepth*100)}%.
             Dry pencil nib contact: {" "+Math.round(headDryTooth*100)}%.
             Fibre direction: {" "+Math.round(headPlate.fibreFlowStrength*100)}%
             anatomy-connected; set 0% for the legacy ruled-grain A/B comparison.
