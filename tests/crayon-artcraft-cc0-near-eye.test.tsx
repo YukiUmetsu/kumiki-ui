@@ -7,6 +7,30 @@ import faceMeta,{SourceMeasuredCc0Eye,SourceMeasuredCc0EyePortrait}
   from "../src/video/crayon-artcraft-adult-face.stories";
 describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
   for(const aspect of ["landscape","portrait"] as const){
+    it("lays down colored wax contacts without airbrushing or transparency in "+aspect,()=>{
+      const hand=crayonCc0NearEyeStudy(aspect,1,"stroke-built");
+      const smooth=crayonCc0NearEyeStudy(aspect,1,"smooth");
+      expect(inspectCrayonScene(hand)).toEqual([]);
+      expect(inspectCrayonScene(smooth)).toEqual([]);
+      const html=renderToStaticMarkup(<CrayonScene spec={hand} frame={299}/>);
+      const old=renderToStaticMarkup(<CrayonScene spec={smooth} frame={299}/>);
+      expect(html).toContain('data-km-crayon-deposition="stroke-built"');
+      expect(html).toContain('data-km-crayon-cross-contact="second"');
+      expect(html).toContain('data-km-crayon-dry-ribbons=""');
+      expect(html).toContain('data-km-crayon-underpaint="opaque"');
+      expect(html).toContain('data-km-crayon-undercoat-pits=""');
+      expect(html).not.toContain('data-km-crayon-underpaint-gradient=""');
+      expect(old).toContain('data-km-crayon-deposition="smooth"');
+      expect(old).toContain('data-km-crayon-underpaint-gradient=""');
+      expect(old).not.toContain('data-km-crayon-cross-contact=');
+      const support=hand.elements.find(x=>x.id==="eye-skin");
+      if(support?.kind!=="wax")throw new Error("Missing skin support");
+      expect(support.coverage).toBe("opaque");
+      expect(support.underpaintTooth).toBeGreaterThan(.7);
+      expect(support.markStrength).toBeGreaterThan(.6);
+      expect(support.spacing).toBeLessThan(9);
+      expect(html).toBe(renderToStaticMarkup(<CrayonScene spec={hand} frame={299}/>));
+    });
     it("constructs topologically attached ocular pigment without transparency in "+aspect,()=>{
       const spec=crayonCc0NearEyeStudy(aspect);
       expect(inspectCrayonScene(spec)).toEqual([]);
@@ -88,5 +112,6 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
     expect(SourceMeasuredCc0EyePortrait.args?.aspect).toBe("portrait");
     expect(()=>crayonCc0NearEyeStudy("portrait",0)).toThrow();
     expect(()=>crayonCc0NearEyeStudy("portrait",1.01)).toThrow();
+    expect(()=>crayonCc0NearEyeStudy("portrait",1,"ink" as "smooth")).toThrow();
   });
 });
