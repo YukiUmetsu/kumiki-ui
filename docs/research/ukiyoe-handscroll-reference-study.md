@@ -108,6 +108,21 @@ The column follows the lip (owner note, same day): as the lip fell, the blue col
 
 The blue follows the white (owner note, same day): near the white, the blue was still cut off mid-curl. A fixed hook drew back as the lip was thrown, and two folds left a wedge of sky between the blue and the foam. The first fold was in the foam band's inner edge, pulled up the curtain toward the crest. The second was in the blue outline, which ran back to the old column top. Now the blue is the inside of the curl: its top runs along the lip's underside, tucked under the white, and tapers to a point near the lip's tip, so it bends and moves with the white. As the lip falls the point slides back up the curtain, so the tube below stays an open, rounded hollow. The curtain forms from the tip end, so the underside beside the column stays at the column's top, and the outline from the crest always ends at the curl's root. Plotting the body and foam outlines found both folds.
 
+The sea rises first, and the wave never stops (owner note, same day): the great wave should travel left to right the whole time, growing as it goes, not stand still and change shape. And a big wave doesn't come out of flat water: the whole sea should already be running high. References:
+- Segawa's animated print: the whole sea is rough before the big wave enters, and the big wave travels in from off-frame.
+- Physics of open-sea swells:
+  - Gerstner (trochoidal) waves have sharp crests and broad troughs, because water gathers under each crest ([Wikipedia: Trochoidal wave](https://en.wikipedia.org/wiki/Trochoidal_wave); [arXiv 2512.05353](https://arxiv.org/abs/2512.05353)).
+  - Deep-water swells travel in groups that move at half the speed of their crests.
+- An animators' rule of thumb: crests slightly steeper than troughs ([Pixelblog: Water in Motion](https://www.slynyrd.com/blog/2018/10/12/pixelblog-10-water-in-motion)).
+
+Searches for production breakdowns of studio wave animation found no reliable primary sources, so none is cited.
+
+Changes:
+- **Sea state:** the `sea` motif takes `rough` (0–1, times the node's progress, so it can be keyed). Its flat lines become rows of Gerstner swells. Each crest casts a shadow fading to the next crest, so the water's own gradient stays. Nearer rows are bigger and overlap farther ones. Swells come in groups moving at half the crest speed, and the highest crests of each group grow white caps that belong to their crest, so none pop in.
+- **The squall's sea:** the river and the near sea roughen from a light chop at frame 0 to full swells by frame 170, running right, the way the wave runs.
+- **Continuous travel:** a new `speed` param moves the wave at an even pace from the first frame, through the break and the settle. In the squall it is 1.6 px per frame: the wave comes in from the left as a swell, grows while travelling, and reaches the boat where it did before. On the face the boat keeps pace with the wave, so its climb is unchanged (largest step 10.1 px, pitch step 1.99° per frame). The boat also rocks a little from frame 40 as the sea builds.
+- Playback holds at 28–30 fps through the squall.
+
 Per-frame tracking of the squall (rise 56→240, break at 252 over 40 frames): height changes at most 6 px per frame on the rise and 13 px through the break. No claw moves more than 7 px per frame on the rise or 18 px through the break (the old break's peak). The surface under the boat moves at most 14 px per frame, and the boat's largest step is still 10 px. A first version slid roller claws 95 px per frame and dropped the crest 22 px per frame. Fixing that took four changes: claws fixed on the water, an even sink for the crest, an in-sine fall instead of a quadratic, and a splash-up on its own slower clock.
 
 ### Great-wave checklist
@@ -135,6 +150,7 @@ Owner requirements gathered across the review rounds. Items marked (test) are as
 | 17 | No lingering wave at the end: back to flat water, then weak bubbles | Height after the settle; bubbles only at or behind the waterline, small and half transparent | Flat by the end of `settleDuration`; the squall is flat from frame 356 |
 | 19 | As the lip falls, the blue water moves forward and down after it instead of shrinking in place | Column front x through the fall (frame sheets in both orientations) | Pass; the column leans up to 16% of the width toward the impact |
 | 20 | Near the white, the blue curves on with it through the throw and fall; no cut-out | Body and foam outlines plotted at the fall (no fold, no enclosed sky); frame sheets in both orientations | Pass; the blue lines the curl from the column to near the lip's tip |
+| 21 | The wave travels the whole time, growing as it moves; the sea runs high before the big wave | The wave moves 1.6 px or more on every frame, the peak hold included; the sea's swells rise from frame 0 to 170 (frame sheets) | Pass |
 | 18 | The blue column's top curves forward into the white, close to it, with no sky between | Column top runs just inside the crest foam's lower edge; the column ends in a pointed hook under the lip (crop comparison with the scan) | Pass; the hook draws back as the lip is thrown, outline steps at most 14 px per frame |
 
 ## Folktale creatures (owner request, 2026-11-14)

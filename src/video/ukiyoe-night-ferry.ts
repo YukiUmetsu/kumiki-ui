@@ -244,6 +244,12 @@ const STORM_SKY = (hz: number): UkiyoeNode => ({ id: "storm", kind: "motif", mot
 
 // ---- 4. The squall -----------------------------------------------------------------------------------------------------------------
 
+/** The squall's sea: rows of swells that grow with the storm and run right, the way the great wave travels. */
+const ROUGH = { rough: 1, direction: 1, drift: 1.4 } as const;
+const SEA_RISING = [{ frame: 0, progress: .12 }, { frame: 170, progress: 1, ease: "sine" as const }];
+/** The great wave's even pace (px per frame) across the squall. */
+const WAVE_SPEED = 1.6;
+
 const squall: UkiyoeShot = { id: "squall", title: "The squall", build: (aspect, t = {}) => {
   const P = aspect === "portrait", hz = 520, by = 880, dur = 400, breakAt = 252, caught = 190;
   // The ferryman poles on until the wave catches the boat; the water then draws it up the face, the crest breaks,
@@ -256,11 +262,14 @@ const squall: UkiyoeShot = { id: "squall", title: "The squall", build: (aspect, 
       shake: [{ frame: breakAt + 10, duration: 28, amount: 1.5 }, { frame: 60, duration: 14, amount: .4 }] },
     wind: { base: .2, turbulence: .5, gusts: [{ frame: 50, duration: 150, strength: 1.6 }, { frame: 180, duration: 150, strength: 2.2 }] },
     nodes: [
-      ...riverWorld({ horizon: hz, storm: true }).flatMap((n, i) => i === 0 ? [n, STORM_SKY(hz)] : [n]),
+      // The storm builds the sea before the great wave rises out of it: swells everywhere, running the way the wave runs.
+      ...riverWorld({ horizon: hz, storm: true }).flatMap((n, i) => i === 0 ? [n, STORM_SKY(hz)] : n.id === "river" && n.kind === "motif" ? [{ ...n, params: { ...n.params, ...ROUGH }, keys: SEA_RISING }] : [n]),
       { id: "far-hills2", kind: "motif", motif: "hills", depth: .7, x: 960, y: hz + 6, params: { width: 4000, height: 120, color: "usuzumi", dark: "sumi", trees: .5, treeKind: "cedar", variant: 6 }, keys: [{ frame: 0, opacity: 0 }, { frame: 140, opacity: 1 }] },
       { id: "pine", kind: "motif", motif: "pine", depth: .7, x: 1900, y: hz + 8, params: { height: 170, lean: -10, pads: 5 } },
       { id: "fuji", kind: "motif", motif: "mountain", depth: .7, x: 1210, y: hz + 8, params: { width: 300, height: 130 } },
-      { id: "wave", kind: "motif", motif: "wave", x: 358, y: by + 44, flip: true, params: { width: 1250, height: 720, breakAt, breakDuration: 40, travel: .1 },
+      // It travels at an even pace the whole shot (from off to the left, growing as it comes), reaching the boat where it
+      // did when it rose in place.
+      { id: "wave", kind: "motif", motif: "wave", x: 358 - WAVE_SPEED * breakAt, y: by + 44, flip: true, params: { width: 1250, height: 720, breakAt, breakDuration: 40, travel: .1, speed: WAVE_SPEED },
         keys: [{ frame: 0, progress: 0 }, { frame: 56, progress: 0 }, { frame: breakAt - 12, progress: 1, ease: "sine" }], enter: { preset: "fade", frame: 50, duration: 30 } },
       ...ferry("boat", 1500, by, [
         fig("child", "child", SEAT.child, DECK, { facing: "right", actions: [{ type: "kneel", start: 0, end: dur }, { type: "point", start: 150, end: 196, angle: 120 }, { type: "startle", start: breakAt, end: breakAt + 26 }] }),
@@ -268,13 +277,14 @@ const squall: UkiyoeShot = { id: "squall", title: "The squall", build: (aspect, 
         fig("traveller", "traveller", SEAT.traveller, DECK, { facing: "right", actions: [...brace(186), { type: "look", start: 120, end: 180, angle: -24 }] }),
         fig("ferryman", "ferryman", SEAT.ferryman, DECK, { facing: "right", actions: [{ type: "pole", start: 0, end: caught }, { type: "brace", start: caught + 4, end: resume - 12, angle: 12 }, { type: "pole", start: resume, end: dur + 40 }] }),
       ], { ride: { on: "wave", amount: 1, tilt: .42, span: 320 },
-        // Drawn in faster and faster, held a moment on the face as the crest breaks, then carried back down by the
+        // Drawn in faster and faster (on the face it keeps pace with the travelling wave, so it climbs as before), held a
+        // moment on the face as the crest breaks, then carried back down by the
         // collapse (a slow start and stop to the slide, so nothing pops), settling before the pole goes in again.
-        keys: [...go.working, { frame: caught + 30, x: drawnX, ease: "linear" }, { frame: breakAt, x: faceX, ease: "linear" }, { frame: breakAt + 14, x: faceX - 14, rotate: 0, ease: "outQuad" },
+        keys: [...go.working, { frame: caught + 30, x: drawnX - WAVE_SPEED * (breakAt - caught - 30), ease: "linear" }, { frame: breakAt, x: faceX, ease: "linear" }, { frame: breakAt + 14, x: faceX - 14, rotate: 0, ease: "outQuad" },
           { frame: breakAt + 80, x: thrownX, rotate: 2, ease: "sine" }, { frame: resume, x: thrownX, rotate: 0, ease: "inOut" }, ...again.keys.slice(1)],
-        loops: [go.surge, again.surge, { kind: "rock", amplitude: .9, period: 52, end: breakAt, fade: 40 }, { kind: "rock", amplitude: 2.1, period: 30, start: caught - 30, end: 372, fade: 56 }] },
+        loops: [go.surge, again.surge, { kind: "rock", amplitude: .9, period: 52, end: breakAt, fade: 40 }, { kind: "rock", amplitude: 1.2, period: 38, start: 40, end: caught, fade: 60 }, { kind: "rock", amplitude: 2.1, period: 30, start: caught - 30, end: 372, fade: 56 }] },
         { wake: [...go.wake.slice(0, -1), { frame: caught + 30, progress: 0 }, ...again.wake] }),
-      { id: "sea-front", kind: "motif", motif: "sea", x: -800, y: by + 36, params: { width: 4200, height: 500, rows: 6, swell: 2.4, foam: .8, deepAt: 60, color: "bero", light: "ai", speed: .8 } },
+      { id: "sea-front", kind: "motif", motif: "sea", x: -800, y: by + 36, params: { width: 4200, height: 500, rows: 6, swell: 2.4, foam: .8, deepAt: 60, color: "bero", light: "ai", speed: .8, ...ROUGH }, keys: SEA_RISING },
       { id: "wave-small", kind: "motif", motif: "wave", depth: 1.15, x: 240, y: by + 330, flip: true, params: { width: 560, height: 260, variant: 3 },
         keys: [{ frame: 0, progress: 0 }, { frame: 110, progress: 0 }, { frame: 270, progress: 1, ease: "sine" }] },
       { id: "spray", kind: "particles", type: "spray", bursts: [{ frame: breakAt + 12, x: faceX - 40, y: by - 60, radius: 150, count: 26 }, { frame: breakAt + 24, x: faceX + 150, y: by - 20, radius: 110, count: 16 }] },
