@@ -190,9 +190,9 @@ and checked on rendered stills, then on the episodes:
 | **Q1 — Faces** | The bijin face after Utamaro (fine face line, narrow eyes with the iris hanging from the lid, grey brows, rouged mouth, combed hairline, powdered skin); front-view shimada; eight expressions (`emote`); face traits per look (`look.features`). | Delivered 2026-11-15 (PR #414). |
 | **Q2 — Clothing variety** | More kimono patterns and dyes (shibori, stripes, plaids, flowers, waves on hems), obi knots, layered collars, a wardrobe generator for women and men by class and season. | Delivered 2026-11-15 (PR #416). |
 | **Q3 — Animation** | Secondary motion (sleeves, hems, hair ornaments), weight shifts, anticipation and settle on actions, head turns. | Delivered 2026-11-15 (PR #417): spring follow-through on sleeves and hems, settle-overshoot on gestures, half-lid blinks, idle glances and head drift. |
-| **Q4 — Effects** | Rain, snow, smoke, fire, water and light at print quality. | Delivered 2026-11-15: Hiroshige's long two-block rain with veil and splashes, snow in three depths, curling hooked flames with flamelets and darker smoke. |
-| **Q5 — Transitions** | Beyond kasumi: scroll wipes, ink bleeds, page turns, shot-matched cuts. | Next. |
-| **Q6 — Sound effects** | Recorded foley and hits chosen and checked with earshot, placed on action frames in the episodes. | Queued. |
+| **Q4 — Effects** | Rain, snow, smoke, fire, water and light at print quality. | Delivered 2026-11-15 (PR #418): Hiroshige's long two-block rain with veil and splashes, snow in three depths, curling hooked flames with flamelets and darker smoke. |
+| **Q5 — Transitions** | Beyond kasumi: scroll wipes, ink bleeds, page turns, shot-matched cuts. | Delivered 2026-11-15: scroll unroll, ink bleed and print-in transitions, chosen per shot in episodes. |
+| **Q6 — Sound effects** | Recorded foley and hits chosen and checked with earshot, placed on action frames in the episodes. | Next. |
 
 ### Ukiyo-e folktale episodes (UKIYO1) — episode queue
 

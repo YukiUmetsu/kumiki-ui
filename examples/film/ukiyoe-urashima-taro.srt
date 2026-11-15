@@ -55,7 +55,7 @@ The princess gave him a jewelled box.
 'Never open it,' she said.
 
 15
-00:01:07,133 --> 00:01:11,467
+00:01:07,467 --> 00:01:11,600
 Back on the shore, nothing was as he had left it.
 
 16

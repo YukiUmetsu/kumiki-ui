@@ -20,6 +20,7 @@
 import type { FilmDocument } from "../film-document";
 import type { FilmSceneSound } from "../film-split-edits";
 import type { UkiyoeIssue, UkiyoeNode, UkiyoeSceneSpec } from "./ukiyoe-scene";
+import type { UkiyoeTransitionKind } from "./ukiyoe-transitions";
 import { inspectUkiyoeScene } from "./ukiyoe-scene";
 import { cameraAt } from "./ukiyoe-core";
 import { figureHeight, travelAt } from "./ukiyoe-figure";
@@ -49,8 +50,10 @@ export interface UkiyoeEpisodeShot {
   title: string;
   build: (aspect: UkiyoeEpisodeAspect) => UkiyoeSceneSpec;
   narration?: readonly UkiyoeEpisodeLine[];
-  /** Frames of gold mist out of the previous shot into this one (0 or absent: a cut). */
+  /** Frames of the transition out of the previous shot into this one (0 or absent: a cut). */
   kasumi?: number;
+  /** How the shot arrives over those frames: gold mist (default), the scroll unrolling, ink bleeding, or a fresh print. */
+  transition?: UkiyoeTransitionKind;
   /** The recorded bed under the shot, from the sound catalog. */
   sound?: FilmSceneSound;
 }
@@ -98,7 +101,9 @@ export function ukiyoeEpisode(spec: UkiyoeEpisodeSpec): FilmDocument {
       scenes.push({
         id: shot.id + "-kasumi", recipeId: "slot", durationFrames: mist, transition: { kind: "cut" },
         ...shot.sound ? { sound: shot.sound } : {},
-        content: { slot: "ukiyoe-kasumi", label: "Mist into " + shot.title, props: { from: { landscape: prev.landscape, portrait: prev.portrait }, to: { landscape, portrait }, toStartFrame: 0 } },
+        content: !shot.transition || shot.transition === "kasumi"
+          ? { slot: "ukiyoe-kasumi", label: "Mist into " + shot.title, props: { from: { landscape: prev.landscape, portrait: prev.portrait }, to: { landscape, portrait }, toStartFrame: 0 } }
+          : { slot: "ukiyoe-transition", label: "Into " + shot.title, props: { kind: shot.transition, from: { landscape: prev.landscape, portrait: prev.portrait }, to: { landscape, portrait }, toStartFrame: 0 } },
       });
     }
     scenes.push({

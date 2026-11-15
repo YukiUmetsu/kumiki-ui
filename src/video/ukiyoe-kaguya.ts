@@ -92,9 +92,9 @@ const girl: UkiyoeEpisodeShot = {
 
 const ladyOn = (l: UkiyoeFigureLook, x: number, acts: UkiyoeAction[], extra: Record<string, unknown> = {}) => figure("kaguya", l, x, FLOOR, [{ type: "kneel", start: 0, end: 9999 }, ...acts], { scale: 1.3, facing: "right", ...extra });
 const grown: UkiyoeEpisodeShot = {
-  id: "grown", title: "A woman of shining beauty", kasumi: 30, sound: { sound: "bed-stream-close", gainDb: -26 },
+  id: "grown", title: "A woman of shining beauty", kasumi: 36, transition: "print", sound: { sound: "bed-stream-close", gainDb: -26 },
   narration: [
-    { text: "In three months she grew into a woman of shining beauty.", from: 34, to: 190 },
+    { text: "In three months she grew into a woman of shining beauty.", from: 40, to: 192 },
     { text: "Her light filled the whole house.", from: 200, to: 296 },
   ],
   build: a => {
@@ -137,9 +137,9 @@ const suitors: UkiyoeEpisodeShot = {
 // ---- 5. Weeping at the moon ------------------------------------------------------------------------------------------------------
 
 const moon: UkiyoeEpisodeShot = {
-  id: "moon", title: "Weeping at the moon", kasumi: 36, sound: { sound: "bed-crickets-night", gainDb: -18 },
+  id: "moon", title: "Weeping at the moon", kasumi: 40, transition: "ink", sound: { sound: "bed-crickets-night", gainDb: -18 },
   narration: [
-    { text: "Then, night after night, she wept at the moon.", from: 36, to: 160 },
+    { text: "Then, night after night, she wept at the moon.", from: 44, to: 164 },
     { text: "'I came from the Moon,' she said at last,", from: 172, to: 262 },
     { text: "'and they are coming to take me home.'", from: 270, to: 356 },
   ],

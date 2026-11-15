@@ -117,7 +117,7 @@ const departure: UkiyoeEpisodeShot = {
 
 const MEET = { dog: 70, monkey: 190, pheasant: 280 }, WALK = 360;
 const companions: UkiyoeEpisodeShot = {
-  id: "companions", title: "Dog, monkey, pheasant", kasumi: 30, sound: { sound: "bed-crickets-night", gainDb: -26 },
+  id: "companions", title: "Dog, monkey, pheasant", kasumi: 36, transition: "scroll", sound: { sound: "bed-crickets-night", gainDb: -26 },
   narration: [
     { text: "On the road, a dog asked for a dumpling,", from: 36, to: 160 },
     { text: "then a monkey, then a pheasant.", from: 176, to: 300 },
@@ -173,7 +173,7 @@ const crossing: UkiyoeEpisodeShot = {
 // ---- 6. The fight -----------------------------------------------------------------------------------------------------------------
 
 const battle: UkiyoeEpisodeShot = {
-  id: "battle", title: "The fight on Onigashima", kasumi: 30, sound: { sound: "bed-surf-beach", gainDb: -16 },
+  id: "battle", title: "The fight on Onigashima", kasumi: 36, transition: "ink", sound: { sound: "bed-surf-beach", gainDb: -16 },
   narration: [
     { text: "The pheasant pecked, the monkey scratched,", from: 150, to: 270 },
     { text: "the dog bit, and Momotarō fought the oni king", from: 280, to: 410 },

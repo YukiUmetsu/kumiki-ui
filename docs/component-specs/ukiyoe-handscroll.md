@@ -426,6 +426,20 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
 
   Storybook **Parades** plays them.
 
+### Transitions
+
+`ukiyoe-transitions.tsx` has four, all pure functions of `progress`:
+
+- **`UkiyoeKasumi`.** Gold mist bands sweep across.
+- **`UkiyoeScrollRoll`.** The next scene unrolls in from the left (a handscroll is read right to left), pushing the
+  last off to the right, joined by a paper seam with a shadow.
+- **`UkiyoeInkBleed`.** Sumi washes bloom with feathered, wandering edges and dark wet rims. The next scene appears
+  inside them a little later, and the ink fades away.
+- **`UkiyoePrintIn`.** The sheet fades to bare paper, and the next scene is printed block by block.
+
+The film slot `ukiyoe-transition` (`kind: scroll | ink | print`) plays the last three. An episode shot sets
+`transition` (default `kasumi`) over its `kasumi` frames. Storybook **Transitions** scrubs all four.
+
 ### Print-quality weather and fire
 
 - **Rain.** After Hiroshige's *Sudden Shower over Shin-Ōhashi*: long fine lines crossing most of the sky, on three

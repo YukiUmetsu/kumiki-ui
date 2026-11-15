@@ -54,6 +54,8 @@ import { realmScene, UKIYOE_REALM_SCENES } from "../../registry/video/ukiyoe/uki
 import type { UkiyoeParadeScene } from "../../registry/video/ukiyoe/ukiyoe-parade";
 import { paradeScene, UKIYOE_PARADE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-parade";
 import { UKIYOE_MOODS } from "../../registry/video/ukiyoe/ukiyoe-face";
+import { UKIYOE_TRANSITIONS, UkiyoeInkBleed, UkiyoeKasumi, UkiyoePrintIn, UkiyoeScrollRoll } from "../../registry/video/ukiyoe/ukiyoe-transitions";
+import type { UkiyoeTransitionKind } from "../../registry/video/ukiyoe/ukiyoe-transitions";
 import type { UkiyoeRole, UkiyoeSeason } from "../../registry/video/ukiyoe/ukiyoe-wardrobe";
 import { UKIYOE_SEASONS, ukiyoeWardrobe } from "../../registry/video/ukiyoe/ukiyoe-wardrobe";
 import type { UkiyoeEpisodeAspect, UkiyoeEpisodeSpec } from "../../registry/video/ukiyoe/ukiyoe-episode";
@@ -426,6 +428,26 @@ const ACTION_HINT: Partial<Record<UkiyoeActionType, Partial<UkiyoeAction>>> = { 
 
 const CAST_NAMES = ["traveller", "mother", "child", "ferryman", "merchant", "maiko", "oni-red", "monk", "oiran", "samurai"] as const;
 const CAST_LOOKS: Readonly<Record<string, UkiyoeFigureLook>> = { ...CAST, maiko: UKIYOE_MAIKO_LOOK, oiran: UKIYOE_OIRAN_LOOKS.oiran, samurai: UKIYOE_SAMURAI_LOOK };
+
+/** Transitions between two shots: gold mist, the scroll unrolling, ink bleeding, a fresh print. Scrub with the slider. */
+export function TransitionLab() {
+  const [kind, setKind] = useState<UkiyoeTransitionKind>("ink");
+  const [p, setP] = useState(.45);
+  const a = useMemo(() => KASA_JIZO_EPISODE.shots[2].build("landscape"), []), b = useMemo(() => KASA_JIZO_EPISODE.shots[3].build("landscape"), []);
+  const props = { outgoing: a, incoming: b, outgoingFrame: 300, incomingFrame: 60, progress: p, style: { width: "100%", height: "100%" }, "aria-label": `${kind} transition at ${Math.round(p * 100)}%` };
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Transitions" title="Mist, scroll, ink and print">
+      <p style={{ margin: 0 }}><code>kasumi</code>: gold mist bands sweep across. <code>scroll</code>: the next scene unrolls in from the left, the
+        handscroll's reading direction, joined at a paper seam. <code>ink</code>: sumi washes bloom with dark wet rims and the next scene appears inside
+        them. <code>print</code>: the sheet fades to bare paper and the next scene is printed block by block. Episodes choose one per shot.</p>
+    </Header>
+    <section aria-label="Transition controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Transition" value={kind} options={UKIYOE_TRANSITIONS} onChange={setKind} />
+      <Slider name="Progress" value={p} min={0} max={1} step={.01} onChange={setP} format={v => Math.round(v * 100) + "%"} />
+    </section>
+    <Fit width={1920} height={1080}>{kind === "kasumi" ? <UkiyoeKasumi {...props} /> : kind === "scroll" ? <UkiyoeScrollRoll {...props} /> : kind === "ink" ? <UkiyoeInkBleed {...props} /> : <UkiyoePrintIn {...props} />}</Fit>
+  </div>;
+}
 
 /** Wardrobe: people of every role dressed for a season by `ukiyoeWardrobe`, with patterns, hem designs and obi knots. */
 export function WardrobeLab() {

@@ -1629,6 +1629,32 @@ blobs.
 - Smoke billows have no inner curls.
 - Nobody has done a human visual review yet.
 
+## Transitions (quality slice Q5, 2026-11-15)
+
+**Grounding.**
+
+- **Scroll.** A handscroll is unrolled leftward, so new pictures enter from the left. Its sheets are joined at paper
+  seams.
+- **Ink.** Sumi on damp paper spreads with a pale centre and a darker rim where the pigment gathers.
+- **Print.** Woodblock printing lays the key block and then the colours, light to dark.
+
+No new image reference was used.
+
+**Review.**
+
+1. The first ink version read as a black iris with a hard circular hole. It became translucent washes with wet rims,
+   the next scene revealed through a feathered mask that lags behind the ink.
+2. The transitions were checked in the `film:review` pipeline (Kasa Jizō: 0 errors). The scroll pushes the hearth off
+   as the market unrolls in, and the ink blooms over the jizō before night.
+3. Longer transitions made the script check flag three captions that started during them; those cues were moved.
+
+**In the episodes.**
+
+- **Kasa Jizō:** scroll into the market, ink into the night.
+- **Urashima:** scroll to the turtle, ink to three hundred years later.
+- **Momotarō:** scroll along the road, ink into the fight.
+- **Kaguya:** print into her grown beauty, ink into the night at the moon.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

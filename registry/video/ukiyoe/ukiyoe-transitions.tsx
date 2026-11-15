@@ -80,3 +80,101 @@ export function UkiyoeKasumi({ outgoing, incoming, outgoingFrame, incomingFrame,
     }) : null}
   </svg>;
 }
+
+export interface UkiyoeTransitionProps extends Omit<SVGProps<SVGSVGElement>, "children"> {
+  outgoing: UkiyoeSceneSpec;
+  incoming: UkiyoeSceneSpec;
+  outgoingFrame: number;
+  incomingFrame: number;
+  /** 0 → 1 across the transition. */
+  progress: number;
+  seed?: number;
+  reducedMotion?: boolean;
+}
+
+/**
+ * `UkiyoeScrollRoll` — the handscroll unrolled: the next scene comes in from the left (a handscroll is read right to
+ * left), pushing the last one off to the right, the two sheets joined by a paper seam that casts a soft shadow.
+ */
+export function UkiyoeScrollRoll({ outgoing, incoming, outgoingFrame, incomingFrame, progress, seed = 7, reducedMotion = false, ...rest }: UkiyoeTransitionProps) {
+  const pre = "uks" + useId().replace(/[^A-Za-z0-9]/g, "");
+  const W = incoming.width, H = incoming.height, pal = scenePalette(incoming);
+  const p = reducedMotion ? (progress < .5 ? 0 : 1) : ease("inOut", clamp01(progress)), x = p * W;
+  const paper = resolvePaint("paper", pal), shade = resolvePaint("sumi", pal), gold = resolvePaint("kincha", pal);
+  return <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" {...rest}>
+    <defs>
+      <linearGradient id={pre + "sh"} x1="0" x2="1"><stop offset="0" stopColor={shade} stopOpacity={.35} /><stop offset="1" stopColor={shade} stopOpacity={0} /></linearGradient>
+      <pattern id={pre + "g"} patternUnits="userSpaceOnUse" width={512} height={256}><image href={grainTexture(paper, seed)} width={512} height={256} /></pattern>
+    </defs>
+    <g transform={`translate(${x.toFixed(1)} 0)`}><UkiyoeScene spec={outgoing} frame={outgoingFrame} reducedMotion={reducedMotion} /></g>
+    <g transform={`translate(${(x - W).toFixed(1)} 0)`}><UkiyoeScene spec={incoming} frame={incomingFrame} reducedMotion={reducedMotion} /></g>
+    {p > 0 && p < 1 ? <g>
+      {/* The seam: the incoming sheet's edge overlaps the next, shading it; a thin gold-flecked join. */}
+      <rect x={x} y={0} width={70} height={H} fill={`url(#${pre}sh)`} />
+      <rect x={x - 5} y={0} width={10} height={H} fill={paper} />
+      <rect x={x - 5} y={0} width={10} height={H} fill={`url(#${pre}g)`} opacity={.6} />
+      <line x1={x - 5} x2={x - 5} y1={0} y2={H} stroke={gold} strokeWidth={1.2} strokeOpacity={.7} />
+      <line x1={x + 5} x2={x + 5} y1={0} y2={H} stroke={shade} strokeWidth={1} strokeOpacity={.4} />
+    </g> : null}
+  </svg>;
+}
+
+/** Centres and growth of the ink blots of `UkiyoeInkBleed` (seeded), as shares of the frame. */
+function blots(seed: number, n: number): { x: number; y: number; r: number; at: number }[] {
+  return Array.from({ length: n }, (_, i) => ({ x: .1 + .8 * hash01(seed, i, 1), y: .12 + .76 * hash01(seed, i, 2), r: .28 + .25 * hash01(seed, i, 3), at: .45 * hash01(seed, i, 4) }));
+}
+
+/**
+ * `UkiyoeInkBleed` — sumi spreading on wet paper: ink blots bloom over the outgoing scene with feathered, wandering
+ * edges, the next scene shows through inside them as they spread, and the last of the ink fades away.
+ */
+export function UkiyoeInkBleed({ outgoing, incoming, outgoingFrame, incomingFrame, progress, seed = 7, reducedMotion = false, ...rest }: UkiyoeTransitionProps) {
+  const pre = "uki" + useId().replace(/[^A-Za-z0-9]/g, "");
+  const W = incoming.width, H = incoming.height, pal = scenePalette(incoming), D = Math.hypot(W, H);
+  const p = reducedMotion ? (progress < .5 ? 0 : 1) : clamp01(progress), ink = resolvePaint("sumi", pal), wash = resolvePaint("usuzumi", pal);
+  const bs = blots(seed, 7);
+  // Each blot spreads on its own clock; the next scene follows it a little later, inside it.
+  const radius = (b: { at: number; r: number }, start: number, span: number) => D * b.r * .9 * ease("out", clamp01((p - start - b.at * span) / span));
+  const circles = (start: number, span: number, k = 1) => bs.map(b => { const r = radius(b, start, span) * k; return r > .5 ? `M${(b.x * W - r).toFixed(1)} ${(b.y * H).toFixed(1)}a${r.toFixed(1)} ${r.toFixed(1)} 0 1 0 ${(2 * r).toFixed(1)} 0a${r.toFixed(1)} ${r.toFixed(1)} 0 1 0 ${(-2 * r).toFixed(1)} 0` : ""; }).join("");
+  const inkD = circles(0, .55), revealD = circles(.28, .62, .95);
+  const inkOpacity = p < .5 ? .85 : .85 * (1 - ease("inOut", (p - .5) / .5));
+  return <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" {...rest}>
+    <defs>
+      <filter id={pre + "wet"} x="-20%" y="-20%" width="140%" height="140%">
+        <feTurbulence type="fractalNoise" baseFrequency=".011" numOctaves={3} seed={seed % 100} />
+        <feDisplacementMap in="SourceGraphic" scale={70} />
+        <feGaussianBlur stdDeviation={4} />
+      </filter>
+      <mask id={pre + "in"} maskUnits="userSpaceOnUse" x={0} y={0} width={W} height={H}>
+        <rect width={W} height={H} fill="black" />
+        {revealD ? <path d={revealD} fill="white" filter={`url(#${pre}wet)`} /> : null}
+      </mask>
+    </defs>
+    <UkiyoeScene spec={outgoing} frame={outgoingFrame} reducedMotion={reducedMotion} />
+    {inkD && p < 1 ? <g filter={`url(#${pre}wet)`} opacity={inkOpacity}>
+      {/* The wash: grey ink pooling darker toward its wet rim, as sumi does on damp paper. */}
+      <path d={inkD} fill={wash} opacity={.75} />
+      <path d={inkD} fill="none" stroke={ink} strokeWidth={26} strokeOpacity={.55} />
+      <path d={circles(0, .55, .6)} fill={ink} opacity={.35} />
+    </g> : null}
+    {revealD ? <g mask={`url(#${pre}in)`}><UkiyoeScene spec={incoming} frame={incomingFrame} reducedMotion={reducedMotion} /></g> : null}
+    {p >= 1 ? <UkiyoeScene spec={incoming} frame={incomingFrame} reducedMotion={reducedMotion} /> : null}
+  </svg>;
+}
+
+/**
+ * `UkiyoePrintIn` — a fresh sheet: the outgoing scene fades to bare paper, and the next one is printed on it block by
+ * block, key block first, then the colours light to dark, each rubbed on with the baren.
+ */
+export function UkiyoePrintIn({ outgoing, incoming, outgoingFrame, incomingFrame, progress, reducedMotion = false, ...rest }: UkiyoeTransitionProps) {
+  const W = incoming.width, H = incoming.height, pal = scenePalette(incoming);
+  const p = reducedMotion ? (progress < .5 ? 0 : 1) : clamp01(progress), fade = clamp01(p / .25), print = clamp01((p - .22) / .78);
+  return <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" {...rest}>
+    {fade < 1 ? <UkiyoeScene spec={outgoing} frame={outgoingFrame} reducedMotion={reducedMotion} opacity={1 - fade} /> : null}
+    <rect width={W} height={H} fill={resolvePaint("paper", pal)} opacity={fade} />
+    {print > 0 ? <UkiyoeScene spec={incoming} frame={incomingFrame} reducedMotion={reducedMotion} printProgress={print} /> : null}
+  </svg>;
+}
+
+export type UkiyoeTransitionKind = "kasumi" | "scroll" | "ink" | "print";
+export const UKIYOE_TRANSITIONS: readonly UkiyoeTransitionKind[] = ["kasumi", "scroll", "ink", "print"];
