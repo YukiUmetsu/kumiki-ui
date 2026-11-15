@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { PencilDrawing } from "../registry/video/colored-pencil-react";
 import { createPencilMaterialRegion,pencilMaterialCraftFinish,PENCIL_MATERIALS } from "../registry/video/colored-pencil-materials";
 import { createPencilFoundationDrawing,inspectPencilFoundationDrawing,PENCIL_FOUNDATION_STAGES,PENCIL_PHOTO_FOUNDATION } from "../registry/video/colored-pencil-foundation";
+import type { PencilFoundationRequest } from "../registry/video/colored-pencil-foundation";
 import { pencilLivingStudyDrawing } from "../src/video/colored-pencil-living-studies";
 import { pencilObjectStudyDrawing } from "../src/video/colored-pencil-object-studies";
 import { createPencilPhotoStudy } from "../src/video/colored-pencil-photo";
@@ -58,14 +59,16 @@ describe("CP-F1 mandatory foundation for new pencil drawings",()=>{
   it("denies anonymous materials, wrong craft, inadequate references or missing geometry",()=>{
     const drawing={version:1 as const,seed:42,width:420,height:310,
       paper:"#F8F5EA",paperTooth:.7,regions:[authored()]};
-    for(const bad of [
+    const badRequests:PencilFoundationRequest[]=[
       {...required,surfaces:{}},
       {...required,surfaces:{"fox-head":"unicorn" as "fur"}},
       {...required,surfaces:{"fox-head":"fur" as const,"ghost":"skin" as const}},
       {...required,construction:"generic face"},
       {...required,references:[]},
       {...required,references:[{title:"a",rights:"technique-only" as const,observation:"detailed"}]},
-    ])expect(()=>createPencilFoundationDrawing(drawing,bad)).toThrow(RangeError);
+    ];
+    for(const bad of badRequests)
+      expect(()=>createPencilFoundationDrawing(drawing,bad)).toThrow(RangeError);
     const qualified=createPencilFoundationDrawing(drawing,required);
     expect(inspectPencilFoundationDrawing({
       ...qualified,regions:qualified.regions.map(r=>({...r,craft:{...r.craft!,kind:"skin"}})),
