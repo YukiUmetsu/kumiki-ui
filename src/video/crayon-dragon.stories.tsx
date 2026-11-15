@@ -4,7 +4,7 @@ import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-stor
 
 /** Original SVG-native CRAYON1 artwork; stories share one animation player. */
 const meta={
-  title:"Video production/Film Looks/Crayon/Fantasy/Dragon Village",
+  title:"Video production/Film Looks/Crayon/Dragon Village",
   id:"video-crayon-dragon",
   // ArtCraft v6: reject the legacy gallery until actual 16:9/9:16 crops,
   // rig extrema and reference-led visual acceptance are verified.

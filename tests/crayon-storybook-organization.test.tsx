@@ -10,20 +10,29 @@ import walkMeta,{CharacterWalkCycle,CharacterWalkPortrait,CharacterTwoBoneIK,Cha
 import drawMeta,{CharacterDrawIn,CharacterDrawInPortrait} from "../src/video/crayon-draw-in.stories";
 import dragonMeta,{DragonVillage,DragonVillagePortrait,DragonVillageDuo,DragonAnatomyDetail,DragonAnatomyDetailPortrait,CastleMasonryDetail,DragonHandRedraw,DragonWingMorph} from "../src/video/crayon-dragon.stories";
 import materialMeta from "../src/video/crayon-material-studies.stories";
+import drawingMeta from "../src/video/crayon-drawing-system.stories";
+import adultFaceMeta from "../src/video/crayon-artcraft-adult-face.stories";
 import legacyMeta from "../src/video/crayon-storybook.stories";
 
 describe("Crayon Storybook organization",()=>{
- it("keeps each production discipline in its own sidebar group, without duplicate ids",()=>{
-   const metas=[sceneMeta,wildlifeMeta,actingMeta,walkMeta,drawMeta,dragonMeta,materialMeta,legacyMeta];
+ it("keeps all Crayon demos directly under one Storybook folder without duplicate story IDs",()=>{
+   const metas=[sceneMeta,wildlifeMeta,actingMeta,walkMeta,drawMeta,dragonMeta,
+     materialMeta,legacyMeta,drawingMeta,adultFaceMeta];
    const ids=metas.map(m=>m.id);
    expect(new Set(ids).size).toBe(metas.length);
    expect(ids).toContain("video-crayon-scene-engine");
-   expect(metas.every(m=>m.title.startsWith("Video production/Film Looks/Crayon/"))).toBe(true);
-   const folders=metas.map(m=>m.title.split("/").slice(3,-1).join("/"));
-   expect(folders.filter(Boolean).length).toBe(metas.length);
-   expect(folders.some(name=>name.includes("Wildlife"))).toBe(true);
-   expect(folders.some(name=>name.includes("Characters"))).toBe(true);
-   expect(folders.some(name=>name.includes("Materials"))).toBe(true);
+   const prefix="Video production/Film Looks/Crayon/";
+   for(const meta of metas){
+     expect(meta.title.startsWith(prefix)).toBe(true);
+     const page=meta.title.slice(prefix.length);
+     expect(page.length).toBeGreaterThan(0);
+     expect(page).not.toContain("/");
+   }
+   expect(new Set(metas.map(m=>m.title)).size).toBe(metas.length);
+   // Experimental artwork stays quarantined; navigation cleanup is not
+   // artistic approval of an unreviewed face or material demo.
+   expect(adultFaceMeta.tags).toContain("!dev");
+   expect(drawingMeta.tags).toContain("!dev");
  });
  it("places all curated stories once, with complete playback defaults",()=>{
    const groups=[
