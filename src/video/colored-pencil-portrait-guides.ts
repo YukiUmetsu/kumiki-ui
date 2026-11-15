@@ -255,8 +255,8 @@ export function createPencilPortraitFeatureMarks(
         .0722*source.data[pixel+2])/255;
       // Avoid the 'painted-on oval beard/forehead patch' failure in v2:
       // a local region is an optical guide, never a hard material boundary.
-      const feather=Math.pow(Math.max(0,1-radial*radial),2.1);
-      const pencilPressure=(.09+.16*Math.pow(1-lum,.66))*feather;
+      const feather=Math.pow(Math.max(0,1-radial*radial),1.55);
+      const pencilPressure=(.135+.21*Math.pow(1-lum,.66))*feather;
       const heading=plane.angle+fy*.43+fx*.16+
         (pencilHash(seed,j,145)-.5)*.36;
       const length=(2.6+3.4*pencilHash(seed,j,146))*scale;
