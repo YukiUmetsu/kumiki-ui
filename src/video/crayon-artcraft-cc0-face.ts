@@ -69,7 +69,10 @@ export const CRAYON_F1_FACE_PARTS=[
   "malar-cheek-near","cheek-far","nose-root","nose-dorsum",
   "nose-tip","nose-alar-near","nose-alar-far",
   "philtrum","lip-upper","lip-lower","oral-opening",
-  "chin-plane","jaw-underside","hair-left-curtain",
+  "chin-plane","jaw-underside","cheek-malar-cast",
+  "cheek-malar-bounce","nose-sidewall-form","nose-subalar-contact",
+  "nose-alar-undercut-near","nose-alar-undercut-far",
+  "nose-tip-reflected-light","hair-left-curtain",
   "hair-right-curtain",
 ] as const;
 
@@ -171,6 +174,24 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(109,540,195,244),C.cheek,[87,190],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       pressure:.3,spacing:10.5,markStrength:.14,blendRadius:15});
+  // The source has a definite under-malar turn and bouncing light from
+  // the near cheekbone. One faint blurred polygon cannot carry the
+  // photographed 53-level local contrast: preserve two directional wax
+  // contacts over the same attached facial surface.
+  wax("cheek-malar-cast",
+    "M108 611Q128 624 152 655Q176 696 198 722"+
+    "Q184 768 154 793Q125 768 112 712Q101 653 108 611Z",
+    rect(98,603,111,199),
+    ["#986d68","#654a50","#bc8d7f"],[93,204],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      blendRadius:10,pressure:.66,markStrength:.29,spacing:8.5});
+  wax("cheek-malar-bounce",
+    "M133 575Q161 561 196 584Q230 609 245 658"+
+    "Q224 693 188 696Q158 676 133 626Z",
+    rect(125,554,128,152),
+    ["#f4ceaf","#c89f95","#ffe2c3"],[119,209],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      blendRadius:12,pressure:.58,markStrength:.2,spacing:11});
   wax("malar-highlight",
     "M143 559Q164 553 177 563Q194 592 190 629"+
     "Q173 649 146 643Q127 607 143 559Z",
@@ -342,6 +363,46 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(436,592,38,49),C.nose,[147,249],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       blendRadius:3.3,pressure:.62,spacing:4.8,markStrength:.35});
+  // Source-observed alar cartilages require attached undercuts and
+  // reflected light BEFORE a drawn nostril. The earlier render showed two
+  // floating ink circles on featureless skin; these overlapping pressure
+  // planes support a three-dimensional tip and asymmetric nasal wall.
+  wax("nose-sidewall-form",
+    "M336 513Q349 527 357 558Q364 588 377 618"+
+    "Q375 636 365 628Q346 605 340 570Q333 540 336 513Z",
+    rect(329,505,56,132),
+    ["#a57b76","#71565c","#cfa292"],[136,246],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      blendRadius:7,pressure:.7,markStrength:.3,spacing:6});
+  wax("nose-subalar-contact",
+    "M371 626Q380 627 388 638Q400 648 413 636"+
+    "Q426 627 434 630Q428 651 405 659"+
+    "Q383 660 371 644Z",
+    rect(365,622,75,43),
+    ["#996b65","#624449","#c19381"],[157,259],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      blendRadius:4,pressure:.69,markStrength:.39,spacing:5.5});
+  wax("nose-alar-undercut-near",
+    "M379 631Q385 620 397 626Q406 631 404 640"+
+    "Q393 647 381 640Z",
+    rect(374,616,37,34),
+    ["#8a5550","#4d3539","#ad7d71"],[176,269],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      blendRadius:2,pressure:.76,markStrength:.55,spacing:4.3});
+  wax("nose-alar-undercut-far",
+    "M441 617Q450 608 459 615Q466 622 455 632"+
+    "Q446 635 441 626Z",
+    rect(437,605,34,34),
+    ["#90645a","#5b3d3d","#b98b7c"],[173,268],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      blendRadius:2,pressure:.72,markStrength:.49,spacing:4.2});
+  wax("nose-tip-reflected-light",
+    "M382 611Q392 597 409 599Q426 602 431 612"+
+    "Q422 622 406 622Q390 624 382 611Z",
+    rect(376,590,62,42),
+    ["#edc8ae","#b89283","#ffe0ba"],[174,271],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      blendRadius:7,pressure:.54,markStrength:.17,spacing:8.1});
   // Mouth's natural perspective slopes upwards toward the occluded far
   // cheek. Separate vermilion volumes, dark oral slit and visible tooth
   // interruption are sourced from F1 x348..490/y681..775, not a U glyph.
