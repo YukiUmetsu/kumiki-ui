@@ -60,7 +60,7 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
       "alpine-snowcap-0","alpine-snowcap-2","alpine-scree-0-1",
       "alpine-lake","alpine-lake-bank","alpine-distant-pines",
       "alpine-ledge-0","alpine-ledge-1","alpine-reflection-0",
-      "alpine-moss-0","alpine-bird-0","scenery-frame"]){
+      "alpine-moss-0","alpine-bird-0","alpine-rock-facet-1-0","scenery-frame"]){
       expect(names).toContain(part);
     }
     expect(names.filter(id=>id.startsWith("alpine-reflection-")).length).toBeGreaterThan(10);
