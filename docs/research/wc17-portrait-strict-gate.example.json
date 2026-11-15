@@ -4,7 +4,7 @@
   "rights": "user-owned",
   "reference": "../../artifacts/watercolour/portrait-reference.png",
   "candidate": "../../artifacts/watercolour/portrait-render.png",
-  "sourceCode": "../../src/video/experimental/watercolour-portrait-study.ts",
+  "sourceCode": "../../artifacts/watercolour/portrait-source-code.ts",
   "regions": [
     {
       "id": "full-face",
