@@ -299,7 +299,7 @@ export function crayonDryNibPath(mark:CrayonMark,progress=1):string{
         const mid=(lo+end)*.5;
         for(const [j,t] of [lo,mid,end].entries()){
           const pos=point(t);
-          const taper=j===0||j===2?.62:1;
+          const taper=(j===0||j===2)?0.62:1;
           const relief=.79+.21*crayonHash(mark.index,seed+j,3108);
           const thickness=mark.width*(.075+.04*mark.pressure)*taper*relief;
           const x=pos.x+pos.nx*offset,y=pos.y+pos.ny*offset;
