@@ -1662,16 +1662,17 @@ No new image reference was used.
   attribution licence), checked on 2026-11-15.
 - **Shipping:** they are trimmed into `assets/sound/recorded/`, each with its source URL and author in
   `assets/sound/catalog.json`.
-- **The 35 sounds:**
+- **The 38 sounds:**
 
 | Sounds | Recording (author, Freesound ID) |
 | --- | --- |
 | `bell-temple-large` | Temple Bell, Valley of the Temples (Mista Bumpy, 232333) |
 | `bells-suzu` | Suzu - Japanese Bell (DiSK, 519190) |
-| `step-snow-1`–`3` | Snow Step 1–3 (morganpurkis, 369777–9) |
-| `step-snow-4` | Footstep in the snow_04 (cabled_mess, 384424) |
+| `step-snow-1`–`5` | Footstep in the snow_01–04 (cabled_mess, 384421–4) |
 | `step-sand-1`–`4` | Footsteps in Sand (kessir, 264124) |
-| `bed-fire-hearth` | fire in fireplace close (kyles, 454016) |
+| `bed-fire-hearth` | campfire (aerror, 350757), high-passed and gently compressed |
+| `bed-wind-snow` | forest light wind through bare trees winter (kyles, 637566) |
+| `bed-bubbles-underwater` | Hydrophone water bubbles 1 (thaighaudio, 349878) |
 | `bed-crows-day` | A Murder of Crows in the Daytime (kactus23, 121142) |
 | `bed-birds-uguisu` | Japanese bush warbler (uguisu) (warukunai, 524526) |
 | `clash-sword-1`, `clash-sword-2` | Swords Clash (Christopherderp, 364529, 342393) |
@@ -1690,8 +1691,8 @@ No new image reference was used.
 | `paper-sheet-slide`, `paper-sheet-lay` | paper sheets handling (kyles, 450043) and Paper sheets (paulocorona, 334994) |
 
 **Choosing, with earshot.** Each candidate was trimmed with `find`, labelled with `describe` and checked with `realness`
-before import. Earshot `realness` was run again on the 35 files as shipped:
-- 34 read "real or pro-produced" (p_real 0.83–0.996).
+before import. Earshot `realness` was run again on the 38 files as shipped (after the listening fixes below):
+- 37 read "real or pro-produced" (p_real 0.79–0.996).
 - `bell-temple-large` reads "uncertain" (0.62 on its 10 s file, judged by the long-file thresholds of 0.40 and 0.77).
   Its strike trims read 0.81–0.92. A long, clean ringing tone is what that model leans toward hearing as synthesised.
   The recording comes from a source page that places it at the Valley of the Temples, so it was kept.
@@ -1746,8 +1747,38 @@ Frame checks:
 6. **Seams.** The fire, crow and warbler beds were cut at seam points measured on the importer's own pipeline. The
    seams are −35, −39 and −34 dB against each bed's level.
 
+**Owner listening, 2026-11-15.** The owner heard Kasa Jizō as "just low buzz sounds and that's it".
+
+**Causes, measured on that mix.**
+- **Drone everywhere.** Almost everything was below 150 Hz:
+  - the hearth bed (a close fireplace whose body is a low roar) was 71% below 150 Hz;
+  - the first snow steps (handling thumps more than crunch) were 41–77%;
+  - the gale bed was low-passed to 700–900 Hz indoors and at night;
+  - in the hearth shot, 77% of the mix was below 150 Hz.
+- **Masking.** Loudness meters discount the low end, so the normalised beds and mastering (+25 dB) raised this rumble
+  over the effects.
+- **Other episodes.** The underwater bed (97% below 150 Hz) did the same to Urashima's three palace shots.
+
+**Fixes.**
+- **Snow steps.** They now come from cabled_mess's crisp series: 46–61% of their energy is at 1–8 kHz, and they are
+  high-passed at 120 Hz.
+- **Hearth.** A dry campfire crackle (3% below 150 Hz).
+- **Outdoor wind.** The gale gives way to a light winter wind through bare trees (`bed-wind-snow`).
+- **Underwater.** A hydrophone bubble bed replaces the old underwater bed.
+- **High-passed re-cuts:**
+  - the warbler, at 400 Hz (city rumble);
+  - the stream, at 150 Hz;
+  - the axe, at 250 Hz.
+- **Importer.** It gains `highpassHz`. For loops it is applied before the crossfade, so the seam stays continuous.
+- **Levels.** The beds sit lower, so the effects carry the shot.
+- **Result.** Every shot of the four episodes now has at most 19% of its energy below 150 Hz.
+- **Kasa Jizō after the fixes:**
+  - −14.8 LUFS, with 8.7 dB of limiting;
+  - earshot hears the sections as crackling fire and crows;
+  - 66% of cues have an onset within one frame (chance 23%), and only 8 cues are without a hit.
+
 **Not done.**
-- No human has listened yet.
+- The fixed mixes are not yet re-heard by the owner.
 - These effects have no cue yet:
   - straw rustle for the hats;
   - the sled's runners;

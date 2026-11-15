@@ -25,7 +25,7 @@ export const cam = (a: UkiyoeEpisodeAspect, land: [number, number, number][], po
 };
 /** Recorded footsteps in the sound catalog, by surface; a step moment takes them in turn. */
 export const STEPS = {
-  snow: ["step-snow-1", "step-snow-2", "step-snow-3", "step-snow-4"],
+  snow: ["step-snow-1", "step-snow-2", "step-snow-3", "step-snow-4", "step-snow-5"],
   sand: ["step-sand-1", "step-sand-2", "step-sand-3", "step-sand-4"],
   gravel: ["step-gravel-1", "step-gravel-2", "step-gravel-3", "step-gravel-4"],
   wood: ["step-wood-1", "step-wood-2", "step-wood-3", "step-wood-4"],

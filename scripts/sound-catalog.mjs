@@ -85,12 +85,15 @@ function importRecordings(file) {
     const path = `recorded/${item.id}.wav`, out = join(DIR, path), raw = join(work, "raw.wav"), cross = 1.5;
     mkdirSync(dirname(out), { recursive: true });
     if (item.loop) {
-      ffmpeg(["-ss", String(item.seek), "-t", String(item.length + cross), "-i", item.file, "-ar", "48000", "-ac", "2", "-c:a", "pcm_f32le", raw]);
+      // `highpassHz` filters the whole section before the join, so the crossfaded seam stays continuous.
+      ffmpeg(["-ss", String(item.seek), "-t", String(item.length + cross), "-i", item.file, ...(item.highpassHz ? ["-af", `highpass=f=${item.highpassHz}`] : []), "-ar", "48000", "-ac", "2", "-c:a", "pcm_f32le", raw]);
       ffmpeg(["-i", raw, "-filter_complex", `[0:a]asplit[a][b];[a]atrim=0:${item.length},asetpts=PTS-STARTPTS,afade=t=in:d=${cross}:curve=qsin[x];[b]atrim=${item.length}:${item.length + cross},asetpts=PTS-STARTPTS,afade=t=out:d=${cross}:curve=qsin[y];[x][y]amix=inputs=2:normalize=0:duration=first,highpass=f=20[o]`, "-map", "[o]", "-c:a", "pcm_s16le", "-bitexact", out]);
     } else {
       // A one-shot starts just before its peak, and its peak sits at -6 dBFS. `keepLead` keeps what builds to the peak
       // (a blade drawn, a sheet sliding, wings beating up to their loudest stroke); the peak time then says where it lands.
-      ffmpeg(["-ss", String(item.seek), ...(item.length ? ["-t", String(item.length)] : []), "-i", item.file, "-af", "highpass=f=30", "-ar", "48000", "-c:a", "pcm_f32le", raw]);
+      // `highpassHz` takes out rumble that is not the sound (handling, wind on the microphone, distant traffic): loudness
+      // meters discount the low end, so a normalised bed would otherwise bring it up as a drone.
+      ffmpeg(["-ss", String(item.seek), ...(item.length ? ["-t", String(item.length)] : []), "-i", item.file, "-af", `highpass=f=${item.highpassHz ?? 30}`, "-ar", "48000", "-c:a", "pcm_f32le", raw]);
       const samples = decode(raw); let top = 0;
       samples.forEach((value, index) => { if (Math.abs(value) > Math.abs(samples[top])) top = index; });
       const start = item.keepLead ? soundOnset(samples) : Math.max(0, top / 48000 - .02), gain = -6 - 20 * Math.log10(Math.abs(samples[top]));
