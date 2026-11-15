@@ -81,6 +81,14 @@ export const CRAYON_F1_FACE_PARTS=[
   "hair-right-curtain",
 ] as const;
 
+/** Shared, bounds-checked cameras for native 608×1082 F1 ocular evidence.
+ * CRAYON1 allows zoom <= 3; keep Storybook and browser proof in lockstep.
+ */
+export const CRAYON_F1_EYE_INSPECTION={
+  near:{focusX:269,focusY:546,zoom:2.95},
+  far:{focusX:437,focusY:516,zoom:3},
+} as const;
+
 export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   const detail=options.detail??1,view=options.view??"wax";
   const fiberMaterial=options.fiberMaterial??"dry-wax";
