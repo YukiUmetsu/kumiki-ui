@@ -39,9 +39,15 @@ export interface WatercolourWashTreatment {
   glaze?: { pigment: string; opacity: number };
   /** 0..1 pooled pigment along the actual original contour. */
   edgePooling?: number;
+  /** Local wash boundary softness, 0..1. True watercolor lost edges are regional. */
+  edgeSoftness?: number;
+  /** Face and rounded forms can carry an off-centre luminance wash, not a flat panel. */
+  gradient?: "linear" | "radial";
 }
 export type WatercolourArtPart =
-  | (ArtPartBase & { kind: "group"; children: readonly WatercolourArtPart[] })
+  | (ArtPartBase & { kind: "group"; children: readonly WatercolourArtPart[];
+      /** Optional authored silhouette clip for eyes, eyelids or foreground wash. */
+      clipPath?: string })
   | (ArtPartBase & { kind: "path"; path: string; technique: WatercolourTechnique;
       fill?: string; stroke?: string; strokeWidth?: number; opacity?: number;
       wash?: WatercolourWashTreatment;
@@ -133,6 +139,8 @@ export function inspectWatercolourArtwork(spec: WatercolourArtwork): string[] {
       }
     }
     if (part.kind === "group") {
+      if (part.clipPath !== undefined && !pathSafe(part.clipPath))
+        problems.push(at + "/clipPath");
       if (!Array.isArray(part.children) || !part.children.length || part.children.length > 128)
         problems.push(at + "/children");
       else for (let j = 0; j < part.children.length && !budgetExceeded; j++)
@@ -164,6 +172,10 @@ export function inspectWatercolourArtwork(spec: WatercolourArtwork): string[] {
             problems.push(at + "/wash/" + key);
         if (w.edgePooling !== undefined && !bounded(w.edgePooling, 0, 1))
           problems.push(at + "/wash/edgePooling");
+        if (w.edgeSoftness !== undefined && !bounded(w.edgeSoftness, 0, 1))
+          problems.push(at + "/wash/edgeSoftness");
+        if (w.gradient !== undefined && w.gradient !== "linear" && w.gradient !== "radial")
+          problems.push(at + "/wash/gradient");
         if (w.glaze !== undefined && (!w.glaze || !hex.test(w.glaze.pigment) ||
           !bounded(w.glaze.opacity, 0, 1)))
           problems.push(at + "/wash/glaze");
