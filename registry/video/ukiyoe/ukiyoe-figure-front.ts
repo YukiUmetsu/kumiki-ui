@@ -17,6 +17,7 @@ import { darariBack, eriAshi, maiogi, obiFront, OKOBO_HEIGHT, okoboSquare, wares
 import type { SquareSword } from "./ukiyoe-katana";
 import { katana, mon, reachArm, saya } from "./ukiyoe-katana";
 import { kanabo } from "./ukiyoe-oni";
+import { hachiSide } from "./ukiyoe-folk";
 import { babyBundle, ghostFaceBack, ghostFaceFront, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
 
 const lerp2 = (a: Pt, b: Pt, t: number): Pt => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
@@ -424,6 +425,7 @@ function headBack(look: UkiyoeFigureLook, r: number, lw: number, hairC: UkiyoePa
 
 /** Hats are near enough symmetric to serve front and back. */
 function hatFront(look: UkiyoeFigureLook, r: number, lw: number, wind: number, frame = 0): Prim[] {
+  if (look.hat === "hachi") return hachiSide((x, y) => [x * r, y * r], lw, true);
   if (look.hat === "gotoku") return gotokuCrown((x, y) => [x * r, y * r], r, lw, frame, 0, true);
   const hat = look.hat ?? "none", hatC = look.hatColor ?? (hat === "eboshi" ? "sumi" : hat === "hood" ? "ai" : "kincha"), P = (x: number, y: number): Pt => [x * r, y * r];
   if (hat === "kasa" || hat === "conical") {

@@ -16,6 +16,7 @@
 - `ukiyoe-town.ts`: the castle-town motifs and the `castleTown()` scene.
 - `ukiyoe-interior.ts`: rooms and their furnishings, and the `interiorScene()` recipes.
 - `ukiyoe-onna.ts`: the women of the ghost stories (faces, props, the candle crown) and `onnaScene()`.
+- `ukiyoe-folk.ts`: folk work, tools and props, and `folkScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -214,6 +215,18 @@ Most women in the ghost stories look alive until the story turns, so they are fi
 - **`UKIYOE_ONNA_LOOKS`.** Generic looks: `noppera`, `kuchisake`, `futakuchi`, `honeonna`, `oiwa`, `yamanba`, `hashihime` (a red face, white robe and candle crown) and `ubume`.
 - **`okiku` (yōkai).** After Hokusai's *Sarayashiki*. `appear` raises her out of a well on a coil of blue-and-white plates, her hair streaming beside it, her breath curling out. `howl` moves her lips as she counts. Place her on the mouth of a `well` motif, between its `part: "back"` and `part: "front"`. The `well` has staves, rope hoops, ivy and an optional `pulley` with a bucket.
 - **`onnaScene("lineup" | "okiku", view)`.** Storybook **Women ghosts** plays both.
+
+### Folk work
+
+- **Tools on their own timeline.** `chop` (an axe), `hoe` (a hoe) and `pound` (the mochi pestle) run on `toolAt`, like the katana and the club.
+  - The tool lifts slowly over the shoulder, hangs, then drops fast (ease-in) onto its contact point. The contact lands on a whole frame and holds while chips, clods or a squash of mochi fly.
+  - Both hands are placed on the handle by IK, and the body leans back on the lift and throws its weight down on the strike.
+  - `toolContact(action, height)` is where the head lands, so a scene can place the chopping block (`stump`), the furrows or the mortar (`usu`) there.
+- **`wash`.** Kneels at a tub (`tarai`) and scrubs the cloth at `aim` with both hands.
+- **`shake`.** Shakes the mallet of luck (`prop: "kozuchi"`) overhead, pouring gold coins and rice.
+- **Props and hat.** `onigiri` (a rice ball in the hand), `firewood` (a lashed bundle on the back) and `hat: "hachi"` (Hachikazuki's great black bowl, in every view).
+- **`folkScene(kind)`.** Builds `woodcutter`, `farmer` (his wife brings a rice ball), `mochi`, `washing` (Hachikazuki at the tub) or `luck`. Storybook **Folk work** plays them, and the Motifs gallery shows the block, mortar and tub.
+- **Square views.** Tools and the mallet are drawn in profile and three-quarter only. Seen square on, the body works but the tool is not shown.
 
 ### Transition
 

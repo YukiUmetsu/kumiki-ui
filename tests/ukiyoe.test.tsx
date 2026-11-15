@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { folkScene, toolAt, toolContact, UKIYOE_FOLK_WORK } from "../registry/video/ukiyoe/ukiyoe-folk";
 import { faceOutline, humanFeatures, onnaScene, UKIYOE_GHOST_FACES, UKIYOE_ONNA_LOOKS } from "../registry/video/ukiyoe/ukiyoe-onna";
 import { interiorScene, LOOM_BEATER_PULL, loomGrip, UKIYOE_INTERIOR_KINDS, UKIYOE_WEAVE_PERIOD, weaveBeat } from "../registry/video/ukiyoe/ukiyoe-interior";
 import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
@@ -515,6 +516,35 @@ describe("UKIYO1 women ghosts", () => {
     expect(plates(200)).toBeGreaterThan(plates(60));
     expect(JSON.stringify(drawMotif("well", { part: "front" }, { frame: 0, wind: 0, seed: 1, progress: 1 }))).not.toContain("radial");   // the water is in the back part
     expect(JSON.stringify(drawMotif("well", { part: "back" }, { frame: 0, wind: 0, seed: 1, progress: 1 }))).toContain("radial");
+  });
+});
+
+describe("UKIYO1 folk work", () => {
+  it("swings each tool up slowly and down fast onto its contact point, with the block, field and mortar placed there", () => {
+    for (const k of UKIYOE_FOLK_WORK) expect(inspectUkiyoeScene(folkScene(k)), k).toEqual([]);
+    for (const action of ["chop", "hoe", "pound"] as const) {
+      const acts: UkiyoeAction[] = [{ type: action, start: 0, end: 400 }], H = 250;
+      let contacts = 0, maxUp = 0, maxDown = 0, prevA = toolAt(acts, 0)!.a;
+      for (let f = 1; f < 200; f++) {
+        const st = toolAt(acts, f)!;
+        const step = st.a - prevA;
+        if (step < 0) maxUp = Math.max(maxUp, -step); else maxDown = Math.max(maxDown, step);
+        prevA = st.a;
+        if (st.since === 0) {
+          contacts++;
+          // On the contact frame the head is exactly at toolContact.
+          const L = { chop: .42, hoe: .6, pound: .5 }[action] * H, tip = [st.grip[0] * H + Math.cos(st.a * Math.PI / 180) * L, st.grip[1] * H + Math.sin(st.a * Math.PI / 180) * L], c = toolContact(action, H);
+          expect(Math.hypot(tip[0] - c[0], tip[1] - c[1]), action).toBeLessThan(.5);
+        }
+      }
+      expect(contacts, action).toBeGreaterThanOrEqual(3);
+      expect(maxDown, `${action}: the drop is faster than the lift`).toBeGreaterThan(maxUp * 2);
+    }
+    // The chopping block's top and the mortar's rim sit at the tool's contact height.
+    const wood = folkScene("woodcutter"), block = wood.nodes.find(n => n.id === "block") as unknown as { x: number; params: { size: number } }, man = wood.nodes.find(n => n.id === "worker")!;
+    const c = toolContact("chop", 250 * (man.scale ?? 1));
+    expect(block.x).toBeCloseTo((man.x ?? 0) + c[0], 3);
+    expect(block.params.size * .45).toBeCloseTo(-c[1] * .9, 3);
   });
 });
 

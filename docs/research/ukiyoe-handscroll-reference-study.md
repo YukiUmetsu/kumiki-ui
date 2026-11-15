@@ -683,6 +683,48 @@ They showed five things the motif lacked, all now built:
 - The skull reveal does not show the bones of the body.
 - Nobody has done a human visual review yet.
 
+## Folk work and props (folktale queue F15, 2026-11-15)
+
+**Sources** (public domain, the Met):
+
+- the six-panel screen *Farmers' Lives in the Twelve Months* (44674), studied at full resolution;
+- Ishikawa Toyonobu's *Woman Washing Clothes* (55779).
+
+**What they show.**
+
+- **Farmers.** The farmers work bent over, with their sleeves tied back and headbands on, and their robes hitched up over bare legs. Hoes are carried on the shoulder. Lunch comes out to the field on a carrying pole, and an ox draws the plough.
+- **The washerwoman.** She hitches up her robe and works at the water's edge.
+
+**What was built.** `ukiyoe-folk.ts`:
+- the `chop`, `hoe`, `pound`, `wash` and `shake` actions;
+- the axe, hoe and pestle on a tool timeline with IK hands;
+- strike chips, clods and mochi;
+- the mallet of luck with pouring treasure;
+- rice ball, firewood bundle and Hachikazuki's bowl;
+- the `stump`, `usu` and `tarai` motifs;
+- `folkScene()`.
+
+Storybook has **Folk work**, and the Motifs gallery has three new tiles.
+
+**Review rounds.**
+
+1. **Tracking the axe frame by frame** over one stroke: the slow lift, the hold at the top, the fast drop over the head and the bite into the block.
+   - With long sleeves raised overhead, the sleeve covered the face. Workers now have short sleeves, like the screen's tied-back sleeves.
+   - The hoe's contact frame fell between whole frames, so its contact pulse could be missed. The stroke's phases now land on whole frames.
+   - The test checks that the head is exactly on its contact point every stroke, and that the drop is more than twice as fast as the lift.
+2. **Scenes.**
+   - The pink horizon showed in a gap between the hills and the ground. The ground was raised and the figures made bigger.
+   - A ricefield strip read as stray stripes; it was replaced by furrows under the hoe.
+   - The treasure was too small to see and has been enlarged.
+
+**Not done.**
+
+- Carrying a person on the back (Ubasute-yama).
+- Sewing, the needle-sword and the one-inch boy's bowl boat.
+- Tools in the square views.
+- A tray of cups.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
