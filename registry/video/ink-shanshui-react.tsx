@@ -1471,15 +1471,15 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
               " "+f(point[0])+" "+f(point[1]);
             previous=point;
           }
-          const tip:P=[r[0]+sweep*reach,
+          const fanTip:P=[r[0]+sweep*reach,
             r[1]-crest*(.21+.18*s(seed+1977,i*13+j*47+k))];
           upper+=" Q"+f(previous[0]+sweep*reach*.08)+" "+
-            f(previous[1]-crest*.2)+" "+f(tip[0])+" "+f(tip[1]);
+            f(previous[1]-crest*.2)+" "+f(fanTip[0])+" "+f(fanTip[1]);
           const lower:P=[r[0]+sweep*reach*.8,
             r[1]+crest*(.12+.15*s(seed+1987,i*19+j*17+k))];
           const d=upper+
-            " C"+f(tip[0]+sweep*reach*.015)+" "+
-                f(tip[1]+crest*.46)+" "+
+            " C"+f(fanTip[0]+sweep*reach*.015)+" "+
+                f(fanTip[1]+crest*.46)+" "+
                 f(lower[0]+sweep*reach*.06)+" "+
                 f(lower[1])+" "+
                 f(lower[0])+" "+f(lower[1])+
@@ -1490,7 +1490,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
                 f(r[0])+" "+f(r[1])+" Z";
           const ridge=rockLoadedRibbon(r,
             [r[0]+sweep*reach*.41,r[1]-crest*.42],
-            [tip[0]-sweep*reach*.12,tip[1]+crest*.18],
+            [fanTip[0]-sweep*reach*.12,fanTip[1]+crest*.18],
             k===0?.88:.71,seed+1973+i*97+j*31+k*17);
           return {r,d,ridge,lobes:lobeCount};
         });
