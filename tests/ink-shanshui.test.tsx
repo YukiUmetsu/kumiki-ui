@@ -224,6 +224,24 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("draws ridge-rooted structural rock spines and lighter feathered pine ink",()=>{
+    const rock=renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",detail:1},
+    }));
+    const creases=[...rock.matchAll(/data-km-rock-spine="" data-km-rock-spine-root-y="([^"]+)"/g)];
+    expect(creases.length).toBeGreaterThan(9);
+    expect(creases.length).toBeLessThan(34);
+    expect(creases.every(x=>Number.isFinite(Number(x[1])))).toBe(true);
+    const tufts=(rock.match(/data-km-pine-feather=""/g)??[]).length;
+    expect(tufts).toBeGreaterThan(80);
+    expect(rock).not.toMatch(/NaN|Infinity|undefined/);
+    const bare=renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",detail:0},
+    }));
+    expect(bare).not.toContain('data-km-rock-spine');
+    expect(bare).not.toContain('data-km-pine-feather');
+  });
+
   it("keeps calligraphic bamboo stems tapered and leaves attached at any art detail",()=>{
     for(const scene of SHANSHUI_SCENES){
       const controls={...DEFAULT_SHANSHUI,scene,detail:1};
