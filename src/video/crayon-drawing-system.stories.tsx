@@ -122,7 +122,7 @@ export function CrayonDrawingStudio({aspect,detail,pressure,paperTooth,nibStyle=
   </section>;
 }
 const meta={
-  title:"Video production/Film Looks/Crayon/Materials/Drawing System",
+  title:"Video production/Film Looks/Crayon/Drawing System",
   id:"video-crayon-drawing-system",
   component:CrayonDrawingStudio,
   // No newly constructed artwork is approved for public galleries without

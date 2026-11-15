@@ -4,7 +4,7 @@ import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-stor
 
 /** Remade ArtCraft child portrait and garment studies, still portable CRAYON1. */
 const meta={
-  title:"Video production/Film Looks/Crayon/Characters/The Blue Coat / Portrait Atelier",
+  title:"Video production/Film Looks/Crayon/Blue Coat — Portrait Atelier",
   id:"video-crayon-acting",
   // ArtCraft v6: reject the legacy gallery until actual 16:9/9:16 crops,
   // rig extrema and reference-led visual acceptance are verified.

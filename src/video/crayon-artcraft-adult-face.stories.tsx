@@ -112,7 +112,7 @@ export function AdultFaceExpressionComparison({aspect,detail,headScaleY,startFra
   </section>;
 }
 const meta={
-  title:"Video production/Film Looks/Crayon/Characters/ArtCraft Adult Face Lab",
+  title:"Video production/Film Looks/Crayon/ArtCraft Adult Face Lab",
   id:"video-crayon-artcraft-adult-face",
   tags:["!dev"],
   component:AdultFaceArtcraftWorkbench,

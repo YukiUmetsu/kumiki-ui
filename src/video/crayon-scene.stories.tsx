@@ -4,7 +4,7 @@ import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-stor
 
 /** General-purpose authoring playground; themed films live in dedicated folders. */
 const meta={
-  title:"Video production/Film Looks/Crayon/Scenes/Scene Engine",
+  title:"Video production/Film Looks/Crayon/Scene Engine",
   id:"video-crayon-scene-engine",
   component:CrayonPlayground,
   args:crayonSceneDefaultArgs,
