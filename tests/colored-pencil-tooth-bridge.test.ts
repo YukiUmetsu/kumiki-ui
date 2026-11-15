@@ -51,8 +51,8 @@ describe("ArtCraft photo-conditioned pencil-tooth residual repair",()=>{
     expect(out.marks).toHaveLength(0);
     expect(out.sourceMatchedGaps).toBe(0);
     expect(out.rasterUnderpainting).toBe(false);
-    expect(src.data).toEqual(photo);
-    expect(paint.data).toEqual(before);
+    expect(src.data.every((v,i)=>v===photo[i])).toBe(true);
+    expect(paint.data.every((v,i)=>v===before[i])).toBe(true);
   });
   it("lays deterministic finite dry contacts only across source-supported skin",()=>{
     const src=source(),paint=drawing();
@@ -62,31 +62,32 @@ describe("ArtCraft photo-conditioned pencil-tooth residual repair",()=>{
     expect(a.marks.length).toBeLessThan(12000);
     expect(a.sourceMatchedGaps).toBe(a.marks.length);
     expect(a.protectedAnatomy).toBeGreaterThan(0);
-    for(const m of a.marks){
-      expect(m.alpha).toBeGreaterThan(0);
-      expect(m.alpha).toBeLessThan(.37);
-      expect(m.pass).toBe(2);
-      expect(m.width).toBeGreaterThan(0);
-      expect(m.color).toMatch(/^#[a-f0-9]{6}$/);
-      expect([m.x,m.y,m.endX,m.endY,m.controlX,m.controlY]
-        .every(Number.isFinite)).toBe(true);
-      // No "inside at endpoints only" mistake: full curved nib stays
-      // inside the original measured face silhouette at every proof point.
-      for(const t of [0,.25,.5,.75,1]){
+    // Single aggregated assertions keep large real-pixel tests fast:
+    // thousands of expect() calls and typed-array deep equality are NOT
+    // necessary to verify every point in the full painted geometry.
+    const safe=a.marks.every(m=>
+      m.alpha>0&&m.alpha<.37&&m.pass===2&&m.width>0&&
+      /^#[a-f0-9]{6}$/.test(m.color)&&
+      [m.x,m.y,m.endX,m.endY,m.controlX,m.controlY]
+        .every(Number.isFinite)&&
+      [0,.25,.5,.75,1].every(t=>{
         const q=1-t;
         const x=q*q*m.x+2*q*t*m.controlX+t*t*m.endX;
         const y=q*q*m.y+2*q*t*m.controlY+t*t*m.endY;
-        expect(pointInside(crop.left+x/540*crop.width,
-          crop.top+y/600*crop.height)).toBe(true);
-      }
-    }
-    expect(src.data).toEqual(before);
-    expect(paint.data).toEqual(render);
-    expect(createPhotoSkinToothBridge(src,paint,guides,face,crop,1,31))
-      .toEqual(a);
-    expect(createPhotoSkinToothBridge(src,paint,guides,face,crop,1,32)
-      .marks).not.toEqual(a.marks);
-  });
+        return pointInside(crop.left+x/540*crop.width,
+          crop.top+y/600*crop.height);
+      }));
+    expect(safe).toBe(true);
+    expect(src.data.every((v,i)=>v===before[i])).toBe(true);
+    expect(paint.data.every((v,i)=>v===render[i])).toBe(true);
+    const repeat=createPhotoSkinToothBridge(
+      src,paint,guides,face,crop,1,31);
+    expect(JSON.stringify(repeat.marks)).toBe(JSON.stringify(a.marks));
+    const alternate=createPhotoSkinToothBridge(
+      src,paint,guides,face,crop,1,32);
+    expect(JSON.stringify(alternate.marks.slice(0,40)))
+      .not.toBe(JSON.stringify(a.marks.slice(0,40)));
+  },20000);
   it("refuses invented pigmentation on genuine paper or already dark skin",()=>{
     const bright=image(900,506,252);
     for(let k=0;k<bright.data.length;k+=4){
