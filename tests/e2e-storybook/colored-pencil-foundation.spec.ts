@@ -8,6 +8,9 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
   const aspect=page.getByRole("combobox",{name:"Foundation aspect"});
   await expect(scene).toBeVisible();
   await expect(svg).toHaveAttribute("data-km-pencil-foundation","CP-F1");
+  await expect(svg).toHaveAttribute(
+    "data-km-pencil-render-method","authored-vector-pigment");
+  await expect(svg).toHaveAttribute("data-km-pencil-photo-pixels","none");
   await expect(scene).toHaveAttribute("data-km-foundation-stage","review");
   await expect(svg.locator("[data-km-pencil-craft-base]").first()).toBeVisible();
   for(const format of ["landscape","portrait"] as const){
@@ -17,6 +20,25 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
       await subject.selectOption(item);
       await expect(svg).toHaveAttribute("data-km-pencil-foundation","CP-F1");
       await expect(svg.locator("[data-km-pencil-region]").first()).toBeVisible();
+      // A CP-F1 vector drawing is not photograph stylization: no SVG
+      // bitmap/foreignObject reference, no uploaded source/canvas image,
+      // and full details remain named editable pencil strokes.
+      const provenance=await svg.evaluate(node=>({
+        photoElements:node.querySelectorAll(
+          "image,foreignObject,feImage").length,
+        pencilMarks:node.querySelectorAll(
+          "[data-km-pigment-layer] path").length,
+        tracedGeometry:node.querySelectorAll(
+          "[data-km-pencil-trace]").length,
+      }));
+      expect(provenance.photoElements).toBe(0);
+      expect(provenance.pencilMarks).toBeGreaterThan(100);
+      expect(provenance.tracedGeometry).toBeGreaterThan(10);
+      if(item==="fox"){
+        for(const region of ["periocular-form","mask","eye-far","eye-near"])
+          await expect(svg.locator(
+            '[data-km-pencil-region="'+region+'"]')).toHaveCount(1);
+      }
       if(["rose","fox","portrait"].includes(item)){
         await svg.screenshot({animations:"disabled",
           path:info.outputPath("pencil-foundation-"+item+"-"+format+".png")});
