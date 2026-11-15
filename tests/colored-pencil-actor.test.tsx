@@ -27,11 +27,16 @@ describe("CP3 authored coloured-pencil ensemble", () => {
       expect(scene.drawing.regions.length + all.length).toBe(24);
       expect(all).toContain("fox-eye");
       expect(all).toContain("fox-tail-tip");
+      expect(scene.actors![0].parts.find(part=>part.id==="tail-tip")!.parent).toBe("tail");
+      expect(scene.actors![0].parts.find(part=>part.id==="tail-tip")!.region.layers[0].color)
+        .toBe("#E7D0B7");
       expect(all).toContain("fox-ear-interiors");
       expect(all).toContain("fox-nose");
       expect(all).toContain("kingfisher-head");
       expect(all).toContain("kingfisher-near-wing");
       expect(all).toContain("kingfisher-wing-coverts");
+      expect(scene.actors![1].parts.find(part=>part.id==="wing-coverts")!.parent)
+        .toBe("near-wing");
       expect(all).toContain("kingfisher-cheek");
       expect(all).not.toContain("fox-arm");
       expect(all).not.toContain("bird-front-wing");
