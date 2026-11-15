@@ -28,9 +28,9 @@ const line = (id:string,path:string,stroke:string,width=1,opacity=1,
   ({kind:"path",id,path,stroke,strokeWidth:width,opacity,
     technique:"drybrush",startFrame:begin,fadeFrames:begin?24:0});
 const group = (id:string,children:WatercolourArtPart[],keys?:WatercolourArtKey[],
-  pivot?:{x:number;y:number},begin=0,fade=0):WatercolourArtPart =>
+  pivot?:{x:number;y:number},begin=0,fade=0,clipPath?:string):WatercolourArtPart =>
   ({kind:"group",id,children,...(keys?{keys}:{}),...(pivot?{pivot}:{}),
-    startFrame:begin,fadeFrames:fade});
+    ...(clipPath?{clipPath}:{}),startFrame:begin,fadeFrames:fade});
 
 export const PORTRAIT_LANDMARKS = {
   crown:{x:286,y:60},chin:{x:292,y:432},
@@ -114,6 +114,10 @@ const portraitFigure = ():WatercolourArtPart => {
     const upper="M"+a+" "+cy+" Q"+(cx-12)+" "+(cy-12)+" "+cx+" "+(cy-7)+
       " Q"+(cx+14)+" "+(cy-12)+" "+b+" "+(cy-1);
     const lower="M"+a+" "+cy+" Q"+cx+" "+(cy+8)+" "+b+" "+(cy-1);
+    // The iris must share the same opening silhouette as the sclera. Painting
+    // it over the entire eye creates a doll-like iris spilling through lids.
+    const aperture="M"+a+" "+cy+" Q"+cx+" "+(cy-13)+" "+b+" "+(cy-1)+
+      " Q"+cx+" "+(cy+8)+" "+a+" "+cy+" Z";
     const blink=[pose(0),pose(171),pose(180,0,0,0,1,0),
       pose(188,0,0,0,1,0),pose(197),pose(310),
       pose(319,0,0,0,1,0),pose(326,0,0,0,1,0),pose(334),pose(359)];
@@ -127,25 +131,24 @@ const portraitFigure = ():WatercolourArtPart => {
         (b+6)+" "+(cy+14)+" Q"+cx+" "+(cy+21)+" "+(a-8)+" "+(cy-2)+" Z",
         "#A9878C",.18,{highlight:"#E7BCAF",shadow:"#7F7885"},112,55),
       group(side+"-open-eyelids",[
-        wash(side+"-sclera",
-          "M"+a+" "+cy+" Q"+cx+" "+(cy-13)+" "+b+" "+(cy-1)+
-          " Q"+cx+" "+(cy+8)+" "+a+" "+cy+" Z",
-          "#E3D8CC",.78,{highlight:"#F9EDDD",shadow:"#B6ABA7"}),
+        wash(side+"-sclera",aperture,
+          "#CBB7AC",.34,{highlight:"#FAE9D9",shadow:"#C1AAA6",
+            gradient:"radial",edgeSoftness:.14}),
         group(side+"-iris-gaze",[
           wash(side+"-iris",
-            "M"+(cx-7)+" "+(cy-5)+" Q"+(cx-11)+" "+(cy+5)+" "+
-            cx+" "+(cy+6)+" Q"+(cx+8)+" "+(cy+4)+" "+(cx+7)+" "+(cy-5)+" Z",
-            near?"#5C7D7D":"#6E8990",.97,
-            {highlight:"#B0B2A6",shadow:"#2D4857",edgePooling:.18}),
+            "M"+(cx-7)+" "+(cy-6)+" Q"+(cx-10)+" "+(cy+2)+" "+
+            cx+" "+(cy+7)+" Q"+(cx+8)+" "+(cy+3)+" "+(cx+7)+" "+(cy-6)+" Z",
+            near?"#726B62":"#79817D",.86,
+            {highlight:"#B7A88B",shadow:"#3C464A",gradient:"radial",edgePooling:.08}),
           wash(side+"-pupil",
-            "M"+(cx-2)+" "+(cy-5)+" Q"+(cx+5)+" "+(cy-5)+" "+
-            (cx+4)+" "+(cy+2)+" Q"+cx+" "+(cy+5)+" "+(cx-3)+" "+(cy+2)+" Z",
-            "#273945",.99),
+            "M"+(cx-2.2)+" "+(cy-5)+" Q"+(cx+3.3)+" "+(cy-5)+" "+
+            (cx+3.2)+" "+(cy+2)+" Q"+cx+" "+(cy+5)+" "+(cx-2.2)+" "+(cy+2)+" Z",
+            "#3A3B40",.95),
           wash(side+"-glint",
             "M"+(cx-3)+" "+(cy-4)+" q4 -3 5 0 q-1 4 -5 3 Z",
             "#FBF1E5",.98),
         ],[pose(0),pose(165),pose(235,-1,0),pose(271,2,0),pose(359)],
-          {x:cx,y:cy}),
+          {x:cx,y:cy},0,0,aperture),
         line(side+"-upper-lid",upper,"#71585E",near?2.3:2,.84),
         line(side+"-lower-lid",lower,"#A78182",1.14,.64),
         line(side+"-eye-corner",
@@ -168,32 +171,39 @@ const portraitFigure = ():WatercolourArtPart => {
       "#C08D83",.93,{highlight:"#E1B4A3",shadow:"#93727C"},83,95),
     wash("opaque-face-volume",
       "M213 135 Q247 109 305 104 C354 108 385 141 400 189 Q415 258 393 321 C383 363 348 411 322 429 Q294 441 266 418 C227 385 201 349 188 311 Q171 254 179 204 Q181 160 213 135 Z",
-      "#D3A48F",.995,{highlight:"#F2D4B5",shadow:"#AA7A79",
-        glaze:{pigment:"#C9A088",opacity:.12},edgePooling:.22},63,107),
+      "#D7AD99",.995,{highlight:"#F3DCCA",shadow:"#AE8583",
+        glaze:{pigment:"#CA998D",opacity:.075},gradient:"radial",edgePooling:.10},63,107),
     wash("forehead-reserve",
-      "M228 150 Q271 122 329 153 Q314 177 292 189 Q254 183 228 150 Z",
-      "#F5DDC2",.27,{highlight:"#FFEDD0",shadow:"#D9AE9B"},107,75),
+      "M233 153 C263 144 306 143 329 157 Q322 175 287 183 Q255 185 233 153 Z",
+      "#E9C8B4",.18,{highlight:"#F9E8D5",shadow:"#D8A99D",
+        gradient:"radial",edgeSoftness:.84},107,75),
     wash("temple-cool-plane",
-      "M213 136 Q185 169 190 248 Q184 297 216 359 Q229 321 219 265 Q206 190 239 147 Z",
-      "#A47F8B",.22,{highlight:"#D3ACA3",shadow:"#777385"},108,73),
+      "M209 144 C189 173 192 229 198 263 Q198 312 219 344 C214 304 215 278 212 255 Q206 199 236 155 Z",
+      "#AE9196",.18,{highlight:"#DEB9AA",shadow:"#837B91",
+        edgeSoftness:1,gradient:"radial"},108,73),
     wash("far-side-face-plane",
-      "M345 130 Q387 157 398 218 Q403 293 366 380 Q379 318 361 276 Q371 212 345 130 Z",
-      "#817A8C",.20,{highlight:"#C9ABA8",shadow:"#626A7C"},118,83),
+      "M358 148 C389 194 396 242 387 297 Q374 353 351 383 C362 332 367 298 360 272 Q371 197 358 148 Z",
+      "#897F8E",.14,{highlight:"#D1AEAA",shadow:"#79768A",
+        edgeSoftness:.95,gradient:"radial"},118,83),
     wash("warm-near-cheek",
-      "M198 272 Q228 261 253 285 Q268 319 244 351 Q210 343 198 299 Z",
-      "#D8A18E",.26,{highlight:"#EBC6A8",shadow:"#AB797D"},122,67),
+      "M199 286 C213 273 244 278 256 300 Q259 321 237 342 Q215 334 199 307 Z",
+      "#D49E95",.18,{highlight:"#E7C5B2",shadow:"#B77F82",
+        edgeSoftness:1,gradient:"radial"},122,67),
     wash("far-cheek-reflected",
-      "M328 276 Q360 265 379 289 Q387 318 359 360 Q331 348 323 324 Z",
-      "#AE8D93",.19,{highlight:"#D8B4AC",shadow:"#77798F"},129,71),
+      "M334 288 Q360 280 377 302 C376 328 363 352 348 349 Q326 336 334 288 Z",
+      "#B69AA0",.15,{highlight:"#E0BDB4",shadow:"#918B9E",
+        edgeSoftness:1,gradient:"radial"},129,71),
     wash("jaw-soft-edge",
       "M207 347 Q231 395 285 423 Q315 438 353 397 Q336 435 295 436 Q243 420 220 386 Z",
       "#997E85",.29,{highlight:"#D6A8A0",shadow:"#7F7288"},128,86),
     wash("nose-bridge-light",
-      "M295 243 Q308 246 311 269 L315 296 Q298 306 289 296 Q295 274 295 243 Z",
-      "#EFC7AC",.41,{highlight:"#FFF0D4",shadow:"#DDAA9B"},145,54),
+      "M295 246 Q305 247 311 267 Q309 289 312 300 Q295 303 292 294 Q300 275 295 246 Z",
+      "#E5C0AF",.20,{highlight:"#FAE2C9",shadow:"#CF9D96",
+        gradient:"radial",edgeSoftness:.80},145,54),
     wash("nose-side-plane",
-      "M307 242 Q322 258 326 289 L333 307 Q340 317 332 323 L319 317 Q319 285 307 242 Z",
-      "#A57F83",.27,{highlight:"#D1A4A2",shadow:"#887082"},147,57),
+      "M316 258 Q323 280 325 296 Q334 310 330 318 Q322 316 318 307 Q319 287 316 258 Z",
+      "#BA9996",.15,{highlight:"#E2B9AA",shadow:"#94848B",
+        edgeSoftness:.75},147,57),
     wash("nose-tip",
       "M296 303 Q310 294 323 305 Q331 318 317 324 Q299 321 296 303 Z",
       "#DCA58D",.42,{highlight:"#F4C9AA",shadow:"#B47A7B",edgePooling:.1},157,42),
