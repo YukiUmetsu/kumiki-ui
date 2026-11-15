@@ -38,7 +38,7 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
     expect(actor.cadence).toBe(2);
     for(const side of sides){
       const parts=risoHandArtcraftParts(actor.id as "courier"|"paper-artist",side);
-      expect(parts).toHaveLength(12);
+      expect(parts).toHaveLength(14);
       const names=parts.map(p=>p.id);
       expect(new Set(names).size).toBe(names.length);
       const specNames=actor.parts.map(p=>p.id);
@@ -50,8 +50,8 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
       expect(parts.filter(p=>p.paint==="screen").every(p=>p.screenTone==="light")).toBe(true);
       expect(parts.filter(p=>p.paint==="solid").every(p=>p.plate==="blue")).toBe(true);
       for(const id of ["knuckle-arc","thenar-plane","thenar-fold","wrist-crease",
-        "index-nail","middle-nail","ring-nail","thumb-nail",
-        "index-joint-crease","middle-joint-crease","ring-joint-crease","dorsal-tendon"])
+        "index-nail","middle-nail","ring-nail","pinky-nail","thumb-nail",
+        "index-joint-crease","middle-joint-crease","ring-joint-crease","pinky-joint-crease","dorsal-tendon"])
         expect(specNames).toContain(side+"-glove-"+id);
     }
   });
@@ -73,7 +73,7 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
         expect(hand.plateNames).toEqual(["blue","red"]);
         expect(hand.actuallyEngraved).toBe(true);
         expect(hand.sourceCount).toBeGreaterThan(17);
-        expect(hand.fingers).toEqual(["thumb","index","middle","ring"].map(id=>side+"-"+id));
+        expect(hand.fingers).toEqual(["thumb","index","middle","ring","pinky"].map(id=>side+"-"+id));
         expect(hand.independentDigitTransforms).toBe(true);
         expect(hand.palmToFingerRoots.length).toBe(4);
         expect(hand.palmToFingerRoots.every(x=>Number.isFinite(x)&&x>3&&x<30)).toBe(true);
@@ -84,10 +84,10 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
   it("new nail beds and finger-fold engravings print ABOVE the real paper at the exact handhold, not as a separate sticker",()=>{
     for(const side of sides){
       const layerIds=RISO30_GRIP_FOREGROUND_IDS(side);
-      expect(layerIds).toHaveLength(7);
+      expect(layerIds).toHaveLength(9);
       expect(layerIds.every(id=>id.startsWith(side+"-glove"))).toBe(true);
-      expect(layerIds.filter(id=>id.includes("nail"))).toHaveLength(4);
-      expect(layerIds.filter(id=>id.includes("crease"))).toHaveLength(3);
+      expect(layerIds.filter(id=>id.includes("nail"))).toHaveLength(5);
+      expect(layerIds.filter(id=>id.includes("crease"))).toHaveLength(4);
       for(const actor of actors)expect(layerIds.every(id=>
         actor.parts.some(p=>p.id===id&&p.plate==="blue"&&p.paint==="solid"))).toBe(true);
     }
