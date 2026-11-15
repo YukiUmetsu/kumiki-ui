@@ -250,3 +250,12 @@ The example Courier and Paper Bird keep the same version-1 rig, spot plates, pap
 - **Regression:** `tests/riso11-ink-craft.test.ts`; existing source-mesh, ArtCraft, opacity and bird wing/face collision tests remain authoritative.
 
 This is a craftsmanship iteration, not a claim that examples are anatomically complete or equivalent to third-party artwork. Final-release artistic acceptance requires actual normal-speed film review, independent human visual judgment and source-relative ArtCraft measurements.
+
+
+### RISO11 correction — internal face paper clearance
+
+Actual production film frames revealed that an actor-wide paper knockout is **insufficient** when a blue coat or arm exists behind a pale face inside the same actor. The face was drawn as a `knockoutOnly` part, but that flag was previously honored only by the exterior paper silhouette and ignored by `RisoCharacterInk`; as a result, body/strap ink showed through the face.
+
+`RisoCharacterInk` now treats each `knockoutOnly` path as **an internal negative-space mask of earlier ink parts** on each spot plate. Later facial ink is painted normally on the exposed paper. The example Courier orders the entire coat, sleeve, glove, bag and badge behind the face clearance and facial features. Multiple staged masks are supported in paint-order segments; actors without paper-clearance parts do not create masks. This is not low-opacity overpainting or an RGB transparency filter.
+
+Verify `tests/riso-character-paper-clearance.test.tsx`, the browser clearance stress frames (landscape and portrait at 46/157/198), and the encoded production film. Future work: explicit per-part depth/deformation vocabulary for complex occlusions, a production-grade multi-character face-overlap editor, and independent print-artist approval.
