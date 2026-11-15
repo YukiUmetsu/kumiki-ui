@@ -327,6 +327,8 @@ for(const view of ["wax","anatomy"] as const){
           '[data-km-crayon-feather-contacts="open-wax"]')).toHaveCount(19);
         await expect(svg.locator(
           '[data-km-crayon-contact-feather-mask]')).toHaveCount(19);
+        await expect(svg.locator(
+          '[data-km-crayon-opaque-burnish]')).toHaveCount(7);
         for(const id of ["socket-near","socket-far",
           "eye-orbital-undercut-near","eye-orbital-undercut-far",
           "neck-submandibular-cast","neck-cervical-turn",
@@ -341,7 +343,11 @@ for(const view of ["wax","anatomy"] as const){
       }
       if(frame===299){
         for(const id of ["iris-near","iris-far","nose-alar-near",
-          "nose-alar-far","oral-opening","hair-right-curtain",
+          "nose-alar-far","naris-shadow-near","naris-shadow-far",
+          "oral-opening","mouth-aperture-depth",
+          "dental-surface-left","dental-surface-center","dental-surface-far",
+          "labial-upper-value","labial-lower-value",
+          "neck-submandibular-cast","hair-right-curtain",
           "lip-upper","lip-lower"]){
           await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
             .toBeAttached();
