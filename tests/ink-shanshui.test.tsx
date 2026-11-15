@@ -275,6 +275,34 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(fanMasses.every((d,k)=>
         d[1].startsWith("M"+fanFaces[k][1].replace(","," "))&&
         html.includes('id="'+d[2]+'"'))).toBe(true);
+      const softBanks=[...html.matchAll(
+        /data-km-master-rock-bank="" data-km-master-rock-bank-root="([^"]+)" data-km-master-rock-bank-index="(\d+)"/g,
+      )];
+      const shadowBodies=[...html.matchAll(
+        /data-km-master-rock-bank-wash="" d="([^"]+)" fill="url\(#([^"]+)\)"/g,
+      )];
+      const expectedBankCount=school==="fuchun"?9:
+        school==="forest-grotto"?12:0;
+      expect(softBanks).toHaveLength(expectedBankCount);
+      expect(shadowBodies).toHaveLength(expectedBankCount);
+      expect((html.match(/data-km-master-rock-bank-cap=""/g)??[]))
+        .toHaveLength(expectedBankCount);
+      for(const [idx,face] of softBanks.entries()){
+        expect(Number(face[2])).toBe(idx%(school==="fuchun"?3:4));
+        expect(shadowBodies[idx][1].startsWith(
+          "M"+face[1].replace(","," "))).toBe(true);
+        expect((shadowBodies[idx][1].match(/ C/g)??[])).toHaveLength(5);
+        expect(html).toContain('id="'+shadowBodies[idx][2]+'"');
+      }
+      const moss=[...html.matchAll(
+        /data-km-master-moss-dab="" data-km-master-moss-root="([^"]+)" data-km-master-moss-wet="(dry|wet)" d="([^"]+)"/g,
+      )];
+      expect(moss).toHaveLength(school==="forest-grotto"?63:0);
+      expect(moss.every(([,root,,d])=>
+        d.startsWith("M"+root.replace(","," "))&&d.endsWith(" Z")))
+        .toBe(true);
+      expect(moss.filter(m=>m[2]==="wet").length)
+        .toBe(school==="forest-grotto"?12:0);
       const placements=[...html.matchAll(
         /data-km-master-stroke-placement="(rock-volume|attached-stratum)" data-km-master-stroke-curl="(with|counter|none)"/g,
       )];
