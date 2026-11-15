@@ -251,3 +251,9 @@ ArtCraft risks / open release gates: actual native 16:9 and 9:16 production fram
 The first generated native film and both 16:9/9:16 chapter captures were inspected, not inferred from green test results. A hard cut from fully assembled woodland into a *blank* botanical scene was visibly unacceptable. The director now opts into a validated `startAssembled` state for finished chapter sets, preserving material opacity and independent motion. Existing assembly demos keep their original behavior. New Vitest/browser assertions reject any first-cut film state where a paper stock's progress or opacity is not 1.
 
 **Critical:** the initial evidence is superseded by this fix. Artistic QA must use new CI PNGs and an encoded cut spanning f239→240. Source-faithful full-speed art approval remains open.
+
+## PAPER-D2 — parent-child sheet rigs and opaque deckled editing
+
+The first general film pass used the same translation keys on every moth sheet. D2 introduces a true parent sheet with affine inheritance, preserving global stock depth and the separate flap-hinge tracks. D2 also adds optional fully opaque die-cut curtain close/open across film edits (24-frame sample, 12 outgoing and 12 incoming). These mechanisms are intended to eliminate drift and unnatural digital dissolves, not to fake a finished portrait rig or true engineered page turn.
+
+**Visual acceptance required:** both 960×540 and 540×960 final native screenshots of botanical pose extremes; 239/240 cut frames both formats; several samples during close/open; actual 30+ frame encoded cut at normal playback; independent inspection for unexpected dark slivers, detached wing pivots, exposed background at the fully covered frame, and global z-order corruption. Check actual output before merge.

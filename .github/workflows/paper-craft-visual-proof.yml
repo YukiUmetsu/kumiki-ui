@@ -71,6 +71,13 @@ jobs:
               npm run film:frame -- examples/film/paper-craft-director.film.json --frame="$frame" --only="$output" --out=dist/paper-director-proof
             done
           done
+      - name: Capture opaque paper-curtain edit in both formats
+        run: |
+          for output in landscape portrait; do
+            for frame in 228 234 239 240 245 251 252; do
+              npm run film:frame -- examples/film/paper-craft-director.film.json --frame="$frame" --only="$output" --out=dist/paper-curtain-proof
+            done
+          done
       - name: Encode a cross-cut paper film sequence
         run: npm run film:render -- examples/film/paper-craft-director.film.json --startFrame=226 --frames=30 --only=landscape --out=dist/paper-director-proof
       - name: Keep actual rendered browser captures
@@ -89,5 +96,6 @@ jobs:
           path: |
             dist/paper-scenery-proof/
             dist/paper-director-proof/
+            dist/paper-curtain-proof/
           retention-days: 7
           if-no-files-found: warn
