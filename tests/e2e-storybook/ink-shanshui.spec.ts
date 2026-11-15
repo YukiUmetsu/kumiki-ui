@@ -171,11 +171,26 @@ test("four distinct historical ink schools paint separate real rooted rock struc
     await expect(card.locator("[data-km-master-face]")).toHaveCount(3);
     await expect(card.locator("[data-km-master-stroke]"))
       .toHaveCount(count);
+    await expect(card.locator("[data-km-master-stratum]")).toHaveCount(15);
+    await expect(card.locator("[data-km-master-stratum-wash]")).toHaveCount(15);
+    await expect(card.locator("[data-km-master-stratum-lip]")).toHaveCount(15);
+    const banked=card.locator("[data-km-master-stroke-bank]");
+    await expect(banked).toHaveCount(count);
+    for(let bank=0;bank<5;bank++)
+      await expect.poll(()=>card.locator(
+        '[data-km-master-stroke-bank="'+bank+'"]').count())
+        .toBeGreaterThan(0);
+    await expect(card.locator("[data-km-rock-hero-fold]"))
+      .toHaveCount(school==="fuchun"?3:0);
+
     await expect(card.locator('[data-km-master-stroke-style="'+style+'"]'))
       .toHaveCount(count);
     const top=card.locator('[data-km-shanshui-ridge-contour="1"]');
     crests.push((await top.getAttribute("d"))??"");
     await expect(card.locator("image")).toHaveCount(0);
+    const film=card.locator("[data-km-shanshui-scene]").first();
+    await film.screenshot({animations:"disabled",
+      path:info.outputPath("shanshui-"+school+"-native-rock-145.png")});
   }
   expect(new Set(crests).size).toBe(4); // sculpted historical landforms
   await page.screenshot({animations:"disabled",fullPage:true,
