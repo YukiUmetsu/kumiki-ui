@@ -213,3 +213,15 @@ full-frame stills and drawing phases. Verify repeatable tooth at fixed
 seed, no unintended transparency, natural skin color without grey dirt,
 and zero text collisions. The new artwork remains `!dev` until visually
 accepted; technical tests are necessary but not an aesthetic award.
+
+### Visual refinement after native A/B review
+
+The first 960×540 and 540×960 Chromium crops verified that paper-contact
+pigment was visible with the same source paths and camera, but it introduced
+another recognizable defect: discrete 5–8-unit dash marks resembled random
+scratches rather than microscopic paper tooth. The second iteration uses
+many more **subpixel-scale** traces (0.25–2.2 local units, with subunit
+width and slanted irregular orientations), compressed into the same six
+batched paths per paper. This changes spatial grain frequency instead of
+increasing full-frame SVG node count. It is still an *optical approximation*,
+not numerically simulated wax dynamics or professionally accepted art.
