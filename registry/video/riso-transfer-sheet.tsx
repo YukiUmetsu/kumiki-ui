@@ -7,6 +7,10 @@ export interface RisoTransferSheetOptions {
   curl?: number;
   /** Pinch the held ends without changing the long-edge silhouette. 0..1. */
   gripPinch?: number;
+  /** Independent physical contact pressure at the source (left/start) end. 0..1. */
+  sourceGrip?: number;
+  /** Independent contact pressure at the receiving (right/end) end. 0..1. */
+  receiverGrip?: number;
 }
 export interface RisoTransferSheetGeometry {
   /** THE source of truth for the opaque paper knockout AND printed contour. */
@@ -41,9 +45,12 @@ export function evaluateRisoTransferSheet(
   if (!options || typeof options !== "object" || Array.isArray(options))
     throw new RangeError("RISO transfer options must be an object.");
   const curl = options.curl ?? 3, pinch = options.gripPinch ?? .5;
+  const sourceGrip=options.sourceGrip ?? 1, receiverGrip=options.receiverGrip ?? 1;
   if (!Number.isFinite(curl) || curl < 0 || curl > 12 ||
-      !Number.isFinite(pinch) || pinch < 0 || pinch > 1)
-    throw new RangeError("RISO transfer curl must be 0..12 and gripPinch 0..1.");
+      !Number.isFinite(pinch) || pinch < 0 || pinch > 1 ||
+      !Number.isFinite(sourceGrip) || sourceGrip < 0 || sourceGrip > 1 ||
+      !Number.isFinite(receiverGrip) || receiverGrip < 0 || receiverGrip > 1)
+    throw new RangeError("RISO transfer curl must be 0..12 and grip strengths 0..1.");
   const dx = end.x - source.x, dy = end.y - source.y, length = Math.hypot(dx, dy);
   // A paper slip opens progressively from the hand. Suppressing a sheet
   // shorter than 28 units caused a conspicuous full-width pop on first reveal.
@@ -59,14 +66,15 @@ export function evaluateRisoTransferSheet(
   };
   // The contour is a truly connected ribbon. Both pinched short edges
   // have their midpoints on the sampled hand contacts, even in tilted poses.
-  const upper = -20 + pinch * 4, lower = 20 - pinch * 4;
-  const outline = "M" + xy(at(0, upper)) +
+  const sourceUpper=-20+pinch*sourceGrip*4,sourceLower=20-pinch*sourceGrip*4;
+  const receiverUpper=-20+pinch*receiverGrip*4,receiverLower=20-pinch*receiverGrip*4;
+  const outline = "M" + xy(at(0, sourceUpper)) +
     " C" + xy(at(.12, -22)) + " " + xy(at(.33, -21)) + " " + xy(at(.51, -18)) +
-    " C" + xy(at(.7, -17)) + " " + xy(at(.89, -20)) + " " + xy(at(1, upper)) +
-    " Q" + xy(at(1.018, 1)) + " " + xy(at(1, lower)) +
+    " C" + xy(at(.7, -17)) + " " + xy(at(.89, -20)) + " " + xy(at(1, receiverUpper)) +
+    " Q" + xy(at(1.018, 1)) + " " + xy(at(1, receiverLower)) +
     " C" + xy(at(.84, 23)) + " " + xy(at(.66, 24)) + " " + xy(at(.49, 22)) +
-    " C" + xy(at(.3, 24)) + " " + xy(at(.12, 23)) + " " + xy(at(0, lower)) +
-    " Q" + xy(at(-.018, 1)) + " " + xy(at(0, upper)) + " Z";
+    " C" + xy(at(.3, 24)) + " " + xy(at(.12, 23)) + " " + xy(at(0, sourceLower)) +
+    " Q" + xy(at(-.018, 1)) + " " + xy(at(0, sourceUpper)) + " Z";
   // Engraving is inside the curved, pinched paper perimeter, not registered
   // to the monitor's X/Y axes. The source artwork is linework, not digital grain.
   const border = "M" + xy(at(.055, -11)) + " Q" + xy(at(.48, -14.5)) +
