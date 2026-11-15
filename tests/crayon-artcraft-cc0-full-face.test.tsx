@@ -141,7 +141,9 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     }
     if(near?.kind!=="wax"||far?.kind!=="wax")throw Error("bad anatomy");
     expect(near.bounds.width).toBeGreaterThan(far.bounds.width);
-    expect(near.bounds.height).toBeLessThan(far.bounds.height);
+    // Source near opening is a deeper concave hook; the far one is
+    // foreshortened vertically. Width and visible depth are unequal.
+    expect(near.bounds.height).toBeGreaterThan(far.bounds.height);
     expect(near.bounds.x).toBeLessThan(far.bounds.x);
     expect(inspectCrayonScene(spec)).toEqual([]);
   });
@@ -299,7 +301,12 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       if(e?.kind!=="wax")throw new Error("Missing photographed cartilage: "+id);
       expect(e.coverage).toBe("open");
       expect(e.blendRadius).toBeGreaterThanOrEqual(6);
-      expect(e.markStrength).toBeLessThanOrEqual(.26);
+      expect(e.markStrength).toBeLessThanOrEqual(
+        id==="nose-alar-near"?.33:.30);
+      // Despite stronger source wing pressure, this is still attached
+      // open wax, never a disconnected opaque nostril contour.
+      expect(e.clipToParent).toBe(true);
+      expect(e.parentId).toBe("face-outline");
     }
     const sidewall=get("nose-sidewall-form");
     if(sidewall?.kind!=="wax")throw new Error("Missing bridge-to-tip plane");
@@ -702,7 +709,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(html).toContain('data-km-crayon-underpaint="opaque"');
     expect(html).toBe(renderToStaticMarkup(<CrayonScene spec={wax} frame={299}/>));
   });
-  it("uses physically layered high-pressure dark wax for irises and nostrils only",()=>{
+  it("uses deep burnished wax for iris, nostril and articulated buried dental arch",()=>{
     const scene=crayonCc0FaceStudy({view:"wax"});
     const dark=["iris-near","iris-far","pupil-near","pupil-far",
       "naris-shadow-near","naris-shadow-far","mouth-aperture-depth"];
@@ -715,8 +722,14 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(e.opaqueBurnish).toBeLessThanOrEqual(1);
       expect(e.underpaintTooth).toBeLessThanOrEqual(.12);
     }
-    expect(scene.elements.filter(e=>e.kind==="wax"&&(e.opaqueBurnish??0)>0))
-      .toHaveLength(dark.length);
+    const burnished=scene.elements.filter(e=>
+      e.kind==="wax"&&(e.opaqueBurnish??0)>0);
+    expect(burnished).toHaveLength(dark.length+1);
+    expect(burnished.map(e=>e.id).sort()).toEqual([
+      ...dark,"dental-arch-connected-wax"].sort());
+    const prior=crayonCc0FaceStudy({midfaceForm:"baseline"});
+    expect(prior.elements.filter(e=>
+      e.kind==="wax"&&(e.opaqueBurnish??0)>0)).toHaveLength(dark.length);
     const paper="#f4e6d3",pigment="#21171c",pressure=.96;
     const baseline=crayonPaperTintedWaxBase(pigment,paper,pressure);
     expect(baseline).toBe(crayonPaperTintedWaxBase(pigment,paper,pressure,0));
@@ -728,7 +741,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(()=>crayonPaperTintedWaxBase(pigment,paper,pressure,1.01)).toThrow();
     expect(()=>crayonPaperTintedWaxBase(pigment,paper,pressure,NaN)).toThrow();
     const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>);
-    expect(html.match(/data-km-crayon-opaque-burnish="/g)).toHaveLength(7);
+    expect(html.match(/data-km-crayon-opaque-burnish="/g)).toHaveLength(8);
     expect(inspectCrayonScene(scene)).toEqual([]);
     const near=scene.elements.find(e=>e.id==="iris-near");
     if(near?.kind!=="wax")throw Error("Missing source eye");
