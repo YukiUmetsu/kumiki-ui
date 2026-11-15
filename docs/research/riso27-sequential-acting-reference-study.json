@@ -7,11 +7,12 @@
   "baseline": {
     "commit": "095ffc441d5fa1bf1810ae22e8636535b50ef61a",
     "still_reference": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43747117097",
-    "status": "RISO26 facial crop verified; full 240-frame scene not yet visually reviewed",
+    "status": "RISO26 facial crop reviewed; full RISO27 source-frame contact sheets for landscape and portrait inspected in Chromium runs 43749270232 and 43749835464",
     "observations": [
       "The existing ensemble story has an absolute 0–239 film slider, but no edit-room cue points and no directly captured sequential contact sheet.",
       "Source walking/body acting and mouth expressions are keyed in individual 2D human rigs and should be judged in consecutive frames, not only neutral/160/198 isolated face crops.",
-      "Letter handoff has source/shared/receiver phases and source-bound finger overprints. Its timing should be verified around 126, 160, 178, 202, and 239 as a visible motion, not inferred from source comments."
+      "Letter handoff has source/shared/receiver phases and source-bound finger overprints. Its timing should be verified around 126, 160, 178, 202, and 239 as a visible motion, not inferred from source comments.",
+      "The first real portrait f0 had head/ear clipped, and f202–239 two subjects overlapped. Revised portrait staging moved from (0,335)@1.2 to (30,405)@1.1; direct final f0/f160/f202/f239 comparison verified both heads inside paper and separated throughout contact."
     ]
   },
   "references": [
@@ -160,5 +161,5 @@
     "no full-resolution source images copied from artist sites",
     "do not approve film pacing without checking actual sequential captures"
   ],
-  "next_gate": "capture true Chromium frames for 16:9 and 9:16, then visually inspect and correct root cause of observed defects."
+  "next_gate": "RISO27 physical film contact-sheet and 9:16 staging fixes reviewed (limited acceptance); independent human source/reference anatomy and planted walk finish remain unresolved."
 }
