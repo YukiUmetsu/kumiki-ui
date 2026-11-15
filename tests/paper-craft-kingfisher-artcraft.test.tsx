@@ -26,6 +26,9 @@ describe("Common kingfisher ArtCraft anatomy reconstruction",()=>{
         }
       expect(spec.layers.filter(x=>x.id.startsWith("kingfisher-tail-"))).toHaveLength(7);
       expect(spec.layers.filter(x=>x.id.startsWith("wing-feather-"))).toHaveLength(18);
+      const primary=spec.layers.filter(x=>x.id.startsWith("wing-feather-"));
+      expect(primary.every(x=>x.holes?.length===1)).toBe(true);
+      expect(primary.every(x=>x.holes![0].endsWith("Z"))).toBe(true);
       expect(spec.layers.filter(x=>x.id.startsWith("head-crown-feather-"))).toHaveLength(10);
       expect(spec.layers.filter(x=>x.id.startsWith("breast-scale-"))).toHaveLength(12);
       expect(spec.layers.filter(x=>x.id.startsWith("kingfisher-breast-tract-"))).toHaveLength(3);
