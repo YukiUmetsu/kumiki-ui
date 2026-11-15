@@ -199,6 +199,22 @@ test("geological ArtCraft proof compares source-rooted forms against a genuine m
     .toBe(3);
   await expect.poll(()=>original.locator("[data-km-rock-terrace-hemp]").count())
     .toBe(40);
+
+  const loadedHeroLayer=original.locator("[data-km-rock-hero-paint-layer]");
+  await expect(loadedHeroLayer).toHaveCount(1);
+  const heroOpacity=Number(await loadedHeroLayer.getAttribute("opacity"));
+  expect(heroOpacity).toBeGreaterThan(.8);
+  // The source-dark brushwork is outside its containing mountain's
+  // double opacity, but stays physically clipped by the same crest.
+  expect(await loadedHeroLayer.evaluate(node=>
+    node.closest("[data-km-shanshui-ridge]"))).toBeNull();
+  const clippedHero=loadedHeroLayer.locator("[clip-path]").first();
+  const clip=await clippedHero.getAttribute("clip-path");
+  expect(clip).toMatch(/^url\(#.+-hero-1-clip\)$/);
+  const clipId=clip!.slice(5,-1);
+  await expect(loadedHeroLayer.locator("clipPath[id='"+clipId+"']"))
+    .toHaveCount(1);
+
   await expect.poll(()=>diluted.locator("[data-km-rock-terrace-hemp]").count())
     .toBe(40);
 
