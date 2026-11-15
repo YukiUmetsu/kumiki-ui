@@ -30,3 +30,21 @@ All edits modify existing region paths or supporting pigments, **not** the actor
 - Unit: `tests/colored-pencil-anatomical-fibres.test.ts` checks 16:9/9:16 material/scene validation, semantic part counts and bounded curved landmarks.
 - Browser: path-scoped Chromium `colored-pencil-fibre-visual-proof.yml` captures 16:9/9:16 hero images and 4× fox ruff / kingfisher covert details; no claims from source code alone.
 - **Not passed as artistic equivalent to reference:** high-resolution five-axis shape attachment, fur clump topology, bill/cheek specular grain, true tapered hair widths, believable leg length, silhouette anatomy across gait extremes, full-speed production film and professional artist review remain outstanding. Future work must replace large underpaint blocks with graded shape planes, not add random line count.
+
+## CP3 follow-on — rooted feather-vane construction (2026-11-14)
+
+**ArtCraft diagnosis:** previous kingfisher wing highlights resemble a small comb: only four identical pairs per feather, perpendicular struts and almost constant widths. Reference craftsmanship uses a visible central rachis, swept fibres, asymmetric vane widths, irregular mark rhythm and local soft-edge pigment. This iteration deliberately addresses **one named meso-level detail** without falsely treating scratch count as realism.
+
+**Technique references, not licensed assets:**
+
+- [Gary Tymon, kingfisher coloured-pencil drawing](https://www.etsy.com/listing/737858800/kingfisher-color-pencil-drawing-print): compare overlapping coverts, dark shaft and pale interrupted barbs. This is *not* a trace or anatomical identity source.
+- [Bristle Studio, drawing an iridescent feather](https://bristle.studio/tutorials/how-to-draw-an-iridescent-peacock-feather-in-coloured-pencil/): barbs travel outward from a shaft, and pointed details read best after translucent body colour is established.
+- [Artists & Illustrators, realistic coloured-pencil wildlife](https://www.artistsandillustrators.co.uk/how-to/animals-wildlife/working-with-coloured-pencils-everything-you-need-to-know/): large form and selective accents matter more than drawing every feather. Avoid rasterizing an artist's drawing into our component.
+
+**Editable construction:** vaneTracts now uses ten non-equidistant pairs per authored quadratic shaft, not four; each barb starts on the same rachis, curves toward the feather tip and has a smaller trailing vane. Vane breadth swells near the middle and narrows near both endpoints; local width irregularity avoids a perfect rake. Folded primaries and shoulder coverts retain the same part IDs, clip regions, rig hierarchies, opacity support and absolute film frames. Input guards reject unbounded coordinates and reversing handles before emitting invalid SVG.
+
+**ArtCraft axis review:** topology = rooted branch starts; flow = quadratic shaft tangents plus tipward sweep; stroke weight = width/emphasis variation; spatial rhythm = irregular authored stations; texture = existing translucent multiple-pigment fibre layers. Unit tests verify finite bounded SVG and all twenty attachments, but **source-derived crop masks, five-axis numeric comparison and human visual approval have not yet been obtained**. Code checks are not proof of source fidelity.
+
+**Storybook:** the new *Feather construction · 2.85× shaft and vane macro* story lives under the existing *Video Production/Film Looks/Colour-pencil/Wildlife* group (no new folder). Existing scene/film IDs remain unchanged. The macro shows real animated source paths and supports portrait switching, paper tooth, frame seeking and reduced motion.
+
+**Next artistic gate:** capture a true 1× encoded film, 2.85× wing/coverts, 4× eye/beak and compare against original reference and prior Chromium proof. If the wing still reads as flat sticker at film scale, change the underlying feather mass and reflected-light planes before adding more barbs. No master-level approval claimed.
