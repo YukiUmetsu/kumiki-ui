@@ -25,6 +25,8 @@ export type WaxProps = {
   seed: number; pressure: number; tooth: string; frame: number;
   /** Scene-level paper tooth seed shared by every crayon stroke. */
   paperSeed?:number;
+  /** Opaque paper background tone for unfilled wax fiber valleys. */
+  paperColor?:string;
   first: number; last: number; reduced: boolean; spacing?: number; angle?: number;
   construction?: CrayonWaxConstruction;
   /** Open scumble for skies/atmosphere; opaque buildup for tangible subjects. */
@@ -58,7 +60,26 @@ export type WaxProps = {
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient, underpaintTooth = 0,
+/** An opaque paper-wax undercoat, not a transparent silhouette or a
+ * smooth colored vector slab. At light pressure the paper dominates; at
+ * forceful coverage the pigment dominates. The visible marks finish it.
+ */
+export function crayonPaperTintedWaxBase(
+  pigment:string,paper:string,pressure:number,
+):string {
+  if(!/^#[0-9a-fA-F]{6}$/.test(pigment)||
+    !/^#[0-9a-fA-F]{6}$/.test(paper)||
+    !Number.isFinite(pressure)||pressure<0||pressure>1)
+    throw new RangeError("Invalid paper-wax undercoat");
+  const amount=.17+.59*pressure;
+  return "#"+[1,3,5].map(i=>{
+    const a=parseInt(pigment.slice(i,i+2),16);
+    const b=parseInt(paper.slice(i,i+2),16);
+    return Math.round(a*amount+b*(1-amount)).toString(16).padStart(2,"0");
+  }).join("");
+}
+
+export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor = "#f7ecd8", pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient, underpaintTooth = 0,
   redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long", deposition = "smooth" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
@@ -125,7 +146,8 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, pressure, to
   const lightToothMask=clip+"-undercoat-light";
   // Physical stroke-built artwork has a flat buried wax body (never see-through)
   // with value carried by overlaid pigment. Avoid glossy airbrush gradients.
-  const underpaintFill=strokeBuilt ? colors[0]
+  const underpaintFill=strokeBuilt
+    ? crayonPaperTintedWaxBase(colors[0],paperColor,pressure)
     : underpaintGradient ? "url(#"+volumeId+")" : colors[0];
   // Contact pressure changes the opacity of raised paper-grain interruptions.
   // This remains a detail mask for the wax layer, never for opaque underpaint.
@@ -170,6 +192,7 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, pressure, to
   return <g data-km-crayon-region="" data-km-crayon-seed={seed} data-km-crayon-build={phase}
     data-km-crayon-coverage={coverage}
     data-km-crayon-deposition={deposition}
+    data-km-crayon-paper-base={strokeBuilt?underpaintFill:undefined}
     data-km-crayon-exposure={redraw ? exposure : undefined}
     data-km-crayon-stroke-order={strokeOrder}
     data-km-crayon-mark-length={markLength}
