@@ -323,7 +323,7 @@ export const COURIER: RisoCharacterSpec = {
     },
     { id: "eye-lash-wedges", joint: "head", plate: "blue", paint: "solid",
       d: "M-22.4 -10 Q-23.8 -12.6 -24.5 -12.5 Q-23.8 -10.9 -21.2 -9.3 Z M-20.8 -11.3 Q-21.7 -13.3 -22.6 -13.6 Q-21.8 -11.8 -19.8 -10.6 Z M22.0 -11.1 Q23.1 -13.8 24.4 -14.0 Q24.0 -11.8 22.8 -9.9 Z M19.8 -12.2 Q21.4 -14.0 22.1 -14.5 Q21.7 -12.6 20.2 -11.4 Z",
-      expressions:{blink:"M-22.8 -8.1 Q-24.2 -9.4 -24.4 -10.1 Q-23.0 -9.0 -21.6 -7.8 Z M22.1 -9.3 Q23.5 -10.8 24.2 -11.0 Q23.4 -9.7 22.9 -8.6 Z"},
+      expressions:{blink:"M-22.8 -8.1 Q-24.2 -9.4 -24.4 -10.1 Q-23.0 -9.0 -21.6 -7.8 Z M-20.5 -8.4 Q-21.8 -9.5 -22.7 -9.7 Q-21.8 -8.6 -20.1 -8.1 Z M22.1 -9.3 Q23.5 -10.8 24.2 -11.0 Q23.4 -9.7 22.9 -8.6 Z M20.0 -9.4 Q21.4 -10.6 22.1 -10.9 Q21.6 -9.7 20.4 -9.0 Z"},
     },
     // Blue iris stays the primary silhouette; red ink is a small independent
     // screened glancing-light facet that never paints over the paper sclera.
