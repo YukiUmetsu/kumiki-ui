@@ -20,6 +20,7 @@ import type { UkiyoeCrowdMood } from "../../registry/video/ukiyoe/ukiyoe-crowd";
 import { UKIYOE_CROWD_MOODS } from "../../registry/video/ukiyoe/ukiyoe-crowd";
 import { UKIYOE_SQUARE_VIEW_SPECIES } from "../../registry/video/ukiyoe/ukiyoe-creatures";
 import { UKIYOE_MAIKO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-maiko";
+import { samuraiKata, UKIYOE_KAMAE, UKIYOE_SAMURAI_LOOK } from "../../registry/video/ukiyoe/ukiyoe-katana";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -328,13 +329,13 @@ function PaletteSwatches({ preset }: { preset: UkiyoePresetName }) {
 const ROBE_ROLES = ["ai", "bero", "beni", "shu", "asagi", "kusa", "matsu", "ki", "kincha", "murasaki", "cha", "usuzumi", "sakura", "gofun"] as const;
 const ACTION_HINT: Partial<Record<UkiyoeActionType, Partial<UkiyoeAction>>> = { walk: { to: 260 }, dochu: { to: 110 }, run: { to: 420 }, point: { angle: 80 }, bow: { angle: 38 }, look: { angle: -24 }, hold: { angle: 40, amount: 80 } };
 
-const CAST_NAMES = ["traveller", "mother", "child", "ferryman", "merchant", "maiko", "oni-red", "monk", "oiran"] as const;
-const CAST_LOOKS: Readonly<Record<string, UkiyoeFigureLook>> = { ...CAST, maiko: UKIYOE_MAIKO_LOOK, oiran: UKIYOE_OIRAN_LOOKS.oiran };
+const CAST_NAMES = ["traveller", "mother", "child", "ferryman", "merchant", "maiko", "oni-red", "monk", "oiran", "samurai"] as const;
+const CAST_LOOKS: Readonly<Record<string, UkiyoeFigureLook>> = { ...CAST, maiko: UKIYOE_MAIKO_LOOK, oiran: UKIYOE_OIRAN_LOOKS.oiran, samurai: UKIYOE_SAMURAI_LOOK };
 
 export function CastLab() {
   const names = CAST_NAMES;
   const [cast, setCast] = useState<Record<string, UkiyoeFigureLook>>(() => Object.fromEntries(names.map(n => [n, CAST_LOOKS[n]])));
-  const [actions, setActions] = useState<Record<string, UkiyoeActionType>>({ traveller: "walk", mother: "hold", child: "cheer", ferryman: "pole", merchant: "bow", maiko: "kyomai", "oni-red": "talk", monk: "pray", oiran: "dochu" });
+  const [actions, setActions] = useState<Record<string, UkiyoeActionType>>({ traveller: "walk", mother: "hold", child: "cheer", ferryman: "pole", merchant: "bow", maiko: "kyomai", "oni-red": "talk", monk: "pray", oiran: "dochu", samurai: "draw" });
   const [selected, setSelected] = useState<(typeof CAST_NAMES)[number]>("mother");
   const [wind, setWind] = useState(.3);
   const [cadence, setCadence] = useState<1 | 2 | 3 | 4>(2);
@@ -348,7 +349,7 @@ export function CastLab() {
       { id: "mist", kind: "motif", motif: "cloud", x: 960, y: 230, params: { width: 1500, height: 70, color: "kin" } },
       ...CAST_NAMES.map((n, i): UkiyoeNode => {
         const type = actions[n], a: UkiyoeAction = { type, start: 0, end: 239, ...ACTION_HINT[type], ...(type === "walk" || type === "run" ? { start: 10, end: 230 } : {}) };
-        return { id: n, kind: "figure", x: 110 + i * 196 - (type === "walk" || type === "run" ? 100 : type === "dochu" ? 60 : 0), y: 930, scale: 1.1, look: cast[n], facing: i % 2 ? "left" : "right", actions: [a] };
+        return { id: n, kind: "figure", x: 100 + i * 178 - (type === "walk" || type === "run" ? 100 : type === "dochu" ? 60 : 0), y: 930, scale: 1.02, look: cast[n], facing: i % 2 ? "left" : "right", actions: [a] };
       }),
     ],
   }), [cast, actions, wind, cadence]);
@@ -486,6 +487,54 @@ export function CrowdLab() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={`A ${mood} crowd of ${count}`} /></Fit>
     <Transport clock={clock} total={480} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Frame" />
+  </div>;
+}
+
+// ---- Samurai --------------------------------------------------------------------------------------------------------------------------
+
+const KAMAE_LABEL: Readonly<Record<string, string>> = { chudan: "Chūdan", jodan: "Jōdan", hasso: "Hassō", waki: "Waki" };
+
+/** A samurai's solo kata in a raked-gravel courtyard at dawn, and the four guards side by side. */
+export function SamuraiKata() {
+  const [view, setView] = useState<"profile" | "three-quarter" | "front" | "back">("profile");
+  const clock = usePlayback(480, 0, 1, true, true);
+  const yard = useMemo((): UkiyoeSceneSpec => ({
+    version: 1, id: "samurai-kata", width: 1920, height: 1080, durationFrames: 480, seed: 14, wind: { base: .15, turbulence: .2 }, palette: { preset: "spring" },
+    nodes: [
+      { id: "sky", kind: "motif", motif: "sky", params: { width: 1920, height: 1080, band: .45, horizon: "beni" } },
+      { id: "hall", kind: "motif", motif: "house", x: 1240, y: 640, params: { width: 1100, height: 210, noren: "ai", stories: 1, doors: 5 } },
+      { id: "pine", kind: "motif", motif: "pine", x: 330, y: 700, scale: 1.1, params: { height: 520, lean: 12 } },
+      { id: "gravel", kind: "block", x: 960, y: 880, shape: { type: "rect", width: 1960, height: 440 }, fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [1, "paper", 1]] }, pattern: { type: "nami", color: "usuzumi", scale: 1.2, opacity: .35 }, line: 0, grain: .6 },
+      { id: "lantern", kind: "motif", motif: "lantern", x: 1700, y: 760, scale: 1.3, params: { kind: "stone", lit: false } },
+      { id: "samurai", kind: "figure", x: 900, y: 960, scale: 1.8, look: { ...UKIYOE_SAMURAI_LOOK, view }, actions: samuraiKata(0) },
+    ],
+  }), [view]);
+  const stances = useMemo((): UkiyoeSceneSpec => ({
+    version: 1, id: "samurai-kamae", width: 1920, height: 820, durationFrames: 480, seed: 6, palette: { preset: "edo" }, mount: { kind: "print" },
+    nodes: [
+      { id: "ground", kind: "block", x: 960, y: 770, shape: { type: "rect", width: 2000, height: 160 }, fill: { type: "linear", angle: 90, stops: [[0, "ki", .5], [1, "kincha", .7]] }, line: 0, grain: 1 },
+      ...UKIYOE_KAMAE.map((form, i): UkiyoeNode => ({ id: "kamae-" + form, kind: "figure", x: 260 + i * 470, y: 735, scale: 1.4, look: { ...UKIYOE_SAMURAI_LOOK, view: "three-quarter" }, actions: [{ type: "kamae", start: 0, end: 1, form }] })),
+      ...UKIYOE_KAMAE.map((form, i): UkiyoeNode => ({ id: "label-" + form, kind: "text", style: "caption", depth: 0, x: 260 + i * 470, y: 150, text: KAMAE_LABEL[form], size: 24 })),
+    ],
+  }), []);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Samurai" title="The sword: draw, guard, cut, sheathe">
+      <p style={{ margin: 0 }}>After the Met's mounted swords and Shunshō's samurai in kamishimo. The katana is drawn in detail: the curved blade
+        with its ridge line, the frosted temper line along the edge and the tip's yokote, the gold habaki, the guard, the hilt's silk
+        diamond wrap over ray skin and its end cap. The pair is worn edge-up through the obi at the left hip in black lacquered scabbards
+        with their cords, under the kamishimo's stiff winged vest with crests. The kata: <code>draw</code> (the hand reaches the hilt, the
+        left hand pulls the scabbard back as the blade comes out, and it sweeps forward in a rising cut, settling in the middle guard),{" "}
+        <code>kamae</code> (jōdan overhead), <code>cut</code> (a slow raise, a fast diagonal strike with a blur of air behind the blade, the
+        follow-through), hassō, waki, chūdan, then <code>sheathe</code> (the flick that clears the blade, the slow slide home) and a bow.
+        Both hands stay on the hilt by IK in every guard. Turn him with View.</p>
+    </Header>
+    <section aria-label="Samurai controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="View" value={view} options={["profile", "three-quarter", "front", "back"] as const} onChange={setView} labels={{ profile: "Profile", "three-quarter": "Three-quarter", front: "Front", back: "Back" }} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={yard} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="A samurai performing a sword kata in a gravel courtyard" /></Fit>
+    <Transport clock={clock} total={480} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Kata frame" />
+    <h2 style={{ font: "600 18px Newsreader Variable, serif", margin: "8px 0 0" }}>The four guards</h2>
+    <Fit width={1920} height={820} maxHeight={520}><UkiyoeScene spec={stances} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="The middle, overhead, upright and low guards" /></Fit>
   </div>;
 }
 

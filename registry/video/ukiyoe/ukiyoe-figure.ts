@@ -14,6 +14,8 @@ import { circleD, ellipseD } from "./ukiyoe-prims";
 import { drawFigureFrontBack } from "./ukiyoe-figure-front";
 import { fuki, hyogoSide, kamuroSide, kasane, KOMA_GETA_HEIGHT, komaGetaSide, maeObiSide, parasol, roundels } from "./ukiyoe-oiran";
 import { darariSide, maiogi, OKOBO_HEIGHT, okoboSide, wareshinobuSide } from "./ukiyoe-maiko";
+import type { SquareSword, UkiyoeKamae } from "./ukiyoe-katana";
+import { BLADE, katana, mon, reachArm, saya, swordAt, swordGeometry, swordSmear } from "./ukiyoe-katana";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 
 export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild" | "hyogo" | "kamuro" | "wareshinobu";
@@ -75,6 +77,13 @@ export interface UkiyoeFigureLook {
   obiTie?: "back" | "front" | "darari";
   /** Colour of the obi's woven pattern (default kin). */
   obiPattern?: UkiyoePaint;
+  /** Swords worn edge-up through the obi at the left hip: the long katana alone, or the pair (daishō). The sword actions
+   * (`draw`, `kamae`, `cut`, `sheathe`) draw and use the katana. */
+  swords?: "katana" | "daisho";
+  /** Kamishimo: the stiff, winged sleeveless vest (kataginu) over the kimono, with crests; pair it with `hakama`. */
+  kataginu?: UkiyoePaint;
+  /** Colour of the crests (mon) on the kataginu (default the kataginu's own colour on white). */
+  crest?: UkiyoePaint;
   /** How the figure faces the viewer: in profile; turned three-quarters (face, torso and limbs, as most print figures
    * are); `front`, facing us square on; or `back`, seen from behind. The `face` action turns a profile head to
    * three-quarter and back. */
@@ -83,9 +92,9 @@ export interface UkiyoeFigureLook {
 
 export type UkiyoeActionType =
   | "walk" | "run" | "bow" | "wave" | "point" | "talk" | "look" | "kneel" | "pole" | "row" | "brace" | "dance"
-  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu" | "kyomai";
+  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu" | "kyomai" | "draw" | "kamae" | "cut" | "sheathe";
 export const UKIYOE_ACTIONS: readonly UkiyoeActionType[] = [
-  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu", "kyomai",
+  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu", "kyomai", "draw", "kamae", "cut", "sheathe",
 ];
 export interface UkiyoeAction {
   type: UkiyoeActionType;
@@ -101,6 +110,8 @@ export interface UkiyoeAction {
   amount?: number;
   /** look: turn the head to look behind. */
   back?: boolean;
+  /** kamae: the guard — chūdan (middle), jōdan (overhead), hassō (upright by the shoulder) or waki (low, behind). */
+  form?: UkiyoeKamae;
   /** Blend frames (default 6): in after `start`, out after `end`. */
   blend?: number;
 }
@@ -637,10 +648,28 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   // Square to the viewer, front or back: a symmetric drawing driven by the same pose (see ukiyoe-figure-front).
   if (look.view === "front" || look.view === "back") {
     const tr0 = travelAt(spec.actions ?? [], frame);
-    return { prims: drawFigureFrontBack(look, pose, H, wind, frame, look.view === "back"), x: tr0.x, y: tr0.y, dir: 1, squeeze: 1 };
+    // The sword is placed in the profile frame and projected by the square drawing.
+    let swordSq: SquareSword | undefined;
+    if (look.swords) {
+      const st = swordAt(spec.actions ?? [], frame), sk = skeleton(pose, H, build), g = swordGeometry(st, sk.neck, add(sk.waistF, [-H * .012, H * .022]), H);
+      swordSq = { st, a: g.a, shown: g.shown, sayaA: g.sayaA, tsuba: [(g.tsuba[0] - sk.neck[0]) / H, (g.tsuba[1] - sk.neck[1]) / H], koi: [(g.koi[0] - sk.neck[0]) / H, (g.koi[1] - sk.neck[1]) / H] };
+    }
+    return { prims: drawFigureFrontBack(look, pose, H, wind, frame, look.view === "back", swordSq), x: tr0.x, y: tr0.y, dir: 1, squeeze: 1 };
   }
   const turned = look.view === "three-quarter" && look.face !== "oni";
   const s0 = skeleton(pose, H, build), sp0 = skeleton(prev, H, build), s = turned ? turnSkeleton(s0) : s0, sp = turned ? turnSkeleton(sp0) : sp0;
+  // Swords: the katana follows its own timeline (swordAt); the hands are put on the hilt by IK, the right hand behind the
+  // guard and the left at the end of the hilt (or on the scabbard's mouth while drawing and sheathing one-handed).
+  const sword = look.swords ? swordAt(spec.actions ?? [], frame) : undefined, swordPrev = look.swords ? swordAt(spec.actions ?? [], frame - 2) : undefined;
+  const geo = sword ? swordGeometry(sword, s.neck, add(s.waistF, [-H * .012, H * .022]), H) : undefined;
+  const geoPrev = swordPrev ? swordGeometry(swordPrev, sp.neck, add(sp.waistF, [-H * .012, H * .022]), H) : undefined;
+  if (sword && geo && (sword.held || sword.reach > 0)) {
+    const u: Pt = [Math.cos(geo.a * DEG), Math.sin(geo.a * DEG)], w = sword.held ? 1 : sword.reach;
+    const up = H * (build === "child" ? .15 : .165), fore = H * (build === "child" ? .14 : .15);
+    const gripR: Pt = [geo.tsuba[0] - u[0] * H * .03, geo.tsuba[1] - u[1] * H * .03], gripL: Pt = [geo.tsuba[0] - u[0] * H * .12, geo.tsuba[1] - u[1] * H * .12];
+    [s.elF, s.wrF] = reachArm(s.shF, lerp2(s.wrF, gripR, w), up, fore, 1);
+    [s.elB, s.wrB] = reachArm(s.shB, lerp2(s.wrB, lerp2(add(geo.koi, [H * .012, H * .012]), gripL, sword.grip), w), up, fore, 1);
+  }
   const { dir, squeeze } = facingAt(spec, frame);
   const tr = travelAt(spec.actions ?? [], frame);
   // Wind in the figure's own frame: blowing toward its back raises sleeves behind it.
@@ -794,6 +823,19 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
       out.push({ t: "line", d: carvedLine([add(s.neck, [-H * .006, H * .008]), add(s.neck, [H * .018, H * .042]), [s.waistF[0] - H * .02, s.waistF[1] - H * .02]], lw * .9, { taper: "end" }), color: "sumi", opacity: .7 });
     }
   }
+  // Kamishimo: the kataginu's stiff wings stand out past both shoulders; its front panels run down into the hakama.
+  let kataginuWing: Prim | undefined;
+  if (look.kataginu && !bare) {
+    const kc = look.kataginu, fw = add(s.shF, [H * .105 * stout, -H * .016]), bw = add(s.shB, [-H * .11 * stout, -H * .012]);
+    const shape: Pt[] = [nb, bw, add(bw, [H * .012, H * .028]), add(backTop, [H * .004, H * .05]), add(s.waistB, [-H * .004, -H * .012]), add(s.waistF, [H * .002, -H * .014]),
+      add(chestF, [-H * .004, H * .03]), add(fw, [-H * .014, H * .03]), fw, add(s.neck, [H * .008, H * .022])];
+    out.push({ t: "fill", d: smoothD(shape, true, .1), fill: kc, outline: lw, grain: .3 });
+    out.push({ t: "stroke", d: [.3, .55, .78].map(f => { const a = lerp2(bw, fw, f), b = lerp2(s.waistB, s.waistF, f); return `M${a[0].toFixed(1)} ${(a[1] + H * .035).toFixed(1)}L${b[0].toFixed(1)} ${(b[1] - H * .02).toFixed(1)}`; }).join(""), color: "sumi", width: lw * .7, opacity: .35 });
+    const crestC = look.crest ?? kc;
+    out.push(...mon(add(s.shF, [H * .022, H * .062]), H * .018, lw, crestC), ...mon(add(backTop, [H * .016, H * .035]), H * .016, lw, crestC));
+    // The near wing stands over the top of the sleeve, so it is drawn again after the front arm.
+    kataginuWing = { t: "fill", d: smoothD([add(s.neck, [H * .012, H * .01]), fw, add(fw, [-H * .02, H * .04]), add(s.shF, [-H * .03, H * .045]), add(s.shF, [-H * .035, H * .015])], true, .08), fill: kc, outline: lw, grain: .3 };
+  }
   if (coat) {
     const hemCoat: Pt = [lerp(s.waistF[0], s.knF[0], .55) + H * .03, lerp(s.waistF[1], s.knF[1], .55)], hemCoatB: Pt = [s.waistB[0] - H * .05, hemCoat[1] + H * .01];
     out.push({ t: "fill", d: smoothD([nb, add(s.neck, [H * .01, H * .02]), add(chestF, [H * .005, H * .02]), hemCoat, hemCoatB, backTop], true, .3), fill: coat, outline: lw, pattern: look.coatPattern, grain: .25 });
@@ -821,6 +863,19 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     out.push({ t: "fill", d: smoothD([add(kb, [H * .01, -H * .075]), add(kb, [-H * .055, -H * .08]), add(kb, [-H * .065, H * .025]), add(kb, [H * .005, H * .03])], true, .2), fill: obiC, outline: lw, pattern: { type: "kikko", color: "kin", scale: .25, opacity: .6 } });
   }
 
+  if (sword && geo) {
+    // The scabbards through the obi at the left hip: the wakizashi above with its hilt, the katana's below.
+    const sway = Math.sin(frame / 13) * (tr.moving ? .6 : .2) - wl * .5;
+    if (look.swords === "daisho") {
+      const kw = add(geo.koi, [H * .016, -H * .02]), aw = geo.sayaA + 9;
+      out.push(...saya(kw, aw, BLADE * H * .72, H, lw, look.accent ?? "ai", sway));
+      out.push(...katana(add(kw, [Math.cos((aw - 180) * DEG) * H * .01, Math.sin((aw - 180) * DEG) * H * .01]), aw, H, lw, { hiltOnly: true, scale: .72, open: tqBody ? .5 : 0 }));
+    }
+    out.push(...saya(geo.koi, geo.sayaA, BLADE * H * 1.03, H, lw, look.accent ?? "ai", sway));
+    if (geoPrev && sword.free > .9 && swordPrev!.free > .9) out.push(...swordSmear(geo.tsuba, geoPrev.a, geo.a, H));
+    out.push(...katana(geo.tsuba, geo.a, H, lw, { shown: geo.shown, hiltOnly: geo.shown < .01, open: tqBody ? .5 : 0 }));
+  }
+
   // Head, tilted about the neck.
   const tilt = pose.tilt + s.lean * .4;
   const headFlip = pose.headBack > .5 ? -1 : 1;
@@ -840,6 +895,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     if (uchi) out.push(...fuki(quad(add(fs.cuff, [-H * .02, sleeveDepth * .82]), add(fs.cuff, [H * .01, sleeveDepth * .95]), add(fs.cuff, [H * .05, sleeveDepth * .8]), 5), H * .018, lining, lw * .8));
     out.push({ t: "line", d: carvedLine(quad(add(s.shF, [0, H * .02]), add(s.elF, [H * .01, H * .03]), add(fs.cuff, [0, H * .05]), 6), lw * .9, { taper: "both" }), color: "sumi", opacity: .4 });
   }
+  if (kataginuWing) out.push(kataginuWing);
   // Three-quarter: the breast stands in front of the near shoulder, so its panel and the crossed collar (a V, the
   // wearer's left edge over the right) are drawn over the top of the near sleeve.
   if (tqBody) {

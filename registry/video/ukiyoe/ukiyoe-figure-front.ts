@@ -14,6 +14,8 @@ import { circleD, ellipseD } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 import { fuki, hyogoSquare, kamuroSquare, kasane, KOMA_GETA_HEIGHT, komaGetaSquare, maeObiFront, parasol, roundels } from "./ukiyoe-oiran";
 import { darariBack, eriAshi, maiogi, obiFront, OKOBO_HEIGHT, okoboSquare, wareshinobuSquare } from "./ukiyoe-maiko";
+import type { SquareSword } from "./ukiyoe-katana";
+import { katana, mon, reachArm, saya } from "./ukiyoe-katana";
 
 const lerp2 = (a: Pt, b: Pt, t: number): Pt => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
 const ribbon = (a: Pt, b: Pt, w0: number, w1: number): string => {
@@ -41,7 +43,7 @@ function armFront(sh: Pt, side: number, elev: number, bend: number, up: number, 
 }
 
 /** Draws a front or back figure in its local frame (feet at y 0, up negative, centred on x 0). */
-export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H: number, wind: number, frame: number, back: boolean): Prim[] {
+export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H: number, wind: number, frame: number, back: boolean, sword?: SquareSword): Prim[] {
   const out: Prim[] = [], lw = Math.max(.9, H * .0062), build = look.build ?? "average", child = build === "child";
   const stout = build === "brute" ? 1.4 : build === "stout" ? 1.14 : build === "slim" ? .93 : 1;
   const skin = look.skin ?? "hada", robe = look.robe ?? "ai", under = look.under ?? "beni", coat = look.coat, uchi = look.uchikake, sleeveC = uchi ?? coat ?? robe;
@@ -119,6 +121,31 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
   // ---- Body: robe (or bare torso), skirt to the hem, obi.
   const hemY = lower === "loincloth" ? hipY + H * .1 : lower === "tucked" ? hipY + thigh + H * .03 : gh ? gh * .45 : -H * .035;
   const hemW = H * (lower === "robe" ? (female ? .085 : .095) : .1) * stout, waistY = hipY - torsoH * .28;
+  // ---- Swords, projected from their profile placement: forward distance becomes depth, so a blade pointing ahead is
+  // foreshortened and the hilt is held before the body; the scabbards go back past the left hip.
+  const swordPrims: Prim[] = [], sayaPrims: Prim[] = [], sheathedHilts: Prim[] = [], kataginuWings: Prim[] = [];
+  if (sword && look.swords) {
+    const st = sword.st, out0 = -sF, koiSq: Pt = [out0 * sw * .62, waistY + H * .015], sayaAng = out0 > 0 ? 38 : 142, cord = look.accent ?? "ai";
+    const proj = (a: number) => { const ux = Math.cos(a * DEG) * .45 * sF, uy = Math.sin(a * DEG); return { ang: Math.atan2(uy, ux) / DEG, sc: Math.max(.25, Math.hypot(ux, uy)) }; };
+    if (look.swords === "daisho") {
+      const kw: Pt = [koiSq[0] - out0 * H * .012, koiSq[1] - H * .022];
+      sayaPrims.push(...saya(kw, sayaAng - out0 * 8, H * (back ? .2 : .26), H, lw, cord, 0));
+      if (!back) sheathedHilts.push(...katana(kw, sayaAng - out0 * 8, H, lw, { hiltOnly: true, scale: .45, open: .8 }));
+    }
+    sayaPrims.push(...saya(koiSq, sayaAng, H * (back ? .24 : .32), H, lw, cord, 0));
+    // An upright blade (hassō) is held by the right shoulder, clear of the face.
+    const f = clamp01((sword.tsuba[0] - sword.koi[0]) / .3), upright = clamp01(1 - Math.abs(sword.a + 95) / 35) * sword.st.free;
+    const tsuba: Pt = [lerp(lerp(koiSq[0], sF * H * .045, f), sF * H * .12, upright), neckY + sword.tsuba[1] * H];
+    if (sword.shown < .01 && st.free < .01) { if (!back) sheathedHilts.push(...katana(koiSq, sayaAng, H, lw, { hiltOnly: true, scale: .55, open: .8 })); }
+    else { const p = proj(sword.a); swordPrims.push(...katana(tsuba, p.ang, H, lw, { shown: sword.shown, scale: p.sc, open: .8 })); }
+    if (st.held || st.reach > 0) {
+      const p = proj(sword.a), u: Pt = [Math.cos(p.ang * DEG), Math.sin(p.ang * DEG)], w = st.held ? 1 : st.reach;
+      const gripR: Pt = [tsuba[0] - u[0] * H * .03 * p.sc, tsuba[1] - u[1] * H * .03 * p.sc], gripL: Pt = [tsuba[0] - u[0] * H * .12 * p.sc, tsuba[1] - u[1] * H * .12 * p.sc];
+      const leftT = lerp2([koiSq[0], koiSq[1] - H * .01], gripL, st.grip);
+      const [eF, wF] = reachArm(armF[0], lerp2(armF[2], gripR, w), up, fore, sF < 0 ? 1 : -1), [eB, wB] = reachArm(armB[0], lerp2(armB[2], leftT, w), up, fore, sB < 0 ? 1 : -1);
+      armF = [armF[0], eF, wF]; armB = [armB[0], eB, wB];
+    }
+  }
   const body: Pt[] = [[-sw * .55, neckY + H * .005], [-sw, shY + H * .01], [-sw * 1.02, shY + H * .08], [-sw * .82, waistY], [-hemW, hemY], [hemW, hemY], [sw * .82, waistY], [sw * 1.02, shY + H * .08], [sw, shY + H * .01], [sw * .55, neckY + H * .005]];
   // The uchikake: from the front it hangs open in two panels from the shoulders, flaring out over the ground, the
   // padded hem rolling along the bottom and the lining showing down the front edges; from behind it covers the back.
@@ -140,7 +167,8 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
     }
     return res;
   };
-  if (back) out.push(...drawArm(armB), ...drawArm(armF));
+  if (back) out.push(...swordPrims, ...drawArm(armB), ...drawArm(armF));
+  else out.push(...sayaPrims);
   out.push(...legs);
   if (back) out.push(...getas);
   if (pose.kneel > .5) {
@@ -177,6 +205,16 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
     }
     // Folds falling from the obi to the hem.
     if (lower !== "hakama" && pose.kneel < .5) for (const f of [-.6, .1, .7]) out.push({ t: "line", d: carvedLine([[f * sw * .7, waistY + H * .04], [f * hemW * .85, hemY - H * .02]], lw, { taper: "both" }), color: "sumi", opacity: .3 });
+    if (look.kataginu) {
+      // Kamishimo: the stiff wings stand straight out past the shoulders; from the front the panels part in a V over
+      // the kimono's collar and narrow into the hakama, a crest on each breast; from behind, one crest at the nape.
+      const kc = look.kataginu, crestC = look.crest ?? kc, wy = shY - H * .006;
+      const half = (s0: number): Pt[] => [[s0 * sw * .45, neckY + H * .004], [s0 * sw * 1.62, wy], [s0 * sw * 1.55, wy + H * .03], [s0 * sw * .95, shY + H * .07], [s0 * sw * .8, waistY + H * .01], [s0 * sw * .12, waistY + H * .01], [s0 * sw * .22, shY + H * .12]];
+      if (back) out.push({ t: "fill", d: smoothD([[-sw * .5, neckY + H * .004], [-sw * 1.62, wy], [-sw * 1.55, wy + H * .03], [-sw * .95, shY + H * .07], [-sw * .8, waistY + H * .01], [sw * .8, waistY + H * .01], [sw * .95, shY + H * .07], [sw * 1.55, wy + H * .03], [sw * 1.62, wy], [sw * .5, neckY + H * .004]], true, .06), fill: kc, outline: lw, grain: .3 }, ...mon([0, shY + H * .05], H * .02, lw, crestC));
+      else for (const s0 of [-1, 1]) out.push({ t: "fill", d: smoothD(half(s0), true, .06), fill: kc, outline: lw, grain: .3 }, ...mon([s0 * sw * .55, shY + H * .065], H * .018, lw, crestC));
+      out.push({ t: "stroke", d: [-.6, -.3, .3, .6].map(x => `M${(x * sw).toFixed(1)} ${(shY + H * .1).toFixed(1)}L${(x * sw * .85).toFixed(1)} ${(waistY - H * .01).toFixed(1)}`).join(""), color: "sumi", width: lw * .7, opacity: .3 });
+      if (!back) for (const s0 of [-1, 1]) kataginuWings.push({ t: "fill", d: smoothD([[s0 * sw * .7, wy - H * .002], [s0 * sw * 1.62, wy], [s0 * sw * 1.55, wy + H * .03], [s0 * sw * .85, wy + H * .035]], true, .06), fill: kc, outline: lw, grain: .3 });
+    }
     if (coat) out.push({ t: "fill", d: smoothD([[-sw * .55, neckY + H * .005], [-sw * 1.03, shY + H * .01], [-sw * 1.05, waistY + H * .12], [-sw * .2, waistY + H * .14], [0, waistY + H * .1], [sw * .2, waistY + H * .14], [sw * 1.05, waistY + H * .12], [sw * 1.03, shY + H * .01], [sw * .55, neckY + H * .005]], true, .3), fill: coat, outline: lw, pattern: look.coatPattern, grain: .25 });
     if (layers.length && !back && pose.kneel < .5) out.push(...kasane([[-hemW * .9, hemY - H * .004], [0, hemY + H * .004], [hemW * .9, hemY - H * .004]], layers, H * .012, [0, -H * .013], lw * .6));
     if (uchi) out.push(...uchikakeSquare());
@@ -194,7 +232,8 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
     else if (female) out.push({ t: "fill", d: smoothD([[-sw * .55, waistY - obiH * .9], [sw * .55, waistY - obiH * .9], [sw * .6, waistY + obiH * 1.4], [-sw * .6, waistY + obiH * 1.4]], true, .2), fill: obiC, outline: lw, pattern: { type: "kikko", color: "kin", scale: .25, opacity: .6 } });
     else out.push({ t: "fill", d: smoothD([[-H * .02, waistY - obiH * .6], [H * .02, waistY - obiH * .6], [H * .025, waistY + obiH * .8], [-H * .025, waistY + obiH * .8]], true, .3), fill: obiC, outline: lw * .8 });
   }
-  if (!back) out.push(...drawArm(armB), ...drawArm(armF));
+  if (back) out.push(...sayaPrims);
+  else out.push(...sheathedHilts, ...swordPrims, ...drawArm(armB), ...drawArm(armF), ...kataginuWings);
   // ---- Neck and head.
   const headR = H * (child ? .085 : look.face === "oni" ? .08 : .064), headY = neckY - headR * 1.15 + bowK * headR * .5;
   const tilt = (pose.tilt - 2) * .4;
