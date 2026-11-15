@@ -33,6 +33,8 @@ export type WaxProps = {
   coverage?: "open" | "opaque";
   /** Deterministic, spatially blurred pigment glaze underneath directional wax marks. */
   blendRadius?: number;
+  /** Feather all real open-wax pigment contacts; opaque silhouettes never fade. */
+  featherContacts?: boolean;
   /** Opacity of generic tooth marks; zero preserves blocking underpaint. */
   markStrength?: number;
   /** Surface-integrated, opaque multi-pigment underpaint, not flat vector fill. */
@@ -86,7 +88,7 @@ export function crayonPaperTintedWaxBase(
 }
 
 export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor = "#f7ecd8", pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient, underpaintTooth = 0,
-  redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long", deposition = "smooth" }: WaxProps) {
+  featherContacts = false, redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long", deposition = "smooth" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
   if (underpaintGradient && (
@@ -106,6 +108,9 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
   if (!Number.isFinite(blendRadius)||blendRadius<0||blendRadius>18||
     (blendRadius>0&&coverage!=="open"))
     throw new RangeError("crayon blendRadius must be 0..18 for open wax");
+  if (typeof featherContacts!=="boolean" ||
+      (featherContacts && (coverage!=="open" || deposition!=="stroke-built" || blendRadius<=0)))
+    throw new RangeError("crayon featherContacts requires open stroke-built wax and positive blendRadius");
   if (nibStyle !== "rounded" && nibStyle !== "tapered" && nibStyle !== "dry")
     throw new RangeError("crayon nib style must be rounded or tapered");
   if (strokeOrder !== "scanline" && strokeOrder !== "patches")
@@ -147,6 +152,7 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
   const pores = clip + "-tooth";
   const deposit = clip + "-deposit";
   const blendId = clip + "-soft-glaze";
+  const softContactsId = clip + "-contact-feather";
   const volumeId=clip+"-volume";
   const darkToothMask=clip+"-undercoat-dark";
   const lightToothMask=clip+"-undercoat-light";
@@ -215,7 +221,8 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
     data-km-crayon-mark-length={markLength}
     data-km-crayon-outline-opacity={outlineOpacity}
     data-km-crayon-mark-strength={markStrength}
-    data-km-crayon-underpaint-tooth={underpaintTooth>0?underpaintTooth:undefined}>
+    data-km-crayon-underpaint-tooth={underpaintTooth>0?underpaintTooth:undefined}
+    data-km-crayon-feather-contacts={featherContacts ? "open-wax" : undefined}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
       {underpaintGradient && <radialGradient id={volumeId}
@@ -245,6 +252,15 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
         width={bounds.width+6*blendRadius} height={bounds.height+6*blendRadius}>
         <feGaussianBlur stdDeviation={blendRadius} />
       </filter>}
+      {featherContacts && <mask id={softContactsId} maskUnits="userSpaceOnUse"
+        maskContentUnits="userSpaceOnUse"
+        x={bounds.x-3*blendRadius} y={bounds.y-3*blendRadius}
+        width={bounds.width+6*blendRadius} height={bounds.height+6*blendRadius}
+        data-km-crayon-contact-feather-mask="">
+        {/* Reuses the existing under-glaze blur only for alpha.
+            Dry wax pressure fibers remain unblurred within the mask. */}
+        <path d={d} fill="#fff" filter={"url(#"+blendId+")"}/>
+      </mask>}
       {coverage==="opaque" && pigmentProgress>0 && pigmentProgress<1 && <mask id={deposit}
         data-km-crayon-deposit-mask="" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
         x={bounds.x-25} y={bounds.y-25} width={bounds.width+50} height={bounds.height+50}>
@@ -312,8 +328,9 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
         across multiple color passes. Add pigment, never transparent holes.
         Six batched compound paths keep this bounded on mobile Chromium. */}
     {strokeBuilt && (coverage==="opaque"?pigmentProgress:fillProgress)>0 &&
-      <g clipPath={"url(#"+clip+")"}
-        mask={coverage==="opaque"&&pigmentProgress<1?"url(#"+deposit+")":undefined}
+      <g clipPath={featherContacts?undefined:"url(#"+clip+")"}
+        mask={featherContacts?"url(#"+softContactsId+")":
+          coverage==="opaque"&&pigmentProgress<1?"url(#"+deposit+")":undefined}
         fill="none" strokeLinecap="round" data-km-crayon-contact-clumps="wax"
         data-km-crayon-contact-count={contactClumps.reduce((sum,c)=>sum+c.count,0)}>
         {contactClumps.map((c,i)=>c.d&&<path key={i}
@@ -329,7 +346,10 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
         opacity={fillProgress*(construction?.glaze??.58)*(strokeBuilt?.36:1)}
         filter={"url(#"+blendId+")"}
         data-km-crayon-soft-glaze={strokeBuilt?undefined:blendRadius} />}
-    <g clipPath={"url(#" + clip + ")"} mask={"url(#" + pores + ")"} data-km-crayon-wax="">
+    <g clipPath={featherContacts?undefined:"url(#"+clip+")"}
+      mask={featherContacts?"url(#"+softContactsId+")":undefined}
+      data-km-crayon-wax="">
+      <g mask={"url(#" + pores + ")"} data-km-crayon-paper-contact-wax="">
       {coverage==="open" && blendRadius===0 && <path d={d} fill={colors[0]}
         opacity={fillProgress*(construction?.glaze??.58)*(strokeBuilt?.22:1)} />}
       {coverage==="opaque" && <path d={d} fill={colors[2]}
@@ -394,6 +414,7 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
           stroke={colors[i%3===0?1:2]} strokeWidth={stroke.width}
           opacity={stroke.opacity}/>)}
       </g>}
+      </g>
     </g>
     {coverage==="opaque" && edgeRoughness>0 && pigmentProgress>=1 &&
       <g pointerEvents="none" fill="none" strokeLinejoin="round"
