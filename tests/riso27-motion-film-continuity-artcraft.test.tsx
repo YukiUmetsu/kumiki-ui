@@ -1,6 +1,9 @@
 import {describe,expect,it} from "vitest";
 import {evaluateRisoCharacter,inspectRisoCharacter} from "../registry/video/riso-character";
 import {RISO_HANDOFF_DEFAULTS} from "../registry/video/riso-prop-handoff";
+import {evaluateRisoCharacterMesh,risoMeshBounds} from "../registry/video/riso-proportion-mesh";
+import {RISO_COURIER_SHEET} from "../src/video/riso-character-mesh-sheets";
+import {RISO_PAPER_ARTIST_SHEET} from "../src/video/riso-human-ensemble";
 import {COURIER} from "../src/video/riso-character-demo";
 import {
   PAPER_ARTIST,RISO_ENSEMBLE_FILM_FPS,RISO_ENSEMBLE_MOTION_BEATS,
@@ -81,6 +84,34 @@ describe("RISO27 ArtCraft original two-human 24fps film continuity",()=>{
         const again=evaluateRisoHumanEnsemble(f,aspect);
         expect(again).toEqual(state);
       }
+    }
+  });
+
+  it("RISO27 9:16 editor keeps both source heads entirely on paper and legibly separated",()=>{
+    // Actual before-image (RISO27 first browser pass): source Courier stage
+    // x=0 clipped the opening hair/ear; both heads collided by the final hold.
+    // Test the source-mesh *posed contours*, not hand-tuned pixel percentages.
+    for(const frame of [0,46,96,125,126,160,177,178,190,202,218,239]){
+      const state=evaluateRisoHumanEnsemble(frame,"portrait");
+      const subjects=[
+        {spec:COURIER,sheet:RISO_COURIER_SHEET,stage:state.first},
+        {spec:PAPER_ARTIST,sheet:RISO_PAPER_ARTIST_SHEET,stage:state.second},
+      ];
+      const spans=subjects.map(({spec,sheet,stage})=>{
+        const mesh=evaluateRisoCharacterMesh(spec,sheet,frame,{maxEdgeLength:12});
+        const head=mesh.regions.filter(r=>["face","headwear","hair"].includes(r.category));
+        expect(head.length).toBeGreaterThan(10);
+        const bounds=risoMeshBounds(head.flatMap(r=>r.outline));
+        const left=stage.x+bounds.x*stage.scale;
+        const right=left+bounds.width*stage.scale;
+        expect(left,"character "+spec.id+" frame "+frame+" cropped on left").toBeGreaterThan(6);
+        expect(right,"character "+spec.id+" frame "+frame+" cropped on right")
+          .toBeLessThan(state.width-6);
+        return {left,right};
+      });
+      const gap=spans[1].left-spans[0].right;
+      // They are exchanging a prop, not merging their skulls into one blob.
+      expect(gap,"heads must remain isolated at frame "+frame).toBeGreaterThan(10);
     }
   });
 
