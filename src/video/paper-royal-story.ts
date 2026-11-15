@@ -721,7 +721,7 @@ export function paperRoyalStoryScene(
   prince(pen(w/2+distance,ground,actorScale),add,phase,motion);
   fox(pen(w/2+(aspect==="portrait"?48:56),ground-2,actorScale*.85),add,phase,motion);
   rabbit(pen(w/2-(aspect==="portrait"?36:56),ground,actorScale*.71),add,phase,motion);
-  deer(pen(w/2+(aspect==="portrait"?194:327),ground-10,
+  deer(pen(w/2+(aspect==="portrait"?140:327),ground-10,
     actorScale*(aspect==="portrait"?.77:.77)),add,phase,motion);
   owl(pen(w/2-(aspect==="portrait"?179:334),ground-(aspect==="portrait"?185:178),actorScale*.64),
     add,phase,motion);

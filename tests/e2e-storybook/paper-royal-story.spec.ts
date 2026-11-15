@@ -51,3 +51,17 @@ for(const aspect of ["landscape","portrait"] as const){
     expect(errors).toEqual([]);
   });
 }
+test("portrait deer remains within the paper stage across all chapters",async({page})=>{
+  await page.goto(path+"&args=aspect:portrait;motion:0.75;medium:layered");
+  const stage=page.locator('svg[data-km-paper-director="the-moonlit-lantern"]');
+  for(const chapter of [null,/02 · Follow the little lights/,/03 · A light shared/]){
+    if(chapter) await page.getByRole("button",{name:chapter}).click();
+    const bounds=await stage.boundingBox();
+    expect(bounds).not.toBeNull();
+    for(const id of ["deer-body","deer-head","deer-antlers"]){
+      const part=await stage.locator(`[data-km-paper-layer="${id}"] > g > path`).first().boundingBox();
+      expect(part,id).not.toBeNull();
+      expect(part!.x+part!.width,id).toBeLessThanOrEqual(bounds!.x+bounds!.width-2);
+    }
+  }
+});

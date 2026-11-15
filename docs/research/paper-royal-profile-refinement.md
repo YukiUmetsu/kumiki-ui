@@ -81,3 +81,7 @@ The latest 512px web-visible photographic previews suggest a specific proportion
 - The source photographer's full-resolution image bytes and checksum are still unavailable within this tool environment. The **18-source-landmark immutable-photo ArtCraft v7 portrait gate is not satisfied**. This PR remains unmerged until actual image/hash, independent per-region source/candidate measures and independent artistic review are available. Zero acceptance is inferred from green TypeScript, layer-budget or browser tests.
 
 R5 reference-to-geometry notes are recorded as a non-release preview atlas in [paper-royal-profile-preview-geometry.json](paper-royal-profile-preview-geometry.json); it must **never** be mislabeled as a validated portrait_fidelity_gate.json.
+
+## Portrait deer framing correction — visual work remains open
+
+The exact-head native frame 610 showed the deer's head cut off at the right edge and its body obscured by the foreground tree. The portrait placement now moves the deer inward without changing its cut paths or landscape position. A browser regression checks the rendered deer body, head and antler path bounds in each chapter at its opening frame. A native portrait frame 610 was rendered and inspected: the head is within the stage, but the tree still crosses the antlers and the animal overlaps the prince/fox grouping. This is a partial framing correction, not an accepted composition or a completed motion review. Inspect all beats and stress frames, improve overlaps, and retain the portrait fidelity and independent review gates.
