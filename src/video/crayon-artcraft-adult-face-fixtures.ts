@@ -407,6 +407,14 @@ export function crayonAdultFaceStudy(
   ink("philtrum-column",
     "M2 14Q3 30 6 33M22 9Q23 23 21 31",
     "#c28b79",1.05,"detail",{parentId:"adult-face"});
+  // Directional chroma at the mouth models the philtrum, cupid bow
+  // and chin roundness with broken wax strokes, not a flat vector outline.
+  grain("philtrum-form-hatching","adult-face",8894,
+    12,22,18,11,.12,21,"#b78077");
+  grain("lower-lip-volume-hatching","adult-face",8895,
+    11,61,30,8,-.1,28,"#c88b86");
+  grain("chin-turning-hatching","adult-face",8896,
+    11,86,35,12,.16,32,"#b78b80");
   ink("chin-silhouette-light",
     "M-12 84Q13 96 36 80",
     "#d5aaa1",1.55,"detail",{parentId:"adult-face"});
@@ -544,6 +552,17 @@ export function crayonAdultFaceStudy(
     "M55 -144Q73 -139 85 -149",
     "#c99991",1.1,"detail",
     {parentId:"adult-face",opacity:.7});
+  // Anatomical surface grain follows the orbital arcs rather than a
+  // uniform face-wide hatch. The near/far plane asymmetry is deliberate;
+  // strokes remain attached to the opaque parent face at both aspects.
+  grain("near-orbital-plane-hatching","adult-face",8890,
+    -57,-184,37,13,-.24,32,"#876d6d");
+  grain("far-orbital-plane-hatching","adult-face",8891,
+    73,-181,23,10,.19,23,"#947476");
+  grain("near-tear-trough-wax","adult-face",8892,
+    -54,-136,30,10,.35,23,"#bc8884");
+  grain("far-tear-trough-wax","adult-face",8893,
+    74,-138,21,7,-.17,15,"#be918b");
   // Real pencil/crayon eyes have radial iris pigment beneath eyelids.
   // These source-bounded fibers are irregular seeded strokes,
   // clipped to painted iris anatomy, not unconnected spoke clip art.
