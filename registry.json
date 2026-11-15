@@ -6545,7 +6545,7 @@
       "name": "paper-craft",
       "type": "registry:ui",
       "title": "Paper Craft Theatre",
-      "description": "Frame-addressable SVG paper engineering for layered collage, kirigami score/unfold, pop-up stages, backlit lightboxes and rod-operated shadow puppets. Includes true cut-out apertures, deterministic paper tooth, depth separation, explicit hinges, reduced-motion states and portable FilmStage slots via host-provided artwork.",
+      "description": "Frame-addressable layered, kirigami, pop-up, lightbox and shadow-puppet paper. Includes original reusable butterfly botanical sculpture with independently cut petals, fern venation, opaque wing apertures, animation pivots and physical sheet separation.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -6558,6 +6558,11 @@
           "path": "registry/video/paper-craft-react.tsx",
           "type": "registry:ui",
           "target": "components/video/paper-craft-react.tsx"
+        },
+        {
+          "path": "registry/video/paper-botanical-kit.ts",
+          "type": "registry:ui",
+          "target": "components/video/paper-botanical-kit.ts"
         }
       ]
     }

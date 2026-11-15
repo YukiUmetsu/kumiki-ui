@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "id": "paper-botanical-sculpted-cutwork",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "botanical-nocturne",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Original nocturne paper botanical",
+        "props": {
+          "artwork": "botanical",
+          "medium": "layered",
+          "palette": "nocturne",
+          "detail": 1,
+          "seed": 37
+        }
+      }
+    },
+    {
+      "id": "botanical-ivory",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Original ivory sculptural paper botanical",
+        "props": {
+          "artwork": "botanical",
+          "medium": "layered",
+          "palette": "ivory",
+          "detail": 1,
+          "seed": 37
+        }
+      }
+    },
+    {
+      "id": "botanical-backlit",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Original backlit paper botanical",
+        "props": {
+          "artwork": "botanical",
+          "medium": "lightbox",
+          "palette": "nocturne",
+          "detail": 0.8,
+          "seed": 37
+        }
+      }
+    }
+  ]
+}

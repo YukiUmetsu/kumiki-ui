@@ -30,3 +30,22 @@ const spec: PaperCraftSpec = {
 ## Character construction
 
 For editable wildlife cutwork, construct a visually complete static animal before animating its parts. The garden bird now uses local coordinates multiplied by one uniform `birdScale` for horizontal and portrait outputs. The branch continues into the bird's perch and talons; anatomical regions include the head-body outline, breast/throat, pierced eye, crest, beak, wing with true feather apertures, coverts, tail feathers and feet. Depth order separates real paper stock. The moving wing's pivot stays at its shoulder. This illustrates a character-specific fixture rather than a generic anatomy solver.
+
+
+## Native botanical sculpture generator
+
+The installable paper-craft registry pack includes components/video/paper-botanical-kit.ts. This is a separate, original high-detail paper sculpture scene with sculpted flowers, lace-cut fern veins, pierced moth wings, layered stock, seed sprays and an engineered-looking shadowbox frame. No third-party source artwork is embedded.
+
+Usage example:
+
+    import { paperBotanicalSpec } from "./components/video/paper-botanical-kit";
+    const spec = paperBotanicalSpec("layered", "landscape",
+      { palette:"nocturne", detail:1, seed:37 });
+    <PaperCraftStage spec={spec} frame={190} shadowStrength={.95}
+      tooth={.6} edgeStrength={.7} />;
+
+Choose palette = "ivory" for monochrome sculptural paper or "nocturne" for midnight colored cardstock. Detail 0–1 changes the amount of actual leaf and petal geometry. The scene has a fixed maximum of 80 separately drawn sheets, stable seed-derived imperfections, and a real portrait layout without nonuniformly stretching wings or petals.
+
+FilmStage's existing paper-craft-study slot accepts artwork="botanical", palette, detail and seed alongside medium. Production film: examples/film/paper-craft-botanical.film.json. Three Storybook studies remain directly in Video production / Film Looks, *not* a new sidebar folder.
+
+See docs/research/paper-craft-artcraft-botanical-study.md for observed references, the source-to-geometry plan and artistic limitations.
