@@ -11,8 +11,13 @@ import {
   createDryPencilHeadPlate,HEAD_STORYBOARD_PHASES,
   selectHeadStoryboardStrokes,
 } from "./colored-pencil-full-head";
-import {compareCC0PortraitTones} from "./colored-pencil-full-head-tone-proof";
-import type {PencilToneComparison} from "./colored-pencil-full-head-tone-proof";
+import {
+  compareCC0PortraitTones,compareCC0HairOcclusion,
+  CC0_HAIR_OCCLUSION_PROBE,
+} from "./colored-pencil-full-head-tone-proof";
+import type {
+  PencilToneComparison,CC0HairOcclusionResult,
+} from "./colored-pencil-full-head-tone-proof";
 
 /**
  * Source-backed pencil renderer. The default images are demonstrably public
@@ -111,6 +116,8 @@ export function ReferencePencilAtelier({
   const fullHeadRef=useRef<HTMLCanvasElement>(null);
   const fullHeadSourceRef=useRef<HTMLCanvasElement>(null);
   const storyboardRefs=useRef<(HTMLCanvasElement|null)[]>([]);
+  const boundarySourceRef=useRef<HTMLCanvasElement>(null);
+  const boundaryPencilRef=useRef<HTMLCanvasElement>(null);
   const underpaint=useRef<HTMLCanvasElement|null>(null);
   const progress=useRef<{study:PencilPhotoStudy;frame:number;drawn:number;wash:number}|null>(null);
   const localObjectUrl=useRef<string|null>(null);
@@ -139,9 +146,12 @@ export function ReferencePencilAtelier({
   const [showFaceMacro,setShowFaceMacro]=useState(false);
   const [showFullHead,setShowFullHead]=useState(initialStoryboard);
   const [showStoryboard,setShowStoryboard]=useState(initialStoryboard);
+  const [showHairContact,setShowHairContact]=useState(initialStoryboard);
   const [headScumble,setHeadScumble]=useState(.65);
   const [headToneComparison,setHeadToneComparison]=
     useState<PencilToneComparison|null>(null);
+  const [headOcclusion,setHeadOcclusion]=
+    useState<CC0HairOcclusionResult|null>(null);
   const [faceMacroRegion,setFaceMacroRegion]=useState<"eyes"|"lips">("eyes");
   const [applyFaceCraft,setApplyFaceCraft]=useState(true);
   const [uploaded,setUploaded]=useState(false);
@@ -300,7 +310,31 @@ export function ReferencePencilAtelier({
     const original=reference.getImageData(0,0,sourceCanvas.width,sourceCanvas.height);
     const rendered=ink.getImageData(0,0,dry.width,dry.height);
     setHeadToneComparison(compareCC0PortraitTones(original,rendered));
+    setHeadOcclusion(compareCC0HairOcclusion(original,rendered));
   },[headPlate,raw]);
+  useEffect(()=>{
+    if(!showHairContact||!headPlate)return;
+    const src=fullHeadSourceRef.current,dry=fullHeadRef.current;
+    const targetSrc=boundarySourceRef.current;
+    const targetDry=boundaryPencilRef.current;
+    if(!src||!dry||!targetSrc||!targetDry)return;
+    // One measured ear/hair shadow contact, not a generic photo filter.
+    // The crop is visual QA ONLY; the actual portrait drawing remains
+    // individually authored strokes, with no reference-image underpaint.
+    const sx=60/285*src.width,sy=205/318*src.height;
+    const sw=53/285*src.width,sh=61/318*src.height;
+    for(const [canvas,target] of [
+      [src,targetSrc],[dry,targetDry],
+    ] as const){
+      const ctx=target.getContext("2d");if(!ctx)continue;
+      ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";
+      ctx.imageSmoothingEnabled=true;
+      ctx.clearRect(0,0,target.width,target.height);
+      ctx.drawImage(canvas,sx,sy,sw,sh,
+        0,0,target.width,target.height);
+      target.setAttribute("data-km-pencil-contact-rendered","ready");
+    }
+  },[showHairContact,headPlate,raw]);
   // Each storyboard panel reuses the EXACT paper-only full-head strokes,
   // chronologically filtered by construction material and immutable pass.
   // Small stage canvases render at 1/2 scale without any bitmap shortcut.
@@ -610,6 +644,20 @@ export function ReferencePencilAtelier({
                   border:"1px solid #A8A39A",maxWidth:540,aspectRatio:"9 / 10"}}/>
             </div>
           </div>
+          {headOcclusion&&<p
+            data-km-pencil-hair-occlusion="ready"
+            data-km-pencil-hair-occlusion-source={
+              headOcclusion.sourceLuminance.toFixed(1)}
+            data-km-pencil-hair-occlusion-drawn={
+              headOcclusion.drawnLuminance.toFixed(1)}
+            style={{fontSize:12,margin:"10px 0",color:"#53665E"}}>
+            Source-measured ear/hair shadow (0 black → 255 paper):
+            {" "+Math.round(headOcclusion.sourceLuminance)} →{" "}
+            {Math.round(headOcclusion.drawnLuminance)}.
+            Contact recovery: {" "+(headOcclusion.missingDarkLock?
+              "NEGATIVE GATE FAILED":"TECHNICAL THRESHOLD ONLY")}.
+            Artistic approval: NOT PASSED.
+          </p>}
           {headToneComparison&&<div style={{marginTop:10}}
             data-km-pencil-tonal-comparison="ready"
             data-km-pencil-mean-value-error={
@@ -685,6 +733,52 @@ export function ReferencePencilAtelier({
                 </figure>)}
             </div>
           </section>}
+          <label style={{display:"flex",alignItems:"center",gap:8,
+            marginTop:13,fontSize:13}}>
+            <input aria-label="Inspect portrait hairline contact at three times scale"
+              type="checkbox" checked={showHairContact}
+              onChange={e=>setShowHairContact(e.target.checked)}/>
+            Inspect ear/hair occlusion at 3×
+          </label>
+          {showHairContact&&<section aria-label="Pencil face hair contact source comparison"
+            data-km-pencil-portrait-contact-inspector=""
+            style={{marginTop:12}}>
+            <h3 style={{font:"600 17px Georgia,serif",margin:"0 0 6px"}}>
+              Dark hair–skin junction · actual raster crop for QA
+            </h3>
+            <p style={{fontSize:12,margin:"0 0 10px",maxWidth:680}}>
+              Only these two inspection canvases enlarge source and drawn
+              output. Their pixels are never reused as pencil pigment.
+              This crop reveals lost shadows, white seams and the ear shape.
+            </p>
+            <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+              {([
+                {name:"Licensed source · ear shadow",ref:boundarySourceRef,
+                  role:"source"},
+                {name:"Dry strokes · ear shadow",ref:boundaryPencilRef,
+                  role:"pencil"},
+              ] as const).map(item=>
+                <figure key={item.role} style={{margin:0,maxWidth:300,
+                  flex:"1 1 220px"}}>
+                  <figcaption style={{fontSize:12,marginBottom:5}}>
+                    {item.name}
+                  </figcaption>
+                  <canvas ref={item.ref} width={300} height={320}
+                    data-km-pencil-contact-image={item.role}
+                    data-km-pencil-raster-underpaint={
+                      item.role==="pencil"?"none":"source-only"}
+                    style={{display:"block",width:"100%",height:"auto",
+                      border:"1px solid #A8A39A",
+                      background:"#FAF5ED"}}/>
+                </figure>)}
+            </div>
+            <p style={{fontSize:12,margin:"8px 0 0"}}>
+              Proof anchor:
+              {" "+Math.round(CC0_HAIR_OCCLUSION_PROBE.x*285)+","+
+                Math.round(CC0_HAIR_OCCLUSION_PROBE.y*318)}
+              {" "}in the 285×318 licensed source Storybook crop.
+            </p>
+          </section>}
           <p style={{fontSize:12,margin:"9px 0 0",color:"#53665E"}}
             data-km-pencil-head-proof-metrics="">
             Five values (deepest → reserved paper):
@@ -692,7 +786,9 @@ export function ReferencePencilAtelier({
             Face deposits: {" "+(headPlate.materialCounts["face-value"]+
               headPlate.materialCounts["face-chroma"]+
               headPlate.materialCounts["face-form"])}.
-            Hair mass / hair fibres: {" "+headPlate.materialCounts["hair-mass"]+
+            Hair mass / hair shadow / hair fibres:
+            {" "+headPlate.materialCounts["hair-mass"]+
+              " / "+headPlate.materialCounts["hair-occlusion"]+
               " / "+headPlate.materialCounts["hair-fibre"]}.
             Independent likeness and material approval: NOT PASSED.
           </p>
