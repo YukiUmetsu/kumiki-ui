@@ -26,6 +26,14 @@ The first nose/lip pass passed technical CI (changed typecheck/unit suite, full 
 
 The corrective pass therefore widens and curves the lateral sidewall all the way to the nasal bulb, replaces near/far round alar components with flattened asymmetric planes and diminishes dark nostril accent weight. It removes the fabricated enamel element **entirely** and changes upper/lower lip and oral seam from opaque filled patches to parent-clipped, open layered medium-native wax planes. It keeps the actual mouth left/right anchors and the independent eyelid/hair topology unchanged. These are geometry/material corrections, not additions of random decorative detail. The full face remains **REJECT** until the new native-pixel and independent-source review.
 
+## Native V2 rejection, source-specific V3 paint correction
+
+Native 608×1082 Chromium proof for head `14f8a20b0fc591b6f72be17da955a59e1a5dec8a` passed technical CI. Actual 2.65× nose/lip screenshot at frame 299 shows the previously false bright enamel slash is **gone** and the vertical nasal stripe softened. Nevertheless the portrait **still fails**: two floating nostril/alar ink brackets are visibly distinct from the weak underlying nose volume, and two detached mouth-corner ink dashes frame lips that became too pale to describe three-dimensional vermilion. This is an observed pixel failure, not a hypothetical rendering issue.
+
+The next targeted iteration changes those specific contour marks into **small parent-clipped open-wax value regions**, emitted before the hair curtain occluder. Its new `nose-alar-crease-*`, `nostril-contact-*`, and `lip-commissure-*` regions preserve exact source neighborhoods and irregular closed deposit lobes, but prevent pure smooth-line brackets; the upper/lower lip pressure and attached sidewall pigment are increased modestly for readable volume. The changes do not add faux skin noise, symmetrize the source, change hair identities or drop anatomy anchors. New regression tests reject contour-glyph fallbacks and verify parent clipping, open media and bounded locality.
+
+**No artistic release approval:** future native stills must show whether these are genuine connected crayon volumes instead of replacement wax stickers. The source-to-output anatomy gate remains incomplete, even if new tests/CI pass.
+
 ## Proof / ArtCraft gates
 
 - **Micro & topology:** unit tests require both attached nasal volumes and unequal attached lip masses, short nostril non-closed contours (width <= 1.3), tiny muted enamel under `oral-opening`, preserved full-scene invariants and non-reduced dimensions.
