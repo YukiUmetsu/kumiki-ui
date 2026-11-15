@@ -231,7 +231,7 @@ function BrushworkDetail(){
     {label:"松針 · Old-pine needle clusters",scene:"mountain-trail",
       x:95,y:161,note:"Gnarled crooks, pressure-loaded branch roots and varied needle-fan pitch; compare at film scale"},
     {label:"皴法 · Geological texture",scene:"mountain-trail",
-      x:568,y:147,note:"Contour-attached short and long hemp fibres on the steep central peak"},
+      x:568,y:147,note:"Ridge-rooted ink-bone rock planes, broken hemp fibres, small alum-head ledges and moss pockets"},
     {label:"柳 · Hanging willow foliage",scene:"river-scholar",
       x:196,y:174,note:"Each hanging frond emerges from a measured arch; varied leaf densities"},
     {label:"竹 · Pressure-brush bamboo",scene:"misty-hermit",
