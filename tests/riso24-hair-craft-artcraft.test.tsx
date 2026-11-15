@@ -3,7 +3,7 @@ import {renderToStaticMarkup} from "react-dom/server";
 import {describe,expect,it} from "vitest";
 import {evaluateRisoCharacter,inspectRisoCharacter} from "../registry/video/riso-character";
 import {inspectRisoCharacterMesh,evaluateRisoCharacterMesh} from "../registry/video/riso-proportion-mesh";
-import {flattenRisoSvgPath,risoContourSignedArea} from "../registry/video/riso-path-geometry";
+import {flattenRisoSvgPath,risoContourSignedArea,risoPointInContour} from "../registry/video/riso-path-geometry";
 import {RisoCharacterInk,RisoCharacterKnockout} from "../registry/video/riso-character-react";
 import {COURIER} from "../src/video/riso-character-demo";
 import {PAPER_ARTIST,RISO_PAPER_ARTIST_SHEET} from "../src/video/riso-human-ensemble";
@@ -48,6 +48,24 @@ describe("RISO24 ArtCraft v9 scalp flow and real paper-negative hair",()=>{
       }
     }
     expect(actor.parts.filter(p=>p.joint==="head").length).toBeGreaterThan(24);
+  });
+
+  it.each(studies)("$actor.id: source hair engraving is rooted inside its original cap/bob geometry",({actor,white,engrave})=>{
+    // This negative control is independent of screenshot pixels, hatching
+    // count and smoothness. It catches *actual* detached printed strokes.
+    const base=actor.id==="courier"
+      ? ["hair","cap","cap-brim"]
+      : ["hair-back","hair-fringe"];
+    const parents=base.flatMap(id=>flattenRisoSvgPath(actor.parts.find(p=>p.id===id)!.d)
+      .map(path=>path.points));
+    for(const id of [...white,...engrave]){
+      const part=actor.parts.find(p=>p.id===id)!;
+      const points=flattenRisoSvgPath(part.d).flatMap(path=>path.points);
+      const inside=points.filter(p=>parents.some(poly=>risoPointInContour(p,poly))).length;
+      const fraction=inside/points.length;
+      expect(fraction,id+" rooted hair path pixel-plane coverage="+fraction.toFixed(3))
+        .toBeGreaterThanOrEqual(.90);
+    }
   });
 
   it("Courier and Paper Artist retain different root/grain/negative-space vocabulary",()=>{
