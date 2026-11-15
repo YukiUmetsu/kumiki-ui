@@ -89,7 +89,8 @@ export function crayonArtcraftBodyStudy(options:BodyStudyOptions={}):CrayonScene
       edgeRoughness:.17,outlineOpacity:.08,
       ...more,
       // Underpainting must not accidentally create see-through limbs.
-      ...(opaque?{coverage:"opaque" as const}:{}),
+      ...(opaque?{coverage:"opaque" as const}:
+        {coverage:"open" as const,underpaintTooth:0}),
     });
   };
   const line=(id:string,d:string,color:CrayonColor,width:number,
@@ -398,7 +399,7 @@ export function crayonArtcraftBodyStudy(options:BodyStudyOptions={}):CrayonScene
         "#bf574f",1.3,[0,299],.77);
     }
     for(const [name,p] of Object.entries(CRAYON_BODY_OBSERVED))
-      line("body-source-landmark-"+name,
+      line("body-source-landmark-"+name.replaceAll("_","-"),
         "M"+(p[0]-4)+" "+p[1]+"h8M"+p[0]+" "+(p[1]-4)+"v8",
         "#bc3539",1.1,[0,299],.85);
   }
