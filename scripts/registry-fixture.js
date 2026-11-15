@@ -137,6 +137,30 @@ export function EditorialCollageConsumerExample() {
 }`,
     };
   },
+  "shodo-calligraphy": (specifier) => {
+    const at = name => specifier.replace(/shodo-style$/, name);
+    return {
+      imports: [`import { ShodoBrushProfile, ShodoCanvas } from "${at("shodo-react")}";`, `import { planShodoWriting, shodoBrushPose } from "${at("shodo-hand")}";`,
+        `import { SHODO_GLYPHS, parseKanjiVgSvg, shodoKaishoForm } from "${at("shodo-glyphs")}";`, `import { ShodoInkSurface } from "${at("shodo-ink")}";`,
+        `import { kenteiSheet } from "${at("shodo-paper")}";`, `import { SHODO_BASICS, auditShodoTechniques } from "${at("shodo-techniques")}";`,
+        `import { renderShodoSlot } from "${at("shodo-film-slot")}";`, `import { loadShodoGlyph } from "${at("shodo-glyph-source")}";`,
+        `import { resolveShodoStyle } from "${at("shodo-style")}";`],
+      componentName: "ShodoConsumerExample",
+      component: `const style = resolveShodoStyle({ hand: { speed: 1.2, sideBrush: .3 }, ink: { strength: .9 } });
+const ten = parseKanjiVgSvg('<svg viewBox="0 0 109 109"><g kvg:element="十"><path kvg:type="㇐" d="M15,54 C40,53 70,52 94,51"/><path kvg:type="㇑" d="M54,12 C55,40 55,70 54,96"/></g></svg>');
+const plan = planShodoWriting({ style, items: [{ glyph: SHODO_GLYPHS["永"], x: 100, y: 60, size: 400 }, { glyph: shodoKaishoForm(ten), x: 100, y: 460, size: 400 }] });
+const paper = { x: 60, y: 20, width: 480, height: 900 };
+const audit = auditShodoTechniques(new ShodoInkSurface(plan, { ...paper, scale: .5 }));
+void loadShodoGlyph;
+export function ShodoConsumerExample() {
+  return <div data-basics={SHODO_BASICS.length} data-failures={audit.failures.length} data-lean={shodoBrushPose(plan, 2).leanX}>
+    <ShodoCanvas plan={plan} frame={60} width={600} height={940} paper={paper} sheet={kenteiSheet(paper.width, paper.height)} />
+    <ShodoBrushProfile plan={plan} frame={60} width={600} height={340} paper={paper} />
+    {renderShodoSlot({ slot: "shodo-writing", label: "Write", props: { text: "永" } }, { frame: 0, durationFrames: 60, width: 960, height: 540, reducedMotion: false })}
+  </div>;
+}`,
+    };
+  },
   "ukiyoe-handscroll": (specifier) => {
     const at = name => specifier.replace(/ukiyoe-core$/, name);
     return {
