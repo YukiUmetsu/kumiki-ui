@@ -149,7 +149,7 @@ const facePieces:readonly RisoCharacterPart[]=[
   {id:"zygomatic-tone-planes",joint:"head",plate:"red",paint:"screen",
     d:"M-28 -8 C-28 3 -25 13 -18 19 Q-22 7 -19 -5 Q-24 -11 -28 -8 Z M20 -9 Q25 -12 29 -6 C29 4 25 14 18 20 Q24 5 22 -4 Z"},
   {id:"jaw-shadow-planing",joint:"head",plate:"red",paint:"screen",
-    d:"M-27 9 Q-22 22 -6 29 C-14 26 -21 19 -24 10 Z M12 29 C22 25 29 10 29 -7 Q29 11 19 25 Z"},
+    d:"M-28 7 Q-25 22 -7 30 Q-19 28 -26 16 Z M29 -7 Q34 13 12 29 Q24 18 27 -5 Z"},
   {id:"nose-bridge",joint:"head",plate:"blue",paint:"solid",
     d:"M1 -12 Q4 -7 3 -1 Q0 5 3 7 Q6 9 9 6 L9 8 Q6 11 2 9 Q-2 7 0 3 Q2 -4 1 -12 Z"},
   {id:"cheek-tones",joint:"head",plate:"red",paint:"screen",
