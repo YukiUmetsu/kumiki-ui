@@ -16,7 +16,11 @@ test("every Chinese ink story is grouped under one Film Looks folder",async({pag
   const root="Video production/Film Looks/Chinese Ink/";
   expect(stories.length).toBeGreaterThanOrEqual(18);
   const folders=stories.map(entry=>entry.title);
-  for(const story of stories)expect(story.title.startsWith(root),story.id).toBe(true);
+  for(const story of stories){
+    expect(story.title.startsWith(root),story.id).toBe(true);
+    // One flat Chinese Ink folder: titles end at their leaf, never extra folders.
+    expect(story.title.split("/"),story.id).toHaveLength(4);
+  }
   for(const folder of [
     "Studio","Ink Brush","Ink Wash Film Stage","Multi-Genre Film",
     "Character Performance","Character Director","Ensemble",
@@ -27,17 +31,17 @@ test("every Chinese ink story is grouped under one Film Looks folder",async({pag
 });
 
 
-test("shanshui film and ArtCraft study studios share one Chinese Ink subfolder",async({page})=>{
+test("all Shanshui and ArtCraft studios remain direct leaves in one Chinese Ink folder",async({page})=>{
   const response=await page.request.get("/index.json");
   expect(response.ok()).toBe(true);
   const index=await response.json() as {
     entries:Record<string,{id:string;title:string;type:string}>,
   };
-  const root="Video production/Film Looks/Chinese Ink/Shanshui/";
+  const root="Video production/Film Looks/Chinese Ink/";
   const expected=new Map([
-    ["video-ink-shanshui","Film Gallery"],
-    ["video-ink-scholar-proportions","Proportion Studio"],
-    ["video-ink-reader-face","Reader Face Studio"],
+    ["video-ink-shanshui","Shanshui Film Gallery"],
+    ["video-ink-scholar-proportions","Shanshui Proportion Studio"],
+    ["video-ink-reader-face","Shanshui Reader Face Studio"],
   ]);
   for(const [id,folder] of expected){
     const matches=Object.values(index.entries).filter(entry=>
