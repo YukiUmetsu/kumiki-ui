@@ -19,6 +19,7 @@ export interface PaperDirectorCompositionProps extends Omit<PaperDirectorStagePr
  * incoming and outgoing drawings are never alpha blended.
  */
 function PaperCurtain({shot}: {shot:PaperDirectorFrame}) {
+  const rawId=useId();
   const entry=shot.curtain;
   if(!entry)return null;
   const {spec,phase,progress}=entry;
@@ -41,7 +42,7 @@ function PaperCurtain({shot}: {shot:PaperDirectorFrame}) {
     : `M ${width+over+10} ${top} L ${edgePoints[0][0].toFixed(2)} ${top} `+
       edgePoints.slice(1).map(([x,y])=>`L ${x.toFixed(2)} ${y.toFixed(2)}`).join(" ")+
       ` L ${width+over+10} ${bottom} Z`;
-  const rawId=useId(),id="paperCurtain"+rawId.replace(/[^a-zA-Z0-9]/g,"");
+  const id="paperCurtain"+rawId.replace(/[^a-zA-Z0-9]/g,"");
   const mirror=spec.direction==="right-to-left";
   return <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
     viewBox={`0 0 ${width} ${height}`}

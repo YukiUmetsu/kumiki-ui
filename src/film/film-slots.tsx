@@ -1,4 +1,5 @@
 import { PaperCraftStage } from "../../registry/video/paper-craft-react";
+import { PaperDirectorComposition } from "../../registry/video/paper-director-react";
 import { compilePaperDirector, resolvePaperDirector } from "../../registry/video/paper-director";
 import type { PaperDirectorFilm, PaperDirectorPlan } from "../../registry/video/paper-director";
 import { paperDirectorDemo } from "../video/paper-director-demo";
@@ -962,18 +963,19 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           if (props.preset !== "four-chapters")
             throw new RangeError("paper-craft-director requires a storyboard or known study preset");
           const medium = props.medium ?? "layered", seed = props.seed ?? 37;
-          const motion = props.motion ?? .7;
+          const motion = props.motion ?? .7, curtains=props.curtains ?? true;
+          if(typeof curtains!=="boolean")throw new RangeError("paper-craft-director curtains must be boolean");
           if (typeof medium !== "string" || !PAPER_STYLES.includes(medium as PaperStyle))
             throw new RangeError("paper-craft-director requires a known medium");
           if (typeof seed !== "number" || !Number.isSafeInteger(seed))
             throw new RangeError("paper-craft-director requires a safe integer seed");
           if (typeof motion !== "number" || !Number.isFinite(motion) || motion < 0 || motion > 1)
             throw new RangeError("paper-craft-director motion must be finite in [0,1]");
-          const key = medium+":"+seed+":"+motion;
+          const key = medium+":"+seed+":"+motion+":"+curtains;
           const cached = samplePaperFilms.get(key);
           if (cached) plan = cached;
           else {
-            plan = compilePaperDirector(paperDirectorDemo(medium as PaperStyle,seed,motion));
+            plan = compilePaperDirector(paperDirectorDemo(medium as PaperStyle,seed,motion,curtains));
             if (samplePaperFilms.size > 12) samplePaperFilms.clear();
             samplePaperFilms.set(key,plan);
           }
@@ -986,10 +988,9 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         const current = resolvePaperDirector(plan,context.frame,aspect);
         if (current.spec.width !== context.width || current.spec.height !== context.height)
           throw new RangeError("paper-craft-director output dimensions must match the authored aspect");
-        return <PaperCraftStage spec={current.spec} frame={current.localFrame}
+        return <PaperDirectorComposition plan={plan} aspect={aspect} frame={context.frame}
           reducedMotion={context.reducedMotion} tooth={.72}
-          shadowStrength={.92} edgeStrength={.57} curlStrength={1} liftStrength={1}
-          data-km-paper-director={plan.id} data-km-paper-shot={current.shotId}/>;
+          shadowStrength={.92} edgeStrength={.57} curlStrength={1} liftStrength={1}/>;
       }
 
       case "paper-craft-study": {

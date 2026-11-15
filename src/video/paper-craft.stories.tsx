@@ -37,6 +37,7 @@ type Controls = {
   edge: number;
   seed: number;
   reducedMotion: boolean;
+  curtains: boolean;
 };
 const labels: Record<PaperStyle, string> = {
   layered: "01 · Layered collage",
@@ -145,8 +146,8 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
 /** The PAPER-D1 film director is a single, independently customizable page
  * inside the existing Film Looks / Paper Craft Storybook folder.
  */
-function PaperDirectorLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMotion}:Controls) {
-  const film=useMemo(()=>paperDirectorDemo(medium,seed,motion),[medium,seed,motion]);
+function PaperDirectorLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMotion,curtains}:Controls) {
+  const film=useMemo(()=>paperDirectorDemo(medium,seed,motion,curtains),[medium,seed,motion,curtains]);
   const plan=useMemo(()=>compilePaperDirector(film),[film]);
   const [playhead,setPlayhead]=useState(350),[playing,setPlaying]=useState(false);
   const anchor=useRef<{time:number;frame:number}|null>(null);
@@ -178,8 +179,8 @@ function PaperDirectorLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMo
       <p style={{maxWidth:780,fontSize:14,lineHeight:1.7,color:"#c5c3bd"}}>
         A 32-second editable paper-film study: forest, cut botanical, layered canal architecture,
         and an engineered camera. Independent 16:9/9:16 construction, frame-exact paper-pose
-        keys, nested cutstock and restrained overhead-camera choreography. Transitions are solid
-        editorial cuts, not ghosted alpha dissolves.
+        keys, connected puppet hierarchies, and overhead-camera choreography.
+        Optional fully opaque deckled paper curtains cover editorial scene changes.
       </p>
       <div style={{display:"flex",gap:9,flexWrap:"wrap",margin:"20px 0 12px"}}
         role="group" aria-label="Select film chapter">
@@ -228,7 +229,7 @@ const meta = {
   // All Paper Craft studies share one Storybook folder under Film Looks.
   title: "Video production/Film Looks/Paper Craft",
   component: PaperCraftLab,
-  args: { artwork:"garden", scenery:"woodland", sceneryPalette:"sage", breeze:.5, treeVariety:.9, object:"kingfisher", objectPalette:"jewel", palette:"nocturne", detail:.82, colorLayers:1, curl:.85, motion:1, relief:1, medium:"layered", aspect:"landscape", frame:182, tooth:.55, shadow:.7, edge:.55, seed:27, reducedMotion:false },
+  args: { curtains:true, artwork:"garden", scenery:"woodland", sceneryPalette:"sage", breeze:.5, treeVariety:.9, object:"kingfisher", objectPalette:"jewel", palette:"nocturne", detail:.82, colorLayers:1, curl:.85, motion:1, relief:1, medium:"layered", aspect:"landscape", frame:182, tooth:.55, shadow:.7, edge:.55, seed:27, reducedMotion:false },
   argTypes: {
     artwork:{control:"select",options:["garden","botanical","object","scenery"]},
     scenery:{control:"select",options:["woodland","alpine-lake"]},
@@ -251,6 +252,7 @@ const meta = {
     edge:{control:{type:"range",min:0,max:1,step:.05}},
     seed:{control:{type:"number",min:0,max:999999,step:1}},
     reducedMotion:{control:"boolean"},
+    curtains:{control:false,table:{disable:true}},
   },
 } satisfies Meta<typeof PaperCraftLab>;
 export default meta;
@@ -323,12 +325,13 @@ export const Teacup: Story = {
 export const Director: Story = {
   name:"Film Director · Four Chapters",
   args:{medium:"layered",aspect:"landscape",seed:37,motion:.7,tooth:.7,
-    shadow:.9,edge:.55,reducedMotion:false},
+    shadow:.9,edge:.55,reducedMotion:false,curtains:true},
   render:args=><PaperDirectorLab {...args}/>,
   argTypes:{
     artwork:hideControl,scenery:hideControl,sceneryPalette:hideControl,breeze:hideControl,
     treeVariety:hideControl,object:hideControl,objectPalette:hideControl,
     palette:hideControl,detail:hideControl,colorLayers:hideControl,curl:hideControl,
     relief:hideControl,frame:hideControl,
+    curtains:{control:"boolean",table:{disable:false}},
   },
 };
