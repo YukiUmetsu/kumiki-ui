@@ -468,21 +468,24 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect((full.match(/data-km-bamboo-pressure-twig=""/g)??[]))
         .toHaveLength(21);
       expect((full.match(/data-km-bamboo-dry-lift=""/g)??[]))
-        .toHaveLength(42);
+        .toHaveLength(39);
       // A real painted fan uses more than one curve/ink weight. It is
       // not a repeated identical triangular leaf clip-art template.
       const blades=[...full.matchAll(
         /data-km-shanshui-bamboo-leaf="" d="([^"]+)"/g,
       )].map(m=>m[1]);
-      expect(blades).toHaveLength(105);
+      expect(blades).toHaveLength(102);
       expect(new Set(blades).size).toBeGreaterThan(100);
       expect(blades.every(d=>d.includes(" C")&&d.endsWith(" Z"))).toBe(true);
+      // Brush-pressure station geometry replaces a two-C vector lozenge:
+      // there should be many continuously loaded pressure transitions.
+      expect(blades.every(d=>(d.match(/ C/g)??[]).length>=17)).toBe(true);
       expect(full).not.toMatch(/NaN|Infinity|undefined/);
       const sparse=renderToStaticMarkup(createElement(InkShanshuiStage,{
         frame:153,controls:{...DEFAULT_SHANSHUI,scene,detail:.35},
       }));
       expect((sparse.match(/data-km-shanshui-bamboo-leaf=""/g)??[]))
-        .toHaveLength(42);
+        .toHaveLength(39);
       expect(sparse).not.toContain("data-km-bamboo-dry-lift");
     }
   });
@@ -498,7 +501,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       const shoots=[...html.matchAll(
         /data-km-bamboo-secondary-shoot="" data-km-bamboo-secondary-root="([^"]+)" d="([^"]+)"/g,
       )];
-      expect(shoots).toHaveLength(42); // two shoots per each of 21 culm nodes
+      expect(shoots).toHaveLength(24); // selective source-led mass: eight shoots per culm
       for(const [,root,d] of shoots){
         const [x,y]=root.split(",").map(Number);
         const match=d.match(/^M(-?[\d.]+) (-?[\d.]+)/);
@@ -510,10 +513,10 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       const leaves=[...html.matchAll(
         /data-km-shanshui-bamboo-leaf="" d="([^"]+)" data-km-bamboo-leaf-root="([^"]+)" data-km-bamboo-leaf-parent="([^"]+)"/g,
       )];
-      expect(leaves).toHaveLength(105);
+      expect(leaves).toHaveLength(102);
       expect(leaves.filter(m=>m[3]==="main")).toHaveLength(63);
-      expect(leaves.filter(m=>m[3]==="spur-0")).toHaveLength(21);
-      expect(leaves.filter(m=>m[3]==="spur-1")).toHaveLength(21);
+      expect(leaves.filter(m=>m[3]==="spur-0")).toHaveLength(24);
+      expect(leaves.filter(m=>m[3]==="spur-1")).toHaveLength(15);
       const headings=[...html.matchAll(
         /data-km-bamboo-leaf-heading="(-?[0-9.]+)"/g,
       )].map(m=>Number(m[1]));
@@ -539,7 +542,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         frame:153,controls:{...controls,detail:.35},
       }));
       expect((sparse.match(/data-km-bamboo-secondary-shoot=""/g)??[]))
-        .toHaveLength(21);
+        .toHaveLength(9);
       const bare=renderToStaticMarkup(createElement(InkShanshuiStage,{
         frame:153,controls:{...controls,detail:0},
       }));
