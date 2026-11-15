@@ -1,6 +1,6 @@
 import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
-import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonPaperHeight, crayonMarks, crayonNibPath, crayonDryNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
+import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonPaperHeight, crayonWaxContactClumps, crayonMarks, crayonNibPath, crayonDryNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
 import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction, CrayonSgraffito } from "./crayon";
 import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
@@ -151,6 +151,9 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, pressure, to
     ? (crayonHash(seed,7,1921)<.5 ? -1 : 1)*(9+crayonHash(seed,8,1922)*11)
     : 0;
   const waxStrength=strokeBuilt ? Math.min(1,markStrength*1.22) : markStrength;
+  const contactClumps=useMemo(()=>
+    strokeBuilt ? crayonWaxContactClumps(bounds,seed,paperSeed,pressure,angle):[],
+    [strokeBuilt,bounds.x,bounds.y,bounds.width,bounds.height,seed,paperSeed,pressure,angle]);
   // The final very thin leveling pass closes tooth gaps gradually; the completed
   // silhouette is solid and never permits background objects to ghost through.
   const settlingCoat = pigmentProgress > .82 && pigmentProgress < 1
@@ -261,6 +264,20 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, pressure, to
           data-km-crayon-undercoat-ridges="" />
       </g>}
     </>}
+    {/* Physically coherent granular wax catches on the same page relief
+        across multiple color passes. Add pigment, never transparent holes.
+        Six batched compound paths keep this bounded on mobile Chromium. */}
+    {strokeBuilt && (coverage==="opaque"?pigmentProgress:fillProgress)>0 &&
+      <g clipPath={"url(#"+clip+")"}
+        mask={coverage==="opaque"&&pigmentProgress<1?"url(#"+deposit+")":undefined}
+        fill="none" strokeLinecap="round" data-km-crayon-contact-clumps="wax"
+        data-km-crayon-contact-count={contactClumps.reduce((sum,c)=>sum+c.count,0)}>
+        {contactClumps.map((c,i)=>c.d&&<path key={i}
+          d={c.d} stroke={colors[c.tone]} strokeWidth={c.width}
+          opacity={(coverage==="opaque"?pigmentProgress:fillProgress)*
+            markStrength*(c.tone===1?.72:.55)}
+          data-km-crayon-contact-band={i} />)}
+      </g>}
     {/* The rubbed-over skin tone is feathered before local tooth strokes.
         Parent clipping in CrayonScene prevents any blur from escaping a face. */}
     {coverage==="open" && blendRadius>0 && fillProgress>0 &&
