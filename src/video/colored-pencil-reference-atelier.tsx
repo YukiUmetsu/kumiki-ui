@@ -533,7 +533,8 @@ export function ReferencePencilAtelier({
       ctx.setTransform(1,0,0,1,0,0);
       canvas.setAttribute("data-km-pencil-storyboard-rendered",phase.id);
       canvas.setAttribute("data-km-pencil-storyboard-strokes",
-        String(stageMarks.length));
+        String(stageMarks.length+(phase.id==="detail"?
+          (neckEvidence?.marks.length??0):0)));
     }
   },[showStoryboard,headPlate,raw,faceGuides,headDryTooth,needlepoint,
     opticalGlaze,neckEvidence]);
