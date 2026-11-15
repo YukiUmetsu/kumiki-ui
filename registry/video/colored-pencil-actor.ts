@@ -1,5 +1,5 @@
 import { evaluatePencilMark, inspectPencilDrawing } from "./colored-pencil";
-import type { PencilRegion } from "./colored-pencil";
+import type { PencilRegion, PencilTrace } from "./colored-pencil";
 
 /** CP3: an authored, reusable paper-cutout-like pencil rig.
  * Regions remain CP1 pigment drawings; the host FilmStage frame owns time.
@@ -90,7 +90,7 @@ export function inspectPencilActors(actors: readonly PencilActorSpec[]): string[
         } else {
           totalDetailTracks += part.detailTracks.length;
           const detailNames = new Set<string>();
-          const sourceIds = new Set(drawn.details?.map(trace => trace.id).filter(Boolean));
+          const sourceIds = new Set(drawn.details?.map((trace:PencilTrace) => trace.id).filter(Boolean));
           for (const [index, track] of part.detailTracks.entries()) {
             const place = here + ".detailTracks[" + index + "]";
             if (!track || typeof track !== "object" ||
