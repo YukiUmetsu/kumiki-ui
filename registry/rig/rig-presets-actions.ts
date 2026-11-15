@@ -20,8 +20,10 @@
 import type { RigKey, RigRole } from "./rig-spec";
 import { projectPlate } from "./rig-flutter";
 import { Rig, ell, path, poly, rect } from "./rig-kit";
+import { SWORD_MOTIONS, addSwordAction } from "./rig-presets-sword";
+import type { SwordMotion } from "./rig-presets-sword";
 
-export const ACTION_MOTIONS = ["shoot", "box", "kick", "sword", "chop", "pan-toss"] as const;
+export const ACTION_MOTIONS = ["shoot", "box", "kick", ...SWORD_MOTIONS, "chop", "pan-toss"] as const;
 export type ActionMotion = (typeof ACTION_MOTIONS)[number];
 
 type Ease = RigKey["ease"];
@@ -157,44 +159,7 @@ export function addPersonAction(rig: Rig, m: ActionMotion, c: ActionContext): vo
     return;
   }
 
-  if (m === "sword") {
-    // Katana: curved blade with a pale edge, guard, wrapped handle, pommel. Bone at the guard; +x along the blade.
-    rig.bone("sword", "root", 0, 0);
-    rig.part("sword-blade", "sword", path("M1 -.62Q18 -1.25 35.4 -2.9Q36.6 -2.7 36 -1.9Q18 .2 1 .55Z"), "metal", 6.4, { color: "#cfd5db" });
-    rig.part("sword-edge", "sword", path("M1.4 .2Q18 -.15 35.6 -2.25"), "light", 6.41, { line: true, lineWidth: .3, color: "#f4f7f9" });
-    rig.part("sword-guard", "sword", ell(.4, 0, .55, 1.9), "metal-dark", 6.42);
-    rig.part("sword-handle", "sword", rect(-10.6, -.78, 10.6, 1.56, .5), "cloth-dark", 6.39);
-    rig.part("sword-wrap", "sword", path("M-9.6 -.7L-8.4 .7M-8.4 -.7L-9.6 .7M-7.2 -.7L-6 .7M-6 -.7L-7.2 .7M-4.8 -.7L-3.6 .7M-3.6 -.7L-4.8 .7M-2.4 -.7L-1.2 .7M-1.2 -.7L-2.4 .7"), "light", 6.395, { line: true, lineWidth: .22, color: "#cfc7b3" });
-    rig.part("sword-pommel", "sword", rect(-11.2, -.85, .9, 1.7, .3), "metal-dark", 6.4);
-    rig.bone("sword-pommel", "sword", -8.6, 0);
-    // A faint swoosh on the fastest frames of the cut.
-    rig.bone("trail", "root", 0, 0);
-    const arcPts: [number, number][] = [];
-    for (let k = 0; k <= 12; k++) { const a = (-112 + 104 * k / 12) / RD; arcPts.push([6 + Math.cos(a) * 46, -66 + Math.sin(a) * 46]); }
-    for (let k = 12; k >= 0; k--) { const a = (-112 + 104 * k / 12) / RD, r = 46 - 9 * Math.sin(Math.PI * k / 12); arcPts.push([6 + Math.cos(a) * r, -66 + Math.sin(a) * r]); }
-    rig.part("trail", "trail", poly(arcPts), "light", 6.35, { color: "#eef1f3" });
-    const CHUDAN = { x: 19, y: -58.5, r: -30 }, keys: Parameters<typeof prop>[1] = [{ frame: start, ...CHUDAN }];
-    const trail: RigKey[] = [{ frame: start, opacity: 0 }];
-    const torso: RigKey[] = [{ frame: start, rotate: 2 }], pelvis: RigKey[] = [{ frame: start, x: 0, y: 2.4 * u }];
-    const feetF: Keys3 = [[start, 2.2], [start + 6, 7, 2]], feetB: Keys3 = [[start, -1.4], [start + 8, -7, 1.6]];
-    for (let b = start + 16; b + 56 <= end; b += 100) {
-      keys.push({ frame: b, ...CHUDAN }, { frame: b + 12, x: 5, y: -95, r: -140, ease: "ease-in-out-cubic" }, { frame: b + 15, x: 5, y: -96, r: -142 },
-        { frame: b + 17, x: 15, y: -92, r: -84, ease: "ease-in-quad" }, { frame: b + 19, x: 26, y: -68, r: 6, ease: "ease-out-quad" }, { frame: b + 21, x: 25.4, y: -67.2, r: 3 },
-        { frame: b + 36, x: 25, y: -67, r: 2 }, { frame: b + 54, ...CHUDAN, ease: "ease-in-out-cubic" });
-      trail.push({ frame: b + 17, opacity: 0 }, { frame: b + 18, opacity: .55, ease: "linear" }, { frame: b + 19, opacity: .35, ease: "linear" }, { frame: b + 21, opacity: 0, ease: "linear" });
-      torso.push({ frame: b, rotate: 2 }, { frame: b + 12, rotate: -6 }, { frame: b + 19, rotate: 10, ease: "ease-out-quad" }, { frame: b + 36, rotate: 7 }, { frame: b + 54, rotate: 2 });
-      pelvis.push({ frame: b + 15, x: 0, y: 2.4 * u }, { frame: b + 20, x: 6 * u, y: 3.4 * u, ease: "ease-out-quad" }, { frame: b + 28, x: 5 * u, y: 2.6 * u }, { frame: b + 42, x: 5 * u, y: 2.6 * u }, { frame: b + 54, x: 0, y: 2.4 * u });
-      feetF.push([b + 15, 7], [b + 17, 11, 2.6], [b + 20, 15]);
-      feetB.push([b + 20, -7], [b + 24, -3, 1.2], [b + 28, 1]);
-      feetF.push([b + 42, 15], [b + 47, 11, 2], [b + 52, 7]);
-      feetB.push([b + 40, 1], [b + 45, -3, 1.4], [b + 50, -7]);
-    }
-    prop("sword", keys); rig.track("trail", trail); rig.track("torso", torso); rig.track("pelvis", pelvis);
-    plant(start, end, feetF, feetB, 0);
-    reach("f", start, end, "sword", 0); reach("b", start, end, "sword-pommel", 0);
-    fists(start, start);
-    return;
-  }
+  if ((SWORD_MOTIONS as readonly string[]).includes(m)) { addSwordAction(rig, m as SwordMotion, { u, start, end, plant }); return; }
 
   // ---- Kitchen ----
   const TOP = -52;

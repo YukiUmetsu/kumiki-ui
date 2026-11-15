@@ -161,6 +161,8 @@ describe("RIG1 nature and actions", () => {
     const hand = [26, 30, 34].map(f => world(spec, "hand-n", f));
     for (const p of hand) expect(Math.abs(p[0] - hand[0][0])).toBeLessThan(2.5);
     for (let f = 0; f < 98; f++) expect(tip(spec, "toes-n", f)[1]).toBeLessThan(600 + 2.5);
+    // After landing the legs stay in line with the body (well short of vertical), then fold low beside it.
+    for (let f = 28; f < 46; f++) expect(tip(spec, "toes-n", f)[1], `frame ${f}`).toBeGreaterThan(world(spec, "body", f)[1] - (f < 33 ? 40 : 24) * (160 / 60));
     // In the flight the body is well off the ground with the legs trailing behind the hip.
     const air = evaluateRig(spec, 20), hip = air.bones.get("body")!.world.f;
     expect(hip).toBeLessThan(600 - 100);
@@ -202,7 +204,7 @@ describe("RIG1 nature and actions", () => {
     expect(Math.abs(x1 - x0)).toBeGreaterThan(30);
   });
   it("keeps hands on their props through every action", () => {
-    const cases: [string, [string, string][], number][] = [["shoot", [["hand-f", "gun"]], 60], ["sword", [["hand-f", "sword"], ["hand-b", "sword-pommel"]], 0], ["chop", [["hand-f", "knife"], ["hand-b", "claw"]], 0], ["pan-toss", [["hand-f", "pan"]], 0]];
+    const cases: [string, [string, string][], number][] = [["shoot", [["hand-f", "gun"]], 60], ["sword", [["hand-f", "sword"], ["hand-b", "sword-pommel"]], 0], ["sword-thrust", [["hand-f", "sword"], ["hand-b", "sword-pommel"]], 0], ["sword-sweep", [["hand-f", "sword"], ["hand-b", "sword-pommel"]], 0], ["chop", [["hand-f", "knife"], ["hand-b", "claw"]], 0], ["pan-toss", [["hand-f", "pan"]], 0]];
     for (const [motion, pairs, from] of cases) {
       const spec = personRig({ motion, start: 0, end: 240, y: 700 });
       for (let f = from; f < 240; f += 3) for (const [hand, grip] of pairs) {
@@ -210,6 +212,26 @@ describe("RIG1 nature and actions", () => {
         expect(Math.hypot(h[0] - g[0], h[1] - g[1]), `${motion} ${hand} ${f}`).toBeLessThan(2.4 * 3.6);
       }
     }
+  });
+  it("varies the sword form and draws from, then returns to, the scabbard with hands on grip and scabbard", () => {
+    const form = personRig({ motion: "sword", start: 0, end: 240, y: 700 }), angles = new Set<string>();
+    let lunge = 0;
+    for (let f = 0; f < 240; f += 2) {
+      const m = evaluateRig(form, f).bones.get("sword")!.world, a = Math.atan2(m.b, m.a) * 180 / Math.PI;
+      angles.add(a < -110 ? "overhead" : a > 25 && a < 60 ? "low" : Math.abs(a) < 8 ? "level" : "other");
+      lunge = Math.max(lunge, world(form, "pelvis", f)[1] - world(form, "pelvis", 0)[1]);
+    }
+    expect([...angles]).toEqual(expect.arrayContaining(["overhead", "low", "level"]));
+    expect(lunge).toBeGreaterThan(6 * 3.6);
+    const draw = personRig({ motion: "sword-draw", start: 0, end: 240, y: 700 });
+    for (const f of [5, 110]) { const s = world(draw, "sword", f), y = world(draw, "saya", f); expect(Math.hypot(s[0] - y[0], s[1] - y[1]), `seated ${f}`).toBeLessThan(1); }
+    const out = world(draw, "sword", 12 + 30), mouth = world(draw, "saya", 12 + 30);
+    expect(Math.hypot(out[0] - mouth[0], out[1] - mouth[1])).toBeGreaterThan(40);
+    for (let f = 0; f < 240; f += 3) {
+      const h = world(draw, "hand-f", f), g = world(draw, "sword", f);
+      expect(Math.hypot(h[0] - g[0], h[1] - g[1]), `grip ${f}`).toBeLessThan(2.4 * 3.6);
+    }
+    for (const f of [14, 30, 84]) { const h = world(draw, "hand-b", f), g = world(draw, "saya-grip", f); expect(Math.hypot(h[0] - g[0], h[1] - g[1]), `scabbard ${f}`).toBeLessThan(2.4 * 3.6); }
   });
   it("flashes the muzzle only on shots, snaps a kick to waist height and lands a jab at shoulder height", () => {
     const shoot = personRig({ motion: "shoot", start: 0, end: 240, y: 700 }), shot = Math.round(240 * .32);
