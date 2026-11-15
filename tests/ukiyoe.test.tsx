@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { effectScene, UKIYOE_EFFECT_DEMOS } from "../registry/video/ukiyoe/ukiyoe-effects";
 import { folkScene, toolAt, toolContact, UKIYOE_FOLK_WORK } from "../registry/video/ukiyoe/ukiyoe-folk";
 import { faceOutline, humanFeatures, onnaScene, UKIYOE_GHOST_FACES, UKIYOE_ONNA_LOOKS } from "../registry/video/ukiyoe/ukiyoe-onna";
 import { interiorScene, LOOM_BEATER_PULL, loomGrip, UKIYOE_INTERIOR_KINDS, UKIYOE_WEAVE_PERIOD, weaveBeat } from "../registry/video/ukiyoe/ukiyoe-interior";
@@ -545,6 +546,24 @@ describe("UKIYO1 folk work", () => {
     const c = toolContact("chop", 250 * (man.scale ?? 1));
     expect(block.x).toBeCloseTo((man.x ?? 0) + c[0], 3);
     expect(block.params.size * .45).toBeCloseTo(-c[1] * .9, 3);
+  });
+});
+
+describe("UKIYO1 effects", () => {
+  it("builds each effect scene, times bursts to their frames, and swaps the fox for the woman inside the smoke", () => {
+    for (const k of UKIYOE_EFFECT_DEMOS) expect(inspectUkiyoeScene(effectScene(k)), k).toEqual([]);
+    const at = (type: "smoke" | "lightning" | "ash", f: number) => drawParticles({ type, area: [0, 0, 1920, 1080], bursts: [{ frame: 50, x: 900, y: 600 }] }, f, .3, 5);
+    for (const type of ["smoke", "lightning", "ash"] as const) {
+      expect(at(type, 49), `${type} before its burst`).toEqual([]);
+      expect(at(type, 52).length, `${type} at its burst`).toBeGreaterThan(0);
+    }
+    expect(at("lightning", 70)).toEqual([]);                              // a strike lasts a fraction of a second
+    expect(drawParticles({ type: "foxfire", count: 5, area: [0, 0, 400, 100] }, 10, 0, 1).length).toBeGreaterThan(1);
+    // Henge: the woman only appears after the puff has covered the spot, and the fox is gone by then.
+    const h = effectScene("henge"), woman = h.nodes.find(n => n.id === "woman")!, puff = h.nodes.find(n => n.id === "puff") as Extract<UkiyoeSceneSpec["nodes"][number], { kind: "particles" }>;
+    expect(woman.from!).toBeGreaterThan(puff.bursts![0].frame);
+    const fox = h.nodes.find(n => n.id === "fox") as Extract<UkiyoeSceneSpec["nodes"][number], { kind: "creature" }>;
+    expect(drawCreature(fox, woman.from!, 0, 1).prims.length).toBeLessThanOrEqual(1);              // only the puff is left
   });
 });
 

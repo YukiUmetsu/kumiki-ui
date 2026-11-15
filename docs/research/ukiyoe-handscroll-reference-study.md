@@ -725,6 +725,41 @@ Storybook has **Folk work**, and the Motifs gallery has three new tiles.
 - A tray of cups.
 - Nobody has done a human visual review yet.
 
+## Effects and magic (folktale queue F14, 2026-11-15)
+
+**Sources** (public domain):
+
+- the *Kitano Tenjin engi emaki* (13th century, Met 45428), the hell-fire passage;
+- Hiroshige's *Fox Fires on New Year's Eve at the Changing Tree, Ōji* (Met DP121555, via Wikimedia Commons).
+
+**What they show.**
+
+- **Fire.** Fire streams sideways in long vermilion tongues with curled tips, white and grey smoke rolls in bands, and speed lines sweep through.
+- **Fox-fires.** Each fox carries a small teardrop flame by its head, yellow inside and red at the edge, and far fires string out across the dark field.
+
+**What was built.** `ukiyoe-effects.ts`:
+- the `fire` and `halo` motifs;
+- the `smoke`, `lightning`, `ash` and `foxfire` particles;
+- `effectScene()`.
+
+Storybook has **Effects**, and the Motifs gallery has two new tiles.
+
+**Review rounds.**
+
+1. **Smoke billows.**
+   - The billows were drawn as one scalloped polygon and came out as spiky stars and gears. Each billow is now a cluster of round lobes drawn as one outlined union.
+   - The union outline showed every lobe through the translucent fill. The fill is now opaque, and the cloud fades as a whole group. The same fix went into the creature `transform` puff, which had the same see-through outlines.
+2. **Flames.** The flames were an even fence. Their count, width and height now vary, and the tips curl less.
+3. **Lightning.** The bolt was too thin to read at film size and has been thickened.
+4. **Henge timing.** The woman appeared a frame before the fox vanished. She now appears after the puff's midpoint, and the test checks this.
+
+**Not done.**
+
+- The earthquake has only the camera shake, with no falling objects.
+- Magical growth, such as a stalk shooting up, has no effect of its own.
+- No flame-carrying creature for Click-Clack Mountain's burning load.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

@@ -28,6 +28,8 @@ import { interiorScene, UKIYOE_INTERIOR_KINDS } from "../../registry/video/ukiyo
 import { onnaScene } from "../../registry/video/ukiyoe/ukiyoe-onna";
 import type { UkiyoeFolkWork } from "../../registry/video/ukiyoe/ukiyoe-folk";
 import { folkScene, UKIYOE_FOLK_WORK } from "../../registry/video/ukiyoe/ukiyoe-folk";
+import type { UkiyoeEffectDemo } from "../../registry/video/ukiyoe/ukiyoe-effects";
+import { effectScene, UKIYOE_EFFECT_DEMOS } from "../../registry/video/ukiyoe/ukiyoe-effects";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -446,6 +448,8 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "stump", label: "Chopping block · split wood", params: { size: 200 }, y: 320 },
   { motif: "usu", label: "Mochi mortar", params: { size: 220 }, y: 330 },
   { motif: "tarai", label: "Wash tub · cloth", params: { radius: 160 }, y: 320 },
+  { motif: "fire", label: "Fire · smoke, embers", params: { width: 360, height: 160 }, y: 340 },
+  { motif: "halo", label: "Halo · gold radiance", params: { radius: 110 }, y: 190 },
 ];
 
 export function MotifGallery() {
@@ -703,6 +707,32 @@ export function FolkWork() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={FOLK_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Work frame" />
+  </div>;
+}
+
+// ---- Effects and magic ----------------------------------------------------------------------------------------------------------------
+
+const EFFECT_LABELS: Readonly<Record<UkiyoeEffectDemo, string>> = {
+  fire: "A field on fire", henge: "Fox to woman (henge)", storm: "Lightning storm", blossom: "Ash makes the dead tree bloom", foxfire: "Fox-fires", halo: "Divine radiance",
+};
+
+/** Fire, smoke, lightning, ash, fox-fires and a halo, each in a story setting. */
+export function Effects() {
+  const [kind, setKind] = useState<UkiyoeEffectDemo>("fire");
+  const spec = useMemo(() => effectScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Effects" title="Fire, smoke, lightning, ash and fox-fires">
+      <p style={{ margin: 0 }}>After the <em>Kitano Tenjin engi</em> scroll's fire (streaming vermilion tongues, smoke in rounded billows) and
+        Hiroshige's <em>Fox Fires at Ōji</em>. The <code>fire</code> and <code>halo</code> motifs, and the <code>smoke</code>, <code>lightning</code>,
+        <code>ash</code> and <code>foxfire</code> particles. A fox walks into a puff of curling cloud and a woman walks out; the thunder jolts the
+        camera; the old man's ash drifts onto the dead tree and it flowers.</p>
+    </Header>
+    <section aria-label="Effect controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Effect" value={kind} options={UKIYOE_EFFECT_DEMOS} onChange={setKind} labels={EFFECT_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={EFFECT_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Effect frame" />
   </div>;
 }
 
