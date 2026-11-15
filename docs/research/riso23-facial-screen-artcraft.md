@@ -13,6 +13,16 @@ Actual rendered observations, not a code-based quality assertion:
 3. **Portrait 9:16:** The head profiles are contained, not clipped; the remaining deficiency is intrinsic tonal construction, rather than camera crop or Storybook overflow.
 4. The characters are still graphically simple compared with original print references. The present patch tackles the **visible screened sampling defect and missing facial value planes**, not a wholesale portrait likeness or realistic anatomy claim.
 
+## Actual RISO23 rendered rejection and frequency correction
+
+The **first RISO23 live Chromium pass**, [Actions run 43737587182](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43737587182), completed and produced `landscape-pair-46.png` and `red-only-faces.png`. Direct inspection **rejected it visually** even though the browser assertion passed. At `dotCell=6`, the new broad shadow planes resolved as widely separated large vermilion circles, making both original faces look dotted with cartoon freckles. The intended zygomatic/eye socket volume was not readable, and the image looked less cohesive than the previous neutral frame.
+
+**Cause:** Screen pitch relative to head size was still wrong, despite enlarging the physical tonal shapes. Existing global `RisoPrint` masters enforce a 3..36 design-unit cell; a tiny head ~70 design units across cannot hold a fine portrait tonal screen with 6-unit cells. The correct repair is to change actual *print frequency*, not add global blur/noise or simplify the face.
+
+**RISO23 second candidate (under review):** enable carefully bounded **2..36** cell pitch in the same production `inspectRisoPrint` and `createRisoScreenGeometry` paths, and default the isolated two-face Storybook print to `2.0` stage units, with a dedicated `RISO23 screen pitch` comparison slider. This makes ~35 screen cells across the existing source head instead of ~12; AM dots become small enough to convey value fields. The original `RisoPrint` master is still fully deterministic and independently registered for each ink. The lower bound deliberately stops at 2 (to avoid subpixel raster instability); legacy 3..36 values and the other film demos are unaffected.
+
+**Reviewer must compare:** `negative-control-coarse-6-unit-screen.png` to `recovered-fine-2-unit-screen.png`, and inspect the new native neutral and blink full-face screenshots at 1× and enlarged scale. This is a **new actual visual gate**, not an assumption that a lower cell count guarantees artistry.
+
 ## Art references, observed print grammar and construction evidence
 
 | Reference | Visible craft fact and feature | New original paths / negative shortcut |
