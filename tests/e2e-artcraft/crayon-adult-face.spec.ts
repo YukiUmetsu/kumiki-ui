@@ -353,8 +353,12 @@ for(const view of ["wax","anatomy"] as const){
         const svg=page.locator("svg[data-km-crayon-scene]");
         await expect(svg.locator('[data-km-crayon-element^="hair-rooted-"]'))
           .toHaveCount(18);
-        await expect(svg.locator('[data-km-crayon-fiber-contact="dry-wax"]'))
+        await expect(svg.locator(
+          '[data-km-crayon-element^="hair-rooted-"] [data-km-crayon-fiber-contact="dry-wax"]'))
           .toHaveCount(12);
+        await expect(svg.locator(
+          '[data-km-crayon-element^="lash-contact-"] [data-km-crayon-fiber-contact="dry-wax"]'))
+          .toHaveCount(2);
         await svg.screenshot({path:info.outputPath(
           "crayon-f1-source-rooted-hair-"+name+"-macro-299.png"),
           animations:"disabled"});
@@ -371,7 +375,9 @@ for(const view of ["wax","anatomy"] as const){
             lineHtml+"</body></html>");
           const lineSvg=page.locator("svg[data-km-crayon-scene]");
           await expect(lineSvg.locator(
-            '[data-km-crayon-fiber-contact="dry-wax"]')).toHaveCount(0);
+            '[data-km-crayon-element^="hair-rooted-"] [data-km-crayon-fiber-contact="dry-wax"]')).toHaveCount(0);
+          await expect(lineSvg.locator(
+            '[data-km-crayon-element^="lash-contact-"] [data-km-crayon-fiber-contact="dry-wax"]')).toHaveCount(2);
           await lineSvg.screenshot({path:info.outputPath(
             "crayon-f1-source-rooted-hair-right-line-control-299.png"),
             animations:"disabled"});
