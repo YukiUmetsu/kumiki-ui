@@ -23,7 +23,6 @@ const foxDark=["#59555A","#303747","#B09C8C"] as const;
 const birdBlue=["#3787A6","#214C79","#9FD3D4"] as const;
 const birdCobalt=["#446D92","#1C3F66","#8CAFC2"] as const;
 const birdOrange=["#E0A26C","#A76754","#F6CD97"] as const;
-const birdCream=["#EEE3CB","#A9A39A","#FFF6DF"] as const;
 
 function trace(path:string,color:string,width=1,startFrame=181,opacity=.82):PencilTrace {
   return {path,color,width,startFrame,durationFrames:60,opacity};
