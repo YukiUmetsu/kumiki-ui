@@ -101,6 +101,7 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
   await pigmentOnly.check();
   await expect(svg).toHaveAttribute("data-km-pencil-tonal-support","off");
   await expect(svg.locator("[data-km-pencil-craft-base]")).toHaveCount(0);
+  await expect(svg.locator("linearGradient")).toHaveCount(0);
   expect(await svg.locator("[data-km-pigment-layer] path").count()).toBeGreaterThan(100);
   expect(await svg.locator("[data-km-pencil-micro] path").count()).toBeGreaterThan(0);
   await svg.screenshot({animations:"disabled",
