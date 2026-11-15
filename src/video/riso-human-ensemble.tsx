@@ -198,6 +198,15 @@ const personPoint=(spec:RisoCharacterSpec,frame:number,joint:string,x:number,y:n
   if(!pose)throw new RangeError("Missing Riso ensemble contact point "+joint);
   return {x:x+pose.x*scale,y:y+pose.y*scale};
 };
+/**
+ * Only original rigged finger/digit contours overprint the already-opaque
+ * physical letter. The palms, sleeves, coats and faces stay behind the paper.
+ * This is depth ordering, not a fake sticker or alpha-blended actor.
+ */
+const risoGripParts=(side:"left"|"right"):readonly string[]=>[
+  side+"-glove-index",side+"-glove-middle",side+"-glove-ring",side+"-glove-thumb",
+  side+"-finger-joint-lines",side+"-glove-detail",side+"-glove-thumb-fold",
+];
 /** Exact geometry for a prop between two authored hand contact anchors.
  * Stage space, including aspect and placements, must be computed once. */
 export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="landscape",
@@ -230,6 +239,7 @@ export function RisoHumanEnsembleStudio(){
   const [misregistration,setMisregistration]=useState(.25);
   const [dotCell,setDotCell]=useState(6);
   const [sheetDetail,setSheetDetail]=useState(true);
+  const [fingertipOcclusion,setFingertipOcclusion]=useState(true);
   const [paperCurl,setPaperCurl]=useState(3);
   const [gripPinch,setGripPinch]=useState(.5);
   // Playback is a Storybook convenience. Production frames stay pure: a
@@ -253,18 +263,30 @@ export function RisoHumanEnsembleStudio(){
   const people=[{spec:COURIER,stage:state.first},{spec:PAPER_ARTIST,stage:state.second}] as const;
   const footContacts=people.flatMap(({spec,stage})=>["left-ankle","right-ankle"].map(joint=>
     personPoint(spec,frame,joint,stage.x,stage.y,stage.scale)));
-  const layers:RisoForegroundLayer[]=[
-    {
-      id:"shared-letter",
-      knockout:state.sheet?<path d={state.sheet}
-        data-km-riso-human-ensemble-sheet={state.progress.toFixed(3)}/>:undefined,
+  const gripLayer=(spec:RisoCharacterSpec,stage:{x:number;y:number;scale:number},
+    side:"left"|"right",id:string):RisoForegroundLayer=>{
+    const onlyPartIds=risoGripParts(side);
+    // Actual ink scratches are open contours. Only four closed, authored red
+    // glove digit masses may cut paper; blue hatch/knuckle lines print on top.
+    const solidDigits=onlyPartIds.slice(0,4);
+    return {
+      id,
+      knockout:<g data-km-riso-grip-occlusion={id}>
+        <RisoCharacterKnockout spec={spec} frame={frame} x={stage.x} y={stage.y}
+          scale={stage.scale} spread={1.25} onlyPartIds={solidDigits}/></g>,
       artworks:{
-        blue:paint=><RisoTransferSheetPlate outline={state.sheet}
-          geometry={state.printDetails} paint={paint} plateId="blue" detail={sheetDetail}/>,
-        red:paint=><RisoTransferSheetPlate outline={state.sheet}
-          geometry={state.printDetails} paint={paint} plateId="red" detail={sheetDetail}/>,
+        blue:paint=><RisoCharacterInk spec={spec} frame={frame} plateId="blue"
+          paint={paint} x={stage.x} y={stage.y} scale={stage.scale}
+          onlyPartIds={onlyPartIds}/>,
+        red:paint=><RisoCharacterInk spec={spec} frame={frame} plateId="red"
+          paint={paint} x={stage.x} y={stage.y} scale={stage.scale}
+          onlyPartIds={onlyPartIds}/>,
       },
-    },
+    };
+  };
+  const layers:RisoForegroundLayer[]=[
+    // Stage the complete actors on the physical paper before presenting the
+    // letter, then allow only actual joint-posed fingers to cover the letter.
     ...people.map(({spec,stage}):RisoForegroundLayer=>({
       id:spec.id,
       knockout:<g data-km-riso-human-actor={spec.id}>
@@ -277,6 +299,25 @@ export function RisoHumanEnsembleStudio(){
           paint={paint} x={stage.x} y={stage.y} scale={stage.scale}/>,
       },
     })),
+    {
+      id:"shared-letter",
+      knockout:state.sheet?<path d={state.sheet}
+        data-km-riso-human-ensemble-sheet={state.progress.toFixed(3)}/>:undefined,
+      artworks:{
+        blue:paint=><RisoTransferSheetPlate outline={state.sheet}
+          geometry={state.printDetails} paint={paint} plateId="blue" detail={sheetDetail}/>,
+        red:paint=><RisoTransferSheetPlate outline={state.sheet}
+          geometry={state.printDetails} paint={paint} plateId="red" detail={sheetDetail}/>,
+      },
+    },
+    ...(fingertipOcclusion&&state.sheet
+      ? [
+        gripLayer(COURIER,state.first,"right","courier-grip"),
+        // Do not display a receiving pinch before the advancing sheet is
+        // physically near the other hand (94% of its travel).
+        ...(state.progress>=.94 ? [gripLayer(PAPER_ARTIST,state.second,"left","artist-grip")] : []),
+      ]
+      : []),
   ];
   return <main style={{background:"#F0E4D1",padding:18,minHeight:"100vh",font:"14px system-ui,sans-serif"}}>
     <div style={{maxWidth:1320,margin:"0 auto"}}>
@@ -286,7 +327,7 @@ export function RisoHumanEnsembleStudio(){
         Distinct coat, bob hair and facial geometry for the Paper Artist; the Courier retains
         its existing body and satchel grip. The curved printed sheet follows both evaluated hands through a shared physical contour,
         with controllable curl, grip compression, screened fold and original address engravings.
-        It remains a staged contact study rather than a rigid-body contact solver.
+        The joint-posed fingers now sit in front of opaque paper while palms and sleeves remain behind it. This remains an authored contact study, not a force-based collision solver.
         Real RisoPrint spot-ink screens, print registration, paper pores and fibres are used.
       </p>
       <div style={{display:"flex",flexWrap:"wrap",gap:20,alignItems:"center",padding:"12px 0"}}>
@@ -315,6 +356,10 @@ export function RisoHumanEnsembleStudio(){
           <input type="range" min={0} max={1} step={.05} value={gripPinch}
             aria-label="RISO ensemble paper grip pinch"
             onChange={e=>setGripPinch(Number(e.target.value))}/></label>
+        <label><input type="checkbox" checked={fingertipOcclusion}
+          aria-label="RISO ensemble anatomical fingertip occlusion"
+          onChange={e=>setFingertipOcclusion(e.target.checked)}/>
+          Original finger-over-paper contacts</label>
         <label><input type="checkbox" checked={sheetDetail}
           aria-label="RISO ensemble fine printed-sheet detail"
           onChange={e=>setSheetDetail(e.target.checked)}/> Fine printed-sheet detail</label>
@@ -367,13 +412,15 @@ export function RisoHumanEnsembleStudio(){
           data-km-riso-human-ensemble-aspect={aspect}
           data-km-riso-human-ensemble-paper-curl={paperCurl}
           data-km-riso-human-ensemble-grip-pinch={gripPinch}
+          data-km-riso-human-ensemble-contact-overprint={fingertipOcclusion}
           label="Two human Risograph actors exchanging a printed sheet"
         />
       </div>
 
       <p style={{fontSize:12,color:"#63727A"}}>
-        All frames are deterministic. A sheet becomes physically anchored to both hand roots
-        by frame 160; no per-frame random alpha or transparent character bodies.
+        All frames are deterministic. The letter begins at the Courier's hand,
+        reaches the Paper Artist by frame 160 and receives truly source-authored
+        red/blue fingertip overprints. No alpha-transparent bodies or synthetic mitten shapes.
       </p>
     </div>
   </main>;

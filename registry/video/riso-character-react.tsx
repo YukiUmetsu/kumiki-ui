@@ -19,6 +19,8 @@ export interface RisoCharacterInkProps {
   disableIK?: boolean;
   /** Diagnostic skeleton and foot-target markers; excluded from production by default. */
   showRig?: boolean;
+  /** Optional named, independently animated subparts (e.g. front-grasp fingertips). */
+  onlyPartIds?: readonly string[];
   children?: ReactNode;
 }
 export interface RisoCharacterKnockoutProps {
@@ -31,12 +33,26 @@ export interface RisoCharacterKnockoutProps {
   disableIK?: boolean;
   /** Physical trapping expansion of the paper-shaped silhouette (stage units). */
   spread?: number;
+  /** Same source-part selection as ink; supports anatomically exact paper clearances. */
+  onlyPartIds?: readonly string[];
 }
 function validPlacement(x: number, y: number, scale: number) {
   if (![x, y, scale].every(Number.isFinite) || scale <= 0 || scale > 30 ||
       Math.abs(x) > 20000 || Math.abs(y) > 20000)
     throw new RangeError("RISO character placement requires finite bounded coordinates.");
 }
+/** Keep contact-subset masks and independent ink masters bound to the same authored paths. */
+function selectRisoParts(spec: RisoCharacterSpec, onlyPartIds?: readonly string[]): Set<string> | null {
+  if (onlyPartIds === undefined) return null;
+  const known = new Set(spec.parts.map(part => part.id));
+  if (!Array.isArray(onlyPartIds) || onlyPartIds.length === 0 ||
+      onlyPartIds.length > known.size ||
+      onlyPartIds.some(id => typeof id !== "string" || !known.has(id)) ||
+      new Set(onlyPartIds).size !== onlyPartIds.length)
+    throw new RangeError("RISO part selection must contain unique, known, nonempty part IDs.");
+  return new Set(onlyPartIds);
+}
+
 /**
  * Fully opaque paper clearance using the *union of all posed ink parts*.
  * Place this in RisoPrint.foregroundLayers[].knockout, which supplies paper
@@ -45,9 +61,10 @@ function validPlacement(x: number, y: number, scale: number) {
  */
 export function RisoCharacterKnockout({
   spec, frame, x = 0, y = 0, scale = 1, spread = 1.8,
-  reducedMotion = false, disableIK = false,
+  reducedMotion = false, disableIK = false, onlyPartIds,
 }: RisoCharacterKnockoutProps) {
   validPlacement(x, y, scale);
+  const selected = selectRisoParts(spec, onlyPartIds);
   if (!Number.isFinite(spread) || spread < 0 || spread > 8)
     throw new RangeError("RISO character paper trapping spread must be 0..8.");
   const evaluated = evaluateRisoCharacter(spec, frame, {reducedMotion, disableIK});
@@ -56,7 +73,7 @@ export function RisoCharacterKnockout({
     transform={`translate(${x} ${y}) scale(${scale})`}
     strokeWidth={spread} strokeLinejoin="round" strokeLinecap="round"
     pointerEvents="none">
-    {evaluated.parts.map(part => <path key={part.id}
+    {evaluated.parts.filter(part => !selected || selected.has(part.id)).map(part => <path key={part.id}
       data-km-riso-knockout-part={part.id}
       d={part.d} transform={part.transform} fill="inherit" stroke="inherit"/>) }
   </g>;
@@ -65,15 +82,17 @@ export function RisoCharacterKnockout({
 /** Plate-local character parts. Render this inside the corresponding RisoPrint artwork callback. */
 export function RisoCharacterInk({
   spec, frame, plateId, paint, x = 0, y = 0, scale = 1,
-  reducedMotion = false, disableIK = false, showRig = false, children,
+  reducedMotion = false, disableIK = false, showRig = false, children, onlyPartIds,
 }: RisoCharacterInkProps) {
   validPlacement(x, y, scale);
+  const selected = selectRisoParts(spec, onlyPartIds);
   const evaluated = evaluateRisoCharacter(spec, frame, { reducedMotion, disableIK });
   // Each paper clearance is a local ink knockout for all earlier parts:
   // the coat may be behind the face, but cannot be visible *through* it.
   // Later facial ink remains printable; no alpha-opacity trick is used.
   const maskUid = useId().replace(/[^a-z0-9]/gi, "");
-  const indexed = evaluated.parts.map((part, index) => ({ part, index }));
+  const indexed = evaluated.parts.map((part, index) => ({ part, index }))
+    .filter(({part}) => !selected || selected.has(part.id));
   const clearances = indexed.filter(({part}) => part.knockoutOnly);
   const painted = indexed.filter(({part}) => part.plate === plateId && !part.knockoutOnly);
   const segments: Array<{
