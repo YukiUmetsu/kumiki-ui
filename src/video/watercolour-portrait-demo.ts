@@ -481,6 +481,14 @@ function figure(subject:PortraitSubject):WatercolourArtPart {
   ]);
 }
 
+/** Standalone detailed source figure for multi-character watercolor staging.
+ * Consumer placements never alter original brush paths or mutate a sitter.
+ */
+export function watercolorPortraitFigure(subject:PortraitSubject):WatercolourArtPart {
+  if(!PORTRAIT_SUBJECTS.includes(subject))throw new RangeError("Unknown watercolor portrait subject");
+  return figure(subject);
+}
+
 export function watercolorPortraitSpec(output:PortraitOutput,seed=83,
   subject:PortraitSubject="sitter-a"):WatercolourArtwork {
   if(!PORTRAIT_SUBJECTS.includes(subject))throw new RangeError("Unknown watercolor portrait subject");
