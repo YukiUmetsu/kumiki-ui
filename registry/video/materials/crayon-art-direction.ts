@@ -125,10 +125,42 @@ export function inspectCrayonDrawingPlan(scene:CrayonSceneSpec,plan:CrayonDrawin
       if(!from||!to||!claimed.has(from.id)||!claimed.has(to.id)){
         errors.push(key+": anchors must belong to this subject");continue;
       }
-      const pa=crayonWorldPoint(scene,from,scene.durationFrames-1,a.point);
-      const pb=crayonWorldPoint(scene,to,scene.durationFrames-1,b.point);
-      if(Math.hypot(pa.x-pb.x,pa.y-pb.y)>link.tolerance)
-        errors.push(key+": attachment is disconnected");
+      // A pair of nearby points outside their source bounds is not evidence
+      // of connection. Bounds are a cheap guard, not polygon intersection.
+      for(const [node,anchor] of [[from,a],[to,b]] as const){
+        if(node.kind==="wax"){
+          const r=node.bounds,p=anchor.point;
+          if(p.x<r.x-link.tolerance||p.y<r.y-link.tolerance||
+            p.x>r.x+r.width+link.tolerance||
+            p.y>r.y+r.height+link.tolerance)
+            errors.push(key+": anchor is outside its authored wax bounds");
+        }
+      }
+      const last=scene.durationFrames-1;
+      const samples=new Set<number>([0,Math.floor(last/2),last]);
+      // Audit the whole inherited motion chain and the *between-key* arcs:
+      // the first/last frame alone can conceal a detached middle pose.
+      const visit=(node:CrayonElement)=>{
+        const visited=new Set<string>();
+        let cursor:CrayonElement|undefined=node;
+        while(cursor&&!visited.has(cursor.id)){
+          visited.add(cursor.id);
+          for(const keyframe of cursor.motion??[])samples.add(keyframe.frame);
+          cursor=cursor.parentId?nodes.get(cursor.parentId):undefined;
+        }
+      };
+      visit(from);visit(to);
+      const sorted=[...samples].sort((x,y)=>x-y);
+      for(let j=1;j<sorted.length;j++)
+        samples.add(Math.floor((sorted[j-1]+sorted[j])/2));
+      for(const frame of [...samples].sort((x,y)=>x-y)){
+        const pa=crayonWorldPoint(scene,from,frame,a.point);
+        const pb=crayonWorldPoint(scene,to,frame,b.point);
+        if(Math.hypot(pa.x-pb.x,pa.y-pb.y)>link.tolerance){
+          errors.push(key+": attachment is disconnected at frame "+frame);
+          break;
+        }
+      }
     }
   }
   for(const id of plan.ambientIds){
