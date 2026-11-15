@@ -799,13 +799,17 @@ function bambooBrushBlade(root:P,tip:P,width:number,seed:number){
   const dx=tip[0]-root[0],dy=tip[1]-root[1];
   const length=Math.max(.01,Math.hypot(dx,dy));
   const nx=-dy/length,ny=dx/length;
-  const bend=(s(seed,17)-.5)*length*.105;
+  // Controlled crook along the leaf axis, instead of a single straight
+  // triangle with symmetrical rounded sides. One contour receives more
+  // pigment and a wider belly; the return edge pulls dry toward the base.
+  const bend=(s(seed,17)-.5)*length*.28;
+  const swell=.3+.17*s(seed,31);
   const at=(t:number,load:number):P=>{
     const offset=width*load+bend*Math.sin(Math.PI*t);
     return [root[0]+dx*t+nx*offset,root[1]+dy*t+ny*offset];
   };
-  const c1=at(.1,.12),c2=at(.48,1.12);
-  const c3=at(.61,-.36),c4=at(.19,-.35);
+  const c1=at(.07,.18),c2=at(swell,1.12);
+  const c3=at(.74,-.27),c4=at(.17,-.42);
   return "M"+f(root[0])+" "+f(root[1])+
     " C"+f(c1[0])+" "+f(c1[1])+
     " "+f(c2[0])+" "+f(c2[1])+
@@ -901,8 +905,11 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
               const origin=spurIndex<0
                 ?{root:base,bend:branchControl,tip:end}
                 :spurs[spurIndex];
-              const along=spurIndex<0?[.16,0,.51,.73,0][k]
-                :k===1?.59:.54;
+              // Wu Zhen's bamboo resolves into terminal brush groups:
+              // most leaves emerge from the outer branch section, not
+              // evenly-spaced hooks along the entire bare bough.
+              const along=spurIndex<0?[.58,0,.83,.94,0][k]
+                :k===1?.71:.81;
               const t=clamp(along+
                 (s(seed+71,i*43+j*11+k)-.5)*.047,.06,.91);
               const [bx,by]=quadraticPoint(origin.root,origin.bend,
@@ -916,13 +923,13 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
                   2*t*(origin.tip[1]-origin.bend[1]),
               ];
               const branchAngle=Math.atan2(tangent[1],tangent[0]);
-              const fanAngles=[-.98,-.42,.4,.96,-.7];
+              const fanAngles=[-.78,-.36,.18,.64,-.57];
               const direction=branchAngle+fanAngles[k]+
                 (s(seed+1081,i*29+j*17+k)-.5)*.48;
               const len=(18+19*s(seed,i*50+j*9+k))*(k===4?.85:1);
               const leafTipX=bx+Math.cos(direction)*len;
               const leafTipY=by+Math.sin(direction)*len;
-              const wide=2.65+3.9*s(seed+11,k+i*13+j);
+              const wide=2.3+4.15*s(seed+11,k+i*13+j);
               // Orient the brush belly to the blade tangent, not paper Y.
               // Secondary tip releases grow from the same parent wood,
               // but their size and pitch vary rather than forming mirror pairs.
