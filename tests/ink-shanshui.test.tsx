@@ -282,7 +282,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         /data-km-master-fuchun-hillback="" data-km-master-fuchun-hillback-root="([^"]+)" data-km-master-fuchun-hillback-form="(round|saddle)"/g,
       )];
       const backMasses=[...html.matchAll(
-        /data-km-master-fuchun-hillback-wash="" d="([^"]+)" fill="url\\(#([^"]+)\\)"/g,
+        /data-km-master-fuchun-hillback-wash="" d="([^"]+)" fill="url\(#([^"]+)\)"/g,
       )];
       const backContours=[...html.matchAll(
         /data-km-master-fuchun-hillback-lip="" d="([^"]+)"/g,
