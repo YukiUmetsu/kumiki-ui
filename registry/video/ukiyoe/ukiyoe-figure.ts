@@ -19,18 +19,19 @@ import { BLADE, katana, mon, reachArm, saya, swordAt, swordGeometry, swordSmear 
 import { CLUB, clubAt, clubGeometry, groundCrack, kanabo, usesClub } from "./ukiyoe-oni";
 import { weaveBeat } from "./ukiyoe-interior";
 import type { UkiyoeGhostFace } from "./ukiyoe-onna";
+import { arrow, kabutoSide, naginata, oyoroiSide, shootAt, yumi } from "./ukiyoe-bushi";
 import { ancientHairSide, kamiProp, magatama, riceBag, stole, zukin } from "./ukiyoe-kami";
 import { drawTool, firewood, hachiSide, kozuchi, onigiri, strikeBits, toolAt, toolBody, toolContact, treasure } from "./ukiyoe-folk";
 import { babyBundle, faceOutline, ghostFaceSide, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 
 export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild" | "hyogo" | "kamuro" | "wareshinobu" | "mizura" | "tenko";
-export type UkiyoeHat = "none" | "kasa" | "conical" | "eboshi" | "hood" | "headband" | "gotoku" | "hachi" | "zukin";
-export type UkiyoeProp = "none" | "staff" | "umbrella" | "lantern" | "fan" | "pole" | "basket-pole" | "bundle" | "fishing-rod" | "scroll" | "pipe" | "kanabo" | "peach" | "parasol" | "maiogi" | "peony-lantern" | "baby" | "kozuchi" | "onigiri" | "firewood" | "mirror" | "tsurugi" | "hoko" | "tai";
+export type UkiyoeHat = "none" | "kasa" | "conical" | "eboshi" | "hood" | "headband" | "gotoku" | "hachi" | "zukin" | "kabuto";
+export type UkiyoeProp = "none" | "staff" | "umbrella" | "lantern" | "fan" | "pole" | "basket-pole" | "bundle" | "fishing-rod" | "scroll" | "pipe" | "kanabo" | "peach" | "parasol" | "maiogi" | "peony-lantern" | "baby" | "kozuchi" | "onigiri" | "firewood" | "mirror" | "tsurugi" | "hoko" | "tai" | "yumi" | "naginata";
 export type UkiyoeBuild = "slim" | "average" | "stout" | "child" | "brute";
 export const UKIYOE_HAIRS: readonly UkiyoeHair[] = ["chonmage", "shimada", "child", "bald", "long", "elder", "topknot", "wild", "hyogo", "kamuro", "wareshinobu", "mizura", "tenko"];
-export const UKIYOE_HATS: readonly UkiyoeHat[] = ["none", "kasa", "conical", "eboshi", "hood", "headband", "gotoku", "hachi", "zukin"];
-export const UKIYOE_PROPS: readonly UkiyoeProp[] = ["none", "staff", "umbrella", "lantern", "fan", "pole", "basket-pole", "bundle", "fishing-rod", "scroll", "pipe", "kanabo", "peach", "parasol", "maiogi", "peony-lantern", "baby", "kozuchi", "onigiri", "firewood", "mirror", "tsurugi", "hoko", "tai"];
+export const UKIYOE_HATS: readonly UkiyoeHat[] = ["none", "kasa", "conical", "eboshi", "hood", "headband", "gotoku", "hachi", "zukin", "kabuto"];
+export const UKIYOE_PROPS: readonly UkiyoeProp[] = ["none", "staff", "umbrella", "lantern", "fan", "pole", "basket-pole", "bundle", "fishing-rod", "scroll", "pipe", "kanabo", "peach", "parasol", "maiogi", "peony-lantern", "baby", "kozuchi", "onigiri", "firewood", "mirror", "tsurugi", "hoko", "tai", "yumi", "naginata"];
 export const UKIYOE_BUILDS: readonly UkiyoeBuild[] = ["slim", "average", "stout", "child", "brute"];
 
 export interface UkiyoeFigureLook {
@@ -65,6 +66,8 @@ export interface UkiyoeFigureLook {
   beads?: boolean;
   /** Daikoku's rice bag over the shoulder. */
   bag?: boolean;
+  /** The great armour (ō-yoroi) laced in this colour: cuirass, skirt plates and shoulder boards. */
+  armor?: UkiyoePaint;
   hakama?: UkiyoePaint;
   legs?: UkiyoePaint;
   /** `koma-geta`: the courtesan's tall black-lacquered three-toothed clogs, worn bare-foot; `okobo`: the maiko's tall
@@ -106,9 +109,9 @@ export interface UkiyoeFigureLook {
 
 export type UkiyoeActionType =
   | "walk" | "run" | "bow" | "wave" | "point" | "talk" | "look" | "kneel" | "pole" | "row" | "brace" | "dance"
-  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu" | "kyomai" | "draw" | "kamae" | "cut" | "sheathe" | "parry" | "recoil" | "drop" | "fall" | "smash" | "swing" | "evade" | "sleep" | "weave" | "reveal" | "chop" | "hoe" | "pound" | "wash" | "shake" | "fly";
+  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu" | "kyomai" | "draw" | "kamae" | "cut" | "sheathe" | "parry" | "recoil" | "drop" | "fall" | "smash" | "swing" | "evade" | "sleep" | "weave" | "reveal" | "chop" | "hoe" | "pound" | "wash" | "shake" | "fly" | "shoot";
 export const UKIYOE_ACTIONS: readonly UkiyoeActionType[] = [
-  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu", "kyomai", "draw", "kamae", "cut", "sheathe", "parry", "recoil", "drop", "fall", "smash", "swing", "evade", "sleep", "weave", "reveal", "chop", "hoe", "pound", "wash", "shake", "fly",
+  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu", "kyomai", "draw", "kamae", "cut", "sheathe", "parry", "recoil", "drop", "fall", "smash", "swing", "evade", "sleep", "weave", "reveal", "chop", "hoe", "pound", "wash", "shake", "fly", "shoot",
 ];
 export interface UkiyoeAction {
   type: UkiyoeActionType;
@@ -265,6 +268,8 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
       case "shake": target.propAngle = t + 1; target.shF = 150 + 10 * Math.sin(t / 2.6); target.elF = 30 + 26 * Math.sin(t / 2.6); target.tilt = -10; target.lift = Math.abs(Math.sin(t / 5.2)) * height * .015; target.shB = 30; target.elB = 60; break;
       // Flying: risen off the ground, leaning into the flight, the legs trailing back together, a gentle bob.
       case "fly": target.lift = height * (.08 + .02 * Math.sin(t / 14)); target.lean = 28; target.tilt = -6; target.hipF = -24; target.hipB = -34; target.knF = 38; target.knB = 46; target.shF = 70 + 10 * Math.sin(t / 16); target.elF = 20; target.shB = 40; target.elB = 30; target.footF = 30; target.footB = 30; break;
+      // Archery: the bow arm out toward the target, the string arm drawn back (hands placed by IK in drawFigure).
+      case "shoot": target.lean = -2; target.tilt = -4; target.hipF = 10; target.hipB = -10; target.shF = 95; target.elF = 4; target.shB = 90; target.elB = 140; break;
       case "sleep": target.fall = 1; target.blink = 1; target.shF = 6 + 2 * Math.sin(t / 40); target.elF = 14; target.shB = 4; target.elB = 10; target.hipF = 2; target.hipB = -2; target.knF = 4; target.knB = 4; break;
       // Weaving at a loom, kneeling: the near hand pulls the beater in on the beat, the far hand throws the shuttle
       // while the shed is open. Timed by the absolute frame with the loom motif (weaveBeat), so the two agree.
@@ -362,6 +367,8 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
   // A fall stays down after its action ends.
   for (const a of spec.actions ?? []) if (a.type === "fall" && frame > a.end) pose.fall = 1;
   for (const a of spec.actions ?? []) if (a.type === "reveal" && frame > a.end) pose.reveal = 1;
+  // A naginata is carried across the body in both hands.
+  if (spec.look.prop === "naginata") { pose.shF = 62; pose.elF = 40; pose.shB = 34; pose.elB = 70; }
   // A mother holds the baby at her breast in both arms.
   if (spec.look.prop === "baby") { pose.shF = 24; pose.elF = 100; pose.shB = 18; pose.elB = 104; }
   // A parasol bearer keeps both hands up on the pole whatever his legs are doing.
@@ -592,6 +599,7 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
   if (look.hat === "gotoku") out.push(...gotokuCrown(P, k, lw, frame, seed));
   if (look.hat === "hachi") out.push(...hachiSide(P, lw));
   if (look.hat === "zukin") out.push(...zukin(P, lw));
+  if (look.hat === "kabuto") out.push(...kabutoSide(P, k, lw, look.armor ?? "beni"));
   // Hats.
   const hat = look.hat ?? "none", hatC = look.hatColor ?? (hat === "eboshi" ? "sumi" : hat === "hood" ? "ai" : "kincha");
   if (hat === "kasa" || hat === "conical") {
@@ -652,6 +660,7 @@ function propPrims(look: UkiyoeFigureLook, pose: FigurePose, s: Skeleton, wind: 
       case "peony-lantern": out.push(...peonyLantern(w, H, lw, frame, wind, 0)); break;
       case "onigiri": out.push(...onigiri([w[0] + H * .015, w[1] - H * .02], H * .03, lw)); break;
       case "mirror": case "tsurugi": case "hoko": case "tai": out.push(...kamiProp(prop, w, H, lw, frame)); break;
+      case "naginata": out.push(...naginata(w, -55, H, lw)); break;
       case "kozuchi": {
         // Held up by the handle, pointing on along the forearm; shaken, it pours out treasure.
         const a = Math.atan2(w[1] - s.elF[1], w[0] - s.elF[0]) / DEG;
@@ -796,6 +805,21 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     const sc = Math.sin((frame - wash.start) / 5) * H * .035, up = H * .165, fore = H * .15;
     [s.elF, s.wrF] = reachArm(s.shF, [wash.aim[0] + sc, wash.aim[1]], up, fore, 1);
     [s.elB, s.wrB] = reachArm(s.shB, [wash.aim[0] - H * .04 + sc * .8, wash.aim[1] + H * .005], up, fore, 1);
+  }
+  // Archery: the bow hand out toward the aim, the string hand drawn from the bow back to the ear, flung back on release.
+  const shot = look.prop === "yumi" ? shootAt(spec.actions ?? [], frame, H) : undefined;
+  let bowDir: Pt = [1, 0];
+  if (shot) {
+    const up = H * .165, fore = H * .15, d = [shot.aim[0] - s.shF[0], shot.aim[1] - s.shF[1]], dl = Math.hypot(d[0], d[1]) || 1;
+    bowDir = [d[0] / dl, d[1] / dl];
+    const bowHand: Pt = [s.shF[0] + bowDir[0] * H * .3, s.shF[1] + bowDir[1] * H * .3], ear: Pt = add(s.head, [-H * .01, H * .03]);
+    const k = shot.raise, string: Pt = shot.released ? add(ear, [-H * .06 * k, -H * .02 * k]) : lerp2(add(bowHand, [-bowDir[0] * H * .04, -bowDir[1] * H * .04]), ear, shot.draw);
+    [s.elF, s.wrF] = reachArm(s.shF, lerp2(s.wrF, bowHand, k), up, fore, 1);
+    [s.elB, s.wrB] = reachArm(s.shB, lerp2(s.wrB, string, k), up, fore, -1);
+  }
+  if (look.prop === "naginata") {
+    const u: Pt = [Math.cos(-55 * DEG), Math.sin(-55 * DEG)];
+    [s.elB, s.wrB] = reachArm(s.shB, [s.wrF[0] - u[0] * H * .3, s.wrF[1] - u[1] * H * .3], H * .165, H * .15, 1);
   }
   const { dir, squeeze } = facingAt(spec, frame);
   const tr = travelAt(spec.actions ?? [], frame);
@@ -953,6 +977,9 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
       out.push({ t: "line", d: carvedLine([add(s.neck, [-H * .006, H * .008]), add(s.neck, [H * .018, H * .042]), [s.waistF[0] - H * .02, s.waistF[1] - H * .02]], lw * .9, { taper: "end" }), color: "sumi", opacity: .7 });
     }
   }
+  // The great armour over the robe: the cuirass and skirt plates now, the near shoulder board after the arm.
+  const armorParts = look.armor && !bare ? oyoroiSide({ neck: s.neck, shF: s.shF, shB: s.shB, elF: s.elF, waistF: s.waistF, waistB: s.waistB, knF: s.knF, knB: s.knB }, H, lw, look.armor) : undefined;
+  if (armorParts) out.push(...armorParts.body);
   // Kamishimo: the kataginu's stiff wings stand out past both shoulders; its front panels run down into the hakama.
   let kataginuWing: Prim | undefined;
   if (look.kataginu && !bare) {
@@ -993,6 +1020,17 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     out.push({ t: "fill", d: smoothD([add(kb, [H * .01, -H * .075]), add(kb, [-H * .055, -H * .08]), add(kb, [-H * .065, H * .025]), add(kb, [H * .005, H * .03])], true, .2), fill: obiC, outline: lw, pattern: { type: "kikko", color: "kin", scale: .25, opacity: .6 } });
   }
 
+  if (look.prop === "yumi") {
+    // The bow in the bow hand, its string to the drawing hand; the arrow nocked while drawing, then in flight to the aim.
+    const nock: Pt = shot && !shot.released && shot.raise > .05 ? s.wrB : add(s.wrF, [-bowDir[0] * H * .1, -bowDir[1] * H * .1]);
+    out.push(...yumi(s.wrF, nock, bowDir, H, lw, shot && !shot.released ? shot.draw : 0));
+    if (shot && !shot.released && shot.raise > .3) out.push(...arrow(s.wrB, bowDir, H, lw));
+    if (shot && shot.released) {
+      const ad = [shot.aim[0] - s.wrF[0], shot.aim[1] - s.wrF[1]], al = Math.hypot(ad[0], ad[1]) || 1, u: Pt = [ad[0] / al, ad[1] / al];
+      const start: Pt = add(s.wrF, [-u[0] * H * .3, -u[1] * H * .3]), endTail: Pt = [shot.aim[0] - u[0] * H * .42, shot.aim[1] - u[1] * H * .42];
+      out.push(...arrow(lerp2(start, endTail, shot.flight), u, H, lw));
+    }
+  }
   if (tool && tool.w > .05) {
     out.push(...drawTool(tool.tool, [tool.grip[0] * H, tool.grip[1] * H], tool.a, H, lw));
     out.push(...strikeBits(tool.action, toolContact(tool.action, H), tool.since, H, seed + Math.floor(frame / 40)));
@@ -1036,6 +1074,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     out.push({ t: "line", d: carvedLine(quad(add(s.shF, [0, H * .02]), add(s.elF, [H * .01, H * .03]), add(fs.cuff, [0, H * .05]), 6), lw * .9, { taper: "both" }), color: "sumi", opacity: .4 });
   }
   if (kataginuWing) out.push(kataginuWing);
+  if (armorParts) out.push(...armorParts.sode);
   // Three-quarter: the breast stands in front of the near shoulder, so its panel and the crossed collar (a V, the
   // wearer's left edge over the right) are drawn over the top of the near sleeve.
   if (tqBody) {

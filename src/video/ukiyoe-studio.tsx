@@ -32,6 +32,8 @@ import type { UkiyoeEffectDemo } from "../../registry/video/ukiyoe/ukiyoe-effect
 import { effectScene, UKIYOE_EFFECT_DEMOS } from "../../registry/video/ukiyoe/ukiyoe-effects";
 import type { UkiyoeKamiScene } from "../../registry/video/ukiyoe/ukiyoe-kami";
 import { kamiScene, UKIYOE_KAMI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-kami";
+import type { UkiyoeBushiScene } from "../../registry/video/ukiyoe/ukiyoe-bushi";
+import { bushiScene, UKIYOE_BUSHI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-bushi";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -453,6 +455,7 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "fire", label: "Fire · smoke, embers", params: { width: 360, height: 160 }, y: 340 },
   { motif: "halo", label: "Halo · gold radiance", params: { radius: 110 }, y: 190 },
   { motif: "kumo", label: "Auspicious cloud (zuiun)", params: { width: 300 }, y: 280 },
+  { motif: "mato", label: "Archery target", params: { radius: 70, height: 130 }, y: 340 },
 ];
 
 export function MotifGallery() {
@@ -762,6 +765,29 @@ export function Kami() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={KAMI_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Kami frame" />
+  </div>;
+}
+
+// ---- Warriors II -------------------------------------------------------------------------------------------------------------------
+
+const BUSHI_LABELS: Readonly<Record<UkiyoeBushiScene, string>> = { archer: "The archer: draw, hold, loose", bridge: "Monk and youth on the bridge", armour: "Great armour, four views" };
+
+/** Heian and Genpei warriors: the great armour and horned helmet, the bow with a timed shot, the naginata. */
+export function Warriors() {
+  const [kind, setKind] = useState<UkiyoeBushiScene>("archer");
+  const spec = useMemo(() => bushiScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Warriors" title="Armour, bow and naginata">
+      <p style={{ margin: 0 }}>The <code>armor</code> look draws the ō-yoroi laced in its colour (cuirass, swinging skirt plates, the great shoulder
+        board) with the horned <code>kabuto</code>, in every view. <code>shoot</code> raises the bow, draws the string to the ear and holds, looses on
+        its contact frame, and the arrow flies to its <code>aim</code> and sticks. The warrior-monk carries his <code>naginata</code> in both hands.</p>
+    </Header>
+    <section aria-label="Warrior controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={UKIYOE_BUSHI_SCENES} onChange={setKind} labels={BUSHI_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={BUSHI_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Warrior frame" />
   </div>;
 }
 

@@ -18,6 +18,7 @@ import type { SquareSword } from "./ukiyoe-katana";
 import { katana, mon, reachArm, saya } from "./ukiyoe-katana";
 import { kanabo } from "./ukiyoe-oni";
 import { hachiSide } from "./ukiyoe-folk";
+import { kabutoSquare, naginata as naginataProp, oyoroiSquare } from "./ukiyoe-bushi";
 import { ancientHairSquare, kamiProp, magatama, stoleSquare, zukin } from "./ukiyoe-kami";
 import { babyBundle, ghostFaceBack, ghostFaceFront, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
 
@@ -279,6 +280,8 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
   }
   if (back) out.push(...sayaPrims);
   else out.push(...sheathedHilts, ...swordPrims, ...drawArm(armB), ...drawArm(armF), ...kataginuWings);
+  // The great armour over everything below the neck (the shoulder boards stand out over the arms).
+  if (look.armor) out.push(...oyoroiSquare(sw, shY, waistY, H, lw, look.armor, back));
   // ---- Neck and head.
   const headR = H * (child ? .085 : look.face === "oni" ? .08 : .064), headY = neckY - headR * 1.15 + bowK * headR * .5;
   const tilt = (pose.tilt - 2) * .4;
@@ -301,6 +304,10 @@ export function drawFigureFrontBack(look: UkiyoeFigureLook, pose: FigurePose, H:
     for (const a of [armF, armB]) out.push({ t: "fill", d: ellipseD(poleX, a[2][1], H * .016, H * .014), fill: look.skin ?? "hada", outline: lw * .8 });
   } else if (prop === "staff" || (prop === "kanabo" && !club)) {
     out.push({ t: "line", d: carvedLine([add(hand, [0, -H * (.25)]), add(hand, [0, prop === "kanabo" ? H * .02 : -hand[1]])], H * (prop === "kanabo" ? .04 : .012), { taper: prop === "kanabo" ? "start" : "none" }), color: prop === "kanabo" ? "sumi" : propC });
+  } else if (prop === "naginata") {
+    out.push(...naginataProp(hand, -80, H, lw));
+  } else if (prop === "yumi") {
+    out.push({ t: "line", d: carvedLine([[hand[0], hand[1] - H * .6], [hand[0] + H * .03, hand[1] - H * .2], [hand[0], hand[1] + H * .3]], H * .014, { taper: "both", smooth: true }), color: "sumi" });
   } else if (prop === "mirror" || prop === "tsurugi" || prop === "hoko" || prop === "tai") {
     out.push(...kamiProp(prop, hand, H, lw, frame));
   } else if (prop === "peony-lantern") {
@@ -435,6 +442,7 @@ function headBack(look: UkiyoeFigureLook, r: number, lw: number, hairC: UkiyoePa
 function hatFront(look: UkiyoeFigureLook, r: number, lw: number, wind: number, frame = 0): Prim[] {
   if (look.hat === "hachi") return hachiSide((x, y) => [x * r, y * r], lw, true);
   if (look.hat === "zukin") return zukin((x, y) => [x * r, y * r], lw, true);
+  if (look.hat === "kabuto") return kabutoSquare((x, y) => [x * r, y * r], r, lw, look.armor ?? "beni");
   if (look.hat === "gotoku") return gotokuCrown((x, y) => [x * r, y * r], r, lw, frame, 0, true);
   const hat = look.hat ?? "none", hatC = look.hatColor ?? (hat === "eboshi" ? "sumi" : hat === "hood" ? "ai" : "kincha"), P = (x: number, y: number): Pt => [x * r, y * r];
   if (hat === "kasa" || hat === "conical") {

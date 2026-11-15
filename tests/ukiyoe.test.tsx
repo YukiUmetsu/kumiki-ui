@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { bushiScene, shootAt, UKIYOE_BUSHI_SCENES } from "../registry/video/ukiyoe/ukiyoe-bushi";
 import { kamiScene, UKIYOE_KAMI_LOOKS, UKIYOE_KAMI_SCENES } from "../registry/video/ukiyoe/ukiyoe-kami";
 import { effectScene, UKIYOE_EFFECT_DEMOS } from "../registry/video/ukiyoe/ukiyoe-effects";
 import { folkScene, toolAt, toolContact, UKIYOE_FOLK_WORK } from "../registry/video/ukiyoe/ukiyoe-folk";
@@ -581,6 +582,25 @@ describe("UKIYO1 kami", () => {
     // The scarf reaches further behind in flight than standing still.
     const reach = (a: UkiyoeAction[]) => Math.min(...[...JSON.stringify(drawFigure({ look: { ...look, robePattern: undefined }, actions: a }, 50, 0, 2).prims).matchAll(/M(-?[\d.]+) /g)].map(m => Number(m[1])));
     expect(reach(acts)).toBeLessThan(reach([]));
+  });
+});
+
+describe("UKIYO1 warriors", () => {
+  it("draws, holds and looses each arrow on its contact frame, and lands it on the target", () => {
+    for (const k of UKIYOE_BUSHI_SCENES) expect(inspectUkiyoeScene(bushiScene(k)), k).toEqual([]);
+    const spec = bushiScene("archer"), archer = spec.nodes.find(n => n.id === "archer") as Extract<UkiyoeSceneSpec["nodes"][number], { kind: "figure" }>, target = spec.nodes.find(n => n.id === "target") as unknown as { x: number; y: number; params: { height: number } };
+    for (const a of archer.actions!) {
+      const c = a.contact!, before = shootAt([a], c - 1, 250)!, after = shootAt([a], c, 250)!;
+      expect(before.released).toBe(false); expect(before.draw).toBeGreaterThan(.95);         // fully drawn and held before the loose
+      expect(after.released).toBe(true);
+      expect(shootAt([a], c + 60, 250)!.flight).toBe(1);
+      // The aim, in the scene, is on the target's centre (within its inner ring).
+      const ax = (archer.x ?? 0) + a.aim![0] * (archer.scale ?? 1), ay = (archer.y ?? 0) + a.aim![1] * (archer.scale ?? 1);
+      expect(Math.hypot(ax - target.x, ay - (target.y - target.params.height))).toBeLessThan(15);
+    }
+    // Armour draws in every view.
+    for (const view of ["profile", "three-quarter", "front", "back"] as const)
+      expect(JSON.stringify(drawFigure({ look: { armor: "beni", hat: "kabuto", view } }, 0, 0, 1).prims), view).toContain("shima");
   });
 });
 
