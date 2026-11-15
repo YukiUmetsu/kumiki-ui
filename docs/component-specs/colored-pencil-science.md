@@ -97,3 +97,16 @@ The same twenty-part bird actor now has two original separately authored **opaqu
 Storybook remains **Video Production / Film Looks / Colour-pencil / Wildlife** with a new 4.2× **Foot and perch contact** inspection option in the established interactive story. The browser suite captures macro frames for both 16:9 and 9:16; existing film, rigs, JSON and Storybook hierarchy are unchanged. [ArtCraft perching-foot critique and remaining QA](../research/colour-pencil-wildlife-craft-2026-11-14.md).
 
 Unit tests prove topology/opacity and contact transform invariants only. **Actual browser close-up review, natural-history source comparison, final-resolution contact shadow, and human normal-speed artistic acceptance remain pending.**
+
+## CP material extension — original object atlas (2026-11-14)
+
+**Source of truth:** \`registry/video/colored-pencil-materials.ts\` provides the topic-neutral \`createPencilMaterialRegion\` helper. It accepts a valid **authored** SVG contour + local bounds, 3-pigment palette, semantic surface, stable seed, optional explicit direction/flow, details, transform and frame timing. A material recipe selects three independent physical pencil-mark passes, pigment density, core/rim value, support opacity, graphite and detail clipping. This does **not** auto-trace or semantically recognize an arbitrary photo, mesh or text request.
+
+The ten supported surface **mark recipes** are petal, leaf, citrus skin, transparent glass, polished metal, masonry, woven fabric, wood, stone and fur. Glass deliberately keeps \`opaqueSupport=false\`, because background is meant to remain visible through it; every solid surface instead fills an opaque paper silhouette before its coloured-pencil marks arrive. Realistic reflection/refraction, anatomy, window apertures and part hierarchy remain the author's responsibility.
+
+The authored original samples in \`src/video/colored-pencil-object-studies.ts\` are rose, citrus + glass still life, brick storefront façade and folded blue fabric + brass. Each composes semantic materials through the same public helper and supports both landscape/portrait native 960×540 / 540×960 drawings, frame seek, pressure and paper tooth. No downloaded artwork or dependencies are included.
+
+The **existing** Storybook root \`Video Production / Film Looks / Colour-pencil\` adds a single *Objects · Rose, glass, masonry and fabric* story. All source and API files remain in existing registry/video and src/video folders; **no new Storybook folder**. Controls include subject, aspect, pressure, tooth, seed, absolute frame, speed, reduced-motion and authored checkpoint playback.
+
+Reference/implementation matrix, licensing cautions and explicit pending ArtCraft numeric/visual gates: [Object materials study](../research/colour-pencil-objects-artcraft-study-2026-11-14.md). Verification: \`tests/colored-pencil-materials.test.tsx\` (all families, 4×2 aspects, transparent/solid separation, boundary inputs), \`tests/e2e-storybook/colored-pencil-materials.spec.ts\` (browser screenshot and reseek; local/manual proof). Full normal-speed export, source-relative crop fidelity and human artistic approval remain pending.
+
