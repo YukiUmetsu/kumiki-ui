@@ -52,6 +52,8 @@ test("wildlife animation preserves opaque bird parts under seek and aspect switc
     const body = stage.locator('[data-km-pencil-region="kingfisher-torso"]');
     await expect(body).toBeVisible();
     await expect(stage.locator('[data-km-pencil-support="kingfisher-torso"]')).toHaveCount(1);
+    await expect(stage.locator('[data-km-pencil-support="kingfisher-eye"]')).toHaveCount(1);
+    await expect(stage.locator('[data-km-pencil-support="kingfisher-beak"]')).toHaveCount(1);
     const original = await body.evaluate(node => node.outerHTML);
     await expect(stage.locator('[data-km-pencil-region="copperbird-head"]')).toHaveCount(0);
     await expect(stage.locator('[data-km-pencil-region="kingfisher-beak"]')).toHaveCount(1);
