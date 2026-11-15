@@ -72,7 +72,7 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
         <g clipPath={clipId ? "url(#"+clipId+")" : undefined}
           data-km-crayon-clipped-to={clipParent?.id}>
           <WaxRegion d={drawing!.d} bounds={drawing!.bounds!} colors={node.colors}
-            seed={seed} paperSeed={spec.seed}
+            seed={seed} paperSeed={spec.seed} paperColor={spec.paper}
             pressure={node.pressure ?? .84} spacing={node.spacing ?? 9} angle={node.angle ?? 0}
             tooth={tooth} frame={frame} first={node.timing.start} last={node.timing.end}
             construction={node.construction} coverage={node.coverage}
