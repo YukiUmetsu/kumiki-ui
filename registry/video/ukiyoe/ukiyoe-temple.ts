@@ -106,7 +106,7 @@ export function belfry(p: P, cx: C): Prim[] {
   }
   out.push(post(-W * .38, beamY, -W * .04), post(W * .38, beamY, W * .04));
   out.push({ t: "fill", d: rectD(-W * .44, -H * .3, W * .88, H * .03), fill: WOOD, outline: lw * .8 });
-  out.push(...roof({ x0: -W * .48, w: W * .96, y0: beamY - H * .04, h: 0, sd, sk }, H * .3, c, { top: true }));
+  out.push(...roof({ x0: -W * .48, w: W * .96, y0: beamY - H * .04, h: 0, sd, sk }, H * .3, c, { top: true, sori: .3 }));
   return out;
 }
 
@@ -128,7 +128,7 @@ export function hondo(p: P, cx: C): Prim[] {
   // The bell rope and gong over the offering box in the middle bay.
   out.push({ t: "stroke", d: `M0 ${f1(wallTop)}V${f1(-H * .2)}`, color: "beni", width: lw * 2.4 }, { t: "fill", d: ellipseD(0, wallTop + H * .03, W * .03, H * .025), fill: "kin", outline: lw });
   out.push({ t: "fill", d: rectD(-W * .07, -H * .18, W * .14, H * .08), fill: WOOD, outline: lw, grain: .6 });
-  out.push(...roof({ x0: -W * .45, w: W * .9, y0: wallTop - H * .03, h: 0, sd, sk }, H * .42, c, { kara: true, gables: 1 }));
+  out.push(...roof({ x0: -W * .45, w: W * .9, y0: wallTop - H * .03, h: 0, sd, sk }, H * .42, c, { kara: true, gables: 1, sori: .35 }));
   return out;
 }
 

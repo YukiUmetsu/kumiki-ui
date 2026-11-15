@@ -69,8 +69,8 @@ export function shop(p: P, cx: { seed: number; frame: number; wind: number }): P
   const slits: string[] = [];
   for (let i = 0; i < 14; i++) slits.push(rectD(-W * .4 + i * W * .056, -g - H * .06 - u * .78, W * .022, u * .5));
   out.push({ t: "fill", d: slits.join(""), fill: "sumi", opacity: .85 });
-  out.push(...roof({ x0: -W / 2, w: W, y0: -g, h: 0, sd, sk: sd * .4 }, H * .12, c, { long: true }));
-  out.push(...roof(up, H * .2, c, { long: true }));
+  out.push(...roof({ x0: -W / 2, w: W, y0: -g, h: 0, sd, sk: sd * .4 }, H * .12, c, { long: true, soffit: "wood" }));
+  out.push(...roof(up, H * .2, c, { long: true, soffit: "wood" }));
   // Firewalls (udatsu) standing at both ends of the roof.
   for (const s of [-1, 1]) {
     const x = s * W * .5 + (s > 0 ? sd : 0), y = up.y0 - up.h - (s > 0 ? sd * .4 : 0);
@@ -105,9 +105,7 @@ export function kura(p: P, cx: { seed: number }): Prim[] {
   out.push({ t: "fill", d: rectD(-ww / 2, wy - wh / 2, ww, wh), fill: "sumi", outline: c.lw });
   out.push({ t: "stroke", d: [1, 2, 3].map(k => `M${(-ww / 2 + ww * k / 4).toFixed(1)} ${(wy - wh / 2).toFixed(1)}l0 ${wh.toFixed(1)}`).join(""), color: "usuzumi", width: c.lw * .8 });
   for (const s of [-1, 1]) out.push({ t: "fill", d: rectD(s < 0 ? -ww / 2 - ww * .55 : ww / 2, wy - wh * .6, ww * .55, wh * 1.2), fill: "gofun", outline: c.lw });
-  out.push(...roof({ ...box, h: H * .8 }, H * .22, c, { top: true }));
-  // The crest on the gable end, a white roundel.
-  out.push({ t: "fill", d: ellipseD(W / 2 + sd * .5, -H * .78 - sd * .2, W * .07, W * .07), fill: "gofun", outline: c.lw * .7 }, { t: "fill", d: ellipseD(W / 2 + sd * .5, -H * .78 - sd * .2, W * .035, W * .035), fill: "sumi" });
+  out.push(...roof({ ...box, h: H * .8 }, H * .22, c, { long: true, gable: true, heavy: true, crest: true }));
   return out;
 }
 
