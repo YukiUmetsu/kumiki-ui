@@ -1,6 +1,6 @@
 import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
-import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonPaperHeight, crayonWaxContactClumps, crayonStrokeEndPickup, crayonMarks, crayonNibPath, crayonDryNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
+import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonPaperHeight, crayonWaxContactClumps, crayonStrokeEndPickup, crayonWaxFiberContacts, crayonMarks, crayonNibPath, crayonDryNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
 import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction, CrayonSgraffito } from "./crayon";
 import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
@@ -58,7 +58,13 @@ export type WaxProps = {
   /** Opt-in drawn contact layers; smooth remains the unchanged default. */
   deposition?: "smooth" | "stroke-built";
 };
-export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
+export type LineProps = { d: string; color: string; width: number;
+  frame: number; first: number; last: number; reduced: boolean;
+  seed: number; opacity?: number;
+  /** Opt-in real dry-wax deposits; classic crisp line remains default. */
+  contact?: "line"|"dry-wax";
+  paperSeed?:number; waxPressure?:number;
+};
 
 /** An opaque paper-wax undercoat, not a transparent silhouette or a
  * smooth colored vector slab. At light pressure the paper dominates; at
@@ -410,9 +416,24 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
 }
 
 /** Dry double-edged wax lines, not a generic smooth SVG path. */
-export function WaxLine({ d, color, width, frame, first, last, reduced, seed, opacity = 1 }: LineProps) {
+export function WaxLine({ d, color, width, frame, first, last, reduced,
+  seed, opacity = 1, contact = "line", paperSeed = 0, waxPressure = .7 }: LineProps) {
+  if(contact!=="line"&&contact!=="dry-wax")
+    throw new RangeError("Invalid CRAYON1 contour contact material");
   const reveal = crayonProgress(frame, first, last, 0, 1, reduced);
+  // Cached at the exact authored SVG scale and source paper seed.
+  // A cropped or scaled camera must never change the deposited material.
+  const wax = useMemo(()=>contact==="dry-wax"?
+    crayonWaxFiberContacts(d,width,seed,paperSeed,waxPressure,reveal):null,
+    [contact,d,width,seed,paperSeed,waxPressure,reveal]);
   if (reveal <= 0) return null;
+  if(contact==="dry-wax"){
+    return <g opacity={opacity} data-km-crayon-fiber-contact="dry-wax">
+      <path d={wax?.body??""} fill={color} opacity=".79"/>
+      <path d={wax?.pickup??""} fill={color} opacity=".96"
+        data-km-crayon-fiber-pickup=""/>
+    </g>;
+  }
   const wiggle = (crayonHash(seed, 9) - .5) * 2;
   return <g fill="none" strokeLinecap="round" strokeLinejoin="round" opacity={opacity} data-km-crayon-line="">
     <path d={d} pathLength={100} stroke={color} strokeWidth={width * 1.55} opacity=".22"
