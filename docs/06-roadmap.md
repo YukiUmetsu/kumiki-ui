@@ -188,9 +188,9 @@ and checked on rendered stills, then on the episodes:
 | Slice | Deliverable | State |
 |---|---|---|
 | **Q1 — Faces** | The bijin face after Utamaro (fine face line, narrow eyes with the iris hanging from the lid, grey brows, rouged mouth, combed hairline, powdered skin); front-view shimada; eight expressions (`emote`); face traits per look (`look.features`). | Delivered 2026-11-15 (PR #414). |
-| **Q2 — Clothing variety** | More kimono patterns and dyes (shibori, stripes, plaids, flowers, waves on hems), obi knots, layered collars, a wardrobe generator for women and men by class and season. | Delivered 2026-11-15. |
-| **Q3 — Animation** | Secondary motion (sleeves, hems, hair ornaments), weight shifts, anticipation and settle on actions, head turns. | Next. |
-| **Q4 — Effects** | Rain, snow, smoke, fire, water and light at print quality. | Queued. |
+| **Q2 — Clothing variety** | More kimono patterns and dyes (shibori, stripes, plaids, flowers, waves on hems), obi knots, layered collars, a wardrobe generator for women and men by class and season. | Delivered 2026-11-15 (PR #416). |
+| **Q3 — Animation** | Secondary motion (sleeves, hems, hair ornaments), weight shifts, anticipation and settle on actions, head turns. | Delivered 2026-11-15: spring follow-through on sleeves and hems, settle-overshoot on gestures, half-lid blinks, idle glances and head drift. |
+| **Q4 — Effects** | Rain, snow, smoke, fire, water and light at print quality. | Next. |
 | **Q5 — Transitions** | Beyond kasumi: scroll wipes, ink bleeds, page turns, shot-matched cuts. | Queued. |
 | **Q6 — Sound effects** | Recorded foley and hits chosen and checked with earshot, placed on action frames in the episodes. | Queued. |
 

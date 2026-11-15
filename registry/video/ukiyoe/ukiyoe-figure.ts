@@ -186,6 +186,8 @@ export interface FigurePose {
   fall: number;
   /** Expression weights (the `emote` action). */
   smile: number; laugh: number; sad: number; cry: number; surprise: number; angry: number; fear: number; shy: number;
+  /** Where the eyes look, −1 back … +1 forward (idle glances). */
+  gaze: number;
 }
 
 const STAND: FigurePose = {
@@ -193,7 +195,7 @@ const STAND: FigurePose = {
   shF: 10, elF: 28, shB: -4, elB: 18,
   hipF: 3, knF: 2, hipB: -3, knB: 2, footF: 0, footB: 0,
   mouth: 0, blink: 0, kneel: 0, headBack: 0, propAngle: 0, squash: 0, faceView: 0, splayF: 0, splayB: 0, fall: 0, reveal: 0,
-  smile: 0, laugh: 0, sad: 0, cry: 0, surprise: 0, angry: 0, fear: 0, shy: 0,
+  smile: 0, laugh: 0, sad: 0, cry: 0, surprise: 0, angry: 0, fear: 0, shy: 0, gaze: 0,
 };
 const KEYS = Object.keys(STAND) as (keyof FigurePose)[];
 
@@ -408,9 +410,15 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
   if (spec.look.prop === "baby") { pose.shF = 24; pose.elF = 100; pose.shB = 18; pose.elB = 104; }
   // A parasol bearer keeps both hands up on the pole whatever his legs are doing.
   if (spec.look.prop === "parasol") { pose.shF = 38; pose.elF = 62; pose.shB = 30; pose.elB = 70; }
-  // Seeded blinks every few seconds; eyes shut for 4 frames.
+  // Seeded blinks every few seconds: the lid comes half down, shuts for two frames and lifts through half again.
   const period = 96, slot = Math.floor((frame + seed % period) / period), at = (frame + seed % period) % period, blinkAt = 20 + Math.floor(hash01(seed, slot) * 60);
-  if (at >= blinkAt && at < blinkAt + 4) pose.blink = Math.max(pose.blink, 1);
+  const lidCurve = [.55, 1, 1, .5];
+  if (at >= blinkAt && at < blinkAt + 4) pose.blink = Math.max(pose.blink, lidCurve[at - blinkAt]);
+  // Idle life: the eyes glance now and then (held, then eased to the next), and the head drifts a little.
+  const gp = 84, gs = Math.floor((frame + seed % gp) / gp), gu = ((frame + seed % gp) % gp) / gp;
+  const glance = (i: number) => hash01(seed, i, 41) < .55 ? 0 : hash01(seed, i, 42) < .5 ? -.8 : .7;
+  pose.gaze = lerp(glance(gs), glance(gs + 1), smooth(clamp01((gu - .8) / .2)));
+  pose.tilt += Math.sin(frame / 53 + seed) * 1.1;
   return pose;
 }
 
@@ -612,7 +620,7 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
   const shut = pose.blink, browC = hairC === "usuzumi" ? "usuzumi" : "sumi";
   {
     const moods = { smile: pose.smile, laugh: pose.laugh, sad: pose.sad, cry: pose.cry, surprise: pose.surprise, angry: pose.angry, fear: pose.fear, shy: pose.shy };
-    const args = { P, k, lw, moods, traits, blink: shut, mouth: pose.mouth, hair: browC as UkiyoePaint, lips: look.lips };
+    const args = { P, k, lw, moods, traits, blink: shut, mouth: pose.mouth, hair: browC as UkiyoePaint, lips: look.lips, gaze: pose.gaze };
     out.push(...(tq ? faceThreeQuarter(args) : faceProfile(args)));
   }
   const shown = humanFeatures(ghost, pose.reveal);
@@ -841,9 +849,31 @@ export function figureHeight(look: UkiyoeFigureLook): number {
   return look.height ?? ({ slim: 262, average: 250, stout: 238, child: 168, brute: 300 } as const)[look.build ?? "average"];
 }
 
+/** Actions whose hands must land exactly on a contact frame: no follow-through is added to their arms. */
+const CONTACT_ACTIONS = new Set<UkiyoeActionType>(["draw", "kamae", "cut", "sheathe", "parry", "recoil", "smash", "swing", "chop", "hoe", "pound", "weave", "wash", "shoot", "throw", "hold", "carry", "pole", "row", "shake", "brace"]);
+/** A damped spring's response to a past velocity k frames ago: carries on, overshoots, settles. */
+const springK = (k: number) => Math.exp(-k / 3.2) * Math.cos(k * .62);
+/**
+ * The pose with follow-through: arms and body carry on a little past where an action leaves them, swing back and settle
+ * (from the pose's own recent motion, so it stays a pure function of the frame). Figures with contact actions are left
+ * exact.
+ */
+export function settledPose(spec: UkiyoeFigureSpec, frame: number, seed: number, H: number): FigurePose {
+  const base = figurePose(spec, frame, seed, H);
+  // Square views draw the arms as authored tubes whose sleeves are only shaped for the authored poses; leave them exact.
+  if ((spec.actions ?? []).some(a => CONTACT_ACTIONS.has(a.type)) || spec.look.view === "front" || spec.look.view === "back") return base;
+  const hist = Array.from({ length: 10 }, (_, k) => k ? figurePose(spec, frame - k, seed, H) : base), out = { ...base };
+  for (const ch of ["shF", "elF", "shB", "elB", "lean", "tilt"] as const) {
+    let acc = 0;
+    for (let k = 1; k < 9; k++) acc += (hist[k][ch] - hist[k + 1][ch]) * Math.exp(-k / 3) * Math.sin(.75 * k) * .4;
+    out[ch] += acc;
+  }
+  return out;
+}
+
 export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, seed: number): DrawnFigure {
   const H = figureHeight(spec.look), build = spec.look.build ?? "average";
-  const pose = figurePose(spec, frame, seed, H), prev = figurePose(spec, frame - 2, seed, H);
+  const pose = settledPose(spec, frame, seed, H), prev = settledPose(spec, frame - 2, seed, H);
   // A skeleton revealed: the hands go to bone with the face.
   const look: UkiyoeFigureLook = spec.look.face === "skull" && pose.reveal > .6 ? { ...spec.look, skin: "paper" } : spec.look.animal ? { ...spec.look, skin: ANIMAL_FUR[spec.look.animal] }
     // Women's faces and hands are powdered white (oshiroi), as in the prints, unless the look says otherwise.
@@ -935,8 +965,13 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   const sleeveDepth = H * (look.sleeves === "long" || uchi ? .34 : .17), sleeveW = H * (uchi ? .15 : .13);
   // Courtesan dress: tall clogs lift the whole figure (drawn at the end), kasane layers, the over-robe and its lining.
   const gh = look.feet === "koma-geta" ? H * KOMA_GETA_HEIGHT : look.feet === "okobo" ? H * OKOBO_HEIGHT : 0, layers = look.layers ?? [], lining = look.lining ?? "beni";
-  const lagF = clamp(((s.wrF[0] - sp.wrF[0]) * -1.4) + wl * -22, -55, 55), lagB = clamp(((s.wrB[0] - sp.wrB[0]) * -1.4) + wl * -22, -55, 55);
-  const travelLag = clamp((tr.moving ? -1 : 0) * (tr.moving?.type === "run" ? 18 : 6), -30, 30);
+  // Sleeves swing on a damped spring driven by the wrists' and the body's recent motion: they trail a moving arm, swing on
+  // past it when it stops, and settle.
+  const wristX = Array.from({ length: 11 }, (_, k) => { const sk = skeleton(figurePose(spec, frame - k, seed, H), H, build); return [sk.wrF[0], sk.wrB[0], travelAt(spec.actions ?? [], frame - k).x] as const; });
+  let sF = 0, sB = 0, sT = 0;
+  for (let k = 0; k < 10; k++) { const h = springK(k); sF += (wristX[k][0] - wristX[k + 1][0]) * h; sB += (wristX[k][1] - wristX[k + 1][1]) * h; sT += (wristX[k][2] - wristX[k + 1][2]) * h; }
+  const lagF = clamp(sF * -2.6 + wl * -22, -55, 55), lagB = clamp(sB * -2.6 + wl * -22, -55, 55);
+  const travelLag = clamp(-sT * dir * 2, -30, 30);
   const k = H * (build === "child" ? .085 : look.face === "oni" ? .08 : .064) / 18, stout = build === "brute" ? 1.4 : build === "stout" ? 1.14 : build === "slim" ? .93 : 1;
   const legC = look.legs ?? look.skin ?? "hada", feet = look.feet ?? "waraji";
   const back = (c: UkiyoePaint): UkiyoePaint => c;
@@ -987,7 +1022,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   // Robe skirt.
   const hemY = lower === "loincloth" ? lerp(s.hip[1], Math.max(s.knF[1], s.knB[1]), .5) : lower === "tucked" ? Math.max(s.knF[1], s.knB[1]) + H * .02 : gh ? gh * .45 : Math.max(s.anF[1], s.anB[1]) - H * .035;
   const frontX = Math.max(s.knF[0], s.anF[0], s.knB[0], s.anB[0]), backX = Math.min(s.knF[0], s.anF[0], s.knB[0], s.anB[0]);
-  const hemSway = Math.sin(frame / 7) * H * .006 * (tr.moving ? 1 : .2) - wl * H * .025;
+  const hemSway = Math.sin(frame / 7) * H * .006 * (tr.moving ? 1 : .2) - wl * H * .025 - sT * dir * H * .0012;
   const trailing = lower === "robe" && (look.hair === "shimada" || look.hair === "long" || look.hair === "hyogo" || look.sleeves === "long" || !!uchi);
   const hemF: Pt = [frontX + H * (trailing ? .06 : .05) * stout - hemSway * .5, hemY - H * .004], hemB: Pt = [backX - H * (trailing ? .12 : .07) * stout + hemSway, trailing ? gh : hemY + H * .006];
   if (lower === "hakama") {

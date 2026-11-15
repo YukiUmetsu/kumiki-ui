@@ -1575,6 +1575,27 @@ Storybook has **Parades**.
 - No haori patterns beyond kikko.
 - Nobody has done a human visual review yet.
 
+## Follow-through (quality slice Q3, 2026-11-15)
+
+**Approach.** Classical animation's follow-through and overlapping action, done as a damped spring over the figure's
+own recent poses: the sleeve swing takes the wrists' and the body's velocity history; arm follow-through takes the pose
+channels' history. No external reference was used for this slice.
+
+**Checked frame by frame.**
+
+- **A wave.** The arm drops from 158° and swings past the rest of 9° to −14° (−7° after softening the gain from .55
+  to .4). It comes back to 15° and settles at 9° by about frame 54.
+- **A walk.** Rendered frames 54–112 of a walk, a stop and a wave show sleeves and hem trailing, then swinging forward
+  and settling on the stop. The long sleeve swings past after the wave.
+- **Contact actions.** A `cut` figure's settled pose equals its base pose at every frame tested.
+
+**Not done.**
+
+- No anticipation before a gesture.
+- Hair ornaments other than the shimada pin do not swing.
+- No weight shift while standing.
+- Nobody has done a human review at playback speed.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

@@ -361,7 +361,7 @@ function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: numb
   const faceOval = female && look.build !== "child" ? [P(-.8, -.35), P(-.74, .42), P(-.4, .94), P(0, 1.12), P(.4, .94), P(.74, .42), P(.8, -.35), P(.55, -.95), P(0, -1.06), P(-.55, -.95)]
     : [P(-.88, -.3), P(-.8, .45), P(-.45, .92), P(0, 1.05), P(.45, .92), P(.8, .45), P(.88, -.3), P(.6, -.95), P(0, -1.08), P(-.6, -.95)];
   out.push({ t: "fill", d: smoothD(faceOval, true, .4), fill: skin, outline: lw * (female ? .42 : .7) });
-  const oni = look.face === "oni", shut = pose.blink > .5, ghost = isGhostFace(look.face) ? look.face : undefined, featStart = out.length;
+  const oni = look.face === "oni", ghost = isGhostFace(look.face) ? look.face : undefined, featStart = out.length;
   if (oni) {
     for (const s of [-1, 1]) {
       out.push({ t: "fill", d: ellipseD(s * r * .38, -r * .08, r * .24, r * .2), fill: "gofun", outline: lw }, { t: "dots", d: circleD(s * r * .36, -r * .06, r * .1), color: "sumi" });
@@ -371,7 +371,7 @@ function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: numb
     out.push({ t: "line", d: carvedLine([P(-.45, .52), P(0, .62), P(.45, .52)], r * .06, { taper: "both" }), color: "sumi" });
   } else {
     const moods = { smile: pose.smile, laugh: pose.laugh, sad: pose.sad, cry: pose.cry, surprise: pose.surprise, angry: pose.angry, fear: pose.fear, shy: pose.shy };
-    out.push(...faceFront({ P, k: r, lw, moods, traits: faceTraits(look, female), blink: shut ? 1 : 0, mouth: pose.mouth, hair: hairC === "usuzumi" ? "usuzumi" : "sumi", lips: look.lips }));
+    out.push(...faceFront({ P, k: r, lw, moods, traits: faceTraits(look, female), blink: pose.blink, gaze: pose.gaze * .6, mouth: pose.mouth, hair: hairC === "usuzumi" ? "usuzumi" : "sumi", lips: look.lips }));
     if (look.beard) out.push({ t: "fill", d: smoothD([P(-.5, .55), P(-.3, 1.2), P(0, 1.5), P(.3, 1.2), P(.5, .55), P(0, .85)], true, .4), fill: hairC, outline: lw * .7 });
   }
   // Ghost-story faces: the features smooth away or the bone shows, then the face's own marks.
