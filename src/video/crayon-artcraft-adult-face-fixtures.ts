@@ -50,7 +50,7 @@ export const portraitCriticalParts=[
   "tailored-scarf-wrap","tailored-scarf-tail",
   "nose-tip-underpaint","cheek-warm-pigment","tear-trough-value",
   "cheek-malar-crayon-red","cheek-far-crayon-red",
-  "forelock-loose-curl","nose-septum-alarm",
+  "forelock-loose-curl","nose-septum-alar",
 ] as const;
 const time={base:[1,98],value:[63,173],anatomy:[135,236],detail:[206,288]} as const;
 
@@ -273,20 +273,20 @@ export function crayonAdultFaceStudy(
     box(-34,-111,43,92),colors.noseShade,"anatomy",
     {parentId:"adult-face",coverage:"open",clipToParent:true,markStrength:.16,blendRadius:9,pressure:.38,spacing:7.5,outlineOpacity:0,edgeRoughness:0});
   wax("nose-alar-wing",
-    "M32 -40Q52 -51 61 -29Q60 -10 40 -14"+
-    "Q28 -8 17 -21Q18 -31 32 -40Z",
-    box(11,-58,59,61),colors.flesh,"anatomy",
-    {parentId:"adult-face",markStrength:.27,outlineOpacity:.02,spacing:7});
+    "M25 -39Q38 -44 48 -32Q52 -22 41 -19"+
+    "Q32 -19 21 -26Q20 -33 25 -39Z",
+    box(16,-49,42,39),colors.flesh,"anatomy",
+    {parentId:"adult-face",markStrength:.13,outlineOpacity:0,spacing:8});
   wax("nose-tip-reflected-wax",
-    "M12 -41Q25 -52 41 -41Q44 -33 32 -26"+
-    "Q17 -29 12 -41Z",
-    box(6,-57,44,39),colors.warm,"anatomy",
+    "M19 -37Q29 -44 38 -37Q40 -31 32 -28"+
+    "Q24 -30 19 -37Z",
+    box(13,-50,33,29),colors.warm,"anatomy",
     {parentId:"adult-face",coverage:"open",clipToParent:true,
-      blendRadius:5,markStrength:.12,pressure:.34,spacing:12,
+      blendRadius:8,markStrength:.07,pressure:.3,spacing:13,
       outlineOpacity:0,edgeRoughness:0});
   ink("nose-dorsal-soft-edge",
-    "M7 -103Q9 -81 14 -61M17 -49Q21 -40 25 -39",
-    "#b48775",1.25,"detail",{parentId:"adult-face",opacity:.68});
+    "M8 -87Q12 -61 18 -48",
+    "#b48775",.9,"detail",{parentId:"adult-face",opacity:.43});
   ink("nose-alar-undercut",
     "M22 -23Q28 -18 35 -20M39 -26Q45 -31 51 -27",
     "#a4716c",1.15,"detail",{parentId:"adult-face",opacity:.69});
@@ -294,11 +294,11 @@ export function crayonAdultFaceStudy(
   // These follow the existing forehead/dorsum underpainting and cannot leak
   // out of the continuous adult facial silhouette.
   wax("nose-tip-underpaint",
-    "M8 -35Q21 -48 36 -41Q48 -32 37 -23"+
-    "Q28 -20 15 -24Q11 -28 8 -35Z",
-    box(2,-55,52,44),colors.noseShade,"anatomy",
+    "M14 -36Q27 -49 42 -35Q43 -29 34 -25"+
+    "Q24 -25 17 -29Z",
+    box(8,-54,41,35),colors.noseShade,"anatomy",
     {parentId:"adult-face",coverage:"open",clipToParent:true,
-      blendRadius:4,markStrength:.15,pressure:.47,spacing:11,
+      blendRadius:8,markStrength:.1,pressure:.36,spacing:13,
       outlineOpacity:0,edgeRoughness:0});
   wax("nose-root-sunlight",
     "M1 -122Q11 -132 19 -116Q15 -91 18 -70"+
@@ -309,22 +309,22 @@ export function crayonAdultFaceStudy(
       outlineOpacity:0,edgeRoughness:0});
   // The nostril wing and septum do not meet as a glyph: the alar margin
   // turns around the bulb, the cast shadow stays below the tip.
-  ink("nose-septum-alarm",
-    "M20 -29Q23 -26 27 -28"+
-    "M42 -31Q45 -33 47 -30",
-    "#9a6862",.92,"detail",
-    {parentId:"adult-face",opacity:.78});
+  ink("nose-septum-alar",
+    "M26 -27Q31 -24 35 -27"+
+    "M44 -29L46 -30",
+    "#91615f",.87,"detail",
+    {parentId:"adult-face",opacity:.73});
   ink("dorsum-nose-bone-line",
-    "M-1 -118Q6 -98 9 -75Q8 -53 17 -39",
-    "#b78077",1.08,"detail",
-    {parentId:"adult-face",opacity:.63});
+    "M1 -94Q8 -66 14 -52",
+    "#b78a7a",.89,"detail",
+    {parentId:"adult-face",opacity:.44});
   ink("nose-tip-chromatic-highlight",
-    "M18 -40Q24 -44 33 -40Q38 -36 40 -31",
-    "#efd0af",1.6,"detail",
-    {parentId:"adult-face",opacity:.86});
+    "M19 -39Q25 -43 32 -39",
+    "#d7ad96",.86,"detail",
+    {parentId:"adult-face",opacity:.58});
   ink("nostril-underplane",
-    "M18 -29Q21 -26 24 -28M40 -29Q42 -31 44 -30",
-    "#b17c72",.68,"detail",{parentId:"adult-face",opacity:.45});
+    "M29 -27Q32 -26 35 -28",
+    "#b17c72",.63,"detail",{parentId:"adult-face",opacity:.35});
   ink("nasolabial-transition",
     "M58 -4Q66 4 64 12M-6 22Q-10 27 -8 31",
     "#ab7c75",.88,"detail",{parentId:"adult-face",opacity:.42});

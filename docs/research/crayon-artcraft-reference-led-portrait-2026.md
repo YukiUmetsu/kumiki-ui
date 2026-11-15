@@ -47,3 +47,7 @@ New checks must validate `inspectCrayonScene`, unique IDs, full opacity of adult
 - **Fail (chin):** face pointed excessively at the center. Flattened lower-jaw curve into a cheek-to-chin transition.
 
 Each repair is geometry/material-level code, not visual QA text. The revised browser evidence and ArtCraft acceptance are still pending. No user-supplied artwork was committed.
+
+### Second browser critique and anatomical nose rework
+
+[Source-native render 43665228712](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43665228712) improved cheeks and shortened the eyelashes, **but failed the nose crop again**. Front-facing, paired curved nostril glyphs and a pale circular highlight still resembled an animal snout rather than a human ala/columella. Third-stage changes narrow the alar mass to less than 45 local drawing units, lower nose-tip contrast, shorten the dorsal edge, and replace two bold mirrored nostril arcs with a single small near-nostril depression and much smaller far-side shadow. Strict tests guard these geometry constraints. The finished result remains an **unapproved style study**; no character galleries are unlocked.

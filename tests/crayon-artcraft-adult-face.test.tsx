@@ -59,10 +59,19 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(focus.parentId).toBe("adult-face");
       expect(focus.bounds.width).toBeLessThan(60);
       expect(focus.blendRadius).toBeLessThan(9);
+      const alarWing=nodes.get("nose-alar-wing");
+      if(alarWing?.kind!=="wax")throw new Error("Missing alar wing");
+      expect(alarWing.bounds.width).toBeLessThan(45);
+      const septum=nodes.get("nose-septum-alar");
+      if(septum?.kind!=="contour")throw new Error("Missing nose septum");
+      expect(septum.width).toBeLessThan(1);
+      const tip=nodes.get("nose-tip-underpaint");
+      if(tip?.kind!=="wax")throw new Error("Missing nasal tip wash");
+      expect(tip.blendRadius).toBeGreaterThanOrEqual(8);
       expect(nodes.get("forelock-loose-curl")?.kind).toBe("wax");
       expect(nodes.get("forelock-underturn")?.parentId).toBe("forelock-loose-curl");
       for(const id of ["forelock-fiber-direction","upper-lashes-rooted-near",
-        "upper-lashes-rooted-far","nose-septum-alarm","dorsum-nose-bone-line"]){
+        "upper-lashes-rooted-far","nose-septum-alar","dorsum-nose-bone-line"]){
         const node=nodes.get(id);
         expect(node?.kind,id).toBe("contour");
       }
