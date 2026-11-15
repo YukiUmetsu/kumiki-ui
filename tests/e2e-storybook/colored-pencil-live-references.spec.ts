@@ -233,6 +233,40 @@ for(const sample of ["woman","man"] as const){
         expect(await output.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
+        // True photograph-conditioned skin scumbling: original vs
+        // curved, layered pigment on the SAME real CC0 pixels. Neither
+        // black iris, eye aperture nor the exported video may change.
+        const weave=page.getByLabel("Pencil overlapping skin optical weave");
+        await weave.focus();
+        await weave.press("Home");
+        await expect(weave).toHaveValue("0");
+        await expect(full).toHaveAttribute("data-km-pencil-skin-weave","0");
+        await expect(full).toHaveAttribute("data-km-pencil-skin-weave-nibs","0");
+        const withoutWeave=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-skin-weave-legacy-0.png")});
+        await weave.press("End");
+        await expect(weave).toHaveValue("1");
+        await expect(full).toHaveAttribute("data-km-pencil-skin-weave","1");
+        const opticalNibCount=Number(
+          await full.getAttribute("data-km-pencil-skin-weave-nibs"));
+        const protectedSkinHighlights=Number(
+          await full.getAttribute("data-km-pencil-skin-weave-highlight-reserves"));
+        expect(opticalNibCount).toBeGreaterThan(300);
+        // Real camera exposure may contain no skin above the calibrated
+        // near-paper reserve threshold. Never fabricate a highlight;
+        // synthetic pure-white source is covered by the dedicated unit gate.
+        expect(Number.isInteger(protectedSkinHighlights)).toBe(true);
+        expect(protectedSkinHighlights).toBeGreaterThanOrEqual(0);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(withoutWeave);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-skin-weave-optical-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Actual licensed source, ALL four chronologically composited
         // Storybook shots. Stage 1..4 must contain increasing genuine
         // pencil marks; the exported film bitmap must not be affected.
