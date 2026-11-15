@@ -124,6 +124,9 @@ describe("CC0 photo-derived portrait feature construction",()=>{
     expect(()=>createPencilPortraitFeatureMarks(photo(),{
       ...guides,eyeNearCenter:[NaN,22],
     })).toThrow(RangeError);
+    expect(()=>createPencilPortraitFeatureMarks(photo(),{
+      ...guides,lipRight:guides.lipLeft,
+    })).toThrow(RangeError);
   });
   it("applies features ONLY when matching photo guides are explicitly supplied",()=>{
     const input=photo(104,72);
