@@ -83,6 +83,7 @@ function PaperPageTurn({shot,reducedMotion,renderProps}:{
   const right=spec.direction==="left-to-right";
   const facing=right?degrees:-degrees;
   const edge=right?"right":"left";
+  const freeEdge=right?"left":"right";
   const width=outgoing.width, color=spec.color;
   return <div data-km-paper-page-turn="" data-km-paper-phase={phase}
     data-km-paper-angle={degrees.toFixed(3)}
@@ -107,11 +108,13 @@ function PaperPageTurn({shot,reducedMotion,renderProps}:{
       }}>
         <PaperCraftStage {...renderProps} spec={outgoing} frame={outgoingFrame}
           reducedMotion={reducedMotion} aria-hidden="true"/>
-        {/* Real narrow cardstock edge; no semi-transparent illustration. */}
-        <div aria-hidden="true" style={{
-          position:"absolute",top:0,bottom:0,[right?"right":"left"]:0,
-          width:Math.max(2,width*.006),backgroundColor:paperShade(color,-.16),
-          boxShadow:right?"-2px 0px 6px #291f2638":"2px 0px 6px #291f2638",
+        {/* The moving FORE edge is opposite the book hinge.
+            Attaching stock to the spine looked like a digital crop during
+            the first real native preview. A real paper edge casts shadow. */}
+        <div data-km-paper-fore-edge="" aria-hidden="true" style={{
+          position:"absolute",top:0,bottom:0,[freeEdge]:0,
+          width:Math.max(3,width*.007),backgroundColor:paperShade(color,.14),
+          boxShadow:right?"-4px 0px 9px #20191f72":"4px 0px 9px #20191f72",
         }}/>
       </div>
       <div data-km-paper-leaf-verso="" style={{
@@ -120,6 +123,15 @@ function PaperPageTurn({shot,reducedMotion,renderProps}:{
         boxShadow:"inset 0 0 12px #241c1d1f",
       }}/>
     </div>
+    {/* The turned verso is nearly edge-on beyond 90 degrees. Preserve its
+        physical paper thickness as it tucks into the book binding; do not
+        insert a ghosted reverse image or invent a full-size second flap. */}
+    {phase==="opening" && <div data-km-paper-reverse-tuck="" aria-hidden="true"
+      style={{position:"absolute",top:0,bottom:0,[edge]:0,
+        width:Math.max(.1,width*.024*(1-progress)),
+        backgroundColor:color,
+        boxShadow:right?"-3px 0px 8px #1d1a2070":"3px 0px 8px #1d1a2070",
+      }}/>}
     {/* Independently constructed spine remains pinned throughout. */}
     <div data-km-paper-spine="" aria-hidden="true" style={{
       position:"absolute",top:0,bottom:0,[edge]:0,

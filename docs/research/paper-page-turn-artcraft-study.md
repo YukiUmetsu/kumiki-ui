@@ -48,3 +48,12 @@ The tangent at the stitch jumps 2.5° (88.75→91.25), intentionally avoiding th
 - A single flat leaf produces a book flip but not realistic bowed paper or a V-fold. Do not claim otherwise. Rich animation of people/animals remains a separate D4 ArtCraft subject.
 
 **Result status:** awaiting actual exported pixel inspection and full-speed video review; type tests alone are insufficient.
+
+## ArtCraft preview critique — first actual film (D3.1)
+
+Reviewed full native 960×540 and 540×960 f228/234/239/240/246/251 and encoded 34-frame 30fps preview from CI. The old paper art remains attached and the incoming diorama is complete, which passes the editorial/no-ghosting gate. Two material weaknesses were identified and corrected upstream:
+
+1. **Incorrect paper fore-edge registration:** the narrow colored card-edge strip was placed on the *hinge* side, whereas the visible moving edge is opposite. The f234 cut looked like a plain flat rectangular wipe. Moved the stock/shadow to the actual free edge.
+2. **No visible trailing reverse-stock cue:** after 90°, the old page is projected outside the frame. The incoming frames appeared static with no evidence of sheet thickness. Added a strictly narrow opaque reverse-stock tuck at the hinge, shrinking continuously from the edge-on width to 0 by f251, rather than creating a fake ghosted second illustration.
+
+**Release remains gated** on rerendering the *same* frames and normal-speed clip at final head and examining the actual fore-edge under motion. A thin reverse tuck does not make this a physically accurate bowed paper deformation. Outer stock remains 100% opaque.

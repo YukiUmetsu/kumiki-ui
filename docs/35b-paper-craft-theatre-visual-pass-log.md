@@ -263,3 +263,8 @@ The first general film pass used the same translation keys on every moth sheet. 
 The director now supports a second original physical edit style: a full previous **printed paper scene on a revolving rigid card**, with next paper diorama already behind it. Both paper sides have their own stock pigment and the fixed book hinge has independent depth cues. In contrast to the D2 curtain, the previous picture visibly folds away with the page rather than being covered by an opaque sliding strip.
 
 Acceptance matrix: raw CSS 3D page at 0°, 89°, 91°, 180°; f228/234/239/240/246/251 in both 960×540 and 540×960; no old/new art transparency; no blank destination during the seam; native 34-frame encoded clip; regression of D2 curtains, paper material stocks, reduced-motion state and storyboard validation. The final source reference and feature audit is [PAPER-D3](research/paper-page-turn-artcraft-study.md); artist approval and true flexible page curl remain open.
+
+
+## PAPER-D3 first video inspection and material-edge correction
+
+Inspected native 16:9/9:16 frames and 34-frame page-turn MP4. Seam framing and opaque source paper art passed. f234 showed an unconvincingly straight digital-looking cut: the paper edge shading had been placed on the **binding** side instead of the actual **moving free edge**. At f240 onward, no backside material remained visible. Corrected the fore-edge stock placement and added an opaque, narrowing reverse-paper tuck at the gutter. Pending final rerender and artistic inspection; do not call this a realistic elastic page-curl simulation.

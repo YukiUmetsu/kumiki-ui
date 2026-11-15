@@ -50,6 +50,9 @@ describe("PAPER-D3 printed leaf and book-gutter transition",()=>{
         expect(html).toContain('data-km-paper-printed-front=""');
         expect(html).toContain('data-km-paper-leaf-verso=""');
         expect(html).toContain('data-km-paper-spine=""');
+        expect(html).toContain('data-km-paper-fore-edge=""');
+        if(phase==="opening")expect(html).toContain('data-km-paper-reverse-tuck=""');
+        else expect(html).not.toContain('data-km-paper-reverse-tuck=""');
         expect(html).toContain('data-km-paper-next-page=""');
         expect((html.match(/data-km-paper-craft=""/g)||[]).length).toBe(2);
         expect(html).not.toContain('data-km-paper-curtain=""');
