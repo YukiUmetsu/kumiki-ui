@@ -101,12 +101,14 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
         {grain.map((dot,i)=><circle key={i} cx={dot.x} cy={dot.y}
           r={dot.r} fill="#000" opacity={dot.value}/>)}
       </pattern>
-      <mask id={uid+"-craft-mask"} maskUnits="userSpaceOnUse"
-        x={0} y={0} width={drawing.width} height={drawing.height}>
-        <rect width={drawing.width} height={drawing.height} fill="#fff"/>
-        <rect width={drawing.width} height={drawing.height}
-          fill={"url(#"+uid+"-craft-grain)"} opacity={.65*drawing.paperTooth}/>
-      </mask>
+      {drawing.regions.map((region,i)=>region.craft&&
+        <mask key={region.id} id={uid+"-craft-mask-"+i} maskUnits="userSpaceOnUse"
+          x={0} y={0} width={drawing.width} height={drawing.height}>
+          <rect width={drawing.width} height={drawing.height} fill="#fff"/>
+          <rect width={drawing.width} height={drawing.height}
+            fill={"url(#"+uid+"-craft-grain)"}
+            opacity={Math.min(.92,.86*drawing.paperTooth*region.craft.tooth)}/>
+        </mask>)}
       <pattern id={uid + "-tooth"} width={1024} height={1024} patternUnits="userSpaceOnUse">
         {pores.map((dot, i) => <circle key={i} cx={dot.x} cy={dot.y}
           r={dot.radius * (.45 + drawing.paperTooth * .45)} fill="#000"
@@ -145,7 +147,7 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
         {region.craft && (reducedMotion || frame > region.layers[0].startFrame) &&
           <path data-km-pencil-craft-base="" d={region.path}
             fill={"url(#"+uid+"-tone-"+index+")"}
-            mask={"url(#"+uid+"-craft-mask)"}
+            mask={"url(#"+uid+"-craft-mask-"+index+")"}
             opacity={( .76 + .20*region.craft.burnish) * evaluatePencilMark(frame,{
               startFrame:region.layers[0].startFrame,
               durationFrames:Math.max(45,Math.floor(region.layers[0].durationFrames*.64)),
