@@ -71,7 +71,7 @@ const oval=(x:number,y:number,rx:number,ry:number):PencilAnatomyCurve=>{
 export function pencilPortraitAnatomy(
   camera:PencilPortraitCamera={},
 ):PencilPortraitAnatomy{
-  const {centerX=230,centerY=226,scaleX=1.3,scaleY=1.42,yaw=7.5}=camera;
+  const {centerX=230,centerY=226,scaleX=1.3,scaleY=1.42,yaw=-8.5}=camera;
   if(![centerX,centerY,scaleX,scaleY,yaw].every(Number.isFinite)||
     scaleX<.5||scaleX>2.5||scaleY<.5||scaleY>2.5||
     Math.abs(yaw)>35)
@@ -104,12 +104,15 @@ export function pencilPortraitAnatomy(
   const irises={R:oval(0,0,1,1),L:oval(0,0,1,1)};
   const pupils={R:oval(0,0,1,1),L:oval(0,0,1,1)};
   for(const side of ["R","L"] as const){
-    const [x,rawY]=project(ctr[side]);
+    const [x]=project(ctr[side]);
     const [,top,,h]=eyes[side].bounds;
-    const y=Math.min(top+h-3,Math.max(top+3,rawY+3.5));
+    // The actual upper/lower ANAT1 lid opening occludes iris and pupil;
+    // avoid projecting an entire circular globe outside a shallow lid.
+    const y=top+h/2;
+    const half=Math.min(4.0,(h-4)/2-.2);
     const irisRadius=Math.min(7.1,IRIS_DIAMETER_MM*scaleX*.44);
-    irises[side]=oval(x,y,irisRadius,4.3);
-    pupils[side]=oval(x+.35,y,2.3,3.75);
+    irises[side]=oval(x,y,irisRadius,half);
+    pupils[side]=oval(x+.35,y,2.3,Math.max(1.8,half-.7));
   }
   const browInk={R:features["brow.R"],L:features["brow.L"]};
   const browRibbon=(side:"R"|"L")=>{
