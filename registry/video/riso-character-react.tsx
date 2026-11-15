@@ -1,6 +1,7 @@
+import { useId } from "react";
 import type { ReactNode } from "react";
 import { evaluateRisoCharacter } from "./riso-character";
-import type { RisoCharacterSpec } from "./riso-character";
+import type { RisoCharacterSpec, RisoPartFrame } from "./riso-character";
 import type { RisoPaint } from "./print-plates-react";
 
 export interface RisoCharacterInkProps {
@@ -68,15 +69,48 @@ export function RisoCharacterInk({
 }: RisoCharacterInkProps) {
   validPlacement(x, y, scale);
   const evaluated = evaluateRisoCharacter(spec, frame, { reducedMotion, disableIK });
+  // Each paper clearance is a local ink knockout for all earlier parts:
+  // the coat may be behind the face, but cannot be visible *through* it.
+  // Later facial ink remains printable; no alpha-opacity trick is used.
+  const maskUid = useId().replace(/[^a-z0-9]/gi, "");
+  const indexed = evaluated.parts.map((part, index) => ({ part, index }));
+  const clearances = indexed.filter(({part}) => part.knockoutOnly);
+  const painted = indexed.filter(({part}) => part.plate === plateId && !part.knockoutOnly);
+  const segments: Array<{
+    key: string;
+    ink: RisoPartFrame[];
+    clearance: typeof clearances;
+  }> = [];
+  for (const {part,index} of painted) {
+    const clearance = clearances.filter(c => c.index > index);
+    const key = clearance.map(c => c.index).join("-");
+    const previous = segments[segments.length-1];
+    if (previous && previous.key === key) previous.ink.push(part);
+    else segments.push({key, ink:[part], clearance});
+  }
+  const inkPath = (part:RisoPartFrame) => <path key={part.id}
+    data-km-riso-part={part.id} d={part.d} transform={part.transform}
+    fill={part.paint === "screen" ? paint.dots : paint.solid}
+    opacity={part.opacity}/>;
   if (!spec.parts.some(p => p.plate === plateId))
     throw new RangeError("RISO2 character has no authored ink for plate " + plateId);
   return <g data-km-riso-character={spec.id} data-km-riso-expression={evaluated.expression}
       data-km-riso-sampled-frame={evaluated.sampledFrame}
       transform={`translate(${x} ${y}) scale(${scale})`}>
-    {evaluated.parts.filter(part => part.plate === plateId && !part.knockoutOnly).map(part =>
-      <path key={part.id} data-km-riso-part={part.id} d={part.d}
-        transform={part.transform} fill={part.paint === "screen" ? paint.dots : paint.solid}
-        opacity={part.opacity} />)}
+    {segments.some(group => group.clearance.length > 0) && <defs>
+      {segments.map((group, i) => group.clearance.length > 0 && <mask
+        key={i} id={maskUid+"-paper-clear-"+i}
+        maskContentUnits="userSpaceOnUse" x="-20%" y="-20%" width="140%" height="140%">
+        <rect x={-16384} y={-16384} width={32768} height={32768} fill="white"/>
+        {group.clearance.map(({part})=><path key={part.id} d={part.d}
+          transform={part.transform} fill="black"/>)}
+      </mask>)}
+    </defs>}
+    {segments.map((group,i)=><g key={i}
+      data-km-riso-ink-segment={i}
+      mask={group.clearance.length>0?"url(#"+maskUid+"-paper-clear-"+i+")":undefined}>
+      {group.ink.map(inkPath)}
+    </g>)}
     {showRig && plateId === "blue" && <g data-km-riso-rig-diagnostics=""
       pointerEvents="none" fill="none" stroke="#ED4772" strokeWidth={1.6}>
       {evaluated.joints.filter(j => j.parent).map(j => {
