@@ -111,9 +111,9 @@ const portraitFigure = ():WatercolourArtPart => {
   const eye=(side:"near"|"far"):WatercolourArtPart=>{
     const near=side==="near", cx=near?249:350,cy=near?230:220;
     const a=cx-(near?27:23),b=cx+(near?27:24);
-    const upper="M"+a+" "+cy+" Q"+(cx-12)+" "+(cy-16)+" "+cx+" "+(cy-9)+
-      " Q"+(cx+14)+" "+(cy-15)+" "+b+" "+(cy-1);
-    const lower="M"+a+" "+cy+" Q"+cx+" "+(cy+14)+" "+b+" "+(cy-1);
+    const upper="M"+a+" "+cy+" Q"+(cx-12)+" "+(cy-12)+" "+cx+" "+(cy-7)+
+      " Q"+(cx+14)+" "+(cy-12)+" "+b+" "+(cy-1);
+    const lower="M"+a+" "+cy+" Q"+cx+" "+(cy+8)+" "+b+" "+(cy-1);
     const blink=[pose(0),pose(171),pose(180,0,0,0,1,0),
       pose(188,0,0,0,1,0),pose(197),pose(310),
       pose(319,0,0,0,1,0),pose(326,0,0,0,1,0),pose(334),pose(359)];
@@ -128,18 +128,18 @@ const portraitFigure = ():WatercolourArtPart => {
         "#A9878C",.18,{highlight:"#E7BCAF",shadow:"#7F7885"},112,55),
       group(side+"-open-eyelids",[
         wash(side+"-sclera",
-          "M"+a+" "+cy+" Q"+cx+" "+(cy-19)+" "+b+" "+(cy-1)+
-          " Q"+cx+" "+(cy+14)+" "+a+" "+cy+" Z",
+          "M"+a+" "+cy+" Q"+cx+" "+(cy-13)+" "+b+" "+(cy-1)+
+          " Q"+cx+" "+(cy+8)+" "+a+" "+cy+" Z",
           "#E3D8CC",.78,{highlight:"#F9EDDD",shadow:"#B6ABA7"}),
         group(side+"-iris-gaze",[
           wash(side+"-iris",
             "M"+(cx-7)+" "+(cy-5)+" Q"+(cx-11)+" "+(cy+5)+" "+
-            cx+" "+(cy+9)+" Q"+(cx+10)+" "+(cy+5)+" "+(cx+7)+" "+(cy-5)+" Z",
+            cx+" "+(cy+6)+" Q"+(cx+8)+" "+(cy+4)+" "+(cx+7)+" "+(cy-5)+" Z",
             near?"#5C7D7D":"#6E8990",.97,
             {highlight:"#B0B2A6",shadow:"#2D4857",edgePooling:.18}),
           wash(side+"-pupil",
             "M"+(cx-2)+" "+(cy-5)+" Q"+(cx+5)+" "+(cy-5)+" "+
-            (cx+4)+" "+(cy+4)+" Q"+cx+" "+(cy+8)+" "+(cx-3)+" "+(cy+3)+" Z",
+            (cx+4)+" "+(cy+2)+" Q"+cx+" "+(cy+5)+" "+(cx-3)+" "+(cy+2)+" Z",
             "#273945",.99),
           wash(side+"-glint",
             "M"+(cx-3)+" "+(cy-4)+" q4 -3 5 0 q-1 4 -5 3 Z",
