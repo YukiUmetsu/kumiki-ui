@@ -56,3 +56,17 @@ This is still a qualitative watercolor approximation, not spectral Kubelka–Mun
 - Better cheek/jaw feathering and water blooms with fiber distribution measured from paper.
 - Eyes with actual eyelash roots, tiny tear line and realistic specular occlusion.
 - Several ethnically diverse original sitters/ages, different lighting and body turns, true rig reusability and proof crops.
+
+## Actual visual QA and design corrections (WC12)
+
+The first WC12 **Chromium Storybook PNG** passed the browser tests, and showed a calmer cheek/temple wash with less angular pigmentation than WC11. It still had nearly absent nose/lip definition and two planar hair wings; those defects were found by inspecting the *actual raster result*, not by accepting tests as artistic proof.
+
+The second WC12 **production FilmStage 540×960 and 960×540 PNGs at frame 255** (Action run [43659186405](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43659186405)) passed along with real MP4s of frames 210–245. Real production review found finer iris/skin contrast, close facial 9:16 framing and contained eye gaze. However, long dark smooth hair blocks still looked like matte vector cardboard instead of watercolor brush painting. A fourth pass replaced triangular bangs with flowing scalp-rooted paths and six softly feathered direction-following wash ribbons; final dual-ratio verification is required before release.
+
+### Technical failure falsification
+
+The first deep group used a new `eye-aperture` between existing open eyelids and `iris-gaze`, exceeding the previously enforced maximum tree depth eight. This caused 7 targeted failures and was corrected by moving the static SVG `clipPath` to the existing `open-eyelids` group. The semantics remain: the upper/lower lid geometry is authored in stationary coordinates while iris transforms move within the masked aperture. Retain regression testing; do not increase scene budget just to make tests pass. The first full film proof also failed during React capture startup (null `useId`); a successful later full native proof validates only the corrected version. `scripts/film.mjs` now includes browser error stacks to avoid vague capture diagnostics in future.
+
+### Quality limits
+
+Color fidelity of glazing, water transport and edge softness is qualitative; the face remains an original stylization and **is not a convincing photorealistic sitter or master watercolor equivalence**. Future work should target source-driven brush pressure and feathering, hair silhouette with individual clumps and strand depths, physically grounded neck/clavicle shadows, age/skin-tone variation and a professional art director reference crop QA.
