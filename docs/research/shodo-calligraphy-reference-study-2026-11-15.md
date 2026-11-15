@@ -1,0 +1,164 @@
+# SHO1 — Shodō (Japanese brush calligraphy) reference study
+
+**Date:** 2026-11-15
+**Implementation:** `registry/video/shodo/` (pack `shodo-calligraphy`)
+**Status:** reference study for a code-drawn calligraphy engine. It is not a claim of artist-level fidelity.
+
+## 1. What was studied, and how
+
+The study used text sources for technique and real writing videos for motion. Each video was downloaded at low resolution into a session scratch folder for frame study only. No frame, glyph outline or coordinate from a video, a font or KanjiVG was traced into the bundled glyphs. The videos stay with their owners. This document records observations, not copies.
+
+| # | Source | What it shows | Frames studied |
+|---|---|---|---|
+| V1 | [山口芳水: スーパースロー 学習 書道 点画 (横一・縦一)](https://www.youtube.com/watch?v=96UHwtd51nk) | Super-slow close-ups of a horizontal, a vertical and a turn, top view and oblique view, on gridded practice hanshi | 0:60, 2:58–3:22 (1.5 fps), 10:00–10:30 (1.2 fps) |
+| V2 | [書道用品専門店 大阪教材社: 永字八法の書き方](https://www.youtube.com/watch?v=6zy5ourKOGk) | Whole 永 in kaisho, oblique camera, the dot formed at 6 fps | 0:00–0:36 at 1 fps, 0:00–0:04 at 6 fps, final frame |
+| V3 | [松本松栄堂 書道教室: 「永」の書き方とコツ](https://www.youtube.com/watch?v=afB6vG44CnI) | Top view of 永 stroke by stroke, red teaching notes | 0:00–0:58 at 1 fps |
+| V4 | [新日本書道教育連盟: 永字八法 書道の基本点画](https://www.youtube.com/watch?v=eZkb8oT3FMI) | Brush held upright (筆を立てる), elbow out, oblique view of each stroke | 0:00–0:47 at 1 fps |
+| V5 | [よしみん先生: お手本動画 5年「道」](https://www.youtube.com/watch?v=JXu6liF8G9M) | Top view: black model on gridded hanshi beside a vermilion (朱墨) overwrite, the same layout as the brief | 0:40–1:40 at 2 fps, 1:40 frame |
+| V6 | [松本松栄堂 書道教室: 「道」の書き方とコツ](https://www.youtube.com/watch?v=QbRro_SrRkE) | 道 on hanshi over a faint grid underlay, wooden bunchin, the long 辶 sweep | 1:10 frame |
+| V7 | [Emilio Nakagawa: Quick & Slow, Strong & Weak Stroke](https://www.youtube.com/watch?v=8W0qwEmOfG4) | Wide view of a teacher contrasting speed and pressure | 0:00–0:51 at 1 fps |
+| V8 | [祥香堂: 条幅のレッスン #005 潤筆と渇筆](https://www.youtube.com/watch?v=uIy3bniDUz8) | Gyōsho on a hansetsu scroll: wet (潤筆) and dry (渇筆) brush in one work, captioned | 0:00–3:03 at 0.25 fps, 1:40, 1:52, 2:08 frames |
+| V9 | [筆文字でかすれを出す方法](https://www.youtube.com/watch?v=g_wTl6At5oE) | Blotting the brush to make kasure, then fast strokes | 0:00–2:50 at 0.25 fps |
+| V10 | [書道/半切の書き方 カスレが美しく見えるように墨をつける](https://www.youtube.com/watch?v=ViAHBRU0CiM) | Ink loading for kasure on a hansetsu work | sampled at 1/12 fps |
+
+Text sources (graded):
+
+| Source | Grade | Used for |
+|---|---|---|
+| [Takase Studios, lesson 3: basic strokes](https://takase.com/learn-japanese-calligraphy/lesson-3/) | B — a working teacher's lesson | The 45° press-and-ease entry, the brush rotation at each tome, the tategahane pause and short 45° line before the flick |
+| [Takase glossary](https://takase.com/library/glossary-japanese-calligraphy-terms), [traditional calligraphy](https://takase.com/library/traditional-japanese-calligraphy) | B | Nijimi is a required quality, not a fault; kasure looks like a brush that is running out |
+| [Wikipedia: Eight Principles of Yong](https://en.wikipedia.org/wiki/Eight_Principles_of_Yong) | C — summary, cites the classical texts | The eight stroke families in 永 |
+| [JAANUS: gasenshi](https://projects.mcah.columbia.edu/jaanus/node/4479), [JAANUS: kappitsu](https://projects.mcah.columbia.edu/jaanus/record/kappitsu) | A — scholarly dictionary | Gasenshi spreads ink fast; kappitsu is a half-dry brush that abrades |
+| [pigment.tokyo: colours of sumi](https://pigment.tokyo/en/blogs/article/colors-of-sumi) | B — specialist dealer | Blue-black and brown-black sumi; the colour difference grows as the ink is diluted |
+| [Xu et al. 2002, A Solid Model Based Virtual Hairy Brush](https://diglib.eg.org/handle/10.2312/8908), [Bai et al. 2009, Chinese Hairy Brush](https://pure.nwpu.edu.cn/en/publications/chinese-hairy-brush-a-physically-based-model-for-calligraphy/) | A — peer reviewed | A brush as a deformable tuft with a contact footprint and a separate ink and paper model |
+| [Oriental Art Supply: calligraphy grid practice paper](https://orientalartsupply.com/products/calligraphy-grid-practice-paper) | B — product photographs | Red ink grid lines on absorbent practice paper, major and minor weights |
+| [KanjiVG stroke types](https://kanjivg.tagaini.net/stroke-types.html) | A — the data set's own documentation | `kvg:type` stroke classes for the optional adapter |
+
+## 2. Observations
+
+### 2.1 The brush on the paper
+
+- **The tip trails, the belly leads.** In V1 (2:58–3:22) the inked tuft lies on the paper as a long blade. The tip points back toward where the stroke started; the belly (腹) is near the ferrule. The contact footprint is a teardrop: sharp at the tip, round and wide at the belly.
+- **Pressure lengthens and widens the footprint together.** As the writer presses in V1, the blade gets both longer and wider, and the tuft bends at a knee just below the ferrule. The handle angle hardly changes; the hair takes the deflection.
+- **The kaisho brush is held nearly upright.** V4 states 筆を立てる (stand the brush) and ヒジを張る (lift the elbow). The handle leans only a little toward the writer. Seen from above (V3, V5), the handle points toward the lower right for a right-handed writer and grows with perspective because its end is close to the camera.
+- **Turns are a stop and a new press, not a curve.** In V1 (10:00–10:30) the brush stops at the corner of a 横→縦 turn, lifts a little, presses again toward the lower right, and the tuft folds to a sharp knee before the vertical continues with the tip now trailing upward. This is what makes the shoulder (肩) of 口, 目 and 永.
+- **The entry is a 45° press, then an ease back.** Takase: "most strokes begin with the brush at a 45° angle, pressed gently and then eased back up". V2 and V3 show the same angled head on every horizontal and vertical.
+- **Each ending has its own move.** Takase and V3: a horizontal tome lifts without leaving the paper, turns about 45° clockwise, presses again and lifts off. A vertical with hane pauses, draws a short 45° line down-left, then flicks up-left quickly. A right sweep (右払い) starts with no pressure, grows to a pressed "foot", pauses, turns the hair flat and pulls right while lifting, which gives the chisel end. A left sweep keeps even pressure along an arm-driven arc and lifts gradually.
+- **Timing.** At a teacher's demonstration pace (V2), the 永 dot forms in about 0.5 s, and the whole character takes about 25 s with pauses between strokes. A confident performance is two to three times faster. Movement between strokes is a lifted arc through the air, not a slide.
+
+### 2.2 The ink
+
+- **Dense sumi on hanshi is solid black with a fibrous edge** (V2 final frame, V5, V6). The edge is not a blur. It is a thin, irregular fringe that follows the paper fibres.
+- **Pools form where the brush stops.** Entry presses, turns and tome ends hold more ink than the travelling middle. These places bleed first and stay glossy longest.
+- **Kasure is black and white, not grey.** In V8 (渇筆 sections, 1:52) the dry strokes show white paper channels that run along the stroke direction. The ink between the channels is still dark. The channels appear first at the outer side of curves and in fast sections, and a fast pull (スススッと引っ張る) splits the end into separate hair lines. A freshly dipped brush (潤筆, "たっぷり墨の入った線") gives smooth, full edges.
+- **Ink runs down over a sequence of strokes.** V8 and V9 show writers loading the brush once and letting it empty. The first strokes after a dip are wet and full. Later strokes get kasure. The writer re-dips before the next wet passage.
+- **Vermilion (朱墨) behaves like sumi with a lighter, more saturated body** (V5). Split hair lines at the end of the sweep are as visible as in black ink.
+- **Diluted ink (淡墨) shows a dark wet core inside a paler, wider spread**, and the hue of blue-black or brown-black sumi is stronger when diluted (pigment.tokyo).
+
+### 2.3 The practice sheet: a faint vermilion mesh
+
+- **V1 practice hanshi** (0:60 and 2:58 frames) has thin vermilion print lines: a few major cells, fainter dotted half lines, short center tick marks and a small circle at the center crossing. A narrow left column holds the printed name and date field.
+- **Grid papers for brush practice** (Oriental Art Supply photographs) print major and minor lines in red ink. The minor lines are clearly lighter. The print is slightly uneven where the absorbent paper took the ink.
+- **The lines sit under the ink.** A dense stroke hides them completely; a pale stroke lets them show through.
+- **Design decision:** the default "kentei" sheet uses a barely visible xy mesh in vermilion at about 10% opacity, with slightly stronger major lines and a center mark. All weights, the pitch and the colour are parameters. The grid is printed into the paper layer, so the ink covers it.
+
+### 2.4 The desk
+
+V1, V2 and V6 show the same set: hanshi on a black or navy felt underlay (下敷き), a paperweight (文鎮) across the top, the inkstone (硯) to the right. The felt is visible around the sheet.
+
+## 2.5 Terminology: how a stroke starts, moves, stops and ends
+
+Japanese school calligraphy (書写) teaches every stroke as three phases with the rhythm **トン・スー・トン** (press, glide, press): 始筆 or 起筆 (start), 送筆 (move) and 終筆 or 収筆 (end). [Nara prefecture teaching plan](https://www.pref.nara.jp/secure/43575/3syosya.pdf) and the [MEXT curriculum materials](https://www.mext.go.jp/a_menu/shotou/kyoukasho/tenji/000029177/20230420-000029177-mxt_ope01-031.pdf) use these words from grade 1. The engine uses the same words as its API values.
+
+| Phase | Term | Reading | What the brush does | API value |
+|---|---|---|---|---|
+| Start (起筆) | 打ち込み | uchikomi | The tip touches at the upper left and the brush is pressed toward the lower right at about 45°, held for a beat (溜め), then eased back up before it moves. Gives the angular head (方筆) of kaisho. Putting the brush down is "筆をつける" (tsukeru). | `start: "uchikomi"` |
+| Start | 蔵鋒 (逆入) | zōhō (gyakunyū) | The tip enters against the stroke direction ("go left to write right"), turns, and flattens into the stroke, so the tip is hidden and the head is round (円筆). | `start: "zoho"` |
+| Start | 露鋒 | rohō | The tip lands while already moving and is left visible: a sharp, tapered head. Used for the start of a right sweep, for kana and for cursive. | `start: "roho"` |
+| Move (送筆) | 中鋒 / 側筆 | chūhō / sokuhitsu | Center tip keeps the tip inside the line; side brush lets it lie to one side. | `hand.tipFollow`, `hand.tipAngle` |
+| Turn | 転折 | tensetsu | Stop at the corner, lift a little, press again toward the lower right, then go down. Gives the shoulder (肩). | `turns: [index]` |
+| Turn | 曲がり | magari | A continuous curve without a stop. | a curve with no `turns` |
+| End (終筆) | 止め | tome | Lift slightly without leaving the paper, turn about 45° clockwise, press again (トン), then gather the tip back into the stroke and lift off. | `end: "tome"` |
+| End | 垂露 | suiro | The vertical stop: a rounded "dewdrop" end made by a small press and an upward lift. | `end: "tome"` on a vertical |
+| End | 懸針 | kenshin | The "hanging needle" vertical: the brush lifts while it is still moving, so the line ends in a sharp point. | `end: "nuki"` |
+| End | 撥ね | hane | Pause (溜め), draw a short 45° line, then flick off quickly in the hook direction. | `end: "hane"`, `hook: [dx, dy]` |
+| End | 払い | harai | Lift gradually while the brush keeps moving. A left sweep (左払い) tapers along an arm-driven arc. A right sweep (右払い) grows to a pressed foot, pauses, turns the hair flat and pulls out to a chisel end. | `end: "harai"` |
+| Dot | 点 | ten | Touch with the tip, press down along 45°, hold, and lift off back toward the start. | `kind: "dot"` |
+
+The plan reports the live phase (`kihitsu`, `sohitsu`, `tensetsu`, `shuhitsu`) and the technique (for example `uchikomi` or `harai`) for every contact sample, so a film can caption the move that is on screen.
+
+## 2.6 Second study round: the dot, structure, materials
+
+| # | Source | What it shows | Frames studied |
+|---|---|---|---|
+| V11 | [【書道】Slow Shodo 点 基本](https://www.youtube.com/watch?v=8EgIoqK0HLI) | One kaisho dot in slow motion, close top view | 0:00–0:18 at 2 fps and 3 fps, 0:16.8 final frame |
+| V12 | [The basic stroke of regular script: "Dot"](https://www.youtube.com/watch?v=o2CQAzvNbjI) | Dot variations | sampled |
+| V13 | [しんにょうの書き方](https://www.youtube.com/watch?v=tQ1uu7IxwWs), [毛筆『しんにょう』の上手な書き方講座](https://www.youtube.com/watch?v=McsU3IpLVeM) | The 辶 zigzag and its flat sweep (平捺) | sampled |
+
+- **The dot is pressed, not dragged** (V11). The tip lands, then the tuft is pressed almost in place along about 45°; the pressed tuft's own footprint makes the shape. The result is a tilted seed: a narrow but rounded top, a convex upper edge, a broad rounded end and a glossy pool where the brush paused. A contact patch with a needle-sharp tip gave every dot and head an artificial spike; the patch now has a blunt, rounded tip.
+- **Kaisho fonts show structure, but fitting strokes to a font made the writing worse.** Brush-kaisho fonts (大和楷書, AR楷書体) set beside our output showed what was wrong with a hand-authored 道 (a too-wide 目, flat horizontals, a short 辶 sweep), and confirmed general habits: spread components, long sweeps, 右上がり. An experiment that moved each KanjiVG stroke onto a font's ink raised the overlap score but squashed kana and distorted strokes; the owner judged it worse, and it was removed. Only the general habits stay, as rules in `shodoKaishoForm`.
+- **KanjiVG needs a brush layer.** Its paths start and end with small curls that stand for the brush entry and stop; the hand makes its own, so the curls are trimmed. Kana have no stroke classes in KanjiVG and are written as flowing curves with exposed-tip entries and lifted ends. The 辶 sweep is class ㇏a (平捺) and starts with a pressed head.
+- **jsDelivr refuses uncached KanjiVG files** ("package size exceeded 50 MB"). The loader reads the pinned release tag from raw.githubusercontent.com, which sends `Access-Control-Allow-Origin: *`.
+- **Materials.** The bamboo handle uses one cane of the CC0 scan [ambientCG Bamboo001B](https://ambientcg.com/view?id=Bamboo001B) as luminance detail tinted by the handle colour; the paperweight uses [ambientCG Wood066](https://ambientcg.com/view?id=Wood066), like the wooden 文鎮 in V6. Photos of plain practice brushes on Wikimedia Commons were CC BY-SA, and CC0 museum brushes were ornate antiques, so neither was used.
+- **The practice grid is coarse.** Gridded practice hanshi (V1) has lines roughly 30 mm apart, not a fine mesh.
+
+## 2.7 Third study round: teachers' models, stroke ends, brush angle and height
+
+| # | Source | What it shows | Frames studied |
+|---|---|---|---|
+| V14 | 20 model videos from one teacher (松本松栄堂 書道教室: 年 大 夢 生 有 和 東 花 春 風 学 者 右 三 川 水 日 月 永 道), for example [「大」の書き方とコツ](https://www.youtube.com/watch?v=J2tJlU0NwgQ) | Finished kaisho models with a large brush, top view | the final frame of each, upscaled 2×; writing frames of 大 at 1 fps |
+| V15 | [【書道】基本の筆づかい１【横画・縦画・はね・はらい】](https://www.youtube.com/watch?v=6i3a1xfO1f8) | Low side view of a horizontal and a vertical being written | 0:06–0:46 at 2.5–3 fps; 12 full frames of one stroke |
+| V16 | [Calligraphy Basics #0004: About Brush Angle](https://www.youtube.com/watch?v=QoMGnbKgTSU) | Split screen: side camera and top camera; 直筆, 側筆, 順筆, 逆筆; narrated | 0:24–2:12 at 1.5 fps; narration read from the captions |
+| V17 | [書道における「直筆」と「側筆」の違い](https://www.youtube.com/watch?v=-wVHKlSnFu0), [The basics of calligraphy: direct writing and side writing](https://www.youtube.com/watch?v=EcNesvhmFQA) | 直筆 and 側筆 compared | sampled |
+
+**Calibration against the teacher (V14).** Each finished model was cropped to its ink, normalized to a square and compared with our rendering of the same character (KanjiVG strokes plus the form rules): ink coverage (weight) and overlap (IoU). Before this round our writing covered the same characters with about 25% more ink in thin, even strokes; the base press, the footprint shape and the density rule were set so the mean coverage is within 5% of the teacher's (0.315 vs 0.302 over 20 characters). Overlap stays about 0.41: it measures layout as much as brushwork and is used only to catch regressions.
+
+**Stroke ends, from 2× crops of the teacher's 三, 川, 日 and 大:**
+- A horizontal's 止め is a raised knob: the top edge rises at the end, the end is cut on a "\\" diagonal and the bulge is on the side away from the tip. Our earlier end was a round ball (the tip direction swung as the brush gathered) and later a hanging foot (the press went down). Now the brush steps forward and up, presses forward with the tip held, and lifts straight out.
+- The head of a horizontal is a blunt, tilted oval, lowest at the bottom-left. A pressed tuft lies on the paper as a seed about 1.6 times as long as it is wide, with a blunt front; only a light touch leaves a sharp point. The footprint's length and tip sharpness now follow the press.
+- A 転折 shoulder steps out past the corner and is pressed down along the new direction.
+- Short strokes have quiet ends, and the inner lines of boxes (口 目 日) end inside the line they meet. Ends that meet an earlier stroke are marked as joins (接筆): a small head and a stop with no knob.
+
+**Brush angle and height (V15, V16).** The teacher in V16 says (captions):
+- 書道では、筆を立てるのが基本と教わります — keeping the brush upright is the basic.
+- 穂が線の中央を通り、力強い線が引けます — with the tip through the centre of the line, the line is strong (直筆).
+- ほんの少し、進行方向に向けることもあります — sometimes the brush points just slightly in the direction of travel.
+- 少し傾けるのを「側筆」 — tilting it a little is 側筆, for thick and sharp, expressive lines.
+- この筆の傾きは、動きとかけ合わせて使います — the tilt is used in combination with the movement.
+- やや右に、進行方向に倒して … 順筆 / 一度左に … 逆筆 — tilt slightly right, toward the travel (順筆); go left first (逆筆, a pushed entry).
+- 指を使って傾けたり、手首を使って傾けます — tilt with the fingers or the wrist.
+
+V16's split screen shows both cameras at once: from above, the handle is long and points toward the writer (down or down-right on the page); from the side, across the page, the same brush looks nearly upright. Both agree with a lean of roughly 35–40° toward the writer and little sideways lean, so the resting lean is 38° toward 68° (mostly toward the writer, a little right).
+
+Frame by frame in V15: the loaded brush comes down tilted with the tuft straight; when the tip touches, the hand keeps coming down and the handle stands up; the tuft bends into an L with roughly the lower 40% lying on the paper; the ferrule drops from about one tuft length above the paper to about half; during travel the height holds and the tuft trails; at the stop the brush presses a little more, then lifts nearly straight up, and the tuft springs straight. In V16's 側筆 rows the handle tilts 30–40° toward the travel and the tuft lies along the line instead of bending.
+
+**Model.** The hand computes a lean vector for every contact sample (`shodoHandLean`): the resting lean toward the writer (`hand.lean`, `hand.leanAzimuth`), reduced as the press grows (standing up), plus a lean toward the travel that grows with speed and with `hand.sideBrush` (直筆 → 側筆), plus follow-through on 払い, a throw toward the hook on 撥ね, and a lean against the motion on a pushed 逆筆 entry. A low-pass filter (85 ms) stands for the fingers and wrist. In the renderer, the free hair runs from the belly on the paper to the ferrule along a chord between the handle and the lying part; the ferrule height falls with press from about 0.9 to 0.45 tuft lengths. In the air the brush lifts almost straight up, travels high (a third to two thirds of a tuft length) and comes straight down onto its next start; the lean relaxes to the resting hold. The story *Brush motion (top and side)* shows both views and traces lean and height over time.
+
+## 3. From observation to model
+
+| Observation | Model decision |
+|---|---|
+| Teardrop footprint, tip trails, belly leads | The contact patch is a teardrop whose axis is the tip direction. Its length and width both grow with pressure. |
+| Kaisho tip stays upper-left; cursive tip follows motion | Tip direction blends a fixed `hand.tipAngle` with the reverse of the velocity by `hand.tipFollow`, then is low-pass filtered so the hair cannot spin instantly. |
+| 45° press and ease back at entry | `hand.entryAngle` sets the direction of the touch-down press. The press is followed by a short hold (溜め) and a pressure release. |
+| Turns are stop + re-press | Authored corner indices (`turns`) generate a lift, a press toward the lower right and a hold. |
+| Each ending has its own move | Endings `tome`, `hane`, `harai`, `dot` and `taper` are generated moves, not shapes. |
+| Kasure is black channels along travel | Bristle lanes across the direction of motion each carry ink. A lane deposits nothing when its ink falls below the threshold. Speed and the paper tooth push lanes over the threshold. |
+| Brush empties over strokes | `ink.decay` spends load per em of stroke. `ink.redipBelow` inserts a dip. |
+| Pools at pauses, bleed at pools | Deposit is time-weighted: a pause deposits more pigment and water, so it bleeds more and stays glossy longer. |
+| Fibrous edge, not blur | The bleed is gated by a fixed paper-fibre field, so ink creeps out along fibres. |
+| Upright handle, perspective from above | The brush is a 3D object under a top-down pinhole camera with a cast shadow; a side camera shows it in profile. |
+| Brush stands up to press, leans into travel, lifts straight | `shodoHandLean` per contact sample; ferrule height from press; vertical lift and descent in air moves. |
+| Faint vermilion grid | `ShodoSheet` paper layer with mesh, cells, centre marks and an optional name column. |
+
+## 4. Glyph data and rights
+
+- **Bundled glyphs are original.** Their centrelines were authored by hand for this library from stroke-order knowledge. No outline was traced from a font, a video frame or KanjiVG.
+- **KanjiVG is optional and is never bundled.** KanjiVG is licensed CC BY-SA 3.0 (copyright Ulrich Apel). The adapter `parseKanjiVgSvg` reads a KanjiVG file that the host supplies. A film made from KanjiVG strokes must credit KanjiVG and follow the share-alike terms. The loader reads the pinned release `r20260714` from raw.githubusercontent.com at run time and the stories show the credit.
+
+## 5. Limits
+
+- The ink model is a deterministic approximation, not a fluid simulation of pigment in paper.
+- The bundled glyph set is small. Proportions were judged by eye against the studied models, not measured against a master's work.
+- There is no hand or arm. The brush moves by itself, like a motion-graphics demonstration.
+- Video frames were studied at 360p to 720p. Fine edge structure was judged from the sharpest frames only.

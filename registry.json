@@ -3510,6 +3510,73 @@
       ]
     },
     {
+      "name": "shodo-calligraphy",
+      "type": "registry:ui",
+      "title": "Shodō Brush Calligraphy (SHO1)",
+      "description": "Japanese brush calligraphy written by a simulated hand and brush: every stroke is 始筆 (打ち込み, 蔵鋒, 露鋒) → 送筆 with 転折 turns → 終筆 (止め/垂露, 懸針, 撥ね, 払い) and 点, each a generated move with tunable press, hold and reach; measured technique checks on the rendered ink; configurable script (kaisho, gyōsho, sōsho), speed, pressure, width, width decay, entry angle, tremor and hairline links; brush size, hair spring and bristle lanes; ink colour, strength, colour-strength decay, water, load and re-dipping, per-stroke vermilion 朱墨; deterministic paper raster with contact-saturating deposit, dwell pooling, bristle-lane kasure, fibre-gated nijimi and wet sheen; hanshi with a faint vermilion kentei grid; a 3D bamboo fude whose lean and height follow the writing (stands up to press, leans into travel, lifts straight; 直筆 to 側筆), with a bending, ink-soaked tuft, cast shadow, motion blur and a side-view profile; any kanji or kana from pinned KanjiVG stroke data loaded at run time (not bundled) with kaisho form rules and joins (接筆); original offline glyphs; scanned CC0 bamboo and wood textures and a FilmStage slot. Pure absolute-frame evaluation.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-brush"
+      ],
+      "files": [
+        {
+          "path": "registry/video/shodo/shodo-style.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-style.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-glyphs.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-glyphs.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-hand.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-hand.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-ink.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-ink.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-paper.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-paper.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-brush.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-brush.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-techniques.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-techniques.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-react.tsx"
+        },
+        {
+          "path": "registry/video/shodo/shodo-film-slot.tsx",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-film-slot.tsx"
+        },
+        {
+          "path": "registry/video/shodo/shodo-textures.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-textures.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-glyph-source.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-glyph-source.ts"
+        }
+      ]
+    },
+    {
       "name": "universal-rig",
       "type": "registry:ui",
       "title": "Universal Rig (RIG1)",
