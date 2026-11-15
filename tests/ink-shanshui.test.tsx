@@ -255,6 +255,10 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         .toHaveLength(1);
       expect(ribFaces.every((d,i)=>d.startsWith("M"+
         ribs[i].replace(","," "))&&d.endsWith(" Z"))).toBe(true);
+      // Four thin, multi-station curved strokes replace the native
+      // screenshot's large triangular rock blades (ArtCraft failure).
+      expect(ribFaces.every(d=>(d.match(/ C/g)??[]).length>=22))
+        .toBe(true);
       expect(childFibres.every(([,root,d])=>
         d.startsWith("M"+root.replace(","," "))&&d.includes(" Q")))
         .toBe(true);

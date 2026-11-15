@@ -177,6 +177,43 @@ function RockInkPlanes({stations,seed,band,detail,mist}:{
  * 2023 detail shows curving densely loaded folds, secondary hemp fibres,
  * alum-head ledges, and deliberate unmarked paper between the slopes.
  */
+/** A two-edge, pressure-sampled hemp-fibre ink gesture following one
+ * quadratic spine. Each contour station uses its *local* tangent normal.
+ * Avoid the two-C giant lens/wedge produced when the inner edge is
+ * independently drawn far away from the same curved axis.
+ */
+function rockLoadedRibbon(root:P,control:P,tip:P,width:number,seed:number){
+  const knots=[0,.035,.08,.14,.22,.32,.43,.54,.65,.75,.84,.91,.97,1] as const;
+  const pressure=[0,.08,.25,.52,.82,1,.94,.78,.65,.48,.29,.16,.05,0] as const;
+  const side=(sign:1|-1)=>knots.map((t,k):P=>{
+    const point=quadraticPoint(root,control,tip,t);
+    const tangent:P=[
+      2*(1-t)*(control[0]-root[0])+2*t*(tip[0]-control[0]),
+      2*(1-t)*(control[1]-root[1])+2*t*(tip[1]-control[1]),
+    ];
+    const norm=Math.max(.001,Math.hypot(...tangent));
+    const broken=(k===0||k===knots.length-1)?0:
+      (s(seed+31,k*29+(sign>0?7:11))-.5)*.09;
+    const push=width*Math.max(0,pressure[k]+broken)*(sign>0?.8:.46);
+    return [point[0]-sign*tangent[1]/norm*push,
+      point[1]+sign*tangent[0]/norm*push];
+  });
+  const outline=[...side(1),...side(-1).slice(1,-1).reverse()];
+  const path=["M"+f(root[0])+" "+f(root[1])];
+  for(let k=0;k<outline.length;k++){
+    const p0=outline[(k-1+outline.length)%outline.length];
+    const p1=outline[k],p2=outline[(k+1)%outline.length];
+    const p3=outline[(k+2)%outline.length];
+    const cp1:P=[p1[0]+(p2[0]-p0[0])*.13,
+      p1[1]+(p2[1]-p0[1])*.13];
+    const cp2:P=[p2[0]-(p3[0]-p1[0])*.13,
+      p2[1]-(p3[1]-p1[1])*.13];
+    path.push("C"+f(cp1[0])+" "+f(cp1[1])+
+      " "+f(cp2[0])+" "+f(cp2[1])+
+      " "+f(p2[0])+" "+f(p2[1]));
+  }
+  return path.join(" ")+" Z";
+}
 /** One deliberately composed folded rock formation, not a collection
  * of repeated floating pebbles. Its parent bone emerges at a *real*
  * mid-distance ridge apex; four unequal paper-separated hemp ribs
@@ -219,19 +256,10 @@ function MountainHeroCliff({root,seed,mist}:{
       const length=rib.len*(.95+.12*s(seed+403,i*23));
       const bend:P=[r[0]+swing*.24,r[1]+length*.38];
       const tip:P=[r[0]+swing,r[1]+length];
-      // Asymmetric width and concave back keep the pressure footprint
-      // curved and tapered, unlike four straight side-by-side stripes.
-      const face="M"+f(r[0])+" "+f(r[1])+
-        " C"+f(r[0]+swing*.04-rib.side*rib.load*.4)+" "+
-          f(r[1]+length*.18)+" "+
-          f(bend[0]-rib.side*rib.load)+" "+f(bend[1]+length*.06)+
-          " "+f(tip[0])+" "+f(tip[1])+
-        " Q"+f(tip[0]-rib.side*rib.load*.45)+" "+
-          f(tip[1]-length*.13)+" "+
-          f(bend[0]+rib.side*rib.load*.72)+" "+
-          f(bend[1]-length*.15)+
-        " Q"+f(r[0]+rib.side*rib.load*.69)+" "+
-          f(r[1]+length*.12)+" "+f(r[0])+" "+f(r[1])+" Z";
+      // Both edges follow *the same* supporting centreline; a narrow
+      // calligraphic load must not balloon into a geometrical wedge.
+      const face=rockLoadedRibbon(r,bend,tip,
+        rib.load*.48,seed+1019*i);
       const mid=quadraticPoint(r,bend,tip,.47);
       const split=quadraticPoint(r,bend,tip,.55);
       const crease="M"+f(r[0])+" "+f(r[1])+
