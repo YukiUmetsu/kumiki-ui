@@ -482,7 +482,7 @@ test("F1 source sclera contact vs exact baseline at native near-eye camera",asyn
   page.on("pageerror",error=>errorMessages.push(error.message));
   const focus=CRAYON_F1_EYE_INSPECTION.near;
   const shots:Uint8Array[]=[];
-  for(const eyeContact of ["baseline","source-shade"] as const){
+  for(const eyeContact of ["baseline","source-shade","source-value"] as const){
     const spec=crayonCc0FaceStudy({eyeContact});
     const framed={...spec,camera:[
       {frame:0,...focus},{frame:299,...focus},
@@ -511,6 +511,8 @@ test("F1 source sclera contact vs exact baseline at native near-eye camera",asyn
       animations:"disabled"}));
   }
   expect(Buffer.compare(Buffer.from(shots[0]),Buffer.from(shots[1])))
+    .not.toBe(0);
+  expect(Buffer.compare(Buffer.from(shots[1]),Buffer.from(shots[2])))
     .not.toBe(0);
   expect(errorMessages).toEqual([]);
 });
