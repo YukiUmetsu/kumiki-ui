@@ -692,16 +692,20 @@ export function crayonAdultFaceStudy(
     "M119 -263Q145 -272 153 -242",
     "#634b4e",1.25,"detail",{parentId:"adult-face"});
   wax("coat-collar-left",
-    "M-130 123Q-96 105 -65 139L-8 201"+
-    "Q-38 231 -78 272Q-100 216 -130 123Z",
+    "M-132 121Q-109 102 -87 115"+
+    "Q-67 123 -61 137Q-40 157 -15 195"+
+    "Q-10 204 -17 213Q-44 243 -80 269"+
+    "Q-94 222 -115 172Q-124 148 -132 121Z",
     box(-140,97,140,183),colors.coatLight,"anatomy",
     {parentId:"coat-silhouette",spacing:8,markStrength:.47,
       underpaintGradient:{light:"#97a6a9",shadow:"#3d4e60",
         focusX:.28,focusY:.1,radius:1.08},
       outlineOpacity:.065});
   wax("coat-collar-right",
-    "M55 114Q103 106 151 158Q112 183 71 266"+
-    "Q44 193 27 168Z",
+    "M52 115Q75 103 102 114Q126 123 150 154"+
+    "Q146 163 129 172Q105 191 76 255"+
+    "Q68 242 61 213Q50 187 28 168"+
+    "Q41 132 52 115Z",
     box(21,101,146,178),colors.coatShadow,"anatomy",
     {parentId:"coat-silhouette",spacing:8.3,markStrength:.55,
       underpaintGradient:{light:"#6c7c89",shadow:"#2d3e50",

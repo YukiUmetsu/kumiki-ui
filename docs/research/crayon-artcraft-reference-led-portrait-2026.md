@@ -114,3 +114,7 @@ Follow-up code fixes: shorten and redraw the sternocleidomastoid/underjaw neck s
 Construction now separates sleeve caps from the coat body, introduces non-identical near/far felt lapels and directional underarm seams, has a tighter waist dart, and adds original scalloped linen ruffles below the scarf. Scarf has a separate colored underturn/crossover layer and anchored curved-gather creases rather than only repetitive diagonal bands. Every detail remains an editable named wax contour and underpainting; no third-party reference pixels were embedded.
 
 **Negative controls:** a unified single blob coat, symmetric flat lapels, disconnected lace circles, and a digitally printed tartan band are all rejected. The new sleeve and lace shapes must remain opaque; only their tonal glazing uses locally clipped open wax. Visual proof and shape inspection at 16:9 / 9:16 remain mandatory before release.
+
+### Static-art construction guard (2026-11-15)
+
+The first garment CI [43667602248](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43667602248) failed a deliberate >3 curved-segment minimum because two legacy lapel paths still had only three turns. Rather than lower the Craft quality threshold, both lapels were redrawn with **seven connected curved transitions**, shoulder notch and cloth roll turns. These are meaningful silhouette and collar-topology changes, not subdivided filler strokes. Rerender to inspect the altered lapel geometry; the overall wardrobe still fails professional-art reference quality and stays hidden.
