@@ -1,0 +1,164 @@
+{
+  "schema_version": 9,
+  "study_id": "riso27-sequential-acting",
+  "date": "2026-11-15",
+  "subject_type": "two stylized 2D human animation actors",
+  "medium": "two-ink Risograph film with deterministic per-frame SVG stencil printing",
+  "baseline": {
+    "commit": "095ffc441d5fa1bf1810ae22e8636535b50ef61a",
+    "still_reference": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43747117097",
+    "status": "RISO26 facial crop verified; full 240-frame scene not yet visually reviewed",
+    "observations": [
+      "The existing ensemble story has an absolute 0–239 film slider, but no edit-room cue points and no directly captured sequential contact sheet.",
+      "Source walking/body acting and mouth expressions are keyed in individual 2D human rigs and should be judged in consecutive frames, not only neutral/160/198 isolated face crops.",
+      "Letter handoff has source/shared/receiver phases and source-bound finger overprints. Its timing should be verified around 126, 160, 178, 202, and 239 as a visible motion, not inferred from source comments."
+    ]
+  },
+  "references": [
+    {
+      "id": "zinehug-crushed",
+      "url": "https://zinehug.com/products/crushed-contact-sheet",
+      "title": "Crushed! Contact Sheet",
+      "creator": "Zack Lydon; Zine Hug print",
+      "kind": "primary Risograph animation contact-sheet photograph",
+      "rights": "creator-owned; observation and link only, no frames copied",
+      "observed": {
+        "macro": "The same character remains recognizably styled and ink-separated across a 21-panel printed sequence.",
+        "meso": "Eye lines and head angle vary purposefully across adjacent panels and concentrate on anticipation, response and release.",
+        "micro": "Real print granularity and registration vary only as material characteristics; ink/color identity persists panel to panel."
+      },
+      "construction": "Show captured consecutive source-rendered panels at authored beats; retain character source rigs and original cobalt/red ink overprints; inspect acting topology frame-to-frame."
+    },
+    {
+      "id": "zinehug-wind",
+      "url": "https://www.catsuka.com/news/2024-06-23/wind-nouvelle-anim-en-riso-par-zack-lydon-imprime-par-zinehug-pour-tvpaint",
+      "title": "Wind, Risograph animation printed by Zine Hug",
+      "creator": "Zack Lydon, Zine Hug, TVPaint",
+      "kind": "primary sequential print photography",
+      "rights": "artist-owned; external reference only",
+      "observed": {
+        "macro": "Repeated film-frame cards of a person in landscape; original silhouette persists over pose progression.",
+        "meso": "Hair flow, head turn and mouth changes are controlled across closely spaced frames rather than a jump between isolated expressions.",
+        "micro": "Fine paper texture and small print registration features visible on the physical cards."
+      },
+      "construction": "Expose fixed held film frames and a reviewer contact sheet for the two characters; inspect that face source identity survives blink/utterance and hand transfer."
+    },
+    {
+      "id": "ink-sundae-character-poses",
+      "url": "https://qdymag.com/event-story/41",
+      "title": "Ink Sundae multi-pose Risograph figure sketchbook",
+      "creator": "Ink Sundae; image published by QDY Magazine",
+      "kind": "primary printed poses, NOT confirmed animation",
+      "rights": "third-party image, technique observation only",
+      "observed": {
+        "macro": "A single ink-separated human visual vocabulary appears in multiple poses and compositions.",
+        "meso": "Arm reach and walking pose are readable through negative gaps around elbows, coat/torso and feet.",
+        "micro": "Hair, collar and facial marks remain distinguishable with the same two spot colors."
+      },
+      "construction": "Preserve distinct limb overlap and actor identity in handoff; do not substitute stick-figure silhouettes, copied reference person or floating fingertips."
+    },
+    {
+      "id": "zinehug-process",
+      "url": "https://zinehug.com/pages/animation",
+      "title": "Zine Hug Risograph Animation",
+      "creator": "Zine Hug (Alex Barsky, Zack Lydon)",
+      "kind": "primary print-production archive",
+      "rights": "third-party; links and paraphrased process only",
+      "observed": {
+        "macro": "Animation is printed as many sequential frames arranged on physical sheets, later recomposed.",
+        "meso": "Frame counts for Crushed and Wind show that individual drawings must hold together across the whole timeline, not just one hero still.",
+        "micro": "Physical printed texture and registration are governed by the plate/separation process."
+      },
+      "construction": "Use a real source-timeline sweep and exportable captured browser sequential contact sheet to validate no illegal pops or temporal identity drift."
+    },
+    {
+      "id": "megan-chong",
+      "url": "https://www.meganchongdesign.com/work/riso-animations",
+      "title": "Riso Animations",
+      "creator": "Megan Chong",
+      "kind": "artist-owned film portfolio",
+      "rights": "external link only",
+      "observed": {
+        "macro": "Printed frame-by-frame motion retains high-contrast ink shape sequences and unusual cropping.",
+        "meso": "Continuous transitions expose unintended stencil jumps more clearly than single stills.",
+        "micro": "Natural print grain is stable in scene/film design rather than a frame-wise random digital filter."
+      },
+      "construction": "Do not add random per-frame paper grain, shake or unbounded puppet deformation to mimic motion; source paths and print plate deterministic."
+    }
+  ],
+  "spatial_structure": {
+    "camera": [
+      "16:9",
+      "9:16"
+    ],
+    "characters": [
+      "courier",
+      "paper-artist"
+    ],
+    "motion": [
+      "walk-in",
+      "anticipate",
+      "unfurl",
+      "shared hold",
+      "donor release",
+      "receiver settle",
+      "final hold"
+    ],
+    "lighting": "flat paper substrate; actual print geometry on native blue/red masters",
+    "fixed_views": [
+      "authored front view"
+    ],
+    "missing_views": [
+      "profile",
+      "three-quarter",
+      "back"
+    ]
+  },
+  "motion_feature_map": [
+    {
+      "feature": "readable anticipation",
+      "reference": "zinehug-crushed",
+      "source": "Courier head/body/limb keys; face expressions 78 and 160",
+      "gate": "sequential pose stills before paper handoff"
+    },
+    {
+      "feature": "source contact",
+      "reference": "ink-sundae-character-poses",
+      "source": "Courier right hand to sheet paperStart on take",
+      "gate": "real hand/sheet endpoints within visual contact distance"
+    },
+    {
+      "feature": "dual hold",
+      "reference": "zinehug-wind",
+      "source": "RISO_HANDOFF_DEFAULTS contactFrame=160 releaseStart=178",
+      "gate": "fingers on top during both grips only; solid paper knockout"
+    },
+    {
+      "feature": "follow-through release",
+      "reference": "zinehug-crushed",
+      "source": "RISO_HANDOFF_DEFAULTS releaseEnd=202",
+      "gate": "release continuity across 178,190,201,202 with no snapping greater than 10 source stage units"
+    },
+    {
+      "feature": "stable printed material",
+      "reference": "zinehug-process",
+      "source": "RisoPrint seed=38, ink screens, stable paper grain",
+      "gate": "same paper/stencil sites while actor poses change"
+    },
+    {
+      "feature": "two aspect delivery",
+      "reference": "megan-chong",
+      "source": "existing riso-human-ensemble viewBox 960×540 or 540×960",
+      "gate": "full paper and both person silhouettes inside camera on each event frame"
+    }
+  ],
+  "negative_controls": [
+    "do not fake 3/4 profile view by compressing the front rig",
+    "do not use detached hand/finger drawings to fake contact",
+    "do not delete microdetails to speed capture",
+    "do not frame-jitter RisoPrint seed or paper grain",
+    "no full-resolution source images copied from artist sites",
+    "do not approve film pacing without checking actual sequential captures"
+  ],
+  "next_gate": "capture true Chromium frames for 16:9 and 9:16, then visually inspect and correct root cause of observed defects."
+}
