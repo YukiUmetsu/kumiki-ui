@@ -55,6 +55,16 @@ export interface CrayonContourDrawing { frame: number; d: string }
 /** Reusable original drawings addressed by a semantic acting cue, e.g. "mbp", "oh", "blink". */
 export interface CrayonNamedPose { id: string; d: string }
 export interface CrayonPoseCue { frame: number; pose: string }
+export interface CrayonVolumeGradient {
+  /** First wax pigment deposited near the lit plane. */
+  light:CrayonColor;
+  /** Darker pigment at the boundary far from the light. */
+  shadow:CrayonColor;
+  /** Normalized radial paint focus in the local wax silhouette (0..1). */
+  focusX:number;focusY:number;
+  /** Radius as proportion of the silhouette bounding-box, 0.2..1.5. */
+  radius:number;
+}
 export interface CrayonWaxElement extends CrayonBase {
   kind: "wax";
   /** Original drawings selected at absolute frames. */
@@ -82,6 +92,9 @@ export interface CrayonWaxElement extends CrayonBase {
    * Lower values leave opaque underpaint intact; the artist can layer
    * explicit anatomy and form-directed marks on top instead of noise. */
   markStrength?: number;
+  /** Smooth underlying side-nib mass, combined with full-opacity silhouette
+   * and explicit pressure-shaped wax scratches; never a global object blur. */
+  underpaintGradient?:CrayonVolumeGradient;
   /** Confine a tonal glaze to the animated parent wax silhouette. */
   clipToParent?: boolean;
   /** Held, small-patch reworking of wax pigment; frame-deterministic. */
@@ -317,6 +330,17 @@ export function inspectCrayonScene(input: unknown): string[] {
         if (node.blendRadius !== undefined && (!finite(node.blendRadius)||node.blendRadius<0||
           node.blendRadius>18||node.coverage!=="open"))
           errors.push(p + ".blendRadius must be 0..18 on open wax");
+        if (node.underpaintGradient !== undefined) {
+          const g=node.underpaintGradient;
+          if(!g || node.coverage!=="opaque" || !finite(g.focusX) || !finite(g.focusY) ||
+            !finite(g.radius) || g.focusX<0 || g.focusX>1 || g.focusY<0 || g.focusY>1 ||
+            g.radius<.2 || g.radius>1.5)
+            errors.push(p + ".underpaintGradient is out of bounds or requires opaque wax");
+          if(g){
+            checkColor(String(g.light??""),p+".underpaintGradient.light",errors);
+            checkColor(String(g.shadow??""),p+".underpaintGradient.shadow",errors);
+          }
+        }
         if (node.markStrength !== undefined && (!finite(node.markStrength)||
           node.markStrength<0||node.markStrength>1))
           errors.push(p + ".markStrength must be within [0,1]");

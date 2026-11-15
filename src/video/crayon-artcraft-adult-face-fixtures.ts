@@ -105,7 +105,9 @@ export function crayonAdultFaceStudy(
     "Q88 104 43 112L-49 111Q-99 99 -140 115Z",
     box(-216,91,428,270),colors.coat,"base",
     {placement:{x:rootX,y:rootY,scale:rootScale},
-      spacing:9,markStrength:.78,outlineOpacity:0});
+      spacing:9,markStrength:.78,
+      underpaintGradient:{light:"#718899",shadow:"#304355",focusX:.35,focusY:.1,radius:1.2},
+      outlineOpacity:0});
   wax("neck-under-jaw",
     "M-36 56Q-39 100 -74 122Q-42 146 11 147"+
     "Q59 139 85 117Q49 95 42 55Z",
@@ -120,7 +122,9 @@ export function crayonAdultFaceStudy(
     "Q-28 42 -108 14Q-147 -22 -149 -89"+
     "Q-170 -132 -132 -177Z",
     box(-183,-350,364,451),colors.hair,"base",
-    {parentId:"adult-face",edgeRoughness:.6,markStrength:.62,outlineOpacity:.06});
+    {parentId:"adult-face",edgeRoughness:.6,markStrength:.62,
+      underpaintGradient:{light:"#9d7167",shadow:"#342f3a",focusX:.32,focusY:.18,radius:1.28},
+      outlineOpacity:.06});
   // Adult 3/4 head: forehead broad, asymmetrical lower jaw, chin displaced
   // toward the viewer's right; substantially taller than the old child mask.
   wax("adult-face",
@@ -129,7 +133,9 @@ export function crayonAdultFaceStudy(
     "Q-3 117 -41 89C-81 58 -90 12 -103 -45"+
     "Q-130 -119 -96 -203Z",
     box(-137,-312,272,446),colors.flesh,"value",
-    {parentId:"neck-under-jaw",spacing:9.8,markStrength:.2,outlineOpacity:.07,
+    {parentId:"neck-under-jaw",spacing:9.8,markStrength:.2,
+      underpaintGradient:{light:"#f3ccab",shadow:"#ad7e78",focusX:.34,focusY:.28,radius:1.06},
+      outlineOpacity:.07,
       edgeRoughness:.17});
   wax("ear-shadow",
     "M115 -149Q139 -166 145 -135Q152 -104 134 -88"+
@@ -283,13 +289,17 @@ export function crayonAdultFaceStudy(
     "M-77 -163Q-61 -176 -44 -169Q-29 -166 -22 -153"+
     "Q-37 -139 -54 -143Q-70 -148 -77 -163Z",
     box(-85,-184,70,53),colors.sclera,"anatomy",
-    {parentId:"adult-face",markStrength:.42,spacing:4,outlineOpacity:.12,
+    {parentId:"adult-face",markStrength:.42,spacing:4,
+      underpaintGradient:{light:"#ebe0ca",shadow:"#9d9296",focusX:.49,focusY:.72,radius:.85},
+      outlineOpacity:.12,
       timing:{start:133,end:187}});
   wax("right-eye-aperture",
     "M49 -158Q64 -170 79 -161Q87 -157 89 -148"+
     "Q75 -138 59 -146Q52 -149 49 -158Z",
     box(44,-178,51,47),colors.sclera,"anatomy",
-    {parentId:"adult-face",markStrength:.42,spacing:4,outlineOpacity:.12,
+    {parentId:"adult-face",markStrength:.42,spacing:4,
+      underpaintGradient:{light:"#ebe0ca",shadow:"#9d9296",focusX:.49,focusY:.72,radius:.85},
+      outlineOpacity:.12,
       timing:{start:133,end:187}});
   wax("left-eye-iris",
     "M-59 -170Q-50 -173 -45 -164Q-42 -152 -49 -145"+
