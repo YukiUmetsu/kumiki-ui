@@ -528,7 +528,7 @@ export const ReferenceGuidedPencil: StoryObj<typeof meta> = {
 
 /** Dedicated real-anatomy study inside the SAME existing Colour-pencil folder. */
 export const ReferenceGuidedFaces: StoryObj<typeof meta> = {
-  name:"ArtCraft · Realistic fox and human faces (CC0 photo-guided)",
+  name:"ArtCraft · Human face from CC0 anatomy (craft research)",
   args:{aspect:"landscape",subject:"leaf",frame:325},
   render:()=> <ReferencePencilAtelier initialSample="woman"/>,
 };
