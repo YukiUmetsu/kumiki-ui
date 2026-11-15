@@ -6,10 +6,14 @@ on:
   pull_request:
     paths:
       - registry.json
+      - registry/video/materials/crayon.ts
+      - registry/video/materials/crayon-react.tsx
+      - registry/video/materials/crayon-scene.ts
       - registry/video/materials/crayon-art-direction.ts
       - src/video/crayon-drawing-system-fixtures.ts
       - src/video/crayon-drawing-system.stories.tsx
       - tests/crayon-drawing-system.test.tsx
+      - tests/crayon-dry-nib.test.tsx
       - tests/e2e-artcraft/crayon-drawing-system.spec.ts
       - .github/workflows/crayon-drawing-system-proof.yml
   workflow_dispatch:

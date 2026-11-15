@@ -121,3 +121,54 @@ stay within the source geometry and below CRAYON1's 240-node limit.
 Acceptance is still **pending** a source-native browser review of the new
 normal-distance render and close-up. No claim of professional artwork is
 made solely because the code and tests pass.
+
+## Dry-wax fractured nib experiment (2026-11-14)
+
+The latest original pear crops still read as **flat vector-colored wax**, with
+large smooth gradient areas and broad mechanically regular pale bands.
+External macro photographs of real wax-crayon strokes reveal discontinuous
+pressure-dependent ridge contact rather than a flat, uniformly filled ribbon.
+The physical reference is Rudolf, Mould & Neufeld, [*A Bidirectional Deposition
+Model of Wax Crayons*](https://doi.org/10.1111/j.1467-8659.2005.00826.x):
+it models evolving nib profile, friction and paper height. Kumiki's new mode
+is **not** a faithful reproduction of the paper's numerical model.
+
+### New opt-in portable material: `nibStyle: "dry"`
+
+- Split every source quadratic nib arc into **one to three pressure-dependent
+  contiguous narrow wax bands**, with a bounded chance of a short lift.
+  Material contact is generated from the original deterministic mark index,
+  not an overlay texture or downloaded bitmap. At most six fragments per arc.
+- Retain a weak, wide binder underneath the fractured bands, so the wax
+  impression has shape continuity while leaving dry gaps between deposited
+  pigment strips. Apply existing common paper-space relief to both.
+- Low-pressure marks have less lateral contact and higher-pressure marks
+  build larger contiguous deposits. No frame-specific noise, repeated
+  image textures or third-party libraries are introduced.
+- **Backward compatibility:** `tapered` and `rounded` remain unchanged,
+  with no dry-wax geometry allocated for scenes that do not opt in.
+- Use the original pear scene as A/B with both nib modes. The default
+  original pear atelier now selects `dry` for material research, while
+  the artist can switch to `tapered` in the existing Storybook.
+  Full-frame and camera-only macro screenshots are generated for both
+  960×540 and 540×960 in isolated CI.
+
+Tests and Chromium source-native images show deterministic construction, not
+professional approval. The new nib does not implement actual physical paper
+height sampling, multicolor Kubelka–Munk scattering or pigment scraping and
+transfer. A/B screenshots should be inspected for clumping, continuity and
+paper contact before declaring this mode artistically superior.
+
+### Browser A/B critique and micro-band correction
+
+Native 960×540 and 540×960 macro crops showed `dry` replacing some
+large soft ribbons with fine pigmented strips; however, the first dry model
+painted **three overly parallel hairlines**. The follow-up now varies each
+band's lateral contact at four sample points with bounded, seed-stable
+paper-friction drift and independently modulated thickness. The authored
+quadratic centerline is unchanged; this is a cheap approximation to
+contact variation, not a claim of physically simulated microscopic paper.
+
+The dry-mode geometry remains bounded (at most six lifted pieces per arc),
+monotonic in absolute exposure and evaluated only when dry mode is chosen.
+This study remains `!dev`; compare actual crops rather than only green CI.

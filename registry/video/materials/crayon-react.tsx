@@ -1,6 +1,6 @@
 import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
-import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
+import { assertCrayonSgraffito, crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonDryNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
 import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction, CrayonSgraffito } from "./crayon";
 import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
@@ -67,7 +67,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   if (!Number.isFinite(blendRadius)||blendRadius<0||blendRadius>18||
     (blendRadius>0&&coverage!=="open"))
     throw new RangeError("crayon blendRadius must be 0..18 for open wax");
-  if (nibStyle !== "rounded" && nibStyle !== "tapered")
+  if (nibStyle !== "rounded" && nibStyle !== "tapered" && nibStyle !== "dry")
     throw new RangeError("crayon nib style must be rounded or tapered");
   if (strokeOrder !== "scanline" && strokeOrder !== "patches")
     throw new RangeError("crayon stroke order must be scanline or patches");
@@ -121,6 +121,11 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   // while the drawing is still in progress. Do not reveal it with a vertical
   // rectangle: pigment arrives where the crayon nib actually traveled.
   const depositMarks = useMemo(() => marks.slice(0, Math.ceil(marks.length / 2)), [marks]);
+  // Dry-contact fragments are computed only for requested dry wax art.
+  // Legacy tapered/rounded scenes pay no extra allocation or SVG cost.
+  const dryMarks=useMemo(()=>nibStyle==="dry"
+    ? marks.map(mark=>crayonDryNibPath(mark)):[],
+    [marks,nibStyle]);
   // The final very thin leveling pass closes tooth gaps gradually; the completed
   // silhouette is solid and never permits background objects to ghost through.
   const settlingCoat = pigmentProgress > .82 && pigmentProgress < 1
@@ -222,7 +227,18 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         const progress = crayonStrokeProgress(frame, fillFirst, fillLast, i, marks.length, strokeOrder, reduced);
         if (progress <= 0) return null;
         return <g key={i} fill="none" strokeLinecap="round">
-          {nibStyle==="tapered" ?
+          {nibStyle==="dry" ? <g data-km-crayon-nib="dry">
+            {/* A weak wide under-rub holds the colored contact together,
+                while disjoint pressure-shaped ribbons catch paper ridges. */}
+            <path d={progress>=1?mark.nibD:crayonNibPath(mark,progress)}
+              fill={colors[mark.tone]}
+              opacity={markStrength*(coverage==="opaque"?.10+.13*mark.pressure:.06+.10*mark.pressure)}
+              data-km-crayon-dry-binder="" />
+            <path d={progress>=1?dryMarks[i]:crayonDryNibPath(mark,progress)}
+              fill={colors[mark.tone]}
+              opacity={markStrength*(coverage==="opaque"?.48+.38*mark.pressure:.37+.29*mark.pressure)}
+              data-km-crayon-dry-ribbons="" />
+          </g> : nibStyle==="tapered" ?
             <path d={progress>=1 ? mark.nibD : crayonNibPath(mark, progress)} fill={colors[mark.tone]}
               data-km-crayon-nib="tapered"
               opacity={markStrength*(coverage==="opaque" ? .32+mark.pressure*.34 : .2+mark.pressure*.24)} /> :
@@ -231,8 +247,9 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
               data-km-crayon-nib="rounded"
               opacity={markStrength*(coverage==="opaque" ? .32+mark.pressure*.34 : .2+mark.pressure*.24)} />}
           {progress > .8 && <path d={mark.scumble} stroke={colors[(mark.tone + 1) % 3]}
-            strokeWidth={1.3 + mark.pressure * 2.3} opacity={markStrength*(coverage==="opaque"?.41:.31)} />}
-          {progress >= 1 && <path d={mark.scrape} stroke="#faefd6"
+            strokeWidth={1.3 + mark.pressure * 2.3}
+            opacity={markStrength*(nibStyle==="dry"?.17:coverage==="opaque"?.41:.31)} />}
+          {progress >= 1 && nibStyle!=="dry" && <path d={mark.scrape} stroke="#faefd6"
             strokeWidth={.6 + (1 - mark.pressure) * 1.4} opacity={markStrength*.29} />}
         </g>;
       })}

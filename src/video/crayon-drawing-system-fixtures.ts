@@ -1,10 +1,12 @@
 import type {CrayonColor,CrayonContourElement,CrayonSceneSpec,CrayonWaxElement} from "../../registry/video/materials/crayon-scene";
+import type {CrayonNibStyle} from "../../registry/video/materials/crayon";
 import {crayonDirectionalStrokes} from "../../registry/video/materials/crayon-art-direction";
 import type {CrayonDrawingPlan,CrayonDrawingPhase,CrayonPartRule} from "../../registry/video/materials/crayon-art-direction";
 
 export type CrayonDrawingAspect="landscape"|"portrait";
 export interface CrayonDrawingSettings{
   aspect:CrayonDrawingAspect;detail:number;pressure:number;paperTooth:number;
+  nibStyle?:CrayonNibStyle;
 }
 type Palette=readonly [CrayonColor,CrayonColor,CrayonColor];
 const phases={
@@ -23,11 +25,12 @@ const rect=(x:number,y:number,width:number,height:number)=>({x,y,width,height});
 export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
   scene:CrayonSceneSpec;plan:CrayonDrawingPlan;
 }{
-  const {aspect,detail,pressure,paperTooth}=settings;
+  const {aspect,detail,pressure,paperTooth,nibStyle="dry"}=settings;
   if(!["landscape","portrait"].includes(aspect)||
     ![detail,pressure,paperTooth].every(Number.isFinite)||
     detail<.2||detail>1||pressure<.2||pressure>1||
-    paperTooth<0||paperTooth>1)throw new RangeError("Invalid crayon drawing settings");
+    paperTooth<0||paperTooth>1||!["rounded","tapered","dry"].includes(nibStyle))
+    throw new RangeError("Invalid crayon drawing settings");
   const portrait=aspect==="portrait",width=portrait?540:960,height=portrait?960:540;
   const elements:CrayonSceneSpec["elements"][number][]=[];
   const parts:CrayonPartRule[]=[];
@@ -38,7 +41,7 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     const n:CrayonWaxElement={
       kind:"wax",id,d,bounds,colors,timing,
       coverage:role==="solid"?"opaque":"open",
-      pressure,spacing:7.4,nibStyle:"tapered",strokeOrder:"patches",
+      pressure,spacing:7.4,nibStyle,strokeOrder:"patches",
       markLength:"long",edgeRoughness:.18,outlineOpacity:.035,
       ...overrides,
     };

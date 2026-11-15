@@ -76,7 +76,7 @@ export interface CrayonWaxElement extends CrayonBase {
   spacing?: number;
   /** Authored wax-rubbing direction in degrees. */
   angle?: number;
-  /** Pressure-shaped contact (default) or legacy rounded line renderer. */
+  /** Pressure-shaped tapered contact (default), optional fractured dry wax or legacy rounded line. */
   nibStyle?: CrayonNibStyle;
   /** Physically localized hand-coloring progress or historic scanline order. */
   strokeOrder?: CrayonStrokeOrder;
@@ -348,8 +348,8 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".clipToParent must be a boolean");
         if (node.clipToParent && !node.parentId)
           errors.push(p + ".clipToParent requires a parent wax element");
-        if (node.nibStyle !== undefined && node.nibStyle !== "rounded" && node.nibStyle !== "tapered")
-          errors.push(p + ".nibStyle must be rounded or tapered");
+        if (node.nibStyle !== undefined && node.nibStyle !== "rounded" && node.nibStyle !== "tapered" && node.nibStyle !== "dry")
+          errors.push(p + ".nibStyle must be rounded, tapered or dry");
         if (node.strokeOrder !== undefined && node.strokeOrder !== "scanline" && node.strokeOrder !== "patches")
           errors.push(p + ".strokeOrder must be scanline or patches");
         if (node.markLength !== undefined && node.markLength !== "long" && node.markLength !== "short")
