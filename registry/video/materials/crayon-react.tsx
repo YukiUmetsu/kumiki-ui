@@ -121,6 +121,11 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   // while the drawing is still in progress. Do not reveal it with a vertical
   // rectangle: pigment arrives where the crayon nib actually traveled.
   const depositMarks = useMemo(() => marks.slice(0, Math.ceil(marks.length / 2)), [marks]);
+  // Dry-contact fragments are computed only for requested dry wax art.
+  // Legacy tapered/rounded scenes pay no extra allocation or SVG cost.
+  const dryMarks=useMemo(()=>nibStyle==="dry"
+    ? marks.map(mark=>crayonDryNibPath(mark)):[],
+    [marks,nibStyle]);
   // The final very thin leveling pass closes tooth gaps gradually; the completed
   // silhouette is solid and never permits background objects to ghost through.
   const settlingCoat = pigmentProgress > .82 && pigmentProgress < 1
@@ -229,7 +234,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
               fill={colors[mark.tone]}
               opacity={markStrength*(coverage==="opaque"?.10+.13*mark.pressure:.06+.10*mark.pressure)}
               data-km-crayon-dry-binder="" />
-            <path d={progress>=1?mark.dryNibD:crayonDryNibPath(mark,progress)}
+            <path d={progress>=1?dryMarks[i]:crayonDryNibPath(mark,progress)}
               fill={colors[mark.tone]}
               opacity={markStrength*(coverage==="opaque"?.48+.38*mark.pressure:.37+.29*mark.pressure)}
               data-km-crayon-dry-ribbons="" />
