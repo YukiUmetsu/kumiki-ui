@@ -8,7 +8,7 @@ import { PENCIL_PORTRAIT_ART_STATUS,PENCIL_PORTRAIT_ART_REASON,
 } from "./colored-pencil-portrait-art-review";
 
 const descriptive:Record<PencilLivingStudy,{title:string; subtitle:string; material:string; anchor:readonly[number,number]}> = {
-  portrait:{title:"PORTRAIT CONSTRUCTION STUDY",subtitle:"Unapproved: anatomy and tonal structure require full rebuild",
+  portrait:{title:"PORTRAIT STUDY",subtitle:"Unapproved · anatomy and value structure need reconstruction",
     material:"SKIN / HAIR / FABRIC",anchor:[262,208]},
   fox:{title:"RED FOX AT REST",subtitle:"Direction of fur · layered ruff · bright eyes",
     material:"FUR / EYE / EAR",anchor:[232,194]},
@@ -171,6 +171,18 @@ export function PencilLivingAtelier() {
           onChange={e=>{setReduce(e.target.checked);setPlaying(false);}}/> Reduced motion
       </label>
     </section>
+    {subject==="portrait"&&anatomy&&<div
+      data-km-portrait-landmark-index=""
+      aria-label="Output anatomy anchor index"
+      style={{maxWidth:960,background:"#FFFDF6",padding:12,border:"1px solid #B4A89A",
+        borderRadius:5}}>
+      <strong>Output-only landmark index · not reference-measured</strong>
+      <ol style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",
+        gap:"4px 14px",margin:"8px 0 0",paddingLeft:25,fontSize:12}}>
+        {PENCIL_PORTRAIT_LANDMARK_KEYS.map((id,i)=>
+          <li key={id} value={i+1}>{id}</li>)}
+      </ol>
+    </div>}
     <div data-km-living-subject={subject}
       style={{maxWidth:landscape?960:540,width:"100%",
         aspectRatio:landscape?"16 / 9":"9 / 16",
@@ -183,14 +195,15 @@ export function PencilLivingAtelier() {
             aria-label="Output-only portrait geometry diagnostic"
             transform={landscape?"translate(441 35) scale(1.06)":
               "translate(-31 145) scale(1.38)"}>
-            {PENCIL_PORTRAIT_LANDMARK_KEYS.map(id=>{
+            {PENCIL_PORTRAIT_LANDMARK_KEYS.map((id,i)=>{
               const [x,y]=PENCIL_PORTRAIT_LANDMARKS[id];
               return <g key={id}>
-                <circle cx={x} cy={y} r={2.6} stroke="#FAF9E6" strokeWidth={.9}
-                  fill="#AF3B2B"/>
-                <text x={x+4} y={y-5} fontSize={7.4} fill="#7A2821"
-                  fontFamily="Arial,sans-serif" paintOrder="stroke"
-                  stroke="#FFF9EC" strokeWidth={1.6}>{id}</text>
+                <circle cx={x} cy={y} r={4.1} stroke="#FAF9E6" strokeWidth={.9}
+                  fill="#A63124"/>
+                <text x={x} y={y+1.9} fontSize={5.5} textAnchor="middle"
+                  fill="#FFFFFF" fontWeight={700} fontFamily="Arial,sans-serif">
+                  {i+1}
+                </text>
               </g>;
             })}
           </g>}
