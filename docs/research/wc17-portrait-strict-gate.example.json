@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "mode": "same-subject-same-pose",
+  "rights": "user-owned",
+  "reference": "../../artifacts/watercolour/portrait-reference.png",
+  "candidate": "../../artifacts/watercolour/portrait-render.png",
+  "sourceCode": "../../src/video/experimental/watercolour-portrait-study.ts",
+  "regions": [
+    {
+      "id": "full-face",
+      "bbox": [
+        172,
+        76,
+        451,
+        443
+      ],
+      "thresholds": {
+        "min_ssim": 0.84,
+        "min_edge_f1": 0.76,
+        "min_detail_ratio": 0.78,
+        "max_detail_ratio": 1.22,
+        "max_color_mae": 12
+      }
+    },
+    {
+      "id": "near-eye",
+      "bbox": [
+        244,
+        170,
+        353,
+        249
+      ],
+      "thresholds": {
+        "min_ssim": 0.88,
+        "min_edge_f1": 0.8,
+        "min_detail_ratio": 0.78,
+        "max_detail_ratio": 1.22,
+        "max_color_mae": 12
+      }
+    },
+    {
+      "id": "far-eye",
+      "bbox": [
+        352,
+        164,
+        440,
+        252
+      ],
+      "thresholds": {
+        "min_ssim": 0.88,
+        "min_edge_f1": 0.8,
+        "min_detail_ratio": 0.78,
+        "max_detail_ratio": 1.22,
+        "max_color_mae": 12
+      }
+    },
+    {
+      "id": "nose",
+      "bbox": [
+        303,
+        226,
+        418,
+        312
+      ],
+      "thresholds": {
+        "min_ssim": 0.88,
+        "min_edge_f1": 0.8,
+        "min_detail_ratio": 0.78,
+        "max_detail_ratio": 1.22,
+        "max_color_mae": 12
+      }
+    },
+    {
+      "id": "mouth",
+      "bbox": [
+        324,
+        306,
+        421,
+        373
+      ],
+      "thresholds": {
+        "min_ssim": 0.88,
+        "min_edge_f1": 0.8,
+        "min_detail_ratio": 0.78,
+        "max_detail_ratio": 1.22,
+        "max_color_mae": 12
+      }
+    },
+    {
+      "id": "hairline",
+      "bbox": [
+        74,
+        0,
+        441,
+        226
+      ],
+      "thresholds": {
+        "min_ssim": 0.84,
+        "min_edge_f1": 0.76,
+        "min_detail_ratio": 0.78,
+        "max_detail_ratio": 1.22,
+        "max_color_mae": 12
+      }
+    },
+    {
+      "id": "jaw",
+      "bbox": [
+        168,
+        290,
+        466,
+        487
+      ],
+      "thresholds": {
+        "min_ssim": 0.84,
+        "min_edge_f1": 0.76,
+        "min_detail_ratio": 0.78,
+        "max_detail_ratio": 1.22,
+        "max_color_mae": 12
+      }
+    }
+  ]
+}
