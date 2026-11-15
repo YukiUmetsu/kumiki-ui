@@ -1,0 +1,23 @@
+# ArtCraft v13 — CC0 photographic iris and pupil craftsmanship
+
+2026-11-15. Art status: **EXPERIMENTAL / ARTIST APPROVAL NOT PASSED**.
+
+## Real reference and reconstruction scope
+
+**Source anatomy/value**: [Christopher Campbell, *Brunette woman portrait (Unsplash)*, CC0](https://commons.wikimedia.org/wiki/File:Brunette_woman_portrait_(Unsplash).jpg). Continue the same 25 explicitly source-measured landmarks and reprojection for all Storybook preview aspect modes. Actual 285×318 Chromium CC0 photo and previous v12 pencil-only portrait were read side-by-side at 7×: the near pupil was dark in the source but paper-tooth hatching and generic uniform iris fibres muted its core in the rendered portrait; the small far pupil was partly occluded by lashes. The near iris has a broken edge, a complex brown central pigment, and scleral/corneal bright reserves that should **not** be filled by a stamp. No artist painting, photographic pixel or pre-made SVG face is rendered.
+
+**Medium-specific benchmark**: [Veronica Winters, *Realistic Colored Pencil Portrait Drawing Guide*](https://veronicasart.com/realistic-colored-pencil-portrait-drawing-guide/) (first-party instruction): locate iris/pupil before smooth surrounding skin; add **radial** iris fibres, brown/chromatic dark pupil, keep photographed white highlights, and ensure shadow from upper lid obscures the iris top so the gaze is not stare-like. [BMD Portraits, real-time hyperrealistic color pencil eye](https://www.youtube.com/watch?v=W7DJLCB4rOs) (published 2026-08-05): compare the actual progressive color build, irregular contact depth, and crisp final accents at multiple zoom levels; no copyrighted reference frame or artist contours are shipped.
+
+## Topology / continuity
+
+- Begin with **the actual source-mapped iris centers**, not a universal average head/character mesh. Gently test a 3×3 bounded neighbourhood, where maximum centre displacement is only 10.5% of measured iris radius, to account for subpixel source-registration drift. Each eye has its own measured canthi/aperture; no shared ellipse size. If the source pupil is not optically distinguishable from its surroundings, **no marks are emitted**.
+- Radial iris: three independent partially interlocking dry-pencil pigment layers, with local source chroma sampled separately under every mark. A double irregular limbal boundary follows actual image darkness, never a continuous black stamped circle. A shadow core is built from short broken-value pencil nibs, not a raster/photo mask or opaque pupil disc.
+- Occlusion: permitted only inside the source-measured canthal upper/lower band; both root and tip must be in that band. A corneal specular spot is **negative space** and three-point 3×3 lightness sampling rejects root, midpoint, or tip passing through a light pixel. Outer sclera stays exposed and its original face/eyelid material pipeline remains unchanged.
+- Preserve genuine normal colored-pencil material: independent rose/umber hues, broken-pressure pigment, angled radial fibrils, open ivory paper and deterministic seeded marks. No filter, copied source image or precomputed bitmap is returned. The standard video-photo renderer is untouched; this is opt-in in the existing CC0 portrait research plate.
+
+## Storybook, test contract, and acceptance gates
+
+- One folder: **Video Production / Film Looks / Colored Pencil** (existing Reference Atelier). New `Photographed iris depth` 0–100% parameter, with per-eye sampled mark count, source-only contrast, paper highlight reserve counts and exact 0% original A/B. The existing 4 chronological storyboard panels use the same marks.
+- Pure bounded unit tests: synthetic dark irises must build a partial ring, radial pigments and a pupil; a uniformly beige source must produce zero fake pupil marks; disabling the control leaves **exact original geometry**; input must be byte-identical, no raster data returned; photometric glints are left unpainted; repeat seeds reproduce the same fibers; invalid source/guides/strength fail closed.
+- Native Chromium 16:9/9:16: both actual CC0 reference and complete code pencil plate must be captured with iris 0/100%; positive photograph-derived near-eye support required; original motion-video output must be byte-identical. Close-up eye 1×/7× source vs v12 vs v13 comparison required before merge.
+- **Rejection:** visually black digital circular pupil, pupil outside lid, iris staring straight ahead despite real photographic gaze, source glint painted over, missing sclera, clipped lashes or dark background pixels mislabeled as iris. Green CI only proves technical non-regression, *not* likeness; the face still needs an independent artist review, landmark verification, optical-value and anatomy-quality gates.

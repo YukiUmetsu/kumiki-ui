@@ -18,6 +18,7 @@ import type {PortraitFeatureMap} from "./colored-pencil-portrait-guides";
 import {createPencilPortraitFeatureMarks} from "./colored-pencil-portrait-guides";
 import {createFacialOpticalPlanes} from "./colored-pencil-facial-planes";
 import {createOpticalEyelidFibres} from "./colored-pencil-optical-eyelids";
+import {createOpticalIrisPencil} from "./colored-pencil-iris-optics";
 
 type Point=readonly[number,number];
 const PAPER="#FAF5ED";
@@ -172,6 +173,11 @@ export interface DryPencilHeadPlate {
   readonly skinCoverage:number;
   readonly fibreFlowStrength:number;
   readonly eyelidDepth:number;
+  readonly irisDepth:number;
+  readonly observedIrisCounts:Readonly<{
+    near:number;far:number;glintReserves:number;sourceContrastNear:number;
+    sourceContrastFar:number;
+  }>;
   readonly observedEyelidCounts:Readonly<{upper:number;lower:number;sourceSupported:number}>;
   readonly facialPlaneCounts:Readonly<{
     "lip-vermilion":number;"nasal-alar":number;
@@ -267,7 +273,7 @@ const isHairColour=(rgb:readonly number[])=>{
 export const createDryPencilHeadPlate=(
   source:PencilPhotoPixels,guides:PortraitFeatureMap,seed=271,
   scumbleStrength=.65,featureDepth=.85,skinCoverage=.70,
-  fibreFlowStrength=1,eyelidDepth=.72,
+  fibreFlowStrength=1,eyelidDepth=.72,irisDepth=.72,
 ):DryPencilHeadPlate=>{
   positiveSafeSource(source,seed);
   if(!Number.isFinite(scumbleStrength)||
@@ -282,12 +288,16 @@ export const createDryPencilHeadPlate=(
     throw new RangeError("Invalid colored-pencil fibre flow strength");
   if(!Number.isFinite(eyelidDepth)||eyelidDepth<0||eyelidDepth>1)
     throw new RangeError("Invalid source-registered coloured pencil eyelid strength");
+  if(!Number.isFinite(irisDepth)||irisDepth<0||irisDepth>1)
+    throw new RangeError("Invalid source-registered coloured pencil iris strength");
   // Require the entire, already-audited 25-landmark source map.
   const details=createPencilPortraitFeatureMarks(source,guides,seed);
   // A/B paper-native, source-supported micro-occlusion; 0 is exact
   // legacy mark construction, no new geometry and no raster underpaint.
   const opticallyObservedLids=createOpticalEyelidFibres(
     source,guides,seed,eyelidDepth);
+  const opticallyObservedIris=createOpticalIrisPencil(
+    source,guides,seed,irisDepth);
   const geometry=projectMeasuredHeadContours(guides);
   const eyeDist=length(guides.eyeNearCenter,guides.eyeFarCenter);
   const cropWidth=eyeDist*4.55;
@@ -859,7 +869,8 @@ export const createDryPencilHeadPlate=(
   }
   // Add verified source-aligned anatomical marks only within the face or
   // hair structure. Never paste the original photographic background.
-  for(const m of [...details.marks,...opticallyObservedLids.marks]){
+  for(const m of [...details.marks,...opticallyObservedLids.marks,
+    ...opticallyObservedIris.marks]){
     const p:Point=[m.x,m.y];
     if(classify(p)==="background")continue;
     const a=screen(p),b=screen([m.endX,m.endY]);
@@ -875,6 +886,18 @@ export const createDryPencilHeadPlate=(
     });
     materialCounts["measured-features"]++;
   }
+  const countIris=(eye:"near"|"far")=>{
+    const m=opticallyObservedIris.eyes.find(e=>e.eye===eye);
+    return m?m.ringNibCount+m.radialNibCount+m.pupilNibCount:0;
+  };
+  const observedIrisCounts={
+    near:countIris("near"),far:countIris("far"),
+    glintReserves:opticallyObservedIris.highlightReserves,
+    sourceContrastNear:opticallyObservedIris.eyes.find(e=>e.eye==="near")
+      ?.sourceContrast??0,
+    sourceContrastFar:opticallyObservedIris.eyes.find(e=>e.eye==="far")
+      ?.sourceContrast??0,
+  };
   const observedEyelidCounts={
     upper:opticallyObservedLids.traces.filter(t=>t.rim==="upper")
       .reduce((sum,t)=>sum+t.marks,0),
@@ -889,7 +912,8 @@ export const createDryPencilHeadPlate=(
     crop:{left,top,width:cropWidth,height:cropHeight},
     strokes:marks,rasterUnderpainting:false,geometry,
     scumbleStrength,featureDepth,skinCoverage,fibreFlowStrength,
-    eyelidDepth,observedEyelidCounts,facialPlaneCounts,
+    eyelidDepth,observedEyelidCounts,irisDepth,observedIrisCounts,
+    facialPlaneCounts,
     fiveValueCounts,materialCounts,
   };
 };
