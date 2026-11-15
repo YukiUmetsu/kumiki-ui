@@ -476,12 +476,17 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           end=[entry[0]+sway*.31+2.1*jitter,entry[1]+len];
           width=1.2+2.05*wt;
         }else if(school==="forest-grotto"){
-          const len=23+35*wt+(j%7===0?11:0);
-          const sway=direction*(14+16*wt2)+jitter*8;
-          c1=[entry[0]+sway*.36,entry[1]+len*.17];
-          c2=[entry[0]+sway*1.3,entry[1]+len*.63];
-          end=[entry[0]+sway*.9,entry[1]+len];
-          width=.58+.92*wt+(j%11===0?.67:0);
+          // Wang Meng's ox-tail texture is made of many *short*, tight,
+          // alternating dry-brush turns inside the actual rock folds.
+          // The earlier 23–69px hairs radiated from the summit like
+          // loose strings and erased the grotto's densely nested geology.
+          const len=9+20*wt+(j%13===0?8:0);
+          const turn=(j%5===0||j%7===2?-1:1);
+          const sway=direction*turn*(5+13*wt2)+jitter*3.4;
+          c1=[entry[0]+sway*.13,entry[1]+len*.2];
+          c2=[entry[0]+sway*.87,entry[1]+len*.63];
+          end=[entry[0]+sway*.68,entry[1]+len];
+          width=.48+.86*wt+(j%11===0?.52:0);
         }else{
           const len=17+29*wt+(j%5===0?7:0);
           const sway=direction*(10+12*wt2)+jitter*6;
@@ -502,6 +507,74 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
       });
       const isFan=school==="travelers",isGuo=school==="early-spring";
       const isWang=school==="forest-grotto";
+      const isHuang=school==="fuchun";
+      // Fuchun's hemp families fold OVER rounded rock shoulders, while
+      // Wang Meng's old dark ridges twist into one another. The former
+      // long black comb and the latter free-hanging hairs both lacked
+      // *positive nested stone banks*; local face shading is a geometry
+      // problem, not a request for screen noise. Each sub-bank begins
+      // on the parent crown and ends inside its parent stone silhouette.
+      const stoneBankStations=isHuang?[.13,.39,.71]:
+        isWang?[.1,.29,.53,.76]:[];
+      const stoneBanks=stoneBankStations.map((loc,k)=>{
+        const t=clamp(loc+(s(seed+4621,i*19+k*47)-.5)*.034,.07,.94);
+        const root=quadraticPoint(a,crown,shoulder,t);
+        const target=quadraticPoint(a,inner,outer,t);
+        const depth=(target[1]-root[1])*(isWang?.76:.56)*
+          (.82+.28*s(seed+4637,i*37+k*29));
+        const reach=(isWang?22:29)*(.7+.4*s(seed+4651,i*23+k*13));
+        const dir=direction*((k%3===1)?-1:1);
+        const rim:P=[root[0]+dir*reach*.55,root[1]-
+          (isWang?6:10)*(1+.3*s(seed+4657,i*29+k*31))];
+        const ridge:P=[root[0]+dir*reach,root[1]+depth*.29];
+        const heel:P=[root[0]+dir*reach*.7,root[1]+depth*.93];
+        const inside:P=[root[0]+dir*reach*.05,root[1]+depth*.68];
+        const path="M"+f(root[0])+" "+f(root[1])+
+          " C"+f(root[0]+dir*reach*.16)+" "+f(root[1]-6)+
+          " "+f(rim[0]-dir*reach*.13)+" "+f(rim[1]-4)+
+          " "+f(rim[0])+" "+f(rim[1])+
+          " C"+f(rim[0]+dir*reach*.22)+" "+f(rim[1]-3)+
+          " "+f(ridge[0]+dir*4)+" "+f(ridge[1]-depth*.14)+
+          " "+f(ridge[0])+" "+f(ridge[1])+
+          " C"+f(ridge[0]-dir*reach*.07)+" "+f(ridge[1]+depth*.29)+
+          " "+f(heel[0]+dir*reach*.12)+" "+f(heel[1]-depth*.13)+
+          " "+f(heel[0])+" "+f(heel[1])+
+          " C"+f(heel[0]-dir*reach*.45)+" "+f(heel[1]+depth*.045)+
+          " "+f(inside[0]+dir*reach*.19)+" "+f(inside[1]+depth*.1)+
+          " "+f(inside[0])+" "+f(inside[1])+
+          " C"+f(root[0]-dir*reach*.11)+" "+f(root[1]+depth*.45)+
+          " "+f(root[0]+dir*reach*.08)+" "+f(root[1]+depth*.18)+
+          " "+f(root[0])+" "+f(root[1])+" Z";
+        const cap=rockLoadedCubicRibbon(root,
+          [root[0]+dir*reach*.14,root[1]-5],
+          [rim[0]-dir*reach*.1,rim[1]-2],rim,
+          (isWang?2.1:3.4)*(.8+.45*s(seed+4673,k*29+i*11)),
+          seed+4681+i*41+k*19);
+        return {root,path,cap,gradient:tone+"rockbank"+k};
+      });
+      // Wang Meng's moss stipple is a separate brush-particle class,
+      // semantically owned by the shaded rock, not a disconnected rock.
+      // Dabs gather near the 5 existing stone folds with irregular
+      // local density, never across the empty sky.
+      const moss=isWang?Array.from({length:21},(_,j)=>{
+        const layer=j%stratum.length;
+        const bone=stratum[layer];
+        const t=clamp(.17+.66*s(seed+4703,i*59+j*41),.1,.89);
+        const root=quadraticPoint(bone.top,bone.bend,bone.tip,t);
+        const x=root[0]+direction*(s(seed+4711,i*29+j*13)-.5)*9;
+        const y=root[1]+(s(seed+4721,i*17+j*23)-.5)*8;
+        const breadth=.75+2.4*s(seed+4729,i*19+j*37);
+        const height=1.3+4.4*s(seed+4733,i*13+j*43);
+        const dx=direction*(1.6*s(seed+4747,i*31+j*17)-.8);
+        const d="M"+f(x)+" "+f(y)+
+          " q"+f(-breadth*.5)+" "+f(-height*.28)+
+          " "+f(dx)+" "+f(-height*.5)+
+          " q"+f(breadth*.9)+" "+f(height*.3)+
+          " "+f(breadth)+" "+f(height*.76)+
+          " q"+f(-breadth*.4)+" "+f(height*.39)+
+          " "+f(-breadth-dx)+" "+f(-height*.26)+" Z";
+        return {root:[x,y] as P,d,wet:j%6===0};
+      }):[];
       // Fan Kuan's original monumental rock has grouped cliff *mass*:
       // two asymmetrically carved dark recesses attach to EACH positive
       // stone face. These are broad angular geologic facets, not more
@@ -565,6 +638,36 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         </defs>
         <path data-km-master-mass="" d={mass}
           fill={"url(#"+tone+")"} opacity={f((isFan?.96:isWang?.94:.87)*(1-.16*mist))}/>
+        {(isHuang||isWang)&&<g clipPath={"url(#"+clip+")"}
+          data-km-master-rock-bank-field={school}>
+          {stoneBanks.map(({root,path,cap,gradient},k)=><g key={k}
+            data-km-master-rock-bank=""
+            data-km-master-rock-bank-root={f(root[0])+","+f(root[1])}
+            data-km-master-rock-bank-index={k}>
+            <defs><linearGradient id={gradient} x1="0%" y1="0%"
+              x2={k%2===0?"71%":"28%"} y2="100%">
+              <stop offset="0" stopColor="#382e27"
+                stopOpacity={isWang?.79:.59}/>
+              <stop offset=".37" stopColor={isWang?"#514138":"#77644d"}
+                stopOpacity={isWang?.61:.41}/>
+              <stop offset=".72" stopColor="#897158"
+                stopOpacity={isWang?.3:.19}/>
+              <stop offset="1" stopColor="#a99273" stopOpacity="0"/>
+            </linearGradient></defs>
+            <path data-km-master-rock-bank-wash="" d={path}
+              fill={"url(#"+gradient+")"}
+              opacity={f((isWang?.73:.64)*(1-.23*mist))}/>
+            <path data-km-master-rock-bank-cap="" d={cap}
+              fill={isWang?"#41362d":"#67513c"}
+              opacity={f((isWang?.62:.49)*(1-.2*mist))}/>
+          </g>)}
+          {moss.map(({root,d,wet},j)=><path key={"moss"+j}
+            data-km-master-moss-dab=""
+            data-km-master-moss-root={f(root[0])+","+f(root[1])}
+            data-km-master-moss-wet={wet?"wet":"dry"}
+            d={d} fill={wet?"#342c28":"#554638"}
+            opacity={f((wet?.8:.55)*(1-.2*mist))}/>)}
+        </g>}
         {isFan&&<g clipPath={"url(#"+clip+")"}
           data-km-master-fan-geology="">
           {fanFacets.map(({root,cut,rim,gradient},k)=><g key={k}
