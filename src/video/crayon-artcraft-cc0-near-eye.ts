@@ -1,5 +1,5 @@
 import type {CrayonColor,CrayonElement,CrayonSceneSpec} from "../../registry/video/materials/crayon-scene";
-import {crayonIrisFlecks} from "./crayon-editorial-character-craft";
+import {crayonFurFlow,crayonIrisFlecks} from "./crayon-editorial-character-craft";
 
 /**
  * Isolated, experimental native-wax construction from an observed CC0 eye crop.
