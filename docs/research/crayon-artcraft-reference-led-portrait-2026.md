@@ -51,3 +51,20 @@ Each repair is geometry/material-level code, not visual QA text. The revised bro
 ### Second browser critique and anatomical nose rework
 
 [Source-native render 43665228712](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43665228712) improved cheeks and shortened the eyelashes, **but failed the nose crop again**. Front-facing, paired curved nostril glyphs and a pale circular highlight still resembled an animal snout rather than a human ala/columella. Third-stage changes narrow the alar mass to less than 45 local drawing units, lower nose-tip contrast, shorten the dorsal edge, and replace two bold mirrored nostril arcs with a single small near-nostril depression and much smaller far-side shadow. Strict tests guard these geometry constraints. The finished result remains an **unapproved style study**; no character galleries are unlocked.
+
+## Eye and brow ArtCraft reconstruction
+
+Source crop: user-supplied `face.png`, especially primary face x125–251/y88–166, and adult closeups from `adults.png`.
+Observed: light does **not** strike a white oval equally; upper eyelids shade the sclera and the iris is pigmented radially under a defined limbal ring. The brow is a bundle of short differently oriented marks with a thin base rather than a perfect single vector arc. Receding eye occupies less width.
+
+Source-authoring changes (independent of paper/noise shader):
+- New `eye-cast-shadow-near/far` are **local glaze masses clipped to opaque sclera**, leaving the iris and skin silhouette solid.
+- Real `crayonIrisFlecks` generates source-clipped irregular near/far radial pigment striations; each iris also has a separate curved limbal ring. Two seeded fields differ in extent and count to avoid identical eye stamps.
+- `crayonFurFlow` builds brow hairs along reference-anatomical cubic guides. Base brows are thinned rather than simply adding thicker black ink over the old arcs.
+- Iris uses local dark underpaint at the outer/rim plane with warm focus light; no screenshot references are copied into the shipped runtime.
+
+Verification scope: semantic path/clip/hue hierarchy, original serializable wax contract and source-native Chromium 16:9/9:16 eye crops. The eye's **anatomy/appeal and reference-level mark density remain artistically unapproved**. Full body, hands, profile and rigging remain out of scope for this pass.
+
+### Second browser eye critique and repair
+
+[Proof 43665804412](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43665804412) showed improved radial iris pigment and anatomically rooted brows, **but eye shapes still looked overly vertical and pupil-like slits**. Corrected original iris and pupil C/Q contours to near-circular projected forms in both eyes, refit near/far fleck distribution centers and radius, and thinned the excessive brow fiber stroke count. A geometric near-unity iris bounding ratio (0.85–1.1) is a **minimum geometry guard**, not a clinical anatomical target or a visual acceptance certificate.
