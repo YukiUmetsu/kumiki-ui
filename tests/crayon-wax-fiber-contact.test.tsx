@@ -28,6 +28,13 @@ describe("ArtCraft medium-native wax fiber contact",()=>{
     expect(crayonWaxFiberContacts(fiber,1.2,441,123,.78,0))
       .toMatchObject({body:"",pickup:"",segments:0});
   });
+  it("deposits a broad visible wax side-nib, not pencil-width hairline",()=>{
+    const mark=crayonWaxFiberContacts(
+      "M0 0 C0 15 0 30 0 45",1,772,123,.82);
+    const leftEdge=mark.body.match(/M(-?[0-9]+(?:[.][0-9]+)?) +[0-9.-]+ C/);
+    expect(leftEdge).not.toBeNull();
+    expect(Math.abs(Number(leftEdge?.[1]))).toBeGreaterThan(2);
+  });
   it("rejects malformed paths and out of bounds materials",()=>{
     for(const d of ["M0 0 L10 10","M0 0 C4 3 8 4", "M0 0 C0 3 3 3 4 4<svg>"])
       expect(()=>crayonWaxFiberContacts(d,1,12,9,.6)).toThrow();
