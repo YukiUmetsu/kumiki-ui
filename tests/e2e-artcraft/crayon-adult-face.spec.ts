@@ -551,3 +551,37 @@ test("ArtCraft F1 nasal-lip wax volume vs unmodified midface native A/B",async({
     .not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** Actual-pixel ArtCraft F1 native lash root A/B. This is a source-guided
+ * density experiment, not a finished professional wax eye. No raster
+ * interpolation, photo filter or synthetic lashes stamped over hair.
+ */
+test("F1 near-eye wax lash roots sparse vs clustered 1:1 source-native Chromium",async({page},info)=>{
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",error=>errors.push(error.message));
+  const focus=CRAYON_F1_EYE_INSPECTION.near;
+  const captures:Uint8Array[]=[];
+  for(const lashFinish of ["sparse","rooted"] as const){
+    const base=crayonCc0FaceStudy({
+      eyeContact:"source-shade",midfaceForm:"baseline",lashFinish,
+    });
+    const spec={...base,camera:[{frame:0,...focus},{frame:299,...focus}]};
+    const html=renderToStaticMarkup(createElement(CrayonScene,{
+      spec,frame:299,
+    }));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+
+      html+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    await expect(svg.locator(
+      '[data-km-crayon-element^="lash-contact-"] [data-km-crayon-fiber-contact="dry-wax"]'
+    )).toHaveCount(2);
+    captures.push(await svg.screenshot({path:info.outputPath(
+      "crayon-f1-native-near-lashes-"+lashFinish+"-299.png"
+    ),animations:"disabled"}));
+  }
+  expect(Buffer.compare(Buffer.from(captures[0]),Buffer.from(captures[1])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
