@@ -142,7 +142,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(el.kind).toBe("contour");
       if(el.kind!=="contour")throw new Error("Missing source hair fiber");
       expect(el.clipToParent).toBe(true);
-      expect(["hair-left-curtain","hair-right-curtain","hair-back"])
+      expect(["hair-left-curtain","hair-right-curtain","hair-crown-surface"])
         .toContain(el.parentId);
       expect(el.width).toBeGreaterThan(.25);
       expect(el.width).toBeLessThan(1.3);
@@ -151,6 +151,18 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(el.d).toMatch(/^M-?[0-9]+/);
       expect(el.d).toContain(" C");
     }
+    // The back hair mass includes space behind the face. Crown fibers
+    // must clip only to the scalp outside the forehead silhouette;
+    // otherwise late-rendered hair strands scribble over skin.
+    expect(scene.elements.find(x=>x.id==="hair-crown-surface"))
+      .toMatchObject({kind:"wax",coverage:"opaque"});
+    const crownFibers=d.filter(x=>x.id.startsWith("hair-rooted-crown-"));
+    expect(crownFibers.every(x=>x.parentId==="hair-crown-surface"))
+      .toBe(true);
+    const crownOther=scene.elements.filter(x=>
+      x.id.startsWith("hair-fiber-flow-")&&Number(x.id.split("-").pop())<9);
+    expect(crownOther.every(x=>x.parentId==="hair-crown-surface"))
+      .toBe(true);
     const sparse=crayonCc0FaceStudy({detail:.5});
     expect(inspectCrayonScene(sparse)).toEqual([]);
     expect(sparse.elements.filter(x=>x.id.startsWith("hair-rooted-")))
