@@ -130,6 +130,15 @@ for(const sample of ["woman","man"] as const){
           '[data-km-pencil-tonal-comparison="ready"]');
         await expect(toneEvidence).toHaveCount(1,{timeout:90000});
         await expect(toneEvidence.locator("tbody tr")).toHaveCount(5);
+        const toneNumbers=await toneEvidence.evaluate(node=>({
+          meanError:Number(node.getAttribute("data-km-pencil-mean-value-error")),
+          retention:Number(node.getAttribute("data-km-pencil-contrast-retention")),
+        }));
+        // The previous *real* CC0 proof had mean 5-plane lightness
+        // deficit near 63/255. Do not regress back to an optical wash.
+        // This is a negative visual gate, NOT artistic approval.
+        expect(toneNumbers.meanError).toBeLessThan(45);
+        expect(toneNumbers.retention).toBeGreaterThan(.75);
         await expect(toneEvidence).toContainText(
           "Independent artistic approval: NOT PASSED");
         await toneEvidence.screenshot({animations:"disabled",
