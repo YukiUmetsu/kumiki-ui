@@ -107,6 +107,23 @@ dark-brown circle; its crease moves with the new opening. Tests assert closed
 versus reopened geometry and final rest recovery. Source-relative axes
 remain blocked; another real-pixel proof is mandatory.
 
+### Third Chromium close-up rejection and fourth precise corrective pass
+
+The third actual native browser frame 203 still looked like a near-perfect
+skin-colored disc with a black smile line. The root cause was the full-open
+iris and pupil beneath a very large round, solid warm wax lid, not a missing
+procedural fur effect. The screenshot was **rejected** despite a green
+browser-structure suite. The 237 open frame is stronger than the original
+but still reads illustrated and needs broader facial proportion work.
+
+The fourth candidate collapses the independently painted **iris and pupil
+silhouettes** and hides both glint paths during frames 88–93 and 202–207;
+the overlaid skin-toned lid is now a **short curved tapered band** rather
+than an enclosing disk. The dark limbus independently pinches in synchrony,
+with all layers returning to identical source geometry at frames 94 and
+208. The correction is in source-redraw keyframes, so the head and camera
+animations inherit it automatically. Native pixel review remains required.
+
 ### Unresolved issues
 
 The surrounding skull, nose, cheek and upper forehead still have planar digital-looking boundaries and may require a separate reference-conditioned rebuild. The eye change alone does not qualify the character or authorize exposing the hidden `Crayon/The Wild Hare` Storybook stories.
