@@ -6,17 +6,26 @@ import type { RisoPaint, RisoArtwork } from "../../registry/video/print-plates-r
 import type { ReactNode } from "react";
 
 export type RisoPerformanceAspect = "landscape" | "portrait";
+// RISO28: arm pendulum tracks the same 54-frame alternating contact
+// rhythm as the two original boot prints. This is a source joint pose,
+// not an added post-process wobble.
 const waveKeys = (end = 239): RisoJoint["keys"] => [
   { frame: 0, rotate: -10, easing: "ease" },
-  { frame: 16, rotate: 12, easing: "ease" },
-  { frame: 36, rotate: -10, easing: "ease" },
-  { frame: 58, rotate: 12, easing: "ease" },
-  { frame: 83, rotate: -10, easing: "ease" },
-  { frame: 108, rotate: 11, easing: "ease" },
-  { frame: 138, rotate: -9, easing: "ease" },
-  { frame: 163, rotate: 12, easing: "ease" },
-  { frame: 190, rotate: -10, easing: "ease" },
-  { frame: end, rotate: -10 },
+  { frame: 13, rotate: 9, easing: "ease" },
+  { frame: 27, rotate: -10, easing: "ease" },
+  { frame: 40, rotate: 10, easing: "ease" },
+  { frame: 54, rotate: -10, easing: "ease" },
+  { frame: 67, rotate: 9, easing: "ease" },
+  { frame: 81, rotate: -10, easing: "ease" },
+  { frame: 94, rotate: 9, easing: "ease" },
+  { frame: 108, rotate: -10, easing: "ease" },
+  { frame: 121, rotate: 9, easing: "ease" },
+  { frame: 135, rotate: -9, easing: "ease" },
+  { frame: 148, rotate: 8, easing: "ease" },
+  { frame: 162, rotate: -7, easing: "ease" },
+  { frame: 178, rotate: 1, easing: "ease" },
+  { frame: 198, rotate: -3, easing: "ease" },
+  { frame: end, rotate: -3 },
 ];
 /** Original paper messenger — arbitrary joint tree, not a hard-coded humanoid renderer. */
 export const COURIER: RisoCharacterSpec = {
@@ -32,20 +41,23 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 239, x: 192, y: -12 },
     ] },
     { id: "body", parent: "root", x: 0, y: -72, keys: [
-      // Four rising/falling weight changes per 66-frame gait cycle, synchronized
-      // with alternating foot contacts. Motion settles when locomotion ends.
+      // RISO28: six alternating weight compressions over three complete
+      // 54-frame strides. The penultimate/last frame pair plants both shoes
+      // at f162; the body eases *over still boots* into the handoff by f198.
       { frame: 0, y: 0, rotate: 0, easing: "ease" },
-      { frame: 16, y: -4.5, rotate: 1.3, easing: "ease" },
-      { frame: 33, y: 0, rotate: -1, easing: "ease" },
-      { frame: 49, y: -4.5, rotate: .9, easing: "ease" },
-      { frame: 66, y: 0, rotate: 0, easing: "ease" },
-      { frame: 82, y: -4.5, rotate: 1.3, easing: "ease" },
-      { frame: 99, y: 0, rotate: -1, easing: "ease" },
-      { frame: 115, y: -4.5, rotate: .9, easing: "ease" },
-      { frame: 132, y: 0, rotate: 0, easing: "ease" },
-      { frame: 148, y: -4.5, rotate: 1.3, easing: "ease" },
-      { frame: 165, y: 0, rotate: -1, easing: "ease" },
-      { frame: 181, y: -4.5, rotate: .9, easing: "ease" },
+      { frame: 13, y: -3, rotate: 1.1, easing: "ease" },
+      { frame: 27, y: 0, rotate: -0.9, easing: "ease" },
+      { frame: 40, y: -3.4, rotate: .8, easing: "ease" },
+      { frame: 54, y: 0, rotate: 0, easing: "ease" },
+      { frame: 67, y: -3.2, rotate: 1.1, easing: "ease" },
+      { frame: 81, y: 0, rotate: -0.9, easing: "ease" },
+      { frame: 94, y: -3.4, rotate: .8, easing: "ease" },
+      { frame: 108, y: 0, rotate: 0, easing: "ease" },
+      { frame: 121, y: -3.2, rotate: 1, easing: "ease" },
+      { frame: 135, y: 0, rotate: -0.8, easing: "ease" },
+      { frame: 148, y: -2.2, rotate: .7, easing: "ease" },
+      { frame: 162, y: 0, rotate: 0, easing: "ease" },
+      { frame: 180, y: -1.6, rotate: .5, easing: "ease" },
       { frame: 198, y: 0, rotate: 0, easing: "ease" },
       { frame: 239, y: 0, rotate: 0 },
     ] },
@@ -123,14 +135,19 @@ export const COURIER: RisoCharacterSpec = {
   ik: [
     { id: "left-foot-lock", root: "left-leg", mid: "left-knee", end: "left-ankle",
       bend: 1, endRotation: 0,
-      target: { kind: "walk", startFrame: 0, endFrame: 198, initialX: 35,
-        groundY: 0, stride: 46, cycleFrames: 66, stanceFrames: 38,
+      // Three 54-frame steps end with a left-boot f162 plant. Keeping the
+      // same start/finish stations (35→173) preserves original footprint
+      // and every 2-spot-ink contour; only contact timing is redesigned.
+      target: { kind: "walk", startFrame: 0, endFrame: 165, initialX: 35,
+        groundY: 0, stride: 46, cycleFrames: 54, stanceFrames: 31,
         phaseFrames: 0, lift: 17, footRoll: 12 } },
     { id: "right-foot-lock", root: "right-leg", mid: "right-knee", end: "right-ankle",
       bend: -1, endRotation: 0,
-      target: { kind: "walk", startFrame: 0, endFrame: 198, initialX: 65,
-        groundY: 0, stride: 46, cycleFrames: 66, stanceFrames: 38,
-        phaseFrames: 33, lift: 17, footRoll: 12 } },
+      // Alternating half-cycle right landing at f135; last contact is held
+      // through handoff so the body advances on planted feet, not skating.
+      target: { kind: "walk", startFrame: 0, endFrame: 165, initialX: 65,
+        groundY: 0, stride: 46, cycleFrames: 54, stanceFrames: 31,
+        phaseFrames: 27, lift: 17, footRoll: 12 } },
     { id: "satchel-handhold", root: "right-arm", mid: "right-elbow",
       end: "right-hand", bend: -1, endRotation: -12,
       target: { kind: "follow", joint: "satchel", x: 7, y: 4 } },
