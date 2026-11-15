@@ -788,49 +788,54 @@ function fox():PencilSubjectPart[] {
         ],645,["#AA7965","#5F4A4C","#B99479"],250),
       ]},
     {id:"muzzle",material:"fur",palette:["#D6BFA6","#88786E","#F5DEC1"],
-      // Narrow nasal taper, convex upper maxilla and softly attached lower
-      // jaw. Distinct anatomical planes; do not draw one uniform grey tube.
-      path:"M109 219 C117 214 127 211 145 208 "+
-        "C165 202 184 200 198 200 C220 201 240 208 256 217 "+
-        "C268 225 269 231 259 239 C244 249 224 252 201 248 "+
-        "C180 244 164 244 144 239 C127 235 115 233 110 229 "+
-        "C106 226 106 222 109 219 Z",
-      bounds:[101,199,173,55],direction:14,start:146,
+      // Source-led fox cranial triangle: nasal leather sits on a slim
+      // taper and the maxilla broadens under the orbital/zygomatic plane.
+      // A constant cream tube cannot model this canine skull.
+      path:"M133 220 C141 215 153 213 165 211 "+
+        "C182 205 208 200 230 205 C248 209 260 217 264 225 "+
+        "C267 233 258 243 244 248 C229 253 208 251 192 246 "+
+        "C171 240 157 236 144 234 C133 230 130 226 133 220 Z",
+      bounds:[127,198,147,57],direction:14,start:146,
       details:[
         ...pencilRootedFur([
-          [116,226,170,238,141,238,33,9],
-          [167,217,216,243,193,243,32,11],
-          [222,220,259,238,247,240,29,8],
-          [140,231,198,243,170,247,33,7],
+          [139,224,183,233,162,239,34,8],
+          [174,215,218,244,200,239,34,10],
+          [220,215,258,235,246,237,33,8],
+          [149,231,208,246,176,247,32,8],
         ],721,["#E9D2B7","#8D8177","#FFF0D3"],248),
-        mark("M115 233 C139 240 163 244 188 243 Q226 244 254 235",
-          "#867369",.43,260,.39),
-        mark("M116 218 Q146 210 175 216 M212 213 Q241 215 256 223",
-          "#F8E6C6",.57,268,.58),
-        mark("M126 237 Q151 246 179 247 M202 248 Q226 249 248 240",
-          "#77665D",.39,275,.59),
-        mark("M121 228 Q129 232 135 232 M148 225 Q168 221 185 227",
-          "#C4A38D",.33,270,.55),
-        // Original pigment tracks feather from inside the nasal-maxilla
-        // junction across both sides of the cream-to-russet pelt boundary.
-        // The whisker roots themselves do not need a colored sticker.
+        {...mark("M209 211 C227 208 247 210 258 220 "+
+          "C260 230 254 237 244 242",
+          "#A27D6F",.35,257,.50),id:"zygomatic-transition"},
+        {...mark("M147 232 C168 237 187 246 211 247 "+
+          "C230 250 249 242 254 236",
+          "#78675F",.37,269,.54),id:"nasolabial-shadow"},
+        mark("M139 219 C164 214 192 208 216 211 M232 211 Q251 216 258 225",
+          "#F8E6C6",.53,268,.59),
+        mark("M146 234 Q168 241 192 245 M211 249 Q232 250 253 239",
+          "#77665D",.36,278,.56),
+        // Fuzzy orange-to-grey contact follows the nasal wedge, not a
+        // perfectly hard, parallel tube edge or photo-texture.
         ...pencilContourFringe([
-          [112,219,198,201,160,204,40,-1],
-          [198,201,257,218,233,206,36,-1],
-          [115,233,196,246,158,242,30,1],
+          [137,220,230,205,183,206,39,-1],
+          [230,205,260,221,249,210,32,-1],
+          [145,232,213,246,178,244,30,1],
         ],1021,["#C5957E","#77625B","#F3D9B9"],259),
       ]},
-    {id:"rostrum-bridge",material:"glaze",palette:["#B27660","#80584F","#D59D7F"],
-      // Optical dry-colour plane overlays muzzle, without an opaque sticker.
-      path:"M117 212 C136 203 159 196 188 192 C207 183 235 183 254 200 C231 209 201 218 163 220 Q138 223 118 223 Z",
-      bounds:[117,188,131,43],direction:13,start:149,
+    {id:"rostrum-bridge",material:"glaze",
+      palette:["#B27660","#80584F","#D59D7F"],
+      // Warm dorsal septum connects nasal leather to the bony orbital
+      // stop; each root follows the same fox skull perspective.
+      path:"M140 213 C158 203 183 200 203 194 "+
+        "C224 187 245 189 254 201 C238 212 218 217 188 219 "+
+        "C164 220 149 221 140 218 Z",
+      bounds:[136,185,123,41],direction:13,start:149,
       details:[
         ...pencilRootedFur([
-          [129,214,199,215,162,200,31,9],
-          [187,196,225,217,216,200,23,8],
+          [146,214,204,213,173,197,33,9],
+          [193,199,247,214,218,195,29,8],
         ],673,["#D49A7C","#715553","#F2C09E"],249),
-        mark("M131 211 Q164 200 198 199 M185 221 Q219 210 243 216",
-          "#BD7C69",.65,265,.68),
+        mark("M150 209 Q179 196 207 197 M200 216 Q225 207 245 211",
+          "#BD7C69",.50,265,.58),
       ]},
     {id:"cheek-ruff",material:"fur",
       palette:["#B59278","#69534D","#D8B49A"],
@@ -901,20 +906,20 @@ function fox():PencilSubjectPart[] {
           "#635A58",.48,279,.75),
       ]},
     {id:"nose",material:"fur",palette:["#333B41","#1C252D","#6F7070"],
-      // Asymmetric flattened nasal leather with tapered ventral nostril,
-      // following the bridge instead of a circular cartoon button.
-      path:"M105 221 C108 217 112 216 116 217 "+
-        "C119 216 124 219 125 221 C125 224 121 226 118 228 "+
-        "C116 231 113 231 111 229 C108 227 105 224 105 221 Z",
-      bounds:[103,214,24,20],direction:14,start:160,
+      // Nasal leather is small, dark and part of the taper: two nostril
+      // folds and an attached ventral philtrum, never a round button.
+      path:"M132 220 C136 217 140 216 143 217 "+
+        "C147 216 151 219 153 222 C153 225 149 227 146 229 "+
+        "C143 232 140 232 138 230 C135 228 131 225 132 220 Z",
+      bounds:[129,214,26,20],direction:14,start:160,
       details:[
-        mark("M107 219 Q113 216 119 218","#96948A",.43,248,.54),
-        mark("M109 224 Q113 226 115 224 M119 224 Q122 225 123 222",
-          "#131F27",.44,260,.85),
-        mark("M110 228 Q113 230 117 227","#89817C",.33,267,.67),
-        {...mark("M117 229 Q123 233 125 237",
-          "#62504D",.47,274,.70),id:"nasal-philtrum"},
-        mark("M107 219 Q109 218 112 218","#DDD1BE",.23,277,.51),
+        mark("M134 219 Q141 215 147 218","#96948A",.40,248,.54),
+        mark("M136 224 Q140 227 143 224 M147 223 Q150 225 151 222",
+          "#131F27",.43,260,.83),
+        mark("M136 228 Q141 231 146 228","#89817C",.31,267,.65),
+        {...mark("M144 230 Q150 232 151 236",
+          "#62504D",.45,274,.67),id:"nasal-philtrum"},
+        mark("M135 219 Q138 217 141 218","#DDD1BE",.23,277,.48),
       ]},
     {id:"tail-tip",material:"fur",palette:pale,
       // Cream brush hairs dissolve into the outer tip, turning back over the
