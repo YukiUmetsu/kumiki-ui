@@ -261,11 +261,39 @@ export function crayonNibPath(mark: CrayonMark, progress = 1): string {
  * Completed geometry is memoized only by dry-mode regions; partial frames
  * regenerate only the active nib and never rearrange painted marks.
  */
+/** Deterministic paper-contact height in canonical material coordinates.
+ * Smooth, multi-scale paper relief is shared across independent deposits.
+ * This is an SVG-oriented approximation, not a wax thickness simulation.
+ * Hash cells are keyed to position and the PAPER seed (not mark IDs).
+ */
+export function crayonPaperHeight(x:number,y:number,paperSeed:number):number{
+  if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isSafeInteger(paperSeed))
+    throw new RangeError("Invalid crayon paper coordinates or seed");
+  const field=(scale:number,salt:number)=>{
+    const gx=x/scale,gy=y/scale;
+    const ix=Math.floor(gx),iy=Math.floor(gy);
+    const sx=gx-ix,sy=gy-iy;
+    const smooth=(v:number)=>v*v*(3-2*v);
+    const hash=(i:number,j:number)=>crayonHash(paperSeed,
+      (Math.imul(i,73856093)^Math.imul(j,19349663))|0,salt);
+    const top=hash(ix,iy)+(hash(ix+1,iy)-hash(ix,iy))*smooth(sx);
+    const bottom=hash(ix,iy+1)+(hash(ix+1,iy+1)-hash(ix,iy+1))*smooth(sx);
+    return top+(bottom-top)*smooth(sy);
+  };
+  // Raised paper fibers and broader compressed depressions. Fixed UVs make
+  // successive crayon colors interact with identical tooth at each point.
+  return Math.max(0,Math.min(1,.39*field(5.2,4121)+
+    .37*field(1.65,4122)+.24*field(.63,4123)));
+}
+
 export function crayonDryNibPath(
   mark:CrayonMark,progress=1,contact:"legacy"|"hand"="legacy",
+  paperSeed=0,
 ):string{
   if(contact!=="legacy"&&contact!=="hand")
     throw new RangeError("Invalid dry nib contact style");
+  if(!Number.isSafeInteger(paperSeed))
+    throw new RangeError("Invalid crayon paper seed");
   const handmade=contact==="hand";
   if(!Number.isFinite(progress)||progress<0||progress>1)
     throw new RangeError("crayon dry nib progress must be in [0,1]");
@@ -316,15 +344,20 @@ export function crayonDryNibPath(
           // A real worn crayon end touches intermittently; height changes
           // along its side, making long contacts lumpy, not polygonal rulers.
           const taper=edge?(handmade?.23+.25*crayonHash(mark.index,seed+j,3111):.43):1;
+          const x=pos.x+pos.nx*(offset+drift);
+          const y=pos.y+pos.ny*(offset+drift);
+          // Adjacent crayon passes sample the SAME paper relief. A high peak
+          // receives thicker wax while valleys interrupt side-of-nib contact.
+          const paper=handmade?crayonPaperHeight(x,y,paperSeed):1;
           const relief=handmade?
-            .36+.94*crayonHash(mark.index,seed+j,3108):
+            .12+1.44*paper:
             .59+.57*crayonHash(mark.index,seed+j,3108);
           const thickness=mark.width*(handmade?.08+.052*mark.pressure:
             .065+.043*mark.pressure)*taper*relief;
-          const x=pos.x+pos.nx*(offset+drift);
-          const y=pos.y+pos.ny*(offset+drift);
-          left.push(fmt(x+pos.nx*thickness)+" "+fmt(y+pos.ny*thickness));
-          right.push(fmt(x-pos.nx*thickness)+" "+fmt(y-pos.ny*thickness));
+          const deposit=handmade?(.24+.76*mark.pressure):1;
+          const contactWidth=thickness*deposit;
+          left.push(fmt(x+pos.nx*contactWidth)+" "+fmt(y+pos.ny*contactWidth));
+          right.push(fmt(x-pos.nx*contactWidth)+" "+fmt(y-pos.ny*contactWidth));
         }
         result.push("M"+left.join("L")+"L"+right.reverse().join("L")+"Z");
       }
