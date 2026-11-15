@@ -7,7 +7,10 @@ import type {
 } from "./colored-pencil-photo";
 import {mapCC0WomanPortraitFeatures} from "./colored-pencil-portrait-guides";
 import {createDryPortraitPlate} from "./colored-pencil-dry-portrait";
-import {createDryPencilHeadPlate} from "./colored-pencil-full-head";
+import {
+  createDryPencilHeadPlate,HEAD_STORYBOARD_PHASES,
+  selectHeadStoryboardStrokes,
+} from "./colored-pencil-full-head";
 import {compareCC0PortraitTones} from "./colored-pencil-full-head-tone-proof";
 import type {PencilToneComparison} from "./colored-pencil-full-head-tone-proof";
 
@@ -99,12 +102,15 @@ function paint(ctx:CanvasRenderingContext2D,study:PencilPhotoStudy,
   ctx.globalAlpha=1;
 }
 /** One existing sidebar folder, no external subscription/AI or server upload. */
-export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSample?:Sample}={}){
+export function ReferencePencilAtelier({
+  initialSample="kingfisher",initialStoryboard=false,
+}:{initialSample?:Sample;initialStoryboard?:boolean}={}){
   const canvasRef=useRef<HTMLCanvasElement>(null);
   const faceMacroRef=useRef<HTMLCanvasElement>(null);
   const dryFaceRef=useRef<HTMLCanvasElement>(null);
   const fullHeadRef=useRef<HTMLCanvasElement>(null);
   const fullHeadSourceRef=useRef<HTMLCanvasElement>(null);
+  const storyboardRefs=useRef<(HTMLCanvasElement|null)[]>([]);
   const underpaint=useRef<HTMLCanvasElement|null>(null);
   const progress=useRef<{study:PencilPhotoStudy;frame:number;drawn:number;wash:number}|null>(null);
   const localObjectUrl=useRef<string|null>(null);
@@ -131,7 +137,9 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
   const [showReference,setShowReference]=useState(false);
   const [showFaceGuides,setShowFaceGuides]=useState(false);
   const [showFaceMacro,setShowFaceMacro]=useState(false);
-  const [showFullHead,setShowFullHead]=useState(false);
+  const [showFullHead,setShowFullHead]=useState(initialStoryboard);
+  const [showStoryboard,setShowStoryboard]=useState(initialStoryboard);
+  const [headScumble,setHeadScumble]=useState(.65);
   const [headToneComparison,setHeadToneComparison]=
     useState<PencilToneComparison|null>(null);
   const [faceMacroRegion,setFaceMacroRegion]=useState<"eyes"|"lips">("eyes");
@@ -207,8 +215,8 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
   // Opt-in research plate; expensive full-head mark construction is never
   // computed for ordinary video exports or for unrelated photos/characters.
   const headPlate=useMemo(()=>raw&&faceGuides&&showFullHead?
-    createDryPencilHeadPlate(raw,faceGuides,options.seed):null,
-    [raw,faceGuides,showFullHead,options.seed]);
+    createDryPencilHeadPlate(raw,faceGuides,options.seed,headScumble):null,
+    [raw,faceGuides,showFullHead,options.seed,headScumble]);
   // The static precomputed tone layer is cached: seeking/speed does not
   // recompute pixels, gradients, stochastic paper or stroke directions.
   useEffect(()=>{
@@ -293,6 +301,29 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
     const rendered=ink.getImageData(0,0,dry.width,dry.height);
     setHeadToneComparison(compareCC0PortraitTones(original,rendered));
   },[headPlate,raw]);
+  // Each storyboard panel reuses the EXACT paper-only full-head strokes,
+  // chronologically filtered by construction material and immutable pass.
+  // Small stage canvases render at 1/2 scale without any bitmap shortcut.
+  useEffect(()=>{
+    if(!showStoryboard||!headPlate)return;
+    for(const [index,phase] of HEAD_STORYBOARD_PHASES.entries()){
+      const canvas=storyboardRefs.current[index];
+      if(!canvas)continue;
+      const ctx=canvas.getContext("2d");if(!ctx)continue;
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.setTransform(.5,0,0,.5,0,0);
+      ctx.fillStyle=headPlate.paperColor;
+      ctx.fillRect(0,0,headPlate.width,headPlate.height);
+      const stageMarks=selectHeadStoryboardStrokes(headPlate.strokes,phase.id);
+      paintMarkRange(ctx,{strokes:stageMarks},0,stageMarks.length);
+      ctx.setTransform(1,0,0,1,0,0);
+      canvas.setAttribute("data-km-pencil-storyboard-rendered",phase.id);
+      canvas.setAttribute("data-km-pencil-storyboard-strokes",
+        String(stageMarks.length));
+    }
+  },[showStoryboard,headPlate]);
   useEffect(()=>{
     if(!playing)return;
     const began=performance.now(),offset=frame;
@@ -413,6 +444,20 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
         <input aria-label="Inspect full pencil head anatomy" type="checkbox"
           checked={showFullHead} onChange={e=>setShowFullHead(e.target.checked)}/>
         Full head · five-value and rooted-hair proof (experimental)
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Skin scumbling · {Math.round(headScumble*100)}%
+        <input aria-label="Pencil portrait scumble" type="range"
+          min="0" max="1" step=".05" value={headScumble}
+          onChange={e=>setHeadScumble(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={{
+        ...control,alignSelf:"end",display:"flex",alignItems:"center",
+        flexDirection:"row",gap:9,minHeight:40}}>
+        <input type="checkbox" aria-label="Inspect four-shot portrait storyboard"
+          checked={showStoryboard}
+          onChange={e=>setShowStoryboard(e.target.checked)}/>
+        Four-shot pencil storyboard
       </label>}
       {faceGuides&&showFaceMacro&&<label style={control}>Facial crop
         <select aria-label="Pencil face detail region" value={faceMacroRegion}
@@ -604,6 +649,42 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
                 </tr>)}</tbody>
             </table>
           </div>}
+          {showStoryboard&&<section
+            aria-label="Four-shot dry coloured pencil portrait storyboard"
+            data-km-pencil-portrait-storyboard=""
+            style={{margin:"18px 0 0"}}>
+            <h3 style={{font:"600 18px Georgia,serif",margin:"0 0 6px"}}>
+              Portrait production storyboard · four genuine drawing beats
+            </h3>
+            <p style={{fontSize:13,margin:"0 0 10px",maxWidth:810}}>
+              These are actual staged pencil strokes from one deterministic
+              construction, not four filtered photos. Each shot builds on
+              the previous mark family. The final output remains an
+              unapproved anatomical study.
+            </p>
+            <div style={{display:"grid",gap:12,
+              gridTemplateColumns:"repeat(auto-fit,minmax(205px,1fr))"}}>
+              {HEAD_STORYBOARD_PHASES.map((phase,index)=>
+                <figure key={phase.id} style={{
+                  margin:0,padding:10,border:"1px solid #A8A39A",
+                  background:"#FFFAF0",minWidth:0}}>
+                  <figcaption style={{display:"grid",gap:4,marginBottom:8}}>
+                    <strong style={{fontSize:14}}>{phase.label}</strong>
+                    <span style={{fontSize:12,color:"#51655F"}}>
+                      {phase.description}
+                    </span>
+                  </figcaption>
+                  <canvas ref={node=>{storyboardRefs.current[index]=node;}}
+                    width={270} height={300}
+                    data-km-pencil-portrait-stage={phase.id}
+                    data-km-pencil-raster-underpaint="none"
+                    aria-label={phase.label+" · dry-pencil authored marks"}
+                    style={{width:"100%",maxWidth:270,height:"auto",
+                      aspectRatio:"9 / 10",display:"block",
+                      border:"1px solid #C3BCAE",background:"#FAF5ED"}}/>
+                </figure>)}
+            </div>
+          </section>}
           <p style={{fontSize:12,margin:"9px 0 0",color:"#53665E"}}
             data-km-pencil-head-proof-metrics="">
             Five values (deepest → reserved paper):
