@@ -314,7 +314,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       const boughs=[...full.matchAll(
         /data-km-cliff-pine-bough="" data-km-cliff-pine-bough-root="([^"]+)"/g,
       )];
-      const bones=[...full.matchAll(
+      const pineBones=[...full.matchAll(
         /data-km-cliff-pine-bough-bone="" d="([^"]+)"/g,
       )].map(m=>m[1]);
       const needles=[...full.matchAll(
@@ -338,8 +338,8 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         (d.match(/ C/g)??[]).length>=22&&d.endsWith(" Z")))
         .toBe(true);
       expect(boughs).toHaveLength(20);
-      expect(bones).toHaveLength(20);
-      expect(bones.every((d,i)=>d.startsWith("M"+
+      expect(pineBones).toHaveLength(20);
+      expect(pineBones.every((d,i)=>d.startsWith("M"+
         boughs[i][1].replace(","," "))&&d.endsWith(" Z")))
         .toBe(true);
       expect(needles).toHaveLength(310);
