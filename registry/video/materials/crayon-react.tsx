@@ -142,8 +142,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   // Dry-contact fragments are computed only for requested dry wax art.
   // Legacy tapered/rounded scenes pay no extra allocation or SVG cost.
   const dryMarks=useMemo(()=>nibStyle==="dry"
-    ? marks.map(mark=>crayonDryNibPath(mark)):[],
-    [marks,nibStyle]);
+    ? marks.map(mark=>crayonDryNibPath(mark,1,strokeBuilt?"hand":"legacy")):[],
+    [marks,nibStyle,strokeBuilt]);
   // Cross-grain gestures are deterministic per source region, not per frame.
   const crossAngle=strokeBuilt
     ? (crayonHash(seed,7,1921)<.5 ? -1 : 1)*(9+crayonHash(seed,8,1922)*11)
@@ -296,7 +296,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
               opacity={pigmentContact*(strokeBuilt?.29+.15*mark.pressure:
                 coverage==="opaque"?.10+.13*mark.pressure:.06+.10*mark.pressure)}
               data-km-crayon-dry-binder="" />
-            <path d={progress>=1?dryMarks[i]:crayonDryNibPath(mark,progress)}
+            <path d={progress>=1?dryMarks[i]:crayonDryNibPath(mark,progress,
+                strokeBuilt?"hand":"legacy")}
               fill={colors[mark.tone]}
               opacity={pigmentContact*(strokeBuilt?.49+.23*mark.pressure:
                 coverage==="opaque"?.48+.38*mark.pressure:.37+.29*mark.pressure)}
