@@ -348,7 +348,7 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".clipToParent must be a boolean");
         if (node.clipToParent && !node.parentId)
           errors.push(p + ".clipToParent requires a parent wax element");
-        if (node.nibStyle !== undefined && node.nibStyle !== "rounded" && node.nibStyle !== "tapered" && node.nibStyle !== "dry"
+        if (node.nibStyle !== undefined && node.nibStyle !== "rounded" && node.nibStyle !== "tapered" && node.nibStyle !== "dry")
           errors.push(p + ".nibStyle must be rounded, tapered or dry");
         if (node.strokeOrder !== undefined && node.strokeOrder !== "scanline" && node.strokeOrder !== "patches")
           errors.push(p + ".strokeOrder must be scanline or patches");
