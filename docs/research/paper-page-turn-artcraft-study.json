@@ -1,0 +1,193 @@
+{
+  "schema_version": 3,
+  "project": "PAPER-D3: hinged art-printed page turn",
+  "mode": "original-paper-engineering-study",
+  "reference_policy": {
+    "min_references": 3,
+    "min_deep_studies": 2,
+    "source_rights": "study-only; no third-party assets imported"
+  },
+  "sources": [
+    {
+      "id": "smithsonian-mechanisms",
+      "title": "Paper Engineering: Fold, Pull, Pop and Turn",
+      "creator": "Smithsonian Libraries",
+      "url": "https://library.si.edu/digital-library/exhibition/paper-engineering",
+      "rights": "Copyright not cleared for embedded reference images; source link only",
+      "medium": "movable paper books, hinge and tab mechanisms",
+      "view": "museum collection and construction explanations",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Book leaves pivot about a spine, with mechanisms attached to a moving paper substrate rather than floating overlays.",
+        "material": "Paper leaf stays opaque while revealing another page beneath.",
+        "microdetail": "Crease and attachment points are structural; show a visible book gutter and distinct stock verso.",
+        "light": "Leaf edge casts a directional separation shadow. Stage light must remain consistent across the edit."
+      },
+      "crops": [
+        {
+          "feature": "hinged-spine",
+          "bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "observation": "Source mechanism taxonomy supports hinge-first construction, not an alpha blend.",
+          "implementation_rule": "Keep an independent rigid page plane attached at a fixed spine; never fade the old scene."
+        }
+      ]
+    },
+    {
+      "id": "su-blackwell-book",
+      "title": "The Dark is Rising",
+      "creator": "Su Blackwell",
+      "url": "https://www.meer.com/long-and-ryle-gallery/artworks/75027",
+      "image_url": "https://media.meer.com/attachments/7c90e85f3e7e214001047556733ce0dc289a58e9/store/fill/1095/821/f76653eb7174986978d7cc20af420c618f8a801e6d88bff192ac75300b94/Su-Blackwell-The-Dark-is-Rising-330mm-w-x-255mm-h-x-258mm-d-Paper-book-lights-paper-sculpture-in.jpg",
+      "rights": "Artist and gallery rights reserved; image linked only for visual study",
+      "medium": "sculpted cut book landscape with tree branches and interior light",
+      "view": "frontal finished paper artwork",
+      "deep_study": true,
+      "analysis": {
+        "construction": "An intact book cradle supports multi-depth trees and house shapes emerging from its pages. The paper leaves remain materially distinct from the cut motifs.",
+        "material": "Visible physical sheet thickness, dark edges and independent relief cast occlusion shadows.",
+        "microdetail": "Branch topology, opening windows, leaf edges and fine text surface distinguish craft from generic vector solids.",
+        "light": "The illuminated small house sets a focus, while tree depth remains readable."
+      },
+      "crops": [
+        {
+          "feature": "book-gutter-and-leaf",
+          "bbox": [
+            0.08,
+            0.55,
+            0.94,
+            0.98
+          ],
+          "observation": "Page edges converge into a central physical binding; diorama sits on the sheet rather than passing through it.",
+          "implementation_rule": "Model a fixed gutter, show a separate light/dark leaf face, and keep the rendered paper art attached to the moving face."
+        }
+      ]
+    },
+    {
+      "id": "helen-hiebert-shadow-book",
+      "title": "Pop-Up Hand Shadow Book",
+      "creator": "Helen Hiebert",
+      "url": "https://www.artworkarchive.com/profile/helen-hiebert/artwork/pop-up-hand-shadow-book",
+      "image_url": "https://assets.artworkarchive.com/image/upload/t_jpg_large/v1/user_1453/Helen_IMG_8959_kzd4cw",
+      "rights": "Artist rights retained; image linked only, no pixel tracing",
+      "medium": "book pages with dimensional hand cutouts, directed shadows",
+      "view": "angled physical installation photograph",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Book panels are connected by dark bindings; raised sculpted hand pages cast intentional screen shadow.",
+        "material": "Separate white page stocks and backboard; old/new art should remain printed onto separate solid substrates.",
+        "microdetail": "Fine cut finger silhouettes and a distinct black page crease provide identity.",
+        "light": "Handheld lamp produces localized shadows, showing depth from genuine paper openings."
+      },
+      "crops": [
+        {
+          "feature": "panel-hinge",
+          "bbox": [
+            0.04,
+            0.05,
+            0.94,
+            0.8
+          ],
+          "observation": "Multi-panel page opening is held by visible dark fabric or paper spine, a real fixed axis.",
+          "implementation_rule": "Book-spine location stays anchored across the whole animation, independent of page rotation."
+        }
+      ]
+    },
+    {
+      "id": "yusuke-oono-cad",
+      "title": "360-degree architectural pop-up books",
+      "creator": "Yusuke Oono (via Core77)",
+      "url": "https://www.core77.com/posts/114559/Architect-Uses-CAD-and-Laser-Cutter-to-Create-360-Degree-Pop-Up-Books",
+      "image_url": "https://s3files.core77.com/blog/images/1268819_81_114559_nK8hfr_P2.jpeg",
+      "rights": "Artwork rights not granted, source link for study only",
+      "medium": "laser-cut dimensional book silhouette art",
+      "view": "frontal photograph of intricately cut paper",
+      "deep_study": false,
+      "analysis": {
+        "construction": "A physical spine supports multiple continuous cut silhouette sheets; the page mechanism is not an image wipe.",
+        "material": "Exposed paper relief shadows and cut edge contours.",
+        "microdetail": "Tree foliage, animals, building facades and figure silhouettes contribute many layered apertures.",
+        "light": "Warm transmission backlight separates stock depths."
+      },
+      "crops": []
+    }
+  ],
+  "feature_targets": [
+    {
+      "id": "printed-movable-leaf",
+      "reference_ids": [
+        "smithsonian-mechanisms",
+        "helen-hiebert-shadow-book"
+      ],
+      "critical": true,
+      "source_observation": "A leaf pivots around a fixed binding and carries its own original illustration; pages do not dissolve into each other.",
+      "geometry_rule": "outgoing paper SVG is an entire painted card, rotated about the fixed CSS 3D gutter; incoming independent page is below.",
+      "microdetails": [
+        "stationary binding",
+        "projected moving edge",
+        "opaque front and reverse stock"
+      ],
+      "test_view": "frames 228,234,239,240,246,251 in 960x540 and 540x960",
+      "part_ids": [
+        "page-leaf",
+        "next-page",
+        "printed-front",
+        "spine"
+      ],
+      "detail_critical": true
+    },
+    {
+      "id": "depth-and-occlusion",
+      "reference_ids": [
+        "su-blackwell-book",
+        "helen-hiebert-shadow-book"
+      ],
+      "critical": true,
+      "source_observation": "Paper relief remains separate from the book leaf and creates contact shadows; fine cuts and window apertures remain intact.",
+      "geometry_rule": "render original complex PAPER1 scene on the leaf without rasterization; pass the second scene directly beneath; keep shadows on outer leaf.",
+      "microdetails": [
+        "no duplicated translucent art",
+        "real SVG clip apertures",
+        "visible paper thickness strip"
+      ],
+      "test_view": "scene-seam screenshots and 34-frame 30FPS encoded film",
+      "part_ids": [
+        "printed-front",
+        "leaf-verso",
+        "spine"
+      ],
+      "detail_critical": true
+    },
+    {
+      "id": "edit-direction-and-framing",
+      "reference_ids": [
+        "smithsonian-mechanisms",
+        "yusuke-oono-cad"
+      ],
+      "critical": true,
+      "source_observation": "A page-turn reads by a single hinge; motion direction follows a physical page rather than a mirrored image wipe.",
+      "geometry_rule": "direction left-to-right pivots about right edge, reverse uses left; projected leaf 0→180 degrees with full adjacent scene at seam.",
+      "microdetails": [
+        "consistent book gutter",
+        "stable world space across reverse",
+        "no blank camera frame"
+      ],
+      "test_view": "two-aspect and both direction seams 239/240 and 479/480",
+      "part_ids": [
+        "paper-director-stage",
+        "page-leaf"
+      ],
+      "detail_critical": false
+    }
+  ],
+  "notes": {
+    "rights": "No third-party pixel data copied or stored. Source preview URLs are metadata only.",
+    "method": "Qualitative mechanics reference, not exact reproduction. High-resolution rights-cleared source crops and measured motion frames not available; strict pixel-match gate not applicable.",
+    "craft_claim": "Paper hinge framework only. Full mechanical multi-panel V-fold, page curl deformation and independently approved realism remain unimplemented.",
+    "review_status": "Await native browser and exported frame inspection."
+  }
+}
