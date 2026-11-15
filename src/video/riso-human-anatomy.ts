@@ -16,6 +16,7 @@ import type {RisoCharacterSpec,RisoCharacterPart} from "../../registry/video/ris
 export const RISO29_ANAT1 = {
   evidence:"ANAT1 MakeHuman lattice: grade S, not a measured adult identity",
   headsTallAdultReference:MODEL_TABLES.byAge.male.find(x=>x.age===25)!.headsTall,
+  adultReferenceLegRatio:MODEL_TABLES.byAge.male.find(x=>x.age===25)!.legRatio,
   canonicalEyeLandmarks:[FACE_LANDMARKS["exocanthion.R"],FACE_LANDMARKS["endocanthion.R"],
     FACE_LANDMARKS["endocanthion.L"],FACE_LANDMARKS["exocanthion.L"]],
   eyelidLoopLengths:[FACE_FEATURES["eye-upper.R"].loop.length,
@@ -27,6 +28,7 @@ export const RISO29_ANAT1 = {
   oldHeadWidth:84, // hair/hat span, head-local source units
   shoulderSpan:78, // coat plus sleeve outline span, body-local units
   headSourceHeight:110, // scalp→chin source span, local units
+  headCrownY:-77, // actual source hair crown (Courier cap / Artist bob)
   headScale:.52,
   neckY:-77,
   headNeckOffsetY:-17,
@@ -85,14 +87,24 @@ export function inspectRisoAnatomy(spec:RisoCharacterSpec,frame:number){
   };
   const head=find("head"),neck=find("neck"),body=find("body");
   const left=find("left-arm"),right=find("right-arm");
+  const hips=[find("left-leg"),find("right-leg")];
+  const ankles=[find("left-ankle"),find("right-ankle")];
   const headScale=Math.hypot(head.matrix.a,head.matrix.b)/
     Math.max(1e-9,Math.hypot(body.matrix.a,body.matrix.b));
   const shoulderWidth=Math.hypot(left.x-right.x,left.y-right.y);
   const neckEnd={x:head.x,y:head.y};
   const neckStart={x:neck.x,y:neck.y};
   const headWidth=RISO29_ANAT1.oldHeadWidth*headScale;
+  // Whole-figure proportions measured from the EXACT posed source joints,
+  // not guessed based on a rectangle or falsely inferred human identity.
+  const crownY=head.y+RISO29_ANAT1.headCrownY*headScale;
+  const hipY=(hips[0].y+hips[1].y)/2;
+  const ankleY=(ankles[0].y+ankles[1].y)/2;
+  const projectedStature=ankleY-crownY;
+  const legProjectionRatio=(ankleY-hipY)/projectedStature;
   return {headScale,headWidth,shoulderWidth,headToShoulder:headWidth/shoulderWidth,
     neckLength:Math.hypot(neckEnd.x-neckStart.x,neckEnd.y-neckStart.y),
+    projectedStature,legProjectionRatio,
     neck:neckStart,skullBase:neckEnd,
     connected:head.parent==="neck"&&neck.parent==="body",
     printDetails:spec.parts.filter(p=>p.joint==="head").length,
