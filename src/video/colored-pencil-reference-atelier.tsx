@@ -6,10 +6,25 @@ import type {
   PencilPhotoPixels,PencilPhotoOptions,PencilPhotoStudy,
 } from "./colored-pencil-photo";
 import {mapCC0WomanPortraitFeatures} from "./colored-pencil-portrait-guides";
+import {
+  buildColoredPencilDryContact,isPencilSkinContactZone,
+} from "./colored-pencil-dry-contact";
+import type {PortraitHeadStroke} from "./colored-pencil-full-head";
 import {createDryPortraitPlate} from "./colored-pencil-dry-portrait";
-import {createDryPencilHeadPlate} from "./colored-pencil-full-head";
-import {compareCC0PortraitTones} from "./colored-pencil-full-head-tone-proof";
-import type {PencilToneComparison} from "./colored-pencil-full-head-tone-proof";
+import {
+  createDryPencilHeadPlate,HEAD_STORYBOARD_PHASES,
+  selectHeadStoryboardStrokes,
+} from "./colored-pencil-full-head";
+import {
+  compareCC0PortraitTones,compareCC0HairOcclusion,
+  compareCC0Vermilion,compareCC0SoftSkin,
+  compareCC0LuminousSkin,compareCC0JawContact,
+  CC0_HAIR_OCCLUSION_PROBE,
+} from "./colored-pencil-full-head-tone-proof";
+import type {
+  PencilToneComparison,CC0HairOcclusionResult,CC0VermilionResult,
+  CC0SoftSkinResult,CC0LuminousSkinResult,CC0JawContactResult,
+} from "./colored-pencil-full-head-tone-proof";
 
 /**
  * Source-backed pencil renderer. The default images are demonstrably public
@@ -83,6 +98,28 @@ function paintMarkRange(ctx:CanvasRenderingContext2D,
   }
   ctx.globalAlpha=1;
 }
+/**
+ * Source-conditioned full-head pigment renderer. The opt-in paper-contact
+ * variation is deterministic per mark, so 0–100% controls, stage previews,
+ * forward playback and absolute frame seeks never introduce temporal grain.
+ * Fine eye/lip/hair marks are untouched.
+ */
+function paintDryHeadRange(ctx:CanvasRenderingContext2D,
+  strokes:readonly PortraitHeadStroke[],from:number,to:number,tooth:number){
+  ctx.lineCap="round";ctx.lineJoin="round";
+  for(let i=from;i<to;i++){
+    const source=strokes[i];
+    const marks=tooth>0&&isPencilSkinContactZone(source.zone)?
+      buildColoredPencilDryContact(source,tooth):[source];
+    for(const mark of marks){
+      ctx.beginPath();ctx.moveTo(mark.x,mark.y);
+      ctx.quadraticCurveTo(mark.controlX,mark.controlY,mark.endX,mark.endY);
+      ctx.strokeStyle=mark.color;ctx.lineWidth=mark.width;
+      ctx.globalAlpha=mark.alpha;ctx.stroke();
+    }
+  }
+  ctx.globalAlpha=1;
+}
 function paint(ctx:CanvasRenderingContext2D,study:PencilPhotoStudy,
   frame:number,source:HTMLCanvasElement,wash:number){
   const {width,height}=study;
@@ -99,12 +136,19 @@ function paint(ctx:CanvasRenderingContext2D,study:PencilPhotoStudy,
   ctx.globalAlpha=1;
 }
 /** One existing sidebar folder, no external subscription/AI or server upload. */
-export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSample?:Sample}={}){
+export function ReferencePencilAtelier({
+  initialSample="kingfisher",initialStoryboard=false,
+}:{initialSample?:Sample;initialStoryboard?:boolean}={}){
   const canvasRef=useRef<HTMLCanvasElement>(null);
   const faceMacroRef=useRef<HTMLCanvasElement>(null);
   const dryFaceRef=useRef<HTMLCanvasElement>(null);
   const fullHeadRef=useRef<HTMLCanvasElement>(null);
   const fullHeadSourceRef=useRef<HTMLCanvasElement>(null);
+  const storyboardRefs=useRef<(HTMLCanvasElement|null)[]>([]);
+  const boundarySourceRef=useRef<HTMLCanvasElement>(null);
+  const boundaryPencilRef=useRef<HTMLCanvasElement>(null);
+  const featureSourceRef=useRef<HTMLCanvasElement>(null);
+  const featureDryRef=useRef<HTMLCanvasElement>(null);
   const underpaint=useRef<HTMLCanvasElement|null>(null);
   const progress=useRef<{study:PencilPhotoStudy;frame:number;drawn:number;wash:number}|null>(null);
   const localObjectUrl=useRef<string|null>(null);
@@ -131,9 +175,31 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
   const [showReference,setShowReference]=useState(false);
   const [showFaceGuides,setShowFaceGuides]=useState(false);
   const [showFaceMacro,setShowFaceMacro]=useState(false);
-  const [showFullHead,setShowFullHead]=useState(false);
+  const [showFullHead,setShowFullHead]=useState(initialStoryboard);
+  const [showStoryboard,setShowStoryboard]=useState(initialStoryboard);
+  const [showHairContact,setShowHairContact]=useState(initialStoryboard);
+  const [headScumble,setHeadScumble]=useState(.65);
+  const [headDryTooth,setHeadDryTooth]=useState(.75);
+  const [fibreFlow,setFibreFlow]=useState(1);
+  const [lidAnatomy,setLidAnatomy]=useState(.72);
+  const [irisAnatomy,setIrisAnatomy]=useState(.78);
+  const [featureDepth,setFeatureDepth]=useState(.85);
+  const [skinCoverage,setSkinCoverage]=useState(.70);
+  const [showFeatureAtlas,setShowFeatureAtlas]=useState(initialStoryboard);
+  const [featureFocus,setFeatureFocus]=
+    useState<"eyes"|"nose"|"lips"|"skin">("lips");
   const [headToneComparison,setHeadToneComparison]=
     useState<PencilToneComparison|null>(null);
+  const [headOcclusion,setHeadOcclusion]=
+    useState<CC0HairOcclusionResult|null>(null);
+  const [vermilionEvidence,setVermilionEvidence]=
+    useState<CC0VermilionResult|null>(null);
+  const [skinEvidence,setSkinEvidence]=
+    useState<CC0SoftSkinResult|null>(null);
+  const [lightSkinEvidence,setLightSkinEvidence]=
+    useState<CC0LuminousSkinResult|null>(null);
+  const [jawEvidence,setJawEvidence]=
+    useState<CC0JawContactResult|null>(null);
   const [faceMacroRegion,setFaceMacroRegion]=useState<"eyes"|"lips">("eyes");
   const [applyFaceCraft,setApplyFaceCraft]=useState(true);
   const [uploaded,setUploaded]=useState(false);
@@ -207,8 +273,10 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
   // Opt-in research plate; expensive full-head mark construction is never
   // computed for ordinary video exports or for unrelated photos/characters.
   const headPlate=useMemo(()=>raw&&faceGuides&&showFullHead?
-    createDryPencilHeadPlate(raw,faceGuides,options.seed):null,
-    [raw,faceGuides,showFullHead,options.seed]);
+    createDryPencilHeadPlate(raw,faceGuides,options.seed,
+      headScumble,featureDepth,skinCoverage,fibreFlow,lidAnatomy,irisAnatomy):null,
+    [raw,faceGuides,showFullHead,options.seed,headScumble,featureDepth,
+      skinCoverage,fibreFlow,lidAnatomy,irisAnatomy]);
   // The static precomputed tone layer is cached: seeking/speed does not
   // recompute pixels, gradients, stochastic paper or stroke directions.
   useEffect(()=>{
@@ -276,8 +344,22 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
     ink.globalAlpha=1;ink.globalCompositeOperation="source-over";
     ink.fillStyle=headPlate.paperColor;
     ink.fillRect(0,0,dry.width,dry.height);
-    paintMarkRange(ink,headPlate,0,headPlate.strokes.length);
+    paintDryHeadRange(ink,headPlate.strokes,0,headPlate.strokes.length,
+      headDryTooth);
     dry.setAttribute("data-km-pencil-full-head-rendered","true");
+    dry.setAttribute("data-km-pencil-eyelid-depth",String(headPlate.eyelidDepth));
+    dry.setAttribute("data-km-pencil-iris-depth",String(headPlate.irisDepth));
+    dry.setAttribute("data-km-pencil-iris-near",String(
+      headPlate.observedIrisCounts.near));
+    dry.setAttribute("data-km-pencil-iris-far",String(
+      headPlate.observedIrisCounts.far));
+    dry.setAttribute("data-km-pencil-iris-reserves",String(
+      headPlate.observedIrisCounts.glintReserves));
+    dry.setAttribute("data-km-pencil-eyelid-nibs",String(
+      headPlate.observedEyelidCounts.upper+headPlate.observedEyelidCounts.lower));
+    dry.setAttribute("data-km-pencil-eyelid-source-pixels",
+      String(headPlate.observedEyelidCounts.sourceSupported));
+    dry.setAttribute("data-km-pencil-dry-contact",String(headDryTooth));
     const temp=document.createElement("canvas");
     temp.width=raw.width;temp.height=raw.height;
     const tempCtx=temp.getContext("2d");if(!tempCtx)return;
@@ -292,7 +374,87 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
     const original=reference.getImageData(0,0,sourceCanvas.width,sourceCanvas.height);
     const rendered=ink.getImageData(0,0,dry.width,dry.height);
     setHeadToneComparison(compareCC0PortraitTones(original,rendered));
-  },[headPlate,raw]);
+    setHeadOcclusion(compareCC0HairOcclusion(original,rendered));
+    setVermilionEvidence(compareCC0Vermilion(original,rendered));
+    setSkinEvidence(compareCC0SoftSkin(original,rendered));
+    setLightSkinEvidence(compareCC0LuminousSkin(original,rendered));
+    setJawEvidence(compareCC0JawContact(original,rendered));
+  },[headPlate,raw,headDryTooth]);
+  useEffect(()=>{
+    if(!showHairContact||!headPlate)return;
+    const src=fullHeadSourceRef.current,dry=fullHeadRef.current;
+    const targetSrc=boundarySourceRef.current;
+    const targetDry=boundaryPencilRef.current;
+    if(!src||!dry||!targetSrc||!targetDry)return;
+    // One measured ear/hair shadow contact, not a generic photo filter.
+    // The crop is visual QA ONLY; the actual portrait drawing remains
+    // individually authored strokes, with no reference-image underpaint.
+    const sx=60/285*src.width,sy=205/318*src.height;
+    const sw=53/285*src.width,sh=61/318*src.height;
+    for(const [canvas,target] of [
+      [src,targetSrc],[dry,targetDry],
+    ] as const){
+      const ctx=target.getContext("2d");if(!ctx)continue;
+      ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";
+      ctx.imageSmoothingEnabled=true;
+      ctx.clearRect(0,0,target.width,target.height);
+      ctx.drawImage(canvas,sx,sy,sw,sh,
+        0,0,target.width,target.height);
+      target.setAttribute("data-km-pencil-contact-rendered","ready");
+    }
+  },[showHairContact,headPlate,raw]);
+  useEffect(()=>{
+    if(!showFeatureAtlas||!headPlate)return;
+    const from=fullHeadSourceRef.current,to=fullHeadRef.current;
+    const sourceDetail=featureSourceRef.current;
+    const pencilDetail=featureDryRef.current;
+    if(!from||!to||!sourceDetail||!pencilDetail)return;
+    // The coordinate registration is the actual 285×318 Chromium CC0
+    // proof screenshot, not an invented vector face. Every crop is simply
+    // an observation of the finished source/mark canvas; it never adds
+    // photographic pixels to the rendered dry-pencil artwork.
+    const centres={
+      eyes:[155,121],nose:[179,152],lips:[186,189],skin:[151,151],
+    } as const;
+    const [cx,cy]=centres[featureFocus];
+    const sx=(cx-60)/285*540,sy=(cy-43)/318*600;
+    const sw=120/285*540,sh=86/318*600;
+    for(const [original,detail] of [
+      [from,sourceDetail],[to,pencilDetail],
+    ] as const){
+      const ctx=detail.getContext("2d");if(!ctx)continue;
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.clearRect(0,0,detail.width,detail.height);
+      ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";
+      ctx.imageSmoothingEnabled=true;
+      ctx.drawImage(original,sx,sy,sw,sh,
+        0,0,detail.width,detail.height);
+      detail.setAttribute("data-km-pencil-anatomy-rendered",featureFocus);
+    }
+  },[showFeatureAtlas,featureFocus,headPlate,raw]);
+  // Each storyboard panel reuses the EXACT paper-only full-head strokes,
+  // chronologically filtered by construction material and immutable pass.
+  // Small stage canvases render at 1/2 scale without any bitmap shortcut.
+  useEffect(()=>{
+    if(!showStoryboard||!headPlate)return;
+    for(const [index,phase] of HEAD_STORYBOARD_PHASES.entries()){
+      const canvas=storyboardRefs.current[index];
+      if(!canvas)continue;
+      const ctx=canvas.getContext("2d");if(!ctx)continue;
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.setTransform(.5,0,0,.5,0,0);
+      ctx.fillStyle=headPlate.paperColor;
+      ctx.fillRect(0,0,headPlate.width,headPlate.height);
+      const stageMarks=selectHeadStoryboardStrokes(headPlate.strokes,phase.id);
+      paintDryHeadRange(ctx,stageMarks,0,stageMarks.length,headDryTooth);
+      ctx.setTransform(1,0,0,1,0,0);
+      canvas.setAttribute("data-km-pencil-storyboard-rendered",phase.id);
+      canvas.setAttribute("data-km-pencil-storyboard-strokes",
+        String(stageMarks.length));
+    }
+  },[showStoryboard,headPlate,headDryTooth]);
   useEffect(()=>{
     if(!playing)return;
     const began=performance.now(),offset=frame;
@@ -413,6 +575,56 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
         <input aria-label="Inspect full pencil head anatomy" type="checkbox"
           checked={showFullHead} onChange={e=>setShowFullHead(e.target.checked)}/>
         Full head · five-value and rooted-hair proof (experimental)
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Skin scumbling · {Math.round(headScumble*100)}%
+        <input aria-label="Pencil portrait scumble" type="range"
+          min="0" max="1" step=".05" value={headScumble}
+          onChange={e=>setHeadScumble(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Dry pencil contact · {Math.round(headDryTooth*100)}%
+        <input aria-label="Pencil dry paper tooth contact" type="range"
+          min="0" max="1" step=".05" value={headDryTooth}
+          onChange={e=>setHeadDryTooth(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Anatomical fibre flow · {Math.round(fibreFlow*100)}%
+        <input aria-label="Pencil anatomy-connected fibre flow" type="range"
+          min="0" max="1" step=".05" value={fibreFlow}
+          onChange={e=>setFibreFlow(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Photo-observed eyelid rims · {Math.round(lidAnatomy*100)}%
+        <input aria-label="Pencil photo-measured eyelid anatomy" type="range"
+          min="0" max="1" step=".04" value={lidAnatomy}
+          onChange={e=>setLidAnatomy(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Photographed iris depth · {Math.round(irisAnatomy*100)}%
+        <input aria-label="Pencil photo-registered iris and pupil" type="range"
+          min="0" max="1" step=".02" value={irisAnatomy}
+          onChange={e=>setIrisAnatomy(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Skin pigment coverage · {Math.round(skinCoverage*100)}%
+        <input aria-label="Pencil skin coverage" type="range"
+          min="0" max="1" step=".05" value={skinCoverage}
+          onChange={e=>setSkinCoverage(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Facial-plane pigment · {Math.round(featureDepth*100)}%
+        <input aria-label="Pencil measured face pigment depth"
+          type="range" min="0" max="1" step=".05" value={featureDepth}
+          onChange={e=>setFeatureDepth(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={{
+        ...control,alignSelf:"end",display:"flex",alignItems:"center",
+        flexDirection:"row",gap:9,minHeight:40}}>
+        <input type="checkbox" aria-label="Inspect four-shot portrait storyboard"
+          checked={showStoryboard}
+          onChange={e=>setShowStoryboard(e.target.checked)}/>
+        Four-shot pencil storyboard
       </label>}
       {faceGuides&&showFaceMacro&&<label style={control}>Facial crop
         <select aria-label="Pencil face detail region" value={faceMacroRegion}
@@ -565,6 +777,37 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
                   border:"1px solid #A8A39A",maxWidth:540,aspectRatio:"9 / 10"}}/>
             </div>
           </div>
+          {headOcclusion&&<p
+            data-km-pencil-hair-occlusion="ready"
+            data-km-pencil-hair-occlusion-source={
+              headOcclusion.sourceLuminance.toFixed(1)}
+            data-km-pencil-hair-occlusion-drawn={
+              headOcclusion.drawnLuminance.toFixed(1)}
+            style={{fontSize:12,margin:"10px 0",color:"#53665E"}}>
+            Source-measured ear/hair shadow (0 black → 255 paper):
+            {" "+Math.round(headOcclusion.sourceLuminance)} →{" "}
+            {Math.round(headOcclusion.drawnLuminance)}.
+            Contact recovery: {" "+(headOcclusion.missingDarkLock?
+              "NEGATIVE GATE FAILED":"TECHNICAL THRESHOLD ONLY")}.
+            Artistic approval: NOT PASSED.
+          </p>}
+          {jawEvidence&&<p
+            data-km-pencil-jaw-contact="ready"
+            data-km-pencil-jaw-upper-deficit={
+              jawEvidence.regions[0].lightnessDeficit.toFixed(1)}
+            data-km-pencil-jaw-mid-deficit={
+              jawEvidence.regions[1].lightnessDeficit.toFixed(1)}
+            data-km-pencil-jaw-lower-deficit={
+              jawEvidence.regions[2].lightnessDeficit.toFixed(1)}
+            style={{fontSize:12,margin:"10px 0",color:"#53665E"}}>
+            Measured source-dark left jaw contact (upper / middle / lower):
+            {" "+jawEvidence.regions.map(r=>
+              r.sourceLuminance.toFixed(1)+"→"+
+                r.drawnLuminance.toFixed(1)).join(" · ")}.
+            Pencil-contact negative gate:{" "+(jawEvidence.missingDarkJawContact?
+              "WHITE HALO / FAIL":"TECHNICAL THRESHOLD ONLY")}.
+            Not independent portrait or material approval.
+          </p>}
           {headToneComparison&&<div style={{marginTop:10}}
             data-km-pencil-tonal-comparison="ready"
             data-km-pencil-mean-value-error={
@@ -604,15 +847,222 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
                 </tr>)}</tbody>
             </table>
           </div>}
+          {showStoryboard&&<section
+            aria-label="Four-shot dry coloured pencil portrait storyboard"
+            data-km-pencil-portrait-storyboard=""
+            style={{margin:"18px 0 0"}}>
+            <h3 style={{font:"600 18px Georgia,serif",margin:"0 0 6px"}}>
+              Portrait production storyboard · four genuine drawing beats
+            </h3>
+            <p style={{fontSize:13,margin:"0 0 10px",maxWidth:810}}>
+              These are actual staged pencil strokes from one deterministic
+              construction, not four filtered photos. Each shot builds on
+              the previous mark family. The final output remains an
+              unapproved anatomical study.
+            </p>
+            <div style={{display:"grid",gap:12,
+              gridTemplateColumns:"repeat(auto-fit,minmax(205px,1fr))"}}>
+              {HEAD_STORYBOARD_PHASES.map((phase,index)=>
+                <figure key={phase.id} style={{
+                  margin:0,padding:10,border:"1px solid #A8A39A",
+                  background:"#FFFAF0",minWidth:0}}>
+                  <figcaption style={{display:"grid",gap:4,marginBottom:8}}>
+                    <strong style={{fontSize:14}}>{phase.label}</strong>
+                    <span style={{fontSize:12,color:"#51655F"}}>
+                      {phase.description}
+                    </span>
+                  </figcaption>
+                  <canvas ref={node=>{storyboardRefs.current[index]=node;}}
+                    width={270} height={300}
+                    data-km-pencil-portrait-stage={phase.id}
+                    data-km-pencil-raster-underpaint="none"
+                    aria-label={phase.label+" · dry-pencil authored marks"}
+                    style={{width:"100%",maxWidth:270,height:"auto",
+                      aspectRatio:"9 / 10",display:"block",
+                      border:"1px solid #C3BCAE",background:"#FAF5ED"}}/>
+                </figure>)}
+            </div>
+          </section>}
+          <label style={{display:"flex",alignItems:"center",gap:8,
+            marginTop:13,fontSize:13}}>
+            <input aria-label="Inspect CC0 eye nose and lip detail atlas"
+              type="checkbox" checked={showFeatureAtlas}
+              onChange={e=>setShowFeatureAtlas(e.target.checked)}/>
+            Compare CC0 facial anatomy at 3×
+          </label>
+          {showFeatureAtlas&&<section
+            aria-label="Source measured coloured pencil facial detail atlas"
+            data-km-pencil-anatomy-atlas=""
+            style={{marginTop:12}}>
+            <h3 style={{font:"600 18px Georgia,serif",margin:"0 0 6px"}}>
+              Eye · skin · nasal cartilage · lips / source-matched optical study
+            </h3>
+            <label style={{...control,maxWidth:310,marginBottom:11}}>
+              Anatomy inspection crop
+              <select aria-label="CC0 measured face crop"
+                value={featureFocus}
+                onChange={e=>setFeatureFocus(
+                  e.target.value as "eyes"|"nose"|"lips"|"skin")}
+                style={field}>
+                <option value="eyes">Eyebrow and eyelids</option>
+                <option value="nose">Nasal alae and bridge</option>
+                <option value="lips">Upper and lower vermilion</option>
+                <option value="skin">Cheek and nasal bridge tonal fields</option>
+              </select>
+            </label>
+            <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+              <figure style={{margin:0,flex:"1 1 220px",maxWidth:390}}>
+                <figcaption style={{fontSize:12,marginBottom:5}}>
+                  Licensed source · measured anatomy
+                </figcaption>
+                <canvas ref={featureSourceRef} width={420} height={300}
+                  data-km-pencil-anatomy-source=""
+                  aria-label="Licensed CC0 source enlarged facial region"
+                  style={{display:"block",width:"100%",height:"auto",
+                    background:"#FAF5ED",border:"1px solid #B8AEA1"}}/>
+              </figure>
+              <figure style={{margin:0,flex:"1 1 220px",maxWidth:390}}>
+                <figcaption style={{fontSize:12,marginBottom:5}}>
+                  Dry pencil · drawn optical planes, no photo underpaint
+                </figcaption>
+                <canvas ref={featureDryRef} width={420} height={300}
+                  data-km-pencil-anatomy-dry=""
+                  data-km-pencil-raster-underpaint="none"
+                  aria-label="Paper-only pencil enlarged matching facial region"
+                  style={{display:"block",width:"100%",height:"auto",
+                    background:"#FAF5ED",border:"1px solid #B8AEA1"}}/>
+              </figure>
+            </div>
+            <p style={{fontSize:12,margin:"8px 0 0",color:"#53665E"}}>
+              Measured vermilion pigment: {" "+
+                headPlate.facialPlaneCounts["lip-vermilion"]} fibres.
+              Nasal alar gradients: {" "+
+                headPlate.facialPlaneCounts["nasal-alar"]} fibres.
+              Research only, independent likeness and artistry NOT APPROVED.
+            </p>
+            {vermilionEvidence&&<p
+              data-km-pencil-vermilion-proof="ready"
+              data-km-pencil-vermilion-upper-deficit={
+                vermilionEvidence.regions[0].lightnessDeficit.toFixed(1)}
+              data-km-pencil-vermilion-lower-deficit={
+                vermilionEvidence.regions[1].lightnessDeficit.toFixed(1)}
+              style={{fontSize:12,margin:"6px 0 0"}}>
+              Licensed source → actual dry pencil, 7×7 luma (0 dark,
+              255 ivory):
+              {" "+vermilionEvidence.regions.map(
+                r=>r.name+" "+r.sourceLuminance.toFixed(1)+"→"+
+                  r.drawnLuminance.toFixed(1)).join(" · ")}.
+              Negative gate: {" "+(vermilionEvidence.missingVermilionPigment?
+                "MISSING PIGMENT / FAIL":"TECHNICAL THRESHOLD ONLY")}.
+              No independent ArtCraft artistic approval.
+            </p>}
+          </section>}
+          <label style={{display:"flex",alignItems:"center",gap:8,
+            marginTop:13,fontSize:13}}>
+            <input aria-label="Inspect portrait hairline contact at three times scale"
+              type="checkbox" checked={showHairContact}
+              onChange={e=>setShowHairContact(e.target.checked)}/>
+            Inspect ear/hair occlusion at 3×
+          </label>
+          {showHairContact&&<section aria-label="Pencil face hair contact source comparison"
+            data-km-pencil-portrait-contact-inspector=""
+            style={{marginTop:12}}>
+            <h3 style={{font:"600 17px Georgia,serif",margin:"0 0 6px"}}>
+              Dark hair–skin junction · actual raster crop for QA
+            </h3>
+            <p style={{fontSize:12,margin:"0 0 10px",maxWidth:680}}>
+              Only these two inspection canvases enlarge source and drawn
+              output. Their pixels are never reused as pencil pigment.
+              This crop reveals lost shadows, white seams and the ear shape.
+            </p>
+            <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+              {([
+                {name:"Licensed source · ear shadow",ref:boundarySourceRef,
+                  role:"source"},
+                {name:"Dry strokes · ear shadow",ref:boundaryPencilRef,
+                  role:"pencil"},
+              ] as const).map(item=>
+                <figure key={item.role} style={{margin:0,maxWidth:300,
+                  flex:"1 1 220px"}}>
+                  <figcaption style={{fontSize:12,marginBottom:5}}>
+                    {item.name}
+                  </figcaption>
+                  <canvas ref={item.ref} width={300} height={320}
+                    data-km-pencil-contact-image={item.role}
+                    data-km-pencil-raster-underpaint={
+                      item.role==="pencil"?"none":"source-only"}
+                    style={{display:"block",width:"100%",height:"auto",
+                      border:"1px solid #A8A39A",
+                      background:"#FAF5ED"}}/>
+                </figure>)}
+            </div>
+            <p style={{fontSize:12,margin:"8px 0 0"}}>
+              Proof anchor:
+              {" "+Math.round(CC0_HAIR_OCCLUSION_PROBE.x*285)+","+
+                Math.round(CC0_HAIR_OCCLUSION_PROBE.y*318)}
+              {" "}in the 285×318 licensed source Storybook crop.
+            </p>
+          </section>}
+          {lightSkinEvidence&&<p
+            data-km-pencil-light-skin-proof="ready"
+            data-km-pencil-malar-deficit={
+              lightSkinEvidence.regions[0].lightnessDeficit.toFixed(1)}
+            data-km-pencil-bridge-deficit={
+              lightSkinEvidence.regions[1].lightnessDeficit.toFixed(1)}
+            style={{fontSize:12,margin:"11px 0 0",color:"#53665E"}}>
+            Photographed luminous cheek and nasal bridge:
+            {" "+lightSkinEvidence.regions.map(r=>
+              r.name+" "+r.sourceLuminance.toFixed(1)+"→"+
+                r.drawnLuminance.toFixed(1)).join(" · ")}.
+            Material negative gate: {" "+(lightSkinEvidence.missingPhotographedLightSkin?
+              "WHITE PATCH / FAIL":"TECHNICAL THRESHOLD ONLY")}.
+            Independent likeness and artistry NOT APPROVED.
+          </p>}
+          {skinEvidence&&<p
+            data-km-pencil-skin-proof="ready"
+            data-km-pencil-skin-cheek-deficit={
+              skinEvidence.regions[0].lightnessDeficit.toFixed(1)}
+            data-km-pencil-skin-undereye-deficit={
+              skinEvidence.regions[1].lightnessDeficit.toFixed(1)}
+            data-km-pencil-skin-chin-deficit={
+              skinEvidence.regions[2].lightnessDeficit.toFixed(1)}
+            style={{fontSize:12,margin:"11px 0 0",color:"#53665E"}}>
+            Licensed source vs code-drawn cheek, orbital and chin:
+            {" "+skinEvidence.regions.map(r=>
+              r.name+" "+r.sourceLuminance.toFixed(1)+"→"+
+              r.drawnLuminance.toFixed(1)).join(" · ")}.
+            Tonal negative gate: {" "+(skinEvidence.missingOpticalCoverage?
+              "INSUFFICIENT COVERAGE / FAIL":
+              "TECHNICAL THRESHOLD ONLY")}.
+            Independent realism and artist approval: NOT PASSED.
+          </p>}
           <p style={{fontSize:12,margin:"9px 0 0",color:"#53665E"}}
             data-km-pencil-head-proof-metrics="">
             Five values (deepest → reserved paper):
             {" "+headPlate.fiveValueCounts.join(" / ")}.
             Face deposits: {" "+(headPlate.materialCounts["face-value"]+
               headPlate.materialCounts["face-chroma"]+
-              headPlate.materialCounts["face-form"])}.
-            Hair mass / hair fibres: {" "+headPlate.materialCounts["hair-mass"]+
+              headPlate.materialCounts["face-form"]+
+              headPlate.materialCounts["facial-planes"])}.
+            Hair mass / hair shadow / hair fibres:
+            {" "+headPlate.materialCounts["hair-mass"]+
+              " / "+headPlate.materialCounts["hair-occlusion"]+
               " / "+headPlate.materialCounts["hair-fibre"]}.
+            Observed eyelid nibs (upper/lower/source ridge pixels):
+            {" "+headPlate.observedEyelidCounts.upper+" / "+
+              headPlate.observedEyelidCounts.lower+" / "+
+              headPlate.observedEyelidCounts.sourceSupported}.
+            Eyelid source strength: {" "+Math.round(headPlate.eyelidDepth*100)}%.
+            Iris pencil nibs (near/far): {" "+headPlate.observedIrisCounts.near+
+              " / "+headPlate.observedIrisCounts.far}.
+            Corneal highlight reserves: {" "+headPlate.observedIrisCounts.glintReserves}.
+            Source iris contrast (near/far): {" "+
+              headPlate.observedIrisCounts.sourceContrastNear.toFixed(2)+" / "+
+              headPlate.observedIrisCounts.sourceContrastFar.toFixed(2)}.
+            Iris optical strength: {" "+Math.round(headPlate.irisDepth*100)}%.
+            Dry pencil nib contact: {" "+Math.round(headDryTooth*100)}%.
+            Fibre direction: {" "+Math.round(headPlate.fibreFlowStrength*100)}%
+            anatomy-connected; set 0% for the legacy ruled-grain A/B comparison.
             Independent likeness and material approval: NOT PASSED.
           </p>
         </section>}

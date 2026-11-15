@@ -16,6 +16,9 @@ import {pencilHash} from "../../registry/video/colored-pencil";
 import type {PencilPhotoPixels,PencilPhotoMark} from "./colored-pencil-photo";
 import type {PortraitFeatureMap} from "./colored-pencil-portrait-guides";
 import {createPencilPortraitFeatureMarks} from "./colored-pencil-portrait-guides";
+import {createFacialOpticalPlanes} from "./colored-pencil-facial-planes";
+import {createOpticalEyelidFibres} from "./colored-pencil-optical-eyelids";
+import {createOpticalIrisPencil} from "./colored-pencil-iris-optics";
 
 type Point=readonly[number,number];
 const PAPER="#FAF5ED";
@@ -88,6 +91,20 @@ const HAIR_SCREEN:readonly Point[]=[
   [219,57],[246,44],[272,35],[307,40],[335,49],
   [361,76],[380,119],[391,175],[405,257],[420,343],
 ];
+/**
+ * Observed source-only shadow behind the left ear and below the jaw.
+ * The CC0 original has a connected near-black mass here, while the
+ * photograph-conditioned v6 output had a paper-white wedge. These eight
+ * author-observed vertices are in the same 608×343 source screenshot
+ * as the face/hair contours, with ±4 screenshot-pixel uncertainty.
+ *
+ * It is NOT a reusable facial landmark or generated painting contour:
+ * every actual deposit still requires a dark, valid SOURCE pixel.
+ */
+const EAR_CONTACT_SHADOW_SCREEN:readonly Point[]=[
+  [206,236],[228,236],[244,262],[252,300],
+  [249,343],[205,343],[202,306],[203,265],
+];
 const mapScreen=(p:Point,g:PortraitFeatureMap,eyeDistance:number):Point=>{
   const scale=eyeDistance/CAPTURE.eyeDistance;
   return [g.hairline[0]+(p[0]-CAPTURE.root[0])*scale,
@@ -96,6 +113,7 @@ const mapScreen=(p:Point,g:PortraitFeatureMap,eyeDistance:number):Point=>{
 export interface HeadContourEvidence {
   readonly face:readonly Point[];
   readonly hairOuter:readonly Point[];
+  readonly earShadow:readonly Point[];
   readonly reference:"cc0-campbell-608x343";
   readonly uncertaintySourcePixels:number;
 }
@@ -111,17 +129,59 @@ export const projectMeasuredHeadContours=(guides:PortraitFeatureMap):HeadContour
   const hairOuter=[...hair,[hair[0][0],hair[0][1]] as Point];
   return {
     face:FACE_SCREEN.map(p=>mapScreen(p,guides,d)),
-    hairOuter,reference:"cc0-campbell-608x343",
+    hairOuter,
+    earShadow:EAR_CONTACT_SHADOW_SCREEN.map(p=>mapScreen(p,guides,d)),
+    reference:"cc0-campbell-608x343",
     uncertaintySourcePixels:4,
   };
 };
 export type HeadMaterialZone="face-value"|"face-chroma"|"face-form"|
-  "hair-mass"|"hair-fibre"|"measured-features";
+  "face-scumble"|"facial-planes"|"hair-mass"|"hair-occlusion"|
+  "hair-fibre"|"measured-features";
+export interface PortraitHeadStroke extends PencilPhotoMark {
+  readonly zone:HeadMaterialZone;
+}
+/** Authentic mark families, not screenshots of intermediary raster paints. */
+export const HEAD_STORYBOARD_PHASES=[
+  {id:"value",label:"01 · Structure",description:"Value and connected hair mass"},
+  {id:"pigment",label:"02 · Local chroma",description:"Warm/cool pencil layering"},
+  {id:"form",label:"03 · Form and scumble",description:"Skin planes, eye sockets and attached hair shadows"},
+  {id:"detail",label:"04 · Likeness details",description:"Lashes, lips and rooted hair fibres"},
+] as const;
+export type HeadStoryboardPhase=typeof HEAD_STORYBOARD_PHASES[number]["id"];
+export const selectHeadStoryboardStrokes=(
+  strokes:readonly PortraitHeadStroke[],phase:HeadStoryboardPhase,
+):readonly PortraitHeadStroke[]=>{
+  if(!HEAD_STORYBOARD_PHASES.some(stage=>stage.id===phase))
+    throw new RangeError("Unknown coloured-pencil portrait storyboard phase");
+  return strokes.filter(stroke=>phase==="detail"||
+    (phase==="value"&&(stroke.zone==="face-value"||
+      stroke.zone==="hair-mass"&&stroke.pass===0))||
+    (phase==="pigment"&&stroke.zone!=="measured-features"&&
+      (stroke.pass<=1||stroke.zone==="face-value"||
+        stroke.zone==="face-chroma"))||
+    (phase==="form"&&stroke.zone!=="hair-fibre"&&
+      stroke.zone!=="measured-features"));
+};
 export interface DryPencilHeadPlate {
   readonly width:540;
   readonly height:600;
   readonly crop:Readonly<{left:number;top:number;width:number;height:number}>;
-  readonly strokes:readonly PencilPhotoMark[];
+  readonly strokes:readonly PortraitHeadStroke[];
+  readonly scumbleStrength:number;
+  readonly featureDepth:number;
+  readonly skinCoverage:number;
+  readonly fibreFlowStrength:number;
+  readonly eyelidDepth:number;
+  readonly irisDepth:number;
+  readonly observedIrisCounts:Readonly<{
+    near:number;far:number;glintReserves:number;sourceContrastNear:number;
+    sourceContrastFar:number;
+  }>;
+  readonly observedEyelidCounts:Readonly<{upper:number;lower:number;sourceSupported:number}>;
+  readonly facialPlaneCounts:Readonly<{
+    "lip-vermilion":number;"nasal-alar":number;
+  }>;
   readonly rasterUnderpainting:false;
   readonly paperColor:typeof PAPER;
   /** Five independent support/value bins, 0=deepest, 4=reserved paper. */
@@ -139,6 +199,63 @@ const positiveSafeSource=(src:PencilPhotoPixels,seed:number)=>{
 };
 const toneBand=(value:number)=>value<.18?0:value<.34?1:value<.50?2:
   value<.73?3:4;
+/**
+ * V7 malar/nasal optical material rule: a photograph's light-toned skin
+ * is not blank paper. Return dry-pencil support intensity, not raster data.
+ * At source Y≈202/255 (.79) preserve warm/cool fibers; only near
+ * Y≈237/255 (.93) is paper actually a plausible unpigmented reserve.
+ */
+export const observedLightSkinSupport=(value:number):Readonly<{
+  density:number;opacity:number;
+}>=>{
+  if(!Number.isFinite(value)||value<0||value>1)
+    throw new RangeError("Source luminance must be finite in 0..1");
+  const reserve=clamp((value-.79)/.14,0,1);
+  return {density:.72-.55*reserve,opacity:.85-.50*reserve};
+};
+/**
+ * Anatomy-attached, continuous fibre flow. The orbital/cheek, nasal and jaw
+ * directions transition smoothly rather than switching between ruled
+ * diagonals. Chromatic passes cross the grain, with slow spatial undulations
+ * for coherent pencil scumbling rather than disconnected random marks.
+ * Angles use radians. Geometry, photographed pigments and paper reserves
+ * remain untouched.
+ */
+export const pencilSkinFibreFlow=(
+  p:readonly[number,number],g:PortraitFeatureMap,eyeDistance:number,
+  pass:0|1|2,
+):Readonly<{angle:number;curvature:number}>=>{
+  if(!Number.isFinite(eyeDistance)||eyeDistance<=0||
+    !p.every(Number.isFinite))
+    throw new RangeError("Invalid source-space skin fibre coordinates");
+  const [x,y]=p;
+  const side=clamp((x-g.noseBridge[0])/(eyeDistance*.28),-1,1);
+  const lateral=Math.abs(x-g.noseBridge[0])/eyeDistance;
+  const jaw=clamp((y-g.noseTip[1])/
+    Math.max(1,g.chin[1]-g.noseTip[1]),0,1);
+  const forehead=clamp((g.forehead[1]-y)/(eyeDistance*1.3),-1,1);
+  const smooth=(a:number,b:number,v:number)=>{
+    const t=clamp((v-a)/(b-a),0,1);
+    return t*t*(3-2*t);
+  };
+  const turn=(a:number,b:number,t:number)=>
+    a+Math.atan2(Math.sin(b-a),Math.cos(b-a))*t;
+  const cheek=-.20+side*.33+forehead*.20;
+  const bridge=1.42+side*.17;
+  const lower=.16+side*.36+jaw*.33;
+  const bridgeWeight=(1-smooth(.17,.49,lateral))*
+    (1-smooth(-.06,.23,(y-g.noseTip[1])/eyeDistance));
+  const jawWeight=smooth(.43,.76,jaw);
+  const plane=turn(turn(cheek,bridge,bridgeWeight),lower,jawWeight);
+  const u=(x-g.noseBridge[0])/eyeDistance;
+  const v=(y-g.eyeNearCenter[1])/eyeDistance;
+  const warp=.17*Math.sin(u*2.6+v*1.4)+
+    .10*Math.cos(v*2.9-u*1.5);
+  return {
+    angle:plane+warp+(pass===0?0:pass===1?.61:-.34),
+    curvature:(pass===1?-.10:.09)+.11*Math.sin(u*2.1-v*2.4),
+  };
+};
 const paperWhite=(src:PencilPhotoPixels,x:number,y:number)=>
   photoValue(src,x,y)>.93;
 const isHairColour=(rgb:readonly number[])=>{
@@ -155,10 +272,32 @@ const isHairColour=(rgb:readonly number[])=>{
  */
 export const createDryPencilHeadPlate=(
   source:PencilPhotoPixels,guides:PortraitFeatureMap,seed=271,
+  scumbleStrength=.65,featureDepth=.85,skinCoverage=.70,
+  fibreFlowStrength=1,eyelidDepth=.72,irisDepth=.72,
 ):DryPencilHeadPlate=>{
   positiveSafeSource(source,seed);
+  if(!Number.isFinite(scumbleStrength)||
+    scumbleStrength<0||scumbleStrength>1)
+    throw new RangeError("Invalid coloured pencil scumble strength");
+  if(!Number.isFinite(featureDepth)||featureDepth<0||featureDepth>1)
+    throw new RangeError("Invalid coloured-pencil measured feature depth");
+  if(!Number.isFinite(skinCoverage)||skinCoverage<0||skinCoverage>1)
+    throw new RangeError("Invalid colored-pencil skin coverage");
+  if(!Number.isFinite(fibreFlowStrength)||
+    fibreFlowStrength<0||fibreFlowStrength>1)
+    throw new RangeError("Invalid colored-pencil fibre flow strength");
+  if(!Number.isFinite(eyelidDepth)||eyelidDepth<0||eyelidDepth>1)
+    throw new RangeError("Invalid source-registered coloured pencil eyelid strength");
+  if(!Number.isFinite(irisDepth)||irisDepth<0||irisDepth>1)
+    throw new RangeError("Invalid source-registered coloured pencil iris strength");
   // Require the entire, already-audited 25-landmark source map.
   const details=createPencilPortraitFeatureMarks(source,guides,seed);
+  // A/B paper-native, source-supported micro-occlusion; 0 is exact
+  // legacy mark construction, no new geometry and no raster underpaint.
+  const opticallyObservedLids=createOpticalEyelidFibres(
+    source,guides,seed,eyelidDepth);
+  const opticallyObservedIris=createOpticalIrisPencil(
+    source,guides,seed,irisDepth);
   const geometry=projectMeasuredHeadContours(guides);
   const eyeDist=length(guides.eyeNearCenter,guides.eyeFarCenter);
   const cropWidth=eyeDist*4.55;
@@ -166,11 +305,14 @@ export const createDryPencilHeadPlate=(
   const left=guides.hairline[0]-cropWidth*.49;
   const top=guides.hairline[1]-eyeDist*.70;
   const scale=SIZE.width/cropWidth;
-  const marks:PencilPhotoMark[]=[];
+  const marks:PortraitHeadStroke[]=[];
   const fiveValueCounts:[number,number,number,number,number]=[0,0,0,0,0];
   const materialCounts:Record<HeadMaterialZone,number>={
     "face-value":0,"face-chroma":0,"face-form":0,
-    "hair-mass":0,"hair-fibre":0,"measured-features":0,
+    "face-scumble":0,"facial-planes":0,
+    "hair-mass":0,"hair-occlusion":0,
+    "hair-fibre":0,
+    "measured-features":0,
   };
   const screen=(p:Point):Point=>[(p[0]-left)*scale,(p[1]-top)*scale];
   const push=(zone:HeadMaterialZone,p:Point,vector:Point,ink:string,
@@ -184,7 +326,7 @@ export const createDryPencilHeadPlate=(
       x:root[0],y:root[1],
       controlX:clamp(cx,0,SIZE.width),controlY:clamp(cy,0,SIZE.height),
       endX:clamp(tip[0],0,SIZE.width),endY:clamp(tip[1],0,SIZE.height),
-      color:ink,alpha:clamp(alpha,.005,.56),width,pass,
+      color:ink,alpha:clamp(alpha,.005,.56),width,pass,zone,
     });
     materialCounts[zone]++;
   };
@@ -194,9 +336,17 @@ export const createDryPencilHeadPlate=(
     // Keep hair topologically disjoint from the skin support, including
     // subpixel feature boundaries where round-to-nearest colour sampling
     // could otherwise steal pale facial pixels into the outer hair mass.
-    const inset=eyeDist*.018;
+    // Adjacent hair and skin need near-contiguous optical support, but
+    // round-to-nearest photographic RGB at the polygon boundary can sample
+    // *skin* into the garden. A subpixel registration tolerance prevents
+    // false hair without the previous large white sticker-like inset.
+    // The previous 0.010-eye-span inset (about 0.67 source pixels)
+    // systematically left a no-material ring between source-verified dark
+    // hair and the face polygon. Narrow to a subpixel registration guard;
+    // chromatic/source-dark checks below still prevent painting garden.
+    const registrationTolerance=eyeDist*.003;
     if(inside(p,geometry.hairOuter)&&
-      distanceToEdge(p,geometry.face)>inset){
+      distanceToEdge(p,geometry.face)>registrationTolerance){
       const rgb=photoRGB(source,p[0],p[1]);
       const r=eyeDist*.090;
       let around=0;
@@ -209,14 +359,23 @@ export const createDryPencilHeadPlate=(
       // Black hair often has near-neutral RGB: require a coherent warm
       // connected neighbourhood before filling a dark strand. The CC0
       // garden background is also dark, but it is chromatically green.
+      // A real near-black strand may have no remaining reddish chroma.
+      // Requiring warm pixels on *both* sides erased the photographed
+      // ear-to-hair occlusion and exposed an ivory-paper white fracture.
+      // Only recover this dark material INSIDE the measured head/hair
+      // envelope and close to the measured face. Never generalize it to
+      // arbitrary background darkness (e.g. green garden/shadow).
+      const value=lum(rgb);
+      const closeToFace=distanceToEdge(p,geometry.face)<eyeDist*.24;
+      const sourceVerifiedOcclusion=inside(p,geometry.earShadow)&&
+        photoValue(source,p[0],p[1])<.28;
       const hair=isHairColour(rgb)?around>=1:
-        lum(rgb)<.16&&around>=2;
+        value<.16&&(around>=2||closeToFace||
+          sourceVerifiedOcclusion);
       if(hair&&!paperWhite(source,p[0],p[1]))return "hair";
     }
     return "background";
   };
-  const forehead=guides.forehead,chin=guides.chin;
-  const foreheadScale=eyeDist*1.3;
   // Reference-measured face tonal masses: three distinct low-pressure
   // layers. No flat face polygon, ellipse or 1:1 photographic pixel stamps.
   for(const pass of [0,1,2] as const){
@@ -231,6 +390,15 @@ export const createDryPencilHeadPlate=(
       const rgb=photoRGB(source,px,py),value=photoValue(source,px,py);
       const band=toneBand(value);
       if(pass===0)fiveValueCounts[band]++;
+      // Paper white is NOT the same as photographed light skin.
+      // In the licensed portrait, the malar face and nose bridge have
+      // luminance ≈.79, yet v7's paper-bin cutoff was .73: 72% of
+      // foundational marks were discarded and the surviving strokes
+      // were weakened again by 48%. This made a source ≈202/255 cheek
+      // render as ≈241/255 ivory. Replenish optical translucency only
+      // while actual source brightness remains below the true paper
+      // shoulder (.91+). Preserve 100% original fine features/hair.
+      const lightSkin=band===4?observedLightSkinSupport(value):null;
       if(band===4&&pass===2)continue;
       const edge=distanceToEdge(p,geometry.face);
       // A bright unpigmented rim around the face read as a sticker or
@@ -238,17 +406,23 @@ export const createDryPencilHeadPlate=(
       const fade=.62+.38*clamp(edge/(eyeDist*.043),0,1);
       // Build soft orbital, malar and nasal values following cranium shape,
       // not as rectangles pasted onto skin or a uniform global diagonal.
+      const flow=pencilSkinFibreFlow(p,guides,eyeDist,pass);
+      // The opt-in A/B control retains the exact legacy ruled grain at 0,
+      // allowing source-vs-render comparisons against connected fibre at 1.
       const toNose=Math.abs(px-guides.noseBridge[0])/eyeDist;
       const toJaw=clamp((py-guides.noseTip[1])/
-        Math.max(1,chin[1]-guides.noseTip[1]),0,1);
-      const toForehead=clamp((forehead[1]-py)/foreheadScale,-1,1);
+        Math.max(1,guides.chin[1]-guides.noseTip[1]),0,1);
+      const toForehead=clamp((guides.forehead[1]-py)/(eyeDist*1.3),-1,1);
       const cheekSide=Math.sign(px-guides.noseBridge[0]);
-      const heading=toJaw>.62?
+      const oldHeading=toJaw>.62?
         .16+cheekSide*.36+toJaw*.33:
         toNose<.29&&py<guides.noseTip[1]?
           1.42+cheekSide*.17:
           -.20+cheekSide*.33+toForehead*.20;
-      let theta=heading+(pass===1?.48:pass===2?-.35:0)+
+      const oldAngle=oldHeading+(pass===1?.48:pass===2?-.35:0);
+      let theta=oldAngle+fibreFlowStrength*
+        Math.atan2(Math.sin(flow.angle-oldAngle),
+          Math.cos(flow.angle-oldAngle))+
         (pencilHash(seed,hashBase,12)-.5)*.32;
       let gradientStrength=0;
       if(pass===2){
@@ -263,13 +437,23 @@ export const createDryPencilHeadPlate=(
         if(gradientStrength>.052)theta=Math.atan2(-gx,gy)+
           (pencilHash(seed,hashBase,12)-.5)*.18;
       }
+      // Artist-quality skin does not resemble a loose field of equally
+      // thin mechanical hatches. Increase the *coverage* of the original
+      // low-pressure warm/cool strokes in halftones (not a photo bitmap
+      // or painted face fill), shortening them as neighbouring fibres
+      // meet. The untouched paper reserve remains where the source
+      // actually contains a nearly white reflection.
+      const opticalCoverage=pass===2?0:
+        skinCoverage*clamp((.955-value)/.16,0,1);
       const len=step*(pass===0?1.56:pass===1?1.43:.94)*
-        (.75+.40*pencilHash(seed,hashBase,13));
+        (.75+.40*pencilHash(seed,hashBase,13))*
+        (1-.14*opticalCoverage);
       const shade=1-value;
       const pressure=pass===0?.22+.34*shade:
         pass===1?.18+.30*shade:
           .14+.30*shade+.28*clamp((gradientStrength-.045)*3.4,0,1);
-      const density=(band===4?.28:band===3?.95:1);
+      const density=(band===4?
+        lightSkin!.density:band===3?.95:1);
       if(pencilHash(seed,hashBase,14)>density)continue;
       // Subtle warm/cool layers are derived from the person's actual
       // captured pigments, not a globally assumed skin-color preset.
@@ -280,9 +464,13 @@ export const createDryPencilHeadPlate=(
           color([rgb[0]*.75+62*.25,rgb[1]*.73+50*.27,rgb[2]*.80+60*.20]);
       push(pass===0?"face-value":pass===1?"face-chroma":"face-form",
         p,[Math.cos(theta)*len,Math.sin(theta)*len],pigment,
-        pressure*fade*(band===4?.52:1),
-        pass===0?1.30:pass===1?1.04:.82,pass,
-        (pencilHash(seed,hashBase,15)-.5)*.19);
+        pressure*(1+.11*opticalCoverage)*fade*
+          (band===4?lightSkin!.opacity:1),
+        pass===0?1.30+1.12*opticalCoverage:
+          pass===1?1.04+.82*opticalCoverage:.82,pass,
+        (1-fibreFlowStrength)*(pencilHash(seed,hashBase,15)-.5)*.19+
+          fibreFlowStrength*(flow.curvature+
+            (pencilHash(seed,hashBase,15)-.5)*.13));
     }
   }
   // Optical grisaille: finish the *value* structure after the first
@@ -338,6 +526,46 @@ export const createDryPencilHeadPlate=(
         ink,(.25+.31*shadow)*feather,
         layer===0?1.24:layer===1?.97:.69,2,
         (pencilHash(seed,j,206)-.5)*.12);
+    }
+  }
+  // Ann Kullberg's elliptical scumbling technique: overlapping curved,
+  // low-pressure pencil arcs knit coarse value strokes into the paper tooth.
+  // Only source-conditioned skin is scumbled; highlights and bright glints
+  // retain visible, unfilled paper. This does not blur photograph pixels.
+  if(scumbleStrength>0){
+    const step=eyeDist*.033;
+    const cols=Math.ceil(cropWidth/step),rows=Math.ceil(cropHeight/step);
+    for(let iy=0;iy<rows;iy++)for(let ix=0;ix<cols;ix++){
+      const i=iy*cols+ix;
+      const px=left+(ix+.5+(pencilHash(seed,i,271)-.5)*.5)*step;
+      const py=top+(iy+.5+(pencilHash(seed,i,272)-.5)*.5)*step;
+      const p:Point=[px,py];
+      if(classify(p)!=="skin")continue;
+      const value=photoValue(source,px,py);
+      if(value>.92)continue;
+      const shade=clamp((.91-value)/.7,0,1);
+      // Very open tooth on highlights; build smoothly only in halftones
+      // and the deep eye/cheek planes, with bounded deterministic density.
+      if(pencilHash(seed,i,273)>scumbleStrength*(.22+.72*shade))continue;
+      const rgb=photoRGB(source,px,py);
+      // Tiny elliptical scumbles follow the same continuous anatomy field,
+      // but with local opposed curls and less angular disorder.
+      const flow=pencilSkinFibreFlow(p,guides,eyeDist,2);
+      const oldAngle=(pencilHash(seed,i,274)-.5)*Math.PI*1.4;
+      const newAngle=flow.angle+(pencilHash(seed,i,274)-.5)*1.08;
+      const angle=oldAngle+fibreFlowStrength*
+        Math.atan2(Math.sin(newAngle-oldAngle),Math.cos(newAngle-oldAngle));
+      const radius=step*(.23+.17*pencilHash(seed,i,275));
+      const vector:Point=[Math.cos(angle)*radius,Math.sin(angle)*radius*.68];
+      const ink=color([rgb[0]*.82+93*.18,rgb[1]*.83+59*.17,
+        rgb[2]*.84+68*.16]);
+      push("face-scumble",p,vector,ink,
+        (.10+.15*shade)*scumbleStrength,
+        .58+.23*pencilHash(seed,i,276),2,
+        (1-fibreFlowStrength)*(.34+.18*pencilHash(seed,i,277))+
+          fibreFlowStrength*(flow.curvature+
+            (.22+.24*pencilHash(seed,i,277))*
+            (pencilHash(seed,i,278)<.5?-1:1)));
     }
   }
   // ArtCraft source-dependent facial contour hierarchy: use optical
@@ -410,6 +638,100 @@ export const createDryPencilHeadPlate=(
         .43,2,(pencilHash(seed,i*1000+k,77)-.5)*.06);
     }
   }
+  // Source-verified dark hair/jaw CONTACT: the manually measured CC0
+  // silhouette has ~4 reference-pixel uncertainty. The old hair classifier
+  // reserved a small empty strip outside the polygon, and the 0.43px
+  // contour fibres left that strip ivory-white even where source Y=23..80.
+  // Only the source-observed LEFT cheek-to-jaw run (indices 12..16)
+  // receives short, pressure-variable pencil overtraces. Every nib
+  // samples its own physically dark, auburn source pigment and is skipped
+  // for pale skin or the green background. This is not a solid SVG rim.
+  for(let i=12;i<=16;i++){
+    const a=geometry.face[i],b=geometry.face[(i+1)%geometry.face.length];
+    const span=length(a,b);
+    const count=Math.max(3,Math.ceil(span/(eyeDist*.016)));
+    const dx=(b[0]-a[0])/count,dy=(b[1]-a[1])/count;
+    const nx=-(b[1]-a[1])/span,ny=(b[0]-a[0])/span;
+    for(let k=0;k<count;k++){
+      const t=(k+.48)/count;
+      const c:Point=[interp(a[0],b[0],t),
+        interp(a[1],b[1],t)];
+      // Never mistake a dark but warm SKIN edge for hair. Both q and its
+      // exterior neighbour must be corroborated by actual source pigment.
+      // In synthetic no-hair photos the garden is green outside the face;
+      // then no jaw repair is permitted anywhere on that contour.
+      const exteriorSide=([-1,1] as const).find(side=>{
+        const outer:Point=[c[0]+nx*eyeDist*.046*side,
+          c[1]+ny*eyeDist*.046*side];
+        return onPhoto(source,outer[0],outer[1])&&
+          !inside(outer,geometry.face)&&
+          photoValue(source,outer[0],outer[1])<.55&&
+          isHairColour(photoRGB(source,outer[0],outer[1]));
+      });
+      if(exteriorSide===undefined)continue;
+      // Crossing rather than tracing: short irregular nibs weave the
+      // photographed near-black lock into the pale pigmented cheek, with
+      // hair and skin nibs independently sampled on opposite sides of the
+      // observed edge. Their uneven contact avoids a hard sticker outline.
+      // These are pressure-variable pencil gestures, never a flat mask.
+      const crossId=i*69017+k;
+      if(pencilHash(seed,crossId,407)>.13){
+        const out:Point=[c[0]+nx*eyeDist*.029*exteriorSide,
+          c[1]+ny*eyeDist*.029*exteriorSide];
+        const inn:Point=[c[0]-nx*eyeDist*.029*exteriorSide,
+          c[1]-ny*eyeDist*.029*exteriorSide];
+        const outRGB=photoRGB(source,out[0],out[1]);
+        const outValue=photoValue(source,out[0],out[1]);
+        if(outValue<.55&&isHairColour(outRGB)){
+          const depth=clamp((.55-outValue)/.44,0,1);
+          push("hair-occlusion",out,
+            [-nx*exteriorSide*eyeDist*.059,
+              -ny*exteriorSide*eyeDist*.059],
+            color([outRGB[0]*.78+35*.22,
+              outRGB[1]*.78+26*.22,outRGB[2]*.8+27*.2]),
+            (.16+.22*depth)*(.74+.26*pencilHash(seed,crossId,408)),
+            .57+.49*pencilHash(seed,crossId,409),2,
+            (pencilHash(seed,crossId,410)-.5)*.31);
+        }
+        const insideValue=photoValue(source,inn[0],inn[1]);
+        if(inside(inn,geometry.face)&&insideValue<.90){
+          const skin=photoRGB(source,inn[0],inn[1]);
+          push("face-form",inn,
+            [nx*exteriorSide*eyeDist*.037,
+              ny*exteriorSide*eyeDist*.037],
+            color([skin[0]*.85+74*.15,
+              skin[1]*.84+53*.16,skin[2]*.85+53*.15]),
+            (.10+.11*(1-insideValue))*
+              (.69+.31*pencilHash(seed,crossId,411)),
+            .54+.51*pencilHash(seed,crossId,412),2,
+            (pencilHash(seed,crossId,413)-.5)*.25);
+        }
+      }
+      for(let band=-1;band<=1;band++){
+        const id=i*500003+k*11+band+1;
+        const shift=eyeDist*.016*(band+
+          (pencilHash(seed,id,401)-.5)*.36);
+        const q:Point=[c[0]+nx*shift,c[1]+ny*shift];
+        if(!onPhoto(source,q[0],q[1]))continue;
+        const rgb=photoRGB(source,q[0],q[1]);
+        const value=photoValue(source,q[0],q[1]);
+        // No garden-colored hair, ivory highlight obliteration, or
+        // uniformly dark silhouette. The *photograph* must confirm
+        // a dark and warm/brown physical edge beneath each mark.
+        if(value>.53||!isHairColour(rgb))continue;
+        const depth=clamp((.53-value)/.40,0,1);
+        if(pencilHash(seed,id,402)>.66+.33*depth)continue;
+        const ink=color([rgb[0]*.69+34*.31,
+          rgb[1]*.69+24*.31,rgb[2]*.70+23*.30]);
+        push("hair-occlusion",q,
+          [dx*(1.03+.37*pencilHash(seed,id,403)),
+            dy*(1.03+.37*pencilHash(seed,id,403))],
+          ink,(.31+.23*depth)*(.82+.18*pencilHash(seed,id,404)),
+          1.08+.52*pencilHash(seed,id,405),2,
+          (pencilHash(seed,id,406)-.5)*.22);
+      }
+    }
+  }
   // Hair as connected MASSES first. The physical photographic reference
   // has auburn locks surrounding the head; green garden is NOT a hair mask.
   // Hair is a separate material and cannot inadvertently flatten the face.
@@ -454,6 +776,52 @@ export const createDryPencilHeadPlate=(
         (pencilHash(seed,k,40)-.5)*.16);
     }
   }
+  // Construct shadow adjacency BEFORE individual loose hair fibres.
+  // The source has a dark connected ear/temple/collar lock. Earlier
+  // pencil passes left a conspicuous pale ring at this boundary because
+  // the achromatic black strand was mistaken for background. Local dense
+  // sharpened pencil strokes now join hair and skin where *actual source*
+  // values support a dark edge, without a solid painted region.
+  {
+    // A coarser anisotropic stipple grid stays under the source-specific
+    // stroke budget: denser ink *per mark*, not thousands of redundant
+    // overlapping points (which would also look waxy at normal scale).
+    // Fill the verified shadow through prior hair-mass passes; these
+    // sharpened overtraces should be sparse accents, not waxy duplicate
+    // strokes. Keep the entire 540×600 plate under its 120k mark budget.
+    const step=eyeDist*.022;
+    const nx=Math.ceil(cropWidth/step),ny=Math.ceil(cropHeight/step);
+    for(const layer of [0,1] as const){
+      for(let iy=0;iy<ny;iy++)for(let ix=0;ix<nx;ix++){
+        const k=layer*190117+iy*nx+ix;
+        const px=left+(ix+.5+(pencilHash(seed,k,301)-.5)*.30)*step;
+        const py=top+(iy+.5+(pencilHash(seed,k,302)-.5)*.30)*step;
+        const p:Point=[px,py];
+        if(classify(p)!=="hair")continue;
+        const distance=distanceToEdge(p,geometry.face);
+        // The observed black mass extends farther from the cheek than
+        // a generic narrow contour band. Reconstruct the connected CC0
+        // ear shadow, but only where the actual photo is dark.
+        if(distance>eyeDist*.20&&
+          !inside(p,geometry.earShadow))continue;
+        const value=photoValue(source,px,py);
+        if(value>.36)continue;
+        const ink=photoRGB(source,px,py);
+        const depth=clamp((.40-value)/.36,0,1);
+        if(pencilHash(seed,k,303)>.60+.40*depth)continue;
+        const side=Math.sign(px-guides.noseBridge[0])||1;
+        const theta=Math.PI*.49-side*.18+
+          (pencilHash(seed,k,304)-.5)*.34+(layer===1?.25:0);
+        const lengthPx=step*(1.42+.40*pencilHash(seed,k,305));
+        push("hair-occlusion",p,
+          [Math.cos(theta)*lengthPx,Math.sin(theta)*lengthPx],
+          color([ink[0]*.70+22*.30,ink[1]*.71+17*.29,
+            ink[2]*.72+17*.28]),
+          (.35+.21*depth),layer===0?.92:.74,2,
+          (pencilHash(seed,k,306)-.5)*.12);
+      }
+    }
+  }
   // Root-aligned fine strands: quadratic clumps from the actual parting
   // toward the photographed shoulder/hair ends. They are deposited only
   // where the author-observed hair mass AND local photo agree.
@@ -485,16 +853,31 @@ export const createDryPencilHeadPlate=(
         (pencilHash(seed,clump*91+s,46)-.5)*.09);
     }
   }
+  // Optical anatomy pass. Unlike the broad cheek/forehead scumbles this
+  // is explicitly bounded to source-measured vermilion lips and alar
+  // cartilage. Keep local crimson lip chroma and nose-edge tangents.
+  // It is a separate dry-fibre layer, not a resized photo, bitmap mask,
+  // custom lip fill, or 2D contour stamp. Licensed source photo only.
+  const facial=createFacialOpticalPlanes(source,guides,seed,featureDepth);
+  const facialPlaneCounts={"lip-vermilion":0,"nasal-alar":0};
+  for(const mark of facial.marks){
+    const p:Point=[mark.x,mark.y];
+    if(classify(p)!=="skin")continue;
+    push("facial-planes",p,[mark.dx,mark.dy],
+      mark.color,mark.alpha,mark.width,2,mark.curvature);
+    facialPlaneCounts[mark.kind]++;
+  }
   // Add verified source-aligned anatomical marks only within the face or
   // hair structure. Never paste the original photographic background.
-  for(const m of details.marks){
+  for(const m of [...details.marks,...opticallyObservedLids.marks,
+    ...opticallyObservedIris.marks]){
     const p:Point=[m.x,m.y];
     if(classify(p)==="background")continue;
     const a=screen(p),b=screen([m.endX,m.endY]);
     const control=screen([m.controlX,m.controlY]);
     if(a[0]<0||a[0]>SIZE.width||a[1]<0||a[1]>SIZE.height)continue;
     marks.push({
-      ...m,x:a[0],y:a[1],
+      ...m,zone:"measured-features",x:a[0],y:a[1],
       endX:clamp(b[0],0,SIZE.width),endY:clamp(b[1],0,SIZE.height),
       controlX:clamp(control[0],0,SIZE.width),
       controlY:clamp(control[1],0,SIZE.height),
@@ -503,11 +886,34 @@ export const createDryPencilHeadPlate=(
     });
     materialCounts["measured-features"]++;
   }
+  const countIris=(eye:"near"|"far")=>{
+    const m=opticallyObservedIris.eyes.find(e=>e.eye===eye);
+    return m?m.ringNibCount+m.radialNibCount+m.pupilNibCount:0;
+  };
+  const observedIrisCounts={
+    near:countIris("near"),far:countIris("far"),
+    glintReserves:opticallyObservedIris.highlightReserves,
+    sourceContrastNear:opticallyObservedIris.eyes.find(e=>e.eye==="near")
+      ?.sourceContrast??0,
+    sourceContrastFar:opticallyObservedIris.eyes.find(e=>e.eye==="far")
+      ?.sourceContrast??0,
+  };
+  const observedEyelidCounts={
+    upper:opticallyObservedLids.traces.filter(t=>t.rim==="upper")
+      .reduce((sum,t)=>sum+t.marks,0),
+    lower:opticallyObservedLids.traces.filter(t=>t.rim==="lower")
+      .reduce((sum,t)=>sum+t.marks,0),
+    sourceSupported:opticallyObservedLids.traces.reduce(
+      (sum,t)=>sum+t.sourceSupported,0),
+  };
   marks.sort((a,b)=>a.pass-b.pass);
   return {
     width:SIZE.width,height:SIZE.height,paperColor:PAPER,
     crop:{left,top,width:cropWidth,height:cropHeight},
     strokes:marks,rasterUnderpainting:false,geometry,
+    scumbleStrength,featureDepth,skinCoverage,fibreFlowStrength,
+    eyelidDepth,observedEyelidCounts,irisDepth,observedIrisCounts,
+    facialPlaneCounts,
     fiveValueCounts,materialCounts,
   };
 };

@@ -17,10 +17,19 @@ export interface PaperCurtainTransition {
   color: string;
   direction: "left-to-right" | "right-to-left";
 }
+/** A single rigid printed paper leaf hinged to a stable book gutter.
+ * Its artwork foreshortens to reveal the complete next paper set below. */
+export interface PaperPageTurnTransition {
+  kind: "paper-page-turn";
+  durationFrames: number;
+  color: string; // opaque paper reverse face
+  direction: "left-to-right" | "right-to-left";
+}
+export type PaperDirectorTransition = PaperCurtainTransition | PaperPageTurnTransition;
 export interface PaperDirectorShot {
   id: string;
   /** Physical paper sheet moves across the edit; no alpha blending. */
-  transitionOut?: PaperCurtainTransition;
+  transitionOut?: PaperDirectorTransition;
   scenes: Readonly<Record<PaperDirectorAspect, PaperCraftSpec>>;
 }
 export interface PaperDirectorFilm {
@@ -37,7 +46,7 @@ export interface PaperDirectorPlan {
     startFrame: number;
     durationFrames: number;
     scenes: Readonly<Record<PaperDirectorAspect, PaperCraftSpec>>;
-    transitionOut?: PaperCurtainTransition;
+    transitionOut?: PaperDirectorTransition;
   }[];
 }
 export interface PaperDirectorFrame {
@@ -51,6 +60,15 @@ export interface PaperDirectorFrame {
     spec: PaperCurtainTransition;
     phase: "closing" | "opening";
     progress: number;
+  };
+  readonly pageTurn?: {
+    spec: PaperPageTurnTransition;
+    phase: "closing" | "opening";
+    progress: number;
+    outgoing: PaperCraftSpec;
+    outgoingFrame: number;
+    incoming: PaperCraftSpec;
+    incomingFrame: number;
   };
 }
 const validId = /^[a-zA-Z0-9_-]{1,80}$/;
@@ -92,13 +110,13 @@ export function inspectPaperDirector(film: unknown): PaperIssue[] {
     if (s.transitionOut !== undefined) {
       const transition=s.transitionOut;
       if (!transition || typeof transition !== "object" ||
-          transition.kind !== "paper-curtain" ||
+          transition.kind !== "paper-curtain" && transition.kind !== "paper-page-turn" ||
           transition.direction !== "left-to-right" && transition.direction !== "right-to-left" ||
           typeof transition.color !== "string" || !/^#[0-9a-fA-F]{6}$/.test(transition.color) ||
           !Number.isSafeInteger(transition.durationFrames) ||
           transition.durationFrames < 8 || transition.durationFrames > 60 ||
           transition.durationFrames % 2 !== 0)
-        bad(where+".transitionOut","paper curtain needs valid color, direction and even 8–60-frame duration");
+        bad(where+".transitionOut","paper transition needs valid material, opaque color, direction and even 8–60-frame duration");
       if (i === f.shots!.length-1) bad(where+".transitionOut","final shot cannot transition out");
       if (land && transition?.durationFrames >= land.durationFrames)
         bad(where+".transitionOut","transition duration must fit shot");
@@ -151,24 +169,38 @@ export function resolvePaperDirector(
     frame < shot.startFrame + shot.durationFrames || i === plan.shots.length-1);
   const shot = plan.shots[index];
   const localFrame = Math.min(shot.durationFrames-1,Math.max(0,frame-shot.startFrame));
-  let curtain: PaperDirectorFrame["curtain"];
-  // The outgoing cutstock closes across the final half; after the hard
-  // picture cut it uncovers the incoming shot over the first half.
+  let transition: {spec:PaperDirectorTransition;phase:"closing"|"opening";progress:number}|undefined;
+  // Two halves share a single material event across the editorial edit.
+  // Keep the outgoing artwork after its shot stops being active.
   if(index<plan.shots.length-1 && shot.transitionOut) {
     const half=shot.transitionOut.durationFrames/2;
     if(localFrame>=shot.durationFrames-half) {
-      curtain={spec:shot.transitionOut,phase:"closing",
+      transition={spec:shot.transitionOut,phase:"closing",
         progress:(localFrame-(shot.durationFrames-half))/(half-1)};
     }
   }
-  if(!curtain && index>0 && plan.shots[index-1].transitionOut) {
+  if(!transition && index>0 && plan.shots[index-1].transitionOut) {
     const outgoing=plan.shots[index-1].transitionOut!;
     const half=outgoing.durationFrames/2;
-    if(localFrame<half)curtain={spec:outgoing,phase:"opening",
+    if(localFrame<half)transition={spec:outgoing,phase:"opening",
       progress:localFrame/(half-1)};
   }
+  const curtain = transition?.spec.kind==="paper-curtain"
+    ? {spec:transition.spec,phase:transition.phase,progress:transition.progress}
+    : undefined;
+  const pageTurn = transition?.spec.kind==="paper-page-turn"
+    ? {
+      spec:transition.spec,phase:transition.phase,progress:transition.progress,
+      outgoing:transition.phase==="closing"
+        ? shot.scenes[aspect] : plan.shots[index-1].scenes[aspect],
+      outgoingFrame:transition.phase==="closing"
+        ? localFrame : plan.shots[index-1].durationFrames-1,
+      incoming:transition.phase==="closing"
+        ? plan.shots[index+1].scenes[aspect] : shot.scenes[aspect],
+      incomingFrame:transition.phase==="closing"?0:localFrame,
+    } : undefined;
   return {shotId:shot.id,shotIndex:index,localFrame,
-    durationFrames:plan.durationFrames,spec:shot.scenes[aspect],curtain};
+    durationFrames:plan.durationFrames,spec:shot.scenes[aspect],curtain,pageTurn};
 }
 /** Minimal die-cut path authoring: any content can use explicit geometry and holes. */
 export const paperCut = {

@@ -190,3 +190,53 @@ test("close-up Film Looks study displays real articulated figure assets in both 
   await expect(page.locator("[data-km-ink-ensemble]")).toHaveAttribute(
     "data-km-ink-ensemble-frame","296");
 });
+
+test("ArtCraft master face uses the real acting rig in 4.1x landscape/portrait crop",async({page},info)=>{
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  await page.goto("/iframe.html?id=video-ink-ensemble--ink-figure-brushwork-study&viewMode=story");
+  const studio=page.getByTestId("ink-figure-closeup");
+  await page.getByRole("combobox",{name:"Ink figure focus"}).selectOption("master-face");
+  const detail=page.getByRole("slider",{name:"Ink closeup detail"});
+  const setDetail=async(value:string)=>{
+    await detail.evaluate((input,v)=>{
+      const el=input as HTMLInputElement;
+      const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+      if(!setter)throw Error("native input value setter missing");
+      setter.call(el,v);
+      el.dispatchEvent(new Event("input",{bubbles:true}));
+      el.dispatchEvent(new Event("change",{bubbles:true}));
+    },value);
+    await expect(detail).toHaveValue(value);
+  };
+  for(const aspect of ["landscape","portrait"] as const){
+    await page.getByRole("combobox",{name:"Ink figure aspect"}).selectOption(aspect);
+    await page.getByRole("button",{name:"Exchange"}).click();
+    await setDetail("1");
+    const face=page.locator('[data-km-ink-ensemble-actor="master"] [data-km-ink-character-part="head"] path');
+    await expect.poll(()=>face.count()).toBeGreaterThan(11);
+    const after=await studio.screenshot({animations:"disabled",
+      path:info.outputPath("ink-master-face-"+aspect+"-4x.png")});
+    await setDetail("0");
+    const before=await studio.screenshot({animations:"disabled",
+      path:info.outputPath("ink-master-face-"+aspect+"-baseline-4x.png")});
+    expect(digest(after)).not.toEqual(digest(before));
+    await setDetail("1");
+    await page.getByRole("button",{name:"Bow"}).click();
+    // The crop must follow the posed eye pivot on a turning, bowing head.
+    // The previous fixed-foot camera pushed the face out of portrait view.
+    const eye=page.locator(
+      '[data-km-ink-ensemble-actor="master"] [data-km-ink-character-part="eyes"] path',
+    ).first();
+    const bounds=await studio.boundingBox(),eyeBounds=await eye.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(eyeBounds).not.toBeNull();
+    expect(eyeBounds!.x).toBeGreaterThan(bounds!.x+10);
+    expect(eyeBounds!.x+eyeBounds!.width).toBeLessThan(bounds!.x+bounds!.width-10);
+    expect(eyeBounds!.y).toBeGreaterThan(bounds!.y+8);
+    expect(eyeBounds!.y+eyeBounds!.height).toBeLessThan(bounds!.y+bounds!.height-8);
+    await studio.screenshot({animations:"disabled",
+      path:info.outputPath("ink-master-face-"+aspect+"-bow-4x.png")});
+  }
+  expect(errors).toEqual([]);
+});

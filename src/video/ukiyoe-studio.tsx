@@ -22,6 +22,35 @@ import { UKIYOE_SQUARE_VIEW_SPECIES } from "../../registry/video/ukiyoe/ukiyoe-c
 import { UKIYOE_MAIKO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-maiko";
 import { samuraiDuel, samuraiKata, UKIYOE_KAMAE, UKIYOE_SAMURAI_LOOK } from "../../registry/video/ukiyoe/ukiyoe-katana";
 import { oniFight, UKIYOE_MOMOTARO_LOOK } from "../../registry/video/ukiyoe/ukiyoe-oni";
+import { castleTown } from "../../registry/video/ukiyoe/ukiyoe-town";
+import type { UkiyoeInteriorKind } from "../../registry/video/ukiyoe/ukiyoe-interior";
+import { interiorScene, UKIYOE_INTERIOR_KINDS } from "../../registry/video/ukiyoe/ukiyoe-interior";
+import { onnaScene } from "../../registry/video/ukiyoe/ukiyoe-onna";
+import type { UkiyoeFolkWork } from "../../registry/video/ukiyoe/ukiyoe-folk";
+import { folkScene, UKIYOE_FOLK_WORK } from "../../registry/video/ukiyoe/ukiyoe-folk";
+import type { UkiyoeEffectDemo } from "../../registry/video/ukiyoe/ukiyoe-effects";
+import { effectScene, UKIYOE_EFFECT_DEMOS } from "../../registry/video/ukiyoe/ukiyoe-effects";
+import type { UkiyoeKamiScene } from "../../registry/video/ukiyoe/ukiyoe-kami";
+import { kamiScene, UKIYOE_KAMI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-kami";
+import type { UkiyoeBushiScene } from "../../registry/video/ukiyoe/ukiyoe-bushi";
+import { bushiScene, UKIYOE_BUSHI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-bushi";
+import type { UkiyoeAnimalHabitat } from "../../registry/video/ukiyoe/ukiyoe-critters";
+import type { UkiyoeAnimalYokaiScene } from "../../registry/video/ukiyoe/ukiyoe-critters";
+import { animalScene, animalYokaiScene, UKIYOE_ANIMAL_HABITATS, UKIYOE_ANIMAL_YOKAI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-critters";
+import type { UkiyoeTempleScene } from "../../registry/video/ukiyoe/ukiyoe-temple";
+import { templeScene, UKIYOE_TEMPLE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-temple";
+import type { UkiyoeTreeScene } from "../../registry/video/ukiyoe/ukiyoe-trees";
+import { treeScene, UKIYOE_TREE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-trees";
+import type { UkiyoeHeianScene } from "../../registry/video/ukiyoe/ukiyoe-heian";
+import { heianScene, UKIYOE_HEIAN_SCENES } from "../../registry/video/ukiyoe/ukiyoe-heian";
+import type { UkiyoeFolkYokaiScene } from "../../registry/video/ukiyoe/ukiyoe-folkyokai";
+import { folkYokaiScene, UKIYOE_FOLK_YOKAI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-folkyokai";
+import type { UkiyoeGiantScene } from "../../registry/video/ukiyoe/ukiyoe-giants";
+import { giantScene, UKIYOE_GIANT_SCENES } from "../../registry/video/ukiyoe/ukiyoe-giants";
+import type { UkiyoeTsukumoScene } from "../../registry/video/ukiyoe/ukiyoe-tsukumo";
+import { tsukumoScene, UKIYOE_TSUKUMO_SCENES } from "../../registry/video/ukiyoe/ukiyoe-tsukumo";
+import type { UkiyoeRealmScene } from "../../registry/video/ukiyoe/ukiyoe-realms";
+import { realmScene, UKIYOE_REALM_SCENES } from "../../registry/video/ukiyoe/ukiyoe-realms";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -421,6 +450,52 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "minka", label: "Gassho house · snow, lit", params: { width: 220, style: "gassho", snow: 1, light: 1 }, y: 350 },
   { motif: "jizo", label: "Roadside jizō", params: { height: 120, count: 3, cap: true }, y: 340 },
   { motif: "komainu", label: "Komainu pair (a, un)", params: { height: 150, pair: true, gap: 330 }, y: 340 },
+  { motif: "castle", label: "Castle · white keep, walls, moat", params: { width: 400, tiers: 5 }, y: 306 },
+  { motif: "castle", label: "Castle · black, snow, night", params: { width: 420, tiers: 4, style: "black", snow: 1, night: 1 }, y: 306 },
+  { motif: "castle", label: "Castle keep alone (distance)", params: { width: 380, tiers: 3, walls: false }, y: 350 },
+  { motif: "shop", label: "Merchant shop · noren, sign", params: { width: 300, height: 230 }, y: 330 },
+  { motif: "kura", label: "Storehouse · namako base", params: { width: 160, height: 220 }, y: 330 },
+  { motif: "yashiki", label: "Samurai residence · gatehouse", params: { width: 540, height: 150, pines: 3 }, y: 330 },
+  { motif: "firetower", label: "Fire-watch tower · bell", params: { height: 300 }, y: 350 },
+  { motif: "room", label: "Room · fusuma, tokonoma, shelves", params: { width: 480, height: 250, depth: 80 }, y: 320 },
+  { motif: "room", label: "Farmhouse · earthen floor, thatch", params: { width: 480, height: 250, depth: 80, kind: "farmhouse", eave: "thatch" }, y: 320 },
+  { motif: "room", label: "Room at night · torn shoji", params: { width: 480, height: 250, depth: 80, back: ["shoji", "shoji", "marumado"], night: 1, torn: .8 }, y: 320 },
+  { motif: "andon", label: "Andon lamp", params: { height: 220 }, y: 340 },
+  { motif: "irori", label: "Irori hearth · kettle", params: { size: 260, hook: 320 }, y: 330 },
+  { motif: "futon", label: "Futon · mattress, quilt", params: { length: 420, sleeper: false }, y: 290 },
+  { motif: "loom", label: "Loom · beater, shed, cloth", params: { height: 230 }, y: 340 },
+  { motif: "byobu", label: "Byōbu folding screen", params: { height: 220, art: "pine" }, y: 330 },
+  { motif: "well", label: "Well · ivy, pulley", params: { radius: 90, pulley: true }, y: 340 },
+  { motif: "stump", label: "Chopping block · split wood", params: { size: 200 }, y: 320 },
+  { motif: "usu", label: "Mochi mortar", params: { size: 220 }, y: 330 },
+  { motif: "tarai", label: "Wash tub · cloth", params: { radius: 160 }, y: 320 },
+  { motif: "fire", label: "Fire · smoke, embers", params: { width: 360, height: 160 }, y: 340 },
+  { motif: "halo", label: "Halo · gold radiance", params: { radius: 110 }, y: 190 },
+  { motif: "kumo", label: "Auspicious cloud (zuiun)", params: { width: 300 }, y: 280 },
+  { motif: "mato", label: "Archery target", params: { radius: 70, height: 130 }, y: 340 },
+  { motif: "belfry", label: "Belfry · bell struck", params: { width: 200, height: 280, strikes: [40, 120, 200] }, y: 350 },
+  { motif: "hondo", label: "Temple hall", params: { width: 380, height: 240 }, y: 340 },
+  { motif: "gate", label: "Two-storey gate · lantern", params: { width: 300, height: 290, lantern: true }, y: 350 },
+  { motif: "gate", label: "Rashōmon in ruin", params: { width: 300, height: 290, ruin: 1 }, y: 350 },
+  { motif: "hokora", label: "Mountain shrine · shimenawa", params: { width: 200 }, y: 340 },
+  { motif: "graves", label: "Graveyard · sotoba", params: { width: 520, count: 6 }, y: 330 },
+  { motif: "toro", label: "Stone lantern · lit", params: { height: 220, lit: 1 }, y: 350 },
+  { motif: "hut", label: "Hermit's hut", params: { width: 240, smoke: 1, light: 1 }, y: 340 },
+  { motif: "bamboo", label: "Bamboo grove · shining stalk", params: { width: 560, height: 360, stalks: 8, shine: 4 }, y: 370 },
+  { motif: "kaki", label: "Persimmon tree", params: { height: 330 }, y: 370 },
+  { motif: "shinboku", label: "Sacred tree · shimenawa", params: { height: 340 }, y: 370 },
+  { motif: "shinboku", label: "Jubokko · face, reaching", params: { height: 340, face: 1, reach: 1, rope: false, color: "kogecha" }, y: 370 },
+  { motif: "jinmenju", label: "Jinmenju · laughing heads", params: { height: 330 }, y: 370 },
+  { motif: "gissha", label: "Ox-cart (gissha)", params: { width: 300 }, y: 350 },
+  { motif: "sudare", label: "Bamboo blind, half up", params: { width: 200, height: 260, up: .5 }, y: 60 },
+  { motif: "kicho", label: "Curtain screen (kichō)", params: { width: 260, height: 290 }, y: 350 },
+  { motif: "shinden", label: "Palace veranda", params: { width: 480, height: 300, bays: 3, up: .3 }, y: 360 },
+  { motif: "ikou", label: "Kimono rack · kosode-no-te", params: { width: 300, height: 280, hands: 1 }, y: 350 },
+  { motif: "ryugu", label: "Dragon Palace (Ryūgū-jō)", params: { width: 460, height: 320 }, y: 360 },
+  { motif: "moonpalace", label: "Moon palace", params: { radius: 130 }, y: 180 },
+  { motif: "iwato", label: "Rock cave, light bursting", params: { width: 420, height: 320, open: .8 }, y: 370 },
+  { motif: "onigashima", label: "Onigashima", params: { width: 520, height: 300 }, y: 360 },
+  { motif: "sasa", label: "Tanabata bamboo", params: { height: 330 }, y: 370 },
 ];
 
 export function MotifGallery() {
@@ -574,6 +649,397 @@ export function SamuraiDuel() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="Two samurai dueling in a moonlit field" /></Fit>
     <Transport clock={clock} total={620} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Duel frame" />
+  </div>;
+}
+
+// ---- Castle town ------------------------------------------------------------------------------------------------------------------
+
+/** A castle town as one handscroll, panned from the keep down through the town. */
+export function CastleTown() {
+  const [snow, setSnow] = useState(false);
+  const spec = useMemo(() => castleTown({ snow: snow ? 1 : 0 }), [snow]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Castle town" title="From the keep down through the town">
+      <p style={{ margin: 0 }}>Built by <code>castleTown</code>: one handscroll 6,400 px wide, panned with holds at four stations, mist bands
+        drifting across as in the picture scrolls. The castle on its grassy hill above the moat; the samurai quarter, residence walls and
+        gatehouses under pines, retainers passing; the canal under an arched bridge, a boat below; the merchant street, shops with crested
+        indigo noren and standing signs, storehouses with namako bases, a busy crowd, the fire-watch tower over the roofs. The new motifs
+        (<code>shop</code>, <code>kura</code>, <code>yashiki</code>, <code>firetower</code>) share the castle's storeys and roofs; the
+        walkers keep to the street.</p>
+    </Header>
+    <section aria-label="Castle town controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Check name="Snow" value={snow} onChange={setSnow} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label="A castle town handscroll panning from the castle to the merchant street" /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Scroll frame" />
+  </div>;
+}
+
+// ---- Interiors ----------------------------------------------------------------------------------------------------------------------
+
+const INTERIOR_LABELS: Readonly<Record<UkiyoeInteriorKind, string>> = {
+  inn: "Inn at night: guests by the lamp, a maid arriving", weaver: "The weaver at her loom", hearth: "Farmhouse hearth", bedroom: "Bedroom on a snowy night",
+};
+
+/** Rooms with the front wall taken away, as the prints draw them, with their figures at work and at rest. */
+export function Interiors() {
+  const [kind, setKind] = useState<UkiyoeInteriorKind>("inn");
+  const spec = useMemo(() => interiorScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Interiors" title="Rooms seen through the open front">
+      <p style={{ margin: 0 }}>Built by <code>interiorScene</code> from the <code>room</code> motif after Hiroshige's Akasaka inn and Harunobu's
+        parlours: tatami in staggered columns with their cloth borders, fusuma with painted bamboo or gold clouds, shoji, a tokonoma with a
+        hanging scroll, chigaidana shelves, a veranda. The room comes in two parts so the figures sit between the floor and the front posts.
+        The lamp flickers, the hearth burns and steams, the weaver's hand stays on the beater as it swings, a shoji slides open on the snow.</p>
+    </Header>
+    <section aria-label="Interior controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Room" value={kind} options={UKIYOE_INTERIOR_KINDS} onChange={setKind} labels={INTERIOR_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={INTERIOR_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Room frame" />
+  </div>;
+}
+
+// ---- Women ghosts and hags --------------------------------------------------------------------------------------------------------
+
+type OnnaView = "profile" | "three-quarter" | "front" | "back";
+const ONNA_VIEWS: readonly OnnaView[] = ["profile", "three-quarter", "front", "back"];
+
+/** The women of the ghost stories: each looks alive until a `reveal`, then shows what she is; and Okiku in her well. */
+export function WomenGhosts() {
+  const [kind, setKind] = useState<"lineup" | "okiku">("lineup");
+  const [view, setView] = useState<OnnaView>("profile");
+  const spec = useMemo(() => onnaScene(kind, view), [kind, view]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Women ghosts" title="They look alive until the story turns">
+      <p style={{ margin: 0 }}>After Hokusai's <em>One Hundred Ghost Stories</em> and Sekien's yōkai books. Each woman is an ordinary figure
+        look with a ghost-story <code>face</code>: at frame 90 a <code>reveal</code> smooths the faceless woman's features away, drops the cloth
+        from the slit mouth, opens the mouth in the back of the head, turns the face to bone, swells Oiwa's eye and bares the hag's fangs.
+        Hashihime wears the iron crown of candles; the ubume holds her baby. Every view works. Okiku rises from her overgrown well on a coil of
+        plates, breathing out a curl of vapour.</p>
+    </Header>
+    <section aria-label="Ghost controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={["lineup", "okiku"] as const} onChange={setKind} labels={{ lineup: "Eight women, the reveal", okiku: "Okiku at the well" }} />
+      {kind === "lineup" ? <Select name="View" value={view} options={ONNA_VIEWS} onChange={setView} /> : null}
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={kind === "lineup" ? "Eight women of the ghost stories revealing what they are" : "Okiku rising from the well"} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Ghost frame" />
+  </div>;
+}
+
+// ---- Folk work ----------------------------------------------------------------------------------------------------------------------
+
+const FOLK_LABELS: Readonly<Record<UkiyoeFolkWork, string>> = {
+  woodcutter: "Splitting firewood", farmer: "Hoeing, a rice ball brought", mochi: "Pounding mochi", washing: "Hachikazuki washing", luck: "The mallet of luck",
+};
+
+/** Everyday work the folktales turn on: the tools swing on their own timeline and land on their marks. */
+export function FolkWork() {
+  const [kind, setKind] = useState<UkiyoeFolkWork>("woodcutter");
+  const spec = useMemo(() => folkScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Folk work" title="Axe, hoe, pestle, tub and the mallet of luck">
+      <p style={{ margin: 0 }}>After the screen <em>Farmers' Lives in the Twelve Months</em> (the Met). <code>chop</code>, <code>hoe</code> and <code>pound</code> swing their tool
+        up over the shoulder, hold, and bring it down fast onto its contact point, where the chopping block, the furrows and the mortar are
+        placed; chips, clods and mochi fly. Both hands stay on the handle. <code>wash</code> scrubs the cloth in the tub, <code>shake</code> pours
+        treasure from the mallet of luck. Props: firewood on the back, a rice ball, Hachikazuki's bowl.</p>
+    </Header>
+    <section aria-label="Folk work controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Work" value={kind} options={UKIYOE_FOLK_WORK} onChange={setKind} labels={FOLK_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={FOLK_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Work frame" />
+  </div>;
+}
+
+// ---- Effects and magic ----------------------------------------------------------------------------------------------------------------
+
+const EFFECT_LABELS: Readonly<Record<UkiyoeEffectDemo, string>> = {
+  fire: "A field on fire", henge: "Fox to woman (henge)", storm: "Lightning storm", blossom: "Ash makes the dead tree bloom", foxfire: "Fox-fires", halo: "Divine radiance",
+};
+
+/** Fire, smoke, lightning, ash, fox-fires and a halo, each in a story setting. */
+export function Effects() {
+  const [kind, setKind] = useState<UkiyoeEffectDemo>("fire");
+  const spec = useMemo(() => effectScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Effects" title="Fire, smoke, lightning, ash and fox-fires">
+      <p style={{ margin: 0 }}>After the <em>Kitano Tenjin engi</em> scroll's fire (streaming vermilion tongues, smoke in rounded billows) and
+        Hiroshige's <em>Fox Fires at Ōji</em>. The <code>fire</code> and <code>halo</code> motifs, and the <code>smoke</code>, <code>lightning</code>,
+        <code>ash</code> and <code>foxfire</code> particles. A fox walks into a puff of curling cloud and a woman walks out; the thunder jolts the
+        camera; the old man's ash drifts onto the dead tree and it flowers.</p>
+    </Header>
+    <section aria-label="Effect controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Effect" value={kind} options={UKIYOE_EFFECT_DEMOS} onChange={setKind} labels={EFFECT_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={EFFECT_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Effect frame" />
+  </div>;
+}
+
+// ---- Kami and heavenly beings ------------------------------------------------------------------------------------------------------
+
+const KAMI_LABELS: Readonly<Record<UkiyoeKamiScene, string>> = {
+  hagoromo: "The celestial maiden flies", amaterasu: "The sun goddess leaves the cave", luck: "Ebisu and Daikoku on a cloud", susanoo: "The storm god",
+};
+
+/** Gods and celestials: the flying tennyo with her hagoromo, Amaterasu with the mirror, the gods of luck, Susanoo. */
+export function Kami() {
+  const [kind, setKind] = useState<UkiyoeKamiScene>("hagoromo");
+  const spec = useMemo(() => kamiScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Kami" title="Gods and heavenly beings">
+      <p style={{ margin: 0 }}>After the flying celestials of temple art and Hokkei's <em>Ebisu and Daikoku</em>. The <code>fly</code> action lifts a
+        figure into the air and carries her; the <code>stole</code> (hagoromo) streams out behind her. Ancient gods wear their hair in
+        <code>mizura</code> loops with magatama <code>beads</code>, and hold the <code>mirror</code>, the straight <code>tsurugi</code> or the jewelled
+        <code>hoko</code>; Ebisu carries his <code>tai</code>, Daikoku his mallet and rice <code>bag</code>. The <code>kumo</code> cloud carries them.</p>
+    </Header>
+    <section aria-label="Kami controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={UKIYOE_KAMI_SCENES} onChange={setKind} labels={KAMI_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={KAMI_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Kami frame" />
+  </div>;
+}
+
+// ---- Warriors II -------------------------------------------------------------------------------------------------------------------
+
+const BUSHI_LABELS: Readonly<Record<UkiyoeBushiScene, string>> = { archer: "The archer: draw, hold, loose", bridge: "Monk and youth on the bridge", armour: "Great armour, four views" };
+
+/** Heian and Genpei warriors: the great armour and horned helmet, the bow with a timed shot, the naginata. */
+export function Warriors() {
+  const [kind, setKind] = useState<UkiyoeBushiScene>("archer");
+  const spec = useMemo(() => bushiScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Warriors" title="Armour, bow and naginata">
+      <p style={{ margin: 0 }}>The <code>armor</code> look draws the ō-yoroi laced in its colour (cuirass, swinging skirt plates, the great shoulder
+        board) with the horned <code>kabuto</code>, in every view. <code>shoot</code> raises the bow, draws the string to the ear and holds, looses on
+        its contact frame, and the arrow flies to its <code>aim</code> and sticks. The warrior-monk carries his <code>naginata</code> in both hands.</p>
+    </Header>
+    <section aria-label="Warrior controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={UKIYOE_BUSHI_SCENES} onChange={setKind} labels={BUSHI_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={BUSHI_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Warrior frame" />
+  </div>;
+}
+
+// ---- Animals II ---------------------------------------------------------------------------------------------------------------------
+
+const HABITAT_LABELS: Readonly<Record<UkiyoeAnimalHabitat, string>> = { mountain: "Mountain: bear, boar, stag, wolf", pond: "Pond: carp, ducks, frog, snake", shore: "Shore: crab, turtle, octopus", farm: "Farm: ox, hawk, mice" };
+
+/** The folktale animals in their places. */
+export function Animals() {
+  const [kind, setKind] = useState<UkiyoeAnimalHabitat>("mountain");
+  const spec = useMemo(() => animalScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Animals" title="Bear, boar, deer, ox, wolf, mouse and the small creatures">
+      <p style={{ margin: 0 }}>The four-legged rig gains the moon bear with its crescent, the tusked boar, the spotted sika stag with antlers,
+        the horned black ox, the wolf and the mouse, all with front and back views; the bird rig gains the hawk and the mandarin ducks. New
+        rigs for the crab (sideways scuttle, snapping claws), the minogame turtle (rowing flippers, seaweed tail), the snake (slither, coil),
+        the frog (hop, croak), the carp (swim, leap) and the octopus (curling arms).</p>
+    </Header>
+    <section aria-label="Animal controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Habitat" value={kind} options={UKIYOE_ANIMAL_HABITATS} onChange={setKind} labels={HABITAT_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={HABITAT_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Animals frame" />
+  </div>;
+}
+
+// ---- Temples, shrines, graves ------------------------------------------------------------------------------------------------------
+
+const TEMPLE_LABELS: Readonly<Record<UkiyoeTempleScene, string>> = { bell: "The temple bell struck at dusk", graveyard: "Graveyard at night", rashomon: "Rashōmon in the rain", shrine: "Mountain shrine in snow", asakusa: "Temple gate with its great lantern" };
+
+/** Sacred and haunted places: the belfry, the hall, the gate, the shrine, the graveyard. */
+export function Temples() {
+  const [kind, setKind] = useState<UkiyoeTempleScene>("bell");
+  const spec = useMemo(() => templeScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Temples" title="Bell, hall, gate, shrine and graveyard">
+      <p style={{ margin: 0 }}>After Hiroshige's Asakusa and Gion Shrine, Yoshitoshi's Rashōmon and a bonshō's bronze. The <code>belfry</code>'s log is
+        drawn back and swung into the bell on its <code>strikes</code>; the bell sways and rings. The <code>gate</code> carries its great lantern or
+        falls to ruin; the <code>hokora</code> wears its sacred rope; the <code>graves</code> stand among wooden sotoba; <code>toro</code> lanterns glow.</p>
+    </Header>
+    <section aria-label="Temple controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Place" value={kind} options={UKIYOE_TEMPLE_SCENES} onChange={setKind} labels={TEMPLE_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={TEMPLE_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Temple frame" />
+  </div>;
+}
+
+// ---- Animal yōkai --------------------------------------------------------------------------------------------------------------------
+
+const AY_LABELS: Readonly<Record<UkiyoeAnimalYokaiScene, string>> = { bakeneko: "Bakeneko dance, nekomata", kamaitachi: "Kamaitachi in the whirlwind", okuriinu: "Okuri-inu following", baku: "The baku eats a nightmare", messenger: "Inari's messenger foxes", satori: "The mind-reading ape" };
+
+/** Shape-shifting and supernatural animals. */
+export function AnimalYokai() {
+  const [kind, setKind] = useState<UkiyoeAnimalYokaiScene>("bakeneko");
+  const spec = useMemo(() => animalYokaiScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Animal yōkai" title="Cats that dance, weasels in the wind, the dream-eater">
+      <p style={{ margin: 0 }}>After Sekien's kamaitachi and Hokusai's baku. Cats stand and dance with a <code>towel</code> on the head, and take
+        two <code>tails</code> as nekomata; <code>glowEyes</code> light the dark; the messenger fox <code>carry</code>s a key or a jewel. New species: the
+        <code>weasel</code>, the <code>baku</code> with its trunk and the great <code>ape</code>. The <code>whirlwind</code> particle is Sekien's spiral,
+        with sickle-flashes.</p>
+    </Header>
+    <section aria-label="Animal yokai controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={UKIYOE_ANIMAL_YOKAI_SCENES} onChange={setKind} labels={AY_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={AY_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Yokai frame" />
+  </div>;
+}
+
+// ---- Trees and forest spirits ------------------------------------------------------------------------------------------------------
+
+const TREE_LABELS: Readonly<Record<UkiyoeTreeScene, string>> = { kaguya: "The shining bamboo", persimmon: "Monkey up the persimmon", kodama: "Kodama: the tree's spirits", jubokko: "Jubokko, the vampire tree", jinmenju: "Jinmenju, the laughing tree" };
+
+/** Trees as characters: the shining bamboo, the persimmon, the sacred tree's spirits, the face trees. */
+export function Trees() {
+  const [kind, setKind] = useState<UkiyoeTreeScene>("kaguya");
+  const spec = useMemo(() => treeScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Trees" title="Bamboo, persimmon and the trees that are alive">
+      <p style={{ margin: 0 }}>After Hōitsu's <em>Persimmon Tree</em>, the <em>Taketori</em> scroll and Sekien's kodama. The <code>bamboo</code> grove sways,
+        one stalk lit from within; the <code>kaki</code> is gnarled and sparse with a few round fruit; the <code>shinboku</code> wears its rope and can open
+        an old <code>face</code> in its bark or <code>reach</code> with its branches like arms; the <code>jinmenju</code>'s fruit are laughing heads.</p>
+    </Header>
+    <section aria-label="Tree controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={UKIYOE_TREE_SCENES} onChange={setKind} labels={TREE_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={TREE_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Tree frame" />
+  </div>;
+}
+
+// ---- Heian court ------------------------------------------------------------------------------------------------------------------
+
+const HEIAN_LABELS: Readonly<Record<UkiyoeHeianScene, string>> = { veranda: "Behind the blinds, by moonlight", oxcart: "The ox-cart on the road", chamber: "Court ladies by a curtain screen" };
+
+/** The Heian court: layered robes, the court cap, blinds and screens, the palace veranda, the ox-cart. */
+export function HeianCourt() {
+  const [kind, setKind] = useState<UkiyoeHeianScene>("veranda");
+  const spec = useMemo(() => heianScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Heian court" title="Twelve layers, the court cap, blinds and the ox-cart">
+      <p style={{ margin: 0 }}>After the Tosa <em>Evening Face</em>, Hokusai's <em>Court Lady</em> and the Genji scroll. Court ladies wear their
+        <code>layers</code> over red hakama with <code>heian</code> hair falling to the floor and the <code>hiogi</code> fan; nobles the
+        <code>kanmuri</code> and the <code>shaku</code>. The <code>shinden</code> veranda splits into back and front so a lady sits behind its
+        translucent <code>sudare</code> as they roll up; the <code>gissha</code>'s wheels turn with its keyed travel.</p>
+    </Header>
+    <section aria-label="Heian controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={UKIYOE_HEIAN_SCENES} onChange={setKind} labels={HEIAN_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={HEIAN_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Heian frame" />
+  </div>;
+}
+
+// ---- Folk yōkai --------------------------------------------------------------------------------------------------------------------
+
+const FY_LABELS: Readonly<Record<UkiyoeFolkYokaiScene, string>> = { house: "Nurarihyon, zashiki-warashi, amanojaku", stream: "Azukiarai washing beans", bath: "Akaname in the bathhouse", road: "Sunakake-baba, konaki-jiji, Dodomeki", snow: "The snow child" };
+
+/** The household and road yōkai. */
+export function FolkYokai() {
+  const [kind, setKind] = useState<UkiyoeFolkYokaiScene>("house");
+  const spec = useMemo(() => folkYokaiScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Folk yōkai" title="The bean-washer, the filth-licker and the master of yōkai">
+      <p style={{ margin: 0 }}>After Sekien's akaname, nurarihyon and dodomeki and Shunsen's azukiarai. New for figures: the <code>gourd</code> head,
+        the straw <code>mino</code>, arms covered in <code>eyes</code>, the bean basket <code>zaru</code> and the <code>throw</code> that flings sand on its
+        contact frame; and the crouching <code>akaname</code> with its licking tongue.</p>
+    </Header>
+    <section aria-label="Folk yokai controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={UKIYOE_FOLK_YOKAI_SCENES} onChange={setKind} labels={FY_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={FY_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Yokai frame" />
+  </div>;
+}
+
+// ---- Giant monsters -----------------------------------------------------------------------------------------------------------------
+
+const GIANT_LABELS: Readonly<Record<UkiyoeGiantScene, string>> = { skeleton: "Gashadokuro, the skeleton spectre", seamonk: "Umibōzu, the sea monk", orochi: "Yamata no Orochi", centipede: "The giant centipede", namazu: "The earthquake catfish", dojoji: "Kiyohime round the bell", toad: "Jiraiya's giant toad", daidara: "Daidarabotchi" };
+
+/** Monsters far bigger than people. */
+export function Giants() {
+  const [kind, setKind] = useState<UkiyoeGiantScene>("skeleton");
+  const spec = useMemo(() => giantScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Giants" title="The skeleton spectre, the sea monk, the eight-headed serpent">
+      <p style={{ margin: 0 }}>After Kuniyoshi's <em>Takiyasha</em> skeleton and <em>Kuwana</em> sea monk, Yoshitoshi's Orochi and the Kashima namazu-e.
+        New yōkai species <code>gashadokuro</code>, <code>umibozu</code>, <code>orochi</code>, <code>omukade</code>, <code>namazu</code> and <code>jasei</code>
+        (the serpent round the bell), each against people or buildings for scale; the toad and the daidarabotchi are built from the frog and the figure.</p>
+    </Header>
+    <section aria-label="Giant controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Monster" value={kind} options={UKIYOE_GIANT_SCENES} onChange={setKind} labels={GIANT_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={GIANT_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Giant frame" />
+  </div>;
+}
+
+// ---- Tsukumogami ------------------------------------------------------------------------------------------------------------------
+
+const TSUKUMO_LABELS: Readonly<Record<UkiyoeTsukumoScene, string>> = { wheel: "Wanyūdō, the burning wheel", biwa: "Biwa-bokuboku", shoji: "Mokumokuren, eyes in the shoji", kosode: "Kosode-no-te, hands from the kimono", cotton: "Ittan-momen", kettle: "Bunbuku chagama", cart: "Oboro-guruma" };
+
+/** Objects that come alive after a hundred years. */
+export function Tsukumogami() {
+  const [kind, setKind] = useState<UkiyoeTsukumoScene>("wheel");
+  const spec = useMemo(() => tsukumoScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Tsukumogami" title="The wheel, the lute, the shoji, the kimono, the kettle">
+      <p style={{ margin: 0 }}>After Sekien's tsukumogami. New yōkai <code>wanyudo</code> (a head for a hub, rolling in flames with its travel),
+        <code>biwabokuboku</code>, <code>ittanmomen</code> and <code>chagama</code> (Bunbuku: tanuki head and tail, back to a kettle on
+        <code>transform</code>); the <code>ikou</code> rack's robe puts out <code>hands</code>; the <code>room</code>'s shoji open <code>eyes</code>;
+        the <code>gissha</code> takes a <code>face</code>.</p>
+    </Header>
+    <section aria-label="Tsukumogami controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Object" value={kind} options={UKIYOE_TSUKUMO_SCENES} onChange={setKind} labels={TSUKUMO_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={TSUKUMO_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Tsukumogami frame" />
+  </div>;
+}
+
+// ---- Other realms -----------------------------------------------------------------------------------------------------------------
+
+const REALM_LABELS: Readonly<Record<UkiyoeRealmScene, string>> = { ryugu: "Down to the Dragon Palace", moon: "Kaguya returns to the moon", tanabata: "The magpie bridge", iwato: "The sun leaves the rock cave", yomi: "Flight from Yomi", onigashima: "Sailing to Onigashima" };
+
+/** Realms beyond the everyday, each with its way in. */
+export function Realms() {
+  const [kind, setKind] = useState<UkiyoeRealmScene>("ryugu");
+  const spec = useMemo(() => realmScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Realms" title="The sea palace, the moon, the river of stars, the cave">
+      <p style={{ margin: 0 }}>After Kuniyoshi's Dragon Palace, Toshimasa's rock cave, Yoshitoshi's moon and Hiroshige's Tanabata. The camera follows
+        Urashima under the waves to the <code>ryugu</code> and rises with Kaguya to the <code>moonpalace</code>; the <code>magpies</code> form their
+        bridge across the <code>amanogawa</code>; the <code>iwato</code> boulder rolls aside and light floods out (or closes on Yomi); the boat crosses to
+        <code>onigashima</code>.</p>
+    </Header>
+    <section aria-label="Realm controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Realm" value={kind} options={UKIYOE_REALM_SCENES} onChange={setKind} labels={REALM_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={REALM_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Realm frame" />
   </div>;
 }
 
@@ -768,7 +1234,7 @@ export function SceneEditor() {
 // ---- 6. Bestiary ---------------------------------------------------------------------------------------------------------------------------
 
 interface Specimen { id: string; label: string; actions: readonly string[]; node: (action: string) => UkiyoeNode; sky?: "day" | "night" | "storm" }
-const travel = (type: string) => ["walk", "run", "fly", "hop"].includes(type) ? { to: 0 } : {};
+const travel = (type: string) => ["walk", "run", "fly", "hop", "float"].includes(type) ? { to: 0 } : {};
 const SPIRITS = new Set(["yukionna", "yurei", "rokurokubi", "kasaobake", "chochinobake", "hitodama", "nue", "nurikabe", "tsuchigumo"]);
 const beast = (id: string, species: string, label: string, actions: string[], look: Record<string, unknown> = {}, scale = 1.25, y = 330): Specimen => ({
   id, label, actions, ...(SPIRITS.has(species) ? { sky: "night" as const } : {}),
@@ -807,6 +1273,20 @@ const BESTIARY: readonly Specimen[] = [
   beast("kasaobake", "kasaobake", "Kasa-obake, the umbrella spirit", ["hop", "stand", "look"], {}, 1.3, 350),
   beast("chochinobake", "chochinobake", "Chōchin-obake, the lantern spirit", ["stand", "look"], {}, 1.2, 360),
   beast("hitodama", "hitodama", "Hitodama, soul-flames", ["stand"], {}, 1.6, 330),
+  beast("bear", "bear", "Moon bear (tsukinowaguma)", ["walk", "run", "sit", "stand", "look"], {}, 1.2),
+  beast("boar", "boar", "Wild boar (inoshishi)", ["run", "walk", "look"], {}, 1.25),
+  beast("deer", "deer", "Sika stag (shika)", ["walk", "run", "look", "leap"], {}, 1.2, 345),
+  beast("ox", "ox", "Black ox (ushi)", ["walk", "look", "sit"], {}, .95, 345),
+  beast("wolf", "wolf", "Wolf (ōkami)", ["walk", "run", "sit", "howl"], {}, 1.2),
+  beast("mouse", "mouse", "Mouse (nezumi)", ["run", "walk", "sit", "look"], {}, 2.2),
+  beast("hawk", "hawk", "Hawk (taka)", ["stand", "fly", "look"], {}, 2, 340),
+  beast("oshidori", "oshidori", "Mandarin ducks (oshidori)", ["float", "stand", "fly"], {}, 2.2, 340),
+  beast("crab", "crab", "Crab (kani), claws snapping", ["walk", "dance"], {}, 2.6, 340),
+  beast("turtle", "turtle", "Minogame turtle", ["walk", "float"], {}, 1.8, 340),
+  beast("snake", "snake", "Snake (hebi)", ["walk", "coil"], {}, 1.4, 340),
+  beast("frog", "frog", "Frog (kaeru), croaking", ["hop", "howl", "sit"], {}, 2.6, 340),
+  beast("carp", "carp", "Carp (koi), leaping", ["float", "leap"], {}, 1.8, 330),
+  beast("octopus", "octopus", "Octopus (tako)", ["dance", "walk"], {}, 1.8, 345),
   { id: "peach", label: "Peach (momo) splitting open", actions: ["open", "float"], sky: "day",
     node: action => ({ id: "c", kind: "motif", motif: "peach", x: 300, y: 250, params: { size: 90, ...(action === "open" ? { openAt: 60, openDuration: 34 } : {}) }, loops: [{ kind: "rock", amplitude: 1.2, period: 60 }] } as UkiyoeNode) },
 ];

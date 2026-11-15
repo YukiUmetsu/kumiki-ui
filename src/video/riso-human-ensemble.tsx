@@ -4,6 +4,9 @@ import type {RisoCharacterPart,RisoCharacterSpec,RisoJoint} from "../../registry
 import {RisoCharacterInk,RisoCharacterKnockout} from "../../registry/video/riso-character-react";
 import {RisoPrint} from "../../registry/video/print-plates-react";
 import {RisoTransferSheetPlate,evaluateRisoTransferSheet} from "../../registry/video/riso-transfer-sheet";
+import type {RisoTransferSheetOptions} from "../../registry/video/riso-transfer-sheet";
+import {evaluateRisoPropHandoff,RISO_HANDOFF_DEFAULTS} from "../../registry/video/riso-prop-handoff";
+import type {RisoHandoffSchedule} from "../../registry/video/riso-prop-handoff";
 import type {RisoForegroundLayer} from "../../registry/video/print-plates-react";
 import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import type {RisoCharacterMeshSheet,RisoMeshCategory} from "../../registry/video/riso-proportion-mesh";
@@ -197,28 +200,52 @@ const personPoint=(spec:RisoCharacterSpec,frame:number,joint:string,x:number,y:n
   if(!pose)throw new RangeError("Missing Riso ensemble contact point "+joint);
   return {x:x+pose.x*scale,y:y+pose.y*scale};
 };
+/**
+ * Only original rigged finger/digit contours overprint the already-opaque
+ * physical letter. The palms, sleeves, coats and faces stay behind the paper.
+ * This is depth ordering, not a fake sticker or alpha-blended actor.
+ */
+const risoGripParts=(side:"left"|"right"):readonly string[]=>[
+  side+"-glove-index",side+"-glove-middle",side+"-glove-ring",side+"-glove-thumb",
+  side+"-finger-joint-lines",side+"-glove-detail",side+"-glove-thumb-fold",
+];
 /** Exact geometry for a prop between two authored hand contact anchors.
  * Stage space, including aspect and placements, must be computed once. */
-export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="landscape"){
-  if(!Number.isInteger(frame)||frame<0||frame>239)throw new RangeError("Riso ensemble frame must be an integer 0..239");
+export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="landscape",
+  paperOptions:RisoTransferSheetOptions={},
+  handoffSchedule:RisoHandoffSchedule=RISO_HANDOFF_DEFAULTS){
+  if(!Number.isInteger(frame)||frame<0||frame>239)
+    throw new RangeError("Riso ensemble frame must be an integer 0..239");
   const portrait=aspect==="portrait";
   const width=portrait?540:960,height=portrait?960:540;
   const first={x:portrait?0:120,y:portrait?705:445,scale:portrait?1.2:1.05};
   const second={x:portrait?335:520,y:portrait?705:445,scale:portrait?1.2:1.05};
   const a=personPoint(COURIER,frame,"right-hand",first.x,first.y,first.scale);
   const b=personPoint(PAPER_ARTIST,frame,"left-hand",second.x,second.y,second.scale);
-  const progress=Math.min(1,Math.max(0,(frame-126)/34));
-  // Prop does not jump; the printed sheet unfurls from the source hand until
-  // it touches the receiving hand at the end of the exchange.
-  const end={x:a.x+(b.x-a.x)*progress,y:a.y+(b.y-a.y)*progress};
-  const mid={x:(a.x+end.x)/2,y:(a.y+end.y)/2};
-  const sheet=progress>0&&`M${a.x.toFixed(2)} ${(a.y-18).toFixed(2)}
-    Q${mid.x.toFixed(2)} ${(mid.y-23).toFixed(2)} ${end.x.toFixed(2)} ${(end.y-18).toFixed(2)}
-    L${end.x.toFixed(2)} ${(end.y+21).toFixed(2)}
-    Q${mid.x.toFixed(2)} ${(mid.y+27).toFixed(2)} ${a.x.toFixed(2)} ${(a.y+21).toFixed(2)} Z`;
-  return {frame,aspect,width,height,first,second,source:a,receiver:b,
-    propEnd:end,progress,sheet:sheet||"",
-    printDetails:evaluateRisoTransferSheet(a,end,progress)};
+  // Absolute reference pose sampled from the same two rigs: no history and
+  // no independent paper keyframe. After transfer it follows only the receiver.
+  const releaseA=personPoint(COURIER,handoffSchedule.releaseStart,"right-hand",
+    first.x,first.y,first.scale);
+  const releaseB=personPoint(PAPER_ARTIST,handoffSchedule.releaseStart,"left-hand",
+    second.x,second.y,second.scale);
+  const handoff=evaluateRisoPropHandoff(frame,a,b,releaseA,releaseB,handoffSchedule);
+  // Finger pressure is a *contact* property, not merely a held-gesture
+  // parameter. As the sheet peels away its root, the ink folds must relax
+  // continuously and disappear rather than hovering around an empty grip.
+  const pressureAt=(grip:number,edge:{x:number;y:number},hand:{x:number;y:number})=>
+    grip*Math.max(0,Math.min(1,1-Math.hypot(edge.x-hand.x,edge.y-hand.y)/12));
+  const sourceContactPressure=pressureAt(handoff.sourceGrip,handoff.paperStart,a);
+  const receiverContactPressure=pressureAt(handoff.receiverGrip,handoff.paperEnd,b);
+  // One material geometry drives the actual knockout and both spot masters.
+  // It inherits the two real hand joints and release schedule, no local clock.
+  const printDetails=evaluateRisoTransferSheet(
+    handoff.paperStart,handoff.paperEnd,handoff.progress,
+    {...paperOptions,sourceGrip:sourceContactPressure,
+      receiverGrip:receiverContactPressure});
+  return {...handoff,sourceContactPressure,receiverContactPressure,
+    frame,aspect,width,height,first,second,source:a,receiver:b,
+    propEnd:handoff.paperEnd,progress:handoff.progress,
+    sheet:printDetails.outline,printDetails};
 }
 export function RisoHumanEnsembleStudio(){
   const [frame,setFrame]=useState(176);
@@ -230,6 +257,13 @@ export function RisoHumanEnsembleStudio(){
   const [misregistration,setMisregistration]=useState(.25);
   const [dotCell,setDotCell]=useState(6);
   const [sheetDetail,setSheetDetail]=useState(true);
+  const [fingertipOcclusion,setFingertipOcclusion]=useState(true);
+  const [paperCurl,setPaperCurl]=useState(3);
+  const [gripPinch,setGripPinch]=useState(.5);
+  const [imprintDepth,setImprintDepth]=useState(.75);
+  const [releaseStart,setReleaseStart]=useState(178);
+  const [releaseDuration,setReleaseDuration]=useState(24);
+  const [settleDegrees,setSettleDegrees]=useState(-45);
   // Playback is a Storybook convenience. Production frames stay pure: a
   // film exporter passes an absolute frame to evaluateRisoHumanEnsemble.
   useEffect(()=>{
@@ -237,7 +271,14 @@ export function RisoHumanEnsembleStudio(){
     const id=window.setInterval(()=>setFrame(current=>(current+1)%240),1000/24);
     return ()=>window.clearInterval(id);
   },[playing]);
-  const state=useMemo(()=>evaluateRisoHumanEnsemble(frame,aspect),[frame,aspect]);
+  const handoffSchedule:RisoHandoffSchedule={
+    ...RISO_HANDOFF_DEFAULTS,
+    releaseStart,releaseEnd:releaseStart+releaseDuration,settleDegrees,
+  };
+  const state=useMemo(()=>evaluateRisoHumanEnsemble(frame,aspect,{
+    curl:paperCurl,gripPinch,imprintDepth,
+  },handoffSchedule),[frame,aspect,paperCurl,gripPinch,imprintDepth,
+    releaseStart,releaseDuration,settleDegrees]);
   const printSpec:RisoPrintSpec={
     version:1,width:state.width,height:state.height,paper,seed:38,
     startFrame:0,passFrames:1,gapFrames:0,
@@ -249,18 +290,30 @@ export function RisoHumanEnsembleStudio(){
   const people=[{spec:COURIER,stage:state.first},{spec:PAPER_ARTIST,stage:state.second}] as const;
   const footContacts=people.flatMap(({spec,stage})=>["left-ankle","right-ankle"].map(joint=>
     personPoint(spec,frame,joint,stage.x,stage.y,stage.scale)));
-  const layers:RisoForegroundLayer[]=[
-    {
-      id:"shared-letter",
-      knockout:state.progress>0?<path d={state.sheet}
-        data-km-riso-human-ensemble-sheet={state.progress.toFixed(3)}/>:undefined,
+  const gripLayer=(spec:RisoCharacterSpec,stage:{x:number;y:number;scale:number},
+    side:"left"|"right",id:string):RisoForegroundLayer=>{
+    const onlyPartIds=risoGripParts(side);
+    // Actual ink scratches are open contours. Only four closed, authored red
+    // glove digit masses may cut paper; blue hatch/knuckle lines print on top.
+    const solidDigits=onlyPartIds.slice(0,4);
+    return {
+      id,
+      knockout:<g data-km-riso-grip-occlusion={id}>
+        <RisoCharacterKnockout spec={spec} frame={frame} x={stage.x} y={stage.y}
+          scale={stage.scale} spread={1.25} onlyPartIds={solidDigits}/></g>,
       artworks:{
-        blue:paint=><RisoTransferSheetPlate outline={state.sheet}
-          geometry={state.printDetails} paint={paint} plateId="blue" detail={sheetDetail}/>,
-        red:paint=><RisoTransferSheetPlate outline={state.sheet}
-          geometry={state.printDetails} paint={paint} plateId="red" detail={sheetDetail}/>,
+        blue:paint=><RisoCharacterInk spec={spec} frame={frame} plateId="blue"
+          paint={paint} x={stage.x} y={stage.y} scale={stage.scale}
+          onlyPartIds={onlyPartIds}/>,
+        red:paint=><RisoCharacterInk spec={spec} frame={frame} plateId="red"
+          paint={paint} x={stage.x} y={stage.y} scale={stage.scale}
+          onlyPartIds={onlyPartIds}/>,
       },
-    },
+    };
+  };
+  const layers:RisoForegroundLayer[]=[
+    // Stage the complete actors on the physical paper before presenting the
+    // letter, then allow only actual joint-posed fingers to cover the letter.
     ...people.map(({spec,stage}):RisoForegroundLayer=>({
       id:spec.id,
       knockout:<g data-km-riso-human-actor={spec.id}>
@@ -273,15 +326,40 @@ export function RisoHumanEnsembleStudio(){
           paint={paint} x={stage.x} y={stage.y} scale={stage.scale}/>,
       },
     })),
+    {
+      id:"shared-letter",
+      knockout:state.sheet?<path d={state.sheet}
+        data-km-riso-human-ensemble-sheet={state.progress.toFixed(3)}/>:undefined,
+      artworks:{
+        blue:paint=><RisoTransferSheetPlate outline={state.sheet}
+          geometry={state.printDetails} paint={paint} plateId="blue" detail={sheetDetail}/>,
+        red:paint=><RisoTransferSheetPlate outline={state.sheet}
+          geometry={state.printDetails} paint={paint} plateId="red" detail={sheetDetail}/>,
+      },
+    },
+    ...(fingertipOcclusion&&state.sheet
+      ? [
+        // Once the physical paper has moved away from the source finger root,
+        // never leave that original rigged finger floating over its surface.
+        ...(state.sourceTouching
+          ? [gripLayer(COURIER,state.first,"right","courier-grip")]:[]),
+        ...(state.receiverTouching
+          ? [gripLayer(PAPER_ARTIST,state.second,"left","artist-grip")]:[]),
+      ]
+      : []),
   ];
   return <main style={{background:"#F0E4D1",padding:18,minHeight:"100vh",font:"14px system-ui,sans-serif"}}>
     <div style={{maxWidth:1320,margin:"0 auto"}}>
-      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO14 / HUMAN ENSEMBLE ACTING STUDY</div>
+      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO19 / PRESSURE-RESPONSIVE HAND-HELD RISO PAPER</div>
       <h2 style={{font:"700 29px Georgia,serif",margin:"8px 0"}}>Two original figures · a printed-sheet exchange</h2>
       <p style={{fontSize:13,maxWidth:900,lineHeight:1.5}}>
         Distinct coat, bob hair and facial geometry for the Paper Artist; the Courier retains
-        its existing body and satchel grip. The unfurling printed sheet is anchored to two evaluated
-        world-space hands. This is a gesture-blocking study, not a rigid-body contact solver.
+        its existing body and satchel grip. The curved printed sheet follows both evaluated hands through a shared physical contour,
+        with controllable curl, grip compression, screened fold and original address engravings.
+        The joint-posed fingertips print in front of paper during contact, and the Courier
+        releases the sheet while the Paper Artist keeps holding it. Release timing, duration
+        and tilt are authored; original material-local pressure folds and screened compression
+        track the two hand grips. This is not a force-based collision solver.
         Real RisoPrint spot-ink screens, print registration, paper pores and fibres are used.
       </p>
       <div style={{display:"flex",flexWrap:"wrap",gap:20,alignItems:"center",padding:"12px 0"}}>
@@ -302,6 +380,34 @@ export function RisoHumanEnsembleStudio(){
           <option value="both">Both plates</option><option value="blue">Cobalt</option>
           <option value="red">Vermilion</option>
         </select></label>
+        <label>Paper curl · {paperCurl.toFixed(1)}
+          <input type="range" min={0} max={12} step={.5} value={paperCurl}
+            aria-label="RISO ensemble paper curl"
+            onChange={e=>setPaperCurl(Number(e.target.value))}/></label>
+        <label>Hand grip pinch · {gripPinch.toFixed(2)}
+          <input type="range" min={0} max={1} step={.05} value={gripPinch}
+            aria-label="RISO ensemble paper grip pinch"
+            onChange={e=>setGripPinch(Number(e.target.value))}/></label>
+        <label>Pressed paper creases · {imprintDepth.toFixed(2)}
+          <input type="range" min={0} max={1} step={.05} value={imprintDepth}
+            aria-label="RISO ensemble pressure crease depth"
+            onChange={e=>setImprintDepth(Number(e.target.value))}/></label>
+        <label>Release starts · {releaseStart}
+          <input type="range" min={170} max={190} step={1} value={releaseStart}
+            aria-label="RISO ensemble donor release frame"
+            onChange={e=>setReleaseStart(Number(e.target.value))}/></label>
+        <label>Release duration · {releaseDuration} frames
+          <input type="range" min={14} max={32} step={1} value={releaseDuration}
+            aria-label="RISO ensemble transfer duration"
+            onChange={e=>setReleaseDuration(Number(e.target.value))}/></label>
+        <label>Receiver-held tilt · {settleDegrees}°
+          <input type="range" min={-75} max={0} step={1} value={settleDegrees}
+            aria-label="RISO ensemble receiver paper tilt"
+            onChange={e=>setSettleDegrees(Number(e.target.value))}/></label>
+        <label><input type="checkbox" checked={fingertipOcclusion}
+          aria-label="RISO ensemble anatomical fingertip occlusion"
+          onChange={e=>setFingertipOcclusion(e.target.checked)}/>
+          Original finger-over-paper contacts</label>
         <label><input type="checkbox" checked={sheetDetail}
           aria-label="RISO ensemble fine printed-sheet detail"
           onChange={e=>setSheetDetail(e.target.checked)}/> Fine printed-sheet detail</label>
@@ -318,6 +424,14 @@ export function RisoHumanEnsembleStudio(){
           <input type="range" min={0} max={1} step={.05}
             aria-label="RISO ensemble paper grain" value={grain}
             onChange={e=>setGrain(Number(e.target.value))}/></label>
+      </div>
+      <div role="status" aria-live="off" data-km-riso-handoff-cue-sheet=""
+        style={{display:"flex",flexWrap:"wrap",gap:16,fontSize:12,
+          borderTop:"1px solid #B99F87",padding:"8px 0",marginBottom:8}}>
+        <span>Performance beat · <strong>{state.phase}</strong></span>
+        <span>Print owner · <strong>{state.owner}</strong></span>
+        <span>Courier paper pressure · {Math.round(state.sourceContactPressure*100)}%</span>
+        <span>Artist paper pressure · {Math.round(state.receiverContactPressure*100)}%</span>
       </div>
       <div style={{width:aspect==="portrait"?450:960,
         maxWidth:"100%",aspectRatio:aspect==="portrait"?"540 / 960":"960 / 540",
@@ -352,13 +466,24 @@ export function RisoHumanEnsembleStudio(){
           foregroundLayers={layers}
           data-km-riso-human-ensemble-frame={frame}
           data-km-riso-human-ensemble-aspect={aspect}
+          data-km-riso-human-ensemble-paper-curl={paperCurl}
+          data-km-riso-human-ensemble-grip-pinch={gripPinch}
+          data-km-riso-human-ensemble-imprint-depth={imprintDepth}
+          data-km-riso-paper-source-contact={state.sourceContactPressure.toFixed(3)}
+          data-km-riso-paper-receiver-contact={state.receiverContactPressure.toFixed(3)}
+          data-km-riso-human-ensemble-contact-overprint={fingertipOcclusion}
+          data-km-riso-handoff-phase={state.phase}
+          data-km-riso-handoff-owner={state.owner}
+          data-km-riso-handoff-release={state.releaseProgress.toFixed(3)}
           label="Two human Risograph actors exchanging a printed sheet"
         />
       </div>
 
       <p style={{fontSize:12,color:"#63727A"}}>
-        All frames are deterministic. A sheet becomes physically anchored to both hand roots
-        by frame 160; no per-frame random alpha or transparent character bodies.
+        All frames are deterministic. The letter begins at the Courier's hand,
+        reaches the Paper Artist by frame 160, then releases from the Courier at the
+        configured moment. The print follows the recipient afterward. No alpha-transparent
+        bodies, synthetic mitten shapes or playback-history-dependent transforms.
       </p>
     </div>
   </main>;

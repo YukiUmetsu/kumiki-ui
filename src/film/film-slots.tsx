@@ -965,20 +965,23 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
             throw new RangeError("paper-craft-director requires a storyboard or known study preset");
           const medium = props.medium ?? "layered", seed = props.seed ?? 37;
           const motion = props.motion ?? .7, curtains=props.curtains ?? true;
+          const transitionStyle=props.transitionStyle ?? "curtain";
           if(typeof curtains!=="boolean")throw new RangeError("paper-craft-director curtains must be boolean");
+          if(transitionStyle!=="curtain"&&transitionStyle!=="page-turn")
+            throw new RangeError("paper-craft-director transitionStyle must be curtain or page-turn");
           if (typeof medium !== "string" || !PAPER_STYLES.includes(medium as PaperStyle))
             throw new RangeError("paper-craft-director requires a known medium");
           if (typeof seed !== "number" || !Number.isSafeInteger(seed))
             throw new RangeError("paper-craft-director requires a safe integer seed");
           if (typeof motion !== "number" || !Number.isFinite(motion) || motion < 0 || motion > 1)
             throw new RangeError("paper-craft-director motion must be finite in [0,1]");
-          const key = props.preset+":"+medium+":"+seed+":"+motion+":"+curtains;
+          const key = props.preset+":"+medium+":"+seed+":"+motion+":"+curtains+":"+transitionStyle;
           const cached = samplePaperFilms.get(key);
           if (cached) plan = cached;
           else {
             plan = compilePaperDirector(props.preset === "royal-lantern"
               ? paperRoyalLanternFilm(medium as PaperStyle,seed,motion)
-              : paperDirectorDemo(medium as PaperStyle,seed,motion,curtains));
+              : paperDirectorDemo(medium as PaperStyle,seed,motion,curtains,transitionStyle));
             if (samplePaperFilms.size > 12) samplePaperFilms.clear();
             samplePaperFilms.set(key,plan);
           }

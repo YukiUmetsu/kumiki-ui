@@ -85,3 +85,209 @@ export const compareCC0PortraitTones=(
       meanAbsoluteValueError>55,
     artisticApproval:false};
 };
+
+/**
+ * The near-black photographed left ear/hair lock was missing in v6:
+ * source ≈3/255, output ≈113/255 at (75,230) in 285×318 Storybook.
+ * This exact reference-registered negative gate prevents an ivory seam.
+ * It is independent of the five facial-tone rectangles and never
+ * approves a portrait's likeness, neck anatomy or pencil material.
+ */
+export const CC0_HAIR_OCCLUSION_PROBE={
+  x:75/285,y:230/318,r:3/285,
+} as const;
+export interface CC0HairOcclusionResult {
+  sourceLuminance:number;
+  drawnLuminance:number;
+  lightnessDeficit:number;
+  /** A false value does NOT imply professional artistic approval. */
+  missingDarkLock:boolean;
+  artisticApproval:false;
+}
+export const compareCC0HairOcclusion=(
+  source:PencilTonePixelGrid,drawing:PencilTonePixelGrid,
+):CC0HairOcclusionResult=>{
+  validate(source);validate(drawing);
+  if(source.width!==drawing.width||source.height!==drawing.height)
+    throw new RangeError("Hair occlusion samples need matched canvas sizes");
+  const {x,y,r}=CC0_HAIR_OCCLUSION_PROBE;
+  const sourceLuminance=sample(source,x,y,r);
+  const drawnLuminance=sample(drawing,x,y,r);
+  // If a future source crop moved, reject an invalid proof; an ivory
+  // seam should not be excused by a mismatched bright reference.
+  const missingDarkLock=sourceLuminance>=30||drawnLuminance>=105||
+    drawnLuminance-sourceLuminance>95;
+  return {sourceLuminance,drawnLuminance,
+    lightnessDeficit:drawnLuminance-sourceLuminance,
+    missingDarkLock,artisticApproval:false};
+};
+
+/**
+ * Two separately observed PHOTO vermilion cores. Previous PR #361
+ * source/dry 7×7-luma: upper 75.3→113.0, lower 110.6→150.9.
+ * Source-measured mid-lip Bézier geometry and dry-fibre deposition should
+ * not regress to these paper-pale values. The linked marker is the actual
+ * 285×318 CC0 browser screenshot, not a generic lip-shape classifier.
+ * Passing this negative filter CANNOT verify resemblance or craftsmanship.
+ */
+export const CC0_VERMILION_PROBES=[
+  {name:"upper",x:180/285,y:188/318,r:3/285,
+    sourceLimit:135,lightnessLimit:25},
+  {name:"lower",x:194/285,y:201/318,r:3/285,
+    sourceLimit:170,lightnessLimit:36},
+] as const;
+export interface CC0VermilionResult {
+  readonly regions:readonly {
+    name:"upper"|"lower";
+    sourceLuminance:number;
+    drawnLuminance:number;
+    lightnessDeficit:number;
+  }[];
+  /** Rejection-only, NOT artist approval. */
+  readonly missingVermilionPigment:boolean;
+  readonly artisticApproval:false;
+}
+export const compareCC0Vermilion=(
+  source:PencilTonePixelGrid,drawing:PencilTonePixelGrid,
+):CC0VermilionResult=>{
+  validate(source);validate(drawing);
+  if(source.width!==drawing.width||source.height!==drawing.height)
+    throw new RangeError("Vermilion probes need identical canvas registration");
+  const regions=CC0_VERMILION_PROBES.map(p=>({
+    name:p.name,
+    sourceLuminance:sample(source,p.x,p.y,p.r),
+    drawnLuminance:sample(drawing,p.x,p.y,p.r),
+    lightnessDeficit:
+      sample(drawing,p.x,p.y,p.r)-sample(source,p.x,p.y,p.r),
+  }));
+  const missingVermilionPigment=regions.some((region,index)=>
+    region.sourceLuminance>=CC0_VERMILION_PROBES[index].sourceLimit||
+    region.lightnessDeficit>=
+      CC0_VERMILION_PROBES[index].lightnessLimit);
+  return {regions,missingVermilionPigment,artisticApproval:false};
+};
+
+/**
+ * Three PHOTO-registered facial planes that were too chalk-white in
+ * the prior PR #365 output. Coordinates refer to the same 285×318 CC0
+ * browser crop and never to a guessed generic head or stock painting.
+ * Negative-only acceptance cannot certify realistic skin material.
+ */
+export const CC0_SKIN_COVERAGE_PROBES=[
+  {name:"cheek",x:119/285,y:164/318,r:3/285,
+    sourceLimit:230,lightnessLimit:30},
+  {name:"under-eye",x:136/285,y:118/318,r:3/285,
+    sourceLimit:150,lightnessLimit:26},
+  {name:"chin",x:163/285,y:215/318,r:3/285,
+    sourceLimit:210,lightnessLimit:29},
+] as const;
+export interface CC0SoftSkinResult {
+  readonly regions:readonly{
+    name:"cheek"|"under-eye"|"chin";
+    sourceLuminance:number;
+    drawnLuminance:number;
+    lightnessDeficit:number;
+  }[];
+  readonly missingOpticalCoverage:boolean;
+  readonly artisticApproval:false;
+}
+export const compareCC0SoftSkin=(
+  source:PencilTonePixelGrid,drawing:PencilTonePixelGrid,
+):CC0SoftSkinResult=>{
+  validate(source);validate(drawing);
+  if(source.width!==drawing.width||source.height!==drawing.height)
+    throw new RangeError("Soft-skin regions require matching photo and drawing canvases");
+  const regions=CC0_SKIN_COVERAGE_PROBES.map(p=>{
+    const sourceLuminance=sample(source,p.x,p.y,p.r);
+    const drawnLuminance=sample(drawing,p.x,p.y,p.r);
+    return {name:p.name,sourceLuminance,drawnLuminance,
+      lightnessDeficit:drawnLuminance-sourceLuminance};
+  });
+  const missingOpticalCoverage=regions.some((r,index)=>
+    r.sourceLuminance>=CC0_SKIN_COVERAGE_PROBES[index].sourceLimit||
+    r.lightnessDeficit>=
+      CC0_SKIN_COVERAGE_PROBES[index].lightnessLimit);
+  return {regions,missingOpticalCoverage,artisticApproval:false};
+};
+
+/**
+ * Reference-measured facial LIGHT plane probes. The source is NOT white:
+ * Y≈202 at malar and ≈199 at nasal bridge. Earlier v7 incorrectly
+ * treated both as unpigmented paper, rendering ≈241/236 respectively.
+ * These are negative-only material observations of Christopher Campbell's
+ * licensed CC0 head, measured in a 285x318 real browser source screenshot.
+ */
+export const CC0_LUMINOUS_SKIN_PROBES=[
+  {name:"malar",x:114/285,y:148/318,r:3/285,
+    sourceMax:225,deficitMax:30},
+  {name:"nasal-bridge",x:176/285,y:142/318,r:3/285,
+    sourceMax:225,deficitMax:32},
+] as const;
+export interface CC0LuminousSkinResult {
+  readonly regions:readonly {
+    name:"malar"|"nasal-bridge";
+    sourceLuminance:number;drawnLuminance:number;
+    lightnessDeficit:number;
+  }[];
+  readonly missingPhotographedLightSkin:boolean;
+  readonly artisticApproval:false;
+}
+export const compareCC0LuminousSkin=(
+  source:PencilTonePixelGrid,drawing:PencilTonePixelGrid,
+):CC0LuminousSkinResult=>{
+  validate(source);validate(drawing);
+  if(source.width!==drawing.width||source.height!==drawing.height)
+    throw new RangeError("Bright facial plane proof requires matching registered canvases");
+  const regions=CC0_LUMINOUS_SKIN_PROBES.map(p=>{
+    const sourceLuminance=sample(source,p.x,p.y,p.r);
+    const drawnLuminance=sample(drawing,p.x,p.y,p.r);
+    return {name:p.name,sourceLuminance,drawnLuminance,
+      lightnessDeficit:drawnLuminance-sourceLuminance};
+  });
+  const missingPhotographedLightSkin=regions.some((region,i)=>
+    region.sourceLuminance>=CC0_LUMINOUS_SKIN_PROBES[i].sourceMax||
+    region.lightnessDeficit>=CC0_LUMINOUS_SKIN_PROBES[i].deficitMax);
+  return {regions,missingPhotographedLightSkin,artisticApproval:false};
+};
+
+/**
+ * Measured dark jaw/sideburn contact in the licensed CC0 285×318
+ * source crop. Each patch is genuinely DARK brown. At the previous
+ * head plate an ivory 1px halo was visible at all three coordinates
+ * although the source luminance was ~50–70. These gates only reject
+ * missing contact ink; they cannot approve a human portrait.
+ */
+export const CC0_JAW_CONTACT_PROBES=[
+  {name:"upper-jaw",x:82/285,y:180/318,r:2/285,
+    sourceMax:135,deficitMax:65},
+  {name:"mid-jaw",x:99/285,y:210/318,r:2/285,
+    sourceMax:135,deficitMax:65},
+  {name:"lower-jaw",x:120/285,y:230/318,r:2/285,
+    sourceMax:135,deficitMax:65},
+] as const;
+export interface CC0JawContactResult {
+  readonly regions:readonly {
+    name:"upper-jaw"|"mid-jaw"|"lower-jaw";
+    sourceLuminance:number;drawnLuminance:number;
+    lightnessDeficit:number;
+  }[];
+  readonly missingDarkJawContact:boolean;
+  readonly artisticApproval:false;
+}
+export const compareCC0JawContact=(
+  source:PencilTonePixelGrid,drawing:PencilTonePixelGrid,
+):CC0JawContactResult=>{
+  validate(source);validate(drawing);
+  if(source.width!==drawing.width||source.height!==drawing.height)
+    throw new RangeError("Jaw-edge proof requires matching registered canvases");
+  const regions=CC0_JAW_CONTACT_PROBES.map(p=>{
+    const sourceLuminance=sample(source,p.x,p.y,p.r);
+    const drawnLuminance=sample(drawing,p.x,p.y,p.r);
+    return {name:p.name,sourceLuminance,drawnLuminance,
+      lightnessDeficit:drawnLuminance-sourceLuminance};
+  });
+  const missingDarkJawContact=regions.some((r,i)=>
+    r.sourceLuminance>=CC0_JAW_CONTACT_PROBES[i].sourceMax||
+    r.lightnessDeficit>=CC0_JAW_CONTACT_PROBES[i].deficitMax);
+  return {regions,missingDarkJawContact,artisticApproval:false};
+};

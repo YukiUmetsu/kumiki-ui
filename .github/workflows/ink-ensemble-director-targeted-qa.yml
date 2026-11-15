@@ -6,8 +6,10 @@ on:
       - "src/video/ink-wash-ensemble*"
       - "src/video/ink-actor-director*"
       - "src/video/ink-figure-classical-art.ts"
+      - "src/video/ink-master-portrait-art.ts"
       - "registry/video/ink-wash-ensemble*"
       - "tests/ink-wash-ensemble.test.tsx"
+      - "tests/ink-figure-classical-art.test.tsx"
       - "tests/ink-actor-director-demo.test.tsx"
       - "tests/e2e-storybook/ink-wash-ensemble.spec.ts"
       - "tests/e2e-storybook/ink-actor-director.spec.ts"
@@ -35,7 +37,7 @@ jobs:
       - name: TypeScript and exact ink acting tests
         run: |
           npm run typecheck
-          npx vitest run --project unit tests/ink-wash-ensemble.test.tsx tests/ink-actor-director-demo.test.tsx
+          npx vitest run --project unit tests/ink-wash-ensemble.test.tsx tests/ink-actor-director-demo.test.tsx tests/ink-figure-classical-art.test.tsx
       - name: Browser runtime and storybook screenshot proof
         run: |
           npx playwright install --with-deps chromium

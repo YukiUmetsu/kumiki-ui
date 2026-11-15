@@ -280,3 +280,64 @@ The [source-anchored two-human study](../research/riso14-human-ensemble-study.md
 It reuses the native `RisoPrint` spot-ink renderer and offers portrait/landscape, timeline play/pause, blue/red plate separation, halftone cell, registration and paper grain controls, plus visual contact-anchor diagnostics. All shape/sample evaluation is absolute-frame deterministic; UI playback is only a frame driver.
 
 **Not a final artist-approved film:** side/three-quarter views, full digit knuckle chains, dynamic printed-sheet physics, realistic human contact and calibrated physical Riso color/ink proofing remain open.
+
+
+## RISO18 — deterministic multi-actor paper ownership
+
+**Reusable source API:** `registry/video/riso-prop-handoff.ts`, authored physical contour in
+`registry/video/riso-transfer-sheet.tsx`. See the
+[reference-led handoff study](../research/riso18-transfer-ownership-artcraft.md) and
+the unchanged Storybook **Video production → Film Looks → Risograph** folder.
+
+The RISO14–17 film used a paper ribbon indefinitely bound between two animated wrist roots, even after the receiving hand should have taken possession. RISO18 separates **actual actor hands** from **material endpoints** and defines four predictable phases: `unfurl`, `shared`, `release`, and `received`. The final paper start/end are receiver-relative, without any dependence on the donor's current coordinates after `releaseEnd`.
+
+```ts
+import { evaluateRisoPropHandoff, RISO_HANDOFF_DEFAULTS }
+  from "../../registry/video/riso-prop-handoff";
+import { evaluateRisoTransferSheet }
+  from "../../registry/video/riso-transfer-sheet";
+
+const handoff = evaluateRisoPropHandoff(
+  absoluteFrame,
+  sourceHandNow, receiverHandNow,
+  sourceHandAtReleaseStart, receiverHandAtReleaseStart,
+  RISO_HANDOFF_DEFAULTS,
+);
+const geometry = evaluateRisoTransferSheet(
+  handoff.paperStart, handoff.paperEnd, handoff.progress,
+  { curl: 3, gripPinch: .5,
+    sourceGrip: handoff.sourceGrip, receiverGrip: handoff.receiverGrip },
+);
+```
+
+**Time and control:** source and receiver hand coordinates are evaluated in one common stage coordinate system from each original `RisoCharacterSpec`; the two *atReleaseStart* reference roots must be sampled at the **absolute release-start frame**, never captured from previous playback state. The schedule defaults to unfold frame 126, contact 160, release start 178, recipient ownership 202 and receiver relative tilt −45°. `unfoldStart < contactFrame < releaseStart < releaseEnd` is validated, as are all anchor coordinates and bounded tilt. Authoring can customize the schedule; source timing is not tied to wall-clock playback.
+
+**Material topology:** `geometry.outline` is used both for the opaque letter knockout and the blue-plate outline. `sourceGrip` and `receiverGrip` independently compress each end's physical edge while preserving the already authored inset, three ruling lines, folds, hatching, red cancellation stamp and spot-ink material. Only original selected **closed finger pads** provide physical front clearances; blue finger engravings are ink, not white-filled masks.
+
+**Studio:** the RISO18 Storybook sample exposes frame, aspect ratio, blue/red plate, ink registration, paper fibres, sheet curl, pinch strength, release frame, transfer duration and final tilt. A compact cue sheet displays current beat, owner and two pressure values. Existing RISO17 double-grip staging is preserved. The result is a mechanically validated demonstration, **not** artist-approved face animation, fully simulated flexible paper, collision forces or a verified feature-length filmmaking system.
+
+
+## RISO19 — material-local pressure imprints and genuine hand contact
+
+`registry/video/riso-transfer-sheet.tsx` now carries authored **contact crease paths** and **screened paper depression pockets** as first-class evaluated geometry, alongside the original physical letter outline, stamp, inset, fold and fine ruling. The new output keys are:
+
+- `contactCreases: {source: readonly string[], receiver: readonly string[]}` — three independent short, curved quadratic wrinkle lines at each *actively held* paper end.
+- `contactShadows: {source: string, receiver: string}` — one closed tapered blue screened compression crescent on each actively held paper end; empty when there is no pressure.
+- `imprintDepth?: number` (default `1`, range `0..1`) — explicitly controls strength of contact marks **without changing the underlying printable paper outline**, so comparison/stress checks remain meaningful.
+- `sourceGrip?: number`, `receiverGrip?: number` remain the material end-pressure controls from RISO18. The ensemble now attenuates them by the real projected gap `max(0,1-gap/12)` between the advancing/free paper end and the relevant rigged hand. The original unmodified `evaluateRisoPropHandoff` gesture pressure values are still available independently.
+
+```tsx
+const paper = evaluateRisoTransferSheet(
+  handoff.paperStart, handoff.paperEnd, handoff.progress,
+  {curl:3,gripPinch:.5,sourceGrip:contactSource,
+   receiverGrip:contactRecipient,imprintDepth:.75},
+);
+<RisoTransferSheetPlate
+  outline={paper.outline} geometry={paper} plateId="blue"
+  paint={paint} detail={true}
+/>
+```
+
+`RisoTransferSheetPlate` draws local pressure lines and the two tiny compression pockets **only on the blue press master**; red stamp/hatching remain independent and paper still uses one opaque knockout. `detail=false` and `imprintDepth=0` both yield a simple material-negative control. All crease points use the same rotated, bowed material coordinate transform as the paper sheet, not screen-relative paths or postprocessed gradients. The existing Risograph Storybook folder includes a `Pressed paper creases` slider and two-aspect source/receiving/released frame tests.
+
+[ArtCraft reference and negative controls](../research/riso19-contact-pressure-artcraft.md) document shape topology, localized tangent flow, pressure metrics, real print references, and the *unverified* browser/normal-speed film and pixel-comparison release gates. This is deterministic illustrated paper pressure, **not** physically simulated force feedback or approved artistic likeness.

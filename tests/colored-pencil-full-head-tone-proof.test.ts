@@ -1,6 +1,11 @@
 import {describe,expect,it} from "vitest";
 import {
   CC0_FACE_VALUE_REGIONS,compareCC0PortraitTones,
+  CC0_HAIR_OCCLUSION_PROBE,compareCC0HairOcclusion,
+  CC0_VERMILION_PROBES,compareCC0Vermilion,
+  CC0_SKIN_COVERAGE_PROBES,compareCC0SoftSkin,
+  CC0_LUMINOUS_SKIN_PROBES,compareCC0LuminousSkin,
+  CC0_JAW_CONTACT_PROBES,compareCC0JawContact,
 } from "../src/video/colored-pencil-full-head-tone-proof";
 import type {PencilTonePixelGrid} from "../src/video/colored-pencil-full-head-tone-proof";
 
@@ -20,6 +25,118 @@ const paint=(image:PencilTonePixelGrid,x:number,y:number,value:number)=>{
     image.data[index]=image.data[index+1]=image.data[index+2]=value;
   }
 };
+describe("ArtCraft three distinct source-dark jaw contact patches",()=>{
+  it("rejects bright ivory gaps and accepts only source-matched dry fibres",()=>{
+    const source=make(230),old=make(230),repaired=make(230);
+    const src=[65,52,66],bad=[149,134,141],ink=[107,103,116];
+    CC0_JAW_CONTACT_PROBES.forEach((p,i)=>{
+      paint(source,p.x,p.y,src[i]);
+      paint(old,p.x,p.y,bad[i]);
+      paint(repaired,p.x,p.y,ink[i]);
+    });
+    expect(compareCC0JawContact(source,old).missingDarkJawContact)
+      .toBe(true);
+    const a=compareCC0JawContact(source,repaired);
+    expect(a.missingDarkJawContact).toBe(false);
+    expect(a.artisticApproval).toBe(false);
+    expect(a.regions.map(x=>x.name)).toEqual([
+      "upper-jaw","mid-jaw","lower-jaw"]);
+    expect(compareCC0JawContact(make(230),repaired)
+      .missingDarkJawContact).toBe(true);
+    expect(()=>compareCC0JawContact(source,{...repaired,width:20}))
+      .toThrow(RangeError);
+  });
+});
+describe("ArtCraft luminous cheek/nasal bridge vs genuine paper-white negative gate",()=>{
+  it("rejects prior blank-white face regions while protecting real source light",()=>{
+    const src=make(230),chalk=make(240),optical=make(240);
+    const sourceY=[202,199],oldY=[241,236],drawY=[221,223];
+    CC0_LUMINOUS_SKIN_PROBES.forEach((region,i)=>{
+      paint(src,region.x,region.y,sourceY[i]);
+      paint(chalk,region.x,region.y,oldY[i]);
+      paint(optical,region.x,region.y,drawY[i]);
+    });
+    const missing=compareCC0LuminousSkin(src,chalk);
+    const restored=compareCC0LuminousSkin(src,optical);
+    expect(missing.missingPhotographedLightSkin).toBe(true);
+    expect(restored.missingPhotographedLightSkin).toBe(false);
+    expect(restored.artisticApproval).toBe(false);
+    expect(restored.regions.map(r=>r.name))
+      .toEqual(["malar","nasal-bridge"]);
+    expect(compareCC0LuminousSkin(make(245),optical)
+      .missingPhotographedLightSkin).toBe(true);
+    expect(()=>compareCC0LuminousSkin(src,{...optical,width:400}))
+      .toThrow(RangeError);
+  });
+});
+describe("ArtCraft independent cheek, under-eye and chin tonal support gate",()=>{
+  it("fails on the prior chalk-white skin but not new source-matched dry fibres",()=>{
+    const source=make(230),old=make(240),newPlate=make(240);
+    const sourceYs=[185,94,149];
+    const oldYs=[214,124,185];
+    const newYs=[206,113,173];
+    CC0_SKIN_COVERAGE_PROBES.forEach((r,i)=>{
+      paint(source,r.x,r.y,sourceYs[i]);
+      paint(old,r.x,r.y,oldYs[i]);
+      paint(newPlate,r.x,r.y,newYs[i]);
+    });
+    expect(compareCC0SoftSkin(source,old).missingOpticalCoverage)
+      .toBe(true);
+    const evidence=compareCC0SoftSkin(source,newPlate);
+    expect(evidence.missingOpticalCoverage).toBe(false);
+    expect(evidence.artisticApproval).toBe(false);
+    expect(evidence.regions.map(r=>r.name))
+      .toEqual(["cheek","under-eye","chin"]);
+    expect(compareCC0SoftSkin(make(245),newPlate)
+      .missingOpticalCoverage).toBe(true);
+    expect(()=>compareCC0SoftSkin(source,{...newPlate,width:400}))
+      .toThrow(RangeError);
+  });
+});
+describe("ArtCraft independent upper/lower vermilion negative-only optical gate",()=>{
+  it("rejects the old pale mouth while retaining source-matched pigment, never approving art",()=>{
+    const source=make(230),old=make(230),corrected=make(230);
+    const src=[75,111],bad=[113,151],good=[82,138];
+    CC0_VERMILION_PROBES.forEach((region,i)=>{
+      paint(source,region.x,region.y,src[i]);
+      paint(old,region.x,region.y,bad[i]);
+      paint(corrected,region.x,region.y,good[i]);
+    });
+    const oldEvidence=compareCC0Vermilion(source,old);
+    const repaired=compareCC0Vermilion(source,corrected);
+    expect(oldEvidence.missingVermilionPigment).toBe(true);
+    expect(repaired.missingVermilionPigment).toBe(false);
+    expect(repaired.artisticApproval).toBe(false);
+    expect(repaired.regions.map(x=>x.name)).toEqual(["upper","lower"]);
+    expect(repaired.regions[0].lightnessDeficit).toBeCloseTo(7,0);
+    expect(repaired.regions[1].lightnessDeficit).toBeCloseTo(27,0);
+    expect(compareCC0Vermilion(make(220),corrected)
+      .missingVermilionPigment).toBe(true);
+    expect(()=>compareCC0Vermilion(source,{...old,width:400}))
+      .toThrow(RangeError);
+  });
+});
+describe("source-registered ear/hair shadow continuity (negative-only)",()=>{
+  it("rejects a lost dark lock and accepts measured dark-pencil depth without artwork approval",()=>{
+    const source=make(245),washed=make(250),ink=make(250);
+    paint(source,CC0_HAIR_OCCLUSION_PROBE.x,
+      CC0_HAIR_OCCLUSION_PROBE.y,3);
+    paint(ink,CC0_HAIR_OCCLUSION_PROBE.x,
+      CC0_HAIR_OCCLUSION_PROBE.y,58);
+    const missing=compareCC0HairOcclusion(source,washed);
+    expect(missing.missingDarkLock).toBe(true);
+    expect(missing.sourceLuminance).toBeCloseTo(3,0);
+    const repaired=compareCC0HairOcclusion(source,ink);
+    expect(repaired.missingDarkLock).toBe(false);
+    expect(repaired.drawnLuminance).toBeCloseTo(58,0);
+    expect(repaired.artisticApproval).toBe(false);
+    expect(()=>compareCC0HairOcclusion(source,{
+      ...ink,width:400,
+    })).toThrow(RangeError);
+    const moved=compareCC0HairOcclusion(make(220),ink);
+    expect(moved.missingDarkLock).toBe(true);
+  });
+});
 describe("source-aligned ArtCraft facial tone evidence (negative gate only)",()=>{
   it("measures five matching real-image regions, preserves contrast and never approves art",()=>{
     const source=make(245),dry=make(250);

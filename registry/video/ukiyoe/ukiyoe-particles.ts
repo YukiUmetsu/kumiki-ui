@@ -8,9 +8,11 @@ import { clamp, clamp01, DEG, hash01, hashSigned, span } from "./ukiyoe-core";
 import type { Prim } from "./ukiyoe-prims";
 import { circleD } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
+import { ash, foxfire, lightning, smokePuffs, whirlwind } from "./ukiyoe-effects";
+import { bubbles } from "./ukiyoe-realms";
 
-export type UkiyoeParticleType = "rain" | "snow" | "petals" | "leaves" | "fireflies" | "birds" | "fireworks" | "spray" | "embers" | "ripples" | "sparks";
-export const UKIYOE_PARTICLES: readonly UkiyoeParticleType[] = ["rain", "snow", "petals", "leaves", "fireflies", "birds", "fireworks", "spray", "embers", "ripples", "sparks"];
+export type UkiyoeParticleType = "rain" | "snow" | "petals" | "leaves" | "fireflies" | "birds" | "fireworks" | "spray" | "embers" | "ripples" | "sparks" | "smoke" | "lightning" | "ash" | "foxfire" | "whirlwind" | "bubbles";
+export const UKIYOE_PARTICLES: readonly UkiyoeParticleType[] = ["rain", "snow", "petals", "leaves", "fireflies", "birds", "fireworks", "spray", "embers", "ripples", "sparks", "smoke", "lightning", "ash", "foxfire", "whirlwind", "bubbles"];
 
 export interface UkiyoeBurst { frame: number; x: number; y: number; radius?: number; color?: UkiyoePaint; count?: number; kind?: "peony" | "willow" | "ring"; launchFrom?: number }
 export interface UkiyoeParticleSpec {
@@ -35,6 +37,12 @@ export function drawParticles(spec: UkiyoeParticleSpec, frame: number, wind: num
   const [ax, ay, aw, ah] = spec.area ?? [0, 0, 1920, 1080];
   const n = clamp(Math.round(spec.count ?? 120), 0, 2000), size = spec.size ?? 1, out: Prim[] = [];
   switch (spec.type) {
+    case "smoke": return smokePuffs(spec.bursts ?? [], frame, seed, size);
+    case "lightning": return lightning(spec.bursts ?? [], frame, seed, size, [ax, ay, aw, ah]);
+    case "ash": return ash(spec.bursts ?? [], frame, seed, wind, size);
+    case "foxfire": return foxfire(n, [ax, ay, aw, ah], frame, seed, size);
+    case "bubbles": return bubbles(n, [ax, ay, aw, ah], frame, seed, size);
+    case "whirlwind": return whirlwind([ax, ay, aw, ah], frame, seed, size, (spec.count ?? 0) > 0);
     case "rain": {
       // Two families of lines at slightly different angles, like the two rain blocks of a sudden-shower print.
       const speed = spec.speed ?? 34, families: string[] = ["", ""];

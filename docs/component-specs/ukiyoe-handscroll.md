@@ -12,6 +12,22 @@
 - `ukiyoe-creatures.ts`: four-legged animals, birds and the dragon.
 - `ukiyoe-yokai.ts`: yōkai and ghosts (snow woman, yūrei, umbrella and lantern spirits, soul-flames).
 - `ukiyoe-scenery.ts`: mountain ranges, thatched farmhouses, jizō and komainu.
+- `ukiyoe-castle.ts`: the castle motif.
+- `ukiyoe-town.ts`: the castle-town motifs and the `castleTown()` scene.
+- `ukiyoe-interior.ts`: rooms and their furnishings, and the `interiorScene()` recipes.
+- `ukiyoe-onna.ts`: the women of the ghost stories (faces, props, the candle crown) and `onnaScene()`.
+- `ukiyoe-folk.ts`: folk work, tools and props, and `folkScene()`.
+- `ukiyoe-effects.ts`: fire, halo, smoke, lightning, ash and fox-fire effects, and `effectScene()`.
+- `ukiyoe-kami.ts`: gods and heavenly beings, the auspicious cloud, and `kamiScene()`.
+- `ukiyoe-bushi.ts`: armour, helmet, bow and naginata, and `bushiScene()`.
+- `ukiyoe-critters.ts`: crab, turtle, snake, frog, carp and octopus, and `animalScene()`.
+- `ukiyoe-temple.ts`: belfry, temple hall, gate, shrine, graves, stone lantern and hut, and `templeScene()`.
+- `ukiyoe-trees.ts`: bamboo, persimmon, the sacred tree and the face tree, and `treeScene()`.
+- `ukiyoe-heian.ts`: the Heian court (hair, cap, props, ox-cart, blinds, curtain screen, palace veranda) and `heianScene()`.
+- `ukiyoe-folkyokai.ts`: household and road yōkai (gourd head, straw cape, eyes, bean basket, the throw, the akaname) and `folkYokaiScene()`.
+- `ukiyoe-giants.ts`: the giant monsters and `giantScene()`.
+- `ukiyoe-tsukumo.ts`: the tsukumogami (object spirits), the kimono rack and `tsukumoScene()`.
+- `ukiyoe-realms.ts`: the other realms (sea palace, moon, Milky Way, rock cave, oni island) and `realmScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -61,6 +77,8 @@ Colours are pigment **roles**: `sumi`, `usuzumi`, `ai`, `bero`, `sora`, `asagi`,
 | `group` | A container. Children (figures in a boat, a whole rig of blocks) ride its transform. |
 | `motif` | A generated subject: `sky`, `mountain`, `hills`, `sea`, `wave`, `pine`, `sakura`, `willow`, `reeds`, `rock`, `cloud` (band or billow), `sun`, `moon`, `house` (tile, thatch, two storeys, noren, **fukinuki-yatai cutaway**), `pagoda`, `torii`, `bridge` (taiko or trestle), `boat` (ferry, sampan, yakata; the hull sits in a waterline band, `wake` × `progress` adds a bow wave and stern streaks, `sail` adds a mast and square sail), `lantern` (paper or stone; `progress` lights it), `field`, `pier`, `peach` (splits open at `openAt`), `ricefield` (terraced paddies: `crop` `young`, `ripe` or `flooded`, swaying in the wind). |
 | `motif` (scenery) | `range`: a mountain range in the Kisokaidō manner. Ridges are stacked in depth (`layers`) with asymmetric peaks and shoulders, shadowed faces, axe-cut rock strokes and ledges, crest cedars and umbrella pines, mist between ranges (`mist`, `mistColor`), `snow` on every upward surface, and an optional `waterfall` from a gorge. `minka`: a thatched farmhouse. `style` is `irimoya` (hip-and-gable, smoke lattice, crossed ridge timbers) or `gassho` (steep, with a gable of stacked windows). It takes `snow` (cap, drip edge, icicles), `smoke` and `light` (glowing paper windows). `jizo`: roadside stone monks in a row (`count`), with a red `bib` and `cap`, a ringed `staff`, `snow` and `moss`. `komainu`: the shrine lion-dog, carved spiral mane and flame tail, mouth open (`a`) or shut (`un`), or a facing `pair`. |
+| `motif` (castle) | `castle`: a castle after Meiji-era photographs of Nagoya, Kumamoto and Himeji and Hiroshige's castle views, seen a little from the side (`depth`, default .4). <ul><li>**Keep:** `tiers` storeys (1–6), each narrower, with deep tiled eaves turning up at the corners and shaded side faces. The roof faces carry chidori gables (drawn in front of the storey above) and one curved karahafu, and gold shachihoko stand on the top ridge.</li><li>**Walls:** white plaster, or `style: "black"` boarding below a plaster band, with rows of barred windows.</li><li>**Stone bases:** curving steeper toward the top (the fan slope), with stones in shrinking courses and long-and-short corner blocks.</li><li>**Before the keep** (`walls`): the outer stone wall topped with a long gallery building (`wall: "tamon"`, the default, as on Edo castle) or a plastered, tiled, loopholed wall (`"dobei"`), umbrella `pines` along the bailey behind it, two corner `turrets`, a `gate` tower over studded doors, a `moat` that mirrors the walls, and a `bridge` coming toward us.</li><li>**Stone and roofs:** stones are irregular blocks, each its own shape and tone and largest at the foot. The top roof is hip-and-gable, its big gable on the receding end face.</li><li>**Weather and light:** `snow` lays white on ridges, roofs and eaves, and `night` lights the windows. `walls: false` gives the keep alone for distant views.</li></ul> The motif stands on the foot of the outer wall at the water line; the moat and bridge lie below it. |
+| `motif` (town) | Built with the castle's storeys and roofs: <ul><li>`shop`: a merchant's two-storey shop. Indigo `noren` with a white `crest` (generic) sway across the open front, with a lattice and a standing `sign` painted with a gold fan (no writing). Slit mushiko windows sit above and firewalls at the roof ends.</li><li>`kura`: a storehouse. Thick plaster over a base of namako tiles (a white lattice on grey), a heavy roof with a crested gable, an iron-clad window standing open.</li><li>`yashiki`: a samurai residence. A long wall of plaster over black boarding, the gatehouse with lattice windows and studded doors, a tiled cap, `pines` behind.</li><li>`firetower`: a fire-watch tower. Tapering timber legs braced with crosses, a lashed ladder, a railed platform under a little roof, the bell (swinging a touch in the wind) and its mallet.</li></ul> All take `snow`. |
 | `particles` | Closed-form weather and effects: `rain` (two Hiroshige line families), `snow`, `embers`, `petals`, `leaves`, `fireflies`, `birds`, `ripples`, `fireworks` (gold rocket trail, rayed stars, peony, willow or ring), `spray` (ballistic burst). |
 | `figure` | An articulated Edo figure with a `look` and layered `actions`. |
 | `creature` | A folktale animal or spirit (`species`): `fox` (with `tails` 1–9 and `foxfire`), `tanuki` (with `hat` and `bottle`), `dog`, `cat`, `rabbit`, `monkey` (Japanese macaque), `horse` (with `tack`: harness, saddle cloth and pack), `nue` (monkey face, tiger body, snake tail), `crane`, `heron`, `crow`, `pheasant`, `sparrow`, `dragon` (with `pearl`); yōkai `yukionna` (the snow woman; `blow` breathes out the cold, `beckon` reaches), `yurei` (a ghost with soul-flames), `kasaobake` (the one-legged umbrella), `chochinobake` (the grinning lantern), `hitodama` (a soul-flame), `rokurokubi` (`stretch` raises her head on a long swaying neck), `kappa` (`bow` spills the water from its dish; `walk`, `dance`), `tengu` and `karasutengu` (wings, `fly`, and `fan` to raise a gale), `nurikabe` (the wall of the night road: three eyes, `walk`, `roar`), `tsuchigumo` (the earth spider: eight banded legs, `walk`, rears with `roar`). Actions: `walk`, `run`, `fly`, `hop`, `float` (travel to `to`/`toY`), `appear` and `vanish` (fade a spirit in or out; it is unseen before its first `appear` and stays gone after a `vanish`), `sit`, `stand` (upright), `look`, `leap`, `howl`, `drum`, `peck`, `dance`, `coil`, `roar`, `sleep`, `transform` (henge: a smoke puff, after which the creature is gone, so place what it becomes as a new node). |
@@ -154,6 +172,234 @@ The oni's weapon and fighting (`ukiyoe-oni.ts`) are drawn after iron-shod kanab�
 - **Body.** The body throws itself into the smash and turns into the swing. `evade` springs back (or in) without turning round.
 - **Square views.** The club is projected like the sword, and a `fall` seen square on foreshortens to the ground.
 - **Looks and recipe.** `UKIYOE_ONI_LOOK` and `UKIYOE_MOMOTARO_LOOK` are generic looks. `oniFight({ id, x, y, scale, start, hero, oni })` returns the nodes and camera shakes of a hero-versus-oni fight. Contacts are aimed as in the duels, and the smashes shake the camera. Storybook **Oni fight** shows it on a rocky shore, choosing a samurai or Momotarō and a red or blue oni.
+
+### Castle town
+
+`castleTown({ frames, street, seed, snow })` returns a whole scene: one handscroll 6,400 px wide, panned (`scrollPan`) from the keep down through the town, with holds at four stations.
+
+1. The castle on its grassy hill above the moat.
+2. The samurai quarter: residence walls under pines, retainers passing.
+3. The canal: an arched bridge over the water between stone banks, a boat below.
+4. The merchant street: shops and storehouses, a busy crowd, the fire-watch tower over the roofs.
+
+Mist bands drift across as in the picture scrolls. The crowds are placed so no walker ever enters the canal; the retainers stop short of it and the townsfolk walk away from it. The scroll carries no text. Storybook **Castle town** plays it, with a Snow switch, and the Motifs gallery shows each town motif.
+
+### Interiors
+
+A room is drawn as the prints draw it: the front wall taken away, the floor in parallel oblique projection (one unit back moves `skew` units right), the back wall seen through the opening up to the front lintel.
+
+- **`room`.** `width`, `height` (the opening), `depth` and `skew` set the box.
+  - `kind`: `tatami`, `boards` or `farmhouse` (an earthen floor a step below raised boards, its share set by `doma`). The tatami lie in columns front to back, with joints staggered so four corners never meet. Cloth borders (`heri`) run along the long sides, and fine rush lines run across.
+  - `back`: a list of bays.
+    - `fusuma`: painted paper with round pulls; `art` is `bamboo`, `clouds`, `waves`, `pine` or `plain`.
+    - `shoji`: paper over the lattice.
+    - `tokonoma`: a raised alcove with a natural post, a hanging scroll (`scroll` is `mountain`, `crane` or `moon`) and a vase of plum (`flower`).
+    - `tana`: staggered shelves with cupboards.
+    - `wall`, `marumado` (round window), `open` (the dark next room) and `garden` (with `snow` falling at night).
+  - `side`: the bay kind of the left side wall.
+  - `slide`: `[{ bay, open, start, frames, from }]` moves the right panel of a sliding bay behind the left one. A slid panel reveals `beyond` (`dark` or `garden`).
+  - `torn` bursts lattice cells open, leaving scraps of paper hanging. `night` sinks the room into blue dark: lamps drawn after the room glow through it, and the shoji turn grey-blue (or warm, for front shoji lit from inside).
+  - `veranda` (px) adds an engawa with its crawlspace. `eave` is `tile`, `thatch` or `none`. `frontShoji: [left, right]` closes front panels.
+  - `part: "back" | "front"` splits the room so figures stand between the floor and the front posts, lintel and eave. Add the room twice, once with each part.
+- **`andon`.** A standing paper lamp (`height`, `lit`) whose light flickers.
+- **`irori`.** A sunken hearth: `size`, `fire` (curling flame tongues with a key line), `pot` (`kettle`, `pot` or `none`), `hook` (the jizai-kagi's length, with its fish-shaped crosspiece) and `steam`.
+- **`futon`.** `layer: "under"` draws the mattress and pillow; `layer: "over"` draws the quilted cover with its velvet collar, mounded over a `sleeper`. Draw the under layer before a sleeping figure and the cover after it.
+- **`loom`.** A treadle loom in oblique view. The shed flips each pick, the beater swings to the fell, the shuttle crosses while the beater is back, and the cloth winds onto the beam.
+- **`byobu`.** A folding screen of gold leaf in zigzag (`panels`, `art`); its painting runs across the panels, and each face is shaded by its angle.
+- **Figure actions.**
+  - `sleep` lies the figure on its back with its eyes closed.
+  - `weave` kneels at the loom. Given `aim` (the loom's `loomGrip`, relative to the figure) and `amount` (`LOOM_BEATER_PULL × height`), the near hand holds the beater bar by IK and pulls it in on the beat, and the far hand works the shuttle. Both the loom and the action run on `weaveBeat(frame)`, so they agree on every frame.
+- **`interiorScene(kind)`.** Builds a complete room scene: `inn` (Hiroshige's Akasaka at night), `weaver` (the crane wife), `hearth` (an old couple at a farmhouse irori) or `bedroom` (a sleeper; a shoji slides open on the snow). Storybook **Interiors** plays them, and the Motifs gallery shows each motif.
+
+### Women ghosts and hags
+
+Most women in the ghost stories look alive until the story turns, so they are figure looks. They walk, kneel, talk and turn in every view, and a `reveal` action (over `amount` frames, default 24; it stays revealed) shows what they are.
+
+- **`face`.** It shows in profile, three-quarter, front and, for the back of the head, the back view.
+  - `noppera`: the eyes, brows, nose and lips smooth away into a bare egg.
+  - `kuchisake`: a cloth over her mouth slips down to show it slit back to the ears, with teeth. It opens with `talk`.
+  - `futakuchi`: a second mouth opens in the back of her head, and two locks of hair reach out like hands.
+  - `skull`: the face and hands turn to bone, with sockets, a nose cavity and teeth.
+  - `oiwa`: a livid swelling closes one eye, the skin greys and the hair thins into strands.
+  - `hag`: lines and hollows; the reveal bares a fanged grin.
+- **Props and hat.** `prop: "peony-lantern"` (the botan-dōrō, painted and tied with peonies, flickering pink) and `prop: "baby"` (a swaddled infant held at the breast in both arms). `hat: "gotoku"` is the iron trivet with three burning candles.
+- **`UKIYOE_ONNA_LOOKS`.** Generic looks: `noppera`, `kuchisake`, `futakuchi`, `honeonna`, `oiwa`, `yamanba`, `hashihime` (a red face, white robe and candle crown) and `ubume`.
+- **`okiku` (yōkai).** After Hokusai's *Sarayashiki*. `appear` raises her out of a well on a coil of blue-and-white plates, her hair streaming beside it, her breath curling out. `howl` moves her lips as she counts. Place her on the mouth of a `well` motif, between its `part: "back"` and `part: "front"`. The `well` has staves, rope hoops, ivy and an optional `pulley` with a bucket.
+- **`onnaScene("lineup" | "okiku", view)`.** Storybook **Women ghosts** plays both.
+
+### Folk work
+
+- **Tools on their own timeline.** `chop` (an axe), `hoe` (a hoe) and `pound` (the mochi pestle) run on `toolAt`, like the katana and the club.
+  - The tool lifts slowly over the shoulder, hangs, then drops fast (ease-in) onto its contact point. The contact lands on a whole frame and holds while chips, clods or a squash of mochi fly.
+  - Both hands are placed on the handle by IK, and the body leans back on the lift and throws its weight down on the strike.
+  - `toolContact(action, height)` is where the head lands, so a scene can place the chopping block (`stump`), the furrows or the mortar (`usu`) there.
+- **`wash`.** Kneels at a tub (`tarai`) and scrubs the cloth at `aim` with both hands.
+- **`shake`.** Shakes the mallet of luck (`prop: "kozuchi"`) overhead, pouring gold coins and rice.
+- **Props and hat.** `onigiri` (a rice ball in the hand), `firewood` (a lashed bundle on the back) and `hat: "hachi"` (Hachikazuki's great black bowl, in every view).
+- **`folkScene(kind)`.** Builds `woodcutter`, `farmer` (his wife brings a rice ball), `mochi`, `washing` (Hachikazuki at the tub) or `luck`. Storybook **Folk work** plays them, and the Motifs gallery shows the block, mortar and tub.
+- **Square views.** Tools and the mallet are drawn in profile and three-quarter only. Seen square on, the body works but the tool is not shown.
+
+### Effects and magic
+
+- **`fire` motif.** Tongues of vermilion with yellow hearts and a key line, varied in height and streaming with the wind, over a warm glow. Smoke rolls away in outlined cloud billows, and embers rise. Params: `width`, `height`, `intensity`, `smoke`, `lean`.
+- **`halo` motif.** Gold rays of two lengths around a ring, slowly breathing.
+- **Particles.**
+  - `smoke`: a henge puff of curling cloud scrolls at each burst. The creature `transform` puff is now one outlined cloud as well.
+  - `lightning`: a forked bolt from the sky to each burst point, with a flash of the frame. Pair it with a camera shake for the thunder.
+  - `ash`: a plume poured from each burst point (`launchFrom` = how long it pours) and carried downwind.
+  - `foxfire`: teardrop flames, yellow within and red at the rim, bobbing in the area.
+- **`effectScene(kind)`.** Builds `fire`, `henge` (a fox walks into the smoke; a woman node `from` the moment it is gone walks out), `storm`, `blossom` (ash, then the sakura `progress` keyed from bare to full bloom), `foxfire` or `halo`. Storybook **Effects** plays them.
+
+### Kami and heavenly beings
+
+- **`fly` action.** Lifts the figure off the ground and carries it to `to` / `toY`. The body leans into the flight, the legs trail back together, and it bobs gently.
+- **Look fields.**
+  - `stole`: the hagoromo scarf. It streams behind in two waving ribbons that stretch out when flying; in the square views it floats to both sides.
+  - `beads`: magatama at the collar.
+  - `bag`: Daikoku's rice bag.
+- **Hair, hat and props.** Hair `mizura` (the ancient man's ear loops) and `tenko` (the celestial's crowned topknot); hat `zukin` (Daikoku's round cap). Props `mirror` (the sun-mirror, flashing), `tsurugi` (the straight sword), `hoko` (the jewelled spear) and `tai` (Ebisu's sea bream, its tail flipping). All work in every view.
+- **`kumo` motif.** The auspicious cloud with curled lobes and a long tail, for gods to stand on (one outlined union).
+- **`UKIYOE_KAMI_LOOKS` and `kamiScene(kind)`.** Looks for `tennyo`, `amaterasu`, `susanoo`, `izanagi`, `ebisu` and `daikoku`. Scenes: `hagoromo` (she flies down over the pine shore and away), `amaterasu` (out of the cave with the mirror and halo), `luck` (Ebisu and Daikoku on a cloud) and `susanoo` (the storm god on a cloud). Storybook **Kami** plays them.
+
+### Warriors II
+
+- **`armor`.** The ō-yoroi laced in its colour, in every view:
+  - a cuirass of lacquered lamellae with lacing between the rows and a leather breast panel;
+  - skirt plates that follow the thighs;
+  - the great shoulder board along the upper arm (in profile it is drawn over the arm; square on, the boards stand out at both sides).
+- **Hat `kabuto`.** The riveted bowl, the flared neck guard laced in the armour colour, the turned-back wings and gilt horns.
+- **Bow.** Prop `yumi` with the action `shoot`.
+  - The bow is raised and the string drawn to the ear by IK. It is fully drawn and held before `contact`, then loosed on that frame.
+  - The arrow flies to `aim` (local px) at a speed set by the distance, and stays stuck there.
+  - Without a `shoot`, the bow is carried.
+- **Naginata.** Prop `naginata`: the glaive carried across the body in both hands.
+- **Motif `mato`.** An archery target.
+- **`bushiScene(kind)`.** Builds `archer` (three shots into the target), `bridge` (the warrior-monk and the young swordsman on a bridge by moonlight) or `armour` (four views). Storybook **Warriors** plays them.
+
+### Animals II
+
+- **Four-legged species.** The rig gains six species, each with front and back views:
+  - `bear`: the moon bear, with its white crescent and a brown muzzle;
+  - `boar`: tusked;
+  - `deer`: the sika stag, with antlers, white spots and hooves;
+  - `ox`: the black ox, with short curved horns;
+  - `wolf`;
+  - `mouse`: big pink ears and a long tail.
+- **New `Beast` options.** `horns: "antler" | "ox"`, `tusks`, `spots` and `crescent`.
+- **Birds.** The bird rig gains the `hawk` and the `oshidori` mandarin drake (a plain duck with `look.color`).
+- **Critters.** New rigs in `ukiyoe-critters.ts`:
+  - `crab`: scuttles sideways on eight jointed legs; its claws snap on `dance` or `roar`.
+  - `turtle`: the minogame; its flippers row when it moves, and its seaweed tail streams.
+  - `snake`: slithers in a travelling S, its tongue flickers, and `coil` winds it into a spiral.
+  - `frog`: `hop` flings out its legs, and `howl` swells its throat.
+  - `carp`: Gakutei's netted scales and ribbed fins; it swims, and `leap` arcs it out of the water.
+  - `octopus`: eight curling arms with suckers.
+- **`animalScene(kind)`.** Builds `mountain`, `pond` (the carp swim under a translucent surface), `shore` or `farm`. Storybook **Animals** plays them, and the Bestiary has every new species.
+
+### Temples, shrines and graves
+
+- **`belfry`.** A shōrō on a stone platform: splayed posts, an irimoya roof, and the bronze bell (verdigris, nub rows, raised bands, lotus striking seats, dragon loop).
+  - On each of its `strikes` frames, the log striker is drawn back over 18 frames, held, then swung in to meet the bell on that frame.
+  - After the hit, the bell sways and rings in spreading arcs. `bellStrike(strikes, frame)` gives the timing.
+- **`hondo`.** A temple hall: podium and steps, vermilion pillars, latticed doors, the gong rope and offering box, a cusped gable roof.
+- **`gate`.** A two-storey gate with a railed balcony. `lantern` hangs Asakusa's great red lantern; `ruin` (0–1) makes it the Rashōmon (faded wood, holes in the tiles, grass on the roofs).
+- **`hokora`.** A small shrine with a green nagare roof, crossed finials, and the sacred rope with its paper zigzags stirring.
+- **`graves`.** Leaning and mossy stones on stepped bases among notched wooden sotoba, with flower cups.
+- **`toro`.** A stone lantern, lit or dark, with optional snow.
+- **`hut`.** A hermit's thatched hut with a lit window, a brushwood fence and smoke.
+- **`templeScene(kind)`.** Builds `bell`, `graveyard`, `rashomon`, `shrine` or `asakusa`. Storybook **Temples** plays them, and the Motifs gallery has a tile for each.
+
+### Animal yōkai
+
+- **Creature look fields.**
+  - `tails` now works for cats as well as foxes: the two-tailed nekomata.
+  - `towel`: a tenugui knotted over the head, for the bakeneko's dance.
+  - `glowEyes`: eyes lit gold in the dark.
+  - `carry`: `key`, `jewel` or `scroll` held in the mouth, for Inari's messenger fox.
+- **New species.** `weasel`, long and low; `baku`, after Hokusai: a shaggy tawny coat, a ringed trunk and tusks, a bushy tail; and `ape`, the great long-haired mountain ape with a red face. All three have front and back views.
+- **Particle `whirlwind`.** Sekien's spiral of three turning wind bands with leaves along them, seen face on; `count > 0` adds the kamaitachi's sickle-flashes.
+- **`animalYokaiScene(kind)`.** Builds `bakeneko`, `kamaitachi`, `okuriinu` (wolves with glowing eyes following a traveller's lantern), `baku` (the nightmare cloud fades as it eats), `messenger` or `satori`. Storybook **Animal yōkai** plays them.
+
+### Trees and forest spirits
+
+- **`bamboo`.** A grove of jointed stalks with fluttering leaf sprays, swaying with the wind. `shine` lights one stalk from within (Kaguya), its glow pulsing.
+- **`kaki`.** A gnarled, sparse persimmon after Hōitsu, with leaf clusters and a few round fruit (`fruit`, `ripe`).
+- **`shinboku`.** A great sacred tree: flared roots, a twisting ridged trunk with a hollow, the shimenawa and its streamers, a clumped crown.
+  - `face` opens an old face in the bark that moves.
+  - `reach` bends the lower branches down and forward like grasping arms with red-tipped fingers, for the vampire tree.
+- **`jinmenju`.** A tree whose fruit are laughing heads swaying on their stems, spread across the crown.
+- **`treeScene(kind)`.** Builds `kaguya` (the bamboo cutter finds the shining stalk), `persimmon` (the monkey up the tree, the crab below), `kodama` (the old couple appear from the sacred tree), `jubokko` (on an old battlefield) or `jinmenju`. Storybook **Trees** plays them, and the Motifs gallery has five tiles.
+
+### Heian court
+
+- **Hair `heian`.** Parted and falling straight down the back to the floor, pooling behind when kneeling, with cheek locks; in every view.
+- **Hat `kanmuri`.** The black court cap with its tail standing up behind.
+- **Props.** `shaku` (the noble's baton) and `hiogi` (the cypress fan with silk streamers).
+- **Looks.** `junihitoe(layers, outer)` gives a court lady: the figure's `layers` over red `hakama`, with Heian hair and the fan. `UKIYOE_HEIAN_LOOKS` has `lady`, `lady2`, `noble`, `courtier` and `attendant`.
+- **Motifs.**
+  - `gissha`: the black-lacquered ox-cart on great spoked wheels, which turn by `roll`, or by `travel` × keyed progress so they keep pace with the cart's keyed movement.
+  - `sudare`: a translucent bamboo blind with a brocade border and tassels, rolling up with `up`.
+  - `kicho`: a curtain screen whose silk panels stir.
+  - `shinden`: the palace veranda on posts, with railing, pillars, blinds and a cypress-bark roof. `part: back | front` puts a figure between the interior and the blinds; `rise` × keyed progress rolls the blinds up.
+- **`heianScene(kind)`.** Builds `veranda` (a lady behind the rising blinds, a noble bowing in the moonlit garden), `oxcart` or `chamber`. Storybook **Heian court** plays them, and the Motifs gallery has four tiles.
+
+### Folk yōkai
+
+- **Figure look fields.**
+  - Hair `gourd`: Nurarihyon's great bald head swelling up and back.
+  - `mino`: a fringed straw rain cape.
+  - `eyes`: eyes along the forearms and hands, blinking in turn.
+  - Prop `zaru`: a basket of azuki beans held in both hands.
+- **Action `throw`.** A wind-up over the shoulder and a fling forward. From the `contact` frame, sand flies from where the hand released it and falls, over 40 frames.
+- **Yōkai `akaname`.** After Sekien: a crouching red imp with a wild mane, one-toed claws and a licking tongue; it walks with `walk`.
+- **Looks and scenes.** `UKIYOE_FOLK_YOKAI_LOOKS` has `zashikiwarashi`, `amanojaku`, `azukiarai`, `konakijiji`, `sunakakebaba`, `nurarihyon`, `yukinko` and `dodomeki`. `folkYokaiScene(kind)` builds `house`, `stream`, `bath`, `road` or `snow`. Storybook **Folk yōkai** plays them.
+
+### Giant monsters
+
+New yōkai species, drawn from the ground or sea line, each with `size` as its overall height:
+
+- **`gashadokuro`.** After Kuniyoshi's *Takiyasha*. The skeleton rises to the waist out of heaped grave earth (`appear`); it has a great anatomical skull with sockets, nasal cavity and teeth, and a jaw that works on `roar`. Ribs curve off a vertebral spine, and the near arm's hand of finger bones reaches forward on `stretch`.
+- **`umibozu`.** The sea monk's smooth black head and shoulders rise from the water (`appear`), water streaming off, two small white eyes.
+- **`orochi`.** Eight serpent heads on swaying necks, each red-eyed with fangs and a flicking tongue, rising from a coiled mass; `roar` rears them.
+- **`omukade`.** The giant centipede: overlapping plates, a pair of rippling legs per segment, waving antennae, opening fangs. It travels by `walk`, and `roar` rears the head end.
+- **`namazu`.** The earthquake catfish thrashes, its whiskers swinging. Pair it with a camera shake.
+- **`jasei`.** Kiyohime's serpent coils round a bell (`size` = the bell's height), its horned head raised and flames licking up.
+
+`giantScene(kind)` builds `skeleton`, `seamonk`, `orochi`, `centipede`, `namazu`, `dojoji` or `toad`, plus `daidara`, where a figure is scaled up over a hill range in mist. Storybook **Giants** plays them.
+
+### Tsukumogami
+
+- **Yōkai.**
+  - `wanyudo`: a burning cart wheel with a glaring head for its hub. The spokes turn by the distance travelled, and the flames stream back.
+  - `biwabokuboku`: a biwa for a head on a stooping robed body with a staff.
+  - `ittanmomen`: a flying strip of cotton rippling, with two small eyes.
+  - `chagama`: the Bunbuku teakettle with a tanuki's head, paws and striped tail; `transform` returns it to a plain kettle.
+- **Motif `ikou`.** A kimono rack with a robe; `hands` brings thin pale hands out of the sleeves (Kosode-no-te).
+- **Existing motifs.** The `room` takes `eyes`, which opens blinking eyes in its shoji panes (Mokumokuren). The `gissha` takes `face`, a vast face at its front (Oboro-guruma).
+- **`tsukumoScene(kind)`.** Builds `wheel`, `biwa`, `shoji`, `kosode`, `cotton`, `kettle` or `cart`. Storybook **Tsukumogami** plays them.
+
+### Other realms
+
+- **Motifs.**
+  - `ryugu`: the Dragon King's vermilion halls with green curving roofs and a round gate.
+  - `seabed`: rocks, branching red coral, swaying seaweed.
+  - `lightrays`: pale shafts from above.
+  - `moonpalace`: the full moon with the moon people's palace and clouds.
+  - `amanogawa`: the Milky Way, a river of stars.
+  - `magpies`: the bridge of magpies, which fills from both banks by keyed `progress`.
+  - `iwato`: the rock cave. Its boulder rolls aside by `open`, or by `opens` × progress (negative closes it), and gold rays burst out when `light`.
+  - `onigashima`: the oni island with crags, palisade and iron gate.
+  - `sasa`: a Tanabata bamboo with paper strips and streamers.
+- **Particle `bubbles`.**
+- **`realmScene(kind)`.** Each realm comes with its way in:
+  - `ryugu`: the camera follows Urashima on the turtle from above the waves down to the palace gate.
+  - `moon`: Kaguya rises on a cloud and the camera rises with her to the moon palace.
+  - `tanabata`: the magpie bridge forms between the weaver and the cowherd.
+  - `iwato`: the boulder rolls away and Amaterasu's light floods out while Uzume dances.
+  - `yomi`: Izanagi flees the dark cave, soul-flames following, and the boulder closes.
+  - `onigashima`: Momotarō's boat crosses.
+
+  Storybook **Realms** plays them, and the Motifs gallery has five tiles.
 
 ### Transition
 

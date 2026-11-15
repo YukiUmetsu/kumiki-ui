@@ -26,7 +26,7 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
     const containerBox=await container.boundingBox();
     expect(containerBox).not.toBeNull();
     expect(Math.abs(containerBox!.height-artBox!.height)).toBeLessThan(6);
-    for(const frame of [0,92,142,160,198,239]){
+    for(const frame of [0,92,142,160,177,189,202,239]){
       const slider=page.getByRole("slider",{name:"RISO ensemble film frame"});
       await slider.evaluate((node,value)=>{
         const input=node as HTMLInputElement;
@@ -54,12 +54,78 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
       }
       if(frame>=142)await expect(stage.locator("[data-km-riso-human-ensemble-sheet]")).toHaveCount(1);
       else await expect(stage.locator("[data-km-riso-human-ensemble-sheet]")).toHaveCount(0);
+      // Only authored fingertips sit in front of the paper, and only after
+      // the advancing sheet reaches each contact root.
+      await expect(stage.locator('[data-km-riso-paper-knockout="courier-grip"]'))
+        .toHaveCount(frame>=142&&frame<=177?1:0);
+      await expect(stage.locator('[data-km-riso-paper-knockout="artist-grip"]'))
+        .toHaveCount(frame>=160?1:0);
+      if(frame===142)await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","unfurl");
+      if(frame===160)await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","shared");
+      if(frame===189)await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","release");
+      if(frame>=202){
+        await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","received");
+        await expect(stage).toHaveAttribute("data-km-riso-handoff-owner","receiver");
+      }
+      // Real press-bound paper creases exist only while those exact two
+      // articulated hands physically touch their respective paper edges.
+      if(frame===0||frame===92)
+        await expect(stage.locator("[data-km-riso-contact-crease]")).toHaveCount(0);
+      if(frame===160||frame===177)
+        await expect(stage.locator("[data-km-riso-contact-crease]")).toHaveCount(6);
+      if(frame>=202){
+        await expect(stage.locator('[data-km-riso-contact-crease^="source-"]')).toHaveCount(0);
+        await expect(stage.locator('[data-km-riso-contact-crease^="receiver-"]')).toHaveCount(3);
+      }
       await stage.screenshot({path:info.outputPath(aspect+"-two-humans-"+frame+".png"),
         animations:"disabled"});
     }
   }
   await expect(stage.locator('[data-km-riso-transfer-plate="blue"]')).toHaveCount(1);
   await expect(stage.locator('[data-km-riso-transfer-plate="red"]')).toHaveCount(1);
+  // The opaque paper and both ink masters must share one deformable contour.
+  // The donor is no longer an upper paper overlay once the print transfers.
+  await expect(stage.locator('[data-km-riso-paper-knockout="courier-grip"]')).toHaveCount(0);
+  await expect(stage.locator('[data-km-riso-paper-knockout="artist-grip"]')).toHaveCount(1);
+  const initialPaper=await stage.locator("[data-km-riso-human-ensemble-sheet]").getAttribute("d");
+  expect(initialPaper).toMatch(/^M.+Z$/);
+  const setRange=async(name:string,value:string)=>{
+    await page.getByRole("slider",{name}).evaluate((node,amount)=>{
+      const input=node as HTMLInputElement;
+      const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+      if(!setter)throw new Error("Missing native range setter");
+      setter.call(input,String(amount));
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+      input.dispatchEvent(new Event("change",{bubbles:true}));
+    },value);
+  };
+  await expect(stage.locator('[data-km-riso-contact-shadow="receiver"]')).toHaveCount(1);
+  await setRange("RISO ensemble pressure crease depth","0");
+  await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-imprint-depth","0");
+  await expect(stage.locator("[data-km-riso-contact-crease]")).toHaveCount(0);
+  await expect(stage.locator("[data-km-riso-contact-shadow]")).toHaveCount(0);
+  await setRange("RISO ensemble pressure crease depth","1");
+  await expect(stage.locator('[data-km-riso-contact-crease^="receiver-"]')).toHaveCount(3);
+  await setRange("RISO ensemble donor release frame","172");
+  await setRange("RISO ensemble transfer duration","20");
+  await setRange("RISO ensemble receiver paper tilt","-58");
+  await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","received");
+  await expect(stage).toHaveAttribute("data-km-riso-handoff-owner","receiver");
+  await setRange("RISO ensemble paper curl","9");
+  await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-paper-curl","9");
+  const curvedPaper=await stage.locator("[data-km-riso-human-ensemble-sheet]").getAttribute("d");
+  expect(curvedPaper).not.toEqual(initialPaper);
+  await setRange("RISO ensemble paper grip pinch","0.8");
+  await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-grip-pinch","0.8");
+  const pinchedPaper=await stage.locator("[data-km-riso-human-ensemble-sheet]").getAttribute("d");
+  expect(pinchedPaper).not.toEqual(curvedPaper);
+  await expect(stage.locator("[data-km-riso-transfer-fold-shade]")).toHaveCount(1);
+  await page.getByRole("checkbox",{name:"RISO ensemble anatomical fingertip occlusion"}).uncheck();
+  await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-contact-overprint","false");
+  await expect(stage.locator("[data-km-riso-grip-occlusion]")).toHaveCount(0);
+  await page.getByRole("checkbox",{name:"RISO ensemble anatomical fingertip occlusion"}).check();
+  await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-contact-overprint","true");
+  await expect(stage.locator("[data-km-riso-grip-occlusion]")).toHaveCount(2);
   await expect(stage.locator("[data-km-riso-transfer-postmark]")).toHaveCount(1);
   await page.getByRole("checkbox",{name:"RISO ensemble fine printed-sheet detail"}).uncheck();
   await expect(stage.locator("[data-km-riso-transfer-postmark]")).toHaveCount(0);

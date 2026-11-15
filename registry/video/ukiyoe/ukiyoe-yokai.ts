@@ -18,9 +18,14 @@ import { add, carvedLine, clamp01, hash01, hashSigned, lerp, noise1, polar, poly
 import type { Prim } from "./ukiyoe-prims";
 import { circleD, ellipseD } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
+import { akaname } from "./ukiyoe-folkyokai";
+import type { UkiyoeGiant } from "./ukiyoe-giants";
+import { drawGiant, UKIYOE_GIANTS } from "./ukiyoe-giants";
+import type { UkiyoeTsukumo } from "./ukiyoe-tsukumo";
+import { drawTsukumo, UKIYOE_TSUKUMO } from "./ukiyoe-tsukumo";
 
-export type UkiyoeYokai = "yukionna" | "yurei" | "rokurokubi" | "kasaobake" | "chochinobake" | "hitodama" | "kappa" | "tengu" | "karasutengu" | "nurikabe" | "tsuchigumo";
-export const UKIYOE_YOKAI: readonly UkiyoeYokai[] = ["yukionna", "yurei", "rokurokubi", "kasaobake", "chochinobake", "hitodama", "kappa", "tengu", "karasutengu", "nurikabe", "tsuchigumo"];
+export type UkiyoeYokai = "yukionna" | "yurei" | "rokurokubi" | "kasaobake" | "chochinobake" | "hitodama" | "kappa" | "tengu" | "karasutengu" | "nurikabe" | "tsuchigumo" | "okiku" | "akaname" | UkiyoeGiant | UkiyoeTsukumo;
+export const UKIYOE_YOKAI: readonly UkiyoeYokai[] = ["yukionna", "yurei", "rokurokubi", "kasaobake", "chochinobake", "hitodama", "kappa", "tengu", "karasutengu", "nurikabe", "tsuchigumo", "okiku", "akaname", ...UKIYOE_GIANTS, ...UKIYOE_TSUKUMO];
 
 /** What the yōkai drawing needs to know about the creature's actions at this frame. */
 export interface YokaiState {
@@ -252,6 +257,64 @@ function spiritWoman(kind: "yukionna" | "yurei" | "rokurokubi", look: YokaiLook,
   }
   return out;
 }
+/**
+ * Okiku of the plate mansion, after Hokusai's *Sarayashiki*: she rises out of the well where she was thrown, her neck a
+ * long coil of the blue-and-white plates she was accused of losing, her black hair streaming down beside it, a white
+ * face in profile breathing out a curl of cold vapour. The origin is the well's mouth (place her on a `well` motif's
+ * mouth). `appear` raises her out of the well; she sways while she hovers; `howl` moves her lips as she counts the plates.
+ */
+function okiku(look: YokaiLook, s: YokaiState, frame: number, wind: number, seed: number): Prim[] {
+  const H = look.size ?? 220, out: Prim[] = [], line = Math.max(.8, H / 190 * 1.1);
+  const ap = s.w("appear"), rise = ap.w > 0 ? smooth(clamp01(ap.t / Math.max(1, ap.len))) : 1, sway = Math.sin(frame / 37 + seed) * H * .05 + wind * H * .04;
+  // The coil: an S rising from the well, its top bending forward under the head.
+  const top: Pt = [H * .18 + sway, -H * rise], spine: Pt[] = [];
+  for (let i = 0; i <= 30; i++) {
+    const u = i / 30, y = -H * rise * u;
+    spine.push([Math.sin(u * Math.PI * 1.6 + frame / 41 + seed) * H * .09 * (1 - u * .3) + top[0] * u ** 2, y]);
+  }
+  // Hair behind the coil: a heavy mass from the crown down beside it to the water, its back edge rippling.
+  const back: Pt[] = [], front: Pt[] = [];
+  for (let i = 0; i <= 18; i++) {
+    const u = i / 18, q = spine[Math.round(30 - u * 30)], ripple = Math.sin(u * 9 - frame / 9 + seed) * H * .015 * u;
+    back.push([q[0] - H * (.09 + .1 * u) + ripple - wind * H * .05 * u, q[1] + H * .03]);
+    front.push([q[0] + H * (.03 + .04 * u) + ripple * .5, q[1] + H * .03]);
+  }
+  out.push({ t: "fill", d: smoothD([...back, ...front.reverse()], true, .35), fill: "sumi", outline: line * .5 });
+  const strands: string[] = [];
+  for (let k = 1; k < 5; k++) strands.push(smoothD(back.map((q, i) => lerp2(q, front[18 - i] ?? q, k / 5)), false, .4));
+  out.push({ t: "stroke", d: strands.join(""), color: "usuzumi", width: .6, opacity: .4 });
+  // Plates stacked up the coil, each a white dish with blue rings and a painted centre, set across the coil and
+  // overlapping the one below.
+  for (let i = 0; i < 17; i++) {
+    const u = (i + .5) / 17, q = spine[Math.min(30, Math.round(u * 30))], q2 = spine[Math.min(30, Math.round(u * 30) + 1)];
+    if (-q[1] > H * rise - H * .12) break;
+    const a = Math.atan2(q2[1] - q[1], q2[0] - q[0]) * 180 / Math.PI + 90, rx = H * (.11 - .035 * u), ry = H * .036;
+    const t = `translate(${q[0].toFixed(1)} ${q[1].toFixed(1)}) rotate(${a.toFixed(1)})`;
+    out.push({ t: "group", transform: t, prims: [
+      { t: "fill", d: ellipseD(0, 0, rx, ry), fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [1, "sora", 1]] }, outline: line * .8 },
+      { t: "stroke", d: ellipseD(0, 0, rx * .82, ry * .7), color: "ai", width: line * 1.4, opacity: .9 },
+      { t: "fill", d: ellipseD(0, -ry * .1, rx * .42, ry * .3), fill: "ai", opacity: .75 },
+      { t: "stroke", d: [-.6, -.2, .2, .6].map(k => `M${(rx * k).toFixed(1)} ${(-ry * .55).toFixed(1)}l${(rx * .06).toFixed(1)} ${(ry * .2).toFixed(1)}`).join(""), color: "hanada", width: line * .7 },
+    ] });
+  }
+  // The head in profile: a long pale face, half-closed eye, the hair parted over the crown and down behind.
+  const F = (u: number, v: number): Pt => [top[0] + u * H * 1.55, top[1] + v * H * 1.55];
+  const face: Pt[] = [F(-.045, -.06), F(.02, -.075), F(.05, -.05), F(.062, -.015), F(.072, .005), F(.064, .014), F(.067, .025), F(.061, .03), F(.064, .04), F(.055, .052), F(.035, .062), F(.0, .058), F(-.035, .035), F(-.05, -.01)];
+  out.push({ t: "fill", d: smoothD(face, true, .32), fill: "gofun", outline: line * .9 });
+  out.push({ t: "fill", d: smoothD([F(-.055, .02), F(-.06, -.05), F(-.02, -.09), F(.04, -.085), F(.06, -.05), F(.035, -.055), F(.0, -.04), F(-.015, .0), F(-.03, .05)], true, .35), fill: "sumi", outline: line * .5 });
+  out.push({ t: "line", d: carvedLine([F(.022, -.008), F(.036, -.004), F(.05, -.002)], Math.max(.8, H * .005), { taper: "both" }), color: "sumi" });
+  out.push({ t: "line", d: carvedLine([F(.02, -.03), F(.04, -.034), F(.052, -.028)], Math.max(.5, H * .003), { taper: "both" }), color: "sumi", opacity: .6 });
+  const m = s.w("howl").w > 0 ? Math.abs(Math.sin(frame / 3.2)) : .25;
+  out.push({ t: "fill", d: ellipseD(...F(.061, .033), H * .005, H * (.002 + .005 * m)), fill: "kogecha" });
+  // Her breath: a thin curl of vapour drifting out from the lips, coiling and fading (Hokusai's single wisp).
+  const wisp: Pt[] = [];
+  for (let i = 0; i <= 16; i++) { const u = i / 16; wisp.push([F(.065, .032)[0] + u * H * .32, F(.065, .032)[1] - u * H * .1 + Math.sin(u * 8 - frame / 8) * H * .025 * u]); }
+  const curlC = wisp[16], curl: Pt[] = [];
+  for (let i = 0; i <= 10; i++) { const a = i / 10 * Math.PI * 1.6 + frame / 20; curl.push([curlC[0] + Math.cos(a) * H * .03 * (1 - i / 14), curlC[1] - Math.sin(a) * H * .03 * (1 - i / 14)]); }
+  out.push({ t: "line", d: carvedLine([...wisp, ...curl], Math.max(.8, H * .007), { taper: "both", minRatio: .2, smooth: true }), color: "gofun", opacity: .75 * rise });
+  return out;
+}
+
 /** Densify a polyline through a Catmull-Rom spline (open). */
 function smoothPtsY(points: readonly Pt[], per = 4): Pt[] {
   const n = points.length, out: Pt[] = [], at = (i: number) => points[Math.max(0, Math.min(n - 1, i))];
@@ -682,6 +745,10 @@ export function drawYokai(kind: UkiyoeYokai, look: YokaiLook, s: YokaiState, fra
     case "tsuchigumo": prims = tsuchigumo(look, s, frame, seed); break;
     case "tengu": case "karasutengu": prims = tengu(kind === "tengu" ? "red" : "crow", look, s, frame, wind, seed); break;
     case "kasaobake": prims = kasaObake(look, s, frame, wind, seed); break;
+    case "okiku": prims = okiku(look, s, frame, wind, seed); break;
+    case "akaname": prims = akaname(look.size ?? 120, frame, s.moving, s.dist, seed); break;
+    case "gashadokuro": case "umibozu": case "orochi": case "omukade": case "namazu": case "jasei": prims = drawGiant(kind, look, s.w, s, frame, seed); break;
+    case "biwabokuboku": case "wanyudo": case "ittanmomen": case "chagama": prims = drawTsukumo(kind, look, s.w, s, frame, seed); break;
     case "chochinobake": prims = chochinObake(look, s, frame, wind, seed); break;
     case "hitodama": {
       const H = look.size ?? 40, c: Pt = [Math.sin(frame / 27 + seed) * H * .4, -H * 2 - Math.cos(frame / 33 + seed) * H * .3];

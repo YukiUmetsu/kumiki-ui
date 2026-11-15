@@ -311,9 +311,9 @@ export const CourierHumanAnatomy:StoryObj<typeof meta>={
   render:()=> <CourierAnatomyComparison/>,
 };
 
-/** RISO14: two differently authored human actors with frame-bound paper prop. */
+/** RISO19: press-bound hand pressure crescents, individual crease fans and transfer. */
 export const HumanEnsembleActing:StoryObj<typeof meta>={
-  name:"RISO14 · Two-Human Print Exchange",
+  name:"RISO19 · Pressed Paper Contact",
   args:{actor:"courier"},
   render:()=> <RisoHumanEnsembleStudio/>,
 };

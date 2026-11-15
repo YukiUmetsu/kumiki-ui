@@ -533,6 +533,13 @@ export const ReferenceGuidedFaces: StoryObj<typeof meta> = {
   render:()=> <ReferencePencilAtelier initialSample="woman"/>,
 };
 
+/** Four paper-only anatomical construction shots. Same existing sidebar root. */
+export const PortraitConstructionStoryboard: StoryObj<typeof meta> = {
+  name:"ArtCraft · Portrait construction storyboard (4 shots, experimental)",
+  args:{aspect:"landscape",subject:"leaf",frame:325},
+  render:()=> <ReferencePencilAtelier initialSample="woman" initialStoryboard/>,
+};
+
 /** The one canonical drawing-system entry point under the existing Colour-pencil root. */
 export const DrawingFoundation: StoryObj<typeof meta> = {
   name:"Foundation · Reference, form, pigment, stroke and finish",

@@ -1,9 +1,24 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { cameraAt, carvedLine, ease, loopOffsets, scrollPan, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
+import { cameraAt, carvedLine, ease, loopOffsets, scrollPan, seedOf, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
 import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES } from "../registry/video/ukiyoe/ukiyoe-creatures";
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
+import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { realmScene, UKIYOE_REALM_SCENES } from "../registry/video/ukiyoe/ukiyoe-realms";
+import { tsukumoScene, UKIYOE_TSUKUMO, UKIYOE_TSUKUMO_SCENES } from "../registry/video/ukiyoe/ukiyoe-tsukumo";
+import { giantScene, UKIYOE_GIANT_SCENES, UKIYOE_GIANTS } from "../registry/video/ukiyoe/ukiyoe-giants";
+import { folkYokaiScene, UKIYOE_FOLK_YOKAI_LOOKS, UKIYOE_FOLK_YOKAI_SCENES } from "../registry/video/ukiyoe/ukiyoe-folkyokai";
+import { heianScene, UKIYOE_HEIAN_LOOKS, UKIYOE_HEIAN_SCENES } from "../registry/video/ukiyoe/ukiyoe-heian";
+import { treeScene, UKIYOE_TREE_SCENES } from "../registry/video/ukiyoe/ukiyoe-trees";
+import { bellStrike, templeScene, UKIYOE_TEMPLE_SCENES } from "../registry/video/ukiyoe/ukiyoe-temple";
+import { animalScene, animalYokaiScene, UKIYOE_ANIMAL_HABITATS, UKIYOE_ANIMAL_YOKAI_SCENES, UKIYOE_CRITTERS } from "../registry/video/ukiyoe/ukiyoe-critters";
+import { bushiScene, shootAt, UKIYOE_BUSHI_SCENES } from "../registry/video/ukiyoe/ukiyoe-bushi";
+import { kamiScene, UKIYOE_KAMI_LOOKS, UKIYOE_KAMI_SCENES } from "../registry/video/ukiyoe/ukiyoe-kami";
+import { effectScene, UKIYOE_EFFECT_DEMOS } from "../registry/video/ukiyoe/ukiyoe-effects";
+import { folkScene, toolAt, toolContact, UKIYOE_FOLK_WORK } from "../registry/video/ukiyoe/ukiyoe-folk";
+import { faceOutline, humanFeatures, onnaScene, UKIYOE_GHOST_FACES, UKIYOE_ONNA_LOOKS } from "../registry/video/ukiyoe/ukiyoe-onna";
+import { interiorScene, LOOM_BEATER_PULL, loomGrip, UKIYOE_INTERIOR_KINDS, UKIYOE_WEAVE_PERIOD, weaveBeat } from "../registry/video/ukiyoe/ukiyoe-interior";
 import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
 import { expandCrowd } from "../registry/video/ukiyoe/ukiyoe-crowd";
@@ -382,6 +397,362 @@ describe("UKIYO1 oni fight", () => {
     expect(figurePose({ look: oni.look, actions: oni.actions, facing: "left" }, fin.contact! + 80, 0, 300).fall).toBe(1);
     expect(figureClubAt({ look: oni.look, actions: oni.actions, facing: "left" }, fin.contact! + 80)!.dropped).toBe(1);
     expect(inspectUkiyoeScene(scene({ durationFrames: 640, camera: { shake: fight.shake }, nodes: fight.nodes as never }))).toEqual([]);
+  });
+});
+
+describe("UKIYO1 castle", () => {
+  type P = { t: string; d?: string; fill?: unknown; color?: unknown; prims?: P[] };
+  const flat = (ps: P[]): P[] => ps.flatMap(p => p.t === "group" || p.t === "clip" ? flat(p.prims ?? []) : [p]);
+  const draw = (params: Record<string, unknown>) => flat(drawMotif("castle", { width: 900, ...params }, { frame: 0, wind: 0, seed: 7, progress: 1 }) as P[]);
+  const shachi = (ps: P[]) => ps.filter(p => p.t === "fill" && p.fill === "kin" && (p.d!.match(/C/g) ?? []).length >= 5).length;
+  it("draws the keep, walls, turrets, gate, moat and bridge, and its parameters change it", () => {
+    const base = draw({});
+    expect(JSON.stringify(draw({}))).toEqual(JSON.stringify(base));                                // deterministic
+    expect(shachi(base)).toBe(2);                                                                     // a pair on the top ridge
+    const roofs = (tiers: number) => draw({ tiers, walls: false }).filter(p => p.t === "line" && p.color === "sumi").length;
+    expect(roofs(5)).toBeGreaterThan(roofs(3));                                                     // more tiers, more roofs
+    expect(draw({ walls: false }).length).toBeLessThan(base.length / 2);                            // the keep alone
+    expect(draw({ style: "black" }).some(p => p.t === "fill" && JSON.stringify(p.fill).includes("kogecha") && JSON.stringify(p.fill).includes("\"angle\":0"))).toBe(true);
+    expect(draw({ night: 1 }).filter(p => p.t === "glow").length).toBeGreaterThan(20);              // lit windows
+    expect(draw({ snow: 1 }).filter(p => p.t === "fill" && p.fill === "gofun").length).toBeGreaterThan(base.filter(p => p.t === "fill" && p.fill === "gofun").length);
+    // Everything stands above the water line except the moat and the bridge in front.
+    const ys = base.filter(p => p.t === "fill" && p.fill !== "gofun" && !/[hva]/.test(p.d!)).flatMap(p => p.d!.match(/-?\d+(\.\d+)?/g)!.map(Number).filter((_, i) => i % 2 === 1));
+    expect(Math.max(...ys)).toBeLessThanOrEqual(900 * .1 + 1);
+    // Long galleries on the walls by default (a dobei wall instead has loopholes), pines along the bailey, the walls
+    // mirrored in the moat.
+    const matsu = (ps: P[]) => ps.filter(p => p.t === "fill" && p.fill === "matsu").length;
+    expect(matsu(base)).toBeGreaterThan(matsu(draw({ pines: 0 })));
+    expect(draw({ wall: "dobei" }).length).not.toBe(base.length);
+    expect(JSON.stringify(drawMotif("castle", { width: 900 }, { frame: 0, wind: 0, seed: 7, progress: 1 }))).toContain("scale(1 -0.62)");
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "c", kind: "motif", motif: "castle", params: { tiers: 4, style: "black" } }] }))).toEqual([]);
+  });
+});
+
+describe("UKIYO1 castle town", () => {
+  it("validates, draws its four town motifs, pans from the castle to the street, and keeps every walker off the canal", () => {
+    const spec = castleTown();
+    expect(inspectUkiyoeScene(spec)).toEqual([]);
+    for (const m of ["shop", "kura", "yashiki", "firetower"] as const) expect(drawMotif(m, {}, { frame: 0, wind: .3, seed: 3, progress: 1 }).length, m).toBeGreaterThan(8);
+    const cam = (f: number) => cameraAt(spec.camera, f, spec.width, spec.height).x;
+    expect(cam(0)).toBeLessThan(1200);                                                            // starts at the castle
+    expect(cam(spec.durationFrames - 1)).toBeGreaterThan(5000);                                 // ends in the merchant street
+    // The canal's water runs between x 3680 and 4220; no walker may ever stand there.
+    for (const n of spec.nodes.filter(x => x.kind === "crowd")) {
+      const c = n as Extract<typeof n, { kind: "crowd" }>;
+      // Expanded exactly as the renderer expands it (scene seed ^ node id); travel is in the figure's scaled frame.
+      for (const m of expandCrowd({ ...c, frames: c.frames ?? spec.durationFrames }, (spec.seed ^ seedOf(c.id)) >>> 0)) for (let f = 0; f < spec.durationFrames; f += 15) {
+        const x = (c.x ?? 0) + m.x + travelAt(m.actions, f).x * m.scale;
+        expect(x < 3680 || x > 4220, `${m.id} at frame ${f}: x ${x.toFixed(0)}`).toBe(true);
+      }
+    }
+    // No text in the scroll, so nothing for captions to collide with.
+    expect(spec.nodes.some(n => n.kind === "text")).toBe(false);
+  });
+});
+
+describe("UKIYO1 interiors", () => {
+  const ctx = (frame = 0) => ({ frame, wind: 0, seed: 5, progress: 1 });
+  it("builds four valid rooms, splits a room into back and front, and slides a panel open on its track", () => {
+    for (const k of UKIYOE_INTERIOR_KINDS) {
+      const spec = interiorScene(k);
+      expect(inspectUkiyoeScene(spec), k).toEqual([]);
+      // The room's back part is drawn first and its front part last, with every figure between them.
+      const ids = spec.nodes.map(n => n.id), figs = spec.nodes.filter(n => n.kind === "figure").map(n => ids.indexOf(n.id));
+      expect(Math.min(...figs), k).toBeGreaterThan(ids.indexOf("room"));
+      expect(Math.max(...figs), k).toBeLessThan(ids.indexOf("room-front"));
+      expect(renderToStaticMarkup(<UkiyoeScene spec={spec} frame={90} />).length, k).toBeGreaterThan(1000);
+    }
+    const back = JSON.stringify(drawMotif("room", { part: "back", eave: "thatch" }, ctx())), front = JSON.stringify(drawMotif("room", { part: "front", eave: "thatch" }, ctx()));
+    expect(back).toContain("room-5");                                                            // the clipped interior
+    expect(front).not.toContain("room-5");
+    expect(front.length).toBeLessThan(back.length);
+    // A fusuma bay sliding open: the right panel's painting moves left with it, by up to half the bay.
+    const slide = { back: ["fusuma"], slide: [{ bay: 0, open: 1, start: 10, frames: 30 }] };
+    const offset = (f: number) => Math.min(...[...JSON.stringify(drawMotif("room", { ...slide, side: "wall" }, ctx(f))).matchAll(/translate\((-?[\d.]+) 0\)/g)].map(m => Number(m[1])));
+    expect(offset(0)).toBe(0);
+    expect(offset(25)).toBeLessThan(0);
+    expect(offset(40)).toBeLessThan(offset(25));
+    expect(offset(80)).toBe(offset(40));
+    // Torn shoji show the dark through burst cells; an untorn wall has none.
+    const holes = (torn: number) => JSON.stringify(drawMotif("room", { back: ["shoji", "shoji"], torn }, ctx())).length;
+    expect(holes(.8)).toBeGreaterThan(holes(0));
+  });
+  it("times the loom and the weaver together: one beat per pick, the shed flipping, the hand on the beater", () => {
+    let beats = 0, prev = 0;
+    for (let f = 0; f < UKIYOE_WEAVE_PERIOD * 4; f++) {
+      const w = weaveBeat(f);
+      expect(w.beat).toBeGreaterThanOrEqual(0); expect(w.beat).toBeLessThanOrEqual(1);
+      expect(w.pass > 0 && w.beat > 0, `frame ${f}: the shuttle crosses only while the beater is back`).toBe(false);
+      if (w.beat > .99 && prev <= .99) beats++;
+      prev = w.beat;
+    }
+    expect(beats).toBe(4);
+    expect(Math.sign(weaveBeat(2).shed)).toBe(-Math.sign(weaveBeat(UKIYOE_WEAVE_PERIOD + 2).shed));
+    // The weaver's aim is the loom's grip, and the beat pulls it in by the loom's own swing.
+    const spec = interiorScene("weaver"), loom = spec.nodes.find(n => n.id === "loom")!, weaver = spec.nodes.find(n => n.id === "weaver") as Extract<UkiyoeSceneSpec["nodes"][number], { kind: "figure" }>;
+    const h = (loom as unknown as { params: { height: number } }).params.height, g = loomGrip(h), act = weaver.actions![0];
+    expect((weaver.x ?? 0) + act.aim![0]).toBeCloseTo((loom.x ?? 0) + g[0], 3);
+    expect((weaver.y ?? 0) + act.aim![1]).toBeCloseTo((loom.y ?? 0) + g[1], 3);
+    expect(act.amount! / h).toBeCloseTo(LOOM_BEATER_PULL, 2);
+  });
+});
+
+describe("UKIYO1 women ghosts", () => {
+  it("keeps each woman human until her reveal, then changes her face in every view, and holds it", () => {
+    expect(inspectUkiyoeScene(onnaScene("lineup"))).toEqual([]);
+    expect(inspectUkiyoeScene(onnaScene("okiku"))).toEqual([]);
+    const acts: UkiyoeAction[] = [{ type: "reveal", start: 30, end: 60, amount: 20 }];
+    for (const k of Object.keys(UKIYOE_ONNA_LOOKS) as (keyof typeof UKIYOE_ONNA_LOOKS)[]) for (const view of ["profile", "three-quarter", "front", "back"] as const) {
+      const look = { ...UKIYOE_ONNA_LOOKS[k], view } as Parameters<typeof drawFigure>[0]["look"];
+      const at = (f: number) => JSON.stringify(drawFigure({ look, actions: acts, facing: "right" }, f, 0, 4).prims);
+      expect(figurePose({ look, actions: acts }, 10, 4, 250).reveal, k).toBe(0);
+      expect(figurePose({ look, actions: acts }, 90, 4, 250).reveal, k).toBe(1);                       // stays revealed after the action
+      const changes = look.face && !(view === "back" && look.face !== "futakuchi") && !(look.face === "futakuchi" && view === "front");
+      if (changes) expect(at(10) === at(52), `${k} ${view}`).toBe(false);
+    }
+    // The faceless woman loses every feature and the nose; a skull keeps a little of the outline's shape.
+    expect(humanFeatures("noppera", 1)).toBe(0);
+    expect(humanFeatures("kuchisake", 1)).toBe(1);
+    const nose = (face: typeof UKIYOE_GHOST_FACES[number], r: number) => Math.max(...faceOutline(face, r, [[0, -20], [17, -1], [20.2, 4.2], [17.4, 10.8], [5, 19.5]], false).map(q => q[0]));
+    expect(nose("noppera", 0)).toBeCloseTo(20.2);
+    expect(nose("noppera", 1)).toBeLessThan(17);
+  });
+  it("raises Okiku out of the well on her coil of plates, between the well's two parts", () => {
+    const spec = onnaScene("okiku"), ids = spec.nodes.map(n => n.id);
+    expect(ids.indexOf("well-back")).toBeLessThan(ids.indexOf("okiku"));
+    expect(ids.indexOf("okiku")).toBeLessThan(ids.indexOf("well-front"));
+    const okiku = spec.nodes.find(n => n.id === "okiku") as Extract<UkiyoeSceneSpec["nodes"][number], { kind: "creature" }>;
+    const plates = (f: number) => (JSON.stringify(drawCreature(okiku, f, 0, 3)).match(/rotate\(/g) ?? []).length;
+    expect(plates(60)).toBeGreaterThan(0);
+    expect(plates(200)).toBeGreaterThan(plates(60));
+    expect(JSON.stringify(drawMotif("well", { part: "front" }, { frame: 0, wind: 0, seed: 1, progress: 1 }))).not.toContain("radial");   // the water is in the back part
+    expect(JSON.stringify(drawMotif("well", { part: "back" }, { frame: 0, wind: 0, seed: 1, progress: 1 }))).toContain("radial");
+  });
+});
+
+describe("UKIYO1 folk work", () => {
+  it("swings each tool up slowly and down fast onto its contact point, with the block, field and mortar placed there", () => {
+    for (const k of UKIYOE_FOLK_WORK) expect(inspectUkiyoeScene(folkScene(k)), k).toEqual([]);
+    for (const action of ["chop", "hoe", "pound"] as const) {
+      const acts: UkiyoeAction[] = [{ type: action, start: 0, end: 400 }], H = 250;
+      let contacts = 0, maxUp = 0, maxDown = 0, prevA = toolAt(acts, 0)!.a;
+      for (let f = 1; f < 200; f++) {
+        const st = toolAt(acts, f)!;
+        const step = st.a - prevA;
+        if (step < 0) maxUp = Math.max(maxUp, -step); else maxDown = Math.max(maxDown, step);
+        prevA = st.a;
+        if (st.since === 0) {
+          contacts++;
+          // On the contact frame the head is exactly at toolContact.
+          const L = { chop: .42, hoe: .6, pound: .5 }[action] * H, tip = [st.grip[0] * H + Math.cos(st.a * Math.PI / 180) * L, st.grip[1] * H + Math.sin(st.a * Math.PI / 180) * L], c = toolContact(action, H);
+          expect(Math.hypot(tip[0] - c[0], tip[1] - c[1]), action).toBeLessThan(.5);
+        }
+      }
+      expect(contacts, action).toBeGreaterThanOrEqual(3);
+      expect(maxDown, `${action}: the drop is faster than the lift`).toBeGreaterThan(maxUp * 2);
+    }
+    // The chopping block's top and the mortar's rim sit at the tool's contact height.
+    const wood = folkScene("woodcutter"), block = wood.nodes.find(n => n.id === "block") as unknown as { x: number; params: { size: number } }, man = wood.nodes.find(n => n.id === "worker")!;
+    const c = toolContact("chop", 250 * (man.scale ?? 1));
+    expect(block.x).toBeCloseTo((man.x ?? 0) + c[0], 3);
+    expect(block.params.size * .45).toBeCloseTo(-c[1] * .9, 3);
+  });
+});
+
+describe("UKIYO1 effects", () => {
+  it("builds each effect scene, times bursts to their frames, and swaps the fox for the woman inside the smoke", () => {
+    for (const k of UKIYOE_EFFECT_DEMOS) expect(inspectUkiyoeScene(effectScene(k)), k).toEqual([]);
+    const at = (type: "smoke" | "lightning" | "ash", f: number) => drawParticles({ type, area: [0, 0, 1920, 1080], bursts: [{ frame: 50, x: 900, y: 600 }] }, f, .3, 5);
+    for (const type of ["smoke", "lightning", "ash"] as const) {
+      expect(at(type, 49), `${type} before its burst`).toEqual([]);
+      expect(at(type, 52).length, `${type} at its burst`).toBeGreaterThan(0);
+    }
+    expect(at("lightning", 70)).toEqual([]);                              // a strike lasts a fraction of a second
+    expect(drawParticles({ type: "foxfire", count: 5, area: [0, 0, 400, 100] }, 10, 0, 1).length).toBeGreaterThan(1);
+    // Henge: the woman only appears after the puff has covered the spot, and the fox is gone by then.
+    const h = effectScene("henge"), woman = h.nodes.find(n => n.id === "woman")!, puff = h.nodes.find(n => n.id === "puff") as Extract<UkiyoeSceneSpec["nodes"][number], { kind: "particles" }>;
+    expect(woman.from!).toBeGreaterThan(puff.bursts![0].frame);
+    const fox = h.nodes.find(n => n.id === "fox") as Extract<UkiyoeSceneSpec["nodes"][number], { kind: "creature" }>;
+    expect(drawCreature(fox, woman.from!, 0, 1).prims.length).toBeLessThanOrEqual(1);              // only the puff is left
+  });
+});
+
+describe("UKIYO1 kami", () => {
+  it("draws every god in every view, flies the tennyo off the ground along her path, and streams her scarf out when flying", () => {
+    for (const k of UKIYOE_KAMI_SCENES) expect(inspectUkiyoeScene(kamiScene(k)), k).toEqual([]);
+    for (const k of Object.keys(UKIYOE_KAMI_LOOKS) as (keyof typeof UKIYOE_KAMI_LOOKS)[]) for (const view of ["profile", "three-quarter", "front", "back"] as const)
+      expect(drawFigure({ look: { ...UKIYOE_KAMI_LOOKS[k], view } as Parameters<typeof drawFigure>[0]["look"] }, 10, 0, 2).prims.length, `${k} ${view}`).toBeGreaterThan(10);
+    const acts: UkiyoeAction[] = [{ type: "fly", start: 0, end: 100, to: 600, toY: -200 }];
+    const look = UKIYOE_KAMI_LOOKS.tennyo as unknown as Parameters<typeof drawFigure>[0]["look"];
+    expect(figurePose({ look, actions: acts }, 50, 2, 250).lift).toBeGreaterThan(10);
+    const mid = travelAt(acts, 50), end = travelAt(acts, 100);
+    expect(mid.x).toBeGreaterThan(0); expect(end.x).toBeCloseTo(600, 0); expect(end.y).toBeCloseTo(-200, 0);
+    // The scarf reaches further behind in flight than standing still.
+    const reach = (a: UkiyoeAction[]) => Math.min(...[...JSON.stringify(drawFigure({ look: { ...look, robePattern: undefined }, actions: a }, 50, 0, 2).prims).matchAll(/M(-?[\d.]+) /g)].map(m => Number(m[1])));
+    expect(reach(acts)).toBeLessThan(reach([]));
+  });
+});
+
+describe("UKIYO1 warriors", () => {
+  it("draws, holds and looses each arrow on its contact frame, and lands it on the target", () => {
+    for (const k of UKIYOE_BUSHI_SCENES) expect(inspectUkiyoeScene(bushiScene(k)), k).toEqual([]);
+    const spec = bushiScene("archer"), archer = spec.nodes.find(n => n.id === "archer") as Extract<UkiyoeSceneSpec["nodes"][number], { kind: "figure" }>, target = spec.nodes.find(n => n.id === "target") as unknown as { x: number; y: number; params: { height: number } };
+    for (const a of archer.actions!) {
+      const c = a.contact!, before = shootAt([a], c - 1, 250)!, after = shootAt([a], c, 250)!;
+      expect(before.released).toBe(false); expect(before.draw).toBeGreaterThan(.95);         // fully drawn and held before the loose
+      expect(after.released).toBe(true);
+      expect(shootAt([a], c + 60, 250)!.flight).toBe(1);
+      // The aim, in the scene, is on the target's centre (within its inner ring).
+      const ax = (archer.x ?? 0) + a.aim![0] * (archer.scale ?? 1), ay = (archer.y ?? 0) + a.aim![1] * (archer.scale ?? 1);
+      expect(Math.hypot(ax - target.x, ay - (target.y - target.params.height))).toBeLessThan(15);
+    }
+    // Armour draws in every view.
+    for (const view of ["profile", "three-quarter", "front", "back"] as const)
+      expect(JSON.stringify(drawFigure({ look: { armor: "beni", hat: "kabuto", view } }, 0, 0, 1).prims), view).toContain("shima");
+  });
+});
+
+describe("UKIYO1 animals II", () => {
+  it("draws every new animal moving (four-legged ones in all views), and each critter's motion changes over time", () => {
+    for (const k of UKIYOE_ANIMAL_HABITATS) expect(inspectUkiyoeScene(animalScene(k)), k).toEqual([]);
+    for (const sp of ["bear", "boar", "deer", "ox", "wolf", "mouse"] as const) for (const view of ["profile", "three-quarter", "front", "back"] as const)
+      expect(drawCreature({ species: sp, look: { view }, actions: [{ type: "walk", start: 0, end: 100, to: 100 }] }, 30, 0, 1).prims.length, `${sp} ${view}`).toBeGreaterThan(5);
+    for (const sp of ["hawk", "oshidori"] as const) expect(drawCreature({ species: sp, actions: [{ type: "fly", start: 0, end: 100, to: 100 }] }, 30, 0, 1).prims.length, sp).toBeGreaterThan(5);
+    const motion: Record<string, string> = { crab: "walk", turtle: "float", snake: "walk", frog: "hop", carp: "float", octopus: "dance" };
+    for (const sp of UKIYOE_CRITTERS) {
+      const acts = [{ type: motion[sp], start: 0, end: 200, ...(motion[sp] === "dance" ? {} : { to: 150 }) }] as Parameters<typeof drawCreature>[0]["actions"];
+      const a = JSON.stringify(drawCreature({ species: sp, actions: acts }, 20, 0, 1).prims), b = JSON.stringify(drawCreature({ species: sp, actions: acts }, 32, 0, 1).prims);
+      expect(a.length, sp).toBeGreaterThan(200);
+      expect(a === b, `${sp} moves between frames`).toBe(false);
+    }
+    // The coiled snake is more compact than the slithering one.
+    const xs = (type: string) => { const nums = [...JSON.stringify(drawCreature({ species: "snake", actions: [{ type, start: 0, end: 100 }] as Parameters<typeof drawCreature>[0]["actions"] }, 80, 0, 1).prims).matchAll(/M(-?[\d.]+) /g)].map(m => Number(m[1])); return Math.max(...nums) - Math.min(...nums); };
+    expect(xs("coil")).toBeLessThan(xs("walk"));
+  });
+});
+
+describe("UKIYO1 temples", () => {
+  it("builds each sacred place, and the belfry's log is drawn back before a strike, meets the bell on it, and the bell then sways", () => {
+    for (const k of UKIYOE_TEMPLE_SCENES) expect(inspectUkiyoeScene(templeScene(k)), k).toEqual([]);
+    for (const m of ["belfry", "hondo", "gate", "hokora", "graves", "toro", "hut"] as const) expect(drawMotif(m, {}, { frame: 0, wind: 0, seed: 3, progress: 1 }).length, m).toBeGreaterThan(3);
+    const st = (f: number) => bellStrike([50], f);
+    expect(st(10).pull).toBe(0);                                // at rest
+    expect(st(42).pull).toBeGreaterThan(.95);                   // drawn fully back and held
+    expect(st(50).pull).toBe(0);                                // meets the bell on the strike frame
+    expect(st(49).pull).toBeLessThan(st(46).pull);              // swinging in, fastest at the end
+    expect(st(40).sway).toBe(0);
+    expect(Math.abs(st(60).sway)).toBeGreaterThan(.5);          // the bell sways after the hit
+    expect(st(55).ring).toBe(5);
+    // A ruined gate grows grass on its roofs; a lantern hangs only when it is not in ruin.
+    expect(JSON.stringify(drawMotif("gate", { ruin: 1, lantern: true }, { frame: 0, wind: 0, seed: 3, progress: 1 }))).toContain("kusa");
+  });
+});
+
+describe("UKIYO1 animal yokai", () => {
+  it("builds each scene; the nekomata has two tails, towels and glowing eyes and carried keys draw, the whirlwind turns", () => {
+    for (const k of UKIYOE_ANIMAL_YOKAI_SCENES) expect(inspectUkiyoeScene(animalYokaiScene(k)), k).toEqual([]);
+    const len = (look: Record<string, unknown>, sp: "cat" | "fox" = "cat") => JSON.stringify(drawCreature({ species: sp, look, actions: [{ type: "sit", start: 0, end: 100 }] }, 30, 0, 1).prims).length;
+    const tailKeys = (look: Record<string, unknown>) => (JSON.stringify(drawCreature({ species: "cat", look, actions: [{ type: "sit", start: 0, end: 100 }] }, 30, 0, 1).prims).match(/"key":"tail\d"/g) ?? []).length;
+    expect(tailKeys({ tails: 2 })).toBe(2);
+    expect(tailKeys({})).toBe(1);
+    expect(len({ towel: "ai" })).toBeGreaterThan(len({}));
+    expect(len({ glowEyes: true })).toBeGreaterThan(len({}));
+    expect(len({ carry: "key" }, "fox")).toBeGreaterThan(len({}, "fox"));
+    for (const sp of ["weasel", "baku", "ape"] as const) for (const view of ["profile", "front"] as const)
+      expect(drawCreature({ species: sp, look: { view }, actions: [{ type: "walk", start: 0, end: 100, to: 80 }] }, 30, 0, 1).prims.length, `${sp} ${view}`).toBeGreaterThan(5);
+    const w = (f: number) => JSON.stringify(drawParticles({ type: "whirlwind", area: [0, 0, 600, 600], count: 1 }, f, 0, 3));
+    expect(w(10) === w(14)).toBe(false);
+  });
+});
+
+describe("UKIYO1 trees", () => {
+  it("builds each tree scene; the bamboo sways, the shining stalk glows, the face opens and the branches reach", () => {
+    for (const k of UKIYOE_TREE_SCENES) expect(inspectUkiyoeScene(treeScene(k)), k).toEqual([]);
+    const ctx = (frame: number, wind = 0) => ({ frame, wind, seed: 3, progress: 1 });
+    const d = (m: Parameters<typeof drawMotif>[0], p: Record<string, unknown>, f = 0, w = 0) => JSON.stringify(drawMotif(m, p, ctx(f, w)));
+    expect(d("bamboo", {}, 0) === d("bamboo", {}, 20)).toBe(false);
+    expect(d("bamboo", { shine: 2 })).toContain("glow");
+    expect(d("bamboo", {})).not.toContain("glow");
+    expect(d("shinboku", { face: 1 }).length).toBeGreaterThan(d("shinboku", { face: 0 }).length);
+    expect(d("shinboku", { reach: 1 }) === d("shinboku", { reach: 0 })).toBe(false);
+    expect(d("kaki", { fruit: 1 }).length).toBeGreaterThan(d("kaki", { fruit: 0 }).length);
+  });
+});
+
+describe("UKIYO1 heian court", () => {
+  it("draws the court looks in every view, the cart's wheels turn with its travel, the lady sits between the palace's parts and the blinds rise", () => {
+    for (const k of UKIYOE_HEIAN_SCENES) expect(inspectUkiyoeScene(heianScene(k)), k).toEqual([]);
+    for (const k of Object.keys(UKIYOE_HEIAN_LOOKS) as (keyof typeof UKIYOE_HEIAN_LOOKS)[]) for (const view of ["profile", "three-quarter", "front", "back"] as const)
+      expect(drawFigure({ look: { ...UKIYOE_HEIAN_LOOKS[k], view } as Parameters<typeof drawFigure>[0]["look"] }, 10, 0, 2).prims.length, `${k} ${view}`).toBeGreaterThan(10);
+    const cart = (progress: number) => JSON.stringify(drawMotif("gissha", { travel: 600 }, { frame: 0, wind: 0, seed: 1, progress }));
+    expect(cart(0) === cart(.3)).toBe(false);
+    const v = heianScene("veranda"), ids = v.nodes.map(n => n.id);
+    expect(ids.indexOf("palace")).toBeLessThan(ids.indexOf("lady"));
+    expect(ids.indexOf("lady")).toBeLessThan(ids.indexOf("palace-front"));
+    const blindHeight = (progress: number) => JSON.stringify(drawMotif("shinden", { part: "front", up: 0, rise: 1 }, { frame: 0, wind: 0, seed: 1, progress })).length;
+    expect(blindHeight(0) === blindHeight(1)).toBe(false);
+  });
+});
+
+describe("UKIYO1 folk yokai", () => {
+  it("draws the folk yokai looks in every view, flings sand only from the contact frame, and the akaname licks", () => {
+    for (const k of UKIYOE_FOLK_YOKAI_SCENES) expect(inspectUkiyoeScene(folkYokaiScene(k)), k).toEqual([]);
+    for (const k of Object.keys(UKIYOE_FOLK_YOKAI_LOOKS) as (keyof typeof UKIYOE_FOLK_YOKAI_LOOKS)[]) for (const view of ["profile", "three-quarter", "front", "back"] as const)
+      expect(drawFigure({ look: { ...UKIYOE_FOLK_YOKAI_LOOKS[k], view } as Parameters<typeof drawFigure>[0]["look"] }, 10, 0, 2).prims.length, `${k} ${view}`).toBeGreaterThan(10);
+    const look = UKIYOE_FOLK_YOKAI_LOOKS.sunakakebaba as unknown as Parameters<typeof drawFigure>[0]["look"], acts: UkiyoeAction[] = [{ type: "throw", start: 0, end: 60, contact: 30 }];
+    const sand = (f: number) => JSON.stringify(drawFigure({ look, actions: acts }, f, 0, 2).prims).includes('"color":"kincha","opacity"');
+    expect(sand(29)).toBe(false);
+    expect(sand(35)).toBe(true);
+    expect(sand(80)).toBe(false);
+    const ak = (f: number) => JSON.stringify(drawCreature({ species: "akaname", actions: [{ type: "stand", start: 0, end: 100 }] }, f, 0, 1).prims);
+    expect(ak(2) === ak(12)).toBe(false);
+  });
+});
+
+describe("UKIYO1 giants", () => {
+  it("builds each giant scene; each giant moves, the skeleton and sea monk rise out of the ground and the sea", () => {
+    for (const k of UKIYOE_GIANT_SCENES) expect(inspectUkiyoeScene(giantScene(k)), k).toEqual([]);
+    for (const g of UKIYOE_GIANTS) {
+      const d = (f: number) => JSON.stringify(drawCreature({ species: g, actions: [{ type: "roar", start: 0, end: 300 }] }, f, 0, 1).prims);
+      expect(d(10).length, g).toBeGreaterThan(500);
+      expect(d(10) === d(25), `${g} moves`).toBe(false);
+    }
+    // Rising: halfway through `appear` the top of the giant is lower than when fully risen.
+    for (const g of ["gashadokuro", "umibozu"] as const) {
+      const top = (f: number) => Math.min(...[...JSON.stringify(drawCreature({ species: g, look: { size: 600 }, actions: [{ type: "appear", start: 0, end: 300 }] }, f, 0, 1).prims).matchAll(/[ML]-?[\d.]+ (-?[\d.]+)/g)].map(m => Number(m[1])));
+      expect(top(60), g).toBeGreaterThan(top(295));
+    }
+  });
+});
+
+describe("UKIYO1 tsukumogami", () => {
+  it("builds each scene; the wheel's spokes turn with distance, shoji open eyes, the kimono puts out hands, the kettle turns back", () => {
+    for (const k of UKIYOE_TSUKUMO_SCENES) expect(inspectUkiyoeScene(tsukumoScene(k)), k).toEqual([]);
+    for (const t of UKIYOE_TSUKUMO) expect(drawCreature({ species: t, actions: [{ type: "walk", start: 0, end: 100, to: 300 }] }, 30, 0, 1).prims.length, t).toBeGreaterThan(3);
+    // Rolling: the same frame-independent distance gives the same spokes; more distance turns them.
+    const wheel = (f: number) => JSON.stringify(drawCreature({ species: "wanyudo", actions: [{ type: "walk", start: 0, end: 100, to: -600 }] }, f, 0, 1).prims).match(/"stroke","d":"(M[^"]+)","color":"sumi","width":[\d.]+\}/g)?.[1];
+    expect(wheel(20) === wheel(40)).toBe(false);
+    const room = (eyes: number) => JSON.stringify(drawMotif("room", { back: ["shoji"], eyes }, { frame: 0, wind: 0, seed: 1, progress: 1 })).length;
+    expect(room(1)).toBeGreaterThan(room(0));
+    const rack = (hands: number) => JSON.stringify(drawMotif("ikou", { hands }, { frame: 0, wind: 0, seed: 1, progress: 1 })).length;
+    expect(rack(1)).toBeGreaterThan(rack(0));
+    const kettle = (f: number) => JSON.stringify(drawCreature({ species: "chagama", actions: [{ type: "transform", start: 0, end: 40 }] }, f, 0, 1).prims).includes("kogecha");
+    expect(kettle(5)).toBe(true);
+    expect(kettle(35)).toBe(false);
+  });
+});
+
+describe("UKIYO1 realms", () => {
+  it("builds each realm; the camera follows the rider below the waves, the magpies fill the bridge, the boulder rolls", () => {
+    for (const k of UKIYOE_REALM_SCENES) expect(inspectUkiyoeScene(realmScene(k)), k).toEqual([]);
+    const r = realmScene("ryugu"), cam = (f: number) => cameraAt(r.camera, f, r.width, r.height).y;
+    expect(cam(0)).toBeLessThan(1000);                           // starting above the sea surface (y 1000)
+    expect(cam(r.durationFrames - 1)).toBeGreaterThan(1400);     // ending down by the palace
+    const birds = (progress: number) => (JSON.stringify(drawMotif("magpies", {}, { frame: 0, wind: 0, seed: 1, progress })).match(/translate\(/g) ?? []).length;
+    expect(birds(0)).toBe(0); expect(birds(.5)).toBeGreaterThan(0); expect(birds(1)).toBeGreaterThan(birds(.5));
+    const cave = (progress: number) => JSON.stringify(drawMotif("iwato", { opens: 1 }, { frame: 0, wind: 0, seed: 1, progress }));
+    expect(cave(0)).not.toContain("glow");
+    expect(cave(1)).toContain("glow");
   });
 });
 

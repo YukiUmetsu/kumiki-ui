@@ -510,6 +510,679 @@ The counts of kanzashi and the weights given vary between sources and were not u
 - No film uses the fight yet.
 - Nobody has done a human visual review yet.
 
+## Castle (roadmap U5, owner request, 2026-11-15)
+
+**Sources.**
+
+- Public-domain Meiji-era photographs on Wikimedia Commons: *Nagoya Castle in 1880s*, *Kumamoto Castle oldphoto 1874*, *Himejicastle-meiji*.
+- Hiroshige's Tōkaidō views with castles from the Met's open-access collection: *Kuwana* (55587), *Odawara* (36931) and *Nihonbashi* (37195).
+
+**What they show.**
+
+- **Keep.** Stacked tiers, each smaller, with deep dark eaves turning up at the corners.
+- **Gables.** Triangular chidori gables and a curved karahafu stand forward on the roof faces.
+- **Walls.** White plaster with rows of small barred windows (Kumamoto: black boarding below).
+- **Ridge.** Gold shachihoko on the top ridge.
+- **Stone base.** A tall base whose faces are shallow at the foot and steep at the top, with long-and-short interlocking corner stones.
+- **Outer works.** Corner turrets and long walled galleries on the stonework, gates, moats.
+
+**What was built.** `ukiyoe-castle.ts` (`motif: "castle"`) draws the keep, the outer wall, the turrets, the gate, the moat and the bridge, seen slightly from the side. It takes `tiers`, `style`, `snow`, `night`, `depth`, and `walls` / `turrets` / `gate` / `moat` / `bridge`. Three examples are in the Motifs gallery.
+
+**Review rounds (screenshots at 0.6× and 1.6×).**
+
+1. **First draft.** The stone base bulged like a dome (the fan curve was inverted). The roofs were thin, and the elevation was flat. The base now flares at the foot and steepens at the top; the roofs are deeper with wider eaves; storeys, roofs and stone bases have shaded side faces.
+2. **Second round.**
+   - The keep base's side face ballooned outward; it is now a straight receding face.
+   - The shachihoko were oversized and have been scaled down.
+3. **Close-up.**
+   - The chidori gables were hidden by the storey above. They are now drawn after the whole tower, standing in front with tiled bargeboards and a gold gegyo.
+   - Hip lines started under the upturned corners and left spikes; they now start at the corners.
+   - The side eave left a notch at the front corner; it now starts from the upturned front corner.
+   - A chidori gable covered the karahafu; that tier now carries only the karahafu.
+
+**Further study (owner request: "study more castle references").** More public-domain Meiji photographs and prints, from Wikimedia Commons:
+
+- Beato's views of Edo castle: *Castle of Yedo, inner moat*, *Yedo castlemoat*, *Tycoon's Palace double bridge*
+- *Matsumoto Castle Old Photograph*
+- *Nijō Castle in Kyoto, before 1902*
+- Hiroshige's *One Hundred Famous Views of Edo* no. 66 and *Soto Sakurada*
+- Hiroshige III's *Kudanzaka Ushigabuchi*
+
+They showed five things the motif lacked, all now built:
+
+- **Stones.** The stones are irregular blocks, not neat courses. They are biggest at the foot and the corners, each with its own tone, and the joints never line up. They are now drawn that way.
+- **Galleries.** The walls carry long white gallery buildings (tamon-yagura) with rows of windows and tiled roofs (Edo). These are the default; the plain loopholed wall is `wall: "dobei"`.
+- **Top roof.** The top roof is hip-and-gable, with a big gable on its end face (Edo's Fujimi turret, Nagoya). It is now drawn on the receding face.
+- **Reflections.** The moats mirror the walls (Matsumoto, Edo); the walls are now reflected, faded, in the moat.
+- **Pines.** Hiroshige crowns castle walls with umbrella pines. Now `pines` stand along the bailey behind the wall.
+
+**Not done.**
+
+- A single fixed angle (left to right); `flip` mirrors it.
+- No second bailey; the grassy earthwork banks (dote) of Edo's outer moats are not drawn.
+- The stone wall runs are frontal.
+- No film uses the castle yet.
+- Nobody has done a human visual review yet.
+
+## Castle town (roadmap U6, owner request, 2026-11-15)
+
+**Sources.**
+
+- Hiroshige's *One Hundred Famous Views of Edo* no. 8, *Suruga-chō* (Wikimedia Commons, public domain).
+- From the Met: Hiroshige's *Asakusa Kaminarimon*, *Twilight Moon at Ryōgoku Bridge* and *Sudden Shower over Shin-Ōhashi*.
+- Beato's *View of Yedo* (public domain).
+- Yoshitoshi's Yaoya Oshichi climbing a fire-watch tower (public domain).
+- A photograph of a surviving hinomi-yagura (CC BY 2.1 JP; studied only, not redistributed).
+
+**What they show.**
+
+- **Merchant streets.** Lines of big shops under heavy tiled roofs, indigo noren with white crests across the fronts, standing signs and slit windows above, crowds on the street, mist bands, Fuji beyond.
+- **Samurai quarters.** Long white walls with gatehouses, pines behind, moats with grassy banks.
+- **Bridges.** Long wooden bridges on piles, boats below.
+- **Fire-watch towers.** Tapering timber legs, a lashed ladder, a platform with a bell under a little roof.
+
+**What was built.** `ukiyoe-town.ts` adds the `shop`, `kura`, `yashiki` and `firetower` motifs and the `castleTown()` scene (6,400 px, four stations). Storybook has **Castle town**, and the Motifs gallery has the four new motifs.
+
+**Review rounds.**
+
+1. **First pass.**
+   - The keep's top was cut off, and the castle floated over a band of sky. The town now has one ground that rises to the castle's hill, and the castle is smaller.
+   - The street covered the bridge. The street is now split, with the canal water, stone banks, the bridge over it and a boat in it.
+   - The residence pines were spindly and have been shortened.
+2. **Tracking the crowds frame by frame** showed walkers would wade into the canal. They are now placed and directed so none ever stands on the water; the test checks every walker every 15 frames.
+3. **Distant range.** A hard white snow line on the range in the snowless version was removed.
+
+**Not done.**
+
+- Walkers do not cross the bridge.
+- The street is seen from the side, not in Suruga-chō's deep perspective.
+- No night version.
+- Nobody has done a human visual review yet.
+
+## Interiors (folktale queue F1, 2026-11-15)
+
+**Sources** (public domain; the Met open-access collection unless noted).
+
+- Hiroshige's *Akasaka: Inn with Serving Maids* (Tōkaidō, ca. 1834, 36958).
+- Harunobu's *Night Rain at the Double-Shelf Stand* from *Eight Parlor Views* (37145) and his parlour prints.
+- Utamaro's *A Woman Weaving, Seated at a Hand Loom* (36631), *Women Weaving Silk Cloth* (36627) and *Kitchen Scene* (37325).
+- Kiyonaga's *Three Geishas of Tachibana Street in Their Room* (57090).
+- Kuniyoshi's *The Okazaki Cat Demon* (45282).
+- The *Genji Monogatari Emaki*, Azumaya (Wikimedia Commons).
+
+**What they show.**
+
+- **The open front.** Hiroshige's inn is seen from the garden with the front wall open: ochre posts and lintels, white shoji with their grid, silver-grey fusuma painted with bamboo, green tatami with black borders, a veranda of planks with posts beneath, a thatched eave cut by the top of the print, a square paper lamp, bedding stacked. The Genji scroll's roofless rooms (fukinuki yatai) look down at an angle and frame figures with posts, blinds and screens.
+- **Projection.** The floor recedes in parallel oblique, never toward a vanishing point. The tatami joints and borders carry the depth.
+- **Furniture.** Harunobu's parlour has a round window with a bamboo lattice and staggered lacquered shelves. Kiyonaga's room has a lattice screen and a black-lacquer mirror stand.
+- **The loom.** Utamaro's loom is pale wood blocks with key lines. The warp is a sheet of fine threads, the reed is a comb in a frame, and an overhead arm carries the cord. The weaver kneels close, one hand on the beater.
+- **Kitchen and hearth.** Utamaro's kitchen: wooden tubs bound with cord, an iron kettle with its spout, smoke rising in curling bands.
+
+**What was built.** `ukiyoe-interior.ts` adds the `room`, `andon`, `irori`, `futon`, `loom` and `byobu` motifs, the `sleep` and `weave` actions, and `interiorScene()` with four rooms. Storybook has **Interiors**, and the Motifs gallery has eight new tiles.
+
+**Review rounds.**
+
+1. **First renders.**
+   - The tatami borders were twice as heavy as the prints' and have been thinned to a line.
+   - The hearth flames were plain triangles. They are now curling tongues with yellow hearts and a key line.
+   - The quilt was a shapeless blob. It is now a thick cover with a mound over the body, a draped front and a collar band across the head end.
+   - The loom was a spindly scaffold. Its timbers are now outlined wood blocks, and the warp is a translucent sheet.
+2. **Torn shoji.** Random holes with radial marks read as insects. Tears now burst whole lattice cells, with a scrap of paper still hanging from the top of each, as in the ghost prints.
+3. **Night paper.** At night the shoji paper was translucent, so the garden showed through it like glass. The paper is now opaque grey-blue, or warm when a lamp is behind it (the inn's front shoji).
+4. **Painted fusuma.** Each panel repeated the same painting. The painting now runs across both panels of a bay and moves with the sliding panel.
+5. **The sleeper.** The figure first lay on the floor in front of the futon, then hidden under the cover. Its heels are now placed so the head rests on the pillow, which was checked at full size with and without the cover.
+6. **Tracking the weaver frame by frame** over a full pick (44 frames). Her hands floated short of the beater, and the beater swung half the loom's length. The beater now swings a hand's width. The `weave` action puts the near hand on the beater bar by IK, using the loom's own `loomGrip` and swing, and the weaver kneels with her knees under the cloth beam. On every frame the hand is on the bar, and the shuttle shows only while the beater is back.
+7. **The maid.** The carry pose read as scratching her head. She now holds her hands before her as she walks in, then kneels and bows.
+
+**Not done.**
+
+- Smoke-blackened rafters for the farmhouse.
+- A tray, teacups and other hand props (queued for F15).
+- The fusuma do not open by a figure's hand.
+- Interiors have no three-quarter or deep-perspective view.
+- Nobody has done a human visual review yet.
+
+## Women ghosts and hags (folktale queue F3, 2026-11-15)
+
+**Sources** (public domain prints; one photograph of a print studied only).
+
+- Hokusai's *Sarayashiki* and *Oiwa-san* from *One Hundred Ghost Stories* (Wikimedia Commons; the Oiwa file is a CC BY-SA photograph of the print, studied only).
+- Toriyama Sekien's *Hone-onna*, *Ubume* and *Nure-onna* (Wikimedia Commons).
+- Utamaro's *Yamauba and Kintoki* (Met DP135601, CC0).
+- Hokuei's and Toyokuni's Oiwa prints in the Met (76565, 45290), seen in search only.
+
+**What they show.**
+
+- **Okiku.** Okiku's neck is a long serpentine coil of stacked plates. Her hair falls in a great black mass beside it, her face is a white profile, and one thin curl of breath drifts out. The well is a ragged plank curb overgrown with ivy.
+- **Oiwa.** Oiwa's face merges with a torn lantern: one eye drags down under a swelling, and the hair is thin.
+- **Hone-onna.** Hone-onna looks like a living young woman in a patterned kimono, carrying a peony lantern at a gate.
+- **Ubume.** The ubume wades in the river in rain with wet loose hair, holding the baby.
+- **Yamauba.** Yamauba's hair is long and wild.
+
+**What was built.** `ukiyoe-onna.ts` adds:
+- six ghost faces with the `reveal` action, in every view;
+- the peony lantern, the baby and the candle crown;
+- eight generic looks.
+
+`ukiyoe-yokai.ts` adds `okiku`, and `ukiyoe-interior.ts` adds the `well` motif. Storybook has **Women ghosts**, and the Motifs gallery has the well.
+
+**Review rounds.**
+
+1. **Close-ups of all eight looks**, in four views, before and after the reveal.
+   - The futakuchi mouth in profile was too small to see behind the bun; it is now almost twice the size, with a tongue.
+   - Oiwa's swelling looked like a lens, with a hard outline; it is now an uneven bruise sagging onto the cheek.
+   - The yamanba's spiky "wild" hair read as a starburst. She now has long white hair.
+2. **Okiku.** The first coil was a few small plates and the face was tiny. She now has seventeen overlapping plates, a heavier mass of hair and a larger head, which is closer to Hokusai.
+3. **The lineup.** A ground block covered only half the frame (rect nodes are centred), and the labels were checked for gaps between them.
+
+**Not done.**
+
+- The ame-onna and tsurara-onna are composed from existing pieces (long wet hair with rain; the snow woman in icy colours). They have no look of their own.
+- The funayūrei and nure-onna are left for F12, with the sea monsters.
+- Oiwa has no lantern-face version.
+- The skull reveal does not show the bones of the body.
+- Nobody has done a human visual review yet.
+
+## Folk work and props (folktale queue F15, 2026-11-15)
+
+**Sources** (public domain, the Met):
+
+- the six-panel screen *Farmers' Lives in the Twelve Months* (44674), studied at full resolution;
+- Ishikawa Toyonobu's *Woman Washing Clothes* (55779).
+
+**What they show.**
+
+- **Farmers.** The farmers work bent over, with their sleeves tied back and headbands on, and their robes hitched up over bare legs. Hoes are carried on the shoulder. Lunch comes out to the field on a carrying pole, and an ox draws the plough.
+- **The washerwoman.** She hitches up her robe and works at the water's edge.
+
+**What was built.** `ukiyoe-folk.ts`:
+- the `chop`, `hoe`, `pound`, `wash` and `shake` actions;
+- the axe, hoe and pestle on a tool timeline with IK hands;
+- strike chips, clods and mochi;
+- the mallet of luck with pouring treasure;
+- rice ball, firewood bundle and Hachikazuki's bowl;
+- the `stump`, `usu` and `tarai` motifs;
+- `folkScene()`.
+
+Storybook has **Folk work**, and the Motifs gallery has three new tiles.
+
+**Review rounds.**
+
+1. **Tracking the axe frame by frame** over one stroke: the slow lift, the hold at the top, the fast drop over the head and the bite into the block.
+   - With long sleeves raised overhead, the sleeve covered the face. Workers now have short sleeves, like the screen's tied-back sleeves.
+   - The hoe's contact frame fell between whole frames, so its contact pulse could be missed. The stroke's phases now land on whole frames.
+   - The test checks that the head is exactly on its contact point every stroke, and that the drop is more than twice as fast as the lift.
+2. **Scenes.**
+   - The pink horizon showed in a gap between the hills and the ground. The ground was raised and the figures made bigger.
+   - A ricefield strip read as stray stripes; it was replaced by furrows under the hoe.
+   - The treasure was too small to see and has been enlarged.
+
+**Not done.**
+
+- Carrying a person on the back (Ubasute-yama).
+- Sewing, the needle-sword and the one-inch boy's bowl boat.
+- Tools in the square views.
+- A tray of cups.
+- Nobody has done a human visual review yet.
+
+## Effects and magic (folktale queue F14, 2026-11-15)
+
+**Sources** (public domain):
+
+- the *Kitano Tenjin engi emaki* (13th century, Met 45428), the hell-fire passage;
+- Hiroshige's *Fox Fires on New Year's Eve at the Changing Tree, Ōji* (Met DP121555, via Wikimedia Commons).
+
+**What they show.**
+
+- **Fire.** Fire streams sideways in long vermilion tongues with curled tips, white and grey smoke rolls in bands, and speed lines sweep through.
+- **Fox-fires.** Each fox carries a small teardrop flame by its head, yellow inside and red at the edge, and far fires string out across the dark field.
+
+**What was built.** `ukiyoe-effects.ts`:
+- the `fire` and `halo` motifs;
+- the `smoke`, `lightning`, `ash` and `foxfire` particles;
+- `effectScene()`.
+
+Storybook has **Effects**, and the Motifs gallery has two new tiles.
+
+**Review rounds.**
+
+1. **Smoke billows.**
+   - The billows were drawn as one scalloped polygon and came out as spiky stars and gears. Each billow is now a cluster of round lobes drawn as one outlined union.
+   - The union outline showed every lobe through the translucent fill. The fill is now opaque, and the cloud fades as a whole group. The same fix went into the creature `transform` puff, which had the same see-through outlines.
+2. **Flames.** The flames were an even fence. Their count, width and height now vary, and the tips curl less.
+3. **Lightning.** The bolt was too thin to read at film size and has been thickened.
+4. **Henge timing.** The woman appeared a frame before the fox vanished. She now appears after the puff's midpoint, and the test checks this.
+
+**Not done.**
+
+- The earthquake has only the camera shake, with no falling objects.
+- Magical growth, such as a stalk shooting up, has no effect of its own.
+- No flame-carrying creature for Click-Clack Mountain's burning load.
+- Nobody has done a human visual review yet.
+
+## Kami and heavenly beings (folktale queue F9, 2026-11-15)
+
+**Sources** (the Met, public domain):
+
+- the netsuke of a tennin (59277);
+- a 7th-century flying apsara tile (60778);
+- Kōno Bairei's *Luring the Sun Goddess Amaterasu Out of a Cave with Music* (670889);
+- Totoya Hokkei's *Ebisu and Daikoku* (54017).
+
+**What they show.**
+
+- **Celestials.** The flying celestials arch along their flight with their robes trailing behind. A long scarf streams and loops above them; the hair is in a crowned topknot, with swirling cloud around them.
+- **Daikoku.** A soft round cap, a raised mallet and a great white rice bag over the shoulder, laughing.
+- **Ebisu.** A folded tall cap, a fishing rod, and a red sea bream held to his chest.
+
+**What was built.** `ukiyoe-kami.ts`:
+- the `fly` action and the hagoromo `stole`;
+- magatama beads;
+- `mizura` and `tenko` hair, and the `zukin` cap;
+- the mirror, tsurugi, hoko and tai props, and the rice bag;
+- the `kumo` cloud;
+- six looks and `kamiScene()` with four scenes.
+
+Storybook has **Kami**, and the Motifs gallery has the cloud.
+
+**Review rounds.**
+
+1. **Cast sheets** of the six looks in profile and front.
+   - The mizura loops read at the ears.
+   - The bag, cap, fish and spear all attach to the hands or back.
+2. **Scenes.**
+   - The tennyo's flight was checked at mid-path: she is off the ground, with the scarf stretched behind.
+   - The storm god's grey cloud vanished against the storm sky and is now white.
+
+**Not done.**
+
+- No Seven Lucky Gods beyond Ebisu and Daikoku.
+- Konohanasakuya-hime, the kagura dance and the rock-cave door being rolled away are not built.
+- Flying is a lean, not a full horizontal body like the apsara tile.
+- Nobody has done a human visual review yet.
+
+## Warriors II (folktale queue F5, 2026-11-15)
+
+**Sources.**
+
+- The Met's *Armor (Yoroi)*, early 14th to early 15th century (23025, Arms and Armor), studied from the museum photograph.
+- The armour and sword observations already in this study (U3a).
+- No archery or naginata print was studied for this slice. That gap remains, along with Kuniyoshi's and Yoshitoshi's warrior prints.
+
+**What it shows.**
+
+- **Horns.** The gilt horns rise tall and almost straight from a plate on the brow, far above the riveted bowl.
+- **Neck guard.** It flares very wide, like a low roof over the shoulders.
+- **Breastplate.** Covered with a stencilled diamond leather panel.
+- **Skirt plates.** Broad, reaching nearly to the knees, densely laced in rows.
+- **Shoulder boards and tassels.** Large square boards, and orange knotted tassels.
+
+**What was built.** `ukiyoe-bushi.ts`:
+- the `armor` ō-yoroi and the `kabuto`, in every view;
+- the `yumi` prop with the `shoot` timeline (raise, draw by IK, hold, loose on `contact`, the arrow flying to `aim` and sticking);
+- the `naginata`;
+- the `mato` target;
+- `bushiScene()`.
+
+Storybook has **Warriors**.
+
+**Review rounds.**
+
+1. **Tracking a shot frame by frame:** raised, drawn to the ear, held, loosed, in flight, stuck. The aim had been offset to the target's edge and now lands at its centre; the test checks this for all three arrows.
+2. **Front view.** The helmet's neck guard covered the face. It now flares only at the sides.
+3. **Against the yoroi photograph.** The horns were short and curled; they are now tall and straight. The neck guard was narrow and is now wide.
+
+**Not done.**
+
+- Archery and naginata print references.
+- The agemaki tassels.
+- Mounted warriors.
+- A naginata fighting timeline; it is only carried.
+- Toad magic.
+- The ghostly Heike army.
+- Nobody has done a human visual review yet.
+
+## Animals II (folktale queue F4, 2026-11-15)
+
+**Sources** (the Met, public domain):
+
+- Yashima Gakutei's *Red Carp Ascending a Waterfall* (54158);
+- Hokusai's *Crab and Rice Plant* (54091);
+- Teisai Hokuba's fans with crane and minogame (54177).
+
+The four-legged rig itself follows the Koson and Kuniyoshi studies earlier in this document. No new bear, boar, deer, ox or wolf print was studied for this slice.
+
+**What they show.**
+
+- **The carp.** Deep-bodied, its scales a net of crossing diagonals with each diamond a scale. Large fins ribbed with rays, a gold eye, the body spotted.
+- **The crab.** A round pale carapace, thin jointed legs, and furry "mitten" claws held up.
+- **The minogame.** Its long fan of seaweed trails behind the shell.
+
+**What was built.**
+
+- Six four-legged species and two birds, from the parameter tables.
+- Six critter rigs.
+- `animalScene()` with four habitats.
+- Storybook **Animals**, and 14 new Bestiary specimens.
+
+**Review rounds.**
+
+1. **Menagerie sheet.**
+   - The bear's legs vanished in its fur, so they are longer now.
+   - The boar's tusks were too small to see and have been enlarged.
+   - The ox looked like a black dog. It now has bigger horns, a blunter muzzle and no grey cheek.
+   - The carp was a thin sardine; it is now deeper.
+2. **Front views.** The bear's face was black on black and now has a brown muzzle.
+3. **Habitats.**
+   - The hawk floated in mid-air and is now on a post.
+   - The carp sat on top of the pond and now swim under a translucent surface.
+   - The mice ran through the ox and now run in front of it.
+4. **Against Gakutei.** The carp's scale pattern was replaced with his net of diagonals, and ribbed pectoral and pelvic fins were added under the belly. They first came out on the back and were moved.
+
+**Not done.**
+
+- Bear, boar, deer and ox prints have not been studied.
+- The crab's furry mittens.
+- The hawk's hooked beak.
+- The critters, hawk and duck have no front or back views.
+- Centipede and giant toad (F12).
+- Nobody has done a human visual review yet.
+
+## Temples, shrines and graves (folktale queue F8, 2026-11-15)
+
+**Sources.**
+
+- Public domain prints:
+  - Hiroshige's *Kinryūzan Temple at Asakusa* (Met 56689);
+  - *Gion Shrine in Snow* (55998);
+  - *Evening Bell at Mii Temple* (49931);
+  - Yoshitoshi's *The Southern Gate* (Wikimedia Commons).
+- A photograph of the Saikyō-ji bonshō in Fukuoka (Wikimedia Commons, CC BY-SA 4.0). It was studied only and is not redistributed.
+
+**What they show.**
+
+- **Asakusa gate.** The vermilion two-storey gate frames the hall, its great red lantern hanging in the opening, a pagoda beyond, all in snow.
+- **Gion shrine.** Stone lanterns stand inside the shrine fence, and the torii is snow-laden.
+- **Rashōmon.** Massive red pillars.
+- **The bonshō.** Verdigris bronze; rows of raised nubs in the upper panels; crossing raised bands; two lotus striking seats; the dragon loop; the log striker hanging on chains at the side.
+
+**What was built.** `ukiyoe-temple.ts`:
+- the `belfry`, `hondo`, `gate`, `hokora`, `graves`, `toro` and `hut` motifs, sharing the castle's roof;
+- `bellStrike` timing;
+- `templeScene()`.
+
+The well came earlier, with F3. Storybook has **Temples**, and the Motifs gallery has eight new tiles.
+
+**Review rounds.**
+
+1. **The graveyard.** The wooden sotoba stood twice the height of the stones and swamped them. Both have been rescaled.
+2. **The bell.** Checked at a strike and while ringing, and confirmed by test: the log is drawn back, meets the bell on the strike frame, and the bell sways afterwards.
+
+**Not done.**
+
+- The castle roof gives every temple the same eave with its pale underside. There are no curved Buddhist roof profiles.
+- No pagoda interior, and no bell wrapped by the serpent (F12).
+- The Rashōmon's ruin has no broken rafters.
+- Nobody has done a human visual review yet.
+
+## Animal yōkai (folktale queue F6, 2026-11-15)
+
+**Sources** (public domain, Wikimedia Commons): Toriyama Sekien's *Kamaitachi* and Hokusai's *Baku*.
+
+**What they show.**
+
+- **Kamaitachi.** The whirlwind is a great flat spiral of grey bands seen face on, weasels curled in its turns and leaves caught along it.
+- **Baku.** A shaggy, densely hatched tawny beast with a long curling trunk, small tusks, clawed paws and a bushy tail, crouching with its head low.
+
+**What was built.**
+
+- Two-tailed cats, the towel, glowing eyes and the carried key, jewel or scroll.
+- The `weasel`, `baku` and `ape` species.
+- The `whirlwind` particle.
+- `animalYokaiScene()` with six scenes.
+- Storybook **Animal yōkai**.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - The whirlwind was a few faint ellipses round the weasels. It is now Sekien's spiral with leaves on its bands; one weasel sleeps at the heart and two are carried round.
+   - The baku was a grey striped boar, closer to the charm pictures than to Hokusai. It is now shaggy and tawny, with a long fur coat and a bushy tail.
+2. **Scenes.** The two-tailed nekomata, the dancing towelled cats with glowing eyes, the following wolves' eyes and the messenger fox's key were all checked on stills.
+
+**Not done.**
+
+- No transformation from a cat into a woman.
+- No inugami.
+- The satori ape does not speak its mind-reading lines.
+- The yamabiko has no echo effect.
+- Nobody has done a human visual review yet.
+
+## Trees and forest spirits (folktale queue F13, 2026-11-15)
+
+**Sources** (public domain):
+
+- Sakai Hōitsu's *Persimmon Tree* (Met 45392);
+- the *Taketori Monogatari* scroll (Wikimedia Commons);
+- Toriyama Sekien's *Kodama* (Wikimedia Commons).
+
+**What they show.**
+
+- **Hōitsu's persimmon.** A gnarled trunk bending up from a grassy bank into a few angular branches, sparse leaves, and only a handful of round vermilion fruit with dark calyxes.
+- **Sekien's kodama.** The spirits of a hundred-year-old pine: an old man and woman in robes emerging from the trunk.
+- **The Taketori scroll.** The bamboo cutter's family in a thatched house.
+
+**What was built.** `ukiyoe-trees.ts`:
+- the `bamboo`, `kaki`, `shinboku` and `jinmenju` motifs;
+- `treeScene()` with five scenes.
+
+Storybook has **Trees**, and the Motifs gallery has five new tiles.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - The persimmon was loaded with fruit like a cherry; it now carries a few, as in Hōitsu, on a thicker trunk.
+   - The jinmenju's heads bunched on one branch and are now spread over the crown.
+   - The sacred tree's trunk was a straight column. It now flares into roots and twists as it rises.
+2. **Scenes.** The shining stalk's glow, the face opening and the vampire tree's reaching arms were checked on stills.
+
+**Not done.**
+
+- The kodama spirits are ordinary figures fading in, not drawn emerging from the trunk.
+- No cherry tree that blooms on its own; that comes from the `sakura` motif's progress (F14).
+- The bamboo stalk does not split open to show the child.
+- Nobody has done a human visual review yet.
+
+## Heian court (folktale queue F2, 2026-11-15)
+
+**Sources** (the Met, public domain):
+
+- the Tosa-school *Evening Face* scene of the Tale of Genji (45743);
+- Hokusai's *Court Lady* (57286);
+- the 16th-century *Aoi* chapter scroll (670936).
+
+**What they show.**
+
+- **The lady.** She wears pink layered robes over a red hakama, her hair straight and loose to the floor. Hokusai's seated lady spreads in many coloured layers, each edge showing at the sleeve and the hem.
+- **The noble.** Green robes, a black cap with its standing tail, a baton.
+- **The ox-cart.** A black-lacquered house on two great spoked wheels, with a blind across the front.
+- **The palace.** The Aoi scroll's rooms are seen from above, with blinds and screens framing the people.
+
+**What was built.** `ukiyoe-heian.ts`:
+- the `heian` hair and the `kanmuri`;
+- the `shaku` and `hiogi`;
+- court looks;
+- the `gissha`, `sudare`, `kicho` and `shinden` motifs;
+- `heianScene()`.
+
+Storybook has **Heian court**, and the Motifs gallery has four tiles.
+
+**Review rounds.**
+
+1. **Cast sheets in profile and front.**
+   - The noble carried an Edo katana that stuck out at the hip; it has been removed.
+   - The layers show at the hem in the front view.
+2. **The veranda.**
+   - The palace was drawn over the lady, hiding her, and she floated above the floor.
+   - The palace now splits into back and front. She kneels on the floor between them, seen dimly through the translucent blinds, which roll half up as the noble comes.
+3. **The ox-cart.** The ox did not reach the shafts, and an attendant overlapped the cart. The ox now stands in the shafts and the attendants walk clear.
+
+**Not done.**
+
+- Layered sleeves spilling out under the blinds (uchiide no kinu).
+- No seated spread-robe pose: the kneeling robe does not fan out like Hokusai's lady.
+- No bugaku dancers or court music.
+- Nobody has done a human visual review yet.
+
+## Folk yōkai (folktale queue F7, 2026-11-15)
+
+**Sources** (public domain, Wikimedia Commons): Toriyama Sekien's *Akaname*, *Nurarihyon* and *Dodomeki*, and Takehara Shunsen's *Azukiarai*.
+
+**What they show.**
+
+- **Akaname.** A wild-haired imp with a long tongue and one-toed clawed feet, peeking into a bathhouse past the tubs.
+- **Nurarihyon.** An old gentleman in fine robes with an enormous bald gourd of a head, sitting at ease on a veranda.
+- **Azukiarai.** A squat, grinning little man washing beans in a tub at the stream's edge.
+- **Dodomeki.** A veiled woman in long robes; the legend covers her arms with eyes.
+
+**What was built.** `ukiyoe-folkyokai.ts`:
+- the gourd head, the straw cape, the eyes and the bean basket;
+- the `throw` action with sand;
+- the `akaname` yōkai;
+- eight looks;
+- `folkYokaiScene()`.
+
+Storybook has **Folk yōkai**.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - Nurarihyon's head was barely bigger than a bald man's and is now a great gourd.
+   - The akaname looked like a kiwi bird. It is now Sekien's crouching imp, with knees up and an arm reaching to the floor.
+   - Dodomeki's eyes were too small to see, and the straw cape was a patch on the shoulders. Both have been enlarged.
+   - The bean basket was hidden because the hands were apart; the figure now holds it in both hands.
+2. **The throw.** The sand was too fine to see; it now has bigger grains and a dust glow.
+
+**Not done.**
+
+- The konaki-jiji does not turn into a stone.
+- The yukinko does not melt.
+- Nurarihyon does not smoke or drink.
+- The akaname has no front view.
+- Nobody has done a human visual review yet.
+
+## Giant monsters (folktale queue F12, 2026-11-15)
+
+**Sources** (public domain, Wikimedia Commons):
+
+- Kuniyoshi's *Takiyasha the Witch and the Skeleton Spectre*;
+- his *Kuwana* sea monk;
+- Yoshitoshi's *Susanoo slays Yamata no Orochi*;
+- the *Kashima kaname-ishi* namazu-e.
+
+**What they show.**
+
+- **The skeleton.** It leans in through the ruined palace. Its huge skull fills the frame, the ribs are drawn bone by bone, and one hand of long finger bones reaches toward the warriors.
+- **The sea monk.** A vast smooth black head looms over a cargo boat in the waves, with tiny white eyes.
+- **Orochi.** Dark coils in breaking surf.
+- **The catfish.** A great black catfish with long whiskers, pinned by the god with the keystone.
+
+**What was built.** `ukiyoe-giants.ts`:
+- six giant species;
+- `giantScene()` with eight scenes.
+
+The toad uses the frog rig at large size, and the daidarabotchi uses the figure rig scaled up. Storybook has **Giants**.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - The skeleton's skull was cut off at the top and too small for Kuniyoshi's; it is now larger and lower.
+   - The sea monk's boat was a sliver with a full-size sailor on it. It is now a proper boat with a small boatman, and the streaming water is subtler.
+   - The catfish's dorsal fin read as a shark's and is now small and rounded. A house sat on its body, and later floated; it now stands on the ground behind.
+   - The serpent on a bell hanging in the belfry was too small. The bell is now down on the ground, with the serpent coiled round it, as in the story.
+
+**Not done.**
+
+- The nure-onna and funayūrei are not built.
+- The gashadokuro has no legs; it always rises from the ground.
+- Orochi's heads do not drink from the sake vats.
+- The catfish has no keystone and no god.
+- Nobody has done a human visual review yet.
+
+## Tsukumogami (folktale queue F11, 2026-11-15)
+
+**Sources** (public domain, Wikimedia Commons): Toriyama Sekien's *Biwa-bokuboku*, *Wanyūdō*, *Mokumokuren*, *Kosode-no-te* and *Oboro-guruma*.
+
+**What they show.**
+
+- **Biwa-bokuboku.** A lute for a head on a robed body, walking with a staff, one hand raised.
+- **Wanyūdō.** A heavy cart wheel with a man's head as the hub, flames swirling round it as it rolls.
+- **Mokumokuren.** A neglected room's shoji with an eye in every pane.
+- **Kosode-no-te.** Pale hands reaching from the sleeves of a robe on its rack.
+
+**What was built.** `ukiyoe-tsukumo.ts`:
+- four yōkai;
+- the `ikou` rack;
+- the room's eyes and the cart's face;
+- `tsukumoScene()` with seven scenes.
+
+Storybook has **Tsukumogami**, and the Motifs gallery has a rack tile.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - The wanyūdō's flames streaked like comets; they are shorter now.
+   - The rice field was hidden under the ground and now lies on it.
+   - The biwa-bokuboku and the cotton strip were too small, and a startled farmer was added for scale.
+   - The eyed shoji were too crowded and now fill 70% of the panes.
+
+**Not done.**
+
+- Bunbuku's tightrope act.
+- The ittan-momen wrapping a man.
+- The wanyūdō has no captured wheel.
+- The biwa does not play.
+- Nobody has done a human visual review yet.
+
+## Other realms (folktale queue F10, 2026-11-15)
+
+**Sources**:
+
+- Kuniyoshi's *Recovering the Stolen Jewel from the Palace of the Dragon King* (Met DP146820, CC0);
+- Shunsai Toshimasa's *Origin of the Cave Door Dance* (Wikimedia Commons, public domain);
+- Yoshitoshi's *Gekkyū no mukae* (Commons, public domain);
+- Hiroshige's *Tanabata Festival* (Met DP121512, CC0).
+
+**What they show.**
+
+- **The Dragon Palace.** Kuniyoshi draws the sea's interior as a mass of blue-green breakers with sea creatures and the dragon.
+- **The rock cave.** Toshimasa fills the cave scene with orange and gold rays, Uzume dancing on a tub and the gods drumming.
+- **The moon.** Yoshitoshi's Kaguya rises on clouds with her attendants and a parasol while the old man reaches after her.
+- **Tanabata.** Hiroshige's bamboo poles carry paper strips, a gourd and streamers over the roofs.
+
+**What was built.** `ukiyoe-realms.ts`:
+- nine motifs;
+- the `bubbles` particle;
+- `realmScene()`: six realms, each with a camera move or keyed event that carries the viewer in.
+
+Storybook has **Realms**, and the Motifs gallery has five tiles.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - The sky behind the dive ran out at the right as the camera moved; it is now wider.
+   - Fish crowded the palace roofs and now swim to its left.
+   - The Tanabata ox stood on nothing; it is now on the cowherd's cloud.
+   - The bamboo pole was taken out of the star sky.
+2. **Checked on stills.** The dive (above the waves, under the surface, at the gate), Kaguya's ascent, the bridge filling, the cave opening and Yomi closing.
+
+**Not done.**
+
+- The sea interior is a calm gradient, not Kuniyoshi's breaking waves.
+- No Otohime, no tamatebako, no dragon in the palace.
+- Kaguya's attendants and parasol are missing.
+- Yomi's hags do not pursue.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

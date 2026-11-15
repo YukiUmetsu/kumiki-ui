@@ -1,0 +1,495 @@
+{
+ "schema": "kumiki.anatomy.references/1",
+ "acquiredOn": "2026-11-15",
+ "note": "Public-domain or CC0 files from Wikimedia Commons, licence read per file from the Commons API; downscaled to 1400 px.",
+ "references": [
+  {
+   "id": "proportions-richer-canon",
+   "file": "assets/photos/anatomy-references/proportions-richer-canon.jpg",
+   "region": "body",
+   "title": "Richer's canon of proportions (front and side, head units marked).",
+   "study": [
+    "Compare his idealised 7.5-head canon with ANAT1's measured adults (MODEL_TABLES.byAge, ANSUR ratios).",
+    "Note the crotch slightly below half height and the arm span."
+   ],
+   "source": {
+    "title": "File:Richer - Anatomie artistique, 2 p. 146.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._146.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Richer_-_Anatomie_artistique%2C_2_p._146.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Paul Richer",
+    "credit": "This image has been extracted from another file",
+    "date": "1890"
+   },
+   "width": 1058,
+   "height": 1400,
+   "sha256": "a3c0db1a990c5d5a72a352155bea159767a712356d9d16148a56888951440777",
+   "bytes": 93612
+  },
+  {
+   "id": "male-front-topography-richer",
+   "file": "assets/photos/anatomy-references/male-front-topography-richer.jpg",
+   "region": "body",
+   "title": "Surface topography of a standing male, front, with landmarks named.",
+   "study": [
+    "Clavicle shelf, pectoral fan into the armpit, linea alba and abdominal segments, iliac crest and inguinal line.",
+    "The thigh slopes inward to a knee whose inner side is lower and fuller."
+   ],
+   "source": {
+    "title": "File:Richer - Anatomie artistique, 2 p. 81.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._81.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Richer_-_Anatomie_artistique%2C_2_p._81.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Paul Richer",
+    "credit": "This image has been extracted from another file",
+    "date": "1890"
+   },
+   "width": 1058,
+   "height": 1400,
+   "sha256": "d48965a51bd020fc88e50a95369116fa4de9c2f51e196d47738d6e451bf8196c",
+   "bytes": 196033
+  },
+  {
+   "id": "back-forms-richer",
+   "file": "assets/photos/anatomy-references/back-forms-richer.jpg",
+   "region": "body",
+   "title": "Back of the trunk: trapezius, scapulae, latissimus, erector columns and gluteals.",
+   "study": [
+    "The back armpit fold is lower than the front fold.",
+    "Shoulder blades lie on the rib cage and rotate with the arm."
+   ],
+   "source": {
+    "title": "File:Richer - Anatomie artistique, 2 p. 87.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._87.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/1/12/Richer_-_Anatomie_artistique%2C_2_p._87.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Paul Richer",
+    "credit": "This image has been extracted from another file",
+    "date": "1890"
+   },
+   "width": 1058,
+   "height": 1400,
+   "sha256": "96ad8d7ea1c36c62a411cea23dafd0128ea98df49f4a8b64e4d1b1a694ec8cfe",
+   "bytes": 185479
+  },
+  {
+   "id": "trunk-skeleton-richer",
+   "file": "assets/photos/anatomy-references/trunk-skeleton-richer.jpg",
+   "region": "body",
+   "title": "Skeleton of the trunk, front: rib cage, clavicles, pelvis.",
+   "study": [
+    "The rib cage is an egg tilted back; the pelvis tilts forward.",
+    "Use with SURFACE_FORMS bone entries (clavicle, iliac crest)."
+   ],
+   "source": {
+    "title": "File:Richer - Anatomie artistique, 2 p. 23.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._23.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Richer_-_Anatomie_artistique%2C_2_p._23.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Paul Richer",
+    "credit": "This image has been extracted from another file",
+    "date": "1890"
+   },
+   "width": 1058,
+   "height": 1400,
+   "sha256": "26aef79a96f2ac1f1064910cae6cd2948748b8e7b0a8229a46b7290a59681139",
+   "bytes": 142903
+  },
+  {
+   "id": "arm-forms-richer",
+   "file": "assets/photos/anatomy-references/arm-forms-richer.jpg",
+   "region": "arm",
+   "title": "Outer forms of the upper limb.",
+   "study": [
+    "Deltoid teardrop inserting a third of the way down; forearm wide near the elbow, flat at the wrist."
+   ],
+   "source": {
+    "title": "File:Richer - Anatomie artistique, 2 p. 91.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._91.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/1/12/Richer_-_Anatomie_artistique%2C_2_p._91.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Paul Richer",
+    "credit": "This image has been extracted from another file",
+    "date": "1890"
+   },
+   "width": 1058,
+   "height": 1400,
+   "sha256": "23961366689555264d466a59a102ba4a832dd8260d146dbed3900b4bdb5a309e",
+   "bytes": 173065
+  },
+  {
+   "id": "forearm-rotation-1-richer",
+   "file": "assets/photos/anatomy-references/forearm-rotation-1-richer.jpg",
+   "region": "arm",
+   "title": "The forearm from supination to pronation (sequence).",
+   "study": [
+    "Compare with the forearm `twist` DOF (−85 supination … +80 pronation, CDC ROM)."
+   ],
+   "source": {
+    "title": "File:Richer - Anatomie artistique, 2 p. 133.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._133.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/2/27/Richer_-_Anatomie_artistique%2C_2_p._133.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Paul Richer",
+    "credit": "This image has been extracted from another file",
+    "date": "1890"
+   },
+   "width": 1400,
+   "height": 1029,
+   "sha256": "7259a891886322bb61757d96c4b4080669c8244b2f73d3c5635f071e9edc0cf3",
+   "bytes": 103761
+  },
+  {
+   "id": "forearm-rotation-2-richer",
+   "file": "assets/photos/anatomy-references/forearm-rotation-2-richer.jpg",
+   "region": "arm",
+   "title": "Forearm rotation, second view sequence.",
+   "study": [
+    "How the radius crosses the ulna and the outer contour changes."
+   ],
+   "source": {
+    "title": "File:Richer - Anatomie artistique, 2 p. 137.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._137.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/69/Richer_-_Anatomie_artistique%2C_2_p._137.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Paul Richer",
+    "credit": "This image has been extracted from another file",
+    "date": "1890"
+   },
+   "width": 1400,
+   "height": 1029,
+   "sha256": "619c4d401ce852dd208087eda5acb37306a284d31de718c3ca02f5a29df6b755",
+   "bytes": 105043
+  },
+  {
+   "id": "thigh-muscles-richer",
+   "file": "assets/photos/anatomy-references/thigh-muscles-richer.jpg",
+   "region": "leg",
+   "title": "Thigh muscles in three views.",
+   "study": [
+    "Sartorius diagonal, vastus medialis teardrop, hamstrings behind."
+   ],
+   "source": {
+    "title": "File:Richer - Anatomie artistique, 2 p. 71.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._71.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/2/22/Richer_-_Anatomie_artistique%2C_2_p._71.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Paul Richer",
+    "credit": "This image has been extracted from another file",
+    "date": "1890"
+   },
+   "width": 1400,
+   "height": 1029,
+   "sha256": "a29edf0ac7a30df8df39be28998b74ada75643298d3371f93f6d76d972e8514e",
+   "bytes": 150970
+  },
+  {
+   "id": "head-neck-movement-richer",
+   "file": "assets/photos/anatomy-references/head-neck-movement-richer.jpg",
+   "region": "head",
+   "title": "Head and neck movement (photographs).",
+   "study": [
+    "The sternocleidomastoid of the side opposite the turn stands out (neck `twist`)."
+   ],
+   "source": {
+    "title": "File:Richer - Anatomie artistique, 2 p. 106.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Richer_-_Anatomie_artistique,_2_p._106.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/7/72/Richer_-_Anatomie_artistique%2C_2_p._106.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Paul Richer",
+    "credit": "This image has been extracted from another file",
+    "date": "1890"
+   },
+   "width": 1400,
+   "height": 1029,
+   "sha256": "1029162c3e64c38a60c8648d5b0da95df93c7fa544be3a1c8e9be767a1b1d1a5",
+   "bytes": 136971
+  },
+  {
+   "id": "expression-duchenne-fig78",
+   "file": "assets/photos/anatomy-references/expression-duchenne-fig78.jpg",
+   "region": "face",
+   "title": "Duchenne's electrically evoked expression (1862).",
+   "study": [
+    "Expressions move soft tissue around fixed bone: eyelids, brows and mouth corners change; the skull does not."
+   ],
+   "source": {
+    "title": "File:Duchenne Mecanisme de la physionomie humaine, fig. 78.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Duchenne_Mecanisme_de_la_physionomie_humaine,_fig._78.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Duchenne_Mecanisme_de_la_physionomie_humaine%2C_fig._78.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Duchenne, G.-B.",
+    "credit": "Mecanisme de la physionomie humaine, fig. 78 Paris: Renouard, 1862. \n\nNLM Unique ID 101448072 from Images from the History of Medicine (IHM) from NIH",
+    "date": "1862"
+   },
+   "width": 1116,
+   "height": 1400,
+   "sha256": "7ec0337f27933d4eb0a42f97c3279f89e731d8c4e075de8b81b2d94859c9c4d3",
+   "bytes": 142442
+  },
+  {
+   "id": "face-neck-muscles-gray378",
+   "file": "assets/photos/anatomy-references/face-neck-muscles-gray378.jpg",
+   "region": "face",
+   "title": "Muscles of the head, face and neck (Gray 1918).",
+   "study": [
+    "Orbicularis around eye and mouth, zygomaticus to the mouth corner, masseter to the jaw angle, sternocleidomastoid."
+   ],
+   "source": {
+    "title": "File:Gray378.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Gray378.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Gray378.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Henry Vandyke Carter",
+    "credit": "Henry Gray (1918)       Anatomy of the Human Body   (See \"Book\" section below)\nBartleby.com: Gray's Anatomy, Plate 378",
+    "date": "before 1858date QS:P,+1858-00-00T00:00:00Z/7,P1326,+1858-00-"
+   },
+   "width": 620,
+   "height": 700,
+   "sha256": "37053ae76bd7492182e1b2d55291278b3e4142fd8a32d1859cb8420194b68259",
+   "bytes": 89556
+  },
+  {
+   "id": "jaw-muscles-gray383",
+   "file": "assets/photos/anatomy-references/jaw-muscles-gray383.jpg",
+   "region": "face",
+   "title": "Deep jaw muscles and the skull (Gray 1918).",
+   "study": [
+    "The jaw angle sits below the ear; the zygomatic arch bridges to it."
+   ],
+   "source": {
+    "title": "File:Gray383.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Gray383.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/0/06/Gray383.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Henry Vandyke Carter",
+    "credit": "Henry Gray (1918)       Anatomy of the Human Body   (See \"Book\" section below)\nBartleby.com: Gray's Anatomy, Plate 383",
+    "date": "before 1858date QS:P,+1858-00-00T00:00:00Z/7,P1326,+1858-00-"
+   },
+   "width": 500,
+   "height": 422,
+   "sha256": "b3abb642d3f33940552beab90a601e833d01370ee89595d9143abf951e680cfe",
+   "bytes": 48412
+  },
+  {
+   "id": "shoulder-arm-muscles-gray410",
+   "file": "assets/photos/anatomy-references/shoulder-arm-muscles-gray410.jpg",
+   "region": "arm",
+   "title": "Shoulder and upper-arm muscles (Gray 1918).",
+   "study": [
+    "Deltoid over the shoulder joint, biceps and triceps, the deltoid insertion."
+   ],
+   "source": {
+    "title": "File:Gray410.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Gray410.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/d/de/Gray410.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Henry Vandyke Carter",
+    "credit": "Henry Gray (1918)       Anatomy of the Human Body   (See \"Book\" section below)\nBartleby.com: Gray's Anatomy, Plate 410",
+    "date": "before 1858date QS:P,+1858-00-00T00:00:00Z/7,P1326,+1858-00-"
+   },
+   "width": 531,
+   "height": 650,
+   "sha256": "8ff9d6c5b745aa8e381b134c8433635fb401fc05b3ec22cf119bc5074e36469c",
+   "bytes": 84256
+  },
+  {
+   "id": "hand-bones-gray219",
+   "file": "assets/photos/anatomy-references/hand-bones-gray219.jpg",
+   "region": "hand",
+   "title": "Bones of the left hand (Gray 1918).",
+   "study": [
+    "Metacarpal heads form the knuckle arc; phalanx lengths shorten toward the tips; the thumb's metacarpal is a separate ray."
+   ],
+   "source": {
+    "title": "File:Gray219.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Gray219.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Gray219.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Henry Vandyke Carter",
+    "credit": "Henry Gray (1918)       Anatomy of the Human Body   (See \"Book\" section below)\nBartleby.com: Gray's Anatomy, Plate 219",
+    "date": "before 1858date QS:P,+1858-00-00T00:00:00Z/7,P1326,+1858-00-"
+   },
+   "width": 650,
+   "height": 831,
+   "sha256": "1e30cd85a4c89a172b1d5802dfa57b9463c1cab61f8584ad479f5c29d1a2e594",
+   "bytes": 108034
+  },
+  {
+   "id": "foot-bones-gray268",
+   "file": "assets/photos/anatomy-references/foot-bones-gray268.jpg",
+   "region": "foot",
+   "title": "Bones of the left foot (Gray 1918).",
+   "study": [
+    "The medial arch, the talus under the ankle, toe lengths."
+   ],
+   "source": {
+    "title": "File:Gray268.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Gray268.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/9/9e/Gray268.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Henry Vandyke Carter",
+    "credit": "Henry Gray (1918)       Anatomy of the Human Body   (See \"Book\" section below)\nBartleby.com: Gray's Anatomy, Plate 268",
+    "date": "before 1858date QS:P,+1858-00-00T00:00:00Z/7,P1326,+1858-00-"
+   },
+   "width": 638,
+   "height": 1195,
+   "sha256": "7129ccf0b06918480b2fc813caf175f6d7496e782e52cb6f1a9a9e5d5197d182",
+   "bytes": 148332
+  },
+  {
+   "id": "knee-joint-gray345",
+   "file": "assets/photos/anatomy-references/knee-joint-gray345.jpg",
+   "region": "leg",
+   "title": "Knee joint with the patella (Gray 1918).",
+   "study": [
+    "The knee is a box of femoral condyles, patella and tibial plateau, not a hinge line."
+   ],
+   "source": {
+    "title": "File:Gray345.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Gray345.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Gray345.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Henry Vandyke Carter",
+    "credit": "Henry Gray (1918)       Anatomy of the Human Body   (See \"Book\" section below)\nBartleby.com: Gray's Anatomy, Plate 345",
+    "date": "before 1858date QS:P,+1858-00-00T00:00:00Z/7,P1326,+1858-00-"
+   },
+   "width": 276,
+   "height": 575,
+   "sha256": "ba43a76db41cc48a8239f1474caab7ce096e7468719f4af5c7bbe6771abdaaf8",
+   "bytes": 45958
+  },
+  {
+   "id": "thigh-back-muscles-gray434",
+   "file": "assets/photos/anatomy-references/thigh-back-muscles-gray434.jpg",
+   "region": "leg",
+   "title": "Back of the thigh: gluteals and hamstrings (Gray 1918).",
+   "study": [
+    "Hamstring tendons frame the back of the knee."
+   ],
+   "source": {
+    "title": "File:Gray434.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Gray434.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Gray434.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Henry Vandyke Carter",
+    "credit": "Henry Gray (1918)       Anatomy of the Human Body   (See \"Book\" section below)\nBartleby.com: Gray's Anatomy, Plate 434",
+    "date": "before 1858date QS:P,+1858-00-00T00:00:00Z/7,P1326,+1858-00-"
+   },
+   "width": 368,
+   "height": 1000,
+   "sha256": "620b2b662ef678859c82558e518bf3241d712e5e5aa165234faaba0e1b228c34",
+   "bytes": 110481
+  },
+  {
+   "id": "thigh-cross-section-gray432",
+   "file": "assets/photos/anatomy-references/thigh-cross-section-gray432.jpg",
+   "region": "leg",
+   "title": "Cross-section through the thigh (Gray 1918).",
+   "study": [
+    "Depth: the femur sits back of centre and the section is not round — compare with `limbSection`."
+   ],
+   "source": {
+    "title": "File:Gray432.png",
+    "page": "https://commons.wikimedia.org/wiki/File:Gray432.png",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/82/Gray432.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Henry Vandyke Carter",
+    "credit": "Henry Gray (1918)       Anatomy of the Human Body   (See \"Book\" section below)\nBartleby.com: Gray's Anatomy, Plate 432",
+    "date": "before 1858date QS:P,+1858-00-00T00:00:00Z/7,P1326,+1858-00-"
+   },
+   "width": 683,
+   "height": 700,
+   "sha256": "b160987c24edbf0a6c414c357ae88ced1455a6012d74bab0c14166085dc5bccf",
+   "bytes": 134616
+  },
+  {
+   "id": "hands-leonardo-rcin912558",
+   "file": "assets/photos/anatomy-references/hands-leonardo-rcin912558.jpg",
+   "region": "hand",
+   "title": "Leonardo, study of a woman's hands (c.1490).",
+   "study": [
+    "Relaxed hands: soft finger curl increasing toward the little finger (HAND_POSES.relaxed)."
+   ],
+   "source": {
+    "title": "File:Leonardo da Vinci - RCIN 912558, A study of a woman's hands c.1490.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Leonardo_da_Vinci_-_RCIN_912558,_A_study_of_a_woman%27s_hands_c.1490.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/2/26/Leonardo_da_Vinci_-_RCIN_912558%2C_A_study_of_a_woman%27s_hands_c.1490.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Leonardo da Vinci",
+    "credit": "https://www.rct.uk/collection/912558/a-study-of-a-womans-hands",
+    "date": "1490"
+   },
+   "width": 1021,
+   "height": 1400,
+   "sha256": "c510f7ef757238891721a6e384c75ee8c06efe62f8e2a8f035055e3f5dac63da",
+   "bytes": 194089
+  },
+  {
+   "id": "running-muybridge-060",
+   "file": "assets/photos/anatomy-references/running-muybridge-060.jpg",
+   "region": "motion",
+   "title": "Muybridge, man running (1887), sequential photographs.",
+   "study": [
+    "Read frame by frame: knee drive, flight phase, trunk lean (POSE_PRESETS run)."
+   ],
+   "source": {
+    "title": "File:Man in pelvis cloth running at a half-mile gait (rbm-QP301M8-1887-060).jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Man_in_pelvis_cloth_running_at_a_half-mile_gait_(rbm-QP301M8-1887-060).jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/67/Man_in_pelvis_cloth_running_at_a_half-mile_gait_%28rbm-QP301M8-1887-060%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Muybridge, Eadweard, 1830-1904",
+    "credit": "http://digitallibrary.usc.edu/cdm/ref/collection/p15799coll58/id/5144",
+    "date": "1884/1886"
+   },
+   "width": 1400,
+   "height": 1121,
+   "sha256": "4f476bfd3843cc4ff10fc1339015be4b12b4c986082b3de5415d02c1eb8a9853",
+   "bytes": 152136
+  },
+  {
+   "id": "run-jump-muybridge-159",
+   "file": "assets/photos/anatomy-references/run-jump-muybridge-159.jpg",
+   "region": "motion",
+   "title": "Muybridge, man running and jumping (1887).",
+   "study": [
+    "Take-off and landing knee and ankle angles stay inside the joint ranges."
+   ],
+   "source": {
+    "title": "File:Man in pelvis cloth running and jumping (rbm-QP301M8-1887-159).jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Man_in_pelvis_cloth_running_and_jumping_(rbm-QP301M8-1887-159).jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/9/9e/Man_in_pelvis_cloth_running_and_jumping_%28rbm-QP301M8-1887-159%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Muybridge, Eadweard, 1830-1904",
+    "credit": "http://digitallibrary.usc.edu/cdm/ref/collection/p15799coll58/id/6244",
+    "date": "1884/1886"
+   },
+   "width": 1400,
+   "height": 1133,
+   "sha256": "08e8fcd87dbac047f416c39f98921221ae99f835bd4ae86552a7f99a92c2d42f",
+   "bytes": 123490
+  },
+  {
+   "id": "locomotion-plate-470-muybridge",
+   "file": "assets/photos/anatomy-references/locomotion-plate-470-muybridge.jpg",
+   "region": "motion",
+   "title": "Muybridge, Animal Locomotion plate 470 (1887).",
+   "study": [
+    "Weight shift and counter-swing of the arms."
+   ],
+   "source": {
+    "title": "File:Animal locomotion. Plate 470 (Boston Public Library).jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Animal_locomotion._Plate_470_(Boston_Public_Library).jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/86/Animal_locomotion._Plate_470_%28Boston_Public_Library%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Eadweard Muybridge",
+    "credit": "[1]",
+    "date": "1887"
+   },
+   "width": 1400,
+   "height": 806,
+   "sha256": "ef8c000ed37a21ebd4f38c8fe5efa59f0e8c311f332bfb8ca390112bcce458ad",
+   "bytes": 174489
+  }
+ ]
+}
