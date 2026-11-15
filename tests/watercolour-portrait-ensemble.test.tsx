@@ -42,6 +42,60 @@ describe("WC14 watercolor identity and multi-character film",()=>{
     expect(inspectWatercolourArtwork(adult)).toEqual([]);
     expect(inspectWatercolourArtwork(mature)).toEqual([]);
   });
+  it("replaces simplified vector makeup with an irregular source-space brush hierarchy",()=>{
+    for(const sitter of ["sitter-a","sitter-b"] as const){
+      const figure=watercolorPortraitSpec("landscape",83,sitter);
+      const parts=figure.parts.flatMap(all);
+      const ids=parts.map(p=>p.id);
+      for(const id of [
+        "portrait-directed-value-brushwork",
+        "supraorbital-violet-cool","far-brow-warm-undertone",
+        "malar-light-uneven-brush","cheek-cool-broken-plane",
+        "nose-wing-sienna-pigment","nasolabial-edge-falloff",
+        "chin-cool-turn-and-reserved-skin","portrait-selective-calligraphic-accents",
+        "near-lid-outer-brushstroke","lip-gesture-not-outline",
+        "root-following-gouache-dry-runs","shoulder-left-bloom",
+        "chest-suggestion-of-fabric-weight",
+      ])expect(ids).toContain(id);
+      const cheek=parts.find(p=>p.id==="malar-light-uneven-brush");
+      const pupil=parts.find(p=>p.id==="near-pupil");
+      expect(cheek?.kind).toBe("path");
+      expect(pupil?.kind).toBe("path");
+      if(cheek?.kind==="path"){
+        expect(cheek.path).toMatch(/[CQ]/);
+        expect(cheek.opacity).toBeGreaterThan(.2);
+        expect(cheek.opacity).toBeLessThan(.5);
+      }
+      const painted=renderToStaticMarkup(<WatercolourIllustration
+        spec={figure} frame={255}/>);
+      expect(painted).toContain('data-km-watercolour-part="malar-light-uneven-brush"');
+      expect(painted).toContain('data-km-watercolour-part="near-lid-outer-brushstroke"');
+      expect(inspectWatercolourArtwork(figure)).toEqual([]);
+    }
+  });
+  it("keeps the back hair, front hair, face and beard attached through meaningful head gestures",()=>{
+    for(const sitter of ["sitter-a","sitter-b"] as const){
+      const scene=watercolorPortraitSpec("portrait",83,sitter);
+      const parts=scene.parts.flatMap(all);
+      const get=(id:string)=>parts.find(p=>p.id===id);
+      const face=get("living-facial-anatomy");
+      const back=get("opaque-hair-silhouette");
+      const front=get("directional-hair-overpainting");
+      expect(face?.keys?.length).toBeGreaterThan(4);
+      expect(face?.keys).toEqual(back?.keys);
+      expect(face?.keys).toEqual(front?.keys);
+      const turn=face?.keys?.find(k=>k.frame===255);
+      expect(turn?.rotation).toBeGreaterThan(1);
+      expect(turn?.x).toBeGreaterThan(0);
+      if(sitter==="sitter-b")expect(get("salt-pepper-beard-with-volume")?.keys)
+        .toEqual(face?.keys);
+      const crown=get("hair-foundation");
+      const eyelid=get("near-upper-lid");
+      expect(crown?.kind).toBe("path");
+      expect(eyelid?.kind).toBe("path");
+      if(eyelid?.kind==="path")expect(eyelid.strokeWidth).toBeLessThan(2);
+    }
+  });
   for(const output of ["portrait","landscape"] as const){
     it("passes full material/source validator with distinct eyes in "+output,()=>{
       const scene=watercolorPortraitEnsembleSpec(output);

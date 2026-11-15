@@ -78,3 +78,7 @@ New two-sitter reference-led human character construction: [original portrait ge
 ## WC14 two-character watercolor identity and motion (2026-11-14)
 
 See [WC14 ArtCraft identity and ensemble study](research/watercolour-wc14-ensemble-and-identity-craft.md): distinct sitter-specific face topology, eye locations, nose/mouth geometry, root-directed non-periodic hair/beard marks, and serializable 1–3 actor staging on common watercolor paper. The production film and native Storybook story share frame-pure motion and a strict cast validator. **Browser screenshot and normal-speed film artistic signoff remain independent gates.**
+
+## WC15 source-space facial brushwork and attached performer motion (2026-11-14)
+
+See [WC15 expressive portrait ArtCraft study](research/watercolour-wc15-expressive-portrait-artcraft.md): anatomical/value painting for eye sockets, malar planes, nose wings, jaw and lips; root-directed wet hair/cloth washes; a connected back-hair/face/fringe/beard performance rig; and in-Storybook **same-frame craft comparison**. Automated structural, rendering and native-browser tests are not a substitute for high-resolution portrait aesthetic acceptance. Full-body acting and final MP4 review remain outstanding.
