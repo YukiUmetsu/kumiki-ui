@@ -52,3 +52,18 @@ This is **not** a complete source-match: gradients may look overly digital
 and locally blurred contours need visual review at 1x and 3x; no calculated
 SSIM or five-axis fidelity score has been obtained. Do not expose hidden
 character Storybook stories based on these engineering checks.
+
+## Actual browser critique: hard-wax versus soft-scumble and source revisions
+
+The revised ArtCraft proof run [43661549747](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43661549747)
+confirms that configurable incidental marks and soft glazes make the face
+cleaner, but **rejected** on quality: the broad nose became too faint,
+lower hair locks became two stiff hanging prongs, the coat silhouette read
+as a padded blue vest and the blouse V looked like a geometric void.
+
+Further code adjustments replace those straight hanging locks with shorter
+rooted curls, restore subtle dorsal/alar pigment marks, and add an opaque
+rolled burgundy scarf with individually clipped warp/weft pigment strokes.
+Scarf drape is treated as **geometry first**, not an image overlay.
+Re-render and inspect before approving. No source-contour fidelity score is
+asserted, and all character Storybook pages remain hidden.

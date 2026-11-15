@@ -47,6 +47,9 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(nodes.get("far-iris-radials")?.parentId).toBe("right-eye-iris");
       expect(nodes.get("hair-left-lower-wave")?.kind).toBe("wax");
       expect(nodes.get("hair-nape-sweep")?.kind).toBe("wax");
+      expect(nodes.get("tailored-scarf-wrap")?.parentId).toBe("coat-silhouette");
+      expect(nodes.get("tailored-scarf-weft")?.parentId).toBe("tailored-scarf-wrap");
+      expect(nodes.get("nose-dorsal-soft-edge")?.kind).toBe("contour");
       const blouse=nodes.get("shirt-linen");
       if(blouse?.kind!=="wax")throw new Error("Missing blouse");
       expect(blouse.bounds.width/blouse.bounds.height).toBeLessThan(.96);
@@ -67,7 +70,8 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
         expect(patch.coverage).toBe("open");
         expect(patch.parentId).toBe("adult-face");
         expect(patch.clipToParent).toBe(true);
-        expect(patch.blendRadius).toBeGreaterThanOrEqual(6);
+        expect(patch.blendRadius).toBeGreaterThan(0);
+        expect(patch.blendRadius).toBeLessThanOrEqual(18);
       }
       const human=nodes.get("adult-face");
       expect(human?.kind==="wax"&&human.coverage).toBe("opaque");

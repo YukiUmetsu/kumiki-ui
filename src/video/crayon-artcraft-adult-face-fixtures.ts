@@ -28,6 +28,8 @@ const colors={
   neck:["#bc8a78","#816269","#dfb09b"] as const,
   coat:["#556677","#344958","#84909b"] as const,
   noseShade:["#c79c8b","#a67e7b","#e6bda6"] as const,
+  scarf:["#aa6a5e","#724f59","#d5a082"] as const,
+  scarfShadow:["#845251","#5d434b","#bc7a68"] as const,
   silk:["#d7bda9","#a9918d","#eee0c7"] as const,
 } satisfies Record<string,readonly [CrayonColor,CrayonColor,CrayonColor]>;
 export const portraitCriticalParts=[
@@ -39,6 +41,7 @@ export const portraitCriticalParts=[
   "lip-upper-volume","lip-lower-volume","mandible-plane",
   "hair-back","hair-temple-lock","neck-under-jaw",
   "coat-collar-left","coat-collar-right",
+  "tailored-scarf-wrap","tailored-scarf-tail",
 ] as const;
 const time={base:[1,98],value:[63,173],anatomy:[135,236],detail:[206,288]} as const;
 
@@ -202,6 +205,12 @@ export function crayonAdultFaceStudy(
     {parentId:"adult-face",coverage:"open",clipToParent:true,
       blendRadius:5,markStrength:.12,pressure:.34,spacing:12,
       outlineOpacity:0,edgeRoughness:0});
+  ink("nose-dorsal-soft-edge",
+    "M7 -103Q9 -81 14 -61M17 -49Q21 -40 25 -39",
+    "#b48775",1.25,"detail",{parentId:"adult-face",opacity:.68});
+  ink("nose-alar-undercut",
+    "M22 -23Q28 -18 35 -20M39 -26Q45 -31 51 -27",
+    "#a4716c",1.15,"detail",{parentId:"adult-face",opacity:.69});
   ink("nostril-underplane",
     "M14 -27Q19 -22 24 -26M40 -27Q44 -30 48 -29",
     "#865e61",1.08,"detail",{parentId:"adult-face",opacity:.7});
@@ -223,6 +232,9 @@ export function crayonAdultFaceStudy(
   ink("mouth-commissures",
     "M-18 45Q-5 49 8 47Q25 50 43 40",
     "#86575d",1.32,"detail",{parentId:"adult-face",opacity:.81});
+  ink("lip-reflected-wax",
+    "M-6 60Q10 65 26 57M-12 44Q-5 42 1 43",
+    "#d8a199",1.12,"detail",{parentId:"adult-face",opacity:.78});
   ink("philtrum-column",
     "M2 14Q3 30 6 33M22 9Q23 23 21 31",
     "#c28b79",1.05,"detail",{parentId:"adult-face"});
@@ -333,16 +345,17 @@ export function crayonAdultFaceStudy(
   // Three overlapping swept locks break the old helmet silhouette without
   // changing the source identity. All roots follow the cranium.
   wax("hair-left-lower-wave",
-    "M-120 -139Q-151 -108 -152 -45"+
-    "Q-160 7 -139 55Q-119 81 -99 68"+
-    "Q-125 37 -119 3Q-107 -36 -120 -74Z",
-    box(-169,-150,78,248),colors.hairLight,"anatomy",
+    "M-122 -150Q-151 -118 -150 -80"+
+    "Q-166 -46 -143 -23Q-122 -8 -109 -23"+
+    "Q-127 -52 -116 -84Q-106 -121 -122 -150Z",
+    box(-176,-165,82,168),colors.hairLight,"anatomy",
     {parentId:"adult-face",markStrength:.55,spacing:7.1,
       outlineOpacity:.08,edgeRoughness:.58});
   wax("hair-nape-sweep",
-    "M113 -137Q155 -99 150 -33Q162 38 132 88"+
-    "Q120 104 111 93Q138 37 112 -14Z",
-    box(103,-148,66,264),colors.hair,"anatomy",
+    "M113 -157Q153 -130 146 -96"+
+    "Q169 -61 142 -31Q133 -11 119 -22"+
+    "Q137 -59 120 -92Q105 -123 113 -157Z",
+    box(103,-170,77,165),colors.hair,"anatomy",
     {parentId:"adult-face",markStrength:.58,spacing:6.9,
       outlineOpacity:.07,edgeRoughness:.61});
   wax("hair-amber-crown-glaze",
@@ -362,10 +375,10 @@ export function crayonAdultFaceStudy(
     [{x:49,y:-286},{x:126,y:-289},{x:151,y:-180},{x:129,y:-84}],
     612,118,"#b58c78");
   hair("hair-left-lower-flow","hair-left-lower-wave",
-    [{x:-124,y:-129},{x:-166,y:-79},{x:-164,y:12},{x:-108,y:68}],
+    [{x:-124,y:-142},{x:-164,y:-105},{x:-165,y:-54},{x:-114,y:-23}],
     613,123,"#d3a084");
   hair("hair-nape-flow","hair-nape-sweep",
-    [{x:118,y:-132},{x:165,y:-68},{x:165,y:31},{x:131,y:89}],
+    [{x:118,y:-146},{x:165,y:-102},{x:170,y:-55},{x:134,y:-22}],
     614,112,"#b48c79");
   ink("flyaway-accents",
     "M-126 -223Q-145 -242 -157 -225"+
@@ -386,6 +399,30 @@ export function crayonAdultFaceStudy(
     "Q33 208 21 268Q10 281 -11 266Z",
     box(-64,137,136,153),colors.silk,"anatomy",
     {parentId:"coat-silhouette",markStrength:.43,spacing:10,outlineOpacity:0});
+  // Wrapped textile has separate rolled band and hanging tail with
+  // grain following cloth direction. No flat screen-space tartan overlay.
+  wax("tailored-scarf-wrap",
+    "M-80 120Q-43 136 0 142Q41 139 78 118"+
+    "Q90 132 68 158Q28 182 -17 167Q-58 166 -87 143Z",
+    box(-97,107,191,82),colors.scarf,"anatomy",
+    {parentId:"coat-silhouette",spacing:5.6,markStrength:.62,
+      edgeRoughness:.43,outlineOpacity:.06});
+  wax("tailored-scarf-tail",
+    "M30 169Q53 187 53 215Q56 248 43 264"+
+    "L19 268Q30 236 18 181Z",
+    box(9,158,60,127),colors.scarfShadow,"anatomy",
+    {parentId:"coat-silhouette",spacing:6,markStrength:.65,
+      edgeRoughness:.36,outlineOpacity:.05});
+  ink("tailored-scarf-weft",
+    "M-80 136Q-25 154 71 133M-78 150Q-11 167 65 147"+
+    "M-35 127Q-34 150 -26 163M13 135Q18 159 26 167"+
+    "M54 130Q60 148 58 161",
+    "#e2ae8d",1.85,"detail",
+    {parentId:"tailored-scarf-wrap",clipToParent:true,opacity:.91});
+  ink("tailored-scarf-tail-stitch",
+    "M25 181Q45 218 36 260M36 178Q51 224 44 249",
+    "#dda087",1.2,"detail",
+    {parentId:"tailored-scarf-tail",clipToParent:true,opacity:.8});
   wax("coat-shoulder-shadow-left",
     "M-147 136Q-187 160 -182 229"+
     "Q-164 254 -150 284Q-146 204 -129 156Z",
