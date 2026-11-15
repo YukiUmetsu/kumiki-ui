@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="1020" viewBox="0 0 460 510">
+<title>Experimental profile eye study on layered paper stock</title>
+<defs>
+ <linearGradient id="face" x1="0" y1="0" x2=".85" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#d8b9a6"/><stop offset="1" stop-color="#c6a18e"/></linearGradient>
+ <linearGradient id="socket" x1=".15" y1=".2" x2=".8" y2=".8" gradientUnits="objectBoundingBox"><stop stop-color="#795d57"/><stop offset=".68" stop-color="#a47e6f"/><stop offset="1" stop-color="#ba9583"/></linearGradient>
+ <linearGradient id="lid" x1="0" y1="0" x2=".6" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#7f6359"/><stop offset="1" stop-color="#b18d7c"/></linearGradient>
+ <filter id="lift" x="-20%" y="-20%" width="140%" height="150%"><feGaussianBlur in="SourceAlpha" stdDeviation=".65"/><feOffset dx=".3" dy=".8"/><feComponentTransfer><feFuncA type="linear" slope=".14"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <clipPath id="opening"><path d="M126 352 C142 340 155 327 166 318 C179 306 192 299 204 299 C217 299 228 309 234 319 C226 329 218 334 207 338 C194 343 178 346 164 350 C151 354 137 355 126 352Z"/></clipPath>
+</defs>
+<rect width="460" height="510" fill="url(#face)"/>
+<!-- The nose-side plane is continuous through the socket and the cheek. -->
+<path fill="#bd9988" d="M0 0H303 C287 40 280 75 282 108 C285 143 278 180 264 214 C248 250 239 280 246 310 C253 342 266 374 253 412 C241 450 216 484 196 510H0Z"/>
+<path fill="url(#socket)" filter="url(#lift)" d="M0 0 H292 C280 48 271 100 271 139 C271 178 258 207 250 233 C242 259 232 283 223 299 C216 313 211 329 201 345 C188 365 171 381 151 385 C129 389 106 382 92 368 C72 350 61 326 59 301 C56 266 68 233 84 203 C60 207 28 227 0 249Z"/>
+<path fill="#8d6d60" d="M104 363 C120 347 131 330 143 312 C157 290 172 272 188 265 C201 260 212 263 221 273 C208 268 198 271 187 278 C169 292 157 311 146 328 C134 346 122 359 104 363Z"/>
+<!-- Pale opening is mostly beneath a long upper lid; the far end meets the nose-side shadow. -->
+<path fill="#ac9183" filter="url(#lift)" d="M126 352 C142 340 155 327 166 318 C179 306 192 299 204 299 C217 299 228 309 234 319 C226 329 218 334 207 338 C194 343 178 346 164 350 C151 354 137 355 126 352Z"/>
+<g clip-path="url(#opening)">
+ <path fill="#775c54" d="M177 292 C186 283 199 281 209 286 C221 292 227 304 227 317 C227 331 221 343 212 348 C203 353 190 352 181 345 C171 337 167 326 168 315 C169 305 172 298 177 292Z"/>
+ <path fill="#36383b" d="M185 294 C192 287 203 286 210 291 C218 297 221 307 220 317 C220 327 216 335 210 339 C204 343 195 343 189 338 C183 333 180 324 180 315 C180 307 181 300 185 294Z"/>
+ <path fill="#978073" d="M180 325 C182 333 187 339 193 342 C187 340 181 336 178 331Z"/>
+ <path fill="#e0caba" d="M190 301 C191 299 194 299 195 301 C195 303 193 304 191 304Z"/>
+</g>
+<path fill="#4e4444" d="M116 359 C130 345 144 331 158 317 C173 303 187 294 202 294 C216 294 227 304 236 318 C224 311 214 307 203 307 C190 308 177 314 165 325 C151 337 136 348 116 359Z"/>
+<path fill="url(#lid)" filter="url(#lift)" d="M102 355 C117 335 129 317 145 299 C159 283 172 271 185 267 C198 263 208 269 216 278 C204 273 194 277 184 283 C170 293 158 308 145 324 C132 340 118 351 102 355Z"/>
+<path fill="#9c796d" d="M127 353 C140 357 153 359 166 357 C181 355 196 351 208 345 C198 355 183 360 168 362 C153 364 139 360 127 353Z"/>
+<path fill="#c6a08e" d="M128 362 C147 371 165 373 183 367 C197 362 207 356 216 349 C208 362 194 372 180 376 C161 381 141 374 128 362Z"/>
+<!-- Fine cuts taper into the upper lid; they are short at film scale. -->
+<path fill="#594747" d="M135 341 C132 340 129 338 127 336 C130 338 134 339 138 338Z M145 331 C142 330 140 328 139 326 C142 328 145 329 148 328Z M155 322 C153 321 151 319 150 317 C153 319 155 320 158 319Z"/>
+</svg>
