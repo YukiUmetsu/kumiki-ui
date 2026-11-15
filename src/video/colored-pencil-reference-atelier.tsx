@@ -74,7 +74,7 @@ export function ReferencePencilAtelier(){
   const underpaint=useRef<HTMLCanvasElement|null>(null);
   const localObjectUrl=useRef<string|null>(null);
   const [sample,setSample]=useState<Sample>("fox");
-  const [sourceUrl,setSourceUrl]=useState(photos.fox.url);
+  const [sourceUrl,setSourceUrl]=useState<string>(photos.fox.url);
   const [raw,setRaw]=useState<PencilPhotoPixels|null>(null);
   const [aspect,setAspect]=useState<"landscape"|"portrait">("landscape");
   const [frame,setFrame]=useState(350);
@@ -115,7 +115,7 @@ export function ReferencePencilAtelier(){
     image.width=study.width;image.height=study.height;
     const ctx=image.getContext("2d");
     if(!ctx)return;
-    ctx.putImageData(new ImageData(study.pigment,study.width,study.height),0,0);
+    ctx.putImageData(new ImageData(new Uint8ClampedArray(study.pigment),study.width,study.height),0,0);
     underpaint.current=image;
   },[study]);
   useEffect(()=>{
