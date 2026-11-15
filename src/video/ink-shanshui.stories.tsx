@@ -337,15 +337,15 @@ function GeologicalInkStudy(){
   const [detail,setDetail]=useState(1);
   const [ink,setInk]=useState(.9);
   const [mist,setMist]=useState(.35);
-  const [centerX,setCenterX]=useState(568);
+  const [centerX,setCenterX]=useState(549);
   const [centerY,setCenterY]=useState(147);
-  const [zoom,setZoom]=useState(2.4);
+  const [zoom,setZoom]=useState(1.75);
   const studies=[
     {key:"no-structure",label:"0 · Structural negative control",
       note:"Geometry disabled, not a fake painted sample. This must lose the attached ridge folds, pima-cun fibres and pine detail.",
       level:0,load:ink},
     {key:"original",label:"1 · Current authored ink",
-      note:"Inspect parent-rooted hill backs, connected dark cliff ribs, irregular pressure and paper channels. Reject smooth flat wedges.",
+      note:"Inspect three distinct cubic hill-back terraces; six attached cap shadows and forty parent-attached hemp strokes with clustered ink/paper gaps. Reject flat wedges, generic radial combs or detached pigment.",
       level:detail,load:ink},
     {key:"dilute",label:"2 · Diluted ink comparison",
       note:"Identical scene, seed, frame, geometry and camera; only ink concentration changes. Verify the same attachments survive.",
@@ -396,6 +396,21 @@ function GeologicalInkStudy(){
         style-guided, not a pixel copy.
       </p>
     </header>
+    <div data-testid="shanshui-geology-presets"
+      style={{display:"flex",gap:9,flexWrap:"wrap"}}>
+      <button type="button" style={style.button}
+        onClick={()=>{setCenterX(549);setCenterY(147);setZoom(1.75);}}>
+        Full hill-back silhouette · macro
+      </button>
+      <button type="button" style={style.button}
+        onClick={()=>{setCenterX(568);setCenterY(147);setZoom(2.4);}}>
+        Hemp-fibre and alum-head · meso
+      </button>
+      <button type="button" style={style.button}
+        onClick={()=>{setCenterX(577);setCenterY(163);setZoom(3.45);}}>
+        Ink-pressure and paper reserve · micro
+      </button>
+    </div>
     <div data-testid="shanshui-geology-controls"
       style={{display:"flex",flexWrap:"wrap",gap:13,alignItems:"end"}}>
       {sliders.map(control=><label key={control.label}
@@ -408,7 +423,7 @@ function GeologicalInkStudy(){
       </label>)}
       <button type="button" style={style.button}
         onClick={()=>{setFrame(145);setSeed(71);setDetail(1);setInk(.9);
-          setMist(.35);setCenterX(568);setCenterY(147);setZoom(2.4);}}>
+          setMist(.35);setCenterX(549);setCenterY(147);setZoom(1.75);}}>
         Reset geology proof
       </button>
     </div>
