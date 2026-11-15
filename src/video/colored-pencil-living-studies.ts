@@ -1095,14 +1095,12 @@ export function pencilLivingStudyDrawing({
     return {...region,
       // Whiskers are fine, floating pencil contacts from visible follicles;
       // never flood the chin with an opaque region or gradient undercoat.
-      opaqueSupport:subject==="fox"&&part.id==="whisker-roots"||
-        (subject==="portrait"&&part.id.startsWith("lip-"))?
+      opaqueSupport:subject==="fox"&&part.id==="whisker-roots"?
         false:region.opaqueSupport,
       underpaint:subject==="fox"&&part.id==="whisker-roots"?
         undefined:region.underpaint,
       underpaintOpacity:subject==="fox"&&part.id==="whisker-roots"?
-        undefined:subject==="portrait"&&part.id.startsWith("lip-")?
-        .14:region.underpaintOpacity,
+        undefined:region.underpaintOpacity,
       // The fox iris has its own traced upper eyelid and pupil. Suppress
       // only the enclosing glass-vector ring, not the separate pencil marks.
       contour:subject==="fox"&&part.id==="whisker-roots"?
