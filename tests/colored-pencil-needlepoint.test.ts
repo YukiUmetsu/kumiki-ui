@@ -28,7 +28,7 @@ describe("ArtCraft v15 fine sharp-point portrait skin",()=>{
   it("deposits bounded short lateral needles and retains original crisp color",()=>{
     const full=buildPencilNeedlepointSkinContact(stroke,1,19);
     expect(full).toHaveLength(9);
-    expect(full.at(-1)).toBe(stroke);
+    expect(full[full.length-1]).toBe(stroke);
     expect(buildPencilNeedlepointSkinContact(stroke,.5,19)).toHaveLength(5);
     const [x,y]=midpoint(stroke);
     const dx=stroke.endX-stroke.x,dy=stroke.endY-stroke.y;
@@ -60,7 +60,7 @@ describe("ArtCraft v15 fine sharp-point portrait skin",()=>{
     expect(a).toEqual(buildPencilNeedlepointSkinContact(stroke,.75,271));
     expect(a).not.toEqual(buildPencilNeedlepointSkinContact(stroke,.75,272));
     expect(stroke).toEqual(original);
-    expect(a.at(-1)).toBe(stroke);
+    expect(a[a.length-1]).toBe(stroke);
     // No separate raster, source pixels, paint filter or invented texture
     // is returned: only individually authored quadratic pigment strokes.
     expect(a.every(n=>!("data" in n)&&!("image" in n)&&!("raster" in n)))
