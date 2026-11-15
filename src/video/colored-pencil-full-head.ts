@@ -883,7 +883,19 @@ export const createDryPencilHeadPlate=(
   // material layer, NOT a filter on the finished portrait.
   const skinWeave=createPencilSkinOpticalWeave(
     source,guides,geometry.face,seed,skinWeaveDepth);
-  for(const m of skinWeave.marks){
+  // A complete dry-pencil head has a strict existing 120k mark budget.
+  // Reserve EVERY measured feature, iris and eyelid pigment first:
+  // never sacrifice fine character features to add a broader skin layer.
+  // Thin the optional optical weave at evenly distributed positions to
+  // keep the full photographic cheek, forehead, nose and jaw in scope.
+  // Cutting off after the Nth nib would leave a conspicuous flat region.
+  const reservedDetails=details.marks.length+
+    opticallyObservedLids.marks.length+opticallyObservedIris.marks.length;
+  const weaveBudget=Math.max(0,119999-marks.length-reservedDetails);
+  const count=Math.min(weaveBudget,skinWeave.marks.length);
+  for(let i=0;i<count;i++){
+    const m=skinWeave.marks[
+      Math.floor((i+.5)*skinWeave.marks.length/count)];
     const p:Point=[m.x,m.y];
     if(classify(p)!=="skin")continue;
     const a=screen(p),b=screen([m.endX,m.endY]);
