@@ -278,7 +278,7 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
         for (const k of ["skin", "hairColor", "hatColor", "robe", "under", "obi", "coat", "hakama", "legs", "propColor", "accent", "lips"] as const) if (l[k] !== undefined) paint(`${p}.look.${k}`, l[k]);
         for (const k of ["robePattern", "coatPattern"] as const) if (l[k]) { if (!UKIYOE_PATTERNS.includes(l[k]!.type)) bad(`${p}.look.${k}.type`, "unknown pattern"); paint(`${p}.look.${k}.color`, l[k]!.color); }
         range(p + ".look.height", l.height, 40, 2000);
-        if (l.view !== undefined && l.view !== "profile" && l.view !== "three-quarter") bad(p + ".look.view", "must be profile or three-quarter");
+        if (l.view !== undefined && !["profile", "three-quarter", "front", "back"].includes(l.view)) bad(p + ".look.view", "must be profile, three-quarter, front or back");
         (n.actions ?? []).forEach((a, j) => {
           if (!UKIYOE_ACTIONS.includes(a.type)) bad(`${p}.actions[${j}].type`, "unknown action; use " + UKIYOE_ACTIONS.join(", "));
           if (!isInt(a.start) || !isInt(a.end) || a.end < a.start) bad(`${p}.actions[${j}]`, "needs integer start ≤ end");
@@ -293,7 +293,7 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
         for (const k of ["color", "belly", "dark", "accent"] as const) if (l[k] !== undefined) paint(`${p}.look.${k}`, l[k]);
         range(p + ".look.size", l.size, 8, 6000);
         range(p + ".look.tails", l.tails, 1, 9);
-        if (l.view !== undefined && l.view !== "profile" && l.view !== "three-quarter") bad(p + ".look.view", "must be profile or three-quarter");
+        if (l.view !== undefined && !["profile", "three-quarter", "front", "back"].includes(l.view)) bad(p + ".look.view", "must be profile, three-quarter, front or back");
         (n.actions ?? []).forEach((a, j) => {
           if (!UKIYOE_CREATURE_ACTIONS.includes(a.type)) bad(`${p}.actions[${j}].type`, "unknown action; use " + UKIYOE_CREATURE_ACTIONS.join(", "));
           if (!isInt(a.start) || !isInt(a.end) || a.end < a.start) bad(`${p}.actions[${j}]`, "needs integer start ≤ end");

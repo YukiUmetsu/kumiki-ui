@@ -11,6 +11,7 @@ import type { Pt } from "./ukiyoe-core";
 import { add, alongPath, carvedLine, clamp, clamp01, DEG, ease, hash01, lerp, noise1, polar, polyD, polylineLength, quad, smooth, smoothD, span } from "./ukiyoe-core";
 import type { Prim, UkiyoePattern } from "./ukiyoe-prims";
 import { circleD, ellipseD } from "./ukiyoe-prims";
+import { drawFigureFrontBack } from "./ukiyoe-figure-front";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 
 export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild";
@@ -56,9 +57,10 @@ export interface UkiyoeFigureLook {
   accent?: UkiyoePaint;
   lips?: UkiyoePaint;
   beard?: boolean;
-  /** How the face is drawn: in profile, or turned three-quarters toward the viewer as most print faces are (both eyes,
-   * the nose a hooked line at the cheek's edge). The `face` action turns a profile head to three-quarter and back. */
-  view?: "profile" | "three-quarter";
+  /** How the figure faces the viewer: in profile; turned three-quarters (face, torso and limbs, as most print figures
+   * are); `front`, facing us square on; or `back`, seen from behind. The `face` action turns a profile head to
+   * three-quarter and back. */
+  view?: "profile" | "three-quarter" | "front" | "back";
 }
 
 export type UkiyoeActionType =
@@ -564,6 +566,11 @@ export function figureHeight(look: UkiyoeFigureLook): number {
 export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, seed: number): DrawnFigure {
   const look = spec.look, H = figureHeight(look), build = look.build ?? "average";
   const pose = figurePose(spec, frame, seed, H), prev = figurePose(spec, frame - 2, seed, H);
+  // Square to the viewer, front or back: a symmetric drawing driven by the same pose (see ukiyoe-figure-front).
+  if (look.view === "front" || look.view === "back") {
+    const tr0 = travelAt(spec.actions ?? [], frame);
+    return { prims: drawFigureFrontBack(look, pose, H, wind, frame, look.view === "back"), x: tr0.x, y: tr0.y, dir: 1, squeeze: 1 };
+  }
   const turned = look.view === "three-quarter" && look.face !== "oni";
   const s0 = skeleton(pose, H, build), sp0 = skeleton(prev, H, build), s = turned ? turnSkeleton(s0) : s0, sp = turned ? turnSkeleton(sp0) : sp0;
   const { dir, squeeze } = facingAt(spec, frame);
