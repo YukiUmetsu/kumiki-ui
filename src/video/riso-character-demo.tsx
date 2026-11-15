@@ -388,7 +388,7 @@ export const COURIER: RisoCharacterSpec = {
     // bright-red chips. Fine details now print solid; ONLY sufficiently wide
     // facial shadow planes use physically discrete screened dots.
     // Each zone follows brow/zygomatic anatomy in the *original* head frame.
-    { id: "orbital-tone-planes", joint: "head", plate: "red", paint: "screen",screenTone:"mid",
+    { id: "orbital-tone-planes", joint: "head", plate: "red", paint: "screen",screenTone:"light",
       d: "M-27 -25 C-22 -29 -14 -28 -9 -24 Q-16 -23 -21 -17 Q-26 -15 -27 -25 Z M7 -25 C14 -31 24 -29 29 -20 Q28 -14 23 -15 Q20 -23 13 -22 Z" },
     { id: "zygomatic-tone-planes", joint: "head", plate: "red", paint: "screen",screenTone:"light",
       d: "M-29 -7 C-29 2 -27 10 -19 16 Q-22 5 -21 -5 Q-25 -11 -29 -7 Z M21 -6 Q27 -11 31 -5 C32 4 28 13 21 18 Q27 6 24 -2 Z" },
@@ -405,7 +405,7 @@ export const COURIER: RisoCharacterSpec = {
     { id: "nose-bridge-plane", joint: "head", plate: "red", paint: "screen",screenTone:"light",
       d: "M1 -13 Q5 -9 4 -3 Q3 1 2 4 L0 3 Q2 -4 1 -13 Z" },
     { id: "nose", joint: "head", plate: "blue", paint: "solid",
-      d: "M1 -10 Q3 -5 2 -1 Q0 3 2 6 Q5 8 7 5 L9 6 Q7 9 3 9 Q-2 8 0 3 Q2 -1 1 -10 Z" },
+      d: "M1 -12 Q2.3 -7.5 2 -3 C1.1 .7 1.2 3.2 2 4.8 Q3.5 6.8 5.8 5.8 L8.3 5.5 Q8 7.6 5.3 8.2 Q.8 8.6 0 4.3 Q1 -3 1 -12 Z" },
     { id: "nose-ala-right", joint: "head", plate: "blue", paint: "solid",
       d: "M8 6 Q11 5 11 8 Q10 11 7 10 Q10 9 8 6 Z" },
     { id: "philtrum", joint: "head", plate: "blue", paint: "solid",
@@ -423,14 +423,14 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-7 17.3 C-4 19.3 -1 19.8 1 18.7 Q4 18.0 7 16 L6.7 18.1 Q3 21.4 -1 21.3 Q-5 20.7 -7 17.3 Z",
       expressions: {
         speak: "M-3.6 15 C-2.1 13.6 1.5 13.5 4 15.8 Q5.1 18.8 2.5 21 Q-.3 21.9 -3 19 Q-4.3 17 -3.6 15 Z",
-        smile: "M-9 15.1 C-3.8 20.4 3 21.9 9 14.2 C6.1 20.5 2.8 23.1 -1.2 22.9 Q-6.6 21.9 -9 15.1 Z",
+        smile: "M-7.8 15.3 C-3.4 18.4 2.7 19.2 7.3 14.8 C5.9 17.6 2.8 19.6 -.6 19.9 Q-5 19.2 -7.8 15.3 Z",
       },
     },
     { id: "mouth-corner-creases", joint: "head", plate: "blue", paint: "solid",
       d: "M-10 17 L-8 16 L-8 18 Z M7 15 L9 14 L9 17 Z",
       expressions: {
         speak: "M-7 16 L-5 14 L-5 17 Z M5 15 L7 14 L7 18 Z",
-        smile: "M-11 14 Q-10 17 -9 18 L-10 18 Z M9 14 Q11 12 11 10 L11 15 Z",
+        smile: "M-9 15 Q-8.3 17 -7.4 17.7 L-8.6 17.4 Z M7.5 14.3 Q9 13.0 9.1 11.8 L9.4 14.5 Z",
       },
     },
     { id: "chin-plane", joint: "head", plate: "red", paint: "screen",screenTone:"light",
@@ -451,7 +451,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-7 16.4 Q-4 15.8 -1 16.1 Q1 15.8 3 15.2 Q5 14.8 6.7 15.2 Q4 16 2 16.2 Q-2 16.5 -6 16.9 Z",
       expressions: {
         speak:"M-4 14.3 Q-1.8 12.6 1 12.5 Q3.2 12.8 4.2 14.4 Q.7 13 -1.7 13.7 Z",
-        smile:"M-9 14.8 Q-2 19 8.5 13.8 Q3.7 17.7 -4.9 16.7 Z",
+        smile:"M-7.6 15.0 Q-1 19.0 7.3 14.6 Q3.6 16.9 -3.8 16.7 Z",
       },
     },
     { id: "nasolabial-flow", joint: "head", plate: "red", paint: "solid",
