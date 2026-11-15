@@ -2,7 +2,7 @@ import { Fragment, useId, useMemo } from "react";
 import type { ReactNode, SVGProps } from "react";
 import { evaluateRisoPrint, inspectRisoPrint, plateRegistration, printHash } from "./print-plates";
 import type { RisoPrintSpec } from "./print-plates";
-import { createRisoScreenGeometry } from "./riso-screening";
+import { createRisoScreenGeometry, wrapRisoScreenDots } from "./riso-screening";
 import type { RisoScreenMode } from "./riso-screening";
 
 /** Render-owned SVG paint bindings: authored artwork chooses solid fills or screened densities per spot ink. */
@@ -135,7 +135,7 @@ export function RisoPrint({
         <pattern id={`${uid}-dots-${index}`} x={0} y={0}
           width={screens[index].tileSize} height={screens[index].tileSize}
           patternUnits="userSpaceOnUse" patternTransform={`rotate(${plate.dotAngle})`}>
-          {screens[index].dots.map((dot, dotIndex) => <circle key={dotIndex}
+          {wrapRisoScreenDots(screens[index]).map((dot, dotIndex) => <circle key={dotIndex}
             cx={dot.x} cy={dot.y} r={dot.r} fill={plate.color} />)}
         </pattern>
         <clipPath id={`${uid}-clip-${index}`} clipPathUnits="userSpaceOnUse">
