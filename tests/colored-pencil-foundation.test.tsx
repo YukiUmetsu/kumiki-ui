@@ -100,7 +100,8 @@ describe("CP-F1 mandatory foundation for new pencil drawings",()=>{
         expect(drawing.foundation?.subject).toBe(
           subject==="portrait"?"human":subject==="fox"?"wildlife":"landscape");
         expect(Object.keys(drawing.foundation!.surfaces)).toHaveLength(drawing.regions.length);
-        expect(drawing.regions.every(r=>r.opaqueSupport?!!r.craft:!r.craft)).toBe(true);
+        expect(drawing.regions.every(r=>r.opaqueSupport?!!r.craft:
+          r.layeredSkinOverParent?r.craft?.kind==="skin":!r.craft)).toBe(true);
       }
       for(const subject of ["rose","glass","architecture","fabric"] as const){
         const drawing=pencilObjectStudyDrawing({subject,aspect});
