@@ -80,15 +80,18 @@ export function ReferencePencilAtelier(){
   const underpaint=useRef<HTMLCanvasElement|null>(null);
   const progress=useRef<{study:PencilPhotoStudy;frame:number;drawn:number;wash:number}|null>(null);
   const localObjectUrl=useRef<string|null>(null);
-  const [sample,setSample]=useState<Sample>("fox");
-  const [sourceUrl,setSourceUrl]=useState<string>(photos.fox.url);
+  // Kingfisher is the preferred first artwork: saturated feather detail gives
+  // better immediate source-vs-pencil feedback than a shaded fox background.
+  const [sample,setSample]=useState<Sample>("kingfisher");
+  const [sourceUrl,setSourceUrl]=useState<string>(photos.kingfisher.url);
+  const [reload,setReload]=useState(0);
   const [raw,setRaw]=useState<PencilPhotoPixels|null>(null);
   const [aspect,setAspect]=useState<"landscape"|"portrait">("landscape");
   const [frame,setFrame]=useState(350);
   const [playing,setPlaying]=useState(false);
   const [error,setError]=useState("");
   const [options,setOptions]=useState<PencilPhotoOptions>(PENCIL_PHOTO_DEFAULTS);
-  const [wash,setWash]=useState(.66);
+  const [wash,setWash]=useState(.84);
   const [showReference,setShowReference]=useState(false);
   const [uploaded,setUploaded]=useState(false);
   const size=aspect==="landscape"?{width:900,height:506}:{width:506,height:900};
@@ -99,21 +102,36 @@ export function ReferencePencilAtelier(){
     URL.revokeObjectURL(localObjectUrl.current);localObjectUrl.current=null;
   }},[]);
   useEffect(()=>{
-    let cancelled=false;
+    let cancelled=false,settled=false;
     const image=new Image();image.crossOrigin="anonymous";
-    image.onload=()=>{
-      if(cancelled)return;
+    let timeout:number|undefined;
+    const success=()=>{
+      if(cancelled||settled)return;
+      settled=true;
+      window.clearTimeout(timeout);
       try{setRaw(capture(image,size.width,size.height));setError("");}
-      catch{setRaw(null);setError(
-        "This image host does not permit Canvas pixels. Upload a locally owned photo instead.");}
+      catch{
+        setRaw(null);setError(
+          "The image host does not permit Canvas pixels. Upload a locally owned photo.");
+      }
     };
-    image.onerror=()=>{
-      if(cancelled)return;
-      setRaw(null);setError("Couldn't load the sample photograph. Choose a local photo.");
+    const failure=()=>{
+      if(cancelled||settled)return;
+      settled=true;window.clearTimeout(timeout);
+      setRaw(null);setError("The reference image could not load. Retry or upload a local photo.");
     };
+    image.onload=success;
+    image.onerror=failure;
     image.src=sourceUrl;
-    return()=>{cancelled=true;image.onload=null;image.onerror=null;};
-  },[sourceUrl,size.width,size.height]);
+    // Catch cached/decode-completed images as well as standard load events.
+    if(image.complete&&image.naturalWidth>0)success();
+    else void image.decode().then(success,failure);
+    timeout=window.setTimeout(failure,25000);
+    return()=>{
+      cancelled=true;window.clearTimeout(timeout);
+      image.onload=null;image.onerror=null;
+    };
+  },[sourceUrl,size.width,size.height,reload]);
   const study=useMemo(()=>raw?createPencilPhotoStudy(raw,options):null,
     [raw,options]);
   // The static precomputed tone layer is cached: seeking/speed does not
@@ -240,6 +258,7 @@ export function ReferencePencilAtelier(){
         ["edges","Contour pressure",0,1,.05],
         ["tooth","Paper tooth",0,1,.05],
         ["density","Drawing density",.2,2,.1],
+        ["focus","Foreground pigment / background restraint",0,1,.05],
       ] as const).map(([key,label,min,max,step])=><label key={key} style={control}>
         {label} · {options[key].toFixed(2)}
         <input aria-label={"Pencil photo "+key} type="range"
@@ -247,7 +266,13 @@ export function ReferencePencilAtelier(){
           onChange={e=>update(key,Number(e.target.value))}/>
       </label>)}
     </section>
-    {error&&<p role="alert" style={{margin:0,color:"#8F4440"}}>{error}</p>}
+    {error&&<div role="alert" style={{display:"flex",alignItems:"center",gap:12,
+      flexWrap:"wrap",color:"#8F4440"}}>
+      <span>{error}</span>
+      <button type="button" style={btn} onClick={()=>{
+        setError("");setRaw(null);setReload(n=>n+1);
+      }}>Retry reference image</button>
+    </div>}
     {!study&&!error&&<p role="status" style={{margin:0}}>Loading photograph…</p>}
     <div style={{display:"flex",alignItems:"start",gap:16,flexWrap:"wrap",
       maxWidth:showReference?1800:900}}>
