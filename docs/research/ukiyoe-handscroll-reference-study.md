@@ -957,6 +957,41 @@ The well came earlier, with F3. Storybook has **Temples**, and the Motifs galler
 - The yamabiko has no echo effect.
 - Nobody has done a human visual review yet.
 
+## Trees and forest spirits (folktale queue F13, 2026-11-15)
+
+**Sources** (public domain):
+
+- Sakai Hōitsu's *Persimmon Tree* (Met 45392);
+- the *Taketori Monogatari* scroll (Wikimedia Commons);
+- Toriyama Sekien's *Kodama* (Wikimedia Commons).
+
+**What they show.**
+
+- **Hōitsu's persimmon.** A gnarled trunk bending up from a grassy bank into a few angular branches, sparse leaves, and only a handful of round vermilion fruit with dark calyxes.
+- **Sekien's kodama.** The spirits of a hundred-year-old pine: an old man and woman in robes emerging from the trunk.
+- **The Taketori scroll.** The bamboo cutter's family in a thatched house.
+
+**What was built.** `ukiyoe-trees.ts`:
+- the `bamboo`, `kaki`, `shinboku` and `jinmenju` motifs;
+- `treeScene()` with five scenes.
+
+Storybook has **Trees**, and the Motifs gallery has five new tiles.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - The persimmon was loaded with fruit like a cherry; it now carries a few, as in Hōitsu, on a thicker trunk.
+   - The jinmenju's heads bunched on one branch and are now spread over the crown.
+   - The sacred tree's trunk was a straight column. It now flares into roots and twists as it rises.
+2. **Scenes.** The shining stalk's glow, the face opening and the vampire tree's reaching arms were checked on stills.
+
+**Not done.**
+
+- The kodama spirits are ordinary figures fading in, not drawn emerging from the trunk.
+- No cherry tree that blooms on its own; that comes from the `sakura` motif's progress (F14).
+- The bamboo stalk does not split open to show the child.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
