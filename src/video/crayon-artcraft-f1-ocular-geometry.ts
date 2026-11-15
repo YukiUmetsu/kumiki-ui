@@ -293,6 +293,57 @@ const sourceValueWax:Readonly<Record<string,Partial<Wax>>>={
   },
 };
 
+/**
+ * Anatomically functional upper lid: small opaque skin-colored wax shelf
+ * intersects the UPPER iris at the photographed canthi, unlike translucent
+ * eyeliner. Only the source-value research branch receives these shapes.
+ * Each is a true native 3D-plane silhouette, not a generalized eye ellipse.
+ * The existing dry-wax lash root and high-frequency iris remain intact,
+ * painted after this skin occlusion as actual overlapping wax.
+ */
+const tarsalOccluders:readonly Wax[]=[
+  {
+    kind:"wax",id:"tarsal-shelf-near",parentId:"face-outline",
+    clipToParent:true,coverage:"opaque",deposition:"stroke-built",
+    timing:{start:175,end:267},
+    d:"M214 558 C225 542 245 529 266 528 "+
+      "C290 526 310 534 324 544 "+
+      "C306 539 285 538 267 540 "+
+      "C245 543 227 553 218 565Z",
+    bounds:{x:211,y:524,width:117,height:46},
+    colors:["#aa8682","#795d5f","#cbaba1"],
+    pressure:.83,spacing:5.7,markStrength:.24,
+    underpaintTooth:.16,outlineOpacity:0,edgeRoughness:.12,
+    strokeOrder:"patches",markLength:"short",nibStyle:"dry",
+    underpaintGradient:{
+      light:"#c4a49a",shadow:"#675057",
+      focusX:.71,focusY:.22,radius:1.08,
+    },
+  },
+  {
+    kind:"wax",id:"tarsal-shelf-far",parentId:"face-outline",
+    clipToParent:true,coverage:"opaque",deposition:"stroke-built",
+    timing:{start:177,end:269},
+    d:"M401 529 C409 509 429 497 445 498 "+
+      "C459 496 474 504 481 511 "+
+      "C466 508 449 505 438 509 "+
+      "C422 513 412 523 406 534Z",
+    bounds:{x:397,y:493,width:88,height:46},
+    colors:["#9d7c7b","#6e555b","#bd9695"],
+    pressure:.82,spacing:5.6,markStrength:.22,
+    underpaintTooth:.16,outlineOpacity:0,edgeRoughness:.11,
+    strokeOrder:"patches",markLength:"short",nibStyle:"dry",
+    underpaintGradient:{
+      light:"#bc9694",shadow:"#5f4b54",
+      focusX:.56,focusY:.32,radius:1.05,
+    },
+  },
+] as const;
+
+export const CRAYON_F1_TARSAL_OCCLUDER_IDS=Object.freeze(
+  tarsalOccluders.map(x=>x.id),
+);
+
 export const CRAYON_F1_SOURCE_VALUE_IDS=Object.freeze(
   Object.keys(sourceValueWax),
 );
@@ -302,12 +353,16 @@ export function crayonF1SourceValueEyes(
   elements:readonly CrayonElement[],
 ):CrayonElement[]{
   const found=new Set<string>();
-  const out=elements.map(e=>{
-    if(e.kind!=="wax"||!(e.id in sourceValueWax))return e;
-    if(found.has(e.id))throw new RangeError("Duplicate value root: "+e.id);
-    found.add(e.id);
-    return {...e,...sourceValueWax[e.id]};
-  });
+  const out:CrayonElement[]=[];
+  for(const e of elements){
+    if(e.kind==="wax"&&(e.id in sourceValueWax)){
+      if(found.has(e.id))throw new RangeError("Duplicate value root: "+e.id);
+      found.add(e.id);
+      out.push({...e,...sourceValueWax[e.id]});
+    }else out.push(e);
+    if(e.id==="upper-lid-near")out.push(tarsalOccluders[0]);
+    if(e.id==="upper-lid-far")out.push(tarsalOccluders[1]);
+  }
   for(const id of CRAYON_F1_SOURCE_VALUE_IDS){
     if(!found.has(id))throw new RangeError("Missing source eye value: "+id);
   }
