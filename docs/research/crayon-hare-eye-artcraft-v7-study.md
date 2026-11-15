@@ -69,7 +69,27 @@ The tests are deliberately *structural and rendering* checks, not source-mask su
 
 ## 5. Rendering and review workflow
 
-The narrow PR proof runs the real CRAYON1 React renderer through Playwright at 960×540 and 540×960, native camera magnification 3×, frames 89 (blink) and 237 (open), and retains all four PNGs. Comparison must be against the saved prior eye crop and the publicly linked photographs. No browser test proving DOM presence can certify artistic appearance.
+The narrow PR proof runs the real CRAYON1 React renderer through Playwright at 960×540 and 540×960, native camera magnification 3×, frames 89 (early draw-in blink), 203 (fully painted blink), and 237 (open),
+and retains six PNGs. `hideScreenSpace` removes only editorial typography
+from the inspection camera; no wax source geometry or seeds are deleted. Comparison must be against the saved prior eye crop and the publicly linked photographs. No browser test proving DOM presence can certify artistic appearance.
+
+### First actual Chromium review and corrective pass
+
+The first 960×540 and 540×960 source-native screenshots (run
+[43681966287](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43681966287))
+showed a larger amber iris, but the surrounding prior `orbital-structure` and
+`eye-brow-bone` still read as huge flat intersecting geometric ribbons. The
+first macro also included unrelated editorial lettering, which obstructed the
+art inspection. The eye-only change had **not** fixed this.
+
+Second construction pass: narrowed the giant dark orbital plane, reshaped the
+superorbital bone as a smaller rooted crescent, reduced mechanical pale/dark
+rings and made the surrounding coarse head-tooth marks less dominant. The
+next native captures will be independently reviewed; no aesthetic pass claimed.
+The early frame-89 blink occurs during unfinished head pigment deposition and
+shows gaps in the incomplete wax undercoat: this is a **separate source-timing
+problem**, not proof of a finished transparent hare. Final-frame opacity must
+remain intact. Do not call this a passing full-film proof.
 
 ### Unresolved issues
 
