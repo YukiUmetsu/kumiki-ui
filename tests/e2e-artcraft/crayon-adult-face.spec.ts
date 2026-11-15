@@ -644,3 +644,47 @@ test("F1 source jaw-neck wax vs exact prior contour native A/B",async({page},inf
     .not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** ArtCraft: only source-observed brow wax changes. Native screen-space
+ * geometry at 3x under exactly one camera. Screenshot difference is
+ * evidence of a reversible material experiment, NOT artistic acceptance.
+ */
+test("F1 source-rooted eyebrow wax vs unchanged wash, actual 3x Chromium",async({page},info)=>{
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const focus={focusX:265,focusY:481,zoom:3.05};
+  const shots:Uint8Array[]=[];
+  for(const browForm of ["baseline","source-rooted"] as const){
+    const original=crayonCc0FaceStudy({
+      view:"wax",browForm,eyeContact:"baseline",
+      midfaceForm:"baseline",jawNeckForm:"baseline",
+    });
+    const spec={...original,camera:[{frame:0,...focus},{frame:299,...focus}]};
+    const html=renderToStaticMarkup(createElement(CrayonScene,{
+      spec,frame:299,
+    }));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+
+      html+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    await expect(svg.locator('[data-km-crayon-element="brow-superciliary-near"]'))
+      .toBeAttached();
+    for(const id of ["source-brow-wax-near","source-brow-wax-far",
+      "source-brow-fibers-near","source-brow-fibers-far"]){
+      await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+        .toHaveCount(browForm==="source-rooted"?1:0);
+    }
+    if(browForm==="source-rooted"){
+      await expect(svg.locator('[data-km-crayon-element="source-brow-wax-near"] '+
+        '[data-km-crayon-underpaint-gradient]')).toHaveCount(1);
+      await expect(svg.locator('[data-km-crayon-element="source-brow-fibers-near"] '+
+        '[data-km-crayon-fiber-contact="dry-wax"]')).toHaveCount(1);
+    }
+    shots.push(await svg.screenshot({path:info.outputPath(
+      "crayon-f1-brow-"+browForm+"-source-299.png"),animations:"disabled"}));
+  }
+  expect(Buffer.compare(Buffer.from(shots[0]),Buffer.from(shots[1])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
