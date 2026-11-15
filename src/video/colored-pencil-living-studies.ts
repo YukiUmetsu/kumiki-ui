@@ -55,6 +55,64 @@ export function flowBundles(
   });
 }
 
+
+/** Local observed fur tracts, not a uniformly spaced hatch across a face.
+ * Each tangent-aligned strand begins near a curved skin-plane guide; length,
+ * normal spread and timing vary deterministically. The short strokes remain
+ * readable at 1x and have separate underfur, shadow and highlight families.
+ *
+ * Evidence: Bonny Snowdon's fox construction sequence and Darren Gwatkin's
+ * profile, both studied for fur direction only (no third-party paths traced).
+ */
+export function pencilRootedFur(
+  guides:readonly Bundle[],seed:number,
+  palette:readonly [string,string,string],startFrame=222,
+):PencilTrace[] {
+  if(!Number.isSafeInteger(seed)||seed<0||seed>2147483647||
+     !Number.isSafeInteger(startFrame)||startFrame<0||
+     guides.length<1||guides.length>8||
+     palette.length!==3||palette.some(p=>!/^#[0-9A-F]{6}$/i.test(p)))
+    throw new RangeError("Invalid rooted coloured-pencil fur inputs");
+  const strokes:PencilTrace[]=[];
+  guides.forEach(([x0,y0,x1,y1,cx,cy,count,spread],group)=>{
+    if(![x0,y0,x1,y1,cx,cy,count,spread].every(Number.isFinite)||
+       !Number.isSafeInteger(count)||count<12||count>36||
+       spread<0||spread>22||Math.hypot(x1-x0,y1-y0)<5)
+      throw new RangeError("Rooted fur needs measured finite anatomy guides");
+    for(let layer=0;layer<3;layer++){
+      const pieces:string[]=[];
+      for(let i=0;i<count;i++){
+        const index=group*109+layer*43+i;
+        const t=Math.max(.025,Math.min(.975,
+          (i+.5+(pencilHash(seed,index,31)-.5)*.82)/count));
+        const u=1-t;
+        const baseX=u*u*x0+2*u*t*cx+t*t*x1;
+        const baseY=u*u*y0+2*u*t*cy+t*t*y1;
+        const tangentX=2*u*(cx-x0)+2*t*(x1-cx);
+        const tangentY=2*u*(cy-y0)+2*t*(y1-cy);
+        const distance=Math.hypot(tangentX,tangentY);
+        if(distance<.001)continue;
+        const dx=tangentX/distance,dy=tangentY/distance;
+        const nx=-dy,ny=dx;
+        const offset=(pencilHash(seed,index,32)-.5)*spread;
+        const len=(4.1+7.4*pencilHash(seed,index,33))*(layer===2?.69:1);
+        const turn=(pencilHash(seed,index,34)-.5)*2.1;
+        const ax=baseX+offset*nx,ay=baseY+offset*ny;
+        const cx2=ax+dx*len*.52+nx*turn;
+        const cy2=ay+dy*len*.52+ny*turn;
+        const bx=ax+dx*len+nx*turn*.62;
+        const by=ay+dy*len+ny*turn*.62;
+        pieces.push("M"+fmt(ax)+" "+fmt(ay)+" Q"+fmt(cx2)+" "+fmt(cy2)+
+          " "+fmt(bx)+" "+fmt(by));
+      }
+      strokes.push({...mark(pieces.join(" "),palette[layer],
+        [.56,.38,.27][layer],startFrame+layer*7+group*3,[.69,.56,.62][layer]),
+        id:"fibre-"+group+"-"+layer});
+    }
+  });
+  return strokes;
+}
+
 function face():PencilSubjectPart[] {
   const skin:PencilPalette=["#DDA58F","#906277","#F4CEB0"];
   const lit:PencilPalette=["#F2C6AA","#B78082","#FFE0BF"];
@@ -253,19 +311,25 @@ function fox():PencilSubjectPart[] {
       bounds:[154,235,108,85],direction:59,start:104,
       details:flowBundles([[174,247,206,306,176,291,20,14],
         [210,248,237,295,225,278,19,14]],557,"#F8E7C6",.67)},
-    {id:"head-main",material:"fur",palette:["#C27C5B","#87524C","#EEB68B"],
-      path:"M137 162 C145 125 178 105 214 108 Q258 99 284 140 C303 159 303 197 289 220 Q269 246 234 257 Q205 265 177 251 C153 243 130 226 126 210 Q122 190 137 162 Z",
-      bounds:[122,99,183,169],direction:37,start:112,
+    {id:"head-main",material:"fur",palette:["#B66C4E","#724849","#EBAE79"],
+      // Three-quarter fox: skull widens behind the near orbit and narrows into
+      // an oblique snout; avoid the old round bilateral mask.
+      path:"M133 167 C142 130 171 113 207 109 C250 99 287 129 299 166 C308 192 295 223 274 237 C258 243 255 262 229 267 C199 266 165 249 143 235 Q124 222 122 206 Q118 185 133 167 Z",
+      bounds:[116,99,195,173],direction:43,start:112,
       details:[
-        ...flowBundles([
-          [149,151,186,203,154,177,24,14],
-          [201,121,245,171,216,135,25,15],
-          [252,145,280,214,285,181,19,11],
-          [175,224,198,253,178,247,17,12],
-        ],607,"#E7AB80",.53,237),
-        mark("M143 169 Q168 134 199 128 M222 119 Q260 115 281 153","#F1BB8E",.88,245,.63),
-        mark("M131 210 Q147 231 177 246 M272 221 Q263 245 234 254","#764F4E",.66,251,.55),
-        mark("M159 179 Q174 169 193 178 M237 178 Q263 163 279 185","#B2715E",.74,257,.67),
+        ...pencilRootedFur([
+          [145,161,180,214,144,191,29,13],
+          [191,130,227,172,218,144,28,17],
+          [262,145,277,217,293,186,29,18],
+          [164,216,222,247,178,250,26,14],
+          [237,219,266,253,276,229,25,11],
+        ],607,["#E5A17B","#874E46","#F6C296"],230),
+        mark("M142 165 Q173 127 202 123 M213 114 Q262 118 281 157",
+          "#E6A177",.81,232,.62),
+        mark("M134 205 Q149 231 178 245 M260 235 Q245 253 221 258",
+          "#714F4C",.67,258,.50),
+        mark("M165 178 Q183 163 199 169 M230 178 Q250 166 272 185",
+          "#8E5D4D",.65,244,.64),
       ]},
     {id:"ear-far",material:"fur",palette:orange,
       path:"M151 151 C146 126 146 88 153 60 Q157 42 169 46 C184 58 199 99 200 125 Q173 124 151 151 Z",
@@ -287,67 +351,102 @@ function fox():PencilSubjectPart[] {
     {id:"ear-near-inner",material:"fur",palette:["#A87570","#644E5F","#E8AF9B"],
       path:"M263 126 Q281 83 298 66 Q302 97 287 140 Z",
       bounds:[260,64,42,81],direction:-67,start:131},
-    {id:"mask",material:"fur",palette:["#8B655C","#644D52","#BC8A72"],
-      // Distinct orbits follow upper maxilla, not a wide raccoon band.
-      path:"M132 197 C146 182 170 178 185 187 Q196 197 189 209 Q177 220 157 222 Q139 216 132 197 Z M228 197 C243 179 265 178 283 195 Q285 208 267 222 Q244 224 228 197 Z",
-      bounds:[130,174,158,52],direction:4,start:135,
+    {id:"mask",material:"fur",palette:["#806158","#574C4E","#AA7966"],
+      // Two independently tapered orbital shadows, not painted circular disks.
+      path:"M150 191 Q163 176 185 184 C189 190 181 198 167 200 Q156 201 150 191 Z M217 188 Q235 171 264 181 C267 191 254 203 231 205 Q220 202 217 188 Z",
+      bounds:[147,169,123,39],direction:18,start:135,
       details:[
-        ...flowBundles([
-          [139,202,182,214,159,226,14,8],
-          [240,199,272,215,257,226,13,8],
-        ],647,"#BD9984",.36,254),
-        mark("M139 188 Q159 178 176 186 M242 186 Q265 178 282 192","#453D47",.69,252,.67),
+        mark("M152 188 Q169 178 185 184 M222 184 Q239 171 261 182",
+          "#4D4044",.67,251,.67),
+        ...pencilRootedFur([
+          [153,188,179,204,160,205,17,5],
+          [222,190,255,208,238,209,18,6],
+        ],645,["#AA7965","#675052","#C79B79"],250),
       ]},
-    {id:"muzzle",material:"fur",palette:["#E4D4BC","#947B72","#F5E4C8"],
-      path:"M142 219 C155 210 179 207 198 218 Q214 225 238 225 C259 215 275 215 289 222 Q278 242 257 246 Q236 259 212 261 Q174 265 151 250 Q138 239 142 219 Z",
-      bounds:[138,205,155,61],direction:17,start:146,
+    {id:"rostrum-bridge",material:"fur",palette:["#BE8065","#754E4B","#E5A789"],
+      path:"M135 210 C153 199 180 191 207 188 Q231 190 247 216 Q216 225 181 234 Q151 230 135 210 Z",
+      bounds:[131,185,119,53],direction:15,start:144,
       details:[
-        ...flowBundles([
-          [150,224,185,249,168,244,18,10],
-          [238,231,276,238,263,247,19,9],
-          [195,234,213,257,200,251,16,8],
-        ],701,"#F8EBD6",.45,255),
-        mark("M151 246 Q179 264 208 258 Q241 255 269 245","#7A6560",.72,267,.63),
-        mark("M202 254 Q211 260 221 255 M211 260 Q218 264 230 260","#5F5153",.61,272,.74),
-        mark("M147 226 Q165 216 184 221 M251 228 Q270 219 284 225","#FEF0D5",.68,259,.78),
+        ...pencilRootedFur([
+          [143,210,197,218,171,195,26,10],
+          [183,193,225,215,206,203,22,11],
+        ],673,["#DE9A75","#7F5850","#F2B88F"],248),
+        mark("M144 210 Q168 196 197 196 M187 224 Q219 212 241 216",
+          "#E7B08D",.61,265,.63),
       ]},
-    {id:"eye-far",material:"glass",palette:["#BA9468","#60554F","#D6B67F"],
-      path:"M152 192 Q162 183 175 191 Q173 201 164 202 Q155 201 152 192 Z",
-      bounds:[150,181,29,24],start:153,
+    {id:"muzzle",material:"fur",palette:["#C8B6A0","#736A68","#EAD7B9"],
+      // One coherent oblique nasal-to-maxilla plane and a soft lower jaw.
+      path:"M105 221 C132 211 153 210 180 216 Q211 223 239 218 C261 215 271 224 274 234 Q264 248 237 259 Q207 265 165 258 Q126 251 107 239 Q97 232 105 221 Z",
+      bounds:[96,204,182,65],direction:14,start:146,
       details:[
-        mark("M152 191 Q162 181 175 190 M156 200 Q165 205 173 197","#3A323A",1.1,262,.87),
-        mark("M163 188 Q169 190 169 197 Q168 201 164 201 Q160 196 163 188","#775B45",.85,264,.89),
-        mark("M165 190 Q166 194 165 198","#282B32",1.3,269,.90),
-        mark("M164 189 L165 191","#F9E1B3",.85,274,.91),
+        ...pencilRootedFur([
+          [116,227,171,248,142,246,29,10],
+          [165,222,216,249,194,250,27,12],
+          [225,222,267,237,247,246,26,9],
+        ],721,["#EAD9B9","#8C8176","#FFF0CD"],248),
+        mark("M112 239 C140 256 173 264 211 259 Q250 253 269 234",
+          "#4D494C",.79,268,.70),
+        mark("M113 225 Q146 214 176 226 M227 225 Q246 221 267 229",
+          "#F1DEBD",.63,268,.72),
+        mark("M125 248 Q170 266 199 262 M207 266 Q237 266 260 248",
+          "#8E817A",.52,275,.62),
       ]},
-    {id:"eye-near",material:"glass",palette:["#CFA875","#67594F","#EEC891"],
-      path:"M244 193 C252 183 263 182 272 191 Q273 202 260 205 Q249 205 244 193 Z",
-      bounds:[242,182,33,25],start:155,
+    {id:"cheek-ruff",material:"fur",palette:["#B48B74","#705C55","#EAD5B6"],
+      path:"M233 215 C257 212 282 224 290 238 Q289 254 276 265 Q268 276 244 277 C255 256 248 243 229 234 Z",
+      bounds:[225,209,69,72],direction:62,start:150,
       details:[
-        mark("M244 191 Q254 181 272 190 M249 201 Q259 208 270 198","#312F37",1.25,262,.88),
-        mark("M258 187 Q265 188 266 195 Q266 202 261 203 Q256 197 258 187","#8B633F",.82,266,.82),
-        mark("M262 189 Q264 195 262 201","#252C34",1.44,272,.92),
-        mark("M260 189 L261 191","#FFF0CA",1.0,276,.93),
+        ...pencilRootedFur([
+          [238,222,274,253,271,224,27,9],
+          [245,237,260,269,284,253,24,8],
+        ],765,["#C9A58E","#73605B","#F7DEBA"],257),
+        mark("M266 257 Q274 248 279 242 M254 267 Q268 261 272 254",
+          "#E8D6BA",.57,279,.73),
       ]},
-    {id:"whisker-roots",material:"fur",palette:pale,
-      path:"M180 240 Q194 249 211 250 Q237 245 254 237 L255 246 Q233 259 210 259 Q187 255 176 247 Z",
-      bounds:[172,235,86,27],direction:6,start:171,
+    {id:"eye-far",material:"glass",palette:["#B18E5D","#574B45","#DEB678"],
+      // Far orbit is partially occluded and much smaller than the near one.
+      path:"M160 190 C164 183 174 184 179 188 Q178 195 169 197 Q162 196 160 190 Z",
+      bounds:[158,182,23,17],start:153,
       details:[
-        mark("M190 245 Q164 226 132 224 M187 252 Q155 246 115 257 M199 253 Q165 264 131 276",
-          "#E6DAD0",.63,275,.86),
-        mark("M238 244 Q273 227 308 221 M237 251 Q273 248 313 259 M222 256 Q272 270 306 287",
-          "#E5D7C8",.59,282,.84),
-        mark("M189 244 L192 245 M197 247 L201 248 M241 244 L245 243 M245 250 L249 249",
-          "#6D625D",.66,278,.76),
+        mark("M159 189 Q168 181 180 188 M162 195 Q169 200 177 193",
+          "#302D33",.96,256,.82),
+        mark("M168 186 Q172 187 173 192 Q172 196 169 196",
+          "#785A3C",.73,262,.82),
+        mark("M170 187 Q171 190 170 194","#292C31",.84,268,.91),
+        mark("M168 188 L169 189","#FBEBB9",.61,273,.85),
       ]},
-    {id:"nose",material:"fur",palette:["#414049","#202A35","#8B7971"],
-      path:"M194 228 Q200 220 210 220 Q222 219 229 229 Q227 239 217 244 Q207 250 198 241 Z",
-      bounds:[191,216,41,35],direction:10,start:160,
+    {id:"eye-near",material:"glass",palette:["#B99A67","#5A4C44","#E8BC7F"],
+      path:"M225 190 C231 178 245 178 257 184 Q258 193 247 198 Q234 201 225 190 Z",
+      bounds:[222,176,39,26],start:155,
       details:[
-        mark("M199 228 Q210 221 221 227","#BEB3AB",.93,266,.77),
-        mark("M197 233 Q202 237 207 234 M217 236 Q223 234 225 232","#1D232E",.86,270,.86),
-        mark("M209 241 Q211 245 214 245","#B4A29B",.72,275,.66),
-        mark("M210 247 Q207 253 211 256","#5C4E4D",.57,281,.70),
+        mark("M225 187 Q238 174 258 183 M228 196 Q240 202 255 193",
+          "#2E3035",1.12,258,.88),
+        mark("M241 181 Q250 180 252 188 Q252 197 246 198 Q239 195 241 181",
+          "#936C46",.78,262,.84),
+        mark("M247 181 Q251 185 248 195","#212A2F",1.18,269,.89),
+        mark("M244 184 Q246 182 248 184","#FFEAC2",.92,274,.93),
+        mark("M223 193 Q235 205 248 202","#A1796B",.55,276,.71),
+      ]},
+    {id:"whisker-roots",material:"fur",palette:["#BEB2A2","#827874","#E9DBBE"],
+      path:"M151 235 Q170 245 187 247 Q207 243 232 234 Q222 254 198 256 Q166 255 149 242 Z",
+      bounds:[146,231,92,28],direction:10,start:171,
+      details:[
+        mark("M141 241 Q106 219 73 220 M143 247 Q99 241 67 259 M160 249 Q108 267 82 288",
+          "#DED6C8",.49,275,.83),
+        mark("M210 241 Q256 222 300 220 M216 247 Q257 247 311 255 M208 251 Q259 269 299 288",
+          "#E4D3B9",.48,282,.82),
+        mark("M152 238 L157 240 M161 244 L164 245 M206 245 L210 244 M214 249 L217 248",
+          "#635A58",.48,279,.75),
+      ]},
+    {id:"nose",material:"fur",palette:["#454346","#202932","#8A7971"],
+      // Tilted nasal leather at the projected end of the long muzzle.
+      path:"M103 221 C109 214 121 213 134 217 Q142 224 135 236 Q125 247 115 242 Q105 237 103 221 Z",
+      bounds:[101,211,44,39],direction:17,start:160,
+      details:[
+        mark("M107 222 Q117 214 133 219","#A99E95",.81,256,.70),
+        mark("M107 231 Q113 235 116 231 M127 231 Q131 230 136 224",
+          "#1B252F",.64,265,.90),
+        mark("M119 238 Q124 241 129 237","#827A72",.57,273,.72),
+        mark("M127 247 Q132 253 136 255","#5B5150",.52,281,.71),
       ]},
     {id:"tail-tip",material:"fur",palette:pale,
       path:"M67 351 Q46 374 79 397 Q97 407 118 397 Q103 392 91 377 Q80 365 67 351 Z",
