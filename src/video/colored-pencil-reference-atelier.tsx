@@ -13,11 +13,12 @@ import {
 } from "./colored-pencil-full-head";
 import {
   compareCC0PortraitTones,compareCC0HairOcclusion,
-  compareCC0Vermilion,
+  compareCC0Vermilion,compareCC0SoftSkin,
   CC0_HAIR_OCCLUSION_PROBE,
 } from "./colored-pencil-full-head-tone-proof";
 import type {
   PencilToneComparison,CC0HairOcclusionResult,CC0VermilionResult,
+  CC0SoftSkinResult,
 } from "./colored-pencil-full-head-tone-proof";
 
 /**
@@ -162,6 +163,8 @@ export function ReferencePencilAtelier({
     useState<CC0HairOcclusionResult|null>(null);
   const [vermilionEvidence,setVermilionEvidence]=
     useState<CC0VermilionResult|null>(null);
+  const [skinEvidence,setSkinEvidence]=
+    useState<CC0SoftSkinResult|null>(null);
   const [faceMacroRegion,setFaceMacroRegion]=useState<"eyes"|"lips">("eyes");
   const [applyFaceCraft,setApplyFaceCraft]=useState(true);
   const [uploaded,setUploaded]=useState(false);
@@ -324,6 +327,7 @@ export function ReferencePencilAtelier({
     setHeadToneComparison(compareCC0PortraitTones(original,rendered));
     setHeadOcclusion(compareCC0HairOcclusion(original,rendered));
     setVermilionEvidence(compareCC0Vermilion(original,rendered));
+    setSkinEvidence(compareCC0SoftSkin(original,rendered));
   },[headPlate,raw]);
   useEffect(()=>{
     if(!showHairContact||!headPlate)return;
@@ -907,6 +911,24 @@ export function ReferencePencilAtelier({
               {" "}in the 285×318 licensed source Storybook crop.
             </p>
           </section>}
+          {skinEvidence&&<p
+            data-km-pencil-skin-proof="ready"
+            data-km-pencil-skin-cheek-deficit={
+              skinEvidence.regions[0].lightnessDeficit.toFixed(1)}
+            data-km-pencil-skin-undereye-deficit={
+              skinEvidence.regions[1].lightnessDeficit.toFixed(1)}
+            data-km-pencil-skin-chin-deficit={
+              skinEvidence.regions[2].lightnessDeficit.toFixed(1)}
+            style={{fontSize:12,margin:"11px 0 0",color:"#53665E"}}>
+            Licensed source vs code-drawn cheek, orbital and chin:
+            {" "+skinEvidence.regions.map(r=>
+              r.name+" "+r.sourceLuminance.toFixed(1)+"→"+
+              r.drawnLuminance.toFixed(1)).join(" · ")}.
+            Tonal negative gate: {" "+(skinEvidence.missingOpticalCoverage?
+              "INSUFFICIENT COVERAGE / FAIL":
+              "TECHNICAL THRESHOLD ONLY")}.
+            Independent realism and artist approval: NOT PASSED.
+          </p>}
           <p style={{fontSize:12,margin:"9px 0 0",color:"#53665E"}}
             data-km-pencil-head-proof-metrics="">
             Five values (deepest → reserved paper):
