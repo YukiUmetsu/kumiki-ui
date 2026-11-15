@@ -321,8 +321,8 @@ test("RISO27 original two-human 240-frame film: printed contact sequence and end
   const take=page.locator('svg[data-km-riso-human-ensemble-frame]');
   const stage=page.locator('[data-km-riso-ensemble-stage-container]');
   const frames={
-    landscape:[0,24,48,76,96,120,125,126,134,144,152,159,160,168,177,178,186,190,194,201,202,218,238,239],
-    portrait:[0,76,126,144,159,160,177,178,190,201,202,218,239],
+    landscape:[0,24,48,76,96,120,125,126,134,144,152,159,160,162,165,168,177,178,186,190,194,198,201,202,218,238,239],
+    portrait:[0,76,126,144,159,160,162,165,177,178,190,198,201,202,218,239],
   } as const;
   const at=(frame:number)=>frame<160?"unfurl":frame<178?"shared":frame<202?"release":"received";
   for(const ratio of ["landscape","portrait"] as const){
@@ -330,6 +330,7 @@ test("RISO27 original two-human 240-frame film: printed contact sequence and end
     for(const frame of frames[ratio]){
       await timeline.fill(String(frame));
       await expect(editor).toHaveAttribute("data-km-riso27-source-frame",String(frame));
+      await expect(editor).toHaveAttribute("data-km-riso28-footfall",frame>=165?"grounded":"approaching");
       await expect(take).toHaveAttribute("data-km-riso-human-ensemble-aspect",ratio);
       await expect(take).toHaveAttribute("data-km-riso-human-ensemble-frame",String(frame));
       await expect(take).toHaveAttribute("data-km-riso-handoff-phase",at(frame));
@@ -358,6 +359,8 @@ test("RISO27 original two-human 240-frame film: printed contact sequence and end
   }
 
   // Seek exact boundaries from the existing page, with no new Storybook pages.
+  await page.getByRole("button",{name:"Seek film to Foot plant at frame 165"}).click();
+  await expect(editor).toHaveAttribute("data-km-riso28-footfall","grounded");
   await page.getByRole("button",{name:"Seek film to Contact at frame 160"}).click();
   await expect(editor).toHaveAttribute("data-km-riso27-source-frame","160");
   await page.getByRole("button",{name:"RISO27 next source frame"}).click();

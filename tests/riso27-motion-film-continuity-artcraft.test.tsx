@@ -31,9 +31,9 @@ describe("RISO27 ArtCraft original two-human 24fps film continuity",()=>{
     expect(()=>clampRisoEnsembleFilmFrame(.2)).toThrow();
   });
 
-  it("nine original-source acting beats are distinct, ordered and touch all phase transitions",()=>{
+  it("original-source acting beats include first planted-foot handoff and all phase transitions",()=>{
     const beats=RISO_ENSEMBLE_MOTION_BEATS;
-    expect(beats.map(b=>b.frame)).toEqual([0,76,126,144,160,178,190,202,239]);
+    expect(beats.map(b=>b.frame)).toEqual([0,76,126,144,160,165,178,190,202,239]);
     expect(new Set(beats.map(b=>b.label)).size).toBe(beats.length);
     for(const beat of beats){
       expect(beat.label.length).toBeGreaterThan(3);

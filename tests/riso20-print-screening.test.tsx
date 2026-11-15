@@ -72,15 +72,21 @@ describe("RISO20: physical plate screening", () => {
     expect(svg).toContain('data-km-riso-plate="red"');
     expect(svg).toContain('mix-blend-mode:multiply');
     const screenTiles = svg.match(/<pattern[^>]+>.*?<\/pattern>/g) ?? [];
-    expect(screenTiles).toHaveLength(2);
-    // Repeated pattern tiles add mirrored sites wherever an ink droplet crosses a tile edge.
-    expect((screenTiles[0]?.match(/<circle /g) ?? []).length).toBeGreaterThanOrEqual(32);
-    expect((screenTiles[1]?.match(/<circle /g) ?? []).length).toBeGreaterThanOrEqual(32);
+    // RISO26 prints three graded masters per physical spot drum, not an RGB overlay.
+    // The old assertion of two total patterns failed after its legitimate tonal addition.
+    expect(screenTiles).toHaveLength(6);
+    for(const [plate,base] of [[0,0],[1,3]] as const){
+      expect(screenTiles[base]).toContain('-dots-'+plate+'"');
+      expect(screenTiles[base+1]).toContain('-dots-light-'+plate+'"');
+      expect(screenTiles[base+2]).toContain('-dots-mid-'+plate+'"');
+      // Repeated FM tiles mirror sites at opposite tile edges.
+      expect((screenTiles[base]?.match(/<circle /g)??[]).length).toBeGreaterThanOrEqual(32);
+    }
     expect(svg).toContain('maskUnits="userSpaceOnUse"');
     expect(svg).not.toContain("feGaussianBlur");
     const defaultMarkup = renderToStaticMarkup(<RisoPrint spec={spec} frame={240} artworks={artwork}/>);
     expect(defaultMarkup).toContain('data-km-riso-screen-mode="am"');
-    expect((defaultMarkup.match(/<pattern/g) ?? [])).toHaveLength(2);
+    expect((defaultMarkup.match(/<pattern/g) ?? [])).toHaveLength(6);
   });
 
   it("rejects invalid public screen controls on a real plate without breaking legal output", () => {
