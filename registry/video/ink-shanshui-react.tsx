@@ -51,8 +51,14 @@ const ridgeStations=(nodes:readonly P[],seed:number,band:number):P[]=>{
       const smooth=.5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t2+
         (-a+3*b-3*c+d)*t3);
       const shapeNoise=(shanshuiHash(seed+band*113,i*17+k)-.5)*2;
+      // ArtCraft negative control: the earlier 25-node summit became
+      // a saw-tooth ridge because every ~14px segment received a full
+      // 4.5px independent ink fracture. Tooth amplitude must be tied to
+      // the spatial span of the SAME parent rock, not its point count.
+      // Long cliffs retain all their original seed-specific fracture.
+      const segmentScale=Math.min(1,(x1-x0)/70);
       const fracture=(band===0?2.5:band===1?4.5:6.2)*
-        Math.sin(Math.PI*t)*shapeNoise;
+        segmentScale*Math.sin(Math.PI*t)*shapeNoise;
       stations.push([f(x0+(x1-x0)*t),f(smooth+fracture)]);
     }
   }
