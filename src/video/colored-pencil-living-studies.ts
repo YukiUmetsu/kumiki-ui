@@ -113,6 +113,59 @@ export function pencilRootedFur(
   return strokes;
 }
 
+
+/** Fine dry-pencil guard hairs rooted at a known part boundary. Each point
+ * follows an authored parent quadratic, whose outward normal determines
+ * the lift direction. No random hairs may appear detached in paper space.
+ */
+type FringeGuide=readonly [number,number,number,number,number,number,number,number];
+function pencilContourFringe(
+  guides:readonly FringeGuide[],seed:number,palette:PencilPalette,startFrame=248,
+):PencilTrace[]{
+  if(!Number.isSafeInteger(seed)||seed<0||seed>2147483647||
+     guides.length<1||guides.length>6||
+     palette.some(c=>!/^#[0-9a-f]{6}$/i.test(c)))
+    throw new RangeError("Invalid authored pencil contour fringe");
+  const marks:PencilTrace[]=[];
+  for(let layer=0;layer<3;layer++){
+    const arcs:string[]=[];
+    guides.forEach(([x0,y0,x1,y1,cx,cy,count,side],group)=>{
+      if(![x0,y0,x1,y1,cx,cy,count,side].every(Number.isFinite)||
+         !Number.isInteger(count)||count<16||count>40||
+         (side!==1&&side!==-1)||
+         Math.hypot(x1-x0,y1-y0)<8)
+        throw new RangeError("Contour fringe must follow a bounded parent");
+      for(let i=0;i<count;i++){
+        const key=group*131+layer*43+i;
+        const t=Math.max(.025,Math.min(.975,
+          (i+.5+(pencilHash(seed,key,41)-.5)*.7)/count));
+        const u=1-t;
+        const x=u*u*x0+2*u*t*cx+t*t*x1;
+        const y=u*u*y0+2*u*t*cy+t*t*y1;
+        const tx=2*u*(cx-x0)+2*t*(x1-cx);
+        const ty=2*u*(cy-y0)+2*t*(y1-cy);
+        const mag=Math.hypot(tx,ty);
+        if(mag<.001)continue;
+        const nx=-ty/mag*side,ny=tx/mag*side;
+        const travel=(3.2+5.1*pencilHash(seed,key,42))*
+          (layer===2?.86:1);
+        const root=1.2+1.6*pencilHash(seed,key,43);
+        const bend=(pencilHash(seed,key,44)-.5)*2.8;
+        const sx=x-nx*root,sy=y-ny*root;
+        const ex=x+nx*travel,ey=y+ny*travel;
+        const mx=(sx+ex)*.5+tx/mag*bend;
+        const my=(sy+ey)*.5+ty/mag*bend;
+        arcs.push("M"+fmt(sx)+" "+fmt(sy)+" Q"+
+          fmt(mx)+" "+fmt(my)+" "+fmt(ex)+" "+fmt(ey));
+      }
+    });
+    marks.push({...mark(arcs.join(" "),palette[layer],
+      [.35,.29,.22][layer],startFrame+layer*6,
+      [.74,.58,.68][layer]),id:"fringe-"+layer});
+  }
+  return marks;
+}
+
 function face():PencilSubjectPart[] {
   const skin:PencilPalette=["#DDA58F","#906277","#F4CEB0"];
   const lit:PencilPalette=["#F2C6AA","#B78082","#FFE0BF"];
@@ -370,6 +423,13 @@ function fox():PencilSubjectPart[] {
         ],1897,["#C6B5A1","#877E77","#FFF1D9"],249),
         mark("M196 267 Q211 289 219 319 M231 277 Q249 305 257 335",
           "#716E6D",.36,258,.50),
+        // Every white edge fibre starts inside a measured chest curve and
+        // lifts outside; the base color plane itself stays fully preserved.
+        ...pencilContourFringe([
+          [175,271,190,318,169,298,32,1],
+          [279,289,256,356,286,322,32,-1],
+          [253,355,213,345,237,366,30,-1],
+        ],901,["#E8DBC3","#9D9083","#FFF0D6"],253),
       ]},
     {id:"neck-ruff",material:"fur",palette:pale,
       path:"M160 235 C164 240 170 247 176 253 "+
@@ -389,6 +449,11 @@ function fox():PencilSubjectPart[] {
           [186,267,215,318,192,293,32,12],
           [219,265,238,305,227,284,29,12],
         ],1939,["#D7C3AC","#766D68","#FFF1D6"],244),
+        ...pencilContourFringe([
+          [159,253,167,301,155,278,29,1],
+          [244,280,217,311,246,297,31,-1],
+          [214,311,175,309,195,324,28,-1],
+        ],903,["#DBCDB8","#A2998D","#FFF3DD"],253),
       ]},
     {id:"ear-far",material:"fur",palette:["#AD6B54","#704E49","#D8A17E"],
       // Foreshortened far auricle: maintain positive skull overlap and
@@ -557,6 +622,10 @@ function fox():PencilSubjectPart[] {
         ],765,["#CDAA8C","#705B56","#F6DBC0"],257),
         mark("M262 272 Q277 255 283 246 M249 278 Q260 269 268 262",
           "#E7C6A8",.52,279,.71),
+        ...pencilContourFringe([
+          [256,235,277,263,277,242,30,-1],
+          [278,262,250,280,267,284,28,-1],
+        ],905,["#CFB198","#726763","#F7DDC0"],255),
       ]},
     {id:"eye-far",material:"glaze",palette:["#786151","#584E49","#AC8A70"],
       // With the skull yawed left, the far eye is behind the brow/bridge.
@@ -786,12 +855,17 @@ export function pencilLivingStudyDrawing({
     return {...region,
       // The fox iris has its own traced upper eyelid and pupil. Suppress
       // only the enclosing glass-vector ring, not the separate pencil marks.
-      contour:subject==="fox"&&part.id==="eye-near"?
+      contour:subject==="fox"&&
+        ["chest","neck-ruff","cheek-ruff"].includes(part.id)?
+        {...region.contour,opacity:.18}:
+        subject==="fox"&&part.id==="eye-near"?
         {...region.contour,opacity:.17}:region.contour,
       craft:locallyRooted&&region.craft?{
         ...region.craft,pigmentDensity:furDensity,
       }:region.craft,
-      clipDetails:part.id==="whisker-roots"?false:region.clipDetails, layers:region.layers.map(layer=>({
+      clipDetails:part.id==="whisker-roots"||
+        (subject==="fox"&&["chest","neck-ruff","cheek-ruff"].includes(part.id))?
+        false:region.clipDetails, layers:region.layers.map(layer=>({
       ...layer,
       // CP-F1 direction/pressure remains intact, but soft facial skin needs
       // grain rather than ruler-like diagonals; scalp/brow hair needs fibre.
