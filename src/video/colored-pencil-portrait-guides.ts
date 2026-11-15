@@ -205,5 +205,64 @@ export function createPencilPortraitFeatureMarks(
     add("lip-grain",x,centerY,(pencilHash(seed,i,81)-.5)*.5,
       length,.10,.28,2,.18,i+2200);
   }
+  // Crosshatched form, not just contours: gentle colour-pencil strokes follow
+  // each actual photographed cheek/forehead/nasal/chin plane. A photo-local
+  // colour gate stops the marks from drifting onto brows, hair or background.
+  // Rendering preserves the untouched photograph-derived value map beneath.
+  const eyeDistance=Math.hypot(
+    guides.eyeFarCenter[0]-guides.eyeNearCenter[0],
+    guides.eyeFarCenter[1]-guides.eyeNearCenter[1],
+  );
+  const scale=clamp(eyeDistance/79,.18,4);
+  const planes=[
+    {name:"form-cheek-left",center:guides.cheekLeft,rx:55,ry:51,
+      angle:-.32,count:1450},
+    {name:"form-cheek-right",center:guides.cheekRight,rx:23,ry:37,
+      angle:-.66,count:460},
+    {name:"form-forehead",center:guides.forehead,rx:52,ry:34,
+      angle:.18,count:1120},
+    {name:"form-chin",center:guides.chin,rx:44,ry:19,
+      angle:.34,count:510},
+    {name:"form-nose",center:guides.noseTip,rx:17,ry:26,
+      angle:-1.29,count:520},
+  ] as const;
+  for(const [planeIndex,plane] of planes.entries()){
+    const center=plane.center;
+    const ix=clamp(Math.round(center[0]),0,source.width-1);
+    const iy=clamp(Math.round(center[1]),0,source.height-1);
+    const offset=(iy*source.width+ix)*4;
+    const rgb=[source.data[offset],source.data[offset+1],source.data[offset+2]];
+    const radiusX=plane.rx*scale,radiusY=plane.ry*scale;
+    for(let i=0;i<plane.count;i++){
+      // Independent jittered low-discrepancy deposits, not uniform parallel
+      // digital hatching. Every mark retains a local source-colour identity.
+      const j=planeIndex*100000+i;
+      const radial=Math.sqrt(pencilHash(seed,j,143))*.96;
+      const polar=2*Math.PI*pencilHash(seed,j,144);
+      const fx=Math.cos(polar)*radial,fy=Math.sin(polar)*radial;
+      const x=center[0]+fx*radiusX,y=center[1]+fy*radiusY;
+      if(x<1||x>=source.width-2||y<1||y>=source.height-2)continue;
+      const pixel=(Math.round(y)*source.width+Math.round(x))*4;
+      const delta=Math.hypot(
+        source.data[pixel]-rgb[0],
+        source.data[pixel+1]-rgb[1],
+        source.data[pixel+2]-rgb[2]);
+      // This is local *same-face* material coherence, not a global skin-tone
+      // detector. It must not encode an assumed human complexion.
+      const material=clamp((119-delta)/74,0,1);
+      if(material<.19)continue;
+      const lum=(.2126*source.data[pixel]+.7152*source.data[pixel+1]+
+        .0722*source.data[pixel+2])/255;
+      const pencilPressure=.065+.125*Math.pow(1-lum,.66);
+      const heading=plane.angle+fy*.43+fx*.16+
+        (pencilHash(seed,j,145)-.5)*.36;
+      const length=(2.4+2.8*pencilHash(seed,j,146))*scale;
+      const dx=Math.cos(heading)*length;
+      const dy=Math.sin(heading)*length;
+      add(plane.name,x,y,dx,dy,pencilPressure*material,
+        .22+.16*pencilHash(seed,j,147),i%3===0?1:2,
+        .12+.16*(1-lum),j);
+    }
+  }
   return {sampledSourceFeatures:guides,marks,featureCounts:counts};
 }
