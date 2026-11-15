@@ -9,6 +9,7 @@ import type { PencilObjectInput, PencilRegion, PencilTrace } from "./colored-pen
 export const PENCIL_MATERIALS = [
   "petal", "leaf", "citrus", "glass", "metal",
   "masonry", "fabric", "wood", "stone", "fur", "cast-shadow",
+  "skin", "hair", "water", "foliage", "glaze",
 ] as const;
 export type PencilSurface = typeof PENCIL_MATERIALS[number];
 type Mark = "hatch" | "fiber" | "stipple";
@@ -61,6 +62,21 @@ const RECIPES: Record<PencilSurface, Recipe> = {
   "cast-shadow": { density:"soft", marks:["hatch","hatch","stipple"], tone:"core",
     flow:0, direction:4, underpaintOpacity:.15, support:false,
     clipDetails:true, contourOpacity:.14 },
+  skin: { density:"dense", marks:["hatch","hatch","stipple"], tone:"core",
+    flow:13, direction:38, underpaintOpacity:.93, support:true,
+    clipDetails:true, contourOpacity:.28 },
+  hair: { density:"dense", marks:["hatch","fiber","fiber"], tone:"core",
+    flow:31, direction:63, underpaintOpacity:.87, support:true,
+    clipDetails:true, contourOpacity:.34 },
+  water: { density:"layered", marks:["hatch","fiber","hatch"], tone:"rim",
+    flow:10, direction:2, underpaintOpacity:.7, support:true,
+    clipDetails:true, contourOpacity:.24 },
+  foliage: { density:"layered", marks:["hatch","fiber","stipple"], tone:"core",
+    flow:29, direction:-35, underpaintOpacity:.77, support:true,
+    clipDetails:true, contourOpacity:.36 },
+  glaze: { density:"soft", marks:["hatch","fiber","stipple"], tone:"rim",
+    flow:14, direction:-24, underpaintOpacity:.07, support:false,
+    clipDetails:true, contourOpacity:.09 },
 };
 export interface PencilMaterialInput {
   surface: PencilSurface;
@@ -82,9 +98,9 @@ export interface PencilMaterialInput {
 }
 
 /**
- * Any valid authored SVG silhouette can use a material recipe. The transparent
- * glass recipe deliberately has no paper support; every other recipe is fully
- * opaque to scenery. Three passes remain bounded by CP1's existing safeguards.
+ * Any valid authored SVG silhouette can use a material recipe. Transparent
+ * glass, optical cast shadows and skin-light glazes omit paper support; other recipes are fully
+ * opaque over scenery. Three passes remain bounded by CP1's safeguards.
  */
 export function createPencilMaterialRegion(input: PencilMaterialInput): PencilRegion {
   if (!Object.prototype.hasOwnProperty.call(RECIPES, input.surface))
@@ -111,7 +127,9 @@ export function createPencilMaterialRegion(input: PencilMaterialInput): PencilRe
       // Every pass deposits physically separate marks. Glass avoids the
       // opaque matte and keeps light, low-pressure pigment at its edges.
       pressure:input.surface === "glass" ? layer.pressure * .65 :
-        input.surface === "cast-shadow" ? layer.pressure * .55 : layer.pressure,
+        input.surface === "cast-shadow" ? layer.pressure * .55 :
+        input.surface === "skin" ? layer.pressure * .75 :
+        input.surface === "glaze" ? layer.pressure * .52 : layer.pressure,
     })),
   };
 }

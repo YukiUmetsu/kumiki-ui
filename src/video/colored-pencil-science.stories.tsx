@@ -14,6 +14,7 @@ import { pencilCharacterScene } from "./colored-pencil-character-scenes";
 import type { PencilDemoSubject } from "./colored-pencil-demo-scenes";
 import { PencilScene } from "../../registry/video/colored-pencil-scene-react";
 import { PencilObjectAtelier } from "./colored-pencil-object-studio";
+import { PencilLivingAtelier } from "./colored-pencil-living-studio";
 
 const meta = {
   title: "Video Production/Film Looks/Colour-pencil",
@@ -448,4 +449,11 @@ export const ObjectMaterialAtelier: StoryObj<typeof meta> = {
   name: "Objects · Rose, glass, masonry and fabric",
   args: {aspect:"landscape",subject:"leaf",frame:325},
   render: () => <PencilObjectAtelier/>,
+};
+
+/** Same Video Production/Film Looks/Colour-pencil group, no new Storybook folder. */
+export const LivingSubjectsAtelier: StoryObj<typeof meta> = {
+  name: "ArtCraft · Portrait, fox and landscape",
+  args: {aspect:"landscape",subject:"leaf",frame:325},
+  render: () => <PencilLivingAtelier/>,
 };
