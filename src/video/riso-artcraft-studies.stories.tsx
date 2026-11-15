@@ -541,7 +541,9 @@ function Riso29PrintPose({actor,frame,mode,plate,showRig,screenDensity}:{
   const pose=evaluateRisoCharacter(actor,frame);
   const head=pose.joints.find(j=>j.id==="head")!;
   const root=pose.joints.find(j=>j.id==="root")!;
-  const scale=mode==="full"?1.65:4.05;
+  // With the ANAT1 leg retiming the taller source must retain its entire cap
+  // and both printed boot soles on the original studio paper.
+  const scale=mode==="full"?1.45:4.05;
   const x=mode==="full"?width/2-root.x*scale:width/2-head.x*scale;
   const y=mode==="full"?height-38:160-head.y*scale;
   const printSpec:RisoPrintSpec={
@@ -637,6 +639,9 @@ function Riso29AnatomyWorkbench(){
           style={{margin:0,fontWeight:700}}>{measure.headToShoulder.toFixed(3)}×</dd></div>
         <div><dt>Actual connected cervical axis</dt><dd style={{margin:0,fontWeight:700}}>
           {measure.neckLength.toFixed(1)} source units</dd></div>
+        <div><dt>Projected leg/stature (source vs ANAT1 adult model)</dt><dd
+          data-km-riso29-leg-stature-ratio="" style={{margin:0,fontWeight:700}}>
+          {measure.legProjectionRatio.toFixed(3)} / {RISO29_ANAT1.adultReferenceLegRatio.toFixed(3)}</dd></div>
         <div><dt>Source facial ink primitives</dt><dd style={{margin:0,fontWeight:700}}>
           {measure.printDetails} named parts</dd></div>
         <div><dt>ANAT1 adult reference (not target)</dt><dd style={{margin:0,fontWeight:700}}>
