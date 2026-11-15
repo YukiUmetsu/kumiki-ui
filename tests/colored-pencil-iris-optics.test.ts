@@ -20,7 +20,7 @@ const shadedIrises=(withGlint=false):PencilPhotoPixels=>{
   const image=paperSource();
   for(const eye of ["near","far"] as const){
     const lid=createPortraitEyeAperture(guides,eye);
-    const rx=lid.span*(eye==="near"?.195:.17),ry=rx*.85;
+    const rx=lid.span*(eye==="near" ? .195 : .17),ry=rx*.85;
     const cx=lid.center[0],cy=lid.center[1];
     for(let y=Math.floor(cy-ry-3);y<=Math.ceil(cy+ry+3);y++){
       for(let x=Math.floor(cx-rx-3);x<=Math.ceil(cx+rx+3);x++){
