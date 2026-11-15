@@ -324,9 +324,9 @@ for(const view of ["wax","anatomy"] as const){
         // Browser proof of the real V4 failure: wax contact clumps were
         // clipped at the polygon while its under-glaze feathered.
         await expect(svg.locator(
-          '[data-km-crayon-feather-contacts="open-wax"]')).toHaveCount(20);
+          '[data-km-crayon-feather-contacts="open-wax"]')).toHaveCount(23);
         await expect(svg.locator(
-          '[data-km-crayon-contact-feather-mask]')).toHaveCount(20);
+          '[data-km-crayon-contact-feather-mask]')).toHaveCount(23);
         await expect(svg.locator(
           '[data-km-crayon-opaque-burnish]')).toHaveCount(7);
         for(const id of ["socket-near","socket-far",
@@ -467,3 +467,46 @@ for(const view of ["wax","anatomy"] as const){
     expect(exceptions).toEqual([]);
   });
 }
+
+/** Browser-native A/B proof: same documented camera, seed, timeline and
+ * every original wax path; the only difference is source-side scleral shade.
+ * This is a material experiment, not art approval or portrait likeness.
+ */
+test("F1 source sclera contact vs exact baseline at native near-eye camera",async({page},info)=>{
+  await page.setViewportSize({width:608,height:1082});
+  const errorMessages:string[]=[];
+  page.on("pageerror",error=>errorMessages.push(error.message));
+  const focus=CRAYON_F1_EYE_INSPECTION.near;
+  const shots:Uint8Array[]=[];
+  for(const eyeContact of ["baseline","source-shade"] as const){
+    const spec=crayonCc0FaceStudy({eyeContact});
+    const framed={...spec,camera:[
+      {frame:0,...focus},{frame:299,...focus},
+    ]};
+    const html=renderToStaticMarkup(createElement(CrayonScene,{
+      spec:framed,frame:299,
+    }));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+
+      html+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    for(const id of ["sclera-near","iris-near","pupil-near",
+      "upper-lid-near","lash-root-near"]){
+      await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+        .toBeAttached();
+    }
+    const shade=svg.locator(
+      '[data-km-crayon-element^="sclera-outer-contact-"],'+
+      '[data-km-crayon-element="sclera-inner-contact-near"]');
+    await expect(shade).toHaveCount(eyeContact==="source-shade"?2:0);
+    await expect(svg.locator(
+      '[data-km-crayon-contact-feather-mask]')).toHaveCount(
+        eyeContact==="source-shade"?23:20);
+    shots.push(await svg.screenshot({path:info.outputPath(
+      "crayon-f1-sclera-"+eyeContact+"-near-299.png"),
+      animations:"disabled"}));
+  }
+  expect(Buffer.compare(Buffer.from(shots[0]),Buffer.from(shots[1])))
+    .not.toBe(0);
+  expect(errorMessages).toEqual([]);
+});
