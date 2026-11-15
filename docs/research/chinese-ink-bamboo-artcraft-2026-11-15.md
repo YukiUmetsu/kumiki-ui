@@ -460,3 +460,38 @@ unconvincing foliage silhouettes or the schematic background mountains.
 comparison.** Unit/browser tests assert both the 18 live branches and the
 zero-detail omission. This is structural deletion of incorrectly floating
 motifs, not general shape simplification.
+
+## Eleventh pass — source-observed terminal foliage grammar (2026-11-15)
+
+### Evidence and reconstruction contract
+
+Primary images inspected (technique references, not traced, rasterized or bundled):
+
+1. [Wu Zhen, *Manual of Ink Bamboo*, National Palace Museum — leaf 20](https://theme.npm.edu.tw/exh105/oversized10/common/images/selection/img1_1_20s.jpg). Distinct short and long leaf families meet their supporting terminal twig at close stations, while two culms retain visible bare intervals. The already-rendered algorithmic work kept leaves spaced out along every brush branch, so each blade looked like an isolated spear.
+2. [Wu Zhen, *Manual of Ink Bamboo* — leaf 12](https://theme.npm.edu.tw/exh105/oversized10/common/images/selection/img1_1_12s.jpg). A diagonal bent culm carries secondary shoots with curved leading edges and clustered leaves; the branch hierarchy reads across one continuous gesture, not repeated radial suns.
+3. [Zheng Xie, *Orchids and Bamboo* (1742), Metropolitan Museum](https://www.metmuseum.org/art/collection/search/49244). Dark loaded strokes alternate with open ground; the density does not come from a seamless black fill. Technique is examined only; no image data appears in the renderer.
+
+### Source → shape graph
+
+| Observed structure | Previous defect (native v10 inspection) | Implemented controlled correction | Negative QA |
+| --- | --- | --- | --- |
+| Parent stem → branching arm → closely rooted fan | First lateral arm at parent t=.35, three main leaf bases stretched t≈.66–.93 | Lateral arms now at parent t=.59/.78. Three main leaves root at t≈.75/.82/.89 with narrow seeded variation and milder second-layer stagger | No floating leaf attachment or indiscriminate clumping at every node |
+| Unequal long and short calligraphic leaves | Five nearly equally sized rays and abrupt arrow groups | Five gesture families: length multipliers 1.12/.81/1.06/.70/.79; narrower asymmetric angular fan with small deterministic seeded pitch changes | Do not replace distinctive foliage with identical radial wedges |
+| Attached companion leaf within one twig family | Satellite root independently jumped to a separate t≈.79 segment | Satellite root moves by no more than ≈.04 in parent parameter from its own main leaf root, and echo rotates relative to the leaf's actual heading | No visually detached echo blades over untouched paper |
+| Layered dark-to-dilute medium | Bright overlays / flat fill in prior images | Retain existing asymmetric fifteen-station ink profiles, ink-direction gradients, and negative-luminance paper reserve masks | Do not claim a pigment simulator or reference-level visual match |
+
+**Geometry invariant:** 21 culm joints, three independently phased seven-joint budgets,
+102 full-detail primary leaves, 63 satellites, parent-twig and satellite
+root attributes, full/partial/zero detail semantics, all scene/frame seeds
+and wind transformations remain compatible. New per-leaf station and
+cluster IDs permit checking that the resulting terminal mass occupies a
+restricted section of the actual branch rather than a random screen-space
+cloud. Branch roots and leaf roots still derive from the same Bézier
+points. The revised cluster pattern changes no public API and adds no
+new Storybook folder.
+
+The **final ArtCraft gate remains a native visual review**: full 960×540
+frames at seeds 71/87, brushwork closeups at 2.15×, sparse/full detail,
+normal-speed 96-frame film and seed/frame reproducibility.
+This iteration improves structural clustering, not facial anatomy or
+mid-range mountain texture; full-scene acceptance is not presumed.
