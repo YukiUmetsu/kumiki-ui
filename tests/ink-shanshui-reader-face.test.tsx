@@ -64,6 +64,12 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(paths(face,"pupil-left").length).toBeGreaterThanOrEqual(anatomy.nearPupil.length);
     expect(paths(face,"pupil-right").length).toBeGreaterThanOrEqual(anatomy.farPupil.length);
     expect(paths(face,"reader-ear").length).toBeGreaterThanOrEqual(anatomy.ear.length);
+    const restMouth=paths(face,"mouth-rest");
+    // A thoughtful downward-looking reader has a nearly level, closed
+    // mouth at rest; the expressive "smile" cel remains distinct.
+    expect(restMouth.some(s=>s.type==="path"&&
+      s.d.includes("M135.2 125.4 Q139 126.4"))).toBe(true);
+    expect(paths(face,"mouth-smile")).not.toEqual(restMouth);
     const root=paths(face,"face").find(s=>s.type==="path"&&s.d.includes("143.3 143.7"));
     expect(root).toMatchObject({fill:"$skin",opacity:1});
     const rig=makeShanshuiScholar(1,.88,"river-scholar");
