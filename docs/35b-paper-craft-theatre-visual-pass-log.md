@@ -110,3 +110,7 @@ Research: reference bird cutwork and feather edge craft in Diana Beltrán Herrer
 ## Pass 17 — separately hinged, opaque feather tips
 
 Studied Diana Beltrán Herrera's original physical bird feathers. Added renderer support for attached second contours with bounded fold pivots and contact shadows. The kingfisher now has 18 two-part wing-feather pieces; eaves and napkin folds also gain small raised tips. Added `relief` 0–1, independent of earlier color-shading `curl`. Regression gates: 128 budget, root/tip attachment, reduced motion and seeded seek, opaque closed paths, invalid negative/infinite displacements, actual Chromium landscape/portrait captures and native-film exports. This is not manufactured 3D paper.
+
+## Pass 18 — kingfisher anatomy rebuilt from actual bird and handmade paper references
+
+Focus on a genuinely better bird rather than arbitrary effect layers. Reconstructed the entire original `kingfisher` geometry while preserving its contract, consistent wing rig and 18 real lifted feather tips. Changed skull-to-body connection, wing/body volume, blue and chestnut color tracts, crown markings, eye and cheek arrangement, short rectrices, bill wedge and perch-clinging tarsi. Added 12 compound layers containing fine individual paper feather contours. **Artistic validation:** inspect both exact browser screenshot ratios and native film frames, with no unmeasured ArtCraft score claims.

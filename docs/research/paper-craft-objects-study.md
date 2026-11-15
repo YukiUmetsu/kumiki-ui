@@ -35,3 +35,22 @@ Additional reference inspection (14 November 2026):
 **Implementation comparison:** Curvature is authored on individual SVG contours, with five opaque pigment colors as a per-path gradient, explicitly clipped to its real cut shape. The same stock still owns its physical shadow and may have cut-out windows. The renderer also exposes `data-km-paper-stock` for QA so a gradient does not conceal an accidentally translucent base. Four dragonfly rigs and one kingfisher wing rig use shared pivot and waveform, and the test suite asserts mathematical frame purity, component synchrony, motion-off behavior and reduced-motion stillness.
 
 **Unresolved fidelity gap:** actual out-of-plane paper bending, rolling, thickness, self-shadowing, physical crease spring dynamics, microscopic cut-fiber geometry and fully biophysical flapping motions. This 2.5D step improves legibility and material cues without claiming to reproduce reference sculpture shapes or 3D camera viewpoints. No numerical ArtCraft image-comparison scores are fabricated.
+
+## Pass 18: species-specific common kingfisher anatomical audit
+
+Three distinct reference classes were compared, without copying source geometry or pixels:
+
+1. **Actual kingfisher anatomy**: [BirdLife DataZone species photograph](https://datazone.birdlife.org/species/factsheet/common-kingfisher-alcedo-atthis) shows a very short tail, compact torpedo body, large but skull-shaped head, long narrow chisel bill (not twin whiskers), rich chestnut belly, small white throat, and short orange feet curled around perch. [Animal Diversity Web](https://animaldiversity.org/accounts/Alcedo_atthis/) verifies blue upperparts, chestnut underside, white throat and small red feet. [Feather identification](https://bris.linnaeus.naturalis.nl/linnaeus_ng/app/views/species/taxon.php?id=112424) confirms finely barred crown and cyan/cobalt wing colors.
+2. **Real handmade paper bird sculpture**: [Diana Beltrán Herrera bird collection](https://www.dianabeltranherrera.com/projects/birds) shows an integrated body scaffold, joined wing coverts, individual shaped blue primaries, eye and beak anatomy and articulated toes. The original contours in Kumiki are not tracings.
+3. **Fine manually layered wing-feather construction**: [ESMA detailed kingfisher sculpture](https://www.esma-artistique.com/projet-etudiant/oiseaux-papier/) demonstrates dozens of nested cobalt/azure paper vane contours, warm orange chest plumage, teal-to-deep-blue shingled feathers and tiny directional crown flecks; the prior flat turquoise wing disc with lemon-yellow comb strokes did not meet this bar.
+
+### Previous vs upgraded structure
+
+- Circular ball head → compact asymmetric skull, layered brow, chiseled long black bill and ear patch.
+- Oversized pale belly → deep chestnut body plus localized pale vent and small white throat.
+- Nine oversized wire-tail strands → seven short stacked rectrices.
+- Two stick-like vertical human legs → two red sloping tarsi with gripping toes on the actual continuous perch.
+- Flat solid-blue head and single wing plate → 3 layered back-shingle tracts, 3 wing covert spots, 3 chestnut breast tracts, 3 head crown bars and multiple staggered primary feather tiers.
+- Existing 18 hinged feather tips retained but rebuilt with wide oblong asymmetric bases and 3×6 overlapping placement.
+
+**Remaining visual quality gates:** inspect actual Chromium screenshots at fully assembled frames, compare crown/bill/body/wing to reference photos, then inspect 9:16 framing and render native video. Still 2.5D; no claim of faithful photogrammetry or quantitative similarity scoring.
