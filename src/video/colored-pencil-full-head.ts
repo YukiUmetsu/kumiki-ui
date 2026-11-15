@@ -918,9 +918,11 @@ export const createDryPencilHeadPlate=(
     materialCounts["face-scumble"]-=obsolete.size;
   }
   const count=Math.min(requested,available+replacementCount);
+  const lightFibreIndices=new Set(skinWeave.lightFibreIndices);
+  let committedLightFibres=0;
   for(let i=0;i<count;i++){
-    const m=skinWeave.marks[
-      Math.floor((i+.5)*skinWeave.marks.length/count)];
+    const sourceIndex=Math.floor((i+.5)*skinWeave.marks.length/count);
+    const m=skinWeave.marks[sourceIndex];
     const p:Point=[m.x,m.y];
     if(classify(p)!=="skin")continue;
     const a=screen(p),b=screen([m.endX,m.endY]);
@@ -935,6 +937,7 @@ export const createDryPencilHeadPlate=(
       alpha:clamp(m.alpha,.005,.56),
     });
     materialCounts["face-optical-weave"]++;
+    if(lightFibreIndices.has(sourceIndex))committedLightFibres++;
   }
   const skinWeaveEvidence={
     pigments:materialCounts["face-optical-weave"],
@@ -943,7 +946,7 @@ export const createDryPencilHeadPlate=(
     protectedEdges:skinWeave.protectedEdges,
     protectedAnatomy:skinWeave.protectedAnatomy,
     protectedSpans:skinWeave.protectedSpans,
-    opticalLightFibres:skinWeave.opticalLightFibres,
+    opticalLightFibres:committedLightFibres,
   };
   // Add verified source-aligned anatomical marks only within the face or
   // hair structure. Never paste the original photographic background.
