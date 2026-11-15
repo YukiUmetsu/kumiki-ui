@@ -265,6 +265,51 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(slit.colors[0]).not.toBe("#f5ebe1");
     expect(inspectCrayonScene(scene)).toEqual([]);
   });
+  it("preserves F1 narrow anatomical near-eye occlusion rather than a round doll iris",()=>{
+    const scene=crayonCc0FaceStudy({view:"wax"});
+    const get=(id:string)=>scene.elements.find(e=>e.id===id);
+    const sclera=get("sclera-near"),iris=get("iris-near");
+    const pupil=get("pupil-near");
+    if(sclera?.kind!=="wax"||iris?.kind!=="wax"||pupil?.kind!=="wax")
+      throw new Error("Missing source F1 near orbit");
+    // Locked to Campbell's 608×1082 source screenshot, not a generic
+    // evenly centered cartoon eye: the black iris is partially lid-held.
+    expect(sclera.bounds.width).toBeLessThanOrEqual(116);
+    expect(sclera.bounds.height).toBeLessThanOrEqual(59);
+    expect(iris.bounds.x).toBeGreaterThanOrEqual(240);
+    expect(iris.bounds.width).toBeLessThanOrEqual(43);
+    expect(iris.bounds.height).toBeLessThanOrEqual(42);
+    expect(pupil.bounds.width).toBeLessThanOrEqual(23);
+    expect(pupil.bounds.width / iris.bounds.width).toBeLessThan(.58);
+    expect(iris).toMatchObject({parentId:"sclera-near",clipToParent:true});
+    expect(pupil).toMatchObject({parentId:"iris-near",clipToParent:true});
+    for(const id of ["upper-lid-near","lower-lid-near",
+      "upper-lid-crease-near","lash-root-near","lash-contact-near",
+      "lower-lid-margin-near"]){
+      const lid=get(id);
+      expect(lid).toMatchObject({kind:"wax",parentId:"face-outline",
+        clipToParent:true,coverage:"open",deposition:"stroke-built"});
+    }
+    expect(inspectCrayonScene(scene)).toEqual([]);
+  });
+  it("keeps F1 far eye foreshortened and occluded by source hair",()=>{
+    const scene=crayonCc0FaceStudy({view:"wax"});
+    const get=(id:string)=>scene.elements.find(e=>e.id===id);
+    const near=get("iris-near"),far=get("iris-far"),pupil=get("pupil-far");
+    if(near?.kind!=="wax"||far?.kind!=="wax"||pupil?.kind!=="wax")
+      throw new Error("Missing source F1 eye volume");
+    expect(far.bounds.width).toBeLessThan(near.bounds.width);
+    expect(far.bounds.width).toBeLessThanOrEqual(39);
+    expect(far.bounds.height).toBeLessThanOrEqual(35);
+    expect(pupil.bounds.width).toBeLessThanOrEqual(18);
+    for(const id of ["upper-lid-far","lash-root-far",
+      "lash-contact-far","lower-lid-far","upper-lid-crease-far"]){
+      expect(get(id)).toMatchObject({kind:"wax",
+        parentId:"face-outline",clipToParent:true,
+        coverage:"open",deposition:"stroke-built"});
+    }
+    expect(inspectCrayonScene(scene)).toEqual([]);
+  });
   it("keeps an exact independent source graph only in explicit anatomy mode",()=>{
     const wax=crayonCc0FaceStudy({view:"wax",detail:.5});
     const construction=crayonCc0FaceStudy({view:"anatomy",detail:.5});
