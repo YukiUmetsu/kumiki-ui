@@ -37,7 +37,7 @@ const wash=(id:string,path:string,fill:string,opacity=1,
 const mark=(id:string,path:string,color:string,width:number,opacity=.6,startFrame=0):WatercolourArtPart=>
   ({kind:"path",id,path,stroke:color,strokeWidth:width,opacity,technique:"drybrush",
     startFrame,fadeFrames:startFrame?22:0});
-const group=(id:string,children:WatercolourArtPart[],keys?:WatercolourArtKey[],
+const group=(id:string,children:WatercolourArtPart[],keys?:readonly WatercolourArtKey[],
   pivot?:{x:number;y:number},startFrame=0,fadeFrames=0,
   clipPath?:string):WatercolourArtPart=>
   ({kind:"group",id,children,...(keys?{keys}:{}),...(pivot?{pivot}:{}),
