@@ -258,8 +258,8 @@ export function crayonNibPath(mark: CrayonMark, progress = 1): string {
  * clocks, random state or raster textures are used.
  *
  * The SVG is bounded to <= 3 bands x 2 lifted fragments per nib arc.
- * Completed geometry is cached by crayonMarks; partial frames regenerate
- * only the active nib and never rearrange previously painted marks.
+ * Completed geometry is memoized only by dry-mode regions; partial frames
+ * regenerate only the active nib and never rearrange painted marks.
  */
 export function crayonDryNibPath(mark:CrayonMark,progress=1):string{
   if(!Number.isFinite(progress)||progress<0||progress>1)
@@ -290,19 +290,25 @@ export function crayonDryNibPath(mark:CrayonMark,progress=1):string{
       const gapStart=.43+.04*crayonHash(mark.index,seed,3105);
       const gapEnd=gapStart+.08+.06*crayonHash(mark.index,seed,3106);
       const ranges=lifted?[[liftStart,gapStart],[gapEnd,liftEnd]]:[[liftStart,liftEnd]];
-      const offset=(lane-1)*.29*mark.width+
-        (crayonHash(mark.index,seed,3107)-.5)*mark.width*.065;
+      const offset=(lane-1)*.28*mark.width+
+        (crayonHash(mark.index,seed,3107)-.5)*mark.width*.095;
       for(const [lo,hi] of ranges){
         const end=Math.min(exposed,hi);
         if(end<=lo+.008)continue;
         const left:string[]=[],right:string[]=[];
-        const mid=(lo+end)*.5;
-        for(const [j,t] of [lo,mid,end].entries()){
+        const fractions=[0,.3,.68,1] as const;
+        for(const [j,fraction] of fractions.entries()){
+          const t=lo+(end-lo)*fraction;
           const pos=point(t);
-          const taper=(j===0||j===2)?0.62:1;
-          const relief=.79+.21*crayonHash(mark.index,seed+j,3108);
-          const thickness=mark.width*(.075+.04*mark.pressure)*taper*relief;
-          const x=pos.x+pos.nx*offset,y=pos.y+pos.ny*offset;
+          // Paper friction makes wax break and veer *within* each contact.
+          // No three perfectly parallel ribbons or identical edge thicknesses.
+          const drift=(crayonHash(mark.index,seed*11+j,3110)-.5)*
+            mark.width*((j===0||j===3)?0.10:0.22);
+          const taper=(j===0||j===3)?0.43:1;
+          const relief=.59+.57*crayonHash(mark.index,seed+j,3108);
+          const thickness=mark.width*(.065+.043*mark.pressure)*taper*relief;
+          const x=pos.x+pos.nx*(offset+drift);
+          const y=pos.y+pos.ny*(offset+drift);
           left.push(fmt(x+pos.nx*thickness)+" "+fmt(y+pos.ny*thickness));
           right.push(fmt(x-pos.nx*thickness)+" "+fmt(y-pos.ny*thickness));
         }
