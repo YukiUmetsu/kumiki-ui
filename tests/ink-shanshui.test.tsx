@@ -223,6 +223,40 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(sparse).not.toContain("data-km-pine-fan-turn");
   });
 
+  it("constructs ridge-rooted geological brush planes, not floating repeated rain",()=>{
+    for(const scene of SHANSHUI_SCENES){
+      const controls={...DEFAULT_SHANSHUI,scene,detail:1};
+      const markup=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:168,controls,
+      }));
+      const faces=[...markup.matchAll(
+        /data-km-rock-ink-plane="" data-km-rock-plane-root="([^"]+)" data-km-rock-plane-crest="([^"]+)" data-km-rock-plane-style="([^"]+)"/g,
+      )];
+      expect(faces).toHaveLength(7+12+17);
+      expect(new Set(faces.map(m=>m[1])).size).toBeGreaterThan(28);
+      for(const [,root,crest] of faces){
+        const [,y]=root.split(",").map(Number);
+        const ridgeY=Number(crest);
+        expect(Number.isFinite(y)&&Number.isFinite(ridgeY)).toBe(true);
+        expect(y-ridgeY).toBeGreaterThanOrEqual(3.49);
+        expect(y-ridgeY).toBeLessThanOrEqual(7.51);
+      }
+      expect(faces.some(m=>m[3]==="alum-head")).toBe(true);
+      expect(faces.some(m=>m[3]==="hemp-fibre")).toBe(true);
+      expect((markup.match(/data-km-rock-moss-pocket=""/g)??[]).length)
+        .toBeGreaterThan(90);
+      expect(markup).not.toMatch(/NaN|Infinity|undefined/);
+      expect(renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:168,controls,
+      }))).toBe(markup);
+      const noDetail=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:168,controls:{...controls,detail:0},
+      }));
+      expect(noDetail).not.toContain("data-km-rock-ink-plane");
+      expect(noDetail).not.toContain("data-km-rock-moss-pocket");
+    }
+  });
+
   it("varies rock texture into long, broken and lateral side-brush gestures",()=>{
     for(const scene of SHANSHUI_SCENES){
       const svg=renderToStaticMarkup(createElement(InkShanshuiStage,{
