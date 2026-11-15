@@ -5,7 +5,7 @@ import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
 import {CRAYON_PORTRAIT_AUDIT}
   from "../src/video/crayon-artcraft-portrait-audit";
 import {CRAYON_F1_FACE_PROOF,CRAYON_F1_FACE_PARTS,
-  crayonCc0FaceStudy} from "../src/video/crayon-artcraft-cc0-face";
+  CRAYON_F1_EYE_INSPECTION,crayonCc0FaceStudy} from "../src/video/crayon-artcraft-cc0-face";
 import meta,{Cc0RegisteredFullFace}
   from "../src/video/crayon-artcraft-adult-face.stories";
 
@@ -334,6 +334,19 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(layers.indexOf("lash-root-far")).toBeLessThan(
       layers.indexOf("hair-right-curtain"));
     expect(inspectCrayonScene(scene)).toEqual([]);
+  });
+  it("rejects invalid Storybook/native eye cameras before browser render",()=>{
+    const scene=crayonCc0FaceStudy({view:"wax"});
+    for(const focus of Object.values(CRAYON_F1_EYE_INSPECTION)){
+      expect(focus.zoom).toBeLessThanOrEqual(3);
+      expect(inspectCrayonScene({...scene,camera:[
+        {frame:0,...focus},{frame:299,...focus},
+      ]})).toEqual([]);
+    }
+    expect(inspectCrayonScene({...scene,camera:[
+      {frame:0,focusX:269,focusY:546,zoom:3.35},
+      {frame:299,focusX:269,focusY:546,zoom:3.35},
+    ]})).not.toEqual([]);
   });
   it("keeps an exact independent source graph only in explicit anatomy mode",()=>{
     const wax=crayonCc0FaceStudy({view:"wax",detail:.5});
