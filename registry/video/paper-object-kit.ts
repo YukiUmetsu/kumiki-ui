@@ -100,17 +100,40 @@ function geometry(w:number,h:number,scale=1){
       C(...p(1.05,-.15),...p(1.05,-.69),...right),
       C(...p(.62,-1.06),...p(.29,-.75),...o),Z].join(" ");
   };
-  /** Two joined cards, each with its own silhouette and small base/tip overlap.
-   * Rotating the distal piece now reveals a real, raised cardstock edge. */
-  const feather=(x0:number,y0:number,x1:number,y1:number,width:number)=>{
+  /** Hand-cut vane: one joined root and one raised distal sheet.
+   * Shallow, asymmetrical V-notches are cuts in the *actual outer contour*.
+   * The density control alters geometry rather than painted noise or opacity.
+   */
+  const feather=(x0:number,y0:number,x1:number,y1:number,width:number,
+    serration=0,grain=0)=>{
     const dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy)||1;
     const ux=dx/len,uy=dy/len,nx=-uy,ny=ux;
     const f=(t:number,v:number):[number,number]=>[
       x0+dx*t+nx*width*v,y0+dy*t+ny*width*v];
+    // Keep the root smooth for a believable shoulder; micro-snips are
+    // confined to the exposed outer half of the vane, away from the hinge.
+    const teeth=Math.round(clamp(serration)*5);
+    const notch=(j:number)=>{
+      const t=.582+j*.031+Math.sin((j+1)*13.7+grain*19.1)*.004;
+      const edge=.92-(t-.555)*1.2;
+      const cut=.09+.07*clamp(serration)+.016*Math.cos((j+1)*6.7+grain*11);
+      return {t,edge,cut};
+    };
     const base=[
       M(...f(0,-.20)),
-      C(...f(.15,-.82),...f(.41,-1.04),...f(.755,-.68)),
-      L(...f(.755,.68)),
+      C(...f(.15,-.82),...f(.41,-1.04),...f(.555,-.92)),
+      ...Array.from({length:teeth},(_,j)=>{
+        const {t,edge,cut}=notch(j);
+        return [L(...f(t-.010,-edge)),L(...f(t,-edge+cut)),
+          L(...f(t+.012,-edge))];
+      }).flat(),
+      L(...f(.755,-.68)),L(...f(.755,.68)),
+      ...Array.from({length:teeth},(_,j)=>{
+        const {t,edge,cut}=notch(teeth-j-1);
+        return [L(...f(t+.012,edge)),L(...f(t,edge-cut)),
+          L(...f(t-.010,edge))];
+      }).flat(),
+      L(...f(.555,.92)),
       C(...f(.41,1.04),...f(.15,.82),...f(0,.20)),Z
     ].join(" ");
     const tip=[
@@ -258,7 +281,7 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
     const col=i%3,row=Math.floor(i/3);
     const sx=-106+col*22+row*1.6,sy=-56+row*22+col*4;
     const tx=sx-6+col*1.6,ty=sy+37+row*.9;
-    const card=p.feather(sx,sy,tx,ty,9.1+(i%3)*.75);
+    const card=p.feather(sx,sy,tx,ty,9.1+(i%3)*.75,detail,paperHash(seed,i,44));
     const colors=[c.blueLight,c.blue,c.green,c.ink,c.blue];
     // Tiny physical slit, oriented along the rachis and entirely within
     // the feather's broad opaque root. This is real negative space, not ink.
