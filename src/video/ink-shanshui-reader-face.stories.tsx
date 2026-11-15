@@ -174,7 +174,7 @@ function ReaderFaceStudio(){
         </h2>
         <svg data-testid="reader-anatomy-closeup" role="img"
           aria-label="Native portrait microanatomy with adjustable eyelid and viseme"
-          viewBox="111 87 58 50" style={box}>
+          viewBox="112 71 48 34" style={{...box,height:266}}>
           <g transform={pose(fit.headRest,139,124)}>
             <g data-ink-anatomy-feature="base-face">{shapes("face")}</g>
             {facePart("brows","brow",[140,94])}
