@@ -107,15 +107,24 @@ function Laboratory(){
         facial expressions stay on the sharp, dry drawing layer.
       </span>
     </div>
-    <div style={{width:film.width*scale,height:film.height*scale,maxWidth:"100%",overflow:"hidden",
-      background:"#F3EFE3",boxShadow:"0 16px 34px #403a2d25"}}>
-      <FilmStage film={film} frame={frame} renderObject={()=>null} reducedMotion={reduce}
-        renderSlot={(content,context)=>{
-          if(content.slot!=="ink4-traveler")throw new Error("Unexpected ink director scene: "+content.slot);
-          return <InkDirectorFilm aspect={aspect} frame={context.frame}
-            reducedMotion={context.reducedMotion} foldDetail={foldDetail} foldContrast={foldContrast}
-            clothAmount={clothAmount}/>
-        }} style={{transform:"translate("+dx+"px,"+dy+"px) scale("+visualScale+")",transformOrigin:"top left"}}/>
+    <div data-testid="ink-director-viewport"
+      style={{width:film.width*scale,height:film.height*scale,maxWidth:"100%",
+        overflow:"hidden",position:"relative",background:"#F3EFE3",
+        boxShadow:"0 16px 34px #403a2d25"}}>
+      {/* The fixed viewport clips the translated film. Transforming FilmStage
+          itself changed its screenshot bounds, pulling Studio UI into the
+          visual-review crop even though the native film was correct. */}
+      <div style={{width:film.width,height:film.height,
+        transform:"translate("+dx+"px,"+dy+"px) scale("+visualScale+")",
+        transformOrigin:"top left"}}>
+        <FilmStage film={film} frame={frame} renderObject={()=>null} reducedMotion={reduce}
+          renderSlot={(content,context)=>{
+            if(content.slot!=="ink4-traveler")throw new Error("Unexpected ink director scene: "+content.slot);
+            return <InkDirectorFilm aspect={aspect} frame={context.frame}
+              reducedMotion={context.reducedMotion} foldDetail={foldDetail}
+              foldContrast={foldContrast} clothAmount={clothAmount}/>;
+          }}/>
+      </div>
     </div>
     <div style={{maxWidth:960,display:"grid",gap:9}}>
       <label style={{display:"grid",gap:5,fontWeight:600}}>Film frame {frame} / 419
