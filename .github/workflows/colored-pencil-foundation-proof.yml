@@ -15,6 +15,7 @@ on:
       - 'src/video/colored-pencil-living-studies.ts'
       - 'src/video/colored-pencil-photo.ts'
       - 'src/video/colored-pencil-reference-atelier.tsx'
+      - 'src/video/colored-pencil-dry-contact.ts'
       - 'src/video/colored-pencil-portrait-guides.ts'
       - 'src/video/colored-pencil-dry-portrait.ts'
       - 'src/video/colored-pencil-full-head.ts'
@@ -24,6 +25,7 @@ on:
       - 'tests/colored-pencil-portrait-guides.test.ts'
       - 'tests/colored-pencil-dry-portrait.test.ts'
       - 'tests/colored-pencil-full-head.test.ts'
+      - 'tests/colored-pencil-dry-contact.test.ts'
       - 'tests/colored-pencil-facial-planes.test.ts'
       - 'tests/colored-pencil-full-head-tone-proof.test.ts'
       - 'tests/e2e-storybook/colored-pencil-foundation.spec.ts'
@@ -50,7 +52,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Validate CP-F1 material contract and backward compatibility
-        run: npx vitest run --project unit tests/colored-pencil-foundation.test.tsx tests/colored-pencil-craft.test.tsx tests/colored-pencil-photo.test.ts tests/colored-pencil-portrait-guides.test.ts tests/colored-pencil-dry-portrait.test.ts tests/colored-pencil-full-head.test.ts tests/colored-pencil-facial-planes.test.ts tests/colored-pencil-full-head-tone-proof.test.ts
+        run: npx vitest run --project unit tests/colored-pencil-foundation.test.tsx tests/colored-pencil-craft.test.tsx tests/colored-pencil-photo.test.ts tests/colored-pencil-portrait-guides.test.ts tests/colored-pencil-dry-portrait.test.ts tests/colored-pencil-full-head.test.ts tests/colored-pencil-dry-contact.test.ts tests/colored-pencil-facial-planes.test.ts tests/colored-pencil-full-head-tone-proof.test.ts
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Check original drawing stages and 16:9 / 9:16 hero pixels
