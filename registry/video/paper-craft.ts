@@ -16,6 +16,22 @@ export interface PaperLiftedTip {
   /** Maximum shadow offset of the folded sheet, 0–18 output pixels. */
   lift: number;
 }
+/** A deterministic physical sheet pose. Values are offsets relative to its authored cut contour. */
+export interface PaperPoseKey {
+  frame: number;
+  x: number;
+  y: number;
+  angle: number;
+  ease?: "linear" | "smooth" | "hold";
+}
+/** Shallow overhead-camera choreography. Depth/parallax remain owned by PAPER1. */
+export interface PaperCameraKey {
+  frame: number;
+  x: number;
+  y: number;
+  zoom: number;
+  ease?: "linear" | "smooth" | "hold";
+}
 export interface PaperCutLayer {
   id: string;
   /** Authored paper contour, in output-sheet coordinates. */
@@ -40,6 +56,8 @@ export interface PaperCutLayer {
   flapHz?: number;
   /** Wing-beat phase in degrees (0–360). */
   flapPhase?: number;
+  /** Authored puppet, prop or paper pull-tab poses; independent of assembly. */
+  poseKeys?: readonly PaperPoseKey[];
   /** Local entry cue, absolute frames within this scene. */
   enterFrame?: number;
   /** Duration of local assembly beat (frames). */
@@ -58,6 +76,8 @@ export interface PaperCraftSpec {
   /** Foreground-to-background light tint for the chosen paper stock. */
   light: string;
   layers: readonly PaperCutLayer[];
+  /** Optional overhead-camera key poses. A bounded, solid-stock push/pan only. */
+  cameraKeys?: readonly PaperCameraKey[];
 }
 export interface PaperLayerFrame {
   id: string;
@@ -76,6 +96,7 @@ export interface PaperLayerFrame {
 export interface PaperCraftFrame {
   frame: number;
   layers: readonly PaperLayerFrame[];
+  camera: { x: number; y: number; zoom: number };
 }
 export interface PaperIssue { path: string; message: string }
 export const PAPER_STYLES: readonly PaperStyle[] = ["layered", "kirigami", "pop-up", "lightbox", "shadow-puppet"];
@@ -90,6 +111,51 @@ export function isPaperCutContour(value: unknown): value is string {
   const p = value.trim();
   return /^[Mm]/.test(p) && /[Zz]$/.test(p) &&
     allowedPaperPath.test(p) && !/NaN|Infinity/i.test(p);
+}
+/** Interpolation is pure: no internal clock, DOM state or random phase. */
+export function paperKeySample<K extends { frame: number; ease?: "linear" | "smooth" | "hold" }>(
+  keys: readonly K[], frame: number, property: (key: K) => number,
+): number {
+  if (frame <= keys[0].frame) return property(keys[0]);
+  for (let i = 0; i < keys.length - 1; i++) {
+    const a = keys[i], b = keys[i + 1];
+    if (frame <= b.frame) {
+      const raw = (frame - a.frame) / (b.frame - a.frame);
+      const t = a.ease === "hold" ? 0 : a.ease === "linear" ? raw :
+        raw * raw * (3 - 2 * raw);
+      return property(a) + (property(b) - property(a)) * t;
+    }
+  }
+  return property(keys[keys.length - 1]);
+}
+function inspectKeys(
+  keys: readonly { frame: number; ease?: string }[] | undefined,
+  duration: number, path: string, issues: PaperIssue[],
+  numeric: readonly string[], bounds: (name: string) => readonly [number, number],
+): void {
+  if (keys === undefined) return;
+  if (!Array.isArray(keys) || keys.length < 1 || keys.length > 32) {
+    issues.push({path,message:"1–32 paper key poses required"}); return;
+  }
+  let last = -1;
+  keys.forEach((key, i) => {
+    const id = path + "[" + i + "]";
+    if (!key || typeof key !== "object") {
+      issues.push({path:id,message:"key pose object required"}); return;
+    }
+    if (!Number.isSafeInteger(key.frame) || key.frame <= last || key.frame < 0 ||
+        key.frame >= duration)
+      issues.push({path:id+".frame",message:"strictly increasing frame within shot required"});
+    last = key.frame;
+    if (key.ease !== undefined && !["linear","smooth","hold"].includes(key.ease))
+      issues.push({path:id+".ease",message:"unknown paper easing"});
+    for (const name of numeric) {
+      const n = (key as unknown as Record<string, unknown>)[name];
+      const [min,max] = bounds(name);
+      if (typeof n !== "number" || !Number.isFinite(n) || n < min || n > max)
+        issues.push({path:id+"."+name,message:"finite bounded paper pose required"});
+    }
+  });
 }
 export const paperClamp = (v: number) => Math.max(0, Math.min(1, v));
 export const paperEase = (v: number) => { const t = paperClamp(v); return t * t * (3 - 2 * t); };
@@ -112,6 +178,8 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
   if (!Number.isSafeInteger(spec.seed)) bad("seed", "seed must be a safe integer");
   if (!hex.test(spec.backing) || !hex.test(spec.light)) bad("paper", "paper colours must be opaque six-digit hex");
   if (!Array.isArray(spec.layers) || spec.layers.length < 1 || spec.layers.length > MAX_PAPER_LAYERS) bad("layers", "provide 1–128 separate cut-outs");
+  inspectKeys(spec.cameraKeys, spec.durationFrames, "cameraKeys", issues,
+    ["x","y","zoom"], name => name === "zoom" ? [1,1.18] : [-Math.max(spec.width, spec.height)*.12,Math.max(spec.width,spec.height)*.12]);
   const seen = new Set<string>();
   const rigs = new Map<string, PaperCutLayer>();
   const layers: readonly PaperCutLayer[] = Array.isArray(spec.layers) ? spec.layers : [];
@@ -166,6 +234,8 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
           bad(base + ".rigGroup", "all sheets in one rig must share pivot and waveform");
       } else rigs.set(layer.rigGroup, layer);
     }
+    inspectKeys(layer.poseKeys, spec.durationFrames, base+".poseKeys", issues,
+      ["x","y","angle"], name => name === "angle" ? [-180,180] : [-4096,4096]);
     if (layer.enterFrame !== undefined && (!Number.isInteger(layer.enterFrame) || layer.enterFrame < 0 || layer.enterFrame >= spec.durationFrames))
       bad(base + ".enterFrame", "entry must be inside the scene");
     if (layer.durationFrames !== undefined && (!Number.isInteger(layer.durationFrames) || layer.durationFrames < 1 || layer.durationFrames > spec.durationFrames))
@@ -199,15 +269,20 @@ export function evaluatePaperCraft(spec: PaperCraftSpec, frame: number, reducedM
       : motion === "swing" ? swing :
       spec.style === "layered" ? (1 - progress) * (i % 2 ? -3.5 : 3.5) : 0;
     const depth = layer.depth;
+    const poseFrame = reducedMotion ? spec.durationFrames - 1 : frame;
+    const pose = layer.poseKeys;
+    const keyedX = pose ? paperKeySample(pose,poseFrame,k=>k.x) : 0;
+    const keyedY = pose ? paperKeySample(pose,poseFrame,k=>k.y) : 0;
+    const keyedAngle = pose ? paperKeySample(pose,poseFrame,k=>k.angle) : 0;
     // A reduced-motion frame must be static regardless of the requested seek position.
     const parallax = !reducedMotion && spec.style === "lightbox"
       ? Math.sin(frame / spec.fps * .35) * depth * .55 : 0;
     return {
       id: layer.id, progress, opacity: progress <= 0 ? 0 : 1,
-      translateX: parallax + (spec.style === "layered" ? (1 - progress) * (i % 2 ? -18 : 18) : 0),
-      translateY: rise ? (1 - progress) * (24 + depth * 1.5) :
-        spec.style === "layered" ? (1 - progress) * 24 : 0,
-      rotation,
+      translateX: keyedX + parallax + (spec.style === "layered" ? (1 - progress) * (i % 2 ? -18 : 18) : 0),
+      translateY: keyedY + (rise ? (1 - progress) * (24 + depth * 1.5) :
+        spec.style === "layered" ? (1 - progress) * 24 : 0),
+      rotation: rotation + keyedAngle,
       scaleX: fold ? Math.max(.015, progress) : motion === "flutter"
         ? 1 - .08 * Math.abs(flutterWave) * progress * Math.abs(layer.swingDegrees ?? 8) / 8 : 1,
       scaleY: rise ? Math.max(.015, progress) : 1,
@@ -216,5 +291,11 @@ export function evaluatePaperCraft(spec: PaperCraftSpec, frame: number, reducedM
       shadowBlur: 2.2 + depth * (spec.style === "lightbox" ? 1.9 : .85),
     };
   });
-  return { frame, layers };
+  const cameraFrame = reducedMotion ? spec.durationFrames - 1 : frame;
+  const camera = spec.cameraKeys ? {
+    x: paperKeySample(spec.cameraKeys,cameraFrame,k=>k.x),
+    y: paperKeySample(spec.cameraKeys,cameraFrame,k=>k.y),
+    zoom: paperKeySample(spec.cameraKeys,cameraFrame,k=>k.zoom),
+  } : {x:0,y:0,zoom:1};
+  return { frame, layers, camera };
 }
