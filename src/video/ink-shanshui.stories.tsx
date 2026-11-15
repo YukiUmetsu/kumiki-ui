@@ -233,7 +233,7 @@ function BrushworkDetail(){
     {label:"皴法 · Geological texture",scene:"mountain-trail",
       x:568,y:147,note:"Ridge-rooted ink-bone rock planes, broken hemp fibres, small alum-head ledges and moss pockets"},
     {label:"柳 · Hanging willow foliage",scene:"river-scholar",
-      x:196,y:174,note:"Each hanging frond emerges from a measured arch; varied leaf densities"},
+      x:196,y:174,note:"Compare Mei Qing: 39 differently swept pressure-tapered silk strands, five bare paper reserves and asymmetrical angled leaves"},
     {label:"竹 · Pressure-brush bamboo",scene:"misty-hermit",
       x:875,y:365,note:"Node-rooted asymmetric leaf fans, pressure-loaded blades and dry-brush lifts; compare low and high detail"},
   ];

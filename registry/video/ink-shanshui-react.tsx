@@ -351,7 +351,7 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
         const ty=2*(1-t)*(branch.control[1]-branch.from[1])+
           2*t*(branch.to[1]-branch.control[1]);
         const norm=Math.max(1e-6,Math.hypot(tx,ty));
-        const pressure=(2.5+.27*(i%3))*Math.pow(1-t,.85)+.09;
+        const pressure=(1.48+.19*(i%3))*Math.pow(1-t,.86)+.07;
         const nx=-ty/norm*pressure,ny=tx/norm*pressure;
         sides[0].push([f(center[0]+nx),f(center[1]+ny)]);
         sides[1].push([f(center[0]-nx),f(center[1]-ny)]);
@@ -360,41 +360,95 @@ function Willow({wind,seed,detail}:{wind:number;seed:number;detail:number}){
       const d=points.map((v,j)=>(j?" L":"M")+f(v[0])+" "+f(v[1])).join("")+" Z";
       return <g key={i}>
         <path data-km-willow-tapered-branch="" d={d}
-          fill="#71573e" opacity=".89"/>
+          fill="#71573e" opacity=".72"/>
         <path d={"M"+branch.from.join(" ")+" Q"+
           branch.control.join(" ")+" "+branch.to.join(" ")}
-          stroke="#af9069" strokeWidth=".56" opacity=".56" fill="none"/>
+          stroke="#af9069" strokeWidth=".45" opacity=".39" fill="none"/>
       </g>;
     })}
     <path d="M31 -233 Q137 -320 322 -325 M41 -252 Q152 -352 387 -331
       M62 -294 Q197 -298 367 -280"
-      stroke="#c0a180" strokeWidth="1.2" fill="none" opacity=".8"/>
+      stroke="#c0a180" strokeWidth=".69" fill="none" opacity=".38"/>
     {Array.from({length:strands},(_,i)=>{
       const branch=arches[i%arches.length];
-      const u=.18+.78*s(seed,i*7+9);
+      const u=.13+.83*s(seed,i*7+9);
+      // Exactly one insertion point on the original parent arch.
       const origin=quadraticPoint(branch.from,branch.control,branch.to,u);
-      const fall=48+125*s(seed,i*11+20);
-      const control:P=[origin[0]-10+wind*4,origin[1]+fall*.48];
-      const end:P=[origin[0]+8+wind*6,origin[1]+fall*(1+.012*wind)];
-      const leafCount=Math.round(4+7*s(seed,i*5+2));
-      return <g key={i} data-km-willow-frond="">
-        <path d={"M"+f(origin[0])+" "+f(origin[1])+
-          " Q"+f(control[0])+" "+f(control[1])+
-          " "+f(end[0])+" "+f(end[1])}
-          fill="none" stroke="#9c8568" strokeWidth={.7+.35*s(seed,i*31)}
-          opacity=".6"/>
+      const fall=80+148*s(seed,i*11+20);
+      // A willow droops: the top of the frond bows outward, but its
+      // lower half returns to a nearly vertical fall. The previous
+      // 60 px lateral sweep made a diagonal mesh across the sky.
+      const sweep=i%3===0?-1:i%3===1?1:
+        s(seed+401,i*7+19)>.5?1:-1;
+      const drift=sweep*(7+20*s(seed+427,i*13+11));
+      const end:P=[origin[0]+drift+wind*8,
+        origin[1]+fall*(1+.012*wind)];
+      const control:P=[
+        end[0]+sweep*(13+16*s(seed+439,i*17+37))-wind*3,
+        origin[1]+fall*(.31+.11*s(seed+457,i*23+13)),
+      ];
+      const frondPoint=(t:number)=>quadraticPoint(origin,control,end,t);
+      const stationCount=11;
+      const upper:P[]=[],lower:P[]=[];
+      for(let k=0;k<stationCount;k++){
+        const t=k/(stationCount-1);
+        const point=frondPoint(t);
+        const before=frondPoint(Math.max(0,t-.012));
+        const after=frondPoint(Math.min(1,t+.012));
+        const dx=after[0]-before[0],dy=after[1]-before[1];
+        const len=Math.hypot(dx,dy)||1;
+        const pressure=(.72+.37*s(seed+467,i*5+29))*
+          Math.pow(1-t,.91)+.045;
+        const nx=-dy/len*pressure,ny=dx/len*pressure;
+        upper.push([point[0]+nx,point[1]+ny]);
+        lower.push([point[0]-nx,point[1]-ny]);
+      }
+      const ribbon="M"+upper.map(([x,y])=>f(x)+" "+f(y)).join(" L")+
+        " L"+lower.reverse().map(([x,y])=>f(x)+" "+f(y)).join(" L")+" Z";
+      // A few source-informed bare silk strands preserve visible paper,
+      // while restrained leaves hang from the *same* painted centerline.
+      const leafCount=i%9===0?0:5+Math.floor(3*s(seed,i*5+2));
+      return <g key={i} data-km-willow-frond=""
+        data-km-willow-frond-root={f(origin[0])+","+f(origin[1])}
+        data-km-willow-frond-tip={f(end[0])+","+f(end[1])}
+        data-km-willow-frond-drift={f(end[0]-origin[0])}
+        data-km-willow-frond-leaves={leafCount}>
+        <path data-km-willow-pressure-strand="" d={ribbon}
+          fill={i%7===0?"#554535":"#897158"}
+          opacity={f(.33+.18*s(seed+479,i*17+7))}/>
+        {i%4===0&&<path data-km-willow-dry-release=""
+          d={"M"+f(origin[0])+" "+f(origin[1])+
+            " Q"+f(control[0])+" "+f(control[1])+
+            " "+f(end[0])+" "+f(end[1])}
+          stroke="#b8a081" strokeWidth=".35" opacity=".35"
+          fill="none" strokeLinecap="round"/>}
         {Array.from({length:leafCount},(_,j)=>{
-          const t=(j+.6)/(leafCount+1);
-          const [x,y]=quadraticPoint(origin,control,end,t);
-          const dir=j%2?1:-1,len=6+6*s(seed,i*37+j);
+          const t=clamp((j+.75+
+            .42*(s(seed+491,i*31+j*9)-.5))/(leafCount+1),.05,.94);
+          const [x,y]=frondPoint(t);
+          const after=frondPoint(Math.min(1,t+.025));
+          const vx=after[0]-x,vy=after[1]-y;
+          const len=Math.hypot(vx,vy)||1;
+          const tx=vx/len,ty=vy/len,nx=-ty,ny=tx;
+          const side=s(seed+509,i*43+j*19)>.47?1:-1;
+          const reach=5+6.5*s(seed+521,i*13+j*11);
+          const width=.52+1.4*s(seed+547,i*29+j);
+          const tipX=x+nx*side*reach*.78+tx*reach*.32;
+          const tipY=y+ny*side*reach*.78+ty*reach*.32;
+          const leaf="M"+f(x)+" "+f(y)+
+            " C"+f(x+nx*side*reach*.2-tx*width)+" "+
+                f(y+ny*side*reach*.2-ty*width)+
+            " "+f(tipX-nx*side*reach*.22-tx*.5)+" "+
+                f(tipY-ny*side*reach*.22-ty*.5)+
+            " "+f(tipX)+" "+f(tipY)+
+            " C"+f(tipX-nx*side*reach*.32+tx*width*.25)+" "+
+                f(tipY-ny*side*reach*.32+ty*width*.25)+
+            " "+f(x+nx*side*reach*.12+tx*width)+" "+
+                f(y+ny*side*reach*.12+ty*width)+
+            " "+f(x)+" "+f(y)+" Z";
           return <path key={j} data-km-willow-leaf=""
-            d={"M"+f(x)+" "+f(y)+
-              " Q"+f(x+dir*len*.22)+" "+f(y-1.5)+
-              " "+f(x+dir*len*.75)+" "+f(y+len*.2)+
-              " Q"+f(x+dir*len*.65)+" "+f(y+len*.48)+
-              " "+f(x)+" "+f(y)}
-            fill={j%4===0?"#a48b6a":"#66543f"}
-            opacity={f(.32+.35*s(seed,i*11+j*5))}/>;
+            d={leaf} fill={j%5===0?"#a88c69":"#635342"}
+            opacity={f(.29+.33*s(seed+563,i*11+j*5))}/>;
         })}
       </g>;
     })}

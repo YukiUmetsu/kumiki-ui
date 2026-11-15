@@ -453,3 +453,76 @@ improvement does not detach any secondary limb.
 angular-cardboard defect without erasing the deliberate ancient
 branch kinks. Inspect negative space and tonal separation at 960x540,
 not only the zoomed Storybook brushwork crop.
+
+
+## Seventh ArtCraft pass — Mei Qing willow brush rhythms
+
+**Reference artwork:** [Mei Qing, *Landscapes after Ancient Masters*
+(1693), Metropolitan Museum of Art](https://www.metmuseum.org/art/collection/search/61825),
+especially the willow with ink arcs at a riverbank. The tree has many
+branch fans that radiate asymmetrically from connected loaded wood.
+Some droplets of foliage collect along finer stems, while several
+hanging strand gestures remain almost bare, leaving substantial paper
+reserve. The load decreases toward the tips. Its rhythm is **not**
+39 vertical lines with equally repeated stamped leaf pairs.
+
+**Previous native image defect:** the river-scholar Storybook closeup
+revealed parallel hanging cords and small triangular leaves repeating
+like a regular mesh. The strands were individually connected to six
+real parent arches, but nearly all ended only eight pixels right
+of their roots. Connectivity alone did not imply a convincing willow.
+
+**Updated original drawing code:**
+1. Preserve six tapered parent branches and exactly sample each
+   child insertion from its own authored quadratic parent arch.
+2. Give each frond a seed-dependent signed horizontal sweep
+   (+/-7 to 27 px) and a distinct outward-bowing control point;
+   retain bounded, deterministic film wind.
+3. Render every hanging branch as an eleven-station, tapering
+   filled ink ribbon; root ink pressure fades to a fine release.
+   Selected strands include a thin translucent dry-brush echo.
+4. Leave every ninth frond intentionally bare: five natural
+   paper reserves at full detail. Other fronds carry 5–7
+   locally sampled leaves rather than 4–11 uniform alternating
+   stamps; the new small loaded leaf contours follow the local
+   strand tangent and use variable direction, length and opacity.
+5. Original Storybook Brushwork inspection remains in the same
+   flat Chinese Ink folder. Detail/wind/seed/frame are still
+   independently configurable; no copied reference bitmap.
+
+**Five-axis quality contract:** shared parent-to-child attachment,
+curved direction flow, diminishing brush width, varied signed
+rhythm and restrained dry-ink microvariation. Synthetic regressions
+check 39 connected fronds, both sweep signs, five intentional
+bare fronds, tapered closed contours, finite SVG and detail=0
+compatibility. A passing test is not an artist approval.
+
+**Visual rejection control:** the initial vertical-lattice image
+and decorative stamped triangular leaves. Inspect native
+960x540 river scene AND the real 2.15x willow crop before merge.
+Fail if the new foliage becomes random hanging spaghetti, loses
+branch attachment, or occupies the figure's reading space.
+
+
+### Willow native-render correction — reject the diagonal mesh
+
+The first actual PR #332 full-scene capture and 2.15x willow crop
+showed that 60-pixel signed horizontal drifts were much too large
+relative to some short 53-pixel vertical drops. Despite correct
+parent-branch attachment, the lines crossed like a dense diagonal
+lattice and little willow-like hanging motion remained. The six
+heavy parent branches also read like even crossbars.
+
+The revised geometry uses longer drops (80–228 px), only 7–27 px
+of lateral displacement, and a control point farther outward than
+the final tip. Its upper arc bows away while its lower tangent returns
+toward vertical, like Mei Qing's willow ink gestures. Both parent
+and child brush widths and opacity have been reduced; small tapering
+leaves retain enough value to read at 960x540. Five fully bare
+fronds still leave paper reserves.
+
+**Release criterion:** the result must look like hanging, gently
+arched ink-silk fronds rather than struts, a fishnet, or a
+uniform vertical picket fence. The branch skeleton and leaves must
+remain contiguous at native film resolution. A second render
+comparison is required before final acceptance.
