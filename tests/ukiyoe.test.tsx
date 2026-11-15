@@ -385,6 +385,34 @@ describe("UKIYO1 oni fight", () => {
   });
 });
 
+describe("UKIYO1 castle", () => {
+  type P = { t: string; d?: string; fill?: unknown; color?: unknown; prims?: P[] };
+  const flat = (ps: P[]): P[] => ps.flatMap(p => p.t === "group" || p.t === "clip" ? flat(p.prims ?? []) : [p]);
+  const draw = (params: Record<string, unknown>) => flat(drawMotif("castle", { width: 900, ...params }, { frame: 0, wind: 0, seed: 7, progress: 1 }) as P[]);
+  const shachi = (ps: P[]) => ps.filter(p => p.t === "fill" && p.fill === "kin" && (p.d!.match(/C/g) ?? []).length >= 5).length;
+  it("draws the keep, walls, turrets, gate, moat and bridge, and its parameters change it", () => {
+    const base = draw({});
+    expect(JSON.stringify(draw({}))).toEqual(JSON.stringify(base));                                // deterministic
+    expect(shachi(base)).toBe(2);                                                                     // a pair on the top ridge
+    const roofs = (tiers: number) => draw({ tiers, walls: false }).filter(p => p.t === "line" && p.color === "sumi").length;
+    expect(roofs(5)).toBeGreaterThan(roofs(3));                                                     // more tiers, more roofs
+    expect(draw({ walls: false }).length).toBeLessThan(base.length / 2);                            // the keep alone
+    expect(draw({ style: "black" }).some(p => p.t === "fill" && JSON.stringify(p.fill).includes("kogecha") && JSON.stringify(p.fill).includes("\"angle\":0"))).toBe(true);
+    expect(draw({ night: 1 }).filter(p => p.t === "glow").length).toBeGreaterThan(20);              // lit windows
+    expect(draw({ snow: 1 }).filter(p => p.t === "fill" && p.fill === "gofun").length).toBeGreaterThan(base.filter(p => p.t === "fill" && p.fill === "gofun").length);
+    // Everything stands above the water line except the moat and the bridge in front.
+    const ys = base.filter(p => p.t === "fill" && p.fill !== "gofun" && !/[hva]/.test(p.d!)).flatMap(p => p.d!.match(/-?\d+(\.\d+)?/g)!.map(Number).filter((_, i) => i % 2 === 1));
+    expect(Math.max(...ys)).toBeLessThanOrEqual(900 * .1 + 1);
+    // Long galleries on the walls by default (a dobei wall instead has loopholes), pines along the bailey, the walls
+    // mirrored in the moat.
+    const matsu = (ps: P[]) => ps.filter(p => p.t === "fill" && p.fill === "matsu").length;
+    expect(matsu(base)).toBeGreaterThan(matsu(draw({ pines: 0 })));
+    expect(draw({ wall: "dobei" }).length).not.toBe(base.length);
+    expect(JSON.stringify(drawMotif("castle", { width: 900 }, { frame: 0, wind: 0, seed: 7, progress: 1 }))).toContain("scale(1 -0.62)");
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "c", kind: "motif", motif: "castle", params: { tiers: 4, style: "black" } }] }))).toEqual([]);
+  });
+});
+
 describe("UKIYO1 crowds", () => {
   it("expands a crowd into the same seeded people every time, in depth rows, back rows first", () => {
     const spec = { id: "c", width: 1200, count: 18, rows: 3, mood: "stroll" as const };

@@ -510,6 +510,60 @@ The counts of kanzashi and the weights given vary between sources and were not u
 - No film uses the fight yet.
 - Nobody has done a human visual review yet.
 
+## Castle (roadmap U5, owner request, 2026-11-15)
+
+**Sources.**
+
+- Public-domain Meiji-era photographs on Wikimedia Commons: *Nagoya Castle in 1880s*, *Kumamoto Castle oldphoto 1874*, *Himejicastle-meiji*.
+- Hiroshige's Tōkaidō views with castles from the Met's open-access collection: *Kuwana* (55587), *Odawara* (36931) and *Nihonbashi* (37195).
+
+**What they show.**
+
+- **Keep.** Stacked tiers, each smaller, with deep dark eaves turning up at the corners.
+- **Gables.** Triangular chidori gables and a curved karahafu stand forward on the roof faces.
+- **Walls.** White plaster with rows of small barred windows (Kumamoto: black boarding below).
+- **Ridge.** Gold shachihoko on the top ridge.
+- **Stone base.** A tall base whose faces are shallow at the foot and steep at the top, with long-and-short interlocking corner stones.
+- **Outer works.** Corner turrets and long walled galleries on the stonework, gates, moats.
+
+**What was built.** `ukiyoe-castle.ts` (`motif: "castle"`) draws the keep, the outer wall, the turrets, the gate, the moat and the bridge, seen slightly from the side. It takes `tiers`, `style`, `snow`, `night`, `depth`, and `walls` / `turrets` / `gate` / `moat` / `bridge`. Three examples are in the Motifs gallery.
+
+**Review rounds (screenshots at 0.6× and 1.6×).**
+
+1. **First draft.** The stone base bulged like a dome (the fan curve was inverted). The roofs were thin, and the elevation was flat. The base now flares at the foot and steepens at the top; the roofs are deeper with wider eaves; storeys, roofs and stone bases have shaded side faces.
+2. **Second round.**
+   - The keep base's side face ballooned outward; it is now a straight receding face.
+   - The shachihoko were oversized and have been scaled down.
+3. **Close-up.**
+   - The chidori gables were hidden by the storey above. They are now drawn after the whole tower, standing in front with tiled bargeboards and a gold gegyo.
+   - Hip lines started under the upturned corners and left spikes; they now start at the corners.
+   - The side eave left a notch at the front corner; it now starts from the upturned front corner.
+   - A chidori gable covered the karahafu; that tier now carries only the karahafu.
+
+**Further study (owner request: "study more castle references").** More public-domain Meiji photographs and prints, from Wikimedia Commons:
+
+- Beato's views of Edo castle: *Castle of Yedo, inner moat*, *Yedo castlemoat*, *Tycoon's Palace double bridge*
+- *Matsumoto Castle Old Photograph*
+- *Nijō Castle in Kyoto, before 1902*
+- Hiroshige's *One Hundred Famous Views of Edo* no. 66 and *Soto Sakurada*
+- Hiroshige III's *Kudanzaka Ushigabuchi*
+
+They showed five things the motif lacked, all now built:
+
+- **Stones.** The stones are irregular blocks, not neat courses. They are biggest at the foot and the corners, each with its own tone, and the joints never line up. They are now drawn that way.
+- **Galleries.** The walls carry long white gallery buildings (tamon-yagura) with rows of windows and tiled roofs (Edo). These are the default; the plain loopholed wall is `wall: "dobei"`.
+- **Top roof.** The top roof is hip-and-gable, with a big gable on its end face (Edo's Fujimi turret, Nagoya). It is now drawn on the receding face.
+- **Reflections.** The moats mirror the walls (Matsumoto, Edo); the walls are now reflected, faded, in the moat.
+- **Pines.** Hiroshige crowns castle walls with umbrella pines. Now `pines` stand along the bailey behind the wall.
+
+**Not done.**
+
+- A single fixed angle (left to right); `flip` mirrors it.
+- No second bailey; the grassy earthwork banks (dote) of Edo's outer moats are not drawn.
+- The stone wall runs are frontal.
+- No film uses the castle yet.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
