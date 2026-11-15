@@ -115,6 +115,22 @@ for(const sample of ["woman","man"] as const){
         await expect(output).toHaveAttribute(
           "data-km-portrait-features","source-guided");
         const guided=await output.screenshot({animations:"disabled"});
+        // Unlike 'screenshot exists', this verifies the authored face-pigment
+        // layer has a measurable final-size effect on actual browser pixels.
+        // This is a NEGATIVE engineering threshold, never artistic approval.
+        const sampleFace=()=>output.evaluate(node=>{
+          const c=node as HTMLCanvasElement,ctx=c.getContext("2d")!;
+          const sx=Math.floor(c.width*.28),sy=Math.floor(c.height*.20);
+          const sw=Math.floor(c.width*.43),sh=Math.floor(c.height*.68);
+          const pixels=ctx.getImageData(sx,sy,sw,sh).data;
+          const sampled:number[]=[];
+          for(let y=0;y<sh;y+=6)for(let x=0;x<sw;x+=6){
+            const i=(y*sw+x)*4;
+            sampled.push(pixels[i],pixels[i+1],pixels[i+2]);
+          }
+          return sampled;
+        });
+        const guidedSamples=await sampleFace();
         const toggle=page.getByRole("checkbox",{
           name:"Apply source-based portrait pencil marks"});
         await toggle.uncheck();
@@ -122,6 +138,13 @@ for(const sample of ["woman","man"] as const){
         const unguided=await output.screenshot({animations:"disabled",
           path:info.outputPath("artcraft-portrait-"+sample+"-"+aspect+"-AB-unmodified-base.png")});
         expect(Buffer.compare(guided,unguided)).not.toBe(0);
+        const baseSamples=await sampleFace();
+        expect(baseSamples.length).toBe(guidedSamples.length);
+        const meanDelta=baseSamples.reduce((sum,value,i)=>
+          sum+Math.abs(value-guidedSamples[i]),0)/baseSamples.length;
+        console.log("[ArtCraft face same-photo A/B]",aspect,
+          {meanDelta,source:"CC0",independentArtistApproval:false});
+        expect(meanDelta).toBeGreaterThan(.8);
         await toggle.check();
         await expect(output).toHaveAttribute(
           "data-km-portrait-features","source-guided");
