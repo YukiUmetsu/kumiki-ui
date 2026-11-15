@@ -269,7 +269,12 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
     if (layer.durationFrames !== undefined && (!Number.isInteger(layer.durationFrames) || layer.durationFrames < 1 || layer.durationFrames > spec.durationFrames))
       bad(base + ".durationFrames", "entry duration must be 1–durationFrames");
   }
-  const idIndex=new Map(layers.map((l,i)=>[l.id,i]));
+  // Validation must remain total even for hostile JSON containing null entries.
+  // The malformed layer is already recorded above; never dereference it here.
+  const idIndex=new Map<string,number>();
+  layers.forEach((l,i)=>{
+    if(l && typeof l==="object" && typeof l.id==="string") idIndex.set(l.id,i);
+  });
   for(const [child,parent] of parents) {
     if (!seen.has(parent)) bad("layers["+idIndex.get(child)+"].parentId","parent sheet does not exist");
     let cursor=child; const walked=new Set<string>();
