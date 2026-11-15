@@ -170,3 +170,14 @@ The previous original browser renders exposed three specific craftsmanship gaps:
 This pass introduces: real asymmetric upper canopy cards with 4–9 punched leaf apertures, rib-and-leaf cardstock; 8 non-uniform, joined understory clusters; denser and correctly oriented fern leaflets; actual cut paper stream highlights; 12 separate mountain sediment/snow terraces at full detail; an exposed wide lake, a small islet and attached reeds, plus rooted alpine flowers. Rebalanced default cut-edge strength on the single existing Storybook Scenery page. Added \`relief\` (0–1) to Storybook, film slot and generator, controlling actual stock separation, never ghost opacity. New tests inspect holes, density, exact controls, opacity, portrait outputs and motion seeking.
 
 Art-direction reference and negative controls: \`docs/research/paper-craft-scenery-artcraft-study.md\`. Final render screenshots and film clips are required to judge whether canopy topology and lake visibility now work. Do not promote art to "reference-matching" based on tests alone.
+
+
+## Pass 22 — replace cloned alpine treelines with botanical species cuts
+
+The actual Pass 21 landscape/portrait renders exposed repetitive tree silhouettes and a too-uniform fern row. This pass replaces a generic six-tier pine with **three independent connected cardstock contour grammars**: dense spruce, flat-tier fir and airy larch. Branch orientation, tip notches, left/right asymmetry and crown taper are species-specific.
+
+Applied across foreground alpine ledges, a darker, more readable far lake treeline and distant woodland trees. Height, trunk footprint and placement vary without requiring additional paper layers. Fern leaflets and broadleaf branch packets now have location-seeded contour asymmetry.
+
+The existing single Scenery Storybook page exposes Tree variety (0 = spruce, 1 = mixed species) alongside palette, detail, breeze and depth. Native FilmStage's existing paper-craft-study slot and its 2-scene film example accept the same option. No new Storybook folders or dependencies.
+
+**Validation gates:** existing global 128-layer ceiling, seeded deterministic seeks, per-tree continuous closed path, species-specific vertex topology, both aspect formats, full opacity, browser captures and a native encoded video proof. CI passing is not a substitute for scrutinizing the final renders.
