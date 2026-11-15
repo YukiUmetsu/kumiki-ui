@@ -84,8 +84,8 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
       </h1>
       <p style={{margin:0,maxWidth:820}}>
         Rebuilt original kingfisher with eleven anatomical regions: long tapered
-        beak, crown fibres, copper breast, curvature-anchored feather barbs and shoulder
-        coverts. Short scaled tarsi grip the branch with grouped anterior toes, opposing
+        keratin beak, crisp opaque eye/cornea, short blue-white crown barring,
+        copper breast, curvature-anchored feather barbs and shoulder coverts. Short scaled tarsi grip the branch with grouped anterior toes, opposing
         halluces and fine claws; the old cartoon birds remain removed.
         All pigment remains fixed in paper coordinates during frame seeking.
       </p>
