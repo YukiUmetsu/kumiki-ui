@@ -316,7 +316,7 @@ export const CourierHumanAnatomy:StoryObj<typeof meta>={
 
 /** RISO19: press-bound hand pressure crescents, individual crease fans and transfer. */
 export const HumanEnsembleActing:StoryObj<typeof meta>={
-  name:"RISO19 · Pressed Paper Contact",
+  name:"RISO27 · Full-Film Acting & Physical Contact",
   args:{actor:"courier"},
   render:()=> <RisoHumanEnsembleStudio/>,
 };
