@@ -1,13 +1,13 @@
 import {test,expect} from "@playwright/test";
 
-/** ArtCraft RISO9 actual actor source renders, not a screenshot of a mockup. */
+/** ArtCraft RISO11 actual actor source renders, not a screenshot of a mockup. */
 for(const actor of [
   {slug:"courier",story:"courier-artcraft-detail",frame:160,
-    feature:"eye-left",details:["hair-forelock","iris-left","nostril","lip-shadow","cuff-left"]},
+    feature:"eye-left",details:["hair-forelock","iris-left","nostril","lip-shadow","cuff-left","mouth-corner-creases","right-glove-thumb-fold","coat-hem-pleats"]},
   {slug:"paper-bird",story:"bird-artcraft-detail",frame:124,
-    feature:"left-wing",details:["wing-left-coverts","eye-ring","beak-divider","wing-right-quills"]},
+    feature:"left-wing",details:["wing-left-coverts","eye-ring","beak-divider","wing-right-quills","wing-left-barbs","wing-right-covert-row","tail-feather-barbs","breast-contour-feathers"]},
 ]){
-  test("RISO9 ArtCraft detailed rendering and ink controls: "+actor.slug,async({page},info)=>{
+  test("RISO11 ArtCraft detailed rendering and ink controls: "+actor.slug,async({page},info)=>{
     const pageErrors:string[]=[],consoleErrors:string[]=[];
     page.on("pageerror",error=>pageErrors.push(error.message));
     page.on("console",message=>{if(message.type()==="error")consoleErrors.push(message.text());});
@@ -37,6 +37,15 @@ for(const actor of [
       await expect(beakStudy.locator('[data-km-riso-part="body"]')).toHaveCount(0);
     }
     await stage.screenshot({path:info.outputPath(actor.slug+"-static-artcraft.png"),
+      animations:"disabled"});
+    const checkpoint=actor.slug==="courier"?"Speaking · 160":"Mid flap · 84";
+    const button=page.getByRole("button",{name:checkpoint});
+    await expect(button).toBeVisible();
+    await button.click();
+    await expect(button).toHaveAttribute("aria-pressed","true");
+    await expect(stage).toHaveAttribute("data-km-riso-artcraft-frame",
+      actor.slug==="courier"?"160":"84");
+    await stage.screenshot({path:info.outputPath(actor.slug+"-pose-checkpoint.png"),
       animations:"disabled"});
     const frame=page.getByRole("slider",{name:"ArtCraft animation frame"});
     await frame.evaluate((node,n)=>{
