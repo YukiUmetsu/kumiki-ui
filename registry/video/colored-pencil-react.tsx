@@ -129,7 +129,7 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
       </mask>
       {drawing.regions.map((region, i) => <clipPath key={region.id} id={uid + "-region-" + i}
         clipPathUnits="userSpaceOnUse"><path d={region.path}/></clipPath>)}
-      {drawing.regions.map((region,i)=>region.craft&&<linearGradient key={region.id}
+      {showTonalSupport&&drawing.regions.map((region,i)=>region.craft&&<linearGradient key={region.id}
         id={uid+"-tone-"+i} gradientUnits="userSpaceOnUse"
         x1={region.bounds[0]+region.bounds[2]*(region.craft.light<.5?.12:.89)}
         y1={region.bounds[1]+region.bounds[3]*.10}
