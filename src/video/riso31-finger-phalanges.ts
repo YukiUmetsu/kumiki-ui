@@ -15,7 +15,7 @@ import {HAND_POSES,JOINTS} from "../../registry/anatomy/anatomy-pose";
 export type Riso31Finger="index"|"middle"|"ring"|"pinky";
 export type Riso31Side="left"|"right";
 const FINGERS:readonly Riso31Finger[]=["index","middle","ring","pinky"] as const;
-const HANDS:readonly Riso31Side[]=["left","right"] as const;
+
 export const RISO31_GEOMETRY:Record<Riso31Finger,Readonly<{
   proximal:number;intermediate:number;distal:number;width:number;
   /** Curvature direction in the original LEFT-facing plate before mirroring. */
