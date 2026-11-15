@@ -453,17 +453,23 @@ export function Cc0SourceRegisteredFaceWorkbench({
 }:StudyProps){
   const [view,setView]=useState<"wax"|"anatomy">("wax");
   const [showReference,setShowReference]=useState(true);
-  const [showZoom,setShowZoom]=useState(false);
+  const [inspection,setInspection]=useState<
+    "full"|"face"|"hair-left"|"hair-right">("full");
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,
   }),[detail,view]);
   const framed=useMemo(()=>{
-    if(!showZoom)return spec;
+    if(inspection==="full")return spec;
+    const focus={
+      face:{focusX:335,focusY:586,zoom:1.6},
+      "hair-left":{focusX:75,focusY:670,zoom:2.15},
+      "hair-right":{focusX:513,focusY:670,zoom:2.15},
+    }[inspection];
     return {...spec,camera:[
-      {frame:0,focusX:335,focusY:586,zoom:1.6},
-      {frame:299,focusX:335,focusY:586,zoom:1.6},
+      {frame:0,...focus},
+      {frame:299,...focus},
     ]};
-  },[spec,showZoom]);
+  },[spec,inspection]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,
     "crayon-source-registered-face:"+view+":"+detail,playbackRate,loop);
@@ -536,10 +542,16 @@ export function Cc0SourceRegisteredFaceWorkbench({
         onClick={()=>setShowReference(s=>!s)}>
         {showReference?"Hide source":"Compare source"}
       </button>
-      <button type="button" aria-pressed={showZoom}
-        onClick={()=>setShowZoom(s=>!s)}>
-        {showZoom?"Full view":"Zoom anatomical crop"}
-      </button>
+      <label>Inspect source region{" "}
+        <select aria-label="CC0 source anatomy inspection" value={inspection}
+          onChange={e=>setInspection(e.target.value as
+            "full"|"face"|"hair-left"|"hair-right")}>
+          <option value="full">Full portrait</option>
+          <option value="face">Face planes (1.6×)</option>
+          <option value="hair-left">Left rooted hair (2.15×)</option>
+          <option value="hair-right">Right rooted hair (2.15×)</option>
+        </select>
+      </label>
     </div>
   </section>;
 }
