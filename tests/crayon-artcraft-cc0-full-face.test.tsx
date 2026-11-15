@@ -349,6 +349,42 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(slit.colors[0]).not.toBe("#f5ebe1");
     expect(inspectCrayonScene(scene)).toEqual([]);
   });
+  it("constructs three source-clipped asymmetric scleral wax contacts and preserves an exact negative control",()=>{
+    const candidate=crayonCc0FaceStudy({eyeContact:"source-shade"});
+    const baseline=crayonCc0FaceStudy({eyeContact:"baseline"});
+    const ids=["sclera-outer-contact-near",
+      "sclera-inner-contact-near","sclera-outer-contact-far"];
+    const get=(id:string)=>candidate.elements.find(e=>e.id===id);
+    const positions=candidate.elements.map(e=>e.id);
+    for(const id of ids){
+      const e=get(id);
+      const parent=id.endsWith("-far")?"sclera-far":"sclera-near";
+      expect(e).toMatchObject({kind:"wax",parentId:parent,
+        clipToParent:true,coverage:"open",deposition:"stroke-built",
+        featherContacts:true,outlineOpacity:0});
+      if(e?.kind!=="wax")throw new Error("Missing source eye contact");
+      expect(e.blendRadius).toBeGreaterThanOrEqual(2.8);
+      expect(e.markStrength).toBeLessThanOrEqual(.17);
+      expect(positions.indexOf(parent)).toBeLessThan(positions.indexOf(id));
+      expect(positions.indexOf(id)).toBeLessThan(
+        positions.indexOf(parent==="sclera-far"?"iris-far":"iris-near"));
+      expect(baseline.elements.some(x=>x.id===id)).toBe(false);
+    }
+    const untouched=candidate.elements.filter(e=>!ids.includes(e.id));
+    expect(untouched).toEqual(baseline.elements);
+    expect(candidate.elements.length).toBe(baseline.elements.length+3);
+    expect(inspectCrayonScene(candidate)).toEqual([]);
+    expect(inspectCrayonScene(baseline)).toEqual([]);
+    for(const detail of [.2,1]){
+      expect(inspectCrayonScene(crayonCc0FaceStudy({detail}))).toEqual([]);
+    }
+    expect(()=>crayonCc0FaceStudy({eyeContact:"bad" as "baseline"}))
+      .toThrow(RangeError);
+    const candidateHtml=renderToStaticMarkup(<CrayonScene spec={candidate} frame={299}/>);
+    const baselineHtml=renderToStaticMarkup(<CrayonScene spec={baseline} frame={299}/>);
+    expect(candidateHtml.match(/data-km-crayon-contact-feather-mask=""/g)?.length)
+      .toBe((baselineHtml.match(/data-km-crayon-contact-feather-mask=""/g)?.length??0)+3);
+  });
   it("preserves F1 narrow anatomical near-eye occlusion rather than a round doll iris",()=>{
     const scene=crayonCc0FaceStudy({view:"wax"});
     const get=(id:string)=>scene.elements.find(e=>e.id===id);
@@ -497,7 +533,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       });
     }
     expect(scene.elements.filter(e=>e.kind==="wax"&&e.featherContacts))
-      .toHaveLength(soft.length+extra.length);
+      .toHaveLength(soft.length+extra.length+3);
     for(const id of ["face-outline","hair-back","sclera-near","sclera-far"]){
       expect(scene.elements.find(e=>e.id===id)).toMatchObject({
         kind:"wax",coverage:"opaque",
@@ -506,9 +542,9 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     }
     const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>);
     expect(html.match(/data-km-crayon-feather-contacts="open-wax"/g))
-      .toHaveLength(soft.length+extra.length);
+      .toHaveLength(soft.length+extra.length+3);
     expect(html.match(/data-km-crayon-contact-feather-mask=""/g))
-      .toHaveLength(soft.length+extra.length);
+      .toHaveLength(soft.length+extra.length+3);
     expect(html.match(/data-km-crayon-paper-contact-wax=""/g)?.length)
       .toBeGreaterThan(40);
     // The feather mask must leave the wax-grain deposits sharp and apply
