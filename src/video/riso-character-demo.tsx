@@ -394,6 +394,20 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-34 -52 C-24 -72 -7 -75 13 -68 C27 -63 35 -57 37 -48 Q-1 -51 -34 -49 Z" },
     { id: "cap-brim", joint: "head", plate: "red", paint: "solid",
       d: "M-38 -50 C-15 -53 17 -50 34 -47 L43 -44 Q10 -43 -38 -46 Z" },
+    // RISO24 / ArtCraft v9: structural crown grain, not an RGB noise overlay.
+    // The original red cap and blue hair made one opaque overprint helmet in
+    // actual Chromium. Narrow negative-paper gouges are *real press knockout*
+    // against BOTH preceding spot masters, then fine hand-authored engraving
+    // re-inks through the local clearances. Direction follows the scalp arc.
+    { id: "cap-paper-ribbons", joint: "head", plate: "blue", paint: "solid", knockoutOnly: true,
+      d: "M-30 -57 C-25 -66 -15 -71 -4 -70 Q-16 -68 -28 -55 Z M-17 -67 C-8 -72 1 -72 12 -67 Q1 -70 -15 -65 Z M10 -69 C19 -67 28 -61 33 -54 Q26 -61 12 -67 Z M-24 -54 C-13 -60 -5 -62 7 -61 Q-11 -60 -23 -52 Z M26 -62 C32 -58 35 -53 36 -49 Q33 -56 28 -60 Z" },
+    { id: "cap-brim-paper-welt", joint: "head", plate: "blue", paint: "solid", knockoutOnly: true,
+      d: "M-31 -48.1 C-15 -50.2 3 -49.8 21 -47.4 Q3 -48.8 -15 -48.7 Q-25 -47.8 -31 -48.1 Z M25 -47.2 Q31 -46.8 36 -45.5 Q30 -46.3 25 -46.8 Z" },
+    { id: "cap-crown-engraving", joint: "head", plate: "red", paint: "solid",
+      d: "M-29 -61 C-23 -68 -13 -70 -6 -69 Q-18 -67 -27 -59 Z M-22 -63 C-14 -69 -3 -70 7 -67 Q-8 -69 -20 -61 Z M-11 -65 C1 -70 13 -68 20 -63 Q9 -67 -8 -64 Z M7 -65 C18 -65 28 -59 32 -52 Q23 -60 11 -63 Z M-30 -54 C-20 -59 -9 -60 -1 -59 Q-16 -57 -28 -52 Z M15 -58 Q25 -55 31 -50 Q23 -54 17 -57 Z" },
+    { id: "cap-brim-engraving", joint: "head", plate: "blue", paint: "solid",
+      d: "M-35 -48 C-18 -51 -1 -49.5 12 -48.6 Q-4 -49 -21 -48.3 Z M16 -47.9 Q29 -47.4 39 -44.7 Q26 -46.1 16 -47.4 Z M-28 -46.3 Q-14 -47.3 -3 -46.5 Q-17 -45.6 -28 -45.8 Z" },
+
   ],
 };
 /** Tiny paper bird: demonstrates that parent rig is anatomy-agnostic. */

@@ -397,3 +397,20 @@ Regression: `tests/riso23-anatomical-ink-planes.test.tsx`, plus Chromium `tests/
 Actual [first RISO23 browser screenshots](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43737587182) **failed artistic critique**: large screened cheek/socket/jaw masses looked like cartoon red freckles at the old `dotCell=6` in a ~70-unit-wide head. The source geometry was kept; print-master **frequency**, not global noise or shape simplification, was the issue. The RISO23 Storybook now defaults both independent spot plates to a valid **2-unit** pitch (configurable up to 6), and the production `PrintPlate.dotCell` and screen geometry accept **2..36** without changing older valid values. Actual coarse-vs-fine screenshot negative controls are required before promoting the updated illustration.
 
 [Full real-render ArtCraft revision ledger](../research/riso23-facial-screen-artcraft.md).
+
+
+## RISO24 — ArtCraft v9 scalp-flow hair and true two-spot paper carving
+
+[Real-render hair critique, physical construction and blocked anatomy gates](../research/riso24-hair-artcraft.md)
+
+The original `COURIER` and `PAPER_ARTIST` head shapes, face masks, hair/hat outer silhouettes, blink keys and all IK/FK joints remain intact. New semantic **head-local** details are original artwork, not shader-generated noise.
+
+**Courier cap:** `cap-paper-ribbons` (five actual paper-negative scalp-flow paths), `cap-brim-paper-welt` (two curved paper reserves), `cap-crown-engraving` (six variable-length red engraved locks), and `cap-brim-engraving` (three blue print seams). All are mapped into `RISO_COURIER_SHEET`.
+
+**Paper Artist bob:** `hair-paper-crown` (three paper-negative crown paths), `hair-paper-side` (four scalp-to-nape paper cutouts), `hair-crown-engravings` (seven red root curves), `hair-side-engravings` (six irregular side locks), `hair-fringe-root-ink` (five forehead roots), and `hair-temple-shadow-masses` (two wide red screened masses). Source regions automatically populate `RISO_PAPER_ARTIST_SHEET`.
+
+The `knockoutOnly:true` paths use the existing `RisoCharacterInk` press-mask semantics to subtract real ink from **both** earlier blue and red masters; subsequently painted red/blue paths deposit real ink on the reserved paper. The original source engine `RisoPrint` is reused unchanged. No fake translucent white stickers, blur, enlarged film palette or new dependencies.
+
+In the existing Storybook Risograph `OcularPrintCraft` story, new **RISO24 feature focus** and **RISO24 hair craft comparison** controls select a true source-measured hair close-up and switch only the new named hair parts on/off. Together with aspect, pose and plate isolation, this creates directly comparable legacy/engraved 16:9 and 9:16 proof images in the same story. The story ID is preserved, so existing links and tests remain valid.
+
+Mechanical QA: `tests/riso24-hair-craft-artcraft.test.tsx`; actual Chromium 1x/close-up comparisons in `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`. **Still not artist-certified**: source-reference human portrait landmark masks, profile/3/4 views and independent normal-speed film review are missing.

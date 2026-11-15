@@ -95,3 +95,55 @@ test("RISO21 both original faces: 16:9/9:16, anatomy states, distinct inks",asyn
   await expect(page.getByText(/iris-screen-left/)).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+
+/** RISO24: actual HTML/SVG pixels in both press formats. An opaque rendered
+ * crop and image inequality are mechanical evidence only: the independent
+ * ArtCraft likeness/esthetic review remains a distinct release gate.
+ */
+test("RISO24 ArtCraft hair-closeup: legacy versus paper-carved two-ink craft",async({page},info)=>{
+  const failures:string[]=[];
+  page.on("pageerror",error=>failures.push(error.message));
+  page.on("console",entry=>{if(entry.type()==="error")failures.push(entry.text());});
+  await page.setViewportSize({width:1520,height:1150});
+  await page.goto("/iframe.html?id=video-riso-artcraft-studies--ocular-print-craft&viewMode=story");
+  await page.evaluate(()=>document.fonts.ready);
+  await page.getByRole("combobox",{name:"RISO24 feature focus"}).selectOption("hair");
+  const mode=page.getByRole("combobox",{name:"RISO24 hair craft comparison"});
+  for(const aspect of ["landscape","portrait"] as const){
+    await page.getByRole("combobox",{name:"RISO21 crop aspect"}).selectOption(aspect);
+    for(const frame of ["46","78","198"]){
+      await page.getByRole("combobox",{name:"RISO21 expression pose"}).selectOption(frame);
+      await mode.selectOption("legacy");
+      const old=new Map<string,Buffer>();
+      for(const actor of ["courier","paper-artist"]){
+        const subject=page.locator('[data-km-riso21-actor="'+actor+'"]');
+        await expect(subject).toHaveAttribute("data-km-riso24-focus","hair");
+        await expect(subject).toHaveAttribute("data-km-riso24-study","legacy");
+        expect(await subject.locator('[data-km-riso-paper-clearance="cap-paper-ribbons"],[data-km-riso-paper-clearance="hair-paper-crown"]').count()).toBe(0);
+        const bytes=await subject.screenshot({path:info.outputPath("riso24-"+aspect+"-"+actor+"-"+frame+"-legacy.png"),animations:"disabled"});
+        old.set(actor,bytes);
+      }
+      await mode.selectOption("engraved");
+      for(const actor of ["courier","paper-artist"]){
+        const subject=page.locator('[data-km-riso21-actor="'+actor+'"]');
+        await expect(subject).toHaveAttribute("data-km-riso24-study","engraved");
+        const highlight=actor==="courier"?"cap-paper-ribbons":"hair-paper-crown";
+        const strands=actor==="courier"?"cap-crown-engraving":"hair-crown-engravings";
+        await expect(subject.locator('[data-km-riso-paper-clearance="'+highlight+'"]').first()).toBeAttached();
+        await expect(subject.locator('[data-km-riso-part="'+strands+'"]')).toHaveCount(1);
+        const img=await subject.screenshot({path:info.outputPath("riso24-"+aspect+"-"+actor+"-"+frame+"-engraved.png"),animations:"disabled"});
+        expect(img.equals(old.get(actor)!),"Hair craft must produce actual different printed pixels").toBe(false);
+      }
+    }
+  }
+  await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("blue");
+  await expect(page.locator('[data-km-riso-part="hair-crown-engravings"]')).toHaveCount(0);
+  await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("red");
+  await expect(page.locator('[data-km-riso-part="hair-crown-engravings"]')).toHaveCount(1);
+  await page.locator("main").screenshot({path:info.outputPath("riso24-red-engraving-plate.png"),animations:"disabled"});
+  await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("both");
+  await page.getByRole("combobox",{name:"RISO24 feature focus"}).selectOption("head");
+  await page.locator("main").screenshot({path:info.outputPath("riso24-full-face-stress.png"),animations:"disabled"});
+  expect(failures).toEqual([]);
+});

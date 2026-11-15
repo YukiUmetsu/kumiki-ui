@@ -168,6 +168,25 @@ const facePieces:readonly RisoCharacterPart[]=[
     d:"M-29 -40 Q-24 -58 -9 -60 Q12 -67 27 -51 Q29 -45 26 -37 Q20 -44 15 -48 Q13 -39 6 -36 Q8 -46 3 -49 Q-2 -39 -9 -35 Q-8 -46 -14 -48 Q-18 -36 -26 -34 Z"},
   {id:"hair-linework",joint:"head",plate:"red",paint:"screen",
     d:"M-29 -49 Q-24 -60 -9 -62 Q-21 -57 -27 -45 Z M8 -61 Q21 -57 28 -46 Q21 -52 8 -59 Z"},
+  // RISO24 / real two-person Chromium critique: the bob was one undifferentiated
+  // blue helmet even after the eye and cheek work. The crown, part/fringe and
+  // hanging side masses now have distinct flow grammar. Closed paper channels
+  // are actual local master knockouts rather than translucent painted glints.
+  // They remain attached to head in every film pose and preserve both actors'
+  // original outer silhouette and facial identity.
+  {id:"hair-paper-crown",joint:"head",plate:"blue",paint:"solid",knockoutOnly:true,
+    d:"M-29 -58 C-25 -67 -17 -72 -8 -73 Q-17 -71 -23 -63 Q-26 -57 -29 -58 Z M-13 -70 C-2 -76 9 -74 17 -69 Q8 -72 -3 -69 Q-9 -67 -13 -70 Z M14 -71 C24 -68 32 -60 35 -51 Q29 -59 18 -65 Z"},
+  {id:"hair-paper-side",joint:"head",plate:"blue",paint:"solid",knockoutOnly:true,
+    d:"M-36 -41 C-39 -29 -40 -12 -38 4 Q-39 -13 -35 -38 Z M36 -43 C40 -29 40 -13 38 1 Q38 -18 34 -39 Z M-38 3 Q-38 11 -36 16 Q-37 11 -37 6 Z M36 4 Q37 12 35 17 Q35 12 35 8 Z"},
+  {id:"hair-crown-engravings",joint:"head",plate:"red",paint:"solid",
+    d:"M-31 -57 C-26 -66 -17 -71 -11 -72 Q-23 -67 -30 -56 Z M-22 -63 C-16 -69 -8 -70 -2 -70 Q-13 -67 -21 -62 Z M-10 -67 C-3 -71 6 -70 12 -67 Q3 -69 -8 -65 Z M3 -68 C14 -69 23 -64 29 -57 Q20 -64 7 -66 Z M17 -64 C25 -61 32 -54 35 -47 Q29 -56 20 -61 Z M-29 -53 C-24 -59 -17 -62 -11 -62 Q-22 -58 -28 -51 Z M12 -61 Q21 -57 26 -51 Q20 -55 14 -59 Z"},
+  {id:"hair-side-engravings",joint:"head",plate:"red",paint:"solid",
+    d:"M-37 -44 C-40 -31 -40 -11 -37 4 Q-39 -11 -38 -29 Z M-34 -35 C-37 -19 -37 -3 -35 10 Q-36 -4 -35 -23 Z M-37 -8 C-39 2 -37 12 -35 18 Q-37 14 -38 4 Z M36 -47 C40 -29 40 -8 37 8 Q38 -8 37 -28 Z M34 -35 C37 -17 37 0 34 15 Q36 -3 35 -25 Z M35 0 Q39 11 35 20 Q36 12 35 5 Z"},
+  {id:"hair-fringe-root-ink",joint:"head",plate:"red",paint:"solid",
+    d:"M-27 -49 C-23 -55 -17 -59 -10 -59 Q-20 -56 -26 -48 Z M-16 -54 C-10 -60 -4 -62 3 -61 Q-8 -59 -15 -52 Z M-2 -56 C4 -62 11 -61 16 -56 Q7 -59 0 -54 Z M10 -54 C18 -57 24 -52 27 -47 Q20 -52 12 -52 Z M-24 -44 Q-21 -48 -17 -49 Q-21 -46 -23 -43 Z"},
+  {id:"hair-temple-shadow-masses",joint:"head",plate:"red",paint:"screen",
+    d:"M-37 -43 C-40 -30 -40 -14 -38 2 Q-39 -18 -36 -37 Z M35 -47 C40 -32 40 -13 38 4 Q39 -25 35 -47 Z"},
+
 ];
 const sharedLimbs=[
   "right-thigh","right-shin","right-boot","right-boot-detail",
