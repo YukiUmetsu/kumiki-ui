@@ -483,8 +483,8 @@ function Export({scene}:{scene:ShanshuiScene}){
 }
 /**
  * ArtCraft source study, not a poster of AI-generated backgrounds:
- * four registered, simultaneously sampled native film stages with identical
- * mountain geometry/camera, each painting different historic brush grammar.
+ * four registered, simultaneously sampled native film stages with the same
+ * camera/clock but school-specific mountain structure and brush grammar.
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
@@ -529,8 +529,9 @@ function MasterInkSourceComparison(){
       </h1>
       <p style={{margin:"0 0 10px",maxWidth:1040}}>
         Four independently constructed historical brush grammars painted
-        by the SAME original film engine and mountain geometry at one
-        absolute frame. Inspect structural rock mass first, then named
+        by the SAME original film engine at one absolute frame. Each
+        school has its own middle-mountain skeleton and parent-rooted
+        geometric brushwork. Inspect structural rock mass first, then named
         calligraphic flow, then individual loaded/dry edge details.
         The masters' museum works are references, not traced image textures.
       </p>
