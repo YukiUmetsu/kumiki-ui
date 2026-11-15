@@ -112,3 +112,59 @@ work should be a canonical still comparison against the user's own
 teacher painting, larger figure close-up shots in the film so the
 features are actually visible, view-dependent facial cels for turns,
 and full bespoke studies for hermit and mountain traveler.
+
+
+## Figure identity pass and single-folder Storybook audit (November 14, 2026)
+
+Additional museum-based craft reference:
+[Zeng Jing, *Portrait of Pan Qintai* (1621), University of Michigan Museum
+of Art](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/).
+Its museum description identifies individualized deep-set eyes, subtly
+layered transparent ink washes, and distinct nose/forehead volumes. This is
+a **technique** reference for Zeng-style modeling, not the young reader's
+identity or a source for tracing/embedding pixels. The original teacher
+figure remains the source for proportion and facing direction.
+
+### Corrective art direction
+
+- The first v10 face macro proved richer apertures and lip structure but
+  exposed a strong angular outline and eyebrows that read as schematic
+  strokes at presentation scale. The reader now has a continuous 12-cubic
+  contour through cheek/chin with thinner ink border, softer malar wash,
+  and narrow pressure-tapered brows. The chin still respects the original
+  source-fitted pivot and anchor.
+- The original **old hermit** and **mountain traveler** previously received
+  nearly identical generic fine-detail overlays despite different painting
+  sources. New `shanshuiOtherFaceCraft(scene,detail)` treats the faces
+  separately: elderly orbital volume, age-specific nasal/cheek folds, and
+  leaner traveler windward temple, brow and iris art. No reader asset,
+  mouth state, body proportion or hair/crown shape is shared by reference.
+- At `detail=0`, these optional refinement layers disappear, and low/high
+  detail remains deterministic. No temporary rectangles/circles are drawn
+  as eyes or pupils.
+- Each face now appears in a **three-portrait identity review** inside the
+  existing reader-face Storybook studio. The screenshot proof uses the
+  same head, eyebrow, eyelid, pupil and mouth transforms as production.
+  A separate close-up and live blink review preserve the original
+  individual-region controls.
+
+### Folder architecture
+
+All Chinese Ink stories now live as direct leaves under a **single**
+Storybook sidebar folder `Video production/Film Looks/Chinese Ink`.
+Shanshui Film Gallery, Shanshui Proportion Studio and Shanshui Reader Face
+Studio are flat leaf titles, not a nested `Shanshui` folder. Their
+pre-existing Storybook IDs are kept stable so deep links and video exports
+do not break. A browser navigation test checks all Chinese Ink titles
+have exactly four slash-separated components.
+
+### Review and outstanding concerns
+
+The visual contract is not met just by passing the new unit checks. Use
+native browser evidence `shanshui-three-portrait-identity-review.png`,
+`shanshui-three-portrait-blink-review.png` and the original film MP4.
+Inspect nose–mouth connections, soft eye sockets, face silhouette and
+natural differences in age. Do not mistake higher path count for genuine
+brushwork. The characters still need more faithful full-figure acting,
+close-up camera choreography, and view-dependent head-turn artwork.
+Keep this PR draft until both the film and the figure studies are approved.
