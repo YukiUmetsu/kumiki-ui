@@ -233,7 +233,8 @@ function face(p:Palette,subject:PortraitSubject):WatercolourArtPart {
         "M256 176 Q294 170 324 181 M275 192 Q301 188 324 195",
         p.shade,.8,.25,225),
     ]:[]),
-  ],undefined,undefined,45,110);
+  ],[key(0),key(148,0,0,-.45),key(247,2,-1,1.1),
+      key(300,0,0,.3),key(359,0,0,-.4)],{x:331,y:415},45,110);
 }
 
 function hair(p:Palette,subject:PortraitSubject):[WatercolourArtPart,WatercolourArtPart] {
@@ -304,8 +305,8 @@ function hair(p:Palette,subject:PortraitSubject):[WatercolourArtPart,Watercolour
         "M209 106 Q193 79 219 64 M424 123 Q452 155 440 190 M168 355 Q155 387 160 413",
         p.hairLight,.88,.42,219),
     ]),
-  ],[key(0),key(157,0,0,-.25),key(263,0,0,.48),key(359)],
-    {x:318,y:85},60,105);
+  ],[key(0),key(148,0,0,-.45),key(247,2,-1,1.1),
+      key(300,0,0,.3),key(359,0,0,-.4)],{x:331,y:415},60,105);
   return [back,fringe];
 }
 
@@ -396,7 +397,8 @@ function matureBeard(p:Palette):WatercolourArtPart {
     mark("moustache-broken-hairs",
       "M301 351 Q318 345 330 350 M343 351 Q356 345 370 353",
       p.hairDeep,2.2,.52,199),
-  ],undefined,undefined,151,82);
+  ],[key(0),key(148,0,0,-.45),key(247,2,-1,1.1),
+      key(300,0,0,.3),key(359,0,0,-.4)],{x:331,y:415},151,82);
 }
 
 function figure(subject:PortraitSubject):WatercolourArtPart {
@@ -406,11 +408,9 @@ function figure(subject:PortraitSubject):WatercolourArtPart {
     backHair,
     garment(p,subject),
     neck(p),
-    group("head-rig",[
-      face(p,subject),frontHair,
-      ...(mature?[matureBeard(p)]:[]),
-    ],[key(0),key(148,0,0,-.45),key(247,2,-1,1.1),
-      key(300,0,0,.3),key(359,0,0,-.4)],{x:331,y:415}),
+    face(p,subject),
+    frontHair,
+    ...(mature?[matureBeard(p)]:[]),
     ...(mature?[]:[
       wash("small-earring-light",
         "M417 314 q6 0 5 12 q-7 7 -10 -3 Z",
