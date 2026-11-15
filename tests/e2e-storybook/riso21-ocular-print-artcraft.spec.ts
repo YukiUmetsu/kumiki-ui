@@ -147,3 +147,68 @@ test("RISO24 ArtCraft hair-closeup: legacy versus paper-carved two-ink craft",as
   await page.locator("main").screenshot({path:info.outputPath("riso24-full-face-stress.png"),animations:"disabled"});
   expect(failures).toEqual([]);
 });
+
+
+/** ArtCraft RISO25: actual browser pixels, not just path registration. The
+ * original RISO24 ear is used as a stable before-art source, while the new
+ * components print on the same physically separated press masters.
+ */
+test("RISO25 original-ear and midface craft: two identities, states and ratios",async({page},info)=>{
+  const errors:string[]=[];
+  page.on("pageerror",error=>errors.push(error.message));
+  page.on("console",message=>{if(message.type()==="error")errors.push(message.text());});
+  await page.setViewportSize({width:1540,height:1120});
+  await page.goto("/iframe.html?id=video-riso-artcraft-studies--ocular-print-craft&viewMode=story");
+  await page.evaluate(()=>document.fonts.ready);
+  const face=page.getByRole("combobox",{name:"RISO25 facial craft comparison"});
+  const crop=page.getByRole("combobox",{name:"RISO24 feature focus"});
+  const aspectCtrl=page.getByRole("combobox",{name:"RISO21 crop aspect"});
+  const pose=page.getByRole("combobox",{name:"RISO21 expression pose"});
+
+  for(const aspect of ["landscape","portrait"] as const){
+    await aspectCtrl.selectOption(aspect);
+    for(const frame of ["46","198"] as const){
+      await pose.selectOption(frame);
+      for(const focus of ["ear","midface"] as const){
+        await crop.selectOption(focus);
+        await face.selectOption("legacy");
+        const before=new Map<string,Buffer>();
+        for(const actor of ["courier","paper-artist"] as const){
+          const subject=page.locator('[data-km-riso21-actor="'+actor+'"]');
+          await expect(subject).toHaveAttribute("data-km-riso25-face-study","legacy");
+          await expect(subject).toHaveAttribute("data-km-riso24-focus",focus);
+          await expect(subject.locator('[data-km-riso-part="ear-concha-pocket"]')).toHaveCount(0);
+          before.set(actor,await subject.screenshot({
+            path:info.outputPath("riso25-"+aspect+"-"+focus+"-"+actor+"-"+frame+"-before.png"),
+            animations:"disabled",
+          }));
+        }
+        await face.selectOption("crafted");
+        for(const actor of ["courier","paper-artist"] as const){
+          const subject=page.locator('[data-km-riso21-actor="'+actor+'"]');
+          await expect(subject).toHaveAttribute("data-km-riso25-face-study","crafted");
+          for(const id of ["ear-helix-fold","ear-concha-pocket","nasolabial-flow","upper-lip-engraving"])
+            await expect(subject.locator('[data-km-riso-part="'+id+'"]')).toHaveCount(1);
+          const after=await subject.screenshot({
+            path:info.outputPath("riso25-"+aspect+"-"+focus+"-"+actor+"-"+frame+"-after.png"),
+            animations:"disabled",
+          });
+          expect(after.equals(before.get(actor)!),focus+" / "+actor+" must truly change physical printed pixels")
+            .toBe(false);
+        }
+      }
+    }
+  }
+  await crop.selectOption("ear");
+  await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("blue");
+  await expect(page.locator('[data-km-riso-part="ear-concha-pocket"]')).toHaveCount(0);
+  await page.locator("main").screenshot({path:info.outputPath("riso25-ear-blue-only.png"),animations:"disabled"});
+  await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("red");
+  await expect(page.locator('[data-km-riso-part="ear-concha-pocket"]')).toHaveCount(2);
+  await page.locator("main").screenshot({path:info.outputPath("riso25-ear-red-only.png"),animations:"disabled"});
+  await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("both");
+  await crop.selectOption("head");
+  await pose.selectOption("160");
+  await page.locator("main").screenshot({path:info.outputPath("riso25-full-face-speech-portrait.png"),animations:"disabled"});
+  expect(errors).toEqual([]);
+});
