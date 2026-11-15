@@ -30,6 +30,11 @@ The pack `human-anatomy` decides *where a person's forms are*; your style decide
    `CANON_CHECKS` (no idealised 8-head bodies or equal face thirds unless the style asks), `SURFACE_FORMS` for the
    bony and muscle landmarks your medium should show. Study the plates in `data/anatomy-references.json`.
 
+**Find things fast:** file map in [`registry/anatomy/README.md`](../../registry/anatomy/README.md);
+`npm run catalog:find -- --query="hair"` (also "skin colour", "pose", "face proportions", "hand poses");
+`npm run catalog:api -- --id=human-anatomy --format=json` for exact exports; numbers without code in
+`registry/anatomy/data/` (`ansur-ii-ranges.json`, `model-tables.json`, `stature-for-age-cdc.json`).
+
 Rules: no consumer-specific people or names; ancestry morphs are coarse averages, never identities; the framework
 does not pass a style's art gates for you (CP-F1, ArtCraft v7 portrait gate) — record actual visual review.
 Storybook: Video production → Art Foundations → Human Anatomy.

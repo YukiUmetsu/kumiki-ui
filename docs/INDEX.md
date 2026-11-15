@@ -49,7 +49,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [Reference → Film Review Map](component-specs/film-reference-map.md) | Tie selected reference-video PTS anchors to independently authored FD1 film frames without inventing scenes or audio sync |
 | [FD1 Film Feedback Queue](component-specs/film-feedback-queue.md) | Convert frame-evidence-bound reviewer corrections into scene-linked FD1 edit tasks without silently altering a film |
 | [Visual Production Contract](visual-production-contract.md) | Semantic subject contracts, measured text placement, event timing and narrative gates |
-| [Human Anatomy (ANAT1)](component-specs/human-anatomy.md) | Drawing realistic people in any style: measured proportions and ranges (ANSUR II, CDC), a morphable posable 3D body, joint ranges, face norms, camera frames for painters, reference plates |
+| [Human Anatomy (ANAT1)](component-specs/human-anatomy.md) | Drawing realistic people in any style: measured proportions and ranges (ANSUR II, CDC), a morphable posable 3D body, joint ranges, faces fitted to published norms, hair (strands, curl types, colour from melanin), skin and eye colour, camera frames for painters, reference plates. Skill: [kumiki-human-anatomy](../skills/kumiki-human-anatomy/SKILL.md) |
 | [Asset Sourcing](ASSET_SOURCING.md) | Choosing and licensing third-party 3D and image assets |
 | [Component Status](component-status.md) | **Generated.** Every pack with its spec, story and review state, every other spec, and every verification report |
 
