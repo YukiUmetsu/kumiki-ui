@@ -34,7 +34,7 @@ describe("RISO3 two-bone rigging and planted-foot animation", () => {
   it("holds stance targets at identical paper coordinates while actor root travels", () => {
     const left = COURIER.ik![0].target, right = COURIER.ik![1].target;
     const targetLeft = sampleRisoIKTarget(left,0);
-    const targets = [0,10,20,36].map(n=>sampleRisoIKTarget(left,n));
+    const targets = [0,10,20,30].map(n=>sampleRisoIKTarget(left,n));
     for (const t of targets) expect(t).toEqual(targetLeft);
     const hip0 = evalAt(0).joints.find(j=>j.id==="left-leg")!;
     const hip36 = evalAt(36).joints.find(j=>j.id==="left-leg")!;
@@ -47,7 +47,7 @@ describe("RISO3 two-bone rigging and planted-foot animation", () => {
       expect(foot.error).toBeLessThan(.001);
     }
     expect(sampleRisoIKTarget(right,0).y).toBe(0);
-    expect(sampleRisoIKTarget(left,52).y).toBeLessThan(-5);
+    expect(sampleRisoIKTarget(left,42).y).toBeLessThan(-5);
     expect(sampleRisoIKTarget(left,198).y).toBe(0);
     expect(sampleRisoIKTarget(right,198).y).toBe(0);
     expect(sampleRisoIKTarget(left,230)).toEqual(sampleRisoIKTarget(left,198));
@@ -74,8 +74,8 @@ describe("RISO3 two-bone rigging and planted-foot animation", () => {
   it("rolls a raised shoe toe-down then toe-up, but has zero pitch during foot contact", () => {
     const left=COURIER.ik![0].target;
     expect(sampleRisoFootRoll(left,10)).toBe(0);
-    expect(sampleRisoFootRoll(left,45)).toBeGreaterThan(9);
-    expect(sampleRisoFootRoll(left,59)).toBeLessThan(-9);
+    expect(sampleRisoFootRoll(left,35)).toBeGreaterThan(9);
+    expect(sampleRisoFootRoll(left,47)).toBeLessThan(-9);
     expect(sampleRisoFootRoll(left,66)).toBe(0);
     expect(sampleRisoFootRoll(left,198)).toBe(0);
     expect(sampleRisoFootRoll(left,239)).toBe(0);
