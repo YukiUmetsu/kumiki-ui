@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { tsukumoScene, UKIYOE_TSUKUMO, UKIYOE_TSUKUMO_SCENES } from "../registry/video/ukiyoe/ukiyoe-tsukumo";
 import { giantScene, UKIYOE_GIANT_SCENES, UKIYOE_GIANTS } from "../registry/video/ukiyoe/ukiyoe-giants";
 import { folkYokaiScene, UKIYOE_FOLK_YOKAI_LOOKS, UKIYOE_FOLK_YOKAI_SCENES } from "../registry/video/ukiyoe/ukiyoe-folkyokai";
 import { heianScene, UKIYOE_HEIAN_LOOKS, UKIYOE_HEIAN_SCENES } from "../registry/video/ukiyoe/ukiyoe-heian";
@@ -720,6 +721,23 @@ describe("UKIYO1 giants", () => {
       const top = (f: number) => Math.min(...[...JSON.stringify(drawCreature({ species: g, look: { size: 600 }, actions: [{ type: "appear", start: 0, end: 300 }] }, f, 0, 1).prims).matchAll(/[ML]-?[\d.]+ (-?[\d.]+)/g)].map(m => Number(m[1])));
       expect(top(60), g).toBeGreaterThan(top(295));
     }
+  });
+});
+
+describe("UKIYO1 tsukumogami", () => {
+  it("builds each scene; the wheel's spokes turn with distance, shoji open eyes, the kimono puts out hands, the kettle turns back", () => {
+    for (const k of UKIYOE_TSUKUMO_SCENES) expect(inspectUkiyoeScene(tsukumoScene(k)), k).toEqual([]);
+    for (const t of UKIYOE_TSUKUMO) expect(drawCreature({ species: t, actions: [{ type: "walk", start: 0, end: 100, to: 300 }] }, 30, 0, 1).prims.length, t).toBeGreaterThan(3);
+    // Rolling: the same frame-independent distance gives the same spokes; more distance turns them.
+    const wheel = (f: number) => JSON.stringify(drawCreature({ species: "wanyudo", actions: [{ type: "walk", start: 0, end: 100, to: -600 }] }, f, 0, 1).prims).match(/"stroke","d":"(M[^"]+)","color":"sumi","width":[\d.]+\}/g)?.[1];
+    expect(wheel(20) === wheel(40)).toBe(false);
+    const room = (eyes: number) => JSON.stringify(drawMotif("room", { back: ["shoji"], eyes }, { frame: 0, wind: 0, seed: 1, progress: 1 })).length;
+    expect(room(1)).toBeGreaterThan(room(0));
+    const rack = (hands: number) => JSON.stringify(drawMotif("ikou", { hands }, { frame: 0, wind: 0, seed: 1, progress: 1 })).length;
+    expect(rack(1)).toBeGreaterThan(rack(0));
+    const kettle = (f: number) => JSON.stringify(drawCreature({ species: "chagama", actions: [{ type: "transform", start: 0, end: 40 }] }, f, 0, 1).prims).includes("kogecha");
+    expect(kettle(5)).toBe(true);
+    expect(kettle(35)).toBe(false);
   });
 });
 

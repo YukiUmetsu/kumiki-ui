@@ -47,6 +47,8 @@ import type { UkiyoeFolkYokaiScene } from "../../registry/video/ukiyoe/ukiyoe-fo
 import { folkYokaiScene, UKIYOE_FOLK_YOKAI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-folkyokai";
 import type { UkiyoeGiantScene } from "../../registry/video/ukiyoe/ukiyoe-giants";
 import { giantScene, UKIYOE_GIANT_SCENES } from "../../registry/video/ukiyoe/ukiyoe-giants";
+import type { UkiyoeTsukumoScene } from "../../registry/video/ukiyoe/ukiyoe-tsukumo";
+import { tsukumoScene, UKIYOE_TSUKUMO_SCENES } from "../../registry/video/ukiyoe/ukiyoe-tsukumo";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -486,6 +488,7 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "sudare", label: "Bamboo blind, half up", params: { width: 200, height: 260, up: .5 }, y: 60 },
   { motif: "kicho", label: "Curtain screen (kichō)", params: { width: 260, height: 290 }, y: 350 },
   { motif: "shinden", label: "Palace veranda", params: { width: 480, height: 300, bays: 3, up: .3 }, y: 360 },
+  { motif: "ikou", label: "Kimono rack · kosode-no-te", params: { width: 300, height: 280, hands: 1 }, y: 350 },
 ];
 
 export function MotifGallery() {
@@ -982,6 +985,30 @@ export function Giants() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={GIANT_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Giant frame" />
+  </div>;
+}
+
+// ---- Tsukumogami ------------------------------------------------------------------------------------------------------------------
+
+const TSUKUMO_LABELS: Readonly<Record<UkiyoeTsukumoScene, string>> = { wheel: "Wanyūdō, the burning wheel", biwa: "Biwa-bokuboku", shoji: "Mokumokuren, eyes in the shoji", kosode: "Kosode-no-te, hands from the kimono", cotton: "Ittan-momen", kettle: "Bunbuku chagama", cart: "Oboro-guruma" };
+
+/** Objects that come alive after a hundred years. */
+export function Tsukumogami() {
+  const [kind, setKind] = useState<UkiyoeTsukumoScene>("wheel");
+  const spec = useMemo(() => tsukumoScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Tsukumogami" title="The wheel, the lute, the shoji, the kimono, the kettle">
+      <p style={{ margin: 0 }}>After Sekien's tsukumogami. New yōkai <code>wanyudo</code> (a head for a hub, rolling in flames with its travel),
+        <code>biwabokuboku</code>, <code>ittanmomen</code> and <code>chagama</code> (Bunbuku: tanuki head and tail, back to a kettle on
+        <code>transform</code>); the <code>ikou</code> rack's robe puts out <code>hands</code>; the <code>room</code>'s shoji open <code>eyes</code>;
+        the <code>gissha</code> takes a <code>face</code>.</p>
+    </Header>
+    <section aria-label="Tsukumogami controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Object" value={kind} options={UKIYOE_TSUKUMO_SCENES} onChange={setKind} labels={TSUKUMO_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={TSUKUMO_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Tsukumogami frame" />
   </div>;
 }
 

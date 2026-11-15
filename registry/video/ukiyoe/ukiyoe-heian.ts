@@ -20,6 +20,7 @@ import { ellipseD, rectD } from "./ukiyoe-prims";
 import type { UkiyoeFill, UkiyoePaint } from "./ukiyoe-pigments";
 import type { UkiyoeAction, UkiyoeFigureLook } from "./ukiyoe-figure";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "./ukiyoe-scene";
+import { eye } from "./ukiyoe-tsukumo";
 
 type Map2 = (x: number, y: number) => Pt;
 const f1 = (n: number) => n.toFixed(1);
@@ -145,6 +146,16 @@ export function gissha(p: MP, cx: { frame: number; wind: number; progress: numbe
   out.push({ t: "fill", d: smoothD([[box[0] - W * .03, box[1]], [box[0] + box[2] * .5, box[1] - W * .06], [box[0] + box[2] + W * .03, box[1]], [box[0] + box[2] + W * .05, box[1] + W * .04], [box[0] - W * .05, box[1] + W * .04]], true, .4), fill: LACQUER, outline: lw * 1.2 });
   out.push({ t: "fill", d: rectD(box[0], box[1] + W * .03, box[2], box[3] - W * .03), fill: LACQUER, outline: lw * 1.2, pattern: { type: "kikko", color: "kin", scale: .5, opacity: .3 } });
   out.push({ t: "fill", d: rectD(box[0] + box[2] * .1, box[1] + W * .08, box[2] * .45, box[3] * .55), fill: "kin", opacity: .2 });
+  // Oboro-guruma: a vast face filling the front of the cart where the blind hangs, glaring out.
+  const face = clamp01(num(p, "face", 0));
+  if (face > 0) {
+    const fc: Pt = [box[0] + box[2] * .55, box[1] + box[3] * .55], fr = box[3] * .6;
+    out.push({ t: "fill", d: ellipseD(fc[0], fc[1], fr * .85, fr), fill: "hada", outline: lw * 1.2, opacity: face });
+    for (const sx of [-1, 1]) out.push({ t: "group", opacity: face, prims: [...eye([fc[0] + sx * fr * .35, fc[1] - fr * .15], fr * .2, 1, lw, sx * -8), { t: "line", d: carvedLine([[fc[0] + sx * fr * .6, fc[1] - fr * .45], [fc[0] + sx * fr * .12, fc[1] - fr * .35]], fr * .1, { taper: "end" }), color: "sumi" }] });
+    out.push({ t: "fill", d: smoothD([[fc[0] - fr * .4, fc[1] + fr * .4], [fc[0], fc[1] + fr * .3], [fc[0] + fr * .4, fc[1] + fr * .4], [fc[0], fc[1] + fr * (.62 + .1 * Math.sin(cx.frame / 5))]], true, .4), fill: "kogecha", outline: lw, opacity: face });
+    out.push(...wheel([W * .02, -R], R, turn, lw));
+    return out;
+  }
   // The blind across the front, its trailing silk streamers.
   out.push({ t: "group", transform: `translate(${f1(box[0] + box[2] * .72)} ${f1(box[1] + W * .05)})`, prims: sudare({ width: box[2] * .26, height: box[3] * .8, up: num(p, "blinds", 0), color: "beni" }, cx) });
   out.push({ t: "stroke", d: smoothD([[box[0] + box[2], box[1] + W * .1], [box[0] + box[2] + W * .04 + cx.wind * W * .03, box[1] + W * .3], [box[0] + box[2] + W * .02 + Math.sin(cx.frame / 9) * W * .02, box[1] + W * .48]], false, .5), color: "gofun", width: W * .02 });
