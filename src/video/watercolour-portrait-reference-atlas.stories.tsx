@@ -12,20 +12,33 @@ const control={
 const heading={font:"600 15px/1.3 Georgia,serif",margin:"0 0 9px"} as const;
 
 function LinkedArtwork({reference}:{reference:WatercolourPortraitReference}){
-  const [failed,setFailed]=useState(false);
-  return <div style={{position:"relative",width:"100%",aspectRatio:"4 / 3",
-    background:"#DDDAD2",borderRadius:8,overflow:"hidden",display:"grid",
-    placeItems:"center"}}>
-    {reference.imageUrl&&!failed
-      ?<img src={reference.imageUrl} loading="lazy"
-        alt={"Research-only reference: "+reference.work+" by "+reference.artist}
-        onError={()=>setFailed(true)}
-        style={{width:"100%",height:"100%",objectFit:"contain",
-          background:"#F3F0E9"}}/>
-      :<div style={{maxWidth:260,padding:20,textAlign:"center",fontSize:14}}>
-        <div style={{fontWeight:700}}>Artwork hosted externally</div>
-        <p style={{lineHeight:1.5}}>Open the credited source to inspect the full reference.</p>
-      </div>}
+  const [preview,setPreview]=useState<"loading"|"ready"|"unavailable">(
+    reference.imageUrl?"loading":"unavailable");
+  return <div data-watercolour-reference-preview={reference.id}
+    style={{position:"relative",width:"100%",aspectRatio:"4 / 3",
+      background:"#E6E0D6",borderRadius:8,overflow:"hidden",display:"grid",
+      placeItems:"center"}}>
+    {preview!=="ready"&&<div style={{
+      padding:23,maxWidth:290,textAlign:"center",
+      color:"#625C57",display:"grid",gap:8,fontSize:13,lineHeight:1.5}}>
+      <span style={{font:"italic 500 23px Georgia,serif",color:"#735958"}}>
+        {reference.artist}
+      </span>
+      <span style={{fontWeight:700}}>{reference.work}</span>
+      <span>
+        {preview==="loading"
+          ?"External image preview is loading. View the credited source if it is blocked."
+          :"The artwork host does not provide a preview here. Open the credited source below."}
+      </span>
+    </div>}
+    {reference.imageUrl&&
+      <img src={reference.imageUrl} loading="eager"
+        alt={"Research-only artwork: "+reference.work+" by "+reference.artist}
+        onLoad={()=>setPreview("ready")}
+        onError={()=>setPreview("unavailable")}
+        style={{position:"absolute",inset:0,width:"100%",height:"100%",
+          objectFit:"contain",background:"#F3F0E9",
+          display:preview==="ready"?"block":"none"}}/>}
     <span style={{position:"absolute",left:9,bottom:9,background:"#F7F3E8",
       border:"1px solid #D3C7B8",borderRadius:5,padding:"4px 8px",
       fontSize:11,fontWeight:700,color:"#3B4448"}}>
