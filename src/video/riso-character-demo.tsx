@@ -313,6 +313,28 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-22 -5 Q-17 -3 -11 -7 L-11 -6 Q-17 -2 -22 -4 Z M11 -7 Q17 -3 22 -8 L22 -7 Q17 -2 11 -6 Z",
       expressions: {blink:"M-22 -6 Q-17 -5 -11 -7 L-11 -6 Q-17 -4 -22 -5 Z M11 -8 Q17 -6 22 -8 L22 -7 Q17 -5 11 -7 Z"},
     },
+
+    // RISO21 / ArtCraft v9: controlled inner/outer canthus and eyelash contours
+    // derived from the current source eye apertures. Both eyes share the
+    // head rig but have independently authored inflections, not mirrored dots.
+    { id: "eye-canthus-shapes", joint: "head", plate: "blue", paint: "solid",
+      d: "M-23.2 -8.7 Q-21.6 -9.2 -20.6 -8.7 Q-21.5 -8.1 -22.4 -7.1 Q-23.4 -7.3 -23.2 -8.7 Z M10.1 -10 Q11.3 -10.8 12.5 -10.3 Q11.6 -9.7 10.8 -8.8 Q9.7 -8.9 10.1 -10 Z",
+      expressions: {blink: "M-23.1 -7.9 Q-21.8 -8.4 -20.7 -8.0 L-21.6 -7.2 Q-22.9 -7.3 -23.1 -7.9 Z M10.0 -9.1 Q11.4 -9.6 12.5 -9.0 L11.2 -8.2 Q10.2 -8.4 10.0 -9.1 Z"},
+    },
+    { id: "eye-lash-wedges", joint: "head", plate: "blue", paint: "solid",
+      d: "M-22.4 -10 Q-23.8 -12.6 -24.5 -12.5 Q-23.8 -10.9 -21.2 -9.3 Z M-20.8 -11.3 Q-21.7 -13.3 -22.6 -13.6 Q-21.8 -11.8 -19.8 -10.6 Z M22.0 -11.1 Q23.1 -13.8 24.4 -14.0 Q24.0 -11.8 22.8 -9.9 Z M19.8 -12.2 Q21.4 -14.0 22.1 -14.5 Q21.7 -12.6 20.2 -11.4 Z",
+      expressions:{blink:"M-22.8 -8.1 Q-24.2 -9.4 -24.4 -10.1 Q-23.0 -9.0 -21.6 -7.8 Z M-20.5 -8.4 Q-21.8 -9.5 -22.7 -9.7 Q-21.8 -8.6 -20.1 -8.1 Z M22.1 -9.3 Q23.5 -10.8 24.2 -11.0 Q23.4 -9.7 22.9 -8.6 Z M20.0 -9.4 Q21.4 -10.6 22.1 -10.9 Q21.6 -9.7 20.4 -9.0 Z"},
+    },
+    // Blue iris stays the primary silhouette; red ink is a small independent
+    // screened glancing-light facet that never paints over the paper sclera.
+    { id: "eye-iris-grain", joint: "head", plate: "red", paint: "screen",
+      d: "M-17.4 -8.4 Q-16.2 -9.7 -15.1 -8.6 Q-16.4 -8.8 -17.0 -6.8 Q-17.9 -7.5 -17.4 -8.4 Z M16.8 -9.6 Q18.1 -11.1 19.1 -9.2 Q18.0 -9.5 17.5 -7.5 Q16.6 -8.0 16.8 -9.6 Z",
+      expressions:{blink:"M-17.0 -6.9 Q-16.2 -7.3 -15.7 -6.8 L-15.8 -6.5 Q-16.4 -6.7 -17 -6.5 Z M17.0 -7.8 Q18.0 -8.2 18.6 -7.7 L18.5 -7.4 Q17.9 -7.6 17 -7.5 Z"},
+    },
+    { id: "eye-lower-orbit-engraving", joint: "head", plate: "red", paint: "screen",
+      d: "M-22 -2.1 Q-19 -1.2 -17.1 -1.6 Q-19 -0.8 -21.9 -.9 Z M-16.2 -1.5 Q-13.8 -1.7 -12.1 -3.1 Q-13.5 -1.1 -16 -0.7 Z M-20.8 .6 Q-18.4 1.2 -17.2 .7 Q-18.7 1.6 -20.6 1.2 Z M11.6 -3.4 Q15 -1.5 17.5 -2 Q15.4 -.8 12.5 -2 Z M18.2 -2.0 Q20.4 -2.3 22.0 -4.1 Q21.4 -2.0 18.7 -1.3 Z M13.1 .2 Q16 1 18.8 .1 Q16.5 1.6 13.4 1.0 Z",
+      expressions:{blink:"M-22 -3.2 Q-20.5 -2.7 -18.5 -3.0 Q-20.4 -2.3 -21.9 -2.6 Z M-18.2 -3.1 Q-15.3 -2.7 -12.1 -4.2 Q-14.2 -2.4 -17.6 -2.5 Z M-20.4 -1.1 Q-18.4 -.8 -17.2 -1.2 Q-18.5 -.4 -20.2 -.6 Z M11.1 -4.6 Q14 -3.1 17.1 -3.5 Q15.3 -2.8 12 -3.9 Z M18.2 -3.9 Q20.8 -3.9 22 -5.4 Q20.7 -3.3 18.6 -3.2 Z M13.4 -2.0 Q16.2 -1.6 18.8 -2.4 Q16.6 -1.0 13.8 -1.4 Z"},
+    },
     { id: "iris-left", joint: "head", plate: "blue", paint: "solid",
       d: "M-18 -9 Q-15 -11 -14 -8 Q-14 -5 -17 -5 Q-19 -7 -18 -9 Z",
       expressions: {blink:"M-18 -7 L-15 -7 L-15 -6 L-18 -6 Z"},

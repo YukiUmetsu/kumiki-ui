@@ -1,0 +1,144 @@
+{
+  "schema_version": 3,
+  "project": "RISO21 Courier and Paper Artist native two-spot eye study",
+  "mode": "style-guided",
+  "status": "research-and-construction-only; ArtCraft release fidelity blocked",
+  "reference_policy": {
+    "min_references": 2,
+    "min_deep_studies": 1
+  },
+  "sources": [
+    {
+      "id": "riso-printed-oculus",
+      "url": "https://fishgutspress.com/collections/frontpage",
+      "title": "Fish Guts Press · physical Risograph print with close-up blue/pink eyes",
+      "creator": "Fish Guts Press; original illustration attribution requires confirmation",
+      "rights": "third-party; reference observation only; no tracing or redistribution",
+      "medium": "risograph ink on paper",
+      "view": "tight eye crop",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Two nonidentical oblique eye openings; inner canthus is a small asymmetrical transition, not a circular bead. Iris contours disappear under upper lids.",
+        "material": "Cobalt/pink screen overlap; white of eye stays paper; dots follow spot plates rather than RGB blur",
+        "microdetail": "Narrow changing-width upper lash roots, mixed-scale curved under-eye tone transitions, visible ink-dot tooth",
+        "light": "Local paper reserve at sclera reads as stronger light than any translucent white overlay"
+      },
+      "crops": [
+        {
+          "feature": "left eye and lower rim",
+          "bbox": [
+            0,
+            0.53,
+            0.42,
+            0.91
+          ],
+          "observation": "Blue iris is partially covered by a changing-width lid; pink printed grain transitions into papery cheek, with a distinct lower orbital arc",
+          "implementation_rule": "Retain authored main eye; add separately rigged canthus/lash and red screened lower orbit, no full-face grain"
+        }
+      ]
+    },
+    {
+      "id": "tarot-engraved-portrait",
+      "url": "https://www.behance.net/gallery/96806545/TAROT-ZINE",
+      "title": "TAROT ZINE · ink portrait with close detailed eye engraving",
+      "creator": "Original Behance illustrator; creator metadata not independently confirmed",
+      "rights": "third-party; technique study only",
+      "medium": "printed / screen-like limited palette editorial illustration; exact printing process not independently verified",
+      "view": "front portrait close-up",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Asymmetric upper eyelid arches with intentional pointed canthi, lower rim wedge and distinct brow planes",
+        "material": "Strong dark line art over broad bright midtone; local hatching in the socket not uniform whole-face halftone",
+        "microdetail": "Short nested eyelid marks, converging brow hair lines and tapered lower-eye hatches",
+        "light": "Negative paper/bright plane reserved inside open iris and lid regions"
+      },
+      "crops": [
+        {
+          "feature": "right lid, brow and cheek",
+          "bbox": [
+            0.53,
+            0.26,
+            0.97,
+            0.76
+          ],
+          "observation": "Upper lash feathering roots into eyelid stroke; dark lower orbital lines change spacing and bend under an off-centre iris",
+          "implementation_rule": "Use named semantic eye contours with four independent expressive states, preserve paper-backed face"
+        }
+      ]
+    },
+    {
+      "id": "riso-hand-contrast",
+      "url": "https://www.katschneider.com/store/prideandprejudice-hands",
+      "title": "Kat Schneider · Pride & Prejudice Hands mini Risograph",
+      "creator": "Kat Schneider",
+      "rights": "artist-owned; study only",
+      "medium": "physical blue/red risograph",
+      "view": "hand detail",
+      "deep_study": false,
+      "analysis": {
+        "construction": "Distinct rooted anatomy of knuckles/fingers in two-panel print",
+        "material": "Physical ink grain and unprinted paper break forms",
+        "microdetail": "Sparse intentional anatomical hatches",
+        "light": "Paper reserved as local highlight"
+      }
+    }
+  ],
+  "feature_targets": [
+    {
+      "id": "courier-ocular",
+      "reference_ids": [
+        "riso-printed-oculus",
+        "tarot-engraved-portrait"
+      ],
+      "critical": true,
+      "detail_critical": true,
+      "geometry_rule": "Original head-frame eye geometry remains source of truth; four independently named and blink-aware split-plate contours",
+      "microdetails": [
+        "paired nonmirrored canthi",
+        "left/right tapered lash roots",
+        "partial iris screen facet",
+        "different-length under-eye hatches"
+      ],
+      "test_view": "both original actors at 46, 78, 160, 198 in 16:9 and 9:16",
+      "part_ids": [
+        "eye-canthus-shapes",
+        "eye-lash-wedges",
+        "eye-iris-grain",
+        "eye-lower-orbit-engraving"
+      ],
+      "source_observation": "Source detail hierarchy is qualitative; no authorized individual portrait or full-res aligned print scan was supplied, so identity/pixel likeness is not established."
+    },
+    {
+      "id": "paper-artist-ocular",
+      "reference_ids": [
+        "riso-printed-oculus",
+        "tarot-engraved-portrait"
+      ],
+      "critical": true,
+      "detail_critical": true,
+      "geometry_rule": "Original narrower, more upturned Paper Artist eye apertures preserved; newly authored facets are not copies of the Courier.",
+      "microdetails": [
+        "different canthus sweep",
+        "separate upper lash wedges",
+        "stronger off-centre printed iris tonal areas",
+        "asymmetric lower-eye hatching"
+      ],
+      "test_view": "neutral / blink / speak / smile; both spot separations and portrait/landscape",
+      "part_ids": [
+        "eye-canthus-shapes",
+        "eye-lash-wedges",
+        "eye-iris-grain",
+        "eye-lower-orbit-engraving"
+      ],
+      "source_observation": "Style-guided only. Source faces are not identity references for the original actors, and no source pixel masks can honestly be passed."
+    }
+  ],
+  "evidence_status": {
+    "baseline": "Previously created Chromium RISO10 screenshot inspected from owner's Library, 2026-11-14; not current RISO21 film output",
+    "current_reference_pixels": "Unavailable for licensed redistribution / aligned crop mask",
+    "current_render_pixels": "Not captured in current revision",
+    "independent_visual_review": "pending",
+    "anatomically_measured_portrait": "pending",
+    "restriction": "Do not assert ArtCraft v9 release gate, source likeness or anatomy certification."
+  }
+}

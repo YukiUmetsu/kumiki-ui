@@ -356,3 +356,21 @@ The existing print renderer `registry/video/print-plates-react.tsx` now exposes 
 The controls are available in the **existing** Risograph Storybook folder under `Risograph · Two-Ink Printing`, in both 16:9 and 9:16. No new gallery path, motion clock, external dependency, raster filter or character simplification was introduced. The detailed [RISO20 ArtCraft reference decomposition](../research/riso20-print-screening-artcraft.md) records authentic material references, five-axis topology/flow/weight/rhythm/texture rules, and negative controls.
 
 **Validation:** run `npm run typecheck`, `npx vitest run --project unit tests/riso20-print-screening.test.tsx tests/print-plates.test.ts tests/riso-print-demo.test.tsx`, then actual Storybook browser and encoded-film QA. This is a digital screen model, **not** measured physical ink gain, licensed photographic scan fidelity, an approved portrait, or independent artistic signoff.
+
+
+## RISO21 — ArtCraft v9 ocular ink and two-actor print proof
+
+Four new original, closed SVG contour ink parts are attached to the existing `head` joint of each identity:
+
+- `eye-canthus-shapes`: independently authored left/right canthus geometry with a blink replacement
+- `eye-lash-wedges`: tapered blue upper-lid roots, including folded/reduced blink shapes
+- `eye-iris-grain`: red **screen**-painted iris light facets inside the original blue iris
+- `eye-lower-orbit-engraving`: six asymmetric short red screened contour fans under the original lower lid, with blink redraw
+
+The Courier and Paper Artist source paths are deliberately **different**, not procedural mirror/copies. Existing face/iris/coat/gloves remain. The Courier mesh sheet maps eight named left/right subcontours; the Paper Artist sheet automatically maps all new authored face parts.
+
+**Storybook:** in the existing `Video production / Film Looks / Risograph` folder, the **RISO21 · Eye and Portrait Craft** story renders both source actors using the production `RisoPrint` spot master with actual `RisoCharacterInk` and `RisoCharacterKnockout`. Pose, true 16:9 / 9:16 aspect, plate isolation, AM/FM screening, gain and semantic region inspection are interactive.
+
+[ArtCraft v9 reference, anatomy structure and blocked release study](../research/riso21-ocular-artcraft.md). Tests: `tests/riso21-ocular-print-artcraft.test.tsx`; optional browser captures: `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`.
+
+**Not artist-approved:** A valid original SVG contour, successful tests or Storybook presentation cannot substitute for measured 18-landmark source-to-render face anatomy, source-specific five-axis/pixel matching, independent 1×/3× full-head critique or encoded-film playback. The existing source is an **original stylized character**, while published reference works are used only for material technique; no artist's face/identity is traced or reproduced.

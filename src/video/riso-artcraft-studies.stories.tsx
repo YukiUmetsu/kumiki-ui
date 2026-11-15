@@ -6,7 +6,10 @@ import {risoSheetViewBox} from "../../registry/video/riso-character-sheet-react"
 import type {RisoCharacterSpec} from "../../registry/video/riso-character";
 import type {RisoCharacterMeshSheet,RisoMeshFrameRegion,RisoMeshPoint} from "../../registry/video/riso-proportion-mesh";
 import {COURIER,PAPER_BIRD} from "./riso-character-demo";
-import {RisoHumanEnsembleStudio} from "./riso-human-ensemble";
+import {PAPER_ARTIST,RISO_PAPER_ARTIST_SHEET,RisoHumanEnsembleStudio} from "./riso-human-ensemble";
+import {RisoPrint} from "../../registry/video/print-plates-react";
+import {RisoCharacterInk,RisoCharacterKnockout} from "../../registry/video/riso-character-react";
+import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import {RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET} from "./riso-character-mesh-sheets";
 
 type PlateMode="both"|"blue"|"red";
@@ -316,4 +319,120 @@ export const HumanEnsembleActing:StoryObj<typeof meta>={
   name:"RISO19 · Pressed Paper Contact",
   args:{actor:"courier"},
   render:()=> <RisoHumanEnsembleStudio/>,
+};
+
+
+/** RISO21: same production spot masters, face clearing and authored expression
+ * paths as the complete film. Crops are derived from original evaluated shapes
+ * instead of duplicating drawings, characters, clocks or material shaders.
+ */
+type EyeAspect="landscape"|"portrait";
+function RisoEyeCrop({actor,sheet,frame,aspect,plate,showGuides,screenMode,dotGain}:{
+  actor:RisoCharacterSpec;sheet:RisoCharacterMeshSheet;frame:number;aspect:EyeAspect;
+  plate:PlateMode;showGuides:boolean;screenMode:"am"|"fm";dotGain:number;
+}){
+  const portrait=aspect==="portrait",width=portrait?360:640,height=portrait?640:360;
+  const mesh=evaluateRisoCharacterMesh(actor,sheet,frame,{maxEdgeLength:8});
+  const face=mesh.regions.filter(region=>region.category==="face"||region.category==="hair"||region.category==="headwear");
+  const envelope=risoMeshBounds(face.flatMap(region=>region.outline));
+  const scale=Math.min((width-52)/Math.max(1,envelope.width),(height-56)/Math.max(1,envelope.height));
+  const x=width/2-(envelope.x+envelope.width/2)*scale;
+  const y=height/2-(envelope.y+envelope.height/2)*scale;
+  const partIds=actor.parts.filter(part=>part.joint==="head").map(part=>part.id);
+  const paperColor="#F6EDDD",blueColor="#255B8E",redColor="#D65641";
+  const inkSpec:RisoPrintSpec={
+    version:1,width,height,paper:paperColor,seed:38,startFrame:0,passFrames:1,gapFrames:0,
+    plates:[
+      {id:"blue",color:blueColor,opacity:1,dotCell:6,dotAngle:-12,registration:[0,0]},
+      {id:"red",color:redColor,opacity:1,dotCell:6,dotAngle:17,registration:[.5,-.4]},
+    ],
+  };
+  return <div data-km-riso21-actor={actor.id} data-km-riso21-frame={frame} data-km-riso21-aspect={aspect}>
+    <div style={{font:"700 16px Georgia,serif",marginBottom:8}}>{actor.id==="courier"?"Paper Courier":"Paper Artist"} · source head</div>
+    <RisoPrint spec={inkSpec} frame={239} artworks={{blue:()=>null,red:()=>null}}
+      paperGrain={.45} misregistration={.25} screenMode={screenMode} screenDensity={.33} dotGain={dotGain}
+      visiblePlateIds={plate==="both"?undefined:[plate]}
+      label={actor.id+" head print, anatomical eye engravings"}
+      foregroundLayers={[{
+        id:"ocular-actor",
+        knockout:<RisoCharacterKnockout spec={actor} frame={frame} x={x} y={y}
+          scale={scale} spread={1.5} onlyPartIds={partIds}/>,
+        artworks:{
+          blue:paint=><RisoCharacterInk spec={actor} frame={frame} plateId="blue"
+            paint={paint} x={x} y={y} scale={scale} onlyPartIds={partIds}/>,
+          red:paint=><RisoCharacterInk spec={actor} frame={frame} plateId="red"
+            paint={paint} x={x} y={y} scale={scale} onlyPartIds={partIds}/>,
+        },
+      }]}
+      style={{width:"100%",height:"auto",maxHeight:600,background:paperColor}}/>
+    {showGuides&&<div style={{fontSize:12,paddingTop:6,color:"#34576B"}}>
+      {face.filter(region=>region.id.includes("eye")||region.id.includes("iris")||region.id.includes("orbit"))
+        .map(region=>region.id).join(" · ")}
+    </div>}
+  </div>;
+}
+function RisoEyeCraftLab(){
+  const [frame,setFrame]=useState(46);
+  const [aspect,setAspect]=useState<EyeAspect>("landscape");
+  const [plate,setPlate]=useState<PlateMode>("both");
+  const [screenMode,setScreenMode]=useState<"am"|"fm">("am");
+  const [dotGain,setDotGain]=useState(0);
+  const [showGuides,setShowGuides]=useState(false);
+  return <main style={{padding:20,minHeight:"100vh",background:"#EEE2CD",color:"#294A60",font:"14px system-ui,sans-serif"}}>
+    <div style={{maxWidth:1120,margin:"0 auto",display:"grid",gap:14}}>
+      <header>
+        <div style={{fontSize:12,fontWeight:800,letterSpacing:2}}>RISOGRAPH / ARTCRAFT V9 · RISO21</div>
+        <h2 style={{font:"700 29px Georgia,serif",margin:"6px 0"}}>Two identities · orbital print craftsmanship</h2>
+        <p style={{fontSize:13,lineHeight:1.5,maxWidth:920}}>Original rigged face masters, expression-aware canthi
+          and tapered eyelash contours, red screened iris facets and below-lid engraved planes.
+          Paper remains opaque; this is a construction study, not a certified likeness or print scan.</p>
+      </header>
+      <div style={{display:"flex",flexWrap:"wrap",gap:18,alignItems:"end"}}>
+        <label>Pose
+          <select aria-label="RISO21 expression pose" value={frame}
+            onChange={e=>setFrame(Number(e.target.value))} style={{display:"block",marginTop:5,minHeight:36}}>
+            <option value={46}>Neutral / 46</option><option value={78}>Blink / 78</option>
+            <option value={160}>Speak / 160</option><option value={198}>Smile / 198</option>
+          </select></label>
+        <label>Output
+          <select aria-label="RISO21 crop aspect" value={aspect}
+            onChange={e=>setAspect(e.target.value as EyeAspect)} style={{display:"block",marginTop:5,minHeight:36}}>
+            <option value="landscape">16:9 film family</option><option value="portrait">9:16 film family</option>
+          </select></label>
+        <label>Ink
+          <select aria-label="RISO21 ink separation" value={plate}
+            onChange={e=>setPlate(e.target.value as PlateMode)} style={{display:"block",marginTop:5,minHeight:36}}>
+            <option value="both">Both inks</option><option value="blue">Blue only</option><option value="red">Red only</option>
+          </select></label>
+        <label>Screen
+          <select aria-label="RISO21 screening method" value={screenMode}
+            onChange={e=>setScreenMode(e.target.value as "am"|"fm")} style={{display:"block",marginTop:5,minHeight:36}}>
+            <option value="am">AM halftone</option><option value="fm">FM droplets</option>
+          </select></label>
+        <label>Ink gain · {Math.round(dotGain*100)}%
+          <input aria-label="RISO21 dot gain" type="range" min={0} max={1} step={.05}
+            value={dotGain} onChange={e=>setDotGain(Number(e.target.value))}
+            style={{display:"block",marginTop:9}}/></label>
+        <label><input aria-label="RISO21 region IDs" type="checkbox"
+          checked={showGuides} onChange={e=>setShowGuides(e.target.checked)}/> Inspect semantic regions</label>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(305px,1fr))",gap:18,alignItems:"start"}}>
+        {[{actor:COURIER,sheet:RISO_COURIER_SHEET},{actor:PAPER_ARTIST,sheet:RISO_PAPER_ARTIST_SHEET}].map(({actor,sheet})=>
+          <section key={actor.id} style={{padding:14,border:"1px solid #C9B8A1",borderRadius:8,background:"#FCF5E7"}}>
+            <RisoEyeCrop actor={actor} sheet={sheet} frame={frame} aspect={aspect} plate={plate}
+              showGuides={showGuides} screenMode={screenMode} dotGain={dotGain}/>
+          </section>)}
+      </div>
+      <p style={{fontSize:12,lineHeight:1.5,maxWidth:940}}>ArtCraft source studies:
+        {" "}<a href="https://fishgutspress.com/collections/frontpage">Fish Guts Press · printed halftone eye</a>
+        {" · "}<a href="https://www.behance.net/gallery/96806545/TAROT-ZINE">Tarot Zine · brow and eye engraving</a>.
+        Third-party prints are reference-only; anatomical likeness and 3/4 identity remain unapproved.
+      </p>
+    </div>
+  </main>;
+}
+export const OcularPrintCraft:StoryObj<typeof meta>={
+  name:"RISO21 · Eye and Portrait Craft",
+  args:{actor:"courier"},
+  render:()=> <RisoEyeCraftLab/>,
 };
