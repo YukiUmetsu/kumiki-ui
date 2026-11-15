@@ -67,8 +67,12 @@ export function inkDuet(
   ];
   // Keep the staged palm regions near each other without overlapping feet.
   // Old root positions passed coarse reach yet left 70–96px hand gaps.
-  const left = portrait ? [150, 212] : [225, 410];
-  const right = portrait ? [389, 308] : [772, 576];
+  const left = portrait ? [150, 185] : [225, 410];
+  // The portrait puppets have a different effective reach because their
+  // face/hand pivots and body scales differ. The former 96px root gap made
+  // their arms cross *past* one another, increasing the actual hand gap.
+  // Keep approach travel and align the palms near a 205px root separation.
+  const right = portrait ? [460, 390] : [772, 576];
   const ground = portrait ? 821 : 478;
   const plan: InkEnsemblePlan = {
     actors: [
