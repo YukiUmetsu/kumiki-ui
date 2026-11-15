@@ -122,6 +122,7 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
   const [wash,setWash]=useState((initialSample==="woman"||initialSample==="man") ? .91 : .84);
   const [showReference,setShowReference]=useState(false);
   const [showFaceGuides,setShowFaceGuides]=useState(false);
+  const [applyFaceCraft,setApplyFaceCraft]=useState(true);
   const [uploaded,setUploaded]=useState(false);
   const size=aspect==="landscape"?{width:900,height:506}:{width:506,height:900};
   const faceSource=!uploaded&&(sample==="woman"||sample==="man");
@@ -180,8 +181,11 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
       mode,focal,zoom:faceSource?faceZoom:1,
     });
   },[raw,uploaded,sample,mode,focal[0],focal[1],faceSource,faceZoom]);
-  const study=useMemo(()=>raw?createPencilPhotoStudy(raw,options,faceGuides):null,
-    [raw,options,faceGuides]);
+  // Actual render A/B. Source pixels and crop remain identical; only
+  // source-aligned feature and facial-plane pencil passes are toggled.
+  const study=useMemo(()=>raw?createPencilPhotoStudy(
+    raw,options,applyFaceCraft?faceGuides:undefined):null,
+    [raw,options,faceGuides,applyFaceCraft]);
   // The static precomputed tone layer is cached: seeking/speed does not
   // recompute pixels, gradients, stochastic paper or stroke directions.
   useEffect(()=>{
@@ -326,6 +330,14 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
             setWash(Number(e.target.value));setPlaying(false);
           }}/>
       </label>
+      {faceGuides&&<label style={{...control,alignSelf:"end",minHeight:40,
+        display:"flex",flexDirection:"row",alignItems:"center",gap:9}}>
+        <input aria-label="Apply source-based portrait pencil marks" type="checkbox"
+          checked={applyFaceCraft} onChange={e=>{
+            setApplyFaceCraft(e.target.checked);setPlaying(false);
+          }}/>
+        Draw anatomy-aligned pencil passes
+      </label>}
       {faceGuides&&<label style={{...control,alignSelf:"end",minHeight:40,
         display:"flex",flexDirection:"row",alignItems:"center",gap:9}}>
         <input aria-label="Show source-measured face guides" type="checkbox"
