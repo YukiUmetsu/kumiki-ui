@@ -141,8 +141,11 @@ describe("ArtCraft anatomical hare source construction",()=>{
     const rim=part("eye-dark-rim");
     if(rim.kind!=="wax")throw new Error("Missing wax limbus");
     expect(crayonDrawingAt(rim,203).d).not.toBe(crayonDrawingAt(rim,209).d);
-    expect(crayonDrawingAt(rim,203).bounds.height)
-      .toBeLessThan(crayonDrawingAt(rim,209).bounds.height);
+    const closedRim=crayonDrawingAt(rim,203);
+    const openRim=crayonDrawingAt(rim,209);
+    if(!closedRim.bounds||!openRim.bounds)
+      throw new Error("Missing alternate limbal drawing bounds");
+    expect(closedRim.bounds.height).toBeLessThan(openRim.bounds.height);
     expect(crayonDrawingAt(rim,89).d).toBe(crayonDrawingAt(rim,203).d);
     expect(crayonDrawingAt(rim,95).d).toBe(crayonDrawingAt(rim,237).d);
     const root=part("shoulder-silhouette");
