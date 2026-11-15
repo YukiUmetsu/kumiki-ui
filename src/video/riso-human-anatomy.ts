@@ -27,9 +27,9 @@ export const RISO29_ANAT1 = {
   oldHeadWidth:84, // hair/hat span, head-local source units
   shoulderSpan:78, // coat plus sleeve outline span, body-local units
   headSourceHeight:110, // scalp→chin source span, local units
-  headScale:.48,
+  headScale:.52,
   neckY:-77,
-  headNeckOffsetY:-23,
+  headNeckOffsetY:-17,
   coatNecklineY:-66,
 } as const;
 
@@ -44,30 +44,30 @@ export function risoAnatomicalNeckParts(actor:RisoHumanActor):readonly RisoChara
     id:"neck-skin-clearance",joint:"neck",plate:"blue",paint:"solid",
     knockoutOnly:true,
     d:actor==="courier"
-      ?"M-7 -17 Q-9 -7 -9 -1 C-10 7 -15 11 -22 15 Q-17 22 -8 22 Q0 20 8 22 Q17 22 23 15 C15 11 11 6 9 -2 L7 -17 Z"
-      :"M-7 -17 Q-8 -7 -7 0 C-9 8 -13 11 -19 16 Q-13 23 -6 21 Q0 20 6 21 Q14 23 21 16 C15 11 9 6 8 -1 L7 -17 Z",
+      ?"M-8 -13 Q-10 -4 -9 2 C-10 7 -13 9 -19 12 Q-23 14 -25 15 Q-18 14 -12 13 Q-5 12 0 13 Q5 12 12 13 Q18 14 25 15 Q23 14 19 12 C13 9 10 7 9 2 Q10 -4 8 -13 Z"
+      :"M-7.5 -13 Q-9 -4 -8 3 C-10 8 -14 11 -19 14 Q-21 15 -22 16 Q-16 15 -10 13 Q-4 13 0 14 Q4 13 10 13 Q16 15 22 16 Q21 15 19 14 C14 11 10 8 8 3 Q9 -4 7.5 -13 Z",
   };
   const contour:RisoCharacterPart={
     id:"neck-contour",joint:"neck",plate:"blue",paint:"solid",
     d:actor==="courier"
-      ?"M-8.2 -13 C-8 -3 -8 6 -13 11 Q-17 15 -21 16 L-19 18 C-12 14 -8 9 -6.5 2 Q-5 -7 -6 -13 Z M7 -13 Q8 -3 10 3 Q13 12 21 16 L20 18 C12 15 8 9 6 1 Q5 -6 5 -13 Z"
-      :"M-8 -13 Q-9 -3 -8 3 Q-11 12 -18 16 L-16 18 Q-9 15 -6 5 L-5 -13 Z M6 -13 Q7 -2 9 4 Q12 12 19 16 L18 18 Q10 13 6 5 L4 -13 Z",
+      ?"M-7.9 -12 C-9 -5 -8 3 -12 7 Q-16 12 -23 14 L-22 15 Q-15 13 -10 9 C-7 5 -6 -4 -6 -12 Z M7.2 -12 C8 -5 8 3 12 7 Q16 12 23 14 L22 15 Q15 13 10 9 C7 5 6 -4 5.8 -12 Z"
+      :"M-7.5 -12 Q-9 -3 -8 3 Q-11 9 -20 14 L-19 15 Q-11 12 -6 5 L-5 -12 Z M7 -12 Q8 -3 9 4 Q12 10 20 14 L19 15 Q11 12 6 5 L5 -12 Z",
   };
   const plane:RisoCharacterPart={
     id:"neck-sternomastoid",joint:"neck",plate:"red",paint:"screen",screenTone:"mid",
     d:actor==="courier"
-      ?"M-5 -6 Q-4 4 -11 13 Q-7 11 -4 7 Q-3 2 -5 -6 Z M5 -6 Q6 5 13 13 Q8 10 5 5 Z"
-      :"M-5 -5 Q-5 7 -11 13 Q-7 11 -4 5 Z M4 -6 Q5 7 12 12 Q7 10 4 4 Z",
+      ?"M-4.5 -6 Q-4 2 -11 10 Q-7 7 -4 3 Q-3 -1 -4.5 -6 Z M4 -6 Q5 3 12 10 Q8 7 5 2 Z"
+      :"M-4.5 -5 Q-4 4 -11 10 Q-7 8 -4 3 Z M4 -5 Q5 4 11 10 Q7 8 4 2 Z",
   };
   const clavicle:RisoCharacterPart={
     id:"neck-clavicle-insertion",joint:"neck",plate:"blue",paint:"solid",
-    d:"M-21 16 Q-14 17 -6 20 Q-1 21 0 18 Q1 21 6 20 Q14 17 21 16 L20 18 Q13 19 6 22 Q0 21 -6 22 Q-13 19 -20 18 Z",
+    d:"M-21 13.8 Q-15 13 -8 11.7 Q-3 10.5 0 10.3 Q3 10.5 8 11.7 Q15 13 21 13.8 L20 14.8 Q12 14.1 7 13.1 Q2 12.5 0 12.6 Q-2 12.5 -7 13.1 Q-12 14.1 -20 14.8 Z",
   };
   const throat:RisoCharacterPart={
     id:"neck-throat-plane",joint:"neck",plate:"red",paint:"solid",
     d:actor==="courier"
-      ?"M-.8 4 Q-.1 9 1 11 Q2 13 1 15 Q0 16 -.4 14 Q-.8 12 -.8 4 Z"
-      :"M-.5 5 Q.8 10 .6 13 Q-.5 15 -1 12 Z",
+      ?"M-.8 4 Q0 7 1 9 Q2 10 1 11 Q-.2 11 -.8 9 Z"
+      :"M-.5 5 Q.8 9 .6 10 Q-.5 11 -1 9 Z",
   };
   return [paper,contour,plane,clavicle,throat];
 }
