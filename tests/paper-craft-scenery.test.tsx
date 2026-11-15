@@ -116,7 +116,7 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
         const veins=rich.layers.find(layer=>layer.id===prefix+"-herb-veins")!;
         const leafMaterial=herbs.filter(layer=>layer.id!==prefix+"-herb-veins");
         expect(leafMaterial.length).toBeGreaterThanOrEqual(6);
-        expect(leafMaterial.every(layer=>(layer.path.match(/M/g)??[]).length>3)).toBe(true);
+        expect(leafMaterial.every(layer=>(layer.path.match(/M/g)??[]).length>14)).toBe(true);
         // Serrated, non-elliptic leaves include scored L-vertex runs and
         // the root/stem contributes a continuous cubic C-shaped stock.
         expect(leafMaterial.every(layer=>layer.path.includes("C")&&
