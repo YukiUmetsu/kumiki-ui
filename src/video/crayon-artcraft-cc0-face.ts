@@ -3,7 +3,8 @@ import type {CrayonColor,CrayonElement,CrayonSceneSpec}
 import {CRAYON_PORTRAIT_AUDIT}
   from "./crayon-artcraft-portrait-audit";
 import {crayonHash} from "../../registry/video/materials/crayon";
-import {crayonF1ReconstructEyes} from "./crayon-artcraft-f1-ocular-geometry";
+import {crayonF1ReconstructEyes,crayonF1SourceValueEyes}
+  from "./crayon-artcraft-f1-ocular-geometry";
 import {crayonF1ReconstructMidface} from "./crayon-artcraft-f1-midface-geometry";
 import {crayonF1ReconstructJawNeck} from "./crayon-artcraft-f1-jaw-neck-geometry";
 import {crayonF1AddRootedLashes,type CrayonF1LashFinish}
@@ -38,7 +39,7 @@ export const CRAYON_F1_FACE_PROOF={
 } as const;
 export type Cc0FaceView="wax"|"anatomy";
 /** Source-registered ocular pigment experiment; baseline is an unchanged negative control. */
-export type Cc0EyeContact="baseline"|"source-shade";
+export type Cc0EyeContact="baseline"|"source-shade"|"source-value";
 export type Cc0MidfaceForm="baseline"|"source-volume";
 export type Cc0JawNeckForm="baseline"|"source-contour";
 export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView;fiberMaterial?:"line"|"dry-wax";eyeContact?:Cc0EyeContact;midfaceForm?:Cc0MidfaceForm;jawNeckForm?:Cc0JawNeckForm;lashFinish?:CrayonF1LashFinish}
@@ -117,7 +118,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   if(!Number.isFinite(detail)||detail<.2||detail>1||
     !["wax","anatomy"].includes(view)||
     !["line","dry-wax"].includes(fiberMaterial)||
-    !["baseline","source-shade"].includes(eyeContact)||
+    !["baseline","source-shade","source-value"].includes(eyeContact)||
     !["baseline","source-volume"].includes(midfaceForm)||
     !["baseline","source-contour"].includes(jawNeckForm)||
     !["sparse","rooted"].includes(lashFinish))
@@ -1156,11 +1157,13 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   // Preserve independent, exact negative controls for eye and midface.
   // Both experimental passes are native editable wax geometry and share
   // the original CRAYON1 absolute-frame timing, paper and camera.
-  const ocular=eyeContact==="source-shade"?
+  const ocularGeometry=eyeContact!=="baseline"?
     crayonF1ReconstructEyes(elements):elements;
+  const ocular=eyeContact==="source-value"?
+    crayonF1SourceValueEyes(ocularGeometry):ocularGeometry;
   // The sparse/original lashes are the negative control for photographic
   // lash density. Rooted dense fibers are never silently promoted.
-  const lashed=eyeContact==="source-shade"?
+  const lashed=eyeContact!=="baseline"?
     crayonF1AddRootedLashes(ocular,lashFinish):ocular;
   const studied=midfaceForm==="source-volume"?
     crayonF1ReconstructMidface(lashed):lashed;
