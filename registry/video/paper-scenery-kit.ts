@@ -177,13 +177,15 @@ function silhouetteTree(p:P,x:number,ground:number,height:number,width:number,le
  */
 function wovenArbor(p:P,x:number,ground:number,height:number,
   hand:-1|1,seed:number,detail:number):{wood:string;foliage:string}{
-  const tipX=x-hand*height*.045,top=ground-height;
+  // Use the portal x-extent to cap inward lean in tall portrait frames:
+  // the two trees arch toward each other without closing the central light.
+  const tipX=x-hand*Math.min(Math.abs(x)*.30,height*.17),top=ground-height;
   const wood=[
-    p.M(x-8.3,ground+9),
-    p.C(x-6.7,ground-height*.27,tipX-7,top+height*.25,tipX-2.2,top),
-    p.L(tipX+2.2,top),
-    p.C(tipX+7,top+height*.28,x+6.7,ground-height*.28,x+8.3,ground+9),
-    p.L(x+3,ground+11),p.L(x,ground-8),p.L(x-4.2,ground+11),p.Z,
+    p.M(x-11.2,ground+9),
+    p.C(x-8.8,ground-height*.27,tipX-7,top+height*.25,tipX-2.5,top),
+    p.L(tipX+2.5,top),
+    p.C(tipX+7.5,top+height*.28,x+8.8,ground-height*.28,x+11.2,ground+9),
+    p.L(x+4.4,ground+11),p.L(x,ground-8),p.L(x-5.2,ground+11),p.Z,
   ];
   const leaves:string[]=[];
   const tierCount=5+Math.round(detail*3);
@@ -194,7 +196,10 @@ function wovenArbor(p:P,x:number,ground:number,height:number,
     // irregular botanical silhouettes without closing the distant view.
     const dir=(j%4===1?hand:-hand) as -1|1;
     const h=paperHash(seed,j,311);
-    const reach=height*(.16+.11*h)*(1-t*.29);
+    // Portrait portals are tall: limit lateral branch reaches by the actual
+    // root distance to the image center rather than blindly by tree height.
+    const reach=Math.min(height*(.16+.11*h),Math.abs(x)*(.42+.11*h))*
+      (1-t*.29);
     const ex=bx+dir*reach,ey=by-height*(.08+.055*paperHash(seed,j,313));
     const rootWidth=2.4+2.3*(1-t),elbow=bx+dir*reach*.42;
     wood.push([
@@ -212,9 +217,14 @@ function wovenArbor(p:P,x:number,ground:number,height:number,
       // A tapered secondary fork always begins on its parent branch.
       wood.push(p.band(px,py,tx,ty,1.65));
       const a=twigDir>0?-66:-114;
-      leaves.push(p.band(tx,ty,tx+twigDir*6,ty-7,1.6));
-      leaves.push(p.leaf(tx+twigDir*3,ty+2,15+5*paperHash(seed,j*9+k,321),
-        a,4.6+1.5*paperHash(seed,j*9+k,323)));
+      leaves.push(p.band(tx,ty,tx+twigDir*8,ty-10,1.9));
+      const length=20+8*paperHash(seed,j*9+k,321);
+      const wide=5.9+2.1*paperHash(seed,j*9+k,323);
+      leaves.push(p.leaf(tx+twigDir*4,ty+2,length,a,wide));
+      // The smaller opposing blade makes each fork legible as botanical
+      // stock rather than an unconnected pale comma at a branch tip.
+      leaves.push(p.leaf(tx,ty,9+4*paperHash(seed,j*9+k,325),
+        a+(twigDir>0?-52:52),wide*.66));
     }
   }
   return {wood:wood.join(" "),foliage:leaves.join(" ")};
@@ -456,7 +466,7 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
   // separate opaque cut sheets at different depth, so the lightbox can cast
   // genuinely spaced shadows and parallax.
   for(const [i,hand] of [-1,1].entries()){
-    const rootX=hand*x*.58,rootY=y*.43,height=y*1.24;
+    const rootX=hand*x*.53,rootY=y*.43,height=y*1.24;
     const branches=wovenArbor(p,rootX,rootY,height,hand as -1|1,
       seed+101+i*173,detail);
     const under=wovenArbor(p,rootX+hand*6,rootY+7,height,
