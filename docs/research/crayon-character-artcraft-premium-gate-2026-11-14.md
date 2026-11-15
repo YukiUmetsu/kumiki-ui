@@ -143,3 +143,20 @@ and increase base mark spacing. Rerender required before any acceptance.
 These are evidence-based *failures*, not numerical fidelity scores. Preserve
 failed screenshots in PR artifacts for side-by-side review. No character
 Storybook gallery is unhidden by this corrective iteration.
+
+## ArtCraft expressive facial and textile study (unapproved)
+
+The reference-board face has expressive mouth corners and cheek planes;
+its visible clothing has warp/weft plaid, floral embroidery and sewn trim.
+Current CRAYON1 geometry lacks many of these semantic subfeatures. The
+new study adds individually addressable original contours for:
+- mouth commissure deformation and separate upper/lower lip volumes for
+  neutral vs subtle warm expression (not simple hue changes);
+- two cheek pigment regions, source-bounded freckles, rooted temple curl
+  strokes and partial forehead hairline;
+- coat placket, button threads, actual piping, shaped sleeve-direction wool,
+  scarf diagonal woven rhythm and linen floral embroidery.
+
+These are *original editable code strokes*, not raster pasted from the
+reference board. They remain behind Storybook `!dev` until the actual
+front/3-quarter/profile evidence satisfies face and costume gates.
