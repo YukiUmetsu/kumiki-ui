@@ -30,6 +30,10 @@ describe("CRAYON1 fractured dry-wax contact",()=>{
    const fragments=(whole.match(/Z/g)??[]).length;
    expect(fragments).toBeGreaterThan(mark.nibArcs.length);
    expect(fragments).toBeLessThanOrEqual(6*mark.nibArcs.length);
+   for(const piece of whole.split("Z").filter(Boolean)){
+     // Four pressure-varying samples across the contacted paper ridge.
+     expect((piece.match(/L/g)??[]).length).toBe(7);
+   }
    const mid=crayonDryNibPath(mark,.35);
    expect(mid.length).toBeGreaterThan(0);
    expect(mid.length).toBeLessThan(whole.length);
