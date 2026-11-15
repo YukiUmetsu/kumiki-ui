@@ -494,7 +494,7 @@ function alpineCrestStock(p:P,m:{cx:number;peak:number;r:number;h:number},seed:n
   return [
     p.M(m.cx-m.r,foot+6),
     ...ledges.slice(1,-1).map(([u,v],i)=>
-      p.L(m.cx+m.r*u,m.peak+m.h*(v+(u===0?0:(paperHash(seed,i,503)-.5)*.018)))),
+      p.L(m.cx+m.r*u,m.peak+m.h*(v+(u>=-.36&&u<=.27?0:(paperHash(seed,i,503)-.5)*.018)))),
     p.L(m.cx+m.r,foot+6),
     p.C(m.cx+m.r*.69,foot+m.h*.15,m.cx-m.r*.66,foot+m.h*.21,m.cx-m.r,foot+6),
     p.Z,
