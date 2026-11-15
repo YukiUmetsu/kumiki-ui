@@ -14,6 +14,7 @@ import {COURIER} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts,RISO30_GRIP_FOREGROUND_IDS} from "./riso-hand-artcraft";
 import {riso31SegmentIds} from "./riso31-finger-phalanges";
+import {riso32ThumbDistalId} from "./riso32-thumb-ip";
 
 /** RISO14: a second authored human, not a color-inverted Courier.
  * Reuse a mechanically compatible limb/digit rig, not the Courier face, hair,
@@ -242,11 +243,13 @@ const sharedLimbs=[
   "left-glove-detail","left-glove-thumb-fold","left-finger-joint-lines",
   // RISO31: copy both real bending red links of all four original fingers.
   ...riso31SegmentIds("left"),
+  riso32ThumbDistalId("left"),
   "right-upper-sleeve","right-forearm","sleeve-right-fold","cuff-right",
   "right-glove","right-glove-index","right-glove-middle","right-glove-ring","right-glove-pinky","right-glove-thumb",
   "right-glove-detail","right-glove-thumb-fold","right-finger-joint-lines",
   // RISO31: copy both real bending red links of all four original fingers.
   ...riso31SegmentIds("right"),
+  riso32ThumbDistalId("right"),
 ];
 const legs=sharedLimbs.slice(0,8).map(id=>take(id));
 const arms=sharedLimbs.slice(8).map(id=>take(id));
@@ -271,7 +274,7 @@ function category(part:RisoCharacterPart):RisoMeshCategory{
   if(part.id.includes("thigh")||part.id.includes("shin"))return "leg";
   if(part.joint.endsWith("hand")||part.joint.endsWith("-palm-surface")||
     ["thumb","index","middle","ring","pinky"].some(d=>part.joint.endsWith("-"+d))||
-    /^(?:left|right)-(?:index|middle|ring|pinky)-(?:pip|dip)$/.test(part.joint))
+    /^(?:left|right)-(?:(?:index|middle|ring|pinky)-(?:pip|dip)|thumb-ip)$/.test(part.joint))
     return "hand";
   if(part.joint.includes("arm")||part.joint.includes("elbow"))return "arm";
   if(part.id==="scarf"||part.id.includes("pocket"))return "accessory";
@@ -312,6 +315,7 @@ const risoGripParts=(side:"left"|"right"):readonly string[]=>[
   side+"-glove-index",side+"-glove-middle",side+"-glove-ring",side+"-glove-pinky",side+"-glove-thumb",
   // Physically deposited moving PIP/DIP sections belong above the letter.
   ...riso31SegmentIds(side),
+  riso32ThumbDistalId(side),
   side+"-finger-joint-lines",side+"-glove-detail",side+"-glove-thumb-fold",
   ...RISO30_GRIP_FOREGROUND_IDS(side),
 ];
@@ -443,9 +447,10 @@ export function RisoHumanEnsembleStudio(){
   const gripLayer=(spec:RisoCharacterSpec,stage:{x:number;y:number;scale:number},
     side:"left"|"right",id:string):RisoForegroundLayer=>{
     const onlyPartIds=risoGripParts(side);
-    // Actual ink scratches are open contours. Only five closed, authored red
-    // glove digit masses may cut paper; blue hatch/knuckle lines print on top.
-    const solidDigits=onlyPartIds.slice(0,5);
+    // Cut paper only under the real closed RED proximal/distal digit masses.
+    // The IP/PIP/DIP caps are independently moving ink sources, not stickers.
+    const solidDigits=spec.parts.filter(p=>onlyPartIds.includes(p.id)&&
+      p.plate==="red"&&p.paint==="solid"&&!p.knockoutOnly).map(p=>p.id);
     return {
       id,
       knockout:<g data-km-riso-grip-occlusion={id}>
