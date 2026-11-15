@@ -26,11 +26,11 @@ export function crayonCc0NearEyeStudy(
     skin:["#e5baa6","#be9a8d","#f6d2bd"],
     light:["#f1c6b4","#cb988a","#ffe0c4"],
     shadow:["#c19b8f","#917879","#dfbaaa"],
-    socket:["#ae8885","#735b5a","#c8a39a"],
+    socket:["#af938e","#7c6363","#d0aca1"],
     eyelid:["#d2a99f","#947775","#edc3b1"],
-    sclera:["#d8cbc3","#aaaeb0","#f1e4d7"],
-    iris:["#806451","#403b37","#b69374"],
-    pupil:["#312b2d","#181c22","#4a383b"],
+    sclera:["#c4bab6","#909398","#e6dbd2"],
+    iris:["#49403d","#24252a","#786c60"],
+    pupil:["#221e22","#101216","#453a3a"],
     brow:["#7e4c45","#4e3338","#a77b6b"],
     ochre:["#b08374","#704c4d","#d5ac96"],
     tear:["#765256","#523b42","#b08887"],
@@ -113,7 +113,7 @@ export function crayonCc0NearEyeStudy(
     "Q155 159 126 163 C90 165 68 150 55 134Z",
     rect(52,122,124,45),palettes.shadow,[77,170],{
       parentId:"eye-skin",clipToParent:true,coverage:"open",
-      blendRadius:8,pressure:.42,markStrength:.23,outlineOpacity:0});
+      blendRadius:9,pressure:.39,markStrength:.17,outlineOpacity:0});
   wax("cheek-light-turn",
     "M11 144 C32 129 53 136 71 154 Q96 178 142 181"+
     "C106 194 46 194 4 181Z",
@@ -128,7 +128,7 @@ export function crayonCc0NearEyeStudy(
     "C146 57 129 57 105 54 C75 58 52 72 22 91Z",
     rect(15,35,154,63),palettes.brow,[70,164],{
       parentId:"eye-skin",clipToParent:true,coverage:"open",
-      blendRadius:3,spacing:6.4,pressure:.53,markStrength:.28,outlineOpacity:0});
+      blendRadius:2.2,spacing:5.3,pressure:.46,markStrength:.21,outlineOpacity:0});
   wax("brow-pigment-turn",
     "M26 84 C47 69 75 56 105 50 C130 48 152 53 165 65"+
     "Q135 57 109 62 C79 65 54 77 26 84Z",
@@ -208,7 +208,7 @@ export function crayonCc0NearEyeStudy(
     "Q146 159 118 160 C91 164 73 154 62 139Z",
     rect(59,121,109,45),palettes.socket,[184,267],{
       parentId:"eye-skin",clipToParent:true,coverage:"open",
-      blendRadius:7,pressure:.4,markStrength:.16,outlineOpacity:0});
+      blendRadius:7.8,pressure:.38,markStrength:.13,outlineOpacity:0});
   line("upper-crease",
     "M60 106 C75 88 96 85 119 88 C138 89 153 97 164 106",
     "#875e63",.56,[214,290],"eye-skin",.36);
@@ -239,7 +239,7 @@ export function crayonCc0NearEyeStudy(
 
   const follicles=crayonFurFlow({
     seed:2084,guide:[{x:25,y:88},{x:59,y:67},{x:102,y:47},{x:161,y:61}],
-    count:Math.round(91*detail),spread:3.3,length:10.2,curvature:.21,forkRate:.06,
+    count:Math.round(145*detail),spread:4.1,length:12.7,curvature:.24,forkRate:.02,
   });
   if(follicles)line("brow-rooted-fibres",follicles,"#493b3c",.33,[217,298],
     "brow-root",.62);
