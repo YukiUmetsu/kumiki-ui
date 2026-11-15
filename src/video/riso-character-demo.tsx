@@ -346,7 +346,7 @@ export const COURIER: RisoCharacterSpec = {
     { id: "zygomatic-tone-planes", joint: "head", plate: "red", paint: "screen",
       d: "M-29 -7 C-29 2 -27 10 -19 16 Q-22 5 -21 -5 Q-25 -11 -29 -7 Z M21 -6 Q27 -11 31 -5 C32 4 28 13 21 18 Q27 6 24 -2 Z" },
     { id: "jaw-shadow-planing", joint: "head", plate: "red", paint: "screen",
-      d: "M-28 10 Q-23 24 -8 31 C-16 27 -22 20 -25 12 Z M16 31 C27 22 33 8 31 -5 Q30 13 22 25 Z" },
+      d: "M-28 10 Q-23 24 -8 31 C-16 27 -22 20 -25 12 Z M31 -5 Q34 13 17 31 Q27 18 29 -3 Z" },
     { id: "iris-left", joint: "head", plate: "blue", paint: "solid",
       d: "M-18 -9 Q-15 -11 -14 -8 Q-14 -5 -17 -5 Q-19 -7 -18 -9 Z",
       expressions: {blink:"M-18 -7 L-15 -7 L-15 -6 L-18 -6 Z"},
