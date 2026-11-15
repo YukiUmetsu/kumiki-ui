@@ -676,3 +676,39 @@ The [actual iteration-16 Chromium 2.15× geological crop](https://github.com/Yuk
 **Correction:** replace those four two-C wedge faces with true 14-station, smooth Catmull-derived *two-edge* ribbons: a shared quadratic centreline, normal offsets from its actual tangent, asymmetric ink-load weights, a root–belly–release pressure profile, and tiny material-edge variations. The width is deliberately only 48% of the previous load parameter (maximum total stroke width at the pressure belly ≈ 1.26×width parameter). Preserve the same source-rooted bone, four authentic branch attachments, eight secondary fibres, controlled recession and zero-detail behavior. Do **not** add arbitrary rock dots or new wash filters to conceal geometric failure.
 
 The new tests require at least 22 smooth contour transitions per hero rock face. **A visual pass is not claimed.** Re-render native film and crop, then measure the difference at the exact same scene/seed/detail/viewport; reject if the corrected strokes remain recognizable as flat geometric blades rather than curved ink fibres.
+
+
+## Eighteenth pass — ArtCraft v7, nested hill-back structural study
+
+**Skill source used:** `artcraft` v7 from the locally available
+`artcraft-v7.zip` package, together with
+`art-reference-research`, `art-reference-structural-study`,
+`art-material-study`, `art-fidelity-review` and
+`art-mathematical-art-fidelity`. The source research, shape graph and
+adversarial rejection criteria are recorded in the dedicated
+`chinese-ink-fuchun-structural-study.json`.
+
+**Observed source:** Huang Gongwang, *Dwelling in the Fuchun Mountains*
+(National Palace Museum), [full institutional collection](https://digitalarchive.npm.gov.tw/Collection/Detail?dep=P&id=1194),
+and [Smarthistory's mountain detail](https://smarthistory.org/wp-content/uploads/2023/06/National-Palace_lrg-det-6.jpeg).
+The mountainous terrain does not resolve into loose vertical scratches:
+it has consecutive curving hill-backs, intertwined dark cliff fracture
+bands, and changing negative-space windows with clustered ink along
+actual geological descenders.
+
+**Construction:** the existing one-rock hero now gains exactly three
+distinct linked *horizontal/rolling* structures at t=.13/.36/.59 on
+the same crest-rooted descending parent spine, without replacing
+the four descending pressure ribs. Their unequal local control
+heights, long side spreads, opposite bending directions, 14-pressure-
+station tapered contours, attached diagonal subsidiary fibres and
+separately painted undersides are intentionally **macro/meso** detail,
+not random marks. Parent-clipping and large nonpainted paper channels
+are preserved; no new global scene geometry or API.
+
+**Refusal:** This is a style-guided original reconstruction, not a
+pixel-traced Huang Gongwang facsimile. No source-to-candidate
+quantitative parity claim is made until a high-resolution source
+crop and semantically aligned candidate mask have been independently
+validated. The next actual browser 960×540 and 2.15× crop render
+must be inspected before approving or merging anything.

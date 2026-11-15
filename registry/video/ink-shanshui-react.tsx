@@ -234,9 +234,68 @@ function MountainHeroCliff({root,seed,mist}:{
     {at:.43,side:-1,len:71,reach:44,load:6.9},
     {at:.62,side:1,len:67,reach:39,load:7.8},
   ] as const;
+  // ArtCraft v7: a handscroll rock *face* is a family of interlocking
+  // backs, not four thin freestanding drips. Three differently rolled
+  // longitudinal contours attach to successive stations on the hero bone
+  // and are underpainted behind its vertical fracture ribs.
+  const foldPlan=[
+    {at:.13,side:-1,reach:91,rise:26,drop:61,width:8.4},
+    {at:.36,side:1,reach:77,rise:13,drop:78,width:6.7},
+    {at:.59,side:-1,reach:65,rise:21,drop:54,width:5.6},
+  ] as const;
   const pool=quadraticPoint(root,boneControl,boneTip,.49);
   return <g data-km-rock-hero-cliff=""
     data-km-rock-hero-root={f(x)+","+f(y)}>
+    {/* Source hierarchy: rounded rolling hill backs intersect one rooted
+        dark geological spine. Open paper channels are NOT filled with
+        an overall shadow. This preserves the sparse/dense handscroll. */}
+    {foldPlan.map((fold,i)=>{
+      const r=quadraticPoint(root,boneControl,boneTip,fold.at);
+      const breadth=fold.reach*(.96+.12*s(seed+501,i*23));
+      const side=fold.side;
+      const rise=fold.rise*(.91+.17*s(seed+509,i*31));
+      const descend=fold.drop*(.92+.15*s(seed+521,i*17));
+      // The high shoulder bends BACK over the attached root, then
+      // descends as a gently rolling hillside rather than a triangle.
+      const bend:P=[r[0]+side*breadth*.57,r[1]-rise];
+      const tip:P=[r[0]+side*breadth,r[1]+descend];
+      const longEdge=rockLoadedRibbon(r,bend,tip,fold.width,
+        seed+1511+i*101);
+      const taperStart=quadraticPoint(r,bend,tip,.22);
+      const taperEnd=quadraticPoint(r,bend,tip,.87);
+      const inner="M"+f(taperStart[0])+" "+f(taperStart[1]+2)+
+        " Q"+f(bend[0]-side*fold.width*1.15)+" "+
+          f(bend[1]+fold.width*1.72)+" "+
+          f(taperEnd[0])+" "+f(taperEnd[1]);
+      const tributaries=([.31,.54,.73] as const).map((at,k)=>{
+        const entry=quadraticPoint(r,bend,tip,at);
+        const off=((i+k)%2===0?-1:1)*(11+
+          11*s(seed+571,i*19+k*13));
+        const fall=17+19*s(seed+587,i*17+k);
+        const control:P=[entry[0]+off*.21,entry[1]+fall*.33];
+        const end:P=[entry[0]+off,entry[1]+fall];
+        return {entry,end,path:rockLoadedRibbon(entry,control,end,
+          (k===1?1.5:2.25)*(1+.18*s(seed+593,i*7+k)),
+          seed+1601+i*23+k*47)};
+      });
+      return <g key={i} data-km-rock-hero-fold=""
+        data-km-rock-hero-fold-root={f(r[0])+","+f(r[1])}
+        data-km-rock-hero-fold-station={f(fold.at)}>
+        <path data-km-rock-hero-fold-pressure="" d={longEdge}
+          fill={i===1?"#625344":"#4a4035"}
+          opacity={f((i===1?.43:.66)*(1-.19*mist))}/>
+        <path data-km-rock-hero-fold-understroke="" d={inner}
+          fill="none" stroke={i===1?"#907a5d":"#544639"}
+          strokeWidth={f(i===1?1.15:1.5)}
+          strokeLinecap="round"
+          opacity={f((i===1?.38:.59)*(1-.16*mist))}/>
+        {tributaries.map(({entry,path},k)=><path key={k}
+          data-km-rock-hero-fold-fibre=""
+          data-km-rock-hero-fold-fibre-root={f(entry[0])+","+f(entry[1])}
+          d={path} fill={k===1?"#756450":"#4e4236"}
+          opacity={f((k===1?.37:.54)*(1-.15*mist))}/>)}
+      </g>;
+    })}
     {/* One broad moving backbone, with a lifted segment at mid-stroke. */}
     <path data-km-rock-hero-bone=""
       d={"M"+f(x)+" "+f(y)+

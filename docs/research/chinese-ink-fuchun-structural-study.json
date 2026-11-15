@@ -1,0 +1,104 @@
+{
+  "version": 7,
+  "title": "Fuchun mountain contour hierarchy — single authored rock hero",
+  "reference_mode": "style_guided",
+  "target": {
+    "scene": "mountain-trail",
+    "final_resolution": [
+      960,
+      540
+    ],
+    "crop": "Storybook brushwork crop 皴法 at (568,147) 2.15×",
+    "intent": "Rich ink-rock hero in reusable animated film scene"
+  },
+  "sources": [
+    {
+      "id": "HG-P",
+      "artist": "Huang Gongwang",
+      "title": "Dwelling in the Fuchun Mountains",
+      "date": "1350",
+      "url": "https://digitalarchive.npm.gov.tw/Collection/Detail?dep=P&id=1194",
+      "rights": "Museum source, study-only; no image copied or traced",
+      "observation": "light outline and wash followed by varied dark and dry textural ink; rolling near/mid/far mountain forms"
+    },
+    {
+      "id": "HG-C",
+      "artist": "Huang Gongwang",
+      "title": "Dwelling in the Fuchun Mountains — mountain closeup",
+      "url": "https://smarthistory.org/wp-content/uploads/2023/06/National-Palace_lrg-det-6.jpeg",
+      "rights": "Smarthistory museum scan; external reference only",
+      "observation": "nested rounded hill-backs, rising/descending hemp fibres, dark tree and crag pockets surrounded by open paper"
+    },
+    {
+      "id": "HG-M",
+      "artist": "Huang Gongwang",
+      "title": "Annotated hemp fibre/alum-head diagram",
+      "url": "https://smarthistory.org/wp-content/uploads/2023/10/National_Palace_brushstroke_labeled-copy.jpg",
+      "rights": "External educational diagram; source images not distributed",
+      "observation": "downward curved long hemp strands and short loaded texture/rock caps at geological attachments"
+    }
+  ],
+  "shape_graph": {
+    "nodes": [
+      "ridge crest parent",
+      "descending central bone",
+      "3 rolling hill-back arcs",
+      "4 descending primary hemp ribs",
+      "9 folding hill-back child cracks",
+      "8 primary fracture child veins",
+      "dark recess",
+      "surrounding blank paper"
+    ],
+    "edges": [
+      "crest root -> bone",
+      "bone stations .13/.36/.59 -> 3 rolling backs",
+      "3 curved backs -> 9 child cracks, 3 each",
+      "bone stations .08/.25/.43/.62 -> 4 vertical branches",
+      "4 vertical branches -> 8 sub-fibres, 2 each",
+      "crease and shadow pockets layer over supported paint, not detached"
+    ],
+    "intentional_voids": [
+      "between three off-axis rounded backs",
+      "between loaded root and dry tips",
+      "above sky-facing ridge silhouette"
+    ],
+    "forbidden_shortcuts": [
+      "giant two-curve vector wedges",
+      "identical vertical triangle fan",
+      "random floating dots",
+      "uniform filter noise",
+      "declaring approved from green unit tests"
+    ]
+  },
+  "study_axes": {
+    "topology": {
+      "source_trait": "connected root-to-fork fractures",
+      "candidate_rule": "one shared bone, 3 fold roots, 9 nested child roots, 4 rib roots, 8 rib children",
+      "pass_criteria": "finite attached origins; 0 at detail 0"
+    },
+    "flow": {
+      "source_trait": "nonparallel swelling hillbacks and down-swept hemp",
+      "candidate_rule": "three alternating signs, three stations, unequal shoulder reach and rise",
+      "pass_criteria": "2.15× visible rounded nonparallel contours; no hard triangles"
+    },
+    "pressure": {
+      "source_trait": "calligraphic brush loaded root/belly and released tip",
+      "candidate_rule": "14 sample pressure knots, side-specific width",
+      "pass_criteria": "22+ smooth SVG contour transitions each fold; review actual raster width"
+    },
+    "rhythm": {
+      "source_trait": "strong local crag concentrations separated by paper",
+      "candidate_rule": "single hero per scene, only 3 nested arcs",
+      "pass_criteria": "wide blank zones survive and no mass stamp repetitions"
+    },
+    "microtexture": {
+      "source_trait": "dry/wet fibre contrast",
+      "candidate_rule": "distinct shadow underside and existing material absorption",
+      "pass_criteria": "crisp attached veins coexist with damp root ink, avoid artificial blur"
+    }
+  },
+  "comparison": {
+    "status": "source study completed; native full-resolution rendered candidate comparison pending",
+    "not_source_parity": true
+  }
+}

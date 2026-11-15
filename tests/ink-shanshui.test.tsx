@@ -248,6 +248,29 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       )];
       expect(ribs).toHaveLength(4);
       expect(ribFaces).toHaveLength(4);
+      const folds=[...full.matchAll(
+        /data-km-rock-hero-fold="" data-km-rock-hero-fold-root="([^"]+)" data-km-rock-hero-fold-station="([^"]+)"/g,
+      )];
+      const pressurePaths=[...full.matchAll(
+        /data-km-rock-hero-fold-pressure="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      const childRoots=[...full.matchAll(
+        /data-km-rock-hero-fold-fibre="" data-km-rock-hero-fold-fibre-root="([^"]+)" d="([^"]+)"/g,
+      )];
+      expect(folds).toHaveLength(3); // One hero, not repetitive rock stamps
+      expect(folds.map(m=>Number(m[2]))).toEqual([.13,.36,.59]);
+      expect(pressurePaths).toHaveLength(3);
+      expect(pressurePaths.every((d,i)=>
+        d.startsWith("M"+folds[i][1].replace(","," "))&&
+        (d.match(/ C/g)??[]).length>=22&&d.endsWith(" Z")))
+        .toBe(true);
+      expect((full.match(/data-km-rock-hero-fold-understroke=""/g)??[]))
+        .toHaveLength(3);
+      expect(childRoots).toHaveLength(9);
+      expect(childRoots.every(([,r,d])=>
+        d.startsWith("M"+r.replace(","," "))&&
+        (d.match(/ C/g)??[]).length>=22&&d.endsWith(" Z")))
+        .toBe(true);
       expect((full.match(/data-km-rock-hero-crease=""/g)??[]))
         .toHaveLength(4);
       expect(childFibres).toHaveLength(8);
