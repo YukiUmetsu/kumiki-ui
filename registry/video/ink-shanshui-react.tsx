@@ -956,7 +956,7 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
                   data-km-bamboo-leaf-parent={spurIndex<0?"main":"spur-"+spurIndex}
                   data-km-bamboo-leaf-heading={f(direction)}
                   fill={k===0||j%5===0?"#89765c":"#40392b"}
-                  opacity={f((k===0||j%5===0?.67:.83)+
+                  opacity={f((k===0||j%5===0 ? .67 : .83)+
                     .15*s(seed,k+i*31+j*7))}/>
                 {echo&&<path data-km-bamboo-satellite-leaf=""
                   data-km-bamboo-satellite-root={f(echoRoot[0])+","+f(echoRoot[1])}
