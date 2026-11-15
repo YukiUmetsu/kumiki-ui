@@ -21,6 +21,7 @@
 - `ukiyoe-kami.ts`: gods and heavenly beings, the auspicious cloud, and `kamiScene()`.
 - `ukiyoe-bushi.ts`: armour, helmet, bow and naginata, and `bushiScene()`.
 - `ukiyoe-critters.ts`: crab, turtle, snake, frog, carp and octopus, and `animalScene()`.
+- `ukiyoe-temple.ts`: belfry, temple hall, gate, shrine, graves, stone lantern and hut, and `templeScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -288,6 +289,19 @@ Most women in the ghost stories look alive until the story turns, so they are fi
   - `carp`: Gakutei's netted scales and ribbed fins; it swims, and `leap` arcs it out of the water.
   - `octopus`: eight curling arms with suckers.
 - **`animalScene(kind)`.** Builds `mountain`, `pond` (the carp swim under a translucent surface), `shore` or `farm`. Storybook **Animals** plays them, and the Bestiary has every new species.
+
+### Temples, shrines and graves
+
+- **`belfry`.** A shōrō on a stone platform: splayed posts, an irimoya roof, and the bronze bell (verdigris, nub rows, raised bands, lotus striking seats, dragon loop).
+  - On each of its `strikes` frames, the log striker is drawn back over 18 frames, held, then swung in to meet the bell on that frame.
+  - After the hit, the bell sways and rings in spreading arcs. `bellStrike(strikes, frame)` gives the timing.
+- **`hondo`.** A temple hall: podium and steps, vermilion pillars, latticed doors, the gong rope and offering box, a cusped gable roof.
+- **`gate`.** A two-storey gate with a railed balcony. `lantern` hangs Asakusa's great red lantern; `ruin` (0–1) makes it the Rashōmon (faded wood, holes in the tiles, grass on the roofs).
+- **`hokora`.** A small shrine with a green nagare roof, crossed finials, and the sacred rope with its paper zigzags stirring.
+- **`graves`.** Leaning and mossy stones on stepped bases among notched wooden sotoba, with flower cups.
+- **`toro`.** A stone lantern, lit or dark, with optional snow.
+- **`hut`.** A hermit's thatched hut with a lit window, a brushwood fence and smoke.
+- **`templeScene(kind)`.** Builds `bell`, `graveyard`, `rashomon`, `shrine` or `asakusa`. Storybook **Temples** plays them, and the Motifs gallery has a tile for each.
 
 ### Transition
 

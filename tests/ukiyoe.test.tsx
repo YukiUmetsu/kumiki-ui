@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { bellStrike, templeScene, UKIYOE_TEMPLE_SCENES } from "../registry/video/ukiyoe/ukiyoe-temple";
 import { animalScene, UKIYOE_ANIMAL_HABITATS, UKIYOE_CRITTERS } from "../registry/video/ukiyoe/ukiyoe-critters";
 import { bushiScene, shootAt, UKIYOE_BUSHI_SCENES } from "../registry/video/ukiyoe/ukiyoe-bushi";
 import { kamiScene, UKIYOE_KAMI_LOOKS, UKIYOE_KAMI_SCENES } from "../registry/video/ukiyoe/ukiyoe-kami";
@@ -621,6 +622,23 @@ describe("UKIYO1 animals II", () => {
     // The coiled snake is more compact than the slithering one.
     const xs = (type: string) => { const nums = [...JSON.stringify(drawCreature({ species: "snake", actions: [{ type, start: 0, end: 100 }] as Parameters<typeof drawCreature>[0]["actions"] }, 80, 0, 1).prims).matchAll(/M(-?[\d.]+) /g)].map(m => Number(m[1])); return Math.max(...nums) - Math.min(...nums); };
     expect(xs("coil")).toBeLessThan(xs("walk"));
+  });
+});
+
+describe("UKIYO1 temples", () => {
+  it("builds each sacred place, and the belfry's log is drawn back before a strike, meets the bell on it, and the bell then sways", () => {
+    for (const k of UKIYOE_TEMPLE_SCENES) expect(inspectUkiyoeScene(templeScene(k)), k).toEqual([]);
+    for (const m of ["belfry", "hondo", "gate", "hokora", "graves", "toro", "hut"] as const) expect(drawMotif(m, {}, { frame: 0, wind: 0, seed: 3, progress: 1 }).length, m).toBeGreaterThan(3);
+    const st = (f: number) => bellStrike([50], f);
+    expect(st(10).pull).toBe(0);                                // at rest
+    expect(st(42).pull).toBeGreaterThan(.95);                   // drawn fully back and held
+    expect(st(50).pull).toBe(0);                                // meets the bell on the strike frame
+    expect(st(49).pull).toBeLessThan(st(46).pull);              // swinging in, fastest at the end
+    expect(st(40).sway).toBe(0);
+    expect(Math.abs(st(60).sway)).toBeGreaterThan(.5);          // the bell sways after the hit
+    expect(st(55).ring).toBe(5);
+    // A ruined gate grows grass on its roofs; a lantern hangs only when it is not in ruin.
+    expect(JSON.stringify(drawMotif("gate", { ruin: 1, lantern: true }, { frame: 0, wind: 0, seed: 3, progress: 1 }))).toContain("kusa");
   });
 });
 

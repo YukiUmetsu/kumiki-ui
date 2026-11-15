@@ -19,6 +19,7 @@ import { ANIMATED_FOLK, FOLK_MOTIFS } from "./ukiyoe-folk";
 import { ANIMATED_EFFECTS, EFFECT_MOTIFS } from "./ukiyoe-effects";
 import { ANIMATED_KAMI, KAMI_MOTIFS } from "./ukiyoe-kami";
 import { BUSHI_MOTIFS } from "./ukiyoe-bushi";
+import { ANIMATED_TEMPLE, TEMPLE_MOTIFS } from "./ukiyoe-temple";
 
 export interface MotifContext { frame: number; wind: number; seed: number; progress: number }
 type P = Readonly<Record<string, unknown>>;
@@ -1438,15 +1439,16 @@ export type UkiyoeMotifName =
   | "sky" | "mountain" | "hills" | "sea" | "wave" | "pine" | "sakura" | "willow" | "reeds" | "rock" | "cloud" | "sun" | "moon"
   | "house" | "pagoda" | "torii" | "bridge" | "boat" | "lantern" | "field" | "pier" | "peach" | "ricefield"
   | "range" | "minka" | "jizo" | "komainu" | "castle" | "shop" | "kura" | "yashiki" | "firetower"
-  | "room" | "andon" | "irori" | "futon" | "loom" | "byobu" | "well" | "stump" | "usu" | "tarai" | "fire" | "halo" | "kumo" | "mato";
+  | "room" | "andon" | "irori" | "futon" | "loom" | "byobu" | "well" | "stump" | "usu" | "tarai" | "fire" | "halo" | "kumo" | "mato"
+  | "belfry" | "hondo" | "gate" | "hokora" | "graves" | "toro" | "hut";
 export const UKIYOE_MOTIFS: readonly UkiyoeMotifName[] = [
   "sky", "mountain", "hills", "sea", "wave", "pine", "sakura", "willow", "reeds", "rock", "cloud", "sun", "moon",
   "house", "pagoda", "torii", "bridge", "boat", "lantern", "field", "pier", "peach", "ricefield",
   "range", "minka", "jizo", "komainu", "castle", "shop", "kura", "yashiki", "firetower",
-  "room", "andon", "irori", "futon", "loom", "byobu", "well", "stump", "usu", "tarai", "fire", "halo", "kumo", "mato",
+  "room", "andon", "irori", "futon", "loom", "byobu", "well", "stump", "usu", "tarai", "fire", "halo", "kumo", "mato", "belfry", "hondo", "gate", "hokora", "graves", "toro", "hut",
 ];
 /** Motifs whose drawing depends on the frame or wind (others are drawn once and cached). */
-export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "reeds", "lantern", "peach", "ricefield", "boat", "range", "minka", ...ANIMATED_TOWN, ...ANIMATED_INTERIOR, ...ANIMATED_FOLK, ...ANIMATED_EFFECTS, ...ANIMATED_KAMI] as UkiyoeMotifName[]);
+export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "reeds", "lantern", "peach", "ricefield", "boat", "range", "minka", ...ANIMATED_TOWN, ...ANIMATED_INTERIOR, ...ANIMATED_FOLK, ...ANIMATED_EFFECTS, ...ANIMATED_KAMI, ...ANIMATED_TEMPLE] as UkiyoeMotifName[]);
 
 const MOTIFS: Readonly<Record<UkiyoeMotifName, (p: P, c: MotifContext) => Prim[]>> = {
   sky, mountain, hills, sea, wave, pine, sakura, willow, reeds, rock, cloud, sun, moon, house, pagoda, torii, bridge, boat, lantern, field, pier, peach, ricefield,
@@ -1458,6 +1460,7 @@ const MOTIFS: Readonly<Record<UkiyoeMotifName, (p: P, c: MotifContext) => Prim[]
   ...EFFECT_MOTIFS,
   ...KAMI_MOTIFS,
   ...BUSHI_MOTIFS,
+  ...TEMPLE_MOTIFS,
 };
 
 export function drawMotif(name: UkiyoeMotifName, params: P, context: MotifContext): Prim[] {
