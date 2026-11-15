@@ -41,7 +41,7 @@ const optical=(p:PencilPhotoPixels,x:number,y:number,radius:number)=>{
   const c=at(p,x,y+radius),d=at(p,x,y-radius);
   return [0,1,2].map(k=>
     (center[k]*4+a[k]+b[k]+c[k]+d[k])/8) as
-      unknown as readonly[number,number,number];
+      [number,number,number];
 };
 const yOf=(c:readonly number[])=>
   (.2126*c[0]+.7152*c[1]+.0722*c[2])/255;
