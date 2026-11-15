@@ -392,7 +392,8 @@ function RisoEyeCrop({actor,sheet,frame,aspect,plate,focus,hairStudy,faceStudy,s
     ],
   };
   return <div data-km-riso21-actor={actor.id} data-km-riso21-frame={frame} data-km-riso21-aspect={aspect}
-    data-km-riso24-focus={focus} data-km-riso24-study={hairStudy} data-km-riso25-face-study={faceStudy}\n    data-km-riso25-crop-scale={scale.toFixed(3)}>
+    data-km-riso24-focus={focus} data-km-riso24-study={hairStudy} data-km-riso25-face-study={faceStudy}
+    data-km-riso25-crop-scale={scale.toFixed(3)}>
     <div style={{font:"700 16px Georgia,serif",marginBottom:8}}>{actor.id==="courier"?"Paper Courier":"Paper Artist"} · source head</div>
     <RisoPrint spec={inkSpec} frame={239} artworks={{blue:()=>null,red:()=>null}}
       paperGrain={.45} misregistration={.25} screenMode={screenMode} screenDensity={screenDensity} dotGain={dotGain}
