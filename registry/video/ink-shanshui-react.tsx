@@ -267,6 +267,40 @@ function MountainHeroCliff({root,seed,mist}:{
         " Q"+f(bend[0]-side*fold.width*1.15)+" "+
           f(bend[1]+fold.width*1.72)+" "+
           f(taperEnd[0])+" "+f(taperEnd[1]);
+      // Source-specific dry/wet rhythm: clustered pima-cun along each
+      // rolling hill-back, never independent rain streaks. All origins
+      // are measured on THIS fold's quadratic bone, with a common
+      // descending flow field, asymmetric brush loading and gaps.
+      const bundleCount=i===0?8:i===1?10:6;
+      const pimaBundles=Array.from({length:bundleCount},(_,j)=>{
+        const station=.19+j*(.61/(bundleCount-1))+
+          (s(seed+613,i*29+j*17)-.5)*.018;
+        const origin=quadraticPoint(r,bend,tip,station);
+        const t2=Math.min(.99,station+.17+
+          .06*s(seed+619,i*31+j*13));
+        const ahead=quadraticPoint(r,bend,tip,t2);
+        const spread=((i+j)%3===0?-1:1)*(5+
+          7*s(seed+631,i*19+j*11));
+        const target:P=[
+          ahead[0]+spread*.35,
+          ahead[1]+9+9*s(seed+641,i*13+j*23),
+        ];
+        const mid:P=[
+          origin[0]+(target[0]-origin[0])*.39+spread*.16,
+          origin[1]+(target[1]-origin[1])*.34,
+        ];
+        const load=(j%5===0?1.95:j%3===0?1.28:.78)*
+          (.79+.35*s(seed+647,i*17+j));
+        const path=rockLoadedRibbon(origin,mid,target,load,
+          seed+1637+i*101+j*17);
+        const depleted=j%4===2;
+        const dryStart=quadraticPoint(origin,mid,target,.82);
+        const dryEnd=quadraticPoint(origin,mid,target,.95);
+        const dry="M"+f(dryStart[0])+" "+f(dryStart[1])+
+          " Q"+f(dryEnd[0]+spread*.16)+" "+f(dryEnd[1]-1.2)+
+          " "+f(target[0]+spread*.13)+" "+f(target[1]+2.2);
+        return {origin,path,dry,depleted};
+      });
       const tributaries=([.31,.54,.73] as const).map((at,k)=>{
         const entry=quadraticPoint(r,bend,tip,at);
         const off=((i+k)%2===0?-1:1)*(11+
@@ -289,6 +323,21 @@ function MountainHeroCliff({root,seed,mist}:{
           strokeWidth={f(i===1?1.15:1.5)}
           strokeLinecap="round"
           opacity={f((i===1?.38:.59)*(1-.16*mist))}/>
+        <g data-km-rock-pima-family="" data-km-rock-pima-family-count={bundleCount}>
+          {pimaBundles.map(({origin,path,dry,depleted},j)=><g key={j}
+            data-km-rock-pima-stroke=""
+            data-km-rock-pima-root={f(origin[0])+","+f(origin[1])}
+            data-km-rock-pima-dry={depleted?"lifted":"loaded"}>
+            <path data-km-rock-pima-body="" d={path}
+              fill={j%4===0?"#39372f":j%4===1?"#625341":"#584939"}
+              opacity={f((i===1?.69:.78)*
+                (j%4===0?.81:j%4===2?.49:.68)*(1-.2*mist))}/>
+            {depleted&&<path data-km-rock-pima-lift="" d={dry}
+              stroke="#8c7960" strokeWidth=".48"
+              strokeLinecap="round" fill="none"
+              opacity={f(.39*(1-.2*mist))}/>}
+          </g>)}
+        </g>
         {tributaries.map(({entry,path},k)=><path key={k}
           data-km-rock-hero-fold-fibre=""
           data-km-rock-hero-fold-fibre-root={f(entry[0])+","+f(entry[1])}

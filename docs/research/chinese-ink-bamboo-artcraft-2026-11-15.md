@@ -712,3 +712,36 @@ quantitative parity claim is made until a high-resolution source
 crop and semantically aligned candidate mask have been independently
 validated. The next actual browser 960×540 and 2.15× crop render
 must be inspected before approving or merging anything.
+
+
+## Nineteenth pass — long-hemp calligraphy, ArtCraft material and flow audit (2026-11-15)
+
+**Real reference inspected:** Huang Gongwang, *Dwelling in the Fuchun
+Mountains*, closeup presented by Smarthistory, original National Palace
+Museum handscroll. [Annotated hemp-fibre / alum-head image](https://smarthistory.org/wp-content/uploads/2023/10/National_Palace_brushstroke_labeled-copy.jpg) and
+[high-detail unannotated mountain](https://smarthistory.org/wp-content/uploads/2023/06/National-Palace_lrg-det-6.jpeg).
+The actual image has successive *clusters* of descending, wavy,
+non-uniformly loaded long-hemp traces; some receive darker root and
+mid-stroke pressure, others are drier and broken. Marks cooperate with
+the **curving landform**; they are not isolated thin vertical rain.
+
+The exact-head native iteration-18 2.15× geology crop was inspected:
+the three hill-back profiles are now visibly continuous, but are too
+broad and sparse, with almost no high/medium-frequency ink load at the
+places the source puts dense brushwork. The mountains still look
+smooth and digital. This pass adds 8, 10, and 6 connected fibre
+gestures respectively to the three *same* hero folds, anchored on the
+actual authorial quadratic curves (stations 0.19–0.8). Their paths
+descend along each fold's tangent and geologically facing direction,
+using `rockLoadedRibbon`'s pressure sampled edges. Select strokes
+are more loaded, others lifted with fine tail displacement. The
+family preserves three spatially separate concentrations rather than
+turning the whole range into repetitive grey hatching.
+
+**ArtCraft gates:** Tests assert 3 source-linked fan families, 24
+individual root-connected body gestures, 24 distinct origins, 24
+multi-station pressure profiles, dry tail count, sparse-detail removal,
+exact-seed determinism, and actual Chromium Storybook rendering.
+No portrait edits were made (portrait evidence gate remains blocking).
+Artistic fidelity is *pending* actual new film/crop inspection; passing
+these tests does not demonstrate source parity.

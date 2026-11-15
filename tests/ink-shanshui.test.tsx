@@ -267,6 +267,26 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect((full.match(/data-km-rock-hero-fold-understroke=""/g)??[]))
         .toHaveLength(3);
       expect(childRoots).toHaveLength(9);
+      const families=[...full.matchAll(
+        /data-km-rock-pima-family="" data-km-rock-pima-family-count="(\d+)"/g,
+      )].map(m=>Number(m[1]));
+      const pima=[...full.matchAll(
+        /data-km-rock-pima-stroke="" data-km-rock-pima-root="([^"]+)" data-km-rock-pima-dry="(loaded|lifted)"/g,
+      )];
+      const bodies=[...full.matchAll(
+        /data-km-rock-pima-body="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      expect(families).toEqual([8,10,6]);
+      expect(pima).toHaveLength(24);
+      expect(bodies).toHaveLength(24);
+      expect(bodies.every((d,i)=>d.startsWith("M"+
+        pima[i][1].replace(","," "))&&
+        (d.match(/ C/g)??[]).length>=22&&d.endsWith(" Z")))
+        .toBe(true);
+      expect(new Set(pima.map(m=>m[1])).size).toBe(24);
+      expect(pima.filter(m=>m[2]==="lifted").length).toBeGreaterThan(4);
+      expect((full.match(/data-km-rock-pima-lift=""/g)??[]).length)
+        .toBe(pima.filter(m=>m[2]==="lifted").length);
       expect(childRoots.every(([,r,d])=>
         d.startsWith("M"+r.replace(","," "))&&
         (d.match(/ C/g)??[]).length>=22&&d.endsWith(" Z")))
@@ -292,6 +312,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(sparse).not.toContain('data-km-rock-shoulder=""');
       expect(sparse).not.toContain('data-km-rock-shoulder-vein=""');
       expect(sparse).not.toContain('data-km-rock-hero-cliff=""');
+      expect(sparse).not.toContain('data-km-rock-pima-stroke=""');
       expect(draw(1,73)).not.toBe(full);
     }
   });

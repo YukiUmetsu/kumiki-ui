@@ -231,7 +231,7 @@ function BrushworkDetail(){
     {label:"松針 · Old-pine needle clusters",scene:"mountain-trail",
       x:95,y:161,note:"Eight deliberately crooked two-elbow old-pine branches, exact rooted child forks and narrow directional needle bundles; examine negative space"},
     {label:"皴法 · Geological texture",scene:"mountain-trail",
-      x:568,y:147,note:"ArtCraft v7 Huang Gongwang source: compare three rounded, oppositely swept hill-back folds rooted on one bone, alongside four fine descending fracture ribs and nine side tributaries; verify curvature, pressure release, open paper channels and natural asymmetry instead of wedge silhouettes"},
+      x:568,y:147,note:"Huang Gongwang, Fuchun mountain detail: inspect 3 rooted rolling rock-backs, 4 descending fractures, and 24 pressure-varying long-hemp ink fibres with distinct loaded and lifted releases; reject rigid parallel rain stripes, unpainted cliffs or mechanical hatching"},
     {label:"柳 · Hanging willow foliage",scene:"river-scholar",
       x:196,y:174,note:"Compare Mei Qing: 39 differently swept pressure-tapered silk strands, five bare paper reserves and asymmetrical angled leaves"},
     {label:"竹葉 · Bamboo leaf canopy",scene:"misty-hermit",
