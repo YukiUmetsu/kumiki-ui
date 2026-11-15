@@ -11,7 +11,7 @@ const materialInput = {
   seed:42,startFrame:30,durationFrames:135,
 };
 describe("coloured-pencil universal material atlas", () => {
-  it("exposes ten bounded semantic material recipes to arbitrary authored SVG geometry", () => {
+  it("exposes sixteen bounded semantic material recipes to arbitrary authored SVG geometry", () => {
     expect(PENCIL_MATERIALS).toHaveLength(16);
     const materials = PENCIL_MATERIALS.map(surface => createPencilMaterialRegion({
       ...materialInput,surface,
