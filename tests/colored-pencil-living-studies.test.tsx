@@ -251,6 +251,26 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("keeps foreshortened far-ear anatomy and renders the heavy coat as actual pigment contacts",()=>{
+    const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
+    const regions=new Map(drawing.regions.map(region=>[region.id,region]));
+    const far=regions.get("ear-far")!,near=regions.get("ear-near")!;
+    // Three-quarter viewpoint: the far cartilage cannot match the near
+    // ear's full upright size, as in the previous rabbit-like silhouette.
+    expect(far.bounds[3]).toBeLessThanOrEqual(near.bounds[3]*.82);
+    expect(far.bounds[1]).toBeGreaterThanOrEqual(119);
+    expect(near.bounds[3]).toBeLessThanOrEqual(96);
+    const reference=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
+    const portraitHead=reference.regions.find(r=>r.id==="face-main")!;
+    expect(portraitHead.craft?.pigmentDensity??0).toBe(0);
+    for(const id of ["tail-back","body","chest","neck-ruff","head-main",
+      "ear-far","ear-near"]){
+      const region=regions.get(id)!;
+      expect(region.craft?.kind).toBe("fur");
+      expect(region.craft?.pigmentDensity??0).toBeGreaterThan(.29);
+    }
+  });
+
   it("renders original CP-F1 fox anatomy from authored pencil vectors with zero photo pixels",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     expect(drawing.foundation?.subject).toBe("wildlife");
