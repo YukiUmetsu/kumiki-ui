@@ -235,7 +235,7 @@ function BrushworkDetail(){
     {label:"柳 · Hanging willow foliage",scene:"river-scholar",
       x:196,y:174,note:"Each hanging frond emerges from a measured arch; varied leaf densities"},
     {label:"竹 · Pressure-brush bamboo",scene:"misty-hermit",
-      x:875,y:365,note:"Joined stalks, branches, pointed blades and high-contrast wet–dry marks"},
+      x:875,y:365,note:"Node-rooted asymmetric leaf fans, pressure-loaded blades and dry-brush lifts; compare low and high detail"},
   ];
   const cropScale=2.15;
   return <main data-testid="shanshui-brushwork-studio"
