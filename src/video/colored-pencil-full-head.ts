@@ -16,6 +16,7 @@ import {pencilHash} from "../../registry/video/colored-pencil";
 import type {PencilPhotoPixels,PencilPhotoMark} from "./colored-pencil-photo";
 import type {PortraitFeatureMap} from "./colored-pencil-portrait-guides";
 import {createPencilPortraitFeatureMarks} from "./colored-pencil-portrait-guides";
+import {createFacialOpticalPlanes} from "./colored-pencil-facial-planes";
 
 type Point=readonly[number,number];
 const PAPER="#FAF5ED";
@@ -133,8 +134,8 @@ export const projectMeasuredHeadContours=(guides:PortraitFeatureMap):HeadContour
   };
 };
 export type HeadMaterialZone="face-value"|"face-chroma"|"face-form"|
-  "face-scumble"|"hair-mass"|"hair-occlusion"|"hair-fibre"|
-  "measured-features";
+  "face-scumble"|"facial-planes"|"hair-mass"|"hair-occlusion"|
+  "hair-fibre"|"measured-features";
 export interface PortraitHeadStroke extends PencilPhotoMark {
   readonly zone:HeadMaterialZone;
 }
@@ -166,6 +167,10 @@ export interface DryPencilHeadPlate {
   readonly crop:Readonly<{left:number;top:number;width:number;height:number}>;
   readonly strokes:readonly PortraitHeadStroke[];
   readonly scumbleStrength:number;
+  readonly featureDepth:number;
+  readonly facialPlaneCounts:Readonly<{
+    "lip-vermilion":number;"nasal-alar":number;
+  }>;
   readonly rasterUnderpainting:false;
   readonly paperColor:typeof PAPER;
   /** Five independent support/value bins, 0=deepest, 4=reserved paper. */
@@ -199,12 +204,14 @@ const isHairColour=(rgb:readonly number[])=>{
  */
 export const createDryPencilHeadPlate=(
   source:PencilPhotoPixels,guides:PortraitFeatureMap,seed=271,
-  scumbleStrength=.65,
+  scumbleStrength=.65,featureDepth=.85,
 ):DryPencilHeadPlate=>{
   positiveSafeSource(source,seed);
   if(!Number.isFinite(scumbleStrength)||
     scumbleStrength<0||scumbleStrength>1)
     throw new RangeError("Invalid coloured pencil scumble strength");
+  if(!Number.isFinite(featureDepth)||featureDepth<0||featureDepth>1)
+    throw new RangeError("Invalid coloured-pencil measured feature depth");
   // Require the entire, already-audited 25-landmark source map.
   const details=createPencilPortraitFeatureMarks(source,guides,seed);
   const geometry=projectMeasuredHeadContours(guides);
@@ -218,7 +225,8 @@ export const createDryPencilHeadPlate=(
   const fiveValueCounts:[number,number,number,number,number]=[0,0,0,0,0];
   const materialCounts:Record<HeadMaterialZone,number>={
     "face-value":0,"face-chroma":0,"face-form":0,
-    "face-scumble":0,"hair-mass":0,"hair-occlusion":0,
+    "face-scumble":0,"facial-planes":0,
+    "hair-mass":0,"hair-occlusion":0,
     "hair-fibre":0,
     "measured-features":0,
   };
@@ -627,6 +635,20 @@ export const createDryPencilHeadPlate=(
         (pencilHash(seed,clump*91+s,46)-.5)*.09);
     }
   }
+  // Optical anatomy pass. Unlike the broad cheek/forehead scumbles this
+  // is explicitly bounded to source-measured vermilion lips and alar
+  // cartilage. Keep local crimson lip chroma and nose-edge tangents.
+  // It is a separate dry-fibre layer, not a resized photo, bitmap mask,
+  // custom lip fill, or 2D contour stamp. Licensed source photo only.
+  const facial=createFacialOpticalPlanes(source,guides,seed,featureDepth);
+  const facialPlaneCounts={"lip-vermilion":0,"nasal-alar":0};
+  for(const mark of facial.marks){
+    const p:Point=[mark.x,mark.y];
+    if(classify(p)!=="skin")continue;
+    push("facial-planes",p,[mark.dx,mark.dy],
+      mark.color,mark.alpha,mark.width,2,mark.curvature);
+    facialPlaneCounts[mark.kind]++;
+  }
   // Add verified source-aligned anatomical marks only within the face or
   // hair structure. Never paste the original photographic background.
   for(const m of details.marks){
@@ -650,6 +672,7 @@ export const createDryPencilHeadPlate=(
     width:SIZE.width,height:SIZE.height,paperColor:PAPER,
     crop:{left,top,width:cropWidth,height:cropHeight},
     strokes:marks,rasterUnderpainting:false,geometry,
-    scumbleStrength,fiveValueCounts,materialCounts,
+    scumbleStrength,featureDepth,facialPlaneCounts,
+    fiveValueCounts,materialCounts,
   };
 };

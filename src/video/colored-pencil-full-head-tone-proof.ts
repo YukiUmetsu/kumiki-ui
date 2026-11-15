@@ -121,3 +121,48 @@ export const compareCC0HairOcclusion=(
     lightnessDeficit:drawnLuminance-sourceLuminance,
     missingDarkLock,artisticApproval:false};
 };
+
+/**
+ * Two separately observed PHOTO vermilion cores. Previous PR #361
+ * source/dry 7×7-luma: upper 75.3→113.0, lower 110.6→150.9.
+ * Source-measured mid-lip Bézier geometry and dry-fibre deposition should
+ * not regress to these paper-pale values. The linked marker is the actual
+ * 285×318 CC0 browser screenshot, not a generic lip-shape classifier.
+ * Passing this negative filter CANNOT verify resemblance or craftsmanship.
+ */
+export const CC0_VERMILION_PROBES=[
+  {name:"upper",x:180/285,y:188/318,r:3/285,
+    sourceLimit:135,lightnessLimit:25},
+  {name:"lower",x:194/285,y:201/318,r:3/285,
+    sourceLimit:170,lightnessLimit:36},
+] as const;
+export interface CC0VermilionResult {
+  readonly regions:readonly {
+    name:"upper"|"lower";
+    sourceLuminance:number;
+    drawnLuminance:number;
+    lightnessDeficit:number;
+  }[];
+  /** Rejection-only, NOT artist approval. */
+  readonly missingVermilionPigment:boolean;
+  readonly artisticApproval:false;
+}
+export const compareCC0Vermilion=(
+  source:PencilTonePixelGrid,drawing:PencilTonePixelGrid,
+):CC0VermilionResult=>{
+  validate(source);validate(drawing);
+  if(source.width!==drawing.width||source.height!==drawing.height)
+    throw new RangeError("Vermilion probes need identical canvas registration");
+  const regions=CC0_VERMILION_PROBES.map(p=>({
+    name:p.name,
+    sourceLuminance:sample(source,p.x,p.y,p.r),
+    drawnLuminance:sample(drawing,p.x,p.y,p.r),
+    lightnessDeficit:
+      sample(drawing,p.x,p.y,p.r)-sample(source,p.x,p.y,p.r),
+  }));
+  const missingVermilionPigment=regions.some((region,index)=>
+    region.sourceLuminance>=CC0_VERMILION_PROBES[index].sourceLimit||
+    region.lightnessDeficit>=
+      CC0_VERMILION_PROBES[index].lightnessLimit);
+  return {regions,missingVermilionPigment,artisticApproval:false};
+};

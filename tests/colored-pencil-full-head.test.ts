@@ -55,6 +55,12 @@ describe("Source-measured ArtCraft full-head geometry (experimental)",()=>{
     expect(plate.width).toBe(540);expect(plate.height).toBe(600);
     expect(plate.rasterUnderpainting).toBe(false);
     expect(plate.paperColor).toBe("#FAF5ED");
+    expect(plate.featureDepth).toBe(.85);
+    expect(plate.facialPlaneCounts["lip-vermilion"]).toBeGreaterThanOrEqual(0);
+    expect(plate.facialPlaneCounts["nasal-alar"]).toBeGreaterThanOrEqual(0);
+    expect(plate.materialCounts["facial-planes"]).toBe(
+      plate.facialPlaneCounts["lip-vermilion"]+
+      plate.facialPlaneCounts["nasal-alar"]);
     expect(plate.crop.width).toBeGreaterThan(280);
     expect(plate.crop.height).toBeGreaterThan(300);
     expect(plate.fiveValueCounts.reduce((a,b)=>a+b,0)).toBeGreaterThan(100);
@@ -144,6 +150,10 @@ describe("ArtCraft four-shot production storyboard and pencil scumbling",()=>{
     expect(()=>createDryPencilHeadPlate(img,guides,271,Number.NaN))
       .toThrow(RangeError);
     expect(()=>createDryPencilHeadPlate(img,guides,271,1.2))
+      .toThrow(RangeError);
+    expect(()=>createDryPencilHeadPlate(img,guides,271,.5,-.02))
+      .toThrow(RangeError);
+    expect(()=>createDryPencilHeadPlate(img,guides,271,.5,1.01))
       .toThrow(RangeError);
   },15000);
 });
