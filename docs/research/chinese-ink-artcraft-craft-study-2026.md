@@ -228,3 +228,57 @@ Brushwork close-up; reject it again if it still resembles a comb,
 fan stencil or pasted geometry. Compare against the museum's needle
 clusters and ink-bone trunk; do not assert parity until direct visual
 inspection at both native and enlarged scales.
+
+
+## Huang Gongwang geological hierarchy — third ArtCraft pass
+
+**Artwork studied:** [Huang Gongwang, *Dwelling in the Fuchun Mountains*,
+detail, National Palace Museum, documented by
+Smarthistory](https://smarthistory.org/huang-gongwang-dwelling-in-the-fuchun-mountains/).
+The large reference detail has:
+- broad, connected light/dark rock masses under the fine brush lines;
+- long hemp-fibre strokes that bend with mountain planes, not vertical rain;
+- small alum-head ledges where dry ink collects; near those shelves, irregular
+  moss dots form *clusters*, not random speckles across blank sky;
+- pale ink-wash distance offset by much darker fore/mid-ground accents.
+
+**Render diagnosis (latest pre-pass 960×540 browser evidence):** three
+mountain bands are almost all pale, uninterrupted gradients. Rooted
+cunfa strokes were technically present but visually too faint. Sparse
+single moss ellipses and repeated falling rock lines did not create
+geological structure. The overall mass therefore read as a digital
+backdrop rather than studied brushwork. Do not "solve" this with noise.
+
+**Code translation:** a RockInkPlanes family now samples the same
+fractured ridge height as the existing silhouette and all cunfa marks.
+Three levels of geological emphasis use closed, pressure-loaded ink faces,
+two separated line segments, an irregular alum-head ledge and—only for
+middle/near planes—3–5 moss dots near the same root. Source-inspired
+density and tone change with distance; marks remain deterministic per
+seed/frame, scale with detail and respond to mist. The nearest
+ridge has slightly more value strength; background still has paper
+reserve. Original SVG is authored as reusable code, not traced pixels.
+
+**ArtCraft evidence and release criteria:**
+1. Root graph: every ink plane begins within 3.5–7.5 source pixels of
+   an actual interpolated mountain crest; the code test checks 36
+   unique rooted regions across all mountain bands at full detail.
+2. Stroke flow: long ink planes bend toward the local crest gradient,
+   with interrupted fine dry brush; hard repeated rain strokes are
+   forbidden. Compare the native peak and 2.15× Storybook crop.
+3. Pigment pressure: wedge width changes along each painted line;
+   heavy rock forms are paired with translucent wash and hairline lifts.
+4. Optical rhythm: pocket locations are chosen from regional shelves
+   rather than equally spaced columns. There must be visible paper
+   reserve between groups.
+5. Microtexture: crest-rooted moss dots are supporting details, not
+   a substitute for the large rock mass.
+
+**Negative control:** pure gradient mountains with random isolated
+scratch lines and uniformly spaced dots. This is the old failed look;
+passing geometry counts is not visual sign-off.
+
+**Acceptance still pending:** inspect new browser and video evidence.
+The source painting's exact landscape and pixel positions were not
+recreated, so raw whole-image SSIM would be misleading. Do not merge
+on this research note or unit tests alone.
