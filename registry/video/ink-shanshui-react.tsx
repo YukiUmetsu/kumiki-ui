@@ -713,6 +713,80 @@ function StoneBridge(){
     })}
   </g>;
 }
+/** Ink-reserve waterfall against actual painted cliff banks.
+ * The river is readable from negative space and interrupted dark edges,
+ * not two unmoored opaque white tubes. The cascade keeps its root and pool
+ * still, with only surface flicks varying by absolute film time.
+ * Study: Ma Yuan's Scholar Viewing a Waterfall (Met 1973.120.9). */
+function InkWaterfall({phase,detail}:{phase:number;detail:number}){
+  const flick=f(.56*Math.sin(phase*1.3));
+  return <g data-km-shanshui-waterfall="">
+    {/* The cliff lip and two shadowed banks give the cascade an origin,
+        rock contact, volume and an intelligible receiving pool. */}
+    <path data-km-waterfall-bank="left"
+      d="M349 308 Q357 303 363 314 Q357 335 354 356
+        Q346 390 337 412 Q333 424 329 442
+        L322 446 Q323 420 333 394 Q341 372 343 351
+        Q342 325 349 308 Z"
+      fill="#816e54" opacity=".34" stroke="#594b3c" strokeWidth="1.1"/>
+    <path data-km-waterfall-bank="right"
+      d="M377 311 Q387 315 389 329 Q393 350 378 383
+        Q365 410 356 436 L351 446 Q357 405 367 377
+        Q380 346 372 320 Z"
+      fill="#62513e" opacity=".3" stroke="#5a4636" strokeWidth=".9"/>
+    <path data-km-waterfall-shelf=""
+      d="M345 310 Q356 303 363 306 Q369 308 376 308
+        Q385 310 392 319 M347 319 Q356 316 359 318
+        M378 322 Q382 329 381 339"
+      fill="none" stroke="#65523e" strokeWidth="1.1"
+      strokeLinecap="round" opacity=".62"/>
+    {/* An uneven paper-reserve water body leaves the warm wash legible;
+        narrow ink contours reveal speed without drawing white tubes. */}
+    <path data-km-waterfall-reserve=""
+      d="M361 314 C364 335 358 356 352 381
+        C342 410 338 430 336 442
+        Q344 440 349 441
+        C352 419 361 398 367 377
+        C376 350 381 331 376 317
+        Q373 311 368 316 Q364 311 361 314 Z"
+      fill="#f8eedc" fillOpacity=".82"/>
+    <path data-km-waterfall-ribbon=""
+      d="M364 321 Q369 339 362 361 T353 399
+        Q346 416 343 432"
+      fill="none" stroke="#b6a087" strokeWidth=".8"
+      strokeLinecap="round" opacity=".7"/>
+    <path data-km-waterfall-ribbon=""
+      d="M376 326 Q377 347 370 364
+        M367 376 Q361 399 354 414"
+      fill="none" stroke="#8e755a" strokeWidth=".92"
+      strokeLinecap="round" opacity=".55"/>
+    <path data-km-waterfall-ribbon=""
+      d="M357 341 Q356 366 348 384
+        M349 395 Q343 414 339 425"
+      fill="none" stroke="#ddd0b9" strokeWidth="1.45"
+      strokeLinecap="round" opacity=".85"/>
+    <path data-km-waterfall-pool=""
+      d="M320 443 Q333 439 344 443 Q355 446 365 443
+        M323 449 Q338 446 351 448 Q366 452 378 448
+        M336 455 Q353 453 371 455"
+      fill="none" stroke="#806b53" strokeWidth=".8"
+      strokeLinecap="round" opacity=".57"/>
+    {detail>.32&&Array.from({length:Math.round(detail*9)},(_,i)=>{
+      const x=329+i*4.4;
+      const y=438+1.8*Math.sin(i*1.7)+flick*(.38+i%2*.3);
+      const dx=2.2+(i%3)*1.7;
+      return <path key={i} data-km-waterfall-impact=""
+        d={"M"+f(x)+" "+f(y)+
+          " q"+f(-dx*.5)+" -"+f(3.2+i%4*1.7)+
+          " "+f(-dx)+" "+f(-2.5-i%3)+
+          " M"+f(x)+" "+f(y)+
+          " q"+f(dx*.5)+" -"+f(2+i%4)+" "+f(dx)+" -1.5"}
+        fill="none" stroke={i%3===0?"#75624e":"#b5a48c"}
+        strokeWidth={f(.42+.12*(i%3))} opacity=".5"
+        strokeLinecap="round"/>;
+    })}
+  </g>;
+}
 function Water({phase,detail,seed}:{phase:number;detail:number;seed:number}){
   return <g data-km-shanshui-water="">
     <path d="M-40 370 Q151 369 286 376 Q438 371 537 380 Q780 362 1010 378
@@ -900,13 +974,8 @@ export function InkShanshuiStage({frame,controls={
             mist={controls.mist} ink={controls.ink} ids={ids}/>
           <Clouds shift={at.cloudX}/>
           <Birds motion={at}/>
-          {controls.scene==="mountain-trail"&&<>
-            <path d="M364 314 Q373 348 354 378 Q345 402 335 432
-              M378 320 Q387 361 370 390 Q363 418 354 437"
-              stroke="#f8f0dd" strokeWidth="7.5" strokeLinecap="round" opacity=".84" fill="none"/>
-            <path d="M364 319 Q371 348 358 370 M377 325 Q383 365 367 384"
-              fill="none" stroke="#b7a48a" strokeWidth=".9" opacity=".55"/>
-          </>}
+          {controls.scene==="mountain-trail"&&
+            <InkWaterfall phase={at.waterPhase} detail={controls.detail}/>}
           {river&&<>
             <Water seed={seed} phase={at.waterPhase} detail={controls.detail}/>
             <StoneBridge/>
