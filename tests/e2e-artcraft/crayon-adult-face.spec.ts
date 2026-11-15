@@ -320,6 +320,23 @@ for(const view of ["wax","anatomy"] as const){
       await expect(svg).toHaveAttribute("data-km-crayon-frame",String(frame));
       await expect(svg.locator('[data-km-crayon-element="face-outline"]'))
         .toBeAttached();
+      if(frame===299 && view==="wax"){
+        // Browser proof of the real V4 failure: wax contact clumps were
+        // clipped at the polygon while its under-glaze feathered.
+        await expect(svg.locator(
+          '[data-km-crayon-feather-contacts="open-wax"]')).toHaveCount(10);
+        await expect(svg.locator(
+          '[data-km-crayon-contact-feather-mask]')).toHaveCount(10);
+        for(const id of ["socket-near","socket-far",
+          "eye-orbital-undercut-near","eye-orbital-undercut-far"]){
+          await expect(svg.locator(
+            '[data-km-crayon-element="'+id+'"] [data-km-crayon-feather-contacts="open-wax"]'))
+            .toBeAttached();
+        }
+        await expect(svg.locator(
+          '[data-km-crayon-element="face-outline"] [data-km-crayon-feather-contacts]'))
+          .toHaveCount(0);
+      }
       if(frame===299){
         for(const id of ["iris-near","iris-far","nose-alar-near",
           "nose-alar-far","oral-opening","hair-right-curtain",
