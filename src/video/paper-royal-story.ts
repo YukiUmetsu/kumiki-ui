@@ -432,24 +432,28 @@ function ornament(p:Pen,add:Add,phase:number){
     })));
   add("lantern-hook",paper.trim,28,
     [p.band(0,-67,0,-52,2.8),p.oval(0,-69,4.5,3)].join(" "));
-  for(let i=0;i<w;i++){
-    const angle=i*360/w,r=47+((i*7)%5)*3,a=rad(angle),x=Math.cos(a)*r,y=-6+Math.sin(a)*r;
-    add("lantern-ray-"+i,paper.spark,12,p.leaf(x,y,phase===2?8:5,angle,1.1),{
-      motion:"still"});
-  }
+  // Floating magical sparks are independent visual particles but are
+  // one grouped paper-stock sheet, freeing physical actor budget for faces.
+  add("lantern-rays",paper.spark,12,Array.from({length:w},(_,i)=>{
+    const angle=i*360/w,r=47+((i*7)%5)*3,a=rad(angle);
+    return p.leaf(Math.cos(a)*r,-6+Math.sin(a)*r,phase===2?8:5,angle,1.1);
+  }).join(" "));
 }
 function scenery(w:number,h:number,aspect:PaperDirectorAspect,phase:number,seed:number,add:Add){
   const c=palette[phase],cx=w/2,cy=h/2,
-    ground=aspect==="portrait"?188:169,
-    width=aspect==="portrait"?220:435,
+    ground=aspect==="portrait"?244:169,
+    width=aspect==="portrait"?225:435,
     p=pen(cx,cy,1);
   add("distant-skycut",c.far,1,[
     p.M(-width-45,ground-171),p.C(-width*.5,ground-224,-width*.26,ground-200,0,ground-194),
     p.C(width*.38,ground-234,width*.72,ground-186,width+45,ground-174),
     p.L(width+50,ground+15),p.L(-width-50,ground+15),p.Z].join(" "));
-  add("moon-back",c.trim,2,p.oval(0,aspect==="portrait"?-280:-191,59,59));
-  add("moon-face",c.moon,3,p.oval(0,aspect==="portrait"?-280:-191,48,48),{
-    holes:[p.oval(15,aspect==="portrait"?-293:-204,7,4),p.oval(-18,aspect==="portrait"?-269:-180,5,6)]});
+  // A genuinely pierced crescent, not a featureless yellow disc with
+  // scattered dots that accidentally read as a cartoon face.
+  const moonY=aspect==="portrait"?-292:-191;
+  add("moon-back",phase===2?"#64758A":"#4A6078",2,p.oval(0,moonY,59,59));
+  add("moon-face",c.moon,3,p.oval(0,moonY,48,48),{
+    holes:[p.oval(13,moonY-7,35,38)]});
   const stars=Array.from({length:13},(_,i)=>{
     const x=(i*97+seed*3)%(width*2)-width,
       y=-(aspect==="portrait"?338:218)+(i*31)%92,
@@ -552,9 +556,11 @@ export function paperRoyalStoryScene(
   if(!Number.isSafeInteger(seed)||!Number.isFinite(motion)||motion<0||motion>1)
     throw new RangeError("Royal paper seed must be integer and motion finite 0–1");
   const w=aspect==="portrait"?540:960,h=aspect==="portrait"?960:540,
-    ground=h/2+(aspect==="portrait"?188:169),
-    distance=aspect==="portrait"?111:177,
-    actorScale=aspect==="portrait"?.91:1.03;
+    ground=h/2+(aspect==="portrait"?244:169),
+    distance=aspect==="portrait"
+      ? (phase===0?122:phase===1?108:92)
+      : (phase===0?194:phase===1?163:132),
+    actorScale=aspect==="portrait"?1.16:1.03;
   const layers:PaperCutLayer[]=[];
   const add:Add=(id,color,depth,path,rest={})=>{
     layers.push({id,color,depth,path,motion:"still",...rest});
@@ -566,10 +572,12 @@ export function paperRoyalStoryScene(
   prince(pen(w/2+distance,ground,actorScale),add,phase,motion);
   fox(pen(w/2+(aspect==="portrait"?48:56),ground-2,actorScale*.85),add,phase,motion);
   rabbit(pen(w/2-(aspect==="portrait"?36:56),ground,actorScale*.71),add,phase,motion);
-  deer(pen(w/2+(aspect==="portrait"?206:335),ground-10,actorScale*.72),add,phase,motion);
+  deer(pen(w/2+(aspect==="portrait"?194:327),ground-10,
+    actorScale*(aspect==="portrait"?.77:.77)),add,phase,motion);
   owl(pen(w/2-(aspect==="portrait"?179:334),ground-(aspect==="portrait"?185:178),actorScale*.64),
     add,phase,motion);
-  const lantern=pen(w/2,ground-(phase===0?179:phase===1?163:195),actorScale*.69);
+  const lantern=pen(w/2,ground-(phase===0?179:phase===1?144:127),
+    actorScale*(phase===2?.99:.77));
   ornament(lantern,add,phase);
   if(layers.length>128)throw new RangeError("Royal story exceeds PAPER1 cut-stock budget");
   return {version:1,id:"royal-lantern-"+phase+"-"+aspect,style:medium,
