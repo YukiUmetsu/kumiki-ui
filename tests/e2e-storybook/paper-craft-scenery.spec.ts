@@ -22,6 +22,14 @@ test("Two fully opaque Paper Craft landscapes render as one configurable Storybo
       await expect(svg.locator('[data-km-paper-layer="scenery-frame"]')).toBeVisible();
       const key=subject==="woodland"?"woodland-foliage-0-0":"alpine-snowcap-1";
       await expect(svg.locator('[data-km-paper-layer="'+key+'"]')).toBeVisible();
+      const sculpted=subject==="woodland"?"woodland-lace-canopy-0":"alpine-lake-islet";
+      await expect(svg.locator('[data-km-paper-layer="'+sculpted+'"]')).toBeVisible();
+      if(subject==="woodland"){
+        const crown=svg.locator('[data-km-paper-layer="woodland-lace-canopy-0"]');
+        const cutPath=await crown.locator("path[fill-rule='evenodd']").getAttribute("d");
+        expect((cutPath?.match(/C/g)??[]).length).toBeGreaterThanOrEqual(6);
+        expect((cutPath?.match(/Z/g)??[]).length).toBeGreaterThanOrEqual(9);
+      }
       const stock=await cut.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("data-km-paper-stock")));
       expect(stock.every(c=>/^#[a-fA-F0-9]{6}$/.test(c??""))).toBe(true);
       await svg.screenshot({animations:"disabled",path:info.outputPath(subject+"-"+aspect+".png")});
@@ -58,4 +66,20 @@ test("One Scenery page supports high and low cut-detail with no ghosted paper",a
   const sparse=await count(0);
   const intricate=await count(1);
   expect(intricate).toBeGreaterThan(sparse);
+});
+
+test("Scenery relief controls actual paper-shadow separation, not opacity",async({page})=>{
+  const shadow=async(relief:number)=>{
+    await page.goto(root+"&args=scenery:alpine-lake;sceneryPalette:moonlight;relief:"+relief+";frame:214");
+    const art=page.locator("svg[data-km-paper-craft]");
+    await expect(art).toBeVisible();
+    const layer=art.locator('[data-km-paper-layer="alpine-snowcap-1"]');
+    await expect(layer).toBeVisible();
+    const fill=await layer.getAttribute("data-km-paper-stock");
+    expect(fill).toMatch(/^#[0-9a-fA-F]{6}$/);
+    return layer.getAttribute("style");
+  };
+  const flat=await shadow(0);
+  const raised=await shadow(1);
+  expect(flat).not.toEqual(raised);
 });
