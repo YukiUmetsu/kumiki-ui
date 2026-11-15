@@ -97,3 +97,13 @@ Review both modes before deciding whether tonal gradients are doing too much
 of the rendering work. The reference gates can **fail** despite green tests:
 the authored fox/portrait anatomy remains artistically unapproved. Do not
 merge PR #409 solely from the existence of this inspection option.
+
+### Native ArtCraft visual verdict for the pigment-only control
+
+Reviewed the real 960×540 Chromium PNGs from [CP-F1 foundation run 43753184068](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43753184068), head `fdd1c628b5969d719a56fd32237ae25db9fec0a4`. The control *works*, but the drawing **fails the medium-fidelity release gate**; it must remain draft.
+
+- **Fox:** removing tonal support exposes a recognisable fur-stroke map, but each stroke is a long, hard crosshatch, not the short, locally rooted coat accumulation of a high-quality dry-pencil wildlife drawing. Ears still read as uniform pointed cones, chest has chunky disconnected color islands, legs as straight dark posts, and the near eye as a mechanically outlined almond. The macro fox has no convincing nose/muzzle/brow bone transitions.
+- **Human:** pigment-only material leaves face skin almost entirely blank while hair and clothing remain hatched. The likeness depends on underlying broad color fills, the eyes read like vertical schematic pupils, and the cheek/nose contour is stylized rather than anatomically modelled. This is a material/form **failure**, not a request for extra photographic grain.
+- **Measured baseline contrast (audit ROI):** fox local 260×260 region x540–800/y145–405: default vs pigment-only average absolute RGB difference **33.4/255**, **55.2%** of pixels differ on at least one channel by >18. Human x600–820/y100–390: average RGB difference **73.9/255**, **95.2%** differ >18. These ROIs include background/adjacent structures and are *diagnostic* only, not a perceptual realism score.
+
+**Next craft work:** use measured fox skull-to-muzzle/ear base and leg attachment from the CC0 anatomy reference, construct individual fur growth fields across shaded planes, then re-run the same on/off comparison; for the human, prioritize volumetric orbital rim/eyelid, nose-ala and malar/mandibular topology first, then low-pressure multi-layer skin pigment. Capture 1× and 3× native crops, and run independent anatomical/portrait gates before approval. Do not cure the blank regions solely by raising gradient opacity. No finished third-party artwork used as output assets.
