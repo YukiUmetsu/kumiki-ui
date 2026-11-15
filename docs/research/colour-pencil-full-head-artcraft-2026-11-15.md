@@ -30,3 +30,24 @@ Status: **experimental only; artist acceptance withheld**, 2026-11-15.
 The full-head silhouette and hair contours are **one source measurement** and not independently annotated on the rendered drawing. The 18-landmark+five rectangle match, reference-file SHA-256, ArtCraft v7 `portrait_fidelity_gate.py` proof and professional 1×/3× human face critique are not yet complete. Technically passing tests **does not** authorize the art as a released/approved character. The current experimental crop can still have flat noses, weak brow detail, fake hair flow or unconvincing surface tooth. Reject and iterate based on actual screenshots before upgrading.
 
 Next prioritize: visually inspect the actual cropped hair/face, correct connected hair masses and cheek/jaw landmark uncertainty, add five independently chosen tonal rectangles, calibrate pencil tooth/burnish, then apply the independent ArtCraft gate.
+
+
+## Real-browser ArtCraft critique and rejection/repair log
+
+Actual Chromium / licensed source artifacts (no synthetic proxy):
+
+| Iteration | Source-vs-output evidence | Independent inspection | Status |
+| --- | --- | --- | --- |
+| V1 | [CI run 43687447939](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43687447939) | Face almost disappears into paper; hair drawn as thin grey comb; white scalp/ear void | **Rejected** |
+| V2 | [CI run 43687762619](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43687762619) | Warmer and more readable face, auburn hair, but face cut out in a pale rim and a black hair lock missing | **Rejected** |
+| V3 | [CI run 43688035743](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43688035743) | Dark hair recovered by source-connected chromatic neighbourhood; facial shadow and hair mass remain unnaturally uniform | **Unapproved** |
+| V4 | [CI run 43688292304](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43688292304) | Source-gradient eye/lip/nose accents; actual-output improvement is limited at 1×. Hair outline still needs better root/edge craft; image does NOT satisfy Pancorbo/Lane fidelity | **Unapproved** |
+
+Crop-image evidence (these are **browser-rendered screenshot bytes**, *NOT* the original Wikimedia photograph bytes):
+
+- 608×343 source image examined for the manual landmarks; rendered 540×600 comparison canvas photographed at 285×318.
+- Landscape source-comparison PNG SHA-256: `366a8f5f5572a70048bd4428f10034092b2dc702227ec395ccc06d9c087914fc`.
+- Experimental V4 dry-only landscape PNG SHA-256: `aa4adcb8e9a72b2d348efe4d49f6da29f75b06c88ff90fcda9f0fb64abcd0958`.
+- Experimental V4 dry-only portrait PNG SHA-256: `d9c0e663121eda32352a82f6a577c354ec81cfea7307e1ac457ccd1ba5371c66`.
+
+These hashes pin exactly what was reviewed, rather than relying on screenshot existence. No claim that the original source-file byte hash or independent ArtCraft v7 `portrait_fidelity_gate.py` approval has been completed. The rendered face still has a stylized eye, weak nasal cartilage, soft vermilion and uneven paper-to-hair transitions. Do **not** promote it to a released character. The opt-in Storybook proof is legitimate research/QA infrastructure only.
