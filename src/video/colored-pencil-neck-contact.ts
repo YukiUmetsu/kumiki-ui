@@ -79,7 +79,9 @@ export function createPhotoNeckContactFibres(
   const endY=Math.min(source.height-3,crop.top+crop.height*.89);
   const step=clamp(eyeDist*.021,1.3,5);
   const rows=Math.ceil((endY-startY)/step);
-  if(rows<1||rows>500)throw new RangeError("No observed neck region");
+  if(rows>500)throw new RangeError("Unsafe observed neck span");
+  if(rows<1)return {marks,sourceSupported,protectedBackground,
+    protectedLight,rasterUnderpainting:false,strength,sourceRequired:true};
   const scaleX=540/crop.width,scaleY=600/crop.height;
   // The diagonal pen normals remain short and continuous: crossweave
   // shadow value from the dark photographed neck, never a straight rule.
