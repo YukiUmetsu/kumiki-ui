@@ -105,7 +105,8 @@ test("Ensemble Storybook opens without a runtime error for either output format"
     for(const frame of [0,3,57,117,188,253,298,329]){
       await seek(page,frame);
       await expect(page.locator("[data-km-ink-scene]")).toBeVisible();
-      if(frame>=3)
+      // Bloom starts at frame 3 with progress 0. Media mounts on frame 4.
+      if(frame>3)
         await expect(page.locator("[data-km-ink-ensemble-actor]")).toHaveCount(2);
     }
   }
