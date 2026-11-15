@@ -92,9 +92,9 @@ export interface UkiyoeFigureLook {
 
 export type UkiyoeActionType =
   | "walk" | "run" | "bow" | "wave" | "point" | "talk" | "look" | "kneel" | "pole" | "row" | "brace" | "dance"
-  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu" | "kyomai" | "draw" | "kamae" | "cut" | "sheathe";
+  | "jump" | "turn" | "cheer" | "startle" | "carry" | "hold" | "sweep" | "pray" | "face" | "dochu" | "kyomai" | "draw" | "kamae" | "cut" | "sheathe" | "parry" | "recoil" | "drop" | "fall";
 export const UKIYOE_ACTIONS: readonly UkiyoeActionType[] = [
-  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu", "kyomai", "draw", "kamae", "cut", "sheathe",
+  "walk", "run", "bow", "wave", "point", "talk", "look", "kneel", "pole", "row", "brace", "dance", "jump", "turn", "cheer", "startle", "carry", "hold", "sweep", "pray", "face", "dochu", "kyomai", "draw", "kamae", "cut", "sheathe", "parry", "recoil", "drop", "fall",
 ];
 export interface UkiyoeAction {
   type: UkiyoeActionType;
@@ -112,6 +112,11 @@ export interface UkiyoeAction {
   back?: boolean;
   /** kamae: the guard — chūdan (middle), jōdan (overhead), hassō (upright by the shoulder) or waki (low, behind). */
   form?: UkiyoeKamae;
+  /** cut/parry in a duel: the point (local px, facing right, feet at the origin) the blade passes through on the
+   * `contact` frame, so two figures' blades cross exactly there; `parried` stops a cut on the other blade. */
+  aim?: readonly [number, number];
+  contact?: number;
+  parried?: boolean;
   /** Blend frames (default 6): in after `start`, out after `end`. */
   blend?: number;
 }
@@ -130,13 +135,15 @@ export interface FigurePose {
   faceView: number;
   /** How far each foot swings out to the side (0..1): the courtesan's figure-eight step, seen in the square views. */
   splayF: number; splayB: number;
+  /** 0 standing → 1 lying on the back: the `fall` action topples the figure about its heels. */
+  fall: number;
 }
 
 const STAND: FigurePose = {
   lean: 2, tilt: 2, crouch: 0, lift: 0,
   shF: 10, elF: 28, shB: -4, elB: 18,
   hipF: 3, knF: 2, hipB: -3, knB: 2, footF: 0, footB: 0,
-  mouth: 0, blink: 0, kneel: 0, headBack: 0, propAngle: 0, squash: 0, faceView: 0, splayF: 0, splayB: 0,
+  mouth: 0, blink: 0, kneel: 0, headBack: 0, propAngle: 0, squash: 0, faceView: 0, splayF: 0, splayB: 0, fall: 0,
 };
 const KEYS = Object.keys(STAND) as (keyof FigurePose)[];
 
@@ -219,6 +226,12 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
         target.lift = run ? Math.abs(Math.sin(ph)) * height * .04 : 0;
         break;
       }
+      // Duel body: the cut leans in behind the blade, the parry braces with the knees, a hit staggers the body back.
+      case "cut": { const c = a.contact ?? a.start + len * .46, k = smooth(span(frame, c - 10, c)) * (1 - smooth(span(frame, c + 6, a.end))); target.lean = 3 + 9 * k; target.crouch = .1 * k; target.hipF = 3 + 10 * k; target.hipB = -3 - 8 * k; break; }
+      case "parry": { const c = a.contact ?? a.start + len * .5, k = smooth(span(frame, a.start, c - 4)) * (1 - smooth(span(frame, c + 6, a.end))); target.lean = 2 - 4 * k; target.crouch = .14 * k; target.hipF = 3 + 6 * k; target.hipB = -3 - 9 * k; break; }
+      // Topple back about the heels: slowly at first, then all at once (and it stays down).
+      case "fall": target.fall = span(frame, a.start, a.end) ** 2; break;
+      case "recoil": { const k = Math.sin(Math.PI * span(frame, a.start, a.start + Math.min(14, len))) * .4 + span(frame, a.start, a.start + 8) * .6; target.lean = -16 * k; target.tilt = -20 * k; target.crouch = .2 * k; target.shF = 18; target.elF = 24; target.shB = 6; target.elB = 20; break; }
       case "kyomai": {
         // Kyōmai, the Kyoto dance: slow, held poses with the fan, each flowing into the next. A — the fan raised high to
         // the side, the eyes following it; B — the fan brought before the face, the body sinking; C — the arms opened,
@@ -302,6 +315,8 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
     }
     for (const k of KEYS) if (target[k] !== undefined) pose[k] = lerp(pose[k], target[k]!, w);
   }
+  // A fall stays down after its action ends.
+  for (const a of spec.actions ?? []) if (a.type === "fall" && frame > a.end) pose.fall = 1;
   // A parasol bearer keeps both hands up on the pole whatever his legs are doing.
   if (spec.look.prop === "parasol") { pose.shF = 38; pose.elF = 62; pose.shB = 30; pose.elB = 70; }
   // Seeded blinks every few seconds; eyes shut for 4 frames.
@@ -869,11 +884,12 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     // The scabbards through the obi at the left hip: the wakizashi above with its hilt, the katana's below.
     const sway = Math.sin(frame / 13) * (tr.moving ? .6 : .2) - wl * .5;
     if (look.swords === "daisho") {
-      const kw = add(geo.koi, [H * .016, -H * .02]), aw = geo.sayaA + 9;
+      const kw = add(geo.koi, [H * .016, -H * .02]), aw = lerp(geo.sayaA + 9, 108, pose.fall);
       out.push(...saya(kw, aw, BLADE * H * .72, H, lw, look.accent ?? "ai", sway));
       out.push(...katana(add(kw, [Math.cos((aw - 180) * DEG) * H * .01, Math.sin((aw - 180) * DEG) * H * .01]), aw, H, lw, { hiltOnly: true, scale: .72, open: tqBody ? .5 : 0 }));
     }
-    out.push(...saya(geo.koi, geo.sayaA, BLADE * H * 1.03, H, lw, look.accent ?? "ai", sway));
+    // Falling on his back the scabbards swing round to lie along his body, not stab into the ground.
+    out.push(...saya(geo.koi, lerp(geo.sayaA, 100, pose.fall), BLADE * H * 1.03, H, lw, look.accent ?? "ai", sway));
     if (geoPrev && sword.free > .9 && swordPrev!.free > .9) out.push(...swordSmear(geo.tsuba, geoPrev.a, geo.a, H));
     out.push(...katana(geo.tsuba, geo.a, H, lw, { shown: geo.shown, hiltOnly: geo.shown < .01, open: tqBody ? .5 : 0 }));
   }
@@ -917,10 +933,23 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
 
   // Tall clogs: the drawing stands gh higher, the clogs reaching down to the ground.
   if (gh) out.push({ t: "group", transform: `translate(0 ${(-gh).toFixed(2)})`, prims: out.splice(0) });
+  // A fall turns the whole drawing back about the heels.
+  if (pose.fall > 0) out.push({ t: "group", transform: `rotate(${(-86 * pose.fall).toFixed(2)})`, prims: out.splice(0) });
   // Contact shadow: a soft usuzumi smudge (the prints rarely cast shadows; this only grounds the feet).
   const lift = pose.lift;
   out.unshift({ t: "fill", d: ellipseD((s.anF[0] + s.anB[0]) / 2, 2, H * .16 * (1 - clamp01(lift / H * 3) * .5), H * .016), fill: "sumi", opacity: .1 * (1 - clamp01(lift / (H * .3))), noPrint: true });
   return { prims: out, x: tr.x, y: tr.y, dir, squeeze };
+}
+
+/**
+ * Where a figure's katana is at a frame, in the figure's own frame (facing right, feet at the origin, unscaled): the
+ * guard and the blade's angle. Undefined when the figure wears no swords. Used to check duel contact.
+ */
+export function figureSwordAt(spec: UkiyoeFigureSpec, frame: number, seed = 0): { tsuba: Pt; a: number; shown: number } | undefined {
+  if (!spec.look.swords) return undefined;
+  const H = figureHeight(spec.look), sk = skeleton(figurePose(spec, frame, seed, H), H, spec.look.build ?? "average");
+  const g = swordGeometry(swordAt(spec.actions ?? [], frame), sk.neck, add(sk.waistF, [-H * .012, H * .022]), H);
+  return { tsuba: g.tsuba, a: g.a, shown: g.shown };
 }
 
 /** Ease export used by tests to keep the gait easing honest. */

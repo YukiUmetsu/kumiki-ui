@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { cameraAt, carvedLine, ease, loopOffsets, scrollPan, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
 import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES } from "../registry/video/ukiyoe/ukiyoe-creatures";
-import { drawFigure, facingAt, figurePose, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
+import { drawFigure, facingAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
 import { expandCrowd } from "../registry/video/ukiyoe/ukiyoe-crowd";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../registry/video/ukiyoe/ukiyoe-oiran";
 import { UKIYOE_MAIKO_LOOK } from "../registry/video/ukiyoe/ukiyoe-maiko";
-import { samuraiKata, swordAt, swordGeometry, UKIYOE_SAMURAI_LOOK } from "../registry/video/ukiyoe/ukiyoe-katana";
+import { BLADE, samuraiDuel, samuraiKata, swordAt, swordGeometry, UKIYOE_SAMURAI_LOOK } from "../registry/video/ukiyoe/ukiyoe-katana";
 import { palette, resolvePaint } from "../registry/video/ukiyoe/ukiyoe-pigments";
 import { nodeState, UkiyoeScene } from "../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeSceneSpec } from "../registry/video/ukiyoe/ukiyoe-scene";
@@ -302,6 +302,45 @@ describe("UKIYO1 samurai and katana", () => {
     expect(inspectUkiyoeScene(scene({ durationFrames: 480, nodes: [{ id: "s", kind: "figure", look: UKIYOE_SAMURAI_LOOK, actions: kata }] }))).toEqual([]);
     expect(inspectUkiyoeScene(scene({ nodes: [{ id: "s", kind: "figure", look: { ...UKIYOE_SAMURAI_LOOK, swords: "spear" as never }, actions: [{ type: "kamae", start: 0, end: 9, form: "low" as never }] }] })).map(i => i.path))
       .toEqual(expect.arrayContaining(["$.nodes[0].look.swords", "$.nodes[0].actions[0].form"]));
+  });
+});
+
+describe("UKIYO1 duels", () => {
+  type Fig = { x: number; y: number; scale: number; facing: "left" | "right"; look: never; actions: UkiyoeAction[] };
+  const nodes = samuraiDuel({ id: "d", x: 700, y: 900, scale: 1.4 }) as unknown as [Fig, Fig, { bursts: { frame: number; x: number; y: number }[] }];
+  const [A, B, sparks] = nodes;
+  /** A fighter's blade in world coordinates at a frame: guard and tip. */
+  const blade = (n: Fig, f: number) => {
+    const sw = figureSwordAt({ look: n.look, actions: n.actions, facing: n.facing }, f)!, dir = n.facing === "left" ? -1 : 1;
+    const t: [number, number] = [n.x + dir * sw.tsuba[0] * n.scale, n.y + sw.tsuba[1] * n.scale], a = (n.facing === "left" ? 180 - sw.a : sw.a) * Math.PI / 180, L = BLADE * 250 * n.scale;
+    return { t, tip: [t[0] + Math.cos(a) * L, t[1] + Math.sin(a) * L] as [number, number] };
+  };
+  const nearest = (p: [number, number], q: [number, number], r: [number, number], s2: [number, number]) => {
+    let best = Infinity;
+    for (let i = 0; i <= 80; i++) for (let j = 0; j <= 80; j++) { const u = i / 80, v = j / 80; best = Math.min(best, Math.hypot(p[0] + (q[0] - p[0]) * u - r[0] - (s2[0] - r[0]) * v, p[1] + (q[1] - p[1]) * u - r[1] - (s2[1] - r[1]) * v)); }
+    return best;
+  };
+  it("crosses the two blades exactly on every contact frame, sparks flying from the crossing", () => {
+    expect(sparks.bursts.length).toBe(4);
+    for (const b of sparks.bursts) {
+      const a = blade(A, b.frame), d = blade(B, b.frame);
+      expect(nearest(a.t, a.tip, d.t, d.tip), `frame ${b.frame}`).toBeLessThan(2);                 // the blades touch
+      expect(nearest(a.t, a.tip, [b.x, b.y], [b.x, b.y]), `frame ${b.frame}`).toBeLessThan(2);    // at the spark
+      expect(nearest(d.t, d.tip, [b.x, b.y], [b.x, b.y]), `frame ${b.frame}`).toBeLessThan(2);
+      // A few frames before contact they have not met yet.
+      const a0 = blade(A, b.frame - 8), d0 = blade(B, b.frame - 8);
+      expect(nearest(a0.t, a0.tip, d0.t, d0.tip)).toBeGreaterThan(4);
+    }
+  });
+  it("strikes home with the last cut: the defender's blade drops and he falls and stays down", () => {
+    const hit = A.actions.find(a => a.type === "cut" && a.parried === false)!;
+    expect(B.actions.some(a => a.type === "parry" && a.contact === hit.contact)).toBe(false);
+    const lying = (f: number) => figurePose({ look: B.look, actions: B.actions, facing: "left" }, f, 0, 250).fall;
+    expect(lying(hit.contact! - 1)).toBe(0);
+    expect(lying(hit.contact! + 60)).toBe(1);
+    expect(lying(hit.contact! + 200)).toBe(1);
+    expect(swordAt(A.actions, hit.contact! + 200).held).toBe(false);                               // the victor has sheathed
+    expect(inspectUkiyoeScene(scene({ durationFrames: 640, nodes: nodes as never }))).toEqual([]);
   });
 });
 
