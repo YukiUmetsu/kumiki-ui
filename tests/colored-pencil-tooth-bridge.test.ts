@@ -89,6 +89,9 @@ describe("ArtCraft photo-conditioned pencil-tooth residual repair",()=>{
   });
   it("refuses invented pigmentation on genuine paper or already dark skin",()=>{
     const bright=image(900,506,252);
+    for(let k=0;k<bright.data.length;k+=4){
+      bright.data[k+1]=251;bright.data[k+2]=250;
+    }
     const noGaps=createPhotoSkinToothBridge(
       bright,drawing(),guides,face,crop,1);
     expect(noGaps.marks).toHaveLength(0);
