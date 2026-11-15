@@ -32,6 +32,25 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("keeps the authored human nape under the mandible and both collar wings without white-paper slots",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect});
+      const parts=new Map(drawing.regions.map(r=>[r.id,r]));
+      const hair=parts.get("hair-back")!,neck=parts.get("neck")!;
+      const face=parts.get("face-main")!,collar=parts.get("collar-left")!;
+      // Hair returns inside toward the neck: no abrupt L143 311 cut.
+      expect(hair.path).toContain("C174 333 177 353 169 373");
+      expect(hair.path).not.toContain("L143 311");
+      expect(neck.path).toContain("C206 375 185 371 164 375");
+      expect(neck.bounds[0]).toBeLessThan(collar.bounds[0]+collar.bounds[2]*.45);
+      expect(neck.bounds[1]).toBeLessThan(face.bounds[1]+face.bounds[3]);
+      expect(neck.details?.map(d=>d.id)).toContain("neck-scm-attachments");
+      expect(neck.details?.map(d=>d.id)).toContain("neck-trapezius-turn");
+      expect(neck.details?.every(d=>d.width<.7&&d.opacity!>.3)).toBe(true);
+      expect(pencilLivingStudyDrawing({subject:"portrait",aspect})).toEqual(drawing);
+    }
+  });
+
   it("constructs human eyes, oral ring and head oval from Kumiki ANAT1 measured 3D landmarks",()=>{
     const atlas=pencilPortraitAnatomy();
     const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
