@@ -180,6 +180,15 @@ test("four distinct historical ink schools paint separate real rooted rock struc
       await expect.poll(()=>card.locator(
         '[data-km-master-stroke-bank="'+bank+'"]').count())
         .toBeGreaterThan(0);
+    await expect(card.locator('[data-km-master-stroke-placement="'+
+      (school==="travelers"?"rock-volume":"attached-stratum")+'"]'))
+      .toHaveCount(count);
+    if(school==="early-spring"){
+      await expect.poll(()=>card.locator(
+        '[data-km-master-stroke-curl="counter"]').count()).toBeGreaterThan(10);
+      await expect.poll(()=>card.locator(
+        '[data-km-master-stroke-curl="with"]').count()).toBeGreaterThan(10);
+    }
     await expect(card.locator("[data-km-rock-hero-fold]"))
       .toHaveCount(school==="fuchun"?3:0);
 
