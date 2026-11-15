@@ -51,6 +51,12 @@ const value=(src:PencilPhotoPixels,x:number,y:number)=>{
 const hex=(c:readonly number[])=>"#"+c.map(x=>
   clamp(Math.round(x),0,255).toString(16).padStart(2,"0")).join("");
 const valid=(src:PencilPhotoPixels,g:PortraitFeatureMap,seed:number,strength:number)=>{
+  // Public research helpers must also fail closed on malformed runtime maps,
+  // rather than reading a missing landmark before validating it.
+  if(!g||typeof g!=="object"||Object.keys(g).length!==25||
+    Object.values(g).some(p=>!Array.isArray(p)||p.length!==2||
+      !p.every(Number.isFinite)))
+    throw new RangeError("Invalid CC0 facial source landmarks");
   const d=Math.hypot(
     g.eyeNearCenter[0]-g.eyeFarCenter[0],
     g.eyeNearCenter[1]-g.eyeFarCenter[1],
