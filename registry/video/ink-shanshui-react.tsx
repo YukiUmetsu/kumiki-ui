@@ -82,7 +82,13 @@ const RIDGES:Record<ShanshuiScene,readonly (readonly P[])[]>={
   ],
   "mountain-trail":[
     [[-60,235],[50,180],[152,204],[252,147],[312,192],[422,155],[489,178],[581,103],[624,117],[737,183],[832,149],[1030,230]],
-    [[-60,334],[64,271],[146,288],[254,195],[340,251],[445,216],[554,83],[590,98],[655,188],[745,155],[825,221],[1050,318]],
+    // Fuchun source: rolling crag shoulder, short rock saddles and an
+    // uneven but continuous summit; NOT one geometric triangular apex.
+    [[-60,334],[64,271],[146,288],[254,195],[340,251],
+      [420,222],[452,202],[474,174],[492,153],[512,130],
+      [531,111],[545,103],[559,105],[572,111],[588,126],
+      [603,137],[622,166],[647,181],[672,172],[707,154],
+      [741,159],[763,183],[790,208],[825,221],[1050,318]],
     [[-60,430],[78,359],[160,405],[275,298],[338,361],[427,304],[530,235],[586,274],[713,340],[812,295],[1050,383]],
   ],
 };
@@ -298,9 +304,99 @@ function MountainHeroCliff({root,seed,mist}:{
     return [u*u*u*a[0]+3*u*u*t*c1[0]+3*u*t*t*c2[0]+t*t*t*b[0],
       u*u*u*a[1]+3*u*u*t*c1[1]+3*u*t*t*c2[1]+t*t*t*b[1]];
   };
+  // A rock FACE needs positive, soft-but-fractured underpainting,
+  // not just the dark disconnected outline wires. These overlapping
+  // sectors belong to one parent geological bone; no free ornaments.
+  const rockFacePlan=[
+    {at:.12,side:-1,reach:49,depth:57,crest:13},
+    {at:.31,side:1,reach:42,depth:71,crest:10},
+    {at:.55,side:-1,reach:34,depth:48,crest:8},
+  ] as const;
+  // Instance-local IDs keep simultaneous film/Storybook specimens isolated.
+  const faceId=useId().replace(/[^a-z0-9_-]/gi,"");
   const pool=quadraticPoint(root,boneControl,boneTip,.49);
   return <g data-km-rock-hero-cliff=""
     data-km-rock-hero-root={f(x)+","+f(y)}>
+    {/* Source-guided, overlapping positive mountain cheek planes.
+        Each broad face starts from a parent bone station, rises into
+        a small rounded alum-head rim, folds twice, then ends in a dry
+        tail. Their dark-to-dilute gradient is local to that face. */}
+    <g data-km-rock-interlocked-mass-family="">
+      {rockFacePlan.map((face,i)=>{
+        const a=quadraticPoint(root,boneControl,boneTip,face.at);
+        const sign=face.side;
+        const spread=face.reach*(.91+.17*s(seed+2801,i*13));
+        const depth=face.depth*(.93+.12*s(seed+2807,i*17));
+        const crest=face.crest*(.89+.17*s(seed+2819,i*29));
+        const cap:P=[a[0]+sign*spread*.47,a[1]-crest];
+        const belly:P=[a[0]+sign*spread*.81,a[1]+depth*.43];
+        const base:P=[a[0]+sign*spread*.73,a[1]+depth];
+        const inner:P=[a[0]+sign*spread*.17,a[1]+depth*.62];
+        // A nibble along the outer edge is a supported erosion recess,
+        // not a triangle cut from the silhouette.
+        const faceD="M"+f(a[0])+" "+f(a[1])+
+          " C"+f(a[0]+sign*spread*.17)+" "+f(a[1]-crest*.93)+
+          " "+f(a[0]+sign*spread*.38)+" "+f(a[1]-crest*1.16)+
+          " "+f(cap[0])+" "+f(cap[1])+
+          " C"+f(a[0]+sign*spread*.62)+" "+f(a[1]-crest*.52)+
+          " "+f(a[0]+sign*spread*.76)+" "+f(a[1]+depth*.13)+
+          " "+f(belly[0])+" "+f(belly[1])+
+          " C"+f(a[0]+sign*spread*.95)+" "+f(a[1]+depth*.53)+
+          " "+f(a[0]+sign*spread*.81)+" "+f(a[1]+depth*.83)+
+          " "+f(base[0])+" "+f(base[1])+
+          " C"+f(a[0]+sign*spread*.49)+" "+f(a[1]+depth*.81)+
+          " "+f(a[0]+sign*spread*.4)+" "+f(a[1]+depth*.55)+
+          " "+f(inner[0])+" "+f(inner[1])+
+          " C"+f(a[0]-sign*spread*.08)+" "+f(a[1]+depth*.37)+
+          " "+f(a[0]+sign*spread*.16)+" "+f(a[1]+depth*.17)+
+          " "+f(a[0])+" "+f(a[1])+" Z";
+        const grad="kmrock"+faceId+"face"+i;
+        // The dark cap forms the stone structure; the broad dilute
+        // parent wash under it preserves centuries-old paper reserves.
+        const caps=([.18,.53] as const).map((t,j)=>{
+          const start=quadraticPoint(a,cap,belly,t);
+          const c:P=[start[0]+sign*(7+j*4),
+            start[1]+(j===0?-6:3)];
+          const end:P=[start[0]+sign*(18+j*2),
+            start[1]+11+j*7];
+          return {start,d:rockLoadedRibbon(start,c,end,
+            j===0?3.7:2.6,seed+2851+i*71+j*13)};
+        });
+        const abrasions=([.27,.46,.69] as const).map((t,j)=>{
+          const start=quadraticPoint(a,cap,base,t);
+          const c:P=[start[0]+sign*(6+j*2),
+            start[1]+(12+j*3)];
+          const end:P=[start[0]+sign*(12+j*3),
+            start[1]+(24+j*6)];
+          return {start,d:rockLoadedRibbon(start,c,end,
+            .74+j*.31,seed+2911+i*59+j*23)};
+        });
+        return <g key={i} data-km-rock-interlocked-mass=""
+          data-km-rock-mass-root={f(a[0])+","+f(a[1])}
+          data-km-rock-mass-side={sign}>
+          <defs>
+            <linearGradient id={grad} x1="0%" y1="0%" x2="45%" y2="95%">
+              <stop offset="0" stopColor="#39352f" stopOpacity=".88"/>
+              <stop offset=".34" stopColor="#514438" stopOpacity=".57"/>
+              <stop offset=".69" stopColor="#80694f" stopOpacity=".38"/>
+              <stop offset="1" stopColor="#b8a082" stopOpacity=".07"/>
+            </linearGradient>
+          </defs>
+          <path data-km-rock-mass-underwash="" d={faceD}
+            fill={"url(#"+grad+")"} opacity={f(.81*(1-.2*mist))}/>
+          {caps.map(({start,d},j)=><path key={j}
+            data-km-rock-mass-alum-cap=""
+            data-km-rock-mass-cap-root={f(start[0])+","+f(start[1])}
+            d={d} fill={j?"#68523f":"#3d332d"}
+            opacity={f((j?.44:.69)*(1-.17*mist))}/>)}
+          {abrasions.map(({start,d},j)=><path key={j}
+            data-km-rock-mass-erosion=""
+            data-km-rock-mass-erosion-root={f(start[0])+","+f(start[1])}
+            d={d} fill={j===1?"#6c5b48":"#3d342c"}
+            opacity={f((j===1?.39:.61)*(1-.25*mist))}/>)}
+        </g>;
+      })}
+    </g>
     {/* Source hierarchy: rounded rolling hill backs intersect one rooted
         dark geological spine. Open paper channels are NOT filled with
         an overall shadow. This preserves the sparse/dense handscroll. */}
