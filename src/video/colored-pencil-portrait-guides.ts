@@ -160,10 +160,8 @@ export function createPencilPortraitFeatureMarks(
     });
     counts[kind]=(counts[kind]??0)+1;
   };
-  const curve=(kind:string,a:PortraitFeatureName,b:PortraitFeatureName,
-    c:PortraitFeatureName,spacing:number,alpha:number,width:number,
-    pass:0|1|2,deep:number)=>{
-    const start=guides[a],control=guides[b],end=guides[c];
+  const curvePoints=(kind:string,start:Point,control:Point,end:Point,
+    spacing:number,alpha:number,width:number,pass:0|1|2,deep:number)=>{
     const length=Math.hypot(end[0]-start[0],end[1]-start[1])+
       Math.hypot(control[0]-(start[0]+end[0])*.5,
         control[1]-(start[1]+end[1])*.5);
@@ -180,12 +178,33 @@ export function createPencilPortraitFeatureMarks(
         width,pass,deep,marks.length+i);
     }
   };
-  // Anatomy first: independent upper/lower iris rims, without a full
-  // black almond outline around the sclera.
-  curve("near-eye-upper","eyeNearLeft","eyeNearCenter","eyeNearRight",
-    .88,.42,.76,0,.43);
-  curve("far-eye-upper","eyeFarLeft","eyeFarCenter","eyeFarRight",
-    .90,.38,.68,0,.40);
+  const curve=(kind:string,a:PortraitFeatureName,b:PortraitFeatureName,
+    c:PortraitFeatureName,spacing:number,alpha:number,width:number,
+    pass:0|1|2,deep:number)=>
+    curvePoints(kind,guides[a],guides[b],guides[c],spacing,alpha,width,pass,deep);
+  // The CC0 'eyeNearCenter' and 'eyeFarCenter' are IRIS landmarks.
+  // The old implementation erroneously used iris centers as eyelid apex
+  // controls, drawing a flat line through each pupil. Restore the two
+  // anatomical apertures from observed eye corners and a separate lid arch.
+  const eyeLids=(["near","far"] as const).map((which)=>{
+    const near=which==="near";
+    const start=guides[near?"eyeNearLeft":"eyeFarLeft"];
+    const end=guides[near?"eyeNearRight":"eyeFarRight"];
+    const center=guides[near?"eyeNearCenter":"eyeFarCenter"];
+    const dx=end[0]-start[0],dy=end[1]-start[1];
+    const span=Math.hypot(dx,dy);
+    const normal:Point=[dy/span,-dx/span];
+    const middle:Point=[(start[0]+end[0])*.5,(start[1]+end[1])*.5];
+    const upper:Point=[middle[0]+normal[0]*span*.54,
+      middle[1]+normal[1]*span*.54];
+    const lower:Point=[middle[0]-normal[0]*span*.29,
+      middle[1]-normal[1]*span*.29];
+    curvePoints(which+"-eye-upper",start,upper,end,
+      .88,near?.38:.34,near?.72:.64,0,.40);
+    curvePoints(which+"-eye-lower",start,lower,end,
+      1.2,near?.22:.19,.53,1,.27);
+    return {which,start,end,center,upper,lower,span};
+  });
   // Fine root-aligned eyebrow fibres; no rectangular dark brow patches.
   const brow=(name:string,start:PortraitFeatureName,peak:PortraitFeatureName,
     end:PortraitFeatureName,amount:number)=>{
@@ -201,20 +220,24 @@ export function createPencilPortraitFeatureMarks(
   };
   brow("brow-near-fibres","browNearLeft","browNearMiddle","browNearRight",94);
   brow("brow-far-fibres","browFarLeft","browFarMiddle","browFarRight",56);
-  // One very narrow eyebrow arch is not equivalent to detailed irises.
-  // Source-aligned radial pigment rays reinforce only dark iris rings,
-  // leaving the photographed glint and eyelid overlap intact.
-  for(const [id,centerId,rx,ry,count] of [
-    ["iris-near","eyeNearCenter",3.6,2.8,33],
-    ["iris-far","eyeFarCenter",2.2,1.9,20],
-  ] as const){
-    const center=guides[centerId];
+  // Iris fibres are partially OCCLUDED by the upper and lower lids.
+  // No complete exposed stamped circle is allowed on source-matched eyes.
+  for(const lid of eyeLids){
+    const {center,start,end,upper,lower,span}=lid;
+    const rx=clamp(span*(lid.which==="near"?.17:.15),3,15);
+    const ry=clamp(span*(lid.which==="near"?.155:.13),2.4,12);
+    const count=lid.which==="near"?43:28;
     for(let i=0;i<count;i++){
       const theta=2*Math.PI*(i+.16*pencilHash(seed,i,79))/count;
-      const x=center[0]+Math.cos(theta)*rx*.54;
-      const y=center[1]+Math.sin(theta)*ry*.54;
-      add(id,x,y,Math.cos(theta)*rx*.32,Math.sin(theta)*ry*.32,
-        .31,.55,2,.45,i+1000);
+      const x=center[0]+Math.cos(theta)*rx*.49;
+      const y=center[1]+Math.sin(theta)*ry*.49;
+      // Approximate the source-space lid aperture at each fibre root.
+      const t=clamp((x-start[0])/(end[0]-start[0]),0,1);
+      const upperY=bezier(start,upper,end,t)[1];
+      const lowerY=bezier(start,lower,end,t)[1];
+      if(y<=upperY+.75||y>=lowerY-.75)continue;
+      add("iris-"+lid.which,x,y,Math.cos(theta)*rx*.26,
+        Math.sin(theta)*ry*.26,.30,.50,2,.40,i+1000);
     }
   }
   // Directional, soft nasal-plane and alar marks follow the actual
