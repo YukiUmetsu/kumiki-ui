@@ -4,6 +4,8 @@ import {SURFACE_FORMS,ANSUR} from "../registry/anatomy/anatomy-reference";
 import {inspectRisoCharacter,evaluateRisoCharacter} from "../registry/video/riso-character";
 import {COURIER} from "../src/video/riso-character-demo";
 import {PAPER_ARTIST,evaluateRisoHumanEnsemble} from "../src/video/riso-human-ensemble";
+import {RISO_PAPER_ARTIST_SHEET} from "../src/video/riso-human-ensemble";
+import {RISO_COURIER_SHEET} from "../src/video/riso-character-mesh-sheets";
 import {
  RISO30_ANAT1_HAND,RISO30_GRIP_FOREGROUND_IDS,
  inspectRisoHandArtcraft,risoHandArtcraftParts,
@@ -79,6 +81,26 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
         expect(hand.palmToFingerRoots.every(x=>Number.isFinite(x)&&x>3&&x<30)).toBe(true);
         expect(hand.referenceKnuckleCount).toBeGreaterThan(0);
       }
+  });
+
+  it("2D source anatomy meshes expose all five genuine red-plate digits and the palm-surface geometry",()=>{
+    for(const actor of actors){
+      const sheet=actor.id==="courier"?RISO_COURIER_SHEET:RISO_PAPER_ARTIST_SHEET;
+      const regions=sheet.regions.filter(r=>r.category==="hand");
+      expect(regions.length).toBeGreaterThan(15);
+      for(const side of sides){
+        const missing=actor.id==="courier"
+          ? ["glove-"+side+"-index","glove-"+side+"-middle","glove-"+side+"-ring","glove-"+side+"-pinky"]
+          : ["index","middle","ring","pinky"].map(id=>side+"-glove-"+id);
+        for(const id of missing){
+          const region=regions.find(r=>r.id===id);
+          expect(region,actor.id+" missing 5th finger source region "+id).toBeDefined();
+          expect(region!.parts.every(p=>actor.parts.some(part=>part.id===p&&part.plate==="red"))).toBe(true);
+        }
+        const palm=actor.id==="courier"?"glove-"+side+"-metacarpal":side+"-glove-knuckle-arc";
+        expect(regions.find(r=>r.id===palm)).toBeDefined();
+      }
+    }
   });
 
   it("new nail beds and finger-fold engravings print ABOVE the real paper at the exact handhold, not as a separate sticker",()=>{
