@@ -127,10 +127,10 @@ describe("RISO29 Kumiki ANAT1 source human anatomy",()=>{
     for(const aspect of ["landscape","portrait"] as const)
       for(const frame of [0,24,46,76,126,160,165,178,190,198,202,239]){
         const state=evaluateRisoHumanEnsemble(frame,aspect);
-        // Before the original f126 unfurl the physical transfer sheet is
-        // intentionally absent. Test its true phase instead of requiring a
-        // paper shape before any character has drawn it.
-        if(frame<126)expect(state.sheet).toBe("");
+        // The original f126 unfurl BEGINS as a blank sheet path and has no
+        // physical visible contour until later in the f160 contact phase.
+        // Test only the real prop presence, not its phase label.
+        if(frame<160)expect(state.sheet).toBe("");
         else expect(state.sheet).not.toBe("");
         expect(Number.isFinite(state.source.x)).toBe(true);
         expect(Number.isFinite(state.receiver.y)).toBe(true);
