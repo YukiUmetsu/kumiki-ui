@@ -9,8 +9,18 @@ import { inspectPaperCraft } from "./paper-craft";
 import type { PaperCraftSpec, PaperIssue } from "./paper-craft";
 
 export type PaperDirectorAspect = "landscape" | "portrait";
+export interface PaperCurtainTransition {
+  kind: "paper-curtain";
+  /** Even frame count, split across outgoing closure and incoming reveal. */
+  durationFrames: number;
+  /** Fully opaque six-digit pigment for a solid cut-paper sheet. */
+  color: string;
+  direction: "left-to-right" | "right-to-left";
+}
 export interface PaperDirectorShot {
   id: string;
+  /** Physical paper sheet moves across the edit; no alpha blending. */
+  transitionOut?: PaperCurtainTransition;
   scenes: Readonly<Record<PaperDirectorAspect, PaperCraftSpec>>;
 }
 export interface PaperDirectorFilm {
@@ -27,6 +37,7 @@ export interface PaperDirectorPlan {
     startFrame: number;
     durationFrames: number;
     scenes: Readonly<Record<PaperDirectorAspect, PaperCraftSpec>>;
+    transitionOut?: PaperCurtainTransition;
   }[];
 }
 export interface PaperDirectorFrame {
@@ -35,6 +46,12 @@ export interface PaperDirectorFrame {
   readonly localFrame: number;
   readonly durationFrames: number;
   readonly spec: PaperCraftSpec;
+  /** Opaque material animation in the frames surrounding an editorial edit. */
+  readonly curtain?: {
+    spec: PaperCurtainTransition;
+    phase: "closing" | "opening";
+    progress: number;
+  };
 }
 const validId = /^[a-zA-Z0-9_-]{1,80}$/;
 /** Reject unknown films before the browser is given SVG path data. */
@@ -72,11 +89,39 @@ export function inspectPaperDirector(film: unknown): PaperIssue[] {
       if (!sizes) sizes={landscape:land?.width+"x"+land?.height,portrait:port?.width+"x"+port?.height};
       else if (sizes[aspect] !== size) bad(where+"."+aspect+".size","paper output dimensions must be consistent");
     }
+    if (s.transitionOut !== undefined) {
+      const transition=s.transitionOut;
+      if (!transition || typeof transition !== "object" ||
+          transition.kind !== "paper-curtain" ||
+          transition.direction !== "left-to-right" && transition.direction !== "right-to-left" ||
+          typeof transition.color !== "string" || !/^#[0-9a-fA-F]{6}$/.test(transition.color) ||
+          !Number.isSafeInteger(transition.durationFrames) ||
+          transition.durationFrames < 8 || transition.durationFrames > 60 ||
+          transition.durationFrames % 2 !== 0)
+        bad(where+".transitionOut","paper curtain needs valid color, direction and even 8–60-frame duration");
+      if (i === f.shots!.length-1) bad(where+".transitionOut","final shot cannot transition out");
+      if (land && transition?.durationFrames >= land.durationFrames)
+        bad(where+".transitionOut","transition duration must fit shot");
+      const nextDuration=f.shots![i+1]?.scenes?.landscape?.durationFrames;
+      if (Number.isSafeInteger(transition?.durationFrames) &&
+          typeof nextDuration==="number" && nextDuration < transition.durationFrames/2)
+        bad(where+".transitionOut","incoming shot is shorter than its opening curtain");
+    }
     if (land?.durationFrames !== port?.durationFrames)
       bad(where+".durationFrames","both aspect shots must have the same duration");
     if (Number.isSafeInteger(land?.durationFrames) && land.durationFrames > 0)
       total += land.durationFrames;
   });
+  // Both halves of adjacent curtains must not compete for the same paper frame.
+  for(let i=1;i<f.shots.length-1;i++) {
+    // Invalid JSON shot entries have already been reported above: error
+    // aggregation must never turn into an uncaught null dereference.
+    const left=f.shots[i-1]?.transitionOut?.durationFrames??0;
+    const right=f.shots[i]?.transitionOut?.durationFrames??0;
+    const duration=f.shots[i]?.scenes?.landscape?.durationFrames??0;
+    if ((left+right)/2 >= duration)
+      bad("shots["+i+"].transitionOut","incoming/outgoing curtain beats overlap");
+  }
   if (total > 36000) bad("durationFrames","paper film exceeds 36000 frames");
   return errors;
 }
@@ -87,7 +132,8 @@ export function compilePaperDirector(film: PaperDirectorFilm): PaperDirectorPlan
   let start = 0;
   const shots = film.shots.map(shot => {
     const durationFrames = shot.scenes.landscape.durationFrames;
-    const item={id:shot.id,startFrame:start,durationFrames,scenes:shot.scenes};
+    const item={id:shot.id,startFrame:start,durationFrames,scenes:shot.scenes,
+      transitionOut:shot.transitionOut};
     start += durationFrames;
     return item;
   });
@@ -105,8 +151,24 @@ export function resolvePaperDirector(
     frame < shot.startFrame + shot.durationFrames || i === plan.shots.length-1);
   const shot = plan.shots[index];
   const localFrame = Math.min(shot.durationFrames-1,Math.max(0,frame-shot.startFrame));
+  let curtain: PaperDirectorFrame["curtain"];
+  // The outgoing cutstock closes across the final half; after the hard
+  // picture cut it uncovers the incoming shot over the first half.
+  if(index<plan.shots.length-1 && shot.transitionOut) {
+    const half=shot.transitionOut.durationFrames/2;
+    if(localFrame>=shot.durationFrames-half) {
+      curtain={spec:shot.transitionOut,phase:"closing",
+        progress:(localFrame-(shot.durationFrames-half))/(half-1)};
+    }
+  }
+  if(!curtain && index>0 && plan.shots[index-1].transitionOut) {
+    const outgoing=plan.shots[index-1].transitionOut!;
+    const half=outgoing.durationFrames/2;
+    if(localFrame<half)curtain={spec:outgoing,phase:"opening",
+      progress:localFrame/(half-1)};
+  }
   return {shotId:shot.id,shotIndex:index,localFrame,
-    durationFrames:plan.durationFrames,spec:shot.scenes[aspect]};
+    durationFrames:plan.durationFrames,spec:shot.scenes[aspect],curtain};
 }
 /** Minimal die-cut path authoring: any content can use explicit geometry and holes. */
 export const paperCut = {

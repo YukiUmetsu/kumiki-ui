@@ -8,6 +8,21 @@ for(const aspect of ["landscape","portrait"] as const){
     const stage=page.locator('svg[data-km-paper-director="material-paper-tour"]');
     await expect(stage).toBeVisible();
     await expect(stage).toHaveAttribute("data-km-paper-shot","botanical-wing");
+    const moth=stage.locator('[data-km-paper-parent="moth-abdomen"]');
+    expect(await moth.count()).toBeGreaterThan(8);
+    const seek=page.getByRole("slider",{name:"Scrub complete paper film"});
+    await seek.focus();await seek.press("Home");
+    await seek.press("ArrowRight");
+    // Fixed seek to a cut and inspect actual native paper overlay.
+    await page.getByRole("button",{name:/01 · Woodland/}).click();
+    await seek.focus(); await seek.press("PageUp");
+    await page.getByRole("button",{name:/02 · Botanical/}).click();
+    const curtain=page.locator('svg[data-km-paper-curtain]');
+    await expect(curtain).toHaveAttribute("data-km-paper-phase","opening");
+    await expect(curtain.locator('path[fill="#E8CEAA"]')).toHaveCount(1);
+    await page.locator('[data-km-paper-film]').screenshot({
+      path:info.outputPath("paper-curtain-"+aspect+".png"),animations:"disabled"
+    });
     await page.getByRole("button",{name:/03 · Canal houses/}).click();
     await expect(stage).toHaveAttribute("data-km-paper-shot","city-layering");
     await expect(stage).toHaveAttribute("data-km-paper-frame","0");

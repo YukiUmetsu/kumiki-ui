@@ -20,6 +20,7 @@ import type { UkiyoePattern } from "./ukiyoe-prims";
 import { UKIYOE_PATTERNS } from "./ukiyoe-prims";
 import type { UkiyoeCrowdSpec } from "./ukiyoe-crowd";
 import { UKIYOE_CROWD_MOODS } from "./ukiyoe-crowd";
+import { UKIYOE_KAMAE } from "./ukiyoe-katana";
 
 export interface UkiyoeBase {
   id: string;
@@ -275,9 +276,10 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
         if (l.hat && !UKIYOE_HATS.includes(l.hat)) bad(p + ".look.hat", "unknown hat");
         if (l.prop && !UKIYOE_PROPS.includes(l.prop)) bad(p + ".look.prop", "unknown prop");
         if (l.build && !UKIYOE_BUILDS.includes(l.build)) bad(p + ".look.build", "unknown build");
-        for (const k of ["skin", "hairColor", "hatColor", "robe", "under", "obi", "coat", "hakama", "legs", "propColor", "accent", "lips", "uchikake", "lining", "obiPattern"] as const) if (l[k] !== undefined) paint(`${p}.look.${k}`, l[k]);
+        for (const k of ["skin", "hairColor", "hatColor", "robe", "under", "obi", "coat", "hakama", "legs", "propColor", "accent", "lips", "uchikake", "lining", "obiPattern", "kataginu", "crest"] as const) if (l[k] !== undefined) paint(`${p}.look.${k}`, l[k]);
         if (l.motif !== undefined && l.motif !== "none") paint(`${p}.look.motif`, l.motif);
         (l.layers ?? []).forEach((c, j) => paint(`${p}.look.layers[${j}]`, c));
+        if (l.swords !== undefined && l.swords !== "katana" && l.swords !== "daisho") bad(p + ".look.swords", "must be katana or daisho");
         if (l.obiTie !== undefined && !["front", "back", "darari"].includes(l.obiTie)) bad(p + ".look.obiTie", "must be front, back or darari");
         if (l.feet !== undefined && !["waraji", "geta", "tabi", "bare", "koma-geta", "okobo"].includes(l.feet)) bad(p + ".look.feet", "must be waraji, geta, tabi, bare, koma-geta or okobo");
         for (const k of ["robePattern", "coatPattern", "uchikakePattern"] as const) if (l[k]) { if (!UKIYOE_PATTERNS.includes(l[k]!.type)) bad(`${p}.look.${k}.type`, "unknown pattern"); paint(`${p}.look.${k}.color`, l[k]!.color); }
@@ -287,6 +289,7 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
           if (!UKIYOE_ACTIONS.includes(a.type)) bad(`${p}.actions[${j}].type`, "unknown action; use " + UKIYOE_ACTIONS.join(", "));
           if (!isInt(a.start) || !isInt(a.end) || a.end < a.start) bad(`${p}.actions[${j}]`, "needs integer start ≤ end");
           if ((a.type === "walk" || a.type === "run") && !isNum(a.to)) bad(`${p}.actions[${j}].to`, "walk/run needs a numeric target x");
+          if (a.form !== undefined && !UKIYOE_KAMAE.includes(a.form)) bad(`${p}.actions[${j}].form`, "must be " + UKIYOE_KAMAE.join(", "));
           if (a.via !== undefined && (!Array.isArray(a.via) || a.via.length > 64 || a.via.some(q => !Array.isArray(q) || !isNum(q[0]) || !isNum(q[1])))) bad(`${p}.actions[${j}].via`, "must be up to 64 [x, y] waypoints");
         });
         break;

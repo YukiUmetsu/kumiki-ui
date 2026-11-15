@@ -38,6 +38,23 @@ test("face feature guides are opt-in, stay aligned on aspect changes and never l
     await expect(page.locator("[data-km-portrait-craft-evidence]")).toContainText(
       "additional eye, brow, nose, lip and form-following skin pencil marks");
     await expect(page.getByRole("alert")).toHaveCount(0);
+    // Macro inspector only samples finished canvas; it never changes export.
+    const originalCanvas=await drawing.evaluate(node=>
+      (node as HTMLCanvasElement).toDataURL("image/png"));
+    await page.getByRole("checkbox",{
+      name:"Inspect portrait detail at three times scale",
+    }).check();
+    const macro=page.locator('canvas[data-km-pencil-face-macro]');
+    await expect(macro).toHaveAttribute("data-km-pencil-face-macro","eyes");
+    await macro.screenshot({animations:"disabled",
+      path:info.outputPath("pencil-eye-macro-schematic-only.png")});
+    await page.getByRole("combobox",{name:"Pencil face detail region"})
+      .selectOption("lips");
+    await expect(macro).toHaveAttribute("data-km-pencil-face-macro","lips");
+    await macro.screenshot({animations:"disabled",
+      path:info.outputPath("pencil-lips-macro-schematic-only.png")});
+    expect(await drawing.evaluate(node=>
+      (node as HTMLCanvasElement).toDataURL("image/png"))).toBe(originalCanvas);
     await page.getByRole("checkbox",{name:"Show source-measured face guides"}).check();
     const guides=page.locator("svg[data-km-face-guide-overlay]");
     await expect(guides.locator("circle")).toHaveCount(25);
@@ -49,6 +66,9 @@ test("face feature guides are opt-in, stay aligned on aspect changes and never l
     await expect(guides.locator("circle")).toHaveCount(25);
     await drawing.screenshot({animations:"disabled",
       path:info.outputPath("portrait-guided-portrait-schematic-only.png")});
+    await expect(macro).toHaveAttribute("data-km-pencil-face-macro","lips");
+    await macro.screenshot({animations:"disabled",
+      path:info.outputPath("pencil-lips-macro-portrait-schematic-only.png")});
     // Debug overlay must not become part of rendered artwork:
     // Canvas screenshot unaffected by toggling feature pin visibility.
     // Compare actual unchanged canvas bitmap, not browser PNG screenshot bytes:

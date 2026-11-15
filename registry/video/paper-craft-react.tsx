@@ -105,13 +105,18 @@ export function PaperCraftStage({
       const q = state.layers[i];
       const pivot = layer.pivot ?? [spec.width / 2, spec.height / 2];
       const transform = `translate(${q.translateX.toFixed(3)} ${q.translateY.toFixed(3)}) translate(${pivot[0]} ${pivot[1]}) rotate(${q.rotation.toFixed(3)}) scale(${q.scaleX.toFixed(4)} ${q.scaleY.toFixed(4)}) translate(${-pivot[0]} ${-pivot[1]})`;
+      // Flatten parent matrices, preserving the native global depth painter order.
+      const inherited = layer.parentId && q.worldMatrix
+        ? `matrix(${q.worldMatrix.map(v=>v.toFixed(5)).join(" ")})`
+        : transform;
       const shadow = `drop-shadow(${q.shadowX.toFixed(2)}px ${q.shadowY.toFixed(2)}px ${q.shadowBlur.toFixed(2)}px rgba(33,24,22,${(strength * (puppet ? .44 : .23)).toFixed(3)}))`;
       const clip = `url(#${uid}-cut-${layer.id})`;
       const cut = [layer.path, ...(layer.holes ?? [])].join(" ");
       const curved = bend > 0 && (layer.curl ?? 0) > 0;
       return <g key={layer.id} data-km-paper-layer={layer.id} data-km-paper-progress={q.progress.toFixed(4)}
         data-km-paper-stock={layer.color} data-km-paper-rig={layer.rigGroup}
-        transform={transform} opacity={q.opacity} style={{ filter: layer.id === "die-cut-border" ? "none" : shadow }}>
+        data-km-paper-parent={layer.parentId}
+        transform={inherited} opacity={q.opacity} style={{ filter: layer.id === "die-cut-border" ? "none" : shadow }}>
         <g clipPath={clip}>
           <path d={cut} fill={curved ? `url(#${uid}-curl-${layer.id})` : layer.color} fillRule="evenodd"
             stroke={puppet ? "#422c28" : "#695447"} strokeWidth={puppet ? 1.55 : .7}

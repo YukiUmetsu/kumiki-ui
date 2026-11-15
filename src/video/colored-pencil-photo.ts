@@ -62,6 +62,8 @@ export interface PencilPhotoStudy {
   seed:number;
   /** Source-photo-guided mark counts. No artist-level approval is implied. */
   portraitFeatures?:Readonly<Record<string,number>>;
+  /** Source-observed bright iris pixels left untouched by focal pencil marks. */
+  portraitHighlightReserves?:number;
 }
 const limit=(n:number,lo:number,hi:number)=>Math.max(lo,Math.min(hi,n));
 const hex=(r:number,g:number,b:number):string=>"#"+[r,g,b].map(x=>
@@ -202,7 +204,8 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
   strokes.sort((a,b)=>a.pass-b.pass);
   return {foundationVersion:"CP-F1",foundationPasses:PENCIL_PHOTO_FOUNDATION.markOrder,
     width:w,height:h,pigment,strokes,seed:options.seed,
-    ...(detail?{portraitFeatures:detail.featureCounts}:{})};
+    ...(detail?{portraitFeatures:detail.featureCounts,
+      portraitHighlightReserves:detail.highlightReserves}:{})};
 }
 export function pencilPhotoStrokeCount(study:PencilPhotoStudy,frame:number,total=350):number {
   if(!Number.isSafeInteger(frame)||frame<0||
