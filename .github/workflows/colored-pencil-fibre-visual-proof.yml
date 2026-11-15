@@ -10,11 +10,16 @@ on:
       - 'registry/video/colored-pencil-react.tsx'
       - 'registry/video/colored-pencil.ts'
       - 'src/video/colored-pencil-character-rebuild.ts'
+      - 'src/video/colored-pencil-living-studies.ts'
+      - 'src/video/colored-pencil-living-studio.tsx'
+      - 'tests/colored-pencil-living-studies.test.tsx'
+      - 'tests/colored-pencil-ocular-detail.test.tsx'
+      - 'tests/e2e-storybook/colored-pencil-living-studies.spec.ts'
       - 'src/video/colored-pencil-anatomical-fibres.ts'
       - 'src/video/colored-pencil-anatomy-detail.ts'
       - 'src/video/colored-pencil-wildlife.stories.tsx'
       - 'tests/colored-pencil-anatomy-detail.test.tsx'
-      - 'tests/e2e-storybook/colored-pencil-wildlife.spec.ts'
+      - 'tests/e2e-storybook/colored-pencil-wildlife.spec.ts tests/e2e-storybook/colored-pencil-living-studies.spec.ts'
       - 'src/video/colored-pencil-science.stories.tsx'
       - 'tests/e2e-storybook/colored-pencil-anatomical-fibres.spec.ts'
   workflow_dispatch:
@@ -38,7 +43,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Verify rooted feather anatomy
-        run: npx vitest run --project unit tests/colored-pencil-anatomy-detail.test.tsx
+        run: npx vitest run --project unit tests/colored-pencil-anatomy-detail.test.tsx tests/colored-pencil-living-studies.test.tsx tests/colored-pencil-ocular-detail.test.tsx
       - name: Chromium for actual pencil geometry and posed screenshots
         run: npx playwright install --with-deps chromium
       - name: Inspect independently animated fur and feather art
