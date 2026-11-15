@@ -35,13 +35,16 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
     const face=drawing.regions.find(r=>r.id==="face-main")!;
     const dermis=face.details?.filter(t=>t.id?.startsWith("dermis-"))??[];
-    expect(dermis).toHaveLength(3);
+    expect(dermis).toHaveLength(9);
+    expect(dermis.reduce((n,trace)=>n+(trace.path.match(/M/g)??[]).length,0))
+      .toBeGreaterThanOrEqual(1050);
     for(const trace of dermis){
       expect(trace.path).not.toMatch(/NaN|Infinity/);
       expect(trace.width).toBeLessThan(.55);
       expect(trace.opacity).toBeGreaterThan(.2);
       expect(trace.opacity).toBeLessThan(.5);
-      expect((trace.path.match(/M/g)??[]).length).toBeGreaterThanOrEqual(260);
+      expect((trace.path.match(/M/g)??[]).length).toBeGreaterThanOrEqual(60);
+      expect(trace.path.length).toBeLessThanOrEqual(12000);
       expect(trace.path).toContain(" Q");
       // An ordered arch follows cheek or forehead planes; broad one-piece
       // photographic skin gradients never satisfy a dry-point contact gate.
