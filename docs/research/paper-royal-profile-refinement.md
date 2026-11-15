@@ -98,3 +98,7 @@ A portrait-only trial moved the fox down 105 sheet units and placed its layers a
 ## Portrait fox staging iteration
 
 The second tested portrait placement brings the fox to the left foreground, near the existing bank, and keeps its opaque paper layers above that bank. The original paths and landscape placement remain unchanged. Native portrait frames 130, 370 and 610 were rendered and inspected: the fox no longer covers the prince's boots, and the body, head and tail remain within frame in those samples. The fox still overlaps the princess's skirt, while the deer overlaps the prince in the earlier scenes; this is a partial improvement, not a passed artistic or full-motion review. Browser checks cover these three frames and the fox body/boot rectangles, not every animal outline or frame. Source-based portrait evaluation and independent review remain open.
+
+## Rejected deer-spacing trials
+
+At portrait frame 130, scaling and lifting the deer hid most of its body behind the prince and tree; moving it farther right and placing the tree behind it exposed an animal that appeared unsupported above the ground. A separate trial shifted the prince inward in the first two acts: a 70-unit shift cleared a deer-body/coat bounding-box check, but at frame 370 the prince's face and hand crowded the lantern and rabbit. All three trials and their candidate assertions were discarded. Fixing the deer requires a coordinated scene layout and ground-plane study, not merely satisfying a rectangle test; the current deer remains partly obscured in early acts.
