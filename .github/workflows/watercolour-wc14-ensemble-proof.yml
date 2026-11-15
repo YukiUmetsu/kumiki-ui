@@ -8,6 +8,7 @@ on:
     paths:
       - 'src/video/watercolour-portrait-ensemble*'
       - 'src/video/watercolour-portrait-demo.ts'
+      - 'registry/video/watercolour-illustration.tsx'
       - 'src/film/film-slots.tsx'
       - 'tests/e2e-storybook/watercolour-portrait-ensemble.spec.ts'
       - '.github/workflows/watercolour-wc14-ensemble-proof.yml'
