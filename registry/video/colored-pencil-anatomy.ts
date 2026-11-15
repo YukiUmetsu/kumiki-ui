@@ -12,6 +12,7 @@ import {
   FACE_MESH_SOURCE, IRIS_DIAMETER_MM, measureFace,
 } from "../anatomy/anatomy-face";
 import { smoothPath } from "../anatomy/anatomy-view";
+import { faceHair } from "../anatomy/anatomy-hair";
 
 export interface PencilAnatomyCurve {
   path: string;
@@ -37,6 +38,7 @@ export interface PencilPortraitAnatomy {
   browMass: PencilAnatomyCurve;
   lips: {upper:string;lower:string;bounds:readonly [number,number,number,number]};
   nose:PencilAnatomyCurve;
+  hair:Record<string,{path:string;count:number}>;
 }
 
 const round=(x:number)=>Math.round(x*100)/100;
@@ -158,6 +160,26 @@ export function pencilPortraitAnatomy(
     [root[0]+4,root[1]+2],
   ];
   const nose=bounded(dorsal,curve(dorsal,true),1);
+  // ANAT1 follicles are rooted on actual 3D brow and lid loops. Project
+  // each root, control point and tip through the *same* 3D cranial camera,
+  // retaining hair taper/flow without post-raster filters or pasted art.
+  const hair:Record<string,{path:string;count:number}>={};
+  const grouped:Record<string,string[]>={};
+  for(const stroke of faceHair(face.vertices,FACE_FEATURES,{
+    browDensity:.56,lashes:18,seed:19,
+  })){
+    const id=stroke.kind+"."+stroke.side;
+    const [root,mid,tip]=stroke.points.map(project);
+    const d="M"+fmt(root[0])+" "+fmt(root[1])+
+      " Q"+fmt(mid[0])+" "+fmt(mid[1])+
+      " "+fmt(tip[0])+" "+fmt(tip[1]);
+    (grouped[id]??=[]).push(d);
+  }
+  for(const [name,paths]of Object.entries(grouped)){
+    const path=paths.join(" ");
+    if(path.length>12000)throw new RangeError("ANAT1 hair trace exceeds CP-F1 budget");
+    hair[name]={path,count:paths.length};
+  }
   const landmarks:Record<string,readonly [number,number]>={};
   for(const [name,index]of Object.entries(FACE_LANDMARKS))
     landmarks[name]=project(face.vertices[index]);
@@ -165,6 +187,6 @@ export function pencilPortraitAnatomy(
     source:FACE_MESH_SOURCE.name,
     metrics:measureFace(face.vertices),
     landmarks,features,eyes,irises,pupils,browInk,browMass,
-    nose,lips:{upper:curve(upper,true),lower:curve(lower,true),bounds:lipsBounds},
+    nose,hair,lips:{upper:curve(upper,true),lower:curve(lower,true),bounds:lipsBounds},
   };
 }
