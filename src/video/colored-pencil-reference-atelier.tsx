@@ -8,6 +8,8 @@ import type {
 import {mapCC0WomanPortraitFeatures} from "./colored-pencil-portrait-guides";
 import {createDryPortraitPlate} from "./colored-pencil-dry-portrait";
 import {createDryPencilHeadPlate} from "./colored-pencil-full-head";
+import {compareCC0PortraitTones} from "./colored-pencil-full-head-tone-proof";
+import type {PencilToneComparison} from "./colored-pencil-full-head-tone-proof";
 
 /**
  * Source-backed pencil renderer. The default images are demonstrably public
@@ -130,6 +132,8 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
   const [showFaceGuides,setShowFaceGuides]=useState(false);
   const [showFaceMacro,setShowFaceMacro]=useState(false);
   const [showFullHead,setShowFullHead]=useState(false);
+  const [headToneComparison,setHeadToneComparison]=
+    useState<PencilToneComparison|null>(null);
   const [faceMacroRegion,setFaceMacroRegion]=useState<"eyes"|"lips">("eyes");
   const [applyFaceCraft,setApplyFaceCraft]=useState(true);
   const [uploaded,setUploaded]=useState(false);
@@ -285,6 +289,9 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
     reference.drawImage(temp,crop.left,crop.top,crop.width,crop.height,
       0,0,sourceCanvas.width,sourceCanvas.height);
     sourceCanvas.setAttribute("data-km-pencil-full-head-source","ready");
+    const original=reference.getImageData(0,0,sourceCanvas.width,sourceCanvas.height);
+    const rendered=ink.getImageData(0,0,dry.width,dry.height);
+    setHeadToneComparison(compareCC0PortraitTones(original,rendered));
   },[headPlate,raw]);
   useEffect(()=>{
     if(!playing)return;
@@ -558,6 +565,41 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
                   border:"1px solid #A8A39A",maxWidth:540,aspectRatio:"9 / 10"}}/>
             </div>
           </div>
+          {headToneComparison&&<div style={{marginTop:10}}
+            data-km-pencil-tonal-comparison="ready">
+            <p style={{fontSize:12,margin:"0 0 6px"}}>
+              Five source-matched colour-pencil value probes, based on the
+              actual rendered output (0 = black, 255 = paper white).
+              Tone contrast retained: {" "+
+                Math.round(headToneComparison.contrastRetention*100)}%.
+              Mean tone difference: {" "+
+                headToneComparison.meanAbsoluteValueError.toFixed(1)} / 255.
+              Automated negative gate: {" "+
+                (headToneComparison.severeValueCollapse?
+                  "VALUE COLLAPSE / FAIL":"TECHNICAL THRESHOLD ONLY")}.
+              Independent artistic approval: NOT PASSED.
+            </p>
+            <table style={{fontSize:12,borderCollapse:"collapse",width:"100%",
+              maxWidth:580}} aria-label="Source versus dry-pencil facial tone comparison">
+              <thead><tr>
+                <th style={{textAlign:"left"}}>Measured facial plane</th>
+                <th>Source</th><th>Dry pencil</th><th>Too light by</th>
+              </tr></thead>
+              <tbody>{headToneComparison.regions.map(region=>
+                <tr key={region.name}>
+                  <td>{region.name}</td>
+                  <td style={{textAlign:"center"}}>
+                    {Math.round(region.sourceLuminance)}
+                  </td>
+                  <td style={{textAlign:"center"}}>
+                    {Math.round(region.drawnLuminance)}
+                  </td>
+                  <td style={{textAlign:"center"}}>
+                    {Math.round(region.lightnessDeficit)}
+                  </td>
+                </tr>)}</tbody>
+            </table>
+          </div>}
           <p style={{fontSize:12,margin:"9px 0 0",color:"#53665E"}}
             data-km-pencil-head-proof-metrics="">
             Five values (deepest → reserved paper):
