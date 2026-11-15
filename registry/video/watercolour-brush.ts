@@ -76,8 +76,8 @@ export function inspectPaintSurface(spec: PaintSurfaceSpec): PaintIssue[] {
   if (!spec.paper || !HEX.test(spec.paper.color)) add("paper", "/paper/color", "Paper requires a six-digit hex color.");
   if (!spec.paper || !valid(spec.paper.tooth, 0, 1)) add("tooth", "/paper/tooth", "Paper tooth must be 0..1.");
   const legalReserve = (path: unknown) => typeof path === "string" &&
-    path.length >= 4 && path.length <= 65536 && /^[Mm]\\s*[-+.\\d]/.test(path) &&
-    /^[MmLlHhVvCcSsQqTtAaZz0-9eE,\\s.+-]+$/.test(path);
+    path.length >= 4 && path.length <= 65536 && /^[Mm]\s*[-+.\d]/.test(path) &&
+    /^[MmLlHhVvCcSsQqTtAaZz0-9eE,\s.+-]+$/.test(path);
   if (spec.reservePaths !== undefined &&
     (!Array.isArray(spec.reservePaths) || spec.reservePaths.length > 32 ||
       spec.reservePaths.some(path => !legalReserve(path))))
