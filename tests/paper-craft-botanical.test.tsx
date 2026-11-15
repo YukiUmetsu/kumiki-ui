@@ -7,6 +7,7 @@ import { paperBotanicalSpec } from "../registry/video/paper-botanical-kit";
 import { compileFilm } from "../registry/video/film-document";
 import { loadFilmSlots } from "../src/film/film-slots";
 import film from "../examples/film/paper-craft-botanical.film.json";
+import chromaticFilm from "../examples/film/paper-craft-chromatic.film.json";
 
 describe("PAPER1 ArtCraft botanical construction", () => {
   for(const aspect of ["landscape","portrait"] as const){
@@ -78,6 +79,9 @@ describe("PAPER1 ArtCraft botanical construction", () => {
   });
   it("compiles native three-scene FilmStage outputs and renders installed slot",async()=>{
     for(const outputId of ["landscape","portrait"]){
+      const richFilm=compileFilm(chromaticFilm,{outputId});
+      expect(richFilm.ok).toBe(true);
+      if(richFilm.ok) expect(richFilm.film.scenes).toHaveLength(3);
       const result=compileFilm(film,{outputId});
       expect(result.ok).toBe(true);
       if(!result.ok)continue;
