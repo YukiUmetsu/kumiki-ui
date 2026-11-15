@@ -215,15 +215,15 @@ export function createPencilPortraitFeatureMarks(
   );
   const scale=clamp(eyeDistance/79,.18,4);
   const planes=[
-    {name:"form-cheek-left",center:guides.cheekLeft,rx:55,ry:51,
+    {name:"form-cheek-left",center:guides.cheekLeft,rx:79,ry:66,
       angle:-.32,count:4050},
-    {name:"form-cheek-right",center:guides.cheekRight,rx:23,ry:37,
+    {name:"form-cheek-right",center:guides.cheekRight,rx:36,ry:54,
       angle:-.66,count:1180},
-    {name:"form-forehead",center:guides.forehead,rx:52,ry:34,
+    {name:"form-forehead",center:guides.forehead,rx:73,ry:53,
       angle:.18,count:3150},
-    {name:"form-chin",center:guides.chin,rx:44,ry:19,
+    {name:"form-chin",center:guides.chin,rx:57,ry:29,
       angle:.34,count:1350},
-    {name:"form-nose",center:guides.noseTip,rx:17,ry:26,
+    {name:"form-nose",center:guides.noseTip,rx:28,ry:39,
       angle:-1.29,count:1450},
   ] as const;
   for(const [planeIndex,plane] of planes.entries()){
@@ -253,15 +253,18 @@ export function createPencilPortraitFeatureMarks(
       if(material<.19)continue;
       const lum=(.2126*source.data[pixel]+.7152*source.data[pixel+1]+
         .0722*source.data[pixel+2])/255;
-      const pencilPressure=.16+.28*Math.pow(1-lum,.66);
+      // Avoid the 'painted-on oval beard/forehead patch' failure in v2:
+      // a local region is an optical guide, never a hard material boundary.
+      const feather=Math.pow(Math.max(0,1-radial*radial),2.1);
+      const pencilPressure=(.09+.16*Math.pow(1-lum,.66))*feather;
       const heading=plane.angle+fy*.43+fx*.16+
         (pencilHash(seed,j,145)-.5)*.36;
-      const length=(3.2+4.5*pencilHash(seed,j,146))*scale;
+      const length=(2.6+3.4*pencilHash(seed,j,146))*scale;
       const dx=Math.cos(heading)*length;
       const dy=Math.sin(heading)*length;
       add(plane.name,x,y,dx,dy,pencilPressure*material,
-        .58+.34*pencilHash(seed,j,147),i%3===0?1:2,
-        .20+.22*(1-lum),j);
+        .42+.28*pencilHash(seed,j,147),i%3===0?1:2,
+        .13+.13*(1-lum),j);
     }
   }
   return {sampledSourceFeatures:guides,marks,featureCounts:counts};
