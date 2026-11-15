@@ -15,7 +15,7 @@ source scenes before artistic review. See
 - **Core:** `registry/video/materials/crayon-art-direction.ts` validates
   physical part hierarchies, opaque subject masses, phase timing,
   clipped glazes, clipped strokes, source-specific curved-path minimums,
-  attached world-space endpoints and untracked elements.
+  attached world-space endpoints throughout source motion and untracked elements.
 - **Authoring example:** `src/video/crayon-drawing-system-fixtures.ts`
   constructs original fruit, stem, leaf, tonal wax, clipped grain and
   an explicit auditable plan using the existing CRAYON1 renderer.
