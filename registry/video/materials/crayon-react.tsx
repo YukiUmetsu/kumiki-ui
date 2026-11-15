@@ -348,26 +348,26 @@ export function Paper({ width, height, seed, tooth, strength, color = "#faf1da" 
   // Paper ridges are shared by every wax region, so independently painted
   // parts don't receive unrelated stochastic texture. The dark and light
   // cohorts occupy separate paper-contact islands and never cut alpha holes.
-  // Batch hundreds of varied ridge traces into six SVG compound paths.
+  // Batch subpixel-scale paper tooth into six SVG compound paths.
   // Rendering legacy scenes adds six small pattern paths rather than hundreds
   // of per-mark DOM elements. Geometry is fixed to paper seed and strength.
   const pigmentTexture=useMemo(()=>(
     (["dark","light"] as const).map(kind=>{
-      const dark=kind==="dark",total=Math.round(strength*(dark?264:204));
+      const dark=kind==="dark",total=Math.round(strength*(dark?860:650));
       const marks:[string[],string[],string[]]=[[],[],[]];
       const base=dark?1400:1500;
       for(let i=0;i<total;i++){
         const band=Math.floor(crayonHash(seed,i,base+7)*3);
         const x=crayonHash(seed,i,base+1)*176;
         const y=crayonHash(seed,i,base+2)*176;
-        const dx=(dark?1.6:.65)+crayonHash(seed,i,base+3)*(dark?7.1:3.4);
-        const dy=(crayonHash(seed,i,base+4)-.5)*(dark?3.8:2.7);
+        const dx=(dark ? .35 : .25)+crayonHash(seed,i,base+3)*(dark ? 1.85 : 1.25);
+        const dy=(crayonHash(seed,i,base+4)-.5)*(dark?1.6:1.05);
         marks[band].push("M"+x.toFixed(2)+" "+y.toFixed(2)+
           "l"+dx.toFixed(2)+" "+dy.toFixed(2));
       }
       return {kind,paths:marks.map((parts,band)=>({
-        d:parts.join(" "),width:(dark?.48:.34)+band*(dark?.32:.26),
-        opacity:.55+band*.2,
+        d:parts.join(" "),width:(dark ? .31 : .24)+band*(dark ? .17 : .14),
+        opacity:.50+band*.17,
       }))};
     })
   ),[seed,strength]);
