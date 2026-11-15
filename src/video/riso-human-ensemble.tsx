@@ -161,14 +161,14 @@ const facePieces:readonly RisoCharacterPart[]=[
   // RISO23: Paper Artist's own facial topography, not a mirrored Courier
   // stencil. Wide tonal masses carry the physical Riso screen, narrow
   // under-lid/iris engravings remain printable on the solid red master.
-  {id:"orbital-tone-planes",joint:"head",plate:"red",paint:"screen",screenTone:"mid",
+  {id:"orbital-tone-planes",joint:"head",plate:"red",paint:"screen",screenTone:"light",
     d:"M-26 -26 C-20 -31 -12 -29 -6 -23 Q-13 -22 -19 -18 Q-25 -17 -26 -26 Z M6 -24 C13 -32 23 -29 29 -20 Q27 -14 23 -14 Q18 -22 11 -21 Z"},
   {id:"zygomatic-tone-planes",joint:"head",plate:"red",paint:"screen",screenTone:"light",
     d:"M-28 -8 C-28 3 -25 13 -18 19 Q-22 7 -19 -5 Q-24 -11 -28 -8 Z M20 -9 Q25 -12 29 -6 C29 4 25 14 18 20 Q24 5 22 -4 Z"},
   {id:"jaw-shadow-planing",joint:"head",plate:"red",paint:"screen",screenTone:"light",
     d:"M-28 7 Q-25 22 -7 30 Q-19 28 -26 16 Z M29 -7 Q34 13 12 29 Q24 18 27 -5 Z"},
   {id:"nose-bridge",joint:"head",plate:"blue",paint:"solid",
-    d:"M1 -12 Q4 -7 3 -1 Q0 5 3 7 Q6 9 9 6 L9 8 Q6 11 2 9 Q-2 7 0 3 Q2 -4 1 -12 Z"},
+    d:"M1 -12 Q2.6 -8 2.2 -3 Q1 1 1.6 4 Q2 6.8 4.5 7 Q6.7 7.2 8.8 5.9 L8.9 7.2 Q6.5 9.1 3.5 8.8 Q-.5 8.3 0 4 Q1 -3 1 -12 Z"},
   {id:"cheek-tones",joint:"head",plate:"red",paint:"screen",screenTone:"light",
     d:"M-25 3 Q-20 0 -14 5 Q-20 3 -24 8 Z M17 4 Q24 3 27 10 Q23 7 18 8 Z"},
   // Two-lip profile derived from ANAT1 mouth loop and the Artist's narrower
@@ -176,11 +176,11 @@ const facePieces:readonly RisoCharacterPart[]=[
   {id:"mouth",joint:"head",plate:"red",paint:"solid",
     d:"M-7 15.1 Q-2 17.5 2 16.4 Q5 15.8 7 13.4 L8 15.2 Q3 19.7 -2 19.8 Q-5.3 19 -7 15.1 Z",
     expressions:{speak:"M-4.8 13.4 Q-1.2 11 2.2 12 Q5 12.8 5.8 16 Q5.3 20.1 1 21.7 Q-3.4 21.3 -4.8 17.2 Z",
-      smile:"M-10.6 11.7 Q0 20.1 11.1 10.5 Q7 22.7 0 23.4 Q-7.4 21.2 -10.6 11.7 Z"}},
+      smile:"M-7.7 14 C-3.6 17.2 2.7 18.0 7.5 13.1 C6 16.4 4 18.4 .0 18.8 Q-4.4 18.4 -7.7 14 Z"}},
   {id:"lip-corners",joint:"head",plate:"blue",paint:"solid",
     d:"M-10 14 L-7 14 L-7 16 Z M8 12 L11 11 L9 15 Z",
     expressions:{speak:"M-8 12 L-5 10 L-6 14 Z M7 12 L10 13 L8 16 Z",
-      smile:"M-13 10 Q-12 13 -10 15 L-11 15 Z M11 10 Q15 8 16 5 L15 11 Z"}},
+      smile:"M-9 14 Q-8.8 16 -7.5 17 L-8.5 16.8 Z M7.2 13.2 Q9.4 11.6 10 9.9 L10.1 13.1 Z"}},
   // RISO25 / expressed midface print masters. This actor's nose, mouth
   // and cheekbone directions differ from Courier; expressive contours are
   // redrawn at the two authored visemes, not stretched with a procedural rig.
@@ -192,7 +192,7 @@ const facePieces:readonly RisoCharacterPart[]=[
     d:"M-7.3 13.6 Q-4 12.8 -1 14.4 Q1 14 4.8 12.9 L7.6 13.3 Q4.3 14.5 1 15.2 Q-2.5 14.1 -6.4 14.8 Z",
     expressions:{
       speak:"M-6.4 12.7 Q-2 10.3 1.5 10.6 Q4.2 11.2 6 13.2 Q1.4 11.5 -2 11.8 Q-4.5 12.1 -6.4 13.2 Z",
-      smile:"M-11.7 10.6 Q-3 16.8 11.6 10.1 Q6 15 .1 15.7 Q-7.7 14.3 -11.7 11.5 Z",
+      smile:"M-7.8 13.8 Q-2.6 17.4 7.5 13.0 Q3.7 16.2 .2 16.3 Q-4.9 16.2 -7.8 14.6 Z",
     }},
   {id:"nasolabial-flow",joint:"head",plate:"red",paint:"solid",
     d:"M-15.6 5.4 Q-16.6 10.2 -13.6 13.2 Q-15.9 11.2 -16.1 7.4 Z M13.0 5.6 Q15.1 9.2 13.5 12.3 Q14.4 9.1 12.7 7.1 Z",
