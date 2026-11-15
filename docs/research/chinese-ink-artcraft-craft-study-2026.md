@@ -394,8 +394,8 @@ non-collinear elbows.
 
 **Revised geometric construction:** eight intentionally authored
 branch trajectories now each have **two explicit crooks** with
-different rising/falling/pitch signatures. A piecewise, three-section
-quadratic curve is the *only* anatomical source of:
+different rising/falling/pitch signatures. A tangent-continuous, three-section
+cubic curve is the *only* anatomical source of:
 1. upper and lower pressure-tapered wood outlines;
 2. two visible knot bends and the centerline ink lift;
 3. all 24 secondary branch insertion roots;
@@ -430,3 +430,26 @@ essential wood skeleton, or if silhouettes cross the storybook border.
 Analyze the 2.15x original brushwork crop as well as complete film.
 Source-guided, not pixel-matched: per-region contour/spacing
 measurements are more useful than whole-frame SSIM.
+
+
+### Visual correction after first browser review
+
+The first PR #328 browser capture improved anatomy and lateral
+attachments, but revealed harsh V-shaped, folded-paper limb joints at
+the two authored elbows. This was an important ArtCraft failure even
+though topology and unit tests passed. Drawing fewer needles or
+increasing surface grain would not correct it.
+
+The release candidate now uses tangent-continuous cubic splines
+through the same authored crook positions. Its ink outline is created
+from 37 centerline stations and perpendicular, progressively reducing
+brush half-width. A small nonperiodic pressure variation retains
+slightly imperfect loaded edges, while a true curved ink-bone line
+gives the branch a flowing internal contour. All bark and foliage
+attachment sites sample this same revised cubic path, so a shape
+improvement does not detach any secondary limb.
+
+**Independent visual gate:** the new browser crop must remove the
+angular-cardboard defect without erasing the deliberate ancient
+branch kinks. Inspect negative space and tonal separation at 960x540,
+not only the zoomed Storybook brushwork crop.
