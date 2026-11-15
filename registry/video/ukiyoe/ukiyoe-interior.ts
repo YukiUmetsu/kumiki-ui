@@ -25,6 +25,7 @@ import { circleD, ellipseD, rectD } from "./ukiyoe-prims";
 import type { UkiyoeFill, UkiyoePaint } from "./ukiyoe-pigments";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "./ukiyoe-scene";
 import type { UkiyoeAction, UkiyoeFigureLook } from "./ukiyoe-figure";
+import { eye } from "./ukiyoe-tsukumo";
 
 type P = Readonly<Record<string, unknown>>;
 export interface InteriorContext { seed: number; frame: number; wind: number }
@@ -51,7 +52,7 @@ export interface UkiyoeSlide { bay: number; open: number; start?: number; frames
 
 interface Wall {
   lw: number; seed: number; frame: number; night: number; torn: number; art: string; paper: UkiyoePaint;
-  beyond: string; slides: readonly UkiyoeSlide[]; scroll: string; flower: boolean; snow: number;
+  beyond: string; slides: readonly UkiyoeSlide[]; scroll: string; flower: boolean; snow: number; eyes: number;
 }
 
 function slideOpen(w: Wall, bay: number): number {
@@ -196,6 +197,15 @@ function shojiPanel(x: number, w: number, ph: number, wall: Wall, i: number, war
   for (let k = 1; k < 3; k++) grid.push(`M${f(x + w * k / 3)} ${f(top)}v${f(paperH)}`);
   for (let k = 1; k < rows; k++) grid.push(`M${f(x)} ${f(top + paperH * k / rows)}h${f(w)}`);
   out.push({ t: "stroke", d: grid.join(""), color: "cha", width: lw * .9 });
+  if (wall.eyes > 0) {
+    // Mokumokuren: an eye opens in each pane (more of them as `eyes` rises), each blinking and glancing on its own.
+    for (let r = 0; r < rows; r++) for (let c = 0; c < 3; c++) {
+      const k = hash01(wall.seed + i, r * 3 + c, 77);
+      if (k > wall.eyes) continue;
+      const cx0 = x + w * (c + .5) / 3, cy0 = top + paperH * (r + .5) / rows, open = ((wall.frame + Math.floor(k * 97)) % 90) < 5 ? .1 : 1;
+      out.push(...eye([cx0 + Math.sin(wall.frame / 23 + k * 9) * w * .02, cy0], w * .11, open, lw * .7, (k - .5) * 30));
+    }
+  }
   out.push({ t: "fill", d: rectD(x, -koshi, w, koshi), fill: WOOD, grain: .7, outline: lw * .7 });
   out.push({ t: "stroke", d: rectD(x + lw, top + lw, w - lw * 2, ph - lw * 2), color: "cha", width: lw * 2 });
   return out;
@@ -411,7 +421,7 @@ export function room(p: P, cx: InteriorContext): Prim[] {
   const back: UkiyoeBayKind[] = backRaw.length ? backRaw : floor === "farmhouse" ? ["wall", "shoji", "shoji", "wall"] : ["fusuma", "fusuma", "tokonoma", "tana"];
   const wall: Wall = {
     lw, seed, frame: cx.frame, night, torn: clamp01(num(p, "torn", 0)), art: str(p, "art", "bamboo"), paper: paint(p, "paper", "gofun"),
-    beyond: str(p, "beyond", "dark"), slides: Array.isArray(p.slide) ? p.slide as UkiyoeSlide[] : [], scroll: str(p, "scroll", "mountain"), flower: bool(p, "flower", true), snow: clamp01(num(p, "snow", 0)),
+    beyond: str(p, "beyond", "dark"), slides: Array.isArray(p.slide) ? p.slide as UkiyoeSlide[] : [], scroll: str(p, "scroll", "mountain"), flower: bool(p, "flower", true), snow: clamp01(num(p, "snow", 0)), eyes: clamp01(num(p, "eyes", 0)),
   };
   const pw = W * .018, ph = (H - D) * .8, above = H, E = num(p, "veranda", 0), ext = W * .05;
   const out: Prim[] = [], opening = rectD(-W / 2, -H, W, H);

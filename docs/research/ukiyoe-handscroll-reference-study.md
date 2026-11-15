@@ -1108,6 +1108,41 @@ The toad uses the frog rig at large size, and the daidarabotchi uses the figure 
 - The catfish has no keystone and no god.
 - Nobody has done a human visual review yet.
 
+## Tsukumogami (folktale queue F11, 2026-11-15)
+
+**Sources** (public domain, Wikimedia Commons): Toriyama Sekien's *Biwa-bokuboku*, *Wanyūdō*, *Mokumokuren*, *Kosode-no-te* and *Oboro-guruma*.
+
+**What they show.**
+
+- **Biwa-bokuboku.** A lute for a head on a robed body, walking with a staff, one hand raised.
+- **Wanyūdō.** A heavy cart wheel with a man's head as the hub, flames swirling round it as it rolls.
+- **Mokumokuren.** A neglected room's shoji with an eye in every pane.
+- **Kosode-no-te.** Pale hands reaching from the sleeves of a robe on its rack.
+
+**What was built.** `ukiyoe-tsukumo.ts`:
+- four yōkai;
+- the `ikou` rack;
+- the room's eyes and the cart's face;
+- `tsukumoScene()` with seven scenes.
+
+Storybook has **Tsukumogami**, and the Motifs gallery has a rack tile.
+
+**Review rounds.**
+
+1. **First sheet.**
+   - The wanyūdō's flames streaked like comets; they are shorter now.
+   - The rice field was hidden under the ground and now lies on it.
+   - The biwa-bokuboku and the cotton strip were too small, and a startled farmer was added for scale.
+   - The eyed shoji were too crowded and now fill 70% of the panes.
+
+**Not done.**
+
+- Bunbuku's tightrope act.
+- The ittan-momen wrapping a man.
+- The wanyūdō has no captured wheel.
+- The biwa does not play.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

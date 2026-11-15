@@ -26,6 +26,7 @@
 - `ukiyoe-heian.ts`: the Heian court (hair, cap, props, ox-cart, blinds, curtain screen, palace veranda) and `heianScene()`.
 - `ukiyoe-folkyokai.ts`: household and road yōkai (gourd head, straw cape, eyes, bean basket, the throw, the akaname) and `folkYokaiScene()`.
 - `ukiyoe-giants.ts`: the giant monsters and `giantScene()`.
+- `ukiyoe-tsukumo.ts`: the tsukumogami (object spirits), the kimono rack and `tsukumoScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -364,6 +365,17 @@ New yōkai species, drawn from the ground or sea line, each with `size` as its o
 - **`jasei`.** Kiyohime's serpent coils round a bell (`size` = the bell's height), its horned head raised and flames licking up.
 
 `giantScene(kind)` builds `skeleton`, `seamonk`, `orochi`, `centipede`, `namazu`, `dojoji` or `toad`, plus `daidara`, where a figure is scaled up over a hill range in mist. Storybook **Giants** plays them.
+
+### Tsukumogami
+
+- **Yōkai.**
+  - `wanyudo`: a burning cart wheel with a glaring head for its hub. The spokes turn by the distance travelled, and the flames stream back.
+  - `biwabokuboku`: a biwa for a head on a stooping robed body with a staff.
+  - `ittanmomen`: a flying strip of cotton rippling, with two small eyes.
+  - `chagama`: the Bunbuku teakettle with a tanuki's head, paws and striped tail; `transform` returns it to a plain kettle.
+- **Motif `ikou`.** A kimono rack with a robe; `hands` brings thin pale hands out of the sleeves (Kosode-no-te).
+- **Existing motifs.** The `room` takes `eyes`, which opens blinking eyes in its shoji panes (Mokumokuren). The `gissha` takes `face`, a vast face at its front (Oboro-guruma).
+- **`tsukumoScene(kind)`.** Builds `wheel`, `biwa`, `shoji`, `kosode`, `cotton`, `kettle` or `cart`. Storybook **Tsukumogami** plays them.
 
 ### Transition
 
