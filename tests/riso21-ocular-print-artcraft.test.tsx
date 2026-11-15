@@ -38,7 +38,14 @@ describe("RISO21 ArtCraft v9 distinct source-authoring eye features",()=>{
       expect(mapped.has(id),id).toBe(true);
     }
     expect(actor.parts.find(p=>p.id==="eye-iris-grain")!.plate).toBe("red");
-    expect(actor.parts.find(p=>p.id==="eye-iris-grain")!.paint).toBe("screen");
+    // RISO23 actual Chromium review: small irises cannot hold a 6-unit dot
+    // screen. Solid separated-red engraving is intentional, not a regression.
+    expect(actor.parts.find(p=>p.id==="eye-iris-grain")!.paint).toBe("solid");
+    expect(actor.parts.find(p=>p.id==="eye-lower-orbit-engraving")!.paint).toBe("solid");
+    for(const name of ["orbital-tone-planes","zygomatic-tone-planes","jaw-shadow-planing"]){
+      expect(actor.parts.find(p=>p.id===name)?.paint).toBe("screen");
+      expect(actor.parts.find(p=>p.id===name)?.plate).toBe("red");
+    }
     for(const name of ["eye-lash-wedges","eye-canthus-shapes"])
       expect(actor.parts.find(p=>p.id===name)?.paint).toBe("solid");
   });
