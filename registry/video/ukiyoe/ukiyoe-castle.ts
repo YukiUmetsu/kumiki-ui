@@ -26,7 +26,7 @@ const TILE: UkiyoeFill = { type: "linear", angle: 90, stops: [[0, "usuzumi", 1],
 const STONE: UkiyoeFill = { type: "linear", angle: 90, stops: [[0, "usuzumi", .85], [1, "kogecha", .7]] };
 const BOARD: UkiyoeFill = { type: "linear", angle: 0, stops: [[0, "sumi", 1], [.5, "kogecha", 1], [1, "sumi", 1]] };
 
-interface Ctx { seed: number; lw: number; style: "white" | "black"; snow: number; night: number; plaster: UkiyoePaint }
+export interface Ctx { seed: number; lw: number; style: "white" | "black"; snow: number; night: number; plaster: UkiyoePaint }
 
 // ---- Stone base ---------------------------------------------------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@ interface Ctx { seed: number; lw: number; style: "white" | "black"; snow: number
  * face): its faces curve in toward the top — shallow at the foot, steep at the top, like an opened fan — stones laid in
  * irregular courses that shrink toward the top, long-and-short blocks up the corners; the side face is in shadow.
  */
-function ishigaki(x0: number, x1: number, yb: number, h: number, c: Ctx, inset = .14, d = 0): Prim[] {
+export function ishigaki(x0: number, x1: number, yb: number, h: number, c: Ctx, inset = .14, d = 0): Prim[] {
   const w = x1 - x0, ins = w * inset, N = 12, fan = (t: number) => ins * (1 - (1 - t) ** 2.2);
   const left: Pt[] = [], right: Pt[] = [];
   for (let i = 0; i <= N; i++) { const t = i / N; left.push([x0 + fan(t), yb - h * t]); right.push([x1 - fan(t), yb - h * t]); }
@@ -83,7 +83,7 @@ function ishigaki(x0: number, x1: number, yb: number, h: number, c: Ctx, inset =
 // ---- Walls, windows, roofs ----------------------------------------------------------------------------------------------------------
 
 /** A box seen a little from the side: front face `x0..x0+w`, side face `sd` deep rising `sk`, from `y0` up `h`. */
-interface Box { x0: number; w: number; y0: number; h: number; sd: number; sk: number }
+export interface Box { x0: number; w: number; y0: number; h: number; sd: number; sk: number }
 
 /** Barred windows in a row across a face from `a` to `b` (each a corner [x, y] of the face's bottom), at a height. */
 function windows(a: Pt, b: Pt, h: number, n: number, c: Ctx, shade = 0): Prim[] {
@@ -102,7 +102,7 @@ function windows(a: Pt, b: Pt, h: number, n: number, c: Ctx, shade = 0): Prim[] 
 }
 
 /** A storey: plaster front and side faces (black boarding below in the black style), barred windows on both. */
-function storey(b: Box, c: Ctx): Prim[] {
+export function storey(b: Box, c: Ctx, withWindows = true): Prim[] {
   const { x0, w, y0, h, sd, sk } = b, out: Prim[] = [], x1 = x0 + w;
   const side = smoothD([[x1, y0], [x1 + sd, y0 - sk], [x1 + sd, y0 - sk - h], [x1, y0 - h]], true, 0);
   const front = rectD(x0, y0 - h, w, h);
@@ -112,8 +112,10 @@ function storey(b: Box, c: Ctx): Prim[] {
     out.push({ t: "fill", d: rectD(x0, y0 - h * .62, w, h * .62), fill: BOARD, outline: c.lw * .8 });
     if (sd > 0) out.push({ t: "fill", d: smoothD([[x1, y0], [x1 + sd, y0 - sk], [x1 + sd, y0 - sk - h * .62], [x1, y0 - h * .62]], true, 0), fill: BOARD, outline: c.lw * .8 });
   }
-  out.push(...windows([x0, y0], [x1, y0], h, Math.max(1, Math.round(w / (h * .8))), c));
-  if (sd > h * .4) out.push(...windows([x1, y0], [x1 + sd, y0 - sk], h, Math.max(1, Math.round(sd / (h * .9))), c, .4));
+  if (withWindows) {
+    out.push(...windows([x0, y0], [x1, y0], h, Math.max(1, Math.round(w / (h * .8))), c));
+    if (sd > h * .4) out.push(...windows([x1, y0], [x1 + sd, y0 - sk], h, Math.max(1, Math.round(sd / (h * .9))), c, .4));
+  }
   return out;
 }
 
@@ -122,7 +124,7 @@ function storey(b: Box, c: Ctx): Prim[] {
  * to a short ridge, the side face in shadow, tile rows down both; chidori gables or a curved karahafu on the front; gold
  * shachihoko on the ridge ends; snow on the ridge and along the eaves.
  */
-function roof(b: Box, rh: number, c: Ctx, o: { gables?: number; kara?: boolean; shachi?: boolean; top?: boolean; long?: boolean } = {}, front: Prim[] = []): Prim[] {
+export function roof(b: Box, rh: number, c: Ctx, o: { gables?: number; kara?: boolean; shachi?: boolean; top?: boolean; long?: boolean } = {}, front: Prim[] = []): Prim[] {
   const out: Prim[] = [], { x0, w, sd, sk } = b, yE = b.y0 - b.h, ov = w * .2, lift = rh * .38;
   const L: Pt = [x0 - ov, yE + rh * .04], R: Pt = [x0 + w + ov * .7, yE + rh * .04], B: Pt = [x0 + w + sd + ov * .6, yE - sk + rh * .02];
   const rw = o.long ? w * .94 : o.top ? w * .34 : w * .55, rx0 = x0 + (w - rw) / 2 + sd * .45, ridge: [Pt, Pt] = [[rx0, yE - rh - sk * .45], [rx0 + rw, yE - rh - sk * .45]];
@@ -203,7 +205,7 @@ function tower(cx: number, y0: number, w: number, hs: number, tiers: number, c: 
 }
 
 /** A small umbrella pine behind the wall: a leaning trunk and flat pads of needles, darker beneath. */
-function pine(x: number, y: number, h: number, c: Ctx, i: number): Prim[] {
+export function pine(x: number, y: number, h: number, c: Ctx, i: number): Prim[] {
   const lean = (hash01(c.seed, i, 41) - .5) * h * .5, top: Pt = [x + lean, y - h], out: Prim[] = [];
   out.push({ t: "fill", d: carvedLine([[x, y], [x + lean * .4, y - h * .5], top], h * .07, { taper: "end", minRatio: .5, smooth: true }), fill: "kogecha", outline: c.lw * .7 });
   for (let k = 0; k < 3; k++) {
