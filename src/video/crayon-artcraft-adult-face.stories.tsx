@@ -4,6 +4,7 @@ import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
 import type {CrayonSceneSpec} from "../../registry/video/materials/crayon-scene";
 import {crayonAdultFaceStudy} from "./crayon-artcraft-adult-face-fixtures";
 import {crayonCc0NearEyeStudy} from "./crayon-artcraft-cc0-near-eye";
+import {crayonPaperContactSwatches} from "./crayon-artcraft-paper-contact-fixtures";
 import {useCrayonStoryPlayback} from "./crayon-story-playback";
 import {CRAYON_PORTRAIT_AUDIT,crayonPortraitFrozenAudit} from "./crayon-artcraft-portrait-audit";
 
@@ -283,4 +284,47 @@ export const SourceMeasuredWaxContactComparison:Story={
   name:"Crayon contact · smooth versus stroke-built (ArtCraft experiment)",
   args:{aspect:"landscape",detail:1,startFrame:299},
   render:args=><Cc0WaxContactComparison {...args}/>,
+};
+
+/**
+ * ArtCraft material-only proof: same deterministic CRAYON1 engine, four
+ * controlled paint situations. This is a *research* story in the existing
+ * Crayon folder, not a polished portrait or an additional category.
+ */
+export function PaperContactMaterialLab({detail,startFrame,playbackRate,loop}:StudyProps){
+  const pressure=Math.max(.2,Math.min(1,detail));
+  const spec=useMemo(()=>crayonPaperContactSwatches(pressure),[pressure]);
+  const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
+    startFrame,spec.durationFrames,"artcraft-paper-contact:"+pressure,playbackRate,loop);
+  return <section data-km-artcraft-paper-contact-lab="" style={{
+    padding:16,maxWidth:1060,margin:"auto",background:"#f7ecda",boxSizing:"border-box"}}>
+    <h2 style={{fontSize:19,margin:"0 0 8px"}}>ArtCraft paper tooth: controlled native wax deposits</h2>
+    <p style={{fontSize:13,lineHeight:1.5,maxWidth:760,margin:"0 0 12px"}}>
+      True paper-coordinate height sampling, pressure-dependent wax pickup and
+      broken side-nib contacts. The artwork is a material test, not an approved
+      human eye. Pressure is controlled by the Detail slider.
+    </p>
+    <div style={{width:"100%",aspectRatio:"960 / 318"}}>
+      <CrayonScene spec={spec} frame={frame}/>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",
+      gap:8,fontSize:12,marginTop:8,textAlign:"center"}}>
+      <span>Single pass</span><span>Overlapping colors</span>
+      <span>Dense opaque wax</span><span>Wax on dark ground</span>
+    </div>
+    <div style={{display:"flex",gap:9,alignItems:"center",flexWrap:"wrap",marginTop:12}}>
+      <button type="button" onClick={toggle}>{playing?"Pause":"Play deposition"}</button>
+      <button type="button" onClick={restart}>Restart</button>
+      <label>Frame <input aria-label="Paper contact frame" type="range"
+        min={0} max={spec.durationFrames-1} value={frame}
+        onChange={e=>seek(Number(e.target.value))}/></label>
+      <output>{frame}</output>
+      <button type="button" onClick={()=>seek(239)}>Inspect material</button>
+    </div>
+  </section>;
+}
+export const ArtCraftPaperContactSamples:Story={
+  name:"Paper height · contact and layering samples (ArtCraft experiment)",
+  args:{aspect:"landscape",detail:.72,startFrame:239},
+  render:args=><PaperContactMaterialLab {...args}/>,
 };
