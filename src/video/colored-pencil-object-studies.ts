@@ -312,7 +312,8 @@ export function pencilObjectStudyDrawing({
   const transform = aspect === "landscape" ? "translate(416 32) scale(1.08)" :
     "translate(24 246) scale(1.07)";
   const regions = shapes.map((shape, i) => {
-    const region = material(shape, seed + i * 311, transform);
+    // Permit every valid UI seed while keeping each material pass in signed-31-bit range.
+    const region = material(shape, (seed + i * 311) % 2147483647, transform);
     return { ...region, layers:region.layers.map(layer => ({
       ...layer, pressure:Math.min(1, layer.pressure * pressure),
     })) };
