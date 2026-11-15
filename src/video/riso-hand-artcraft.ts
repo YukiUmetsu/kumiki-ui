@@ -1,4 +1,4 @@
-import type {RisoCharacterPart,RisoCharacterSpec,RisoJointFrame} from "../../registry/video/riso-character";
+import type {RisoCharacterPart,RisoCharacterSpec,RisoJointFrame,RisoCharacterFrame} from "../../registry/video/riso-character";
 import {evaluateRisoCharacter} from "../../registry/video/riso-character";
 import {HAND_POSES} from "../../registry/anatomy/anatomy-pose";
 import {SURFACE_FORMS,ANSUR} from "../../registry/anatomy/anatomy-reference";
@@ -147,5 +147,55 @@ export function inspectRisoHandArtcraft(spec:RisoCharacterSpec,frame:number,side
     actuallyEngraved:newParts.every(n=>source.some(p=>p.id===n.id&&p.joint===n.joint&&p.d===n.d)),
     plateNames:[...layers].sort(),independentDigitTransforms:digits.every((j,k)=>digits.findIndex(d=>d.x===j.x&&d.y===j.y)===k),
     referenceKnuckleCount:RISO30_ANAT1_HAND.anatomicalKnuckleIds.length,
+  };
+}
+
+/** Layout for the REAL original two-spot printed hand and skinned forearm.
+ *
+ * A hand can swing ~90 degrees between the 46f waiting and 160f paper
+ * contact cels. Centering the static wrist caused a hand with all five
+ * extended fingers to clip against the right edge of the Artist's preview,
+ * even though the film source itself was valid. Frame the posed anatomical
+ * silhouette, including the distinct elbow, thumb and fifth fingertip.
+ *
+ * This is a VIEWPORT crop only. It never changes the original character
+ * pose, stage, paper-handoff anchors, ink deposits or source path topology.
+ */
+export function layoutRisoHandArtcraft(
+  pose:RisoCharacterFrame,side:RisoHandSide,
+  requestedZoom:number,width:number,height:number,
+){
+  if(!(requestedZoom>0&&width>80&&height>80))throw new RangeError("RISO30 hand layout requires positive crop dimensions");
+  const j=(id:string)=>{
+    const out=pose.joints.find(v=>v.id===side+"-"+id);
+    if(!out)throw new Error("RISO30 crop missing source joint "+side+"-"+id);
+    return out;
+  };
+  const project=(joint:RisoJointFrame,x:number,y:number):readonly [number,number]=>{
+    const m=joint.matrix;
+    return [m.a*x+m.c*y+m.e,m.b*x+m.d*y+m.f] as const;
+  };
+  const points:(readonly [number,number])[]=[];
+  const box=(joint:RisoJointFrame,l:number,t:number,r:number,b:number)=>{
+    points.push(project(joint,l,t),project(joint,r,t),project(joint,l,b),project(joint,r,b));
+  };
+  // Explicit connected named anatomy, not a fake head-size rectangle or
+  // invented reference figure. Source contours are wholly inside these
+  // conservative digit/forearm extents at every authored gesture.
+  box(j("elbow"),-12,-5,12,7); // skinned forearm root
+  box(j("hand"),-12,-6,12,22); // widest metacarpal/palm wedge
+  for(const [name,endY] of Object.entries({index:21,middle:23,ring:21,pinky:17}))
+    box(j(name),-4,-4,5,endY);
+  box(j("thumb"),-12,-8,12,6); // radial opposition, both handednesses
+  const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
+  const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
+  const centerX=(left+right)/2,centerY=(top+bottom)/2;
+  const scale=Math.min(requestedZoom,(width-72)/Math.max(1,right-left),(height-70)/Math.max(1,bottom-top));
+  const x=width/2-centerX*scale,y=height/2-centerY*scale;
+  const paperBounds={left:left*scale+x,right:right*scale+x,
+    top:top*scale+y,bottom:bottom*scale+y};
+  return {x,y,scale,sourceBounds:{left,right,top,bottom},paperBounds,
+    marginX:Math.min(paperBounds.left,width-paperBounds.right),
+    marginY:Math.min(paperBounds.top,height-paperBounds.bottom),
   };
 }
