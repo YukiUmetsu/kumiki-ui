@@ -189,7 +189,7 @@ export function crayonArtcraftBodyStudy(options:BodyStudyOptions={}):CrayonScene
     "Q295 870 291 812Q287 753 288 699"+
     "Q288 657 283 609Q274 550 273 503Z",
     rect(266,488,122,469),P.denim,[16,135],
-    {pressure:.88,spacing:9,markStrength:.84});
+    {pressure:.79,spacing:7.7,markStrength:.46,underpaintTooth:.34});
   wax("trouser-leg-right",
     "M369 515Q433 489 482 512Q486 561 473 613"+
     "Q469 683 451 740Q440 810 438 868"+
@@ -197,14 +197,14 @@ export function crayonArtcraftBodyStudy(options:BodyStudyOptions={}):CrayonScene
     "Q376 899 376 859Q381 796 394 741"+
     "Q390 688 372 641Q361 598 369 515Z",
     rect(359,485,133,477),P.denimLight,[23,142],
-    {pressure:.89,spacing:9,markStrength:.79});
+    {pressure:.78,spacing:7.8,markStrength:.44,underpaintTooth:.36});
   wax("crotch-and-pelvis",
     "M274 484Q364 483 481 483L480 527"+
     "Q466 564 448 588Q431 608 416 609"+
     "Q393 605 378 589Q362 607 337 603"+
     "Q301 584 281 548Z",
     rect(269,480,219,135),P.denim,[42,168],
-    {pressure:.83,spacing:8,markStrength:.6});
+    {pressure:.79,spacing:7,markStrength:.44,underpaintTooth:.37});
   // Shoes are grounded with broad toe boxes, distinct ankle creases, sole
   // edges and lace systems. No detached triangles or geometrical slippers.
   wax("shoe-left",
@@ -228,19 +228,19 @@ export function crayonArtcraftBodyStudy(options:BodyStudyOptions={}):CrayonScene
     "Q289 496 272 480Q278 437 270 397"+
     "Q251 343 252 292Q256 248 278 218Z",
     rect(244,191,266,310),P.shirt,[31,162],
-    {pressure:.82,spacing:8.2,markStrength:.6});
+    {pressure:.76,spacing:7.1,markStrength:.38,underpaintTooth:.4});
   wax("sleeve-left-roll",
     "M280 224C259 240 252 269 250 304"+
     "L238 365Q238 385 259 388Q272 389 280 380"+
     "Q291 346 292 314Q299 279 314 245Z",
     rect(232,215,89,183),P.shirtShadow,[39,178],
-    {pressure:.84,spacing:7,markStrength:.65});
+    {pressure:.78,spacing:6.5,markStrength:.42,underpaintTooth:.42});
   wax("sleeve-right-roll",
     "M468 213Q495 237 507 270Q512 319 515 369"+
     "Q512 392 493 396Q482 396 474 382"+
     "L472 307Q463 272 448 239Z",
     rect(442,203,80,201),P.shirtShadow,[42,177],
-    {pressure:.86,spacing:7,markStrength:.62});
+    {pressure:.78,spacing:6.5,markStrength:.41,underpaintTooth:.42});
   wax("left-cuff-overlap",
     "M239 366Q260 358 279 366Q277 382 258 391"+
     "Q240 393 238 382Z",
