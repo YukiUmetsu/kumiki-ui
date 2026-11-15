@@ -36,7 +36,7 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     const parts=new Map(drawing.regions.map(region=>[region.id,region]));
     const must=[
       "hair-back","coat-back","neck","ear","face-main","temple-light",
-      "cheek-light","eye-white-far","iris-far","eye-white-near","iris-near",
+      "cheek-light","eye-white-far","iris-far","pupil-far","eye-white-near","iris-near","pupil-near",
       "brows","nose-bridge","lip-upper","lip-lower","hair-crown",
       "hair-lock-left","hair-lock-right","collar-left","collar-right",
     ];
@@ -46,6 +46,10 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(parts.get("face-main")!.opaqueSupport).toBe(true);
     expect(parts.get("face-main")!.clipDetails).toBe(true);
     expect(parts.get("iris-near")!.opaqueSupport).toBe(false);
+    expect(parts.get("pupil-near")!.opaqueSupport).toBe(true);
+    expect(parts.get("pupil-far")!.opaqueSupport).toBe(true);
+    expect(parts.get("temple-light")!.opaqueSupport).toBe(false);
+    expect(parts.get("cheek-light")!.opaqueSupport).toBe(false);
     expect(parts.get("eye-white-near")!.bounds[2])
       .toBeGreaterThan(parts.get("eye-white-far")!.bounds[2]);
     expect(parts.get("lip-upper")!.path).not.toBe(parts.get("lip-lower")!.path);
