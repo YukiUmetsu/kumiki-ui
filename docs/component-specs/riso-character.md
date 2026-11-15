@@ -259,3 +259,7 @@ Actual production film frames revealed that an actor-wide paper knockout is **in
 `RisoCharacterInk` now treats each `knockoutOnly` path as **an internal negative-space mask of earlier ink parts** on each spot plate. Later facial ink is painted normally on the exposed paper. The example Courier orders the entire coat, sleeve, glove, bag and badge behind the face clearance and facial features. Multiple staged masks are supported in paint-order segments; actors without paper-clearance parts do not create masks. This is not low-opacity overpainting or an RGB transparency filter.
 
 Verify `tests/riso-character-paper-clearance.test.tsx`, the browser clearance stress frames (landscape and portrait at 46/157/198), and the encoded production film. Future work: explicit per-part depth/deformation vocabulary for complex occlusions, a production-grade multi-character face-overlap editor, and independent print-artist approval.
+
+## Human-character reference atlas (RISO12)
+
+The curated [Risograph human-character research atlas](../research/riso12-human-character-reference-atlas.md) documents nine verified printed figure studies, source links, facial/hand/garment/pose construction observations, the current Courier gaps, and ordered ArtCraft acceptance gates. It is a **reference study**, not a claim that the current character artwork meets these visual standards. Use it to prioritize face geometry and separately articulated hands before adding more print noise.
