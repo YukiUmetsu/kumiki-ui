@@ -65,8 +65,10 @@ export function inkDuet(
     { id: "learner-bow", kind: "action", name: "bow",
       startFrame: 276, instanceId: second.instanceId },
   ];
-  const left = portrait ? [150, 194] : [225, 373];
-  const right = portrait ? [389, 343] : [772, 612];
+  // Keep the staged palm regions near each other without overlapping feet.
+  // Old root positions passed coarse reach yet left 70–96px hand gaps.
+  const left = portrait ? [150, 212] : [225, 410];
+  const right = portrait ? [389, 308] : [772, 576];
   const ground = portrait ? 821 : 478;
   const plan: InkEnsemblePlan = {
     actors: [
