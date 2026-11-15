@@ -287,7 +287,7 @@ function fox(p:Pen,add:Add,phase:number,motion:number){
     p.M(-80,-19),p.C(-76,-31,-67,-34,-57,-29),
     p.C(-64,-23,-66,-15,-61,-10),p.Q(-75,-9,-80,-19),p.Z].join(" "),
     attach("fox-tail",-66,-24));
-  add("fox-back","#C87F54",17,[
+  add("fox-body","#C87F54",17,[
     p.M(-43,-33),p.C(-30,-53,5,-52,24,-37),
     p.C(44,-35,49,-25,43,-18),p.C(12,-9,-13,-12,-34,-17),p.Z].join(" "),
     {pivot:p.xy(0,-26),poseKeys:phase===1?
