@@ -1,6 +1,6 @@
 import { createPencilMaterialRegion } from "../../registry/video/colored-pencil-materials";
 import type { PencilSurface } from "../../registry/video/colored-pencil-materials";
-import type { PencilActorSpec, PencilActorPart, PencilPoseKey } from "../../registry/video/colored-pencil-actor";
+import type { PencilActorSpec, PencilActorPart, PencilPoseKey, PencilActorDetailTrack } from "../../registry/video/colored-pencil-actor";
 import type { PencilAspect, PencilTrace } from "../../registry/video/colored-pencil";
 import type { PencilSceneSpec } from "../../registry/video/colored-pencil-scene";
 import { createPencilRegion } from "../../registry/video/colored-pencil";
@@ -8,6 +8,8 @@ import { pencilDemoScene } from "./colored-pencil-demo-scenes";
 import { flowBundles } from "./colored-pencil-living-studies";
 import { KINGFISHER_PERCHING_FEET, KINGFISHER_FOLDED_WING_AXES,
   KINGFISHER_COVERT_AXES, vaneTracts } from "./colored-pencil-anatomy-detail";
+import { anatomicalFibreTraces } from "./colored-pencil-anatomical-fibres";
+import type { PencilFibreField } from "./colored-pencil-anatomical-fibres";
 
 /**
  * Rebuilt from an empty character authoring slate (2026-11-14).
@@ -45,6 +47,7 @@ interface PartInput {
   startFrame?:number;
   /** Preserve intentionally projecting whiskers while pigment stays shape-clipped. */
   freeDetails?:boolean;
+  detailTracks?:readonly PencilActorDetailTrack[];
 }
 /** Shape / silhouette first, independent pigment region and child joints second. */
 function part(input:PartInput):PencilActorPart {
@@ -68,10 +71,55 @@ function part(input:PartInput):PencilActorPart {
   }:region.craft;
   const crafted={...region,craft};
   return {id:input.id,parent:input.parent,pivot:input.pivot,keys:input.keys??neutral,
+    detailTracks:input.detailTracks,
     region:input.freeDetails?{...crafted,clipDetails:false}:crafted};
 }
 const strokeFox=(guides:Parameters<typeof flowBundles>[0],seed:number,
   color="#F8D0A4",width=.62,start=205)=>flowBundles(guides,seed,color,width,start);
+
+/** Distinct close-up feather/guard-hair regions stay poseable inside the
+ *  existing opaque limb/wing/head. No new CP1 region or silhouette is added.
+ */
+function fibreStudy(field:PencilFibreField,pivot:readonly[number,number],
+  intensity:number):{details:readonly PencilTrace[];tracks:readonly PencilActorDetailTrack[]} {
+  const details=anatomicalFibreTraces(field);
+  const tracks=details.map((detail,index)=>({
+    id:detail.id!,
+    pivot,
+    keys:[key(0),key(165),key(187,0,0,intensity*(1+.22*index)),
+      key(216,0,0,-intensity*(.65+.10*index)),
+      key(247,0,0,intensity*.45),key(282),key(319)],
+  }));
+  return {details,tracks};
+}
+const foxTailFibre=fibreStudy({
+  id:"tail-guard",axis:[3,117,24,138,57,146],spread:12,length:10,count:168,
+  seed:4111,palette:["#694845","#B46E58","#F2C998"],startFrame:183,
+},[27,135],3.1);
+const foxRuffFibre=fibreStudy({
+  id:"ruff-undercoat",axis:[158,119,171,143,179,165],spread:14,length:8,count:177,
+  seed:4213,palette:["#877168","#CEB9A2","#FFF2D5"],startFrame:194,
+},[174,134],2.3);
+const foxBrowFibre=fibreStudy({
+  id:"brow-fur",axis:[171,67,194,83,219,105],spread:10,length:4.6,count:105,
+  seed:4297,palette:["#8F5647","#D59570","#F9D4A6"],startFrame:200,
+},[198,93],1.1);
+const birdBreastFibre=fibreStudy({
+  id:"breast-filaments",axis:[110,126,108,151,122,179],spread:9,length:6,count:108,
+  seed:4417,palette:["#8F6559","#E0A16F","#FFE1AA"],startFrame:194,
+},[117,151],1.25);
+const birdWingFibre=fibreStudy({
+  id:"folded-primaries",axis:[136,132,143,161,155,188],spread:11,length:10,count:165,
+  seed:4451,palette:["#213D60","#658CAD","#C7E0D8"],startFrame:193,
+},[139,141],3.6);
+const birdCovertFibre=fibreStudy({
+  id:"shoulder-coverts",axis:[139,120,147,133,156,146],spread:7,length:5.4,count:108,
+  seed:4519,palette:["#244D70","#4B98B6","#BCEAE2"],startFrame:209,
+},[146,135],3.4);
+const birdCrownFibre=fibreStudy({
+  id:"crown-barbs",axis:[106,73,127,64,152,77],spread:8,length:4.4,count:111,
+  seed:4567,palette:["#1B486A","#548DA5","#C1E4DC"],startFrame:207,
+},[133,86],1.25);
 
 export const FOX_REBUILT_PARTS=[
   "tail","tail-tip","far-foreleg","torso","near-hindleg","near-foreleg","ruff",
@@ -80,6 +128,7 @@ export const FOX_REBUILT_PARTS=[
 function fox():PencilActorSpec {
   const parts:PencilActorPart[]=[
     part({id:"tail",material:"fur",colors:foxRust,pivot:[72,137],
+      detailTracks:foxTailFibre.tracks,
       keys:[key(0),key(155),key(181,0,-2,-8),key(208,0,2,7),
         key(234,0,0,-5),key(275,0,1,4),key(319)],
       path:"M73 128 Q40 113 2 101 Q-17 96 -36 102 L-49 106 Q-47 114 -43 119 L-36 129 Q-26 141 -14 146 Q2 158 25 159 Q41 165 57 155 Q69 156 76 145 Z",
@@ -90,6 +139,7 @@ function fox():PencilActorSpec {
         trace("M-21 125 Q-16 150 6 167 M7 104 Q36 112 59 134",
           "#554D54",1.8,214),
         trace("M-26 141 Q-16 162 13 176","#FFF0D0",1.2,231),
+        ...foxTailFibre.details,
       ]}),
     // The light tip is a genuine connected tail-colour region, not a random
     // white sticker crossing the coat. It inherits every swing of the rump tail.
@@ -133,11 +183,14 @@ function fox():PencilActorSpec {
           "#373540",.92,228),
         trace("M166 209 Q170 214 179 215","#D0B6A7",.8,238)]}),
     part({id:"ruff",material:"fur",colors:foxLight,parent:"torso",pivot:[168,131],
+      detailTracks:foxRuffFibre.tracks,
       path:"M160 117 Q178 107 195 116 Q201 126 194 142 L191 152 L202 155 L182 164 L184 176 L168 169 L159 180 L157 166 L144 165 Q147 150 153 139 Z",
       bounds:[141,103,65,81],direction:67,flow:31,
-      details:strokeFox([[159,118,178,157,149,151,25,11],
-        [178,119,193,155,189,139,21,10]],1373,"#FFF4D9",.66)}),
+      details:[...strokeFox([[159,118,178,157,149,151,25,11],
+        [178,119,193,155,189,139,21,10]],1373,"#FFF4D9",.66),
+        ...foxRuffFibre.details]}),
     part({id:"head",material:"fur",colors:foxRust,parent:"torso",pivot:[169,123],
+      detailTracks:foxBrowFibre.tracks,
       keys:[key(0),key(169),key(194,1,-1,-4),key(226,0,-4,-8),
         key(252,1,-1,-4),key(284),key(319)],
       path:"M156 112 Q146 99 154 84 Q156 71 156 55 Q158 43 166 47 Q173 59 177 78 Q186 77 200 70 Q204 56 211 51 Q220 50 217 66 L214 87 Q236 98 247 111 Q251 118 238 122 Q218 130 192 135 Q172 128 156 112 Z",
@@ -149,6 +202,7 @@ function fox():PencilActorSpec {
         trace("M161 57 Q164 40 168 34 M203 61 Q209 44 216 41",
           "#513F49",1.3,221),
         trace("M155 99 Q169 126 181 138","#FBE6C1",1.5,235),
+        ...foxBrowFibre.details,
       ]}),
     part({id:"ear-interiors",material:"fur",colors:foxDark,parent:"head",pivot:[183,62],
       path:"M159 81 Q158 61 161 51 Q167 56 175 78 Z M200 79 Q206 62 212 55 Q215 67 210 87 Z",
@@ -234,11 +288,14 @@ export function createKingfisherActor():PencilActorSpec {
           "#1F5374",1.25,223),
       ]}),
     part({id:"breast",material:"feather",colors:birdOrange,parent:"torso",pivot:[115,150],
+      detailTracks:birdBreastFibre.tracks,
       path:"M106 118 Q125 114 133 142 Q145 172 133 195 Q109 202 94 174 Q91 146 106 118 Z",
       bounds:[89,113,60,91],direction:72,flow:24,
-      details:strokeFox([[107,128,112,182,96,157,22,10],
-        [120,131,129,181,131,153,19,9]],1733,"#FADEA7",.59)}),
+      details:[...strokeFox([[107,128,112,182,96,157,22,10],
+        [120,131,129,181,131,153,19,9]],1733,"#FADEA7",.59),
+        ...birdBreastFibre.details]}),
     part({id:"near-wing",material:"feather",colors:birdCobalt,parent:"torso",pivot:[139,122],
+      detailTracks:birdWingFibre.tracks,
       keys:[key(0),key(159),key(173,0,-2,14),key(192,0,0,-19),
         key(212,0,-2,17),key(236,0,0,-15),key(270),key(319)],
       path:"M136 113 Q158 109 169 130 Q179 155 171 168 Q166 185 161 191 L154 205 L149 190 L143 199 L138 185 L134 203 Q130 187 124 164 Q122 140 136 113 Z",
@@ -250,11 +307,13 @@ export function createKingfisherActor():PencilActorSpec {
           "#193C62",1.45,226),
         trace("M132 155 Q146 171 152 187","#D3E6DC",.83,239),
         ...vaneTracts(KINGFISHER_FOLDED_WING_AXES,"#C7DAD8",226),
+        ...birdWingFibre.details,
       ]}),
     // The overlapping shoulder coverts are a separate pigmented feather plane.
     // The neutral animation inherits near-wing only once, even at wing extremes.
     part({id:"wing-coverts",material:"feather",colors:birdBlue,
       parent:"near-wing",pivot:[142,133],direction:39,flow:24,
+      detailTracks:birdCovertFibre.tracks,
       path:"M133 114 Q156 107 171 125 Q167 145 150 156 Q134 155 125 139 Z",
       bounds:[122,104,53,56],
       details:[
@@ -263,8 +322,10 @@ export function createKingfisherActor():PencilActorSpec {
         trace("M130 132 Q143 151 151 151 M147 121 Q160 133 166 136",
           "#1D5A73",.9,241),
         ...vaneTracts(KINGFISHER_COVERT_AXES,"#CBE7DB",229),
+        ...birdCovertFibre.details,
       ]}),
     part({id:"head",material:"feather",colors:birdBlue,parent:"torso",pivot:[130,113],
+      detailTracks:birdCrownFibre.tracks,
       keys:[key(0),key(177),key(199,0,-2,6),key(227,0,-1,-4),
         key(269),key(319)],
       path:"M95 108 C92 90 98 72 111 65 Q127 56 147 64 Q162 72 165 91 Q161 113 146 122 Q117 128 95 108 Z",
@@ -280,6 +341,7 @@ export function createKingfisherActor():PencilActorSpec {
           "#D6F0DF",.60,231),
         trace("M109 79 Q112 75 116 77 M120 75 Q124 71 127 75 M131 73 Q135 69 139 73 M142 77 Q147 78 151 83 M114 87 Q119 82 123 84 M127 83 Q132 81 135 85",
           "#173B5D",.58,237),
+        ...birdCrownFibre.details,
       ]}),
     part({id:"cheek",material:"feather",colors:birdOrange,parent:"head",pivot:[127,111],
       path:"M97 100 Q112 95 123 100 Q135 103 154 93 Q151 105 132 116 Q110 119 98 108 Z",

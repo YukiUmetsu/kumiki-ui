@@ -53,6 +53,7 @@ function CraftDeposit({region,frame,reducedMotion}:{
 function Trace({ trace, frame, reducedMotion = false }: { trace: PencilTrace; frame: number; reducedMotion?: boolean }) {
   const progress = evaluatePencilMark(frame, trace, reducedMotion);
   return <path d={trace.path} fill="none" stroke={trace.color} strokeWidth={trace.width}
+    data-km-pencil-trace={trace.id} transform={trace.transform}
     strokeLinecap="round" strokeLinejoin="round" opacity={trace.opacity ?? .85}
     pathLength={1} strokeDasharray={progress.toFixed(5) + " 1"} />;
 }
