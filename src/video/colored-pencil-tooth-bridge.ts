@@ -142,6 +142,19 @@ export function createPhotoSkinToothBridge(
       }
       const drawnY=value(sample(drawing,x*drawScale,
         y*drawScale,drawScale*.76));
+      // Guard a *whole photographed tonal plane*, not only an isolated
+      // white nib gap. The first native proof revealed a portrait nasal
+      // bridge already 2/255 too dark; filling bright grit there made the
+      // overall plane darker still. Keep its source value/gradient intact.
+      const broadRadius=5.2;
+      const sourceStep=Math.max(1.1,crop.width/WIDTH*broadRadius);
+      const broadSourceY=value(sample(source,sourcePoint[0],
+        sourcePoint[1],sourceStep));
+      const broadDrawY=value(sample(drawing,x*drawScale,
+        y*drawScale,drawScale*broadRadius));
+      if(broadDrawY<=broadSourceY+.004){
+        untouchedAreas++;continue;
+      }
       const paperGap=drawnY-sourceY;
       // An intact tone or an intentional dark fibre is never brightened,
       // moved, removed or overdrawn. Recheck actual source values rather
