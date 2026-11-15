@@ -45,14 +45,16 @@ export function evaluateRisoTransferSheet(
       !Number.isFinite(pinch) || pinch < 0 || pinch > 1)
     throw new RangeError("RISO transfer curl must be 0..12 and gripPinch 0..1.");
   const dx = end.x - source.x, dy = end.y - source.y, length = Math.hypot(dx, dy);
-  // Do not emit a degenerate 0-width quadrilateral at the first animation key.
-  if (progress === 0 || length < 28) return EMPTY;
+  // A paper slip opens progressively from the hand. Suppressing a sheet
+  // shorter than 28 units caused a conspicuous full-width pop on first reveal.
+  if (progress === 0 || length < .5) return EMPTY;
+  const reveal = Math.min(1, length / 28);
   const nx = -dy / length, ny = dx / length;
   const at = (t: number, offset = 0): RisoTransferPoint => {
     const bow = curl * Math.sin(Math.PI * Math.max(0, Math.min(1, t)));
     return {
-      x: source.x + dx * t + nx * (offset + bow),
-      y: source.y + dy * t + ny * (offset + bow),
+      x: source.x + dx * t + nx * (offset + bow) * reveal,
+      y: source.y + dy * t + ny * (offset + bow) * reveal,
     };
   };
   // The contour is a truly connected ribbon. Both pinched short edges
