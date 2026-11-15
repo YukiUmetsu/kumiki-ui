@@ -644,8 +644,8 @@ function OldPine({x,y,scale,wind,seed,detail}:{
               fill="none" opacity=".5" strokeLinecap="round"/>
             <path data-km-pine-lateral-crotch=""
               d={"M"+f(rootFork[0]-3)+" "+f(rootFork[1]+1)+
-                " q"+f(dx*.17)+" -"+f(flip*8)+
-                " "+f(dx*.29)+" -"+f(flip*10)}
+                " q"+f(dx*.17)+" "+f(-flip*8)+
+                " "+f(dx*.29)+" "+f(-flip*10)}
               fill="none" stroke="#392e25" strokeWidth="1.05" opacity=".64"/>
             {Array.from({length:Math.round(detail)},(_,j)=>{
               const t=.85;
