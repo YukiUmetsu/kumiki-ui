@@ -1,6 +1,7 @@
 import {describe,expect,it} from "vitest";
 import {
   createDryPencilHeadPlate,projectMeasuredHeadContours,
+  HEAD_STORYBOARD_PHASES,selectHeadStoryboardStrokes,
 } from "../src/video/colored-pencil-full-head";
 import {mapCC0WomanPortraitFeatures} from "../src/video/colored-pencil-portrait-guides";
 import type {PencilPhotoPixels} from "../src/video/colored-pencil-photo";
@@ -97,4 +98,49 @@ describe("Source-measured ArtCraft full-head geometry (experimental)",()=>{
     expect(()=>createDryPencilHeadPlate(img,guides,-1))
       .toThrow(RangeError);
   });
+});
+
+
+describe("ArtCraft four-shot production storyboard and pencil scumbling",()=>{
+  it("constructs four chronological, strictly increasing paper-only mark families",()=>{
+    const plate=createDryPencilHeadPlate(source(),guides,271,.85);
+    const phases=HEAD_STORYBOARD_PHASES.map(stage=>
+      selectHeadStoryboardStrokes(plate.strokes,stage.id));
+    expect(HEAD_STORYBOARD_PHASES).toHaveLength(4);
+    expect(phases.map(p=>p.length).every(n=>n>500)).toBe(true);
+    for(let i=0;i<phases.length-1;i++){
+      expect(phases[i].length).toBeLessThan(phases[i+1].length);
+      // Future stages only add authored pigment: no erase/photo
+      // substitution as the animation progresses.
+      expect(phases[i].every(mark=>phases[i+1].includes(mark))).toBe(true);
+    }
+    expect(phases[3]).toEqual(plate.strokes);
+    expect(phases[0].every(m=>
+      m.zone==="face-value"||m.zone==="hair-mass"&&m.pass===0)).toBe(true);
+    expect(phases[1].some(m=>m.zone==="face-chroma")).toBe(true);
+    expect(phases[2].some(m=>m.zone==="face-scumble")).toBe(true);
+    expect(phases[2].some(m=>m.zone==="face-form")).toBe(true);
+    expect(phases[2].some(m=>m.zone==="hair-fibre")).toBe(false);
+    expect(phases[3].some(m=>m.zone==="hair-fibre")).toBe(true);
+    expect(phases[3].some(m=>m.zone==="measured-features")).toBe(true);
+    expect(()=>selectHeadStoryboardStrokes(plate.strokes,
+      "nonsense" as never)).toThrow(RangeError);
+  });
+  it("scumble is controllable, deterministic, doesn't mutate photo pixels",()=>{
+    const img=source(),original=new Uint8ClampedArray(img.data);
+    const raw=createDryPencilHeadPlate(img,guides,271,0);
+    const finished=createDryPencilHeadPlate(img,guides,271,.85);
+    expect(raw.materialCounts["face-scumble"]).toBe(0);
+    expect(finished.materialCounts["face-scumble"]).toBeGreaterThan(60);
+    expect(finished.strokes.length).toBeGreaterThan(raw.strokes.length);
+    expect(finished.scumbleStrength).toBe(.85);
+    expect(createDryPencilHeadPlate(img,guides,271,.85)).toEqual(finished);
+    expect(img.data).toEqual(original);
+    expect(()=>createDryPencilHeadPlate(img,guides,271,-.01))
+      .toThrow(RangeError);
+    expect(()=>createDryPencilHeadPlate(img,guides,271,Number.NaN))
+      .toThrow(RangeError);
+    expect(()=>createDryPencilHeadPlate(img,guides,271,1.2))
+      .toThrow(RangeError);
+  },15000);
 });

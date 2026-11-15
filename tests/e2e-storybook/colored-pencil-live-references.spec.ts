@@ -126,6 +126,35 @@ for(const sample of ["woman","man"] as const){
           "true",{timeout:90000});
         await expect(headSource).toHaveAttribute(
           "data-km-pencil-full-head-source","ready",{timeout:90000});
+        // Actual licensed source, ALL four chronologically composited
+        // Storybook shots. Stage 1..4 must contain increasing genuine
+        // pencil marks; the exported film bitmap must not be affected.
+        const boardToggle=page.getByRole("checkbox",{
+          name:"Inspect four-shot portrait storyboard",
+        });
+        await boardToggle.check();
+        const board=page.locator('[data-km-pencil-portrait-storyboard]');
+        const shots=board.locator("canvas[data-km-pencil-portrait-stage]");
+        await expect(shots).toHaveCount(4);
+        const labels=["value","pigment","form","detail"];
+        const totals:number[]=[];
+        for(let i=0;i<labels.length;i++){
+          await expect(shots.nth(i)).toHaveAttribute(
+            "data-km-pencil-storyboard-rendered",labels[i],
+            {timeout:90000});
+          await expect(shots.nth(i)).toHaveAttribute(
+            "data-km-pencil-raster-underpaint","none");
+          totals.push(Number(await shots.nth(i)
+            .getAttribute("data-km-pencil-storyboard-strokes")));
+        }
+        expect(totals.every(n=>Number.isInteger(n)&&n>500)).toBe(true);
+        expect(totals.every((n,i)=>i===0||n>totals[i-1])).toBe(true);
+        await board.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-portrait-storyboard-four-shots.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
+        await boardToggle.uncheck();
         const toneEvidence=page.locator(
           '[data-km-pencil-tonal-comparison="ready"]');
         await expect(toneEvidence).toHaveCount(1,{timeout:90000});

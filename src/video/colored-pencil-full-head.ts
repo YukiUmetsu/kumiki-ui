@@ -116,12 +116,38 @@ export const projectMeasuredHeadContours=(guides:PortraitFeatureMap):HeadContour
   };
 };
 export type HeadMaterialZone="face-value"|"face-chroma"|"face-form"|
-  "hair-mass"|"hair-fibre"|"measured-features";
+  "face-scumble"|"hair-mass"|"hair-fibre"|"measured-features";
+export interface PortraitHeadStroke extends PencilPhotoMark {
+  readonly zone:HeadMaterialZone;
+}
+/** Authentic mark families, not screenshots of intermediary raster paints. */
+export const HEAD_STORYBOARD_PHASES=[
+  {id:"value",label:"01 · Structure",description:"Value and connected hair mass"},
+  {id:"pigment",label:"02 · Local chroma",description:"Warm/cool pencil layering"},
+  {id:"form",label:"03 · Form and scumble",description:"Skin planes, orbital depth and optical circles"},
+  {id:"detail",label:"04 · Likeness details",description:"Lashes, lips and rooted hair fibres"},
+] as const;
+export type HeadStoryboardPhase=typeof HEAD_STORYBOARD_PHASES[number]["id"];
+export const selectHeadStoryboardStrokes=(
+  strokes:readonly PortraitHeadStroke[],phase:HeadStoryboardPhase,
+):readonly PortraitHeadStroke[]=>{
+  if(!HEAD_STORYBOARD_PHASES.some(stage=>stage.id===phase))
+    throw new RangeError("Unknown coloured-pencil portrait storyboard phase");
+  return strokes.filter(stroke=>phase==="detail"||
+    (phase==="value"&&(stroke.zone==="face-value"||
+      stroke.zone==="hair-mass"&&stroke.pass===0))||
+    (phase==="pigment"&&stroke.zone!=="measured-features"&&
+      (stroke.pass<=1||stroke.zone==="face-value"||
+        stroke.zone==="face-chroma"))||
+    (phase==="form"&&stroke.zone!=="hair-fibre"&&
+      stroke.zone!=="measured-features"));
+};
 export interface DryPencilHeadPlate {
   readonly width:540;
   readonly height:600;
   readonly crop:Readonly<{left:number;top:number;width:number;height:number}>;
-  readonly strokes:readonly PencilPhotoMark[];
+  readonly strokes:readonly PortraitHeadStroke[];
+  readonly scumbleStrength:number;
   readonly rasterUnderpainting:false;
   readonly paperColor:typeof PAPER;
   /** Five independent support/value bins, 0=deepest, 4=reserved paper. */
@@ -155,8 +181,12 @@ const isHairColour=(rgb:readonly number[])=>{
  */
 export const createDryPencilHeadPlate=(
   source:PencilPhotoPixels,guides:PortraitFeatureMap,seed=271,
+  scumbleStrength=.65,
 ):DryPencilHeadPlate=>{
   positiveSafeSource(source,seed);
+  if(!Number.isFinite(scumbleStrength)||
+    scumbleStrength<0||scumbleStrength>1)
+    throw new RangeError("Invalid coloured pencil scumble strength");
   // Require the entire, already-audited 25-landmark source map.
   const details=createPencilPortraitFeatureMarks(source,guides,seed);
   const geometry=projectMeasuredHeadContours(guides);
@@ -166,11 +196,12 @@ export const createDryPencilHeadPlate=(
   const left=guides.hairline[0]-cropWidth*.49;
   const top=guides.hairline[1]-eyeDist*.70;
   const scale=SIZE.width/cropWidth;
-  const marks:PencilPhotoMark[]=[];
+  const marks:PortraitHeadStroke[]=[];
   const fiveValueCounts:[number,number,number,number,number]=[0,0,0,0,0];
   const materialCounts:Record<HeadMaterialZone,number>={
     "face-value":0,"face-chroma":0,"face-form":0,
-    "hair-mass":0,"hair-fibre":0,"measured-features":0,
+    "face-scumble":0,"hair-mass":0,"hair-fibre":0,
+    "measured-features":0,
   };
   const screen=(p:Point):Point=>[(p[0]-left)*scale,(p[1]-top)*scale];
   const push=(zone:HeadMaterialZone,p:Point,vector:Point,ink:string,
@@ -184,7 +215,7 @@ export const createDryPencilHeadPlate=(
       x:root[0],y:root[1],
       controlX:clamp(cx,0,SIZE.width),controlY:clamp(cy,0,SIZE.height),
       endX:clamp(tip[0],0,SIZE.width),endY:clamp(tip[1],0,SIZE.height),
-      color:ink,alpha:clamp(alpha,.005,.56),width,pass,
+      color:ink,alpha:clamp(alpha,.005,.56),width,pass,zone,
     });
     materialCounts[zone]++;
   };
@@ -194,9 +225,13 @@ export const createDryPencilHeadPlate=(
     // Keep hair topologically disjoint from the skin support, including
     // subpixel feature boundaries where round-to-nearest colour sampling
     // could otherwise steal pale facial pixels into the outer hair mass.
-    const inset=eyeDist*.018;
+    // Adjacent hair and skin need near-contiguous optical support, but
+    // round-to-nearest photographic RGB at the polygon boundary can sample
+    // *skin* into the garden. A subpixel registration tolerance prevents
+    // false hair without the previous large white sticker-like inset.
+    const registrationTolerance=eyeDist*.010;
     if(inside(p,geometry.hairOuter)&&
-      distanceToEdge(p,geometry.face)>inset){
+      distanceToEdge(p,geometry.face)>registrationTolerance){
       const rgb=photoRGB(source,p[0],p[1]);
       const r=eyeDist*.090;
       let around=0;
@@ -338,6 +373,37 @@ export const createDryPencilHeadPlate=(
         ink,(.25+.31*shadow)*feather,
         layer===0?1.24:layer===1?.97:.69,2,
         (pencilHash(seed,j,206)-.5)*.12);
+    }
+  }
+  // Ann Kullberg's elliptical scumbling technique: overlapping curved,
+  // low-pressure pencil arcs knit coarse value strokes into the paper tooth.
+  // Only source-conditioned skin is scumbled; highlights and bright glints
+  // retain visible, unfilled paper. This does not blur photograph pixels.
+  if(scumbleStrength>0){
+    const step=eyeDist*.033;
+    const cols=Math.ceil(cropWidth/step),rows=Math.ceil(cropHeight/step);
+    for(let iy=0;iy<rows;iy++)for(let ix=0;ix<cols;ix++){
+      const i=iy*cols+ix;
+      const px=left+(ix+.5+(pencilHash(seed,i,271)-.5)*.5)*step;
+      const py=top+(iy+.5+(pencilHash(seed,i,272)-.5)*.5)*step;
+      const p:Point=[px,py];
+      if(classify(p)!=="skin")continue;
+      const value=photoValue(source,px,py);
+      if(value>.92)continue;
+      const shade=clamp((.91-value)/.7,0,1);
+      // Very open tooth on highlights; build smoothly only in halftones
+      // and the deep eye/cheek planes, with bounded deterministic density.
+      if(pencilHash(seed,i,273)>scumbleStrength*(.22+.72*shade))continue;
+      const rgb=photoRGB(source,px,py);
+      const angle=(pencilHash(seed,i,274)-.5)*Math.PI*1.4;
+      const radius=step*(.23+.17*pencilHash(seed,i,275));
+      const vector:Point=[Math.cos(angle)*radius,Math.sin(angle)*radius*.68];
+      const ink=color([rgb[0]*.82+93*.18,rgb[1]*.83+59*.17,
+        rgb[2]*.84+68*.16]);
+      push("face-scumble",p,vector,ink,
+        (.10+.15*shade)*scumbleStrength,
+        .58+.23*pencilHash(seed,i,276),2,
+        .34+.18*pencilHash(seed,i,277));
     }
   }
   // ArtCraft source-dependent facial contour hierarchy: use optical
@@ -494,7 +560,7 @@ export const createDryPencilHeadPlate=(
     const control=screen([m.controlX,m.controlY]);
     if(a[0]<0||a[0]>SIZE.width||a[1]<0||a[1]>SIZE.height)continue;
     marks.push({
-      ...m,x:a[0],y:a[1],
+      ...m,zone:"measured-features",x:a[0],y:a[1],
       endX:clamp(b[0],0,SIZE.width),endY:clamp(b[1],0,SIZE.height),
       controlX:clamp(control[0],0,SIZE.width),
       controlY:clamp(control[1],0,SIZE.height),
@@ -508,6 +574,6 @@ export const createDryPencilHeadPlate=(
     width:SIZE.width,height:SIZE.height,paperColor:PAPER,
     crop:{left,top,width:cropWidth,height:cropHeight},
     strokes:marks,rasterUnderpainting:false,geometry,
-    fiveValueCounts,materialCounts,
+    scumbleStrength,fiveValueCounts,materialCounts,
   };
 };
