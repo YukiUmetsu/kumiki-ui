@@ -43,7 +43,7 @@ describe("RISO31 ArtCraft / actual PIP+DIP printed phalanx animation",()=>{
         expect(joints[1].y).toBe(g.intermediate);
         for(const j of joints){
           expect(j.keys!.map(k=>k.frame)).toEqual([...j.keys!.map(k=>k.frame)].sort((a,b)=>a-b));
-          expect(j.keys!.at(-1)?.frame).toBe(239);
+          expect(j.keys![j.keys!.length-1]?.frame).toBe(239);
           expect(j.keys!.every(k=>Math.abs(k.rotate??0)<=RISO31_ANAT1_REFERENCE.pipMaximum)).toBe(true);
         }
         const source=riso31FingerParts(side,digit);
