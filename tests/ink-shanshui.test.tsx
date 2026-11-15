@@ -261,6 +261,35 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       )];
       expect(brushParents).toHaveLength(count);
       expect(new Set(brushParents.map(m=>m[3])).size).toBe(5);
+      const placements=[...html.matchAll(
+        /data-km-master-stroke-placement="(rock-volume|attached-stratum)" data-km-master-stroke-curl="(with|counter|none)"/g,
+      )];
+      expect(placements).toHaveLength(count);
+      if(school==="travelers"){
+        // Fan Kuan's loaded raindrop *dots* legitimately stand
+        // individually on a connected stone plane. Forcing them onto
+        // five identical long spines made five visible black columns.
+        expect(placements.every(m=>m[1]==="rock-volume"&&m[2]==="none"))
+          .toBe(true);
+        for(const [start,total] of [[0,78],[78,65],[143,44]] as const){
+          const coords=brushParents.slice(start,start+total)
+            .map(m=>m[1].split(",").map(Number));
+          const xx=coords.map(p=>p[0]),yy=coords.map(p=>p[1]);
+          expect(Math.max(...xx)-Math.min(...xx)).toBeGreaterThan(19);
+          expect(Math.max(...yy)-Math.min(...yy)).toBeGreaterThan(40);
+        }
+      }else{
+        expect(placements.every(m=>m[1]==="attached-stratum"))
+          .toBe(true);
+        if(school==="early-spring"){
+          // Alternating local hook handedness prevents a uniform set
+          // of repeated telephone-cord S stamps.
+          expect(placements.filter(m=>m[2]==="counter").length)
+            .toBeGreaterThan(10);
+          expect(placements.filter(m=>m[2]==="with").length)
+            .toBeGreaterThan(10);
+        }
+      }
       // Four historical schools must not receive the same inherited
       // Fuchun-only downward ridge gouges.
       expect(html.includes('data-km-rock-hero-fold=""'))
