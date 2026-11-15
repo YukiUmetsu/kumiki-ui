@@ -157,7 +157,7 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(parts.get("eye-far")!.details!.length).toBe(3);
     expect(parts.get("eye-near")!.details!.length)
       .toBeGreaterThan(parts.get("eye-far")!.details!.length);
-    const partsInOrder=drawing.regions.map(r=>r.id);
+    const partsInOrder=regions.map(r=>r.id);
     for(const id of ["ear-far","ear-far-inner","ear-near","ear-near-inner"])
       expect(partsInOrder.indexOf(id))
         .toBeLessThan(partsInOrder.indexOf("head-main"));
