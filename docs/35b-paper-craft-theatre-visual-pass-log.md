@@ -106,3 +106,7 @@ Studied subject-specific construction from Diana Beltrán Herrera (kingfisher an
 ## Pass 16 — reference-guided curled stock and synchronized paper rigs
 
 Research: reference bird cutwork and feather edge craft in Diana Beltrán Herrera's documented construction, and dragonfly wing venation in her paper wildlife sculptures. Implementation adds selective, **fully opaque** per-piece gradient curvature (`curl`), shared frame-exact flutter timing with `rigGroup` validation, and public 0–1 `curl`/`motion` controls for existing object artwork in Storybook and FilmStage. This is still a native SVG cut-paper stage, not physical 3D paper bending. Tests must verify strong named-pivot consistency, no opacity changes, both orientations, reduced-motion flat assembly, and actual browser captures.
+
+## Pass 17 — separately hinged, opaque feather tips
+
+Studied Diana Beltrán Herrera's original physical bird feathers. Added renderer support for attached second contours with bounded fold pivots and contact shadows. The kingfisher now has 18 two-part wing-feather pieces; eaves and napkin folds also gain small raised tips. Added `relief` 0–1, independent of earlier color-shading `curl`. Regression gates: 128 budget, root/tip attachment, reduced motion and seeded seek, opaque closed paths, invalid negative/infinite displacements, actual Chromium landscape/portrait captures and native-film exports. This is not manufactured 3D paper.
