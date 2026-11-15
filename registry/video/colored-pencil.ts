@@ -94,6 +94,8 @@ export function evaluatePencilMark(frame: number, timing: PencilTiming, reducedM
   return reducedMotion ? 1 : Math.max(0, Math.min(1, (frame - timing.startFrame) / timing.durationFrames));
 }
 const HEX = /^#[0-9a-f]{6}$/i;
+/** Only serialized numeric SVG pose operations; no arbitrary function names. */
+const TRACE_TRANSFORM = /^(?:(?:translate|rotate|scale)\(\s*[-+]?(?:\d+(?:\.\d+)?|\.\d+)(?:[,\s]+[-+]?(?:\d+(?:\.\d+)?|\.\d+)){0,2}\s*\)\s*)+$/;
 const validTrace = (trace: PencilTrace): boolean =>
   !!trace && typeof trace === "object" && typeof trace.path === "string" && trace.path.length > 2 && trace.path.length <= 12000 &&
   /^[Mm]/.test(trace.path) && HEX.test(trace.color) &&
@@ -101,7 +103,7 @@ const validTrace = (trace: PencilTrace): boolean =>
   (trace.opacity === undefined || (Number.isFinite(trace.opacity) && trace.opacity >= 0 && trace.opacity <= 1)) &&
   (trace.id === undefined || (typeof trace.id === "string" && /^[A-Za-z][\w-]{0,40}$/.test(trace.id))) &&
   (trace.transform === undefined || (typeof trace.transform === "string" &&
-    trace.transform.length <= 300 && /^[\w .(),+\-]+$/.test(trace.transform))) &&
+    trace.transform.length <= 300 && TRACE_TRANSFORM.test(trace.transform))) &&
   Number.isSafeInteger(trace.startFrame) && trace.startFrame >= 0 &&
   Number.isSafeInteger(trace.durationFrames) && trace.durationFrames >= 1;
 export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
