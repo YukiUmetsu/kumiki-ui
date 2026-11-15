@@ -447,10 +447,12 @@ for(const sample of ["woman","man"] as const){
             const ctx=sample.getContext("2d")!;
             ctx.drawImage(canvas,0,0,285,318);
             const data=ctx.getImageData(0,0,285,318).data;
-            return Float32Array.from({length:285*318},(_,i)=>{
+            const out=new Float32Array(285*318);
+            for(let i=0;i<out.length;i++){
               const k=i*4;
-              return .2126*data[k]+.7152*data[k+1]+.0722*data[k+2];
-            });
+              out[i]=.2126*data[k]+.7152*data[k+1]+.0722*data[k+2];
+            }
+            return out;
           };
           const drawn=values(node as HTMLCanvasElement);
           const photographic=values(reference);
