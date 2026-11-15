@@ -32,17 +32,26 @@ const control={display:"grid",gap:5,font:"600 13px system-ui"} as const;
 const field={padding:"8px 10px",border:"1px solid #AFAEA5",borderRadius:6,
   color:"#2E4147",background:"#FFFAF0",minHeight:40} as const;
 const btn={...field,cursor:"pointer"} as const;
-const capture=(img:HTMLImageElement,width:number,height:number):PencilPhotoPixels=>{
+const capture=(img:HTMLImageElement,width:number,height:number,
+  mode:"fit"|"focus",focal:readonly[number,number]):PencilPhotoPixels=>{
   const canvas=document.createElement("canvas");
   canvas.width=width;canvas.height=height;
   const context=canvas.getContext("2d",{willReadFrequently:true});
   if(!context)throw new Error("Canvas 2D required for image-conditioned pencil mode");
   context.fillStyle="#FAF5ED";
   context.fillRect(0,0,width,height);
-  // Fit image without arbitrarily cropping away the subject's eyes or feet.
-  const fit=Math.min(width/img.naturalWidth,height/img.naturalHeight);
-  const w=img.naturalWidth*fit,h=img.naturalHeight*fit;
-  context.drawImage(img,(width-w)/2,(height-h)/2,w,h);
+  const cover=mode==="focus";
+  const scale=cover?
+    Math.max(width/img.naturalWidth,height/img.naturalHeight):
+    Math.min(width/img.naturalWidth,height/img.naturalHeight);
+  const w=img.naturalWidth*scale,h=img.naturalHeight*scale;
+  // Keep selected face/eye near center, but never create negative margins
+  // when zoomed beyond a source edge. Drawing remains from source pixels.
+  const dx=cover?Math.max(width-w,Math.min(0,width*.5-w*focal[0])):
+    (width-w)*.5;
+  const dy=cover?Math.max(height-h,Math.min(0,height*.5-h*focal[1])):
+    (height-h)*.5;
+  context.drawImage(img,dx,dy,w,h);
   return {width,height,data:context.getImageData(0,0,width,height).data};
 };
 
@@ -91,6 +100,7 @@ export function ReferencePencilAtelier(){
   const [reload,setReload]=useState(0);
   const [raw,setRaw]=useState<PencilPhotoPixels|null>(null);
   const [aspect,setAspect]=useState<"landscape"|"portrait">("landscape");
+  const [framing,setFraming]=useState<"focus"|"fit">("focus");
   const [frame,setFrame]=useState(350);
   const [playing,setPlaying]=useState(false);
   const [error,setError]=useState("");
@@ -99,6 +109,9 @@ export function ReferencePencilAtelier(){
   const [showReference,setShowReference]=useState(false);
   const [uploaded,setUploaded]=useState(false);
   const size=aspect==="landscape"?{width:900,height:506}:{width:506,height:900};
+  const mode=aspect==="portrait"?framing:"fit";
+  const focal:readonly[number,number]=uploaded?[.5,.5]:
+    sample==="fox"?[.32,.43]:[.65,.46];
   useEffect(()=>setSourceUrl(prev=>prev||photos.kingfisher.url),[]);
 
   // Browser-created object URLs are explicitly revoked on replace/unmount,
@@ -109,7 +122,7 @@ export function ReferencePencilAtelier(){
   const captureSource=(image:HTMLImageElement)=>{
     if(!image.naturalWidth||!image.naturalHeight)return;
     try{
-      setRaw(capture(image,size.width,size.height));
+      setRaw(capture(image,size.width,size.height,mode,focal));
       setError("");
     }catch{
       setRaw(null);
@@ -122,7 +135,7 @@ export function ReferencePencilAtelier(){
     const image=sourceImage.current;
     if(image?.complete && image.naturalWidth>0)captureSource(image);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[sourceUrl,reload,size.width,size.height]);
+  },[sourceUrl,reload,size.width,size.height,mode,sample,uploaded]);
   useEffect(()=>{
     if(!sourceUrl||raw||error)return;
     if(reload<3){
@@ -263,6 +276,13 @@ export function ReferencePencilAtelier(){
           <option value="landscape">16:9</option><option value="portrait">9:16</option>
         </select>
       </label>
+      {aspect==="portrait"&&<label style={control}>Portrait framing
+        <select aria-label="Pencil portrait framing" value={framing}
+          style={field} onChange={e=>setFraming(e.target.value as typeof framing)}>
+          <option value="focus">Subject close-up / fill 9:16</option>
+          <option value="fit">Entire photograph / paper margins</option>
+        </select>
+      </label>}
       <label style={control}>Source wash · {Math.round(wash*100)}%
         <input aria-label="Pencil photo wash" type="range" min=".25" max="1"
           step=".05" value={wash} onChange={e=>{
