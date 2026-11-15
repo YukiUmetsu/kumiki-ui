@@ -227,3 +227,8 @@ The remaining main weakness in Pass 24's actual code-rendered woodland film was 
 Implemented two original reusable helpers for joint-based canopy growth. The two existing upper rib stock sheets now contain branching trees with parent → elbow → secondary forks → attached paired terminal leaves. All eight existing foreground foliage stock sheets use 3–5 independently rooted leaders with secondary twig junctions. No additional material planes, no new Storybook folder, no opacity adjustments, and no external reference images bundled.
 
 Render acceptance requires actual native FilmStage and Storybook screenshots at 16:9 and 9:16. Keep the illuminated sky, river and canopy openings readable; avoid isolated/mirrored twigs, fussy noise and overdraw.
+
+
+### Pass 25b — visual correction after actual R06 film capture
+
+The first R06 16:9 and 9:16 native frames verified that the new second-generation branches read as denser, better-rooted arbor forms and the sky/river remained open. However, bright pale green cardstock on the *entire upper branch lattice* made its numerous thin subpaths look like chalk-line ornament rather than dense forest silhouette, especially in tall portrait. This was a color-hierarchy mistake, not a lack of branches. The corrective pass changes only the two canopy-rib stocks to the darker leaf pigment, retaining brighter leafwork on middle-distance arbors and selected foreground leaves, while leaving cut geometry, depth and animation unchanged. Actual final-head rendering and browser checks are required again before merge.
