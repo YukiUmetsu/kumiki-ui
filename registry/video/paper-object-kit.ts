@@ -196,15 +196,15 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
     p.taper(-265,175,-167,173,1.2)].join(" "),{enterFrame:27});
   add("bird-branch-knot",c.dark,10,p.oval(-235,163,11,6),{
     holes:[p.oval(-235,163,6,3)],enterFrame:31});
-  for(const [i,x] of [-270,-205,213,283].entries()){
+  for(const [i,x] of [-270,205,283].entries()){
     const y=163-(x+260)*.035,top=i%2?-1:1;
     add("branch-leaf-"+i,i%2?c.green:c.greenLight,10,
       p.taper(x,y,x+(i%2?18:-14),y+top*39,11,5),{
         enterFrame:35+i*6,curl:.55});
   }
   // Nine short rectrices rather than an anatomically implausible fan of long wires.
-  for(let i=0;i<9;i++){
-    const d=i-4;
+  for(let i=0;i<7;i++){
+    const d=i-3;
     add("kingfisher-tail-"+i,i%3===0?c.blueLight:i%2?c.blue:c.ink,11,
       p.taper(-99+d*.9,65,-146+d*2.8,143+Math.abs(d)*1.6,7.5,1.8),{
         enterFrame:36+i*2,curl:.54});
@@ -307,8 +307,8 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
     p.M(56,-130),p.C(91,-129,112,-115,119,-99),
     p.C(105,-115,82,-119,56,-130),p.Z].join(" "),{enterFrame:98});
   // Nine tiny nape barbs point backwards, never a clownish upright crest.
-  for(let i=0;i<9;i++){
-    const x=-13+i*10,y=-112-10*Math.sin((i+1)/10*Math.PI);
+  for(let i=0;i<7;i++){
+    const x=-13+i*13,y=-112-10*Math.sin((i+1)/8*Math.PI);
     add("head-crest-"+i,i%3===0?c.green:c.blue,22,
       p.petal(x,y,11,-151,3.4),{enterFrame:99+i,durationFrames:20,curl:.6});
   }
