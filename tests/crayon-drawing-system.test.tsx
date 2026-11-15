@@ -54,6 +54,17 @@ describe("strict native Crayon drawing grammar",()=>{
         if(vein?.kind==="contour")
           expect((vein.d.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(5);
         expect(plan.subjects[0].attachments).toHaveLength(2);
+        expect(plan.ambientIds).toContain("fruit-contact-umbra");
+        expect(nodes.get("fruit-contact-umbra")?.kind).toBe("wax");
+        const leafMidrib=nodes.get("leaf-midrib-undertone");
+        expect(leafMidrib?.parentId).toBe("leaf-body");
+        for(const group of ["pear-chromatic-scumble","pear-blush-broken-wax",
+          "leaf-second-pass"]){
+          const marks=scene.elements.filter(node=>node.id.startsWith(group+"-"));
+          expect(marks.length).toBeGreaterThanOrEqual(Math.round(17*detail));
+          expect(marks.every(n=>n.kind==="contour"&&n.clipToParent&&
+            n.opacity!==undefined&&n.opacity<.5)).toBe(true);
+        }
         const html=renderToStaticMarkup(<CrayonScene spec={scene} frame={239}/>);
         expect(html).toContain('data-km-crayon-underpaint="opaque"');
         expect(html).toContain('data-km-crayon-clipped-to="pear-body"');
