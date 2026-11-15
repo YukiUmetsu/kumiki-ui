@@ -228,7 +228,10 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     const rock=renderToStaticMarkup(createElement(InkShanshuiStage,{
       frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",detail:1},
     }));
-    const creases=[...rock.matchAll(/data-km-rock-spine="" data-km-rock-spine-root-y="([^"]+)"/g)];
+    const creases=[...rock.matchAll(/data-km-rock-spine="" data-km-rock-spine-root-y="([^"]+)" d="([^"]+)"/g)];
+    expect(creases.every(x=>(x[2].match(/M/g)??[]).length>=3)).toBe(true);
+    const paleMasses=(rock.match(/data-km-pine-foliage-wash="" d="[^"]+" fill="#59503d"/g)??[]).length;
+    expect(paleMasses).toBe(0);
     expect(creases.length).toBeGreaterThan(9);
     expect(creases.length).toBeLessThan(34);
     expect(creases.every(x=>Number.isFinite(Number(x[1])))).toBe(true);
