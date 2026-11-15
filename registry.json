@@ -3768,6 +3768,11 @@
           "target": "components/video/ukiyoe/ukiyoe-effects.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-kami.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-kami.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"

@@ -760,6 +760,47 @@ Storybook has **Effects**, and the Motifs gallery has two new tiles.
 - No flame-carrying creature for Click-Clack Mountain's burning load.
 - Nobody has done a human visual review yet.
 
+## Kami and heavenly beings (folktale queue F9, 2026-11-15)
+
+**Sources** (the Met, public domain):
+
+- the netsuke of a tennin (59277);
+- a 7th-century flying apsara tile (60778);
+- Kōno Bairei's *Luring the Sun Goddess Amaterasu Out of a Cave with Music* (670889);
+- Totoya Hokkei's *Ebisu and Daikoku* (54017).
+
+**What they show.**
+
+- **Celestials.** The flying celestials arch along their flight with their robes trailing behind. A long scarf streams and loops above them; the hair is in a crowned topknot, with swirling cloud around them.
+- **Daikoku.** A soft round cap, a raised mallet and a great white rice bag over the shoulder, laughing.
+- **Ebisu.** A folded tall cap, a fishing rod, and a red sea bream held to his chest.
+
+**What was built.** `ukiyoe-kami.ts`:
+- the `fly` action and the hagoromo `stole`;
+- magatama beads;
+- `mizura` and `tenko` hair, and the `zukin` cap;
+- the mirror, tsurugi, hoko and tai props, and the rice bag;
+- the `kumo` cloud;
+- six looks and `kamiScene()` with four scenes.
+
+Storybook has **Kami**, and the Motifs gallery has the cloud.
+
+**Review rounds.**
+
+1. **Cast sheets** of the six looks in profile and front.
+   - The mizura loops read at the ears.
+   - The bag, cap, fish and spear all attach to the hands or back.
+2. **Scenes.**
+   - The tennyo's flight was checked at mid-path: she is off the ground, with the scarf stretched behind.
+   - The storm god's grey cloud vanished against the storm sky and is now white.
+
+**Not done.**
+
+- No Seven Lucky Gods beyond Ebisu and Daikoku.
+- Konohanasakuya-hime, the kagura dance and the rock-cave door being rolled away are not built.
+- Flying is a lean, not a full horizontal body like the apsara tile.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

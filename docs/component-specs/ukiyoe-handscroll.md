@@ -18,6 +18,7 @@
 - `ukiyoe-onna.ts`: the women of the ghost stories (faces, props, the candle crown) and `onnaScene()`.
 - `ukiyoe-folk.ts`: folk work, tools and props, and `folkScene()`.
 - `ukiyoe-effects.ts`: fire, halo, smoke, lightning, ash and fox-fire effects, and `effectScene()`.
+- `ukiyoe-kami.ts`: gods and heavenly beings, the auspicious cloud, and `kamiScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -239,6 +240,17 @@ Most women in the ghost stories look alive until the story turns, so they are fi
   - `ash`: a plume poured from each burst point (`launchFrom` = how long it pours) and carried downwind.
   - `foxfire`: teardrop flames, yellow within and red at the rim, bobbing in the area.
 - **`effectScene(kind)`.** Builds `fire`, `henge` (a fox walks into the smoke; a woman node `from` the moment it is gone walks out), `storm`, `blossom` (ash, then the sakura `progress` keyed from bare to full bloom), `foxfire` or `halo`. Storybook **Effects** plays them.
+
+### Kami and heavenly beings
+
+- **`fly` action.** Lifts the figure off the ground and carries it to `to` / `toY`. The body leans into the flight, the legs trail back together, and it bobs gently.
+- **Look fields.**
+  - `stole`: the hagoromo scarf. It streams behind in two waving ribbons that stretch out when flying; in the square views it floats to both sides.
+  - `beads`: magatama at the collar.
+  - `bag`: Daikoku's rice bag.
+- **Hair, hat and props.** Hair `mizura` (the ancient man's ear loops) and `tenko` (the celestial's crowned topknot); hat `zukin` (Daikoku's round cap). Props `mirror` (the sun-mirror, flashing), `tsurugi` (the straight sword), `hoko` (the jewelled spear) and `tai` (Ebisu's sea bream, its tail flipping). All work in every view.
+- **`kumo` motif.** The auspicious cloud with curled lobes and a long tail, for gods to stand on (one outlined union).
+- **`UKIYOE_KAMI_LOOKS` and `kamiScene(kind)`.** Looks for `tennyo`, `amaterasu`, `susanoo`, `izanagi`, `ebisu` and `daikoku`. Scenes: `hagoromo` (she flies down over the pine shore and away), `amaterasu` (out of the cave with the mirror and halo), `luck` (Ebisu and Daikoku on a cloud) and `susanoo` (the storm god on a cloud). Storybook **Kami** plays them.
 
 ### Transition
 

@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { kamiScene, UKIYOE_KAMI_LOOKS, UKIYOE_KAMI_SCENES } from "../registry/video/ukiyoe/ukiyoe-kami";
 import { effectScene, UKIYOE_EFFECT_DEMOS } from "../registry/video/ukiyoe/ukiyoe-effects";
 import { folkScene, toolAt, toolContact, UKIYOE_FOLK_WORK } from "../registry/video/ukiyoe/ukiyoe-folk";
 import { faceOutline, humanFeatures, onnaScene, UKIYOE_GHOST_FACES, UKIYOE_ONNA_LOOKS } from "../registry/video/ukiyoe/ukiyoe-onna";
@@ -564,6 +565,22 @@ describe("UKIYO1 effects", () => {
     expect(woman.from!).toBeGreaterThan(puff.bursts![0].frame);
     const fox = h.nodes.find(n => n.id === "fox") as Extract<UkiyoeSceneSpec["nodes"][number], { kind: "creature" }>;
     expect(drawCreature(fox, woman.from!, 0, 1).prims.length).toBeLessThanOrEqual(1);              // only the puff is left
+  });
+});
+
+describe("UKIYO1 kami", () => {
+  it("draws every god in every view, flies the tennyo off the ground along her path, and streams her scarf out when flying", () => {
+    for (const k of UKIYOE_KAMI_SCENES) expect(inspectUkiyoeScene(kamiScene(k)), k).toEqual([]);
+    for (const k of Object.keys(UKIYOE_KAMI_LOOKS) as (keyof typeof UKIYOE_KAMI_LOOKS)[]) for (const view of ["profile", "three-quarter", "front", "back"] as const)
+      expect(drawFigure({ look: { ...UKIYOE_KAMI_LOOKS[k], view } as Parameters<typeof drawFigure>[0]["look"] }, 10, 0, 2).prims.length, `${k} ${view}`).toBeGreaterThan(10);
+    const acts: UkiyoeAction[] = [{ type: "fly", start: 0, end: 100, to: 600, toY: -200 }];
+    const look = UKIYOE_KAMI_LOOKS.tennyo as unknown as Parameters<typeof drawFigure>[0]["look"];
+    expect(figurePose({ look, actions: acts }, 50, 2, 250).lift).toBeGreaterThan(10);
+    const mid = travelAt(acts, 50), end = travelAt(acts, 100);
+    expect(mid.x).toBeGreaterThan(0); expect(end.x).toBeCloseTo(600, 0); expect(end.y).toBeCloseTo(-200, 0);
+    // The scarf reaches further behind in flight than standing still.
+    const reach = (a: UkiyoeAction[]) => Math.min(...[...JSON.stringify(drawFigure({ look: { ...look, robePattern: undefined }, actions: a }, 50, 0, 2).prims).matchAll(/M(-?[\d.]+) /g)].map(m => Number(m[1])));
+    expect(reach(acts)).toBeLessThan(reach([]));
   });
 });
 
