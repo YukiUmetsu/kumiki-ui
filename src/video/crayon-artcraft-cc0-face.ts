@@ -573,8 +573,10 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   // Grouped compound paths keep each strand's actual cubic topology without
   // inserting 267 new React nodes or a single uniform-width hair screen.
   const hairBands=6;
+  // Source F1 reads as deep brown-black hair with sparse warm wax pickup.
+  // Broad, equally bright gold strips were rejected in native ArtCraft V2.
   const pigment=["#2c2427","#554039","#806050",
-    "#a47a61","#674b40","#c19a76"] as const;
+    "#806357","#674b40","#9c7e6d"] as const;
   const finishHair=(region:"left"|"right"|"crown",
     parentId:string,startFrame:number,bands:string[][])=>{
     for(let band=0;band<hairBands;band++){
