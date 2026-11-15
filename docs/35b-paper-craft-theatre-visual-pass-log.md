@@ -185,3 +185,16 @@ The existing single Scenery Storybook page exposes Tree variety (0 = spruce, 1 =
 ### Pass 22b — real render critique: thick solid evergreen cards
 
 Inspected the first pass-22 real 16:9 native film and Storybook screenshots. Mixed-species trees were distinguishable, but fir/larch shelves remained too narrow and appeared as glowing lined wire trees because their stroke/edge width overwhelmed the filled card. This passes technical checks but **does not meet the art bar**. The correction reduces tier count per species, expands fir/spruce/airy-larch crown width and deepens the filled tier notches; near alpine stands now have much wider bases, far treeline height and lateral spread are less rigid, and the native scenic cut-edge highlight is reduced separately from object and botanical stages. Full final-commit renders are required to verify the correction. No fidelity score is asserted from reference images.
+
+
+## Pass 23 — cut botanical foreground, stem architecture and floral centers
+
+Visual concern from pass 22: a sparsely detailed, repetitive fern understory and several flower heads that looked like tiny circular icons. Based on study of Helen Musselwhite's paper wreaths and Su Blackwell's multi-scale branch topology, Pass 23 creates an original morphology grammar.
+
+- Notched botanical leaves use genuinely irregular enclosed die-cut edges and seed-specific asymmetric widths.
+- Each sculpted herb has a continuous stalk, geometrically joined lateral growth, and fine midrib scores as a distinct physical paper sheet.
+- Add 8 woodland and 6 alpine plants at full detail; existing blossom heads now use unequal petals with contrasting cut centers.
+- The foreground is still behind the punched oval aperture, and scene depth/shadows are inherited from PAPER1, never fake alpha sheets. No additional Storybook page, style folder or dependency.
+- Unit and real-browser tests verify new layer identity, vertex density, 16:9 and 9:16 materials, physical stock depth and frame-exact determinism.
+
+Do not claim stylistic parity or a world-class art bar from path-count tests alone: inspect actual rendered browser screenshots and native film frames before merge.
