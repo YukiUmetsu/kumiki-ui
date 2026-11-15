@@ -339,7 +339,7 @@ export function RisoHumanEnsembleStudio(){
   ];
   return <main style={{background:"#F0E4D1",padding:18,minHeight:"100vh",font:"14px system-ui,sans-serif"}}>
     <div style={{maxWidth:1320,margin:"0 auto"}}>
-      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO16 / CONTINUOUS SPOT-PRINT PAPER & TWO-HUMAN ACTING</div>
+      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO18 / HAND-TO-HAND PRINT TRANSFER & MATERIAL OWNERSHIP</div>
       <h2 style={{font:"700 29px Georgia,serif",margin:"8px 0"}}>Two original figures · a printed-sheet exchange</h2>
       <p style={{fontSize:13,maxWidth:900,lineHeight:1.5}}>
         Distinct coat, bob hair and facial geometry for the Paper Artist; the Courier retains
@@ -408,6 +408,14 @@ export function RisoHumanEnsembleStudio(){
           <input type="range" min={0} max={1} step={.05}
             aria-label="RISO ensemble paper grain" value={grain}
             onChange={e=>setGrain(Number(e.target.value))}/></label>
+      </div>
+      <div role="status" aria-live="off" data-km-riso-handoff-cue-sheet=""
+        style={{display:"flex",flexWrap:"wrap",gap:16,fontSize:12,
+          borderTop:"1px solid #B99F87",padding:"8px 0",marginBottom:8}}>
+        <span>Performance beat · <strong>{state.phase}</strong></span>
+        <span>Print owner · <strong>{state.owner}</strong></span>
+        <span>Courier grip · {Math.round(state.sourceGrip*100)}%</span>
+        <span>Artist grip · {Math.round(state.receiverGrip*100)}%</span>
       </div>
       <div style={{width:aspect==="portrait"?450:960,
         maxWidth:"100%",aspectRatio:aspect==="portrait"?"540 / 960":"960 / 540",
