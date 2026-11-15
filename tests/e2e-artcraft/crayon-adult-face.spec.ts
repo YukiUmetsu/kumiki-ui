@@ -56,6 +56,24 @@ for(const item of [
       path:info.outputPath("artcraft-nose-mouth-"+item.aspect+"-299.jpg"),
       animations:"disabled"});
     console.log("ARTCRAFT_NOSE_JPEG:"+item.aspect+":"+nasal.toString("base64"));
+    // Actual legacy-proportion negative control, captured with the same
+    // renderer and viewport rather than a manipulated illustrative image.
+    // This makes the macro-anatomy decision independently reviewable.
+    if(item.aspect==="portrait"){
+      const rejected=crayonAdultFaceStudy("portrait",{headScaleY:1});
+      const rejectedMarkup=renderToStaticMarkup(createElement(CrayonScene,{
+        spec:rejected,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0;padding:0;width:"+
+        item.width+"px;height:"+item.height+"px;overflow:hidden'>"+
+        rejectedMarkup+"</body></html>");
+      const oldPortrait=page.locator("svg[data-km-crayon-scene]");
+      await expect(oldPortrait).toBeVisible();
+      const oldShot=await oldPortrait.screenshot({type:"jpeg",quality:77,
+        path:info.outputPath("rejected-uncompressed-portrait-299.jpg"),
+        animations:"disabled"});
+      console.log("ARTCRAFT_OLD_HEAD_JPEG:"+oldShot.toString("base64"));
+    }
     const neutralScene=crayonAdultFaceStudy(item.aspect,{expression:"neutral"});
     const neutralSvg=renderToStaticMarkup(createElement(CrayonScene,{
       spec:neutralScene,frame:299,

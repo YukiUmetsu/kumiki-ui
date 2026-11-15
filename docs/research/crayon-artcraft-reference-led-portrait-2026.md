@@ -68,3 +68,35 @@ Verification scope: semantic path/clip/hue hierarchy, original serializable wax 
 ### Second browser eye critique and repair
 
 [Proof 43665804412](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43665804412) showed improved radial iris pigment and anatomically rooted brows, **but eye shapes still looked overly vertical and pupil-like slits**. Corrected original iris and pupil C/Q contours to near-circular projected forms in both eyes, refit near/far fleck distribution centers and radius, and thinned the excessive brow fiber stroke count. A geometric near-unity iris bounding ratio (0.85–1.1) is a **minimum geometry guard**, not a clinical anatomical target or a visual acceptance certificate.
+
+## 2026-11-15 macro-anatomy correction before detail
+
+The previous portrait's source `adult-face` bounding box was 272 × 446,
+a width:height ratio of **0.61**, while the actual eye-to-mouth and chin
+geometry rendered as an excessively long adult face, a failure visible
+at thumbnail size. This was *not* correctable by more iris flecks or coat
+stitches.
+
+The CRAYON1 source already supports `CrayonPlacement.scaleY` and a
+local pivot, with parent/child transformation inheritance. The new
+ArtCraft variant uses `headScaleY=0.82` around local brow/jaw pivot
+(0, -140) on the **adult-face rig root**, preserving coherent head,
+hair, nose, iris, cheek and chin attachments. The new approximate
+source-derived facial height/width ratio of the visible skull
+(389 × 0.82 / 256) is **1.25**, rather than 1.52 before correction.
+This is a deliberate *candidate stylized-anatomy proportion*, not
+a measured identity likeness or a universal anthropometry ratio.
+
+The coat, neck and shoulder stay at their authored coordinates.
+Because pivot -140 maps original chin y99 to about y56, the
+uncompressed neck's top around y55 can join the chin, fixing the
+previous oversized head/neck collision. Test this at original
+960×540 and 540×960, and compare against explicit `headScaleY=1`
+as a negative control. Storybook's original hidden Characters lab
+has a bounded slider for comparative review; no new Storybook
+folder and no public character promotion.
+
+**Visual gate still required:** verify skull mass, brow–nose–mouth
+spacing, cheek volume, hair attachment and draped scarf silhouette
+before further texture. The source remains style-guided, not exact
+reference tracing.

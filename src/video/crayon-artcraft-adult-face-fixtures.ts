@@ -11,7 +11,9 @@ export type PortraitStudyAspect="landscape"|"portrait";
 /** Static ArtCraft expression studies; not yet approved animated visemes. */
 export type PortraitStudyExpression="warm"|"neutral";
 export interface PortraitStudyOptions { detail?:number; frameLength?:300;
-  expression?:PortraitStudyExpression }
+  expression?:PortraitStudyExpression;
+  /** Cranial vertical compression around the brow/jaw balance point, 0.72..1. */
+  headScaleY?:number }
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
 type Ink=Extract<CrayonElement,{kind:"contour"}>;
 type Rect={x:number;y:number;width:number;height:number};
@@ -61,8 +63,10 @@ export function crayonAdultFaceStudy(
   aspect:PortraitStudyAspect,options:PortraitStudyOptions={},
 ):CrayonSceneSpec{
   const detail=options.detail??1,expression=options.expression??"warm";
+  const headScaleY=options.headScaleY??.82;
   if(!["warm","neutral"].includes(expression)||!["landscape","portrait"].includes(aspect)||
      !Number.isFinite(detail)||detail<0||detail>1||
+     !Number.isFinite(headScaleY)||headScaleY<.72||headScaleY>1||
      (options.frameLength!==undefined&&options.frameLength!==300))
     throw new RangeError("Invalid ArtCraft facial study");
   const portrait=aspect==="portrait",W=portrait?540:960,H=portrait?960:540;
@@ -162,7 +166,13 @@ export function crayonAdultFaceStudy(
     "C-80 43 -103 7 -108 -42"+
     "Q-127 -133 -94 -208Z",
     box(-137,-312,272,446),colors.flesh,"value",
-    {parentId:"neck-under-jaw",spacing:9.8,markStrength:.2,
+    {parentId:"neck-under-jaw",
+      // The old character had a 1.64:1 face and an unattached looking
+      // chin. Compress the *entire* inherited head hierarchy, including
+      // lids, cheek planes, nose, brows and rooted hair, so coordinates
+      // cannot drift apart or open a gap at the neck.
+      placement:{scaleY:headScaleY},pivot:{x:0,y:-140},
+      spacing:9.8,markStrength:.2,
       underpaintGradient:{light:"#f3ccab",shadow:"#ad7e78",focusX:.34,focusY:.28,radius:1.06},
       outlineOpacity:.07,
       edgeRoughness:.17});
