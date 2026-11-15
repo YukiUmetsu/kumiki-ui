@@ -41,7 +41,7 @@ describe("opaque wax relief color contact",()=>{
      html.indexOf(">",html.indexOf('data-km-crayon-underpaint="opaque"'))+1);
    expect(tag).not.toContain("mask=");
    expect(tag).not.toContain("opacity=");
-   expect(html).toContain('mask-type="luminance"');
+   expect(html).toContain('mask-content-units="userSpaceOnUse"');
    expect(html).not.toEqual(region(0));
    // Only a bounded number of compound paths, not a separate SVG node per pit.
    const paper=html.slice(0,html.indexOf('data-km-crayon-paper-relief=""'));
