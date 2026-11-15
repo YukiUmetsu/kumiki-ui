@@ -334,8 +334,14 @@ test("RISO27 original two-human 240-frame film: printed contact sequence and end
       await expect(take).toHaveAttribute("data-km-riso-human-ensemble-frame",String(frame));
       await expect(take).toHaveAttribute("data-km-riso-handoff-phase",at(frame));
       await expect(editor).toHaveAttribute("data-km-riso27-playing","no");
-      await expect(page.locator('[data-km-riso-character="courier"]')).toHaveCount(2);
-      await expect(page.locator('[data-km-riso-character="paper-artist"]')).toHaveCount(2);
+      // The two original actor plates must always exist. Additional actors
+      // appear in *separate* physical finger-over-letter contact passes, so
+      // a global DOM count of 2 incorrectly rejects legitimate print depth.
+      for(const actor of ["courier","paper-artist"] as const){
+        const original=page.locator(
+          '[data-km-riso-foreground-layer="'+actor+'"] [data-km-riso-character="'+actor+'"]');
+        await expect(original).toHaveCount(2);
+      }
       if(frame>=160&&frame<202)
         await expect(take).toHaveAttribute("data-km-riso-handoff-owner","both");
       if(frame>=202){
