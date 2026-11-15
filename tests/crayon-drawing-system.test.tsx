@@ -14,7 +14,7 @@ const params=(aspect:"landscape"|"portrait",detail=1)=>({
 });
 describe("strict native Crayon drawing grammar",()=>{
   it("keeps one original Material drawing page in the existing Storybook folder",()=>{
-    expect(studioMeta.title).toBe("Video production/Film Looks/Crayon/Materials/Drawing System");
+    expect(studioMeta.title).toBe("Video production/Film Looks/Crayon/Drawing System");
     expect(studioMeta.tags).toContain("!dev");
     expect(studioMeta.id).toBe("video-crayon-drawing-system");
     expect(VerticalDrawingStudy.args?.aspect).toBe("portrait");
@@ -152,7 +152,7 @@ describe("strict native Crayon drawing grammar",()=>{
     expect(inspectCrayonDrawingPlan(scene,noLeaf).some(x=>x.includes("untracked scene element leaf-body"))).toBe(true);
     const transparent:CrayonSceneSpec={...scene,elements:scene.elements.map(n=>
       n.id==="pear-body"&&n.kind==="wax"?
-      {...n,coverage:"open" as const,underpaintGradient:undefined}:n)};
+      {...n,coverage:"open" as const,underpaintGradient:undefined,underpaintTooth:0}:n)};
     expect(inspectCrayonDrawingPlan(transparent,plan).some(x=>x.includes("root must be"))).toBe(true);
     const unclipped:CrayonSceneSpec={...scene,elements:scene.elements.map(n=>
       n.id==="pear-blush"&&n.kind==="wax"?{...n,clipToParent:false}:n)};
