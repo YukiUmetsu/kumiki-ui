@@ -271,10 +271,19 @@ export function crayonWildlifePortraitScene(
         {frame:94,d:openLimbus,bounds:rimRest},
         {frame:202,d:closedLimbus,bounds:rimBlink},
         {frame:208,d:openLimbus,bounds:rimRest}]});
-  wax("eye-amber-iris",oval(-55,-58,16.2,16),
-    {x:-74,y:-77,width:38,height:38},C.eye,
+  const irisOpen=oval(-55,-58,16.2,16);
+  // Closure must collapse the *globe* as well as the dark limbus. An opaque
+  // skin-colored disk over a still-open iris makes an unnatural round patch.
+  const sealedGlobe="M-56 -57 Q-55 -57.2 -54 -57 L-54 -56.8 Q-55 -56.6 -56 -56.8 Z";
+  const sealBounds={x:-56.5,y:-58,width:3,height:2};
+  const irisRest={x:-74,y:-77,width:38,height:38};
+  wax("eye-amber-iris",irisOpen,irisRest,C.eye,
     {parentId:"head",spacing:4.4,pressure:.96,outlineOpacity:.04,
-      nibStyle:"dry",markStrength:.5});
+      nibStyle:"dry",markStrength:.5,
+      drawings:[{frame:88,d:sealedGlobe,bounds:sealBounds},
+        {frame:94,d:irisOpen,bounds:irisRest},
+        {frame:202,d:sealedGlobe,bounds:sealBounds},
+        {frame:208,d:irisOpen,bounds:irisRest}]});
   // A true pigmented iris is not a flat yellow disc: two independently
   // seeded circular fiber layers interleave over its warm copper ground.
   line("iris-deep-radials",crayonIrisFlecks({
@@ -287,9 +296,14 @@ export function crayonWildlifePortraitScene(
     minRadius:.57,maxRadius:.9}),"#ecd297",.61,
     {parentId:"eye-amber-iris",clipToParent:true,opacity:.81,
       timing:{start:132,end:190}});
-  wax("eye-pupil",oval(-53,-58,7.3,11.5),
-    {x:-63,y:-72,width:21,height:29},C.pupil,
-    {parentId:"head",spacing:4.1,pressure:.98,outlineOpacity:0});
+  const pupilOpen=oval(-53,-58,7.3,11.5);
+  const pupilRest={x:-63,y:-72,width:21,height:29};
+  wax("eye-pupil",pupilOpen,pupilRest,C.pupil,
+    {parentId:"head",spacing:4.1,pressure:.98,outlineOpacity:0,
+      drawings:[{frame:88,d:sealedGlobe,bounds:sealBounds},
+        {frame:94,d:pupilOpen,bounds:pupilRest},
+        {frame:202,d:sealedGlobe,bounds:sealBounds},
+        {frame:208,d:pupilOpen,bounds:pupilRest}]});
   // Raised upper lid casts a narrow pigmented shadow *across* the globe;
   // it never becomes a second dark almond or a forehead-wide cartoon brow.
   wax("eye-upper-lid-overhang",
@@ -319,11 +333,17 @@ export function crayonWildlifePortraitScene(
     "M-83 -59 Q-79 -64 -75 -61 Q-78 -54 -82 -53 Z",
     {x:-87,y:-66,width:17,height:17},C.cheek,
     {parentId:"head",spacing:4.7,pressure:.84,outlineOpacity:0});
-  line("eye-bright-catchlight","M-61 -67Q-59 -69 -57 -66",
-    "#f6f5de",2.15,{parentId:"head",opacity:.93});
-  line("eye-secondary-catchlight","M-47 -48Q-46 -49 -45 -48",
+  const mainCatch="M-61 -67Q-59 -69 -57 -66";
+  const hiddenCatch="M-55 -57Q-54.99 -56.99 -54.98 -57";
+  line("eye-bright-catchlight",mainCatch,
+    "#f6f5de",2.15,{parentId:"head",opacity:.93,
+      drawings:[{frame:88,d:hiddenCatch},{frame:94,d:mainCatch},
+        {frame:202,d:hiddenCatch},{frame:208,d:mainCatch}]});
+  const smallCatch="M-47 -48Q-46 -49 -45 -48";
+  line("eye-secondary-catchlight",smallCatch,
     "#b2d1cf",.9,{parentId:"head",opacity:.67,
-      timing:{start:151,end:210}});
+      timing:{start:151,end:210},
+      drawings:[{frame:202,d:hiddenCatch},{frame:208,d:smallCatch}]});
   line("eye-limbal-light",
     "M-75 -63Q-72 -76 -63 -78M-38 -54Q-43 -43 -57 -42",
     "#d3b595",.88,{parentId:"head",opacity:.55});
@@ -342,10 +362,12 @@ export function crayonWildlifePortraitScene(
   // catchlight are occluded by opaque face pigment for the blink exposure;
   // switching only the contour would leave the eye visible through a line.
   const eyelidOpen="M-83 -58h2v1h-2Z";
-  const eyelidClosed="M-91 -72C-78 -92 -42 -94 -26 -72"+
-    "Q-19 -57 -28 -41Q-55 -27 -82 -44Q-92 -56 -91 -72Z";
+  // A hand-drawn *tapered fold*, not a full circular cheek-colored sticker.
+  // Paint only the collapsed limbal slit; iris and pupil shrink independently.
+  const eyelidClosed="M-84 -59 Q-62 -73 -30 -60"+
+    "Q-44 -49 -63 -52 Q-78 -54 -84 -59 Z";
   const lidBase={x:-87,y:-62,width:8,height:8};
-  const lidClosed={x:-97,y:-101,width:81,height:80};
+  const lidClosed={x:-89,y:-78,width:65,height:31};
   wax("eyelid-painted-occlusion",eyelidOpen,lidBase,C.warm,
     {parentId:"head",timing:{start:0,end:56},spacing:6.6,
       markStrength:.26,edgeRoughness:0,outlineOpacity:0,pressure:.96,
