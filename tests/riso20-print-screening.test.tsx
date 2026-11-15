@@ -74,8 +74,8 @@ describe("RISO20: physical plate screening", () => {
     const screenTiles = svg.match(/<pattern[^>]+>.*?<\/pattern>/g) ?? [];
     expect(screenTiles).toHaveLength(2);
     // Repeated pattern tiles add mirrored sites wherever an ink droplet crosses a tile edge.
-    expect((screenTiles[0].match(/<circle /g) ?? []).length).toBeGreaterThanOrEqual(32);
-    expect((screenTiles[1].match(/<circle /g) ?? []).length).toBeGreaterThanOrEqual(32);
+    expect((screenTiles[0]?.match(/<circle /g) ?? []).length).toBeGreaterThanOrEqual(32);
+    expect((screenTiles[1]?.match(/<circle /g) ?? []).length).toBeGreaterThanOrEqual(32);
     expect(svg).toContain('maskUnits="userSpaceOnUse"');
     expect(svg).not.toContain("feGaussianBlur");
     const defaultMarkup = renderToStaticMarkup(<RisoPrint spec={spec} frame={240} artworks={artwork}/>);
@@ -86,8 +86,8 @@ describe("RISO20: physical plate screening", () => {
   it("rejects invalid public screen controls on a real plate without breaking legal output", () => {
     const spec = risoExampleSpec("landscape"), artworks = risoExampleArtworks("landscape");
     for (const props of [{ screenDensity: NaN }, { dotGain: 1.01 }, { screenMode: "rgb" }]) {
-      expect(() => renderToStaticMarkup(<RisoPrint spec={spec} frame={240} artworks={artworks}
-        {...props as React.ComponentProps<typeof RisoPrint>} />)).toThrow(RangeError);
+      expect(() => renderToStaticMarkup(<RisoPrint {...props as Partial<React.ComponentProps<typeof RisoPrint>>}
+        spec={spec} frame={240} artworks={artworks} />)).toThrow(RangeError);
     }
     expect(renderToStaticMarkup(<RisoPrint spec={spec} frame={240} artworks={artworks}
       screenMode="fm" screenDensity={0} dotGain={1}/>)).toContain('data-km-riso-screen-density="0"');
