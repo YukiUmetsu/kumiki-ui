@@ -32,7 +32,10 @@ export const COURIER: RisoCharacterSpec = {
   version: 1, id: "courier", durationFrames: 240, cadence: 2,
   joints: [
     { id: "root", x: 0, y: 0, keys: [
-      { frame: 0, x: 50, y: 0, easing: "ease" },
+      // ArtCraft/Muybridge: entrance starts on extended weight-bearing legs,
+      // not the original f0 bent-knee squat. Raise the source pelvis relative
+      // to two planted boots; toe prints remain at the SAME paper baseline.
+      { frame: 0, x: 50, y: -10, easing: "ease" },
       { frame: 105, x: 125, y: -7, easing: "ease" },
       // RISO28 ArtCraft: source centre-of-mass advances *before* the third
       // right-boot contact at f135. A paper-contact study found the old root
