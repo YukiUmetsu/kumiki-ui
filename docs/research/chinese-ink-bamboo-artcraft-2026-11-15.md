@@ -124,6 +124,27 @@ Remaining release gate: verify 2.15× and 960×540 second-pass crops plus
 time-seeked scenes. If the leaves still read as isolated arrow clips,
 do another shape/pressure/spacing pass before marking this PR ready.
 
+## Second-pass rendered QA and third-pass leaf construction
+
+Inspected Chromium evidence from successful workflow `43684098866`.
+The fanned central culm and lighter flanking stems improved silhouette
+variety and relieved the rigid node-ring repetition. The native 960×540
+image and 2.15× crop still showed detached-looking, pointed *arrow* marks
+with an undersized group rhythm compared with the source paintings.
+
+**Third pass, targeted fix:** calculate the pressure belly using each
+individual leaf's **local tangent normal** (instead of adding width only
+in screen Y), then taper both sides into a fine tip. Attach up to three
+smaller asymmetric satellite blades per node to their existing branch
+curve. Keep their construction deterministic across frame seeks,
+explicitly expose their root coordinates, and preserve all primary
+blade/face/garment contracts. At low detail, satellite blades disappear.
+
+This is a specific optical-spacing/pressure hypothesis. It must still
+be tested against native output; it is **not** automatic proof of a
+world-class painted appearance. Pine, rock and scholar detail remain
+separate visible limitations.
+
 ## Required release evidence
 
 Run from a clean repository checkout:
