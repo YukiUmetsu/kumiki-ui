@@ -500,34 +500,52 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   // A partial mark is a tapered crayon fiber, not an opaque new hair rod.
   const fiber=(seed:number,index:number,channel:number)=>
     crayonHash(seed,index,channel);
+  // Each strand has independent source-surface curvature, but 240 is the
+  // CRAYON1 semantic-element budget for a *whole film*. Batch short fiber
+  // centerlines into six pigment/width bands per mass. 267 separate contours
+  // would trip scene validation, increase SVG memory and prevent animation.
+  // Grouped compound paths keep each strand's actual cubic topology without
+  // inserting 267 new React nodes or a single uniform-width hair screen.
+  const hairBands=6;
+  const pigment=["#2c2427","#554039","#806050",
+    "#a47a61","#674b40","#c19a76"] as const;
+  const finishHair=(region:"left"|"right"|"crown",
+    parentId:string,startFrame:number,bands:string[][])=>{
+    for(let band=0;band<hairBands;band++){
+      const path=bands[band].join(" ");
+      if(!path)continue;
+      mark("hair-rooted-"+region+"-"+band,path,
+        pigment[band],.31+band*.155,
+        [startFrame+(band%3)*4,299],.27+band*.057,parentId);
+    }
+  };
   for(const [side,count,seed] of [
     ["left",85,33107],["right",130,44631],
   ] as const){
     const parentId=side==="left"?"hair-left-curtain":"hair-right-curtain";
+    const bands=Array.from({length:hairBands},()=>[] as string[]);
     for(let i=0;i<Math.round(count*detail);i++){
       const u=fiber(seed,i,1),v=fiber(seed,i,2);
       const x=side==="left"?-20+u*148:433+u*141;
       const y=(side==="left"?352:290)+v*(side==="left"?660:750);
       const len=34+fiber(seed,i,3)*151;
-      // Left side leans gently toward the shoulder; far strands
-      // follow the clockwise roll of the head and bend to frame right.
+      // Left mass falls around the jaw; right mass follows the occluding
+      // far-face curtain. Both are seeded in the same F1 source frame.
       const sway=(side==="left"?.05:.13)+(fiber(seed,i,4)-.5)*.13;
       const bend=side==="left"?-3:6;
       const d="M"+x.toFixed(2)+" "+y.toFixed(2)+
         " C"+(x+len*sway*.21+bend).toFixed(2)+" "+(y+len*.29).toFixed(2)+
         " "+(x+len*sway*.82).toFixed(2)+" "+(y+len*.76).toFixed(2)+
         " "+(x+len*sway).toFixed(2)+" "+(y+len).toFixed(2);
-      const color=fiber(seed,i,5)<.31?"#af876e":
-        fiber(seed,i,6)<.38?"#30262b":"#795848";
-      const width=.27+fiber(seed,i,7)*.87;
-      const opacity=.22+fiber(seed,i,8)*.45;
-      mark("hair-rooted-"+side+"-"+i,d,color,width,
-        [198+(i%6)*3,299],opacity,parentId);
+      const band=Math.min(hairBands-1,
+        Math.floor(fiber(seed,i,6)*hairBands));
+      bands[band].push(d);
     }
+    finishHair(side,parentId,198,bands);
   }
-  // CROWN directional arcs radiate from the photographed off-center
-  // whorl (~x270, y204) to hairline at both temples; shorter and
-  // chromatically varied, never 80 equally parallel acrylic lines.
+  // Crown fibers turn across the source's oblique parting and move toward
+  // each side, unlike the two approximately vertical curtain flow fields.
+  const crownBands=Array.from({length:hairBands},()=>[] as string[]);
   for(let i=0;i<Math.round(52*detail);i++){
     const u=fiber(66317,i,1),t=fiber(66317,i,2);
     const originX=213+u*156,originY=184+t*68;
@@ -539,12 +557,11 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
       " C"+(originX+dx*.22).toFixed(2)+" "+(originY-dy*.42).toFixed(2)+
       " "+(originX+dx*.76).toFixed(2)+" "+(originY+dy*.15).toFixed(2)+
       " "+(originX+dx).toFixed(2)+" "+(originY+dy).toFixed(2);
-    mark("hair-rooted-crown-"+i,d,
-      fiber(66317,i,7)<.38?"#bd9273":"#51392f",
-      .34+fiber(66317,i,8)*.86,
-      [186+(i%7)*3,299],.3+fiber(66317,i,9)*.33,
-      "hair-back");
+    const band=Math.min(hairBands-1,
+      Math.floor(fiber(66317,i,7)*hairBands));
+    crownBands[band].push(d);
   }
+  finishHair("crown","hair-back",186,crownBands);
   const eyebrowFiberGroups=[
     "M202 491Q218 477 232 479 M211 487Q231 472 248 471",
     "M234 476Q248 462 269 465 M249 470Q268 459 285 467",
