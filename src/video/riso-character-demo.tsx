@@ -265,8 +265,18 @@ export const COURIER: RisoCharacterSpec = {
     // sufficient; the renderer also subtracts earlier inks under the paper.
     { id: "face", joint: "head", plate: "blue", paint: "solid", knockoutOnly: true,
       d: "M-33 -18 C-37 -45 -21 -61 0 -60 C22 -62 35 -40 36 -19 C39 6 22 31 9 35 Q-12 41 -29 15 Z" },
+    // RISO25 / ArtCraft v9: re-form the actual ear shell rather than painting
+    // decorative dots around the previous detached C-shaped loop.
     { id: "ear-left", joint: "head", plate: "blue", paint: "solid",
-      d: "M-32 -10 Q-39 -12 -40 -2 Q-39 7 -32 7 L-32 5 Q-37 5 -38 -2 Q-38 -8 -32 -7 Z" },
+      d: "M-32 -10 C-36 -14 -42 -11 -42 -4 C-44 2 -40 9 -36 10 C-33 11 -31 8 -30 6 L-32 4 Q-35 8 -38 3 C-42 -2 -39 -9 -34 -8 Z" },
+    { id: "ear-helix-fold", joint: "head", plate: "blue", paint: "solid",
+      d: "M-37 -9 C-41 -8 -42 -1 -39 3 Q-37 6 -35 5 L-36 4 C-40 0 -40 -6 -36 -8 Z" },
+    { id: "ear-concha-pocket", joint: "head", plate: "red", paint: "solid",
+      d: "M-37 -5 C-34 -8 -31 -6 -32 -3 Q-34 -2 -34 0 Q-37 -1 -37 -5 Z" },
+    { id: "ear-tragus-root", joint: "head", plate: "blue", paint: "solid",
+      d: "M-32 -2 Q-35 -1 -35 2 Q-34 3 -32 3 L-33 1 Z" },
+    { id: "ear-lobule-seam", joint: "head", plate: "red", paint: "solid",
+      d: "M-38 5 Q-35 9 -32 6 L-33 6 Q-35 7 -37 4 Z" },
     { id: "face-outline", joint: "head", plate: "blue", paint: "solid",
       d: "M-33 -15 C-35 -43 -20 -57 -3 -59 C20 -63 34 -42 34 -18 C36 4 24 27 11 33 C-8 41 -27 25 -30 10 L-28 9 C-24 24 -8 36 10 30 C24 22 33 0 31 -18 C30 -40 20 -57 -2 -56 C-20 -56 -31 -41 -31 -15 Z" },
     { id: "hair", joint: "head", plate: "blue", paint: "solid",
@@ -389,6 +399,34 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-6 23 Q-1 25 5 22 L5 23 Q0 26 -5 24 Z",
       expressions: {speak:"M-5 23 Q0 27 6 22 L5 24 Q0 29 -4 25 Z",
         smile:"M-7 22 Q2 27 9 19 L8 22 Q0 28 -6 24 Z"},
+    },
+    // Ear, nasal sidewall, lip and cheek construction is head-joint local:
+    // individual original curved lines print separately on spot masters.
+    // Blink does NOT distort midface; smile/speech redraw mouth-support forms.
+    { id: "nasal-sidewall-line", joint: "head", plate: "red", paint: "solid",
+      d: "M2 -12 C6 -7 7 -3 5 1 Q4 3 2 4 Q5 -2 3 -8 Z" },
+    { id: "nasal-ala-fold", joint: "head", plate: "red", paint: "solid",
+      d: "M8 4 Q12 5 13 8 Q12 12 9 11 Q11 8 8 6 Z" },
+    { id: "upper-lip-engraving", joint: "head", plate: "blue", paint: "solid",
+      d: "M-8 16 Q-4 15 -1 16 Q1 16 3 15 Q6 14 8 15 L7 16 Q4 16 2 17 Q-2 16 -6 17 Z",
+      expressions: {
+        speak:"M-5 14 C-2 10 2 10 5 14 Q1 12 -1 13 Q-3 13 -5 15 Z",
+        smile:"M-10 14 Q-2 19 9 13 L9 15 Q2 20 -5 17 Z",
+      },
+    },
+    { id: "nasolabial-flow", joint: "head", plate: "red", paint: "solid",
+      d: "M-14 7 Q-15 13 -11 17 Q-14 14 -15 9 Z M13 6 Q17 10 14 16 Q15 10 12 8 Z",
+      expressions: {
+        smile:"M-16 6 Q-18 12 -12 17 Q-16 15 -17 10 Z M14 5 Q20 10 15 17 Q17 10 13 7 Z",
+        speak:"M-14 7 Q-17 11 -11 15 Q-14 12 -15 9 Z M13 6 Q17 10 13 14 Q15 10 12 8 Z",
+      },
+    },
+    { id: "labiomental-crease", joint: "head", plate: "blue", paint: "solid",
+      d: "M-5 25 Q0 27 5 24 Q3 27 -2 27 Z",
+      expressions: {
+        smile:"M-7 26 Q0 30 8 25 Q3 29 -3 29 Z",
+        speak:"M-5 25 Q0 29 6 24 Q2 29 -3 28 Z",
+      },
     },
     { id: "cap", joint: "head", plate: "red", paint: "solid",
       d: "M-34 -52 C-24 -72 -7 -75 13 -68 C27 -63 35 -57 37 -48 Q-1 -51 -34 -49 Z" },
