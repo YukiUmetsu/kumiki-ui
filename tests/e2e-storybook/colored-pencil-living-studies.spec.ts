@@ -91,6 +91,14 @@ test("unapproved face is explicitly quarantined and output anchors cannot imply 
   const anchors=draw.locator('[data-km-portrait-output-landmarks]');
   await expect(anchors).toHaveCount(1);
   await expect(anchors.locator("circle")).toHaveCount(18);
+  await expect(page.locator('[data-km-portrait-landmark-index] li')).toHaveCount(18);
+  const title=draw.getByText("PORTRAIT STUDY",{exact:true});
+  await expect(title).toBeVisible();
+  const right=await title.evaluate(el=>{
+    const rect=(el as SVGGraphicsElement).getBBox();
+    return rect.x+rect.width;
+  });
+  expect(right).toBeLessThan(445); // Landscape text must not touch right-hand head.
   await draw.screenshot({animations:"disabled",
     path:info.outputPath("artcraft-v7-human-unapproved-anatomical-anchors.png")});
   await page.getByRole("checkbox",{name:"Living show output landmarks"}).uncheck();
