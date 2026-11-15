@@ -1,5 +1,6 @@
 import type { PencilAspect, PencilDrawingSpec, PencilRegion, PencilTrace } from "../../registry/video/colored-pencil";
 import { createPencilMaterialRegion } from "../../registry/video/colored-pencil-materials";
+import { createPencilFoundationDrawing } from "../../registry/video/colored-pencil-foundation";
 import type { PencilMaterialInput, PencilSurface } from "../../registry/video/colored-pencil-materials";
 
 /**
@@ -329,9 +330,43 @@ export function pencilObjectStudyDrawing({
       ...layer, pressure:Math.min(1, layer.pressure * pressure),
     })) };
   });
-  return {
+  const references={
+    rose:{
+      title:"Ann Swan — large-scale botanical coloured-pencil work",
+      url:"https://annswan.co.uk/",
+      observation:"Ruffled petals have independent folds, exposed paper highlights and curved vein direction.",
+    },
+    glass:{
+      title:"Janie Gildow — layer pressure and burnishing instruction",
+      url:"https://www.desertmuseumarts.com/",
+      observation:"Light-to-medium pigment pressure and reserved reflected highlights separate transparent glass from opaque pigment.",
+    },
+    architecture:{
+      title:"Caran d'Ache — layering and pencil depth guide",
+      url:"https://www.carandache.com/gb/en/blending-colours-with-coloured-pencils",
+      observation:"Nested value layers and hard edge accents define masonry course depth without flat single-colour fills.",
+    },
+    fabric:{
+      title:"Jesse Lane — portrait fabric light and shadow studies",
+      url:"https://www.jesselaneart.com/gallery",
+      observation:"Broad cloth folds require tonal gradients, sharp contact shadows and direction-aware microstrokes.",
+    },
+  } as const;
+  return createPencilFoundationDrawing({
     version:1, seed, width:aspect === "landscape" ? 960 : 540,
     height:aspect === "landscape" ? 540 : 960,
     paper:"#F9F5EA", paperTooth, regions,
-  };
+  },{
+    subject:subject==="rose"?"botanical":subject==="architecture"?"architecture":"object",
+    medium:"dry",
+    references:[{...references[subject],rights:"technique-only"}],
+    construction:subject==="rose"?
+      "Author the stem, petal overlap, continuous attached leaf veins, shadow pockets and isolated curled lamina edges before pencil deposits.":
+      subject==="glass"?
+      "Align transparent pitcher rim, specular reflections, citrus pulp, cast shadows and foreground contacts before medium shading.":
+      subject==="architecture"?
+      "Author building perspective, doorway depth, roof silhouettes, masonry courses and their light-facing planes before texture.":
+      "Stage folded textile masses, fold-lip overlap, reflected brass edges and contact shadow under the cup.",
+    surfaces:Object.fromEntries(shapes.map(shape=>[shape.id,shape.surface])),
+  });
 }
