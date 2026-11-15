@@ -315,3 +315,29 @@ const geometry = evaluateRisoTransferSheet(
 **Material topology:** `geometry.outline` is used both for the opaque letter knockout and the blue-plate outline. `sourceGrip` and `receiverGrip` independently compress each end's physical edge while preserving the already authored inset, three ruling lines, folds, hatching, red cancellation stamp and spot-ink material. Only original selected **closed finger pads** provide physical front clearances; blue finger engravings are ink, not white-filled masks.
 
 **Studio:** the RISO18 Storybook sample exposes frame, aspect ratio, blue/red plate, ink registration, paper fibres, sheet curl, pinch strength, release frame, transfer duration and final tilt. A compact cue sheet displays current beat, owner and two pressure values. Existing RISO17 double-grip staging is preserved. The result is a mechanically validated demonstration, **not** artist-approved face animation, fully simulated flexible paper, collision forces or a verified feature-length filmmaking system.
+
+
+## RISO19 — material-local pressure imprints and genuine hand contact
+
+`registry/video/riso-transfer-sheet.tsx` now carries authored **contact crease paths** and **screened paper depression pockets** as first-class evaluated geometry, alongside the original physical letter outline, stamp, inset, fold and fine ruling. The new output keys are:
+
+- `contactCreases: {source: readonly string[], receiver: readonly string[]}` — three independent short, curved quadratic wrinkle lines at each *actively held* paper end.
+- `contactShadows: {source: string, receiver: string}` — one closed tapered blue screened compression crescent on each actively held paper end; empty when there is no pressure.
+- `imprintDepth?: number` (default `1`, range `0..1`) — explicitly controls strength of contact marks **without changing the underlying printable paper outline**, so comparison/stress checks remain meaningful.
+- `sourceGrip?: number`, `receiverGrip?: number` remain the material end-pressure controls from RISO18. The ensemble now attenuates them by the real projected gap `max(0,1-gap/12)` between the advancing/free paper end and the relevant rigged hand. The original unmodified `evaluateRisoPropHandoff` gesture pressure values are still available independently.
+
+```tsx
+const paper = evaluateRisoTransferSheet(
+  handoff.paperStart, handoff.paperEnd, handoff.progress,
+  {curl:3,gripPinch:.5,sourceGrip:contactSource,
+   receiverGrip:contactRecipient,imprintDepth:.75},
+);
+<RisoTransferSheetPlate
+  outline={paper.outline} geometry={paper} plateId="blue"
+  paint={paint} detail={true}
+/>
+```
+
+`RisoTransferSheetPlate` draws local pressure lines and the two tiny compression pockets **only on the blue press master**; red stamp/hatching remain independent and paper still uses one opaque knockout. `detail=false` and `imprintDepth=0` both yield a simple material-negative control. All crease points use the same rotated, bowed material coordinate transform as the paper sheet, not screen-relative paths or postprocessed gradients. The existing Risograph Storybook folder includes a `Pressed paper creases` slider and two-aspect source/receiving/released frame tests.
+
+[ArtCraft reference and negative controls](../research/riso19-contact-pressure-artcraft.md) document shape topology, localized tangent flow, pressure metrics, real print references, and the *unverified* browser/normal-speed film and pixel-comparison release gates. This is deterministic illustrated paper pressure, **not** physically simulated force feedback or approved artistic likeness.
