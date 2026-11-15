@@ -328,7 +328,7 @@ for(const view of ["wax","anatomy"] as const){
         await expect(svg.locator(
           '[data-km-crayon-contact-feather-mask]')).toHaveCount(25);
         await expect(svg.locator(
-          '[data-km-crayon-opaque-burnish]')).toHaveCount(7);
+          '[data-km-crayon-opaque-burnish]')).toHaveCount(8);
         for(const id of ["socket-near","socket-far",
           "eye-orbital-undercut-near","eye-orbital-undercut-far",
           "neck-submandibular-cast","neck-cervical-turn",
@@ -509,4 +509,45 @@ test("F1 source sclera contact vs exact baseline at native near-eye camera",asyn
   expect(Buffer.compare(Buffer.from(shots[0]),Buffer.from(shots[1])))
     .not.toBe(0);
   expect(errorMessages).toEqual([]);
+});
+
+/** The exact photograph-aligned CRAYON1 midface is source-authored geometry.
+ * Baseline & candidate share every eye, hair and source-landmark primitive.
+ * Native screenshot presence/difference verifies the A/B, not artistic quality.
+ */
+test("ArtCraft F1 nasal-lip wax volume vs unmodified midface native A/B",async({page},info)=>{
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const images:Uint8Array[]=[];
+  const focus={focusX:415,focusY:675,zoom:2.65};
+  for(const midfaceForm of ["baseline","source-volume"] as const){
+    const original=crayonCc0FaceStudy({
+      eyeContact:"baseline",midfaceForm,
+    });
+    const spec={...original,camera:[
+      {frame:0,...focus},{frame:299,...focus},
+    ]};
+    const html=renderToStaticMarkup(createElement(CrayonScene,{
+      spec,frame:299,
+    }));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+
+      html+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    for(const id of ["nasal-alar-attachment-near","naris-shadow-near",
+      "naris-shadow-far","lip-upper","oral-opening",
+      "mouth-aperture-depth","lip-lower","dental-surface-center"]){
+      await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+        .toBeAttached();
+    }
+    await expect(svg.locator(
+      '[data-km-crayon-element="dental-arch-connected-wax"]')).toHaveCount(
+        midfaceForm==="source-volume"?1:0);
+    images.push(await svg.screenshot({path:info.outputPath(
+      "crayon-f1-midface-"+midfaceForm+"-299.png"),animations:"disabled"}));
+  }
+  expect(Buffer.compare(Buffer.from(images[0]),Buffer.from(images[1])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
 });
