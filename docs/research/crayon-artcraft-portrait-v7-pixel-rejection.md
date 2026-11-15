@@ -44,3 +44,10 @@ Using the unchanged portrait candidate and strict ArtCraft v7 gate, **17/18 land
 **Specify and construct:** new `crayonCc0NearEyeStudy()` draws original native CRAYON1 wax shapes and parent-clipped local glazes in a 210×200 local coordinate frame. Opaque skin/sclera/iris/pupil/brow and separate eyelid, iris and socket volumes precede fine wax and rooted contours. Reproducible 960×540 and 540×960 camera modes use the same authored local geometry and seed. Two stories are added to **the existing** `Crayon/ArtCraft Adult Face Lab` Storybook file, still `!dev`; no new meta category.
 
 **Render and compare:** focused unit/TS and Chromium screenshots at both aspects. Source-aligned pixel masks, actual painted wax-to-reference optical grain and 1×/3× aesthetic comparison remain outstanding. Do **not** replace the current synthetic full-face geometry automatically or claim professional-art approval. The isolated source-led eye is one region, not a passed whole-face gate.
+
+
+### Chromium art critique — isolated eye, first render rejected (2026-11-15)
+
+The actual native [Crayon ArtCraft Chromium proof](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43684634456) rendered at 960×540 and 540×960 (frame 299) and both screenshots were inspected. **Rejected for visual fidelity:** despite native wax and valid element hierarchy, the eye read as a clean graphic icon in a bounded rectangular pink patch, the brow a solid vector swoosh, the upper lashes a clockwork straight comb, and the iris a nearly perfect outlined circle.
+
+**Iteration 2:** expand the opaque anatomical skin undercoat beyond both camera frames, preserving the original 210×200 local coordinate frame for the eye; lower its global high-frequency rubbing; build the eyebrow as *open, clipped* chromatic wash over continuous opaque skin with 91 guided curved follicles; thin/sparsify six upper lash groups and lower iris radial contrast. This changes form/attachments, not arbitrary surface grain. The hard stop on merging the rejected full-face portrait remains in force. Source-aligned contours and aligned region masks still need to be audited against the original licensed photo.
