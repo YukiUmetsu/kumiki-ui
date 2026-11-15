@@ -399,7 +399,7 @@ export function crayonArtcraftBodyStudy(options:BodyStudyOptions={}):CrayonScene
         "#bf574f",1.3,[0,299],.77);
     }
     for(const [name,p] of Object.entries(CRAYON_BODY_OBSERVED))
-      line("body-source-landmark-"+name.replaceAll("_","-"),
+      line("body-source-landmark-"+name.replace(/_/g,"-"),
         "M"+(p[0]-4)+" "+p[1]+"h8M"+p[0]+" "+(p[1]-4)+"v8",
         "#bc3539",1.1,[0,299],.85);
   }
