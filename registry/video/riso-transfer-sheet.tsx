@@ -11,6 +11,8 @@ export interface RisoTransferSheetOptions {
   sourceGrip?: number;
   /** Independent contact pressure at the receiving (right/end) end. 0..1. */
   receiverGrip?: number;
+  /** Local contact pleats/pressure imprints. 0 disables; 1 preserves full drawn depth. */
+  imprintDepth?: number;
 }
 export interface RisoTransferSheetGeometry {
   /** THE source of truth for the opaque paper knockout AND printed contour. */
@@ -22,9 +24,15 @@ export interface RisoTransferSheetGeometry {
   ruling: readonly string[];
   postmark: string;
   hatching: string;
+  /** Source-/receiver-local open pleats, not global aligned stripes. */
+  contactCreases: Readonly<{source:readonly string[];receiver:readonly string[]}>;
+  /** Separately screened contact-compression pockets, closed within paper. */
+  contactShadows: Readonly<{source:string;receiver:string}>;
 }
 const EMPTY: RisoTransferSheetGeometry = {
   outline: "", border: "", fold: "", foldShade: "", ruling: [], postmark: "", hatching: "",
+  contactCreases:{source:[],receiver:[]},
+  contactShadows:{source:"",receiver:""},
 };
 const f = (value: number) => value.toFixed(2);
 const xy = (p: RisoTransferPoint) => f(p.x) + " " + f(p.y);
@@ -46,11 +54,13 @@ export function evaluateRisoTransferSheet(
     throw new RangeError("RISO transfer options must be an object.");
   const curl = options.curl ?? 3, pinch = options.gripPinch ?? .5;
   const sourceGrip=options.sourceGrip ?? 1, receiverGrip=options.receiverGrip ?? 1;
+  const imprintDepth=options.imprintDepth ?? 1;
   if (!Number.isFinite(curl) || curl < 0 || curl > 12 ||
       !Number.isFinite(pinch) || pinch < 0 || pinch > 1 ||
       !Number.isFinite(sourceGrip) || sourceGrip < 0 || sourceGrip > 1 ||
-      !Number.isFinite(receiverGrip) || receiverGrip < 0 || receiverGrip > 1)
-    throw new RangeError("RISO transfer curl must be 0..12 and grip strengths 0..1.");
+      !Number.isFinite(receiverGrip) || receiverGrip < 0 || receiverGrip > 1 ||
+      !Number.isFinite(imprintDepth) || imprintDepth < 0 || imprintDepth > 1)
+    throw new RangeError("RISO transfer curl must be 0..12 and grip/imprint strengths 0..1.");
   const dx = end.x - source.x, dy = end.y - source.y, length = Math.hypot(dx, dy);
   // A paper slip opens progressively from the hand. Suppressing a sheet
   // shorter than 28 units caused a conspicuous full-width pop on first reveal.
@@ -110,7 +120,53 @@ export function evaluateRisoTransferSheet(
       "M" + xy(at(t, 10 + i % 2 * 2)) + " L" +
       xy(at(t + (i % 2 === 0 ? .015 : .01), 8 - (i % 2)))).join(" ")
     : "";
-  return { outline, border, fold, foldShade, ruling, postmark, hatching };
+  // Source pressure creates a short asymmetric cluster of paper wrinkles.
+  // Each knot is constrained in the original tangent/normal material basis,
+  // close to its real endcap. It moves/rotates with the paper, not the screen.
+  // Suppress tiny unfurl stubs and grow crease length continuously to prevent
+  // frame-to-frame popping. Film renderers never add synthetic stamped ellipses.
+  const creaseReveal=Math.max(0,Math.min(1,(length-32)/40));
+  const contact=(side:"source"|"receiver",pressure:number)=>{
+    const intensity=pressure*imprintDepth*creaseReveal;
+    if(intensity<=0)return {creases:[] as string[],shadow:""};
+    const direction=side==="source"?1:-1;
+    const near=side==="source"?.018:.982;
+    const into=(distance:number)=>near+direction*distance/length;
+    const offsets=[-8,0,7];
+    const reaches=[14.5,23,10.5];
+    const creases=offsets.map((offset,i)=>{
+      const reach=reaches[i]*intensity;
+      // All six control coordinates must converge to the *same* finger-root
+      // location as pressure approaches zero. A fixed 2-unit first segment
+      // caused a visible pop even when imprint strength was only 0.02.
+      const rooted=1+i*.8;
+      const root=at(into(rooted),offset);
+      const control=at(into(rooted+reach*.48),offset+(i-1)*1.75*intensity);
+      const tip=at(into(rooted+reach),offset+(1-i)*2.6*intensity);
+      return "M"+xy(root)+" Q"+xy(control)+" "+xy(tip);
+    });
+    // This screened shadow is also pressure-scaled in BOTH longitudinal and
+    // transverse directions. At pressure=0 its entire topology collapses
+    // into a single local point, with no fixed-size elliptical sticker.
+    const shadowAt=(along:number,across:number)=>
+      at(into(.5+along*intensity),-2.8+across*intensity);
+    const shadow="M"+xy(shadowAt(0,0))+
+      " C"+xy(shadowAt(1.7,-5))+" "+xy(shadowAt(7.5,-3.2))+
+      " "+xy(shadowAt(13,-.4))+
+      " C"+xy(shadowAt(7,1.5))+" "+xy(shadowAt(1.6,1.2))+
+      " "+xy(shadowAt(0,0))+" Z";
+    return {creases,shadow};
+  };
+  const sourcePressure=contact("source",sourceGrip);
+  const receiverPressure=contact("receiver",receiverGrip);
+  const contactCreases={
+    source:sourcePressure.creases,receiver:receiverPressure.creases,
+  };
+  const contactShadows={
+    source:sourcePressure.shadow,receiver:receiverPressure.shadow,
+  };
+  return { outline, border, fold, foldShade, ruling, postmark, hatching,
+    contactCreases,contactShadows };
 }
 
 /** Independent blue/red press masters; no actor alpha or global RGB filter. */
@@ -134,6 +190,15 @@ export function RisoTransferSheetPlate({
       {geometry.fold && <path data-km-riso-transfer-fold="" d={geometry.fold} strokeWidth={.75}/>}
       {geometry.ruling.map((d, i) => <path key={i} data-km-riso-transfer-rule={i}
         d={d} strokeWidth={.85}/>)}
+      {(["source","receiver"] as const).map(side=><g key={side}
+        data-km-riso-material-pressure-side={side}>
+        {geometry.contactShadows[side] && <path
+          data-km-riso-contact-shadow={side}
+          d={geometry.contactShadows[side]} fill={paint.dots} stroke="none"/>}
+        {geometry.contactCreases[side].map((d,i)=><path key={i}
+          data-km-riso-contact-crease={side+"-"+i}
+          d={d} strokeWidth={[.95,.7,.55][i]} fill="none" strokeLinecap="round"/>)}
+      </g>)}
     </>}
   </g>;
   return <g data-km-riso-transfer-plate="red" pointerEvents="none">
