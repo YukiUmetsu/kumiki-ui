@@ -10,6 +10,10 @@ export interface RisoPaint {
   solid: string;
   /** A screen of separate ink dots, not a postprocessed RGB halftone overlay. */
   dots: string;
+  /** Small-dot tonal value on the SAME physical plate; no alpha RGB trick. */
+  lightDots?: string;
+  /** Mid-density tonal value on the SAME physical plate. */
+  midDots?: string;
 }
 export type RisoArtwork = (paint: RisoPaint) => ReactNode;
 /** A later print layer may first knock out earlier inks with unprinted paper. */
@@ -91,6 +95,17 @@ export function RisoPrint({
     cell: plate.dotCell, mode: screenMode, density: screenDensity, dotGain,
     seed: spec.seed, plateIndex: index,
   }));
+  // RISO26: value hierarchy is actual deposited dot *area* on the spot
+  // master, not CSS opacity. All variants share cell, angle, plate seed,
+  // position and registration. No doubling of the face under print motion.
+  const toneScreens = spec.plates.map((plate, index) => ({
+    light: createRisoScreenGeometry({cell:plate.dotCell, mode:screenMode,
+      density:screenDensity*.22, dotGain:dotGain*.5,
+      seed:spec.seed, plateIndex:index}),
+    mid: createRisoScreenGeometry({cell:plate.dotCell, mode:screenMode,
+      density:screenDensity*.55, dotGain:dotGain*.75,
+      seed:spec.seed, plateIndex:index}),
+  }));
   const sheet = useMemo(() => Array.from({ length: 450 }, (_, i) => ({
     x: printHash(spec.seed, i, 31) * spec.width,
     y: printHash(spec.seed, i, 37) * spec.height,
@@ -106,7 +121,11 @@ export function RisoPrint({
   const inkPass = (i: number, artwork: RisoArtwork, layerId?: string) => {
     const plate = spec.plates[i];
     const [dx, dy] = plateRegistration(spec, i, misregistration);
-    const paint: RisoPaint = {solid: plate.color, dots: `url(#${uid}-dots-${i})`};
+    const paint: RisoPaint = {
+      solid:plate.color,dots:`url(#${uid}-dots-${i})`,
+      lightDots:`url(#${uid}-dots-light-${i})`,
+      midDots:`url(#${uid}-dots-mid-${i})`,
+    };
     return <g key={plate.id} data-km-riso-plate={layerId ? undefined : plate.id}
       data-km-riso-foreground-plate={layerId ? plate.id : undefined}
       data-km-riso-foreground-layer={layerId}
@@ -138,6 +157,14 @@ export function RisoPrint({
           {wrapRisoScreenDots(screens[index]).map((dot, dotIndex) => <circle key={dotIndex}
             cx={dot.x} cy={dot.y} r={dot.r} fill={plate.color} />)}
         </pattern>
+        {(["light","mid"] as const).map(tone => <pattern key={tone}
+          id={`${uid}-dots-${tone}-${index}`}
+          x={0} y={0} width={toneScreens[index][tone].tileSize}
+          height={toneScreens[index][tone].tileSize}
+          patternUnits="userSpaceOnUse" patternTransform={`rotate(${plate.dotAngle})`}>
+          {wrapRisoScreenDots(toneScreens[index][tone]).map((dot, dotIndex)=><circle
+            key={dotIndex} cx={dot.x} cy={dot.y} r={dot.r} fill={plate.color}/>)}
+        </pattern>)}
         <clipPath id={`${uid}-clip-${index}`} clipPathUnits="userSpaceOnUse">
           <path d={printRevealPath(spec.width, spec.height, frameState.plates[index].progress, spec.seed + index * 11)} />
         </clipPath>
