@@ -224,3 +224,71 @@ test("RISO25 original-ear and midface craft: two identities, states and ratios",
   await page.locator("main").screenshot({path:info.outputPath("riso25-full-face-speech-portrait.png"),animations:"disabled"});
   expect(errors).toEqual([]);
 });
+
+
+/** RISO26: compare identical authored face contours/pose/camera/paper/ink, changing
+ * ONLY which physical screen-master dot area fills the original named planes.
+ * Browser pixels are evidence of actual implementation, not artistic approval.
+ */
+test("RISO26 true graded press master: original faces, two film ratios, AM and FM",async({page},info)=>{
+  const errors:string[]=[];
+  page.on("pageerror",error=>errors.push(error.message));
+  page.on("console",message=>{if(message.type()==="error")errors.push(message.text());});
+  await page.setViewportSize({width:1540,height:1100});
+  await page.goto("/iframe.html?id=video-riso-artcraft-studies--ocular-print-craft&viewMode=story");
+  await page.evaluate(()=>document.fonts.ready);
+  const tone=page.getByRole("combobox",{name:"RISO26 tonal master comparison"});
+  await expect(tone).toBeVisible({timeout:12000});
+  const aspect=page.getByRole("combobox",{name:"RISO21 crop aspect"});
+  const pose=page.getByRole("combobox",{name:"RISO21 expression pose"});
+  const mode=page.getByRole("combobox",{name:"RISO21 AM/FM screen"});
+  await page.getByRole("combobox",{name:"RISO24 feature focus"}).selectOption("head");
+  for(const screening of ["am","fm"] as const){
+    await mode.selectOption(screening);
+    for(const ratio of ["landscape","portrait"] as const){
+      await aspect.selectOption(ratio);
+      for(const frame of ["46","198"] as const){
+        await pose.selectOption(frame);
+        await tone.selectOption("flat");
+        const baseline=new Map<string,Buffer>();
+        for(const actor of ["courier","paper-artist"] as const){
+          const panel=page.locator('[data-km-riso21-actor="'+actor+'"]');
+          await expect(panel).toHaveAttribute("data-km-riso26-tone-study","flat");
+          const region=panel.locator('[data-km-riso-part="zygomatic-tone-planes"]');
+          await expect(region).toHaveAttribute("data-km-riso-screen-tone","normal");
+          baseline.set(actor,await panel.screenshot({
+            path:info.outputPath("riso26-"+screening+"-"+ratio+"-"+actor+"-"+frame+"-flat.png"),
+            animations:"disabled",
+          }));
+        }
+        await tone.selectOption("graded");
+        for(const actor of ["courier","paper-artist"] as const){
+          const panel=page.locator('[data-km-riso21-actor="'+actor+'"]');
+          await expect(panel).toHaveAttribute("data-km-riso26-tone-study","graded");
+          await expect(panel.locator('[data-km-riso-part="zygomatic-tone-planes"]'))
+            .toHaveAttribute("data-km-riso-screen-tone","light");
+          await expect(panel.locator('[data-km-riso-part="orbital-tone-planes"]'))
+            .toHaveAttribute("data-km-riso-screen-tone","mid");
+          const image=await panel.screenshot({
+            path:info.outputPath("riso26-"+screening+"-"+ratio+"-"+actor+"-"+frame+"-graded.png"),
+            animations:"disabled",
+          });
+          expect(image.equals(baseline.get(actor)!),
+            "Only graded stencil dots must alter actual printed film pixels, "+screening+" "+ratio+" "+actor)
+              .toBe(false);
+        }
+      }
+    }
+  }
+  await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("blue");
+  await expect(page.locator('[data-km-riso-part="zygomatic-tone-planes"]')).toHaveCount(0);
+  await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("red");
+  await expect(page.locator('[data-km-riso-part="zygomatic-tone-planes"]')).toHaveCount(2);
+  await page.locator("main").screenshot({path:info.outputPath("riso26-red-master-only.png"),animations:"disabled"});
+  await page.getByRole("combobox",{name:"RISO21 ink separation"}).selectOption("both");
+  await mode.selectOption("am");
+  await aspect.selectOption("portrait");
+  await pose.selectOption("160");
+  await page.locator("main").screenshot({path:info.outputPath("riso26-portrait-speech-fullface.png"),animations:"disabled"});
+  expect(errors).toEqual([]);
+});
