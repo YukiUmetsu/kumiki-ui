@@ -171,7 +171,8 @@ const sourceWax:Record<string,Partial<Wax>>={
 };
 
 export const CRAYON_F1_RECONSTRUCTED_MIDFACE_IDS=Object.freeze(
-  [...Object.keys(sourceWax),"dental-arch-connected-wax"] as string[],
+  [...Object.keys(sourceWax),"dental-arch-connected-wax",
+    "lip-upper-body-wax","lip-lower-body-wax"] as string[],
 );
 
 /**
@@ -184,9 +185,50 @@ export function crayonF1ReconstructMidface(
 ):CrayonElement[]{
   const out:CrayonElement[]=[];
   let inserted=false;
+  const undercoats=new Set<string>();
   for(const element of elements){
     if(element.kind!=="wax"){out.push(element);continue;}
     const patch=sourceWax[element.id];
+    // The reference upper vermilion is a solid overlapping tissue mass,
+    // not a thin semi-transparent magenta airbrush. Keep the existing
+    // open pressure-grained glazes; place a separate opaque but variably
+    // deposited wax core underneath their natural feathered boundaries.
+    if(element.id==="lip-upper"||element.id==="lip-lower"){
+      const upper=element.id==="lip-upper";
+      const id=upper?"lip-upper-body-wax":"lip-lower-body-wax";
+      if(undercoats.has(id))throw new Error("Duplicated lip core "+id);
+      undercoats.add(id);
+      const undercoat:Wax={
+        ...element,
+        id,
+        d:upper
+          ?"M354 741 C367 725 393 712 414 702 "+
+           "C426 696 438 694 447 697 "+
+           "C458 700 467 696 479 704 "+
+           "C460 707 444 716 427 725 "+
+           "C395 738 365 745 354 741Z"
+          :"M355 746 C378 750 397 746 420 740 "+
+           "C449 733 473 724 485 714 "+
+           "C488 731 472 749 450 757 "+
+           "C424 772 389 774 373 762 "+
+           "C366 754 360 749 355 746Z",
+        bounds:upper?{x:349,y:691,width:140,height:60}
+          :{x:350,y:709,width:140,height:68},
+        coverage:"opaque",deposition:"stroke-built",
+        parentId:"face-outline",clipToParent:true,
+        featherContacts:false,blendRadius:undefined,
+        colors:upper?["#ae7477","#71464e","#d49390"]:
+          ["#c58d91","#8d5a63","#e0a6a5"],
+        pressure:upper?.79:.86,
+        spacing:upper?5.6:5.3,markStrength:upper?.28:.31,
+        underpaintTooth:upper?.22:.19,
+        underpaintGradient:upper?
+          {light:"#c78988",shadow:"#71464f",focusX:.53,focusY:.36,radius:.89}:
+          {light:"#e0a6a1",shadow:"#89545e",focusX:.67,focusY:.71,radius:.92},
+        outlineOpacity:0,edgeRoughness:.05,
+      };
+      out.push(undercoat);
+    }
     if(element.id==="dental-surface-left"){
       if(inserted)throw new Error("Duplicate native dental undercoat");
       const dental:Wax={
@@ -209,5 +251,6 @@ export function crayonF1ReconstructMidface(
     out.push(patch?{...element,...patch}:element);
   }
   if(!inserted)throw new Error("ArtCraft source dental anchor unavailable");
+  if(undercoats.size!==2)throw new Error("ArtCraft lips not fully rooted");
   return out;
 }
