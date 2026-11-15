@@ -66,11 +66,16 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     "C-102 124 -75 156 -39 168 C-14 181 7 181 28 173 "+
     "C71 161 101 123 111 75 C120 37 110 -6 86 -48 "+
     "C67 -79 54 -99 41 -118 C27 -136 10 -140 -15 -140 Z";
+  // ArtCraft leaf study: the source leaf has an unequal shoulder, subtly
+  // serrated margin, visible petiole insertion and lower-edge reversals.
+  // A smooth symmetric green lens erases its botanical topology.
   const leafD=
-    "M12 -183 C47 -217 80 -233 106 -231 "+
-    "C126 -231 140 -227 146 -221 Q158 -218 167 -213 "+
-    "L176 -205 C150 -168 113 -147 84 -151 "+
-    "C55 -154 31 -168 12 -183 Z";
+    "M12 -183 C34 -207 60 -220 90 -228 "+
+    "Q101 -232 110 -229 Q123 -232 133 -227 "+
+    "Q143 -229 150 -224 Q158 -224 164 -216 "+
+    "Q169 -214 176 -205 C165 -185 141 -164 116 -155 "+
+    "Q108 -154 100 -157 Q89 -151 79 -155 "+
+    "Q65 -153 56 -160 Q31 -167 12 -183 Z";
   const stemD=
     "M-21 -142 C-16 -157 -8 -173 2 -184 "+
     "Q12 -192 22 -183 Q12 -180 7 -172 "+
@@ -193,6 +198,29 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
       parentId:"leaf-body",clipToParent:true,blendRadius:5,
       pressure:pressure*.7,spacing:6.3,outlineOpacity:0,
     },2);
+  // Attached ridgeline: changing thickness follows the actual blade arch.
+  // The petiole enters the leaf at a dark throat (not a detached dot).
+  addWax("leaf-ridge-volume",
+    "M16 -184 C45 -198 70 -212 105 -215 "+
+    "Q140 -220 166 -209 C135 -206 102 -194 74 -185 "+
+    "Q40 -177 16 -184 Z",
+    rect(12,-224,165,51),
+    ["#86a16c","#527e57","#c0c68b"],"value","glaze",
+    {start:92,end:165},{
+      parentId:"leaf-body",clipToParent:true,blendRadius:4,
+      pressure:pressure*.63,spacing:5.7,markStrength:.26,
+      outlineOpacity:0,
+    },3);
+  addWax("leaf-petiole-throat",
+    "M12 -183 Q23 -192 36 -192 Q45 -187 47 -182 "+
+    "Q32 -178 21 -175 Z",
+    rect(9,-199,46,29),
+    ["#426e52","#365744","#8c9a6d"],"value","glaze",
+    {start:87,end:148},{
+      parentId:"leaf-body",clipToParent:true,blendRadius:2.6,
+      pressure:pressure*.55,spacing:5,markStrength:.34,
+      outlineOpacity:0,
+    },2);
   addWax("pear-sunshine",
     "M-73 -105 Q-117 -30 -106 33 Q-92 111 -44 138 "+
     "Q-85 55 -55 -43 Q-39 -91 -73 -105 Z",
@@ -282,18 +310,31 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     spread:74,length:2.8,width:.78,pressure:pressure*.82,
     color:"#a58f65",startFrame:190,endFrame:237,
   }),"detail");
-  // Central dark midrib and five individually curved offshoots follow the
-  // leaf's asymmetrical veins; no straight white X across a flat green lens.
+  // Single curved midrib, offset shadow and independently branched veins.
+  // Every secondary originates on that arc and terminates at its own margin;
+  // repeated parallel hatching would not describe leaf lamina.
   addLine("leaf-main-vein",
-    "M16 -183 C56 -195 104 -202 168 -208 "+
-    "M43 -190 Q57 -214 77 -222 "+
-    "M81 -198 Q98 -174 115 -168 "+
-    "M104 -201 Q119 -221 138 -220 "+
-    "M131 -207 Q144 -187 157 -183",
-    "leaf-body","detail","#d2d8a5",.82,{start:178,end:237},5,.67);
+    "M16 -183 C55 -194 110 -204 170 -208 "+
+    "M36 -187 Q49 -203 57 -218 "+
+    "M57 -193 Q69 -206 85 -226 "+
+    "M82 -198 Q101 -206 115 -227 "+
+    "M112 -203 Q133 -210 147 -222 "+
+    "M42 -190 Q54 -171 65 -161 "+
+    "M72 -196 Q89 -172 103 -157 "+
+    "M101 -201 Q118 -180 128 -160 "+
+    "M132 -205 Q146 -190 158 -180",
+    "leaf-body","detail","#d2d8a5",.82,{start:178,end:237},9,.67);
   addLine("leaf-midrib-undertone",
-    "M23 -182 C65 -195 104 -200 164 -209",
-    "leaf-body","detail","#48674b",.88,{start:174,end:234},1,.65);
+    "M18 -183 C62 -196 113 -205 170 -209",
+    "leaf-body","detail","#45694a",1.05,{start:174,end:234},1,.74);
+  // The underside of select vein junctions stays low-chroma and broken.
+  // This is local lamina structure, not a noisy texture overlay.
+  addLine("leaf-secondary-vein-shade",
+    "M57 -193 C63 -207 73 -218 85 -226 "+
+    "M81 -198 Q87 -176 101 -160 "+
+    "M112 -203 Q129 -207 145 -219 "+
+    "M130 -204 Q146 -189 154 -182",
+    "leaf-body","detail","#3a664d",.66,{start:185,end:237},4,.45);
   addLine("stem-fold",
     "M-16 -141 Q-11 -166 7 -184 M-4 -149 Q2 -169 12 -180",
     "stem-body","detail","#d8ab7d",.75,{start:178,end:237},2,.68);

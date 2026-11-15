@@ -52,8 +52,28 @@ describe("strict native Crayon drawing grammar",()=>{
         expect((body.d.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(8);
         const vein=nodes.get("leaf-main-vein");
         expect(vein?.kind).toBe("contour");
-        if(vein?.kind==="contour")
-          expect((vein.d.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(5);
+        if(vein?.kind==="contour"){
+          expect((vein.d.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(9);
+          expect((vein.d.match(/M/g)??[])).toHaveLength(9);
+        }
+        // The new shaded midrib and lamina are real, parent-clipped shapes.
+        // A cosmetic collection of floating veins would not satisfy this.
+        for(const id of ["leaf-ridge-volume","leaf-petiole-throat"]){
+          const region=nodes.get(id);
+          if(region?.kind!=="wax")throw new Error("Missing anatomical leaf region "+id);
+          expect(region.parentId).toBe("leaf-body");
+          expect(region.clipToParent).toBe(true);
+          expect(region.coverage).toBe("open");
+          expect((region.d.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(3);
+        }
+        const shade=nodes.get("leaf-secondary-vein-shade");
+        expect(shade).toMatchObject({kind:"contour",parentId:"leaf-body",
+          clipToParent:true});
+        const leafNode=nodes.get("leaf-body");
+        if(leafNode?.kind!=="wax")throw new Error("Missing leaf");
+        // Source-observed asymmetrical serrations and returning lower edge.
+        expect((leafNode.d.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(10);
+        expect(leafNode.d).toContain("Q108 -154 100 -157");
         expect(plan.subjects[0].attachments).toHaveLength(2);
         // The ground contact must be derived from the actual transformed pear
         // contour, not a separate aspect-ratio magic number (prevents floating
