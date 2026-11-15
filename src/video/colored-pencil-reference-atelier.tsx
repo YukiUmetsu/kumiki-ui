@@ -127,8 +127,8 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
   const focal:readonly[number,number]=uploaded?[.5,.5]:
     sample==="fox"?[.32,.43]:
     sample==="woman"?[.52,.25]:
-    sample==="man"?[.5,.43]:[.65,.46];
-  const faceZoom=sample==="woman"?2.05:sample==="man"?1.16:1;
+    sample==="man"?[.5,.53]:[.65,.46];
+  const faceZoom=sample==="woman"?2.05:1;
   useEffect(()=>setSourceUrl(prev=>prev||photos[initialSample].url),[initialSample]);
 
   // Browser-created object URLs are explicitly revoked on replace/unmount,
