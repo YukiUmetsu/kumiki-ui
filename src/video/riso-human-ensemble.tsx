@@ -236,6 +236,8 @@ export function RisoHumanEnsembleStudio(){
     ],
   };
   const people=[{spec:COURIER,stage:state.first},{spec:PAPER_ARTIST,stage:state.second}] as const;
+  const footContacts=people.flatMap(({spec,stage})=>["left-ankle","right-ankle"].map(joint=>
+    personPoint(spec,frame,joint,stage.x,stage.y,stage.scale)));
   const layers:RisoForegroundLayer[]=[
     {
       id:"shared-letter",
@@ -306,6 +308,9 @@ export function RisoHumanEnsembleStudio(){
           visiblePlateIds={plate==="both"?undefined:[plate]}
           artworks={{
             blue:paint=><g fill={paint.solid}>
+              {/* Registration-locked floor contact: paper shadows follow real ankle roots. */}
+              {footContacts.map((pos,i)=><ellipse key={i} cx={pos.x} cy={pos.y+14}
+                rx={13} ry={3.8} fill={paint.dots} data-km-riso-foot-contact={i}/>)}
               <text x={state.width/2} y={aspect==="portrait"?178:76}
                 textAnchor="middle" fontFamily="Georgia,serif"
                 fontWeight={700} fontSize={35}>A PRINT TO SHARE</text>
