@@ -34,7 +34,7 @@ describe("ArtCraft CC0 rooted neck/contact fiber continuity",()=>{
     expect(out.sourceSupported).toBe(0);
     expect(out.sourceRequired).toBe(true);
     expect(out.rasterUnderpainting).toBe(false);
-    expect(img.data).toEqual(original);
+    expect(img.data.every((v,i)=>v===original[i])).toBe(true);
   });
   it("produces connected source-dark neck fibres along the measured root gap",()=>{
     const img=source(),original=img.data.slice();
@@ -54,7 +54,7 @@ describe("ArtCraft CC0 rooted neck/contact fiber continuity",()=>{
         .every(Number.isFinite)&&m.x>=0&&m.x<=540&&
       m.y>=0&&m.y<=600&&m.endX>=0&&m.endX<=540&&
       m.endY>=0&&m.endY<=600)).toBe(true);
-    expect(img.data).toEqual(original);
+    expect(img.data.every((v,i)=>v===original[i])).toBe(true);
     expect(createPhotoNeckContactFibres(img,guides,crop,1,271))
       .toEqual(out);
     expect(createPhotoNeckContactFibres(img,guides,crop,1,272))
