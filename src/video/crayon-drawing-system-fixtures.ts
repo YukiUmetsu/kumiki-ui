@@ -88,23 +88,25 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
       " C"+(root.x+123)+" "+(root.y+29)+" "+(root.x-111)+" "+(root.y+29)+" "+
       (root.x-163)+" "+(root.y+7)+"Z",
     bounds:rect(root.x-169,root.y-22,338,57),
-    colors:["#cfb18d","#aa8b85","#eee0bd"],
-    timing:{start:1,end:80},coverage:"open",pressure:.36,spacing:17,
+    colors:["#dfc6a8","#c5afa2","#eee0c9"],
+    timing:{start:1,end:80},coverage:"open",pressure:.23,spacing:19,
     nibStyle:"tapered",strokeOrder:"patches",markLength:"long",
-    outlineOpacity:0,markStrength:.20,
+    outlineOpacity:0,markStrength:.11,
   };
   elements.push(ground);
   const shadow:CrayonWaxElement={
     kind:"wax",id:"cast-shadow",d:
-      "M"+(root.x-123)+" "+(root.y-3)+" C"+(root.x-86)+" "+(root.y-37)+" "+
-      (root.x+125)+" "+(root.y-37)+" "+(root.x+167)+" "+(root.y-4)+
-      " C"+(root.x+165)+" "+(root.y+35)+" "+(root.x-83)+" "+(root.y+29)+" "+
-      (root.x-123)+" "+(root.y-3)+"Z",
+      // Asymmetric receding contact penumbra, not a hard symmetric oval.
+      "M"+(root.x-123)+" "+(root.y-3)+" C"+(root.x-73)+" "+(root.y-27)+" "+
+      (root.x+79)+" "+(root.y-22)+" "+(root.x+151)+" "+(root.y-2)+
+      " C"+(root.x+171)+" "+(root.y+15)+" "+(root.x+39)+" "+(root.y+28)+" "+
+      (root.x-27)+" "+(root.y+21)+" C"+(root.x-99)+" "+(root.y+16)+" "+
+      (root.x-150)+" "+(root.y+8)+" "+(root.x-123)+" "+(root.y-3)+"Z",
     bounds:rect(root.x-130,root.y-42,300,85),
-    colors:["#a18e88","#827b83","#c0a998"],
-    timing:{start:35,end:140},coverage:"open",pressure:.48,spacing:13,
+    colors:["#afa095","#918887","#cfbca5"],
+    timing:{start:35,end:140},coverage:"open",pressure:.38,spacing:15,
     nibStyle:"tapered",strokeOrder:"patches",markLength:"long",outlineOpacity:0,
-    blendRadius:11,markStrength:.23,
+    blendRadius:18,markStrength:.15,
   };
   elements.push(shadow);
   // Deepest thin wedge is deliberately beneath the bottom-center contact
