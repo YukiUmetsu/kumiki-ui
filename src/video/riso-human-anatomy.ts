@@ -99,7 +99,9 @@ export function inspectRisoAnatomy(spec:RisoCharacterSpec,frame:number){
   // not guessed based on a rectangle or falsely inferred human identity.
   const crownY=head.y+RISO29_ANAT1.headCrownY*headScale;
   const hipY=(hips[0].y+hips[1].y)/2;
-  const ankleY=(ankles[0].y+ankles[1].y)/2;
+  // ANAT1 stature is floor-contact to crown, NOT the mean of both shoe
+  // heights: during swing the raised ankle is not a new ground plane.
+  const ankleY=Math.max(ankles[0].y,ankles[1].y);
   const projectedStature=ankleY-crownY;
   const legProjectionRatio=(ankleY-hipY)/projectedStature;
   return {headScale,headWidth,shoulderWidth,headToShoulder:headWidth/shoulderWidth,
