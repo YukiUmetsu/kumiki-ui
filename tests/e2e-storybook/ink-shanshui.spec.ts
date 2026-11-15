@@ -307,7 +307,7 @@ test("four-master ArtCraft gallery can inspect full native film and macro/meso/m
   await expect(cameras.first()).toHaveAttribute("data-km-master-camera-view","crop");
   await page.getByRole("button",{name:"Full film · 16:9"}).click();
   await expect(cameras.first()).toHaveAttribute("data-km-master-camera-view","film");
-  const transform=await cameras.first().locator("> div").getAttribute("style");
+  const transform=await cameras.first().locator(":scope > div").getAttribute("style");
   expect(transform).toContain("scale(0.4375)");
   // No second test renderer or cached screenshot is substituted for the real film.
   for(const school of ["fuchun","early-spring","travelers","forest-grotto"]){
