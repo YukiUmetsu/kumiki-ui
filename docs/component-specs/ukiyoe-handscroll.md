@@ -22,6 +22,7 @@
 - `ukiyoe-bushi.ts`: armour, helmet, bow and naginata, and `bushiScene()`.
 - `ukiyoe-critters.ts`: crab, turtle, snake, frog, carp and octopus, and `animalScene()`.
 - `ukiyoe-temple.ts`: belfry, temple hall, gate, shrine, graves, stone lantern and hut, and `templeScene()`.
+- `ukiyoe-trees.ts`: bamboo, persimmon, the sacred tree and the face tree, and `treeScene()`.
 - `ukiyoe-crowd.ts`: crowds of townsfolk.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
@@ -313,6 +314,16 @@ Most women in the ghost stories look alive until the story turns, so they are fi
 - **New species.** `weasel`, long and low; `baku`, after Hokusai: a shaggy tawny coat, a ringed trunk and tusks, a bushy tail; and `ape`, the great long-haired mountain ape with a red face. All three have front and back views.
 - **Particle `whirlwind`.** Sekien's spiral of three turning wind bands with leaves along them, seen face on; `count > 0` adds the kamaitachi's sickle-flashes.
 - **`animalYokaiScene(kind)`.** Builds `bakeneko`, `kamaitachi`, `okuriinu` (wolves with glowing eyes following a traveller's lantern), `baku` (the nightmare cloud fades as it eats), `messenger` or `satori`. Storybook **Animal yōkai** plays them.
+
+### Trees and forest spirits
+
+- **`bamboo`.** A grove of jointed stalks with fluttering leaf sprays, swaying with the wind. `shine` lights one stalk from within (Kaguya), its glow pulsing.
+- **`kaki`.** A gnarled, sparse persimmon after Hōitsu, with leaf clusters and a few round fruit (`fruit`, `ripe`).
+- **`shinboku`.** A great sacred tree: flared roots, a twisting ridged trunk with a hollow, the shimenawa and its streamers, a clumped crown.
+  - `face` opens an old face in the bark that moves.
+  - `reach` bends the lower branches down and forward like grasping arms with red-tipped fingers, for the vampire tree.
+- **`jinmenju`.** A tree whose fruit are laughing heads swaying on their stems, spread across the crown.
+- **`treeScene(kind)`.** Builds `kaguya` (the bamboo cutter finds the shining stalk), `persimmon` (the monkey up the tree, the crab below), `kodama` (the old couple appear from the sacred tree), `jubokko` (on an old battlefield) or `jinmenju`. Storybook **Trees** plays them, and the Motifs gallery has five tiles.
 
 ### Transition
 

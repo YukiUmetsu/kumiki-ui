@@ -3788,6 +3788,11 @@
           "target": "components/video/ukiyoe/ukiyoe-temple.ts"
         },
         {
+          "path": "registry/video/ukiyoe/ukiyoe-trees.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-trees.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-creatures.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-creatures.ts"

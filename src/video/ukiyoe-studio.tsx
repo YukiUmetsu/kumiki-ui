@@ -39,6 +39,8 @@ import type { UkiyoeAnimalYokaiScene } from "../../registry/video/ukiyoe/ukiyoe-
 import { animalScene, animalYokaiScene, UKIYOE_ANIMAL_HABITATS, UKIYOE_ANIMAL_YOKAI_SCENES } from "../../registry/video/ukiyoe/ukiyoe-critters";
 import type { UkiyoeTempleScene } from "../../registry/video/ukiyoe/ukiyoe-temple";
 import { templeScene, UKIYOE_TEMPLE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-temple";
+import type { UkiyoeTreeScene } from "../../registry/video/ukiyoe/ukiyoe-trees";
+import { treeScene, UKIYOE_TREE_SCENES } from "../../registry/video/ukiyoe/ukiyoe-trees";
 import { oiranProcession, UKIYOE_OIRAN_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-oiran";
 import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
@@ -469,6 +471,11 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "graves", label: "Graveyard · sotoba", params: { width: 520, count: 6 }, y: 330 },
   { motif: "toro", label: "Stone lantern · lit", params: { height: 220, lit: 1 }, y: 350 },
   { motif: "hut", label: "Hermit's hut", params: { width: 240, smoke: 1, light: 1 }, y: 340 },
+  { motif: "bamboo", label: "Bamboo grove · shining stalk", params: { width: 560, height: 360, stalks: 8, shine: 4 }, y: 370 },
+  { motif: "kaki", label: "Persimmon tree", params: { height: 330 }, y: 370 },
+  { motif: "shinboku", label: "Sacred tree · shimenawa", params: { height: 340 }, y: 370 },
+  { motif: "shinboku", label: "Jubokko · face, reaching", params: { height: 340, face: 1, reach: 1, rope: false, color: "kogecha" }, y: 370 },
+  { motif: "jinmenju", label: "Jinmenju · laughing heads", params: { height: 330 }, y: 370 },
 ];
 
 export function MotifGallery() {
@@ -872,6 +879,29 @@ export function AnimalYokai() {
     </section>
     <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={AY_LABELS[kind]} /></Fit>
     <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Yokai frame" />
+  </div>;
+}
+
+// ---- Trees and forest spirits ------------------------------------------------------------------------------------------------------
+
+const TREE_LABELS: Readonly<Record<UkiyoeTreeScene, string>> = { kaguya: "The shining bamboo", persimmon: "Monkey up the persimmon", kodama: "Kodama: the tree's spirits", jubokko: "Jubokko, the vampire tree", jinmenju: "Jinmenju, the laughing tree" };
+
+/** Trees as characters: the shining bamboo, the persimmon, the sacred tree's spirits, the face trees. */
+export function Trees() {
+  const [kind, setKind] = useState<UkiyoeTreeScene>("kaguya");
+  const spec = useMemo(() => treeScene(kind), [kind]);
+  const clock = usePlayback(spec.durationFrames, 0, 1, true, true);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Trees" title="Bamboo, persimmon and the trees that are alive">
+      <p style={{ margin: 0 }}>After Hōitsu's <em>Persimmon Tree</em>, the <em>Taketori</em> scroll and Sekien's kodama. The <code>bamboo</code> grove sways,
+        one stalk lit from within; the <code>kaki</code> is gnarled and sparse with a few round fruit; the <code>shinboku</code> wears its rope and can open
+        an old <code>face</code> in its bark or <code>reach</code> with its branches like arms; the <code>jinmenju</code>'s fruit are laughing heads.</p>
+    </Header>
+    <section aria-label="Tree controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+      <Select name="Scene" value={kind} options={UKIYOE_TREE_SCENES} onChange={setKind} labels={TREE_LABELS} />
+    </section>
+    <Fit width={1920} height={1080}><UkiyoeScene spec={spec} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={TREE_LABELS[kind]} /></Fit>
+    <Transport clock={clock} total={spec.durationFrames} rate={1} setRate={() => undefined} loop setLoop={() => undefined} name="Tree frame" />
   </div>;
 }
 

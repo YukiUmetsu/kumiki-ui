@@ -5,6 +5,7 @@ import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES }
 import { drawFigure, facingAt, figureClubAt, figurePose, figureSwordAt, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
+import { treeScene, UKIYOE_TREE_SCENES } from "../registry/video/ukiyoe/ukiyoe-trees";
 import { bellStrike, templeScene, UKIYOE_TEMPLE_SCENES } from "../registry/video/ukiyoe/ukiyoe-temple";
 import { animalScene, animalYokaiScene, UKIYOE_ANIMAL_HABITATS, UKIYOE_ANIMAL_YOKAI_SCENES, UKIYOE_CRITTERS } from "../registry/video/ukiyoe/ukiyoe-critters";
 import { bushiScene, shootAt, UKIYOE_BUSHI_SCENES } from "../registry/video/ukiyoe/ukiyoe-bushi";
@@ -656,6 +657,20 @@ describe("UKIYO1 animal yokai", () => {
       expect(drawCreature({ species: sp, look: { view }, actions: [{ type: "walk", start: 0, end: 100, to: 80 }] }, 30, 0, 1).prims.length, `${sp} ${view}`).toBeGreaterThan(5);
     const w = (f: number) => JSON.stringify(drawParticles({ type: "whirlwind", area: [0, 0, 600, 600], count: 1 }, f, 0, 3));
     expect(w(10) === w(14)).toBe(false);
+  });
+});
+
+describe("UKIYO1 trees", () => {
+  it("builds each tree scene; the bamboo sways, the shining stalk glows, the face opens and the branches reach", () => {
+    for (const k of UKIYOE_TREE_SCENES) expect(inspectUkiyoeScene(treeScene(k)), k).toEqual([]);
+    const ctx = (frame: number, wind = 0) => ({ frame, wind, seed: 3, progress: 1 });
+    const d = (m: Parameters<typeof drawMotif>[0], p: Record<string, unknown>, f = 0, w = 0) => JSON.stringify(drawMotif(m, p, ctx(f, w)));
+    expect(d("bamboo", {}, 0) === d("bamboo", {}, 20)).toBe(false);
+    expect(d("bamboo", { shine: 2 })).toContain("glow");
+    expect(d("bamboo", {})).not.toContain("glow");
+    expect(d("shinboku", { face: 1 }).length).toBeGreaterThan(d("shinboku", { face: 0 }).length);
+    expect(d("shinboku", { reach: 1 }) === d("shinboku", { reach: 0 })).toBe(false);
+    expect(d("kaki", { fruit: 1 }).length).toBeGreaterThan(d("kaki", { fruit: 0 }).length);
   });
 });
 
