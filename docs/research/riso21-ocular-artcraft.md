@@ -1,5 +1,14 @@
 # RISO21 — ArtCraft v9 ocular construction in two animated original figures
 
+> **Post-render correction (RISO23):** The actual RISO22 Chromium proof revealed that
+> screening the narrow `eye-iris-grain` and `eye-lower-orbit-engraving`
+> contours produced unintended disconnected red chips. They now use **solid**
+> red ink, while three broad orbital, cheek and jaw zones carry screened tone.
+> The original RISO21 conclusions below describe the pre-correction construction;
+> consult [RISO23 critique and measured ink plan](riso23-facial-screen-artcraft.md)
+> for the current live character/Storybook behavior.
+
+
 Date: 2026-11-15. Continuation of RISO20's two-spot print material engine and RISO19's two-person handoff. Only the original **Courier** and **Paper Artist** face-source linework is extended. No third-party artwork or raster filter is redistributed.
 
 **Skill provenance:** Owner's **ArtCraft 9.1** bundle, `artcraft`, `art-reference-research`, `art-reference-structural-study`, `art-2d-character-craft`, `art-human-anatomy`, `art-material-study`, `art-animation-rigging` and `art-fidelity-review`. The skills' full release, reference-pixel, 3/4 human anatomy and independent artist gates are *not* satisfied just because a source file/test exists.
