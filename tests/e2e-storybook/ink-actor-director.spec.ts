@@ -136,12 +136,14 @@ test("Character Director can compare the actual actor crop with the untouched fu
   await page.goto("/iframe.html?id=video-ink-character-director--continuous-walk&viewMode=story");
   const framing=page.getByRole("combobox",{name:"Director preview framing"});
   await expect(framing).toHaveValue("figure");
+  await expect(page.locator('[data-km-ink-directed-caption]')).toHaveCount(0);
   await seek(page,244);
   const stage=page.getByTestId("ink-director-viewport");
   await expect(stage).toHaveCSS("overflow","hidden");
   const close=await stage.screenshot({animations:"disabled",
     path:info.outputPath("ink-director-actor-inspection.png")});
   await framing.selectOption("wide");
+  await expect(page.locator('[data-km-ink-directed-caption]')).toHaveCount(1);
   const wide=await stage.screenshot({animations:"disabled",
     path:info.outputPath("ink-director-full-film.png")});
   expect(await pixelDifference(page,close,wide)).toBeGreaterThan(.05);
