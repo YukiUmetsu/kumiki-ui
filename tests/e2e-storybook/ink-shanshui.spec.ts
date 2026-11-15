@@ -169,6 +169,8 @@ test("four distinct historical ink schools paint separate real rooted rock struc
     await expect(card.locator('[data-km-master-school="'+school+'"]'))
       .toHaveCount(1);
     await expect(card.locator("[data-km-master-face]")).toHaveCount(3);
+    await expect(card.locator("[data-km-cliff-pine-crab-claw]"))
+      .toHaveCount(school==="early-spring"?40:0);
     await expect(card.locator("[data-km-master-stroke]"))
       .toHaveCount(count);
     await expect(card.locator("[data-km-master-stratum]")).toHaveCount(15);
