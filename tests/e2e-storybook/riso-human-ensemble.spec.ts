@@ -15,6 +15,17 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
   for(const aspect of ["landscape","portrait"] as const){
     await page.getByRole("combobox",{name:"RISO ensemble aspect"}).selectOption(aspect);
     await expect(stage).toHaveAttribute("viewBox",aspect==="portrait"?"0 0 540 960":"0 0 960 540");
+    const artBox=await stage.boundingBox();
+    expect(artBox).not.toBeNull();
+    expect(artBox!.width).toBeGreaterThan(aspect==="portrait"?400:800);
+    expect(artBox!.width).toBeLessThanOrEqual(aspect==="portrait"?455:965);
+    expect(artBox!.height).toBeGreaterThan(aspect==="portrait"?730:500);
+    expect(artBox!.height).toBeLessThanOrEqual(aspect==="portrait"?805:545);
+    const container=page.locator(`[data-km-riso-ensemble-stage-container="${aspect}"]`);
+    await expect(container).toBeVisible();
+    const containerBox=await container.boundingBox();
+    expect(containerBox).not.toBeNull();
+    expect(Math.abs(containerBox!.height-artBox!.height)).toBeLessThan(6);
     for(const frame of [0,92,142,160,198,239]){
       const slider=page.getByRole("slider",{name:"RISO ensemble film frame"});
       await slider.evaluate((node,value)=>{
@@ -28,6 +39,19 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
       await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-frame",String(frame));
       await expect(stage.locator("[data-km-riso-human-actor]")).toHaveCount(2);
       await expect(stage.locator('[data-km-riso-human-actor="paper-artist"]')).toHaveCount(1);
+      // A passing DOM count is not sufficient: both actors must actually be
+      // within the visible paper bounds at every selected film frame.
+      for(const actorName of ["courier","paper-artist"]){
+        const actor=stage.locator(`[data-km-riso-human-actor="${actorName}"]`);
+        const bb=await actor.boundingBox();
+        expect(bb,actorName+" bbox at "+frame).not.toBeNull();
+        expect(bb!.width,actorName).toBeGreaterThan(8);
+        expect(bb!.height,actorName).toBeGreaterThan(20);
+        expect(bb!.x,actorName).toBeGreaterThan(artBox!.x-4);
+        expect(bb!.x+bb!.width,actorName).toBeLessThan(artBox!.x+artBox!.width+4);
+        expect(bb!.y,actorName).toBeGreaterThan(artBox!.y-4);
+        expect(bb!.y+bb!.height,actorName).toBeLessThan(artBox!.y+artBox!.height+4);
+      }
       if(frame>=142)await expect(stage.locator("[data-km-riso-human-ensemble-sheet]")).toHaveCount(1);
       else await expect(stage.locator("[data-km-riso-human-ensemble-sheet]")).toHaveCount(0);
       await stage.screenshot({path:info.outputPath(aspect+"-two-humans-"+frame+".png"),
