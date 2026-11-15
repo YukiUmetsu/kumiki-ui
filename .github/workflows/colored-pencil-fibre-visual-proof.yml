@@ -19,7 +19,7 @@ on:
       - 'src/video/colored-pencil-anatomy-detail.ts'
       - 'src/video/colored-pencil-wildlife.stories.tsx'
       - 'tests/colored-pencil-anatomy-detail.test.tsx'
-      - 'tests/e2e-storybook/colored-pencil-wildlife.spec.ts tests/e2e-storybook/colored-pencil-living-studies.spec.ts'
+      - 'tests/e2e-storybook/colored-pencil-wildlife.spec.ts'
       - 'src/video/colored-pencil-science.stories.tsx'
       - 'tests/e2e-storybook/colored-pencil-anatomical-fibres.spec.ts'
   workflow_dispatch:
@@ -47,7 +47,7 @@ jobs:
       - name: Chromium for actual pencil geometry and posed screenshots
         run: npx playwright install --with-deps chromium
       - name: Inspect independently animated fur and feather art
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-anatomical-fibres.spec.ts tests/e2e-storybook/colored-pencil-wildlife.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-anatomical-fibres.spec.ts tests/e2e-storybook/colored-pencil-wildlife.spec.ts tests/e2e-storybook/colored-pencil-living-studies.spec.ts
       - name: Retain frame and macro crop evidence
         if: always()
         uses: actions/upload-artifact@v4
