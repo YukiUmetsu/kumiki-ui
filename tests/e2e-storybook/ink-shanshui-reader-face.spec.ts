@@ -76,6 +76,24 @@ test("ArtCraft 6x face study exposes live asymmetric iris, nasal planes and vise
       path:info.outputPath("reader-artcraft-eye-nose-lips-closed.png")});
   });
 
+test("the same Chinese Ink folder displays three separately drawn face identities",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
+    const review=page.getByTestId("shanshui-portrait-lineage");
+    await expect(review).toBeVisible();
+    for(const scene of ["misty-hermit","river-scholar","mountain-trail"]){
+      await expect(review.locator('[data-km-scene-face="'+scene+'"]'))
+        .toHaveCount(1);
+    }
+    await expect(review.locator("[data-km-portrait-irises]")).toHaveCount(3);
+    await review.screenshot({animations:"disabled",
+      path:info.outputPath("shanshui-three-portrait-identity-review.png")});
+    await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("closed");
+    await expect(review.locator("[data-km-portrait-irises]")).toHaveCount(0);
+    await review.screenshot({animations:"disabled",
+      path:info.outputPath("shanshui-three-portrait-blink-review.png")});
+  });
+
 test("source teacher reference image overlays locally without committing image pixels",
   async({page})=>{
     await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
