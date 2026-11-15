@@ -28,6 +28,20 @@ describe("Crayon reference-led orbital and mouth wax hatching",()=>{
         expect(n.d.length).toBeGreaterThan(20);
         expect(n.width).toBeLessThan(1);
       }
+      // The generator accepts DEGREES. Reject former near-zero input
+      // (0.12 degrees) which produced almost horizontal philtrum marks.
+      const phi=spec.elements.find(n=>n.id==="philtrum-form-hatching");
+      const orbital=spec.elements.find(n=>n.id==="near-orbital-plane-hatching");
+      if(phi?.kind!=="contour"||orbital?.kind!=="contour")throw Error("Missing angle evidence");
+      const firstDirection=(d:string)=>{
+        const coords=d.match(/^M(-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?) Q-?\\d+(?:\\.\\d+)? -?\\d+(?:\\.\\d+)? (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/);
+        if(!coords)throw Error("Unexpected authored Q stroke format");
+        return {dx:Number(coords[3])-Number(coords[1]),dy:Number(coords[4])-Number(coords[2])};
+      };
+      const vertical=firstDirection(phi.d);
+      expect(Math.abs(vertical.dy)).toBeGreaterThan(2*Math.abs(vertical.dx));
+      const diagonal=firstDirection(orbital.d);
+      expect(Math.abs(diagonal.dy)).toBeGreaterThan(.15*Math.abs(diagonal.dx));
       const rendered=renderToStaticMarkup(<CrayonScene spec={spec} frame={299}/>);
       for(const id of fields)expect(rendered).toContain('data-km-crayon-element="'+id+'"');
       expect(renderToStaticMarkup(<CrayonScene spec={spec} frame={299}/>)).toBe(rendered);
