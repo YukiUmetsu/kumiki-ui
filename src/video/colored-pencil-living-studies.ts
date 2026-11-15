@@ -599,13 +599,21 @@ function fox():PencilSubjectPart[] {
           [140,231,198,243,170,247,33,7],
         ],721,["#E9D2B7","#8D8177","#FFF0D3"],248),
         mark("M115 233 C139 240 163 244 188 243 Q226 244 254 235",
-          "#584B48",.58,260,.68),
+          "#867369",.43,260,.39),
         mark("M116 218 Q146 210 175 216 M212 213 Q241 215 256 223",
           "#F8E6C6",.57,268,.58),
         mark("M126 237 Q151 246 179 247 M202 248 Q226 249 248 240",
           "#77665D",.39,275,.59),
         mark("M121 228 Q129 232 135 232 M148 225 Q168 221 185 227",
           "#C4A38D",.33,270,.55),
+        // Original pigment tracks feather from inside the nasal-maxilla
+        // junction across both sides of the cream-to-russet pelt boundary.
+        // The whisker roots themselves do not need a colored sticker.
+        ...pencilContourFringe([
+          [112,219,198,201,160,204,40,-1],
+          [198,201,257,218,233,206,36,-1],
+          [115,233,196,246,158,242,30,1],
+        ],1021,["#C5957E","#77625B","#F3D9B9"],259),
       ]},
     {id:"rostrum-bridge",material:"glaze",palette:["#B27660","#80584F","#D59D7F"],
       // Optical dry-colour plane overlays muzzle, without an opaque sticker.
@@ -863,18 +871,29 @@ export function pencilLivingStudyDrawing({
       part.id.startsWith("ear-")?.54:
       part.id.startsWith("foreleg-")?.48:.36;
     return {...region,
+      // Whiskers are fine, floating pencil contacts from visible follicles;
+      // never flood the chin with an opaque region or gradient undercoat.
+      opaqueSupport:subject==="fox"&&part.id==="whisker-roots"?
+        false:region.opaqueSupport,
+      underpaint:subject==="fox"&&part.id==="whisker-roots"?
+        undefined:region.underpaint,
       // The fox iris has its own traced upper eyelid and pupil. Suppress
       // only the enclosing glass-vector ring, not the separate pencil marks.
-      contour:subject==="fox"&&
+      contour:subject==="fox"&&part.id==="whisker-roots"?
+        {...region.contour,opacity:.05}:
+        subject==="fox"&&part.id==="muzzle"?
+        {...region.contour,opacity:.16}:
+        subject==="fox"&&
         ["chest","neck-ruff","cheek-ruff"].includes(part.id)?
         {...region.contour,opacity:.18}:
         subject==="fox"&&part.id==="eye-near"?
         {...region.contour,opacity:.17}:region.contour,
-      craft:locallyRooted&&region.craft?{
+      craft:subject==="fox"&&part.id==="whisker-roots"?
+        undefined:locallyRooted&&region.craft?{
         ...region.craft,pigmentDensity:furDensity,
       }:region.craft,
       clipDetails:part.id==="whisker-roots"||
-        (subject==="fox"&&(part.id==="nose"||
+        (subject==="fox"&&(part.id==="nose"||part.id==="muzzle"||
           ["chest","neck-ruff","cheek-ruff"].includes(part.id)))?
         false:region.clipDetails, layers:region.layers.map((layer,index)=>({
       ...layer,
