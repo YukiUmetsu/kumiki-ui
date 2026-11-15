@@ -232,6 +232,20 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
       p.taper(-99+d*.9,65,-146+d*2.8,143+Math.abs(d)*1.6,7.5,1.8),{
         enterFrame:36+i*2,curl:.54});
   }
+  // A restrained second cardstock tone runs *with* each short rectrix.
+  // Fringes remain inside their tapered host silhouettes, rather than
+  // turning a compact kingfisher tail into a spiky decorative fan.
+  const tailShafts=Array.from({length:7},(_,i)=>{
+    const d=i-3,dx=-47+d*1.9,dy=78+Math.abs(d)*1.6;
+    return Array.from({length:2+Math.round(detail*2)},(_,j)=>{
+      const t=.26+j*.13;
+      const x=-99+d*.9+dx*t,y=65+dy*t;
+      return p.taper(x,y,x+dx*.047,y+dy*.047,.53,.12);
+    }).join(" ");
+  }).join(" ");
+  add("kingfisher-tail-shafts",paperTint(c.blue,c.cream,.23),12,
+    tailShafts,{enterFrame:54,curl:.19});
+
   // One stout, pitched forward silhouette with blue upperparts and chestnut belly.
   add("kingfisher-body-shadow",c.deep,12,[
     p.M(-126,-74),p.C(-107,-115,-33,-119,8,-88),
@@ -301,8 +315,28 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
       const y=-56+row*24+line*13+col*3.8;
       return p.taper(x,y,x-3.7,y+13+variation(j+row*13,29)*4,1.3,.7);
     }).join(" ");
+    // These short ribs follow the actual six individual primaries in this
+    // wing column. Unlike random stipple marks, each barb is positioned in
+    // its source feather's local root-to-tip coordinate system, with the
+    // same anatomical hinge and phase as the parent moving wing.
+    const vaneRibs=Array.from({length:6},(_,featherRow)=>{
+      const col=row,sx=-106+col*22+featherRow*1.6,
+        sy=-56+featherRow*22+col*4;
+      const dx=-6+col*1.6,dy=37+featherRow*.9;
+      const length=Math.hypot(dx,dy),nx=-dy/length,ny=dx/length;
+      return Array.from({length:2+Math.round(detail*2)},(_,j)=>{
+        const t=.22+j*.11,x=sx+dx*t,y=sy+dy*t;
+        // Maintain a visible intact central paper shaft and two sloping,
+        // tapered side-barbs, with short ends inside the vane boundary.
+        return [-1,1].map(side=>p.taper(
+          x+nx*side*1.1,y+ny*side*1.1,
+          x+dx*.065+nx*side*5.1,
+          y+dy*.065+ny*side*5.1,
+          .61,.12*side)).join(" ");
+      }).join(" ");
+    }).join(" ");
     add("kingfisher-wing-spot-"+row,row===1?c.blueLight:c.green,19,
-      shards,{enterFrame:88+row*7,curl:.72,...rig});
+      shards+" "+vaneRibs,{enterFrame:88+row*7,curl:.72,...rig});
   }
   // Chestnut breast has close-spaced feathers with no giant white oval.
   for(let row=0;row<3;row++){
@@ -363,6 +397,14 @@ function kingfisher(p:P,add:Add,c:Stock,detail:number,seed:number){
     p.M(32,-89),p.C(48,-91,65,-82,72,-71),
     p.C(58,-62,44,-65,32,-72),
     p.C(29,-78,30,-84,32,-89),p.Z].join(" "),{enterFrame:118});
+  // The ear coverts are not a flat orange smile: four to seven small,
+  // directionally staggered, opaque paper flecks lie inside the warm cheek.
+  add("kingfisher-auricular-feathers",paperTint(c.coral,c.cream,.22),25,
+    Array.from({length:4+Math.round(detail*3)},(_,i)=>{
+      const x=34+i*4.6,y=-83+i*1.9;
+      return p.taper(x,y,x+5.8,y+3.1,.73,.25);
+    }).join(" "),{enterFrame:121,curl:.21});
+
   // White nape streak lies to the left of the orange ear, while the throat
   // curves into the breast immediately beneath the beak's lower mandible.
   add("kingfisher-face-band",c.cream,25,[
