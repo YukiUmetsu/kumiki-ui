@@ -87,3 +87,24 @@ test("RISO5 character opacity: paper-backed courier and bird remain solid in eve
     await page.getByRole("combobox",{name:"Ink plate isolation"}).selectOption("both");
   }
 });
+
+test("Courier internal face paper clearance remains intact over body and props",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-riso-characters--paper-courier-performance&viewMode=story");
+  await page.evaluate(()=>document.fonts.ready);
+  const stage=page.locator("svg[data-km-riso-performance]");
+  const slider=page.getByRole("slider",{name:"Risograph character film frame"});
+  for(const aspect of ["landscape","portrait"] as const){
+    await page.getByRole("combobox",{name:"Riso performance output"}).selectOption(aspect);
+    for(const frame of [46,157,198]){
+      await seek(slider,frame);
+      await expect(stage).toHaveAttribute("data-km-riso-performance-frame",String(frame));
+      // Each independent ink plate subtracts earlier body ink from the
+      // paper-backed face before drawing facial ink. No alpha blending.
+      await expect(stage.locator('mask:has([data-km-riso-paper-clearance="face"])')).toHaveCount(2);
+      await expect(stage.locator('[data-km-riso-character="courier"] [data-km-riso-part="mouth"]')).toHaveCount(1);
+      await stage.screenshot({path:info.outputPath(
+        "riso-face-clearance-"+aspect+"-f"+String(frame).padStart(3,"0")+".png"
+      ),animations:"disabled"});
+    }
+  }
+});

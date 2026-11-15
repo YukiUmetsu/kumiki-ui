@@ -240,3 +240,22 @@ The next priorities are dedicated **authorable actions and constraints** (walk c
 No external artwork, footage, soundtrack or proprietary font has been bundled or traced. The linked video references were used to derive craft and production concepts, not assets or copied compositions.
 
 **Acceptance:** require clean standalone registry install, TS/unit validation, browser-recorded acting and plate isolation, 16:9/9:16 print composition, deterministic back-seeking, exported playable MP4, and independent senior review. A small example film cannot certify support for every possible video or sophisticated production character animation.
+
+## RISO11 — ArtCraft figure/feather source refinement (2026-11-14)
+
+The example Courier and Paper Bird keep the same version-1 rig, spot plates, paper knockout and film slots. Reference-led drawing has been refined with curved/tapered, source-mapped feather barbs and covert rows; breast and tail engraving; coat fold tension; individual glove/thumb planes and expression-specific mouth corners. Both actor definition files still use opaque ink silhouettes and deterministic frame evaluation.
+
+- **Storybook:** `Video production / Film Looks / Risograph` → `Courier ArtCraft Detail`, `Bird ArtCraft Detail`, character construction sheets, and the native character film. Pose checkpoint buttons expose face, garment and feather stress frames without changing the production frame clock.
+- **Reference/structural notes:** [RISO11 ArtCraft feather and tailoring study](../research/riso11-feather-and-tailored-ink-artcraft.md).
+- **Regression:** `tests/riso11-ink-craft.test.ts`; existing source-mesh, ArtCraft, opacity and bird wing/face collision tests remain authoritative.
+
+This is a craftsmanship iteration, not a claim that examples are anatomically complete or equivalent to third-party artwork. Final-release artistic acceptance requires actual normal-speed film review, independent human visual judgment and source-relative ArtCraft measurements.
+
+
+### RISO11 correction — internal face paper clearance
+
+Actual production film frames revealed that an actor-wide paper knockout is **insufficient** when a blue coat or arm exists behind a pale face inside the same actor. The face was drawn as a `knockoutOnly` part, but that flag was previously honored only by the exterior paper silhouette and ignored by `RisoCharacterInk`; as a result, body/strap ink showed through the face.
+
+`RisoCharacterInk` now treats each `knockoutOnly` path as **an internal negative-space mask of earlier ink parts** on each spot plate. Later facial ink is painted normally on the exposed paper. The example Courier orders the entire coat, sleeve, glove, bag and badge behind the face clearance and facial features. Multiple staged masks are supported in paint-order segments; actors without paper-clearance parts do not create masks. This is not low-opacity overpainting or an RGB transparency filter.
+
+Verify `tests/riso-character-paper-clearance.test.tsx`, the browser clearance stress frames (landscape and portrait at 46/157/198), and the encoded production film. Future work: explicit per-part depth/deformation vocabulary for complex occlusions, a production-grade multi-character face-overlap editor, and independent print-artist approval.
