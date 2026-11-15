@@ -42,6 +42,17 @@ describe("Crayon reference-led orbital and mouth wax hatching",()=>{
       expect(Math.abs(vertical.dy)).toBeGreaterThan(2*Math.abs(vertical.dx));
       const diagonal=firstDirection(orbital.d);
       expect(Math.abs(diagonal.dy)).toBeGreaterThan(.15*Math.abs(diagonal.dx));
+      // The previous nose was nearly invisible in native browser proof:
+      // these are actual attached wax planes, not nostril-only icon strokes.
+      for(const id of ["nose-bridge","nose-sidewall","nose-tip-underpaint"]){
+        const region=spec.elements.find(n=>n.id===id);
+        if(region?.kind!=="wax")throw Error("No nasal pigment plane: "+id);
+        expect(region.parentId).toBe("adult-face");
+        expect(region.clipToParent).toBe(true);
+        expect(region.coverage).toBe("open");
+        expect(region.markStrength).toBeGreaterThan(.25);
+        expect(region.blendRadius).toBeGreaterThanOrEqual(4);
+      }
       const rendered=renderToStaticMarkup(<CrayonScene spec={spec} frame={299}/>);
       for(const id of fields)expect(rendered).toContain('data-km-crayon-element="'+id+'"');
       expect(renderToStaticMarkup(<CrayonScene spec={spec} frame={299}/>)).toBe(rendered);
