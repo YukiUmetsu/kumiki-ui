@@ -2,7 +2,7 @@ import {describe,it,expect} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
-import {crayonDryNibPath,crayonMarks,crayonPaperHeight,crayonWaxContactClumps} from "../registry/video/materials/crayon";
+import {crayonDryNibPath,crayonMarks,crayonPaperHeight,crayonWaxContactClumps,crayonStrokeEndPickup} from "../registry/video/materials/crayon";
 import {crayonCc0NearEyeStudy} from "../src/video/crayon-artcraft-cc0-near-eye";
 import {crayonPaperContactSwatches} from "../src/video/crayon-artcraft-paper-contact-fixtures";
 import faceMeta,{SourceMeasuredCc0Eye,SourceMeasuredCc0EyePortrait}
@@ -37,6 +37,25 @@ describe("Crayon pressure-and-paper contact material studies",()=>{
   });
 });
 describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
+  it("anchors wax buildup to stroke lift-off rather than scattering loose stickers",()=>{
+    const marks=crayonMarks({x:0,y:0,width:166,height:65},
+      {seed:392,pressure:.91,spacing:7,passes:2,strokeOrder:"patches"});
+    const mark=marks.find(m=>crayonStrokeEndPickup(m,974)!=="");
+    if(!mark)throw new Error("No raised-fiber stroke pickup in sampled marks");
+    const path=crayonStrokeEndPickup(mark,974);
+    expect(path).toContain("M");
+    expect(path).toContain("Q");
+    expect(path).toContain("Z");
+    expect(path).toBe(crayonStrokeEndPickup(mark,974));
+    expect(path).not.toBe(crayonStrokeEndPickup(mark,975));
+    const oneArc={...mark,nibArcs:[mark.nibArcs[0]]};
+    expect(crayonStrokeEndPickup(oneArc,974,.6)).toBe("");
+    expect(crayonStrokeEndPickup(oneArc,974,.84)).toBe("");
+    expect(crayonStrokeEndPickup(oneArc,974,1)).toBe(
+      crayonStrokeEndPickup(oneArc,974,1));
+    expect(()=>crayonStrokeEndPickup(mark,974,1.5)).toThrow();
+    expect(()=>crayonStrokeEndPickup(mark,1.2)).toThrow();
+  });
   it("accumulates colored wax clumps on shared raised paper under pressure",()=>{
     const bounds={x:15,y:-20,width:174,height:90};
     const low=crayonWaxContactClumps(bounds,18,974,.24,-8);
@@ -112,6 +131,8 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
       expect(old).toContain('data-km-crayon-deposition="smooth"');
       expect(html).toContain('data-km-crayon-paper-contact="height"');
       expect(html).toContain('data-km-crayon-contact-clumps="wax"');
+      expect(html).toContain('data-km-crayon-wax-pickup="stroke-end"');
+      expect(old).not.toContain('data-km-crayon-wax-pickup="stroke-end"');
       expect(old).toContain('data-km-crayon-paper-contact="legacy"');
       expect(old).toContain('data-km-crayon-underpaint-gradient=""');
       expect(old).not.toContain('data-km-crayon-cross-contact=');
