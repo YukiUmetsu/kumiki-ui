@@ -3,6 +3,7 @@ import {
   CC0_FACE_VALUE_REGIONS,compareCC0PortraitTones,
   CC0_HAIR_OCCLUSION_PROBE,compareCC0HairOcclusion,
   CC0_VERMILION_PROBES,compareCC0Vermilion,
+  CC0_SKIN_COVERAGE_PROBES,compareCC0SoftSkin,
 } from "../src/video/colored-pencil-full-head-tone-proof";
 import type {PencilTonePixelGrid} from "../src/video/colored-pencil-full-head-tone-proof";
 
@@ -22,6 +23,30 @@ const paint=(image:PencilTonePixelGrid,x:number,y:number,value:number)=>{
     image.data[index]=image.data[index+1]=image.data[index+2]=value;
   }
 };
+describe("ArtCraft independent cheek, under-eye and chin tonal support gate",()=>{
+  it("fails on the prior chalk-white skin but not new source-matched dry fibres",()=>{
+    const source=make(230),old=make(240),newPlate=make(240);
+    const sourceYs=[185,94,149];
+    const oldYs=[214,124,185];
+    const newYs=[206,113,173];
+    CC0_SKIN_COVERAGE_PROBES.forEach((r,i)=>{
+      paint(source,r.x,r.y,sourceYs[i]);
+      paint(old,r.x,r.y,oldYs[i]);
+      paint(newPlate,r.x,r.y,newYs[i]);
+    });
+    expect(compareCC0SoftSkin(source,old).missingOpticalCoverage)
+      .toBe(true);
+    const evidence=compareCC0SoftSkin(source,newPlate);
+    expect(evidence.missingOpticalCoverage).toBe(false);
+    expect(evidence.artisticApproval).toBe(false);
+    expect(evidence.regions.map(r=>r.name))
+      .toEqual(["cheek","under-eye","chin"]);
+    expect(compareCC0SoftSkin(make(245),newPlate)
+      .missingOpticalCoverage).toBe(true);
+    expect(()=>compareCC0SoftSkin(source,{...newPlate,width:400}))
+      .toThrow(RangeError);
+  });
+});
 describe("ArtCraft independent upper/lower vermilion negative-only optical gate",()=>{
   it("rejects the old pale mouth while retaining source-matched pigment, never approving art",()=>{
     const source=make(230),old=make(230),corrected=make(230);
