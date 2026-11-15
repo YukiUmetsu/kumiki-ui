@@ -306,5 +306,6 @@ function CourierAnatomyComparison(){
 }
 export const CourierHumanAnatomy:StoryObj<typeof meta>={
   name:"RISO13 · Human Face and Finger Construction",
+  args:{actor:"courier"},
   render:()=> <CourierAnatomyComparison/>,
 };
