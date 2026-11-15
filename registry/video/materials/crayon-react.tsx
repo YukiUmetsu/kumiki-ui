@@ -42,6 +42,8 @@ export type WaxProps = {
   /** 0..1 optical paper-tooth color variation on *opaque* wax.
    * Samples page-seeded relief without making the subject transparent. */
   underpaintTooth?:number;
+  /** Optional extra full-depth wax burnishing on opaque dense pigments (0..1). */
+  opaqueBurnish?:number;
   /** After the drawing completes, repaint small wax daubs on discrete held exposures. */
   redraw?: CrayonRedrawOptions;
   /** Fragmented wax nib trace around the visible outline, 0..1. */
@@ -73,13 +75,17 @@ export type LineProps = { d: string; color: string; width: number;
  * forceful coverage the pigment dominates. The visible marks finish it.
  */
 export function crayonPaperTintedWaxBase(
-  pigment:string,paper:string,pressure:number,
+  pigment:string,paper:string,pressure:number,opaqueBurnish=0,
 ):string {
   if(!/^#[0-9a-fA-F]{6}$/.test(pigment)||
     !/^#[0-9a-fA-F]{6}$/.test(paper)||
-    !Number.isFinite(pressure)||pressure<0||pressure>1)
+    !Number.isFinite(pressure)||pressure<0||pressure>1||
+    !Number.isFinite(opaqueBurnish)||opaqueBurnish<0||opaqueBurnish>1)
     throw new RangeError("Invalid paper-wax undercoat");
-  const amount=.17+.59*pressure;
+  // Heavy pressure alone leaves raised tooth peaks visibly lighter;
+  // deliberate extra polish/pigment burnish can saturate the recesses.
+  // 0 exactly matches all historic CRAYON1 undercoats.
+  const amount=Math.min(.99,.17+.59*pressure+.23*pressure*opaqueBurnish);
   return "#"+[1,3,5].map(i=>{
     const a=parseInt(pigment.slice(i,i+2),16);
     const b=parseInt(paper.slice(i,i+2),16);
@@ -87,7 +93,7 @@ export function crayonPaperTintedWaxBase(
   }).join("");
 }
 
-export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor = "#f7ecd8", pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient, underpaintTooth = 0,
+export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor = "#f7ecd8", pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient, underpaintTooth = 0, opaqueBurnish = 0,
   featherContacts = false, redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long", deposition = "smooth" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
@@ -105,6 +111,9 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
   if (!Number.isFinite(underpaintTooth)||underpaintTooth<0||underpaintTooth>1||
     (underpaintTooth>0&&coverage!=="opaque"))
     throw new RangeError("crayon underpaintTooth must be 0..1 for opaque wax");
+  if (!Number.isFinite(opaqueBurnish)||opaqueBurnish<0||opaqueBurnish>1||
+      (opaqueBurnish>0 && (coverage!=="opaque"||deposition!=="stroke-built")))
+    throw new RangeError("crayon opaqueBurnish requires opaque stroke-built wax and value 0..1");
   if (!Number.isFinite(blendRadius)||blendRadius<0||blendRadius>18||
     (blendRadius>0&&coverage!=="open"))
     throw new RangeError("crayon blendRadius must be 0..18 for open wax");
@@ -164,12 +173,12 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
   // of inserting an unrelated glossy radial highlight over the finished wax.
   // No gradient remains the unchanged uniform stroke-built undercoat.
   const paperUnderpaint=strokeBuilt
-    ? crayonPaperTintedWaxBase(colors[0],paperColor,pressure)
+    ? crayonPaperTintedWaxBase(colors[0],paperColor,pressure,opaqueBurnish)
     : colors[0];
   const underpaintFill=underpaintGradient
     ? "url(#"+volumeId+")" : paperUnderpaint;
   const volumeStop=(pigment:string)=>strokeBuilt
-    ? crayonPaperTintedWaxBase(pigment,paperColor,pressure)
+    ? crayonPaperTintedWaxBase(pigment,paperColor,pressure,opaqueBurnish)
     : pigment;
   // Contact pressure changes the opacity of raised paper-grain interruptions.
   // This remains a detail mask for the wax layer, never for opaque underpaint.
@@ -222,6 +231,7 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
     data-km-crayon-outline-opacity={outlineOpacity}
     data-km-crayon-mark-strength={markStrength}
     data-km-crayon-underpaint-tooth={underpaintTooth>0?underpaintTooth:undefined}
+    data-km-crayon-opaque-burnish={opaqueBurnish>0?opaqueBurnish:undefined}
     data-km-crayon-feather-contacts={featherContacts ? "open-wax" : undefined}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
