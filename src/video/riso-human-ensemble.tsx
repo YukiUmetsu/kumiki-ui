@@ -14,6 +14,7 @@ import {COURIER} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts,RISO30_GRIP_FOREGROUND_IDS} from "./riso-hand-artcraft";
 import {riso31SegmentIds} from "./riso31-finger-phalanges";
+import {riso31SegmentIds} from "./riso31-finger-phalanges";
 
 /** RISO14: a second authored human, not a color-inverted Courier.
  * Reuse a mechanically compatible limb/digit rig, not the Courier face, hair,
@@ -240,10 +241,14 @@ const sharedLimbs=[
   "left-upper-sleeve","left-forearm","sleeve-left-fold","cuff-left",
   "left-glove","left-glove-index","left-glove-middle","left-glove-ring","left-glove-pinky","left-glove-thumb",
   "left-glove-detail","left-glove-thumb-fold","left-finger-joint-lines",
+  // RISO31: copy both real bending red links of all four original fingers.
+  ...riso31SegmentIds("left"),
   ...riso31SegmentIds("left"),
   "right-upper-sleeve","right-forearm","sleeve-right-fold","cuff-right",
   "right-glove","right-glove-index","right-glove-middle","right-glove-ring","right-glove-pinky","right-glove-thumb",
   "right-glove-detail","right-glove-thumb-fold","right-finger-joint-lines",
+  // RISO31: copy both real bending red links of all four original fingers.
+  ...riso31SegmentIds("right"),
   ...riso31SegmentIds("right"),
 ];
 const legs=sharedLimbs.slice(0,8).map(id=>take(id));
@@ -305,6 +310,7 @@ const personPoint=(spec:RisoCharacterSpec,frame:number,joint:string,x:number,y:n
  */
 const risoGripParts=(side:"left"|"right"):readonly string[]=>[
   side+"-glove-index",side+"-glove-middle",side+"-glove-ring",side+"-glove-pinky",side+"-glove-thumb",
+  ...riso31SegmentIds(side),
   // The actual flexing intermediate/distal phalanges belong to the same
   // physical overprint as the originals, never behind the receiving paper.
   ...riso31SegmentIds(side),
