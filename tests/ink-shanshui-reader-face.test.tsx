@@ -91,6 +91,12 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(jaw).toBeDefined();
     expect(jaw?.fill).toBe("$skin");
     expect(jaw?.opacity).toBe(1);
+    // Calligraphic contour releases into the chin rather than a hard
+    // triangular puppet jaw; preserved pigment behind the full opaque face.
+    expect(jaw?.strokeWidth).toBeLessThanOrEqual(1.2);
+    if(jaw?.type!=="path")throw new Error("Jaw must be a source-led SVG path");
+    expect((jaw.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(12);
+
     expect(face[0].type==="path"&&face[0].d.includes("117.2 94.9")).toBe(true);
     const ear=paths(art,"reader-ear");
     expect(ear.length).toBeGreaterThanOrEqual(4);
