@@ -253,7 +253,8 @@ export function ReferencePencilAtelier({initialSample="kingfisher"}:{initialSamp
     ctx.fillStyle="#FAF5ED";
     ctx.fillRect(0,0,canvas.width,canvas.height);
     paintMarkRange(ctx,dryPlate,0,dryPlate.strokes.length);
-  },[dryPlate]);
+    canvas.setAttribute("data-km-pencil-dry-rendered-region",faceMacroRegion);
+  },[dryPlate,faceMacroRegion]);
   useEffect(()=>{
     if(!playing)return;
     const began=performance.now(),offset=frame;
