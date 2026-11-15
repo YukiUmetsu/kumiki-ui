@@ -78,7 +78,7 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(near.bounds[3]).toBeGreaterThan(far.bounds[3]*2);
     expect(near.details![0].path.match(/M/g)!.length).toBe(15);
     expect(far.details![0].path.match(/M/g)!.length).toBe(15);
-    expect(parts.get("mountain-far")!.palette).toBeUndefined(); // CP1 stores pigment in layers
+    expect(parts.get("mountain-far")!.layers[0].color).toBe("#9FA9AD");
     expect(parts.get("river")!.layers[2].texture).toBe("hatch");
     expect(parts.get("distant-forest")!.layers[1].texture).toBe("fiber");
     expect(parts.get("left-bank")!.details!.length).toBe(2);
