@@ -342,6 +342,94 @@ for(const sample of ["woman","man"] as const){
         expect(await output.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);
+        // ArtCraft v16: transparent photograph-measured skin pigment is
+        // rendered under every real colored-pencil value/hair/iris stroke.
+        // Zero means EXACT original v15, 100 means new optical glaze.
+        const glaze=page.getByLabel("Pencil photo-measured soft skin glazing");
+        await glaze.focus();await glaze.press("Home");
+        await expect(glaze).toHaveValue("0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-photometric-glaze","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-glaze-strokes","0");
+        // Native 285×318 screenshot-scale validation. No image is
+        // modified here: this is browser evidence FROM the finished dry
+        // pencil and the separately displayed licensed reference.
+        const faceMetrics=async()=>full.evaluate(node=>{
+          const source=document.querySelector<HTMLCanvasElement>(
+            'canvas[data-km-pencil-full-head-source]');
+          if(!source)throw Error("Missing observed source proof");
+          const values=(canvas:HTMLCanvasElement)=>{
+            const image=document.createElement("canvas");
+            image.width=285;image.height=318;
+            const ctx=image.getContext("2d")!;
+            ctx.imageSmoothingEnabled=true;
+            ctx.drawImage(canvas,0,0,285,318);
+            const data=ctx.getImageData(0,0,285,318).data;
+            const out=new Float32Array(285*318);
+            for(let i=0;i<out.length;i++){
+              const k=i*4;
+              out[i]=.2126*data[k]+.7152*data[k+1]+.0722*data[k+2];
+            }
+            return out;
+          };
+          const ref=values(source),got=values(node as HTMLCanvasElement);
+          const regions=[
+            [90,46,175,91],[75,124,160,192],
+            [90,200,180,235],[150,115,210,160],
+          ];
+          let residual=0,error=0,n=0;
+          for(const [x0,y0,x1,y1] of regions){
+            for(let y=y0+2;y<y1-2;y++)
+              for(let x=x0+2;x<x1-2;x++){
+                let mean=0;
+                for(let dy=-2;dy<=2;dy++)
+                  for(let dx=-2;dx<=2;dx++)
+                    mean+=got[(y+dy)*285+x+dx];
+                const i=y*285+x;
+                residual+=(got[i]-mean/25)**2;
+                error+=Math.abs(got[i]-ref[i]);n++;
+              }
+          }
+          const protectedPixels=[
+            [135,130],[183,190],[20,20],[75,230],
+          ].map(([x,y])=>Math.round(got[y*285+x]*100)/100);
+          return {mae:error/n,grain:Math.sqrt(residual/n),
+            protectedPixels};
+        });
+        const oldFace=await faceMetrics();
+        const unglazed=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-skin-glaze-legacy-0.png")});
+        await glaze.press("End");
+        await expect(glaze).toHaveValue("1");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-photometric-glaze","1");
+        const glazeNibs=Number(await full.getAttribute(
+          "data-km-pencil-glaze-strokes"));
+        const preserved=Number(await full.getAttribute(
+          "data-km-pencil-glaze-protected"));
+        expect(glazeNibs).toBeGreaterThan(800);
+        expect(preserved).toBeGreaterThan(0);
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .not.toBe(unglazed);
+        const newFace=await faceMetrics();
+        // An attractive diff is not enough: full-color glazing must
+        // improve BOTH true source-tonal error and coarse paper grain.
+        // A stronger underlayer initially passed visual-only tests
+        // while DARKENING forehead/cheek by 10-14 grey levels.
+        expect(newFace.mae).toBeLessThan(oldFace.mae-.12);
+        expect(newFace.grain).toBeLessThan(oldFace.grain-.35);
+        for(let i=0;i<oldFace.protectedPixels.length;i++)
+          expect(Math.abs(newFace.protectedPixels[i]-
+            oldFace.protectedPixels[i])).toBeLessThan(2);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-skin-glaze-source-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
         // Actual licensed source, ALL four chronologically composited
         // Storybook shots. Stage 1..4 must contain increasing genuine
         // pencil marks; the exported film bitmap must not be affected.
