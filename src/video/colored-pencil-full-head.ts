@@ -169,6 +169,7 @@ export interface DryPencilHeadPlate {
   readonly scumbleStrength:number;
   readonly featureDepth:number;
   readonly skinCoverage:number;
+  readonly fibreFlowStrength:number;
   readonly facialPlaneCounts:Readonly<{
     "lip-vermilion":number;"nasal-alar":number;
   }>;
@@ -263,6 +264,7 @@ const isHairColour=(rgb:readonly number[])=>{
 export const createDryPencilHeadPlate=(
   source:PencilPhotoPixels,guides:PortraitFeatureMap,seed=271,
   scumbleStrength=.65,featureDepth=.85,skinCoverage=.70,
+  fibreFlowStrength=1,
 ):DryPencilHeadPlate=>{
   positiveSafeSource(source,seed);
   if(!Number.isFinite(scumbleStrength)||
@@ -272,6 +274,9 @@ export const createDryPencilHeadPlate=(
     throw new RangeError("Invalid coloured-pencil measured feature depth");
   if(!Number.isFinite(skinCoverage)||skinCoverage<0||skinCoverage>1)
     throw new RangeError("Invalid colored-pencil skin coverage");
+  if(!Number.isFinite(fibreFlowStrength)||
+    fibreFlowStrength<0||fibreFlowStrength>1)
+    throw new RangeError("Invalid colored-pencil fibre flow strength");
   // Require the entire, already-audited 25-landmark source map.
   const details=createPencilPortraitFeatureMarks(source,guides,seed);
   const geometry=projectMeasuredHeadContours(guides);
@@ -379,7 +384,22 @@ export const createDryPencilHeadPlate=(
       // Build soft orbital, malar and nasal values following cranium shape,
       // not as rectangles pasted onto skin or a uniform global diagonal.
       const flow=pencilSkinFibreFlow(p,guides,eyeDist,pass);
-      let theta=flow.angle+
+      // The opt-in A/B control retains the exact legacy ruled grain at 0,
+      // allowing source-vs-render comparisons against connected fibre at 1.
+      const toNose=Math.abs(px-guides.noseBridge[0])/eyeDist;
+      const toJaw=clamp((py-guides.noseTip[1])/
+        Math.max(1,guides.chin[1]-guides.noseTip[1]),0,1);
+      const toForehead=clamp((guides.forehead[1]-py)/(eyeDist*1.3),-1,1);
+      const cheekSide=Math.sign(px-guides.noseBridge[0]);
+      const oldHeading=toJaw>.62?
+        .16+cheekSide*.36+toJaw*.33:
+        toNose<.29&&py<guides.noseTip[1]?
+          1.42+cheekSide*.17:
+          -.20+cheekSide*.33+toForehead*.20;
+      const oldAngle=oldHeading+(pass===1?.48:pass===2?-.35:0);
+      let theta=oldAngle+fibreFlowStrength*
+        Math.atan2(Math.sin(flow.angle-oldAngle),
+          Math.cos(flow.angle-oldAngle))+
         (pencilHash(seed,hashBase,12)-.5)*.32;
       let gradientStrength=0;
       if(pass===2){
@@ -425,7 +445,9 @@ export const createDryPencilHeadPlate=(
           (band===4?lightSkin!.opacity:1),
         pass===0?1.30+1.12*opticalCoverage:
           pass===1?1.04+.82*opticalCoverage:.82,pass,
-        flow.curvature+(pencilHash(seed,hashBase,15)-.5)*.13);
+        (1-fibreFlowStrength)*(pencilHash(seed,hashBase,15)-.5)*.19+
+          fibreFlowStrength*(flow.curvature+
+            (pencilHash(seed,hashBase,15)-.5)*.13));
     }
   }
   // Optical grisaille: finish the *value* structure after the first
@@ -506,7 +528,10 @@ export const createDryPencilHeadPlate=(
       // Tiny elliptical scumbles follow the same continuous anatomy field,
       // but with local opposed curls and less angular disorder.
       const flow=pencilSkinFibreFlow(p,guides,eyeDist,2);
-      const angle=flow.angle+(pencilHash(seed,i,274)-.5)*1.08;
+      const oldAngle=(pencilHash(seed,i,274)-.5)*Math.PI*1.4;
+      const newAngle=flow.angle+(pencilHash(seed,i,274)-.5)*1.08;
+      const angle=oldAngle+fibreFlowStrength*
+        Math.atan2(Math.sin(newAngle-oldAngle),Math.cos(newAngle-oldAngle));
       const radius=step*(.23+.17*pencilHash(seed,i,275));
       const vector:Point=[Math.cos(angle)*radius,Math.sin(angle)*radius*.68];
       const ink=color([rgb[0]*.82+93*.18,rgb[1]*.83+59*.17,
@@ -514,8 +539,10 @@ export const createDryPencilHeadPlate=(
       push("face-scumble",p,vector,ink,
         (.10+.15*shade)*scumbleStrength,
         .58+.23*pencilHash(seed,i,276),2,
-        flow.curvature+(.22+.24*pencilHash(seed,i,277))*
-          (pencilHash(seed,i,278)<.5?-1:1));
+        (1-fibreFlowStrength)*(.34+.18*pencilHash(seed,i,277))+
+          fibreFlowStrength*(flow.curvature+
+            (.22+.24*pencilHash(seed,i,277))*
+            (pencilHash(seed,i,278)<.5?-1:1)));
     }
   }
   // ArtCraft source-dependent facial contour hierarchy: use optical
@@ -746,7 +773,8 @@ export const createDryPencilHeadPlate=(
     width:SIZE.width,height:SIZE.height,paperColor:PAPER,
     crop:{left,top,width:cropWidth,height:cropHeight},
     strokes:marks,rasterUnderpainting:false,geometry,
-    scumbleStrength,featureDepth,skinCoverage,facialPlaneCounts,
+    scumbleStrength,featureDepth,skinCoverage,fibreFlowStrength,
+    facialPlaneCounts,
     fiveValueCounts,materialCounts,
   };
 };
