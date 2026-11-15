@@ -146,7 +146,7 @@ export function createPencilPhotoStudy(source:PencilPhotoPixels,
   const gridW=Math.ceil(w/step), gridH=Math.ceil(h/step);
   // Reserve a bounded feature budget so global hatching never crowds out
   // measured eye/lip/alar detail on dense photographs.
-  const max=PENCIL_PHOTO_FOUNDATION.maxStrokes-(portraitGuides?550:0);
+  const max=PENCIL_PHOTO_FOUNDATION.maxStrokes-(portraitGuides?800:0);
   for(let gy=0;gy<gridH;gy++)for(let gx=0;gx<gridW;gx++){
     if(strokes.length>=max)break;
     const j=gy*gridW+gx;
