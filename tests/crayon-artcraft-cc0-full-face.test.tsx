@@ -81,9 +81,23 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     if(!slit||slit.kind!=="wax"||
       !upper||upper.kind!=="wax"||!lower||lower.kind!=="wax")
       throw new Error("ArtCraft facial value volume missing");
-    // No enamel is visible in CC0 F1. Native Chromium V2 still showed
-    // a source-unsupported paper-bright slash even after shrinking it.
+    // A source-crop reinspection proved muted UPPER INCISORS visible.
+    // What was false was the earlier continuous PAPER-WHITE ENAMEL STRIPE.
     expect(get("mouth-teeth")).toBeUndefined();
+    expect(get("mouth-aperture-depth")).toMatchObject({
+      kind:"wax",parentId:"oral-opening",clipToParent:true,coverage:"opaque",
+    });
+    for(const id of ["dental-surface-left","dental-surface-center",
+      "dental-surface-far"]){
+      const tooth=get(id);
+      expect(tooth).toMatchObject({kind:"wax",
+        parentId:"mouth-aperture-depth",clipToParent:true,coverage:"opaque"});
+      if(tooth?.kind!=="wax")throw new Error("Source muted tooth missing");
+      expect(tooth.bounds.width).toBeLessThan(36);
+      expect(tooth.bounds.height).toBeLessThan(31);
+      expect(tooth.underpaintTooth).toBeLessThan(.12);
+      expect(tooth.colors[2]).not.toBe("#ffffff");
+    }
     expect(slit.bounds.height).toBeLessThan(50);
     expect(slit.coverage).toBe("open");
     expect(upper.bounds.height).toBeLessThan(70);
@@ -106,6 +120,40 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(el.blendRadius).toBeGreaterThanOrEqual(2);
       expect(el.markStrength).toBeLessThan(.3);
     }
+  });
+  it("restores the source-specific strong asymmetrical nostril cores",()=>{
+    const spec=crayonCc0FaceStudy({view:"wax"});
+    const get=(id:string)=>spec.elements.find(e=>e.id===id);
+    const near=get("naris-shadow-near"),far=get("naris-shadow-far");
+    for(const x of [near,far]){
+      expect(x).toMatchObject({kind:"wax",parentId:"face-outline",
+        clipToParent:true,coverage:"opaque",deposition:"stroke-built"});
+      if(x?.kind!=="wax")throw new Error("Missing nasal air-space mass");
+      expect(x.pressure).toBeGreaterThanOrEqual(.9);
+      expect(x.underpaintTooth).toBeLessThanOrEqual(.12);
+      expect(x.edgeRoughness).toBe(0);
+      expect(x.underpaintGradient?.shadow).toMatch(/^#(?:1d161b|24181c)$/);
+    }
+    if(near?.kind!=="wax"||far?.kind!=="wax")throw Error("bad anatomy");
+    expect(near.bounds.width).toBeGreaterThan(far.bounds.width);
+    expect(near.bounds.height).toBeLessThan(far.bounds.height);
+    expect(near.bounds.x).toBeLessThan(far.bounds.x);
+    expect(inspectCrayonScene(spec)).toEqual([]);
+  });
+  it("integrates the photographed submandibular neck cast instead of a black vector jaw stripe",()=>{
+    const spec=crayonCc0FaceStudy({view:"wax"});
+    for(const id of ["neck-submandibular-cast","neck-cervical-turn"]){
+      const e=spec.elements.find(x=>x.id===id);
+      expect(e).toMatchObject({kind:"wax",parentId:"neck-attached",
+        clipToParent:true,coverage:"open",featherContacts:true,
+        deposition:"stroke-built"});
+      if(e?.kind!=="wax")throw Error("Missing jaw-rooted neck");
+      expect(e.blendRadius).toBeGreaterThanOrEqual(15);
+    }
+    const jaw=spec.elements.find(x=>x.id==="jaw-underside-contour");
+    expect(jaw).toMatchObject({kind:"contour"});
+    if(jaw?.kind!=="contour")throw Error("Missing source jaw");
+    expect(jaw.opacity).toBeLessThanOrEqual(.1);
   });
   it("reconstructs photographed helix/concha and keeps stud attached to lobe",()=>{
     const spec=crayonCc0FaceStudy({view:"wax"});
@@ -239,7 +287,7 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(sidewall.bounds.width).toBeGreaterThanOrEqual(78);
     expect(inspectCrayonScene(scene)).toEqual([]);
   });
-  it("renders the F1 oblique near-closed mouth without a broad enamel slash",()=>{
+  it("renders the F1 oblique partly opened mouth with only segmented muted upper incisors",()=>{
     const scene=crayonCc0FaceStudy({view:"wax"});
     const get=(id:string)=>scene.elements.find(e=>e.id===id);
     for(const id of ["lip-cupid-tubercles","lip-lower-core-shadow"]){
@@ -261,7 +309,8 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
       expect(get(id)).toMatchObject({kind:"wax",coverage:"open",
         parentId:"face-outline",clipToParent:true});
     }
-    expect(slit.pressure).toBeLessThanOrEqual(.5);
+    expect(slit.pressure).toBeLessThanOrEqual(.7);
+    expect(slit.featherContacts).toBe(true);
     expect(slit.colors[0]).not.toBe("#f5ebe1");
     expect(inspectCrayonScene(scene)).toEqual([]);
   });
