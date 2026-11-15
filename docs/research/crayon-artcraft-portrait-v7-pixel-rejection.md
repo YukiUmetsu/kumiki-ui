@@ -33,3 +33,14 @@ When revising the portrait: (1) obtain original CC0 JPEG and preserve SHA; (2) i
 The earlier 608×343 landscape source capture showed small eyes and nose, making manual annotations less precise. The actual **608×1082 portrait** source capture from the same CI artifact reveals more facial area and sharper lid/alar/mouth boundaries. The full 18-point reference annotation and five source tonal boxes were independently remeasured on this new actual screenshot. No candidate geometry or candidate landmarks were altered.
 
 Using the unchanged portrait candidate and strict ArtCraft v7 gate, **17/18 landmarks and 4/5 tonal regions now fail**. The remaining failure is not a material-grain problem: photo and illustration have different projected eye, nose, cheek and mouth positions. The screenshot source is still NOT the original full-resolution JPEG, so this audit cannot satisfy the v7 original-source requirement. Keep this branch draft until the real face is reconstructed and verified.
+
+
+## ArtCraft v7 isolated CC0 near-eye construction (not yet approved)
+
+**Find and inspect:** Christopher Campbell's CC0 portrait is visible at the 608×1082 browser capture reported above. The author observed its near eye at screenshot x160–370, y430–630 and inspected an enlarged unmodified 840×800 crop. This is a source-measured **region study**, not a reconstructed whole-person likeness. No reference pixels were imported into the renderer.
+
+**Dissect:** uneven brown brow with a lighter lower rim; a bent and comparatively darker eyelid upper plane; sclera tapered more narrowly toward tear corner; iris partially hidden by upper lid; rooted lashes are individually unequal and curved; a lower flesh fold joins cheek and socket. Negative controls: isolated cartoon eyeball oval, uniform white sclera, evenly spaced eyelash fan, floating brow, arbitrary global grain.
+
+**Specify and construct:** new `crayonCc0NearEyeStudy()` draws original native CRAYON1 wax shapes and parent-clipped local glazes in a 210×200 local coordinate frame. Opaque skin/sclera/iris/pupil/brow and separate eyelid, iris and socket volumes precede fine wax and rooted contours. Reproducible 960×540 and 540×960 camera modes use the same authored local geometry and seed. Two stories are added to **the existing** `Crayon/ArtCraft Adult Face Lab` Storybook file, still `!dev`; no new meta category.
+
+**Render and compare:** focused unit/TS and Chromium screenshots at both aspects. Source-aligned pixel masks, actual painted wax-to-reference optical grain and 1×/3× aesthetic comparison remain outstanding. Do **not** replace the current synthetic full-face geometry automatically or claim professional-art approval. The isolated source-led eye is one region, not a passed whole-face gate.

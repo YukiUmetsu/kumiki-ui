@@ -3,6 +3,7 @@ import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
 import {crayonAdultFaceStudy} from "../../src/video/crayon-artcraft-adult-face-fixtures";
+import {crayonCc0NearEyeStudy} from "../../src/video/crayon-artcraft-cc0-near-eye";
 import {AdultFaceArtcraftWorkbench} from "../../src/video/crayon-artcraft-adult-face.stories";
 
 /** Only exact React-native CRAYON1 renders may serve as visual evidence.
@@ -142,3 +143,23 @@ test("ArtCraft source-referenced portrait audit remains rejected and isolated",
       path:info.outputPath("cc0-audit-side-by-side-lab.png"),animations:"disabled"});
     expect(errors).toEqual([]);
   });
+
+for(const mode of [{aspect:"landscape",width:960,height:540},
+  {aspect:"portrait",width:540,height:960}] as const){
+  test("ArtCraft CC0 native wax eye specimen "+mode.aspect,async({page},info)=>{
+    const spec=crayonCc0NearEyeStudy(mode.aspect);
+    const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+    await page.setViewportSize({width:mode.width,height:mode.height});
+    const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+    await page.setContent("<!doctype html><body style='margin:0'>"+html+"</body>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    for(const name of ["eye-skin","brow-root","eye-sclera","eye-iris","eye-pupil",
+      "upper-lid-overhang","lower-lid-flesh","upper-lashes"]){
+      await expect(svg.locator('[data-km-crayon-element="'+name+'"]')).toBeAttached();
+    }
+    await svg.screenshot({path:info.outputPath("cc0-eye-wax-"+mode.aspect+"-299.png"),
+      animations:"disabled"});
+    expect(errors).toEqual([]);
+  });
+}

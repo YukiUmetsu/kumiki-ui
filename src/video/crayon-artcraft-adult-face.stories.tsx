@@ -3,6 +3,7 @@ import type {Meta,StoryObj} from "@storybook/react-vite";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
 import type {CrayonSceneSpec} from "../../registry/video/materials/crayon-scene";
 import {crayonAdultFaceStudy} from "./crayon-artcraft-adult-face-fixtures";
+import {crayonCc0NearEyeStudy} from "./crayon-artcraft-cc0-near-eye";
 import {useCrayonStoryPlayback} from "./crayon-story-playback";
 import {CRAYON_PORTRAIT_AUDIT,crayonPortraitFrozenAudit} from "./crayon-artcraft-portrait-audit";
 
@@ -196,3 +197,44 @@ export const EyeStructureMacro:Story={args:{inspection:"eyes",startFrame:299}};
 export const LipAndNoseMacro:Story={args:{inspection:"nose-mouth",startFrame:299}};
 export const TailoredGarmentMacro:Story={args:{inspection:"garment",startFrame:299}};
 export const MatchedEyesMacro:Story={args:{inspection:"eyes",startFrame:299},render:args=><AdultFaceExpressionComparison {...args}/>};
+
+/** ArtCraft experimental, source-crop-derived independent iris/eyelid wax.
+ * NOT transplanted onto the rejected whole-face synthetic character.
+ */
+export function Cc0EyeCropWorkbench({aspect,detail,startFrame,playbackRate,loop}:StudyProps){
+  const spec=useMemo(()=>crayonCc0NearEyeStudy(aspect,Math.max(.2,detail)),[aspect,detail]);
+  const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
+    startFrame,spec.durationFrames,"crayon-cc0-eye-study:"+aspect,playbackRate,loop);
+  return <section data-km-crayon-cc0-eye-study="" style={{maxWidth:1050,
+    padding:16,margin:"auto",background:"#f4e8dd",boxSizing:"border-box"}}>
+    <h2 style={{fontSize:19,margin:"0 0 8px"}}>CC0 eye anatomy: original wax construction</h2>
+    <p style={{fontSize:13,lineHeight:1.5,maxWidth:760}}>
+      Experimental 210×200 source-crop construction. Upper and lower eyelids,
+      socket, iris, tear corner and brow have distinct native CRAYON1 wax.
+      Not a full portrait, photographic likeness or approved professional art.
+    </p>
+    <div style={{maxWidth:aspect==="portrait"?420:960,margin:"auto",
+      aspectRatio:aspect==="portrait"?"540 / 960":"960 / 540"}}>
+      <CrayonScene spec={spec} frame={frame}/>
+    </div>
+    <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center",marginTop:12}}>
+      <button type="button" onClick={toggle}>{playing?"Pause":"Play study"}</button>
+      <button type="button" onClick={restart}>Restart</button>
+      <label>Frame <input aria-label="Eye study frame" type="range" min={0}
+        max={spec.durationFrames-1} value={frame}
+        onChange={e=>seek(Number(e.target.value))}/></label>
+      <output>{frame}</output>
+      <button type="button" onClick={()=>seek(299)}>Inspect wax</button>
+    </div>
+  </section>;
+}
+export const SourceMeasuredCc0Eye:Story={
+  name:"CC0 near-eye · isolated native wax (ArtCraft experiment)",
+  args:{aspect:"landscape",detail:1,startFrame:299},
+  render:args=><Cc0EyeCropWorkbench {...args}/>,
+};
+export const SourceMeasuredCc0EyePortrait:Story={
+  name:"CC0 near-eye · vertical construction (ArtCraft experiment)",
+  args:{aspect:"portrait",detail:1,startFrame:299},
+  render:args=><Cc0EyeCropWorkbench {...args}/>,
+};
