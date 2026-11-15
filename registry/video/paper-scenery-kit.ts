@@ -255,6 +255,18 @@ function scenicHerb(p:P,x:number,y:number,height:number,side:-1|1,
     p.Z,
   ];
   const veins:string[]=[];
+  // Two large opposite basal blades connect the entire sprig visually to its
+  // ground plane. They are broad paper *masses*, not detached spear strokes.
+  for(const [i,angle] of [-156,-24].entries()){
+    const rootX=x+(i?2:-2),rootY=y-5;
+    const len=height*(.37+.06*paperHash(seed,i,271));
+    const width=height*(.105+.015*paperHash(seed,i,273));
+    stock.push(notchedBotanicalLeaf(p,rootX,rootY,len,angle,
+      width,seed+503+i*31,detail));
+    const ang=radians(angle);
+    veins.push(p.band(rootX,rootY,rootX+Math.cos(ang)*len*.61,
+      rootY+Math.sin(ang)*len*.61,1.15));
+  }
   const tiers=3+Math.round(detail*3);
   for(let j=0;j<tiers;j++){
     const t=(j+1)/(tiers+1);
@@ -264,16 +276,16 @@ function scenicHerb(p:P,x:number,y:number,height:number,side:-1|1,
     const spread=height*(.20+.09*paperHash(seed,j,239))*(1-t*.27);
     const ex=baseX+dx*spread,ey=baseY-height*(.115+.07*paperHash(seed,j,241));
     stock.push(p.band(baseX,baseY,ex,ey,2.3*(1-t*.28)));
-    const length=height*(.26+.075*paperHash(seed,j,243))*(1-t*.42);
+    const length=height*(.29+.085*paperHash(seed,j,243))*(1-t*.40);
     const angle=dx>0?-32-8*paperHash(seed,j,247):-148+8*paperHash(seed,j,249);
     stock.push(notchedBotanicalLeaf(p,ex-2*dx,ey+3,length,angle,
-      Math.max(5.8,height*.075)*(1-t*.34),seed+j*61,detail));
+      Math.max(8.2,height*.105)*(1-t*.32),seed+j*61,detail));
     const vLen=length*.57,rad=radians(angle);
     veins.push(p.band(ex,ey,ex+vLen*Math.cos(rad),ey+vLen*Math.sin(rad),.78));
   }
   const crownAngle=side>0?-66:-114;
   stock.push(notchedBotanicalLeaf(p,tipX,tipY+4,height*.23,
-    crownAngle,height*.082,seed+413,detail));
+    crownAngle,height*.115,seed+413,detail));
   return {stock:stock.join(" "),veins:veins.join(" ")};
 }
 /** Layered paper wildflower, with independently cut flower-stock and centers.
