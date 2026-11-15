@@ -54,3 +54,13 @@ Hard cuts were chosen deliberately. Transitional shutter/curl sheets and multi-p
 - Film boundaries `239→240`, `479→480`, `719→720` must be hard cuts with no ghosting.
 
 **Current validation status (pre-merge)**: technical and visual gates are pending CI and final output inspection. After the first render, record the top three actual visible defects, fix structural causes, regenerate the same views, and keep the final review status explicit. Unsupported: source-faithful complex characters, true V-fold engineering, depth compositing with occlusion-aware articulated IK, audio-driven acting and fully automatic art direction.
+
+## ArtCraft render-driven critique — first pass and structural correction
+
+**Actual output:** first-run PAPER-D1 produced eight native chapter frames (four subjects × both aspects) plus a 30-frame 960×540/30fps clip crossing woodland→botanical at global f239/f240. The scenes display coherent solid cut-paper materials at developed holds, but a direct inspection of incoming frames revealed three issues:
+
+1. **Blocking:** the new botanical shot starts with a blank purple canvas, then only an isolated elliptic piece. Cause: PAPER1's progressive assembly timeline restarts at each director hard cut. Fix: explicitly mark completed story sets `startAssembled: true` while retaining keyed motion. An alpha dissolve would conceal the missing construction and violate paper material opacity.
+2. **Remaining:** the visual language of shot transitions is editorial hard-cut, not a physical shutter/page-turn. An authored opaque shutter is a future feature, not a faked alpha transition.
+3. **Inherited source-art gap:** woodland foreground trunk columns and large overhead canopy read simpler than the botanical/architecture assets in the contact sheet. Repair in a future scenery-specific ArtCraft pass; do not casually break shared source geometry during director framework implementation.
+
+**Final-head acceptance still required:** both-aspect production cuts and normal-speed cross-cut sample, thumbnail plus full-size inspection, no blank incoming stage, no detached butterfly anatomy, stable frame seeking. Full 32s normal-speed human approval and source-matched high-resolution benchmark are not claimed.
