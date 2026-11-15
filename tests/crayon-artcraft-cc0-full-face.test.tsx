@@ -284,12 +284,27 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(iris).toMatchObject({parentId:"sclera-near",clipToParent:true});
     expect(pupil).toMatchObject({parentId:"iris-near",clipToParent:true});
     for(const id of ["upper-lid-near","lower-lid-near",
-      "upper-lid-crease-near","lash-root-near","lash-contact-near",
-      "lower-lid-margin-near"]){
-      const lid=get(id);
-      expect(lid).toMatchObject({kind:"wax",parentId:"face-outline",
+      "upper-lid-crease-near","lower-lid-margin-near","tear-canthus-near"]){
+      expect(get(id)).toMatchObject({kind:"wax",parentId:"face-outline",
         clipToParent:true,coverage:"open",deposition:"stroke-built"});
     }
+    // Very dark, thin source upper lash bands are deposited in real wax.
+    // The heavy pigment is intentional but must not expand the scleral
+    // mask into a flat full-eye paint capsule.
+    for(const id of ["lash-root-near","lash-contact-near"]){
+      const lid=get(id);
+      expect(lid).toMatchObject({kind:"wax",parentId:"face-outline",
+        clipToParent:true,coverage:"opaque",deposition:"stroke-built"});
+      if(lid?.kind!=="wax")throw new Error("Missing attached eyelash wax");
+      expect(lid.underpaintTooth).toBeLessThan(.2);
+    }
+    const layers=scene.elements.map(e=>e.id);
+    expect(layers.indexOf("iris-near")).toBeLessThan(
+      layers.indexOf("upper-lid-near"));
+    expect(layers.indexOf("upper-lid-near")).toBeLessThan(
+      layers.indexOf("lash-root-near"));
+    expect(layers.indexOf("lash-root-near")).toBeLessThan(
+      layers.indexOf("hair-right-curtain"));
     expect(inspectCrayonScene(scene)).toEqual([]);
   });
   it("keeps F1 far eye foreshortened and occluded by source hair",()=>{
@@ -302,12 +317,22 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     expect(far.bounds.width).toBeLessThanOrEqual(39);
     expect(far.bounds.height).toBeLessThanOrEqual(35);
     expect(pupil.bounds.width).toBeLessThanOrEqual(18);
-    for(const id of ["upper-lid-far","lash-root-far",
-      "lash-contact-far","lower-lid-far","upper-lid-crease-far"]){
+    for(const id of ["upper-lid-far","lower-lid-far",
+      "upper-lid-crease-far","lower-lid-margin-far"]){
       expect(get(id)).toMatchObject({kind:"wax",
         parentId:"face-outline",clipToParent:true,
         coverage:"open",deposition:"stroke-built"});
     }
+    for(const id of ["lash-root-far","lash-contact-far"]){
+      expect(get(id)).toMatchObject({kind:"wax",
+        parentId:"face-outline",clipToParent:true,
+        coverage:"opaque",deposition:"stroke-built"});
+    }
+    const layers=scene.elements.map(e=>e.id);
+    expect(layers.indexOf("iris-far")).toBeLessThan(
+      layers.indexOf("upper-lid-far"));
+    expect(layers.indexOf("lash-root-far")).toBeLessThan(
+      layers.indexOf("hair-right-curtain"));
     expect(inspectCrayonScene(scene)).toEqual([]);
   });
   it("keeps an exact independent source graph only in explicit anatomy mode",()=>{
