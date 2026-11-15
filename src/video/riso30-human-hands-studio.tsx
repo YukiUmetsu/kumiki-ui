@@ -72,7 +72,7 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
         paperGrain={.55} misregistration={.22} screenDensity={density}
         dotGain={.04} visiblePlateIds={plate==="both"?undefined:[plate]}
         artworks={{blue:()=>null,red:()=>null}}
-        label={"RISO30 print master "+actor.id+" "+side}
+        label={"RISO31 articulated print master "+actor.id+" "+side}
         foregroundLayers={[{
           id:actor.id+"-"+side+"-anatomy",
           knockout:<RisoCharacterKnockout spec={actor} frame={frame}
@@ -112,7 +112,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO30</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO31</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
