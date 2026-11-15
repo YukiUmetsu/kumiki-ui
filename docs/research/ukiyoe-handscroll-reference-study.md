@@ -1282,6 +1282,57 @@ Storybook has **Parades**.
 - The jizō walk as small grey figures, not carved stone.
 - Nobody has done a human visual review yet.
 
+## Tiled roofs (owner request, 2026-11-15)
+
+**Sources**:
+
+- Hiroshige's *Suruga Street* (Met 37052, CC0);
+- Hokusai's *Nihonbashi in Edo* (Met 56394, CC0);
+- Kusakabe Kimbei's photographs *Honchō-dōri, Yokohama* and *Theatre Street* (public domain);
+- Totoya Hokkei's *Roof Tile and Sparrows* (Met 54171, CC0).
+
+**What they show.**
+
+- **Suruga Street.** Every roof is straight: straight eave, straight hips and verges, level ridge. The tile rows are
+  dense parallel lines down the slope, darker toward the eave. The ridge is a tall layered band, with an onigawara at
+  each end: a tall block with a curl and a round crest tile.
+- **Nihonbashi.** The storehouses are gabled. Their massive ridges stand proud and throw a dark shadow down the roof,
+  and their white gables carry the family mark.
+- **The photographs.** Kawara are silver-grey, not black. Round caps catch the light over dark troughs, and the eave
+  edge is a bead line of round tile ends.
+- **Hokkei.** The onigawara is matte mid-grey, with scroll curls and a stamped tomoe roundel.
+
+**What was built.**
+
+- `roof()` was rebuilt:
+  - kawara rows down the slope, with courses of small arcs, an occasional bright cap and a sheen gradient;
+  - the bead of tile ends with their bosses along the eave;
+  - plaster or wooden rafters under the eave (`soffit`);
+  - stacked ridges with onigawara, layered hips and a heavier ridge for storehouses;
+  - a gabled form (`gable`) with a plaster gable, crest and tiled verge;
+  - snow capping the ridge and onigawara.
+- `kawaraRows`, `kawaraEave` and `KAWARA_SHEEN` are shared with the `house` motif's `tileRoof`.
+
+**Review rounds.**
+
+1. **First pass.** The tile lines fanned toward the ridge, and the roof was a flat dark mass. The rows now run straight
+   down the slope.
+2. **Zoomed in.**
+   - The rows read as corrugated metal. The courses are now arcs.
+   - The storehouse's onigawara looked like ears and are now smaller.
+   - Its hip-and-gable "beak" was replaced by a proper gable.
+   - Its stray gold gable ornament was removed.
+3. **Owner, "those roofs should not have curved outline, compare with references".** They now match: straight by
+   default, with only a gentle `sori` (.3–.35) on castle keeps and temple halls.
+4. **Snow.** The snow sat below the taller ridge. It now caps the ridge and the onigawara.
+
+**Not done.**
+
+- No hand-placed broken or slipped tiles.
+- No moss or weathering.
+- The onigawara have no demon faces.
+- Nobody has done a human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.

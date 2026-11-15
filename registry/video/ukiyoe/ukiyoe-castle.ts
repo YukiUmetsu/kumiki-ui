@@ -119,33 +119,161 @@ export function storey(b: Box, c: Ctx, withWindows = true): Prim[] {
   return out;
 }
 
+/** The eave line's height at x (a polyline of [x, y], either direction). */
+function yAt(from: readonly Pt[], x: number): number {
+  for (let i = 0; i < from.length - 1; i++) if ((x - from[i][0]) * (x - from[i + 1][0]) <= 0) return lerp(from[i][1], from[i + 1][1], (x - from[i][0]) / ((from[i + 1][0] - from[i][0]) || 1));
+  return from[x < from[0][0] === from[0][0] < from[from.length - 1][0] ? 0 : from.length - 1][1];
+}
+
 /**
- * A hipped tiled roof over a box, seen a little from the side: deep eaves turning up at the corners, the front face up
- * to a short ridge, the side face in shadow, tile rows down both; chidori gables or a curved karahafu on the front; gold
- * shachihoko on the ridge ends; snow on the ridge and along the eaves.
+ * Kawara tile rows over a roof face, to be clipped to it: rows straight down the slope from `top` to the eave polyline
+ * `from` (round caps catching the light over dark troughs, an occasional brighter cap), crossed by courses whose
+ * lower edges hang as small arcs between the troughs. `pitch` is the row spacing in px; `dark` (0–1) for a face in shade.
  */
-export function roof(b: Box, rh: number, c: Ctx, o: { gables?: number; kara?: boolean; shachi?: boolean; top?: boolean; long?: boolean } = {}, front: Prim[] = []): Prim[] {
-  const out: Prim[] = [], { x0, w, sd, sk } = b, yE = b.y0 - b.h, ov = w * .2, lift = rh * .38;
+export function kawaraRows(from: readonly Pt[], top: number, pitch: number, rh: number, seed: number, dark: number): Prim[] {
+  const fine = pitch >= 3.5, caps: string[] = [], troughs: string[] = [], lit: string[] = [];
+  const x1 = from[0][0], x2 = from[from.length - 1][0], n = Math.max(2, Math.floor(Math.abs(x2 - x1) / pitch));
+  for (let i = 0; i <= n; i++) {
+    const ex = lerp(x1, x2, i / n), ey = yAt(from, ex), lean = (ex - (x1 + x2) / 2) * .04;
+    (hash01(seed, i, 3) > .8 ? lit : caps).push(`M${(ex - lean).toFixed(1)} ${top.toFixed(1)}L${ex.toFixed(1)} ${(ey + rh * .02).toFixed(1)}`);
+    troughs.push(`M${(ex - lean + pitch * .5).toFixed(1)} ${top.toFixed(1)}L${(ex + pitch * .5).toFixed(1)} ${(ey + rh * .02).toFixed(1)}`);
+  }
+  // Courses: each tile's lower edge is a small arc hanging between two troughs, so the slope reads as scales, not as
+  // corrugated sheet; on small roofs a plain line per course.
+  const courses: string[] = [];
+  if (fine) for (let k = 1; k < 14; k++) {
+    const dy = k * pitch * 1.35;
+    if (pitch >= 5) for (let i = 0; i < n; i++) {
+      const xa = lerp(x1, x2, i / n) + pitch * .5, xb = lerp(x1, x2, (i + 1) / n) + pitch * .5, ya = yAt(from, xa) - dy, yb = yAt(from, xb) - dy;
+      courses.push(`M${xa.toFixed(1)} ${ya.toFixed(1)}Q${((xa + xb) / 2).toFixed(1)} ${((ya + yb) / 2 + pitch * .45).toFixed(1)} ${xb.toFixed(1)} ${yb.toFixed(1)}`);
+    }
+    else courses.push("M" + from.map(q => `${q[0].toFixed(1)} ${(q[1] - dy).toFixed(1)}`).join("L"));
+  }
+  return [
+    { t: "stroke", d: troughs.join(""), color: "sumi", width: pitch * .34, opacity: .55 + dark * .2 },
+    { t: "stroke", d: caps.join(""), color: "usuzumi", width: pitch * .3, opacity: .55 - dark * .25 },
+    { t: "stroke", d: lit.join(""), color: "gofun", width: pitch * .22, opacity: .28 - dark * .12 },
+    ...fine ? [{ t: "stroke" as const, d: courses.join(""), color: "sumi", width: Math.max(.5, pitch * .16), opacity: .6 }, { t: "group" as const, transform: `translate(0 ${(-pitch * .18).toFixed(1)})`, prims: [{ t: "stroke" as const, d: courses.join(""), color: "gofun", width: Math.max(.4, pitch * .07), opacity: .18 }] }] : [],
+  ];
+}
+
+/** The eave's front lip: a dark band beaded with round end tiles (nokigawara), each with its stamped boss. */
+export function kawaraEave(eave: readonly Pt[], pitch: number, rh: number, lw: number): Prim[] {
+  const out: Prim[] = [{ t: "line", d: carvedLine(eave.map(q => [q[0], q[1] + rh * .012] as Pt), Math.max(1.5, rh * .045), { taper: "none", smooth: true }), color: "sumi" }];
+  if (pitch >= 3.5) {
+    const beads: string[] = [], bosses: string[] = [], r = pitch * .42, a = Math.min(eave[0][0], eave[eave.length - 1][0]), b = Math.max(eave[0][0], eave[eave.length - 1][0]);
+    for (let x = a + pitch * .5; x < b - pitch * .3; x += pitch) { const y = yAt(eave, x) + rh * .012; beads.push(circleD(x, y, r)); bosses.push(circleD(x - r * .15, y - r * .15, r * .38)); }
+    out.push({ t: "fill", d: beads.join(""), fill: "usuzumi", outline: Math.max(.5, lw * .45) }, { t: "fill", d: bosses.join(""), fill: "sumi", opacity: .55 });
+  }
+  return out;
+}
+
+/** The sheen over a kawara face: the upper slope reflects the sky, the lower falls into the eave's shade. */
+export const KAWARA_SHEEN: UkiyoeFill = { type: "linear", angle: 90, stops: [[0, "gofun", .22], [.45, "gofun", 0], [.8, "sumi", 0], [1, "sumi", .35]] };
+
+export interface RoofOptions {
+  gables?: number; kara?: boolean; shachi?: boolean; top?: boolean; long?: boolean;
+  /** Under the eave: white plaster (castles, storehouses; the default) or dark wooden rafters (shops). */
+  soffit?: "plaster" | "wood";
+  /** A storehouse's massive ridge, which throws a shadow down the slope. */
+  heavy?: boolean;
+  /** A crest roundel on the gable end (the storehouse's family mark). */
+  crest?: boolean;
+  /** Gabled (kirizuma) instead of hipped: the receding end is the wall's plaster gable under a tiled verge. */
+  gable?: boolean;
+  /**
+   * Curve (sori), 0–1: how much the eave sags and its corners and the ridge ends lift. Town houses, storehouses and
+   * walls are straight (0, the default), as in Hiroshige's and Hokusai's street views and the period photographs;
+   * castle keeps and temple halls curve gently (about .35).
+   */
+  sori?: number;
+}
+
+/**
+ * A tiled roof over a box, seen a little from the side: hipped, or gabled (`gable`) with the wall's plaster gable under
+ * a tiled verge. The edges are straight unless `sori` curves them (castle keeps, temple halls). Kawara rows run down
+ * both faces with scalloped courses and sheen; the eave carries its bead of tile ends over plaster or wooden rafters;
+ * the ridge is stacked with onigawara at its ends (gold shachihoko on a keep). Chidori gables or a karahafu stand on the
+ * front; snow lies on the upper slope and caps the ridge, the onigawara and the eave.
+ */
+export function roof(b: Box, rh: number, c: Ctx, o: RoofOptions = {}, front: Prim[] = []): Prim[] {
+  const out: Prim[] = [], { x0, w, sd, sk } = b, yE = b.y0 - b.h, ov = w * .2, sori = clamp01(o.sori ?? 0), lift = rh * .38 * sori;
   const L: Pt = [x0 - ov, yE + rh * .04], R: Pt = [x0 + w + ov * .7, yE + rh * .04], B: Pt = [x0 + w + sd + ov * .6, yE - sk + rh * .02];
-  const rw = o.long ? w * .94 : o.top ? w * .34 : w * .55, rx0 = x0 + (w - rw) / 2 + sd * .45, ridge: [Pt, Pt] = [[rx0, yE - rh - sk * .45], [rx0 + rw, yE - rh - sk * .45]];
+  const rw = o.gable ? w + sd * .05 : o.long ? w * .94 : o.top ? w * .34 : w * .55, rx0 = x0 + (w - rw) / 2 + sd * .45, ridge: [Pt, Pt] = [[rx0, yE - rh - sk * .45], [rx0 + rw, yE - rh - sk * .45]];
   // The front eave sags a little between corners that turn up.
   const eave: Pt[] = [];
-  for (let i = 0; i <= 12; i++) { const u = i / 12, e = Math.abs(u * 2 - 1); eave.push([lerp(L[0], R[0], u), lerp(L[1], R[1], u) - lift * e ** 6 + rh * .05 * (1 - e * e)]); }
+  for (let i = 0; i <= 24; i++) { const u = i / 24, e = Math.abs(u * 2 - 1); eave.push([lerp(L[0], R[0], u), lerp(L[1], R[1], u) - lift * e ** 6 + rh * .05 * sori * (1 - e * e)]); }
+  const eaveAt = (x: number): number => { const u = clamp01((x - L[0]) / (R[0] - L[0])) * 24, i = Math.min(23, Math.floor(u)); return lerp(eave[i][1], eave[i + 1][1], u - i); };
   // The side eave starts from the front eave's upturned corner, so the two meet without a notch.
-  const sideEave: Pt[] = [], Rt = eave[12];
-  for (let i = 0; i <= 6; i++) { const u = i / 6; sideEave.push([lerp(Rt[0], B[0], u), lerp(Rt[1], B[1] - lift, u) + lift * (1 - Math.abs(u * 2 - 1) ** 2) * .55]); }
-  const faceD = smoothD([...eave, ridge[1], ridge[0]], true, .12), side = smoothD([...sideEave, ridge[1]], true, .12);
-  if (sd > 0) out.push({ t: "fill", d: side, fill: TILE, outline: c.lw, grain: .5 }, { t: "fill", d: side, fill: "sumi", opacity: .3, noPrint: true });
-  out.push({ t: "fill", d: faceD, fill: TILE, outline: c.lw, grain: .5 });
-  const rows: string[] = [];
-  for (let i = 1; i < 18; i++) { const u = i / 18, top = lerp(ridge[0][0], ridge[1][0], u), e = eave[Math.round(u * 12)]; rows.push(`M${top.toFixed(1)} ${ridge[0][1].toFixed(1)}L${e[0].toFixed(1)} ${(e[1] - rh * .05).toFixed(1)}`); }
-  out.push({ t: "clip", d: faceD, key: "rooftiles", prims: [{ t: "stroke", d: rows.join(""), color: "usuzumi", width: c.lw * .45, opacity: .5 }] });
-  // The pale eave fascia, the hip line, the ridge with its end tiles.
-  out.push({ t: "line", d: carvedLine(eave.map(q => [q[0], q[1] + rh * .06] as Pt), rh * .07, { taper: "none", smooth: true }), color: c.plaster, opacity: .95 });
-  if (sd > 0) out.push({ t: "line", d: carvedLine(sideEave.map(q => [q[0], q[1] + rh * .06] as Pt), rh * .06, { taper: "none", smooth: true }), color: c.plaster, opacity: .7 });
-  out.push({ t: "line", d: carvedLine([Rt, ridge[1]], rh * .06, { taper: "start" }), color: "sumi" });
-  out.push({ t: "line", d: carvedLine([eave[0], ridge[0]], rh * .05, { taper: "start" }), color: "sumi", opacity: .8 });
-  out.push({ t: "line", d: carvedLine([[ridge[0][0] - rh * .05, ridge[0][1]], [ridge[1][0] + rh * .05, ridge[1][1]]], rh * .11, { taper: "none" }), color: "sumi" });
+  const sideEave: Pt[] = [], Rt = eave[24];
+  for (let i = 0; i <= 12; i++) { const u = i / 12; sideEave.push([lerp(Rt[0], B[0], u), lerp(Rt[1], B[1] - lift, u) + lift * (1 - Math.abs(u * 2 - 1) ** 2) * .55]); }
+  const bend = sori > 0 ? .12 : 0, faceD = smoothD([...eave, ridge[1], ridge[0]], true, bend), side = smoothD([...sideEave, ridge[1]], true, bend);
+  // Kawara, after Hiroshige's Suruga-chō, Hokusai's Nihonbashi storehouses and Kusakabe's street photographs: silver-grey
+  // fired tiles laid in rows straight down the slope (round caps catching the light over dark troughs), courses that
+  // follow the eave's sag, a bead of round tile ends along the eave, a stacked ridge whose ends lift into onigawara.
+  const pitch = clamp(rh * .085, 2.2, 14), fine = pitch >= 3.5, seed = Math.round(x0 * 7 + yE * 3);
+  const rowsAcross = (from: Pt[], top: number, dark: number): Prim[] => kawaraRows(from, top, pitch, rh, seed, dark);
+  const gableTri: Pt[] = [[x0 + w, yE + rh * .02], ridge[1], [x0 + w + sd, yE - sk + rh * .02]];
+  if (o.gable && sd > 0) {
+    // The plaster gable, its upper part in the verge's shadow; the crest roundel on it.
+    out.push({ t: "fill", d: smoothD(gableTri, true, 0), fill: c.plaster, outline: c.lw }, { t: "fill", d: smoothD(gableTri, true, 0), fill: { type: "linear", angle: 90, stops: [[0, "sumi", .35], [.5, "sumi", .12], [1, "sumi", .05]] }, noPrint: true });
+    if (o.crest) {
+      const gx = x0 + w + sd * .64, gy = yE - sk * .64 - rh * .14, r = Math.min(sd * .12, rh * .17);
+      out.push({ t: "fill", d: circleD(gx, gy, r), fill: "gofun", outline: c.lw * .7 }, { t: "stroke", d: circleD(gx, gy, r * .62), color: "sumi", width: r * .22 }, { t: "fill", d: circleD(gx, gy, r * .22), fill: "sumi" });
+    }
+  }
+  if (sd > 0 && !o.gable) {
+    out.push({ t: "fill", d: side, fill: TILE, outline: c.lw, grain: .7 });
+    out.push({ t: "clip", d: side, key: "roofside", prims: [...rowsAcross(sideEave, ridge[1][1] - rh, 1), { t: "fill", d: side, fill: "sumi", opacity: .32, noPrint: true }] });
+  }
+  out.push({ t: "fill", d: faceD, fill: TILE, outline: c.lw, grain: .7 });
+  // Sheen: the upper slope reflects the sky, the lower falls into the eave's own shade.
+  out.push({ t: "clip", d: faceD, key: "rooftiles", prims: [
+    ...rowsAcross(eave, ridge[0][1] - rh * .2, 0),
+    { t: "fill", d: faceD, fill: KAWARA_SHEEN },
+  ] });
+  // Under the eave: white plaster on castles and storehouses, dark rafters (taruki) on wooden shops.
+  const under = eave.map(q => [q[0], q[1] + rh * .09] as Pt);
+  if (o.soffit === "wood") {
+    out.push({ t: "fill", d: smoothD([...eave, ...under.slice().reverse()], true, .1), fill: "kogecha", outline: c.lw * .6 });
+    if (fine) out.push({ t: "stroke", d: under.filter((_, i) => i % 1 === 0).flatMap((q, i, a) => i < a.length - 1 ? [0, .5].map(f => { const x = lerp(q[0], a[i + 1][0], f); return `M${x.toFixed(1)} ${(eaveAt(x) + rh * .025).toFixed(1)}l0 ${(rh * .06).toFixed(1)}`; }) : []).join(""), color: "sumi", width: Math.max(.8, rh * .02), opacity: .8 });
+  } else out.push({ t: "line", d: carvedLine(eave.map(q => [q[0], q[1] + rh * .055] as Pt), rh * .06, { taper: "none", smooth: true }), color: c.plaster, opacity: .95 });
+  if (sd > 0 && !o.gable) out.push({ t: "line", d: carvedLine(sideEave.map(q => [q[0], q[1] + rh * .05] as Pt), rh * .05, { taper: "none", smooth: true }), color: o.soffit === "wood" ? "kogecha" : c.plaster, opacity: .75 });
+  if (o.gable && sd > 0) {
+    // The verge (kerabа): the roof's tiled edge running down the gable to the back eave, with its end tiles.
+    const Bv: Pt = [x0 + w + sd + ov * .12, yE - sk + rh * .03], verge: Pt[] = [ridge[1], [lerp(ridge[1][0], Bv[0], .5), lerp(ridge[1][1], Bv[1], .5) - rh * .02], Bv];
+    out.push({ t: "line", d: carvedLine(verge, rh * .1, { taper: "none", smooth: true }), color: "sumi" });
+    out.push({ t: "line", d: carvedLine(verge.map(q => [q[0], q[1] - rh * .035] as Pt), rh * .03, { taper: "end", smooth: true }), color: "usuzumi", opacity: .8 });
+  }
+  // The eave's front lip of tile ends: a dark band beaded with round end tiles, each with its stamped boss.
+  out.push(...kawaraEave(eave, pitch, rh, c.lw));
+  // Hips (kudarimune): stacked tile ridges running down to each turned-up corner.
+  const hip = (a: Pt, z: Pt, wgt: number) => {
+    out.push({ t: "line", d: carvedLine([z, a], rh * .085 * wgt, { taper: "none" }), color: "sumi" });
+    out.push({ t: "line", d: carvedLine([[z[0], z[1] - rh * .02], [a[0], a[1] - rh * .02]], rh * .025 * wgt, { taper: "none" }), color: "usuzumi", opacity: .7 });
+    if (fine) out.push({ t: "fill", d: smoothD([[a[0] - rh * .05, a[1] + rh * .02], [a[0] - rh * .06, a[1] - rh * .09], [a[0], a[1] - rh * .14], [a[0] + rh * .06, a[1] - rh * .09], [a[0] + rh * .05, a[1] + rh * .02]], true, .3), fill: "usuzumi", outline: c.lw * .7 });
+  };
+  if (!o.gable) { hip(Rt, ridge[1], 1); hip(eave[0], ridge[0], .9); }
+  else out.push({ t: "line", d: carvedLine([[eave[0][0], eave[0][1]], ridge[0]], rh * .09, { taper: "none" }), color: "sumi" }, { t: "line", d: carvedLine([[Rt[0], Rt[1]], ridge[1]], rh * .09, { taper: "none" }), color: "sumi" });
+  // The ridge (munegawara): layers of flat noshi tiles under a round cap, its ends lifting a little, an onigawara at
+  // each end with its curl and stamped roundel. A storehouse's ridge is heavier and throws a shadow down the slope.
+  const heavy = o.heavy ? 1.7 : 1, rb = rh * .13 * heavy, up = rh * .07 * sori;
+  const [r0, r1] = ridge, ridgeTop: Pt[] = [[r0[0] - rh * .06, r0[1] - rb - up], [lerp(r0[0], r1[0], .25), r0[1] - rb - up * .15], [lerp(r0[0], r1[0], .75), r1[1] - rb - up * .15], [r1[0] + rh * .06, r1[1] - rb - up]];
+  const ridgeBase: Pt[] = [[r1[0] + rh * .06, r1[1] + rh * .02], [r0[0] - rh * .06, r0[1] + rh * .02]];
+  if (o.heavy) out.push({ t: "clip", d: faceD, key: "ridgeshade", prims: [{ t: "fill", d: smoothD([[r0[0], r0[1]], [r1[0], r1[1]], [r1[0] + rh * .1, r1[1] + rh * .22], [r0[0] - rh * .1, r0[1] + rh * .22]], true, .3), fill: "sumi", opacity: .35, noPrint: true }] });
+  out.push({ t: "fill", d: smoothD([...ridgeTop, ...ridgeBase], true, .2), fill: TILE, outline: c.lw });
+  const layers: string[] = [];
+  for (let k = 1; k <= 3; k++) { const f = k / 4; layers.push("M" + [ridgeBase[1], ...ridgeTop.slice(1, 3), ridgeBase[0]].map((q, i) => { const top = i === 0 ? ridgeTop[0] : i === 3 ? ridgeTop[3] : q, bot = i === 0 ? ridgeBase[1] : i === 3 ? ridgeBase[0] : [q[0], lerp(r0[1], r1[1], i / 3) + rh * .02] as Pt; return `${lerp(top[0], bot[0], f).toFixed(1)} ${lerp(top[1], bot[1], f).toFixed(1)}`; }).join("L")); }
+  out.push({ t: "stroke", d: layers.join(""), color: "usuzumi", width: Math.max(.6, rh * .012 * heavy), opacity: .8 });
+  out.push({ t: "line", d: carvedLine(ridgeTop, rh * .05 * heavy, { taper: "none", smooth: true }), color: "sumi" });
+  out.push({ t: "line", d: carvedLine(ridgeTop.map(q => [q[0], q[1] - rh * .015 * heavy] as Pt), rh * .015 * heavy, { taper: "both", smooth: true }), color: "usuzumi", opacity: .7 });
+  if (!o.shachi) for (const [end, sx] of [[ridgeTop[0], -1], [ridgeTop[3], 1]] as const) {
+    // Onigawara: a tall block flaring outward at the top into a curl, the crest roundel on its face.
+    const og = o.heavy ? 1.15 : 1, oh = rh * .3 * og, ow = rh * .15 * og, base: Pt = [end[0], end[1] + rb + up * .5];
+    out.push({ t: "fill", d: smoothD([[base[0] - sx * ow * .2, base[1]], [base[0] - sx * ow * .25, base[1] - oh * .7], [base[0] + sx * ow * .15, base[1] - oh], [base[0] + sx * ow * 1.05, base[1] - oh * 1.05], [base[0] + sx * ow * .9, base[1] - oh * .72], [base[0] + sx * ow * .75, base[1]]], true, .35), fill: "usuzumi", outline: c.lw });
+    out.push({ t: "fill", d: smoothD([[base[0] + sx * ow * .2, base[1] - oh * .9], [base[0] + sx * ow * .85, base[1] - oh * 1.02], [base[0] + sx * ow * .7, base[1] - oh * .78]], true, .4), fill: "sumi", opacity: .55 });
+    out.push({ t: "fill", d: circleD(base[0] + sx * ow * .28, base[1] - oh * .4, ow * .3), fill: "usuzumi", outline: c.lw * .6 }, { t: "fill", d: circleD(base[0] + sx * ow * .28, base[1] - oh * .4, ow * .14), fill: "sumi", opacity: .7 });
+  }
   const gables = o.gables ?? 0, mid = x0 + w / 2;
   if (o.kara) {
     // Karahafu: a cusped bow of a gable rising from the middle of the eave, its plaster panel below.
@@ -169,10 +297,15 @@ export function roof(b: Box, rh: number, c: Ctx, o: { gables?: number; kara?: bo
   // The top roof is hip-and-gable (irimoya): its big gable shows on the receding end face, a plaster triangle in dark
   // bargeboards with a gold gegyo.
   if (o.top && !o.long && sd > 0) {
-    const a = sideEave[1], bq = sideEave[5], apex: Pt = [ridge[1][0] + rh * .05, ridge[1][1] + rh * .12];
+    const a = sideEave[2], bq = sideEave[10], apex: Pt = [ridge[1][0] + rh * .05, ridge[1][1] + rh * .12];
     out.push({ t: "fill", d: smoothD([a, apex, bq], true, 0), fill: c.plaster, outline: c.lw }, { t: "fill", d: smoothD([a, apex, bq], true, 0), fill: "usuzumi", opacity: .3, noPrint: true });
     out.push({ t: "line", d: carvedLine([[a[0] - rh * .05, a[1] + rh * .04], apex, [bq[0] + rh * .05, bq[1] + rh * .04]], rh * .1, { taper: "none" }), color: "sumi" });
-    out.push({ t: "fill", d: smoothD([[apex[0] - rh * .07, apex[1] + rh * .08], [apex[0] + rh * .07, apex[1] + rh * .06], [apex[0] + rh * .01, apex[1] + rh * .24]], true, .2), fill: "kin", outline: c.lw * .5 });
+    if (!o.crest) out.push({ t: "fill", d: smoothD([[apex[0] - rh * .07, apex[1] + rh * .08], [apex[0] + rh * .07, apex[1] + rh * .06], [apex[0] + rh * .01, apex[1] + rh * .24]], true, .2), fill: "kin", outline: c.lw * .5 });
+    if (o.crest) {
+      // The family mark in a white roundel on the gable plaster, as on Hokusai's Nihonbashi storehouses.
+      const cx2 = (a[0] + bq[0] + apex[0]) / 3, cy2 = (a[1] + bq[1] + apex[1]) / 3 + rh * .04, r = Math.min(Math.abs(bq[0] - a[0]) * .16, rh * .2);
+      out.push({ t: "fill", d: circleD(cx2, cy2, r), fill: "gofun", outline: c.lw * .7 }, { t: "stroke", d: circleD(cx2, cy2, r * .62), color: "sumi", width: r * .22 }, { t: "fill", d: circleD(cx2, cy2, r * .22), fill: "sumi" });
+    }
   }
   if (o.shachi) for (const [i, s2] of [[0, -1], [1, 1]] as const) {
     // Shachihoko: gold fish standing on their heads at the ridge ends, tails curled up and out.
@@ -182,7 +315,19 @@ export function roof(b: Box, rh: number, c: Ctx, o: { gables?: number; kara?: bo
     out.push({ t: "dots", d: circleD(base[0] - sx * fh * .04, base[1] - fh * .16, fh * .05), color: "sumi" });
   }
   if (c.snow > 0) {
-    out.push({ t: "fill", d: smoothD([[ridge[0][0], ridge[0][1] - rh * .06], [ridge[1][0], ridge[1][1] - rh * .06], [lerp(ridge[1][0], R[0], .4 * c.snow), lerp(ridge[1][1], R[1], .4 * c.snow)], [lerp(ridge[0][0], L[0], .4 * c.snow), lerp(ridge[0][1], L[1], .4 * c.snow)]], true, .3), fill: "gofun", opacity: .93 });
+    // Snow lies on the upper slope, its lower edge ragged where the tile rows break it, and caps the ridge and the
+    // onigawara (Hiroshige's and Hokusai's snow scenes: thick rounded white on every ridge).
+    const lo: Pt[] = [];
+    for (let i = 0; i <= 16; i++) {
+      const u = i / 16, a2 = lerp(lerp(ridge[0][0], L[0], .4 * c.snow), lerp(ridge[1][0], R[0], .4 * c.snow), u);
+      lo.push([a2, lerp(lerp(ridge[0][1], L[1], .4 * c.snow), lerp(ridge[1][1], R[1], .4 * c.snow), u) + Math.sin(i * 2.3 + seed) * rh * .025]);
+    }
+    out.push({ t: "fill", d: smoothD([[ridge[0][0], ridge[0][1] - rh * .04], [ridge[1][0], ridge[1][1] - rh * .04], ...lo.reverse()], true, .3), fill: "gofun", opacity: .94 });
+    out.push({ t: "line", d: carvedLine(ridgeTop.map(q => [q[0], q[1] - rh * .03] as Pt), rh * .09 * c.snow, { taper: "both", smooth: true }), color: "gofun" });
+    if (!o.shachi) for (const [q, sx] of [[ridgeTop[0], -1], [ridgeTop[3], 1]] as const) {
+      const og = o.heavy ? 1.15 : 1, oh = rh * .3 * og, ow = rh * .15 * og, top = q[1] + rb + up * .5 - oh * 1.03;
+      out.push({ t: "fill", d: ellipseD(q[0] + sx * ow * .5, top, ow * .75, rh * .025 + rh * .02 * c.snow), fill: "gofun" });
+    }
     out.push({ t: "line", d: carvedLine(eave.map(q => [q[0], q[1] - rh * .05] as Pt), rh * .09 * c.snow, { taper: "both", smooth: true }), color: "gofun" });
   }
   return out;
@@ -197,7 +342,7 @@ function tower(cx: number, y0: number, w: number, hs: number, tiers: number, c: 
     out.push(...storey(box, c));
     const kara = keep && !top && i === Math.max(1, tiers - 2), g = keep ? (i === 0 ? 2 : top || kara ? 0 : 1) : (top ? 1 : 0);
     // Gables stand forward of the storey above, so they are drawn after the whole tower.
-    out.push(...roof(box, hs * (top ? 1.05 : .82), c, { gables: g, kara, shachi: top && keep, top }, fronts));
+    out.push(...roof(box, hs * (top ? 1.05 : .82), c, { gables: g, kara, shachi: top && keep, top, sori: .35 }, fronts));
     y -= h + hs * (top ? 0 : .42);
     wi *= keep ? .82 : .76;
   }
