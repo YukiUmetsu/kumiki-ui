@@ -791,13 +791,13 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
       pressure:.42,spacing:7.8,markStrength:.23,blendRadius:6.2});
   // Directional, rough wax sheen follows the curved lower vermilion.
   mark("lip-lower-wax-ribs",
-    "M376 752 Q375 753 374 757"+
-    " M385 754 Q386 757 386 760"+
-    " M395 751 Q396 755 397 758"+
-    " M408 747 Q408 751 408 756"+
-    " M421 743 Q422 748 423 752"+
-    " M436 740 Q436 743 436 747"+
-    " M448 734 Q449 738 449 740",
+    "M376 752 C376 754 375 755 374 757"+
+    " M385 754 C385 756 386 757 386 760"+
+    " M395 751 C395 754 397 755 397 758"+
+    " M408 747 C408 750 408 753 408 756"+
+    " M421 743 C421 746 423 749 423 752"+
+    " M436 740 C437 743 436 746 436 747"+
+    " M448 734 C449 736 448 738 449 740",
     "#e2b6b1",.3,[239,298],.37,"lip-lower",
     {waxContact:"dry-wax",waxPressure:.44});
   // Oblique commissures are tiny pressure-built depressions embedded in
