@@ -680,6 +680,31 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         d.startsWith("M"+root.replace(","," "))&&
         (d.match(/ C/g)??[]).length>=22&&d.endsWith(" Z")))
         .toBe(true);
+      // The older grove passed by counting 310 free needle lines but
+      // still looked like spindly rooftop antennas at normal scale.
+      // True old-pine crowns need supporting filled ink *islands*
+      // rooted at real branch stations, beneath those existing needles.
+      const islands=[...full.matchAll(
+        /data-km-cliff-pine-ink-island="" data-km-cliff-pine-ink-island-root="([^"]+)"/g,
+      )];
+      const silhouettes=[...full.matchAll(
+        /data-km-cliff-pine-ink-canopy="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      const darkEdges=[...full.matchAll(
+        /data-km-cliff-pine-ink-edge="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      expect(islands).toHaveLength(40);
+      expect(silhouettes).toHaveLength(40);
+      expect(darkEdges).toHaveLength(40);
+      expect(silhouettes.every((d,k)=>
+        d.startsWith("M"+islands[k][1].replace(","," "))&&
+        (d.match(/ C/g)??[]).length>=4&&d.endsWith(" Z")))
+        .toBe(true);
+      expect(darkEdges.every((d,k)=>
+        d.startsWith("M"+islands[k][1].replace(","," "))&&
+        (d.match(/ C/g)??[]).length>=22&&d.endsWith(" Z")))
+        .toBe(true);
+      expect(new Set(silhouettes).size).toBe(40);
       expect(needles).toHaveLength(310);
       expect(needles.every(([,root,d])=>
         d.startsWith("M"+root.replace(","," "))&&d.includes(" Q")))
