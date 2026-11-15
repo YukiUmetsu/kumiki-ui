@@ -102,6 +102,60 @@ for(const [scene,story] of [
 }
 
 
+test("four distinct historical ink schools paint separate real rooted rock structures at one film frame",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  await expect(lab).toBeVisible();
+  const schools=[
+    ["fuchun","long-hemp",78],
+    ["early-spring","cloud-head",52],
+    ["travelers","raindrop",187],
+    ["forest-grotto","ox-hair",178],
+  ] as const;
+  const crests:string[]=[];
+  for(const [school,style,count] of schools){
+    const card=lab.locator('[data-km-master-study="'+school+'"]');
+    await expect(card).toBeVisible();
+    await expect(card.locator('[data-km-master-school="'+school+'"]'))
+      .toHaveCount(1);
+    await expect(card.locator("[data-km-master-face]")).toHaveCount(3);
+    await expect(card.locator("[data-km-master-stroke]"))
+      .toHaveCount(count);
+    await expect(card.locator('[data-km-master-stroke-style="'+style+'"]'))
+      .toHaveCount(count);
+    const top=card.locator('[data-km-shanshui-ridge-contour="1"]');
+    crests.push((await top.getAttribute("d"))??"");
+    await expect(card.locator("image")).toHaveCount(0);
+  }
+  expect(crests.every(c=>c===crests[0])).toBe(true);
+  await lab.screenshot({animations:"disabled",fullPage:true,
+    path:info.outputPath("shanshui-four-masters-artcraft-comparison.png")});
+  await page.getByRole("slider",{name:"Master detail"}).focus();
+  await page.getByRole("slider",{name:"Master detail"}).press("Home");
+  await expect(page.getByRole("slider",{name:"Master detail"})).toHaveValue("0");
+  await expect(lab.locator("[data-km-master-rock-art]")).toHaveCount(0);
+  await page.getByRole("button",{name:"Reset all four studies"}).click();
+  await expect(page.getByRole("slider",{name:"Master detail"})).toHaveValue("1");
+  await expect(lab.locator("[data-km-master-stroke]"))
+    .toHaveCount(78+52+187+178);
+});
+
+test("artist school choices are live film renderer modes, not a cosmetic Storybook filter",async({page})=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
+  const input=page.getByRole("combobox",{name:"Shanshui ink school"});
+  for(const [school,style,count] of [
+    ["fuchun","long-hemp",70],
+    ["early-spring","cloud-head",45],
+    ["travelers","raindrop",160],
+    ["forest-grotto","ox-hair",150],
+  ] as const){
+    await input.selectOption(school);
+    await expect(page.locator('[data-km-master-school="'+school+'"]'))
+      .toHaveCount(1);
+    await expect.poll(()=>page.locator('[data-km-master-stroke-style="'+style+'"]').count())
+      .toBeGreaterThanOrEqual(count);
+  }
+});
 test("brushwork study shows native rooted foliage and uneven rock deposition",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--brushwork-detail-studio&viewMode=story");
   const study=page.getByTestId("shanshui-brushwork-studio");
