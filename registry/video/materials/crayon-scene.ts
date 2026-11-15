@@ -104,6 +104,11 @@ export interface CrayonWaxElement extends CrayonBase {
   /** Optical wax-undercoat contact with the shared paper relief (0..1).
    * Never changes alpha coverage of a solid character or scene object. */
   underpaintTooth?: number;
+  /** Opt-in extra opaque burnish passes (0..1) physically push colored
+   * wax into the tooth so the darkest iris/naris/ink masses can become
+   * truly dark. Only opaque stroke-built wax; never translucent glazes.
+   * Default 0 exactly preserves all existing scene color and APIs. */
+  opaqueBurnish?: number;
   /** Smooth underlying side-nib mass, combined with full-opacity silhouette
    * and explicit pressure-shaped wax scratches; never a global object blur. */
   underpaintGradient?:CrayonVolumeGradient;
@@ -371,6 +376,12 @@ export function inspectCrayonScene(input: unknown): string[] {
             node.underpaintTooth>1 ||
             (node.underpaintTooth>0 && node.coverage!=="opaque")))
           errors.push(p + ".underpaintTooth must be 0..1 on opaque wax");
+        if (node.opaqueBurnish !== undefined &&
+          (!finite(node.opaqueBurnish) || node.opaqueBurnish<0 ||
+            node.opaqueBurnish>1 ||
+            (node.opaqueBurnish>0 &&
+              (node.coverage!=="opaque" || node.deposition!=="stroke-built"))))
+          errors.push(p + ".opaqueBurnish requires opaque stroke-built wax and value 0..1");
         if (node.clipToParent !== undefined && typeof node.clipToParent!=="boolean")
           errors.push(p + ".clipToParent must be a boolean");
         if (node.clipToParent && !node.parentId)
