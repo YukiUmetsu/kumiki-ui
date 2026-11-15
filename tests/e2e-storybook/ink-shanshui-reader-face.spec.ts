@@ -90,16 +90,15 @@ test("the same Chinese Ink folder displays three separately drawn face identitie
       elements=>elements.map(el=>el.getAttribute("viewBox")),
     );
     expect(new Set(windows).size).toBeGreaterThan(1);
-    const capMargins=await review.locator("[data-km-scene-face]").evaluateAll(
-      paintings=>paintings.map(painting=>{
-        const crown=painting.querySelector('[data-km-portrait-part="hair"]');
-        return crown?crown.getBoundingClientRect().top-
-          painting.getBoundingClientRect().top:-999;
-      }),
+    // Measure topknot margin after the ORIGINAL source-fitted hair pose.
+    // A group's DOM bounding box also contains flying silk beyond the face
+    // crop, making it unsuitable as a crown-visibility assertion.
+    const headroom=await review.locator("[data-km-scene-face]").evaluateAll(
+      paintings=>paintings.map(painting=>
+        Number(painting.getAttribute("data-km-camera-crown"))-
+        Number(painting.getAttribute("data-km-camera-top"))),
     );
-    // Compare all three crowns in the actual browser viewport, not solely
-    // SVG path count: no wrapped cap or topknot should escape the top edge.
-    expect(capMargins.every(px=>px>=-2)).toBe(true);
+    expect(headroom.every(px=>Number.isFinite(px)&&px>=15)).toBe(true);
 
 
     await review.screenshot({animations:"disabled",
