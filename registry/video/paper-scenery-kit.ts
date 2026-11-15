@@ -262,12 +262,17 @@ function woodland(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:num
       p.band(xx-17,yy,xx+14+i*2,yy-2,1.3),{enterFrame:89+i*3});
   }
   // Midground conifers have distinct scalloped notch outlines and a shared footing.
-  const farPines=Array.from({length:7+Math.round(detail*5)},(_,i)=>{
-    const px=-x*.81+(i/(6+Math.round(detail*5)))*x*1.66;
-    const py=y*(.15+.08*Math.sin(i*2.1));
-    return p.pine(px,py,43+paperHash(seed,i,4)*26,11+paperHash(seed,i,5)*6);
+  const farTreeCount=9+Math.round(detail*6);
+  const farPines=Array.from({length:farTreeCount},(_,i)=>{
+    const jitter=(paperHash(seed,i,64)-.5)*treeVariety;
+    const px=-x*.89+i*x*1.78/(farTreeCount-1)+jitter*x*.063;
+    const py=y*(.16+.057*Math.sin(i*1.64)+jitter*.035);
+    const species=speciesFor(seed,i+17,treeVariety);
+    const tall=47+paperHash(seed,i,4)*53;
+    const wide=15+paperHash(seed,i,5)*11;
+    return p.conifer(px,py,tall,wide,species,seed+i*127,detail);
   });
-  add("woodland-far-pines",c.middle,15,farPines.join(" "),{enterFrame:85,curl:.3});
+  add("woodland-far-pines",c.near,15,farPines.join(" "),{enterFrame:85,curl:.3});
   // Two asymmetrical solid cardstock canopy shells frame the distant sky.
   // Cut-through eye apertures, not transparent fake leaf silhouettes.
   for(const [i,side] of [-1,1].entries()){
@@ -437,11 +442,17 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
     ridge(p,x,y+20,-y*.10,28,1.38),{enterFrame:77,curl:.62});
   add("alpine-foothill-terrace",c.near,13,
     ridge(p,x,y+20,y*.145,14,.86),{enterFrame:80,curl:.44});
-  add("alpine-distant-pines",c.near,13,
-    Array.from({length:10+Math.round(detail*7)},(_,i)=>{
-      const xx=-x*.9+i*(x*1.83)/(9+Math.round(detail*7));
-      return p.pine(xx,y*.22+Math.sin(i*1.8)*9,45+paperHash(seed,i,7)*31,14);
-    }).join(" "),{enterFrame:82,curl:.3});
+  const distantTreeCount=12+Math.round(detail*6);
+  add("alpine-distant-pines",c.soil,14,
+    Array.from({length:distantTreeCount},(_,i)=>{
+      const k=i/(distantTreeCount-1);
+      const jitter=(paperHash(seed,i,48)-.5)*treeVariety;
+      const xx=-x*.92+(x*1.84)*k+jitter*x*.067;
+      const yy=y*(.23+.036*Math.sin(i*1.38)+jitter*.04);
+      const species=speciesFor(seed,i+37,treeVariety);
+      return p.conifer(xx,yy,53+paperHash(seed,i,7)*56,
+        15+paperHash(seed,i,51)*15,species,seed+i*113,detail);
+    }).join(" "),{enterFrame:82,curl:.37});
   add("alpine-lake-bank",c.middle,14,
     ridge(p,x,y+12,y*.3,26,2.1),{enterFrame:86,durationFrames:34});
   add("alpine-lake",c.water,15,[
@@ -492,9 +503,14 @@ function alpine(p:P,add:Add,c:Stock,x:number,y:number,detail:number,breeze:numbe
       [hx,y*.45],[hx,y+18],[side*x*.24,y+18]]);
     add("alpine-ledge-"+i,i?c.soil:c.near,19,rock,{enterFrame:102+i*6,curl:.76});
     for(let j=0;j<3+Math.round(detail*3);j++){
-      const px=side*(x*(.24+j*.064)),py=y*(.66+(j%3)*.038);
+      const pineSeed=seed+i*173+j*41;
+      const offset=(paperHash(seed,i*11+j,43)-.5)*treeVariety;
+      const px=side*(x*(.245+j*.084+offset*.042));
+      const py=y*(.69+(j%3)*.047+offset*.025);
+      const species=speciesFor(seed,j+i*79+127,treeVariety);
       add("alpine-pine-"+i+"-"+j,j%3===0?c.trunk:c.leaf,22,
-        p.pine(px,py,56+paperHash(seed,j+i*17,22)*50,17+(j%3)*4),{
+        p.conifer(px,py,72+paperHash(seed,j+i*17,22)*88,
+          23+paperHash(seed,j+i*17,32)*19,species,pineSeed,detail),{
           enterFrame:112+i*9+j*3,curl:.48,
           motion:"flutter",swingDegrees:breeze*.3,flapHz:.19+j*.01,
           pivot:[p.cx+px*p.scale,p.cy+py*p.scale]});
