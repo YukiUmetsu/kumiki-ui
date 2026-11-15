@@ -2,10 +2,26 @@ import {describe,it,expect} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
+import {crayonDryNibPath,crayonMarks} from "../registry/video/materials/crayon";
 import {crayonCc0NearEyeStudy} from "../src/video/crayon-artcraft-cc0-near-eye";
 import faceMeta,{SourceMeasuredCc0Eye,SourceMeasuredCc0EyePortrait}
   from "../src/video/crayon-artcraft-adult-face.stories";
 describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
+  it("models pressure-worn side-of-crayon contacts without changing legacy nibs",()=>{
+    const mark=crayonMarks({x:0,y:0,width:85,height:45},
+      {seed:448,pressure:.63,spacing:8,passes:1})[0];
+    const old=crayonDryNibPath(mark);
+    const oldExplicit=crayonDryNibPath(mark,1,"legacy");
+    const hand=crayonDryNibPath(mark,1,"hand");
+    expect(old).toBe(oldExplicit);
+    expect(hand).not.toBe(old);
+    expect((hand.match(/L/g)??[]).length).toBeGreaterThan((old.match(/L/g)??[]).length);
+    expect(hand).toBe(crayonDryNibPath(mark,1,"hand"));
+    expect(crayonDryNibPath(mark,.5,"hand")).not.toBe(hand);
+    expect(crayonDryNibPath(mark,0,"hand")).toBe("");
+    expect(()=>crayonDryNibPath(mark,1,"nope" as "hand")).toThrow();
+  });
+
   for(const aspect of ["landscape","portrait"] as const){
     it("lays down colored wax contacts without airbrushing or transparency in "+aspect,()=>{
       const hand=crayonCc0NearEyeStudy(aspect,1,"stroke-built");
