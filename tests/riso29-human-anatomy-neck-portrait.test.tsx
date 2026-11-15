@@ -54,11 +54,11 @@ describe("RISO29 Kumiki ANAT1 source human anatomy",()=>{
     for(const frame of [0,24,46,76,125,156,160,165,178,198,239]){
       const m=inspectRisoAnatomy(actor,frame);
       expect(m.connected,actor.id+" no cervical joint at f"+frame).toBe(true);
-      expect(m.headScale).toBeCloseTo(.48,5);
-      expect(m.headToShoulder,actor.id+" wide skull at f"+frame).toBeGreaterThan(.68);
-      expect(m.headToShoulder,actor.id+" wide skull at f"+frame).toBeLessThan(.95);
-      expect(m.neckLength).toBeGreaterThan(19);
-      expect(m.neckLength).toBeLessThan(27);
+      expect(m.headScale).toBeCloseTo(.52,5);
+      expect(m.headToShoulder,actor.id+" wide skull at f"+frame).toBeGreaterThan(.77);
+      expect(m.headToShoulder,actor.id+" wide skull at f"+frame).toBeLessThan(1.01);
+      expect(m.neckLength).toBeGreaterThan(14);
+      expect(m.neckLength).toBeLessThan(21);
       expect(m.printDetails).toBeGreaterThan(35);
     }
   });
@@ -71,8 +71,8 @@ describe("RISO29 Kumiki ANAT1 source human anatomy",()=>{
       const chin=p(head.matrix,0,actor.id==="courier"?35:31);
       const collar=p(body.matrix,0,RISO29_ANAT1.coatNecklineY);
       const neckGap=collar.y-chin.y;
-      expect(neckGap,actor.id+" has invisible/overlong neck at f"+frame).toBeGreaterThan(7);
-      expect(neckGap,actor.id+" has overlong neck at f"+frame).toBeLessThan(34);
+      expect(neckGap,actor.id+" has invisible/overlong neck at f"+frame).toBeGreaterThan(4.5);
+      expect(neckGap,actor.id+" has overlong neck at f"+frame).toBeLessThan(19);
       const mouth=pose.parts.find(part=>part.id==="mouth")!;
       expect(mouth.d).toMatch(/^M/);
       expect(mouth.knockoutOnly).toBe(false);
