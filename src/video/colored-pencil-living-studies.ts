@@ -274,7 +274,7 @@ function face():PencilSubjectPart[] {
 function fox():PencilSubjectPart[] {
   const orange:PencilPalette=["#C9825D","#844C4C","#F4BC85"];
   const pale:PencilPalette=["#E6D7BA","#887B78","#FFF0D0"];
-  const charcoal:PencilPalette=["#59616A","#2C3B49","#B1ADA1"];
+  const charcoal:PencilPalette=["#674E46","#342F34","#AE9883"];
   const earth:PencilPalette=["#8B8773","#5F665C","#CBC2A3"];
   return [
     {id:"earth",material:"stone",palette:earth,
@@ -310,11 +310,11 @@ function fox():PencilSubjectPart[] {
       bounds:[292,310,75,96],direction:72,start:84,
       details:flowBundles([[318,333,335,388,326,365,18,9]],421,"#A9B0A7",.66)},
     {id:"foreleg-left",material:"fur",palette:charcoal,
-      path:"M197 301 Q222 301 228 336 Q220 374 224 393 Q237 398 237 406 L182 406 Q185 386 184 364 Q175 320 197 301 Z",
+      path:"M198 301 C213 302 222 318 223 340 C221 364 218 382 219 391 Q221 399 233 400 Q240 406 231 408 L212 408 Q201 405 195 405 Q185 408 178 405 C186 397 192 382 192 361 C184 337 188 311 198 301 Z",
       bounds:[173,298,68,111],direction:79,start:90,
       details:flowBundles([[191,327,204,396,183,365,19,11]],461,"#B6B2A6",.63)},
     {id:"foreleg-right",material:"fur",palette:charcoal,
-      path:"M273 307 Q302 311 304 341 Q294 374 302 393 Q315 397 317 406 L253 406 Q264 386 260 361 Q251 325 273 307 Z",
+      path:"M275 307 C291 309 301 325 302 343 C299 364 297 380 298 390 Q304 400 315 400 Q323 405 316 408 L285 408 Q274 407 265 407 L252 406 Q262 393 267 372 C266 343 265 319 275 307 Z",
       bounds:[247,302,76,107],direction:75,start:94,
       details:flowBundles([[270,332,282,399,273,372,20,10]],489,"#B3B5AC",.65)},
     {id:"chest",material:"fur",palette:pale,
@@ -331,7 +331,7 @@ function fox():PencilSubjectPart[] {
     {id:"head-main",material:"fur",palette:["#B66C4E","#724849","#EBAE79"],
       // Three-quarter fox: skull widens behind the near orbit and narrows into
       // an oblique snout; avoid the old round bilateral mask.
-      path:"M139 190 C143 171 156 154 170 146 C185 135 205 128 222 129 C245 126 266 137 280 150 C291 166 295 183 290 198 C286 216 277 229 264 237 C251 242 244 255 224 258 C200 256 174 247 152 233 C139 224 135 210 139 190 Z",
+      path:"M149 202 C154 175 178 151 204 140 C228 130 254 136 271 154 C286 171 291 191 283 207 C274 222 262 232 248 239 C232 250 211 246 194 237 C171 231 152 224 139 217 Q142 209 149 202 Z",
       bounds:[116,99,195,173],direction:43,start:112,
       details:[
         ...pencilRootedFur([
@@ -397,9 +397,9 @@ function fox():PencilSubjectPart[] {
     // tracts and vanish into malar fur at three different pressures.
     {id:"periocular-form",material:"glaze",
       palette:["#B97959","#785047","#E4B28B"],
-      path:"M146 182 C158 165 174 167 190 177 Q198 182 192 192 Q181 179 169 184 Q158 183 147 196 Z "+
-        "M209 180 C225 160 251 159 273 169 Q288 181 285 200 Q278 217 267 224 Q271 204 257 196 Q240 174 220 196 Z "+
-        "M157 202 Q181 201 199 209 Q227 205 253 212 Q242 230 221 233 Q196 227 171 227 Z",
+      path:"M151 187 C162 176 174 176 188 183 Q192 187 185 191 C175 185 163 185 152 195 Z "+
+        "M211 184 C227 172 246 168 260 176 Q274 183 272 194 C263 186 246 181 230 188 Q220 196 214 198 Z "+
+        "M228 207 Q246 204 264 207 C259 225 247 229 236 235 C236 224 230 219 228 207 Z",
       bounds:[145,156,145,81],direction:36,start:130,
       details:[
         ...pencilRootedFur([
@@ -428,7 +428,7 @@ function fox():PencilSubjectPart[] {
       ]},
     {id:"muzzle",material:"fur",palette:["#C8B6A0","#736A68","#EAD7B9"],
       // One coherent oblique nasal-to-maxilla plane and a soft lower jaw.
-      path:"M108 215 C122 213 137 213 151 210 C179 200 194 196 210 199 C234 197 254 205 267 216 C276 227 268 240 253 250 C232 259 198 256 170 248 C145 243 124 239 110 232 C103 227 102 219 108 215 Z",
+      path:"M109 216 Q126 210 149 208 C174 201 190 200 209 200 C232 199 255 210 268 224 C269 233 257 243 241 248 C213 253 180 249 155 242 Q121 237 109 229 Q102 223 109 216 Z",
       bounds:[96,204,182,65],direction:14,start:146,
       details:[
         ...pencilRootedFur([
@@ -455,9 +455,9 @@ function fox():PencilSubjectPart[] {
         mark("M131 211 Q164 200 198 199 M185 221 Q219 210 243 216",
           "#BD7C69",.65,265,.68),
       ]},
-    {id:"cheek-ruff",material:"fur",palette:["#B5896E","#7B5F58","#D7B59A"],
+    {id:"cheek-ruff",material:"fur",palette:["#A76E60","#765552","#D4A58D"],
       // Irregular roots turn into neck ruff. Avoid a detached parallelogram.
-      path:"M252 210 C267 218 282 226 290 235 Q300 242 300 250 L292 252 Q294 260 288 267 L279 266 Q279 275 269 282 L261 276 Q255 291 243 296 Q251 280 244 270 C244 259 236 245 230 235 C240 234 248 223 252 210 Z",
+      path:"M253 223 C269 229 284 240 290 252 C293 264 284 271 278 276 Q275 268 271 277 Q267 284 263 287 L256 277 Q252 290 244 295 Q248 281 242 274 C243 256 248 239 253 223 Z",
       bounds:[232,211,63,82],direction:64,start:150,
       details:[
         ...pencilRootedFur([
@@ -467,29 +467,27 @@ function fox():PencilSubjectPart[] {
         mark("M262 272 Q277 255 283 246 M249 278 Q260 269 268 262",
           "#E7C6A8",.52,279,.71),
       ]},
-    {id:"eye-far",material:"glass",palette:["#8B694D","#433E3C","#B49767"],
-      // The far eye is compressed in perspective and occluded by a bowed
-      // upper eyelid. A slit pupil follows the globe, not a clock face.
-      path:"M160 190 C166 185 172 184 179 188 C177 193 173 196 168 195 Q163 194 160 190 Z",
+    {id:"eye-far",material:"glaze",palette:["#875F4C","#624845","#AD876E"],
+      // With the skull yawed left, the far eye is behind the brow/bridge.
+      // Retain only its partially hidden inner canthus as a thin dark seam,
+      // not a second oversized symmetrical iris or cartoon oval.
+      path:"M164 189 Q169 184 175 187 Q177 189 178 190 Q173 194 168 193 Q164 192 164 189 Z",
       bounds:[158,183,23,15],start:153,
       details:[
-        mark("M159 189 C165 183 175 182 181 187","#29282F",1.0,250,.88),
-        mark("M162 192 Q170 198 177 192","#6E5550",.56,261,.72),
-        mark("M167 186 Q173 183 174 189 Q173 195 169 195",
-          "#8E673F",.70,262,.89),
-        mark("M170 186 Q172 190 169 195","#252932",.75,269,.93),
-        mark("M168 187 Q169 186 170 188","#FFF1C6",.40,276,.93),
-        mark("M159 189 Q158 192 161 195 M177 191 Q180 189 181 185",
-          "#3A2F32",.54,277,.76),
+        mark("M164 189 C168 185 173 185 178 188",
+          "#543934",.67,253,.55),
+        mark("M166 192 Q171 195 176 191",
+          "#906E5D",.41,264,.48),
+        mark("M168 187 Q171 187 172 190",
+          "#493C3A",.36,272,.42),
       ]},
     {id:"eye-near",material:"glass",palette:["#9D7950","#413B3B","#D0A875"],
       // Near eye: six named anatomical contacts — canthi, upper-lid
       // overhang, lower rim, thin amber iris, tear duct, displaced glint.
       // Its upper lid is sharply pigmented; the lower is soft where the
       // fur turns toward the muzzle. No unshaded white eye ellipse.
-      path:"M225 189 C231 182 239 179 248 181 Q256 182 258 185 "+
-        "C256 193 251 197 243 198 Q231 197 225 189 Z",
-      bounds:[223,178,38,23],start:155,
+      path:"M224 189 C232 183 240 181 248 184 Q253 186 251 190 C248 196 242 198 235 197 Q227 196 224 189 Z",
+      bounds:[222,179,35,21],start:155,
       details:[
         mark("M224 189 C232 179 244 177 256 182 Q259 183 260 185",
           "#25272F",1.38,248,.94),
