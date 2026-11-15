@@ -4,6 +4,7 @@ import type { RisoCharacterSpec, RisoJoint } from "../../registry/video/riso-cha
 import type { RisoPrintSpec } from "../../registry/video/print-plates";
 import type { RisoPaint, RisoArtwork } from "../../registry/video/print-plates-react";
 import type { ReactNode } from "react";
+import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
 
 export type RisoPerformanceAspect = "landscape" | "portrait";
 // RISO28: arm pendulum tracks the same 54-frame alternating contact
@@ -54,7 +55,12 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 205, x: 192, y: -12, easing: "ease" },
       { frame: 239, x: 192, y: -12 },
     ] },
-    { id: "body", parent: "root", x: 0, y: -72, keys: [
+    // RISO29 / ANAT1: original thighs were only a 62-unit projected
+    // run below the pelvis in a ~215-unit figure (childlike <.35).
+    // Rearticulate the upper-body + pelvic stations together and lengthen
+    // both real two-bone leg segments, preserving authored foot plant positions
+    // and ALL jacket, shoulder, hair and knee ink contours at source fidelity.
+    { id: "body", parent: "root", x: 0, y: -104, keys: [
       // RISO28: six alternating weight compressions over three complete
       // 54-frame strides. The penultimate/last frame pair plants both shoes
       // at f162; the body eases *over still boots* into the handoff by f198.
@@ -75,7 +81,13 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 198, y: 0, rotate: 0, easing: "ease" },
       { frame: 239, y: 0, rotate: 0 },
     ] },
-    { id: "head", parent: "body", x: 0, y: -68, keys: [
+    // ANAT1 cervical → atlas → cranium hierarchy. The old head pivot sat
+    // inside the chest and the chin completely hid a straight, blue "neck".
+    // This distinct neck joint follows the thorax yet leaves a visible
+    // sternomastoid/clavicle connection beneath the smaller skull.
+    { id: "neck", parent: "body", x: 0, y: RISO29_ANAT1.neckY },
+    { id: "head", parent: "neck", x: 0, y: RISO29_ANAT1.headNeckOffsetY,
+      scale: RISO29_ANAT1.headScale, keys: [
       { frame: 0, rotate: -3, easing: "ease" },
       { frame: 77, rotate: 3, easing: "ease" },
       { frame: 154, rotate: -8, easing: "ease" },
@@ -107,18 +119,18 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 137, rotate: 25, easing: "ease" }, { frame: 187, rotate: 42, easing: "ease" },
       { frame: 239, rotate: 42 },
     ] },
-    { id: "left-leg", parent: "root", x: -15, y: -62, keys: waveKeys() },
-    { id: "left-knee", parent: "left-leg", x: 0, y: 40 },
-    { id: "left-ankle", parent: "left-knee", x: 0, y: 36 },
-    { id: "right-leg", parent: "root", x: 15, y: -62, keys: [
+    { id: "left-leg", parent: "root", x: -15, y: -90, keys: waveKeys() },
+    { id: "left-knee", parent: "left-leg", x: 0, y: 55 },
+    { id: "left-ankle", parent: "left-knee", x: 0, y: 52 },
+    { id: "right-leg", parent: "root", x: 15, y: -90, keys: [
       { frame: 0, rotate: 13, easing: "ease" }, { frame: 16, rotate: -12, easing: "ease" },
       { frame: 36, rotate: 13, easing: "ease" }, { frame: 58, rotate: -12, easing: "ease" },
       { frame: 83, rotate: 13, easing: "ease" }, { frame: 108, rotate: -12, easing: "ease" },
       { frame: 138, rotate: 13, easing: "ease" }, { frame: 163, rotate: -12, easing: "ease" },
       { frame: 190, rotate: 13, easing: "ease" }, { frame: 239, rotate: 13 },
     ] },
-    { id: "right-knee", parent: "right-leg", x: 0, y: 40 },
-    { id: "right-ankle", parent: "right-knee", x: 0, y: 36 },
+    { id: "right-knee", parent: "right-leg", x: 0, y: 55 },
+    { id: "right-ankle", parent: "right-knee", x: 0, y: 52 },
     { id: "right-elbow", parent: "right-arm", x: 0, y: 28, keys: [
       { frame: 0, rotate: 6, easing: "ease" }, { frame: 40, rotate: -20, easing: "ease" },
       { frame: 80, rotate: 10, easing: "ease" }, { frame: 142, rotate: -35, easing: "ease" },
@@ -225,8 +237,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-25 -12 Q-16 -14 -7 -12 L-7 -10 Q-16 -11 -25 -9 Z" },
     { id: "coat-buttons", joint: "body", plate: "red", paint: "solid",
       d: "M4 -37 L8 -40 L12 -36 L8 -33 Z M6 -13 L10 -16 L14 -12 L10 -9 Z" },
-    { id: "neck", joint: "body", plate: "blue", paint: "solid",
-      d: "M-10 -83 H9 V-56 H-10 Z" },
+    ...risoAnatomicalNeckParts("courier"),
     { id: "left-upper-sleeve", joint: "left-arm", plate: "blue", paint: "solid",
       skin: { tipJoint: "left-elbow", baseWidth: 21, tipWidth: 18, overlap: 3, bow: -1.3 },
       d: "M-9 0 Q-18 16 -10 30 Q0 36 9 27 Q8 7 4 0 Z" },
@@ -382,7 +393,7 @@ export const COURIER: RisoCharacterSpec = {
     // bright-red chips. Fine details now print solid; ONLY sufficiently wide
     // facial shadow planes use physically discrete screened dots.
     // Each zone follows brow/zygomatic anatomy in the *original* head frame.
-    { id: "orbital-tone-planes", joint: "head", plate: "red", paint: "screen",screenTone:"mid",
+    { id: "orbital-tone-planes", joint: "head", plate: "red", paint: "screen",screenTone:"light",
       d: "M-27 -25 C-22 -29 -14 -28 -9 -24 Q-16 -23 -21 -17 Q-26 -15 -27 -25 Z M7 -25 C14 -31 24 -29 29 -20 Q28 -14 23 -15 Q20 -23 13 -22 Z" },
     { id: "zygomatic-tone-planes", joint: "head", plate: "red", paint: "screen",screenTone:"light",
       d: "M-29 -7 C-29 2 -27 10 -19 16 Q-22 5 -21 -5 Q-25 -11 -29 -7 Z M21 -6 Q27 -11 31 -5 C32 4 28 13 21 18 Q27 6 24 -2 Z" },
@@ -399,7 +410,7 @@ export const COURIER: RisoCharacterSpec = {
     { id: "nose-bridge-plane", joint: "head", plate: "red", paint: "screen",screenTone:"light",
       d: "M1 -13 Q5 -9 4 -3 Q3 1 2 4 L0 3 Q2 -4 1 -13 Z" },
     { id: "nose", joint: "head", plate: "blue", paint: "solid",
-      d: "M1 -10 Q3 -5 2 -1 Q0 3 2 6 Q5 8 7 5 L9 6 Q7 9 3 9 Q-2 8 0 3 Q2 -1 1 -10 Z" },
+      d: "M1 -12 Q2.3 -7.5 2 -3 C1.1 .7 1.2 3.2 2 4.8 Q3.5 6.8 5.8 5.8 L8.3 5.5 Q8 7.6 5.3 8.2 Q.8 8.6 0 4.3 Q1 -3 1 -12 Z" },
     { id: "nose-ala-right", joint: "head", plate: "blue", paint: "solid",
       d: "M8 6 Q11 5 11 8 Q10 11 7 10 Q10 9 8 6 Z" },
     { id: "philtrum", joint: "head", plate: "blue", paint: "solid",
@@ -410,18 +421,21 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-26 7 Q-22 5 -18 7 L-19 8 Q-23 7 -25 9 Z" },
     { id: "cheek-plane", joint: "head", plate: "red", paint: "solid",
       d: "M19 8 Q24 7 26 10 L25 11 Q23 9 20 10 Z" },
+    // ANAT1 lip loop: defined upper vermilion border, gentle parted volume,
+    // and two independently authored corner trajectories. Retain the
+    // nasolabial, philtrum and sublabial source engraving underneath.
     { id: "mouth", joint: "head", plate: "red", paint: "solid",
-      d: "M-7 17 Q-1 20 6 16 L6 18 Q0 22 -7 19 Z",
+      d: "M-7 17.3 C-4 19.3 -1 19.8 1 18.7 Q4 18.0 7 16 L6.7 18.1 Q3 21.4 -1 21.3 Q-5 20.7 -7 17.3 Z",
       expressions: {
-        speak: "M-4 15 C-2 13 3 13 5 16 Q6 21 1 22 Q-4 21 -4 15 Z",
-        smile: "M-9 15 Q0 22 9 14 Q6 23 0 24 Q-7 22 -9 15 Z",
+        speak: "M-3.6 15 C-2.1 13.6 1.5 13.5 4 15.8 Q5.1 18.8 2.5 21 Q-.3 21.9 -3 19 Q-4.3 17 -3.6 15 Z",
+        smile: "M-7.8 15.3 C-3.4 18.4 2.7 19.2 7.3 14.8 C5.9 17.6 2.8 19.6 -.6 19.9 Q-5 19.2 -7.8 15.3 Z",
       },
     },
     { id: "mouth-corner-creases", joint: "head", plate: "blue", paint: "solid",
       d: "M-10 17 L-8 16 L-8 18 Z M7 15 L9 14 L9 17 Z",
       expressions: {
         speak: "M-7 16 L-5 14 L-5 17 Z M5 15 L7 14 L7 18 Z",
-        smile: "M-11 14 Q-10 17 -9 18 L-10 18 Z M9 14 Q11 12 11 10 L11 15 Z",
+        smile: "M-9 15 Q-8.3 17 -7.4 17.7 L-8.6 17.4 Z M7.5 14.3 Q9 13.0 9.1 11.8 L9.4 14.5 Z",
       },
     },
     { id: "chin-plane", joint: "head", plate: "red", paint: "screen",screenTone:"light",
@@ -442,7 +456,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-7 16.4 Q-4 15.8 -1 16.1 Q1 15.8 3 15.2 Q5 14.8 6.7 15.2 Q4 16 2 16.2 Q-2 16.5 -6 16.9 Z",
       expressions: {
         speak:"M-4 14.3 Q-1.8 12.6 1 12.5 Q3.2 12.8 4.2 14.4 Q.7 13 -1.7 13.7 Z",
-        smile:"M-9 14.8 Q-2 19 8.5 13.8 Q3.7 17.7 -4.9 16.7 Z",
+        smile:"M-7.6 15.0 Q-1 19.0 7.3 14.6 Q3.6 16.9 -3.8 16.7 Z",
       },
     },
     { id: "nasolabial-flow", joint: "head", plate: "red", paint: "solid",

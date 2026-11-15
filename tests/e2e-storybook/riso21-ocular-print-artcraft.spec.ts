@@ -276,7 +276,13 @@ test("RISO26 true graded press master: original faces, two film ratios, AM and F
           await expect(panel).toHaveAttribute("data-km-riso26-tone-study","graded");
           await expect(panel.locator('[data-km-riso-part="zygomatic-tone-planes"]'))
             .toHaveAttribute("data-km-riso-screen-tone","light");
+          // ArtCraft RISO29: orbital paper dot masters are intentionally LIGHT
+          // to avoid acne-like chips. Temple geometry remains MID density,
+          // preserving the complete physical three-value ink separation.
           await expect(panel.locator('[data-km-riso-part="orbital-tone-planes"]'))
+            .toHaveAttribute("data-km-riso-screen-tone","light");
+          await expect(panel.locator('[data-km-riso-part="'+
+            (actor==="courier"?"face-temple-shadow":"temple-tones")+'"]'))
             .toHaveAttribute("data-km-riso-screen-tone","mid");
           const image=await panel.screenshot({
             path:info.outputPath("riso26-"+screening+"-"+ratio+"-"+actor+"-"+frame+"-graded.png"),
@@ -388,5 +394,51 @@ test("RISO27 original two-human 240-frame film: printed contact sequence and end
   await page.getByRole("combobox",{name:"RISO ensemble ink plate"}).selectOption("red");
   await stage.screenshot({path:info.outputPath("riso27-contact-red-master.png"),animations:"disabled"});
   await page.getByRole("combobox",{name:"RISO ensemble ink plate"}).selectOption("both");
+  expect(errors).toEqual([]);
+});
+
+/** RISO29: screenshots from the REAL print masters and same source rig.
+ * This does not claim that new identity/head anatomy is artistically approved;
+ * compare actual screenshot output against the ANAT1 study before release.
+ */
+test("RISO29 neck and facial anatomy: two original actors, print plates, poses and real cervical overlap",async({page},info)=>{
+  const errors:string[]=[];
+  page.on("pageerror",error=>errors.push(error.message));
+  page.on("console",message=>{if(message.type()==="error")errors.push(message.text());});
+  await page.setViewportSize({width:1540,height:1150});
+  await page.goto("/iframe.html?id=video-riso-artcraft-studies--human-anatomy-neck-portrait&viewMode=story");
+  await page.evaluate(()=>document.fonts.ready);
+  const workbench=page.locator('[data-km-riso29-anatomy-workbench]');
+  await expect(workbench).toBeVisible({timeout:20000});
+  const actor=page.getByRole("combobox",{name:"RISO29 anatomy character"});
+  const pose=page.getByRole("combobox",{name:"RISO29 anatomy pose"});
+  const ink=page.getByRole("combobox",{name:"RISO29 anatomy ink"});
+  const sections=page.locator('[data-km-riso29-source-view]');
+  await expect(sections).toHaveCount(2);
+  for(const name of ["courier","paper-artist"] as const){
+    await actor.selectOption(name);
+    await expect(workbench).toHaveAttribute("data-km-riso29-anatomy-actor",name);
+    await expect(workbench).toHaveAttribute("data-km-riso29-anatomy-connected","true");
+    const ratio=Number(await page.locator('[data-km-riso29-head-shoulder-ratio]').textContent()?.then(t=>t?.replace("×","")));
+    expect(ratio,name+" enlarged head survived").toBeGreaterThan(.68);
+    expect(ratio,name+" enlarged head survived").toBeLessThan(.95);
+    for(const frame of [0,78,160,198] as const){
+      await pose.selectOption(String(frame));
+      await expect(workbench).toHaveAttribute("data-km-riso29-anatomy-frame",String(frame));
+      await expect(page.locator('[data-km-riso29-source-actor="'+name+'"]')).toHaveCount(2);
+      await expect(page.locator('[data-km-riso29-source-view="portrait"] [data-km-riso-print]')).toBeVisible();
+      await expect(page.locator('[data-km-riso29-source-view="portrait"] [data-km-riso-part="neck-contour"]')).toHaveCount(1);
+      await expect(page.locator('[data-km-riso29-source-view="portrait"] [data-km-riso-paper-clearance="neck-skin-clearance"]').first()).toBeAttached();
+      await workbench.screenshot({
+        path:info.outputPath("riso29-"+name+"-"+frame+"-both-ink.png"),animations:"disabled"});
+    }
+    await ink.selectOption("blue");
+    await expect(page.locator('[data-km-riso29-source-view="portrait"] [data-km-riso-foreground-plate="blue"]')).toHaveCount(1);
+    await ink.selectOption("red");
+    await expect(page.locator('[data-km-riso29-source-view="portrait"] [data-km-riso-foreground-plate="red"]')).toHaveCount(1);
+    await ink.selectOption("both");
+  }
+  await page.getByRole("checkbox",{name:"RISO29 anatomy show joints"}).check();
+  await expect(page.locator('[data-km-riso-rig-diagnostics]')).toHaveCount(2);
   expect(errors).toEqual([]);
 });

@@ -81,7 +81,7 @@ export const RISO_COURIER_SHEET: RisoCharacterMeshSheet={
     {...source("nasolabial-flow-left","Left nose-to-mouth expressive fold","face","head",["nasolabial-flow"]),sourceSubpathIndex:0},
     {...source("nasolabial-flow-right","Right nose-to-mouth expressive fold","face","head",["nasolabial-flow"]),sourceSubpathIndex:1},
     source("labiomental-crease","Mouth-to-chin printed contour","face","head",["labiomental-crease"]),
-    source("neck","Neck segment","torso","body",["neck"]),
+    source("neck","ANAT1 cervical and clavicle joint-connected ink contours","torso","neck",["neck-contour","neck-clavicle-insertion","neck-sternomastoid"]),
     source("coat-shell","Coat silhouette","torso","body",["coat"]),
     source("coat-seam","Coat center seam","torso","body",["coat-seam"]),
     source("coat-lapel-left","Left sculpted coat lapel","torso","body",["coat-lapel-left"]),
