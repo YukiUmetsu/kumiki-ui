@@ -698,8 +698,14 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(darkEdges).toHaveLength(40);
       expect(silhouettes.every((d,k)=>
         d.startsWith("M"+islands[k][1].replace(","," "))&&
-        (d.match(/ C/g)??[]).length>=4&&d.endsWith(" Z")))
+        (d.match(/ Q/g)??[]).length>=7&&
+        (d.match(/ C/g)??[]).length>=2&&d.endsWith(" Z")))
         .toBe(true);
+      const islandLobes=[...full.matchAll(
+        /data-km-cliff-pine-fan-lobes="([6-8])"/g,
+      )].map(m=>Number(m[1]));
+      expect(islandLobes).toHaveLength(40);
+      expect(new Set(islandLobes).size).toBe(3);
       expect(darkEdges.every((d,k)=>
         d.startsWith("M"+islands[k][1].replace(","," "))&&
         (d.match(/ C/g)??[]).length>=22&&d.endsWith(" Z")))
