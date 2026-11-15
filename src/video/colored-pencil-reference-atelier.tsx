@@ -124,9 +124,16 @@ export function ReferencePencilAtelier(){
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[sourceUrl,reload,size.width,size.height]);
   useEffect(()=>{
-    if(raw||error)return;
+    if(!sourceUrl||raw||error)return;
+    if(reload<3){
+      // Storybook's first mount may leave the initial CDN image request pending.
+      // Re-key the native image after a bounded delay; after changing the
+      // source from the selector, ordinary onLoad finishes immediately.
+      const timer=window.setTimeout(()=>setReload(n=>n+1),9500);
+      return()=>window.clearTimeout(timer);
+    }
     const timer=window.setTimeout(()=>setError(
-      "Reference still loading. Retry, or choose a local photograph."),18000);
+      "Reference still loading. Retry, or choose a local photograph."),16000);
     return()=>window.clearTimeout(timer);
   },[raw,error,sourceUrl,reload]);
   const study=useMemo(()=>raw?createPencilPhotoStudy(raw,options):null,
@@ -179,6 +186,7 @@ export function ReferencePencilAtelier(){
     setOptions(prev=>({...prev,[key]:val}));setPlaying(false);
   };
   const usePhoto=(subject:Sample)=>{
+    setReload(0);setError("");
     if(localObjectUrl.current){
       URL.revokeObjectURL(localObjectUrl.current);localObjectUrl.current=null;
     }
@@ -241,7 +249,8 @@ export function ReferencePencilAtelier(){
             if(localObjectUrl.current)URL.revokeObjectURL(localObjectUrl.current);
             const url=URL.createObjectURL(file);
             localObjectUrl.current=url;
-            setError("");setRaw(null);setUploaded(true);setSourceUrl(url);
+            setError("");setRaw(null);setReload(0);
+            setUploaded(true);setSourceUrl(url);
             // Arbitrary uploads should not inherit fox/bird preset segmentation.
             setOptions(prev=>({...prev,focus:.60}));
             setWash(.88);setPlaying(false);setFrame(350);
