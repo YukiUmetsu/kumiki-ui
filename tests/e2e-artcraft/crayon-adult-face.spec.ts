@@ -4,6 +4,7 @@ import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
 import {crayonAdultFaceStudy} from "../../src/video/crayon-artcraft-adult-face-fixtures";
 import {crayonCc0NearEyeStudy} from "../../src/video/crayon-artcraft-cc0-near-eye";
+import {crayonPaperContactSwatches} from "../../src/video/crayon-artcraft-paper-contact-fixtures";
 import {AdultFaceArtcraftWorkbench} from "../../src/video/crayon-artcraft-adult-face.stories";
 
 /** Only exact React-native CRAYON1 renders may serve as visual evidence.
@@ -196,3 +197,30 @@ test("ArtCraft two-up hand-laid crayon wax versus polished wax reference",
       path:info.outputPath("crayon-wax-contact-before-after.png"),animations:"disabled"});
     expect(errors).toEqual([]);
   });
+
+/** Source-independent paper material contact bench: actual native Chromium
+ * captures at light and firm pressure, on light and dark layered grounds.
+ */
+for(const pressure of [.32,.82]){
+  test("ArtCraft real paper-height contact proof pressure "+pressure,
+    async({page},info)=>{
+      const spec=crayonPaperContactSwatches(pressure,974);
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:239}));
+      const errors:string[]=[];
+      page.on("pageerror",error=>errors.push(error.message));
+      await page.setViewportSize({width:960,height:318});
+      await page.setContent("<!doctype html><html><body style='margin:0;width:960px;height:318px'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","239");
+      await expect(svg.locator('[data-km-crayon-deposition="stroke-built"]')).toHaveCount(5);
+      await expect(svg.locator('[data-km-crayon-element="dark-paper-ground"]'+
+        ' [data-km-crayon-underpaint="opaque"]')).toBeAttached();
+      await expect(svg.locator('[data-km-crayon-element="light-wax-over-dark"]'+
+        ' [data-km-crayon-underpaint="opaque"]')).toBeAttached();
+      await svg.screenshot({path:info.outputPath("crayon-paper-height-contact-"+pressure+".png"),
+        animations:"disabled"});
+      expect(errors).toEqual([]);
+    });
+}
