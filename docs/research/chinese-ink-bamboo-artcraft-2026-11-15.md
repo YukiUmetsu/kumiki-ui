@@ -211,6 +211,37 @@ render must be checked for a recognizable brush cluster, no detached
 blades, no lost negative space and no harder thumbnail-scale "star"
 shapes. Do not use angle-count tests as a replacement for this review.
 
+## Sixth pass — material-first paper absorption and ink controls
+
+The fifth 960×540 film and 2.15× Chromium crop from run
+`43685974961` were genuinely inspected. They show more coherent
+terminal foliage and flowing blade tips, but the outlines are still
+clean Bézier silhouettes on uniform flat fill. The 96-frame MP4
+(960×540, 30fps, 3.2s) also shows the character's cutout-like gait.
+
+Following the brush-material requirement of ArtCraft, a new
+**instance-scoped paper absorption filter** is applied to the whole
+native bamboo organism (culm, joints, child branches and leaves at
+once). This prevents a filter applied separately to detached leaves
+from breaking visual join continuity. It combines seeded fine
+paper-fibre distortion, a small capillary Gaussian fringe, and a
+stronger retained ink core; the filter expands bounds to avoid clipping
+visible boughs. No raster paint image or third-party texture is used.
+
+The existing Storybook `Brushwork ink` control now affects foreground
+bamboo's actual accumulated ink load, not just the mountains. Unit
+tests inspect live SVG filter isolation between two paintings and
+ink=0/1 settings. Playwright changes the real slider and confirms the
+actual foreground renders different values. The source-comparable
+bamboo canopy/node cards remain in the same Storybook page.
+
+**Release gate remains visual, not mathematical:** compare new dark
+edges at 2.15× to original Wu Zhen ink-bamboo brushes. Reject a blurred
+vector silhouette if the retained crisp core and capillary fringe do
+not improve believable pressure/fibre deposition. Inspect both 16:9
+full frames and encoded motion. The composition and figure need
+their own dedicated ArtCraft rebuild after bamboo acceptance.
+
 ## Required release evidence
 
 Run from a clean repository checkout:
