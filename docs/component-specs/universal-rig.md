@@ -22,7 +22,8 @@ draws the same pose.
   scale, membrane, feather, metal, brass, wood, sail, smoke, light…), a z order, optional `far` (far-side limbs are
   shaded back), optional named `variants` (eyes shut, mouth open, hand pointing). `extrude` makes a part a solid of the
   rig's `depth3d`: when the root yaws, the far side shifts by depth·tan(yaw) and the faces between the near and far outlines
-  (hood, windscreen, nose, tail) are painted, shaded by orientation; `far3d` parts (far wheels, the other lamps, far-side
+  (hood, windscreen, nose, tail) are painted, shaded by orientation (`faceRole` gives the faces their own material, e.g. a
+  dark cabin whose windscreen faces are glass); `far3d` parts (far wheels, the other lamps, far-side
   indicators) are drawn at the far side, under or over those faces.
 - **Palette**: role → colour. Painters restyle it.
 - **Root keys**: travel through the scene (`x`, `y`, `rotate`, `facing`, depth `scale`, `yaw`). The evaluator derives

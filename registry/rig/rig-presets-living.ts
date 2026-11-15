@@ -308,16 +308,16 @@ interface GaitDef { phases: readonly number[]; stance: number; stride: number; l
 // hips steadier so the planted legs visibly sweep from forward-sloping to back-sloping.
 const GAITS: Record<string, GaitDef> = {
   // Lateral-sequence walk: LH, LF, RH, RF a quarter apart; the head nods twice per stride.
-  walk: { phases: [0, .75, .5, .25], stance: .64, stride: 1.02, lift: .13, bob: .6, bobPhase: .2, bobH: 2, pitch: 0, pitchPhase: 0, sink: 2.2, neck: 3, neckH: 2, neckPhase: .15, flex: .25, flexPhase: .2 },
+  walk: { phases: [0, .75, .5, .25], stance: .64, stride: 1.02, lift: .13, bob: .6, bobPhase: .2, bobH: 2, pitch: 0, pitchPhase: 0, sink: .6, neck: 3, neckH: 2, neckPhase: .15, flex: .25, flexPhase: .2 },
   // Trot: diagonal pairs with a short suspension between them; the body is highest in the suspension.
-  trot: { phases: [0, .5, .5, 0], stance: .4, stride: 1.95, lift: .22, bob: 1.8, bobPhase: .45, bobH: 2, pitch: .8, pitchPhase: .2, sink: 3.2, neck: 2, neckH: 2, neckPhase: .3, flex: .3, flexPhase: .2 },
+  trot: { phases: [0, .5, .5, 0], stance: .4, stride: 1.95, lift: .22, bob: 1.8, bobPhase: .45, bobH: 2, pitch: .8, pitchPhase: .2, sink: 1.2, neck: 2, neckH: 2, neckPhase: .3, flex: .3, flexPhase: .2 },
   // Canter: three beats (outside hind, diagonal pair, leading fore) and a suspension; the body rocks once per stride.
-  canter: { phases: [0, .7, .7, .5], stance: .42, stride: 2.2, lift: .26, bob: 2.4, bobPhase: .96, bobH: 1, pitch: 3.4, pitchPhase: .7, sink: 3.6, neck: 5, neckH: 1, neckPhase: .3, flex: .6, flexPhase: .1 },
+  canter: { phases: [0, .7, .7, .5], stance: .42, stride: 2.2, lift: .26, bob: 2.4, bobPhase: .96, bobH: 1, pitch: 3.4, pitchPhase: .7, sink: 1.5, neck: 5, neckH: 1, neckPhase: .3, flex: .6, flexPhase: .1 },
   // Transverse gallop, timed from Muybridge's 15-frame stride: hinds land at 0 and .1, fores at .27 and .4, each foot
   // down for ~30%, then ~30% gathered suspension with the legs folded under the body.
-  gallop: { phases: [0, .73, .9, .6], stance: .3, stride: 3.5, lift: .38, bob: 3, bobPhase: .86, bobH: 1, pitch: 4, pitchPhase: .55, sink: 3.4, neck: 7, neckH: 1, neckPhase: .43, flex: 1, flexPhase: .1 },
+  gallop: { phases: [0, .73, .9, .6], stance: .3, stride: 3.2, lift: .38, bob: 1.8, bobPhase: .86, bobH: 1, pitch: 4, pitchPhase: .55, sink: 1.6, neck: 7, neckH: 1, neckPhase: .43, flex: 1, flexPhase: .1 },
   // Rotary gallop (dogs, cats): LH, RH, RF, LF; extended and gathered suspensions, the spine flexing between them.
-  rotary: { phases: [0, .46, .92, .56], stance: .27, stride: 3.1, lift: .3, bob: 2.5, bobPhase: .9, bobH: 1, pitch: 3, pitchPhase: .55, sink: 3, neck: 3, neckH: 1, neckPhase: .45, flex: 1, flexPhase: .1 },
+  rotary: { phases: [0, .46, .92, .56], stance: .27, stride: 3.1, lift: .3, bob: 2.5, bobPhase: .9, bobH: 1, pitch: 3, pitchPhase: .55, sink: 1.4, neck: 3, neckH: 1, neckPhase: .45, flex: 1, flexPhase: .1 },
 };
 const CYCLE: Record<QuadKind, Record<string, number>> = {
   dog: { walk: 26, trot: 16, canter: 14, gallop: 11 }, horse: { walk: 34, trot: 22, canter: 19, gallop: 15 }, cat: { walk: 28, trot: 16, canter: 13, gallop: 10 },
@@ -378,8 +378,9 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
       rig.part("up-" + l.id, "up-" + l.id, poly([[-w * 1.4, -5], [w * 1.5, -6], [w * 1.05, up * .55], [w * .55, up], [-w * .62, up + 1.4], [-w * 1.05, up * .62]]), role, z, { far: l.far });
       rig.part("lo-" + l.id, "lo-" + l.id, cap(lo, w * .82, w * .6), role, z, { far: l.far });
     }
-    rig.part("fetlock-" + l.id, "paw-" + l.id, ell(0, .4, w * .42, w * .46), role, z + .03, { far: l.far });
-    rig.part("pastern-" + l.id, "paw-" + l.id, cap(P, w * .5, w * .4), role, z + .04, { far: l.far });
+    // Fetlock: a small bulge at the back of the joint; the pastern ends inside the hoof (no knob below the sole).
+    rig.part("fetlock-" + l.id, "paw-" + l.id, ell(-w * .1, .2, w * .34, w * .36), role, z + .03, { far: l.far });
+    rig.part("pastern-" + l.id, "paw-" + l.id, cap(P - (horse ? 3.6 : 1.6), w * .48, w * .4), role, z + .04, { far: l.far });
     // Hoof (or paw) with its sole on the ground line at the bone's origin.
     rig.part("hoof-" + l.id, "hoof-" + l.id, horse ? poly([[-2.6, -4.6], [2, -5], [3.4, -2.4], [4.8, 0], [-2.8, 0]]) : ell(1.6, -1.5, w * .66, 1.7), horse ? "horn" : role, z + .1, { far: l.far });
     if (horse) rig.part("coronet-" + l.id, "hoof-" + l.id, poly([[-2.8, -4.4], [2.2, -4.8], [2.6, -3.8], [-2.8, -3.4]]), "hair", z + .11, { far: l.far });

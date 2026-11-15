@@ -70,6 +70,8 @@ export interface RigPart {
    * are drawn, shaded by the way they face.
    */
   extrude?: boolean;
+  /** Material of the extruded faces when it differs from the outline's (a dark cabin whose windscreen faces are glass). */
+  faceRole?: RigRole;
   /** Sits on the far side of a solid figure (far wheels, the other headlamp, far indicators): drawn shifted by the
    * depth when the figure yaws; `under` paints below the extruded faces, `over` on top of them. */
   far3d?: "under" | "over";
@@ -288,6 +290,7 @@ export function inspectRig(input: unknown): string[] {
     if (!fin(q.z)) out.push(p + ".z must be finite");
     if (q.color !== undefined && !HEX.test(q.color)) out.push(p + ".color must be a 6-digit hex colour");
     if (q.far3d !== undefined && q.far3d !== "under" && q.far3d !== "over") out.push(p + ".far3d must be under or over");
+    if (q.faceRole !== undefined && !RIG_ROLES.includes(q.faceRole)) out.push(p + ".faceRole is not a rig role");
     if ((q.extrude || q.far3d) && !(fin(r.depth3d) && r.depth3d! > 0)) out.push(p + " needs the rig's depth3d");
     shapeIssues(q.shape, p + ".shape", out);
     for (const [name, v] of Object.entries(q.variants ?? {})) shapeIssues(v as RigShape, p + ".variants." + name, out);

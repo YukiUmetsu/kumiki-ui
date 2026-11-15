@@ -178,7 +178,7 @@ export interface RigBoneFrame { id: string; local: AffineMatrix; world: AffineMa
 export interface RigPartFrame {
   id: string; bone: string; role: RigRole; shape: RigShape; matrix: AffineMatrix; z: number; color?: string; opacity: number; line?: boolean; lineWidth?: number; variant?: string; far?: boolean;
   /** For `extrude` parts: the far side's matrix (the faces span from `matrix` to it). For `far3d` parts it replaces `matrix`. */
-  farMatrix?: AffineMatrix; extrude?: boolean; far3d?: "under" | "over";
+  farMatrix?: AffineMatrix; extrude?: boolean; far3d?: "under" | "over"; faceRole?: RigRole;
 }
 export interface RigFrame {
   frame: number;
@@ -506,7 +506,7 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
       id: q.id, bone: q.bone, role: q.role, z: q.z, color: q.color, line: q.line, lineWidth: q.lineWidth, variant: v, far: q.far,
       shape: v && q.variants?.[v] ? q.variants[v] : q.shape,
       matrix: mul(q.far3d ? farScene : toScene, world.get(q.bone)!), opacity: alpha.get(q.bone)!,
-      extrude: q.extrude || undefined, far3d: q.far3d, farMatrix: q.extrude ? mul(farScene, world.get(q.bone)!) : undefined,
+      extrude: q.extrude || undefined, far3d: q.far3d, faceRole: q.faceRole, farMatrix: q.extrude ? mul(farScene, world.get(q.bone)!) : undefined,
     };
   }).filter(p => p.opacity > .003).sort((a, b) => a.z - b.z);
   const bones = new Map<string, RigBoneFrame>(spec.bones.map((b: RigBone) => {
@@ -548,9 +548,10 @@ function fetlockFor(H: [number, number], P: number, J: [number, number], s: numb
   const a = (P * P - s * s + d * d) / (2 * d), h = Math.sqrt(Math.max(0, P * P - a * a)), mx = H[0] + a * dx / d, my = H[1] + a * dy / d;
   const p1: [number, number] = [mx + h * dy / d, my - h * dx / d], p2: [number, number] = [mx - h * dy / d, my + h * dx / d];
   const F = p1[0] < p2[0] ? p1 : p2;
-  // A pastern never flattens past ~15° above the ground; then the knee takes the rest.
-  const minUp = Math.sin(15 / DEG) * P;
-  return H[1] - F[1] >= minUp ? F : [H[0] - Math.cos(15 / DEG) * P, H[1] - minUp];
+  // A pastern stays steep: it never flattens past ~38° above the ground (lower and it reads as a foot bent the wrong
+  // way); beyond that the knee takes the compression.
+  const minUp = Math.sin(38 / DEG) * P;
+  return H[1] - F[1] >= minUp ? F : [H[0] - Math.cos(38 / DEG) * P, H[1] - minUp];
 }
 /** Bone `rotate` (0 = pointing down) whose +y points from p to q. */
 const directionAngle = (p: [number, number], q: [number, number]) => Math.atan2(-(q[0] - p[0]), q[1] - p[1]) * DEG;

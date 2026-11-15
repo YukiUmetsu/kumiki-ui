@@ -173,7 +173,7 @@ export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
   rig.part("shell", "body", path("M48.5 4.2L50.6 2.4Q51.6 -.4 51.2 -4.8L49.4 -7.4Q44 -9.4 30 -11.2L22.5 -12L8.6 -22.4Q6.6 -23.9 3 -24L-12 -24.4Q-22 -24.2 -30 -22.6L-35.4 -20.6L-44.6 -12.4Q-46.8 -10.2 -47.4 -6L-47.6 -1L-46.4 3.6L-41.52 4.2A11 11 0 0 1 -20.48 4.2L20.48 4.2A11 11 0 0 1 41.52 4.2Z"), "paint", 4, { extrude: true });
   rig.part("well-r", "body", ell(-31, 1, 10.4, 10.4), "metal-dark", 3.9);
   rig.part("well-f", "body", ell(31, 1, 10.4, 10.4), "metal-dark", 3.9);
-  rig.part("cabin", "body", poly([[21, -12.8], [8.4, -21.8], [3.6, -23.2], [-12, -23.6], [-24, -23], [-38.4, -14.8]]), "detail", 4.1, { extrude: true });
+  rig.part("cabin", "body", poly([[21, -12.8], [8.4, -21.8], [3.6, -23.2], [-12, -23.6], [-24, -23], [-38.4, -14.8]]), "detail", 4.1, { extrude: true, faceRole: "glass" });
   // Driver and headrest behind the glass.
   rig.part("headrest", "body", rect(-6.6, -21.2, 3.4, 5.6, 1.2), "metal-dark", 4.15);
   rig.bone("driver", "body", 1.4, -12.6);
