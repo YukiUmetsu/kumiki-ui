@@ -6,6 +6,10 @@ import type {
   PencilPhotoPixels,PencilPhotoOptions,PencilPhotoStudy,
 } from "./colored-pencil-photo";
 import {mapCC0WomanPortraitFeatures} from "./colored-pencil-portrait-guides";
+import {
+  buildColoredPencilDryContact,isPencilSkinContactZone,
+} from "./colored-pencil-dry-contact";
+import type {PortraitHeadStroke} from "./colored-pencil-full-head";
 import {createDryPortraitPlate} from "./colored-pencil-dry-portrait";
 import {
   createDryPencilHeadPlate,HEAD_STORYBOARD_PHASES,
@@ -94,6 +98,28 @@ function paintMarkRange(ctx:CanvasRenderingContext2D,
   }
   ctx.globalAlpha=1;
 }
+/**
+ * Source-conditioned full-head pigment renderer. The opt-in paper-contact
+ * variation is deterministic per mark, so 0–100% controls, stage previews,
+ * forward playback and absolute frame seeks never introduce temporal grain.
+ * Fine eye/lip/hair marks are untouched.
+ */
+function paintDryHeadRange(ctx:CanvasRenderingContext2D,
+  strokes:readonly PortraitHeadStroke[],from:number,to:number,tooth:number){
+  ctx.lineCap="round";ctx.lineJoin="round";
+  for(let i=from;i<to;i++){
+    const source=strokes[i];
+    const marks=tooth>0&&isPencilSkinContactZone(source.zone)?
+      buildColoredPencilDryContact(source,tooth):[source];
+    for(const mark of marks){
+      ctx.beginPath();ctx.moveTo(mark.x,mark.y);
+      ctx.quadraticCurveTo(mark.controlX,mark.controlY,mark.endX,mark.endY);
+      ctx.strokeStyle=mark.color;ctx.lineWidth=mark.width;
+      ctx.globalAlpha=mark.alpha;ctx.stroke();
+    }
+  }
+  ctx.globalAlpha=1;
+}
 function paint(ctx:CanvasRenderingContext2D,study:PencilPhotoStudy,
   frame:number,source:HTMLCanvasElement,wash:number){
   const {width,height}=study;
@@ -153,6 +179,7 @@ export function ReferencePencilAtelier({
   const [showStoryboard,setShowStoryboard]=useState(initialStoryboard);
   const [showHairContact,setShowHairContact]=useState(initialStoryboard);
   const [headScumble,setHeadScumble]=useState(.65);
+  const [headDryTooth,setHeadDryTooth]=useState(.75);
   const [fibreFlow,setFibreFlow]=useState(1);
   const [featureDepth,setFeatureDepth]=useState(.85);
   const [skinCoverage,setSkinCoverage]=useState(.70);
@@ -315,8 +342,10 @@ export function ReferencePencilAtelier({
     ink.globalAlpha=1;ink.globalCompositeOperation="source-over";
     ink.fillStyle=headPlate.paperColor;
     ink.fillRect(0,0,dry.width,dry.height);
-    paintMarkRange(ink,headPlate,0,headPlate.strokes.length);
+    paintDryHeadRange(ink,headPlate.strokes,0,headPlate.strokes.length,
+      headDryTooth);
     dry.setAttribute("data-km-pencil-full-head-rendered","true");
+    dry.setAttribute("data-km-pencil-dry-contact",String(headDryTooth));
     const temp=document.createElement("canvas");
     temp.width=raw.width;temp.height=raw.height;
     const tempCtx=temp.getContext("2d");if(!tempCtx)return;
@@ -336,7 +365,7 @@ export function ReferencePencilAtelier({
     setSkinEvidence(compareCC0SoftSkin(original,rendered));
     setLightSkinEvidence(compareCC0LuminousSkin(original,rendered));
     setJawEvidence(compareCC0JawContact(original,rendered));
-  },[headPlate,raw]);
+  },[headPlate,raw,headDryTooth]);
   useEffect(()=>{
     if(!showHairContact||!headPlate)return;
     const src=fullHeadSourceRef.current,dry=fullHeadRef.current;
@@ -405,13 +434,13 @@ export function ReferencePencilAtelier({
       ctx.fillStyle=headPlate.paperColor;
       ctx.fillRect(0,0,headPlate.width,headPlate.height);
       const stageMarks=selectHeadStoryboardStrokes(headPlate.strokes,phase.id);
-      paintMarkRange(ctx,{strokes:stageMarks},0,stageMarks.length);
+      paintDryHeadRange(ctx,stageMarks,0,stageMarks.length,headDryTooth);
       ctx.setTransform(1,0,0,1,0,0);
       canvas.setAttribute("data-km-pencil-storyboard-rendered",phase.id);
       canvas.setAttribute("data-km-pencil-storyboard-strokes",
         String(stageMarks.length));
     }
-  },[showStoryboard,headPlate]);
+  },[showStoryboard,headPlate,headDryTooth]);
   useEffect(()=>{
     if(!playing)return;
     const began=performance.now(),offset=frame;
@@ -538,6 +567,12 @@ export function ReferencePencilAtelier({
         <input aria-label="Pencil portrait scumble" type="range"
           min="0" max="1" step=".05" value={headScumble}
           onChange={e=>setHeadScumble(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Dry pencil contact · {Math.round(headDryTooth*100)}%
+        <input aria-label="Pencil dry paper tooth contact" type="range"
+          min="0" max="1" step=".05" value={headDryTooth}
+          onChange={e=>setHeadDryTooth(Number(e.target.value))}/>
       </label>}
       {faceGuides&&showFullHead&&<label style={control}>
         Anatomical fibre flow · {Math.round(fibreFlow*100)}%
@@ -987,6 +1022,7 @@ export function ReferencePencilAtelier({
             {" "+headPlate.materialCounts["hair-mass"]+
               " / "+headPlate.materialCounts["hair-occlusion"]+
               " / "+headPlate.materialCounts["hair-fibre"]}.
+            Dry pencil nib contact: {" "+Math.round(headDryTooth*100)}%.
             Fibre direction: {" "+Math.round(headPlate.fibreFlowStrength*100)}%
             anatomy-connected; set 0% for the legacy ruled-grain A/B comparison.
             Independent likeness and material approval: NOT PASSED.
