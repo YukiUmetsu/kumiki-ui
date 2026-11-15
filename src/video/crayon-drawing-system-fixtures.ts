@@ -110,19 +110,19 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     colors:["#80716b","#655f65","#ab9990"],
     timing:{start:94,end:165},coverage:"open",pressure:.54,spacing:8.8,
     nibStyle:"tapered",strokeOrder:"patches",markLength:"long",
-    outlineOpacity:0,blendRadius:7,markStrength:.3,
+    outlineOpacity:0,blendRadius:3,markStrength:.62,
   });
   addWax("pear-body",rootD,rect(-130,-166,260,356),
     ["#e5bc68","#b68b65","#f5d78d"],"blocking","solid",{start:9,end:89},{
       placement:place,underpaintGradient:{
         light:"#f6d991",shadow:"#756d6c",focusX:.23,focusY:.23,radius:1.3},
-      markStrength:.37,spacing:7.4,edgeRoughness:.38,
+      markStrength:.23,spacing:7.7,edgeRoughness:.38,
     },6);
   addWax("leaf-body",leafD,rect(8,-243,178,111),
     ["#718c55","#3d624c","#b7be78"],"blocking","solid",{start:28,end:105},{
       parentId:"pear-body",underpaintGradient:{
         light:"#c7c887",shadow:"#2c5248",focusX:.3,focusY:.18,radius:1.1},
-      markStrength:.46,spacing:5.9,edgeRoughness:.35,
+      markStrength:.32,spacing:6.1,edgeRoughness:.35,
     },3);
   addWax("stem-body",stemD,rect(-25,-192,52,70),
     ["#7a5846","#433e40","#b08566"],"blocking","solid",{start:32,end:113},{
@@ -136,8 +136,8 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     rect(-50,-157,77,45),
     ["#9e794e","#6d634c","#c59a64"],"value","glaze",
     {start:72,end:151},{
-      parentId:"pear-body",clipToParent:true,blendRadius:5,
-      pressure:pressure*.48,spacing:6.2,markStrength:.31,outlineOpacity:0,
+      parentId:"pear-body",clipToParent:true,blendRadius:3,
+      pressure:pressure*.61,spacing:5.8,markStrength:.43,outlineOpacity:0,
     },2);
   // The value range describes light turning into shadow, not arbitrary flecks.
   addWax("pear-turn-shadow",
@@ -145,8 +145,8 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     "Q30 169 10 165 C68 114 71 56 65 0 C60 -58 44 -91 37 -119 Z",
     rect(0,-128,143,311),
     ["#757c65","#5d6670","#b9a16e"],"value","glaze",{start:68,end:156},{
-      parentId:"pear-body",clipToParent:true,blendRadius:10,
-      pressure:pressure*.65,spacing:8.9,markStrength:.26,outlineOpacity:0,
+      parentId:"pear-body",clipToParent:true,blendRadius:8,
+      pressure:pressure*.66,spacing:8.1,markStrength:.36,outlineOpacity:0,
     },4);
   // Cool reflected light turns beneath the lower pear; reserve the brightest
   // yellows for the upper illuminated shoulder. The wax is still translucent
@@ -158,8 +158,8 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     rect(-90,102,194,84),
     ["#9d8273","#6c6371","#c8a06f"],"value","glaze",
     {start:93,end:168},{
-      parentId:"pear-body",clipToParent:true,blendRadius:9,
-      pressure:pressure*.44,spacing:8.2,markStrength:.26,outlineOpacity:0,
+      parentId:"pear-body",clipToParent:true,blendRadius:6,
+      pressure:pressure*.54,spacing:7.6,markStrength:.43,outlineOpacity:0,
     },3);
   addWax("pear-cool-turn",
     "M88 -42 C110 -7 116 45 103 94 "+
@@ -168,8 +168,8 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     rect(43,-53,83,222),
     ["#6c836c","#5b6875","#a1a275"],"value","glaze",
     {start:100,end:169},{
-      parentId:"pear-body",clipToParent:true,blendRadius:8,
-      pressure:pressure*.45,spacing:7.8,markStrength:.3,outlineOpacity:0,
+      parentId:"pear-body",clipToParent:true,blendRadius:6,
+      pressure:pressure*.59,spacing:6.8,markStrength:.5,outlineOpacity:0,
     },4);
   addWax("leaf-fold-shadow",
     "M20 -174 Q105 -186 172 -208 C136 -155 83 -146 44 -163 Z",
@@ -204,8 +204,8 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     "C-93 10 -108 -2 -108 -15 Z",
     rect(-118,-116,107,134),
     ["#cc855d","#a65d59","#e2a46c"],"colour","glaze",{start:124,end:185},{
-      parentId:"pear-body",clipToParent:true,blendRadius:9,
-      pressure:pressure*.6,spacing:6.8,markStrength:.32,outlineOpacity:0,
+      parentId:"pear-body",clipToParent:true,blendRadius:3,
+      pressure:pressure*.74,spacing:6.3,markStrength:.62,outlineOpacity:0,
     },3);
   // Two broken warm pigment pools make the blush feel overlaid in successive
   // dry-wax applications, not like one airbrushed peach circle.
@@ -215,8 +215,8 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
     rect(-100,-90,70,82),
     ["#df8e5d","#b76a57","#f1b97b"],"colour","glaze",
     {start:148,end:196},{
-      parentId:"pear-body",clipToParent:true,blendRadius:5,
-      pressure:pressure*.48,spacing:6.8,markStrength:.36,outlineOpacity:0,
+      parentId:"pear-body",clipToParent:true,blendRadius:3,
+      pressure:pressure*.62,spacing:6.1,markStrength:.56,outlineOpacity:0,
     },3);
   addWax("leaf-rim-light",
     "M31 -173 C64 -219 126 -226 166 -209 Q108 -213 62 -176 Z",
@@ -241,19 +241,19 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
   // Directional grain is correlated to the studied skin curvature, never random
   // full-frame noise. All marks remain clipped to opaque fruit/leaf shapes.
   collect(crayonDirectionalStrokes({
-    prefix:"pear-wax-turn",parentId:"pear-body",seed:391,count:Math.max(1,Math.round(32*detail)),
+    prefix:"pear-wax-turn",parentId:"pear-body",seed:391,count:Math.max(1,Math.round(27*detail)),
     guide:[{x:-72,y:-93},{x:-120,y:0},{x:-66,y:124},{x:31,y:159}],
     spread:34,length:15,width:1.02,pressure,color:"#aa805d",
     startFrame:164,endFrame:235,
   }),"detail");
   collect(crayonDirectionalStrokes({
-    prefix:"pear-wax-shadow",parentId:"pear-body",seed:481,count:Math.max(1,Math.round(29*detail)),
+    prefix:"pear-wax-shadow",parentId:"pear-body",seed:481,count:Math.max(1,Math.round(22*detail)),
     guide:[{x:58,y:-85},{x:94,y:-3},{x:111,y:74},{x:34,y:152}],
     spread:26,length:14,width:1.24,pressure,color:"#7b7c70",
     startFrame:169,endFrame:235,
   }),"detail");
   collect(crayonDirectionalStrokes({
-    prefix:"leaf-wax-veins",parentId:"leaf-body",seed:582,count:Math.max(1,Math.round(19*detail)),
+    prefix:"leaf-wax-veins",parentId:"leaf-body",seed:582,count:Math.max(1,Math.round(16*detail)),
     guide:[{x:29,y:-176},{x:72,y:-203},{x:124,y:-211},{x:166,y:-207}],
     spread:20,length:13,width:.9,pressure,color:"#cad09d",
     startFrame:172,endFrame:235,
@@ -262,7 +262,7 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
   // uniform noise or opaque printed circles.
   collect(crayonDirectionalStrokes({
     prefix:"pear-lenticels",parentId:"pear-body",seed:739,
-    count:Math.max(1,Math.round(32*detail)),
+    count:Math.max(1,Math.round(27*detail)),
     guide:[{x:-43,y:-81},{x:-96,y:-2},{x:-28,y:80},{x:43,y:117}],
     spread:74,length:2.8,width:.78,pressure:pressure*.82,
     color:"#a58f65",startFrame:190,endFrame:237,
@@ -292,25 +292,41 @@ export function crayonBotanicalDrawing(settings:CrayonDrawingSettings):{
   // texture or a high-contrast grid of digital dashes.
   collect(crayonDirectionalStrokes({
     prefix:"pear-chromatic-scumble",parentId:"pear-body",seed:851,
-    count:Math.max(1,Math.round(28*detail)),
+    count:Math.max(1,Math.round(18*detail)),
     guide:[{x:-38,y:-116},{x:-43,y:-3},{x:6,y:85},{x:72,y:135}],
     spread:79,length:10,width:1.05,pressure:pressure*.71,
     color:"#cd956a",startFrame:185,endFrame:237,
   }).map(n=>({...n,opacity:.38})),"detail");
   collect(crayonDirectionalStrokes({
     prefix:"pear-blush-broken-wax",parentId:"pear-body",seed:659,
-    count:Math.max(1,Math.round(24*detail)),
+    count:Math.max(1,Math.round(17*detail)),
     guide:[{x:-91,y:-61},{x:-79,y:-37},{x:-52,y:-25},{x:-37,y:2}],
     spread:39,length:7,width:1.3,pressure:pressure*.82,
     color:"#a96d5e",startFrame:186,endFrame:236,
   }).map(n=>({...n,opacity:.42})),"detail");
   collect(crayonDirectionalStrokes({
     prefix:"leaf-second-pass",parentId:"leaf-body",seed:604,
-    count:Math.max(1,Math.round(22*detail)),
+    count:Math.max(1,Math.round(18*detail)),
     guide:[{x:22,y:-183},{x:61,y:-174},{x:108,y:-157},{x:163,y:-204}],
     spread:17,length:8,width:.74,pressure:pressure*.72,
     color:"#91a574",startFrame:188,endFrame:237,
   }).map(n=>({...n,opacity:.46})),"detail");
+  // Finer low-opacity side-nib contacts accumulate uneven wax inside the
+  // existing anatomy, replacing the exaggerated generic broad rubbing.
+  collect(crayonDirectionalStrokes({
+    prefix:"pear-light-binder",parentId:"pear-body",seed:1147,
+    count:Math.max(1,Math.round(38*detail)),
+    guide:[{x:-37,y:-103},{x:-73,y:-23},{x:-15,y:87},{x:46,y:152}],
+    spread:52,length:6.7,width:.91,pressure:pressure*.69,
+    color:"#f2cf88",startFrame:190,endFrame:238,
+  }).map(n=>({...n,opacity:.38})),"detail");
+  collect(crayonDirectionalStrokes({
+    prefix:"pear-cool-binder",parentId:"pear-body",seed:1207,
+    count:Math.max(1,Math.round(30*detail)),
+    guide:[{x:68,y:-75},{x:88,y:-4},{x:97,y:92},{x:26,y:147}],
+    spread:30,length:6.1,width:.87,pressure:pressure*.66,
+    color:"#ada39a",startFrame:191,endFrame:238,
+  }).map(n=>({...n,opacity:.42})),"detail");
   addLine("pear-bottom-fold",
     "M-30 165 Q-6 171 14 168 M-18 160 Q0 156 11 159",
     "pear-body","detail","#b48b56",.83,{start:181,end:236},2);
