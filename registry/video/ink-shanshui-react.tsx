@@ -609,14 +609,14 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
   detail:number;mist:number;
 }){
   if(detail<.58)return null;
-  const center=scene==="mountain-trail"?653:
+  const center=scene==="mountain-trail"?620:
     scene==="river-scholar"?596:536;
   const distribution=[
-    {dx:-33,height:35,bow:-6},
-    {dx:-17,height:52,bow:7},
-    {dx:-2,height:66,bow:-5},
-    {dx:18,height:47,bow:10},
-    {dx:33,height:32,bow:-6},
+    {dx:-33,height:43,bow:-6},
+    {dx:-17,height:62,bow:7},
+    {dx:-2,height:76,bow:-5},
+    {dx:18,height:57,bow:10},
+    {dx:33,height:42,bow:-6},
   ] as const;
   const shade=(1-.17*mist);
   return <g data-km-cliff-pine-grove=""
@@ -673,7 +673,26 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
             " "+f(tipX)+" "+f(tipY);
           return {attach,path,loaded:k%6===0};
         });
-        return {origin,bone,foliage};
+        // Three local loaded *ink pads* join true bough stations.
+        // In the source, the black crowns are packed, overlapping
+        // brush islands—uniform isolated comb needles were too pale
+        // at 960×540. Fine needle taps remain visible over these pads.
+        const pads=([.69,.81,.92] as const).map((at,k)=>{
+          const a=quadraticPoint(origin,control,tip,at);
+          const reach=(6+5*s(seed+1897,i*17+j*31+k*7));
+          const tipPad:P=[
+            a[0]+direction*reach,
+            a[1]-(3+5*s(seed+1901,i*13+j*19+k)),
+          ];
+          const arch:P=[
+            a[0]+direction*reach*.39,
+            a[1]+(k===1?1.7:-1.8),
+          ];
+          return {root:a,path:rockLoadedRibbon(a,arch,tipPad,
+            (k===1?2.85:1.95)*(1+.18*s(seed+1907,i*31+j*23+k)),
+            seed+1921+i*41+j*11+k*19)};
+        });
+        return {origin,bone,foliage,pads};
       });
       return <g key={i} data-km-cliff-pine=""
         data-km-cliff-pine-root={f(root[0])+","+f(root[1])}
@@ -684,12 +703,17 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
         <path data-km-cliff-pine-bark="" d={bark}
           stroke="#a18b70" fill="none" strokeWidth=".48"
           strokeLinecap="round" opacity={f(.47*shade)}/>
-        {boughs.map(({origin,bone,foliage},j)=>
+        {boughs.map(({origin,bone,foliage,pads},j)=>
           <g key={j} data-km-cliff-pine-bough=""
             data-km-cliff-pine-bough-root={f(origin[0])+","+f(origin[1])}>
             <path data-km-cliff-pine-bough-bone="" d={bone}
               fill={j%2===0?"#3d352d":"#554638"}
               opacity={f(.88*shade)}/>
+            {pads.map(({root:padRoot,path},k)=><path key={"pad"+k}
+              data-km-cliff-pine-pad=""
+              data-km-cliff-pine-pad-root={f(padRoot[0])+","+f(padRoot[1])}
+              d={path} fill={k===1?"#302b25":"#40372d"}
+              opacity={f((k===1?.91:.77)*shade)}/>)}
             {foliage.map(({attach,path,loaded},k)=><path key={k}
               data-km-cliff-pine-needle=""
               data-km-cliff-pine-needle-root={f(attach[0])+","+f(attach[1])}
@@ -711,8 +735,9 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
       const width=band===0?1.1:band===1?1.3:1.8;
       const stations=ridgeStations(ridge,seed,band);
       const count=Math.round((band===0?27:band===1?48:67)*detail);
-      return <g key={band} data-km-shanshui-ridge={band}
-        opacity={(band===0?.32:band===1?.65:.86)*ink}>
+      return <g key={band}>
+        <g data-km-shanshui-ridge={band}
+          opacity={(band===0?.32:band===1?.65:.86)*ink}>
         <path data-km-shanshui-ridge-contour={band} d={ridgePath(stations)}
           fill={"url(#"+([ids.far,ids.mid,ids.near][band])+")"}
           stroke={band===2?"#765e48":"#ac9070"} strokeWidth={band===2?1.05:.55}/>
@@ -724,8 +749,7 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
         {/* Ink grove must be AFTER the mountain silhouette and OUTSIDE
             the cliff-plane clipping group, so all crown strokes appear
             over the ridge while each trunk enters painted terrain. */}
-        {band===1&&<CliffPineGrove stations={stations} scene={scene}
-          seed={seed+1819} detail={detail} mist={mist}/>} 
+
         {/* Reference-led rock painting: cluster different brush pressures
             over local geology. Leave quiet paper between texture families,
             rather than repeating parallel grooves across all the mountains. */}
@@ -836,6 +860,15 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
             ry={f(.45+.9*s(seed,i*9+band))}
             fill={INK} opacity={.17+.36*s(seed,i*7+3)}/>;
         })}
+        </g>
+        {/* Independently loaded foreground-to-midground brush layer.
+            Keep BEFORE near ridge (it can occlude lower trunks), but
+            remove the middle mountain's .65× opacity that made black
+            pine clusters disappear at 960×540 playback. */}
+        {band===1&&<g opacity={f(.85*ink)}>
+          <CliffPineGrove stations={stations} scene={scene}
+            seed={seed+1819} detail={detail} mist={mist}/>
+        </g>}
       </g>;
     })}
   </g>;

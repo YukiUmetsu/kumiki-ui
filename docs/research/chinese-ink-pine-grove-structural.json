@@ -24,7 +24,7 @@
     "roots": "Five bases sample the active middle-band ridgeHeight +2.8. No isolated origins.",
     "trunks": "5 individual pressure contours (35–66 film pixels high), with narrow inner bark lines.",
     "branches": "4 per trunk: origins sampled at normalized .31/.5/.67/.84 of each bent trunk.",
-    "dark_foliage": "310 short asymmetrical brush taps, rooted on the 20 twig curves, variable length/opacity/width and stemwise polarity.",
+    "dark_foliage": "310 short asymmetrical brush taps, rooted on the 20 twig curves, variable length/opacity/width and stemwise polarity. Plus 60 loaded terminal ink pads with independently sampled origins.",
     "negative_space": "No filled canopy. Five unequal tree silhouettes with paper gaps between terminal tufts.",
     "hierarchy": "Crest silhouette -> planted trunk -> bough -> twig-rooted individual foliage tap."
   },
@@ -42,5 +42,12 @@
     "global blur used instead of foliage",
     "tree roots that do not land on a ridge"
   ],
-  "status": "new candidate; native pixel quality gate required after GitHub Chromium render"
+  "status": "new candidate; native pixel quality gate required after GitHub Chromium render",
+  "iteration": 21,
+  "comparison": {
+    "status": "v20 native screenshot directly reviewed; v21 rerender pending",
+    "failure": "middle ridge opacity made grove pale; branch foliage showed sparse pale comb spikes",
+    "correction": "60 distinct attached wet-ink pads + ungrouped middle-foreground pigment layer + taller nonuniform groves",
+    "art_release": "HOLD"
+  }
 }

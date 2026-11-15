@@ -342,6 +342,14 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(pineBones.every((d,i)=>d.startsWith("M"+
         boughs[i][1].replace(","," "))&&d.endsWith(" Z")))
         .toBe(true);
+      const pads=[...full.matchAll(
+        /data-km-cliff-pine-pad="" data-km-cliff-pine-pad-root="([^"]+)" d="([^"]+)"/g,
+      )];
+      expect(pads).toHaveLength(60);
+      expect(pads.every(([,root,d])=>
+        d.startsWith("M"+root.replace(","," "))&&
+        (d.match(/ C/g)??[]).length>=22&&d.endsWith(" Z")))
+        .toBe(true);
       expect(needles).toHaveLength(310);
       expect(needles.every(([,root,d])=>
         d.startsWith("M"+root.replace(","," "))&&d.includes(" Q")))
