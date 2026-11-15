@@ -74,7 +74,9 @@ describe("ArtCraft coloured-pencil anatomical fidelity contract",()=>{
         const feet=actor.parts.find(p=>p.id==="feet")!;
         expect(feet.region.path).toBe(KINGFISHER_PERCHING_FEET.path);
         expect(feet.region.opaqueSupport).toBe(true);
-        expect(feet.region.clipDetails).toBe(true);
+        // Keratin body is opaque, but terminal claws deliberately project
+        // outside the toe silhouette rather than being cut by a clipPath.
+        expect(feet.region.clipDetails).toBe(false);
         expect(feet.region.layers.map(l=>l.texture))
           .toEqual(["hatch","hatch","stipple"]);
         const main=actor.parts.find(p=>p.id==="near-wing")!;
