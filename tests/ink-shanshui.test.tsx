@@ -517,7 +517,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(primaryPaint.concat(echoPaint).every(([,gradient,mask])=>
         full.includes('id="'+gradient+'"')&&full.includes('id="'+mask+'"')))
         .toBe(true);
-      expect(full).toContain('maskType:luminance');
+      expect(full).toContain('mask-type:luminance');
       expect(full).not.toMatch(/NaN|Infinity|undefined/);
       const sparse=renderToStaticMarkup(createElement(InkShanshuiStage,{
         frame:153,controls:{...DEFAULT_SHANSHUI,scene,detail:.35},
