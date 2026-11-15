@@ -169,6 +169,15 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
         if(node?.kind!=="contour")throw new Error("Missing tailored stitching "+id);
         expect(node.clipToParent).toBe(true);
       }
+      const neckPlane=nodes.get("neck-lateral-turn");
+      if(neckPlane?.kind!=="wax")throw new Error("Missing attached lateral neck");
+      expect(neckPlane.coverage).toBe("open");
+      expect(neckPlane.clipToParent).toBe(true);
+      expect(neckPlane.parentId).toBe("neck-under-jaw");
+      expect(nodes.get("nose-sidewall-form-hatching")?.parentId).toBe("adult-face");
+      const noseGrain=nodes.get("nose-sidewall-form-hatching");
+      expect(noseGrain?.kind).toBe("contour");
+      if(noseGrain?.kind==="contour")expect(noseGrain.clipToParent).toBe(true);
       const neck=nodes.get("neck-under-jaw");
       const scarf=nodes.get("tailored-scarf-wrap");
       const collarShadow=nodes.get("neck-jaw-cast-shadow");
@@ -281,6 +290,22 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
         (b?.kind!=="wax"&&b?.kind!=="contour"))
         throw new Error("missing "+id);
       expect(a.d).not.toBe(b.d);
+    }
+    for(const scene of [smiling,neutral]){
+      const elements=new Map(scene.elements.map(n=>[n.id,n]));
+      const lip=elements.get("lip-upper-volume");
+      const cleft=elements.get("mouth-commissures");
+      const garment=elements.get("coat-silhouette");
+      const sleeve=elements.get("coat-sleeve-cap-near");
+      if(lip?.kind!=="wax"||cleft?.kind!=="contour"||
+        garment?.kind!=="wax"||sleeve?.kind!=="wax")
+        throw new Error("No native paint planes");
+      expect((cleft.d.match(/M/g)??[]).length).toBeGreaterThanOrEqual(2);
+      expect(lip.d).toMatch(/Q/);
+      // A portrait bust should continue past the 9:16 bottom edge instead
+      // of ending both sleeves as detached rounded stumps in mid-frame.
+      expect(garment.bounds.y+garment.bounds.height).toBeGreaterThan(440);
+      expect(sleeve.bounds.y+sleeve.bounds.height).toBeGreaterThan(440);
     }
     expect(()=>crayonAdultFaceStudy("landscape",{expression:"surprised" as "warm"}))
       .toThrow(/Invalid ArtCraft facial study/);
