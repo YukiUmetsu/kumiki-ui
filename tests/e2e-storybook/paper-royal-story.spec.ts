@@ -23,12 +23,15 @@ for(const aspect of ["landscape","portrait"] as const){
     const second=page.getByRole("button",{name:/02 · Follow the little lights/});
     await second.click();
     await expect(stage).toHaveAttribute("data-km-paper-shot","the-fox-guides");
-    await expect(stage).toHaveAttribute("data-km-paper-frame","0");
+    await expect(stage).toHaveAttribute("data-km-paper-frame","18");
+    await expect(page.locator("[data-km-paper-curtain]")).toHaveCount(0);
     await stage.screenshot({path:info.outputPath("royal-act2-"+aspect+".png"),animations:"disabled"});
     const third=page.getByRole("button",{name:/03 · A light shared/});
     await third.click();
     await expect(stage).toHaveAttribute("data-km-paper-shot","the-lantern-awakens");
     await expect(stage.locator('[data-km-paper-layer="lantern-star"]')).toBeVisible();
+    await expect(stage).toHaveAttribute("data-km-paper-frame","18");
+    await expect(page.locator("[data-km-paper-curtain]")).toHaveCount(0);
     await stage.screenshot({path:info.outputPath("royal-act3-"+aspect+".png"),animations:"disabled"});
     // A story-level review loupe magnifies the same actual art, without
     // creating a parallel screenshot/mock character implementation.
@@ -36,7 +39,9 @@ for(const aspect of ["landscape","portrait"] as const){
       await page.getByRole("button",{name:who==="princess"?"Inspect princess · 3×":"Inspect prince · 3×",exact:true}).click();
       const loupe=page.locator('[data-royal-inspection-target="'+who+'"]');
       await expect(loupe).toHaveCSS("transform",/matrix/);
-      await loupe.screenshot({path:info.outputPath("royal-face-review-"+who+"-"+aspect+".png"),
+      // Screenshot the fixed film viewport, not the larger transformed child.
+      await loupe.locator("..").screenshot({
+        path:info.outputPath("royal-face-review-"+who+"-"+aspect+".png"),
         animations:"disabled"});
     }
     await page.getByRole("button",{name:"Full stage"}).click();
