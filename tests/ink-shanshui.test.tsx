@@ -361,6 +361,33 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("attaches the reserve-paper cascade to a cliff lip and a receiving pool",()=>{
+    const controls={...DEFAULT_SHANSHUI,scene:"mountain-trail" as const};
+    const stage=(frame:number,detail=1)=>renderToStaticMarkup(createElement(
+      InkShanshuiStage,{frame,controls:{...controls,detail}},
+    ));
+    const at145=stage(145);
+    expect(at145).toContain('data-km-shanshui-waterfall=""');
+    expect(at145).toContain('data-km-waterfall-shelf=""');
+    expect(at145).toContain('data-km-waterfall-reserve=""');
+    expect(at145).toContain('data-km-waterfall-pool=""');
+    expect((at145.match(/data-km-waterfall-bank="(?:left|right)"/g)??[]))
+      .toHaveLength(2);
+    expect((at145.match(/data-km-waterfall-ribbon=""/g)??[]))
+      .toHaveLength(3);
+    expect((at145.match(/data-km-waterfall-impact=""/g)??[])).toHaveLength(9);
+    expect(at145).toBe(stage(145));
+    expect(stage(20)).not.toBe(at145);
+    expect(stage(145,0)).not.toContain("data-km-waterfall-impact");
+    for(const scene of ["misty-hermit","river-scholar"] as const){
+      const other=renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...controls,scene},
+      }));
+      expect(other).not.toContain("data-km-shanshui-waterfall");
+    }
+    expect(at145).not.toMatch(/NaN|Infinity|undefined/);
+  });
+
   it("samples the same final absolute frame for reduced-motion scenery and actor",()=>{
     for(const requestedFrame of [0,88,200,299]){
       const html=renderToStaticMarkup(createElement(InkShanshuiFilm,{
