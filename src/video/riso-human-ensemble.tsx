@@ -301,10 +301,15 @@ export function RisoHumanEnsembleStudio(){
             aria-label="RISO ensemble paper grain" value={grain}
             onChange={e=>setGrain(Number(e.target.value))}/></label>
       </div>
-      <div style={{maxHeight:800,overflow:"hidden",border:"1px solid #B99F87"}}>
+      <div style={{width:aspect==="portrait"?450:960,
+        height:aspect==="portrait"?800:540,
+        maxWidth:"100%",margin:"0 auto",
+        border:"1px solid #B99F87",overflow:"visible"}}
+        data-km-riso-ensemble-stage-container={aspect}>
         <RisoPrint
           spec={printSpec} frame={frame} reducedMotion={true}
           paperGrain={grain} misregistration={misregistration}
+          style={{width:"100%",height:"100%",display:"block",overflow:"hidden"}}
           visiblePlateIds={plate==="both"?undefined:[plate]}
           artworks={{
             blue:paint=><g fill={paint.solid}>
