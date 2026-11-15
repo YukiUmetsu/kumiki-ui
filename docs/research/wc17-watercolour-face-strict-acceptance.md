@@ -1,6 +1,6 @@
 # WC17: Strict watercolor face acceptance (unapproved private study)
 
-**Status: unpublished experimental face. No public Storybook, FilmStage portrait, or artistic approval.** This replaces the previous unmeasured "looks believable" bar.
+**Status: the flat-vector face was REJECTED after native Chromium inspection and deleted before merge. No public Storybook, FilmStage portrait, or artistic approval.** This replaces the previous unmeasured "looks believable" bar.
 
 ## 1. Reference types and rights
 
@@ -8,7 +8,7 @@
 
 **Private benchmark:** an existing user-owned watercolor portrait image in their file library. It was used as an *unapproved* same-person/pose **candidate target**, without checking its pixels into Kumiki. For a new person inspired by Whyte/Miller/Reid, pixel SSIM against those artists' unrelated sitters is **invalid**; use anatomy and watercolor-specific review with an original approved source target instead.
 
-**Private code asset:** src/video/experimental/watercolour-portrait-study.ts is a hand-authored original static illustration. It is not automatically accepted, not animated and not a public Storybook item.
+**Rejected drawing:** a fresh hand-authored code-first SVG was produced and captured in native Chromium screenshots. It still looked like a simplified polygon/gradient face with unconvincing eyes, nose and hair. The source, tests, and private capture helper were removed from the branch. The failed evidence is retained in the PR's workflow artifacts, not shipped as art.
 
 ## 2. Frozen numbers: same-source / same-pose ONLY
 
@@ -30,7 +30,7 @@ Source and render must be exactly **550 × 688 px** in the same pixel coordinate
 
 ### Observed failure: generic automatic vectorization
 
-The private first-pass posterized vector draft was measured and **rejected**. Its native SSIM at each critical region was:
+An initial private posterized vector approximation was measured and **rejected**. A later hand-authored SVG study was also **visually rejected** (flat facial planes, sticker-like eyes, hard geometric hair) after its actual browser screenshot; it was removed entirely. Its native SSIM at each critical region was:
 
 | Crop | Observed SSIM | Required |
 | --- | ---: | ---: |
@@ -65,15 +65,12 @@ The numeric script deliberately returns **artistApproved=false** and **releaseRe
 - Gate: scripts/watercolour-portrait-quality-gate.py
 - Frozen benchmark config: docs/research/wc17-portrait-strict-gate.example.json
 - Negative controls: tests/watercolour-portrait-quality-gate.test.py
-- Private authored static figure: src/video/experimental/watercolour-portrait-study.ts
-- Source anatomy test: tests/watercolour-portrait-experimental.test.tsx
-- Actual Chromium proof, no Storybook promotion: scripts/watercolour-portrait-private-proof.mjs
-- Scoped workflow: .github/workflows/watercolour-wc17-private-portrait.yml
+- Rejected private face study: deleted after actual browser visual review
+- Scoped negative-control workflow: .github/workflows/watercolour-wc17-private-portrait.yml
 
 Run locally with authorized source/render files placed at the relative manifest paths:
 
     python scripts/watercolour-portrait-quality-gate.py --manifest docs/research/wc17-portrait-strict-gate.example.json --report dist/wc17/portrait-metrics.json
-    python -m unittest discover -s tests -p watercolour-portrait-quality-gate.test.py -v
-    node scripts/watercolour-portrait-private-proof.mjs --out=dist/wc17-private-portrait
+    python tests/watercolour-portrait-quality-gate.test.py -v
 
 The example paths must be replaced by uncommitted local source/render paths. Do not loosen thresholds after seeing a failing candidate; version any new protocol and independently justify changes.
