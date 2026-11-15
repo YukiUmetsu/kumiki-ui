@@ -422,7 +422,7 @@ export function pencilLivingStudyDrawing({
       palette:part.palette,seed:(seed+i*373)%2147483647,
       startFrame:part.start??45,durationFrames:172,
       direction:part.direction,flow:part.flow,
-      details:part.details,transform,
+      details:part.details,transform,craft:true,
     });
     return {...region, layers:region.layers.map(layer=>({
       ...layer,pressure:Math.min(1,layer.pressure*pressure),
