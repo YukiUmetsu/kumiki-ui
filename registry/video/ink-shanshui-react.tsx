@@ -871,6 +871,109 @@ function bambooDryBristles(root:P,tip:P,width:number,seed:number){
     };
   });
 }
+/** One complete terminal botanical gesture (the hero crop), not
+ * seven isolated SVG arrows. The supporting thin shoot begins at the
+ * painted main bough and every new leaf roots on that exact secondary
+ * curve. Wu Zhen's NPM 1350 album shows compact crossings of unequal
+ * dark brush marks separated by open windows of paper. Only the high-
+ * load clusters earn this additional botanical mass.
+ */
+function BambooTerminalSpray({root,bend,tip,fan,seed,id,detail}:{
+  root:P;bend:P;tip:P;fan:number;seed:number;id:string;detail:number;
+}){
+  const count=Math.round(clamp((detail-.55)/.45,0,1)*7);
+  if(!count)return null;
+  const stemRoot=quadraticPoint(root,bend,tip,.68);
+  const stemBend:P=[
+    stemRoot[0]+fan*(11+5*s(seed,111)),
+    stemRoot[1]-(3+6*s(seed,113)),
+  ];
+  const stemTip:P=[
+    stemRoot[0]+fan*(29+7*s(seed,117)),
+    stemRoot[1]-(19+9*s(seed,119)),
+  ];
+  // Deliberately authored contact points and crossing directions: these
+  // should remain recognizable as a real leaf group at 960x540. Small
+  // deterministic seed changes alter wrist speed, not its anatomy.
+  const gestures=[
+    {at:.22,angle:-.76,len:44,wide:5.5},
+    {at:.33,angle:.38,len:34,wide:4.3},
+    {at:.46,angle:-.24,len:53,wide:6.1},
+    {at:.55,angle:.86,len:30,wide:3.9},
+    {at:.68,angle:-1.04,len:41,wide:4.9},
+    {at:.78,angle:.12,len:39,wide:5.1},
+    {at:.88,angle:-.54,len:35,wide:3.8},
+  ] as const;
+  return <g data-km-bamboo-hero-spray=""
+    data-km-bamboo-hero-parent={f(stemRoot[0])+","+f(stemRoot[1])}
+    data-km-bamboo-hero-plan={count}>
+    <path data-km-bamboo-hero-twig="" fill="none"
+      stroke="#4e493b" strokeWidth="1.25" strokeLinecap="round"
+      opacity=".88"
+      d={"M"+f(stemRoot[0])+" "+f(stemRoot[1])+
+        " Q"+f(stemBend[0])+" "+f(stemBend[1])+
+        " "+f(stemTip[0])+" "+f(stemTip[1])}/>
+    {gestures.slice(0,count).map((gesture,k)=>{
+      const t=clamp(gesture.at+
+        (s(seed+139,k*13)-.5)*.064,.12,.95);
+      const base=quadraticPoint(stemRoot,stemBend,stemTip,t);
+      const tangent:P=[
+        2*(1-t)*(stemBend[0]-stemRoot[0])+
+          2*t*(stemTip[0]-stemBend[0]),
+        2*(1-t)*(stemBend[1]-stemRoot[1])+
+          2*t*(stemTip[1]-stemBend[1]),
+      ];
+      const angle=Math.atan2(tangent[1],tangent[0])+
+        gesture.angle*fan+(s(seed+151,k*17)-.5)*.19;
+      const length=gesture.len*(.91+.19*s(seed+163,k*7));
+      const width=gesture.wide*(.87+.25*s(seed+167,k*29));
+      const end:P=[base[0]+Math.cos(angle)*length,
+        base[1]+Math.sin(angle)*length];
+      const strokeSeed=seed+211+k*79;
+      const blade=bambooBrushBlade(base,end,width,strokeSeed);
+      const fibres=detail>.85
+        ?bambooDryBristles(base,end,width,strokeSeed).slice(0,2):[];
+      const leafId=id+"-hero-"+k;
+      const gradientId=leafId+"-gradient",maskId=leafId+"-reserve";
+      const m=width*4+3,px=Math.min(base[0],end[0])-m,
+        py=Math.min(base[1],end[1])-m,
+        pw=Math.abs(end[0]-base[0])+m*2,
+        ph=Math.abs(end[1]-base[1])+m*2;
+      const light=k===1||k===3||k===6;
+      return <g key={k}>
+        <defs>
+          <linearGradient id={gradientId} gradientUnits="userSpaceOnUse"
+            x1={f(base[0])} y1={f(base[1])}
+            x2={f(end[0])} y2={f(end[1])}>
+            <stop offset="0" stopColor={light?"#4e4a3d":"#222923"}/>
+            <stop offset=".27" stopColor={light?"#655b49":"#21271f"}/>
+            <stop offset=".64" stopColor={light?"#83735c":"#36382f"}/>
+            <stop offset="1" stopColor={light?"#a69779":"#635c4b"}/>
+          </linearGradient>
+          {fibres.length>0&&<mask data-km-bamboo-hero-mask=""
+            id={maskId} maskUnits="userSpaceOnUse"
+            maskContentUnits="userSpaceOnUse"
+            x={f(px)} y={f(py)} width={f(pw)} height={f(ph)}
+            style={{maskType:"luminance"}}>
+            <path d={blade} fill="#fff"/>
+            {fibres.map((bristle,b)=><path key={b}
+              data-km-bamboo-hero-bristle=""
+              d={bristle.d} stroke="#000"
+              strokeWidth={bristle.width} strokeLinecap="round"
+              fill="none"/>)}
+          </mask>}
+        </defs>
+        <path data-km-bamboo-hero-leaf="" d={blade}
+          data-km-bamboo-hero-root={f(base[0])+","+f(base[1])}
+          data-km-bamboo-hero-heading={f(angle)}
+          data-km-bamboo-hero-station={f(t)}
+          fill={"url(#"+gradientId+")"}
+          mask={fibres.length>0?"url(#"+maskId+")":undefined}
+          opacity={light?".82":".97"}/>
+      </g>;
+    })}
+  </g>;
+}
 /** Bamboo is a calligraphic plant, not uniform fence-post lines. The
  * centerline of each tapered culm also supplies the positions of its branch
  * nodes; each broad leaf begins on its own painted branching centerline.
@@ -968,6 +1071,11 @@ function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
                 d={d} fill={k===0?"#62513e":"#514438"}
                 opacity={k===0?.78:.65}/>;
             })}
+            {clusterBudget>=8&&detail>.55&&
+              <BambooTerminalSpray root={base} bend={branchControl}
+                tip={end} fan={fan} detail={detail}
+                seed={seed+i*659+j*131}
+                id={id+"-"+i+"-"+j}/>}
             {Array.from({length:visibleLeaves},(_,k)=>{
               const motif=k%5,layer=Math.floor(k/5);
               const spurIndex=motif===1?0:motif===4?1:-1;
