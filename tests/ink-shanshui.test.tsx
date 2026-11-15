@@ -165,6 +165,21 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("renders willow boughs as closed tapering brush geometry with fine attached leaves",()=>{
+    const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:125,controls:{...DEFAULT_SHANSHUI,scene:"river-scholar",detail:1},
+    }));
+    const boughs=[...html.matchAll(/data-km-willow-tapered-branch="" d="([^"]+)"/g)];
+    expect(boughs.length).toBe(6);
+    expect(boughs.every(x=>x[1].endsWith(" Z"))).toBe(true);
+    expect((html.match(/data-km-willow-frond=""/g)??[]).length).toBe(39);
+    expect((html.match(/data-km-willow-leaf=""/g)??[]).length)
+      .toBeGreaterThan(150);
+    const dry=(html.match(/data-km-willow-bark=""/g)??[]).length;
+    expect(dry).toBeGreaterThanOrEqual(25);
+    expect(html).not.toMatch(/NaN|Infinity|undefined/);
+  });
+
   it("finesses old-pine bough taper and connected foliage ink masses",()=>{
     const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
       frame:125,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",detail:1},
