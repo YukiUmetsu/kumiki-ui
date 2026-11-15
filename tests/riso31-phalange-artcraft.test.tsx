@@ -118,8 +118,10 @@ describe("RISO31 ArtCraft / actual PIP+DIP printed phalanx animation",()=>{
         for(const digit of fingers){
           const ids=riso31FingerParts(side,digit).map(p=>p.id);
           for(const id of ids)expect(spec.parts.some(p=>p.id===id)).toBe(true);
-          expect(mesh.regions.some(r=>r.parts.includes(ids[1]))).toBe(true);
-          expect(mesh.regions.some(r=>r.parts.includes(ids[2]))).toBe(true);
+          // The original Artist source sheet derives its metadata from live
+          // source anatomy; PIP/DIP prints must be HANDS, not torso scraps.
+          expect(mesh.regions.find(r=>r.parts.includes(ids[1]))?.category).toBe("hand");
+          expect(mesh.regions.find(r=>r.parts.includes(ids[2]))?.category).toBe("hand");
         }
       }
     }
