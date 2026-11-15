@@ -439,6 +439,9 @@ export function ReferencePencilAtelier({
       headDryTooth,needlepoint,headPlate,raw,faceGuides,opticalGlaze,
       neckEvidence?.marks??[],jawEdge,toothBridge);
     dry.setAttribute("data-km-pencil-full-head-rendered","true");
+    dry.setAttribute("data-km-pencil-render-method","cc0-measured-dry-strokes");
+    dry.setAttribute("data-km-pencil-photo-underpaint","none");
+    dry.setAttribute("data-km-pencil-reference-input","cc0-photo-pixels");
     dry.setAttribute("data-km-pencil-eyelid-depth",String(headPlate.eyelidDepth));
     dry.setAttribute("data-km-pencil-iris-depth",String(headPlate.irisDepth));
     dry.setAttribute("data-km-pencil-skin-weave",String(headPlate.skinWeaveDepth));
@@ -639,9 +642,11 @@ export function ReferencePencilAtelier({
         Anatomy-first pencil reconstruction
       </h1>
       <p style={{margin:0,maxWidth:870}}>
-        The old vector characters were too simple. This alternate code-only
-        renderer preserves real source-image anatomy, creates softened paper
-        pigment, and draws seeded strokes tangent to the source's features.
+        This research atelier has two separate outputs: the standard
+        photo-to-pencil preview composites photographed pixels under its marks;
+        the experimental full-head sheet is drawn on blank paper entirely from
+        independent quadratic coloured-pencil strokes, using CC0 photo pixels
+        only to guide shape, pigment and lighting. Neither proves artistic mastery.
         Upload a licensed photograph or study CC0 human, fox and bird examples.
       </p>
     </header>
@@ -852,12 +857,14 @@ export function ReferencePencilAtelier({
       maxWidth:showReference?1800:900}}>
       <figure style={{margin:0,flex:"1 1 380px",maxWidth:900}}>
         <figcaption style={{fontSize:13,fontWeight:700,marginBottom:7}}>
-          Coloured-pencil rendition · code-generated mark layers
+          Photo-to-pencil preview · photograph used as translucent underpainting
         </figcaption>
         <div style={{position:"relative",width:"100%"}}>
           <canvas ref={canvasRef} width={size.width} height={size.height}
             aria-label="Code-rendered coloured-pencil reconstruction"
             data-km-pencil-photo={study?"ready":"source-pending"}
+            data-km-pencil-render-method="photo-underpaint-plus-strokes"
+            data-km-pencil-photo-underpaint={wash>0?"enabled":"disabled"}
             data-km-pencil-foundation={study?.foundationVersion}
             data-km-portrait-features={study?.portraitFeatures?"source-guided":"none"}
             style={{display:"block",width:"100%",maxWidth:900,
