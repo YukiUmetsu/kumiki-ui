@@ -1440,33 +1440,59 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
         // pads and 310 thin needle tapers are preserved on TOP.
         const inkIslands=([.61,.86] as const).map((station,k)=>{
           const r=quadraticPoint(origin,control,tip,station);
-          const reach=(k===0?12:9)*(1+
-            .48*s(seed+1951,i*19+j*37+k*13));
-          const crest=(k===0?6:4.4)*(1+
-            .39*s(seed+1957,i*11+j*41+k*23));
+          // Source-like pinaceous old-ink crowns are *flat fans* of
+          // irregular deposited needle lobes, NOT oval paint balloons.
+          // Keep two visibly unequal rooted islands per bough and retain
+          // all original dry/wet twig micro-elements on top.
+          const reach=(k===0?13:9)*(1+
+            .33*s(seed+1951,i*19+j*37+k*13));
+          const crest=(k===0?3.4:2.7)*(1+
+            .28*s(seed+1957,i*11+j*41+k*23));
           const sweep=direction*(k===0?1:-1);
-          const crown:P=[r[0]+sweep*reach*.5,r[1]-crest];
-          const outside:P=[r[0]+sweep*reach,r[1]-crest*.48];
-          const underside:P=[r[0]+sweep*reach*.77,
-            r[1]+crest*.39];
-          const d="M"+f(r[0])+" "+f(r[1])+
-            " C"+f(r[0]+sweep*reach*.08)+" "+f(r[1]-crest*.51)+
-            " "+f(crown[0]-sweep*reach*.15)+" "+f(crown[1]-crest*.24)+
-            " "+f(crown[0])+" "+f(crown[1])+
-            " C"+f(crown[0]+sweep*reach*.19)+" "+f(crown[1]-crest*.08)+
-            " "+f(outside[0]-sweep*reach*.08)+" "+f(outside[1]-crest*.38)+
-            " "+f(outside[0])+" "+f(outside[1])+
-            " C"+f(outside[0]+sweep*reach*.07)+" "+f(outside[1]+crest*.4)+
-            " "+f(underside[0]+sweep*reach*.13)+" "+f(underside[1])+
-            " "+f(underside[0])+" "+f(underside[1])+
-            " C"+f(r[0]+sweep*reach*.38)+" "+f(r[1]+crest*.32)+
-            " "+f(r[0]+sweep*reach*.22)+" "+f(r[1]+crest*.05)+
-            " "+f(r[0])+" "+f(r[1])+" Z";
+          const lobeCount=6+(i+j+k)%3;
+          const peaks=Array.from({length:lobeCount},(_,n)=>{
+            const t=(n+1)/(lobeCount+1);
+            const yLift=crest*(.41+.59*s(seed+1961,
+              i*79+j*43+k*19+n*17))+(n%4===0?.7:0);
+            return [r[0]+sweep*reach*t,r[1]-yLift] as P;
+          });
+          let upper="M"+f(r[0])+" "+f(r[1]);
+          let previous=r;
+          for(let n=0;n<peaks.length;n++){
+            const point=peaks[n];
+            // Every lobe has a different crest and inflection; the
+            // continuous branch-connected head remains one parent.
+            const midpoint:P=[
+              previous[0]+(point[0]-previous[0])*.52,
+              Math.min(previous[1],point[1])-
+                (.16+.48*s(seed+1971,i*17+j*29+k*11+n*13)),
+            ];
+            upper+=" Q"+f(midpoint[0])+" "+f(midpoint[1])+
+              " "+f(point[0])+" "+f(point[1]);
+            previous=point;
+          }
+          const tip:P=[r[0]+sweep*reach,
+            r[1]-crest*(.21+.18*s(seed+1977,i*13+j*47+k))];
+          upper+=" Q"+f(previous[0]+sweep*reach*.08)+" "+
+            f(previous[1]-crest*.2)+" "+f(tip[0])+" "+f(tip[1]);
+          const lower:P=[r[0]+sweep*reach*.8,
+            r[1]+crest*(.12+.15*s(seed+1987,i*19+j*17+k))];
+          const d=upper+
+            " C"+f(tip[0]+sweep*reach*.015)+" "+
+                f(tip[1]+crest*.46)+" "+
+                f(lower[0]+sweep*reach*.06)+" "+
+                f(lower[1])+" "+
+                f(lower[0])+" "+f(lower[1])+
+            " C"+f(r[0]+sweep*reach*.57)+" "+
+                f(r[1]+crest*.23)+" "+
+                f(r[0]+sweep*reach*.19)+" "+
+                f(r[1]+crest*.11)+" "+
+                f(r[0])+" "+f(r[1])+" Z";
           const ridge=rockLoadedRibbon(r,
-            [r[0]+sweep*reach*.35,r[1]-crest*.87],
-            [outside[0]-sweep*reach*.18,outside[1]-crest*.24],
-            k===0?1.23:1.06,seed+1973+i*97+j*31+k*17);
-          return {r,d,ridge};
+            [r[0]+sweep*reach*.41,r[1]-crest*.42],
+            [tip[0]-sweep*reach*.12,tip[1]+crest*.18],
+            k===0?.88:.71,seed+1973+i*97+j*31+k*17);
+          return {r,d,ridge,lobes:lobeCount};
         });
         return {origin,bone,foliage,pads,inkIslands};
       });
@@ -1485,9 +1511,10 @@ function CliffPineGrove({stations,scene,seed,detail,mist}:{
             <path data-km-cliff-pine-bough-bone="" d={bone}
               fill={j%2===0?"#3d352d":"#554638"}
               opacity={f(.88*shade)}/>
-            {inkIslands.map(({r,d,ridge},k)=><g key={"island"+k}
+            {inkIslands.map(({r,d,ridge,lobes},k)=><g key={"island"+k}
               data-km-cliff-pine-ink-island=""
-              data-km-cliff-pine-ink-island-root={f(r[0])+","+f(r[1])}>
+              data-km-cliff-pine-ink-island-root={f(r[0])+","+f(r[1])}
+              data-km-cliff-pine-fan-lobes={lobes}>
               <path data-km-cliff-pine-ink-canopy="" d={d}
                 fill={k===0?"#332f29":"#484036"}
                 opacity={f((k===0?.76:.69)*shade)}/>
