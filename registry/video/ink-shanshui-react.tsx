@@ -450,6 +450,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         // and curve direction. They must not be the same stamp with opacity.
         const wt=s(seed+4177,j*11+i*31);
         const wt2=s(seed+4193,j*17+i*47);
+        const curlHandedness=j%4===1||j%7===0?-1:1;
         let c1:P,c2:P,end:P,width:number;
         if(school==="travelers"){
           // Bulbed, occasionally split press-and-lift droplets. The
@@ -466,8 +467,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           // handedness at irregular intervals: identical S-scrolls
           // in five parallel strings are not Guo Xi brush anatomy.
           const len=11+18*wt+(j%7===0?7.5:0);
-          const hook=(j%4===1||j%7===0?-1:1);
-          const sway=direction*hook*(7+12*wt2);
+          const sway=direction*curlHandedness*(7+12*wt2);
           c1=[entry[0]+sway*.96,entry[1]+len*.06];
           c2=[entry[0]-sway*.72,entry[1]+len*.68];
           end=[entry[0]+sway*.31+2.1*jitter,entry[1]+len];
@@ -495,7 +495,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         const dryPath="M"+f(cut[0])+" "+f(cut[1])+
           " Q"+f((cut[0]+lift[0])*.5+direction*.7)+" "+
           f((cut[1]+lift[1])*.5)+" "+f(lift[0])+" "+f(lift[1]);
-        return {entry,pressure,dry,dryPath,bank};
+        return {entry,pressure,dry,dryPath,bank,curlHandedness};
       });
       const isFan=school==="travelers",isGuo=school==="early-spring";
       const isWang=school==="forest-grotto";
@@ -536,11 +536,13 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         </g>
         <g data-km-master-brush-field="" data-km-master-field-count={qty}
           clipPath={"url(#"+clip+")"}>
-          {brush.map(({entry,pressure,dry,dryPath,bank},j)=><g key={j}
+          {brush.map(({entry,pressure,dry,dryPath,bank,curlHandedness},j)=><g key={j}
             data-km-master-stroke="" data-km-master-stroke-style={label[school]}
             data-km-master-stroke-root={f(entry[0])+","+f(entry[1])}
             data-km-master-stroke-dry={dry?"dry":"wet"}
-            data-km-master-stroke-bank={bank}>
+            data-km-master-stroke-bank={bank}
+            data-km-master-stroke-placement={isFan?"rock-volume":"attached-stratum"}
+            data-km-master-stroke-curl={isGuo?(curlHandedness>0?"with":"counter"):"none"}>
             <path data-km-master-stroke-loaded="" d={pressure}
               fill={isFan?"#2a2623":isWang?"#322d29":isGuo?"#392f28":"#44382f"}
               opacity={f((dry?.35:isFan?.83:isWang?.68:isGuo?.72:.62)*
