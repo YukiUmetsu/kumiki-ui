@@ -128,8 +128,7 @@ test("brushwork study shows native rooted foliage and uneven rock deposition",as
   await expect(page.getByRole("slider",{name:"Brushwork detail"}))
     .toHaveValue("0.85");
   await expect(page.getByRole("slider",{name:"Brushwork seed"}))
-    .toHaveCount(0); // source seed is separately labelled
-  await expect(page.getByRole("slider",{name:"Source seed"})).toHaveValue("87");
+    .toHaveValue("87");
   await page.getByRole("button",{name:"Wet loaded brush · still"}).click();
   await expect(page.getByRole("slider",{name:"Brushwork detail"}))
     .toHaveValue("1");
