@@ -1,0 +1,40 @@
+name: RISO22 ocular Storybook browser proof
+
+# Run the expensive browser only while this dedicated proof workflow is changed.
+# Other Risograph/component PRs continue using the cheap unit/typecheck lane.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso22-ocular-browser-proof.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: riso22-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ocular-browser-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Chromium and native browser dependencies
+        run: npx playwright install --with-deps chromium
+      - name: RISO21 two-original-human eyes: native print, 16:9/9:16, four poses and two plates
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts
+      - name: Preserve rendered ocular crops and browser traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso22-ocular-rendered-proof
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
