@@ -1,5 +1,5 @@
 import type {CrayonColor,CrayonElement,CrayonSceneSpec} from "../../registry/video/materials/crayon-scene";
-import {crayonFurFlow,crayonFormHatching} from "./crayon-editorial-character-craft";
+import {crayonFurFlow,crayonFormHatching,crayonIrisFlecks} from "./crayon-editorial-character-craft";
 
 /**
  * ArtCraft v6 unpublished eye/nose/mouth study. This is a NEW adult
@@ -25,7 +25,7 @@ const colors={
   blushLight:["#ec9b7e","#c67572","#ffcca0"] as const,
   socket:["#aa827b","#805f61","#c6a09a"] as const,
   sclera:["#cfc0af","#a79998","#e6d6c2"] as const,
-  iris:["#80796e","#514b4e","#bcae8e"] as const,
+  iris:["#767f6a","#3f514e","#d0b691"] as const,
   pupil:["#37343b","#292d35","#62585b"] as const,
   lip:["#b77b76","#8d6069","#d5a094"] as const,
   hair:["#66484b","#3a333d","#9d726b"] as const,
@@ -43,6 +43,8 @@ export const portraitCriticalParts=[
   "left-eye-aperture","right-eye-aperture",
   "left-upper-lid","right-upper-lid",
   "left-tear-duct","right-tear-duct",
+  "eye-cast-shadow-near","eye-cast-shadow-far",
+  "iris-fibers-near","iris-fibers-far",
   "nose-bridge","nose-sidewall","nose-alar-wing",
   "lip-upper-volume","lip-lower-volume","mandible-plane",
   "hair-back","hair-temple-lock","neck-under-jaw",
@@ -375,13 +377,19 @@ export function crayonAdultFaceStudy(
     "M-59 -170Q-50 -173 -45 -164Q-42 -152 -49 -145"+
     "Q-57 -146 -59 -158Q-60 -164 -59 -170Z",
     box(-64,-179,26,40),colors.iris,"anatomy",
-    {parentId:"adult-face",markStrength:.42,spacing:4.2,outlineOpacity:0,
+    {parentId:"adult-face",markStrength:.42,spacing:4.2,
+      underpaintGradient:{light:"#b8a989",shadow:"#405154",
+        focusX:.31,focusY:.21,radius:.9},
+      outlineOpacity:0,
       timing:{start:169,end:229}});
   wax("right-eye-iris",
     "M66 -164Q75 -169 80 -160Q83 -152 77 -146"+
     "Q70 -145 67 -151Q65 -158 66 -164Z",
     box(61,-176,27,39),colors.iris,"anatomy",
-    {parentId:"adult-face",markStrength:.42,spacing:4.2,outlineOpacity:0,
+    {parentId:"adult-face",markStrength:.42,spacing:4.2,
+      underpaintGradient:{light:"#b8a989",shadow:"#405154",
+        focusX:.31,focusY:.21,radius:.9},
+      outlineOpacity:0,
       timing:{start:169,end:229}});
   wax("left-eye-pupil","M-54 -165Q-51 -169 -49 -162Q-48 -156 -52 -153"+
     "Q-55 -156 -54 -165Z",
@@ -393,6 +401,25 @@ export function crayonAdultFaceStudy(
     box(69,-169,13,20),colors.pupil,"anatomy",
     {parentId:"adult-face",markStrength:.42,spacing:4,outlineOpacity:0,
       timing:{start:198,end:246}});
+  // The lids cast a warm, soft occlusion into the *real sclera*.
+  // The grained iris underneath remains solid and visible where uncovered.
+  wax("eye-cast-shadow-near",
+    "M-79 -166Q-63 -178 -44 -171"+
+    "Q-31 -169 -23 -155Q-45 -161 -59 -159"+
+    "Q-70 -157 -79 -166Z",
+    box(-89,-188,77,47),colors.socket,"anatomy",
+    {parentId:"left-eye-aperture",coverage:"open",clipToParent:true,
+      blendRadius:2.1,markStrength:.22,pressure:.52,
+      spacing:8,outlineOpacity:0,edgeRoughness:0,
+      timing:{start:178,end:235}});
+  wax("eye-cast-shadow-far",
+    "M48 -160Q64 -173 81 -163"+
+    "Q88 -157 89 -148Q74 -156 61 -154Z",
+    box(43,-184,55,47),colors.socket,"anatomy",
+    {parentId:"right-eye-aperture",coverage:"open",clipToParent:true,
+      blendRadius:1.8,markStrength:.18,pressure:.48,
+      spacing:9,outlineOpacity:0,edgeRoughness:0,
+      timing:{start:178,end:235}});
   wax("left-upper-lid",
     "M-78 -169Q-61 -180 -43 -172Q-26 -165 -19 -153"+
     "Q-41 -162 -54 -161Q-69 -159 -78 -153Z",
@@ -419,10 +446,10 @@ export function crayonAdultFaceStudy(
     "#af7671",1.05,"detail",{parentId:"adult-face"});
   ink("brow-structure-left",
     "M-88 -191Q-63 -206 -30 -187",
-    "#60484b",2.4,"detail",{parentId:"adult-face"});
+    "#6b5556",1.48,"detail",{parentId:"adult-face",opacity:.64});
   ink("brow-structure-right",
     "M45 -190Q66 -202 99 -184",
-    "#614a4d",2.2,"detail",{parentId:"adult-face"});
+    "#715556",1.35,"detail",{parentId:"adult-face",opacity:.6});
   // Intermittent brow hairs replace a single graphic arc. Kept thinner
   // than the tarsal fold; the eye remains shaded under the brow.
   ink("fine-brow-hairs-near",
@@ -458,6 +485,49 @@ export function crayonAdultFaceStudy(
     "M55 -144Q73 -139 85 -149",
     "#c99991",1.1,"detail",
     {parentId:"adult-face",opacity:.7});
+  // Real pencil/crayon eyes have radial iris pigment beneath eyelids.
+  // These source-bounded fibers are irregular seeded strokes,
+  // clipped to painted iris anatomy, not unconnected spoke clip art.
+  const irisNear=crayonIrisFlecks({
+    seed:8821,cx:-51.5,cy:-158.5,rx:8.8,ry:12.2,
+    count:Math.round(42*detail),minRadius:.39,maxRadius:.94,
+  });
+  const irisFar=crayonIrisFlecks({
+    seed:8822,cx:73.6,cy:-155.5,rx:7.4,ry:10.4,
+    count:Math.round(29*detail),minRadius:.43,maxRadius:.91,
+  });
+  if(irisNear)ink("iris-fibers-near",irisNear,"#d7c59d",.58,"detail",
+    {parentId:"left-eye-iris",clipToParent:true,opacity:.83});
+  if(irisFar)ink("iris-fibers-far",irisFar,"#a8977f",.53,"detail",
+    {parentId:"right-eye-iris",clipToParent:true,opacity:.75});
+  // Arc-tangent eyebrow hairs: one diffuse anatomical region plus
+  // shorter independently seeded hairs, never only one vector arc.
+  const browNear=crayonFurFlow({
+    guide:[{x:-90,y:-190},{x:-69,y:-211},
+      {x:-49,y:-202},{x:-29,y:-186}],
+    seed:8823,count:Math.round(72*detail),
+    spread:2.6,length:7.2,curvature:.14,forkRate:0,
+  });
+  const browFar=crayonFurFlow({
+    guide:[{x:44,y:-190},{x:58,y:-207},
+      {x:85,y:-197},{x:102,y:-184}],
+    seed:8824,count:Math.round(51*detail),
+    spread:2.1,length:6.2,curvature:.15,forkRate:0,
+  });
+  if(browNear)ink("brow-fibers-near",browNear,"#77534e",.64,"detail",
+    {parentId:"adult-face",clipToParent:true,opacity:.72});
+  if(browFar)ink("brow-fibers-far",browFar,"#7b5951",.6,"detail",
+    {parentId:"adult-face",clipToParent:true,opacity:.65});
+  ink("near-iris-limbal-ring",
+    "M-58 -168Q-52 -174 -47 -166Q-43 -154 -49 -146"+
+    "Q-57 -145 -59 -156Q-61 -163 -58 -168Z",
+    "#415251",1.12,"detail",
+    {parentId:"left-eye-iris",clipToParent:true,opacity:.74});
+  ink("far-iris-limbal-ring",
+    "M66 -165Q74 -170 80 -161Q84 -150 76 -145"+
+    "Q68 -146 66 -155Q64 -162 66 -165Z",
+    "#424d4b",.93,"detail",
+    {parentId:"right-eye-iris",clipToParent:true,opacity:.69});
   ink("iris-catchlights",
     "M-54 -166l1.5 -1.8M72 -162l1.2 -1.4",
     "#f5e7d0",1.2,"detail",{parentId:"adult-face"});

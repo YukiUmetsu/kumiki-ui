@@ -45,6 +45,26 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(far.bounds.width/face.bounds.width).toBeLessThan(.23);
       expect(nodes.get("near-iris-radials")?.parentId).toBe("left-eye-iris");
       expect(nodes.get("far-iris-radials")?.parentId).toBe("right-eye-iris");
+      for(const [id,parent] of [
+        ["eye-cast-shadow-near","left-eye-aperture"],
+        ["eye-cast-shadow-far","right-eye-aperture"],
+        ["iris-fibers-near","left-eye-iris"],
+        ["iris-fibers-far","right-eye-iris"],
+        ["brow-fibers-near","adult-face"],
+        ["brow-fibers-far","adult-face"],
+        ["near-iris-limbal-ring","left-eye-iris"],
+        ["far-iris-limbal-ring","right-eye-iris"],
+      ] as const){
+        const layer=nodes.get(id);
+        expect(layer?.parentId,id).toBe(parent);
+        if(layer?.kind==="contour"){
+          expect(layer.clipToParent,id).toBe(true);
+          expect(layer.d.length).toBeGreaterThan(30);
+        }else if(layer?.kind==="wax"){
+          expect(layer.clipToParent,id).toBe(true);
+          expect(layer.coverage).toBe("open");
+        }else throw new Error("Missing eye or eyebrow layer "+id);
+      }
       for(const id of ["cheek-malar-crayon-red","cheek-far-crayon-red"]){
         const node=nodes.get(id);
         if(node?.kind!=="wax")throw new Error("Missing pigmented cheek "+id);
