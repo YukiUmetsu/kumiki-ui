@@ -195,3 +195,37 @@ The source-derived ArtCraft standard is not satisfied by passing tests
 or increasing the number of line segments. Remaining blockers include
 rigid crown geometry, limited view-dependent acting and inconsistent
 paint character at close/medium scene scales.
+
+
+## Three-identity face study and ink-bone tonal layering
+
+A further ArtCraft comparison now uses the museum-described technique of
+**thin successive ink deposits** rather than adding arbitrary dark contour
+lines to every character. Zeng Jing's *Portrait of Pan Qintai* (University
+of Michigan Museum of Art, 1621) uses subtly graduated washes around the
+eye sockets, nose, and forehead to model a distinctive sitter:
+https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/
+
+Separate original bone-less tint passes now describe the **older hermit's**
+sunken eye wells, medial nose/cheek turn and upper malar structure, and the
+**adult traveler's** shallower windward sockets. The distributions are
+asymmetric and distinct; neither receives the young reader's cheek shape.
+Ink deposits are transparent over an *opaque* base skin plane. Model identity,
+pupil/eyelid/mouth acting channels and source-fitted head pivots are retained.
+
+The existing Shanshui Reader Face Studio now includes a
+**Three figure faces · ArtCraft comparison** story. Its three live
+production-cel portraits use the same detail slider, eyelid state, and five
+mouth visemes. It is in the **same Chinese Ink Storybook folder** as
+the film, texture studio, and other character studies.
+
+A Storybook navigation audit also found the Chinese Ink ensemble stranded
+in the Film Looks root. Its title is now
+`Video production/Film Looks/Chinese Ink/Ensemble`, with the existing
+stable ID preserved.
+
+**Review:** Compare full face and 6× cropped open/closed eyes for all three.
+Accept only if these new layers improve the face at film resolution; adding
+transparent polygons can create muddy eye sockets, even when unit tests pass.
+The original baseline and screenshots serve as qualitative evidence, not
+a numeric equivalence score to Zeng Jing's painting.
