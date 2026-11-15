@@ -12,6 +12,7 @@ import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import type {RisoCharacterMeshSheet,RisoMeshCategory} from "../../registry/video/riso-proportion-mesh";
 import {COURIER} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
+import {risoHandArtcraftParts,RISO30_GRIP_FOREGROUND_IDS} from "./riso-hand-artcraft";
 
 /** RISO14: a second authored human, not a color-inverted Courier.
  * Reuse a mechanically compatible limb/digit rig, not the Courier face, hair,
@@ -253,7 +254,10 @@ export const PAPER_ARTIST:RisoCharacterSpec={
   expressions:[{frame:0,name:"neutral"},{frame:76,name:"blink"},
     {frame:81,name:"neutral"},{frame:156,name:"speak"},
     {frame:180,name:"neutral"},{frame:198,name:"smile"}],
-  parts:[...legs,...coatPieces,...arms,...facePieces],
+  parts:[...legs,...coatPieces,...arms,
+    ...risoHandArtcraftParts("paper-artist","left"),
+    ...risoHandArtcraftParts("paper-artist","right"),
+    ...facePieces],
 };
 function category(part:RisoCharacterPart):RisoMeshCategory{
   if(part.id.startsWith("hair"))return "hair";
@@ -299,6 +303,7 @@ const personPoint=(spec:RisoCharacterSpec,frame:number,joint:string,x:number,y:n
 const risoGripParts=(side:"left"|"right"):readonly string[]=>[
   side+"-glove-index",side+"-glove-middle",side+"-glove-ring",side+"-glove-thumb",
   side+"-finger-joint-lines",side+"-glove-detail",side+"-glove-thumb-fold",
+  ...RISO30_GRIP_FOREGROUND_IDS(side),
 ];
 /** Exact geometry for a prop between two authored hand contact anchors.
  * Stage space, including aspect and placements, must be computed once. */
