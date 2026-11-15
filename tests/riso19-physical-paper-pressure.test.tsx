@@ -42,6 +42,27 @@ describe("RISO19 material-native pressure creases",()=>{
     expect(held).toEqual(geometry(1,1));
   });
 
+  it("shrinks every crease and shadow toward its own anatomical root as pressure vanishes",()=>{
+    // The derivative near pressure=0 must not reveal a 12-unit 'sticker'
+    // instantaneously when a paper fingertip first touches the sheet.
+    const faint=geometry(1,1,.02),pressed=geometry(1,1,1);
+    const axialExtent=(path:string)=>{
+      const n=coords(path), projections=[] as number[];
+      for(let i=0;i<n.length;i+=2)projections.push(along(n[i],n[i+1]));
+      return Math.max(...projections)-Math.min(...projections);
+    };
+    for(const side of ["source","receiver"] as const){
+      for(let i=0;i<3;i++){
+        const small=axialExtent(faint.contactCreases[side][i]);
+        const full=axialExtent(pressed.contactCreases[side][i]);
+        expect(full).toBeGreaterThan(9);
+        expect(small).toBeLessThan(full*.08);
+      }
+      expect(axialExtent(faint.contactShadows[side]))
+        .toBeLessThan(axialExtent(pressed.contactShadows[side])*.08);
+    }
+  });
+
   it("lets go without floating remnants and keeps independent recipient imprint",()=>{
     const double=geometry(1,1);
     const sourceReleased=geometry(0,1);
