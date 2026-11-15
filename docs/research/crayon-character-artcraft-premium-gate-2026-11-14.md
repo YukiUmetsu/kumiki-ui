@@ -103,3 +103,13 @@ then refine whole head/hair; then articulated garment
 and hands/feet; only then multi-view and rigging. A highly detailed
 face must pass visual review before expanding to new characters.
 Keep all work within Video production / Film Looks / Crayon.
+
+## Actual renderer proof capture (opt-in / local first)
+
+KUMIKI_CRAYON_ARTCRAFT_PROOF=1 npx vitest run --project unit tests/crayon-artcraft-adult-face.test.tsx
+
+Writes 10 real React-rendered SVG source frames (1/75/160/235/299, in
+landscape and portrait) to dist/crayon-artcraft-face-proof/. Rasterize
+them at original resolution and 3x for independent optical review. These
+are not source-matched fidelity scores and cannot promote the work by
+themselves. Recorded visual review and all ArtCraft axes remain pending.

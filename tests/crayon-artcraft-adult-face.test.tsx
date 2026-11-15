@@ -1,6 +1,8 @@
 import {describe,expect,it} from "vitest";
+import {mkdirSync,writeFileSync} from "node:fs";
+import {join} from "node:path";
 import {renderToStaticMarkup} from "react-dom/server";
-import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
+import {inspectCrayonScene,crayonWorldPoint} from "../registry/video/materials/crayon-scene";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {crayonAdultFaceStudy,portraitCriticalParts} from "../src/video/crayon-artcraft-adult-face-fixtures";
 import faceMeta,{AdultFaceThreeQuarter,AdultFacePortrait} from "../src/video/crayon-artcraft-adult-face.stories";
@@ -22,12 +24,31 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
         expect(node.coverage).toBe("opaque");
         expect((node.d.match(/[CQ]/g)??[]).length).toBeGreaterThanOrEqual(2);
       }
+      const firstEye=nodes.get("left-eye-aperture");
+      const iris=nodes.get("left-eye-iris");
+      const pupil=nodes.get("left-eye-pupil");
+      const lid=nodes.get("left-upper-lid");
+      if(firstEye?.kind!=="wax"||iris?.kind!=="wax"||
+        pupil?.kind!=="wax"||lid?.kind!=="wax")
+        throw new Error("Unstructured eye paint");
+      expect(firstEye.timing.start).toBeLessThan(iris.timing.start);
+      expect(lid.timing.start).toBeLessThan(pupil.timing.start);
+      expect(firstEye.timing.end).toBeLessThan(pupil.timing.end);
       const face=nodes.get("adult-face");
       if(face?.kind!=="wax")throw new Error("No adult cranium");
       expect(face.bounds.height/face.bounds.width).toBeGreaterThan(1.45);
       const bg=nodes.get("paper-value");
       expect(bg?.kind==="wax"&&bg.coverage).toBe("open");
       expect(nodes.get("hair-back")?.parentId).toBe("adult-face");
+      const hair=nodes.get("hair-back");
+      const torso=nodes.get("coat-silhouette");
+      if(!hair||!torso)throw new Error("Missing framing masses");
+      const crown=crayonWorldPoint(scene,hair,299,{x:-25,y:-318});
+      const hem=crayonWorldPoint(scene,torso,299,{x:120,y:326});
+      expect(crown.y).toBeGreaterThan(8);
+      expect(hem.y).toBeLessThan(scene.height-8);
+      expect(crown.x).toBeGreaterThan(8);
+      expect(crown.x).toBeLessThan(scene.width-8);
       for(const id of ["rooted-crown-direction","rooted-temple-direction",
         "rooted-far-wave","left-cheek-layered-wax",
         "nose-sidewall-wax","coat-wool-broken-rub"]){
@@ -60,5 +81,17 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
     const end=renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>);
     expect(start).not.toEqual(end);
     expect(end).toContain('data-km-crayon-anatomical-mask=');
+  });
+  it("exports actual React renderer SVGs for 1x/3x ArtCraft inspection when explicitly requested",()=>{
+    if(process.env.KUMIKI_CRAYON_ARTCRAFT_PROOF!=="1")return;
+    const dir="dist/crayon-artcraft-face-proof";
+    mkdirSync(dir,{recursive:true});
+    for(const aspect of ["landscape","portrait"] as const){
+      const scene=crayonAdultFaceStudy(aspect);
+      for(const frame of [1,75,160,235,299]){
+        const svg=renderToStaticMarkup(<CrayonScene spec={scene} frame={frame}/>);
+        writeFileSync(join(dir,"adult-face-"+aspect+"-"+frame+".svg"),svg);
+      }
+    }
   });
 });

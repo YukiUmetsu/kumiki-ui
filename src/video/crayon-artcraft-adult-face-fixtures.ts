@@ -51,7 +51,7 @@ export function crayonAdultFaceStudy(
      (options.frameLength!==undefined&&options.frameLength!==300))
     throw new RangeError("Invalid ArtCraft facial study");
   const portrait=aspect==="portrait",W=portrait?540:960,H=portrait?960:540;
-  const rootX=portrait?270:656,rootY=portrait?435:246,rootScale=portrait?1.24:.81;
+  const rootX=portrait?270:656,rootY=portrait?435:261,rootScale=portrait?1.24:.70;
   const elements:CrayonElement[]=[];
   const wax=(id:string,d:string,bounds:Rect,
     palette:readonly [CrayonColor,CrayonColor,CrayonColor],
@@ -214,38 +214,46 @@ export function crayonAdultFaceStudy(
     "M-87 -164Q-64 -177 -38 -168Q-24 -161 -15 -147"+
     "Q-36 -131 -61 -141Q-80 -146 -87 -164Z",
     box(-94,-184,89,62),colors.sclera,"anatomy",
-    {parentId:"adult-face",spacing:4,outlineOpacity:.12});
+    {parentId:"adult-face",spacing:4,outlineOpacity:.12,
+      timing:{start:133,end:187}});
   wax("right-eye-aperture",
     "M45 -163Q67 -178 93 -160Q102 -153 102 -142"+
     "Q74 -136 56 -147Z",
     box(35,-188,78,61),colors.sclera,"anatomy",
-    {parentId:"adult-face",spacing:4,outlineOpacity:.12});
+    {parentId:"adult-face",spacing:4,outlineOpacity:.12,
+      timing:{start:133,end:187}});
   wax("left-eye-iris",
     "M-67 -168Q-53 -178 -46 -164Q-43 -147 -52 -143"+
     "Q-65 -146 -67 -168Z",
     box(-75,-184,38,52),colors.iris,"anatomy",
-    {parentId:"adult-face",spacing:3.5,outlineOpacity:0});
+    {parentId:"adult-face",spacing:4.2,outlineOpacity:0,
+      timing:{start:169,end:229}});
   wax("right-eye-iris",
     "M68 -165Q80 -177 87 -162Q92 -147 82 -144"+
     "Q70 -144 68 -165Z",
     box(61,-182,39,51),colors.iris,"anatomy",
-    {parentId:"adult-face",spacing:3.5,outlineOpacity:0});
+    {parentId:"adult-face",spacing:4.2,outlineOpacity:0,
+      timing:{start:169,end:229}});
   wax("left-eye-pupil","M-57 -165Q-52 -170 -49 -162Q-48 -155 -54 -153Z",
     box(-62,-174,20,30),colors.pupil,"anatomy",
-    {parentId:"adult-face",spacing:3.2,outlineOpacity:0});
+    {parentId:"adult-face",spacing:4,outlineOpacity:0,
+      timing:{start:198,end:246}});
   wax("right-eye-pupil","M76 -163Q81 -167 84 -160Q85 -153 79 -151Z",
     box(72,-171,18,30),colors.pupil,"anatomy",
-    {parentId:"adult-face",spacing:3.2,outlineOpacity:0});
+    {parentId:"adult-face",spacing:4,outlineOpacity:0,
+      timing:{start:198,end:246}});
   wax("left-upper-lid",
     "M-91 -170Q-64 -192 -38 -176Q-15 -166 -12 -151"+
     "Q-36 -169 -57 -173Q-75 -165 -91 -155Z",
     box(-101,-199,103,65),colors.socket,"anatomy",
-    {parentId:"adult-face",spacing:4,outlineOpacity:0});
+    {parentId:"adult-face",spacing:4,outlineOpacity:0,
+      timing:{start:159,end:216}});
   wax("right-upper-lid",
     "M43 -171Q68 -193 97 -168Q109 -161 109 -146"+
     "Q83 -169 65 -167Q52 -160 43 -150Z",
     box(35,-202,87,69),colors.cool,"anatomy",
-    {parentId:"adult-face",spacing:4,outlineOpacity:0});
+    {parentId:"adult-face",spacing:4,outlineOpacity:0,
+      timing:{start:159,end:216}});
   ink("upper-lid-rim-left","M-88 -164Q-61 -185 -38 -171Q-22 -164 -11 -150",
     "#51424a",2.35,"detail",{parentId:"adult-face"});
   ink("upper-lid-rim-right","M44 -165Q66 -180 92 -165Q104 -154 107 -145",
