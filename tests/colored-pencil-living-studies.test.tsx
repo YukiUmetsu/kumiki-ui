@@ -342,6 +342,43 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       .toHaveLength(3);
   });
 
+  it("fox structural pass keeps the eye embedded and nasal tip connected to a tapered muzzle",()=>{
+    const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
+    const parts=new Map(drawing.regions.map(r=>[r.id,r]));
+    const near=parts.get("eye-near")!,far=parts.get("eye-far")!;
+    const bridge=parts.get("rostrum-bridge")!,nose=parts.get("nose")!,muzzle=parts.get("muzzle")!;
+    // The photographed fox is not a round-eyed cartoon: upper lid dominates,
+    // tiny iris lies inside a brow socket and the far canthus is occluded.
+    expect(near.bounds[2]).toBeLessThanOrEqual(20);
+    expect(near.bounds[3]).toBeLessThanOrEqual(14);
+    expect(far.bounds[2]).toBeLessThanOrEqual(13);
+    expect(near.bounds[2]).toBeGreaterThan(far.bounds[2]*1.20);
+    expect(near.contour.opacity??1).toBeLessThanOrEqual(.23);
+    // An original curved rostrum runs all the way to the dark nose.
+    expect(nose.bounds[2]).toBeLessThanOrEqual(24);
+    expect(nose.bounds[3]).toBeLessThanOrEqual(23);
+    expect(nose.bounds[0]+nose.bounds[2]).toBeGreaterThan(bridge.bounds[0]);
+    expect((muzzle.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(6);
+    expect(muzzle.path).not.toMatch(/ L/);
+    expect(nose.details!.some(trace=>trace.id==="nasal-philtrum"&&
+      trace.path.includes(" Q"))).toBe(true);
+  });
+
+  it("fox weight-bearing forelegs taper to articulated toes rather than uniform black boots",()=>{
+    const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
+    const parts=new Map(drawing.regions.map(r=>[r.id,r]));
+    for(const [id,maxWidth] of [["foreleg-left",56],["foreleg-right",68]] as const){
+      const paw=parts.get(id)!;
+      expect(paw.bounds[2]).toBeLessThanOrEqual(maxWidth);
+      expect((paw.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(6);
+      expect((paw.path.match(/ L/g)??[]).length).toBeLessThanOrEqual(1);
+      const toes=paw.details!.find(d=>d.id==="paw-toes");
+      expect(toes).toBeDefined();
+      expect((toes!.path.match(/M/g)??[]).length).toBeGreaterThanOrEqual(3);
+      expect(toes!.width).toBeLessThan(1);
+    }
+  });
+
   it("renders original CP-F1 fox anatomy from authored pencil vectors with zero photo pixels",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     expect(drawing.foundation?.subject).toBe("wildlife");
