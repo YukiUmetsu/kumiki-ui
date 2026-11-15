@@ -2,6 +2,7 @@ import type {RisoCharacterPart,RisoCharacterSpec,RisoJointFrame,RisoCharacterFra
 import {evaluateRisoCharacter} from "../../registry/video/riso-character";
 import {HAND_POSES} from "../../registry/anatomy/anatomy-pose";
 import {SURFACE_FORMS,ANSUR} from "../../registry/anatomy/anatomy-reference";
+import {RISO31_GEOMETRY} from "./riso31-finger-phalanges";
 
 /**
  * RISO30 | ArtCraft + ANAT1.
@@ -51,7 +52,7 @@ const groove=(actor:RisoHandActor, side:RisoHandSide)=>{
   const blue=(id:string,joint:string,d:string):RisoCharacterPart=>({
     id:side+"-glove-"+id,joint,plate:"blue",paint:"solid",d,
   });
-  return [
+  const original:RisoCharacterPart[]=[
     // Dorsal metacarpal arch: ascending second and third knuckles with a
     // smaller ulna-side contour. Irregular hand-drawn contour, not straight
     // parallel metacarpal stripes.
@@ -112,6 +113,44 @@ const groove=(actor:RisoHandActor, side:RisoHandSide)=>{
       ?"M-2 -3 C-1 0 .7 3.5 1.2 6 Q1.8 6.9 2.1 7.6 Q1.2 5 -1 2 Q-2.7 -.9 -2 -3 Z"
       :"M-2.7 -2.9 Q-2 1.5 .5 5.5 Q1.4 7 1.8 7.7 Q-.4 5.6 -2.3 1.7 Q-3.5 -1.1 -2.7 -2.9 Z"),
   ];
+  // RISO31: the ink marks cannot keep their old rigid MCP transform after
+  // the actual red finger shape bends. Apply the ORIGINAL independently
+  // observed detail grammar to the respective real PIP/DIP joint. The
+  // trimmed nail rim is at the actual moving fingertip, not an old
+  // coordinate that floats on the paper when the new bone rotates.
+  const adjusted=original.map(part=>{
+    const prefix=side+"-glove-";
+    if(!part.id.startsWith(prefix))return part;
+    const id=part.id.slice(prefix.length);
+    const nail=/^(index|middle|ring|pinky)-nail$/.exec(id);
+    if(nail){
+      const digit=nail[1] as keyof typeof RISO31_GEOMETRY;
+      const distal=RISO31_GEOMETRY[digit].distal;
+      const near=Number((distal-1.5).toFixed(2));
+      const tip=Number((distal-.7).toFixed(2));
+      const halfWidth=Number((RISO31_GEOMETRY[digit].width*.54).toFixed(2));
+      const variation=courier?.15:.28;
+      return {...part,joint:side+"-"+digit+"-dip",
+        d:`M${-halfWidth} ${near} Q-.05 ${Number((near-variation).toFixed(2))} ${halfWidth} ${near}
+L${halfWidth} ${tip} Q0 ${Number((near+.35).toFixed(2))} ${-halfWidth} ${tip} Z`};
+    }
+    const crease=/^(index|middle|ring|pinky)-joint-crease$/.exec(id);
+    if(crease){
+      const digit=crease[1];
+      const width=Number((RISO31_GEOMETRY[digit as keyof typeof RISO31_GEOMETRY].width*.9).toFixed(2));
+      return {...part,joint:side+"-"+digit+"-pip",
+        d:`M${-width} -1.4 Q0 -2.3 ${width} -1.5 L${width} -.8 Q0 -1.5 ${-width} -.7 Z
+M${Number((-width*.87).toFixed(2))} 1 Q0 .4 ${Number((width*.87).toFixed(2))} 1.1 L${width*.8} 1.65 Q0 1.2 ${Number((-width*.85).toFixed(2))} 1.6 Z`};
+    }
+    return part;
+  });
+  const distalInk=(["index","middle","ring","pinky"] as const).map(digit=>{
+    const width=Number((RISO31_GEOMETRY[digit].width*.8).toFixed(2));
+    return blue(digit+"-dip-crease",side+"-"+digit+"-dip",
+      `M${-width} -1.35 Q0 -2.05 ${width} -1.25 L${width} -.65 Q0 -1.28 ${-width} -.7 Z
+M${Number((-width*.8).toFixed(2))} .65 Q.05 .25 ${Number((width*.7).toFixed(2))} .8 L${Number((width*.7).toFixed(2))} 1.25 Q0 .85 ${Number((-width*.8).toFixed(2))} 1.1 Z`);
+  });
+  return [...adjusted,...distalInk];
 };
 
 /** Source-only new art; never mutates or rewrites original expression keys. */
@@ -123,6 +162,10 @@ export const RISO30_GRIP_FOREGROUND_IDS=(side:RisoHandSide):readonly string[]=>[
   side+"-glove-thumb-nail",side+"-glove-pinky-nail",
   side+"-glove-index-joint-crease",side+"-glove-middle-joint-crease",
   side+"-glove-ring-joint-crease",side+"-glove-pinky-joint-crease",
+  // RISO31 independent distal phalanx creases print in the over-the-letter
+  // blue hand pass instead of being buried under the moving paper.
+  side+"-glove-index-dip-crease",side+"-glove-middle-dip-crease",
+  side+"-glove-ring-dip-crease",side+"-glove-pinky-dip-crease",
 ];
 
 /** Production inspection: hand region topology, data-backed referent and
