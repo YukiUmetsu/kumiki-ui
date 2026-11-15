@@ -25,6 +25,7 @@ on:
       - 'src/video/colored-pencil-needlepoint.ts'
       - 'src/video/colored-pencil-photometric-glaze.ts'
       - 'src/video/colored-pencil-neck-contact.ts'
+      - 'src/video/colored-pencil-jaw-tooth.ts'
       - 'src/video/colored-pencil-facial-planes.ts'
       - 'src/video/colored-pencil-full-head-tone-proof.ts'
       - 'tests/colored-pencil-foundation.test.tsx'
@@ -37,6 +38,7 @@ on:
       - 'tests/colored-pencil-needlepoint.test.ts'
       - 'tests/colored-pencil-photometric-glaze.test.ts'
       - 'tests/colored-pencil-neck-contact.test.ts'
+      - 'tests/colored-pencil-jaw-tooth.test.ts'
       - 'tests/colored-pencil-dry-contact.test.ts'
       - 'tests/colored-pencil-facial-planes.test.ts'
       - 'tests/colored-pencil-full-head-tone-proof.test.ts'
@@ -64,7 +66,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Validate CP-F1 material contract and backward compatibility
-        run: npx vitest run --project unit tests/colored-pencil-foundation.test.tsx tests/colored-pencil-craft.test.tsx tests/colored-pencil-photo.test.ts tests/colored-pencil-portrait-guides.test.ts tests/colored-pencil-dry-portrait.test.ts tests/colored-pencil-full-head.test.ts tests/colored-pencil-dry-contact.test.ts tests/colored-pencil-optical-eyelids.test.ts tests/colored-pencil-iris-optics.test.ts tests/colored-pencil-skin-weave.test.ts tests/colored-pencil-needlepoint.test.ts tests/colored-pencil-photometric-glaze.test.ts tests/colored-pencil-neck-contact.test.ts tests/colored-pencil-facial-planes.test.ts tests/colored-pencil-full-head-tone-proof.test.ts
+        run: npx vitest run --project unit tests/colored-pencil-foundation.test.tsx tests/colored-pencil-craft.test.tsx tests/colored-pencil-photo.test.ts tests/colored-pencil-portrait-guides.test.ts tests/colored-pencil-dry-portrait.test.ts tests/colored-pencil-full-head.test.ts tests/colored-pencil-dry-contact.test.ts tests/colored-pencil-optical-eyelids.test.ts tests/colored-pencil-iris-optics.test.ts tests/colored-pencil-skin-weave.test.ts tests/colored-pencil-needlepoint.test.ts tests/colored-pencil-photometric-glaze.test.ts tests/colored-pencil-neck-contact.test.ts tests/colored-pencil-jaw-tooth.test.ts tests/colored-pencil-facial-planes.test.ts tests/colored-pencil-full-head-tone-proof.test.ts
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Check original drawing stages and 16:9 / 9:16 hero pixels
