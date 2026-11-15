@@ -455,7 +455,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const [showReference,setShowReference]=useState(true);
   const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
   const [inspection,setInspection]=useState<
-    "full"|"face"|"eyes"|"nose-mouth"|"hair-left"|"hair-right">("full");
+    "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|"hair-left"|"hair-right">("full");
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,
   }),[detail,view,fiberMaterial]);
@@ -463,7 +463,9 @@ export function Cc0SourceRegisteredFaceWorkbench({
     if(inspection==="full")return spec;
     const focus={
       face:{focusX:335,focusY:586,zoom:1.6},
-      eyes:{focusX:331,focusY:524,zoom:2.5},
+      eyes:{focusX:331,focusY:524,zoom:2.12},
+      "near-eye":{focusX:269,focusY:546,zoom:3.35},
+      "far-eye":{focusX:437,focusY:516,zoom:3.5},
       "nose-mouth":{focusX:415,focusY:675,zoom:2.65},
       "hair-left":{focusX:75,focusY:670,zoom:2.15},
       "hair-right":{focusX:513,focusY:670,zoom:2.15},
@@ -555,10 +557,12 @@ export function Cc0SourceRegisteredFaceWorkbench({
       <label>Inspect source region{" "}
         <select aria-label="CC0 source anatomy inspection" value={inspection}
           onChange={e=>setInspection(e.target.value as
-            "full"|"face"|"eyes"|"nose-mouth"|"hair-left"|"hair-right")}>
+            "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|"hair-left"|"hair-right")}>
           <option value="full">Full portrait</option>
           <option value="face">Face planes (1.6×)</option>
-          <option value="eyes">Both eyes (2.5×)</option>
+          <option value="eyes">Both eyes (2.12×)</option>
+          <option value="near-eye">Near eyelid/iris (3.35×)</option>
+          <option value="far-eye">Far eyelid/iris (3.5×)</option>
           <option value="nose-mouth">Nose and lips (2.65×)</option>
           <option value="hair-left">Left rooted hair (2.15×)</option>
           <option value="hair-right">Right rooted hair (2.15×)</option>
