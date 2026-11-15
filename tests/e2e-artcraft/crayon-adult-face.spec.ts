@@ -215,6 +215,7 @@ for(const pressure of [.32,.82]){
       await expect(svg).toBeVisible();
       await expect(svg).toHaveAttribute("data-km-crayon-frame","239");
       await expect(svg.locator('[data-km-crayon-deposition="stroke-built"]')).toHaveCount(5);
+      await expect(svg.locator('[data-km-crayon-contact-clumps="wax"]')).toHaveCount(5);
       await expect(svg.locator('[data-km-crayon-element="dark-paper-ground"]'+
         ' [data-km-crayon-underpaint="opaque"]')).toBeAttached();
       await expect(svg.locator('[data-km-crayon-element="light-wax-over-dark"]'+
