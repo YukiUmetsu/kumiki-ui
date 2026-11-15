@@ -678,7 +678,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "Q406 645 402 649Q392 647 391 636Z",
     rect(387,615,40,40),["#453130","#21171c","#77504c"],[236,299],
     {parentId:"face-outline",clipToParent:true,
-      pressure:.96,spacing:3.1,markStrength:.4,
+      pressure:.96,spacing:4.1,markStrength:.4,
       edgeRoughness:0,outlineOpacity:0,underpaintTooth:.10,
       underpaintGradient:{light:"#674642",shadow:"#1d161b",
         focusX:.7,focusY:.26,radius:.82}});
@@ -688,7 +688,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "Q454 645 448 643Q445 641 445 633Z",
     rect(440,607,25,43),["#563938","#291d23","#80605a"],[236,299],
     {parentId:"face-outline",clipToParent:true,
-      pressure:.91,spacing:3.4,markStrength:.29,
+      pressure:.91,spacing:4.3,markStrength:.29,
       edgeRoughness:0,outlineOpacity:0,underpaintTooth:.12,
       underpaintGradient:{light:"#79524c",shadow:"#24181c",
         focusX:.38,focusY:.28,radius:.83}});
@@ -768,7 +768,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     "Q453 721 443 723Q438 722 436 715Z",
     rect(432,710,33,18),["#aba39f","#706568","#bdb1ab"],[232,296],
     {parentId:"mouth-aperture-depth",clipToParent:true,
-      pressure:.79,spacing:3.8,markStrength:.1,underpaintTooth:.08,
+      pressure:.79,spacing:4.0,markStrength:.1,underpaintTooth:.08,
       edgeRoughness:0,outlineOpacity:0});
   wax("lip-lower",
     "M358 744Q386 749 416 741Q456 730 485 716"+
