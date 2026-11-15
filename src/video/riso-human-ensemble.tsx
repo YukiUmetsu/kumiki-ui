@@ -266,11 +266,14 @@ export function RisoHumanEnsembleStudio(){
   const gripLayer=(spec:RisoCharacterSpec,stage:{x:number;y:number;scale:number},
     side:"left"|"right",id:string):RisoForegroundLayer=>{
     const onlyPartIds=risoGripParts(side);
+    // Actual ink scratches are open contours. Only four closed, authored red
+    // glove digit masses may cut paper; blue hatch/knuckle lines print on top.
+    const solidDigits=onlyPartIds.slice(0,4);
     return {
       id,
       knockout:<g data-km-riso-grip-occlusion={id}>
         <RisoCharacterKnockout spec={spec} frame={frame} x={stage.x} y={stage.y}
-          scale={stage.scale} spread={1.25} onlyPartIds={onlyPartIds}/></g>,
+          scale={stage.scale} spread={1.25} onlyPartIds={solidDigits}/></g>,
       artworks:{
         blue:paint=><RisoCharacterInk spec={spec} frame={frame} plateId="blue"
           paint={paint} x={stage.x} y={stage.y} scale={stage.scale}
