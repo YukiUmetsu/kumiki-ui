@@ -33,6 +33,36 @@ const mix=(a:number,b:number,t:number)=>a+(b-a)*t;
 const q=(a:number,b:number,c:number,t:number)=>{
   const n=1-t;return n*n*a+2*n*t*b+t*t*c;
 };
+/**
+ * "LipCupid" and "lipLower" in the source guide are observed points ON
+ * the upper and lower lip, not Bézier handles. A typical quadratic only
+ * reaches halfway toward its control at t=.5; passing a source landmark
+ * directly as the control missed the real lower vermilion by ~6 review
+ * pixels. Solve for the handle so each quadratic passes THROUGH its
+ * photo-observed anatomical point at its measured source x-coordinate.
+ */
+export const observedVermilionEnvelope=(
+  g:PortraitFeatureMap,t:number,
+):Readonly<{x:number;upper:number;lower:number}>=>{
+  if(!Number.isFinite(t)||t<0||t>1)
+    throw new RangeError("Invalid measured vermilion coordinate");
+  const left=g.lipLeft,right=g.lipRight;
+  const span=right[0]-left[0];
+  if(!Number.isFinite(span)||span<=2)
+    throw new RangeError("Invalid observed lip corner span");
+  const control=(apex:readonly[number,number])=>{
+    const at=(apex[0]-left[0])/span;
+    if(!Number.isFinite(at)||at<=.12||at>=.88)
+      throw new RangeError("Unregistered lip apex outside measured corners");
+    const inv=1-at;
+    return (apex[1]-inv*inv*left[1]-at*at*right[1])/(2*inv*at);
+  };
+  return {
+    x:mix(left[0],right[0],t),
+    upper:q(left[1],control(g.lipCupid),right[1],t),
+    lower:q(left[1],control(g.lipLower),right[1],t),
+  };
+};
 const rgb=(src:PencilPhotoPixels,x:number,y:number):readonly[number,number,number]=>{
   const ix=clamp(Math.round(x),0,src.width-1);
   const iy=clamp(Math.round(y),0,src.height-1);
@@ -100,18 +130,15 @@ export const createFacialOpticalPlanes=(
   // cartoon polygon. A lip-shaped source-supported scan determines where
   // directional rose/earth pigment is permitted; the teeth/highlight stay
   // blank because light low-chroma pixels are rejected.
-  const [left,right,cupid,lower]=[
-    guides.lipLeft,guides.lipRight,guides.lipCupid,guides.lipLower,
-  ];
+  const [left,right]=[guides.lipLeft,guides.lipRight];
   const width=Math.hypot(right[0]-left[0],right[1]-left[1]);
   const lipStep=d*.014;
   const columns=clamp(Math.ceil(width/lipStep),8,120);
   for(const layer of [0,1] as const){
     for(let col=0;col<columns;col++){
       const t=(col+.5)/columns;
-      const x=mix(left[0],right[0],t);
-      const top=q(left[1],cupid[1],right[1],t);
-      const bottom=q(left[1],lower[1],right[1],t);
+      const {x,upper:top,lower:bottom}=
+        observedVermilionEnvelope(guides,t);
       if(bottom-top<.5)continue;
       const rows=clamp(Math.ceil((bottom-top)/(d*.014)),3,45);
       for(let row=0;row<rows;row++){
