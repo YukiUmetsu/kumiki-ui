@@ -67,6 +67,16 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
         await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","received");
         await expect(stage).toHaveAttribute("data-km-riso-handoff-owner","receiver");
       }
+      // Real press-bound paper creases exist only while those exact two
+      // articulated hands physically touch their respective paper edges.
+      if(frame===0||frame===92)
+        await expect(stage.locator("[data-km-riso-contact-crease]")).toHaveCount(0);
+      if(frame===160||frame===177)
+        await expect(stage.locator("[data-km-riso-contact-crease]")).toHaveCount(6);
+      if(frame>=202){
+        await expect(stage.locator('[data-km-riso-contact-crease^="source-"]')).toHaveCount(0);
+        await expect(stage.locator('[data-km-riso-contact-crease^="receiver-"]')).toHaveCount(3);
+      }
       await stage.screenshot({path:info.outputPath(aspect+"-two-humans-"+frame+".png"),
         animations:"disabled"});
     }
@@ -89,6 +99,13 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
       input.dispatchEvent(new Event("change",{bubbles:true}));
     },value);
   };
+  await expect(stage.locator('[data-km-riso-contact-shadow="receiver"]')).toHaveCount(1);
+  await setRange("RISO ensemble pressure crease depth","0");
+  await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-imprint-depth","0");
+  await expect(stage.locator("[data-km-riso-contact-crease]")).toHaveCount(0);
+  await expect(stage.locator("[data-km-riso-contact-shadow]")).toHaveCount(0);
+  await setRange("RISO ensemble pressure crease depth","1");
+  await expect(stage.locator('[data-km-riso-contact-crease^="receiver-"]')).toHaveCount(3);
   await setRange("RISO ensemble donor release frame","172");
   await setRange("RISO ensemble transfer duration","20");
   await setRange("RISO ensemble receiver paper tilt","-58");
