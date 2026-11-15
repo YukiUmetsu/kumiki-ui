@@ -110,3 +110,14 @@ The **existing** Storybook root `Video Production / Film Looks / Colour-pencil` 
 
 Reference/implementation matrix, licensing cautions and explicit pending ArtCraft numeric/visual gates: [Object materials study](../research/colour-pencil-objects-artcraft-study-2026-11-14.md). Verification: `tests/colored-pencil-materials.test.tsx` (all families, 4×2 aspects, transparent/solid separation, boundary inputs), `tests/e2e-storybook/colored-pencil-materials.spec.ts` (browser screenshot and reseek; local/manual proof). Full normal-speed export, source-relative crop fidelity and human artistic approval remain pending.
 
+
+
+## CP living-subject ArtCraft extension — portraits, wildlife and scenery (2026-11-14)
+
+The geometry-agnostic surface authoring API in registry/video/colored-pencil-materials.ts now supports **15 material recipes**. Added **skin** (pressure-controlled opaque hatch/stipple), **hair** (rooted fibre passes), **water** (directional liquid surface marks) and **foliage** (hierarchical needle/fibre marks with fine granules). The previous 11 recipes are unchanged. This is material syntax, not an image-to-object recognition engine.
+
+The original authored sample in src/video/colored-pencil-living-studies.ts offers three separate subject constructions: a 20-plane head/shoulder portrait with named eye whites, irises, eyelid/brow, nose bridge, lips, skin planes, neck, hair/collar; a 21-part seated red fox with separate ear inserts, cheek ruff, eyes, muzzle, nose, legs, whiskers and tail; and a 17-region alpine valley with two mountain layers, six branching pines, stream, banks and stones. Authored curved fibre guides follow anatomical root→control→tip trajectories. Every frame is absolute, seed-based and stable under out-of-order seeking.
+
+**Storybook:** the existing Video Production / Film Looks / Colour-pencil root adds one story named **ArtCraft · Portrait, fox and landscape**; no new storybook folder. Controls cover subject, aspect, pressure, grain, seed, speed, reduced motion and frame; Storybook-only close inspection does not affect production exports. Test source: tests/colored-pencil-living-studies.test.tsx, tests/colored-pencil-materials.test.tsx and optional tests/e2e-storybook/colored-pencil-living-studies.spec.ts. Original source-study board, limitations, anatomical anchors and ArtCraft acceptance gates: [living subjects research](../research/colour-pencil-living-artcraft-study-2026-11-14.md).
+
+**Do not claim photorealism or arbitrary reconstruction:** actual full-resolution Chromium review, human face likeness, 3/4 rotation, articulated full bodies, frame-time profiling, source-relative five-axis metrics and normal-speed video proof remain open.
