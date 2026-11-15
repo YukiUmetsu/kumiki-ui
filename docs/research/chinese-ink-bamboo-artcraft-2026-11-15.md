@@ -92,6 +92,38 @@ Unit tests cover topology, finite geometry, parent IDs, seed determinism,
 and detail 0/1 behavior. Browser screenshot and production moving film remain
 **separate gates**. Those checks cannot establish painterly parity.
 
+## Actual native-render ArtCraft critique — first candidate rejected
+
+Inspected the **real** Chromium screenshots from GitHub Actions
+`43683567051` at 960×540 (misty hermit, mountain trail, river scholar)
+and the existing four-motif 2.15× Storybook brushwork studio.
+The first branch-rooted candidate **passed** TypeScript, Vitest,
+registry checks, Storybook/Playwright and 96-frame river-scholar MP4
+export, but the artistic result was still insufficient.
+
+Three visible defects, in impact order:
+
+1. Three foreground culms stood as a set of **parallel dark fence posts**,
+   their repetitive heavy horizontal collars amplifying the problem;
+   compare Zheng Xie's graded, fanning and receding stems.
+2. The leaves appeared as isolated thin angular blades instead of
+   coherent ink-loaded foliage groups. Local texture density is still
+   far below the Wu Zhen/NPM references; hierarchy alone is not enough.
+3. The distant mountain wash was too faint compared with the dark,
+   mechanically outlined foreground vegetation; the figure/costume
+   remains visibly constructed from line shapes.
+
+**Second pass (culm silhouette/pressure only):** Changed the three stem
+apex coordinates and cubic gesture to fan in different directions, changed
+their width and ink weight by depth, and tied collars to the **same
+calculated tangent** and decreasing local radius, rather than horizontal
+one-size rings. Shared centerline node attachments and wind parentage
+remain unchanged. This is a candidate to be re-rendered, not approved.
+
+Remaining release gate: verify 2.15× and 960×540 second-pass crops plus
+time-seeked scenes. If the leaves still read as isolated arrow clips,
+do another shape/pressure/spacing pass before marking this PR ready.
+
 ## Required release evidence
 
 Run from a clean repository checkout:
