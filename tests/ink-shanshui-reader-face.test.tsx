@@ -41,7 +41,10 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(high.farPupil.length).toBeGreaterThanOrEqual(3);
     expect(high.lips.length).toBeGreaterThanOrEqual(4);
     // No emoji eyes or monochrome filled disks in place of eyelid/iris geometry.
-    for(const [key,region] of Object.entries(high)){
+    const regions=[high.planes,high.nose,high.ear,high.brow,
+      high.eyesOpen,high.eyesSoft,high.eyesClosed,
+      high.nearPupil,high.farPupil,high.lips];
+    for(const region of regions){
       expect(region.every(shape=>shape.type==="path")).toBe(true);
       for(const shape of region){
         if(shape.type!=="path")continue;
