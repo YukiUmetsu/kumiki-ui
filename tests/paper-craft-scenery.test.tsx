@@ -59,6 +59,7 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
     for(const part of ["alpine-peak-0","alpine-peak-1","alpine-peak-2",
       "alpine-snowcap-0","alpine-snowcap-2","alpine-scree-0-1",
       "alpine-lake","alpine-lake-bank","alpine-distant-pines",
+      "alpine-continuous-foothills","alpine-foothill-terrace",
       "alpine-ledge-0","alpine-ledge-1","alpine-reflection-0",
       "alpine-moss-0","alpine-bird-0","alpine-rock-facet-1-0","scenery-frame"]){
       expect(names).toContain(part);
