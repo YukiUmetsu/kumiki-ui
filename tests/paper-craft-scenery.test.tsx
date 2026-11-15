@@ -42,7 +42,7 @@ describe("PAPER1 original hand-cut scenery worlds",()=>{
     for(const part of ["woodland-hill-0","woodland-hill-4","woodland-stream",
       "woodland-trunk-0","woodland-trunk-1","woodland-bough-0-1",
       "woodland-foliage-1-2","woodland-far-pines","woodland-fern-0",
-      "woodland-flower-0","scenery-frame"]){
+      "woodland-flower-0","woodland-stream-tail","woodland-bank-pebble-0","scenery-frame"]){
       expect(names).toContain(part);
     }
     expect(names.filter(id=>id.startsWith("woodland-fern-")).length).toBeGreaterThan(8);
