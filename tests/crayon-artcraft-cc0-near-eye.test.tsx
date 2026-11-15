@@ -36,6 +36,22 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
       expect(hairs.parentId).toBe("brow-root");
       expect(hairs.clipToParent).toBe(true);
       expect((hairs.d.match(/Q/g)??[]).length).toBeGreaterThanOrEqual(91);
+      // The source CC0 eye is hooded; its iris is off-axis and occluded.
+      const iris=nodes.get("eye-iris"),sclera=nodes.get("eye-sclera");
+      if(iris?.kind!=="wax"||sclera?.kind!=="wax")
+        throw new Error("Missing photographed ocular volumes");
+      expect(iris.clipToParent).toBe(true);
+      expect(iris.bounds.x+iris.bounds.width/2)
+        .toBeLessThan(sclera.bounds.x+sclera.bounds.width/2-7);
+      const rootShadow=nodes.get("upper-lash-root-shadow");
+      expect(rootShadow).toMatchObject({
+        kind:"wax",parentId:"eye-skin",clipToParent:true,coverage:"open",
+      });
+      const irisOrder=spec.elements.findIndex(x=>x.id==="eye-iris");
+      const lidOrder=spec.elements.findIndex(x=>x.id==="upper-lid-overhang");
+      const shadowOrder=spec.elements.findIndex(x=>x.id==="upper-lash-root-shadow");
+      expect(lidOrder).toBeGreaterThan(irisOrder);
+      expect(shadowOrder).toBeGreaterThan(lidOrder);
       expect(nodes.get("eye-sclera")?.parentId).toBe("eye-skin");
       expect(nodes.get("eye-iris")?.parentId).toBe("eye-sclera");
       expect(nodes.get("eye-pupil")?.parentId).toBe("eye-iris");
