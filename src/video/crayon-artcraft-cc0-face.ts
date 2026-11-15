@@ -315,83 +315,163 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     rect(388,430,92,42),C.eyebrow,[120,223],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
       pressure:.47,spacing:5.4,markStrength:.27,blendRadius:2});
+  // F1 photographed three-quarter eye topology, 608×1082 crop.
+  // Near canthi x218..322; upper iris is occluded by lash margin.
+  // Far eye x405..474 is narrower and hair-occluded, not mirrored.
+  // Warm orbit and deeper supraorbital crease precede the sclera.
+  wax("eye-orbital-fold-near",
+    "M208 538C228 515 248 509 273 510"+
+    "C299 510 317 519 332 537Q306 525 280 522"+
+    "C247 518 229 533 208 538Z",
+    rect(203,505,133,41),["#ad8b8b","#806971","#d0a4a0"],[115,208],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.52,spacing:7.2,markStrength:.21,blendRadius:8.4});
+  wax("eye-orbital-fold-far",
+    "M400 521Q408 496 435 486Q458 480 477 496"+
+    "Q451 493 434 499Q412 505 400 521Z",
+    rect(395,477,85,48),["#a17c80","#725f66","#c69b99"],[122,212],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.5,spacing:7.5,markStrength:.18,blendRadius:7.2});
+  // Opaque but NOT white cartoon balls: photo shows sclera mostly
+  // near the nasal canthus, shaded by the upper lid and outer socket.
   wax("sclera-near",
-    "M213 551Q230 523 267 520Q307 515 325 545"+
-    "Q296 559 273 564C241 570 219 564 213 551Z",
-    rect(205,511,126,68),C.sclera,[131,236],
+    "M215 560C229 540 249 531 267 531C291 529 313 531 322 543"+
+    "C305 553 287 563 273 565C249 570 230 568 215 560Z",
+    rect(212,527,115,52),["#aa9f9c","#635e63","#d7cebf"],[131,236],
     {parentId:"face-outline",clipToParent:true,
-      pressure:.79,spacing:5.9,markStrength:.2,
-      underpaintGradient:{light:"#cfc1b8",shadow:"#6e6368",
-        focusX:.76,focusY:.6,radius:1}});
+      pressure:.74,spacing:5.7,markStrength:.18,underpaintTooth:.2,
+      underpaintGradient:{light:"#d3ccc1",shadow:"#706269",
+        focusX:.79,focusY:.53,radius:.95}});
   wax("sclera-far",
-    "M406 518Q417 499 439 498Q464 496 474 510"+
-    "Q466 526 447 530Q421 532 406 518Z",
-    rect(400,488,81,50),C.sclera,[135,234],
+    "M404 527C414 509 435 500 448 501C462 498 468 504 474 511"+
+    "Q465 527 442 529Q416 533 404 527Z",
+    rect(399,495,80,46),["#948889","#554f54","#b2aba5"],[135,234],
     {parentId:"face-outline",clipToParent:true,
-      pressure:.75,spacing:4.5,markStrength:.16,
-      underpaintGradient:{light:"#aaa09d",shadow:"#50484e",
-        focusX:.75,focusY:.7,radius:1}});
-  // Use photo-observed near iris center ~260,550, far ~441,518.
-  // Exposed iris is NOT a perfect round eye glyph: upper contour flattens
-  // under the lid, lower iris curves into lower lash line.
+      pressure:.73,spacing:5,markStrength:.17,underpaintTooth:.22,
+      underpaintGradient:{light:"#aea5a1",shadow:"#4b464b",
+        focusX:.3,focusY:.77,radius:.86}});
+  // Near brown iris x245..281, source is 33–37px across, not 53.
+  // Both are optically compressed and later partly OVERPAINTED by lid.
   wax("iris-near",
-    "M241 535Q247 527 259 528Q279 527 284 540"+
-    "Q288 554 273 563Q255 567 246 554Q240 547 241 535Z",
-    rect(237,523,53,48),C.iris,[148,247],
+    "M245 540C250 533 266 531 276 540C282 547 279 560 269 565"+
+    "C254 568 245 558 245 540Z",
+    rect(242,530,42,39),["#5b493f","#29242a","#89705b"],[148,247],
     {parentId:"sclera-near",clipToParent:true,
-      pressure:.86,spacing:4.2,markStrength:.44});
+      pressure:.92,spacing:4.1,markStrength:.35,underpaintTooth:.12,
+      underpaintGradient:{light:"#806551",shadow:"#2e2829",
+        focusX:.54,focusY:.69,radius:.82}});
   wax("pupil-near",
-    "M252 536Q258 533 265 537Q274 541 271 550"+
-    "Q266 558 257 555Q251 551 252 536Z",
-    rect(249,530,28,29),C.pupil,[156,250],
-    {parentId:"iris-near",clipToParent:true,
-      pressure:.95,spacing:4.1,markStrength:.49});
+    "M254 541C257 537 265 538 269 544Q270 554 265 557"+
+    "Q256 559 253 550Z",
+    rect(251,537,21,23),["#242027","#17151a","#352b2d"],[156,250],
+    {parentId:"iris-near",clipToParent:true,pressure:.96,
+      spacing:4,markStrength:.32,underpaintTooth:.08});
   wax("iris-far",
-    "M424 509Q430 502 443 503Q456 501 460 512"+
-    "Q465 524 451 532Q437 534 428 525Z",
-    rect(420,498,48,39),C.iris,[146,245],
+    "M425 512Q432 503 442 504Q459 502 460 515Q460 528 447 532"+
+    "Q429 535 425 521Z",
+    rect(422,499,38,35),["#4f4036","#211d22","#75604e"],[146,245],
     {parentId:"sclera-far",clipToParent:true,
-      pressure:.83,spacing:4.3,markStrength:.4});
+      pressure:.93,spacing:4.3,markStrength:.31,underpaintTooth:.12,
+      underpaintGradient:{light:"#74604d",shadow:"#211d23",
+        focusX:.5,focusY:.65,radius:.81}});
   wax("pupil-far",
-    "M434 510Q439 508 446 511Q451 517 448 524"+
-    "Q442 529 436 523Z",
-    rect(431,505,22,28),C.pupil,[155,253],
-    {parentId:"iris-far",clipToParent:true,pressure:.9,
-      spacing:4.0,markStrength:.42});
+    "M433 510Q438 506 445 511Q450 518 446 526Q439 528 434 524Z",
+    rect(431,507,18,23),["#211d22","#141319","#32282a"],[155,253],
+    {parentId:"iris-far",clipToParent:true,pressure:.93,
+      spacing:4.2,markStrength:.28,underpaintTooth:.08});
+  // Upper skin fold must overlap iris upper third. No long, uniform
+  // arch that encloses a round eye like a cartoon symbol.
   wax("upper-lid-near",
-    "M207 553Q231 519 264 514Q304 508 328 539"+
-    "Q303 526 276 527Q238 526 220 552Z",
-    rect(203,505,130,51),C.lid,[170,264],
-    {parentId:"face-outline",pressure:.76,spacing:5.3,markStrength:.25});
+    "M209 561C220 533 245 517 269 517C293 513 313 526 327 541"+
+    "C307 533 289 530 273 531C252 533 230 544 214 565Z",
+    rect(206,510,126,58),["#bb9994","#896d74","#d9b3a9"],[170,264],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.64,spacing:6.2,markStrength:.32,blendRadius:5.2});
   wax("upper-lid-far",
-    "M402 521Q415 493 442 491Q467 489 479 509"+
-    "Q460 503 438 505Q420 505 407 521Z",
-    rect(395,485,91,41),C.lid,[176,263],
-    {parentId:"face-outline",pressure:.72,spacing:5.5,markStrength:.24});
+    "M399 529Q409 499 435 490Q462 483 479 506"+
+    "Q457 498 439 503Q414 510 403 532Z",
+    rect(396,481,87,55),["#b18e8e","#7e646c","#ccaba5"],[176,263],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.59,spacing:6.1,markStrength:.29,blendRadius:4.6});
+  // A dark, thin, uneven lip of opaque CRAYON pigment is attached to
+  // the lash rim. It is a real wax mass, never a uniform vector stroke.
   wax("lash-root-near",
-    "M213 551Q234 525 264 522Q299 518 324 542"+
-    "Q292 530 267 532Q233 533 219 557Z",
-    rect(208,517,121,46),C.eyebrow,[194,281],
-    {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.62,spacing:4.9,markStrength:.33,blendRadius:1.6});
+    "M217 557C229 538 244 532 264 532C286 529 305 535 322 544"+
+    "Q300 540 277 538Q254 538 242 542Q228 546 221 561Z",
+    rect(214,526,110,38),["#45353a","#29252c","#75605b"],[194,281],
+    {parentId:"face-outline",clipToParent:true,pressure:.85,
+      spacing:5.1,markStrength:.29,underpaintTooth:.18});
   wax("lash-root-far",
-    "M407 519Q420 498 440 497Q461 495 477 511"+
-    "Q461 506 440 508Q419 508 412 526Z",
-    rect(403,491,81,41),C.eyebrow,[194,278],
-    {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.6,spacing:4.2,markStrength:.29,blendRadius:1.2});
+    "M404 526Q416 501 441 497Q462 496 475 510"+
+    "Q455 503 440 506Q417 509 407 531Z",
+    rect(401,493,79,42),["#413035","#292126","#665257"],[194,278],
+    {parentId:"face-outline",clipToParent:true,pressure:.82,
+      spacing:4.7,markStrength:.27,underpaintTooth:.17});
+  // Connected tapered lash wedges; varying lean/length, no isolated
+  // vertical whiskers emerging from the iris.
+  wax("lash-contact-near",
+    "M229 549Q221 541 220 539Q230 542 234 548Z"+
+    "M239 542Q232 534 230 530Q239 534 243 540Z"+
+    "M248 539Q241 531 239 527Q250 533 251 538Z"+
+    "M258 537Q253 530 252 527Q262 530 262 537Z"+
+    "M272 535Q268 529 267 527Q275 530 276 535Z"+
+    "M286 536Q285 530 285 529Q291 530 291 538Z"+
+    "M300 539Q302 535 305 533Q305 538 303 542Z",
+    rect(218,523,91,31),["#4b393a","#2b2226","#765658"],[219,299],
+    {parentId:"face-outline",clipToParent:true,pressure:.79,
+      spacing:4.5,markStrength:.27,underpaintTooth:.11});
+  wax("lash-contact-far",
+    "M414 517Q410 510 410 506Q417 509 419 514Z"+
+    "M426 508Q423 501 423 498Q429 500 431 506Z"+
+    "M440 504Q438 497 439 495Q445 498 445 504Z"+
+    "M451 505Q453 498 455 498Q455 503 454 508Z",
+    rect(408,493,52,28),["#433238","#281f27","#6b5054"],[220,299],
+    {parentId:"face-outline",clipToParent:true,pressure:.75,
+      spacing:4.4,markStrength:.25,underpaintTooth:.12});
+  // Lower tarsal lip and infraorbital shadow: separate adjacent
+  // 3D planes, not another complete thin oval under the eye.
   wax("lower-lid-near",
-    "M213 551Q235 561 262 566Q302 563 326 542"+
-    "Q311 573 282 579Q241 588 214 560Z",
-    rect(207,538,124,55),C.lid,[184,276],
+    "M214 561C232 572 250 573 273 567Q306 562 322 544"+
+    "C309 566 293 576 276 580Q241 587 217 570Z",
+    rect(209,537,118,52),["#ba8c8a","#8c696d","#d7a8a1"],[184,276],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.37,spacing:7.7,markStrength:.13,blendRadius:8.5});
+      pressure:.5,spacing:6.8,markStrength:.27,blendRadius:6.6});
   wax("lower-lid-far",
-    "M404 522Q419 530 440 533Q466 532 478 510"+
-    "Q476 540 446 546Q420 546 406 530Z",
-    rect(399,506,85,48),C.lid,[186,274],
+    "M404 526Q421 539 442 533Q467 529 474 511"+
+    "Q471 544 449 550Q422 550 406 536Z",
+    rect(399,507,80,49),["#a97c7e","#775e65","#cfa5a2"],[186,274],
     {parentId:"face-outline",clipToParent:true,coverage:"open",
-      pressure:.34,spacing:7.5,markStrength:.13,blendRadius:7});
+      pressure:.46,spacing:7.2,markStrength:.22,blendRadius:6.1});
+  // All orbit details follow the eye UNDER the later hair curtain.
+  wax("upper-lid-crease-near",
+    "M206 547C221 521 240 517 260 517C286 511 310 522 326 540"+
+    "Q309 524 282 522Q237 521 206 547Z",
+    rect(202,507,130,43),["#a27e83","#765d65","#c59c98"],[207,296],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.46,spacing:7.8,markStrength:.2,blendRadius:4.1});
+  wax("upper-lid-crease-far",
+    "M398 517Q411 493 435 488Q462 481 476 503"+
+    "Q461 493 439 495Q418 499 398 517Z",
+    rect(394,482,86,41),["#967378","#68575f","#bd9393"],[207,296],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.43,spacing:7.4,markStrength:.19,blendRadius:4.1});
+  wax("lower-lid-margin-near",
+    "M218 567Q248 583 278 572Q304 566 318 551"+
+    "Q304 575 274 582Q240 586 218 567Z",
+    rect(214,547,109,40),["#a77c7b","#826466","#cda39e"],[214,299],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.39,spacing:7.7,markStrength:.18,blendRadius:4.8});
+  wax("lower-lid-margin-far",
+    "M408 532Q430 548 450 539Q464 535 471 518"+
+    "Q469 549 449 553Q426 556 408 532Z",
+    rect(403,513,72,45),["#a47b7b","#775b62","#c69f99"],[214,298],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.39,spacing:8,markStrength:.16,blendRadius:4.6});
+  wax("tear-canthus-near",
+    "M307 543Q317 535 321 542Q322 551 312 554Z",
+    rect(303,535,23,23),["#c99e9a","#937478","#e2b4ac"],[224,299],
+    {parentId:"face-outline",clipToParent:true,coverage:"open",
+      pressure:.4,spacing:7.3,markStrength:.16,blendRadius:3.1});
   // NOSE: bridge and bulb are DIFFERENT continuous paint planes. The
   // alar wings are source-observed asymmetric and nostril *contact*
   // remains a small deep undercut rather than a sketched triangle.
@@ -790,31 +870,8 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   for(let i=0;i<Math.round(eyebrowFiberGroups.length*detail);i++)
     mark("brow-fibers-"+i,eyebrowFiberGroups[i],
       "#4e3535",.55,[201,298],.56,"face-outline");
-  mark("upper-lid-crease-near",
-    "M200 537Q221 501 263 497Q305 493 329 526",
-    "#815b61",.85,[207,296],.56,"face-outline");
-  mark("upper-lid-crease-far",
-    "M395 510Q410 482 438 480Q461 479 479 500",
-    "#674e52",.68,[207,296],.62,"face-outline");
-  mark("lash-contact-near",
-    "M218 546Q214 539 215 535M227 535Q223 526 224 523"+
-    "M235 532Q231 521 233 519M245 526Q242 516 245 513"+
-    "M255 524Q255 513 258 509M269 522Q270 511 273 511"+
-    "M281 524Q284 516 286 516M293 527Q300 519 302 520",
-    "#362a31",.58,[219,299],.72,"face-outline");
-  mark("lash-contact-far",
-    "M411 514Q409 507 410 504M421 505Q419 498 421 493"+
-    "M430 502Q430 493 433 490M442 499Q445 491 447 491"+
-    "M453 501Q458 496 460 498",
-    "#34262e",.53,[220,299],.71,"face-outline");
-  mark("lower-lid-margin-near",
-    "M217 559Q240 570 272 572Q305 566 319 549",
-    "#996e70",.79,[214,299],.42,"face-outline");
-  mark("lower-lid-margin-far",
-    "M410 526Q433 541 459 533",
-    "#906d6d",.58,[214,298],.46,"face-outline");
-  mark("tear-canthus-near",
-    "M321 540q6 2 7 8", "#8e6667",.8,[224,299],.68,"face-outline");
+  // Source lids, lashes, and meniscus are layered before hair occlusion.
+  // No late floating digital line marks over the eyelid or dark curtain.
   // Alar relief and labial commissures are deposited in their anatomical
   // paint order above; no late pure-ink outlines can float over hair.
   mark("lower-lip-reflected-contact",
