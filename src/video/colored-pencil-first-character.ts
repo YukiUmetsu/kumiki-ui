@@ -227,12 +227,17 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
   const lower=faceRing.slice(rightTempleIndex,leftTempleIndex+1)
     .map(([x,y]):Point=>{
       const t=(y-faceTop)/(faceBottom-faceTop);
-      const temporal=Math.exp(-Math.pow((t-.40)/.105,2));
+      const temporal=Math.exp(-Math.pow((t-.40)/.12,2));
       const malar=Math.exp(-Math.pow((t-.53)/.075,2));
       const side=x<centerX?-1:1;
-      const depth=(side===-1?1:.89)*
-        (faceWidth*.067*temporal-faceWidth*.009*malar);
-      return [r(x-side*depth),y];
+      // The first rounded-vault candidate pinched BOTH temples into a
+      // peanut silhouette: native 1x/2.15x art review rejected it even
+      // though the earlier browser geometry gate was green. In a
+      // slight 3/4 turn, the near temporal inset is visible; the far
+      // contour remains mostly straight until its cheekbone turn.
+      const recession=faceWidth*.042*temporal*(side===-1?1:.45);
+      const cheekLift=faceWidth*.009*malar*(side===-1?1:.78);
+      return [r(x-side*(recession-cheekLift)),y];
     });
   // A complete adult CRANIUM is a high convex parietal dome that flows
   // into a temporal narrowing, then flares over the cheekbones. The
@@ -250,9 +255,9 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
     [r(lo-faceWidth*.010),r(faceTop+faceWidth*.12)],
     [r(lo+faceWidth*.11),r(faceTop-faceWidth*.055)],
     [r(lo+faceWidth*.235),r(faceTop-faceWidth*.205)],
-    [r(lo+faceWidth*.400),r(faceTop-faceWidth*.30)],
-    [r(lo+faceWidth*.555),r(faceTop-faceWidth*.345)],
-    [r(lo+faceWidth*.713),r(faceTop-faceWidth*.30)],
+    [r(lo+faceWidth*.400),r(faceTop-faceWidth*.312)],
+    [r(lo+faceWidth*.555),r(faceTop-faceWidth*.325)],
+    [r(lo+faceWidth*.713),r(faceTop-faceWidth*.315)],
     [r(lo+faceWidth*.845),r(faceTop-faceWidth*.20)],
     [r(hi-faceWidth*.080),r(faceTop-faceWidth*.06)],
     [r(hi+faceWidth*.005),r(faceTop+faceWidth*.095)],
