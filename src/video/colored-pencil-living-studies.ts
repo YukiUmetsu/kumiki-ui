@@ -3,7 +3,8 @@ import type { PencilAspect, PencilDrawingSpec, PencilRegion, PencilTrace } from 
 import { createPencilMaterialRegion } from "../../registry/video/colored-pencil-materials";
 import { createPencilFoundationDrawing } from "../../registry/video/colored-pencil-foundation";
 import type { PencilSurface } from "../../registry/video/colored-pencil-materials";
-import { pencilPortraitAnatomy } from "../../registry/video/colored-pencil-anatomy";
+import { createFace, FACE_FEATURES } from "../../registry/anatomy/anatomy-face";
+import { smoothPath } from "../../registry/anatomy/anatomy-view";
 
 /**
  * Original, authored anatomy studies based on observation of pencil technique,
@@ -169,550 +170,53 @@ function pencilContourFringe(
 
 
 /**
- * Authored soft-dermis pencil passes. Each tiny dry contact grows along a
- * measured convex facial plane, not Cartesian image noise or blurred photos.
- * Pigment layering stays translucent and distinct under optional tonal
- * support. Five independently authored guides preserve facial flow:
- * forehead, left/right malar, chin and lateral temple.
+ * NEW HUMAN — DRAWING 01: HEAD MASS ONLY
+ *
+ * The retired woman/Elena character has been completely removed. This is a
+ * new anonymous gender-neutral head construction, projected afresh from
+ * Kumiki's canonical 468-vertex ANAT1 face geometry (not from the former
+ * character's portrait paths, hair, lip palettes or camera). Only the major
+ * cranium/zygoma/jaw mass is authorized at this stage; deliberately DO NOT
+ * draw eyes, nose, mouth, hair or clothes until the base has been reviewed.
+ * The next drawing pass should focus on ONE anatomical component.
  */
-type DermalGuide=readonly [number,number,number,number,number,number,number,number];
-function pencilDermalGlaze(
-  guides:readonly DermalGuide[],seed:number,palette:PencilPalette,
-  startFrame=235,
-):PencilTrace[]{
-  if(guides.length<1||guides.length>7||
-     !Number.isSafeInteger(seed)||seed<0||seed>2147483647||
-     palette.some(color=>!/^#[0-9A-F]{6}$/i.test(color)))
-    throw new RangeError("Invalid dermal pencil atlas");
-  const traces:PencilTrace[]=[];
-  for(let layer=0;layer<3;layer++){
-    const pieces:string[]=[];
-    guides.forEach(([x0,y0,x1,y1,cx,cy,count,spread],group)=>{
-      if(![x0,y0,x1,y1,cx,cy,count,spread].every(Number.isFinite)||
-         !Number.isSafeInteger(count)||count<32||count>100||
-         spread<0||spread>20||Math.hypot(x1-x0,y1-y0)<9)
-        throw new RangeError("Dermal plane requires bounded anatomical tangent");
-      for(let i=0;i<count;i++){
-        const key=group*131+layer*43+i;
-        const t=Math.max(.015,Math.min(.985,
-          (i+.5+(pencilHash(seed,key,71)-.5)*.6)/count));
-        const u=1-t;
-        const bx=u*u*x0+2*u*t*cx+t*t*x1;
-        const by=u*u*y0+2*u*t*cy+t*t*y1;
-        const tx=2*u*(cx-x0)+2*t*(x1-cx);
-        const ty=2*u*(cy-y0)+2*t*(y1-cy);
-        const size=Math.hypot(tx,ty);
-        if(size<.001)continue;
-        const dx=tx/size,dy=ty/size,nx=-dy,ny=dx;
-        const offset=(pencilHash(seed,key,72)-.5)*spread;
-        const jitter=(pencilHash(seed,key,73)-.5)*2.0;
-        const len=(2.9+5.6*pencilHash(seed,key,74))*(layer===2?.74:1);
-        const x=bx+nx*offset,y=by+ny*offset;
-        const midx=x+dx*len*.51+nx*jitter;
-        const midy=y+dy*len*.51+ny*jitter;
-        const ex=x+dx*len+nx*jitter*.35;
-        const ey=y+dy*len+ny*jitter*.35;
-        pieces.push("M"+fmt(x)+" "+fmt(y)+" Q"+
-          fmt(midx)+" "+fmt(midy)+" "+fmt(ex)+" "+fmt(ey));
-      }
-    });
-    // A single giant trace would exceed CP-F1's 12K path budget. Split
-    // each physical pigment pass into three bounded, separately seekable
-    // brushes without dropping a single fine contact or authored plane.
-    for(let chunk=0;chunk<3;chunk++){
-      const portion=pieces.slice(chunk*150,(chunk+1)*150);
-      traces.push({...mark(portion.join(" "),palette[layer],
-        [.39,.30,.25][layer],startFrame+layer*9,
-        [.34,.27,.25][layer]),id:"dermis-"+layer+"-"+chunk});
-    }
-  }
-  return traces;
-}
-
-/**
- * ANAT1 is the *construction source*, not a decoration on the portrait.
- * Every eye, both canthi, the eyebrow folds and the labial ring are projected
- * from one 468-vertex calibrated face, then expressed in the CP-F1 dry pencil
- * vocabulary. The previous hand-guessed feature stickers no longer decide
- * facial topology. This is a 2D pencil painter, not a mesh screenshot.
- */
-/**
- * Three families of microscopic vermilion creases from the SAME ANAT1 lip
- * bounds as the upper/lower labial contours. Real coloured-pencil lips are
- * not paper-white stickers or a dark outlined oval: soft plum mouth seam,
- * individually curved rose grain and a few reserved creamy contacts build
- * a light-facing lower lip, with both masses clipped to true labial tissue.
- * Only the 468-vertex ANAT1 projection defines the region and centerline.
- */
-function pencilVermilionFibres(
-  bounds:readonly [number,number,number,number],
-  plane:"upper"|"lower",seed:number,
-):PencilTrace[]{
-  const [left,top,width,height]=bounds;
-  if(![left,top,width,height].every(Number.isFinite)||
-    width<15||height<4||height>32||
-    !Number.isSafeInteger(seed)||seed<0||seed>2147483647)
-    throw new RangeError("Lip anatomy requires finite ANAT1 tissue bounds");
-  const colors=plane==="upper"?
-    ["#925E69","#C98986","#EAB9AC"] as const:
-    ["#A46D77","#D39995","#F2C6B4"] as const;
-  const traces:PencilTrace[]=[];
-  for(let layer=0;layer<3;layer++){
-    const pieces:string[]=[];
-    for(let i=0;i<29;i++){
-      const key=layer*173+i;
-      const u=Math.max(.025,Math.min(.975,
-        (i+.5+(pencilHash(seed,key,63)-.5)*.52)/29));
-      const x=left+width*(.055+.89*u);
-      const transverse=Math.pow(2*u-1,2);
-      const volume=.23+.77*(1-transverse);
-      const base=plane==="upper"?.19:.53;
-      const y=top+height*(base+.12*transverse)+
-        (pencilHash(seed,key,64)-.5)*height*.045;
-      const length=height*(plane==="upper"?.24:.29)*volume*
-        (.68+.3*pencilHash(seed,key,65))*(layer===2?.58:1);
-      const tip=y+length;
-      const drift=(pencilHash(seed,key,66)-.5)*1.35;
-      pieces.push("M"+fmt(x)+" "+fmt(y)+" Q"+
-        fmt(x+drift)+" "+fmt(y+length*.47)+" "+
-        fmt(x+drift*.34)+" "+fmt(tip));
-    }
-    traces.push({...mark(pieces.join(" "),colors[layer],
-      [.38,.29,.22][layer],247+layer*7,[.43,.33,.29][layer]),
-      id:"anat-vermilion-"+plane+"-"+layer});
-  }
-  return traces;
-}
-
-/**
- * Expose the iris as the fine radial muscular-stromal structure of an eye
- * rather than a flat cyan button. The ANAT1 projected iris ellipse remains
- * canonical and all individual pupil-to-limbus pencil deposits stay inside
- * that exact drawable oval; no screen-space photograph/overlay is involved.
- */
-function pencilAnatIrisRadials(
-  bounds:readonly [number,number,number,number],
-  side:"R"|"L",seed:number,
-):PencilTrace[]{
-  const [left,top,width,height]=bounds;
-  if(![left,top,width,height].every(Number.isFinite)||
-    width<8||height<6||height>30||
-    !Number.isSafeInteger(seed)||seed<0||seed>2147483647)
-    throw new RangeError("ANAT1 iris needs finite projected eye aperture");
-  const cx=left+width*.5,cy=top+height*.5;
-  const rx=(width-4)*.5,ry=(height-4)*.5;
-  const colors=["#43565F","#6F8C8F","#B0B8A4"] as const;
-  const out:PencilTrace[]=[];
-  for(let layer=0;layer<3;layer++){
-    const strokes:string[]=[];
-    for(let i=0;i<29;i++){
-      const key=layer*137+i;
-      const angle=(Math.PI*2*(i+.5)/29)+
-        (pencilHash(seed,key,74)-.5)*.10;
-      const inner=.37+.10*pencilHash(seed,key,75);
-      const outer=.75+.16*pencilHash(seed,key,76);
-      const drift=(pencilHash(seed,key,77)-.5)*.12;
-      const ax=cx+Math.cos(angle)*rx*inner;
-      const ay=cy+Math.sin(angle)*ry*inner;
-      const bx=cx+Math.cos(angle)*rx*outer;
-      const by=cy+Math.sin(angle)*ry*outer;
-      const midR=(inner+outer)*.52;
-      const mx=cx+Math.cos(angle+drift)*rx*midR;
-      const my=cy+Math.sin(angle+drift)*ry*midR;
-      strokes.push("M"+fmt(ax)+" "+fmt(ay)+" Q"+
-        fmt(mx)+" "+fmt(my)+" "+fmt(bx)+" "+fmt(by));
-    }
-    out.push({...mark(strokes.join(" "),colors[layer],
-      [.28,.23,.21][layer],240+layer*8,[.66,.42,.31][layer]),
-      id:"anat-radial-iris-"+side+"-"+layer});
-  }
-  out.push({...mark("M"+fmt(cx-rx*.74)+" "+fmt(cy-ry*.53)+" Q"+
-    fmt(cx)+" "+fmt(cy-ry*.94)+" "+
-    fmt(cx+rx*.73)+" "+fmt(cy-ry*.55),
-    "#36404A",.45,275,.54),id:"anat-superior-iris-shadow-"+side});
-  return out;
-}
-
-const PENCIL_PORTRAIT_ANAT1=pencilPortraitAnatomy();
-function applyPortraitAnatomy(part:PencilSubjectPart):PencilSubjectPart{
-  const A=PENCIL_PORTRAIT_ANAT1;
-  if(part.id==="face-main"){
-    return {...part,path:A.features.oval.path,
-      bounds:A.features.oval.bounds,
-      // Optical pigment is deposited into the actual ANAT1 mesh light
-      // field *before* the explicitly authored major contour contacts.
-      details:[
-        ...A.pigment.map((group,index)=>({
-          ...mark(group.path,group.color,group.width,
-            216+Math.min(30,Math.floor(index/4)*5),group.opacity),
-          id:group.id,
-        })),
-        // A tiny mentolabial terminator belongs to the parent face pigment,
-        // NOT an opaque sticker attached below the projected lower lip.
-        {...mark("M"+fmt(A.lips.bounds[0]+A.lips.bounds[2]*.24)+" "+
-          fmt(A.lips.bounds[1]+A.lips.bounds[3]+5)+" Q"+
-          fmt(A.lips.bounds[0]+A.lips.bounds[2]*.51)+" "+
-          fmt(A.lips.bounds[1]+A.lips.bounds[3]+8)+" "+
-          fmt(A.lips.bounds[0]+A.lips.bounds[2]*.76)+" "+
-          fmt(A.lips.bounds[1]+A.lips.bounds[3]+4),
-          "#9B7779",.28,275,.30),id:"anat-mentolabial-turn"},
-        ...(part.details??[]),
-      ]};
-  }
-  const eye=part.id==="eye-white-far"?"R":
-    part.id==="eye-white-near"?"L":undefined;
-  if(eye){
-    const upper=A.features["eye-upper."+eye].path;
-    const lower=A.features["eye-lower."+eye].path;
-    return {...part,path:A.eyes[eye].path,bounds:A.eyes[eye].bounds,
-      // Contact pressure follows the *actual* upper orbital rim, while
-      // the inferior lid is a soft turning plane, not a complete black ring.
-      details:[
-        {...mark(upper,"#624F56",.84,201,.82),id:"anat-upper-lid-"+eye},
-        {...mark(lower,"#B68D8A",.48,221,.56),id:"anat-lower-lid-"+eye},
-        {...mark(upper,"#8F777A",.27,244,.37),
-          id:"anat-superior-sclera-shadow-"+eye},
-        {...mark(upper,"#D8B4A4",.28,248,.43),id:"anat-orbital-fold-"+eye},
-        {...mark(A.hair["lash-upper."+eye].path,"#584850",.25,258,.54),
-          id:"anat-lash-upper-"+eye},
-        {...mark(A.hair["lash-lower."+eye].path,"#94777C",.22,267,.42),
-          id:"anat-lash-lower-"+eye},
-        // The caruncle sits at the INNER ANAT1 canthus and is lightly
-        // hydrated/pink; far eye medial=right, near medial=left.
-        {...mark("M"+fmt(eye==="R"?
-            A.eyes[eye].bounds[0]+A.eyes[eye].bounds[2]-4:
-            A.eyes[eye].bounds[0]+2)+" "+
-          fmt(A.eyes[eye].bounds[1]+A.eyes[eye].bounds[3]*.51)+" q1.3 1.4 2.4 .4",
-          "#BC8D8A",.34,274,.60),id:"anat-medial-caruncle-"+eye},
-      ]};
-  }
-  const iris=part.id==="iris-far"?"R":
-    part.id==="iris-near"?"L":undefined;
-  if(iris)return {...part,path:A.irises[iris].path,
-    bounds:A.irises[iris].bounds,details:[
-      ...pencilAnatIrisRadials(A.irises[iris].bounds,iris,
-        iris==="R"?5077:5099),
-      {...mark(A.irises[iris].path,"#546A6D",.23,235,.46),
-        id:"anat-iris-fibre-"+iris},
-    ]};
-  const pupil=part.id==="pupil-far"?"R":
-    part.id==="pupil-near"?"L":undefined;
-  if(pupil)return {...part,path:A.pupils[pupil].path,
-    bounds:A.pupils[pupil].bounds,details:[
-      {...mark("M"+(A.pupils[pupil].bounds[0]+3.4).toFixed(2)+" "+
-        (A.pupils[pupil].bounds[1]+2.2).toFixed(2)+" l.32 -.38",
-        "#F4EBDF",.32,246,.65),id:"anat-catchlight-"+pupil},
-    ]};
-  if(part.id==="brows")return {...part,
-    path:A.browMass.path,bounds:A.browMass.bounds,
-    details:[
-      {...mark(A.browInk.R.path,"#75615C",.49,228,.71),
-        id:"anat-brow-R"},
-      {...mark(A.browInk.L.path,"#735B59",.50,228,.70),
-        id:"anat-brow-L"},
-      {...mark(A.browInk.L.path+" "+A.browInk.R.path,
-        "#C3A08E",.27,245,.42),id:"anat-brow-underfur"},
-      {...mark(A.hair["brow.R"].path,"#645258",.28,246,.69),
-        id:"anat-brow-fibres-R"},
-      {...mark(A.hair["brow.L"].path,"#614D55",.28,246,.70),
-        id:"anat-brow-fibres-L"},
-    ]};
-  if(part.id==="nose-bridge")return {...part,
-    path:A.nose.path,bounds:A.nose.bounds,
-    // Nasal projection, soft alar fold and subnasale now agree in depth.
-    // These pencil marks sit on a single measured ANAT1 cartilage plane.
-    details:[
-      {...mark(A.features["nose-bridge"].path,"#D9A691",.54,229,.58),
-        id:"anat-nose-bridge"},
-      {...mark(A.features["nose-base"].path,"#956F72",.45,242,.60),
-        id:"anat-nose-base"},
-      {...mark(A.features["nose-base"].path,"#F6CCB5",.28,251,.43),
-        id:"anat-alar-reflection"},
-      {...mark(A.features["nose-bridge"].path,"#987275",.31,259,.32),
-        id:"anat-nose-terminator"},
-    ]};
-  if(part.id==="lip-upper")return {...part,
-    // Soft vermilion attached to real skin: three *visible* rose/sepia
-    // pigment passes rather than pale opaque lip-shaped paper cutouts.
-    palette:["#C38E88","#8F636B","#DDB0A4"],
-    path:A.lips.upper,bounds:A.lips.bounds,
-    details:[
-      ...pencilVermilionFibres(A.lips.bounds,"upper",4101),
-      {...mark(A.features["mouth-line"].path,"#815760",.44,240,.65),
-        id:"anat-mouth-seam"},
-      {...mark(A.features["lips-upper"].path,"#E4A9A3",.29,249,.47),
-        id:"anat-cupid-bow"},
-      {...mark("M"+fmt(A.lips.bounds[0]+2)+" "+
-        fmt(A.lips.bounds[1]+A.lips.bounds[3]*.53)+" Q"+
-        fmt(A.lips.bounds[0]+4)+" "+
-        fmt(A.lips.bounds[1]+A.lips.bounds[3]*.65)+" "+
-        fmt(A.lips.bounds[0]+6)+" "+
-        fmt(A.lips.bounds[1]+A.lips.bounds[3]*.58),
-        "#845B64",.31,269,.46),id:"anat-left-commissure"},
-    ]};
-  if(part.id==="lip-lower")return {...part,
-    palette:["#D4A09A","#986F78","#EDC1AD"],
-    path:A.lips.lower,bounds:A.lips.bounds,
-    details:[
-      ...pencilVermilionFibres(A.lips.bounds,"lower",4117),
-      {...mark(A.features["lips-lower"].path,"#DFADA5",.26,241,.38),
-        id:"anat-lower-lip"},
-      {...mark(A.features["mouth-line"].path,"#986E71",.27,250,.46),
-        id:"anat-labial-contact"},
-      {...mark("M"+fmt(A.lips.bounds[0]+A.lips.bounds[2]*.40)+" "+
-        fmt(A.lips.bounds[1]+A.lips.bounds[3]*.76)+" Q"+
-        fmt(A.lips.bounds[0]+A.lips.bounds[2]*.50)+" "+
-        fmt(A.lips.bounds[1]+A.lips.bounds[3]*.69)+" "+
-        fmt(A.lips.bounds[0]+A.lips.bounds[2]*.57)+" "+
-        fmt(A.lips.bounds[1]+A.lips.bounds[3]*.76),
-        "#FFE0CE",.28,269,.48),id:"anat-lower-vermilion-reserve"},
-    ]};
-  return part;
-}
-
 function face():PencilSubjectPart[] {
-  const skin:PencilPalette=["#DDA58F","#906277","#F4CEB0"];
-  const lit:PencilPalette=["#F2C6AA","#B78082","#FFE0BF"];
-  const hair:PencilPalette=["#684F50","#282E40","#B18471"];
-  const shirt:PencilPalette=["#718E9C","#384F73","#CCD9D3"];
-  const parts:PencilSubjectPart[]=[
-    {id:"hair-back",material:"hair",palette:hair,
-      // Continuity: the inner occipital hair must overhang the nape,
-      // not terminate as a straight vertical cut exposing paper beside
-      // the anatomical neck and the left shoulder.
-      path:"M113 161 C100 102 146 56 212 50 C276 35 339 80 354 143 "+
-        "Q375 207 354 300 C367 348 343 401 309 426 "+
-        "Q286 388 280 310 C246 318 203 313 170 308 "+
-        "C174 333 177 353 169 373 Q153 411 120 418 "+
-        "C94 370 101 306 100 253 Q95 202 113 161 Z",
-      bounds:[94,35,283,395],direction:67,flow:32,start:30,
-      // Long sweeps establish *locks* only. Real pencil volume consists of
-      // short, tapered umber/sepia/chestnut deposits following these locks
-      // at different tangents, not 80 identical full-length tan bands.
-      details:[
-        ...flowBundles([
-          [165,76,116,386,116,214,22,17],[218,55,160,377,166,204,22,18],
-          [270,55,315,391,335,199,23,17],[313,83,342,335,367,208,18,16],
-        ],1401,"#AC7C6A",.33,225),
-        ...pencilRootedFur([
-          [152,76,126,394,107,225,32,11],
-          [198,58,165,382,150,210,34,11],
-          [244,57,316,395,327,195,32,12],
-          [302,78,342,384,368,213,29,11],
-        ],3021,["#AE8677","#443840","#D5A48D"],236),
-        {...mark("M146 120 C128 194 127 310 141 371 "+
-          "M337 172 C362 238 341 329 327 378",
-          "#352F38",.34,252,.47),id:"hair-occipital-parting"},
-      ]},
-    {id:"coat-back",material:"fabric",palette:shirt,
-      path:"M165 354 Q115 350 84 381 Q57 406 45 437 L405 437 Q391 383 351 367 Q315 353 286 354 Z",
-      bounds:[43,349,365,91],direction:27,flow:28,start:34,
-      details:[mark("M86 401 Q139 367 183 381 M320 369 Q359 385 384 427","#D4DCD1",2)]},
-    {id:"neck",material:"skin",palette:skin,
-      // Continuous anatomical nape/scm/trapezius under the mandible
-      // joins both collar wings. The broad *hidden* underlap is
-      // intentional: it prevents bright paper slots when hair shifts.
-      path:"M171 297 C190 314 208 325 235 323 "+
-        "C258 321 272 313 282 300 L279 365 "+
-        "C268 380 248 388 225 382 C206 375 185 371 164 375 "+
-        "L168 337 Z",
-      bounds:[161,293,125,99],direction:68,flow:14,start:45,
-      details:[
-        {...mark("M185 325 Q197 351 222 375 M272 328 Q264 358 245 379",
-          "#AE7C79",.48,214,.49),id:"neck-scm-attachments"},
-        {...mark("M172 350 Q190 368 215 380 M222 384 Q248 389 273 362",
-          "#F5CAB0",.51,226,.52),id:"neck-trapezius-turn"},
-        mark("M203 341 Q235 363 274 336 M210 363 Q238 378 263 367",
-          "#F5CAB0",.64,236,.57),
-      ]},
-    {id:"ear",material:"skin",palette:skin,
-      path:"M295 218 Q323 195 334 222 Q343 250 317 265 Q310 266 302 252 Z",
-      bounds:[292,195,53,76],direction:18,start:79,
-      details:[mark("M313 216 Q329 214 329 232 Q326 241 317 245 M315 229 Q317 223 322 225","#956675",1.1,203)]},
-    {id:"face-main",material:"skin",palette:["#D7A18C","#956C77","#EAC3AA"],
-      // Asymmetric 3/4 cranial planes: temple -> malar cheek -> masseter -> chin.
-      path:"M142 136 C154 99 199 88 248 98 C300 107 325 142 325 184 C324 226 310 266 291 299 C277 321 257 343 235 345 C207 343 179 322 165 296 C142 259 133 224 133 189 C132 168 135 150 142 136 Z",
-      bounds:[128,88,201,261],direction:-28,flow:22,start:83,
-      details:[
-        mark("M144 181 C143 223 155 267 172 289 M297 157 Q314 202 299 237","#E4B29C",1.2,217,.62),
-        mark("M165 229 Q173 241 188 244 M275 235 Q292 237 299 255","#A87683",.72,222,.49),
-        mark("M174 278 C187 304 202 315 218 321 M266 323 Q280 313 289 293","#8E6876",.82,228,.55),
-        mark("M203 326 Q237 346 258 330","#F4D3B7",.85,233,.58),
-        mark("M154 170 Q178 154 200 160 M247 169 Q271 160 294 175","#F4D1AF",.95,238,.68),
-        mark("M158 219 Q170 232 192 226 M243 230 Q269 235 290 224","#9F7580",.62,240,.53),
-        mark("M186 296 Q195 302 202 310 M278 296 Q271 307 260 315","#B98582",.64,248,.54),
-        ...flowBundles([
-          [160,246,175,291,158,276,13,8],[274,251,293,283,301,270,11,9],
-        ],1449,"#BA8580",.27,247),
-        // Five source-observed, locally tangent convex skin volumes.
-        // Short optical pigment contacts remain when SVG tonal support is
-        // removed; this is original pencil geometry, not a photo edit.
-        ...pencilDermalGlaze([
-          [159,148,294,157,225,124,80,9],
-          [149,219,193,295,140,261,76,12],
-          [286,219,257,315,298,260,80,12],
-          [191,307,269,321,230,339,78,8],
-          [147,176,166,236,141,203,66,8],
-        ],2661,["#CB9585","#A67580","#F2CFB1"],237),
-      ]},
-    {id:"temple-light",material:"glaze",palette:lit,
-      path:"M145 145 C163 121 185 123 200 135 Q177 151 170 182 Q152 187 143 172 Z",
-      bounds:[140,118,64,72],direction:39,start:97},
-    {id:"cheek-light",material:"glaze",palette:lit,
-      path:"M234 229 Q260 212 286 234 C292 251 280 272 260 277 Q237 278 230 260 Z",
-      bounds:[227,209,69,72],direction:53,start:103,
-      details:[mark("M238 250 Q257 240 278 248","#F9D3B6",.6,223,.56)]},
-    {id:"eye-white-far",material:"skin",palette:["#BDAEA7","#887983","#DACCC3"],
-      // Exposed sclera is an occluded warm sliver, never a complete white ellipse.
-      path:"M158 207 C167 201 179 201 189 205 Q186 211 177 212 Q165 213 158 207 Z",
-      bounds:[155,199,36,16],direction:7,start:137,
-      details:[
-        mark("M157 206 Q170 199 184 202 Q188 204 191 206","#634E55",1.14,202,.81),
-        mark("M162 210 Q175 215 188 210","#AD8C8F",.67,220,.65),
-        mark("M159 200 Q173 197 187 201","#B18B8B",.51,237,.49),
-        mark("M158 207 Q161 211 163 211 M188 206 L191 206","#D5ABA4",.50,240,.62),
-      ]},
-    {id:"iris-far",material:"glass",palette:["#768383","#3E575A","#AAB4AC"],
-      path:"M172 203 C176 201 181 203 182 207 Q183 213 178 214 Q174 214 172 209 Z",
-      bounds:[170,201,15,14],start:147,
-      details:[
-        mark("M174 205 Q177 202 181 206 M174 210 Q178 214 182 210","#394A52",.52,231,.78),
-        mark("M175 204 L176 205","#ECE7D7",.67,246,.88),
-      ]},
-    {id:"pupil-far",material:"ocular",palette:["#34414A","#202C37","#637478"],
-      path:"M177 204 Q180 204 180 208 Q180 212 178 212 Q175 209 177 204 Z",
-      bounds:[175,203,7,11],start:157,
-      details:[mark("M176 205 L177 206","#F8EBDA",.48,245,.81)]},
-    {id:"eye-white-near",material:"skin",palette:["#C6B7AE","#988586","#E2D2C6"],
-      path:"M242 207 C253 200 269 199 284 207 Q281 216 266 216 Q251 216 242 207 Z",
-      bounds:[240,198,47,21],direction:6,start:138,
-      details:[
-        mark("M241 207 Q255 199 271 200 Q280 202 286 208","#654C54",1.19,202,.86),
-        mark("M246 214 Q264 219 283 213","#B78C8E",.73,222,.69),
-        mark("M244 200 Q261 193 284 202","#C2918D",.53,232,.57),
-        mark("M241 208 Q243 211 248 212 M282 208 L286 209","#D4A9A5",.51,244,.61),
-      ]},
-    {id:"iris-near",material:"glass",palette:["#70858A","#354B57","#B5BEB4"],
-      path:"M261 201 C265 198 271 200 273 204 Q275 212 269 215 Q263 215 261 208 Z",
-      bounds:[259,198,16,19],start:145,
-      details:[
-        mark("M264 203 Q269 200 272 205 M263 211 Q267 217 273 209","#345460",.56,231,.83),
-        mark("M265 202 Q267 201 269 202","#F6EEDC",.77,240,.89),
-      ]},
-    {id:"pupil-near",material:"ocular",palette:["#283B45","#192936","#52636E"],
-      path:"M266 202 Q269 202 270 206 Q271 212 268 213 Q265 211 266 202 Z",
-      bounds:[264,201,8,13],start:158,
-      details:[mark("M265 204 L266 205","#FFF5E7",.53,244,.88)]},
-    {id:"brows",material:"hair",palette:["#9C766D","#70595B","#C8A28E"],
-      // Rooted low-pressure hair fan; opaque black eyebrow stickers rejected.
-      path:"M154 184 Q170 174 185 177 Q191 178 195 181 L194 184 Q172 181 156 188 Z M244 183 Q261 173 278 177 Q286 179 291 184 L289 187 Q266 181 246 190 Z",
-      bounds:[151,173,143,16],direction:5,start:147,
-      details:[
-        mark("M155 185 Q172 175 192 182 M246 185 Q266 176 289 184","#6C5658",.51,227,.75),
-        ...flowBundles([[158,184,192,182,172,176,20,4],
-          [247,185,288,183,267,177,22,4]],1509,"#574C51",.24,243),
-        mark("M159 192 Q175 189 186 188 M253 193 Q278 189 290 192",
-          "#AF8584",.43,253,.48),
-      ]},
-    {id:"nose-bridge",material:"glaze",palette:["#D4A58F","#A77479","#ECC5AA"],
-      // Skin-connected cartilage + softly glazed bridge: never an opaque white spear.
-      path:"M227 194 C229 213 235 231 236 243 Q237 253 252 261 C260 268 250 276 237 275 Q223 275 221 265 Q231 244 227 194 Z",
-      bounds:[218,193,45,87],direction:69,start:113,
-      details:[
-        mark("M230 207 Q236 226 239 244","#EFC8AD",.92,214,.64),
-        mark("M223 259 Q225 267 233 268 M246 269 Q253 268 255 262",
-          "#966A74",.78,226,.79),
-        mark("M228 268 Q233 272 238 270 M246 270 Q250 269 252 266",
-          "#695059",.61,232,.81),
-        mark("M235 250 Q241 253 239 258 M225 261 Q230 263 235 265",
-          "#DCA78F",.63,237,.72),
-        mark("M228 276 Q241 279 251 272","#EDC7AF",.47,247,.52),
-      ]},
-    {id:"lip-upper",material:"skin",palette:["#C18F8A","#9F737A","#D9AA9B"],
-      path:"M210 295 Q222 290 234 291 Q244 288 251 292 Q259 293 263 297 Q251 300 238 299 Q222 300 210 295 Z",
-      bounds:[208,287,58,16],direction:10,start:157,
-      details:[
-        mark("M212 297 Q227 299 237 297 Q251 299 262 296","#815B65",.69,234,.73),
-        mark("M217 291 Q226 290 232 293 M243 292 Q252 290 257 294","#E1B6A5",.52,240,.65),
-      ]},
-    {id:"lip-lower",material:"skin",palette:["#CDA29B","#AC8589","#E0B3A5"],
-      path:"M211 300 Q226 304 237 302 Q252 305 262 299 Q253 311 240 313 Q226 313 211 300 Z",
-      bounds:[209,297,56,18],direction:8,start:160,
-      details:[
-        mark("M218 305 Q240 311 254 305","#F0C7B4",.65,240,.68),
-        mark("M225 314 Q241 317 252 313","#B48D88",.48,251,.45),
-      ]},
-    {id:"hair-crown",material:"hair",palette:hair,
-      path:"M118 174 C111 128 127 95 153 78 Q181 57 224 57 Q299 55 331 117 Q321 125 297 125 Q270 95 249 106 Q204 126 180 143 Q151 162 134 194 Z",
-      bounds:[110,55,226,146],direction:67,start:168,
-      // Skylit strands are fine warm brown interruptions across dark locks,
-      // never the old thick crisscross ribbons. The crown converges to a
-      // root/parting above the forehead, then arcs along the cranial vault.
-      details:[
-        ...flowBundles([
-          [159,85,133,166,112,106,18,17],[201,72,157,147,167,97,24,18],
-          [248,68,197,130,218,90,23,16],[284,81,275,124,264,96,19,15],
-        ],1477,"#C69D87",.30,239),
-        ...pencilRootedFur([
-          [209,60,138,181,145,68,33,11],
-          [247,63,160,153,193,60,34,12],
-          [277,72,201,127,238,65,32,10],
-          [305,92,244,115,281,83,29,12],
-          [164,82,127,157,120,113,31,10],
-          [232,65,181,141,211,89,29,9],
-        ],3119,["#BE8D75","#4F3C42","#E4B39A"],249),
-        {...mark("M212 60 C171 62 130 104 121 157 "+
-          "M255 66 C217 83 187 115 174 141",
-          "#43343A",.35,262,.64),id:"crown-dark-clump-troughs"},
-        {...mark("M151 96 Q163 81 188 75 "+
-          "M223 75 Q245 71 260 77 "+
-          "M283 90 Q294 97 300 109",
-          "#F0CAB0",.28,273,.38),id:"crown-reserved-glints"},
-      ]},
-    {id:"hair-lock-left",material:"hair",palette:hair,
-      path:"M151 119 Q125 170 146 237 Q154 297 148 356 Q135 399 110 420 Q152 414 174 375 Q177 311 164 260 Q147 202 169 155 Z",
-      bounds:[108,116,75,307],direction:84,start:173,
-      details:[
-        ...flowBundles([
-          [147,153,126,401,122,278,16,14],[161,172,151,397,177,299,18,13],
-        ],1511,"#BA8E78",.31,251),
-        ...pencilRootedFur([
-          [153,137,132,406,122,280,31,9],
-          [162,173,155,399,173,281,34,9],
-          [144,189,119,402,129,305,28,10],
-          [156,254,128,407,168,348,27,9],
-        ],3167,["#C19580","#413840","#D4A58C"],245),
-        {...mark("M148 175 C130 261 147 333 127 399 "+
-          "M160 238 C175 311 160 367 145 395",
-          "#47373D",.35,269,.54),id:"hair-left-lock-occlusion"},
-      ]},
-    {id:"hair-lock-right",material:"hair",palette:hair,
-      path:"M321 122 Q349 171 330 242 Q312 308 332 368 Q342 398 357 415 Q326 413 309 389 Q290 360 294 324 Q308 249 309 189 Z",
-      bounds:[290,119,73,298],direction:83,start:173,
-      details:[
-        ...flowBundles([
-          [326,145,341,399,351,278,17,14],[312,155,314,382,302,270,18,14],
-        ],1549,"#BD9184",.31,251),
-        ...pencilRootedFur([
-          [321,140,340,405,352,265,30,9],
-          [311,172,317,396,299,300,32,9],
-          [302,198,325,386,291,303,32,8],
-          [325,263,345,399,330,345,26,8],
-        ],3191,["#C09784","#423840","#D6AA94"],245),
-        {...mark("M314 187 C334 264 303 325 327 389 "+
-          "M328 222 C326 275 333 338 343 394",
-          "#4A3B42",.34,271,.52),id:"hair-right-lock-occlusion"},
-      ]},
-    {id:"collar-left",material:"fabric",palette:shirt,
-      path:"M161 347 Q192 350 224 380 Q200 397 183 431 Q150 400 133 364 Z",
-      bounds:[131,343,95,92],direction:37,start:186,
-      details:[mark("M148 365 Q179 385 185 421","#D7E2D8",1.55,243)]},
-    {id:"collar-right",material:"fabric",palette:shirt,
-      path:"M282 350 Q307 341 341 371 Q307 394 287 429 Q275 399 256 379 Z",
-      bounds:[253,339,92,95],direction:55,start:188,
-      details:[mark("M297 354 Q305 387 291 414","#D7E2D8",1.55,244)]},
+  const faceMesh=createFace({calibrate:false,faceWidth:1.035,eyeSpacing:.08,
+    lowerFace:.12,noseWidth:.02});
+  const yaw=11.5*Math.PI/180;
+  const project=(p:readonly number[]):[number,number]=>[
+    Number((229+1.49*(p[0]*Math.cos(yaw)+(p[2]-50)*Math.sin(yaw))).toFixed(2)),
+    Number((249-1.54*p[1]+.036*(p[2]-50)).toFixed(2)),
   ];
-  return parts.map(applyPortraitAnatomy);
+  const oval=FACE_FEATURES.oval.loop.map(i=>project(faceMesh.vertices[i]));
+  const xs=oval.map(p=>p[0]),ys=oval.map(p=>p[1]);
+  const left=Math.min(...xs),right=Math.max(...xs);
+  const top=Math.min(...ys),bottom=Math.max(...ys);
+  // The frontal oval *is* the visible construction: one continuous
+  // cheek-to-gonion-to-chin-to-cheek loop, no old layers hiding beneath.
+  const silhouette=smoothPath(oval,true);
+  const main:PencilSubjectPart={
+    id:"head-construction",material:"skin",
+    palette:["#D9AA94","#986D78","#F1CCAE"],
+    path:silhouette,
+    bounds:[left-2,top-2,right-left+4,bottom-top+4],
+    direction:29,flow:15,start:62,
+    details:[
+      {...mark("M"+fmt(oval[0][0])+" "+fmt(oval[0][1]+3)+" Q"+
+        fmt((left+right)*.50)+" "+fmt((top+bottom)*.50)+" "+
+        fmt(oval[18][0])+" "+fmt(oval[18][1]-4),
+        "#A47E7B",.31,196,.31),id:"new-head-sagittal-guide"},
+      {...mark("M"+fmt(oval[25][0])+" "+fmt(oval[25][1])+" Q"+
+        fmt(left+18)+" "+fmt((top+bottom)*.58)+" "+
+        fmt(oval[18][0])+" "+fmt(oval[18][1]-7),
+        "#976F73",.33,210,.34),id:"new-head-left-mass-turn"},
+      {...mark("M"+fmt(oval[10][0])+" "+fmt(oval[10][1])+" Q"+
+        fmt(right-17)+" "+fmt((top+bottom)*.62)+" "+
+        fmt(oval[18][0]+8)+" "+fmt(oval[18][1]-6),
+        "#E9BBA4",.34,220,.35),id:"new-head-right-mass-turn"},
+    ],
+  };
+  return [main];
 }
 
 function fox():PencilSubjectPart[] {
@@ -1438,7 +942,7 @@ export function pencilLivingStudyDrawing({
   if (!Number.isFinite(pressure)||pressure<.2||pressure>1.2)
     throw new RangeError("Invalid pencil pressure");
   const parts=subject==="portrait"?face():subject==="fox"?fox():valley();
-  // Portrait films deserve a large readable hero instead of a small sticker
+  // Anatomical head-only construction remains large in film aspect, with no retired woman
   // floating in a blank page. Dedicated copy-safe top/bottom zones remain.
   const transform=aspect==="landscape"?"translate(441 35) scale(1.06)":
     subject==="valley"?"translate(-16 154) scale(1.31)":
@@ -1464,16 +968,13 @@ export function pencilLivingStudyDrawing({
     return {...region,
       // Whiskers are fine, floating pencil contacts from visible follicles;
       // never flood the chin with an opaque region or gradient undercoat.
-      layeredSkinOverParent:subject==="portrait"&&
-        (part.id==="lip-upper"||part.id==="lip-lower"),
+      layeredSkinOverParent:false,
       // Labial skin is continuous with the surrounding face. An opaque
       // paper-coloured support under each lip made a large white sticker
       // even after 3 physical pencil passes. Keep the ANAT1 rolled curves,
       // three layered pigment deposits and tonal support, but let the
       // parent face's pigment remain beneath the translucent tissue.
-      opaqueSupport:subject==="portrait"&&
-        (part.id==="lip-upper"||part.id==="lip-lower")?
-        false:subject==="fox"&&part.id==="whisker-roots"?
+      opaqueSupport:subject==="fox"&&part.id==="whisker-roots"?
         false:region.opaqueSupport,
       underpaint:subject==="fox"&&part.id==="whisker-roots"?
         undefined:region.underpaint,
@@ -1526,9 +1027,9 @@ export function pencilLivingStudyDrawing({
     }))};
   });
   const reference=subject==="portrait"?{
-    title:"Elena Pancorbo — coloured-pencil portrait studies",
-    url:"https://www.elenapancorbo.com/",
-    observation:"Almond eyelid overlap, asymmetric facial planes and individual hair group direction.",
+    title:"ANAT1 human head construction — canonical 468-vertex topology",
+    url:"https://github.com/google-ai-edge/mediapipe",
+    observation:"New anonymous head-only character: head outline and cheek/jaw volume first; eye, nose, lips, hair and clothing intentionally absent.",
   }:subject==="fox"?{
     title:"Claire Milligan — coloured-pencil wildlife and fox",
     url:"https://www.clairemilliganart.com/patreon-video-tutorials",
@@ -1547,7 +1048,7 @@ export function pencilLivingStudyDrawing({
     medium:"dry",
     references:[{...reference,rights:"technique-only"}],
     construction:subject==="portrait"?
-      "Build cranial silhouette, attached ear, orbital lids, nostrils, lips and hair root flows; preserve cheek glazing and opaque facial masses.":
+      "DRAWING 01 — fresh neutral human head, only cranial/zygomatic/jaw mass. Stop before adding any ear, eye, nose, mouth, hair or clothes. Independent ArtCraft silhouette critique required.":
       subject==="fox"?
       "Build head and ear cartilage over the torso, set eye sockets on the skull, align tapered muzzle, whisker roots and fur growth by form.":
       "Compose far mountains, stepped evergreen hierarchy, near banks and a river widening towards the camera, with directional light and aerial colour.",
