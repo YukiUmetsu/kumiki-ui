@@ -129,7 +129,7 @@ export function riso59PreviewContact(
   const joined:Riso58ContactSource={...skin,anchors:next,path:contactContour};
   const sourceId=side+"-glove";
   const mcpId=sourceId+"-knuckle-arc";
-  const negatives=new Map([
+  const negatives:ReadonlyMap<string,{at:Riso57SurfaceLandmark;skew:number}>=new Map([
     [sourceId+"-web-reserve-middle-ring",{at:"middle-ring-web",skew:.2}],
     [sourceId+"-web-reserve-ring-pinky",{at:"ring-little-web",skew:-.27}],
   ] as const);
@@ -146,7 +146,7 @@ export function riso59PreviewContact(
       if(p.plate!=="blue")throw new Error("RISO59 MCP must be original blue plate");
       contact=riso58ProjectMcpInk(p.d,joined);
     }else{
-      const mask=negatives.get(p.id as typeof changedPartIds[number]);
+      const mask=negatives.get(p.id);
       if(mask){
         if(!p.knockoutOnly||p.plate!=="red")
           throw new Error("RISO59 cannot substitute stencil overlay");
