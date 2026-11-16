@@ -1,0 +1,39 @@
+# RISO42 — ArtCraft support-digit anatomy and paper-pinching hand silhouette
+
+**Continuation:** open PR #451 (RISO41 red thumb/index contact). The RISO41 f166 native original print has thumb/index surfaces touching (closed-red gap 0), but the other **middle, ring and little fingers remain nearly extended, parallel red sticks**. The full 16:9 f160 print shows the donor's three long fingers below the paper and the receiver's other three fingers pointing horizontally beyond its top-right edge. This is a **gesture and topology** defect, not an ink-misregistration problem.
+
+## Reference study / provenance / exclusion tests
+
+1. **FAA Human Factors Design Standard** — [Exhibit 5.12.4.3, grip categories](https://hf.tc.faa.gov/publications/2016-12-human-factors-design-standard/full_text.pdf) (US government public document; illustration and text, clinical category; viewed November 2026). Precisely distinguishes *thumb-fingertip tip grip*, *thumb-finger palmar grip* and *thumb-forefinger lateral pinch*. In a tip/pad precision grip, the index/thumb are functional opposition points; the remaining digits are **independent supporting or resting fingers**. Do **not** make them four identical index fingers or assert the 2D print is verified 3D clinical anatomy.
+2. **Clinical hand grip example**, [hand osteoarthritis study, Fig. 1](https://pmc.ncbi.nlm.nih.gov/articles/PMC10477324/) (published 2023; original authors retain rights). The tip/pad grip holds thumb and index opposed while the ulnar digits flex at separate angles; noncontact fingers may remain relaxed *but are not three unbending rigid ruler stripes*. The figure is a *reference for bone articulation*, not source pixels to trace.
+3. **Genuine Risograph hand construction**, [Jennifer Colquhoun, Thumbs Up Anatomy Risoprint](https://www.illustratedlab.com/shop/p/thumbs-up) (© illustrator; printed original art). The juxtaposition of articulated bone/thenar muscle and moving distal phalanges preserves a distinct cobalt engraving hierarchy on a physical limited-ink print. Keep the editorial red silhouettes and independently registered cobalt nails, tendons, finger creases; **no photo textures, stock image tracing, Gaussian blur or deleted details**.
+4. **Actual source screenshots, not invented references:** `riso41-native-contact-review.zip` from original GitHub Actions `43800086342`, especially f160/f166 of `riso32-two-original-hands-*.png` and f160 full `landscape-two-humans-160.png`. The physical red tines and stark f166 curled-index knot are visible, as is the real two-color dot field. (The f166 thumb/index surface had already achieved closed red contact; this step deliberately avoids moving it.)
+
+## Five-axis ArtCraft deconstruction
+
+**Topology:** preserve ANAT1's *four different original* index, middle, ring, little MCP → PIP → DIP bone hierarchies on both actors, with three closed red source-Bézier parts each and their independently moving cobalt nail engraving. No flat composite mitten, added detached red blob or source clip-path masking.
+
+**Vector flow and natural gesture:** use the existing actual **ANAT1 `HAND_POSES.grip`** as a reference (not copy the full fist). Art-direct each of the three *supporting* fingers separately: middle PIP 52%/DIP 42% of grip, ring PIP 50%/DIP 40%, little PIP 55%/DIP 43%. MCP lateral fan/abduction remains entirely independent; all PIP/DIP **flexion** shares the same palmarward handedness, with distinct magnitudes per digit. Copying ring/pinky's lateral fan sign to their flexor bones caused actual middle-ring intersections and merged red distal tips in the first physical geometry test; the original bone structure had to be corrected, not the tolerance. Original editor-friendly source x/y/rotation keys and red contour geometry remain unchanged; only each independent PIP/DIP's contact angles are revised. Source trajectories are sampled continuously at all existing movie frames.
+
+**Material weight:** each originally authored red phalanx remains **solid vermilion**, each blue nail/palm crease remains its original screened cobalt. No flat uniform recoloring; preserve localized pressure and original lineweight.
+
+**Temporal rhythm:** start fully extended f0, begin toward the grip during approach, curl by f160 (donor right) or f166 (receiver left), relax donor by f205, and hold receiver's support-finger flex at a separately art-directed 72–77% of contact strength from f205–239. The true opposing index and thumb remain pressed by RISO41; do not break the real paper mask or original 178→202 physical transfer. Check all original cadence samples f0..239 (step 2), not a handful of flattering stills.
+
+**Microtexture:** preserve all original RISO37 individually source-drawn cobalt arcs and nail rims, RISO38 tapered red tip surface flow, RISO41 physical tip contact and RisoPrint ink screen and registration. Any altered perceived shape must be from **moving actual skeletal pieces**, not a digital cloth/picture filter.
+
+## Source implementation and quality criteria
+
+- `src/video/riso31-finger-phalanges.ts` exports `RISO42_SUPPORT_CURL`, with joint-specific ANAT1 grip range validation. It retargets only **middle/ring/pinky** PIP+DIP joint animation; index-only peak opposition and exact thumb IP remain as before.
+- `src/video/riso42-support-digits-gesture.ts` inspects actual evaluated 240-frame source bones and all nine **physically printed red** support pieces. The existing Storybook workbench exposes mean PIP flex and piece count next to actual source-red thumb/index separation and CMC pressure. It is a diagnostic, not a lie about a three-quarter hand view.
+- `tests/riso42-support-finger-gesture.test.ts` verifies 3 different actual source bone flexions within canonical joint limits, all nine physically attached original red shapes, all 240 frame source axes and visible print-negative-space source separation, donor recovery and independent receiver support hold.
+- Native Chromium checks f0/160/166/186/198, both isolated physical ink masters and 16:9 / 9:16 contact/release whole film. Compare physical 6.2x hand screenshots and full film at 1x.
+
+## Remaining evidence / artistic release hold
+
+RISO42 corrects an obvious **support-finger silhouette** defect; it does not yet prove 3D contact pressure, three-quarter palm foreshortening or reference-photo-verified portrait likeness. The original source's overall hand/jacket form may still be coarse and thumb/index at f166 is a too-dark compact knot. Only visual inspection of the new native print, and regressions for crossing/ink occlusion, can decide readiness of PR #451.
+
+## Independent failed-candidate and correction log (RISO42)
+
+The first proposed flexion used each finger's MCP fan *abduction* sign for the flexor PIP/DIP joint. CI source-red geometry found the receiver middle/ring and ring/pinky **physically collided** (0 source-unit fingertip gap) and two real finger axes intersected. A second timing-only attempt kept early f140 staging clear but still collided at f166 and grazed the right middle/ring at f152. Both candidates were rejected. The source fix uses **same palmar flexion handedness** for all three supporting PIP/DIP chains, preserves their lateral MCP fan and adds a short late close at f146 donor/f152 receiver rather than closing the non-index digits long before the letter arrives.
+
+The independently timed roles are essential: donor right hand peaks f160; receiver left hand peaks f166. At f160 the receiver is only partway into its support curl (~25° mean in a real Chromium run), and the browser test must verify it remains in motion, **not** demand the full f166 peak six frames early. The paired peak and 240-frame axis/real-ink gates still remain strict. These are source failures observed in actual animation, not aesthetic guesses or render filters.

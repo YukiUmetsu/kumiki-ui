@@ -45,8 +45,15 @@ describe("RISO40 real letter-contact geometry / original film FK/IK rig",()=>{
     // nor 16:9/9:16 stage should fake a sheet-to-wrist connection.
     expect(p.sourceTouching).toBe(true);
     expect(p.receiverTouching).toBe(true);
-    expect(p.sourceContactPressure).toBeGreaterThan(.95);
-    expect(p.receiverContactPressure).toBeGreaterThan(.95);
+    // RISO41: a letter merely arriving at the hand root is insufficient
+    // for a pressed wrinkle. The actual original red-pad gap is the
+    // independent source of print pressure, not a hardcoded 100% signal.
+    expect(p.sourceContactPressure).toBeCloseTo(p.donorInk.pressure,6);
+    expect(p.receiverContactPressure).toBeCloseTo(p.receiverInk.pressure,6);
+    expect(p.donorInk.inkGap).toBeLessThan(1.5);
+    expect(p.receiverInk.inkGap).toBeLessThan(3.0);
+    expect(p.sourceContactPressure).toBeGreaterThan(0);
+    expect(p.receiverContactPressure).toBeGreaterThan(0);
     expect(donor.tipDistance).toBeLessThan(12*p.first.scale);
     expect(receiver.tipDistance).toBeLessThan(12*p.second.scale);
     expect(donor.anchorToRoot).toBeGreaterThan(5*p.first.scale);

@@ -64,6 +64,38 @@ export const RISO39_INDEX_OPPOSITION={
   role:"index pinch against moving opposed thumb, not four identical curl fingers",
 } as const;
 
+/**
+ * RISO42 / ArtCraft: the other 3 digits are not rigid parallel tines while
+ * the index/thumb pinch a thin paper edge. True human side pinches keep the
+ * support fingers softly curled into the palmar plane. Draw that gesture
+ * using ORIGINAL source PIP/DIP bones, not moving their rendered SVGs as a
+ * single pasted silhouette. Individually moderated ANAT1 `HAND_POSES.grip`
+ * avoids a cartoon fist; the middle, ring and little fingers retain their
+ * different lengths and source red anatomical contours.
+ *
+ * Sign is the original finger-fan curl direction; magnitude is scaled from
+ * ANAT1's actual grip flexion, bounded below its joint clinical max.
+ */
+export const RISO42_SUPPORT_CURL={
+  middle:{pipProjection:.52,dipProjection:.42,lateReceiveFactor:.72},
+  ring:  {pipProjection:.50,dipProjection:.40,lateReceiveFactor:.74},
+  pinky: {pipProjection:.55,dipProjection:.43,lateReceiveFactor:.77},
+} as const;
+const riso42Grip=HAND_POSES.grip(".R");
+function riso42SupportFlex(digit:"middle"|"ring"|"pinky",joint:"pip"|"dip"){
+  const cfg=RISO42_SUPPORT_CURL[digit],f=RISO31_GEOMETRY[digit];
+  const clinical=riso42Grip[`finger${f.fingerIndex}-${joint}.R`]?.flex;
+  const limit=JOINTS.find(j=>j.id===`finger${f.fingerIndex}-${joint}`)?.dofs.flex;
+  if(clinical===undefined||!limit||clinical<0||clinical>limit.max)
+    throw new Error("RISO42 needs original ANAT1 support "+digit+" "+joint);
+  const factor=joint==="pip"?cfg.pipProjection:cfg.dipProjection;
+  // PIP/DIP FLEXION is palmar in the same handed direction for all digits.
+  // MCP fan abduction already sets ring/pinky lateral splay independently.
+  const flex=clinical*factor;
+  if(Math.abs(flex)>limit.max*.7)throw new RangeError("RISO42 support curl exceeds editorial ROM");
+  return flex;
+}
+
 /** Explicit source 2D curvature per joint and frame. No detached nail dot.
  * The index and little finger curl toward the middle of the palm rather than
  * four parallel copies all rotating by an identical amount. */
@@ -74,32 +106,43 @@ export function riso31PhalanxJoints(side:Riso31Side):readonly RisoJoint[]{
     const handed=side==="right"?1:-1;
     const pip=digit==="index"?
       RISO39_INDEX_OPPOSITION.fullProjectedPipFlex*handed:
-      anatomical(spec.fingerIndex,"pip")*
-        RISO31_ANAT1_REFERENCE.projectedPinchFactor*handed*spec.curlDirection;
+      riso42SupportFlex(digit,"pip")*handed;
     const dip=digit==="index"?
       RISO39_INDEX_OPPOSITION.fullProjectedDipFlex*handed:
-      anatomical(spec.fingerIndex,"dip")*
-        RISO31_ANAT1_REFERENCE.projectedPinchFactor*.66*handed*spec.curlDirection;
+      riso42SupportFlex(digit,"dip")*handed;
     const delay=side==="left"?6:0;
+    const heldReceive=side==="left"&&digit==="index";
+    const supportHold=side==="left"&&digit!=="index"?
+      RISO42_SUPPORT_CURL[digit].lateReceiveFactor:0;
+    const atRelease=heldReceive?1:supportHold?Math.max(supportHold,.85):.58;
+    const atFinal=heldReceive?1:supportHold||.14;
     result.push({
       id:prefix+"-pip",parent:prefix,x:0,y:spec.proximal,keys:[
         {frame:0,rotate:0,easing:"ease"},
-        {frame:96,rotate:1*handed*spec.curlDirection,easing:"ease"},
-        {frame:126,rotate:2*handed*spec.curlDirection,easing:"ease"},
+        {frame:96,rotate:1*handed*(digit==="index"?spec.curlDirection:1),easing:"ease"},
+        {frame:126,rotate:2*handed*(digit==="index"?spec.curlDirection:1),easing:"ease"},
+        // Support digits begin their inward tuck only when the page comes
+        // into fingertip range. Earlier f126–140 global curl made the
+        // ring/little source-bone axes graze the neighboring fingers.
+        ...(digit==="index"?[]:[{frame:146+delay,
+          rotate:3*handed,easing:"ease" as const}]),
         {frame:160+delay,rotate:pip,easing:"ease"},
-        {frame:180+delay,rotate:pip*.58,easing:"ease"},
-        {frame:205,rotate:pip*.14,easing:"ease"},
-        {frame:239,rotate:pip*.14},
+        ...(side==="right"&&digit==="index"?[{frame:178,rotate:pip,easing:"ease" as const}]:[]),
+        {frame:180+delay+(side==="right"&&digit==="index"?6:0),rotate:pip*atRelease,easing:"ease"},
+        {frame:205,rotate:pip*atFinal,easing:"ease"},
+        {frame:239,rotate:pip*atFinal},
       ],
     },{
       id:prefix+"-dip",parent:prefix+"-pip",x:0,y:spec.intermediate,keys:[
         {frame:0,rotate:0,easing:"ease"},
         {frame:96,rotate:0,easing:"ease"},
         {frame:126,rotate:0,easing:"ease"},
+        ...(digit==="index"?[]:[{frame:146+delay,rotate:0,easing:"ease" as const}]),
         {frame:160+delay,rotate:dip,easing:"ease"},
-        {frame:180+delay,rotate:dip*.62,easing:"ease"},
-        {frame:205,rotate:dip*.14,easing:"ease"},
-        {frame:239,rotate:dip*.14},
+        ...(side==="right"&&digit==="index"?[{frame:178,rotate:dip,easing:"ease" as const}]:[]),
+        {frame:180+delay+(side==="right"&&digit==="index"?6:0),rotate:dip*atRelease,easing:"ease"},
+        {frame:205,rotate:dip*atFinal,easing:"ease"},
+        {frame:239,rotate:dip*atFinal},
       ],
     });
   }

@@ -14,6 +14,7 @@ import {COURIER} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts,RISO30_GRIP_FOREGROUND_IDS} from "./riso-hand-artcraft";
 import {evaluateRiso40PaperGrip} from "./riso40-paper-fingertip-contact";
+import {inspectRiso41InkPressure} from "./riso41-contact-pressure";
 import {refineRiso37SourceEngraving} from "./riso37-anatomical-engraving";
 import {riso31SegmentIds} from "./riso31-finger-phalanges";
 import {riso32ThumbDistalId} from "./riso32-thumb-ip";
@@ -354,6 +355,8 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
   // the original actors' ANAT1 thumb IP / index DIP source joint transforms.
   const donorGrip=evaluateRiso40PaperGrip(COURIER,frame,"right",first);
   const artistGrip=evaluateRiso40PaperGrip(PAPER_ARTIST,frame,"left",second);
+  const donorInk=inspectRiso41InkPressure(COURIER,frame,"right");
+  const receiverInk=inspectRiso41InkPressure(PAPER_ARTIST,frame,"left");
   const a=donorGrip.paperAnchor,b=artistGrip.paperAnchor;
   // Preserve the exact Riso-prop-handoff independently seeking release rule:
   // absolute releaseStart anchors come from the same 2 source rigs, not a
@@ -368,16 +371,32 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
   // continuously and disappear rather than hovering around an empty grip.
   const pressureAt=(grip:number,edge:{x:number;y:number},hand:{x:number;y:number})=>
     grip*Math.max(0,Math.min(1,1-Math.hypot(edge.x-hand.x,edge.y-hand.y)/12));
-  const sourceContactPressure=pressureAt(handoff.sourceGrip,handoff.paperStart,a);
-  const receiverContactPressure=pressureAt(handoff.receiverGrip,handoff.paperEnd,b);
+  // Only draw physically *pressed* cobalt creases when the real moving red
+  // index and thumb pad approaches. Paper-at-wrist is not enough. Existing
+  // smooth grip/release and exact sheet-end alignment remain independent.
+  const sourceContactPressure=pressureAt(handoff.sourceGrip,handoff.paperStart,a)*
+    donorInk.pressure;
+  const receiverContactPressure=pressureAt(handoff.receiverGrip,handoff.paperEnd,b)*
+    receiverInk.pressure;
+  // RISO41 native f186 artifact exposed a REAL z-order defect: the
+  // courier's red fingertips were still printed OVER the letter while the
+  // measured true red pad gap had already opened (0% pressure). The generic
+  // handoff's wrist-to-paper range cannot certify distal-print contact.
+  // While the source is actively releasing, permit its foreground only
+  // if the original opposed red pads are still actually near each other.
+  // Before release, the palm can support the unfolding sheet unpinched.
+  const sourceTouching=handoff.sourceTouching&&
+    (frame<handoffSchedule.releaseStart||donorInk.pressure>.01);
+  const receiverTouching=handoff.receiverTouching&&receiverInk.pressure>.01;
   // One material geometry drives the actual knockout and both spot masters.
   // It inherits the two real hand joints and release schedule, no local clock.
   const printDetails=evaluateRisoTransferSheet(
     handoff.paperStart,handoff.paperEnd,handoff.progress,
     {...paperOptions,sourceGrip:sourceContactPressure,
       receiverGrip:receiverContactPressure});
-  return {...handoff,sourceContactPressure,receiverContactPressure,
-    donorGrip,artistGrip,
+  return {...handoff,sourceTouching,receiverTouching,
+    sourceContactPressure,receiverContactPressure,
+    donorGrip,artistGrip,donorInk,receiverInk,
     frame,aspect,width,height,first,second,source:a,receiver:b,
     propEnd:handoff.paperEnd,progress:handoff.progress,
     sheet:printDetails.outline,printDetails};
@@ -665,6 +684,10 @@ export function RisoHumanEnsembleStudio(){
           data-km-riso-human-ensemble-paper-curl={paperCurl}
           data-km-riso-human-ensemble-grip-pinch={gripPinch}
           data-km-riso-human-ensemble-imprint-depth={imprintDepth}
+          data-km-riso41-donor-ink-gap={state.donorInk.inkGap.toFixed(3)}
+          data-km-riso41-receiver-ink-gap={state.receiverInk.inkGap.toFixed(3)}
+          data-km-riso41-donor-pad-pressure={state.donorInk.pressure.toFixed(3)}
+          data-km-riso41-receiver-pad-pressure={state.receiverInk.pressure.toFixed(3)}
           data-km-riso40-donor-pad-distance={state.donorGrip.tipDistance.toFixed(3)}
           data-km-riso40-receiver-pad-distance={state.artistGrip.tipDistance.toFixed(3)}
           data-km-riso40-source-fingertip-anchor={state.donorGrip.anchorToRoot.toFixed(3)}

@@ -69,6 +69,35 @@ test("RISO32 moving thumb IP remains attached at contact, release and both ink m
       const panelId=await panel.getAttribute("data-km-riso30-hand");
       if((frame===160&&panelId==="courier-right")||
          (frame===166&&panelId==="paper-artist-left"))expect(opposedGap).toBeLessThan(12);
+      // RISO41 source-red pad contact: require a real opposed print gap
+      // at its peak without faking proximity by shifting a paper overlay.
+      const realGap=Number(await panel.getAttribute("data-km-riso41-actual-red-pad-gap"));
+      const paperPressure=Number(await panel.getAttribute("data-km-riso41-press-ink"));
+      expect(realGap).toBeCloseTo(padInkGap,3);
+      expect(paperPressure).toBeGreaterThanOrEqual(0);
+      expect(paperPressure).toBeLessThanOrEqual(1);
+      if((frame===160&&panelId==="courier-right")||
+        (frame===166&&panelId==="paper-artist-left")){
+        expect(realGap).toBeLessThan(1.5);
+        expect(paperPressure).toBeGreaterThan(0);
+      }
+      // RISO42 live source support digit flex. Former three RED parallel
+      // tines must become genuinely articulated ANAT1 PIP/DIP bone pieces.
+      await expect(panel).toHaveAttribute("data-km-riso42-support-red-bones","9");
+      const supportFlex=Number(await panel.getAttribute("data-km-riso42-support-pip-flex"));
+      expect(Number.isFinite(supportFlex)).toBe(true);
+      if(frame===0)expect(supportFlex).toBeLessThan(.01);
+      // The donor closes at f160, the receiver at f166: do not require
+      // the receiver to have finished closing six real frames prematurely.
+      if((frame===160&&panelId==="courier-right")||
+         (frame===166&&panelId==="paper-artist-left")){
+        expect(supportFlex).toBeGreaterThan(32);
+        expect(supportFlex).toBeLessThan(55);
+      }
+      if(frame===160&&panelId==="paper-artist-left")
+        expect(supportFlex).toBeGreaterThan(20);
+      if(frame===239&&panelId==="paper-artist-left")
+        expect(supportFlex).toBeGreaterThan(20);
       const measured=Number(await panel.getAttribute("data-km-riso33-minimum-axis-gap"));
       expect(Number.isFinite(measured)).toBe(true);
       if(frame===160||frame===166){
