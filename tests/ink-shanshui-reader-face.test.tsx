@@ -196,8 +196,8 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     const featureLines=nose.filter(shape=>shape.type==="path"&&
       shape.stroke!=="none"&&shape.stroke!=="$paper");
     expect(featureLines.length).toBeGreaterThanOrEqual(5);
-    expect(featureLines.every(shape=>shape.strokeWidth<=.65)).toBe(true);
-    expect(featureLines.every(shape=>shape.opacity<=.65)).toBe(true);
+    expect(featureLines.every(shape=>(shape.strokeWidth??0)<=.65)).toBe(true);
+    expect(featureLines.every(shape=>(shape.opacity??1)<=.65)).toBe(true);
     expect(readerFaceAnatomy(1).nose).toEqual(nose);
     expect(makeShanshuiScholar(1,.88,"river-scholar").parts
       .find(x=>x.id==="head")?.rest).toEqual(
