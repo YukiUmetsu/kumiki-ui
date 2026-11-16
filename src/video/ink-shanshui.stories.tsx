@@ -724,7 +724,7 @@ function InkFilmContinuityStudio(){
       gap:16,alignContent:"start"}}>
     <header style={{maxWidth:1050}}>
       <h1 style={{font:"400 32px Georgia,serif",margin:"0 0 10px"}}>
-        Ink continuity · four real film moments
+        Landscape ink continuity · four distinct stage frames
       </h1>
       <p style={{margin:0}}>
         Compare true production SVG frames at identical camera, paper,
@@ -752,8 +752,8 @@ function InkFilmContinuityStudio(){
         </select>
       </label>
       {([
-        ["First frame",baseFrame,setBaseFrame,0,SHANSHUI_FRAMES-1,1],
-        ["Frame interval",frameStep,setFrameStep,1,120,1],
+        ["First frame",baseFrame,setBaseFrame,0,SHANSHUI_FRAMES-1-3*frameStep,1],
+        ["Frame interval",frameStep,setFrameStep,1,Math.floor((SHANSHUI_FRAMES-1-baseFrame)/3),1],
         ["Seed",seed,setSeed,1,199,1],
         ["Detail",detail,setDetail,0,1,.05],
         ["Ink load",ink,setInk,0,1,.05],
@@ -779,7 +779,7 @@ function InkFilmContinuityStudio(){
         style={{display:"grid",gap:7}}>
         <strong>Moment {index+1} · absolute frame {frame}</strong>
         <div style={{position:"relative",width:468,height:264,
-          maxWidth:"100%",overflow:"hidden",background:"#f3e6cd",
+          maxWidth:"100%",overflowX:"auto",overflowY:"hidden",background:"#f3e6cd",
           border:"1px solid #b8aa96"}}>
           <div style={{transform:"scale(.4875)",transformOrigin:"top left",
             width:960,height:540}}>
@@ -790,8 +790,8 @@ function InkFilmContinuityStudio(){
     </div>
     <p style={{margin:0,maxWidth:1000,fontSize:12,color:"#6f5c49"}}>
       Review both full-frame 16:9 composition and four distinct temporal
-      samples. The frame slider clamps at the end of the source film; repeated
-      final frames are intentional. Reset preserves exact default comparison.
+      samples. First frame and interval stay within the film range, so all four
+      source stages are distinct. Reset restores the same exact comparison.
       Structural checks do not replace native visual judgement.
     </p>
   </main>;
