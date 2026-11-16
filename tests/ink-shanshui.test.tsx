@@ -1249,6 +1249,67 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(paint("early-spring")).not.toContain("data-km-master-stroke-source-zone=");
   });
 
+  it("opens four actual hero ribs to paper without sacrificing any folded parent course",()=>{
+    const paint=(school:"fuchun"|"early-spring",detail=1,seed=71,mist=.35)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,detail,seed,mist},
+      }));
+    const full=paint("fuchun");
+    const ribs=[...full.matchAll(
+      /data-km-rock-hero-rib="" data-km-rock-hero-rib-root="([^"]+)" data-km-rock-hero-rib-support="[012]" data-km-rock-hero-rib-course="folded-3"/g,
+    )];
+    const reserves=[...full.matchAll(
+      /<mask data-km-rock-hero-rib-reserve="" id="([^"]+)" /g,
+    )];
+    const bodies=[...full.matchAll(
+      /data-km-rock-hero-face="" d="([^"]+)" fill="[^"]+" mask="url\(#([^"]+)\)"/g,
+    )];
+    const witness=[...full.matchAll(
+      /data-km-rock-hero-crease=""[^>]*mask="url\(#([^"]+)\)"/g,
+    )];
+    expect(ribs).toHaveLength(4);
+    expect(reserves).toHaveLength(4);
+    expect(bodies).toHaveLength(4);
+    expect(witness).toHaveLength(4);
+    expect(new Set(reserves.map(m=>m[1])).size).toBe(4);
+    expect(bodies.map(m=>m[2])).toEqual(reserves.map(m=>m[1]));
+    expect(witness.map(m=>m[1])).toEqual(reserves.map(m=>m[1]));
+    for(let i=0;i<4;i++){
+      const from=reserves[i].index!;
+      const mask=full.slice(from,full.indexOf("</mask>",from)+7);
+      expect(mask).toContain('style="mask-type:luminance"');
+      expect(mask).toContain('fill="#fff"');
+      const slits=[...mask.matchAll(
+        /data-km-rock-hero-rib-paper-slit="" data-km-rock-hero-rib-paper-stage="([012])" data-km-rock-hero-rib-paper-station="([^"]+)" d="([^"]+)" /g,
+      )];
+      expect(slits).toHaveLength(6);
+      expect(slits.map(m=>Number(m[1]))).toEqual([0,0,1,1,2,2]);
+      expect(slits.map(m=>Number(m[2]))).toEqual([
+        .38,.7,.38,.7,.38,.7,
+      ]);
+      expect(slits.every(m=>(m[3].match(/ Q/g)??[]).length===1&&
+        (m[3].match(/-?\d+(?:\.\d+)?/g)??[]).length===6))
+        .toBe(true);
+      expect(mask).toContain('stroke="#000"');
+      expect((bodies[i][1].match(/ C/g)??[]).length)
+        .toBeGreaterThanOrEqual(90);
+    }
+    expect((full.match(/data-km-rock-hero-rib-deposit="" /g)??[]))
+      .toHaveLength(12);
+    expect((full.match(/data-km-rock-hero-fibre="" /g)??[]))
+      .toHaveLength(8);
+    expect(paint("fuchun",1,71)).toEqual(full);
+    expect(paint("fuchun",1,87)).not.toEqual(full);
+    expect([...paint("fuchun",1,71,.88).matchAll(
+      /<mask data-km-rock-hero-rib-reserve="" id="([^"]+)" /g,
+    )].map(m=>m[1])).toEqual(reserves.map(m=>m[1]));
+    expect(paint("fuchun",.5)).not.toContain(
+      'data-km-rock-hero-rib-reserve=""');
+    expect(paint("early-spring")).not.toContain(
+      'data-km-rock-hero-rib-reserve=""');
+  });
+
   it("preserves Fuchun loaded fibres while opening true negative dry-paper reserves",()=>{
     const paint=(school:"fuchun"|"early-spring",seed=71,detail=1,
       mist=.35)=>renderToStaticMarkup(createElement(InkShanshuiStage,{
