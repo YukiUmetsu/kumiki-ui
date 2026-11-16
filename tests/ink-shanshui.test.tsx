@@ -3140,6 +3140,36 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(ridge(candidate,band)).toEqual(ridge(legacy,band));
     // Same exact clip, ink and downstream ridge-derived features; changing
     // the actual near ridge changes the child painter's root positions.
+    expect(legacy).not.toContain('data-km-fuchun-near-relief=""');
+    expect((candidate.match(/data-km-fuchun-near-relief=""/g)??[])).toHaveLength(1);
+    expect((candidate.match(/data-km-fuchun-near-bank=""/g)??[])).toHaveLength(4);
+    expect((candidate.match(/data-km-fuchun-near-bank-wash=""/g)??[])).toHaveLength(4);
+    expect((candidate.match(/data-km-fuchun-near-bank-broken-crest=""/g)??[]))
+      .toHaveLength(8);
+    expect((candidate.match(/data-km-fuchun-near-hemp=""/g)??[])).toHaveLength(28);
+    expect((candidate.match(/data-km-fuchun-near-deposit=""/g)??[])).toHaveLength(12);
+    const banks=[...candidate.matchAll(
+      /data-km-fuchun-near-bank-source="([^"]+)" data-km-fuchun-near-bank-order="(\d+)" data-km-fuchun-near-bank-contour="([^"]+)"/g,
+    )];
+    expect(banks).toHaveLength(4);
+    for(const [i,bank] of banks.entries()){
+      const [left,right]=bank[1].split(";").map(point=>point.split(",").map(Number));
+      expect(Number(bank[2])).toBe(i);
+      expect(left.every(Number.isFinite)).toBe(true);
+      expect(right.every(Number.isFinite)).toBe(true);
+      expect(right[0]).toBeGreaterThan(left[0]+75);
+      expect(bank[3]).toMatch(/^M[-.\d]+ [-.\d]+ C/);
+      expect(bank[3].endsWith(" Z")).toBe(true);
+    }
+    const fineRoots=[...candidate.matchAll(
+      /data-km-fuchun-near-hemp-root="([^"]+)" data-km-fuchun-near-hemp-axis="([^"]+)"/g,
+    )];
+    expect(fineRoots).toHaveLength(28);
+    for(const [,root,axis] of fineRoots){
+      expect(axis.startsWith("M"+root.replace(","," ")+" C")).toBe(true);
+    }
+    expect([...candidate87.matchAll(/data-km-fuchun-near-bank-contour="([^"]+)"/g)]
+      .map(m=>m[1])).not.toEqual(banks.map(b=>b[3]));
     expect(candidate).toContain('data-km-rock-plane-family="2"');
     const roots=(html:string)=>[...html.matchAll(
       /data-km-rock-plane-root="([^"]+)"/g,
