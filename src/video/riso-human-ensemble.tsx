@@ -378,13 +378,24 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
     donorInk.pressure;
   const receiverContactPressure=pressureAt(handoff.receiverGrip,handoff.paperEnd,b)*
     receiverInk.pressure;
+  // RISO41 native f186 artifact exposed a REAL z-order defect: the
+  // courier's red fingertips were still printed OVER the letter while the
+  // measured true red pad gap had already opened (0% pressure). The generic
+  // handoff's wrist-to-paper range cannot certify distal-print contact.
+  // While the source is actively releasing, permit its foreground only
+  // if the original opposed red pads are still actually near each other.
+  // Before release, the palm can support the unfolding sheet unpinched.
+  const sourceTouching=handoff.sourceTouching&&
+    (frame<handoffSchedule.releaseStart||donorInk.pressure>.01);
+  const receiverTouching=handoff.receiverTouching&&receiverInk.pressure>.01;
   // One material geometry drives the actual knockout and both spot masters.
   // It inherits the two real hand joints and release schedule, no local clock.
   const printDetails=evaluateRisoTransferSheet(
     handoff.paperStart,handoff.paperEnd,handoff.progress,
     {...paperOptions,sourceGrip:sourceContactPressure,
       receiverGrip:receiverContactPressure});
-  return {...handoff,sourceContactPressure,receiverContactPressure,
+  return {...handoff,sourceTouching,receiverTouching,
+    sourceContactPressure,receiverContactPressure,
     donorGrip,artistGrip,donorInk,receiverInk,
     frame,aspect,width,height,first,second,source:a,receiver:b,
     propEnd:handoff.paperEnd,progress:handoff.progress,
