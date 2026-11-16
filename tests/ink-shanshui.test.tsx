@@ -3204,6 +3204,16 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
     expect((candidate.match(/data-km-rock-plane-flow="original"/g)??[]))
       .toHaveLength(19);
+    // Source-ridge clipping prevents a cubic's overshoot from painting
+    // into the sky without removing any real 17 brush paths or moss.
+    expect(candidate).toContain('data-km-rock-plane-source-clip=""');
+    expect(legacy).not.toContain('data-km-rock-plane-source-clip=""');
+    const sourceClip=candidate.match(
+      /<clipPath id="([^"]+source-supported-near-ink-2)" clipPathUnits="userSpaceOnUse"><path d="([^"]+)"\/><\/clipPath>/,
+    );
+    expect(sourceClip).not.toBeNull();
+    expect(sourceClip?.[2]).toBe(ridge(candidate,2));
+    expect(candidate).toContain('clip-path="url(#'+sourceClip?.[1]+')"');
     expect(candidate).toContain('data-km-rock-plane-family="2"');
     const roots=(html:string)=>[...html.matchAll(
       /data-km-rock-plane-root="([^"]+)"/g,
