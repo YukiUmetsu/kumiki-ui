@@ -1442,27 +1442,32 @@ function MountainHeroCliff({root,stations,seed,mist,detail}:{
       const support=parentFaces[supportIndex];
       const brow=quadraticPoint(support.a,support.cap,support.belly,.32);
       const shoulder=quadraticPoint(support.a,support.cap,support.belly,.76);
+      // The v42 native film crop exposed a sharp lightning-bolt return:
+      // three mathematically connected pieces were visually WORSE than
+      // long hemp. Huang's loaded fibres drift slowly across rounded
+      // cheek banks, with directional change in slope, NOT x hairpins.
+      // The *same* painted parent bank bends the flow only a few units.
+      const browBias=clamp((brow[0]-r[0])*.105,-2.6,2.6);
+      const shoulderBias=clamp((shoulder[0]-r[0])*.065,-2.2,2.2);
       const knee:P=[
-        r[0]+(brow[0]-r[0])*.76+rib.side*2.4,
-        r[1]+length*(.26+.035*s(seed+5557,i*19)),
+        r[0]+swing*(.31+.025*s(seed+5551,i*17))+browBias,
+        r[1]+length*(.27+.03*s(seed+5557,i*19)),
       ];
       const returning:P=[
-        r[0]+(shoulder[0]-r[0])*.34-rib.side*
-          (5.7+2.7*s(seed+5563,i*29)),
-        r[1]+length*(.57+.05*s(seed+5573,i*13)),
+        r[0]+swing*(.58+.03*s(seed+5563,i*29))+shoulderBias,
+        r[1]+length*(.59+.025*s(seed+5573,i*13)),
       ];
       const tip:P=[
-        r[0]+swing*.77+(support.belly[0]-r[0])*.08,
-        r[1]+length*(i%3===0?.87:.96),
+        r[0]+swing*.84+clamp((support.belly[0]-r[0])*.045,-2,2),
+        r[1]+length*(i%3===0?.89:.96),
       ];
-      // C1 continuity at both direction changes: short arch into the
-      // loaded bank, reverse at its geological shoulder, then a lighter
-      // down-slope release. Each section is a genuine 37-station,
-      // pressure-tapered painted ribbon, not a CSS filter or SVG line.
-      const tangentA:P=[rib.side*(5+4*s(seed+5581,i*23)),
-        length*.13];
-      const tangentB:P=[-rib.side*(7+3*s(seed+5591,i*31)),
-        length*.14];
+      // Signed coherent tangents keep C1-continuous calligraphic flow
+      // while intentionally changing the banks' longitudinal pitch.
+      // Neither a stiff straight edge nor a pasted sawtooth is valid.
+      const tangentA:P=[swing*(.13+.04*s(seed+5581,i*23)),
+        length*.15];
+      const tangentB:P=[swing*(.14+.04*s(seed+5591,i*31)),
+        length*.15];
       const sections=[
         {a:r,c1:[r[0]+rib.side*2.6,r[1]-length*.08] as P,
           c2:[knee[0]-tangentA[0],knee[1]-tangentA[1]] as P,
