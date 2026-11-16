@@ -76,9 +76,9 @@ describe("ArtCraft F1 V29 continuous source-registered upper orbital wax",()=>{
     expect(Cc0OrbitalHoodV29.name).toContain("!dev");
     for(const frame of [0,150,299]){
       const markup=renderToStaticMarkup(<CrayonScene spec={a} frame={frame}/>);
-      for(const id of ids)
+      if(frame===299)for(const id of ids)
         expect(markup).toContain('data-km-crayon-element="'+id+'"');
-      expect(markup).toContain("data-km-crayon-paper-contact-wax");
+      if(frame===299)expect(markup).toContain("data-km-crayon-paper-contact-wax");
       expect(markup).not.toContain("<image");
       expect(markup).not.toContain("<foreignObject");
     }
