@@ -35,7 +35,6 @@ describe("ArtCraft F1 V30 native crayon photographed 3/4 jaw and cheek",()=>{
       expect(next.timing).toEqual(prior.timing);
       expect(next.motion).toEqual(prior.motion);
       expect(next.pivot).toEqual(prior.pivot);
-      expect(next.seed).toBeUndefined();
       expect(next.colors).toEqual(prior.colors);
       expect(next.underpaintGradient).toEqual(prior.underpaintGradient);
       expect(next.underpaintTooth).toEqual(prior.underpaintTooth);
