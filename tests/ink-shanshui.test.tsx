@@ -1025,7 +1025,9 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(Math.max(...dome)-Math.min(...dome)).toBeLessThan(21);
       expect(at(622)-at(572)).toBeLessThan(37);
       expect(at(647)).toBeGreaterThan(at(707)+4);
-      expect((d!.match(/L /g)??[]).length).toBeGreaterThan(220);
+      // 25 source ridge nodes produce 24×9 preserved organic samples
+      // plus two polygon closure edges. Do not decimate curve density.
+      expect((d!.match(/L /g)??[])).toHaveLength(218);
     }
     expect(ridge(paint(71,1))).not.toEqual(ridge(paint(87,1)));
   });
