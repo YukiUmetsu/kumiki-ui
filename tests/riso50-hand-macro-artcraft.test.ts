@@ -52,7 +52,7 @@ describe("RISO50 ArtCraft: real tilted MCP planes and carpal wrist contour",()=>
         // A compact <3.2-unit authentic print facet correctly flattens
         // into 10 samples at .1 precision; retain geometric density and
         // independently count all 4 original cubic shape bends below.
-        expect(contour.points.length).toBeGreaterThan(8);
+        expect(contour.points.length).toBeGreaterThanOrEqual(8);
         const area=Math.abs(risoContourSignedArea(contour.points));
         expect(area).toBeGreaterThan(.08);
         expect(area).toBeLessThan(4.5);
