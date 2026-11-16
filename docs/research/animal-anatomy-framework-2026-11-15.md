@@ -96,8 +96,20 @@ the head low on a short neck, and its legs are thicker.
 **Lying down.** Hooved animals now lie down, forelegs folded under the chest, where the others sit (ANIM1's postures:
 cattle, deer and horses do not sit).
 
-**Not changed:** the tanuki, the rabbit and the mouse (deliberate); the ox's head shape, which is still long and
-goat-like. Walk, run and sit frames were checked after the change.
+**Not changed:** the tanuki, the rabbit and the mouse (deliberate). Walk, run and sit frames were checked after the
+change.
+
+**Ox head (2026-11-16).** The ox now has its own head (`oxHead`), drawn after a bull in profile and ANIM1's cattle face:
+
+- a broad, flat forehead and a straight face down to a deep, square muzzle with a wide nose pad and a comma nostril;
+- the large eye high under a bony orbit (0.6 of the head back from the nose), with a pale lid rim so it reads on the
+  black coat;
+- the round cheek muscle;
+- the curly poll of the Japanese Black between shorter horns;
+- broad ears held straight back in the world whatever the head's tilt, fringed pale inside.
+
+Square on and from behind, the ears stand out sideways below the horns; they were tall horse ears floating above the
+head.
 
 ## Boar and bear legs
 
@@ -349,8 +361,7 @@ parents to scale, and crane, duck, sparrow and pheasant chicks.
 - Front and back constructions in ANIM1 (styles draw their own).
 - Leaping, take-off and landing; birds on a perch (gripping a branch rather than standing on the ground).
 - Young animals' postures and gaits are the adults' (a foal's gangly walk is not modelled).
-- The tanuki, rabbit and mouse stay low as drawn (owner to confirm the tanuki); the UKIYO1 ox's head is still
-  goat-like.
+- The tanuki, rabbit and mouse stay low as drawn (owner to confirm the tanuki).
 - Measured, not estimated, colours and faces.
 - Recordings for most animal voices; the search terms are listed per species.
 - No owner viewing review yet.
