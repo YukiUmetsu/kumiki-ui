@@ -17,6 +17,7 @@ import {riso47PalmContour} from "./riso47-palmar-cup";
 import {riso48ProjectedPivot} from "./riso48-projected-support";
 import {riso51MorphSourcePart} from "./riso51-view-conditioned-source";
 import {riso53ReorderPalmarInk} from "./riso53-palmar-depth-composition";
+import {riso54ApplyWebReserves} from "./riso54-interdigital-paper-reserve";
 import {riso43FrontIndexIds} from "./riso43-physical-paper-depth";
 import {inspectRiso44PrintedIndexContact} from "./riso44-source-index-paper-contact";
 import {evaluateRiso40PaperGrip} from "./riso40-paper-fingertip-contact";
@@ -318,11 +319,11 @@ export const PAPER_ARTIST:RisoCharacterSpec={
   expressions:[{frame:0,name:"neutral"},{frame:76,name:"blink"},
     {frame:81,name:"neutral"},{frame:156,name:"speak"},
     {frame:180,name:"neutral"},{frame:198,name:"smile"}],
-  parts:riso53ReorderPalmarInk([...legs,...coatPieces,...arms,
+  parts:riso54ApplyWebReserves(riso53ReorderPalmarInk([...legs,...coatPieces,...arms,
     ...risoHandArtcraftParts("paper-artist","left"),
     ...risoHandArtcraftParts("paper-artist","right"),
     ...facePieces].map(p=>riso51MorphSourcePart(p,"paper-artist")),
-    "paper-artist"),
+    "paper-artist"),"paper-artist"),
 };
 function category(part:RisoCharacterPart):RisoMeshCategory{
   if(part.id.startsWith("hair"))return "hair";
