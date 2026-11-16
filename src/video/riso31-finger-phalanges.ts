@@ -77,9 +77,9 @@ export const RISO39_INDEX_OPPOSITION={
  * ANAT1's actual grip flexion, bounded below its joint clinical max.
  */
 export const RISO42_SUPPORT_CURL={
-  middle:{pipProjection:.63,dipProjection:.55,lateReceiveFactor:.72},
-  ring:  {pipProjection:.65,dipProjection:.57,lateReceiveFactor:.74},
-  pinky: {pipProjection:.67,dipProjection:.59,lateReceiveFactor:.77},
+  middle:{pipProjection:.56,dipProjection:.49,lateReceiveFactor:.72},
+  ring:  {pipProjection:.56,dipProjection:.47,lateReceiveFactor:.74},
+  pinky: {pipProjection:.57,dipProjection:.48,lateReceiveFactor:.77},
 } as const;
 const riso42Grip=HAND_POSES.grip(".R");
 function riso42SupportFlex(digit:"middle"|"ring"|"pinky",joint:"pip"|"dip"){
