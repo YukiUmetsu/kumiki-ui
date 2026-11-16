@@ -497,21 +497,22 @@ test("ArtCraft: new human head's anatomy-rooted pencil contacts are a native rev
       .toHaveCount(1);
     const enhanced=await svg.screenshot({animations:"disabled",
       path:info.outputPath("pencil-head-contour-contacts-"+format+".png")});
-    const enhancedMarks=await svg.locator("[data-km-pigment-layer] path").count();
-    const enhancedPathBytes=await svg.locator("[data-km-pigment-layer] path")
+    const enhancedMarks=await svg.locator('[data-km-pencil-trace^="newhead-plane-"]').count();
+    const enhancedPathBytes=await svg.locator('[data-km-pencil-trace^="newhead-plane-"]')
       .evaluateAll(nodes=>nodes.reduce((sum,node)=>
         sum+(node.getAttribute("d")?.length??0),0));
     await toggle.uncheck();
     await expect(scene).toHaveAttribute("data-km-contour-craft","off");
     const earlier=await svg.screenshot({animations:"disabled",
       path:info.outputPath("pencil-head-no-contacts-"+format+".png")});
-    const earlierMarks=await svg.locator("[data-km-pigment-layer] path").count();
-    const earlierPathBytes=await svg.locator("[data-km-pigment-layer] path")
+    const earlierMarks=await svg.locator('[data-km-pencil-trace^="newhead-plane-"]').count();
+    const earlierPathBytes=await svg.locator('[data-km-pencil-trace^="newhead-plane-"]')
       .evaluateAll(nodes=>nodes.reduce((sum,node)=>
         sum+(node.getAttribute("d")?.length??0),0));
     expect(enhanced.equals(earlier)).toBe(false);
-    // No extra SVG trace node is added (CP-F1 keeps the 80-trace cap).
-    // Instead all extra dry contacts are genuine additional path segments.
+    // The actual 54 authored graphite/pigment detail paths, NOT the
+    // separate generic hatching under [data-km-pigment-layer], carry the
+    // six extra contiguous contact subpasses without new SVG trace nodes.
     expect(enhancedMarks).toBe(earlierMarks);
     expect(enhancedPathBytes).toBeGreaterThan(earlierPathBytes);
     expect(await svg.locator("image,foreignObject,feImage").count()).toBe(0);
