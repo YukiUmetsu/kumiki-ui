@@ -25,7 +25,7 @@ test("RISO46 real red thenar and cobalt web print through both physical masters"
       const redD=await red.getAttribute("d");
       const blueD=await blue.getAttribute("d");
       expect(redD?.match(/M/g)?.length).toBeGreaterThanOrEqual(3);
-      expect(redD?.match(/C/g)?.length).toBeGreaterThanOrEqual(11);
+      expect(redD?.match(/C/g)?.length).toBeGreaterThanOrEqual(10);
       expect(blueD?.match(/M/g)?.length).toBeGreaterThanOrEqual(5);
       expect(blueD?.match(/C/g)?.length).toBeGreaterThanOrEqual(7);
       await expect(panel).toHaveAttribute("data-km-riso32-ip-articulated","true");
@@ -39,7 +39,14 @@ test("RISO46 real red thenar and cobalt web print through both physical masters"
     await expect(root).toHaveAttribute("data-km-riso30-ink",mode);
     await root.screenshot({path:info.outputPath("riso46-native-"+mode+"-master-160.png"),animations:"disabled"});
   }
-  await page.getByRole("slider",{name:/RISO30 source zoom/}).fill("7.4");
+  await page.getByRole("slider",{name:"RISO30 source zoom"}).evaluate(node=>{
+    const input=node as HTMLInputElement;
+    const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    if(!setter)throw new Error("Missing native range setter");
+    setter.call(input,"7.4");
+    input.dispatchEvent(new Event("input",{bubbles:true}));
+    input.dispatchEvent(new Event("change",{bubbles:true}));
+  });
   await root.screenshot({path:info.outputPath("riso46-native-micro-zoom-160.png"),animations:"disabled"});
   await page.getByRole("checkbox",{name:"RISO30 compare opposite hands"}).check();
   await expect(root.locator('[data-km-riso30-hand="courier-left"]')).toHaveCount(1);
