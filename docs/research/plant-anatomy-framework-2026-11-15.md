@@ -110,3 +110,85 @@ No owner review yet.
 
 The ukiyo-e pine, cherry and willow are now grown by FLORA1, and a plum motif (`ume`) was added. See the UKIYO1
 reference study, section "Trees grown by FLORA1".
+
+## Round two: crowns and trunks in detail (2026-11-16)
+
+The owner asked for more detail in trees, from more physics and more real images and videos.
+
+**References studied** (CC0 or public domain, Wikimedia Commons):
+- Lone trees: Tree in green wheat field (Unsplash), In the shade of the lone tree (Unsplash) and Lone Tree Near Farm
+  Fields.
+- Zelkova serrata in summer (Clementina) and in autumn (Luck097).
+- A golden Ginkgo biloba in autumn.
+- Cherries in flower: Prunus serrulata var. spontanea (Jardin des Plantes), near the Imperial Palace, and
+  Thick-pink-blossom-tree.
+- Ozaki Kumano-jinja Pinus thunbergii, and Mighty gnarled tree (bark and limbs).
+- J. Needham, *Studies of Trees in Pencil and in Water Colors*, second series (Internet Archive scan): a painter's
+  lessons.
+- Videos: few usable ones were found. "Tuuleheide Viimsis 2020" (CC0) shows trunks swaying in gusts. "October storm"
+  shows only storm damage. The sway rates come from the literature instead.
+
+**Measured.** Sky pixels were classified by colour (rules checked against mask images, with clouds kept as sky). The
+crown envelope is the tree mask closed over small gaps, with holes filled. The measures:
+
+| Measure | Photographs | Result |
+| --- | --- | --- |
+| Foliage luma ladder, 10/25/50/75th percentile over the 95th | lone tree in wheat, farm tree, ginkgo | .14–.22, .22–.32, .33–.49, .57–.70 (means .18, .27, .39, .61); cherry blossom .20, .40, .58, .76 |
+| Sky through the crown | six crowns | 10–26% overall; core 2–14%; outer fifth 17–38% |
+| Top third over bottom third (mean luma) | three sunlit crowns | 1.26–1.62 |
+| Core over rim (mean luma) | three sunlit crowns | 0.59–0.94 |
+| Lit clumps (smoothed at 3 px), equivalent diameter over crown width | six crowns | median 0.5–1.2%, 90th percentile 1.3–3.5% |
+| Sky holes, equivalent diameter over crown width | six crowns | median 0.2–0.5%, 90th percentile 0.6–1.5% |
+
+The wheat photograph is colour-graded, so only its ratios are used.
+
+**Reported.**
+- Beer–Lambert gap fraction in canopies, P = exp(−G Ω LAI / cos θ), with G often taken as 0.5 (via canopy
+  clumping-index papers).
+- Horn (1971), *The Adaptive Geometry of Trees*: sunlight is filtered through the crown. The ratio was not measured
+  here.
+- Jackson et al. (2019), J. R. Soc. Interface:
+  - f₀ follows the cantilever beam, f₀ ∝ dbh/H² (after Moore & Maguire 2004);
+  - f₀ rose 19% when the leaves fell;
+  - damping was 8.6% in summer and 3.9% in winter;
+  - a simulated sycamore swayed at 0.26 Hz.
+- The coefficient k ≈ 340 m/s is estimated from the uniform cantilever with green wood's E/ρ. The Moore & Maguire fit
+  could not be read in full.
+- A hanging chain's first mode is ω = 1.2024 √(g/L) (classical mechanics).
+- Wikipedia, Autumn leaf color: "The brighter the light … the greater the production of anthocyanins". Carotenoids
+  are already in the leaf.
+- Lekner & Dorf (1988), Applied Optics 27: wet surfaces darken because light is trapped in the water film. The amount
+  used here is estimated.
+
+**From Needham's lessons (quoted).**
+- "Leave openings … between the touches of colour."
+- "Preserve the highlights on the edges of the sprays and tufts of leaves in the centre of the tree."
+- Where the trunk "peers out in the heart of the tree … bold black touches, through which again bits of clear light
+  are seen at intervals."
+- "Save out the lights where the sky is seen through."
+- "Final touches of dark colour, judiciously used, so that the work may not become spotty."
+
+**What the renders changed.** Each change was checked on a review page of eight species at 1×, 2× and 3×:
+- Flat ellipse masses became tufts. They first read as coins and pancake stacks, so their lit sides are now made of
+  leaf glyphs, with darker leaves beneath.
+- Layered tufts stacked into horizontal bars. They now tilt and have softer undersides.
+- Hard dark ellipses showed where mass bodies stuck out. The dark body is now the tufts enlarged.
+- Twigs ended bare beyond the foliage. Small or thin masses now always get a tuft, and bare tips are clothed in leaf.
+- The ladder was applied in linear light although it was measured in luma. It is now converted (power 2.2) and
+  anchored at the 75th percentile, which stopped lit tufts blowing out.
+- The gap was counted from cut holes only. It now counts what is seen, as on the photographs.
+- The polygonal holes looked like pale eyes. They are now smooth and ragged, fringed by leaves.
+- A dark ring outlined every blossom puff. Blossom no longer has a dark body.
+- The cedar's trunk showed as a stripe through the crown. The leader is now clothed.
+- Trunks ended in a cut-stump lip under narrower limbs. The convex crotch tried first was a flat kite, so the limbs
+  now swell at the base instead.
+- Bark marks crossed at forks. They are now clipped per branch and kept off the swollen bases.
+- Trees in rain looked sunlit. They are now dimmed under overcast and dusk, with wet bark.
+- In the Seasons lab, full detail moved at 11 fps, so the lab draws medium detail (about 24 fps) while the tree moves.
+
+**Checked numerically** (zelkova, black pine, cedar and maple in July):
+- the tuft luma ladder sits inside the measured spread ±0.05;
+- the seen gap is 10–22%;
+- top over bottom is 1.5–2.2: more top-lit than the photographs, recorded as a limit.
+
+No owner review yet.

@@ -3881,6 +3881,11 @@
           "target": "components/anatomy/plant-construct.ts"
         },
         {
+          "path": "registry/anatomy/plant-crown.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-crown.ts"
+        },
+        {
           "path": "registry/anatomy/plant-check.ts",
           "type": "registry:ui",
           "target": "components/anatomy/plant-check.ts"

@@ -9,6 +9,8 @@ import type { FPoint } from "../anatomy/foundation-shapes";
 import { linePath, seeded, smoothClosedPath } from "../anatomy/foundation-shapes";
 import { MUTED, SheetCard, sheetGrid, sheetList, sheetSmall, SwatchList } from "../anatomy/foundation-react";
 import { growPlant, plantConstruction, plantShapes } from "../anatomy/plant-construct";
+import type { PlantShapes, PlantSkeleton } from "../anatomy/plant-construct";
+import { TreePaint } from "../anatomy/plant-react";
 import type { CloudGenus } from "./sky-data";
 import { BEAUFORT, CLOUD_GENERA, HYDROMETEORS, LIGHTNING, RAIN_CLASSES, RAINBOW, SKY_PHASES, SKY_SOURCES } from "./sky-data";
 import type { CloudOptions, CloudShape, CloudTone } from "./sky-clouds";
@@ -151,6 +153,20 @@ const isState = (w: WeatherInput | WeatherState): w is WeatherState => "sky" in 
  * 180° shutter); farther rain becomes the veil that the visibility sets. Hills at 0.3, 1, 3 and 8 km fade toward the
  * horizon colour by the Koschmieder contrast.
  */
+/** Scene trees grown once per species, seed and month (the scene redraws every frame for rain and snow). */
+const TREE_CACHE = new Map<string, { sk: PlantSkeleton; sh: PlantShapes }>();
+function sceneTree(plant: string, seed: number, month: 1 | 7) {
+  const key = `${plant}|${seed}|${month}`;
+  let t = TREE_CACHE.get(key);
+  if (!t) {
+    const sk = growPlant(plantConstruction(plant), { seed, month });
+    t = { sk, sh: plantShapes(sk) };
+    if (TREE_CACHE.size > 64) TREE_CACHE.clear();
+    TREE_CACHE.set(key, t);
+  }
+  return t;
+}
+
 export function WeatherScene({ weather, width = 640, height = 360, time = 0, flashAge, seed = 1, label, rainbowVisible = true }: WeatherSceneProps) {
   const st = isState(weather) ? weather : weatherState(weather), id = `sky${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const W = width, H = height, horizon = H * .62, f = W * .8, rnd = seeded(seed);
@@ -171,11 +187,17 @@ export function WeatherScene({ weather, width = 640, height = 360, time = 0, fla
   // The ground plane itself, fading toward the horizon by distance (d = focal × eye height ÷ depth below the horizon).
   const groundStops = [0, .02, .06, .15, .35, 1].map(t => { const y = horizon + t * (H - horizon), d = f * 1.6 / Math.max(.5, y - horizon); return { t, colour: lit(mixColour(skyHz, ground, contrastAt(d / 1000, st.visibility))) }; });
   // FLORA1 trees on the ground plane at 30–300 m (bare in snow), so the fade with distance reads near at hand too.
+  // Painted in FLORA1's crown detail: tufts lit by the sun (from above under overcast), sky holes, shaded trunks; as
+  // much detail as their size on screen shows, faded toward the horizon colour by Koschmieder contrast.
+  const overcast = st.cover >= .85 || st.precipitation !== "none", sunDeg = (st.sky.phase.sun[0] + Math.min(60, st.sky.phase.sun[1])) / 2;
+  const treeDim = Math.min(.85, (overcast ? .3 : 0) + (1 - Math.max(.15, Math.min(1, (st.sky.phase.sun[1] + 12) / 22))) * .8);
   const trees = ([["japanese-cedar", 300, 22], ["zelkova", 120, 16], ["camphor", 60, 12], ["zelkova", 30, 10]] as const).map(([plant, d, metres], i) => {
     const k = f / d, x = W * (.1 + i * .25), y = horizon + k * 1.6, c = contrastAt(d / 1000, st.visibility);
-    const sh = plantShapes(growPlant(plantConstruction(plant), { seed: seed + i, month: st.precipitation === "snow" ? 1 : 7 })), sc = metres / sh.bounds[3] * k;
-    const tone = lit(mixColour(skyHz, "#22301d", c));
-    return <path key={i} transform={`translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${sc.toFixed(3)} ${(-sc).toFixed(3)})`} fill={tone} d={sh.woodBack + sh.woodFront + sh.foliageBack + sh.foliageFront + sh.strands} />;
+    const { sk, sh } = sceneTree(plant, seed + i, st.precipitation === "snow" ? 1 : 7), sc = metres / sh.bounds[3] * k, px = metres * k;
+    return <g key={i} transform={`translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${sc.toFixed(3)} ${(-sc).toFixed(3)})`}>
+      <TreePaint skeleton={sk} shapes={sh} detail={px > 220 ? "full" : px > 90 ? "medium" : "low"} sunAzimuth={overcast ? 0 : 35} sunElevation={overcast ? 85 : Math.max(5, sunDeg)}
+        haze={{ colour: lit(skyHz), amount: Math.min(1, 1 - c) }} dim={treeDim} wet={st.precipitation === "rain" || st.precipitation === "drizzle"} lineWidth={1 / sc} seed={seed + i} />
+    </g>;
   });
   // Clouds on their deck: one base plane per genus, receding to the horizon. Rain fills only the column under the
   // base, so the path up to the clouds keeps more contrast than the horizontal visibility (×2.5, estimated).

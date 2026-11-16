@@ -15,6 +15,7 @@ import type { Month, PlantSpecies } from "./plant-species";
 import { add, dir, ellipsePoints, lerpP, linePath, polyPath, rotate, seeded, smoothClosedPath, smoothTube, tubePoints } from "./foundation-shapes";
 import type { FEllipse, FPoint } from "./foundation-shapes";
 import { flowerShape, leafShape } from "./plant-organs";
+import { speciesSway } from "./plant-crown";
 
 export interface PlantConstruction { form: GrowthForm; species?: PlantSpecies; a: PlantArchitecture }
 type Deep<T> = { [K in keyof T]?: T[K] extends object ? Partial<T[K]> : T[K] };
@@ -57,6 +58,8 @@ export interface GrowOptions {
   month?: Month;
   /** Wind strength (0–2) and time (seconds) for sway. */
   wind?: number; t?: number;
+  /** Sway frequency: a number in Hz, "species" for the physical rate (cantilever f₀ ∝ dbh/H², hanging twigs as chains), or omitted for the original fixed pace. */
+  swayHz?: SwayHz;
   /** Young trees keep their leader and lower branches; old pines lose them. */
   age?: "young" | "mature" | "old";
 }
@@ -94,7 +97,7 @@ export function growPlant(c: PlantConstruction, o: GrowOptions = {}): PlantSkele
   if (leader === "culm") growBamboo(sk, rnd);
   else if (leader === "clump" || leader === "stems") growHerbaceous(sk, rnd, blooming, fruiting);
   else growWoody(sk, rnd, o, blooming, fruiting);
-  if (o.wind) sway(sk, o.wind, o.t ?? 0);
+  if (o.wind) sway(sk, o.wind, o.t ?? 0, o.swayHz);
   return sk;
 }
 
@@ -347,24 +350,45 @@ function growHerbaceous(sk: PlantSkeleton, rnd: () => number, blooming: boolean,
  * A copy of a grown plant moved by wind at time `t`: grow once (with a fixed seed), then sway the copy every frame
  * instead of growing again.
  */
-export function swayPlant(sk: PlantSkeleton, wind: number, t: number): PlantSkeleton {
+export function swayPlant(sk: PlantSkeleton, wind: number, t: number, hz?: SwayHz): PlantSkeleton {
   const copy: PlantSkeleton = {
     ...sk,
     branches: sk.branches.map(b => ({ ...b, points: b.points.slice() })), foliage: sk.foliage.map(f => ({ ...f })), blossom: sk.blossom.map(f => ({ ...f })),
     strands: sk.strands.map(s => ({ ...s, points: s.points.slice() })), leaves: sk.leaves.map(o => ({ ...o })), flowers: sk.flowers.map(o => ({ ...o })), fruits: sk.fruits.map(o => ({ ...o })),
   };
-  if (wind) sway(copy, wind, t);
+  if (wind) sway(copy, wind, t, hz);
   return copy;
 }
 
-/** Wind: everything leans downwind with height and swings; long thin parts swing most. */
-function sway(sk: PlantSkeleton, wind: number, t: number) {
-  const give = (1 - sk.c.form.wind.stiffness) * wind, swing = (p: FPoint, extra = 0): FPoint => {
-    const y = p[1], k = give * (.06 * y * y + extra) * (1 + .35 * Math.sin(t * 2.1 + y * 3));
+export type SwayHz = number | "species";
+/**
+ * The sway as a field: where a point of the still plant is at time `t` (for painting detail grown on the still plant).
+ * With `hz` the trunk sways at that rate ("species": its cantilever f₀ in leaf, after Jackson et al. 2019); without,
+ * at the original fixed pace that existing scenes were timed to.
+ */
+export function swayField(sk: PlantSkeleton, wind: number, t: number, hz?: SwayHz): (p: FPoint) => FPoint {
+  const give = (1 - sk.c.form.wind.stiffness) * wind, w = hz === undefined ? 2.1 : 2 * Math.PI * (hz === "species" ? speciesSway(sk) : hz);
+  return (p: FPoint) => {
+    const y = p[1], k = give * .06 * y * y * (1 + .35 * Math.sin(t * w + y * 3));
     return [p[0] + k, p[1] - Math.abs(k) * .15 * y];
   };
+}
+/**
+ * A hanging twig swings like a hanging chain: its first mode is ω = 1.2024 √(g/L) (Bernoulli; the first zero of J₀
+ * halved), so a 4 m willow curtain swings about every 4 s.
+ */
+export const hangingChainHz = (lengthM: number) => 1.2024 * Math.sqrt(9.81 / Math.max(.05, lengthM)) / (2 * Math.PI);
+
+/** Wind: everything leans downwind with height and swings; long thin parts swing most. */
+function sway(sk: PlantSkeleton, wind: number, t: number, hz?: SwayHz) {
+  const give = (1 - sk.c.form.wind.stiffness) * wind, swing = swayField(sk, wind, t, hz), H = sk.c.species?.size.height.typical ?? 10;
   for (const b of sk.branches) b.points = b.points.map(p => swing(p));
-  for (const s of sk.strands) { const base = s.points[0]; s.points = s.points.map((p, i) => { const q = swing(p); const f = i / Math.max(1, s.points.length - 1); return [q[0] + give * .05 * f * (base[1] - p[1] + .3) * (s.kind === "blade" ? -1 : 1) * Math.sin(t * 2.7 + base[0] * 9) * .6, q[1]] as FPoint; }); }
+  for (const s of sk.strands) {
+    const base = s.points[0], len = s.points.slice(1).reduce((a, p, i) => a + Math.hypot(p[0] - s.points[i][0], p[1] - s.points[i][1]), 0);
+    // Hanging twigs swing as chains of their own length (physical rate), else at the original pace.
+    const ws = hz === undefined || s.kind === "blade" ? 2.7 : 2 * Math.PI * hangingChainHz(len * H);
+    s.points = s.points.map((p, i) => { const q = swing(p); const f = i / Math.max(1, s.points.length - 1); return [q[0] + give * .05 * f * (base[1] - p[1] + .3) * (s.kind === "blade" ? -1 : 1) * Math.sin(t * ws + base[0] * 9) * .6, q[1]] as FPoint; });
+  }
   for (const f of [...sk.foliage, ...sk.blossom]) { const q = swing([f.cx, f.cy]); f.cx = q[0]; f.cy = q[1]; }
   for (const set of [sk.leaves, sk.flowers, sk.fruits]) for (const o of set) o.at = swing(o.at);
 }

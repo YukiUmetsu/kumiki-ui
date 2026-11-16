@@ -35,9 +35,10 @@ module.
 | Growth forms | `plant-forms.ts` | `GROWTH_FORMS`, 13 forms. Each holds the leader habit, bud plan, phyllotaxis, trunk, crown envelope, branch angles, droop and tip turn, orders and spacing, zigzag, foliage manner and Leonardo exponent. It also holds the form's wind behaviour and Cole's construction notes. |
 | Organs | `plant-organs.ts` | `leafShape` (needle pairs, awl, scale sprays, ovate, lanceolate, palmate, fan, cordate, blade, sword, peltate, pinnate, lobed; entire, serrate or wavy margins), `flowerShape` (rosaceous with notch or point, camellia, composite, funnel, iris, lotus, raceme, plume, panicle, tubular, catkin), `fruitShape`, `barkMarks` (plated, strips, lenticels, smooth, patches, fissured, culm). |
 | Species | `plant-species.ts` | `PLANT_SPECIES` (24): graded sizes with sources, architecture overrides, leaf, flower, fruit, bark, a calendar (leaf months, autumn, bloom, fruit), seasonal colours, sounds, culture, PD/CC0 references, `styles`. Also `findPlant`, `plantsInForm`, `inSeason`. |
-| Construction | `plant-construct.ts` | `plantConstruction`, `growPlant`, `plantShapes`, `crownEnvelope`. |
+| Construction | `plant-construct.ts` | `plantConstruction`, `growPlant`, `plantShapes`, `crownEnvelope`, `swayPlant`, `swayField`, `hangingChainHz`. |
+| Crown and trunk in detail | `plant-crown.ts` | `crownDetail` (tufts, sky holes, edge leaves, willow leaves), `woodDetail` and `flareTrunk` (cylinder shading, bark, root flare, limb bases), `foliageLadder`, `CROWN_LIGHT`, `CROWN_DRAWING`, `TREE_SWAY`, `speciesSway`. |
 | Checks | `plant-check.ts` | `checkPlantData`, `measurePlant`, `skeletonLandmarks`, `checkPlantProportions`. |
-| Painters | `plant-react.tsx` | `PlantFigure` (silhouette, construction, colour), `OrganFigure`, `PlantSheet`, `leafColour`, `seasonMonths`. |
+| Painters | `plant-react.tsx` | `PlantFigure` (silhouette, construction, colour; `detail` full, medium, low or flat), `TreePaint` (a detailed plant as an SVG group for scenes), `OrganFigure`, `PlantSheet`, `leafColour`, `seasonMonths`. |
 
 ## How a plant grows
 
@@ -76,6 +77,56 @@ module.
 
 **Wind** leans the plant downwind by height and swings long thin parts most, by the form's stiffness.
 
+- Without `swayHz`, trees keep the original pace that existing scenes (UKIYO1) were timed to.
+- With `swayHz: "species"`, the trunk sways at its cantilever frequency, f₀ ≈ k · dbh / H², about 18% slower in leaf
+  (Jackson et al. 2019). Hanging willow twigs swing as chains of their own length: ω = 1.2024 √(g/L), so a 4 m curtain
+  swings at about 0.3 Hz.
+- `swayField` gives the same sway as a function of position. Detail grown once on the still plant moves with it.
+
+## The crown and trunk in detail
+
+`PlantFigure` in colour (and `TreePaint` in scenes) paints what photographs of single trees show. The detail follows
+a painter's construction (J. Needham, *Studies of Trees*, public domain), with its values measured on CC0 and
+public-domain photographs.
+
+- **Tufts.** The foliage masses are tiled into tufts (sprays and twig clusters) on one grid, so overlapping masses do
+  not multiply.
+  - Each tuft is mostly leaves in the species' shape: pointed blades, five-lobed hands for maples, fans for ginkgo,
+    needle wedges for pines, drooping lobes for cedar sprays, petals for blossom.
+  - Darker leaves sit round its lower and far side, lit ones on the side toward the sun. Needham: "preserve the
+    highlights on the edges of the sprays and tufts of leaves".
+  - Layered sprays and pine pads are flat and tilted. No twig end is left bare while the tree is in leaf.
+  - Spire conifers are clothed down the leader, so the trunk hides in the crown.
+- **Light.**
+  - Sunlight is filtered through the crown (Beer–Lambert along the path from each tuft out of the crown toward the
+    sun; κ = 0.9 per crown radius, estimated from G = 0.5 and a crown leaf area of about 3.6).
+  - Each tuft adds its place on its own mass, darker undersides, height in the crown, and skylight in the shade.
+  - Colours follow a five-stop ladder measured on photographs. A species' leaf swatch anchors the 75th percentile.
+  - On red-turning trees in autumn, lit tufts are redder and shaded ones oranger: brighter light makes more
+    anthocyanin.
+  - Blossom has a flatter ladder and no dark interior: petals scatter light.
+- **Sky holes.** Openings are cut between tufts, more toward the rim and in the lower crown, until the sky seen
+  through the crown reaches the measured gap. The gap is measured as on the photographs: the foliage closed over
+  small gaps, then the uncovered share. Bodies are cut by the whole hole; lit leaves only by its middle, so they
+  fringe it. Inside the crown the wood is dark (Needham's "bold black touches" where the trunk peers out).
+- **Edges.** Single leaves, needle bursts or petals break the silhouette.
+- **Willow.** Narrow leaves hang along the twigs, lit on the sun's side.
+- **Trunk and limbs.**
+  - They are shaded as cylinders (the terminator moves toward the dark edge as the sun comes round to the front),
+    with a lit strip on thick wood.
+  - The species' bark marks (plates, lenticels, strips, fissures, patches) are wrapped onto the front half and
+    clipped to each branch.
+  - The foot flares into the roots.
+  - Each great limb swells at its base to the trunk's radius, so limbs grow out of the trunk and the V between them
+    stays.
+  - In rain the bark darkens (`wet`).
+- **Detail levels.**
+  - `full` for large figures; `medium` while moving or at sheet size; `low` for far trees (no single leaves).
+  - A full crown is about 25–100 ms to build. The Seasons lab draws medium while the tree moves.
+
+SKY1's `WeatherScene` paints its trees this way. Their detail follows their size on screen, they fade by Koschmieder
+contrast, and they are lit from above under overcast and dimmed at dusk.
+
 ## Evidence
 
 **Sizes** come from Wikipedia species articles (retrieved 2026-11-15) and are graded `reported` with the quoted figure.
@@ -93,8 +144,10 @@ Commons identifies as *Pinus thunbergii*.
 ## Limits
 
 - Side views only.
-- Foliage is massed (pads, clouds, sprays), not leaf by leaf; individual leaves are placed only for bamboo, herbs and
-  vines.
+- Crowns are tufts of leaf glyphs, not individual leaves in place. Leaves are drawn larger than life so they read.
+- The drawings are more top-lit than the photographs: their mean foliage luma, top third over bottom third, is 1.4–2.2,
+  against 1.26–1.62 measured.
+- A crown is built once and moved by the sway field as a whole. Leaves do not flutter on their own.
 - Flowers on whole trees are drawn larger than life so they read.
 - Not covered yet: roots, fallen leaves, withered lotus (kare-hasu), ageing beyond young, mature and old, and forests
   (place several plants with different seeds).
