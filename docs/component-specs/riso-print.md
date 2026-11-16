@@ -100,3 +100,15 @@ A character source part may set `screenTone:"light"|"mid"` only when `paint:"scr
 Original Courier/Paper Artist cheeks, orbital sockets, temples and jaw shadows have **distinct authored local tonal masters** while their original face/eye/lip geometry, rig, color palette and film frames are unchanged. The existing Risograph `OcularPrintCraft` story contains a reversible `RISO26 tonal master comparison` using the unchanged prior facial stencils as baseline; AM/FM, red-only/blue-only, pose, 16:9/9:16, physical pitch and gain all remain interactive.
 
 Technical checks: `tests/riso26-tonal-press-artcraft.test.tsx` and actual `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`. This is a **digital-print simulation**, not empirical calibration of a Riso drum or independent human-likeness certification.
+
+
+## RISO61 — continuous spot-ink dot gradients (original non-character scene)
+
+Native helper files: registry/video/riso-gradient-ink.ts and registry/video/riso-gradient-ink-react.tsx. Installed by the same riso-print registry item, together with the preexisting required riso-screening.ts that the print renderer imports.
+
+- createRisoGradientGeometry: pure generator with user-defined coverage stops (2..12; first 0, last 1), horizontal/vertical/radial spatial profiles, bounded AM lattice angle (per plate), 2..36 unit screen cell, optional 0..1 ink gain, irregularity and 0..0.2 low-coverage dropout. The generated dot sites, paper seed, per-plate offsets and sizes are source-space values. A maximum 40,000 candidate grid sites protects the renderer; split larger 4K fields into distinct bounded regions.
+- risoGradientCoverage: inspect arbitrary profile values without a screenshot.
+- risoGradientDotPath: combine every dot as two native elliptical SVG arcs, preserving exact small-radius physical detail without thousands of standalone DOM elements.
+- RisoGradientInk: drop the component directly inside the existing RisoPrint artworks.blue / artworks.red callback, pass the matching paint.solid as color, plus its paper-space coordinate box and optionally a valid SVG shape contour. It clips to the source shape without reducing the contour's topological detail. All original background paper fiber, ink tooth, press order and full-frame clocks remain RisoPrint-owned.
+
+The same Storybook folder now includes **Continuous Spot-Ink Gradient**: entirely original two-plate tidal contours in landscape/portrait, separate ink masters, absolute animation seek, independently adjustable registration, source tone direction, pickup and dropout. No anatomy changes or bundled external visual assets. Strict unit tests and native Chromium evidence are in tests/riso61-ink-gradient-artcraft.test.tsx and tests/e2e-storybook/riso61-ink-gradient.spec.ts. Read docs/research/riso61-variable-tone-gradient-artcraft.md for authentic printing references, exact topology, art gate and limitations. RISO61 is not a calibrated physical Riso press profile; do not claim print-color fidelity without a real test press.
