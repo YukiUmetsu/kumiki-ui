@@ -250,6 +250,22 @@ test("four distinct historical ink schools paint separate real rooted rock struc
       await expect(card.locator('[data-km-master-fuchun-hillback-form="saddle"]'))
         .toHaveCount(3);
     }
+    // The Fuchun grove visibly departs from five identical pine
+    // antennas: five true ridge-planted trunks, twenty individual
+    // pressure-loaded boughs and all original texture needle taps.
+    const treeHeights=await card.locator("[data-km-cliff-pine-height]")
+      .evaluateAll(nodes=>nodes.map(node=>
+        Number(node.getAttribute("data-km-cliff-pine-height"))));
+    expect(treeHeights).toHaveLength(5);
+    if(school==="fuchun")
+      expect(Math.max(...treeHeights)-Math.min(...treeHeights))
+        .toBeGreaterThan(54);
+    const boughStations=await card.locator(
+      "[data-km-cliff-pine-bough-station]").evaluateAll(nodes=>nodes.map(
+        node=>Number(node.getAttribute("data-km-cliff-pine-bough-station"))));
+    expect(boughStations).toHaveLength(20);
+    if(school==="fuchun")
+      expect(new Set(boughStations).size).toBeGreaterThan(13);
     const bankCount=school==="fuchun"?9:school==="forest-grotto"?12:0;
     await expect(card.locator("[data-km-master-rock-bank]"))
       .toHaveCount(bankCount);
