@@ -1736,3 +1736,73 @@ test("F1 V36 ANAT1 near-eye wax preserves full 300-frame native scene contract",
   expect(Buffer.compare(Buffer.from(frames[0]),Buffer.from(frames[2]))).not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** ArtCraft F1 V37 actual source-photo eyebrow root comparison.
+ * Native browser screenshots of the unchanged V36 and the proposed V37
+ * original-sitter near-brow, no embedded source pixels or raster overlay.
+ */
+test("F1 V37 ANAT1 photographed brow mass and 165 wax follicles source 1x/3x vs V36",async({page},info)=>{
+  test.setTimeout(180_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const shots:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-near-eye",
+    "source-anat1-brow-follicles"] as const){
+    const original=crayonCc0FaceStudy({
+      midfaceForm,eyeContact:"source-shade",browForm:"baseline",
+    });
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:264,focusY:483,zoom:3},
+        {frame:299,focusX:264,focusY:483,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","brow-superciliary-near","socket-near",
+        "sclera-near","sclera-inner-contact-near","iris-near","pupil-near",
+        "lash-root-near","lower-lid-near","nose-dorsum","malar-cheek-near",
+        "hair-left-curtain","hair-right-curtain"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      if(midfaceForm==="source-anat1-brow-follicles"){
+        for(const id of ["source-brow-feather-near","source-brow-wax-near",
+          "source-brow-vein-near","source-brow-fibers-near",
+          "source-brow-follicles-near","source-brow-flyaways-near",
+          "source-brow-fibers-far"]){
+          await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+        }
+      }
+      shots.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v37-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(shots[0]),Buffer.from(shots[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(shots[1]),Buffer.from(shots[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+test("F1 V37 ANAT1 source-follicle brow original native 300-frame wax film",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const scene=crayonCc0FaceStudy({detail:.2,eyeContact:"source-shade",
+    midfaceForm:"source-anat1-brow-follicles"});
+  expect(scene.durationFrames).toBe(300);
+  const frames:Uint8Array[]=[];
+  for(const frame of [0,149,299] as const){
+    const html=renderToStaticMarkup(createElement(CrayonScene,{spec:scene,frame}));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    for(const id of ["face-outline","source-brow-wax-near","source-brow-fibers-near",
+      "source-brow-follicles-near","sclera-near"]){
+      await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+    }
+    frames.push(await svg.screenshot({animations:"disabled",
+      path:info.outputPath("crayon-v37-native-film-"+frame+".png")}));
+  }
+  expect(Buffer.compare(Buffer.from(frames[0]),Buffer.from(frames[2]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
