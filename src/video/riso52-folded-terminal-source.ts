@@ -1,5 +1,6 @@
 import type {RisoCharacterPart} from "../../registry/video/riso-character";
 import {RISO31_GEOMETRY,riso31PhalanxSourcePath} from "./riso31-finger-phalanges";
+import {riso55FoldbackContour} from "./riso55-foldback-pulp-source";
 
 /**
  * RISO52 / ArtCraft: foreshorten the PRINTED distal pulp and its cobalt nail
@@ -82,14 +83,20 @@ export function riso52FoldedTerminalContact(
   if(stage==="nail"){
     if(part.plate!=="blue"||part.joint!==activeSide+"-"+digit+"-dip")
       throw new Error("RISO52 requires original living cobalt nail "+part.id);
-    return riso52ProjectNailContour(part.d,ratio);
+    // RISO55 genuine source turn of a 3/4 distal nail plane. Never simply
+    // reduce the y reach and leave a forward-pointing cobalt claw.
+    return riso55FoldbackContour(
+      riso52ProjectNailContour(part.d,ratio),actor,digit);
   }
   if(part.plate!=="red"||part.paint!=="solid"||
     part.joint!==activeSide+"-"+digit+"-dip")
     throw new Error("RISO52 requires original living vermilion pulp "+part.id);
   const g=RISO31_GEOMETRY[digit];
   const reach=g.distal*ratio;
-  return riso31PhalanxSourcePath(digit,"distal",reach,g.width*.85);
+  // Make the red positive pulp turn with the same exact view as its
+  // original independently printed moving BLUE nail.
+  return riso55FoldbackContour(
+    riso31PhalanxSourcePath(digit,"distal",reach,g.width*.85),actor,digit);
 }
 
 export function riso52ExpectedOriginalSourceIds(side:Riso52Side):readonly string[]{
