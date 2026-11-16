@@ -36,22 +36,30 @@ export interface Riso57PalmKnot {
 const source:readonly Riso57PalmKnot[]=[
   {landmark:"radial-wrist",x:5.1,y:-2.3,tension:1},
   {landmark:"flexor-radialis",x:7.3,y:2.2,tension:.92},
-  {landmark:"thenar-bulge",x:8.9,y:8.7,tension:.74},
-  {landmark:"first-web-inset",x:7.65,y:12.35,tension:.47},
-  {landmark:"index-mcp",x:9.0,y:16.0,tension:.65},
-  {landmark:"index-middle-web",x:5.8,y:17.2,tension:.55},
-  {landmark:"middle-mcp",x:4.4,y:18.75,tension:.60},
-  {landmark:"middle-ring-web",x:1.5,y:17.6,tension:.60},
-  {landmark:"ring-mcp",x:-1.3,y:18.5,tension:.75},
-  {landmark:"ring-little-web",x:-4.6,y:16.6,tension:.58},
-  {landmark:"fifth-mcp",x:-6.9,y:16.2,tension:.72},
-  {landmark:"hypothenar-heel",x:-7.0,y:10.1,tension:.95},
-  {landmark:"pisiform-wrist",x:-6.0,y:3.4,tension:.84},
+  {landmark:"thenar-bulge",x:9.25,y:8.7,tension:.74},
+  {landmark:"first-web-inset",x:6.45,y:12.65,tension:.47},
+  {landmark:"index-mcp",x:8.2,y:16.4,tension:.65},
+  {landmark:"index-middle-web",x:3.1,y:17.2,tension:.55},
+  {landmark:"middle-mcp",x:0,y:18.75,tension:.60},
+  {landmark:"middle-ring-web",x:-3.0,y:16.7,tension:.60},
+  {landmark:"ring-mcp",x:-5.7,y:17.25,tension:.75},
+  {landmark:"ring-little-web",x:-8.25,y:14.8,tension:.58},
+  {landmark:"fifth-mcp",x:-10.6,y:15.55,tension:.72},
+  {landmark:"hypothenar-heel",x:-9.7,y:10.1,tension:.95},
+  {landmark:"pisiform-wrist",x:-7.2,y:3.4,tension:.84},
   {landmark:"ulnar-wrist",x:-4.2,y:-1.5,tension:1},
   {landmark:"palmaris-axis",x:-.6,y:-2.1,tension:1},
   {landmark:"radial-wrist-return",x:3.5,y:-2.0,tension:1},
 ] as const;
 
+/** Existing exact ANAT1 wrist-relative MCP roots in COURIER_BASE_JOINTS.
+ * RISO57 contour lives in this SAME source plane, not an arbitrary hand
+ * illustration floating 4 units toward the thumb.
+ */
+export const RISO57_SOURCE_MCP_ANCHORS={
+  index:{x:6,y:16},middle:{x:0,y:18},
+  ring:{x:-6,y:16},pinky:{x:-11,y:15},
+} as const;
 export const RISO57_PALMAR_ANATOMY={
   medium:"existing physical RED positive 16-cubic palm, unchanged BLUE detail",
   reference:"UCI Surface Anatomy of the Hand, thenar/hypothenar, DPC and thumb/index web; ANAT1 HAND_POSES.pinch",
