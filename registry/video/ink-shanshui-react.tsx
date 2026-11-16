@@ -476,6 +476,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         const wt2=s(seed+4193,j*17+i*47);
         const curlHandedness=j%4===1||j%7===0?-1:1;
         let c1:P,c2:P,end:P,width:number;
+        let phrase:"short"|"medium"|"long"|undefined;
         if(school==="travelers"){
           // Bulbed, occasionally split press-and-lift droplets. The
           // short 3–8px gesture must remain a dot at native resolution,
@@ -509,13 +510,32 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           end=[entry[0]+sway*.68,entry[1]+len];
           width=.48+.86*wt+(j%11===0?.52:0);
         }else{
-          const len=17+29*wt+(j%5===0?7:0);
-          const sway=direction*(10+12*wt2)+jitter*6;
-          c1=[entry[0]+sway*.12,entry[1]+len*.28];
-          c2=[entry[0]+sway*.72,entry[1]+len*.54];
+          // Huang's original rolled hemp (NPM scroll / Smarthistory):
+          // short alum-head creases, mid-distance dry fibres and long
+          // cloth-like descending folds share one rock bank, but never
+          // form five parallel computer-rain strands. Preserve all 78
+          // real pressure-loaded marks and their exact parent origins.
+          // Use an authored three-phrase optical rhythm; each still
+          // grows from a station on the newly CUBIC stone cheek.
+          const meter=(j+bank*3+i*7)%12;
+          phrase=meter<3?"short":meter<9?"medium":"long";
+          const len=phrase==="short"?9+13*wt:
+            phrase==="medium"?20+21*wt:35+22*wt;
+          const hand=meter===2||meter===8||meter===10?-1:1;
+          const sway=direction*hand*(6+14*wt2)+jitter*6.7;
+          const roll=direction*
+            (meter%4===1?-(2.6+2*wt):(1.7+1.6*wt2));
+          c1=[entry[0]+sway*.13+roll,entry[1]+len*.23];
+          c2=[entry[0]+sway*.8-roll*.8,
+            entry[1]+len*.7];
           end=[entry[0]+sway,entry[1]+len];
-          width=.82+1.1*wt+(j%7===0?.6:0);
+          width=(.72+1.24*wt)+(phrase==="long"?.34:
+            phrase==="short"?-.12:0)+(j%13===0?.27:0);
         }
+        const axis="M"+f(entry[0])+" "+f(entry[1])+
+          " C"+f(c1[0])+" "+f(c1[1])+
+          " "+f(c2[0])+" "+f(c2[1])+
+          " "+f(end[0])+" "+f(end[1]);
         const pressure=rockLoadedCubicRibbon(entry,c1,c2,end,width,
           seed+4211+i*113+j*13);
         const dry=(j%5===2||j%9===4);
@@ -524,7 +544,8 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         const dryPath="M"+f(cut[0])+" "+f(cut[1])+
           " Q"+f((cut[0]+lift[0])*.5+direction*.7)+" "+
           f((cut[1]+lift[1])*.5)+" "+f(lift[0])+" "+f(lift[1]);
-        return {entry,pressure,dry,dryPath,bank,depth,curlHandedness};
+        return {entry,pressure,dry,dryPath,bank,depth,
+          curlHandedness,phrase,axis};
       });
       const isFan=school==="travelers",isGuo=school==="early-spring";
       const isWang=school==="forest-grotto";
@@ -1032,14 +1053,17 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         </g>
         <g data-km-master-brush-field="" data-km-master-field-count={qty}
           clipPath={"url(#"+clip+")"}>
-          {brush.map(({entry,pressure,dry,dryPath,bank,depth,curlHandedness},j)=><g key={j}
+          {brush.map(({entry,pressure,dry,dryPath,bank,depth,
+            curlHandedness,phrase,axis},j)=><g key={j}
             data-km-master-stroke="" data-km-master-stroke-style={label[school]}
             data-km-master-stroke-root={f(entry[0])+","+f(entry[1])}
             data-km-master-stroke-dry={dry?"dry":"wet"}
             data-km-master-stroke-bank={bank}
             data-km-master-stroke-bank-station={isHuang?depth.toFixed(6):undefined}
             data-km-master-stroke-placement={isFan?"rock-volume":"attached-stratum"}
-            data-km-master-stroke-curl={isGuo?(curlHandedness>0?"with":"counter"):"none"}>
+            data-km-master-stroke-curl={isGuo?(curlHandedness>0?"with":"counter"):"none"}
+            data-km-master-stroke-phrase={isHuang?phrase:undefined}
+            data-km-master-stroke-axis={isHuang?axis:undefined}>
             <path data-km-master-stroke-loaded="" d={pressure}
               fill={isFan?"#2a2623":isWang?"#322d29":isGuo?"#392f28":"#44382f"}
               opacity={f((dry?.35:isFan?.83:isWang?.68:isGuo?.72:.62)*
