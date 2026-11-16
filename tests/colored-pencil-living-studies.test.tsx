@@ -354,10 +354,15 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       expect(defaultArt).toBe(painted);
       expect(defaultArt).toContain('data-km-pencil-tonal-support="on"');
       expect(isolated).toContain('data-km-pencil-tonal-support="off"');
-      expect(defaultArt).toContain('data-km-pencil-craft-base');
+      if(subject==="fox")expect(defaultArt).toContain('data-km-pencil-craft-base');
+      else {
+        expect(defaultArt).not.toContain('data-km-pencil-craft-base');
+        expect(defaultArt).toContain('data-km-pencil-region="head-silhouette-01"');
+      }
       expect(isolated).not.toContain('data-km-pencil-craft-base');
       expect(isolated).not.toContain("<linearGradient");
-      expect(isolated).toContain('data-km-pencil-micro');
+      if(subject==="fox")expect(isolated).toContain('data-km-pencil-micro');
+      else expect(isolated).toContain('data-km-graphite');
       expect(isolated).toContain('data-km-pigment-layer="2"');
       expect(isolated.match(/data-km-pencil-region=/g)?.length)
         .toBe(defaultArt.match(/data-km-pencil-region=/g)?.length);
@@ -379,7 +384,8 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     // Never reference any of the removed woman's obsolete part IDs.
     const fresh=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
     expect(fresh.regions.map(r=>r.id)).toEqual(["head-silhouette-01"]);
-    expect(fresh.regions[0].craft?.kind).toBe("skin");
+    expect(fresh.regions[0].craft).toBeUndefined();
+    expect(fresh.regions[0].opaqueSupport).toBe(false);
     expect(fresh.regions[0].craft?.pigmentDensity??0).toBe(0);
     for(const id of ["tail-back","body","chest","neck-ruff","head-main",
       "ear-far","ear-near"]){
