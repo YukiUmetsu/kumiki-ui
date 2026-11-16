@@ -214,6 +214,18 @@ export function evaluatePencilHeadFidelity(
       sum+=(a[0]-b[0])**2+(a[1]-b[1])**2;
     }
     geometryRms=Math.sqrt(sum/HEAD_FIDELITY_LANDMARK_IDS.length);
+    // Comparing x and y independently normalizes away ALL anisotropic
+    // distortion, so an obviously squashed head could otherwise get RMS=0.
+    // Require the head's measured width/height ratio to survive the
+    // source-photo -> SVG-artboard transform under UNIFORM scaling.
+    const headAspect=(points:Map<HeadFidelityLandmarkId,HeadFidelityPoint>)=>{
+      const zNear=points.get("zygion-near")!,zFar=points.get("zygion-far")!;
+      const apex=points.get("cranial-apex")!,chin=points.get("menton")!;
+      return Math.abs(zNear.x-zFar.x)/(chin.y-apex.y);
+    };
+    const shapeChange=Math.abs(Math.log(
+      headAspect(outPoints)/headAspect(srcPoints)));
+    if(shapeChange>.105)errors.push("HEAD_ASPECT_MISMATCH");
     if(geometryRms>.045)errors.push("GEOMETRY_MISMATCH");
   }
   if(srcTones&&outTones){
