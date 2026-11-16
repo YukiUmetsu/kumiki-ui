@@ -17,6 +17,8 @@ on:
       - "src/video/riso40-paper-fingertip-contact.ts"
       - "src/video/riso41-contact-pressure.ts"
       - "tests/riso41-real-red-pad-contact.test.ts"
+      - "src/video/riso42-support-digits-gesture.ts"
+      - "tests/riso42-support-finger-gesture.test.ts"
       - "registry/video/riso-prop-handoff.ts"
       - "src/video/riso-human-ensemble.tsx"
       - "tests/riso40-paper-fingertip-contact.test.ts"
@@ -50,7 +52,7 @@ jobs:
       - name: Strict TypeScript and legacy animated source contracts
         run: |
           npm run typecheck
-          npm run test -- tests/riso32-thumb-ip-artcraft.test.tsx tests/riso36-red-silhouette-gate.test.ts tests/riso37-anatomical-engraving.test.ts tests/riso38-hand-silhouettes.test.ts tests/riso39-opposed-paper-pinch.test.ts tests/riso40-paper-fingertip-contact.test.ts tests/riso41-real-red-pad-contact.test.ts tests/riso29-human-anatomy-neck-portrait.test.tsx tests/riso-character.test.tsx tests/riso17-anatomical-grip.test.tsx tests/riso21-ocular-print-artcraft.test.tsx
+          npm run test -- tests/riso32-thumb-ip-artcraft.test.tsx tests/riso36-red-silhouette-gate.test.ts tests/riso37-anatomical-engraving.test.ts tests/riso38-hand-silhouettes.test.ts tests/riso39-opposed-paper-pinch.test.ts tests/riso40-paper-fingertip-contact.test.ts tests/riso41-real-red-pad-contact.test.ts tests/riso42-support-finger-gesture.test.ts tests/riso29-human-anatomy-neck-portrait.test.tsx tests/riso-character.test.tsx tests/riso17-anatomical-grip.test.tsx tests/riso21-ocular-print-artcraft.test.tsx
       - name: Build real Storybook
         run: npm run build-storybook
       - name: Chromium
