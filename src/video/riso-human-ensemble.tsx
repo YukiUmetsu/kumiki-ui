@@ -351,7 +351,12 @@ export const RISO_PAPER_ARTIST_SHEET:RisoCharacterMeshSheet={
   ],
   // Each region follows the actual named SVG contour and joint transform,
   // never a fabricated proportional rectangle or invented alternate view.
-  regions:PAPER_ARTIST.parts.map(part=>({
+  // RISO54 moving PAPER-ONLY reserves are zero-area until a hand grips.
+  // They are legitimate negative ink-masks, NOT positive 2D meshes.
+  // Keep them in the original actor/print rig; exclude only these two
+  // nondrawable source paths from the positive source-mesh catalog.
+  regions:PAPER_ARTIST.parts.filter(part=>
+    !part.id.includes("-glove-web-reserve-")).map(part=>({
     id:part.id,label:part.id.replace(/-/g," "),category:category(part),
     joint:part.joint,parts:[part.id],...(part.skin?{tipJoint:part.skin.tipJoint}:{}),
   })),
