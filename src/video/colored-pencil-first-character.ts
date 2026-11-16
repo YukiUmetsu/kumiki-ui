@@ -114,7 +114,7 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
     id:NEW_CHARACTER_01_ID,material:"skin",palette,path:contour,
     bounds,direction:64,flow:11,start:73,
     details:[
-      ...newHeadValuePencil(guides,seed+1001),
+      ...newHeadValuePencil(guides,(seed+1001)%2147483647),
       drawn("newhead-sagittal-guide",line(forehead,glabella,chin),
         "#90777C",.32,.31,103),
       drawn("newhead-zygomatic-guides",
