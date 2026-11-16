@@ -179,7 +179,8 @@ export interface DryPencilHeadPlate {
   readonly skinWeaveEvidence:Readonly<{
     pigments:number;replacedCoarseScumbles:number;
     protectedHighlights:number;protectedEdges:number;
-    protectedAnatomy:number;
+    protectedAnatomy:number;protectedSpans:number;
+    opticalLightFibres:number;
   }>;
   readonly observedIrisCounts:Readonly<{
     near:number;far:number;glintReserves:number;sourceContrastNear:number;
@@ -917,9 +918,11 @@ export const createDryPencilHeadPlate=(
     materialCounts["face-scumble"]-=obsolete.size;
   }
   const count=Math.min(requested,available+replacementCount);
+  const lightFibreIndices=new Set(skinWeave.lightFibreIndices);
+  let committedLightFibres=0;
   for(let i=0;i<count;i++){
-    const m=skinWeave.marks[
-      Math.floor((i+.5)*skinWeave.marks.length/count)];
+    const sourceIndex=Math.floor((i+.5)*skinWeave.marks.length/count);
+    const m=skinWeave.marks[sourceIndex];
     const p:Point=[m.x,m.y];
     if(classify(p)!=="skin")continue;
     const a=screen(p),b=screen([m.endX,m.endY]);
@@ -934,6 +937,7 @@ export const createDryPencilHeadPlate=(
       alpha:clamp(m.alpha,.005,.56),
     });
     materialCounts["face-optical-weave"]++;
+    if(lightFibreIndices.has(sourceIndex))committedLightFibres++;
   }
   const skinWeaveEvidence={
     pigments:materialCounts["face-optical-weave"],
@@ -941,6 +945,8 @@ export const createDryPencilHeadPlate=(
     protectedHighlights:skinWeave.protectedHighlights,
     protectedEdges:skinWeave.protectedEdges,
     protectedAnatomy:skinWeave.protectedAnatomy,
+    protectedSpans:skinWeave.protectedSpans,
+    opticalLightFibres:committedLightFibres,
   };
   // Add verified source-aligned anatomical marks only within the face or
   // hair structure. Never paste the original photographic background.

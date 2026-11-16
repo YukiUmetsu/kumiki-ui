@@ -10,6 +10,8 @@ export interface PencilDrawingProps {
   /** Absolute frame from FilmStage or a host. The component owns no timer. */
   frame: number;
   reducedMotion?: boolean;
+  /** ArtCraft negative control: expose only drawn pencil contacts, not gradient tonal support. */
+  showTonalSupport?: boolean;
   label?: string;
   className?: string;
   style?: CSSProperties;
@@ -65,7 +67,7 @@ function Trace({ trace, frame, reducedMotion = false }: { trace: PencilTrace; fr
  * angles, and drawn at individual absolute frames. No uniform photography filter or WebGL.
  */
 export function PencilDrawing({ drawing, frame, reducedMotion = false,
-  label = "Coloured-pencil scientific illustration", className, style, children }: PencilDrawingProps) {
+  showTonalSupport = true, label = "Coloured-pencil scientific illustration", className, style, children }: PencilDrawingProps) {
   const issues = drawing.foundation
     ? inspectPencilFoundationDrawing(drawing) : inspectPencilDrawing(drawing);
   if (issues.length) throw new RangeError("Invalid pencil drawing: " + issues.join("; "));
@@ -89,6 +91,9 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
     role="img" aria-label={label} className={className}
     data-km-colored-pencil="" data-km-pencil-frame={frame}
     data-km-pencil-foundation={drawing.foundation?"CP-F1":undefined}
+    data-km-pencil-render-method="authored-vector-pigment"
+    data-km-pencil-photo-pixels="none"
+    data-km-pencil-tonal-support={showTonalSupport?"on":"off"}
     style={{ width: "100%", height: "100%", display: "block", overflow: "hidden", isolation: "isolate", ...style }}>
     <defs>
       <pattern id={uid + "-paper"} width={1024} height={1024} patternUnits="userSpaceOnUse">
@@ -124,7 +129,7 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
       </mask>
       {drawing.regions.map((region, i) => <clipPath key={region.id} id={uid + "-region-" + i}
         clipPathUnits="userSpaceOnUse"><path d={region.path}/></clipPath>)}
-      {drawing.regions.map((region,i)=>region.craft&&<linearGradient key={region.id}
+      {showTonalSupport&&drawing.regions.map((region,i)=>region.craft&&<linearGradient key={region.id}
         id={uid+"-tone-"+i} gradientUnits="userSpaceOnUse"
         x1={region.bounds[0]+region.bounds[2]*(region.craft.light<.5?.12:.89)}
         y1={region.bounds[1]+region.bounds[3]*.10}
@@ -148,11 +153,13 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
             }, reducedMotion)}/>}
         {/* An unfinished sheet stays blank until a real pencil stroke starts. Underpaint only
             softens voids beneath deposited pigment; it must never reveal the subject early. */}
-        {region.craft && (reducedMotion || frame > region.layers[0].startFrame) &&
+        {showTonalSupport && region.craft &&
+          (reducedMotion || frame > region.layers[0].startFrame) &&
           <path data-km-pencil-craft-base="" d={region.path}
             fill={"url(#"+uid+"-tone-"+index+")"}
             mask={"url(#"+uid+"-craft-mask-"+index+")"}
-            opacity={( .76 + .20*region.craft.burnish) * evaluatePencilMark(frame,{
+            opacity={( .76 + .20*region.craft.burnish) *
+              (region.craft.tonalSupportWeight??1) * evaluatePencilMark(frame,{
               startFrame:region.layers[0].startFrame,
               durationFrames:Math.max(45,Math.floor(region.layers[0].durationFrames*.64)),
             },reducedMotion)}/>}

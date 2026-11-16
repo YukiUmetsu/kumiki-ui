@@ -3,6 +3,7 @@ import type { PencilAspect, PencilDrawingSpec, PencilRegion, PencilTrace } from 
 import { createPencilMaterialRegion } from "../../registry/video/colored-pencil-materials";
 import { createPencilFoundationDrawing } from "../../registry/video/colored-pencil-foundation";
 import type { PencilSurface } from "../../registry/video/colored-pencil-materials";
+import { pencilPortraitAnatomy } from "../../registry/video/colored-pencil-anatomy";
 
 /**
  * Original, authored anatomy studies based on observation of pencil technique,
@@ -113,14 +114,242 @@ export function pencilRootedFur(
   return strokes;
 }
 
+
+/** Fine dry-pencil guard hairs rooted at a known part boundary. Each point
+ * follows an authored parent quadratic, whose outward normal determines
+ * the lift direction. No random hairs may appear detached in paper space.
+ */
+type FringeGuide=readonly [number,number,number,number,number,number,number,number];
+function pencilContourFringe(
+  guides:readonly FringeGuide[],seed:number,palette:PencilPalette,startFrame=248,
+):PencilTrace[]{
+  if(!Number.isSafeInteger(seed)||seed<0||seed>2147483647||
+     guides.length<1||guides.length>6||
+     palette.some(c=>!/^#[0-9a-f]{6}$/i.test(c)))
+    throw new RangeError("Invalid authored pencil contour fringe");
+  const marks:PencilTrace[]=[];
+  for(let layer=0;layer<3;layer++){
+    const arcs:string[]=[];
+    guides.forEach(([x0,y0,x1,y1,cx,cy,count,side],group)=>{
+      if(![x0,y0,x1,y1,cx,cy,count,side].every(Number.isFinite)||
+         !Number.isInteger(count)||count<16||count>40||
+         (side!==1&&side!==-1)||
+         Math.hypot(x1-x0,y1-y0)<8)
+        throw new RangeError("Contour fringe must follow a bounded parent");
+      for(let i=0;i<count;i++){
+        const key=group*131+layer*43+i;
+        const t=Math.max(.025,Math.min(.975,
+          (i+.5+(pencilHash(seed,key,41)-.5)*.7)/count));
+        const u=1-t;
+        const x=u*u*x0+2*u*t*cx+t*t*x1;
+        const y=u*u*y0+2*u*t*cy+t*t*y1;
+        const tx=2*u*(cx-x0)+2*t*(x1-cx);
+        const ty=2*u*(cy-y0)+2*t*(y1-cy);
+        const mag=Math.hypot(tx,ty);
+        if(mag<.001)continue;
+        const nx=-ty/mag*side,ny=tx/mag*side;
+        const travel=(3.2+5.1*pencilHash(seed,key,42))*
+          (layer===2?.86:1);
+        const root=1.2+1.6*pencilHash(seed,key,43);
+        const bend=(pencilHash(seed,key,44)-.5)*2.8;
+        const sx=x-nx*root,sy=y-ny*root;
+        const ex=x+nx*travel,ey=y+ny*travel;
+        const mx=(sx+ex)*.5+tx/mag*bend;
+        const my=(sy+ey)*.5+ty/mag*bend;
+        arcs.push("M"+fmt(sx)+" "+fmt(sy)+" Q"+
+          fmt(mx)+" "+fmt(my)+" "+fmt(ex)+" "+fmt(ey));
+      }
+    });
+    marks.push({...mark(arcs.join(" "),palette[layer],
+      [.35,.29,.22][layer],startFrame+layer*6,
+      [.74,.58,.68][layer]),id:"fringe-"+layer});
+  }
+  return marks;
+}
+
+
+/**
+ * Authored soft-dermis pencil passes. Each tiny dry contact grows along a
+ * measured convex facial plane, not Cartesian image noise or blurred photos.
+ * Pigment layering stays translucent and distinct under optional tonal
+ * support. Five independently authored guides preserve facial flow:
+ * forehead, left/right malar, chin and lateral temple.
+ */
+type DermalGuide=readonly [number,number,number,number,number,number,number,number];
+function pencilDermalGlaze(
+  guides:readonly DermalGuide[],seed:number,palette:PencilPalette,
+  startFrame=235,
+):PencilTrace[]{
+  if(guides.length<1||guides.length>7||
+     !Number.isSafeInteger(seed)||seed<0||seed>2147483647||
+     palette.some(color=>!/^#[0-9A-F]{6}$/i.test(color)))
+    throw new RangeError("Invalid dermal pencil atlas");
+  const traces:PencilTrace[]=[];
+  for(let layer=0;layer<3;layer++){
+    const pieces:string[]=[];
+    guides.forEach(([x0,y0,x1,y1,cx,cy,count,spread],group)=>{
+      if(![x0,y0,x1,y1,cx,cy,count,spread].every(Number.isFinite)||
+         !Number.isSafeInteger(count)||count<32||count>100||
+         spread<0||spread>20||Math.hypot(x1-x0,y1-y0)<9)
+        throw new RangeError("Dermal plane requires bounded anatomical tangent");
+      for(let i=0;i<count;i++){
+        const key=group*131+layer*43+i;
+        const t=Math.max(.015,Math.min(.985,
+          (i+.5+(pencilHash(seed,key,71)-.5)*.6)/count));
+        const u=1-t;
+        const bx=u*u*x0+2*u*t*cx+t*t*x1;
+        const by=u*u*y0+2*u*t*cy+t*t*y1;
+        const tx=2*u*(cx-x0)+2*t*(x1-cx);
+        const ty=2*u*(cy-y0)+2*t*(y1-cy);
+        const size=Math.hypot(tx,ty);
+        if(size<.001)continue;
+        const dx=tx/size,dy=ty/size,nx=-dy,ny=dx;
+        const offset=(pencilHash(seed,key,72)-.5)*spread;
+        const jitter=(pencilHash(seed,key,73)-.5)*2.0;
+        const len=(2.9+5.6*pencilHash(seed,key,74))*(layer===2?.74:1);
+        const x=bx+nx*offset,y=by+ny*offset;
+        const midx=x+dx*len*.51+nx*jitter;
+        const midy=y+dy*len*.51+ny*jitter;
+        const ex=x+dx*len+nx*jitter*.35;
+        const ey=y+dy*len+ny*jitter*.35;
+        pieces.push("M"+fmt(x)+" "+fmt(y)+" Q"+
+          fmt(midx)+" "+fmt(midy)+" "+fmt(ex)+" "+fmt(ey));
+      }
+    });
+    // A single giant trace would exceed CP-F1's 12K path budget. Split
+    // each physical pigment pass into three bounded, separately seekable
+    // brushes without dropping a single fine contact or authored plane.
+    for(let chunk=0;chunk<3;chunk++){
+      const portion=pieces.slice(chunk*150,(chunk+1)*150);
+      traces.push({...mark(portion.join(" "),palette[layer],
+        [.39,.30,.25][layer],startFrame+layer*9,
+        [.34,.27,.25][layer]),id:"dermis-"+layer+"-"+chunk});
+    }
+  }
+  return traces;
+}
+
+/**
+ * ANAT1 is the *construction source*, not a decoration on the portrait.
+ * Every eye, both canthi, the eyebrow folds and the labial ring are projected
+ * from one 468-vertex calibrated face, then expressed in the CP-F1 dry pencil
+ * vocabulary. The previous hand-guessed feature stickers no longer decide
+ * facial topology. This is a 2D pencil painter, not a mesh screenshot.
+ */
+const PENCIL_PORTRAIT_ANAT1=pencilPortraitAnatomy();
+function applyPortraitAnatomy(part:PencilSubjectPart):PencilSubjectPart{
+  const A=PENCIL_PORTRAIT_ANAT1;
+  if(part.id==="face-main"){
+    return {...part,path:A.features.oval.path,
+      bounds:A.features.oval.bounds,
+      // Optical pigment is deposited into the actual ANAT1 mesh light
+      // field *before* the explicitly authored major contour contacts.
+      details:[
+        ...A.pigment.map((group,index)=>({
+          ...mark(group.path,group.color,group.width,
+            216+Math.min(30,Math.floor(index/4)*5),group.opacity),
+          id:group.id,
+        })),
+        ...(part.details??[]),
+      ]};
+  }
+  const eye=part.id==="eye-white-far"?"R":
+    part.id==="eye-white-near"?"L":undefined;
+  if(eye){
+    const upper=A.features["eye-upper."+eye].path;
+    const lower=A.features["eye-lower."+eye].path;
+    return {...part,path:A.eyes[eye].path,bounds:A.eyes[eye].bounds,
+      // Contact pressure follows the *actual* upper orbital rim, while
+      // the inferior lid is a soft turning plane, not a complete black ring.
+      details:[
+        {...mark(upper,"#624F56",.84,201,.82),id:"anat-upper-lid-"+eye},
+        {...mark(lower,"#B68D8A",.48,221,.56),id:"anat-lower-lid-"+eye},
+        {...mark(upper,"#D8B4A4",.28,248,.43),id:"anat-orbital-fold-"+eye},
+        {...mark(A.hair["lash-upper."+eye].path,"#584850",.25,258,.54),
+          id:"anat-lash-upper-"+eye},
+        {...mark(A.hair["lash-lower."+eye].path,"#94777C",.22,267,.42),
+          id:"anat-lash-lower-"+eye},
+      ]};
+  }
+  const iris=part.id==="iris-far"?"R":
+    part.id==="iris-near"?"L":undefined;
+  if(iris)return {...part,path:A.irises[iris].path,
+    bounds:A.irises[iris].bounds,details:[
+      {...mark(A.irises[iris].path,"#667C7E",.27,235,.61),
+        id:"anat-iris-fibre-"+iris},
+    ]};
+  const pupil=part.id==="pupil-far"?"R":
+    part.id==="pupil-near"?"L":undefined;
+  if(pupil)return {...part,path:A.pupils[pupil].path,
+    bounds:A.pupils[pupil].bounds,details:[
+      {...mark("M"+(A.pupils[pupil].bounds[0]+3.4).toFixed(2)+" "+
+        (A.pupils[pupil].bounds[1]+2.2).toFixed(2)+" l.32 -.38",
+        "#F4EBDF",.32,246,.65),id:"anat-catchlight-"+pupil},
+    ]};
+  if(part.id==="brows")return {...part,
+    path:A.browMass.path,bounds:A.browMass.bounds,
+    details:[
+      {...mark(A.browInk.R.path,"#75615C",.49,228,.71),
+        id:"anat-brow-R"},
+      {...mark(A.browInk.L.path,"#735B59",.50,228,.70),
+        id:"anat-brow-L"},
+      {...mark(A.browInk.L.path+" "+A.browInk.R.path,
+        "#C3A08E",.27,245,.42),id:"anat-brow-underfur"},
+      {...mark(A.hair["brow.R"].path,"#645258",.28,246,.69),
+        id:"anat-brow-fibres-R"},
+      {...mark(A.hair["brow.L"].path,"#614D55",.28,246,.70),
+        id:"anat-brow-fibres-L"},
+    ]};
+  if(part.id==="nose-bridge")return {...part,
+    path:A.nose.path,bounds:A.nose.bounds,
+    // Nasal projection, soft alar fold and subnasale now agree in depth.
+    // These pencil marks sit on a single measured ANAT1 cartilage plane.
+    details:[
+      {...mark(A.features["nose-bridge"].path,"#D9A691",.54,229,.58),
+        id:"anat-nose-bridge"},
+      {...mark(A.features["nose-base"].path,"#956F72",.45,242,.60),
+        id:"anat-nose-base"},
+      {...mark(A.features["nose-base"].path,"#F6CCB5",.28,251,.43),
+        id:"anat-alar-reflection"},
+      {...mark(A.features["nose-bridge"].path,"#987275",.31,259,.32),
+        id:"anat-nose-terminator"},
+    ]};
+  if(part.id==="lip-upper")return {...part,
+    palette:["#CDA99D","#A38382","#E9C8B6"],
+    path:A.lips.upper,bounds:A.lips.bounds,
+    details:[
+      {...mark(A.features["mouth-line"].path,"#835D66",.48,240,.57),
+        id:"anat-mouth-seam"},
+      {...mark(A.features["lips-upper"].path,"#EBC1AD",.35,249,.47),
+        id:"anat-cupid-bow"},
+    ]};
+  if(part.id==="lip-lower")return {...part,
+    palette:["#D4ADA3","#AE8888","#EFCBBC"],
+    path:A.lips.lower,bounds:A.lips.bounds,
+    details:[
+      {...mark(A.features["lips-lower"].path,"#E3BAAF",.31,241,.48),
+        id:"anat-lower-lip"},
+      {...mark(A.features["mouth-line"].path,"#AC7D7B",.24,250,.34),
+        id:"anat-labial-contact"},
+    ]};
+  return part;
+}
+
 function face():PencilSubjectPart[] {
   const skin:PencilPalette=["#DDA58F","#906277","#F4CEB0"];
   const lit:PencilPalette=["#F2C6AA","#B78082","#FFE0BF"];
   const hair:PencilPalette=["#684F50","#282E40","#B18471"];
   const shirt:PencilPalette=["#718E9C","#384F73","#CCD9D3"];
-  return [
+  const parts:PencilSubjectPart[]=[
     {id:"hair-back",material:"hair",palette:hair,
-      path:"M113 161 C100 102 146 56 212 50 C276 35 339 80 354 143 Q375 207 354 300 C367 348 343 401 309 426 Q286 388 280 310 L143 311 Q151 373 120 418 C94 370 101 306 100 253 Q95 202 113 161 Z",
+      // Continuity: the inner occipital hair must overhang the nape,
+      // not terminate as a straight vertical cut exposing paper beside
+      // the anatomical neck and the left shoulder.
+      path:"M113 161 C100 102 146 56 212 50 C276 35 339 80 354 143 "+
+        "Q375 207 354 300 C367 348 343 401 309 426 "+
+        "Q286 388 280 310 C246 318 203 313 170 308 "+
+        "C174 333 177 353 169 373 Q153 411 120 418 "+
+        "C94 370 101 306 100 253 Q95 202 113 161 Z",
       bounds:[94,35,283,395],direction:67,flow:32,start:30,
       details:flowBundles([
         [165,76,116,386,116,214,22,17],[218,55,160,377,166,204,22,18],
@@ -131,9 +360,22 @@ function face():PencilSubjectPart[] {
       bounds:[43,349,365,91],direction:27,flow:28,start:34,
       details:[mark("M86 401 Q139 367 183 381 M320 369 Q359 385 384 427","#D4DCD1",2)]},
     {id:"neck",material:"skin",palette:skin,
-      path:"M196 303 Q217 323 280 303 L277 359 Q249 388 214 361 L191 344 Z",
-      bounds:[187,299,97,88],direction:68,flow:14,start:45,
-      details:[mark("M198 333 Q236 359 277 329 M207 359 Q238 372 261 363","#F5CAB0",1.2,214)]},
+      // Continuous anatomical nape/scm/trapezius under the mandible
+      // joins both collar wings. The broad *hidden* underlap is
+      // intentional: it prevents bright paper slots when hair shifts.
+      path:"M171 297 C190 314 208 325 235 323 "+
+        "C258 321 272 313 282 300 L279 365 "+
+        "C268 380 248 388 225 382 C206 375 185 371 164 375 "+
+        "L168 337 Z",
+      bounds:[161,293,125,99],direction:68,flow:14,start:45,
+      details:[
+        {...mark("M185 325 Q197 351 222 375 M272 328 Q264 358 245 379",
+          "#AE7C79",.48,214,.49),id:"neck-scm-attachments"},
+        {...mark("M172 350 Q190 368 215 380 M222 384 Q248 389 273 362",
+          "#F5CAB0",.51,226,.52),id:"neck-trapezius-turn"},
+        mark("M203 341 Q235 363 274 336 M210 363 Q238 378 263 367",
+          "#F5CAB0",.64,236,.57),
+      ]},
     {id:"ear",material:"skin",palette:skin,
       path:"M295 218 Q323 195 334 222 Q343 250 317 265 Q310 266 302 252 Z",
       bounds:[292,195,53,76],direction:18,start:79,
@@ -153,6 +395,16 @@ function face():PencilSubjectPart[] {
         ...flowBundles([
           [160,246,175,291,158,276,13,8],[274,251,293,283,301,270,11,9],
         ],1449,"#BA8580",.27,247),
+        // Five source-observed, locally tangent convex skin volumes.
+        // Short optical pigment contacts remain when SVG tonal support is
+        // removed; this is original pencil geometry, not a photo edit.
+        ...pencilDermalGlaze([
+          [159,148,294,157,225,124,80,9],
+          [149,219,193,295,140,261,76,12],
+          [286,219,257,315,298,260,80,12],
+          [191,307,269,321,230,339,78,8],
+          [147,176,166,236,141,203,66,8],
+        ],2661,["#CB9585","#A67580","#F2CFB1"],237),
       ]},
     {id:"temple-light",material:"glaze",palette:lit,
       path:"M145 145 C163 121 185 123 200 135 Q177 151 170 182 Q152 187 143 172 Z",
@@ -269,12 +521,13 @@ function face():PencilSubjectPart[] {
       bounds:[253,339,92,95],direction:55,start:188,
       details:[mark("M297 354 Q305 387 291 414","#D7E2D8",1.55,244)]},
   ];
+  return parts.map(applyPortraitAnatomy);
 }
 
 function fox():PencilSubjectPart[] {
   const orange:PencilPalette=["#C9825D","#844C4C","#F4BC85"];
-  const pale:PencilPalette=["#E6D7BA","#887B78","#FFF0D0"];
-  const charcoal:PencilPalette=["#59616A","#2C3B49","#B1ADA1"];
+  const pale:PencilPalette=["#D5CEBB","#777D7B","#F4E8D7"];
+  const charcoal:PencilPalette=["#674E46","#342F34","#AE9883"];
   const earth:PencilPalette=["#8B8773","#5F665C","#CBC2A3"];
   return [
     {id:"earth",material:"stone",palette:earth,
@@ -284,46 +537,307 @@ function fox():PencilSubjectPart[] {
     {id:"ground-shadow",material:"cast-shadow",palette:["#77736B","#696A63","#B5AA9D"],
       path:"M78 380 Q190 367 328 378 Q384 381 401 396 Q228 417 96 401 Z",
       bounds:[73,362,333,57],start:36},
-    {id:"tail-back",material:"fur",palette:charcoal,
-      path:"M159 320 Q108 292 63 335 Q33 373 79 397 Q133 413 176 373 Q203 358 210 341 Z",
-      bounds:[49,290,166,125],direction:80,start:60,
-      details:flowBundles([
-        [69,362,151,385,103,405,28,13],[83,345,172,377,130,383,20,10],
-      ],310,"#AEB0A4",.74,220)},
+    {id:"tail-back",material:"fur",palette:["#A8624E","#684B46","#DEA77B"],
+      // Brush tail is an anatomical continuation of the sitting rump: a
+      // long softly tapering weight-bearing pelt along the ground. Preserve
+      // its connection under the hindquarters, not a free round pompom.
+      // Interleaved, unequal guard-hair tufts interrupt the silhouette.
+      // The rump root stays behind the body while the white tip remains
+      // within the distal pelt. Not a smooth tube or separate pompom.
+      path:"M195 346 C178 337 161 332 144 331 "+
+        "C133 327 123 330 113 330 C92 329 73 331 54 338 "+
+        "C45 337 38 342 31 348 C24 349 18 354 15 362 "+
+        "C11 366 13 369 14 372 C11 376 17 382 24 385 "+
+        "C30 393 46 396 59 398 C70 403 82 401 94 404 "+
+        "C117 406 139 398 155 391 C172 380 185 368 197 357 "+
+        "C201 352 198 348 195 346 Z",
+      bounds:[12,326,207,82],direction:157,start:60,
+      details:[
+        ...pencilRootedFur([
+          [183,342,54,348,116,325,34,17],
+          [180,367,46,385,114,402,33,17],
+          [141,335,28,359,75,332,32,14],
+          [163,381,72,399,125,410,32,14],
+          [102,347,18,374,52,351,30,12],
+          // Interlocking shallow scalp-to-distal fans keep the tail
+          // densely furred instead of a long uniform diagonal hatch.
+          [162,346,73,343,122,336,32,11],
+          [148,377,34,383,97,398,33,12],
+          [94,345,24,368,52,342,30,11],
+        ],310,["#E2AE81","#74554F","#F0C79A"],224),
+        ...pencilContourFringe([
+          [150,330,34,349,82,324,31,-1],
+          [28,390,151,391,91,409,32,1],
+          [27,357,21,385,11,372,29,-1],
+        ],1768,["#BE7859","#694C47","#F1BB8D"],255),
+      ]},
     {id:"body",material:"fur",palette:orange,
-      path:"M177 240 Q208 216 263 223 Q318 231 347 289 Q366 343 329 388 Q285 403 239 384 Q198 410 159 370 Q133 324 177 240 Z",
+      path:"M190 226 C211 216 244 221 266 239 C295 245 325 270 336 303 C348 336 335 366 317 383 Q292 400 262 389 Q236 386 222 381 Q195 392 174 374 Q153 355 156 322 C155 287 170 250 190 226 Z",
       bounds:[137,218,229,188],direction:73,start:73,
-      details:flowBundles([
-        [194,249,211,345,166,286,24,17],[243,233,265,373,244,291,27,15],
-        [303,248,324,370,333,294,21,13],
-      ],381,"#F5BE85",.65,224)},
+      details:[
+        ...pencilRootedFur([
+          [194,249,211,345,166,286,33,16],
+          [243,233,265,373,244,291,35,15],
+          [303,248,324,370,333,294,34,13],
+        ],381,["#E7AE7E","#80544A","#F5D4A3"],224),
+        ...pencilRootedFur([
+          [168,281,193,343,172,310,34,15],
+          [196,250,227,325,196,296,35,18],
+          [241,245,267,346,267,293,35,19],
+          [293,273,322,362,329,320,34,18],
+          [219,358,302,386,264,380,33,12],
+        ],1831,["#C8865D","#744E45","#ECC299"],244),
+      ]},
     {id:"rear-leg",material:"fur",palette:charcoal,
-      path:"M313 313 Q342 328 348 365 Q348 390 363 393 L357 403 L314 402 Q306 366 296 343 Z",
-      bounds:[292,310,75,96],direction:72,start:84,
-      details:flowBundles([[318,333,335,388,326,365,18,9]],421,"#A9B0A7",.66)},
+      // ArtCraft native 960px review rejected even the first bent hock:
+      // the ~80×74 dark cap read as a THIRD standing furry mound. In an
+      // alert seated fox only a shortened rear metatarsus and toe pad
+      // emerge from beneath the large russet haunch at ground level.
+      // The hidden upper thigh stays orange; never extend a charcoal boot
+      // from the rump to the grass just to fill empty picture space.
+      path:"M328 369 C334 366 344 371 349 379 "+
+        "C352 385 359 392 368 396 C373 399 372 403 367 405 "+
+        "C359 408 353 405 348 404 C337 409 326 406 320 403 "+
+        "C323 395 321 388 318 381 C318 374 322 369 328 369 Z",
+      bounds:[315,364,59,46],direction:83,start:84,
+      details:[
+        ...pencilRootedFur([
+          [326,377,345,398,334,387,27,7],
+          [338,372,360,399,348,388,28,8],
+          [322,389,345,404,336,399,27,6],
+          [352,389,368,401,358,399,25,5],
+        ],421,["#A69A8F","#605451","#C8B9A8"],234),
+        {...mark("M326 374 C338 376 345 384 345 391 "+
+          "M327 390 Q333 397 341 398",
+          "#87736A",.44,261,.58),id:"hind-hock-plane"},
+        {...mark("M323 400 Q330 403 335 402 "+
+          "M338 404 Q347 407 352 402 "+
+          "M356 402 Q363 405 369 400",
+          "#443C3E",.37,269,.59),id:"hind-digit-folds"},
+        {...mark("M327 405 l1.7 1.1 M345 406 l1.6 .7 "+
+          "M362 404 l1.9 .8",
+          "#3B3135",.30,276,.62),id:"hind-tiny-claws"},
+        {...mark("M331 375 Q340 379 342 386 "+
+          "M344 382 Q353 393 361 396 "+
+          "M325 393 Q335 402 344 403",
+          "#C0AE9D",.31,280,.45),id:"hind-fur-light-turn"},
+      ]},
     {id:"foreleg-left",material:"fur",palette:charcoal,
-      path:"M197 301 Q222 301 228 336 Q220 374 224 393 Q237 398 237 406 L182 406 Q185 386 184 364 Q175 320 197 301 Z",
-      bounds:[173,298,68,111],direction:79,start:90,
-      details:flowBundles([[191,327,204,396,183,365,19,11]],461,"#B6B2A6",.63)},
+      // The radius/ulna turn under the forearm taper into a slimmer wrist;
+      // the foot flares only BELOW carpal flexion to expose four true digits.
+      path:"M197 305 C207 307 216 315 219 328 "+
+        "C221 337 217 347 213 358 C209 370 209 379 213 387 "+
+        "C216 393 221 397 225 400 C228 402 225 406 221 408 "+
+        "C215 411 207 408 201 405 C192 409 182 410 177 406 "+
+        "C181 402 187 397 190 390 C193 383 192 373 192 364 "+
+        "C191 352 184 342 187 328 C189 317 192 309 197 305 Z",
+      bounds:[175,300,53,112],direction:79,start:90,
+      details:[
+        ...pencilRootedFur([
+          [191,327,204,396,183,365,32,10],
+        ],461,["#B6A594","#5E5150","#CBBDAA"],244),
+        ...pencilRootedFur([
+          [196,328,199,395,191,362,31,8],
+          [209,342,215,397,205,372,28,8],
+        ],2077,["#8C6B60","#393238","#BEA696"],250),
+        // Named optical planes are thin, varied low-pressure pencil, not
+        // a solid photograph-like gradient hiding the dark fur.
+        {...mark("M198 316 Q206 335 204 352 "+
+          "C201 367 198 377 206 392",
+          "#D1B9A4",.44,263,.48),id:"far-antebrachial-plane"},
+        {...mark("M190 380 Q188 393 183 403 "+
+          "M206 387 Q211 398 219 405",
+          "#54464A",.39,271,.60),id:"far-metacarpal-turn"},
+        ...pencilRootedFur([
+          [189,338,198,376,184,361,27,6],
+          [213,335,205,374,216,359,26,6],
+          [188,388,198,407,184,400,24,5],
+        ],2167,["#B9A18D","#4E4142","#8A7770"],263),
+        {...mark("M180 402 Q188 399 195 403 M197 406 Q205 402 212 405 M212 406 Q218 403 223 405",
+          "#342E32",.58,260,.77),id:"paw-toes"},
+        // Digit pads spread into four discrete low-pressure creases;
+        // flexor lines begin on the leg and fade into the metacarpal fan.
+        {...mark("M181 399 Q184 402 183 405 "+
+          "M191 397 Q194 402 193 406 "+
+          "M202 397 Q205 402 204 406 "+
+          "M214 398 Q218 402 217 405",
+          "#45393A",.42,266,.68),id:"toe-furrows"},
+        {...mark("M182 405 l1.8 1.2 "+
+          "M192 406 l1.6 .9 "+
+          "M203 406 l1.8 1.1 "+
+          "M216 405 l1.6 .8",
+          "#342C30",.35,278,.65),id:"claw-tips"},
+        {...mark("M190 354 Q188 371 184 389 "+
+          "M197 351 Q197 373 192 393 "+
+          "M205 355 Q205 375 203 392 "+
+          "M213 356 Q212 376 215 394",
+          "#9B8C83",.32,259,.48),id:"wrist-tendons"},
+      ]},
     {id:"foreleg-right",material:"fur",palette:charcoal,
-      path:"M273 307 Q302 311 304 341 Q294 374 302 393 Q315 397 317 406 L253 406 Q264 386 260 361 Q251 325 273 307 Z",
-      bounds:[247,302,76,107],direction:75,start:94,
-      details:flowBundles([[270,332,282,399,273,372,20,10]],489,"#B3B5AC",.65)},
+      // A light sagittal break in the near wrist, a broad weight-bearing
+      // metacarpal and individually rounded toe pads; never a dark column.
+      path:"M280 306 C289 307 295 319 297 332 "+
+        "C300 343 295 353 291 363 C287 378 290 385 295 392 "+
+        "C300 397 313 398 315 402 C319 406 315 408 309 409 "+
+        "C300 411 291 408 282 406 C270 410 259 410 253 405 "+
+        "C258 401 264 394 266 386 C268 376 266 361 267 350 "+
+        "C267 335 271 311 280 306 Z",
+      bounds:[250,302,68,110],direction:75,start:94,
+      details:[
+        ...pencilRootedFur([
+          [270,332,282,399,273,372,33,9],
+        ],489,["#B5A391","#655552","#C7B7A6"],242),
+        ...pencilRootedFur([
+          [278,328,279,395,277,371,31,10],
+          [289,334,297,398,290,372,30,9],
+        ],2129,["#8B695E","#3A3036","#B9A292"],248),
+        {...mark("M282 318 Q289 341 283 355 "+
+          "C280 371 279 383 289 393",
+          "#C4AB99",.45,263,.50),id:"near-antebrachial-plane"},
+        {...mark("M266 381 Q266 394 257 404 "+
+          "M292 391 Q302 397 313 405",
+          "#4A4042",.38,272,.60),id:"near-metacarpal-turn"},
+        ...pencilRootedFur([
+          [270,334,278,376,268,361,29,7],
+          [291,339,283,379,297,361,27,6],
+          [260,388,283,406,271,403,25,6],
+        ],2201,["#BDA694","#514548","#998478"],266),
+        {...mark("M255 405 Q267 401 278 404 M280 405 Q290 401 301 404 M301 405 Q308 402 314 405",
+          "#3B3439",.58,260,.77),id:"paw-toes"},
+        // Oblique near paw bears more weight; toe ridges are slightly
+        // wider apart than the far foreleg and are not a drawn boot cuff.
+        {...mark("M256 398 Q260 403 258 406 "+
+          "M269 396 Q274 403 272 406 "+
+          "M287 396 Q292 402 290 406 "+
+          "M303 398 Q308 402 307 405",
+          "#44393B",.43,266,.68),id:"toe-furrows"},
+        {...mark("M257 405 l1.5 1 "+
+          "M271 406 l1.7 .8 "+
+          "M289 406 l1.9 .9 "+
+          "M307 405 l1.6 .9",
+          "#342C30",.35,278,.65),id:"claw-tips"},
+        {...mark("M270 354 Q268 374 259 390 "+
+          "M280 352 Q276 377 274 392 "+
+          "M288 352 Q289 376 291 393 "+
+          "M296 354 Q298 379 305 394",
+          "#A3948A",.33,259,.48),id:"wrist-tendons"},
+      ]},
     {id:"chest",material:"fur",palette:pale,
-      path:"M185 236 Q219 221 271 244 Q301 275 295 316 Q289 344 267 366 Q232 344 222 314 Q203 298 182 306 Q164 270 185 236 Z",
-      bounds:[163,220,137,152],direction:69,start:95,
-      details:flowBundles([
-        [194,250,222,328,196,305,23,15],[234,254,261,344,247,302,23,14],
-      ],523,"#FFF1D7",.71,229)},
+      path:"M191 242 C209 239 228 245 241 255 "+
+        "C253 264 260 276 264 289 C266 304 267 317 261 330 "+
+        // Smooth, interlocking sternum tufts instead of a stiff point.
+        "C256 342 250 348 245 355 C242 359 238 356 235 349 "+
+        "C231 354 226 351 222 346 C216 348 208 340 198 326 "+
+        "C189 324 183 315 182 304 C176 296 174 281 180 268 "+
+        "C181 256 185 247 191 242 Z",
+      bounds:[171,236,102,135],direction:69,start:95,
+      details:[
+        ...pencilRootedFur([
+          [194,250,222,328,196,305,31,11],
+          [230,254,248,346,244,306,31,12],
+        ],523,["#F8E9D4","#938780","#FFF2DB"],229),
+        ...pencilRootedFur([
+          [183,260,197,301,179,285,32,12],
+          [205,259,220,335,211,298,35,12],
+          [235,270,244,346,249,309,35,14],
+          [252,283,249,350,263,313,30,12],
+          [211,310,239,346,225,329,32,10],
+          [228,316,245,352,243,335,31,9],
+        ],1897,["#C6B5A1","#877E77","#FFF1D9"],249),
+        {...mark("M205 316 Q213 333 224 342 "+
+          "M226 337 Q235 348 243 352",
+          "#AA9A8E",.29,278,.42),id:"fox-sternal-fur-turn"},
+        mark("M196 267 Q211 289 219 319 M231 277 Q249 305 257 335",
+          "#716E6D",.36,258,.50),
+        // Every white edge fibre starts inside a measured chest curve and
+        // lifts outside; the base color plane itself stays fully preserved.
+        ...pencilContourFringe([
+          [181,266,191,322,176,296,32,1],
+          [264,285,245,361,267,319,32,-1],
+          [245,354,217,346,231,350,30,-1],
+          [216,343,192,317,203,337,28,1],
+        ],901,["#E8DBC3","#9D9083","#FFF0D6"],253),
+      ]},
     {id:"neck-ruff",material:"fur",palette:pale,
-      path:"M165 240 Q158 259 175 279 Q159 291 176 311 Q185 304 195 318 Q203 303 218 314 Q227 298 243 301 Q256 284 241 266 Z",
-      bounds:[154,235,108,85],direction:59,start:104,
-      details:flowBundles([[174,247,206,306,176,291,20,14],
-        [210,248,237,295,225,278,19,14]],557,"#F8E7C6",.67)},
+      path:"M162 237 C170 242 174 251 180 256 "+
+        "C188 258 192 263 198 268 C206 268 214 271 220 278 "+
+        "C230 280 236 287 235 297 C231 306 225 312 216 312 "+
+        "C210 321 201 323 194 317 C184 319 176 313 170 305 "+
+        "C160 300 157 288 159 280 C157 265 159 248 162 237 Z",
+      bounds:[155,235,89,89],direction:59,start:104,
+      details:[
+        ...pencilRootedFur([
+          [174,247,206,306,176,291,30,10],
+          [204,258,231,301,222,283,30,9],
+        ],557,["#F9E7CB","#938780","#FFF1D5"],232),
+        ...pencilRootedFur([
+          [166,251,191,307,164,284,30,11],
+          [186,267,215,318,192,293,32,12],
+          [210,269,225,307,233,287,29,12],
+        ],1939,["#D7C3AC","#766D68","#FFF1D6"],244),
+        ...pencilContourFringe([
+          [159,253,167,301,155,278,29,1],
+          [235,286,213,313,238,298,31,-1],
+          [214,311,175,309,195,324,28,-1],
+        ],903,["#DBCDB8","#A2998D","#FFF3DD"],253),
+      ]},
+    {id:"ear-far",material:"fur",palette:["#AD6B54","#704E49","#D8A17E"],
+      // Far auricle is shorter and partly occluded by the cranial mass.
+      path:"M176 190 C169 177 165 160 166 148 "+
+        "Q164 139 172 137 C183 142 196 157 205 169 "+
+        "Q200 184 187 191 Z",
+      bounds:[160,135,53,61],direction:68,start:114,
+      details:[
+        mark("M171 141 Q174 157 184 174 M179 151 Q188 164 194 178",
+          "#5D504D",.43,241,.55),
+        ...pencilRootedFur([
+          [169,147,189,178,174,160,30,8],
+          [177,153,195,185,184,170,25,8],
+        ],642,["#D7A58B","#665055","#F0D0B0"],252),
+      ]},
+    {id:"ear-far-inner",material:"fur",palette:["#94786E","#5D5054","#C8AA94"],
+      path:"M176 166 C172 158 171 150 174 144 "+
+        "Q184 153 190 167 Q193 177 185 180 "+
+        "Q179 174 176 166 Z",
+      bounds:[169,141,27,42],direction:75,start:131,
+      details:[
+        mark("M175 146 Q177 157 186 172 M179 152 Q186 162 188 174",
+          "#594A4D",.39,245,.60),
+        ...pencilRootedFur([
+          [175,149,187,174,175,159,29,5],
+          [178,157,187,178,181,165,25,5],
+        ],1683,["#C69C86","#50474B","#EBD2BB"],256),
+      ]},
+    {id:"ear-near",material:"fur",palette:["#B67558","#765049","#E4A984"],
+      // Reduced pinna height, root still buried into upper cranium.
+      path:"M246 185 C257 162 275 138 290 125 "+
+        "Q299 119 302 127 C306 142 301 162 290 188 "+
+        "Q268 195 246 185 Z",
+      bounds:[242,118,67,79],direction:-69,start:115,
+      details:[
+        mark("M293 127 Q291 147 276 172 M300 131 Q302 149 288 176",
+          "#645050",.44,248,.60),
+        ...pencilRootedFur([
+          [295,129,274,178,288,150,29,7],
+          [296,143,284,184,293,165,26,7],
+        ],661,["#E0AB8C","#665357","#F2CBAB"],252),
+      ]},
+    {id:"ear-near-inner",material:"fur",palette:["#A17A71","#62525A","#D5B4A0"],
+      path:"M263 173 C275 150 285 134 296 124 "+
+        "Q299 141 290 163 Q284 181 274 183 Z",
+      bounds:[261,122,40,64],direction:-66,start:131,
+      details:[
+        mark("M293 129 Q290 149 277 174 M296 133 Q297 150 284 173",
+          "#4D4248",.47,247,.70),
+        ...pencilRootedFur([
+          [292,135,274,171,285,150,31,7],
+          [286,146,278,179,284,163,26,7],
+        ],1711,["#C4A088","#4F464D","#EFDBC1"],256),
+      ]},
     {id:"head-main",material:"fur",palette:["#B66C4E","#724849","#EBAE79"],
       // Three-quarter fox: skull widens behind the near orbit and narrows into
       // an oblique snout; avoid the old round bilateral mask.
-      path:"M133 167 C142 130 171 113 207 109 C250 99 287 129 299 166 C308 192 295 223 274 237 C258 243 255 262 229 267 C199 266 165 249 143 235 Q124 222 122 206 Q118 185 133 167 Z",
+      path:"M155 206 C173 181 191 162 220 152 C241 147 263 160 277 176 C287 194 285 210 274 223 Q255 241 232 236 C207 231 175 229 147 216 Q150 211 155 206 Z",
       bounds:[116,99,195,173],direction:43,start:112,
       details:[
         ...pencilRootedFur([
@@ -339,116 +853,189 @@ function fox():PencilSubjectPart[] {
           "#714F4C",.67,258,.50),
         mark("M165 178 Q183 163 199 169 M230 178 Q250 166 272 185",
           "#8E5D4D",.65,244,.64),
-      ]},
-    {id:"ear-far",material:"fur",palette:["#AF6B52","#714B49","#E1A47B"],
-      // Ear-to-skull proportion: broad cartilage base, shorter tapered tip.
-      path:"M150 152 C143 128 145 101 155 77 Q161 63 170 71 C184 82 196 111 202 132 Q178 130 150 152 Z",
-      bounds:[143,63,62,94],direction:67,start:114,
-      details:[
-        mark("M159 132 Q154 105 164 77 Q180 97 186 123",
-          "#524647",.78,241,.74),
-        ...pencilRootedFur([[158,87,177,126,163,110,18,8]],642,
-          ["#D4A282","#6D5653","#F1BFA2"],252),
-      ]},
-    {id:"ear-far-inner",material:"fur",palette:["#A17E73","#6A555B","#C9AD9A"],
-      path:"M159 126 C154 105 159 91 165 81 Q179 99 185 122 Z",
-      bounds:[154,78,35,53],direction:72,start:131,
-      details:[
-        mark("M164 96 Q164 115 178 120","#D4B29B",.44,245,.71),
-      ]},
-    {id:"ear-near",material:"fur",palette:["#B87658","#724F4A","#E4AA7F"],
-      path:"M252 127 C261 98 278 73 293 64 Q304 56 310 72 Q316 105 295 153 Q277 134 252 127 Z",
-      bounds:[246,55,71,102],direction:-66,start:115,
-      details:[
-        mark("M266 128 Q279 91 301 69 Q305 105 284 143",
-          "#55474B",.83,247,.80),
-        ...pencilRootedFur([[296,78,278,133,294,110,21,7]],661,
-          ["#E2AD88","#6B5556","#F5C9A6"],252),
-      ]},
-    {id:"ear-near-inner",material:"fur",palette:["#A37C6E","#68545C","#D9B39A"],
-      path:"M269 123 Q283 86 298 75 Q303 99 287 139 Z",
-      bounds:[265,71,41,71],direction:-68,start:131,
-      details:[mark("M291 94 Q282 107 282 127","#E8CAB0",.50,246,.73)]},
-    {id:"mask",material:"fur",palette:["#69514E","#423C41","#986A5C"],
-      // Narrow, dark bony orbits and an oblique tear duct beneath near eye.
-      path:"M150 191 Q163 176 185 184 C189 190 181 198 167 200 Q156 201 150 191 Z M217 188 Q235 171 264 181 C267 191 254 203 231 205 Q220 202 217 188 Z",
-      bounds:[147,169,123,39],direction:18,start:135,
-      details:[
-        mark("M151 190 Q168 178 184 185 M218 186 Q238 171 264 183",
-          "#43393E",.88,251,.78),
-        mark("M226 193 Q220 203 214 218 M229 199 Q241 208 257 197",
-          "#59474A",.70,264,.85),
+        // Real fur grows in neighboring scalp, temple, orbital and cheek
+        // fields, not a uniform hatch across a circular orange mask.
         ...pencilRootedFur([
-          [153,188,179,204,160,205,17,5],
-          [222,190,255,208,238,209,18,6],
+          [149,164,193,180,172,151,34,10],
+          [181,148,233,166,207,139,33,15],
+          [241,146,276,193,281,162,31,14],
+          [176,204,219,238,190,223,31,14],
+          [255,210,274,239,284,217,28,13],
+        ],1647,["#C98965","#704E4A","#F6CB95"],241),
+        mark("M160 158 C178 139 203 139 223 144 M216 145 Q241 141 259 157",
+          "#F7C99C",.62,248,.54),
+        mark("M167 220 Q185 235 205 242 M234 239 Q248 237 259 228",
+          "#7B5350",.55,257,.54),
+      ]},
+    {id:"periocular-form",material:"glaze",
+      palette:["#B97959","#785047","#E4B28B"],
+      path:"M188 189 C192 181 202 180 212 185 Q211 191 199 194 Q191 194 188 189 Z "+
+        "M211 184 C227 172 246 168 260 176 Q274 183 272 194 C263 186 246 181 230 188 Q220 196 214 198 Z "+
+        "M228 207 Q246 204 264 207 C259 225 247 229 236 235 C236 224 230 219 228 207 Z",
+      bounds:[145,156,145,81],direction:36,start:130,
+      details:[
+        ...pencilRootedFur([
+          [191,185,208,194,200,183,20,7],
+          [217,178,275,195,246,168,25,8],
+          [224,210,271,231,251,216,19,10],
+        ],814,["#DCA083","#84574C","#EBC3A0"],236),
+        mark("M191 186 Q201 180 212 185 M216 186 Q241 165 269 178",
+          "#794C46",.61,241,.53),
+        mark("M165 207 Q180 213 192 211 M224 213 Q248 216 270 205",
+          "#ECC0A2",.66,253,.58),
+      ]},
+    {id:"mask",material:"fur",palette:["#8B604D","#543E3D","#B37D63"],
+      // Thin shadow wedges stay attached to both orbital roofs. The far
+      // socket recedes into the bridge rather than a black elliptical patch.
+      path:"M198 189 Q202 186 207 188 Q204 191 201 191 Q199 191 198 189 Z "+
+        "M232 188 C239 181 250 180 255 184 "+
+        "C252 186 250 190 246 190 C240 189 237 189 232 188 Z",
+      bounds:[193,176,68,26],direction:18,start:135,
+      details:[
+        mark("M198 188 Q203 186 208 188 M233 186 Q243 180 255 184",
+          "#43393E",.62,251,.70),
+        mark("M233 191 Q230 197 228 198 M240 191 Q246 193 250 188",
+          "#59474A",.48,264,.62),
+        ...pencilRootedFur([
+          [195,188,209,193,201,185,17,4],
+          [229,185,254,194,243,180,21,5],
         ],645,["#AA7965","#5F4A4C","#B99479"],250),
       ]},
-    {id:"muzzle",material:"fur",palette:["#C8B6A0","#736A68","#EAD7B9"],
-      // One coherent oblique nasal-to-maxilla plane and a soft lower jaw.
-      path:"M105 221 C132 211 153 210 180 216 Q211 223 239 218 C261 215 271 224 274 234 Q264 248 237 259 Q207 265 165 258 Q126 251 107 239 Q97 232 105 221 Z",
-      bounds:[96,204,182,65],direction:14,start:146,
+    {id:"muzzle",material:"fur",palette:["#D6BFA6","#88786E","#F5DEC1"],
+      // Source-led fox cranial triangle: nasal leather sits on a slim
+      // taper and the maxilla broadens under the orbital/zygomatic plane.
+      // A constant cream tube cannot model this canine skull.
+      path:"M133 220 C141 215 153 213 165 211 "+
+        "C182 205 208 200 230 205 C248 209 260 217 264 225 "+
+        "C267 233 258 243 244 248 C229 253 208 251 192 246 "+
+        "C171 240 157 236 144 234 C133 230 130 226 133 220 Z",
+      bounds:[127,198,147,57],direction:14,start:146,
       details:[
         ...pencilRootedFur([
-          [116,227,171,248,142,246,29,10],
-          [165,222,216,249,194,250,27,12],
-          [225,222,267,237,247,246,26,9],
-        ],721,["#EAD9B9","#8C8176","#FFF0CD"],248),
-        mark("M112 239 C140 256 173 264 211 259 Q250 253 269 234",
-          "#4D494C",.79,268,.70),
-        mark("M113 225 Q146 214 176 226 M227 225 Q246 221 267 229",
-          "#F1DEBD",.63,268,.72),
-        mark("M125 248 Q170 266 199 262 M207 266 Q237 266 260 248",
-          "#8E817A",.52,275,.62),
+          [139,224,183,233,162,239,34,8],
+          [174,215,218,244,200,239,34,10],
+          [220,215,258,235,246,237,33,8],
+          [149,231,208,246,176,247,32,8],
+          // Tapered short hairs on the upper rostral plane travel toward
+          // the nasal leather; longer cheek strands rotate caudally.
+          [152,215,193,215,173,212,31,5],
+          [180,220,233,225,210,219,33,9],
+          [218,231,255,243,244,234,28,7],
+        ],721,["#E9D2B7","#8D8177","#FFF0D3"],248),
+        {...mark("M209 211 C227 208 247 210 258 220 "+
+          "C260 230 254 237 244 242",
+          "#A27D6F",.35,257,.50),id:"zygomatic-transition"},
+        {...mark("M147 232 C168 237 187 246 211 247 "+
+          "C230 250 249 242 254 236",
+          "#78675F",.37,269,.54),id:"nasolabial-shadow"},
+        // A distinct lightly recessed maxillary plane is the missing
+        // 3D cheek/rostrum transition, not a second opaque cream sticker.
+        {...mark("M153 221 C173 216 195 216 214 221 "+
+          "C231 223 246 230 256 237",
+          "#B69A83",.32,264,.45),id:"fox-maxillary-plane"},
+        {...mark("M167 237 Q194 249 214 251 "+
+          "Q240 253 258 238",
+          "#7E6D66",.30,274,.51),id:"fox-mandibular-turn"},
+        {...mark("M146 229 Q174 223 190 226 "+
+          "M200 228 Q220 234 241 232",
+          "#FFF0D7",.26,281,.58),id:"fox-rostral-highlight"},
+        mark("M139 219 C164 214 192 208 216 211 M232 211 Q251 216 258 225",
+          "#F8E6C6",.53,268,.59),
+        mark("M146 234 Q168 241 192 245 M211 249 Q232 250 253 239",
+          "#77665D",.36,278,.56),
+        // Fuzzy orange-to-grey contact follows the nasal wedge, not a
+        // perfectly hard, parallel tube edge or photo-texture.
+        ...pencilContourFringe([
+          [137,220,230,205,183,206,39,-1],
+          [230,205,260,221,249,210,32,-1],
+          [145,232,213,246,178,244,30,1],
+        ],1021,["#C5957E","#77625B","#F3D9B9"],259),
       ]},
-    {id:"rostrum-bridge",material:"glaze",palette:["#B27660","#80584F","#D59D7F"],
-      // Optical dry-colour plane overlays muzzle, without an opaque sticker.
-      path:"M120 219 C151 206 180 202 205 192 Q230 190 246 214 C209 218 168 226 124 229 Z",
-      bounds:[117,188,131,43],direction:13,start:149,
+    {id:"rostrum-bridge",material:"glaze",
+      palette:["#B27660","#80584F","#D59D7F"],
+      // Warm dorsal septum connects nasal leather to the bony orbital
+      // stop; each root follows the same fox skull perspective.
+      path:"M140 213 C158 203 183 200 203 194 "+
+        "C224 187 245 189 254 201 C238 212 218 217 188 219 "+
+        "C164 220 149 221 140 218 Z",
+      bounds:[136,185,123,41],direction:13,start:149,
       details:[
         ...pencilRootedFur([
-          [129,214,199,215,162,200,31,9],
-          [187,196,225,217,216,200,23,8],
+          [146,214,204,213,173,197,33,9],
+          [193,199,247,214,218,195,29,8],
         ],673,["#D49A7C","#715553","#F2C09E"],249),
-        mark("M131 211 Q164 200 198 199 M185 221 Q219 210 243 216",
-          "#BD7C69",.65,265,.68),
+        mark("M150 209 Q179 196 207 197 M200 216 Q225 207 245 211",
+          "#BD7C69",.50,265,.58),
       ]},
-    {id:"cheek-ruff",material:"fur",palette:["#B5896E","#7B5F58","#D7B59A"],
-      // Irregular roots turn into neck ruff. Avoid a detached parallelogram.
-      path:"M252 215 Q270 220 285 233 L291 242 Q287 245 284 252 Q278 253 278 259 L269 263 Q268 272 258 276 L250 289 Q251 274 241 271 Q250 255 235 240 Q248 234 252 215 Z",
-      bounds:[232,211,63,82],direction:64,start:150,
+    {id:"cheek-ruff",material:"fur",
+      palette:["#B59278","#69534D","#D8B49A"],
+      // Narrow, layered malar-to-throat root strip, not an opaque gray
+      // triangular scarf. Its lower fibres grow into the existing white
+      // chest and neck fur while the skull still occludes the upper root.
+      path:"M251 225 C260 230 269 242 269 252 "+
+        "C271 263 267 272 261 281 C255 289 252 298 250 313 "+
+        "C247 302 245 292 244 282 C245 269 243 255 246 242 "+
+        "C247 235 249 230 251 225 Z",
+      bounds:[240,221,38,97],direction:64,start:150,
       details:[
         ...pencilRootedFur([
-          [249,230,280,254,276,228,30,10],
-          [247,248,254,282,281,262,27,8],
-        ],765,["#CDAA8C","#705B56","#F6DBC0"],257),
-        mark("M262 272 Q277 255 283 246 M249 278 Q260 269 268 262",
-          "#E7C6A8",.52,279,.71),
+          [252,236,259,286,258,258,31,8],
+          [250,263,251,307,245,289,35,7],
+          [255,278,251,306,258,292,30,7],
+        ],765,["#D6BBA1","#8B786E","#F2DEC5"],257),
+        mark("M251 245 Q261 260 262 278 M249 282 Q250 298 250 308",
+          "#E7CFB3",.40,279,.55),
+        ...pencilContourFringe([
+          [257,238,267,274,269,250,30,-1],
+          [261,281,250,309,258,297,29,-1],
+        ],905,["#D8BDA1","#9E8980","#F8E4C8"],255),
       ]},
-    {id:"eye-far",material:"glass",palette:["#B18E5D","#574B45","#DEB678"],
-      // Far orbit is partially occluded and much smaller than the near one.
-      path:"M160 190 C164 183 174 184 179 188 Q178 195 169 197 Q162 196 160 190 Z",
-      bounds:[158,182,23,17],start:153,
+    {id:"eye-far",material:"glaze",palette:["#856B5E","#615250","#AE947D"],
+      // Occluded far canthus: a shadow under the left brow, not a second eye.
+      path:"M199 189 Q202 187 207 188 Q206 190 202 191 Q200 191 199 189 Z",
+      bounds:[197,185,12,8],start:153,
       details:[
-        mark("M159 189 Q168 181 180 188 M162 195 Q169 200 177 193",
-          "#302D33",.96,256,.82),
-        mark("M168 186 Q172 187 173 192 Q172 196 169 196",
-          "#785A3C",.73,262,.82),
-        mark("M170 187 Q171 190 170 194","#292C31",.84,268,.91),
-        mark("M168 188 L169 189","#FBEBB9",.61,273,.85),
+        mark("M199 189 Q203 186 207 188","#57443F",.38,253,.51),
+        mark("M200 190 Q203 192 205 190","#A5816B",.25,264,.36),
+        mark("M201 189 Q203 188 204 189","#544442",.24,272,.33),
       ]},
-    {id:"eye-near",material:"glass",palette:["#B99A67","#5A4C44","#E8BC7F"],
-      path:"M225 190 C231 178 245 178 257 184 Q258 193 247 198 Q234 201 225 190 Z",
-      bounds:[222,176,39,26],start:155,
+    {id:"eye-near",material:"glass",
+      palette:["#866847","#34343A","#B69161"],
+      // Miniature amber aperture recessed under superior brow shadow.
+      // Upper eyelid darker than the receding inferior edge.
+      // Real fox ocular anatomy: palpebral slit tucks beneath a heavier
+      // supraorbital fur ridge. Never expose a white sclera or full circular
+      // iris. The superior lid occludes the pupil's uppermost surface.
+      path:"M235 189 C238 185 242 184 247 186 "+
+        "C250 187 251 189 249 191 C246 194 241 194 238 192 "+
+        "Q236 191 235 189 Z",
+      bounds:[233,183,20,13],start:155,
       details:[
-        mark("M225 187 Q238 174 258 183 M228 196 Q240 202 255 193",
-          "#2E3035",1.12,258,.88),
-        mark("M241 181 Q250 180 252 188 Q252 197 246 198 Q239 195 241 181",
-          "#936C46",.78,262,.84),
-        mark("M247 181 Q251 185 248 195","#212A2F",1.18,269,.89),
-        mark("M244 184 Q246 182 248 184","#FFEAC2",.92,274,.93),
-        mark("M223 193 Q235 205 248 202","#A1796B",.55,276,.71),
+        {...mark("M233 189 C237 183 242 181 248 184 "+
+          "Q253 184 256 186",
+          "#242632",.64,249,.93),id:"fox-superior-tarsus"},
+        {...mark("M237 191 Q242 194 248 192 Q252 190 253 188",
+          "#6E5149",.35,258,.48),id:"fox-inferior-tarsus"},
+        {...mark("M241 188 Q243 186 246 187 "+
+          "Q249 189 246 191 Q243 192 241 188 Z",
+          "#AC864E",.29,262,.72),id:"fox-iris-pigment"},
+        {...mark("M245 187 Q246 189 245 191",
+          "#22272C",.42,267,.91),id:"fox-vertical-pupil"},
+        {...mark("M242 187 Q243 186 244 186.5",
+          "#F7E4C9",.24,274,.66),id:"fox-corneal-glint"},
+        {...mark("M228 184 C235 177 246 176 253 181 "+
+          "Q256 183 257 185",
+          "#82554B",.47,281,.62),id:"fox-supraorbital-arc"},
+        {...mark("M231 195 Q242 201 250 195 "+
+          "M239 198 Q247 199 254 191",
+          "#A77A65",.32,287,.44),id:"fox-orbital-turn"},
+        ...pencilRootedFur([
+          [225,180,250,182,241,173,29,7],
+          [230,196,254,195,242,202,28,6],
+          [252,180,261,192,259,185,22,5],
+        ],1779,["#B67E60","#604449","#E5AC84"],285),
       ]},
-    {id:"whisker-roots",material:"fur",palette:["#BEB2A2","#827874","#E9DBBE"],
+    {id:"whisker-roots",material:"glaze",palette:["#BEB2A2","#827874","#E9DBBE"],
       path:"M151 235 Q170 245 187 247 Q207 243 232 234 Q222 254 198 256 Q166 255 149 242 Z",
       bounds:[146,231,92,28],direction:10,start:171,
       details:[
@@ -459,20 +1046,50 @@ function fox():PencilSubjectPart[] {
         mark("M152 238 L157 240 M161 244 L164 245 M206 245 L210 244 M214 249 L217 248",
           "#635A58",.48,279,.75),
       ]},
-    {id:"nose",material:"fur",palette:["#454346","#202932","#8A7971"],
-      // Tilted nasal leather at the projected end of the long muzzle.
-      path:"M103 221 C109 214 121 213 134 217 Q142 224 135 236 Q125 247 115 242 Q105 237 103 221 Z",
-      bounds:[101,211,44,39],direction:17,start:160,
+    {id:"nose",material:"fur",palette:["#333B41","#1C252D","#6F7070"],
+      // Nasal leather is small, dark and part of the taper: two nostril
+      // folds and an attached ventral philtrum, never a round button.
+      path:"M132 220 C136 217 140 216 143 217 "+
+        "C147 216 151 219 153 222 C153 225 149 227 146 229 "+
+        "C143 232 140 232 138 230 C135 228 131 225 132 220 Z",
+      bounds:[130,214,24,20],direction:14,start:160,
       details:[
-        mark("M107 222 Q117 214 133 219","#A99E95",.81,256,.70),
-        mark("M107 231 Q113 235 116 231 M127 231 Q131 230 136 224",
-          "#1B252F",.64,265,.90),
-        mark("M119 238 Q124 241 129 237","#827A72",.57,273,.72),
-        mark("M127 247 Q132 253 136 255","#5B5150",.52,281,.71),
+        mark("M134 219 Q141 215 147 218","#96948A",.40,248,.54),
+        mark("M136 224 Q140 227 143 224 M147 223 Q150 225 151 222",
+          "#131F27",.43,260,.83),
+        mark("M136 228 Q141 231 146 228","#89817C",.31,267,.65),
+        {...mark("M144 230 Q150 232 151 236",
+          "#62504D",.45,274,.67),id:"nasal-philtrum"},
+        mark("M135 219 Q138 217 141 218","#DDD1BE",.23,277,.48),
       ]},
     {id:"tail-tip",material:"fur",palette:pale,
-      path:"M67 351 Q46 374 79 397 Q97 407 118 397 Q103 392 91 377 Q80 365 67 351 Z",
-      bounds:[45,347,79,63],direction:57,start:180},
+      // Cream brush hairs dissolve into the outer tip, turning back over the
+      // lower russet pelt. Do not cover the middle with a round white sticker.
+      // The terminal white coat interleaves along two staggered seams,
+      // rather than ending at a single neat, rounded colour boundary.
+      path:"M17 361 C24 352 39 343 54 340 "+
+        "C61 342 61 346 58 349 C53 352 50 355 51 362 "+
+        "C48 367 46 374 49 381 C52 388 59 391 67 394 "+
+        "C57 398 44 398 33 392 C23 391 14 383 14 373 "+
+        "C13 369 14 364 17 361 Z",
+      bounds:[10,338,59,64],direction:164,start:180,
+      details:[
+        ...pencilRootedFur([
+          [57,347,17,363,36,347,29,10],
+          [62,393,17,383,42,397,30,10],
+          [48,366,14,375,27,369,28,9],
+          [58,351,22,358,39,346,31,8],
+          [55,382,22,386,40,394,31,8],
+        ],1999,["#F7E9D4","#988274","#FFF3D9"],263),
+        {...mark("M60 348 Q54 353 52 360 "+
+          "M50 366 Q46 375 51 383 M53 386 Q57 390 65 393",
+          "#A8907D",.33,271,.43),id:"tail-tip-feathered-seam"},
+        ...pencilContourFringe([
+          [49,341,15,362,27,339,28,-1],
+          [17,382,52,394,28,396,28,1],
+        ],2177,["#E1C8AD","#A59181","#FFF3DD"],275),
+      ]},
+
   ];
 }
 
@@ -618,8 +1235,67 @@ export function pencilLivingStudyDrawing({
     const locallyRooted=subject==="fox"&&part.material==="fur";
     const softSkin=subject==="portrait"&&part.material==="skin";
     const fineHair=subject==="portrait"&&part.material==="hair";
-    return {...region, clipDetails:part.id==="whisker-roots"?false:region.clipDetails, layers:region.layers.map(layer=>({
+    const furDensity=part.id==="head-main"?.80:
+      part.id==="muzzle"?.70:
+      part.id==="chest"||part.id==="neck-ruff"?.66:
+      part.id==="tail-back"||part.id==="tail-tip"?.73:
+      part.id==="body"?.59:
+      part.id.startsWith("ear-")?.54:
+      part.id.startsWith("foreleg-")?.48:.36;
+    return {...region,
+      // Whiskers are fine, floating pencil contacts from visible follicles;
+      // never flood the chin with an opaque region or gradient undercoat.
+      layeredSkinOverParent:subject==="portrait"&&
+        (part.id==="lip-upper"||part.id==="lip-lower"),
+      // Labial skin is continuous with the surrounding face. An opaque
+      // paper-coloured support under each lip made a large white sticker
+      // even after 3 physical pencil passes. Keep the ANAT1 rolled curves,
+      // three layered pigment deposits and tonal support, but let the
+      // parent face's pigment remain beneath the translucent tissue.
+      opaqueSupport:subject==="portrait"&&
+        (part.id==="lip-upper"||part.id==="lip-lower")?
+        false:subject==="fox"&&part.id==="whisker-roots"?
+        false:region.opaqueSupport,
+      underpaint:subject==="fox"&&part.id==="whisker-roots"?
+        undefined:region.underpaint,
+      underpaintOpacity:subject==="fox"&&part.id==="whisker-roots"?
+        undefined:region.underpaintOpacity,
+      // The fox iris has its own traced upper eyelid and pupil. Suppress
+      // only the enclosing glass-vector ring, not the separate pencil marks.
+      contour:subject==="fox"&&part.id==="whisker-roots"?
+        {...region.contour,opacity:.05}:
+        subject==="fox"&&part.id==="muzzle"?
+        {...region.contour,opacity:.16}:
+        subject==="fox"&&
+        ["chest","neck-ruff","cheek-ruff"].includes(part.id)?
+        {...region.contour,opacity:.18}:
+        subject==="fox"&&part.id==="eye-near"?
+        {...region.contour,opacity:.17}:region.contour,
+      craft:subject==="fox"&&part.id==="whisker-roots"?
+        undefined:locallyRooted&&region.craft?{
+        ...region.craft,pigmentDensity:furDensity,
+        // Opt-in optical mixing: keep tonal light planes, but pigment marks
+        // now own most of the fox coat's perceptual weight at native 1x.
+        tonalSupportWeight:.64,
+      }:region.craft,
+      clipDetails:part.id==="whisker-roots"||
+        // Fox guard hairs explicitly rooted on the tail perimeter must be
+        // permitted to lift *outside* the opaque caudal silhouette. The
+        // previous generic fur clip cut off these external brush ends and
+        // made the tail an unnaturally smooth sausage in actual Chromium.
+        (subject==="fox"&&(part.id==="nose"||part.id==="muzzle"||
+          ["chest","neck-ruff","cheek-ruff","tail-back","tail-tip"].includes(part.id)))||
+        (subject==="portrait"&&
+          ["brows","eye-white-far","eye-white-near"].includes(part.id))?
+        false:region.clipDetails, layers:region.layers.map((layer,index)=>({
       ...layer,
+      // Multiple dry-pencil colours follow the *same* authored fur-growth
+      // tract. The generic +73/-44 crosshatch offsets made a synthetic
+      // plaid over the fox, which real wildlife pencil studies avoid.
+      // Keep the broad three-pass pigment model and every other subject
+      // byte-identical; only the explicitly authored fox-fur atlas changes.
+      angle:locallyRooted?region.layers[0].angle+[0,16,-12][index]:
+        layer.angle,
       // CP-F1 direction/pressure remains intact, but soft facial skin needs
       // grain rather than ruler-like diagonals; scalp/brow hair needs fibre.
       texture:locallyRooted||fineHair?"fiber" as const:

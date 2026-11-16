@@ -14,6 +14,10 @@ for(const sample of ["fox","kingfisher"] as const){
       await target.selectOption(sample);
       const canvas=page.locator('canvas[data-km-pencil-photo]');
       await expect(canvas).toHaveAttribute("data-km-pencil-photo","ready",{timeout:60000});
+      await expect(canvas).toHaveAttribute(
+        "data-km-pencil-render-method","photo-underpaint-plus-strokes");
+      await expect(canvas).toHaveAttribute(
+        "data-km-pencil-photo-underpaint","enabled");
       await expect(page.getByRole("alert")).toHaveCount(0);
       const sourceBox=page.getByRole("checkbox",{name:"Show pencil source comparison"});
       await sourceBox.check();
@@ -53,7 +57,7 @@ for(const sample of ["fox","kingfisher"] as const){
         expect(metrics.nonPaper/metrics.total).toBeGreaterThan(.025);
         expect(metrics.variance).toBeGreaterThan(150);
         expect(metrics.max-metrics.min).toBeGreaterThan(65);
-        await page.getByText("Coloured-pencil rendition · code-generated mark layers").screenshot({
+        await page.getByText("Photo-to-pencil preview · photograph used as translucent underpainting").screenshot({
           path:info.outputPath("pencil-"+sample+"-"+aspect+"-label.png"),
         });
         await canvas.screenshot({animations:"disabled",
@@ -80,6 +84,23 @@ for(const sample of ["fox","kingfisher"] as const){
 /** Real CC0 portrait pixels: facial landmarks must survive close framing and redraw. */
 for(const sample of ["woman","man"] as const){
   test("ArtCraft realistic "+sample+" face is source-conditioned in both frames",async({page},info)=>{
+    if(sample==="woman")await page.addInitScript(()=>{
+      // Instrument native browser Canvas APIs BEFORE Storybook mounts. A
+      // drawImage/putImageData on dry art would be a photo-composite bug.
+      const prototype=CanvasRenderingContext2D.prototype;
+      for(const method of ["drawImage","putImageData"] as const){
+        const original=prototype[method];
+        (prototype as unknown as Record<string,unknown>)[method]=
+          function(this:CanvasRenderingContext2D,...args:unknown[]){
+            if(this.canvas.hasAttribute("data-km-pencil-full-head-dry")){
+              const attr="data-km-pencil-forbidden-raster-ops";
+              const n=Number(this.canvas.getAttribute(attr)??0);
+              this.canvas.setAttribute(attr,String(n+1));
+            }
+            return Reflect.apply(original,this,args);
+          };
+      }
+    });
     await page.goto("/iframe.html?id=video-colored-pencil-science--reference-guided-faces&viewMode=story");
     await page.getByRole("combobox",{name:"Pencil photo source"}).selectOption(sample);
     const output=page.locator("canvas[data-km-pencil-photo]");
@@ -124,6 +145,8 @@ for(const sample of ["woman","man"] as const){
         await expect(full).toHaveAttribute("data-km-pencil-raster-underpaint","none");
         await expect(full).toHaveAttribute("data-km-pencil-full-head-rendered",
           "true",{timeout:90000});
+        expect(await full.getAttribute(
+          "data-km-pencil-forbidden-raster-ops")).toBeNull();
         await expect(headSource).toHaveAttribute(
           "data-km-pencil-full-head-source","ready",{timeout:90000});
         // Actual Chromium 0% legacy vs 100% anatomy-connected fibre A/B:
@@ -242,6 +265,10 @@ for(const sample of ["woman","man"] as const){
         await expect(weave).toHaveValue("0");
         await expect(full).toHaveAttribute("data-km-pencil-skin-weave","0");
         await expect(full).toHaveAttribute("data-km-pencil-skin-weave-nibs","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-skin-light-plane-fibres","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-skin-protected-curve-spans","0");
         const withoutWeave=await full.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png"));
         await full.screenshot({animations:"disabled",
@@ -254,6 +281,15 @@ for(const sample of ["woman","man"] as const){
         const protectedSkinHighlights=Number(
           await full.getAttribute("data-km-pencil-skin-weave-highlight-reserves"));
         expect(opticalNibCount).toBeGreaterThan(300);
+        const lightFibres=Number(await full.getAttribute(
+          "data-km-pencil-skin-light-plane-fibres"));
+        const protectedCurves=Number(await full.getAttribute(
+          "data-km-pencil-skin-protected-curve-spans"));
+        expect(Number.isSafeInteger(lightFibres)).toBe(true);
+        expect(lightFibres).toBeGreaterThan(0);
+        expect(lightFibres).toBeLessThanOrEqual(opticalNibCount);
+        expect(Number.isSafeInteger(protectedCurves)).toBe(true);
+        expect(protectedCurves).toBeGreaterThanOrEqual(0);
         // Real camera exposure may contain no skin above the calibrated
         // near-paper reserve threshold. Never fabricate a highlight;
         // synthetic pure-white source is covered by the dedicated unit gate.
@@ -264,6 +300,44 @@ for(const sample of ["woman","man"] as const){
           .not.toBe(withoutWeave);
         await full.screenshot({animations:"disabled",
           path:info.outputPath("artcraft-cc0-"+aspect+"-skin-weave-optical-100.png")});
+        expect(await output.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(originalExport);
+        // CP17 opt-in skin tooth bridge: the same CC0 source and same
+        // finished dry-pigment drawing, no imported bitmap or raster blur.
+        // Report actual pencil nib count and 1×/3× film-aspect evidence.
+        const bridge=page.getByLabel("Pencil source-aware tooth bridge");
+        await bridge.focus();await bridge.press("Home");
+        await expect(bridge).toHaveValue("0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-tooth-bridge","0");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-render-method","cc0-measured-dry-strokes");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-photo-underpaint","none");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-tooth-bridge-nibs","0");
+        const bridgeLegacy=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-tooth-bridge-0.png")});
+        await bridge.press("End");
+        await expect(bridge).toHaveValue("1");
+        await expect(full).toHaveAttribute(
+          "data-km-pencil-tooth-bridge","1");
+        const bridgeNibs=Number(await full.getAttribute(
+          "data-km-pencil-tooth-bridge-nibs"));
+        expect(bridgeNibs).toBeGreaterThan(10);
+        const bridgePixels=await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png"));
+        expect(bridgePixels).not.toBe(bridgeLegacy);
+        await full.screenshot({animations:"disabled",
+          path:info.outputPath("artcraft-cc0-"+aspect+"-tooth-bridge-100.png")});
+        await bridge.press("Home");
+        await expect(bridge).toHaveValue("0");
+        expect(await full.evaluate(node=>
+          (node as HTMLCanvasElement).toDataURL("image/png")))
+          .toBe(bridgeLegacy);
         expect(await output.evaluate(node=>
           (node as HTMLCanvasElement).toDataURL("image/png")))
           .toBe(originalExport);

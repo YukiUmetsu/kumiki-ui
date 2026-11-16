@@ -18,6 +18,26 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
+type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-nape";
+
+/** Select the actual drawn part's projected center, not a guessed camera-space
+ * crop. Both aspect transforms are shared with the drawing output itself. */
+function projectedInspectionCenter(
+  drawing:ReturnType<typeof pencilLivingStudyDrawing>,
+  partId:string,
+):[number,number]|null{
+  const part=drawing.regions.find(region=>region.id===partId);
+  const transform=part?.transform?.match(
+    /^translate\((-?[\d.]+) (-?[\d.]+)\) scale\(([\d.]+)\)$/);
+  if(!part||!transform)return null;
+  const [,offsetX,offsetY,scaleText]=transform;
+  const [x,y,width,height]=part.bounds;
+  const scale=Number(scaleText);
+  const px=(Number(offsetX)+(x+width*.5)*scale)/drawing.width;
+  const py=(Number(offsetY)+(y+height*.5)*scale)/drawing.height;
+  if(!Number.isFinite(px)||!Number.isFinite(py))return null;
+  return [Math.max(0,Math.min(1,px)),Math.max(0,Math.min(1,py))];
+}
 
 /** In the original Colour-pencil Storybook folder: all samples are CP-F1 qualified.
  * Artwork is 100% programmatic, frame-addressed and authored from original geometry.
@@ -31,7 +51,9 @@ export function PencilFoundationStudio(){
   const [burnish,setBurnish]=useState(.78);
   const [seed,setSeed]=useState(291);
   const [zoom,setZoom]=useState(false);
+  const [inspectionFocus,setInspectionFocus]=useState<InspectionFocus>("default");
   const [reduced,setReduced]=useState(false);
+  const [showTonalSupport,setShowTonalSupport]=useState(true);
   const drawing=useMemo(()=>{
     const base=specimen==="rose"||specimen==="architecture"||specimen==="fabric"?
       pencilObjectStudyDrawing({subject:specimen,aspect,pressure,paperTooth:tooth,seed}):
@@ -45,12 +67,25 @@ export function PencilFoundationStudio(){
   if(errors.length)throw new Error("Pencil foundation studio: "+errors.join("; "));
   const current=PENCIL_FOUNDATION_STAGES.reduce((acc,s,i)=>frame>=s.frame?i:acc,0);
   const reference=drawing.foundation!.references[0];
-  const focus=specimenMeta[specimen].focus;
+  // ArtCraft macro/meso/micro proof must be able to inspect the ACTUAL
+  // corrected anatomy: tail-tip in the wildlife actor and nape/collar
+  // in the human actor, at either film aspect. No alternate artwork.
+  const focusPart=inspectionFocus==="fox-tail"&&specimen==="fox"?
+    "tail-back":inspectionFocus==="fox-eye"&&specimen==="fox"?
+    "eye-near":inspectionFocus==="fox-chest"&&specimen==="fox"?
+    "chest":inspectionFocus==="fox-forepaw"&&specimen==="fox"?
+    "foreleg-right":inspectionFocus==="fox-hock"&&specimen==="fox"?
+    "rear-leg":inspectionFocus==="portrait-nape"&&specimen==="portrait"?
+    "neck":null;
+  const focus=(focusPart?projectedInspectionCenter(
+    drawing as ReturnType<typeof pencilLivingStudyDrawing>,focusPart):null)??
+    specimenMeta[specimen].focus;
   const zoomStyle=zoom?{
     transform:"scale(2.15)",
     transformOrigin:(focus[0]*100)+"% "+(focus[1]*100)+"%",
   }:undefined;
   return <main data-km-foundation-studio="" data-km-foundation-stage={PENCIL_FOUNDATION_STAGES[current].id}
+    data-km-foundation-inspection-focus={focusPart??"default"}
     style={{minHeight:"100vh",padding:24,display:"grid",alignContent:"start",
       gap:16,background:"#E8E7DE",font:"15px/1.5 system-ui",color:"#3B4747"}}>
     <header style={{maxWidth:1050,display:"grid",gap:4}}>
@@ -61,10 +96,12 @@ export function PencilFoundationStudio(){
         From observation to a finished pencil drawing
       </h1>
       <p style={{margin:"4px 0",maxWidth:950}}>
-        Each original illustration passes through the same reference, anatomy,
-        value, translucent pigment, directional mark and final review gates.
-        Material recipes are enforced in code: solid forms have paper-backed
-        pigment; glass, glazes and cast shadows remain intentionally translucent.
+        This studio draws original author-defined SVG geometry with CP-F1
+        pencil pigments, layered stroke paths and paper-tooth masks.
+        There is no source photograph, photographic bitmap underpainting,
+        Canvas image overlay or photo filter. Transparent vector tonal
+        supports and material gradients remain part of this drawing system.
+        CP-F1 validates structure and materials, not artistic realism.
       </p>
     </header>
     <section aria-label="Pencil foundation controls" style={{
@@ -72,7 +109,10 @@ export function PencilFoundationStudio(){
     }}>
       <label style={caption}>Original subject
         <select aria-label="Foundation subject" style={choice} value={specimen}
-          onChange={e=>setSpecimen(e.target.value as Specimen)}>
+          onChange={e=>{
+            setSpecimen(e.target.value as Specimen);
+            setInspectionFocus("default");
+          }}>
           {(Object.keys(specimenMeta) as Specimen[]).map(s=>
             <option key={s} value={s}>{specimenMeta[s].title}</option>)}
         </select>
@@ -102,9 +142,39 @@ export function PencilFoundationStudio(){
             setSeed(Number.isSafeInteger(n)?Math.min(2147483000,Math.max(0,n)):291);
           }}/>
       </label>
+      <label style={caption}>Anatomical inspection focus
+        <select aria-label="Foundation inspection focus" style={choice}
+          value={inspectionFocus}
+          onChange={e=>setInspectionFocus(e.target.value as InspectionFocus)}>
+          <option value="default">Reference emphasis</option>
+          <option value="fox-tail" disabled={specimen!=="fox"}>
+            Fox brush / tail-tip
+          </option>
+          <option value="fox-eye" disabled={specimen!=="fox"}>
+            Fox orbital rim / cheek
+          </option>
+          <option value="fox-chest" disabled={specimen!=="fox"}>
+            Fox sternum / cervical ruff
+          </option>
+          <option value="fox-forepaw" disabled={specimen!=="fox"}>
+            Fox carpus / weight-bearing paw
+          </option>
+          <option value="fox-hock" disabled={specimen!=="fox"}>
+            Fox folded hind hock / grounded digits
+          </option>
+          <option value="portrait-nape" disabled={specimen!=="portrait"}>
+            Human nape / collar
+          </option>
+        </select>
+      </label>
       <label style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
         <input aria-label="Foundation inspect macro" type="checkbox" checked={zoom}
           onChange={e=>setZoom(e.target.checked)}/> Inspect at 2.15×
+      </label>
+      <label style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
+        <input aria-label="Foundation pigment-only audit" type="checkbox"
+          checked={!showTonalSupport} onChange={e=>setShowTonalSupport(!e.target.checked)}/>
+        Inspect pigment strokes without tonal support
       </label>
       <label style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
         <input aria-label="Foundation reduced motion" type="checkbox" checked={reduced}
@@ -128,6 +198,7 @@ export function PencilFoundationStudio(){
     <div style={{maxWidth:aspect==="landscape"?960:540,width:"100%",overflow:"hidden",
       background:drawing.paper,boxShadow:"0 16px 48px #4A50462B"}}>
       <PencilDrawing drawing={drawing} frame={frame} reducedMotion={reduced}
+        showTonalSupport={showTonalSupport}
         style={zoomStyle} label={specimenMeta[specimen].title+" original coloured pencil study"}/>
     </div>
     <section aria-label="Pencil foundation timeline" style={{maxWidth:960,display:"grid",gap:7}}>
@@ -144,9 +215,11 @@ export function PencilFoundationStudio(){
         {" "}{reference.observation} Technique-only, not traced or redistributed.
       </p>
       <p style={{margin:0,fontSize:12,color:"#67736D"}}>
-        CP-F1 qualified · {drawing.regions.length} named material regions ·
+        Photo-free authored vector artwork · CP-F1 technically qualified ·
+        {drawing.regions.length} named material regions ·
         {drawing.regions.filter(r=>r.opaqueSupport).length} opaque supports ·
         {drawing.regions.filter(r=>!r.opaqueSupport).length} light/transparent passes ·
+        {showTonalSupport?"authored tonal supports enabled":"PIGMENT-ONLY NEGATIVE CONTROL: no gradient tonal supports"} ·
         technical contract passed, independent artistic fidelity review remains open
       </p>
     </section>
