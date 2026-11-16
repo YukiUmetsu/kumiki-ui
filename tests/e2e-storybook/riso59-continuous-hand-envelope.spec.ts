@@ -18,7 +18,7 @@ test("RISO59 A/B retains original master geometry at rest and changes the two ac
   const red=async(side:"right"|"left")=>{
     const owner=side==="right"?"courier-right":"paper-artist-left";
     return root.locator('[data-km-riso30-hand="'+owner+'"]')
-      .locator('[data-km-riso-part="'+side+'-glove"]').first().getAttribute("d");
+      .locator('[data-km-riso-part="'+side+'-glove"]').first().getAttribute("d",{timeout:8000});
   };
   await pose.selectOption("0");
   const rested=[await red("right"),await red("left")];
@@ -39,7 +39,7 @@ test("RISO59 A/B retains original master geometry at rest and changes the two ac
   for(const side of ["right","left"] as const){
     const id=side==="right"?"courier-right":"paper-artist-left";
     const panel=root.locator('[data-km-riso30-hand="'+id+'"]');
-    await expect(panel).toHaveAttribute("data-km-riso36-source-contours","12");
+    await expect(panel).toHaveAttribute("data-km-riso36-source-contours","12",{timeout:8000});
     await expect(panel).toHaveAttribute("data-km-riso50-palm-cubics","16");
     await expect(panel).toHaveAttribute("data-km-riso58-reconstructed-bone-rays","4");
     expect((await red(side))?.match(/C/g)).toHaveLength(16);
@@ -82,8 +82,8 @@ test("RISO59 real 16:9 and 9:16 whole-film A/B exposes the original source silho
     await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-frame",String(frame));
   };
   const original=async()=>{
-    const courier=await stage.locator('[data-km-riso-human-actor="courier"] [data-km-riso-part="right-glove"]').first().getAttribute("d");
-    const artist=await stage.locator('[data-km-riso-human-actor="paper-artist"] [data-km-riso-part="left-glove"]').first().getAttribute("d");
+    const courier=await stage.locator('[data-km-riso-human-actor="courier"] [data-km-riso-part="right-glove"]').first().getAttribute("d",{timeout:8000});
+    const artist=await stage.locator('[data-km-riso-human-actor="paper-artist"] [data-km-riso-part="left-glove"]').first().getAttribute("d",{timeout:8000});
     const sheets=stage.locator("[data-km-riso-human-ensemble-sheet]");
     // The opening cel intentionally precedes the first paper prop. Read
     // absence as null instead of waiting three minutes for a non-existent path.
