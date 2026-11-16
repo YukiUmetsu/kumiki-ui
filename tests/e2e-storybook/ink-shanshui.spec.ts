@@ -768,6 +768,82 @@ test("brushwork study shows native rooted foliage and uneven rock deposition",as
   await expect(study.locator("[data-km-bamboo-pressure-twig]")).toHaveCount(0);
 });
 
+
+test("Fuchun paper-lift Storybook compares native masked ink without changing source geometry",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--fuchun-paper-lift&viewMode=story");
+  const lab=page.getByTestId("shanshui-fuchun-paper-lift-studio");
+  await expect(lab).toBeVisible();
+  const uncut=lab.locator('[data-km-fuchun-material="uncut"]');
+  const lifted=lab.locator('[data-km-fuchun-material="lifted"]');
+  await expect(uncut).toHaveAttribute("data-km-fuchun-camera","fibre");
+  await expect(lifted).toHaveAttribute("data-km-fuchun-camera","fibre");
+  await expect(uncut.locator("[data-km-master-stroke]")).toHaveCount(78);
+  await expect(lifted.locator("[data-km-master-stroke]")).toHaveCount(78);
+  for(const panel of [uncut,lifted]){
+    await expect(panel.locator("[data-km-master-fuchun-hillback]")).toHaveCount(6);
+    await expect(panel.locator("[data-km-master-fuchun-cross-shelf]")).toHaveCount(12);
+    await expect(panel.locator("[data-km-rock-hero-rib]")).toHaveCount(4);
+    await expect(panel.locator("[data-km-shanshui-scene]"))
+      .toHaveAttribute("data-km-shanshui-frame","145");
+    await expect(panel.locator("image")).toHaveCount(0);
+  }
+  // Preserve every individual loaded brush source path byte-for-byte,
+  // rather than comparing the appearance of two separately constructed SVGs.
+  const source=async(panel:typeof uncut)=>panel.locator(
+    "[data-km-master-stroke-loaded]"
+  ).evaluateAll(nodes=>nodes.map(node=>({
+    d:node.getAttribute("d"),
+    ink:node.getAttribute("fill"),
+    load:node.getAttribute("opacity"),
+    reserve:node.getAttribute("mask"),
+  })));
+  expect(await source(uncut)).toEqual(await source(lifted));
+  const masked=uncut.locator("[data-km-master-stroke-loaded][mask]");
+  await expect.poll(()=>masked.count()).toBeGreaterThan(0);
+  const uncutMask=await masked.first().evaluate(node=>
+    getComputedStyle(node).maskImage);
+  const productionMask=await lifted.locator(
+    "[data-km-master-stroke-loaded][mask]"
+  ).first().evaluate(node=>getComputedStyle(node).maskImage);
+  expect(uncutMask).toBe("none");
+  expect(productionMask).not.toBe("none");
+
+  const before=await uncut.locator("[data-km-fuchun-material-crop]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-pre-paper-lift-actual-svg.png"),
+  });
+  const after=await lifted.locator("[data-km-fuchun-material-crop]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-paper-lift-actual-svg.png"),
+  });
+  expect(hash(before)).not.toBe(hash(after));
+
+  await page.getByRole("button",{name:"Full 16:9 film"}).click();
+  await expect(uncut).toHaveAttribute("data-km-fuchun-camera","film");
+  await expect(lifted).toHaveAttribute("data-km-fuchun-camera","film");
+  await lab.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-paper-lift-film-paired.png")});
+  await page.getByRole("button",{name:"Rounded rock courses"}).click();
+  await expect(uncut).toHaveAttribute("data-km-fuchun-camera","stone");
+  const seed=page.getByRole("slider",{name:"Paper-lift seed"});
+  await seed.focus();
+  await seed.press("ArrowRight");
+  await expect(uncut).toHaveAttribute("data-km-fuchun-seed","72");
+  await expect(lifted).toHaveAttribute("data-km-fuchun-seed","72");
+  expect(await source(uncut)).toEqual(await source(lifted));
+  const frame=page.getByRole("slider",{name:"Paper-lift frame"});
+  await frame.focus();
+  await frame.press("End");
+  await expect(uncut).toHaveAttribute("data-km-fuchun-frame","299");
+  await expect(lifted.locator("[data-km-shanshui-scene]"))
+    .toHaveAttribute("data-km-shanshui-frame","299");
+
+  await page.getByRole("button",{name:"Reset paper-lift study"}).click();
+  await expect(frame).toHaveValue("145");
+  await expect(seed).toHaveValue("71");
+  await expect(uncut).toHaveAttribute("data-km-fuchun-camera","fibre");
+  await expect(page.getByRole("slider",{name:"Paper-lift ink"})).toHaveValue("0.9");
+  expect(await source(uncut)).toEqual(await source(lifted));
+});
+
 test("geological ArtCraft proof compares real native paintings across independently seeded constructions",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--geological-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-geology-study");
