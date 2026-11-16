@@ -809,30 +809,50 @@ function fox():PencilSubjectPart[] {
         ],1683,["#C69C86","#50474B","#EBD2BB"],256),
       ]},
     {id:"ear-near",material:"fur",palette:["#B67558","#765049","#E4A984"],
-      // Reduced pinna height, root still buried into upper cranium.
-      path:"M246 185 C257 162 275 138 290 125 "+
-        "Q299 119 302 127 C306 142 301 162 290 188 "+
-        "Q268 195 246 185 Z",
+      // A fox's external helix is not a uniform russet leaf. Its pointed
+      // apex turns into a rounded cartilaginous rim and a shaded basal
+      // pocket; the root is buried by the overlying skull.
+      path:"M246 185 C253 168 273 143 290 125 "+
+        "C296 120 301 120 303 128 C305 146 300 164 289 189 "+
+        "C277 195 259 191 246 185 Z",
       bounds:[242,118,67,79],direction:-69,start:115,
       details:[
-        mark("M293 127 Q291 147 276 172 M300 131 Q302 149 288 176",
-          "#645050",.44,248,.60),
+        {...mark("M250 183 C265 158 284 136 292 127 "+
+          "M293 125 Q298 122 301 128",
+          "#EEC5A2",.39,246,.62),id:"near-pinna-helix-rim"},
+        {...mark("M301 130 Q303 151 289 185 "+
+          "M269 183 Q279 190 287 185",
+          "#665050",.43,252,.65),id:"near-pinna-posterior-fold"},
+        {...mark("M272 179 C279 183 285 185 291 187",
+          "#5B484A",.44,261,.58),id:"near-auricular-base"},
         ...pencilRootedFur([
-          [295,129,274,178,288,150,29,7],
-          [296,143,284,184,293,165,26,7],
+          [293,130,273,178,287,150,30,7],
+          [296,144,284,184,294,163,27,7],
+          [273,180,289,185,281,186,23,5],
         ],661,["#E0AB8C","#665357","#F2CBAB"],252),
       ]},
-    {id:"ear-near-inner",material:"fur",palette:["#A17A71","#62525A","#D5B4A0"],
-      path:"M263 173 C275 150 285 134 296 124 "+
-        "Q299 141 290 163 Q284 181 274 183 Z",
-      bounds:[261,122,40,64],direction:-66,start:131,
+    {id:"ear-near-inner",material:"fur",palette:["#82665E","#493F47","#BF9D8C"],
+      // The ear's recessed conchal bowl is smaller/darker than the
+      // bright protective rim. Individual fine hairs grow from the
+      // cartilage root toward its tip, not parallel across the auricle.
+      path:"M275 170 C282 152 291 134 298 127 "+
+        "C300 140 297 153 291 164 C286 175 282 182 276 181 "+
+        "C274 179 273 175 275 170 Z",
+      bounds:[272,126,29,58],direction:-66,start:131,
       details:[
-        mark("M293 129 Q290 149 277 174 M296 133 Q297 150 284 173",
-          "#4D4248",.47,247,.70),
+        {...mark("M297 131 Q294 152 287 165 "+
+          "M286 167 Q281 175 278 179",
+          "#3D383F",.48,247,.83),id:"near-conchal-shadow"},
+        {...mark("M279 174 C286 159 289 148 294 140 "+
+          "M283 179 Q288 173 292 161",
+          "#DCC0A9",.31,260,.57),id:"near-antihelix-reflection"},
+        {...mark("M276 178 Q283 183 290 174",
+          "#5D4A4C",.35,270,.60),id:"near-canal-base"},
         ...pencilRootedFur([
-          [292,135,274,171,285,150,31,7],
-          [286,146,278,179,284,163,26,7],
-        ],1711,["#C4A088","#4F464D","#EFDBC1"],256),
+          [278,179,293,143,284,161,31,5],
+          [283,175,298,134,293,157,29,5],
+          [277,172,287,150,281,161,27,6],
+        ],1711,["#C5A28B","#423C46","#E4C5A5"],256),
       ]},
     {id:"head-main",material:"fur",palette:["#B66C4E","#724849","#EBAE79"],
       // Three-quarter fox: skull widens behind the near orbit and narrows into
