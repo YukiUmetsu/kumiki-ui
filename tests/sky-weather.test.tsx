@@ -9,6 +9,8 @@ import {
 import { cloudDeck, cloudShape } from "../registry/nature/sky-clouds";
 import { cumulusModel, outlineDimension } from "../registry/nature/sky-cumulus";
 import { SkySheet } from "../registry/nature/sky-react";
+import { atmosphere, direction } from "../registry/nature/sky-atmosphere";
+import { CLOUD_SCENES, CLOUD_VOLUMES, extinction, HALO, minimumDeviation, renderCloudSky } from "../registry/nature/sky-volume";
 
 const GENERA = Object.keys(CLOUD_GENERA) as CloudGenus[];
 
@@ -114,4 +116,41 @@ describe("SKY1 clouds", () => {
     expect(html).toContain("cumulonimbus");
     expect(html).not.toMatch(/NaN|undefined/);
   });
+});
+
+describe("SKY1 rendered skies", () => {
+  it("colours the clear sky and sunlight by scattering: blue overhead, the low sun reddened", () => {
+    const high = atmosphere({ sunElevation: 40, sunAzimuth: 0 }), low = atmosphere({ sunElevation: 3, sunAzimuth: 0 });
+    const zen = high.sky(direction(90, 0));
+    expect(zen[2]).toBeGreaterThan(zen[0] * 1.6);
+    const sHigh = high.sunlight(500, Math.sin(40 * Math.PI / 180)), sLow = low.sunlight(500, Math.sin(3 * Math.PI / 180));
+    expect(sLow[0] / sLow[2]).toBeGreaterThan(3 * (sHigh[0] / sHigh[2]));
+    const diffuseShare = high.skyIrradiance[1] / (high.sunlight(2, Math.sin(40 * Math.PI / 180))[1] * Math.sin(40 * Math.PI / 180));
+    expect(diffuseShare).toBeGreaterThan(0.05);
+    expect(diffuseShare).toBeLessThan(0.3);
+  });
+  it("builds the genera from their physics: extinction from water content, ice halos at their minimum deviation", () => {
+    expect(extinction(0.5, 10)).toBeCloseTo(0.075, 4);
+    expect(minimumDeviation(1.31, 60) * 180 / Math.PI).toBeCloseTo(21.8, 1);
+    expect(minimumDeviation(1.31, 90) * 180 / Math.PI).toBeCloseTo(45.7, 1);
+    expect(minimumDeviation(HALO.iceIndex[2], 60)).toBeGreaterThan(minimumDeviation(HALO.iceIndex[0], 60));
+    for (const [g, v] of Object.entries(CLOUD_VOLUMES)) {
+      expect(v.top, g).toBeGreaterThan(v.base);
+      expect(CLOUD_GENERA[g as CloudGenus]).toBeDefined();
+    }
+    expect(extinction(CLOUD_VOLUMES.cirrostratus.waterContent, CLOUD_VOLUMES.cirrostratus.effectiveRadius, "ice") * (CLOUD_VOLUMES.cirrostratus.top - CLOUD_VOLUMES.cirrostratus.base)).toBeLessThan(3);
+    expect(extinction(CLOUD_VOLUMES.nimbostratus.waterContent, CLOUD_VOLUMES.nimbostratus.effectiveRadius) * (CLOUD_VOLUMES.nimbostratus.top - CLOUD_VOLUMES.nimbostratus.base)).toBeGreaterThan(23);
+  });
+  it("renders every genus to finite pixels, the same every time; a rain layer is darker than fair cumulus", () => {
+    const mean = (px: Uint8ClampedArray) => { let s = 0; for (let i = 0; i < px.length; i += 4) s += px[i] + px[i + 1] + px[i + 2]; return s / (px.length / 4) / 3; };
+    const means: Record<string, number> = {};
+    for (const g of Object.keys(CLOUD_SCENES) as CloudGenus[]) {
+      const r = renderCloudSky({ width: 32, height: 18, layers: [g], steps: 16, ...CLOUD_SCENES[g] });
+      expect(r.rgba.length).toBe(32 * 18 * 4);
+      means[g] = mean(r.rgba);
+    }
+    const a = renderCloudSky({ width: 24, height: 14, layers: ["stratocumulus"], steps: 12 }), b = renderCloudSky({ width: 24, height: 14, layers: ["stratocumulus"], steps: 12 });
+    expect(Array.from(a.rgba)).toEqual(Array.from(b.rgba));
+    expect(means.nimbostratus).toBeLessThan(means.stratus);
+  }, 60000);
 });

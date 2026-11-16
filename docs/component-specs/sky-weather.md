@@ -2,8 +2,9 @@
 
 **Registry item:** `sky-weather` (needs `art-foundations`, `plant-anatomy` for the demo scene's trees) · **Files:**
 `registry/nature/sky-*.ts(x)` · **Storybook:** Video production → Art Foundations → Sky and Weather (Sheet, Weather
-lab, Cloud genera) · **Skill:** [kumiki-sky-weather](../../skills/kumiki-sky-weather/SKILL.md) · **Research:**
-[sky and weather framework, 2026-11-16](../research/sky-weather-framework-2026-11-16.md)
+lab, Cloud genera, Cumulus study, Cloud genera rendered, Sky lab) · **Skill:** [kumiki-sky-weather](../../skills/kumiki-sky-weather/SKILL.md) · **Research:**
+[sky and weather framework, 2026-11-16](../research/sky-weather-framework-2026-11-16.md),
+[rendered skies and volumetric clouds, 2026-11-16](../research/sky-volume-clouds-2026-11-16.md)
 
 SKY1 holds what stays true about weather in every art style, so rain drawn in woodblock, pencil, paper or 3D falls at
 the same speed and slant. Its clouds sit on the same base plane, and fog fades things by the same rule. The style
@@ -128,6 +129,55 @@ patterned elements at their WMO widths and layers as slices that fade with dista
 - **Edge roughness.** `outlineDimension` box-counts the silhouette. The model measures about 1.0, and real cumulus
   photographs about 1.03–1.19 with the same method (the higher values partly from mask noise).
 
+## Rendered skies (registry/nature/sky-atmosphere.ts, sky-volume.ts)
+
+**Atmosphere.** `atmosphere({ sunElevation, sunAzimuth, visibilityKm })` gives:
+- the clear sky's radiance in any direction;
+- sunlight arriving at any height, reddened by its path;
+- the sky's light on the ground;
+- aerial perspective.
+
+It is single scattering in a spherical atmosphere (Nishita 1993) with the constants of production sky models
+(Hillaire 2020):
+- Rayleigh air, 8 km scale height;
+- aerosol Mie scattering set from the visibility by Koschmieder, 1.2 km, g 0.8;
+- ozone absorption.
+
+Multiple scattering adds a small estimated fill.
+
+**Clouds as volumes.** `renderCloudSky({ layers, sunElevation, sunAzimuth, pitch, fov, visibilityKm, wind, width,
+height })` renders genera as cloud water or ice and returns sRGBA. `CLOUD_VOLUMES` gives each genus:
+- base and top;
+- water or ice content and effective radius (Hansen 1971 for Sc, As, Ns, St and Cu congestus; others estimated);
+- a default cover and cell size.
+
+Extinction is `extinction(LWC, r_e)` = 3·LWC ÷ (2ρ r_e) (Stephens 1978).
+
+| Genus | Structure |
+| --- | --- |
+| Cumulus | Thermals from a coverage map (rank-normalised, so cover is the share of sky), flat bases, domed cauliflower tops (Perlin–Worley shape, inverted-Worley billows, eroded edges) |
+| Stratocumulus | Rolls across the wind, cells over 5° wide, gaps of sky |
+| Altocumulus, cirrocumulus | Cells at their WMO widths (1–5°, under 1°) in billow rows about 7–10 shear-layer depths apart (Kelvin–Helmholtz) |
+| Cirrus | Ice fall streaks: strands 12 times longer along the wind than across, curved into hooks by shear (a parabola) |
+| Cirrostratus | A thin ice veil with fibres; the 22° and 46° halos from the minimum deviation through 60° and 90° ice prisms (`minimumDeviation`), red inside, blue outside |
+| Altostratus | A translucent sheet with thicker and thinner patches; the sun as through ground glass |
+| Nimbostratus | Thick and dark, a ragged base, thickness patches, scud (pannus) and rain |
+| Stratus | A low layer with gentle undulations |
+| Cumulonimbus | A body of towers with a flanking line, an anvil at the tropopause spreading downwind and thinning to fibres, an overshooting top, mammatus 1–3 km across and 0.5 km deep (Schultz et al. 2006), a rain shaft |
+
+**Light** has these parts:
+- **Sunlight:** reddened to each point and marched to the sun through every layer above.
+- **Scattering:** octaves of multiple scattering (Wrenninge et al. 2013), and two-stream diffuse transmission through thick decks.
+- **Phase functions:** forward-peaked for water; halos for ice.
+- **Sky light:** from above, shaded by the cloud over each point.
+- **Aerial perspective:** grey air under overcast.
+- **Ground:** the sun's disc dimmed through thin cloud; cloud shadows on the ground.
+
+Exposure meters like a camera (scene average blended with a sunny-day exposure), with a partial white balance.
+`CLOUD_SCENES` gives each genus a view that shows its tell-tale feature.
+
+A 320 × 180 sky takes about 1–2 s on a laptop CPU. Rays within 6° of the horizon take two samples.
+
 ## React (registry/nature/sky-react.tsx)
 
 - `CloudLayers` and `CloudFigure` draw a cloud.
@@ -142,14 +192,21 @@ patterned elements at their WMO widths and layers as slices that fade with dista
   - a rainbow (only with broken cloud and the sun under 42°);
   - lightning.
 - `CloudAtlas` lays out the ten genera by height. `SkySheet` is the reference sheet.
+- `CloudSky` (sky-volume-react.tsx) renders a sky into a canvas after paint, sharing the render queue and cached.
+  `RenderedCloudAtlas` shows the ten genera rendered, each with its heights, water content, droplet size and
+  extinction.
 
 Text is HTML in cards. The SVG labels in `CloudAtlas` sit under each cloud at fixed positions, checked at
 1280 px.
 
 ## Known limits
 
-- Cloud shapes are construction for painting, not volume renders. The cumulonimbus anvil is still thicker than real
-  anvils (which are a few kilometres thick over tens of kilometres) and reads a little like a lid.
+- Cloud shapes (`cloudShape`, `cloudDeck`) are construction for painting. The volume renders are the faithful view.
+- In the volume renders:
+  - layer thicknesses, most water contents and the coverage maps are estimated;
+  - distant cumulus near the horizon still alias at small sizes;
+  - the anvil reads a little like a plate;
+  - no human visual review yet.
 - Sky colours are one photograph each where measured. Camera exposure and white balance vary, so treat them as a
   starting palette.
 - Rain visibility is a second-hand regression (estimated), and the 1.5 km haze layer and the ×2.5 contrast for the

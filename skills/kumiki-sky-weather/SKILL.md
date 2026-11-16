@@ -20,6 +20,11 @@ The pack `sky-weather` decides *what the weather is and how it behaves*. Your st
    - Draw a sky full of them with `cloudDeck(genus, camera)`. All bases share one height, so nearer clouds sit higher
      and larger, and rows converge on the horizon.
    - Patterned clouds keep their WMO element widths: Cc < 1°, Ac 1–5°, Sc > 5°.
+   - For a realistic sky, or a reference to paint from, render the genera as volumes:
+     - `renderCloudSky({ layers, sunElevation, sunAzimuth, pitch })` (or `CloudSky` in React), with the views in
+       `CLOUD_SCENES`;
+     - cirrostratus shows its 22° halo; altostratus shows the sun as through ground glass;
+     - the storm's anvil streams downwind.
 3. **Rain and snow.**
    - Drops are spheres or buns, never tears.
    - On camera they are streaks: speed × exposure (1/48 s at 24 fps).
