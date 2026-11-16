@@ -122,3 +122,16 @@ every 92 original dry-pigment trace, 5 true vertex-normal value groups and
 three independent existing Storybook material switches. All these numbers
 are **relative artist construction parameters**, never fabricated coordinates
 or measured photo-fidelity scores. Review actual full-size screenshot again.
+
+### Final crown tangent pass (native 1× review)
+
+The second native 960×540 comparison successfully reduced the visible
+hourglass but exposed a short **flat stair** on the upper left parietal
+edge near the posterior-to-crown tangent. The final local correction
+spreads three preexisting vault control points across the same 15-point
+sequence: posterior crown `0.095×`, following rise `0.175×`, and
+next parietal arch `0.285×` of the ANAT1 facial width. The other 12
+vault points, 23 lower face anchors, all 92 original pigment trace
+families, their timing and the exact existing source mesh remain.
+This is a deliberate retained-detail spline correction, not polygon
+reduction, raster smoothing or invented source image coordinates.
