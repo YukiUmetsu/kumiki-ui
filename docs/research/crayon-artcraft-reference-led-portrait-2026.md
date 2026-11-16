@@ -128,3 +128,26 @@ Reconstructed blouse geometry as a larger, tapering linen volume with independen
 ### Third garment visual review: rejected giant cream triangle
 
 [Real garment crop 43667932235](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43667932235) showed a larger blouse and relocated buttons, but the blouse had become an oversized **smooth cream triangle**. This did not meet the user's reference `fabric.png` with multiple cloth folds and lace. Source was revised again: the blouse has a U-like asymmetrical hem rather than a pointed tip, two connected linen pleat shadows follow a curved warp, and a third ruffle with actual eyelets sits over the woven blouse. Hand-sewn button rims follow the relocated coat placket rather than generic gold dots. No raster reference pixels were used. All character galleries remain `!dev` until a genuine ArtCraft source/raster comparison passes.
+
+### ArtCraft post-browser geometric rejection and corrective study (2026-11-14)
+
+The actual PR #281 Chromium source-native 540×960 and 960×540 captures were
+inspected after structural CI passed. **Rejected**: (1) a broad, pale mouth
+oval bounded by a single U-shaped commissure, (2) nasal planes nearly
+disappearing into the skin value, (3) a conspicuous squared neck-to-chin
+junction, and (4) both sleeve caps terminating in detached rounded
+stumps above the portrait's bottom edge. These are observable visual
+failures, independent of test coverage. Changes here redraw the lip
+volumes as short independent asymmetric shapes with broken cleft marks,
+add local direction-led alar/sidewall wax, round the neck beneath the
+mandible with clipped muscle-plane color and continue opaque sleeves and
+coat past the portrait bottom edge. No raster art is substituted.
+Reference rationale: wax crayon's clumped deposition and directional
+mass/edge control are documented by the Philadelphia Museum of Art,
+*Descriptive Terminology for Art on Paper* (2014), fig. 49,
+https://legacyweb.philamuseum.org/doc_downloads/conservation/DescriptiveTerminologyforArtonPaper.pdf .
+
+**Quality gate remains blocked.** Render both full compositions and matched
+eye/nose/mouth/garment native-browser crops again, inspect forms and
+subtlety under normal motion, and reject further primitive-looking
+anatomy before releasing the hidden Storybook portrait.

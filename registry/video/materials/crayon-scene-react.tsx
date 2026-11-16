@@ -72,13 +72,15 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
         <g clipPath={clipId ? "url(#"+clipId+")" : undefined}
           data-km-crayon-clipped-to={clipParent?.id}>
           <WaxRegion d={drawing!.d} bounds={drawing!.bounds!} colors={node.colors}
-            seed={seed} pressure={node.pressure ?? .84} spacing={node.spacing ?? 9} angle={node.angle ?? 0}
+            seed={seed} paperSeed={spec.seed} paperColor={spec.paper}
+            pressure={node.pressure ?? .84} spacing={node.spacing ?? 9} angle={node.angle ?? 0}
             tooth={tooth} frame={frame} first={node.timing.start} last={node.timing.end}
             construction={node.construction} coverage={node.coverage}
-            blendRadius={node.blendRadius} markStrength={node.markStrength}
-            underpaintTooth={node.underpaintTooth}
+            blendRadius={node.blendRadius} featherContacts={node.featherContacts}
+            markStrength={node.markStrength}
+            underpaintTooth={node.underpaintTooth} opaqueBurnish={node.opaqueBurnish}
             underpaintGradient={node.underpaintGradient}
-            nibStyle={node.nibStyle}
+            nibStyle={node.nibStyle} deposition={node.deposition}
             strokeOrder={node.strokeOrder} markLength={node.markLength}
             redraw={node.redraw} edgeRoughness={node.edgeRoughness}
             outlineOpacity={node.outlineOpacity} sgraffito={node.sgraffito}
@@ -95,7 +97,8 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
         <g clipPath={clipId ? "url(#"+clipId+")" : undefined}
           data-km-crayon-clipped-to={clipParent?.id}>
           <WaxLine d={drawing!.d} color={node.color} width={node.width}
-            opacity={node.opacity ?? 1} seed={seed}
+            opacity={node.opacity ?? 1} seed={seed} paperSeed={spec.seed}
+            contact={node.waxContact} waxPressure={node.waxPressure}
             frame={frame} first={node.timing.start} last={node.timing.end}
             reduced={reducedMotion} />
         </g>
@@ -134,7 +137,9 @@ export function CrayonScene({spec, frame, reducedMotion = false, hideScreenSpace
     <Paper width={spec.width} height={spec.height} tooth={tooth}
       seed={spec.seed} color={spec.paper} strength={spec.paperTooth ?? .6}
       pigmentRelief={spec.elements.some(n=>n.kind==="wax"&&
-        (n.underpaintTooth??0)>0)} />
+        (n.underpaintTooth??0)>0)}
+      handContact={spec.elements.some(n=>n.kind==="wax"&&
+        n.deposition==="stroke-built")} />
     <g data-km-crayon-camera="" transform={"translate("+camera.x+" "+camera.y+") scale("+camera.scale+")"}>
       {rendered(false)}
     </g>
