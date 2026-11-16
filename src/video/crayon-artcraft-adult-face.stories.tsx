@@ -8,7 +8,7 @@ import {crayonCc0NearEyeStudy} from "./crayon-artcraft-cc0-near-eye";
 import {crayonPaperContactSwatches} from "./crayon-artcraft-paper-contact-fixtures";
 import {crayonArtcraftBodyStudy,CRAYON_BODY_REFERENCE} from "./crayon-artcraft-body-study";
 import {crayonCc0FaceStudy,CRAYON_F1_FACE_PROOF,CRAYON_F1_EYE_INSPECTION,
-  type Cc0EyeContact} from "./crayon-artcraft-cc0-face";
+  type Cc0EyeContact,type Cc0MidfaceForm} from "./crayon-artcraft-cc0-face";
 import {useCrayonStoryPlayback} from "./crayon-story-playback";
 import {CRAYON_PORTRAIT_AUDIT,crayonPortraitFrozenAudit} from "./crayon-artcraft-portrait-audit";
 import {auditCrayonF1LashRootContinuity,type CrayonF1LashFinish}
@@ -466,18 +466,19 @@ export function crayonF1SourceCssCamera(spec:CrayonSceneSpec,frame:number){
 export function Cc0SourceRegisteredFaceWorkbench({
   detail,startFrame,playbackRate,loop,
   initialLashFinish="sparse",initialInspection="full",
-  initialEyeContact="source-shade",
+  initialEyeContact="source-shade",initialMidfaceForm="baseline",
 }:StudyProps & {
   initialLashFinish?:CrayonF1LashFinish;
   initialInspection?:"full"|"near-eye"|"far-eye";
   initialEyeContact?:Cc0EyeContact;
+  initialMidfaceForm?:Cc0MidfaceForm;
 }){
   const [view,setView]=useState<"wax"|"anatomy">("wax");
   const [showReference,setShowReference]=useState(true);
   const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
   const [eyeContact,setEyeContact]=useState<Cc0EyeContact>(initialEyeContact);
   const [browForm,setBrowForm]=useState<"baseline"|"source-rooted">("baseline");
-  const [midfaceForm,setMidfaceForm]=useState<"source-volume"|"source-alar"|"source-oral"|"baseline">("baseline");
+  const [midfaceForm,setMidfaceForm]=useState<Cc0MidfaceForm>(initialMidfaceForm);
   const [jawNeckForm,setJawNeckForm]=useState<"source-contour"|"baseline">("baseline");
   const [lashFinish,setLashFinish]=useState<CrayonF1LashFinish>(initialLashFinish);
   const [inspection,setInspection]=useState<
@@ -624,10 +625,11 @@ export function Cc0SourceRegisteredFaceWorkbench({
       <label>Source nose and lip volumes{" "}
         <select aria-label="F1 source midface anatomy" value={midfaceForm}
           onChange={e=>setMidfaceForm(e.target.value as
-            "source-volume"|"source-alar"|"source-oral"|"baseline")}>
+            Cc0MidfaceForm)}>
           <option value="source-volume">Attached nasal and lip/dental wax (experiment)</option>
           <option value="source-alar">Source cartilage roof / curved nostril undercut (unapproved A/B)</option>
-          <option value="source-oral">Source-curved lips / muted incisor wax contact (unapproved V14)</option>
+          <option value="source-oral">Source-curved lips / muted incisor wax contact (unapproved V15)</option>
+          <option value="source-oral-sculpt">CC0 tooth-overhang / rounded inner lip wax (unapproved V16)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -670,6 +672,12 @@ export const Cc0RegisteredFullFace:Story={
   name:"CC0 full face · source-registered wax anatomy (ArtCraft experiment)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}/>,
+};
+export const Cc0OralContactSculptMacro:Story={
+  name:"CC0 human mouth · source-rooted wax overlap 2.65× (unapproved V16)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-oral-sculpt" initialInspection="mouth"/>,
 };
 export const Cc0RootedNearLashMacro:Story={
   name:"CC0 wax lash roots · near eye 2.95× (unapproved study)",
