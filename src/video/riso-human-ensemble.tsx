@@ -547,7 +547,8 @@ export function RisoHumanEnsembleStudio(){
         Distinct coat, bob hair and facial geometry for the Paper Artist; the Courier retains
         its existing body and satchel grip. The curved printed sheet follows both evaluated hands through a shared physical contour,
         with controllable curl, grip compression, screened fold and original address engravings.
-        Only the real index-finger ink prints in front of paper; the opposing red thumb and other three\n        digits stay below the opaque sheet. During contact, the Courier
+        Only the real index-finger ink prints in front of paper; the opposing red thumb and other three
+        digits stay below the opaque sheet. During contact, the Courier
         releases the sheet while the Paper Artist keeps holding it. Release timing, duration
         and tilt are authored; original material-local pressure folds and screened compression
         track the two hand grips. This is not a force-based collision solver.
