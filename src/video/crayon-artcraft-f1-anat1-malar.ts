@@ -55,7 +55,7 @@ const vector2=(p:readonly number[],yaw:number,pitch:number):Projection=>{
 type Fit={
   yaw:number;pitch:number;roll:number;scale:number;rmse:number;
   a:number;b:number;tx:number;ty:number;
-  sourceError:Readonly<Record<SourceKey,number>>;
+  sourceError:Readonly<Partial<Record<SourceKey,number>>>;
 };
 const src=CRAYON_PORTRAIT_AUDIT.sourcePoints;
 
@@ -84,7 +84,7 @@ function fit(
   const scale=Math.hypot(a,b),roll=Math.atan2(b,a)*180/Math.PI;
   if(!Number.isFinite(scale)||scale<1||scale>6||Math.abs(roll)>18)return null;
   const tx=qx-a*px+b*py,ty=qy-b*px-a*py;
-  const sourceError={} as Record<SourceKey,number>;
+  const sourceError={} as Partial<Record<SourceKey,number>>;
   let squared=0;
   for(const v of points){
     const xx=a*v.p.x-b*v.p.y+tx,yy=b*v.p.x+a*v.p.y+ty;
@@ -98,7 +98,7 @@ function fit(
 export interface CrayonF1Anat1Registration {
   readonly yaw:number;readonly pitch:number;readonly roll:number;
   readonly scale:number;readonly rmse:number;
-  readonly sourceError:Readonly<Record<SourceKey,number>>;
+  readonly sourceError:Readonly<Partial<Record<SourceKey,number>>>;
   /** Source-space predictions from 3D geometry (NOT observed pixels). */
   readonly projected:Readonly<Record<FaceLandmark,XY>>;
   /** Surface lighting from ANAT1 mesh normals; not photographic luminance. */

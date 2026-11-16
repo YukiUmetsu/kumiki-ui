@@ -45,7 +45,7 @@ describe("ArtCraft F1 V31 actual ANAT1 468-vertex face source registration",()=>
     expect(fit.scale).toBeGreaterThan(1);
     expect(fit.scale).toBeLessThan(6);
     for(const id of CRAYON_F1_ANAT1_SOURCE_ANCHORS){
-      expect(Number.isFinite(fit.sourceError[id])).toBe(true);
+      expect(Number.isFinite(Number(fit.sourceError[id]))).toBe(true);
     }
     for(const id of ["zygion.R","zygion.L","gonion.R","menton",
       "cheekbone.R","alare.R","pronasale"] as const){
