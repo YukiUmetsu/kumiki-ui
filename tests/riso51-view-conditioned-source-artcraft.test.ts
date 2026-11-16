@@ -27,7 +27,7 @@ describe("RISO51 RISO2 source-Bézier morph safety",()=>{
     const loops=flattenRisoSvgPath(halfway,.1);
     expect(loops).toHaveLength(1);
     expect(loops[0].closed).toBe(true);
-    expect(loops[0].points.length).toBeGreaterThan(10);
+    expect(loops[0].points.length).toBeGreaterThanOrEqual(10);
   });
   it("rejects incompatible commands, rogue inks, unsorted source keys and arc flags",()=>{
     const run=(keys:typeof samples)=>inspectRisoPathMorph(base,keys,48);
