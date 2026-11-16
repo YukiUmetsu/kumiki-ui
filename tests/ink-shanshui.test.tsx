@@ -995,6 +995,20 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(Math.max(...lens)-Math.min(...lens)).toBeGreaterThan(37);
     expect(lean.filter(x=>x< -5).length).toBeGreaterThanOrEqual(15);
     expect(lean.filter(x=>x>5).length).toBeGreaterThanOrEqual(9);
+    // Native v52 ArtCraft screenshot exposed crossed X-shaped wires.
+    // Huang's hemp descends WITH the supporting rock cheek. Opposite
+    // cheek sides exist across the landscape, but an individual cheek
+    // must not reverse a quarter of its fibres into diagonal X hatching.
+    const cheeks=[
+      {from:0,to:34,side:-1,minimum:28},
+      {from:34,to:60,side:1,minimum:21},
+      {from:60,to:78,side:-1,minimum:15},
+    ] as const;
+    for(const cheek of cheeks){
+      const matching=lean.slice(cheek.from,cheek.to)
+        .filter(dx=>dx*cheek.side>3).length;
+      expect(matching).toBeGreaterThanOrEqual(cheek.minimum);
+    }
     expect(paint("fuchun")).toBe(html);
     expect(paint("fuchun",1,91)).not.toBe(html);
     expect(paint("fuchun",0)).not.toContain(
