@@ -62,16 +62,18 @@ export function PencilFoundationStudio(){
   const [valueBand,setValueBand]=useState<AnatomyValueBand>("all");
   const [headContourCraft,setHeadContourCraft]=useState(true);
   const [headVolumeWeave,setHeadVolumeWeave]=useState(true);
+  const [headSilhouetteStudy,setHeadSilhouetteStudy]=useState(false);
   const drawing=useMemo(()=>{
     const base=specimen==="rose"||specimen==="architecture"||specimen==="fabric"?
       pencilObjectStudyDrawing({subject:specimen,aspect,pressure,paperTooth:tooth,seed}):
       pencilLivingStudyDrawing({subject:specimen==="portrait"?"portrait":
         specimen==="fox"?"fox":"valley",aspect,pressure,paperTooth:tooth,
-        seed,headContourCraft,headVolumeWeave});
+        seed,headContourCraft,headVolumeWeave,headSilhouetteStudy});
     return {...base,regions:base.regions.map(r=>({
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
-  },[specimen,aspect,pressure,tooth,burnish,seed,headContourCraft,headVolumeWeave]);
+  },[specimen,aspect,pressure,tooth,burnish,seed,
+    headContourCraft,headVolumeWeave,headSilhouetteStudy]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -116,6 +118,8 @@ export function PencilFoundationStudio(){
     data-km-anat1-value-inspection={specimen==="portrait"?valueBand:"all"}
     data-km-contour-craft={specimen==="portrait"?(headContourCraft?"on":"off"):"not-applicable"}
     data-km-head-cranial-volume={specimen==="portrait"?(headVolumeWeave?"on":"off"):"not-applicable"}
+    data-km-skull-silhouette-study={specimen==="portrait"?
+      (headSilhouetteStudy?"oblique":"baseline"):"not-applicable"}
     style={{minHeight:"100vh",padding:24,display:"grid",alignContent:"start",
       gap:16,background:"#E8E7DE",font:"15px/1.5 system-ui",color:"#3B4747"}}>
     <header style={{maxWidth:1050,display:"grid",gap:4}}>
@@ -280,6 +284,13 @@ export function PencilFoundationStudio(){
           type="checkbox" checked={headVolumeWeave}
           onChange={e=>setHeadVolumeWeave(e.target.checked)}/>
         Five-tone cranial dry weave · A/B (unapproved)
+      </label>}
+      {specimen==="portrait"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
+        <input aria-label="Foundation three-quarter skull reconstruction"
+          type="checkbox" checked={headSilhouetteStudy}
+          onChange={e=>setHeadSilhouetteStudy(e.target.checked)}/>
+        Reconstructed 3/4 skull contour · shape A/B (not photo-approved)
       </label>}
       <label style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
         <input aria-label="Foundation inspect macro" type="checkbox" checked={zoom}
