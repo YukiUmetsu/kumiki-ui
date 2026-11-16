@@ -894,3 +894,57 @@ test("F1 source-registered oral wax shape vs prior 2.65x Chromium A/B",async({pa
   }
   expect(errors).toEqual([]);
 });
+
+/** F1 V16 source tooth-root occlusion native Chromium: real 608x1082 CRAYON1 wax, not an uploaded-photo
+ * overlay or postprocessed screenshot. Same CC0 2.65x camera and
+ * paper for the two selected modes. Separate artistic approval still
+ * required; screenshot difference alone is never a likeness pass.
+ */
+test("F1 V16 source tooth-root occlusion native Chromium",async({page},info)=>{
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const focus={focusX:417,focusY:739,zoom:2.65};
+  const captures:Uint8Array[]=[];
+  for(const midfaceForm of ["source-oral","source-oral-sculpt"] as const){
+    const original=crayonCc0FaceStudy({
+      eyeContact:"source-shade",midfaceForm,lashFinish:"sparse",
+    });
+    const spec={...original,camera:[{frame:0,...focus},{frame:299,...focus}]};
+    for(const frame of [210,260,299] as const){
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame",String(frame));
+      const shelf=svg.locator(
+        '[data-km-crayon-element="upper-vermilion-incisor-overhang"]');
+      await expect(shelf).toHaveCount(
+        midfaceForm==="source-oral-sculpt"?1:0);
+      for(const tooth of ["dental-surface-left","dental-surface-center",
+        "dental-surface-far"]){
+        await expect(svg.locator(
+          '[data-km-crayon-element="'+tooth+'"]')).toBeAttached();
+      }
+      const shot=await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-f1-v16-"+
+          midfaceForm+"-"+frame+".png")});
+      if(frame===299)captures.push(shot);
+    }
+    if(midfaceForm==="source-oral-sculpt"){
+      const html=renderToStaticMarkup(createElement(CrayonScene,{
+        spec:original,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      await page.locator("svg[data-km-crayon-scene]").screenshot({
+        animations:"disabled",
+        path:info.outputPath("crayon-f1-v16-portrait-full-299.png"),
+      });
+    }
+  }
+  expect(Buffer.compare(Buffer.from(captures[0]),Buffer.from(captures[1])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
