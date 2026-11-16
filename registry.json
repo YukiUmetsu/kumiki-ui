@@ -4011,6 +4011,11 @@
           "target": "components/costume/costume-query.ts"
         },
         {
+          "path": "registry/costume/costume-drape.ts",
+          "type": "registry:ui",
+          "target": "components/costume/costume-drape.ts"
+        },
+        {
           "path": "registry/costume/costume-shapes.ts",
           "type": "registry:ui",
           "target": "components/costume/costume-shapes.ts"
