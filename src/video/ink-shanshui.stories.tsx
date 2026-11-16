@@ -582,6 +582,9 @@ function MasterInkSourceComparison(){
         aria-pressed={view==="crop"&&zoom===1.65&&cropX===549&&cropY===151}
         onClick={()=>inspect(1.65,549,151)}>Summit · macro</button>
       <button type="button" style={style.button}
+        aria-pressed={view==="crop"&&zoom===1.65&&cropX===628&&cropY===137}
+        onClick={()=>inspect(1.65,628,137)}>Pine grove · full crowns</button>
+      <button type="button" style={style.button}
         aria-pressed={view==="crop"&&zoom===2.4&&cropX===552&&cropY===177}
         onClick={()=>inspect(2.4,552,177)}>Rock strata · meso</button>
       <button type="button" style={style.button}
