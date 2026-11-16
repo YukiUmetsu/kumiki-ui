@@ -69,6 +69,18 @@ test("RISO32 moving thumb IP remains attached at contact, release and both ink m
       const panelId=await panel.getAttribute("data-km-riso30-hand");
       if((frame===160&&panelId==="courier-right")||
          (frame===166&&panelId==="paper-artist-left"))expect(opposedGap).toBeLessThan(12);
+      // RISO41 source-red pad contact: require a real opposed print gap
+      // at its peak without faking proximity by shifting a paper overlay.
+      const realGap=Number(await panel.getAttribute("data-km-riso41-actual-red-pad-gap"));
+      const paperPressure=Number(await panel.getAttribute("data-km-riso41-press-ink"));
+      expect(realGap).toBeCloseTo(padInkGap,3);
+      expect(paperPressure).toBeGreaterThanOrEqual(0);
+      expect(paperPressure).toBeLessThanOrEqual(1);
+      if((frame===160&&panelId==="courier-right")||
+        (frame===166&&panelId==="paper-artist-left")){
+        expect(realGap).toBeLessThan(1.5);
+        expect(paperPressure).toBeGreaterThan(0);
+      }
       const measured=Number(await panel.getAttribute("data-km-riso33-minimum-axis-gap"));
       expect(Number.isFinite(measured)).toBe(true);
       if(frame===160||frame===166){
