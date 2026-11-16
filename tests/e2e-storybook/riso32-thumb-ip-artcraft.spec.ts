@@ -81,6 +81,17 @@ test("RISO32 moving thumb IP remains attached at contact, release and both ink m
         expect(realGap).toBeLessThan(1.5);
         expect(paperPressure).toBeGreaterThan(0);
       }
+      // RISO46: genuine moving sculpted thumb and palm-web source art,
+      // checked on actual cobalt/vermilion printable SVG stencils.
+      await expect(panel).toHaveAttribute("data-km-riso46-thenar-web-ink","3");
+      await expect(panel).toHaveAttribute("data-km-riso46-thumb-palm-separated","true");
+      expect(Number(await panel.getAttribute("data-km-riso46-thenar-cubic-turns")))
+        .toBeGreaterThan(5);
+      await expect(panel.locator('[data-km-riso-part$="-glove-thumb-radial-volume"]')).toHaveCount(1);
+      await expect(panel.locator('[data-km-riso-part$="-glove-thumb-radial-incisions"]')).toHaveCount(1);
+      await expect(panel.locator('[data-km-riso-part$="-glove-web-palm-recess"]')).toHaveCount(1);
+      const thumbOrigin=panel.locator('[data-km-riso-part$="-glove-thumb"]');
+      expect((await thumbOrigin.getAttribute("d"))?.match(/C/g)?.length).toBeGreaterThanOrEqual(4);
       // RISO42 live source support digit flex. Former three RED parallel
       // tines must become genuinely articulated ANAT1 PIP/DIP bone pieces.
       await expect(panel).toHaveAttribute("data-km-riso42-support-red-bones","9");
