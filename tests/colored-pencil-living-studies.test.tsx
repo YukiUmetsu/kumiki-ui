@@ -103,6 +103,50 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("preserves projected ANAT1 eyelid/iris geometry while drawing physically radial iris fibres and caruncles",()=>{
+    const A=pencilPortraitAnatomy();
+    for(const aspect of ["landscape","portrait"] as const){
+      const d=pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291});
+      const regions=new Map(d.regions.map(r=>[r.id,r]));
+      for(const [side,eyeId,irisId,pupilId] of [
+        ["R","eye-white-far","iris-far","pupil-far"],
+        ["L","eye-white-near","iris-near","pupil-near"],
+      ] as const){
+        const eye=regions.get(eyeId)!,iris=regions.get(irisId)!;
+        const pupil=regions.get(pupilId)!;
+        expect(eye.path).toBe(A.eyes[side].path);
+        expect(iris.path).toBe(A.irises[side].path);
+        expect(pupil.path).toBe(A.pupils[side].path);
+        expect(iris.opaqueSupport).toBe(false);
+        expect(eye.layers[0].color).not.toBe("#FFFFFF");
+        for(let layer=0;layer<3;layer++){
+          const ray=iris.details?.find(t=>t.id==="anat-radial-iris-"+side+"-"+layer);
+          expect(ray,side+" "+layer).toBeDefined();
+          expect(ray!.width).toBeLessThanOrEqual(.3);
+          expect(ray!.opacity).toBeLessThan(.7);
+          expect((ray!.path.match(/ Q/g)??[]).length).toBe(29);
+          expect((ray!.path.match(/ M/g)??[]).length).toBe(28);
+          expect(ray!.path.length).toBeLessThan(12000);
+          expect(ray!.path).not.toMatch(/NaN|Infinity/);
+        }
+        const shade=iris.details?.find(t=>
+          t.id==="anat-superior-iris-shadow-"+side);
+        expect(shade).toBeDefined();
+        expect(shade!.opacity).toBeLessThan(.6);
+        expect(eye.details?.some(t=>
+          t.id==="anat-medial-caruncle-"+side)).toBe(true);
+        expect(eye.details?.some(t=>
+          t.id==="anat-superior-sclera-shadow-"+side)).toBe(true);
+        expect(eye.details?.some(t=>
+          t.id==="anat-lash-upper-"+side)).toBe(true);
+      }
+      expect(d.regions.find(r=>r.id==="lip-lower")!.path)
+        .toBe(A.lips.lower);
+      expect(pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291}))
+        .toEqual(d);
+    }
+  });
+
   it("uses ANAT1 nasal cartilage and restrained lip volume instead of floating rectangular mouth stickers",()=>{
     const A=pencilPortraitAnatomy();
     const parts=new Map(pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"})
