@@ -57,6 +57,11 @@ test("ArtCraft annotation atlas uses separate local source/native files and expo
       await page.mouse.move(x,y);await page.mouse.down();
       await page.mouse.move(x+b!.width*.09,y+b!.height*.07,{steps:4});
       await page.mouse.up();
+      // Fail precisely at the bad drag, rather than hanging for two
+      // minutes after all five values when a selection/capture eats input.
+      await expect(parent.locator("[data-km-annotated-tone]"),
+        "tone "+(i+1)+" of 5 must be committed on native pointer-up")
+        .toHaveCount(i+1,{timeout:2500});
     }
     await expect(parent.locator("[data-km-annotated-tone]")).toHaveCount(5);
     await expect(parent.locator("[data-km-annotated-tone-label]")).toHaveCount(5);
