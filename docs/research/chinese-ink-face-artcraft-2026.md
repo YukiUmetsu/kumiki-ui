@@ -384,3 +384,44 @@ cartilage stamp, unbroken 1px vector lines, oversized concha shadow or detached
 lobule. Run ANAT1, EXPR1, browser/Storybook and original Shanshui film checks.
 Fuchun landscape geology/fibre and old-pine quality still independently block
 PR #466 merge.
+
+
+## Source-fitted near/far gaze and occluded ink iris (2026-11-16)
+
+**Reference deconstruction.** Historical Zeng Jing scholar portraits model deep
+orbital sockets with nearly transparent accumulated pigment rather than a
+single photographic specular circle ([UMMA, Portrait of Pan Qintai, 1621](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/)).
+At small production scale, the upper lid's dry edge and warm paper eye
+opening should occlude most of the downcast iris. A black pupil placed on top
+of the lid reads as a pasted decal, even when it passes structural tests.
+The [Met 29.20.1 scholar portrait](https://www.metmuseum.org/art/collection/search/48941)
+is a complementary reference for asymmetric downcast gaze and individual
+eyebrow pressure: not an identity target or redistributed source image.
+
+**Topology and vector flow.** The existing young reader has a 17.1-px near
+canthus span vs a foreshortened 14.7-px far span. The original near iris is a
+multi-stroke pressure/fill cluster (not a circle); the far iris includes
+relative-path lash geometry. Therefore moving all source ink paths by a
+single source-coordinate transform is safer than rewriting their cubic
+control points or truncating paths. Horizontal limits use .14 near eye width
+and .115 far eye width; vertical limits use .145 of each original palpebral
+height. This preserves the stronger near-eye parallax. The zero/zero target
+must be an exact no-op at every expression intensity and fine-detail setting.
+
+**Edge and layering.** Source eye apertures are the **actual first two
+$paper closed paths** from the independently authored open/soft eyelid cels,
+including EXPR1-deformed source paths. Storybook wraps near and far pupils in
+unique SVG user-space clip windows transformed with the eyes' original
+rest pose. Each pupil retains its own rest pose and translated all-stroke
+vector geometry. During a full blink both pupils and clip windows disappear.
+No invented oval masks, flattened textures, new skin color or changed film
+visemes. This is a **non-destructive Storybook diagnostic**, not yet the
+production renderer's full iris-occlusion integration.
+
+**Review:** Inspect exact 1× and 3× native captures for straight/down/right,
+the four EXPR1 expressions, soft/open/closed eyes and 96-frame cue extremes.
+Check pupil containment, white paper opening, original upper lash contact,
+far-eye foreshortening and corresponding expression response. Geometry
+bounds/tests and browser artifacts alone cannot certify the resulting
+historical portrait or true teacher-painting fidelity. This PR remains draft
+under the independent Fuchun landscape art hold.
