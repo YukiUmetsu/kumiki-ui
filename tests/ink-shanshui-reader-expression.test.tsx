@@ -2,6 +2,8 @@ import {describe,expect,it} from "vitest";
 import {scrollReaderFacePortrait} from "../src/video/ink-shanshui-reader-face";
 import {inkReaderExpressionStudy,READER_INK_EMOTIONS} from
   "../src/video/ink-shanshui-reader-expression";
+import {inkReaderCueFrame,readerInkCueWeight,READER_INK_CUE} from
+  "../src/video/ink-shanshui-expression-cue";
 const shapes=(assets:ReturnType<typeof scrollReaderFacePortrait>,name:string)=>{
   const asset=assets[name];
   if(asset.kind!=="shapes")throw Error("Expected SVG shape layer");
@@ -90,4 +92,48 @@ describe("EXPR1 anatomy-driven Chinese-ink reader",()=>{
     expect(()=>inkReaderExpressionStudy("smile",.4,-.1)).toThrow(RangeError);
     expect(()=>inkReaderExpressionStudy("missing" as never,.5)).toThrow(RangeError);
   });
+  it("eases 96 source frames with 12-frame attack, 48-frame hold and 24-frame release",()=>{
+    expect(READER_INK_CUE.fps).toBe(24);
+    expect([0,6,12,24,60,72,84,96].map(readerInkCueWeight))
+      .toEqual([0,.5,1,1,1,.5,0,0]);
+    expect(()=>readerInkCueWeight(-1)).toThrow(RangeError);
+    expect(()=>readerInkCueWeight(97)).toThrow(RangeError);
+    expect(()=>readerInkCueWeight(.5)).toThrow(RangeError);
+    expect(()=>readerInkCueWeight(NaN)).toThrow(RangeError);
+    expect(()=>inkReaderCueFrame("smile",1.2,12)).toThrow(RangeError);
+  });
+  it("keeps continuous facial expression poses in original source assets across a film cue",()=>{
+    const original=scrollReaderFacePortrait(1);
+    for(const emotion of ["smile","sad","angry","surprise"] as const){
+      const frames=[0,3,6,9,12,24,60,66,72,78,84,96].map(frame=>
+        inkReaderCueFrame(emotion,1,frame));
+      expect(frames[0].assets).toEqual(original);
+      expect(frames[frames.length-2].assets).toEqual(original);
+      expect(frames[frames.length-1].assets).toEqual(original);
+      expect(frames[4]).toEqual(inkReaderExpressionStudy(emotion,1,1));
+      expect(frames[8]).toEqual(inkReaderExpressionStudy(emotion,.5,1));
+      for(const pose of frames){
+        expect(pose.assets.hair).toEqual(original.hair);
+        expect(pose.assets["reader-ear"]).toEqual(original["reader-ear"]);
+        expect(pose.assets["pupil-left"]).toEqual(original["pupil-left"]);
+        expect(pose.assets["eyes-closed"]).toEqual(original["eyes-closed"]);
+        for(const name of ["face","eyes-soft","mouth-rest","brow"]){
+          const paths=shapes(pose.assets,name);
+          expect(paths.every(shape=>shape.type==="path"&&
+            !/NaN|Infinity|undefined/.test(shape.d))).toBe(true);
+        }
+      }
+      if(emotion==="sad"){
+        const brows=frames.slice(0,5).map(f=>
+          shapes(f.assets,"brow").map(p=>p.type==="path"?p.d:"").join("|"));
+        expect(new Set(brows).size).toBe(5);
+      }
+      if(emotion==="smile"){
+        const lips=frames.slice(0,5).map(f=>
+          shapes(f.assets,"mouth-rest").map(p=>p.type==="path"?p.d:"").join("|"));
+        expect(new Set(lips).size).toBe(5);
+      }
+    }
+  });
+
 });
