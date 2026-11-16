@@ -125,47 +125,47 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     sellion=coord("sellion"),noseTip=coord("pronasale"),
     cheek=coord("zygion.R"),farCheek=coord("zygion.L"),
     chin=coord("menton");
-  const plane=(id:string,d:string,opacity:number)=>
+  const plane=(d:string,opacity:number)=>
     ink(d,"$skinshade","none",0,opacity);
   planes.push(
-    plane("near-orbital-socket",
+    plane(
       "M117.7 99.7 C123.3 96.2 129.8 97 136.3 101.1 "+
       "C130.7 99.6 125.2 101.1 120.1 104.6 "+
       "C118.4 103.7 117.6 101.9 117.7 99.7 Z",.235),
-    plane("far-orbital-socket",
+    plane(
       "M148.3 99.9 C153.4 97 160.1 97.6 164.1 99.8 "+
       "C162.8 101.1 158.4 102 153.8 103.9 "+
       "C151.2 103.8 149.5 102.4 148.3 99.9 Z",.19),
     // A soft, sloping anatomical glabella→nose bridge, lifted paper
     // on the center plane and an alar shadow on the near nostril.
-    plane("nasal-sidewall",
+    plane(
       "M"+num(sellion[0]+.9)+" "+num(sellion[1]+.9)+
       " C149.2 103.4 153 109.3 155 112.6 "+
       "C156.1 115.1 155.4 117 153.9 118.5 "+
       "C152 116.8 149.5 113.3 148.7 109 "+
       "C148.1 105.3 148 102 148.1 100.4 Z",.26),
-    plane("nasal-alar-side",
+    plane(
       "M149.1 113.9 C151.2 112.9 154.8 114.5 156.6 116.5 "+
       "C156.4 118.9 153.8 119.7 151.4 118.8 "+
       "C153.4 117.9 151.7 115.8 149.1 113.9 Z",.2),
     // Wide malar transition gives the cheek its actual skull volume
     // without dark drawn stripes or the previous mask-like flatness.
-    plane("near-malar-volume",
+    plane(
       "M"+num(cheek[0]+1.7)+" "+num(cheek[1]-2.1)+
       " C124.9 107 132.3 109.5 139.8 113.8 "+
       "C143.2 117.5 145.1 121.1 143.8 124.8 "+
       "C138.9 124.1 133.1 120.5 128.3 117.8 "+
       "C124.3 115.9 122.1 112.6 120.8 109.6 Z",.16),
-    plane("far-malar-turn",
+    plane(
       "M"+num(farCheek[0]-6.3)+" "+num(farCheek[1]-4.7)+
       " C159 108.2 161.5 110.8 161.4 114.2 "+
       "C159.9 119.6 156.9 122.6 152.1 126.2 "+
       "C156.7 119.1 158.7 113.6 155.2 107 Z",.165),
-    plane("mentolabial-transition",
+    plane(
       "M136 129.9 C139.1 131.9 145.5 132.8 150.3 129.6 "+
       "C149 134.1 146 138.1 142.9 138.1 "+
       "C139.1 137.2 137 134.4 136 129.9 Z",.185),
-    plane("underside-chin-turn",
+    plane(
       "M133.8 137.6 C137.3 139.4 141.6 142.4 "+
       num(chin[0])+" "+num(chin[1])+
       " C140.5 144.1 136.8 141.2 133.8 137.6 Z",.12),
