@@ -37,16 +37,17 @@ const bounded=(v:number)=>Number(v.toFixed(5));
 
 export function evaluateRiso56HandoffCamera(
   frame:number,aspect:Riso56Aspect,
-  source:Riso56Point,receiver:Riso56Point,
+  source:Riso56Point,receiver:Riso56Point,enabled=true,
 ){
   if(!Number.isInteger(frame)||frame<0||frame>239||
     (aspect!=="landscape"&&aspect!=="portrait")||
-    ![source.x,source.y,receiver.x,receiver.y].every(Number.isFinite))
+    ![source.x,source.y,receiver.x,receiver.y].every(Number.isFinite)||
+    typeof enabled!=="boolean")
     throw new RangeError("RISO56 needs original finite stage paper anchors at 0..239f");
   const {enter,fullAt,holdUntil,exit}=RISO56_CAMERA_BEAT;
   const entering=smooth((frame-enter)/(fullAt-enter));
   const leaving=smooth((exit-frame)/(exit-holdUntil));
-  const beat=Math.min(entering,leaving);
+  const beat=enabled?Math.min(entering,leaving):0;
   const portrait=aspect==="portrait";
   const width=portrait?540:960,height=portrait?960:540;
   const zoomMax=portrait?
