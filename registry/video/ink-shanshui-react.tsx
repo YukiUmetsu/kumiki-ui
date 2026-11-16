@@ -517,7 +517,11 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           // real pressure-loaded marks and their exact parent origins.
           // Use an authored three-phrase optical rhythm; each still
           // grows from a station on the newly CUBIC stone cheek.
-          const meter=(j+bank*3+i*7)%12;
+          // Step seven is coprime to this twelve-mark wet/dry cycle:
+          // mixed lengths remain represented in every parent cheek,
+          // without the source-bank indexing accidentally hiding one
+          // class or stamping short/long rows in regular order.
+          const meter=(j*7+i*5)%12;
           phrase=meter<3?"short":meter<9?"medium":"long";
           const len=phrase==="short"?9+13*wt:
             phrase==="medium"?20+21*wt:35+22*wt;
