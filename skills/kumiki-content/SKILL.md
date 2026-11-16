@@ -42,6 +42,8 @@ Write data, not TSX. Read [the film document](../../docs/component-specs/film-do
 
 **Water on screen:** any sea, surf, river, lake or reflection starts from the water framework — [kumiki-water](../kumiki-water/SKILL.md) — so wave size and timing follow the wind, breakers follow the beach, and reflections and colours follow the light.
 
+**Materials on screen:** what any object is made of starts from the materials framework — [kumiki-materials](../kumiki-materials/SKILL.md) — so colour, value, gloss, wetness and age are sourced, not guessed.
+
 **Expressions:** every emotional beat on a face starts from the facial expressions framework — [kumiki-facial-expressions](../kumiki-facial-expressions/SKILL.md) — so brows, lids, mouth and creases follow the muscles, and smiles that should be felt reach the eyes.
 
 **Stop and ask** if an asset has no clear rights, if a claim has no source, or if no recipe fits a beat. Do not change a recipe to fix one film. Fix an authoring rule or a component once, then use it.
