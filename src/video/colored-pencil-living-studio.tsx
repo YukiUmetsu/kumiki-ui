@@ -3,13 +3,11 @@ import { PencilDrawing } from "../../registry/video/colored-pencil-react";
 import type { PencilAspect } from "../../registry/video/colored-pencil";
 import { pencilLivingStudyDrawing, PENCIL_LIVING_STUDIES } from "./colored-pencil-living-studies";
 import type { PencilLivingStudy } from "./colored-pencil-living-studies";
-import { PENCIL_PORTRAIT_ART_STATUS,PENCIL_PORTRAIT_ART_REASON,
-  PENCIL_PORTRAIT_LANDMARKS,PENCIL_PORTRAIT_LANDMARK_KEYS,
-} from "./colored-pencil-portrait-art-review";
+import { newCharacterHeadInspectionAnchors } from "./colored-pencil-first-character";
 
 const descriptive:Record<PencilLivingStudy,{title:string; subtitle:string; material:string; anchor:readonly[number,number]}> = {
-  portrait:{title:"PORTRAIT STUDY",subtitle:"Unapproved · anatomy and value structure need reconstruction",
-    material:"SKIN / HAIR / FABRIC",anchor:[262,208]},
+  portrait:{title:"HUMAN #01 · HEAD STUDY",subtitle:"Stage 1: fresh cranial contour · no facial features yet",
+    material:"DRY PENCIL / ANAT1 BLOCKOUT",anchor:[224,227]},
   fox:{title:"RED FOX AT REST",subtitle:"Direction of fur · layered ruff · bright eyes",
     material:"FUR / EYE / EAR",anchor:[232,194]},
   valley:{title:"THE QUIET VALLEY",subtitle:"Air perspective · branching trees · moving water",
@@ -39,6 +37,7 @@ export function PencilLivingAtelier() {
   const [faceDetail,setFaceDetail]=useState<"eyes"|"nose"|"mouth">("eyes");
   const [reduce,setReduce]=useState(false);
   const [playing,setPlaying]=useState(false);
+  const headAnchors=useMemo(()=>newCharacterHeadInspectionAnchors(),[]);
   const drawing=useMemo(()=>{
     const base=pencilLivingStudyDrawing({subject,aspect,paperTooth:tooth,pressure,seed});
     return {...base,regions:base.regions.map(region=>({
@@ -61,19 +60,18 @@ export function PencilLivingAtelier() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[playing,speed,reduce]);
   const landscape=aspect==="landscape",meta=descriptive[subject];
-  // ArtCraft face close-ups are selectable without modifying any export frames.
-  const anchor=subject==="portrait"?
-    (faceDetail==="eyes"?[226,207]:faceDetail==="nose"?[239,262]:[238,304]):
-    subject==="fox"?
-      (faceDetail==="eyes"?[235,189]:faceDetail==="nose"?[121,230]:[184,250]):
-      meta.anchor;
+  // The new human has no eyes/nose/mouth to inspect yet. Do not use the
+  // retired portrait's focus positions or silently imply they are drawn.
+  const anchor=subject==="fox"?
+    (faceDetail==="eyes"?[235,189]:faceDetail==="nose"?[121,230]:[184,250]):
+    meta.anchor;
   const coord=landscape?{
     x:441+1.06*anchor[0],y:35+1.06*anchor[1],w:960,h:540,
   }:{x:(subject==="valley"?-16: -31)+
       (subject==="valley"?1.31:1.38)*anchor[0],
     y:(subject==="valley"?154:145)+(subject==="valley"?1.31:1.38)*anchor[1],
     w:540,h:960};
-  const zoom=subject==="portrait"?3.1:subject==="fox"?2.8:2.25;
+  const zoom=subject==="portrait"?2.4:subject==="fox"?2.8:2.25;
   const detailStyle=focus?{
     transform:"translate("+ (50-100*zoom*coord.x/coord.w).toFixed(3)+"%, "+
       (50-100*zoom*coord.y/coord.h).toFixed(3)+"%) scale("+zoom+")",
@@ -89,21 +87,25 @@ export function PencilLivingAtelier() {
         Living subjects: Portrait · Wildlife · Landscape
       </h1>
       <p style={{maxWidth:880,margin:0}}>
-        Reference-guided facial planes, natural fur and hair flow, subtle layered skin
-        colour and landscape drawing. Original geometry, not traced artist images.
+        Fresh single-head pencil construction, rooted fox fur and layered
+        landscape drawing. Original geometry, not traced artist images.
       </p>
     </header>
     {subject==="portrait"&&
-      <aside role="status" data-km-portrait-quality={PENCIL_PORTRAIT_ART_STATUS}
+      <aside role="status" data-km-portrait-quality="head-outline-unapproved"
         style={{maxWidth:960,border:"1px solid #AF8472",background:"#FFF9F0",
           padding:12,borderRadius:5}}>
-        <strong>Experimental anatomy blockout — failed reference-quality review.</strong>
-        <p style={{margin:"6px 0 0"}}>{PENCIL_PORTRAIT_ART_REASON}</p>
+        <strong>New human #01 — Stage 1, unapproved head outline.</strong>
+        <p style={{margin:"6px 0 0"}}>
+          The former woman character is retired. Only the new cranial contour,
+          cheek and jaw construction marks are drawn. No eyes, nose, lips,
+          hair, neck or clothing exists in this subject.
+        </p>
         <p style={{margin:"6px 0 0",fontSize:13}}>
-          No artist-level realism is claimed. Enable output landmarks to inspect
-          the existing drawing's geometry; these are not measured source landmarks.
-          Rebuild requires a rights-verified photo, independent source/output annotations,
-          a tonal gate and actual 1×/3× reviewer acceptance before new art is promoted.
+          Output anchors come directly from the NEW head's ANAT1 projection, not
+          a source photo and not the former portrait. Independent source-image
+          anatomy, tonal comparison and 1×/3× artist review are still required
+          before any realism claim or release.
         </p>
       </aside>}
     <section aria-label="Living pencil atelier controls"
@@ -112,7 +114,7 @@ export function PencilLivingAtelier() {
         <select aria-label="Living subject" style={selectStyle} value={subject}
           onChange={e=>{setPlaying(false);setSubject(e.target.value as PencilLivingStudy);}}>
           {PENCIL_LIVING_STUDIES.map(s=><option key={s} value={s}>{
-            s==="portrait"?"Human portrait · unapproved blockout":s==="fox"?"Red fox with layered fur":
+            s==="portrait"?"New human #01 · head outline only":s==="fox"?"Red fox with layered fur":
             "Mountain, pines and river"
           }</option>)}
         </select>
@@ -149,7 +151,7 @@ export function PencilLivingAtelier() {
           <option value="1.5">1.5×</option><option value="2">2×</option>
         </select>
       </label>
-      {subject!=="valley"&&<label style={labelStyle}>Facial construction
+      {subject==="fox"&&<label style={labelStyle}>Facial construction
         <select aria-label="Living facial detail" style={selectStyle} value={faceDetail}
           onChange={e=>{setPlaying(false);setFaceDetail(e.target.value as typeof faceDetail);}}>
           <option value="eyes">Eyes & eyelids</option>
@@ -179,7 +181,7 @@ export function PencilLivingAtelier() {
       <strong>Output-only landmark index · not reference-measured</strong>
       <ol style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",
         gap:"4px 14px",margin:"8px 0 0",paddingLeft:25,fontSize:12}}>
-        {PENCIL_PORTRAIT_LANDMARK_KEYS.map((id,i)=>
+        {headAnchors.map(({id},i)=>
           <li key={id} value={i+1}>{id}</li>)}
       </ol>
     </div>}
@@ -195,8 +197,7 @@ export function PencilLivingAtelier() {
             aria-label="Output-only portrait geometry diagnostic"
             transform={landscape?"translate(441 35) scale(1.06)":
               "translate(-31 145) scale(1.38)"}>
-            {PENCIL_PORTRAIT_LANDMARK_KEYS.map((id,i)=>{
-              const [x,y]=PENCIL_PORTRAIT_LANDMARKS[id];
+            {headAnchors.map(({id,point:[x,y]},i)=>{
               return <g key={id}>
                 <circle cx={x} cy={y} r={4.1} stroke="#FAF9E6" strokeWidth={.9}
                   fill="#A63124"/>
@@ -239,9 +240,10 @@ export function PencilLivingAtelier() {
       </nav>
     </div>
     <p style={{margin:0,maxWidth:920,fontSize:13,color:"#697B78"}}>
-      Select Eyes, Nose, or Mouth to scrutinize anatomical contours at 3×.
-      The human study is a rejected experimental construction, not an approved
-      realistic portrait. Output-only anchors do not imply source-image fidelity. Paper tooth,
+      Fox eyes, muzzle and mouth can be inspected individually. The new human
+      remains a head-outline-only pencil construction, not a complete portrait;
+      it has no facial-feature controls. The nine head-plane anchors are measured
+      from its own mesh and do not imply source-image fidelity. Paper tooth,
       pressure, pigment burnishing and absolute frames remain editable. Neither the
       face-inspection zoom nor its controls enter exported scenes. Every new drawing
       uses the validated CP-F1 foundation, without an unqualified flat-vector bypass.
