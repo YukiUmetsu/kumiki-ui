@@ -480,6 +480,42 @@ Fifteen characters now cut. Review accepts 11 forms (草 謝 貢 遺 農 振 興
 | First teacher's forms | 428 | 439 |
 | Second teacher's forms | | 4 |
 
+## 2.20 Sixteenth study round: stroke ends, whole parts and single strokes tried, and two more teachers' videos
+
+**Every stroke end.** Round eight tried stroke ends only on the 80 worst characters. Now every reviewed form of the first teacher has each stroke end moved along the stroke by −24, −12, +12 and +24 em and rendered. A move is kept only when the overlap with the teacher's ink rises and the largest mismatch patch does not grow, and a character keeps its new ends only when all of them together still help. Every changed form was then reviewed in overlays, with the changed pixels outlined.
+
+**Whole parts.** Moving ends cannot fix a part at the wrong place or scale (the inner part of 岡, the ヨ of 雪). For the weak kanji (a stroke over 0.5 discrepancy, or a mismatch patch over 3 % of the ink), each KanjiVG component of two or more strokes is moved by 16 em in eight directions or scaled by 8 % about its centre. The best change is kept when the overlap rises and no mismatch patch grows. Three passes changed 34 forms, all reviewed in overlays.
+
+| In the fit frame | Round ten | Round eleven |
+|---|---|---|
+| 岡 | 0.54 | 0.72 |
+| 雪 | 0.43 | 0.66 |
+| 暑 | 0.60 | 0.77 |
+| 賀 | 0.59 | 0.78 |
+
+Some of these forms got larger, toward the teacher's own size: she writes 暑 1126 em tall.
+
+Characters without parts of two strokes (心 八 火, the かな) then had each stroke tried on its own in the same way. Over the 64 weakest forms, 38 changed (心 0.65 → 0.71, 八 0.67 → 0.72, 火 0.66 → 0.72 in the fit frame).
+
+**Result.** 336 forms have new ends, 34 have moved parts and 38 have moved strokes; the ends of the moved forms were then tried again (32 changed). All were reviewed in overlays.
+
+| | Round ten | Round eleven |
+|---|---|---|
+| Best-aligned overlap, the 439 forms | 0.769 | 0.780 |
+| Kanji | 0.772 | 0.782 |
+| Kana | 0.692 | 0.699 |
+| Overlap in the fit frame (the teacher's size and position) | 0.781 | 0.801 |
+| Median stroke discrepancy | 0.14 | 0.12 |
+| 95th percentile of stroke discrepancy | 0.45 | 0.35 |
+| Characters whose worst stroke is over 0.6 | 51 | 35 |
+| Characters with a mismatch patch over 5 % of the ink | 44 | 22 |
+
+The best-aligned overlap rescales both shapes to their boxes, so moved parts change it little; the overlap in the fit frame shows them. The weakest forms are now 雪 (0.67) and 達 敬 感 (0.70) among kanji, and ゑ (0.58), ゐ (0.64) and ひ (0.65) among かな, whose loops are smaller than the teacher's.
+
+**The second teacher's large-brush take.** His take beside the model card is semi-cursive. The large-brush kaisho take comes before it, with the whole sheet in view. Two simple rules (the minute before the card; the shot whose new ink has the thickest strokes) do not find that take reliably, because his lessons also hold pen and brush-pen takes, and a hand or a sleeve can pass for thick ink. The four forms of round ten stay; the large-brush take is the next thing to find.
+
+**A third teacher.** A third channel writes each character in vermilion, sped up, and then explains it on other sheets. Taking the shot from the start to the moment the ink stops growing gives whole characters, and a sheet that holds the character twice keeps the copy written first. But the first stroke is often already on the sheet when the lesson starts, and the stroke split is weak, so the fits lie a few pixels off along most strokes (0.54 best-aligned overlap on average). No form of this teacher is accepted yet.
+
 ## 3. From observation to model
 
 | Observation | Model decision |
