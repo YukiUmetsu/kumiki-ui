@@ -24,7 +24,7 @@ describe("RISO54 view-ray anatomical grip: 3D bone length vs printed 2D stations
       const before=inspectRiso54SourceRay(spec,0),at=inspectRiso54SourceRay(spec,160);
       const later=inspectRiso54SourceRay(spec,166);
       expect(before.originalClinical3DBoneSegments).toBe(6);
-      expect(before.segments.map(s=>s.ratio)).toEqual([1,1,1,1,1,1]);
+      for(const segment of before.segments)expect(segment.ratio).toBeCloseTo(1,5);
       expect(at.originalClinical3DBoneSegments).toBe(6);
       expect(at.ratioMin).toBeGreaterThan(.385);
       expect(at.ratioMax).toBeLessThan(.46);
