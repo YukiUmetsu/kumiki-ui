@@ -458,3 +458,25 @@ test("ANAT1 tonal value bands isolate live head pigment without changing exporte
   await expect(control).toHaveCount(0);
   await expect(svg.locator('[data-km-pencil-trace^="newhead-anat1-"]')).toHaveCount(0);
 });
+
+
+test("ArtCraft head-only source proof fails closed and lists independently required photo measurements",async({page})=>{
+  await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
+  const subject=page.getByRole("combobox",{name:"Foundation subject"});
+  const aspect=page.getByRole("combobox",{name:"Foundation aspect"});
+  const gate=page.locator("[data-km-head-source-proof]");
+  for(const format of ["landscape","portrait"] as const){
+    await aspect.selectOption(format);
+    await subject.selectOption("portrait");
+    await expect(gate).toHaveAttribute("data-km-head-source-fidelity","blocked");
+    await expect(gate).toHaveAttribute("data-km-head-source-photo","none");
+    await expect(gate).toContainText("SOURCE_AND_RENDER_REQUIRED");
+    await gate.locator("summary").click();
+    await expect(gate.locator("[data-km-head-source-landmark-id]")).toHaveCount(18);
+    await expect(gate.locator("[data-km-head-source-tone-id]")).toHaveCount(5);
+    await expect(page.locator('svg[data-km-colored-pencil] '+
+      '[data-km-pencil-region="head-silhouette-01"]')).toHaveCount(1);
+    await subject.selectOption("fox");
+    await expect(gate).toHaveCount(0);
+  }
+});
