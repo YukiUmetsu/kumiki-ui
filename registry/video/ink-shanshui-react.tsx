@@ -106,6 +106,16 @@ const RIDGES:Record<ShanshuiScene,readonly (readonly P[])[]>={
     [[-60,430],[78,359],[160,405],[275,298],[338,361],[427,304],[530,235],[586,274],[713,340],[812,295],[1050,383]],
   ],
 };
+/** In the museum's Fuchun scroll the pale far hill passes behind the
+ * dominant near mountain as a *rounded* receding shoulder. The original
+ * x581/y103 and x624/y117 pale-ridge triangle remained prominent even
+ * after the native middle mountain had been broadened. Hold two existing
+ * authored far parent stations near one level instead, preserving every
+ * original x location and all nine sub-stations and dependent ink roots.
+ * This is Fuchun-only; the other historical schools keep their far ridge. */
+const FUCHUN_TRAIL_FAR:readonly P[]=RIDGES["mountain-trail"][0].map(
+  ([x,y]):P=>[x,x===581?123:x===624?122:y],
+);
 /** One deliberately authored macro landform per master, not four coats
  * of different strokes on exactly the same generic triangle. All retain
  * monotone x stations, genuine ridgeHeight-rooted child anatomy, independent
@@ -2542,10 +2552,14 @@ function Mountains({scene,seed,detail,mist,ink,school,ids}:{
 }){
   return <g data-km-shanshui-mountains="">
     {RIDGES[scene].map((baseRidge,band)=>{
-      // Source school changes only its authored mountain-trail middle-rock
-      // skeleton. Far/near ridge depth, path, waterfall and camera remain.
+      // Each school retains its source-authored middle rock skeleton.
+      // Only Fuchun also receives its own softened pale far crest,
+      // which must nest behind the taller, now-rounded middle ridge.
+      // The entire near foreground and all other schools are unchanged.
       const ridge=scene==="mountain-trail"&&band===1&&school!=="fuchun"
-        ?MASTER_TRAIL_MIDDLE[school]:baseRidge;
+        ?MASTER_TRAIL_MIDDLE[school]
+        :scene==="mountain-trail"&&band===0&&school==="fuchun"
+          ?FUCHUN_TRAIL_FAR:baseRidge;
       const width=band===0?1.1:band===1?1.3:1.8;
       const stations=ridgeStations(ridge,seed,band);
       const count=Math.round((band===0?27:band===1?48:67)*detail);
