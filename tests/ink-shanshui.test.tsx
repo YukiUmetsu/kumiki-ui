@@ -995,28 +995,39 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
-  it("holds a broad Fuchun rock bench instead of a pasted triangular secondary crest",()=>{
-    const paint=(detail:number)=>renderToStaticMarkup(createElement(InkShanshuiStage,{
-      frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
-        inkSchool:"fuchun",seed:71,detail},
-    }));
+  it("constructs a seed-stable Fuchun dome and broad shoulder, never a needle peak",()=>{
+    const paint=(seed:number,detail:number)=>renderToStaticMarkup(
+      createElement(InkShanshuiStage,{frame:145,controls:{
+        ...DEFAULT_SHANSHUI,scene:"mountain-trail",
+        inkSchool:"fuchun",seed,detail,
+      }}));
     const ridge=(html:string)=>html.match(
       /data-km-shanshui-ridge-contour="1" d="([^"]+)"/,
     )?.[1];
-    const d=ridge(paint(1));
-    expect(d).toBeDefined();
-    expect(ridge(paint(0))).toBe(d);
-    const points=[...d!.matchAll(/[ML] (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g)]
-      .map(([,x,y])=>[Number(x),Number(y)]);
-    const at=(x:number)=>points.reduce((nearest,p)=>
-      Math.abs(p[0]-x)<Math.abs(nearest[0]-x)?p:nearest)[1];
-    // A broad near-level 492–512px bench connects the gentle 474px
-    // shoulder to the 559px summit. The old 11px V notch produced a
-    // second pointed pyramid at 1.65x and is explicitly rejected.
-    expect(Math.abs(at(492)-at(512))).toBeLessThan(7);
-    expect(at(474)).toBeGreaterThan(at(492)+7);
-    expect(at(559)+55).toBeLessThan(at(492));
-    expect(at(545)).toBeGreaterThan(at(559));
+    for(const seed of [71,87]){
+      const d=ridge(paint(seed,1));
+      expect(d).toBeDefined();
+      // The physical ridge is independent of brush-detail density.
+      expect(ridge(paint(seed,0))).toBe(d);
+      const points=[...d!.matchAll(
+        /[ML] (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g,
+      )].map(([,x,y])=>[Number(x),Number(y)]);
+      const at=(x:number)=>points.reduce((nearest,p)=>
+        Math.abs(p[0]-x)<Math.abs(nearest[0]-x)?p:nearest)[1];
+      // Seven interlocking source stations turn a 559px needle-like
+      // triangle into a genuinely held, asymmetrical cap with an
+      // uninterrupted left bench and a second, softer right shoulder.
+      expect(Math.abs(at(492)-at(512))).toBeLessThan(7);
+      expect(at(474)).toBeGreaterThan(at(492)+7);
+      expect(at(559)+40).toBeLessThan(at(492));
+      expect(at(545)).toBeGreaterThan(at(559));
+      const dome=[545,559,572,588,603].map(at);
+      expect(Math.max(...dome)-Math.min(...dome)).toBeLessThan(21);
+      expect(at(622)-at(572)).toBeLessThan(37);
+      expect(at(647)).toBeGreaterThan(at(707)+4);
+      expect((d!.match(/L /g)??[]).length).toBeGreaterThan(220);
+    }
+    expect(ridge(paint(71,1))).not.toEqual(ridge(paint(87,1)));
   });
 
   it("builds broad connected Fuchun rock brows rather than tall wet-wash curtains",()=>{
