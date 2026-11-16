@@ -17,7 +17,7 @@ import {inspectRiso36RedFingerSilhouettes}
 import {
   RISO58_ANAT1_SURFACE,
   riso58ReconstructedBones,riso58ContactSkin,
-  riso58ProjectSkinPoint,riso58ApplyContactSkin,
+  riso58ProjectSkinPoint,riso58ApplyContactSkin,riso58ProjectMcpInk,
   riso58InverseHandPoint,
 } from "../src/video/riso58-anat1-volume-skin";
 
@@ -93,7 +93,15 @@ describe("RISO58 ArtCraft: ANAT1 real joint-constrained 3D skin volume",()=>{
       expect(by.get("thenar-bulge")!.z).toBeGreaterThan(2);
       expect(by.get("first-web-inset")!.z).toBeGreaterThan(0);
       expect(by.get("fifth-mcp")!.z).toBeLessThan(-1);
+      // Same 3D-derived red/blue pressure field, not a floating
+      // screen ornament or a deleted original 4-lobe cobalt contour.
+      const cobalt=spec.parts.find(p=>p.id===side+"-glove-knuckle-arc")!;
+      const cobaltContact=riso58ProjectMcpInk(cobalt.d,source);
+      expect(cobaltContact).not.toBe(cobalt.d);
+      expect((cobaltContact.match(/C/g)??[])).toHaveLength(16);
+      expect(flattenRisoSvgPath(cobaltContact,.12)).toHaveLength(4);
       const live=evaluateRisoCharacter(spec,160);
+      expect(live.parts.find(p=>p.id===cobalt.id)?.d).toBe(cobaltContact);
       const palm=spec.parts.find(p=>p.id===side+"-glove")!;
       const otherPalm=spec.parts.find(p=>p.id===other+"-glove")!;
       const animated=live.parts.find(p=>p.id===palm.id)!;
