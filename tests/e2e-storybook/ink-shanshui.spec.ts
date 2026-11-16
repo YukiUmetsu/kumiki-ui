@@ -846,6 +846,39 @@ test("Fuchun paper-lift Storybook compares native masked ink without changing so
   expect(await source(uncut)).toEqual(await source(lifted));
 });
 
+
+test("Fuchun Storybook exposes original trunk-to-arm architecture while preserving fine botanical marks",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const fuchun=lab.locator('[data-km-master-study="fuchun"]');
+  const guo=lab.locator('[data-km-master-study="early-spring"]');
+  const branches=fuchun.locator("[data-km-cliff-pine-bough-bone]");
+  const crowns=fuchun.locator("[data-km-cliff-pine-ink-island]");
+  await expect(branches).toHaveCount(20);
+  await expect(crowns).toHaveCount(40);
+  await expect(fuchun.locator("[data-km-cliff-pine-arm-reach]")).toHaveCount(20);
+  const original=await branches.evaluateAll(nodes=>
+    nodes.map(n=>n.getAttribute("d")));
+  const button=page.getByRole("button",{name:"Pine armature · connected brush bones"});
+  await button.click();
+  await expect(button).toHaveAttribute("aria-pressed","true");
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","pine-bones");
+  await expect(page.getByRole("slider",{name:"Master crop X"})).toHaveValue("615");
+  await expect(branches.first()).toBeVisible();
+  await expect(crowns.first()).toBeHidden();
+  await expect(fuchun.locator("[data-km-cliff-pine-rootlet]").first())
+    .toBeVisible();
+  await expect(guo.locator("[data-km-cliff-pine-ink-island]").first())
+    .toBeVisible();
+  await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-authored-20-loaded-pine-arms.png")});
+  await page.getByRole("button",{name:"Reset all four studies"}).click();
+  await expect(button).toHaveAttribute("aria-pressed","false");
+  await expect(crowns.first()).toBeVisible();
+  expect(await branches.evaluateAll(nodes=>
+    nodes.map(n=>n.getAttribute("d")))).toEqual(original);
+});
+
 test("Fuchun native pine anatomy Storybook preset preserves all loaded botanical details",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-master-ink-study");

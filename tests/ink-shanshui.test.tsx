@@ -1634,6 +1634,51 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(paint("early-spring")).not.toContain('data-km-cliff-pine-centerline=');
   });
 
+
+  it("gives the Fuchun grove 20 intentionally unequal supporting branch architectures without removing fine ink",()=>{
+    const draw=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail},
+      }));
+    const full=draw("fuchun");
+    const arms=[...full.matchAll(
+      /data-km-cliff-pine-bough="" data-km-cliff-pine-bough-root="([^"]+)" data-km-cliff-pine-bough-station="([^"]+)" data-km-cliff-pine-bough-centerline="([^"]+)" data-km-cliff-pine-arm-reach="([^"]+)" data-km-cliff-pine-arm-arch="([^"]+)"/g,
+    )];
+    expect(arms).toHaveLength(20);
+    const reaches=arms.map(m=>Number(m[4]));
+    const arches=arms.map(m=>Number(m[5]));
+    expect(reaches.every(Number.isFinite)).toBe(true);
+    expect(reaches.filter(n=>n>40).length).toBeGreaterThanOrEqual(4);
+    expect(reaches.filter(n=>n<27).length).toBeGreaterThanOrEqual(6);
+    expect(Math.max(...reaches)-Math.min(...reaches)).toBeGreaterThan(35);
+    expect(new Set(reaches.map(n=>Math.round(n))).size).toBeGreaterThan(14);
+    expect(arches.filter(n=>n<0).length).toBeGreaterThanOrEqual(3);
+    expect(arches.filter(n=>n>10).length).toBeGreaterThanOrEqual(6);
+    expect(new Set(arches).size).toBeGreaterThan(8);
+    arms.forEach(([,root,station,d,reach],k)=>{
+      const points=(d.match(/-?\\d+(?:\\.\\d+)?/g)??[]).map(Number);
+      expect(points).toHaveLength(6);
+      const xy=root.split(",").map(Number);
+      expect(Math.hypot(points[0]-xy[0],points[1]-xy[1]))
+        .toBeLessThan(.01);
+      const dx=Math.abs(points[4]-points[0]);
+      expect(Math.abs(dx-Number(reach))).toBeLessThan(.02);
+      expect(Number(station)).toBeGreaterThan(.17);
+      expect(Number(station)).toBeLessThan(.95);
+      if(k<4)expect(dx).toBeLessThan(37);
+    });
+    expect((full.match(/data-km-cliff-pine-bough-bone=""/g)??[])).toHaveLength(20);
+    expect((full.match(/data-km-cliff-pine-rootlet=""/g)??[])).toHaveLength(15);
+    expect((full.match(/data-km-cliff-pine-graft=""/g)??[])).toHaveLength(60);
+    expect((full.match(/data-km-cliff-pine-ink-island=""/g)??[])).toHaveLength(40);
+    expect((full.match(/data-km-cliff-pine-needle=""/g)??[])).toHaveLength(310);
+    expect(draw("fuchun")).toBe(full);
+    expect(draw("fuchun",87)).not.toBe(full);
+    expect(draw("fuchun",71,0)).not.toContain("data-km-cliff-pine-arm-reach");
+    expect(draw("early-spring")).not.toContain("data-km-cliff-pine-arm-reach");
+  });
+
   it("Fuchun old-pine needles include hooked and lateral flicks, not 310 uniformly upward comb teeth",()=>{
     const paint=(school:"fuchun"|"early-spring",seed=71)=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{

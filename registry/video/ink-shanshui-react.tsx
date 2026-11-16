@@ -2376,15 +2376,40 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             [1,-1,-1,1],
           ] as const)[i][j]
           :(j%2===0?-1:1)*(i%3===0?-1:1);
-        const distance=(i===2?24:17)+
-          13*s(seed+1763,i*19+j*17);
-        const fuchunPitch=([
-          [-8,4,-11,3],
-          [6,-5,4,-9],
-          [-4,8,-10,6],
-          [7,-5,4,-12],
-          [-8,5,-9,4],
-        ] as const)[i][j];
+        // The earlier five-tree gallery was technically rooted but still
+        // read as five wireless aerials holding tiny separate ink buns.
+        // In Huang's Fuchun shore detail old pines carry UNEQUAL long
+        // primary arms with short returning limbs and variable high/low
+        // loads. Author each tree's structural four-arm envelope BEFORE
+        // decorating with the 40 original crowns and 310 fine needles.
+        // Low arms reach across the adjacent stand and some middle
+        // branches fold back; the youngest tree stays compact.
+        const arm=school==="fuchun"?([
+          [{reach:23,pitch:4,arch:3,load:1.39},
+           {reach:29,pitch:-9,arch:12,load:1.47},
+           {reach:25,pitch:7,arch:5,load:1.04},
+           {reach:17,pitch:-11,arch:9,load:.9}],
+          [{reach:32,pitch:8,arch:2,load:1.57},
+           {reach:43,pitch:-12,arch:15,load:1.69},
+           {reach:27,pitch:4,arch:-2,load:1.14},
+           {reach:24,pitch:-10,arch:9,load:.95}],
+          [{reach:43,pitch:-12,arch:13,load:1.76},
+           {reach:53,pitch:10,arch:5,load:1.92},
+           {reach:37,pitch:-15,arch:18,load:1.34},
+           {reach:25,pitch:5,arch:-1,load:.97}],
+          [{reach:51,pitch:10,arch:4,load:2.02},
+           {reach:62,pitch:-8,arch:20,load:1.78},
+           {reach:42,pitch:7,arch:-3,load:1.43},
+           {reach:30,pitch:-14,arch:13,load:1.1}],
+          [{reach:26,pitch:6,arch:-2,load:1.33},
+           {reach:33,pitch:-8,arch:11,load:1.41},
+           {reach:28,pitch:-11,arch:14,load:1.08},
+           {reach:19,pitch:5,arch:2,load:.91}],
+        ] as const)[i][j]:null;
+        const distance=arm
+          ?arm.reach*(.93+.13*s(seed+1763,i*19+j*17))
+          :(i===2?24:17)+13*s(seed+1763,i*19+j*17);
+        const fuchunPitch=arm?arm.pitch:0;
         // Guo Xi's crab-claw old pines hook downward, not twenty
         // equivalent up-pointing antenna shelves. The *same rooted*
         // four boughs now travel over a lifted arch and drop irregular
@@ -2399,18 +2424,19 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
               :origin[1]-(3.2+9.8*s(seed+1777,i*13+j*23)),
         ];
         const control:P=[
-          origin[0]+direction*distance*(crab?.48:
-            school==="fuchun"?.45:.34),
+          origin[0]+direction*distance*
+            (crab?.48:arm?.32+.13*s(seed+8241,i*17+j*31):.34),
           crab
             ?origin[1]-(6+7*s(seed+1789,i*23+j))
-            :school==="fuchun"
-              ?origin[1]+(fuchunPitch>0?-4.8:fuchunPitch*.37)+
-                (s(seed+1789,i*23+j)-.5)*2.4
+            :arm
+              ?origin[1]-arm.arch+fuchunPitch*.16+
+                (s(seed+1789,i*23+j)-.5)*3
               :origin[1]+(j%3===0?3:-4)-
                 3*s(seed+1789,i*23+j),
         ];
         const bone=rockLoadedRibbon(origin,control,tip,
-          1.12*(1-.12*j),seed+1801+i*17+j*37);
+          arm?arm.load*(.94+.12*s(seed+8251,i*29+j*17)):
+            1.12*(1-.12*j),seed+1801+i*17+j*37);
         const boughCenterline="M"+f(origin[0])+" "+f(origin[1])+
           " Q"+f(control[0])+" "+f(control[1])+
           " "+f(tip[0])+" "+f(tip[1]);
@@ -2689,6 +2715,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             seed+6143+i*47+j*19+k*37),bend:k};
         }):[];
         return {t,origin,bone,boughCenterline,
+          armReach:arm?distance:undefined,armArch:arm?.arch,
           foliage,pads,inkIslands,canopyGrafts,wetClusters,crabClaws};
       });
       return <g key={i} data-km-cliff-pine=""
@@ -2719,13 +2746,17 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
         <path data-km-cliff-pine-bark="" d={bark}
           stroke="#a18b70" fill="none" strokeWidth=".48"
           strokeLinecap="round" opacity={f(.47*shade)}/>
-        {boughs.map(({t,origin,bone,boughCenterline,
+        {boughs.map(({t,origin,bone,boughCenterline,armReach,armArch,
           foliage,pads,inkIslands,canopyGrafts,wetClusters,crabClaws},j)=>
           <g key={j} data-km-cliff-pine-bough=""
             data-km-cliff-pine-bough-root={f(origin[0])+","+f(origin[1])}
             data-km-cliff-pine-bough-station={f(t)}
             data-km-cliff-pine-bough-centerline={school==="fuchun"
-              ?boughCenterline:undefined}>
+              ?boughCenterline:undefined}
+            data-km-cliff-pine-arm-reach={armReach===undefined?
+              undefined:f(armReach)}
+            data-km-cliff-pine-arm-arch={armArch===undefined?
+              undefined:f(armArch)}> 
             <path data-km-cliff-pine-bough-bone="" d={bone}
               fill={j%2===0?"#3d352d":"#554638"}
               opacity={f(.88*shade)}/>

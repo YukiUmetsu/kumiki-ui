@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge"|"pine"|"pine-uncut"|"uncut">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge"|"pine"|"pine-bones"|"pine-uncut"|"uncut">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -596,6 +596,23 @@ function MasterInkSourceComparison(){
       [data-km-master-rock-art],
       [data-km-master-ink-inspection="pine-uncut"] [data-km-master-study="fuchun"]
       [data-km-rock-hero-cliff] { visibility:hidden; }
+      /* An anatomical Storybook diagnostic only. No paths are removed:
+         hide superficial pine brush islands to inspect the actual
+         source-connected loaded armature (trunk, roots and 20 arms). */
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-master-rock-art],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-cliff],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-ink-island],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-graft],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-wet-cluster],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-pad],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-needle] { visibility:hidden; }
       /* Before/after the actual Fuchun pine source's two hollow
          brush-aligned windows: exactly the same d, seed and camera.
          Nonzero fills all inner loops instead of cutting true paper.
@@ -621,12 +638,15 @@ function MasterInkSourceComparison(){
         ["stone","Stone volumes · brush hidden"],
         ["ridge","Skyline · contour only"],
         ["pine","Pine crowns · source anatomy"],
+        ["pine-bones","Pine armature · connected brush bones"],
         ["pine-uncut","Pine before bristle paper lift"],
         ["uncut","Ink before dry-paper lift"]] as const).map(([zone,title])=>
         <button type="button" key={zone} style={style.button}
           aria-pressed={fuchunZone===zone} onClick={()=>{
             setFuchunZone(zone);
-            if(zone==="pine"||zone==="pine-uncut")inspect(1.65,628,137);
+            if(zone==="pine-bones")inspect(1.65,615,135);
+            else if(zone==="pine"||zone==="pine-uncut")
+              inspect(1.65,628,137);
           }}>
           {title}
         </button>)}
@@ -635,6 +655,8 @@ function MasterInkSourceComparison(){
         all 78 original fibres and four hero ribs before/after dry-paper cuts.
         The pine-root camera isolates genuine trunk-to-soil contact on the
         existing continuous mountain; it never creates a test-only path.
+        Pine armature mode only hides material layers to show the source
+        trunk, planted roots and twenty unequal loaded living branches.
         The pine views toggle only two internal bristle-reserve cutouts per
         original Fuchun fan, retaining all 40 crowns, 60 pads and 310 needles.
         CSS cannot alter the source paths, attached roots or film clock.
