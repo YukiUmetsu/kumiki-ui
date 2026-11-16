@@ -1019,6 +1019,58 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(at(545)).toBeGreaterThan(at(559));
   });
 
+  it("builds broad connected Fuchun rock brows rather than tall wet-wash curtains",()=>{
+    const paint=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,seed,detail},
+      }));
+    const extent=(path:string)=>{
+      const n=(path.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      expect(n.length%2).toBe(0);
+      const x=n.filter((_,i)=>i%2===0),y=n.filter((_,i)=>i%2===1);
+      return {w:Math.max(...x)-Math.min(...x),
+        h:Math.max(...y)-Math.min(...y)};
+    };
+    for(const seed of [71,87]){
+      const scene=paint("fuchun",seed);
+      const faces=[...scene.matchAll(
+        /data-km-master-mass="" d="([^"]+)" fill="url\(#([^"]+)\)"/g,
+      )];
+      expect(faces).toHaveLength(3);
+      for(const [,path,gradient] of faces){
+        // A genuine rounded rock BROW adds connected convex transitions
+        // to the existing parent silhouette. No traced source bitmap.
+        expect((path.match(/ C/g)??[])).toHaveLength(7);
+        expect(path.endsWith(" Z")).toBe(true);
+        const {w,h}=extent(path);
+        expect(w/h).toBeGreaterThan(.83);
+        expect(scene).toContain('id="'+gradient+'"');
+      }
+      const backs=[...scene.matchAll(
+        /data-km-master-fuchun-hillback-wash="" d="([^"]+)"/g,
+      )];
+      expect(backs).toHaveLength(6);
+      for(const [,path] of backs){
+        expect((path.match(/ C/g)??[])).toHaveLength(7);
+        const {w,h}=extent(path);
+        expect(w/h).toBeGreaterThan(.76);
+      }
+      expect(scene).toMatch(/data-km-master-fuchun-cross-shelf=/);
+      expect((scene.match(/data-km-master-stroke="" /g)??[]))
+        .toHaveLength(78);
+    }
+    // Only Huang's positive terrain anatomy is modified. The separate
+    // Guo Xi source rock grammar retains its own five-edge silhouettes.
+    const guo=paint("early-spring");
+    const clouds=[...guo.matchAll(/data-km-master-mass="" d="([^"]+)"/g)];
+    expect(clouds).toHaveLength(3);
+    expect(clouds.every(([,path])=>(path.match(/ C/g)??[]).length===5))
+      .toBe(true);
+    expect(paint("fuchun",71,0)).not.toContain(
+      "data-km-master-fuchun-hillback-wash");
+  });
+
   it("roots twelve lateral Fuchun stone courses to the actual wet undercut rim",()=>{
     const paint=(school:"fuchun"|"early-spring",seed=71,detail=1,mist=.35)=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{
