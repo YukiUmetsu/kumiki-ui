@@ -60,6 +60,21 @@ describe("RISO41 genuine thumb/index closed-red pad contact / paper pressure",()
       }
     }
   });
+  it("receiver continues to physically pinch the letter after donor releases",()=>{
+    for(const frame of [202,205,220,238]){
+      const receiver=inspectRiso41InkPressure(PAPER_ARTIST,frame,"left");
+      const donor=inspectRiso41InkPressure(COURIER,frame,"right");
+      expect(receiver.inkGap,"receiver lost original red paper pinch by f"+frame).toBeLessThan(1.5);
+      expect(receiver.tipDistance).toBeLessThan(3.8);
+      expect(receiver.pressure).toBeGreaterThan(0);
+      expect(donor.inkGap,"donor retained impossible contact after the sheet moved away")
+        .toBeGreaterThan(receiver.inkGap);
+      const film=evaluateRisoHumanEnsemble(frame);
+      expect(film.owner).toBe("receiver");
+      expect(film.sourceContactPressure).toBe(0);
+      expect(film.receiverContactPressure).toBeGreaterThan(0);
+    }
+  });
   it("preserves actual ANAT1 thumb-IP and original finger-fan continuity",()=>{
     for(const {actor,side,peak} of hands){
       const ip=inspectRiso32ThumbIp(actor,peak,side);
