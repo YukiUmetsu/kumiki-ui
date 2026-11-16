@@ -287,6 +287,10 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       const backContours=[...html.matchAll(
         /data-km-master-fuchun-hillback-lip="" d="([^"]+)"/g,
       )];
+      const undercuts=[...html.matchAll(
+        /data-km-master-fuchun-hillback-undercut="" data-km-master-fuchun-hillback-undercut-root="([^"]+)" d="([^"]+)"/g,
+      )];
+      expect(undercuts).toHaveLength(school==="fuchun"?6:0);
       expect(hillbacks).toHaveLength(school==="fuchun"?6:0);
       expect(backMasses).toHaveLength(hillbacks.length);
       expect(backContours).toHaveLength(hillbacks.length);
@@ -302,6 +306,21 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
           (m[1].match(/ C/g)??[]).length>=30&&m[1].endsWith(" Z")))
           .toBe(true);
         expect(new Set(backMasses.map(m=>m[1])).size).toBe(6);
+        for(let k=0;k<6;k++){
+          const path=backMasses[k][1];
+          const numbers=(path.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+          // Seven connected cubic contour edges; the concave undercut
+          // must begin at the SECOND edge's own geometric knuckle.
+          expect((path.match(/ C/g)??[])).toHaveLength(7);
+          const knuckle=numbers.slice(12,14);
+          expect(knuckle.every(Number.isFinite)).toBe(true);
+          expect(undercuts[k][1]).toBe(knuckle.join(","));
+          expect(undercuts[k][2]).toMatch(/^M-?[\d.]+ -?[\d.]+ C/);
+          expect((undercuts[k][2].match(/ C/g)??[])).toHaveLength(3);
+          expect(undercuts[k][2].endsWith(" Z")).toBe(true);
+          expect(html).toContain('id="'+backMasses[k][2]+'-volume-clip"');
+          expect(html).toContain('id="'+backMasses[k][2]+'-undercut"');
+        }
         expect(paint(school,0)).not.toContain("data-km-master-fuchun-hillback");
         // Ink dilution changes pigment only, never supported stone paths.
         const weak=paint(school,1,.28);
