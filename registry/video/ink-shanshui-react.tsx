@@ -2011,12 +2011,18 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
   // with nonuniform root intervals and distinct leaning crooked trunks.
   // The previous symmetric height pattern made five identical antennas.
   // Other source schools keep their independently developed silhouettes.
+  // The prior 49..44px hilltop cluster painted five antenna trunks on
+  // a single summit; NPM's Fuchun trees instead gather in UNEQUAL
+  // hillside groups, separated by uninked rock. Spread these same five
+  // independent parent-rooted trees over two terraces and a middle
+  // transition. Their actual bases still sample the live ridge contour.
+  // Every 20 boughs, 40 crowns, 60 pads and 310 touches is retained.
   const distribution=school==="fuchun"?([
-    {dx:-49,height:35,bow:-14},
-    {dx:-23,height:78,bow:13},
-    {dx:-8,height:94,bow:-18},
-    {dx:17,height:55,bow:16},
-    {dx:44,height:33,bow:-12},
+    {dx:-97,height:29,bow:-11},
+    {dx:-71,height:48,bow:13},
+    {dx:-12,height:70,bow:-18},
+    {dx:53,height:89,bow:16},
+    {dx:80,height:32,bow:-12},
   ] as const):([
     {dx:-33,height:43,bow:-6},
     {dx:-17,height:62,bow:7},
