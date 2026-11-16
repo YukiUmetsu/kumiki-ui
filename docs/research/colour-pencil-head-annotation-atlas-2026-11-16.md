@@ -107,3 +107,54 @@ not simply a 'portrait' filename.
 bytes, then annotate it and the actual film-output head. This PR adds
 no pretend annotations, no finished human, and no unconditional merge of
 unapproved artwork.
+
+## Stage 2 — pixel-precise close inspection, without inventing evidence
+
+The Stage-1 head contour is **still not approved**. Source and film
+still need an independently selected, rights-reviewed 3/4 photograph and
+real source/output pixel measurements. A screen-fit photograph makes an
+individual 1–2px mandibular boundary or atlas point impossible to place
+reliably. The interactive atlas therefore now supports **Fit / 2× / 4× /
+8× inspection** separately on each original image, with a horizontally
+and vertically scrollable crop. The `<img>` and `<svg>` are scaled
+together, and the original-pixel `viewBox` is unchanged. No pixels are
+resampled or substituted in the output JSON.
+
+Selecting a placed landmark or tonal ROI and using the Left/Up/Down/Right
+buttons translates it by exactly **one native image pixel**. Focus the
+image and use arrows for the same correction; Shift + arrow moves ten
+original pixels. Errors reject moves outside the original dimensions or
+overlapping another real tone rectangle. Moving a tone does **not**
+change its size or independent mean-RGB sampling area. Annotations for
+the other image remain byte-identical. The original local-only image
+handling, file replacement rules and license gate are unchanged.
+
+**Source-led drawing comparison (technique references only):**
+
+| Axis | First-party observation | What to inspect in our Stage-1 head |
+| --- | --- | --- |
+| Topology | [Elena Pancorbo, original portrait art](https://www.elenapancorbo.com/originalesoriginals/bajacalidad-23): cranium, brow/temple, malar wedge and chin read as connected planes, not separate patches. | Near/far zygion and mandibular turns must continue into the crown and menton without sudden width jumps. |
+| Flow | [Janie Gildow, pencil pressure and layering](https://www.desertmuseumarts.com/_files/ugd/7a6b2d_b5b3d4744f55473394fbd965bad1a04a.pdf): multiple low-pressure passes follow the actual curvature. | Study tangent continuity along temporal and cheek turns at 2× and 4×; do not substitute parallel screen-space hatch. |
+| Edge | [Elena Pancorbo, original portraits](https://www.elenapancorbo.com/): sharply controlled mouth/eye/lash edges sit beside soft cheek volume; this head has none of those features *yet*. | Check only the paper-to-cranium outside boundary and deliberately soft interior value-plane changes. No false feature lines. |
+| Material | [Caran d'Ache, coloured-pencil layering](https://www.carandache.com/gb/en/blending-colours-with-coloured-pencils): transparent pigmented layers make value/chroma depth without flat bitmap fill. | Inspect the six source-authored head pigment planes and actual ANAT1-surface strokes for tooth and shape at original/native scale. |
+| Source credibility | [Commons original photo example](https://commons.wikimedia.org/wiki/File:Portrait-Person-Old-Man-Man-Head-1615262.jpg), credited to rottonara, CC0. Original 4912×3264; the photo is nearly frontal with the skull covered by a head scarf. | **REJECT for this gate:** copyright permission and high resolution do not establish unobscured three-quarter cranial contour. Do not annotate or mark as an approved source. |
+
+No other artist's artwork is copied into shipped characters or
+Storybook. The precision controls are testable *measurement tools*; no
+unmeasured anatomical or stylistic improvement is claimed. A final
+ArtCraft release requires a real source photograph, native 1×/3×
+comparison, verified contour/tonal evidence, and an independent artist
+decision **before drawing the first eye**.
+
+### Stage-2 verification
+
+- `tests/colored-pencil-head-annotation.test.ts`: pure pixel translation,
+  immutable other-side coordinates, ROI area preservation, overlap/bounds
+  fail-closed and zero-change identity.
+- `tests/e2e-storybook/colored-pencil-head-annotation.spec.ts`: native
+  Chromium on **both original local images**, actual 2× pointer placement
+  at 24×24 intrinsic pixels, one-pixel button correction, ten-pixel
+  keyboard correction, unchanged 18+5 export rules and working fit view.
+- CI in `colored-pencil-foundation-proof.yml` exercises both tests with
+  the existing physical-pencil nonregression suite. CI and screenshot
+  evidence do not count as artistic realism approval.

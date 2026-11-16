@@ -43,6 +43,33 @@ test("ArtCraft annotation atlas uses separate local source/native files and expo
     await expect(labels).toHaveCount(18);
     expect(await labels.allTextContents()).toEqual(
       Array.from({length:18},(_,i)=>String(i+1)));
+    // True visual zoom must never alter ORIGINAL pixel coordinates. Both
+    // sides are tested independently; no resampled source is exported.
+    await page.getByLabel(side+" native annotation magnification")
+      .selectOption("2");
+    const zoomBox=await overlay.boundingBox();
+    expect(zoomBox).not.toBeNull();
+    await page.getByLabel(side+" contour point").selectOption("0");
+    await overlay.click({position:{
+      x:zoomBox!.width*.1,y:zoomBox!.height*.1,
+    }});
+    const apex=parent.locator(
+      '[data-km-annotated-contour="cranial-apex"] circle');
+    await expect(apex).toHaveAttribute("cx","24");
+    await expect(apex).toHaveAttribute("cy","24");
+    // Placing a point auto-selects the next semantic point; explicitly
+    // reselect the placed apex before applying native-pixel corrections.
+    await page.getByLabel(side+" contour point").selectOption("0");
+    await page.getByRole("button",{name:
+      "Nudge "+side+" selected annotation right by 1 native pixel"}).click();
+    await expect(apex).toHaveAttribute("cx","25");
+    await overlay.focus();
+    await page.keyboard.press("Shift+ArrowDown");
+    await expect(apex).toHaveAttribute("cy","34");
+    await page.getByLabel(side+" native annotation magnification")
+      .selectOption("1");
+    await expect(parent.locator("[data-km-annotated-contour]"))
+      .toHaveCount(18);
     // Correct a wrong point without deleting the 17 others or data on
     // the other photo; later restore the point to complete the atlas.
     await page.getByLabel(side+" contour point").selectOption("0");
@@ -66,6 +93,12 @@ test("ArtCraft annotation atlas uses separate local source/native files and expo
     await expect(parent.locator("[data-km-annotated-tone]")).toHaveCount(5);
     await expect(parent.locator("[data-km-annotated-tone-label]")).toHaveCount(5);
     await page.getByLabel(side+" tonal band").selectOption("0");
+    const firstTone=parent.locator('[data-km-annotated-tone="highlight"]');
+    const originalX=Number(await firstTone.getAttribute("x"));
+    await page.getByRole("button",{name:
+      "Nudge "+side+" selected annotation right by 1 native pixel"}).click();
+    await expect(firstTone).toHaveAttribute("x",String(originalX+1));
+
     await page.getByRole("button",{name:"Remove selected "+side+" tone"}).click();
     await expect(parent.locator("[data-km-annotated-tone]")).toHaveCount(4);
     const bx=await overlay.boundingBox();

@@ -144,6 +144,39 @@ export function removeHeadAnnotation(
   return changedSide(session,side,{...previous,tones:remaining});
 }
 
+/** Pixel-precise corrections on an independently annotated original or
+ * render. Keep the original image's coordinate space intact at any viewport
+ * zoom: a 1px arrow press ALWAYS moves one intrinsic image pixel. A tone ROI
+ * translates without changing its area or overwriting a neighboring swatch.
+ * Reject collisions / out-of-bounds rather than silently clipping evidence.
+ */
+export function nudgeHeadAnnotation(
+  session:HeadAnnotationSession,side:HeadAnnotationSide,
+  kind:"landmark"|"tone",id:HeadFidelityLandmarkId|HeadFidelityToneId,
+  delta:NativePoint,d:NativeDimensions,
+):HeadAnnotationSession{
+  assertDimensions(d);
+  if(!Number.isSafeInteger(delta.x)||!Number.isSafeInteger(delta.y)||
+    Math.abs(delta.x)>100||Math.abs(delta.y)>100)
+    throw new RangeError("Nudge must use bounded integer native pixels");
+  if(delta.x===0&&delta.y===0)return session;
+  if(kind==="landmark"){
+    const existing=session[side].landmarks.find(p=>p.id===id);
+    if(!existing)throw new RangeError("Place the selected contour point before nudging");
+    return annotatedPoint(session,side,id as HeadFidelityLandmarkId,
+      {x:existing.x+delta.x,y:existing.y+delta.y},d);
+  }
+  if(kind==="tone"){
+    const existing=session[side].tones.find(t=>t.id===id);
+    if(!existing)throw new RangeError("Draw the selected tonal rectangle before nudging");
+    const {x,y,width,height}=existing.rect;
+    return annotatedTone(session,side,id as HeadFidelityToneId,
+      {x:x+delta.x,y:y+delta.y},
+      {x:x+delta.x+width,y:y+delta.y+height},d);
+  }
+  throw new RangeError("Unknown annotation kind");
+}
+
 /** Manifest only: no source pixels, synthetic RGB or invented hashes.
  * The exact-byte capture CLI will hash and mean-sample BOTH real files.
  */

@@ -2,7 +2,7 @@ import {describe,it,expect} from "vitest";
 import {
   emptyHeadAnnotations, annotatedPoint, annotatedTone,
   clientToNativePoint, compileHeadAnnotationManifest,
-  removeHeadAnnotation,
+  removeHeadAnnotation,nudgeHeadAnnotation,
 } from "../src/video/colored-pencil-head-annotation";
 import {HEAD_FIDELITY_LANDMARK_IDS,HEAD_FIDELITY_TONES} from
   "../src/video/colored-pencil-head-fidelity";
@@ -20,6 +20,43 @@ describe("ArtCraft standalone head-only photo/source annotation atlas",()=>{
       .toEqual({x:0,y:0});
     expect(()=>clientToNativePoint({clientX:0,clientY:0},
       {...rect,width:0},source)).toThrow(/dimensions/i);
+  });
+
+  it("nudges only the selected original-image annotation in native pixels, preserving tone areas",()=>{
+    let state=emptyHeadAnnotations();
+    state=annotatedPoint(state,"source","cranial-apex",{x:220,y:30},source);
+    state=annotatedPoint(state,"output","cranial-apex",{x:112,y:60},output);
+    state=annotatedTone(state,"source","highlight",
+      {x:20,y:20},{x:50,y:50},source);
+    state=annotatedTone(state,"source","light",
+      {x:60,y:20},{x:90,y:50},source);
+    state=annotatedTone(state,"output","highlight",
+      {x:30,y:40},{x:70,y:80},output);
+    const moved=nudgeHeadAnnotation(state,"source","landmark",
+      "cranial-apex",{x:1,y:-10},source);
+    expect(moved.source.landmarks[0]).toEqual({
+      id:"cranial-apex",x:221,y:20,
+    });
+    expect(moved.output).toEqual(state.output);
+    expect(state.source.landmarks[0].x).toBe(220);
+    const box=nudgeHeadAnnotation(moved,"source","tone",
+      "highlight",{x:4,y:3},source);
+    expect(box.source.tones.find(t=>t.id==="highlight")!.rect).toEqual({
+      x:24,y:23,width:30,height:30,
+    });
+    expect(box.source.tones.find(t=>t.id==="light")).toEqual(
+      state.source.tones.find(t=>t.id==="light"));
+    expect(box.output).toEqual(state.output);
+    expect(()=>nudgeHeadAnnotation(box,"source","tone",
+      "highlight",{x:12,y:0},source)).toThrow(/overlap/i);
+    expect(()=>nudgeHeadAnnotation(box,"source","landmark",
+      "cranial-apex",{x:0,y:-30},source)).toThrow(/bounds/i);
+    expect(()=>nudgeHeadAnnotation(box,"source","landmark",
+      "cranial-apex",{x:.5,y:0},source)).toThrow(/integer/i);
+    expect(()=>nudgeHeadAnnotation(box,"output","landmark",
+      "parietal-near",{x:1,y:0},output)).toThrow(/place/i);
+    expect(nudgeHeadAnnotation(box,"source","tone",
+      "highlight",{x:0,y:0},source)).toBe(box);
   });
 
   it("tracks 18 independently placed head-only landmarks for each ORIGINAL image",()=>{
