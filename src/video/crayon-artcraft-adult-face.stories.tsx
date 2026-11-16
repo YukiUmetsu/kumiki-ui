@@ -477,7 +477,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
   const [eyeContact,setEyeContact]=useState<Cc0EyeContact>(initialEyeContact);
   const [browForm,setBrowForm]=useState<"baseline"|"source-rooted">("baseline");
-  const [midfaceForm,setMidfaceForm]=useState<"source-volume"|"baseline">("baseline");
+  const [midfaceForm,setMidfaceForm]=useState<"source-volume"|"source-alar"|"baseline">("baseline");
   const [jawNeckForm,setJawNeckForm]=useState<"source-contour"|"baseline">("baseline");
   const [lashFinish,setLashFinish]=useState<CrayonF1LashFinish>(initialLashFinish);
   const [inspection,setInspection]=useState<
@@ -624,8 +624,9 @@ export function Cc0SourceRegisteredFaceWorkbench({
       <label>Source nose and lip volumes{" "}
         <select aria-label="F1 source midface anatomy" value={midfaceForm}
           onChange={e=>setMidfaceForm(e.target.value as
-            "source-volume"|"baseline")}>
+            "source-volume"|"source-alar"|"baseline")}>
           <option value="source-volume">Attached nasal and lip/dental wax (experiment)</option>
+          <option value="source-alar">Source cartilage roof / curved nostril undercut (unapproved A/B)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
