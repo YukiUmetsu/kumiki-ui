@@ -2533,11 +2533,42 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
                 f(r[0]+sweep*reach*.09)+" "+
                 f(r[1]-crest*.045)+" "+
                 f(r[0])+" "+f(r[1])+" Z";
+          // The Fuchun museum detail has deposited wet branches interrupted
+          // by flying-white channels that travel ALONG the loaded brush,
+          // not opaque gray vector cushions. Keep the exact positive
+          // 6–8-lobe, four-cubic canopy geometry. Cut two slender interior
+          // paper channels with SVG's even-odd winding: no background-color
+          // overlays, bitmap noise, erased needles or extra filter passes.
+          // Every channel is parameterized in the original bough-local
+          // root/sweep/reach/crest frame, so reverse-hand boughs stay intact.
+          const paperChannels=school==="fuchun"
+            ?([.24,.59] as const).map((start,n)=>{
+              const span=n===0?.18:.19;
+              const mid=start+span*.5;
+              const end=start+span;
+              const depth=n===0?.18:.205;
+              const tipDepth=n===0?.26:.29;
+              const lowerDepth=n===0?.11:.135;
+              const atChannel=(t:number,v:number):P=>[
+                r[0]+sweep*reach*t,
+                r[1]-crest*v,
+              ];
+              const a=atChannel(start,depth);
+              const b=atChannel(end,depth*.91);
+              const crown=atChannel(mid,tipDepth);
+              const belly=atChannel(mid,lowerDepth);
+              return "M"+f(a[0])+" "+f(a[1])+
+                " Q"+f(crown[0])+" "+f(crown[1])+
+                " "+f(b[0])+" "+f(b[1])+
+                " Q"+f(belly[0])+" "+f(belly[1])+
+                " "+f(a[0])+" "+f(a[1])+" Z";
+            }).join(" "):"";
           const ridge=rockLoadedRibbon(r,
             [r[0]+sweep*reach*.41,r[1]-crest*.42],
             [fanTip[0]-sweep*reach*.12,fanTip[1]+crest*.18],
             k===0?.88:.71,seed+1973+i*97+j*31+k*17);
-          return {r,d,ridge,lobes:lobeCount};
+          return {r,d:paperChannels?d+" "+paperChannels:d,
+            ridge,lobes:lobeCount,paperChannels:paperChannels?2:0};
         });
         // Tertiary Fuchun pine ink twigs: three connected cubic child
         // bones grown from exact existing bough stations, not stamped
@@ -2645,14 +2676,18 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
               data-km-cliff-pine-graft-hand={hand}
               d={body} fill={k===1?"#5a4d3d":"#352f28"}
               opacity={f((k===1?.55:.73)*shade)}/>)}
-            {inkIslands.map(({r,d,ridge,lobes},k)=><g key={"island"+k}
+            {inkIslands.map(({r,d,ridge,lobes,paperChannels},k)=><g key={"island"+k}
               data-km-cliff-pine-ink-island=""
               data-km-cliff-pine-ink-island-root={f(r[0])+","+f(r[1])}
               data-km-cliff-pine-fan-lobes={lobes}>
               <path data-km-cliff-pine-ink-canopy="" d={d}
-                fill={k===0?"#332f29":"#484036"}
+                data-km-cliff-pine-canopy-paper-channels={paperChannels}
+                fillRule={school==="fuchun"?"evenodd":undefined}
+                fill={school==="fuchun"
+                  ?(k===0?"#29261f":"#554b3e")
+                  :(k===0?"#332f29":"#484036")}
                 opacity={f((school==="fuchun"
-                  ?(k===0?.65:.56):(k===0?.76:.69))*shade)}/>
+                  ?(k===0?.79:.63):(k===0?.76:.69))*shade)}/>
               <path data-km-cliff-pine-ink-edge="" d={ridge}
                 fill={k===0?"#2e2925":"#39342d"}
                 opacity={f(.77*shade)}/>
