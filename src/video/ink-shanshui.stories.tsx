@@ -506,7 +506,7 @@ function MasterInkSourceComparison(){
     {school:"fuchun",title:"Huang Gongwang · long hemp fibre",
       url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975",
       observation:"Rounded nested hills, uneven long hemp loaded at the head, bare paper between linked families. Do not confuse with raindrop marks.",
-      target:"Six parent-rooted rounded/saddle hill-back stone volumes under nine alum-head banks and 78 original hemp fibres; reject exposed dangling black wires."},
+      target:"Six rounded/saddle hill-back volumes, bank-following hemp and four 3-stage hero fractures; five uneven, leaning ridge-planted old pines with 20 differently stationed boughs, 40 loaded fan canopies and 310 fine needle touches. Reject pale wire cliffs, repeated upright antenna trunks or false museum parity."},
     {school:"early-spring",title:"Guo Xi · curled cloud-head",
       url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000960",
       observation:"Reversing cloud-head rock rolls, layered ink ranges and open mist; crab-claw pine branching in the source.",
