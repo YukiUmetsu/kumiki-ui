@@ -41,7 +41,6 @@ export type PencilHeadContourDiagnostics={
   differences:PencilHeadContourDifference[];
 };
 type Side="source"|"output";
-const SIDES=["source","output"] as const;
 const contourPairs=[
   ["parietal-near","parietal-far"],
   ["frontal-near","frontal-far"],
