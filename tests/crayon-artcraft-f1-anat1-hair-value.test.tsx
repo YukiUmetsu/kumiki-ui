@@ -98,7 +98,7 @@ describe("F1 V38 ANAT1/CC0 photographed crown + face-occluding curtain native wa
       e.id==="hair-rooted-left-0"?{...e,id:"hair-rooted-left-7"}:e)))
       .toThrow(RangeError);
     expect(()=>crayonF1CalibrateAnat1HairValues(native.elements.filter(e=>
-      e.id!=="hair-rooted-right-0"))).toThrow(RangeError);
+      !e.id.startsWith("hair-rooted-right-")))).toThrow(RangeError);
   });
 
   it("preserves 300-frame paper tooth, real hair strokes and original !dev Storybook",()=>{
