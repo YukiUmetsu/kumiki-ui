@@ -459,6 +459,27 @@ Review now uses overlays: the teacher's ink and our form in two colours. The dif
 
 **Several teachers.** `teacher` now also takes a list. The first teacher in the list that has a form for a character writes it, and the rules write a character that no teacher has. A second teacher can then fill characters that the first one does not write.
 
+## 2.19 Fifteenth study round: word models cut again, and a second teacher
+
+**Word models, cut again.** Twenty characters from the word models had no form. The cause was a hand or a sleeve over a written character: it delays the writing time of some of that character's pixels, so they fall into the next character's segment, and that segment is then not compact. Now:
+- ink that lies apart from its segment's main body goes to the segment whose main body is nearest, and ink far from every main body is dropped;
+- only the characters that a word is cut for must be compact, and such a character must not lie in the same place as another segment (one character cut in two);
+- when a word does not cut cleanly, the next word that holds the character is tried.
+
+Fifteen characters now cut. Review accepts 11 forms (草 謝 貢 遺 農 振 興 解 清 里 蒼). ば, ぎ and び keep the rules: a dakuten on the tail of a loop, a diagonal a few pixels off, and an offset bowl. 献 fails the automatic gate.
+
+**A second teacher.** The second teacher's videos show the same character four times: with a pen, a brush pen, a large brush beside a model card, and as an art piece. The large-brush take is found from the card.
+- *Size.* His sheet is larger than the camera's view, and the zoom changes from video to video, so the paper does not give a size. Each character gets a virtual sheet on which his ink has the size and centre of the rules form (外形).
+- *Data.* Many extractions are another take, caption text, or partial writing (the card take often starts after the first strokes). 65 clean takes were chosen by eye before fitting.
+- *Result.* His strokes are thinner and freer than the first teacher's. Four forms match his writing closely (叶 確 罪 臣, overlap 0.71 to 0.79). Other forms have one part that lies off his stroke (the long sweep of 木 in 根, a flick of 長 in 張) and keep the rules.
+
+**Not yet learned.** か, や, ゆ, 短, 様 and 建 have single models but keep the rules: the sweep of か's ノ and of 矢 stays short, and the loops of や and ゆ stay small. 様 and 建 had the sheet's edge in their ink; it is now removed, but their fits are not yet close.
+
+| | Round nine | Round ten |
+|---|---|---|
+| First teacher's forms | 428 | 439 |
+| Second teacher's forms | | 4 |
+
 ## 3. From observation to model
 
 | Observation | Model decision |
