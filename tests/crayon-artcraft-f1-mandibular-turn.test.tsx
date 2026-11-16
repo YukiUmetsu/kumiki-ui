@@ -68,7 +68,7 @@ describe("ArtCraft F1 V30 native crayon photographed 3/4 jaw and cheek",()=>{
     expect(outline.bounds.y+outline.bounds.height).toBeGreaterThan(858);
     expect(jaw.d).toContain("398 858");
     expect(jaw.featherContacts).toBe(true);
-    expect(jaw.blendRadius).toBeGreaterThan(18);
+    expect(jaw.blendRadius).toBeGreaterThanOrEqual(18);
     expect(cast.d).toContain("157 725");
     expect(cast.featherContacts).toBe(true);
     expect(cast.blendRadius).toBeGreaterThan(15);

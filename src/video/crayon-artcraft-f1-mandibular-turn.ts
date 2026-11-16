@@ -81,7 +81,7 @@ const surfaces:Readonly<Record<(typeof CRAYON_F1_V30_SURFACE_IDS)[number],Partia
       "C133 770 128 759 125 747Z",
     bounds:{x:117,y:741,width:379,height:148},
     coverage:"open",deposition:"stroke-built",nibStyle:"dry",
-    featherContacts:true,blendRadius:18.3,
+    featherContacts:true,blendRadius:18,
     outlineOpacity:0,
   },
   "chin-plane":{
