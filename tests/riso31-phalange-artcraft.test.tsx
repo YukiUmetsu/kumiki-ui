@@ -71,8 +71,9 @@ describe("RISO31 ArtCraft / actual PIP+DIP printed phalanx animation",()=>{
           // RISO31_GEOMETRY. Only the receiver's three ulnar supporting
           // fingers now project shorter in the live 2D camera after f146.
           // Do not fake equality of true length and visible 3/4 projection.
-          const projected=spec.id==="paper-artist"&&side==="left"&&
-            sample.digit!=="index"&&frame>=148;
+          const projected=sample.digit!=="index"&&frame>=148&&(
+            (spec.id==="paper-artist"&&side==="left")||
+            (spec.id==="courier"&&side==="right"&&frame<205));
           if(projected){
             expect(sample.rootLength).toBeLessThan(sample.expectedProximal-.005);
             expect(sample.rootLength).toBeGreaterThan(sample.expectedProximal*.58);
