@@ -285,6 +285,117 @@ function newHeadPlanePigment(
   return traces;
 }
 
+/**
+ * Stage-1 art iteration: three crossed DRY-PENCIL contact passes, sampled on
+ * a shaded cranial ellipsoid in the same projected ANAT1 head coordinates.
+ * Actual head material remains individually authored vector pigment: there
+ * is no bitmap, SVG gradient, blurred mask or broad flat-color fill here.
+ *
+ * The previous native 960x540 capture was almost white inside a pencil
+ * outline: a handful of 0.3px marks cannot build photographed skin mass.
+ * Add warm/cool interleaving, a soft side-plane terminator and a localized
+ * reflected-light edge with thousands of short pressure-sensitive strokes.
+ *
+ * This ellipsoid is an ORIGINAL approximation of skull volume. It is not
+ * a likeness/reconstruction, nor a measured real-photo tonal map; the
+ * independent exact-byte 18-point/five-ROI ArtCraft gate remains blocked.
+ */
+export function newHeadCranialTonalVolume(
+  bounds:readonly [number,number,number,number],
+  seed:number,
+):PencilTrace[]{
+  if(bounds.length!==4||bounds.some(v=>!Number.isFinite(v))||
+    bounds[2]<40||bounds[3]<40||
+    !Number.isSafeInteger(seed)||seed<0||seed>2147483000)
+    throw new RangeError("Stage-1 cranial volume needs finite head bounds and seed");
+  const [left,top,width,height]=bounds;
+  const cx=left+width*.505,cy=top+height*.47;
+  const rx=width*.535,ry=height*.61;
+  // Optical layers are colored-pencils, not five solid painted stripes.
+  // Keep paper in highlights: semi-transparent warm, neutral and cool
+  // touches read differently when layered on the tooth of the same sheet.
+  const palette=[
+    ["#EED1B7","#F6DABE","#C8B1AE"], // paper-reserved highlight
+    ["#D6AD98","#E6BFA2","#BC9C9E"], // frontal light
+    ["#B98782","#C39B8B","#9F7985"], // warm/cool halftone
+    ["#805C68","#996C72","#745F70"], // deep far temporal terminator
+    ["#B18B90","#D0ABA0","#8D7A82"], // narrow cool bounce
+  ] as const;
+  const opacities=[.28,.43,.58,.73,.48] as const;
+  const weights=[2.40,1.75,1.05] as const;
+  const strokes:string[][][]=Array.from({length:5},()=>
+    Array.from({length:3},()=>[] as string[]));
+  // Fill each of 5 values with an exact, independently preserved count.
+  // Keep all planned marks and all 15 editable value-specific colour
+  // passes. The bounded CP-F1 detail cap is now 96 traces with max 12k
+  // characters per trace; never truncate prior 77 head details.
+  for(let pass=0;pass<3;pass++){
+    const budgets=[134,170,176,184,105] as const;
+    const collected=budgets.map(()=>0);
+    let i=0;
+    while(collected.some((n,band)=>n<budgets[band])&&i<150000){
+      const key=pass*523991+i++;
+      // Independent 2D spatial sampling is essential: adjacent salts on
+      // pencilHash are correlated along diagonal lattices. Actual 1×
+      // Chromium evidence showed TWO unnatural dark slashes across the
+      // cranium despite passing all scalar/trace-budget tests.
+      // Decouple axis index strides and seeds, preserving determinism.
+      const x=left+width*pencilHash(seed,Math.imul(key,2),401);
+      const y=top+height*pencilHash(
+        seed^0x9e3779b9,Math.imul(key,3)+106113,402);
+      const u=(x-cx)/rx,v=(y-cy)/ry;
+      const r2=u*u+v*v;
+      if(r2>=.965)continue;
+      // Ellipsoid z supplies the missing vault shading (ANAT1 ends at
+      // hairline). Side light comes from viewer upper-left with a dark,
+      // gently curved far-temporal plane, not five horizontal bands.
+      const z=Math.sqrt(1-r2);
+      const light=.62*z-.63*u-.21*v;
+      const bounce=u>.57&&v>-.43&&v<.66&&z<.59;
+      const band=bounce?4:light>.68?0:light>.39?1:
+        light>.12?2:3;
+      if(collected[band]>=budgets[band])continue;
+      const edge=Math.pow(1-r2,.28);
+      // Sparse reserves reveal paper tooth; avoid a rigid ellipse edge.
+      if(pencilHash(seed,key,403)>.64+.36*edge)continue;
+      const pressure=(.56+.44*pencilHash(seed,key,404))*edge;
+      const angle=-.21+.46*v-.32*u+
+        [0,.43,-.51][pass]+
+        (pencilHash(seed,key,405)-.5)*.19;
+      const ux=Math.cos(angle),uy=Math.sin(angle);
+      const orthoX=-uy,orthoY=ux;
+      const span=(5.1+6.7*pencilHash(seed,key,406))*
+        (.58+.42*edge)*(.77+.23*pressure)*(pass===2?.78:1);
+      const deflect=(pencilHash(seed,key,407)-.5)*.54;
+      strokes[band][pass].push(line(
+        [x-ux*span*.51,y-uy*span*.51],
+        [x+orthoX*deflect,y+orthoY*deflect],
+        [x+ux*span*.49+orthoX*deflect*.27,
+         y+uy*span*.49+orthoY*deflect*.27],
+      ));
+      collected[band]++;
+    }
+    if(collected.some((n,band)=>n!==budgets[band]))
+      throw new Error("Cranial ellipsoid failed to cover all five values");
+  }
+  const out:PencilTrace[]=[];
+  for(let band=0;band<5;band++)for(let pass=0;pass<3;pass++){
+    if(strokes[band][pass].length<12)
+      throw new Error("Stage-1 ellipsoid missing a pencil value region");
+    const id=["highlight","light","halftone",
+      "core-shadow","reflected-light"][band];
+    const strokePath=strokes[band][pass].join(" ");
+    if(strokePath.length>12000)
+      throw new Error("Cranial tonal-pigment trace exceeds CP-F1 12kB bound");
+    out.push(drawn("newhead-cranium-"+id+"-cross"+pass,
+      strokePath,
+      palette[band][pass],weights[pass],
+      opacities[band]*[.93,1,.84][pass],
+      173+band*4+pass*7));
+  }
+  return out;
+}
+
 export const NEW_CHARACTER_01_ID="head-silhouette-01" as const;
 export const NEW_CHARACTER_01_STAGE="head-outline" as const;
 
@@ -449,11 +560,13 @@ export function newCharacterHeadInspectionAnchors(){
 
 /** Fresh original skull/vault blockout: measured lower face plus newly
  * authored parietal and frontal arch; NO previous woman silhouette. */
-export function newCharacterHeadStageOne(seed=271,contourCraft=true):PencilSubjectPart[]{
+export function newCharacterHeadStageOne(seed=271,contourCraft=true,cranialVolume=false):PencilSubjectPart[]{
   if(!Number.isSafeInteger(seed)||seed<0||seed>2147483000)
     throw new RangeError("New character study requires a valid drawing seed");
   if(typeof contourCraft!=="boolean")
     throw new TypeError("Head contour craftsmanship toggle must be boolean");
+  if(typeof cranialVolume!=="boolean")
+    throw new TypeError("Head cranial optical-volume toggle must be boolean");
   // Fresh proportions, camera yaw, outline and local marks are independent
   // of pencilPortraitAnatomy() and the retired woman face() factory.
   const face=createFace(NEW_HEAD_FACE);
@@ -565,6 +678,8 @@ export function newCharacterHeadStageOne(seed=271,contourCraft=true):PencilSubje
     bounds,direction:64,flow:11,start:73,
     details:[
       ...connectedPlanes,
+      ...(cranialVolume?newHeadCranialTonalVolume(
+        bounds,(seed+1957)%2147483647):[]),
       ...newHeadAnat1ValuePigment(face,(seed+2393)%2147483647),
       ...newHeadValuePencil(guides,(seed+1001)%2147483647),
       drawn("newhead-sagittal-guide",line(forehead,glabella,chin),
