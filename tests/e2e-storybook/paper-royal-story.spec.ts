@@ -1,6 +1,22 @@
 import {expect,test} from "@playwright/test";
 
 const path="/iframe.html?id=video-production-film-looks-paper-craft--moonlit-lantern&viewMode=story";
+test("portrait prince review loupe keeps his face in the review viewport in each chapter",async({page},info)=>{
+  await page.goto(path+"&args=aspect:portrait;motion:0;medium:layered");
+  await page.addStyleTag({content:'[data-royal-inspection-target] { transition: none !important; }'});
+  const loupe=page.locator('[data-royal-inspection-target="prince"]');
+  await page.getByRole("button",{name:"Inspect prince · 3×",exact:true}).click();
+  for(const [index,chapter] of [null,/02 · Follow the little lights/,/03 · A light shared/].entries()){
+    if(chapter)await page.getByRole("button",{name:chapter}).click();
+    await expect.poll(async()=>{
+      const viewport=await loupe.locator("..").boundingBox();
+      const head=await loupe.locator('[data-km-paper-layer="prince-head"] > g > path').first().boundingBox();
+      if(!viewport||!head)return Infinity;
+      return Math.abs((head.x+head.width/2)-(viewport.x+viewport.width/2))/viewport.width;
+    },{timeout:3000}).toBeLessThan(.1);
+    await loupe.locator("..").screenshot({path:info.outputPath(`prince-loupe-chapter-${index+1}.png`),animations:"disabled"});
+  }
+});
 for(const aspect of ["landscape","portrait"] as const){
   test("original royal paper fairy tale "+aspect+" renders all three acts with connected cutout actors",async({page},info)=>{
     const errors:string[]=[];

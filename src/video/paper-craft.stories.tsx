@@ -284,7 +284,8 @@ function PaperRoyalStoryLab({medium,aspect,seed,motion,tooth,shadow,edge,reduced
     const gap=aspect==="landscape"
       ? [194,163,120][shot.shotIndex]
       : [122,108,92][shot.shotIndex];
-    const actorX=w/2+(inspection==="princess"?-gap:gap);
+    const princeShift=aspect==="portrait"?[65,30,0][shot.shotIndex]:0;
+    const actorX=w/2+(inspection==="princess"?-gap:gap-princeShift);
     const actorY=(aspect==="landscape"?439:724)
       -(inspection==="princess"?188:188)*(aspect==="landscape"?1.03:1.16);
     const zoom=3;
