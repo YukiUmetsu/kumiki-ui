@@ -124,7 +124,7 @@ export function refineRiso37SourceEngraving(
     const digit=folds[1] as Digit;
     const stage=folds[2]==="joint-crease"?"pip":"dip";
     return {...part,d:crease(digit,actor,stage),paint:stage==="pip"?"solid":"screen",
-      screenTone:stage==="pip"?undefined:"mid"};
+      screenTone:stage==="pip"?undefined:"light"};
   }
   const tip=/^(index|middle|ring|pinky)-nail$/.exec(name);
   if(tip)return {...part,d:nail(tip[1] as Digit,actor),paint:"screen",screenTone:"mid"};
