@@ -669,7 +669,7 @@ function ReaderExpressionLab(){
         <g data-km-ink-iris-occlusion="far" clipPath={"url(#"+clipFar+")"}>
           {part("pupil-right",[156,102],"pupil-right",gaze.far)}
         </g>
-      </>
+      </>}
       {part("mouth",[142,124],"mouth-"+mouth)}
     </g>;
   };
