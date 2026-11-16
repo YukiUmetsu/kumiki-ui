@@ -1218,3 +1218,36 @@ test("F1 V23 CC0 near/far cavity/roof topology 1x 3x at f299",async({page},info)
   expect(Buffer.compare(Buffer.from(png[1]),Buffer.from(png[3]))).not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** ArtCraft V24 source-registered 1×/3× physical pigment A/B vs V23.
+ * This creates evidence for visual REJECTION, not automatic approval.
+ */
+test("F1 V24 CC0 nasal light planes, source native 1x and 3x f299",async({page},info)=>{
+  test.setTimeout(120_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const png:Uint8Array[]=[];
+  for(const midfaceForm of ["source-naris-occlusion","source-nasal-relief"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:417,focusY:629,zoom:3},
+        {frame:299,focusX:417,focusY:629,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["nose-tip","nose-dorsum","nose-sidewall-form",
+        "nose-septal-transition","naris-shadow-near","naris-shadow-far"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      png.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v24-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(png[0]),Buffer.from(png[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(png[1]),Buffer.from(png[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
