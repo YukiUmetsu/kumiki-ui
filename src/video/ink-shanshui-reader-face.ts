@@ -75,9 +75,12 @@ export function scrollReaderFacePortrait(detail=1):
       "none","$skinshade",1.4,.56),
     p("M117.3 103.6 Q115.2 104.3 115.1 107.8 Q119.6 108.5 116.2 113.5",
       "none","$shadow",.83,.67),
-    // Three-quarter temple -> tapered cheek -> defined chin. The right
-    // cheek reaches forwards; jaw narrows rapidly below the visible ear.
-    p("M119 77.6 C129.2 68.6 147.4 66.8 157.7 73.3 C163.3 78.4 166.2 87.5 165.8 97.7 C165.5 107 162.7 114.6 157.3 122.8 C154.8 126.2 152.7 128.7 150.8 131 C148.4 133.7 146.4 137.6 145.5 139.1 C146 140.1 145.7 142.2 143.3 143.7 C140.8 144.5 137.8 142.6 135.9 141.8 C132.1 139.5 127.9 136.8 124.9 133.1 C121.1 128.8 118.9 124.8 117.3 120.1 C115.9 116 115 112.3 114.6 106.8 C113.7 100.3 113.9 95.1 114.4 90.5 C114.7 86.8 116 81.3 119 77.6 Z",
+    // Three-quarter temple -> broad malar arch -> rounded menton. In
+    // the first source-resolution review the almost triangular chin
+    // made a mask-like face; preserve the same ANAT1 menton and gonion
+    // positions, but transition through a rounded 4px chin plateau.
+    // The left/near cheek is fuller than the foreshortened right cheek.
+    p("M119 77.6 C129.2 68.6 147.4 66.8 157.7 73.3 C163.3 78.4 166.2 87.5 165.8 97.7 C165.5 107 162.7 114.6 157.3 122.8 C154.8 126.2 152.6 129.4 150.3 131.8 C148.6 133.7 146.5 136.7 145 139 C146 141.4 144.9 143.2 143.3 143.7 C140.6 144.6 138.7 143.7 136.1 142.2 C131.8 140.2 127.4 137.3 124.9 133.1 C121.1 128.8 118.9 124.8 117.3 120.1 C115.9 116 115 112.3 114.6 106.8 C113.7 100.3 113.9 95.1 114.4 90.5 C114.7 86.8 116 81.3 119 77.6 Z",
       "$skin","$shadow",1.12),
     // Soft anatomical planes are placed along the jaw and nose and never
     // replace the opaque skin silhouette (no see-through heads).
